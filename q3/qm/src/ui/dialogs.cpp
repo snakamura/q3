@@ -276,6 +276,7 @@ LRESULT qm::AccountDialog::onRemove()
 				Account* pAccount = pSubAccount->getAccount();
 				status = pAccount->removeSubAccount(pSubAccount);
 				CHECK_QSTATUS_VALUE(0);
+				pSubAccount_ = pAccount->getCurrentSubAccount();
 				status = update();
 				CHECK_QSTATUS_VALUE(0);
 			}
@@ -295,6 +296,8 @@ LRESULT qm::AccountDialog::onRemove()
 			}
 		}
 	}
+	
+	updateState();
 	
 	return 0;
 }
@@ -554,11 +557,24 @@ void qm::AccountDialog::updateState()
 		}
 	}
 	
+	int nDisabledDefaultId = 0;
+	
 	int n = 0;
 	for (n = 0; n < nEnable; ++n)
 		Window(getDlgItem(nIds[n])).enableWindow(true);
-	for (; n < countof(nIds); ++n)
-		Window(getDlgItem(nIds[n])).enableWindow(false);
+	for (; n < countof(nIds); ++n) {
+		Window button(getDlgItem(nIds[n]));
+		button.enableWindow(false);
+		if (button.getWindowLong(GWL_STYLE) & BS_DEFPUSHBUTTON)
+			nDisabledDefaultId = nIds[n];
+	}
+	
+	if (nDisabledDefaultId) {
+		Window(getDlgItem(IDOK)).setFocus();
+		sendDlgItemMessage(nDisabledDefaultId, BM_SETSTYLE, BS_PUSHBUTTON, TRUE);
+		sendMessage(DM_SETDEFID, IDOK);
+		sendDlgItemMessage(IDOK, BM_SETSTYLE, BS_DEFPUSHBUTTON, TRUE);
+	}
 }
 
 
