@@ -106,9 +106,18 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 	TemplateContext context(mpl, mpl ? &msg : 0, listSelected, pAccount, pDocument_,
 		hwnd_, pSecurityModel_->isDecryptVerify(), pProfile_, &handler, listArgument);
 	
-	wstring_ptr wstrValue(pTemplate->getValue(context));
-	if (!wstrValue.get())
+	wstring_ptr wstrValue;
+	switch (pTemplate->getValue(context, &wstrValue)) {
+	case Template::RESULT_SUCCESS:
+		break;
+	case Template::RESULT_ERROR:
 		return false;
+	case Template::RESULT_CANCEL:
+		return true;
+	default:
+		assert(false);
+		return false;
+	}
 	
 	bool bExternalEditor = bExternalEditor_;
 	if (pProfile_->getInt(L"Global", L"UseExternalEditor", 0) != 0)

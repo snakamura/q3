@@ -1238,7 +1238,9 @@ bool qm::FileExportAction::writeMessage(qs::OutputStream* pStream,
 		pSecurityModel_->isDecryptVerify(),
 		pProfile_, 0, TemplateContext::ArgumentList());
 	
-	wstring_ptr wstrValue(pTemplate->getValue(context));
+	wstring_ptr wstrValue;
+	if (pTemplate->getValue(context, &wstrValue) != Template::RESULT_SUCCESS)
+		return false;
 	
 	std::auto_ptr<Converter> pConverter(ConverterFactory::getInstance(pwszEncoding));
 	if (!pConverter.get())
@@ -1836,9 +1838,18 @@ bool qm::FilePrintAction::print(Account* pAccount,
 		pDocument_, hwnd_, pSecurityModel_->isDecryptVerify(),
 		pProfile_, 0, TemplateContext::ArgumentList());
 	
-	wstring_ptr wstrValue(pTemplate->getValue(context));
-	if (!wstrValue.get())
+	wstring_ptr wstrValue;
+	switch (pTemplate->getValue(context, &wstrValue)) {
+	case Template::RESULT_SUCCESS:
+		break;
+	case Template::RESULT_ERROR:
 		return false;
+	case Template::RESULT_CANCEL:
+		return true;
+	default:
+		assert(false);
+		return false;
+	}
 	
 	wstring_ptr wstrExtension(pProfile_->getString(
 		L"Global", L"PrintExtension", L"html"));

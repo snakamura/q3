@@ -178,6 +178,8 @@ public:
 	bool isGetMessageAsPossible() const;
 	bool isDecryptVerify() const;
 	MacroErrorHandler* getErrorHandler() const;
+	MacroContext::ReturnType getReturnType() const;
+	void setReturnType(MacroContext::ReturnType type);
 	MacroValuePtr getVariable(const WCHAR* pwszName) const;
 	bool setVariable(const WCHAR* pwszName,
 					 MacroValue* pValue,
@@ -209,6 +211,7 @@ private:
 	bool bDecryptVerify_;
 	MacroErrorHandler* pErrorHandler_;
 	MacroVariableHolder* pGlobalVariable_;
+	MacroContext::ReturnType returnType_;
 	std::auto_ptr<MacroVariableHolder> pVariable_;
 	std::auto_ptr<MacroFunctionHolder> pFunction_;
 	std::auto_ptr<MacroArgumentHolder> pArgument_;

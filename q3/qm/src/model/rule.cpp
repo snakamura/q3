@@ -434,8 +434,8 @@ bool qm::CopyRule::apply(const RuleContext& context) const
 			TemplateContext templateContext(pmh, &msg, MessageHolderList(),
 				context.getAccount(), context.getDocument(), context.getWindow(),
 				context.isDecryptVerify(), context.getProfile(), 0, listArgument);
-			wstring_ptr wstrValue(pTemplate->getValue(templateContext));
-			if (!wstrValue.get()) {
+			wstring_ptr wstrValue;
+			if (pTemplate->getValue(templateContext, &wstrValue) != Template::RESULT_SUCCESS) {
 				log.errorf(L"Error occured while processing template.");
 				return false;
 			}

@@ -386,10 +386,15 @@ bool qm::HeaderItem::canSelectAll()
 
 wstring_ptr qm::HeaderItem::getValue(const TemplateContext& context) const
 {
-	if (context.getMessageHolder() || (nFlags_ & FLAG_SHOWALWAYS))
-		return pTemplate_->getValue(context);
-	else
-		return allocWString(L"");
+	wstring_ptr wstrValue;
+	if (context.getMessageHolder() || (nFlags_ & FLAG_SHOWALWAYS)) {
+		if (pTemplate_->getValue(context, &wstrValue) != Template::RESULT_SUCCESS)
+			return 0;
+	}
+	else {
+		wstrValue = allocWString(L"");
+	}
+	return wstrValue;
 }
 
 

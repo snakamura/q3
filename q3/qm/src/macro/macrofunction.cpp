@@ -425,8 +425,10 @@ MacroValuePtr qm::MacroFunctionAddressBook::value(MacroContext* pContext) const
 	};
 	AddressBookDialog dialog(pContext->getDocument()->getAddressBook(),
 		pContext->getProfile(), pwszAddress);
-	if (dialog.doModal(pContext->getWindow()) != IDOK)
+	if (dialog.doModal(pContext->getWindow()) != IDOK) {
+		pContext->setReturnType(MacroContext::RETURNTYPE_CANCEL);
 		return 0;
+	}
 	
 	StringBuffer<WSTRING> buf;
 	
@@ -1367,7 +1369,7 @@ MacroValuePtr qm::MacroFunctionExit::value(MacroContext* pContext) const
 	if (!checkArgSizeRange(pContext, 2, 4))
 		return 0;
 	
-	// TODO
+	pContext->setReturnType(MacroContext::RETURNTYPE_EXIT);
 	
 	return 0;
 }
@@ -2448,8 +2450,7 @@ MacroValuePtr qm::MacroFunctionInputBox::value(MacroContext* pContext) const
 	
 	InputBoxDialog dialog(bMultiline, wstrMessage.get(), wstrDefault.get());
 	if (dialog.doModal(pContext->getWindow()) != IDOK) {
-		// TODO
-		// Cancel
+		pContext->setReturnType(MacroContext::RETURNTYPE_CANCEL);
 		return 0;
 	}
 	
@@ -2575,9 +2576,18 @@ MacroValuePtr qm::MacroFunctionLoad::value(MacroContext* pContext) const
 			pContext->getAccount(), pContext->getDocument(), pContext->getWindow(),
 			pContext->isDecryptVerify(), pContext->getProfile(),
 			pContext->getErrorHandler(), TemplateContext::ArgumentList());
-		wstr = pTemplate->getValue(context);
-		if (!wstr.get())
+		switch (pTemplate->getValue(context, &wstr)) {
+		case Template::RESULT_SUCCESS:
+			break;
+		case Template::RESULT_ERROR:
 			return error(*pContext, MacroErrorHandler::CODE_FAIL);
+		case Template::RESULT_CANCEL:
+			pContext->setReturnType(MacroContext::RETURNTYPE_CANCEL);
+			return 0;
+		default:
+			assert(false);
+			return error(*pContext, MacroErrorHandler::CODE_FAIL);
+		}
 	}
 	else {
 		StringBuffer<WSTRING> buf;

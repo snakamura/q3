@@ -41,6 +41,13 @@ class MacroErrorHandler;
 class Template
 {
 public:
+	enum Result {
+		RESULT_SUCCESS,
+		RESULT_ERROR,
+		RESULT_CANCEL
+	};
+
+public:
 	typedef std::vector<std::pair<qs::WSTRING, Macro*> > ValueList;
 
 public:
@@ -48,7 +55,8 @@ public:
 	~Template();
 
 public:
-	qs::wstring_ptr getValue(const TemplateContext& context) const;
+	Result getValue(const TemplateContext& context,
+					qs::wstring_ptr* pwstrValue) const;
 
 private:
 	Template(const Template&);

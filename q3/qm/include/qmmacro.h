@@ -210,6 +210,12 @@ public:
 		MESSAGETYPE_TEXT,
 		MESSAGETYPE_ALL
 	};
+	
+	enum ReturnType {
+		RETURNTYPE_NONE,
+		RETURNTYPE_CANCEL,
+		RETURNTYPE_EXIT
+	};
 
 public:
 	MacroContext(MessageHolderBase* pmh,
@@ -241,6 +247,8 @@ public:
 	bool isGetMessageAsPossible() const;
 	bool isDecryptVerify() const;
 	MacroErrorHandler* getErrorHandler() const;
+	ReturnType getReturnType() const;
+	void setReturnType(ReturnType type);
 	MacroValuePtr getVariable(const WCHAR* pwszName) const;
 	bool setVariable(const WCHAR* pwszName,
 					 MacroValue* pValue,

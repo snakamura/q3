@@ -37,8 +37,13 @@ qm::Template::~Template()
 		unary_compose_fx_gx(string_free<WSTRING>(), deleter<Macro>()));
 }
 
-wstring_ptr qm::Template::getValue(const TemplateContext& context) const
+Template::Result qm::Template::getValue(const TemplateContext& context,
+										wstring_ptr* pwstrValue) const
 {
+	assert(pwstrValue);
+	
+	pwstrValue->reset(0);
+	
 	StringBuffer<WSTRING> buf;
 	
 	MacroVariableHolder globalVariable;
@@ -58,14 +63,20 @@ wstring_ptr qm::Template::getValue(const TemplateContext& context) const
 				context.getDocument(), context.getWindow(), context.getProfile(),
 				false, context.isDecryptVerify(), context.getErrorHandler(), &globalVariable);
 			MacroValuePtr pValue((*itV).second->value(&c));
-			if (!pValue.get())
-				return 0;
+			if (!pValue.get()) {
+				if (c.getReturnType() == MacroContext::RETURNTYPE_NONE)
+					return RESULT_ERROR;
+				else
+					return RESULT_CANCEL;
+			}
 			wstring_ptr wstrValue(pValue->string());
 			buf.append(wstrValue.get());
 		}
 	}
 	
-	return buf.getString();
+	*pwstrValue = buf.getString();
+	
+	return RESULT_SUCCESS;
 }
 
 

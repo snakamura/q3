@@ -233,6 +233,16 @@ MacroErrorHandler* qm::MacroGlobalContext::getErrorHandler() const
 	return pErrorHandler_;
 }
 
+MacroContext::ReturnType qm::MacroGlobalContext::getReturnType() const
+{
+	return returnType_;
+}
+
+void qm::MacroGlobalContext::setReturnType(MacroContext::ReturnType type)
+{
+	returnType_ = type;
+}
+
 MacroValuePtr qm::MacroGlobalContext::getVariable(const WCHAR* pwszName) const
 {
 	assert(pwszName);
@@ -1369,6 +1379,16 @@ bool qm::MacroContext::isDecryptVerify() const
 MacroErrorHandler* qm::MacroContext::getErrorHandler() const
 {
 	return pGlobalContext_->getErrorHandler();
+}
+
+MacroContext::ReturnType qm::MacroContext::getReturnType() const
+{
+	return pGlobalContext_->getReturnType();
+}
+
+void qm::MacroContext::setReturnType(ReturnType type)
+{
+	pGlobalContext_->setReturnType(type);
 }
 
 MacroValuePtr qm::MacroContext::getVariable(const WCHAR* pwszName) const

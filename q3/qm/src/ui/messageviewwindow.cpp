@@ -251,7 +251,9 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 				pmh->getFolder()->getAccount(), pDocument_,
 				getHandle(), (nFlags & FLAG_DECRYPTVERIFY) != 0,
 				pProfile_, 0, TemplateContext::ArgumentList());
-			wstring_ptr wstr(pTemplate->getValue(context));
+			wstring_ptr wstr;
+			if (pTemplate->getValue(context, &wstr) != Template::RESULT_SUCCESS)
+				return false;
 			wstrText = allocWXString(wstr.get());
 		}
 		else if (nFlags & FLAG_INCLUDEHEADER) {
