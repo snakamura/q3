@@ -294,13 +294,22 @@ bool qm::FullTextSearchPage::updateIndex()
 	wstring_ptr wstrIndex(pAccount_->getProperty(L"FullTextSearch", L"Index", L""));
 	if (!*wstrIndex.get())
 		wstrIndex = concat(pAccount_->getPath(), L"\\index");
+	
+	if (!File::createDirectory(wstrIndex.get()))
+		return false;
+	
+	// Because mknmz cannot handle a path with whitespace correctly,
+	// if the path contains whitespace, use its short file name.
+	if (wcschr(wstrIndex.get(), L' ')) {
+		W2T(wstrIndex.get(), ptszIndex);
+		TCHAR tszShort[MAX_PATH];
+		if (::GetShortPathName(ptszIndex, tszShort, countof(tszShort)))
+			wstrIndex = tcs2wcs(tszShort);
+	}
 	wstrCommand = FullTextSearchUtil::replace(wstrCommand.get(), L"$index", wstrIndex.get());
 	
 	wstring_ptr wstrMsg(concat(pAccount_->getMessageStorePath(), L"\\msg"));
 	wstrCommand = FullTextSearchUtil::replace(wstrCommand.get(), L"$msg", wstrMsg.get());
-	
-	if (!File::createDirectory(wstrIndex.get()))
-		return false;
 	
 	W2T(wstrCommand.get(), ptszCommand);
 	STARTUPINFO si = { sizeof(si) };
