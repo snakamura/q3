@@ -268,7 +268,7 @@ AttachmentParser::Result qm::AttachmentHelper::open(const Part* pPart,
 	
 	tstring_ptr tstrEditor;
 	if (bOpenWithEditor) {
-		wstring_ptr wstrEditor(pProfile_->getString(L"Global", L"Editor", L""));
+		wstring_ptr wstrEditor(pProfile_->getString(L"Global", L"Editor", L"notepad.exe"));
 		tstrEditor = wcs2tcs(wstrEditor.get());
 	}
 	

@@ -74,7 +74,7 @@ bool qm::ExternalEditorManager::open(const WCHAR* pwszMessage)
 	
 	wstring_ptr wstrEditor(pProfile_->getString(L"Global", L"ExternalEditor", L""));
 	if (!*wstrEditor.get())
-		wstrEditor = pProfile_->getString(L"Global", L"Editor", L"");
+		wstrEditor = pProfile_->getString(L"Global", L"Editor", L"notepad.exe");
 	
 	const WCHAR* pFile = wstrEditor.get();
 	WCHAR* pParam = 0;
