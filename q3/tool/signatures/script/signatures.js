@@ -106,6 +106,10 @@ function edit_ok() {
 	else
 		element.removeAttribute("default");
 	
+	while (element.lastChild != null)
+		element.removeChild(element.lastChild);
+	element.appendChild(doc.createTextNode(form.body.value));
+	
 	creatingElement = null;
 	editingElement = null;
 	
