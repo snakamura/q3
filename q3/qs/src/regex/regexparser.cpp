@@ -172,6 +172,20 @@ const RegexRegexNode* qs::RegexAtom::getNode() const
 	return 0;
 }
 
+const WCHAR* qs::RegexAtom::match(const WCHAR* pStart,
+								  const WCHAR* pEnd,
+								  RegexMatchCallback* pCallback) const
+{
+	assert(pStart < pEnd);
+	return match(*pStart) ? pStart + 1 : 0;
+}
+
+bool qs::RegexAtom::match(WCHAR c) const
+{
+	assert(false);
+	return false;
+}
+
 
 /****************************************************************************
  *
@@ -272,7 +286,7 @@ qs::RegexCharGroupAtom::AtomCharGroup::~AtomCharGroup()
 
 bool qs::RegexCharGroupAtom::AtomCharGroup::match(WCHAR c) const
 {
-	return pAtom_->match(c);
+	return pAtom_->match(&c, &c + 1, 0) != 0;
 }
 
 qs::RegexCharGroupAtom::RegexCharGroupAtom() :
@@ -346,10 +360,34 @@ const RegexRegexNode* qs::RegexNodeAtom::getNode() const
 	return pNode_.get();
 }
 
-bool qs::RegexNodeAtom::match(WCHAR c) const
+
+/****************************************************************************
+ *
+ * RegexReferenceAtom
+ *
+ */
+
+qs::RegexReferenceAtom::RegexReferenceAtom(unsigned int n) :
+	n_(n)
 {
-	assert(false);
-	return false;
+}
+
+qs::RegexReferenceAtom::~RegexReferenceAtom()
+{
+}
+
+const WCHAR* qs::RegexReferenceAtom::match(const WCHAR* pStart,
+										   const WCHAR* pEnd,
+										   RegexMatchCallback* pCallback) const
+{
+	std::pair<const WCHAR*, const WCHAR*> reference = pCallback->getReference(n_);
+	assert(reference.first && reference.second);
+	size_t nLen = reference.second - reference.first;
+	if (static_cast<size_t>(pEnd - pStart) >= nLen &&
+		wcsncmp(pStart, reference.first, nLen) == 0)
+		return pStart + nLen;
+	else
+		return 0;
 }
 
 
@@ -385,6 +423,17 @@ unsigned int qs::RegexQuantifier::getMin() const
 unsigned int qs::RegexQuantifier::getMax() const
 {
 	return nMax_;
+}
+
+
+/****************************************************************************
+ *
+ * RegexMatchCallback
+ *
+ */
+
+qs::RegexMatchCallback::~RegexMatchCallback()
+{
 }
 
 
@@ -479,19 +528,37 @@ std::auto_ptr<RegexPieceNode> qs::RegexParser::parsePiece()
 	}
 	else if (*p_ == L'\\') {
 		++p_;
-		if (wcschr(wszSingleEscapeChar__, *p_))
+		if (wcschr(wszSingleEscapeChar__, *p_)) {
 			pAtom.reset(new RegexCharAtom(*p_));
-		else if (*p_ == L's' || *p_ == L'S')
+		}
+		else if (*p_ == L's' || *p_ == L'S') {
 			pAtom.reset(new RegexMultiEscapeAtom(
 				RegexMultiEscapeAtom::TYPE_WHITESPACE, *p_ == L'S'));
-		else if (*p_ == L'w' || *p_ == L'W')
+		}
+		else if (*p_ == L'w' || *p_ == L'W') {
 			pAtom.reset(new RegexMultiEscapeAtom(
 				RegexMultiEscapeAtom::TYPE_WORD, *p_ == L'W'));
-		else if (*p_ == L'd' || *p_ == L'D')
+		}
+		else if (*p_ == L'd' || *p_ == L'D') {
 			pAtom.reset(new RegexMultiEscapeAtom(
 				RegexMultiEscapeAtom::TYPE_NUMBER, *p_ == L'D'));
-		else
+		}
+		else if (L'1' <= *p_ && *p_ <= L'9') {
+			unsigned int n = *p_ - L'0';
+			if (n >= nGroup_)
+				return 0;
+			while (L'0' <= *(p_ + 1) && *(p_ + 1) <= L'9') {
+				unsigned int nNext = n*10 + (*(p_ + 1) - L'0');
+				if (nNext >= nGroup_)
+					break;
+				n = nNext;
+				++p_;
+			}
+			pAtom.reset(new RegexReferenceAtom(n));
+		}
+		else {
 			return 0;
+		}
 		++p_;
 	}
 	else if (*p_ == L'?' || *p_ == L'*' || *p_ == L'+' ||

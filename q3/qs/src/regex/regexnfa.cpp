@@ -109,9 +109,11 @@ qs::RegexNfaState::~RegexNfaState()
 {
 }
 
-bool qs::RegexNfaState::match(WCHAR c) const
+const WCHAR* qs::RegexNfaState::match(const WCHAR* pStart,
+									  const WCHAR* pEnd,
+									  RegexMatchCallback* pCallback) const
 {
-	return pAtom_ ? pAtom_->match(c) : false;
+	return pAtom_ ? pAtom_->match(pStart, pEnd, pCallback) : false;
 }
 
 bool qs::RegexNfaState::isEpsilon() const
@@ -370,15 +372,37 @@ void qs::RegexNfaMatcher::match(const WCHAR* pStart,
 	
 	*ppEnd = 0;
 	
-	Stack stackMatch;
+	MatchStack stackMatch;
 	Stack stackBackTrack;
+	
+	class CallbackImpl : public RegexMatchCallback
+	{
+	public:
+		CallbackImpl(const MatchStack& stackMatch) :
+			stackMatch_(stackMatch)
+		{
+		}
+		
+		virtual std::pair<const WCHAR*, const WCHAR*> getReference(unsigned int n)
+		{
+			RegexRangeList l;
+			RegexNfaMatcher::getMatch(stackMatch_, &l);
+			assert(n < l.list_.size());
+			const RegexRange& range = l.list_[n];
+			return std::make_pair(range.pStart_, range.pEnd_);
+		}
+	
+	private:
+		const MatchStack& stackMatch_;
+	} callback(stackMatch);
 	
 	const WCHAR* p = pStart;
 	const RegexNfaState* pState = pNfa_->getState(0);
 	while (p <= pEnd) {
 		const WCHAR* pMatch = 0;
+		const WCHAR* pMatchEnd = 0;
 		while (pState) {
-			if (p != pEnd && pState->match(*p)) {
+			if (p != pEnd && (pMatchEnd = pState->match(p, pEnd, &callback)) != 0) {
 				pMatch = p;
 				break;
 			}
@@ -392,10 +416,15 @@ void qs::RegexNfaMatcher::match(const WCHAR* pStart,
 		if (pState) {
 			if (pState->getNext())
 				stackBackTrack.push_back(std::make_pair(pState->getNext(), p));
-			stackMatch.push_back(std::make_pair(pState, pMatch));
+			Match match = {
+				pState,
+				pMatch,
+				pMatchEnd
+			};
+			stackMatch.push_back(match);
 			pState = pNfa_->getState(pState->getTo());
 			if (pMatch)
-				++p;
+				p = pMatchEnd;
 			if (!pState && ((bMatch && p == pEnd) || (!bMatch && p != pStart))) {
 				*ppEnd = p;
 				break;
@@ -406,7 +435,7 @@ void qs::RegexNfaMatcher::match(const WCHAR* pStart,
 			p = stackBackTrack.back().second;
 			stackBackTrack.pop_back();
 			
-			while (stackMatch.size() > 1 && stackMatch.back().second != p)
+			while (stackMatch.size() > 1 && stackMatch.back().pStart_ != p)
 				stackMatch.pop_back();
 			stackMatch.pop_back();
 			
@@ -418,22 +447,25 @@ void qs::RegexNfaMatcher::match(const WCHAR* pStart,
 		}
 	}
 	
-	if (*ppEnd && pList) {
-		for (Stack::const_iterator itM = stackMatch.begin(); itM != stackMatch.end(); ++itM) {
-			if ((*itM).second) {
-				const RegexNfaState* pState = (*itM).first;
-				const RegexNfaState::GroupList& l = pState->getGroupList();
-				RegexNfaState::GroupList::const_iterator itG = l.begin();
-				while (itG != l.end()) {
-					unsigned int nGroup = *itG;
-					if (pList->list_.size() <= nGroup)
-						pList->list_.resize(nGroup + 1);
-					RegexRange& range = pList->list_[nGroup];
-					if (!range.pStart_)
-						range.pStart_ = (*itM).second;
-					range.pEnd_ = (*itM).second + 1;
-					++itG;
-				}
+	if (*ppEnd && pList)
+		getMatch(stackMatch, pList);
+}
+
+void qs::RegexNfaMatcher::getMatch(const MatchStack& stackMatch,
+								   RegexRangeList* pList)
+{
+	for (MatchStack::const_iterator itM = stackMatch.begin(); itM != stackMatch.end(); ++itM) {
+		if ((*itM).pStart_) {
+			const RegexNfaState* pState = (*itM).pState_;
+			const RegexNfaState::GroupList& l = pState->getGroupList();
+			for (RegexNfaState::GroupList::const_iterator itG = l.begin(); itG != l.end(); ++itG) {
+				unsigned int nGroup = *itG;
+				if (pList->list_.size() <= nGroup)
+					pList->list_.resize(nGroup + 1);
+				RegexRange& range = pList->list_[nGroup];
+				if (!range.pStart_)
+					range.pStart_ = (*itM).pStart_;
+				range.pEnd_ = (*itM).pEnd_;
 			}
 		}
 	}

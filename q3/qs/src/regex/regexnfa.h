@@ -17,15 +17,16 @@
 
 namespace qs {
 
+class RegexNfa;
+class RegexNfaState;
+class RegexNfaCompiler;
+
 class RegexAtom;
 class RegexNode;
 	class RegexRegexNode;
 	class RegexBrunchNode;
 	class RegexPieceNode;
-
-class RegexNfa;
-class RegexNfaState;
-class RegexNfaCompiler;
+class RegexMatchCallback;
 
 
 /****************************************************************************
@@ -86,7 +87,9 @@ public:
 	~RegexNfaState();
 
 public:
-	bool match(WCHAR c) const;
+	const WCHAR* match(const WCHAR* pStart,
+					   const WCHAR* pEnd,
+					   RegexMatchCallback* pCallback) const;
 	bool isEpsilon() const;
 	unsigned int getTo() const;
 	const GroupList& getGroupList() const;
@@ -157,6 +160,18 @@ private:
 class RegexNfaMatcher
 {
 public:
+	struct Match
+	{
+		const RegexNfaState* pState_;
+		const WCHAR* pStart_;
+		const WCHAR* pEnd_;
+	};
+
+public:
+	typedef std::vector<std::pair<const RegexNfaState*, const WCHAR*> > Stack;
+	typedef std::vector<Match> MatchStack;
+
+public:
 	explicit RegexNfaMatcher(const RegexNfa* pNfa);
 	~RegexNfaMatcher();
 
@@ -172,6 +187,10 @@ public:
 				const WCHAR** ppEnd,
 				RegexRangeList* pList) const;
 
+public:
+	static void getMatch(const MatchStack& stackMatch,
+						 RegexRangeList* pList);
+
 private:
 	void match(const WCHAR* pStart,
 			   const WCHAR* pEnd,
@@ -182,9 +201,6 @@ private:
 private:
 	RegexNfaMatcher(const RegexNfaMatcher&);
 	RegexNfaMatcher& operator=(const RegexNfaMatcher&);
-
-private:
-	typedef std::vector<std::pair<const RegexNfaState*, const WCHAR*> > Stack;
 
 private:
 	const RegexNfa* pNfa_;

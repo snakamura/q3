@@ -24,7 +24,10 @@ class RegexAtom;
 	class RegexCharAtom;
 	class RegexMultiEscapeAtom;
 	class RegexCharGroupAtom;
+	class RegexNodeAtom;
+	class RegexReferenceAtom;
 class RegexQuantifier;
+class RegexMatchCallback;
 class RegexParser;
 
 
@@ -184,7 +187,12 @@ public:
 
 public:
 	virtual const RegexRegexNode* getNode() const;
-	virtual bool match(WCHAR c) const = 0;
+	virtual const WCHAR* match(const WCHAR* pStart,
+							   const WCHAR* pEnd,
+							   RegexMatchCallback* pCallback) const;
+
+protected:
+	virtual bool match(WCHAR c) const;
 };
 
 
@@ -200,7 +208,7 @@ public:
 	explicit RegexCharAtom(WCHAR c);
 	virtual ~RegexCharAtom();
 
-public:
+protected:
 	virtual bool match(WCHAR c) const;
 
 private:
@@ -233,7 +241,7 @@ public:
 						 bool bNegative);
 	virtual ~RegexMultiEscapeAtom();
 
-public:
+protected:
 	virtual bool match(WCHAR c) const;
 
 private:
@@ -307,7 +315,7 @@ public:
 	RegexCharGroupAtom();
 	virtual ~RegexCharGroupAtom();
 
-public:
+protected:
 	virtual bool match(WCHAR c) const;
 
 public:
@@ -342,7 +350,6 @@ public:
 
 public:
 	virtual const RegexRegexNode* getNode() const;
-	virtual bool match(WCHAR c) const;
 
 private:
 	RegexNodeAtom(const RegexNodeAtom&);
@@ -350,6 +357,32 @@ private:
 
 private:
 	std::auto_ptr<RegexRegexNode> pNode_;
+};
+
+
+/****************************************************************************
+ *
+ * RegexReferenceAtom
+ *
+ */
+
+class RegexReferenceAtom : public RegexAtom
+{
+public:
+	explicit RegexReferenceAtom(unsigned int n);
+	virtual ~RegexReferenceAtom();
+
+public:
+	virtual const WCHAR* match(const WCHAR* pStart,
+							   const WCHAR* pEnd,
+							   RegexMatchCallback* pCallback) const;
+
+private:
+	RegexReferenceAtom(const RegexReferenceAtom&);
+	RegexReferenceAtom& operator=(const RegexReferenceAtom&);
+
+private:
+	unsigned int n_;
 };
 
 
@@ -386,6 +419,22 @@ private:
 	Type type_;
 	unsigned int nMin_;
 	unsigned int nMax_;
+};
+
+
+/****************************************************************************
+ *
+ * RegexMatchCallback
+ *
+ */
+
+class RegexMatchCallback
+{
+public:
+	virtual ~RegexMatchCallback();
+
+public:
+	virtual std::pair<const WCHAR*, const WCHAR*> getReference(unsigned int n) = 0;
 };
 
 
