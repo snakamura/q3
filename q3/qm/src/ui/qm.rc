@@ -1479,6 +1479,17 @@ BEGIN
     PUSHBUTTON      "&Font...",IDC_FONT,5,55,50,14
 END
 
+IDD_OPTIONFOLDERCOMBOBOX DIALOG DISCARDABLE  0, 0, 232, 151
+STYLE WS_CHILD
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    CONTROL         "Show &all count",IDC_SHOWALL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,5,60,10
+    CONTROL         "Show &unseen count",IDC_SHOWUNSEEN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,15,75,10
+    PUSHBUTTON      "&Font...",IDC_FONT,5,35,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1602,6 +1613,14 @@ BEGIN
     END
 
     IDD_OPTIONFOLDERWINDOW, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 225
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 144
+    END
+
+    IDD_OPTIONFOLDERCOMBOBOX, DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 225
@@ -1903,6 +1922,7 @@ BEGIN
     IDS_PANEL_FILTERS       "Filters"
     IDS_PANEL_FIXEDFORMTEXTS "Texts"
     IDS_PANEL_GOROUND       "Go Round"
+    IDS_PANEL_FOLDERCOMBOBOX "Folder ComboBox"
     IDS_PANEL_FOLDERWINDOW  "Folder Window"
     IDS_PANEL_RULES         "Rules"
     IDS_PANEL_SIGNATURES    "Signatures"

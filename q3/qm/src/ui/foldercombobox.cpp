@@ -65,6 +65,10 @@ public:
 	int getIndexFromFolder(Folder* pFolder) const;
 	void update(Folder* pFolder);
 	void handleUpdateMessage(LPARAM lParam);
+	void reloadProfiles(bool bInitialize);
+#ifdef _WIN32_WCE
+	void updateItemHeight();
+#endif
 
 public:
 	virtual LRESULT onCommand(WORD nCode,
@@ -212,6 +216,41 @@ void qm::FolderComboBoxImpl::handleUpdateMessage(LPARAM lParam)
 	
 	update(reinterpret_cast<Folder*>(lParam));
 }
+
+void qm::FolderComboBoxImpl::reloadProfiles(bool bInitialize)
+{
+	bShowAllCount_ = pProfile_->getInt(L"FolderComboBox", L"ShowAllCount", 1) != 0;
+	bShowUnseenCount_ = pProfile_->getInt(L"FolderComboBox", L"ShowUnseenCount", 1) != 0;
+	
+	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_, L"FolderComboBox", false);
+	if (!bInitialize) {
+		assert(hfont_);
+		pThis_->setFont(hfont);
+		::DeleteObject(hfont_);
+	}
+	hfont_ = hfont;
+#ifdef _WIN32_WCE
+	if (!bInitialize)
+		updateItemHeight();
+#endif
+	
+	if (!bInitialize) {
+		int nIndex = ComboBox_GetCurSel(pThis_->getHandle());
+		updateAccountList(false);
+		ComboBox_SetCurSel(pThis_->getHandle(), nIndex);
+	}
+}
+
+#ifdef _WIN32_WCE
+void qm::FolderComboBoxImpl::updateItemHeight()
+{
+	ClientDeviceContext dc(pThis_->getHandle());
+	ObjectSelector<HFONT> selector(dc, hfont_);
+	TEXTMETRIC tm;
+	dc.getTextMetrics(&tm);
+	nItemHeight_ = tm.tmHeight + tm.tmExternalLeading + 2;
+}
+#endif
 
 LRESULT qm::FolderComboBoxImpl::onCommand(WORD nCode,
 										  WORD nId)
@@ -526,11 +565,13 @@ qm::FolderComboBox::FolderComboBox(WindowBase* pParentWindow,
 	pImpl_->pDocument_ = 0;
 	pImpl_->nId_ = 0;
 	pImpl_->hfont_ = 0;
-	pImpl_->bShowAllCount_ = pProfile->getInt(L"FolderComboBox", L"ShowAllCount", 1) != 0;
-	pImpl_->bShowUnseenCount_ = pProfile->getInt(L"FolderComboBox", L"ShowUnseenCount", 1) != 0;
+	pImpl_->bShowAllCount_ = true;
+	pImpl_->bShowUnseenCount_ = true;
 #ifdef _WIN32_WCE
 	pImpl_->nItemHeight_ = 0;
 #endif
+	
+	pImpl_->reloadProfiles(true);
 	
 	setWindowHandler(this, false);
 	
@@ -541,6 +582,11 @@ qm::FolderComboBox::FolderComboBox(WindowBase* pParentWindow,
 qm::FolderComboBox::~FolderComboBox()
 {
 	delete pImpl_;
+}
+
+void qm::FolderComboBox::reloadProfiles()
+{
+	pImpl_->reloadProfiles(false);
 }
 
 wstring_ptr qm::FolderComboBox::getSuperClass()
@@ -615,16 +661,9 @@ LRESULT qm::FolderComboBox::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	pImpl_->nId_ = getWindowLong(GWL_ID);
 	
-	pImpl_->hfont_ = qs::UIUtil::createFontFromProfile(
-		pImpl_->pProfile_, L"FolderComboBox", false);
 	setFont(pImpl_->hfont_);
-	
 #ifdef _WIN32_WCE
-	ClientDeviceContext dc(getHandle());
-	ObjectSelector<HFONT> selector(dc, pImpl_->hfont_);
-	TEXTMETRIC tm;
-	dc.getTextMetrics(&tm);
-	pImpl_->nItemHeight_ = tm.tmHeight + tm.tmExternalLeading + 2;
+	pImpl_->updateItemHeight();
 #endif
 	
 	return 0;

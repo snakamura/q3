@@ -2377,7 +2377,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pListSplitterWindow_->setRowHeight(
 		0, pImpl_->nListWindowHeight_);
 	
-	pImpl_->pOptionDialogManager_->initUIs(pImpl_->pFolderWindow_);
+	pImpl_->pOptionDialogManager_->initUIs(pImpl_->pFolderWindow_, pImpl_->pFolderComboBox_);
 	
 	pImpl_->pMessageSelectionModel_.reset(
 		new MainWindowImpl::MessageSelectionModelImpl(pImpl_, false));

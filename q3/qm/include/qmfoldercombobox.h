@@ -41,6 +41,9 @@ public:
 	virtual ~FolderComboBox();
 
 public:
+	void reloadProfiles();
+
+public:
 	virtual qs::wstring_ptr getSuperClass();
 	virtual bool preCreateWindow(CREATESTRUCT* pCreateStruct);
 	virtual qs::Accelerator* getAccelerator();
