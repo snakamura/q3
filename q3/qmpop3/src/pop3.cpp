@@ -280,9 +280,12 @@ bool qmpop3::Pop3::getMessageSize(unsigned int nMsg,
 	if (!p)
 		POP3_ERROR(POP3_ERROR_LIST | POP3_ERROR_PARSE);
 	++p;
-	CHAR* pEnd = strchr(p, '\r');
+	CHAR* pEnd = strstr(p, "\r\n");
 	if (!pEnd)
 		POP3_ERROR(POP3_ERROR_LIST | POP3_ERROR_PARSE);
+	// Skip whitespaces for compatibility with broken servers.
+	while (pEnd - 1 > p && *(pEnd - 1) == ' ')
+		--pEnd;
 	*pEnd = '\0';
 	CHAR* pTemp = 0;
 	*pnSize = strtol(p, &pTemp, 10);
@@ -316,6 +319,9 @@ bool qmpop3::Pop3::getMessageSizes(MessageSizeList* pList)
 		CHAR* pEnd = strstr(p, "\r\n");
 		if (!pEnd)
 			POP3_ERROR(POP3_ERROR_LIST | POP3_ERROR_PARSE);
+		// Skip whitespaces for compatibility with broken servers.
+		while (pEnd - 1 > p && *(pEnd - 1) == ' ')
+			--pEnd;
 		*pEnd = '\0';
 		
 		CHAR* pTemp = 0;
