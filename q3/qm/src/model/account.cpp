@@ -1341,13 +1341,13 @@ bool qm::Account::removeFolder(Folder* pFolder)
 		pImpl_->listFolder_.end(), pFolder);
 	assert(it != pImpl_->listFolder_.end());
 	pImpl_->listFolder_.erase(it);
-	if (!pFolder->deletePermanent()) {
-		// TODO
-	}
 	
 	FolderListChangedEvent event(this, FolderListChangedEvent::TYPE_REMOVE, pFolder);
 	pImpl_->fireFolderListChanged(event);
 	
+	if (!pFolder->deletePermanent()) {
+		// TODO
+	}
 	delete pFolder;
 	
 	return true;

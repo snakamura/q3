@@ -186,11 +186,11 @@ void qm::Document::removeAccount(Account* pAccount)
 	AccountList::iterator it = std::find(l.begin(), l.end(), pAccount);
 	assert(it != l.end());
 	
-	pAccount->deletePermanent(true);
 	l.erase(it);
 	
 	pImpl_->fireAccountListChanged(AccountListChangedEvent::TYPE_REMOVE, pAccount);
 	
+	pAccount->deletePermanent(true);
 	delete pAccount;
 }
 
