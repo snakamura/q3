@@ -377,4 +377,7 @@
 	<menu name="goround">
 		<popupmenu text="&amp;Go Round" action="ToolGoRound"/>
 	</menu>
+	<menu name="inserttext">
+		<popupmenu text="&amp;Insert Text" action="ToolInsertText"/>
+	</menu>
 </menus>

@@ -39,7 +39,7 @@
 		<button image="14" action="EditRedo" text="Redo"/>
 		<separator/>
 		<button image="18" action="ToolAddressBook" text="Address Book"/>
-		<button image="17" action="ToolInsertText" text="Insert Text"/>
+		<button image="17" action="ToolInsertText0" text="Insert Text"/>
 		<button image="19" action="ToolAttachment" text="Attachment"/>
 	</toolbar>
 </toolbars>
