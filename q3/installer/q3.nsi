@@ -61,6 +61,14 @@ Section "Core (required)" Core
   
   WriteRegStr HKLM "SOFTWARE\sn\q3" "InstallDir" "$INSTDIR"
   
+  WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3" "" "QMAIL3"
+  WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Protocols\mailto" "" "URL:MailTo Protocol"
+  WriteRegBin HKLM "SOFTWARE\Clients\Mail\QMAIL3\Protocols\mailto" "EditFlags" 02000000
+  WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Protocols\mailto" "URL Protocol" ""
+  WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Protocols\mailto\DefaultIcon" "" "$\"$INSTDIR\q3${POSTFIX}.exe$\",0"
+  WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Protocols\mailto\shell\open\command" "" "$\"$INSTDIR\q3${POSTFIX}.exe$\" -s $\"%1$\""
+  WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\shell\open\command" "" "$\"$INSTDIR\q3${POSTFIX}.exe$\" -s $\"%1$\""
+  
   WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\QMAIL3" "DisplayName" "QMAIL3"
   WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\QMAIL3" "UninstallString" "$INSTDIR\uninstall.exe"
   WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\QMAIL3" "NoModify" 1
@@ -163,6 +171,8 @@ Section "Uninstall"
   DeleteRegKey /ifempty HKLM SOFTWARE\sn
   DeleteRegKey HKCU Software\sn\q3
   DeleteRegKey /ifempty HKCU Software\sn
+  
+  DeleteRegKey HKLM SOFTWARE\Clients\Mail\QMAIL3
   
   Delete $INSTDIR\q3${POSTFIX}.exe
   Delete $INSTDIR\qm${POSTFIX}.dll
