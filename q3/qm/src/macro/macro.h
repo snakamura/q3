@@ -81,6 +81,9 @@ class MacroExpr;
 		class MacroFunctionProfileName;
 		class MacroFunctionProgn;
 		class MacroFunctionReferences;
+		class MacroFunctionRegexFind;
+		class MacroFunctionRegexMatch;
+		class MacroFunctionRegexReplace;
 		class MacroFunctionRelative;
 		class MacroFunctionRemove;
 		class MacroFunctionSave;
@@ -1860,6 +1863,81 @@ private:
 
 /****************************************************************************
  *
+ * MacroFunctionRegexFind
+ *
+ */
+
+class MacroFunctionRegexFind : public MacroFunction
+{
+public:
+	explicit MacroFunctionRegexFind(qs::QSTATUS* pstatus);
+	virtual ~MacroFunctionRegexFind();
+
+public:
+	virtual qs::QSTATUS value(MacroContext* pContext,
+		MacroValue** ppValue) const;
+
+protected:
+	virtual const WCHAR* getName() const;
+
+private:
+	MacroFunctionRegexFind(const MacroFunctionRegexFind&);
+	MacroFunctionRegexFind& operator=(const MacroFunctionRegexFind&);
+};
+
+
+/****************************************************************************
+ *
+ * MacroFunctionRegexMatch
+ *
+ */
+
+class MacroFunctionRegexMatch : public MacroFunction
+{
+public:
+	explicit MacroFunctionRegexMatch(qs::QSTATUS* pstatus);
+	virtual ~MacroFunctionRegexMatch();
+
+public:
+	virtual qs::QSTATUS value(MacroContext* pContext,
+		MacroValue** ppValue) const;
+
+protected:
+	virtual const WCHAR* getName() const;
+
+private:
+	MacroFunctionRegexMatch(const MacroFunctionRegexMatch&);
+	MacroFunctionRegexMatch& operator=(const MacroFunctionRegexMatch&);
+};
+
+
+/****************************************************************************
+ *
+ * MacroFunctionRegexReplace
+ *
+ */
+
+class MacroFunctionRegexReplace : public MacroFunction
+{
+public:
+	explicit MacroFunctionRegexReplace(qs::QSTATUS* pstatus);
+	virtual ~MacroFunctionRegexReplace();
+
+public:
+	virtual qs::QSTATUS value(MacroContext* pContext,
+		MacroValue** ppValue) const;
+
+protected:
+	virtual const WCHAR* getName() const;
+
+private:
+	MacroFunctionRegexReplace(const MacroFunctionRegexReplace&);
+	MacroFunctionRegexReplace& operator=(const MacroFunctionRegexReplace&);
+};
+
+
+/****************************************************************************
+ *
  * MacroFunctionRelative
  *
  */
@@ -1867,7 +1945,7 @@ private:
 class MacroFunctionRelative : public MacroFunction
 {
 public:
-	explicit MacroFunctionRelative(bool bLess, qs::QSTATUS* pstatus);
+	MacroFunctionRelative(bool bLess, qs::QSTATUS* pstatus);
 	virtual ~MacroFunctionRelative();
 
 public:

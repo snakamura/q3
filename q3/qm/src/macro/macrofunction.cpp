@@ -20,6 +20,7 @@
 #include <qsconv.h>
 #include <qsnew.h>
 #include <qsosutil.h>
+#include <qsregex.h>
 #include <qsstl.h>
 #include <qsstream.h>
 #include <qswindow.h>
@@ -3953,6 +3954,139 @@ const WCHAR* qm::MacroFunctionReferences::getName() const
 
 /****************************************************************************
  *
+ * MacroFunctionRegexFind
+ *
+ */
+
+qm::MacroFunctionRegexFind::MacroFunctionRegexFind(QSTATUS* pstatus) :
+	MacroFunction(pstatus)
+{
+}
+
+qm::MacroFunctionRegexFind::~MacroFunctionRegexFind()
+{
+}
+
+QSTATUS qm::MacroFunctionRegexFind::value(
+	MacroContext* pContext, MacroValue** ppValue) const
+{
+	assert(pContext);
+	assert(ppValue);
+	
+	DECLARE_QSTATUS();
+	
+	*ppValue = 0;
+	
+	// TODO
+	
+	return QSTATUS_SUCCESS;
+}
+
+const WCHAR* qm::MacroFunctionRegexFind::getName() const
+{
+	return L"RegexFind";
+}
+
+
+/****************************************************************************
+ *
+ * MacroFunctionRegexMatch
+ *
+ */
+
+qm::MacroFunctionRegexMatch::MacroFunctionRegexMatch(QSTATUS* pstatus) :
+	MacroFunction(pstatus)
+{
+}
+
+qm::MacroFunctionRegexMatch::~MacroFunctionRegexMatch()
+{
+}
+
+QSTATUS qm::MacroFunctionRegexMatch::value(
+	MacroContext* pContext, MacroValue** ppValue) const
+{
+	assert(pContext);
+	assert(ppValue);
+	
+	DECLARE_QSTATUS();
+	
+	*ppValue = 0;
+	
+	if (getArgSize() != 2)
+		return error(*pContext, MacroErrorHandler::CODE_INVALIDARGSIZE);
+	
+	string_ptr<WSTRING> wstrPattern;
+	MacroValuePtr pValuePattern;
+	status = getArg(0)->value(pContext, &pValuePattern);
+	CHECK_QSTATUS();
+	status = pValuePattern->string(&wstrPattern);
+	CHECK_QSTATUS();
+	
+	string_ptr<WSTRING> wstrValue;
+	MacroValuePtr pValue;
+	status = getArg(1)->value(pContext, &pValue);
+	CHECK_QSTATUS();
+	status = pValue->string(&wstrValue);
+	CHECK_QSTATUS();
+	
+	RegexPattern* p = 0;
+	status = RegexCompiler().compile(wstrPattern.get(), &p);
+	CHECK_QSTATUS();
+	std::auto_ptr<RegexPattern> pPattern(p);
+	
+	bool bMatch = false;
+	status = pPattern->match(wstrValue.get(), &bMatch);
+	CHECK_QSTATUS();
+	
+	return MacroValueFactory::getFactory().newBoolean(
+		bMatch, reinterpret_cast<MacroValueBoolean**>(ppValue));
+}
+
+const WCHAR* qm::MacroFunctionRegexMatch::getName() const
+{
+	return L"RegexMatch";
+}
+
+
+/****************************************************************************
+ *
+ * MacroFunctionRegexReplace
+ *
+ */
+
+qm::MacroFunctionRegexReplace::MacroFunctionRegexReplace(QSTATUS* pstatus) :
+	MacroFunction(pstatus)
+{
+}
+
+qm::MacroFunctionRegexReplace::~MacroFunctionRegexReplace()
+{
+}
+
+QSTATUS qm::MacroFunctionRegexReplace::value(
+	MacroContext* pContext, MacroValue** ppValue) const
+{
+	assert(pContext);
+	assert(ppValue);
+	
+	DECLARE_QSTATUS();
+	
+	*ppValue = 0;
+	
+	// TODO
+	
+	return QSTATUS_SUCCESS;
+}
+
+const WCHAR* qm::MacroFunctionRegexReplace::getName() const
+{
+	return L"RegexReplace";
+}
+
+
+/****************************************************************************
+ *
  * MacroFunctionRelative
  *
  */
@@ -5046,6 +5180,9 @@ QSTATUS qm::MacroFunctionFactory::newFunction(MacroParser::Type type,
 		DECLARE_FUNCTION0(		ProfileName,		L"profilename"											)
 		DECLARE_FUNCTION0(		Progn,				L"progn"												)
 		DECLARE_FUNCTION0(		References,			L"references"											)
+		DECLARE_FUNCTION0(		RegexFind,			L"regexfind"											)
+		DECLARE_FUNCTION0(		RegexMatch,			L"regexmatch"											)
+		DECLARE_FUNCTION0(		RegexReplace,		L"regexreplace"											)
 		DECLARE_FUNCTION0(		Remove,				L"remove"												)
 		DECLARE_FUNCTION1(		Flag,				L"replied",			MessageHolder::FLAG_REPLIED			)
 		DECLARE_FUNCTION0(		Save,				L"save"													)
