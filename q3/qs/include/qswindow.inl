@@ -364,14 +364,14 @@ inline int qs::Window::releaseDC(HDC hdc) const
 	return ::ReleaseDC(hwnd_, hdc);
 }
 
-inline HFONT qs::Window::getFont()
+inline HFONT qs::Window::getFont() const
 {
-	return reinterpret_cast<HFONT>(sendMessage(WM_GETFONT));
+	return reinterpret_cast<HFONT>(::SendMessage(hwnd_, WM_GETFONT, 0, 0));
 }
 
 inline void qs::Window::setFont(HFONT hfont)
 {
-	sendMessage(WM_SETFONT, reinterpret_cast<WPARAM>(hfont));
+	::SendMessage(hwnd_, WM_SETFONT, reinterpret_cast<WPARAM>(hfont), 0);
 }
 
 inline bool qs::Window::createCaret(int nWidth,

@@ -224,7 +224,7 @@ public:
 	HDC getDC() const;
 	int releaseDC(HDC hdc) const;
 	
-	HFONT getFont();
+	HFONT getFont() const;
 	void setFont(HFONT hfont);
 	
 	bool createCaret(int nWidth,
