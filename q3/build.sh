@@ -79,12 +79,12 @@ run|run.unicode|debug|debug.unicode|purify|purify.unicode)
 		;;
 	esac
 	
-	RUNPATH=`cygpath -w \`pwd\``/lib
+	RUNPATH=`pwd`/lib
 	for p in $PROJECTS; do
-		RUNPATH="$RUNPATH;`cygpath -w \`pwd\``/$p/lib/desktop/$CODE/$DEBUG"
+		RUNPATH="$RUNPATH:`pwd`/$p/lib/desktop/$CODE/$DEBUG"
 	done
 	
-	PATH="$PATH;$RUNPATH" $EXEC q3/bin/desktop/$CODE/$DEBUG/q3$SUFFIX.exe &
+	PATH="$PATH:$RUNPATH" $EXEC q3/bin/desktop/$CODE/$DEBUG/q3$SUFFIX.exe &
 	;;
 
 countline)
