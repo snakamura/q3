@@ -1815,8 +1815,34 @@ bool qm::FileImportAction::import(NormalFolder* pFolder)
 		while (true) {
 			const WCHAR* pEnd = wcschr(pBegin, L';');
 			wstring_ptr wstrPath(allocWString(pBegin, pEnd ? pEnd - pBegin : -1));
-			listPath.push_back(wstrPath.get());
-			wstrPath.release();
+			if (wcschr(wstrPath.get(), L'*') || wcschr(wstrPath.get(), L'?')) {
+				wstring_ptr wstrDir;
+				const WCHAR* pFileName = wcsrchr(wstrPath.get(), L'\\');
+				if (pFileName)
+					wstrDir = allocWString(wstrPath.get(), pFileName - wstrPath.get() + 1);
+				else
+					wstrDir = allocWString(L"");
+				
+				W2T(wstrPath.get(), ptszPath);
+				WIN32_FIND_DATA fd;
+				AutoFindHandle hFind(::FindFirstFile(ptszPath, &fd));
+				if (hFind.get()) {
+					do {
+						if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+							continue;
+						
+						T2W(fd.cFileName, ptszFileName);
+						wstring_ptr wstrFilePath(concat(wstrDir.get(), ptszFileName));
+						listPath.push_back(wstrFilePath.get());
+						wstrFilePath.release();
+						
+					} while (::FindNextFile(hFind.get(), &fd));
+				}
+			}
+			else {
+				listPath.push_back(wstrPath.get());
+				wstrPath.release();
+			}
 			
 			if (!pEnd)
 				break;
