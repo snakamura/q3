@@ -1302,26 +1302,30 @@ qmimap4::FolderListGetter::~FolderListGetter()
 		unary_compose_f_gx(
 			string_free<WSTRING>(),
 			mem_data_ref(&FolderData::wstrMailbox_)));
-	std::for_each(listFolder_.begin(), listFolder_.end(),
-		unary_compose_f_gx(
-			deleter<Folder>(),
-			std::select1st<FolderList::value_type>()));
+	
+	for (FolderInfoList::const_iterator it = listFolderInfo_.begin(); it != listFolderInfo_.end(); ++it) {
+		if ((*it).bNew_)
+			delete (*it).pFolder_;
+		freeWString((*it).wstrFullName_);
+	}
 }
 
 bool qmimap4::FolderListGetter::update()
 {
-	return connect() &&
-		listNamespaces() &&
-		listFolders();
+	return connect() && listNamespaces() && listFolders();
 }
 
 void qmimap4::FolderListGetter::getFolders(Imap4Driver::RemoteFolderList* pList)
 {
 	assert(pList);
 	
-	pList->resize(listFolder_.size());
-	std::copy(listFolder_.begin(), listFolder_.end(), pList->begin());
-	listFolder_.clear();
+	pList->resize(listFolderInfo_.size());
+	for (FolderInfoList::size_type n = 0; n < listFolderInfo_.size(); ++n) {
+		FolderInfo& info = listFolderInfo_[n];
+		(*pList)[n] = std::make_pair(info.pFolder_, info.bNew_);
+		freeWString(info.wstrFullName_);
+	}
+	listFolderInfo_.clear();
 }
 
 bool qmimap4::FolderListGetter::connect()
@@ -1380,9 +1384,7 @@ bool qmimap4::FolderListGetter::listFolders()
 	unsigned int nId = pAccount_->generateFolderId();
 	for (FolderDataList::iterator itFD = listFolderData_.begin(); itFD != listFolderData_.end(); ++itFD) {
 		const FolderData& data = *itFD;
-		
-		Folder* pFolder = getFolder(data.wstrMailbox_,
-			data.cSeparator_, data.nFlags_, &nId);
+		getFolder(data.wstrMailbox_, data.cSeparator_, data.nFlags_, &nId);
 	}
 	
 	return true;
@@ -1395,46 +1397,54 @@ Folder* qmimap4::FolderListGetter::getFolder(const WCHAR* pwszName,
 {
 	assert(pwszName);
 	
-	Folder* pFolder = 0;
+	FolderInfo info = {
+		0,
+		false,
+		const_cast<WSTRING>(pwszName)
+	};
+	FolderInfoList::iterator it = std::lower_bound(
+		listFolderInfo_.begin(), listFolderInfo_.end(),
+		info, FolderInfoLess());
+	if (it != listFolderInfo_.end() && wcscmp(pwszName, (*it).wstrFullName_) == 0)
+		return (*it).pFolder_;
 	
-	for (FolderList::const_iterator itF = listFolder_.begin(); itF != listFolder_.end(); ++itF) {
-		wstring_ptr wstrName((*itF).first->getFullName());
-		if (wcscmp(wstrName.get(), pwszName) == 0) {
-			pFolder = (*itF).first;
-			break;
-		}
+	Folder* pParent = 0;
+	const WCHAR* pName = 0;
+	if (cSeparator != '\0')
+		pName = wcsrchr(pwszName, cSeparator);
+	if (pName) {
+		wstring_ptr wstrParentName(allocWString(pwszName, pName - pwszName));
+		pParent = getFolder(wstrParentName.get(), cSeparator, Folder::FLAG_NOSELECT, pnId);
+		++pName;
+	}
+	else {
+		pName = pwszName;
 	}
 	
-	if (!pFolder) {
-		Folder* pParent = 0;
-		const WCHAR* pName = 0;
-		if (cSeparator != '\0')
-			pName = wcsrchr(pwszName, cSeparator);
-		if (pName) {
-			wstring_ptr wstrParentName(allocWString(pwszName, pName - pwszName));
-			pParent = getFolder(wstrParentName.get(), cSeparator, Folder::FLAG_NOSELECT, pnId);
-			++pName;
-		}
-		else {
-			pName = pwszName;
-		}
-		
-		bool bNew = false;
-		pFolder = pAccount_->getFolder(pwszName);
-		if (pFolder) {
-			// TODO
-			// What happen if this folder is local folder or
-			// this folder is query folder
-			pAccount_->setFolderFlags(pFolder, nFlags, ~Folder::FLAG_USER_MASK);
-		}
-		else {
-			std::auto_ptr<NormalFolder> pNormalFolder(new NormalFolder(
-				(*pnId)++, pName, cSeparator, nFlags, 0, 0, 0, 0, 0, pParent, pAccount_));
-			pFolder = pNormalFolder.release();
-			bNew = true;
-		}
-		listFolder_.push_back(std::make_pair(pFolder, bNew));
+	bool bNew = false;
+	Folder* pFolder = pAccount_->getFolder(pwszName);
+	if (pFolder) {
+		// TODO
+		// What happen if this folder is local folder or
+		// this folder is query folder
+		pAccount_->setFolderFlags(pFolder, nFlags, ~Folder::FLAG_USER_MASK);
 	}
+	else {
+		std::auto_ptr<NormalFolder> pNormalFolder(new NormalFolder(
+			(*pnId)++, pName, cSeparator, nFlags, 0, 0, 0, 0, 0, pParent, pAccount_));
+		pFolder = pNormalFolder.release();
+		bNew = true;
+	}
+	
+	wstring_ptr wstrFullName(pFolder->getFullName());
+	assert(wcscmp(wstrFullName.get(), pwszName) == 0);
+	FolderInfo infoNew = {
+		pFolder,
+		bNew,
+		wstrFullName.get()
+	};
+	listFolderInfo_.insert(it, infoNew);
+	wstrFullName.release();
 	
 	return pFolder;
 }
@@ -1446,8 +1456,8 @@ Folder* qmimap4::FolderListGetter::getFolder(const WCHAR* pwszName,
  *
  */
 
-bool qmimap4::FolderListGetter::FolderDataLess::operator()(
-	const FolderData& lhs, const FolderData& rhs) const
+bool qmimap4::FolderListGetter::FolderDataLess::operator()(const FolderData& lhs,
+														   const FolderData& rhs) const
 {
 	const WCHAR* pLhs = lhs.wstrMailbox_;
 	const WCHAR* pRhs = rhs.wstrMailbox_;
@@ -1467,6 +1477,19 @@ bool qmimap4::FolderListGetter::FolderDataLess::operator()(
 		return false;
 	else
 		return *pLhs < *pRhs;
+}
+
+
+/****************************************************************************
+ *
+ * FolderListGetter::FolderInfoLess
+ *
+ */
+
+bool qmimap4::FolderListGetter::FolderInfoLess::operator()(const FolderInfo& lhs,
+														   const FolderInfo& rhs) const
+{
+	return wcscmp(lhs.wstrFullName_, rhs.wstrFullName_) < 0;
 }
 
 

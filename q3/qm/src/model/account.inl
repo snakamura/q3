@@ -52,4 +52,17 @@ inline bool qm::AccountLess::operator()(const Account* pLhs,
 	return wcscmp(pLhs->getName(), pRhs->getName()) < 0;
 }
 
+
+/****************************************************************************
+ *
+ * RemoteFolderLess
+ *
+ */
+
+inline bool qm::RemoteFolderLess::operator()(const std::pair<Folder*, bool>& lhs,
+											 const std::pair<Folder*, bool>& rhs) const
+{
+	return lhs.first < rhs.first;
+}
+
 #endif // __ACCOUNT_INL__

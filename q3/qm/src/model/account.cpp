@@ -1490,16 +1490,12 @@ bool qm::Account::updateFolders()
 		const FolderList& l_;
 	} deleter2(listDelete);
 	
+	std::sort(l.begin(), l.end(), RemoteFolderLess());
 	for (FolderList::iterator itF = pImpl_->listFolder_.begin(); itF != pImpl_->listFolder_.end(); ) {
-		ProtocolDriver::RemoteFolderList::const_iterator itR = std::find_if(
-			l.begin(), l.end(),
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<Folder*>(),
-					std::select1st<ProtocolDriver::RemoteFolderList::value_type>(),
-					std::identity<Folder*>()),
-				*itF));
-		if (itR != l.end()) {
+		std::pair<Folder*, bool> p(*itF, false);
+		ProtocolDriver::RemoteFolderList::const_iterator itR = std::lower_bound(
+			l.begin(), l.end(), p, RemoteFolderLess());
+		if (itR != l.end() && (*itR).first == *itF) {
 			++itF;
 		}
 		else if ((*itF)->getType() == Folder::TYPE_NORMAL &&

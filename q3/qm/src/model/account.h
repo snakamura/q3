@@ -61,6 +61,19 @@ struct AccountLess : public std::binary_function<Account*, Account*, bool>
 
 /****************************************************************************
  *
+ * RemoteFolderLess
+ *
+ */
+
+struct RemoteFolderLess : public std::binary_function<std::pair<Folder*, bool>, std::pair<Folder*, bool>, bool>
+{
+	bool operator()(const std::pair<Folder*, bool>& lhs,
+					const std::pair<Folder*, bool>& rhs) const;
+};
+
+
+/****************************************************************************
+ *
  * FolderContentHandler
  *
  */

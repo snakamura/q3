@@ -299,11 +299,24 @@ private:
 		bool operator()(const FolderData& lhs,
 						const FolderData& rhs) const;
 	};
+	
+	struct FolderInfo
+	{
+		qm::Folder* pFolder_;
+		bool bNew_;
+		qs::WSTRING wstrFullName_;
+	};
+	
+	struct FolderInfoLess : public std::binary_function<FolderInfo, FolderInfo, bool>
+	{
+		bool operator()(const FolderInfo& lhs,
+						const FolderInfo& rhs) const;
+	};
 
 private:
 	typedef std::vector<std::pair<qs::WSTRING, WCHAR> > NamespaceList;
 	typedef std::vector<FolderData> FolderDataList;
-	typedef Imap4Driver::RemoteFolderList FolderList;
+	typedef std::vector<FolderInfo> FolderInfoList;
 
 private:
 	class CallbackImpl : public AbstractCallback
@@ -358,7 +371,7 @@ private:
 	std::auto_ptr<qs::Logger> pLogger_;
 	NamespaceList listNamespace_;
 	FolderDataList listFolderData_;
-	FolderList listFolder_;
+	FolderInfoList listFolderInfo_;
 };
 
 
