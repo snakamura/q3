@@ -25,6 +25,7 @@
 #include "uimanager.h"
 #include "viewmodel.h"
 #include "../model/color.h"
+#include "../model/confighelper.h"
 #include "../model/filter.h"
 
 #pragma warning(disable:4786)
@@ -2155,27 +2156,7 @@ void qm::DefaultViewData::setItem(const WCHAR* pwszClass,
 
 bool qm::DefaultViewData::save() const
 {
-	TemporaryFileRenamer renamer(wstrPath_.get());
-	
-	FileOutputStream os(renamer.getPath());
-	if (!os)
-		return false;
-	OutputStreamWriter writer(&os, false, L"utf-8");
-	if (!writer)
-		return false;
-	BufferedWriter bufferedWriter(&writer, false);
-	
-	ViewDataWriter viewDataWriter(&bufferedWriter);
-	if (!viewDataWriter.write(this))
-		return false;
-	
-	if (!bufferedWriter.close())
-		return false;
-	
-	if (!renamer.rename())
-		return false;
-	
-	return true;
+	return ConfigSaver<const DefaultViewData*, ViewDataWriter>::save(this, wstrPath_.get());
 }
 
 std::auto_ptr<ViewDataItem> qm::DefaultViewData::createDefaultItem()
