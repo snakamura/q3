@@ -1522,6 +1522,23 @@ BEGIN
     PUSHBUTTON      "&Font...",IDC_FONT,5,65,50,14
 END
 
+IDD_OPTIONTABWINDOW DIALOG DISCARDABLE  0, 0, 232, 151
+STYLE WS_CHILD
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    CONTROL         "&Multiline",IDC_MULTILINE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,5,50,10
+    CONTROL         "Reuse tab when &open",IDC_REUSEOPEN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,15,85,10
+    CONTROL         "Reuse tab when &change",IDC_REUSECHANGE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,25,90,10
+    CONTROL         "Show &all count",IDC_SHOWALL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,35,60,10
+    CONTROL         "Show &unseen count",IDC_SHOWUNSEEN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,45,75,10
+    PUSHBUTTON      "&Font...",IDC_FONT,5,65,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1669,6 +1686,14 @@ BEGIN
     END
 
     IDD_OPTIONADDRESSBOOK, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 225
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 144
+    END
+
+    IDD_OPTIONTABWINDOW, DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 225
@@ -1981,6 +2006,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_PANEL_SYNCFILTERS   "Sync Filters"
+    IDS_PANEL_TABWINDOW     "Tab"
 END
 
 #endif    // “ú–{Œê resources

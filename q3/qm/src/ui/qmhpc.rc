@@ -1433,6 +1433,23 @@ BEGIN
     PUSHBUTTON      "&Font...",IDC_FONT,5,50,50,12
 END
 
+IDD_OPTIONTABWINDOW DIALOG DISCARDABLE  0, 0, 205, 100
+STYLE WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&Multiline",IDC_MULTILINE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,5,41,10
+    CONTROL         "Reuse tab when &open",IDC_REUSEOPEN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,15,86,10
+    CONTROL         "Reuse tab when &change",IDC_REUSECHANGE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,25,93,10
+    CONTROL         "Show &all count",IDC_SHOWALL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,35,65,10
+    CONTROL         "Show &unseen count",IDC_SHOWUNSEEN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,45,85,10
+    PUSHBUTTON      "&Font...",IDC_FONT,5,65,50,12
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2044,6 +2061,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_PANEL_SYNCFILTERS   "Sync Filters"
+    IDS_PANEL_TABWINDOW     "Tab"
 END
 
 #endif    // Japanese resources

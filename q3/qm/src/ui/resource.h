@@ -99,6 +99,7 @@
 #define IDD_OPTIONFOLDERCOMBOBOX        199
 #define IDD_OPTIONLISTWINDOW            200
 #define IDD_OPTIONADDRESSBOOK           201
+#define IDD_OPTIONTABWINDOW             202
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -423,6 +424,9 @@
 #define IDC_WAB                         1319
 #define IDC_OUTLOOK                     1320
 #define IDC_ADDRESSONLY                 1321
+#define IDC_MULTILINE                   1322
+#define IDC_REUSEOPEN                   1323
+#define IDC_REUSECHANGE                 1324
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -447,6 +451,7 @@
 #define IDS_PANEL_RULES                 2510
 #define IDS_PANEL_SIGNATURES            2511
 #define IDS_PANEL_SYNCFILTERS           2512
+#define IDS_PANEL_TABWINDOW             2513
 #define IDS_ERROR_CREATEFOLDER          10000
 #define IDS_ERROR_EXECUTEATTACHMENT     10001
 #define IDS_ERROR_DIALUP                10002
@@ -504,9 +509,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        202
+#define _APS_NEXT_RESOURCE_VALUE        203
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1322
+#define _APS_NEXT_CONTROL_VALUE         1325
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -113,6 +113,13 @@ class DefaultTabModel :
 	public DefaultAccountHandler
 {
 public:
+	enum {
+		REUSE_NONE		= 0x00,
+		REUSE_OPEN		= 0x01,
+		REUSE_CHANGE	= 0x02
+	};
+
+public:
 	typedef std::vector<TabItem*> ItemList;
 
 public:
@@ -122,6 +129,8 @@ public:
 	virtual ~DefaultTabModel();
 
 public:
+	unsigned int getReuse() const;
+	void setReuse(unsigned int nReuse);
 	bool save() const;
 	const ItemList& getItems() const;
 
@@ -198,13 +207,6 @@ private:
 private:
 	DefaultTabModel(const DefaultTabModel&);
 	DefaultTabModel& operator=(const DefaultTabModel&);
-
-private:
-	enum {
-		REUSE_NONE		= 0x00,
-		REUSE_OPEN		= 0x01,
-		REUSE_CHANGE	= 0x02
-	};
 
 private:
 	typedef std::vector<std::pair<Account*, int> > AccountList;

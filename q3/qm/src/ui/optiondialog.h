@@ -37,6 +37,9 @@ class OptionAddressBookDialog;
 class OptionFolderComboBoxDialog;
 class OptionFolderWindowDialog;
 class OptionListWindowDialog;
+#ifdef QMTABWINDOW
+class OptionTabWindowDialog;
+#endif
 template<class T, class List, class Manager, class EditDialog> class RuleColorSetsDialog;
 template<class T, class List, class Container, class EditDialog> class RulesColorsDialog;
 class ColorSetsDialog;
@@ -72,6 +75,9 @@ class FolderListWindow;
 class FolderWindow;
 class ListWindow;
 class MainWindow;
+#ifdef QMTABWINDOW
+class TabWindow;
+#endif
 
 
 /****************************************************************************
@@ -91,6 +97,9 @@ public:
 		PANEL_FOLDERWINDOW,
 		PANEL_FOLDERCOMBOBOX,
 		PANEL_LISTWINDOW,
+#ifdef QMTABWINDOW
+		PANEL_TABWINDOW,
+#endif
 		PANEL_ADDRESSBOOK,
 		PANEL_RULES,
 		PANEL_COLORS,
@@ -116,6 +125,9 @@ public:
 				 FolderComboBox* pFolderComboBox,
 				 ListWindow* pListWindow,
 				 FolderListWindow* pFolderListWindow,
+#ifdef QMTABWINDOW
+				 TabWindow* pTabWindow,
+#endif
 				 AddressBookFrameWindowManager* pAddressBookFrameWindowManager,
 				 qs::Profile* pProfile,
 				 Panel panel);
@@ -194,6 +206,9 @@ private:
 	FolderComboBox* pFolderComboBox_;
 	ListWindow* pListWindow_;
 	FolderListWindow* pFolderListWindow_;
+#ifdef QMTABWINDOW
+	TabWindow* pTabWindow_;
+#endif
 	AddressBookFrameWindowManager* pAddressBookFrameWindowManager_;
 	qs::Profile* pProfile_;
 	Panel panel_;
@@ -294,6 +309,9 @@ public:
 				 FolderComboBox* pFolderComboBox,
 				 ListWindow* pListWindow,
 				 FolderListWindow* pFolderListWindow,
+#ifdef QMTABWINDOW
+				 TabWindow* pTabWindow,
+#endif
 				 AddressBookFrameWindowManager* pAddressBookFrameWindowManager);
 	int showDialog(HWND hwndParent,
 				   OptionDialog::Panel panel) const;
@@ -316,6 +334,9 @@ private:
 	FolderComboBox* pFolderComboBox_;
 	ListWindow* pListWindow_;
 	FolderListWindow* pFolderListWindow_;
+#ifdef QMTABWINDOW
+	TabWindow* pTabWindow_;
+#endif
 	AddressBookFrameWindowManager* pAddressBookFrameWindowManager_;
 };
 
@@ -483,6 +504,48 @@ private:
 	qs::Profile* pProfile_;
 	LOGFONT lf_;
 };
+
+
+#ifdef QMTABWINDOW
+/****************************************************************************
+ *
+ * OptionTabWindowDialog
+ *
+ */
+
+class OptionTabWindowDialog :
+	public DefaultDialog,
+	public AbstractOptionDialogPanel<OptionTabWindowDialog>
+{
+public:
+	OptionTabWindowDialog(TabWindow* pTabWindow,
+						  qs::Profile* pProfile);
+	virtual ~OptionTabWindowDialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+public:
+	virtual bool save(OptionDialogContext* pContext);
+
+private:
+	LRESULT onFont();
+
+private:
+	OptionTabWindowDialog(const OptionTabWindowDialog&);
+	OptionTabWindowDialog& operator=(const OptionTabWindowDialog&);
+
+private:
+	TabWindow* pTabWindow_;
+	qs::Profile* pProfile_;
+	LOGFONT lf_;
+};
+#endif // QMTABWINDOW
 
 
 /****************************************************************************

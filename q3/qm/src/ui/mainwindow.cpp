@@ -2384,6 +2384,9 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	pImpl_->pOptionDialogManager_->initUIs(this, pImpl_->pFolderWindow_,
 		pImpl_->pFolderComboBox_, pImpl_->pListWindow_, pImpl_->pFolderListWindow_,
+#ifdef QMTABWINDOW
+		pImpl_->pTabWindow_,
+#endif
 		pImpl_->pAddressBookFrameWindowManager_.get());
 	
 	pImpl_->pMessageSelectionModel_.reset(

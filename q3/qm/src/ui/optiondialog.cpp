@@ -12,6 +12,7 @@
 #include <qmfolderwindow.h>
 #include <qmlistwindow.h>
 #include <qmmainwindow.h>
+#include <qmtabwindow.h>
 
 #include <qsras.h>
 #include <qsuiutil.h>
@@ -23,6 +24,7 @@
 #include "optiondialog.h"
 #include "resourceinc.h"
 #include "../sync/syncmanager.h"
+#include "../uimodel/tabmodel.h"
 #include "../util/util.h"
 
 #pragma warning(disable:4786)
@@ -48,6 +50,9 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 							   FolderComboBox* pFolderComboBox,
 							   ListWindow* pListWindow,
 							   FolderListWindow* pFolderListWindow,
+#ifdef QMTABWINDOW
+							   TabWindow* pTabWindow,
+#endif
 							   AddressBookFrameWindowManager* pAddressBookFrameWindowManager,
 							   Profile* pProfile,
 							   Panel panel) :
@@ -63,6 +68,9 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 	pFolderComboBox_(pFolderComboBox),
 	pListWindow_(pListWindow),
 	pFolderListWindow_(pFolderListWindow),
+#ifdef QMTABWINDOW
+	pTabWindow_(pTabWindow),
+#endif
 	pAddressBookFrameWindowManager_(pAddressBookFrameWindowManager),
 	pProfile_(pProfile),
 	panel_(panel),
@@ -157,6 +165,9 @@ LRESULT qm::OptionDialog::onInitDialog(HWND hwndFocus,
 		{ PANEL_FOLDERWINDOW,	IDS_PANEL_FOLDERWINDOW		},
 		{ PANEL_FOLDERCOMBOBOX,	IDS_PANEL_FOLDERCOMBOBOX	},
 		{ PANEL_LISTWINDOW,		IDS_PANEL_LISTWINDOW		},
+#ifdef QMTABWINDOW
+		{ PANEL_TABWINDOW,		IDS_PANEL_TABWINDOW			},
+#endif
 		{ PANEL_ADDRESSBOOK,	IDS_PANEL_ADDRESSBOOK		},
 		{ PANEL_RULES,			IDS_PANEL_RULES				},
 		{ PANEL_COLORS,			IDS_PANEL_COLORS			},
@@ -396,6 +407,9 @@ void qm::OptionDialog::setCurrentPanel(Panel panel)
 			PANEL2(PANEL_FOLDERWINDOW, OptionFolderWindow, pFolderWindow_, pProfile_);
 			PANEL2(PANEL_FOLDERCOMBOBOX, OptionFolderComboBox, pFolderComboBox_, pProfile_);
 			PANEL3(PANEL_LISTWINDOW, OptionListWindow, pListWindow_, pFolderListWindow_, pProfile_);
+#ifdef QMTABWINDOW
+			PANEL2(PANEL_TABWINDOW, OptionTabWindow, pTabWindow_, pProfile_);
+#endif
 			PANEL3(PANEL_ADDRESSBOOK, OptionAddressBook, pDocument_->getAddressBook(), pAddressBookFrameWindowManager_, pProfile_);
 			PANEL3(PANEL_RULES, RuleSets, pDocument_->getRuleManager(), pDocument_, pProfile_);
 			PANEL3(PANEL_COLORS, ColorSets, pColorManager_, pDocument_, pProfile_);
@@ -712,6 +726,9 @@ qm::OptionDialogManager::OptionDialogManager(Document* pDocument,
 	pFolderComboBox_(0),
 	pListWindow_(0),
 	pFolderListWindow_(0),
+#ifdef QMTABWINDOW
+	pTabWindow_(0),
+#endif
 	pAddressBookFrameWindowManager_(0)
 {
 }
@@ -725,6 +742,9 @@ void qm::OptionDialogManager::initUIs(MainWindow* pMainWindow,
 									  FolderComboBox* pFolderComboBox,
 									  ListWindow* pListWindow,
 									  FolderListWindow* pFolderListWindow,
+#ifdef QMTABWINDOW
+									  TabWindow* pTabWindow,
+#endif
 									  AddressBookFrameWindowManager* pAddressBookFrameWindowManager)
 {
 	pMainWindow_ = pMainWindow;
@@ -732,6 +752,9 @@ void qm::OptionDialogManager::initUIs(MainWindow* pMainWindow,
 	pFolderComboBox_ = pFolderComboBox;
 	pListWindow_ = pListWindow;
 	pFolderListWindow_ = pFolderListWindow;
+#ifdef QMTABWINDOW
+	pTabWindow_ = pTabWindow;
+#endif
 	pAddressBookFrameWindowManager_ = pAddressBookFrameWindowManager;
 }
 
@@ -750,12 +773,19 @@ int qm::OptionDialogManager::showDialog(HWND hwndParent,
 	assert(pFolderComboBox_);
 	assert(pListWindow_);
 	assert(pFolderListWindow_);
+#ifdef QMTABWINDOW
+	assert(pTabWindow_);
+#endif
 	assert(pAddressBookFrameWindowManager_);
 	
-	OptionDialog dialog(pDocument_, pGoRound_, pFilterManager_, pColorManager_,
-		pSyncManager_->getSyncFilterManager(), pAutoPilotManager_,
-		pMainWindow_, pFolderWindow_, pFolderComboBox_, pListWindow_,
-		pFolderListWindow_, pAddressBookFrameWindowManager_, pProfile_, panel);
+	OptionDialog dialog(pDocument_, pGoRound_, pFilterManager_,
+		pColorManager_, pSyncManager_->getSyncFilterManager(),
+		pAutoPilotManager_, pMainWindow_, pFolderWindow_, pFolderComboBox_,
+		pListWindow_, pFolderListWindow_,
+#ifdef QMTABWINDOW
+		pTabWindow_,
+#endif
+		pAddressBookFrameWindowManager_, pProfile_, panel);
 	return dialog.doModal(hwndParent);
 }
 
@@ -1073,6 +1103,95 @@ LRESULT qm::OptionListWindowDialog::onFont()
 	UIUtil::browseFont(getParentPopup(), &lf_);
 	return 0;
 }
+
+
+#ifdef QMTABWINDOW
+/****************************************************************************
+ *
+ * OptionTabWindowDialog
+ *
+ */
+
+namespace {
+struct {
+	const WCHAR* pwszKey_;
+	UINT nId_;
+	bool bDefault_;
+} tabWindowFlags[] = {
+	{ L"Multiline",			IDC_MULTILINE,	false	},
+	{ L"ShowAllCount",		IDC_SHOWALL,	true	},
+	{ L"ShowUnseenCount",	IDC_SHOWUNSEEN,	true	}
+};
+}
+
+qm::OptionTabWindowDialog::OptionTabWindowDialog(TabWindow* pTabWindow,
+												 Profile* pProfile) :
+	DefaultDialog(IDD_OPTIONTABWINDOW),
+	pTabWindow_(pTabWindow),
+	pProfile_(pProfile)
+{
+	UIUtil::getLogFontFromProfile(pProfile_, L"TabWindow", false, &lf_);
+}
+
+qm::OptionTabWindowDialog::~OptionTabWindowDialog()
+{
+}
+
+LRESULT qm::OptionTabWindowDialog::onCommand(WORD nCode,
+											  WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_FONT, onFont)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::OptionTabWindowDialog::onInitDialog(HWND hwndFocus,
+												 LPARAM lParam)
+{
+	for (int n = 0; n < countof(tabWindowFlags); ++n) {
+		bool b = pProfile_->getInt(L"TabWindow", tabWindowFlags[n].pwszKey_, tabWindowFlags[n].bDefault_) != 0;
+		sendDlgItemMessage(tabWindowFlags[n].nId_, BM_SETCHECK, b ? BST_CHECKED : BST_UNCHECKED);
+	}
+	
+	DefaultTabModel* pTabModel = static_cast<DefaultTabModel*>(pTabWindow_->getTabModel());
+	unsigned int nReuse = pTabModel->getReuse();
+	if (nReuse & DefaultTabModel::REUSE_OPEN)
+		sendDlgItemMessage(IDC_REUSEOPEN, BM_SETCHECK, BST_CHECKED);
+	if (nReuse & DefaultTabModel::REUSE_CHANGE)
+		sendDlgItemMessage(IDC_REUSECHANGE, BM_SETCHECK, BST_CHECKED);
+	
+	return FALSE;
+}
+
+bool qm::OptionTabWindowDialog::save(OptionDialogContext* pContext)
+{
+	for (int n = 0; n < countof(tabWindowFlags); ++n) {
+		bool b = sendDlgItemMessage(tabWindowFlags[n].nId_, BM_GETCHECK) == BST_CHECKED;
+		pProfile_->setInt(L"TabWindow", tabWindowFlags[n].pwszKey_, b);
+	}
+	
+	DefaultTabModel* pTabModel = static_cast<DefaultTabModel*>(pTabWindow_->getTabModel());
+	unsigned int nReuse = DefaultTabModel::REUSE_NONE;
+	if (sendDlgItemMessage(IDC_REUSEOPEN, BM_GETCHECK) == BST_CHECKED)
+		nReuse |= DefaultTabModel::REUSE_OPEN;
+	if (sendDlgItemMessage(IDC_REUSECHANGE, BM_GETCHECK) == BST_CHECKED)
+		nReuse |= DefaultTabModel::REUSE_CHANGE;
+	pTabModel->setReuse(nReuse);
+	
+	UIUtil::setLogFontToProfile(pProfile_, L"TabWindow", lf_);
+	
+	pTabWindow_->reloadProfiles();
+	
+	return true;
+}
+
+LRESULT qm::OptionTabWindowDialog::onFont()
+{
+	UIUtil::browseFont(getParentPopup(), &lf_);
+	return 0;
+}
+#endif // QMTABWINDOW
 
 
 /****************************************************************************

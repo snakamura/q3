@@ -41,8 +41,10 @@ public:
 	virtual ~TabWindow();
 
 public:
+	TabModel* getTabModel() const;
 	bool isShowTab() const;
 	void setShowTab(bool bShow);
+	void reloadProfiles();
 	bool save() const;
 	void setControl(HWND hwnd);
 

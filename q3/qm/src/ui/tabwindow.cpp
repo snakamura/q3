@@ -60,6 +60,7 @@ public:
 	void layoutChildren(int cx,
 						int cy);
 	void handleUpdateMessage(LPARAM lParam);
+	void reloadProfiles(bool bInitialize);
 
 public:
 	virtual LRESULT onNotify(NMHDR* pnmhdr,
@@ -148,6 +149,30 @@ void qm::TabWindowImpl::handleUpdateMessage(LPARAM lParam)
 	}
 	
 	update(reinterpret_cast<Folder*>(lParam));
+}
+
+void qm::TabWindowImpl::reloadProfiles(bool bInitialize)
+{
+	bool bShowTab = pProfile_->getInt(L"TabWindow", L"Show", 1) != 0;
+	
+	bShowAllCount_ = pProfile_->getInt(L"TabWindow", L"ShowAllCount", 1) != 0;
+	bShowUnseenCount_ = pProfile_->getInt(L"TabWindow", L"ShowUnseenCount", 1) != 0;
+	
+	if (!bInitialize) {
+		if (bShowTab != pThis_->isShowTab())
+			pThis_->setShowTab(bShowTab);
+	}
+	else {
+		bShowTab_ = bShowTab;
+	}
+	
+	
+	if (!bInitialize) {
+		pTabCtrl_->reloadProfiles();
+		for (int n = 0; n < TabCtrl_GetItemCount(pTabCtrl_->getHandle()); ++n)
+			update(n);
+		layoutChildren();
+	}
 }
 
 LRESULT qm::TabWindowImpl::onNotify(NMHDR* pnmhdr,
@@ -446,9 +471,11 @@ qm::TabWindow::TabWindow(TabModel* pTabModel,
 	pImpl_->hwnd_ = 0;
 	pImpl_->pTabModel_ = pTabModel;
 	pImpl_->pProfile_ = pProfile;
-	pImpl_->bShowTab_ = pProfile->getInt(L"TabWindow", L"Show", 1) != 0;
-	pImpl_->bShowAllCount_ = pProfile->getInt(L"TabWindow", L"ShowAllCount", 1) != 0;
-	pImpl_->bShowUnseenCount_ = pProfile->getInt(L"TabWindow", L"ShowUnseenCount", 1) != 0;
+	pImpl_->bShowTab_ = true;
+	pImpl_->bShowAllCount_ = true;
+	pImpl_->bShowUnseenCount_ = true;
+	
+	pImpl_->reloadProfiles(true);
 	
 	setWindowHandler(this, false);
 }
@@ -456,6 +483,11 @@ qm::TabWindow::TabWindow(TabModel* pTabModel,
 qm::TabWindow::~TabWindow()
 {
 	delete pImpl_;
+}
+
+TabModel* qm::TabWindow::getTabModel() const
+{
+	return pImpl_->pTabModel_;
 }
 
 bool qm::TabWindow::isShowTab() const
@@ -469,6 +501,11 @@ void qm::TabWindow::setShowTab(bool bShow)
 		pImpl_->bShowTab_ = bShow;
 		pImpl_->layoutChildren();
 	}
+}
+
+void qm::TabWindow::reloadProfiles()
+{
+	pImpl_->reloadProfiles(false);
 }
 
 bool qm::TabWindow::save() const
@@ -586,10 +623,9 @@ qm::TabCtrlWindow::TabCtrlWindow(Document* pDocument,
 	pTabModel_(pTabModel),
 	pProfile_(pProfile),
 	pMenuManager_(pMenuManager),
-	bMultiline_(false),
 	hfont_(0)
 {
-	bMultiline_ = pProfile->getInt(L"TabWindow", L"Multiline", 0) != 0;
+	reloadProfiles(true);
 	
 	setWindowHandler(this, false);
 }
@@ -600,7 +636,12 @@ qm::TabCtrlWindow::~TabCtrlWindow()
 
 bool qm::TabCtrlWindow::isMultiline() const
 {
-	return bMultiline_;
+	return (getStyle() & TCS_MULTILINE) != 0;
+}
+
+void qm::TabCtrlWindow::reloadProfiles()
+{
+	reloadProfiles(false);
 }
 
 wstring_ptr qm::TabCtrlWindow::getSuperClass()
@@ -612,8 +653,11 @@ bool qm::TabCtrlWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
 {
 	if (!DefaultWindowHandler::preCreateWindow(pCreateStruct))
 		return false;
+	
+	bool bMultiline = pProfile_->getInt(L"TabWindow", L"Multiline", 0) != 0;
 	pCreateStruct->style |= TCS_TABS | TCS_FOCUSNEVER |
-		(bMultiline_ ? TCS_MULTILINE : TCS_SINGLELINE);
+		(bMultiline ? TCS_MULTILINE : TCS_SINGLELINE);
+	
 	return true;
 }
 
@@ -666,7 +710,6 @@ LRESULT qm::TabCtrlWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (DefaultWindowHandler::onCreate(pCreateStruct) == -1)
 		return -1;
 	
-	hfont_ = qs::UIUtil::createFontFromProfile(pProfile_, L"TabWindow", false);
 	setFont(hfont_);
 	
 	HIMAGELIST hImageList = ImageList_LoadImage(
@@ -797,6 +840,26 @@ void qm::TabCtrlWindow::processDragEvent(const DropTargetDragEvent& event)
 	event.setEffect(dwEffect);
 	
 	ImageList_DragMove(pt.x, pt.y);
+}
+
+void qm::TabCtrlWindow::reloadProfiles(bool bInitialize)
+{
+	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_, L"TabWindow", false);
+	if (!bInitialize) {
+		assert(hfont_);
+		setFont(hfont);
+		::DeleteObject(hfont_);
+	}
+	hfont_ = hfont;
+	
+	if (!bInitialize) {
+		bool bMultiline = pProfile_->getInt(L"TabWindow", L"Multiline", 0) != 0;
+		if (bMultiline != isMultiline())
+			setStyle(bMultiline ? TCS_MULTILINE : TCS_SINGLELINE,
+				TCS_MULTILINE | TCS_SINGLELINE);
+		
+		invalidate();
+	}
 }
 
 #endif // QMTABWINDOW

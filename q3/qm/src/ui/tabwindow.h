@@ -47,6 +47,7 @@ public:
 
 public:
 	bool isMultiline() const;
+	void reloadProfiles();
 
 public:
 	virtual qs::wstring_ptr getSuperClass();
@@ -82,6 +83,7 @@ public:
 
 private:
 	void processDragEvent(const qs::DropTargetDragEvent& event);
+	void reloadProfiles(bool bInitialize);
 
 private:
 	TabCtrlWindow(const TabCtrlWindow&);
@@ -97,8 +99,6 @@ private:
 	TabModel* pTabModel_;
 	qs::Profile* pProfile_;
 	qs::MenuManager* pMenuManager_;
-	
-	bool bMultiline_;
 	
 	HFONT hfont_;
 	std::auto_ptr<qs::DropTarget> pDropTarget_;

@@ -126,12 +126,23 @@ qm::DefaultTabModel::~DefaultTabModel()
 	pDocument_->removeAccountManagerHandler(this);
 }
 
+unsigned int qm::DefaultTabModel::getReuse() const
+{
+	return nReuse_;
+}
+
+void qm::DefaultTabModel::setReuse(unsigned int nReuse)
+{
+	nReuse_ = nReuse;
+}
+
 bool qm::DefaultTabModel::save() const
 {
 	if (!ConfigSaver<const DefaultTabModel*, TabModelWriter>::save(this, wstrPath_.get()))
 		return false;
 	
 	pProfile_->setInt(L"TabWindow", L"CurrentTab", nCurrent_);
+	pProfile_->setInt(L"TabWindow", L"Reuse", nReuse_);
 	
 	return true;
 }
