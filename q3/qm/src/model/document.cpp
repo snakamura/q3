@@ -150,7 +150,7 @@ qm::Document::Document(Profile* pProfile, QSTATUS* pstatus) :
 	CHECK_QSTATUS_SET(pstatus);
 	
 	std::auto_ptr<AddressBook> pAddressBook;
-	status = newQsObject(pSecurity.get(), &pAddressBook);
+	status = newQsObject(pProfile, &pAddressBook);
 	CHECK_QSTATUS_SET(pstatus);
 	
 	int nCheckNewMail = 0;

@@ -36,8 +36,7 @@ using namespace qs;
  *
  */
 
-qm::AddressBook::AddressBook(const Security* pSecurity, QSTATUS* pstatus) :
-	pSecurity_(pSecurity),
+qm::AddressBook::AddressBook(Profile* pProfile, QSTATUS* pstatus) :
 	bContactChanged_(true),
 #ifndef _WIN32_WCE
 	hInstWAB_(0),
@@ -56,8 +55,13 @@ qm::AddressBook::AddressBook(const Security* pSecurity, QSTATUS* pstatus) :
 	::GetSystemTime(&st);
 	::SystemTimeToFileTime(&st, &ft_);
 	
-	status = initWAB();
-//	CHECK_QSTATUS_SET(pstatus);
+	int nWAB = 1;
+	status = pProfile->getInt(L"AddressBook", L"WAB", 1, &nWAB);
+	CHECK_QSTATUS_SET(pstatus);
+	if (nWAB) {
+		status = initWAB();
+//		CHECK_QSTATUS_SET(pstatus);
+	}
 }
 
 qm::AddressBook::~AddressBook()
@@ -395,7 +399,7 @@ QSTATUS qm::AddressBook::loadWAB()
 	
 #ifndef _WIN32_WCE
 	if (!pAddrBook_)
-		return QSTATUS_FAIL;
+		return QSTATUS_SUCCESS;
 	
 	ULONG nSize = 0;
 	ENTRYID* pEntryId = 0;
@@ -511,7 +515,7 @@ QSTATUS qm::AddressBook::loadWAB()
 	}
 #else
 	if (!hContactsDB_)
-		return QSTATUS_FAIL;
+		return QSTATUS_SUCCESS;
 	
 	typedef std::vector<std::pair<unsigned int, WSTRING> > CategoryMap;
 	CategoryMap mapCategory;

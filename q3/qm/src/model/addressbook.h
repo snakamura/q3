@@ -13,6 +13,7 @@
 
 #include <qs.h>
 #include <qscrypto.h>
+#include <qsprofile.h>
 #include <qssax.h>
 #include <qsstring.h>
 #ifdef _WIN32_WCE
@@ -57,7 +58,7 @@ public:
 	typedef std::vector<std::pair<const WCHAR*, AddressBookEntry*> > EntryMap;
 
 public:
-	AddressBook(const Security* pSecurity, qs::QSTATUS* pstatus);
+	AddressBook(qs::Profile* pProfile, qs::QSTATUS* pstatus);
 	~AddressBook();
 
 public:
@@ -137,7 +138,6 @@ private:
 #endif
 
 private:
-	const Security* pSecurity_;
 	FILETIME ft_;
 	EntryList listEntry_;
 	CategoryList listCategory_;
