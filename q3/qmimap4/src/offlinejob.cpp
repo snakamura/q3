@@ -594,69 +594,6 @@ std::auto_ptr<OfflineJob> qmimap4::CopyOfflineJob::create(qs::InputStream* pStre
 
 /****************************************************************************
  *
- * ExpungeOfflineJob
- *
- */
-
-qmimap4::ExpungeOfflineJob::ExpungeOfflineJob(const WCHAR* pwszFolder) :
-	OfflineJob(pwszFolder)
-{
-}
-
-qmimap4::ExpungeOfflineJob::~ExpungeOfflineJob()
-{
-}
-
-OfflineJob::Type qmimap4::ExpungeOfflineJob::getType() const
-{
-	return TYPE_EXPUNGE;
-}
-
-bool qmimap4::ExpungeOfflineJob::apply(Account* pAccount,
-									   Imap4* pImap4,
-									   bool* pbClosed) const
-{
-	assert(pAccount);
-	assert(pImap4);
-	assert(pbClosed);
-	
-	if (!pImap4->close())
-		return false;
-	*pbClosed = true;
-	
-	return true;
-}
-
-bool qmimap4::ExpungeOfflineJob::write(OutputStream* pStream) const
-{
-	return OfflineJob::write(pStream);
-}
-
-bool qmimap4::ExpungeOfflineJob::isCreateMessage(const WCHAR* pwszFolder,
-												 unsigned long nId)
-{
-	return false;
-}
-
-bool qmimap4::ExpungeOfflineJob::merge(OfflineJob* pOfflineJob)
-{
-	assert(pOfflineJob);
-	return true;
-}
-
-std::auto_ptr<OfflineJob> qmimap4::ExpungeOfflineJob::create(InputStream* pStream)
-{
-	wstring_ptr wstrFolder;
-	READ_STRING(WSTRING, wstrFolder);
-	if (!wstrFolder.get())
-		return std::auto_ptr<OfflineJob>(0);
-	
-	return std::auto_ptr<OfflineJob>(new ExpungeOfflineJob(wstrFolder.get()));
-}
-
-
-/****************************************************************************
- *
  * SetFlagsOfflineJob
  *
  */
@@ -807,7 +744,6 @@ std::auto_ptr<OfflineJob> qmimap4::OfflineJobFactory::getInstance(InputStream* p
 	BEGIN_OFFLINEJOB()
 		DECLARE_OFFLINEJOB(TYPE_APPEND, AppendOfflineJob)
 		DECLARE_OFFLINEJOB(TYPE_COPY, CopyOfflineJob)
-		DECLARE_OFFLINEJOB(TYPE_EXPUNGE, ExpungeOfflineJob)
 		DECLARE_OFFLINEJOB(TYPE_SETFLAGS, SetFlagsOfflineJob)
 	END_OFFLINEJOB()
 	

@@ -244,7 +244,8 @@ bool qmimap4::Imap4ReceiveSession::isConnected()
 	return pImap4_->checkConnection();
 }
 
-bool qmimap4::Imap4ReceiveSession::selectFolder(NormalFolder* pFolder)
+bool qmimap4::Imap4ReceiveSession::selectFolder(NormalFolder* pFolder,
+												bool bExpunge)
 {
 	assert(pFolder);
 	
@@ -256,6 +257,11 @@ bool qmimap4::Imap4ReceiveSession::selectFolder(NormalFolder* pFolder)
 	
 	if (!pImap4_->select(wstrName.get()))
 		HANDLE_ERROR();
+	
+	if (bExpunge) {
+		if (!pImap4_->close() || !pImap4_->select(wstrName.get()))
+			HANDLE_ERROR();
+	}
 	
 	pFolder_ = pFolder;
 	

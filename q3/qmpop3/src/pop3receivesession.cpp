@@ -134,9 +134,11 @@ bool qmpop3::Pop3ReceiveSession::isConnected()
 	return true;
 }
 
-bool qmpop3::Pop3ReceiveSession::selectFolder(NormalFolder* pFolder)
+bool qmpop3::Pop3ReceiveSession::selectFolder(NormalFolder* pFolder,
+											  bool bExpunge)
 {
 	assert(pFolder);
+	assert(!bExpunge);
 	
 	if (!prepare() ||
 		!downloadReservedMessages())

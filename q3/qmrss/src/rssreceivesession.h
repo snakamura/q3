@@ -49,7 +49,8 @@ public:
 	virtual bool connect();
 	virtual void disconnect();
 	virtual bool isConnected();
-	virtual bool selectFolder(qm::NormalFolder* pFolder);
+	virtual bool selectFolder(qm::NormalFolder* pFolder,
+							  bool bExpunge);
 	virtual bool closeFolder();
 	virtual bool updateMessages();
 	virtual bool downloadMessages(const qm::SyncFilterSet* pSyncFilterSet);

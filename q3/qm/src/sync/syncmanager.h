@@ -86,15 +86,22 @@ private:
 class ReceiveSyncItem : public SyncItem
 {
 public:
+	enum Flag {
+		FLAG_EXPUNGE	= 0x01
+	};
+
+public:
 	ReceiveSyncItem(unsigned int nSlot,
 					Account* pAccount,
 					SubAccount* pSubAccount,
 					NormalFolder* pFolder,
-					const SyncFilterSet* pFilterSet);
+					const SyncFilterSet* pFilterSet,
+					unsigned int nFlags);
 	virtual ~ReceiveSyncItem();
 
 public:
 	const SyncFilterSet* getFilterSet() const;
+	bool isFlag(Flag flag) const;
 
 public:
 	virtual bool isSend() const;
@@ -107,6 +114,7 @@ private:
 private:
 	NormalFolder* pFolder_;
 	const SyncFilterSet* pFilterSet_;
+	unsigned int nFlags_;
 };
 
 
@@ -227,7 +235,8 @@ public:
 	void addFolder(Account* pAccount,
 				   SubAccount* pSubAccount,
 				   NormalFolder* pFolder,
-				   const WCHAR* pwszFilterName);
+				   const WCHAR* pwszFilterName,
+				   unsigned int nFlags);
 	void addFolders(Account* pAccount,
 					SubAccount* pSubAccount,
 					const qs::RegexPattern* pFolderNamePattern,

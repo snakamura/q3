@@ -125,8 +125,12 @@ bool qmnntp::NntpReceiveSession::isConnected()
 	return true;
 }
 
-bool qmnntp::NntpReceiveSession::selectFolder(NormalFolder* pFolder)
+bool qmnntp::NntpReceiveSession::selectFolder(NormalFolder* pFolder,
+											  bool bExpunge)
 {
+	assert(pFolder);
+	assert(!bExpunge);
+	
 	pCallback_->setMessage(IDS_SELECTGROUP);
 	
 	wstring_ptr wstrGroup(pFolder->getFullName());

@@ -94,9 +94,14 @@ bool qmrss::RssReceiveSession::isConnected()
 	return true;
 }
 
-bool qmrss::RssReceiveSession::selectFolder(NormalFolder* pFolder)
+bool qmrss::RssReceiveSession::selectFolder(NormalFolder* pFolder,
+											bool bExpunge)
 {
+	assert(pFolder);
+	assert(!bExpunge);
+	
 	pFolder_ = pFolder;
+	
 	return true;
 }
 

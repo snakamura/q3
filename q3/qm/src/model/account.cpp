@@ -1820,13 +1820,6 @@ bool qm::Account::deleteMessagesCache(const MessageHolderList& l)
 	return true;
 }
 
-bool qm::Account::clearDeletedMessages(NormalFolder* pFolder)
-{
-	assert(pFolder);
-	return pImpl_->pProtocolDriver_->clearDeletedMessages(
-		getCurrentSubAccount(), pFolder);
-}
-
 void qm::Account::addAccountHandler(AccountHandler* pHandler)
 {
 	assert(std::find(pImpl_->listAccountHandler_.begin(),

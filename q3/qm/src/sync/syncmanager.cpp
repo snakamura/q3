@@ -77,10 +77,12 @@ qm::ReceiveSyncItem::ReceiveSyncItem(unsigned int nSlot,
 									 Account* pAccount,
 									 SubAccount* pSubAccount,
 									 NormalFolder* pFolder,
-									 const SyncFilterSet* pFilterSet) :
+									 const SyncFilterSet* pFilterSet,
+									 unsigned int nFlags) :
 	SyncItem(nSlot, pAccount, pSubAccount),
 	pFolder_(pFolder),
-	pFilterSet_(pFilterSet)
+	pFilterSet_(pFilterSet),
+	nFlags_(nFlags)
 {
 }
 
@@ -91,6 +93,11 @@ qm::ReceiveSyncItem::~ReceiveSyncItem()
 const SyncFilterSet* qm::ReceiveSyncItem::getFilterSet() const
 {
 	return pFilterSet_;
+}
+
+bool qm::ReceiveSyncItem::isFlag(Flag flag) const
+{
+	return (nFlags_ & flag) != 0;
 }
 
 bool qm::ReceiveSyncItem::isSend() const
@@ -310,12 +317,13 @@ void qm::SyncData::newSlot()
 void qm::SyncData::addFolder(Account* pAccount,
 							 SubAccount* pSubAccount,
 							 NormalFolder* pFolder,
-							 const WCHAR* pwszFilterName)
+							 const WCHAR* pwszFilterName,
+							 unsigned int nFlags)
 {
 	SyncFilterManager* pManager = pManager_->getSyncFilterManager();
 	const SyncFilterSet* pFilterSet = pManager->getFilterSet(pAccount, pwszFilterName);
 	std::auto_ptr<ReceiveSyncItem> pItem(new ReceiveSyncItem(
-		nSlot_, pAccount, pSubAccount, pFolder, pFilterSet));
+		nSlot_, pAccount, pSubAccount, pFolder, pFilterSet, nFlags));
 	listItem_.push_back(pItem.get());
 	pItem.release();
 }
@@ -346,7 +354,7 @@ void qm::SyncData::addFolders(Account* pAccount,
 	
 	std::sort(listFolder.begin(), listFolder.end(), FolderLess());
 	for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it)
-		addFolder(pAccount, pSubAccount, static_cast<NormalFolder*>(*it), pwszFilterName);
+		addFolder(pAccount, pSubAccount, static_cast<NormalFolder*>(*it), pwszFilterName, 0);
 }
 
 void qm::SyncData::addSend(Account* pAccount,
@@ -729,6 +737,9 @@ bool qm::SyncManager::syncFolder(SyncManagerCallback* pSyncManagerCallback,
 {
 	assert(pSession);
 	
+	const ReceiveSyncItem* pReceiveItem = pItem->isSend() ? 0 :
+		static_cast<const ReceiveSyncItem*>(pItem);
+	
 	NormalFolder* pFolder = pItem->getFolder();
 	if (!pFolder || !pFolder->isFlag(Folder::FLAG_SYNCABLE))
 		return true;
@@ -740,13 +751,13 @@ bool qm::SyncManager::syncFolder(SyncManagerCallback* pSyncManagerCallback,
 	if (!pFolder->loadMessageHolders())
 		return false;
 	
-	if (!pSession->selectFolder(pFolder))
+	bool bExpunge = pReceiveItem && pReceiveItem->isFlag(ReceiveSyncItem::FLAG_EXPUNGE);
+	if (!pSession->selectFolder(pFolder, bExpunge))
 		return false;
 	pFolder->setLastSyncTime(::GetTickCount());
 	
-	const SyncFilterSet* pFilterSet = 0;
-	if (!pItem->isSend())
-		pFilterSet = static_cast<const ReceiveSyncItem*>(pItem)->getFilterSet();
+	const SyncFilterSet* pFilterSet = pReceiveItem ?
+		pReceiveItem->getFilterSet() : 0;
 	if (!pSession->updateMessages() || !pSession->downloadMessages(pFilterSet))
 		return false;
 	

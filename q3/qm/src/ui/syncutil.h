@@ -40,7 +40,15 @@ public:
 						   SyncDialogManager* pSyncDialogManager,
 						   HWND hwnd,
 						   unsigned int nCallbackParam,
-						   NormalFolder* pFolder);
+						   NormalFolder* pFolder,
+						   unsigned int nFlags);
+	static bool syncFolders(SyncManager* pSyncManager,
+							Document* pDocument,
+							SyncDialogManager* pSyncDialogManager,
+							HWND hwnd,
+							unsigned int nCallbackParam,
+							const Account::NormalFolderList& listFolder,
+							unsigned int nFlags);
 	static bool sync(SyncManager* pSyncManager,
 					 Document* pDocument,
 					 SyncDialogManager* pSyncDialogManager,

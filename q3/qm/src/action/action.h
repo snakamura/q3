@@ -321,8 +321,13 @@ private:
 class EditClearDeletedAction : public qs::AbstractAction
 {
 public:
-	EditClearDeletedAction(FolderModel* pFolderModel,
-						   HWND hwnd);
+	EditClearDeletedAction(SyncManager* pSyncManager,
+						   Document* pDocument,
+						   FolderModel* pFolderModel,
+						   SecurityModel* pSecurityModel,
+						   SyncDialogManager* pSyncDialogManager,
+						   HWND hwnd,
+						   qs::Profile* pProfile);
 	virtual ~EditClearDeletedAction();
 
 public:
@@ -334,8 +339,13 @@ private:
 	EditClearDeletedAction& operator=(const EditClearDeletedAction&);
 
 private:
+	SyncManager* pSyncManager_;
+	Document* pDocument_;
 	FolderModel* pFolderModel_;
+	SecurityModel* pSecurityModel_;
+	SyncDialogManager* pSyncDialogManager_;
 	HWND hwnd_;
+	qs::Profile* pProfile_;
 };
 
 
@@ -1106,8 +1116,13 @@ private:
 class FolderEmptyTrashAction : public qs::AbstractAction
 {
 public:
-	FolderEmptyTrashAction(FolderModel* pFolderModel,
-						   HWND hwnd);
+	FolderEmptyTrashAction(SyncManager* pSyncManager,
+						   Document* pDocument,
+						   FolderModel* pFolderModel,
+						   SecurityModel* pSecurityModel,
+						   SyncDialogManager* pSyncDialogManager,
+						   HWND hwnd,
+						   qs::Profile* pProfile);
 	virtual ~FolderEmptyTrashAction();
 
 public:
@@ -1122,8 +1137,13 @@ private:
 	FolderEmptyTrashAction& operator=(const FolderEmptyTrashAction&);
 
 private:
+	SyncManager* pSyncManager_;
+	Document* pDocument_;
 	FolderModel* pFolderModel_;
+	SecurityModel* pSecurityModel_;
+	SyncDialogManager* pSyncDialogManager_;
 	HWND hwnd_;
+	qs::Profile* pProfile_;
 };
 
 

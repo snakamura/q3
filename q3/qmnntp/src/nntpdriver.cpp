@@ -215,13 +215,6 @@ bool qmnntp::NntpDriver::copyMessages(SubAccount* pSubAccount,
 	return false;
 }
 
-bool qmnntp::NntpDriver::clearDeletedMessages(SubAccount* pSubAccount,
-											  NormalFolder* pFolder)
-{
-	assert(false);
-	return false;
-}
-
 bool qmnntp::NntpDriver::prepareSession(SubAccount* pSubAccount,
 										NormalFolder* pFolder)
 {

@@ -164,13 +164,6 @@ bool qmrss::RssDriver::copyMessages(SubAccount* pSubAccount,
 	return false;
 }
 
-bool qmrss::RssDriver::clearDeletedMessages(SubAccount* pSubAccount,
-											NormalFolder* pFolder)
-{
-	assert(false);
-	return false;
-}
-
 
 /****************************************************************************
 *

@@ -24,7 +24,6 @@ class OfflineJobManager;
 class OfflineJob;
 	class AppendOfflineJob;
 	class CopyOfflineJob;
-	class ExpungeOfflineJob;
 	class SetFlagsOfflineJob;
 class OfflineJobFactory;
 
@@ -92,7 +91,6 @@ public:
 	enum Type {
 		TYPE_APPEND		= 1,
 		TYPE_COPY		= 2,
-		TYPE_EXPUNGE	= 3,
 		TYPE_SETFLAGS	= 4
 	};
 
@@ -206,37 +204,6 @@ private:
 	UidList listUidFrom_;
 	ItemList listItemTo_;
 	bool bMove_;
-};
-
-
-/****************************************************************************
- *
- * ExpungeOfflineJob
- *
- */
-
-class ExpungeOfflineJob : public OfflineJob
-{
-public:
-	explicit ExpungeOfflineJob(const WCHAR* pwszFolder);
-	virtual ~ExpungeOfflineJob();
-
-public:
-	virtual Type getType() const;
-	virtual bool apply(qm::Account* pAccount,
-					   Imap4* pImap4,
-					   bool* pbClosed) const;
-	virtual bool write(qs::OutputStream* pStream) const;
-	virtual bool isCreateMessage(const WCHAR* pwszFolder,
-								 unsigned long nId);
-	virtual bool merge(OfflineJob* pOfflineJob);
-
-public:
-	static std::auto_ptr<OfflineJob> create(qs::InputStream* pStream);
-
-private:
-	ExpungeOfflineJob(const ExpungeOfflineJob&);
-	ExpungeOfflineJob& operator=(const ExpungeOfflineJob&);
 };
 
 

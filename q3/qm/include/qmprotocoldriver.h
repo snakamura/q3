@@ -84,8 +84,6 @@ public:
 							  NormalFolder* pFolderFrom,
 							  NormalFolder* pFolderTo,
 							  bool bMove) = 0;
-	virtual bool clearDeletedMessages(SubAccount* pSubAccount,
-									  NormalFolder* pFolder) = 0;
 };
 
 

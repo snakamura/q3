@@ -312,10 +312,20 @@ Action* qm::DispatchAction::getAction() const
  *
  */
 
-qm::EditClearDeletedAction::EditClearDeletedAction(FolderModel* pFolderModel,
-												   HWND hwnd) :
+qm::EditClearDeletedAction::EditClearDeletedAction(SyncManager* pSyncManager,
+												   Document* pDocument,
+												   FolderModel* pFolderModel,
+												   SecurityModel* pSecurityModel,
+												   SyncDialogManager* pSyncDialogManager,
+												   HWND hwnd,
+												   Profile* pProfile) :
+	pSyncManager_(pSyncManager),
+	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
-	hwnd_(hwnd)
+	pSecurityModel_(pSecurityModel),
+	pSyncDialogManager_(pSyncDialogManager),
+	hwnd_(hwnd),
+	pProfile_(pProfile)
 {
 }
 
@@ -329,37 +339,32 @@ void qm::EditClearDeletedAction::invoke(const ActionEvent& event)
 	if (!pFolder)
 		return;
 	
-	Account* pAccount = pFolder->getAccount();
-	
+	Account::NormalFolderList l;
 	switch (pFolder->getType()) {
 	case Folder::TYPE_NORMAL:
 		if (pFolder->isFlag(Folder::FLAG_NOSELECT) ||
 			pFolder->isFlag(Folder::FLAG_LOCAL))
 			return;
-		
-		if (!pAccount->clearDeletedMessages(static_cast<NormalFolder*>(pFolder))) {
-			ActionUtil::error(hwnd_, IDS_ERROR_CLEARDELETED);
-			return;
-		}
+		l.push_back(static_cast<NormalFolder*>(pFolder));
 		break;
 	case Folder::TYPE_QUERY:
 		{
 			QueryFolder* pQueryFolder = static_cast<QueryFolder*>(pFolder);
-			
-			Account::NormalFolderList l;
-			pAccount->getNormalFolders(pQueryFolder->getTargetFolder(),
+			pFolder->getAccount()->getNormalFolders(pQueryFolder->getTargetFolder(),
 				pQueryFolder->isRecursive(), &l);
-			for (Account::NormalFolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-				if (!pAccount->clearDeletedMessages(*it)) {
-					ActionUtil::error(hwnd_, IDS_ERROR_CLEARDELETED);
-					return;
-				}
-			}
 		}
 		break;
 	default:
 		assert(false);
 		break;
+	}
+	
+	if (!l.empty()) {
+		if (!SyncUtil::syncFolders(pSyncManager_, pDocument_, pSyncDialogManager_,
+			hwnd_, SyncDialog::FLAG_NONE, l, ReceiveSyncItem::FLAG_EXPUNGE)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_CLEARDELETED);
+			return;
+		}
 	}
 }
 
@@ -2267,10 +2272,20 @@ bool qm::FolderEmptyAction::isEnabled(const ActionEvent& event)
  *
  */
 
-qm::FolderEmptyTrashAction::FolderEmptyTrashAction(FolderModel* pFolderModel,
-												   HWND hwnd) :
+qm::FolderEmptyTrashAction::FolderEmptyTrashAction(SyncManager* pSyncManager,
+												   Document* pDocument,
+												   FolderModel* pFolderModel,
+												   SecurityModel* pSecurityModel,
+												   SyncDialogManager* pSyncDialogManager,
+												   HWND hwnd,
+												   qs::Profile* pProfile) :
+	pSyncManager_(pSyncManager),
+	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
-	hwnd_(hwnd)
+	pSecurityModel_(pSecurityModel),
+	pSyncDialogManager_(pSyncDialogManager),
+	hwnd_(hwnd),
+	pProfile_(pProfile)
 {
 }
 
@@ -2281,33 +2296,35 @@ qm::FolderEmptyTrashAction::~FolderEmptyTrashAction()
 void qm::FolderEmptyTrashAction::invoke(const ActionEvent& event)
 {
 	NormalFolder* pTrash = getTrash();
-	if (pTrash) {
-		Account* pAccount = pTrash->getAccount();
-		Lock<Account> lock(*pAccount);
+	if (!pTrash)
+		return;
+	
+	Account* pAccount = pTrash->getAccount();
+	Lock<Account> lock(*pAccount);
+	
+	// TODO
+	// Sync folder if online and trash is syncable
+	
+	MessageHolderList l(pTrash->getMessages());
+	if (!l.empty()) {
+		ProgressDialogMessageOperationCallback callback(
+			hwnd_, IDS_EMPTYTRASH, IDS_EMPTYTRASH);
+		if (!pAccount->removeMessages(l, false, &callback)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_EMPTYTRASH);
+			return;
+		}
 		
-		// TODO
-		// Sync folder if online and trash is syncable
-		
-		MessageHolderList l(pTrash->getMessages());
-		if (!l.empty()) {
-			ProgressDialogMessageOperationCallback callback(
-				hwnd_, IDS_EMPTYTRASH, IDS_EMPTYTRASH);
-			if (!pAccount->removeMessages(l, false, &callback)) {
+		if (!pTrash->isFlag(Folder::FLAG_LOCAL)) {
+			if (!SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
+				hwnd_, SyncDialog::FLAG_NONE, pTrash, ReceiveSyncItem::FLAG_EXPUNGE)) {
 				ActionUtil::error(hwnd_, IDS_ERROR_EMPTYTRASH);
 				return;
 			}
-			
-			if (!pTrash->isFlag(Folder::FLAG_LOCAL)) {
-				if (!pAccount->clearDeletedMessages(pTrash)) {
-					ActionUtil::error(hwnd_, IDS_ERROR_EMPTYTRASH);
-					return;
-				}
-			}
-			
-			if (!pAccount->save()) {
-				ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
-				return;
-			}
+		}
+		
+		if (!pAccount->save()) {
+			ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
+			return;
 		}
 	}
 }
@@ -4833,29 +4850,29 @@ qm::ViewRefreshAction::~ViewRefreshAction()
 void qm::ViewRefreshAction::invoke(const ActionEvent& event)
 {
 	Folder* pFolder = pFolderModel_->getCurrentFolder();
-	if (pFolder) {
-		switch (pFolder->getType()) {
-		case Folder::TYPE_NORMAL:
-			if (pFolder->isFlag(Folder::FLAG_SYNCABLE)) {
-				if (!SyncUtil::syncFolder(pSyncManager_, pDocument_,
-					pSyncDialogManager_, hwnd_, SyncDialog::FLAG_NONE,
-					static_cast<NormalFolder*>(pFolder))) {
-					ActionUtil::error(hwnd_, IDS_ERROR_REFRESH);
-					return;
-				}
-			}
-			break;
-		case Folder::TYPE_QUERY:
-			if (!static_cast<QueryFolder*>(pFolder)->search(pDocument_,
-				hwnd_, pProfile_, pSecurityModel_->isDecryptVerify())) {
+	if (!pFolder)
+		return;
+	
+	switch (pFolder->getType()) {
+	case Folder::TYPE_NORMAL:
+		if (pFolder->isFlag(Folder::FLAG_SYNCABLE)) {
+			if (!SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
+				hwnd_, SyncDialog::FLAG_NONE, static_cast<NormalFolder*>(pFolder), 0)) {
 				ActionUtil::error(hwnd_, IDS_ERROR_REFRESH);
 				return;
 			}
-			break;
-		default:
-			assert(false);
-			break;
 		}
+		break;
+	case Folder::TYPE_QUERY:
+		if (!static_cast<QueryFolder*>(pFolder)->search(pDocument_,
+			hwnd_, pProfile_, pSecurityModel_->isDecryptVerify())) {
+			ActionUtil::error(hwnd_, IDS_ERROR_REFRESH);
+			return;
+		}
+		break;
+	default:
+		assert(false);
+		break;
 	}
 }
 

@@ -33,21 +33,42 @@ bool qm::SyncUtil::syncFolder(SyncManager* pSyncManager,
 							  SyncDialogManager* pSyncDialogManager,
 							  HWND hwnd,
 							  unsigned int nCallbackParam,
-							  NormalFolder* pFolder)
+							  NormalFolder* pFolder,
+							  unsigned int nFlags)
+{
+	Account::NormalFolderList listFolder(1, pFolder);
+	return syncFolders(pSyncManager, pDocument,
+		pSyncDialogManager, hwnd, nCallbackParam, listFolder, nFlags);
+}
+
+bool qm::SyncUtil::syncFolders(SyncManager* pSyncManager,
+							   Document* pDocument,
+							   SyncDialogManager* pSyncDialogManager,
+							   HWND hwnd,
+							   unsigned int nCallbackParam,
+							   const Account::NormalFolderList& listFolder,
+							   unsigned int nFlags)
 {
 	assert(pSyncManager);
 	assert(pDocument);
 	assert(pSyncDialogManager);
 	assert(hwnd);
-	assert(pFolder);
-	assert(pFolder->isFlag(Folder::FLAG_SYNCABLE));
+	assert(!listFolder.empty());
 	
 	std::auto_ptr<SyncData> pData(new SyncData(pSyncManager, pDocument, hwnd,
 		(nCallbackParam & SyncDialog::FLAG_NOTIFYNEWMESSAGE) != 0, nCallbackParam));
-	Account* pAccount = pFolder->getAccount();
+	
+	Account* pAccount = listFolder.front()->getAccount();
 	SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
-	pData->addFolder(pAccount, pSubAccount,
-		pFolder, pSubAccount->getSyncFilterName());
+	for (Account::NormalFolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
+		NormalFolder* pFolder = *it;
+		
+		assert(pFolder->getAccount() == pAccount);
+		assert(pFolder->isFlag(Folder::FLAG_SYNCABLE));
+		
+		pData->addFolder(pAccount, pSubAccount, pFolder,
+			pSubAccount->getSyncFilterName(), nFlags);
+	}
 	
 	SyncDialog* pSyncDialog = pSyncDialogManager->open();
 	if (!pSyncDialog)

@@ -313,10 +313,15 @@ void qm::MainWindowImpl::initActions()
 		pUIManager_,
 		pViewModelManager_.get(),
 		pThis_->getHandle());
-	ADD_ACTION2(EditClearDeletedAction,
+	ADD_ACTION7(EditClearDeletedAction,
 		IDM_EDIT_CLEARDELETED,
+		pSyncManager_,
+		pDocument_,
 		pFolderModel_.get(),
-		pThis_->getHandle());
+		pSecurityModel_.get(),
+		pSyncDialogManager_,
+		pThis_->getHandle(),
+		pProfile_);
 	
 	std::auto_ptr<EditCopyMessageAction> pCopyMessageAction(new EditCopyMessageAction(
 		pDocument_, pFolderModel_.get(), pMessageSelectionModel_.get(), pThis_->getHandle()));
@@ -489,10 +494,15 @@ void qm::MainWindowImpl::initActions()
 		IDM_FOLDER_EMPTY,
 		this,
 		pThis_->getHandle());
-	ADD_ACTION2(FolderEmptyTrashAction,
+	ADD_ACTION7(FolderEmptyTrashAction,
 		IDM_FOLDER_EMPTYTRASH,
+		pSyncManager_,
+		pDocument_,
 		pFolderModel_.get(),
-		pThis_->getHandle());
+		pSecurityModel_.get(),
+		pSyncDialogManager_,
+		pThis_->getHandle(),
+		pProfile_);
 	ADD_ACTION3(FolderPropertyAction,
 		IDM_FOLDER_PROPERTY,
 		this,
@@ -1125,7 +1135,8 @@ void qm::MainWindowImpl::folderSelected(const FolderModelEvent& event)
 			pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
 			pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
 			SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
-				pThis_->getHandle(), SyncDialog::FLAG_NONE, static_cast<NormalFolder*>(pFolder));
+				pThis_->getHandle(), SyncDialog::FLAG_NONE,
+				static_cast<NormalFolder*>(pFolder), 0);
 		}
 	}
 	

@@ -181,7 +181,6 @@ public:
 						  unsigned int nFlags,
 						  unsigned int nMask);
 	bool deleteMessagesCache(const MessageHolderList& l);
-	bool clearDeletedMessages(NormalFolder* pFolder);
 	
 	void addAccountHandler(AccountHandler* pHandler);
 	void removeAccountHandler(AccountHandler* pHandler);

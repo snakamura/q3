@@ -68,8 +68,6 @@ public:
 							  qm::NormalFolder* pFolderFrom,
 							  qm::NormalFolder* pFolderTo,
 							  bool bMove);
-	virtual bool clearDeletedMessages(qm::SubAccount* pSubAccount,
-									  qm::NormalFolder* pFolder);
 
 private:
 	RssDriver(const RssDriver&);

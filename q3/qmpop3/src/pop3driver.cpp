@@ -163,13 +163,6 @@ bool qmpop3::Pop3Driver::copyMessages(SubAccount* pSubAccount,
 	return false;
 }
 
-bool qmpop3::Pop3Driver::clearDeletedMessages(SubAccount* pSubAccount,
-											  NormalFolder* pFolder)
-{
-	assert(false);
-	return false;
-}
-
 
 /****************************************************************************
  *
