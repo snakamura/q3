@@ -268,6 +268,22 @@ QSTATUS qm::SyncDialog::selectDialupEntry(WSTRING* pwstrEntry) const
 	return 0;
 }
 
+QSTATUS qm::SyncDialog::notifyNewMessage() const
+{
+	DECLARE_QSTATUS();
+	
+	string_ptr<WSTRING> wstrSound;
+	status = pProfile_->getString(L"NewMailCheck", L"Sound", 0, &wstrSound);
+	CHECK_QSTATUS();
+	
+	if (*wstrSound.get()) {
+		W2T(wstrSound.get(), ptszSound);
+		sndPlaySound(ptszSound, SND_ASYNC);
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::SyncDialog::save() const
 {
 	DECLARE_QSTATUS();
@@ -541,9 +557,14 @@ QSTATUS qm::SyncStatusWindow::start(unsigned int nParam)
 void qm::SyncStatusWindow::end()
 {
 	bool bEmpty = false;
+	bool bNewMessage = false;
 	{
 		Lock<CriticalSection> lock(cs_);
 		bEmpty = listItem_.empty();
+		if (bEmpty) {
+			bNewMessage = bNewMessage_;
+			bNewMessage_ = false;
+		}
 	}
 	
 	pSyncDialog_->setMessage(L"");
@@ -568,14 +589,17 @@ void qm::SyncStatusWindow::end()
 	
 	if (bEmpty && !pSyncDialog_->hasError())
 		pSyncDialog_->hide();
+	
+	if (bNewMessage)
+		pSyncDialog_->notifyNewMessage();
 }
 
-QSTATUS qm::SyncStatusWindow::startThread(unsigned int nId)
+QSTATUS qm::SyncStatusWindow::startThread(unsigned int nId, unsigned int nParam)
 {
 	DECLARE_QSTATUS();
 	
 	std::auto_ptr<Item> pItem;
-	status = newQsObject(nId, &pItem);
+	status = newQsObject(nId, nParam, &pItem);
 	CHECK_QSTATUS();
 	
 	{
@@ -808,6 +832,15 @@ QSTATUS qm::SyncStatusWindow::showDialupDialog(
 	} runnable(pSyncDialog_, prdp, pbCancel);
 	pSyncDialog_->getInitThread()->getSynchronizer()->syncExec(&runnable);
 	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::SyncStatusWindow::notifyNewMessage(unsigned int nId)
+{
+	Lock<CriticalSection> lock(cs_);
+	ItemList::iterator it = getItem(nId);
+	if ((*it)->getParam() & SyncDialog::FLAG_NOTIFYNEWMESSAGE)
+		bNewMessage_ = true;
 	return QSTATUS_SUCCESS;
 }
 
@@ -1094,8 +1127,10 @@ SyncStatusWindow::ItemList::iterator qm::SyncStatusWindow::getItem(
  *
  */
 
-qm::SyncStatusWindow::Item::Item(unsigned int nId, qs::QSTATUS* pstatus) :
+qm::SyncStatusWindow::Item::Item(unsigned int nId,
+	unsigned int nParam, qs::QSTATUS* pstatus) :
 	nId_(nId),
+	nParam_(nParam),
 	pAccount_(0),
 	pSubAccount_(0),
 	pFolder_(0),
@@ -1119,6 +1154,11 @@ qm::SyncStatusWindow::Item::~Item()
 unsigned int qm::SyncStatusWindow::Item::getId() const
 {
 	return nId_;
+}
+
+unsigned int qm::SyncStatusWindow::Item::getParam() const
+{
+	return nParam_;
 }
 
 const SyncStatusWindow::Item::Progress& qm::SyncStatusWindow::Item::getProgress(bool bSub) const

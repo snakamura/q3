@@ -73,7 +73,7 @@ QSTATUS qm::NewMailChecker::timerTimeout(unsigned int nId)
 	if (nId == nId_ && !pDocument_->isOffline()) {
 		std::auto_ptr<SyncData> pData;
 		status = newQsObject(pSyncManager_, pDocument_,
-			hwnd_, SyncDialog::FLAG_NONE, &pData);
+			hwnd_, SyncDialog::FLAG_NOTIFYNEWMESSAGE, &pData);
 		
 		const GoRoundCourse* pCourse = 0;
 		GoRoundCourseList* pCourseList = 0;

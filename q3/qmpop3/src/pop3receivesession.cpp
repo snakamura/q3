@@ -317,6 +317,9 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadMessages(
 		status = pUIDList_->add(pUID.get());
 		CHECK_QSTATUS();
 		pUID.release();
+		
+		status = pSessionCallback_->notifyNewMessage();
+		CHECK_QSTATUS();
 	}
 	
 	int nDeleteOnServer = 0;

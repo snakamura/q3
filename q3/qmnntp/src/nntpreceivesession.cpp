@@ -296,6 +296,9 @@ QSTATUS qmnntp::NntpReceiveSession::downloadMessages(
 					0, item.nId_, nFlags, item.nBytes_,
 					nFlags == MessageHolder::FLAG_INDEXONLY, &pmh);
 				CHECK_QSTATUS();
+				
+				status = pSessionCallback_->notifyNewMessage();
+				CHECK_QSTATUS();
 			}
 		}
 	}
@@ -320,6 +323,9 @@ QSTATUS qmnntp::NntpReceiveSession::downloadMessages(
 				MessageHolder* pmh = 0;
 				status = pAccount_->storeMessage(pFolder_, strMessage.get(),
 					0, n, MessageHolder::FLAG_INDEXONLY, -1, true, &pmh);
+				CHECK_QSTATUS();
+				
+				status = pSessionCallback_->notifyNewMessage();
 				CHECK_QSTATUS();
 			}
 		}

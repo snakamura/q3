@@ -255,6 +255,9 @@ private:
 		virtual qs::QSTATUS setMessage(const WCHAR* pwszMessage);
 		virtual qs::QSTATUS addError(const SessionErrorInfo& info);
 	
+	public:
+		virtual qs::QSTATUS notifyNewMessage();
+	
 	private:
 		ReceiveSessionCallbackImpl(const ReceiveSessionCallbackImpl&);
 		ReceiveSessionCallbackImpl& operator=(const ReceiveSessionCallbackImpl&);
@@ -359,7 +362,7 @@ public:
 public:
 	virtual qs::QSTATUS start(unsigned int nParam) = 0;
 	virtual void end() = 0;
-	virtual qs::QSTATUS startThread(unsigned int nId) = 0;
+	virtual qs::QSTATUS startThread(unsigned int nId, unsigned int nParam) = 0;
 	virtual void endThread(unsigned int nId) = 0;
 	virtual qs::QSTATUS setPos(unsigned int nId,
 		bool bSub, unsigned int nPos) = 0;
@@ -376,6 +379,7 @@ public:
 	virtual qs::QSTATUS selectDialupEntry(qs::WSTRING* pwstrEntry) = 0;
 	virtual qs::QSTATUS showDialupDialog(
 		RASDIALPARAMS* prdp, bool* pbCancel) = 0;
+	virtual qs::QSTATUS notifyNewMessage(unsigned int nId) = 0;
 };
 
 }

@@ -99,6 +99,9 @@ class QMEXPORTCLASS ReceiveSessionCallback : public SessionCallback
 {
 public:
 	virtual ~ReceiveSessionCallback();
+
+public:
+	virtual qs::QSTATUS notifyNewMessage() = 0;
 };
 
 

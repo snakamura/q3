@@ -67,8 +67,9 @@ class SyncDialog :
 {
 public:
 	enum Flag {
-		FLAG_NONE		= 0x00,
-		FLAG_SHOWDIALOG	= 0x01
+		FLAG_NONE				= 0x00,
+		FLAG_SHOWDIALOG			= 0x01,
+		FLAG_NOTIFYNEWMESSAGE	= 0x02
 	};
 
 public:
@@ -89,6 +90,7 @@ public:
 	qs::QSTATUS enableCancel(bool bEnable);
 	qs::QSTATUS showDialupDialog(RASDIALPARAMS* prdp, bool* pbCancel) const;
 	qs::QSTATUS selectDialupEntry(qs::WSTRING* pwstrEntry) const;
+	qs::QSTATUS notifyNewMessage() const;
 	qs::QSTATUS save() const;
 
 public:
@@ -148,11 +150,12 @@ private:
 		};
 	
 	public:
-		Item(unsigned int nId, qs::QSTATUS* pstatus);
+		Item(unsigned int nId, unsigned int nParam, qs::QSTATUS* pstatus);
 		~Item();
 	
 	public:
 		unsigned int getId() const;
+		unsigned int getParam() const;
 		const Progress& getProgress(bool bSub) const;
 		const WCHAR* getMessage() const;
 	
@@ -168,6 +171,7 @@ private:
 	
 	private:
 		unsigned int nId_;
+		unsigned int nParam_;
 		Progress main_;
 		Progress sub_;
 		Account* pAccount_;
@@ -191,7 +195,7 @@ public:
 public:
 	virtual qs::QSTATUS start(unsigned int nParam);
 	virtual void end();
-	virtual qs::QSTATUS startThread(unsigned int nId);
+	virtual qs::QSTATUS startThread(unsigned int nId, unsigned int nParam);
 	virtual void endThread(unsigned int nId);
 	virtual qs::QSTATUS setPos(unsigned int nId,
 		bool bSub, unsigned int nPos);
@@ -205,6 +209,7 @@ public:
 	virtual bool isCanceled(unsigned int nId, bool bForce);
 	virtual qs::QSTATUS selectDialupEntry(qs::WSTRING* pwstrEntry);
 	virtual qs::QSTATUS showDialupDialog(RASDIALPARAMS* prdp, bool* pbCancel);
+	virtual qs::QSTATUS notifyNewMessage(unsigned int nId);
 
 protected:
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
@@ -228,6 +233,7 @@ private:
 private:
 	SyncDialog* pSyncDialog_;
 	ItemList listItem_;
+	bool bNewMessage_;
 	qs::CriticalSection cs_;
 	int nFontHeight_;
 	qs::WSTRING wstrFinished_;

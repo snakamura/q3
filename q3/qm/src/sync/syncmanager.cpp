@@ -524,11 +524,12 @@ QSTATUS qm::SyncManager::syncSlotData(const SyncData* pData, unsigned int nSlot)
 	struct CallbackCaller
 	{
 		CallbackCaller(SyncManagerCallback* pCallback,
-			unsigned int nId, QSTATUS* pstatus) :
+			unsigned int nId, unsigned int nParam, QSTATUS* pstatus) :
 			pCallback_(pCallback),
-			nId_(nId)
+			nId_(nId),
+			nParam_(nParam)
 		{
-			*pstatus = pCallback_->startThread(nId_);
+			*pstatus = pCallback_->startThread(nId_, nParam_);
 		}
 		
 		~CallbackCaller()
@@ -538,7 +539,8 @@ QSTATUS qm::SyncManager::syncSlotData(const SyncData* pData, unsigned int nSlot)
 		
 		SyncManagerCallback* pCallback_;
 		unsigned int nId_;
-	} caller(pCallback, ::GetCurrentThreadId(), &status);
+		unsigned int nParam_;
+	} caller(pCallback, ::GetCurrentThreadId(), pData->getCallbackParam(), &status);
 	CHECK_QSTATUS();
 	
 	std::auto_ptr<Logger> pLogger;
@@ -1007,6 +1009,11 @@ QSTATUS qm::SyncManager::ReceiveSessionCallbackImpl::addError(
 	const SessionErrorInfo& info)
 {
 	return pCallback_->addError(nId_, info);
+}
+
+QSTATUS qm::SyncManager::ReceiveSessionCallbackImpl::notifyNewMessage()
+{
+	return pCallback_->notifyNewMessage(nId_);
 }
 
 
