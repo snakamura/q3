@@ -72,6 +72,13 @@ bool qm::FilterManager::load()
 			ft_ = ft;
 		}
 	}
+	else {
+		clear();
+		
+		SYSTEMTIME st;
+		::GetSystemTime(&st);
+		::SystemTimeToFileTime(&st, &ft_);
+	}
 	
 	return true;
 }

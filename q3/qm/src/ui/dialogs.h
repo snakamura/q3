@@ -20,6 +20,7 @@
 #include "viewmodel.h"
 #include "../model/addressbook.h"
 #include "../model/editmessage.h"
+#include "../model/goround.h"
 
 
 namespace qm {
@@ -36,6 +37,10 @@ class DefaultDialog;
 	class DialupDialog;
 	class ExportDialog;
 	class FindDialog;
+	class GoRoundDialog;
+	class GoRoundCourseDialog;
+	class GoRoundDialupDialog;
+	class GoRoundEntryDialog;
 	class ImportDialog;
 	class InputBoxDialog;
 	class InsertTextDialog;
@@ -53,6 +58,10 @@ class DefaultDialog;
 class Account;
 class FixedFormText;
 class FixedFormTextManager;
+class GoRound;
+class GoRoundCourse;
+class GoRoundDialup;
+class GoRoundEntry;
 class TemplateManager;
 class UIManager;
 
@@ -784,6 +793,197 @@ private:
 	bool bMatchCase_;
 	bool bRegex_;
 	bool bPrev_;
+};
+
+
+/****************************************************************************
+ *
+ * GoRoundDialog
+ *
+ */
+
+class GoRoundDialog : public DefaultDialog
+{
+public:
+	GoRoundDialog(GoRound* pGoRound,
+				  Document* pDocument,
+				  SyncFilterManager* pSyncFilterManager);
+	virtual ~GoRoundDialog();
+
+private:
+	GoRoundDialog(const GoRoundDialog&);
+	GoRoundDialog& operator=(const GoRoundDialog&);
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	LRESULT onAdd();
+	LRESULT onRemove();
+	LRESULT onEdit();
+	LRESULT onUp();
+	LRESULT onDown();
+	LRESULT onCourseSelChange();
+
+private:
+	void updateState();
+
+private:
+	GoRound* pGoRound_;
+	Document* pDocument_;
+	GoRound::CourseList listCourse_;
+	SyncFilterManager* pSyncFilterManager_;
+};
+
+
+/****************************************************************************
+ *
+ * GoRoundCourseDialog
+ *
+ */
+
+class GoRoundCourseDialog : public DefaultDialog
+{
+public:
+	GoRoundCourseDialog(GoRoundCourse* pCourse,
+						Document* pDocument,
+						SyncFilterManager* pSyncFilterManager);
+	virtual ~GoRoundCourseDialog();
+
+private:
+	GoRoundCourseDialog(const GoRoundCourseDialog&);
+	GoRoundCourseDialog& operator=(const GoRoundCourseDialog&);
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	LRESULT onAdd();
+	LRESULT onRemove();
+	LRESULT onEdit();
+	LRESULT onUp();
+	LRESULT onDown();
+	LRESULT onDialup();
+	LRESULT onNameChange();
+	LRESULT onEntrySelChange();
+
+private:
+	void updateState();
+
+private:
+	static qs::wstring_ptr getEntryName(const GoRoundEntry* pEntry);
+
+private:
+	GoRoundCourse* pCourse_;
+	Document* pDocument_;
+	GoRoundCourse::EntryList listEntry_;
+	SyncFilterManager* pSyncFilterManager_;
+};
+
+
+/****************************************************************************
+ *
+ * GoRoundDialupDialog
+ *
+ */
+
+class GoRoundDialupDialog : public DefaultDialog
+{
+public:
+	GoRoundDialupDialog(GoRoundDialup* pDialup,
+						bool bNoDialup);
+	virtual ~GoRoundDialupDialog();
+
+public:
+	bool isNoDialup() const;
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	LRESULT onTypeSelect(UINT nId);
+
+private:
+	void updateState();
+
+private:
+	GoRoundDialupDialog(const GoRoundDialupDialog&);
+	GoRoundDialupDialog& operator=(const GoRoundDialupDialog&);
+
+private:
+	GoRoundDialup* pDialup_;
+	bool bNoDialup_;
+};
+
+
+/****************************************************************************
+ *
+ * GoRoundEntryDialog
+ *
+ */
+
+class GoRoundEntryDialog : public DefaultDialog
+{
+public:
+	GoRoundEntryDialog(GoRoundEntry* pEntry,
+					   Document* pDocument,
+					   SyncFilterManager* pSyncFilterManager);
+	virtual ~GoRoundEntryDialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	LRESULT onAccountEditChange();
+	LRESULT onAccountSelChange();
+	LRESULT onSelectFolderClicked();
+
+private:
+	void updateState();
+	void updateSubAccount(Account* pAccount);
+	void updateFolder(Account* pAccount);
+	void updateFilter(Account* pAccount);
+
+private:
+	GoRoundEntryDialog(const GoRoundEntryDialog&);
+	GoRoundEntryDialog& operator=(const GoRoundEntryDialog&);
+
+private:
+	GoRoundEntry* pEntry_;
+	Document* pDocument_;
+	SyncFilterManager* pSyncFilterManager_;
 };
 
 

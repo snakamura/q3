@@ -293,6 +293,10 @@ bool qm::AddressBook::load()
 	}
 	else {
 		bClear = true;
+		
+		SYSTEMTIME st;
+		::GetSystemTime(&st);
+		::SystemTimeToFileTime(&st, &ft_);
 	}
 	
 	if (bReload || bClear || bContactChanged_) {

@@ -198,9 +198,9 @@ bool qm::SyncUtil::goRound(SyncManager* pSyncManager,
 				if (!pSubAccount)
 					pSubAccount = pAccount->getCurrentSubAccount();
 				
-				const WCHAR* pwszFilterName = pEntry->getFilterName();
-				if (!pwszFilterName)
-					pwszFilterName = pSubAccount->getSyncFilterName();
+				const WCHAR* pwszFilter = pEntry->getFilter();
+				if (!pwszFilter)
+					pwszFilter = pSubAccount->getSyncFilterName();
 				
 				if (pEntry->isFlag(GoRoundEntry::FLAG_SEND)) {
 					Folder* pFolder = pAccount->getFolderByFlag(Folder::FLAG_OUTBOX);
@@ -216,7 +216,7 @@ bool qm::SyncUtil::goRound(SyncManager* pSyncManager,
 					}
 					else {
 						pData->addFolders(pAccount, pSubAccount,
-							pEntry->getFolderNamePattern(), pwszFilterName);
+							pEntry->getFolderPattern(), pwszFilter);
 					}
 				}
 			}

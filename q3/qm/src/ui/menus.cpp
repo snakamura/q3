@@ -265,23 +265,21 @@ qm::GoRoundMenu::~GoRoundMenu()
 
 const GoRoundCourse* qm::GoRoundMenu::getCourse(unsigned int nId) const
 {
-	const GoRoundCourseList* pCourseList = pGoRound_->getCourseList();
-	if (pCourseList && pCourseList->getCount() > nId - IDM_TOOL_GOROUND)
-		return pCourseList->getCourse(nId - IDM_TOOL_GOROUND);
+	const GoRound::CourseList& l = pGoRound_->getCourses();
+	if (IDM_TOOL_GOROUND <= nId && nId < IDM_TOOL_GOROUND + l.size())
+		return l[nId - IDM_TOOL_GOROUND];
 	else
 		return 0;
 }
 
 bool qm::GoRoundMenu::createMenu(HMENU hmenu)
 {
-	UINT nId = IDM_TOOL_GOROUND;
-	while (::DeleteMenu(hmenu, nId++, MF_BYCOMMAND));
+	while (::DeleteMenu(hmenu, 0, MF_BYPOSITION));
 	
-	const GoRoundCourseList* pList = pGoRound_->getCourseList();
-	
-	if (pList && pList->getCount() > 0) {
-		for (size_t n = 0; n < pList->getCount() && n < MAX_COURSE; ++n) {
-			GoRoundCourse* pCourse = pList->getCourse(n);
+	const GoRound::CourseList& l = pGoRound_->getCourses();
+	if (!l.empty()) {
+		for (GoRound::CourseList::size_type n = 0; n < l.size() && n < MAX_COURSE; ++n) {
+			GoRoundCourse* pCourse = l[n];
 			wstring_ptr wstrName(UIUtil::formatMenu(pCourse->getName()));
 			W2T(wstrName.get(), ptszName);
 			::AppendMenu(hmenu, MF_STRING, IDM_TOOL_GOROUND + n, ptszName);
@@ -293,6 +291,13 @@ bool qm::GoRoundMenu::createMenu(HMENU hmenu)
 		W2T(wstrName.get(), ptszName);
 		::AppendMenu(hmenu, MF_STRING, IDM_TOOL_GOROUND, ptszName);
 	}
+	
+	::AppendMenu(hmenu, MF_SEPARATOR, -1, 0);
+	
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	wstring_ptr wstrEdit(loadString(hInst, IDS_EDIT));
+	W2T(wstrEdit.get(), ptszEdit);
+	::AppendMenu(hmenu, MF_STRING, IDM_CONFIG_GOROUND, ptszEdit);
 	
 	return true;
 }

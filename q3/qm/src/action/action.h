@@ -28,6 +28,7 @@ namespace qm {
 struct ActionParam;
 class AttachmentOpenAction;
 class AttachmentSaveAction;
+class ConfigGoRoundAction;
 class ConfigViewsAction;
 class DispatchAction;
 class EditClearDeletedAction;
@@ -237,6 +238,36 @@ private:
 	AttachmentSelectionModel* pAttachmentSelectionModel_;
 	bool bAll_;
 	AttachmentHelper helper_;
+	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * ConfigGoRoundAction
+ *
+ */
+
+class ConfigGoRoundAction : public qs::AbstractAction
+{
+public:
+	ConfigGoRoundAction(GoRound* pGoRound,
+						Document* pDocument,
+						SyncFilterManager* pSyncFilterManager,
+						HWND hwnd);
+	virtual ~ConfigGoRoundAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	ConfigGoRoundAction(const ConfigGoRoundAction&);
+	ConfigGoRoundAction& operator=(const ConfigGoRoundAction&);
+
+private:
+	GoRound* pGoRound_;
+	Document* pDocument_;
+	SyncFilterManager* pSyncFilterManager_;
 	HWND hwnd_;
 };
 

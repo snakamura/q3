@@ -10,6 +10,7 @@
 #define __GOROUND_H__
 
 #include <qm.h>
+#include <qmgoround.h>
 
 #include <qs.h>
 #include <qsregex.h>
@@ -19,43 +20,11 @@
 
 namespace qm {
 
-class GoRoundContentHandler;
 class GoRoundCourse;
-class GoRoundCourseList;
 class GoRoundDialup;
 class GoRoundEntry;
-
-
-/****************************************************************************
- *
- * GoRoundCourseList
- *
- */
-
-class GoRoundCourseList
-{
-public:
-	typedef std::vector<GoRoundCourse*> CourseList;
-
-public:
-	GoRoundCourseList();
-	~GoRoundCourseList();
-
-public:
-	size_t getCount() const;
-	GoRoundCourse* getCourse(size_t nIndex) const;
-	GoRoundCourse* getCourse(const WCHAR* pwszCourse) const;
-
-public:
-	bool load(qs::InputStream* pStream);
-
-private:
-	GoRoundCourseList(const GoRoundCourseList&);
-	GoRoundCourseList& operator=(const GoRoundCourseList&);
-
-private:
-	CourseList listCourse_;
-};
+class GoRoundContentHandler;
+class GoRoundWriter;
 
 
 /****************************************************************************
@@ -80,25 +49,27 @@ public:
 	typedef std::vector<GoRoundEntry*> EntryList;
 
 public:
+	GoRoundCourse();
 	GoRoundCourse(const WCHAR* pwszName,
 				  unsigned int nFlags);
+	GoRoundCourse(const GoRoundCourse& course);
 	~GoRoundCourse();
 
 public:
-	const WCHAR* getName() const;
-	bool isFlag(Flag flag) const;
-	Type getType() const;
-	const GoRoundDialup* getDialup() const;
-	const EntryList& getEntries() const;
+	GoRoundCourse& operator=(const GoRoundCourse& course);
 
 public:
-	void setDialup(std::auto_ptr<GoRoundDialup> pDialup);
+	const WCHAR* getName() const;
+	void setName(const WCHAR* pwszName);
+	bool isFlag(Flag flag) const;
+	void setFlags(unsigned int nFlags);
+	Type getType() const;
 	void setType(Type type);
+	GoRoundDialup* getDialup() const;
+	void setDialup(std::auto_ptr<GoRoundDialup> pDialup);
+	const EntryList& getEntries() const;
+	void setEntries(EntryList& listEntry);
 	void addEntry(std::auto_ptr<GoRoundEntry> pEntry);
-
-private:
-	GoRoundCourse(const GoRoundCourse&);
-	GoRoundCourse& operator=(const GoRoundCourse&);
 
 private:
 	qs::wstring_ptr wstrName_;
@@ -131,32 +102,43 @@ public:
 	};
 
 public:
+	GoRoundEntry();
 	GoRoundEntry(const WCHAR* pwszAccount,
 				 const WCHAR* pwszSubAccount,
-				 std::auto_ptr<qs::RegexPattern> pFolderName,
+				 const WCHAR* pwszFolder,
+				 std::auto_ptr<qs::RegexPattern> pFolder,
 				 unsigned int nFlags,
-				 const WCHAR* pwszFilterName,
+				 const WCHAR* pwszFilter,
 				 ConnectReceiveBeforeSend crbs);
+	GoRoundEntry(const GoRoundEntry& entry);
 	~GoRoundEntry();
 
 public:
-	const WCHAR* getAccount() const;
-	const WCHAR* getSubAccount() const;
-	const qs::RegexPattern* getFolderNamePattern() const;
-	bool isFlag(Flag flag) const;
-	const WCHAR* getFilterName() const;
-	ConnectReceiveBeforeSend getConnectReceiveBeforeSend() const;
+	GoRoundEntry& operator=(const GoRoundEntry& entry);
 
-private:
-	GoRoundEntry(const GoRoundEntry&);
-	GoRoundEntry& operator=(const GoRoundEntry&);
+public:
+	const WCHAR* getAccount() const;
+	void setAccount(const WCHAR* pwszAccount);
+	const WCHAR* getSubAccount() const;
+	void setSubAccount(const WCHAR* pwszSubAccount);
+	const WCHAR* getFolder() const;
+	const qs::RegexPattern* getFolderPattern() const;
+	void setFolder(const WCHAR* pwszFolder,
+				   std::auto_ptr<qs::RegexPattern> pFolder);
+	bool isFlag(Flag flag) const;
+	void setFlags(unsigned int nFlags);
+	const WCHAR* getFilter() const;
+	void setFilter(const WCHAR* pwszFilter);
+	ConnectReceiveBeforeSend getConnectReceiveBeforeSend() const;
+	void setConnectReceiveBeforeSend(ConnectReceiveBeforeSend crbs);
 
 private:
 	qs::wstring_ptr wstrAccount_;
 	qs::wstring_ptr wstrSubAccount_;
-	std::auto_ptr<qs::RegexPattern> pFolderName_;
+	qs::wstring_ptr wstrFolder_;
+	std::auto_ptr<qs::RegexPattern> pFolder_;
 	unsigned int nFlags_;
-	qs::wstring_ptr wstrFilterName_;
+	qs::wstring_ptr wstrFilter_;
 	ConnectReceiveBeforeSend crbs_;
 };
 
@@ -176,21 +158,27 @@ public:
 	};
 
 public:
+	GoRoundDialup();
 	GoRoundDialup(const WCHAR* pwszName,
 				  unsigned int nFlags,
 				  const WCHAR* pwszDialFrom,
 				  unsigned int nDisconnectWait);
+	GoRoundDialup(const GoRoundDialup& dialup);
 	~GoRoundDialup();
 
 public:
-	const WCHAR* getName() const;
-	unsigned int getFlags() const;
-	const WCHAR* getDialFrom() const;
-	unsigned int getDisconnectWait() const;
+	GoRoundDialup& operator=(const GoRoundDialup& dialup);
 
-private:
-	GoRoundDialup(const GoRoundDialup&);
-	GoRoundDialup& operator=(const GoRoundDialup&);
+public:
+	const WCHAR* getName() const;
+	void setName(const WCHAR* pwszName);
+	unsigned int getFlags() const;
+	bool isFlag(Flag flag) const;
+	void setFlags(unsigned int nFlags);
+	const WCHAR* getDialFrom() const;
+	void setDialFrom(const WCHAR* pwszDialFrom);
+	unsigned int getDisconnectWait() const;
+	void setDisconnectWait(unsigned int nDisconnectWait);
 
 private:
 	qs::wstring_ptr wstrName_;
@@ -209,7 +197,7 @@ private:
 class GoRoundContentHandler : public qs::DefaultHandler
 {
 public:
-	typedef GoRoundCourseList::CourseList CourseList;
+	typedef GoRound::CourseList CourseList;
 
 public:
 	explicit GoRoundContentHandler(CourseList* pListCourse);
@@ -246,6 +234,35 @@ private:
 	State state_;
 	GoRoundCourse* pCurrentCourse_;
 	GoRoundEntry* pCurrentEntry_;
+};
+
+
+/****************************************************************************
+ *
+ * GoRoundWriter
+ *
+ */
+
+class GoRoundWriter
+{
+public:
+	explicit GoRoundWriter(qs::Writer* pWriter);
+	~GoRoundWriter();
+
+public:
+	bool write(const GoRound* pGoRound);
+
+private:
+	bool write(const GoRoundCourse* pCourse);
+	bool write(const GoRoundDialup* pDialup);
+	bool write(const GoRoundEntry* pEntry);
+
+private:
+	GoRoundWriter(const GoRoundWriter&);
+	GoRoundWriter& operator=(const GoRoundWriter&);
+
+private:
+	qs::OutputHandler handler_;
 };
 
 }

@@ -1126,17 +1126,24 @@ bool qs::DefaultAttributes::isSpecified(const WCHAR* pwszURI,
 qs::SimpleAttributes::SimpleAttributes(const WCHAR* pwszQName,
 									   const WCHAR* pwszValue) :
 	pItems_(&item_),
-	nSize_(1)
+	nSize_(1),
+	nCount_(1)
 {
 	item_.pwszQName_ = pwszQName;
 	item_.pwszValue_ = pwszValue;
+	item_.bOmit_ = false;
 }
 
 qs::SimpleAttributes::SimpleAttributes(const Item* pItems,
 									   size_t nSize) :
 	pItems_(pItems),
-	nSize_(nSize)
+	nSize_(nSize),
+	nCount_(0)
 {
+	for (size_t n = 0; n < nSize; ++n) {
+		if (!(pItems_ + n)->bOmit_)
+			++nCount_;
+	}
 }
 
 qs::SimpleAttributes::~SimpleAttributes()
@@ -1145,19 +1152,31 @@ qs::SimpleAttributes::~SimpleAttributes()
 
 int qs::SimpleAttributes::getLength() const
 {
-	return nSize_;
+	return nCount_;
 }
 
 const WCHAR* qs::SimpleAttributes::getQName(int nIndex) const
 {
 	assert(0 <= nIndex && size_t(nIndex) < nSize_);
-	return (pItems_ + nIndex)->pwszQName_;
+	for (size_t n = 0; n < nSize_; ++n) {
+		if (!(pItems_ + n)->bOmit_) {
+			if (nIndex-- == 0)
+				return (pItems_ + n)->pwszQName_;
+		}
+	}
+	return 0;
 }
 
 const WCHAR* qs::SimpleAttributes::getValue(int nIndex) const
 {
 	assert(0 <= nIndex && size_t(nIndex) < nSize_);
-	return (pItems_ + nIndex)->pwszValue_;
+	for (size_t n = 0; n < nSize_; ++n) {
+		if (!(pItems_ + n)->bOmit_) {
+			if (nIndex-- == 0)
+				return (pItems_ + n)->pwszValue_;
+		}
+	}
+	return 0;
 }
 
 

@@ -317,6 +317,12 @@ void qm::MainWindowImpl::initActions()
 		true,
 		pProfile_,
 		pThis_->getHandle());
+	ADD_ACTION4(ConfigGoRoundAction,
+		IDM_CONFIG_GOROUND,
+		pGoRound_,
+		pDocument_,
+		pSyncManager_->getSyncFilterManager(),
+		pThis_->getHandle());
 	ADD_ACTION3(ConfigViewsAction,
 		IDM_CONFIG_VIEWS,
 		pUIManager_,

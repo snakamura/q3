@@ -126,6 +126,10 @@ bool qm::SignatureManager::load()
 	}
 	else {
 		clear();
+		
+		SYSTEMTIME st;
+		::GetSystemTime(&st);
+		::SystemTimeToFileTime(&st, &ft_);
 	}
 	
 	return true;

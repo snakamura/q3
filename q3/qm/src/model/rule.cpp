@@ -225,6 +225,10 @@ bool qm::RuleManager::load()
 	}
 	else {
 		clear();
+		
+		SYSTEMTIME st;
+		::GetSystemTime(&st);
+		::SystemTimeToFileTime(&st, &ft_);
 	}
 	
 	return true;

@@ -10,6 +10,7 @@
 #include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmfilenames.h>
+#include <qmgoround.h>
 #include <qmsession.h>
 #include <qmuiutil.h>
 
@@ -2624,6 +2625,803 @@ void qm::FindDialog::updateState()
 	bool bEnable = edit.getWindowTextLength() != 0;
 	Window(getDlgItem(IDC_FINDNEXT)).enableWindow(bEnable);
 	Window(getDlgItem(IDC_FINDPREV)).enableWindow(bEnable);
+}
+
+
+/****************************************************************************
+ *
+ * GoRoundDialog
+ *
+ */
+
+qm::GoRoundDialog::GoRoundDialog(GoRound* pGoRound,
+								 Document* pDocument,
+								 SyncFilterManager* pSyncFilterManager) :
+	DefaultDialog(IDD_GOROUND),
+	pGoRound_(pGoRound),
+	pDocument_(pDocument),
+	pSyncFilterManager_(pSyncFilterManager)
+{
+	const GoRound::CourseList& listCourse = pGoRound_->getCourses();
+	listCourse_.reserve(listCourse.size());
+	for (GoRound::CourseList::const_iterator it = listCourse.begin(); it != listCourse.end(); ++it)
+		listCourse_.push_back(new GoRoundCourse(**it));
+}
+
+qm::GoRoundDialog::~GoRoundDialog()
+{
+	std::for_each(listCourse_.begin(), listCourse_.end(), qs::deleter<GoRoundCourse>());
+}
+
+LRESULT qm::GoRoundDialog::onCommand(WORD nCode,
+									 WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_ADD, onAdd)
+		HANDLE_COMMAND_ID(IDC_DOWN, onDown)
+		HANDLE_COMMAND_ID(IDC_EDIT, onEdit)
+		HANDLE_COMMAND_ID(IDC_REMOVE, onRemove)
+		HANDLE_COMMAND_ID(IDC_UP, onUp)
+		HANDLE_COMMAND_ID_CODE(IDC_COURSE, LBN_SELCHANGE, onCourseSelChange)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::GoRoundDialog::onInitDialog(HWND hwndFocus,
+										LPARAM lParam)
+{
+	init(false);
+	
+	for (GoRound::CourseList::const_iterator it = listCourse_.begin(); it != listCourse_.end(); ++it) {
+		GoRoundCourse* pCourse = *it;
+		
+		W2T(pCourse->getName(), ptszName);
+		sendDlgItemMessage(IDC_COURSE, LB_ADDSTRING,
+			0, reinterpret_cast<LPARAM>(ptszName));
+	}
+	sendDlgItemMessage(IDC_COURSE, LB_SETCURSEL);
+	
+	updateState();
+	
+	return TRUE;
+}
+
+LRESULT qm::GoRoundDialog::onOk()
+{
+	pGoRound_->setCourses(listCourse_);
+	if (!pGoRound_->save()) {
+		// TODO MSG
+	}
+	
+	return DefaultDialog::onOk();
+}
+
+LRESULT qm::GoRoundDialog::onAdd()
+{
+	std::auto_ptr<GoRoundCourse> pCourse(new GoRoundCourse());
+	GoRoundCourseDialog dialog(pCourse.get(), pDocument_, pSyncFilterManager_);
+	if (dialog.doModal(getHandle()) == IDOK) {
+		listCourse_.push_back(pCourse.get());
+		GoRoundCourse* p = pCourse.release();
+		
+		W2T(p->getName(), ptszName);
+		sendDlgItemMessage(IDC_COURSE, LB_ADDSTRING,
+			0, reinterpret_cast<LPARAM>(ptszName));
+	}
+	return 0;
+}
+
+LRESULT qm::GoRoundDialog::onRemove()
+{
+	int n = sendDlgItemMessage(IDC_COURSE, LB_GETCURSEL);
+	if (n == LB_ERR)
+		return 0;
+	
+	delete listCourse_[n];
+	listCourse_.erase(listCourse_.begin() + n);
+	
+	sendDlgItemMessage(IDC_COURSE, LB_DELETESTRING, n);
+	
+	return 0;
+}
+
+LRESULT qm::GoRoundDialog::onEdit()
+{
+	int n = sendDlgItemMessage(IDC_COURSE, LB_GETCURSEL);
+	if (n == LB_ERR)
+		return 0;
+	
+	GoRoundCourse* pCourse = listCourse_[n];
+	GoRoundCourseDialog dialog(pCourse, pDocument_, pSyncFilterManager_);
+	if (dialog.doModal(getHandle()) == IDOK) {
+		sendDlgItemMessage(IDC_COURSE, LB_DELETESTRING, n);
+		W2T(pCourse->getName(), ptszName);
+		sendDlgItemMessage(IDC_COURSE, LB_INSERTSTRING,
+			n, reinterpret_cast<LPARAM>(ptszName));
+		sendDlgItemMessage(IDC_COURSE, LB_SETCURSEL, n);
+	}
+	
+	return 0;
+}
+
+LRESULT qm::GoRoundDialog::onUp()
+{
+	int n = sendDlgItemMessage(IDC_COURSE, LB_GETCURSEL);
+	if (n == LB_ERR || n == 0)
+		return 0;
+	
+	GoRoundCourse* pCourse = listCourse_[n];
+	std::swap(listCourse_[n], listCourse_[n - 1]);
+	
+	sendDlgItemMessage(IDC_COURSE, LB_DELETESTRING, n);
+	W2T(pCourse->getName(), ptszName);
+	sendDlgItemMessage(IDC_COURSE, LB_INSERTSTRING,
+		n - 1, reinterpret_cast<LPARAM>(ptszName));
+	sendDlgItemMessage(IDC_COURSE, LB_SETCURSEL, n - 1);
+	
+	return 0;
+}
+
+LRESULT qm::GoRoundDialog::onDown()
+{
+	int n = sendDlgItemMessage(IDC_COURSE, LB_GETCURSEL);
+	if (n == LB_ERR || n == sendDlgItemMessage(IDC_COURSE, LB_GETCOUNT) - 1)
+		return 0;
+	
+	GoRoundCourse* pCourse = listCourse_[n];
+	std::swap(listCourse_[n], listCourse_[n + 1]);
+	
+	sendDlgItemMessage(IDC_COURSE, LB_DELETESTRING, n);
+	W2T(pCourse->getName(), ptszName);
+	sendDlgItemMessage(IDC_COURSE, LB_INSERTSTRING,
+		n + 1, reinterpret_cast<LPARAM>(ptszName));
+	sendDlgItemMessage(IDC_COURSE, LB_SETCURSEL, n + 1);
+	
+	return 0;
+}
+
+LRESULT qm::GoRoundDialog::onCourseSelChange()
+{
+	updateState();
+	return 0;
+}
+
+void qm::GoRoundDialog::updateState()
+{
+	int n = sendDlgItemMessage(IDC_COURSE, LB_GETCURSEL);
+	Window(getDlgItem(IDC_REMOVE)).enableWindow(n != LB_ERR);
+	Window(getDlgItem(IDC_EDIT)).enableWindow(n != LB_ERR);
+	Window(getDlgItem(IDC_UP)).enableWindow(n != LB_ERR && n != 0);
+	Window(getDlgItem(IDC_DOWN)).enableWindow(n != LB_ERR &&
+		n != sendDlgItemMessage(IDC_COURSE, LB_GETCOUNT) - 1);
+}
+
+
+/****************************************************************************
+ *
+ * GoRoundCourseDialog
+ *
+ */
+
+qm::GoRoundCourseDialog::GoRoundCourseDialog(GoRoundCourse* pCourse,
+											 Document* pDocument,
+											 SyncFilterManager* pSyncFilterManager) :
+	DefaultDialog(IDD_GOROUNDCOURSE),
+	pCourse_(pCourse),
+	pDocument_(pDocument),
+	pSyncFilterManager_(pSyncFilterManager)
+{
+	const GoRoundCourse::EntryList& listEntry = pCourse_->getEntries();
+	listEntry_.reserve(listEntry.size());
+	for (GoRoundCourse::EntryList::const_iterator it = listEntry.begin(); it != listEntry.end(); ++it)
+		listEntry_.push_back(new GoRoundEntry(**it));
+}
+
+qm::GoRoundCourseDialog::~GoRoundCourseDialog()
+{
+	std::for_each(listEntry_.begin(), listEntry_.end(), qs::deleter<GoRoundEntry>());
+}
+
+LRESULT qm::GoRoundCourseDialog::onCommand(WORD nCode,
+										   WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_ADD, onAdd)
+		HANDLE_COMMAND_ID(IDC_DIALUP, onDialup)
+		HANDLE_COMMAND_ID(IDC_DOWN, onDown)
+		HANDLE_COMMAND_ID(IDC_EDIT, onEdit)
+		HANDLE_COMMAND_ID(IDC_REMOVE, onRemove)
+		HANDLE_COMMAND_ID(IDC_UP, onUp)
+		HANDLE_COMMAND_ID_CODE(IDC_ENTRY, LBN_SELCHANGE, onEntrySelChange)
+		HANDLE_COMMAND_ID_CODE(IDC_NAME, EN_CHANGE, onNameChange)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::GoRoundCourseDialog::onInitDialog(HWND hwndFocus,
+											  LPARAM lParam)
+{
+	init(false);
+	
+	setDlgItemText(IDC_NAME, pCourse_->getName());
+	
+	for (GoRoundCourse::EntryList::const_iterator it = listEntry_.begin(); it != listEntry_.end(); ++it) {
+		GoRoundEntry* pEntry = *it;
+		wstring_ptr wstrName(getEntryName(pEntry));
+		W2T(wstrName.get(), ptszName);
+		sendDlgItemMessage(IDC_ENTRY, LB_ADDSTRING,
+			0, reinterpret_cast<LPARAM>(ptszName));
+	}
+	sendDlgItemMessage(IDC_ENTRY, LB_SETCURSEL);
+	
+	switch (pCourse_->getType()) {
+	case GoRoundCourse::TYPE_SEQUENTIAL:
+		sendDlgItemMessage(IDC_SEQUENTIAL, BM_SETCHECK, BST_CHECKED);
+		break;
+	case GoRoundCourse::TYPE_PARALLEL:
+		sendDlgItemMessage(IDC_PARALLEL, BM_SETCHECK, BST_CHECKED);
+		break;
+	default:
+		assert(false);
+		break;
+	}
+	
+	sendDlgItemMessage(IDC_CONFIRM, BM_SETCHECK,
+		pCourse_->isFlag(GoRoundCourse::FLAG_CONFIRM) ? BST_CHECKED : BST_UNCHECKED);
+	
+	updateState();
+	
+	return TRUE;
+}
+
+LRESULT qm::GoRoundCourseDialog::onOk()
+{
+	wstring_ptr wstrName(getDlgItemText(IDC_NAME));
+	if (!wstrName.get())
+		return 0;
+	pCourse_->setName(wstrName.get());
+	
+	pCourse_->setEntries(listEntry_);
+	
+	pCourse_->setType(sendDlgItemMessage(IDC_SEQUENTIAL, BM_GETCHECK) == BST_CHECKED ?
+		GoRoundCourse::TYPE_SEQUENTIAL : GoRoundCourse::TYPE_PARALLEL);
+	pCourse_->setFlags(sendDlgItemMessage(IDC_CONFIRM, BM_GETCHECK) == BST_CHECKED ?
+		GoRoundCourse::FLAG_CONFIRM : 0);
+	
+	return DefaultDialog::onOk();
+}
+
+LRESULT qm::GoRoundCourseDialog::onAdd()
+{
+	std::auto_ptr<GoRoundEntry> pEntry(new GoRoundEntry());
+	GoRoundEntryDialog dialog(pEntry.get(), pDocument_, pSyncFilterManager_);
+	if (dialog.doModal(getHandle()) == IDOK) {
+		listEntry_.push_back(pEntry.get());
+		GoRoundEntry* p = pEntry.release();
+		
+		wstring_ptr wstrName(getEntryName(p));
+		W2T(wstrName.get(), ptszName);
+		sendDlgItemMessage(IDC_ENTRY, LB_ADDSTRING,
+			0, reinterpret_cast<LPARAM>(ptszName));
+	}
+	return 0;
+}
+
+LRESULT qm::GoRoundCourseDialog::onRemove()
+{
+	int n = sendDlgItemMessage(IDC_ENTRY, LB_GETCURSEL);
+	if (n == LB_ERR)
+		return 0;
+	
+	delete listEntry_[n];
+	listEntry_.erase(listEntry_.begin() + n);
+	
+	sendDlgItemMessage(IDC_ENTRY, LB_DELETESTRING, n);
+	
+	return 0;
+}
+
+LRESULT qm::GoRoundCourseDialog::onEdit()
+{
+	int n = sendDlgItemMessage(IDC_ENTRY, LB_GETCURSEL);
+	if (n == LB_ERR)
+		return 0;
+	
+	GoRoundEntry* pEntry = listEntry_[n];
+	GoRoundEntryDialog dialog(pEntry, pDocument_, pSyncFilterManager_);
+	if (dialog.doModal(getHandle()) == IDOK) {
+		sendDlgItemMessage(IDC_ENTRY, LB_DELETESTRING, n);
+		wstring_ptr wstrName(getEntryName(pEntry));
+		W2T(wstrName.get(), ptszName);
+		sendDlgItemMessage(IDC_ENTRY, LB_INSERTSTRING,
+			n, reinterpret_cast<LPARAM>(ptszName));
+		sendDlgItemMessage(IDC_ENTRY, LB_SETCURSEL, n);
+	}
+	
+	return 0;
+}
+
+LRESULT qm::GoRoundCourseDialog::onUp()
+{
+	int n = sendDlgItemMessage(IDC_ENTRY, LB_GETCURSEL);
+	if (n == LB_ERR || n == 0)
+		return 0;
+	
+	GoRoundEntry* pEntry = listEntry_[n];
+	std::swap(listEntry_[n], listEntry_[n - 1]);
+	
+	sendDlgItemMessage(IDC_ENTRY, LB_DELETESTRING, n);
+	wstring_ptr wstrName(getEntryName(pEntry));
+	W2T(wstrName.get(), ptszName);
+	sendDlgItemMessage(IDC_ENTRY, LB_INSERTSTRING,
+		n - 1, reinterpret_cast<LPARAM>(ptszName));
+	sendDlgItemMessage(IDC_ENTRY, LB_SETCURSEL, n - 1);
+	
+	return 0;
+}
+
+LRESULT qm::GoRoundCourseDialog::onDown()
+{
+	int n = sendDlgItemMessage(IDC_ENTRY, LB_GETCURSEL);
+	if (n == LB_ERR || n == sendDlgItemMessage(IDC_ENTRY, LB_GETCOUNT) - 1)
+		return 0;
+	
+	GoRoundEntry* pEntry = listEntry_[n];
+	std::swap(listEntry_[n], listEntry_[n + 1]);
+	
+	sendDlgItemMessage(IDC_ENTRY, LB_DELETESTRING, n);
+	wstring_ptr wstrName(getEntryName(pEntry));
+	W2T(wstrName.get(), ptszName);
+	sendDlgItemMessage(IDC_ENTRY, LB_INSERTSTRING,
+		n + 1, reinterpret_cast<LPARAM>(ptszName));
+	sendDlgItemMessage(IDC_ENTRY, LB_SETCURSEL, n + 1);
+	
+	return 0;
+}
+
+LRESULT qm::GoRoundCourseDialog::onDialup()
+{
+	if (pCourse_->getDialup()) {
+		GoRoundDialupDialog dialog(pCourse_->getDialup(), false);
+		if (dialog.doModal(getHandle()) == IDOK) {
+			if (dialog.isNoDialup()) {
+				std::auto_ptr<GoRoundDialup> pDialup;
+				pCourse_->setDialup(pDialup);
+			}
+		}
+	}
+	else {
+		std::auto_ptr<GoRoundDialup> pDialup(new GoRoundDialup());
+		GoRoundDialupDialog dialog(pDialup.get(), true);
+		if (dialog.doModal(getHandle()) == IDOK) {
+			if (!dialog.isNoDialup())
+				pCourse_->setDialup(pDialup);
+		}
+	}
+	
+	return 0;
+}
+
+LRESULT qm::GoRoundCourseDialog::onNameChange()
+{
+	updateState();
+	return 0;
+}
+
+LRESULT qm::GoRoundCourseDialog::onEntrySelChange()
+{
+	updateState();
+	return 0;
+}
+
+void qm::GoRoundCourseDialog::updateState()
+{
+	int n = sendDlgItemMessage(IDC_ENTRY, LB_GETCURSEL);
+	Window(getDlgItem(IDC_REMOVE)).enableWindow(n != LB_ERR);
+	Window(getDlgItem(IDC_EDIT)).enableWindow(n != LB_ERR);
+	Window(getDlgItem(IDC_UP)).enableWindow(n != LB_ERR && n != 0);
+	Window(getDlgItem(IDC_DOWN)).enableWindow(n != LB_ERR &&
+		n != sendDlgItemMessage(IDC_ENTRY, LB_GETCOUNT) - 1);
+	
+	wstring_ptr wstrName(getDlgItemText(IDC_NAME));
+	Window(getDlgItem(IDOK)).enableWindow(*wstrName.get() != L'\0');
+}
+
+wstring_ptr qm::GoRoundCourseDialog::getEntryName(const GoRoundEntry* pEntry)
+{
+	StringBuffer<WSTRING> buf(pEntry->getAccount());
+	if (pEntry->getSubAccount()) {
+		buf.append(L'/');
+		buf.append(pEntry->getSubAccount());
+	}
+	if (pEntry->getFolder()) {
+		buf.append(L" [");
+		buf.append(pEntry->getFolder());
+		buf.append(L']');
+	}
+	return buf.getString();
+}
+
+
+/****************************************************************************
+ *
+ * GoRoundDialupDialog
+ *
+ */
+
+qm::GoRoundDialupDialog::GoRoundDialupDialog(GoRoundDialup* pDialup,
+											 bool bNoDialup) :
+	DefaultDialog(IDD_GOROUNDDIALUP),
+	pDialup_(pDialup),
+	bNoDialup_(bNoDialup)
+{
+}
+
+qm::GoRoundDialupDialog::~GoRoundDialupDialog()
+{
+}
+
+bool qm::GoRoundDialupDialog::isNoDialup() const
+{
+	return bNoDialup_;
+}
+
+LRESULT qm::GoRoundDialupDialog::onCommand(WORD nCode,
+										   WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID_RANGE(IDC_NEVER, IDC_CONNECT, onTypeSelect)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::GoRoundDialupDialog::onInitDialog(HWND hwndFocus,
+											  LPARAM lParam)
+{
+	init(false);
+	
+	if (bNoDialup_)
+		sendDlgItemMessage(IDC_NEVER, BM_SETCHECK, BST_CHECKED);
+	else if (pDialup_->isFlag(GoRoundDialup::FLAG_WHENEVERNOTCONNECTED))
+		sendDlgItemMessage(IDC_WHENEVERNOTCONNECTED, BM_SETCHECK, BST_CHECKED);
+	else
+		sendDlgItemMessage(IDC_CONNECT, BM_SETCHECK, BST_CHECKED);
+	
+	if (pDialup_->getName())
+		setDlgItemText(IDC_ENTRY, pDialup_->getName());
+	if (pDialup_->getDialFrom())
+		setDlgItemText(IDC_DIALFROM, pDialup_->getDialFrom());
+	sendDlgItemMessage(IDC_SHOWDIALOG, BM_SETCHECK,
+		pDialup_->isFlag(GoRoundDialup::FLAG_SHOWDIALOG) ? BST_CHECKED : BST_UNCHECKED);
+	setDlgItemInt(IDC_WAITBEFOREDISCONNECT, pDialup_->getDisconnectWait());
+	
+	RasConnection::EntryList listEntry;
+	StringListFree<RasConnection::EntryList> free(listEntry);
+	RasConnection::getEntries(&listEntry);
+	for (RasConnection::EntryList::const_iterator it = listEntry.begin(); it != listEntry.end(); ++it) {
+		W2T(*it, ptszEntry);
+		sendDlgItemMessage(IDC_ENTRY, CB_ADDSTRING,
+			0, reinterpret_cast<LPARAM>(ptszEntry));
+	}
+	
+	updateState();
+	
+	return TRUE;
+}
+
+LRESULT qm::GoRoundDialupDialog::onOk()
+{
+	bNoDialup_ = sendDlgItemMessage(IDC_NEVER, BM_GETCHECK) == BST_CHECKED;
+	if (!bNoDialup_) {
+		wstring_ptr wstrEntry(getDlgItemText(IDC_ENTRY));
+		pDialup_->setName(*wstrEntry.get() ? wstrEntry.get() : 0);
+		
+		wstring_ptr wstrDialFrom(getDlgItemText(IDC_DIALFROM));
+		pDialup_->setDialFrom(*wstrDialFrom.get() ? wstrDialFrom.get() : 0);
+		
+		unsigned int nFlags = 0;
+		if (sendDlgItemMessage(IDC_WHENEVERNOTCONNECTED, BM_GETCHECK) == BST_CHECKED)
+			nFlags |= GoRoundDialup::FLAG_WHENEVERNOTCONNECTED;
+		if (sendDlgItemMessage(IDC_SHOWDIALOG, BM_GETCHECK) == BST_CHECKED)
+			nFlags |= GoRoundDialup::FLAG_SHOWDIALOG;
+		pDialup_->setFlags(nFlags);
+		
+		pDialup_->setDisconnectWait(getDlgItemInt(IDC_WAITBEFOREDISCONNECT));
+	}
+	return DefaultDialog::onOk();
+}
+
+LRESULT qm::GoRoundDialupDialog::onTypeSelect(UINT nId)
+{
+	updateState();
+	return 0;
+}
+
+void qm::GoRoundDialupDialog::updateState()
+{
+	bool bEnable = sendDlgItemMessage(IDC_NEVER, BM_GETCHECK) != BST_CHECKED;
+	
+	UINT nIds[] = {
+		IDC_ENTRY,
+		IDC_SHOWDIALOG,
+		IDC_DIALFROM,
+		IDC_WAITBEFOREDISCONNECT
+	};
+	for (int n = 0; n < countof(nIds); ++n)
+		Window(getDlgItem(nIds[n])).enableWindow(bEnable);
+}
+
+
+/****************************************************************************
+ *
+ * GoRoundEntryDialog
+ *
+ */
+
+qm::GoRoundEntryDialog::GoRoundEntryDialog(GoRoundEntry* pEntry,
+										   Document* pDocument,
+										   SyncFilterManager* pSyncFilterManager) :
+	DefaultDialog(IDD_GOROUNDENTRY),
+	pEntry_(pEntry),
+	pDocument_(pDocument),
+	pSyncFilterManager_(pSyncFilterManager)
+{
+}
+
+qm::GoRoundEntryDialog::~GoRoundEntryDialog()
+{
+}
+
+LRESULT qm::GoRoundEntryDialog::onCommand(WORD nCode,
+										  WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID_CODE(IDC_ACCOUNT, CBN_EDITCHANGE, onAccountEditChange)
+		HANDLE_COMMAND_ID_CODE(IDC_ACCOUNT, CBN_SELCHANGE, onAccountSelChange)
+		HANDLE_COMMAND_ID_CODE(IDC_SELECTFOLDER, BN_CLICKED, onSelectFolderClicked)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::GoRoundEntryDialog::onInitDialog(HWND hwndFocus,
+											 LPARAM lParam)
+{
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	
+	init(false);
+	
+	const Document::AccountList& listAccount = pDocument_->getAccounts();
+	for (Document::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
+		Account* pAccount = *it;
+		W2T(pAccount->getName(), ptszName);
+		sendDlgItemMessage(IDC_ACCOUNT, CB_ADDSTRING,
+			0, reinterpret_cast<LPARAM>(ptszName));
+	}
+	W2T(pEntry_->getAccount(), ptszAccount);
+	setDlgItemText(IDC_ACCOUNT, pEntry_->getAccount());
+	
+	const WCHAR* pwszSubAccount = pEntry_->getSubAccount();
+	if (pwszSubAccount) {
+		setDlgItemText(IDC_SUBACCOUNT, pwszSubAccount);
+	}
+	else {
+		wstring_ptr wstrUnspecified(loadString(hInst, IDS_UNSPECIFIED));
+		setDlgItemText(IDC_SUBACCOUNT, wstrUnspecified.get());
+	}
+	
+	const WCHAR* pwszFolder = pEntry_->getFolder();
+	if (pwszFolder) {
+		setDlgItemText(IDC_FOLDER, pwszFolder);
+	}
+	else {
+		wstring_ptr wstrAll(loadString(hInst, IDS_ALLFOLDER));
+		setDlgItemText(IDC_FOLDER, wstrAll.get());
+	}
+	
+	if (pEntry_->isFlag(GoRoundEntry::FLAG_SELECTFOLDER))
+		sendDlgItemMessage(IDC_SELECTFOLDER, BM_SETCHECK, BST_CHECKED);
+	
+	const WCHAR* pwszFilter = pEntry_->getFilter();
+	if (pwszFilter)
+		setDlgItemText(IDC_SYNCFILTER, pwszFilter);
+	
+	if (pEntry_->isFlag(GoRoundEntry::FLAG_SEND) &&
+		pEntry_->isFlag(GoRoundEntry::FLAG_RECEIVE))
+		sendDlgItemMessage(IDC_SENDRECEIVE, BM_SETCHECK, BST_CHECKED);
+	else if (pEntry_->isFlag(GoRoundEntry::FLAG_SEND))
+		sendDlgItemMessage(IDC_SEND, BM_SETCHECK, BST_CHECKED);
+	else if (pEntry_->isFlag(GoRoundEntry::FLAG_RECEIVE))
+		sendDlgItemMessage(IDC_RECEIVE, BM_SETCHECK, BST_CHECKED);
+	
+	if (pEntry_->getConnectReceiveBeforeSend() == GoRoundEntry::CRBS_TRUE)
+		sendDlgItemMessage(IDC_CONNECTRECEIVEBEFORESEND, BM_SETCHECK, BST_CHECKED);
+	
+	updateState();
+	
+	return TRUE;
+}
+
+LRESULT qm::GoRoundEntryDialog::onOk()
+{
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	
+	wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
+	if (!wstrAccount.get())
+		return 0;
+	
+	wstring_ptr wstrSubAccount(getDlgItemText(IDC_SUBACCOUNT));
+	const WCHAR* pwszSubAccount = wstrSubAccount.get();
+	wstring_ptr wstrUnspecified(loadString(hInst, IDS_UNSPECIFIED));
+	wstring_ptr wstrDefault(loadString(hInst, IDS_DEFAULTSUBACCOUNT));
+	if (wcscmp(pwszSubAccount, wstrUnspecified.get()) == 0)
+		pwszSubAccount = 0;
+	else if (wcscmp(pwszSubAccount, wstrDefault.get()) == 0)
+		pwszSubAccount = L"";
+	
+	wstring_ptr wstrFolder(getDlgItemText(IDC_FOLDER));
+	const WCHAR* pwszFolder = wstrFolder.get();
+	wstring_ptr wstrAll(loadString(hInst, IDS_ALLFOLDER));
+	if (wcscmp(pwszFolder, wstrAll.get()) == 0)
+		pwszFolder = 0;
+	std::auto_ptr<RegexPattern> pFolderPattern;
+	if (pwszFolder) {
+		pFolderPattern = RegexCompiler().compile(pwszFolder);
+		if (!pFolderPattern.get())
+			return 0;
+	}
+	
+	unsigned int nFlags = 0;
+	if (sendDlgItemMessage(IDC_SELECTFOLDER, BM_GETCHECK) == BST_CHECKED)
+		nFlags |= GoRoundEntry::FLAG_SELECTFOLDER;
+	if (sendDlgItemMessage(IDC_SENDRECEIVE, BM_GETCHECK) == BST_CHECKED)
+		nFlags |= GoRoundEntry::FLAG_SEND | GoRoundEntry::FLAG_RECEIVE;
+	else if (sendDlgItemMessage(IDC_RECEIVE, BM_GETCHECK) == BST_CHECKED)
+		nFlags |= GoRoundEntry::FLAG_RECEIVE;
+	else if (sendDlgItemMessage(IDC_SEND, BM_GETCHECK) == BST_CHECKED)
+		nFlags |= GoRoundEntry::FLAG_SEND;
+	
+	wstring_ptr wstrFilter(getDlgItemText(IDC_SYNCFILTER));
+	const WCHAR* pwszFilter = wstrFilter.get();
+	if (!*pwszFilter)
+		pwszFilter = 0;
+	
+	GoRoundEntry::ConnectReceiveBeforeSend crbs =
+		sendDlgItemMessage(IDC_CONNECTRECEIVEBEFORESEND, BM_GETCHECK) == BST_CHECKED ?
+		GoRoundEntry::CRBS_TRUE : GoRoundEntry::CRBS_NONE;
+	
+	pEntry_->setAccount(wstrAccount.get());
+	pEntry_->setSubAccount(pwszSubAccount);
+	pEntry_->setFolder(pwszFolder, pFolderPattern);
+	pEntry_->setFlags(nFlags);
+	pEntry_->setFilter(pwszFilter);
+	pEntry_->setConnectReceiveBeforeSend(crbs);
+	
+	return DefaultDialog::onOk();
+}
+
+LRESULT qm::GoRoundEntryDialog::onAccountEditChange()
+{
+	updateState();
+	return 0;
+}
+
+LRESULT qm::GoRoundEntryDialog::onAccountSelChange()
+{
+	postMessage(WM_COMMAND, MAKEWPARAM(IDC_ACCOUNT, CBN_EDITCHANGE));
+	return 0;
+}
+
+LRESULT qm::GoRoundEntryDialog::onSelectFolderClicked()
+{
+	updateState();
+	return 0;
+}
+
+void qm::GoRoundEntryDialog::updateState()
+{
+	Account* pAccount = 0;
+	
+	wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
+	if (wstrAccount.get())
+		pAccount = pDocument_->getAccount(wstrAccount.get());
+	
+	updateSubAccount(pAccount);
+	updateFolder(pAccount);
+	updateFilter(pAccount);
+	
+	Window(getDlgItem(IDC_FOLDER)).enableWindow(
+		sendDlgItemMessage(IDC_SELECTFOLDER, BM_GETCHECK) != BST_CHECKED);
+	Window(getDlgItem(IDOK)).enableWindow(*wstrAccount.get() != L'\0');
+}
+
+void qm::GoRoundEntryDialog::updateSubAccount(Account* pAccount)
+{
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	
+	wstring_ptr wstrSubAccount(getDlgItemText(IDC_SUBACCOUNT));
+	
+	sendDlgItemMessage(IDC_SUBACCOUNT, CB_RESETCONTENT);
+	
+	wstring_ptr wstrUnspecified(loadString(hInst, IDS_UNSPECIFIED));
+	W2T(wstrUnspecified.get(), ptszUnspecified);
+	sendDlgItemMessage(IDC_SUBACCOUNT, CB_ADDSTRING,
+		0, reinterpret_cast<LPARAM>(ptszUnspecified));
+	
+	if (pAccount) {
+		Account::SubAccountList l(pAccount->getSubAccounts());
+		std::sort(l.begin(), l.end(),
+			binary_compose_f_gx_hy(
+				string_equal<WCHAR>(),
+				std::mem_fun(&SubAccount::getName),
+				std::mem_fun(&SubAccount::getName)));
+		for (Account::SubAccountList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			SubAccount* pSubAccount = *it;
+			if (*pSubAccount->getName()) {
+				W2T(pSubAccount->getName(), ptszName);
+				sendDlgItemMessage(IDC_SUBACCOUNT, CB_ADDSTRING,
+					0, reinterpret_cast<LPARAM>(ptszName));
+			}
+			else {
+				wstring_ptr wstrDefault(loadString(hInst, IDS_DEFAULTSUBACCOUNT));
+				W2T(wstrDefault.get(), ptszDefault);
+				sendDlgItemMessage(IDC_SUBACCOUNT, CB_ADDSTRING,
+					0, reinterpret_cast<LPARAM>(ptszDefault));
+			}
+		}
+	}
+	
+	setDlgItemText(IDC_SUBACCOUNT, wstrSubAccount.get());
+}
+
+void qm::GoRoundEntryDialog::updateFolder(Account* pAccount)
+{
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	
+	wstring_ptr wstrFolder(getDlgItemText(IDC_FOLDER));
+	
+	sendDlgItemMessage(IDC_FOLDER, CB_RESETCONTENT);
+	
+	wstring_ptr wstrAll(loadString(hInst, IDS_ALLFOLDER));
+	W2T(wstrAll.get(), ptszAll);
+	sendDlgItemMessage(IDC_FOLDER, CB_ADDSTRING,
+		0, reinterpret_cast<LPARAM>(ptszAll));
+	
+	if (pAccount) {
+		Account::FolderList l(pAccount->getFolders());
+		std::sort(l.begin(), l.end(), FolderLess());
+		for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			Folder* pFolder = *it;
+			
+			wstring_ptr wstrName(pFolder->getFullName());
+			W2T(wstrName.get(), ptszName);
+			sendDlgItemMessage(IDC_FOLDER, CB_ADDSTRING,
+				0, reinterpret_cast<LPARAM>(ptszName));
+		}
+	}
+	
+	setDlgItemText(IDC_FOLDER, wstrFolder.get());
+}
+
+void qm::GoRoundEntryDialog::updateFilter(Account* pAccount)
+{
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	
+	wstring_ptr wstrFilter(getDlgItemText(IDC_SYNCFILTER));
+	
+	sendDlgItemMessage(IDC_SYNCFILTER, CB_RESETCONTENT);
+	
+	if (pAccount) {
+		SyncFilterManager::FilterSetList l;
+		pSyncFilterManager_->getFilterSets(pAccount, &l);
+		for (SyncFilterManager::FilterSetList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			SyncFilterSet* pSet = *it;
+			W2T(pSet->getName(), ptszName);
+			sendDlgItemMessage(IDC_SYNCFILTER, CB_ADDSTRING,
+				0, reinterpret_cast<LPARAM>(ptszName));
+		}
+	}
+	
+	setDlgItemText(IDC_SYNCFILTER, wstrFilter.get());
 }
 
 

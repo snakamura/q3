@@ -563,6 +563,7 @@ public:
 	{
 		const WCHAR* pwszQName_;
 		const WCHAR* pwszValue_;
+		bool bOmit_;
 	};
 
 public:
@@ -584,6 +585,7 @@ private:
 private:
 	const Item* pItems_;
 	size_t nSize_;
+	size_t nCount_;
 	Item item_;
 };
 

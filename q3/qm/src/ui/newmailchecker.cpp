@@ -69,9 +69,7 @@ void qm::NewMailChecker::timerTimeout(unsigned int nId)
 			(!bOnlyWhenConnected_ || RasConnection::isNetworkConnected()) &&
 			pCallback_->canCheck();
 		if (bCheck) {
-			const GoRoundCourseList* pCourseList = pGoRound_->getCourseList();
-			const GoRoundCourse* pCourse = pCourseList->getCourse(wstrCourse_.get());
-			
+			const GoRoundCourse* pCourse = pGoRound_->getCourse(wstrCourse_.get());
 			SyncUtil::goRound(pSyncManager_, pDocument_, pSyncDialogManager_,
 				hwnd_, SyncDialog::FLAG_NOTIFYNEWMESSAGE, pCourse);
 		}

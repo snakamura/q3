@@ -18,7 +18,7 @@ namespace qm {
 
 class GoRound;
 
-class GoRoundCourseList;
+class GoRoundCourse;
 
 
 /****************************************************************************
@@ -30,11 +30,18 @@ class GoRoundCourseList;
 class GoRound
 {
 public:
+	typedef std::vector<GoRoundCourse*> CourseList;
+
+public:
 	GoRound();
 	~GoRound();
 
 public:
-	const GoRoundCourseList* getCourseList();
+	const CourseList& getCourses() const;
+	const CourseList& getCourses(bool bReload) const;
+	void setCourses(CourseList& listCourse);
+	GoRoundCourse* getCourse(const WCHAR* pwszCourse) const;
+	bool save() const;
 
 private:
 	GoRound(const GoRound&);

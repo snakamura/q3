@@ -11,6 +11,7 @@
 #include <qmgoround.h>
 
 #include <qsconv.h>
+#include <qsfile.h>
 #include <qsosutil.h>
 
 #include <algorithm>
@@ -30,9 +31,10 @@ using namespace qs;
 struct qm::GoRoundImpl
 {
 	bool load();
+	void clear();
 	
 	FILETIME ft_;
-	std::auto_ptr<GoRoundCourseList> pCourseList_;
+	GoRound::CourseList listCourse_;
 };
 
 bool qm::GoRoundImpl::load()
@@ -53,15 +55,33 @@ bool qm::GoRoundImpl::load()
 				return false;
 			BufferedInputStream stream(&fileStream, false);
 			
-			pCourseList_.reset(new GoRoundCourseList());
-			if (!pCourseList_->load(&stream))
+			clear();
+			
+			XMLReader reader;
+			GoRoundContentHandler handler(&listCourse_);
+			reader.setContentHandler(&handler);
+			InputSource source(&stream);
+			if (!reader.parse(&source))
 				return false;
 			
 			ft_ = ft;
 		}
 	}
+	else {
+		clear();
+		
+		SYSTEMTIME st;
+		::GetSystemTime(&st);
+		::SystemTimeToFileTime(&st, &ft_);
+	}
 	
 	return true;
+}
+
+void qm::GoRoundImpl::clear()
+{
+	std::for_each(listCourse_.begin(), listCourse_.end(), deleter<GoRoundCourse>());
+	listCourse_.clear();
 }
 
 
@@ -79,68 +99,74 @@ qm::GoRound::GoRound() :
 	SYSTEMTIME st;
 	::GetSystemTime(&st);
 	::SystemTimeToFileTime(&st, &pImpl_->ft_);
-	pImpl_->pCourseList_.reset(new GoRoundCourseList());
 }
 
 qm::GoRound::~GoRound()
 {
-	if (pImpl_)
+	if (pImpl_) {
+		pImpl_->clear();
 		delete pImpl_;
+	}
 }
 
-const GoRoundCourseList* qm::GoRound::getCourseList()
+const GoRound::CourseList& qm::GoRound::getCourses() const
+{
+	return getCourses(true);
+}
+
+const GoRound::CourseList& qm::GoRound::getCourses(bool bReload) const
+{
+	if (bReload)
+		pImpl_->load();
+	return pImpl_->listCourse_;
+}
+
+void qm::GoRound::setCourses(CourseList& listCourse)
+{
+	pImpl_->clear();
+	pImpl_->listCourse_.swap(listCourse);
+}
+
+GoRoundCourse* qm::GoRound::getCourse(const WCHAR* pwszCourse) const
 {
 	pImpl_->load();
-	return pImpl_->pCourseList_.get();
-}
-
-
-/****************************************************************************
- *
- * GoRoundCourseList
- *
- */
-
-qm::GoRoundCourseList::GoRoundCourseList()
-{
-}
-
-qm::GoRoundCourseList::~GoRoundCourseList()
-{
-	std::for_each(listCourse_.begin(), listCourse_.end(), deleter<GoRoundCourse>());
-}
-
-size_t qm::GoRoundCourseList::getCount() const
-{
-	return listCourse_.size();
-}
-
-GoRoundCourse* qm::GoRoundCourseList::getCourse(size_t nIndex) const
-{
-	assert(nIndex < getCount());
-	return listCourse_[nIndex];
-}
-
-GoRoundCourse* qm::GoRoundCourseList::getCourse(const WCHAR* pwszCourse) const
-{
+	
 	CourseList::const_iterator it = std::find_if(
-		listCourse_.begin(), listCourse_.end(),
+		pImpl_->listCourse_.begin(), pImpl_->listCourse_.end(),
 		std::bind2nd(
 			binary_compose_f_gx_hy(
 				string_equal<WCHAR>(),
 				std::mem_fun(&GoRoundCourse::getName),
 				std::identity<const WCHAR*>()),
 			pwszCourse));
-	return it != listCourse_.end() ? *it : 0;
+	return it != pImpl_->listCourse_.end() ? *it : 0;
 }
 
-bool qm::GoRoundCourseList::load(InputStream* pStream)
+bool qm::GoRound::save() const
 {
-	XMLReader reader;
-	GoRoundContentHandler handler(&listCourse_);
-	reader.setContentHandler(&handler);
-	InputSource source(pStream);
-	return reader.parse(&source);
+	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::GOROUND_XML));
+	
+	TemporaryFileRenamer renamer(wstrPath.get());
+	
+	FileOutputStream os(renamer.getPath());
+	if (!os)
+		return false;
+	OutputStreamWriter writer(&os, false, L"utf-8");
+	if (!writer)
+		return false;
+	BufferedWriter bufferedWriter(&writer, false);
+	
+	GoRoundWriter goRoundWriter(&bufferedWriter);
+	if (!goRoundWriter.write(this))
+		return false;
+	
+	if (!bufferedWriter.close())
+		return false;
+	
+	if (!renamer.rename())
+		return false;
+	
+	return true;
 }
 
 
@@ -149,6 +175,13 @@ bool qm::GoRoundCourseList::load(InputStream* pStream)
  * GoRoundCourse
  *
  */
+
+qm::GoRoundCourse::GoRoundCourse() :
+	nFlags_(0),
+	type_(TYPE_SEQUENTIAL)
+{
+	wstrName_ = allocWString(L"");
+}
 
 qm::GoRoundCourse::GoRoundCourse(const WCHAR* pwszName,
 								 unsigned int nFlags) :
@@ -165,9 +198,49 @@ qm::GoRoundCourse::~GoRoundCourse()
 	std::for_each(listEntry_.begin(), listEntry_.end(), deleter<GoRoundEntry>());
 }
 
+qm::GoRoundCourse::GoRoundCourse(const GoRoundCourse& course) :
+	nFlags_(course.nFlags_),
+	type_(course.type_)
+{
+	wstrName_ = allocWString(course.wstrName_.get());
+	
+	if (course.pDialup_.get())
+		pDialup_.reset(new GoRoundDialup(*course.pDialup_.get()));
+	
+	listEntry_.reserve(course.listEntry_.size());
+	for (EntryList::const_iterator it = course.listEntry_.begin(); it != course.listEntry_.end(); ++it)
+		listEntry_.push_back(new GoRoundEntry(**it));
+}
+
+GoRoundCourse& qm::GoRoundCourse::operator=(const GoRoundCourse& course)
+{
+	if (&course != this) {
+		wstrName_ = allocWString(course.wstrName_.get());
+		
+		nFlags_ = course.nFlags_;
+		
+		if (course.pDialup_.get())
+			pDialup_.reset(new GoRoundDialup(*course.pDialup_.get()));
+		
+		type_ = course.type_;
+		
+		listEntry_.reserve(course.listEntry_.size());
+		for (EntryList::const_iterator it = course.listEntry_.begin(); it != course.listEntry_.end(); ++it)
+			listEntry_.push_back(new GoRoundEntry(**it));
+		
+	}
+	return *this;
+}
+
 const WCHAR* qm::GoRoundCourse::getName() const
 {
 	return wstrName_.get();
+}
+
+void qm::GoRoundCourse::setName(const WCHAR* pwszName)
+{
+	assert(pwszName);
+	wstrName_ = allocWString(pwszName);
 }
 
 bool qm::GoRoundCourse::isFlag(Flag flag) const
@@ -175,19 +248,24 @@ bool qm::GoRoundCourse::isFlag(Flag flag) const
 	return (nFlags_ & flag) != 0;
 }
 
+void qm::GoRoundCourse::setFlags(unsigned int nFlags)
+{
+	nFlags_ = nFlags;
+}
+
 GoRoundCourse::Type qm::GoRoundCourse::getType() const
 {
 	return type_;
 }
 
-const GoRoundDialup* qm::GoRoundCourse::getDialup() const
+void qm::GoRoundCourse::setType(Type type)
 {
-	return pDialup_.get();
+	type_ = type;
 }
 
-const GoRoundCourse::EntryList& qm::GoRoundCourse::getEntries() const
+GoRoundDialup* qm::GoRoundCourse::getDialup() const
 {
-	return listEntry_;
+	return pDialup_.get();
 }
 
 void qm::GoRoundCourse::setDialup(std::auto_ptr<GoRoundDialup> pDialup)
@@ -195,9 +273,16 @@ void qm::GoRoundCourse::setDialup(std::auto_ptr<GoRoundDialup> pDialup)
 	pDialup_ = pDialup;
 }
 
-void qm::GoRoundCourse::setType(Type type)
+const GoRoundCourse::EntryList& qm::GoRoundCourse::getEntries() const
 {
-	type_ = type;
+	return listEntry_;
+}
+
+void qm::GoRoundCourse::setEntries(EntryList& listEntry)
+{
+	std::for_each(listEntry_.begin(), listEntry_.end(), deleter<GoRoundEntry>());
+	listEntry_.clear();
+	listEntry_.swap(listEntry);
 }
 
 void qm::GoRoundCourse::addEntry(std::auto_ptr<GoRoundEntry> pEntry)
@@ -213,13 +298,21 @@ void qm::GoRoundCourse::addEntry(std::auto_ptr<GoRoundEntry> pEntry)
  *
  */
 
+qm::GoRoundEntry::GoRoundEntry() :
+	nFlags_(FLAG_SEND | FLAG_RECEIVE),
+	crbs_(CRBS_NONE)
+{
+	wstrAccount_ = allocWString(L"");
+}
+
 qm::GoRoundEntry::GoRoundEntry(const WCHAR* pwszAccount,
-							  const WCHAR* pwszSubAccount,
-							  std::auto_ptr<RegexPattern> pFolderName,
-							  unsigned int nFlags,
-							  const WCHAR* pwszFilterName,
-							  ConnectReceiveBeforeSend crbs) :
-	pFolderName_(pFolderName),
+							   const WCHAR* pwszSubAccount,
+							   const WCHAR* pwszFolder,
+							   std::auto_ptr<RegexPattern> pFolder,
+							   unsigned int nFlags,
+							   const WCHAR* pwszFilter,
+							   ConnectReceiveBeforeSend crbs) :
+	pFolder_(pFolder),
 	nFlags_(nFlags),
 	crbs_(crbs)
 {
@@ -228,12 +321,49 @@ qm::GoRoundEntry::GoRoundEntry(const WCHAR* pwszAccount,
 	wstrAccount_ = allocWString(pwszAccount);
 	if (pwszSubAccount)
 		wstrSubAccount_ = allocWString(pwszSubAccount);
-	if (pwszFilterName)
-		wstrFilterName_ = allocWString(pwszFilterName);
+	if (pwszFolder)
+		wstrFolder_ = allocWString(pwszFolder);
+	if (pwszFilter)
+		wstrFilter_ = allocWString(pwszFilter);
+}
+
+qm::GoRoundEntry::GoRoundEntry(const GoRoundEntry& entry) :
+	nFlags_(entry.nFlags_),
+	crbs_(entry.crbs_)
+{
+	wstrAccount_ = allocWString(entry.wstrAccount_.get());
+	if (entry.wstrSubAccount_.get())
+		wstrSubAccount_ = allocWString(entry.wstrSubAccount_.get());
+	if (entry.wstrFolder_.get()) {
+		wstrFolder_ = allocWString(entry.wstrFolder_.get());
+		pFolder_ = RegexCompiler().compile(wstrFolder_.get());
+		assert(pFolder_.get());
+	}
+	if (entry.wstrFilter_.get())
+		wstrFilter_ = allocWString(entry.wstrFilter_.get());
 }
 
 qm::GoRoundEntry::~GoRoundEntry()
 {
+}
+
+GoRoundEntry& qm::GoRoundEntry::operator=(const GoRoundEntry& entry)
+{
+	if (&entry != this) {
+		wstrAccount_ = allocWString(entry.wstrAccount_.get());
+		if (entry.wstrSubAccount_.get())
+			wstrSubAccount_ = allocWString(entry.wstrSubAccount_.get());
+		if (entry.wstrFolder_.get()) {
+			wstrFolder_ = allocWString(entry.wstrFolder_.get());
+			pFolder_ = RegexCompiler().compile(wstrFolder_.get());
+			assert(pFolder_.get());
+		}
+		nFlags_ = entry.nFlags_;
+		if (entry.wstrFilter_.get())
+			wstrFilter_ = allocWString(entry.wstrFilter_.get());
+		crbs_ = entry.crbs_;
+	}
+	return *this;
 }
 
 const WCHAR* qm::GoRoundEntry::getAccount() const
@@ -241,14 +371,44 @@ const WCHAR* qm::GoRoundEntry::getAccount() const
 	return wstrAccount_.get();
 }
 
+void qm::GoRoundEntry::setAccount(const WCHAR* pwszAccount)
+{
+	assert(pwszAccount);
+	wstrAccount_ = allocWString(pwszAccount);
+}
+
 const WCHAR* qm::GoRoundEntry::getSubAccount() const
 {
 	return wstrSubAccount_.get();
 }
 
-const RegexPattern* qm::GoRoundEntry::getFolderNamePattern() const
+void qm::GoRoundEntry::setSubAccount(const WCHAR* pwszSubAccount)
 {
-	return pFolderName_.get();
+	if (pwszSubAccount)
+		wstrSubAccount_ = allocWString(pwszSubAccount);
+	else
+		wstrSubAccount_.reset(0);
+}
+
+const WCHAR* qm::GoRoundEntry::getFolder() const
+{
+	return wstrFolder_.get();
+}
+
+const RegexPattern* qm::GoRoundEntry::getFolderPattern() const
+{
+	return pFolder_.get();
+}
+
+void qm::GoRoundEntry::setFolder(const WCHAR* pwszFolder,
+								 std::auto_ptr<RegexPattern> pFolder)
+{
+	assert((pwszFolder && pFolder.get()) || (!pwszFolder && !pFolder.get()));
+	if (pwszFolder)
+		wstrFolder_ = allocWString(pwszFolder);
+	else
+		wstrFolder_.reset(0);
+	pFolder_ = pFolder;
 }
 
 bool qm::GoRoundEntry::isFlag(Flag flag) const
@@ -256,14 +416,32 @@ bool qm::GoRoundEntry::isFlag(Flag flag) const
 	return (nFlags_ & flag) != 0;
 }
 
-const WCHAR* qm::GoRoundEntry::getFilterName() const
+void qm::GoRoundEntry::setFlags(unsigned int nFlags)
 {
-	return wstrFilterName_.get();
+	nFlags_ = nFlags;
+}
+
+const WCHAR* qm::GoRoundEntry::getFilter() const
+{
+	return wstrFilter_.get();
+}
+
+void qm::GoRoundEntry::setFilter(const WCHAR* pwszFilter)
+{
+	if (pwszFilter)
+		wstrFilter_ = allocWString(pwszFilter);
+	else
+		wstrFilter_.reset(0);
 }
 
 GoRoundEntry::ConnectReceiveBeforeSend qm::GoRoundEntry::getConnectReceiveBeforeSend() const
 {
 	return crbs_;
+}
+
+void qm::GoRoundEntry::setConnectReceiveBeforeSend(ConnectReceiveBeforeSend crbs)
+{
+	crbs_ = crbs;
 }
 
 
@@ -272,6 +450,12 @@ GoRoundEntry::ConnectReceiveBeforeSend qm::GoRoundEntry::getConnectReceiveBefore
  * GoRoundDialup
  *
  */
+
+qm::GoRoundDialup::GoRoundDialup() :
+	nFlags_(0),
+	nDisconnectWait_(0)
+{
+}
 
 qm::GoRoundDialup::GoRoundDialup(const WCHAR* pwszName,
 								 unsigned int nFlags,
@@ -286,8 +470,35 @@ qm::GoRoundDialup::GoRoundDialup(const WCHAR* pwszName,
 		wstrDialFrom_ = allocWString(pwszDialFrom);
 }
 
+qm::GoRoundDialup::GoRoundDialup(const GoRoundDialup& dialup) :
+	nFlags_(dialup.nFlags_),
+	nDisconnectWait_(dialup.nDisconnectWait_)
+{
+	if (dialup.wstrName_.get())
+		wstrName_ = allocWString(dialup.wstrName_.get());
+	
+	if (dialup.wstrDialFrom_.get())
+		wstrDialFrom_ = allocWString(dialup.wstrDialFrom_.get());
+}
+
 qm::GoRoundDialup::~GoRoundDialup()
 {
+}
+
+GoRoundDialup& qm::GoRoundDialup::operator=(const GoRoundDialup& dialup)
+{
+	if (&dialup != this) {
+		if (dialup.wstrName_.get())
+			wstrName_ = allocWString(dialup.wstrName_.get());
+		
+		nFlags_ = dialup.nFlags_;
+		
+		if (dialup.wstrDialFrom_.get())
+			wstrDialFrom_ = allocWString(dialup.wstrDialFrom_.get());
+		
+		nDisconnectWait_ = dialup.nDisconnectWait_;
+	}
+	return *this;
 }
 
 const WCHAR* qm::GoRoundDialup::getName() const
@@ -295,9 +506,27 @@ const WCHAR* qm::GoRoundDialup::getName() const
 	return wstrName_.get();
 }
 
+void qm::GoRoundDialup::setName(const WCHAR* pwszName)
+{
+	if (pwszName)
+		wstrName_ = allocWString(pwszName);
+	else
+		wstrName_.reset(0);
+}
+
 unsigned int qm::GoRoundDialup::getFlags() const
 {
 	return nFlags_;
+}
+
+bool qm::GoRoundDialup::isFlag(Flag flag) const
+{
+	return (nFlags_ & flag) != 0;
+}
+
+void qm::GoRoundDialup::setFlags(unsigned int nFlags)
+{
+	nFlags_ = nFlags;
 }
 
 const WCHAR* qm::GoRoundDialup::getDialFrom() const
@@ -305,9 +534,22 @@ const WCHAR* qm::GoRoundDialup::getDialFrom() const
 	return wstrDialFrom_.get();
 }
 
+void qm::GoRoundDialup::setDialFrom(const WCHAR* pwszDialFrom)
+{
+	if (pwszDialFrom)
+		wstrDialFrom_ = allocWString(pwszDialFrom);
+	else
+		wstrDialFrom_.reset(0);
+}
+
 unsigned int qm::GoRoundDialup::getDisconnectWait() const
 {
 	return nDisconnectWait_;
+}
+
+void qm::GoRoundDialup::setDisconnectWait(unsigned int nDisconnectWait)
+{
+	nDisconnectWait_ = nDisconnectWait;
 }
 
 
@@ -484,16 +726,15 @@ bool qm::GoRoundContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			!(nFlags & GoRoundEntry::FLAG_RECEIVE))
 			nFlags |= GoRoundEntry::FLAG_SEND | GoRoundEntry::FLAG_RECEIVE;
 		
-		std::auto_ptr<RegexPattern> pFolderName;
+		std::auto_ptr<RegexPattern> pFolder;
 		if (pwszFolder) {
-			RegexCompiler compiler;
-			pFolderName = compiler.compile(pwszFolder);
-			if (!pFolderName.get())
+			pFolder = RegexCompiler().compile(pwszFolder);
+			if (!pFolder.get())
 				return false;
 		}
 		
 		std::auto_ptr<GoRoundEntry> pEntry(new GoRoundEntry(pwszAccount,
-			pwszSubAccount, pFolderName, nFlags, pwszFilter, crbs));
+			pwszSubAccount, pwszFolder, pFolder, nFlags, pwszFilter, crbs));
 		
 		pCurrentEntry_ = pEntry.get();
 		pCurrentCourse_->addEntry(pEntry);
@@ -558,4 +799,119 @@ bool qm::GoRoundContentHandler::characters(const WCHAR* pwsz,
 	}
 	
 	return true;
+}
+
+
+/****************************************************************************
+ *
+ * GoRoundWriter
+ *
+ */
+
+qm::GoRoundWriter::GoRoundWriter(Writer* pWriter) :
+	handler_(pWriter)
+{
+}
+
+qm::GoRoundWriter::~GoRoundWriter()
+{
+}
+
+bool qm::GoRoundWriter::write(const GoRound* pGoRound)
+{
+	if (!handler_.startDocument())
+		return false;
+	if (!handler_.startElement(0, 0, L"goround", DefaultAttributes()))
+		return false;
+	
+	const GoRound::CourseList& listCourse = pGoRound->getCourses(false);
+	for (GoRound::CourseList::const_iterator it = listCourse.begin(); it != listCourse.end(); ++it) {
+		const GoRoundCourse* pCourse = *it;
+		if (!write(pCourse))
+			return false;
+	}
+	
+	if (!handler_.endElement(0, 0, L"goround"))
+		return false;
+	if (!handler_.endDocument())
+		return false;
+	
+	return true;
+}
+
+bool qm::GoRoundWriter::write(const GoRoundCourse* pCourse)
+{
+	bool bConfirm = pCourse->isFlag(GoRoundCourse::FLAG_CONFIRM);
+	const SimpleAttributes::Item items[] = {
+		{ L"name",		pCourse->getName()							},
+		{ L"confirm",	bConfirm ? L"true" : L"false",	!bConfirm	}
+	};
+	SimpleAttributes attrs(items, countof(items));
+	if (!handler_.startElement(0, 0, L"course", attrs))
+		return false;
+	
+	const GoRoundDialup* pDialup = pCourse->getDialup();
+	if (pDialup) {
+		if (!write(pDialup))
+			return false;
+	}
+	
+	const WCHAR* pwszType = pCourse->getType() == GoRoundCourse::TYPE_SEQUENTIAL ?
+		L"sequential" : L"parallel";
+	if (!handler_.startElement(0, 0, pwszType, DefaultAttributes()))
+		return false;
+	
+	const GoRoundCourse::EntryList& listEntry = pCourse->getEntries();
+	for (GoRoundCourse::EntryList::const_iterator it = listEntry.begin(); it != listEntry.end(); ++it) {
+		const GoRoundEntry* pEntry = *it;
+		if (!write(pEntry))
+			return false;
+	}
+	
+	if (!handler_.endElement(0, 0, pwszType))
+		return false;
+	
+	if (!handler_.endElement(0, 0, L"course"))
+		return false;
+	
+	return true;
+}
+
+bool qm::GoRoundWriter::write(const GoRoundDialup* pDialup)
+{
+	bool bShowDialog = pDialup->isFlag(GoRoundDialup::FLAG_SHOWDIALOG);
+	bool bWheneverNotConnected = pDialup->isFlag(GoRoundDialup::FLAG_WHENEVERNOTCONNECTED);
+	WCHAR wszDisconnectWait[32];
+	swprintf(wszDisconnectWait, L"%u", pDialup->getDisconnectWait());
+	const SimpleAttributes::Item items[] = {
+		{ L"name",					pDialup->getName()																},
+		{ L"dialFrom",				pDialup->getDialFrom(),						!pDialup->getDialFrom()				},
+		{ L"showDialog",			bShowDialog ? L"true" : L"false",			!bShowDialog						},
+		{ L"disconnectWait",		wszDisconnectWait,							pDialup->getDisconnectWait() == 0	},
+		{ L"wheneverNotConnected",	bWheneverNotConnected ? L"true" : L"false",	!bWheneverNotConnected				}
+	};
+	SimpleAttributes attrs(items, countof(items));
+	return handler_.startElement(0, 0, L"dialup", attrs) &&
+		handler_.endElement(0, 0, L"dialup");
+}
+
+bool qm::GoRoundWriter::write(const GoRoundEntry* pEntry)
+{
+	bool bSend = pEntry->isFlag(GoRoundEntry::FLAG_SEND);
+	bool bReceive = pEntry->isFlag(GoRoundEntry::FLAG_RECEIVE);
+	bool bSelectFolder = pEntry->isFlag(GoRoundEntry::FLAG_SELECTFOLDER);
+	GoRoundEntry::ConnectReceiveBeforeSend crbs = pEntry->getConnectReceiveBeforeSend();
+	const SimpleAttributes::Item items[] = {
+		{ L"account",					pEntry->getAccount()																			},
+		{ L"subaccount",				pEntry->getSubAccount(),								!pEntry->getSubAccount()				},
+		{ L"folder",					pEntry->getFolder(),									!pEntry->getFolder() || bSelectFolder	},
+		{ L"filter",					pEntry->getFilter(),									!pEntry->getFilter()					},
+		{ L"send",						bSend ? L"true" : L"false",								!bSend || (bSend && bReceive)			},
+		{ L"receive",					bReceive ? L"true" : L"false",							!bReceive || (bSend && bReceive)		},
+		{ L"selectFolder",				bSelectFolder ? L"true" : L"false",						!bSelectFolder							},
+		{ L"connectReceiveBeforeSend",	crbs == GoRoundEntry::CRBS_TRUE ? L"true" : L"false",	crbs == GoRoundEntry::CRBS_NONE			}
+	};
+	SimpleAttributes attrs(items, countof(items));
+	return handler_.startElement(0, 0, L"entry", attrs) &&
+		handler_.endElement(0, 0, L"entry");
 }

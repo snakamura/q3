@@ -202,6 +202,34 @@ bool qm::AttachmentSaveAction::isEnabled(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * ConfigGoRoundAction
+ *
+ */
+
+qm::ConfigGoRoundAction::ConfigGoRoundAction(GoRound* pGoRound,
+											 Document* pDocument,
+											 SyncFilterManager* pSyncFilterManager,
+											 HWND hwnd) :
+	pGoRound_(pGoRound),
+	pDocument_(pDocument),
+	pSyncFilterManager_(pSyncFilterManager),
+	hwnd_(hwnd)
+{
+}
+
+qm::ConfigGoRoundAction::~ConfigGoRoundAction()
+{
+}
+
+void qm::ConfigGoRoundAction::invoke(const qs::ActionEvent& event)
+{
+	GoRoundDialog dialog(pGoRound_, pDocument_, pSyncFilterManager_);
+	dialog.doModal(hwnd_);
+}
+
+
+/****************************************************************************
+ *
  * ConfigViewsAction
  *
  */
@@ -3902,8 +3930,7 @@ void qm::ToolGoRoundAction::invoke(const ActionEvent& event)
 			if (::VariantChangeType(&v, pParam->ppvarArgs_[0], 0, VT_BSTR) != S_OK)
 				return;
 			
-			const GoRoundCourseList* pCourseList = pGoRound_->getCourseList();
-			pCourse = pCourseList->getCourse(v.bstrVal);
+			pCourse = pGoRound_->getCourse(v.bstrVal);
 		}
 	}
 	else {

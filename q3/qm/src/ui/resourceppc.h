@@ -56,6 +56,10 @@
 #define IDD_VIEWSCOLUMN                 158
 #define IDD_FOLDERPARAMETER             159
 #define IDD_PARAMETER                   160
+#define IDD_GOROUND                     161
+#define IDD_GOROUNDCOURSE               162
+#define IDD_GOROUNDENTRY                163
+#define IDD_GOROUNDDIALUP               164
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -193,7 +197,9 @@
 #define IDS_CLEARRECENTS                1073
 #define IDC_SENDPASSWORD                1074
 #define IDC_TIMEOUT                     1074
+#define IDS_UNSPECIFIED                 1074
 #define IDC_CONNECTRECEIVEHOSTBEFORESEND 1075
+#define IDS_EDIT                        1076
 #define IDC_INCOMINGPROTOCOL            1077
 #define IDC_OUTGOINGPROTOCOL            1078
 #define IDC_SINGLEFILE                  1079
@@ -275,6 +281,17 @@
 #define IDC_APPLYTOCHILDREN             1161
 #define IDC_PARAMETER                   1163
 #define IDC_SYNCABLE                    1166
+#define IDC_COURSE                      1167
+#define IDC_CONFIRM                     1172
+#define IDC_SEQUENTIAL                  1173
+#define IDC_PARALLEL                    1174
+#define IDC_DIALUP                      1184
+#define IDC_SUBACCOUNT                  1186
+#define IDC_SENDRECEIVE                 1187
+#define IDC_RECEIVE                     1188
+#define IDC_SEND                        1189
+#define IDC_SELECTFOLDER                1191
+#define IDC_CONNECTRECEIVEBEFORESEND    1193
 #define IDS_COLUMNTYPE_ID               1200
 #define IDS_COLUMNTYPE_DATE             1201
 #define IDS_COLUMNTYPE_FROM             1202
@@ -514,15 +531,16 @@
 #define IDM_ATTACHMENT_SAVEALL          48003
 #define IDM_ATTACHMENTEDIT_ADD          49001
 #define IDM_ATTACHMENTEDIT_DELETE       49002
-#define IDM_CONFIG_VIEWS                50001
+#define IDM_CONFIG_GOROUND              50001
+#define IDM_CONFIG_VIEWS                50002
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        161
+#define _APS_NEXT_RESOURCE_VALUE        165
 #define _APS_NEXT_COMMAND_VALUE         48000
-#define _APS_NEXT_CONTROL_VALUE         1167
+#define _APS_NEXT_CONTROL_VALUE         1201
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
