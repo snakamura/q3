@@ -334,48 +334,48 @@ QSTATUS qm::AddressBook::loadWAB()
 				break;
 			
 			for (ULONG nRow = 0; nRow < pSRowSet->cRows; ++nRow) {
+				SRow* pRow = pSRowSet->aRow + nRow;
+				
 				std::auto_ptr<AddressBookEntry> pEntry;
 				status = newQsObject(&pEntry);
 				CHECK_QSTATUS();
-				for (ULONG nValue = 0; nValue < pSRowSet->aRow[nRow].cValues; ++nValue) {
-					switch (pSRowSet->aRow[nRow].lpProps[nValue].ulPropTag) {
-					case PR_DISPLAY_NAME:
+				
+				for (ULONG nValue = 0; nValue < pRow->cValues; ++nValue) {
+					SPropValue* pValue = pRow->lpProps + nValue;
+					ULONG nTag = pValue->ulPropTag;
+					switch (PROP_ID(nTag)) {
+					case PROP_ID(PR_DISPLAY_NAME):
 						{
-#ifdef UNICODE
-							string_ptr<WSTRING> wstrName(allocWString(
-								pSRowSet->aRow[nRow].lpProps[nValue].Value.lpszW));
-#else
-							string_ptr<WSTRING> wstrName(mbs2wcs(
-								pSRowSet->aRow[nRow].lpProps[nValue].Value.lpszA));
-#endif
-							if (!wstrName.get())
-								return QSTATUS_OUTOFMEMORY;
-							pEntry->setName(wstrName.release());
+							string_ptr<WSTRING> wstrName;
+							if (PROP_TYPE(nTag) == PT_STRING8)
+								wstrName.reset(mbs2wcs(pValue->Value.lpszA));
+							else if (PROP_TYPE(nTag) == PT_UNICODE)
+								wstrName.reset(allocWString(pValue->Value.lpszW));
+							if (wstrName.get())
+								pEntry->setName(wstrName.release());
 						}
 						break;
-					case PR_EMAIL_ADDRESS:
+					case PROP_ID(PR_EMAIL_ADDRESS):
 						{
-#ifdef UNICODE
-							string_ptr<WSTRING> wstrAddress(allocWString(
-								pSRowSet->aRow[nRow].lpProps[nValue].Value.lpszW));
-#else
-							string_ptr<WSTRING> wstrAddress(mbs2wcs(
-								pSRowSet->aRow[nRow].lpProps[nValue].Value.lpszA));
-#endif
-							if (!wstrAddress.get())
-								return QSTATUS_OUTOFMEMORY;
-							std::auto_ptr<AddressBookAddress> pAddress;
-							status = newQsObject(pEntry.get(),
-								static_cast<const WCHAR*>(0),
-								static_cast<const WCHAR*>(0),
-								static_cast<const WCHAR*>(0),
-								static_cast<const WCHAR*>(0),
-								false, &pAddress);
-							CHECK_QSTATUS();
-							pAddress->setAddress(wstrAddress.release());
-							status = pEntry->addAddress(pAddress.get());
-							CHECK_QSTATUS();
-							pAddress.release();
+							string_ptr<WSTRING> wstrAddress;
+							if (PROP_TYPE(nTag) == PT_STRING8)
+								wstrAddress.reset(mbs2wcs(pValue->Value.lpszA));
+							else if (PROP_TYPE(nTag) == PT_UNICODE)
+								wstrAddress.reset(allocWString(pValue->Value.lpszW));
+							if (wstrAddress.get()) {
+								std::auto_ptr<AddressBookAddress> pAddress;
+								status = newQsObject(pEntry.get(),
+									static_cast<const WCHAR*>(0),
+									static_cast<const WCHAR*>(0),
+									static_cast<const WCHAR*>(0),
+									static_cast<const WCHAR*>(0),
+									false, &pAddress);
+								CHECK_QSTATUS();
+								pAddress->setAddress(wstrAddress.release());
+								status = pEntry->addAddress(pAddress.get());
+								CHECK_QSTATUS();
+								pAddress.release();
+							}
 						}
 						break;
 					default:
@@ -383,9 +383,11 @@ QSTATUS qm::AddressBook::loadWAB()
 					}
 				}
 				
-				status = addEntry(pEntry.get());
-				CHECK_QSTATUS();
-				pEntry.release();
+				if (pEntry->getName() && !pEntry->getAddresses().empty()) {
+					status = addEntry(pEntry.get());
+					CHECK_QSTATUS();
+					pEntry.release();
+				}
 			}
 		}
 	}
