@@ -291,9 +291,10 @@ QSTATUS qm::AccountImpl::appendMessage(NormalFolder* pFolder,
 	assert(pFolder);
 	assert(pszMessage);
 	assert((nFlags & ~MessageHolder::FLAG_USER_MASK) == 0);
-	assert(pThis_->isLocked());
 	
 	DECLARE_QSTATUS();
+	
+	Lock<Account> lock(*pThis_);
 	
 	if (pFolder->isFlag(Folder::FLAG_LOCAL)) {
 		MessageHolder* pmh = 0;
@@ -426,8 +427,6 @@ QSTATUS qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 			status = pCallback->show();
 			CHECK_QSTATUS();
 		}
-		
-		Lock<Account> lock(*pAccountTo);
 		
 		for (MessageHolderList::size_type n = 0; n < l.size(); ++n) {
 			MessageHolder* pmh = l[n];
@@ -1470,8 +1469,6 @@ QSTATUS qm::Account::appendMessage(NormalFolder* pFolder,
 	string_ptr<STRING> strMessage;
 	status = msg.getContent(&strMessage);
 	CHECK_QSTATUS();
-	
-	Lock<Account> lock(*this);
 	
 	return pImpl_->appendMessage(pFolder, strMessage.get(),
 		msg, nFlags, static_cast<unsigned int>(-1));
