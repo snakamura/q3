@@ -547,7 +547,8 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 					const SyncFilter::ActionList& listAction = pFilter->getActions();
 					for (SyncFilter::ActionList::const_iterator it = listAction.begin(); it != listAction.end(); ++it) {
 						const SyncFilterAction* pAction = *it;
-						if (wcscmp(pAction->getName(), L"download") == 0) {
+						const WCHAR* pwszName = pAction->getName();
+						if (wcscmp(pwszName, L"download") == 0) {
 							const WCHAR* pwszType = pAction->getParam(L"type");
 							if (wcscmp(pwszType, L"all") == 0)
 								download = DOWNLOAD_ALL;
@@ -558,7 +559,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 							else if (wcscmp(pwszType, L"header") == 0)
 								download = DOWNLOAD_HEADER;
 						}
-						else if (wcscmp(pAction->getName(), L"delete") == 0) {
+						else if (wcscmp(pwszName, L"delete") == 0) {
 							nFlags |= MessageHolder::FLAG_DELETED;
 							listMakeDeleted_.push_back(nUid);
 						}

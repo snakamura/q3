@@ -206,6 +206,7 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 		State state = STATE_NONE;
 		unsigned int nGetSize = 0;
 		unsigned int nMaxLine = 0xffffffff;
+		bool bIgnore = false;
 		if (pSyncFilterSet) {
 			Pop3SyncFilterCallback callback(pDocument_, pAccount_,
 				pFolder_, &msg, nSize, hwnd_, pProfile_, &globalVariable,
@@ -215,7 +216,8 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 				const SyncFilter::ActionList& listAction = pFilter->getActions();
 				for (SyncFilter::ActionList::const_iterator it = listAction.begin(); it != listAction.end(); ++it) {
 					const SyncFilterAction* pAction = *it;
-					if (wcscmp(pAction->getName(), L"download") == 0) {
+					const WCHAR* pwszName = pAction->getName();
+					if (wcscmp(pwszName, L"download") == 0) {
 						const WCHAR* pwszLine = pAction->getParam(L"line");
 						if (pwszLine) {
 							WCHAR* pEnd = 0;
@@ -224,13 +226,16 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 								nMaxLine = nLine;
 						}
 					}
-					else if (wcscmp(pAction->getName(), L"delete") == 0) {
+					else if (wcscmp(pwszName, L"ignore") == 0) {
+						bIgnore = true;
+					}
+					else if (wcscmp(pwszName, L"delete") == 0) {
 						listDelete.add(n);
 					}
 				}
 			}
 		}
-		if (state != STATE_ALL && (state != STATE_HEADER || nMaxLine != 0)) {
+		if (!bIgnore && state != STATE_ALL && (state != STATE_HEADER || nMaxLine != 0)) {
 			strMessage.reset(0);
 			nGetSize = nSize;
 			if (!pPop3_->getMessage(n, nMaxLine, &strMessage, &nGetSize))
@@ -244,7 +249,7 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 				return false;
 		}
 		
-		bool bPartial = nMaxLine != 0xffffffff && nSize > nGetSize;
+		bool bPartial = bIgnore || (nMaxLine != 0xffffffff && nSize > nGetSize);
 		
 		const WCHAR* pwszUID = 0;
 		wstring_ptr wstrUID;
@@ -257,39 +262,41 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 			pwszUID = wstrUID.get();
 		}
 		
-		UnstructuredParser uid(pwszUID, L"utf-8");
-		if (!msg.replaceField(L"X-UIDL", uid))
-			return false;
-		
-		if (*pwszIdentity) {
-			if (!msg.replaceField(L"X-QMAIL-SubAccount", subaccount))
+		if (!bIgnore) {
+			UnstructuredParser uid(pwszUID, L"utf-8");
+			if (!msg.replaceField(L"X-UIDL", uid))
 				return false;
+			
+			if (*pwszIdentity) {
+				if (!msg.replaceField(L"X-QMAIL-SubAccount", subaccount))
+					return false;
+			}
+			else {
+				msg.removeField(L"X-QMAIL-SubAccount");
+			}
+			
+			unsigned int nFlags = (bPartial ? MessageHolder::FLAG_HEADERONLY : 0);
+			
+			if (bHandleStatus) {
+				UnstructuredParser status;
+				if (msg.getField(L"Status", &status) == Part::FIELD_EXIST &&
+					wcscmp(status.getValue(), L"RO") == 0)
+					nFlags |= MessageHolder::FLAG_SEEN;
+			}
+			
+			if (pSubAccount_->isSelf(msg))
+				nFlags |= MessageHolder::FLAG_SEEN | MessageHolder::FLAG_SENT;
+			
+			Lock<Account> lock(*pAccount_);
+			
+			MessageHolder* pmh = pAccount_->storeMessage(pFolder_,
+				strMessage.get(), &msg, -1, nFlags, nSize, false);
+			if (!pmh)
+				return false;
+			
+			if ((nFlags & MessageHolder::FLAG_SEEN) == 0)
+				pSessionCallback_->notifyNewMessage(pmh);
 		}
-		else {
-			msg.removeField(L"X-QMAIL-SubAccount");
-		}
-		
-		unsigned int nFlags = (bPartial ? MessageHolder::FLAG_HEADERONLY : 0);
-		
-		if (bHandleStatus) {
-			UnstructuredParser status;
-			if (msg.getField(L"Status", &status) == Part::FIELD_EXIST &&
-				wcscmp(status.getValue(), L"RO") == 0)
-				nFlags |= MessageHolder::FLAG_SEEN;
-		}
-		
-		if (pSubAccount_->isSelf(msg))
-			nFlags |= MessageHolder::FLAG_SEEN | MessageHolder::FLAG_SENT;
-		
-		Lock<Account> lock(*pAccount_);
-		
-		MessageHolder* pmh = pAccount_->storeMessage(pFolder_,
-			strMessage.get(), &msg, -1, nFlags, nSize, false);
-		if (!pmh)
-			return false;
-		
-		if ((nFlags & MessageHolder::FLAG_SEEN) == 0)
-			pSessionCallback_->notifyNewMessage(pmh);
 		
 		unsigned int nUIDFlags = bPartial ? UID::FLAG_PARTIAL : UID::FLAG_NONE;
 		std::auto_ptr<UID> pUID(new UID(pwszUID, nUIDFlags, date));

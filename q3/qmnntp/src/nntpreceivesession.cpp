@@ -228,6 +228,7 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 				unsigned int nFlags = MessageHolder::FLAG_INDEXONLY;
 				
 				xstring_ptr strMessage;
+				bool bIgnore = false;
 				if (pSyncFilterSet) {
 					bool bDownload = false;
 					Message msg;
@@ -243,7 +244,8 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 						const SyncFilter::ActionList& listAction = pFilter->getActions();
 						for (SyncFilter::ActionList::const_iterator it = listAction.begin(); it != listAction.end(); ++it) {
 							const SyncFilterAction* pAction = *it;
-							if (wcscmp(pAction->getName(), L"download") == 0) {
+							const WCHAR* pwszName = pAction->getName();
+							if (wcscmp(pwszName, L"download") == 0) {
 								if (state != STATE_ALL) {
 									if (!pNntp_->getMessage(item.nId_,
 										Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage))
@@ -254,19 +256,24 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 									nFlags = 0;
 								}
 							}
+							else if (wcscmp(pwszName, L"ignore") == 0) {
+								bIgnore = true;
+							}
 						}
 					}
 				}
 				
-				Lock<Account> lock(*pAccount_);
-				
-				MessageHolder* pmh = pAccount_->storeMessage(pFolder_,
-					pszMessage, 0, item.nId_, nFlags, item.nBytes_,
-					nFlags == MessageHolder::FLAG_INDEXONLY);
-				if (!pmh)
-					return false;
-				
-				pSessionCallback_->notifyNewMessage(pmh);
+				if (!bIgnore) {
+					Lock<Account> lock(*pAccount_);
+					
+					MessageHolder* pmh = pAccount_->storeMessage(pFolder_,
+						pszMessage, 0, item.nId_, nFlags, item.nBytes_,
+						nFlags == MessageHolder::FLAG_INDEXONLY);
+					if (!pmh)
+						return false;
+					
+					pSessionCallback_->notifyNewMessage(pmh);
+				}
 				
 				pLastIdList_->setLastId(pNntp_->getGroup(), item.nId_);
 			}
