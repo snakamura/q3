@@ -61,7 +61,12 @@ public:
 						unsigned int nOperation) = 0;
 	virtual Status getStatus(const WCHAR* pwszId) = 0;
 	virtual float getThresholdScore() = 0;
+	virtual void setThresholdScore(float fThresholdScore) = 0;
 	virtual unsigned int getFlags() = 0;
+	virtual void setFlags(unsigned int nFlags,
+						  unsigned int nMask) = 0;
+	virtual unsigned int getMaxTextLength() = 0;
+	virtual void setMaxTextLength(unsigned int nMaxTextLength) = 0;
 	virtual bool save() = 0;
 
 public:

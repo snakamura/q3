@@ -37,6 +37,9 @@ class OptionDialogManager;
 class OptionAddressBookDialog;
 class OptionFolderDialog;
 class OptionHeaderDialog;
+#ifndef _WIN32_WCE
+class OptionJunkDialog;
+#endif
 class OptionListDialog;
 class OptionMiscDialog;
 class OptionSecurityDialog;
@@ -82,6 +85,7 @@ class EditFrameWindowManager;
 class FolderComboBox;
 class FolderListWindow;
 class FolderWindow;
+class JunkFilter;
 class ListWindow;
 class MainWindow;
 class MessageFrameWindowManager;
@@ -126,6 +130,7 @@ public:
 		PANEL_AUTOPILOT,
 		
 		PANEL_MISC,
+		PANEL_JUNK,
 		PANEL_SECURITY,
 		
 		MAX_PANEL
@@ -513,6 +518,38 @@ private:
 	qs::Profile* pProfile_;
 	LOGFONT lf_;
 };
+
+
+#ifndef _WIN32_WCE
+/****************************************************************************
+ *
+ * OptionJunkDialog
+ *
+ */
+
+class OptionJunkDialog :
+	public DefaultDialog,
+	public AbstractOptionDialogPanel<OptionJunkDialog>
+{
+public:
+	explicit OptionJunkDialog(JunkFilter* pJunkFilter);
+	virtual ~OptionJunkDialog();
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+public:
+	virtual bool save(OptionDialogContext* pContext);
+
+private:
+	OptionJunkDialog(const OptionJunkDialog&);
+	OptionJunkDialog& operator=(const OptionJunkDialog&);
+
+private:
+	JunkFilter* pJunkFilter_;
+};
+#endif
 
 
 /****************************************************************************

@@ -106,6 +106,7 @@
 #define IDD_TEXTCOLOR                   207
 #define IDD_OPTIONSECURITY              208
 #define IDD_OPTIONMISC                  209
+#define IDD_OPTIONJUNK                  210
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -480,6 +481,10 @@
 #define IDC_TEMPORARYFOLDER             1369
 #define IDC_SAVEMESSAGEVIEWMODEPERFOLDER 1372
 #define IDC_VERTICAL                    1373
+#define IDC_MANUALLEARN                 1374
+#define IDC_AUTOLEARN                   1375
+#define IDC_THRESHOLD                   1376
+#define IDC_MAXSIZE                     1377
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -501,15 +506,16 @@
 #define IDS_PANEL_FOLDER                2507
 #define IDS_PANEL_GOROUND               2508
 #define IDS_PANEL_HEADER                2509
-#define IDS_PANEL_LIST                  2510
-#define IDS_PANEL_MESSAGE               2511
-#define IDS_PANEL_MISC                  2512
-#define IDS_PANEL_PREVIEW               2513
-#define IDS_PANEL_RULES                 2514
-#define IDS_PANEL_SECURITY              2515
-#define IDS_PANEL_SIGNATURES            2516
-#define IDS_PANEL_SYNCFILTERS           2517
-#define IDS_PANEL_TAB                   2518
+#define IDS_PANEL_JUNK                  2510
+#define IDS_PANEL_LIST                  2511
+#define IDS_PANEL_MESSAGE               2512
+#define IDS_PANEL_MISC                  2513
+#define IDS_PANEL_PREVIEW               2514
+#define IDS_PANEL_RULES                 2515
+#define IDS_PANEL_SECURITY              2516
+#define IDS_PANEL_SIGNATURES            2517
+#define IDS_PANEL_SYNCFILTERS           2518
+#define IDS_PANEL_TAB                   2519
 #define IDS_ERROR_CREATEFOLDER          10000
 #define IDS_ERROR_EXECUTEATTACHMENT     10001
 #define IDS_ERROR_DIALUP                10002
@@ -570,7 +576,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        209
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1374
+#define _APS_NEXT_CONTROL_VALUE         1378
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

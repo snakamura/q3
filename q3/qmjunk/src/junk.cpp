@@ -391,16 +391,34 @@ float qmjunk::JunkFilterImpl::getThresholdScore()
 	return fThresholdScore_;
 }
 
+void qmjunk::JunkFilterImpl::setThresholdScore(float fThresholdScore)
+{
+	fThresholdScore_ = fThresholdScore;
+}
+
 unsigned int qmjunk::JunkFilterImpl::getFlags()
 {
 	return nFlags_;
 }
 
+void qmjunk::JunkFilterImpl::setFlags(unsigned int nFlags,
+									  unsigned int nMask)
+{
+	nFlags_ = (nFlags_ & ~nMask) | (nFlags & nMask);
+}
+
+unsigned int qmjunk::JunkFilterImpl::getMaxTextLength()
+{
+	return nMaxTextLen_;
+}
+
+void qmjunk::JunkFilterImpl::setMaxTextLength(unsigned int nMaxTextLength)
+{
+	nMaxTextLen_ = nMaxTextLength;
+}
+
 bool qmjunk::JunkFilterImpl::save()
 {
-	if (!bModified_)
-		return true;
-	
 	if (!flush())
 		return false;
 	
@@ -410,8 +428,6 @@ bool qmjunk::JunkFilterImpl::save()
 	
 	pProfile_->setInt(L"JunkFilter", L"Flags", nFlags_);
 	pProfile_->setInt(L"JunkFilter", L"MaxTextLen", nMaxTextLen_);
-	
-	bModified_ = false;
 	
 	return true;
 }
@@ -458,6 +474,9 @@ bool qmjunk::JunkFilterImpl::flush() const
 	
 	Lock<CriticalSection> lock(cs_);
 	
+	if (!bModified_)
+		return true;
+	
 	if (nCleanCount_ != -1 && nJunkCount_ != -1) {
 		wstring_ptr wstrProfilePath(concat(wstrPath_.get(), L"\\junk.xml"));
 		XMLProfile profile(wstrProfilePath.get());
@@ -481,6 +500,8 @@ bool qmjunk::JunkFilterImpl::flush() const
 			return false;
 		}
 	}
+	
+	bModified_ = false;
 	
 	return true;
 }

@@ -45,7 +45,12 @@ public:
 						unsigned int nOperation);
 	virtual Status getStatus(const WCHAR* pwszId);
 	virtual float getThresholdScore();
+	virtual void setThresholdScore(float fThresholdScore);
 	virtual unsigned int getFlags();
+	virtual void setFlags(unsigned int nFlags,
+						  unsigned int nMask);
+	virtual unsigned int getMaxTextLength();
+	virtual void setMaxTextLength(unsigned int nMaxTextLength);
 	virtual bool save();
 
 private:
@@ -69,8 +74,8 @@ private:
 	volatile unsigned int nJunkCount_;
 	float fThresholdScore_;
 	unsigned int nFlags_;
-	size_t nMaxTextLen_;
-	bool bModified_;
+	unsigned int nMaxTextLen_;
+	mutable bool bModified_;
 	qs::CriticalSection cs_;
 };
 

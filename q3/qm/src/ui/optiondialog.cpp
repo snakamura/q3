@@ -11,6 +11,7 @@
 #include <qmfoldercombobox.h>
 #include <qmfolderlistwindow.h>
 #include <qmfolderwindow.h>
+#include <qmjunk.h>
 #include <qmlistwindow.h>
 #include <qmmainwindow.h>
 #include <qmmessagewindow.h>
@@ -193,6 +194,9 @@ LRESULT qm::OptionDialog::onInitDialog(HWND hwndFocus,
 		{ PANEL_SYNCFILTERS,	IDS_PANEL_SYNCFILTERS		},
 		{ PANEL_AUTOPILOT,		IDS_PANEL_AUTOPILOT			},
 		{ PANEL_MISC,			IDS_PANEL_MISC				},
+#ifndef _WIN32_WCE
+		{ PANEL_JUNK,			IDS_PANEL_JUNK				},
+#endif
 		{ PANEL_SECURITY,		IDS_PANEL_SECURITY			}
 	};
 	for (int n = 0; n < countof(items); ++n) {
@@ -444,6 +448,9 @@ void qm::OptionDialog::setCurrentPanel(Panel panel)
 			PANEL2(PANEL_SYNCFILTERS, SyncFilterSets, pSyncFilterManager_, pProfile_);
 			PANEL3(PANEL_AUTOPILOT, AutoPilot, pAutoPilotManager_, pGoRound_, pProfile_);
 			PANEL1(PANEL_MISC, OptionMisc, pProfile_);
+#ifndef _WIN32_WCE
+			PANEL1(PANEL_JUNK, OptionJunk, pDocument_->getJunkFilter());
+#endif
 			PANEL2(PANEL_SECURITY, OptionSecurity, pDocument_->getSecurity(), pProfile_);
 		END_PANEL()
 	}
@@ -1069,6 +1076,80 @@ LRESULT qm::OptionHeaderDialog::onFont()
 }
 
 
+#ifndef _WIN32_WCE
+/****************************************************************************
+ *
+ * OptionJunkDialog
+ *
+ */
+
+qm::OptionJunkDialog::OptionJunkDialog(JunkFilter* pJunkFilter) :
+	DefaultDialog(IDD_OPTIONJUNK),
+	pJunkFilter_(pJunkFilter)
+{
+}
+
+qm::OptionJunkDialog::~OptionJunkDialog()
+{
+}
+
+LRESULT qm::OptionJunkDialog::onInitDialog(HWND hwndFocus,
+										   LPARAM lParam)
+{
+	if (pJunkFilter_) {
+		unsigned int nFlags = pJunkFilter_->getFlags();
+		if (nFlags & JunkFilter::FLAG_MANUALLEARN)
+			sendDlgItemMessage(IDC_MANUALLEARN, BM_SETCHECK, BST_CHECKED);
+		if (nFlags & JunkFilter::FLAG_AUTOLEARN)
+			sendDlgItemMessage(IDC_AUTOLEARN, BM_SETCHECK, BST_CHECKED);
+		
+		float fThreshold = pJunkFilter_->getThresholdScore();
+		WCHAR wszThreshold[32];
+		swprintf(wszThreshold, L"%.2f", fThreshold);
+		setDlgItemText(IDC_THRESHOLD, wszThreshold);
+		
+		unsigned int nMaxSize = pJunkFilter_->getMaxTextLength();
+		setDlgItemInt(IDC_MAXSIZE, nMaxSize);
+	}
+	else {
+		UINT nIds[] = {
+			IDC_MANUALLEARN,
+			IDC_AUTOLEARN,
+			IDC_THRESHOLD,
+			IDC_MAXSIZE
+		};
+		for (int n = 0; n < countof(nIds); ++n)
+			Window(getDlgItem(nIds[n])).enableWindow(false);
+	}
+	
+	return FALSE;
+}
+
+bool qm::OptionJunkDialog::save(OptionDialogContext* pContext)
+{
+	if (pJunkFilter_) {
+		unsigned int nFlags = 0;
+		if (sendDlgItemMessage(IDC_MANUALLEARN, BM_GETCHECK) == BST_CHECKED)
+			nFlags |= JunkFilter::FLAG_MANUALLEARN;
+		if (sendDlgItemMessage(IDC_AUTOLEARN, BM_GETCHECK) == BST_CHECKED)
+			nFlags |= JunkFilter::FLAG_AUTOLEARN;
+		pJunkFilter_->setFlags(nFlags, JunkFilter::FLAG_MANUALLEARN | JunkFilter::FLAG_AUTOLEARN);
+		
+		wstring_ptr wstrThreshold(getDlgItemText(IDC_THRESHOLD));
+		WCHAR* pEnd = 0;
+		double dThreshold = wcstod(wstrThreshold.get(), &pEnd);
+		if (!*pEnd)
+			pJunkFilter_->setThresholdScore(static_cast<float>(dThreshold));
+		
+		unsigned int nMaxSize = getDlgItemInt(IDC_MAXSIZE);
+		pJunkFilter_->setMaxTextLength(nMaxSize);
+	}
+	
+	return true;
+}
+#endif // _WIN32_WCE
+
+
 /****************************************************************************
  *
  * OptionListDialog
@@ -1108,7 +1189,7 @@ LRESULT qm::OptionListDialog::onCommand(WORD nCode,
 }
 
 LRESULT qm::OptionListDialog::onInitDialog(HWND hwndFocus,
-												 LPARAM lParam)
+										   LPARAM lParam)
 {
 	DialogUtil::loadBoolProperties(this, pProfile_,
 		L"ListWindow", boolProperties__, countof(boolProperties__));
