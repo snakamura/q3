@@ -1,5 +1,5 @@
 /*
- * $Id: propertypages.h,v 1.4 2003/06/01 08:40:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -23,6 +23,7 @@ class DefaultPropertyPage;
 	class AccountDialupPage;
 	class AccountGeneralPage;
 	class AccountUserPage;
+	class FolderPropertyPage;
 	class MessagePropertyPage;
 
 class SubAccount;
@@ -180,15 +181,15 @@ private:
 
 /****************************************************************************
  *
- * MessagePropertyPage
+ * FolderPropertyPage
  *
  */
 
-class MessageProperetyPage : public DefaultPropertyPage
+class FolderPropertyPage : public DefaultPropertyPage
 {
 public:
-	MessageProperetyPage(const Folder::MessageHolderList& l, qs::QSTATUS* pstatus);
-	virtual ~MessageProperetyPage();
+	FolderPropertyPage(const Account::FolderList& l, qs::QSTATUS* pstatus);
+	virtual ~FolderPropertyPage();
 
 public:
 	unsigned int getFlags() const;
@@ -201,8 +202,41 @@ protected:
 	virtual LRESULT onOk();
 
 private:
-	MessageProperetyPage(const MessageProperetyPage&);
-	MessageProperetyPage& operator=(const MessageProperetyPage&);
+	FolderPropertyPage(const FolderPropertyPage&);
+	FolderPropertyPage& operator=(const FolderPropertyPage&);
+
+private:
+	const Account::FolderList& listFolder_;
+	unsigned int nFlags_;
+	unsigned int nMask_;
+};
+
+
+/****************************************************************************
+ *
+ * MessagePropertyPage
+ *
+ */
+
+class MessagePropertyPage : public DefaultPropertyPage
+{
+public:
+	MessagePropertyPage(const Folder::MessageHolderList& l, qs::QSTATUS* pstatus);
+	virtual ~MessagePropertyPage();
+
+public:
+	unsigned int getFlags() const;
+	unsigned int getMask() const;
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	MessagePropertyPage(const MessagePropertyPage&);
+	MessagePropertyPage& operator=(const MessagePropertyPage&);
 
 private:
 	const Folder::MessageHolderList& listMessage_;

@@ -42,6 +42,7 @@ class FileSaveAction;
 class FolderCompactAction;
 class FolderCreateAction;
 class FolderDeleteAction;
+class FolderPropertyAction;
 class FolderUpdateAction;
 class MessageApplyRuleAction;
 class MessageApplyTemplateAction;
@@ -93,6 +94,7 @@ class ExternalEditorManager;
 class FilterManager;
 class FindReplaceManager;
 class FolderModel;
+class FolderSelectionModel;
 class GoRound;
 class ListWindow;
 class MainWindow;
@@ -691,6 +693,33 @@ private:
 
 private:
 	FolderModel* pFolderModel_;
+};
+
+
+/****************************************************************************
+ *
+ * FolderPropertyAction
+ *
+ */
+
+class FolderPropertyAction : public qs::AbstractAction
+{
+public:
+	FolderPropertyAction(FolderSelectionModel* pModel,
+		HWND hwnd, qs::QSTATUS* pstatus);
+	virtual ~FolderPropertyAction();
+
+public:
+	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+
+private:
+	FolderPropertyAction(const FolderPropertyAction&);
+	FolderPropertyAction& operator=(const FolderPropertyAction&);
+
+private:
+	FolderSelectionModel* pModel_;
+	HWND hwnd_;
 };
 
 

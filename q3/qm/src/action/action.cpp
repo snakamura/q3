@@ -41,6 +41,7 @@
 #include "../ui/dialogs.h"
 #include "../ui/editframewindow.h"
 #include "../ui/foldermodel.h"
+#include "../ui/folderselectionmodel.h"
 #include "../ui/menus.h"
 #include "../ui/messagemodel.h"
 #include "../ui/messageselectionmodel.h"
@@ -1452,6 +1453,64 @@ QSTATUS qm::FolderDeleteAction::isEnabled(const ActionEvent& event, bool* pbEnab
 
 /****************************************************************************
  *
+ * FolderPropertyAction
+ *
+ */
+
+qm::FolderPropertyAction::FolderPropertyAction(
+	FolderSelectionModel* pModel, HWND hwnd, QSTATUS* pstatus) :
+	pModel_(pModel),
+	hwnd_(hwnd)
+{
+}
+
+qm::FolderPropertyAction::~FolderPropertyAction()
+{
+}
+
+QSTATUS qm::FolderPropertyAction::invoke(const ActionEvent& event)
+{
+	DECLARE_QSTATUS();
+	
+	Account::FolderList listFolder;
+	status = pModel_->getSelectedFolders(&listFolder);
+	CHECK_QSTATUS();
+	
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	string_ptr<WSTRING> wstrTitle;
+	status = loadString(hInst, IDS_PROPERTY, &wstrTitle);
+	CHECK_QSTATUS();
+	
+	FolderPropertyPage page(listFolder, &status);
+	CHECK_QSTATUS();
+	PropertySheetBase sheet(hInst, wstrTitle.get(), false, &status);
+	CHECK_QSTATUS();
+	status = sheet.add(&page);
+	CHECK_QSTATUS();
+	
+	int nRet = 0;
+	status = sheet.doModal(hwnd_, 0, &nRet);
+	CHECK_QSTATUS();
+	if (nRet == IDOK) {
+		Account::FolderList::const_iterator it = listFolder.begin();
+		while (it != listFolder.end()) {
+			(*it)->setFlags(page.getFlags(), page.getMask());
+			++it;
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::FolderPropertyAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+{
+	assert(pbEnabled);
+	return pModel_->hasSelectedFolder(pbEnabled);
+}
+
+
+/****************************************************************************
+ *
  * FolderUpdateAction
  *
  */
@@ -2120,7 +2179,7 @@ QSTATUS qm::MessagePropertyAction::invoke(const ActionEvent& event)
 		++it;
 	}
 	
-	MessageProperetyPage page(listMessageHolder, &status);
+	MessagePropertyPage page(listMessageHolder, &status);
 	CHECK_QSTATUS();
 	PropertySheetBase sheet(hInst, wstrTitle.get(), false, &status);
 	CHECK_QSTATUS();

@@ -226,9 +226,10 @@
 		<menuitem text="Delete" action="FolderDelete"/>
 		<menuitem text="Update" action="FolderUpdate"/>
 		<separator/>
-		<menuitem text="Empty" action="FolderEmpty"/>
-		<separator/>
+		<menuitem text="Emptry" action="FolderEmpty"/>
 		<menuitem text="Compact" action="FolderCompact"/>
+		<separator/>
+		<menuitem text="Property" action="FolderProperty"/>
 	</menu>
 	<menu name="list">
 		<menuitem text="New" action="MessageNew"/>

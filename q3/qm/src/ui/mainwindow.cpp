@@ -36,6 +36,7 @@
 #include "foldercombobox.h"
 #include "folderlistwindow.h"
 #include "foldermodel.h"
+#include "folderselectionmodel.h"
 #include "folderwindow.h"
 #include "keymap.h"
 #include "listwindow.h"
@@ -69,7 +70,9 @@ using namespace qs;
  *
  */
 
-class qm::MainWindowImpl : public ModalHandler
+class qm::MainWindowImpl :
+	public ModalHandler,
+	public FolderSelectionModel
 {
 public:
 	enum {
@@ -125,6 +128,10 @@ public:
 public:
 	virtual qs::QSTATUS preModalDialog(HWND hwndParent);
 	virtual qs::QSTATUS postModalDialog(HWND hwndParent);
+
+public:
+	virtual qs::QSTATUS getSelectedFolders(Account::FolderList* pList);
+	virtual qs::QSTATUS hasSelectedFolder(bool* pbHas);
 
 public:
 	MainWindow* pThis_;
@@ -315,6 +322,9 @@ QSTATUS qm::MainWindowImpl::initActions()
 	CHECK_QSTATUS();
 	status = InitAction1<FolderDeleteAction, FolderModel*>(
 		pActionMap_, IDM_FOLDER_DELETE, pFolderModel_);
+	CHECK_QSTATUS();
+	status = InitAction2<FolderPropertyAction, FolderSelectionModel*, HWND>(
+		pActionMap_, IDM_FOLDER_PROPERTY, this, pThis_->getHandle());
 	CHECK_QSTATUS();
 	status = InitAction1<FolderUpdateAction, FolderModel*>(
 		pActionMap_, IDM_FOLDER_UPDATE, pFolderModel_);
@@ -880,6 +890,40 @@ QSTATUS qm::MainWindowImpl::postModalDialog(HWND hwndParent)
 	CHECK_QSTATUS();
 	status = pEditFrameWindowManager_->postModalDialog(hwndParent);
 	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::MainWindowImpl::getSelectedFolders(Account::FolderList* pList)
+{
+	DECLARE_QSTATUS();
+	
+	if (pFolderListWindow_->isActive()) {
+		// TODO
+	}
+	else {
+		Folder* pFolder = pFolderModel_->getCurrentFolder();
+		if (pFolder) {
+			status = STLWrapper<Account::FolderList>(
+				*pList).push_back(pFolder);
+			CHECK_QSTATUS();
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::MainWindowImpl::hasSelectedFolder(bool* pbHas)
+{
+	assert(pbHas);
+	
+	if (pFolderListWindow_->isActive()) {
+		// TODO
+		*pbHas = false;
+	}
+	else {
+		*pbHas = pFolderModel_->getCurrentFolder() != 0;
+	}
 	
 	return QSTATUS_SUCCESS;
 }

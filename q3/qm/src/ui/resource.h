@@ -43,6 +43,7 @@
 #define IDD_CREATESUBACCOUNT            143
 #define IDD_DIALUP                      144
 #define IDD_SELECTDIALUPENTRY           145
+#define IDD_FOLDERPROPERTY              146
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -117,10 +118,15 @@
 #define IDC_DOWNLOAD                    1038
 #define IDS_DIALUPDISCONNECT            1038
 #define IDC_DOWNLOADTEXT                1039
+#define IDS_NORMALFOLDER                1039
 #define IDC_TOME                        1040
+#define IDS_QUERYFOLDER                 1040
 #define IDC_CCME                        1041
+#define IDS_LOCALFOLDER                 1041
 #define IDC_USER1                       1042
+#define IDS_REMOTEFOLDER                1042
 #define IDC_USER2                       1043
+#define IDS_FOLDERTYPETEMPLATE          1043
 #define IDC_USER3                       1044
 #define IDC_USER4                       1045
 #define IDC_FROM                        1046
@@ -183,6 +189,14 @@
 #define IDC_PASSWORD                    1105
 #define IDC_DOMAIN                      1106
 #define IDC_DIALFROM                    1107
+#define IDC_TYPE                        1108
+#define IDC_SYNCWHENOPEN                1109
+#define IDC_CACHEWHENREAD               1110
+#define IDC_INBOX                       1111
+#define IDC_OUTBOX                      1112
+#define IDC_SENTBOX                     1113
+#define IDC_DRAFTBOX                    1114
+#define IDC_TRASHBOX                    1115
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -235,7 +249,8 @@
 #define IDM_FOLDER_CREATE               42002
 #define IDM_FOLDER_DELETE               42003
 #define IDM_FOLDER_EMPTY                42004
-#define IDM_FOLDER_UPDATE               42005
+#define IDM_FOLDER_PROPERTY             42005
+#define IDM_FOLDER_UPDATE               42006
 #define IDM_MESSAGE_APPLYRULE           43001
 #define IDM_MESSAGE_APPLYTEMPLATENONE   43002
 #define IDM_MESSAGE_APPLYTEMPLATENONEEXTERNAL 43003
@@ -337,9 +352,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        146
+#define _APS_NEXT_RESOURCE_VALUE        147
 #define _APS_NEXT_COMMAND_VALUE         48000
-#define _APS_NEXT_CONTROL_VALUE         1110
+#define _APS_NEXT_CONTROL_VALUE         1116
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -49,6 +49,7 @@ const qs::MenuItem menuItems[] = {
 	{ L"FolderCreate",				IDM_FOLDER_CREATE				},
 	{ L"FolderDelete",				IDM_FOLDER_DELETE				},
 	{ L"FolderEmpty",				IDM_FOLDER_EMPTY				},
+	{ L"FolderProperty",			IDM_FOLDER_PROPERTY				},
 	{ L"FolderUpdate",				IDM_FOLDER_UPDATE				},
 	{ L"MessageApplyRule",			IDM_MESSAGE_APPLYRULE			},
 	{ L"MessageCombine",			IDM_MESSAGE_COMBINE				},

@@ -19,8 +19,9 @@
 			<menuitem text="&amp;Update" action="FolderUpdate"/>
 			<separator/>
 			<menuitem text="&amp;Emptry" action="FolderEmpty"/>
-			<separator/>
 			<menuitem text="&amp;Compact" action="FolderCompact"/>
+			<separator/>
+			<menuitem text="&amp;Property" action="FolderProperty"/>
 		</popupmenu>
 		<popupmenu text="&amp;Edit">
 			<menuitem text="Cu&amp;t" action="EditCut"/>
@@ -242,9 +243,10 @@
 		<menuitem text="&amp;Delete" action="FolderDelete"/>
 		<menuitem text="&amp;Update" action="FolderUpdate"/>
 		<separator/>
-		<menuitem text="&amp;Empty" action="FolderEmpty"/>
+		<menuitem text="&amp;Emptry" action="FolderEmpty"/>
+		<menuitem text="&amp;Compact" action="FolderCompact"/>
 		<separator/>
-		<menuitem text="C&amp;ompact" action="FolderCompact"/>
+		<menuitem text="&amp;Property" action="FolderProperty"/>
 	</menu>
 	<menu name="list">
 		<menuitem text="&amp;New" action="MessageNew"/>

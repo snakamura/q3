@@ -391,6 +391,134 @@ void qm::AccountUserPage::updateState()
 
 /****************************************************************************
  *
+ * FolderPropertyPage
+ *
+ */
+
+namespace {
+struct
+{
+	Folder::Flag flag_;
+	UINT nId_;
+} folderFlags[] = {
+	{ Folder::FLAG_SYNCWHENOPEN,	IDC_SYNCWHENOPEN	},
+	{ Folder::FLAG_CACHEWHENREAD,	IDC_CACHEWHENREAD	},
+	{ Folder::FLAG_INBOX,			IDC_INBOX			},
+	{ Folder::FLAG_OUTBOX,			IDC_OUTBOX			},
+	{ Folder::FLAG_SENTBOX,			IDC_SENTBOX			},
+	{ Folder::FLAG_DRAFTBOX,		IDC_DRAFTBOX		},
+	{ Folder::FLAG_TRASHBOX,		IDC_TRASHBOX		},
+};
+};
+
+qm::FolderPropertyPage::FolderPropertyPage(
+	const Account::FolderList& l, QSTATUS* pstatus) :
+	DefaultPropertyPage(IDD_FOLDERPROPERTY, pstatus),
+	listFolder_(l),
+	nFlags_(0),
+	nMask_(0)
+{
+	assert(!l.empty());
+}
+
+qm::FolderPropertyPage::~FolderPropertyPage()
+{
+}
+
+unsigned int qm::FolderPropertyPage::getFlags() const
+{
+	return nFlags_;
+}
+
+unsigned int qm::FolderPropertyPage::getMask() const
+{
+	return nMask_;
+}
+
+LRESULT qm::FolderPropertyPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
+{
+	DECLARE_QSTATUS();
+	
+	if (listFolder_.size() == 1) {
+		Folder* pFolder = listFolder_.front();
+		
+		string_ptr<WSTRING> wstrName;
+		status = pFolder->getFullName(&wstrName);
+		CHECK_QSTATUS_VALUE(TRUE);
+		setDlgItemText(IDC_NAME, wstrName.get());
+		
+		setDlgItemInt(IDC_ID, pFolder->getId());
+		
+		HINSTANCE hInst = Application::getApplication().getResourceHandle();
+		string_ptr<WSTRING> wstrTemplate;
+		status = loadString(hInst, IDS_FOLDERTYPETEMPLATE, &wstrTemplate);
+		CHECK_QSTATUS_VALUE(TRUE);
+		UINT nTypeId = pFolder->getType() == Folder::TYPE_NORMAL ?
+			IDS_NORMALFOLDER : IDS_QUERYFOLDER;
+		UINT nLocalId = pFolder->isFlag(Folder::FLAG_LOCAL) ?
+			IDS_LOCALFOLDER : IDS_REMOTEFOLDER;
+		string_ptr<WSTRING> wstrType;
+		status = loadString(hInst, nTypeId, &wstrType);
+		CHECK_QSTATUS_VALUE(TRUE);
+		string_ptr<WSTRING> wstrLocal;
+		status = loadString(hInst, nLocalId, &wstrLocal);
+		CHECK_QSTATUS_VALUE(TRUE);
+		WCHAR wszType[128];
+		swprintf(wszType, wstrTemplate.get(), wstrType.get(), wstrLocal.get());
+		setDlgItemText(IDC_TYPE, wszType);
+		
+		unsigned int nFlags = pFolder->getFlags();
+		for (int n = 0; n < countof(folderFlags); ++n) {
+			sendDlgItemMessage(folderFlags[n].nId_, BM_SETCHECK,
+				nFlags & folderFlags[n].flag_ ? BST_CHECKED : BST_UNCHECKED);
+			Window(getDlgItem(folderFlags[n].nId_)).setStyle(
+				BS_AUTOCHECKBOX, BS_AUTOCHECKBOX | BS_AUTO3STATE);
+		}
+	}
+	else {
+		for (int n = 0; n < countof(folderFlags); ++n) {
+			unsigned int nCount = 0;
+			Account::FolderList::const_iterator it = listFolder_.begin();
+			while (it != listFolder_.end()) {
+				if ((*it)->getFlags() & folderFlags[n].flag_)
+					++nCount;
+				++it;
+			}
+			sendDlgItemMessage(folderFlags[n].nId_, BM_SETCHECK,
+				nCount == 0 ? BST_UNCHECKED :
+				nCount == listFolder_.size() ? BST_CHECKED : BST_INDETERMINATE);
+		}
+	}
+	
+	return TRUE;
+}
+
+LRESULT qm::FolderPropertyPage::onOk()
+{
+	for (int n = 0; n < countof(folderFlags); ++n) {
+		int nCheck = sendDlgItemMessage(folderFlags[n].nId_, BM_GETCHECK);
+		switch (nCheck) {
+		case BST_CHECKED:
+			nFlags_ |= folderFlags[n].flag_;
+			nMask_ |= folderFlags[n].flag_;
+			break;
+		case BST_UNCHECKED:
+			nMask_ |= folderFlags[n].flag_;
+			break;
+		case BST_INDETERMINATE:
+			break;
+		default:
+			assert(false);
+			break;
+		}
+	}
+	
+	return DefaultPropertyPage::onOk();
+}
+
+
+/****************************************************************************
+ *
  * MessagePropertyPage
  *
  */
@@ -419,7 +547,7 @@ struct
 };
 }
 
-qm::MessageProperetyPage::MessageProperetyPage(
+qm::MessagePropertyPage::MessagePropertyPage(
 	const Folder::MessageHolderList& l, QSTATUS* pstatus) :
 	DefaultPropertyPage(IDD_MESSAGEPROPERTY, pstatus),
 	listMessage_(l),
@@ -429,21 +557,21 @@ qm::MessageProperetyPage::MessageProperetyPage(
 	assert(!l.empty());
 }
 
-qm::MessageProperetyPage::~MessageProperetyPage()
+qm::MessagePropertyPage::~MessagePropertyPage()
 {
 }
 
-unsigned int qm::MessageProperetyPage::getFlags() const
+unsigned int qm::MessagePropertyPage::getFlags() const
 {
 	return nFlags_;
 }
 
-unsigned int qm::MessageProperetyPage::getMask() const
+unsigned int qm::MessagePropertyPage::getMask() const
 {
 	return nMask_;
 }
 
-LRESULT qm::MessageProperetyPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::MessagePropertyPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 {
 	DECLARE_QSTATUS();
 	
@@ -517,7 +645,7 @@ LRESULT qm::MessageProperetyPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	return TRUE;
 }
 
-LRESULT qm::MessageProperetyPage::onOk()
+LRESULT qm::MessagePropertyPage::onOk()
 {
 	for (int n = 0; n < countof(flags); ++n) {
 		int nCheck = sendDlgItemMessage(flags[n].nId_, BM_GETCHECK);
@@ -537,5 +665,5 @@ LRESULT qm::MessageProperetyPage::onOk()
 		}
 	}
 	
-	return 0;
+	return DefaultPropertyPage::onOk();
 }
