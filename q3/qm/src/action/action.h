@@ -3063,11 +3063,13 @@ private:
 class ViewLockPreviewAction : public qs::AbstractAction
 {
 public:
-	explicit ViewLockPreviewAction(PreviewMessageModel* pPreviewMessageModel);
+	ViewLockPreviewAction(PreviewMessageModel* pPreviewMessageModel,
+						  MainWindow* pMainWindow);
 	virtual ~ViewLockPreviewAction();
 
 public:
 	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	ViewLockPreviewAction(const ViewLockPreviewAction&);
@@ -3075,6 +3077,7 @@ private:
 
 private:
 	PreviewMessageModel* pPreviewMessageModel_;
+	MainWindow* pMainWindow_;
 };
 
 

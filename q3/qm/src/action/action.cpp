@@ -5628,8 +5628,10 @@ void qm::ViewFocusAction::invoke(const ActionEvent& event)
  *
  */
 
-qm::ViewLockPreviewAction::ViewLockPreviewAction(PreviewMessageModel* pPreviewMessageModel) :
-	pPreviewMessageModel_(pPreviewMessageModel)
+qm::ViewLockPreviewAction::ViewLockPreviewAction(PreviewMessageModel* pPreviewMessageModel,
+												 MainWindow* pMainWindow) :
+	pPreviewMessageModel_(pPreviewMessageModel),
+	pMainWindow_(pMainWindow)
 {
 }
 
@@ -5647,6 +5649,11 @@ void qm::ViewLockPreviewAction::invoke(const ActionEvent& event)
 		pPreviewMessageModel_->connectToViewModel();
 		pPreviewMessageModel_->updateToViewModel();
 	}
+}
+
+bool qm::ViewLockPreviewAction::isEnabled(const ActionEvent& event)
+{
+	return pMainWindow_->isShowPreviewWindow();
 }
 
 

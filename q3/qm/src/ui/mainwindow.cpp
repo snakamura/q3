@@ -1036,9 +1036,10 @@ void qm::MainWindowImpl::initActions()
 			pThis_->getHandle());
 	}
 	
-	ADD_ACTION1(ViewLockPreviewAction,
+	ADD_ACTION2(ViewLockPreviewAction,
 		IDM_VIEW_LOCKPREVIEW,
-		pPreviewModel_.get());
+		pPreviewModel_.get(),
+		pThis_);
 	ADD_ACTION3(ViewSecurityAction,
 		IDM_VIEW_SMIMEMODE,
 		pSecurityModel_.get(),
