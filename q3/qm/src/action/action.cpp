@@ -36,7 +36,9 @@
 
 #include <algorithm>
 
-#include <shlwapi.h>
+#ifndef _WIN32_WCE
+#	include <shlwapi.h>
+#endif
 #include <tchar.h>
 
 #include "action.h"
@@ -2443,13 +2445,13 @@ qm::FileUninstallAction::~FileUninstallAction()
 void qm::FileUninstallAction::invoke(const ActionEvent& event)
 {
 #ifndef _WIN32_WCE
-	::SHDeleteKey(HKEY_CURRENT_USER, L"Software\\sn\\q3");
-	::SHDeleteEmptyKey(HKEY_CURRENT_USER, L"Software\\sn");
+	::SHDeleteKey(HKEY_CURRENT_USER, _T("Software\\sn\\q3"));
+	::SHDeleteEmptyKey(HKEY_CURRENT_USER, _T("Software\\sn"));
 #else
-	::RegDeleteKey(HKEY_CURRENT_USER, L"Software\\sn\\q3");
+	::RegDeleteKey(HKEY_CURRENT_USER, _T("Software\\sn\\q3"));
 	
 	HKEY hKey = 0;
-	if (::RegOpenKeyEx(HKEY_CURRENT_USER, L"Software\\sn", 0, 0, &hKey) == ERROR_SUCCESS) {
+	if (::RegOpenKeyEx(HKEY_CURRENT_USER, _T("Software\\sn"), 0, 0, &hKey) == ERROR_SUCCESS) {
 		bool bDelete = false;
 		
 		DWORD dwKeys = 0;
@@ -2460,7 +2462,7 @@ void qm::FileUninstallAction::invoke(const ActionEvent& event)
 		::RegCloseKey(hKey);
 		
 		if (bDelete)
-			::RegDeleteKey(HKEY_CURRENT_USER, L"Software\\sn");
+			::RegDeleteKey(HKEY_CURRENT_USER, _T("Software\\sn"));
 	}
 #endif
 }
