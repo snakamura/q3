@@ -574,7 +574,7 @@ void qm::EditFileSaveAction::invoke(const ActionEvent& event)
 bool qm::EditFileSaveAction::save(const WCHAR* pwszPath)
 {
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
-	std::auto_ptr<Message> pMessage(pEditMessage->getMessage());
+	std::auto_ptr<Message> pMessage(pEditMessage->getMessage(false));
 	if (!pMessage.get())
 		return false;
 	
@@ -609,6 +609,7 @@ qm::EditFileSendAction::EditFileSendAction(bool bDraft,
 										   Profile* pProfile,
 										   SecurityModel* pSecurityModel) :
 	composer_(bDraft, pDocument, pProfile, pEditFrameWindow->getHandle(), 0, pSecurityModel),
+	bDraft_(bDraft),
 	pEditMessageHolder_(pEditMessageHolder),
 	pEditFrameWindow_(pEditFrameWindow),
 	pDocument_(0),
@@ -625,6 +626,7 @@ qm::EditFileSendAction::EditFileSendAction(Document* pDocument,
 										   SyncDialogManager* pSyncDialogManager,
 										   SecurityModel* pSecurityModel) :
 	composer_(false, pDocument, pProfile, pEditFrameWindow->getHandle(), 0, pSecurityModel),
+	bDraft_(false),
 	pEditMessageHolder_(pEditMessageHolder),
 	pEditFrameWindow_(pEditFrameWindow),
 	pDocument_(pDocument),
@@ -640,7 +642,7 @@ qm::EditFileSendAction::~EditFileSendAction()
 void qm::EditFileSendAction::invoke(const ActionEvent& event)
 {
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
-	std::auto_ptr<Message> pMessage(pEditMessage->getMessage());
+	std::auto_ptr<Message> pMessage(pEditMessage->getMessage(!bDraft_));
 	if (!pMessage.get()) {
 		ActionUtil::error(pEditFrameWindow_->getHandle(), IDS_ERROR_SEND);
 		return;

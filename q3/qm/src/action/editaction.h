@@ -407,6 +407,7 @@ private:
 
 private:
 	MessageComposer composer_;
+	bool bDraft_;
 	EditMessageHolder* pEditMessageHolder_;
 	EditFrameWindow* pEditFrameWindow_;
 	Document* pDocument_;

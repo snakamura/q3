@@ -58,7 +58,7 @@ qm::EditMessage::~EditMessage()
 	clear();
 }
 
-std::auto_ptr<Message> qm::EditMessage::getMessage()
+std::auto_ptr<Message> qm::EditMessage::getMessage(bool bFixup)
 {
 	fireMessageUpdate();
 	
@@ -78,7 +78,7 @@ std::auto_ptr<Message> qm::EditMessage::getMessage()
 	
 	const WCHAR* pwszBody = wstrBody_.get();
 	wxstring_ptr wstrBody;
-	if (bAutoReform_) {
+	if (bFixup && bAutoReform_) {
 		int nLineLen = pProfile_->getInt(L"EditWindow", L"ReformLineLength", 74);
 		int nTabWidth = pProfile_->getInt(L"EditWindow", L"TabWidth", 4);
 		
@@ -96,10 +96,12 @@ std::auto_ptr<Message> qm::EditMessage::getMessage()
 		!buf.append(pwszBody))
 		return std::auto_ptr<Message>();
 	
-	wstring_ptr wstrSignature(getSignatureText());
-	if (wstrSignature.get()) {
-		if (!buf.append(wstrSignature.get()))
-			return std::auto_ptr<Message>();
+	if (bFixup) {
+		wstring_ptr wstrSignature(getSignatureText());
+		if (wstrSignature.get()) {
+			if (!buf.append(wstrSignature.get()))
+				return std::auto_ptr<Message>();
+		}
 	}
 	
 	MessageCreator creator(MessageCreator::FLAG_ADDCONTENTTYPE |
@@ -150,7 +152,10 @@ std::auto_ptr<Message> qm::EditMessage::getMessage()
 			return std::auto_ptr<Message>();
 	}
 	
-	UnstructuredParser signature(L"", L"utf-8");
+	const WCHAR* pwszSignature = L"";
+	if (!bFixup && wstrSignature_.get())
+		pwszSignature = wstrSignature_.get();
+	UnstructuredParser signature(pwszSignature, L"utf-8");
 	if (!pMessage->replaceField(L"X-QMAIL-Signature", signature))
 		return std::auto_ptr<Message>();
 	

@@ -97,7 +97,7 @@ public:
 	~EditMessage();
 
 public:
-	std::auto_ptr<Message> getMessage();
+	std::auto_ptr<Message> getMessage(bool bFixup);
 	bool setMessage(std::auto_ptr<Message> pMessage);
 	void update();
 
