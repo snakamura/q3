@@ -625,10 +625,11 @@ LRESULT qm::FolderWindowImpl::onBeginDrag(NMHDR* pnmhdr,
 {
 	NMTREEVIEW* pnmtv = reinterpret_cast<NMTREEVIEW*>(pnmhdr);
 	
-	Folder* pFolder = getSelectedFolder();
-	if (!pFolder)
+	HTREEITEM hItem = pnmtv->itemNew.hItem;
+	if (!TreeView_GetParent(pThis_->getHandle(), hItem))
 		return 0;
 	
+	Folder* pFolder = getFolder(hItem);
 	std::auto_ptr<FolderDataObject> p(new FolderDataObject(pFolder));
 	p->AddRef();
 	ComPtr<IDataObject> pDataObject(p.release());
