@@ -468,9 +468,11 @@ void qm::MessageFrameWindowImpl::messageChanged(const MessageWindowEvent& event)
 		wstring_ptr wstrTitle(concat(wstrSubject.get(), L" - ", wstrTitle_.get()));
 		pThis_->setWindowText(wstrTitle.get());
 		
-		if (bShowStatusBar_)
+		if (bShowStatusBar_) {
+			pStatusBar_->setText(0, L"");
 			UIUtil::updateStatusBar(pMessageWindow_, pStatusBar_,
 				0, pmh, event.getMessage(), event.getContentType());
+		}
 	}
 	else {
 		pThis_->postMessage(WM_CLOSE);
