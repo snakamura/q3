@@ -118,7 +118,7 @@ QSTATUS qm::MessageViewWindowFactory::getMessageViewWindow(
 			WS_CHILD, 0, 0, 500, 500, hwnd, 0, 0, 1003, 0);
 		CHECK_QSTATUS();
 	}
-	else {
+	else if (bHtml) {
 		bHtml = pHtml_ != 0;
 	}
 	
@@ -455,6 +455,14 @@ LRESULT qm::HtmlMessageViewWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	hr = pWebBrowser_->Navigate(bstrURL.get(), &v[0], &v[1], &v[2], &v[3]);
 	if (FAILED(hr))
 		return -1;
+	
+	VARIANT_BOOL bBusy = VARIANT_TRUE;
+	while (bBusy == VARIANT_TRUE) {
+		::Sleep(10);
+		hr = pWebBrowser_->get_Busy(&bBusy);
+		if (FAILED(hr))
+			return -1;
+	}
 	
 	status = newQsObject(this, pWebBrowser_, &pWebBrowserEvents_);
 	CHECK_QSTATUS_VALUE(-1);

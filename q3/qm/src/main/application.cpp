@@ -218,15 +218,6 @@ QSTATUS qm::Application::initialize()
 	status = newQsObject(&pImpl_->pWinSock_);
 	CHECK_QSTATUS();
 	
-	pImpl_->hInstAtl_ = ::LoadLibrary(_T("atl.dll"));
-	if (pImpl_->hInstAtl_) {
-		typedef BOOL (__stdcall *PFN_ATLAXWININIT)();
-		PFN_ATLAXWININIT pfnAtlAxWinInit = reinterpret_cast<PFN_ATLAXWININIT>(
-			::GetProcAddress(pImpl_->hInstAtl_, WCE_T("AtlAxWinInit")));
-		if (pfnAtlAxWinInit)
-			(*pfnAtlAxWinInit)();
-	}
-	
 	Part::setDefaultCharset(L"iso-2022-jp");
 	Part::setGlobalOptions(Part::O_USE_COMMENT_AS_PHRASE |
 		Part::O_ALLOW_ENCODED_QSTRING |
@@ -585,6 +576,16 @@ HINSTANCE qm::Application::getResourceHandle() const
 
 HINSTANCE qm::Application::getAtlHandle() const
 {
+	if (!pImpl_->hInstAtl_) {
+		pImpl_->hInstAtl_ = ::LoadLibrary(_T("atl.dll"));
+		if (pImpl_->hInstAtl_) {
+			typedef BOOL (__stdcall *PFN_ATLAXWININIT)();
+			PFN_ATLAXWININIT pfnAtlAxWinInit = reinterpret_cast<PFN_ATLAXWININIT>(
+				::GetProcAddress(pImpl_->hInstAtl_, WCE_T("AtlAxWinInit")));
+			if (pfnAtlAxWinInit)
+				(*pfnAtlAxWinInit)();
+		}
+	}
 	return pImpl_->hInstAtl_;
 }
 
