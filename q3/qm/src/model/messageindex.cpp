@@ -53,8 +53,6 @@ wstring_ptr qm::MessageIndex::get(unsigned int nKey,
 								  unsigned int nLength,
 								  MessageIndexName name)
 {
-	Lock<CriticalSection> lock(cs_);
-	
 	wstring_ptr wstrValue;
 	
 	MessageIndexItem* pItem = 0;
@@ -121,8 +119,6 @@ wstring_ptr qm::MessageIndex::get(unsigned int nKey,
 
 void qm::MessageIndex::remove(unsigned int nKey)
 {
-	Lock<CriticalSection> lock(cs_);
-	
 	ItemMap::iterator it = map_.find(nKey);
 	if (it != map_.end())
 		remove(it);

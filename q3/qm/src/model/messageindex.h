@@ -72,7 +72,6 @@ private:
 	MessageIndexItem* pNewFirst_;
 	MessageIndexItem* pNewLast_;
 	MessageIndexItem* pLastGotten_;
-	qs::CriticalSection cs_;
 };
 
 

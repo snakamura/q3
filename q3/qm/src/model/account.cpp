@@ -2095,6 +2095,7 @@ wstring_ptr qm::Account::getIndex(unsigned int nKey,
 								  unsigned int nLength,
 								  MessageIndexName name) const
 {
+	assert(isLocked());
 	return pImpl_->pMessageIndex_->get(nKey, nLength, name);
 }
 
