@@ -208,10 +208,10 @@ QSEXPORTPROC wstring_ptr qs::loadString(HINSTANCE hInstResource,
 		nLen = ::LoadString(hInstResource, nId, tstr.get(), nSize);
 		if (nLen == 0)
 			return 0;
-		else if (nLen < nSize)
+		else if (nLen < nSize - 1)
 			break;
 		nSize += 128;
-		tstr = reallocTString(tstr.get(), nSize);
+		tstr = reallocTString(tstr, nSize);
 	}
 	
 #ifdef UNICODE
