@@ -4544,10 +4544,10 @@ void qm::ViewLockPreviewAction::invoke(const ActionEvent& event)
  *
  */
 
-qm::ViewMessageModeAction::ViewMessageModeAction(MessageWindow* pMessageWindow,
-												 MessageWindow::Mode mode,
+qm::ViewMessageModeAction::ViewMessageModeAction(MessageViewModeHolder* pMessageViewModeHolder,
+												 MessageViewMode::Mode mode,
 												 bool bEnabled) :
-	pMessageWindow_(pMessageWindow),
+	pMessageViewModeHolder_(pMessageViewModeHolder),
 	mode_(mode),
 	bEnabled_(bEnabled)
 {
@@ -4559,17 +4559,20 @@ qm::ViewMessageModeAction::~ViewMessageModeAction()
 
 void qm::ViewMessageModeAction::invoke(const ActionEvent& event)
 {
-	pMessageWindow_->setMode(mode_, !pMessageWindow_->isMode(mode_));
+	MessageViewMode* pMode = pMessageViewModeHolder_->getMessageViewMode();
+	if (pMode)
+		pMode->setMode(mode_, !pMode->isMode(mode_));
 }
 
 bool qm::ViewMessageModeAction::isEnabled(const ActionEvent& event)
 {
-	return bEnabled_;
+	return bEnabled_ && pMessageViewModeHolder_->getMessageViewMode();
 }
 
 bool qm::ViewMessageModeAction::isChecked(const ActionEvent& event)
 {
-	return pMessageWindow_->isMode(mode_);
+	MessageViewMode* pMode = pMessageViewModeHolder_->getMessageViewMode();
+	return pMode && pMode->isMode(mode_);
 }
 
 

@@ -14,6 +14,7 @@
 
 #include <vector>
 
+#include "messageviewmode.h"
 #include "viewmodel.h"
 
 #ifndef __MESSAGEMODEL_H__
@@ -63,6 +64,7 @@ public:
 class AbstractMessageModel :
 	public MessageModel,
 	public ViewModelHolder,
+	public AbstractMessageViewModeHolder,
 	public DefaultViewModelHandler,
 	public DefaultAccountHandler
 {
@@ -83,6 +85,9 @@ public:
 public:
 	virtual ViewModel* getViewModel() const;
 	virtual void setViewModel(ViewModel* pViewModel);
+
+public:
+	virtual MessageViewMode* getMessageViewMode() const;
 
 public:
 	virtual void itemRemoved(const ViewModelEvent& event);

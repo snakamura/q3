@@ -58,8 +58,10 @@
 			<popupmenu text="&amp;Mode">
 				<menuitem text="Ra&amp;w Mode" action="ViewRawMode"/>
 				<menuitem text="&amp;Quote Mode" action="ViewQuoteMode"/>
+				<menuitem text="&amp;Select Mode" action="ViewSelectMode"/>
 				<menuitem text="&amp;HTML Mode" action="ViewHtmlMode"/>
 				<menuitem text="HTML &amp;Online Mode" action="ViewHtmlOnlineMode"/>
+				<separator/>
 				<menuitem text="S&amp;MIME Mode" action="ViewDecryptVerifyMode"/>
 			</popupmenu>
 			<popupmenu text="&amp;Sort" action="ViewSort"/>
@@ -158,8 +160,10 @@
 			<popupmenu text="&amp;Mode">
 				<menuitem text="Ra&amp;w Mode" action="ViewRawMode"/>
 				<menuitem text="&amp;Quote Mode" action="ViewQuoteMode"/>
+				<menuitem text="&amp;Select Mode" action="ViewSelectMode"/>
 				<menuitem text="&amp;HTML Mode" action="ViewHtmlMode"/>
 				<menuitem text="HTML &amp;Online Mode" action="ViewHtmlOnlineMode"/>
+				<separator/>
 				<menuitem text="S&amp;MIME Mode" action="ViewDecryptVerifyMode"/>
 			</popupmenu>
 			<popupmenu text="&amp;Template" action="ViewTemplate"/>

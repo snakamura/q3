@@ -349,13 +349,13 @@ void qm::MessageFrameWindowImpl::initActions()
 		Security::isEnabled());
 	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_HTMLMODE,
-		pMessageWindow_,
-		MessageWindow::MODE_HTML,
+		pMessageModel_.get(),
+		MessageViewMode::MODE_HTML,
 		true);
 	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_HTMLONLINEMODE,
-		pMessageWindow_,
-		MessageWindow::MODE_HTMLONLINE,
+		pMessageModel_.get(),
+		MessageViewMode::MODE_HTMLONLINE,
 		true);
 	
 	struct {
@@ -379,21 +379,21 @@ void qm::MessageFrameWindowImpl::initActions()
 	
 	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_QUOTEMODE,
-		pMessageWindow_,
-		MessageWindow::MODE_QUOTE,
+		pMessageModel_.get(),
+		MessageViewMode::MODE_QUOTE,
 		true);
 	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_RAWMODE,
-		pMessageWindow_,
-		MessageWindow::MODE_RAW,
+		pMessageModel_.get(),
+		MessageViewMode::MODE_RAW,
 		true);
 	ADD_ACTION1(ViewOpenLinkAction,
 		IDM_VIEW_OPENLINK,
 		pMessageWindow_);
 	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_SELECTMODE,
-		pMessageWindow_,
-		MessageWindow::MODE_SELECT,
+		pMessageModel_.get(),
+		MessageViewMode::MODE_SELECT,
 		true);
 	ADD_ACTION1(ViewShowHeaderAction,
 		IDM_VIEW_SHOWHEADER,
@@ -812,6 +812,7 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	MessageWindowCreateContext context = {
 		pContext->pDocument_,
 		pContext->pUIManager_,
+		pImpl_->pMessageModel_.get(),
 		pImpl_->pSecurityModel_.get()
 	};
 	if (!pMessageWindow->create(L"QmMessageWindow", 0, dwStyle, CW_USEDEFAULT,

@@ -870,13 +870,13 @@ void qm::MainWindowImpl::initActions()
 		false);
 	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_HTMLMODE,
-		pMessageWindow_,
-		MessageWindow::MODE_HTML,
+		pPreviewModel_.get(),
+		MessageViewMode::MODE_HTML,
 		true);
 	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_HTMLONLINEMODE,
-		pMessageWindow_,
-		MessageWindow::MODE_HTMLONLINE,
+		pPreviewModel_.get(),
+		MessageViewMode::MODE_HTMLONLINE,
 		true);
 	
 	struct {
@@ -922,13 +922,13 @@ void qm::MainWindowImpl::initActions()
 	
 	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_QUOTEMODE,
-		pMessageWindow_,
-		MessageWindow::MODE_QUOTE,
+		pPreviewModel_.get(),
+		MessageViewMode::MODE_QUOTE,
 		true);
 	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_RAWMODE,
-		pMessageWindow_,
-		MessageWindow::MODE_RAW,
+		pPreviewModel_.get(),
+		MessageViewMode::MODE_RAW,
 		true);
 	ADD_ACTION7(ViewRefreshAction,
 		IDM_VIEW_REFRESH,
@@ -965,8 +965,8 @@ void qm::MainWindowImpl::initActions()
 		pMessageSelectionModel_.get());
 	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_SELECTMODE,
-		pMessageWindow_,
-		MessageWindow::MODE_SELECT,
+		pPreviewModel_.get(),
+		MessageViewMode::MODE_SELECT,
 		true);
 	ADD_ACTION1(ViewShowFolderAction,
 		IDM_VIEW_SHOWFOLDER,
@@ -2007,6 +2007,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	MessageWindowCreateContext messageContext = {
 		pContext->pDocument_,
 		pContext->pUIManager_,
+		pImpl_->pPreviewModel_.get(),
 		pImpl_->pSecurityModel_.get(),
 	};
 	if (!pMessageWindow->create(L"QmMessageWindow",

@@ -371,7 +371,8 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 	nSort_(SORT_ASCENDING | SORT_NOTHREAD),
 	nLastSelection_(0),
 	nFocused_(0),
-	nScroll_(-1)
+	nScroll_(-1),
+	nMode_(0)
 {
 	assert(pFolder);
 	assert(pDataItem);
@@ -390,6 +391,8 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 	
 	if (pFilter)
 		pFilter_.reset(new Filter(*pFilter));
+	
+	nMode_ = pDataItem_->getMode();
 	
 	Lock<ViewModel> lock(*this);
 	
@@ -753,6 +756,7 @@ bool qm::ViewModel::save() const
 	pDataItem_->setSort(nSort_);
 	pDataItem_->setFocus(nFocused_);
 	pDataItem_->setFilter(pFilter_.get() ? pFilter_->getName() : 0);
+	pDataItem_->setMode(nMode_);
 	return true;
 }
 
@@ -800,6 +804,24 @@ MacroValuePtr qm::ViewModel::getValue(const Macro* pMacro,
 		pFolder_->getAccount(), pDocument_, hwnd_, pProfile_, true,
 		/*pSecurityModel_->isDecryptVerify()*/false, 0, 0);
 	return pMacro->value(&context);
+}
+
+bool qm::ViewModel::isMode(Mode mode) const
+{
+	return (nMode_ & mode) != 0;
+}
+
+void qm::ViewModel::setMode(Mode mode,
+							bool b)
+{
+	unsigned int nMode = nMode_;
+	if (b)
+		nMode_ |= mode;
+	else
+		nMode_ &= ~mode;
+	
+	if (nMode_ != nMode)
+		fireMessageViewModeChanged(mode, b);
 }
 
 void qm::ViewModel::messageAdded(const FolderMessageEvent& event)
@@ -2068,7 +2090,8 @@ std::auto_ptr<ViewDataItem> qm::DefaultViewData::createDefaultItem()
 qm::ViewDataItem::ViewDataItem(unsigned int nFolderId) :
 	nFolderId_(nFolderId),
 	nFocus_(0),
-	nSort_(ViewModel::SORT_ASCENDING | ViewModel::SORT_NOTHREAD | 1)
+	nSort_(ViewModel::SORT_ASCENDING | ViewModel::SORT_NOTHREAD | 1),
+	nMode_(MessageViewMode::MODE_QUOTE)
 {
 }
 
@@ -2130,6 +2153,16 @@ void qm::ViewDataItem::setFilter(const WCHAR* pwszFilter)
 		wstrFilter_ = allocWString(pwszFilter);
 	else
 		wstrFilter_.reset(0);
+}
+
+unsigned int qm::ViewDataItem::getMode() const
+{
+	return nMode_;
+}
+
+void qm::ViewDataItem::setMode(unsigned int nMode)
+{
+	nMode_ = nMode;
 }
 
 std::auto_ptr<ViewDataItem> qm::ViewDataItem::clone(unsigned int nFolderId) const
@@ -2287,6 +2320,40 @@ bool qm::ViewDataContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		nSort_ = nSort;
 		
 		state_ = STATE_SORT;
+	}
+	else if (wcscmp(pwszLocalName, L"mode") == 0) {
+		if (state_ != STATE_VIEW)
+			return false;
+		
+		struct Item {
+			const WCHAR* pwszName_;
+			MessageViewMode::Mode mode_;
+		} items[] = {
+			{ L"raw",			MessageViewMode::MODE_RAW			},
+			{ L"html",			MessageViewMode::MODE_HTML			},
+			{ L"htmlonline",	MessageViewMode::MODE_HTMLONLINE	},
+			{ L"select",		MessageViewMode::MODE_SELECT		},
+			{ L"quote",			MessageViewMode::MODE_QUOTE			}
+		};
+		
+		unsigned int nMode = 0;
+		for (int n = 0; n < attributes.getLength(); ++n) {
+			const WCHAR* pwszAttrLocalName = attributes.getLocalName(n);
+			int m = 0;
+			for (m = 0; m < countof(items); ++m) {
+				if (wcscmp(pwszAttrLocalName, items[m].pwszName_) == 0) {
+					if (wcscmp(attributes.getValue(n), L"true") == 0)
+						nMode |= items[m].mode_;
+					break;
+				}
+			}
+			if (m == countof(items))
+				return false;
+		}
+		assert(pItem_.get());
+		pItem_->setMode(nMode);
+		
+		state_ = STATE_MODE;
 	}
 	else {
 		struct {
@@ -2454,6 +2521,10 @@ bool qm::ViewDataContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 			buffer_.remove();
 		}
 		
+		state_ = STATE_VIEW;
+	}
+	else if (wcscmp(pwszLocalName, L"mode") == 0) {
+		assert(state_ == STATE_MODE);
 		state_ = STATE_VIEW;
 	}
 	else {
@@ -2652,11 +2723,11 @@ bool qm::ViewDataWriter::write(const ViewDataItem* pItem,
 		return false;
 	
 	unsigned int nSort = pItem->getSort();
-	const SimpleAttributes::Item items[] = {
+	const SimpleAttributes::Item sortItems[] = {
 		{ L"direction",	(nSort & ViewModel::SORT_DIRECTION_MASK) == ViewModel::SORT_ASCENDING ? L"ascending" : L"descending"	},
 		{ L"thread",	(nSort & ViewModel::SORT_THREAD_MASK) == ViewModel::SORT_THREAD ? L"true" : L"false"					}
 	};
-	SimpleAttributes sortAttrs(items, countof(items));
+	SimpleAttributes sortAttrs(sortItems, countof(sortItems));
 	if (!handler_.startElement(0, 0, L"sort", sortAttrs))
 		return false;
 	WCHAR wsz[32];
@@ -2670,6 +2741,19 @@ bool qm::ViewDataWriter::write(const ViewDataItem* pItem,
 		if (!HandlerHelper::textElement(&handler_, L"filter", pItem->getFilter(), -1))
 			return false;
 	}
+	
+	unsigned int nMode = pItem->getMode();
+	const SimpleAttributes::Item modeItems[] = {
+		{ L"raw",			nMode & MessageViewMode::MODE_RAW ? L"true" : L"false",			(nMode & MessageViewMode::MODE_RAW) == 0		},
+		{ L"html",			nMode & MessageViewMode::MODE_HTML ? L"true" : L"false",		(nMode & MessageViewMode::MODE_HTML) == 0		},
+		{ L"htmlonline",	nMode & MessageViewMode::MODE_HTMLONLINE ? L"true" : L"false",	(nMode & MessageViewMode::MODE_HTMLONLINE) == 0	},
+		{ L"select",		nMode & MessageViewMode::MODE_SELECT ? L"true" : L"false",		(nMode & MessageViewMode::MODE_SELECT) == 0		},
+		{ L"quote",			nMode & MessageViewMode::MODE_QUOTE ? L"true" : L"false",		(nMode & MessageViewMode::MODE_QUOTE) == 0		},
+	};
+	SimpleAttributes modeAttrs(modeItems, countof(modeItems));
+	if (!handler_.startElement(0, 0, L"mode", modeAttrs) ||
+		!handler_.endElement(0, 0, L"mode"))
+		return false;
 	
 	if (!handler_.endElement(0, 0, L"view"))
 		return false;

@@ -19,6 +19,7 @@
 #include "attachmenthelper.h"
 #include "templateprocessor.h"
 #include "../ui/messagecomposer.h"
+#include "../ui/messageviewmode.h"
 #include "../ui/messagewindow.h"
 #include "../ui/securitymodel.h"
 
@@ -2404,8 +2405,8 @@ private:
 class ViewMessageModeAction : public qs::AbstractAction
 {
 public:
-	ViewMessageModeAction(MessageWindow* pMessageWindow,
-						  MessageWindow::Mode mode,
+	ViewMessageModeAction(MessageViewModeHolder* pMessageViewModeHolder,
+						  MessageViewMode::Mode mode,
 						  bool bEnabled);
 	virtual ~ViewMessageModeAction();
 
@@ -2419,8 +2420,8 @@ private:
 	ViewMessageModeAction& operator=(const ViewMessageModeAction&);
 
 private:
-	MessageWindow* pMessageWindow_;
-	MessageWindow::Mode mode_;
+	MessageViewModeHolder* pMessageViewModeHolder_;
+	MessageViewMode::Mode mode_;
 	bool bEnabled_;
 };
 

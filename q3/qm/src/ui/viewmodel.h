@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "foldermodel.h"
+#include "messageviewmode.h"
 
 
 namespace qm {
@@ -217,6 +218,7 @@ private:
  */
 
 class ViewModel :
+	public AbstractMessageViewMode,
 	public FolderHandler,
 	public MessageHolderHandler
 {
@@ -308,6 +310,11 @@ public:
 						   MessageHolder* pmh) const;
 
 public:
+	virtual bool isMode(Mode mode) const;
+	virtual void setMode(Mode mode,
+						 bool b);
+
+public:
 	virtual void messageAdded(const FolderMessageEvent& event);
 	virtual void messageRemoved(const FolderMessageEvent& event);
 	virtual void messageRefreshed(const FolderEvent& event);
@@ -388,6 +395,7 @@ private:
 	unsigned int nLastSelection_;
 	unsigned int nFocused_;
 	unsigned int nScroll_;
+	unsigned int nMode_;
 	ViewModelHandlerList listHandler_;
 #ifndef NDEBUG
 	mutable unsigned int nLock_;
@@ -764,6 +772,8 @@ public:
 	void setSort(unsigned int nSort);
 	const WCHAR* getFilter() const;
 	void setFilter(const WCHAR* pwszFilter);
+	unsigned int getMode() const;
+	void setMode(unsigned int nMode);
 
 public:
 	std::auto_ptr<ViewDataItem> clone(unsigned int nFolderId) const;
@@ -778,6 +788,7 @@ private:
 	unsigned int nFocus_;
 	unsigned int nSort_;
 	qs::wstring_ptr wstrFilter_;
+	unsigned int nMode_;
 };
 
 
@@ -822,7 +833,8 @@ private:
 		STATE_WIDTH,
 		STATE_FOCUS,
 		STATE_SORT,
-		STATE_FILTER
+		STATE_FILTER,
+		STATE_MODE
 	};
 
 private:

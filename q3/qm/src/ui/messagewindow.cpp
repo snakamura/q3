@@ -21,6 +21,7 @@
 #include "headerwindow.h"
 #include "keymap.h"
 #include "messagemodel.h"
+#include "messageviewmode.h"
 #include "messageviewwindow.h"
 #include "messagewindow.h"
 #include "resourceinc.h"
@@ -43,6 +44,8 @@ using namespace qs;
 
 class qm::MessageWindowImpl :
 	public MessageModelHandler,
+	public MessageViewModeHandler,
+	public MessageViewModeHolderHandler,
 	public SecurityModelHandler,
 	public MessageViewWindowCallback
 {
@@ -71,6 +74,12 @@ public:
 	virtual void messageChanged(const MessageModelEvent& event);
 
 public:
+	virtual void messageViewModeChanged(const MessageViewModeEvent& event);
+
+public:
+	virtual void messageViewModeChanged(const MessageViewModeHolderEvent& event);
+
+public:
 	virtual void decryptVerifyChanged(const SecurityModelEvent& event);
 
 public:
@@ -91,6 +100,7 @@ public:
 	const WCHAR* pwszSection_;
 	std::auto_ptr<Accelerator> pAccelerator_;
 	Document* pDocument_;
+	MessageViewModeHolder* pMessageViewModeHolder_;
 	SecurityModel* pSecurityModel_;
 	HeaderWindow* pHeaderWindow_;
 	MessageViewWindow* pMessageViewWindow_;
@@ -101,7 +111,6 @@ public:
 	MessageModel* pMessageModel_;
 	std::auto_ptr<MessageViewWindowFactory> pFactory_;
 	
-	unsigned int nMode_;
 	wstring_ptr wstrEncoding_;
 	wstring_ptr wstrTemplate_;
 	unsigned int nSeenWait_;
@@ -154,8 +163,9 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	if (nSeenTimerId_ != 0)
 		pThis_->killTimer(nSeenTimerId_);
 	
-	bool bRawMode = pThis_->isMode(MessageWindow::MODE_RAW);
-	bool bHtmlMode = pThis_->isMode(MessageWindow::MODE_HTML);
+	MessageViewMode* pMode = pMessageViewModeHolder_->getMessageViewMode();
+	bool bRawMode = pMode && pMode->isMode(MessageViewMode::MODE_RAW);
+	bool bHtmlMode = pMode && pMode->isMode(MessageViewMode::MODE_HTML);
 	
 	Message msg;
 	if (pmh) {
@@ -209,7 +219,7 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 		if (pMessageViewWindow_)
 			pMessageViewWindow_->getWindow().showWindow(SW_HIDE);
 		pMessageViewWindow->getWindow().showWindow(SW_SHOW);
-		pMessageViewWindow->setSelectMode(pThis_->isMode(MessageWindow::MODE_SELECT));
+		pMessageViewWindow->setSelectMode(pMode && pMode->isMode(MessageViewMode::MODE_SELECT));
 		pMessageViewWindow_ = pMessageViewWindow;
 		bLayout = true;
 	}
@@ -239,7 +249,7 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	
 	unsigned int nFlags = (bRawMode ? MessageViewWindow::FLAG_RAWMODE : 0) |
 		(!bShowHeaderWindow_ ? MessageViewWindow::FLAG_INCLUDEHEADER : 0) |
-		(pThis_->isMode(MessageWindow::MODE_HTMLONLINE) ? MessageViewWindow::FLAG_ONLINEMODE : 0) |
+		(pMode && pMode->isMode(MessageViewMode::MODE_HTMLONLINE) ? MessageViewWindow::FLAG_ONLINEMODE : 0) |
 		(pSecurityModel_->isDecryptVerify() ? MessageViewWindow::FLAG_DECRYPTVERIFY : 0);
 	if (!pMessageViewWindow->setMessage(pmh, pmh ? &msg : 0,
 		pTemplate, wstrEncoding_.get(), nFlags))
@@ -260,6 +270,44 @@ void qm::MessageWindowImpl::messageChanged(const MessageModelEvent& event)
 	else
 		pThis_->postMessage(WM_MESSAGEMODEL_MESSAGECHANGED, 0,
 			reinterpret_cast<LPARAM>(event.getMessageHolder()));
+}
+
+void qm::MessageWindowImpl::messageViewModeChanged(const MessageViewModeEvent& event)
+{
+	MessageViewMode::Mode mode = event.getMode();
+	bool b = event.isSet();
+	switch (mode) {
+	case MessageViewMode::MODE_RAW:
+	case MessageViewMode::MODE_HTML:
+	case MessageViewMode::MODE_HTMLONLINE:
+		{
+			MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
+			setMessage(mpl, false);
+		}
+		break;
+	case MessageViewMode::MODE_SELECT:
+		pMessageViewWindow_->setSelectMode(b);
+		break;
+	case MessageViewMode::MODE_QUOTE:
+		pMessageViewWindow_->setQuoteMode(b);
+		break;
+	default:
+		break;
+	}
+}
+
+void qm::MessageWindowImpl::messageViewModeChanged(const MessageViewModeHolderEvent& event)
+{
+	MessageViewMode* pOld = event.getOldMessageViewMode();
+	if (pOld)
+		pOld->removeMessageViewModeHandler(this);
+	
+	MessageViewMode* pNew = event.getNewMessageViewMode();
+	if (pNew)
+		pNew->addMessageViewModeHandler(this);
+	
+	pMessageViewWindow_->setSelectMode(pNew && pNew->isMode(MessageViewMode::MODE_SELECT));
+	pMessageViewWindow_->setQuoteMode(pNew && pNew->isMode(MessageViewMode::MODE_QUOTE));
 }
 
 void qm::MessageWindowImpl::decryptVerifyChanged(const SecurityModelEvent& event)
@@ -304,16 +352,6 @@ qm::MessageWindow::MessageWindow(MessageModel* pMessageModel,
 {
 	wstring_ptr wstrTemplate(pProfile->getString(pwszSection, L"Template", L""));
 	
-	unsigned int nMode = 0;
-	if (pProfile->getInt(pwszSection, L"HtmlMode", 0))
-		nMode |= MODE_HTML;
-	if (pProfile->getInt(pwszSection, L"HtmlOnlineMode", 0))
-		nMode |= MODE_HTMLONLINE;
-	if (pProfile->getInt(pwszSection, L"SelectMode", 0))
-		nMode |= MODE_SELECT;
-	if (pProfile->getInt(pwszSection, L"QuoteMode", 1))
-		nMode |= MODE_QUOTE;
-	
 	pImpl_ = new MessageWindowImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->bShowHeaderWindow_ = pProfile->getInt(pwszSection, L"ShowHeaderWindow", 1) != 0;
@@ -325,7 +363,6 @@ qm::MessageWindow::MessageWindow(MessageModel* pMessageModel,
 	pImpl_->bCreated_ = false;
 	pImpl_->bLayouting_ = false;
 	pImpl_->nSeenTimerId_ = 0;
-	pImpl_->nMode_ = nMode;
 	pImpl_->pMessageModel_ = pMessageModel;
 	pImpl_->wstrTemplate_ = *wstrTemplate.get() ? wstrTemplate : 0;
 	pImpl_->nSeenWait_ = pProfile->getInt(pwszSection, L"SeenWait", 0);
@@ -350,42 +387,6 @@ void qm::MessageWindow::setShowHeaderWindow(bool bShow)
 	if (bShow != pImpl_->bShowHeaderWindow_) {
 		pImpl_->bShowHeaderWindow_ = bShow;
 		pImpl_->layoutChildren();
-	}
-}
-
-bool qm::MessageWindow::isMode(Mode mode) const
-{
-	return (pImpl_->nMode_ & mode) != 0;
-}
-
-void qm::MessageWindow::setMode(Mode mode,
-								bool b)
-{
-	if (isMode(mode) == b)
-		return;
-	
-	if (b)
-		pImpl_->nMode_ |= mode;
-	else
-		pImpl_->nMode_ &= ~mode;
-	
-	switch (mode) {
-	case MODE_RAW:
-	case MODE_HTML:
-	case MODE_HTMLONLINE:
-		{
-			MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
-			pImpl_->setMessage(mpl, false);
-		}
-		break;
-	case MODE_SELECT:
-		pImpl_->pMessageViewWindow_->setSelectMode(b);
-		break;
-	case MODE_QUOTE:
-		pImpl_->pMessageViewWindow_->setQuoteMode(b);
-		break;
-	default:
-		break;
 	}
 }
 
@@ -474,10 +475,6 @@ bool qm::MessageWindow::save()
 	Profile* pProfile = pImpl_->pProfile_;
 	
 	pProfile->setInt(pImpl_->pwszSection_, L"ShowHeaderWindow", pImpl_->bShowHeaderWindow_);
-	pProfile->setInt(pImpl_->pwszSection_, L"HtmlMode", isMode(MessageWindow::MODE_HTML));
-	pProfile->setInt(pImpl_->pwszSection_, L"HtmlOnlineMode", isMode(MessageWindow::MODE_HTMLONLINE));
-	pProfile->setInt(pImpl_->pwszSection_, L"SelectMode", isMode(MessageWindow::MODE_SELECT));
-	pProfile->setInt(pImpl_->pwszSection_, L"QuoteMode", isMode(MessageWindow::MODE_QUOTE));
 	pProfile->setString(pImpl_->pwszSection_, L"Template",
 		pImpl_->wstrTemplate_.get() ? pImpl_->wstrTemplate_.get() : L"");
 	
@@ -524,6 +521,8 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	MessageWindowCreateContext* pContext =
 		static_cast<MessageWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pDocument_ = pContext->pDocument_;
+	pImpl_->pMessageViewModeHolder_ = pContext->pMessageViewModeHolder_;
+	pImpl_->pMessageViewModeHolder_->addMessageViewModeHolderHandler(pImpl_);
 	pImpl_->pSecurityModel_ = pContext->pSecurityModel_;
 	pImpl_->pSecurityModel_->addSecurityModelHandler(pImpl_);
 	
@@ -553,8 +552,6 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (!pImpl_->pFactory_->create(getHandle()))
 		return -1;
 	pImpl_->pMessageViewWindow_ = pImpl_->pFactory_->getTextMessageViewWindow();
-	pImpl_->pMessageViewWindow_->setSelectMode(isMode(MessageWindow::MODE_SELECT));
-	pImpl_->pMessageViewWindow_->setQuoteMode(isMode(MessageWindow::MODE_QUOTE));
 	pImpl_->layoutChildren();
 	pImpl_->pMessageViewWindow_->getWindow().showWindow(SW_SHOW);
 	
@@ -566,6 +563,7 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 
 LRESULT qm::MessageWindow::onDestroy()
 {
+	pImpl_->pMessageViewModeHolder_->removeMessageViewModeHolderHandler(pImpl_);
 	pImpl_->pSecurityModel_->removeSecurityModelHandler(pImpl_);
 	pImpl_->pMessageModel_->removeMessageModelHandler(pImpl_);
 	return DefaultWindowHandler::onDestroy();

@@ -41,10 +41,12 @@
 			<separator/>
 			<menuitem text="Refresh" action="ViewRefresh"/>
 			<separator/>
-			<popupmenu text="&amp;Mode">
-				<menuitem text="Ra&amp;w Mode" action="ViewRawMode"/>
-				<menuitem text="&amp;Quote Mode" action="ViewQuoteMode"/>
-				<menuitem text="S&amp;MIME Mode" action="ViewDecryptVerifyMode"/>
+			<popupmenu text="Mode">
+				<menuitem text="Raw Mode" action="ViewRawMode"/>
+				<menuitem text="Quote Mode" action="ViewQuoteMode"/>
+				<menuitem text="Select Mode" action="ViewSelectMode"/>
+				<separator/>
+				<menuitem text="SMIME Mode" action="ViewDecryptVerifyMode"/>
 			</popupmenu>
 			<popupmenu text="Sort" action="ViewSort"/>
 			<popupmenu text="Filter" action="ViewFilter"/>
@@ -139,10 +141,12 @@
 			<menuitem text="Previous Message" action="ViewPrevMessage"/>
 			<menuitem text="Next Unseen Message" action="ViewNextUnseenMessage"/>
 			<separator/>
-			<popupmenu text="&amp;Mode">
-				<menuitem text="Ra&amp;w Mode" action="ViewRawMode"/>
-				<menuitem text="&amp;Quote Mode" action="ViewQuoteMode"/>
-				<menuitem text="S&amp;MIME Mode" action="ViewDecryptVerifyMode"/>
+			<popupmenu text="Mode">
+				<menuitem text="Raw Mode" action="ViewRawMode"/>
+				<menuitem text="Quote Mode" action="ViewQuoteMode"/>
+				<menuitem text="Select Mode" action="ViewSelectMode"/>
+				<separator/>
+				<menuitem text="SMIME Mode" action="ViewDecryptVerifyMode"/>
 			</popupmenu>
 			<popupmenu text="Template" action="ViewTemplate"/>
 			<popupmenu text="Encoding" action="ViewEncoding"/>
@@ -256,7 +260,7 @@
 		<menuitem text="Update" action="FolderUpdate"/>
 		<separator/>
 		<menuitem text="Empty" action="FolderEmpty"/>
-		<menuitem text="Empty &amp;Trash" action="FolderEmptyTrash"/>
+		<menuitem text="Empty Trash" action="FolderEmptyTrash"/>
 		<separator/>
 		<menuitem text="Show Size" action="FolderShowSize"/>
 		<separator/>

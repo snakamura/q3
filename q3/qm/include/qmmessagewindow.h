@@ -129,14 +129,6 @@ public:
 		FIND_REGEX		= 0x02,
 		FIND_PREVIOUS	= 0x04
 	};
-	
-	enum Mode {
-		MODE_RAW			= 0x01,
-		MODE_HTML			= 0x02,
-		MODE_HTMLONLINE		= 0x04,
-		MODE_SELECT			= 0x08,
-		MODE_QUOTE			= 0x10
-	};
 
 public:
 	MessageWindow(MessageModel* pMessageModel,
@@ -147,9 +139,6 @@ public:
 public:
 	bool isShowHeaderWindow() const;
 	void setShowHeaderWindow(bool bShow);
-	bool isMode(Mode mode) const;
-	void setMode(Mode mode,
-				 bool b);
 	const WCHAR* getEncoding() const;
 	void setEncoding(const WCHAR* pwszEncoding);
 	const WCHAR* getTemplate() const;
