@@ -44,7 +44,13 @@ qm::SignatureManager::~SignatureManager()
 
 const SignatureManager::SignatureList& qm::SignatureManager::getSignatures()
 {
-	load();
+	return getSignatures(true);
+}
+
+const SignatureManager::SignatureList& qm::SignatureManager::getSignatures(bool bReload)
+{
+	if (bReload)
+		load();
 	return listSignature_;
 }
 
@@ -123,7 +129,7 @@ bool qm::SignatureManager::save() const
 	BufferedWriter bufferedWriter(&writer, false);
 	
 	SignatureWriter signatureWriter(&bufferedWriter);
-	if (!signatureWriter.write(listSignature_))
+	if (!signatureWriter.write(this))
 		return false;
 	
 	if (!bufferedWriter.close())
@@ -420,13 +426,15 @@ qm::SignatureWriter::~SignatureWriter()
 {
 }
 
-bool qm::SignatureWriter::write(const SignatureManager::SignatureList& listSignature)
+bool qm::SignatureWriter::write(const SignatureManager* pManager)
 {
 	if (!handler_.startDocument())
 		return false;
 	if (!handler_.startElement(0, 0, L"signatures", DefaultAttributes()))
 		return false;
 	
+	const SignatureManager::SignatureList& listSignature =
+		const_cast<SignatureManager*>(pManager)->getSignatures(false);
 	for (SignatureManager::SignatureList::const_iterator it = listSignature.begin(); it != listSignature.end(); ++it) {
 		const Signature* pSignature = *it;
 		if (!write(pSignature))

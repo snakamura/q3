@@ -45,6 +45,7 @@ public:
 
 public:
 	const SignatureList& getSignatures();
+	const SignatureList& getSignatures(bool bRealod);
 	void setSignatures(SignatureList& listSignature);
 	void getSignatures(Account* pAccount,
 					   SignatureList* pList);
@@ -171,7 +172,7 @@ public:
 	~SignatureWriter();
 
 public:
-	bool write(const SignatureManager::SignatureList& listSignature);
+	bool write(const SignatureManager* pManager);
 
 private:
 	bool write(const Signature* pSignature);
