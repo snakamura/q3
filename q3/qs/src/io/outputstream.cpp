@@ -194,12 +194,30 @@ malloc_ptr<unsigned char> qs::ByteOutputStream::releaseBuffer()
 	pImpl_->pBuf_ = 0;
 	pImpl_->pBufEnd_ = 0;
 	pImpl_->p_ = 0;
-	return p;
+	return malloc_ptr<unsigned char>(p);
+}
+
+malloc_size_ptr<unsigned char> qs::ByteOutputStream::releaseSizeBuffer()
+{
+	unsigned char* p = pImpl_->pBuf_;
+	size_t nLen = pImpl_->p_ - pImpl_->pBuf_;
+	pImpl_->pBuf_ = 0;
+	pImpl_->pBufEnd_ = 0;
+	pImpl_->p_ = 0;
+	return malloc_size_ptr<unsigned char>(p, nLen);
 }
 
 size_t qs::ByteOutputStream::getLength() const
 {
 	return pImpl_->p_ - pImpl_->pBuf_;
+}
+
+bool qs::ByteOutputStream::reserve(size_t nLength)
+{
+	if (static_cast<size_t>(pImpl_->pBufEnd_ - pImpl_->p_) < nLength)
+		return pImpl_->allocBuffer(nLength);
+	else
+		return true;
 }
 
 bool qs::ByteOutputStream::close()
@@ -223,6 +241,52 @@ size_t qs::ByteOutputStream::write(const unsigned char* p,
 bool qs::ByteOutputStream::flush()
 {
 	return true;
+}
+
+
+/****************************************************************************
+ *
+ * XStringOutputStream
+ *
+ */
+
+qs::XStringOutputStream::XStringOutputStream()
+{
+}
+
+qs::XStringOutputStream::~XStringOutputStream()
+{
+}
+
+xstring_ptr qs::XStringOutputStream::getXString()
+{
+	unsigned char c = 0;
+	if (stream_.write(&c, 1) != 1)
+		return 0;
+	
+	malloc_ptr<unsigned char> p(stream_.releaseBuffer());
+	return xstring_ptr(reinterpret_cast<XSTRING>(p.release()));
+}
+
+bool qs::XStringOutputStream::reserve(size_t nLength)
+{
+	return stream_.reserve(nLength);
+}
+
+bool qs::XStringOutputStream::close()
+{
+	return stream_.close();
+}
+
+size_t qs::XStringOutputStream::write(const unsigned char* p,
+									  size_t nWrite)
+{
+	return stream_.write(p, nWrite);
+}
+
+bool qs::XStringOutputStream::flush()
+{
+	return stream_.flush();
 }
 
 

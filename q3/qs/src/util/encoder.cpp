@@ -23,6 +23,7 @@ using namespace qs;
 namespace qs {
 struct EncoderFactoryImpl;
 struct Base64EncoderImpl;
+struct QuotedPrintableEncoderImpl;
 struct UuencodeEncoderImpl;
 }
 
@@ -35,6 +36,42 @@ struct UuencodeEncoderImpl;
 
 qs::Encoder::~Encoder()
 {
+}
+
+malloc_size_ptr<unsigned char> qs::Encoder::encode(const unsigned char* p,
+												   size_t nLen)
+												   QNOTHROW()
+{
+	ByteInputStream is(p, nLen, false);
+	ByteOutputStream os;
+	if (!os.reserve(getEstimatedEncodeLen(nLen)) ||
+		!encodeImpl(&is, &os))
+		return malloc_size_ptr<unsigned char>();
+	return os.releaseSizeBuffer();
+}
+
+malloc_size_ptr<unsigned char> qs::Encoder::decode(const unsigned char* p,
+												   size_t nLen)
+												   QNOTHROW()
+{
+	ByteInputStream is(p, nLen, false);
+	ByteOutputStream os;
+	if (!os.reserve(getEstimatedDecodeLen(nLen)) ||
+		!decodeImpl(&is, &os))
+		return malloc_size_ptr<unsigned char>();
+	return os.releaseSizeBuffer();
+}
+
+bool qs::Encoder::encode(InputStream* pInputStream,
+						 OutputStream* pOutputStream)
+{
+	return encodeImpl(pInputStream, pOutputStream);
+}
+
+bool qs::Encoder::decode(InputStream* pInputStream,
+						 OutputStream* pOutputStream)
+{
+	return decodeImpl(pInputStream, pOutputStream);
 }
 
 
@@ -201,71 +238,11 @@ qs::Base64Encoder::~Base64Encoder()
 {
 }
 
-malloc_size_ptr<unsigned char> qs::Base64Encoder::encode(const unsigned char* pSrc,
-														 size_t nSrcLen)
-{
-	assert(pSrc);
-	
-	size_t nLen = (nSrcLen/3 + (nSrcLen % 3 ? 1 : 0))*4;
-	if (bFold_)
-		nLen += (nLen/FOLD_LENGTH)*2;
-	malloc_ptr<unsigned char> pDst(static_cast<unsigned char*>(malloc(nLen)));
-	if (!pDst.get())
-		return malloc_size_ptr<unsigned char>();
-	size_t nDstLen = 0;
-	encode(pSrc, nSrcLen, bFold_, pDst.get(), &nDstLen);
-	assert(nDstLen == nLen);
-	
-	return malloc_size_ptr<unsigned char>(pDst, nDstLen);
-}
-
-malloc_size_ptr<unsigned char> qs::Base64Encoder::decode(const unsigned char* pSrc,
-														 size_t nSrcLen)
-{
-	assert(pSrc);
-	
-	size_t nLen = (nSrcLen/4 + (nSrcLen % 4 ? 1 : 0))*3;
-	malloc_ptr<unsigned char> pDst(static_cast<unsigned char*>(malloc(nLen)));
-	if (!pDst.get())
-		return malloc_size_ptr<unsigned char>();
-	
-	unsigned long nDecode = 0;
-	unsigned char* p = pDst.get();
-	int nCounter = 0;
-	int nDelete = 0;
-	for (size_t n = 0; n < nSrcLen; ++n) {
-		unsigned char nCode = Base64EncoderImpl::decodeByte(pSrc[n]);
-		if (nCode == static_cast<unsigned char>(-2)) {
-			nCode = 0;
-			++nDelete;
-		}
-		if (nCode != static_cast<unsigned char>(-1)) {
-			nDecode |= nCode << (3 - nCounter)*6;
-			++nCounter;
-		}
-		
-		if (nCounter == 4) {
-			if (n != 0) {
-				if (nDelete < 3)
-					*p++ = static_cast<unsigned char>((nDecode >> 16) & 0xff);
-				if (nDelete < 2)
-					*p++ = static_cast<unsigned char>((nDecode >> 8) & 0xff);
-				if (nDelete < 1)
-					*p++ = static_cast<unsigned char>(nDecode & 0xff);
-			}
-			nDecode = 0;
-			nCounter = 0;
-		}
-	}
-	
-	return malloc_size_ptr<unsigned char>(pDst, p - pDst.get());
-}
-
-void qs::Base64Encoder::encode(const unsigned char* pSrc,
-							   size_t nSrcLen,
-							   bool bFold,
-							   unsigned char* pDst,
-							   size_t* pnDstLen)
+void qs::Base64Encoder::encodeBuffer(const unsigned char* pSrc,
+									 size_t nSrcLen,
+									 bool bFold,
+									 unsigned char* pDst,
+									 size_t* pnDstLen)
 {
 	assert(pSrc);
 	assert(pDst);
@@ -312,6 +289,87 @@ bool qs::Base64Encoder::isEncodedChar(CHAR c)
 			return true;
 	}
 	return false;
+}
+
+bool qs::Base64Encoder::encodeImpl(InputStream* pInputStream,
+								   OutputStream* pOutputStream)
+{
+	unsigned char bufIn[FOLD_LENGTH/4*3];
+	unsigned char bufOut[FOLD_LENGTH + 2];
+	
+	while (true) {
+		size_t nLen = pInputStream->read(bufIn, sizeof(bufIn));
+		if (nLen == -1)
+			return false;
+		else if (nLen == 0)
+			break;
+		
+		size_t nDstLen = 0;
+		encodeBuffer(bufIn, nLen, bFold_, bufOut, &nDstLen);
+		if (pOutputStream->write(bufOut, nDstLen) != nDstLen)
+			return false;
+	}
+	
+	return true;
+}
+
+bool qs::Base64Encoder::decodeImpl(InputStream* pInputStream,
+								   OutputStream* pOutputStream)
+{
+	unsigned long nDecode = 0;
+	int nCounter = 0;
+	int nDelete = 0;
+	while (true) {
+		unsigned char c = 0;
+		size_t nRead = pInputStream->read(&c, 1);
+		if (nRead == -1)
+			return false;
+		else if (nRead == 0)
+			break;
+		
+		unsigned char nCode = Base64EncoderImpl::decodeByte(c);
+		if (nCode == unsigned char(-2)) {
+			nCode = 0;
+			++nDelete;
+		}
+		if (nCode != unsigned char(-1)) {
+			nDecode |= nCode << (3 - nCounter)*6;
+			++nCounter;
+		}
+		
+		if (nCounter == 4) {
+			if (nDelete < 3) {
+				unsigned char c = static_cast<unsigned char>((nDecode >> 16) & 0xff);
+				if (pOutputStream->write(&c, 1) != 1)
+					return false;
+			}
+			if (nDelete < 2) {
+				unsigned char c = static_cast<unsigned char>((nDecode >> 8) & 0xff);
+				if (pOutputStream->write(&c, 1) != 1)
+					return false;
+			}
+			if (nDelete < 1) {
+				unsigned char c = static_cast<unsigned char>(nDecode & 0xff);
+				if (pOutputStream->write(&c, 1) != 1)
+					return false;
+			}
+			
+			nDecode = 0;
+			nCounter = 0;
+		}
+	}
+	
+	return true;
+}
+
+size_t qs::Base64Encoder::getEstimatedEncodeLen(size_t nLen)
+{
+	return (nLen/3 + 1)*4 + (nLen/45)*2;
+}
+
+size_t qs::Base64Encoder::getEstimatedDecodeLen(size_t nLen)
+{
+	return (nLen/4 + 1)*3;
 }
 
 
@@ -371,6 +429,43 @@ std::auto_ptr<Encoder> qs::BEncoderFactory::createInstance()
 
 /****************************************************************************
  *
+ * QuotedPrintableEncoderImpl
+ *
+ */
+
+struct qs::QuotedPrintableEncoderImpl
+{
+	static bool isEncodedChar(unsigned char c);
+	static unsigned char decode(unsigned char* p);
+};
+
+
+inline bool qs::QuotedPrintableEncoderImpl::isEncodedChar(unsigned char c)
+{
+	return ('0' <= c && c <= '9') ||
+		('a' <= c && c <= 'f') ||
+		('A' <= c && c <= 'F');
+}
+
+inline unsigned char qs::QuotedPrintableEncoderImpl::decode(unsigned char* p)
+{
+	unsigned char b = 0;
+	for (int m = 0; m < 2; m++, ++p) {
+		unsigned char c = *p;
+		if ('0' <= c && c <= '9')
+			c = c - '0';
+		else if ('A' <= c && c <= 'F')
+			c = c - 'A' + 10;
+		else if ('a' <= c && c <= 'f')
+			c = c - 'a' + 10;
+		b += c << (4*(1 - m));
+	}
+	return b;
+}
+
+
+/****************************************************************************
+ *
  * QuotedPrintableEncoder
  *
  */
@@ -384,58 +479,44 @@ qs::QuotedPrintableEncoder::~QuotedPrintableEncoder()
 {
 }
 
-malloc_size_ptr<unsigned char> qs::QuotedPrintableEncoder::encode(const unsigned char* pSrc,
-																  size_t nSrcLen)
+bool qs::QuotedPrintableEncoder::encodeImpl(InputStream* pInputStream,
+											OutputStream* pOutputStream)
 {
-	assert(pSrc);
-	
-	malloc_ptr<unsigned char> pDst(static_cast<unsigned char*>(malloc(nSrcLen)));
-	if (!pDst.get())
-		return malloc_size_ptr<unsigned char>();
-	unsigned char* pDstEnd = pDst.get() + nSrcLen;
-	unsigned char* p = pDst.get();
 	malloc_ptr<unsigned char> pSpace;
 	size_t nSpaceBufSize = 0;
 	size_t nSpaceLen = 0;
 	int nLine = 0;
-	for (size_t n = 0; n < nSrcLen; ++n) {
-		if (static_cast<size_t>(pDstEnd - p) < (1 + nSpaceLen)*3 + 10) {
-			size_t nNewSize = (pDstEnd - pDst.get())*2;
-			malloc_ptr<unsigned char> pNew(static_cast<unsigned char*>(
-				realloc(pDst.get(), nNewSize)));
-			if (!pNew.get())
-				return malloc_size_ptr<unsigned char>();
-			pDstEnd = pNew.get() + nNewSize;
-			p = pNew.get() + (p - pDst.get());
-			pDst.release();
-			pDst = pNew;
-		}
-		
+	while (true) {
 		if (nLine + nSpaceLen*3 >= 72) {
-			assert(pDstEnd - p >= 3);
-			memcpy(p, "=\n", 3);
-			p += 3;
+			if (pOutputStream->write(reinterpret_cast<unsigned char*>("=\n"), 3) != 3)
+				return false;
 			nLine = 0;
 		}
 		
-		unsigned char c = pSrc[n];
+		unsigned char c = 0;
+		size_t nRead = pInputStream->read(&c, 1);
+		if (nRead == -1)
+			return false;
+		else if (nRead == 0)
+			break;
+		
 		if ((33 <= c && c <= 60) || (62 <= c && c <= 126)) {
 			if (nSpaceLen != 0) {
-				assert(static_cast<size_t>(pDstEnd - p) >= nSpaceLen);
-				memcpy(p, pSpace.get(), nSpaceLen);
-				p += nSpaceLen;
+				if (pOutputStream->write(pSpace.get(), nSpaceLen) != nSpaceLen)
+					return false;
 				nLine += nSpaceLen;
 				nSpaceLen = 0;
 			}
-			assert(pDstEnd - p >= 1);
-			*p++ = c;
+			if (pOutputStream->write(&c, 1) != 1)
+				return false;
 			++nLine;
 		}
 		else if ((!bQ_ && c == '\t') || c == ' ') {
 			if (bQ_) {
 				assert(c == ' ');
-				assert(pDstEnd - p >= 1);
-				*p++ = '_';
+				unsigned char cEncode = '_';
+				if (pOutputStream->write(&cEncode, 1) != 1)
+					return false;
 			}
 			else {
 				if (nSpaceLen == nSpaceBufSize) {
@@ -443,9 +524,9 @@ malloc_size_ptr<unsigned char> qs::QuotedPrintableEncoder::encode(const unsigned
 					malloc_ptr<unsigned char> pNew(static_cast<unsigned char*>(
 						realloc(pSpace.get(), nSpaceBufSize)));
 					if (!pNew.get())
-						return malloc_size_ptr<unsigned char>();
+						return false;
 					pSpace.release();
-					pSpace =  pNew;
+					pSpace = pNew;
 				}
 				*(pSpace.get() + nSpaceLen++) = c;
 			}
@@ -454,89 +535,125 @@ malloc_size_ptr<unsigned char> qs::QuotedPrintableEncoder::encode(const unsigned
 		}
 		else if (c == '\n') {
 			if (nSpaceLen != 0) {
-				assert(static_cast<size_t>(pDstEnd - p) >= nSpaceLen*3);
 				for (size_t nSpace = 0; nSpace < nSpaceLen; ++nSpace) {
+					const unsigned char* p = 0;
 					if (pSpace[nSpace] == '\t')
-						memcpy(p, "=09", 3);
-					else if (pSpace[nSpace] = ' ')
-						memcpy(p, "=20", 3);
-					p += 3;
+						p = reinterpret_cast<const unsigned char*>("=09");
+					else
+						p = reinterpret_cast<const unsigned char*>("=20");
+					if (pOutputStream->write(p, 3) != 3)
+						return false;
 					nLine += 3;
 				}
 				nSpaceLen = 0;
 			}
-			assert(pDstEnd - p >= 1);
-			*p++ = c;
+			if (pOutputStream->write(&c, 1) != 1)
+				return false;
 			nLine = 0;
 		}
 		else {
 			if (nSpaceLen != 0) {
-				assert(static_cast<size_t>(pDstEnd - p) >= nSpaceLen);
-				memcpy(p, pSpace.get(), nSpaceLen);
-				p += nSpaceLen;
+				if (pOutputStream->write(pSpace.get(), nSpaceLen) != nSpaceLen)
+					return false;
 				nLine += nSpaceLen;
 				nSpaceLen = 0;
 			}
-			assert(pDstEnd - p >= 3);
-			sprintf(reinterpret_cast<char*>(p), "=%02X", c);
-			p += 3;
+			
+			unsigned char buf[3];
+			sprintf(reinterpret_cast<char*>(buf), "=%02X", c);
+			if (pOutputStream->write(buf, 3) != 3)
+				return false;
 			nLine += 3;
 		}
 	}
 	
-	return malloc_size_ptr<unsigned char>(pDst, p - pDst.get());
+	return true;
 }
 
-malloc_size_ptr<unsigned char> qs::QuotedPrintableEncoder::decode(const unsigned char* pSrc,
-																  size_t nSrcLen)
+bool qs::QuotedPrintableEncoder::decodeImpl(InputStream* pInputStream,
+											OutputStream* pOutputStream)
 {
-	assert(pSrc);
+	malloc_ptr<unsigned char> pPeek;
+	size_t nPeekBufSize = 0;
+	size_t nPeekLen = 0;
 	
-	malloc_ptr<unsigned char> pDst(static_cast<unsigned char*>(malloc(nSrcLen)));
-	if (!pDst.get())
-		return malloc_size_ptr<unsigned char>();
-	unsigned char* p = pDst.get();
-	
-	for (size_t n = 0; n < nSrcLen; ++n) {
-		unsigned char c = pSrc[n];
+	while (true) {
+		unsigned char c = 0;
+		if (nPeekLen == 0) {
+			size_t nRead = pInputStream->read(&c, 1);
+			if (nRead == -1)
+				return false;
+			else if (nRead == 0)
+				break;
+		}
+		else {
+			c = *pPeek.get();
+			--nPeekLen;
+			memmove(pPeek.get() + 1, pPeek.get(), nPeekLen);
+		}
+		
 		if (c == '=') {
-			if (n + 1 < nSrcLen && pSrc[n + 1] == '\n') {
-				++n;
+			unsigned char buf[2];
+			size_t nRead = pInputStream->read(buf, 2);
+			if (nRead == -1)
+				return false;
+			
+			size_t nCopy = 2;
+			if (nRead > 0 && buf[0] == '\n') {
+				nCopy = 1;
 			}
-			else if (n + 1 < nSrcLen && pSrc[n + 1] == '\r') {
-				if (n + 2 < nSrcLen && pSrc[n + 2] == '\n')
-					n += 2;
-				else
-					++n;
+			else if (nRead > 0 && buf[0] == '\r') {
+				nCopy = nRead > 1 && buf[1] == '\n' ? 0 : 1;
 			}
-			else if (n + 2 < nSrcLen) {
-				unsigned char b = 0;
-				for (int m = 0; m < 2; m++) {
-					unsigned char cTemp = pSrc[n + m + 1];
-					if ('0' <= cTemp && cTemp <= '9')
-						cTemp = cTemp - '0';
-					else if ('A' <= cTemp && cTemp <= 'F')
-						cTemp = cTemp - 'A' + 10;
-					else if ('a' <= cTemp && cTemp <= 'f')
-						cTemp = cTemp - 'a' + 10;
-					b += cTemp << (4*(1 - m));
-				}
-				*p++ = b;
-				n += 2;
+			else if (nRead > 1 &&
+				QuotedPrintableEncoderImpl::isEncodedChar(buf[0]) &&
+				QuotedPrintableEncoderImpl::isEncodedChar(buf[1])) {
+				unsigned char cDecode = QuotedPrintableEncoderImpl::decode(buf);
+				if (pOutputStream->write(&cDecode, 1) != 1)
+					return false;
+				nCopy = 0;
 			}
 			else {
-				*p++ = c;
+				if (pOutputStream->write(&c, 1) != 1)
+					return false;
+			}
+			
+			if (nCopy > 0) {
+				if (nPeekLen + nCopy > nPeekBufSize) {
+					nPeekBufSize = nPeekBufSize == 0 ? 10 : nPeekBufSize*2;
+					malloc_ptr<unsigned char> pNew(static_cast<unsigned char*>(
+						realloc(pPeek.get(), nPeekBufSize)));
+					if (!pNew.get())
+						return false;
+					pPeek.release();
+					pPeek = pNew;
+				}
+				memcpy(pPeek.get() + nPeekLen, buf, nCopy);
+				nPeekLen += nCopy;
 			}
 		}
 		else if (bQ_ && c == '_') {
-			*p++ = ' ';
+			unsigned char cDecode = ' ';
+			if (pOutputStream->write(&cDecode, 1) != 1)
+				return false;
 		}
 		else {
-			*p ++ = c;
+			if (pOutputStream->write(&c, 1) != 1)
+				return false;
 		}
 	}
 	
-	return malloc_size_ptr<unsigned char>(pDst, p - pDst.get());
+	return true;
+}
+
+size_t qs::QuotedPrintableEncoder::getEstimatedEncodeLen(size_t nLen)
+{
+	return nLen;
+}
+
+size_t qs::QuotedPrintableEncoder::getEstimatedDecodeLen(size_t nLen)
+{
+	return nLen;
 }
 
 
@@ -609,6 +726,9 @@ struct qs::UuencodeEncoderImpl
 								 const unsigned char* p);
 	static const unsigned char* find(const unsigned char* p,
 									 const char* pFind);
+	static size_t readLine(InputStream* pInputStream,
+						   malloc_ptr<unsigned char>* ppBuf,
+						   size_t* pnBufSize);
 };
 
 inline unsigned char qs::UuencodeEncoderImpl::decodeChar(unsigned char c)
@@ -630,11 +750,55 @@ inline unsigned char qs::UuencodeEncoderImpl::getChar(const unsigned char* pBegi
 	return p < pEnd ? *p : '`';
 }
 
-const unsigned char* qs::UuencodeEncoderImpl::find(const unsigned char* p,
-												   const char* pFind)
+inline const unsigned char* qs::UuencodeEncoderImpl::find(const unsigned char* p,
+														  const char* pFind)
 {
 	return reinterpret_cast<const unsigned char*>(strstr(
 		reinterpret_cast<const char*>(p), pFind));
+}
+
+inline size_t qs::UuencodeEncoderImpl::readLine(InputStream* pInputStream,
+												malloc_ptr<unsigned char>* ppBuf,
+												size_t* pnBufSize)
+{
+	unsigned char* p = ppBuf->get();
+	while (true) {
+		if (static_cast<size_t>(p - ppBuf->get()) >= *pnBufSize) {
+			*pnBufSize = *pnBufSize == 0 ? 80 : *pnBufSize*2;
+			malloc_ptr<unsigned char> pNew(static_cast<unsigned char*>(
+				realloc(ppBuf->get(), *pnBufSize)));
+			if (!pNew.get())
+				return -1;
+			p = pNew.get() + (p - ppBuf->get());
+			ppBuf->release();
+			*ppBuf = pNew;
+		}
+		
+		size_t nRead = pInputStream->read(p, 1);
+		if (nRead == -1)
+			return -1;
+		else if (nRead == 0)
+			return p == ppBuf->get() ? -1 : 0;
+		
+		if (*p == '\r') {
+			while (true) {
+				nRead = pInputStream->read(p + 1, 1);
+				if (nRead != 1)
+					return -1;
+				else if (*(p + 1) != '\r')
+					break;
+				++p;
+			}
+			if (*(p + 1) == '\n')
+				break;
+			else
+				p += 2;
+		}
+		else {
+			++p;
+		}
+	}
+	return p - ppBuf->get();
 }
 
 
@@ -652,90 +816,96 @@ qs::UuencodeEncoder::~UuencodeEncoder()
 {
 }
 
-malloc_size_ptr<unsigned char> qs::UuencodeEncoder::encode(const unsigned char* pSrc,
-														   size_t nSrcLen)
+bool qs::UuencodeEncoder::encodeImpl(InputStream* pInputStream,
+									 OutputStream* pOutputStream)
 {
-	assert(false);
-	return malloc_size_ptr<unsigned char>();
+	return false;
 }
 
-malloc_size_ptr<unsigned char> qs::UuencodeEncoder::decode(const unsigned char* pSrc,
-														   size_t nSrcLen)
+bool qs::UuencodeEncoder::decodeImpl(InputStream* pInputStream,
+									 OutputStream* pOutputStream)
 {
-	assert(pSrc);
+	malloc_ptr<unsigned char> pBuf;
+	size_t nBufSize = 0;
 	
-	const unsigned char* pBegin = pSrc;
-	const unsigned char* pEnd = UuencodeEncoderImpl::find(pBegin, "\r\n");
-	if (!pEnd)
-		return malloc_size_ptr<unsigned char>();
-	
-	while (pEnd && strncmp(reinterpret_cast<const char*>(pBegin), "begin ", 6) != 0) {
-		pBegin = pEnd + 2;
-		pEnd = UuencodeEncoderImpl::find(pBegin, "\r\n");
+	while (true) {
+		if (UuencodeEncoderImpl::readLine(pInputStream, &pBuf, &nBufSize) == -1)
+			return false;
+		if (strncmp(reinterpret_cast<char*>(pBuf.get()), "begin ", 6) == 0)
+			break;
 	}
-	if (!pEnd)
-		return malloc_size_ptr<unsigned char>();
 	
-	pBegin = pEnd + 2;
-	pEnd = UuencodeEncoderImpl::find(pBegin, "\r\n");
-	if (!pEnd)
-		return malloc_size_ptr<unsigned char>();
-	
-	size_t nLen = (nSrcLen/4 + (nSrcLen % 4 ? 1 : 0))*3;
-	malloc_ptr<unsigned char> pDst(static_cast<unsigned char*>(malloc(nLen)));
-	if (!pDst.get())
-		return malloc_size_ptr<unsigned char>();
-	
-	unsigned char* p = pDst.get();
-	bool bEnd = false;
-	while (pEnd && !bEnd) {
-		if (!UuencodeEncoderImpl::checkChar(*pBegin))
-			return malloc_size_ptr<unsigned char>();
+	while (true) {
+		size_t nRead = UuencodeEncoderImpl::readLine(pInputStream, &pBuf, &nBufSize);
+		if (nRead == -1)
+			return false;
+		else if (nRead == 0)
+			continue;
 		
-		int nLen = UuencodeEncoderImpl::decodeChar(*pBegin);
-		bEnd = nLen == 0;
-		if (nLen != 0) {
-			int nLineLen = (nLen/3 + (nLen % 3 ? 1 : 0))*4;
-			if (pEnd - pBegin - 1 <= nLineLen - 4 || nLineLen < pEnd - pBegin - 1)
-				return malloc_size_ptr<unsigned char>();
-			
-			for (++pBegin; pBegin < pEnd; pBegin += 4) {
-				char c[4] = {
-					UuencodeEncoderImpl::getChar(pBegin, pEnd, pBegin),
-					UuencodeEncoderImpl::getChar(pBegin, pEnd, pBegin + 1),
-					UuencodeEncoderImpl::getChar(pBegin, pEnd, pBegin + 2),
-					UuencodeEncoderImpl::getChar(pBegin, pEnd, pBegin + 3)
-				};
-				if (!UuencodeEncoderImpl::checkChar(c[0]) ||
-					!UuencodeEncoderImpl::checkChar(c[1]) ||
-					!UuencodeEncoderImpl::checkChar(c[2]) ||
-					!UuencodeEncoderImpl::checkChar(c[3]))
-					return malloc_size_ptr<unsigned char>();
-				unsigned long nDecode =
-					static_cast<unsigned long>(UuencodeEncoderImpl::decodeChar(c[0]) << 18) +
-					static_cast<unsigned long>(UuencodeEncoderImpl::decodeChar(c[1]) << 12) +
-					static_cast<unsigned long>(UuencodeEncoderImpl::decodeChar(c[2]) << 6) +
-					static_cast<unsigned long>(UuencodeEncoderImpl::decodeChar(c[3]));
-				if (nLen-- > 0)
-					*p++ = static_cast<unsigned char>((nDecode >> 16) & 0xff);
-				if (nLen-- > 0)
-					*p++ = static_cast<unsigned char>((nDecode >> 8) & 0xff);
-				if (nLen-- > 0)
-					*p++ = static_cast<unsigned char>(nDecode & 0xff);
+		if (!UuencodeEncoderImpl::checkChar(*pBuf.get()))
+			return false;
+		
+		int nLen = UuencodeEncoderImpl::decodeChar(*pBuf.get());
+		if (nLen == 0)
+			break;
+		
+		int nLineLen = (nLen/3 + (nLen % 3 ? 1 : 0))*4;
+		if (static_cast<int>(nRead) - 1 <= nLineLen - 4 || nLineLen < static_cast<int>(nRead) - 1)
+			return false;
+		
+		const unsigned char* pEnd = pBuf.get() + nRead;
+		for (const unsigned char* p = pBuf.get() + 1; p < pEnd; p += 4) {
+			char c[4] = {
+				UuencodeEncoderImpl::getChar(p, pEnd, p),
+				UuencodeEncoderImpl::getChar(p, pEnd, p + 1),
+				UuencodeEncoderImpl::getChar(p, pEnd, p + 2),
+				UuencodeEncoderImpl::getChar(p, pEnd, p + 3)
+			};
+			if (!UuencodeEncoderImpl::checkChar(c[0]) ||
+				!UuencodeEncoderImpl::checkChar(c[1]) ||
+				!UuencodeEncoderImpl::checkChar(c[2]) ||
+				!UuencodeEncoderImpl::checkChar(c[3]))
+				return false;
+			unsigned long nDecode =
+				static_cast<unsigned long>(UuencodeEncoderImpl::decodeChar(c[0]) << 18) +
+				static_cast<unsigned long>(UuencodeEncoderImpl::decodeChar(c[1]) << 12) +
+				static_cast<unsigned long>(UuencodeEncoderImpl::decodeChar(c[2]) << 6) +
+				static_cast<unsigned long>(UuencodeEncoderImpl::decodeChar(c[3]));
+			if (nLen-- > 0) {
+				unsigned char c = static_cast<unsigned char>((nDecode >> 16) & 0xff);
+				if (pOutputStream->write(&c, 1) != 1)
+					return false;
+			}
+			if (nLen-- > 0) {
+				unsigned char c = static_cast<unsigned char>((nDecode >> 8) & 0xff);
+				if (pOutputStream->write(&c, 1) != 1)
+					return false;
+			}
+			if (nLen-- > 0) {
+				unsigned char c = static_cast<unsigned char>(nDecode & 0xff);
+				if (pOutputStream->write(&c, 1) != 1)
+					return false;
 			}
 		}
-		pBegin = pEnd + 2;
-		pEnd = UuencodeEncoderImpl::find(pBegin, "\r\n");
 	}
 	
-	while (strncmp(reinterpret_cast<const char*>(pBegin), "end", 3) != 0) {
-		if (!pEnd)
-			return malloc_size_ptr<unsigned char>();
-		pBegin = pEnd + 2;
-		pEnd = UuencodeEncoderImpl::find(pBegin, "\r\n");
+	while (strncmp(reinterpret_cast<const char*>(pBuf.get()), "end", 3) != 0) {
+		size_t nRead = UuencodeEncoderImpl::readLine(pInputStream, &pBuf, &nBufSize);
+		if (nRead == -1)
+			return false;
 	}
 	
-	return malloc_size_ptr<unsigned char>(pDst, p - pDst.get());
+	return true;
+}
+
+size_t qs::UuencodeEncoder::getEstimatedEncodeLen(size_t nLen)
+{
+	return 0;
+}
+
+size_t qs::UuencodeEncoder::getEstimatedDecodeLen(size_t nLen)
+{
+	return (nLen/4 + (nLen % 4 ? 1 : 0))*3;
 }
 
 

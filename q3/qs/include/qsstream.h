@@ -21,6 +21,7 @@ class InputStream;
 class OutputStream;
 	class FileOutputStream;
 	class ByteOutputStream;
+	class XStringOutputStream;
 	class BufferedOutputStream;
 class Reader;
 	class InputStreamReader;
@@ -311,11 +312,20 @@ public:
 	malloc_ptr<unsigned char> releaseBuffer();
 	
 	/**
+	 * Release buffer.
+	 *
+	 * @return Buffer
+	 */
+	malloc_size_ptr<unsigned char> releaseSizeBuffer();
+	
+	/**
 	 * Get buffer size.
 	 *
 	 * @return Buffer size.
 	 */
 	size_t getLength() const;
+	
+	bool reserve(size_t nLength);
 
 public:
 	virtual bool close();
@@ -329,6 +339,37 @@ private:
 
 private:
 	struct ByteOutputStreamImpl* pImpl_;
+};
+
+
+/****************************************************************************
+ *
+ * XStringOutputStream
+ *
+ */
+
+class QSEXPORTCLASS XStringOutputStream : public OutputStream
+{
+public:
+	XStringOutputStream();
+	virtual ~XStringOutputStream();
+
+public:
+	xstring_ptr getXString();
+	bool reserve(size_t nLength);
+
+public:
+	virtual bool close();
+	virtual size_t write(const unsigned char* p,
+						 size_t nWrite);
+	virtual bool flush();
+
+private:
+	XStringOutputStream(const XStringOutputStream&);
+	XStringOutputStream& operator=(const XStringOutputStream&);
+
+private:
+	ByteOutputStream stream_;
 };
 
 

@@ -11,6 +11,7 @@
 
 #include <qs.h>
 #include <qsstl.h>
+#include <qsstream.h>
 
 
 namespace qs {
@@ -30,24 +31,38 @@ public:
 	/**
 	 * Encode the specified buffer.
 	 *
-	 * @param pSrc [in] Buffer.
-	 * @param nSrcLen [in] Buffer length.
+	 * @param p [in] Buffer.
+	 * @param nLen [in] Buffer length.
 	 * @return Encoded buffer. null if failed.
 	 */
-	virtual malloc_size_ptr<unsigned char> encode(const unsigned char* pSrc,
-												  size_t nSrcLen)
-												  QNOTHROW() = 0;
+	malloc_size_ptr<unsigned char> encode(const unsigned char* p,
+										  size_t nLen)
+										  QNOTHROW();
 	
 	/**
 	 * Decode the specified buffer.
 	 *
-	 * @param pSrc [in] Buffer.
-	 * @param nSrcLen [in] Buffer length.
+	 * @param p [in] Buffer.
+	 * @param nLen [in] Buffer length.
 	 * @return Decoded buffer. null if failed.
 	 */
-	virtual malloc_size_ptr<unsigned char> decode(const unsigned char* pSrc,
-												  size_t nSrcLen)
-												  QNOTHROW() = 0;
+	malloc_size_ptr<unsigned char> decode(const unsigned char* p,
+										  size_t nLen)
+										  QNOTHROW();
+	
+	bool encode(InputStream* pInputStream,
+				OutputStream* pOutputStream);
+	
+	bool decode(InputStream* pInputStream,
+				OutputStream* pOutputStream);
+
+protected:
+	virtual bool encodeImpl(InputStream* pInputStream,
+							OutputStream* pOutputStream) = 0;
+	virtual bool decodeImpl(InputStream* pInputStream,
+							OutputStream* pOutputStream) = 0;
+	virtual size_t getEstimatedEncodeLen(size_t nLen) = 0;
+	virtual size_t getEstimatedDecodeLen(size_t nLen) = 0;
 };
 
 
@@ -137,14 +152,6 @@ public:
 	virtual ~Base64Encoder();
 
 public:
-	virtual malloc_size_ptr<unsigned char> encode(const unsigned char* pSrc,
-												  size_t nSrcLen)
-												  QNOTHROW();
-	virtual malloc_size_ptr<unsigned char> decode(const unsigned char* pSrc,
-												  size_t nSrcLen)
-												  QNOTHROW();
-
-public:
 	/**
 	 * Encode. Sufficient buffer must be allocated.
 	 *
@@ -154,13 +161,21 @@ public:
 	 * @param pDst [in] Buffer that decoded result to be written.
 	 * @param pnDstLen [out] Writte size.
 	 */
-	static void encode(const unsigned char* pSrc,
-					   size_t nSrcLen,
-					   bool bFold,
-					   unsigned char* pDst,
-					   size_t* pnDstLen);
+	static void encodeBuffer(const unsigned char* pSrc,
+							 size_t nSrcLen,
+							 bool bFold,
+							 unsigned char* pDst,
+							 size_t* pnDstLen);
 	
 	static bool isEncodedChar(CHAR c);
+
+protected:
+	virtual bool encodeImpl(InputStream* pInputStream,
+							OutputStream* pOutputStream);
+	virtual bool decodeImpl(InputStream* pInputStream,
+							OutputStream* pOutputStream);
+	virtual size_t getEstimatedEncodeLen(size_t nLen);
+	virtual size_t getEstimatedDecodeLen(size_t nLen);
 
 private:
 	Base64Encoder(const Base64Encoder&);
@@ -227,13 +242,13 @@ public:
 	explicit QuotedPrintableEncoder(bool bQ);
 	virtual ~QuotedPrintableEncoder();
 
-public:
-	virtual malloc_size_ptr<unsigned char> encode(const unsigned char* pSrc,
-												  size_t nSrcLen)
-												  QNOTHROW();
-	virtual malloc_size_ptr<unsigned char> decode(const unsigned char* pSrc,
-												  size_t nSrcLen)
-												  QNOTHROW();
+protected:
+	virtual bool encodeImpl(InputStream* pInputStream,
+							OutputStream* pOutputStream);
+	virtual bool decodeImpl(InputStream* pInputStream,
+							OutputStream* pOutputStream);
+	virtual size_t getEstimatedEncodeLen(size_t nLen);
+	virtual size_t getEstimatedDecodeLen(size_t nLen);
 
 private:
 	QuotedPrintableEncoder(const QuotedPrintableEncoder&);
@@ -300,13 +315,13 @@ public:
 	UuencodeEncoder();
 	virtual ~UuencodeEncoder();
 
-public:
-	virtual malloc_size_ptr<unsigned char> encode(const unsigned char* pSrc,
-												  size_t nSrcLen)
-												  QNOTHROW();
-	virtual malloc_size_ptr<unsigned char> decode(const unsigned char* pSrc,
-												  size_t nSrcLen)
-												  QNOTHROW();
+protected:
+	virtual bool encodeImpl(InputStream* pInputStream,
+							OutputStream* pOutputStream);
+	virtual bool decodeImpl(InputStream* pInputStream,
+							OutputStream* pOutputStream);
+	virtual size_t getEstimatedEncodeLen(size_t nLen);
+	virtual size_t getEstimatedDecodeLen(size_t nLen);
 
 private:
 	UuencodeEncoder(const UuencodeEncoder&);

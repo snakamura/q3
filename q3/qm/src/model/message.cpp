@@ -774,26 +774,15 @@ std::auto_ptr<Part> qm::MessageCreator::createPartFromFile(const WCHAR* pwszPath
 	if (!stream)
 		return 0;
 	BufferedInputStream bufferedStream(&stream, false);
-	XStringBuffer<XSTRING> buf;
-	if (!buf.reserve(nSize/3*4 + 20))
-		return 0;
-	unsigned char b[48];
-	unsigned char e[64];
-	while (true) {
-		size_t nLen = bufferedStream.read(b, countof(b));
-		if (nLen == -1)
-			return 0;
-		else if (nLen == 0)
-			break;
-		
-		size_t nEncodedLen = 0;
-		Base64Encoder::encode(b, nLen, false, e, &nEncodedLen);
-		if (!buf.append(reinterpret_cast<CHAR*>(e), nEncodedLen) ||
-			!buf.append("\r\n"))
-			return 0;
-	}
 	
-	pPart->setBody(buf.getXString());
+	Base64Encoder encoder(true);
+	XStringOutputStream outputStream;
+	if (!outputStream.reserve((nSize/3 + 1)*4 + nSize/45*2))
+		return 0;
+	if (!encoder.encode(&bufferedStream, &outputStream))
+		return 0;
+	
+	pPart->setBody(outputStream.getXString());
 	
 	return pPart;
 }
@@ -1806,13 +1795,8 @@ AttachmentParser::Result qm::AttachmentParser::detach(const WCHAR* pwszDir,
 	size_t nLen = strlen(pBody);
 	const unsigned char* p = reinterpret_cast<const unsigned char*>(pBody);
 	if (pEncoder.get()) {
-		// TODO
-		// Divide into some blocks? But how? Dividing at new lines is OK?
-		// Or change decoder to be able to write to a stream directly.
-		malloc_size_ptr<unsigned char> pDecode(pEncoder->decode(p, nLen));
-		if (!pDecode.get())
-			return RESULT_FAIL;
-		if (bufferedStream.write(pDecode.get(), pDecode.size()) != pDecode.size())
+		ByteInputStream inputStream(p, nLen, false);
+		if (!pEncoder->decode(&inputStream, &bufferedStream))
 			return RESULT_FAIL;
 	}
 	else {
