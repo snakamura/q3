@@ -481,6 +481,7 @@ REVISION				= $(shell cat revision)
 NVERSION				= $(shell cat version | tr '.' ','),$(REVISION)
 SVERSION				= $(shell cat version | sed -e 's/\./, /g'), $(REVISION)
 RCDEFINES				= -DNVERSION="$(NVERSION)" -DSVERSION="\"$(SVERSION)\"" -DSUFFIX="\"$(SUFFIX)\""
+RCDEFINES				+= $(CPROJS)
 
 RCHEADER				= $(dir $(subst $(OBJDIR), $(SRCDIR), $(RESES)))resource$(shell echo $(RESES) | sed -e 's/\(.*\($(BASEPLATFORM)\)\|.*\)\.res/\2/').h
 
