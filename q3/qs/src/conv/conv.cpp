@@ -500,6 +500,7 @@ QSTATUS qs::UTF7Converter::encode(const WCHAR* pwsz, size_t* pnLen,
 				}
 				free(pEncoded);
 				*p++ = cOut;
+				pEncodeBegin = 0;
 			}
 		}
 		if (!pEncodeBegin && pSrc != pSrcEnd) {
