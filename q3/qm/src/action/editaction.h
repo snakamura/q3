@@ -391,7 +391,14 @@ private:
 class EditFileSendAction : public qs::AbstractAction
 {
 public:
-	EditFileSendAction(bool bDraft,
+	enum Type {
+		TYPE_SEND,
+		TYPE_DRAFT,
+		TYPE_DRAFTCLOSE
+	};
+
+public:
+	EditFileSendAction(Type type,
 					   Document* pDocument,
 					   EditMessageHolder* pEditMessageHolder,
 					   EditFrameWindow* pEditFrameWindow,
@@ -415,7 +422,7 @@ private:
 
 private:
 	MessageComposer composer_;
-	bool bDraft_;
+	Type type_;
 	EditMessageHolder* pEditMessageHolder_;
 	EditFrameWindow* pEditFrameWindow_;
 	Document* pDocument_;

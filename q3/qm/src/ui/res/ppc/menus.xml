@@ -193,6 +193,7 @@
 			<menuitem text="Send" action="FileSend"/>
 			<menuitem text="Send Now" action="FileSendNow"/>
 			<menuitem text="Save as Draft" action="FileDraft"/>
+			<menuitem text="Save as Draft, Close" action="FileDraftClose"/>
 			<separator/>
 			<menuitem text="Open..." action="FileOpen"/>
 			<menuitem text="Save..." action="FileSave"/>

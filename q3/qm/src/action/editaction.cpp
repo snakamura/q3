@@ -699,14 +699,14 @@ bool qm::EditFileSaveAction::save(const WCHAR* pwszPath)
  *
  */
 
-qm::EditFileSendAction::EditFileSendAction(bool bDraft,
+qm::EditFileSendAction::EditFileSendAction(Type type,
 										   Document* pDocument,
 										   EditMessageHolder* pEditMessageHolder,
 										   EditFrameWindow* pEditFrameWindow,
 										   Profile* pProfile,
 										   SecurityModel* pSecurityModel) :
-	composer_(bDraft, pDocument, pProfile, pEditFrameWindow->getHandle(), 0, pSecurityModel),
-	bDraft_(bDraft),
+	composer_(type != TYPE_SEND, pDocument, pProfile, pEditFrameWindow->getHandle(), 0, pSecurityModel),
+	type_(type),
 	pEditMessageHolder_(pEditMessageHolder),
 	pEditFrameWindow_(pEditFrameWindow),
 	pDocument_(pDocument),
@@ -723,7 +723,7 @@ qm::EditFileSendAction::EditFileSendAction(Document* pDocument,
 										   SyncDialogManager* pSyncDialogManager,
 										   SecurityModel* pSecurityModel) :
 	composer_(false, pDocument, pProfile, pEditFrameWindow->getHandle(), 0, pSecurityModel),
-	bDraft_(false),
+	type_(TYPE_SEND),
 	pEditMessageHolder_(pEditMessageHolder),
 	pEditFrameWindow_(pEditFrameWindow),
 	pDocument_(pDocument),
@@ -739,7 +739,7 @@ qm::EditFileSendAction::~EditFileSendAction()
 void qm::EditFileSendAction::invoke(const ActionEvent& event)
 {
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
-	std::auto_ptr<Message> pMessage(pEditMessage->getMessage(!bDraft_));
+	std::auto_ptr<Message> pMessage(pEditMessage->getMessage(type_ == TYPE_SEND));
 	if (!pMessage.get()) {
 		ActionUtil::error(pEditFrameWindow_->getHandle(), IDS_ERROR_SEND);
 		return;
@@ -783,7 +783,7 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
 		}
 	}
 	
-	if (bDraft_) {
+	if (type_ != TYPE_SEND) {
 		MessagePtrLock mpl(ptr);
 		if (mpl) {
 			wstring_ptr wstrURI(URI(mpl).toString());
@@ -791,9 +791,8 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
 		}
 		pEditMessage->removeField(L"X-QMAIL-DraftMacro");
 	}
-	else {
+	if (type_ == TYPE_SEND || type_ == TYPE_DRAFTCLOSE)
 		pEditFrameWindow_->close();
-	}
 }
 
 

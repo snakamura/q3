@@ -45,6 +45,7 @@ const qs::ActionItem menuItems[] = {
 	{ L"FileClose",					IDM_FILE_CLOSE					},
 	{ L"FileCompact",				IDM_FILE_COMPACT				},
 	{ L"FileDraft",					IDM_FILE_DRAFT					},
+	{ L"FileDraftClose",			IDM_FILE_DRAFTCLOSE				},
 	{ L"FileDump",					IDM_FILE_DUMP					},
 	{ L"FileExit",					IDM_FILE_EXIT					},
 	{ L"FileExport",				IDM_FILE_EXPORT					},

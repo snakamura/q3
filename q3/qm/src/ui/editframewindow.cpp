@@ -223,7 +223,15 @@ void qm::EditFrameWindowImpl::initActions()
 #endif
 	ADD_ACTION6(EditFileSendAction,
 		IDM_FILE_DRAFT,
-		true,
+		EditFileSendAction::TYPE_DRAFT,
+		pDocument_,
+		pEditWindow_->getEditMessageHolder(),
+		pThis_,
+		pProfile_,
+		pSecurityModel_);
+	ADD_ACTION6(EditFileSendAction,
+		IDM_FILE_DRAFTCLOSE,
+		EditFileSendAction::TYPE_DRAFTCLOSE,
 		pDocument_,
 		pEditWindow_->getEditMessageHolder(),
 		pThis_,
@@ -242,7 +250,7 @@ void qm::EditFrameWindowImpl::initActions()
 		pThis_->getHandle());
 	ADD_ACTION6(EditFileSendAction,
 		IDM_FILE_SEND,
-		false,
+		EditFileSendAction::TYPE_SEND,
 		pDocument_,
 		pEditWindow_->getEditMessageHolder(),
 		pThis_,
