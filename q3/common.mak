@@ -8,26 +8,26 @@
 #     clean.win
 #     clean.wce
 
-BINDIR					= d:/util/cygwin/bin
+BINDIR					= C:/cygwin/bin
 VS6DIR					= d:/dev/msvs
 VC6DIR					= d:/dev/msvs/vc98
-VS7DIR					= c:/Program Files/Microsoft Visual Studio .NET 2003
-VC7DIR					= d:/dev/msvs2003/vc7
-EVCDIR					= d:/dev/msevc4/evc
+VS7DIR					= C:/Program Files/Microsoft Visual Studio .NET 2003
+VC7DIR					= C:/Program Files/Microsoft Visual Studio .NET 2003/Vc7
+EVCDIR					= C:/Program Files/Microsoft eMbedded C++ 4.0/EVC
 EVC4					= 1
-PLATFORMSDKDIR			= d:/dev/mssdk
-CESDKPPC2003JADIR		= d:/dev/msevc4/wce420/pocket pc 2003
-CESDKPPC2003ENDIR		= d:/dev/msevc4/wce420/pocket pc 2003
-CESDKSIGIIIDIR			= d:/dev/msevc4/wce410/sigmarioniii sdk
-CESDKPPC2002JADIR		= d:/dev/msevt/wce300/pocket pc 2002
-CESDKPPC2002ENDIR		= d:/dev/msevt/wce300/pocket pc 2002
-CESDKHPC2000JADIR		= d:/dev/msevt/wce300/hpc2000
-CESDKHPC2000ENDIR		= d:/dev/msevt/wce300/hpc2000
-CESDKPPCJADIR			= d:/dev/msevt/wce300/ms pocket pc
-CESDKPPCENDIR			= d:/dev/msevt/wce300/ms pocket pc
-CESDKHPCPROJADIR		= d:/dev/msevt/wce211/ms hpc pro
-CESDKHPCPROENDIR		= d:/dev/msevt/wce211/ms hpc pro
-SVNDIR					= d:/dev/subversion
+PLATFORMSDKDIR			= C:/Program Files/Microsoft SDK
+CESDKPPC2003JADIR		= C:/Program Files/Windows CE Tools/wce420/POCKET PC 2003
+CESDKPPC2003ENDIR		= C:/Program Files/Windows CE Tools/wce420/POCKET PC 2003
+CESDKSIGIIIDIR			= C:/Program Files/Windows CE Tools/wce410/sigmarionIII SDK
+CESDKPPC2002JADIR		= C:/Program Files/Windows CE Tools/wce300/pocket pc 2002
+CESDKPPC2002ENDIR		= C:/Program Files/Windows CE Tools/wce300/pocket pc 2002
+CESDKHPC2000JADIR		= C:/Program Files/Windows CE Tools/wce300/hpc2000
+CESDKHPC2000ENDIR		= C:/Program Files/Windows CE Tools/wce300/hpc2000
+CESDKPPCJADIR			= C:/Program Files/Windows CE Tools/wce300/ms pocket pc
+CESDKPPCENDIR			= C:/Program Files/Windows CE Tools/wce300/ms pocket pc
+CESDKHPCPROJADIR		= C:/Program Files/Windows CE Tools/wce211/ms hpc pro
+CESDKHPCPROENDIR		= C:/Program Files/Windows CE Tools/wce211/ms hpc pro
+SVNDIR					= C:/Program Files/subversion
 STLPORTDIR				= ../lib/stlport
 KCTRLDIR				= ../lib/kctrl
 
