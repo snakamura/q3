@@ -2429,7 +2429,7 @@ LRESULT qm::DetachDialog::onBrowse()
 {
 	DECLARE_QSTATUS();
 	
-	string_ptr<WSTRING> wstrFolder(allocWString(getDlgItemText(IDC_FOLDER)));
+	string_ptr<WSTRING> wstrFolder(getDlgItemText(IDC_FOLDER));
 	
 	string_ptr<WSTRING> wstrPath;
 	status = qs::UIUtil::browseFolder(getHandle(),
