@@ -265,6 +265,29 @@ LRESULT qm::OptionDialog::onOk()
 	}
 	
 	unsigned int nFlags = context.getFlags();
+	if (nFlags & OptionDialogContext::FLAG_RELOADFOLDER) {
+		pFolderWindow_->reloadProfiles();
+		pFolderComboBox_->reloadProfiles();
+	}
+	if (nFlags & OptionDialogContext::FLAG_RELOADLIST) {
+		pListWindow_->reloadProfiles();
+		pFolderListWindow_->reloadProfiles();
+	}
+	if (nFlags & OptionDialogContext::FLAG_RELOADMESSAGE)
+		pMessageFrameWindowManager_->reloadProfiles();
+	if (nFlags & OptionDialogContext::FLAG_RELOADPREVIEW)
+		pPreviewWindow_->reloadProfiles();
+	if (nFlags & OptionDialogContext::FLAG_RELOADEDIT)
+		pEditFrameWindowManager_->reloadProfiles();
+	if (nFlags & OptionDialogContext::FLAG_RELOADTAB)
+		pTabWindow_->reloadProfiles();
+	if (nFlags & OptionDialogContext::FLAG_RELOADADDRESSBOOK) {
+		pDocument_->getAddressBook()->reloadProfiles();
+		pAddressBookFrameWindowManager_->reloadProfiles();
+	}
+	if (nFlags & OptionDialogContext::FLAG_RELOADSECURITY)
+		pDocument_->getSecurity()->reload();
+	
 	if (nFlags & OptionDialogContext::FLAG_LAYOUTMAINWINDOW)
 		pMainWindow_->layout();
 	if (nFlags & OptionDialogContext::FLAG_LAYOUTMESSAGEWINDOW)
@@ -273,6 +296,7 @@ LRESULT qm::OptionDialog::onOk()
 		pEditFrameWindowManager_->layout();
 	
 	nEnd_ = IDOK;
+	
 	return 0;
 }
 
@@ -933,8 +957,7 @@ bool qm::OptionAddressBookDialog::save(OptionDialogContext* pContext)
 	
 	qs::UIUtil::setLogFontToProfile(pProfile_, L"AddressBookListWindow", lf_);
 	
-	pAddressBook_->reloadProfiles();
-	pAddressBookFrameWindowManager_->reloadProfiles();
+	pContext->setFlags(OptionDialogContext::FLAG_RELOADADDRESSBOOK);
 	
 	return true;
 }
@@ -1012,8 +1035,7 @@ bool qm::OptionFolderDialog::save(OptionDialogContext* pContext)
 		L"FolderComboBox", comboBoxBoolProperties__, countof(comboBoxBoolProperties__));
 	qs::UIUtil::setLogFontToProfile(pProfile_, L"FolderComboBox", lfComboBox_);
 	
-	pFolderWindow_->reloadProfiles();
-	pFolderComboBox_->reloadProfiles();
+	pContext->setFlags(OptionDialogContext::FLAG_RELOADFOLDER);
 	
 	return true;
 }
@@ -1071,10 +1093,9 @@ bool qm::OptionHeaderDialog::save(OptionDialogContext* pContext)
 {
 	qs::UIUtil::setLogFontToProfile(pProfile_, L"HeaderWindow", lf_);
 	
-	pMessageFrameWindowManager_->reloadProfiles();
-	pPreviewWindow_->reloadProfiles();
-	
-	pContext->setFlags(OptionDialogContext::FLAG_LAYOUTMAINWINDOW |
+	pContext->setFlags(OptionDialogContext::FLAG_RELOADMESSAGE |
+		OptionDialogContext::FLAG_RELOADPREVIEW |
+		OptionDialogContext::FLAG_LAYOUTMAINWINDOW |
 		OptionDialogContext::FLAG_LAYOUTMESSAGEWINDOW);
 	
 	return true;
@@ -1215,8 +1236,7 @@ bool qm::OptionListDialog::save(OptionDialogContext* pContext)
 	qs::UIUtil::setLogFontToProfile(pProfile_, L"ListWindow", lf_);
 	qs::UIUtil::setLogFontToProfile(pProfile_, L"FolderListWindow", lf_);
 	
-	pListWindow_->reloadProfiles();
-	pFolderListWindow_->reloadProfiles();
+	pContext->setFlags(OptionDialogContext::FLAG_RELOADLIST);
 	
 	return true;
 }
@@ -1448,7 +1468,7 @@ bool qm::OptionSecurityDialog::save(OptionDialogContext* pContext)
 	wstring_ptr wstrExtensions(getDlgItemText(IDC_WARNEXTENSION));
 	pProfile_->setString(L"Global", L"WarnExtensions", wstrExtensions.get());
 	
-	pSecurity_->reload();
+	pContext->setFlags(OptionDialogContext::FLAG_RELOADSECURITY);
 	
 	return true;
 }
@@ -1908,9 +1928,8 @@ bool qm::OptionEditDialog::save(OptionDialogContext* pContext)
 		L"EditWindow", boolProperties__, countof(boolProperties__));
 	qs::UIUtil::setLogFontToProfile(pProfile_, L"HeaderEditWindow", lfHeader_);
 	
-	pEditFrameWindowManager_->reloadProfiles();
-	
-	pContext->setFlags(OptionDialogContext::FLAG_LAYOUTEDITWINDOW);
+	pContext->setFlags(OptionDialogContext::FLAG_RELOADEDIT |
+		OptionDialogContext::FLAG_LAYOUTEDITWINDOW);
 	
 	return true;
 }
@@ -2121,7 +2140,7 @@ bool qm::OptionMessageDialog::save(OptionDialogContext* pContext)
 	if (!AbstractOptionTextDialog::save(pContext))
 		return false;
 	
-	pMessageFrameWindowManager_->reloadProfiles();
+	pContext->setFlags(OptionDialogContext::FLAG_RELOADMESSAGE);
 	
 	return true;
 }
@@ -2166,7 +2185,7 @@ bool qm::OptionPreviewDialog::save(OptionDialogContext* pContext)
 	DialogUtil::saveIntProperties(this, pProfile_,
 		L"PreviewWindow", intProperties__, countof(intProperties__));
 	
-	pPreviewWindow_->reloadProfiles();
+	pContext->setFlags(OptionDialogContext::FLAG_RELOADPREVIEW);
 	
 	return true;
 }
@@ -2238,7 +2257,7 @@ bool qm::OptionTabDialog::save(OptionDialogContext* pContext)
 	
 	qs::UIUtil::setLogFontToProfile(pProfile_, L"TabWindow", lf_);
 	
-	pTabWindow_->reloadProfiles();
+	pContext->setFlags(OptionDialogContext::FLAG_RELOADTAB);
 	
 	return true;
 }
