@@ -406,8 +406,8 @@ LRESULT qs::FrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 			CommandBar_AddAdornments(pImpl_->hwndBands_, 0, 0);
 #else // _WIN32_WCE
 			pImpl_->hwndBands_ = ::CreateToolbarEx(getHandle(),
-				WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS |
-				WS_CLIPCHILDREN | TBSTYLE_FLAT | CCS_TOP,
+				WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
+				TBSTYLE_FLAT | TBSTYLE_TOOLTIPS | CCS_TOP,
 				toolbar.nId_, toolbar.nBitmapCount_, pImpl_->hInstResource_,
 				toolbar.nBitmapId_, toolbar.ptbButton_, toolbar.nSize_,
 				16, 16, 16, 16, sizeof(TBBUTTON));

@@ -241,6 +241,7 @@ public:
 	std::auto_ptr<GoRoundMenu> pGoRoundMenu_;
 	std::auto_ptr<ScriptMenu> pScriptMenu_;
 	std::auto_ptr<DelayedFolderModelHandler> pDelayedFolderModelHandler_;
+	ToolbarCookie* pToolbarCookie_;
 	bool bCreated_;
 	int nInitialShow_;
 	bool bLayouting_;
@@ -1368,6 +1369,7 @@ qm::MainWindow::MainWindow(Profile* pProfile) :
 	pImpl_->pStatusBar_ = 0;
 	pImpl_->pSyncNotificationWindow_ = 0;
 	pImpl_->bCreated_ = false;
+	pImpl_->pToolbarCookie_ = 0;
 	pImpl_->nInitialShow_ = SW_SHOWNORMAL;
 	pImpl_->bLayouting_ = false;
 	pImpl_->nShowingModalDialog_ = 0;
@@ -1516,6 +1518,7 @@ void qm::MainWindow::processIdle()
 
 bool qm::MainWindow::getToolbarButtons(Toolbar* pToolbar)
 {
+	pToolbar->nId_ = MainWindowImpl::ID_TOOLBAR;
 	return true;
 }
 
@@ -1525,7 +1528,9 @@ bool qm::MainWindow::createToolbarButtons(void* pCreateParam,
 	MainWindowCreateContext* pContext =
 		static_cast<MainWindowCreateContext*>(pCreateParam);
 	UIManager* pUIManager = pContext->pUIManager_;
-	return pUIManager->getToolbarManager()->createToolbar(L"mainframe", hwndToolbar);
+	pImpl_->pToolbarCookie_ = pUIManager->getToolbarManager()->createButtons(
+		L"mainframe", hwndToolbar, this);
+	return pImpl_->pToolbarCookie_ != 0;
 }
 
 #if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
@@ -1903,6 +1908,8 @@ LRESULT qm::MainWindow::onDestroy()
 	pImpl_->pFolderModel_->removeFolderModelHandler(
 		pImpl_->pDelayedFolderModelHandler_.get());
 	pImpl_->pDocument_->removeDocumentHandler(pImpl_);
+	
+	pImpl_->pUIManager_->getToolbarManager()->destroy(pImpl_->pToolbarCookie_);
 	
 	::PostQuitMessage(0);
 	

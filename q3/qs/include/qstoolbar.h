@@ -15,8 +15,11 @@
 namespace qs {
 
 class ToolbarManager;
+class ToolbarCookie;
 
 struct ActionItem;
+class NotifyHandler;
+class WindowBase;
 
 
 /****************************************************************************
@@ -49,11 +52,14 @@ public:
 	 * Create toolbar.
 	 *
 	 * @param pwszName [in] Name of toolbar.
-	 * @param hwnd [in] Window handle of the parent window of toolbar.
-	 * @return true if success, false otherwise.
+	 * @param hwnd [in] Window handle of the toolbar.
+	 * @param pParent [in] WindowBase of the parent of the toolbar.
+	 * @return Cookie if success, null otherwise.
 	 */
-	bool createToolbar(const WCHAR* pwszName,
-					   HWND hwnd) const;
+	ToolbarCookie* createButtons(const WCHAR* pwszName,
+								 HWND hwnd,
+								 WindowBase* pParent) const;
+	void destroy(ToolbarCookie* pCookie) const;
 
 private:
 	ToolbarManager(const ToolbarManager&);
@@ -61,6 +67,52 @@ private:
 
 private:
 	struct ToolbarManagerImpl* pImpl_;
+};
+
+
+/****************************************************************************
+ *
+ * ToolbarCookie
+ *
+ */
+
+class ToolbarCookie
+{
+public:
+#ifdef _WIN32_WCE
+	typedef std::vector<const WCHAR*> ToolTipList;
+#endif
+
+public:
+#ifndef _WIN32_WCE
+	ToolbarCookie(const WCHAR* pwszName,
+				  WindowBase* pParent,
+				  std::auto_ptr<NotifyHandler> pNotifyHandler);
+#else
+	ToolbarCookie(const WCHAR* pwszName,
+				  ToolTipList& listToolTip);
+#endif
+	~ToolbarCookie();
+
+public:
+	const WCHAR* getName() const;
+#ifndef _WIN32_WCE
+	WindowBase* getParent() const;
+	NotifyHandler* getNotifyHandler() const;
+#endif
+
+private:
+	ToolbarCookie(const ToolbarCookie&);
+	ToolbarCookie& operator=(const ToolbarCookie&);
+
+private:
+	wstring_ptr wstrName_;
+#ifndef _WIN32_WCE
+	WindowBase* pParent_;
+	std::auto_ptr<NotifyHandler> pNotifyHandler_;
+#else
+	ToolTipList listToolTip_;
+#endif
 };
 
 }

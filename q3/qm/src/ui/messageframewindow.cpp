@@ -94,6 +94,7 @@ public:
 	MessageFrameWindowManager* pMessageFrameWindowManager_;
 	Profile* pProfile_;
 	Document* pDocument_;
+	UIManager* pUIManager_;
 	TempFileCleaner* pTempFileCleaner_;
 	ViewModelManager* pViewModelManager_;
 	std::auto_ptr<MessageMessageModel> pMessageModel_;
@@ -113,6 +114,7 @@ public:
 	std::auto_ptr<CreateTemplateMenu> pCreateTemplateExternalMenu_;
 	std::auto_ptr<EncodingMenu> pEncodingMenu_;
 	std::auto_ptr<ScriptMenu> pScriptMenu_;
+	ToolbarCookie* pToolbarCookie_;
 	wstring_ptr wstrTitle_;
 	bool bCreated_;
 	int nInitialShow_;
@@ -554,6 +556,7 @@ qm::MessageFrameWindow::MessageFrameWindow(MessageFrameWindowManager* pMessageFr
 	pImpl_->pMessageWindow_ = 0;
 	pImpl_->pStatusBar_ = 0;
 	pImpl_->pExternalEditorManager_ = 0;
+	pImpl_->pToolbarCookie_ = 0;
 	pImpl_->bCreated_ = false;
 	pImpl_->nInitialShow_ = SW_SHOWNORMAL;
 	pImpl_->bLayouting_ = false;
@@ -626,6 +629,7 @@ void qm::MessageFrameWindow::setShowStatusBar(bool bShow)
 
 bool qm::MessageFrameWindow::getToolbarButtons(Toolbar* pToolbar)
 {
+	pToolbar->nId_ = MessageFrameWindowImpl::ID_TOOLBAR;
 	return true;
 }
 
@@ -635,7 +639,9 @@ bool qm::MessageFrameWindow::createToolbarButtons(void* pCreateParam,
 	MessageFrameWindowCreateContext* pContext =
 		static_cast<MessageFrameWindowCreateContext*>(pCreateParam);
 	UIManager* pUIManager = pContext->pUIManager_;
-	return pUIManager->getToolbarManager()->createToolbar(L"messageframe", hwndToolbar);
+	pImpl_->pToolbarCookie_ = pUIManager->getToolbarManager()->createButtons(
+		L"messageframe", hwndToolbar, this);
+	return pImpl_->pToolbarCookie_ != 0;
 }
 
 #if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
@@ -768,6 +774,7 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	MessageFrameWindowCreateContext* pContext =
 		static_cast<MessageFrameWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pDocument_ = pContext->pDocument_;
+	pImpl_->pUIManager_ = pContext->pUIManager_;
 	pImpl_->pEditFrameWindowManager_ = pContext->pEditFrameWindowManager_;
 	pImpl_->pExternalEditorManager_ = pContext->pExternalEditorManager_;
 	pImpl_->pTempFileCleaner_ = pContext->pTempFileCleaner_;
@@ -830,6 +837,8 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 LRESULT qm::MessageFrameWindow::onDestroy()
 {
 	pImpl_->pMessageWindow_->removeMessageWindowHandler(pImpl_);
+	
+	pImpl_->pUIManager_->getToolbarManager()->destroy(pImpl_->pToolbarCookie_);
 	
 	return FrameWindow::onDestroy();
 }

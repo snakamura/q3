@@ -12,6 +12,7 @@
 #include <qssax.h>
 #include <qsstring.h>
 #include <qstoolbar.h>
+#include <qswindow.h>
 
 #include <vector>
 
@@ -23,6 +24,9 @@ class ToolbarItem;
 	class ToolbarButton;
 	class ToolbarSeparator;
 class ToolbarContentHandler;
+#ifndef _WIN32_WCE
+class ToolbarNotifyHandler;
+#endif
 
 
 /****************************************************************************
@@ -40,11 +44,14 @@ public:
 
 public:
 	const WCHAR* getName() const;
-	bool create(HWND hwnd,
-				HIMAGELIST hImageList) const;
+	ToolbarCookie* create(HWND hwnd,
+						  WindowBase* pParent,
+						  HIMAGELIST hImageList) const;
+	void destroy(ToolbarCookie* pCookie) const;
 
 public:
 	void add(std::auto_ptr<ToolbarItem> pItem);
+	const ToolbarItem* getItem(UINT nAction) const;
 
 private:
 	Toolbar(const Toolbar&);
@@ -77,6 +84,9 @@ public:
 public:
 	virtual bool create(HWND hwnd,
 						bool bShowText) = 0;
+	virtual UINT getAction() const = 0;
+	virtual const WCHAR* getToolTip() const = 0;
+	virtual bool isSeparator() const = 0;
 
 private:
 	ToolbarItem(const ToolbarItem&);
@@ -103,6 +113,9 @@ public:
 public:
 	virtual bool create(HWND hwnd,
 						bool bShowText);
+	virtual UINT getAction() const;
+	virtual const WCHAR* getToolTip() const;
+	virtual bool isSeparator() const;
 
 private:
 	ToolbarButton(const ToolbarButton&);
@@ -132,6 +145,9 @@ public:
 public:
 	virtual bool create(HWND hwnd,
 						bool bShowText);
+	virtual UINT getAction() const;
+	virtual const WCHAR* getToolTip() const;
+	virtual bool isSeparator() const;
 
 private:
 	ToolbarSeparator(const ToolbarSeparator&);
@@ -191,6 +207,41 @@ private:
 	State state_;
 	Toolbar* pToolbar_;
 };
+
+
+#ifndef _WIN32_WCE
+
+/****************************************************************************
+ *
+ * ToolbarNotifyHandler
+ *
+ */
+
+class ToolbarNotifyHandler : public NotifyHandler
+{
+public:
+	ToolbarNotifyHandler(const Toolbar* pToolbar,
+						 UINT nId);
+	virtual ~ToolbarNotifyHandler();
+
+public:
+	virtual LRESULT onNotify(NMHDR* pnmhdr,
+							 bool* pbHandled);
+
+private:
+	LRESULT onGetDispInfo(NMHDR* pnmhdr,
+						  bool* pbHandled);
+
+private:
+	ToolbarNotifyHandler(const ToolbarNotifyHandler&);
+	ToolbarNotifyHandler& operator=(const ToolbarNotifyHandler&);
+
+private:
+	const Toolbar* pToolbar_;
+	UINT nId_;
+};
+
+#endif // _WIN32_WCE
 
 }
 

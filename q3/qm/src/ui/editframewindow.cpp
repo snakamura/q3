@@ -72,6 +72,7 @@ public:
 	EditFrameWindowManager* pManager_;
 	Profile* pProfile_;
 	Document* pDocument_;
+	UIManager* pUIManager_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
 	EditWindow* pEditWindow_;
@@ -82,6 +83,7 @@ public:
 	std::auto_ptr<ActionInvoker> pActionInvoker_;
 	std::auto_ptr<FindReplaceManager> pFindReplaceManager_;
 	std::auto_ptr<ScriptMenu> pScriptMenu_;
+	ToolbarCookie* pToolbarCookie_;
 	bool bIme_;
 	bool bCreated_;
 	int nInitialShow_;
@@ -378,6 +380,7 @@ qm::EditFrameWindow::EditFrameWindow(EditFrameWindowManager* pManager,
 	pImpl_->pEditWindow_ = 0;
 	pImpl_->pStatusBar_ = 0;
 	pImpl_->pSecurityModel_ = 0;
+	pImpl_->pToolbarCookie_ = 0;
 	pImpl_->bIme_ = false;
 	pImpl_->bCreated_ = false;
 	pImpl_->nInitialShow_ = SW_SHOWNORMAL;
@@ -465,6 +468,7 @@ void qm::EditFrameWindow::setShowStatusBar(bool bShow)
 
 bool qm::EditFrameWindow::getToolbarButtons(Toolbar* pToolbar)
 {
+	pToolbar->nId_ = EditFrameWindowImpl::ID_TOOLBAR;
 	return true;
 }
 
@@ -474,7 +478,9 @@ bool qm::EditFrameWindow::createToolbarButtons(void* pCreateParam,
 	EditFrameWindowCreateContext* pContext =
 		static_cast<EditFrameWindowCreateContext*>(pCreateParam);
 	UIManager* pUIManager = pContext->pUIManager_;
-	return pUIManager->getToolbarManager()->createToolbar(L"editframe", hwndToolbar);
+	pImpl_->pToolbarCookie_ = pUIManager->getToolbarManager()->createButtons(
+		L"editframe", hwndToolbar, this);
+	return pImpl_->pToolbarCookie_ != 0;
 }
 
 #if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
@@ -611,6 +617,7 @@ LRESULT qm::EditFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	EditFrameWindowCreateContext* pContext =
 		static_cast<EditFrameWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pDocument_ = pContext->pDocument_;
+	pImpl_->pUIManager_ = pContext->pUIManager_;
 	pImpl_->pSyncManager_ = pContext->pSyncManager_;
 	pImpl_->pSyncDialogManager_ = pContext->pSyncDialogManager_;
 	pImpl_->pSecurityModel_ = pContext->pSecurityModel_;
@@ -656,6 +663,8 @@ LRESULT qm::EditFrameWindow::onDestroy()
 		L"ShowToolbar", pImpl_->bShowToolbar_);
 	pProfile->setInt(L"MessageFrameWindow",
 		L"ShowStatusBar", pImpl_->bShowStatusBar_);
+	
+	pImpl_->pUIManager_->getToolbarManager()->destroy(pImpl_->pToolbarCookie_);
 	
 	UIUtil::saveWindowPlacement(getHandle(), pProfile, L"EditFrameWindow");
 	
