@@ -1071,7 +1071,9 @@ void qm::AddressHeaderEditItem::getCandidates(const WCHAR* pwszInput,
 	const AddressBookEntry::AddressList& listAddress = pEntry->getAddresses();
 	for (AddressBookEntry::AddressList::const_iterator it = listAddress.begin(); it != listAddress.end(); ++it) {
 		const AddressBookAddress* pAddress = *it;
-		if (bMatchName || _wcsnicmp(pAddress->getAddress(), pwszInput, nLen) == 0) {
+		bool bMatchAddress = _wcsnicmp(pAddress->getAddress(), pwszInput, nLen) == 0;
+		if ((bMatchName || bMatchAddress) &&
+			(!pAddress->isRFC2822() || !bMatchAddress || wcslen(pAddress->getAddress()) != nLen)) {
 			wstring_ptr wstrValue(pAddress->getValue());
 			pList->push_back(wstrValue.get());
 			wstrValue.release();

@@ -357,7 +357,7 @@ private:
 
 class AddressHeaderEditItem :
 	public EditHeaderEditItem,
-	public AutoCompleteCallback
+	private AutoCompleteCallback
 {
 public:
 	enum Flag {
