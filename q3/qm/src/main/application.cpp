@@ -7,6 +7,7 @@
  */
 
 #include <qm.h>
+#include <qmaccount.h>
 #include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmextensions.h>
@@ -38,6 +39,7 @@
 #include "../model/tempfilecleaner.h"
 #include "../sync/syncmanager.h"
 #include "../ui/dialogs.h"
+#include "../ui/foldermodel.h"
 #include "../ui/mainwindow.h"
 #include "../ui/menu.h"
 #include "../ui/syncdialog.h"
@@ -57,6 +59,8 @@ struct qm::ApplicationImpl
 	QSTATUS ensureDirectory(const WCHAR* pwszPath, const WCHAR* pwszName);
 	QSTATUS ensureFile(const WCHAR* pwszPath, const WCHAR* pwszDir,
 		const WCHAR* pwszType, const WCHAR* pwszName, const WCHAR* pwszExtension);
+	QSTATUS restoreCurrentFolder();
+	QSTATUS saveCurrentFolder();
 	
 	HINSTANCE hInst_;
 	HINSTANCE hInstResource_;
@@ -158,6 +162,79 @@ QSTATUS ApplicationImpl::ensureFile(const WCHAR* pwszPath, const WCHAR* pwszDir,
 		status = stream.close();
 		CHECK_QSTATUS();
 	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::ApplicationImpl::restoreCurrentFolder()
+{
+	DECLARE_QSTATUS();
+	
+	string_ptr<WSTRING> wstrFolder;
+	status = pProfile_->getString(L"Global",
+		L"CurrentFolder", L"", &wstrFolder);
+	CHECK_QSTATUS();
+	
+	if (wcsncmp(wstrFolder.get(), L"//", 2) == 0) {
+		WCHAR* pwszFolder = wcschr(wstrFolder.get() + 2, L'/');
+		if (pwszFolder) {
+			*pwszFolder = L'\0';
+			++pwszFolder;
+		}
+		
+		Account* pAccount = pDocument_->getAccount(wstrFolder.get() + 2);
+		if (pAccount) {
+			FolderModel* pFolderModel = pMainWindow_->getFolderModel();
+			if (pwszFolder) {
+				Folder* pFolder = 0;
+				status = pAccount->getFolder(pwszFolder, &pFolder);
+				CHECK_QSTATUS();
+				if (pFolder) {
+					status = pFolderModel->setCurrentFolder(pFolder);
+					CHECK_QSTATUS();
+				}
+			}
+			else {
+				status = pFolderModel->setCurrentAccount(pAccount);
+				CHECK_QSTATUS();
+			}
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::ApplicationImpl::saveCurrentFolder()
+{
+	DECLARE_QSTATUS();
+	
+	StringBuffer<WSTRING> buf(&status);
+	CHECK_QSTATUS();
+	
+	FolderModel* pFolderModel = pMainWindow_->getFolderModel();
+	Account* pAccount = pFolderModel->getCurrentAccount();
+	Folder* pFolder = pFolderModel->getCurrentFolder();
+	if (!pAccount && pFolder)
+		pAccount = pFolder->getAccount();
+	if (pAccount) {
+		status = buf.append(L"//");
+		CHECK_QSTATUS();
+		status = buf.append(pAccount->getName());
+		CHECK_QSTATUS();
+		if (pFolder) {
+			status = buf.append(L'/');
+			CHECK_QSTATUS();
+			string_ptr<WSTRING> wstrFolder;
+			status = pFolder->getFullName(&wstrFolder);
+			CHECK_QSTATUS();
+			status = buf.append(wstrFolder.get());
+			CHECK_QSTATUS();
+		}
+	}
+	
+	status = pProfile_->setString(L"Global",
+		L"CurrentFolder", buf.getCharArray());
+	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
 }
@@ -439,7 +516,6 @@ QSTATUS qm::Application::initialize()
 	status = pImpl_->pDocument_->loadAccounts(wstrAccountFolder.get());
 	CHECK_QSTATUS();
 	
-//	pImpl_->pMainWindow_->showWindow(SW_SHOWNORMAL);
 	pImpl_->pMainWindow_->updateWindow();
 	if (bShowDialog)
 		pImpl_->pMainWindow_->setForegroundWindow();
@@ -451,6 +527,9 @@ QSTATUS qm::Application::initialize()
 		status = pImpl_->pDocument_->setOffline(false);
 		CHECK_QSTATUS();
 	}
+	
+	status = pImpl_->restoreCurrentFolder();
+	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
 }
@@ -572,6 +651,8 @@ QSTATUS qm::Application::save()
 	status = pImpl_->pMainWindow_->save();
 	CHECK_QSTATUS();
 	status = pImpl_->pSyncDialogManager_->save();
+	CHECK_QSTATUS();
+	status = pImpl_->saveCurrentFolder();
 	CHECK_QSTATUS();
 	status = pImpl_->pProfile_->save();
 	CHECK_QSTATUS();

@@ -1332,6 +1332,11 @@ QSTATUS qm::MainWindow::setShowPreviewWindow(bool bShow)
 	return status;
 }
 
+FolderModel* qm::MainWindow::getFolderModel() const
+{
+	return pImpl_->pFolderModel_;
+}
+
 const ActionInvoker* qm::MainWindow::getActionInvoker() const
 {
 	return pImpl_->pActionInvoker_;

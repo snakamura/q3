@@ -19,6 +19,11 @@
 
 namespace qm {
 
+class MainWindow;
+
+class FolderModel;
+
+
 /****************************************************************************
  *
  * MainWindow
@@ -41,6 +46,7 @@ public:
 	bool isShowPreviewWindow() const;
 	qs::QSTATUS setShowPreviewWindow(bool bShow);
 	
+	FolderModel* getFolderModel() const;
 	const ActionInvoker* getActionInvoker() const;
 	
 	qs::QSTATUS save() const;
