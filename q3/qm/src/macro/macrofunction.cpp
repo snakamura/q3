@@ -1712,6 +1712,14 @@ const WCHAR* qm::MacroFunctionFlag::getName() const
 			return L"Multipart";
 		case MessageHolder::FLAG_PARTIAL_MASK:
 			return L"Partial";
+		case MessageHolder::FLAG_USER1:
+			return L"User1";
+		case MessageHolder::FLAG_USER2:
+			return L"User2";
+		case MessageHolder::FLAG_USER3:
+			return L"User3";
+		case MessageHolder::FLAG_USER4:
+			return L"User4";
 		default:
 			assert(false);
 			return 0;
@@ -4784,6 +4792,10 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(MacroParser::
 		END_BLOCK()
 		BEGIN_BLOCK(L'u', L'U')
 			DECLARE_FUNCTION0(		URI,				L"uri"													)
+			DECLARE_FUNCTION1(		Flag,				L"user1",			MessageHolder::FLAG_USER1			)
+			DECLARE_FUNCTION1(		Flag,				L"user2",			MessageHolder::FLAG_USER2			)
+			DECLARE_FUNCTION1(		Flag,				L"user3",			MessageHolder::FLAG_USER3			)
+			DECLARE_FUNCTION1(		Flag,				L"user4",			MessageHolder::FLAG_USER4			)
 		END_BLOCK()
 		BEGIN_BLOCK(L'v', L'V')
 			DECLARE_FUNCTION0(		Variable,			L"variable"												)
