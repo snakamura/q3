@@ -1,5 +1,5 @@
 /*
- * $Id: qsregex.h,v 1.1.1.1 2003/04/29 08:07:35 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -11,13 +11,31 @@
 
 #include <qs.h>
 
+#include <vector>
+
 
 namespace qs {
 
+struct RegexRange;
 class RegexPattern;
 class RegexCompiler;
 
 class RegexNfa;
+
+
+/****************************************************************************
+ *
+ * RegexRange
+ *
+ */
+
+struct RegexRange
+{
+	RegexRange();
+	
+	const WCHAR* pStart_;
+	const WCHAR* pEnd_;
+};
 
 
 /****************************************************************************
@@ -29,11 +47,16 @@ class RegexNfa;
 class QSEXPORTCLASS RegexPattern
 {
 public:
+	typedef std::vector<RegexRange> RangeList;
+
+public:
 	RegexPattern(RegexNfa* pNfa, QSTATUS* pstatus);
 	~RegexPattern();
 
 public:
 	QSTATUS match(const WCHAR* pwsz, bool* pbMatch) const;
+	QSTATUS match(const WCHAR* pwsz, size_t nLen,
+		bool* pbMatch, RangeList* pList) const;
 
 private:
 	RegexPattern(const RegexPattern&);

@@ -1,5 +1,5 @@
 /*
- * $Id: regex.cpp,v 1.1.1.1 2003/04/29 08:07:35 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -15,6 +15,19 @@
 #include "regexparser.h"
 
 using namespace qs;
+
+
+/****************************************************************************
+ *
+ * RegexRange
+ *
+ */
+
+qs::RegexRange::RegexRange() :
+	pStart_(0),
+	pEnd_(0)
+{
+}
 
 
 /****************************************************************************
@@ -57,8 +70,25 @@ qs::RegexPattern::~RegexPattern()
 
 QSTATUS qs::RegexPattern::match(const WCHAR* pwsz, bool* pbMatch) const
 {
+	return match(pwsz, -1, pbMatch, 0);
+}
+
+QSTATUS qs::RegexPattern::match(const WCHAR* pwsz,
+	size_t nLen, bool* pbMatch, RangeList* pList) const
+{
+	assert(pwsz);
+	assert(pbMatch);
+	
+	DECLARE_QSTATUS();
+	
+	if (nLen == -1)
+		nLen = wcslen(pwsz);
+	
 	RegexNfaMatcher matcher(pImpl_->pNfa_);
-	return matcher.match(pwsz, pbMatch);
+	status = matcher.match(pwsz, nLen, pbMatch, pList);
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
 }
 
 
@@ -88,10 +118,10 @@ QSTATUS qs::RegexCompiler::compile(
 	
 	RegexParser parser(pwszPattern, &status);
 	CHECK_QSTATUS();
-	RegexNode* pNode = 0;
+	RegexRegexNode* pNode = 0;
 	status = parser.parse(&pNode);
 	CHECK_QSTATUS();
-	std::auto_ptr<RegexNode> apNode(pNode);
+	std::auto_ptr<RegexRegexNode> apNode(pNode);
 	
 	RegexNfaCompiler compiler(&status);
 	CHECK_QSTATUS();

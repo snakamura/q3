@@ -10,6 +10,7 @@
 #define __REGEXNFA_H__
 
 #include <qs.h>
+#include <qsregex.h>
 
 #include <vector>
 
@@ -36,7 +37,7 @@ class RegexNfaCompiler;
 class RegexNfa
 {
 public:
-	RegexNfa(RegexNode* pNode, QSTATUS* pstatus);
+	RegexNfa(RegexRegexNode* pNode, QSTATUS* pstatus);
 	~RegexNfa();
 
 public:
@@ -47,6 +48,8 @@ public:
 	QSTATUS createState(unsigned int* pn);
 	QSTATUS setTransition(unsigned int nFrom,
 		unsigned int nTo, const RegexAtom* pAtom);
+	QSTATUS pushGroup();
+	void popGroup();
 
 private:
 	RegexNfa(const RegexNfa&);
@@ -54,10 +57,13 @@ private:
 
 private:
 	typedef std::vector<RegexNfaState*> StateList;
+	typedef std::vector<unsigned int> GroupStack;
 
 private:
 	RegexNode* pNode_;
 	StateList listState_;
+	GroupStack stackGroup_;
+	unsigned int nMaxGroup_;
 };
 
 
@@ -70,14 +76,18 @@ private:
 class RegexNfaState
 {
 public:
+	typedef std::vector<unsigned int> GroupList;
+
+public:
 	RegexNfaState(const RegexAtom* pAtom, unsigned int nTo,
-		RegexNfaState* pNext, QSTATUS* pstatus);
+		const GroupList& listGroup, RegexNfaState* pNext, QSTATUS* pstatus);
 	~RegexNfaState();
 
 public:
 	bool match(WCHAR c) const;
 	bool isEpsilon() const;
 	unsigned int getTo() const;
+	const GroupList& getGroupList() const;
 	const RegexNfaState* getNext() const;
 
 private:
@@ -87,6 +97,7 @@ private:
 private:
 	const RegexAtom* pAtom_;
 	unsigned int nTo_;
+	GroupList listGroup_;
 	RegexNfaState* pNext_;
 };
 
@@ -104,7 +115,9 @@ public:
 	~RegexNfaCompiler();
 
 public:
-	QSTATUS compile(RegexNode* pNode, RegexNfa** ppNfa) const;
+	QSTATUS compile(RegexRegexNode* pNode, RegexNfa** ppNfa) const;
+
+private:
 	QSTATUS compileNode(const RegexNode* pNode,
 		RegexNfa* pNfa, unsigned int nFrom, unsigned int nTo) const;
 	QSTATUS compileRegexNode(const RegexRegexNode* pRegexNode,
@@ -135,23 +148,20 @@ public:
 	~RegexNfaMatcher();
 
 public:
-	QSTATUS match(const WCHAR* pwsz, bool* pbMatch);
-
-private:
-	void epsilonTransition();
-	void epsilonTransition(unsigned int n);
-	QSTATUS makeTransition(WCHAR c);
+	QSTATUS match(const WCHAR* pwsz, size_t nLen,
+		bool* pbMatch, RegexPattern::RangeList* pList);
 
 private:
 	RegexNfaMatcher(const RegexNfaMatcher&);
 	RegexNfaMatcher& operator=(const RegexNfaMatcher&);
 
 private:
-	typedef std::vector<int> States;
+	typedef std::vector<std::pair<const RegexNfaState*, const WCHAR*> > Stack;
 
 private:
 	const RegexNfa* pNfa_;
-	States states_;
+	Stack stackMatch_;
+	Stack stackBackTrack_;
 };
 
 }

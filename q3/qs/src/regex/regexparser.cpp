@@ -1,5 +1,5 @@
 /*
- * $Id: regexparser.cpp,v 1.1.1.1 2003/04/29 08:07:35 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -435,7 +435,7 @@ qs::RegexParser::~RegexParser()
 {
 }
 
-QSTATUS qs::RegexParser::parse(RegexNode** ppNode)
+QSTATUS qs::RegexParser::parse(RegexRegexNode** ppNode)
 {
 	assert(ppNode);
 	
@@ -443,53 +443,38 @@ QSTATUS qs::RegexParser::parse(RegexNode** ppNode)
 	
 	p_ = pwszPattern_;
 	
-	std::auto_ptr<RegexNode> pNode;
-	status = parse(&pNode);
+	std::auto_ptr<RegexRegexNode> pNode;
+	status = parseRegex(&pNode);
 	CHECK_QSTATUS();
-	
 	*ppNode = pNode.release();
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qs::RegexParser::parse(std::auto_ptr<RegexNode>* ppNode)
-{
-	DECLARE_QSTATUS();
-	
-	status = parseRegex(ppNode);
-	CHECK_QSTATUS();
 	
 	return *p_ == L'\0' ? QSTATUS_SUCCESS : QSTATUS_FAIL;
 }
 
-QSTATUS qs::RegexParser::parseRegex(std::auto_ptr<RegexNode>* ppNode)
+QSTATUS qs::RegexParser::parseRegex(std::auto_ptr<RegexRegexNode>* ppNode)
 {
 	DECLARE_QSTATUS();
 	
 	std::auto_ptr<RegexRegexNode> pRegexNode;
-	std::auto_ptr<RegexNode> pNode;
 	while (true) {
-		if (pNode.get()) {
-			status = newQsObject(pNode.get(), &pRegexNode);
-			CHECK_QSTATUS();
-			pNode.release();
-		}
+		std::auto_ptr<RegexNode> pNode;
 		status = parseBranch(&pNode);
 		CHECK_QSTATUS();
-		if (pRegexNode.get()) {
+		if (!pRegexNode.get()) {
+			status = newQsObject(pNode.get(), &pRegexNode);
+			CHECK_QSTATUS();
+		}
+		else {
 			status = pRegexNode->addNode(pNode.get());
 			CHECK_QSTATUS();
-			pNode.release();
 		}
+		pNode.release();
+		
 		if (*p_ != L'|' || *p_ == L')')
 			break;
 		++p_;
 	}
-	
-	if (pRegexNode.get())
-		ppNode->reset(pRegexNode.release());
-	else
-		ppNode->reset(pNode.release());
+	ppNode->reset(pRegexNode.release());
 	
 	return QSTATUS_SUCCESS;
 }
@@ -540,7 +525,7 @@ QSTATUS qs::RegexParser::parsePiece(std::auto_ptr<RegexPieceNode>* ppPieceNode)
 	std::auto_ptr<RegexAtom> pAtom;
 	if (*p_ == L'(') {
 		++p_;
-		std::auto_ptr<RegexNode> pNode;
+		std::auto_ptr<RegexRegexNode> pNode;
 		status = parseRegex(&pNode);
 		CHECK_QSTATUS();
 		if (*p_ != L')')

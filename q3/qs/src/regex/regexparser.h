@@ -1,5 +1,5 @@
 /*
- * $Id: regexparser.h,v 1.1.1.1 2003/04/29 08:07:35 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -394,11 +394,10 @@ public:
 	~RegexParser();
 
 public:
-	QSTATUS parse(RegexNode** ppNode);
+	QSTATUS parse(RegexRegexNode** ppNode);
 
 private:
-	QSTATUS parse(std::auto_ptr<RegexNode>* ppNode);
-	QSTATUS parseRegex(std::auto_ptr<RegexNode>* ppNode);
+	QSTATUS parseRegex(std::auto_ptr<RegexRegexNode>* ppNode);
 	QSTATUS parseBranch(std::auto_ptr<RegexNode>* ppNode);
 	QSTATUS parsePiece(std::auto_ptr<RegexPieceNode>* ppPieceNode);
 	QSTATUS parseCharGroup(std::auto_ptr<RegexCharGroupAtom>* ppAtom);
