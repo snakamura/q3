@@ -299,9 +299,8 @@ QSTATUS qm::MainWindowImpl::initActions()
 	CHECK_QSTATUS();
 	status = InitAction6<FileExitAction, Window*, Document*, ViewModelManager*,
 		SyncManager*, TempFileCleaner*, EditFrameWindowManager*>(
-		pActionMap_, IDM_FILE_EXIT, pThis_, pDocument_,
-		pViewModelManager_, pSyncManager_,
-		pTempFileCleaner_, pEditFrameWindowManager_);
+		pActionMap_, IDM_FILE_EXIT, pThis_, pDocument_, pViewModelManager_,
+		pSyncManager_, pTempFileCleaner_, pEditFrameWindowManager_);
 	CHECK_QSTATUS();
 	status = InitAction1<FileExportAction, MessageSelectionModel*>(
 		pActionMap_, IDM_FILE_EXPORT, pMessageSelectionModel_);
@@ -315,8 +314,8 @@ QSTATUS qm::MainWindowImpl::initActions()
 	status = InitAction1<FilePrintAction, MessageSelectionModel*>(
 		pActionMap_, IDM_FILE_PRINT, pMessageSelectionModel_);
 	CHECK_QSTATUS();
-	status = InitAction1<FileSaveAction, Document*>(
-		pActionMap_, IDM_FILE_SAVE, pDocument_);
+	status = InitAction2<FileSaveAction, Document*, ViewModelManager*>(
+		pActionMap_, IDM_FILE_SAVE, pDocument_, pViewModelManager_);
 	CHECK_QSTATUS();
 	status = InitAction1<FolderCompactAction, FolderModel*>(
 		pActionMap_, IDM_FOLDER_COMPACT, pFolderModel_);

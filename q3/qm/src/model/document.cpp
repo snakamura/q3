@@ -50,6 +50,7 @@ struct qm::DocumentImpl
 		Account* pAccount) const;
 	
 	Document* pThis_;
+	Profile* pProfile_;
 	Document::AccountList listAccount_;
 	DocumentHandlerList listDocumentHandler_;
 	RuleManager* pRuleManager_;
@@ -83,7 +84,7 @@ QSTATUS qm::DocumentImpl::fireAccountListChanged(
  *
  */
 
-qm::Document::Document(QSTATUS* pstatus) :
+qm::Document::Document(Profile* pProfile, QSTATUS* pstatus) :
 	pImpl_(0)
 {
 	if (*pstatus != QSTATUS_SUCCESS)
@@ -121,6 +122,7 @@ qm::Document::Document(QSTATUS* pstatus) :
 	status = newObject(&pImpl_);
 	CHECK_QSTATUS_SET(pstatus);
 	pImpl_->pThis_ = this;
+	pImpl_->pProfile_ = pProfile;
 	pImpl_->pRuleManager_ = pRuleManager.release();
 	pImpl_->pTemplateManager_ = pTemplateManager.release();
 	pImpl_->pScriptManager_ = pScriptManager.release();
@@ -448,6 +450,10 @@ QSTATUS qm::Document::save()
 		CHECK_QSTATUS();
 		++it;
 	}
+	
+	status = pImpl_->pProfile_->setInt(L"Global",
+		L"Offline", isOffline());
+	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
 }

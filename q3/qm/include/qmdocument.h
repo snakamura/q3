@@ -1,5 +1,5 @@
 /*
- * $Id: qmdocument.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -11,6 +11,7 @@
 
 #include <qm.h>
 
+#include <qsprofile.h>
 #include <qsstring.h>
 
 #include <vector>
@@ -46,7 +47,7 @@ public:
 	typedef std::vector<Account*> AccountList;
 
 public:
-	explicit Document(qs::QSTATUS* pstatus);
+	Document(qs::Profile* pProfile, qs::QSTATUS* pstatus);
 	~Document();
 
 public:

@@ -462,8 +462,8 @@ class FileExitAction : public qs::AbstractAction
 {
 public:
 	FileExitAction(qs::Window* pWindow, Document* pDocument,
-		ViewModelManager* pViewModelManager,
-		SyncManager* pSyncManager, TempFileCleaner* pTempFileCleaner,
+		ViewModelManager* pViewModelManager, SyncManager* pSyncManager,
+		TempFileCleaner* pTempFileCleaner,
 		EditFrameWindowManager* pEditFrameWindowManager, qs::QSTATUS* pstatus);
 	virtual ~FileExitAction();
 
@@ -606,7 +606,8 @@ private:
 class FileSaveAction : public qs::AbstractAction
 {
 public:
-	FileSaveAction(Document* pDocument, qs::QSTATUS* pstatus);
+	FileSaveAction(Document* pDocument,
+		ViewModelManager* pViewModelManager, qs::QSTATUS* pstatus);
 	virtual ~FileSaveAction();
 
 public:
@@ -618,6 +619,7 @@ private:
 
 private:
 	Document* pDocument_;
+	ViewModelManager* pViewModelManager_;
 };
 
 

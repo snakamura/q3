@@ -38,6 +38,7 @@ public:
 	qs::QSTATUS initialize();
 	qs::QSTATUS uninitialize();
 	qs::QSTATUS run();
+	qs::QSTATUS save();
 	
 	HINSTANCE getResourceHandle() const;
 	HINSTANCE getAtlHandle() const;

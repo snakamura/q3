@@ -391,7 +391,7 @@ QSTATUS qm::Application::initialize()
 	
 	Security::init();
 	
-	status = newQsObject(&pImpl_->pDocument_);
+	status = newQsObject(pImpl_->pProfile_, &pImpl_->pDocument_);
 	CHECK_QSTATUS();
 	
 	status = newQsObject(pImpl_->pProfile_, &pImpl_->pSyncManager_);
@@ -472,8 +472,6 @@ QSTATUS qm::Application::uninitialize()
 	}
 #endif
 	
-	pImpl_->pProfile_->setInt(L"Global",
-		L"Offline", pImpl_->pDocument_->isOffline());
 	pImpl_->pDocument_->setOffline(true);
 	
 	delete pImpl_->pMenuManager_;
@@ -497,8 +495,6 @@ QSTATUS qm::Application::uninitialize()
 	delete pImpl_->pKeyMap_;
 	pImpl_->pKeyMap_ = 0;
 	
-	status = pImpl_->pProfile_->save();
-	CHECK_QSTATUS();
 	delete pImpl_->pProfile_;
 	pImpl_->pProfile_ = 0;
 	
@@ -565,6 +561,16 @@ QSTATUS qm::Application::run()
 		::TranslateMessage(&msg);
 		::DispatchMessage(&msg);
 	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::Application::save()
+{
+	DECLARE_QSTATUS();
+	
+	status = pImpl_->pProfile_->save();
+	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
 }

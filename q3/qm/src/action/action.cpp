@@ -755,8 +755,16 @@ QSTATUS qm::FileExitAction::invoke(const ActionEvent& event)
 	if (!bClosed)
 		return QSTATUS_SUCCESS;
 	
-	status = pDocument_->save();
-	CHECK_QSTATUS();
+	{
+		WaitCursor cursor;
+		
+		status = pDocument_->save();
+		CHECK_QSTATUS();
+		status = pViewModelManager_->save();
+		CHECK_QSTATUS();
+		status = Application::getApplication().save();
+		CHECK_QSTATUS();
+	}
 	
 	struct CallbackImpl : public TempFileCleanerCallback
 	{
@@ -781,9 +789,6 @@ QSTATUS qm::FileExitAction::invoke(const ActionEvent& event)
 		}
 	} callback;
 	pTempFileCleaner_->clean(&callback);
-	
-	status = pViewModelManager_->save();
-	CHECK_QSTATUS();
 	
 	pWindow_->destroyWindow();
 	
@@ -1266,8 +1271,10 @@ QSTATUS qm::FilePrintAction::isEnabled(const ActionEvent& event, bool* pbEnabled
  *
  */
 
-qm::FileSaveAction::FileSaveAction(Document* pDocument, QSTATUS* pstatus) :
-	pDocument_(pDocument)
+qm::FileSaveAction::FileSaveAction(Document* pDocument,
+	ViewModelManager* pViewModelManager, QSTATUS* pstatus) :
+	pDocument_(pDocument),
+	pViewModelManager_(pViewModelManager)
 {
 }
 
@@ -1277,7 +1284,18 @@ qm::FileSaveAction::~FileSaveAction()
 
 QSTATUS qm::FileSaveAction::invoke(const ActionEvent& event)
 {
-	return pDocument_->save();
+	DECLARE_QSTATUS();
+	
+	WaitCursor cursor;
+	
+	status = pDocument_->save();
+	CHECK_QSTATUS();
+	status = pViewModelManager_->save();
+	CHECK_QSTATUS();
+	status = Application::getApplication().save();
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
 }
 
 
