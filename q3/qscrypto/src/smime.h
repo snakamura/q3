@@ -58,6 +58,12 @@ private:
 										 const qs::Part& part,
 										 const WCHAR* pwszSignedBy);
 	static qs::malloc_size_ptr<unsigned char> encodePKCS7(PKCS7* pPKCS7);
+	static bool getCertificates(const qs::AddressListParser& addressList,
+								qs::SMIMECallback* pCallback,
+								STACK_OF(X509)* pCertificates);
+	static bool getCertificates(const qs::AddressParser& address,
+								qs::SMIMECallback* pCallback,
+								STACK_OF(X509)* pCertificates);
 	static bool contains(const qs::AddressListParser& addressList,
 						 const WCHAR* pwszAddress);
 	static bool contains(const qs::AddressParser& address,

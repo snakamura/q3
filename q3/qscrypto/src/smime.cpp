@@ -245,23 +245,8 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::encrypt(Part* pPart,
 		AddressListParser addressList(0);
 		Part::Field f = pPart->getField(pwszAddresses[n], &addressList);
 		if (f == Part::FIELD_EXIST) {
-			wstring_ptr wstrAddresses(addressList.getAddresses());
-			
-			typedef std::vector<const WCHAR*> AddressList;
-			AddressList l;
-			const WCHAR* p = wcstok(wstrAddresses.get(), L",");
-			while (p) {
-				l.push_back(p);
-				p = wcstok(0, L",");
-			}
-			for (AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
-				const WCHAR* pwszAddress = *it;
-				std::auto_ptr<Certificate> pCertificate(pCallback->getCertificate(pwszAddress));
-				if (!pCertificate.get())
-					return 0;
-				sk_X509_push(pCertificates.get(),
-					static_cast<CertificateImpl*>(pCertificate.get())->releaseX509());
-			}
+			if (!getCertificates(addressList, pCallback, pCertificates.get()))
+				return 0;
 		}
 	}
 	
@@ -492,6 +477,38 @@ malloc_size_ptr<unsigned char> qscrypto::SMIMEUtilityImpl::encodePKCS7(PKCS7* pP
 	unsigned char* pBuf = 0;
 	int nBufLen = BIO_get_mem_data(pOut.get(), &pBuf);
 	return Base64Encoder(true).encode(pBuf, nBufLen);
+}
+
+bool qscrypto::SMIMEUtilityImpl::getCertificates(const qs::AddressListParser& addressList,
+												 qs::SMIMECallback* pCallback,
+												 STACK_OF(X509)* pCertificates)
+{
+	const AddressListParser::AddressList& l = addressList.getAddressList();
+	for (AddressListParser::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		if (!getCertificates(**it, pCallback, pCertificates))
+			return false;
+	}
+	return true;
+}
+
+bool qscrypto::SMIMEUtilityImpl::getCertificates(const qs::AddressParser& address,
+												 qs::SMIMECallback* pCallback,
+												 STACK_OF(X509)* pCertificates)
+{
+	AddressListParser* pGroup = address.getGroup();
+	if (pGroup) {
+		if (!getCertificates(*pGroup, pCallback, pCertificates))
+			return false;
+	}
+	else {
+		wstring_ptr wstrAddress(address.getAddress());
+		std::auto_ptr<Certificate> pCertificate(pCallback->getCertificate(wstrAddress.get()));
+		if (!pCertificate.get())
+			return false;
+		X509* pX509 = static_cast<CertificateImpl*>(pCertificate.get())->releaseX509();
+		sk_X509_push(pCertificates, pX509);
+	}
+	return true;
 }
 
 bool qscrypto::SMIMEUtilityImpl::contains(const AddressListParser& addressList,
