@@ -2577,11 +2577,47 @@ QSTATUS qm::MacroFunctionInputBox::value(
 	
 	*ppValue = 0;
 	
-	if (getArgSize() != 2)
+	size_t nSize = getArgSize();
+	if (nSize < 1 || 3 < nSize)
 		return error(*pContext, MacroErrorHandler::CODE_INVALIDARGSIZE);
 	
-	// TODO
+	string_ptr<WSTRING> wstrDefault;
+	if (nSize > 2) {
+		MacroValuePtr pValue;
+		status = getArg(2)->value(pContext, &pValue);
+		CHECK_QSTATUS();
+		status = pValue->string(&wstrDefault);
+		CHECK_QSTATUS();
+	}
 	
+	bool bMultiline = false;
+	if (nSize > 1) {
+		MacroValuePtr pValue;
+		status = getArg(1)->value(pContext, &pValue);
+		CHECK_QSTATUS();
+		bMultiline = pValue->boolean();
+	}
+	
+	string_ptr<WSTRING> wstrMessage;
+	MacroValuePtr pValue;
+	status = getArg(0)->value(pContext, &pValue);
+	CHECK_QSTATUS();
+	status = pValue->string(&wstrMessage);
+	CHECK_QSTATUS();
+	
+	InputBoxDialog dialog(bMultiline, wstrMessage.get(),
+		wstrDefault.get(), &status);
+	CHECK_QSTATUS();
+	int nRet = 0;
+	status = dialog.doModal(pContext->getWindow(), 0, &nRet);
+	CHECK_QSTATUS();
+	if (nRet != IDOK) {
+		// TODO
+		return QSTATUS_FAIL;
+	}
+	
+	return MacroValueFactory::getFactory().newString(dialog.getValue(),
+		reinterpret_cast<MacroValueString**>(ppValue));
 }
 
 const WCHAR* qm::MacroFunctionInputBox::getName() const

@@ -2429,6 +2429,107 @@ void qm::ImportDialog::updateState()
 
 /****************************************************************************
  *
+ * InputBoxDialog
+ *
+ */
+
+qm::InputBoxDialog::InputBoxDialog(bool bMultiLine,
+	const WCHAR* pwszMessage, const WCHAR* pwszValue, QSTATUS* pstatus) :
+	DefaultDialog(bMultiLine ? IDD_MULTIINPUTBOX : IDD_SINGLEINPUTBOX, pstatus),
+	bMultiLine_(bMultiLine),
+	wstrMessage_(0),
+	wstrValue_(0)
+{
+	string_ptr<WSTRING> wstrMessage;
+	if (pwszMessage) {
+		wstrMessage.reset(allocWString(pwszMessage));
+		if (!wstrMessage.get()) {
+			*pstatus = QSTATUS_OUTOFMEMORY;
+			return;
+		}
+	}
+	string_ptr<WSTRING> wstrValue;
+	if (pwszValue) {
+		wstrValue.reset(allocWString(pwszValue));
+		if (!wstrValue.get()) {
+			*pstatus = QSTATUS_OUTOFMEMORY;
+			return;
+		}
+	}
+	
+	wstrMessage_ = wstrMessage.release();
+	wstrValue_ = wstrValue.release();
+}
+
+qm::InputBoxDialog::~InputBoxDialog()
+{
+	freeWString(wstrMessage_);
+	freeWString(wstrValue_);
+}
+
+const WCHAR* qm::InputBoxDialog::getMessage() const
+{
+	return wstrMessage_;
+}
+
+const WCHAR* qm::InputBoxDialog::getValue() const
+{
+	return wstrValue_;
+}
+
+LRESULT qm::InputBoxDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+{
+	DECLARE_QSTATUS();
+	
+	if (wstrMessage_)
+		setDlgItemText(IDC_MESSAGE, wstrMessage_);
+	
+	if (wstrValue_) {
+		if (bMultiLine_ && wcschr(wstrValue_, L'\n')) {
+			StringBuffer<WSTRING> buf(&status);
+			CHECK_QSTATUS();
+			
+			const WCHAR* p = wstrValue_;
+			while (*p) {
+				if (*p == L'\n') {
+					status = buf.append(L'\r');
+					CHECK_QSTATUS_VALUE(TRUE);
+				}
+				status = buf.append(*p);
+				CHECK_QSTATUS();
+				++p;
+			}
+			
+			setDlgItemText(IDC_VALUE, buf.getCharArray());
+		}
+		else {
+			setDlgItemText(IDC_VALUE, wstrValue_);
+		}
+	}
+	
+	return TRUE;
+}
+
+LRESULT qm::InputBoxDialog::onOk()
+{
+	freeWString(wstrValue_);
+	wstrValue_ = getDlgItemText(IDC_VALUE);
+	if (bMultiLine_ && wstrValue_) {
+		WCHAR* pSrc = wstrValue_;
+		WCHAR* pDst = wstrValue_;
+		while (*pSrc) {
+			if (*pSrc != L'\r')
+				*pDst++ = *pSrc;
+			++pSrc;
+		}
+		*pDst = L'\0';
+	}
+	return DefaultDialog::onOk();
+}
+
+
+/****************************************************************************
+ *
  * InsertTextDialog
  *
  */

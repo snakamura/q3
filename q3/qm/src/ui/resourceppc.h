@@ -44,6 +44,8 @@
 #define IDD_DIALUP                      144
 #define IDD_SELECTDIALUPENTRY           145
 #define IDD_FOLDERPROPERTY              146
+#define IDD_SINGLEINPUTBOX              147
+#define IDD_MULTIINPUTBOX               148
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -197,6 +199,7 @@
 #define IDC_SENTBOX                     1113
 #define IDC_DRAFTBOX                    1114
 #define IDC_TRASHBOX                    1115
+#define IDC_VALUE                       1116
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -353,9 +356,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        147
+#define _APS_NEXT_RESOURCE_VALUE        149
 #define _APS_NEXT_COMMAND_VALUE         48000
-#define _APS_NEXT_CONTROL_VALUE         1116
+#define _APS_NEXT_CONTROL_VALUE         1118
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

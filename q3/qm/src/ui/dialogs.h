@@ -35,6 +35,7 @@ class DefaultDialog;
 	class ExportDialog;
 	class FindDialog;
 	class ImportDialog;
+	class InputBoxDialog;
 	class InsertTextDialog;
 	class MailFolderDialog;
 	class ProgressDialog;
@@ -644,6 +645,40 @@ private:
 	qs::WSTRING wstrPath_;
 	bool bMultiple_;
 	unsigned int nFlags_;
+};
+
+
+/****************************************************************************
+ *
+ * InputBoxDialog
+ *
+ */
+
+class InputBoxDialog : public DefaultDialog
+{
+public:
+	InputBoxDialog(bool bMultiLine, const WCHAR* pwszMessage,
+		const WCHAR* pwszValue, qs::QSTATUS* pstatus);
+	virtual ~InputBoxDialog();
+
+public:
+	const WCHAR* getMessage() const;
+	const WCHAR* getValue() const;
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	InputBoxDialog(const InputBoxDialog&);
+	InputBoxDialog& operator=(const InputBoxDialog&);
+
+private:
+	bool bMultiLine_;
+	qs::WSTRING wstrMessage_;
+	qs::WSTRING wstrValue_;
 };
 
 
