@@ -33,6 +33,9 @@ class Document;
  *
  */
 
+#pragma warning(push)
+#pragma warning(disable:4251)
+
 class QMEXPORTCLASS Message : public qs::Part
 {
 public:
@@ -75,15 +78,24 @@ public:
 	void setFlag(Flag flag);
 	unsigned int getSecurity() const;
 	void setSecurity(unsigned int nSecurity);
+	const WCHAR* getParam(const WCHAR* pwszName) const;
+	void setParam(const WCHAR* pwszName,
+				  const WCHAR* pwszValue);
 
 private:
 	Message(const Message&);
 	Message& operator=(const Message&);
 
 private:
+	typedef std::vector<std::pair<qs::WSTRING, qs::WSTRING> > ParamList;
+
+private:
 	Flag flag_;
 	unsigned int nSecurity_;
+	ParamList listParam_;
 };
+
+#pragma warning(pop)
 
 
 /****************************************************************************

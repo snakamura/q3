@@ -44,6 +44,11 @@ qm::Message::Message() :
 
 qm::Message::~Message()
 {
+	for (ParamList::const_iterator it = listParam_.begin(); it != listParam_.end(); ++it) {
+		freeWString((*it).first);
+		freeWString((*it).second);
+	}
+	listParam_.clear();
 }
 
 bool qm::Message::create(const CHAR* pszMessage,
@@ -91,6 +96,44 @@ unsigned int qm::Message::getSecurity() const
 void qm::Message::setSecurity(unsigned int nSecurity)
 {
 	nSecurity_ = nSecurity;
+}
+
+const WCHAR* qm::Message::getParam(const WCHAR* pwszName) const
+{
+	ParamList::const_iterator it = std::find_if(
+		listParam_.begin(), listParam_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				string_equal<WCHAR>(),
+				std::select1st<ParamList::value_type>(),
+				std::identity<const WCHAR*>()),
+			pwszName));
+	return it != listParam_.end() ? (*it).second : 0;
+}
+
+void qm::Message::setParam(const WCHAR* pwszName,
+						   const WCHAR* pwszValue)
+{
+	wstring_ptr wstrValue(allocWString(pwszValue));
+	
+	ParamList::iterator it = std::find_if(
+		listParam_.begin(), listParam_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				string_equal<WCHAR>(),
+				std::select1st<ParamList::value_type>(),
+				std::identity<const WCHAR*>()),
+			pwszName));
+	if (it != listParam_.end()) {
+		freeWString((*it).second);
+		(*it).second = wstrValue.release();
+	}
+	else {
+		wstring_ptr wstrName(allocWString(pwszName));
+		listParam_.push_back(std::make_pair(wstrName.get(), wstrValue.get()));
+		wstrName.release();
+		wstrValue.release();
+	}
 }
 
 
