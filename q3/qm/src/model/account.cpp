@@ -457,11 +457,8 @@ bool qm::AccountImpl::removeMessages(NormalFolder* pFolder,
 			if (pCallback && l.size() > 1)
 				pCallback->show();
 			
-			if (!pThis_->unstoreMessages(l))
+			if (!pThis_->unstoreMessages(l, pCallback))
 				return false;
-			
-			if (pCallback)
-				pCallback->step(l.size());
 		}
 		else {
 			if (!pProtocolDriver_->removeMessages(pFolder, l))
@@ -2308,7 +2305,8 @@ MessageHolder* qm::Account::storeMessage(NormalFolder* pFolder,
 	return p;
 }
 
-bool qm::Account::unstoreMessages(const MessageHolderList& l)
+bool qm::Account::unstoreMessages(const MessageHolderList& l,
+								  MessageOperationCallback* pCallback)
 {
 	if (l.empty())
 		return true;
@@ -2337,6 +2335,9 @@ bool qm::Account::unstoreMessages(const MessageHolderList& l)
 			// TODO LOG
 		}
 		pImpl_->pMessageIndex_->remove(indexKey.nKey_);
+		
+		if (pCallback)
+			pCallback->step(1);
 	}
 	
 	return true;

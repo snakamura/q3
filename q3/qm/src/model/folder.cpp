@@ -431,7 +431,7 @@ wstring_ptr qm::NormalFolderImpl::getPath() const
 
 bool qm::NormalFolderImpl::unstoreMessages(const MessageHolderList& l)
 {
-	return l.empty() ? true : pThis_->getAccount()->unstoreMessages(l);
+	return l.empty() ? true : pThis_->getAccount()->unstoreMessages(l, 0);
 }
 
 bool qm::NormalFolderImpl::unstoreAllMessages()

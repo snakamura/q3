@@ -357,7 +357,7 @@ bool qmimap4::AppendOfflineJob::apply(Account* pAccount,
 			if (!pImap4->append(wstrName.get(), strContent.get(), flags))
 				return false;
 			
-			if (!pAccount->unstoreMessages(MessageHolderList(1, mpl)))
+			if (!pAccount->unstoreMessages(MessageHolderList(1, mpl), 0))
 				return false;
 		}
 	}
@@ -475,7 +475,7 @@ bool qmimap4::CopyOfflineJob::apply(Account* pAccount,
 			if (pmh && pmh->isFlag(MessageHolder::FLAG_LOCAL))
 				l.push_back(pmh);
 		}
-		if (!pAccount->unstoreMessages(l))
+		if (!pAccount->unstoreMessages(l, 0))
 			return false;
 	}
 	
