@@ -1151,7 +1151,7 @@ QSTATUS qm::FileExportAction::writeMessage(OutputStream* pStream,
 			CHECK_QSTATUS();
 			
 			const CHAR* p = strContent.get();
-			while (p) {
+			while (*p) {
 				const CHAR* pCheck = p;
 				while (*pCheck == '>')
 					++pCheck;
@@ -1168,7 +1168,12 @@ QSTATUS qm::FileExportAction::writeMessage(OutputStream* pStream,
 					reinterpret_cast<const unsigned char*>(p), nLen);
 				CHECK_QSTATUS();
 				
-				p = pEnd ? pEnd + 2 : 0;
+				p += nLen;
+			}
+			
+			if (p - strContent.get() < 2 || *(p - 1) != '\n' || *(p - 2) != '\r') {
+				status = pStream->write(reinterpret_cast<const unsigned char*>("\r\n"), 2);
+				CHECK_QSTATUS();
 			}
 		}
 		else {
