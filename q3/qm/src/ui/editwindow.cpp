@@ -800,7 +800,7 @@ LRESULT qm::EditTextWindow::onCreate(CREATESTRUCT* pCreateStruct)
 
 LRESULT qm::EditTextWindow::onKillFocus(HWND hwnd)
 {
-	if (Window(hwnd).getParentPopup() == getParentFrame())
+	if (hwnd && Window(hwnd).getParentPopup() == getParentFrame())
 		pCallback_->layout();
 	return TextWindow::onKillFocus(hwnd);
 }
@@ -816,7 +816,7 @@ LRESULT qm::EditTextWindow::onLButtonDown(UINT nFlags, const POINT& pt)
 
 LRESULT qm::EditTextWindow::onSetFocus(HWND hwnd)
 {
-	if (Window(hwnd).getParentPopup() == getParentFrame())
+	if (hwnd && Window(hwnd).getParentPopup() == getParentFrame())
 		pCallback_->layout();
 	return TextWindow::onSetFocus(hwnd);
 }
