@@ -23,6 +23,7 @@
 #include "../model/addressbook.h"
 #include "../model/color.h"
 #include "../model/editmessage.h"
+#include "../model/filter.h"
 #include "../model/fixedformtext.h"
 #include "../model/goround.h"
 #include "../model/rule.h"
@@ -46,6 +47,7 @@ class DefaultDialog;
 	class DetachDialog;
 	class DialupDialog;
 	class ExportDialog;
+	class FilterDialog;
 	class FindDialog;
 	class FixedFormTextDialog;
 	class GoRoundDialupDialog;
@@ -67,6 +69,7 @@ class DefaultDialog;
 	class ViewsColumnDialog;
 	class ViewsDialog;
 	template<class T, class List> class AbstractListDialog;
+		class FiltersDialog;
 		class FixedFormTextsDialog;
 		class GoRoundDialog;
 		class GoRoundCourseDialog;
@@ -835,11 +838,15 @@ private:
 class CustomFilterDialog : public DefaultDialog
 {
 public:
-	explicit CustomFilterDialog(const WCHAR* pwszMacro);
+	explicit CustomFilterDialog(const WCHAR* pwszCondition);
 	virtual ~CustomFilterDialog();
 
 public:
-	const WCHAR* getMacro() const;
+	const WCHAR* getCondition() const;
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 protected:
 	virtual LRESULT onInitDialog(HWND hwndFocus,
@@ -849,11 +856,14 @@ protected:
 	virtual LRESULT onOk();
 
 private:
+	LRESULT onEdit();
+
+private:
 	CustomFilterDialog(const CustomFilterDialog&);
 	CustomFilterDialog& operator=(const CustomFilterDialog&);
 
 private:
-	qs::wstring_ptr wstrMacro_;
+	qs::wstring_ptr wstrCondition_;
 };
 
 
@@ -1035,6 +1045,75 @@ private:
 	unsigned int nFlags_;
 	qs::wstring_ptr wstrTemplate_;
 	qs::wstring_ptr wstrEncoding_;
+};
+
+
+/****************************************************************************
+ *
+ * FilterDialog
+ *
+ */
+
+class FilterDialog : public DefaultDialog
+{
+public:
+	explicit FilterDialog(Filter* pFilter);
+	virtual ~FilterDialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	LRESULT onEdit();
+	LRESULT onConditionChange();
+	LRESULT onNameChange();
+
+private:
+	void updateState();
+
+private:
+	FilterDialog(const FilterDialog&);
+	FilterDialog& operator=(const FilterDialog&);
+
+private:
+	Filter* pFilter_;
+};
+
+
+/****************************************************************************
+ *
+ * FiltersDialog
+ *
+ */
+
+class FiltersDialog : public AbstractListDialog<Filter, FilterManager::FilterList>
+{
+public:
+	explicit FiltersDialog(FilterManager* pManager);
+	virtual ~FiltersDialog();
+
+protected:
+	virtual LRESULT onOk();
+
+protected:
+	virtual qs::wstring_ptr getLabel(const Filter* p) const;
+	virtual std::auto_ptr<Filter> create() const;
+	virtual bool edit(Filter* p) const;
+
+private:
+	FiltersDialog(const FiltersDialog&);
+	FiltersDialog& operator=(const FiltersDialog&);
+
+private:
+	FilterManager* pManager_;
 };
 
 

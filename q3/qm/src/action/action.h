@@ -30,6 +30,7 @@ struct ActionParam;
 class AttachmentOpenAction;
 class AttachmentSaveAction;
 class ConfigColorsAction;
+class ConfigFiltersAction;
 class ConfigGoRoundAction;
 class ConfigRulesAction;
 class ConfigSignaturesAction;
@@ -133,6 +134,7 @@ class EncodingMenu;
 class EncodingModel;
 class ExternalEditorManager;
 class Filter;
+class FilterManager;
 class FilterMenu;
 class FindReplaceManager;
 class FixedFormTextManager;
@@ -284,6 +286,32 @@ private:
 	ColorManager* pColorManager_;
 	ViewModelManager* pViewModelManager_;
 	Document* pDocument_;
+	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * ConfigFiltersAction
+ *
+ */
+
+class ConfigFiltersAction : public qs::AbstractAction
+{
+public:
+	ConfigFiltersAction(FilterManager* pFilterManager,
+						HWND hwnd);
+	virtual ~ConfigFiltersAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	ConfigFiltersAction(const ConfigFiltersAction&);
+	ConfigFiltersAction& operator=(const ConfigFiltersAction&);
+
+private:
+	FilterManager* pFilterManager_;
 	HWND hwnd_;
 };
 

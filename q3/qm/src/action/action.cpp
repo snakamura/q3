@@ -204,34 +204,6 @@ bool qm::AttachmentSaveAction::isEnabled(const ActionEvent& event)
 
 /****************************************************************************
  *
- * ConfigGoRoundAction
- *
- */
-
-qm::ConfigGoRoundAction::ConfigGoRoundAction(GoRound* pGoRound,
-											 Document* pDocument,
-											 SyncFilterManager* pSyncFilterManager,
-											 HWND hwnd) :
-	pGoRound_(pGoRound),
-	pDocument_(pDocument),
-	pSyncFilterManager_(pSyncFilterManager),
-	hwnd_(hwnd)
-{
-}
-
-qm::ConfigGoRoundAction::~ConfigGoRoundAction()
-{
-}
-
-void qm::ConfigGoRoundAction::invoke(const ActionEvent& event)
-{
-	GoRoundDialog dialog(pGoRound_, pDocument_, pSyncFilterManager_);
-	dialog.doModal(hwnd_);
-}
-
-
-/****************************************************************************
- *
  * ConfigColorsAction
  *
  */
@@ -256,6 +228,58 @@ void qm::ConfigColorsAction::invoke(const ActionEvent& event)
 	ColorSetsDialog dialog(pColorManager_, pDocument_);
 	if (dialog.doModal(hwnd_) == IDOK)
 		pViewModelManager_->invalidateColors();
+}
+
+
+/****************************************************************************
+ *
+ * ConfigFiltersAction
+ *
+ */
+
+qm::ConfigFiltersAction::ConfigFiltersAction(FilterManager* pFilterManager,
+											 HWND hwnd) :
+	pFilterManager_(pFilterManager),
+	hwnd_(hwnd)
+{
+}
+
+qm::ConfigFiltersAction::~ConfigFiltersAction()
+{
+}
+
+void qm::ConfigFiltersAction::invoke(const ActionEvent& event)
+{
+	FiltersDialog dialog(pFilterManager_);
+	dialog.doModal(hwnd_);
+}
+
+
+/****************************************************************************
+ *
+ * ConfigGoRoundAction
+ *
+ */
+
+qm::ConfigGoRoundAction::ConfigGoRoundAction(GoRound* pGoRound,
+											 Document* pDocument,
+											 SyncFilterManager* pSyncFilterManager,
+											 HWND hwnd) :
+	pGoRound_(pGoRound),
+	pDocument_(pDocument),
+	pSyncFilterManager_(pSyncFilterManager),
+	hwnd_(hwnd)
+{
+}
+
+qm::ConfigGoRoundAction::~ConfigGoRoundAction()
+{
+}
+
+void qm::ConfigGoRoundAction::invoke(const ActionEvent& event)
+{
+	GoRoundDialog dialog(pGoRound_, pDocument_, pSyncFilterManager_);
+	dialog.doModal(hwnd_);
 }
 
 
@@ -4744,22 +4768,22 @@ void qm::ViewFilterCustomAction::invoke(const ActionEvent& event)
 {
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (pViewModel) {
-		const WCHAR* pwszMacro = L"";
-		wstring_ptr wstrMacro;
+		const WCHAR* pwszCondition = L"";
+		wstring_ptr wstrCondition;
 		const Filter* pFilter = pViewModel->getFilter();
 		if (pFilter && wcslen(pFilter->getName()) == 0) {
-			wstrMacro = pFilter->getMacro()->getString();
-			pwszMacro = wstrMacro.get();
+			wstrCondition = pFilter->getCondition()->getString();
+			pwszCondition = wstrCondition.get();
 		}
-		CustomFilterDialog dialog(pwszMacro);
+		CustomFilterDialog dialog(pwszCondition);
 		if (dialog.doModal(hwnd_) == IDOK) {
 			MacroParser parser(MacroParser::TYPE_FILTER);
-			std::auto_ptr<Macro> pMacro(parser.parse(dialog.getMacro()));
-			if (!pMacro.get()) {
+			std::auto_ptr<Macro> pCondition(parser.parse(dialog.getCondition()));
+			if (!pCondition.get()) {
 				// TODO
 				return;
 			}
-			std::auto_ptr<Filter> pFilter(new Filter(L"", pMacro));
+			std::auto_ptr<Filter> pFilter(new Filter(L"", pCondition));
 			pViewModel->setFilter(pFilter.get());
 		}
 	}

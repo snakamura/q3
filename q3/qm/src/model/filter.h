@@ -21,6 +21,8 @@ namespace qm {
 
 class FilterManager;
 class Filter;
+class FilterContentHandler;
+class FilterWriter;
 
 class Macro;
 class MacroContext;
@@ -44,7 +46,10 @@ public:
 
 public:
 	const FilterList& getFilters();
+	const FilterList& getFilters(bool bReload);
 	const Filter* getFilter(const WCHAR* pwszName);
+	void setFilters(FilterList& listFilter);
+	bool save() const;
 
 private:
 	bool load();
@@ -69,14 +74,17 @@ private:
 class Filter
 {
 public:
+	Filter();
 	Filter(const WCHAR* pwszName,
-		   std::auto_ptr<Macro> pMacro);
+		   std::auto_ptr<Macro> pCondition);
 	Filter(const Filter& filter);
 	~Filter();
 
 public:
 	const WCHAR* getName() const;
-	const Macro* getMacro() const;
+	void setName(const WCHAR* pwszName);
+	const Macro* getCondition() const;
+	void setCondition(std::auto_ptr<Macro> pCondition);
 	bool match(MacroContext* pContext) const;
 
 private:
@@ -84,7 +92,7 @@ private:
 
 private:
 	qs::wstring_ptr wstrName_;
-	std::auto_ptr<Macro> pMacro_;
+	std::auto_ptr<Macro> pCondition_;
 };
 
 
@@ -131,6 +139,33 @@ private:
 	State state_;
 	qs::wstring_ptr wstrName_;
 	qs::StringBuffer<qs::WSTRING> buffer_;
+};
+
+
+/****************************************************************************
+ *
+ * FilterWriter
+ *
+ */
+
+class FilterWriter
+{
+public:
+	explicit FilterWriter(qs::Writer* pWriter);
+	~FilterWriter();
+
+public:
+	bool write(const FilterManager* pManager);
+
+private:
+	bool write(const Filter* pFilter);
+
+private:
+	FilterWriter(const FilterWriter&);
+	FilterWriter& operator=(const FilterWriter&);
+
+private:
+	qs::OutputHandler handler_;
 };
 
 }

@@ -2681,20 +2681,29 @@ void qm::CreateSubAccountDialog::updateState()
  *
  */
 
-qm::CustomFilterDialog::CustomFilterDialog(const WCHAR* pwszMacro) :
+qm::CustomFilterDialog::CustomFilterDialog(const WCHAR* pwszCondition) :
 	DefaultDialog(IDD_CUSTOMFILTER)
 {
-	if (pwszMacro)
-		wstrMacro_ = allocWString(pwszMacro);
+	if (pwszCondition)
+		wstrCondition_ = allocWString(pwszCondition);
 }
 
 qm::CustomFilterDialog::~CustomFilterDialog()
 {
 }
 
-const WCHAR* qm::CustomFilterDialog::getMacro() const
+const WCHAR* qm::CustomFilterDialog::getCondition() const
 {
-	return wstrMacro_.get();
+	return wstrCondition_.get();
+}
+
+LRESULT qm::CustomFilterDialog::onCommand(WORD nCode,
+										  WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_EDIT, onEdit)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
 }
 
 LRESULT qm::CustomFilterDialog::onInitDialog(HWND hwndFocus,
@@ -2702,16 +2711,25 @@ LRESULT qm::CustomFilterDialog::onInitDialog(HWND hwndFocus,
 {
 	init(false);
 	
-	if (wstrMacro_.get())
-		setDlgItemText(IDC_MACRO, wstrMacro_.get());
+	if (wstrCondition_.get())
+		setDlgItemText(IDC_CONDITION, wstrCondition_.get());
 	
 	return TRUE;
 }
 
 LRESULT qm::CustomFilterDialog::onOk()
 {
-	wstrMacro_ = getDlgItemText(IDC_MACRO);
+	wstrCondition_ = getDlgItemText(IDC_CONDITION);
 	return DefaultDialog::onOk();
+}
+
+LRESULT qm::CustomFilterDialog::onEdit()
+{
+	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
+	ConditionDialog dialog(wstrCondition.get());
+	if (dialog.doModal(getHandle()) == IDOK)
+		setDlgItemText(IDC_CONDITION, dialog.getCondition());
+	return 0;
 }
 
 
@@ -3162,6 +3180,143 @@ void qm::ExportDialog::updateState()
 	bool bEnable = sendDlgItemMessage(IDC_PATH, WM_GETTEXTLENGTH) != 0 &&
 		(nIndex == 0 || sendDlgItemMessage(IDC_ENCODING, WM_GETTEXTLENGTH) != 0);
 	Window(getDlgItem(IDOK)).enableWindow(bEnable);
+}
+
+
+/****************************************************************************
+ *
+ * FilterDialog
+ *
+ */
+
+qm::FilterDialog::FilterDialog(Filter* pFilter) :
+	DefaultDialog(IDD_FILTER),
+	pFilter_(pFilter)
+{
+}
+
+qm::FilterDialog::~FilterDialog()
+{
+}
+
+LRESULT qm::FilterDialog::onCommand(WORD nCode,
+										   WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_EDIT, onEdit)
+		HANDLE_COMMAND_ID_CODE(IDC_CONDITION, EN_CHANGE, onConditionChange)
+		HANDLE_COMMAND_ID_CODE(IDC_NAME, EN_CHANGE, onNameChange)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::FilterDialog::onInitDialog(HWND hwndFocus,
+											  LPARAM lParam)
+{
+	init(false);
+	
+	setDlgItemText(IDC_NAME, pFilter_->getName());
+	
+	const Macro* pCondition = pFilter_->getCondition();
+	wstring_ptr wstrCondition(pCondition->getString());
+	setDlgItemText(IDC_CONDITION, wstrCondition.get());
+	
+	return TRUE;
+}
+
+LRESULT qm::FilterDialog::onOk()
+{
+	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
+	std::auto_ptr<Macro> pCondition(MacroParser(MacroParser::TYPE_FILTER).parse(wstrCondition.get()));
+	if (!pCondition.get()) {
+		// TODO MSG
+		return 0;
+	}
+	pFilter_->setCondition(pCondition);
+	
+	wstring_ptr wstrName(getDlgItemText(IDC_NAME));
+	pFilter_->setName(wstrName.get());
+	
+	return DefaultDialog::onOk();
+}
+
+LRESULT qm::FilterDialog::onEdit()
+{
+	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
+	ConditionDialog dialog(wstrCondition.get());
+	if (dialog.doModal(getHandle()) == IDOK)
+		setDlgItemText(IDC_CONDITION, dialog.getCondition());
+	return 0;
+}
+
+LRESULT qm::FilterDialog::onConditionChange()
+{
+	updateState();
+	return 0;
+}
+
+LRESULT qm::FilterDialog::onNameChange()
+{
+	updateState();
+	return 0;
+}
+
+void qm::FilterDialog::updateState()
+{
+	Window(getDlgItem(IDOK)).enableWindow(
+		Window(getDlgItem(IDC_NAME)).getWindowTextLength() != 0 &&
+		Window(getDlgItem(IDC_CONDITION)).getWindowTextLength() != 0);
+}
+
+
+/****************************************************************************
+ *
+ * FiltersDialog
+ *
+ */
+
+qm::FiltersDialog::FiltersDialog(FilterManager* pManager) :
+	AbstractListDialog<Filter, FilterManager::FilterList>(IDD_FILTERS, IDC_FILTERS),
+	pManager_(pManager)
+{
+	const FilterManager::FilterList& l = pManager->getFilters();
+	FilterManager::FilterList& list = getList();
+	list.reserve(l.size());
+	for (FilterManager::FilterList::const_iterator it = l.begin(); it != l.end(); ++it)
+		list.push_back(new Filter(**it));
+}
+
+qm::FiltersDialog::~FiltersDialog()
+{
+}
+
+LRESULT qm::FiltersDialog::onOk()
+{
+	pManager_->setFilters(getList());
+	if (!pManager_->save()) {
+		// TODO
+	}
+	return AbstractListDialog<Filter, FilterManager::FilterList>::onOk();
+}
+
+wstring_ptr qm::FiltersDialog::getLabel(const Filter* p) const
+{
+	return allocWString(p->getName());
+}
+
+std::auto_ptr<Filter> qm::FiltersDialog::create() const
+{
+	std::auto_ptr<Filter> pFilter(new Filter());
+	FilterDialog dialog(pFilter.get());
+	if (dialog.doModal(getHandle()) != IDOK)
+		return std::auto_ptr<Filter>();
+	return pFilter;
+}
+
+bool qm::FiltersDialog::edit(Filter* p) const
+{
+	FilterDialog dialog(p);
+	return dialog.doModal(getHandle()) == IDOK;
 }
 
 

@@ -327,6 +327,10 @@ void qm::MainWindowImpl::initActions()
 		pViewModelManager_.get(),
 		pDocument_,
 		pThis_->getHandle());
+	ADD_ACTION2(ConfigFiltersAction,
+		IDM_CONFIG_FILTERS,
+		pViewModelManager_->getFilterManager(),
+		pThis_->getHandle());
 	ADD_ACTION4(ConfigGoRoundAction,
 		IDM_CONFIG_GOROUND,
 		pGoRound_,

@@ -75,6 +75,8 @@
 #define IDD_ARGUMENT                    178
 #define IDD_CONDITION                   179
 #define IDR_ADDRESSBOOK                 180
+#define IDD_FILTERS                     180
+#define IDD_FILTER                      181
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -362,6 +364,7 @@
 #define IDC_COLOR                       1254
 #define IDC_CHOOSE                      1255
 #define IDC_ARGUMENT                    1263
+#define IDC_FILTERS                     1264
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -609,11 +612,12 @@
 #define IDM_ATTACHMENTEDIT_ADD          50001
 #define IDM_ATTACHMENTEDIT_DELETE       50002
 #define IDM_CONFIG_COLORS               51001
-#define IDM_CONFIG_GOROUND              51002
-#define IDM_CONFIG_RULES                51003
-#define IDM_CONFIG_SIGNATURES           51004
-#define IDM_CONFIG_TEXTS                51005
-#define IDM_CONFIG_VIEWS                51006
+#define IDM_CONFIG_FILTERS              51002
+#define IDM_CONFIG_GOROUND              51003
+#define IDM_CONFIG_RULES                51004
+#define IDM_CONFIG_SIGNATURES           51005
+#define IDM_CONFIG_TEXTS                51006
+#define IDM_CONFIG_VIEWS                51007
 
 // Next default values for new objects
 // 
@@ -621,7 +625,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        181
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1264
+#define _APS_NEXT_CONTROL_VALUE         1267
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

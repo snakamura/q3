@@ -11,6 +11,7 @@
 #include <qmmacro.h>
 
 #include <qsconv.h>
+#include <qsfile.h>
 #include <qsosutil.h>
 #include <qsstl.h>
 
@@ -42,7 +43,13 @@ qm::FilterManager::~FilterManager()
 
 const FilterManager::FilterList& qm::FilterManager::getFilters()
 {
-	load();
+	return getFilters(true);
+}
+
+const FilterManager::FilterList& qm::FilterManager::getFilters(bool bReload)
+{
+	if (bReload)
+		load();
 	return listFilter_;
 }
 
@@ -58,6 +65,39 @@ const Filter* qm::FilterManager::getFilter(const WCHAR* pwszName)
 				std::identity<const WCHAR*>()),
 			pwszName));
 	return it != listFilter_.end() ? *it : 0;
+}
+
+void qm::FilterManager::setFilters(FilterList& listFilter)
+{
+	clear();
+	listFilter_.swap(listFilter);
+}
+
+bool qm::FilterManager::save() const
+{
+	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::FILTERS_XML));
+	
+	TemporaryFileRenamer renamer(wstrPath.get());
+	
+	FileOutputStream os(renamer.getPath());
+	if (!os)
+		return false;
+	OutputStreamWriter writer(&os, false, L"utf-8");
+	if (!writer)
+		return false;
+	BufferedWriter bufferedWriter(&writer, false);
+	
+	FilterWriter filterWriter(&bufferedWriter);
+	if (!filterWriter.write(this))
+		return false;
+	
+	if (!bufferedWriter.close())
+		return false;
+	
+	if (!renamer.rename())
+		return false;
+	
+	return true;
 }
 
 bool qm::FilterManager::load()
@@ -108,9 +148,16 @@ void qm::FilterManager::clear()
  *
  */
 
+qm::Filter::Filter()
+{
+	wstrName_ = allocWString(L"");
+	pCondition_ = MacroParser(MacroParser::TYPE_FILTER).parse(L"@True()");
+	assert(pCondition_.get());
+}
+
 qm::Filter::Filter(const WCHAR* pwszName,
-				   std::auto_ptr<Macro> pMacro) :
-	pMacro_(pMacro)
+				   std::auto_ptr<Macro> pCondition) :
+	pCondition_(pCondition)
 {
 	wstrName_ = allocWString(pwszName);
 }
@@ -119,10 +166,10 @@ qm::Filter::Filter(const Filter& filter)
 {
 	wstrName_ = allocWString(filter.wstrName_.get());
 	
-	wstring_ptr wstrMacro(filter.pMacro_->getString());
+	wstring_ptr wstrCondition(filter.pCondition_->getString());
 	MacroParser parser(MacroParser::TYPE_FILTER);
-	pMacro_ = parser.parse(wstrMacro.get());
-	assert(pMacro_.get());
+	pCondition_ = parser.parse(wstrCondition.get());
+	assert(pCondition_.get());
 }
 
 qm::Filter::~Filter()
@@ -131,19 +178,33 @@ qm::Filter::~Filter()
 
 const WCHAR* qm::Filter::getName() const
 {
+	assert(wstrName_.get());
 	return wstrName_.get();
 }
 
-const Macro* qm::Filter::getMacro() const
+void qm::Filter::setName(const WCHAR* pwszName)
 {
-	return pMacro_.get();
+	assert(pwszName);
+	wstrName_ = allocWString(pwszName);
+}
+
+const Macro* qm::Filter::getCondition() const
+{
+	assert(pCondition_.get());
+	return pCondition_.get();
+}
+
+void qm::Filter::setCondition(std::auto_ptr<Macro> pCondition)
+{
+	assert(pCondition.get());
+	pCondition_ = pCondition;
 }
 
 bool qm::Filter::match(MacroContext* pContext) const
 {
 	assert(pContext);
 	
-	MacroValuePtr pValue(pMacro_->value(pContext));
+	MacroValuePtr pValue(pCondition_->value(pContext));
 	return pValue.get() && pValue->boolean();
 }
 
@@ -249,6 +310,61 @@ bool qm::FilterContentHandler::characters(const WCHAR* pwsz,
 				return false;
 		}
 	}
+	
+	return true;
+}
+
+
+/****************************************************************************
+ *
+ * FilterWriter
+ *
+ */
+
+qm::FilterWriter::FilterWriter(Writer* pWriter) :
+	handler_(pWriter)
+{
+}
+
+qm::FilterWriter::~FilterWriter()
+{
+}
+
+bool qm::FilterWriter::write(const FilterManager* pManager)
+{
+	if (!handler_.startDocument())
+		return false;
+	if (!handler_.startElement(0, 0, L"filters", DefaultAttributes()))
+		return false;
+	
+	const FilterManager::FilterList& l = const_cast<FilterManager*>(pManager)->getFilters(false);
+	for (FilterManager::FilterList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		const Filter* pFilter = *it;
+		if (!write(pFilter))
+			return false;
+	}
+	
+	if (!handler_.endElement(0, 0, L"filters"))
+		return false;
+	if (!handler_.endDocument())
+		return false;
+	
+	return true;
+}
+
+bool qm::FilterWriter::write(const Filter* pFilter)
+{
+	SimpleAttributes attrs(L"name", pFilter->getName());
+	if (!handler_.startElement(0, 0, L"filter", attrs))
+		return false;
+	
+	const Macro* pCondition = pFilter->getCondition();
+	wstring_ptr wstrCondition(pCondition->getString());
+	if (!handler_.characters(wstrCondition.get(), 0, wcslen(wstrCondition.get())))
+		return false;
+	
+	if (!handler_.endElement(0, 0, L"filter"))
+		return false;
 	
 	return true;
 }
