@@ -2094,13 +2094,12 @@ LRESULT qm::ListContainerWindow::onDestroy()
 #ifndef _WIN32_WCE
 LRESULT qm::ListContainerWindow::onNcPaint(HRGN hrgn)
 {
-	if (pTheme_->isActive()) {
-		qs::UIUtil::drawThemeBorder(pTheme_.get(), getHandle(), LVP_LISTDETAIL, 0);
-		return 0;
-	}
-	else {
-		return DefaultWindowHandler::onNcPaint(hrgn);
-	}
+	DefaultWindowHandler::onNcPaint(hrgn);
+	
+	if (getWindowLong(GWL_EXSTYLE) & WS_EX_CLIENTEDGE && pTheme_->isActive())
+		qs::UIUtil::drawThemeBorder(pTheme_.get(), getHandle(), LVP_LISTDETAIL, 0, ::GetSysColor(COLOR_WINDOW));
+	
+	return 0;
 }
 #endif
 

@@ -117,7 +117,8 @@ wstring_ptr qs::UIUtil::browseFolder(HWND hwnd,
 bool qs::UIUtil::drawThemeBorder(Theme* pTheme,
 								 HWND hwnd,
 								 int nPartId,
-								 int nStateId)
+								 int nStateId,
+								 COLORREF crBackground)
 {
 	RECT rect;
 	::GetWindowRect(hwnd, &rect);
@@ -127,8 +128,14 @@ bool qs::UIUtil::drawThemeBorder(Theme* pTheme,
 	rect.top = 0;
 	
 	WindowDeviceContext dc(hwnd);
-	int nBorderWidth = ::GetSystemMetrics(SM_CXEDGE);
-	int nBorderHeight = ::GetSystemMetrics(SM_CYEDGE);
+	int nEdgeWidth = ::GetSystemMetrics(SM_CXEDGE);
+	int nEdgeHeight = ::GetSystemMetrics(SM_CYEDGE);
+	dc.excludeClipRect(nEdgeWidth, nEdgeHeight,
+		rect.right - nEdgeWidth, rect.bottom - nEdgeHeight);
+	dc.fillSolidRect(rect, crBackground);
+	
+	int nBorderWidth = pTheme->getSysSize(SM_CXBORDER);
+	int nBorderHeight = pTheme->getSysSize(SM_CYBORDER);
 	dc.excludeClipRect(nBorderWidth, nBorderHeight,
 		rect.right - nBorderWidth, rect.bottom - nBorderHeight);
 	return pTheme->drawBackground(dc.getHandle(), nPartId, nStateId, rect, 0);

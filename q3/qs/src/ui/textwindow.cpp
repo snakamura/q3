@@ -13,12 +13,16 @@
 #include <qsregex.h>
 #include <qstextutil.h>
 #include <qstextwindow.h>
+#include <qstheme.h>
 #include <qsuiutil.h>
 #include <qsutil.h>
 
 #include <algorithm>
 
 #include <tchar.h>
+#ifndef _WIN32_WCE
+#	include <tmschema.h>
+#endif
 
 #include "resourceinc.h"
 #include "textwindow.h"
@@ -314,6 +318,9 @@ public:
 	HIMC hImc_;
 	bool bAtok_;
 	HCURSOR hCursorLink_;
+#ifndef _WIN32_WCE
+	std::auto_ptr<Theme> pTheme_;
+#endif
 	
 	mutable unsigned int nLineHeight_;
 	mutable unsigned int nLineInWindow_;
@@ -3005,11 +3012,17 @@ LRESULT qs::TextWindow::windowProc(UINT uMsg,
 		HANDLE_LBUTTONUP()
 		HANDLE_MOUSEMOVE()
 		HANDLE_MOUSEWHEEL()
+#ifndef _WIN32_WCE
+		HANDLE_NCPAINT()
+#endif
 		HANDLE_PAINT()
 		HANDLE_PASTE()
 		HANDLE_SETCURSOR()
 		HANDLE_SETFOCUS()
 		HANDLE_SIZE()
+#ifndef _WIN32_WCE
+		HANDLE_THEMECHANGED()
+#endif
 		HANDLE_TIMER()
 		HANDLE_VSCROLL();
 	END_MESSAGE_HANDLER()
@@ -3050,6 +3063,10 @@ LRESULT qs::TextWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	if (DefaultWindowHandler::onCreate(pCreateStruct) == -1)
 		return -1;
+	
+#ifndef _WIN32_WCE
+	pImpl_->pTheme_.reset(new Theme(getHandle(), L"Edit"));
+#endif
 	
 	pImpl_->pRuler_ = new TextWindowRuler(pImpl_);
 	if (!pImpl_->pRuler_->create(L"QsTextWindowRuler",
@@ -3101,6 +3118,10 @@ LRESULT qs::TextWindow::onDestroy()
 	pImpl_->hbmTab_ = 0;
 	
 	pImpl_->pTextModel_->removeTextModelHandler(pImpl_);
+	
+#ifndef _WIN32_WCE
+	pImpl_->pTheme_.reset(0);
+#endif
 	
 	return DefaultWindowHandler::onDestroy();
 }
@@ -3378,6 +3399,18 @@ LRESULT qs::TextWindow::onMouseWheel(UINT nFlags,
 }
 #endif
 
+#ifndef _WIN32_WCE
+LRESULT qs::TextWindow::onNcPaint(HRGN hrgn)
+{
+	DefaultWindowHandler::onNcPaint(hrgn);
+	
+	if (getWindowLong(GWL_EXSTYLE) & WS_EX_CLIENTEDGE && pImpl_->pTheme_->isActive())
+		UIUtil::drawThemeBorder(pImpl_->pTheme_.get(), getHandle(), EP_EDITTEXT, 0, pImpl_->crBackground_);
+	
+	return 0;
+}
+#endif
+
 LRESULT qs::TextWindow::onPaint()
 {
 	PaintDeviceContext dc(getHandle());
@@ -3592,6 +3625,16 @@ LRESULT qs::TextWindow::onSize(UINT nFlags,
 	
 	return DefaultWindowHandler::onSize(nFlags, cx, cy);
 }
+
+#ifndef _WIN32_WCE
+LRESULT qs::TextWindow::onThemeChanged()
+{
+#ifndef _WIN32_WCE
+	pImpl_->pTheme_.reset(new Theme(getHandle(), L"Edit"));
+#endif
+	return 0;
+}
+#endif
 
 LRESULT qs::TextWindow::onTimer(UINT nId)
 {

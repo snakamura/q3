@@ -45,7 +45,8 @@ public:
 				  const RECT& rect,
 				  UINT nEdge,
 				  UINT nFlags,
-				  RECT* pRect) const;
+				  RECT* pRect);
+	int getSysSize(int nId);
 
 private:
 	Theme(const Theme&);

@@ -96,7 +96,7 @@ bool qs::Theme::drawEdge(HDC hdc,
 						 const RECT& rect,
 						 UINT nEdge,
 						 UINT nFlags,
-						 RECT* pRect) const
+						 RECT* pRect)
 {
 	if (!pImpl_->hTheme_)
 		return false;
@@ -105,6 +105,17 @@ bool qs::Theme::drawEdge(HDC hdc,
 	PFN_DRAWTHEMEEDGE pfnDrawThemeEdge = reinterpret_cast<PFN_DRAWTHEMEEDGE>(
 		::GetProcAddress(pImpl_->hInstUxTheme_, "DrawThemeEdge"));
 	return (*pfnDrawThemeEdge)(pImpl_->hTheme_, hdc, nPartId, nStateId, &rect, nEdge, nFlags, pRect) == S_OK;
+}
+
+int qs::Theme::getSysSize(int nId)
+{
+	if (!pImpl_->hTheme_)
+		return ::GetSystemMetrics(nId);
+	
+	typedef int (WINAPI *PFN_GETTHEMESYSSIZE)(HTHEME, int);
+	PFN_GETTHEMESYSSIZE pfnGetThemeSysSize = reinterpret_cast<PFN_GETTHEMESYSSIZE>(
+		::GetProcAddress(pImpl_->hInstUxTheme_, "GetThemeSysSize"));
+	return (*pfnGetThemeSysSize)(pImpl_->hTheme_, nId) == S_OK;
 }
 
 #endif // _WIN32_WCE

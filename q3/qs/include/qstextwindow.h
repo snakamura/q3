@@ -429,6 +429,9 @@ protected:
 						 short nDelta,
 						 const POINT& pt);
 #endif
+#ifndef _WIN32_WCE
+	LRESULT onNcPaint(HRGN hrgn);
+#endif
 	LRESULT onPaint();
 	LRESULT onPaste();
 	LRESULT onSetCursor(HWND hwnd,
@@ -438,6 +441,9 @@ protected:
 	LRESULT onSize(UINT nFlags,
 				   int cx,
 				   int cy);
+#ifndef _WIN32_WCE
+	LRESULT onThemeChanged();
+#endif
 	LRESULT onTimer(UINT nId);
 	LRESULT onVScroll(UINT nCode,
 					  UINT nPos,

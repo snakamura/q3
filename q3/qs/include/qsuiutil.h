@@ -39,7 +39,8 @@ public:
 	static bool drawThemeBorder(Theme* pTheme,
 								HWND hwnd,
 								int nPartId,
-								int nStateId);
+								int nStateId,
+								COLORREF crBackground);
 #endif
 };
 
