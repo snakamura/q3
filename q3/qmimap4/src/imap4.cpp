@@ -1012,7 +1012,8 @@ bool qmimap4::Imap4::send(const CHAR** pszContents,
 			else if (nSelect == 0)
 				IMAP4_ERROR(IMAP4_ERROR_TIMEOUT);
 			
-			size_t nSend = pSocket_->send(pszContent + nTotalSend, nLen - nTotalSend, 0);
+			size_t nSend = pSocket_->send(pszContent + nTotalSend,
+				QSMIN(size_t(SEND_BLOCK_SIZE), nLen - nTotalSend), 0);
 			if (nSend == -1)
 				IMAP4_ERROR_SOCKET(IMAP4_ERROR_SEND);
 			nTotalSend += nSend;
