@@ -277,15 +277,6 @@ public:
 	virtual bool canSelectAll();
 
 private:
-	qs::wstring_ptr prepareRelatedContent(const Message& msg,
-										  const qs::Part& partHtml,
-										  const WCHAR* pwszEncoding);
-	void clearRelatedContent();
-	void prepareRelatedContent(const qs::Part& part,
-							   const WCHAR* pwszId,
-							   const WCHAR* pwszEncoding);
-
-private:
 	HtmlMessageViewWindow(const HtmlMessageViewWindow&);
 	HtmlMessageViewWindow& operator=(const HtmlMessageViewWindow&);
 
@@ -294,11 +285,54 @@ private:
 	{
 		void destroy();
 		
+		HtmlMessageViewWindow* pHtmlMessageViewWindow_;
 		qs::WSTRING wstrContentId_;
 		qs::WSTRING wstrMimeType_;
 		unsigned char* pData_;
 		size_t nDataLen_;
 	};
+	
+	class ContentManager
+	{
+	private:
+		ContentManager();
+	
+	public:
+		~ContentManager();
+	
+	public:
+		Content getContent(const WCHAR* pwszContentId) const;
+		qs::wstring_ptr prepareRelatedContent(HtmlMessageViewWindow* pHtmlMessageViewWindow,
+											  const Message& msg,
+											  const qs::Part& partHtml,
+											  const WCHAR* pwszEncoding);
+		void clearRelatedContent(HtmlMessageViewWindow* pHtmlMessageViewWindow);
+	
+	private:
+		void prepareRelatedContent(HtmlMessageViewWindow* pHtmlMessageViewWindow,
+								   const qs::Part& part,
+								   const WCHAR* pwszId,
+								   const WCHAR* pwszEncoding);
+	
+	public:
+		static ContentManager& getInstance();
+	
+	private:
+		ContentManager(const ContentManager&);
+		ContentManager& operator=(const ContentManager&);
+	
+	private:
+		typedef std::vector<Content> ContentList;
+	
+	private:
+		ContentList listContent_;
+		qs::ComPtr<IInternetSession> pInternetSession_;
+		qs::ComPtr<IClassFactory> pClassFactory_;
+	
+	private:
+		static ContentManager instance__;
+	};
+	friend class ContentManager;
 	
 	class IInternetSecurityManagerImpl : public IInternetSecurityManager
 	{
@@ -358,7 +392,7 @@ private:
 		public IInternetProtocolInfo
 	{
 	public:
-		explicit InternetProtocol(HtmlMessageViewWindow* pHtmlMessageViewWindow);
+		InternetProtocol();
 		~InternetProtocol();
 	
 	public:
@@ -422,12 +456,38 @@ private:
 	
 	private:
 		ULONG nRef_;
-		HtmlMessageViewWindow* pHtmlMessageViewWindow_;
-		Content* pContent_;
+		Content content_;
 		const unsigned char* pCurrent_;
 		IInternetProtocolSink* pSink_;
 	};
 	friend class InternetProtocol;
+	
+	class InternetProtocolFactory : public IClassFactory
+	{
+	public:
+		InternetProtocolFactory();
+		~InternetProtocolFactory();
+	
+	public:
+		STDMETHOD_(ULONG, AddRef)();
+		STDMETHOD_(ULONG, Release)();
+		STDMETHOD(QueryInterface)(REFIID riid,
+								  void** ppv);
+	
+	public:
+		STDMETHOD(CreateInstance)(IUnknown* pUnkOuter,
+								  REFIID riid,
+								  void** ppvObj);
+		STDMETHOD(LockServer)(BOOL bLock);
+	
+	private:
+		InternetProtocolFactory(const InternetProtocolFactory&);
+		InternetProtocolFactory& operator=(const InternetProtocolFactory&);
+	
+	private:
+		ULONG nRef_;
+	};
+	friend class InternetProtocolFactory;
 	
 	class IServiceProviderImpl : public IServiceProvider
 	{
@@ -766,9 +826,6 @@ private:
 	friend class AmbientDispatchHook;
 
 private:
-	typedef std::vector<Content> ContentList;
-
-private:
 	qs::Profile* pProfile_;
 	const WCHAR* pwszSection_;
 	MessageModel* pMessageModel_;
@@ -778,7 +835,6 @@ private:
 	IServiceProviderImpl* pServiceProvider_;
 	DWebBrowserEvents2Impl* pWebBrowserEvents_;
 	DWORD dwConnectionPointCookie_;
-	ContentList listContent_;
 	bool bAllowExternal_;
 	bool bActivate_;
 	bool bOnlineMode_;

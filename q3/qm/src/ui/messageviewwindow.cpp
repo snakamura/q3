@@ -420,7 +420,8 @@ qm::HtmlMessageViewWindow::HtmlMessageViewWindow(Profile* pProfile,
 
 qm::HtmlMessageViewWindow::~HtmlMessageViewWindow()
 {
-	clearRelatedContent();
+	ContentManager& manager = ContentManager::getInstance();
+	manager.clearRelatedContent(this);
 }
 
 wstring_ptr qm::HtmlMessageViewWindow::getSuperClass()
@@ -661,7 +662,9 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 		const Part* pPart = util.getAlternativePart(L"text", L"html");
 		assert(pPart);
 		
-		wstring_ptr wstrId(prepareRelatedContent(*pMessage, *pPart, pwszEncoding));
+		ContentManager& manager = ContentManager::getInstance();
+		wstring_ptr wstrId(manager.prepareRelatedContent(
+			this, *pMessage, *pPart, pwszEncoding));
 		wstrURL = concat(L"cid:", wstrId.get());
 		bAllowExternal_ = false;
 	}
@@ -848,11 +851,67 @@ bool qm::HtmlMessageViewWindow::canSelectAll()
 	return true;
 }
 
-wstring_ptr qm::HtmlMessageViewWindow::prepareRelatedContent(const Message& msg,
-															 const Part& partHtml,
-															 const WCHAR* pwszEncoding)
+
+/****************************************************************************
+ *
+ * HtmlMessageViewWindow::Content
+ *
+ */
+
+void HtmlMessageViewWindow::Content::destroy()
 {
-	clearRelatedContent();
+	freeWString(wstrContentId_);
+	wstrContentId_ = 0;
+	freeWString(wstrMimeType_);
+	wstrMimeType_ = 0;
+	free(pData_);
+	pData_ = 0;
+}
+
+
+/****************************************************************************
+ *
+ * HtmlMessageViewWindow::ContentManager
+ *
+ */
+
+HtmlMessageViewWindow::ContentManager qm::HtmlMessageViewWindow::ContentManager::instance__;
+
+qm::HtmlMessageViewWindow::ContentManager::ContentManager()
+{
+	if (::CoInternetGetSession(0, &pInternetSession_, 0) == S_OK) {
+		ComPtr<IClassFactory> pClassFactory(new InternetProtocolFactory());
+		pClassFactory->AddRef();
+		
+		CLSID clsid = { 0x3646a74a, 0x7908, 0x4bed, { 0xb7, 0x6a, 0xab, 0x1a, 0x6f, 0x6b, 0xcf, 0x10 } };
+		if (pInternetSession_->RegisterNameSpace(pClassFactory.get(), clsid, L"cid", 0, 0, 0) == S_OK)
+			pClassFactory_ = pClassFactory;
+	}
+}
+
+qm::HtmlMessageViewWindow::ContentManager::~ContentManager()
+{
+	if (pInternetSession_.get() && pClassFactory_.get())
+		pInternetSession_->UnregisterNameSpace(pClassFactory_.get(), L"cid");
+}
+
+HtmlMessageViewWindow::Content qm::HtmlMessageViewWindow::ContentManager::getContent(const WCHAR* pwszContentId) const
+{
+	for (ContentList::const_iterator it = listContent_.begin(); it != listContent_.end(); ++it) {
+		if ((*it).wstrContentId_ && wcscmp((*it).wstrContentId_, pwszContentId) == 0)
+			return *it;
+	}
+	
+	Content content = { 0, 0, 0, 0, 0 };
+	return content;
+}
+
+wstring_ptr qm::HtmlMessageViewWindow::ContentManager::prepareRelatedContent(HtmlMessageViewWindow* pHtmlMessageViewWindow,
+																			 const Message& msg,
+																			 const qs::Part& partHtml,
+																			 const WCHAR* pwszEncoding)
+{
+	clearRelatedContent(pHtmlMessageViewWindow);
 	
 	const WCHAR* pwszId = L"uniqueid@qmail";
 	// TODO
@@ -866,30 +925,37 @@ wstring_ptr qm::HtmlMessageViewWindow::prepareRelatedContent(const Message& msg,
 //	CHECK_QSTATUS();
 //	if (field == Part::FIELD_EXIST)
 //		pwszId = messageId.getMessageId();
-	prepareRelatedContent(partHtml, pwszId, pwszEncoding);
+	prepareRelatedContent(pHtmlMessageViewWindow, partHtml, pwszId, pwszEncoding);
 	
 	wstring_ptr wstrId(allocWString(pwszId));
 	
-	prepareRelatedContent(msg, 0, 0);
+	prepareRelatedContent(pHtmlMessageViewWindow, msg, 0, 0);
 	
 	return wstrId;
 }
 
-void qm::HtmlMessageViewWindow::clearRelatedContent()
+void qm::HtmlMessageViewWindow::ContentManager::clearRelatedContent(HtmlMessageViewWindow* pHtmlMessageViewWindow)
 {
-	for (ContentList::iterator it = listContent_.begin(); it != listContent_.end(); ++it)
-		(*it).destroy();
-	listContent_.clear();
+	for (ContentList::iterator it = listContent_.begin(); it != listContent_.end(); ) {
+		if ((*it).pHtmlMessageViewWindow_ == pHtmlMessageViewWindow) {
+			(*it).destroy();
+			it = listContent_.erase(it);
+		}
+		else {
+			++it;
+		}
+	}
 }
 
-void qm::HtmlMessageViewWindow::prepareRelatedContent(const Part& part,
-													  const WCHAR* pwszId,
-													  const WCHAR* pwszEncoding)
+void qm::HtmlMessageViewWindow::ContentManager::prepareRelatedContent(HtmlMessageViewWindow* pHtmlMessageViewWindow,
+																	  const qs::Part& part,
+																	  const WCHAR* pwszId,
+																	  const WCHAR* pwszEncoding)
 {
 	if (part.isMultipart()) {
 		const Part::PartList& l = part.getPartList();
 		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it)
-			prepareRelatedContent(**it, 0, 0);
+			prepareRelatedContent(pHtmlMessageViewWindow, **it, 0, 0);
 	}
 	else {
 		wstring_ptr wstrId;
@@ -933,6 +999,7 @@ void qm::HtmlMessageViewWindow::prepareRelatedContent(const Part& part,
 			if (!pData.get())
 				return;
 			Content content = {
+				pHtmlMessageViewWindow,
 				wstrId.get(),
 				wstrMimeType.get(),
 				pData.get(),
@@ -946,21 +1013,9 @@ void qm::HtmlMessageViewWindow::prepareRelatedContent(const Part& part,
 	}
 }
 
-
-/****************************************************************************
- *
- * HtmlMessageViewWindow::Content
- *
- */
-
-void HtmlMessageViewWindow::Content::destroy()
+HtmlMessageViewWindow::ContentManager& qm::HtmlMessageViewWindow::ContentManager::getInstance()
 {
-	freeWString(wstrContentId_);
-	wstrContentId_ = 0;
-	freeWString(wstrMimeType_);
-	wstrMimeType_ = 0;
-	free(pData_);
-	pData_ = 0;
+	return instance__;
 }
 
 
@@ -1090,10 +1145,8 @@ STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::GetZoneMap
  *
  */
 
-qm::HtmlMessageViewWindow::InternetProtocol::InternetProtocol(HtmlMessageViewWindow* pHtmlMessageViewWindow) :
+qm::HtmlMessageViewWindow::InternetProtocol::InternetProtocol() :
 	nRef_(0),
-	pHtmlMessageViewWindow_(pHtmlMessageViewWindow),
-	pContent_(0),
 	pCurrent_(0),
 	pSink_(0)
 {
@@ -1160,25 +1213,18 @@ STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Start(LPCWSTR pwszUrl,
 	if (wcsncmp(pwszUrl, L"cid:", 4) != 0)
 		return E_FAIL;
 	
-	ContentList& l = pHtmlMessageViewWindow_->listContent_;
-	ContentList::iterator it = l.begin();
-	while (it != l.end()) {
-		if ((*it).wstrContentId_ && wcscmp((*it).wstrContentId_, pwszUrl + 4) == 0)
-			break;
-		++it;
-	}
-	if (it == l.end())
+	ContentManager& manager = ContentManager::getInstance();
+	content_ = manager.getContent(pwszUrl + 4);
+	if (!content_.wstrContentId_)
 		return E_FAIL;
 	
-	pContent_ = &*it;
-	pCurrent_ = pContent_->pData_;
+	pCurrent_ = content_.pData_;
 	
 	pSink_ = pSink;
 	
 	HRESULT hr = S_OK;
 	
-	hr = pSink_->ReportProgress(BINDSTATUS_MIMETYPEAVAILABLE,
-		pContent_->wstrMimeType_);
+	hr = pSink_->ReportProgress(BINDSTATUS_MIMETYPEAVAILABLE, content_.wstrMimeType_);
 	if (FAILED(hr))
 		return hr;
 	
@@ -1217,8 +1263,8 @@ STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Read(void* pv,
 	
 	*pcbRead = 0;
 	
-	if (cb > pContent_->nDataLen_ - (pCurrent_ - pContent_->pData_))
-		cb = pContent_->nDataLen_ - (pCurrent_ - pContent_->pData_);
+	if (cb > content_.nDataLen_ - (pCurrent_ - content_.pData_))
+		cb = content_.nDataLen_ - (pCurrent_ - content_.pData_);
 	
 	if (cb == 0)
 		return S_FALSE;
@@ -1285,6 +1331,70 @@ STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::QueryInfo(LPCWSTR pwsz
 
 /****************************************************************************
  *
+ * HtmlMessageViewWindow::InternetProtocolFactory
+ *
+ */
+
+qm::HtmlMessageViewWindow::InternetProtocolFactory::InternetProtocolFactory() :
+	nRef_(0)
+{
+}
+
+qm::HtmlMessageViewWindow::InternetProtocolFactory::~InternetProtocolFactory()
+{
+}
+
+STDMETHODIMP_(ULONG) qm::HtmlMessageViewWindow::InternetProtocolFactory::AddRef()
+{
+	return ::InterlockedIncrement(reinterpret_cast<LONG*>(&nRef_));
+}
+
+STDMETHODIMP_(ULONG) qm::HtmlMessageViewWindow::InternetProtocolFactory::Release()
+{
+	ULONG nRef = ::InterlockedDecrement(reinterpret_cast<LONG*>(&nRef_));
+	if (nRef == 0)
+		delete this;
+	return nRef;
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocolFactory::QueryInterface(REFIID riid,
+																				void** ppv)
+{
+	*ppv = 0;
+	
+	if (riid == IID_IUnknown || riid == IID_IClassFactory) {
+		AddRef();
+		*ppv = static_cast<IClassFactory*>(this);
+	}
+	
+	return *ppv ? S_OK : E_NOINTERFACE;
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocolFactory::CreateInstance(IUnknown* pUnkOuter,
+																				REFIID riid,
+																				void** ppvObj)
+{
+	if (pUnkOuter)
+		return CLASS_E_NOAGGREGATION;
+	
+	if (riid != IID_IInternetProtocol)
+		return E_NOINTERFACE;
+	
+	InternetProtocol* pInternetProtocol = new InternetProtocol();
+	pInternetProtocol->AddRef();
+	*ppvObj = static_cast<IInternetProtocol*>(pInternetProtocol);
+	
+	return S_OK;
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocolFactory::LockServer(BOOL bLock)
+{
+	return E_NOTIMPL;
+}
+
+
+/****************************************************************************
+ *
  * HtmlMessageViewWindow::IServiceProviderImpl
  *
  */
@@ -1340,12 +1450,6 @@ STDMETHODIMP qm::HtmlMessageViewWindow::IServiceProviderImpl::QueryService(REFGU
 		riid == IID_IInternetSecurityManager) {
 		pSecurityManager_->AddRef();
 		*ppv = static_cast<IInternetSecurityManager*>(pSecurityManager_);
-	}
-	else if (guidService == IID_IInternetProtocol &&
-		riid == IID_IInternetProtocol) {
-		InternetProtocol* pInternetProtocol = new InternetProtocol(pHtmlMessageViewWindow_);
-		pInternetProtocol->AddRef();
-		*ppv = static_cast<IInternetProtocol*>(pInternetProtocol);
 	}
 	
 	return *ppv ? S_OK : E_NOINTERFACE;
