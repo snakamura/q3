@@ -179,7 +179,7 @@ bool qs::Part::create(const Part* pParent,
 			}
 		}
 		else {
-			bool bRFC822 = wcscmp(pwszMediaType, L"message") == 0 &&
+			bool bRFC822 = _wcsicmp(pwszMediaType, L"message") == 0 &&
 				_wcsicmp(pContentType->getSubType(), L"rfc822") == 0;
 			if (!bRFC822 && !pContentType && pParent) {
 				const ContentTypeParser* pContentTypeParent = pParent->getContentType();
