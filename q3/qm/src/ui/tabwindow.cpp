@@ -294,16 +294,11 @@ void qm::TabWindowImpl::update(Folder* pFolder)
 	assert(pFolder);
 	
 	int nCount = pTabModel_->getCount();
-	int nItem = 0;
-	for (nItem = 0; nItem < nCount; ++nItem) {
-		TabItem* pItem = pTabModel_->getItem(nItem);
+	for (int n = 0; n < nCount; ++n) {
+		TabItem* pItem = pTabModel_->getItem(n);
 		if (pItem->get().second == pFolder)
-			break;
+			update(n);
 	}
-	if (nItem == nCount)
-		return;
-	
-	update(nItem);
 }
 
 void qm::TabWindowImpl::update(int nItem)
