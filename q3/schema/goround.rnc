@@ -1,0 +1,64 @@
+datatypes xsd="http://www.w3.org/2001/XMLSchema-datatypes"
+
+start = element goround {
+	element course {
+		element dialup {
+			attribute name {
+				xsd:string
+			}?,
+			attribute dialFrom {
+				xsd:string
+			}?,
+			attribute showDialog {
+				xsd:boolean
+			}?,
+			attribute disconnectWait {
+				xsd:int
+			}?,
+			attribute wheneverNotConnected {
+				xsd:boolean
+			}
+		}?,
+		method,
+		attribute name {
+			xsd:string
+		},
+		attribute confirm {
+			xsd:boolean
+		}?
+	}*
+}
+
+method = element sequential {
+	entry*
+} |
+element parallel {
+	entry*
+}
+
+entry = element entry {
+	empty,
+	attribute account {
+		xsd:string
+	},
+	attribute subaccount {
+		xsd:string
+	}?,
+	attribute send {
+		xsd:boolean
+	}?,
+	attribute receive {
+		xsd:boolean
+	},
+	(
+		attribute folder {
+			xsd:string
+		} |
+		attribute selectFolder {
+			xsd:boolean
+		}
+	)?,
+	attribute filter {
+		xsd:string
+	}?
+}

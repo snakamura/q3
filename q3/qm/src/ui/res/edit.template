@@ -1,0 +1,31 @@
+{
+	@Header(
+		@Concat(
+			'Message-Id,Subject,To,Cc,Bcc,From,X-QMAIL-Account,X-QMAIL-Macro',
+			@If(
+				@Equal(
+					@FieldParameter('Content-Type', 'charset'),
+					'us-ascii'
+				),
+				',Content-Type',
+				''
+			)
+		)
+	)
+}Message-Id: {
+	@Concat(
+		'<',
+		@ProcessId(),
+		@FormatDate(@Date(), '%Y4%M0%D%h%m%s'),
+		@Address(@I(@Account(), X-QMAIL-Identity)),
+		'>')
+}
+To: {@Decode(@Field('To'))}
+Cc: {@Decode(@Field('Cc'))}
+Bcc: {@Decode(@Field('Bcc'))}
+From: {@Decode(@Field('From'))}
+Subject: {@Subject()}
+X-QMAIL-Account: {@Account()}{@If(X-QMAIL-Identity, @Concat('\nX-QMAIL-Identity: ', X-QMAIL-Identity), '')}
+X-QMAIL-Macro: @ForEach(@Messages('{@Concat('//', @Account(), '/', @Folder())}', {@Id()}), @Delete())
+
+{@Body()}

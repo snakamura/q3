@@ -1,0 +1,84 @@
+diff -uNr STLport-4.5.1.orig/stlport/config/stl_wince.h STLport-4.5.1/stlport/config/stl_wince.h
+--- STLport-4.5.1.orig/stlport/config/stl_wince.h	2001-05-15 20:43:02.000000000 -0700
++++ STLport-4.5.1/stlport/config/stl_wince.h	2002-02-05 06:41:06.000000000 -0800
+@@ -25,8 +25,9 @@
+ #     define _STLP_NO_EXCEPTION_HEADER
+ 
+ // we have to use malloc instead of new
+-# undef  _STLP_USE_NEWALLOC
+-# define _STLP_USE_MALLOC
++//# undef  _STLP_USE_NEWALLOC
++//# define _STLP_USE_MALLOC
++#define _STLP_USE_SEH
+ 
+ //# ifdef _STLP_MSVC
+ //#     pragma warning (disable: 4786)
+@@ -48,9 +49,11 @@
+ #endif
+ 
+ #ifndef __PLACEMENT_NEW_INLINE
++#ifdef __cplusplus
+ inline void *__cdecl operator new(size_t, void *_P) { return (_P); }
+ #define __PLACEMENT_NEW_INLINE
+ #endif
++#endif
+ 
+ #ifndef _WCHAR_T_DEFINED
+ typedef unsigned short wchar_t;
+diff -uNr STLport-4.5.1.orig/stlport/new STLport-4.5.1/stlport/new
+--- STLport-4.5.1.orig/stlport/new	2001-12-01 13:36:28.000000000 -0800
++++ STLport-4.5.1/stlport/new	2002-02-05 06:41:06.000000000 -0800
+@@ -25,7 +25,13 @@
+ _STLP_BEGIN_NAMESPACE
+ 
+ inline void* _STLP_CALL __stl_new(size_t __n) {
+-  return ::malloc(__n);
++  void* __result = ::malloc(__n);
++#ifdef _STLP_USE_SEH
++#define _STLP_SEH_BAD_ALLOC_EXCEPTION 0xE0000001
++  if (__result == 0)
++    ::RaiseException(_STLP_SEH_BAD_ALLOC_EXCEPTION, 0, 0, 0);
++#endif
++  return __result;
+ }
+ 
+ inline void _STLP_CALL __stl_delete(void* __p) {
+diff -uNr STLport-4.5.1.orig/stlport/stl/_alloc.c STLport-4.5.1/stlport/stl/_alloc.c
+--- STLport-4.5.1.orig/stlport/stl/_alloc.c	2001-09-11 12:08:28.000000000 -0700
++++ STLport-4.5.1/stlport/stl/_alloc.c	2003-05-29 13:35:33.000000000 -0700
+@@ -217,7 +217,19 @@
+       ((_Obj*)_S_start_free) -> _M_free_list_link = *__my_free_list;
+       *__my_free_list = (_Obj*)_S_start_free;
+     }
++#ifdef _STLP_USE_SEH
++    __try {
++      _S_start_free = (char*)__stlp_chunk_malloc(__bytes_to_get);
++    }
++    __except (true) {
++      // Because SEH doesn't unwind, destractor of _Node_Alloc_Lock
++      // is not called. So release lock here.
++      _Node_Alloc_Lock<__threads, 0>::_S_lock._M_release_lock();
++      ::RaiseException(::GetExceptionCode(), 0, 0, 0);
++    }
++#else
+     _S_start_free = (char*)__stlp_chunk_malloc(__bytes_to_get);
++#endif
+     if (0 == _S_start_free) {
+       size_t __i;
+       _Obj* _STLP_VOLATILE* __my_free_list;
+diff -uNr STLport-4.5.1.orig/stlport/stl/_alloc.h STLport-4.5.1/stlport/stl/_alloc.h
+--- STLport-4.5.1.orig/stlport/stl/_alloc.h	2001-12-01 13:36:32.000000000 -0800
++++ STLport-4.5.1/stlport/stl/_alloc.h	2003-05-29 13:35:29.000000000 -0700
+@@ -253,6 +253,12 @@
+   static void _STLP_CALL deallocate(void *__p, size_t __n) { if (__n > (size_t)_MAX_BYTES) __stl_delete(__p); else _M_deallocate(__p, __n); }
+ };
+ 
++#ifdef _STLP_EXPORT_NODE_ALLOC
++template class __declspec(dllexport) __node_alloc<true, 0>;
++#elif defined _STLP_IMPORT_NODE_ALLOC
++extern template class __declspec(dllimport) __node_alloc<true, 0>;
++#endif
++
+ # if defined (_STLP_USE_TEMPLATE_EXPORT)
+ _STLP_EXPORT_TEMPLATE_CLASS __malloc_alloc<0>;
+ _STLP_EXPORT_TEMPLATE_CLASS __node_alloc<_STLP_NODE_ALLOCATOR_THREADS, 0>;

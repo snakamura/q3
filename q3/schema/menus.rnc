@@ -1,0 +1,41 @@
+datatypes xsd="http://www.w3.org/2001/XMLSchema-datatypes"
+
+start = element menus {
+	(
+		element menubar {
+			item*,
+			attribute name {
+				xsd:string
+			}
+		} |
+		element menu {
+			item*,
+			attribute name {
+				xsd:string
+			}
+		}
+	)*
+}
+
+item = element menuitem {
+	attribute text {
+		xsd:string
+	},
+	attribute action {
+		xsd:string
+	}
+} |
+element separator {
+	empty
+} |
+element popupmenu {
+	attribute text {
+		xsd:string
+	},
+	(
+		item* |
+		attribute action {
+			xsd:string
+		}
+	)
+}

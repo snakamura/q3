@@ -1,0 +1,8 @@
+<profile>
+	<section name="EditWindow">
+		<key name="HideHeaderIfNoFocus">1</key>
+		<key name="ShowCaret">1</key>
+		<key name="ShowNewLine">1</key>
+		<key name="ShowTab">1</key>
+	</section>
+</profile>

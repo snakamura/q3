@@ -1,0 +1,39 @@
+datatypes xsd="http://www.w3.org/2001/XMLSchema-datatypes"
+
+element keymaps {
+	element keymap {
+		element action {
+			element key {
+				empty,
+				(
+					attribute key {
+						xsd:string
+					} |
+					attribute code {
+						xsd:string {
+							pattern = "[0-9a-fA-F]+"
+						}
+					}
+				),
+				attribute shift {
+					xsd:boolean
+				}?,
+				attribute ctrl {
+					xsd:boolean
+				}?,
+				attribute alt {
+					xsd:boolean
+				}?,
+				attribute virtual {
+					xsd:boolean
+				}?
+			},
+			attribute name {
+				xsd:string
+			}
+		}*,
+		attribute name {
+			xsd:string
+		}
+	}*
+}

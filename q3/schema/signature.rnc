@@ -1,0 +1,22 @@
+datatypes xsd="http://www.w3.org/2001/XMLSchema-datatypes"
+
+element signatures {
+	element signature {
+		## シグニチャ
+		xsd:string,
+		## 名前
+		attribute name {
+			xsd:string
+		},
+		## このシグニチャを使用するアカウント（正規表現）
+		## 指定されない場合、全てのアカウント
+		attribute account {
+			xsd:string
+		}?,
+		## デフォルトになるかどうか
+		## 指定されない場合、false
+		attribute default {
+			xsd:boolean
+		}?
+	}*
+}

@@ -1,0 +1,58 @@
+diff -uNr wcecompat.orig/src/wce211_string.c wcecompat/src/wce211_string.c
+--- wcecompat.orig/src/wce211_string.c	2002-12-03 02:20:08.000000000 -0800
++++ wcecompat/src/wce211_string.c	2003-04-15 02:00:32.000000000 -0700
+@@ -21,6 +21,7 @@
+ 
+ #include <string.h>
+ #include <stdlib.h>
++#include <windows.h>
+ 
+ 
+ _CRTIMP int __cdecl _stricmp(const char* s1, const char* s2)
+@@ -72,3 +73,46 @@
+ 	strcpy(new_s, s);
+ 	return new_s;
+ }
++
++_CRTIMP size_t  __cdecl strspn(const char * s1, const char * s2)
++{
++	const char* p1;
++	const char* p2;
++	
++	for (p1 = s1; *p1; ++p1) {
++		for (p2 = s2; *p2 && *p1 != *p2; ++p2)
++			;
++		if (!*p2)
++			return p1 - s1;
++	}
++	
++	return p1 - s1;
++}
++
++_CRTIMP long   __cdecl strtol(const char * s, char ** endptr, int base)
++{
++	size_t len = strlen(s);
++	wchar_t* ws = _alloca(len + 1);
++	wchar_t* wendptr = 0;
++	long n = 0;
++	
++	MultiByteToWideChar(CP_ACP, 0, s, len, ws, len);
++	n = wcstol(ws, &wendptr, base);
++	if (endptr)
++		*endptr = wendptr ? (char*)s + (wendptr - ws) : 0;
++	return n;
++}
++
++_CRTIMP unsigned long __cdecl strtoul(const char * s, char ** endptr, int base)
++{
++	size_t len = strlen(s);
++	wchar_t* ws = _alloca(len + 1);
++	wchar_t* wendptr = 0;
++	unsigned long n = 0;
++	
++	MultiByteToWideChar(CP_ACP, 0, s, len, ws, len);
++	n = wcstoul(ws, &wendptr, base);
++	if (endptr)
++		*endptr = wendptr ? (char*)s + (wendptr - ws) : 0;
++	return n;
++}

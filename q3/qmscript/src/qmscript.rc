@@ -1,0 +1,102 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// “ú–{Œê resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#ifdef _WIN32
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+#pragma code_page(932)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""res\\\\version.rc""\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// TYPELIB
+//
+
+#if defined(APSTUDIO_INVOKED) || \
+    !(defined(PLATFORM_PPC) || defined(PLATFORM_PPC2002) || defined(PLATFORM_HPC2000) || \
+    defined(PLATFORM_HPCPRO))
+IDR_TYPELIB             TYPELIB DISCARDABLE     "..\\tlb\\desktop\\qmobj.tlb"
+#endif
+#if defined(APSTUDIO_INVOKED) || defined(PLATFORM_PPC)
+#if defined(APSTUDIO_INVOKED)
+IDR_TYPELIB$(PLATFORM_PPC) TYPELIB DISCARDABLE     "..\\tlb\\ppc\\qmobj.tlb"
+#else
+IDR_TYPELIB             TYPELIB DISCARDABLE     "..\\tlb\\ppc\\qmobj.tlb"
+#endif
+#endif
+#if defined(APSTUDIO_INVOKED) || defined(PLATFORM_PPC2002)
+#if defined(APSTUDIO_INVOKED)
+IDR_TYPELIB$(PLATFORM_PPC2002) TYPELIB DISCARDABLE     "..\\tlb\\ppc2002\\qmobj.tlb"
+#else
+IDR_TYPELIB             TYPELIB DISCARDABLE     "..\\tlb\\ppc2002\\qmobj.tlb"
+#endif
+#endif
+#if defined(APSTUDIO_INVOKED) || defined(PLATFORM_HPC2000)
+#if defined(APSTUDIO_INVOKED)
+IDR_TYPELIB$(PLATFORM_HPC2000) TYPELIB DISCARDABLE     "..\\tlb\\hpc2000\\qmobj.tlb"
+#else
+IDR_TYPELIB             TYPELIB DISCARDABLE     "..\\tlb\\hpc2000\\qmobj.tlb"
+#endif
+#endif
+#if defined(APSTUDIO_INVOKED) || defined(PLATFORM_HPCPRO)
+#if defined(APSTUDIO_INVOKED)
+IDR_TYPELIB$(PLATFORM_HPCPRO) TYPELIB DISCARDABLE     "..\\tlb\\hpcpro\\qmobj.tlb"
+#else
+IDR_TYPELIB             TYPELIB DISCARDABLE     "..\\tlb\\hpcpro\\qmobj.tlb"
+#endif
+#endif
+#endif    // “ú–{Œê resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#include "res\\version.rc"
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

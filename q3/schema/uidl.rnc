@@ -1,0 +1,15 @@
+datatypes xsd="http://www.w3.org/2001/XMLSchema-datatypes"
+
+element uidl {
+	uid {
+		xsd:string,
+		attribute flags {
+			xsd:unsignedInt
+		},
+		attribute date {
+			xsd:string {
+				pattern = "[0-9]{4}-[0-9]{2}-[0-9]{2}"
+			}
+		}
+	}*
+}

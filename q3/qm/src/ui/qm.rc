@@ -1,0 +1,901 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// “ú–{Œê resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#ifdef _WIN32
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+#pragma code_page(932)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""res\\\\version.rc""\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_VIEWSORT MENU DISCARDABLE 
+BEGIN
+    POPUP ""
+    BEGIN
+        MENUITEM SEPARATOR
+        MENUITEM "&Ascending",                  IDM_VIEW_SORTASCENDING
+        MENUITEM "D&escending",                 IDM_VIEW_SORTDESCENDING
+        MENUITEM SEPARATOR
+        MENUITEM "&Thread",                     IDM_VIEW_SORTTHREAD
+    END
+END
+
+IDR_MESSAGEMOVE MENU DISCARDABLE 
+BEGIN
+    POPUP ""
+    BEGIN
+        MENUITEM SEPARATOR
+        MENUITEM "&Others...",                  IDM_MESSAGE_MOVEOTHER
+    END
+END
+
+IDR_VIEWFILTER MENU DISCARDABLE 
+BEGIN
+    POPUP ""
+    BEGIN
+        MENUITEM "&None",                       IDM_VIEW_FILTERNONE
+        MENUITEM SEPARATOR
+        MENUITEM SEPARATOR
+        MENUITEM "&Custom...",                  IDM_VIEW_FILTERCUSTOM
+    END
+END
+
+IDR_VIEWTEMPLATE MENU DISCARDABLE 
+BEGIN
+    POPUP ""
+    BEGIN
+        MENUITEM "&None",                       IDM_VIEW_TEMPLATENONE
+        MENUITEM SEPARATOR
+    END
+END
+
+IDR_VIEWENCODING MENU DISCARDABLE 
+BEGIN
+    POPUP ""
+    BEGIN
+        MENUITEM "Auto &Detect",                IDM_VIEW_ENCODINGAUTODETECT
+        MENUITEM SEPARATOR
+    END
+END
+
+IDR_MESSAGEAPPLYTEMPLATE MENU DISCARDABLE 
+BEGIN
+    POPUP ""
+    BEGIN
+        MENUITEM "&None",                       IDM_MESSAGE_APPLYTEMPLATENONE
+
+    END
+END
+
+IDR_MESSAGEAPPLYTEMPLATEEXTERNAL MENU DISCARDABLE 
+BEGIN
+    POPUP ""
+    BEGIN
+        MENUITEM "&None",                       IDM_MESSAGE_APPLYTEMPLATENONEEXTERNAL
+
+    END
+END
+
+IDR_MESSAGEATTACHMENT MENU DISCARDABLE 
+BEGIN
+    POPUP ""
+    BEGIN
+        MENUITEM "&Detach...",                  IDM_MESSAGE_DETACH
+        MENUITEM "De&lete",                     IDM_MESSAGE_DELETEATTACHMENT
+        MENUITEM SEPARATOR
+        MENUITEM "&Expand Digest",              IDM_MESSAGE_EXPANDDIGEST
+        MENUITEM "&Combine",                    IDM_MESSAGE_COMBINE
+    END
+END
+
+IDR_TOOLSUBACCOUNT MENU DISCARDABLE 
+BEGIN
+    POPUP ""
+    BEGIN
+        MENUITEM "(&Default)",                  IDM_TOOL_SUBACCOUNT
+    END
+END
+
+IDR_TOOLGOROUND MENU DISCARDABLE 
+BEGIN
+    POPUP ""
+    BEGIN
+        MENUITEM "&Go Round",                   IDM_TOOL_GOROUND
+    END
+END
+
+IDR_TOOLSCRIPT MENU DISCARDABLE 
+BEGIN
+    POPUP ""
+    BEGIN
+        MENUITEM "(&None)",                     IDM_TOOL_SCRIPTNONE
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_MAINFRAME           ICON    DISCARDABLE     "res\\qmail.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_TOOLBAR             BITMAP  DISCARDABLE     "res\\toolbar.bmp"
+IDB_FOLDER              BITMAP  DISCARDABLE     "res\\folder.bmp"
+IDB_HEADER              BITMAP  DISCARDABLE     "res\\header.bmp"
+IDB_LIST                BITMAP  DISCARDABLE     "res\\list.bmp"
+IDB_LISTDATA            BITMAP  DISCARDABLE     "res\\listdata.bmp"
+IDB_ADDRESSBOOK         BITMAP  DISCARDABLE     "res\\addressbook.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_SYNC DIALOG DISCARDABLE  0, 0, 210, 139
+STYLE WS_POPUP | WS_CAPTION | WS_THICKFRAME
+CAPTION "Synchronizing"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    SCROLLBAR       IDC_SIZEGRIP,200,130,10,9,SBS_BOTTOMALIGN | SBS_VERT | 
+                    SBS_SIZEGRIP
+    PUSHBUTTON      "&Hide",IDCANCEL,155,5,50,14
+    EDITTEXT        IDC_ERROR,5,105,200,24,ES_MULTILINE | ES_AUTOHSCROLL | 
+                    ES_READONLY | WS_VSCROLL
+END
+
+IDD_SELECTSYNCFILTER DIALOG DISCARDABLE  0, 0, 170, 125
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Select Sync Filter"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    LISTBOX         IDC_FILTERSETLIST,5,5,160,95,LBS_SORT | 
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,60,105,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,115,105,50,14
+END
+
+IDD_CREATEFOLDER DIALOG DISCARDABLE  0, 0, 130, 115
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Create Folder"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    LTEXT           "&Name",IDC_STATIC,5,8,18,8
+    EDITTEXT        IDC_NAME,25,5,100,14,ES_AUTOHSCROLL
+    CONTROL         "&Local Folder",IDC_LOCALFOLDER,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,10,30,52,10
+    CONTROL         "&Remote Folder",IDC_REMOTEFOLDER,"Button",
+                    BS_AUTORADIOBUTTON,10,40,59,10
+    CONTROL         "&Query Folder",IDC_QUERYFOLDER,"Button",
+                    BS_AUTORADIOBUTTON,10,50,54,10
+    GROUPBOX        "Type",IDC_STATIC,5,20,120,45
+    LTEXT           "&Macro",IDC_STATIC,5,73,19,8
+    EDITTEXT        IDC_MACRO,25,70,100,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,20,95,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,75,95,50,14
+END
+
+IDD_PROGRESS DIALOG DISCARDABLE  0, 0, 187, 59
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Progress"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    CONTROL         "",IDC_MESSAGE,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,5,5,
+                    175,8
+    CONTROL         "Progress1",IDC_PROGRESS,"msctls_progress32",WS_BORDER,5,
+                    20,175,14
+    DEFPUSHBUTTON   "&Cancel",IDCANCEL,68,40,50,14
+END
+
+IDD_DETACH DIALOG DISCARDABLE  0, 0, 189, 139
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Detach"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    CONTROL         "List1",IDC_ATTACHMENT,"SysListView32",LVS_LIST | 
+                    LVS_SINGLESEL | LVS_NOLABELWRAP | LVS_EDITLABELS | 
+                    LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP,5,5,180,65
+    PUSHBUTTON      "&Rename",IDC_RENAME,135,75,50,14
+    LTEXT           "&Folder",IDC_STATIC,5,90,19,8
+    EDITTEXT        IDC_FOLDER,5,100,125,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Browse...",IDC_BROWSE,135,100,50,14
+    DEFPUSHBUTTON   "OK",IDOK,80,120,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,135,120,50,14
+END
+
+IDD_ADDRESSBOOK DIALOG DISCARDABLE  0, 0, 242, 149
+STYLE WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Address Book"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    PUSHBUTTON      "C&ategory",IDC_CATEGORY,5,3,85,14
+    CONTROL         "List1",IDC_ADDRESS,"SysListView32",LVS_REPORT | 
+                    LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,5,20,85,125
+    CONTROL         "List2",IDC_SELECTEDADDRESS,"SysListView32",LVS_REPORT | 
+                    LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | WS_BORDER | 
+                    WS_TABSTOP,95,20,90,125
+    DEFPUSHBUTTON   "OK",IDOK,190,5,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,190,20,50,14
+    PUSHBUTTON      "&To",IDC_TO,190,40,50,14
+    PUSHBUTTON      "&Cc",IDC_CC,190,55,50,14
+    PUSHBUTTON      "&Bcc",IDC_BCC,190,70,50,14
+    PUSHBUTTON      "&Remove",IDC_REMOVE,190,90,50,14
+    SCROLLBAR       IDC_SIZEGRIP,233,140,10,9,SBS_BOTTOMALIGN | SBS_VERT | 
+                    SBS_SIZEGRIP
+END
+
+IDD_INSERTTEXT DIALOG DISCARDABLE  0, 0, 183, 95
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Insert Text"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    LISTBOX         IDC_LIST,5,5,120,85,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,130,5,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,130,20,50,14
+END
+
+IDD_ATTACHMENT DIALOG DISCARDABLE  0, 0, 187, 93
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Attachment"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    CONTROL         "List1",IDC_ATTACHMENT,"SysListView32",LVS_LIST | 
+                    LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS | 
+                    LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | WS_BORDER | 
+                    WS_TABSTOP,5,5,125,85
+    DEFPUSHBUTTON   "OK",IDOK,135,5,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,135,20,50,14
+    PUSHBUTTON      "&Add",IDC_ADD,135,40,50,14
+    PUSHBUTTON      "&Remove",IDC_REMOVE,135,55,50,14
+END
+
+IDD_MESSAGEPROPERTY DIALOG DISCARDABLE  0, 0, 231, 167
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "General"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    LTEXT           "From",IDC_STATIC,5,5,25,8
+    CONTROL         "",IDC_FROM,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
+                    WS_GROUP,34,5,190,8
+    LTEXT           "To",IDC_STATIC,5,20,25,8
+    CONTROL         "",IDC_TO,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
+                    WS_GROUP,34,20,190,8
+    LTEXT           "Subject",IDC_STATIC,5,35,25,8
+    CONTROL         "",IDC_SUBJECT,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
+                    WS_GROUP,34,35,190,8
+    LTEXT           "Date",IDC_STATIC,5,50,25,8
+    CONTROL         "",IDC_DATE,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
+                    WS_GROUP,35,50,75,8
+    LTEXT           "Folder",IDC_STATIC,115,50,25,8
+    CONTROL         "",IDC_FOLDER,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
+                    WS_GROUP,144,50,80,8
+    LTEXT           "ID",IDC_STATIC,5,65,25,8
+    CONTROL         "",IDC_ID,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
+                    WS_GROUP,35,65,75,8
+    LTEXT           "Size",IDC_STATIC,115,65,25,8
+    CONTROL         "",IDC_MESSAGESIZE,"Static",SS_LEFTNOWORDWRAP | 
+                    SS_NOPREFIX | WS_GROUP,144,65,80,8
+    GROUPBOX        "Status",IDC_STATIC,4,85,220,75
+    CONTROL         "&Seen",IDC_SEEN,"Button",BS_AUTO3STATE | WS_TABSTOP,10,
+                    100,60,10
+    CONTROL         "&Replied",IDC_REPLIED,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,10,110,60,10
+    CONTROL         "&Forwarded",IDC_FORWARDED,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,10,120,60,10
+    CONTROL         "Sen&t",IDC_SENT,"Button",BS_AUTO3STATE | WS_TABSTOP,10,
+                    130,60,10
+    CONTROL         "&Draft",IDC_DRAFT,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    10,140,60,10
+    CONTROL         "&Marked",IDC_MARKED,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    75,100,60,10
+    CONTROL         "De&leted",IDC_DELETED,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,75,110,60,10
+    CONTROL         "D&ownload",IDC_DOWNLOAD,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,75,120,60,10
+    CONTROL         "Download Te&xt",IDC_DOWNLOADTEXT,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,75,130,60,10
+    CONTROL         "To Contains M&e",IDC_TOME,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,75,140,60,10
+    CONTROL         "Cc Conta&ins Me",IDC_CCME,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,140,100,60,10
+    CONTROL         "User&1",IDC_USER1,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    140,110,60,10
+    CONTROL         "User&2",IDC_USER2,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    140,120,60,10
+    CONTROL         "User&3",IDC_USER3,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    140,130,60,10
+    CONTROL         "User&4",IDC_USER4,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    140,140,60,10
+END
+
+IDD_EXPORT DIALOG DISCARDABLE  0, 0, 214, 125
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Export"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    LTEXT           "&Path",IDC_STATIC,5,8,20,8
+    EDITTEXT        IDC_PATH,45,5,110,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Browse...",IDC_BROWSE,160,5,50,14
+    CONTROL         "Create one &file for each message",IDC_FILEPERMESSAGE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,45,25,110,10
+    CONTROL         "Export Fla&gs",IDC_EXPORTFLAGS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,45,40,55,10
+    LTEXT           "&Template",IDC_STATIC,5,63,30,8
+    COMBOBOX        IDC_TEMPLATE,45,60,110,30,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_DISABLED | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Encoding",IDC_STATIC,5,78,35,8
+    COMBOBOX        IDC_ENCODING,45,76,110,30,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_DISABLED | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,105,105,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,160,105,50,14
+END
+
+IDD_IMPORT DIALOG DISCARDABLE  0, 0, 214, 109
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Import"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    LTEXT           "&Path",IDC_STATIC,5,8,25,8
+    EDITTEXT        IDC_PATH,40,5,115,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Browse...",IDC_BROWSE,160,5,50,14
+    CONTROL         "File may contain &multiple messages",IDC_MULTIMESSAGES,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,40,25,135,10
+    GROUPBOX        "Flags",IDC_STATIC,5,40,150,45
+    CONTROL         "&Normal",IDC_NORMAL,"Button",BS_AUTORADIOBUTTON,10,50,
+                    55,10
+    CONTROL         "Compatible with &QMAIL 2.0",IDC_QMAIL20COMPATIBLE,
+                    "Button",BS_AUTORADIOBUTTON,10,60,100,10
+    CONTROL         "&Ignore",IDC_IGNORE,"Button",BS_AUTORADIOBUTTON,10,70,
+                    34,10
+    DEFPUSHBUTTON   "OK",IDOK,105,90,50,14,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,160,90,50,14
+END
+
+IDD_ACCOUNT DIALOG DISCARDABLE  0, 0, 199, 129
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Account"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    CONTROL         "Tree1",IDC_ACCOUNT,"SysTreeView32",TVS_HASBUTTONS | 
+                    TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | 
+                    WS_BORDER | WS_TABSTOP,5,5,125,120
+    DEFPUSHBUTTON   "&Close",IDOK,135,5,60,14
+    PUSHBUTTON      "&Add Account...",IDC_ADDACCOUNT,135,25,60,14
+    PUSHBUTTON      "Add &Subaccount...",IDC_ADDSUBACCOUNT,135,40,60,14
+    PUSHBUTTON      "&Remove",IDC_REMOVE,135,60,60,14
+    PUSHBUTTON      "Re&name...",IDC_RENAME,135,75,60,14
+    PUSHBUTTON      "&Property...",IDC_PROPERTY,135,95,60,14
+END
+
+IDD_ACCOUNTGENERAL DIALOG DISCARDABLE  0, 0, 223, 145
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "General"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    GROUPBOX        "Host information",IDC_STATIC,5,5,215,55
+    LTEXT           "&Incoming mail",IDC_STATIC,10,23,50,8
+    EDITTEXT        IDC_RECEIVEHOST,65,20,150,14,ES_AUTOHSCROLL
+    LTEXT           "&Outgoing mail",IDC_STATIC,10,38,50,8
+    EDITTEXT        IDC_SENDHOST,65,35,150,14,ES_AUTOHSCROLL
+    GROUPBOX        "User information",IDC_STATIC,5,70,215,55
+    LTEXT           "&Name",IDC_STATIC,10,88,30,8
+    EDITTEXT        IDC_NAME,65,85,150,14,ES_AUTOHSCROLL
+    LTEXT           "Mail &Address",IDC_STATIC,10,103,50,8
+    EDITTEXT        IDC_ADDRESS,65,100,150,14,ES_AUTOHSCROLL
+END
+
+IDD_ACCOUNTUSER DIALOG DISCARDABLE  0, 0, 223, 145
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "User"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    GROUPBOX        "Incoming mail",IDC_STATIC,5,5,215,55
+    LTEXT           "&Username",IDC_STATIC,10,23,40,8
+    EDITTEXT        IDC_RECEIVEUSERNAME,65,20,150,14,ES_AUTOHSCROLL
+    LTEXT           "&Password",IDC_STATIC,10,38,40,8
+    EDITTEXT        IDC_RECEIVEPASSWORD,65,35,150,14,ES_PASSWORD | 
+                    ES_AUTOHSCROLL
+    GROUPBOX        "Outgoing mail",IDC_STATIC,5,70,215,65
+    CONTROL         "&Authenticate",IDC_SENDAUTHENTICATE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,83,53,10
+    LTEXT           "U&sername",IDC_STATIC,10,99,40,8
+    EDITTEXT        IDC_SENDUSERNAME,65,95,150,14,ES_AUTOHSCROLL
+    LTEXT           "Pass&word",IDC_STATIC,10,113,40,8
+    EDITTEXT        IDC_SENDPASSWORD,65,111,150,14,ES_PASSWORD | 
+                    ES_AUTOHSCROLL
+END
+
+IDD_ACCOUNTDIALUP DIALOG DISCARDABLE  0, 0, 223, 145
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialup"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    CONTROL         "&Never dial a connection",IDC_NEVER,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,5,5,210,10
+    CONTROL         "Dial whenever a &network connection is not present",
+                    IDC_WHENEVERNOTCONNECTED,"Button",BS_AUTORADIOBUTTON,5,
+                    15,210,10
+    CONTROL         "&Always dial a connection",IDC_CONNECT,"Button",
+                    BS_AUTORADIOBUTTON,5,25,210,10
+    LTEXT           "&Entry Name",IDC_STATIC,15,42,45,8
+    COMBOBOX        IDC_ENTRY,60,40,155,65,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Show dialog box before connect",IDC_SHOWDIALOG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,62,130,10
+    PUSHBUTTON      "&Dial Properties...",IDC_DIALPROPERTY,155,60,60,14
+    LTEXT           "&Wait",IDC_STATIC,15,83,20,8
+    EDITTEXT        IDC_WAITBEFOREDISCONNECT,35,80,20,14,ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    LTEXT           "s before disconnect",IDC_STATIC,55,83,70,8
+END
+
+IDD_ACCOUNTADVANCED DIALOG DISCARDABLE  0, 0, 223, 145
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Advanced"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    LTEXT           "&Identity",IDC_STATIC,5,8,30,8
+    EDITTEXT        IDC_IDENTITY,45,5,175,14,ES_AUTOHSCROLL
+    LTEXT           "&My Address",IDC_STATIC,5,23,40,8
+    EDITTEXT        IDC_MYADDRESS,45,20,175,14,ES_AUTOHSCROLL
+    LTEXT           "&Sync Filter",IDC_STATIC,5,38,33,8
+    COMBOBOX        IDC_SYNCFILTER,45,35,85,45,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Timeout",IDC_STATIC,5,53,30,8
+    EDITTEXT        IDC_TIMEOUT,45,50,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "&Connect receive host before send",
+                    IDC_CONNECTRECEIVEHOSTBEFORESEND,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,125,10
+END
+
+IDD_CREATEACCOUNT DIALOG DISCARDABLE  0, 0, 179, 155
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Create Account"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    LTEXT           "&Name",IDC_STATIC,5,8,25,8
+    EDITTEXT        IDC_NAME,65,5,110,14,ES_AUTOHSCROLL
+    LTEXT           "&Incoming Protocol",IDC_STATIC,5,22,60,8
+    COMBOBOX        IDC_INCOMINGPROTOCOL,65,20,110,55,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Outgoing Protocol",IDC_STATIC,5,37,60,8
+    COMBOBOX        IDC_OUTGOINGPROTOCOL,65,35,110,50,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Message Box",IDC_STATIC,5,55,170,55
+    CONTROL         "&Single file",IDC_SINGLEFILE,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,10,65,55,10
+    CONTROL         "&File per message",IDC_MULTIPLEFILE,"Button",
+                    BS_AUTORADIOBUTTON,10,95,80,10
+    LTEXT           "&Block Size",IDC_STATIC,20,78,40,8
+    EDITTEXT        IDC_BLOCKSIZE,65,75,25,14,ES_RIGHT | ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    LTEXT           "MB",IDC_STATIC,90,78,11,8
+    LTEXT           "&Cache Block Size",IDC_STATIC,5,118,60,8
+    EDITTEXT        IDC_CACHEBLOCKSIZE,65,115,25,14,ES_RIGHT | 
+                    ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "MB",IDC_STATIC,90,118,11,8
+    DEFPUSHBUTTON   "OK",IDOK,70,135,50,14,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,125,135,50,14
+END
+
+IDD_MAILFOLDER DIALOG DISCARDABLE  0, 0, 194, 66
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Mail Folder"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    LTEXT           "&Mail Folder",IDC_STATIC,5,5,60,8
+    EDITTEXT        IDC_MAILFOLDER,5,20,130,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Browse...",IDC_BROWSE,140,20,50,14
+    DEFPUSHBUTTON   "OK",IDOK,85,45,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,140,45,50,14
+END
+
+IDD_FIND DIALOG DISCARDABLE  0, 0, 209, 59
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Find"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    LTEXT           "&Find what",IDC_STATIC,5,8,30,8
+    COMBOBOX        IDC_FIND,40,5,110,65,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "Match &Case",IDC_MATCHCASE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,25,60,10
+    DEFPUSHBUTTON   "Find &Next",IDC_FINDNEXT,155,5,50,14
+    PUSHBUTTON      "Find &Previous",IDC_FINDPREV,155,20,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,155,40,50,14
+END
+
+IDD_REPLACE DIALOG DISCARDABLE  0, 0, 234, 79
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Replace"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    LTEXT           "&Find what",IDC_STATIC,5,8,30,8
+    COMBOBOX        IDC_FIND,55,5,110,65,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "&Replace with",IDC_STATIC,5,23,45,8
+    COMBOBOX        IDC_REPLACE,55,20,110,65,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "Match &Case",IDC_MATCHCASE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,40,60,10
+    DEFPUSHBUTTON   "Replace &Next",IDC_REPLACENEXT,170,5,60,14
+    PUSHBUTTON      "Replace &Previous",IDC_REPLACEPREV,170,20,60,14
+    PUSHBUTTON      "Replace &All",IDC_REPLACEALL,170,40,60,14
+    PUSHBUTTON      "Cancel",IDCANCEL,170,60,60,14
+END
+
+IDD_CREATESUBACCOUNT DIALOG DISCARDABLE  0, 0, 184, 46
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Create Subaccount"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    LTEXT           "&Name",IDC_STATIC,5,6,25,8
+    COMBOBOX        IDC_NAME,30,5,150,50,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,75,25,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,130,25,50,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_SYNC, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 203
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 132
+    END
+
+    IDD_SELECTSYNCFILTER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 163
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 118
+    END
+
+    IDD_CREATEFOLDER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 123
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 108
+    END
+
+    IDD_PROGRESS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 52
+    END
+
+    IDD_DETACH, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 182
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 132
+    END
+
+    IDD_ADDRESSBOOK, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 235
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 142
+    END
+
+    IDD_INSERTTEXT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 176
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 88
+    END
+
+    IDD_ATTACHMENT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 86
+    END
+
+    IDD_MESSAGEPROPERTY, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 224
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 160
+    END
+
+    IDD_EXPORT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 207
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 118
+    END
+
+    IDD_IMPORT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 207
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 102
+    END
+
+    IDD_ACCOUNT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 192
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 122
+    END
+
+    IDD_ACCOUNTGENERAL, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 216
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 138
+    END
+
+    IDD_ACCOUNTUSER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 216
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 138
+    END
+
+    IDD_ACCOUNTDIALUP, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 216
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 138
+    END
+
+    IDD_ACCOUNTADVANCED, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 216
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 138
+    END
+
+    IDD_CREATEACCOUNT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 172
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 148
+    END
+
+    IDD_MAILFOLDER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 187
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 59
+    END
+
+    IDD_FIND, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 202
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 52
+    END
+
+    IDD_REPLACE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 227
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 72
+    END
+
+    IDD_CREATESUBACCOUNT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 177
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 39
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEMPLATE
+//
+
+NEW                     TEMPLATE DISCARDABLE    "res\\new.template"
+REPLY                   TEMPLATE DISCARDABLE    "res\\reply.template"
+REPLY_ALL               TEMPLATE DISCARDABLE    "res\\reply_all.template"
+FORWARD                 TEMPLATE DISCARDABLE    "res\\forward.template"
+EDIT                    TEMPLATE DISCARDABLE    "res\\edit.template"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// PROFILE
+//
+
+.KEYMAP                 PROFILE DISCARDABLE     "res\\.keymap"
+.MENUS                  PROFILE DISCARDABLE     "res\\.menus"
+.HEADER                 PROFILE DISCARDABLE     "res\\.header"
+.HEADEREDIT             PROFILE DISCARDABLE     "res\\.headeredit"
+.QMAIL                  PROFILE DISCARDABLE     "res\\.qmail"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SHOWTOOLBAR         "Show &Toolbar"
+    IDS_HIDETOOLBAR         "Hide &Toolbar"
+    IDS_SHOWSTATUSBAR       "Show &Status Bar"
+    IDS_HIDESTATUSBAR       "Hide &Status Bar"
+    IDS_SHOWFOLDER          "Show &Folder"
+    IDS_HIDEFOLDER          "Hide &Folder"
+    IDS_SHOWHEADERCOLUMN    "Show Header &Column"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_HIDEHEADERCOLUMN    "Hide Header &Column"
+    IDS_SHOWPREVIEW         "Show &Preview"
+    IDS_HIDEPREVIEW         "Hide &Preview"
+    IDS_SHOWHEADER          "Show &Header"
+    IDS_HIDEHEADER          "Hide &Header"
+    IDS_THISFOLDER          "(This Folder)"
+    IDS_NONE                "(None)"
+    IDS_GOROUND             "&Go Round"
+    IDS_CANCEL              "Cancel"
+    IDS_APPLYMESSAGERULES   "Applying message rules..."
+    IDS_CONFIRMOVERWRITE    "Would you like to overwrite the existing file?\n"
+    IDS_CONFIRMEXECUTEATTACHMENT 
+                            "Are you sure to execute this attachment file?"
+    IDS_CONFIRMDELETETEMPFILE 
+                            "Are you sure to delete the modified temporary file?\n"
+    IDS_PROPERTY            "Property"
+    IDS_ALLCATEGORY         "&All"
+    IDS_CATEGORY            "C&ategory"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SYNCMSG_FINISHED    "Finished"
+    IDS_SYNCMSG_SENDMESSAGES "Sending messages..."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_CREATEFOLDER  "Could not create folder."
+    IDS_ERROR_EXECUTEATTACHMENT "Could not execute attachment file."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_APPLYRULE_CHECKINGMESSAGES "Checking messages..."
+    IDS_APPLYRULE_APPLYINGRULE "Applying rules..."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ADDRESSBOOK_NAME    "Name"
+    IDS_ADDRESSBOOK_ADDRESS "Address"
+    IDS_ADDRESSBOOK_COMMENT "Comment"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_FILTER_EXPORT       "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"
+    IDS_FILTER_IMPORT       "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"
+    IDS_FILTER_INSERT       "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"
+    IDS_FILTER_OPEN         "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_FILTER_SAVE         "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"
+    IDS_FILTER_ATTACHMENT   "All Files (*.*)|*.*||"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CATEGORYALL         "All"
+    IDS_DEFAULTSUBACCOUNT   "(Default)"
+    IDS_ACCOUNT             "Account"
+    IDS_TEMPLATENONE        "(&None)"
+    IDS_SCRIPTNONE          "(&None)"
+    IDS_FOLDERLISTNAME      "Name"
+    IDS_FOLDERLISTID        "ID"
+    IDS_FOLDERLISTCOUNT     "Count"
+    IDS_FOLDERLISTUNSEENCOUNT "Unseen"
+    IDS_FOLDERLISTINDEXSIZE "Index Size"
+    IDS_FOLDERLISTBOXSIZE   "Box Size"
+    IDS_FINDNOTFOUND        "Not found."
+    IDS_CONFIRMCLOSEEDITFRAME "Send message?"
+END
+
+#endif    // “ú–{Œê resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#include "res\\version.rc"
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

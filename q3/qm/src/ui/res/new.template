@@ -1,0 +1,34 @@
+{
+	@Progn(
+		@Set(
+			'addr',
+			@AddressBook(
+				'',
+				'',
+				@If(
+					@Equal(
+						@Profile('', 'Global', 'Bcc', '1'),
+						'0'
+					),
+					'',
+					@I()
+				)
+			)
+		),
+		@Concat(
+			@If(@Contain($addr, 'To: '), '', 'To: \\n'),
+			$addr
+		)
+	)
+}Subject: 
+Message-Id: {
+	@Concat(
+		'<',
+		@ProcessId(),
+		@FormatDate(@Date(), '%Y4%M0%D%h%m%s'),
+		@Address(@I()),
+		'>'
+	)
+}
+X-QMAIL-Account: {@Account()}{@If(@Identity(), @Concat('\\nX-QMAIL-Identity: ', @Identity()), '')}
+

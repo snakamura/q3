@@ -1,0 +1,304 @@
+/*
+ * $Id: qmobj.idl,v 1.4 2003/05/14 08:52:16 snakamura Exp $
+ *
+ * Copyright(C) 1998-2003 Satoshi Nakamura
+ * All rights reserved.
+ *
+ */
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+[
+	uuid(E20B490E-12FD-4da6-8B1A-627F6CDF71D8)
+]
+library qm
+{
+	importlib("stdole32.tlb");
+	importlib("stdole2.tlb");
+	
+	interface IApplication;
+	interface IDocument;
+	interface IAccount;
+	interface IAccountList;
+	interface IFolder;
+	interface INormalFolder;
+	interface IQueryFolder;
+	interface IFolderList;
+	interface IMessageHolder;
+	interface IMessageHolderList;
+	interface IMessage;
+	interface IMacro;
+	interface IMacroParser;
+	
+	[
+		object,
+		uuid(3154A9D0-D1B6-4235-A6ED-D080881D2D68),
+		pointer_default(unique)
+	]
+	interface IApplication : IDispatch
+	{
+		[propget]
+		HRESULT version([out, retval] BSTR* pbstrVersion);
+		[propget]
+		HRESULT nothing([out, retval] IDispatch** ppNothing);
+	};
+	
+	[
+		object,
+		uuid(73cdc532-471e-436b-9d1d-f8e23c473f6c),
+		pointer_default(unique)
+	]
+	interface IDocument : IDispatch
+	{
+		[propget]
+		HRESULT accounts([out, retval] IAccountList** ppAccountList);
+		
+		[propget]
+		HRESULT offline([out, retval] VARIANT_BOOL* pbOffline);
+		[propput]
+		HRESULT offline([in] VARIANT_BOOL bOffline);
+	};
+	
+	[
+		object,
+		uuid(b3fea67d-039f-4e9b-8874-8737ba40436e),
+		pointer_default(unique)
+	]
+	interface IAccount : IDispatch
+	{
+		[propget, id(DISPID_VALUE)]
+		HRESULT name([out, retval] BSTR* pbstrName);
+		[propget]
+		HRESULT folders([out, retval] IFolderList** ppFolderList);
+	};
+	
+	[
+		object,
+		uuid(ba9ad96c-5289-415b-b630-978f381d8e7d),
+		pointer_default(unique)
+	]
+	interface IAccountList : IDispatch
+	{
+		[propget, id(DISPID_VALUE)]
+		HRESULT item([in] VARIANT varIndexOrName, [out, retval] IAccount** ppAccount);
+		[propget]
+		HRESULT length([out, retval] unsigned int* pnLength);
+		[id(DISPID_NEWENUM), restricted, hidden]
+		HRESULT _newEnum([out, retval] IUnknown** ppUnk);
+	};
+	
+	[
+		object,
+		uuid(42ebf9a3-a5ce-41ab-95d6-25774eab2f5f),
+		pointer_default(unique)
+	]
+	interface IFolder : IDispatch
+	{
+		[propget]
+		HRESULT id([out, retval] unsigned int* pnId);
+		[propget]
+		HRESULT type([out, retval] BSTR* pbstrType);
+		[propget]
+		HRESULT name([out, retval] BSTR* pbstrName);
+		[propget, id(DISPID_VALUE)]
+		HRESULT fullName([out, retval] BSTR* pbstrFullName);
+		[propget]
+		HRESULT separator([out, retval] BSTR* pbstrSeparator);
+		[propget]
+		HRESULT flags([out, retval] unsigned int* pnFlags);
+		[propget]
+		HRESULT parent([out, retval] IFolder** ppParent);
+		[propget]
+		HRESULT account([out, retval] IAccount** ppAccount);
+		[propget]
+		HRESULT messages([out, retval] IMessageHolderList** ppMessageHolderList);
+	};
+	
+	[
+		object,
+		uuid(fb7e7d22-a283-4338-abc1-3ab1763f737a),
+		pointer_default(unique)
+	]
+	interface INormalFolder : IFolder
+	{
+	};
+	
+	[
+		object,
+		uuid(1d74ee86-315e-4885-83de-9681f23c4160),
+		pointer_default(unique)
+	]
+	interface IQueryFolder : IFolder
+	{
+	};
+	
+	[
+		object,
+		uuid(9ff95b7b-84dd-4d4e-9303-5bb12eb61ac9),
+		pointer_default(unique)
+	]
+	interface IFolderList : IDispatch
+	{
+		[propget, id(DISPID_VALUE)]
+		HRESULT item([in] VARIANT varIndexOrName, [out, retval] IFolder** ppFolder);
+		[propget]
+		HRESULT length([out, retval] unsigned int* pnLength);
+		[id(DISPID_NEWENUM), restricted, hidden]
+		HRESULT _newEnum([out, retval] IUnknown** ppUnk);
+	};
+	
+	[
+		object,
+		uuid(01208ef6-c4ca-4c03-9850-246fada597fc),
+		pointer_default(unique)
+	]
+	interface IMessageHolder : IDispatch
+	{
+		[propget]
+		HRESULT id([out, retval] unsigned int* pnId);
+		[propget]
+		HRESULT flags([out, retval] unsigned int* pnFlags);
+		[propget]
+		HRESULT from([out, retval] BSTR* pbstrFrom);
+		[propget]
+		HRESULT to([out, retval] BSTR* pbstrTo);
+		[propget]
+		HRESULT fromTo([out, retval] BSTR* pbstrFromTo);
+		[propget]
+		HRESULT subject([out, retval] BSTR* pbstrSubject);
+		[propget]
+		HRESULT date([out, retval] DATE* pDate);
+		[propget]
+		HRESULT size([out, retval] unsigned int* pnSize);
+		[propget]
+		HRESULT folder([out, retval] IFolder** ppFolder);
+		[propget]
+		HRESULT message([out, retval] IMessage** ppMessage);
+	};
+	
+	[
+		object,
+		uuid(8d83cabf-372e-42dc-a22c-2f540a32a51b),
+		pointer_default(unique)
+	]
+	interface IMessageHolderList : IDispatch
+	{
+		[propget, id(DISPID_VALUE)]
+		HRESULT item([in] unsigned int nIndex, [out, retval] IMessageHolder** ppMessageHolder);
+		[propget]
+		HRESULT length([out, retval] unsigned int* pnLength);
+	};
+	
+	[
+		object,
+		uuid(812f3fb4-5c93-47e0-b882-593c6d83f93a),
+		pointer_default(unique)
+	]
+	interface IMessage : IDispatch
+	{
+		[propget]
+		HRESULT content([out, retval] VARIANT* pvarContent);
+		[propget]
+		HRESULT bodyText([in, defaultvalue("")] BSTR bstrQuote,
+			[in, defaultvalue("")] BSTR bstrCharset,
+			[out, retval] BSTR* pbstrBody);
+	};
+	
+	[
+		object,
+		uuid(9c1aae75-21fb-40ba-bae3-1cca8032e70e),
+		pointer_default(unique)
+	]
+	interface IMainWindow : IDispatch
+	{
+		HRESULT invokeAction([in] BSTR bstrAction,
+			[in, optional] VARIANT arg1,
+			[in, optional] VARIANT arg2,
+			[in, optional] VARIANT arg3);
+	}
+	
+	[
+		object,
+		uuid(244afdfe-33c6-4ab7-8fa1-8452e82d7a64),
+		pointer_default(unique)
+	]
+	interface IEditFrameWindow : IDispatch
+	{
+		HRESULT invokeAction([in] BSTR bstrAction,
+			[in, optional] VARIANT arg1,
+			[in, optional] VARIANT arg2,
+			[in, optional] VARIANT arg3);
+	}
+	
+	[
+		object,
+		uuid(2d66e342-68eb-491c-b0a4-9eb84197db88),
+		pointer_default(unique)
+	]
+	interface IMessageFrameWindow : IDispatch
+	{
+		HRESULT invokeAction([in] BSTR bstrAction,
+			[in, optional] VARIANT arg1,
+			[in, optional] VARIANT arg2,
+			[in, optional] VARIANT arg3);
+	}
+	
+	[
+		object,
+		uuid(979131e1-b279-45bd-ba2e-e81bbd0a375b),
+		pointer_default(unique)
+	]
+	interface IMacro : IDispatch
+	{
+		HRESULT evaluate([in] IMessageHolder* pMessageHolder,
+			[in] IAccount* pAccount, [out, retval] VARIANT* pvarResult);
+		HRESULT setVariable([in] BSTR bstrName, [in] VARIANT var);
+		HRESULT getVariable([in] BSTR bstrName, [out, retval] VARIANT* pVar);
+		HRESULT removeVariable([in] BSTR bstrName);
+	};
+	
+	[
+		object,
+		uuid(48623e8c-0db2-4d0c-ae9f-bf872263a791),
+		pointer_default(unique)
+	]
+	interface IMacroParser : IDispatch
+	{
+		HRESULT parse([in] BSTR bstrMacro, [out, retval] IMacro** ppMacro);
+	};
+	
+	[
+		object,
+		uuid(f723ca13-41dd-45d3-ae0b-3fa31c1de79c),
+		pointer_default(unique)
+	]
+	interface IArgumentList : IDispatch
+	{
+		[propget, id(DISPID_VALUE)]
+		HRESULT item([in] unsigned int nIndex, [out, retval] VARIANT* pvarArg);
+		[propget]
+		HRESULT length([out, retval] unsigned int* pnLength);
+		[id(DISPID_NEWENUM), restricted, hidden]
+		HRESULT _newEnum([out, retval] IUnknown** ppUnk);
+	};
+	
+	[
+		object,
+		uuid(d982beaa-9100-4c8b-8393-5aa8e7d87b48),
+		pointer_default(unique)
+	]
+	interface IResult : IDispatch
+	{
+		[propput, id(DISPID_VALUE)]
+		HRESULT value([in] VARIANT varValue);
+	};
+	
+	[
+		uuid(5ed4b911-1e5c-4358-a9eb-ef3b979ae31b),
+	]
+	coclass CMacroParser
+	{
+		[default] interface IMacroParser;
+	};
+};

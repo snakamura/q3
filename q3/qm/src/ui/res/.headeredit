@@ -1,0 +1,26 @@
+<headerEdit>
+	<line>
+		<static width="6em" style="bold">T&amp;o:</static>
+		<edit type="addressList" field="To" number="0" expandAlias="true"/>
+	</line>
+	<line hideIfNoFocus="true">
+		<static width="6em" style="bold">&amp;Cc:</static>
+		<edit type="addressList" field="Cc" number="1" initialFocus="false" expandAlias="true"/>
+	</line>
+	<line hideIfNoFocus="true">
+		<static width="6em" style="bold">&amp;Bcc:</static>
+		<edit type="addressList" field="Bcc" number="2" initialFocus="false" expandAlias="true"/>
+	</line>
+	<line hideIfNoFocus="true">
+		<static width="6em" style="bold">&amp;Subject:</static>
+		<edit type="unstructured" field="Subject" number="3"/>
+	</line>
+	<line hideIfNoFocus="true">
+		<static width="6em" style="bold">Attac&amp;hment:</static>
+		<attachment number="4"/>
+		<static width="4.5em" style="bold">Acco&amp;unt:</static>
+		<account width="5em" number="5"/>
+		<static width="5em" style="bold">S&amp;ignature:</static>
+		<signature width="5em" number="6"/>
+	</line>
+</headerEdit>

@@ -1,0 +1,44 @@
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION NVERSION
+ PRODUCTVERSION NVERSION
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "041104b0"
+        BEGIN
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", " \0"
+            VALUE "FileDescription", "QMAIL3 Script Module\0"
+            VALUE "FileVersion", SVERSION "\0"
+            VALUE "InternalName", "qmscript\0"
+            VALUE "LegalCopyright", "Copyright (C) 1998-2003 Satoshi Nakamura\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "qmscript" SUFFIX ".dll\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "QMAIL3\0"
+            VALUE "ProductVersion", SVERSION "\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x411, 1200
+    END
+END
+
+#endif    // !_MAC

@@ -1,0 +1,24 @@
+<header>
+	<line>
+		<static width="4em" style="bold" showAlways="true">To:</static>
+		<edit>{@Name(To)}</edit>
+	</line>
+	<line hideIfEmpty="cc">
+		<static width="4em" style="bold" showAlways="true">Cc:</static>
+		<edit name="cc">{@Name(Cc)}</edit>
+	</line>
+	<line>
+		<static width="4em" style="bold" showAlways="true">From:</static>
+		<edit>{@Name(From)}</edit>
+		<static width="3em" style="bold" showAlways="true">Date:</static>
+		<edit width="10em">{@FormatDate(@Date(Date), '%Y4/%M0/%D %h:%m:%s')}</edit>
+	</line>
+	<line>
+		<static width="4em" style="bold" showAlways="true">Subject:</static>
+		<edit>{@Subject()}</edit>
+	</line>
+	<line hideIfEmpty="attachment">
+		<static width="4em" style="bold" showAlways="true">Attachment:</static>
+		<attachment name="attachment"/>
+	</line>
+</header>

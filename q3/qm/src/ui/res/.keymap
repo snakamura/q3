@@ -1,0 +1,378 @@
+<keymaps>
+	<keymap name="MainWindow">
+		<action name="EditCopy">
+			<key key="C" ctrl="true"/>
+		</action>
+		<action name="EditCut">
+			<key key="X" ctrl="true"/>
+		</action>
+		<action name="EditFind">
+			<key key="F" ctrl="true"/>
+		</action>
+		<action name="EditFindNext">
+			<key key="L" ctrl="true"/>
+		</action>
+		<action name="EditFindPrev">
+			<key key="L" shift="true" ctrl="true"/>
+		</action>
+		<action name="EditPaste">
+			<key key="V" ctrl="true"/>
+		</action>
+		<action name="EditSelectAll">
+			<key key="A" ctrl="true"/>
+		</action>
+		<action name="FileExit">
+			<key key="X" alt="true"/>
+		</action>
+		<action name="FileOffline">
+			<key key="O" ctrl="true"/>
+		</action>
+		<action name="ViewFocusNext">
+			<key code="9"/>
+		</action>
+		<action name="ViewFocusPrev">
+			<key code="9" shift="true"/>
+		</action>
+		<action name="ViewRefresh">
+			<key key="R" ctrl="true"/>
+		</action>
+		<action name="ToolGoround0">
+			<key key="[" virtual="false"/>
+		</action>
+		<action name="ToolReceive">
+			<key key="." virtual="false"/>
+		</action>
+		<action name="ToolSend">
+			<key key="," virtual="false"/>
+		</action>
+		<action name="ToolSync">
+			<key key="/" virtual="false"/>
+		</action>
+	</keymap>
+	<keymap name="FolderWindow">
+		<action name="ViewNextAccount">
+			<key code="28" shift="true"/>
+		</action>
+		<action name="ViewPrevAccount">
+			<key code="26" shift="true"/>
+		</action>
+	</keymap>
+	<keymap name="ListWindow">
+		<action name="EditDelete">
+			<key code="2e"/>
+			<key key="D"/>
+		</action>
+		<action name="EditDeleteDirect">
+			<key code="2e" shift="true"/>
+			<key key="D" shift="true"/>
+		</action>
+		<action name="MessageApplyRule">
+			<key key="L"/>
+		</action>
+		<action name="MessageDetach">
+			<key key="X"/>
+		</action>
+		<action name="MessageEdit">
+			<key code="d" shift="true"/>
+		</action>
+		<action name="MessageForward">
+			<key key="F"/>
+		</action>
+		<action name="MessageMark">
+			<key key="M" ctrl="true"/>
+		</action>
+		<action name="MessageMarkDownload">
+			<key key="O"/>
+		</action>
+		<action name="MessageNew">
+			<key key="S"/>
+		</action>
+		<action name="MessageProperty">
+			<key code="d" alt="true"/>
+		</action>
+		<action name="MessageReply">
+			<key key="R"/>
+		</action>
+		<action name="MessageReplyAll">
+			<key key="R" shift="true"/>
+		</action>
+		<action name="MessageUnmark">
+			<key key="M" shift="true" ctrl="true"/>
+		</action>
+		<action name="ViewLockPreview">
+			<key key="J"/>
+		</action>
+		<action name="ViewNextMessage">
+			<key key="N"/>
+		</action>
+		<action name="ViewNextMessagePage">
+			<key code="20"/>
+		</action>
+		<action name="ViewPrevMessage">
+			<key key="P"/>
+		</action>
+		<action name="ViewPrevMessagePage">
+			<key code="20" shift="true"/>
+		</action>
+		<action name="ViewNextUnseenMessage">
+			<key key="M"/>
+		</action>
+		<action name="ViewScrollLineDown">
+			<key key="N" ctrl="true"/>
+		</action>
+		<action name="ViewScrollLineUp">
+			<key key="P" ctrl="true"/>
+		</action>
+		<action name="ViewScrollPageDown">
+			<key key="N" alt="true"/>
+		</action>
+		<action name="ViewScrollPageUp">
+			<key key="P" alt="true"/>
+		</action>
+		<action name="ViewScrollBottom">
+			<key key="N" ctrl="true" alt="true"/>
+		</action>
+		<action name="ViewScrollTop">
+			<key key="P" ctrl="true" alt="true"/>
+		</action>
+		<action name="ViewSortThread">
+			<key key="K"/>
+		</action>
+	</keymap>
+	<keymap name="PreviewWindow">
+		<action name="EditDelete">
+			<key code="2e"/>
+			<key key="D"/>
+		</action>
+		<action name="EditDeleteDirect">
+			<key code="2e" shift="true"/>
+			<key key="D" shift="true"/>
+		</action>
+		<action name="MessageDetach">
+			<key key="X"/>
+		</action>
+		<action name="MessageEdit">
+			<key code="d" shift="true"/>
+		</action>
+		<action name="MessageForward">
+			<key key="F"/>
+		</action>
+		<action name="MessageMark">
+			<key key="M" ctrl="true"/>
+		</action>
+		<action name="MessageMarkDownload">
+			<key key="O"/>
+		</action>
+		<action name="MessageNew">
+			<key key="S"/>
+		</action>
+		<action name="MessageProperty">
+			<key code="d" alt="true"/>
+		</action>
+		<action name="MessageReply">
+			<key key="R"/>
+		</action>
+		<action name="MessageReplyAll">
+			<key key="R" shift="true"/>
+		</action>
+		<action name="MessageUnmark">
+			<key key="M" shift="true" ctrl="true"/>
+		</action>
+		<action name="ViewHtmlMode">
+			<key key="H" shift="true"/>
+		</action>
+		<action name="ViewNextMessage">
+			<key key="N"/>
+		</action>
+		<action name="ViewNextMessagePage">
+			<key code="20"/>
+		</action>
+		<action name="ViewNextUnseenMessage">
+			<key key="M"/>
+		</action>
+		<action name="ViewPrevMessage">
+			<key key="P"/>
+		</action>
+		<action name="ViewPrevMessagePage">
+			<key code="20" shift="true"/>
+		</action>
+		<action name="ViewRawMode">
+			<key key="H"/>
+		</action>
+		<action name="ViewSelectMode">
+			<key key="V"/>
+		</action>
+	</keymap>
+	<keymap name="MessageFrameWindow">
+		<action name="EditCopy">
+			<key key="C" ctrl="true"/>
+		</action>
+		<action name="EditCut">
+			<key key="X" ctrl="true"/>
+		</action>
+		<action name="EditPaste">
+			<key key="V" ctrl="true"/>
+		</action>
+		<action name="EditSelectAll">
+			<key key="A" ctrl="true"/>
+		</action>
+		<action name="FileClose">
+			<key code="1b"/>
+		</action>
+	</keymap>
+	<keymap name="MessageWindow">
+		<action name="EditDelete">
+			<key code="2e"/>
+			<key key="D"/>
+		</action>
+		<action name="EditDeleteDirect">
+			<key code="2e" shift="true"/>
+			<key key="D" shift="true"/>
+		</action>
+		<action name="EditFind">
+			<key key="F" ctrl="true"/>
+		</action>
+		<action name="EditFindNext">
+			<key key="L" ctrl="true"/>
+		</action>
+		<action name="EditFindPrev">
+			<key key="L" shift="true" ctrl="true"/>
+		</action>
+		<action name="MessageDetach">
+			<key key="X"/>
+		</action>
+		<action name="MessageEdit">
+			<key code="d" shift="true"/>
+		</action>
+		<action name="MessageForward">
+			<key key="F"/>
+		</action>
+		<action name="MessageMark">
+			<key key="M" ctrl="true"/>
+		</action>
+		<action name="MessageMarkDownload">
+			<key key="O"/>
+		</action>
+		<action name="MessageNew">
+			<key key="S"/>
+		</action>
+		<action name="MessageProperty">
+			<key code="d" alt="true"/>
+		</action>
+		<action name="MessageReply">
+			<key key="R"/>
+		</action>
+		<action name="MessageReplyAll">
+			<key key="R" shift="true"/>
+		</action>
+		<action name="MessageUnmark">
+			<key key="M" shift="true" ctrl="true"/>
+		</action>
+		<action name="ViewHtmlMode">
+			<key key="H" shift="true"/>
+		</action>
+		<action name="ViewNextMessage">
+			<key key="N"/>
+		</action>
+		<action name="ViewNextMessagePage">
+			<key code="20"/>
+		</action>
+		<action name="ViewNextUnseenMessage">
+			<key key="M"/>
+		</action>
+		<action name="ViewPrevMessage">
+			<key key="P"/>
+		</action>
+		<action name="ViewPrevMessagePage">
+			<key code="20" shift="true"/>
+		</action>
+		<action name="ViewRawMode">
+			<key key="H"/>
+		</action>
+		<action name="ViewSelectMode">
+			<key key="V"/>
+		</action>
+	</keymap>
+	<keymap name="EditFrameWindow">
+		<action name="FileClose">
+			<key code="1b"/>
+		</action>
+	</keymap>
+	<keymap name="EditWindow">
+		<action name="EditCopy">
+			<key key="C" ctrl="true"/>
+		</action>
+		<action name="EditCut">
+			<key key="X" ctrl="true"/>
+		</action>
+		<action name="EditFind">
+			<key key="F" ctrl="true"/>
+		</action>
+		<action name="EditFindNext">
+			<key key="L" ctrl="true"/>
+		</action>
+		<action name="EditFindPrev">
+			<key key="L" shift="true" ctrl="true"/>
+		</action>
+		<action name="EditPaste">
+			<key key="V" ctrl="true"/>
+		</action>
+		<action name="EditRedo">
+			<key key="Y" ctrl="true"/>
+		</action>
+		<action name="EditReplace">
+			<key key="H" ctrl="true"/>
+		</action>
+		<action name="EditSelectAll">
+			<key key="A" ctrl="true"/>
+		</action>
+		<action name="EditUndo">
+			<key key="Z" ctrl="true"/>
+		</action>
+		<action name="FileOpen">
+			<key key="O" ctrl="true"/>
+		</action>
+		<action name="FileSave">
+			<key key="S" ctrl="true"/>
+		</action>
+		<action name="FileSend">
+			<key key="M" alt="true"/>
+		</action>
+		<action name="HeaderEditItem0">
+			<key key="O" alt="true"/>
+		</action>
+		<action name="HeaderEditItem1">
+			<key key="C" alt="true"/>
+		</action>
+		<action name="HeaderEditItem2">
+			<key key="B" alt="true"/>
+		</action>
+		<action name="HeaderEditItem3">
+			<key key="S" alt="true"/>
+		</action>
+		<action name="HeaderEditItem4">
+			<key key="H" alt="true"/>
+		</action>
+		<action name="HeaderEditItem5">
+			<key key="U" alt="true"/>
+		</action>
+		<action name="HeaderEditItem6">
+			<key key="I" alt="true"/>
+		</action>
+		<action name="ToolAddressBook">
+			<key key="A" alt="true"/>
+		</action>
+		<action name="ToolAttachment">
+			<key key="T" ctrl="true"/>
+		</action>
+		<action name="ToolInsertSignature">
+			<key key="I" shift="true" ctrl="true"/>
+		</action>
+		<action name="ToolInsertText">
+			<key key="I" ctrl="true"/>
+		</action>
+		<action name="ToolReform">
+			<key code="d" shift="true"/>
+		</action>
+	</keymap>
+</keymaps>

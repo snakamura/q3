@@ -1,0 +1,57 @@
+datatypes xsd="http://www.w3.org/2001/XMLSchema-datatypes"
+
+start = element headerEdit {
+	element line {
+		(
+			element static {
+				textitem
+			} |
+			element edit {
+				textitem,
+				attribute expandAlias {
+					xsd:boolean
+				}?
+			} |
+			element attachment {
+				item
+			} |
+			element account {
+				item
+			} |
+			element signature {
+				item
+			}
+		)*,
+		attribute hideIfNoFocus {
+			xsd:boolean
+		}?
+	}*
+}
+
+item = attribute width {
+	xsd:string {
+		pattern = "[0-9]+(px)?|[0-9]+%|[0-9]+(\.[0-9]+)?em"
+	}
+}?,
+attribute number {
+	xsd:int
+}?,
+attribute initialFocus {
+	xsd:boolean
+}?
+
+textitem = item,
+attribute style {
+	xsd:string
+}?,
+(
+	xsd:string |
+	(
+		attribute field {
+			xsd:string
+		},
+		attribute type {
+			"addressList" | "unstructured"
+		}
+	)
+)

@@ -1,0 +1,40 @@
+datatypes xsd="http://www.w3.org/2001/XMLSchema-datatypes"
+
+element filters {
+	element filterSet {
+		element filter {
+			element action {
+				element param {
+					## パラメータの値
+					xsd:string,
+					## パラメータの名前
+					attribute name {
+						xsd:string
+					}
+				}*,
+				## アクションの名前
+				attribute name {
+					xsd:string
+				}
+			},
+			## フィルタが適用されるフォルダ（正規表現）
+			## 指定されない場合、全てのフォルダ
+			attribute folder {
+				xsd:string
+			}?,
+			## フィルタがマッチする条件（マクロ）
+			attribute match {
+				xsd:string
+			}
+		}*,
+		## フィルタセットの名前
+		attribute name {
+			xsd:string
+		},
+		## フィルタセットが適用されるアカウント（正規表現）
+		## 指定されない場合、全てのアカウント
+		attribute account {
+			xsd:string
+		}?
+	}*
+}

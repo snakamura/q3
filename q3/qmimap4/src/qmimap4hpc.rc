@@ -1,0 +1,216 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resourcehpc.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Japanese resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#ifdef _WIN32
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+#pragma code_page(932)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resourcehpc.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""res\\\\version.rc""\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_RECEIVE DIALOG DISCARDABLE  0, 0, 223, 119
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "IMAP4"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    LTEXT           "&Port",IDC_STATIC,5,8,20,8
+    EDITTEXT        IDC_PORT,50,5,40,14,ES_AUTOHSCROLL
+    CONTROL         "&SSL",IDC_SSL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,105,
+                    7,35,10
+    LTEXT           "&Root Folder",IDC_STATIC,5,23,40,8
+    EDITTEXT        IDC_ROOTFOLDER,50,20,170,14,ES_AUTOHSCROLL
+    LTEXT           "&Fetch Count",IDC_STATIC,5,38,40,8
+    EDITTEXT        IDC_FETCHCOUNT,50,35,40,14,ES_AUTOHSCROLL
+    LTEXT           "&Max Session",IDC_STATIC,5,53,45,8
+    EDITTEXT        IDC_MAXSESSION,50,50,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Use &ENVELOPE",IDC_USEENVELOPE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,65,85,10
+    CONTROL         "Always Use &BODYSTRUCTURE",IDC_USEBODYSTRUCTUREALWAYS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,75,115,10
+    CONTROL         "&Trust BODYSTRUCTURE",IDC_TRUSTBODYSTRUCTURE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,85,105,10
+    CONTROL         "&Close folder",IDC_CLOSEFOLDER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,95,60,10
+    CONTROL         "&Log",IDC_LOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
+                    105,35,10
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_RECEIVE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 216
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 112
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_INITIALIZE          "Initializing..."
+    IDS_LOOKUP              "Looking host up..."
+    IDS_CONNECTING          "Connecting..."
+    IDS_CONNECTED           "Connected"
+    IDS_AUTHENTICATING      "Authenticating..."
+    IDS_SELECTFOLDER        "Selecting folder..."
+    IDS_CLOSEFOLDER         "Closing folder..."
+    IDS_UPDATEMESSAGES      "Updating messages..."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_DOWNLOADMESSAGESDATA "Downloading messages data..."
+    IDS_SETFLAGS            "Setting flags..."
+    IDS_DOWNLOADMESSAGES    "Downloading messages..."
+    IDS_APPLYOFFLINEJOBS    "Applying offline jobs..."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_IMAP4               "IMAP4"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_MESSAGE       "IMAP4 error."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_SOCKET_SOCKET "socket"
+    IDS_ERROR_SOCKET_CLOSESOCKET "closesocket"
+    IDS_ERROR_SOCKET_SETSSL "set ssl"
+    IDS_ERROR_SOCKET_LOOKUPNAME "Lookup name"
+    IDS_ERROR_SOCKET_CONNECT "connect"
+    IDS_ERROR_SOCKET_CONNECTTIMEOUT "connect timeout"
+    IDS_ERROR_SOCKET_RECV   "recv"
+    IDS_ERROR_SOCKET_RECVTIMEOUT "recv timeout"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_SOCKET_SEND   "send"
+    IDS_ERROR_SOCKET_SENDTIMEOUT "send timeout"
+    IDS_ERROR_SOCKET_CANCEL "cancel"
+    IDS_ERROR_SOCKET_UNKNOWN "unknown"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_GREETING      "Error occured while greeting."
+    IDS_ERROR_LOGIN         "Error occured while LOGIN command."
+    IDS_ERROR_CAPABILITY    "Error occured while CAPABILITY command."
+    IDS_ERROR_FETCH         "Error occured while FETCH command."
+    IDS_ERROR_STORE         "Error occured while STORE command."
+    IDS_ERROR_SELECT        "Error occured while SELECT command."
+    IDS_ERROR_LSUB          "Error occured while LSUB command."
+    IDS_ERROR_LIST          "Error occured while LIST command."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_COPY          "Error occured while COPY command."
+    IDS_ERROR_APPEND        "Error occured while APPEND command."
+    IDS_ERROR_NOOP          "Error occured while NOOP command."
+    IDS_ERROR_CREATE        "Error occured while CREATE command."
+    IDS_ERROR_DELETE        "Error occured while DELETE command."
+    IDS_ERROR_RENAME        "Error occured while RENAME command."
+    IDS_ERROR_SUBSCRIBE     "Error occured while SUBSCRIBE command."
+    IDS_ERROR_UNSUBSCRIBE   "Error occured while UNSUBSCRIBE command."
+    IDS_ERROR_CLOSE         "Error occured while CLOSE command."
+    IDS_ERROR_EXPUNGE       "Error occured while EXPUNGE command."
+    IDS_ERROR_AUTHENTICATE  "Error occured while AUTHENTICATE command."
+    IDS_ERROR_SEARCH        "Error occured while SEARCH command."
+    IDS_ERROR_NAMESPACE     "Error occured while NAMESPACE command."
+    IDS_ERROR_LOGOUT        "Error occured while LOGOUT command."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_INITIALIZE    "Failed to initialize."
+    IDS_ERROR_CONNECT       "Failed to connect."
+    IDS_ERROR_SELECTSOCKET  "Failed to select."
+    IDS_ERROR_TIMEOUT       "Connection timed out."
+    IDS_ERROR_DISCONNECT    "Disconnected by the peer."
+    IDS_ERROR_RECEIVE       "Failed to receive."
+    IDS_ERROR_PARSE         "Failed to parse response."
+    IDS_ERROR_OTHER         "Unspecified error."
+    IDS_ERROR_INVALIDSOCKET "Invalid socket."
+    IDS_ERROR_SEND          "Failed to send."
+    IDS_ERROR_RESPONSE      "Received an error response."
+END
+
+#endif    // Japanese resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#include "res\\version.rc"
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

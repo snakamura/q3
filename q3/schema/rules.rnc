@@ -1,0 +1,48 @@
+datatypes xsd="http://www.w3.org/2001/XMLSchema-datatypes"
+
+start = element rules {
+	element ruleSet {
+		element rule {
+			## アクション
+			action?,
+			## ルールが適用される条件（マクロ）
+			attribute match {
+				xsd:string
+			}
+		}*,
+		## ルールが適用されるアカウント（正規表現）
+		## 指定されない場合、全てのアカウント
+		attribute account {
+			xsd:string
+		}?,
+		## ルールが適用されるフォルダ（正規表現）
+		## 指定されない場合、全てのフォルダ
+		attribute folder {
+			xsd:string
+		}?
+	}*
+}
+
+action = element move {
+	empty,
+	## 移動先アカウント
+	attribute account {
+		xsd:string
+	}?,
+	## 移動先フォルダ
+	attribute folder {
+		xsd:string
+	}
+} |
+element copy {
+	empty,
+	## 移動先アカウント
+	attribute account {
+		xsd:string
+	}?,
+	## コピー先フォルダ
+	attribute folder {
+		xsd:string
+	}
+}
+

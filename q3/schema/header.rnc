@@ -1,0 +1,38 @@
+datatypes xsd="http://www.w3.org/2001/XMLSchema-datatypes"
+
+start = element header {
+	element line {
+		(
+			element static {
+				textitem
+			} |
+			element edit {
+				textitem
+			} |
+			element attachment {
+				item
+			}
+		)*,
+		attribute hideIfEmpty {
+			xsd:string
+		}?
+	}*
+}
+
+item = attribute name {
+	xsd:string
+}?,
+attribute width {
+	xsd:string {
+		pattern = "[0-9]+(px)?|[0-9]+%|[0-9]+(\.[0-9]+)?em"
+	}
+}?,
+attribute showAlways {
+	xsd:boolean
+}?
+
+textitem = xsd:string,
+item,
+attribute style {
+	xsd:string
+}?

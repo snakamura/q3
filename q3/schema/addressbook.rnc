@@ -1,0 +1,39 @@
+datatypes xsd="http://www.w3.org/2001/XMLSchema-datatypes"
+
+element addressBook {
+	element entry {
+		## 名前
+		element name {
+			xsd:string
+		},
+		element addresses {
+			element address {
+				## アドレス
+				xsd:string,
+				## エイリアス
+				attribute alias {
+					xsd:string
+				}?,
+				## カテゴリ
+				## '/'で区切る
+				## 今のところ複数指定は不可（出来た方が良い？）
+				attribute category {
+					xsd:string {
+						pattern = "[^/]+(/[^/]+)*"
+					}
+				}?,
+				## コメント
+				attribute comment {
+					xsd:string
+				}?,
+				## アドレスがRFC2822形式になっているかどうか
+				## trueの場合、アドレスがそのまま使用される
+				## falseの場合、名前とアドレスからRFC2822形式が生成される
+				## 指定されない場合、false
+				attribute rfc2822 {
+					xsd:boolean
+				}?
+			}+
+		}
+	}*
+}
