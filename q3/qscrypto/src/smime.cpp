@@ -174,15 +174,24 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
 	BIOPtr pOut(BIO_new(BIO_s_mem()));
 	
 	xstring_ptr strContent;
-	if (bMultipart)
+	int nLen = 0;
+	if (bMultipart) {
 		strContent = part.getPart(0)->getContent();
-	BIOPtr pContent(bMultipart ? BIO_new_mem_buf(strContent.get(), strlen(strContent.get())) : 0);
+		nLen = strlen(strContent.get());
+	}
+	BIOPtr pContent(bMultipart ? BIO_new_mem_buf(strContent.get(), nLen) : 0);
 	
 	if (PKCS7_verify(pPKCS7.get(), 0, pStore, pContent.get(), pOut.get(), 0) != 1) {
 		*pnVerify |= VERIFY_FAILED;
-		if (PKCS7_verify(pPKCS7.get(), 0, pStore, 0, pOut.get(),
-			PKCS7_NOVERIFY | PKCS7_NOSIGS) != 1)
-			return 0;
+		if (bMultipart) {
+			if (BIO_write(pOut.get(), strContent.get(), nLen) != nLen)
+				return 0;
+		}
+		else {
+			if (PKCS7_verify(pPKCS7.get(), 0, pStore, 0, pOut.get(),
+				PKCS7_NOVERIFY | PKCS7_NOSIGS) != 1)
+				return 0;
+		}
 	}
 	
 	bool bMatch = false;
