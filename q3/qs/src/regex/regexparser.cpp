@@ -58,6 +58,7 @@ unsigned int qs::RegexRegexNode::getGroup() const
 
 void qs::RegexRegexNode::addNode(std::auto_ptr<RegexNode> pNode)
 {
+	assert(pNode.get());
 	listNode_.push_back(pNode.get());
 	pNode.release();
 }
@@ -92,6 +93,7 @@ const RegexBrunchNode::NodeList& qs::RegexBrunchNode::getNodeList() const
 
 void qs::RegexBrunchNode::addNode(std::auto_ptr<RegexPieceNode> pPieceNode)
 {
+	assert(pPieceNode.get());
 	listNode_.push_back(pPieceNode.get());
 	pPieceNode.release();
 }
@@ -286,11 +288,8 @@ qs::RegexCharGroupAtom::~RegexCharGroupAtom()
 bool qs::RegexCharGroupAtom::match(WCHAR c) const
 {
 	bool bMatch = false;
-	CharGroupList::const_iterator it = listCharGroup_.begin();
-	while (it != listCharGroup_.end() && !bMatch) {
+	for (CharGroupList::const_iterator it = listCharGroup_.begin(); it != listCharGroup_.end() && !bMatch; ++it)
 		bMatch = (*it)->match(c);
-		++it;
-	}
 	if ((!bMatch && !bNegative_) || (bMatch && bNegative_))
 		return false;
 	else if (pSubAtom_.get())
@@ -422,6 +421,8 @@ std::auto_ptr<RegexRegexNode> qs::RegexParser::parseRegex()
 	
 	while (true) {
 		std::auto_ptr<RegexNode> pNode(parseBranch());
+		if (!pNode.get())
+			return 0;
 		pRegexNode->addNode(pNode);
 		
 		if (*p_ != L'|' || *p_ == L')')
@@ -440,6 +441,8 @@ std::auto_ptr<RegexNode> qs::RegexParser::parseBranch()
 		if (pPieceNode.get())
 			pBrunchNode.reset(new RegexBrunchNode(pPieceNode));
 		pPieceNode = parsePiece();
+		if (!pPieceNode.get())
+			return 0;
 		if (pBrunchNode.get())
 			pBrunchNode->addNode(pPieceNode);
 	}

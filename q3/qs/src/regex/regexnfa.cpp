@@ -196,11 +196,8 @@ void qs::RegexNfaCompiler::compileRegexNode(const RegexRegexNode* pRegexNode,
 	pNfa->pushGroup(pRegexNode->getGroup());
 	
 	const RegexRegexNode::NodeList& l = pRegexNode->getNodeList();
-	RegexRegexNode::NodeList::const_iterator it = l.begin();
-	while (it != l.end()) {
+	for (RegexRegexNode::NodeList::const_iterator it = l.begin(); it != l.end(); ++it)
 		compileNode(*it, pNfa, nFrom, nTo);
-		++it;
-	}
 	
 	pNfa->popGroup();
 }
@@ -215,14 +212,12 @@ void qs::RegexNfaCompiler::compileBrunchNode(const RegexBrunchNode* pBrunchNode,
 	
 	unsigned int nNodeFrom = nFrom;
 	const RegexBrunchNode::NodeList& l = pBrunchNode->getNodeList();
-	RegexBrunchNode::NodeList::const_iterator it = l.begin();
-	while (it != l.end()) {
+	for (RegexBrunchNode::NodeList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		unsigned int nNodeTo = nTo;
 		if (it + 1 != l.end())
 			nNodeTo = pNfa->createState();
 		compileNode(*it, pNfa, nNodeFrom, nNodeTo);
 		nNodeFrom = nNodeTo;
-		++it;
 	}
 }
 
@@ -424,8 +419,7 @@ void qs::RegexNfaMatcher::match(const WCHAR* pStart,
 	}
 	
 	if (*ppEnd && pList) {
-		Stack::const_iterator itM = stackMatch.begin();
-		while (itM != stackMatch.end()) {
+		for (Stack::const_iterator itM = stackMatch.begin(); itM != stackMatch.end(); ++itM) {
 			if ((*itM).second) {
 				const RegexNfaState* pState = (*itM).first;
 				const RegexNfaState::GroupList& l = pState->getGroupList();
@@ -441,7 +435,6 @@ void qs::RegexNfaMatcher::match(const WCHAR* pStart,
 					++itG;
 				}
 			}
-			++itM;
 		}
 	}
 }
