@@ -148,12 +148,12 @@ QSTATUS qm::SubAccountImpl::load()
 			status = CryptoUtil<PrivateKey>::getInstance(&pPrivateKey);
 			CHECK_QSTATUS();
 			ConcatW c[] = {
-				{ pAccount_->getPath(),		-1	},
-				{ L"\\",					1	},
-				{ FileNames::KEY,			-1	},
-				{ *wstrName_ ? L"_" : L"",	-1	},
-				{ wstrName_,				-1	},
-				{ FileNames::PEM_EXT,		-1	}
+				{ pAccount_->getPath(),			-1	},
+				{ L"\\",						1	},
+				{ FileNames::KEY,				-1	},
+				{ *wstrIdentity_ ? L"_" : L"",	-1	},
+				{ wstrIdentity_,				-1	},
+				{ FileNames::PEM_EXT,			-1	}
 			};
 			string_ptr<WSTRING> wstrPath(concat(c, countof(c)));
 			if (!wstrPath.get())
@@ -169,12 +169,12 @@ QSTATUS qm::SubAccountImpl::load()
 			status = CryptoUtil<Certificate>::getInstance(&pCertificate);
 			CHECK_QSTATUS();
 			ConcatW c[] = {
-				{ pAccount_->getPath(),		-1	},
-				{ L"\\",					1	},
-				{ FileNames::CERT,			-1	},
-				{ *wstrName_ ? L"_" : L"",	-1	},
-				{ wstrName_,				-1	},
-				{ FileNames::PEM_EXT,		-1	}
+				{ pAccount_->getPath(),			-1	},
+				{ L"\\",						1	},
+				{ FileNames::CERT,				-1	},
+				{ *wstrIdentity_ ? L"_" : L"",	-1	},
+				{ wstrIdentity_,				-1	},
+				{ FileNames::PEM_EXT,			-1	}
 			};
 			string_ptr<WSTRING> wstrPath(concat(c, countof(c)));
 			if (!wstrPath.get())
