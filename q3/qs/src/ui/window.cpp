@@ -481,7 +481,8 @@ LRESULT qs::WindowBaseImpl::windowProc(UINT uMsg,
 		{
 			UINT nId = LOWORD(wParam);
 			Action* pAction = 0;
-			if (ActionMap::ID_MIN <= nId && nId < ActionMap::ID_MAX)
+			if ((ActionMap::ID_MIN <= nId && nId < ActionMap::ID_MAX) ||
+				nId == IDOK || nId == IDCANCEL)
 				pAction = pWindowHandler_->getAction(nId);
 			if (pAction) {
 				unsigned int nModifier = 0;

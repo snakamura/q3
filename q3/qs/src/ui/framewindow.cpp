@@ -43,7 +43,8 @@ void qs::FrameWindowImpl::updateCommand(CommandUpdate* pcu,
 {
 	UINT nId = pcu->getId();
 	
-	if (ActionMap::ID_MIN <= nId && nId < ActionMap::ID_MAX) {
+	if ((ActionMap::ID_MIN <= nId && nId < ActionMap::ID_MAX) ||
+		nId == IDOK || nId == IDCANCEL) {
 		Action* pAction = pThis_->getAction(nId);
 		if (pAction) {
 			ActionEvent event(nId, 0);
