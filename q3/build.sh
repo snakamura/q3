@@ -10,7 +10,7 @@ DOXYGEN=${DOXYGEN:=d:/dev/doxygen/doxygen.exe}
 
 PROJECTS="qs qscrypto qm qmpop3 qmimap4 qmsmtp qmnntp qmrss qmscript qmpgp q3"
 DESKTOPTARGETS="desktop.ansi.release desktop.unicode.release"
-WCETARGETS="ppc2003.armv4.ja ppc2002.arm.ja hpc2000.arm.ja hpc2000.mips.ja ppc.arm.ja ppc.sh3.ja ppc.mips.ja hpcpro.arm.ja hpcpro.mips.ja hpcpro.sh3.ja hpcpro.sh4.ja sig3.armv4i.ja"
+WCETARGETS="ppc2003se.armv4.ja ppc2003.armv4.ja ppc2002.arm.ja hpc2000.arm.ja hpc2000.mips.ja ppc.arm.ja ppc.sh3.ja ppc.mips.ja hpcpro.arm.ja hpcpro.mips.ja hpcpro.sh3.ja hpcpro.sh4.ja sig3.armv4i.ja"
 TARGETS="$DESKTOPTARGETS $WCETARGETS"
 
 if [ $# -eq 0 ]; then

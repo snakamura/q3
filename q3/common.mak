@@ -75,8 +75,8 @@ ifeq ($(PLATFORM),desktop)
 	#########################################################################
 else
 	# WINCE #################################################################
-	ifeq ($(PLATFORM),ppc2003)
-		# PPC2003 ###########################################################
+	ifeq ($(shell if [ "$(PLATFORM)" = ppc2003 -o "$(PLATFORM)" = ppc2003se ]; then echo 0; else echo 1; fi),0)
+		# PPC2003SE PPC2003 #################################################
 		ifeq ($(BASELANG),ja)
 			SDKDIR		= $(CESDKPPC2003JADIR)
 		else
@@ -401,7 +401,7 @@ else
 	ifeq ($(BASEPLATFORM),ppc)
 		LIBS			+= aygshell.lib
 	endif
-	ifeq ($(PLATFORM),ppc2003)
+	ifeq ($(shell if [ "$(PLATFORM)" = ppc2003 -o "$(PLATFORM)" = ppc2003se ]; then echo 0; else echo 1; fi),0)
 		LIBS			+= ccrtrtti.lib
 	endif
 	ifeq ($(PLATFORM),sig3)
@@ -535,7 +535,7 @@ clean.desktop:
 
 clean.wce:
 	-for d in $(OBJDIRBASE) $(TLBDIRBASE) $(TARGETDIRBASE); do \
-		for p in ppc2003 ppc2002 hpc2000 ppc hpcpro sig3; do \
+		for p in ppc2003se ppc2003 ppc2002 hpc2000 ppc hpcpro sig3; do \
 			if [ -d $$d/$$p ]; then rm -rf $$d/$$p; fi \
 		done \
 	done

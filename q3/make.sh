@@ -6,7 +6,7 @@ MAKE=${MAKE:=make}
 
 TARGET=$1
 
-PLATFORMS="desktop ppc2003 ppc2002 hpc2000 ppc hpcpro sig3"
+PLATFORMS="desktop ppc2003se ppc2003 ppc2002 hpc2000 ppc hpcpro sig3"
 CPUS="sh3 sh4 mips arm xscale armv4 armv4i x86em"
 BASELANGS="ja en"
 CODES="ansi unicode"
@@ -39,6 +39,9 @@ else
 	BASELANG=`echo $TARGET | cut -d . -f 3`
 	checkValue "$BASELANG" "$BASELANGS" BASELANG
 	case $PLATFORM in
+	ppc2003se)
+		CEVER=421
+		;;
 	ppc2003)
 		CEVER=420
 		;;
