@@ -1132,17 +1132,29 @@ void qm::MainWindowImpl::layoutChildren(int cx,
 	pListSplitterWindow_->showPane(0, 1, bShowPreviewWindow_);
 	pListSplitterWindow_->setRowHeight(0, nListWindowHeight_);
 	
-	int nWidth[] = {
-		cx - 350,
-		cx - 310,
-		cx - 230,
-		cx - 150,
-		cx - 70,
-		cx - 50,
-		cx - 30,
-		-1
-	};
-	pStatusBar_->setParts(nWidth, countof(nWidth));
+	if (bShowStatusBar_) {
+		if (bShowPreviewWindow_) {
+			int nWidth[] = {
+				cx - 350,
+				cx - 310,
+				cx - 230,
+				cx - 150,
+				cx - 70,
+				cx - 50,
+				cx - 30,
+				-1
+			};
+			pStatusBar_->setParts(nWidth, countof(nWidth));
+		}
+		else {
+			int nWidth[] = {
+				cx - 120,
+				cx - 80,
+				-1
+			};
+			pStatusBar_->setParts(nWidth, countof(nWidth));
+		}
+	}
 	
 	bLayouting_ = false;
 }
@@ -1294,8 +1306,10 @@ void qm::MainWindowImpl::messageChanged(const MessageWindowEvent& event)
 	if (bShowStatusBar_) {
 		ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 		statusBarInfo_.update(pDocument_, pViewModel, L"", pStatusBar_);
-		UIUtil::updateStatusBar(pMessageWindow_, pEncodingModel_.get(), pStatusBar_, 2,
-			event.getMessageHolder(), event.getMessage(), event.getContentType());
+		if (bShowPreviewWindow_)
+			UIUtil::updateStatusBar(pMessageWindow_, pEncodingModel_.get(),
+				pStatusBar_, 2, event.getMessageHolder(),
+				event.getMessage(), event.getContentType());
 	}
 }
 
@@ -1722,10 +1736,13 @@ void qm::MainWindow::setShowPreviewWindow(bool bShow)
 		pImpl_->bShowPreviewWindow_ = bShow;
 		pImpl_->layoutChildren();
 		
-		if (bShow)
+		if (bShow) {
 			pImpl_->pPreviewModel_->connectToViewModel();
-		else
+		}
+		else {
 			pImpl_->pPreviewModel_->disconnectFromViewModel();
+			pImpl_->pPreviewModel_->setMessage(0);
+		}
 	}
 }
 
