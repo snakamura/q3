@@ -171,7 +171,7 @@ diff -uNr STLport-4.6.2.orig/stlport/stl/_function_adaptors.h STLport-4.6.2/stlp
 diff -uNr STLport-4.6.2.orig/stlport/stl/_new.h STLport-4.6.2/stlport/stl/_new.h
 --- STLport-4.6.2.orig/stlport/stl/_new.h	2003-11-02 17:59:06.000000000 +0900
 +++ STLport-4.6.2/stlport/stl/_new.h	2004-04-21 15:12:04.576411000 +0900
-cd .@@ -45,6 +45,32 @@
+@@ -45,6 +45,32 @@
  }
  _STLP_END_NAMESPACE
  
