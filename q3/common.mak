@@ -14,15 +14,15 @@ EVCDIR					= d:/dev/msevc4/evc
 PLATFORMSDKDIR			= d:/dev/mssdk
 CESDKPPC2003JADIR		= d:/dev/msevc4/wce420/pocket pc 2003
 CESDKPPC2003ENDIR		= d:/dev/msevc4/wce420/pocket pc 2003
+CESDKSIGIIIDIR			= d:/dev/msevc4/wce410/sigmarioniii sdk
 CESDKPPC2002JADIR		= d:/dev/msevt/wce300/pocket pc 2002
 CESDKPPC2002ENDIR		= d:/dev/msevt/wce300/pocket pc 2002
 CESDKHPC2000JADIR		= d:/dev/msevt/wce300/hpc2000
 CESDKHPC2000ENDIR		= d:/dev/msevt/wce300/hpc2000
 CESDKPPCJADIR			= d:/dev/msevt/wce300/ms pocket pc
 CESDKPPCENDIR			= d:/dev/msevt/wce300/ms pocket pc
-CESDKHPCPROJADIR		= d:/dev/cetools/wce211/ms hpc pro
-CESDKHPCPROENDIR		= d:/dev/cetools/wce211/ms hpc pro
-CESDKSIGIIIDIR			= d:/dev/msevc4/wce410/sigmarioniii sdk
+CESDKHPCPROJADIR		= d:/dev/msevt/wce211/ms hpc pro
+CESDKHPCPROENDIR		= d:/dev/msevt/wce211/ms hpc pro
 STLPORTDIR				= d:/dev/stlport/STLport-4.5.1/stlport
 KCTRLDIR				= d:/home/wince/kctrl
 EVC4					= 1
@@ -279,8 +279,7 @@ ifeq ($(PLATFORM),desktop)
 						  ole32.lib \
 						  oleaut32.lib \
 						  uuid.lib \
-						  urlmon.lib \
-						  mapiw32.lib
+						  urlmon.lib
 	ifdef KCTRL
 		LIBS			+= $(KCTRLDIR)/lib/x86uni/kctrl.lib
 	endif

@@ -6,6 +6,10 @@
  *
  */
 
+#ifndef _WIN32_WCE
+#	define INITGUID
+#endif
+
 #include <qmapplication.h>
 #include <qmfilenames.h>
 #include <qmsecurity.h>
@@ -19,6 +23,7 @@
 #include <algorithm>
 
 #ifndef _WIN32_WCE
+#	define USES_IID_IMAPIAdviseSink
 #	include <mapiguid.h>
 #else
 #	include <addrmapi.h>
