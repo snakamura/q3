@@ -734,7 +734,7 @@ QSTATUS qm::SubAccount::isSelf(const Message& msg, bool* pbSelf) const
 	*pbSelf = false;
 	
 	if (pImpl_->bTreatAsSent_) {
-		AddressListParser from(0, &status);
+		AddressListParser from(AddressListParser::FLAG_DISALLOWGROUP, &status);
 		CHECK_QSTATUS();
 		Part::Field field;
 		status = msg.getField(L"From", &from, &field);
@@ -744,7 +744,7 @@ QSTATUS qm::SubAccount::isSelf(const Message& msg, bool* pbSelf) const
 			if (!listFrom.empty()) {
 				AddressParser* pFrom = listFrom.front();
 				if (isMyAddress(pFrom->getMailbox(), pFrom->getHost())) {
-					AddressListParser sender(0, &status);
+					AddressListParser sender(AddressListParser::FLAG_DISALLOWGROUP, &status);
 					CHECK_QSTATUS();
 					status = msg.getField(L"Sender", &sender, &field);
 					CHECK_QSTATUS();

@@ -182,7 +182,7 @@ QSTATUS qmsmtp::SmtpSendSession::sendMessage(Message* pMessage)
 		};
 		const WCHAR** ppwszFields = bResent ? pwszResentFields : pwszNormalFields;
 		for (int n = 0; n < 2 && !wstrEnvelopeFrom.get(); ++n) {
-			AddressListParser address(0, &status);
+			AddressListParser address(AddressListParser::FLAG_DISALLOWGROUP, &status);
 			CHECK_QSTATUS();
 			status = pMessage->getField(*(ppwszFields + n), &address, &field);
 			CHECK_QSTATUS();

@@ -2615,6 +2615,9 @@ QSTATUS qs::AddressParser::parseAddress(const Part& part,
 						return QSTATUS_OUTOFMEMORY;
 					state = S_END;
 				}
+				else {
+					return parseError();
+				}
 				break;
 			case Tokenizer::T_ATOM:
 			case Tokenizer::T_QSTRING:
