@@ -274,9 +274,6 @@ bool qmimap4::Imap4ReceiveSession::selectFolder(NormalFolder* pFolder,
 	
 	pFolder_ = pFolder;
 	
-	pSessionCallback_->setRange(0, nExists_);
-	pSessionCallback_->setPos(0);
-	
 	return true;
 }
 
@@ -302,7 +299,15 @@ bool qmimap4::Imap4ReceiveSession::updateMessages()
 {
 	assert(pFolder_);
 	
+	unsigned int nDownloadCount = pFolder_->getDownloadCount();
+	pCallback_->setMessage(IDS_DOWNLOADRESERVEDMESSAGES);
+	pSessionCallback_->setRange(0, nDownloadCount);
+	if (!downloadReservedMessages(pFolder_))
+		return false;
+	
 	pCallback_->setMessage(IDS_UPDATEMESSAGES);
+	pSessionCallback_->setRange(0, nExists_);
+	pSessionCallback_->setPos(0);
 	
 	nUidStart_ = 0;
 	nIdStart_ = 0;
@@ -1036,50 +1041,12 @@ bool qmimap4::Imap4ReceiveSession::applyOfflineJobs()
 	if (!pManager->apply(pAccount_, pImap4_.get(), pSessionCallback_))
 		return false;
 	
-	if (!downloadReservedMessages())
-		return false;
-	
 	return true;
 }
 
-bool qmimap4::Imap4ReceiveSession::downloadReservedMessages()
-{
-	Account::FolderList l(pAccount_->getFolders());
-	std::sort(l.begin(), l.end(), FolderLess());
-	
-	unsigned int nCount = 0;
-	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-		Folder* pFolder = *it;
-		if (pFolder->getType() == Folder::TYPE_NORMAL &&
-			!(pFolder->getFlags() & Folder::FLAG_LOCAL) &&
-			pFolder->getFlags() & Folder::FLAG_SYNCABLE)
-			nCount += static_cast<NormalFolder*>(pFolder)->getDownloadCount();
-	}
-	if (nCount == 0)
-		return true;
-	
-	pCallback_->setMessage(IDS_DOWNLOADRESERVEDMESSAGES);
-	pSessionCallback_->setRange(0, nCount);
-	
-	unsigned int nPos = 0;
-	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-		Folder* pFolder = *it;
-		if (pFolder->getType() == Folder::TYPE_NORMAL &&
-			!(pFolder->getFlags() & Folder::FLAG_LOCAL) &&
-			pFolder->getFlags() & Folder::FLAG_SYNCABLE) {
-			if (!downloadReservedMessages(static_cast<NormalFolder*>(pFolder), &nPos))
-				return false;
-		}
-	}
-	
-	return true;
-}
-
-bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolder,
-															unsigned int* pnPos)
+bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolder)
 {
 	assert(pFolder);
-	assert(pnPos);
 	
 	if (pFolder->getDownloadCount() == 0)
 		return true;
@@ -1113,6 +1080,7 @@ bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolde
 	if (!pImap4_->select(wstrName.get()))
 		HANDLE_ERROR();
 	
+	unsigned int nPos = 0;
 	if (!listAll.empty()) {
 		class MessageProcessHook : public AbstractMessageProcessHook
 		{
@@ -1166,7 +1134,7 @@ bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolde
 			const UidList& listUid_;
 			ReceiveSessionCallback* pSessionCallback_;
 			unsigned int* pnPos_;
-		} hook(pFolder, listAll, pSessionCallback_, pnPos);
+		} hook(pFolder, listAll, pSessionCallback_, &nPos);
 		
 		Hook h(this, &hook);
 		
@@ -1295,7 +1263,7 @@ bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolde
 			if (listBodyStructure[n]) {
 				if (pSessionCallback_->isCanceled(false))
 					return true;
-				pSessionCallback_->setPos(++(*pnPos));
+				pSessionCallback_->setPos(++nPos);
 				
 				Util::PartList listPart;
 				Util::PartListDeleter deleter(listPart);

@@ -66,9 +66,7 @@ public:
 	virtual bool applyOfflineJobs();
 
 private:
-	bool downloadReservedMessages();
-	bool downloadReservedMessages(qm::NormalFolder* pFolder,
-								  unsigned int* pnPos);
+	bool downloadReservedMessages(qm::NormalFolder* pFolder);
 
 private:
 	bool processCapabilityResponse(ResponseCapability* pCapability);
