@@ -392,7 +392,7 @@ public:
 	virtual ~MacroValueNumber();
 
 public:
-	void init(long n);
+	void init(unsigned int n);
 	void term();
 
 public:

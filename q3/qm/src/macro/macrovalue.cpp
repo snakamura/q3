@@ -161,7 +161,7 @@ qm::MacroValueNumber::~MacroValueNumber()
 {
 }
 
-void qm::MacroValueNumber::init(long n)
+void qm::MacroValueNumber::init(unsigned int n)
 {
 	n_ = n;
 }

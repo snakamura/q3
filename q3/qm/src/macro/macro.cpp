@@ -695,7 +695,7 @@ wstring_ptr qm::MacroLiteral::getString() const
  *
  */
 
-qm::MacroNumber::MacroNumber(long nValue) :
+qm::MacroNumber::MacroNumber(unsigned int nValue) :
 	nValue_(nValue)
 {
 }
@@ -713,7 +713,7 @@ MacroValuePtr qm::MacroNumber::value(MacroContext* pContext) const
 wstring_ptr qm::MacroNumber::getString() const
 {
 	WCHAR wsz[32];
-	swprintf(wsz, L"%ld", nValue_);
+	swprintf(wsz, L"%u", nValue_);
 	return allocWString(wsz);
 }
 
@@ -973,8 +973,8 @@ std::auto_ptr<Macro> qm::MacroParser::parse(const WCHAR* pwszMacro,
 			switch (token) {
 			case MacroTokenizer::TOKEN_TEXT:
 				if (isNumber(wstrToken.get())) {
-					WCHAR* pEnd = 0;
-					long n = wcstol(wstrToken.get(), &pEnd, 10);
+					unsigned int n = 0;
+					swscanf(wstrToken.get(), L"%u", &n);
 					pExpr.reset(new MacroNumber(n));
 				}
 				else {

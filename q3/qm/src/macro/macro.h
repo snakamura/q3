@@ -399,7 +399,7 @@ private:
 class MacroNumber : public MacroExpr
 {
 public:
-	explicit MacroNumber(long nValue);
+	explicit MacroNumber(unsigned int nValue);
 	virtual ~MacroNumber();
 
 public:
@@ -411,7 +411,7 @@ private:
 	MacroNumber& operator=(const MacroNumber&);
 
 private:
-	long nValue_;
+	unsigned int nValue_;
 };
 
 
