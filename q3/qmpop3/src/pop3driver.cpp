@@ -244,10 +244,11 @@ qmpop3::Pop3Factory::~Pop3Factory()
 	unregist(L"pop3");
 }
 
-QSTATUS qmpop3::Pop3Factory::createDriver(
-	Account* pAccount, ProtocolDriver** ppProtocolDriver)
+QSTATUS qmpop3::Pop3Factory::createDriver(Account* pAccount,
+	const Security* pSecurity, ProtocolDriver** ppProtocolDriver)
 {
 	assert(pAccount);
+	assert(pSecurity);
 	assert(ppProtocolDriver);
 	
 	DECLARE_QSTATUS();

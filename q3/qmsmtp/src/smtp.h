@@ -12,6 +12,7 @@
 #include <qs.h>
 #include <qslog.h>
 #include <qssocket.h>
+#include <qsssl.h>
 
 
 namespace qmsmtp {
@@ -42,6 +43,7 @@ public:
 		SMTP_ERROR_RECEIVE			= 0x00080000,
 		SMTP_ERROR_SEND				= 0x00090000,
 		SMTP_ERROR_OTHER			= 0x000a0000,
+		SMTP_ERROR_SSL				= 0x000b0000,
 		SMTP_ERROR_MASK_LOWLEVEL	= 0x00ff0000,
 		
 		SMTP_ERROR_GREETING			= 0x00000100,
@@ -65,6 +67,7 @@ public:
 	{
 		long nTimeout_;
 		qs::SocketCallback* pSocketCallback_;
+		qs::SSLSocketCallback* pSSLSocketCallback_;
 		SmtpCallback* pSmtpCallback_;
 		qs::Logger* pLogger_;
 	};
@@ -115,9 +118,10 @@ private:
 private:
 	long nTimeout_;
 	qs::SocketCallback* pSocketCallback_;
+	qs::SSLSocketCallback* pSSLSocketCallback_;
 	SmtpCallback* pSmtpCallback_;
 	qs::Logger* pLogger_;
-	qs::Socket* pSocket_;
+	qs::SocketBase* pSocket_;
 	unsigned int nError_;
 	qs::WSTRING wstrErrorResponse_;
 };

@@ -637,7 +637,7 @@ QSTATUS qm::SyncManager::syncSlotData(const SyncData* pData, unsigned int nSlot)
 			}
 			
 			if (item.isSend()) {
-				status = send(pCallback, item);
+				status = send(pData->getDocument(), pCallback, item);
 				CHECK_QSTATUS();
 			}
 		}
@@ -702,8 +702,8 @@ QSTATUS qm::SyncManager::syncFolder(SyncManagerCallback* pSyncManagerCallback,
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::SyncManager::send(SyncManagerCallback* pSyncManagerCallback,
-	const SyncItem& item)
+QSTATUS qm::SyncManager::send(Document* pDocument,
+	SyncManagerCallback* pSyncManagerCallback, const SyncItem& item)
 {
 	assert(item.isSend());
 	
@@ -811,7 +811,7 @@ QSTATUS qm::SyncManager::send(SyncManagerCallback* pSyncManagerCallback,
 	std::auto_ptr<SendSessionCallbackImpl> pCallback;
 	status = newObject(pSyncManagerCallback, &pCallback);
 	CHECK_QSTATUS();
-	status = pSession->init(pAccount, pSubAccount,
+	status = pSession->init(pDocument, pAccount, pSubAccount,
 		pProfile_, pLogger.get(), pCallback.get());
 	CHECK_QSTATUS();
 	status = pSession->connect();

@@ -1,19 +1,38 @@
 /*
- * $Id: security.cpp,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
+#include <qmsecurity.h>
+
 #include <qsconv.h>
+#include <qsnew.h>
 
 #include <tchar.h>
 
-#include "security.h"
-
 using namespace qm;
 using namespace qs;
+
+
+/****************************************************************************
+ *
+ * SecurityImpl
+ *
+ */
+
+struct qm::SecurityImpl
+{
+	qs::WSTRING wstrPath_;
+	qs::Store* pStoreCA_;
+	qs::SMIMEUtility* pSMIMEUtility_;
+	
+	static HINSTANCE hInst__;
+};
+
+HINSTANCE qm::SecurityImpl::hInst__ = 0;
 
 
 /****************************************************************************
@@ -22,58 +41,62 @@ using namespace qs;
  *
  */
 
-HINSTANCE qm::Security::hInst__ = 0;
-
 qm::Security::Security(const WCHAR* pwszPath, QSTATUS* pstatus) :
-	wstrPath_(0),
-	pStoreCA_(0),
-	pSMIMEUtility_(0)
+	pImpl_(0)
 {
 	DECLARE_QSTATUS();
 	
-	if (hInst__) {
-		wstrPath_ = concat(pwszPath, L"\\security");
-		if (!wstrPath_) {
+	if (SecurityImpl::hInst__) {
+		status = newObject(&pImpl_);
+		CHECK_QSTATUS_SET(pstatus);
+		pImpl_->wstrPath_ = 0;
+		pImpl_->pStoreCA_ = 0;
+		pImpl_->pSMIMEUtility_ = 0;
+		
+		pImpl_->wstrPath_ = concat(pwszPath, L"\\security");
+		if (!pImpl_->wstrPath_) {
 			*pstatus = QSTATUS_FAIL;
 			return;
 		}
 		
-		status = Store::getInstance(&pStoreCA_);
+		status = Store::getInstance(&pImpl_->pStoreCA_);
 		CHECK_QSTATUS_SET(pstatus);
-		string_ptr<WSTRING> wstrCAPath(
-			concat(wstrPath_, L"\\ca.pem"));
+		string_ptr<WSTRING> wstrCAPath(concat(pImpl_->wstrPath_, L"\\ca.pem"));
 		if (!wstrCAPath.get()) {
 			*pstatus = QSTATUS_FAIL;
 			return;
 		}
-		
 		W2T_STATUS(wstrCAPath.get(), ptszCAPath);
 		CHECK_QSTATUS_SET(pstatus);
 		if (::GetFileAttributes(ptszCAPath) != 0xffffffff) {
-			status = pStoreCA_->load(wstrCAPath.get(), Store::FILETYPE_PEM);
+			status = pImpl_->pStoreCA_->load(
+				wstrCAPath.get(), Store::FILETYPE_PEM);
 			CHECK_QSTATUS_SET(pstatus);
 		}
 		
-		status = SMIMEUtility::getInstance(&pSMIMEUtility_);
+		status = SMIMEUtility::getInstance(&pImpl_->pSMIMEUtility_);
 		CHECK_QSTATUS_SET(pstatus);
 	}
 }
 
 qm::Security::~Security()
 {
-	delete pSMIMEUtility_;
-	delete pStoreCA_;
-	freeWString(wstrPath_);
+	if (pImpl_) {
+		delete pImpl_->pSMIMEUtility_;
+		delete pImpl_->pStoreCA_;
+		freeWString(pImpl_->wstrPath_);
+		delete pImpl_;
+	}
 }
 
 const Store* qm::Security::getCA() const
 {
-	return pStoreCA_;
+	return pImpl_ ? pImpl_->pStoreCA_ : 0;
 }
 
 const SMIMEUtility* qm::Security::getSMIMEUtility() const
 {
-	return pSMIMEUtility_;
+	return pImpl_ ? pImpl_->pSMIMEUtility_ : 0;
 }
 
 QSTATUS qm::Security::getCertificate(
@@ -85,7 +108,7 @@ QSTATUS qm::Security::getCertificate(
 	DECLARE_QSTATUS();
 	
 	ConcatW c[] = {
-		{ wstrPath_,	-1	},
+		{ pImpl_->wstrPath_,	-1	},
 		{ L"\\",		1	},
 		{ pwszName,		-1	},
 		{ L".pem",		-1	}
@@ -121,16 +144,18 @@ void qm::Security::init()
 #		define SUFFIX _T("d")
 #	endif
 #endif
-	hInst__ = ::LoadLibrary(_T("qscrypto") SUFFIX _T(".dll"));
+	SecurityImpl::hInst__ = ::LoadLibrary(_T("qscrypto") SUFFIX _T(".dll"));
 }
 
 void qm::Security::term()
 {
-	if (hInst__)
-		::FreeLibrary(hInst__);
+	if (SecurityImpl::hInst__) {
+		::FreeLibrary(SecurityImpl::hInst__);
+		SecurityImpl::hInst__ = 0;
+	}
 }
 
 bool qm::Security::isEnabled()
 {
-	return hInst__ != 0;
+	return SecurityImpl::hInst__ != 0;
 }

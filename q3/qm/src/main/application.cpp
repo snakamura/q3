@@ -13,6 +13,7 @@
 #include <qmextensions.h>
 #include <qmgoround.h>
 #include <qmmainwindow.h>
+#include <qmsecurity.h>
 
 #include <qsconv.h>
 #include <qsdialog.h>
@@ -36,7 +37,6 @@
 #	include "version.h"
 #endif
 #include "../model/dataobject.h"
-#include "../model/security.h"
 #include "../model/tempfilecleaner.h"
 #include "../sync/syncmanager.h"
 #include "../ui/dialogs.h"

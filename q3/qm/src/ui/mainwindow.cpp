@@ -15,6 +15,7 @@
 #include <qmlistwindow.h>
 #include <qmmainwindow.h>
 #include <qmmessagewindow.h>
+#include <qmsecurity.h>
 
 #include <qsaccelerator.h>
 #include <qsconv.h>
@@ -58,7 +59,6 @@
 #include "../action/findreplace.h"
 #include "../model/filter.h"
 #include "../model/goround.h"
-#include "../model/security.h"
 #include "../model/tempfilecleaner.h"
 #include "../sync/syncmanager.h"
 

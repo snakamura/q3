@@ -1,5 +1,5 @@
 /*
- * $Id: pop3.cpp,v 1.2 2003/05/18 19:16:10 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -50,6 +50,7 @@ const CHAR* qmpop3::Pop3::pszErr__ = "-ERR";
 qmpop3::Pop3::Pop3(const Option& option, QSTATUS* pstatus) :
 	nTimeout_(option.nTimeout_),
 	pSocketCallback_(option.pSocketCallback_),
+	pSSLSocketCallback_(option.pSSLSocketCallback_),
 	pPop3Callback_(option.pPop3Callback_),
 	pLogger_(option.pLogger_),
 	pSocket_(0),
@@ -76,15 +77,29 @@ QSTATUS qmpop3::Pop3::connect(const WCHAR* pwszHost,
 	
 	Socket::Option option = {
 		nTimeout_,
-		bSsl,
 		pSocketCallback_,
 		pLogger_
 	};
-	status = newQsObject(option, &pSocket_);
+	std::auto_ptr<Socket> pSocket;
+	status = newQsObject(option, &pSocket);
 	CHECK_QSTATUS_ERROR(POP3_ERROR_INITIALIZE);
 	
-	status = pSocket_->connect(pwszHost, nPort);
-	CHECK_QSTATUS_ERROR(POP3_ERROR_CONNECT | pSocket_->getLastError());
+	status = pSocket->connect(pwszHost, nPort);
+	CHECK_QSTATUS_ERROR(POP3_ERROR_CONNECT | pSocket->getLastError());
+	
+	if (bSsl) {
+		SSLSocketFactory* pFactory = SSLSocketFactory::getFactory();
+		CHECK_ERROR(!pFactory, QSTATUS_FAIL, POP3_ERROR_SSL);
+		SSLSocket* pSSLSocket = 0;
+		status = pFactory->createSSLSocket(pSocket.get(),
+			true, pSSLSocketCallback_, pLogger_, &pSSLSocket);
+		CHECK_QSTATUS_ERROR(POP3_ERROR_SSL);
+		pSocket.release();
+		pSocket_ = pSSLSocket;
+	}
+	else {
+		pSocket_ = pSocket.release();
+	}
 	
 	string_ptr<STRING> strGreeting;
 	status = receive(&strGreeting);

@@ -74,7 +74,7 @@ private:
 	class CallbackImpl : public AbstractCallback
 	{
 	public:
-		CallbackImpl(qm::SubAccount* pSubAccount,
+		CallbackImpl(qm::SubAccount* pSubAccount, const qm::Security* pSecurity,
 			qm::ReceiveSessionCallback* pSessionCallback, qs::QSTATUS* pstatus);
 		virtual ~CallbackImpl();
 	

@@ -1,5 +1,5 @@
 /*
- * $Id: crypto.cpp,v 1.1.1.1 2003/04/29 08:07:38 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -32,18 +32,61 @@ extern "C" int passwordCallback(char* pBuf, int nSize, int nRWFlag, void* pParam
 
 /****************************************************************************
  *
+ * NameImpl
+ *
+ */
+
+qscrypto::NameImpl::NameImpl(X509_NAME* pName, QSTATUS* pstatus) :
+	pName_(pName)
+{
+}
+
+qscrypto::NameImpl::~NameImpl()
+{
+}
+
+QSTATUS qscrypto::NameImpl::getCommonName(WSTRING* pwstrCommonName) const
+{
+	int nLen = X509_NAME_get_text_by_NID(pName_, NID_commonName, 0, 0);
+	if (nLen == -1)
+		return QSTATUS_FAIL;
+	
+	string_ptr<STRING> strName(allocString(nLen + 1));
+	if (!strName.get())
+		return QSTATUS_OUTOFMEMORY;
+	
+	X509_NAME_get_text_by_NID(pName_, NID_commonName, strName.get(), nLen + 1);
+	
+	*pwstrCommonName = mbs2wcs(strName.get());
+	if (!*pwstrCommonName)
+		return QSTATUS_OUTOFMEMORY;
+	
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
  * CertificateImpl
  *
  */
 
 qscrypto::CertificateImpl::CertificateImpl(QSTATUS* pstatus) :
-	pX509_(0)
+	pX509_(0),
+	bFree_(true)
+{
+}
+
+qscrypto::CertificateImpl::CertificateImpl(X509* pX509) :
+	pX509_(pX509),
+	bFree_(false)
 {
 }
 
 qscrypto::CertificateImpl::~CertificateImpl()
 {
-	X509_free(pX509_);
+	if (bFree_)
+		X509_free(pX509_);
 }
 
 X509* qscrypto::CertificateImpl::getX509() const
@@ -99,6 +142,40 @@ QSTATUS qscrypto::CertificateImpl::load(InputStream* pStream,
 		assert(false);
 		break;
 	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qscrypto::CertificateImpl::getSubject(Name** ppName) const
+{
+	DECLARE_QSTATUS();
+	
+	X509_NAME* pX509Name = X509_get_subject_name(pX509_);
+	if (!pX509Name)
+		return QSTATUS_FAIL;
+	
+	std::auto_ptr<NameImpl> pName;
+	status = newQsObject(pX509Name, &pName);
+	CHECK_QSTATUS();
+	
+	*ppName = pName.release();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qscrypto::CertificateImpl::getIssuer(Name** ppName) const
+{
+	DECLARE_QSTATUS();
+	
+	X509_NAME* pX509Name = X509_get_issuer_name(pX509_);
+	if (!pX509Name)
+		return QSTATUS_FAIL;
+	
+	std::auto_ptr<NameImpl> pName;
+	status = newQsObject(pX509Name, &pName);
+	CHECK_QSTATUS();
+	
+	*ppName = pName.release();
 	
 	return QSTATUS_SUCCESS;
 }

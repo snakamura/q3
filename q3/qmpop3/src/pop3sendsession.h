@@ -10,6 +10,7 @@
 #define __POP3SENDSESSION_H__
 
 #include <qm.h>
+#include <qmsecurity.h>
 #include <qmsession.h>
 
 #include <qs.h>
@@ -33,7 +34,7 @@ public:
 	virtual ~Pop3SendSession();
 
 public:
-	virtual qs::QSTATUS init(qm::Account* pAccount,
+	virtual qs::QSTATUS init(qm::Document* pDocument, qm::Account* pAccount,
 		qm::SubAccount* pSubAccount, qs::Profile* pProfile,
 		qs::Logger* pLogger, qm::SendSessionCallback* pCallback);
 	virtual qs::QSTATUS connect();
@@ -45,10 +46,13 @@ private:
 	Pop3SendSession& operator=(const Pop3SendSession&);
 
 private:
-	class CallbackImpl : public qs::SocketCallback, public Pop3Callback
+	class CallbackImpl :
+		public qs::SocketCallback,
+		public qs::SSLSocketCallback,
+		public Pop3Callback
 	{
 	public:
-		CallbackImpl(qm::SubAccount* pSubAccount,
+		CallbackImpl(qm::SubAccount* pSubAccount, const qm::Security* pSecurity,
 			qm::SendSessionCallback* pSessionCallback, qs::QSTATUS* pstatus);
 		virtual ~CallbackImpl();
 	
@@ -61,6 +65,11 @@ private:
 		virtual qs::QSTATUS lookup();
 		virtual qs::QSTATUS connecting();
 		virtual qs::QSTATUS connected();
+	
+	public:
+		virtual qs::QSTATUS getCertStore(const qs::Store** ppStore);
+		virtual qs::QSTATUS checkCertificate(
+			const qs::Certificate& cert, bool bVerified);
 	
 	public:
 		virtual qs::QSTATUS getUserInfo(qs::WSTRING* pwstrUserName,
@@ -77,6 +86,7 @@ private:
 	
 	private:
 		qm::SubAccount* pSubAccount_;
+		const qm::Security* pSecurity_;
 		qm::SendSessionCallback* pSessionCallback_;
 	};
 

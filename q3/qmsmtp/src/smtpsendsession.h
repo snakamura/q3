@@ -36,7 +36,7 @@ public:
 	virtual ~SmtpSendSession();
 
 public:
-	virtual qs::QSTATUS init(qm::Account* pAccount,
+	virtual qs::QSTATUS init(qm::Document* pDocument, qm::Account* pAccount,
 		qm::SubAccount* pSubAccount, qs::Profile* pProfile,
 		qs::Logger* pLogger, qm::SendSessionCallback* pCallback);
 	virtual qs::QSTATUS connect();
@@ -51,10 +51,13 @@ private:
 	SmtpSendSession& operator=(const SmtpSendSession&);
 
 private:
-	class CallbackImpl : public qs::SocketCallback, public SmtpCallback
+	class CallbackImpl :
+		public qs::SocketCallback,
+		public qs::SSLSocketCallback,
+		public SmtpCallback
 	{
 	public:
-		CallbackImpl(qm::SubAccount* pSubAccount,
+		CallbackImpl(qm::SubAccount* pSubAccount, const qm::Security* pSecurity,
 			qm::SendSessionCallback* pSessionCallback, qs::QSTATUS* pstatus);
 		virtual ~CallbackImpl();
 	
@@ -67,6 +70,11 @@ private:
 		virtual qs::QSTATUS lookup();
 		virtual qs::QSTATUS connecting();
 		virtual qs::QSTATUS connected();
+	
+	public:
+		virtual qs::QSTATUS getCertStore(const qs::Store** ppStore);
+		virtual qs::QSTATUS checkCertificate(
+			const qs::Certificate& cert, bool bVerified);
 	
 	public:
 		virtual qs::QSTATUS getUserInfo(qs::WSTRING* pwstrUserName,
@@ -85,6 +93,7 @@ private:
 	
 	private:
 		qm::SubAccount* pSubAccount_;
+		const qm::Security* pSecurity_;
 		qm::SendSessionCallback* pSessionCallback_;
 	};
 

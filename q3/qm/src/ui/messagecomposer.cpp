@@ -12,12 +12,12 @@
 #include <qmfolder.h>
 #include <qmmacro.h>
 #include <qmmessage.h>
+#include <qmsecurity.h>
 
 #include <qscrypto.h>
 
 #include "messagecomposer.h"
 #include "../model/addressbook.h"
-#include "../model/security.h"
 #include "../ui/foldermodel.h"
 
 using namespace qm;

@@ -1,5 +1,5 @@
 /*
- * $Id: crypto.h,v 1.1.1.1 2003/04/29 08:07:38 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -18,6 +18,30 @@ namespace qscrypto {
 
 /****************************************************************************
  *
+ * NameImpl
+ *
+ */
+
+class NameImpl : public qs::Name
+{
+public:
+	NameImpl(X509_NAME* pName, qs::QSTATUS* pstatus);
+	virtual ~NameImpl();
+
+public:
+	virtual qs::QSTATUS getCommonName(qs::WSTRING* pwstrCommonName) const;
+
+private:
+	NameImpl(const NameImpl&);
+	NameImpl& operator=(const NameImpl&);
+
+private:
+	X509_NAME* pName_;
+};
+
+
+/****************************************************************************
+ *
  * CertificateImpl
  *
  */
@@ -26,6 +50,7 @@ class CertificateImpl : public qs::Certificate
 {
 public:
 	CertificateImpl(qs::QSTATUS* pstatus);
+	CertificateImpl(X509* pX509);
 	virtual ~CertificateImpl();
 
 public:
@@ -37,6 +62,8 @@ public:
 		FileType type, qs::PasswordCallback* pCallback);
 	virtual qs::QSTATUS load(qs::InputStream* pStream,
 		FileType type, qs::PasswordCallback* pCallback);
+	virtual qs::QSTATUS getSubject(qs::Name** ppName) const;
+	virtual qs::QSTATUS getIssuer(qs::Name** ppName) const;
 
 private:
 	CertificateImpl(const CertificateImpl&);
@@ -44,6 +71,7 @@ private:
 
 private:
 	X509* pX509_;
+	bool bFree_;
 };
 
 

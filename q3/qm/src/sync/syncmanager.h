@@ -207,8 +207,8 @@ private:
 	qs::QSTATUS syncSlotData(const SyncData* pData, unsigned int nSlot);
 	qs::QSTATUS syncFolder(SyncManagerCallback* pSyncManagerCallback,
 		const SyncItem& item, ReceiveSession* pSession);
-	qs::QSTATUS send(SyncManagerCallback* pSyncManagerCallback,
-		const SyncItem& item);
+	qs::QSTATUS send(Document* pDocument,
+		SyncManagerCallback* pSyncManagerCallback, const SyncItem& item);
 	qs::QSTATUS openReceiveSession(Document* pDocument, HWND hwnd,
 		SyncManagerCallback* pSyncManagerCallback, const SyncItem& item,
 		ReceiveSession** ppSession, ReceiveSessionCallback** ppCallback,

@@ -8,6 +8,7 @@
 
 #include <qmapplication.h>
 #include <qmextensions.h>
+#include <qmsecurity.h>
 
 #include <qsconv.h>
 #include <qserror.h>
@@ -24,7 +25,6 @@
 #endif
 
 #include "addressbook.h"
-#include "security.h"
 
 using namespace qm;
 using namespace qs;

@@ -1,13 +1,13 @@
 /*
- * $Id: security.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
-#ifndef __SECURITY_H__
-#define __SECURITY_H__
+#ifndef __QMSECURITY_H__
+#define __QMSECURITY_H__
 
 #include <qm.h>
 
@@ -23,7 +23,7 @@ namespace qm {
  *
  */
 
-class Security
+class QMEXPORTCLASS Security
 {
 public:
 	Security(const WCHAR* pwszPath, qs::QSTATUS* pstatus);
@@ -45,14 +45,9 @@ private:
 	Security& operator=(const Security&);
 
 private:
-	qs::WSTRING wstrPath_;
-	qs::Store* pStoreCA_;
-	qs::SMIMEUtility* pSMIMEUtility_;
-
-private:
-	static HINSTANCE hInst__;
+	struct SecurityImpl* pImpl_;
 };
 
 }
 
-#endif // __SECURITY_H__
+#endif // __QMSECURITY_H__

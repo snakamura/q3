@@ -7,7 +7,9 @@
  */
 
 #include <qmaccount.h>
+#include <qmdocument.h>
 #include <qmmessage.h>
+#include <qmsecurity.h>
 
 #include <qsnew.h>
 
@@ -50,8 +52,8 @@ qmnntp::NntpSendSession::~NntpSendSession()
 	delete pCallback_;
 }
 
-QSTATUS qmnntp::NntpSendSession::init(Account* pAccount,
-	SubAccount* pSubAccount, Profile* pProfile,
+QSTATUS qmnntp::NntpSendSession::init(Document* pDocument,
+	Account* pAccount, SubAccount* pSubAccount, Profile* pProfile,
 	Logger* pLogger, SendSessionCallback* pCallback)
 {
 	assert(pAccount);
@@ -65,7 +67,8 @@ QSTATUS qmnntp::NntpSendSession::init(Account* pAccount,
 	pLogger_ = pLogger;
 	pSessionCallback_ = pCallback;
 	
-	status = newQsObject(pSubAccount_, pSessionCallback_, &pCallback_);
+	status = newQsObject(pSubAccount_, pDocument->getSecurity(),
+		pSessionCallback_, &pCallback_);
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
@@ -83,6 +86,7 @@ QSTATUS qmnntp::NntpSendSession::connect()
 	
 	Nntp::Option option = {
 		pSubAccount_->getTimeout(),
+		pCallback_,
 		pCallback_,
 		pCallback_,
 		pLogger_
@@ -141,9 +145,11 @@ QSTATUS qmnntp::NntpSendSession::sendMessage(Message* pMessage)
  *
  */
 
-qmnntp::NntpSendSession::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
+qmnntp::NntpSendSession::CallbackImpl::CallbackImpl(
+	SubAccount* pSubAccount, const Security* pSecurity,
 	SendSessionCallback* pSessionCallback, QSTATUS* pstatus) :
 	pSubAccount_(pSubAccount),
+	pSecurity_(pSecurity),
 	pSessionCallback_(pSessionCallback)
 {
 }
@@ -186,6 +192,37 @@ QSTATUS qmnntp::NntpSendSession::CallbackImpl::connecting()
 QSTATUS qmnntp::NntpSendSession::CallbackImpl::connected()
 {
 	return setMessage(IDS_CONNECTED);
+}
+
+QSTATUS qmnntp::NntpSendSession::CallbackImpl::getCertStore(const Store** ppStore)
+{
+	assert(ppStore);
+	*ppStore = pSecurity_->getCA();
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qmnntp::NntpSendSession::CallbackImpl::checkCertificate(
+	const Certificate& cert, bool bVerified)
+{
+	DECLARE_QSTATUS();
+	
+	if (!bVerified && !pSubAccount_->isAllowUnverifiedCertificate())
+		return QSTATUS_FAIL;
+	
+	Name* p = 0;
+	status = cert.getSubject(&p);
+	CHECK_QSTATUS();
+	std::auto_ptr<Name> pName(p);
+	
+	string_ptr<WSTRING> wstrCommonName;
+	status = pName->getCommonName(&wstrCommonName);
+	CHECK_QSTATUS();
+	
+	const WCHAR* pwszHost = pSubAccount_->getHost(Account::HOST_SEND);
+	if (wcscmp(wstrCommonName.get(), pwszHost) != 0)
+		return QSTATUS_FAIL;
+	
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qmnntp::NntpSendSession::CallbackImpl::getUserInfo(

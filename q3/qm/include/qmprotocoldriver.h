@@ -25,6 +25,7 @@ class ProtocolFactory;
 
 class Message;
 class MessageHolder;
+class Security;
 
 
 /****************************************************************************
@@ -85,13 +86,13 @@ public:
 
 public:
 	static qs::QSTATUS getDriver(Account* pAccount,
-		const WCHAR* pwszName, ProtocolDriver** ppProtocolDriver);
-	static qs::QSTATUS getDriver(Account* pAccount, const WCHAR* pwszName,
+		const Security* pSecurity, ProtocolDriver** ppProtocolDriver);
+	static qs::QSTATUS getDriver(Account* pAccount, const Security* pSecurity,
 		std::auto_ptr<ProtocolDriver>* papProtocolDriver);
 
 protected:
 	virtual qs::QSTATUS createDriver(Account* pAccount,
-		ProtocolDriver** ppProtocolDriver) = 0;
+		const Security* pSecurity, ProtocolDriver** ppProtocolDriver) = 0;
 
 protected:
 	static qs::QSTATUS regist(const WCHAR* pwszName,

@@ -1,5 +1,5 @@
 /*
- * $Id: protocoldriver.cpp,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -82,29 +82,30 @@ qm::ProtocolFactory::~ProtocolFactory()
 }
 
 QSTATUS qm::ProtocolFactory::getDriver(Account* pAccount,
-	const WCHAR* pwszName, ProtocolDriver** ppProtocolDriver)
+	const Security* pSecurity, ProtocolDriver** ppProtocolDriver)
 {
 	assert(ppProtocolDriver);
 	
 	*ppProtocolDriver = 0;
 	
+	const WCHAR* pwszName = pAccount->getType(Account::HOST_RECEIVE);
 	ProtocolFactoryImpl::FactoryList::iterator it =
 		ProtocolFactoryImpl::getIterator(pwszName);
 	if (it == ProtocolFactoryImpl::listFactory__.end())
 		return QSTATUS_FAIL;
 	
-	return (*it).second->createDriver(pAccount, ppProtocolDriver);
+	return (*it).second->createDriver(pAccount, pSecurity, ppProtocolDriver);
 }
 
 QSTATUS qm::ProtocolFactory::getDriver(Account* pAccount,
-	const WCHAR* pwszName, std::auto_ptr<ProtocolDriver>* papProtocolDriver)
+	const Security* pSecurity, std::auto_ptr<ProtocolDriver>* papProtocolDriver)
 {
 	assert(papProtocolDriver);
 	
 	DECLARE_QSTATUS();
 	
 	ProtocolDriver* p = 0;
-	status = getDriver(pAccount, pwszName, &p);
+	status = getDriver(pAccount, pSecurity, &p);
 	CHECK_QSTATUS();
 	papProtocolDriver->reset(p);
 	

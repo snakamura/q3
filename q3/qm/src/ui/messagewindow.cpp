@@ -12,6 +12,7 @@
 #include <qmmessageholder.h>
 #include <qmmessagewindow.h>
 #include <qmtemplate.h>
+#include <qmsecurity.h>
 
 #include <qsaccelerator.h>
 #include <qserror.h>
@@ -26,7 +27,6 @@
 #include "messagewindow.h"
 #include "resourceinc.h"
 #include "viewmodel.h"
-#include "../model/security.h"
 #include "../model/templatemanager.h"
 
 #pragma warning(disable:4786)

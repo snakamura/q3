@@ -31,7 +31,8 @@ class Nntp;
 class NntpDriver : public qm::ProtocolDriver
 {
 public:
-	NntpDriver(qm::Account* pAccount, qs::QSTATUS* pstatus);
+	NntpDriver(qm::Account* pAccount,
+		const qm::Security* pSecurity, qs::QSTATUS* pstatus);
 	virtual ~NntpDriver();
 
 public:
@@ -77,7 +78,8 @@ private:
 	class CallbackImpl : public AbstractCallback
 	{
 	public:
-		CallbackImpl(qm::SubAccount* pSubAccount, qs::QSTATUS* pstatus);
+		CallbackImpl(qm::SubAccount* pSubAccount,
+			const qm::Security* pSecurity, qs::QSTATUS* pstatus);
 		virtual ~CallbackImpl();
 	
 	public:
@@ -99,6 +101,7 @@ private:
 
 private:
 	qm::Account* pAccount_;
+	const qm::Security* pSecurity_;
 	qm::SubAccount* pSubAccount_;
 	Nntp* pNntp_;
 	CallbackImpl* pCallback_;
@@ -123,7 +126,7 @@ public:
 
 protected:
 	virtual qs::QSTATUS createDriver(qm::Account* pAccount,
-		qm::ProtocolDriver** ppProtocolDriver);
+		const qm::Security* pSecurity, qm::ProtocolDriver** ppProtocolDriver);
 
 private:
 	NntpFactory(const NntpFactory&);

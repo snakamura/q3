@@ -138,7 +138,6 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDS_ERROR_SOCKET_SOCKET "socket"
     IDS_ERROR_SOCKET_CLOSESOCKET "closesocket"
-    IDS_ERROR_SOCKET_SETSSL "set ssl"
     IDS_ERROR_SOCKET_LOOKUPNAME "Lookup name"
     IDS_ERROR_SOCKET_CONNECT "connect"
     IDS_ERROR_SOCKET_CONNECTTIMEOUT "connect timeout"
@@ -197,6 +196,7 @@ BEGIN
     IDS_ERROR_INVALIDSOCKET "Invalid socket."
     IDS_ERROR_SEND          "Failed to send."
     IDS_ERROR_RESPONSE      "Received an error response."
+    IDS_ERROR_SSL           "Failed to initialize SSL."
 END
 
 #endif    // “ú–{Œê resources

@@ -9,6 +9,7 @@
 #include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmmessagewindow.h>
+#include <qmsecurity.h>
 
 #include <qsaccelerator.h>
 #include <qsaction.h>
@@ -31,7 +32,6 @@
 #include "uiutil.h"
 #include "../action/action.h"
 #include "../action/findreplace.h"
-#include "../model/security.h"
 
 #pragma warning(disable:4786)
 

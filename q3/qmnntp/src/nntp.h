@@ -1,5 +1,5 @@
 /*
- * $Id: nntp.h,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -12,6 +12,7 @@
 #include <qs.h>
 #include <qslog.h>
 #include <qssocket.h>
+#include <qsssl.h>
 #include <qsstring.h>
 
 #include <vector>
@@ -46,6 +47,7 @@ public:
 		NNTP_ERROR_RECEIVE			= 0x00080000,
 		NNTP_ERROR_DISCONNECT		= 0x00090000,
 		NNTP_ERROR_SEND				= 0x000a0000,
+		NNTP_ERROR_SSL				= 0x000b0000,
 		NNTP_ERROR_MASK_LOWLEVEL	= 0x00ff0000,
 		
 		NNTP_ERROR_GREETING			= 0x00000100,
@@ -71,6 +73,7 @@ public:
 	{
 		long nTimeout_;
 		qs::SocketCallback* pSocketCallback_;
+		qs::SSLSocketCallback* pSSLSocketCallback_;
 		NntpCallback* pNntpCallback_;
 		qs::Logger* pLogger_;
 	};
@@ -142,9 +145,10 @@ private:
 private:
 	long nTimeout_;
 	qs::SocketCallback* pSocketCallback_;
+	qs::SSLSocketCallback* pSSLSocketCallback_;
 	NntpCallback* pNntpCallback_;
 	qs::Logger* pLogger_;
-	qs::Socket* pSocket_;
+	qs::SocketBase* pSocket_;
 	qs::WSTRING wstrGroup_;
 	unsigned int nCount_;
 	unsigned int nFirst_;

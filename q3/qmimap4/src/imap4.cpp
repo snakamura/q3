@@ -186,6 +186,7 @@ QSTATUS qmimap4::Imap4ParserCallback::response(Response* pResponse)
 qmimap4::Imap4::Imap4(const Option& option, qs::QSTATUS* pstatus) :
 	nTimeout_(option.nTimeout_),
 	pSocketCallback_(option.pSocketCallback_),
+	pSSLSocketCallback_(option.pSSLSocketCallback_),
 	pImap4Callback_(option.pImap4Callback_),
 	pLogger_(option.pLogger_),
 	pSocket_(0),
@@ -220,15 +221,29 @@ QSTATUS qmimap4::Imap4::connect(const WCHAR* pwszHost, short nPort, bool bSsl)
 	
 	Socket::Option option = {
 		nTimeout_,
-		bSsl,
 		pSocketCallback_,
 		pLogger_
 	};
-	status = newQsObject(option, &pSocket_);
+	std::auto_ptr<Socket> pSocket;
+	status = newQsObject(option, &pSocket);
 	CHECK_QSTATUS_ERROR(IMAP4_ERROR_INITIALIZE);
 	
-	status = pSocket_->connect(pwszHost, nPort);
-	CHECK_QSTATUS_ERROR(IMAP4_ERROR_CONNECT | pSocket_->getLastError());
+	status = pSocket->connect(pwszHost, nPort);
+	CHECK_QSTATUS_ERROR(IMAP4_ERROR_CONNECT | pSocket->getLastError());
+	
+	if (bSsl) {
+		SSLSocketFactory* pFactory = SSLSocketFactory::getFactory();
+		CHECK_ERROR(!pFactory, QSTATUS_FAIL, IMAP4_ERROR_SSL);
+		SSLSocket* pSSLSocket = 0;
+		status = pFactory->createSSLSocket(pSocket.get(),
+			true, pSSLSocketCallback_, pLogger_, &pSSLSocket);
+		CHECK_QSTATUS_ERROR(IMAP4_ERROR_SSL);
+		pSocket.release();
+		pSocket_ = pSSLSocket;
+	}
+	else {
+		pSocket_ = pSocket.release();
+	}
 	
 	status = processGreeting();
 	CHECK_QSTATUS();

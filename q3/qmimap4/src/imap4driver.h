@@ -38,7 +38,8 @@ class OfflineJobManager;
 class Imap4Driver : public qm::ProtocolDriver
 {
 public:
-	Imap4Driver(qm::Account* pAccount, qs::QSTATUS* pstatus);
+	Imap4Driver(qm::Account* pAccount,
+		const qm::Security* pSecurity, qs::QSTATUS* pstatus);
 	virtual ~Imap4Driver();
 
 public:
@@ -99,7 +100,8 @@ private:
 	class CallbackImpl : public AbstractCallback
 	{
 	public:
-		CallbackImpl(qm::SubAccount* pSubAccount, qs::QSTATUS* pstatus);
+		CallbackImpl(qm::SubAccount* pSubAccount,
+			const qm::Security* pSecurity, qs::QSTATUS* pstatus);
 		virtual ~CallbackImpl();
 	
 	public:
@@ -152,6 +154,7 @@ private:
 
 private:
 	qm::Account* pAccount_;
+	const qm::Security* pSecurity_;
 	SessionCache* pSessionCache_;
 	CallbackImpl* pCallback_;
 	OfflineJobManager* pOfflineJobManager_;
@@ -177,7 +180,7 @@ public:
 
 protected:
 	virtual qs::QSTATUS createDriver(qm::Account* pAccount,
-		qm::ProtocolDriver** ppProtocolDriver);
+		const qm::Security* pSecurity, qm::ProtocolDriver** ppProtocolDriver);
 
 private:
 	Imap4Factory(const Imap4Factory&);
@@ -226,8 +229,8 @@ private:
 class FolderListGetter
 {
 public:
-	FolderListGetter(qm::Account* pAccount,
-		qm::SubAccount* pSubAccount, qs::QSTATUS* pstatus);
+	FolderListGetter(qm::Account* pAccount, qm::SubAccount* pSubAccount,
+		const qm::Security* pSecurity, qs::QSTATUS* pstatus);
 	~FolderListGetter();
 
 public:
@@ -267,7 +270,8 @@ private:
 	class CallbackImpl : public AbstractCallback
 	{
 	public:
-		CallbackImpl(FolderListGetter* pGetter, qs::QSTATUS* pstatus);
+		CallbackImpl(FolderListGetter* pGetter,
+			const qm::Security* pSecurity, qs::QSTATUS* pstatus);
 		virtual ~CallbackImpl();
 	
 	public:
@@ -305,6 +309,7 @@ private:
 private:
 	qm::Account* pAccount_;
 	qm::SubAccount* pSubAccount_;
+	const qm::Security* pSecurity_;
 	FolderUtil* pFolderUtil_;
 	Imap4* pImap4_;
 	CallbackImpl* pCallback_;

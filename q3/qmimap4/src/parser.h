@@ -1,5 +1,5 @@
 /*
- * $Id: parser.h,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -111,7 +111,7 @@ class Buffer
 {
 public:
 	Buffer(const CHAR* psz, qs::QSTATUS* pstatus);
-	Buffer(const CHAR* psz, qs::Socket* pSocket, qs::QSTATUS* pstatus);
+	Buffer(const CHAR* psz, qs::SocketBase* pSocket, qs::QSTATUS* pstatus);
 	~Buffer();
 
 public:
@@ -133,7 +133,7 @@ private:
 
 private:
 	qs::StringBuffer<qs::STRING> str_;
-	qs::Socket* pSocket_;
+	qs::SocketBase* pSocket_;
 	unsigned int nError_;
 };
 

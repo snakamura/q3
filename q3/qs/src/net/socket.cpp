@@ -1,5 +1,5 @@
 /*
- * $Id: socket.cpp,v 1.1.1.1 2003/04/29 08:07:35 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -13,12 +13,6 @@
 #include <qsnew.h>
 #include <qssocket.h>
 #include <qsstring.h>
-
-#ifdef _WIN32_WCE
-#	include <sslsock.h>
-#endif
-
-#include "socket.h"
 
 using namespace qs;
 
@@ -50,11 +44,20 @@ qs::Winsock::~Winsock()
 
 /****************************************************************************
  *
- * SocketImpl
+ * SocketBase
  *
  */
 
-int CALLBACK sslValidateCertProc(DWORD, LPVOID, DWORD, LPBLOB, DWORD);
+qs::SocketBase::~SocketBase()
+{
+}
+
+
+/****************************************************************************
+ *
+ * SocketImpl
+ *
+ */
 
 struct qs::SocketImpl
 {
@@ -63,10 +66,9 @@ struct qs::SocketImpl
 	
 	SOCKET socket_;
 	long nTimeout_;
-	bool bSsl_;
 	SocketCallback* pSocketCallback_;
 	Logger* pLogger_;
-	Socket::Error error_;
+	unsigned int nError_;
 	bool bDebug_;
 	
 	SocketInputStream* pInputStream_;
@@ -79,10 +81,9 @@ QSTATUS qs::SocketImpl::init(SOCKET socket, const Socket::Option& option)
 	
 	socket_ = socket;
 	nTimeout_ = option.nTimeout_;
-	bSsl_ = option.bSsl_;
 	pSocketCallback_ = option.pSocketCallback_;
 	pLogger_ = option.pLogger_;
-	error_ = Socket::SOCKET_ERROR_SUCCESS;
+	nError_ = Socket::SOCKET_ERROR_SUCCESS;
 	bDebug_ = false;
 	pInputStream_ = 0;
 	pOutputStream_ = 0;
@@ -111,25 +112,6 @@ QSTATUS qs::SocketImpl::connect(const WCHAR* pwszHost, short nPort)
 	Log log(pLogger_, L"qs::Socket");
 	
 	if (nPort != 1) {
-#ifdef _WIN32_WCE
-		if (bSsl_) {
-			DWORD dwOpt = SO_SEC_SSL;
-			if (::setsockopt(socket_, SOL_SOCKET, SO_SECURE,
-				reinterpret_cast<const char*>(&dwOpt), sizeof(dwOpt))) {
-				error_ = Socket::SOCKET_ERROR_SETSSL;
-				return QSTATUS_FAIL;
-			}
-			DWORD dwOut = 0;
-			DWORD dwSize = 0;
-			SSLVALIDATECERTHOOK svch = { sslValidateCertProc, 0 };
-			if (::WSAIoctl(socket_, SO_SSL_SET_VALIDATE_CERT_HOOK, &svch,
-				sizeof(svch), &dwOut, sizeof(dwOut), &dwSize, 0, 0)) {
-				error_ = Socket::SOCKET_ERROR_SETSSL;
-				return QSTATUS_FAIL;
-			}
-		}
-#endif
-		
 		sockaddr_in sockAddr;
 		::memset(&sockAddr, 0, sizeof(sockAddr));
 		sockAddr.sin_family = AF_INET;
@@ -159,7 +141,7 @@ QSTATUS qs::SocketImpl::connect(const WCHAR* pwszHost, short nPort)
 			if (!phe || !phe->h_addr_list[0])
 				phe = gethostbyname(strHost.get());
 			if (!phe || !phe->h_addr_list[0]) {
-				error_ = Socket::SOCKET_ERROR_LOOKUPNAME;
+				nError_ = Socket::SOCKET_ERROR_LOOKUPNAME;
 				return QSTATUS_FAIL;
 			}
 			::memcpy(&sockAddr.sin_addr.s_addr,
@@ -171,13 +153,16 @@ QSTATUS qs::SocketImpl::connect(const WCHAR* pwszHost, short nPort)
 		
 		struct BlockMode
 		{
-			BlockMode(SOCKET s, bool b) : s_(s), b_(b)
+			BlockMode(SOCKET s, bool b) :
+				s_(s),
+				b_(b)
 			{
 				if (b_) {
 					unsigned long lBlock = 1;
 					::ioctlsocket(s_, FIONBIO, &lBlock);
 				}
 			}
+			
 			~BlockMode()
 			{
 				if (b_) {
@@ -188,7 +173,7 @@ QSTATUS qs::SocketImpl::connect(const WCHAR* pwszHost, short nPort)
 			
 			SOCKET s_;
 			bool b_;
-		} blockMode(socket_, pSocketCallback_ && !bSsl_);
+		} blockMode(socket_, pSocketCallback_ != 0);
 		
 		status = log.debug(L"Connecting...");
 		CHECK_QSTATUS();
@@ -196,14 +181,14 @@ QSTATUS qs::SocketImpl::connect(const WCHAR* pwszHost, short nPort)
 		if (::connect(socket_, reinterpret_cast<sockaddr*>(&sockAddr),
 			sizeof(sockAddr))) {
 			bool bConnect = false;
-			error_ = Socket::SOCKET_ERROR_SUCCESS;
+			nError_ = Socket::SOCKET_ERROR_SUCCESS;
 			if (::WSAGetLastError() == WSAEWOULDBLOCK) {
 				for (int n = 0; n < nTimeout_; ++n) {
 					assert(pSocketCallback_);
 					if (pSocketCallback_->isCanceled(false)) {
 						status = log.debug(L"Connection canceled.");
 						CHECK_QSTATUS();
-						error_ = Socket::SOCKET_ERROR_CANCEL;
+						nError_ = Socket::SOCKET_ERROR_CANCEL;
 						break;
 					}
 					fd_set fdset;
@@ -218,11 +203,11 @@ QSTATUS qs::SocketImpl::connect(const WCHAR* pwszHost, short nPort)
 				if (n == nTimeout_) {
 					status = log.debug(L"Connection timeout.");
 					CHECK_QSTATUS();
-					error_ = Socket::SOCKET_ERROR_CONNECTTIMEOUT;
+					nError_ = Socket::SOCKET_ERROR_CONNECTTIMEOUT;
 				}
 			}
 			else {
-				error_ = Socket::SOCKET_ERROR_CONNECT;
+				nError_ = Socket::SOCKET_ERROR_CONNECT;
 			}
 			if (!bConnect)
 				return QSTATUS_FAIL;
@@ -242,14 +227,6 @@ QSTATUS qs::SocketImpl::connect(const WCHAR* pwszHost, short nPort)
 	
 	return QSTATUS_SUCCESS;
 }
-
-#ifdef _WIN32_WCE
-int CALLBACK sslValidateCertProc(DWORD dwType, LPVOID pvArg,
-	DWORD dwChainLen, LPBLOB pCertChain, DWORD dwFalgs)
-{
-	return SSL_ERR_OKAY;
-}
-#endif
 
 
 /****************************************************************************
@@ -325,14 +302,24 @@ SOCKET qs::Socket::getSocket() const
 	return pImpl_->socket_;
 }
 
+QSTATUS qs::Socket::connect(const WCHAR* pwszHost, short nPort)
+{
+	return pImpl_->connect(pwszHost, nPort);
+}
+
 long qs::Socket::getTimeout() const
 {
 	return pImpl_->nTimeout_;
 }
 
-QSTATUS qs::Socket::connect(const WCHAR* pwszHost, short nPort)
+unsigned int qs::Socket::getLastError() const
 {
-	return pImpl_->connect(pwszHost, nPort);
+	return pImpl_ ? pImpl_->nError_ : SOCKET_ERROR_UNKNOWN;
+}
+
+void qs::Socket::setLastError(unsigned int nError)
+{
+	pImpl_->nError_ = nError;
 }
 
 QSTATUS qs::Socket::close()
@@ -347,7 +334,7 @@ QSTATUS qs::Socket::close()
 			CHECK_QSTATUS();
 			
 			if (::closesocket(pImpl_->socket_)) {
-				pImpl_->error_ = SOCKET_ERROR_CLOSESOCKET;
+				pImpl_->nError_ = SOCKET_ERROR_CLOSESOCKET;
 				return QSTATUS_FAIL;
 			}
 			
@@ -374,7 +361,7 @@ QSTATUS qs::Socket::recv(char* p, int* pnLen, int nFlags)
 		if (*pnLen == SOCKET_ERROR) {
 			status = log.debug(L"Error occured while receiving.");
 			CHECK_QSTATUS();
-			pImpl_->error_ = SOCKET_ERROR_RECV;
+			pImpl_->nError_ = SOCKET_ERROR_RECV;
 			return QSTATUS_FAIL;
 		}
 		
@@ -404,7 +391,7 @@ QSTATUS qs::Socket::send(const char* p, int* pnLen, int nFlags)
 		if (*pnLen == SOCKET_ERROR) {
 			status = log.debug(L"Error occured while sending.");
 			CHECK_QSTATUS();
-			pImpl_->error_ = SOCKET_ERROR_SEND;
+			pImpl_->nError_ = SOCKET_ERROR_SEND;
 			return QSTATUS_FAIL;
 		}
 		
@@ -488,16 +475,6 @@ QSTATUS qs::Socket::getOutputStream(OutputStream** ppStream)
 	*ppStream = pImpl_->pOutputStream_;
 	
 	return QSTATUS_SUCCESS;
-}
-
-qs::Socket::Error qs::Socket::getLastError() const
-{
-	return pImpl_ ? pImpl_->error_ : SOCKET_ERROR_UNKNOWN;
-}
-
-void qs::Socket::setLastError(Error error)
-{
-	pImpl_->error_ = error;
 }
 
 
@@ -612,7 +589,8 @@ qs::SocketCallback::~SocketCallback()
  *
  */
 
-qs::SocketInputStream::SocketInputStream(Socket* pSocket, QSTATUS* pstatus) :
+qs::SocketInputStream::SocketInputStream(
+	SocketBase* pSocket, QSTATUS* pstatus) :
 	pSocket_(pSocket)
 {
 	assert(pstatus);
@@ -680,7 +658,8 @@ QSTATUS qs::SocketInputStream::read(
  *
  */
 
-qs::SocketOutputStream::SocketOutputStream(Socket* pSocket, QSTATUS* pstatus) :
+qs::SocketOutputStream::SocketOutputStream(
+	SocketBase* pSocket, QSTATUS* pstatus) :
 	pSocket_(pSocket)
 {
 	assert(pstatus);

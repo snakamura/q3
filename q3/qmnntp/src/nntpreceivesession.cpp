@@ -6,6 +6,7 @@
  *
  */
 
+#include <qmdocument.h>
 #include <qmmessage.h>
 
 #include <qsnew.h>
@@ -78,7 +79,8 @@ QSTATUS qmnntp::NntpReceiveSession::init(Document* pDocument,
 	pLogger_ = pLogger;
 	pSessionCallback_ = pCallback;
 	
-	status = newQsObject(pSubAccount_, pSessionCallback_, &pCallback_);
+	status = newQsObject(pSubAccount_, pDocument->getSecurity(),
+		pSessionCallback_, &pCallback_);
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
@@ -96,6 +98,7 @@ QSTATUS qmnntp::NntpReceiveSession::connect()
 	
 	Nntp::Option option = {
 		pSubAccount_->getTimeout(),
+		pCallback_,
 		pCallback_,
 		pCallback_,
 		pLogger_
@@ -452,9 +455,10 @@ QSTATUS qmnntp::NntpReceiveSession::downloadReservedMessages(
  *
  */
 
-qmnntp::NntpReceiveSession::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
+qmnntp::NntpReceiveSession::CallbackImpl::CallbackImpl(
+	SubAccount* pSubAccount, const Security* pSecurity,
 	ReceiveSessionCallback* pSessionCallback, QSTATUS* pstatus) :
-	AbstractCallback(pSubAccount, pstatus),
+	AbstractCallback(pSubAccount, pSecurity, pstatus),
 	pSessionCallback_(pSessionCallback)
 {
 }

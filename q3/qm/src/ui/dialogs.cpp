@@ -149,7 +149,7 @@ LRESULT qm::AccountDialog::onAddAccount()
 		CHECK_QSTATUS_VALUE(0);
 		
 		std::auto_ptr<Account> pAccount;
-		status = newQsObject(wstrDir.get(), &pAccount);
+		status = newQsObject(wstrDir.get(), pDocument_->getSecurity(), &pAccount);
 		CHECK_QSTATUS_VALUE(0);
 		status = pDocument_->addAccount(pAccount.get());
 		CHECK_QSTATUS_VALUE(0);

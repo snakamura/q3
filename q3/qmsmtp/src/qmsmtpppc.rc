@@ -130,13 +130,13 @@ BEGIN
     IDS_ERROR_RECEIVE       "Failed to receive."
     IDS_ERROR_SEND          "Failed to send."
     IDS_ERROR_OTHER         "Unspecified error."
+    IDS_ERROR_SSL           "Failed to initialize SSL."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ERROR_SOCKET_SOCKET "socket"
     IDS_ERROR_SOCKET_CLOSESOCKET "closesocket"
-    IDS_ERROR_SOCKET_SETSSL "set ssl"
     IDS_ERROR_SOCKET_LOOKUPNAME "Lookup name"
     IDS_ERROR_SOCKET_CONNECT "connect"
     IDS_ERROR_SOCKET_CONNECTTIMEOUT "connect timeout"

@@ -344,12 +344,14 @@ QSTATUS qm::AccountImpl::createDefaultFolders()
  *
  */
 
-qm::Account::Account(const WCHAR* pwszPath, QSTATUS* pstatus) :
+qm::Account::Account(const WCHAR* pwszPath,
+	const Security* pSecurity, QSTATUS* pstatus) :
 	pImpl_(0)
 {
 	assert(pwszPath);
 	assert(*pwszPath);
 	assert(pwszPath[wcslen(pwszPath) - 1] != L'\\');
+	assert(pSecurity);
 	assert(pstatus);
 	
 	*pstatus = QSTATUS_SUCCESS;
@@ -432,8 +434,7 @@ qm::Account::Account(const WCHAR* pwszPath, QSTATUS* pstatus) :
 	CHECK_QSTATUS_SET(pstatus);
 	
 	std::auto_ptr<ProtocolDriver> pProtocolDriver;
-	status = ProtocolFactory::getDriver(
-		this, pImpl_->wstrType_[HOST_RECEIVE], &pProtocolDriver);
+	status = ProtocolFactory::getDriver(this, pSecurity, &pProtocolDriver);
 	CHECK_QSTATUS_SET(pstatus);
 	pImpl_->pProtocolDriver_ = pProtocolDriver.release();
 	

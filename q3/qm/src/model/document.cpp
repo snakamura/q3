@@ -10,6 +10,7 @@
 #include <qmdocument.h>
 #include <qmaccount.h>
 #include <qmextensions.h>
+#include <qmsecurity.h>
 
 #include <qserror.h>
 #include <qsnew.h>
@@ -27,7 +28,6 @@
 #include "account.h"
 #include "addressbook.h"
 #include "rule.h"
-#include "security.h"
 #include "signature.h"
 #include "templatemanager.h"
 #include "../script/scriptmanager.h"
@@ -351,7 +351,7 @@ QSTATUS qm::Document::loadAccounts(const WCHAR* pwszPath)
 				assert(p);
 				*p = L'\0';
 				Account* pAccount = 0;
-				status = newQsObject(wstrPath.get(), &pAccount);
+				status = newQsObject(wstrPath.get(), pImpl_->pSecurity_, &pAccount);
 				CHECK_QSTATUS();
 				status = STLWrapper<AccountList>(l).push_back(pAccount);
 				CHECK_QSTATUS();

@@ -1,5 +1,5 @@
 /*
- * $Id: parser.cpp,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -904,7 +904,7 @@ qmimap4::Buffer::Buffer(const CHAR* psz, QSTATUS* pstatus) :
 	}
 }
 
-qmimap4::Buffer::Buffer(const CHAR* psz, Socket* pSocket, QSTATUS* pstatus) :
+qmimap4::Buffer::Buffer(const CHAR* psz, SocketBase* pSocket, QSTATUS* pstatus) :
 	str_(pstatus),
 	pSocket_(pSocket),
 	nError_(Imap4::IMAP4_ERROR_SUCCESS)

@@ -85,7 +85,7 @@ public:
 
 protected:
 	virtual qs::QSTATUS createDriver(qm::Account* pAccount,
-		qm::ProtocolDriver** ppProtocolDriver);
+		const qm::Security* pSecurity, qm::ProtocolDriver** ppProtocolDriver);
 
 private:
 	Pop3Factory(const Pop3Factory&);

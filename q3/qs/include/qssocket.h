@@ -1,5 +1,5 @@
 /*
- * $Id: qssocket.h,v 1.1.1.1 2003/04/29 08:07:35 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -10,6 +10,7 @@
 #define __QSSOCKET_H__
 
 #include <qs.h>
+#include <qsstream.h>
 
 #include <winsock.h>
 
@@ -48,27 +49,26 @@ private:
 
 /****************************************************************************
  *
- * Socket
+ * SocketBase
  *
  */
 
-class QSEXPORTCLASS Socket
+class QSEXPORTCLASS SocketBase
 {
 public:
 	enum Error {
 		SOCKET_ERROR_SUCCESS		= 0x00000000,
 		SOCKET_ERROR_SOCKET			= 0x01000000,
 		SOCKET_ERROR_CLOSESOCKET	= 0x02000000,
-		SOCKET_ERROR_SETSSL			= 0x03000000,
-		SOCKET_ERROR_LOOKUPNAME		= 0x04000000,
-		SOCKET_ERROR_CONNECT		= 0x05000000,
-		SOCKET_ERROR_CONNECTTIMEOUT	= 0x06000000,
-		SOCKET_ERROR_RECV			= 0x07000000,
-		SOCKET_ERROR_RECVTIMEOUT	= 0x08000000,
-		SOCKET_ERROR_SEND			= 0x09000000,
-		SOCKET_ERROR_SENDTIMEOUT	= 0x0a000000,
-		SOCKET_ERROR_CANCEL			= 0x0f000000,
-		SOCKET_ERROR_UNKNOWN		= 0x10000000,
+		SOCKET_ERROR_LOOKUPNAME		= 0x03000000,
+		SOCKET_ERROR_CONNECT		= 0x04000000,
+		SOCKET_ERROR_CONNECTTIMEOUT	= 0x05000000,
+		SOCKET_ERROR_RECV			= 0x06000000,
+		SOCKET_ERROR_RECVTIMEOUT	= 0x07000000,
+		SOCKET_ERROR_SEND			= 0x08000000,
+		SOCKET_ERROR_SENDTIMEOUT	= 0x09000000,
+		SOCKET_ERROR_CANCEL			= 0x0a000000,
+		SOCKET_ERROR_UNKNOWN		= 0x0b000000,
 		SOCKET_ERROR_MASK_SOCKET	= 0xff000000
 	};
 	
@@ -79,10 +79,34 @@ public:
 	};
 
 public:
+	virtual ~SocketBase();
+
+public:
+	virtual long getTimeout() const = 0;
+	virtual unsigned int getLastError() const = 0;
+	virtual void setLastError(unsigned int nError) = 0;
+	virtual QSTATUS close() = 0;
+	virtual QSTATUS recv(char* p, int* pnLen, int nFlags) = 0;
+	virtual QSTATUS send(const char* p, int* pnLen, int nFlags) = 0;
+	virtual QSTATUS select(int* pnSelect) = 0;
+	virtual QSTATUS select(int* pnSelect, long nTimeout) = 0;
+	virtual QSTATUS getInputStream(InputStream** ppStream) = 0;
+	virtual QSTATUS getOutputStream(OutputStream** ppStream) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * Socket
+ *
+ */
+
+class QSEXPORTCLASS Socket : public SocketBase
+{
+public:
 	struct Option
 	{
 		long nTimeout_;
-		bool bSsl_;
 		SocketCallback* pSocketCallback_;
 		Logger* pLogger_;
 	};
@@ -96,17 +120,19 @@ public:
 
 public:
 	SOCKET getSocket() const;
-	long getTimeout() const;
 	QSTATUS connect(const WCHAR* pwszHost, short nPort);
-	QSTATUS close();
-	QSTATUS recv(char* p, int* pnLen, int nFlags);
-	QSTATUS send(const char* p, int* pnLen, int nFlags);
-	QSTATUS select(int* pnSelect);
-	QSTATUS select(int* pnSelect, long nTimeout);
-	QSTATUS getInputStream(InputStream** ppStream);
-	QSTATUS getOutputStream(OutputStream** ppStream);
-	Error getLastError() const;
-	void setLastError(Error error);
+
+public:
+	virtual long getTimeout() const;
+	virtual unsigned int getLastError() const;
+	virtual void setLastError(unsigned int nError);
+	virtual QSTATUS close();
+	virtual QSTATUS recv(char* p, int* pnLen, int nFlags);
+	virtual QSTATUS send(const char* p, int* pnLen, int nFlags);
+	virtual QSTATUS select(int* pnSelect);
+	virtual QSTATUS select(int* pnSelect, long nTimeout);
+	virtual QSTATUS getInputStream(InputStream** ppStream);
+	virtual QSTATUS getOutputStream(OutputStream** ppStream);
 
 private:
 	Socket(const Socket&);
@@ -159,6 +185,57 @@ public:
 	virtual QSTATUS lookup() = 0;
 	virtual QSTATUS connecting() = 0;
 	virtual QSTATUS connected() = 0;
+};
+
+
+/****************************************************************************
+ *
+ * SocketInputStream
+ *
+ */
+
+class QSEXPORTCLASS SocketInputStream : public InputStream
+{
+public:
+	SocketInputStream(SocketBase* pSocket, QSTATUS* pstatus);
+	virtual ~SocketInputStream();
+
+public:
+	virtual QSTATUS close();
+	virtual QSTATUS read(unsigned char* p, size_t nRead, size_t* pnRead);
+
+private:
+	SocketInputStream(const SocketInputStream&);
+	SocketInputStream& operator=(const SocketInputStream&);
+
+private:
+	SocketBase* pSocket_;
+};
+
+
+/****************************************************************************
+ *
+ * SocketOutputStream
+ *
+ */
+
+class QSEXPORTCLASS SocketOutputStream : public OutputStream
+{
+public:
+	SocketOutputStream(SocketBase* pSocket, QSTATUS* pstatus);
+	virtual ~SocketOutputStream();
+
+public:
+	virtual QSTATUS close();
+	virtual QSTATUS write(const unsigned char* p, size_t nWrite);
+	virtual QSTATUS flush();
+
+private:
+	SocketOutputStream(const SocketOutputStream&);
+	SocketOutputStream& operator=(const SocketOutputStream&);
+
+private:
+	SocketBase* pSocket_;
 };
 
 }

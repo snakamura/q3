@@ -1,5 +1,5 @@
 /*
- * $Id: main.cpp,v 1.2 2003/05/30 06:22:57 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -9,6 +9,7 @@
 #include <qsnew.h>
 
 #include <openssl/evp.h>
+#include <openssl/ssl.h>
 #ifdef _WIN32_WCE
 #	include <openssl/rand.h>
 #endif
@@ -64,8 +65,15 @@ BOOL WINAPI DllMain(HANDLE hInst, DWORD dwReason, LPVOID lpReserved)
 		g_hInst = static_cast<HINSTANCE>(hInst);
 		g_hInstResource = g_hInst;
 		OpenSSL_add_all_algorithms();
+		SSL_library_init();
 #ifdef _WIN32_WCE
-		RAND_load_file("\\.qmail", -1);
+//		RAND_load_file("\\.qmail", -1);
+		{
+			for (int n = 0; n < 1000; ++n) {
+				RAND_seed("abcdefg", 7);
+				RAND_seed(&n, sizeof(n));
+			}
+		}
 #endif
 		break;
 	case DLL_PROCESS_DETACH:

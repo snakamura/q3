@@ -35,8 +35,10 @@ using namespace qs;
  *
  */
 
-qmimap4::Imap4Driver::Imap4Driver(Account* pAccount, QSTATUS* pstatus) :
+qmimap4::Imap4Driver::Imap4Driver(Account* pAccount,
+	const Security* pSecurity, QSTATUS* pstatus) :
 	pAccount_(pAccount),
+	pSecurity_(pSecurity),
 	pSessionCache_(0),
 	pCallback_(0),
 	pOfflineJobManager_(0),
@@ -269,7 +271,7 @@ QSTATUS qmimap4::Imap4Driver::getRemoteFolders(SubAccount* pSubAccount,
 	
 	Lock<CriticalSection> lock(cs_);
 	
-	FolderListGetter getter(pAccount_, pSubAccount, &status);
+	FolderListGetter getter(pAccount_, pSubAccount, pSecurity_, &status);
 	CHECK_QSTATUS();
 	status = getter.getFolders(ppFolder, pnCount);
 	CHECK_QSTATUS();
@@ -957,7 +959,7 @@ QSTATUS qmimap4::Imap4Driver::prepareSessionCache(SubAccount* pSubAccount)
 		delete pCallback_;
 		pCallback_ = 0;
 		
-		status = newQsObject(pSubAccount, &pCallback_);
+		status = newQsObject(pSubAccount, pSecurity_, &pCallback_);
 		CHECK_QSTATUS();
 		
 		int nMaxSession = 0;
@@ -1085,9 +1087,9 @@ QSTATUS qmimap4::Imap4Driver::FlagProcessHook::processFetchResponse(
  *
  */
 
-qmimap4::Imap4Driver::CallbackImpl::CallbackImpl(
-	SubAccount* pSubAccount, QSTATUS* pstatus) :
-	AbstractCallback(pSubAccount, pstatus),
+qmimap4::Imap4Driver::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
+	const Security* pSecurity, QSTATUS* pstatus) :
+	AbstractCallback(pSubAccount, pSecurity, pstatus),
 	pProcessHook_(0)
 {
 }
@@ -1209,16 +1211,17 @@ qmimap4::Imap4Factory::~Imap4Factory()
 	unregist(L"imap4");
 }
 
-QSTATUS qmimap4::Imap4Factory::createDriver(
-	Account* pAccount, ProtocolDriver** ppProtocolDriver)
+QSTATUS qmimap4::Imap4Factory::createDriver(Account* pAccount,
+	const qm::Security* pSecurity, ProtocolDriver** ppProtocolDriver)
 {
 	assert(pAccount);
+	assert(pSecurity);
 	assert(ppProtocolDriver);
 	
 	DECLARE_QSTATUS();
 	
 	std::auto_ptr<Imap4Driver> pDriver;
-	status = newQsObject(pAccount, &pDriver);
+	status = newQsObject(pAccount, pSecurity, &pDriver);
 	CHECK_QSTATUS();
 	
 	*ppProtocolDriver = pDriver.release();
@@ -1347,9 +1350,10 @@ QSTATUS qmimap4::FolderUtil::getFolderData(const WCHAR* pwszName,
  */
 
 qmimap4::FolderListGetter::FolderListGetter(Account* pAccount,
-	SubAccount* pSubAccount, QSTATUS* pstatus) :
+	SubAccount* pSubAccount, const Security* pSecurity, QSTATUS* pstatus) :
 	pAccount_(pAccount),
 	pSubAccount_(pSubAccount),
+	pSecurity_(pSecurity),
 	pFolderUtil_(0),
 	pImap4_(0),
 	pCallback_(0),
@@ -1418,7 +1422,7 @@ QSTATUS qmimap4::FolderListGetter::connect()
 {
 	DECLARE_QSTATUS();
 	
-	status = newQsObject(this, &pCallback_);
+	status = newQsObject(this, pSecurity_, &pCallback_);
 	CHECK_QSTATUS();
 	
 	if (pSubAccount_->isLog(Account::HOST_RECEIVE)) {
@@ -1428,6 +1432,7 @@ QSTATUS qmimap4::FolderListGetter::connect()
 	
 	Imap4::Option option = {
 		pSubAccount_->getTimeout(),
+		pCallback_,
 		pCallback_,
 		pCallback_,
 		pLogger_
@@ -1627,8 +1632,8 @@ bool qmimap4::FolderListGetter::FolderDataLess::operator()(
  */
 
 qmimap4::FolderListGetter::CallbackImpl::CallbackImpl(
-	FolderListGetter* pGetter, QSTATUS* pstatus) :
-	AbstractCallback(pGetter->pSubAccount_, pstatus),
+	FolderListGetter* pGetter, const Security* pSecurity, QSTATUS* pstatus) :
+	AbstractCallback(pGetter->pSubAccount_, pSecurity, pstatus),
 	pGetter_(pGetter),
 	pListNamespace_(0),
 	pListFolderData_(0)
@@ -1891,6 +1896,7 @@ QSTATUS qmimap4::SessionCache::getSession(
 		
 		Imap4::Option option = {
 			pSubAccount_->getTimeout(),
+			pCallback_,
 			pCallback_,
 			pCallback_,
 			pLogger.get()

@@ -201,7 +201,8 @@ QSTATUS qmimap4::Imap4ReceiveSession::init(Document* pDocument,
 	pLogger_ = pLogger;
 	pSessionCallback_ = pCallback;
 	
-	status = newQsObject(this, pSubAccount_, pSessionCallback_, &pCallback_);
+	status = newQsObject(this, pSubAccount_,
+		pDocument->getSecurity(), pSessionCallback_, &pCallback_);
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
@@ -219,6 +220,7 @@ QSTATUS qmimap4::Imap4ReceiveSession::connect()
 	
 	Imap4::Option option = {
 		pSubAccount_->getTimeout(),
+		pCallback_,
 		pCallback_,
 		pCallback_,
 		pLogger_
@@ -1576,12 +1578,12 @@ QSTATUS qmimap4::Imap4ReceiveSession::reportError()
 			{ Imap4::IMAP4_ERROR_OTHER,			IDS_ERROR_OTHER			},
 			{ Imap4::IMAP4_ERROR_INVALIDSOCKET,	IDS_ERROR_INVALIDSOCKET	},
 			{ Imap4::IMAP4_ERROR_SEND,			IDS_ERROR_SEND			},
-			{ Imap4::IMAP4_ERROR_RESPONSE,		IDS_ERROR_RESPONSE		}
+			{ Imap4::IMAP4_ERROR_RESPONSE,		IDS_ERROR_RESPONSE		},
+			{ Imap4::IMAP4_ERROR_SSL,			IDS_ERROR_SSL			}
 		},
 		{
 			{ Socket::SOCKET_ERROR_SOCKET,			IDS_ERROR_SOCKET_SOCKET			},
 			{ Socket::SOCKET_ERROR_CLOSESOCKET,		IDS_ERROR_SOCKET_CLOSESOCKET	},
-			{ Socket::SOCKET_ERROR_SETSSL,			IDS_ERROR_SOCKET_SETSSL			},
 			{ Socket::SOCKET_ERROR_LOOKUPNAME,		IDS_ERROR_SOCKET_LOOKUPNAME		},
 			{ Socket::SOCKET_ERROR_CONNECT,			IDS_ERROR_SOCKET_CONNECT		},
 			{ Socket::SOCKET_ERROR_CONNECTTIMEOUT,	IDS_ERROR_SOCKET_CONNECTTIMEOUT	},
@@ -1639,8 +1641,9 @@ QSTATUS qmimap4::Imap4ReceiveSession::reportError()
 
 qmimap4::Imap4ReceiveSession::CallbackImpl::CallbackImpl(
 	Imap4ReceiveSession* pSession, SubAccount* pSubAccount,
-	ReceiveSessionCallback* pSessionCallback, QSTATUS* pstatus) :
-	AbstractCallback(pSubAccount, pstatus),
+	const Security* pSecurity, ReceiveSessionCallback* pSessionCallback,
+	QSTATUS* pstatus) :
+	AbstractCallback(pSubAccount, pSecurity, pstatus),
 	pSession_(pSession),
 	pSessionCallback_(pSessionCallback)
 {

@@ -1,5 +1,5 @@
 /*
- * $Id: nntp.cpp,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -44,6 +44,7 @@ using namespace qs;
 qmnntp::Nntp::Nntp(const Option& option, QSTATUS* pstatus) :
 	nTimeout_(option.nTimeout_),
 	pSocketCallback_(option.pSocketCallback_),
+	pSSLSocketCallback_(option.pSSLSocketCallback_),
 	pNntpCallback_(option.pNntpCallback_),
 	pLogger_(option.pLogger_),
 	pSocket_(0),
@@ -73,15 +74,29 @@ QSTATUS qmnntp::Nntp::connect(const WCHAR* pwszHost, short nPort, bool bSsl)
 	
 	Socket::Option option = {
 		nTimeout_,
-		bSsl,
 		pSocketCallback_,
 		pLogger_
 	};
-	status = newQsObject(option, &pSocket_);
+	std::auto_ptr<Socket> pSocket;
+	status = newQsObject(option, &pSocket);
 	CHECK_QSTATUS_ERROR(NNTP_ERROR_INITIALIZE);
 	
-	status = pSocket_->connect(pwszHost, nPort);
-	CHECK_QSTATUS_ERROR(NNTP_ERROR_CONNECT | pSocket_->getLastError());
+	status = pSocket->connect(pwszHost, nPort);
+	CHECK_QSTATUS_ERROR(NNTP_ERROR_CONNECT | pSocket->getLastError());
+	
+	if (bSsl) {
+		SSLSocketFactory* pFactory = SSLSocketFactory::getFactory();
+		CHECK_ERROR(!pFactory, QSTATUS_FAIL, NNTP_ERROR_SSL);
+		SSLSocket* pSSLSocket = 0;
+		status = pFactory->createSSLSocket(pSocket.get(),
+			true, pSSLSocketCallback_, pLogger_, &pSSLSocket);
+		CHECK_QSTATUS_ERROR(NNTP_ERROR_SSL);
+		pSocket.release();
+		pSocket_ = pSSLSocket;
+	}
+	else {
+		pSocket_ = pSocket.release();
+	}
 	
 	unsigned int nCode = 0;
 	status = receive(&nCode);

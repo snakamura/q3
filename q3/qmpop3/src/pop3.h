@@ -1,5 +1,5 @@
 /*
- * $Id: pop3.h,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -12,6 +12,7 @@
 #include <qs.h>
 #include <qslog.h>
 #include <qssocket.h>
+#include <qsssl.h>
 #include <qsstring.h>
 
 #include <vector>
@@ -45,7 +46,8 @@ public:
 		POP3_ERROR_SEND				= 0x00090000,
 		POP3_ERROR_INVALIDSOCKET	= 0x000a0000,
 		POP3_ERROR_RESPONSE			= 0x000b0000,
-		POP3_ERROR_OTHER			= 0x000c0000,
+		POP3_ERROR_SSL				= 0x000c0000,
+		POP3_ERROR_OTHER			= 0x000d0000,
 		POP3_ERROR_MASK_LOWLEVEL	= 0x00ff0000,
 		
 		POP3_ERROR_GREETING			= 0x00000100,
@@ -76,6 +78,7 @@ public:
 	{
 		long nTimeout_;
 		qs::SocketCallback* pSocketCallback_;
+		qs::SSLSocketCallback* pSSLSocketCallback_;
 		Pop3Callback* pPop3Callback_;
 		qs::Logger* pLogger_;
 	};
@@ -136,9 +139,10 @@ private:
 private:
 	long nTimeout_;
 	qs::SocketCallback* pSocketCallback_;
+	qs::SSLSocketCallback* pSSLSocketCallback_;
 	Pop3Callback* pPop3Callback_;
 	qs::Logger* pLogger_;
-	qs::Socket* pSocket_;
+	qs::SocketBase* pSocket_;
 	unsigned int nCount_;
 	unsigned int nError_;
 	qs::WSTRING wstrErrorResponse_;

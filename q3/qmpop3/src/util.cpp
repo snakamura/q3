@@ -1,5 +1,5 @@
 /*
- * $Id: util.cpp,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -37,7 +37,7 @@ QSTATUS qmpop3::Util::reportError(Pop3* pPop3,
 	{
 		unsigned int nError_;
 		UINT nId_;
-	} maps[][12] = {
+	} maps[][13] = {
 		{
 			{ Pop3::POP3_ERROR_GREETING,	IDS_ERROR_GREETING	},
 			{ Pop3::POP3_ERROR_APOP,		IDS_ERROR_APOP		},
@@ -64,12 +64,12 @@ QSTATUS qmpop3::Util::reportError(Pop3* pPop3,
 			{ Pop3::POP3_ERROR_SEND,			IDS_ERROR_SEND				},
 			{ Pop3::POP3_ERROR_INVALIDSOCKET,	IDS_ERROR_INVALIDSOCKET		},
 			{ Pop3::POP3_ERROR_RESPONSE,		IDS_ERROR_RESPONSE			},
+			{ Pop3::POP3_ERROR_SSL,				IDS_ERROR_SSL				},
 			{ Pop3::POP3_ERROR_OTHER,			IDS_ERROR_OTHER				}
 		},
 		{
 			{ Socket::SOCKET_ERROR_SOCKET,			IDS_ERROR_SOCKET_SOCKET			},
 			{ Socket::SOCKET_ERROR_CLOSESOCKET,		IDS_ERROR_SOCKET_CLOSESOCKET	},
-			{ Socket::SOCKET_ERROR_SETSSL,			IDS_ERROR_SOCKET_SETSSL			},
 			{ Socket::SOCKET_ERROR_LOOKUPNAME,		IDS_ERROR_SOCKET_LOOKUPNAME		},
 			{ Socket::SOCKET_ERROR_CONNECT,			IDS_ERROR_SOCKET_CONNECT		},
 			{ Socket::SOCKET_ERROR_CONNECTTIMEOUT,	IDS_ERROR_SOCKET_CONNECTTIMEOUT	},

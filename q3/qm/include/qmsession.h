@@ -180,7 +180,7 @@ public:
 	virtual ~SendSession();
 
 public:
-	virtual qs::QSTATUS init(Account* pAccount,
+	virtual qs::QSTATUS init(Document* pDocument, Account* pAccount,
 		SubAccount* pSubAccount, qs::Profile* pProfile,
 		qs::Logger* pLogger, SendSessionCallback* pCallback) = 0;
 	virtual qs::QSTATUS connect() = 0;

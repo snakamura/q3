@@ -1,5 +1,5 @@
 /*
- * $Id: qscrypto.h,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -17,6 +17,7 @@
 
 namespace qs {
 
+class Name;
 class Certificate;
 class PrivateKey;
 class PublicKey;
@@ -29,6 +30,22 @@ class CryptoFactory;
 
 class InputStream;
 class Part;
+
+
+/****************************************************************************
+ *
+ * Name
+ *
+ */
+
+class QSEXPORTCLASS Name
+{
+public:
+	virtual ~Name();
+
+public:
+	virtual QSTATUS getCommonName(WSTRING* pwstrCommonName) const = 0;
+};
 
 
 /****************************************************************************
@@ -52,6 +69,8 @@ public:
 		FileType type, PasswordCallback* pCallback) = 0;
 	virtual QSTATUS load(InputStream* pStream,
 		FileType type, PasswordCallback* pCallback) = 0;
+	virtual QSTATUS getSubject(Name** ppName) const = 0;
+	virtual QSTATUS getIssuer(Name** ppName) const = 0;
 
 public:
 	static QSTATUS getInstance(Certificate** ppCertificate);

@@ -10,6 +10,7 @@
 #include <qmdocument.h>
 #include <qmextensions.h>
 #include <qmmessage.h>
+#include <qmsecurity.h>
 
 #include <qserror.h>
 #include <qsmime.h>
@@ -22,8 +23,6 @@
 #include <memory>
 #include <utility>
 #include <vector>
-
-#include "security.h"
 
 #pragma warning(disable:4786)
 
@@ -58,6 +57,7 @@ struct qm::SubAccountImpl
 	long nTimeout_;
 	bool bConnectReceiveBeforeSend_;
 	bool bTreatAsSent_;
+	bool bAllowUnverifiedCertificate_;
 	SubAccount::DialupType dialupType_;
 	WSTRING wstrDialupEntry_;
 	bool bDialupShowDialog_;
@@ -105,6 +105,7 @@ QSTATUS qm::SubAccountImpl::load()
 	LOAD_INT(L"Global",		L"Timeout",						60,		nTimeout_,						long,					nTimeout					);
 	LOAD_INT(L"Global",		L"ConnectReceiveBeforeSend",	0,		bConnectReceiveBeforeSend_,		bool,					nConnectReceiveBeforeSend	);
 	LOAD_INT(L"Global",		L"TreatAsSent",					1,		bTreatAsSent_,					bool,					nTreatAsSent				);
+	LOAD_INT(L"Global",		L"AllowUnverifiedCertificate",	0,		bAllowUnverifiedCertificate_,	bool,					nAllowUnverifiedCertificate	);
 	LOAD_INT(L"Dialup",		L"Type",						0,		dialupType_,					SubAccount::DialupType,	dialupType					);
 	LOAD_INT(L"Dialup",		L"ShowDialog",					0,		bDialupShowDialog_,				bool,					bDialupShowDialog			);
 	LOAD_INT(L"Dialup",		L"DisconnectWait",				0,		nDialupDisconnectWait_,			unsigned int,			nDialupDisconnectWait		);
@@ -230,6 +231,7 @@ qm::SubAccount::SubAccount(Account* pAccount, Profile* pProfile,
 	pImpl_->nTimeout_ = 60;
 	pImpl_->bConnectReceiveBeforeSend_ = false;
 	pImpl_->bTreatAsSent_ = true;
+	pImpl_->bAllowUnverifiedCertificate_ = false;
 	pImpl_->dialupType_ = SubAccount::DIALUPTYPE_NEVER;
 	pImpl_->wstrDialupEntry_ = 0;
 	pImpl_->bDialupShowDialog_ = false;
@@ -558,6 +560,16 @@ void qm::SubAccount::setTreatAsSent(bool bTreatAsSent)
 	pImpl_->bTreatAsSent_ = bTreatAsSent;
 }
 
+bool qm::SubAccount::isAllowUnverifiedCertificate() const
+{
+	return pImpl_->bAllowUnverifiedCertificate_;
+}
+
+void qm::SubAccount::setAllowUnverifiedCertificate(bool bAllow) const
+{
+	pImpl_->bAllowUnverifiedCertificate_ = bAllow;
+}
+
 SubAccount::DialupType qm::SubAccount::getDialupType() const
 {
 	return pImpl_->dialupType_;
@@ -794,6 +806,7 @@ QSTATUS qm::SubAccount::save() const
 	SAVE_INT(L"Receive",	L"Log",							bLog_[Account::HOST_RECEIVE]	);
 	SAVE_INT(L"Global",		L"ConnectReceiveBeforeSend",	bConnectReceiveBeforeSend_		);
 	SAVE_INT(L"Global",		L"TreatAsSent",					bTreatAsSent_					);
+	SAVE_INT(L"Global",		L"AllowUnverifiedCertificate",	bAllowUnverifiedCertificate_	);
 	SAVE_INT(L"Dialup",		L"Type",						dialupType_						);
 	SAVE_INT(L"Dialup",		L"ShowDialog",					bDialupShowDialog_				);
 	SAVE_INT(L"Dialup",		L"DisconnectWait",				nDialupDisconnectWait_			);

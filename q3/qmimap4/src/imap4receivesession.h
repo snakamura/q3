@@ -88,7 +88,8 @@ private:
 	class CallbackImpl : public AbstractCallback
 	{
 	public:
-		CallbackImpl(Imap4ReceiveSession* pSession, qm::SubAccount* pSubAccount,
+		CallbackImpl(Imap4ReceiveSession* pSession,
+			qm::SubAccount* pSubAccount, const qm::Security* pSecurity,
 			qm::ReceiveSessionCallback* pSessionCallback, qs::QSTATUS* pstatus);
 		virtual ~CallbackImpl();
 	

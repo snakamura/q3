@@ -36,6 +36,7 @@ class Folder;
 class MessageHolder;
 class Message;
 class ProtocolDriver;
+class Security;
 
 
 /****************************************************************************
@@ -81,7 +82,8 @@ public:
 	typedef std::vector<Folder*> FolderList;
 
 public:
-	Account(const WCHAR* pwszPath, qs::QSTATUS* pstatus);
+	Account(const WCHAR* pwszPath,
+		const Security* pSecurity, qs::QSTATUS* pstatus);
 	~Account();
 
 public:
@@ -236,6 +238,8 @@ public:
 	void setConnectReceiveBeforeSend(bool bConnectReceiveBeforeSend);
 	bool isTreatAsSent() const;
 	void setTreatAsSent(bool bTreatAsSent);
+	bool isAllowUnverifiedCertificate() const;
+	void setAllowUnverifiedCertificate(bool bAllow) const;
 	
 	DialupType getDialupType() const;
 	void setDialupType(DialupType type);

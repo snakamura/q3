@@ -7,9 +7,11 @@
  */
 
 #include <qmaccount.h>
+#include <qmdocument.h>
 #include <qmfolder.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
+#include <qmsecurity.h>
 
 #include <qsconv.h>
 #include <qsnew.h>
@@ -58,8 +60,8 @@ qmsmtp::SmtpSendSession::~SmtpSendSession()
 	delete pCallback_;
 }
 
-QSTATUS qmsmtp::SmtpSendSession::init(Account* pAccount,
-	SubAccount* pSubAccount, Profile* pProfile,
+QSTATUS qmsmtp::SmtpSendSession::init(Document* pDocument,
+	Account* pAccount, SubAccount* pSubAccount, Profile* pProfile,
 	Logger* pLogger, SendSessionCallback* pCallback)
 {
 	assert(pAccount);
@@ -73,7 +75,8 @@ QSTATUS qmsmtp::SmtpSendSession::init(Account* pAccount,
 	pLogger_ = pLogger;
 	pSessionCallback_ = pCallback;
 	
-	status = newQsObject(pSubAccount_, pSessionCallback_, &pCallback_);
+	status = newQsObject(pSubAccount_, pDocument->getSecurity(),
+		pSessionCallback_, &pCallback_);
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
@@ -91,6 +94,7 @@ QSTATUS qmsmtp::SmtpSendSession::connect()
 	
 	Smtp::Option option = {
 		pSubAccount_->getTimeout(),
+		pCallback_,
 		pCallback_,
 		pCallback_,
 		pLogger_
@@ -315,12 +319,12 @@ QSTATUS qmsmtp::SmtpSendSession::reportError()
 			{ Smtp::SMTP_ERROR_DISCONNECT,		IDS_ERROR_DISCONNECT	},
 			{ Smtp::SMTP_ERROR_RECEIVE,			IDS_ERROR_RECEIVE		},
 			{ Smtp::SMTP_ERROR_SEND,			IDS_ERROR_SEND			},
-			{ Smtp::SMTP_ERROR_OTHER,			IDS_ERROR_OTHER			}
+			{ Smtp::SMTP_ERROR_OTHER,			IDS_ERROR_OTHER			},
+			{ Smtp::SMTP_ERROR_SSL,				IDS_ERROR_SSL			}
 		},
 		{
 			{ Socket::SOCKET_ERROR_SOCKET,			IDS_ERROR_SOCKET_SOCKET			},
 			{ Socket::SOCKET_ERROR_CLOSESOCKET,		IDS_ERROR_SOCKET_CLOSESOCKET	},
-			{ Socket::SOCKET_ERROR_SETSSL,			IDS_ERROR_SOCKET_SETSSL			},
 			{ Socket::SOCKET_ERROR_LOOKUPNAME,		IDS_ERROR_SOCKET_LOOKUPNAME		},
 			{ Socket::SOCKET_ERROR_CONNECT,			IDS_ERROR_SOCKET_CONNECT		},
 			{ Socket::SOCKET_ERROR_CONNECTTIMEOUT,	IDS_ERROR_SOCKET_CONNECTTIMEOUT	},
@@ -376,9 +380,11 @@ QSTATUS qmsmtp::SmtpSendSession::reportError()
  *
  */
 
-qmsmtp::SmtpSendSession::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
+qmsmtp::SmtpSendSession::CallbackImpl::CallbackImpl(
+	SubAccount* pSubAccount, const Security* pSecurity,
 	SendSessionCallback* pSessionCallback, QSTATUS* pstatus) :
 	pSubAccount_(pSubAccount),
+	pSecurity_(pSecurity),
 	pSessionCallback_(pSessionCallback)
 {
 	assert(pstatus);
@@ -423,6 +429,37 @@ QSTATUS qmsmtp::SmtpSendSession::CallbackImpl::connecting()
 QSTATUS qmsmtp::SmtpSendSession::CallbackImpl::connected()
 {
 	return setMessage(IDS_CONNECTED);
+}
+
+QSTATUS qmsmtp::SmtpSendSession::CallbackImpl::getCertStore(const Store** ppStore)
+{
+	assert(ppStore);
+	*ppStore = pSecurity_->getCA();
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qmsmtp::SmtpSendSession::CallbackImpl::checkCertificate(
+	const Certificate& cert, bool bVerified)
+{
+	DECLARE_QSTATUS();
+	
+	if (!bVerified && !pSubAccount_->isAllowUnverifiedCertificate())
+		return QSTATUS_FAIL;
+	
+	Name* p = 0;
+	status = cert.getSubject(&p);
+	CHECK_QSTATUS();
+	std::auto_ptr<Name> pName(p);
+	
+	string_ptr<WSTRING> wstrCommonName;
+	status = pName->getCommonName(&wstrCommonName);
+	CHECK_QSTATUS();
+	
+	const WCHAR* pwszHost = pSubAccount_->getHost(Account::HOST_SEND);
+	if (wcscmp(wstrCommonName.get(), pwszHost) != 0)
+		return QSTATUS_FAIL;
+	
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qmsmtp::SmtpSendSession::CallbackImpl::getUserInfo(

@@ -1,10 +1,12 @@
 /*
- * $Id: util.cpp,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
  *
  */
+
+#include <qmsecurity.h>
 
 #include "main.h"
 #include "nntp.h"
@@ -59,12 +61,12 @@ QSTATUS qmnntp::Util::reportError(Nntp* pNntp,
 			{ Nntp::NNTP_ERROR_TIMEOUT,			IDS_ERROR_TIMEOUT		},
 			{ Nntp::NNTP_ERROR_RECEIVE,			IDS_ERROR_RECEIVE		},
 			{ Nntp::NNTP_ERROR_DISCONNECT,		IDS_ERROR_DISCONNECT	},
-			{ Nntp::NNTP_ERROR_SEND,			IDS_ERROR_SEND			}
+			{ Nntp::NNTP_ERROR_SEND,			IDS_ERROR_SEND			},
+			{ Nntp::NNTP_ERROR_SSL,				IDS_ERROR_SSL			}
 		},
 		{
 			{ Socket::SOCKET_ERROR_SOCKET,			IDS_ERROR_SOCKET_SOCKET			},
 			{ Socket::SOCKET_ERROR_CLOSESOCKET,		IDS_ERROR_SOCKET_CLOSESOCKET	},
-			{ Socket::SOCKET_ERROR_SETSSL,			IDS_ERROR_SOCKET_SETSSL			},
 			{ Socket::SOCKET_ERROR_LOOKUPNAME,		IDS_ERROR_SOCKET_LOOKUPNAME		},
 			{ Socket::SOCKET_ERROR_CONNECT,			IDS_ERROR_SOCKET_CONNECT		},
 			{ Socket::SOCKET_ERROR_CONNECTTIMEOUT,	IDS_ERROR_SOCKET_CONNECTTIMEOUT	},
@@ -120,15 +122,47 @@ QSTATUS qmnntp::Util::reportError(Nntp* pNntp,
  *
  */
 
-qmnntp::AbstractCallback::AbstractCallback(
-	SubAccount* pSubAccount, QSTATUS* pstatus) :
-	pSubAccount_(pSubAccount)
+qmnntp::AbstractCallback::AbstractCallback(SubAccount* pSubAccount,
+	const Security* pSecurity, QSTATUS* pstatus) :
+	pSubAccount_(pSubAccount),
+	pSecurity_(pSecurity)
 {
 	*pstatus = QSTATUS_SUCCESS;
 }
 
 qmnntp::AbstractCallback::~AbstractCallback()
 {
+}
+
+QSTATUS qmnntp::AbstractCallback::getCertStore(const Store** ppStore)
+{
+	assert(ppStore);
+	*ppStore = pSecurity_->getCA();
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qmnntp::AbstractCallback::checkCertificate(
+	const Certificate& cert, bool bVerified)
+{
+	DECLARE_QSTATUS();
+	
+	if (!bVerified && !pSubAccount_->isAllowUnverifiedCertificate())
+		return QSTATUS_FAIL;
+	
+	Name* p = 0;
+	status = cert.getSubject(&p);
+	CHECK_QSTATUS();
+	std::auto_ptr<Name> pName(p);
+	
+	string_ptr<WSTRING> wstrCommonName;
+	status = pName->getCommonName(&wstrCommonName);
+	CHECK_QSTATUS();
+	
+	const WCHAR* pwszHost = pSubAccount_->getHost(Account::HOST_RECEIVE);
+	if (wcscmp(wstrCommonName.get(), pwszHost) != 0)
+		return QSTATUS_FAIL;
+	
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qmnntp::AbstractCallback::getUserInfo(

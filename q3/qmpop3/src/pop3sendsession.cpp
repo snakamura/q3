@@ -7,6 +7,7 @@
  */
 
 #include <qmaccount.h>
+#include <qmdocument.h>
 #include <qmmessage.h>
 
 #include <qsnew.h>
@@ -51,8 +52,8 @@ qmpop3::Pop3SendSession::~Pop3SendSession()
 	delete pCallback_;
 }
 
-QSTATUS qmpop3::Pop3SendSession::init(Account* pAccount,
-	SubAccount* pSubAccount, Profile* pProfile,
+QSTATUS qmpop3::Pop3SendSession::init(Document* pDocument,
+	Account* pAccount, SubAccount* pSubAccount, Profile* pProfile,
 	Logger* pLogger, SendSessionCallback* pCallback)
 {
 	assert(pAccount);
@@ -66,7 +67,8 @@ QSTATUS qmpop3::Pop3SendSession::init(Account* pAccount,
 	pLogger_ = pLogger;
 	pSessionCallback_ = pCallback;
 	
-	status = newQsObject(pSubAccount_, pSessionCallback_, &pCallback_);
+	status = newQsObject(pSubAccount_, pDocument->getSecurity(),
+		pSessionCallback_, &pCallback_);
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
@@ -84,6 +86,7 @@ QSTATUS qmpop3::Pop3SendSession::connect()
 	
 	Pop3::Option option = {
 		pSubAccount_->getTimeout(),
+		pCallback_,
 		pCallback_,
 		pCallback_,
 		pLogger_
@@ -145,9 +148,11 @@ QSTATUS qmpop3::Pop3SendSession::sendMessage(Message* pMessage)
  *
  */
 
-qmpop3::Pop3SendSession::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
+qmpop3::Pop3SendSession::CallbackImpl::CallbackImpl(
+	SubAccount* pSubAccount, const Security* pSecurity,
 	SendSessionCallback* pSessionCallback, QSTATUS* pstatus) :
 	pSubAccount_(pSubAccount),
+	pSecurity_(pSecurity),
 	pSessionCallback_(pSessionCallback)
 {
 }
@@ -190,6 +195,37 @@ QSTATUS qmpop3::Pop3SendSession::CallbackImpl::connecting()
 QSTATUS qmpop3::Pop3SendSession::CallbackImpl::connected()
 {
 	return setMessage(IDS_CONNECTED);
+}
+
+QSTATUS qmpop3::Pop3SendSession::CallbackImpl::getCertStore(const Store** ppStore)
+{
+	assert(ppStore);
+	*ppStore = pSecurity_->getCA();
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qmpop3::Pop3SendSession::CallbackImpl::checkCertificate(
+	const Certificate& cert, bool bVerified)
+{
+	DECLARE_QSTATUS();
+	
+	if (!bVerified && !pSubAccount_->isAllowUnverifiedCertificate())
+		return QSTATUS_FAIL;
+	
+	Name* p = 0;
+	status = cert.getSubject(&p);
+	CHECK_QSTATUS();
+	std::auto_ptr<Name> pName(p);
+	
+	string_ptr<WSTRING> wstrCommonName;
+	status = pName->getCommonName(&wstrCommonName);
+	CHECK_QSTATUS();
+	
+	const WCHAR* pwszHost = pSubAccount_->getHost(Account::HOST_SEND);
+	if (wcscmp(wstrCommonName.get(), pwszHost) != 0)
+		return QSTATUS_FAIL;
+	
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qmpop3::Pop3SendSession::CallbackImpl::getUserInfo(

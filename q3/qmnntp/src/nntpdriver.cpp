@@ -29,8 +29,10 @@ using namespace qs;
  *
  */
 
-qmnntp::NntpDriver::NntpDriver(Account* pAccount, QSTATUS* pstatus) :
+qmnntp::NntpDriver::NntpDriver(Account* pAccount,
+	const Security* pSecurity, QSTATUS* pstatus) :
 	pAccount_(pAccount),
+	pSecurity_(pSecurity),
 	pSubAccount_(0),
 	pNntp_(0),
 	pCallback_(0),
@@ -249,11 +251,12 @@ QSTATUS qmnntp::NntpDriver::prepareSession(
 			pLogger.reset(p);
 		}
 		
-		status = newQsObject(pSubAccount, &pCallback);
+		status = newQsObject(pSubAccount, pSecurity_, &pCallback);
 		CHECK_QSTATUS();
 		
 		Nntp::Option option = {
 			pSubAccount->getTimeout(),
+			pCallback.get(),
 			pCallback.get(),
 			pCallback.get(),
 			pLogger.get()
@@ -309,9 +312,9 @@ QSTATUS qmnntp::NntpDriver::clearSession()
  *
  */
 
-qmnntp::NntpDriver::CallbackImpl::CallbackImpl(
-	SubAccount* pSubAccount, QSTATUS* pstatus) :
-	AbstractCallback(pSubAccount, pstatus)
+qmnntp::NntpDriver::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
+	const Security* pSecurity, QSTATUS* pstatus) :
+	AbstractCallback(pSubAccount, pSecurity, pstatus)
 {
 }
 
@@ -379,8 +382,8 @@ qmnntp::NntpFactory::~NntpFactory()
 	unregist(L"nntp");
 }
 
-QSTATUS qmnntp::NntpFactory::createDriver(
-	Account* pAccount, ProtocolDriver** ppProtocolDriver)
+QSTATUS qmnntp::NntpFactory::createDriver(Account* pAccount,
+	const Security* pSecurity, ProtocolDriver** ppProtocolDriver)
 {
 	assert(pAccount);
 	assert(ppProtocolDriver);
@@ -388,7 +391,7 @@ QSTATUS qmnntp::NntpFactory::createDriver(
 	DECLARE_QSTATUS();
 	
 	NntpDriver* pDriver = 0;
-	status = newQsObject(pAccount, &pDriver);
+	status = newQsObject(pAccount, pSecurity, &pDriver);
 	CHECK_QSTATUS();
 	
 	*ppProtocolDriver = pDriver;

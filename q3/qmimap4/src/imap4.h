@@ -13,6 +13,7 @@
 #include <qsconv.h>
 #include <qslog.h>
 #include <qssocket.h>
+#include <qsssl.h>
 #include <qsutil.h>
 
 #include <vector>
@@ -87,6 +88,7 @@ public:
 		IMAP4_ERROR_INVALIDSOCKET	= 0x00090000,
 		IMAP4_ERROR_SEND			= 0x000a0000,
 		IMAP4_ERROR_RESPONSE		= 0x000b0000,
+		IMAP4_ERROR_SSL				= 0x000c0000,
 		IMAP4_ERROR_MASK_LOWLEVEL	= 0x00ff0000,
 		
 		IMAP4_ERROR_GREETING		= 0x00000100,
@@ -137,6 +139,7 @@ public:
 	{
 		long nTimeout_;
 		qs::SocketCallback* pSocketCallback_;
+		qs::SSLSocketCallback* pSSLSocketCallback_;
 		Imap4Callback* pImap4Callback_;
 		qs::Logger* pLogger_;
 	};
@@ -229,9 +232,10 @@ private:
 private:
 	long nTimeout_;
 	qs::SocketCallback* pSocketCallback_;
+	qs::SSLSocketCallback* pSSLSocketCallback_;
 	Imap4Callback* pImap4Callback_;
 	qs::Logger* pLogger_;
-	qs::Socket* pSocket_;
+	qs::SocketBase* pSocket_;
 	qs::STRING strOverBuf_;
 	unsigned int nCapability_;
 	unsigned int nAuth_;

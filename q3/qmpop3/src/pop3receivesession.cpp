@@ -10,6 +10,7 @@
 #include <qmfolder.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
+#include <qmsecurity.h>
 
 #include <qsconv.h>
 #include <qserror.h>
@@ -95,7 +96,8 @@ QSTATUS qmpop3::Pop3ReceiveSession::init(Document* pDocument,
 	pLogger_ = pLogger;
 	pSessionCallback_ = pCallback;
 	
-	status = newQsObject(pSubAccount_, pSessionCallback_, &pCallback_);
+	status = newQsObject(pSubAccount_, pDocument_->getSecurity(),
+		pSessionCallback_, &pCallback_);
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
@@ -113,6 +115,7 @@ QSTATUS qmpop3::Pop3ReceiveSession::connect()
 	
 	Pop3::Option option = {
 		pSubAccount_->getTimeout(),
+		pCallback_,
 		pCallback_,
 		pCallback_,
 		pLogger_
@@ -640,9 +643,11 @@ QSTATUS qmpop3::Pop3ReceiveSession::saveUIDList(const UIDList* pUIDList) const
  *
  */
 
-qmpop3::Pop3ReceiveSession::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
+qmpop3::Pop3ReceiveSession::CallbackImpl::CallbackImpl(
+	SubAccount* pSubAccount, const Security* pSecurity,
 	ReceiveSessionCallback* pSessionCallback, qs::QSTATUS* pstatus) :
 	pSubAccount_(pSubAccount),
+	pSecurity_(pSecurity),
 	pSessionCallback_(pSessionCallback)
 {
 	assert(pstatus);
@@ -687,6 +692,37 @@ QSTATUS qmpop3::Pop3ReceiveSession::CallbackImpl::connecting()
 QSTATUS qmpop3::Pop3ReceiveSession::CallbackImpl::connected()
 {
 	return setMessage(IDS_CONNECTED);
+}
+
+QSTATUS qmpop3::Pop3ReceiveSession::CallbackImpl::getCertStore(const Store** ppStore)
+{
+	assert(ppStore);
+	*ppStore = pSecurity_->getCA();
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qmpop3::Pop3ReceiveSession::CallbackImpl::checkCertificate(
+	const Certificate& cert, bool bVerified)
+{
+	DECLARE_QSTATUS();
+	
+	if (!bVerified && !pSubAccount_->isAllowUnverifiedCertificate())
+		return QSTATUS_FAIL;
+	
+	Name* p = 0;
+	status = cert.getSubject(&p);
+	CHECK_QSTATUS();
+	std::auto_ptr<Name> pName(p);
+	
+	string_ptr<WSTRING> wstrCommonName;
+	status = pName->getCommonName(&wstrCommonName);
+	CHECK_QSTATUS();
+	
+	const WCHAR* pwszHost = pSubAccount_->getHost(Account::HOST_RECEIVE);
+	if (wcscmp(wstrCommonName.get(), pwszHost) != 0)
+		return QSTATUS_FAIL;
+	
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qmpop3::Pop3ReceiveSession::CallbackImpl::getUserInfo(

@@ -1,5 +1,5 @@
 /*
- * $Id: util.h,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -45,11 +45,20 @@ public:
  *
  */
 
-class AbstractCallback : public qs::SocketCallback, public NntpCallback
+class AbstractCallback :
+	public qs::SocketCallback,
+	public qs::SSLSocketCallback,
+	public NntpCallback
 {
 public:
-	AbstractCallback(qm::SubAccount* pSubAccount, qs::QSTATUS* pstatus);
+	AbstractCallback(qm::SubAccount* pSubAccount,
+		const qm::Security* pSecurity, qs::QSTATUS* pstatus);
 	virtual ~AbstractCallback();
+
+public:
+	virtual qs::QSTATUS getCertStore(const qs::Store** ppStore);
+	virtual qs::QSTATUS checkCertificate(
+		const qs::Certificate& cert, bool bVerified);
 
 public:
 	virtual qs::QSTATUS getUserInfo(qs::WSTRING* pwstrUserName,
@@ -62,6 +71,7 @@ private:
 
 private:
 	qm::SubAccount* pSubAccount_;
+	const qm::Security* pSecurity_;
 };
 
 }

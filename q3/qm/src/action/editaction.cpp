@@ -13,6 +13,7 @@
 #include <qmfolder.h>
 #include <qmmacro.h>
 #include <qmmessage.h>
+#include <qmsecurity.h>
 
 #include <qsnew.h>
 #include <qsstl.h>
@@ -28,7 +29,6 @@
 #include "findreplace.h"
 #include "../model/editmessage.h"
 #include "../model/fixedformtext.h"
-#include "../model/security.h"
 #include "../ui/attachmentselectionmodel.h"
 #include "../ui/dialogs.h"
 #include "../ui/editwindow.h"
