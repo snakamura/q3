@@ -387,7 +387,7 @@ public:
 	const WCHAR* getSendProtocol() const;
 	short getSendPort() const;
 	unsigned int getBlockSize() const;
-	unsigned int getCacheBlockSize() const;
+	unsigned int getIndexBlockSize() const;
 
 public:
 	virtual LRESULT onCommand(WORD nCode,
@@ -434,7 +434,7 @@ private:
 	int nReceiveProtocol_;
 	int nSendProtocol_;
 	unsigned int nBlockSize_;
-	unsigned int nCacheBlockSize_;
+	unsigned int nIndexBlockSize_;
 };
 
 

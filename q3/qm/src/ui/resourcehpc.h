@@ -212,7 +212,7 @@
 #define IDC_SINGLEFILE                  1079
 #define IDC_MULTIPLEFILE                1080
 #define IDC_BLOCKSIZE                   1081
-#define IDC_CACHEBLOCKSIZE              1082
+#define IDC_INDEXBLOCKSIZE              1082
 #define IDC_MAILFOLDER                  1083
 #define IDC_ERROR                       1085
 #define IDC_MATCHCASE                   1087

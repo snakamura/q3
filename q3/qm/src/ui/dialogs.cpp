@@ -148,7 +148,7 @@ LRESULT qm::AccountDialog::onAddAccount()
 		XMLProfile profile(wstrPath.get());
 		profile.setString(L"Global", L"Class", dialog.getClass());
 		profile.setInt(L"Global", L"BlockSize", dialog.getBlockSize());
-		profile.setInt(L"Global", L"CacheBlockSize", dialog.getCacheBlockSize());
+		profile.setInt(L"Global", L"IndexBlockSize", dialog.getIndexBlockSize());
 		profile.setString(L"Receive", L"Type", dialog.getReceiveProtocol());
 		profile.setInt(L"Receive", L"Port", dialog.getReceivePort());
 		profile.setString(L"Send", L"Type", dialog.getSendProtocol());
@@ -1599,7 +1599,7 @@ qm::CreateAccountDialog::CreateAccountDialog(Profile* pProfile) :
 	nReceiveProtocol_(0),
 	nSendProtocol_(0),
 	nBlockSize_(-1),
-	nCacheBlockSize_(-1)
+	nIndexBlockSize_(-1)
 {
 	wstrClass_ = allocWString(L"mail");
 }
@@ -1644,9 +1644,9 @@ unsigned int qm::CreateAccountDialog::getBlockSize() const
 	return nBlockSize_;
 }
 
-unsigned int qm::CreateAccountDialog::getCacheBlockSize() const
+unsigned int qm::CreateAccountDialog::getIndexBlockSize() const
 {
-	return nCacheBlockSize_;
+	return nIndexBlockSize_;
 }
 
 LRESULT qm::CreateAccountDialog::onCommand(WORD nCode,
@@ -1682,7 +1682,7 @@ LRESULT qm::CreateAccountDialog::onInitDialog(HWND hwndFocus,
 	
 	Window(getDlgItem(IDC_MULTIPLEFILE)).sendMessage(BM_SETCHECK, BST_CHECKED);
 	setDlgItemInt(IDC_BLOCKSIZE, 0);
-	setDlgItemInt(IDC_CACHEBLOCKSIZE, 0);
+	setDlgItemInt(IDC_INDEXBLOCKSIZE, 0);
 	
 	updateState();
 	
@@ -1704,9 +1704,9 @@ LRESULT qm::CreateAccountDialog::onOk()
 		nBlockSize_ = 0;
 	}
 	
-	nCacheBlockSize_ = getDlgItemInt(IDC_CACHEBLOCKSIZE);
-	if (nCacheBlockSize_ == 0)
-		nCacheBlockSize_ = -1;
+	nIndexBlockSize_ = getDlgItemInt(IDC_INDEXBLOCKSIZE);
+	if (nIndexBlockSize_ == 0)
+		nIndexBlockSize_ = -1;
 	
 	return DefaultDialog::onOk();
 }
