@@ -81,7 +81,7 @@ bool qs::FieldParserUtil<String>::isNeedQuote(const Char* psz,
 	
 	const Char* p = psz;
 	while (p < psz + nLen) {
-		if (unsigned char(*p) < 0x80) {
+		if (unsigned int(*p) < 0x80) {
 			if (FieldParser::isSpecial(char(*p)) ||
 				(bQuoteWhitespace && (*p == Char(' ') || *p == Char('\t'))))
 				break;
