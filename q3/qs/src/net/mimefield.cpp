@@ -2509,7 +2509,7 @@ string_ptr qs::AddressListParser::unparse(const Part& part) const
 	
 	for (AddressList::const_iterator it = listAddress_.begin(); it != listAddress_.end(); ++it) {
 		if (it != listAddress_.begin())
-			buf.append(",\r\n\t");
+			buf.append(",\r\n ");
 		string_ptr str((*it)->unparse(part));
 		buf.append(str.get());
 	}
@@ -2799,7 +2799,7 @@ string_ptr qs::ReferencesParser::unparse(const Part& part) const
 	
 	for (ReferenceList::const_iterator it = listReference_.begin(); it != listReference_.end(); ++it) {
 		if (it != listReference_.begin())
-			buf.append("\r\n\t");
+			buf.append("\r\n ");
 		assert(isAscii((*it).first));
 		
 		string_ptr str(wcs2mbs((*it).first));
@@ -3028,7 +3028,7 @@ string_ptr qs::ParameterFieldParser::unparseParameter(const Part& part) const
 		if (part.isOption(Part::O_RFC2231) && (!bAscii || nLen > nAsciiMax)) {
 			if (bAscii) {
 				for (unsigned int n = 0; n < nLen/nAsciiMax + (nLen%nAsciiMax ? 1 : 0); ++n) {
-					buf.append(";\r\n\t");
+					buf.append(";\r\n ");
 					buf.append(strParamName.get());
 					CHAR sz[32];
 					sprintf(sz, "*%d=", n);
@@ -3063,7 +3063,7 @@ string_ptr qs::ParameterFieldParser::unparseParameter(const Part& part) const
 				size_t nLen = strlen(strValue.get());
 				
 				for (unsigned int n = 0; n < nLen/nNonAsciiMax + (nLen%nNonAsciiMax ? 1 : 0); ++n) {
-					buf.append(";\r\n\t");
+					buf.append(";\r\n ");
 					buf.append(strParamName.get());
 					if (nLen > nNonAsciiMax) {
 						CHAR sz[32];
@@ -3098,7 +3098,7 @@ string_ptr qs::ParameterFieldParser::unparseParameter(const Part& part) const
 		}
 		
 		if (!bRFC2231Processed) {
-			buf.append(";\r\n\t");
+			buf.append(";\r\n ");
 			buf.append(strParamName.get());
 			buf.append('=');
 			buf.append(strParamValue.get());
