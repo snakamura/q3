@@ -939,9 +939,8 @@ bool qm::AddressBookContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (attributes.getLength() != 0)
 			return false;
 		
-		std::auto_ptr<AddressBookEntry> pEntry(new AddressBookEntry(false));
-		pEntry_ = pEntry.get();
-		pAddressBook_->addEntry(pEntry);
+		assert(!pEntry_.get());
+		pEntry_.reset(new AddressBookEntry(false));
 		
 		state_ = STATE_ENTRY;
 	}
@@ -1001,11 +1000,10 @@ bool qm::AddressBookContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			}
 		}
 		
-		assert(pEntry_);
-		std::auto_ptr<AddressBookAddress> pAddress(new AddressBookAddress(
-			pEntry_, pwszAlias, listCategory, pwszComment, pwszCertificate, bRFC2822));
-		pAddress_ = pAddress.get();
-		pEntry_->addAddress(pAddress);
+		assert(pEntry_.get());
+		assert(!pAddress_.get());
+		pAddress_.reset(new AddressBookAddress(pEntry_.get(), pwszAlias,
+			listCategory, pwszComment, pwszCertificate, bRFC2822));
 		
 		state_ = STATE_ADDRESS;
 	}
@@ -1027,17 +1025,18 @@ bool qm::AddressBookContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 	else if (wcscmp(pwszLocalName, L"entry") == 0) {
 		assert(state_ == STATE_ENTRY);
 		
-		assert(pEntry_);
+		assert(pEntry_.get());
 		if (!pEntry_->getName() || pEntry_->getAddresses().empty())
 			return false;
-		pEntry_ = 0;
+		
+		pAddressBook_->addEntry(pEntry_);
 		
 		state_ = STATE_ADDRESSBOOK;
 	}
 	else if (wcscmp(pwszLocalName, L"name") == 0) {
 		assert(state_ == STATE_NAME);
 		
-		assert(pEntry_);
+		assert(pEntry_.get());
 		pEntry_->setName(buffer_.getString());
 		
 		state_ = STATE_ENTRY;
@@ -1045,7 +1044,7 @@ bool qm::AddressBookContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 	else if (wcscmp(pwszLocalName, L"sortKey") == 0) {
 		assert(state_ == STATE_SORTKEY);
 		
-		assert(pEntry_);
+		assert(pEntry_.get());
 		pEntry_->setSortKey(buffer_.getString());
 		
 		state_ = STATE_ENTRY;
@@ -1057,8 +1056,9 @@ bool qm::AddressBookContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 	else if (wcscmp(pwszLocalName, L"address") == 0) {
 		assert(state_ == STATE_ADDRESS);
 		
-		assert(pAddress_);
+		assert(pAddress_.get());
 		pAddress_->setAddress(buffer_.getString());
+		pEntry_->addAddress(pAddress_);
 		
 		state_ = STATE_ADDRESSES;
 	}

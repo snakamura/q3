@@ -311,8 +311,8 @@ private:
 	AddressBook* pAddressBook_;
 	State state_;
 	qs::StringBuffer<qs::WSTRING> buffer_;
-	AddressBookEntry* pEntry_;
-	AddressBookAddress* pAddress_;
+	std::auto_ptr<AddressBookEntry> pEntry_;
+	std::auto_ptr<AddressBookAddress> pAddress_;
 };
 
 }
