@@ -1,5 +1,5 @@
 /*
- * $Id: util.cpp,v 1.1.1.1 2003/04/29 08:07:38 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -7,6 +7,8 @@
  */
 
 #include <qsstl.h>
+
+#include <openssl/err.h>
 
 #include "util.h"
 
@@ -55,4 +57,14 @@ QSTATUS qscrypto::Util::createBIOFromStream(
 	*pnLen = nLen;
 	
 	return QSTATUS_SUCCESS;
+}
+
+void qscrypto::Util::logError(qs::Log& log, const WCHAR* pwszMessage)
+{
+	if (log.isErrorEnabled()) {
+		char buf[256];
+		ERR_error_string_n(ERR_get_error(), buf, sizeof(buf) - 1);
+		const unsigned char* p = reinterpret_cast<const unsigned char*>(buf);
+		log.error(pwszMessage, p, strlen(buf));
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * $Id: util.h,v 1.1.1.1 2003/04/29 08:07:38 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -9,6 +9,7 @@
 #ifndef __UTIL_H__
 #define __UTIL_H__
 
+#include <qslog.h>
 #include <qsstream.h>
 
 #include <openssl/bio.h>
@@ -150,6 +151,7 @@ class Util
 public:
 	static qs::QSTATUS createBIOFromStream(qs::InputStream* pStream,
 		unsigned char** pp, size_t* pnLen);
+	static void logError(qs::Log& log, const WCHAR* pwszMessage);
 };
 
 }

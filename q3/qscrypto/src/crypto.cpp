@@ -6,10 +6,12 @@
  *
  */
 
-#include <stdio.h>
 #include <qsconv.h>
+#include <qsinit.h>
+#include <qslog.h>
 #include <qsnew.h>
 
+#include <stdio.h>
 
 #include <openssl/pem.h>
 
@@ -368,15 +370,27 @@ QSTATUS qscrypto::StoreImpl::load(const WCHAR* pwszFile, FileType type)
 {
 	assert(pwszFile);
 	
+	Log log(InitThread::getInitThread().getLogger(), L"qscrypto::StoreImpl");
+	
 	string_ptr<STRING> strFile(wcs2mbs(pwszFile));
 	if (!strFile.get())
 		return QSTATUS_OUTOFMEMORY;
 	
 	X509_LOOKUP* pLookup = X509_STORE_add_lookup(pStore_, X509_LOOKUP_file());
+	if (!pLookup) {
+		Util::logError(log, L"X509_STORE_add_lookup failed");
+		return QSTATUS_FAIL;
+	}
 	switch (type) {
 	case FILETYPE_PEM:
-		if (!X509_LOOKUP_load_file(pLookup, strFile.get(), X509_FILETYPE_PEM))
-			return QSTATUS_FAIL;
+		{
+			int n = X509_LOOKUP_load_file(pLookup,
+				strFile.get(), X509_FILETYPE_PEM);
+			if (!n) {
+				Util::logError(log, L"X509_LOOKUP_load_file failed");
+				return QSTATUS_FAIL;
+			}
+		}
 		break;
 	default:
 		assert(false);
