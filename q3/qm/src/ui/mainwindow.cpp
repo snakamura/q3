@@ -98,7 +98,7 @@ class qm::MainWindowImpl :
 	public FolderSelectionModel,
 	public ViewModelHolder,
 	public MessageWindowHandler,
-	public DefaultDocumentHandler,
+	public AccountManagerHandler,
 #ifdef QMTABWINDOW
 	public RecentsHandler,
 	public ViewModelManagerHandler,
@@ -226,7 +226,7 @@ public:
 	virtual void statusTextChanged(const MessageWindowStatusTextEvent& event);
 
 public:
-	virtual void accountListChanged(const AccountListChangedEvent& event);
+	virtual void accountListChanged(const AccountManagerEvent& event);
 
 public:
 	virtual void recentsChanged(const RecentsEvent& event);
@@ -1562,7 +1562,7 @@ void qm::MainWindowImpl::statusTextChanged(const MessageWindowStatusTextEvent& e
 	}
 }
 
-void qm::MainWindowImpl::accountListChanged(const AccountListChangedEvent& event)
+void qm::MainWindowImpl::accountListChanged(const AccountManagerEvent& event)
 {
 	pFolderModel_->setCurrent(0, 0, false);
 	pFolderListModel_->setAccount(0);
@@ -2474,7 +2474,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	pImpl_->pDelayedFolderModelHandler_.reset(new DelayedFolderModelHandler(pImpl_));
 	pImpl_->pFolderModel_->addFolderModelHandler(pImpl_->pDelayedFolderModelHandler_.get());
-	pImpl_->pDocument_->addDocumentHandler(pImpl_);
+	pImpl_->pDocument_->addAccountManagerHandler(pImpl_);
 	pImpl_->pDocument_->getRecents()->addRecentsHandler(pImpl_);
 #ifdef QMTABWINDOW
 	pImpl_->pViewModelManager_->addViewModelManagerHandler(pImpl_);
@@ -2518,7 +2518,7 @@ LRESULT qm::MainWindow::onDestroy()
 	pImpl_->pMessageWindow_->removeMessageWindowHandler(pImpl_);
 	pImpl_->pFolderModel_->removeFolderModelHandler(
 		pImpl_->pDelayedFolderModelHandler_.get());
-	pImpl_->pDocument_->removeDocumentHandler(pImpl_);
+	pImpl_->pDocument_->removeAccountManagerHandler(pImpl_);
 	pImpl_->pDocument_->getRecents()->removeRecentsHandler(pImpl_);
 #ifdef QMTABWINDOW
 	pImpl_->pViewModelManager_->removeViewModelManagerHandler(pImpl_);

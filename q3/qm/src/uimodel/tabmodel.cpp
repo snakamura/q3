@@ -115,6 +115,7 @@ qm::DefaultTabModel::DefaultTabModel(Document* pDocument,
 	nReuse_ = pProfile_->getInt(L"TabWindow", L"Reuse", REUSE_NONE);
 	
 	pDocument_->addDocumentHandler(this);
+	pDocument_->addAccountManagerHandler(this);
 }
 
 qm::DefaultTabModel::~DefaultTabModel()
@@ -122,6 +123,7 @@ qm::DefaultTabModel::~DefaultTabModel()
 	std::for_each(listItem_.begin(), listItem_.end(), qs::deleter<TabItem>());
 	
 	pDocument_->removeDocumentHandler(this);
+	pDocument_->removeAccountManagerHandler(this);
 }
 
 bool qm::DefaultTabModel::save() const
@@ -314,20 +316,6 @@ void qm::DefaultTabModel::removeTabModelHandler(TabModelHandler* pHandler)
 	listHandler_.erase(it, listHandler_.end());
 }
 
-void qm::DefaultTabModel::accountListChanged(const AccountListChangedEvent& event)
-{
-	const Document::AccountList& listAccount = pDocument_->getAccounts();
-	
-	for (ItemList::reverse_iterator it = listItem_.rbegin(); it != listItem_.rend(); ++it) {
-		TabItem* pItem = *it;
-		std::pair<Account*, Folder*> p(pItem->get());
-		
-		Account* pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
-		if (std::find(listAccount.begin(), listAccount.end(), pAccount) == listAccount.end())
-			removeItem(it.base() - 1 - listItem_.begin());
-	}
-}
-
 void qm::DefaultTabModel::documentInitialized(const DocumentEvent& event)
 {
 	XMLReader reader;
@@ -341,6 +329,20 @@ void qm::DefaultTabModel::documentInitialized(const DocumentEvent& event)
 		int nItem = pProfile_->getInt(L"TabWindow", L"CurrentTab", 0);
 		if (0 <= nItem && nItem < getCount())
 			setCurrent(nItem);
+	}
+}
+
+void qm::DefaultTabModel::accountListChanged(const AccountManagerEvent& event)
+{
+	const Document::AccountList& listAccount = pDocument_->getAccounts();
+	
+	for (ItemList::reverse_iterator it = listItem_.rbegin(); it != listItem_.rend(); ++it) {
+		TabItem* pItem = *it;
+		std::pair<Account*, Folder*> p(pItem->get());
+		
+		Account* pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
+		if (std::find(listAccount.begin(), listAccount.end(), pAccount) == listAccount.end())
+			removeItem(it.base() - 1 - listItem_.begin());
 	}
 }
 

@@ -10,6 +10,7 @@
 #define __QMDOCUMENT_H__
 
 #include <qm.h>
+#include <qmaccount.h>
 
 #include <qsprofile.h>
 #include <qsstring.h>
@@ -23,7 +24,6 @@ class Document;
 class DocumentHandler;
 	class DefaultDocumentHandler;
 class DocumentEvent;
-class AccountListChangedEvent;
 
 class Account;
 class AddressBook;
@@ -49,29 +49,31 @@ class URI;
  *
  */
 
-class QMEXPORTCLASS Document
+class QMEXPORTCLASS Document : public AccountManager
 {
-public:
-	typedef std::vector<Account*> AccountList;
-
 public:
 	Document(qs::Profile* pProfile,
 			 PasswordManager* pPasswordManager);
 	~Document();
 
 public:
-	Account* getAccount(const WCHAR* pwszName) const;
-	const AccountList& getAccounts() const;
-	bool hasAccount(const WCHAR* pwszName) const;
-	void addAccount(std::auto_ptr<Account> pAccount);
-	void removeAccount(Account* pAccount);
-	bool renameAccount(Account* pAccount,
-					   const WCHAR* pwszName);
+	virtual Account* getAccount(const WCHAR* pwszName) const;
+	virtual const AccountList& getAccounts() const;
+	virtual bool hasAccount(const WCHAR* pwszName) const;
+	virtual void addAccount(std::auto_ptr<Account> pAccount);
+	virtual void removeAccount(Account* pAccount);
+	virtual bool renameAccount(Account* pAccount,
+							   const WCHAR* pwszName);
+	virtual Folder* getFolder(Account* pAccount,
+							  const WCHAR* pwszName) const;
+	virtual MessagePtr getMessage(const URI& uri) const;
+	virtual void addAccountManagerHandler(AccountManagerHandler* pHandler);
+	virtual void removeAccountManagerHandler(AccountManagerHandler* pHandler);
+
+public:
 	bool loadAccounts(const WCHAR* pwszPath);
-	Folder* getFolder(Account* pAccount,
-					  const WCHAR* pwszName) const;
-	MessagePtr getMessage(const URI& uri) const;
-	
+
+public:
 	RuleManager* getRuleManager() const;
 	const TemplateManager* getTemplateManager() const;
 	ScriptManager* getScriptManager() const;
@@ -107,14 +109,13 @@ private:
  *
  */
 
-class DocumentHandler
+class QMEXPORTCLASS DocumentHandler
 {
 public:
 	virtual ~DocumentHandler();
 
 public:
 	virtual void offlineStatusChanged(const DocumentEvent& event) = 0;
-	virtual void accountListChanged(const AccountListChangedEvent& event) = 0;
 	virtual void documentInitialized(const DocumentEvent& event) = 0;
 };
 
@@ -125,7 +126,7 @@ public:
  *
  */
 
-class DefaultDocumentHandler : public DocumentHandler
+class QMEXPORTCLASS DefaultDocumentHandler : public DocumentHandler
 {
 public:
 	DefaultDocumentHandler();
@@ -133,7 +134,6 @@ public:
 
 public:
 	virtual void offlineStatusChanged(const DocumentEvent& event);
-	virtual void accountListChanged(const AccountListChangedEvent& event);
 	virtual void documentInitialized(const DocumentEvent& event);
 };
 
@@ -144,7 +144,7 @@ public:
  *
  */
 
-class DocumentEvent
+class QMEXPORTCLASS DocumentEvent
 {
 public:
 	explicit DocumentEvent(Document* pDocument);
@@ -159,42 +159,6 @@ private:
 
 private:
 	Document* pDocument_;
-};
-
-
-/****************************************************************************
- *
- * AccountListChangedEvent
- *
- */
-
-class AccountListChangedEvent
-{
-public:
-	enum Type {
-		TYPE_ALL,
-		TYPE_ADD,
-		TYPE_REMOVE
-	};
-
-public:
-	AccountListChangedEvent(Document* pDocument,
-							Type type,
-							Account* pAccount);
-	~AccountListChangedEvent();
-
-public:
-	Type getType() const;
-	Account* getAccount() const;
-
-private:
-	AccountListChangedEvent(const AccountListChangedEvent&);
-	AccountListChangedEvent& operator=(const AccountListChangedEvent&);
-
-private:
-	Document* pDocument_;
-	Type type_;
-	Account* pAccount_;
 };
 
 }

@@ -53,6 +53,7 @@ using namespace qs;
 class qm::FolderWindowImpl :
 	public NotifyHandler,
 	public DefaultDocumentHandler,
+	public AccountManagerHandler,
 	public DefaultAccountHandler,
 	public DefaultFolderHandler,
 	public FolderModelHandler,
@@ -104,8 +105,10 @@ public:
 
 public:
 	virtual void offlineStatusChanged(const DocumentEvent& event);
-	virtual void accountListChanged(const AccountListChangedEvent& event);
 	virtual void documentInitialized(const DocumentEvent& event);
+
+public:
+	virtual void accountListChanged(const AccountManagerEvent& event);
 
 public:
 	virtual void currentSubAccountChanged(const AccountEvent& event);
@@ -418,17 +421,17 @@ void qm::FolderWindowImpl::offlineStatusChanged(const DocumentEvent& event)
 	}
 }
 
-void qm::FolderWindowImpl::accountListChanged(const AccountListChangedEvent& event)
+void qm::FolderWindowImpl::accountListChanged(const AccountManagerEvent& event)
 {
 	switch (event.getType()) {
-	case AccountListChangedEvent::TYPE_ALL:
+	case AccountManagerEvent::TYPE_ALL:
 		clearAccountList();
 		updateAccountList();
 		break;
-	case AccountListChangedEvent::TYPE_ADD:
+	case AccountManagerEvent::TYPE_ADD:
 		addAccount(event.getAccount());
 		break;
-	case AccountListChangedEvent::TYPE_REMOVE:
+	case AccountManagerEvent::TYPE_REMOVE:
 		removeAccount(event.getAccount());
 		break;
 	default:
@@ -1300,6 +1303,7 @@ LRESULT qm::FolderWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pDocument_ = pContext->pDocument_;
 	pImpl_->pMenuManager_ = pContext->pUIManager_->getMenuManager();
 	pImpl_->pDocument_->addDocumentHandler(pImpl_);
+	pImpl_->pDocument_->addAccountManagerHandler(pImpl_);
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
@@ -1337,6 +1341,7 @@ LRESULT qm::FolderWindow::onDestroy()
 	pImpl_->pParentWindow_->removeNotifyHandler(pImpl_);
 	pImpl_->pFolderModel_->removeFolderModelHandler(pImpl_);
 	pImpl_->pDocument_->removeDocumentHandler(pImpl_);
+	pImpl_->pDocument_->removeAccountManagerHandler(pImpl_);
 	
 	pImpl_->pDropTarget_.reset(0);
 	

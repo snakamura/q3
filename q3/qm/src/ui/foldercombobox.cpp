@@ -43,7 +43,7 @@ using namespace qs;
 
 class qm::FolderComboBoxImpl :
 	public CommandHandler,
-	public DefaultDocumentHandler,
+	public AccountManagerHandler,
 	public DefaultAccountHandler,
 	public DefaultFolderHandler,
 	public FolderModelHandler
@@ -71,7 +71,7 @@ public:
 							  WORD nId);
 
 public:
-	virtual void accountListChanged(const AccountListChangedEvent& event);
+	virtual void accountListChanged(const AccountManagerEvent& event);
 
 public:
 	virtual void folderListChanged(const FolderListChangedEvent& event);
@@ -224,18 +224,18 @@ LRESULT qm::FolderComboBoxImpl::onCommand(WORD nCode,
 	return 1;
 }
 
-void qm::FolderComboBoxImpl::accountListChanged(const AccountListChangedEvent& event)
+void qm::FolderComboBoxImpl::accountListChanged(const AccountManagerEvent& event)
 {
 	bool bDropDown = ComboBox_GetDroppedState(pThis_->getHandle()) != 0;
 	
 	switch (event.getType()) {
-	case AccountListChangedEvent::TYPE_ALL:
+	case AccountManagerEvent::TYPE_ALL:
 		updateAccountList(bDropDown);
 		break;
-	case AccountListChangedEvent::TYPE_ADD:
+	case AccountManagerEvent::TYPE_ADD:
 		addAccount(event.getAccount(), bDropDown);
 		break;
-	case AccountListChangedEvent::TYPE_REMOVE:
+	case AccountManagerEvent::TYPE_REMOVE:
 		removeAccount(event.getAccount());
 		break;
 	default:
@@ -605,7 +605,7 @@ LRESULT qm::FolderComboBox::onCreate(CREATESTRUCT* pCreateStruct)
 		static_cast<FolderComboBoxCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pDocument_ = pContext->pDocument_;
 	pImpl_->pMenuManager_ = pContext->pUIManager_->getMenuManager();
-	pImpl_->pDocument_->addDocumentHandler(pImpl_);
+	pImpl_->pDocument_->addAccountManagerHandler(pImpl_);
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
@@ -639,6 +639,7 @@ LRESULT qm::FolderComboBox::onDestroy()
 	
 	pImpl_->pParentWindow_->removeCommandHandler(pImpl_);
 	pImpl_->pFolderModel_->removeFolderModelHandler(pImpl_);
+	pImpl_->pDocument_->removeAccountManagerHandler(pImpl_);
 	
 	return DefaultWindowHandler::onDestroy();
 }

@@ -49,18 +49,20 @@ using namespace qs;
 
 struct qm::DocumentImpl
 {
+	typedef std::vector<AccountManagerHandler*> AccountManagerHandlerList;
 	typedef std::vector<DocumentHandler*> DocumentHandlerList;
 	
 	void setOffline(bool bOffline);
-	void fireOfflineStatusChanged();
-	void fireAccountListChanged(AccountListChangedEvent::Type type,
+	void fireAccountListChanged(AccountManagerEvent::Type type,
 								Account* pAccount) const;
+	void fireOfflineStatusChanged();
 	void fireDocumentInitialized();
 	
 	Document* pThis_;
 	Profile* pProfile_;
 	PasswordManager* pPasswordManager_;
 	Document::AccountList listAccount_;
+	AccountManagerHandlerList listAccountManagerHandler_;
 	DocumentHandlerList listDocumentHandler_;
 	std::auto_ptr<RuleManager> pRuleManager_;
 	std::auto_ptr<TemplateManager> pTemplateManager_;
@@ -83,19 +85,19 @@ void qm::DocumentImpl::setOffline(bool bOffline)
 	fireOfflineStatusChanged();
 }
 
+void qm::DocumentImpl::fireAccountListChanged(AccountManagerEvent::Type type,
+											  Account* pAccount) const
+{
+	AccountManagerEvent event(pThis_, type, pAccount);
+	for (AccountManagerHandlerList::const_iterator it = listAccountManagerHandler_.begin(); it != listAccountManagerHandler_.end(); ++it)
+		(*it)->accountListChanged(event);
+}
+
 void qm::DocumentImpl::fireOfflineStatusChanged()
 {
 	DocumentEvent event(pThis_);
 	for (DocumentHandlerList::const_iterator it = listDocumentHandler_.begin(); it != listDocumentHandler_.end(); ++it)
 		(*it)->offlineStatusChanged(event);
-}
-
-void qm::DocumentImpl::fireAccountListChanged(AccountListChangedEvent::Type type,
-											  Account* pAccount) const
-{
-	AccountListChangedEvent event(pThis_, type, pAccount);
-	for (DocumentHandlerList::const_iterator it = listDocumentHandler_.begin(); it != listDocumentHandler_.end(); ++it)
-		(*it)->accountListChanged(event);
 }
 
 void qm::DocumentImpl::fireDocumentInitialized()
@@ -189,7 +191,7 @@ void qm::Document::addAccount(std::auto_ptr<Account> pAccount)
 	l.insert(it, pAccount.get());
 	Account* p = pAccount.release();
 	
-	pImpl_->fireAccountListChanged(AccountListChangedEvent::TYPE_ADD, p);
+	pImpl_->fireAccountListChanged(AccountManagerEvent::TYPE_ADD, p);
 }
 
 void qm::Document::removeAccount(Account* pAccount)
@@ -202,7 +204,7 @@ void qm::Document::removeAccount(Account* pAccount)
 	
 	l.erase(it);
 	
-	pImpl_->fireAccountListChanged(AccountListChangedEvent::TYPE_REMOVE, pAccount);
+	pImpl_->fireAccountListChanged(AccountManagerEvent::TYPE_REMOVE, pAccount);
 	
 	pAccount->deletePermanent(true);
 	delete pAccount;
@@ -227,7 +229,7 @@ bool qm::Document::renameAccount(Account* pAccount,
 	l.erase(it);
 	
 	std::auto_ptr<Account> pOldAccount(pAccount);
-	pImpl_->fireAccountListChanged(AccountListChangedEvent::TYPE_REMOVE, pAccount);
+	pImpl_->fireAccountListChanged(AccountManagerEvent::TYPE_REMOVE, pAccount);
 	pOldAccount.reset(0);
 	
 	const WCHAR* p = wcsrchr(wstrOldPath.get(), L'\\');
@@ -247,9 +249,55 @@ bool qm::Document::renameAccount(Account* pAccount,
 	l.insert(it, pNewAccount.get());
 	pAccount = pNewAccount.release();
 	
-	pImpl_->fireAccountListChanged(AccountListChangedEvent::TYPE_ADD, pAccount);
+	pImpl_->fireAccountListChanged(AccountManagerEvent::TYPE_ADD, pAccount);
 	
 	return true;
+}
+
+qm::Folder* qm::Document::getFolder(Account* pAccount,
+									const WCHAR* pwszName) const
+{
+	assert(pwszName);
+	
+	if (*pwszName == L'/' && *(pwszName + 1) == L'/') {
+		const WCHAR* p = wcschr(pwszName + 2, L'/');
+		if (p) {
+			wstring_ptr wstrAccount(allocWString(pwszName + 2, p - pwszName - 2));
+			pAccount = getAccount(wstrAccount.get());
+			pwszName = p + 1;
+		}
+	}
+	if (!pAccount)
+		return 0;
+	
+	return pAccount->getFolder(pwszName);
+}
+
+MessagePtr qm::Document::getMessage(const URI& uri) const
+{
+	Account* pAccount = getAccount(uri.getAccount());
+	if (!pAccount)
+		return MessagePtr();
+	
+	Folder* pFolder = pAccount->getFolder(uri.getFolder());
+	if (!pFolder ||
+		pFolder->getType() != Folder::TYPE_NORMAL ||
+		static_cast<NormalFolder*>(pFolder)->getValidity() != uri.getValidity())
+		return MessagePtr();
+	return MessagePtr(static_cast<NormalFolder*>(pFolder)->getMessageById(uri.getId()));
+}
+
+void qm::Document::addAccountManagerHandler(AccountManagerHandler* pHandler)
+{
+	pImpl_->listAccountManagerHandler_.push_back(pHandler);
+}
+
+void qm::Document::removeAccountManagerHandler(AccountManagerHandler* pHandler)
+{
+	DocumentImpl::AccountManagerHandlerList& l = pImpl_->listAccountManagerHandler_;
+	DocumentImpl::AccountManagerHandlerList::iterator it =
+		std::remove(l.begin(), l.end(), pHandler);
+	l.erase(it, l.end());
 }
 
 bool qm::Document::loadAccounts(const WCHAR* pwszPath)
@@ -369,43 +417,10 @@ bool qm::Document::loadAccounts(const WCHAR* pwszPath)
 	accountDestroy.release();
 	std::sort(l.begin(), l.end(), AccountLess());
 	
-	pImpl_->fireAccountListChanged(AccountListChangedEvent::TYPE_ALL, 0);
+	pImpl_->fireAccountListChanged(AccountManagerEvent::TYPE_ALL, 0);
 	pImpl_->fireDocumentInitialized();
 	
 	return true;
-}
-
-qm::Folder* qm::Document::getFolder(Account* pAccount,
-									const WCHAR* pwszName) const
-{
-	assert(pwszName);
-	
-	if (*pwszName == L'/' && *(pwszName + 1) == L'/') {
-		const WCHAR* p = wcschr(pwszName + 2, L'/');
-		if (p) {
-			wstring_ptr wstrAccount(allocWString(pwszName + 2, p - pwszName - 2));
-			pAccount = getAccount(wstrAccount.get());
-			pwszName = p + 1;
-		}
-	}
-	if (!pAccount)
-		return 0;
-	
-	return pAccount->getFolder(pwszName);
-}
-
-MessagePtr qm::Document::getMessage(const URI& uri) const
-{
-	Account* pAccount = getAccount(uri.getAccount());
-	if (!pAccount)
-		return MessagePtr();
-	
-	Folder* pFolder = pAccount->getFolder(uri.getFolder());
-	if (!pFolder ||
-		pFolder->getType() != Folder::TYPE_NORMAL ||
-		static_cast<NormalFolder*>(pFolder)->getValidity() != uri.getValidity())
-		return MessagePtr();
-	return MessagePtr(static_cast<NormalFolder*>(pFolder)->getMessageById(uri.getId()));
 }
 
 RuleManager* qm::Document::getRuleManager() const
@@ -547,10 +562,6 @@ void qm::DefaultDocumentHandler::offlineStatusChanged(const DocumentEvent& event
 {
 }
 
-void qm::DefaultDocumentHandler::accountListChanged(const AccountListChangedEvent& event)
-{
-}
-
 void qm::DefaultDocumentHandler::documentInitialized(const DocumentEvent& event)
 {
 }
@@ -574,33 +585,4 @@ qm::DocumentEvent::~DocumentEvent()
 Document* qm::DocumentEvent::getDocument() const
 {
 	return pDocument_;
-}
-
-
-/****************************************************************************
- *
- * AccountListChangedEvent
- *
- */
-
-qm::AccountListChangedEvent::AccountListChangedEvent(Document* pDocument,
-													 Type type,
-													 Account* pAccount) :
-	type_(type),
-	pAccount_(pAccount)
-{
-}
-
-qm::AccountListChangedEvent::~AccountListChangedEvent()
-{
-}
-
-qm::AccountListChangedEvent::Type qm::AccountListChangedEvent::getType() const
-{
-	return type_;
-}
-
-Account* qm::AccountListChangedEvent::getAccount() const
-{
-	return pAccount_;
 }

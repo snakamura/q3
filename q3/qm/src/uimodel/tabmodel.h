@@ -109,6 +109,7 @@ public:
 class DefaultTabModel :
 	public TabModel,
 	public DefaultDocumentHandler,
+	public AccountManagerHandler,
 	public DefaultAccountHandler
 {
 public:
@@ -146,8 +147,10 @@ public:
 	virtual void removeTabModelHandler(TabModelHandler* pHandler);
 
 public:
-	virtual void accountListChanged(const AccountListChangedEvent& event);
 	virtual void documentInitialized(const DocumentEvent& event);
+
+public:
+	virtual void accountListChanged(const AccountManagerEvent& event);
 
 public:
 	virtual void folderListChanged(const FolderListChangedEvent& event);

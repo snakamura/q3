@@ -34,6 +34,9 @@ class AccountHandler;
 class AccountEvent;
 class FolderListChangedEvent;
 class AccountCheckCallback;
+class AccountManager;
+class AccountManagerHandler;
+class AccountManagerEvent;
 
 class Message;
 class MessageHolder;
@@ -44,6 +47,7 @@ class ProtocolDriver;
 class Security;
 class JunkFilter;
 class UndoItemList;
+class URI;
 
 
 /****************************************************************************
@@ -549,6 +553,89 @@ public:
 
 public:
 	virtual Ignore isIgnoreError(MessageHolder* pmh) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * AccountManager
+ *
+ */
+
+class QMEXPORTCLASS AccountManager
+{
+public:
+	typedef std::vector<Account*> AccountList;
+
+public:
+	virtual ~AccountManager();
+
+public:
+	virtual Account* getAccount(const WCHAR* pwszName) const = 0;
+	virtual const AccountList& getAccounts() const = 0;
+	virtual bool hasAccount(const WCHAR* pwszName) const = 0;
+	virtual void addAccount(std::auto_ptr<Account> pAccount) = 0;
+	virtual void removeAccount(Account* pAccount) = 0;
+	virtual bool renameAccount(Account* pAccount,
+							   const WCHAR* pwszName) = 0;
+	virtual Folder* getFolder(Account* pAccount,
+							  const WCHAR* pwszName) const = 0;
+	virtual MessagePtr getMessage(const URI& uri) const = 0;
+	virtual void addAccountManagerHandler(AccountManagerHandler* pHandler) = 0;
+	virtual void removeAccountManagerHandler(AccountManagerHandler* pHandler) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * AccountManagerHandler
+ *
+ */
+
+class QMEXPORTCLASS AccountManagerHandler
+{
+public:
+	virtual ~AccountManagerHandler();
+
+public:
+	virtual void accountListChanged(const AccountManagerEvent& event) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * AccountManagerEvent
+ *
+ */
+
+class QMEXPORTCLASS AccountManagerEvent
+{
+public:
+	enum Type {
+		TYPE_ALL,
+		TYPE_ADD,
+		TYPE_REMOVE
+	};
+
+public:
+	AccountManagerEvent(AccountManager* pAccountManager,
+						Type type,
+						Account* pAccount);
+	~AccountManagerEvent();
+
+public:
+	AccountManager* getAccountManager() const;
+	Type getType() const;
+	Account* getAccount() const;
+
+private:
+	AccountManagerEvent(const AccountManagerEvent&);
+	AccountManagerEvent& operator=(const AccountManagerEvent&);
+
+private:
+	AccountManager* pAccountManager_;
+	Type type_;
+	Account* pAccount_;
 };
 
 }
