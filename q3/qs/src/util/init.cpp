@@ -6,14 +6,16 @@
  *
  */
 
-#include <qsinit.h>
-#include <qserror.h>
-#include <qsnew.h>
-#include <qsstl.h>
-#include <qsencoder.h>
 #include <qsconv.h>
-#include <qsthread.h>
+#include <qsencoder.h>
+#include <qserror.h>
+#include <qsinit.h>
+#include <qsnew.h>
 #include <qsosutil.h>
+#include <qsstl.h>
+#include <qsstream.h>
+#include <qsthread.h>
+#include <qsutil.h>
 
 #include <memory>
 #include <vector>
@@ -65,6 +67,9 @@ struct qs::InitImpl
 	WSTRING wstrSystemEncoding_;
 	WSTRING wstrFixedWidthFont_;
 	WSTRING wstrProportionalFont_;
+	bool bLogEnabled_;
+	WSTRING wstrLogDir_;
+	Logger::Level logLevel_;
 	ConverterFactoryList listConverterFactory_;
 	EncoderFactoryList listEncoderFactory_;
 	
@@ -160,6 +165,9 @@ qs::Init::Init(HINSTANCE hInst, const WCHAR* pwszTitle,
 	pImpl_->wstrSystemEncoding_ = 0;
 	pImpl_->wstrFixedWidthFont_ = 0;
 	pImpl_->wstrProportionalFont_ = 0;
+	pImpl_->bLogEnabled_ = false;
+	pImpl_->wstrLogDir_ = 0;
+	pImpl_->logLevel_ = Logger::LEVEL_DEBUG;
 	
 	if (pwszTitle) {
 		pImpl_->wstrTitle_ = allocWString(pwszTitle);
@@ -239,16 +247,10 @@ qs::Init::~Init()
 	InitImpl::pInit__ = 0;
 	
 	freeWString(pImpl_->wstrTitle_);
-	pImpl_->wstrTitle_ = 0;
-	
 	freeWString(pImpl_->wstrSystemEncoding_);
-	pImpl_->wstrSystemEncoding_ = 0;
-	
 	freeWString(pImpl_->wstrFixedWidthFont_);
-	pImpl_->wstrFixedWidthFont_ = 0;
-	
 	freeWString(pImpl_->wstrProportionalFont_);
-	pImpl_->wstrProportionalFont_ = 0;
+	freeWString(pImpl_->wstrLogDir_);
 	
 	std::for_each(pImpl_->listEncoderFactory_.begin(),
 		pImpl_->listEncoderFactory_.end(), deleter<EncoderFactory>());
@@ -304,6 +306,36 @@ InitThread* qs::Init::getInitThread()
 	return static_cast<InitThread*>(pValue);
 }
 
+bool qs::Init::isLogEnabled() const
+{
+	return pImpl_->bLogEnabled_;
+}
+
+const WCHAR* qs::Init::getLogDirectory() const
+{
+	return pImpl_->wstrLogDir_;
+}
+
+Logger::Level qs::Init::getLogLevel() const
+{
+	return pImpl_->logLevel_;
+}
+
+QSTATUS qs::Init::setLogInfo(bool bEnabled,
+	const WCHAR* pwszDir, Logger::Level level)
+{
+	assert(!pImpl_->wstrLogDir_);
+	
+	pImpl_->wstrLogDir_ = allocWString(pwszDir);
+	if (!pImpl_->wstrLogDir_)
+		return QSTATUS_OUTOFMEMORY;
+	
+	pImpl_->bLogEnabled_ = bEnabled;
+	pImpl_->logLevel_ = level;
+	
+	return QSTATUS_SUCCESS;
+}
+
 void qs::Init::setInitThread(InitThread* pInitThread)
 {
 	pImpl_->pInitThread_->set(pInitThread);
@@ -323,8 +355,55 @@ Init& qs::Init::getInit()
 
 struct qs::InitThreadImpl
 {
+	QSTATUS createLogger();
+	
 	Synchronizer* pSynchronizer_;
+	Logger* pLogger_;
 };
+
+
+QSTATUS qs::InitThreadImpl::createLogger()
+{
+	assert(!pLogger_);
+	
+	DECLARE_QSTATUS();
+	
+	const Init& init = Init::getInit();
+	if (init.isLogEnabled()) {
+		const WCHAR* pwszLogDir = init.getLogDirectory();
+		if (!pwszLogDir)
+			return QSTATUS_FAIL;
+		
+		Time time(Time::getCurrentTime());
+		WCHAR wszName[128];
+		swprintf(wszName, L"\\log-%04d%02d%02d%02d%02d%02d%03d-%u.log",
+			time.wYear, time.wMonth, time.wDay,
+			time.wHour, time.wMinute, time.wSecond, time.wMilliseconds,
+			::GetCurrentThreadId());
+		
+		string_ptr<WSTRING> wstrPath(concat(pwszLogDir, wszName));
+		if (!wstrPath.get())
+			return QSTATUS_OUTOFMEMORY;
+		
+		std::auto_ptr<FileOutputStream> pStream;
+		status = newQsObject(wstrPath.get(), &pStream);
+		CHECK_QSTATUS();
+		std::auto_ptr<BufferedOutputStream> pBufferedStream;
+		status = newQsObject(pStream.get(), true, &pBufferedStream);
+		CHECK_QSTATUS();
+		pStream.release();
+		
+		std::auto_ptr<Logger> pLogger;
+		status = newQsObject(pBufferedStream.get(),
+			true, init.getLogLevel(), &pLogger);
+		CHECK_QSTATUS();
+		pBufferedStream.release();
+		
+		pLogger_ = pLogger.release();
+	}
+	
+	return QSTATUS_SUCCESS;
+}
 
 
 /****************************************************************************
@@ -345,6 +424,7 @@ qs::InitThread::InitThread(unsigned int nFlags, QSTATUS* pstatus) :
 	status = newObject(&pImpl_);
 	CHECK_QSTATUS_SET(pstatus);
 	pImpl_->pSynchronizer_ = 0;
+	pImpl_->pLogger_ = 0;
 	
 	Initializer* pInitializer = InitImpl::pInitializer__;
 	while (pInitializer) {
@@ -364,7 +444,7 @@ qs::InitThread::InitThread(unsigned int nFlags, QSTATUS* pstatus) :
 qs::InitThread::~InitThread()
 {
 	delete pImpl_->pSynchronizer_;
-	pImpl_->pSynchronizer_ = 0;
+	delete pImpl_->pLogger_;
 	
 	Initializer* pInitializer = InitImpl::pInitializer__;
 	while (pInitializer) {
@@ -382,6 +462,13 @@ Synchronizer* qs::InitThread::getSynchronizer() const
 {
 	assert(pImpl_->pSynchronizer_);
 	return pImpl_->pSynchronizer_;
+}
+
+Logger* qs::InitThread::getLogger() const
+{
+	if (!pImpl_->pLogger_)
+		pImpl_->createLogger();
+	return pImpl_->pLogger_;
 }
 
 InitThread& qs::InitThread::getInitThread()

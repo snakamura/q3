@@ -10,6 +10,7 @@
 #define __QSINIT_H__
 
 #include <qs.h>
+#include <qslog.h>
 
 namespace qs {
 
@@ -38,6 +39,11 @@ public:
 	const WCHAR* getSystemEncoding() const;
 	const WCHAR* getDefaultFixedWidthFont() const;
 	const WCHAR* getDefaultProportionalFont() const;
+	bool isLogEnabled() const;
+	const WCHAR* getLogDirectory() const;
+	Logger::Level getLogLevel() const;
+	QSTATUS setLogInfo(bool bEnabled,
+		const WCHAR* pwszDir, Logger::Level level);
 
 public:
 	InitThread* getInitThread();
@@ -74,6 +80,7 @@ public:
 
 public:
 	Synchronizer* getSynchronizer() const;
+	Logger* getLogger() const;
 
 public:
 	static InitThread& getInitThread();

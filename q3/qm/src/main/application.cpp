@@ -18,6 +18,7 @@
 #include <qsconv.h>
 #include <qsdialog.h>
 #include <qserror.h>
+#include <qsinit.h>
 #include <qskeymap.h>
 #include <qsmime.h>
 #include <qsnew.h>
@@ -363,7 +364,8 @@ QSTATUS qm::Application::initialize()
 		L"templates",
 		L"scripts",
 		L"security",
-		L"profiles"
+		L"profiles",
+		L"logs"
 	};
 	for (int n = 0; n < countof(pwszDirs); ++n) {
 		status = pImpl_->ensureDirectory(
@@ -416,6 +418,20 @@ QSTATUS qm::Application::initialize()
 	CHECK_QSTATUS();
 	status = pImpl_->pProfile_->load();
 	CHECK_QSTATUS();
+	
+	int nLog = -1;
+	status = pImpl_->pProfile_->getInt(L"Global", L"Log", -1, &nLog);
+	CHECK_QSTATUS();
+	if (nLog >= 0) {
+		string_ptr<WSTRING> wstrLogDir(concat(pImpl_->wstrMailFolder_, L"\\logs"));
+		if (!wstrLogDir.get())
+			return QSTATUS_OUTOFMEMORY;
+		if (nLog > Logger::LEVEL_DEBUG)
+			nLog = Logger::LEVEL_DEBUG;
+		status = Init::getInit().setLogInfo(true,
+			wstrLogDir.get(), static_cast<Logger::Level>(nLog));
+		CHECK_QSTATUS();
+	}
 	
 	string_ptr<WSTRING> wstrTempFolder;
 	status = pImpl_->pProfile_->getString(L"Global",
