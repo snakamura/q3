@@ -421,16 +421,18 @@ QSTATUS qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
 		*phwnd = hwnd;
 	}
 	else if (::GetLastError() == ERROR_ALREADY_EXISTS) {
+		const WCHAR* pwszName = L"Unknown";
 		string_ptr<WSTRING> wstrName;
 		status = read(hFile.get(), 0, &wstrName);
-		CHECK_QSTATUS();
+		if (status == QSTATUS_SUCCESS)
+			pwszName = wstrName.get();
 		
 		string_ptr<WSTRING> wstrTemplate;
 		status = loadString(g_hInstDll, IDS_CONFIRM_IGNORELOCK, &wstrTemplate);
 		CHECK_QSTATUS();
 		string_ptr<WSTRING> wstrMessage(allocWString(
-			wcslen(wstrTemplate.get()) + wcslen(wstrName.get())));
-		swprintf(wstrMessage.get(), wstrTemplate.get(), wstrName.get());
+			wcslen(wstrTemplate.get()) + wcslen(pwszName)));
+		swprintf(wstrMessage.get(), wstrTemplate.get(), pwszName);
 		
 		int nRet= 0;
 		status = messageBox(wstrMessage.get(),
