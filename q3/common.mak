@@ -24,6 +24,7 @@ CESDKPPCENDIR			= d:/dev/msevt/wce300/ms pocket pc
 CESDKHPCPROJADIR		= d:/dev/msevt/wce211/ms hpc pro
 CESDKHPCPROENDIR		= d:/dev/msevt/wce211/ms hpc pro
 STLPORTDIR				= d:/dev/stlport/STLport-4.6/stlport
+SVNDIR					= d:/dev/subversion
 KCTRLDIR				= d:/home/wince/kctrl
 EVC4					= 1
 
@@ -444,12 +445,9 @@ endif
 
 DEFINES					+= $(CPROJS)
 
-ifndef BUILDEXTRA
-	BUILDEXTRA			= 0
-endif
-BUILDNUMBER				= $(shell echo $$((`date +%-y` << 11 | `date +%-m` << 7 | `date +%-d` << 2 | $(BUILDEXTRA))))
-NVERSION				= $(shell cat version | tr '.' ','),$(BUILDNUMBER)
-SVERSION				= $(shell cat version | sed -e 's/\./, /g'), $(BUILDNUMBER)
+REVISION				= $(shell svn info | grep Revision | cut -d ' ' -f 2)
+NVERSION				= $(shell cat version | tr '.' ','),$(REVISION)
+SVERSION				= $(shell cat version | sed -e 's/\./, /g'), $(REVISION)
 RCDEFINES				= -DNVERSION="$(NVERSION)" -DSVERSION="\"$(SVERSION)\"" -DSUFFIX="\"$(SUFFIX)\""
 
 ifneq ($(TLBS),)
@@ -476,7 +474,7 @@ LIBS					+= $(DEPENDLIBS)
 INCLUDES				+= $(EXTERNALINCS)
 LIBS					+= $(EXTERNALLIBS)
 
-export PATH				= $(shell cygpath -u "$(BINDIR)"):$(shell cygpath -u "$(SDKBINDIR)"):$(shell cygpath -u "$(COMPILERBINDIR)"):$(shell cygpath -u "$(COMMONBINDIR)")
+export PATH				= $(shell cygpath -u "$(BINDIR)"):$(shell cygpath -u "$(SDKBINDIR)"):$(shell cygpath -u "$(COMPILERBINDIR)"):$(shell cygpath -u "$(COMMONBINDIR)"):$(shell cygpath -u "$(SVNDIR)/bin")
 export INCLUDE			= $(SDKINCLUDEDIR);$(MFCINCLUDEDIR);$(ATLINCLUDEDIR);$(COMPILERINCLUDEDIR)
 export LIB				= $(SDKLIBDIR);$(MFCLIBDIR);$(ATLLIBDIR);$(COMPILERLIBDIR)
 
