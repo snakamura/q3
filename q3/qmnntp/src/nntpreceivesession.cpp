@@ -625,7 +625,7 @@ bool qmnntp::NntpMessageHolder::getMessage(unsigned int nFlags,
 	
 	for (int n = 0; n < countof(pwszFields); ++n) {
 		if (wcsicmp(pwszField, pwszFields[n]) == 0)
-			return false;
+			return true;
 	}
 	
 	return pCallback_->getMessage(nFlags);
