@@ -673,32 +673,22 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 	
 	Account* pAccount = pmh->getFolder()->getAccount();
 	
-	bOnlineMode_ = (nFlags & FLAG_ONLINEMODE) != 0;
-	
 	HRESULT hr = S_OK;
 	
-	ComPtr<IDispatch> pDisp;
-	if (pWebBrowser_->get_Document(&pDisp) == S_OK && pDisp.get()) {
-		ComPtr<IHTMLDocument2> pHTMLDocument;
-		if (pDisp->QueryInterface(IID_IHTMLDocument2,
-			reinterpret_cast<void**>(&pHTMLDocument)) == S_OK) {
-			ComPtr<IHTMLElement> pBody;
-			if (pHTMLDocument->get_body(&pBody) == S_OK && pBody.get()) {
-				BSTRPtr bstr(::SysAllocString(L""));
-				if (bstr.get())
-					pBody->put_innerHTML(bstr.get());
-			}
-		}
+	bool bOnlineMode = (nFlags & FLAG_ONLINEMODE) != 0;
+	if (bOnlineMode != bOnlineMode_) {
+		bOnlineMode_ = bOnlineMode;
+		
+		ComPtr<IOleControl> pControl;
+		hr = pWebBrowser_->QueryInterface(IID_IOleControl,
+			reinterpret_cast<void**>(&pControl));
+		if (FAILED(hr))
+			return false;
+		pControl->OnAmbientPropertyChange(DISPID_AMBIENT_DLCONTROL);
 	}
 	
-	ComPtr<IOleControl> pControl;
-	hr = pWebBrowser_->QueryInterface(IID_IOleControl,
-		reinterpret_cast<void**>(&pControl));
-	if (FAILED(hr))
-		return false;
-	pControl->OnAmbientPropertyChange(DISPID_AMBIENT_DLCONTROL);
-	
 	wstring_ptr wstrURL;
+	bool bClear = true;
 	
 	UnstructuredParser link;
 	if (pAccount->isSupport(Account::SUPPORT_EXTERNALLINK) &&
@@ -706,6 +696,15 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 		pMessage->getField(L"X-QMAIL-Link", &link) == Part::FIELD_EXIST) {
 		wstrURL = allocWString(link.getValue());
 		bAllowExternal_ = true;
+		
+		BSTRPtr bstrPrevURL;
+		if (pWebBrowser_->get_LocationURL(&bstrPrevURL) == S_OK) {
+			const WCHAR* p1 = wcsrchr(wstrURL.get(), L'#');
+			size_t nLen1 = p1 ? p1 - wstrURL.get() : wcslen(wstrURL.get());
+			const WCHAR* p2 = wcsrchr(bstrPrevURL.get(), L'#');
+			size_t nLen2 = p2 ? p2 - bstrPrevURL.get() : wcslen(bstrPrevURL.get());
+			bClear = nLen1 != nLen2 || _wcsnicmp(wstrURL.get(), bstrPrevURL.get(), nLen1) != 0;
+		}
 	}
 	else {
 		PartUtil util(*pMessage);
@@ -718,6 +717,23 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 		wstrURL = concat(L"cid:", wstrId.get());
 		bAllowExternal_ = false;
 	}
+	
+	if (bClear) {
+		ComPtr<IDispatch> pDisp;
+		if (pWebBrowser_->get_Document(&pDisp) == S_OK && pDisp.get()) {
+			ComPtr<IHTMLDocument2> pHTMLDocument;
+			if (pDisp->QueryInterface(IID_IHTMLDocument2,
+				reinterpret_cast<void**>(&pHTMLDocument)) == S_OK) {
+				ComPtr<IHTMLElement> pBody;
+				if (pHTMLDocument->get_body(&pBody) == S_OK && pBody.get()) {
+					BSTRPtr bstr(::SysAllocString(L""));
+					if (bstr.get())
+						pBody->put_innerHTML(bstr.get());
+				}
+			}
+		}
+	}
+	
 	BSTRPtr bstrURL(::SysAllocString(wstrURL.get()));
 	if (!bstrURL.get())
 		return false;
