@@ -76,6 +76,7 @@ using namespace qs;
 
 class qm::MainWindowImpl :
 	public ModalHandler,
+	public SplitterWindowHandler,
 	public FolderModelHandler,
 	public FolderSelectionModel
 {
@@ -130,6 +131,9 @@ public:
 public:
 	virtual qs::QSTATUS preModalDialog(HWND hwndParent);
 	virtual qs::QSTATUS postModalDialog(HWND hwndParent);
+
+public:
+	virtual QSTATUS sizeChanged(const SplitterWindowEvent& event);
 
 public:
 	virtual qs::QSTATUS accountSelected(const FolderModelEvent& event);
@@ -821,6 +825,34 @@ QSTATUS qm::MainWindowImpl::postModalDialog(HWND hwndParent)
 	CHECK_QSTATUS();
 	status = pEditFrameWindowManager_->postModalDialog(hwndParent);
 	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::MainWindowImpl::sizeChanged(const SplitterWindowEvent& event)
+{
+	DECLARE_QSTATUS();
+	
+	if (bCreated_) {
+		SplitterWindow* pSplitterWindow = event.getSplitterWindow();
+		if (pSplitterWindow == pFolderSplitterWindow_) {
+			if (bVirticalFolderWindow_) {
+				status = pSplitterWindow->getRowHeight(0, &nFolderWindowSize_);
+				CHECK_QSTATUS();
+			}
+			else {
+				status = pSplitterWindow->getColumnWidth(0, &nFolderWindowSize_);
+				CHECK_QSTATUS();
+			}
+		}
+		else if (pSplitterWindow == pListSplitterWindow_) {
+			status = pSplitterWindow->getRowHeight(0, &nListWindowHeight_);
+			CHECK_QSTATUS();
+		}
+		else {
+			assert(false);
+		}
+	}
 	
 	return QSTATUS_SUCCESS;
 }
@@ -1641,7 +1673,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	std::auto_ptr<SplitterWindow> pFolderSplitterWindow;
 	status = newQsObject(bVirticalFolderWindow ? 1 : 2,
-		bVirticalFolderWindow ? 2 : 1, true, &pFolderSplitterWindow);
+		bVirticalFolderWindow ? 2 : 1, true, pImpl_, &pFolderSplitterWindow);
 	CHECK_QSTATUS_VALUE(-1);
 	status = pFolderSplitterWindow->create(L"QmFolderSplitterWindow",
 		0, dwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
@@ -1683,7 +1715,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pFolderComboBox_ = pFolderComboBox.release();
 	
 	std::auto_ptr<SplitterWindow> pListSplitterWindow;
-	status = newQsObject(1, 2, true, &pListSplitterWindow);
+	status = newQsObject(1, 2, true, pImpl_, &pListSplitterWindow);
 	CHECK_QSTATUS_VALUE(-1);
 	status = pListSplitterWindow->create(L"QmListSplitterWindow",
 		0, dwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,

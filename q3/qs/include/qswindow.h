@@ -42,7 +42,7 @@ class CommandUpdate;
 	class CommandUpdateMenu;
 class CommandHandler;
 	class DefaultCommandHandler;
-	
+
 class NotifyHandler;
 class OwnerDrawHandler;
 class ModalHandler;
@@ -59,6 +59,8 @@ class DefaultWindowHandlerBase;
 #if _WIN32_WCE >= 200 && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
 		class CommandBand;
 #endif
+class SplitterWindowHandler;
+class SplitterWindowEvent;
 class DisableRedraw;
 class Cursor;
 class WaitCursor;
@@ -1080,8 +1082,8 @@ class QSEXPORTCLASS SplitterWindow :
 	public DefaultWindowHandler
 {
 public:
-	SplitterWindow(int nColumn, int nRow,
-		bool bDeleteThis, QSTATUS* pstatus);
+	SplitterWindow(int nColumn, int nRow, bool bDeleteThis,
+		SplitterWindowHandler* pHandler, QSTATUS* pstatus);
 	virtual ~SplitterWindow();
 
 public:
@@ -1112,6 +1114,46 @@ private:
 
 private:
 	struct SplitterWindowImpl* pImpl_;
+};
+
+
+/****************************************************************************
+ *
+ * SplitterWindowHandler
+ *
+ */
+
+class QSEXPORTCLASS SplitterWindowHandler
+{
+public:
+	virtual ~SplitterWindowHandler();
+
+public:
+	virtual QSTATUS sizeChanged(const SplitterWindowEvent& event) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * SplitterWindowEvent
+ *
+ */
+
+class QSEXPORTCLASS SplitterWindowEvent
+{
+public:
+	SplitterWindowEvent(SplitterWindow* pSplitterWindow);
+	~SplitterWindowEvent();
+
+public:
+	SplitterWindow* getSplitterWindow() const;
+
+private:
+	SplitterWindowEvent(const SplitterWindowEvent&);
+	SplitterWindowEvent& operator=(const SplitterWindowEvent&);
+
+private:
+	SplitterWindow* pSplitterWindow_;
 };
 
 
