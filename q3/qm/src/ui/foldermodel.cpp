@@ -76,18 +76,20 @@ QSTATUS qm::DefaultFolderModel::setCurrent(
 	DECLARE_QSTATUS();
 	
 	if (pFolder) {
-		pCurrentAccount_ = 0;
-		pCurrentFolder_ = pFolder;
-		
-		status = fireFolderSelected(pFolder, bDelay);
-		CHECK_QSTATUS();
+		if (pFolder != pCurrentFolder_) {
+			pCurrentAccount_ = 0;
+			pCurrentFolder_ = pFolder;
+			status = fireFolderSelected(pFolder, bDelay);
+			CHECK_QSTATUS();
+		}
 	}
 	else {
-		pCurrentAccount_ = pAccount;
-		pCurrentFolder_ = 0;
-		
-		status = fireAccountSelected(pAccount, bDelay);
-		CHECK_QSTATUS();
+		if (pAccount != pCurrentAccount_) {
+			pCurrentAccount_ = pAccount;
+			pCurrentFolder_ = 0;
+			status = fireAccountSelected(pAccount, bDelay);
+			CHECK_QSTATUS();
+		}
 	}
 	
 	return QSTATUS_SUCCESS;
