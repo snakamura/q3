@@ -6,6 +6,9 @@ element addressBook {
 		element name {
 			xsd:string
 		},
+		element sortKey {
+			xsd:string
+		}?,
 		element addresses {
 			element address {
 				## アドレス
