@@ -664,19 +664,30 @@ QSTATUS qm::ViewModel::setSelection(unsigned int nStart, unsigned int nEnd)
 		}
 		++n;
 	}
-	while (n <= nEnd) {
-		if (!isSelected(n)) {
-			status = addSelection(n);
-			CHECK_QSTATUS();
+	if (nEnd != static_cast<unsigned int>(-1)) {
+		while (n <= nEnd) {
+			if (!isSelected(n)) {
+				status = addSelection(n);
+				CHECK_QSTATUS();
+			}
+			++n;
 		}
-		++n;
+		while (n < listItem_.size()) {
+			if (isSelected(n)) {
+				status = removeSelection(n);
+				CHECK_QSTATUS();
+			}
+			++n;
+		}
 	}
-	while (n < listItem_.size()) {
-		if (isSelected(n)) {
-			status = removeSelection(n);
-			CHECK_QSTATUS();
+	else {
+		while (n < listItem_.size()) {
+			if (!isSelected(n)) {
+				status = addSelection(n);
+				CHECK_QSTATUS();
+			}
+			++n;
 		}
-		++n;
 	}
 	
 	return QSTATUS_SUCCESS;
