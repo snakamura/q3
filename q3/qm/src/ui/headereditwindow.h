@@ -14,10 +14,10 @@
 
 #include <vector>
 
-#include "attachmentselectionmodel.h"
 #include "editwindow.h"
 #include "layout.h"
 #include "../model/editmessage.h"
+#include "../uimodel/attachmentselectionmodel.h"
 
 
 namespace qm {

@@ -15,7 +15,7 @@
 
 #include "../model/editmessage.h"
 #include "../ui/editwindow.h"
-#include "../ui/messagecomposer.h"
+#include "../uimodel/messagecomposer.h"
 
 
 namespace qm {

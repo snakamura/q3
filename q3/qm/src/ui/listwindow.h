@@ -13,7 +13,7 @@
 
 #include <qsdevicecontext.h>
 
-#include "viewmodel.h"
+#include "../uimodel/viewmodel.h"
 
 
 namespace qm {

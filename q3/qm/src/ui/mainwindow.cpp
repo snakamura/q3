@@ -41,34 +41,24 @@
 #endif
 
 #include "actionid.h"
-#include "attachmentselectionmodel.h"
 #include "editframewindow.h"
-#include "encodingmodel.h"
 #include "externaleditor.h"
 #include "foldercombobox.h"
-#include "folderlistmodel.h"
 #include "folderlistwindow.h"
-#include "foldermodel.h"
-#include "folderselectionmodel.h"
 #include "folderwindow.h"
 #include "keymap.h"
 #include "listwindow.h"
 #include "mainwindow.h"
 #include "menus.h"
 #include "messageframewindow.h"
-#include "messagemodel.h"
-#include "messageselectionmodel.h"
 #include "messagewindow.h"
 #include "resourceinc.h"
-#include "securitymodel.h"
 #include "statusbar.h"
 #include "syncdialog.h"
 #include "syncutil.h"
-#include "tabmodel.h"
 #include "tabwindow.h"
 #include "uimanager.h"
 #include "uiutil.h"
-#include "viewmodel.h"
 #include "../action/action.h"
 #include "../action/actionmacro.h"
 #include "../action/findreplace.h"
@@ -77,6 +67,16 @@
 #include "../model/tempfilecleaner.h"
 #include "../sync/autopilot.h"
 #include "../sync/syncmanager.h"
+#include "../uimodel/attachmentselectionmodel.h"
+#include "../uimodel/encodingmodel.h"
+#include "../uimodel/folderlistmodel.h"
+#include "../uimodel/foldermodel.h"
+#include "../uimodel/folderselectionmodel.h"
+#include "../uimodel/messagemodel.h"
+#include "../uimodel/messageselectionmodel.h"
+#include "../uimodel/securitymodel.h"
+#include "../uimodel/tabmodel.h"
+#include "../uimodel/viewmodel.h"
 
 #pragma warning(disable:4786)
 
@@ -390,9 +390,8 @@ void qm::MainWindowImpl::initActions()
 		IDM_CONFIG_TEXTS,
 		pDocument_->getFixedFormTextManager(),
 		pThis_->getHandle());
-	ADD_ACTION3(ConfigViewsAction,
+	ADD_ACTION2(ConfigViewsAction,
 		IDM_CONFIG_VIEWS,
-		pUIManager_,
 		pViewModelManager_.get(),
 		pThis_->getHandle());
 	ADD_ACTION6(EditClearDeletedAction,
@@ -2140,8 +2139,8 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pEncodingModel_.reset(new DefaultEncodingModel());
 	pImpl_->pSecurityModel_.reset(new DefaultSecurityModel(
 		pImpl_->pProfile_->getInt(L"MainWindow", L"SecurityMode", 0)));
-	pImpl_->pViewModelManager_.reset(new ViewModelManager(pImpl_->pUIManager_,
-		pImpl_->pDocument_, pImpl_->pProfile_, getHandle(), pImpl_->pSecurityModel_.get()));
+	pImpl_->pViewModelManager_.reset(new ViewModelManager(pImpl_->pDocument_,
+		pImpl_->pProfile_, getHandle(), pImpl_->pSecurityModel_.get()));
 	pImpl_->pPreviewModel_.reset(new PreviewMessageModel(
 		pImpl_->pViewModelManager_.get(), pImpl_->bShowPreviewWindow_));
 	pImpl_->pEditFrameWindowManager_.reset(new EditFrameWindowManager(

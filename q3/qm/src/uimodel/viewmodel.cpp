@@ -22,7 +22,6 @@
 #include <algorithm>
 
 #include "securitymodel.h"
-#include "uimanager.h"
 #include "viewmodel.h"
 #include "../model/color.h"
 #include "../model/filter.h"
@@ -1557,12 +1556,10 @@ qm::ViewModelHolder::~ViewModelHolder()
  *
  */
 
-qm::ViewModelManager::ViewModelManager(UIManager* pUIManager,
-									   Document* pDocument,
+qm::ViewModelManager::ViewModelManager(Document* pDocument,
 									   Profile* pProfile,
 									   HWND hwnd,
 									   SecurityModel* pSecurityModel) :
-	pUIManager_(pUIManager),
 	pDocument_(pDocument),
 	pProfile_(pProfile),
 	hwnd_(hwnd),
@@ -1571,6 +1568,7 @@ qm::ViewModelManager::ViewModelManager(UIManager* pUIManager,
 	pCurrentViewModel_(0)
 {
 	const Application& app = Application::getApplication();
+	pDefaultViewData_.reset(new DefaultViewData(app.getProfilePath(FileNames::VIEWS_XML).get()));
 	pFilterManager_.reset(new FilterManager(app.getProfilePath(FileNames::FILTERS_XML).get()));
 	pColorManager_.reset(new ColorManager(app.getProfilePath(FileNames::COLORS_XML).get()));
 }
@@ -1583,6 +1581,11 @@ qm::ViewModelManager::~ViewModelManager()
 		unary_compose_f_gx(
 			deleter<ViewData>(),
 			std::select2nd<ViewDataMap::value_type>()));
+}
+
+DefaultViewData* qm::ViewModelManager::getDefaultViewData() const
+{
+	return pDefaultViewData_.get();
 }
 
 ColorManager* qm::ViewModelManager::getColorManager() const
@@ -1770,7 +1773,7 @@ ViewDataItem* qm::ViewModelManager::getViewDataItem(Folder* pFolder)
 	}
 	else {
 		wstring_ptr wstrPath(getViewsPath(pAccount));
-		std::auto_ptr<ViewData> pNewViewData(new ViewData(pUIManager_, wstrPath.get()));
+		std::auto_ptr<ViewData> pNewViewData(new ViewData(pDefaultViewData_.get(), wstrPath.get()));
 		mapViewData_.push_back(std::make_pair(pAccount, pNewViewData.get()));
 		pAccount->addAccountHandler(this);
 		pViewData = pNewViewData.release();
@@ -1967,9 +1970,9 @@ int qm::ViewModelItemComp::compare(const ViewModelItem* pLhs,
  *
  */
 
-qm::ViewData::ViewData(UIManager* pUIManager,
+qm::ViewData::ViewData(DefaultViewData* pDefaultViewData,
 					   const WCHAR* pwszPath) :
-	pUIManager_(pUIManager)
+	pDefaultViewData_(pDefaultViewData)
 {
 	wstrPath_ = allocWString(pwszPath);
 	
@@ -2010,8 +2013,7 @@ ViewDataItem* qm::ViewData::getItem(const Folder* pFolder)
 	}
 	else {
 		const WCHAR* pwszClass = pFolder->getAccount()->getClass();
-		DefaultViewData* pDefaultViewData = pUIManager_->getDefaultViewData();
-		ViewDataItem* pDefaultItem = pDefaultViewData->getItem(pwszClass);
+		ViewDataItem* pDefaultItem = pDefaultViewData_->getItem(pwszClass);
 		std::auto_ptr<ViewDataItem> pItem(pDefaultItem->clone(nId));
 		listItem_.insert(it, pItem.get());
 		return pItem.release();

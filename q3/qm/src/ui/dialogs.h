@@ -20,7 +20,6 @@
 #include <qsprofile.h>
 
 #include "resourceinc.h"
-#include "viewmodel.h"
 #include "../model/addressbook.h"
 #include "../model/color.h"
 #include "../model/editmessage.h"
@@ -30,6 +29,7 @@
 #include "../model/rule.h"
 #include "../model/signature.h"
 #include "../sync/autopilot.h"
+#include "../uimodel/viewmodel.h"
 
 
 namespace qm {
@@ -99,7 +99,6 @@ class Account;
 class Document;
 class PasswordManager;
 class TemplateManager;
-class UIManager;
 
 
 /****************************************************************************
@@ -2666,8 +2665,7 @@ class ViewsDialog :
 	public qs::NotifyHandler
 {
 public:
-	ViewsDialog(UIManager* pUIManager,
-				ViewModelManager* pViewModelManager,
+	ViewsDialog(ViewModelManager* pViewModelManager,
 				ViewModel* pViewModel);
 	virtual ~ViewsDialog();
 
@@ -2716,7 +2714,6 @@ private:
 	ViewsDialog& operator=(const ViewsDialog&);
 
 private:
-	UIManager* pUIManager_;
 	ViewModelManager* pViewModelManager_;
 	ViewModel* pViewModel_;
 	ViewColumnList listColumn_;

@@ -19,9 +19,9 @@
 
 #include "attachmenthelper.h"
 #include "templateprocessor.h"
-#include "../ui/messagecomposer.h"
-#include "../ui/messageviewmode.h"
 #include "../ui/messagewindow.h"
+#include "../uimodel/messagecomposer.h"
+#include "../uimodel/messageviewmode.h"
 
 
 namespace qm {
@@ -517,8 +517,7 @@ private:
 class ConfigViewsAction : public qs::AbstractAction
 {
 public:
-	ConfigViewsAction(UIManager* pUIManager,
-					  ViewModelManager* pViewModelManager,
+	ConfigViewsAction(ViewModelManager* pViewModelManager,
 					  HWND hwnd);
 	virtual ~ConfigViewsAction();
 
@@ -531,7 +530,6 @@ private:
 	ConfigViewsAction& operator=(const ConfigViewsAction&);
 
 private:
-	UIManager* pUIManager_;
 	ViewModelManager* pViewModelManager_;
 	HWND hwnd_;
 };

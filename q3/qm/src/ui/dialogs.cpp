@@ -7121,11 +7121,9 @@ void qm::ViewsColumnDialog::updateState()
  *
  */
 
-qm::ViewsDialog::ViewsDialog(UIManager* pUIManager,
-							 ViewModelManager* pViewModelManager,
+qm::ViewsDialog::ViewsDialog(ViewModelManager* pViewModelManager,
 							 ViewModel* pViewModel) :
 	DefaultDialog(IDD_VIEWS),
-	pUIManager_(pUIManager),
 	pViewModelManager_(pViewModelManager),
 	pViewModel_(pViewModel)
 {
@@ -7497,6 +7495,6 @@ ViewDataItem* qm::ViewsDialog::getDefaultItem()
 {
 	Folder* pFolder = pViewModel_->getFolder();
 	Account* pAccount = pFolder->getAccount();
-	DefaultViewData* pDefaultViewData = pUIManager_->getDefaultViewData();
+	DefaultViewData* pDefaultViewData = pViewModelManager_->getDefaultViewData();
 	return pDefaultViewData->getItem(pAccount->getClass());
 }

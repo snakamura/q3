@@ -22,21 +22,21 @@
 #endif
 
 #include "actionid.h"
-#include "encodingmodel.h"
 #include "keymap.h"
 #include "menus.h"
 #include "messageframewindow.h"
-#include "messagemodel.h"
-#include "messageselectionmodel.h"
 #include "messagewindow.h"
 #include "resourceinc.h"
-#include "securitymodel.h"
 #include "statusbar.h"
 #include "uimanager.h"
 #include "uiutil.h"
 #include "../action/action.h"
 #include "../action/actionmacro.h"
 #include "../action/findreplace.h"
+#include "../uimodel/encodingmodel.h"
+#include "../uimodel/messagemodel.h"
+#include "../uimodel/messageselectionmodel.h"
+#include "../uimodel/securitymodel.h"
 
 #pragma warning(disable:4786)
 

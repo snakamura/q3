@@ -17,9 +17,9 @@
 #include <qsregex.h>
 #include <qssax.h>
 
-#include "attachmentselectionmodel.h"
 #include "layout.h"
 #include "messagewindow.h"
+#include "../uimodel/attachmentselectionmodel.h"
 
 
 namespace qm {

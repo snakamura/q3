@@ -28,10 +28,10 @@
 #	include <tmschema.h>
 #endif
 
-#include "messagemodel.h"
 #include "messageviewwindow.h"
 #include "uiutil.h"
 #include "../model/uri.h"
+#include "../uimodel/messagemodel.h"
 
 #pragma warning(disable:4786)
 

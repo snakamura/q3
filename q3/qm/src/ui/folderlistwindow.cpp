@@ -21,13 +21,13 @@
 
 #include <tchar.h>
 
-#include "folderlistmodel.h"
 #include "folderlistwindow.h"
-#include "foldermodel.h"
 #include "keymap.h"
 #include "resourceinc.h"
 #include "uimanager.h"
 #include "uiutil.h"
+#include "../uimodel/folderlistmodel.h"
+#include "../uimodel/foldermodel.h"
 
 
 using namespace qm;

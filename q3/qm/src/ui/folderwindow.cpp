@@ -29,13 +29,13 @@
 #include <tchar.h>
 
 #include "dialogs.h"
-#include "foldermodel.h"
 #include "folderwindow.h"
 #include "keymap.h"
 #include "resourceinc.h"
 #include "uimanager.h"
 #include "uiutil.h"
 #include "../model/dataobject.h"
+#include "../uimodel/foldermodel.h"
 
 #pragma warning(disable:4786)
 

@@ -45,11 +45,11 @@
 #include "../sync/autopilot.h"
 #include "../sync/syncmanager.h"
 #include "../ui/dialogs.h"
-#include "../ui/foldermodel.h"
 #include "../ui/mainwindow.h"
 #include "../ui/syncdialog.h"
 #include "../ui/uimanager.h"
 #include "../ui/uiutil.h"
+#include "../uimodel/foldermodel.h"
 
 using namespace qm;
 using namespace qs;
@@ -806,8 +806,6 @@ bool qm::Application::save()
 		return false;
 	pImpl_->saveCurrentFolder();
 	if (!pImpl_->pProfile_->save())
-		return false;
-	if (!pImpl_->pUIManager_->save())
 		return false;
 	return true;
 }

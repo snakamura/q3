@@ -20,13 +20,13 @@
 #include <tchar.h>
 
 #include "dialogs.h"
-#include "encodingmodel.h"
 #include "resourceinc.h"
 #include "statusbar.h"
 #include "uiutil.h"
 #include "../model/dataobject.h"
 #include "../model/tempfilecleaner.h"
 #include "../model/uri.h"
+#include "../uimodel/encodingmodel.h"
 
 using namespace qm;
 using namespace qs;

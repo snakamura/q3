@@ -49,24 +49,24 @@
 #include "../script/scriptmanager.h"
 #include "../sync/autopilot.h"
 #include "../sync/syncmanager.h"
-#include "../ui/attachmentselectionmodel.h"
 #include "../ui/dialogs.h"
 #include "../ui/editframewindow.h"
-#include "../ui/encodingmodel.h"
-#include "../ui/foldermodel.h"
-#include "../ui/folderselectionmodel.h"
 #include "../ui/menus.h"
 #include "../ui/messageframewindow.h"
-#include "../ui/messagemodel.h"
-#include "../ui/messageselectionmodel.h"
 #include "../ui/propertypages.h"
 #include "../ui/resourceinc.h"
-#include "../ui/securitymodel.h"
 #include "../ui/syncdialog.h"
 #include "../ui/syncutil.h"
-#include "../ui/tabmodel.h"
 #include "../ui/uiutil.h"
-#include "../ui/viewmodel.h"
+#include "../uimodel/attachmentselectionmodel.h"
+#include "../uimodel/encodingmodel.h"
+#include "../uimodel/foldermodel.h"
+#include "../uimodel/folderselectionmodel.h"
+#include "../uimodel/messagemodel.h"
+#include "../uimodel/messageselectionmodel.h"
+#include "../uimodel/securitymodel.h"
+#include "../uimodel/tabmodel.h"
+#include "../uimodel/viewmodel.h"
 
 #pragma warning(disable:4786)
 
@@ -418,10 +418,8 @@ void qm::ConfigTextsAction::invoke(const ActionEvent& event)
  *
  */
 
-qm::ConfigViewsAction::ConfigViewsAction(UIManager* pUIManager,
-										 ViewModelManager* pViewModelManager,
+qm::ConfigViewsAction::ConfigViewsAction(ViewModelManager* pViewModelManager,
 										 HWND hwnd) :
-	pUIManager_(pUIManager),
 	pViewModelManager_(pViewModelManager),
 	hwnd_(hwnd)
 {
@@ -437,7 +435,7 @@ void qm::ConfigViewsAction::invoke(const ActionEvent& event)
 	if (!pViewModel)
 		return;
 	
-	ViewsDialog dialog(pUIManager_, pViewModelManager_, pViewModel);
+	ViewsDialog dialog(pViewModelManager_, pViewModel);
 	dialog.doModal(hwnd_);
 }
 

@@ -17,10 +17,10 @@
 #include <qsuiutil.h>
 
 #include "resourceinc.h"
-#include "tabmodel.h"
 #include "tabwindow.h"
 #include "uimanager.h"
 #include "uiutil.h"
+#include "../uimodel/tabmodel.h"
 
 using namespace qm;
 using namespace qs;

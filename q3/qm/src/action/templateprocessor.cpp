@@ -21,11 +21,11 @@
 #include "../model/editmessage.h"
 #include "../model/templatemanager.h"
 #include "../ui/editframewindow.h"
-#include "../ui/encodingmodel.h"
 #include "../ui/externaleditor.h"
-#include "../ui/foldermodel.h"
-#include "../ui/messageselectionmodel.h"
-#include "../ui/securitymodel.h"
+#include "../uimodel/encodingmodel.h"
+#include "../uimodel/foldermodel.h"
+#include "../uimodel/messageselectionmodel.h"
+#include "../uimodel/securitymodel.h"
 
 using namespace qm;
 using namespace qs;

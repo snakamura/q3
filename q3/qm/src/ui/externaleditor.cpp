@@ -17,8 +17,8 @@
 #include <tchar.h>
 
 #include "externaleditor.h"
-#include "securitymodel.h"
 #include "uiutil.h"
+#include "../uimodel/securitymodel.h"
 
 #pragma warning(disable:4786)
 

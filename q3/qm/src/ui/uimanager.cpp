@@ -14,7 +14,6 @@
 #include "menu.h"
 #include "toolbar.h"
 #include "uimanager.h"
-#include "viewmodel.h"
 
 using namespace qm;
 using namespace qs;
@@ -56,9 +55,6 @@ qm::UIManager::UIManager()
 	
 	wstring_ptr wstrKeyMapPath(app.getProfilePath(FileNames::KEYMAP_XML));
 	pKeyMap_.reset(new KeyMap(wstrKeyMapPath.get()));
-	
-	wstring_ptr wstrViewsPath = app.getProfilePath(FileNames::VIEWS_XML);
-	pViewData_.reset(new DefaultViewData(wstrViewsPath.get()));
 }
 
 qm::UIManager::~UIManager()
@@ -78,14 +74,4 @@ ToolbarManager* qm::UIManager::getToolbarManager() const
 KeyMap* qm::UIManager::getKeyMap() const
 {
 	return pKeyMap_.get();
-}
-
-DefaultViewData* qm::UIManager::getDefaultViewData() const
-{
-	return pViewData_.get();
-}
-
-bool qm::UIManager::save() const
-{
-	return pViewData_->save();
 }

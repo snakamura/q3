@@ -25,11 +25,11 @@
 #include <windowsx.h>
 
 #include "foldercombobox.h"
-#include "foldermodel.h"
 #include "keymap.h"
 #include "resourceinc.h"
 #include "uimanager.h"
 #include "uiutil.h"
+#include "../uimodel/foldermodel.h"
 
 using namespace qm;
 using namespace qs;

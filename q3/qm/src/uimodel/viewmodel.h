@@ -57,7 +57,6 @@ class Folder;
 class MessageHolder;
 class Macro;
 class SecurityModel;
-class UIManager;
 
 
 /****************************************************************************
@@ -566,14 +565,14 @@ public:
 	typedef std::vector<ViewModel*> ViewModelList;
 
 public:
-	ViewModelManager(UIManager* pUIManager,
-					 Document* pDocument,
+	ViewModelManager(Document* pDocument,
 					 qs::Profile* pProfile,
 					 HWND hwnd,
 					 SecurityModel* pSecurityModel);
 	~ViewModelManager();
 
 public:
+	DefaultViewData* getDefaultViewData() const;
 	ColorManager* getColorManager() const;
 	FilterManager* getFilterManager() const;
 	
@@ -616,7 +615,6 @@ private:
 	typedef std::vector<std::pair<Account*, ViewData*> > ViewDataMap;
 
 private:
-	UIManager* pUIManager_;
 	Document* pDocument_;
 	qs::Profile* pProfile_;
 	HWND hwnd_;
@@ -625,6 +623,7 @@ private:
 	ViewModelList listViewModel_;
 	ViewModel* pCurrentViewModel_;
 	ViewDataMap mapViewData_;
+	std::auto_ptr<DefaultViewData> pDefaultViewData_;
 	std::auto_ptr<FilterManager> pFilterManager_;
 	std::auto_ptr<ColorManager> pColorManager_;
 	HandlerList listHandler_;
@@ -757,7 +756,7 @@ public:
 	typedef std::vector<ViewDataItem*> ItemList;
 
 public:
-	ViewData(UIManager* pUIManager,
+	ViewData(DefaultViewData* pDefaultViewData,
 			 const WCHAR* pwszPath);
 	~ViewData();
 
@@ -775,7 +774,7 @@ private:
 	ViewData& operator=(const ViewData&);
 
 private:
-	UIManager* pUIManager_;
+	DefaultViewData* pDefaultViewData_;
 	qs::wstring_ptr wstrPath_;
 	ItemList listItem_;
 };

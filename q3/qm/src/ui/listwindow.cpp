@@ -35,9 +35,9 @@
 #include "syncdialog.h"
 #include "syncutil.h"
 #include "uimanager.h"
-#include "viewmodel.h"
 #include "../action/action.h"
 #include "../model/dataobject.h"
+#include "../uimodel/viewmodel.h"
 
 #pragma warning(disable:4786)
 

@@ -21,7 +21,7 @@
 #include "../model/tempfilecleaner.h"
 #include "../ui/dialogs.h"
 #include "../ui/resourceinc.h"
-#include "../ui/securitymodel.h"
+#include "../uimodel/securitymodel.h"
 
 using namespace qm;
 using namespace qs;

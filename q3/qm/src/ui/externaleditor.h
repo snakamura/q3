@@ -15,7 +15,7 @@
 #include <qsprofile.h>
 #include <qsthread.h>
 
-#include "messagecomposer.h"
+#include "../uimodel/messagecomposer.h"
 
 
 namespace qm {

@@ -18,18 +18,18 @@
 #include <qskeymap.h>
 #include <qsprofile.h>
 
-#include "encodingmodel.h"
 #include "headerwindow.h"
 #include "keymap.h"
-#include "messagemodel.h"
-#include "messageviewmode.h"
 #include "messageviewwindow.h"
 #include "messagewindow.h"
 #include "resourceinc.h"
-#include "securitymodel.h"
 #include "uimanager.h"
-#include "viewmodel.h"
 #include "../model/templatemanager.h"
+#include "../uimodel/encodingmodel.h"
+#include "../uimodel/messagemodel.h"
+#include "../uimodel/messageviewmode.h"
+#include "../uimodel/securitymodel.h"
+#include "../uimodel/viewmodel.h"
 
 #pragma warning(disable:4786)
 

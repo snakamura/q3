@@ -22,18 +22,18 @@
 #include <tchar.h>
 
 #include "actionid.h"
-#include "foldermodel.h"
 #include "menus.h"
 #include "resourceinc.h"
-#include "securitymodel.h"
 #include "uiutil.h"
-#include "viewmodel.h"
 #include "../model/filter.h"
 #include "../model/fixedformtext.h"
 #include "../model/goround.h"
 #include "../model/templatemanager.h"
 #include "../model/uri.h"
 #include "../script/scriptmanager.h"
+#include "../uimodel/foldermodel.h"
+#include "../uimodel/securitymodel.h"
+#include "../uimodel/viewmodel.h"
 
 #pragma warning(disable:4786)
 

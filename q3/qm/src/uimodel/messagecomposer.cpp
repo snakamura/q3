@@ -18,11 +18,10 @@
 
 #include <qscrypto.h>
 
-#include "dialogs.h"
+#include "foldermodel.h"
 #include "messagecomposer.h"
+#include "securitymodel.h"
 #include "../model/addressbook.h"
-#include "../ui/foldermodel.h"
-#include "../ui/securitymodel.h"
 
 using namespace qm;
 using namespace qs;

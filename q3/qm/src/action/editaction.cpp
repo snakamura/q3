@@ -32,13 +32,13 @@
 #include "../model/templatemanager.h"
 #include "../model/uri.h"
 #include "../ui/actionid.h"
-#include "../ui/attachmentselectionmodel.h"
 #include "../ui/dialogs.h"
 #include "../ui/editwindow.h"
 #include "../ui/menus.h"
-#include "../ui/securitymodel.h"
 #include "../ui/syncutil.h"
 #include "../ui/uiutil.h"
+#include "../uimodel/attachmentselectionmodel.h"
+#include "../uimodel/securitymodel.h"
 
 #pragma warning(disable:4786)
 

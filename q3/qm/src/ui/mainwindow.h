@@ -15,8 +15,8 @@
 #include <qstoolbar.h>
 #include <qswindow.h>
 
-#include "foldermodel.h"
 #include "../sync/syncmanager.h"
+#include "../uimodel/foldermodel.h"
 
 namespace qm {
 
@@ -31,6 +31,7 @@ class PasswordManager;
 class SyncDialogManager;
 class SyncManager;
 class TempFileCleaner;
+class UIManager;
 
 
 /****************************************************************************
