@@ -372,12 +372,13 @@ size_t qs::BinaryFile::write(const unsigned char* p,
 			assert(pImpl_->pBufEnd_ == pImpl_->pBuf_.get());
 			assert(pImpl_->pCurrent_ == pImpl_->pBuf_.get());
 			
-			while (nWrite != 0) {
+			size_t n = nWrite;
+			while (n != 0) {
 				DWORD dwWritten = 0;
-				if (!::WriteFile(pImpl_->hFile_, p, nWrite, &dwWritten, 0))
+				if (!::WriteFile(pImpl_->hFile_, p, n, &dwWritten, 0))
 					return -1;
 				p += dwWritten;
-				nWrite -= dwWritten;
+				n -= dwWritten;
 				pImpl_->dwPosition_ += dwWritten;
 			}
 		}
