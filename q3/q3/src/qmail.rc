@@ -41,6 +41,7 @@ END
 3 TEXTINCLUDE DISCARDABLE 
 BEGIN
     "#include ""res\\\\version.rc""\r\n"
+    "#include ""res\\\\manifest.rc""\r\n"
     "\0"
 END
 
@@ -83,6 +84,7 @@ END
 // Generated from the TEXTINCLUDE 3 resource.
 //
 #include "res\\version.rc"
+#include "res\\manifest.rc"
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
