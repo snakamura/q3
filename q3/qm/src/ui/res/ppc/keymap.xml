@@ -347,7 +347,7 @@
 		<action name="FileSend">
 			<key key="M" alt="true"/>
 		</action>
-		<action name="ToolAddressBook">
+		<action name="ToolSelectAddress">
 			<key key="A" alt="true"/>
 		</action>
 		<action name="ToolAttachment">
@@ -361,6 +361,28 @@
 		</action>
 		<action name="ToolReform">
 			<key code="d" shift="true"/>
+		</action>
+	</keymap>
+	<keymap name="AddressBookFrameWindow">
+		<action name="FileClose">
+			<key code="1b"/>
+		</action>
+		<action name="FileSave">
+			<key key="S" ctrl="true"/>
+		</action>
+		<action name="ViewRefresh">
+			<key key="R" ctrl="true"/>
+		</action>
+	</keymap>
+	<keymap name="AddressBookListWindow">
+		<action name="AddressDelete">
+			<key key="D" ctrl="true"/>
+		</action>
+		<action name="AddressEdit">
+			<key code="d"/>
+		</action>
+		<action name="AddressNew">
+			<key key="N" ctrl="true"/>
 		</action>
 	</keymap>
 </keymaps>

@@ -33,7 +33,6 @@ class EditFileOpenAction;
 class EditFileSaveAction;
 class EditFileSendAction;
 class EditFocusItemAction;
-class EditToolAddressBookAction;
 class EditToolAttachmentAction;
 class EditToolFlagAction;
 class EditToolInsertSignatureAction;
@@ -42,6 +41,7 @@ class EditToolHeaderEditAction;
 class EditToolReformAction;
 class EditToolReformAllAction;
 class EditToolSecureAction;
+class EditToolSelectAddressAction;
 
 class AddressBook;
 class AttachmentSelectionModel;
@@ -461,37 +461,6 @@ private:
 
 /****************************************************************************
  *
- * EditToolAddressBookAction
- *
- */
-
-class EditToolAddressBookAction : public qs::AbstractAction
-{
-public:
-	EditToolAddressBookAction(EditMessageHolder* pEditMessageHolder,
-							  EditWindow* pEditWindow,
-							  AddressBook* pAddressBook,
-							  qs::Profile* pProfile);
-	virtual ~EditToolAddressBookAction();
-
-public:
-	virtual void invoke(const qs::ActionEvent& event);
-	virtual bool isEnabled(const qs::ActionEvent& event);
-
-private:
-	EditToolAddressBookAction(const EditToolAddressBookAction&);
-	EditToolAddressBookAction& operator=(const EditToolAddressBookAction&);
-
-private:
-	EditMessageHolder* pEditMessageHolder_;
-	EditWindow* pEditWindow_;
-	AddressBook* pAddressBook_;
-	qs::Profile* pProfile_;
-};
-
-
-/****************************************************************************
- *
  * EditToolAttachmentAction
  *
  */
@@ -713,6 +682,35 @@ private:
 };
 
 
+/****************************************************************************
+ *
+ * EditToolSelectAddressAction
+ *
+ */
+
+class EditToolSelectAddressAction : public qs::AbstractAction
+{
+public:
+	EditToolSelectAddressAction(EditMessageHolder* pEditMessageHolder,
+								EditWindow* pEditWindow,
+								AddressBook* pAddressBook,
+								qs::Profile* pProfile);
+	virtual ~EditToolSelectAddressAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	EditToolSelectAddressAction(const EditToolSelectAddressAction&);
+	EditToolSelectAddressAction& operator=(const EditToolSelectAddressAction&);
+
+private:
+	EditMessageHolder* pEditMessageHolder_;
+	EditWindow* pEditWindow_;
+	AddressBook* pAddressBook_;
+	qs::Profile* pProfile_;
+};
 
 }
 

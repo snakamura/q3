@@ -10,7 +10,6 @@
 #define __QMEDITWINDOW_H__
 
 #include <qm.h>
-#include <qmaction.h>
 
 #include <qsprofile.h>
 #include <qstextwindow.h>
@@ -21,7 +20,9 @@ namespace qm {
 
 class EditFrameWindow;
 class EditWindow;
+class HeaderEditWindow;
 
+class ActionInvoker;
 class AttachmentSelectionModel;
 class EditFrameWindowManager;
 class EditMessage;

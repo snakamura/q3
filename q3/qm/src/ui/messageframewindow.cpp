@@ -806,7 +806,9 @@ LRESULT qm::MessageFrameWindow::windowProc(UINT uMsg,
 	return FrameWindow::windowProc(uMsg, wParam, lParam);
 }
 
-LRESULT qm::MessageFrameWindow::onActivate(UINT nFlags, HWND hwnd, bool bMinimized)
+LRESULT qm::MessageFrameWindow::onActivate(UINT nFlags,
+										   HWND hwnd,
+										   bool bMinimized)
 {
 	FrameWindow::onActivate(nFlags, hwnd, bMinimized);
 	

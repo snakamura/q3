@@ -144,6 +144,7 @@ class FolderActionUtil;
 class TabActionUtil;
 #endif
 
+class AddressBookFrameWindowManager;
 class AttachmentMenu;
 class AttachmentSelectionModel;
 class AutoPilot;
@@ -2512,7 +2513,7 @@ private:
 class ToolAddressBookAction : public qs::AbstractAction
 {
 public:
-	explicit ToolAddressBookAction(AddressBook* pAddressBook);
+	explicit ToolAddressBookAction(AddressBookFrameWindowManager* pManager);
 	virtual ~ToolAddressBookAction();
 
 public:
@@ -2523,7 +2524,7 @@ private:
 	ToolAddressBookAction& operator=(const ToolAddressBookAction&);
 
 private:
-	AddressBook* pAddressBook_;
+	AddressBookFrameWindowManager* pManager_;
 };
 
 

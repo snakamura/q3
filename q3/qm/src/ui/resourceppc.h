@@ -246,7 +246,9 @@
 #define IDS_CONFIRMEMPTYTRASH           1085
 #define IDS_CONFIRMDELETEMESSAGE        1086
 #define IDC_MATCHCASE                   1087
+#define IDS_ADDRESSBOOK                 1087
 #define IDC_FINDNEXT                    1088
+#define IDS_CONFIRM_SAVEADDRESSBOOK     1088
 #define IDC_FINDPREV                    1089
 #define IDC_FIND                        1090
 #define IDC_REPLACE                     1091
@@ -401,6 +403,9 @@
 #define IDS_ADDRESSBOOK_COMMENT         2203
 #define IDS_PROPERTY_NAME               2301
 #define IDS_PROPERTY_VALUE              2302
+#define IDS_ADDRESSBOOKLIST_NAME        2401
+#define IDS_ADDRESSBOOKLIST_ADDRESS     2402
+#define IDS_ADDRESSBOOKLIST_COMMENT     2403
 #define IDS_ERROR_CREATEFOLDER          10000
 #define IDS_ERROR_EXECUTEATTACHMENT     10001
 #define IDS_ERROR_DIALUP                10002
@@ -451,6 +456,7 @@
 #define IDS_ERROR_INVALIDMACRO          10047
 #define IDS_ERROR_CREATEACCOUNT         10048
 #define IDS_ERROR_MOVEFOLDER            10049
+#define IDS_ERROR_SAVEADDRESSBOOK       10050
 
 // Next default values for new objects
 // 

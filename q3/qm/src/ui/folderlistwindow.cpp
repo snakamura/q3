@@ -360,7 +360,7 @@ qm::FolderListWindow::FolderListWindow(WindowBase* pParentWindow,
 	setWindowHandler(this, false);
 	
 	pParentWindow->addNotifyHandler(pImpl_);
-	pImpl_->pFolderListModel_->addFolderListModelHandler(pImpl_);
+	pFolderListModel->addFolderListModelHandler(pImpl_);
 }
 
 qm::FolderListWindow::~FolderListWindow()
@@ -368,7 +368,7 @@ qm::FolderListWindow::~FolderListWindow()
 	delete pImpl_;
 }
 
-bool qm::FolderListWindow::save()
+bool qm::FolderListWindow::save() const
 {
 	pImpl_->saveColumns();
 	return true;
@@ -489,7 +489,7 @@ LRESULT qm::FolderListWindow::onKeyDown(UINT nKey,
 	case VK_RETURN:
 		{
 			int nItem = ListView_GetNextItem(
-				getHandle(), -1, LVNI_ALL | LVNI_SELECTED);
+				getHandle(), -1, LVNI_ALL | LVNI_FOCUSED);
 			if (nItem != -1)
 				pImpl_->open(nItem);
 		}

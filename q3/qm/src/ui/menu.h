@@ -18,6 +18,9 @@
 namespace qm {
 
 const qs::ActionItem menuItems[] = {
+	{ L"AddressDelete",				IDM_ADDRESS_DELETE				},
+	{ L"AddressEdit",				IDM_ADDRESS_EDIT				},
+	{ L"AddressNew",				IDM_ADDRESS_NEW					},
 	{ L"AttachmentEditAdd",			IDM_ATTACHMENTEDIT_ADD,			},
 	{ L"AttachmentEditDelete",		IDM_ATTACHMENTEDIT_DELETE,		},
 	{ L"AttachmentOpen",			IDM_ATTACHMENT_OPEN				},
@@ -132,6 +135,7 @@ const qs::ActionItem menuItems[] = {
 	{ L"ToolReformAuto",			IDM_TOOL_REFORMAUTO				},
 	{ L"ToolSMIMEEncrypt",			IDM_TOOL_SMIMEENCRYPT			},
 	{ L"ToolSMIMESign",				IDM_TOOL_SMIMESIGN				},
+	{ L"ToolSelectAddress",			IDM_TOOL_SELECTADDRESS			},
 	{ L"ToolSend",					IDM_TOOL_SEND					},
 	{ L"ToolSync",					IDM_TOOL_SYNC					},
 	{ L"ViewDropDown",				IDM_VIEW_DROPDOWN				},
@@ -161,6 +165,11 @@ const qs::ActionItem menuItems[] = {
 	{ L"ViewShowSyncDialog",		IDM_VIEW_SHOWSYNCDIALOG			},
 	{ L"ViewShowTab",				IDM_VIEW_SHOWTAB				},
 	{ L"ViewShowToolbar",			IDM_VIEW_SHOWTOOLBAR			},
+	{ L"ViewSortAddress",			IDM_VIEW_SORTADDRESS			},
+	{ L"ViewSortAscending",			IDM_VIEW_SORTASCENDING			},
+	{ L"ViewSortComment",			IDM_VIEW_SORTCOMMENT			},
+	{ L"ViewSortDescending",		IDM_VIEW_SORTDESCENDING			},
+	{ L"ViewSortName",				IDM_VIEW_SORTNAME				},
 };
 
 const struct PopupMenuItem

@@ -164,8 +164,11 @@ Action* qs::ActionMap::getAction(unsigned int nId) const
 {
 	assert(ID_MIN <= nId && nId < ID_MAX);
 	
-	ActionMapImpl::ActionItem item = { nId, nId + 1, 0 };
 	const ActionMapImpl::ItemList& l = pImpl_->listItem_;
+	if (l.empty())
+		return 0;
+	
+	ActionMapImpl::ActionItem item = { nId, nId + 1, 0 };
 	ActionMapImpl::ItemList::const_iterator it = std::lower_bound(
 		l.begin(), l.end(), item, ActionMapImpl::ActionItemLess());
 	if (it == l.end() || ((*it).nFrom_ != nId && it != l.begin()))

@@ -1715,7 +1715,8 @@ LRESULT qm::ListHeaderColumnImpl::onItemClick(NMHDR* pnmhdr,
 			ViewModel::SORT_ASCENDING, ViewModel::SORT_DIRECTION_MASK);
 	}
 	else {
-		pViewModel_->setSort(nColumn, ViewModel::SORT_INDEX_MASK);
+		pViewModel_->setSort(nColumn | ViewModel::SORT_ASCENDING,
+			ViewModel::SORT_INDEX_MASK | ViewModel::SORT_DIRECTION_MASK);
 	}
 	return 0;
 }

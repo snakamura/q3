@@ -1893,7 +1893,9 @@ void qm::AddressBookEntryDialog::updateState()
 {
 	AbstractListDialog<AddressBookAddress, AddressBookEntry::AddressList>::updateState();
 	
-	// TODO
+	bool bEnable = Window(getDlgItem(IDC_NAME)).getWindowTextLength() != 0 &&
+		sendDlgItemMessage(IDC_ADDRESSES, LB_GETCOUNT) != 0;
+	Window(getDlgItem(IDOK)).enableWindow(bEnable);
 }
 
 LRESULT qm::AddressBookEntryDialog::onNameChange()

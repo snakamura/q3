@@ -61,7 +61,7 @@ public:
 
 public:
 	AddressBook(const WCHAR* pwszPath,
-				qs::Profile* pProfile);
+				bool bLoadWAB);
 	~AddressBook();
 
 public:
@@ -75,6 +75,7 @@ public:
 
 public:
 	void addEntry(std::auto_ptr<AddressBookEntry> pEntry);
+	void removeEntry(const AddressBookEntry* pEntry);
 	const AddressBookCategory* getCategory(const WCHAR* pwszCategory);
 
 private:
@@ -177,7 +178,11 @@ public:
 	AddressBookEntry(const WCHAR* pwszName,
 					 const WCHAR* pwszSortKey,
 					 bool bWAB);
+	AddressBookEntry(const AddressBookEntry& entry);
 	~AddressBookEntry();
+
+public:
+	AddressBookEntry& operator=(const AddressBookEntry& entry);
 
 public:
 	const WCHAR* getName() const;
@@ -192,10 +197,7 @@ public:
 
 private:
 	void clearAddresses();
-
-private:
-	AddressBookEntry(const AddressBookEntry&);
-	AddressBookEntry& operator=(const AddressBookEntry&);
+	void swap(AddressBookEntry& entry);
 
 private:
 	qs::wstring_ptr wstrName_;

@@ -19,6 +19,9 @@
 namespace qm {
 
 const qs::KeyNameToId mapKeyNameToId[] = {
+	{ L"AddressDelete",					IDM_ADDRESS_DELETE,						0 },
+	{ L"AddressEdit",					IDM_ADDRESS_EDIT,						0 },
+	{ L"AddressNew",					IDM_ADDRESS_NEW,						0 },
 	{ L"AttachmentEditAdd",				IDM_ATTACHMENTEDIT_ADD,					0 },
 	{ L"AttachmentEditDelete",			IDM_ATTACHMENTEDIT_DELETE,				0 },
 	{ L"AttachmentOpen",				IDM_ATTACHMENT_OPEN,					0 },
@@ -221,6 +224,7 @@ const qs::KeyNameToId mapKeyNameToId[] = {
 	{ L"ToolScript7",					IDM_TOOL_SCRIPT + 7,					0 },
 	{ L"ToolScript8",					IDM_TOOL_SCRIPT + 8,					0 },
 	{ L"ToolScript9",					IDM_TOOL_SCRIPT + 9,					0 },
+	{ L"ToolSelectAddress",				IDM_TOOL_SELECTADDRESS,					0 },
 	{ L"ToolSend",						IDM_TOOL_SEND,							0 },
 	{ L"ToolSubAccount0",				IDM_TOOL_SUBACCOUNT,					0 },
 	{ L"ToolSubAccount1",				IDM_TOOL_SUBACCOUNT + 1,				0 },
@@ -303,9 +307,12 @@ const qs::KeyNameToId mapKeyNameToId[] = {
 	{ L"ViewSort7",						IDM_VIEW_SORT + 7,						0 },
 	{ L"ViewSort8",						IDM_VIEW_SORT + 8,						0 },
 	{ L"ViewSort9",						IDM_VIEW_SORT + 9,						0 },
+	{ L"ViewSortAddress",				IDM_VIEW_SORTADDRESS,					0 },
 	{ L"ViewSortAscending",				IDM_VIEW_SORTASCENDING,					0 },
+	{ L"ViewSortComment",				IDM_VIEW_SORTCOMMENT,					0 },
 	{ L"ViewSortDescending",			IDM_VIEW_SORTDESCENDING,				0 },
 	{ L"ViewSortFloatThread",			IDM_VIEW_SORTFLOATTHREAD,				0 },
+	{ L"ViewSortName",					IDM_VIEW_SORTNAME,						0 },
 	{ L"ViewSortThread",				IDM_VIEW_SORTTHREAD,					0 },
 	{ L"ViewTemplate0",					IDM_VIEW_TEMPLATE,						0 },
 	{ L"ViewTemplate1",					IDM_VIEW_TEMPLATE + 1,					0 },

@@ -39,7 +39,7 @@ using namespace qs;
  */
 
 qm::AddressBook::AddressBook(const WCHAR* pwszPath,
-							 Profile* pProfile) :
+							 bool bLoadWAB) :
 	bContactChanged_(false),
 #ifndef _WIN32_WCE
 	hInstWAB_(0),
@@ -58,7 +58,7 @@ qm::AddressBook::AddressBook(const WCHAR* pwszPath,
 	::GetSystemTime(&st);
 	::SystemTimeToFileTime(&st, &ft_);
 	
-	if (pProfile->getInt(L"AddressBook", L"WAB", 1)) {
+	if (bLoadWAB) {
 		if (initWAB())
 			bContactChanged_ = true;
 	}
@@ -176,6 +176,15 @@ void qm::AddressBook::addEntry(std::auto_ptr<AddressBookEntry> pEntry)
 {
 	listEntry_.push_back(pEntry.get());
 	pEntry.release();
+}
+
+void qm::AddressBook::removeEntry(const AddressBookEntry* pEntry)
+{
+	EntryList::iterator it = std::find(
+		listEntry_.begin(), listEntry_.end(), pEntry);
+	assert(it != listEntry_.end());
+	delete *it;
+	listEntry_.erase(it);
 }
 
 const AddressBookCategory* qm::AddressBook::getCategory(const WCHAR* pwszCategory)
@@ -746,6 +755,27 @@ qm::AddressBookEntry::AddressBookEntry(const WCHAR* pwszName,
 		wstrSortKey_ = allocWString(pwszSortKey);
 }
 
+qm::AddressBookEntry::AddressBookEntry(const AddressBookEntry& entry)
+{
+	wstrName_ = allocWString(entry.wstrName_.get());
+	
+	if (entry.wstrSortKey_.get())
+		wstrSortKey_ = allocWString(entry.wstrSortKey_.get());
+	
+	listAddress_.reserve(entry.listAddress_.size());
+	for (AddressList::const_iterator it = entry.listAddress_.begin(); it != entry.listAddress_.end(); ++it)
+		listAddress_.push_back(new AddressBookAddress(**it));
+	
+	bWAB_ = entry.bWAB_;
+}
+
+AddressBookEntry& qm::AddressBookEntry::operator=(const AddressBookEntry& entry)
+{
+	AddressBookEntry temp(entry);
+	swap(temp);
+	return *this;
+}
+
 qm::AddressBookEntry::~AddressBookEntry()
 {
 	clearAddresses();
@@ -808,6 +838,14 @@ void qm::AddressBookEntry::clearAddresses()
 	std::for_each(listAddress_.begin(), listAddress_.end(),
 		deleter<AddressBookAddress>());
 	listAddress_.clear();
+}
+
+void qm::AddressBookEntry::swap(AddressBookEntry& entry)
+{
+	std::swap(wstrName_, entry.wstrName_);
+	std::swap(wstrSortKey_, entry.wstrSortKey_);
+	listAddress_.swap(entry.listAddress_);
+	std::swap(bWAB_, entry.bWAB_);
 }
 
 

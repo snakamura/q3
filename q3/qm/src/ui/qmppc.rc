@@ -1802,6 +1802,8 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    IDS_CONFIRM_SAVEADDRESSBOOK 
+                            "Address Book is not saved.\nWould you like to save changes?"
     IDS_FILTER_EXPORT       "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"
     IDS_FILTER_IMPORT       "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"
     IDS_FILTER_INSERT       "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"
@@ -1939,18 +1941,27 @@ BEGIN
     IDS_CONFIRMEMPTYFOLDER  "Are you sure to delete all messages in these folders?\n %s"
     IDS_CONFIRMEMPTYTRASH   "Are you sure to delete all messages in Trash?"
     IDS_CONFIRMDELETEMESSAGE "Are you sure to delete selected messages?"
+    IDS_ADDRESSBOOK         "Address Book - QMAIL"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ERROR_CREATEACCOUNT "Error occured while creating an account."
     IDS_ERROR_MOVEFOLDER    "Error occured while moving folder."
+    IDS_ERROR_SAVEADDRESSBOOK "Could not save address book."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_PROPERTY_NAME       "Name"
     IDS_PROPERTY_VALUE      "Value"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ADDRESSBOOKLIST_NAME "Name"
+    IDS_ADDRESSBOOKLIST_ADDRESS "Address"
+    IDS_ADDRESSBOOKLIST_COMMENT "Comment"
 END
 
 #endif    // Japanese resources

@@ -36,8 +36,13 @@
 		<button image="13" action="EditUndo" text="Undo"/>
 		<button image="14" action="EditRedo" text="Redo"/>
 		<separator/>
-		<button image="18" action="ToolAddressBook" text="Address Book"/>
+		<button image="18" action="ToolSelectAddress" text="Address Book"/>
 		<button image="17" action="ToolInsertText0" text="Insert Text"/>
 		<button image="19" action="ToolAttachment" text="Attachment"/>
+	</toolbar>
+	<toolbar name="addressbookframe" showText="false">
+		<button image="23" action="AddressNew" text="New"/>
+		<button image="24" action="AddressEdit" text="Edit"/>
+		<button image="5" action="AddressDelete" text="Delete"/>
 	</toolbar>
 </toolbars>

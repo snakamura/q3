@@ -44,7 +44,7 @@ public:
 	virtual ~FolderListWindow();
 
 public:
-	bool save();
+	bool save() const;
 	bool isSizeShown() const;
 	void showSize();
 

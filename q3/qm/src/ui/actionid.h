@@ -129,10 +129,11 @@
 #define IDM_TOOL_REFORMALL              45017
 #define IDM_TOOL_REFORMAUTO             45018
 #define IDM_TOOL_SCRIPTNONE             45019
-#define IDM_TOOL_SEND                   45020
-#define IDM_TOOL_SMIMEENCRYPT           45021
-#define IDM_TOOL_SMIMESIGN              45022
-#define IDM_TOOL_SYNC                   45023
+#define IDM_TOOL_SELECTADDRESS          45020
+#define IDM_TOOL_SEND                   45022
+#define IDM_TOOL_SMIMEENCRYPT           45022
+#define IDM_TOOL_SMIMESIGN              45023
+#define IDM_TOOL_SYNC                   45024
 #define IDM_TOOL_GOROUND                45100
 #define IDM_TOOL_SCRIPT                 45200
 #define IDM_TOOL_SUBACCOUNT             45300
@@ -178,10 +179,13 @@
 #define IDM_VIEW_SHOWTOOLBAR            46039
 #define IDM_VIEW_SMIMEMODE              46040
 #define IDM_VIEW_SORTASCENDING          46041
-#define IDM_VIEW_SORTDESCENDING         46042
-#define IDM_VIEW_SORTFLOATTHREAD        46043
-#define IDM_VIEW_SORTTHREAD             46044
-#define IDM_VIEW_TEMPLATENONE           46045
+#define IDM_VIEW_SORTADDRESS            46042
+#define IDM_VIEW_SORTCOMMENT            46043
+#define IDM_VIEW_SORTDESCENDING         46044
+#define IDM_VIEW_SORTFLOATTHREAD        46045
+#define IDM_VIEW_SORTNAME               46046
+#define IDM_VIEW_SORTTHREAD             46047
+#define IDM_VIEW_TEMPLATENONE           46048
 #define IDM_VIEW_ENCODING               46100
 #define IDM_VIEW_FILTER                 46200
 #define IDM_VIEW_SORT                   46300
@@ -216,5 +220,8 @@
 #define IDM_TAB_NAVIGATENEXT            52007
 #define IDM_TAB_NAVIGATEPREV            52008
 #define IDM_TAB_SELECT                  52100
+#define IDM_ADDRESS_DELETE              53001
+#define IDM_ADDRESS_EDIT                53002
+#define IDM_ADDRESS_NEW                 53003
 
 #endif // __ACTIONID_H__

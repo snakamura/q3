@@ -6,6 +6,7 @@
  *
  */
 
+#include <qmaction.h>
 #include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmeditwindow.h>
@@ -275,12 +276,6 @@ void qm::EditFrameWindowImpl::initActions()
 		IDM_FOCUS_HEADEREDITITEM,
 		IDM_FOCUS_HEADEREDITITEM + 10,
 		pEditWindow_);
-	ADD_ACTION4(EditToolAddressBookAction,
-		IDM_TOOL_ADDRESSBOOK,
-		pEditWindow_->getEditMessageHolder(),
-		pEditWindow_,
-		pDocument_->getAddressBook(),
-		pProfile_);
 	ADD_ACTION2(EditToolAttachmentAction,
 		IDM_TOOL_ATTACHMENT,
 		pEditWindow_->getEditMessageHolder(),
@@ -325,6 +320,12 @@ void qm::EditFrameWindowImpl::initActions()
 		&EditMessage::isAutoReform,
 		&EditMessage::setAutoReform,
 		true);
+	ADD_ACTION4(EditToolSelectAddressAction,
+		IDM_TOOL_SELECTADDRESS,
+		pEditWindow_->getEditMessageHolder(),
+		pEditWindow_,
+		pDocument_->getAddressBook(),
+		pProfile_);
 	ADD_ACTION3(EditToolSecureAction,
 		IDM_TOOL_SMIMEENCRYPT,
 		pEditWindow_->getEditMessageHolder(),
@@ -420,8 +421,8 @@ qm::EditFrameWindow::EditFrameWindow(EditFrameWindowManager* pManager,
 {
 	pImpl_ = new EditFrameWindowImpl();
 	pImpl_->pThis_ = this;
-	pImpl_->bShowToolbar_ = pProfile->getInt(L"MessageFrameWindow", L"ShowToolbar", 1) != 0;
-	pImpl_->bShowStatusBar_ = pProfile->getInt(L"MessageFrameWindow", L"ShowStatusBar", 1) != 0;
+	pImpl_->bShowToolbar_ = pProfile->getInt(L"EditFrameWindow", L"ShowToolbar", 1) != 0;
+	pImpl_->bShowStatusBar_ = pProfile->getInt(L"EditFrameWindow", L"ShowStatusBar", 1) != 0;
 	pImpl_->pManager_ = pManager;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pDocument_ = 0;
@@ -722,10 +723,8 @@ LRESULT qm::EditFrameWindow::onDestroy()
 {
 	Profile* pProfile = pImpl_->pProfile_;
 	
-	pProfile->setInt(L"MessageFrameWindow",
-		L"ShowToolbar", pImpl_->bShowToolbar_);
-	pProfile->setInt(L"MessageFrameWindow",
-		L"ShowStatusBar", pImpl_->bShowStatusBar_);
+	pProfile->setInt(L"EditFrameWindow", L"ShowToolbar", pImpl_->bShowToolbar_);
+	pProfile->setInt(L"EditFrameWindow", L"ShowStatusBar", pImpl_->bShowStatusBar_);
 	
 	if (pImpl_->pToolbarCookie_)
 		pImpl_->pUIManager_->getToolbarManager()->destroy(pImpl_->pToolbarCookie_);

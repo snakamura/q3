@@ -26,6 +26,9 @@ struct ActionNameMap
 	const WCHAR* pwszName_;
 	unsigned int nId_;
 } actionNameMap[] = {
+	{ L"AddressDelete",					IDM_ADDRESS_DELETE						},
+	{ L"AddressEdit",					IDM_ADDRESS_EDIT						},
+	{ L"AddressNew",					IDM_ADDRESS_NEW							},
 	{ L"AttachmentEditAdd",				IDM_ATTACHMENTEDIT_ADD,					},
 	{ L"AttachmentEditDelete",			IDM_ATTACHMENTEDIT_DELETE,				},
 	{ L"AttachmentOpen",				IDM_ATTACHMENT_OPEN						},
@@ -231,6 +234,7 @@ struct ActionNameMap
 	{ L"ToolScript7",					IDM_TOOL_SCRIPT + 7						},
 	{ L"ToolScript8",					IDM_TOOL_SCRIPT + 8						},
 	{ L"ToolScript9",					IDM_TOOL_SCRIPT + 9						},
+	{ L"ToolSelectAddress",				IDM_TOOL_SELECTADDRESS					},
 	{ L"ToolSend",						IDM_TOOL_SEND							},
 	{ L"ToolSubAccount0",				IDM_TOOL_SUBACCOUNT						},
 	{ L"ToolSubAccount1",				IDM_TOOL_SUBACCOUNT + 1					},
@@ -313,9 +317,12 @@ struct ActionNameMap
 	{ L"ViewSort7",						IDM_VIEW_SORT + 7						},
 	{ L"ViewSort8",						IDM_VIEW_SORT + 8						},
 	{ L"ViewSort9",						IDM_VIEW_SORT + 9						},
+	{ L"ViewSortAddress",				IDM_VIEW_SORTADDRESS					},
 	{ L"ViewSortAscending",				IDM_VIEW_SORTASCENDING					},
+	{ L"ViewSortComment",				IDM_VIEW_SORTCOMMENT					},
 	{ L"ViewSortDescending",			IDM_VIEW_SORTDESCENDING					},
 	{ L"ViewSortFloatThread",			IDM_VIEW_SORTFLOATTHREAD				},
+	{ L"ViewSortName",					IDM_VIEW_SORTNAME						},
 	{ L"ViewSortThread",				IDM_VIEW_SORTTHREAD						},
 	{ L"ViewTemplate0",					IDM_VIEW_TEMPLATE						},
 	{ L"ViewTemplate1",					IDM_VIEW_TEMPLATE + 1					},

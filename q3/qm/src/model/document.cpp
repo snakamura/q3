@@ -122,7 +122,8 @@ qm::Document::Document(Profile* pProfile,
 	pImpl_->pScriptManager_.reset(new ScriptManager(pwszMailFolder));
 	pImpl_->pSignatureManager_.reset(new SignatureManager(app.getProfilePath(FileNames::SIGNATURES_XML).get()));
 	pImpl_->pFixedFormTextManager_.reset(new FixedFormTextManager(app.getProfilePath(FileNames::TEXTS_XML).get()));
-	pImpl_->pAddressBook_.reset(new AddressBook(app.getProfilePath(FileNames::ADDRESSBOOK_XML).get(), pProfile));
+	pImpl_->pAddressBook_.reset(new AddressBook(app.getProfilePath(FileNames::ADDRESSBOOK_XML).get(),
+		pProfile->getInt(L"AddressBook", L"WAB", 1) != 0));
 	pImpl_->pSecurity_.reset(new Security(pwszMailFolder, pProfile));
 	pImpl_->pRecents_.reset(new Recents(pProfile));
 	pImpl_->nOnline_ = 0;

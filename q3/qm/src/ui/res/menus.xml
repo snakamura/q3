@@ -124,6 +124,7 @@
 			<separator/>
 			<menuitem text="&amp;Dialup Connect..." action="ToolDialup"/>
 			<separator/>
+			<menuitem text="Address B&amp;ook..." action="ToolAddressBook"/>
 			<menuitem text="Add &amp;From to Address Book..." action="ToolAddAddress"/>
 			<separator/>
 			<popupmenu text="Scri&amp;pt" action="ToolScript"/>
@@ -255,7 +256,7 @@
 			</popupmenu>
 		</popupmenu>
 		<popupmenu text="&amp;Tool">
-			<menuitem text="Address &amp;Book..." action="ToolAddressBook"/>
+			<menuitem text="Address &amp;Book..." action="ToolSelectAddress"/>
 			<menuitem text="&amp;Attachment..." action="ToolAttachment"/>
 			<popupmenu text="&amp;Insert Text" action="ToolInsertText"/>
 			<menuitem text="Insert Si&amp;gnature" action="ToolInsertSignature"/>
@@ -278,6 +279,34 @@
 			</popupmenu>
 			<separator/>
 			<popupmenu text="S&amp;cript" action="ToolScript"/>
+		</popupmenu>
+	</menubar>
+	<menubar name="addressbookframe">
+		<popupmenu text="&amp;File">
+			<menuitem text="&amp;New..." action="AddressNew"/>
+			<menuitem text="&amp;Edit..." action="AddressEdit"/>
+			<menuitem text="&amp;Delete" action="AddressDelete"/>
+			<separator/>
+			<menuitem text="&amp;Save" action="FileSave"/>
+			<separator/>
+			<menuitem text="&amp;Close" action="FileClose"/>
+		</popupmenu>
+		<popupmenu text="&amp;View">
+			<popupmenu text="&amp;Sort">
+				<menuitem text="&amp;Name" action="ViewSortName"/>
+				<menuitem text="&amp;Address" action="ViewSortAddress"/>
+				<menuitem text="&amp;Comment" action="ViewSortComment"/>
+				<separator/>
+				<menuitem text="A&amp;scending" action="ViewSortAscending"/>
+				<menuitem text="&amp;Descending" action="ViewSortDescending"/>
+			</popupmenu>
+			<separator/>
+			<menuitem text="&amp;Refresh" action="ViewRefresh"/>
+			<separator/>
+			<popupmenu text="Show &amp;Controls">
+				<menuitem text="Show &amp;Toolbar" action="ViewShowToolbar"/>
+				<menuitem text="Show &amp;Status Bar" action="ViewShowStatusBar"/>
+			</popupmenu>
 		</popupmenu>
 	</menubar>
 	<menu name="edit">
@@ -400,6 +429,11 @@
 		<menuitem text="&amp;Edit Title..." action="TabEditTitle"/>
 		<separator/>
 		<menuitem text="&amp;Lock" action="TabLock"/>
+	</menu>
+	<menu name="addressbooklist">
+		<menuitem text="&amp;New..." action="AddressNew"/>
+		<menuitem text="&amp;Edit..." action="AddressEdit"/>
+		<menuitem text="&amp;Delete" action="AddressDelete"/>
 	</menu>
 	<menu name="sync">
 		<menuitem text="S&amp;end &amp;&amp; Receive" action="ToolSync"/>

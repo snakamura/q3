@@ -827,79 +827,6 @@ void qm::EditFocusItemAction::invoke(const ActionEvent& event)
 
 /****************************************************************************
  *
- * EditToolAddressBookAction
- *
- */
-
-qm::EditToolAddressBookAction::EditToolAddressBookAction(EditMessageHolder* pEditMessageHolder,
-														 EditWindow* pEditWindow,
-														 AddressBook* pAddressBook,
-														 Profile* pProfile) :
-	pEditMessageHolder_(pEditMessageHolder),
-	pEditWindow_(pEditWindow),
-	pAddressBook_(pAddressBook),
-	pProfile_(pProfile)
-{
-}
-
-qm::EditToolAddressBookAction::~EditToolAddressBookAction()
-{
-}
-
-void qm::EditToolAddressBookAction::invoke(const ActionEvent& event)
-{
-	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
-	pEditMessage->update();
-	
-	const WCHAR* pwszFields[] = {
-		L"To",
-		L"Cc",
-		L"Bcc"
-	};
-	wstring_ptr wstrAddresses[countof(pwszFields)];
-	for (int n = 0; n < countof(pwszFields); ++n)
-		wstrAddresses[n] = pEditMessage->getField(
-			pwszFields[n], EditMessage::FIELDTYPE_ADDRESSLIST);
-	const WCHAR* pwszAddresses[] = {
-		wstrAddresses[0].get() ? wstrAddresses[0].get() : L"",
-		wstrAddresses[1].get() ? wstrAddresses[1].get() : L"",
-		wstrAddresses[2].get() ? wstrAddresses[2].get() : L"",
-	};
-	AddressBookDialog dialog(pAddressBook_, pProfile_, pwszAddresses);
-	if (dialog.doModal(pEditWindow_->getParentFrame()) == IDOK) {
-		struct Type
-		{
-			AddressBookDialog::Type dialogType_;
-			const WCHAR* pwszField_;
-		} types[] = {
-			{ AddressBookDialog::TYPE_TO,	L"To"	},
-			{ AddressBookDialog::TYPE_CC,	L"Cc"	},
-			{ AddressBookDialog::TYPE_BCC,	L"Bcc"	}
-		};
-		for (int n = 0; n < countof(types); ++n) {
-			StringBuffer<WSTRING> buf;
-			const AddressBookDialog::AddressList& l =
-				dialog.getAddresses(types[n].dialogType_);
-			for (AddressBookDialog::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
-				if (buf.getLength() != 0)
-					buf.append(L", ");
-				buf.append(*it);
-			}
-			
-			pEditMessage->setField(types[n].pwszField_,
-				buf.getCharArray(), EditMessage::FIELDTYPE_ADDRESSLIST);
-		}
-	}
-}
-
-bool qm::EditToolAddressBookAction::isEnabled(const ActionEvent& event)
-{
-	return !pEditWindow_->isHeaderEdit();
-}
-
-
-/****************************************************************************
- *
  * EditToolAttachmentAction
  *
  */
@@ -1164,4 +1091,77 @@ bool qm::EditToolSecureAction::isChecked(const ActionEvent& event)
 {
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
 	return (pEditMessage->getSecure() & secure_) != 0;
+}
+
+
+/****************************************************************************
+ *
+ * EditToolSelectAddressAction
+ *
+ */
+
+qm::EditToolSelectAddressAction::EditToolSelectAddressAction(EditMessageHolder* pEditMessageHolder,
+															 EditWindow* pEditWindow,
+															 AddressBook* pAddressBook,
+															 Profile* pProfile) :
+	pEditMessageHolder_(pEditMessageHolder),
+	pEditWindow_(pEditWindow),
+	pAddressBook_(pAddressBook),
+	pProfile_(pProfile)
+{
+}
+
+qm::EditToolSelectAddressAction::~EditToolSelectAddressAction()
+{
+}
+
+void qm::EditToolSelectAddressAction::invoke(const ActionEvent& event)
+{
+	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
+	pEditMessage->update();
+	
+	const WCHAR* pwszFields[] = {
+		L"To",
+		L"Cc",
+		L"Bcc"
+	};
+	wstring_ptr wstrAddresses[countof(pwszFields)];
+	for (int n = 0; n < countof(pwszFields); ++n)
+		wstrAddresses[n] = pEditMessage->getField(
+			pwszFields[n], EditMessage::FIELDTYPE_ADDRESSLIST);
+	const WCHAR* pwszAddresses[] = {
+		wstrAddresses[0].get() ? wstrAddresses[0].get() : L"",
+		wstrAddresses[1].get() ? wstrAddresses[1].get() : L"",
+		wstrAddresses[2].get() ? wstrAddresses[2].get() : L"",
+	};
+	AddressBookDialog dialog(pAddressBook_, pProfile_, pwszAddresses);
+	if (dialog.doModal(pEditWindow_->getParentFrame()) == IDOK) {
+		struct Type
+		{
+			AddressBookDialog::Type dialogType_;
+			const WCHAR* pwszField_;
+		} types[] = {
+			{ AddressBookDialog::TYPE_TO,	L"To"	},
+			{ AddressBookDialog::TYPE_CC,	L"Cc"	},
+			{ AddressBookDialog::TYPE_BCC,	L"Bcc"	}
+		};
+		for (int n = 0; n < countof(types); ++n) {
+			StringBuffer<WSTRING> buf;
+			const AddressBookDialog::AddressList& l =
+				dialog.getAddresses(types[n].dialogType_);
+			for (AddressBookDialog::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
+				if (buf.getLength() != 0)
+					buf.append(L", ");
+				buf.append(*it);
+			}
+			
+			pEditMessage->setField(types[n].pwszField_,
+				buf.getCharArray(), EditMessage::FIELDTYPE_ADDRESSLIST);
+		}
+	}
+}
+
+bool qm::EditToolSelectAddressAction::isEnabled(const ActionEvent& event)
+{
+	return !pEditWindow_->isHeaderEdit();
 }

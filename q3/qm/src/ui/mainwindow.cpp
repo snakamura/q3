@@ -255,6 +255,7 @@ public:
 	GoRound* pGoRound_;
 	TempFileCleaner* pTempFileCleaner_;
 	AutoPilot* pAutoPilot_;
+	AddressBookFrameWindowManager* pAddressBookFrameWindowManager_;
 	std::auto_ptr<Accelerator> pAccelerator_;
 	SplitterWindow* pFolderSplitterWindow_;
 	SplitterWindow* pListSplitterWindow_;
@@ -901,6 +902,9 @@ void qm::MainWindowImpl::initActions()
 		pDocument_->getAddressBook(),
 		pMessageSelectionModel_.get(),
 		pThis_->getHandle());
+	ADD_ACTION1(ToolAddressBookAction,
+		IDM_TOOL_ADDRESSBOOK,
+		pAddressBookFrameWindowManager_);
 	ADD_ACTION1(ToolAutoPilotAction,
 		IDM_TOOL_AUTOPILOT,
 		pAutoPilot_);
@@ -1747,6 +1751,8 @@ qm::MainWindow::MainWindow(Profile* pProfile) :
 	pImpl_->pSyncDialogManager_ = 0;
 	pImpl_->pGoRound_ = 0;
 	pImpl_->pTempFileCleaner_ = 0;
+	pImpl_->pAutoPilot_ = 0;
+	pImpl_->pAddressBookFrameWindowManager_ = 0;
 	pImpl_->pFolderSplitterWindow_ = 0;
 	pImpl_->pListSplitterWindow_ = 0;
 	pImpl_->pFolderWindow_ = 0;
@@ -2130,6 +2136,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pGoRound_ = pContext->pGoRound_;
 	pImpl_->pTempFileCleaner_ = pContext->pTempFileCleaner_;
 	pImpl_->pAutoPilot_ = pContext->pAutoPilot_;
+	pImpl_->pAddressBookFrameWindowManager_ = pContext->pAddressBookFrameWindowManager_;
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pImpl_->pUIManager_->getKeyMap()->createAccelerator(

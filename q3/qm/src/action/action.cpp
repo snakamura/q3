@@ -7,6 +7,7 @@
  */
 
 #include <qmaccount.h>
+#include <qmaddressbookwindow.h>
 #include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmfolder.h>
@@ -49,6 +50,7 @@
 #include "../script/scriptmanager.h"
 #include "../sync/autopilot.h"
 #include "../sync/syncmanager.h"
+#include "../ui/addressbookwindow.h"
 #include "../ui/dialogs.h"
 #include "../ui/editframewindow.h"
 #include "../ui/menus.h"
@@ -4732,8 +4734,8 @@ bool qm::ToolAddAddressAction::isEnabled(const ActionEvent& event)
  *
  */
 
-qm::ToolAddressBookAction::ToolAddressBookAction(AddressBook* pAddressBook) :
-	pAddressBook_(pAddressBook)
+qm::ToolAddressBookAction::ToolAddressBookAction(AddressBookFrameWindowManager* pManager) :
+	pManager_(pManager)
 {
 }
 
@@ -4743,7 +4745,7 @@ qm::ToolAddressBookAction::~ToolAddressBookAction()
 
 void qm::ToolAddressBookAction::invoke(const ActionEvent& event)
 {
-	// TODO
+	pManager_->open();
 }
 
 
