@@ -54,16 +54,6 @@ qmnntp::NntpDriver::~NntpDriver()
 
 bool qmnntp::NntpDriver::init()
 {
-	// TODO
-	// This should be removed in the future.
-	// Just for compatibility.
-	const Account::FolderList& l = pAccount_->getFolders();
-	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-		Folder* pFolder = *it;
-		if (pFolder->getType() == Folder::TYPE_NORMAL &&
-			!pFolder->isFlag(Folder::FLAG_LOCAL))
-			pFolder->setFlags(Folder::FLAG_LOCAL, Folder::FLAG_LOCAL);
-	}
 	return true;
 }
 
