@@ -392,9 +392,17 @@ void qs::ConverterFactory::unregisterFactory(ConverterFactory* pFactory)
 
 struct qs::UTF7ConverterImpl
 {
+	enum Type {
+		TYPE_D,
+		TYPE_O,
+		TYPE_E
+	};
+	
 	bool decode(const CHAR* p,
 				const CHAR* pEnd,
 				WCHAR** ppDst);
+	
+	static Type getType(CHAR c);
 	
 	bool bModified_;
 	bool bEncoded_;
@@ -430,6 +438,24 @@ bool qs::UTF7ConverterImpl::decode(const CHAR* p,
 	*ppDst = pDst;
 	
 	return true;
+}
+
+UTF7ConverterImpl::Type qs::UTF7ConverterImpl::getType(CHAR c)
+{
+	if (('a' <= c && c <= 'z') ||
+		('A' <= c && c <= 'Z') ||
+		('0' <= c && c <= '9'))
+		return TYPE_D;
+	
+	const CHAR* pszD = "\'(),-./:?";
+	const CHAR* pszO = "!\"#$%&*;<=>@[]^_\'{|}";
+	
+	if (strchr(pszD, c))
+		return TYPE_D;
+	else if (strchr(pszO, c))
+		return TYPE_O;
+	else
+		return TYPE_E;
 }
 
 
@@ -476,7 +502,7 @@ size_t qs::UTF7Converter::encodeImpl(const WCHAR* pwsz,
 	const WCHAR* pEncodeBegin = 0;
 	do {
 		if (pEncodeBegin) {
-			if (pSrc == pSrcEnd || (0x20 <= *pSrc && *pSrc <= 0x7e)) {
+			if (pSrc == pSrcEnd || UTF7ConverterImpl::getType(*pSrc) != UTF7ConverterImpl::TYPE_E) {
 				size_t n = 0;
 				*p++ = cIn;
 				size_t nEncodeLen = pSrc - pEncodeBegin;
@@ -506,7 +532,8 @@ size_t qs::UTF7Converter::encodeImpl(const WCHAR* pwsz,
 				*p++ = cIn;
 				*p++ = cOut;
 			}
-			else if (0x20 <= *pSrc && *pSrc <= 0x7e) {
+			else if (UTF7ConverterImpl::getType(*pSrc) != UTF7ConverterImpl::TYPE_E ||
+				*pSrc == ' ' || *pSrc == '\t' || *pSrc == '\r' || *pSrc == '\n') {
 				*p++ = static_cast<char>(*pSrc);
 			}
 			else {
@@ -546,9 +573,11 @@ size_t qs::UTF7Converter::decodeImpl(const CHAR* psz,
 	
 	while (pSrc != pSrcEnd) {
 		if (pEncodeBegin) {
-			if (*pSrc == cOut) {
+			if (*pSrc == cOut || !Base64Encoder::isEncodedChar(*pSrc)) {
 				if (!pImpl_->decode(pEncodeBegin, pSrc, &pDst))
 					return -1;
+				if (*pSrc != cOut)
+					*pDst++ = static_cast<WCHAR>(*pSrc);
 				pEncodeBegin = 0;
 			}
 		}

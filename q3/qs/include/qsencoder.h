@@ -159,6 +159,8 @@ public:
 					   bool bFold,
 					   unsigned char* pDst,
 					   size_t* pnDstLen);
+	
+	static bool isEncodedChar(CHAR c);
 
 private:
 	Base64Encoder(const Base64Encoder&);

@@ -304,6 +304,16 @@ void qs::Base64Encoder::encode(const unsigned char* pSrc,
 	*pnDstLen = pDst - pDstOrg;
 }
 
+bool qs::Base64Encoder::isEncodedChar(CHAR c)
+{
+	const unsigned char* p = Base64EncoderImpl::szEncode__;
+	for (int n = 0; n < countof(Base64EncoderImpl::szEncode__); ++n, ++p) {
+		if (*p == c)
+			return true;
+	}
+	return false;
+}
+
 
 /****************************************************************************
  *
