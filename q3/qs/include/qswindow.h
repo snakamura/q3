@@ -226,6 +226,8 @@ public:
 	
 	HFONT getFont() const;
 	void setFont(HFONT hfont);
+	void setFont(HFONT hfont,
+				 bool bRedraw);
 	
 	bool createCaret(int nWidth,
 					 int nHeight);

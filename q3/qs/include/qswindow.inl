@@ -371,7 +371,13 @@ inline HFONT qs::Window::getFont() const
 
 inline void qs::Window::setFont(HFONT hfont)
 {
-	::SendMessage(hwnd_, WM_SETFONT, reinterpret_cast<WPARAM>(hfont), 0);
+	setFont(hfont, true);
+}
+
+inline void qs::Window::setFont(HFONT hfont,
+								bool bRedraw)
+{
+	::SendMessage(hwnd_, WM_SETFONT, reinterpret_cast<WPARAM>(hfont), MAKELPARAM(bRedraw, 0));
 }
 
 inline bool qs::Window::createCaret(int nWidth,
