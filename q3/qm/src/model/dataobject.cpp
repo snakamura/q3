@@ -544,6 +544,9 @@ MessageDataObject::Flag qm::MessageDataObject::getPasteFlag(IDataObject* pDataOb
 	}
 	
 	if (flag == FLAG_NONE) {
+#if 1
+		flag = FLAG_MOVE;
+#else
 		Account* pAccount = 0;
 		FORMATETC fe = formats__[FORMAT_FOLDER];
 		StgMedium stm;
@@ -556,6 +559,7 @@ MessageDataObject::Flag qm::MessageDataObject::getPasteFlag(IDataObject* pDataOb
 				pAccount = pFolderFrom->getAccount();
 		}
 		flag = pFolder->getAccount() != pAccount ? FLAG_COPY : FLAG_MOVE;
+#endif
 	}
 	
 	return flag;
