@@ -1849,7 +1849,7 @@ LRESULT qm::MainWindow::onInitMenuPopup(HMENU hmenu, UINT nIndex, bool bSysMenu)
 	if (!bSysMenu) {
 		UINT nIdFirst = 0;
 		UINT nIdLast = 0;
-		MENUITEMINFO mii = { sizeof(mii), MIIM_TYPE | MIIM_ID };
+		MENUITEMINFO mii = { sizeof(mii), MIIM_ID };
 		for (UINT n = 0; ; ++n) {
 			if (!::GetMenuItemInfo(hmenu, n, TRUE, &mii))
 				break;
