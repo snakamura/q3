@@ -358,4 +358,12 @@
 		<menuitem text="&amp;Add..." action="AttachmentEditAdd"/>
 		<menuitem text="&amp;Delete" action="AttachmentEditDelete"/>
 	</menu>
+	<menu name="sync">
+		<menuitem text="S&amp;end &amp;&amp; Receive" action="ToolSync"/>
+		<menuitem text="&amp;Receive" action="ToolReceive"/>
+		<menuitem text="&amp;Send" action="ToolSend"/>
+	</menu>
+	<menu name="goround">
+		<popupmenu text="&amp;Go Round" action="ToolGoRound"/>
+	</menu>
 </menus>

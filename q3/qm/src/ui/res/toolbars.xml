@@ -13,8 +13,8 @@
 		<separator/>
 		<button image="6" action="MessageSearch" text="Search"/>
 		<separator/>
-		<button image="7" action="ToolSync" text="Sync"/>
-		<button image="8" action="ToolGoround0" text="Goround"/>
+		<button image="7" action="ToolSync" text="Sync" dropdown="sync"/>
+		<button image="8" action="ToolGoround0" text="Goround" dropdown="goround"/>
 	</toolbar>
 	<toolbar name="messageframe" showText="true">
 		<button image="0" action="MessageNew" text="New"/>
