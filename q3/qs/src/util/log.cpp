@@ -115,6 +115,7 @@ void qs::Logger::log(Level level,
 		if (pImpl_->pStream_->write(reinterpret_cast<const unsigned char*>("\r\n"), 2) == -1)
 			return;
 	}
+	pImpl_->pStream_->flush();
 }
 
 bool qs::Logger::isEnabled(Level level) const
