@@ -6,6 +6,7 @@
  *
  */
 
+#include <qsnew.h>
 #include <qsstl.h>
 
 #include "folderlistmodel.h"
@@ -20,14 +21,27 @@ using namespace qs;
  *
  */
 
-qm::FolderListModel::FolderListModel(QSTATUS* pstatus) :
+qm::FolderListModel::FolderListModel(FolderModel* pFolderModel, QSTATUS* pstatus) :
+	pFolderModel_(pFolderModel),
+	pDelayedFolderModelHandler_(0),
 	pAccount_(0),
 	pFocusedFolder_(0)
 {
+	DECLARE_QSTATUS();
+	
+	status = newQsObject(this, &pDelayedFolderModelHandler_);
+	CHECK_QSTATUS_SET(pstatus);
+	status = pFolderModel_->addFolderModelHandler(pDelayedFolderModelHandler_);
+	CHECK_QSTATUS_SET(pstatus);
 }
 
 qm::FolderListModel::~FolderListModel()
 {
+	if (pAccount_)
+		pAccount_->removeAccountHandler(this);
+	
+	pFolderModel_->removeFolderModelHandler(pDelayedFolderModelHandler_);
+	delete pDelayedFolderModelHandler_;
 }
 
 Account* qm::FolderListModel::getAccount() const
@@ -35,9 +49,28 @@ Account* qm::FolderListModel::getAccount() const
 	return pAccount_;
 }
 
-void qm::FolderListModel::setAccount(Account* pAccount)
+QSTATUS qm::FolderListModel::setAccount(Account* pAccount)
 {
-	pAccount_ = pAccount;
+	DECLARE_QSTATUS();
+	
+	if (pAccount != pAccount_) {
+		if (pAccount_) {
+			status = pAccount_->removeAccountHandler(this);
+			CHECK_QSTATUS();
+		}
+		
+		pAccount_ = pAccount;
+		
+		if (pAccount_) {
+			status = pAccount_->addAccountHandler(this);
+			CHECK_QSTATUS();
+		}
+		
+		status = fireAccountChanged();
+		CHECK_QSTATUS();
+	}
+	
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::FolderListModel::getSelectedFolders(Account::FolderList* pList) const
@@ -80,4 +113,98 @@ Folder* qm::FolderListModel::getFocusedFolder() const
 void qm::FolderListModel::setFocusedFolder(Folder* pFolder)
 {
 	pFocusedFolder_ = pFolder;
+}
+
+QSTATUS qm::FolderListModel::addFolderListModelHandler(
+	FolderListModelHandler* pHandler)
+{
+	return STLWrapper<HandlerList>(listHandler_).push_back(pHandler);
+}
+
+QSTATUS qm::FolderListModel::removeFolderListModelHandler(
+	FolderListModelHandler* pHandler)
+{
+	HandlerList::iterator it = std::remove(listHandler_.begin(),
+		listHandler_.end(), pHandler);
+	listHandler_.erase(it, listHandler_.end());
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::FolderListModel::accountSelected(const FolderModelEvent& event)
+{
+	return setAccount(event.getAccount());
+}
+
+QSTATUS qm::FolderListModel::folderSelected(const FolderModelEvent& event)
+{
+	return setAccount(0);
+}
+
+QSTATUS qm::FolderListModel::folderListChanged(const FolderListChangedEvent& event)
+{
+	return fireFolderListChanged();
+}
+
+QSTATUS qm::FolderListModel::fireAccountChanged()
+{
+	DECLARE_QSTATUS();
+	
+	FolderListModelEvent event(this);
+	
+	HandlerList::const_iterator it = listHandler_.begin();
+	while (it != listHandler_.end()) {
+		status = (*it)->accountChanged(event);
+		CHECK_QSTATUS();
+		++it;
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::FolderListModel::fireFolderListChanged()
+{
+	DECLARE_QSTATUS();
+	
+	FolderListModelEvent event(this);
+	
+	HandlerList::const_iterator it = listHandler_.begin();
+	while (it != listHandler_.end()) {
+		status = (*it)->folderListChanged(event);
+		CHECK_QSTATUS();
+		++it;
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * FolderListModelHandler
+ *
+ */
+
+qm::FolderListModelHandler::~FolderListModelHandler()
+{
+}
+
+
+/****************************************************************************
+ *
+ * FolderListModelEvent
+ *
+ */
+
+qm::FolderListModelEvent::FolderListModelEvent(FolderListModel* pFolderListModel) :
+	pFolderListModel_(pFolderListModel)
+{
+}
+
+qm::FolderListModelEvent::~FolderListModelEvent()
+{
+}
+
+FolderListModel* qm::FolderListModelEvent::getFolderListModel() const
+{
+	return pFolderListModel_;
 }

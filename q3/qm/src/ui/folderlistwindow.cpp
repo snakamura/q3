@@ -40,7 +40,7 @@ using namespace qs;
 
 class qm::FolderListWindowImpl :
 	public NotifyHandler,
-	public FolderModelHandler
+	public FolderListModelHandler
 {
 public:
 	QSTATUS loadColumns();
@@ -52,8 +52,8 @@ public:
 	virtual LRESULT onNotify(NMHDR* pnmhdr, bool* pbHandled);
 
 public:
-	virtual QSTATUS accountSelected(const FolderModelEvent& event);
-	virtual QSTATUS folderSelected(const FolderModelEvent& event);
+	virtual qs::QSTATUS accountChanged(const FolderListModelEvent& event);
+	virtual qs::QSTATUS folderListChanged(const FolderListModelEvent& event);
 
 private:
 	QSTATUS setCurrentAccount(Account* pAccount);
@@ -71,9 +71,7 @@ public:
 	Profile* pProfile_;
 	Accelerator* pAccelerator_;
 	Document* pDocument_;
-	Account* pAccount_;
 	
-	DelayedFolderModelHandler* pDelayedFolderModelHandler_;
 	UINT nId_;
 	HFONT hfont_;
 	bool bInserting_;
@@ -198,21 +196,19 @@ LRESULT qm::FolderListWindowImpl::onNotify(NMHDR* pnmhdr, bool* pbHandled)
 	return 0;
 }
 
-QSTATUS qm::FolderListWindowImpl::accountSelected(const FolderModelEvent& event)
+QSTATUS qm::FolderListWindowImpl::accountChanged(const FolderListModelEvent& event)
 {
-	return setCurrentAccount(event.getAccount());
+	return setCurrentAccount(pFolderListModel_->getAccount());
 }
 
-QSTATUS qm::FolderListWindowImpl::folderSelected(const FolderModelEvent& event)
+QSTATUS qm::FolderListWindowImpl::folderListChanged(const FolderListModelEvent& event)
 {
-	return setCurrentAccount(0);
+	return setCurrentAccount(pFolderListModel_->getAccount());
 }
 
 QSTATUS qm::FolderListWindowImpl::setCurrentAccount(Account* pAccount)
 {
 	DECLARE_QSTATUS();
-	
-	pAccount_ = pAccount;
 	
 	pThis_->sendMessage(WM_SETREDRAW, FALSE);
 	
@@ -277,8 +273,6 @@ QSTATUS qm::FolderListWindowImpl::setCurrentAccount(Account* pAccount)
 QSTATUS qm::FolderListWindowImpl::updateFolderListModel()
 {
 	DECLARE_QSTATUS();
-	
-	pFolderListModel_->setAccount(pAccount_);
 	
 	Folder* pFocusedFolder = 0;
 	int nItem = ListView_GetNextItem(pThis_->getHandle(),
@@ -348,8 +342,6 @@ qm::FolderListWindow::FolderListWindow(WindowBase* pParentWindow,
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pAccelerator_ = 0;
 	pImpl_->pDocument_ = 0;
-	pImpl_->pAccount_ = 0;
-	pImpl_->pDelayedFolderModelHandler_ = 0;
 	pImpl_->nId_ = 0;
 	pImpl_->hfont_ = 0;
 	pImpl_->bInserting_ = false;
@@ -359,10 +351,7 @@ qm::FolderListWindow::FolderListWindow(WindowBase* pParentWindow,
 	status = pParentWindow->addNotifyHandler(pImpl_);
 	CHECK_QSTATUS_SET(pstatus);
 	
-	status = newQsObject(pImpl_, &pImpl_->pDelayedFolderModelHandler_);
-	CHECK_QSTATUS_SET(pstatus);
-	status = pImpl_->pFolderModel_->addFolderModelHandler(
-		pImpl_->pDelayedFolderModelHandler_);
+	status = pImpl_->pFolderListModel_->addFolderListModelHandler(pImpl_);
 	CHECK_QSTATUS_SET(pstatus);
 }
 
@@ -370,7 +359,6 @@ qm::FolderListWindow::~FolderListWindow()
 {
 	if (pImpl_) {
 		delete pImpl_->pAccelerator_;
-		delete pImpl_->pDelayedFolderModelHandler_;
 		delete pImpl_;
 	}
 }
@@ -484,8 +472,7 @@ LRESULT qm::FolderListWindow::onDestroy()
 	}
 	
 	pImpl_->pParentWindow_->removeNotifyHandler(pImpl_);
-	pImpl_->pFolderModel_->removeFolderModelHandler(
-		pImpl_->pDelayedFolderModelHandler_);
+	pImpl_->pFolderListModel_->removeFolderListModelHandler(pImpl_);
 	
 	return DefaultWindowHandler::onDestroy();
 }

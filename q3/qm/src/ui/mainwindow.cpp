@@ -1219,8 +1219,8 @@ qm::MainWindow::~MainWindow()
 {
 	if (pImpl_) {
 		delete pImpl_->pAccelerator_;
-		delete pImpl_->pFolderModel_;
 		delete pImpl_->pFolderListModel_;
+		delete pImpl_->pFolderModel_;
 		delete pImpl_->pViewModelManager_;
 		delete pImpl_->pMessageSelectionModel_;
 		delete pImpl_->pListOnlyMessageSelectionModel_;
@@ -1567,7 +1567,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	CHECK_QSTATUS_VALUE(-1);
 	pImpl_->pFolderModel_ = pFolderModel.release();
 	
-	status = newQsObject(&pImpl_->pFolderListModel_);
+	status = newQsObject(pImpl_->pFolderModel_, &pImpl_->pFolderListModel_);
 	CHECK_QSTATUS_VALUE(-1);
 	
 	status = newQsObject(pImpl_->pProfile_, pImpl_->pDocument_,
