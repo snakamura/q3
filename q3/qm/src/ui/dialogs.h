@@ -1688,9 +1688,6 @@ protected:
 private:
 	LRESULT onBrowse();
 	LRESULT onPathChange();
-	LRESULT onMultiMessages();
-	LRESULT onEncodingEditChange();
-	LRESULT onEncodingSelChange();
 
 private:
 	void updateState();

@@ -1122,17 +1122,17 @@ public:
 								 const PathList& listPath,
 								 qs::Profile* pProfile,
 								 HWND hwnd);
-	static bool readMessage(NormalFolder* pFolder,
-							const WCHAR* pwszPath,
-							bool bMultiple,
-							unsigned int nFlags,
-							ProgressDialog* pDialog,
-							int* pnPos,
-							bool* pbCanceled);
-	static bool readMessage(NormalFolder* pFolder,
-							const WCHAR* pwszPath,
-							const WCHAR* pwszEncoding,
-							unsigned int nFlags);
+	static bool readSingleMessage(NormalFolder* pFolder,
+								  const WCHAR* pwszPath,
+								  const WCHAR* pwszEncoding,
+								  unsigned int nFlags);
+	static bool readMultipleMessages(NormalFolder* pFolder,
+									 const WCHAR* pwszPath,
+									 const WCHAR* pwszEncoding,
+									 unsigned int nFlags,
+									 ProgressDialog* pDialog,
+									 int* pnPos,
+									 bool* pbCanceled);
 
 private:
 	bool import(NormalFolder* pFolder);

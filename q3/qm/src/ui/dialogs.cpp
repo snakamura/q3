@@ -4703,10 +4703,7 @@ LRESULT qm::ImportDialog::onCommand(WORD nCode,
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_BROWSE, onBrowse)
-		HANDLE_COMMAND_ID(IDC_MULTIMESSAGES, onMultiMessages)
 		HANDLE_COMMAND_ID_CODE(IDC_PATH, EN_CHANGE, onPathChange)
-		HANDLE_COMMAND_ID_CODE(IDC_ENCODING, CBN_EDITCHANGE, onEncodingEditChange)
-		HANDLE_COMMAND_ID_CODE(IDC_ENCODING, CBN_SELCHANGE, onEncodingSelChange)
 	END_COMMAND_HANDLER()
 	return DefaultDialog::onCommand(nCode, nId);
 }
@@ -4769,25 +4766,27 @@ LRESULT qm::ImportDialog::onBrowse()
 	FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
 		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_ALLOWMULTISELECT);
 	
-	if (dialog.doModal(getHandle()) == IDOK) {
-		const WCHAR* pwszPath = dialog.getPath();
-		if (*(pwszPath + wcslen(pwszPath) + 1)) {
-			StringBuffer<WSTRING> buf;
-			const WCHAR* p = pwszPath;
-			while (true) {
-				buf.append(p);
-				p += wcslen(p) + 1;
-				if (!*p)
-					break;
-				buf.append(L';');
-			}
-			setDlgItemText(IDC_PATH, buf.getCharArray());
+	if (dialog.doModal(getHandle()) != IDOK)
+		return 0;
+	
+	const WCHAR* pwszPath = dialog.getPath();
+	if (*(pwszPath + wcslen(pwszPath) + 1)) {
+		StringBuffer<WSTRING> buf;
+		const WCHAR* p = pwszPath;
+		while (true) {
+			buf.append(p);
+			p += wcslen(p) + 1;
+			if (!*p)
+				break;
+			buf.append(L';');
 		}
-		else {
-			setDlgItemText(IDC_PATH, pwszPath);
-		}
-		updateState();
+		setDlgItemText(IDC_PATH, buf.getCharArray());
 	}
+	else {
+		setDlgItemText(IDC_PATH, pwszPath);
+	}
+	
+	updateState();
 	
 	return 0;
 }
@@ -4798,30 +4797,8 @@ LRESULT qm::ImportDialog::onPathChange()
 	return 0;
 }
 
-LRESULT qm::ImportDialog::onMultiMessages()
-{
-	updateState();
-	return 0;
-}
-
-LRESULT qm::ImportDialog::onEncodingEditChange()
-{
-	updateState();
-	return 0;
-}
-
-LRESULT qm::ImportDialog::onEncodingSelChange()
-{
-	postMessage(WM_COMMAND, MAKEWPARAM(IDC_ENCODING, CBN_EDITCHANGE));
-	return 0;
-}
-
 void qm::ImportDialog::updateState()
 {
-	Window(getDlgItem(IDC_MULTIMESSAGES)).enableWindow(
-		sendDlgItemMessage(IDC_ENCODING, WM_GETTEXTLENGTH) == 0);
-	Window(getDlgItem(IDC_ENCODING)).enableWindow(
-		sendDlgItemMessage(IDC_MULTIMESSAGES, BM_GETCHECK) != BST_CHECKED);
 	Window(getDlgItem(IDOK)).enableWindow(
 		sendDlgItemMessage(IDC_PATH, WM_GETTEXTLENGTH) != 0);
 }

@@ -1667,9 +1667,6 @@ bool qm::FileImportAction::import(NormalFolder* pFolder,
 								  unsigned int nFlags,
 								  HWND hwnd)
 {
-	if (pwszEncoding)
-		bMultipleMessagesInFile = false;
-	
 	unsigned int nCount = listPath.size();
 	if (bMultipleMessagesInFile)
 		nCount = 100;
@@ -1678,25 +1675,25 @@ bool qm::FileImportAction::import(NormalFolder* pFolder,
 	ProgressDialogInit init(&progressDialog, hwnd,
 		IDS_IMPORT, IDS_IMPORT, 0, nCount, 0);
 	
-	if (pwszEncoding) {
+	if (bMultipleMessagesInFile) {
+		int nPos = 0;
 		for (PathList::size_type n = 0; n < listPath.size(); ++n) {
-			if (!readMessage(pFolder, listPath[n], pwszEncoding, nFlags))
+			bool bCanceled = false;
+			if (!readMultipleMessages(pFolder, listPath[n], pwszEncoding,
+				nFlags, &progressDialog, &nPos, &bCanceled))
+				return false;
+			if (bCanceled)
+				break;
+		}
+	}
+	else {
+		for (PathList::size_type n = 0; n < listPath.size(); ++n) {
+			if (!readSingleMessage(pFolder, listPath[n], pwszEncoding, nFlags))
 				return false;
 			
 			if (progressDialog.isCanceled())
 				break;
 			progressDialog.setPos(n);
-		}
-	}
-	else {
-		int nPos = 0;
-		for (PathList::size_type n = 0; n < listPath.size(); ++n) {
-			bool bCanceled = false;
-			if (!readMessage(pFolder, listPath[n], bMultipleMessagesInFile,
-				nFlags, &progressDialog, &nPos, &bCanceled))
-				return false;
-			if (bCanceled)
-				break;
 		}
 	}
 	
@@ -1769,72 +1766,47 @@ bool qm::FileImportAction::importShowDialog(NormalFolder* pFolder,
 	return true;
 }
 
-bool qm::FileImportAction::readMessage(NormalFolder* pFolder,
-									   const WCHAR* pwszPath,
-									   bool bMultiple,
-									   unsigned int nFlags,
-									   ProgressDialog* pDialog,
-									   int* pnPos,
-									   bool* pbCanceled)
+bool qm::FileImportAction::readSingleMessage(NormalFolder* pFolder,
+											 const WCHAR* pwszPath,
+											 const WCHAR* pwszEncoding,
+											 unsigned int nFlags)
 {
-	assert(pFolder);
-	assert(pwszPath);
-	assert((pDialog && pnPos && pbCanceled) ||
-		(!pDialog && !pnPos && !pbCanceled));
-	
-	FileInputStream fileStream(pwszPath);
-	if (!fileStream)
+	FileInputStream stream(pwszPath);
+	if (!stream)
 		return false;
-	BufferedInputStream stream(&fileStream, false);
+	BufferedInputStream bufferedStream(&stream, false);
 	
-	if (bMultiple) {
-		XStringBuffer<XSTRING> buf;
+	xstring_ptr strContent;
+	if (pwszEncoding) {
+		InputStreamReader reader(&bufferedStream, false, pwszEncoding);
+		if (!reader)
+			return false;
 		
-		CHAR cPrev = '\0';
-		bool bNewLine = true;
-		while (bNewLine) {
-			xstring_ptr strLine;
-			CHAR cNext = '\0';
-			if (!readLine(&stream, cPrev, &strLine, &cNext, &bNewLine))
-				return false;
-			cPrev = cNext;
+		XStringBuffer<WXSTRING> buf;
+		while (true) {
+			XStringBufferLock<WXSTRING> lock(&buf, 1024);
 			
-			if (!bNewLine || strncmp(strLine.get(), "From ", 5) == 0) {
-				if (!bNewLine) {
-					if (!buf.append(strLine.get()))
-						return false;
-				}
-				if (buf.getLength() != 0) {
-					if (pDialog) {
-						if (pDialog->isCanceled()) {
-							*pbCanceled = true;
-							return true;
-						}
-						pDialog->setPos((*pnPos)++ % 100);
-					}
-					
-					if (!pFolder->getAccount()->importMessage(pFolder,
-						buf.getCharArray(), nFlags))
-						return false;
-					buf.remove();
-				}
-			}
-			else {
-				const CHAR* p = strLine.get();
-				if (*p == '>') {
-					while (*p == '>')
-						++p;
-					if (strncmp(p, "From ", 5) == 0)
-						p = strLine.get() + 1;
-					else
-						p = strLine.get();
-				}
-				
-				if (!buf.append(p) ||
-					!buf.append("\r\n"))
-					return false;
-			}
+			size_t nRead = reader.read(lock.get(), 1024);
+			if (nRead == -1)
+				return false;
+			else if (nRead == 0)
+				break;
+			
+			lock.unlock(nRead);
 		}
+		if (!reader.close())
+			return false;
+		
+		if (buf.getLength() == 0)
+			return true;
+		
+		MessageCreator creator;
+		std::auto_ptr<Message> pMessage(creator.createMessage(
+			0, buf.getCharArray(), buf.getLength()));
+		if (!pMessage.get())
+			return false;
+		
+		strContent = pMessage->getContent();
 	}
 	else {
 		XStringBuffer<XSTRING> buf;
@@ -1885,61 +1857,103 @@ bool qm::FileImportAction::readMessage(NormalFolder* pFolder,
 				return false;
 		}
 		
-		if (pDialog) {
-			if (pDialog->isCanceled()) {
-				*pbCanceled = true;
-				return true;
-			}
-			pDialog->setPos((*pnPos)++);
-		}
-		
-		if (!pFolder->getAccount()->importMessage(
-			pFolder, buf.getCharArray(), nFlags))
-			return false;
+		strContent = buf.getXString();
 	}
+	
+	Account* pAccount = pFolder->getAccount();
+	if (!pAccount->importMessage(pFolder, strContent.get(), nFlags))
+		return false;
 	
 	return true;
 }
 
-bool qm::FileImportAction::readMessage(NormalFolder* pFolder,
-									   const WCHAR* pwszPath,
-									   const WCHAR* pwszEncoding,
-									   unsigned int nFlags)
+bool qm::FileImportAction::readMultipleMessages(NormalFolder* pFolder,
+												const WCHAR* pwszPath,
+												const WCHAR* pwszEncoding,
+												unsigned int nFlags,
+												ProgressDialog* pDialog,
+												int* pnPos,
+												bool* pbCanceled)
 {
-	FileInputStream stream(pwszPath);
-	if (!stream)
-		return false;
-	BufferedInputStream bufferedStream(&stream, false);
-	InputStreamReader reader(&bufferedStream, false, pwszEncoding);
-	if (!reader)
-		return false;
+	assert(pFolder);
+	assert(pwszPath);
+	assert((pDialog && pnPos && pbCanceled) || (!pDialog && !pnPos && !pbCanceled));
 	
-	XStringBuffer<WXSTRING> buf;
-	while (true) {
-		XStringBufferLock<WXSTRING> lock(&buf, 1024);
-		
-		size_t nRead = reader.read(lock.get(), 1024);
-		if (nRead == -1)
-			return false;
-		else if (nRead == 0)
-			break;
-		
-		lock.unlock(nRead);
-	}
-	if (!reader.close())
+	FileInputStream fileStream(pwszPath);
+	if (!fileStream)
 		return false;
+	BufferedInputStream stream(&fileStream, false);
 	
-	if (buf.getLength() != 0) {
-		MessageCreator creator;
-		std::auto_ptr<Message> pMessage(creator.createMessage(
-			0, buf.getCharArray(), buf.getLength()));
-		if (!pMessage.get())
+	XStringBuffer<XSTRING> buf;
+	
+	const CHAR* pszNewLine = pwszEncoding ? "\n" : "\r\n";
+	CHAR cPrev = '\0';
+	bool bNewLine = true;
+	while (bNewLine) {
+		xstring_ptr strLine;
+		CHAR cNext = '\0';
+		if (!readLine(&stream, cPrev, &strLine, &cNext, &bNewLine))
 			return false;
+		cPrev = cNext;
 		
-		xstring_ptr strContent(pMessage->getContent());
-		if (!pFolder->getAccount()->importMessage(
-			pFolder, strContent.get(), nFlags))
-			return false;
+		if (!bNewLine || strncmp(strLine.get(), "From ", 5) == 0) {
+			if (!bNewLine) {
+				if (!buf.append(strLine.get()))
+					return false;
+			}
+			if (buf.getLength() != 0) {
+				if (pDialog) {
+					if (pDialog->isCanceled()) {
+						*pbCanceled = true;
+						return true;
+					}
+					pDialog->setPos((*pnPos)++ % 100);
+				}
+				
+				xstring_ptr strContent;
+				if (pwszEncoding) {
+					std::auto_ptr<Converter> pConverter(ConverterFactory::getInstance(pwszEncoding));
+					if (!pConverter.get())
+						return false;
+					
+					size_t nLen = buf.getLength();
+					wxstring_size_ptr wstrMessage(pConverter->decode(buf.getCharArray(), &nLen));
+					if (!wstrMessage.get())
+						return false;
+					
+					MessageCreator creator;
+					std::auto_ptr<Message> pMessage(creator.createMessage(
+						0, wstrMessage.get(), wstrMessage.size()));
+					if (!pMessage.get())
+						return false;
+					
+					strContent = pMessage->getContent();
+				}
+				else {
+					strContent = buf.getXString();
+				}
+				
+				Account* pAccount = pFolder->getAccount();
+				if (!pAccount->importMessage(pFolder, strContent.get(), nFlags))
+					return false;
+				
+				buf.remove();
+			}
+		}
+		else {
+			const CHAR* p = strLine.get();
+			if (*p == '>') {
+				while (*p == '>')
+					++p;
+				if (strncmp(p, "From ", 5) == 0)
+					p = strLine.get() + 1;
+				else
+					p = strLine.get();
+			}
+			
+			if (!buf.append(p) || !buf.append(pszNewLine))
+				return false;
+		}
 	}
 	
 	return true;
@@ -2120,9 +2134,13 @@ bool qm::FileLoadAction::loadFolder(Account* pAccount,
 			}
 			else if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL) {
 				bool bCanceled = false;
-				if (!FileImportAction::readMessage(static_cast<NormalFolder*>(pFolder),
-					wstrPath.get(), false, 0, pDialog, pnPos, &bCanceled))
+				if (!FileImportAction::readSingleMessage(
+					static_cast<NormalFolder*>(pFolder), wstrPath.get(), 0, 0))
 					return false;
+				
+				if (pDialog->isCanceled())
+					break;
+				pDialog->setPos((*pnPos)++);
 			}
 		} while (::FindNextFile(hFind.get(), &fd));
 	}
