@@ -7,7 +7,9 @@
 #define IDD_RECEIVE                     101
 #define IDD_SEND                        102
 #define IDS_INITIALIZE                  1000
+#define IDC_HOST                        1000
 #define IDS_LOOKUP                      1001
+#define IDC_PORT                        1001
 #define IDS_CONNECTING                  1002
 #define IDS_CONNECTED                   1003
 #define IDS_REQUESTRSS                  1004
@@ -20,7 +22,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        101
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1000
+#define _APS_NEXT_CONTROL_VALUE         1002
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

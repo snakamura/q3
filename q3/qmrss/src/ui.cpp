@@ -35,11 +35,20 @@ qmrss::ReceivePage::~ReceivePage()
 LRESULT qmrss::ReceivePage::onInitDialog(HWND hwndFocus,
 										 LPARAM lParam)
 {
+	wstring_ptr wstrHost(pSubAccount_->getProperty(L"Http", L"ProxyHost", L""));
+	setDlgItemText(IDC_HOST, wstrHost.get());
+	setDlgItemInt(IDC_PORT, pSubAccount_->getProperty(L"Http", L"ProxyPort", 8080));
+	
 	return TRUE;
 }
 
 LRESULT qmrss::ReceivePage::onOk()
 {
+	wstring_ptr wstrHost(getDlgItemText(IDC_HOST));
+	if (wstrHost.get())
+		pSubAccount_->setProperty(L"Http", L"ProxyHost", wstrHost.get());
+	pSubAccount_->setProperty(L"Http", L"ProxyPort", getDlgItemInt(IDC_PORT));
+	
 	return DefaultPropertyPage::onOk();
 }
 
