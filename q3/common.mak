@@ -453,7 +453,8 @@ else
 	#########################################################################
 endif
 TLBDIR					= $(TLBDIRBASE)/$(PLATFORM)
-TARGET					= $(PROJECTNAME)$(SUFFIX).$(EXTENSION)
+TARGETBASE				= $(PROJECTNAME)$(SUFFIX)
+TARGET					= $(TARGETBASE).$(EXTENSION)
 
 
 # STLPORT ###################################################################
@@ -568,30 +569,28 @@ $(OBJDIR)/%.d: $(SRCDIR)/%.c
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	$(GCC) $(DEFINES) $(PROJECTINCLUDES) -DDEPENDCHECK -MM -MG -nostdinc $< 2>/dev/null | sed -e 's#.*:#$(@:.d=.obj) $@ :#g' >$@
 
-$(TARGETDIR)/$(TARGET): $(TLBS) $(OBJS) $(RESES) $(DEPENDLIBS)
+$(TARGETDIR)/$(TARGETBASE).exe: $(TLBS) $(OBJS) $(RESES) $(DEPENDLIBS)
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
-	case "$(PROJECTTYPE)" in \
-	exe) \
-		$(LD) $(LDFLAGS) -OUT:$@ $(OBJS) $(RESES) $(LIBS); \
-		;; \
-	dll) \
-		$(LD) $(LDFLAGS) -DLL -OUT:$@ $(OBJS) $(RESES) $(LIBS); \
-		if [ $$? -eq 0 ]; then \
-			$(DUMPBIN) -EXPORTS $(TARGETDIR)/$(TARGET) | tr '\r' ' ' | gawk -v LIBNAME=$(PROJECTNAME)$(SUFFIX) -f ../def.awk > `echo $(DEFFILE)`; \
-			if [ -s "$(DEFFILE)" ]; then \
-				if [ ! -z "$(EXTRADEFFILE)" -a -f "$(EXTRADEFFILE)" ]; then \
-					cat `echo $(EXTRADEFFILE)` >> `echo $(DEFFILE)`; \
-				fi; \
-				$(LD) $(LDFLAGS) -DLL -DEF:$(DEFFILE) -BASE:$(BASEADDRESS) -OUT:$@ $(OBJS) $(RESES) $(LIBS) 2>&1 | grep -v "LNK4197"; \
-			else \
-				exit 1; \
+	$(LD) $(LDFLAGS) -OUT:$@ $(OBJS) $(RESES) $(LIBS)
+
+$(TARGETDIR)/$(TARGETBASE).dll: $(TLBS) $(OBJS) $(RESES) $(DEPENDLIBS)
+	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
+	$(LD) $(LDFLAGS) -DLL -OUT:$@ $(OBJS) $(RESES) $(LIBS); \
+	if [ $$? -eq 0 ]; then \
+		$(DUMPBIN) -EXPORTS $(TARGETDIR)/$(TARGET) | tr '\r' ' ' | gawk -v LIBNAME=$(PROJECTNAME)$(SUFFIX) -f ../def.awk > `echo $(DEFFILE)`; \
+		if [ -s "$(DEFFILE)" ]; then \
+			if [ ! -z "$(EXTRADEFFILE)" -a -f "$(EXTRADEFFILE)" ]; then \
+				cat `echo $(EXTRADEFFILE)` >> `echo $(DEFFILE)`; \
 			fi; \
+			$(LD) $(LDFLAGS) -DLL -DEF:$(DEFFILE) -BASE:$(BASEADDRESS) -OUT:$@ $(OBJS) $(RESES) $(LIBS) 2>&1 | grep -v "LNK4197"; \
+		else \
+			exit 1; \
 		fi; \
-		;; \
-	lib) \
-		$(AR) -OUT:$@ $(OBJS); \
-		;; \
-	esac
+	fi
+
+$(TARGETDIR)/$(TARGETBASE).lib: $(OBJS)
+	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
+	$(AR) -OUT:$@ $(OBJS)
 
 ifneq ($(PLATFORM),)
     ifndef NODEPEND
