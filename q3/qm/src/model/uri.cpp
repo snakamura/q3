@@ -32,10 +32,13 @@ qm::URIFragment::URIFragment() :
 }
 
 qm::URIFragment::URIFragment(const Section& section,
-							 Type type) :
+							 Type type,
+							 const WCHAR* pwszName) :
 	section_(section),
 	type_(type)
 {
+	if (pwszName)
+		wstrName_ = allocWString(pwszName);
 }
 
 qm::URIFragment::URIFragment(Message* pMessage,
@@ -64,6 +67,7 @@ qm::URIFragment::URIFragment(Message* pMessage,
 	}
 #endif
 	
+	const Part* pPartOrg = pPart;
 	while (pPart != pMessage) {
 		const Part* pParentPart = pPart->getParentPart();
 		if (pParentPart) {
@@ -79,12 +83,23 @@ qm::URIFragment::URIFragment(Message* pMessage,
 		}
 	}
 	std::reverse(section_.begin(), section_.end());
+	
+	if (type == TYPE_BODY) {
+		ContentDispositionParser contentDisposition;
+		if (pPartOrg->getField(L"Content-Disposition", &contentDisposition) == Part::FIELD_EXIST) {
+			wstring_ptr wstrFileName(contentDisposition.getParameter(L"filename"));
+			if (wstrFileName.get())
+				wstrName_ = wstrFileName;
+		}
+	}
 }
 
 qm::URIFragment::URIFragment(const URIFragment& fragment) :
 	section_(fragment.section_),
 	type_(fragment.type_)
 {
+	if (fragment.wstrName_.get())
+		wstrName_ = allocWString(fragment.wstrName_.get());
 }
 
 qm::URIFragment::~URIFragment()
@@ -99,6 +114,11 @@ const URIFragment::Section& qm::URIFragment::getSection() const
 URIFragment::Type qm::URIFragment::getType() const
 {
 	return type_;
+}
+
+const WCHAR* qm::URIFragment::getName() const
+{
+	return wstrName_.get();
 }
 
 wstring_ptr qm::URIFragment::toString() const
@@ -136,6 +156,12 @@ wstring_ptr qm::URIFragment::toString() const
 	default:
 		assert(false);
 		break;
+	}
+	
+	if (wstrName_.get()) {
+		buf.append(L'!');
+		wstring_ptr wstrName(escape(wstrName_.get()));
+		buf.append(wstrName.get());
 	}
 	
 	return buf.getString();
@@ -179,6 +205,51 @@ const Part* qm::URIFragment::getPart(const Message* pMessage) const
 	return pPart;
 }
 
+wstring_ptr qm::URIFragment::escape(const WCHAR* pwsz)
+{
+	const WCHAR* pwszEscape = L"%#";
+	
+	StringBuffer<WSTRING> buf;
+	
+	while (*pwsz) {
+		if (wcschr(pwszEscape, *pwsz)) {
+			WCHAR wsz[16];
+			swprintf(wsz, L"%%%02X", *pwsz);
+			buf.append(wsz);
+		}
+		else {
+			buf.append(*pwsz);
+		}
+		++pwsz;
+	}
+	
+	return buf.getString();
+}
+
+wstring_ptr qm::URIFragment::unescape(const WCHAR* pwsz)
+{
+	StringBuffer<WSTRING> buf;
+	
+	while (*pwsz) {
+		if (*pwsz == L'%') {
+			WCHAR wsz[3];
+			wcsncpy(wsz, pwsz + 1, 2);
+			wsz[2] = L'\0';
+			WCHAR* pEnd = 0;
+			long n = wcstol(wsz, &pEnd, 16);
+			if (n != 0)
+				buf.append(static_cast<WCHAR>(n));
+			pwsz += 3;
+		}
+		else {
+			buf.append(*pwsz);
+			++pwsz;
+		}
+	}
+	
+	return buf.getString();
+}
+
 
 /****************************************************************************
  *
@@ -191,10 +262,11 @@ qm::URI::URI(const WCHAR* pwszAccount,
 			 unsigned int nValidity,
 			 unsigned int nId,
 			 const URIFragment::Section& section,
-			 URIFragment::Type type) :
+			 URIFragment::Type type,
+			 const WCHAR* pwszName) :
 	nValidity_(nValidity),
 	nId_(nId),
-	fragment_(section, type)
+	fragment_(section, type, pwszName)
 {
 	assert(pwszAccount);
 	assert(pwszFolder);
@@ -307,11 +379,9 @@ std::auto_ptr<URI> qm::URI::parse(const WCHAR* pwszURI)
 {
 	assert(pwszURI);
 	
-	std::auto_ptr<URI> pURI;
-	
 	wstring_ptr wstrURI(allocWString(pwszURI));
 	if (wcsncmp(wstrURI.get(), L"urn:qmail://", 12) != 0)
-		return pURI;
+		return std::auto_ptr<URI>();
 	
 	WCHAR* pwszFragment = wcsrchr(wstrURI.get(), L'#');
 	if (pwszFragment) {
@@ -322,34 +392,35 @@ std::auto_ptr<URI> qm::URI::parse(const WCHAR* pwszURI)
 	const WCHAR* pwszAccount = wstrURI.get() + 12;
 	WCHAR* pwszFolder = wcschr(pwszAccount, L'/');
 	if (!pwszFolder)
-		return pURI;
+		return std::auto_ptr<URI>();
 	*pwszFolder = L'\0';
 	++pwszFolder;
 	
 	WCHAR* pwszId = wcsrchr(pwszFolder, L'/');
 	if (!pwszId)
-		return pURI;
+		return std::auto_ptr<URI>();
 	*pwszId = L'\0';
 	++pwszId;
 	
 	WCHAR* pEndId = 0;
 	unsigned int nId = wcstol(pwszId, &pEndId, 10);
 	if (*pEndId)
-		return pURI;
+		return std::auto_ptr<URI>();
 	
 	WCHAR* pwszValidity = wcsrchr(pwszFolder, L'/');
 	if (!pwszValidity)
-		return pURI;
+		return std::auto_ptr<URI>();
 	*pwszValidity = L'\0';
 	++pwszValidity;
 	
 	WCHAR* pEndValidity = 0;
 	unsigned int nValidity = wcstol(pwszValidity, &pEndValidity, 10);
 	if (*pEndValidity)
-		return pURI;
+		return std::auto_ptr<URI>();
 	
 	URIFragment::Section section;
 	URIFragment::Type type = URIFragment::TYPE_NONE;
+	wstring_ptr wstrName;
 	if (pwszFragment) {
 		while (true) {
 			if (L'0' <= *pwszFragment && *pwszFragment <= L'9') {
@@ -359,13 +430,19 @@ std::auto_ptr<URI> qm::URI::parse(const WCHAR* pwszURI)
 				WCHAR* pEnd = 0;
 				unsigned int n = wcstol(pwszFragment, &pEnd, 10);
 				if (*pEnd || n == 0)
-					return pURI;
+					return std::auto_ptr<URI>();
 				section.push_back(n);
 				if (!p)
 					break;
 				pwszFragment = p + 1;
 			}
 			else {
+				WCHAR* pName = wcschr(pwszFragment, L'!');
+				if (pName) {
+					*pName = L'\0';
+					++pName;
+				}
+				
 				if (wcscmp(pwszFragment, L"MIME") == 0)
 					type = URIFragment::TYPE_MIME;
 				else if (wcscmp(pwszFragment, L"BODY") == 0)
@@ -375,13 +452,20 @@ std::auto_ptr<URI> qm::URI::parse(const WCHAR* pwszURI)
 				else if (wcscmp(pwszFragment, L"TEXT") == 0)
 					type = URIFragment::TYPE_TEXT;
 				else
-					return pURI;
+					return std::auto_ptr<URI>();
+				
+				if (pName) {
+					if (type == URIFragment::TYPE_BODY)
+						wstrName = URIFragment::unescape(pName);
+					else
+						return std::auto_ptr<URI>();
+				}
+				
 				break;
 			}
 		}
 	}
 	
-	pURI.reset(new URI(pwszAccount, pwszFolder, nValidity, nId, section, type));
-	
-	return pURI;
+	return std::auto_ptr<URI>(new URI(pwszAccount, pwszFolder,
+		nValidity, nId, section, type, wstrName.get()));
 }

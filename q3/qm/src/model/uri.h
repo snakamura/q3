@@ -50,7 +50,8 @@ public:
 public:
 	URIFragment();
 	URIFragment(const Section& section,
-				Type type);
+				Type type,
+				const WCHAR* pwszName);
 	URIFragment(Message* pMessage,
 				const qs::Part* pPart,
 				Type type);
@@ -60,8 +61,13 @@ public:
 public:
 	const Section& getSection() const;
 	Type getType() const;
+	const WCHAR* getName() const;
 	qs::wstring_ptr toString() const;
 	const qs::Part* getPart(const Message* pMessage) const;
+
+public:
+	static qs::wstring_ptr escape(const WCHAR* pwsz);
+	static qs::wstring_ptr unescape(const WCHAR* pwsz);
 
 private:
 	URIFragment& operator=(const URIFragment&);
@@ -69,6 +75,7 @@ private:
 private:
 	Section section_;
 	Type type_;
+	qs::wstring_ptr wstrName_;
 };
 
 
@@ -86,7 +93,8 @@ public:
 		unsigned int nValidity,
 		unsigned int nId,
 		const URIFragment::Section& section,
-		URIFragment::Type type);
+		URIFragment::Type type,
+		const WCHAR* pwszName);
 	URI(MessageHolder* pmh);
 	URI(MessageHolder* pmh,
 		Message* pMessage,

@@ -26,6 +26,7 @@
 #include "../model/addressbook.h"
 #include "../model/editmessage.h"
 #include "../model/signature.h"
+#include "../model/uri.h"
 
 #pragma warning(disable:4355)
 
@@ -1129,8 +1130,20 @@ void qm::AttachmentHeaderEditItem::update(EditMessage* pEditMessage)
 		const WCHAR* pwszName = 0;
 		wstring_ptr wstrName;
 		if (l[n].bNew_) {
-			pwszName = wcsrchr(wstrPath.get(), L'\\');
-			pwszName = pwszName ? pwszName + 1 : wstrPath.get();
+			if (wcsncmp(wstrPath.get(), URI::getScheme(), wcslen(URI::getScheme())) == 0) {
+				std::auto_ptr<URI> pURI(URI::parse(wstrPath.get()));
+				if (pURI.get() && pURI->getFragment().getName()) {
+					wstrName = concat(L"<", pURI->getFragment().getName(), L">");
+					pwszName = wstrName.get();
+				}
+				else {
+					pwszName = wstrPath.get();
+				}
+			}
+			else {
+				pwszName = wcsrchr(wstrPath.get(), L'\\');
+				pwszName = pwszName ? pwszName + 1 : wstrPath.get();
+			}
 		}
 		else {
 			wstrName = concat(L"<", wstrPath.get(), L">");
