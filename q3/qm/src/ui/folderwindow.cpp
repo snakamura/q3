@@ -716,10 +716,10 @@ QSTATUS qm::FolderWindowImpl::addAccount(Account* pAccount)
 		TVI_ROOT,
 		TVI_SORT,
 		{
-			TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE,
+			TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_STATE,
 			0,
-			0,
-			0,
+			pDocument_->isOffline() ? 0 : TVIS_BOLD,
+			TVIS_BOLD,
 			const_cast<LPTSTR>(ptszName),
 			0,
 			I_IMAGECALLBACK,
