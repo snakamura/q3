@@ -1,5 +1,5 @@
 /*
- * $Id: outputstream.cpp,v 1.1.1.1 2003/04/29 08:07:35 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -46,8 +46,8 @@ QSTATUS qs::FileOutputStreamImpl::open(const WCHAR* pwszPath)
 	DECLARE_QSTATUS();
 	
 	W2T(pwszPath, ptszPath);
-	hFile_ = ::CreateFile(ptszPath, GENERIC_WRITE, 0, 0,
-		CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+	hFile_ = ::CreateFile(ptszPath, GENERIC_WRITE, FILE_SHARE_READ,
+		0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 	if (hFile_ == INVALID_HANDLE_VALUE) {
 		hFile_ = 0;
 		return QSTATUS_FAIL;
