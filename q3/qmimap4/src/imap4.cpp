@@ -1764,16 +1764,19 @@ std::auto_ptr<ResponseFetch> qmimap4::ResponseFetch::create(unsigned long nNumbe
 			return std::auto_ptr<ResponseFetch>(0);
 		
 		string_ptr strName(static_cast<ListItemText*>(l[n])->releaseText());
-		if (_stricmp(strName.get(), "ENVELOPE") == 0) {
-			// ENVELOPE
-			if (l[n + 1]->getType() != ListItem::TYPE_LIST)
+		if (_stricmp(strName.get(), "UID") == 0) {
+			// UID
+			if (l[n + 1]->getType() != ListItem::TYPE_TEXT)
 				return std::auto_ptr<ResponseFetch>(0);
 			
-			std::auto_ptr<FetchDataEnvelope> pEnvelope(
-				FetchDataEnvelope::create(static_cast<List*>(l[n + 1])));
-			if (!pEnvelope.get())
+			const CHAR* pszUid = static_cast<ListItemText*>(l[n + 1])->getText();
+			CHAR* pEnd = 0;
+			long nUid = strtol(pszUid, &pEnd, 10);
+			if (*pEnd)
 				return std::auto_ptr<ResponseFetch>(0);
-			listData.push_back(pEnvelope.release());
+			
+			std::auto_ptr<FetchDataUid> pUid(new FetchDataUid(nUid));
+			listData.push_back(pUid.release());
 		}
 		else if (_stricmp(strName.get(), "FLAGS") == 0) {
 			// FLAGS
@@ -1785,6 +1788,17 @@ std::auto_ptr<ResponseFetch> qmimap4::ResponseFetch::create(unsigned long nNumbe
 			if (!pFlags.get())
 				return std::auto_ptr<ResponseFetch>(0);
 			listData.push_back(pFlags.release());
+		}
+		else if (_stricmp(strName.get(), "ENVELOPE") == 0) {
+			// ENVELOPE
+			if (l[n + 1]->getType() != ListItem::TYPE_LIST)
+				return std::auto_ptr<ResponseFetch>(0);
+			
+			std::auto_ptr<FetchDataEnvelope> pEnvelope(
+				FetchDataEnvelope::create(static_cast<List*>(l[n + 1])));
+			if (!pEnvelope.get())
+				return std::auto_ptr<ResponseFetch>(0);
+			listData.push_back(pEnvelope.release());
 		}
 		else if (_stricmp(strName.get(), "INTERNALDATE") == 0) {
 			// INTERNALDATE
@@ -1837,20 +1851,6 @@ std::auto_ptr<ResponseFetch> qmimap4::ResponseFetch::create(unsigned long nNumbe
 			if (!pStructure.get())
 				return std::auto_ptr<ResponseFetch>(0);
 			listData.push_back(pStructure.release());
-		}
-		else if (_stricmp(strName.get(), "UID") == 0) {
-			// UID
-			if (l[n + 1]->getType() != ListItem::TYPE_TEXT)
-				return std::auto_ptr<ResponseFetch>(0);
-			
-			const CHAR* pszUid = static_cast<ListItemText*>(l[n + 1])->getText();
-			CHAR* pEnd = 0;
-			long nUid = strtol(pszUid, &pEnd, 10);
-			if (*pEnd)
-				return std::auto_ptr<ResponseFetch>(0);
-			
-			std::auto_ptr<FetchDataUid> pUid(new FetchDataUid(nUid));
-			listData.push_back(pUid.release());
 		}
 		else if (_strnicmp(strName.get(), "BODY[", 5) == 0) {
 			// BODY[SECTION]

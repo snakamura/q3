@@ -121,13 +121,14 @@ Parser::Token qmimap4::Parser::getNextToken(Buffer* pBuffer,
 	size_t& nIndex = *pnIndex;
 	Token token = TOKEN_ERROR;
 	
-	StringBuffer<STRING> buf;
+	string_ptr strToken;
 	
 	CHAR c = pBuffer->get(nIndex);
 	if (c == '\0') {
 		return TOKEN_ERROR;
 	}
 	else if (c == '\"') {
+		StringBuffer<STRING> buf;
 		for (++nIndex; ; ++nIndex) {
 			c = pBuffer->get(nIndex);
 			if (c == '\0') {
@@ -161,6 +162,7 @@ Parser::Token qmimap4::Parser::getNextToken(Buffer* pBuffer,
 		}
 		++nIndex;
 		token = TOKEN_QUOTED;
+		strToken = buf.getString();
 	}
 	else if (c == '{') {
 		size_t nIndexEnd = pBuffer->find("}\r\n", nIndex + 1);
@@ -184,7 +186,7 @@ Parser::Token qmimap4::Parser::getNextToken(Buffer* pBuffer,
 			pCallback->setPos(0);
 		}
 		
-		buf.append(pBuffer->str() + nIndex, nLen);
+		strToken = allocString(pBuffer->str() + nIndex, nLen);
 		nIndex += nLen;
 		token = TOKEN_LITERAL;
 	}
@@ -209,7 +211,7 @@ Parser::Token qmimap4::Parser::getNextToken(Buffer* pBuffer,
 			token = TOKEN_NIL;
 		}
 		else {
-			buf.append(pBuffer->str() + nIndexBegin, nIndex - nIndexBegin);
+			strToken = allocString(pBuffer->str() + nIndexBegin, nIndex - nIndexBegin);
 			token = TOKEN_ATOM;
 		}
 	}
@@ -220,7 +222,7 @@ Parser::Token qmimap4::Parser::getNextToken(Buffer* pBuffer,
 		return TOKEN_ERROR;
 	
 	if (token != TOKEN_NIL)
-		*pstrToken = buf.getString();
+		*pstrToken = strToken;
 	
 	return token;
 }
