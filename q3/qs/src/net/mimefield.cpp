@@ -414,12 +414,11 @@ wstring_ptr qs::FieldParser::decode(const CHAR* psz,
 	StringBuffer<STRING> buf;
 	for (const CHAR* p = psz; p < psz + nLen; ++p) {
 		if (bDecode) {
-			if (*p == '?' && *(p + 1) == '=') {
+			if (*p == '?' && p + 1 < psz + nLen && *(p + 1) == '=') {
 				if (space.getLength() != 0) {
-					if (!bDecoded) {
+					if (!bDecoded)
 						decoded.append(space.getCharArray());
-						space.remove();
-					}
+					space.remove();
 				}
 				
 				malloc_size_ptr<unsigned char> pDecoded(pEncoder->decode(
@@ -455,7 +454,7 @@ wstring_ptr qs::FieldParser::decode(const CHAR* psz,
 			}
 		}
 		else {
-			if (*p == '=' && *(p + 1) == '?') {
+			if (*p == '=' && p + 1 < psz + nLen && *(p + 1) == '?') {
 				if (buf.getLength() != 0) {
 					size_t nLen = buf.getLength();
 					wxstring_size_ptr wstr(UTF8Converter().decode(buf.getCharArray(), &nLen));
