@@ -79,8 +79,7 @@ bool qmnntp::NntpReceiveSession::init(Document* pDocument,
 void qmnntp::NntpReceiveSession::term()
 {
 	clearLastIds();
-	
-	if (pLastIdList_->isModified()) {
+	if (pLastIdList_.get() && pLastIdList_->isModified()) {
 		if (!pLastIdList_->save()) {
 			Log log(pLogger_, L"qmnntp::NntpReceiveSession");
 			log.error(L"Failed to save last id list.");
@@ -412,6 +411,9 @@ bool qmnntp::NntpReceiveSession::downloadReservedMessages(NormalFolder* pFolder,
 
 void qmnntp::NntpReceiveSession::clearLastIds()
 {
+	if (!pLastIdList_.get())
+		return;
+	
 	typedef std::vector<const WCHAR*> NameList;
 	NameList listRemove;
 	

@@ -75,7 +75,7 @@ bool qmrss::RssReceiveSession::init(Document* pDocument,
 void qmrss::RssReceiveSession::term()
 {
 	clearFeeds();
-	if (pFeedList_->isModified())
+	if (pFeedList_.get() && pFeedList_->isModified())
 		pFeedList_->save();
 }
 
@@ -260,6 +260,9 @@ bool qmrss::RssReceiveSession::applyOfflineJobs()
 
 void qmrss::RssReceiveSession::clearFeeds()
 {
+	if (!pFeedList_.get())
+		return;
+	
 	FeedList::List listRemove;
 	const FeedList::List& listFeed = pFeedList_->getFeeds();
 	for (FeedList::List::const_iterator it = listFeed.begin(); it != listFeed.end(); ++it) {
