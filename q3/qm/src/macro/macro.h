@@ -99,6 +99,7 @@ class MacroExpr;
 		class MacroFunctionSubject;
 		class MacroFunctionSubstring;
 		class MacroFunctionSubstringSep;
+		class MacroFunctionURI;
 		class MacroFunctionVariable;
 		class MacroFunctionWhile;
 class MacroExprPtr;
@@ -2221,6 +2222,30 @@ private:
 
 private:
 	bool bAfter_;
+};
+
+
+/****************************************************************************
+ *
+ * MacroFunctionURI
+ *
+ */
+
+class MacroFunctionURI : public MacroFunction
+{
+public:
+	MacroFunctionURI();
+	virtual ~MacroFunctionURI();
+
+public:
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+
+protected:
+	virtual const WCHAR* getName() const;
+
+private:
+	MacroFunctionURI(const MacroFunctionURI&);
+	MacroFunctionURI& operator=(const MacroFunctionURI&);
 };
 
 

@@ -28,6 +28,7 @@
 
 #include "macro.h"
 #include "../model/addressbook.h"
+#include "../model/uri.h"
 #include "../script/scriptmanager.h"
 #include "../ui/dialogs.h"
 
@@ -4068,6 +4069,41 @@ const WCHAR* qm::MacroFunctionSubstringSep::getName() const
 
 /****************************************************************************
  *
+ * MacroFunctionURI
+ *
+ */
+
+qm::MacroFunctionURI::MacroFunctionURI()
+{
+}
+
+qm::MacroFunctionURI::~MacroFunctionURI()
+{
+}
+
+MacroValuePtr qm::MacroFunctionURI::value(MacroContext* pContext) const
+{
+	assert(pContext);
+	
+	if (!checkArgSize(pContext, 0))
+		return 0;
+	
+	MessageHolderBase* pmh = pContext->getMessageHolder();
+	if (!pmh || !pmh->getMessageHolder())
+		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
+	
+	wstring_ptr wstrURI(URI::getURI(pmh->getMessageHolder()));
+	return MacroValueFactory::getFactory().newString(wstrURI.get());
+}
+
+const WCHAR* qm::MacroFunctionURI::getName() const
+{
+	return L"URI";
+}
+
+
+/****************************************************************************
+ *
  * MacroFunctionVariable
  *
  */
@@ -4300,6 +4336,7 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(MacroParser::
 		DECLARE_FUNCTION1(		SubstringSep,		L"substringafter",	true								)
 		DECLARE_FUNCTION1(		SubstringSep,		L"substringbefore",	false								)
 		DECLARE_FUNCTION1(		Boolean,			L"true",			true								)
+		DECLARE_FUNCTION0(		URI,				L"uri"													)
 		DECLARE_FUNCTION0(		Variable,			L"variable"												)
 		DECLARE_FUNCTION0(		While,				L"while"												)
 	END_DECLARE_FUNCTION()
