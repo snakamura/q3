@@ -1,0 +1,90 @@
+<views>
+	<view class="mail">
+		<columns>
+			<column indent="false" line="false" icon="true" align="left" sort="number">
+				<title></title>
+				<macro>%Flags</macro>
+				<width>28</width>
+			</column>
+			<column indent="false" line="false" icon="false" align="left" sort="date">
+				<title>Date</title>
+				<macro>%Date</macro>
+				<width>80</width>
+			</column>
+			<column indent="false" line="false" icon="false" align="left" sort="text">
+				<title>From / To</title>
+				<macro>%FromTo</macro>
+				<width>120</width>
+			</column>
+			<column indent="true" line="true" icon="false" align="left" sort="text">
+				<title>Subject</title>
+				<macro>%Subject</macro>
+				<width>250</width>
+			</column>
+			<column indent="false" line="false" icon="false" align="right" sort="number">
+				<title>Size</title>
+				<macro>%Size</macro>
+				<width>40</width>
+			</column>
+		</columns>
+		<focus>0</focus>
+		<sort direction="ascending" thread="false">1</sort>
+	</view>
+	<view class="news">
+		<columns>
+			<column indent="false" line="false" icon="true" align="left" sort="number">
+				<title></title>
+				<macro>%Flags</macro>
+				<width>28</width>
+			</column>
+			<column indent="false" line="false" icon="false" align="left" sort="date">
+				<title>Date</title>
+				<macro>%Date</macro>
+				<width>80</width>
+			</column>
+			<column indent="false" line="false" icon="false" align="left" sort="text">
+				<title>From / To</title>
+				<macro>%FromTo</macro>
+				<width>120</width>
+			</column>
+			<column indent="true" line="true" icon="false" align="left" sort="text">
+				<title>Subject</title>
+				<macro>%Subject</macro>
+				<width>250</width>
+			</column>
+			<column indent="false" line="false" icon="false" align="right" sort="number">
+				<title>Size</title>
+				<macro>%Size</macro>
+				<width>40</width>
+			</column>
+		</columns>
+		<focus>0</focus>
+		<sort direction="ascending" thread="false">1</sort>
+	</view>
+	<view class="rss">
+		<columns>
+			<column indent="false" line="false" icon="true" align="left" sort="number">
+				<title></title>
+				<macro>%Flags</macro>
+				<width>28</width>
+			</column>
+			<column indent="false" line="false" icon="false" align="left" sort="date">
+				<title>Date</title>
+				<macro>%Date</macro>
+				<width>80</width>
+			</column>
+			<column indent="true" line="true" icon="false" align="left" sort="text">
+				<title>Title</title>
+				<macro>%Subject</macro>
+				<width>250</width>
+			</column>
+			<column indent="true" line="true" icon="false" align="left" sort="text">
+				<title>Subject</title>
+				<macro>X-RSS-Subject</macro>
+				<width>100</width>
+			</column>
+		</columns>
+		<focus>0</focus>
+		<sort direction="ascending" thread="false">1</sort>
+	</view>
+</views>
