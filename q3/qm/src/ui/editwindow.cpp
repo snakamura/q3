@@ -621,6 +621,7 @@ LRESULT qm::EditWindowItemWindow::windowProc(UINT uMsg,
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_CHAR()
+		HANDLE_KEYDOWN()
 	END_MESSAGE_HANDLER()
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
@@ -631,6 +632,18 @@ LRESULT qm::EditWindowItemWindow::onChar(UINT nChar,
 {
 	if (nChar == _T('\t')) {
 		bool bShift = ::GetKeyState(VK_SHIFT) < 0;
+		if (bShift || !bPrevOnly_)
+			return 0;
+	}
+	return DefaultWindowHandler::onChar(nChar, nRepeat, nFlags);
+}
+
+LRESULT qm::EditWindowItemWindow::onKeyDown(UINT nKey,
+											UINT nRepeat,
+											UINT nFlags)
+{
+	if (nKey == VK_TAB) {
+		bool bShift = ::GetKeyState(VK_SHIFT) < 0;
 		if (bShift || !bPrevOnly_) {
 			pController_->setFocus(pItem_,
 				bShift ? EditWindowFocusController::FOCUS_PREV :
@@ -638,7 +651,7 @@ LRESULT qm::EditWindowItemWindow::onChar(UINT nChar,
 			return 0;
 		}
 	}
-	return DefaultWindowHandler::onChar(nChar, nRepeat, nFlags);
+	return DefaultWindowHandler::onKeyDown(nKey, nRepeat, nFlags);
 }
 
 

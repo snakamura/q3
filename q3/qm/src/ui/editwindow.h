@@ -84,6 +84,9 @@ protected:
 	LRESULT onChar(UINT nChar,
 				   UINT nRepeat,
 				   UINT nFlags);
+	LRESULT onKeyDown(UINT nKey,
+					  UINT nRepeat,
+					  UINT nFlags);
 
 private:
 	EditWindowItemWindow(const EditWindowItemWindow&);
