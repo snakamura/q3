@@ -4093,7 +4093,7 @@ std::pair<ViewModel*, unsigned int> qm::ViewNavigateMessageAction::getNextUnseen
 		
 		if (pUnseenFolder) {
 			pViewModel = pViewModelManager_->getViewModel(pUnseenFolder);
-			unseen = getNextUnseen(pViewModel, pViewModel->getFocused());
+			unseen = getNextUnseen(pViewModel, 0);
 		}
 	}
 	else {
