@@ -1818,13 +1818,19 @@ qmimap4::SessionCache::SessionCache(Account* pAccount, SubAccount* pSubAccount,
 	pAccount_(pAccount),
 	pSubAccount_(pSubAccount),
 	pCallback_(pCallback),
-	nMaxSession_(nMaxSession)
+	nMaxSession_(nMaxSession),
+	bReselect_(true)
 {
 	assert(pstatus);
 	
 	DECLARE_QSTATUS();
 	
 	*pstatus = QSTATUS_SUCCESS;
+	
+	int nReselect = 1;
+	status = pSubAccount->getProperty(L"Imap4", L"Reselect", 1, &nReselect);
+	CHECK_QSTATUS_SET(pstatus);
+	bReselect_ = nReselect != 0;
 	
 	status = STLWrapper<SessionList>(listSession_).reserve(nMaxSession);
 	CHECK_QSTATUS_SET(pstatus);
@@ -1851,16 +1857,15 @@ SubAccount* qmimap4::SessionCache::getSubAccount() const
 }
 
 QSTATUS qmimap4::SessionCache::getSession(
-	NormalFolder* pFolder, Imap4** ppImap4, Logger** ppLogger)
+	NormalFolder* pFolder, Session* pSession)
 {
-	assert(ppImap4);
-	assert(ppLogger);
+	assert(pSession);
 	
 	DECLARE_QSTATUS();
 	
 	std::auto_ptr<Logger> pLogger;
 	std::auto_ptr<Imap4> pImap4;
-	bool bSelect = true;
+	unsigned int nLastSelectedTime = 0;
 	SessionList::iterator it = std::find_if(
 		listSession_.begin(), listSession_.end(),
 		std::bind2nd(
@@ -1873,7 +1878,7 @@ QSTATUS qmimap4::SessionCache::getSession(
 		pImap4.reset((*it).pImap4_);
 		pLogger.reset((*it).pLogger_);
 		listSession_.erase(it);
-		bSelect = false;
+		nLastSelectedTime = (*it).nLastSelectedTime_;
 	}
 	else {
 		if (listSession_.size() >= nMaxSession_) {
@@ -1917,29 +1922,44 @@ QSTATUS qmimap4::SessionCache::getSession(
 			pSubAccount_->getPort(Account::HOST_RECEIVE), ssl);
 		CHECK_QSTATUS();
 		
-		bSelect = true;
+		nLastSelectedTime = 0;
 	}
 	
-	if (bSelect && pFolder) {
+	if (pFolder && isNeedSelect(pFolder, nLastSelectedTime)) {
 		string_ptr<WSTRING> wstrName;
 		status = Util::getFolderName(pFolder, &wstrName);
 		CHECK_QSTATUS();
 		status = pImap4->select(wstrName.get());
 		CHECK_QSTATUS();
+		nLastSelectedTime = ::GetTickCount();
 	}
 	
-	*ppImap4 = pImap4.release();
-	*ppLogger = pLogger.release();
+	pSession->pFolder_ = pFolder;
+	pSession->pImap4_ = pImap4.release();
+	pSession->pLogger_ = pLogger.release();
+	pSession->nLastSelectedTime_ = nLastSelectedTime;
 	
 	return QSTATUS_SUCCESS;
 }
 
-void qmimap4::SessionCache::releaseSession(
-	NormalFolder* pFolder, Imap4* pImap4, Logger* pLogger)
+void qmimap4::SessionCache::releaseSession(const Session& session)
 {
 	assert(listSession_.size() < nMaxSession_);
-	Session s = { pFolder, pImap4, pLogger };
-	listSession_.push_back(s);
+	listSession_.push_back(session);
+}
+
+bool qmimap4::SessionCache::isNeedSelect(NormalFolder* pFolder,
+	unsigned int nLastSelectedTime)
+{
+	if (bReselect_) {
+		// TODO
+		// Take care of GetTickCount is reset after 47.9 days.
+		return nLastSelectedTime == 0 ||
+			nLastSelectedTime < pFolder->getLastSyncTime();
+	}
+	else {
+		return nLastSelectedTime == 0;
+	}
 }
 
 
@@ -1951,32 +1971,35 @@ void qmimap4::SessionCache::releaseSession(
 
 qmimap4::SessionCacher::SessionCacher(SessionCache* pCache,
 	NormalFolder* pFolder, Imap4** ppImap4, QSTATUS* pstatus) :
-	pCache_(pCache),
-	pFolder_(pFolder),
-	pImap4_(0),
-	pLogger_(0)
+	pCache_(pCache)
 {
 	assert(pstatus);
 	
 	DECLARE_QSTATUS();
 	
-	status = pCache->getSession(pFolder, ppImap4, &pLogger_);
+	session_.pFolder_ = 0;
+	session_.pImap4_ = 0;
+	session_.pLogger_ = 0;
+	session_.nLastSelectedTime_ = 0;
+	
+	status = pCache->getSession(pFolder, &session_);
 	CHECK_QSTATUS_SET(pstatus);
 	
-	pImap4_ = *ppImap4;
+	*ppImap4 = session_.pImap4_;
 }
 
 qmimap4::SessionCacher::~SessionCacher()
 {
-	delete pImap4_;
-	delete pLogger_;
+	delete session_.pImap4_;
+	delete session_.pLogger_;
 }
 
 void qmimap4::SessionCacher::release()
 {
-	if (pImap4_) {
-		pCache_->releaseSession(pFolder_, pImap4_, pLogger_);
-		pImap4_ = 0;
-		pLogger_ = 0;
+	if (session_.pImap4_) {
+		pCache_->releaseSession(session_);
+		session_.pFolder_ = 0;
+		session_.pImap4_ = 0;
+		session_.pLogger_ = 0;
 	}
 }

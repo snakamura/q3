@@ -322,6 +322,21 @@ private:
 
 /****************************************************************************
  *
+ * Session
+ *
+ */
+
+struct Session
+{
+	qm::NormalFolder* pFolder_;
+	Imap4* pImap4_;
+	qs::Logger* pLogger_;
+	unsigned int nLastSelectedTime_;
+};
+
+
+/****************************************************************************
+ *
  * SessionCache
  *
  */
@@ -335,22 +350,16 @@ public:
 
 public:
 	qm::SubAccount* getSubAccount() const;
-	qs::QSTATUS getSession(qm::NormalFolder* pFolder,
-		Imap4** ppImap4, qs::Logger** ppLogger);
-	void releaseSession(qm::NormalFolder* pFolder,
-		Imap4* pImap4, qs::Logger* pLogger);
+	qs::QSTATUS getSession(qm::NormalFolder* pFolder, Session* pSession);
+	void releaseSession(const Session& session);
+
+private:
+	bool isNeedSelect(qm::NormalFolder* pFolder,
+		unsigned int nLastSelectedTime);
 
 private:
 	SessionCache(const SessionCache&);
 	SessionCache& operator=(const SessionCache&);
-
-private:
-	struct Session
-	{
-		qm::NormalFolder* pFolder_;
-		Imap4* pImap4_;
-		qs::Logger* pLogger_;
-	};
 
 private:
 	typedef std::vector<Session> SessionList;
@@ -360,6 +369,7 @@ private:
 	qm::SubAccount* pSubAccount_;
 	AbstractCallback* pCallback_;
 	size_t nMaxSession_;
+	bool bReselect_;
 	SessionList listSession_;
 };
 
@@ -386,9 +396,7 @@ private:
 
 private:
 	SessionCache* pCache_;
-	qm::NormalFolder* pFolder_;
-	Imap4* pImap4_;
-	qs::Logger* pLogger_;
+	Session session_;
 };
 
 }

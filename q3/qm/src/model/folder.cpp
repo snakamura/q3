@@ -427,6 +427,7 @@ public:
 	unsigned int nCount_;
 	unsigned int nUnseenCount_;
 	unsigned int nDownloadCount_;
+	unsigned int nLastSyncTime_;
 	MessageHolderList listMessageHolder_;
 	bool bLoad_;
 };
@@ -465,6 +466,7 @@ qm::NormalFolder::NormalFolder(const Init& init, QSTATUS* pstatus) :
 	pImpl_->nCount_ = init.nCount_;
 	pImpl_->nUnseenCount_ = init.nUnseenCount_;
 	pImpl_->nDownloadCount_ = init.nDownloadCount_;
+	pImpl_->nLastSyncTime_ = 0;
 	pImpl_->bLoad_ = false;
 }
 
@@ -502,6 +504,16 @@ unsigned int qm::NormalFolder::getDownloadCount() const
 {
 	Lock<Folder> lock(*this);
 	return pImpl_->nDownloadCount_;
+}
+
+unsigned int qm::NormalFolder::getLastSyncTime() const
+{
+	return pImpl_->nLastSyncTime_;
+}
+
+void qm::NormalFolder::setLastSyncTime(unsigned int nTime)
+{
+	pImpl_->nLastSyncTime_ = nTime;
 }
 
 QSTATUS qm::NormalFolder::getMessageById(

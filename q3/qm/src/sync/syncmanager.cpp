@@ -683,6 +683,7 @@ QSTATUS qm::SyncManager::syncFolder(SyncManagerCallback* pSyncManagerCallback,
 	
 	status = pSession->selectFolder(pFolder);
 	CHECK_QSTATUS();
+	pFolder->setLastSyncTime(::GetTickCount());
 	
 	status = pSession->updateMessages();
 	CHECK_QSTATUS();
