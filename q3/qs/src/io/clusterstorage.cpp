@@ -37,6 +37,7 @@ struct qs::ClusterStorageImpl
 	
 	bool loadMap();
 	bool saveMap() const;
+	bool adjustMapSize();
 	bool reopen();
 	unsigned int getFreeOffset(unsigned int nSize);
 	unsigned int getFreeOffset(unsigned int nSize,
@@ -109,6 +110,22 @@ bool qs::ClusterStorageImpl::saveMap() const
 		return false;
 	
 	bModified_ = false;
+	
+	return true;
+}
+
+bool qs::ClusterStorageImpl::adjustMapSize()
+{
+	if (!reopen())
+		return false;
+	
+	const size_t nBlockSize = CLUSTER_SIZE*BYTE_SIZE;
+	size_t nSize = pFile_->getSize();
+	size_t nBlock = nSize/nBlockSize + (nSize%nBlockSize == 0 ? 0 : 1);
+	if (map_.size() < nBlock) {
+		map_.resize(nBlock, 0xff);
+		bModified_ = true;
+	}
 	
 	return true;
 }
@@ -229,9 +246,7 @@ unsigned int qs::ClusterStorageImpl::getFreeOffset(unsigned int nSize,
 				bData |= b;
 			map_.push_back(bData);
 		}
-		if (pFile_->setPosition(
-			(map_.size()*BYTE_SIZE + (nSize - nFindSize)%BYTE_SIZE)*CLUSTER_SIZE,
-			File::SEEKORIGIN_BEGIN) == -1)
+		if (pFile_->setPosition(map_.size()*BYTE_SIZE*CLUSTER_SIZE, File::SEEKORIGIN_BEGIN) == -1)
 			return -1;
 		if (!pFile_->setEndOfFile())
 			return -1;
@@ -319,7 +334,7 @@ qs::ClusterStorage::ClusterStorage(const Init& init)
 	pImpl->searchBegin_.swap(searchBegin);
 	pImpl->bModified_ = false;
 	
-	if (!pImpl->loadMap())
+	if (!pImpl->loadMap() || !pImpl->adjustMapSize())
 		return;
 	
 	pImpl_ = pImpl.release();
@@ -530,16 +545,12 @@ unsigned int qs::ClusterStorage::compact(unsigned int nOffset,
 
 bool qs::ClusterStorage::freeUnrefered(const ReferList& listRefer)
 {
-	if (!pImpl_->reopen())
-		return false;
-	
 	pImpl_->bModified_ = true;
 	
 	ClusterStorageImpl::Map m;
 	m.resize(pImpl_->map_.size());
 	
-	ReferList::const_iterator it = listRefer.begin();
-	while (it != listRefer.end()) {
+	for (ReferList::const_iterator it = listRefer.begin(); it != listRefer.end(); ++it) {
 		unsigned int nOffset = (*it).nOffset_;
 		unsigned int nLength = (*it).nLength_ +
 			(ClusterStorageImpl::CLUSTER_SIZE -
@@ -573,8 +584,6 @@ bool qs::ClusterStorage::freeUnrefered(const ReferList& listRefer)
 			assert((m[n] & bMask) == 0);
 			m[n] |= bMask;
 		}
-		
-		++it;
 	}
 	std::copy(m.begin(), m.end(), pImpl_->map_.begin());
 	std::fill(pImpl_->searchBegin_.begin(), pImpl_->searchBegin_.end(), 0);
