@@ -649,6 +649,9 @@ void qm::OptionDialog::setFocus(HWND hwnd)
 	}
 	
 	wnd.setFocus();
+	
+	if (nCode & DLGC_HASSETSEL)
+		wnd.sendMessage(EM_SETSEL, 0, -1);
 }
 
 WCHAR qm::OptionDialog::getMnemonic(HWND hwnd)
