@@ -284,6 +284,8 @@ public:
 	void setFocused(unsigned int n);
 	unsigned int getFocused() const;
 	bool isFocused(unsigned int n) const;
+	unsigned int getScroll() const;
+	void setScroll(unsigned int nScroll);
 	
 	void payAttention(unsigned int n);
 	
@@ -383,6 +385,7 @@ private:
 	const Filter* pFilter_;
 	unsigned int nLastSelection_;
 	unsigned int nFocused_;
+	unsigned int nScroll_;
 	ViewModelHandlerList listHandler_;
 #ifndef NDEBUG
 	mutable unsigned int nLock_;

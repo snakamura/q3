@@ -370,7 +370,8 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 	nSort_(SORT_ASCENDING | SORT_NOTHREAD),
 	pFilter_(0),
 	nLastSelection_(0),
-	nFocused_(0)
+	nFocused_(0),
+	nScroll_(-1)
 {
 	assert(pFolder);
 	assert(pDataItem);
@@ -726,6 +727,16 @@ bool qm::ViewModel::isFocused(unsigned int n) const
 	assert(listItem_.empty() ||
 		listItem_[nFocused_]->getFlags() & ViewModelItem::FLAG_FOCUSED);
 	return n == nFocused_;
+}
+
+unsigned int qm::ViewModel::getScroll() const
+{
+	return nScroll_;
+}
+
+void qm::ViewModel::setScroll(unsigned int nScroll)
+{
+	nScroll_ = nScroll;
 }
 
 void qm::ViewModel::payAttention(unsigned int n)

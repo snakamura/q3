@@ -526,8 +526,10 @@ unsigned int qm::ListWindowImpl::getLineFromPoint(const POINT& pt) const
 void qm::ListWindowImpl::viewModelSelected(const ViewModelManagerEvent& event)
 {
 	ViewModel* pOldViewModel = event.getOldViewModel();
-	if (pOldViewModel)
+	if (pOldViewModel) {
+		pOldViewModel->setScroll(pThis_->getScrollPos(SB_VERT));
 		pOldViewModel->removeViewModelHandler(this);
+	}
 	
 	ViewModel* pNewViewModel = event.getNewViewModel();
 	if (pNewViewModel)
@@ -537,8 +539,13 @@ void qm::ListWindowImpl::viewModelSelected(const ViewModelManagerEvent& event)
 	
 	pThis_->refresh();
 	
-	if (pNewViewModel)
-		ensureVisible(pNewViewModel->getFocused());
+	if (pNewViewModel) {
+		unsigned int nScroll = pNewViewModel->getScroll();
+		if (nScroll != -1)
+			scrollVertical(nScroll);
+		else
+			ensureVisible(pNewViewModel->getFocused());
+	}
 }
 
 void qm::ListWindowImpl::itemAdded(const ViewModelEvent& event)
