@@ -9,8 +9,13 @@
 #     clean.wce
 
 BINDIR					= d:/util/cygwin/bin
+VSDIR					= d:/dev/msvs
 VCDIR					= d:/dev/msvs/vc98
+#VSDIR					= c:/Program Files/Microsoft Visual Studio .NET 2003
+#VCDIR					= d:/dev/msvs2003/vc7
+VC7						= 0
 EVCDIR					= d:/dev/msevc4/evc
+EVC4					= 1
 PLATFORMSDKDIR			= d:/dev/mssdk
 CESDKPPC2003JADIR		= d:/dev/msevc4/wce420/pocket pc 2003
 CESDKPPC2003ENDIR		= d:/dev/msevc4/wce420/pocket pc 2003
@@ -26,7 +31,6 @@ CESDKHPCPROENDIR		= d:/dev/msevt/wce211/ms hpc pro
 STLPORTDIR				= d:/dev/stlport/STLport-4.6.2/stlport
 SVNDIR					= d:/dev/subversion
 KCTRLDIR				= d:/home/wince/kctrl
-EVC4					= 1
 
 
 ifeq ($(PROJECTNAME),)
@@ -45,14 +49,25 @@ ifeq ($(PLATFORM),desktop)
 	SDKDIR				= $(PLATFORMSDKDIR)
 	COMPILERDIR			= $(VCDIR)
 	COMPILERBINDIR		= $(COMPILERDIR)/bin
-	COMMONBINDIR		= $(COMPILERDIR)/../common/msdev98/bin
+	ifeq ($(VC7),1)
+		COMMONBINDIR	= $(VSDIR)/common7/ide
+	else
+		COMMONBINDIR	= $(VSDIR)/common/msdev98/bin
+	endif
 	
 	SDKINCLUDEDIR		= $(SDKDIR)/include
 	SDKLIBDIR			= $(SDKDIR)/lib
-	MFCINCLUDEDIR		= $(COMPILERDIR)/mfc/include
-	MFCLIBDIR			= $(COMPILERDIR)/mfc/lib
-	ATLINCLUDEDIR		= $(COMPILERDIR)/atl/include
-	ATLLIBDIR			= $(COMPILERDIR)/atl/lib
+	ifeq ($(VC7),1)
+		MFCINCLUDEDIR	= $(COMPILERDIR)/atlmfc/include
+		MFCLIBDIR		= $(COMPILERDIR)/atlmfc/lib
+		ATLINCLUDEDIR	= $(COMPILERDIR)/atlmfc/include
+		ATLLIBDIR		= $(COMPILERDIR)/atlmfc/lib
+	else
+		MFCINCLUDEDIR	= $(COMPILERDIR)/mfc/include
+		MFCLIBDIR		= $(COMPILERDIR)/mfc/lib
+		ATLINCLUDEDIR	= $(COMPILERDIR)/atl/include
+		ATLLIBDIR		= $(COMPILERDIR)/atl/lib
+	endif
 	COMPILERINCLUDEDIR	= $(COMPILERDIR)/include
 	COMPILERLIBDIR		= $(COMPILERDIR)/lib
 	#########################################################################
@@ -265,7 +280,6 @@ ifeq ($(PLATFORM),desktop)
 	LDFLAGS				+= -MACHINE:I386
 	
 	LIBS				= msvcrt$(DSUFFIX).lib \
-						  msvcirt$(DSUFFIX).lib \
 						  user32.lib \
 						  kernel32.lib \
 						  wsock32.lib \
@@ -281,6 +295,9 @@ ifeq ($(PLATFORM),desktop)
 						  oleaut32.lib \
 						  uuid.lib \
 						  urlmon.lib
+	ifneq ($(VC7),1)
+		LIBS			+= msvcirt$(DSUFFIX).lib
+	endif
 	ifdef KCTRL
 		LIBS			+= $(KCTRLDIR)/lib/x86uni/kctrl.lib
 	endif

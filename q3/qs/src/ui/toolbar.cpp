@@ -343,7 +343,7 @@ bool qs::ToolbarButton::create(HWND hwnd,
 	if (wstrDropDown_.get()) {
 		button.fsStyle |= TBSTYLE_DROPDOWN;
 #ifndef _WIN32_WCE
-		if (nAction_ > ActionMap.ID_MAX)
+		if (nAction_ > ActionMap::ID_MAX)
 			button.fsStyle |= BTNS_WHOLEDROPDOWN;
 #endif
 	}
