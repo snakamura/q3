@@ -1786,6 +1786,7 @@ BEGIN
     IDS_CONFIRM_SAVEADDRESSBOOK 
                             "Address Book is not saved.\nWould you like to save changes?"
     IDS_PROCESSING          "Processing..."
+    IDS_UPDATEFOLDER        "Would you like to update a folder list now?"
     IDS_FILTER_EXPORT       "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"
     IDS_FILTER_IMPORT       "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"
     IDS_FILTER_INSERT       "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"

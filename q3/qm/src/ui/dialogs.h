@@ -205,6 +205,7 @@ private:
 	JunkFilter* pJunkFilter_;
 	OptionDialogManager* pOptionDialogManager_;
 	qs::Profile* pProfile_;
+	bool bAccountAdded_;
 };
 
 

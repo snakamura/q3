@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft eMbedded Visual C++ generated include file.
+// Microsoft Developer Studio generated include file.
 // Used by qmppc.rc
 //
 #define IDI_MAINFRAME                   102
@@ -268,6 +268,7 @@
 #define IDC_FINDPREV                    1089
 #define IDS_PROCESSING                  1089
 #define IDC_FIND                        1090
+#define IDS_UPDATEFOLDER                1090
 #define IDC_REPLACE                     1091
 #define IDC_REPLACENEXT                 1092
 #define IDC_REPLACEPREV                 1093

@@ -77,7 +77,8 @@ qm::AccountDialog::AccountDialog(AccountManager* pAccountManager,
 	pSecurity_(pSecurity),
 	pJunkFilter_(pJunkFilter),
 	pOptionDialogManager_(pOptionDialogManager),
-	pProfile_(pProfile)
+	pProfile_(pProfile),
+	bAccountAdded_(false)
 {
 }
 
@@ -176,6 +177,7 @@ LRESULT qm::AccountDialog::onAddAccount()
 		
 		update();
 		
+		bAccountAdded_ = true;
 		postMessage(WM_COMMAND, MAKEWPARAM(IDC_PROPERTY, BN_CLICKED),
 			reinterpret_cast<LPARAM>(getDlgItem(IDC_PROPERTY)));
 	}
@@ -415,7 +417,17 @@ LRESULT qm::AccountDialog::onProperty()
 		sheet.add(&advancedPage);
 		
 		sheet.doModal(getHandle());
+		
+		if (bAccountAdded_) {
+			HINSTANCE hInst = Application::getApplication().getResourceHandle();
+			if (messageBox(hInst, IDS_UPDATEFOLDER, MB_YESNO | MB_ICONQUESTION, getHandle()) == IDYES) {
+				if (!pAccount->updateFolders())
+					messageBox(hInst, IDS_ERROR_UPDATEFOLDER, MB_OK | MB_ICONERROR, getHandle());
+			}
+		}
 	}
+	
+	bAccountAdded_ = false;
 	
 	return 0;
 }

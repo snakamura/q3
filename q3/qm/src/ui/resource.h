@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ generated include file.
+// Microsoft Developer Studio generated include file.
 // Used by qm.rc
 //
 #define IDI_MAINFRAME                   102
@@ -270,6 +270,7 @@
 #define IDC_FINDPREV                    1089
 #define IDS_PROCESSING                  1089
 #define IDC_FIND                        1090
+#define IDS_UPDATEFOLDER                1090
 #define IDC_REPLACE                     1091
 #define IDC_REPLACENEXT                 1092
 #define IDC_REPLACEPREV                 1093
@@ -427,7 +428,6 @@
 #define IDC_HEADERFONT                  1315
 #define IDC_SHOWUNSEEN                  1316
 #define IDC_SINGLECLICK                 1317
-#define IDC_FONT2                       1317
 #define IDC_COMBOBOXFONT                1317
 #define IDC_WAB                         1319
 #define IDC_OUTLOOK                     1320
