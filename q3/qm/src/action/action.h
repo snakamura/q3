@@ -93,6 +93,7 @@ class ToolOptionsAction;
 class ToolScriptAction;
 class ToolSubAccountAction;
 class ToolSyncAction;
+class ViewDropDownAction;
 class ViewEncodingAction;
 class ViewFilterAction;
 class ViewFilterCustomAction;
@@ -134,6 +135,7 @@ class Filter;
 class FilterMenu;
 class FindReplaceManager;
 class FixedFormTextManager;
+class FolderComboBox;
 class FolderListWindow;
 class FolderModel;
 class FolderSelectionModel;
@@ -2370,6 +2372,30 @@ private:
 	SyncDialogManager* pSyncDialogManager_;
 	unsigned int nSync_;
 	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * ViewDropDownAction
+ *
+ */
+
+class ViewDropDownAction : public qs::AbstractAction
+{
+public:
+	explicit ViewDropDownAction(FolderComboBox* pFolderComboBox);
+	virtual ~ViewDropDownAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	ViewDropDownAction(const ViewDropDownAction&);
+	ViewDropDownAction& operator=(const ViewDropDownAction&);
+
+private:
+	FolderComboBox* pFolderComboBox_;
 };
 
 

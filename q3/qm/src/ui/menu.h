@@ -120,6 +120,7 @@ const qs::ActionItem menuItems[] = {
 	{ L"ToolSMIMESign",				IDM_TOOL_SMIMESIGN				},
 	{ L"ToolSend",					IDM_TOOL_SEND					},
 	{ L"ToolSync",					IDM_TOOL_SYNC					},
+	{ L"ViewDropDown",				IDM_VIEW_DROPDOWN				},
 #ifdef QMHTMLVIEW
 	{ L"ViewHtmlMode",				IDM_VIEW_HTMLMODE				},
 	{ L"ViewHtmlOnlineMode",		IDM_VIEW_HTMLONLINEMODE			},

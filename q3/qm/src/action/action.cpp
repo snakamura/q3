@@ -10,6 +10,7 @@
 #include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmfolder.h>
+#include <qmfoldercombobox.h>
 #include <qmfolderlistwindow.h>
 #include <qmfolderwindow.h>
 #include <qmgoround.h>
@@ -4553,6 +4554,28 @@ bool qm::ToolSyncAction::isEnabled(const ActionEvent& event)
 {
 	return pFolderModel_->getCurrentAccount() ||
 		pFolderModel_->getCurrentFolder();
+}
+
+
+/****************************************************************************
+ *
+ * ViewDropDownAction
+ *
+ */
+
+qm::ViewDropDownAction::ViewDropDownAction(FolderComboBox* pFolderComboBox) :
+	pFolderComboBox_(pFolderComboBox)
+{
+}
+
+qm::ViewDropDownAction::~ViewDropDownAction()
+{
+}
+
+void qm::ViewDropDownAction::invoke(const ActionEvent& event)
+{
+	pFolderComboBox_->sendMessage(CB_SHOWDROPDOWN,
+		!pFolderComboBox_->sendMessage(CB_GETDROPPEDSTATE));
 }
 
 

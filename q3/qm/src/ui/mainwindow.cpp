@@ -884,6 +884,9 @@ void qm::MainWindowImpl::initActions()
 		pSecurityModel_.get(),
 		SECURITYMODE_PGP,
 		Security::isPGPEnabled());
+	ADD_ACTION1(ViewDropDownAction,
+		IDM_VIEW_DROPDOWN,
+		pFolderComboBox_);
 	ADD_ACTION1(ViewEncodingAction,
 		IDM_VIEW_ENCODINGAUTODETECT,
 		pEncodingModel_.get());

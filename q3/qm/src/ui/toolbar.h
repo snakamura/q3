@@ -193,6 +193,7 @@ const qs::ActionItem toolbarItems[] = {
 	{ L"ToolSubAccount8",				IDM_TOOL_SUBACCOUNT + 8						},
 	{ L"ToolSubAccount9",				IDM_TOOL_SUBACCOUNT + 9						},
 	{ L"ToolSync",						IDM_TOOL_SYNC								},
+	{ L"ViewDropDown",					IDM_VIEW_DROPDOWN							},
 	{ L"ViewEncoding0",					IDM_VIEW_ENCODING							},
 	{ L"ViewEncoding1",					IDM_VIEW_ENCODING + 1						},
 	{ L"ViewEncoding2",					IDM_VIEW_ENCODING + 2						},

@@ -210,6 +210,7 @@ const qs::KeyNameToId mapKeyNameToId[] = {
 	{ L"ToolSubAccount8",				IDM_TOOL_SUBACCOUNT + 8,				0 },
 	{ L"ToolSubAccount9",				IDM_TOOL_SUBACCOUNT + 9,				0 },
 	{ L"ToolSync",						IDM_TOOL_SYNC,							0 },
+	{ L"ViewDropDown",					IDM_VIEW_DROPDOWN,						0 },
 	{ L"ViewEncoding0",					IDM_VIEW_ENCODING,						0 },
 	{ L"ViewEncoding1",					IDM_VIEW_ENCODING + 1,					0 },
 	{ L"ViewEncoding2",					IDM_VIEW_ENCODING + 2,					0 },
