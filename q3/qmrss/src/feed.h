@@ -80,7 +80,7 @@ public:
 	const WCHAR* getURL() const;
 	const qs::Time& getLastModified() const;
 	const ItemList& getItems() const;
-	const FeedItem* getItem(const WCHAR* pwszURI) const;
+	const FeedItem* getItem(const WCHAR* pwszHash) const;
 	void addItem(std::auto_ptr<FeedItem> pItem);
 
 private:
@@ -103,18 +103,18 @@ private:
 class FeedItem
 {
 public:
-	FeedItem(const WCHAR* pwszURI);
+	FeedItem(const WCHAR* pwszHash);
 	~FeedItem();
 
 public:
-	const WCHAR* getURI() const;
+	const WCHAR* getHash() const;
 
 private:
 	FeedItem(const FeedItem&);
 	FeedItem& operator=(const FeedItem&);
 
 private:
-	qs::wstring_ptr wstrURI_;
+	qs::wstring_ptr wstrHash_;
 };
 
 

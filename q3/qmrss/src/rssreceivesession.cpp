@@ -206,7 +206,8 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 		
 		const WCHAR* pwszLink = pItem->getLink();
 		if (pwszLink) {
-			if (!pFeed || !pFeed->getItem(pwszLink)) {
+			wstring_ptr wstrHash(pItem->getHash());
+			if (!pFeed || !pFeed->getItem(wstrHash.get())) {
 				unsigned int nFlags = 0;
 				
 				Part header;
@@ -244,7 +245,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 				pSessionCallback_->notifyNewMessage(pmh);
 			}
 			
-			std::auto_ptr<FeedItem> pItem(new FeedItem(pwszLink));
+			std::auto_ptr<FeedItem> pItem(new FeedItem(wstrHash.get()));
 			pFeedNew->addItem(pItem);
 		}
 	}

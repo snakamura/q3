@@ -79,6 +79,7 @@ public:
 	const WCHAR* getCreator() const;
 	const qs::Time& getPubDate() const;
 	const WCHAR* getContentEncoded() const;
+	qs::wstring_ptr getHash() const;
 
 public:
 	void setTitle(qs::wstring_ptr wstrTitle);

@@ -169,16 +169,16 @@ const Feed::ItemList& qmrss::Feed::getItems() const
 	return listItem_;
 }
 
-const FeedItem* qmrss::Feed::getItem(const WCHAR* pwszURI) const
+const FeedItem* qmrss::Feed::getItem(const WCHAR* pwszHash) const
 {
 	ItemList::const_iterator it = std::find_if(
 		listItem_.begin(), listItem_.end(),
 		std::bind2nd(
 			binary_compose_f_gx_hy(
 				string_equal<WCHAR>(),
-				std::mem_fun(&FeedItem::getURI),
+				std::mem_fun(&FeedItem::getHash),
 				std::identity<const WCHAR*>()),
-			pwszURI));
+			pwszHash));
 	return it != listItem_.end() ? *it : 0;
 }
 
@@ -195,18 +195,18 @@ void qmrss::Feed::addItem(std::auto_ptr<FeedItem> pItem)
  *
  */
 
-qmrss::FeedItem::FeedItem(const WCHAR* pwszURI)
+qmrss::FeedItem::FeedItem(const WCHAR* pwszHash)
 {
-	wstrURI_ = allocWString(pwszURI);
+	wstrHash_ = allocWString(pwszHash);
 }
 
 qmrss::FeedItem::~FeedItem()
 {
 }
 
-const WCHAR* qmrss::FeedItem::getURI() const
+const WCHAR* qmrss::FeedItem::getHash() const
 {
-	return wstrURI_.get();
+	return wstrHash_.get();
 }
 
 
@@ -373,7 +373,7 @@ bool qmrss::FeedWriter::write(const FeedList& l)
 			const FeedItem* pItem = *itI;
 			
 			if (!handler_.startElement(0, 0, L"item", DefaultAttributes()) ||
-				!handler_.characters(pItem->getURI(), 0, wcslen(pItem->getURI())) ||
+				!handler_.characters(pItem->getHash(), 0, wcslen(pItem->getHash())) ||
 				!handler_.endElement(0, 0, L"item"))
 				return false;
 		}

@@ -7,6 +7,7 @@
  */
 
 #include <qsconv.h>
+#include <qsmd5.h>
 #include <qsmime.h>
 
 #include "rss.h"
@@ -104,6 +105,36 @@ const Time& qmrss::Item::getPubDate() const
 const WCHAR* qmrss::Item::getContentEncoded() const
 {
 	return wstrContentEncoded_.get();
+}
+
+wstring_ptr qmrss::Item::getHash() const
+{
+	StringBuffer<WSTRING> buf;
+	const WCHAR* pwsz[] = {
+		wstrTitle_.get(),
+		wstrLink_.get(),
+		wstrDescription_.get(),
+		wstrCategory_.get(),
+		wstrSubject_.get(),
+		wstrCreator_.get(),
+		wstrContentEncoded_.get()
+	};
+	for (int n = 0; n < countof(pwsz); ++n) {
+		const WCHAR* p = pwsz[n];
+		if (p)
+			buf.append(p);
+	}
+	
+	wstring_ptr wstrTime(timePubDate_.format(L"%Y4%M0%D%h%m%s%z", Time::FORMAT_ORIGINAL));
+	buf.append(wstrTime.get());
+	
+	size_t nLen = wcslen(wstrTime.get());
+	xstring_size_ptr str(UTF8Converter().encode(wstrTime.get(), &nLen));
+	
+	CHAR szMD5[128/8*2 + 1];
+	MD5::md5ToString(reinterpret_cast<unsigned char*>(str.get()), str.size(), szMD5);
+	
+	return mbs2wcs(szMD5, 128/8*2);
 }
 
 void qmrss::Item::setTitle(wstring_ptr wstrTitle)
