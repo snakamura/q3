@@ -3397,12 +3397,14 @@ QSTATUS qm::ViewNavigateMessageAction::getNextUnseen(
 		Folder* pUnseenFolder = 0;
 		Account::FolderList::const_iterator it = itThis;
 		for (++it; it != listFolder.end() && !pUnseenFolder; ++it) {
-			if ((*it)->getUnseenCount() != 0)
+			if (!(*it)->isFlag(Folder::FLAG_TRASHBOX) &&
+				(*it)->getUnseenCount() != 0)
 				pUnseenFolder = *it;
 		}
 		if (!pUnseenFolder) {
 			for (it = listFolder.begin(); it != itThis && !pUnseenFolder; ++it) {
-				if ((*it)->getUnseenCount() != 0)
+				if (!(*it)->isFlag(Folder::FLAG_TRASHBOX) &&
+					(*it)->getUnseenCount() != 0)
 					pUnseenFolder = *it;
 			}
 		}
