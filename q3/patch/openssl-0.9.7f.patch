@@ -1,0 +1,132 @@
+diff -uNr openssl-0.9.7f.orig/crypto/dso/dso_win32.c openssl-0.9.7f/crypto/dso/dso_win32.c
+--- openssl-0.9.7f.orig/crypto/dso/dso_win32.c	2005-03-12 20:28:22.000000000 +0900
++++ openssl-0.9.7f/crypto/dso/dso_win32.c	2005-04-06 00:26:23.857917100 +0900
+@@ -116,13 +116,33 @@
+ 	HINSTANCE h = NULL, *p = NULL;
+ 	/* See applicable comments from dso_dl.c */
+ 	char *filename = DSO_convert_filename(dso, NULL);
++#ifdef OPENSSL_SYS_WINCE
++	size_t i,len_0;
++	TCHAR *wfilename = NULL;
++#endif
+ 
+ 	if(filename == NULL)
+ 		{
+ 		DSOerr(DSO_F_WIN32_LOAD,DSO_R_NO_FILENAME);
+ 		goto err;
+ 		}
++#ifdef OPENSSL_SYS_WINCE
++	len_0 = strlen(filename)+1;
++	wfilename = (TCHAR *)OPENSSL_malloc(len_0);
++	if(wfilename == NULL)
++		{
++		DSOerr(DSO_F_WIN32_LOAD,ERR_R_MALLOC_FAILURE);
++		goto err;
++		}
++#ifndef OPENSSL_NO_MULTIBYTE
++	if(!MultiByteToWideChar(CP_ACP, 0, filename, -1, wfilename, len_0))
++#endif
++		for (i=0;i<len_0;i++) wfilename[i]=(TCHAR)filename[i];
++	h = LoadLibrary(wfilename);
++	OPENSSL_free(wfilename);
++#else
+ 	h = LoadLibrary(filename);
++#endif
+ 	if(h == NULL)
+ 		{
+ 		DSOerr(DSO_F_WIN32_LOAD,DSO_R_LOAD_FAILED);
+@@ -189,7 +209,11 @@
+ static void *win32_bind_var(DSO *dso, const char *symname)
+ 	{
+ 	HINSTANCE *ptr;
+-	void *sym;
++	void *sym = NULL;
++#ifdef OPENSSL_SYS_WINCE
++	size_t i,len_0;
++	TCHAR *wsymname = NULL;
++#endif
+ 
+ 	if((dso == NULL) || (symname == NULL))
+ 		{
+@@ -207,7 +231,23 @@
+ 		DSOerr(DSO_F_WIN32_BIND_VAR,DSO_R_NULL_HANDLE);
+ 		return(NULL);
+ 		}
++#ifdef OPENSSL_SYS_WINCE
++	len_0 = strlen(symname)+1;
++	wsymname = (TCHAR *)OPENSSL_malloc(len_0);
++	if(wsymname == NULL)
++		{
++		DSOerr(DSO_F_WIN32_BIND_VAR,ERR_R_MALLOC_FAILURE);
++		return(NULL);
++		}
++#ifndef OPENSSL_NO_MULTIBYTE
++	if(!MultiByteToWideChar(CP_ACP, 0, symname, -1, wsymname, len_0))
++#endif
++		for (i=0;i<len_0;i++) wsymname[i]=(TCHAR)symname[i];
++	sym = GetProcAddress(*ptr, wsymname);
++	OPENSSL_free(wsymname);
++#else
+ 	sym = GetProcAddress(*ptr, symname);
++#endif
+ 	if(sym == NULL)
+ 		{
+ 		DSOerr(DSO_F_WIN32_BIND_VAR,DSO_R_SYM_FAILURE);
+@@ -220,7 +260,11 @@
+ static DSO_FUNC_TYPE win32_bind_func(DSO *dso, const char *symname)
+ 	{
+ 	HINSTANCE *ptr;
+-	void *sym;
++	void *sym = NULL;
++#ifdef OPENSSL_SYS_WINCE
++	size_t i,len_0;
++	TCHAR *wsymname = NULL;
++#endif
+ 
+ 	if((dso == NULL) || (symname == NULL))
+ 		{
+@@ -238,7 +282,23 @@
+ 		DSOerr(DSO_F_WIN32_BIND_FUNC,DSO_R_NULL_HANDLE);
+ 		return(NULL);
+ 		}
++#ifdef OPENSSL_SYS_WINCE
++	len_0 = strlen(symname)+1;
++	wsymname = (TCHAR *)OPENSSL_malloc(len_0);
++	if(wsymname == NULL)
++		{
++		DSOerr(DSO_F_WIN32_BIND_VAR,ERR_R_MALLOC_FAILURE);
++		return(NULL);
++		}
++#ifndef OPENSSL_NO_MULTIBYTE
++	if(!MultiByteToWideChar(CP_ACP, 0, symname, -1, wsymname, len_0))
++#endif
++		for (i=0;i<len_0;i++) wsymname[i]=(TCHAR)symname[i];
++	sym = GetProcAddress(*ptr, wsymname);
++	OPENSSL_free(wsymname);
++#else
+ 	sym = GetProcAddress(*ptr, symname);
++#endif
+ 	if(sym == NULL)
+ 		{
+ 		DSOerr(DSO_F_WIN32_BIND_FUNC,DSO_R_SYM_FAILURE);
+diff -uNr openssl-0.9.7f.orig/crypto/rand/rand_win.c openssl-0.9.7f/crypto/rand/rand_win.c
+--- openssl-0.9.7f.orig/crypto/rand/rand_win.c	2005-03-19 20:40:41.000000000 +0900
++++ openssl-0.9.7f/crypto/rand/rand_win.c	2005-04-05 00:35:11.541431500 +0900
+@@ -189,11 +189,17 @@
+ {
+ 	MEMORYSTATUS m;
+ 	HCRYPTPROV hProvider = 0;
++#if !defined OPENSSL_SYS_WINCE || WCEPLATFORM!=MS_HPC_PRO
+ 	BYTE buf[64];
++#endif
+ 	DWORD w;
++#ifndef OPENSSL_SYS_WINCE
+ 	HWND h;
++#endif
+ 
++#ifndef OPENSSL_SYS_WINCE
+ 	HMODULE advapi, kernel, user, netapi;
++#endif
+ 	CRYPTACQUIRECONTEXTW acquire = 0;
+ 	CRYPTGENRANDOM gen = 0;
+ 	CRYPTRELEASECONTEXT release = 0;
