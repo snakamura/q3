@@ -147,8 +147,14 @@ QSTATUS qm::AbstractMessageModel::itemRemoved(const ViewModelEvent& event)
 {
 	DECLARE_QSTATUS();
 	
-	status = setMessage(0);
-	CHECK_QSTATUS();
+	Lock<ViewModel> lock(*pViewModel_);
+	
+	const ViewModelItem* pItem = pViewModel_->getItem(event.getItem());
+	MessagePtrLock mpl(ptr_);
+	if (!mpl || mpl == pItem->getMessageHolder()) {
+		status = setMessage(0);
+		CHECK_QSTATUS();
+	}
 	
 	return QSTATUS_SUCCESS;
 }

@@ -1013,6 +1013,9 @@ QSTATUS qm::ViewModel::messageRemoved(const FolderEvent& event)
 					pItem)) == listItem_.end());
 		}
 		
+		status = fireItemRemoved(nIndex);
+		CHECK_QSTATUS();
+		
 		delete *it;
 		it = listItem_.erase(it);
 		
@@ -1066,9 +1069,6 @@ QSTATUS qm::ViewModel::messageRemoved(const FolderEvent& event)
 		
 		if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
 			--nUnseenCount_;
-		
-		status = fireItemRemoved(nIndex);
-		CHECK_QSTATUS();
 	}
 	
 	return QSTATUS_SUCCESS;

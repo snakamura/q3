@@ -545,13 +545,14 @@ QSTATUS qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 		
 		Lock<ViewModel> lock(*pViewModel);
 		
-		MessageHolder* pmh = 0;
-		
 		MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
 		if (mpl) {
 			unsigned int nIndex = pViewModel->getIndex(mpl);
-			if (nIndex < pViewModel->getCount() - 1)
-				pmh = pViewModel->getMessageHolder(nIndex + 1);
+			if (nIndex < pViewModel->getCount() - 1) {
+				MessageHolder* pmh = pViewModel->getMessageHolder(nIndex + 1);
+				status = pMessageModel_->setMessage(pmh);
+				CHECK_QSTATUS();
+			}
 			
 			Folder::MessageHolderList l;
 			status = STLWrapper<Folder::MessageHolderList>(l).push_back(mpl);
@@ -559,9 +560,6 @@ QSTATUS qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 			status = mpl->getFolder()->removeMessages(l, bDirect_, 0);
 			CHECK_QSTATUS();
 		}
-		
-		status = pMessageModel_->setMessage(pmh);
-		CHECK_QSTATUS();
 	}
 	
 	return QSTATUS_SUCCESS;
@@ -3732,6 +3730,10 @@ QSTATUS qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 			status = pViewModel->payAttention(nIndex);
 			CHECK_QSTATUS();
 		}
+	}
+	else {
+		status = pMessageModel->setMessage(0);
+		CHECK_QSTATUS();
 	}
 	
 	return QSTATUS_SUCCESS;
