@@ -146,7 +146,7 @@ public:
 							int nMonth,
 							int nDay);
 
-private:
+public:
 	static int getSystemTimeZone();
 	static Time getTransitionDate(const SYSTEMTIME& time);
 

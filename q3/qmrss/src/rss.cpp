@@ -722,6 +722,8 @@ bool qmrss::ParserUtil::parseDate(const WCHAR* pwszDate,
 				++p;
 		}
 	}
+	
+	int nTimeZone = 0;
 	if (*p == L'Z') {
 	}
 	else if (*p == L'+' || *p == L'-') {
@@ -742,16 +744,20 @@ bool qmrss::ParserUtil::parseDate(const WCHAR* pwszDate,
 		if (*p != L'\0')
 			return false;
 		
-		int nTimeZone = nTimeZoneHour*100 + nTimeZoneMinute;
+		nTimeZone = nTimeZoneHour*100 + nTimeZoneMinute;
 		if (bMinus)
 			nTimeZone = -nTimeZone;
-		pDate->setTimeZone(nTimeZone);
-		
-		pDate->addHour(-nTimeZoneHour);
-		pDate->addMinute(-nTimeZoneMinute);
+	}
+	else if (*p == L'\0') {
+		nTimeZone = Time::getSystemTimeZone();
 	}
 	else {
 		return false;
+	}
+	if (nTimeZone != 0) {
+		pDate->setTimeZone(nTimeZone);
+		pDate->addHour(-nTimeZone/100);
+		pDate->addMinute(-nTimeZone%100);
 	}
 	
 	return true;
