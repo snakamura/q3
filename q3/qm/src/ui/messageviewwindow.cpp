@@ -16,12 +16,16 @@
 
 #include <qsconv.h>
 #include <qsstream.h>
+#include <qsuiutil.h>
 
 #include <tchar.h>
 #ifdef QMHTMLVIEW
 #	include <exdispid.h>
 #	include <mshtmcid.h>
 #	include <mshtmdid.h>
+#endif
+#ifndef _WIN32_WCE
+#	include <tmschema.h>
 #endif
 
 #include "messagemodel.h"
@@ -159,13 +163,11 @@ bool qm::MessageViewWindowFactory::createHtmlView()
 	HWND hwnd = pText_->getParent();
 #ifdef _WIN32_WCE
 	const WCHAR* pwszId = L"{8856F961-340A-11D0-A96B-00C04FD705A2}";
-	DWORD dwExStyle = WS_EX_CLIENTEDGE;
 #else
 	const WCHAR* pwszId = L"Shell.Explorer";
-	DWORD dwExStyle = 0;
 #endif
-	if (!pHtml->create(L"QmHtmlMessageViewWindow", pwszId,
-		WS_CHILD, 0, 0, 500, 500, hwnd, dwExStyle, 0, 1003, 0))
+	if (!pHtml->create(L"QmHtmlMessageViewWindow", pwszId, WS_CHILD,
+		0, 0, 500, 500, hwnd, WS_EX_CLIENTEDGE, 0, 1003, 0))
 		return false;
 	pHtml_ = pHtml.release();
 	
@@ -434,6 +436,10 @@ LRESULT qm::HtmlMessageViewWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM l
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_CREATE()
 		HANDLE_DESTROY()
+#ifndef _WIN32_WCE
+		HANDLE_NCPAINT()
+		HANDLE_THEMECHANGED()
+#endif
 	END_MESSAGE_HANDLER()
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
@@ -442,6 +448,10 @@ LRESULT qm::HtmlMessageViewWindow::onCreate(CREATESTRUCT* pCreateStruct)
 {
 	if (DefaultWindowHandler::onCreate(pCreateStruct) == -1)
 		return -1;
+	
+#ifndef _WIN32_WCE
+	pTheme_.reset(new Theme(getHandle(), L"Edit"));
+#endif
 	
 	HINSTANCE hInstAtl = Application::getApplication().getAtlHandle();
 	assert(hInstAtl);
@@ -570,8 +580,30 @@ LRESULT qm::HtmlMessageViewWindow::onDestroy()
 		pWebBrowserEvents_ = 0;
 	}
 	
+#ifndef _WIN32_WCE
+	pTheme_.reset(0);
+#endif
+	
 	return DefaultWindowHandler::onDestroy();
 }
+
+#ifndef _WIN32_WCE
+LRESULT qm::HtmlMessageViewWindow::onNcPaint(HRGN hrgn)
+{
+	DefaultWindowHandler::onNcPaint(hrgn);
+	
+	if (getWindowLong(GWL_EXSTYLE) & WS_EX_CLIENTEDGE && pTheme_->isActive())
+		qs::UIUtil::drawThemeBorder(pTheme_.get(), getHandle(), EP_EDITTEXT, 0, ::GetSysColor(COLOR_WINDOW));
+	
+	return 0;
+}
+
+LRESULT qm::HtmlMessageViewWindow::onThemeChanged()
+{
+	pTheme_.reset(new Theme(getHandle(), L"Edit"));
+	return 0;
+}
+#endif
 
 Window& qm::HtmlMessageViewWindow::getWindow()
 {
@@ -1559,7 +1591,11 @@ STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::ShowConte
 STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::GetHostInfo(DWORD* pdwFlags,
 																				   DWORD* pdwDoubleClick)
 {
+#ifdef _WIN32_WCE
 	*pdwFlags = DOCHOSTUIFLAG_OPENNEWWIN;
+#else
+	*pdwFlags = DOCHOSTUIFLAG_OPENNEWWIN | DOCHOSTUIFLAG_NO3DBORDER | DOCHOSTUIFLAG_THEME;
+#endif
 	*pdwDoubleClick = DOCHOSTUIDBLCLK_DEFAULT;
 	return S_OK;
 }

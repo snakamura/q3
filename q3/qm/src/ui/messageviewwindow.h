@@ -16,6 +16,7 @@
 #include <qsmenu.h>
 #include <qsmime.h>
 #include <qstextwindow.h>
+#include <qstheme.h>
 #include <qswindow.h>
 
 #ifdef QMHTMLVIEW
@@ -248,9 +249,13 @@ public:
 							   WPARAM wParam,
 							   LPARAM lParam);
 
-private:
+protected:
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
 	LRESULT onDestroy();
+#ifndef _WIN32_WCE
+	LRESULT onNcPaint(HRGN hrgn);
+	LRESULT onThemeChanged();
+#endif
 
 public:
 	virtual qs::Window& getWindow();
@@ -838,6 +843,9 @@ private:
 	bool bAllowExternal_;
 	bool bActivate_;
 	bool bOnlineMode_;
+#ifndef _WIN32_WCE
+	std::auto_ptr<qs::Theme> pTheme_;
+#endif
 };
 
 #endif // QMHTMLVIEW
