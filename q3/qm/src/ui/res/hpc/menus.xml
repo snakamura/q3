@@ -211,7 +211,7 @@
 			<menuitem text="S&amp;end" action="FileSend"/>
 			<menuitem text="Send &amp;Now" action="FileSendNow"/>
 			<menuitem text="Save as &amp;Draft" action="FileDraft"/>
-			<menuitem text="Save as &amp;Draft, Close" action="FileDraftClose"/>
+			<menuitem text="S&amp;ave as Draft, Close" action="FileDraftClose"/>
 			<separator/>
 			<menuitem text="&amp;Open..." action="FileOpen"/>
 			<menuitem text="&amp;Save..." action="FileSave"/>
