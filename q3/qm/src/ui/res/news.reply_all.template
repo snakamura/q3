@@ -6,15 +6,6 @@ Newsgroups: {
 	)
 }
 Subject: Re: {@Subject(@True(), @True())}
-Message-Id: {
-	@Concat(
-		'<',
-		@ProcessId(),
-		@FormatDate(@Date(), '%Y4%M0%D%h%m%s'),
-		@Address(@I()),
-		'>'
-	)
-}
 In-Reply-To: {Message-Id}
 References: {
 	@Progn(

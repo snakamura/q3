@@ -12,15 +12,7 @@
 			)
 		)
 	)
-}Message-Id: {
-	@Concat(
-		'<',
-		@ProcessId(),
-		@FormatDate(@Date(), '%Y4%M0%D%h%m%s'),
-		@Address(@I(@Account(), X-QMAIL-SubAccount)),
-		'>')
-}
-From: {@Decode(@Field('From'))}
+}From: {@Decode(@Field('From'))}
 Subject: {@Subject()}
 X-QMAIL-Account: {@Account()}{@If(X-QMAIL-SubAccount, @Concat('\nX-QMAIL-SubAccount: ', X-QMAIL-SubAccount), '')}
 X-QMAIL-Macro: @ForEach(@Messages('{@Concat('//', @Account(), '/', @Folder())}', {@Id()}), @Delete())
