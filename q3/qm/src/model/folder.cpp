@@ -995,6 +995,9 @@ QSTATUS qm::NormalFolder::moveMessages(
 	
 	DECLARE_QSTATUS();
 	
+	status = pFolder->loadMessageHolders();
+	CHECK_QSTATUS();
+	
 	MessageHolderList& listFrom = pImpl_->listMessageHolder_;
 	MessageHolderList& listTo = pFolder->pImpl_->listMessageHolder_;
 	status = STLWrapper<MessageHolderList>(
