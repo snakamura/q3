@@ -39,6 +39,7 @@ qmjunk::JunkFilterImpl::JunkFilterImpl(const WCHAR* pwszPath,
 	nJunkCount_(-1),
 	fThresholdScore_(0.95f),
 	nFlags_(FLAG_AUTOLEARN | FLAG_MANUALLEARN),
+	nMaxTextLen_(32*1024),
 	bModified_(false)
 {
 	wstrPath_ = allocWString(pwszPath);
@@ -50,6 +51,7 @@ qmjunk::JunkFilterImpl::JunkFilterImpl(const WCHAR* pwszPath,
 		fThresholdScore_ = static_cast<float>(dThresholdScore);
 	
 	nFlags_ = pProfile->getInt(L"JunkFilter", L"Flags", FLAG_AUTOLEARN | FLAG_MANUALLEARN);
+	nMaxTextLen_ = pProfile->getInt(L"JunkFilter", L"MaxTextLen", 32*1024);
 }
 
 qmjunk::JunkFilterImpl::~JunkFilterImpl()
@@ -191,7 +193,7 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 		TokenRateList listTokenRate_;
 		const unsigned int nMax_;
 	} callback(pDepotToken_, nCleanCount_, nJunkCount_, cs_);
-	if (!Tokenizer().getTokens(msg, &callback))
+	if (!Tokenizer(nMaxTextLen_).getTokens(msg, &callback))
 		return 0.0F;
 	
 	typedef TokenizerCallbackImpl::TokenRateList List;
@@ -326,7 +328,7 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 		CriticalSection& cs_;
 		Log& log_;
 	} callback(nOperation, pDepotToken_, cs_, log);
-	if (!Tokenizer().getTokens(msg, &callback))
+	if (!Tokenizer(nMaxTextLen_).getTokens(msg, &callback))
 		return false;
 	
 	{
@@ -394,6 +396,7 @@ bool qmjunk::JunkFilterImpl::save()
 	pProfile_->setString(L"JunkFilter", L"ThresholdScore", wszThresholdScore);
 	
 	pProfile_->setInt(L"JunkFilter", L"Flags", nFlags_);
+	pProfile_->setInt(L"JunkFilter", L"MaxTextLen", nMaxTextLen_);
 	
 	bModified_ = false;
 	
@@ -542,7 +545,8 @@ std::auto_ptr<JunkFilter> qmjunk::JunkFilterFactoryImpl::createJunkFilter(const 
  *
  */
 
-qmjunk::Tokenizer::Tokenizer()
+qmjunk::Tokenizer::Tokenizer(size_t nMaxTextLen) :
+	nMaxTextLen_(nMaxTextLen)
 {
 }
 
@@ -560,7 +564,7 @@ bool qmjunk::Tokenizer::getTokens(const qs::Part& part,
 		wstring_ptr wstrName(mbs2wcs((*it).first));
 		UnstructuredParser field;
 		if (part.getField(wstrName.get(), &field) == Part::FIELD_EXIST) {
-			if (!getTokens(field.getValue(), pCallback))
+			if (!getTokens(field.getValue(), -1, pCallback))
 				return false;
 		}
 	}
@@ -576,7 +580,7 @@ bool qmjunk::Tokenizer::getTokens(const qs::Part& part,
 		wxstring_size_ptr wstrBody(part.getBodyText());
 		if (!wstrBody.get())
 			return false;
-		if (!getTokens(wstrBody.get(), pCallback))
+		if (!getTokens(wstrBody.get(), wstrBody.size(), pCallback))
 			return false;
 	}
 	
@@ -584,11 +588,20 @@ bool qmjunk::Tokenizer::getTokens(const qs::Part& part,
 }
 
 bool qmjunk::Tokenizer::getTokens(const WCHAR* pwszText,
+								  size_t nLen,
 								  TokenizerCallback* pCallback) const
 {
-	const WCHAR* p = pwszText;
+	assert(pwszText);
+	assert(pCallback);
 	
-	while (*p) {
+	if (nLen == -1)
+		nLen = wcslen(pwszText);
+	if (nLen > nMaxTextLen_)
+		nLen = nMaxTextLen_;
+	
+	const WCHAR* p = pwszText;
+	const WCHAR* pEnd = p + nLen;
+	while (p < pEnd) {
 		Token token = getToken(*p);
 		switch (token) {
 		case TOKEN_LATEN:
@@ -596,7 +609,7 @@ bool qmjunk::Tokenizer::getTokens(const WCHAR* pwszText,
 				const WCHAR* pBegin = p;
 				do {
 					++p;
-				} while (*p && getToken(*p) == TOKEN_LATEN);
+				} while (p < pEnd && getToken(*p) == TOKEN_LATEN);
 				
 				wstring_ptr wstrToken(allocWString(pBegin, p - pBegin));
 				if (!pCallback->token(wstrToken.get()))
@@ -607,7 +620,7 @@ bool qmjunk::Tokenizer::getTokens(const WCHAR* pwszText,
 			{
 				WCHAR wsz[3] = { *p, L'\0', L'\0' };
 				++p;
-				while (*p && getToken(*p) == TOKEN_IDEOGRAPHIC) {
+				while (p < pEnd && getToken(*p) == TOKEN_IDEOGRAPHIC) {
 					wsz[1] = *p;
 					if (!pCallback->token(wsz))
 						return false;
@@ -619,7 +632,7 @@ bool qmjunk::Tokenizer::getTokens(const WCHAR* pwszText,
 		case TOKEN_SEPARATOR:
 			do {
 				++p;
-			} while (*p && getToken(*p) == TOKEN_SEPARATOR);
+			} while (p < pEnd && getToken(*p) == TOKEN_SEPARATOR);
 			break;
 		default:
 			assert(false);
@@ -630,7 +643,7 @@ bool qmjunk::Tokenizer::getTokens(const WCHAR* pwszText,
 	return true;
 }
 
-qmjunk::Tokenizer::Token qmjunk::Tokenizer::getToken(WCHAR c) const
+qmjunk::Tokenizer::Token qmjunk::Tokenizer::getToken(WCHAR c)
 {
 	if ((L'a' <= c && c <= L'z') ||
 		(L'A' <= c && c <= L'Z') ||

@@ -69,6 +69,7 @@ private:
 	volatile unsigned int nJunkCount_;
 	float fThresholdScore_;
 	unsigned int nFlags_;
+	size_t nMaxTextLen_;
 	bool bModified_;
 	qs::CriticalSection cs_;
 };
@@ -108,13 +109,14 @@ private:
 class Tokenizer
 {
 public:
-	Tokenizer();
+	explicit Tokenizer(size_t nMaxTextLen);
 	~Tokenizer();
 
 public:
 	bool getTokens(const qs::Part& part,
 				   TokenizerCallback* pCallback) const;
 	bool getTokens(const WCHAR* pwszText,
+				   size_t nLen,
 				   TokenizerCallback* pCallback) const;
 
 private:
@@ -125,11 +127,14 @@ private:
 	};
 
 private:
-	Token getToken(WCHAR c) const;
+	static Token getToken(WCHAR c);
 
 private:
 	Tokenizer(const Tokenizer&);
 	Tokenizer& operator=(const Tokenizer&);
+
+private:
+	size_t nMaxTextLen_;
 };
 
 
