@@ -832,6 +832,18 @@ std::auto_ptr<Part> qm::MessageCreator::createRfc822Part(const Part& part,
 	if (!pPart->setField(L"Content-Type", contentType))
 		return std::auto_ptr<Part>(0);
 	
+	wstring_ptr wstrFileName;
+	UnstructuredParser subject;
+	if (part.getField(L"Subject", &subject) == Part::FIELD_EXIST && *subject.getValue())
+		wstrFileName = concat(subject.getValue(), L".msg");
+	else
+		wstrFileName = allocWString(L"Untitled.msg");
+	
+	ContentDispositionParser contentDisposition(L"attachment");
+	contentDisposition.setParameter(L"filename", wstrFileName.get());
+	if (!pPart->setField(L"Content-Disposition", contentDisposition))
+		return std::auto_ptr<Part>(0);
+	
 	if (bHeaderOnly) {
 		pPart->setBody(part.getHeader(), -1);
 	}
