@@ -94,8 +94,10 @@ QSTATUS qm::AttachmentOpenAction::invoke(const ActionEvent& event)
 		AttachmentParser parser(msg);
 		AttachmentParser::AttachmentList listAttachment;
 		AttachmentParser::AttachmentListFree freeAttachment(listAttachment);
-		status = parser.getAttachments(&listAttachment);
+		status = parser.getAttachments(false, &listAttachment);
 		CHECK_QSTATUS();
+		if (listAttachment.empty())
+			return QSTATUS_SUCCESS;
 		
 		AttachmentSelectionModel::NameList listName;
 		StringListFree<AttachmentSelectionModel::NameList> freeName(listName);
@@ -2420,6 +2422,8 @@ QSTATUS qm::MessageDeleteAttachmentAction::invoke(const ActionEvent& event)
 			status = mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg);
 			CHECK_QSTATUS();
 			status = AttachmentParser::removeAttachments(&msg);
+			CHECK_QSTATUS();
+			status = AttachmentParser::setAttachmentDeleted(&msg);
 			CHECK_QSTATUS();
 			
 			NormalFolder* pFolder = mpl->getFolder();

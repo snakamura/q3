@@ -76,7 +76,7 @@ QSTATUS qm::AttachmentMenu::getPart(unsigned int nId, Message* pMessage,
 	AttachmentParser parser(*pMessage);
 	AttachmentParser::AttachmentList l;
 	AttachmentParser::AttachmentListFree free(l);
-	status = parser.getAttachments(&l);
+	status = parser.getAttachments(false, &l);
 	CHECK_QSTATUS();
 	if (l.size() < nId - (*it).first)
 		return QSTATUS_FAIL;
@@ -121,10 +121,11 @@ QSTATUS qm::AttachmentMenu::createMenu(HMENU hmenu, const MessagePtrList& l)
 			CHECK_QSTATUS();
 			status = mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, &msg);
 			CHECK_QSTATUS();
+			
 			AttachmentParser parser(msg);
 			AttachmentParser::AttachmentList list;
 			AttachmentParser::AttachmentListFree free(list);
-			status = parser.getAttachments(&list);
+			status = parser.getAttachments(false, &list);
 			CHECK_QSTATUS();
 			AttachmentParser::AttachmentList::iterator itA = list.begin();
 			while (itA != list.end() &&

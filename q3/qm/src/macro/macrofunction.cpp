@@ -591,7 +591,7 @@ QSTATUS qm::MacroFunctionAttachment::value(
 	
 	AttachmentParser::AttachmentList l;
 	AttachmentParser::AttachmentListFree free(l);
-	status = AttachmentParser(*pMessage).getAttachments(&l);
+	status = AttachmentParser(*pMessage).getAttachments(true, &l);
 	CHECK_QSTATUS();
 	
 	StringBuffer<WSTRING> buf(&status);

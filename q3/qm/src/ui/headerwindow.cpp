@@ -827,7 +827,7 @@ QSTATUS qm::AttachmentHeaderItem::setMessage(const TemplateContext* pContext)
 			AttachmentParser parser(*pMessage);
 			AttachmentParser::AttachmentList list;
 			AttachmentParser::AttachmentListFree free(list);
-			status = parser.getAttachments(&list);
+			status = parser.getAttachments(true, &list);
 			CHECK_QSTATUS();
 			AttachmentParser::AttachmentList::size_type n = 0;
 			while (n < list.size()) {
@@ -848,6 +848,11 @@ QSTATUS qm::AttachmentHeaderItem::setMessage(const TemplateContext* pContext)
 				ListView_InsertItem(hwnd, &item);
 				++n;
 			}
+			
+			bool bDeleted = false;
+			status = parser.isAttachmentDeleted(&bDeleted);
+			CHECK_QSTATUS();
+			wnd_.enableWindow(!bDeleted);
 		}
 	}
 	

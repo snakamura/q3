@@ -1443,7 +1443,7 @@ QSTATUS qm::PartUtil::getFormattedText(bool bUseSendersTimeZone,
 	
 	AttachmentParser::AttachmentList names;
 	AttachmentParser::AttachmentListFree free(names);
-	status = AttachmentParser(part_).getAttachments(&names);
+	status = AttachmentParser(part_).getAttachments(true, &names);
 	CHECK_QSTATUS();
 	if (!names.empty()) {
 		status = buf.append(L"Attach:  ");
@@ -2110,24 +2110,33 @@ QSTATUS qm::AttachmentParser::getName(WSTRING* pwstrName) const
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::AttachmentParser::getAttachments(AttachmentList* pList) const
+QSTATUS qm::AttachmentParser::getAttachments(
+	bool bIncludeDeleted, AttachmentList* pList) const
 {
 	assert(pList);
 	
 	DECLARE_QSTATUS();
+	
+	if (!bIncludeDeleted) {
+		bool bDeleted = false;
+		status = isAttachmentDeleted(&bDeleted);
+		CHECK_QSTATUS();
+		if (bDeleted)
+			return QSTATUS_SUCCESS;
+	}
 	
 	PartUtil util(part_);
 	if (util.isMultipart()) {
 		const Part::PartList& l = part_.getPartList();
 		Part::PartList::const_iterator it = l.begin();
 		while (it != l.end()) {
-			status = AttachmentParser(**it).getAttachments(pList);
+			status = AttachmentParser(**it).getAttachments(bIncludeDeleted, pList);
 			CHECK_QSTATUS();
 			++it;
 		}
 	}
 	else if (part_.getEnclosedPart()) {
-		status = AttachmentParser(*part_.getEnclosedPart()).getAttachments(pList);
+		status = AttachmentParser(*part_.getEnclosedPart()).getAttachments(bIncludeDeleted, pList);
 		CHECK_QSTATUS();
 	}
 	else {
@@ -2252,6 +2261,24 @@ QSTATUS qm::AttachmentParser::detach(const WCHAR* pwszDir,
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qm::AttachmentParser::isAttachmentDeleted(bool* pbDeleted) const
+{
+	assert(pbDeleted);
+	
+	DECLARE_QSTATUS();
+	
+	*pbDeleted = false;
+	
+	NumberParser field(0, &status);
+	CHECK_QSTATUS();
+	Part::Field f;
+	status = part_.getField(L"X-QMAIL-AttachmentDeleted", &field, &f);
+	CHECK_QSTATUS();
+	*pbDeleted = f == Part::FIELD_EXIST && field.getValue() != 0;
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::AttachmentParser::removeAttachments(Part* pPart)
 {
 	assert(pPart);
@@ -2277,6 +2304,20 @@ QSTATUS qm::AttachmentParser::removeAttachments(Part* pPart)
 			CHECK_QSTATUS();
 		}
 	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::AttachmentParser::setAttachmentDeleted(Part* pPart)
+{
+	assert(pPart);
+	
+	DECLARE_QSTATUS();
+	
+	NumberParser field(1, 0, &status);
+	CHECK_QSTATUS();
+	status = pPart->replaceField(L"X-QMAIL-AttachmentDeleted", field);
+	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
 }

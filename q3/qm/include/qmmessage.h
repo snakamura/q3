@@ -236,12 +236,14 @@ public:
 public:
 	qs::QSTATUS hasAttachment(bool* pbHas) const;
 	qs::QSTATUS getName(qs::WSTRING* pwstrName) const;
-	qs::QSTATUS getAttachments(AttachmentList* pList) const;
+	qs::QSTATUS getAttachments(bool bIncludeDeleted, AttachmentList* pList) const;
 	qs::QSTATUS detach(const WCHAR* pwszDir, const WCHAR* pwszName,
 		DetachCallback* pCallback, qs::WSTRING* pwstrPath) const;
+	qs::QSTATUS isAttachmentDeleted(bool* pbDeleted) const;
 
 public:
 	static qs::QSTATUS removeAttachments(qs::Part* pPart);
+	static qs::QSTATUS setAttachmentDeleted(qs::Part* pPart);
 
 private:
 	AttachmentParser(const AttachmentParser&);

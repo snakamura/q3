@@ -152,7 +152,7 @@ QSTATUS qm::AttachmentHelper::detach(
 			AttachmentParser parser(msg);
 			AttachmentParser::AttachmentList l;
 			AttachmentParser::AttachmentListFree free(l);
-			status = parser.getAttachments(&l);
+			status = parser.getAttachments(false, &l);
 			CHECK_QSTATUS();
 			AttachmentParser::AttachmentList::iterator itA = l.begin();
 			while (itA != l.end()) {
@@ -216,7 +216,7 @@ QSTATUS qm::AttachmentHelper::detach(
 						CHECK_QSTATUS();
 					}
 					if (l.empty()) {
-						status = AttachmentParser(msg).getAttachments(&l);
+						status = AttachmentParser(msg).getAttachments(false, &l);
 						CHECK_QSTATUS();
 					}
 					assert(n < l.size());

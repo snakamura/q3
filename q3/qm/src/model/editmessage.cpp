@@ -149,7 +149,7 @@ QSTATUS qm::EditMessage::setMessage(Message* pMessage)
 	}
 	
 	AttachmentParser attachment(*pMessage);
-	status = attachment.getAttachments(&listAttachment_);
+	status = attachment.getAttachments(true, &listAttachment_);
 	CHECK_QSTATUS();
 	
 	pMessage_ = pMessage;
