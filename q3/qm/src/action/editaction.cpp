@@ -70,7 +70,7 @@ QSTATUS qm::EditAttachmentEditAddAction::invoke(const ActionEvent& event)
 	FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
 		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_ALLOWMULTISELECT,
 		&status);
-	CHECK_QSTATUS_VALUE(0);
+	CHECK_QSTATUS();
 	
 	int nRet = IDCANCEL;
 	status = dialog.doModal(hwndFrame_, 0, &nRet);

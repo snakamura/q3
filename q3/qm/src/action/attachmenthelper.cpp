@@ -68,9 +68,10 @@ QSTATUS DetachCallbackImpl::confirmOverwrite(
 	
 	*pwstrPath = 0;
 	
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	
 	string_ptr<WSTRING> wstr;
-	status = loadString(Application::getApplication().getResourceHandle(),
-		IDS_CONFIRMOVERWRITE, &wstr);
+	status = loadString(hInst, IDS_CONFIRMOVERWRITE, &wstr);
 	CHECK_QSTATUS();
 	string_ptr<WSTRING> wstrMessage(concat(wstr.get(), pwszPath));
 	if (!wstrMessage.get())
@@ -89,8 +90,39 @@ QSTATUS DetachCallbackImpl::confirmOverwrite(
 			return QSTATUS_OUTOFMEMORY;
 		break;
 	case IDNO:
-		// TODO
-		// Open file dialog and pick new file name up.
+		{
+			string_ptr<WSTRING> wstrFilter;
+			status = loadString(hInst, IDS_FILTER_ATTACHMENT, &wstrFilter);
+			CHECK_QSTATUS();
+			
+			const WCHAR* pwszDir = 0;
+			const WCHAR* pwszFileName = 0;
+			string_ptr<WSTRING> wstr(allocWString(pwszPath));
+			if (!wstr.get())
+				return QSTATUS_OUTOFMEMORY;
+			WCHAR* p = wcsrchr(wstr.get(), L'\\');
+			if (p) {
+				*p = L'\0';
+				pwszDir = wstr.get();
+				pwszFileName = p + 1;
+			}
+			else {
+				pwszFileName = wstr.get();
+			}
+			
+			FileDialog dialog(false, wstrFilter.get(), pwszDir, 0, pwszFileName,
+				OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES, &status);
+			CHECK_QSTATUS();
+			
+			int nRet = IDCANCEL;
+			status = dialog.doModal(hwnd_, 0, &nRet);
+			CHECK_QSTATUS_VALUE(0);
+			if (nRet == IDOK) {
+				wstrPath.reset(allocWString(dialog.getPath()));
+				if (!wstrPath.get())
+					return QSTATUS_OUTOFMEMORY;
+			}
+		}
 		break;
 	default:
 		break;
