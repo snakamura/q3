@@ -491,27 +491,30 @@ bool qm::RecentsMenu::createMenu(HMENU hmenu)
 	
 	clear();
 	
-	Recents* pRecents = pDocument_->getRecents();
+	URIList listURI;
+	StringListFree<URIList> free(listURI);
+	{
+		Recents* pRecents = pDocument_->getRecents();
+		Lock<Recents> lock(*pRecents);
+		
+		unsigned int nCount = pRecents->getCount();
+		unsigned int nOffset = nCount > MAX_RECENTS ? nCount - MAX_RECENTS : 0;
+		
+		listURI.reserve(nCount - nOffset);
+		for (unsigned int n = nOffset; n < nCount; ++n)
+			listURI.push_back(allocWString(pRecents->get(n)).release());
+		std::sort(listURI.begin(), listURI.end(), URIComp());
+	}
 	
-	Lock<Recents> lock(*pRecents);
-	
-	unsigned int nCount = pRecents->getCount();
-	unsigned int nOffset = nCount > MAX_RECENTS ? nCount - MAX_RECENTS : 0;
-	
-	typedef std::vector<const WCHAR*> List;
-	List l;
-	l.resize(nCount);
-	for (unsigned int n = nOffset; n < nCount; ++n)
-		l[n] = pRecents->get(n);
-	std::sort(l.begin(), l.end(), URIComp());
-	
-	listURI_.reserve(l.size());
+	listURI_.reserve(listURI.size());
 	nId = IDM_MESSAGE_OPENRECENT;
 	Account* pAccount = 0;
-	for (List::iterator it = l.begin(); it != l.end(); ++it) {
-		const WCHAR* pwszURI = *it;
+	for (URIList::iterator it = listURI.begin(); it != listURI.end(); ++it) {
+		wstring_ptr wstrURI(*it);
+		*it = 0;
+		
 		MessagePtr ptr;
-		if (URI::getMessageHolder(pwszURI, pDocument_, &ptr)) {
+		if (URI::getMessageHolder(wstrURI.get(), pDocument_, &ptr)) {
 			MessagePtrLock mpl(ptr);
 			if (mpl) {
 				if (pAccount != mpl->getFolder()->getAccount()) {
@@ -525,7 +528,6 @@ bool qm::RecentsMenu::createMenu(HMENU hmenu)
 				W2T(wstrTitle.get(), ptszTitle);
 				::AppendMenu(hmenu, MF_STRING, nId++, ptszTitle);
 				
-				wstring_ptr wstrURI(allocWString(pwszURI));
 				listURI_.push_back(wstrURI.release());
 			}
 		}
