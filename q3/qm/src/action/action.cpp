@@ -770,16 +770,16 @@ bool qm::EditDeleteCacheAction::isEnabled(const ActionEvent& event)
  */
 
 qm::EditDeleteMessageAction::EditDeleteMessageAction(MessageSelectionModel* pMessageSelectionModel,
-													 MessageModel* pMessageModel,
 													 ViewModelHolder* pViewModelHolder,
+													 MessageModel* pMessageModel,
 													 bool bDirect,
 													 bool bDontSelectNextIfDeletedFlag,
 													 UndoManager* pUndoManager,
 													 HWND hwnd,
 													 Profile* pProfile) :
 	pMessageSelectionModel_(pMessageSelectionModel),
-	pMessageModel_(pMessageModel),
 	pViewModelHolder_(pViewModelHolder),
+	pMessageModel_(pMessageModel),
 	bDirect_(bDirect),
 	bDontSelectNextIfDeletedFlag_(bDontSelectNextIfDeletedFlag),
 	pUndoManager_(pUndoManager),
@@ -3998,15 +3998,15 @@ bool qm::MessageMarkAction::isEnabled(const ActionEvent& event)
  */
 
 qm::MessageMoveAction::MessageMoveAction(MessageSelectionModel* pMessageSelectionModel,
-										 MessageModel* pMessageModel,
 										 ViewModelHolder* pViewModelHolder,
+										 MessageModel* pMessageModel,
 										 MoveMenu* pMoveMenu,
 										 bool bDontSelectNextIfDeletedFlag,
 										 UndoManager* pUndoManager,
 										 HWND hwnd) :
 	pMessageSelectionModel_(pMessageSelectionModel),
-	pMessageModel_(pMessageModel),
 	pViewModelHolder_(pViewModelHolder),
+	pMessageModel_(pMessageModel),
 	pMoveMenu_(pMoveMenu),
 	bDontSelectNextIfDeletedFlag_(bDontSelectNextIfDeletedFlag),
 	pUndoManager_(pUndoManager),
@@ -4078,16 +4078,16 @@ bool qm::MessageMoveAction::isEnabled(const ActionEvent& event)
 
 qm::MessageMoveOtherAction::MessageMoveOtherAction(AccountManager* pAccountManager,
 												   MessageSelectionModel* pMessageSelectionModel,
-												   MessageModel* pMessageModel,
 												   ViewModelHolder* pViewModelHolder,
+												   MessageModel* pMessageModel,
 												   bool bDontSelectNextIfDeletedFlag,
 												   UndoManager* pUndoManager,
 												   Profile* pProfile,
 												   HWND hwnd) :
 	pAccountManager_(pAccountManager),
 	pMessageSelectionModel_(pMessageSelectionModel),
-	pMessageModel_(pMessageModel),
 	pViewModelHolder_(pViewModelHolder),
+	pMessageModel_(pMessageModel),
 	bDontSelectNextIfDeletedFlag_(bDontSelectNextIfDeletedFlag),
 	pUndoManager_(pUndoManager),
 	pProfile_(pProfile),
@@ -6692,10 +6692,11 @@ void qm::MessageActionUtil::select(ViewModel* pViewModel,
 	assert(pViewModel);
 	assert(pViewModel->isLocked());
 	assert(nIndex < pViewModel->getCount());
-	assert(pMessageModel);
 	
-	MessageHolder* pmh = pViewModel->getMessageHolder(nIndex);
-	pMessageModel->setMessage(pmh);
+	if (pMessageModel) {
+		MessageHolder* pmh = pViewModel->getMessageHolder(nIndex);
+		pMessageModel->setMessage(pmh);
+	}
 	
 	pViewModel->setFocused(nIndex);
 	pViewModel->setSelection(nIndex);

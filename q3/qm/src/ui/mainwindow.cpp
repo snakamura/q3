@@ -460,11 +460,11 @@ void qm::MainWindowImpl::initActions()
 	for (int n = 0; n < countof(deletes); ++n) {
 		std::auto_ptr<EditDeleteMessageAction> pEditDeleteMessageAction1(
 			new EditDeleteMessageAction(pMessageSelectionModel_.get(),
-				pPreviewModel_.get(), this, deletes[n].bDirect_, true,
+				this, 0, deletes[n].bDirect_, true,
 				pDocument_->getUndoManager(), pThis_->getHandle(), pProfile_));
 		std::auto_ptr<EditDeleteMessageAction> pEditDeleteMessageAction2(
 			new EditDeleteMessageAction(pMessageSelectionModel_.get(),
-				pPreviewModel_.get(), this, deletes[n].bDirect_, false,
+				this, pPreviewModel_.get(), deletes[n].bDirect_, false,
 				pDocument_->getUndoManager(), pThis_->getHandle(), pProfile_));
 		Action* pEditDeleteMessageActions[] = {
 			0,
@@ -866,10 +866,10 @@ void qm::MainWindowImpl::initActions()
 	}
 	
 	std::auto_ptr<MessageMoveAction> pMessageMoveAction1(new MessageMoveAction(
-		pMessageSelectionModel_.get(), pPreviewModel_.get(), this, pMoveMenu_.get(),
+		pMessageSelectionModel_.get(), this, 0, pMoveMenu_.get(),
 		true, pDocument_->getUndoManager(), pThis_->getHandle()));
 	std::auto_ptr<MessageMoveAction> pMessageMoveAction2(new MessageMoveAction(
-		pMessageSelectionModel_.get(), pPreviewModel_.get(), this, pMoveMenu_.get(),
+		pMessageSelectionModel_.get(), this, pPreviewModel_.get(), pMoveMenu_.get(),
 		false, pDocument_->getUndoManager(), pThis_->getHandle()));
 	Action* pMessageMoveActions[] = {
 		0,
@@ -889,11 +889,10 @@ void qm::MainWindowImpl::initActions()
 	
 	std::auto_ptr<MessageMoveOtherAction> pMessageMoveOtherAction1(
 		new MessageMoveOtherAction(pDocument_, pMessageSelectionModel_.get(),
-			pPreviewModel_.get(), this, true, pDocument_->getUndoManager(),
-			pProfile_, pThis_->getHandle()));
+			this, 0, true, pDocument_->getUndoManager(), pProfile_, pThis_->getHandle()));
 	std::auto_ptr<MessageMoveOtherAction> pMessageMoveOtherAction2(
 		new MessageMoveOtherAction(pDocument_, pMessageSelectionModel_.get(),
-			pPreviewModel_.get(), this, false, pDocument_->getUndoManager(),
+			this, pPreviewModel_.get(), false, pDocument_->getUndoManager(),
 			pProfile_, pThis_->getHandle()));
 	Action* pMessageMoveOtherActions[] = {
 		0,

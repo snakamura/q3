@@ -751,8 +751,8 @@ class EditDeleteMessageAction : public qs::AbstractAction
 {
 public:
 	EditDeleteMessageAction(MessageSelectionModel* pMessageSelectionModel,
-							MessageModel* pMessageModel,
 							ViewModelHolder* pViewModelHolder,
+							MessageModel* pMessageModel,
 							bool bDirect,
 							bool bDontSelectNextIfDeletedFlag,
 							UndoManager* pUndoManager,
@@ -773,8 +773,8 @@ private:
 
 private:
 	MessageSelectionModel* pMessageSelectionModel_;
-	MessageModel* pMessageModel_;
 	ViewModelHolder* pViewModelHolder_;
+	MessageModel* pMessageModel_;
 	bool bDirect_;
 	bool bDontSelectNextIfDeletedFlag_;
 	UndoManager* pUndoManager_;
@@ -2119,8 +2119,8 @@ class MessageMoveAction : public qs::AbstractAction
 {
 public:
 	MessageMoveAction(MessageSelectionModel* pMessageSelectionModel,
-					  MessageModel* pMessageModel,
 					  ViewModelHolder* pViewModelHolder,
+					  MessageModel* pMessageModel,
 					  MoveMenu* pMoveMenu,
 					  bool bDontSelectNextIfDeletedFlag,
 					  UndoManager* pUndoManager,
@@ -2137,8 +2137,8 @@ private:
 
 private:
 	MessageSelectionModel* pMessageSelectionModel_;
-	MessageModel* pMessageModel_;
 	ViewModelHolder* pViewModelHolder_;
+	MessageModel* pMessageModel_;
 	MoveMenu* pMoveMenu_;
 	bool bDontSelectNextIfDeletedFlag_;
 	UndoManager* pUndoManager_;
@@ -2157,8 +2157,8 @@ class MessageMoveOtherAction : public qs::AbstractAction
 public:
 	MessageMoveOtherAction(AccountManager* pAccountManager,
 						   MessageSelectionModel* pMessageSelectionModel,
-						   MessageModel* pMessageModel,
 						   ViewModelHolder* pViewModelHolder,
+						   MessageModel* pMessageModel,
 						   bool bDontSelectNextIfDeletedFlag,
 						   UndoManager* pUndoManager,
 						   qs::Profile* pProfile,
@@ -2176,8 +2176,8 @@ private:
 private:
 	AccountManager* pAccountManager_;
 	MessageSelectionModel* pMessageSelectionModel_;
-	MessageModel* pMessageModel_;
 	ViewModelHolder* pViewModelHolder_;
+	MessageModel* pMessageModel_;
 	bool bDontSelectNextIfDeletedFlag_;
 	UndoManager* pUndoManager_;
 	qs::Profile* pProfile_;
