@@ -169,8 +169,9 @@ STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
 			if (mpl) {
 				wstring_ptr wstrURI(URI::getURI(mpl));
 				size_t nLen = wcslen(wstrURI.get());
+				Buffer::size_type n = buf.size();
 				buf.resize(buf.size() + nLen + 1);
-				std::copy(wstrURI.get(), wstrURI.get() + nLen + 1, buf.end());
+				std::copy(wstrURI.get(), wstrURI.get() + nLen + 1, buf.begin() + n);
 			}
 		}
 		buf.push_back(L'\0');
