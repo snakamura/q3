@@ -1,5 +1,5 @@
 <toolbars>
-	<toolbar name="mainframe" showText="true">
+	<toolbar name="mainframe" showText="false">
 		<button image="0" action="MessageNew" text="New"/>
 		<button image="1" action="MessageReply" text="Reply"/>
 		<button image="2" action="MessageReplyAll" text="Reply All"/>
@@ -16,7 +16,7 @@
 		<button image="7" action="ToolSync" text="Search"/>
 		<button image="8" action="ToolGoround0" text="Goround"/>
 	</toolbar>
-	<toolbar name="messageframe" showText="true">
+	<toolbar name="messageframe" showText="false">
 		<button image="0" action="MessageNew" text="New"/>
 		<button image="1" action="MessageReply" text="Reply"/>
 		<button image="2" action="MessageReplyAll" text="Reply All"/>
@@ -28,7 +28,7 @@
 		<button image="21" action="ViewNextMessage" text="Next"/>
 		<button image="22" action="ViewNextUnseenMessage" text="Unseen"/>
 	</toolbar>
-	<toolbar name="editframe" showText="true">
+	<toolbar name="editframe" showText="false">
 		<button image="15" action="FileSend" text="Send"/>
 		<button image="16" action="FileDraft" text="Draft"/>
 		<separator/>

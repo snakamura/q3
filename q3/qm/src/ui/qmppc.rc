@@ -1004,7 +1004,7 @@ KEYMAP.XML              PROFILE DISCARDABLE     "res\\ppc\\keymap.xml"
 MENUS.XML               PROFILE DISCARDABLE     "res\\ppc\\menus.xml"
 QMAIL.XML               PROFILE DISCARDABLE     "res\\ppc\\qmail.xml"
 TOOLBAR.BMP             PROFILE DISCARDABLE     "res\\toolbar.bmp"
-TOOLBARS.XML            PROFILE DISCARDABLE     "res\\toolbars.xml"
+TOOLBARS.XML            PROFILE DISCARDABLE     "res\\ppc\\toolbars.xml"
 
 /////////////////////////////////////////////////////////////////////////////
 //

@@ -22,7 +22,10 @@ start = element toolbars {
 		)*,
 		attribute name {
 			xsd:string
-		}
+		},
+		attribute showText {
+			xsd:boolean
+		}?
 	}*
 }
 

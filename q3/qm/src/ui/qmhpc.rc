@@ -995,7 +995,7 @@ KEYMAP.XML              PROFILE DISCARDABLE     "res\\hpc\\keymap.xml"
 MENUS.XML               PROFILE DISCARDABLE     "res\\hpc\\menus.xml"
 QMAIL.XML               PROFILE DISCARDABLE     "res\\hpc\\qmail.xml"
 TOOLBAR.BMP             PROFILE DISCARDABLE     "res\\toolbar.bmp"
-TOOLBARS.XML            PROFILE DISCARDABLE     "res\\toolbars.xml"
+TOOLBARS.XML            PROFILE DISCARDABLE     "res\\hpc\\toolbars.xml"
 
 /////////////////////////////////////////////////////////////////////////////
 //

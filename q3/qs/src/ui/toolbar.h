@@ -34,7 +34,7 @@ class ToolbarContentHandler;
 class Toolbar
 {
 public:
-	Toolbar(const WCHAR* pwszName, QSTATUS* pstatus);
+	Toolbar(const WCHAR* pwszName, bool bShowText, QSTATUS* pstatus);
 	~Toolbar();
 
 public:
@@ -53,6 +53,7 @@ private:
 
 private:
 	WSTRING wstrName_;
+	bool bShowText_;
 	ItemList listItem_;
 };
 
@@ -72,7 +73,7 @@ public:
 	virtual ~ToolbarItem();
 
 public:
-	virtual QSTATUS create(HWND hwnd) = 0;
+	virtual QSTATUS create(HWND hwnd, bool bShowText) = 0;
 
 private:
 	ToolbarItem(const ToolbarItem&);
@@ -94,7 +95,7 @@ public:
 	virtual ~ToolbarButton();
 
 public:
-	virtual QSTATUS create(HWND hwnd);
+	virtual QSTATUS create(HWND hwnd, bool bShowText);
 
 private:
 	ToolbarButton(const ToolbarButton&);
@@ -122,7 +123,7 @@ public:
 	virtual ~ToolbarSeparator();
 
 public:
-	virtual QSTATUS create(HWND hwnd);
+	virtual QSTATUS create(HWND hwnd, bool bShowText);
 
 private:
 	ToolbarSeparator(const ToolbarSeparator&);

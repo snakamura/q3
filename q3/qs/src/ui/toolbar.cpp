@@ -7,9 +7,11 @@
  */
 
 #include <qsaction.h>
+#include <qsconv.h>
 #include <qsnew.h>
 
 #include <commctrl.h>
+#include <tchar.h>
 
 #include "toolbar.h"
 
@@ -124,8 +126,9 @@ QSTATUS qs::ToolbarManager::createToolbar(const WCHAR* pwszName, HWND hwnd) cons
  *
  */
 
-qs::Toolbar::Toolbar(const WCHAR* pwszName, QSTATUS* pstatus) :
-	wstrName_(0)
+qs::Toolbar::Toolbar(const WCHAR* pwszName, bool bShowText, QSTATUS* pstatus) :
+	wstrName_(0),
+	bShowText_(bShowText)
 {
 	wstrName_ = allocWString(pwszName);
 	if (!wstrName_) {
@@ -156,10 +159,12 @@ QSTATUS qs::Toolbar::create(HWND hwnd, HIMAGELIST hImageList) const
 	
 	ItemList::const_iterator it = listItem_.begin();
 	while (it != listItem_.end()) {
-		status = (*it)->create(hwnd);
+		status = (*it)->create(hwnd, bShowText_);
 		CHECK_QSTATUS();
 		++it;
 	}
+	
+	::SendMessage(hwnd, TB_AUTOSIZE, 0, 0);
 	
 	return QSTATUS_SUCCESS;
 }
@@ -240,19 +245,32 @@ qs::ToolbarButton::~ToolbarButton()
 	freeWString(wstrDropDown_);
 }
 
-QSTATUS qs::ToolbarButton::create(HWND hwnd)
+QSTATUS qs::ToolbarButton::create(HWND hwnd, bool bShowText)
 {
-	// TODO
-	// Add text and tooltip, handle dropdown.
+	DECLARE_QSTATUS();
 	
-	TBBUTTON button = {
-		nImage_,
-		nAction_,
-		TBSTATE_ENABLED,
-		TBSTYLE_BUTTON,
-		0,
-		0
-	};
+	// TODO
+	// Add tooltip, handle dropdown.
+	
+	int nTextIndex = -1;
+	if (bShowText && wstrText_) {
+		W2T(wstrText_, ptszText);
+		size_t nLen = _tcslen(ptszText);
+		string_ptr<TSTRING> tstrText(allocTString(nLen + 2));
+		if (tstrText.get()) {
+			_tcscpy(tstrText.get(), ptszText);
+			*(tstrText.get() + nLen + 1) = _T('\0');
+			nTextIndex = ::SendMessage(hwnd, TB_ADDSTRING,
+				0, reinterpret_cast<LPARAM>(tstrText.get()));
+		}
+	}
+	
+	TBBUTTON button = { 0 };
+	button.iBitmap = nImage_;
+	button.idCommand = nAction_;
+	button.fsState = TBSTATE_ENABLED;
+	button.fsStyle = TBSTYLE_BUTTON;
+	button.iString = nTextIndex;
 	::SendMessage(hwnd, TB_ADDBUTTONS, 1, reinterpret_cast<LPARAM>(&button));
 	
 	return QSTATUS_SUCCESS;
@@ -274,16 +292,13 @@ qs::ToolbarSeparator::~ToolbarSeparator()
 {
 }
 
-QSTATUS qs::ToolbarSeparator::create(HWND hwnd)
+QSTATUS qs::ToolbarSeparator::create(HWND hwnd, bool bShowText)
 {
-	TBBUTTON button = {
-		0,
-		0,
-		TBSTATE_ENABLED,
-		TBSTYLE_SEP,
-		0,
-		0
-	};
+	TBBUTTON button = { 0 };
+	button.iBitmap = 0;
+	button.idCommand = 0;
+	button.fsState = TBSTATE_ENABLED;
+	button.fsStyle = TBSTYLE_SEP;
 	::SendMessage(hwnd, TB_ADDBUTTONS, 1, reinterpret_cast<LPARAM>(&button));
 	
 	return QSTATUS_SUCCESS;
@@ -328,10 +343,13 @@ QSTATUS qs::ToolbarContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			return QSTATUS_FAIL;
 		
 		const WCHAR* pwszName = 0;
+		bool bShowText = true;
 		for (int n = 0; n < attributes.getLength(); ++n) {
 			const WCHAR* pwszAttrName = attributes.getLocalName(n);
 			if (wcscmp(pwszAttrName, L"name") == 0)
 				pwszName = attributes.getValue(n);
+			else if (wcscmp(pwszAttrName, L"showText") == 0)
+				bShowText = wcscmp(attributes.getValue(n), L"true") == 0;
 			else
 				return QSTATUS_FAIL;
 		}
@@ -343,7 +361,7 @@ QSTATUS qs::ToolbarContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			return QSTATUS_OUTOFMEMORY;
 		
 		std::auto_ptr<Toolbar> pToolbar;
-		status = newQsObject(pwszName, &pToolbar);
+		status = newQsObject(pwszName, bShowText, &pToolbar);
 		CHECK_QSTATUS();
 		status = STLWrapper<ToolbarList>(*pListToolbar_).push_back(pToolbar.get());
 		CHECK_QSTATUS();
