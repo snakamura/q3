@@ -12,6 +12,7 @@
 
 #include <qsconv.h>
 #include <qsencoder.h>
+#include <qsfile.h>
 #include <qsosutil.h>
 #include <qsstl.h>
 #include <qsstream.h>
@@ -1763,6 +1764,9 @@ AttachmentParser::Result qm::AttachmentParser::detach(const WCHAR* pwszDir,
 	
 	if (pwstrPath)
 		pwstrPath->reset(0);
+	
+	if (!File::createDirectory(pwszDir))
+		return RESULT_FAIL;
 	
 	StringBuffer<WSTRING> buf(pwszDir);
 	if (*(pwszDir + (wcslen(pwszDir) - 1)) != L'\\')
