@@ -41,4 +41,5 @@ const WCHAR* qm::FileNames::TEXTS_XML		= L"texts.xml";
 const WCHAR* qm::FileNames::TOOLBAR_BMP		= L"toolbar.bmp";
 const WCHAR* qm::FileNames::TOOLBARS_XML	= L"toolbars.xml";
 const WCHAR* qm::FileNames::VIEW_XML		= L"view.xml";
+const WCHAR* qm::FileNames::VIEWS_XML		= L"views.xml";
 const WCHAR* qm::FileNames::XML_EXT			= L".xml";

@@ -11,9 +11,11 @@
 
 #include <qm.h>
 #include <qmfolder.h>
+#include <qmmacro.h>
 
 #include <qs.h>
 #include <qsprofile.h>
+#include <qssax.h>
 #include <qsthread.h>
 #include <qsutil.h>
 
@@ -33,6 +35,10 @@ class ViewModelHolder;
 class ViewModelManager;
 class ViewModelManagerHandler;
 class ViewModelManagerEvent;
+class ViewData;
+class ViewDataItem;
+class ViewDataContentHandler;
+class ViewDataWriter;
 
 class ColorManager;
 class ColorSet;
@@ -40,8 +46,6 @@ class Document;
 class Filter;
 class FilterManager;
 class Folder;
-class MacroValuePtr;
-class MacroVariableHolder;
 class MessageHolder;
 class Macro;
 class SecurityModel;
@@ -117,6 +121,8 @@ private:
 	unsigned int nFlags_;
 	unsigned int nWidth_;
 };
+
+typedef std::vector<ViewColumn*> ViewColumnList;
 
 
 /****************************************************************************
@@ -217,12 +223,12 @@ public:
 	};
 
 public:
-	typedef std::vector<ViewColumn*> ColumnList;
 	typedef std::vector<ViewModelItem*> ItemList;
 
 public:
 	ViewModel(ViewModelManager* pViewModelManager,
 			  Folder* pFolder,
+			  ViewDataItem* pDataItem,
 			  qs::Profile* pProfile,
 			  Document* pDocument,
 			  HWND hwnd,
@@ -233,7 +239,7 @@ public:
 public:
 	Folder* getFolder() const;
 	
-	const ColumnList& getColumns() const;
+	const ViewColumnList& getColumns() const;
 	unsigned int getColumnCount() const;
 	const ViewColumn& getColumn(unsigned int n) const;
 	ViewColumn& getColumn(unsigned int n);
@@ -298,8 +304,8 @@ public:
 	virtual void messageHolderDestroyed(const MessageHolderEvent& event);
 
 private:
-	void loadColumns();
-	void saveColumns() const;
+//	void loadColumns();
+//	void saveColumns() const;
 	void update(bool bRestoreSelection);
 	void sort(unsigned int nSort,
 			  bool bRestoreSelection,
@@ -355,12 +361,13 @@ private:
 private:
 	ViewModelManager* pViewModelManager_;
 	Folder* pFolder_;
+	ViewDataItem* pDataItem_;
 	qs::Profile* pProfile_;
 	Document* pDocument_;
 	HWND hwnd_;
 	SecurityModel* pSecurityModel_;
 	const ColorSet* pColorSet_;
-	ColumnList listColumn_;
+//	ColumnList listColumn_;
 	ItemList listItem_;
 	unsigned int nUnseenCount_;
 	unsigned int nSort_;
@@ -473,7 +480,7 @@ class ViewModelManager : public DefaultAccountHandler
 {
 public:
 	typedef std::vector<ViewModel*> ViewModelList;
-	typedef std::vector<std::pair<Account*, qs::Profile*> > ProfileMap;
+//	typedef std::vector<std::pair<Account*, qs::Profile*> > ProfileMap;
 
 public:
 	ViewModelManager(qs::Profile* pProfile,
@@ -507,7 +514,8 @@ private:
 	void setCurrentFolder(Account* pAccount,
 						  Folder* pFolder);
 	void setCurrentViewModel(ViewModel* pViewModel);
-	qs::Profile* getProfile(Folder* pFolder);
+//	qs::Profile* getProfile(Folder* pFolder);
+	ViewDataItem* getViewDataItem(Folder* pFolder);
 
 private:
 	void fireViewModelSelected(ViewModel* pNewViewModel,
@@ -519,6 +527,7 @@ private:
 
 private:
 	typedef std::vector<ViewModelManagerHandler*> HandlerList;
+	typedef std::vector<std::pair<Account*, ViewData*> > ViewDataMap;
 
 private:
 	qs::Profile* pProfile_;
@@ -528,7 +537,8 @@ private:
 	Account* pCurrentAccount_;
 	ViewModelList listViewModel_;
 	ViewModel* pCurrentViewModel_;
-	ProfileMap mapProfile_;
+//	ProfileMap mapProfile_;
+	ViewDataMap mapViewData_;
 	std::auto_ptr<FilterManager> pFilterManager_;
 	std::auto_ptr<ColorManager> pColorManager_;
 	HandlerList listHandler_;
@@ -642,6 +652,157 @@ public:
 private:
 	unsigned int nReferenceHash_;
 	const WCHAR* pwszReference_;
+};
+
+
+/****************************************************************************
+ *
+ * ViewData
+ *
+ */
+
+class ViewData
+{
+public:
+	typedef std::vector<ViewDataItem*> ItemList;
+
+public:
+	ViewData(const WCHAR* pwszPath);
+	~ViewData();
+
+public:
+	const ItemList& getItems() const;
+	ViewDataItem* getItem(unsigned int nFolderId);
+	bool save() const;
+
+public:
+	void addItem(std::auto_ptr<ViewDataItem> pItem);
+	void removeItem(unsigned int nFolderId);
+
+private:
+	static std::auto_ptr<ViewDataItem> createDefaultItem(unsigned int nFolderId);
+
+private:
+	ViewData(const ViewData&);
+	ViewData& operator=(const ViewData&);
+
+private:
+	qs::wstring_ptr wstrPath_;
+	ItemList listItem_;
+};
+
+
+/****************************************************************************
+ *
+ * ViewDataItem
+ *
+ */
+
+class ViewDataItem
+{
+public:
+	ViewDataItem(unsigned int nFolderId);
+	~ViewDataItem();
+
+public:
+	unsigned int getFolderId() const;
+	const ViewColumnList& getColumns() const;
+	void addColumn(std::auto_ptr<ViewColumn> pColumn);
+	unsigned int getFocus() const;
+	void setFocus(unsigned int nFocus);
+	unsigned int getSort() const;
+	void setSort(unsigned int nSort);
+
+private:
+	ViewDataItem(const ViewDataItem&);
+	ViewDataItem& operator=(const ViewDataItem&);
+
+private:
+	unsigned int nFolderId_;
+	ViewColumnList listColumn_;
+	unsigned int nFocus_;
+	unsigned int nSort_;
+};
+
+
+/****************************************************************************
+ *
+ * ViewDataContentHandler
+ *
+ */
+
+class ViewDataContentHandler : public qs::DefaultHandler
+{
+public:
+	explicit ViewDataContentHandler(ViewData* pData);
+	virtual ~ViewDataContentHandler();
+
+public:
+	virtual bool startElement(const WCHAR* pwszNamespaceURI,
+							  const WCHAR* pwszLocalName,
+							  const WCHAR* pwszQName,
+							  const qs::Attributes& attributes);
+	virtual bool endElement(const WCHAR* pwszNamespaceURI,
+							const WCHAR* pwszLocalName,
+							const WCHAR* pwszQName);
+	virtual bool characters(const WCHAR* pwsz,
+							size_t nStart,
+							size_t nLength);
+
+private:
+	ViewDataContentHandler(const ViewDataContentHandler&);
+	ViewDataContentHandler& operator=(const ViewDataContentHandler&);
+
+private:
+	enum State {
+		STATE_ROOT,
+		STATE_VIEWS,
+		STATE_VIEW,
+		STATE_COLUMNS,
+		STATE_COLUMN,
+		STATE_TITLE,
+		STATE_MACRO,
+		STATE_WIDTH,
+		STATE_FOCUS,
+		STATE_SORT
+	};
+
+private:
+	ViewData* pData_;
+	State state_;
+	std::auto_ptr<ViewDataItem> pItem_;
+	qs::wstring_ptr wstrTitle_;
+	ViewColumn::Type type_;
+	std::auto_ptr<Macro> pMacro_;
+	unsigned int nFlags_;
+	unsigned int nWidth_;
+	unsigned int nSort_;
+	qs::StringBuffer<qs::WSTRING> buffer_;
+	MacroParser parser_;
+};
+
+
+/****************************************************************************
+ *
+ * ViewDataWriter
+ *
+ */
+
+class ViewDataWriter
+{
+public:
+	explicit ViewDataWriter(qs::Writer* pWriter);
+	~ViewDataWriter();
+
+public:
+	bool write(const ViewData* pData);
+
+private:
+	ViewDataWriter(const ViewDataWriter&);
+	ViewDataWriter& operator=(const ViewDataWriter&);
+
+private:
+	qs::OutputHandler handler_;
 };
 
 }

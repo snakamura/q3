@@ -50,6 +50,7 @@ struct FileNames
 	static const WCHAR* TOOLBAR_BMP;
 	static const WCHAR* TOOLBARS_XML;
 	static const WCHAR* VIEW_XML;
+	static const WCHAR* VIEWS_XML;
 	static const WCHAR* XML_EXT;
 };
 

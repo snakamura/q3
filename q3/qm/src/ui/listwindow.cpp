@@ -213,9 +213,8 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 	
 	int nThreadLeft = -1;
 	int nThreadRight = -1;
-	const ViewModel::ColumnList& listColumn = pViewModel->getColumns();
-	ViewModel::ColumnList::const_iterator it = listColumn.begin();
-	while (it != listColumn.end()) {
+	const ViewColumnList& listColumn = pViewModel->getColumns();
+	for (ViewColumnList::const_iterator it = listColumn.begin(); it != listColumn.end(); ++it) {
 		ViewColumn* pColumn = *it;
 		
 		r.right += pColumn->getWidth();
@@ -297,8 +296,6 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 		}
 		
 		r.left = r.right;
-		
-		++it;
 	}
 	r.right = rect.right;
 	pdc->fillSolidRect(r, ::GetSysColor(COLOR_WINDOW));

@@ -13,6 +13,8 @@
 #include <qmmessage.h>
 #include <qmmessageholder.h>
 
+#include <qsconv.h>
+#include <qsfile.h>
 #include <qsstl.h>
 
 #include <algorithm>
@@ -103,7 +105,7 @@ wstring_ptr qm::ViewColumn::getText(const ViewModel* pViewModel,
 		assert(false);
 		break;
 	case ViewColumn::TYPE_ID:
-		swprintf(wsz, L"%d", pmh->getId());
+		swprintf(wsz, L"%u", pmh->getId());
 		break;
 	case ViewColumn::TYPE_DATE:
 		{
@@ -128,7 +130,7 @@ wstring_ptr qm::ViewColumn::getText(const ViewModel* pViewModel,
 		swprintf(wsz, L"%dKB", pmh->getSize()/1024 + 1);
 		break;
 	case ViewColumn::TYPE_FLAGS:
-		// TODO
+		swprintf(wsz, L"%u", pmh->getFlags());
 		break;
 	case ViewColumn::TYPE_OTHER:
 		{
@@ -161,19 +163,10 @@ unsigned int qm::ViewColumn::getNumber(const ViewModel* pViewModel,
 		nValue = pmh->getId();
 		break;
 	case ViewColumn::TYPE_DATE:
-		// TODO
-		break;
 	case ViewColumn::TYPE_FROM:
-		// TODO
-		break;
 	case ViewColumn::TYPE_TO:
-		// TODO
-		break;
 	case ViewColumn::TYPE_FROMTO:
-		// TODO
-		break;
 	case ViewColumn::TYPE_SUBJECT:
-		// TODO
 		break;
 	case ViewColumn::TYPE_SIZE:
 		nValue = pmh->getSize();
@@ -202,33 +195,24 @@ void qm::ViewColumn::getTime(const ViewModel* pViewModel,
 	assert(pmh);
 	assert(pTime);
 	
+	bool bCurrent = false;
 	switch (type_) {
 	case ViewColumn::TYPE_NONE:
 		assert(false);
 		break;
 	case ViewColumn::TYPE_ID:
-		// TODO
+		bCurrent = true;
 		break;
 	case ViewColumn::TYPE_DATE:
 		pmh->getDate(pTime);
 		break;
 	case ViewColumn::TYPE_FROM:
-		// TODO
-		break;
 	case ViewColumn::TYPE_TO:
-		// TODO
-		break;
 	case ViewColumn::TYPE_FROMTO:
-		// TODO
-		break;
 	case ViewColumn::TYPE_SUBJECT:
-		// TODO
-		break;
 	case ViewColumn::TYPE_SIZE:
-		// TODO
-		break;
 	case ViewColumn::TYPE_FLAGS:
-		// TODO
+		bCurrent = true;
 		break;
 	case ViewColumn::TYPE_OTHER:
 		// TODO
@@ -238,10 +222,8 @@ void qm::ViewColumn::getTime(const ViewModel* pViewModel,
 		break;
 	}
 	
-	// TODO
-	// Default behavior
-	// Convert to string and then conver to time
-	// as it is a RFC2822 Date format
+	if (bCurrent)
+		*pTime = Time::getCurrentTime();
 }
 
 
@@ -341,6 +323,7 @@ void qm::ViewModel::SelectionRestorer::restore()
 
 qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 						 Folder* pFolder,
+						 ViewDataItem* pDataItem,
 						 Profile* pProfile,
 						 Document* pDocument,
 						 HWND hwnd,
@@ -348,6 +331,7 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 						 const ColorManager* pColorManager) :
 	pViewModelManager_(pViewModelManager),
 	pFolder_(pFolder),
+	pDataItem_(pDataItem),
 	pProfile_(pProfile),
 	pDocument_(pDocument),
 	hwnd_(hwnd),
@@ -360,6 +344,7 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 	nFocused_(0)
 {
 	assert(pFolder);
+	assert(pDataItem);
 	assert(pProfile);
 	
 #ifndef NDEBUG
@@ -368,14 +353,16 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 	
 	pColorSet_ = pColorManager->getColorSet(pFolder_);
 	
-	WCHAR wszSection[32];
-	swprintf(wszSection, L"Folder%d", pFolder_->getId());
-	nSort_ = pProfile_->getInt(wszSection, L"Sort", SORT_ASCENDING | SORT_NOTHREAD | 1);
-	nFocused_ = pProfile_->getInt(wszSection, L"Focus", 0);
+//	WCHAR wszSection[32];
+//	swprintf(wszSection, L"Folder%d", pFolder_->getId());
+//	nSort_ = pProfile_->getInt(wszSection, L"Sort", SORT_ASCENDING | SORT_NOTHREAD | 1);
+//	nFocused_ = pProfile_->getInt(wszSection, L"Focus", 0);
 	
-	loadColumns();
+//	loadColumns();
+	nSort_ = pDataItem_->getSort();
+	nFocused_ = pDataItem_->getFocus();
 	if ((nSort_ & SORT_INDEX_MASK) >= getColumnCount())
-		nSort_ = 0;
+		nSort_ = SORT_ASCENDING | SORT_NOTHREAD | 1;
 	
 	Lock<ViewModel> lock(*this);
 	
@@ -399,7 +386,7 @@ qm::ViewModel::~ViewModel()
 	pFolder_->getAccount()->removeMessageHolderHandler(this);
 	pFolder_->removeFolderHandler(this);
 	std::for_each(listItem_.begin(), listItem_.end(), deleter<ViewModelItem>());
-	std::for_each(listColumn_.begin(), listColumn_.end(), deleter<ViewColumn>());
+//	std::for_each(listColumn_.begin(), listColumn_.end(), deleter<ViewColumn>());
 }
 
 Folder* qm::ViewModel::getFolder() const
@@ -407,26 +394,26 @@ Folder* qm::ViewModel::getFolder() const
 	return pFolder_;
 }
 
-const ViewModel::ColumnList& qm::ViewModel::getColumns() const
+const ViewColumnList& qm::ViewModel::getColumns() const
 {
-	return listColumn_;
+	return pDataItem_->getColumns();
 }
 
 unsigned int qm::ViewModel::getColumnCount() const
 {
-	return listColumn_.size();
+	return pDataItem_->getColumns().size();
 }
 
 const ViewColumn& qm::ViewModel::getColumn(unsigned int n) const
 {
-	assert(n < listColumn_.size());
-	return *listColumn_[n];
+	assert(n < pDataItem_->getColumns().size());
+	return *pDataItem_->getColumns()[n];
 }
 
 ViewColumn& qm::ViewModel::getColumn(unsigned int n)
 {
-	assert(n < listColumn_.size());
-	return *listColumn_[n];
+	assert(n < pDataItem_->getColumns().size());
+	return *pDataItem_->getColumns()[n];
 }
 
 unsigned int qm::ViewModel::getCount() const
@@ -490,8 +477,7 @@ unsigned int qm::ViewModel::getIndex(MessageHolder* pmh) const
 		while (it != listItem_.end() && (*it)->getMessageHolder() != pmh)
 			++it;
 	}
-	return it == listItem_.end() ?
-		static_cast<unsigned int>(-1) : it - listItem_.begin();
+	return it == listItem_.end() ? -1 : it - listItem_.begin();
 }
 
 void qm::ViewModel::setSort(unsigned int nSort)
@@ -721,12 +707,14 @@ void qm::ViewModel::payAttention(unsigned int n)
 
 bool qm::ViewModel::save() const
 {
-	WCHAR wszSection[32];
-	swprintf(wszSection, L"Folder%d", pFolder_->getId());
-	pProfile_->setInt(wszSection, L"Sort", nSort_);
-	pProfile_->setInt(wszSection, L"Focus", nFocused_);
-	
-	saveColumns();
+//	WCHAR wszSection[32];
+//	swprintf(wszSection, L"Folder%d", pFolder_->getId());
+//	pProfile_->setInt(wszSection, L"Sort", nSort_);
+//	pProfile_->setInt(wszSection, L"Focus", nFocused_);
+//	
+//	saveColumns();
+	pDataItem_->setSort(nSort_);
+	pDataItem_->setFocus(nFocused_);
 	
 	return true;
 }
@@ -858,7 +846,7 @@ void qm::ViewModel::messageRemoved(const FolderEvent& event)
 	MessageHolder* pmh = event.getMessageHolder();
 	
 	unsigned int nIndex = getIndex(pmh);
-	if (nIndex != static_cast<unsigned int>(-1)) {
+	if (nIndex != -1) {
 		ItemList::iterator it = listItem_.begin() + nIndex;
 		
 		bool bHasFocus = ((*it)->getFlags() & ViewModelItem::FLAG_FOCUSED) != 0;
@@ -990,7 +978,7 @@ void qm::ViewModel::messageHolderChanged(const MessageHolderEvent& event)
 void qm::ViewModel::messageHolderDestroyed(const MessageHolderEvent& event)
 {
 }
-
+/*
 void qm::ViewModel::loadColumns()
 {
 	MacroParser parser(MacroParser::TYPE_COLUMN);
@@ -1100,7 +1088,6 @@ void qm::ViewModel::loadColumns()
 			pColumn.release();
 		}
 	}
-
 }
 
 void qm::ViewModel::saveColumns() const
@@ -1149,7 +1136,7 @@ void qm::ViewModel::saveColumns() const
 		pProfile_->setInt(wszSection, wszKey, pColumn->getWidth());
 	}
 }
-
+*/
 void qm::ViewModel::update(bool bRestoreSelection)
 {
 	Lock<ViewModel> lock(*this);
@@ -1398,7 +1385,7 @@ void qm::DefaultViewModelHandler::destroyed(const ViewModelEvent& event)
 
 qm::ViewModelEvent::ViewModelEvent(const ViewModel* pViewModel) :
 	pViewModel_(pViewModel),
-	nItem_(static_cast<unsigned int>(-1))
+	nItem_(-1)
 {
 }
 
@@ -1460,9 +1447,10 @@ qm::ViewModelManager::~ViewModelManager()
 {
 	std::for_each(listViewModel_.begin(),
 		listViewModel_.end(), deleter<ViewModel>());
-	std::for_each(mapProfile_.begin(), mapProfile_.end(),
+	std::for_each(mapViewData_.begin(), mapViewData_.end(),
 		unary_compose_f_gx(
-			deleter<Profile>(), std::select2nd<ProfileMap::value_type>()));
+			deleter<ViewData>(),
+			std::select2nd<ViewDataMap::value_type>()));
 }
 
 FilterManager* qm::ViewModelManager::getFilterManager() const
@@ -1499,22 +1487,29 @@ ViewModel* qm::ViewModelManager::getViewModel(Folder* pFolder)
 	if (it != listViewModel_.end())
 		return *it;
 	
-	Profile* pProfile = getProfile(pFolder);
-	std::auto_ptr<ViewModel> pViewModel(new ViewModel(this, pFolder, pProfile,
-		pDocument_, hwnd_, pSecurityModel_, pColorManager_.get()));
+//	Profile* pProfile = getProfile(pFolder);
+//	std::auto_ptr<ViewModel> pViewModel(new ViewModel(this, pFolder, pProfile,
+//		pDocument_, hwnd_, pSecurityModel_, pColorManager_.get()));
+	ViewDataItem* pViewDataItem = getViewDataItem(pFolder);
+	std::auto_ptr<ViewModel> pViewModel(new ViewModel(this, pFolder, pViewDataItem,
+		pProfile_, pDocument_, hwnd_, pSecurityModel_, pColorManager_.get()));
 	listViewModel_.push_back(pViewModel.get());
 	return pViewModel.release();
 }
 
 bool qm::ViewModelManager::save() const
 {
-	for (ViewModelList::const_iterator itM = listViewModel_.begin(); itM != listViewModel_.end(); ++itM) {
-		if (!(*itM)->save())
+	for (ViewModelList::const_iterator it = listViewModel_.begin(); it != listViewModel_.end(); ++it) {
+		if (!(*it)->save())
 			return false;
 	}
 	
-	for (ProfileMap::const_iterator itP = mapProfile_.begin(); itP != mapProfile_.end(); ++itP) {
-		if (!(*itP).second->save())
+//	for (ProfileMap::const_iterator itP = mapProfile_.begin(); itP != mapProfile_.end(); ++itP) {
+//		if (!(*itP).second->save())
+//			return false;
+//	}
+	for (ViewDataMap::const_iterator it = mapViewData_.begin(); it != mapViewData_.end(); ++it) {
+		if (!(*it).second->save())
 			return false;
 	}
 	
@@ -1535,9 +1530,21 @@ void qm::ViewModelManager::removeViewModelManagerHandler(ViewModelManagerHandler
 
 void qm::ViewModelManager::removeViewModel(ViewModel* pViewModel)
 {
-	ViewModelList::iterator it = std::remove(listViewModel_.begin(),
+	Folder* pFolder = pViewModel->getFolder();
+	ViewDataMap::iterator itD = std::find_if(
+		mapViewData_.begin(), mapViewData_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				std::equal_to<Account*>(),
+				std::select1st<ViewDataMap::value_type>(),
+				std::identity<Account*>()),
+			pFolder->getAccount()));
+	if (itD != mapViewData_.end())
+		(*itD).second->removeItem(pFolder->getId());
+	
+	ViewModelList::iterator itM = std::remove(listViewModel_.begin(),
 		listViewModel_.end(), pViewModel);
-	listViewModel_.erase(it, listViewModel_.end());
+	listViewModel_.erase(itM, listViewModel_.end());
 	delete pViewModel;
 }
 
@@ -1557,17 +1564,17 @@ void qm::ViewModelManager::accountDestroyed(const AccountEvent& event)
 		}
 	}
 	
-	ProfileMap::iterator itP = std::find_if(
-		mapProfile_.begin(), mapProfile_.end(),
+	ViewDataMap::iterator itD = std::find_if(
+		mapViewData_.begin(), mapViewData_.end(),
 		std::bind2nd(
 			binary_compose_f_gx_hy(
 				std::equal_to<Account*>(),
-				std::select1st<ProfileMap::value_type>(),
+				std::select1st<ViewDataMap::value_type>(),
 				std::identity<Account*>()),
 			pAccount));
-	if (itP != mapProfile_.end()) {
-		delete (*itP).second;
-		mapProfile_.erase(itP);
+	if (itD != mapViewData_.end()) {
+		delete (*itD).second;
+		mapViewData_.erase(itD);
 	}
 }
 
@@ -1596,7 +1603,7 @@ void qm::ViewModelManager::setCurrentViewModel(ViewModel* pViewModel)
 	
 	fireViewModelSelected(pViewModel, pOldViewModel);
 }
-
+/*
 Profile* qm::ViewModelManager::getProfile(Folder* pFolder)
 {
 	assert(pFolder);
@@ -1622,6 +1629,111 @@ Profile* qm::ViewModelManager::getProfile(Folder* pFolder)
 	mapProfile_.push_back(std::make_pair(pAccount, pProfile.get()));
 	pAccount->addAccountHandler(this);
 	return pProfile.release();
+}
+*/
+ViewDataItem* qm::ViewModelManager::getViewDataItem(Folder* pFolder)
+{
+	assert(pFolder);
+	
+	ViewData* pViewData = 0;
+	Account* pAccount = pFolder->getAccount();
+	ViewDataMap::iterator it = std::find_if(
+		mapViewData_.begin(), mapViewData_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				std::equal_to<Account*>(),
+				std::select1st<ViewDataMap::value_type>(),
+				std::identity<Account*>()),
+			pAccount));
+	if (it != mapViewData_.end()) {
+		pViewData = (*it).second;
+	}
+	else {
+		wstring_ptr wstrPath(concat(pAccount->getPath(), L"\\", FileNames::VIEWS_XML));
+		std::auto_ptr<ViewData> pNewViewData(new ViewData(wstrPath.get()));
+		mapViewData_.push_back(std::make_pair(pAccount, pNewViewData.get()));
+		pAccount->addAccountHandler(this);
+		pViewData = pNewViewData.release();
+		
+		// TODO
+		// Just for compatibility.
+		// This should be removed after 2.9.6 is released.
+		W2T(wstrPath.get(), ptszPath);
+		if (::GetFileAttributes(ptszPath) == 0xffffffff) {
+			wstring_ptr wstrProfilePath(concat(pAccount->getPath(), L"\\", FileNames::VIEW_XML));
+			std::auto_ptr<XMLProfile> pProfile(new XMLProfile(wstrProfilePath.get()));
+			if (pProfile->load()) {
+				MacroParser parser(MacroParser::TYPE_COLUMN);
+				const Account::FolderList& l = pAccount->getFolders();
+				for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+					unsigned int nId = (*it)->getId();
+					
+					std::auto_ptr<ViewDataItem> pItem(new ViewDataItem(nId));
+					
+					WCHAR wszSection[32];
+					swprintf(wszSection, L"Folder%d", nId);
+					
+					int nColumn = 0;
+					while (true) {
+						wstring_ptr wstrTitle;
+						ViewColumn::Type type = ViewColumn::TYPE_NONE;
+						std::auto_ptr<Macro> pMacro;
+						int nFlags = 0;
+						int nWidth = 0;
+						
+						WCHAR wszKey[32];
+						
+						swprintf(wszKey, L"ColumnTitle%d", nColumn);
+						wstrTitle = pProfile->getString(wszSection, wszKey, 0);
+						
+						swprintf(wszKey, L"ColumnMacro%d", nColumn);
+						wstring_ptr wstrMacro(pProfile->getString(wszSection, wszKey, 0));
+						if (!*wstrMacro.get())
+							break;
+						if (*wstrMacro.get() == L'%') {
+							struct {
+								const WCHAR* pwszMacro_;
+								ViewColumn::Type type_;
+							} defaults[] = {
+								{ L"%id",		ViewColumn::TYPE_ID			},
+								{ L"%date",		ViewColumn::TYPE_DATE		},
+								{ L"%from",		ViewColumn::TYPE_FROM		},
+								{ L"%to",		ViewColumn::TYPE_TO			},
+								{ L"%fromto",	ViewColumn::TYPE_FROMTO		},
+								{ L"%subject",	ViewColumn::TYPE_SUBJECT	},
+								{ L"%size",		ViewColumn::TYPE_SIZE		},
+								{ L"%flags",	ViewColumn::TYPE_FLAGS		}
+							};
+							for (int n = 0; n < countof(defaults) && type == ViewColumn::TYPE_NONE; ++n) {
+								if (_wcsicmp(wstrMacro.get(), defaults[n].pwszMacro_) == 0)
+									type = defaults[n].type_;
+							}
+						}
+						if (type == ViewColumn::TYPE_NONE) {
+							pMacro = parser.parse(wstrMacro.get());
+							type = ViewColumn::TYPE_OTHER;
+						}
+						
+						swprintf(wszKey, L"ColumnFlags%d", nColumn);
+						nFlags = pProfile->getInt(wszSection, wszKey, 0);
+						
+						swprintf(wszKey, L"ColumnWidth%d", nColumn);
+						nWidth = pProfile->getInt(wszSection, wszKey, 0);
+						
+						std::auto_ptr<ViewColumn> pColumn(new ViewColumn(
+							wstrTitle.get(), type, pMacro, nFlags, nWidth));
+						pItem->addColumn(pColumn);
+						
+						++nColumn;
+					}
+					if (nColumn != 0)
+						pViewData->addItem(pItem);
+				}
+			}
+		}
+	}
+	
+	return pViewData->getItem(pFolder->getId());
 }
 
 void qm::ViewModelManager::fireViewModelSelected(ViewModel* pNewViewModel,
@@ -1772,4 +1884,765 @@ bool qm::ViewModelItemComp::operator()(const ViewModelItem* pLhs,
 	}
 	
 	return bLess;
+}
+
+
+/****************************************************************************
+ *
+ * ViewData
+ *
+ */
+
+qm::ViewData::ViewData(const WCHAR* pwszPath)
+{
+	wstrPath_ = allocWString(pwszPath);
+	
+	XMLReader reader;
+	ViewDataContentHandler contentHandler(this);
+	reader.setContentHandler(&contentHandler);
+	if (!reader.parse(wstrPath_.get())) {
+		// TODO
+	}
+}
+
+qm::ViewData::~ViewData()
+{
+	std::for_each(listItem_.begin(), listItem_.end(), deleter<ViewDataItem>());
+}
+
+const ViewData::ItemList& qm::ViewData::getItems() const
+{
+	return listItem_;
+}
+
+ViewDataItem* qm::ViewData::getItem(unsigned int nFolderId)
+{
+	ViewDataItem item(nFolderId);
+	ItemList::iterator it = std::lower_bound(
+		listItem_.begin(), listItem_.end(),
+		&item,
+		binary_compose_f_gx_hy(
+			std::less<unsigned int>(),
+			std::mem_fun(&ViewDataItem::getFolderId),
+			std::mem_fun(&ViewDataItem::getFolderId)));
+	if (it != listItem_.end() && (*it)->getFolderId() == nFolderId) {
+		return *it;
+	}
+	else {
+		std::auto_ptr<ViewDataItem> pItem(createDefaultItem(nFolderId));
+		listItem_.insert(it, pItem.get());
+		return pItem.release();
+	}
+}
+
+bool qm::ViewData::save() const
+{
+	TemporaryFileRenamer renamer(wstrPath_.get());
+	
+	FileOutputStream os(renamer.getPath());
+	if (!os)
+		return false;
+	OutputStreamWriter writer(&os, false, L"utf-8");
+	if (!writer)
+		return false;
+	BufferedWriter bufferedWriter(&writer, false);
+	
+	ViewDataWriter viewDataWriter(&bufferedWriter);
+	if (!viewDataWriter.write(this))
+		return false;
+	
+	if (!bufferedWriter.close())
+		return false;
+	
+	if (!renamer.rename())
+		return false;
+	
+	return true;
+}
+
+void qm::ViewData::addItem(std::auto_ptr<ViewDataItem> pItem)
+{
+	ItemList::iterator it = std::lower_bound(
+		listItem_.begin(), listItem_.end(),
+		pItem.get(),
+		binary_compose_f_gx_hy(
+			std::less<unsigned int>(),
+			std::mem_fun(&ViewDataItem::getFolderId),
+			std::mem_fun(&ViewDataItem::getFolderId)));
+	if (it == listItem_.end() || (*it)->getFolderId() != pItem->getFolderId()) {
+		listItem_.insert(it, pItem.get());
+		pItem.release();
+	}
+}
+
+void qm::ViewData::removeItem(unsigned int nFolderId)
+{
+	ViewDataItem item(nFolderId);
+	ItemList::iterator it = std::lower_bound(
+		listItem_.begin(), listItem_.end(),
+		&item,
+		binary_compose_f_gx_hy(
+			std::less<unsigned int>(),
+			std::mem_fun(&ViewDataItem::getFolderId),
+			std::mem_fun(&ViewDataItem::getFolderId)));
+	if (it != listItem_.end() && (*it)->getFolderId() == nFolderId) {
+		delete *it;
+		listItem_.erase(it);
+	}
+}
+
+std::auto_ptr<ViewDataItem> qm::ViewData::createDefaultItem(unsigned int nFolderId)
+{
+	std::auto_ptr<ViewDataItem> pItem(new ViewDataItem(nFolderId));
+	struct {
+		const WCHAR* pwszTitle_;
+		ViewColumn::Type type_;
+		unsigned int nFlags_;
+		unsigned int nWidth_;
+	} columns[] = {
+		{
+			L"",
+			ViewColumn::TYPE_FLAGS,
+			ViewColumn::FLAG_ICON | ViewColumn::FLAG_SORT_NUMBER,
+			28
+		},
+		{
+			L"Date",
+			ViewColumn::TYPE_DATE,
+			ViewColumn::FLAG_SORT_DATE,
+			80
+		},
+		{
+			L"From / To",
+			ViewColumn::TYPE_FROMTO,
+			ViewColumn::FLAG_SORT_TEXT,
+			120
+		},
+		{
+			L"Subject",
+			ViewColumn::TYPE_SUBJECT,
+			ViewColumn::FLAG_INDENT | ViewColumn::FLAG_LINE | ViewColumn::FLAG_SORT_TEXT,
+			250
+		},
+		{
+			L"Size",
+			ViewColumn::TYPE_SIZE,
+			ViewColumn::FLAG_RIGHTALIGN | ViewColumn::FLAG_SORT_NUMBER,
+			40
+		}
+	};
+	for (int n = 0; n < countof(columns); ++n) {
+		std::auto_ptr<Macro> pMacro;
+		std::auto_ptr<ViewColumn> pColumn(new ViewColumn(
+			columns[n].pwszTitle_, columns[n].type_, pMacro,
+			columns[n].nFlags_, columns[n].nWidth_));
+		pItem->addColumn(pColumn);
+	}
+	return pItem;
+}
+
+
+/****************************************************************************
+ *
+ * ViewDataItem
+ *
+ */
+
+qm::ViewDataItem::ViewDataItem(unsigned int nFolderId) :
+	nFolderId_(nFolderId),
+	nFocus_(0),
+	nSort_(ViewModel::SORT_ASCENDING | ViewModel::SORT_NOTHREAD | 1)
+{
+}
+
+qm::ViewDataItem::~ViewDataItem()
+{
+	std::for_each(listColumn_.begin(), listColumn_.end(), deleter<ViewColumn>());
+}
+
+unsigned int qm::ViewDataItem::getFolderId() const
+{
+	return nFolderId_;
+}
+
+const ViewColumnList& qm::ViewDataItem::getColumns() const
+{
+	return listColumn_;
+}
+
+void qm::ViewDataItem::addColumn(std::auto_ptr<ViewColumn> pColumn)
+{
+	listColumn_.push_back(pColumn.get());
+	pColumn.release();
+}
+
+unsigned int qm::ViewDataItem::getFocus() const
+{
+	return nFocus_;
+}
+
+void qm::ViewDataItem::setFocus(unsigned int nFocus)
+{
+	nFocus_ = nFocus;
+}
+
+unsigned int qm::ViewDataItem::getSort() const
+{
+	return nSort_;
+}
+
+void qm::ViewDataItem::setSort(unsigned int nSort)
+{
+	nSort_ = nSort;
+}
+
+
+/****************************************************************************
+*
+* ViewDataContentHandler
+*
+*/
+
+qm::ViewDataContentHandler::ViewDataContentHandler(ViewData* pData) :
+	pData_(pData),
+	state_(STATE_ROOT),
+	type_(ViewColumn::TYPE_NONE),
+	nFlags_(-1),
+	nWidth_(-1),
+	nSort_(-1),
+	parser_(MacroParser::TYPE_COLUMN)
+{
+}
+
+qm::ViewDataContentHandler::~ViewDataContentHandler()
+{
+}
+
+bool qm::ViewDataContentHandler::startElement(const WCHAR* pwszNamespaceURI,
+											  const WCHAR* pwszLocalName,
+											  const WCHAR* pwszQName,
+											  const qs::Attributes& attributes)
+{
+	if (wcscmp(pwszLocalName, L"views") == 0) {
+		if (state_ != STATE_ROOT)
+			return false;
+		if (attributes.getLength() != 0)
+			return false;
+		state_ = STATE_VIEWS;
+	}
+	else if (wcscmp(pwszLocalName, L"view") == 0) {
+		if (state_ != STATE_VIEWS)
+			return false;
+		
+		const WCHAR* pwszFolder = 0;
+		for (int n = 0; n < attributes.getLength(); ++n) {
+			const WCHAR* pwszAttrLocalName = attributes.getLocalName(n);
+			if (wcscmp(pwszAttrLocalName, L"folder") == 0)
+				pwszFolder = attributes.getValue(n);
+			else
+				return false;
+		}
+		if (!pwszFolder)
+			return false;
+		
+		WCHAR* pEnd = 0;
+		unsigned int nFolderId = wcstol(pwszFolder, &pEnd, 10);
+		if (*pEnd)
+			return false;
+		
+		assert(!pItem_.get());
+		pItem_.reset(new ViewDataItem(nFolderId));
+		
+		state_ = STATE_VIEW;
+	}
+	else if (wcscmp(pwszLocalName, L"column") == 0) {
+		if (state_ != STATE_COLUMNS)
+			return false;
+		
+		unsigned int nFlags = 0;
+		const WCHAR* pwszSort = 0;
+		for (int n = 0; n < attributes.getLength(); ++n) {
+			const WCHAR* pwszAttrLocalName = attributes.getLocalName(n);
+			if (wcscmp(pwszAttrLocalName, L"indent") == 0)
+				nFlags |= wcscmp(attributes.getValue(n), L"true") == 0 ?
+					ViewColumn::FLAG_INDENT : 0;
+			else if (wcscmp(pwszAttrLocalName, L"line") == 0)
+				nFlags |= wcscmp(attributes.getValue(n), L"true") == 0 ?
+					ViewColumn::FLAG_LINE : 0;
+			else if (wcscmp(pwszAttrLocalName, L"align") == 0)
+				nFlags |= wcscmp(attributes.getValue(n), L"right") == 0 ?
+					ViewColumn::FLAG_RIGHTALIGN : 0;
+			else if (wcscmp(pwszAttrLocalName, L"icon") == 0)
+				nFlags |= wcscmp(attributes.getValue(n), L"true") == 0 ?
+					ViewColumn::FLAG_ICON : 0;
+			else if (wcscmp(pwszAttrLocalName, L"sort") == 0)
+				pwszSort = attributes.getValue(n);
+			else
+				return false;
+		}
+		if (pwszSort) {
+			if (wcscmp(pwszSort, L"number") == 0)
+				nFlags |= ViewColumn::FLAG_SORT_NUMBER;
+			else if (wcscmp(pwszSort, L"date") == 0)
+				nFlags |= ViewColumn::FLAG_SORT_DATE;
+			else
+				nFlags |= ViewColumn::FLAG_SORT_TEXT;
+		}
+		else {
+			nFlags |= ViewColumn::FLAG_SORT_TEXT;
+		}
+		nFlags_ = nFlags;
+		
+		state_ = STATE_COLUMN;
+	}
+	else if (wcscmp(pwszLocalName, L"sort") == 0) {
+		if (state_ != STATE_VIEW)
+			return false;
+		
+		unsigned int nSort = 0;
+		for (int n = 0; n < attributes.getLength(); ++n) {
+			const WCHAR* pwszAttrLocalName = attributes.getLocalName(n);
+			if (wcscmp(pwszAttrLocalName, L"direction") == 0)
+				nSort |= wcscmp(attributes.getValue(n), L"ascending") == 0 ?
+					ViewModel::SORT_ASCENDING : ViewModel::SORT_DESCENDING;
+			else if (wcscmp(pwszAttrLocalName, L"thread") == 0)
+				nSort |= wcscmp(attributes.getValue(n), L"true") == 0 ?
+					ViewModel::SORT_THREAD : ViewModel::SORT_NOTHREAD;
+			else
+				return false;
+		}
+		nSort_ = nSort;
+		
+		state_ = STATE_SORT;
+	}
+	else {
+		struct {
+			const WCHAR* pwszLocalName_;
+			State stateBefore_;
+			State stateAfter_;
+		} items[] = {
+			{ L"columns",	STATE_VIEW,		STATE_COLUMNS	},
+			{ L"title",		STATE_COLUMN,	STATE_TITLE		},
+			{ L"macro",		STATE_COLUMN,	STATE_MACRO		},
+			{ L"width",		STATE_COLUMN,	STATE_WIDTH		},
+			{ L"focus",		STATE_VIEW,		STATE_FOCUS		},
+		};
+		int n = 0;
+		while (n < countof(items) && wcscmp(pwszLocalName, items[n].pwszLocalName_) != 0)
+			++n;
+		if (n == countof(items))
+			return false;
+		
+		if (state_ != items[n].stateBefore_)
+			return false;
+		if (attributes.getLength() != 0)
+			return false;
+		state_ = items[n].stateAfter_;
+	}
+	return true;
+}
+
+bool qm::ViewDataContentHandler::endElement(const WCHAR* pwszNamespaceURI,
+											const WCHAR* pwszLocalName,
+											const WCHAR* pwszQName)
+{
+	if (wcscmp(pwszLocalName, L"views") == 0) {
+		assert(state_ == STATE_VIEWS);
+		state_ = STATE_ROOT;
+	}
+	else if (wcscmp(pwszLocalName, L"view") == 0) {
+		assert(state_ == STATE_VIEW);
+		assert(pItem_.get());
+		pData_->addItem(pItem_);
+		state_ = STATE_VIEWS;
+	}
+	else if (wcscmp(pwszLocalName, L"columns") == 0) {
+		assert(state_ == STATE_COLUMNS);
+		state_ = STATE_VIEW;
+	}
+	else if (wcscmp(pwszLocalName, L"column") == 0) {
+		assert(state_ == STATE_COLUMN);
+		
+		if (!wstrTitle_.get() ||
+			type_ == ViewColumn::TYPE_NONE ||
+			nFlags_ == -1 ||
+			nWidth_ == -1)
+			return false;
+		
+		std::auto_ptr<ViewColumn> pColumn(new ViewColumn(
+			wstrTitle_.get(), type_, pMacro_, nFlags_, nWidth_));
+		assert(pItem_.get());
+		pItem_->addColumn(pColumn);
+		
+		wstrTitle_.reset(0);
+		type_ = ViewColumn::TYPE_NONE;
+		nFlags_ = -1;
+		nWidth_ = -1;
+		
+		state_ = STATE_COLUMNS;
+	}
+	else if (wcscmp(pwszLocalName, L"title") == 0) {
+		assert(state_ == STATE_TITLE);
+		assert(!wstrTitle_.get());
+		wstrTitle_ = buffer_.getString();
+		state_ = STATE_COLUMN;
+	}
+	else if (wcscmp(pwszLocalName, L"macro") == 0) {
+		assert(state_ == STATE_MACRO);
+		
+		type_ = ViewColumn::TYPE_NONE;
+		const WCHAR* pwszMacro = buffer_.getCharArray();
+		if (*pwszMacro == L'%') {
+			struct {
+				const WCHAR* pwszMacro_;
+				ViewColumn::Type type_;
+			} defaults[] = {
+				{ L"%id",		ViewColumn::TYPE_ID			},
+				{ L"%date",		ViewColumn::TYPE_DATE		},
+				{ L"%from",		ViewColumn::TYPE_FROM		},
+				{ L"%to",		ViewColumn::TYPE_TO			},
+				{ L"%fromto",	ViewColumn::TYPE_FROMTO		},
+				{ L"%subject",	ViewColumn::TYPE_SUBJECT	},
+				{ L"%size",		ViewColumn::TYPE_SIZE		},
+				{ L"%flags",	ViewColumn::TYPE_FLAGS		}
+			};
+			for (int n = 0; n < countof(defaults) && type_ == ViewColumn::TYPE_NONE; ++n) {
+				if (_wcsicmp(pwszMacro, defaults[n].pwszMacro_) == 0)
+					type_ = defaults[n].type_;
+			}
+		}
+		if (type_ == ViewColumn::TYPE_NONE) {
+			pMacro_ = parser_.parse(pwszMacro);
+			type_ = ViewColumn::TYPE_OTHER;
+		}
+		
+		buffer_.remove();
+		state_ = STATE_COLUMN;
+	}
+	else if (wcscmp(pwszLocalName, L"width") == 0) {
+		assert(state_ == STATE_WIDTH);
+		
+		WCHAR* pEnd = 0;
+		nWidth_ = wcstol(buffer_.getCharArray(), &pEnd, 10);
+		if (*pEnd)
+			return false;
+		
+		buffer_.remove();
+		state_ = STATE_COLUMN;
+	}
+	else if (wcscmp(pwszLocalName, L"focus") == 0) {
+		assert(state_ == STATE_FOCUS);
+		
+		WCHAR* pEnd = 0;
+		unsigned int nFocus = wcstol(buffer_.getCharArray(), &pEnd, 10);
+		if (*pEnd)
+			return false;
+		assert(pItem_.get());
+		pItem_->setFocus(nFocus);
+		
+		buffer_.remove();
+		state_ = STATE_VIEW;
+	}
+	else if (wcscmp(pwszLocalName, L"sort") == 0) {
+		assert(state_ == STATE_SORT);
+		
+		WCHAR* pEnd = 0;
+		unsigned int nSort = wcstol(buffer_.getCharArray(), &pEnd, 10);
+		if (*pEnd)
+			return false;
+		assert(pItem_.get());
+		pItem_->setSort(nSort | nSort_);
+		
+		nSort_ = -1;
+		
+		buffer_.remove();
+		state_ = STATE_VIEW;
+	}
+	else {
+		return false;
+	}
+	return true;
+}
+
+bool qm::ViewDataContentHandler::characters(const WCHAR* pwsz,
+											size_t nStart,
+											size_t nLength)
+{
+	if (state_ == STATE_TITLE ||
+		state_ == STATE_MACRO ||
+		state_ == STATE_WIDTH ||
+		state_ == STATE_FOCUS ||
+		state_ == STATE_SORT) {
+		buffer_.append(pwsz + nStart, nLength);
+	}
+	else {
+		const WCHAR* p = pwsz + nStart;
+		for (size_t n = 0; n < nLength; ++n, ++p) {
+			if (*p != L' ' && *p != L'\t' && *p != L'\n')
+				return false;
+		}
+	}
+	return true;
+}
+
+
+/****************************************************************************
+ *
+ * ViewDataWriter
+ *
+ */
+
+qm::ViewDataWriter::ViewDataWriter(qs::Writer* pWriter) :
+	handler_(pWriter)
+{
+}
+
+qm::ViewDataWriter::~ViewDataWriter()
+{
+}
+
+bool qm::ViewDataWriter::write(const ViewData* pData)
+{
+	DefaultAttributes attrs;
+	
+	if (!handler_.startDocument())
+		return false;
+	if (!handler_.startElement(0, 0, L"views", attrs))
+		return false;
+	
+	const ViewData::ItemList& listItem = pData->getItems();
+	for (ViewData::ItemList::const_iterator itI = listItem.begin(); itI != listItem.end(); ++itI) {
+		ViewDataItem* pItem = *itI;
+		
+		class ViewAttrs : public DefaultAttributes
+		{
+		public:
+			ViewAttrs(unsigned int nFolder)
+			{
+				swprintf(wszFolder_, L"%u", nFolder);
+			}
+		
+		public:
+			virtual int getLength() const
+			{
+				return 1;
+			}
+			
+			virtual const WCHAR* getQName(int nIndex) const
+			{
+				assert(nIndex == 0);
+				return L"folder";
+			}
+			
+			virtual const WCHAR* getValue(int nIndex) const
+			{
+				assert(nIndex == 0);
+				return wszFolder_;
+			}
+		
+		private:
+			WCHAR wszFolder_[32];
+		} viewAttrs(pItem->getFolderId());
+		
+		if (!handler_.startElement(0, 0, L"view", viewAttrs))
+			return false;
+		
+		if (!handler_.startElement(0, 0, L"columns", attrs))
+			return false;
+		
+		const ViewColumnList& listColumn = pItem->getColumns();
+		for (ViewColumnList::const_iterator itC = listColumn.begin(); itC != listColumn.end(); ++itC) {
+			ViewColumn* pColumn = *itC;
+			
+			class ColumnAttrs : public DefaultAttributes
+			{
+			public:
+				ColumnAttrs(unsigned int nFlags) :
+					nFlags_(nFlags)
+				{
+				}
+				
+			public:
+				virtual int getLength() const
+				{
+					return 5;
+				}
+				
+				virtual const WCHAR* getQName(int nIndex) const
+				{
+					switch (nIndex) {
+					case 0:
+						return L"indent";
+					case 1:
+						return L"line";
+					case 2:
+						return L"icon";
+					case 3:
+						return L"align";
+					case 4:
+						return L"sort";
+					default:
+						assert(false);
+						return 0;
+					}
+				}
+				
+				virtual const WCHAR* getValue(int nIndex) const
+				{
+					switch (nIndex) {
+					case 0:
+						return nFlags_ & ViewColumn::FLAG_INDENT ? L"true" : L"false";
+					case 1:
+						return nFlags_ & ViewColumn::FLAG_LINE ? L"true" : L"false";
+					case 2:
+						return nFlags_ & ViewColumn::FLAG_ICON ? L"true" : L"false";
+					case 3:
+						return nFlags_ & ViewColumn::FLAG_RIGHTALIGN ? L"right" : L"left";
+					case 4:
+						switch (nFlags_ & ViewColumn::FLAG_SORT_MASK) {
+						case ViewColumn::FLAG_SORT_TEXT:
+							return L"text";
+						case ViewColumn::FLAG_SORT_NUMBER:
+							return L"number";
+						case ViewColumn::FLAG_SORT_DATE:
+							return L"date";
+						default:
+							assert(false);
+							return 0;
+						}
+					default:
+						assert(false);
+						return 0;
+					}
+				}
+			
+			private:
+				unsigned int nFlags_;
+			} columnAttrs(pColumn->getFlags());
+			
+			if (!handler_.startElement(0, 0, L"column", columnAttrs))
+				return false;
+			
+			if (!HandlerHelper::textElement(&handler_, L"title", pColumn->getTitle(), -1))
+				return false;
+			
+			const WCHAR* pwszMacro = 0;
+			wstring_ptr wstrMacro;
+			switch (pColumn->getType()) {
+			case ViewColumn::TYPE_NONE:
+				assert(false);
+				return false;
+			case ViewColumn::TYPE_ID:
+				pwszMacro = L"%Id";
+				break;
+			case ViewColumn::TYPE_DATE:
+				pwszMacro = L"%Date";
+				break;
+			case ViewColumn::TYPE_FROM:
+				pwszMacro = L"%From";
+				break;
+			case ViewColumn::TYPE_TO:
+				pwszMacro = L"%To";
+				break;
+			case ViewColumn::TYPE_FROMTO:
+				pwszMacro = L"%FromTo";
+				break;
+			case ViewColumn::TYPE_SUBJECT:
+				pwszMacro = L"%Subject";
+				break;
+			case ViewColumn::TYPE_SIZE:
+				pwszMacro = L"%Size";
+				break;
+			case ViewColumn::TYPE_FLAGS:
+				pwszMacro = L"%Flags";
+				break;
+			case ViewColumn::TYPE_OTHER:
+				wstrMacro = pColumn->getMacro()->getString();
+				pwszMacro = wstrMacro.get();
+				break;
+			default:
+				assert(false);
+				return false;
+			}
+			if (!HandlerHelper::textElement(&handler_, L"macro", pwszMacro, -1))
+				return false;
+			
+			if (!HandlerHelper::numberElement(&handler_, L"width", pColumn->getWidth()))
+				return false;
+			
+			if (!handler_.endElement(0, 0, L"column"))
+				return false;
+		}
+		
+		if (!handler_.endElement(0, 0, L"columns"))
+			return false;
+		
+		if (!HandlerHelper::numberElement(&handler_, L"focus", pItem->getFocus()))
+			return false;
+		
+		class SortAttrs : public DefaultAttributes
+		{
+		public:
+			SortAttrs(unsigned int nSort) :
+				nSort_(nSort)
+			{
+			}
+			
+		public:
+			virtual int getLength() const
+			{
+				return 2;
+			}
+			
+			virtual const WCHAR* getQName(int nIndex) const
+			{
+				switch (nIndex) {
+				case 0:
+					return L"direction";
+				case 1:
+					return L"thread";
+				default:
+					assert(false);
+					return 0;
+				}
+			}
+			
+			virtual const WCHAR* getValue(int nIndex) const
+			{
+				switch (nIndex) {
+				case 0:
+					return (nSort_ & ViewModel::SORT_DIRECTION_MASK) == ViewModel::SORT_ASCENDING ?
+						L"ascending" : L"descending";
+				case 1:
+					return (nSort_ & ViewModel::SORT_THREAD_MASK) == ViewModel::SORT_THREAD ?
+						L"true" : L"false";
+				default:
+					assert(false);
+					return 0;
+				}
+			}
+		
+		private:
+			unsigned int nSort_;
+		} sortAttrs(pItem->getSort());
+		
+		if (!handler_.startElement(0, 0, L"sort", sortAttrs))
+			return false;
+		WCHAR wsz[32];
+		swprintf(wsz, L"%u", pItem->getSort() & ViewModel::SORT_INDEX_MASK);
+		if (!handler_.characters(wsz, 0, wcslen(wsz)))
+			return false;
+		if (!handler_.endElement(0, 0, L"sort"))
+			return false;
+		
+		if (!handler_.endElement(0, 0, L"view"))
+			return false;
+	}
+	
+	if (!handler_.endElement(0, 0, L"views"))
+		return false;
+	if (!handler_.endDocument())
+		return false;
+	
+	return true;
 }

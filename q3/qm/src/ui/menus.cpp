@@ -642,8 +642,8 @@ bool qm::SortMenu::createMenu(HMENU hmenu)
 		unsigned int nSortIndex = pViewModel->getSort() & ViewModel::SORT_INDEX_MASK;
 		UINT nPos = 0;
 		UINT nId = IDM_VIEW_SORT;
-		const ViewModel::ColumnList& l = pViewModel->getColumns();
-		for (ViewModel::ColumnList::const_iterator it = l.begin();
+		const ViewColumnList& l = pViewModel->getColumns();
+		for (ViewColumnList::const_iterator it = l.begin();
 			it != l.end() && nId < IDM_VIEW_SORT + MAX_SORT; ++it, ++nId) {
 			const WCHAR* pwszTitle = (*it)->getTitle();
 			if (*pwszTitle) {
