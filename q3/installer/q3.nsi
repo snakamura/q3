@@ -12,7 +12,7 @@
   
 Name "QMAIL3"
 
-OutFile "qmail3${POSTFIX}.exe"
+OutFile "q3${POSTFIX}-win-x86-ja.exe"
 XPStyle on
 
 Var STARTMENU_FOLDER
