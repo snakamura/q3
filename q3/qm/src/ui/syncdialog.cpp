@@ -1245,7 +1245,7 @@ QSTATUS qm::SyncStatusWindow::Item::updateMessage()
 		}
 		
 		if (pFolder_) {
-			status = buf.append(L" / ");
+			status = buf.append(L" - ");
 			CHECK_QSTATUS();
 			string_ptr<WSTRING> wstrFolder;
 			status = pFolder_->getFullName(&wstrFolder);
