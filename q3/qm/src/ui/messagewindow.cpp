@@ -220,8 +220,9 @@ QSTATUS qm::MessageWindowImpl::setMessage(MessageHolder* pmh, bool bResetEncodin
 	}
 	
 	if (bShowHeaderWindow_ && pAccount) {
-		TemplateContext context(pmh, &msg, pAccount, pDocument_,
-			pThis_->getHandle(), pProfile_, 0, &status);
+		TemplateContext context(pmh, &msg, pAccount,
+			pDocument_, pThis_->getHandle(), pProfile_, 0,
+			TemplateContext::ArgumentList(), &status);
 		CHECK_QSTATUS();
 		status = pHeaderWindow_->setMessage(context);
 		CHECK_QSTATUS();

@@ -343,7 +343,8 @@ QSTATUS qm::Application::initialize()
 		L"reply",
 		L"reply_all",
 		L"forward",
-		L"edit"
+		L"edit",
+		L"url"
 	};
 	for (n = 0; n < countof(pwszTemplates); ++n) {
 		status = pImpl_->ensureFile(pImpl_->wstrMailFolder_,

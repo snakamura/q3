@@ -1,5 +1,5 @@
 /*
- * $Id: qmtemplate.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -69,10 +69,20 @@ private:
 class TemplateContext
 {
 public:
+	struct Argument
+	{
+		const WCHAR* pwszName_;
+		const WCHAR* pwszValue_;
+	};
+
+public:
+	typedef std::vector<Argument> ArgumentList;
+
+public:
 	TemplateContext(MessageHolderBase* pmh, Message* pMessage,
 		Account* pAccount, Document* pDocument, HWND hwnd,
 		qs::Profile* pProfile, MacroErrorHandler* pErrorHandler,
-		qs::QSTATUS* pstatus);
+		const ArgumentList& listArgument, qs::QSTATUS* pstatus);
 	~TemplateContext();
 
 public:
@@ -83,6 +93,7 @@ public:
 	HWND getWindow() const;
 	qs::Profile* getProfile() const;
 	MacroErrorHandler* getErrorHandler() const;
+	const ArgumentList& getArgumentList() const;
 
 private:
 	TemplateContext(const TemplateContext&);
@@ -96,6 +107,7 @@ private:
 	HWND hwnd_;
 	qs::Profile* pProfile_;
 	MacroErrorHandler* pErrorHandler_;
+	const ArgumentList& listArgument_;
 };
 
 

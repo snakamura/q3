@@ -64,6 +64,13 @@ qm::TemplateProcessor::~TemplateProcessor()
 QSTATUS qm::TemplateProcessor::process(
 	const WCHAR* pwszTemplateName, bool bReverseExternalEditor) const
 {
+	return process(pwszTemplateName,
+		TemplateContext::ArgumentList(), bReverseExternalEditor);
+}
+
+QSTATUS qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
+	const TemplateContext::ArgumentList& listArgument, bool bReverseExternalEditor) const
+{
 	assert(pwszTemplateName);
 	
 	DECLARE_QSTATUS();
@@ -90,8 +97,8 @@ QSTATUS qm::TemplateProcessor::process(
 	MacroErrorHandlerImpl handler;
 	Message msg(&status);
 	CHECK_QSTATUS();
-	TemplateContext context(mpl, mpl ? &msg : 0, pAccount,
-		pDocument_, hwnd_, pProfile_, &handler, &status);
+	TemplateContext context(mpl, mpl ? &msg : 0, pAccount, pDocument_,
+		hwnd_, pProfile_, &handler, listArgument, &status);
 	CHECK_QSTATUS();
 	
 	string_ptr<WSTRING> wstrValue;
@@ -102,98 +109,8 @@ QSTATUS qm::TemplateProcessor::process(
 		(!bExternalEditor_ && bReverseExternalEditor);
 	
 	if (bExternalEditor) {
-#if 1
 		status = pExternalEditorManager_->open(wstrValue.get());
 		CHECK_QSTATUS();
-#else
-		string_ptr<WSTRING> wstrEditor;
-		status = pProfile_->getString(L"Global", L"ExternalEditor", L"", &wstrEditor);
-		CHECK_QSTATUS();
-		if (!*wstrEditor.get()) {
-			wstrEditor.reset(0);
-			status = pProfile_->getString(L"Global", L"Editor", L"", &wstrEditor);
-			CHECK_QSTATUS();
-		}
-		
-		if (*wstrEditor.get()) {
-			string_ptr<WSTRING> wstrTempFile(concat(
-				Application::getApplication().getTemporaryFolder(),
-				L"\\q3edit.txt"));
-			if (!wstrTempFile.get())
-				return QSTATUS_OUTOFMEMORY;
-			
-			FileOutputStream stream(wstrTempFile.get(), &status);
-			CHECK_QSTATUS();
-			BufferedOutputStream bufferedStream(&stream, false, &status);
-			CHECK_QSTATUS();
-			OutputStreamWriter writer(&bufferedStream,
-				false, getSystemEncoding(), &status);
-			CHECK_QSTATUS();
-			status = writer.write(wstrValue.get(), wcslen(wstrValue.get()));
-			CHECK_QSTATUS();
-			status = writer.close();
-			CHECK_QSTATUS();
-			
-			const WCHAR* pFile = wstrEditor.get();
-			WCHAR* pParam = 0;
-			if (*wstrEditor.get() == L'\"') {
-				++pFile;
-				pParam = wcschr(wstrEditor.get() + 1, L'\"');
-			}
-			else {
-				pParam = wcschr(wstrEditor.get(), L' ');
-			}
-			if (pParam) {
-				*pParam = L'\0';
-				++pParam;
-			}
-			
-			StringBuffer<WSTRING> bufParam(&status);
-			CHECK_QSTATUS();
-			if (pParam) {
-				const WCHAR* p = wcsstr(pParam, L"%f");
-				if (p) {
-					status = bufParam.append(pParam, p - pParam);
-					CHECK_QSTATUS();
-					status = bufParam.append(wstrTempFile.get());
-					CHECK_QSTATUS();
-					status = bufParam.append(p + 2);
-					CHECK_QSTATUS();
-				}
-				else {
-					status = bufParam.append(pParam);
-					CHECK_QSTATUS();
-					status = bufParam.append(L' ');
-					CHECK_QSTATUS();
-					status = bufParam.append(wstrTempFile.get());
-					CHECK_QSTATUS();
-				}
-			}
-			else {
-				status = bufParam.append(wstrTempFile.get());
-				CHECK_QSTATUS();
-			}
-			
-			W2T(pFile, ptszFile);
-			W2T(bufParam.getCharArray(), ptszParam);
-			
-			SHELLEXECUTEINFO sei = {
-				sizeof(sei),
-				0,
-				hwnd_,
-				0,
-				ptszFile,
-				ptszParam,
-				0,
-#ifdef _WIN32_WCE
-				SW_SHOWNORMAL,
-#else
-				SW_SHOWDEFAULT,
-#endif
-			};
-			::ShellExecuteEx(&sei);
-		}
-#endif
 	}
 	else {
 		MessageCreator creator;

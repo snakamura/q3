@@ -248,8 +248,9 @@ QSTATUS qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 			CHECK_QSTATUS();
 		}
 		else if (pTemplate) {
-			TemplateContext context(pmh, pMessage, pmh->getFolder()->getAccount(),
-				pDocument_, getHandle(), pProfile_, 0, &status);
+			TemplateContext context(pmh, pMessage,
+				pmh->getFolder()->getAccount(), pDocument_, getHandle(),
+				pProfile_, 0, TemplateContext::ArgumentList(), &status);
 			CHECK_QSTATUS();
 			status = pTemplate->getValue(context, &wstrText);
 			CHECK_QSTATUS();

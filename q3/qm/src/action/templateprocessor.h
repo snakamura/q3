@@ -10,6 +10,7 @@
 #define __TEMPLATEPROCESSOR_H__
 
 #include <qmmacro.h>
+#include <qmtemplate.h>
 
 #include <qs.h>
 #include <qsprofile.h>
@@ -46,6 +47,9 @@ public:
 
 public:
 	qs::QSTATUS process(const WCHAR* pwszTemplateName,
+		bool bReverseExternalEditor) const;
+	qs::QSTATUS process(const WCHAR* pwszTemplateName,
+		const TemplateContext::ArgumentList& listArgument,
 		bool bReverseExternalEditor) const;
 
 private:

@@ -2217,9 +2217,15 @@ QSTATUS qm::MessageOpenURLAction::invoke(const ActionEvent& event)
 		if (pParam->nArgs_ > 0) {
 			Variant v;
 			if (::VariantChangeType(&v, pParam->ppvarArgs_[0], 0, VT_BSTR) == S_OK) {
-				// TODO
-				// Pass argument to the template
-				status = processor_.process(L"url",
+				TemplateContext::ArgumentList listArgument;
+				TemplateContext::Argument arg = {
+					L"url",
+					v.bstrVal
+				};
+				status = STLWrapper<TemplateContext::ArgumentList>(
+					listArgument).push_back(arg);
+				CHECK_QSTATUS();
+				status = processor_.process(L"url", listArgument,
 					(event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0);
 				CHECK_QSTATUS();
 			}

@@ -1640,6 +1640,10 @@ protected:
 	virtual const WCHAR* getName() const;
 
 private:
+	static qs::QSTATUS decode(const WCHAR* p, size_t nLen, qs::WSTRING* pwstr);
+	static bool isHex(WCHAR c);
+
+private:
 	MacroFunctionParseURL(const MacroFunctionParseURL&);
 	MacroFunctionParseURL& operator=(const MacroFunctionParseURL&);
 };

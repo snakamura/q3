@@ -853,6 +853,7 @@ REPLY                   TEMPLATE DISCARDABLE    "res\\reply.template"
 REPLY_ALL               TEMPLATE DISCARDABLE    "res\\reply_all.template"
 FORWARD                 TEMPLATE DISCARDABLE    "res\\forward.template"
 EDIT                    TEMPLATE DISCARDABLE    "res\\edit.template"
+URL                     TEMPLATE DISCARDABLE    "res\\url.template"
 
 /////////////////////////////////////////////////////////////////////////////
 //

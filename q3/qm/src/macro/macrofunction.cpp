@@ -2763,7 +2763,8 @@ QSTATUS qm::MacroFunctionLoad::value(
 		TemplateContext context(pContext->getMessageHolder(),
 			pContext->getMessage(), pContext->getAccount(),
 			pContext->getDocument(), pContext->getWindow(),
-			pContext->getProfile(), pContext->getErrorHandler(), &status);
+			pContext->getProfile(), pContext->getErrorHandler(),
+			TemplateContext::ArgumentList(), &status);
 		CHECK_QSTATUS();
 		status = pTemplate->getValue(context, &wstr);
 		CHECK_QSTATUS();
@@ -3099,16 +3100,156 @@ QSTATUS qm::MacroFunctionParseURL::value(
 	
 	*ppValue = 0;
 	
-	if (getArgSize() != 2)
+	if (getArgSize() != 1)
 		return error(*pContext, MacroErrorHandler::CODE_INVALIDARGSIZE);
 	
-	// TODO
+	MacroValuePtr pValue;
+	status = getArg(0)->value(pContext, &pValue);
+	CHECK_QSTATUS();
+	string_ptr<WSTRING> wstrURL;
+	status = pValue->string(&wstrURL);
+	CHECK_QSTATUS();
 	
+	StringBuffer<WSTRING> buf(&status);
+	CHECK_QSTATUS();
+	
+	if (wcslen(wstrURL.get()) >= 7 &&
+		wcsncmp(wstrURL.get(), L"mailto:", 7) == 0) {
+		const WCHAR* p = wstrURL.get() + 7;
+		const WCHAR* pAddress = p;
+		while (*p && *p != L'?')
+			++p;
+		if (p != pAddress) {
+			string_ptr<WSTRING> wstrTo;
+			status = decode(pAddress, p - pAddress, &wstrTo);
+			CHECK_QSTATUS();
+			status = buf.append(L"To: ");
+			CHECK_QSTATUS();
+			status = buf.append(wstrTo.get());
+			CHECK_QSTATUS();
+			status = buf.append(L"\n");
+			CHECK_QSTATUS();
+		}
+		
+		string_ptr<WSTRING> wstrBody;
+		if (*p) {
+			assert(*p == L'?');
+			
+			const WCHAR* pwszFields[] = {
+				L"to",
+				L"cc",
+				L"bcc",
+				L"subject"
+			};
+			
+			const WCHAR* pName = p + 1;
+			const WCHAR* pValue = 0;
+			string_ptr<WSTRING> wstrName;
+			do {
+				++p;
+				if (!wstrName.get() && *p == L'=') {
+					status = decode(pName, p - pName, &wstrName);
+					CHECK_QSTATUS();
+					pValue = p + 1;
+				}
+				else if (*p == L'&' || *p == L'\0') {
+					if (wstrName.get()) {
+						for (int n = 0; n < countof(pwszFields); ++n) {
+							if (_wcsicmp(wstrName.get(), pwszFields[n]) == 0)
+								break;
+						}
+						if (n != countof(pwszFields)) {
+							string_ptr<WSTRING> wstrValue;
+							status = decode(pValue, p - pValue, &wstrValue);
+							CHECK_QSTATUS();
+							status = buf.append(wstrName.get());
+							CHECK_QSTATUS();
+							status = buf.append(L": ");
+							CHECK_QSTATUS();
+							status = buf.append(wstrValue.get());
+							CHECK_QSTATUS();
+							status = buf.append(L"\n");
+							CHECK_QSTATUS();
+						}
+						else if (_wcsicmp(wstrName.get(), L"body") == 0) {
+							status = decode(pValue, p - pValue, &wstrBody);
+							CHECK_QSTATUS();
+						}
+					}
+					pName = p + 1;
+					pValue = 0;
+					wstrName.reset(0);
+				}
+			} while(*p);
+		}
+		
+		status = buf.append(L"\n");
+		CHECK_QSTATUS();
+		if (wstrBody.get()) {
+			status = buf.append(wstrBody.get());
+			CHECK_QSTATUS();
+		}
+	}
+	else {
+		status = buf.append(L"To: ");
+		CHECK_QSTATUS();
+		status = buf.append(wstrURL.get());
+		CHECK_QSTATUS();
+		status = buf.append(L"\n\n");
+		CHECK_QSTATUS();
+	}
+	
+	return MacroValueFactory::getFactory().newString(buf.getCharArray(),
+		reinterpret_cast<MacroValueString**>(ppValue));
 }
 
 const WCHAR* qm::MacroFunctionParseURL::getName() const
 {
 	return L"ParseURL";
+}
+
+QSTATUS qm::MacroFunctionParseURL::decode(
+	const WCHAR* p, size_t nLen, WSTRING* pwstr)
+{
+	assert(p);
+	assert(pwstr);
+	
+	DECLARE_QSTATUS();
+	
+	StringBuffer<STRING> buf(&status);
+	CHECK_QSTATUS();
+	for (; nLen > 0; --nLen, ++p) {
+		if (*p == L'%' && nLen > 2 && isHex(*(p + 1)) && isHex(*(p + 2))) {
+			WCHAR wsz[3] = { *(p + 1), *(p + 2), L'\0' };
+			WCHAR* pEnd = 0;
+			long n = wcstol(wsz, &pEnd, 16);
+			if (n > 0 && n != 0x0d) {
+				status = buf.append(static_cast<CHAR>(n));
+				CHECK_QSTATUS();
+			}
+			p += 2;
+			nLen -= 2;
+		}
+		else if (*p <= 0x7f) {
+			status = buf.append(static_cast<CHAR>(*p));
+			CHECK_QSTATUS();
+		}
+	}
+	
+	UTF8Converter converter(&status);
+	CHECK_QSTATUS();
+	size_t n = buf.getLength();
+	status = converter.decode(buf.getCharArray(), &n, pwstr, 0);
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
+bool qm::MacroFunctionParseURL::isHex(WCHAR c)
+{
+	return (L'0' <= c && c <= L'9') ||
+		(L'a' <= c && c <= 'f') ||
+		(L'A' <= c && c <= 'F');
 }
 
 

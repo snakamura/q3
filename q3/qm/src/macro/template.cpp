@@ -1,5 +1,5 @@
 /*
- * $Id: template.cpp,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -56,14 +56,27 @@ QSTATUS qm::Template::getValue(
 	StringBuffer<WSTRING> buf(&status);
 	CHECK_QSTATUS();
 	
-	ValueList::const_iterator it = listValue_.begin();
-	while (it != listValue_.end()) {
-		status = buf.append((*it).first);
+	MacroVariableHolder globalVariable(&status);
+	CHECK_QSTATUS();
+	
+	const TemplateContext::ArgumentList& l = context.getArgumentList();
+	TemplateContext::ArgumentList::const_iterator itA = l.begin();
+	while (itA != l.end()) {
+		MacroValuePtr pValue;
+		status = MacroValueFactory::getFactory().newString((*itA).pwszValue_,
+			reinterpret_cast<MacroValueString**>(&pValue));
+		CHECK_QSTATUS();
+		status = globalVariable.setVariable((*itA).pwszName_, pValue.get());
+		CHECK_QSTATUS();
+		++itA;
+	}
+	
+	ValueList::const_iterator itV = listValue_.begin();
+	while (itV != listValue_.end()) {
+		status = buf.append((*itV).first);
 		CHECK_QSTATUS();
 		
-		if ((*it).second) {
-			MacroVariableHolder globalVariable(&status);
-			CHECK_QSTATUS();
+		if ((*itV).second) {
 			MacroContext::Init init = {
 				context.getMessageHolder(),
 				context.getMessage(),
@@ -78,7 +91,7 @@ QSTATUS qm::Template::getValue(
 			MacroContext c(init, &status);
 			CHECK_QSTATUS();
 			MacroValue* pValue = 0;
-			status = (*it).second->value(&c, &pValue);
+			status = (*itV).second->value(&c, &pValue);
 			CHECK_QSTATUS();
 			MacroValuePtr apValue(pValue);
 			string_ptr<WSTRING> wstrValue;
@@ -88,7 +101,7 @@ QSTATUS qm::Template::getValue(
 			CHECK_QSTATUS();
 		}
 		
-		++it;
+		++itV;
 	}
 	
 	*pwstrValue = buf.getString();
@@ -105,14 +118,16 @@ QSTATUS qm::Template::getValue(
 
 qm::TemplateContext::TemplateContext(MessageHolderBase* pmh,
 	Message* pMessage, Account* pAccount, Document* pDocument, HWND hwnd,
-	Profile* pProfile, MacroErrorHandler* pErrorHandler, QSTATUS* pstatus) :
+	Profile* pProfile, MacroErrorHandler* pErrorHandler,
+	const ArgumentList& listArgument, QSTATUS* pstatus) :
 	pmh_(pmh),
 	pMessage_(pMessage),
 	pAccount_(pAccount),
 	pDocument_(pDocument),
 	hwnd_(hwnd),
 	pProfile_(pProfile),
-	pErrorHandler_(pErrorHandler)
+	pErrorHandler_(pErrorHandler),
+	listArgument_(listArgument)
 {
 	assert(pstatus);
 	*pstatus = QSTATUS_SUCCESS;
@@ -155,6 +170,11 @@ Profile* qm::TemplateContext::getProfile() const
 MacroErrorHandler* qm::TemplateContext::getErrorHandler() const
 {
 	return pErrorHandler_;
+}
+
+const TemplateContext::ArgumentList& qm::TemplateContext::getArgumentList() const
+{
+	return listArgument_;
 }
 
 
