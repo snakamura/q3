@@ -559,12 +559,12 @@ std::auto_ptr<HttpURL> qmrss::HttpURL::create(const WCHAR* pwszURL)
 {
 	const WCHAR* p = wcsstr(pwszURL, L"://");
 	if (!p)
-		return 0;
+		return std::auto_ptr<HttpURL>();
 	
 	wstring_ptr wstrScheme(allocWString(pwszURL, p - pwszURL));
 	if (wcscmp(wstrScheme.get(), L"http") != 0 &&
 		wcscmp(wstrScheme.get(), L"https") != 0)
-		return 0;
+		return std::auto_ptr<HttpURL>();
 	
 	p += 3;
 	
@@ -593,7 +593,7 @@ std::auto_ptr<HttpURL> qmrss::HttpURL::create(const WCHAR* pwszURL)
 		WCHAR* pEnd = 0;
 		long n = wcstol(pPort + 1, &pEnd, 10);
 		if (*pEnd || n < 0 || USHRT_MAX < n)
-			return 0;
+			return std::auto_ptr<HttpURL>();
 		nPort = static_cast<unsigned short>(n);
 		*pPort = L'\0';
 	}
