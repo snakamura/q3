@@ -64,7 +64,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "F&lat",                       IDM_VIEW_SORTFLAT
         MENUITEM "&Thread",                     IDM_VIEW_SORTTHREAD
-        MENUITEM "Fl&oat Thread",               IDM_VIEW_SORTFLOATTHREAD
+        MENUITEM "Fl&oated Thread",             IDM_VIEW_SORTFLOATTHREAD
     END
 END
 
