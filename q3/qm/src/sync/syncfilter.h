@@ -30,9 +30,6 @@ class SyncFilterWriter;
 class SyncFilterContentHandler : public qs::DefaultHandler
 {
 public:
-	typedef std::vector<SyncFilterSet*> FilterSetList;
-
-public:
 	explicit SyncFilterContentHandler(SyncFilterManager* pManager);
 	virtual ~SyncFilterContentHandler();
 

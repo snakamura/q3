@@ -231,6 +231,7 @@ public:
 	SyncDialogManager* pSyncDialogManager_;
 	GoRound* pGoRound_;
 	TempFileCleaner* pTempFileCleaner_;
+	AutoPilot* pAutoPilot_;
 	std::auto_ptr<Accelerator> pAccelerator_;
 	SplitterWindow* pFolderSplitterWindow_;
 	SplitterWindow* pListSplitterWindow_;
@@ -823,9 +824,9 @@ void qm::MainWindowImpl::initActions()
 		pSyncManager_,
 		pProfile_,
 		pThis_->getHandle());
-	ADD_ACTION1(ToolCheckNewMailAction,
-		IDM_TOOL_CHECKNEWMAIL,
-		pDocument_);
+	ADD_ACTION1(ToolAutoPilotAction,
+		IDM_TOOL_AUTOPILOT,
+		pAutoPilot_);
 	ADD_ACTION4(ToolDialupAction,
 		IDM_TOOL_DIALUP,
 		pSyncManager_,
@@ -1986,6 +1987,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pSyncDialogManager_ = pContext->pSyncDialogManager_;
 	pImpl_->pGoRound_ = pContext->pGoRound_;
 	pImpl_->pTempFileCleaner_ = pContext->pTempFileCleaner_;
+	pImpl_->pAutoPilot_ = pContext->pAutoPilot_;
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pImpl_->pUIManager_->getKeyMap()->createAccelerator(

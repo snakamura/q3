@@ -83,8 +83,6 @@ public:
 	void setOffline(bool bOffline);
 	void incrementInternalOnline();
 	void decrementInternalOnline();
-	bool isCheckNewMail() const;
-	void setCheckNewMail(bool bCheckNewMail);
 	bool save();
 	
 	void addDocumentHandler(DocumentHandler* pHandler);

@@ -123,7 +123,7 @@
 			<separator/>
 			<popupmenu text="Scri&amp;pt" action="ToolScript"/>
 			<separator/>
-			<menuitem text="Check &amp;New Mail" action="ToolCheckNewMail"/>
+			<menuitem text="A&amp;uto Pilot" action="ToolAutoPilot"/>
 			<separator/>
 			<popupmenu text="Su&amp;b Account" action="ToolSubAccount"/>
 			<menuitem text="&amp;Account..." action="ToolAccount"/>

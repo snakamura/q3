@@ -42,11 +42,11 @@
 #endif
 #include "../model/dataobject.h"
 #include "../model/tempfilecleaner.h"
+#include "../sync/autopilot.h"
 #include "../sync/syncmanager.h"
 #include "../ui/dialogs.h"
 #include "../ui/foldermodel.h"
 #include "../ui/mainwindow.h"
-#include "../ui/newmailchecker.h"
 #include "../ui/syncdialog.h"
 #include "../ui/uimanager.h"
 #include "../ui/uiutil.h"
@@ -61,7 +61,7 @@ using namespace qs;
  *
  */
 
-struct qm::ApplicationImpl : public NewMailCheckerCallback
+struct qm::ApplicationImpl : public AutoPilotCallback
 {
 public:
 	enum ResourceState {
@@ -105,7 +105,7 @@ public:
 	void saveCurrentFolder();
 
 public:
-	virtual bool canCheck();
+	virtual bool canAutoPilot();
 
 public:
 	static void loadLibrary(const WCHAR* pwszName);
@@ -130,9 +130,10 @@ public:
 	std::auto_ptr<SyncDialogManager> pSyncDialogManager_;
 	std::auto_ptr<GoRound> pGoRound_;
 	std::auto_ptr<TempFileCleaner> pTempFileCleaner_;
+	std::auto_ptr<AutoPilotManager> pAutoPilotManager_;
+	std::auto_ptr<AutoPilot> pAutoPilot_;
 	std::auto_ptr<UIManager> pUIManager_;
 	MainWindow* pMainWindow_;
-	std::auto_ptr<NewMailChecker> pNewMailChecker_;
 	HINSTANCE hInstAtl_;
 	
 	static Application* pApplication__;
@@ -410,7 +411,7 @@ void qm::ApplicationImpl::saveCurrentFolder()
 	pProfile_->setString(L"Global", L"CurrentFolder", wstr.get() ? wstr.get() : L"");
 }
 
-bool qm::ApplicationImpl::canCheck()
+bool qm::ApplicationImpl::canAutoPilot()
 {
 	return !pMainWindow_->isShowingModalDialog() &&
 		!pSyncManager_->isSyncing();
@@ -651,6 +652,11 @@ bool qm::Application::initialize()
 		pImpl_->pProfile_.get(), pImpl_->pPasswordManager_.get()));
 	pImpl_->pGoRound_.reset(new GoRound());
 	pImpl_->pTempFileCleaner_.reset(new TempFileCleaner());
+	pImpl_->pAutoPilotManager_.reset(new AutoPilotManager());
+	pImpl_->pAutoPilot_.reset(new AutoPilot(pImpl_->pAutoPilotManager_.get(),
+		pImpl_->pProfile_.get(), pImpl_->pDocument_.get(),
+		pImpl_->pGoRound_.get(), pImpl_->pSyncManager_.get(),
+		pImpl_->pSyncDialogManager_.get(), pImpl_));
 	
 	std::auto_ptr<MainWindow> pMainWindow(new MainWindow(pImpl_->pProfile_.get()));
 #ifdef _WIN32_WCE
@@ -668,6 +674,7 @@ bool qm::Application::initialize()
 		pImpl_->pSyncDialogManager_.get(),
 		pImpl_->pGoRound_.get(),
 		pImpl_->pTempFileCleaner_.get(),
+		pImpl_->pAutoPilot_.get()
 	};
 	wstring_ptr wstrTitle(getVersion(L' ', false));
 	if (!pMainWindow->create(L"QmMainWindow", wstrTitle.get(), dwStyle,
@@ -729,10 +736,7 @@ bool qm::Application::initialize()
 	
 	pImpl_->restoreCurrentFolder();
 	
-	pImpl_->pNewMailChecker_.reset(new NewMailChecker(pImpl_->pProfile_.get(),
-		pImpl_->pDocument_.get(), pImpl_->pGoRound_.get(),
-		pImpl_->pSyncManager_.get(), pImpl_->pSyncDialogManager_.get(),
-		pImpl_->pMainWindow_->getHandle(), pImpl_));
+	pImpl_->pAutoPilot_->start(pImpl_->pMainWindow_->getHandle());
 	
 	return true;
 }
@@ -743,7 +747,7 @@ void qm::Application::uninitialize()
 	
 	pImpl_->pLock_->unsetWindow();
 	
-	pImpl_->pNewMailChecker_.reset(0);
+	pImpl_->pAutoPilot_.reset(0);
 	
 #ifndef _WIN32_WCE
 	ComPtr<IDataObject> pDataObject;
@@ -791,6 +795,8 @@ bool qm::Application::save()
 	if (!pImpl_->pMainWindow_->save())
 		return false;
 	if (!pImpl_->pSyncDialogManager_->save())
+		return false;
+	if (!pImpl_->pAutoPilot_->save())
 		return false;
 	pImpl_->saveCurrentFolder();
 	if (!pImpl_->pProfile_->save())

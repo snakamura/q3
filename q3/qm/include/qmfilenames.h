@@ -27,6 +27,7 @@ struct FileNames
 	static const WCHAR* ACCOUNT;
 	static const WCHAR* ACCOUNT_XML;
 	static const WCHAR* ADDRESSBOOK_XML;
+	static const WCHAR* AUTOPILOT_XML;
 	static const WCHAR* BOX_EXT;
 	static const WCHAR* CA_PEM;
 	static const WCHAR* CERT;

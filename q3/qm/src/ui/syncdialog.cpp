@@ -337,7 +337,7 @@ wstring_ptr qm::SyncDialog::selectDialupEntry()
 
 void qm::SyncDialog::notifyNewMessage() const
 {
-	wstring_ptr wstrSound(pProfile_->getString(L"NewMailCheck", L"Sound", 0));
+	wstring_ptr wstrSound(pProfile_->getString(L"AutoPilot", L"Sound", 0));
 	if (*wstrSound.get()) {
 		W2T(wstrSound.get(), ptszSound);
 		sndPlaySound(ptszSound, SND_ASYNC);

@@ -165,7 +165,7 @@ struct ActionNameMap
 	{ L"ToolAddressBook",				IDM_TOOL_ADDRESSBOOK					},
 	{ L"ToolAttachment",				IDM_TOOL_ATTACHMENT						},
 	{ L"ToolCancel",					IDM_TOOL_CANCEL							},
-	{ L"ToolCheckNewMail",				IDM_TOOL_CHECKNEWMAIL,					},
+	{ L"ToolAutoPilot",					IDM_TOOL_AUTOPILOT,						},
 	{ L"ToolDialup",					IDM_TOOL_DIALUP							},
 	{ L"ToolGoround0",					IDM_TOOL_GOROUND						},
 	{ L"ToolGoround1",					IDM_TOOL_GOROUND + 1					},

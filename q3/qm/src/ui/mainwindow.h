@@ -22,6 +22,7 @@ namespace qm {
 
 struct MainWindowCreateContext;
 
+class AutoPilot;
 class Document;
 class FolderListWindow;
 class GoRound;
@@ -158,6 +159,7 @@ struct MainWindowCreateContext
 	SyncDialogManager* pSyncDialogManager_;
 	GoRound* pGoRound_;
 	TempFileCleaner* pTempFileCleaner_;
+	AutoPilot* pAutoPilot_;
 };
 
 

@@ -46,6 +46,7 @@
 #include "../model/templatemanager.h"
 #include "../model/uri.h"
 #include "../script/scriptmanager.h"
+#include "../sync/autopilot.h"
 #include "../sync/syncmanager.h"
 #include "../ui/attachmentselectionmodel.h"
 #include "../ui/dialogs.h"
@@ -4279,27 +4280,27 @@ bool qm::ToolAccountAction::isEnabled(const ActionEvent& event)
 
 /****************************************************************************
  *
- * ToolCheckNewMailAction
+ * ToolAutoPilotAction
  *
  */
 
-qm::ToolCheckNewMailAction::ToolCheckNewMailAction(Document* pDocument) :
-	pDocument_(pDocument)
+qm::ToolAutoPilotAction::ToolAutoPilotAction(AutoPilot* pAutoPilot) :
+	pAutoPilot_(pAutoPilot)
 {
 }
 
-qm::ToolCheckNewMailAction::~ToolCheckNewMailAction()
+qm::ToolAutoPilotAction::~ToolAutoPilotAction()
 {
 }
 
-void qm::ToolCheckNewMailAction::invoke(const ActionEvent& event)
+void qm::ToolAutoPilotAction::invoke(const ActionEvent& event)
 {
-	pDocument_->setCheckNewMail(!pDocument_->isCheckNewMail());
+	pAutoPilot_->setEnabled(!pAutoPilot_->isEnabled());
 }
 
-bool qm::ToolCheckNewMailAction::isChecked(const ActionEvent& event)
+bool qm::ToolAutoPilotAction::isChecked(const ActionEvent& event)
 {
-	return pDocument_->isCheckNewMail();
+	return pAutoPilot_->isEnabled();
 }
 
 

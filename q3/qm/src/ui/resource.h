@@ -538,8 +538,8 @@
 #define IDM_TOOL_ACCOUNT                45001
 #define IDM_TOOL_ADDRESSBOOK            45002
 #define IDM_TOOL_ATTACHMENT             45003
-#define IDM_TOOL_CANCEL                 45004
-#define IDM_TOOL_CHECKNEWMAIL           45005
+#define IDM_TOOL_AUTOPILOT              45004
+#define IDM_TOOL_CANCEL                 45005
 #define IDM_TOOL_DIALUP                 45006
 #define IDM_TOOL_HEADEREDIT             45007
 #define IDM_TOOL_INSERTSIGNATURE        45008

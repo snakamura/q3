@@ -13,6 +13,8 @@
 
 #include <qs.h>
 
+#include <vector>
+
 
 namespace qm {
 

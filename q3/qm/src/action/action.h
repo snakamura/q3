@@ -88,7 +88,7 @@ class MessageOpenURLAction;
 class MessagePropertyAction;
 class MessageSearchAction;
 class ToolAccountAction;
-class ToolCheckNewMailAction;
+class ToolAutoPilotAction;
 class ToolDialupAction;
 class ToolGoRoundAction;
 class ToolOptionsAction;
@@ -127,6 +127,7 @@ class ActionUtil;
 
 class AttachmentMenu;
 class AttachmentSelectionModel;
+class AutoPilot;
 class ColorManager;
 class Document;
 class EditFrameWindow;
@@ -2204,26 +2205,26 @@ private:
 
 /****************************************************************************
  *
- * ToolCheckNewMailAction
+ * ToolAutoPilotAction
  *
  */
 
-class ToolCheckNewMailAction : public qs::AbstractAction
+class ToolAutoPilotAction : public qs::AbstractAction
 {
 public:
-	explicit ToolCheckNewMailAction(Document* pDocument);
-	virtual ~ToolCheckNewMailAction();
+	explicit ToolAutoPilotAction(AutoPilot* pAutoPilot);
+	virtual ~ToolAutoPilotAction();
 
 public:
 	virtual void invoke(const qs::ActionEvent& event);
 	virtual bool isChecked(const qs::ActionEvent& event);
 
 private:
-	ToolCheckNewMailAction(const ToolCheckNewMailAction&);
-	ToolCheckNewMailAction& operator=(const ToolCheckNewMailAction&);
+	ToolAutoPilotAction(const ToolAutoPilotAction&);
+	ToolAutoPilotAction& operator=(const ToolAutoPilotAction&);
 
 private:
-	Document* pDocument_;
+	AutoPilot* pAutoPilot_;
 };
 
 

@@ -18,6 +18,7 @@
 const WCHAR* qm::FileNames::ACCOUNT			= L"account";
 const WCHAR* qm::FileNames::ACCOUNT_XML		= L"account.xml";
 const WCHAR* qm::FileNames::ADDRESSBOOK_XML	= L"addressbook.xml";
+const WCHAR* qm::FileNames::AUTOPILOT_XML	= L"autopilot.xml";
 const WCHAR* qm::FileNames::BOX_EXT			= L".box";
 const WCHAR* qm::FileNames::CA_PEM			= L"ca.pem";
 const WCHAR* qm::FileNames::CERT			= L"cert";

@@ -67,7 +67,6 @@ struct qm::DocumentImpl
 	std::auto_ptr<Security> pSecurity_;
 	std::auto_ptr<Recents> pRecents_;
 	unsigned int nOnline_;
-	bool bCheckNewMail_;
 };
 
 void qm::DocumentImpl::setOffline(bool bOffline)
@@ -126,7 +125,6 @@ qm::Document::Document(Profile* pProfile,
 	pImpl_->pSecurity_.reset(new Security(pwszMailFolder, pProfile));
 	pImpl_->pRecents_.reset(new Recents(pProfile));
 	pImpl_->nOnline_ = 0;
-	pImpl_->bCheckNewMail_ = pProfile->getInt(L"NewMailCheck", L"Enable", 0) != 0;
 }
 
 qm::Document::~Document()
@@ -463,16 +461,6 @@ void qm::Document::decrementInternalOnline()
 		pImpl_->setOffline(true);
 }
 
-bool qm::Document::isCheckNewMail() const
-{
-	return pImpl_->bCheckNewMail_;
-}
-
-void qm::Document::setCheckNewMail(bool bCheckNewMail)
-{
-	pImpl_->bCheckNewMail_ = bCheckNewMail;
-}
-
 bool qm::Document::save()
 {
 	for (AccountList::iterator it = pImpl_->listAccount_.begin(); it != pImpl_->listAccount_.end(); ++it) {
@@ -481,7 +469,6 @@ bool qm::Document::save()
 	}
 	
 	pImpl_->pProfile_->setInt(L"Global", L"Offline", isOffline());
-	pImpl_->pProfile_->setInt(L"NewMailCheck", L"Enable", isCheckNewMail());
 	
 	return true;
 }
