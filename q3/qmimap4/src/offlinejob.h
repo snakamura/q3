@@ -1,5 +1,5 @@
 /*
- * $Id: offlinejob.h,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -102,6 +102,7 @@ public:
 	virtual qs::QSTATUS apply(qm::Account* pAccount, Imap4* pImap4) const = 0;
 	virtual qs::QSTATUS write(qs::OutputStream* pStream) const = 0;
 	virtual bool isCreateMessage(const WCHAR* pwszFolder, unsigned long nId) = 0;
+	virtual qs::QSTATUS merge(OfflineJob* pOfflineJob, bool* pbMerged) = 0;
 
 public:
 	const WCHAR* getFolder() const;
@@ -130,6 +131,7 @@ public:
 	virtual qs::QSTATUS apply(qm::Account* pAccount, Imap4* pImap4) const;
 	virtual qs::QSTATUS write(qs::OutputStream* pStream) const;
 	virtual bool isCreateMessage(const WCHAR* pwszFolder, unsigned long nId);
+	virtual qs::QSTATUS merge(OfflineJob* pOfflineJob, bool* pbMerged);
 
 private:
 	AppendOfflineJob(const AppendOfflineJob&);
@@ -172,6 +174,7 @@ public:
 	virtual qs::QSTATUS apply(qm::Account* pAccount, Imap4* pImap4) const;
 	virtual qs::QSTATUS write(qs::OutputStream* pStream) const;
 	virtual bool isCreateMessage(const WCHAR* pwszFolder, unsigned long nId);
+	virtual qs::QSTATUS merge(OfflineJob* pOfflineJob, bool* pbMerged);
 
 private:
 	CopyOfflineJob(const CopyOfflineJob&);
@@ -207,6 +210,7 @@ public:
 	virtual qs::QSTATUS apply(qm::Account* pAccount, Imap4* pImap4) const;
 	virtual qs::QSTATUS write(qs::OutputStream* pStream) const;
 	virtual bool isCreateMessage(const WCHAR* pwszFolder, unsigned long nId);
+	virtual qs::QSTATUS merge(OfflineJob* pOfflineJob, bool* pbMerged);
 
 private:
 	SetFlagsOfflineJob(const SetFlagsOfflineJob&);

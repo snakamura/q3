@@ -91,11 +91,21 @@ qmimap4::OfflineJobManager::~OfflineJobManager()
 
 QSTATUS qmimap4::OfflineJobManager::add(OfflineJob* pJob)
 {
+	DECLARE_QSTATUS();
+	
 	Lock<CriticalSection> lock(cs_);
 	
-	// TODO
-	// If possible, merge with previous one
-	return STLWrapper<JobList>(listJob_).push_back(pJob);
+	bool bMerged = false;
+	if (!listJob_.empty()) {
+		status = listJob_.back()->merge(pJob, &bMerged);
+		CHECK_QSTATUS();
+	}
+	if (!bMerged) {
+		status = STLWrapper<JobList>(listJob_).push_back(pJob);
+		CHECK_QSTATUS();
+	}
+	
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qmimap4::OfflineJobManager::apply(Account* pAccount,
@@ -434,6 +444,16 @@ bool qmimap4::AppendOfflineJob::isCreateMessage(
 	return wcscmp(pwszFolder, wstrFolder_) == 0 && nId == nId_;
 }
 
+QSTATUS qmimap4::AppendOfflineJob::merge(OfflineJob* pOfflineJob, bool* pbMerged)
+{
+	assert(pOfflineJob);
+	assert(pbMerged);
+	
+	*pbMerged = false;
+	
+	return QSTATUS_SUCCESS;
+}
+
 
 /****************************************************************************
  *
@@ -543,7 +563,7 @@ QSTATUS qmimap4::CopyOfflineJob::apply(Account* pAccount, Imap4* pImap4) const
 			MessageHolder* pmh = 0;
 			status = pNormalFolder->getMessageById((*it).nId_, &pmh);
 			CHECK_QSTATUS();
-			if (pmh->isFlag(MessageHolder::FLAG_LOCAL)) {
+			if (pmh && pmh->isFlag(MessageHolder::FLAG_LOCAL)) {
 				status = pAccount->unstoreMessage(pmh);
 				CHECK_QSTATUS();
 			}
@@ -582,6 +602,69 @@ bool qmimap4::CopyOfflineJob::isCreateMessage(
 					mem_data_ref(&Item::nId_),
 					std::identity<unsigned long>()),
 				nId)) != listItemTo_.end();
+}
+
+QSTATUS qmimap4::CopyOfflineJob::merge(OfflineJob* pOfflineJob, bool* pbMerged)
+{
+	assert(pOfflineJob);
+	assert(pbMerged);
+	
+	DECLARE_QSTATUS();
+	
+	if (pOfflineJob->getType() == TYPE_COPY &&
+		wcscmp(getFolder(), pOfflineJob->getFolder()) == 0) {
+		CopyOfflineJob* p = static_cast<CopyOfflineJob*>(pOfflineJob);
+		if (wcscmp(wstrFolderTo_, p->wstrFolderTo_) == 0 &&
+			bMove_ == p->bMove_) {
+			UidList listUidFrom;
+			status = STLWrapper<UidList>(listUidFrom).reserve(
+				listUidFrom_.size() + p->listUidFrom_.size());
+			CHECK_QSTATUS();
+			ItemList listItemTo;
+			status = STLWrapper<ItemList>(listItemTo).reserve(
+				listItemTo_.size() + p->listItemTo_.size());
+			CHECK_QSTATUS();
+			
+			UidList::const_iterator itUS = listUidFrom_.begin();
+			UidList::const_iterator itUO = p->listUidFrom_.begin();
+			ItemList::const_iterator itIS = listItemTo_.begin();
+			ItemList::const_iterator itIO = p->listItemTo_.begin();
+			while (true) {
+				if (itUS != listUidFrom_.end()) {
+					if (itUO != p->listUidFrom_.end()) {
+						if (*itUS < *itUO) {
+							listUidFrom.push_back(*itUS++);
+							listItemTo.push_back(*itIS++);
+						}
+						else {
+							listUidFrom.push_back(*itUO++);
+							listItemTo.push_back(*itIO++);
+						}
+					}
+					else {
+						listUidFrom.push_back(*itUS++);
+						listItemTo.push_back(*itIS++);
+					}
+				}
+				else {
+					if (itUO != p->listUidFrom_.end()) {
+						listUidFrom.push_back(*itUO++);
+						listItemTo.push_back(*itIO++);
+					}
+					else {
+						break;
+					}
+				}
+			}
+			
+			listUidFrom_.swap(listUidFrom);
+			listItemTo_.swap(listItemTo);
+			
+			*pbMerged = true;
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
 }
 
 
@@ -677,6 +760,34 @@ bool qmimap4::SetFlagsOfflineJob::isCreateMessage(
 	const WCHAR* pwszFolder, unsigned long nId)
 {
 	return false;
+}
+
+QSTATUS qmimap4::SetFlagsOfflineJob::merge(OfflineJob* pOfflineJob, bool* pbMerged)
+{
+	assert(pOfflineJob);
+	assert(pbMerged);
+	
+	DECLARE_QSTATUS();
+	
+	if (pOfflineJob->getType() == TYPE_SETFLAGS &&
+		wcscmp(getFolder(), pOfflineJob->getFolder()) == 0) {
+		SetFlagsOfflineJob* p = static_cast<SetFlagsOfflineJob*>(pOfflineJob);
+		if (nFlags_ == p->nFlags_ && nMask_ == p->nMask_) {
+			UidList l;
+			status = STLWrapper<UidList>(l).reserve(
+				listUid_.size() + p->listUid_.size());
+			CHECK_QSTATUS();
+			std::merge(listUid_.begin(), listUid_.end(),
+				p->listUid_.begin(), p->listUid_.end(),
+				std::back_inserter(l));
+			l.erase(std::unique(l.begin(), l.end()), l.end());
+			listUid_.swap(l);
+			
+			*pbMerged = true;
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
 }
 
 
