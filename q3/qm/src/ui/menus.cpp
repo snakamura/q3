@@ -105,8 +105,7 @@ bool qm::AttachmentMenu::createMenu(HMENU hmenu,
 	
 	while (true) {
 		MENUITEMINFO mii = { sizeof(mii), MIIM_TYPE | MIIM_ID };
-		if (!::GetMenuItemInfo(hmenu, 3, TRUE, &mii) ||
-			mii.wID == nIdNext)
+		if (!::GetMenuItemInfo(hmenu, 3, TRUE, &mii) || mii.wID == nIdNext)
 			break;
 		::DeleteMenu(hmenu, 3, MF_BYPOSITION);
 	}
@@ -221,10 +220,9 @@ const Filter* qm::FilterMenu::getFilter(unsigned int nId) const
 
 bool qm::FilterMenu::createMenu(HMENU hmenu)
 {
-	MENUITEMINFO mii = { sizeof(mii), MIIM_TYPE | MIIM_ID };
 	while (true) {
-		::GetMenuItemInfo(hmenu, 2, TRUE, &mii);
-		if (mii.wID == IDM_VIEW_FILTERCUSTOM)
+		MENUITEMINFO mii = { sizeof(mii), MIIM_TYPE | MIIM_ID };
+		if (!::GetMenuItemInfo(hmenu, 2, TRUE, &mii) || mii.wID == IDM_VIEW_FILTERCUSTOM)
 			break;
 		::DeleteMenu(hmenu, 2, MF_BYPOSITION);
 	}
@@ -274,8 +272,7 @@ bool qm::GoRoundMenu::createMenu(HMENU hmenu)
 {
 	while (true) {
 		MENUITEMINFO mii = { sizeof(mii), MIIM_TYPE };
-		if (!::GetMenuItemInfo(hmenu, 0, TRUE, &mii) ||
-			(mii.fType & MFT_SEPARATOR) != 0)
+		if (!::GetMenuItemInfo(hmenu, 0, TRUE, &mii) || mii.fType & MFT_SEPARATOR)
 			break;
 		::DeleteMenu(hmenu, 0, MF_BYPOSITION);
 	}
@@ -328,8 +325,7 @@ bool qm::InsertTextMenu::createMenu(HMENU hmenu)
 {
 	while (true) {
 		MENUITEMINFO mii = { sizeof(mii), MIIM_TYPE };
-		if (!::GetMenuItemInfo(hmenu, 0, TRUE, &mii) ||
-			(mii.fType & MFT_SEPARATOR) != 0)
+		if (!::GetMenuItemInfo(hmenu, 0, TRUE, &mii) || mii.fType & MFT_SEPARATOR)
 			break;
 		::DeleteMenu(hmenu, 0, MF_BYPOSITION);
 	}
@@ -388,8 +384,7 @@ bool qm::MoveMenu::createMenu(HMENU hmenu,
 	mapMenu_.clear();
 	while (true) {
 		MENUITEMINFO mii = { sizeof(mii), MIIM_TYPE };
-		if (!::GetMenuItemInfo(hmenu, 0, TRUE, &mii) ||
-			(mii.fType & MFT_SEPARATOR) != 0)
+		if (!::GetMenuItemInfo(hmenu, 0, TRUE, &mii) || mii.fType & MFT_SEPARATOR)
 			break;
 		::DeleteMenu(hmenu, 0, MF_BYPOSITION);
 	}
@@ -788,10 +783,9 @@ unsigned int qm::SortMenu::getSort(unsigned int nId) const
 
 bool qm::SortMenu::createMenu(HMENU hmenu)
 {
-	MENUITEMINFO mii = { sizeof(mii), MIIM_TYPE | MIIM_ID };
 	while (true) {
-		::GetMenuItemInfo(hmenu, 0, TRUE, &mii);
-		if (mii.fType & MFT_SEPARATOR)
+		MENUITEMINFO mii = { sizeof(mii), MIIM_TYPE };
+		if (!::GetMenuItemInfo(hmenu, 0, TRUE, &mii) || mii.fType & MFT_SEPARATOR)
 			break;
 		::DeleteMenu(hmenu, 0, MF_BYPOSITION);
 	}
