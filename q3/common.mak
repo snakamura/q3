@@ -43,6 +43,12 @@ endif
 
 SHELL					= /bin/bash
 
+ifdef EMULATION
+	ifeq ($(shell if [ -z "$(CEVER)" ]; then echo 1; elif [ $(CEVER) -lt 400 ]; then echo 0; else echo 1; fi),0)
+		OLDEMULATION	= 1
+	endif
+endif
+
 ifeq ($(PLATFORM),desktop)
 	# DESKTOP ###############################################################
 	SDKDIR				= $(PLATFORMSDKDIR)
@@ -151,7 +157,15 @@ else
 		endif
 	endif
 	ifeq ($(SDKLIBDIR),)
-		SDKLIBDIR			= $(SDKDIR)/lib/$(LIBCPU)
+		ifeq ($(shell if [ -z "$(CEVER)" ]; then echo 1; elif [ $(CEVER) -lt 400 ]; then echo 0; else echo 1; fi),0)
+			SDKLIBDIR		= $(SDKDIR)/lib/$(LIBCPU)
+		else
+			ifndef EMULATION
+				SDKLIBDIR	= $(SDKDIR)/lib/$(LIBCPU)
+			else
+				SDKLIBDIR	= $(SDKDIR)/lib/Emulator
+			endif
+		endif
 	endif
 	ifeq ($(MFCINCLUDEDIR),)
 		MFCINCLUDEDIR		= $(SDKDIR)/mfc/include
@@ -267,7 +281,7 @@ ifeq ($(PLATFORM),desktop)
 	#########################################################################
 else
 	# WINCE #################################################################
-	ifndef EMULATION
+	ifndef OLDEMULATION
 		SUBSYSTEM		= WINDOWSCE
 		SUBSYSVER		= $(shell echo $(CEVER) | sed -e 's/\(.\)\(..\)/\1.\2/')
 	else
@@ -366,7 +380,9 @@ else
 		EXLIBCPU		= arm
 	endif
 	ifeq ($(CPU),x86em)
-		CCFLAGS			+= -Gz
+		ifdef OLDEMULATION
+			CCFLAGS		+= -Gz
+		endif
 		DEFINES			+= -Dx86 -D_X86_ -Di486
 		LDFLAGS			+= -MACHINE:IX86
 		RCFLAGS			+= -D x86 -D _X86 -D i486
@@ -378,9 +394,10 @@ else
 	endif
 	
 	ifndef EMULATION
-		CCFLAGS		+= -MC
-		DEFINES		+= -D_DLL
-	else
+		CCFLAGS			+= -MC
+		DEFINES			+= -D_DLL
+	endif
+	ifdef OLDEMULATION
 		DEFINES			+= -D_WIN32_WCE_EMULATION
 		RCFLAGS			+= -D _WIN32_WCE_EMULATION
 	endif
