@@ -389,6 +389,8 @@ public:
 	void setReformLineLength(unsigned int nReformLineLength);
 	const WCHAR* getReformQuote() const;
 	void setReformQuote(const WCHAR* pwszReformQuote);
+	void reloadProfiles(Profile* pProfile,
+						const WCHAR* pwszSection);
 
 public:
 	virtual void getWindowClass(WNDCLASS* pwc);

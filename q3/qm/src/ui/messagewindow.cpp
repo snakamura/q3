@@ -517,9 +517,8 @@ void qm::MessageWindow::layout()
 
 void qm::MessageWindow::reloadProfiles()
 {
-	// TODO
-	
 	pImpl_->pHeaderWindow_->reloadProfiles();
+	pImpl_->pFactory_->reloadProfiles();
 }
 
 bool qm::MessageWindow::save()

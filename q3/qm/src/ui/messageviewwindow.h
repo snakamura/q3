@@ -129,6 +129,7 @@ public:
 	TextMessageViewWindow* getTextMessageViewWindow();
 	MessageViewWindow* getLinkMessageViewWindow();
 	bool isSupported(const qs::ContentTypeParser* pContentType) const;
+	void reloadProfiles();
 
 private:
 #ifdef QMHTMLVIEW

@@ -1295,6 +1295,8 @@ bool qm::OptionMessageWindowDialog::save(OptionDialogContext* pContext)
 {
 	UIUtil::setLogFontToProfile(pProfile_, L"MessageWindow", lf_);
 	
+	pMessageFrameWindowManager_->reloadProfiles();
+	
 	return true;
 }
 
@@ -1342,6 +1344,8 @@ LRESULT qm::OptionPreviewWindowDialog::onInitDialog(HWND hwndFocus,
 bool qm::OptionPreviewWindowDialog::save(OptionDialogContext* pContext)
 {
 	UIUtil::setLogFontToProfile(pProfile_, L"PreviewWindow", lf_);
+	
+	pPreviewWindow_->reloadProfiles();
 	
 	return true;
 }

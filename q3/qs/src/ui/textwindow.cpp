@@ -241,6 +241,10 @@ public:
 	bool openLink(const POINT& pt);
 	wstring_ptr getURL(int nLine,
 					   const LinkItem* pLinkItem) const;
+	
+	void reloadProfiles(Profile* pProfile,
+						const WCHAR* pwszSection,
+						bool bInitialize);
 
 public:
 	virtual void textUpdated(const TextModelEvent& event);
@@ -286,6 +290,25 @@ private:
 						   const WCHAR* pwsz,
 						   size_t nLength,
 						   unsigned char nQuoteDepth) const;
+
+private:
+	class PositionRestorer
+	{
+	public:
+		PositionRestorer(TextWindowImpl* pImpl);
+		~PositionRestorer();
+	
+	private:
+		std::pair<size_t, size_t> getLogical(unsigned int nLine,
+											 unsigned int nChar) const;
+	
+	private:
+		TextWindowImpl* pImpl_;
+		std::pair<size_t, size_t> caret_;
+		std::pair<size_t, size_t> selectionStart_;
+		std::pair<size_t, size_t> selectionEnd_;
+	};
+	friend class PositionRestorer;
 
 public:
 	TextWindow* pThis_;
@@ -941,6 +964,7 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 
 void qs::TextWindowImpl::recalcLines()
 {
+	PositionRestorer restorer(this);
 	calcLines(-1, -1, -1);
 }
 
@@ -1439,6 +1463,148 @@ wstring_ptr qs::TextWindowImpl::getURL(int nLine,
 	return wstrURL;
 }
 
+void qs::TextWindowImpl::reloadProfiles(Profile* pProfile,
+										const WCHAR* pwszSection,
+										bool bInitialize)
+{
+	int n = 0;
+	struct InitColor
+	{
+		const WCHAR* pwszKey_;
+		const WCHAR* pwszDefault_;
+		COLORREF cr_;
+	} initColors[] = {
+		{ L"ForegroundColor",	L"000000",	0 },
+		{ L"BackgroundColor",	L"ffffff",	0 },
+		{ L"QuoteColor1",		L"008000",	0 },
+		{ L"QuoteColor2",		L"000080",	0 },
+		{ L"LinkColor",			L"0000ff",	0 }
+	};
+	for (n = 0; n < countof(initColors); ++n) {
+		wstring_ptr wstr(pProfile->getString(pwszSection,
+			initColors[n].pwszKey_, initColors[n].pwszDefault_));
+		Color color(wstr.get());
+		if (color.getColor() != 0xffffffff)
+			initColors[n].cr_ = color.getColor();
+	}
+	
+	int nUseSystemColor = pProfile->getInt(pwszSection, L"UseSystemColor", 1);
+	if (nUseSystemColor) {
+		initColors[0].cr_ = ::GetSysColor(COLOR_WINDOWTEXT);
+		initColors[1].cr_ = ::GetSysColor(COLOR_WINDOW);
+	}
+	
+	struct InitNumber
+	{
+		const WCHAR* pwszKey_;
+		int nDefault_;
+		int nValue_;
+	} initNumbers[] = {
+		{ L"LineSpecing",				2,	0 },
+		{ L"CharInLine",				0,	0 },
+		{ L"TabWidth",					4,	0 },
+		{ L"MarginTop",					10,	0 },
+		{ L"MarginBottom",				10,	0 },
+		{ L"MarginLeft",				10,	0 },
+		{ L"MarginRight",				10,	0 },
+		{ L"ShowNewLine",				0,	0 },
+		{ L"ShowTab",					0,	0 },
+		{ L"ShowVerticalScrollBar",		1,	0 },
+		{ L"ShowHorizontalScrollBar",	0,	0 },
+		{ L"ShowCaret",					0,	0 },
+		{ L"ShowRuler",					0,	0 },
+		{ L"ReformLineLength",			74,	0 },
+		{ L"AdjustExtent",				0,	0 },
+		{ L"LineQuote",					1,	0 },
+		{ L"WordWrap",					0,	0 }
+	};
+	for (n = 0; n < countof(initNumbers); ++n)
+		initNumbers[n].nValue_ = pProfile->getInt(pwszSection,
+			initNumbers[n].pwszKey_, initNumbers[n].nDefault_);
+	
+	struct InitString
+	{
+		const WCHAR* pwszKey_;
+		const WCHAR* pwszDefault_;
+		WSTRING wstrValue_;
+	} initStrings[] = {
+		{ L"Quote1",		L">"	},
+		{ L"Quote2",		L"#"	},
+		{ L"ReformQuote",	L">|#"	}
+	};
+	for (n = 0; n < countof(initStrings); ++n)
+		initStrings[n].wstrValue_ = pProfile->getString(pwszSection,
+			initStrings[n].pwszKey_, initStrings[n].pwszDefault_).release();
+	
+	GdiObject<HFONT> font(UIUtil::createFontFromProfile(pProfile, pwszSection, true));
+	
+	LOGFONT lf;
+	::GetObject(font.get(), sizeof(lf), &lf);
+	bool bAdjustExtent = lf.lfPitchAndFamily & FIXED_PITCH &&
+		(initNumbers[14].nValue_ != 0 || lf.lfWeight != FW_NORMAL);
+	
+	TextWindowImpl::URLSchemaList listURLSchema;
+	int nClickableURL = pProfile->getInt(pwszSection, L"ClickableURL", 1);
+	if (nClickableURL) {
+		wstring_ptr wstrSchemas(pProfile->getString(pwszSection,
+			L"URLSchemas", L"http https ftp file mailto"));
+		
+		WCHAR* p = wcstok(wstrSchemas.get(), L" ");
+		while (p) {
+			wstring_ptr wstr(allocWString(p));
+			listURLSchema.push_back(wstr.get());
+			wstr.release();
+			p = wcstok(0, L" ");
+		}
+	}
+	
+	if (!bInitialize) {
+		std::for_each(listURLSchema_.begin(), listURLSchema_.end(), string_free<WSTRING>());
+		
+		::DeleteObject(hfont_);
+		hfont_ = 0;
+	}
+	
+	crForeground_ = initColors[0].cr_;
+	crBackground_ = initColors[1].cr_;
+	nLineSpacing_ = initNumbers[0].nValue_;
+	nCharInLine_ = initNumbers[1].nValue_;
+	nTabWidth_ = initNumbers[2].nValue_;
+	nMarginTop_ = initNumbers[3].nValue_;
+	nMarginBottom_ = initNumbers[4].nValue_;
+	nMarginLeft_ = initNumbers[5].nValue_;
+	nMarginRight_ = initNumbers[6].nValue_;
+	bShowNewLine_ = initNumbers[7].nValue_ != 0;
+	bShowTab_ = initNumbers[8].nValue_ != 0;
+	bShowVerticalScrollBar_ = initNumbers[9].nValue_ != 0;
+	bShowHorizontalScrollBar_ = initNumbers[10].nValue_ != 0;
+	bShowCaret_ = initNumbers[11].nValue_ != 0;
+	bShowRuler_ = initNumbers[12].nValue_ != 0;
+	for (n = 0; n < countof(wstrQuote_); ++n) {
+		wstrQuote_[n].reset(initStrings[n].wstrValue_);
+		crQuote_[n] = initColors[n + 2].cr_;
+	}
+	bLineQuote_ = initNumbers[15].nValue_ != 0;
+	bWordWrap_ = initNumbers[16].nValue_ != 0;
+	nReformLineLength_ = initNumbers[13].nValue_;
+	wstrReformQuote_.reset(initStrings[2].wstrValue_);
+	listURLSchema_.swap(listURLSchema);
+	crLink_ = initColors[4].cr_;
+	hfont_ = font.release();
+	bAdjustExtent_ = bAdjustExtent;
+	nLineHeight_ = 0;
+	nLineInWindow_ = 0;
+	nAverageCharWidth_ = 0;
+	nExtentLine_ = -1;
+	bExtentNewLine_ = false;
+	
+	if (!bInitialize) {
+		updateBitmaps();
+		recalcLines();
+		updateScrollBar();
+	}
+}
+
 void qs::TextWindowImpl::textUpdated(const TextModelEvent& event)
 {
 	calcLines(event.getStartLine(),
@@ -1725,6 +1891,52 @@ void qs::TextWindowImpl::fillPhysicalLinks(LinkItemList* pList,
 
 /****************************************************************************
  *
+ * TextWindowImpl::PositionRestorer
+ *
+ */
+
+qs::TextWindowImpl::PositionRestorer::PositionRestorer(TextWindowImpl* pImpl) :
+	pImpl_(pImpl)
+{
+	caret_ = getLogical(pImpl_->caret_.nLine_, pImpl_->caret_.nChar_);
+	selectionStart_ = getLogical(pImpl_->selection_.nStartLine_, pImpl_->selection_.nStartChar_);
+	selectionEnd_ = getLogical(pImpl_->selection_.nEndLine_, pImpl_->selection_.nEndChar_);
+}
+
+qs::TextWindowImpl::PositionRestorer::~PositionRestorer()
+{
+	if (caret_.first != -1 && caret_.second != -1) {
+		std::pair<unsigned int, unsigned int> caret(pImpl_->getPhysicalLine(
+			caret_.first, caret_.second));
+		pImpl_->pThis_->moveCaret(TextWindow::MOVECARET_POS,
+			caret.first, caret.second, false, TextWindow::SELECT_NONE, false);
+	}
+	
+	if (pImpl_->pThis_->isSelected()) {
+		std::pair<unsigned int, unsigned int> start(pImpl_->getPhysicalLine(
+			selectionStart_.first, selectionStart_.second));
+		std::pair<unsigned int, unsigned int> end(pImpl_->getPhysicalLine(
+			selectionEnd_.first, selectionEnd_.second));
+		pImpl_->selection_.nStartLine_ = start.first;
+		pImpl_->selection_.nStartChar_ = start.second;
+		pImpl_->selection_.nEndLine_ = end.first;
+		pImpl_->selection_.nEndChar_ = end.second;
+	}
+}
+
+std::pair<size_t, size_t> qs::TextWindowImpl::PositionRestorer::getLogical(unsigned int nLine,
+																		   unsigned int nChar) const
+{
+	if (pImpl_->listLine_.size() == 0)
+		return std::pair<size_t, size_t>(-1, -1);
+	
+	const TextWindowImpl::PhysicalLine* pLine = pImpl_->listLine_[nLine];
+	return std::make_pair(pLine->nLogicalLine_, pLine->nPosition_ + nChar);
+}
+
+
+/****************************************************************************
+ *
  * TextWindowImpl::PhysicalLinePtr
  *
  */
@@ -1793,133 +2005,35 @@ qs::TextWindow::TextWindow(TextModel* pTextModel,
 	WindowBase(bDeleteThis),
 	pImpl_(0)
 {
-	std::auto_ptr<TextWindowUndoManager> pUndoManager(new TextWindowUndoManager());
-	
-	int n = 0;
-	struct InitColor
-	{
-		const WCHAR* pwszKey_;
-		const WCHAR* pwszDefault_;
-		COLORREF cr_;
-	} initColors[] = {
-		{ L"ForegroundColor",	L"000000",	0 },
-		{ L"BackgroundColor",	L"ffffff",	0 },
-		{ L"QuoteColor1",		L"008000",	0 },
-		{ L"QuoteColor2",		L"000080",	0 },
-		{ L"LinkColor",			L"0000ff",	0 }
-	};
-	for (n = 0; n < countof(initColors); ++n) {
-		wstring_ptr wstr(pProfile->getString(pwszSection,
-			initColors[n].pwszKey_, initColors[n].pwszDefault_));
-		Color color(wstr.get());
-		if (color.getColor() != 0xffffffff)
-			initColors[n].cr_ = color.getColor();
-	}
-	
-	int nUseSystemColor = pProfile->getInt(pwszSection, L"UseSystemColor", 1);
-	if (nUseSystemColor) {
-		initColors[0].cr_ = ::GetSysColor(COLOR_WINDOWTEXT);
-		initColors[1].cr_ = ::GetSysColor(COLOR_WINDOW);
-	}
-	
-	struct InitNumber
-	{
-		const WCHAR* pwszKey_;
-		int nDefault_;
-		int nValue_;
-	} initNumbers[] = {
-		{ L"LineSpecing",				2,	0 },
-		{ L"CharInLine",				0,	0 },
-		{ L"TabWidth",					4,	0 },
-		{ L"MarginTop",					10,	0 },
-		{ L"MarginBottom",				10,	0 },
-		{ L"MarginLeft",				10,	0 },
-		{ L"MarginRight",				10,	0 },
-		{ L"ShowNewLine",				0,	0 },
-		{ L"ShowTab",					0,	0 },
-		{ L"ShowVerticalScrollBar",		1,	0 },
-		{ L"ShowHorizontalScrollBar",	0,	0 },
-		{ L"ShowCaret",					0,	0 },
-		{ L"ShowRuler",					0,	0 },
-		{ L"ReformLineLength",			74,	0 },
-		{ L"AdjustExtent",				0,	0 },
-		{ L"LineQuote",					1,	0 },
-		{ L"WordWrap",					0,	0 }
-	};
-	for (n = 0; n < countof(initNumbers); ++n)
-		initNumbers[n].nValue_ = pProfile->getInt(pwszSection,
-			initNumbers[n].pwszKey_, initNumbers[n].nDefault_);
-	
-	struct InitString
-	{
-		const WCHAR* pwszKey_;
-		const WCHAR* pwszDefault_;
-		WSTRING wstrValue_;
-	} initStrings[] = {
-		{ L"Quote1",		L">"	},
-		{ L"Quote2",		L"#"	},
-		{ L"ReformQuote",	L">|#"	}
-	};
-	for (n = 0; n < countof(initStrings); ++n)
-		initStrings[n].wstrValue_ = pProfile->getString(pwszSection,
-			initStrings[n].pwszKey_, initStrings[n].pwszDefault_).release();
-	
-	HFONT hfont = UIUtil::createFontFromProfile(pProfile, pwszSection, true);
-	GdiObject<HFONT> font(hfont);
-	
-	LOGFONT lf;
-	::GetObject(font.get(), sizeof(lf), &lf);
-	bool bAdjustExtent = lf.lfPitchAndFamily & FIXED_PITCH &&
-		(initNumbers[14].nValue_ != 0 || lf.lfWeight != FW_NORMAL);
-	
-	TextWindowImpl::URLSchemaList listURLSchema;
-	int nClickableURL = pProfile->getInt(pwszSection, L"ClickableURL", 1);
-	if (nClickableURL) {
-		wstring_ptr wstrSchemas(pProfile->getString(pwszSection,
-			L"URLSchemas", L"http https ftp file mailto"));
-		
-		WCHAR* p = wcstok(wstrSchemas.get(), L" ");
-		while (p) {
-			wstring_ptr wstr(allocWString(p));
-			listURLSchema.push_back(wstr.get());
-			wstr.release();
-			p = wcstok(0, L" ");
-		}
-	}
-	
 	pImpl_ = new TextWindowImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->pTextModel_ = pTextModel;
-	pImpl_->pUndoManager_ = pUndoManager;
+	pImpl_->pUndoManager_.reset(new TextWindowUndoManager());
 	pImpl_->pLinkHandler_ = 0;
 	pImpl_->pRuler_ = 0;
-	pImpl_->crForeground_ = initColors[0].cr_;
-	pImpl_->crBackground_ = initColors[1].cr_;
-	pImpl_->nLineSpacing_ = initNumbers[0].nValue_;
-	pImpl_->nCharInLine_ = initNumbers[1].nValue_;
-	pImpl_->nTabWidth_ = initNumbers[2].nValue_;
-	pImpl_->nMarginTop_ = initNumbers[3].nValue_;
-	pImpl_->nMarginBottom_ = initNumbers[4].nValue_;
-	pImpl_->nMarginLeft_ = initNumbers[5].nValue_;
-	pImpl_->nMarginRight_ = initNumbers[6].nValue_;
-	pImpl_->bShowNewLine_ = initNumbers[7].nValue_ != 0;
-	pImpl_->bShowTab_ = initNumbers[8].nValue_ != 0;
-	pImpl_->bShowVerticalScrollBar_ = initNumbers[9].nValue_ != 0;
-	pImpl_->bShowHorizontalScrollBar_ = initNumbers[10].nValue_ != 0;
-	pImpl_->bShowCaret_ = initNumbers[11].nValue_ != 0;
-	pImpl_->bShowRuler_ = initNumbers[12].nValue_ != 0;
-	for (n = 0; n < countof(pImpl_->wstrQuote_); ++n) {
-		pImpl_->wstrQuote_[n].reset(initStrings[n].wstrValue_);
-		pImpl_->crQuote_[n] = initColors[n + 2].cr_;
-	}
-	pImpl_->bLineQuote_ = initNumbers[15].nValue_ != 0;
-	pImpl_->bWordWrap_ = initNumbers[16].nValue_ != 0;
-	pImpl_->nReformLineLength_ = initNumbers[13].nValue_;
-	pImpl_->wstrReformQuote_.reset(initStrings[2].wstrValue_);
-	pImpl_->listURLSchema_.swap(listURLSchema);
-	pImpl_->crLink_ = initColors[4].cr_;
-	pImpl_->hfont_ = font.release();
-	pImpl_->bAdjustExtent_ = bAdjustExtent;
+	pImpl_->crForeground_ = RGB(0, 0, 0);
+	pImpl_->crBackground_ = RGB(255, 255, 255);
+	pImpl_->nLineSpacing_ = 2;
+	pImpl_->nCharInLine_ = 0;
+	pImpl_->nTabWidth_ = 4;
+	pImpl_->nMarginTop_ = 10;
+	pImpl_->nMarginBottom_ = 10;
+	pImpl_->nMarginLeft_ = 10;
+	pImpl_->nMarginRight_ = 10;
+	pImpl_->bShowNewLine_ = false;
+	pImpl_->bShowTab_ = false;
+	pImpl_->bShowVerticalScrollBar_ = true;
+	pImpl_->bShowHorizontalScrollBar_ = false;
+	pImpl_->bShowCaret_ = false;
+	pImpl_->bShowRuler_ = false;
+	pImpl_->crQuote_[0] = RGB(0, 128, 0);
+	pImpl_->crQuote_[1] = RGB(0, 0, 128);
+	pImpl_->bLineQuote_ = true;
+	pImpl_->bWordWrap_ = false;
+	pImpl_->nReformLineLength_ = 74;
+	pImpl_->crLink_ = RGB(0, 0, 255);
+	pImpl_->hfont_ = 0;
+	pImpl_->bAdjustExtent_ = false;
 	pImpl_->hbmNewLine_ = 0;
 	pImpl_->hbmTab_ = 0;
 	pImpl_->scrollPos_.nPos_ = 0;
@@ -1946,6 +2060,8 @@ qs::TextWindow::TextWindow(TextModel* pTextModel,
 	pImpl_->bHorizontalScrollable_ = false;
 	pImpl_->nExtentLine_ = -1;
 	pImpl_->bExtentNewLine_ = false;
+	
+	pImpl_->reloadProfiles(pProfile, pwszSection, true);
 	
 	setWindowHandler(this, false);
 }
@@ -3063,6 +3179,12 @@ void qs::TextWindow::setReformQuote(const WCHAR* pwszReformQuote)
 {
 	assert(pwszReformQuote);
 	pImpl_->wstrReformQuote_ = allocWString(pwszReformQuote);
+}
+
+void qs::TextWindow::reloadProfiles(Profile* pProfile,
+									const WCHAR* pwszSection)
+{
+	pImpl_->reloadProfiles(pProfile, pwszSection, false);
 }
 
 void qs::TextWindow::getWindowClass(WNDCLASS* pwc)

@@ -157,6 +157,11 @@ bool qm::MessageViewWindowFactory::isSupported(const ContentTypeParser* pContent
 	return !pContentType || _wcsicmp(pContentType->getMediaType(), L"text") == 0;
 }
 
+void qm::MessageViewWindowFactory::reloadProfiles()
+{
+	pText_->reloadProfiles(pProfile_, pwszSection_);
+}
+
 #ifdef QMHTMLVIEW
 bool qm::MessageViewWindowFactory::createHtmlView()
 {

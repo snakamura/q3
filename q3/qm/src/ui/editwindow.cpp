@@ -490,6 +490,7 @@ void qm::EditWindow::layout()
 void qm::EditWindow::reloadProfiles()
 {
 	pImpl_->pHeaderEditWindow_->reloadProfiles();
+	pImpl_->pTextWindow_->reloadProfiles(pImpl_->pProfile_, L"EditWindow");
 }
 
 Accelerator* qm::EditWindow::getAccelerator()
