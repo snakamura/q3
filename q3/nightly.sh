@@ -41,7 +41,7 @@ cd $BUILDDIR
 svn checkout $SVNURI
 cd q3
 
-make all
+make all NODEPEND=1
 
 zip -j $ZIPDIR/q3-desktop-x86-ja-$VERSION-$DATE.zip \
 	*/bin/desktop/ansi/release/*.exe \
