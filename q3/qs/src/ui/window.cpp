@@ -773,6 +773,8 @@ bool qs::WindowBase::create(const WCHAR* pwszClassName,
 
 bool qs::WindowBase::subclassWindow(HWND hwnd)
 {
+	pImpl_->pWindowHandler_->preSubclassWindow();
+	
 	pImpl_->procSubclass_ = reinterpret_cast<WNDPROC>(
 		::SetWindowLong(hwnd, GWL_WNDPROC,
 			reinterpret_cast<LONG>(&qs::windowProc)));
