@@ -30,6 +30,7 @@
 #else
 #	include <addrmapi.h>
 #endif
+#include <tchar.h>
 
 #include "addressbook.h"
 #include "../util/confighelper.h"
@@ -1020,7 +1021,7 @@ bool qm::MAPIAddressBook::load(AddressBook* pAddressBook)
 	}
 	
 	ComPtr<IMAPITable> pTable;
-	hr = pContainer->GetContentsTable(MAPI_UNICODE, &pTable);
+	hr = pContainer->GetContentsTable(fMapiUnicode, &pTable);
 	if (hr != S_OK) {
 		log.errorf(L"IMAPIContainer::GetContentsTable failed: %08x.", hr);
 		return false;
@@ -1029,10 +1030,10 @@ bool qm::MAPIAddressBook::load(AddressBook* pAddressBook)
 	ULONG props[] = {
 		PR_ENTRYID,
 		PR_OBJECT_TYPE,
-		PR_DISPLAY_NAME_W,
-		PR_EMAIL_ADDRESS_W,
-		PR_ADDRTYPE_W,
-		PR_CONTACT_EMAIL_ADDRESSES_W
+		PR_DISPLAY_NAME,
+		PR_EMAIL_ADDRESS,
+		PR_ADDRTYPE,
+		PR_CONTACT_EMAIL_ADDRESSES
 	};
 	SizedSPropTagArray(countof(props), columns) = {
 		countof(props)
@@ -1072,11 +1073,11 @@ bool qm::MAPIAddressBook::load(AddressBook* pAddressBook)
 		SRow* pRow = pSRowSet->aRow;
 		
 		const SPropValue& valueName = pRow->lpProps[COLUMN_DISPLAY_NAME];
-		if (PROP_TYPE(valueName.ulPropTag) != PT_UNICODE) {
-			log.warn(L"Skipping non-unicode PR_DISPLAY_NAME.");
+		if (PROP_TYPE(valueName.ulPropTag) != PT_TSTRING) {
+			log.warn(L"Skipping non-string PR_DISPLAY_NAME.");
 			continue;
 		}
-		const WCHAR* pwszName = valueName.Value.lpszW;
+		T2W(valueName.Value.LPSZ, pwszName);
 		
 		std::auto_ptr<AddressBookEntry> pEntry(new AddressBookEntry(pwszName, 0, true));
 		
@@ -1085,11 +1086,16 @@ bool qm::MAPIAddressBook::load(AddressBook* pAddressBook)
 			pRow->lpProps[COLUMN_ENTRYID].Value.bin.lpb);
 		LONG nObjectType = pRow->lpProps[COLUMN_OBJECT_TYPE].Value.l;
 		if (nObjectType == MAPI_MAILUSER) {
-			if (PROP_TYPE(pRow->lpProps[COLUMN_CONTACT_EMAIL_ADDRESSES].ulPropTag) == PT_MV_UNICODE) {
+			if (PROP_TYPE(pRow->lpProps[COLUMN_CONTACT_EMAIL_ADDRESSES].ulPropTag) == PT_MV_TSTRING) {
 				const SPropValue& value = pRow->lpProps[COLUMN_CONTACT_EMAIL_ADDRESSES];
-				const SWStringArray& array = value.Value.MVszW;
+#ifdef UNICODE
+				typedef SWStringArray STStringArray;
+#else
+				typedef SLPSTRArray STStringArray;
+#endif
+				const STStringArray& array = value.Value.MVSZ;
 				for (unsigned int n = 0; n < array.cValues; ++n) {
-					const WCHAR* pwszAddress = array.lppszW[n];
+					T2W(array.LPPSZ[n], pwszAddress);
 					std::auto_ptr<AddressBookAddress> pAddress(
 						new AddressBookAddress(pEntry.get(),
 							pwszAddress,
@@ -1100,12 +1106,12 @@ bool qm::MAPIAddressBook::load(AddressBook* pAddressBook)
 					pEntry->addAddress(pAddress);
 				}
 			}
-			else if (PROP_TYPE(pRow->lpProps[COLUMN_EMAIL_ADDRESS].ulPropTag) == PT_UNICODE &&
-				PROP_TYPE(pRow->lpProps[COLUMN_ADDRTYPE].ulPropTag) == PT_UNICODE) {
+			else if (PROP_TYPE(pRow->lpProps[COLUMN_EMAIL_ADDRESS].ulPropTag) == PT_TSTRING &&
+				PROP_TYPE(pRow->lpProps[COLUMN_ADDRTYPE].ulPropTag) == PT_TSTRING) {
 				const SPropValue& valueType = pRow->lpProps[COLUMN_ADDRTYPE];
-				if (wcscmp(valueType.Value.lpszW, L"SMTP") == 0) {
+				if (_tcscmp(valueType.Value.LPSZ, _T("SMTP")) == 0) {
 					const SPropValue& value = pRow->lpProps[COLUMN_EMAIL_ADDRESS];
-					const WCHAR* pwszAddress = value.Value.lpszW;
+					T2W(value.Value.LPSZ, pwszAddress);
 					std::auto_ptr<AddressBookAddress> pAddress(
 						new AddressBookAddress(pEntry.get(),
 							pwszAddress,
@@ -1191,16 +1197,16 @@ wstring_ptr qm::MAPIAddressBook::expandDistList(IDistList* pDistList) const
 	HRESULT hr = S_OK;
 	
 	ComPtr<IMAPITable> pTable;
-	hr = pDistList->GetContentsTable(MAPI_UNICODE, &pTable);
+	hr = pDistList->GetContentsTable(fMapiUnicode, &pTable);
 	if (hr != S_OK)
 		return 0;
 	
 	StringBuffer<WSTRING> buf;
 	
 	ULONG props[] = {
-		PR_DISPLAY_NAME_W,
-		PR_EMAIL_ADDRESS_W,
-		PR_ADDRTYPE_W
+		PR_DISPLAY_NAME,
+		PR_EMAIL_ADDRESS,
+		PR_ADDRTYPE
 	};
 	SizedSPropTagArray(countof(props), columns) = {
 		countof(props)
@@ -1233,19 +1239,19 @@ wstring_ptr qm::MAPIAddressBook::expandDistList(IDistList* pDistList) const
 		SRow* pRow = pSRowSet->aRow;
 		
 		const SPropValue& valueType = pRow->lpProps[COLUMN_ADDRTYPE];
-		if (PROP_TYPE(valueType.ulPropTag) != PT_UNICODE ||
-			wcscmp(valueType.Value.lpszW, L"SMTP") != 0)
+		if (PROP_TYPE(valueType.ulPropTag) != PT_TSTRING ||
+			_tcscmp(valueType.Value.LPSZ, _T("SMTP")) != 0)
 			continue;
 		
 		const SPropValue& valueName = pRow->lpProps[COLUMN_DISPLAY_NAME];
-		if (PROP_TYPE(valueName.ulPropTag) != PT_UNICODE)
+		if (PROP_TYPE(valueName.ulPropTag) != PT_TSTRING)
 			continue;
-		const WCHAR* pwszName = valueName.Value.lpszW;
+		T2W(valueName.Value.LPSZ, pwszName);
 		
 		const SPropValue& valueAddress = pRow->lpProps[COLUMN_EMAIL_ADDRESS];
-		if (PROP_TYPE(valueAddress.ulPropTag) != PT_UNICODE)
+		if (PROP_TYPE(valueAddress.ulPropTag) != PT_TSTRING)
 			continue;
-		const WCHAR* pwszAddress = valueAddress.Value.lpszW;
+		T2W(valueAddress.Value.LPSZ, pwszAddress);
 		
 		if (buf.getLength() != 0)
 			buf.append(L", ");
@@ -1460,7 +1466,7 @@ bool qm::OutlookAddressBook::init()
 		return false;
 	
 	ComPtr<IMAPISession> pSession;
-	hr = (*pfnMAPILogonEx)(0, 0, 0, MAPI_EXTENDED | MAPI_USE_DEFAULT | MAPI_NO_MAIL | MAPI_UNICODE, &pSession);
+	hr = (*pfnMAPILogonEx)(0, 0, 0, MAPI_EXTENDED | MAPI_USE_DEFAULT | MAPI_NO_MAIL | fMapiUnicode, &pSession);
 	if (hr != S_OK) {
 		log.errorf(L"MAPILogonEx failed: %08x.", hr);
 		return false;
