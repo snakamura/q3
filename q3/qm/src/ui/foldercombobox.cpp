@@ -498,11 +498,12 @@ LRESULT qm::FolderComboBoxImpl::onDropDown()
 
 LRESULT qm::FolderComboBoxImpl::onSelEndOk()
 {
+	bool bDropDown = ComboBox_GetDroppedState(pThis_->getHandle()) != 0;
 	Folder* pFolder = getSelectedFolder();
 	if (pFolder)
-		pFolderModel_->setCurrent(0, pFolder, false);
+		pFolderModel_->setCurrent(0, pFolder, !bDropDown);
 	else
-		pFolderModel_->setCurrent(getSelectedAccount(), 0, false);
+		pFolderModel_->setCurrent(getSelectedAccount(), 0, !bDropDown);
 	return 0;
 }
 
