@@ -339,23 +339,23 @@ bool qmimap4::AppendOfflineJob::apply(Account* pAccount,
 	if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL) {
 		NormalFolder* pNormalFolder = static_cast<NormalFolder*>(pFolder);
 		Lock<Account>lock(*pAccount);
-		MessageHolder* pmh = pNormalFolder->getMessageHolderById(nId_);
-		if (pmh && pmh->isFlag(MessageHolder::FLAG_LOCAL)) {
+		MessagePtrLock mpl(pNormalFolder->getMessageById(nId_));
+		if (mpl && mpl->isFlag(MessageHolder::FLAG_LOCAL)) {
 			wstring_ptr wstrName(Util::getFolderName(pNormalFolder));
 			
 			Message msg;
-			if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg))
+			if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg))
 				return false;
 			
 			xstring_ptr strContent(msg.getContent());
 			if (!strContent.get())
 				return false;
 			
-			Flags flags(Util::getImap4FlagsFromMessageFlags(pmh->getFlags()));
+			Flags flags(Util::getImap4FlagsFromMessageFlags(mpl->getFlags()));
 			if (!pImap4->append(wstrName.get(), strContent.get(), flags))
 				return false;
 			
-			if (!pAccount->unstoreMessage(pmh))
+			if (!pAccount->unstoreMessage(mpl))
 				return false;
 		}
 	}
