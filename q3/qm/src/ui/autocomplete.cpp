@@ -208,7 +208,7 @@ void qm::AutoCompleteEditSubclassWindow::showCandidates(AutoCompleteCallback::Ca
 		std::auto_ptr<AutoCompleteListWindow> pListWindow(
 			new AutoCompleteListWindow(this, getFont()));
 #ifndef _WIN32_WCE
-		DWORD dwExStyle = WS_EX_TOPMOST;
+		DWORD dwExStyle = WS_EX_TOPMOST | WS_EX_TOOLWINDOW;
 #else
 		DWORD dwExStyle = WS_EX_TOPMOST | WS_EX_NOACTIVATE;
 #endif
