@@ -65,7 +65,7 @@ int qm::UIUtil::loadWindowPlacement(Profile* pProfile,
 		pCreateStruct->cx = items[2].n_;
 		pCreateStruct->cy = items[3].n_;
 		
-		int nShow = pProfile->getInt(pwszSection, L"Show", SW_SHOWNORMAL);
+		nShow = pProfile->getInt(pwszSection, L"Show", SW_SHOWNORMAL);
 		if (nShow != SW_MAXIMIZE &&
 			nShow != SW_MINIMIZE &&
 			nShow != SW_SHOWNORMAL)
