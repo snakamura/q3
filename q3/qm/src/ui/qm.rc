@@ -504,7 +504,7 @@ FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
 BEGIN
     CONTROL         "&Never dial a connection",IDC_NEVER,"Button",
                     BS_AUTORADIOBUTTON | WS_GROUP,5,5,210,10
-    CONTROL         "Dial whenever a &network connection is not present",
+    CONTROL         "Dial whenever a network &connection is not present",
                     IDC_WHENEVERNOTCONNECTED,"Button",BS_AUTORADIOBUTTON,5,
                     15,210,10
     CONTROL         "&Always dial a connection",IDC_CONNECT,"Button",
@@ -993,7 +993,7 @@ FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
 BEGIN
     CONTROL         "&Never dial a connection",IDC_NEVER,"Button",
                     BS_AUTORADIOBUTTON | WS_GROUP,5,5,210,10
-    CONTROL         "Dial whenever a &network connection is not present",
+    CONTROL         "Dial whenever a network &connection is not present",
                     IDC_WHENEVERNOTCONNECTED,"Button",BS_AUTORADIOBUTTON,5,
                     15,210,10
     CONTROL         "&Always dial a connection",IDC_CONNECT,"Button",
