@@ -304,7 +304,7 @@ void qm::ActionInvoker::invoke(UINT nId,
 	Action* pAction = pActionMap_->getAction(nId);
 	if (pAction) {
 		ActionParam param = { ppvarArgs, nArgs };
-		ActionEvent event(nId, 0, &param);
+		ActionEvent event(nId, 0, nArgs != 0 ? &param : 0);
 		bool bEnabled = pAction->isEnabled(event);
 		if (bEnabled)
 			pAction->invoke(event);
