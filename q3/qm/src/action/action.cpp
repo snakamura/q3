@@ -326,26 +326,58 @@ qm::EditClearDeletedAction::~EditClearDeletedAction()
 void qm::EditClearDeletedAction::invoke(const ActionEvent& event)
 {
 	Folder* pFolder = pFolderModel_->getCurrentFolder();
-	if (!pFolder ||
-		pFolder->getType() != Folder::TYPE_NORMAL ||
-		pFolder->isFlag(Folder::FLAG_NOSELECT) ||
-		pFolder->isFlag(Folder::FLAG_LOCAL))
+	if (!pFolder)
 		return;
 	
 	Account* pAccount = pFolder->getAccount();
-	if (!pAccount->clearDeletedMessages(static_cast<NormalFolder*>(pFolder))) {
-		ActionUtil::error(hwnd_, IDS_ERROR_CLEARDELETED);
-		return;
+	
+	switch (pFolder->getType()) {
+	case Folder::TYPE_NORMAL:
+		if (pFolder->isFlag(Folder::FLAG_NOSELECT) ||
+			pFolder->isFlag(Folder::FLAG_LOCAL))
+			return;
+		
+		if (!pAccount->clearDeletedMessages(static_cast<NormalFolder*>(pFolder))) {
+			ActionUtil::error(hwnd_, IDS_ERROR_CLEARDELETED);
+			return;
+		}
+		break;
+	case Folder::TYPE_QUERY:
+		{
+			QueryFolder* pQueryFolder = static_cast<QueryFolder*>(pFolder);
+			
+			Account::NormalFolderList l;
+			pAccount->getNormalFolders(pQueryFolder->getTargetFolder(),
+				pQueryFolder->isRecursive(), &l);
+			for (Account::NormalFolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+				if (!pAccount->clearDeletedMessages(*it)) {
+					ActionUtil::error(hwnd_, IDS_ERROR_CLEARDELETED);
+					return;
+				}
+			}
+		}
+		break;
+	default:
+		assert(false);
+		break;
 	}
 }
 
 bool qm::EditClearDeletedAction::isEnabled(const ActionEvent& event)
 {
 	Folder* pFolder = pFolderModel_->getCurrentFolder();
-	return pFolder &&
-		pFolder->getType() == Folder::TYPE_NORMAL &&
-		!pFolder->isFlag(Folder::FLAG_NOSELECT) &&
-		!pFolder->isFlag(Folder::FLAG_LOCAL);
+	if (!pFolder)
+		return false;
+	switch (pFolder->getType()) {
+	case Folder::TYPE_NORMAL:
+		return !pFolder->isFlag(Folder::FLAG_NOSELECT) &&
+			!pFolder->isFlag(Folder::FLAG_LOCAL);
+	case Folder::TYPE_QUERY:
+		return true;
+	default:
+		assert(false);
+		return false;
+	}
 }
 
 

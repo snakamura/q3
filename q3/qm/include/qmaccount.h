@@ -87,6 +87,7 @@ public:
 public:
 	typedef std::vector<SubAccount*> SubAccountList;
 	typedef std::vector<Folder*> FolderList;
+	typedef std::vector<NormalFolder*> NormalFolderList;
 
 public:
 	Account(const WCHAR* pwszPath,
@@ -133,6 +134,9 @@ public:
 	Folder* getFolderByParam(const WCHAR* pwszName,
 							 const WCHAR* pwszValue) const;
 	const FolderList& getFolders() const;
+	void getNormalFolders(const WCHAR* pwszName,
+						  bool bRecursive,
+						  NormalFolderList* pList) const;
 	NormalFolder* createNormalFolder(const WCHAR* pwszName,
 									 Folder* pParent,
 									 bool bRemote,

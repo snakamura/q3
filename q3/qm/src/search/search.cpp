@@ -204,38 +204,5 @@ bool qm::SearchContext::isDecryptVerify() const
 void qm::SearchContext::getTargetFolders(Account* pAccount,
 										 FolderList* pList) const
 {
-	assert(pAccount);
-	assert(pList);
-	
-	Folder* pTargetFolder = 0;
-	if (wstrTargetFolder_.get())
-		pTargetFolder = pAccount->getFolder(wstrTargetFolder_.get());
-	
-	if (pTargetFolder) {
-		if (bRecursive_) {
-			const Account::FolderList& l = pAccount->getFolders();
-			for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-				Folder* pFolder = *it;
-				
-				if (pFolder->getType() == Folder::TYPE_NORMAL &&
-					!pFolder->isHidden() &&
-					(pFolder == pTargetFolder ||
-					pTargetFolder->isAncestorOf(pFolder)))
-					pList->push_back(static_cast<NormalFolder*>(pFolder));
-			}
-		}
-		else {
-			if (pTargetFolder->getType() == Folder::TYPE_NORMAL)
-				pList->push_back(static_cast<NormalFolder*>(pTargetFolder));
-		}
-	}
-	else {
-		const Account::FolderList& l = pAccount->getFolders();
-		for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-			Folder* pFolder = *it;
-			if (pFolder->getType() == Folder::TYPE_NORMAL &&
-				!pFolder->isFlag(Folder::FLAG_TRASHBOX))
-				pList->push_back(static_cast<NormalFolder*>(pFolder));
-		}
-	}
+	pAccount->getNormalFolders(wstrTargetFolder_.get(), bRecursive_, pList);
 }
