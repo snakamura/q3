@@ -1146,7 +1146,7 @@ qm::FileCompactAction::~FileCompactAction()
 void qm::FileCompactAction::invoke(const ActionEvent& event)
 {
 	Account* pAccount = FolderActionUtil::getAccount(pFolderModel_);
-	if (pAccount)
+	if (!pAccount)
 		return;
 	
 	ProgressDialogMessageOperationCallback callback(
@@ -1183,7 +1183,7 @@ qm::FileDumpAction::~FileDumpAction()
 void qm::FileDumpAction::invoke(const ActionEvent& event)
 {
 	Account* pAccount = FolderActionUtil::getAccount(pFolderModel_);
-	if (pAccount)
+	if (!pAccount)
 		return;
 	
 	wstring_ptr wstrPath(qs::UIUtil::browseFolder(hwnd_, 0, 0));
