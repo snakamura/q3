@@ -626,14 +626,14 @@ void qm::TextHeaderEditItem::destroy()
 {
 }
 
-void qm::TextHeaderEditItem::layout(const RECT& rect,
+HDWP qm::TextHeaderEditItem::layout(HDWP hdwp,
+									const RECT& rect,
 									unsigned int nFontHeight)
 {
 	unsigned int nHeight = getHeight(rect.right - rect.left, nFontHeight);
-	Window(hwnd_).setWindowPos(0, rect.left,
+	return Window(hwnd_).deferWindowPos(hdwp, 0, rect.left,
 		rect.top + ((rect.bottom - rect.top) - nHeight)/2,
-		rect.right - rect.left, nHeight,
-		SWP_NOZORDER | SWP_NOACTIVATE);
+		rect.right - rect.left, nHeight, SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
 void qm::TextHeaderEditItem::show(bool bShow)
@@ -1064,11 +1064,13 @@ void qm::AttachmentHeaderEditItem::destroy()
 	clear();
 }
 
-void qm::AttachmentHeaderEditItem::layout(const RECT& rect,
+HDWP qm::AttachmentHeaderEditItem::layout(HDWP hdwp,
+										  const RECT& rect,
 										  unsigned int nFontHeight)
 {
-	wnd_.setWindowPos(0, rect.left, rect.top, rect.right - rect.left,
-		rect.bottom - rect.top, SWP_NOZORDER | SWP_NOACTIVATE);
+	return wnd_.deferWindowPos(hdwp, 0, rect.left, rect.top,
+		rect.right - rect.left, rect.bottom - rect.top,
+		SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
 void qm::AttachmentHeaderEditItem::show(bool bShow)
@@ -1350,10 +1352,11 @@ void qm::ComboBoxHeaderEditItem::destroy()
 		pParent_->removeCommandHandler(this);
 }
 
-void qm::ComboBoxHeaderEditItem::layout(const RECT& rect,
+HDWP qm::ComboBoxHeaderEditItem::layout(HDWP hdwp,
+										const RECT& rect,
 										unsigned int nFontHeight)
 {
-	Window(hwnd_).setWindowPos(0, rect.left, rect.top,
+	return Window(hwnd_).deferWindowPos(hdwp, 0, rect.left, rect.top,
 		rect.right - rect.left, 100, SWP_NOZORDER | SWP_NOACTIVATE);
 }
 

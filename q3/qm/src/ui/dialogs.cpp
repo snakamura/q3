@@ -1365,32 +1365,34 @@ void qm::AddressBookDialog::layout()
 	int nHeight = rect.bottom - rect.top;
 	int nButtonHeight = rectButton.bottom - rectButton.top;
 	
-	Window(getDlgItem(IDC_CATEGORY)).setWindowPos(0, 5, 5, nLeftWidth,
-		nButtonHeight, SWP_NOZORDER | SWP_NOACTIVATE);
-	Window(getDlgItem(IDC_FILTER)).setWindowPos(0, nLeftWidth + 5*2, 5,
-		nRightWidth, nButtonHeight, SWP_NOZORDER | SWP_NOACTIVATE);
-	Window(getDlgItem(IDC_ADDRESS)).setWindowPos(0, 5, nButtonHeight + 5*2,
+	HDWP hdwp = beginDeferWindowPos(12);
+	hdwp = Window(getDlgItem(IDC_CATEGORY)).deferWindowPos(hdwp, 0, 5, 5,
+		nLeftWidth, nButtonHeight, SWP_NOZORDER | SWP_NOACTIVATE);
+	hdwp = Window(getDlgItem(IDC_FILTER)).deferWindowPos(hdwp, 0, nLeftWidth + 5*2,
+		5, nRightWidth, nButtonHeight, SWP_NOZORDER | SWP_NOACTIVATE);
+	hdwp = Window(getDlgItem(IDC_ADDRESS)).deferWindowPos(hdwp, 0, 5, nButtonHeight + 5*2,
 		nLeftWidth, nHeight - nButtonHeight - 5*3, SWP_NOZORDER | SWP_NOACTIVATE);
-	Window(getDlgItem(IDC_SELECTEDADDRESS)).setWindowPos(0,
-		nLeftWidth + 5*2, nButtonHeight + 5*2, nRightWidth,
+	hdwp = Window(getDlgItem(IDC_SELECTEDADDRESS)).deferWindowPos(
+		hdwp, 0, nLeftWidth + 5*2, nButtonHeight + 5*2, nRightWidth,
 		nHeight - nButtonHeight - 5*3, SWP_NOZORDER | SWP_NOACTIVATE);
 	
 	int nDx[] = { 1, 5, 1, 1, 5, 0 };
 	int nTop = 5;
 	for (int n = 0; n < countof(hwnds); ++n) {
-		Window(hwnds[n]).setWindowPos(0, nLeftWidth + nRightWidth + 5*3,
+		hdwp = Window(hwnds[n]).deferWindowPos(hdwp, 0, nLeftWidth + nRightWidth + 5*3,
 			nTop, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 		nTop += nButtonHeight + nDx[n];
 	}
 	
-	Window(getDlgItem(IDC_FILTERLABEL)).setWindowPos(
-		0, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOACTIVATE);
+	hdwp = Window(getDlgItem(IDC_FILTERLABEL)).deferWindowPos(
+		hdwp, 0, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOACTIVATE);
 	
 #ifndef _WIN32_WCE
-	Window(getDlgItem(IDC_SIZEGRIP)).setWindowPos(0,
+	hdwp = Window(getDlgItem(IDC_SIZEGRIP)).deferWindowPos(hdwp, 0,
 		rect.right - rect.left - 13, rect.bottom - rect.top - 12,
 		0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 #endif
+	endDeferWindowPos(hdwp);
 #endif
 }
 

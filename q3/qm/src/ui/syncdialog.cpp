@@ -472,51 +472,55 @@ void qm::SyncDialog::layout(int cx,
 	int nButtonWidth = rectButton.right - rectButton.left;
 	int nButtonHeight = rectButton.bottom - rectButton.top;
 	
+	HDWP hdwp = Window::beginDeferWindowPos(6);
+	
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	int nErrorHeight = bShowError_ ? (cy - nButtonHeight - 30)/2 : 0;
-	error.setWindowPos(0, 5,
+	hdwp = error.deferWindowPos(hdwp, 0, 5,
 		cy - nErrorHeight - nButtonHeight - 10, cx - 10, nErrorHeight,
 		SWP_NOZORDER | SWP_NOACTIVATE);
 	error.showWindow(bShowError_);
 	
-	message.setWindowPos(0, 5, 5, cx - 10, nMessageHeight,
-		SWP_NOZORDER | SWP_NOACTIVATE);
-	pStatusWindow_->setWindowPos(0, 5, nMessageHeight + 10, cx - 10,
+	hdwp = message.deferWindowPos(hdwp, 0, 5, 5, cx - 10,
+		nMessageHeight, SWP_NOZORDER | SWP_NOACTIVATE);
+	hdwp = pStatusWindow_->deferWindowPos(hdwp, 0, 5, nMessageHeight + 10, cx - 10,
 		cy - nErrorHeight - nButtonHeight - nMessageHeight - (bShowError_ ? 25 : 20),
 		SWP_NOZORDER | SWP_NOACTIVATE);
 	
-	cancel.setWindowPos(0, cx - nButtonWidth*2 - 10, cy - nButtonHeight - 5,
-		0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
-	hide.setWindowPos(0, cx - nButtonWidth - 5, cy - nButtonHeight - 5,
-		0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+	hdwp = cancel.deferWindowPos(hdwp, 0, cx - nButtonWidth*2 - 10,
+		cy - nButtonHeight - 5, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+	hdwp = hide.deferWindowPos(hdwp, 0, cx - nButtonWidth - 5,
+		cy - nButtonHeight - 5, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
 #else
 	int nErrorHeight = bShowError_ ? (cy - 25)/2 : 0;
-	error.setWindowPos(0, 5,
+	hdwp = error.deferWindowPos(hdwp, 0, 5,
 		cy - nErrorHeight - 5, cx - nButtonWidth - 15, nErrorHeight,
 		SWP_NOZORDER | SWP_NOACTIVATE);
 	error.showWindow(bShowError_);
 	
-	message.setWindowPos(0, 5, 5, cx - nButtonWidth - 15,
+	hdwp = message.deferWindowPos(hdwp, 0, 5, 5, cx - nButtonWidth - 15,
 		nMessageHeight, SWP_NOZORDER | SWP_NOACTIVATE);
-	pStatusWindow_->setWindowPos(0, 5,
+	hdwp = pStatusWindow_->deferWindowPos(hdwp, 0, 5,
 		nMessageHeight + 10, cx - nButtonWidth - 15,
 		cy - nErrorHeight - nMessageHeight - (bShowError_ ? 20 : 15),
 		SWP_NOZORDER | SWP_NOACTIVATE);
-	cancel.setWindowPos(0, cx - nButtonWidth - 5, 5, 0, 0,
-		SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
-	hide.setWindowPos(0, cx - nButtonWidth - 5, nButtonHeight + 8,
+	hdwp = cancel.deferWindowPos(hdwp, 0, cx - nButtonWidth - 5,
+		5, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+	hdwp = hide.deferWindowPos(hdwp, 0, cx - nButtonWidth - 5, nButtonHeight + 8,
 		0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
 	
 #ifndef _WIN32_WCE
 	Window sizeGrip(getDlgItem(IDC_SIZEGRIP));
 	RECT rectSizeGrip;
 	sizeGrip.getWindowRect(&rectSizeGrip);
-	sizeGrip.setWindowPos(0,
+	hdwp = sizeGrip.deferWindowPos(hdwp, 0,
 		cx - (rectSizeGrip.right - rectSizeGrip.left),
 		cy - (rectSizeGrip.bottom - rectSizeGrip.top),
 		0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 #endif
 #endif
+	
+	Window::endDeferWindowPos(hdwp);
 }
 
 

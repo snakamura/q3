@@ -210,7 +210,8 @@ public:
 						const std::pair<HFONT, HFONT>& fonts,
 						UINT nId);
 	virtual void destroy();
-	virtual void layout(const RECT& rect,
+	virtual HDWP layout(HDWP hdwp,
+						const RECT& rect,
 						unsigned int nFontHeight);
 	virtual void show(bool bShow);
 
@@ -382,7 +383,8 @@ public:
 						const std::pair<HFONT, HFONT>& fonts,
 						UINT nId);
 	virtual void destroy();
-	virtual void layout(const RECT& rect,
+	virtual HDWP layout(HDWP hdwp,
+						const RECT& rect,
 						unsigned int nFontHeight);
 	virtual void show(bool bShow);
 
@@ -476,7 +478,8 @@ public:
 						const std::pair<HFONT, HFONT>& fonts,
 						UINT nId);
 	virtual void destroy();
-	virtual void layout(const RECT& rect,
+	virtual HDWP layout(HDWP hdwp,
+						const RECT& rect,
 						unsigned int nFontHeight);
 	virtual void show(bool bShow);
 

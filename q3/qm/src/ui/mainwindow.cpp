@@ -1197,21 +1197,26 @@ void qm::MainWindowImpl::layoutChildren(int cx,
 			rectFolderComboBox.bottom - rectFolderComboBox.top;
 	}
 	
+	HDWP hdwp = Window::beginDeferWindowPos(5);
+	
 #if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
-	wndToolbar.setWindowPos(0, 0, cy - nToolbarHeight, cx, nToolbarHeight, SWP_NOZORDER);
+	hdwp = wndToolbar.deferWindowPos(hdwp, 0, 0,
+		cy - nToolbarHeight, cx, nToolbarHeight, SWP_NOZORDER);
 #else
-	wndToolbar.setWindowPos(0, 0, 0, cx, nToolbarHeight, SWP_NOMOVE | SWP_NOZORDER);
+	hdwp = wndToolbar.deferWindowPos(hdwp, 0, 0, 0, cx,
+		nToolbarHeight, SWP_NOMOVE | SWP_NOZORDER);
 #endif
 	wndToolbar.showWindow(bShowToolbar_ ? SW_SHOW : SW_HIDE);
 	
-	pStatusBar_->setWindowPos(0, 0, cy - nStatusBarHeight - nBottomBarHeight,
-		cx, rectStatusBar.bottom - rectStatusBar.top, SWP_NOZORDER);
+	hdwp = pStatusBar_->deferWindowPos(hdwp, 0, 0,
+		cy - nStatusBarHeight - nBottomBarHeight, cx,
+		rectStatusBar.bottom - rectStatusBar.top, SWP_NOZORDER);
 	pStatusBar_->showWindow(bShowStatusBar_ ? SW_SHOW : SW_HIDE);
 	
-	pSyncNotificationWindow_->setWindowPos(HWND_TOP,
+	hdwp = pSyncNotificationWindow_->deferWindowPos(hdwp, HWND_TOP,
 		cx - SyncNotificationWindow::WIDTH, 0/*nTopBarHeight*/, 0, 0, SWP_NOSIZE);
 	
-	pFolderSplitterWindow_->setWindowPos(0,
+	hdwp = pFolderSplitterWindow_->deferWindowPos(hdwp, 0,
 		0, nTopBarHeight + nFolderComboBoxHeight, cx,
 		cy - nStatusBarHeight - nTopBarHeight - nFolderComboBoxHeight - nBottomBarHeight,
 		SWP_NOZORDER);
@@ -1222,13 +1227,15 @@ void qm::MainWindowImpl::layoutChildren(int cx,
 		pFolderSplitterWindow_->setColumnWidth(0, nFolderWindowSize_);
 	
 	if (bShowFolderComboBox_) {
-		pFolderComboBox_->setWindowPos(0, 0, nTopBarHeight, cx,
-			/*nFolderComboBoxHeight*/200, SWP_NOZORDER);
+		hdwp = pFolderComboBox_->deferWindowPos(hdwp, 0, 0, nTopBarHeight,
+			cx, /*nFolderComboBoxHeight*/200, SWP_NOZORDER);
 		pFolderComboBox_->showWindow(SW_SHOW);
 	}
 	else {
 		pFolderComboBox_->showWindow(SW_HIDE);
 	}
+	
+	Window::endDeferWindowPos(hdwp);
 	
 	pListSplitterWindow_->showPane(0, 1, bShowPreviewWindow_);
 	pListSplitterWindow_->setRowHeight(0, nListWindowHeight_);
@@ -2654,6 +2661,7 @@ LRESULT qm::ListContainerWindow::onSize(UINT nFlags,
 	if (pListWindow_)
 		pListWindow_->setWindowPos(0, 0, 0, cx, cy,
 			SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
+	
 	return DefaultWindowHandler::onSize(nFlags, cx, cy);
 }
 

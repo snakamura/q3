@@ -449,14 +449,14 @@ void qm::TextHeaderItem::destroy()
 {
 }
 
-void qm::TextHeaderItem::layout(const RECT& rect,
+HDWP qm::TextHeaderItem::layout(HDWP hdwp,
+								const RECT& rect,
 								unsigned int nFontHeight)
 {
 	unsigned int nHeight = getHeight(rect.right - rect.left, nFontHeight);
-	Window(hwnd_).setWindowPos(0, rect.left,
+	return Window(hwnd_).deferWindowPos(hdwp, 0, rect.left,
 		rect.top + ((rect.bottom - rect.top) - nHeight)/2,
-		rect.right - rect.left, nHeight,
-		SWP_NOZORDER | SWP_NOACTIVATE);
+		rect.right - rect.left, nHeight, SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
 void qm::TextHeaderItem::show(bool bShow)
@@ -659,10 +659,11 @@ void qm::AttachmentHeaderItem::destroy()
 	clear();
 }
 
-void qm::AttachmentHeaderItem::layout(const RECT& rect,
+HDWP qm::AttachmentHeaderItem::layout(HDWP hdwp,
+									  const RECT& rect,
 									  unsigned int nFontHeight)
 {
-	wnd_.setWindowPos(0, rect.left, rect.top,
+	return wnd_.deferWindowPos(hdwp, 0, rect.left, rect.top,
 		rect.right - rect.left, rect.bottom - rect.top,
 		SWP_NOZORDER | SWP_NOACTIVATE);
 }

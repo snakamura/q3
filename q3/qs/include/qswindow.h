@@ -156,6 +156,15 @@ public:
 					  int cx,
 					  int cy,
 					  UINT nFlags);
+	static HDWP beginDeferWindowPos(int nNumWindows);
+	HDWP deferWindowPos(HDWP hdwp,
+						HWND hwnd,
+						int x,
+						int y,
+						int cx,
+						int cy,
+						UINT nFlags);
+	static bool endDeferWindowPos(HDWP hdwp);
 	bool moveWindow(int x,
 					int y,
 					int cx,

@@ -134,14 +134,19 @@ void qm::EditWindowImpl::layoutChildren(int cx,
 	bLayouting_ = true;
 	
 	pHeaderEditWindow_->layout(Rect(0, 0, cx, cy));
+
+	HDWP hdwp = Window::beginDeferWindowPos(2);
 	
 	int nHeaderHeight = pHeaderEditWindow_->getHeight();
-	pHeaderEditWindow_->setWindowPos(0, 0, 0, cx, nHeaderHeight, SWP_NOZORDER);
+	hdwp = pHeaderEditWindow_->deferWindowPos(hdwp,
+		0, 0, 0, cx, nHeaderHeight, SWP_NOZORDER);
 	pHeaderEditWindow_->showWindow(bHeaderEdit_ ? SW_HIDE : SW_SHOW);
 	
 	int nY = bHeaderEdit_ ? 0 : nHeaderHeight;
 	int nHeight = cy > nY ? cy - nY : 0;
-	pTextWindow_->setWindowPos(HWND_TOP, 0, nY, cx, nHeight, 0);
+	hdwp = pTextWindow_->deferWindowPos(hdwp, HWND_TOP, 0, nY, cx, nHeight, 0);
+	
+	Window::endDeferWindowPos(hdwp);
 	
 	bLayouting_ = false;
 }

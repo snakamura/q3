@@ -151,6 +151,28 @@ inline bool qs::Window::setWindowPos(HWND hwnd,
 	return ::SetWindowPos(hwnd_, hwnd, x, y, cx, cy, nFlags) != 0;
 }
 
+inline HDWP qs::Window::beginDeferWindowPos(int nNumWindows)
+{
+	return ::BeginDeferWindowPos(nNumWindows);
+}
+
+inline HDWP qs::Window::deferWindowPos(HDWP hdwp,
+									   HWND hwnd,
+									   int x,
+									   int y,
+									   int cx,
+									   int cy,
+									   UINT nFlags)
+{
+	assert(hwnd_);
+	return ::DeferWindowPos(hdwp, hwnd_, hwnd, x, y, cx, cy, nFlags);
+}
+
+inline bool qs::Window::endDeferWindowPos(HDWP hdwp)
+{
+	return ::EndDeferWindowPos(hdwp) != 0;
+}
+
 inline bool qs::Window::moveWindow(int x,
 								   int y,
 								   int cx,

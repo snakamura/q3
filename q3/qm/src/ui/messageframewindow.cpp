@@ -467,19 +467,26 @@ void qm::MessageFrameWindowImpl::layoutChildren(int cx,
 	int nStatusBarHeight = bShowStatusBar_ ?
 		rectStatusBar.bottom - rectStatusBar.top : 0;
 	
+	HDWP hdwp = Window::beginDeferWindowPos(3);
+	
 #if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
-	wndToolbar.setWindowPos(0, 0, cy - nToolbarHeight, cx, nToolbarHeight, SWP_NOZORDER);
+	hdwp = wndToolbar.deferWindowPos(hdwp, 0, 0,
+		cy - nToolbarHeight, cx, nToolbarHeight, SWP_NOZORDER);
 #else
-	wndToolbar.setWindowPos(0, 0, 0, cx, nToolbarHeight, SWP_NOMOVE | SWP_NOZORDER);
+	hdwp = wndToolbar.deferWindowPos(hdwp, 0, 0, 0,
+		cx, nToolbarHeight, SWP_NOMOVE | SWP_NOZORDER);
 #endif
 	wndToolbar.showWindow(bShowToolbar_ ? SW_SHOW : SW_HIDE);
 	
-	pStatusBar_->setWindowPos(0, 0, cy - nStatusBarHeight - nBottomBarHeight,
-		cx, rectStatusBar.bottom - rectStatusBar.top, SWP_NOZORDER);
+	hdwp = pStatusBar_->deferWindowPos(hdwp, 0, 0,
+		cy - nStatusBarHeight - nBottomBarHeight, cx,
+		rectStatusBar.bottom - rectStatusBar.top, SWP_NOZORDER);
 	pStatusBar_->showWindow(bShowStatusBar_ ? SW_SHOW : SW_HIDE);
 	
-	pMessageWindow_->setWindowPos(0, 0, nTopBarHeight, cx,
+	hdwp = pMessageWindow_->deferWindowPos(hdwp, 0, 0, nTopBarHeight, cx,
 		cy - nStatusBarHeight - nTopBarHeight - nBottomBarHeight, SWP_NOZORDER);
+	
+	Window::endDeferWindowPos(hdwp);
 	
 #ifdef _WIN32_WCE_PSPC
 	int nWidth[] = {
