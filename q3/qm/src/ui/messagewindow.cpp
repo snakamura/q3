@@ -645,7 +645,7 @@ LRESULT qm::MessageWindow::onTimer(UINT nId)
 		if (mpl) {
 			Account* pAccount = mpl->getFolder()->getAccount();
 			pAccount->setMessagesFlags(MessageHolderList(1, mpl),
-				MessageHolder::FLAG_SEEN, MessageHolder::FLAG_SEEN);
+				MessageHolder::FLAG_SEEN, MessageHolder::FLAG_SEEN, 0);
 		}
 	}
 	return 0;

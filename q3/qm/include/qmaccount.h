@@ -43,6 +43,7 @@ class PasswordManager;
 class ProtocolDriver;
 class Security;
 class JunkFilter;
+class UndoItemList;
 
 
 /****************************************************************************
@@ -179,19 +180,23 @@ public:
 	bool appendMessage(NormalFolder* pFolder,
 					   const Message& msg,
 					   unsigned int nFlags,
+					   UndoItemList* pUndoItemList,
 					   MessagePtr* pptr);
 	bool removeMessages(const MessageHolderList& l,
 						Folder* pFolder,
 						bool bDirect,
-						MessageOperationCallback* pCallback);
+						MessageOperationCallback* pCallback,
+						UndoItemList* pUndoItemList);
 	bool copyMessages(const MessageHolderList& l,
 					  Folder* pFolderFrom,
 					  NormalFolder* pFolderTo,
 					  bool bMove,
-					  MessageOperationCallback* pCallback);
+					  MessageOperationCallback* pCallback,
+					  UndoItemList* pUndoItemList);
 	bool setMessagesFlags(const MessageHolderList& l,
 						  unsigned int nFlags,
-						  unsigned int nMask);
+						  unsigned int nMask,
+						  UndoItemList* pUndoItemList);
 	bool deleteMessagesCache(const MessageHolderList& l);
 	
 	bool isSeen(const MessageHolder* pmh) const;

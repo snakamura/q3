@@ -39,6 +39,7 @@ class Security;
 class SignatureManager;
 class JunkFilter;
 class TemplateManager;
+class UndoManager;
 class URI;
 
 
@@ -79,6 +80,7 @@ public:
 	AddressBook* getAddressBook() const;
 	const Security* getSecurity() const;
 	Recents* getRecents() const;
+	UndoManager* getUndoManager() const;
 	JunkFilter* getJunkFilter() const;
 	
 	bool isOffline() const;

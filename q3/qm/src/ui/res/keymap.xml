@@ -24,6 +24,9 @@
 		<action name="EditSelectAll">
 			<key key="A" ctrl="true"/>
 		</action>
+		<action name="EditUndo">
+			<key key="Z" ctrl="true"/>
+		</action>
 		<action name="FileExit">
 			<key key="X" alt="true"/>
 		</action>
@@ -303,6 +306,9 @@
 		</action>
 		<action name="EditSelectAll">
 			<key key="A" ctrl="true"/>
+		</action>
+		<action name="EditUndo">
+			<key key="Z" ctrl="true"/>
 		</action>
 		<action name="FileClose">
 			<key code="1b"/>

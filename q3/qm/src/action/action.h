@@ -49,6 +49,7 @@ class EditDeleteMessageAction;
 class EditFindAction;
 class EditPasteMessageAction;
 class EditSelectAllMessageAction;
+class EditUndoMessageAction;
 class FileCheckAction;
 class FileCloseAction;
 class FileCompactAction;
@@ -204,6 +205,7 @@ class TempFileCleaner;
 class Template;
 class TemplateMenu;
 class UIManager;
+class UndoManager;
 class View;
 class ViewModel;
 class ViewModelHolder;
@@ -753,6 +755,7 @@ public:
 							ViewModelHolder* pViewModelHolder,
 							bool bDirect,
 							bool bDontSelectNextIfDeletedFlag,
+							UndoManager* pUndoManager,
 							HWND hwnd,
 							qs::Profile* pProfile);
 	virtual ~EditDeleteMessageAction();
@@ -774,6 +777,7 @@ private:
 	ViewModelHolder* pViewModelHolder_;
 	bool bDirect_;
 	bool bDontSelectNextIfDeletedFlag_;
+	UndoManager* pUndoManager_;
 	HWND hwnd_;
 	bool bConfirm_;
 };
@@ -876,6 +880,33 @@ private:
 
 private:
 	MessageSelectionModel* pMessageSelectionModel_;
+};
+
+
+/****************************************************************************
+ *
+ * EditUndoMessageAction
+ *
+ */
+
+class EditUndoMessageAction : public qs::AbstractAction
+{
+public:
+	EditUndoMessageAction(Document* pDocument,
+						  HWND hwnd);
+	virtual ~EditUndoMessageAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	EditUndoMessageAction(const EditUndoMessageAction&);
+	EditUndoMessageAction& operator=(const EditUndoMessageAction&);
+
+private:
+	Document* pDocument_;
+	HWND hwnd_;
 };
 
 
@@ -1429,6 +1460,7 @@ class FolderEmptyAction : public qs::AbstractAction
 {
 public:
 	FolderEmptyAction(FolderSelectionModel* pFolderSelectionModel,
+					  UndoManager* pUndoManager,
 					  HWND hwnd,
 					  qs::Profile* pProfile);
 	virtual ~FolderEmptyAction();
@@ -1443,6 +1475,7 @@ private:
 
 private:
 	FolderSelectionModel* pFolderSelectionModel_;
+	UndoManager* pUndoManager_;
 	HWND hwnd_;
 	bool bConfirm_;
 };
@@ -1770,6 +1803,7 @@ class MessageCombineAction : public qs::AbstractAction
 public:
 	MessageCombineAction(MessageSelectionModel* pMessageSelectionModel,
 						 SecurityModel* pSecurityModel,
+						 UndoManager* pUndoManager,
 						 HWND hwnd);
 	virtual ~MessageCombineAction();
 
@@ -1791,6 +1825,7 @@ private:
 private:
 	MessageSelectionModel* pMessageSelectionModel_;
 	SecurityModel* pSecurityModel_;
+	UndoManager* pUndoManager_;
 	HWND hwnd_;
 };
 
@@ -1911,6 +1946,7 @@ class MessageDeleteAttachmentAction : public qs::AbstractAction
 public:
 	MessageDeleteAttachmentAction(MessageSelectionModel* pMessageSelectionModel,
 								  SecurityModel* pSecurityModel,
+								  UndoManager* pUndoManager,
 								  HWND hwnd);
 	virtual ~MessageDeleteAttachmentAction();
 
@@ -1924,7 +1960,8 @@ private:
 						  const MessageHolderList& l) const;
 	bool deleteAttachment(Account* pAccount,
 						  Folder* pFolder,
-						  MessageHolder* pmh) const;
+						  MessageHolder* pmh,
+						  UndoItemList* pUndoItemList) const;
 
 private:
 	MessageDeleteAttachmentAction(const MessageDeleteAttachmentAction&);
@@ -1933,6 +1970,7 @@ private:
 private:
 	MessageSelectionModel* pMessageSelectionModel_;
 	SecurityModel* pSecurityModel_;
+	UndoManager* pUndoManager_;
 	HWND hwnd_;
 };
 
@@ -1978,6 +2016,7 @@ class MessageExpandDigestAction : public qs::AbstractAction
 public:
 	MessageExpandDigestAction(MessageSelectionModel* pMessageSelectionModel,
 							  SecurityModel* pSecurityModel,
+							  UndoManager* pUndoManager,
 							  HWND hwnd);
 	virtual ~MessageExpandDigestAction();
 
@@ -1989,7 +2028,8 @@ private:
 	bool expandDigest(Account* pAccount,
 					  const MessageHolderList& l);
 	bool expandDigest(Account* pAccount,
-					  MessageHolder* pmh);
+					  MessageHolder* pmh,
+					  UndoItemList* pUndoItemList);
 
 private:
 	MessageExpandDigestAction(const MessageExpandDigestAction&);
@@ -1998,6 +2038,7 @@ private:
 private:
 	MessageSelectionModel* pMessageSelectionModel_;
 	SecurityModel* pSecurityModel_;
+	UndoManager* pUndoManager_;
 	HWND hwnd_;
 };
 
@@ -2045,6 +2086,7 @@ public:
 	MessageMarkAction(MessageSelectionModel* pModel,
 					  unsigned int nFlags,
 					  unsigned int nMask,
+					  UndoManager* pUndoManager,
 					  HWND hwnd);
 	virtual ~MessageMarkAction();
 
@@ -2060,6 +2102,7 @@ private:
 	MessageSelectionModel* pModel_;
 	unsigned int nFlags_;
 	unsigned int nMask_;
+	UndoManager* pUndoManager_;
 	HWND hwnd_;
 };
 
@@ -2078,6 +2121,7 @@ public:
 					  ViewModelHolder* pViewModelHolder,
 					  MoveMenu* pMoveMenu,
 					  bool bDontSelectNextIfDeletedFlag,
+					  UndoManager* pUndoManager,
 					  HWND hwnd);
 	virtual ~MessageMoveAction();
 
@@ -2095,6 +2139,7 @@ private:
 	ViewModelHolder* pViewModelHolder_;
 	MoveMenu* pMoveMenu_;
 	bool bDontSelectNextIfDeletedFlag_;
+	UndoManager* pUndoManager_;
 	HWND hwnd_;
 };
 
@@ -2113,6 +2158,7 @@ public:
 						   MessageModel* pMessageModel,
 						   ViewModelHolder* pViewModelHolder,
 						   bool bDontSelectNextIfDeletedFlag,
+						   UndoManager* pUndoManager,
 						   qs::Profile* pProfile,
 						   HWND hwnd);
 	virtual ~MessageMoveOtherAction();
@@ -2131,6 +2177,7 @@ private:
 	MessageModel* pMessageModel_;
 	ViewModelHolder* pViewModelHolder_;
 	bool bDontSelectNextIfDeletedFlag_;
+	UndoManager* pUndoManager_;
 	qs::Profile* pProfile_;
 	HWND hwnd_;
 };
@@ -2269,6 +2316,7 @@ class MessagePropertyAction : public qs::AbstractAction
 {
 public:
 	MessagePropertyAction(MessageSelectionModel* pMessageSelectionModel,
+						  UndoManager* pUndoManager,
 						  HWND hwnd);
 	virtual ~MessagePropertyAction();
 
@@ -2282,6 +2330,7 @@ private:
 
 private:
 	MessageSelectionModel* pMessageSelectionModel_;
+	UndoManager* pUndoManager_;
 	HWND hwnd_;
 };
 

@@ -433,7 +433,7 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 						mpl->setFlags(0, MessageHolder::FLAG_DELETED);
 						if (bDeleteLocal)
 							pAccount_->removeMessages(MessageHolderList(1, mpl),
-								pFolder_, false, 0);
+								pFolder_, false, 0, 0);
 					}
 				}
 			}

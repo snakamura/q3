@@ -25,6 +25,7 @@
 #include <tchar.h>
 
 #include "dataobject.h"
+#include "undo.h"
 #include "uri.h"
 #include "../util/util.h"
 
@@ -484,6 +485,7 @@ bool qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
 			if (pCallback)
 				pCallback->setCount(listMessagePtr.size());
 			
+			UndoItemList undo;
 			while (true) {
 				Account* pAccount = 0;
 				AccountLock lock;
@@ -507,12 +509,13 @@ bool qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
 				
 				assert(!l.empty());
 				
-				if (!pAccount->copyMessages(l, pFolderFrom, pFolderTo, flag == FLAG_MOVE, pCallback))
+				if (!pAccount->copyMessages(l, pFolderFrom, pFolderTo, flag == FLAG_MOVE, pCallback, &undo))
 					return false;
 				
 				if (pCallback && pCallback->isCanceled())
 					break;
 			}
+			pDocument->getUndoManager()->pushUndoItem(undo.getUndoItem());
 		}
 	}
 	

@@ -460,12 +460,12 @@ void qm::MainWindowImpl::initActions()
 	for (int n = 0; n < countof(deletes); ++n) {
 		std::auto_ptr<EditDeleteMessageAction> pEditDeleteMessageAction1(
 			new EditDeleteMessageAction(pMessageSelectionModel_.get(),
-				pPreviewModel_.get(), this, deletes[n].bDirect_,
-				true, pThis_->getHandle(), pProfile_));
+				pPreviewModel_.get(), this, deletes[n].bDirect_, true,
+				pDocument_->getUndoManager(), pThis_->getHandle(), pProfile_));
 		std::auto_ptr<EditDeleteMessageAction> pEditDeleteMessageAction2(
 			new EditDeleteMessageAction(pMessageSelectionModel_.get(),
-				pPreviewModel_.get(), this, deletes[n].bDirect_,
-				false, pThis_->getHandle(), pProfile_));
+				pPreviewModel_.get(), this, deletes[n].bDirect_, false,
+				pDocument_->getUndoManager(), pThis_->getHandle(), pProfile_));
 		Action* pEditDeleteMessageActions[] = {
 			0,
 			0,
@@ -534,6 +534,10 @@ void qm::MainWindowImpl::initActions()
 	pSelectAllMessageAction.release();
 	pSelectAllAction.release();
 	
+	ADD_ACTION2(EditUndoMessageAction,
+		IDM_EDIT_UNDO,
+		pDocument_,
+		pThis_->getHandle());
 	ADD_ACTION2(FileCheckAction,
 		IDM_FILE_CHECK,
 		pFolderModel_.get(),
@@ -611,9 +615,10 @@ void qm::MainWindowImpl::initActions()
 		pFolderModel_.get(),
 		this,
 		pThis_->getHandle());
-	ADD_ACTION3(FolderEmptyAction,
+	ADD_ACTION4(FolderEmptyAction,
 		IDM_FOLDER_EMPTY,
 		this,
+		pDocument_->getUndoManager(),
 		pThis_->getHandle(),
 		pProfile_);
 	ADD_ACTION6(FolderEmptyTrashAction,
@@ -705,15 +710,17 @@ void qm::MainWindowImpl::initActions()
 	ADD_ACTION1(MessageClearRecentsAction,
 		IDM_MESSAGE_CLEARRECENTS,
 		pDocument_->getRecents());
-	ADD_ACTION3(MessageCombineAction,
+	ADD_ACTION4(MessageCombineAction,
 		IDM_MESSAGE_COMBINE,
 		pMessageSelectionModel_.get(),
 		pSecurityModel_.get(),
+		pDocument_->getUndoManager(),
 		pThis_->getHandle());
-	ADD_ACTION3(MessageExpandDigestAction,
+	ADD_ACTION4(MessageExpandDigestAction,
 		IDM_MESSAGE_EXPANDDIGEST,
 		pMessageSelectionModel_.get(),
 		pSecurityModel_.get(),
+		pDocument_->getUndoManager(),
 		pThis_->getHandle());
 	
 	struct {
@@ -774,10 +781,11 @@ void qm::MainWindowImpl::initActions()
 		pThis_->getHandle(),
 		pFolderModel_.get(),
 		pSecurityModel_.get());
-	ADD_ACTION3(MessageDeleteAttachmentAction,
+	ADD_ACTION4(MessageDeleteAttachmentAction,
 		IDM_MESSAGE_DELETEATTACHMENT,
 		pMessageSelectionModel_.get(),
 		pSecurityModel_.get(),
+		pDocument_->getUndoManager(),
 		pThis_->getHandle());
 	ADD_ACTION4(MessageDetachAction,
 		IDM_MESSAGE_DETACH,
@@ -829,11 +837,12 @@ void qm::MainWindowImpl::initActions()
 		{ IDM_MESSAGE_UNMARKSEEN,			0,									MessageHolder::FLAG_SEEN			},
 	};
 	for (int n = 0; n < countof(marks); ++n) {
-		ADD_ACTION4(MessageMarkAction,
+		ADD_ACTION5(MessageMarkAction,
 			marks[n].nId_,
 			pMessageSelectionModel_.get(),
 			marks[n].nFlags_,
 			marks[n].nMask_,
+			pDocument_->getUndoManager(),
 			pThis_->getHandle());
 	}
 	
@@ -856,11 +865,11 @@ void qm::MainWindowImpl::initActions()
 	}
 	
 	std::auto_ptr<MessageMoveAction> pMessageMoveAction1(new MessageMoveAction(
-		pMessageSelectionModel_.get(), pPreviewModel_.get(),
-		this, pMoveMenu_.get(), true, pThis_->getHandle()));
+		pMessageSelectionModel_.get(), pPreviewModel_.get(), this, pMoveMenu_.get(),
+		true, pDocument_->getUndoManager(), pThis_->getHandle()));
 	std::auto_ptr<MessageMoveAction> pMessageMoveAction2(new MessageMoveAction(
-		pMessageSelectionModel_.get(), pPreviewModel_.get(),
-		this, pMoveMenu_.get(), false, pThis_->getHandle()));
+		pMessageSelectionModel_.get(), pPreviewModel_.get(), this, pMoveMenu_.get(),
+		pDocument_->getUndoManager(), false, pThis_->getHandle()));
 	Action* pMessageMoveActions[] = {
 		0,
 		0,
@@ -879,10 +888,12 @@ void qm::MainWindowImpl::initActions()
 	
 	std::auto_ptr<MessageMoveOtherAction> pMessageMoveOtherAction1(
 		new MessageMoveOtherAction(pDocument_, pMessageSelectionModel_.get(),
-			pPreviewModel_.get(), this, true, pProfile_, pThis_->getHandle()));
+			pPreviewModel_.get(), this, true, pDocument_->getUndoManager(),
+			pProfile_, pThis_->getHandle()));
 	std::auto_ptr<MessageMoveOtherAction> pMessageMoveOtherAction2(
 		new MessageMoveOtherAction(pDocument_, pMessageSelectionModel_.get(),
-			pPreviewModel_.get(), this, false, pProfile_, pThis_->getHandle()));
+			pPreviewModel_.get(), this, false, pDocument_->getUndoManager(),
+			pProfile_, pThis_->getHandle()));
 	Action* pMessageMoveOtherActions[] = {
 		0,
 		0,
@@ -920,9 +931,10 @@ void qm::MainWindowImpl::initActions()
 		pThis_->getHandle(),
 		pProfile_,
 		false);
-	ADD_ACTION2(MessagePropertyAction,
+	ADD_ACTION3(MessagePropertyAction,
 		IDM_MESSAGE_PROPERTY,
 		pMessageSelectionModel_.get(),
+		pDocument_->getUndoManager(),
 		pThis_->getHandle());
 	ADD_ACTION5(MessageSearchAction,
 		IDM_MESSAGE_SEARCH,

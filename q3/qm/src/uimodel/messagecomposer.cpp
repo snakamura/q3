@@ -219,7 +219,7 @@ bool qm::MessageComposer::compose(Account* pAccount,
 	}
 	
 	if (!pAccount->appendMessage(static_cast<NormalFolder*>(pFolder), *pMessage,
-		MessageHolder::FLAG_SEEN | (bDraft_ ? MessageHolder::FLAG_DRAFT : 0), pptr))
+		MessageHolder::FLAG_SEEN | (bDraft_ ? MessageHolder::FLAG_DRAFT : 0), 0, pptr))
 		return false;
 	if (!pAccount->flushMessageStore() || !pFolder->saveMessageHolders())
 		return false;

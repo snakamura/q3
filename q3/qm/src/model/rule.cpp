@@ -24,6 +24,7 @@
 
 #include "rule.h"
 #include "templatemanager.h"
+#include "undo.h"
 
 #pragma warning(disable:4786)
 
@@ -192,6 +193,7 @@ bool qm::RuleManager::apply(Folder* pFolder,
 	pCallback->setRange(0, nMatch);
 	pCallback->setPos(0);
 	
+	UndoItemList undo;
 	int nMessage = 0;
 	for (RuleList::size_type m = 0; m < listRule.size(); ++m) {
 		if (pCallback->isCanceled())
@@ -201,7 +203,7 @@ bool qm::RuleManager::apply(Folder* pFolder,
 		if (!l.empty()) {
 			const Rule* pRule = listRule[m];
 			RuleContext context(l, pDocument, pAccount, pFolder,
-				hwnd, pProfile, &globalVariable, nSecurityMode);
+				hwnd, pProfile, &globalVariable, nSecurityMode, &undo);
 			if (!pRule->apply(context))
 				return false;
 			
@@ -209,6 +211,7 @@ bool qm::RuleManager::apply(Folder* pFolder,
 			pCallback->setPos(nMessage);
 		}
 	}
+	pDocument->getUndoManager()->pushUndoItem(undo.getUndoItem());
 	
 	return true;
 }
@@ -577,12 +580,13 @@ bool qm::CopyRuleAction::apply(const RuleContext& context) const
 			std::auto_ptr<Message> pMessage(MessageCreator().createMessage(
 				context.getDocument(), wstrValue.get(), wcslen(wstrValue.get())));
 			if (!pAccountTo->appendMessage(static_cast<NormalFolder*>(pFolderTo),
-				*pMessage, pmh->getFlags() & MessageHolder::FLAG_USER_MASK, 0))
+				*pMessage, pmh->getFlags() & MessageHolder::FLAG_USER_MASK,
+				context.getUndoItemList(), 0))
 				return false;
 			
 			if (bMove_) {
-				if (!context.getAccount()->removeMessages(
-					MessageHolderList(1, pmh), context.getFolder(), false, 0))
+				if (!context.getAccount()->removeMessages(MessageHolderList(1, pmh),
+					context.getFolder(), false, 0, context.getUndoItemList()))
 					return false;
 			}
 		}
@@ -591,7 +595,8 @@ bool qm::CopyRuleAction::apply(const RuleContext& context) const
 	}
 	else {
 		return context.getAccount()->copyMessages(context.getMessageHolderList(),
-			context.getFolder(), static_cast<NormalFolder*>(pFolderTo), bMove_, 0);
+			context.getFolder(), static_cast<NormalFolder*>(pFolderTo),
+			bMove_, 0, context.getUndoItemList());
 	}
 }
 
@@ -662,8 +667,8 @@ RuleAction::Type qm::DeleteRuleAction::getType() const
 
 bool qm::DeleteRuleAction::apply(const RuleContext& context) const
 {
-	return context.getAccount()->removeMessages(
-		context.getMessageHolderList(), context.getFolder(), bDirect_, 0);
+	return context.getAccount()->removeMessages(context.getMessageHolderList(),
+		context.getFolder(), bDirect_, 0, context.getUndoItemList());
 }
 
 std::auto_ptr<RuleAction> qm::DeleteRuleAction::clone() const
@@ -772,7 +777,8 @@ qm::RuleContext::RuleContext(const MessageHolderList& l,
 							 HWND hwnd,
 							 Profile* pProfile,
 							 MacroVariableHolder* pGlobalVariable,
-							 unsigned int nSecurityMode) :
+							 unsigned int nSecurityMode,
+							 UndoItemList* pUndoItemList) :
 	listMessageHolder_(l),
 	pDocument_(pDocument),
 	pAccount_(pAccount),
@@ -780,7 +786,8 @@ qm::RuleContext::RuleContext(const MessageHolderList& l,
 	hwnd_(hwnd),
 	pProfile_(pProfile),
 	pGlobalVariable_(pGlobalVariable),
-	nSecurityMode_(nSecurityMode)
+	nSecurityMode_(nSecurityMode),
+	pUndoItemList_(pUndoItemList)
 {
 	assert(!l.empty());
 	assert(pDocument);
@@ -790,6 +797,7 @@ qm::RuleContext::RuleContext(const MessageHolderList& l,
 	assert(hwnd);
 	assert(pProfile);
 	assert(pGlobalVariable);
+	assert(pUndoItemList);
 }
 
 qm::RuleContext::~RuleContext()
@@ -834,6 +842,11 @@ MacroVariableHolder* qm::RuleContext::getGlobalVariable() const
 unsigned int qm::RuleContext::getSecurityMode() const
 {
 	return nSecurityMode_;
+}
+
+UndoItemList* qm::RuleContext::getUndoItemList() const
+{
+	return pUndoItemList_;
 }
 
 

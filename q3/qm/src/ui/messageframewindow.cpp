@@ -162,22 +162,24 @@ void qm::MessageFrameWindowImpl::initActions()
 		pMessageWindow_,
 		&MessageWindowItem::copy,
 		&MessageWindowItem::canCopy);
-	ADD_ACTION7(EditDeleteMessageAction,
+	ADD_ACTION8(EditDeleteMessageAction,
 		IDM_EDIT_DELETE,
 		this,
 		pMessageModel_.get(),
 		pMessageModel_.get(),
 		false,
 		false,
+		pDocument_->getUndoManager(),
 		pThis_->getHandle(),
 		pProfile_);
-	ADD_ACTION7(EditDeleteMessageAction,
+	ADD_ACTION8(EditDeleteMessageAction,
 		IDM_EDIT_DELETEDIRECT,
 		this,
 		pMessageModel_.get(),
 		pMessageModel_.get(),
 		true,
 		false,
+		pDocument_->getUndoManager(),
 		pThis_->getHandle(),
 		pProfile_);
 	ADD_ACTION3(EditFindAction,
@@ -200,6 +202,10 @@ void qm::MessageFrameWindowImpl::initActions()
 		pMessageWindow_,
 		&MessageWindowItem::selectAll,
 		&MessageWindowItem::canSelectAll);
+	ADD_ACTION2(EditUndoMessageAction,
+		IDM_EDIT_UNDO,
+		pDocument_,
+		pThis_->getHandle());
 	ADD_ACTION1(FileCloseAction,
 		IDM_FILE_CLOSE,
 		pThis_->getHandle());
@@ -285,10 +291,11 @@ void qm::MessageFrameWindowImpl::initActions()
 			pProfile_,
 			true);
 	}
-	ADD_ACTION3(MessageDeleteAttachmentAction,
+	ADD_ACTION4(MessageDeleteAttachmentAction,
 		IDM_MESSAGE_DELETEATTACHMENT,
 		this,
 		pSecurityModel_.get(),
+		pDocument_->getUndoManager(),
 		pThis_->getHandle());
 	ADD_ACTION4(MessageDetachAction,
 		IDM_MESSAGE_DETACH,
@@ -322,15 +329,16 @@ void qm::MessageFrameWindowImpl::initActions()
 		{ IDM_MESSAGE_UNMARKSEEN,			0,									MessageHolder::FLAG_SEEN			},
 	};
 	for (int n = 0; n < countof(marks); ++n) {
-		ADD_ACTION4(MessageMarkAction,
+		ADD_ACTION5(MessageMarkAction,
 			marks[n].nId_,
 			this,
 			marks[n].nFlags_,
 			marks[n].nMask_,
+			pDocument_->getUndoManager(),
 			pThis_->getHandle());
 	}
 	
-	ADD_ACTION_RANGE6(MessageMoveAction,
+	ADD_ACTION_RANGE7(MessageMoveAction,
 		IDM_MESSAGE_MOVE,
 		IDM_MESSAGE_MOVE + MoveMenu::MAX_FOLDER,
 		this,
@@ -338,23 +346,26 @@ void qm::MessageFrameWindowImpl::initActions()
 		pMessageModel_.get(),
 		pMoveMenu_.get(),
 		false,
+		pDocument_->getUndoManager(),
 		pThis_->getHandle());
-	ADD_ACTION7(MessageMoveOtherAction,
+	ADD_ACTION8(MessageMoveOtherAction,
 		IDM_MESSAGE_MOVEOTHER,
 		pDocument_,
 		this,
 		pMessageModel_.get(),
 		pMessageModel_.get(),
 		false,
+		pDocument_->getUndoManager(),
 		pProfile_,
 		pThis_->getHandle());
 	ADD_ACTION2(MessageOpenLinkAction,
 		IDM_MESSAGE_OPENLINK,
 		this,
 		pThis_->getHandle());
-	ADD_ACTION2(MessagePropertyAction,
+	ADD_ACTION3(MessagePropertyAction,
 		IDM_MESSAGE_PROPERTY,
 		this,
+		pDocument_->getUndoManager(),
 		pThis_->getHandle());
 	ADD_ACTION_RANGE4(ToolScriptAction,
 		IDM_TOOL_SCRIPT,

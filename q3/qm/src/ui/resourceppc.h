@@ -459,6 +459,7 @@
 #define IDS_ERROR_CREATEACCOUNT         10048
 #define IDS_ERROR_MOVEFOLDER            10049
 #define IDS_ERROR_SAVEADDRESSBOOK       10050
+#define IDS_ERROR_UNDO                  10051
 
 // Next default values for new objects
 // 

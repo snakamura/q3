@@ -388,7 +388,8 @@ public:
 				HWND hwnd,
 				qs::Profile* pProfile,
 				MacroVariableHolder* pGlobalVariable,
-				unsigned int nSecurityMode);
+				unsigned int nSecurityMode,
+				UndoItemList* pUndoItemList);
 	~RuleContext();
 
 public:
@@ -400,6 +401,7 @@ public:
 	qs::Profile* getProfile() const;
 	MacroVariableHolder* getGlobalVariable() const;
 	unsigned int getSecurityMode() const;
+	UndoItemList* getUndoItemList() const;
 
 private:
 	RuleContext(const RuleContext&);
@@ -414,6 +416,7 @@ private:
 	qs::Profile* pProfile_;
 	MacroVariableHolder* pGlobalVariable_;
 	unsigned int nSecurityMode_;
+	UndoItemList* pUndoItemList_;
 };
 
 

@@ -29,6 +29,7 @@
 #include "account.h"
 #include "messageindex.h"
 #include "messagestore.h"
+#include "undo.h"
 #include "../junk/junk.h"
 #include "../util/confighelper.h"
 
@@ -74,20 +75,24 @@ public:
 					   const Message& msgHeader,
 					   unsigned int nFlags,
 					   unsigned int nSize,
+					   UndoItemList* pUndoItemList,
 					   MessagePtr* pptr);
 	bool removeMessages(NormalFolder* pFolder,
 						const MessageHolderList& l,
 						bool bDirect,
-						MessageOperationCallback* pCallback);
+						MessageOperationCallback* pCallback,
+						UndoItemList* pUndoItemList);
 	bool copyMessages(NormalFolder* pFolderFrom,
 					  NormalFolder* pFolderTo,
 					  const MessageHolderList& l,
 					  bool bMove,
-					  MessageOperationCallback* pCallback);
+					  MessageOperationCallback* pCallback,
+					  UndoItemList* pUndoItemList);
 	bool setMessagesFlags(NormalFolder* pFolder,
 						  const MessageHolderList& l,
 						  unsigned int nFlags,
-						  unsigned int nMask);
+						  unsigned int nMask,
+						  UndoItemList* pUndoItemList);
 	
 	bool getDataList(MessageStore::DataList* pList) const;
 	
@@ -418,7 +423,7 @@ bool qm::AccountImpl::getMessage(MessageHolder* pmh,
 		!pmh->isFlag(MessageHolder::FLAG_SEEN)) {
 		MessageHolderList l(1, pmh);
 		if (!setMessagesFlags(pmh->getFolder(), l,
-			MessageHolder::FLAG_SEEN, MessageHolder::FLAG_SEEN))
+			MessageHolder::FLAG_SEEN, MessageHolder::FLAG_SEEN, 0))
 			return false;
 	}
 	
@@ -431,6 +436,7 @@ bool qm::AccountImpl::appendMessage(NormalFolder* pFolder,
 									const Message& msgHeader,
 									unsigned int nFlags,
 									unsigned int nSize,
+									UndoItemList* pUndoItemList,
 									MessagePtr* pptr)
 {
 	assert(pFolder);
@@ -439,6 +445,7 @@ bool qm::AccountImpl::appendMessage(NormalFolder* pFolder,
 	
 	Lock<Account> lock(*pThis_);
 	
+	std::auto_ptr<UndoItem> pUndoItem;
 	if (pFolder->isFlag(Folder::FLAG_LOCAL)) {
 		MessageHolder* pmh = pThis_->storeMessage(pFolder,
 			pszMessage, nLen, &msgHeader, -1, nFlags, nSize, false);
@@ -446,11 +453,15 @@ bool qm::AccountImpl::appendMessage(NormalFolder* pFolder,
 			return false;
 		if (pptr)
 			*pptr = MessagePtr(pmh);
+		if (pUndoItemList)
+			pUndoItem.reset(new DeleteUndoItem(MessageHolderList(1, pmh)));
 	}
 	else {
 		if (!pProtocolDriver_->appendMessage(pFolder, pszMessage, nLen, nFlags))
 			return false;
 	}
+	if (pUndoItemList)
+		pUndoItemList->add(pUndoItem);
 	
 	return true;
 }
@@ -458,7 +469,8 @@ bool qm::AccountImpl::appendMessage(NormalFolder* pFolder,
 bool qm::AccountImpl::removeMessages(NormalFolder* pFolder,
 									 const MessageHolderList& l,
 									 bool bDirect,
-									 MessageOperationCallback* pCallback)
+									 MessageOperationCallback* pCallback,
+									 UndoItemList* pUndoItemList)
 {
 	assert(pFolder);
 	assert(pThis_->isLocked());
@@ -484,7 +496,7 @@ bool qm::AccountImpl::removeMessages(NormalFolder* pFolder,
 			pThis_->getFolderByBoxFlag(Folder::FLAG_TRASHBOX));
 	
 	if (pTrash) {
-		if (!copyMessages(pFolder, pTrash, l, true, pCallback))
+		if (!copyMessages(pFolder, pTrash, l, true, pCallback, pUndoItemList))
 			return false;
 	}
 	else {
@@ -505,6 +517,8 @@ bool qm::AccountImpl::removeMessages(NormalFolder* pFolder,
 			if (pCallback)
 				pCallback->step(l.size());
 		}
+		if (pUndoItemList)
+			pUndoItemList->add(std::auto_ptr<UndoItem>());
 	}
 	
 	return true;
@@ -514,7 +528,8 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 								   NormalFolder* pFolderTo,
 								   const MessageHolderList& l,
 								   bool bMove,
-								   MessageOperationCallback* pCallback)
+								   MessageOperationCallback* pCallback,
+								   UndoItemList* pUndoItemList)
 {
 	assert(pFolderFrom);
 	assert(pFolderTo);
@@ -556,7 +571,7 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 				0, SECURITYMODE_NONE, &msg))
 				return false;
 			if (!pAccountTo->appendMessage(pFolderTo, msg,
-				pmh->getFlags() & MessageHolder::FLAG_USER_MASK, 0))
+				pmh->getFlags() & MessageHolder::FLAG_USER_MASK, pUndoItemList, 0))
 				return false;
 			
 			if (pCallback) {
@@ -566,20 +581,25 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 			}
 		}
 		if (bMove) {
-			if (!removeMessages(pFolderFrom, l, true, 0))
+			if (!removeMessages(pFolderFrom, l, true, 0, pUndoItemList))
 				return false;
 		}
 	}
 	else {
+		std::auto_ptr<UndoItem> pUndoItem;
 		if (pFolderFrom->isFlag(Folder::FLAG_LOCAL)) {
 			assert(bMove);
 			if (!pFolderFrom->moveMessages(l, pFolderTo))
 				return false;
+			if (pUndoItemList)
+				pUndoItem.reset(new MoveUndoItem(l, pFolderFrom));
 		}
 		else {
 			if (!pProtocolDriver_->copyMessages(l, pFolderFrom, pFolderTo, bMove))
 				return false;
 		}
+		if (pUndoItemList)
+			pUndoItemList->add(pUndoItem);
 		
 		if (pCallback)
 			pCallback->step(l.size());
@@ -608,7 +628,8 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 bool qm::AccountImpl::setMessagesFlags(NormalFolder* pFolder,
 									   const MessageHolderList& l,
 									   unsigned int nFlags,
-									   unsigned int nMask)
+									   unsigned int nMask,
+									   UndoItemList* pUndoItemList)
 {
 	assert(pFolder);
 	assert(pThis_->isLocked());
@@ -624,14 +645,24 @@ bool qm::AccountImpl::setMessagesFlags(NormalFolder* pFolder,
 	if (l.empty())
 		return true;
 	
+	std::auto_ptr<SetFlagsUndoItem> pUndoItem;
 	if (pFolder->isFlag(Folder::FLAG_LOCAL)) {
-		for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it)
-			(*it)->setFlags(nFlags, nMask);
+		if (pUndoItemList)
+			pUndoItem.reset(new SetFlagsUndoItem());
+		for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			MessageHolder* pmh = *it;
+			unsigned int nOldFlags = pmh->getFlags();
+			pmh->setFlags(nFlags, nMask);
+			if (pUndoItem.get())
+				pUndoItem->add(pmh, nOldFlags, nMask);
+		}
 	}
 	else {
 		if (!pProtocolDriver_->setMessagesFlags(pFolder, l, nFlags, nMask))
 			return false;
 	}
+	if (pUndoItemList)
+		pUndoItemList->add(pUndoItem);
 	
 	return true;
 }
@@ -1689,7 +1720,7 @@ bool qm::Account::salvage(NormalFolder* pFolder,
 		virtual bool salvage(const Message& msg)
 		{
 			Account* pAccount = pFolder_->getAccount();
-			return pAccount->appendMessage(pFolder_, msg, 0, 0);
+			return pAccount->appendMessage(pFolder_, msg, 0, 0, 0);
 		}
 	
 	private:
@@ -1918,12 +1949,13 @@ bool qm::Account::importMessage(NormalFolder* pFolder,
 	if (field != Part::FIELD_NOTEXIST)
 		header.removeField(L"X-QMAIL-Flags");
 	
-	return pImpl_->appendMessage(pFolder, pszMessage, nLen, header, nMessageFlags, -1, 0);
+	return pImpl_->appendMessage(pFolder, pszMessage, nLen, header, nMessageFlags, -1, 0, 0);
 }
 
 bool qm::Account::appendMessage(NormalFolder* pFolder,
 								const Message& msg,
 								unsigned int nFlags,
+								UndoItemList* pUndoItemList,
 								MessagePtr* pptr)
 {
 	assert(pFolder);
@@ -1932,14 +1964,16 @@ bool qm::Account::appendMessage(NormalFolder* pFolder,
 	xstring_size_ptr strMessage(msg.getContent());
 	if (!strMessage.get())
 		return false;
+	
 	return pImpl_->appendMessage(pFolder, strMessage.get(),
-		strMessage.size(), msg, nFlags, -1, pptr);
+		strMessage.size(), msg, nFlags, -1, pUndoItemList, pptr);
 }
 
 bool qm::Account::removeMessages(const MessageHolderList& l,
 								 Folder* pFolder,
 								 bool bDirect,
-								 MessageOperationCallback* pCallback)
+								 MessageOperationCallback* pCallback,
+								 UndoItemList* pUndoItemList)
 {
 	assert(isLocked());
 	
@@ -1947,23 +1981,26 @@ bool qm::Account::removeMessages(const MessageHolderList& l,
 	{
 		CallByFolderCallbackImpl(AccountImpl* pImpl,
 								 bool bDirect,
-								 MessageOperationCallback* pCallback) :
+								 MessageOperationCallback* pCallback,
+								 UndoItemList* pUndoItemList) :
 			pImpl_(pImpl),
 			bDirect_(bDirect),
-			pCallback_(pCallback)
+			pCallback_(pCallback),
+			pUndoItemList_(pUndoItemList)
 		{
 		}
 		
 		virtual bool callback(NormalFolder* pFolder,
 							  const MessageHolderList& l)
 		{
-			return pImpl_->removeMessages(pFolder, l, bDirect_, pCallback_);
+			return pImpl_->removeMessages(pFolder, l, bDirect_, pCallback_, pUndoItemList_);
 		}
 		
 		AccountImpl* pImpl_;
 		bool bDirect_;
 		MessageOperationCallback* pCallback_;
-	} callback(pImpl_, bDirect, pCallback);
+		UndoItemList* pUndoItemList_;
+	} callback(pImpl_, bDirect, pCallback, pUndoItemList);
 	
 	if (!AccountImpl::callByFolder(l, &callback))
 		return false;
@@ -1978,7 +2015,8 @@ bool qm::Account::copyMessages(const MessageHolderList& l,
 							   Folder* pFolderFrom,
 							   NormalFolder* pFolderTo,
 							   bool bMove,
-							   MessageOperationCallback* pCallback)
+							   MessageOperationCallback* pCallback,
+							   UndoItemList* pUndoItemList)
 {
 	assert(pFolderTo);
 	assert(isLocked());
@@ -1988,25 +2026,29 @@ bool qm::Account::copyMessages(const MessageHolderList& l,
 		CallByFolderCallbackImpl(AccountImpl* pImpl,
 								 NormalFolder* pFolderTo,
 								 bool bMove,
-								 MessageOperationCallback* pCallback) :
+								 MessageOperationCallback* pCallback,
+								 UndoItemList* pUndoItemList) :
 			pImpl_(pImpl),
 			pFolderTo_(pFolderTo),
 			bMove_(bMove),
-			pCallback_(pCallback)
+			pCallback_(pCallback),
+			pUndoItemList_(pUndoItemList)
 		{
 		}
 		
 		virtual bool callback(NormalFolder* pFolder,
 							  const MessageHolderList& l)
 		{
-			return pImpl_->copyMessages(pFolder, pFolderTo_, l, bMove_, pCallback_);
+			return pImpl_->copyMessages(pFolder, pFolderTo_,
+				l, bMove_, pCallback_, pUndoItemList_);
 		}
 		
 		AccountImpl* pImpl_;
 		NormalFolder* pFolderTo_;
 		bool bMove_;
 		MessageOperationCallback* pCallback_;
-	} callback(pImpl_, pFolderTo, bMove, pCallback);
+		UndoItemList* pUndoItemList_;
+	} callback(pImpl_, pFolderTo, bMove, pCallback, pUndoItemList);
 	
 	if (!AccountImpl::callByFolder(l, &callback))
 		return false;
@@ -2019,7 +2061,8 @@ bool qm::Account::copyMessages(const MessageHolderList& l,
 
 bool qm::Account::setMessagesFlags(const MessageHolderList& l,
 								   unsigned int nFlags,
-								   unsigned int nMask)
+								   unsigned int nMask,
+								   UndoItemList* pUndoItemList)
 {
 	assert(isLocked());
 	
@@ -2027,23 +2070,26 @@ bool qm::Account::setMessagesFlags(const MessageHolderList& l,
 	{
 		CallByFolderCallbackImpl(AccountImpl* pImpl,
 								 unsigned int nFlags,
-								 unsigned int nMask) :
+								 unsigned int nMask,
+								 UndoItemList* pUndoItemList) :
 			pImpl_(pImpl),
 			nFlags_(nFlags),
-			nMask_(nMask)
+			nMask_(nMask),
+			pUndoItemList_(pUndoItemList)
 		{
 		}
 		
 		virtual bool callback(NormalFolder* pFolder,
 							  const MessageHolderList& l)
 		{
-			return pImpl_->setMessagesFlags(pFolder, l, nFlags_, nMask_);
+			return pImpl_->setMessagesFlags(pFolder, l, nFlags_, nMask_, pUndoItemList_);
 		}
 		
 		AccountImpl* pImpl_;
 		unsigned int nFlags_;
 		unsigned int nMask_;
-	} callback(pImpl_, nFlags, nMask);
+		UndoItemList* pUndoItemList_;
+	} callback(pImpl_, nFlags, nMask, pUndoItemList);
 	
 	return AccountImpl::callByFolder(l, &callback);
 }

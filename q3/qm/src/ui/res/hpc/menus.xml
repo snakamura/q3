@@ -36,6 +36,8 @@
 			<menuitem text="&amp;Property..." action="FolderProperty"/>
 		</popupmenu>
 		<popupmenu text="&amp;Edit">
+			<menuitem text="&amp;Undo" action="EditUndo"/>
+			<separator/>
 			<menuitem text="Cu&amp;t" action="EditCut"/>
 			<menuitem text="&amp;Copy" action="EditCopy"/>
 			<menuitem text="&amp;Paste" action="EditPaste"/>
@@ -155,6 +157,8 @@
 			<menuitem text="&amp;Close" action="FileClose"/>
 		</popupmenu>
 		<popupmenu text="&amp;Edit">
+			<menuitem text="&amp;Undo" action="EditUndo"/>
+			<separator/>
 			<menuitem text="Cu&amp;t" action="EditCut"/>
 			<menuitem text="&amp;Copy" action="EditCopy"/>
 			<menuitem text="&amp;Paste" action="EditPaste"/>

@@ -31,8 +31,11 @@
 #include "rule.h"
 #include "signature.h"
 #include "templatemanager.h"
+#include "undo.h"
 #include "uri.h"
 #include "../script/scriptmanager.h"
+
+#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;
@@ -67,6 +70,7 @@ struct qm::DocumentImpl
 	std::auto_ptr<AddressBook> pAddressBook_;
 	std::auto_ptr<Security> pSecurity_;
 	std::auto_ptr<Recents> pRecents_;
+	std::auto_ptr<UndoManager> pUndoManager_;
 	std::auto_ptr<JunkFilter> pJunkFilter_;
 	unsigned int nOnline_;
 };
@@ -127,6 +131,7 @@ qm::Document::Document(Profile* pProfile,
 	pImpl_->pAddressBook_.reset(new AddressBook(app.getProfilePath(FileNames::ADDRESSBOOK_XML).get(), pProfile, true));
 	pImpl_->pSecurity_.reset(new Security(pwszMailFolder, pProfile));
 	pImpl_->pRecents_.reset(new Recents(this, pProfile));
+	pImpl_->pUndoManager_.reset(new UndoManager());
 	
 	JunkFilterFactory* pJunkFilterFactory = JunkFilterFactory::getFactory();
 	if (pJunkFilterFactory) {
@@ -441,6 +446,11 @@ const Security* qm::Document::getSecurity() const
 Recents* qm::Document::getRecents() const
 {
 	return pImpl_->pRecents_.get();
+}
+
+UndoManager* qm::Document::getUndoManager() const
+{
+	return pImpl_->pUndoManager_.get();
 }
 
 JunkFilter* qm::Document::getJunkFilter() const

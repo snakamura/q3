@@ -1952,6 +1952,7 @@ BEGIN
     IDS_ERROR_CREATEACCOUNT "Error occured while creating an account."
     IDS_ERROR_MOVEFOLDER    "Error occured while moving folder."
     IDS_ERROR_SAVEADDRESSBOOK "Could not save address book."
+    IDS_ERROR_UNDO          "Could not undo."
 END
 
 STRINGTABLE DISCARDABLE 

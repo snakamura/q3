@@ -23,6 +23,8 @@
 			<menuitem text="Exit" action="FileExit"/>
 		</popupmenu>
 		<popupmenu text="Edit">
+			<menuitem text="&amp;Undo" action="EditUndo"/>
+			<separator/>
 			<menuitem text="Cut" action="EditCut"/>
 			<menuitem text="Copy" action="EditCopy"/>
 			<menuitem text="Paste" action="EditPaste"/>
@@ -139,6 +141,8 @@
 			<menuitem text="Close" action="FileClose"/>
 		</popupmenu>
 		<popupmenu text="Edit">
+			<menuitem text="&amp;Undo" action="EditUndo"/>
+			<separator/>
 			<menuitem text="Cut" action="EditCut"/>
 			<menuitem text="Copy" action="EditCopy"/>
 			<menuitem text="Paste" action="EditPaste"/>

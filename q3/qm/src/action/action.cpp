@@ -49,6 +49,7 @@
 #include "../model/rule.h"
 #include "../model/tempfilecleaner.h"
 #include "../model/templatemanager.h"
+#include "../model/undo.h"
 #include "../model/uri.h"
 #include "../script/scriptmanager.h"
 #include "../sync/autopilot.h"
@@ -773,6 +774,7 @@ qm::EditDeleteMessageAction::EditDeleteMessageAction(MessageSelectionModel* pMes
 													 ViewModelHolder* pViewModelHolder,
 													 bool bDirect,
 													 bool bDontSelectNextIfDeletedFlag,
+													 UndoManager* pUndoManager,
 													 HWND hwnd,
 													 Profile* pProfile) :
 	pMessageSelectionModel_(pMessageSelectionModel),
@@ -780,6 +782,7 @@ qm::EditDeleteMessageAction::EditDeleteMessageAction(MessageSelectionModel* pMes
 	pViewModelHolder_(pViewModelHolder),
 	bDirect_(bDirect),
 	bDontSelectNextIfDeletedFlag_(bDontSelectNextIfDeletedFlag),
+	pUndoManager_(pUndoManager),
 	hwnd_(hwnd),
 	bConfirm_(false)
 {
@@ -822,10 +825,12 @@ void qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 	
 	ProgressDialogMessageOperationCallback callback(
 		hwnd_, IDS_DELETE, IDS_DELETE);
-	if (!pAccount->removeMessages(l, pFolder, bDirect_, &callback)) {
+	UndoItemList undo;
+	if (!pAccount->removeMessages(l, pFolder, bDirect_, &callback, &undo)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_DELETEMESSAGES);
 		return;
 	}
+	pUndoManager_->pushUndoItem(undo.getUndoItem());
 }
 
 bool qm::EditDeleteMessageAction::isEnabled(const ActionEvent& event)
@@ -1012,6 +1017,44 @@ void qm::EditSelectAllMessageAction::invoke(const ActionEvent& event)
 bool qm::EditSelectAllMessageAction::isEnabled(const ActionEvent& event)
 {
 	return pMessageSelectionModel_->canSelect();
+}
+
+
+/****************************************************************************
+ *
+ * EditUndoMessageAction
+ *
+ */
+
+qm::EditUndoMessageAction::EditUndoMessageAction(Document* pDocument,
+												 HWND hwnd) :
+	pDocument_(pDocument),
+	hwnd_(hwnd)
+{
+}
+
+qm::EditUndoMessageAction::~EditUndoMessageAction()
+{
+}
+
+void qm::EditUndoMessageAction::invoke(const ActionEvent& event)
+{
+	UndoManager* pUndoManager = pDocument_->getUndoManager();
+	std::auto_ptr<UndoItem> pUndoItem(pUndoManager->popUndoItem());
+	if (!pUndoItem.get())
+		return;
+	
+	std::auto_ptr<UndoExecutor> pExecutor(pUndoItem->getExecutor(pDocument_));
+	if (!pExecutor.get() || !pExecutor->execute()) {
+		ActionUtil::error(hwnd_, IDS_ERROR_UNDO);
+		return;
+	}
+}
+
+bool qm::EditUndoMessageAction::isEnabled(const ActionEvent& event)
+{
+	UndoManager* pUndoManager = pDocument_->getUndoManager();
+	return pUndoManager->hasUndoItem();
 }
 
 
@@ -2659,9 +2702,11 @@ bool qm::FolderDeleteAction::deleteFolder(Folder* pFolder) const
  */
 
 qm::FolderEmptyAction::FolderEmptyAction(FolderSelectionModel* pFolderSelectionModel,
+										 UndoManager* pUndoManager,
 										 HWND hwnd,
 										 Profile* pProfile) :
 	pFolderSelectionModel_(pFolderSelectionModel),
+	pUndoManager_(pUndoManager),
 	hwnd_(hwnd),
 	bConfirm_(true)
 {
@@ -2698,10 +2743,12 @@ void qm::FolderEmptyAction::invoke(const ActionEvent& event)
 			
 			MessageHolderList l(pFolder->getMessages());
 			if (!l.empty()) {
-				if (!pAccount->removeMessages(l, pFolder, false, 0)) {
+				UndoItemList undo;
+				if (!pAccount->removeMessages(l, pFolder, false, 0, &undo)) {
 					ActionUtil::error(hwnd_, IDS_ERROR_EMPTYFOLDER);
 					return;
 				}
+				pUndoManager_->pushUndoItem(undo.getUndoItem());
 			}
 		}
 	}
@@ -2822,7 +2869,7 @@ void qm::FolderEmptyTrashAction::emptyTrash(Account* pAccount,
 		if (!l.empty()) {
 			ProgressDialogMessageOperationCallback callback(
 				hwnd, IDS_EMPTYTRASH, IDS_EMPTYTRASH);
-			if (!pAccount->removeMessages(l, pTrash, false, &callback)) {
+			if (!pAccount->removeMessages(l, pTrash, true, &callback, 0)) {
 				ActionUtil::error(hwnd, IDS_ERROR_EMPTYTRASH);
 				return;
 			}
@@ -3337,9 +3384,11 @@ void qm::MessageClearRecentsAction::invoke(const ActionEvent& event)
 
 qm::MessageCombineAction::MessageCombineAction(MessageSelectionModel* pMessageSelectionModel,
 											   SecurityModel* pSecurityModel,
+											   UndoManager* pUndoManager,
 											   HWND hwnd) :
 	pMessageSelectionModel_(pMessageSelectionModel),
 	pSecurityModel_(pSecurityModel),
+	pUndoManager_(pUndoManager),
 	hwnd_(hwnd)
 {
 }
@@ -3363,12 +3412,15 @@ void qm::MessageCombineAction::invoke(const ActionEvent& event)
 		}
 		
 		// TODO
+		// Which folder should I put a new message?
 		NormalFolder* pFolder = l.front()->getFolder();
 		unsigned int nFlags = 0;
-		if (!pAccount->appendMessage(pFolder, msg, nFlags, 0)) {
+		UndoItemList undo;
+		if (!pAccount->appendMessage(pFolder, msg, nFlags, &undo, 0)) {
 			ActionUtil::error(hwnd_, IDS_ERROR_COMBINE);
 			return;
 		}
+		pUndoManager_->pushUndoItem(undo.getUndoItem());
 	}
 }
 
@@ -3635,9 +3687,11 @@ void qm::MessageCreateFromFileAction::invoke(const ActionEvent& event)
 
 qm::MessageDeleteAttachmentAction::MessageDeleteAttachmentAction(MessageSelectionModel* pMessageSelectionModel,
 																 SecurityModel* pSecurityModel,
+																 UndoManager* pUndoManager,
 																 HWND hwnd) :
 	pMessageSelectionModel_(pMessageSelectionModel),
 	pSecurityModel_(pSecurityModel),
+	pUndoManager_(pUndoManager),
 	hwnd_(hwnd)
 {
 }
@@ -3653,12 +3707,13 @@ void qm::MessageDeleteAttachmentAction::invoke(const ActionEvent& event)
 	MessageHolderList l;
 	pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
 	
-	if (!l.empty()) {
-		Account* pAccount = lock.get();
-		if (!deleteAttachment(pAccount, pFolder, l)) {
-			ActionUtil::error(hwnd_, IDS_ERROR_DELETEATTACHMENT);
-			return;
-		}
+	if (l.empty())
+		return;
+	
+	Account* pAccount = lock.get();
+	if (!deleteAttachment(pAccount, pFolder, l)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_DELETEATTACHMENT);
+		return;
 	}
 }
 
@@ -3671,16 +3726,20 @@ bool qm::MessageDeleteAttachmentAction::deleteAttachment(Account* pAccount,
 														 Folder* pFolder,
 														 const MessageHolderList& l) const
 {
+	UndoItemList undo;
 	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-		if (!deleteAttachment(pAccount, pFolder, *it))
+		if (!deleteAttachment(pAccount, pFolder, *it, &undo))
 			return false;
 	}
+	pUndoManager_->pushUndoItem(undo.getUndoItem());
+	
 	return true;
 }
 
 bool qm::MessageDeleteAttachmentAction::deleteAttachment(Account* pAccount,
 														 Folder* pFolder,
-														 MessageHolder* pmh) const
+														 MessageHolder* pmh,
+														 UndoItemList* pUndoItemList) const
 {
 	Message msg;
 	if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL,
@@ -3692,10 +3751,10 @@ bool qm::MessageDeleteAttachmentAction::deleteAttachment(Account* pAccount,
 	
 	NormalFolder* pNormalFolder = pmh->getFolder();
 	if (!pAccount->appendMessage(pNormalFolder, msg,
-		pmh->getFlags() & MessageHolder::FLAG_USER_MASK, 0))
+		pmh->getFlags() & MessageHolder::FLAG_USER_MASK, pUndoItemList, 0))
 		return false;
 	
-	if (!pAccount->removeMessages(MessageHolderList(1, pmh), pFolder, false, 0))
+	if (!pAccount->removeMessages(MessageHolderList(1, pmh), pFolder, false, 0, pUndoItemList))
 		return false;
 	
 	return true;
@@ -3750,9 +3809,11 @@ bool qm::MessageDetachAction::isEnabled(const ActionEvent& event)
 
 qm::MessageExpandDigestAction::MessageExpandDigestAction(MessageSelectionModel* pMessageSelectionModel,
 														 SecurityModel* pSecurityModel,
+														 UndoManager* pUndoManager,
 														 HWND hwnd) :
 	pMessageSelectionModel_(pMessageSelectionModel),
 	pSecurityModel_(pSecurityModel),
+	pUndoManager_(pUndoManager),
 	hwnd_(hwnd)
 {
 }
@@ -3767,12 +3828,13 @@ void qm::MessageExpandDigestAction::invoke(const ActionEvent& event)
 	MessageHolderList l;
 	pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
 	
-	if (!l.empty()) {
-		Account* pAccount = lock.get();
-		if (!expandDigest(pAccount, l)) {
-			ActionUtil::error(hwnd_, IDS_ERROR_EXPANDDIGEST);
-			return;
-		}
+	if (l.empty())
+		return;
+	
+	Account* pAccount = lock.get();
+	if (!expandDigest(pAccount, l)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_EXPANDDIGEST);
+		return;
 	}
 }
 
@@ -3784,15 +3846,19 @@ bool qm::MessageExpandDigestAction::isEnabled(const ActionEvent& event)
 bool qm::MessageExpandDigestAction::expandDigest(Account* pAccount,
 												 const MessageHolderList& l)
 {
+	UndoItemList undo;
 	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-		if (!expandDigest(pAccount, *it))
+		if (!expandDigest(pAccount, *it, &undo))
 			return false;
 	}
+	pUndoManager_->pushUndoItem(undo.getUndoItem());
+	
 	return true;
 }
 
 bool qm::MessageExpandDigestAction::expandDigest(Account* pAccount,
-												 MessageHolder* pmh)
+												 MessageHolder* pmh,
+												 UndoItemList* pUndoItemList)
 {
 	Message msg;
 	if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL,
@@ -3821,7 +3887,7 @@ bool qm::MessageExpandDigestAction::expandDigest(Account* pAccount,
 		// TODO
 		// Set flags?
 		unsigned int nFlags = 0;
-		if (!pAccount->appendMessage(pmh->getFolder(), **it, nFlags, 0))
+		if (!pAccount->appendMessage(pmh->getFolder(), **it, nFlags, pUndoItemList, 0))
 			return false;
 	}
 	
@@ -3883,10 +3949,12 @@ bool qm::MessageManageJunkAction::isEnabled(const ActionEvent& event)
 qm::MessageMarkAction::MessageMarkAction(MessageSelectionModel* pModel,
 										 unsigned int nFlags,
 										 unsigned int nMask,
+										 UndoManager* pUndoManager,
 										 HWND hwnd) :
 	pModel_(pModel),
 	nFlags_(nFlags),
 	nMask_(nMask),
+	pUndoManager_(pUndoManager),
 	hwnd_(hwnd)
 {
 }
@@ -3901,13 +3969,16 @@ void qm::MessageMarkAction::invoke(const ActionEvent& event)
 	MessageHolderList l;
 	pModel_->getSelectedMessages(&lock, 0, &l);
 	
-	if (!l.empty()) {
-		Account* pAccount = lock.get();
-		if (!pAccount->setMessagesFlags(l, nFlags_, nMask_)) {
-			ActionUtil::error(hwnd_, IDS_ERROR_MARKMESSAGE);
-			return;
-		}
+	if (l.empty())
+		return;
+	
+	Account* pAccount = lock.get();
+	UndoItemList undo;
+	if (!pAccount->setMessagesFlags(l, nFlags_, nMask_, &undo)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_MARKMESSAGE);
+		return;
 	}
+	pUndoManager_->pushUndoItem(undo.getUndoItem());
 }
 
 bool qm::MessageMarkAction::isEnabled(const ActionEvent& event)
@@ -3927,12 +3998,14 @@ qm::MessageMoveAction::MessageMoveAction(MessageSelectionModel* pMessageSelectio
 										 ViewModelHolder* pViewModelHolder,
 										 MoveMenu* pMoveMenu,
 										 bool bDontSelectNextIfDeletedFlag,
+										 UndoManager* pUndoManager,
 										 HWND hwnd) :
 	pMessageSelectionModel_(pMessageSelectionModel),
 	pMessageModel_(pMessageModel),
 	pViewModelHolder_(pViewModelHolder),
 	pMoveMenu_(pMoveMenu),
 	bDontSelectNextIfDeletedFlag_(bDontSelectNextIfDeletedFlag),
+	pUndoManager_(pUndoManager),
 	hwnd_(hwnd)
 {
 }
@@ -3976,11 +4049,13 @@ void qm::MessageMoveAction::invoke(const ActionEvent& event)
 	}
 	
 	UINT nId = bMove ? IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
+	UndoItemList undo;
 	ProgressDialogMessageOperationCallback callback(hwnd_, nId, nId);
-	if (!pAccount->copyMessages(l, pFolderFrom, pFolderTo, bMove, &callback)) {
+	if (!pAccount->copyMessages(l, pFolderFrom, pFolderTo, bMove, &callback, &undo)) {
 		ActionUtil::error(hwnd_, bMove ? IDS_ERROR_MOVEMESSAGE : IDS_ERROR_COPYMESSAGE);
 		return;
 	}
+	pUndoManager_->pushUndoItem(undo.getUndoItem());
 }
 
 bool qm::MessageMoveAction::isEnabled(const ActionEvent& event)
@@ -4000,6 +4075,7 @@ qm::MessageMoveOtherAction::MessageMoveOtherAction(Document* pDocument,
 												   MessageModel* pMessageModel,
 												   ViewModelHolder* pViewModelHolder,
 												   bool bDontSelectNextIfDeletedFlag,
+												   UndoManager* pUndoManager,
 												   Profile* pProfile,
 												   HWND hwnd) :
 	pDocument_(pDocument),
@@ -4007,6 +4083,7 @@ qm::MessageMoveOtherAction::MessageMoveOtherAction(Document* pDocument,
 	pMessageModel_(pMessageModel),
 	pViewModelHolder_(pViewModelHolder),
 	bDontSelectNextIfDeletedFlag_(bDontSelectNextIfDeletedFlag),
+	pUndoManager_(pUndoManager),
 	pProfile_(pProfile),
 	hwnd_(hwnd)
 {
@@ -4057,10 +4134,12 @@ void qm::MessageMoveOtherAction::invoke(const ActionEvent& event)
 	
 	UINT nId = bMove ? IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
 	ProgressDialogMessageOperationCallback callback(hwnd_, nId, nId);
-	if (!pAccount->copyMessages(l, pFolderFrom, pFolderTo, bMove, &callback)) {
+	UndoItemList undo;
+	if (!pAccount->copyMessages(l, pFolderFrom, pFolderTo, bMove, &callback, &undo)) {
 		ActionUtil::error(hwnd_, bMove ? IDS_ERROR_MOVEMESSAGE : IDS_ERROR_COPYMESSAGE);
 		return;
 	}
+	pUndoManager_->pushUndoItem(undo.getUndoItem());
 }
 
 bool qm::MessageMoveOtherAction::isEnabled(const ActionEvent& event)
@@ -4274,8 +4353,10 @@ void qm::MessageOpenURLAction::invoke(const ActionEvent& event)
  */
 
 qm::MessagePropertyAction::MessagePropertyAction(MessageSelectionModel* pMessageSelectionModel,
+												 UndoManager* pUndoManager,
 												 HWND hwnd) :
 	pMessageSelectionModel_(pMessageSelectionModel),
+	pUndoManager_(pUndoManager),
 	hwnd_(hwnd)
 {
 }
@@ -4299,12 +4380,15 @@ void qm::MessagePropertyAction::invoke(const ActionEvent& event)
 	PropertySheetBase sheet(hInst, wstrTitle.get(), false);
 	sheet.add(&page);
 	
-	if (sheet.doModal(hwnd_) == IDOK) {
-		if (!pAccount->setMessagesFlags(l, page.getFlags(), page.getMask())) {
-			ActionUtil::error(hwnd_, IDS_ERROR_SETFLAGS);
-			return;
-		}
+	if (sheet.doModal(hwnd_) != IDOK)
+		return;
+	
+	UndoItemList undo;
+	if (!pAccount->setMessagesFlags(l, page.getFlags(), page.getMask(), &undo)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_SETFLAGS);
+		return;
 	}
+	pUndoManager_->pushUndoItem(undo.getUndoItem());
 }
 
 bool qm::MessagePropertyAction::isEnabled(const ActionEvent& event)
