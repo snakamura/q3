@@ -95,7 +95,7 @@ std::auto_ptr<NormalFolder> qmimap4::Imap4Driver::createFolder(const WCHAR* pwsz
 	
 	wstring_ptr wstrRootFolder(pAccount_->getProperty(L"Imap4", L"RootFolder", L""));
 	
-	if (!prepareSessionCache())
+	if (!prepareSessionCache(false))
 		return std::auto_ptr<NormalFolder>(0);
 	
 	SessionCacher cacher(pSessionCache_.get(), 0);
@@ -195,7 +195,7 @@ bool qmimap4::Imap4Driver::removeFolder(NormalFolder* pFolder)
 	
 	Lock<CriticalSection> lock(cs_);
 	
-	if (!prepareSessionCache())
+	if (!prepareSessionCache(true))
 		return false;
 	
 	SessionCacher cacher(pSessionCache_.get(), 0);
@@ -221,7 +221,7 @@ bool qmimap4::Imap4Driver::renameFolder(NormalFolder* pFolder,
 	
 	Lock<CriticalSection> lock(cs_);
 	
-	if (!prepareSessionCache())
+	if (!prepareSessionCache(true))
 		return false;
 	
 	SessionCacher cacher(pSessionCache_.get(), 0);
@@ -252,7 +252,7 @@ bool qmimap4::Imap4Driver::moveFolder(NormalFolder* pFolder,
 	
 	Lock<CriticalSection> lock(cs_);
 	
-	if (!prepareSessionCache())
+	if (!prepareSessionCache(true))
 		return false;
 	
 	SessionCacher cacher(pSessionCache_.get(), 0);
@@ -338,7 +338,7 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 	
 	int nOption = pSubAccount_->getProperty(L"Imap4", L"Option", 0xff);
 	
-	if (!prepareSessionCache())
+	if (!prepareSessionCache(false))
 		return false;
 	
 	SessionCacher cacher(pSessionCache_.get(), pmh->getFolder());
@@ -656,7 +656,7 @@ bool qmimap4::Imap4Driver::setMessagesFlags(NormalFolder* pFolder,
 		
 		Lock<CriticalSection> lock(cs_);
 		
-		if (!prepareSessionCache())
+		if (!prepareSessionCache(false))
 			return false;
 		
 		SessionCacher cacher(pSessionCache_.get(), pFolder);
@@ -696,7 +696,7 @@ bool qmimap4::Imap4Driver::appendMessage(NormalFolder* pFolder,
 	else {
 		Lock<CriticalSection> lock(cs_);
 		
-		if (!prepareSessionCache())
+		if (!prepareSessionCache(false))
 			return false;
 		
 		SessionCacher cacher(pSessionCache_.get(), 0);
@@ -806,7 +806,7 @@ bool qmimap4::Imap4Driver::copyMessages(const MessageHolderList& l,
 		
 		Lock<CriticalSection> lock(cs_);
 		
-		if (!prepareSessionCache())
+		if (!prepareSessionCache(false))
 			return false;
 		
 		SessionCacher cacher(pSessionCache_.get(), pFolderFrom);
@@ -848,7 +848,7 @@ bool qmimap4::Imap4Driver::search(NormalFolder* pFolder,
 	if (!bOffline_) {
 		Lock<CriticalSection> lock(cs_);
 		
-		if (!prepareSessionCache())
+		if (!prepareSessionCache(false))
 			return false;
 		
 		SessionCacher cacher(pSessionCache_.get(), pFolder);
@@ -896,8 +896,11 @@ bool qmimap4::Imap4Driver::search(NormalFolder* pFolder,
 	return true;
 }
 
-bool qmimap4::Imap4Driver::prepareSessionCache()
+bool qmimap4::Imap4Driver::prepareSessionCache(bool bDisconnect)
 {
+	if (bDisconnect)
+		pSessionCache_.reset(0);
+	
 	if (!pSessionCache_.get()) {
 		pCallback_.reset(new CallbackImpl(pSubAccount_, pPasswordCallback_, pSecurity_));
 		

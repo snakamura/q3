@@ -90,7 +90,7 @@ public:
 				qm::MessageHolderList* pList);
 
 private:
-	bool prepareSessionCache();
+	bool prepareSessionCache(bool bClear);
 	bool setFlags(Imap4* pImap4,
 				  const Range& range,
 				  qm::NormalFolder* pFolder,
