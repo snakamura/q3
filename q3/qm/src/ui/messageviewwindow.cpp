@@ -105,8 +105,10 @@ bool qm::MessageViewWindowFactory::create(HWND hwnd)
 #else
 	DWORD dwExStyle = WS_EX_CLIENTEDGE;
 #endif
-	return pText_->create(L"QmTextMessageViewWindow", 0,
-		WS_CHILD, 0, 0, 500, 500, hwnd, dwExStyle, 0, 1002, 0);
+	RECT rect;
+	Window(hwnd).getClientRect(&rect);
+	return pText_->create(L"QmTextMessageViewWindow", 0, WS_CHILD,
+		0, 0, rect.right, rect.bottom, hwnd, dwExStyle, 0, 1002, 0);
 }
 
 MessageViewWindow* qm::MessageViewWindowFactory::getMessageViewWindow(const ContentTypeParser* pContentType)
@@ -166,8 +168,10 @@ bool qm::MessageViewWindowFactory::createHtmlView()
 #else
 	const WCHAR* pwszId = L"Shell.Explorer";
 #endif
+	RECT rect;
+	Window(hwnd).getClientRect(&rect);
 	if (!pHtml->create(L"QmHtmlMessageViewWindow", pwszId, WS_CHILD,
-		0, 0, 500, 500, hwnd, WS_EX_CLIENTEDGE, 0, 1003, 0))
+		0, 0, rect.right, rect.bottom, hwnd, WS_EX_CLIENTEDGE, 0, 1003, 0))
 		return false;
 	pHtml_ = pHtml.release();
 	
