@@ -56,6 +56,10 @@ public:
 		ID_COMMANDBARMENU		= 1005,
 		ID_COMMANDBARBUTTON		= 1006
 	};
+	
+	enum {
+		WM_ADDRESSBOOKFRAMEWINDOW_CLOSE	= WM_APP + 1601
+	};
 
 public:
 	void initActions();
@@ -233,14 +237,39 @@ qm::AddressBookFrameWindow::~AddressBookFrameWindow()
 	delete pImpl_;
 }
 
-AddressBookModel* qm::AddressBookFrameWindow::getModel() const
-{
-	return pImpl_->pAddressBookModel_.get();
-}
-
 void qm::AddressBookFrameWindow::initialShow()
 {
 	showWindow(pImpl_->nInitialShow_);
+}
+
+bool qm::AddressBookFrameWindow::tryClose(bool bAsync)
+{
+	if (pImpl_->pAddressBookModel_->isModified()) {
+		HINSTANCE hInst = Application::getApplication().getResourceHandle();
+		HWND hwnd = getHandle();
+		
+		int nMsg = messageBox(hInst, IDS_CONFIRM_SAVEADDRESSBOOK,
+			MB_YESNOCANCEL | MB_ICONQUESTION, hwnd);
+		switch (nMsg) {
+		case IDYES:
+			if (!pImpl_->pAddressBookModel_->save()) {
+				messageBox(hInst, IDS_ERROR_SAVEADDRESSBOOK, MB_OK | MB_ICONERROR, hwnd);
+				return false;
+			}
+			break;
+		case IDNO:
+			break;
+		case IDCANCEL:
+			return false;
+		}
+	}
+	
+	if (!bAsync)
+		pImpl_->pManager_->close(this);
+	else
+		postMessage(AddressBookFrameWindowImpl::WM_ADDRESSBOOKFRAMEWINDOW_CLOSE);
+	
+	return true;
 }
 
 bool qm::AddressBookFrameWindow::isShowToolbar() const
@@ -378,6 +407,7 @@ LRESULT qm::AddressBookFrameWindow::windowProc(UINT uMsg,
 		HANDLE_CREATE()
 		HANDLE_DESTROY()
 		HANDLE_SIZE()
+		HANDLE_MESSAGE(AddressBookFrameWindowImpl::WM_ADDRESSBOOKFRAMEWINDOW_CLOSE, onAddressBookFrameWindowClose)
 	END_MESSAGE_HANDLER()
 	return FrameWindow::windowProc(uMsg, wParam, lParam);
 }
@@ -396,27 +426,8 @@ LRESULT qm::AddressBookFrameWindow::onActivate(UINT nFlags,
 
 LRESULT qm::AddressBookFrameWindow::onClose()
 {
-	if (pImpl_->pAddressBookModel_->isModified()) {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		HWND hwnd = getHandle();
-		
-		int nMsg = messageBox(hInst, IDS_CONFIRM_SAVEADDRESSBOOK,
-			MB_YESNOCANCEL | MB_ICONQUESTION, hwnd);
-		switch (nMsg) {
-		case IDYES:
-			if (!pImpl_->pAddressBookModel_->save()) {
-				messageBox(hInst, IDS_ERROR_SAVEADDRESSBOOK, MB_OK | MB_ICONERROR, hwnd);
-				return 0;
-			}
-			break;
-		case IDNO:
-			break;
-		case IDCANCEL:
-			return 0;
-		}
-	}
+	tryClose(false);
 	
-	pImpl_->pManager_->close();
 	return 0;
 }
 
@@ -503,6 +514,13 @@ LRESULT qm::AddressBookFrameWindow::onSize(UINT nFlags,
 	return FrameWindow::onSize(nFlags, cx, cy);
 }
 
+LRESULT qm::AddressBookFrameWindow::onAddressBookFrameWindowClose(WPARAM wParam,
+																  LPARAM lParam)
+{
+	pImpl_->pManager_->close(this);
+	return 0;
+}
+
 
 /****************************************************************************
  *
@@ -517,7 +535,9 @@ qm::AddressBookFrameWindowManager::AddressBookFrameWindowManager(AddressBook* pA
 	pUIManager_(pUIManager),
 	pProfile_(pProfile),
 	pSynchronizer_(InitThread::getInitThread().getSynchronizer()),
-	pFrameWindow_(0)
+	pThread_(0),
+	pFrameWindow_(0),
+	bClosing_(false)
 {
 }
 
@@ -528,6 +548,9 @@ qm::AddressBookFrameWindowManager::~AddressBookFrameWindowManager()
 void qm::AddressBookFrameWindowManager::open()
 {
 	Lock<CriticalSection> lock(cs_);
+	
+	if (bClosing_)
+		return;
 	
 	if (pFrameWindow_) {
 		pFrameWindow_->setForegroundWindow();
@@ -540,17 +563,62 @@ void qm::AddressBookFrameWindowManager::open()
 		pFrameWindow_ = pThread->create();
 		if (!pFrameWindow_)
 			return;
-		pThread.release();
+		pThread_ = pThread.release();
 	}
 }
 
-void qm::AddressBookFrameWindowManager::close()
+bool qm::AddressBookFrameWindowManager::closeAll()
+{
+	Thread* pThread = 0;
+	{
+		Lock<CriticalSection> lock(cs_);
+		
+		assert(!bClosing_);
+		
+		if (!pFrameWindow_)
+			return true;
+		
+		pThread = pThread_;
+		
+		bClosing_ = true;
+		
+		struct RunnableImpl : public Runnable
+		{
+			RunnableImpl(AddressBookFrameWindow* pFrameWindow) :
+				pFrameWindow_(pFrameWindow)
+			{
+			}
+			
+			virtual void run()
+			{
+				pFrameWindow_->setForegroundWindow();
+				b_ = pFrameWindow_->tryClose(true);
+			}
+			
+			AddressBookFrameWindow* pFrameWindow_;
+			bool b_;
+		} runnable(pFrameWindow_);
+		pFrameWindow_->getInitThread()->getSynchronizer()->syncExec(&runnable);
+		if (!runnable.b_) {
+			bClosing_ = false;
+			return false;
+		}
+	}
+	
+	pThread->join();
+	
+	return true;
+}
+
+void qm::AddressBookFrameWindowManager::close(AddressBookFrameWindow* pFrameWindow)
 {
 	Lock<CriticalSection> lock(cs_);
 	
-	assert(pFrameWindow_);
+	assert(pFrameWindow_ == pFrameWindow);
 	
-	pFrameWindow_->destroyWindow();
+	pFrameWindow->destroyWindow();
+	
+	pThread_ = 0;
 	pFrameWindow_ = 0;
 }
 
@@ -1163,7 +1231,7 @@ AddressBookFrameWindow* qm::AddressBookThread::create()
 
 void qm::AddressBookThread::run()
 {
-	InitThread init(0);
+	InitThread init(InitThread::FLAG_SYNCHRONIZER);
 	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	wstring_ptr wstrTitle(loadString(hInst, IDS_ADDRESSBOOK));

@@ -44,9 +44,10 @@ public:
 
 public:
 	void open();
+	bool closeAll();
 
 public:
-	void close();
+	void close(AddressBookFrameWindow* pFrameWindow);
 
 public:
 	virtual void saved(const AddressBookModelEvent& event);
@@ -60,7 +61,9 @@ private:
 	UIManager* pUIManager_;
 	qs::Profile* pProfile_;
 	qs::Synchronizer* pSynchronizer_;
+	qs::Thread* pThread_;
 	AddressBookFrameWindow* pFrameWindow_;
+	bool bClosing_;
 	qs::CriticalSection cs_;
 };
 

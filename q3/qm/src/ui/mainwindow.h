@@ -24,7 +24,6 @@ class ListContainerWindow;
 class SyncNotificationWindow;
 struct MainWindowCreateContext;
 
-class AddressBookFrameWindowManager;
 class AutoPilot;
 class Document;
 class FolderListWindow;
@@ -164,7 +163,6 @@ struct MainWindowCreateContext
 	GoRound* pGoRound_;
 	TempFileCleaner* pTempFileCleaner_;
 	AutoPilot* pAutoPilot_;
-	AddressBookFrameWindowManager* pAddressBookFrameWindowManager_;
 };
 
 

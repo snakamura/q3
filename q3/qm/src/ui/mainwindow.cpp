@@ -41,6 +41,7 @@
 #endif
 
 #include "actionid.h"
+#include "addressbookwindow.h"
 #include "editframewindow.h"
 #include "externaleditor.h"
 #include "foldercombobox.h"
@@ -255,7 +256,6 @@ public:
 	GoRound* pGoRound_;
 	TempFileCleaner* pTempFileCleaner_;
 	AutoPilot* pAutoPilot_;
-	AddressBookFrameWindowManager* pAddressBookFrameWindowManager_;
 	std::auto_ptr<Accelerator> pAccelerator_;
 	SplitterWindow* pFolderSplitterWindow_;
 	SplitterWindow* pListSplitterWindow_;
@@ -284,6 +284,7 @@ public:
 	MessageViewModeHolder* pMessageViewModeHolder_;
 	std::auto_ptr<MessageFrameWindowManager> pMessageFrameWindowManager_;
 	std::auto_ptr<EditFrameWindowManager> pEditFrameWindowManager_;
+	std::auto_ptr<AddressBookFrameWindowManager> pAddressBookFrameWindowManager_;
 	std::auto_ptr<ActionMap> pActionMap_;
 	std::auto_ptr<ActionInvoker> pActionInvoker_;
 	std::auto_ptr<FindReplaceManager> pFindReplaceManager_;
@@ -519,7 +520,7 @@ void qm::MainWindowImpl::initActions()
 		IDM_FILE_DUMP,
 		pFolderModel_.get(),
 		pThis_->getHandle());
-	ADD_ACTION8(FileExitAction,
+	ADD_ACTION9(FileExitAction,
 		IDM_FILE_EXIT,
 		pThis_->getHandle(),
 		pDocument_,
@@ -527,6 +528,7 @@ void qm::MainWindowImpl::initActions()
 		pSyncDialogManager_,
 		pTempFileCleaner_,
 		pEditFrameWindowManager_.get(),
+		pAddressBookFrameWindowManager_.get(),
 		pFolderModel_.get(),
 		pProfile_);
 	ADD_ACTION6(FileExportAction,
@@ -906,7 +908,7 @@ void qm::MainWindowImpl::initActions()
 		pThis_->getHandle());
 	ADD_ACTION1(ToolAddressBookAction,
 		IDM_TOOL_ADDRESSBOOK,
-		pAddressBookFrameWindowManager_);
+		pAddressBookFrameWindowManager_.get());
 	ADD_ACTION1(ToolAutoPilotAction,
 		IDM_TOOL_AUTOPILOT,
 		pAutoPilot_);
@@ -1754,7 +1756,6 @@ qm::MainWindow::MainWindow(Profile* pProfile) :
 	pImpl_->pGoRound_ = 0;
 	pImpl_->pTempFileCleaner_ = 0;
 	pImpl_->pAutoPilot_ = 0;
-	pImpl_->pAddressBookFrameWindowManager_ = 0;
 	pImpl_->pFolderSplitterWindow_ = 0;
 	pImpl_->pListSplitterWindow_ = 0;
 	pImpl_->pFolderWindow_ = 0;
@@ -2138,7 +2139,6 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pGoRound_ = pContext->pGoRound_;
 	pImpl_->pTempFileCleaner_ = pContext->pTempFileCleaner_;
 	pImpl_->pAutoPilot_ = pContext->pAutoPilot_;
-	pImpl_->pAddressBookFrameWindowManager_ = pContext->pAddressBookFrameWindowManager_;
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pImpl_->pUIManager_->getKeyMap()->createAccelerator(
@@ -2163,6 +2163,8 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pDocument_, pImpl_->pUIManager_, pImpl_->pPasswordManager_,
 		pImpl_->pSyncManager_, pImpl_->pSyncDialogManager_,
 		pImpl_->pProfile_, pImpl_->pSecurityModel_.get()));
+	pImpl_->pAddressBookFrameWindowManager_.reset(new AddressBookFrameWindowManager(
+		pImpl_->pDocument_->getAddressBook(), pImpl_->pUIManager_, pImpl_->pProfile_));
 	pImpl_->pExternalEditorManager_.reset(new ExternalEditorManager(
 		pImpl_->pDocument_, pImpl_->pPasswordManager_,
 		pImpl_->pProfile_, getHandle(), pImpl_->pTempFileCleaner_,

@@ -44,7 +44,6 @@
 #include "../model/tempfilecleaner.h"
 #include "../sync/autopilot.h"
 #include "../sync/syncmanager.h"
-#include "../ui/addressbookwindow.h"
 #include "../ui/dialogs.h"
 #include "../ui/mainwindow.h"
 #include "../ui/syncdialog.h"
@@ -134,7 +133,6 @@ public:
 	std::auto_ptr<TempFileCleaner> pTempFileCleaner_;
 	std::auto_ptr<AutoPilotManager> pAutoPilotManager_;
 	std::auto_ptr<AutoPilot> pAutoPilot_;
-	std::auto_ptr<AddressBookFrameWindowManager> pAddressBookFrameWindowManager_;
 	std::auto_ptr<UIManager> pUIManager_;
 	MainWindow* pMainWindow_;
 	HINSTANCE hInstAtl_;
@@ -663,8 +661,6 @@ bool qm::Application::initialize()
 		pImpl_->pProfile_.get(), pImpl_->pDocument_.get(),
 		pImpl_->pGoRound_.get(), pImpl_->pSyncManager_.get(),
 		pImpl_->pSyncDialogManager_.get(), pImpl_));
-	pImpl_->pAddressBookFrameWindowManager_.reset(new AddressBookFrameWindowManager(
-		pImpl_->pDocument_->getAddressBook(), pImpl_->pUIManager_.get(), pImpl_->pProfile_.get()));
 	
 	std::auto_ptr<MainWindow> pMainWindow(new MainWindow(pImpl_->pProfile_.get()));
 #ifdef _WIN32_WCE
@@ -682,8 +678,7 @@ bool qm::Application::initialize()
 		pImpl_->pSyncDialogManager_.get(),
 		pImpl_->pGoRound_.get(),
 		pImpl_->pTempFileCleaner_.get(),
-		pImpl_->pAutoPilot_.get(),
-		pImpl_->pAddressBookFrameWindowManager_.get()
+		pImpl_->pAutoPilot_.get()
 	};
 	wstring_ptr wstrTitle(getVersion(L' ', false));
 	if (!pMainWindow->create(L"QmMainWindow", wstrTitle.get(), dwStyle,

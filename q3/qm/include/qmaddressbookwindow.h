@@ -42,8 +42,8 @@ public:
 	virtual ~AddressBookFrameWindow();
 
 public:
-	AddressBookModel* getModel() const;
 	void initialShow();
+	bool tryClose(bool bAsync);
 	
 	bool isShowToolbar() const;
 	void setShowToolbar(bool bShow);
@@ -83,6 +83,8 @@ protected:
 	LRESULT onSize(UINT nFlags,
 				   int cx,
 				   int cy);
+	LRESULT onAddressBookFrameWindowClose(WPARAM wParam,
+										  LPARAM lParam);
 
 private:
 	AddressBookFrameWindow(const AddressBookFrameWindow&);

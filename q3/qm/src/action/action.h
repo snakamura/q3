@@ -1007,6 +1007,7 @@ public:
 				   SyncDialogManager* pSyncDialogManager,
 				   TempFileCleaner* pTempFileCleaner,
 				   EditFrameWindowManager* pEditFrameWindowManager,
+				   AddressBookFrameWindowManager* pAddressBookFrameWindowManager,
 				   FolderModel* pFolderModel,
 				   qs::Profile* pProfile);
 	virtual ~FileExitAction();
@@ -1028,6 +1029,7 @@ private:
 	SyncDialogManager* pSyncDialogManager_;
 	TempFileCleaner* pTempFileCleaner_;
 	EditFrameWindowManager* pEditFrameWindowManager_;
+	AddressBookFrameWindowManager* pAddressBookFrameWindowManager_;
 	FolderModel* pFolderModel_;
 	qs::Profile* pProfile_;
 };

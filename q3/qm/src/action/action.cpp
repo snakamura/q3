@@ -1298,6 +1298,7 @@ qm::FileExitAction::FileExitAction(HWND hwnd,
 								   SyncDialogManager* pSyncDialogManager,
 								   TempFileCleaner* pTempFileCleaner,
 								   EditFrameWindowManager* pEditFrameWindowManager,
+								   AddressBookFrameWindowManager* pAddressBookFrameWindowManager,
 								   FolderModel* pFolderModel,
 								   Profile* pProfile) :
 	hwnd_(hwnd),
@@ -1306,6 +1307,7 @@ qm::FileExitAction::FileExitAction(HWND hwnd,
 	pSyncDialogManager_(pSyncDialogManager),
 	pTempFileCleaner_(pTempFileCleaner),
 	pEditFrameWindowManager_(pEditFrameWindowManager),
+	pAddressBookFrameWindowManager_(pAddressBookFrameWindowManager),
 	pFolderModel_(pFolderModel),
 	pProfile_(pProfile)
 {
@@ -1323,6 +1325,9 @@ bool qm::FileExitAction::exit(bool bDestroy)
 	}
 	
 	if (!pEditFrameWindowManager_->closeAll())
+		return false;
+	
+	if (!pAddressBookFrameWindowManager_->closeAll())
 		return false;
 	
 	bool bEmptyTrash = pProfile_->getInt(L"Global", L"EmptyTrashOnExit", 0) != 0;
