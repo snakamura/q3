@@ -343,17 +343,15 @@ void qm::MessageFrameWindowImpl::initActions()
 		&SecurityModel::isDecryptVerify,
 		&SecurityModel::setDecryptVerify,
 		Security::isEnabled());
-	ADD_ACTION4(ViewMessageModeAction,
+	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_HTMLMODE,
 		pMessageWindow_,
-		&MessageWindow::isHtmlMode,
-		&MessageWindow::setHtmlMode,
+		MessageWindow::MODE_HTML,
 		true);
-	ADD_ACTION4(ViewMessageModeAction,
+	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_HTMLONLINEMODE,
 		pMessageWindow_,
-		&MessageWindow::isHtmlOnlineMode,
-		&MessageWindow::setHtmlOnlineMode,
+		MessageWindow::MODE_HTMLONLINE,
 		true);
 	
 	struct {
@@ -375,18 +373,24 @@ void qm::MessageFrameWindowImpl::initActions()
 			navigates[n].type_);
 	}
 	
-	ADD_ACTION4(ViewMessageModeAction,
+	ADD_ACTION3(ViewMessageModeAction,
+		IDM_VIEW_QUOTEMODE,
+		pMessageWindow_,
+		MessageWindow::MODE_QUOTE,
+		true);
+	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_RAWMODE,
 		pMessageWindow_,
-		&MessageWindow::isRawMode,
-		&MessageWindow::setRawMode,
+		MessageWindow::MODE_RAW,
 		true);
 	ADD_ACTION1(ViewOpenLinkAction,
 		IDM_VIEW_OPENLINK,
 		pMessageWindow_);
-	ADD_ACTION1(ViewSelectModeAction,
+	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_SELECTMODE,
-		pMessageWindow_);
+		pMessageWindow_,
+		MessageWindow::MODE_SELECT,
+		true);
 	ADD_ACTION1(ViewShowHeaderAction,
 		IDM_VIEW_SHOWHEADER,
 		pMessageWindow_);

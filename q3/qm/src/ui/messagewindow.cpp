@@ -83,9 +83,6 @@ public:
 	MessageWindow* pThis_;
 	
 	bool bShowHeaderWindow_;
-	bool bRawMode_;
-	bool bHtmlMode_;
-	bool bHtmlOnlineMode_;
 	
 	Profile* pProfile_;
 	const WCHAR* pwszSection_;
@@ -100,9 +97,9 @@ public:
 	MessageModel* pMessageModel_;
 	std::auto_ptr<MessageViewWindowFactory> pFactory_;
 	
+	unsigned int nMode_;
 	wstring_ptr wstrEncoding_;
 	wstring_ptr wstrTemplate_;
-	bool bSelectMode_;
 	
 	HandlerList listHandler_;
 };
@@ -149,12 +146,15 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	Account* pAccount = pMessageModel_->getCurrentAccount();
 	assert(!pmh || pmh->getFolder()->getAccount() == pAccount);
 	
+	bool bRawMode = pThis_->isMode(MessageWindow::MODE_RAW);
+	bool bHtmlMode = pThis_->isMode(MessageWindow::MODE_HTML);
+	
 	Message msg;
 	if (pmh) {
 		unsigned int nFlags = Account::GETMESSAGEFLAG_MAKESEEN;
-		if (bRawMode_)
+		if (bRawMode)
 			nFlags |= Account::GETMESSAGEFLAG_ALL;
-		else if (bHtmlMode_)
+		else if (bHtmlMode)
 			nFlags |= Account::GETMESSAGEFLAG_HTML;
 		else
 			nFlags |= Account::GETMESSAGEFLAG_TEXT;
@@ -166,7 +166,7 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	
 	const ContentTypeParser* pContentType = 0;
 	MessageViewWindow* pMessageViewWindow = 0;
-	if (pmh && !bRawMode_ && bHtmlMode_ && !wstrTemplate_.get()) {
+	if (pmh && !bRawMode && bHtmlMode && !wstrTemplate_.get()) {
 		PartUtil util(msg);
 		PartUtil::ContentTypeList l;
 		util.getAlternativeContentTypes(&l);
@@ -190,7 +190,7 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 		if (pMessageViewWindow_)
 			pMessageViewWindow_->getWindow().showWindow(SW_HIDE);
 		pMessageViewWindow->getWindow().showWindow(SW_SHOW);
-		pMessageViewWindow->setSelectMode(bSelectMode_);
+		pMessageViewWindow->setSelectMode(pThis_->isMode(MessageWindow::MODE_SELECT));
 		pMessageViewWindow_ = pMessageViewWindow;
 		bLayout = true;
 	}
@@ -218,9 +218,9 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 		pTemplate = pDocument_->getTemplateManager()->getTemplate(
 			pAccount, pmh->getFolder(), wstrTemplate_.get());
 	
-	unsigned int nFlags = (bRawMode_ ? MessageViewWindow::FLAG_RAWMODE : 0) |
+	unsigned int nFlags = (bRawMode ? MessageViewWindow::FLAG_RAWMODE : 0) |
 		(!bShowHeaderWindow_ ? MessageViewWindow::FLAG_INCLUDEHEADER : 0) |
-		(bHtmlOnlineMode_ ? MessageViewWindow::FLAG_ONLINEMODE : 0) |
+		(pThis_->isMode(MessageWindow::MODE_HTMLONLINE) ? MessageViewWindow::FLAG_ONLINEMODE : 0) |
 		(pSecurityModel_->isDecryptVerify() ? MessageViewWindow::FLAG_DECRYPTVERIFY : 0);
 	if (!pMessageViewWindow->setMessage(pmh, pmh ? &msg : 0,
 		pTemplate, wstrEncoding_.get(), nFlags))
@@ -285,21 +285,28 @@ qm::MessageWindow::MessageWindow(MessageModel* pMessageModel,
 {
 	wstring_ptr wstrTemplate(pProfile->getString(pwszSection, L"Template", L""));
 	
+	unsigned int nMode = 0;
+	if (pProfile->getInt(pwszSection, L"HtmlMode", 0))
+		nMode |= MODE_HTML;
+	if (pProfile->getInt(pwszSection, L"HtmlOnlineMode", 0))
+		nMode |= MODE_HTMLONLINE;
+	if (pProfile->getInt(pwszSection, L"SelectMode", 0))
+		nMode |= MODE_SELECT;
+	if (pProfile->getInt(pwszSection, L"QuoteMode", 1))
+		nMode |= MODE_QUOTE;
+	
 	pImpl_ = new MessageWindowImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->bShowHeaderWindow_ = pProfile->getInt(pwszSection, L"ShowHeaderWindow", 1) != 0;
-	pImpl_->bRawMode_ = false;
-	pImpl_->bHtmlMode_ = pProfile->getInt(pwszSection, L"HtmlMode", 0) != 0;
-	pImpl_->bHtmlOnlineMode_ = pProfile->getInt(pwszSection, L"HtmlOnlineMode", 0) != 0;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pwszSection_ = pwszSection;
 	pImpl_->pDocument_ = 0;
 	pImpl_->pHeaderWindow_ = 0;
 	pImpl_->pMessageViewWindow_ = 0;
 	pImpl_->bCreated_ = false;
+	pImpl_->nMode_ = nMode;
 	pImpl_->pMessageModel_ = pMessageModel;
 	pImpl_->wstrTemplate_ = *wstrTemplate.get() ? wstrTemplate : 0;
-	pImpl_->bSelectMode_ = pProfile->getInt(pwszSection, L"SelectMode", 0) != 0;
 	
 	pImpl_->pMessageModel_->addMessageModelHandler(pImpl_);
 	
@@ -324,45 +331,39 @@ void qm::MessageWindow::setShowHeaderWindow(bool bShow)
 	}
 }
 
-bool qm::MessageWindow::isRawMode() const
+bool qm::MessageWindow::isMode(Mode mode) const
 {
-	return pImpl_->bRawMode_;
+	return (pImpl_->nMode_ & mode) != 0;
 }
 
-void qm::MessageWindow::setRawMode(bool bRawMode)
+void qm::MessageWindow::setMode(Mode mode,
+								bool b)
 {
-	if (bRawMode != pImpl_->bRawMode_) {
-		pImpl_->bRawMode_ = bRawMode;
-		MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
-		pImpl_->setMessage(mpl, false);
-	}
-}
-
-bool qm::MessageWindow::isHtmlMode() const
-{
-	return pImpl_->bHtmlMode_;
-}
-
-void qm::MessageWindow::setHtmlMode(bool bHtmlMode)
-{
-	if (bHtmlMode != pImpl_->bHtmlMode_) {
-		pImpl_->bHtmlMode_ = bHtmlMode;
-		MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
-		pImpl_->setMessage(mpl, false);
-	}
-}
-
-bool qm::MessageWindow::isHtmlOnlineMode() const
-{
-	return pImpl_->bHtmlOnlineMode_;
-}
-
-void qm::MessageWindow::setHtmlOnlineMode(bool bHtmlOnlineMode)
-{
-	if (bHtmlOnlineMode != pImpl_->bHtmlOnlineMode_) {
-		pImpl_->bHtmlOnlineMode_ = bHtmlOnlineMode;
-		MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
-		pImpl_->setMessage(mpl, false);
+	if (isMode(mode) == b)
+		return;
+	
+	if (b)
+		pImpl_->nMode_ |= mode;
+	else
+		pImpl_->nMode_ &= ~mode;
+	
+	switch (mode) {
+	case MODE_RAW:
+	case MODE_HTML:
+	case MODE_HTMLONLINE:
+		{
+			MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
+			pImpl_->setMessage(mpl, false);
+		}
+		break;
+	case MODE_SELECT:
+		pImpl_->pMessageViewWindow_->setSelectMode(b);
+		break;
+	case MODE_QUOTE:
+		pImpl_->pMessageViewWindow_->setQuoteMode(b);
+		break;
+	default:
+		break;
 	}
 }
 
@@ -411,19 +412,6 @@ bool qm::MessageWindow::scrollPage(bool bPrev)
 	return pImpl_->pMessageViewWindow_->scrollPage(bPrev);
 }
 
-bool qm::MessageWindow::isSelectMode() const
-{
-	return pImpl_->bSelectMode_;
-}
-
-void qm::MessageWindow::setSelectMode(bool bSelectMode)
-{
-	if (pImpl_->bSelectMode_ != bSelectMode) {
-		pImpl_->pMessageViewWindow_->setSelectMode(bSelectMode);
-		pImpl_->bSelectMode_ = bSelectMode;
-	}
-}
-
 bool qm::MessageWindow::find(const WCHAR* pwszFind,
 							 unsigned int nFlags)
 {
@@ -464,9 +452,10 @@ bool qm::MessageWindow::save()
 	Profile* pProfile = pImpl_->pProfile_;
 	
 	pProfile->setInt(pImpl_->pwszSection_, L"ShowHeaderWindow", pImpl_->bShowHeaderWindow_);
-	pProfile->setInt(pImpl_->pwszSection_, L"HtmlMode", pImpl_->bHtmlMode_);
-	pProfile->setInt(pImpl_->pwszSection_, L"HtmlOnlineMode", pImpl_->bHtmlOnlineMode_);
-	pProfile->setInt(pImpl_->pwszSection_, L"SelectMode", pImpl_->bSelectMode_);
+	pProfile->setInt(pImpl_->pwszSection_, L"HtmlMode", isMode(MessageWindow::MODE_HTML));
+	pProfile->setInt(pImpl_->pwszSection_, L"HtmlOnlineMode", isMode(MessageWindow::MODE_HTMLONLINE));
+	pProfile->setInt(pImpl_->pwszSection_, L"SelectMode", isMode(MessageWindow::MODE_SELECT));
+	pProfile->setInt(pImpl_->pwszSection_, L"QuoteMode", isMode(MessageWindow::MODE_QUOTE));
 	pProfile->setString(pImpl_->pwszSection_, L"Template",
 		pImpl_->wstrTemplate_.get() ? pImpl_->wstrTemplate_.get() : L"");
 	
@@ -540,7 +529,8 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (!pImpl_->pFactory_->create(getHandle()))
 		return -1;
 	pImpl_->pMessageViewWindow_ = pImpl_->pFactory_->getTextMessageViewWindow();
-	pImpl_->pMessageViewWindow_->setSelectMode(pImpl_->bSelectMode_);
+	pImpl_->pMessageViewWindow_->setSelectMode(isMode(MessageWindow::MODE_SELECT));
+	pImpl_->pMessageViewWindow_->setQuoteMode(isMode(MessageWindow::MODE_QUOTE));
 	pImpl_->layoutChildren();
 	pImpl_->pMessageViewWindow_->getWindow().showWindow(SW_SHOW);
 	

@@ -793,17 +793,15 @@ void qm::MainWindowImpl::initActions()
 		pViews,
 		countof(pViews),
 		false);
-	ADD_ACTION4(ViewMessageModeAction,
+	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_HTMLMODE,
 		pMessageWindow_,
-		&MessageWindow::isHtmlMode,
-		&MessageWindow::setHtmlMode,
+		MessageWindow::MODE_HTML,
 		true);
-	ADD_ACTION4(ViewMessageModeAction,
+	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_HTMLONLINEMODE,
 		pMessageWindow_,
-		&MessageWindow::isHtmlOnlineMode,
-		&MessageWindow::setHtmlOnlineMode,
+		MessageWindow::MODE_HTMLONLINE,
 		true);
 	
 	struct {
@@ -847,11 +845,15 @@ void qm::MainWindowImpl::initActions()
 			navigateMessages[n].type_);
 	}
 	
-	ADD_ACTION4(ViewMessageModeAction,
+	ADD_ACTION3(ViewMessageModeAction,
+		IDM_VIEW_QUOTEMODE,
+		pMessageWindow_,
+		MessageWindow::MODE_QUOTE,
+		true);
+	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_RAWMODE,
 		pMessageWindow_,
-		&MessageWindow::isRawMode,
-		&MessageWindow::setRawMode,
+		MessageWindow::MODE_RAW,
 		true);
 	ADD_ACTION7(ViewRefreshAction,
 		IDM_VIEW_REFRESH,
@@ -886,9 +888,11 @@ void qm::MainWindowImpl::initActions()
 		pViewModelManager_.get(),
 		pFolderModel_.get(),
 		pMessageSelectionModel_.get());
-	ADD_ACTION1(ViewSelectModeAction,
+	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_SELECTMODE,
-		pMessageWindow_);
+		pMessageWindow_,
+		MessageWindow::MODE_SELECT,
+		true);
 	ADD_ACTION1(ViewShowFolderAction,
 		IDM_VIEW_SHOWFOLDER,
 		pThis_);

@@ -129,6 +129,14 @@ public:
 		FIND_REGEX		= 0x02,
 		FIND_PREVIOUS	= 0x04
 	};
+	
+	enum Mode {
+		MODE_RAW			= 0x01,
+		MODE_HTML			= 0x02,
+		MODE_HTMLONLINE		= 0x04,
+		MODE_SELECT			= 0x08,
+		MODE_QUOTE			= 0x10
+	};
 
 public:
 	MessageWindow(MessageModel* pMessageModel,
@@ -139,19 +147,14 @@ public:
 public:
 	bool isShowHeaderWindow() const;
 	void setShowHeaderWindow(bool bShow);
-	bool isRawMode() const;
-	void setRawMode(bool bRawMode);
-	bool isHtmlMode() const;
-	void setHtmlMode(bool bHtmlMode);
-	bool isHtmlOnlineMode() const;
-	void setHtmlOnlineMode(bool bHtmlOnlineMode);
+	bool isMode(Mode mode) const;
+	void setMode(Mode mode,
+				 bool b);
 	const WCHAR* getEncoding() const;
 	void setEncoding(const WCHAR* pwszEncoding);
 	const WCHAR* getTemplate() const;
 	void setTemplate(const WCHAR* pwszTemplate);
 	bool scrollPage(bool bPrev);
-	bool isSelectMode() const;
-	void setSelectMode(bool bSelectMode);
 	bool find(const WCHAR* pwszFind,
 			  unsigned int nFlags);
 	unsigned int getSupportedFindFlags() const;

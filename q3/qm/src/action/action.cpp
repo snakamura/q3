@@ -4259,12 +4259,10 @@ void qm::ViewLockPreviewAction::invoke(const ActionEvent& event)
  */
 
 qm::ViewMessageModeAction::ViewMessageModeAction(MessageWindow* pMessageWindow,
-												 PFN_IS pfnIs,
-												 PFN_SET pfnSet,
+												 MessageWindow::Mode mode,
 												 bool bEnabled) :
 	pMessageWindow_(pMessageWindow),
-	pfnIs_(pfnIs),
-	pfnSet_(pfnSet),
+	mode_(mode),
 	bEnabled_(bEnabled)
 {
 }
@@ -4275,7 +4273,7 @@ qm::ViewMessageModeAction::~ViewMessageModeAction()
 
 void qm::ViewMessageModeAction::invoke(const ActionEvent& event)
 {
-	(pMessageWindow_->*pfnSet_)(!(pMessageWindow_->*pfnIs_)());
+	pMessageWindow_->setMode(mode_, !pMessageWindow_->isMode(mode_));
 }
 
 bool qm::ViewMessageModeAction::isEnabled(const ActionEvent& event)
@@ -4285,7 +4283,7 @@ bool qm::ViewMessageModeAction::isEnabled(const ActionEvent& event)
 
 bool qm::ViewMessageModeAction::isChecked(const ActionEvent& event)
 {
-	return (pMessageWindow_->*pfnIs_)();
+	return pMessageWindow_->isMode(mode_);
 }
 
 
@@ -4864,32 +4862,6 @@ void qm::ViewSelectMessageAction::invoke(const qs::ActionEvent& event)
 			}
 		}
 	}
-}
-
-
-/****************************************************************************
- *
- * ViewSelectModeAction
- *
- */
-
-qm::ViewSelectModeAction::ViewSelectModeAction(MessageWindow* pMessageWindow) :
-	pMessageWindow_(pMessageWindow)
-{
-}
-
-qm::ViewSelectModeAction::~ViewSelectModeAction()
-{
-}
-
-void qm::ViewSelectModeAction::invoke(const ActionEvent& event)
-{
-	pMessageWindow_->setSelectMode(!pMessageWindow_->isSelectMode());
-}
-
-bool qm::ViewSelectModeAction::isChecked(const ActionEvent& event)
-{
-	return pMessageWindow_->isSelectMode();
 }
 
 

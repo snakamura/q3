@@ -303,6 +303,11 @@ void qm::TextMessageViewWindow::setSelectMode(bool bSelectMode)
 	deselectAll();
 }
 
+void qm::TextMessageViewWindow::setQuoteMode(bool bQuoteMode)
+{
+	setLineQuote(bQuoteMode);
+}
+
 bool qm::TextMessageViewWindow::find(const WCHAR* pwszFind,
 									 unsigned int nFlags)
 {
@@ -667,6 +672,10 @@ bool qm::HtmlMessageViewWindow::scrollPage(bool bPrev)
 }
 
 void qm::HtmlMessageViewWindow::setSelectMode(bool bSelectMode)
+{
+}
+
+void qm::HtmlMessageViewWindow::setQuoteMode(bool bQuoteMode)
 {
 }
 

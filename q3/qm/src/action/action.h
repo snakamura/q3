@@ -11,6 +11,7 @@
 
 #include <qm.h>
 #include <qmaccount.h>
+#include <qmmessagewindow.h>
 
 #include <qsaction.h>
 #include <qsstream.h>
@@ -95,7 +96,6 @@ class ViewOpenLinkAction;
 class ViewRefreshAction;
 class ViewSecurityAction;
 class ViewScrollAction;
-class ViewSelectModeAction;
 class ViewSelectMessageAction;
 template<class WindowX> class ViewShowControlAction;
 	class ViewShowFolderAction;
@@ -2196,13 +2196,8 @@ private:
 class ViewMessageModeAction : public qs::AbstractAction
 {
 public:
-	typedef bool (MessageWindow::*PFN_IS)() const;
-	typedef void (MessageWindow::*PFN_SET)(bool);
-
-public:
 	ViewMessageModeAction(MessageWindow* pMessageWindow,
-						  PFN_IS pfnIs,
-						  PFN_SET pfnSet,
+						  MessageWindow::Mode mode,
 						  bool bEnabled);
 	virtual ~ViewMessageModeAction();
 
@@ -2217,8 +2212,7 @@ private:
 
 private:
 	MessageWindow* pMessageWindow_;
-	PFN_IS pfnIs_;
-	PFN_SET pfnSet_;
+	MessageWindow::Mode mode_;
 	bool bEnabled_;
 };
 
@@ -2479,31 +2473,6 @@ private:
 	ViewModelManager* pViewModelManager_;
 	FolderModel* pFolderModel_;
 	MessageSelectionModel* pMessageSelectionModel_;
-};
-
-
-/****************************************************************************
- *
- * ViewSelectModeAction
- *
- */
-
-class ViewSelectModeAction : public qs::AbstractAction
-{
-public:
-	explicit ViewSelectModeAction(MessageWindow* pMessageWindow);
-	virtual ~ViewSelectModeAction();
-
-public:
-	virtual void invoke(const qs::ActionEvent& event);
-	virtual bool isChecked(const qs::ActionEvent& event);
-
-private:
-	ViewSelectModeAction(const ViewSelectModeAction&);
-	ViewSelectModeAction& operator=(const ViewSelectModeAction&);
-
-private:
-	MessageWindow* pMessageWindow_;
 };
 
 

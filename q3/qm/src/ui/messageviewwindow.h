@@ -80,6 +80,7 @@ public:
 							unsigned int nFlags) = 0;
 	virtual bool scrollPage(bool bPrev) = 0;
 	virtual void setSelectMode(bool bSelectMode) = 0;
+	virtual void setQuoteMode(bool bQuoteMode) = 0;
 	virtual bool find(const WCHAR* pwszFind,
 					  unsigned int nFlags) = 0;
 	virtual unsigned int getSupportedFindFlags() const = 0;
@@ -185,6 +186,7 @@ public:
 							unsigned int nFlags);
 	virtual bool scrollPage(bool bPrev);
 	virtual void setSelectMode(bool bSelectMode);
+	virtual void setQuoteMode(bool bQuoteMode);
 	virtual bool find(const WCHAR* pwszFind,
 					  unsigned int nFlags);
 	virtual unsigned int getSupportedFindFlags() const;
@@ -249,6 +251,7 @@ public:
 							unsigned int nFlags);
 	virtual bool scrollPage(bool bPrev);
 	virtual void setSelectMode(bool bSelectMode);
+	virtual void setQuoteMode(bool bQuoteMode);
 	virtual bool find(const WCHAR* pwszFind,
 					  unsigned int nFlags);
 	virtual unsigned int getSupportedFindFlags() const;

@@ -41,8 +41,11 @@
 			<separator/>
 			<menuitem text="Refresh" action="ViewRefresh"/>
 			<separator/>
-			<menuitem text="Raw Mode" action="ViewRawMode"/>
-			<separator/>
+			<popupmenu text="&amp;Mode">
+				<menuitem text="Ra&amp;w Mode" action="ViewRawMode"/>
+				<menuitem text="&amp;Quote Mode" action="ViewQuoteMode"/>
+				<menuitem text="S&amp;MIME Mode" action="ViewDecryptVerifyMode"/>
+			</popupmenu>
 			<popupmenu text="Sort" action="ViewSort"/>
 			<popupmenu text="Filter" action="ViewFilter"/>
 			<popupmenu text="Template" action="ViewTemplate"/>
@@ -134,8 +137,11 @@
 			<menuitem text="Previous Message" action="ViewPrevMessage"/>
 			<menuitem text="Next Unseen Message" action="ViewNextUnseenMessage"/>
 			<separator/>
-			<menuitem text="Raw Mode" action="ViewRawMode"/>
-			<separator/>
+			<popupmenu text="&amp;Mode">
+				<menuitem text="Ra&amp;w Mode" action="ViewRawMode"/>
+				<menuitem text="&amp;Quote Mode" action="ViewQuoteMode"/>
+				<menuitem text="S&amp;MIME Mode" action="ViewDecryptVerifyMode"/>
+			</popupmenu>
 			<popupmenu text="Template" action="ViewTemplate"/>
 			<popupmenu text="Encoding" action="ViewEncoding"/>
 			<separator/>

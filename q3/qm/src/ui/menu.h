@@ -120,6 +120,7 @@ const qs::ActionItem menuItems[] = {
 	{ L"ViewOpenLink",				IDM_VIEW_OPENLINK				},
 	{ L"ViewPrevMessage",			IDM_VIEW_PREVMESSAGE			},
 	{ L"ViewPrevMessagePage",		IDM_VIEW_PREVMESSAGEPAGE		},
+	{ L"ViewQuoteMode",				IDM_VIEW_QUOTEMODE				},
 	{ L"ViewRawMode",				IDM_VIEW_RAWMODE				},
 	{ L"ViewRefresh",				IDM_VIEW_REFRESH				},
 	{ L"ViewSelectMessage",			IDM_VIEW_SELECTMESSAGE			},

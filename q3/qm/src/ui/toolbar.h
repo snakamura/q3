@@ -219,6 +219,7 @@ const qs::ActionItem toolbarItems[] = {
 	{ L"ViewPrevFolder",				IDM_VIEW_PREVFOLDER							},
 	{ L"ViewPrevMessage",				IDM_VIEW_PREVMESSAGE						},
 	{ L"ViewPrevMessagePage",			IDM_VIEW_PREVMESSAGEPAGE					},
+	{ L"ViewQuoteMode",					IDM_VIEW_QUOTEMODE							},
 	{ L"ViewRawMode",					IDM_VIEW_RAWMODE							},
 	{ L"ViewRefresh",					IDM_VIEW_REFRESH							},
 	{ L"ViewScrollBottom",				IDM_VIEW_SCROLLBOTTOM						},

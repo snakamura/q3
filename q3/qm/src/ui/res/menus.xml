@@ -55,11 +55,13 @@
 			<separator/>
 			<menuitem text="&amp;Refresh" action="ViewRefresh"/>
 			<separator/>
-			<menuitem text="Ra&amp;w Mode" action="ViewRawMode"/>
-			<menuitem text="&amp;HTML Mode" action="ViewHtmlMode"/>
-			<menuitem text="HTML &amp;Online Mode" action="ViewHtmlOnlineMode"/>
-			<menuitem text="S&amp;MIME Mode" action="ViewDecryptVerifyMode"/>
-			<separator/>
+			<popupmenu text="&amp;Mode">
+				<menuitem text="Ra&amp;w Mode" action="ViewRawMode"/>
+				<menuitem text="&amp;Quote Mode" action="ViewQuoteMode"/>
+				<menuitem text="&amp;HTML Mode" action="ViewHtmlMode"/>
+				<menuitem text="HTML &amp;Online Mode" action="ViewHtmlOnlineMode"/>
+				<menuitem text="S&amp;MIME Mode" action="ViewDecryptVerifyMode"/>
+			</popupmenu>
 			<popupmenu text="&amp;Sort" action="ViewSort"/>
 			<popupmenu text="&amp;Filter" action="ViewFilter"/>
 			<popupmenu text="&amp;Template" action="ViewTemplate"/>
@@ -151,11 +153,13 @@
 			<menuitem text="&amp;Previous Message" action="ViewPrevMessage"/>
 			<menuitem text="Next &amp;Unseen Message" action="ViewNextUnseenMessage"/>
 			<separator/>
-			<menuitem text="Ra&amp;w Mode" action="ViewRawMode"/>
-			<menuitem text="&amp;HTML Mode" action="ViewHtmlMode"/>
-			<menuitem text="HTML &amp;Online Mode" action="ViewHtmlOnlineMode"/>
-			<menuitem text="S&amp;MIME Mode" action="ViewDecryptVerifyMode"/>
-			<separator/>
+			<popupmenu text="&amp;Mode">
+				<menuitem text="Ra&amp;w Mode" action="ViewRawMode"/>
+				<menuitem text="&amp;Quote Mode" action="ViewQuoteMode"/>
+				<menuitem text="&amp;HTML Mode" action="ViewHtmlMode"/>
+				<menuitem text="HTML &amp;Online Mode" action="ViewHtmlOnlineMode"/>
+				<menuitem text="S&amp;MIME Mode" action="ViewDecryptVerifyMode"/>
+			</popupmenu>
 			<popupmenu text="&amp;Template" action="ViewTemplate"/>
 			<popupmenu text="&amp;Encoding" action="ViewEncoding"/>
 			<separator/>

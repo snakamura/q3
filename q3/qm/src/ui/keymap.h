@@ -225,6 +225,7 @@ const qs::KeyNameToId mapKeyNameToId[] = {
 	{ L"ViewPrevFolder",				IDM_VIEW_PREVFOLDER,					0 },
 	{ L"ViewPrevMessage",				IDM_VIEW_PREVMESSAGE,					0 },
 	{ L"ViewPrevMessagePage",			IDM_VIEW_PREVMESSAGEPAGE,				0 },
+	{ L"ViewQuoteMode",					IDM_VIEW_QUOTEMODE,						0 },
 	{ L"ViewRawMode",					IDM_VIEW_RAWMODE,						0 },
 	{ L"ViewRefresh",					IDM_VIEW_REFRESH,						0 },
 	{ L"ViewScrollBottom",				IDM_VIEW_SCROLLBOTTOM,					0 },
