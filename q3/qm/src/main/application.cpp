@@ -34,6 +34,7 @@
 #include "main.h"
 #ifndef DEPENDCHECK
 #	include "version.h"
+#	include "resources.h"
 #endif
 #include "../model/dataobject.h"
 #include "../model/tempfilecleaner.h"
@@ -76,6 +77,7 @@ public:
 		const WCHAR* pwszResourceType_;
 		const WCHAR* pwszResourceName_;
 		unsigned int nRevision_;
+		bool bOverwrite_;
 		ResourceState state_;
 	};
 
@@ -228,9 +230,11 @@ bool qm::ApplicationImpl::ensureResources(Resource* pResource,
 				if (::GetFileAttributes(ptszPath) != 0xffffffff) {
 					p->state_ = RS_EXISTPROFILE;
 					
-					wstring_ptr wstr(allocWString(wstrPath.get() + nMailFolderLen));
-					listResource.push_back(std::make_pair(wstr.get(), true));
-					wstr.release();
+					if (p->bOverwrite_) {
+						wstring_ptr wstr(allocWString(wstrPath.get() + nMailFolderLen));
+						listResource.push_back(std::make_pair(wstr.get(), true));
+						wstr.release();
+					}
 				}
 			}
 			if (p->state_ == RS_NOTEXIST) {
@@ -243,9 +247,11 @@ bool qm::ApplicationImpl::ensureResources(Resource* pResource,
 				if (::GetFileAttributes(ptszPath) != 0xffffffff) {
 					p->state_ = RS_EXIST;
 					
-					wstring_ptr wstr(allocWString(wstrPath.get() + nMailFolderLen));
-					listResource.push_back(std::make_pair(wstr.get(), true));
-					wstr.release();
+					if (p->bOverwrite_) {
+						wstring_ptr wstr(allocWString(wstrPath.get() + nMailFolderLen));
+						listResource.push_back(std::make_pair(wstr.get(), true));
+						wstr.release();
+					}
 				}
 			}
 		}
@@ -508,7 +514,7 @@ bool qm::Application::initialize()
 	wstring_ptr wstrTemplateDir(concat(
 		pImpl_->wstrMailFolder_.get(), L"\\templates"));
 	
-#define DECLARE_PROFILE(name, revision) \
+#define DECLARE_PROFILE(name, revision, overwrite) \
 	{ \
 		wstrProfileDir.get(), \
 		0, \
@@ -517,6 +523,7 @@ bool qm::Application::initialize()
 		L"PROFILE", \
 		name, \
 		revision, \
+		overwrite, \
 	} \
 
 #define DECLARE_TEMPLATE(classname, name, revision) \
@@ -528,31 +535,32 @@ bool qm::Application::initialize()
 		L"TEMPLATE", \
 		classname L"." name, \
 		revision, \
+		true, \
 	} \
 
 	ApplicationImpl::Resource resources[] = {
-		DECLARE_PROFILE(FileNames::COLORS_XML,		1000),
-		DECLARE_PROFILE(FileNames::HEADER_XML,		1000),
-		DECLARE_PROFILE(FileNames::HEADEREDIT_XML,	1000),
-		DECLARE_PROFILE(FileNames::KEYMAP_XML,		1000),
-		DECLARE_PROFILE(FileNames::MENUS_XML,		1000),
-		DECLARE_PROFILE(FileNames::TOOLBAR_BMP,		1000),
-		DECLARE_PROFILE(FileNames::TOOLBARS_XML,	1000),
-		DECLARE_PROFILE(FileNames::VIEWS_XML,		1000),
-		DECLARE_TEMPLATE(L"mail",	L"new",			1000),
-		DECLARE_TEMPLATE(L"mail",	L"reply",		1000),
-		DECLARE_TEMPLATE(L"mail",	L"reply_all",	1000),
-		DECLARE_TEMPLATE(L"mail",	L"forward",		1000),
-		DECLARE_TEMPLATE(L"mail",	L"edit",		1000),
-		DECLARE_TEMPLATE(L"mail",	L"url",			1000),
-		DECLARE_TEMPLATE(L"mail",	L"print",		1000),
-		DECLARE_TEMPLATE(L"news",	L"new",			1000),
-		DECLARE_TEMPLATE(L"news",	L"reply",		1000),
-		DECLARE_TEMPLATE(L"news",	L"reply_all",	1000),
-		DECLARE_TEMPLATE(L"news",	L"forward",		1000),
-		DECLARE_TEMPLATE(L"news",	L"edit",		1000),
-		DECLARE_TEMPLATE(L"news",	L"url",			1000),
-		DECLARE_TEMPLATE(L"news",	L"print",		1000),
+		DECLARE_PROFILE(FileNames::COLORS_XML,		COLORS_XML_REVISION,				false	),
+		DECLARE_PROFILE(FileNames::HEADER_XML,		HEADER_XML_REVISION,				true	),
+		DECLARE_PROFILE(FileNames::HEADEREDIT_XML,	HEADEREDIT_XML_REVISION,			true	),
+		DECLARE_PROFILE(FileNames::KEYMAP_XML,		KEYMAP_XML_REVISION,				true	),
+		DECLARE_PROFILE(FileNames::MENUS_XML,		MENUS_XML_REVISION,					true	),
+		DECLARE_PROFILE(FileNames::TOOLBAR_BMP,		TOOLBAR_BMP_REVISION,				true	),
+		DECLARE_PROFILE(FileNames::TOOLBARS_XML,	TOOLBARS_XML_REVISION,				true	),
+		DECLARE_PROFILE(FileNames::VIEWS_XML,		VIEWS_XML_REVISION,					false	),
+		DECLARE_TEMPLATE(L"mail",	L"new",			MAIL_NEW_TEMPLATE_REVISION,					),
+		DECLARE_TEMPLATE(L"mail",	L"reply",		MAIL_REPLY_TEMPLATE_REVISION,				),
+		DECLARE_TEMPLATE(L"mail",	L"reply_all",	MAIL_REPLY_ALL_TEMPLATE_REVISION,			),
+		DECLARE_TEMPLATE(L"mail",	L"forward",		MAIL_FORWARD_TEMPLATE_REVISION,				),
+		DECLARE_TEMPLATE(L"mail",	L"edit",		MAIL_EDIT_TEMPLATE_REVISION,				),
+		DECLARE_TEMPLATE(L"mail",	L"url",			MAIL_URL_TEMPLATE_REVISION,					),
+		DECLARE_TEMPLATE(L"mail",	L"print",		MAIL_PRINT_TEMPLATE_REVISION,				),
+		DECLARE_TEMPLATE(L"news",	L"new",			NEWS_NEW_TEMPLATE_REVISION,					),
+		DECLARE_TEMPLATE(L"news",	L"reply",		NEWS_REPLY_TEMPLATE_REVISION,				),
+		DECLARE_TEMPLATE(L"news",	L"reply_all",	NEWS_REPLY_ALL_TEMPLATE_REVISION,			),
+		DECLARE_TEMPLATE(L"news",	L"forward",		NEWS_FORWARD_TEMPLATE_REVISION,				),
+		DECLARE_TEMPLATE(L"news",	L"edit",		NEWS_EDIT_TEMPLATE_REVISION,				),
+		DECLARE_TEMPLATE(L"news",	L"url",			NEWS_URL_TEMPLATE_REVISION,					),
+		DECLARE_TEMPLATE(L"news",	L"print",		NEWS_PRINT_TEMPLATE_REVISION,				),
 	};
 	if (!pImpl_->ensureResources(resources, countof(resources)))
 		return false;

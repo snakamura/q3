@@ -23,7 +23,15 @@ BASEADDRESS		= 0x30000000
 include ../common.mak
 
 $(SRCDIR)/main/version.h: version revision
-	printf "const int QMAIL_VERSION = %d%02d%03d;\n" `cat version | tr '.' ' '` > $@
-	printf "const int QMAIL_REVISION = %d;\n" $(REVISION) >> $@
+	(printf "const int QMAIL_VERSION = %d%02d%03d;\n" \
+		`cat version | tr '.' ' '`; \
+	printf "const int QMAIL_REVISION = %d;\n" $(REVISION)) > $@
 
-$(OBJDIR)/main/application.obj: $(SRCDIR)/main/version.h
+$(SRCDIR)/main/resources.h: revision
+	(for r in $(SRCDIR)/ui/res/*.xml $(SRCDIR)/ui/res/*.template $(SRCDIR)/ui/res/*.bmp; do \
+		printf "const int %s_REVISION = %d;\n" \
+			`basename $$r | tr 'a-z.' 'A-Z_'` \
+			`svn info $$r | grep "Last Changed Rev" | cut -f 4 -d ' '`; \
+	done) > $@
+
+$(OBJDIR)/main/application.obj: $(SRCDIR)/main/version.h $(SRCDIR)/main/resources.h
