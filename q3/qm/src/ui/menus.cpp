@@ -843,7 +843,8 @@ bool qm::SortMenu::createMenu(HMENU hmenu)
  */
 
 qm::TemplateMenu::TemplateMenu(const TemplateManager* pTemplateManager) :
-	pTemplateManager_(pTemplateManager)
+	pTemplateManager_(pTemplateManager),
+	pAccount_(0)
 {
 }
 
@@ -852,8 +853,16 @@ qm::TemplateMenu::~TemplateMenu()
 	clear();
 }
 
-const WCHAR* qm::TemplateMenu::getTemplate(unsigned int nId) const
+const WCHAR* qm::TemplateMenu::getTemplate(unsigned int nId,
+										   Account* pAccount)
 {
+	if (pAccount != pAccount_) {
+		clear();
+		
+		pTemplateManager_->getTemplateNames(pAccount, getPrefix(), &list_);
+		pAccount_ = pAccount;
+	}
+	
 	unsigned int nBaseId = getId();
 	if (nBaseId <= nId && nId < nBaseId + list_.size())
 		return list_[nId - nBaseId];
@@ -867,29 +876,27 @@ bool qm::TemplateMenu::createMenu(HMENU hmenu,
 	assert(hmenu);
 	
 	const WCHAR* pwszPrefix = getPrefix();
+	size_t nPrefixLen = wcslen(pwszPrefix);
 	
 	int nBase = getBase();
 	while (::DeleteMenu(hmenu, nBase, MF_BYPOSITION));
 	
 	clear();
 	
-	TemplateManager::NameList l;
-	StringListFree<TemplateManager::NameList> free(l);
-	pTemplateManager_->getTemplateNames(pAccount, pwszPrefix, &l);
+	pTemplateManager_->getTemplateNames(pAccount, pwszPrefix, &list_);
+	pAccount_ = pAccount;
 	
-	if (!l.empty()) {
+	if (!list_.empty()) {
 		if (isAddSeparator())
 			::AppendMenu(hmenu, MF_SEPARATOR, -1, 0);
 		
 		UINT nId = getId();
 		
-		for (TemplateManager::NameList::iterator it = l.begin();
-			it != l.end() && list_.size() < MAX_TEMPLATE; ++it, ++nId) {
-			wstring_ptr wstrMenu(UIUtil::formatMenu(*it + wcslen(pwszPrefix) + 1));
+		for (TemplateManager::NameList::size_type n = 0; n < list_.size() && n < MAX_TEMPLATE; ++n, ++nId) {
+			WSTRING wstrName = list_[n];
+			wstring_ptr wstrMenu(UIUtil::formatMenu(wstrName + nPrefixLen + 1));
 			W2T(wstrMenu.get(), ptszName);
 			::AppendMenu(hmenu, MF_STRING, nId, ptszName);
-			list_.push_back(*it);
-			*it = 0;
 		}
 	}
 	else if (getNoneId()) {

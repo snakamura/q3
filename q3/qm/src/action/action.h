@@ -1564,6 +1564,7 @@ private:
 private:
 	TemplateProcessor processor_;
 	TemplateMenu* pTemplateMenu_;
+	FolderModelBase* pFolderModel_;
 	HWND hwnd_;
 };
 
@@ -3148,6 +3149,9 @@ public:
 public:
 	virtual void invoke(const qs::ActionEvent& event);
 	virtual bool isChecked(const qs::ActionEvent& event);
+
+private:
+	Account* getAccount() const;
 
 private:
 	ViewTemplateAction(const ViewTemplateAction&);

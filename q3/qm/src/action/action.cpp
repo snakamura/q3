@@ -3084,6 +3084,7 @@ qm::MessageApplyTemplateAction::MessageApplyTemplateAction(TemplateMenu* pTempla
 		pEncodingModel, pSecurityModel, pEditFrameWindowManager,
 		pExternalEditorManager, hwnd, pProfile, bExternalEditor),
 	pTemplateMenu_(pTemplateMenu),
+	pFolderModel_(pFolderModel),
 	hwnd_(hwnd)
 {
 }
@@ -3094,8 +3095,19 @@ qm::MessageApplyTemplateAction::~MessageApplyTemplateAction()
 
 void qm::MessageApplyTemplateAction::invoke(const ActionEvent& event)
 {
-	const WCHAR* pwszTemplate = pTemplateMenu_->getTemplate(event.getId());
-	assert(pwszTemplate);
+	Account* pAccount = pFolderModel_->getCurrentAccount();
+	if (!pAccount) {
+		Folder* pFolder = pFolderModel_->getCurrentFolder();
+		if (pFolder)
+			pAccount = pFolder->getAccount();
+	}
+	if (!pAccount)
+		return;
+	
+	const WCHAR* pwszTemplate = pTemplateMenu_->getTemplate(event.getId(), pAccount);
+	if (!pwszTemplate)
+		return;
+	
 	bool bExternalEditor = (event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0;
 	if (!processor_.process(pwszTemplate, bExternalEditor)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_APPLYTEMPLATE);
@@ -5801,9 +5813,14 @@ qm::ViewTemplateAction::~ViewTemplateAction()
 
 void qm::ViewTemplateAction::invoke(const ActionEvent& event)
 {
+	Account* pAccount = getAccount();
+	if (!pAccount)
+		return;
+	
 	const WCHAR* pwszTemplate = 0;
 	if (pTemplateMenu_)
-		pwszTemplate = pTemplateMenu_->getTemplate(event.getId());
+		pwszTemplate = pTemplateMenu_->getTemplate(event.getId(), pAccount);
+	
 	pMessageWindow_->setTemplate(pwszTemplate);
 }
 
@@ -5811,12 +5828,23 @@ bool qm::ViewTemplateAction::isChecked(const ActionEvent& event)
 {
 	if (pTemplateMenu_) {
 		const WCHAR* pwszTemplate = pMessageWindow_->getTemplate();
-		return pwszTemplate &&
-			wcscmp(pwszTemplate, pTemplateMenu_->getTemplate(event.getId())) == 0;
+		if (!pwszTemplate)
+			return false;
+		
+		Account* pAccount = getAccount();
+		if (!pAccount)
+			return false;
+		return wcscmp(pwszTemplate, pTemplateMenu_->getTemplate(event.getId(), pAccount)) == 0;
 	}
 	else {
 		return !pMessageWindow_->getTemplate();
 	}
+}
+
+Account* qm::ViewTemplateAction::getAccount() const
+{
+	MessageModel* pMessageModel = pMessageWindow_->getMessageModel();
+	return pMessageModel->getCurrentAccount();
 }
 
 

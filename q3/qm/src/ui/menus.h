@@ -429,8 +429,10 @@ protected:
 	~TemplateMenu();
 
 public:
-	const WCHAR* getTemplate(unsigned int nId) const;
-	bool createMenu(HMENU hmenu, Account* pAccount);
+	const WCHAR* getTemplate(unsigned int nId,
+							 Account* pAccount);
+	bool createMenu(HMENU hmenu,
+					Account* pAccount);
 
 protected:
 	virtual const WCHAR* getPrefix() const = 0;
@@ -451,6 +453,7 @@ private:
 
 private:
 	const TemplateManager* pTemplateManager_;
+	Account* pAccount_;
 	List list_;
 };
 

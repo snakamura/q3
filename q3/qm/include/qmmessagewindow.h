@@ -140,8 +140,6 @@ public:
 public:
 	bool isShowHeaderWindow() const;
 	void setShowHeaderWindow(bool bShow);
-//	const WCHAR* getEncoding() const;
-//	void setEncoding(const WCHAR* pwszEncoding);
 	const WCHAR* getTemplate() const;
 	void setTemplate(const WCHAR* pwszTemplate);
 	bool scrollPage(bool bPrev);
