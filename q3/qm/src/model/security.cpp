@@ -6,6 +6,7 @@
  *
  */
 
+#include <qmfilenames.h>
 #include <qmsecurity.h>
 
 #include <qsconv.h>
@@ -61,7 +62,8 @@ qm::Security::Security(const WCHAR* pwszPath, QSTATUS* pstatus) :
 		
 		status = Store::getInstance(&pImpl_->pStoreCA_);
 		CHECK_QSTATUS_SET(pstatus);
-		string_ptr<WSTRING> wstrCAPath(concat(pImpl_->wstrPath_, L"\\ca.pem"));
+		string_ptr<WSTRING> wstrCAPath(concat(
+			pImpl_->wstrPath_, L"\\", FileNames::CA_PEM));
 		if (!wstrCAPath.get()) {
 			*pstatus = QSTATUS_FAIL;
 			return;

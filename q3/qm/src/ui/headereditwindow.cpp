@@ -10,7 +10,7 @@
 #include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmeditwindow.h>
-#include <qmextensions.h>
+#include <qmfilenames.h>
 #include <qmmessage.h>
 
 #include <qsconv.h>
@@ -74,7 +74,7 @@ QSTATUS qm::HeaderEditWindowImpl::load(MenuManager* pMenuManager,
 	
 	string_ptr<WSTRING> wstrPath;
 	status = Application::getApplication().getProfilePath(
-		Extensions::HEADEREDIT, &wstrPath);
+		FileNames::HEADEREDIT_XML, &wstrPath);
 	CHECK_QSTATUS();
 	
 	XMLReader reader(&status);

@@ -7,7 +7,7 @@
  */
 
 #include <qmaccount.h>
-#include <qmextensions.h>
+#include <qmfilenames.h>
 #include <qmfolder.h>
 #include <qmmacro.h>
 #include <qmmessage.h>
@@ -1927,7 +1927,7 @@ QSTATUS qm::ViewModelManager::getProfile(Folder* pFolder, Profile** ppProfile)
 			pAccount));
 	if (it == mapProfile_.end()) {
 		string_ptr<WSTRING> wstrPath(concat(
-			pAccount->getPath(), L"\\", Extensions::VIEW));
+			pAccount->getPath(), L"\\", FileNames::VIEW_XML));
 		if (!wstrPath.get())
 			return QSTATUS_OUTOFMEMORY;
 		std::auto_ptr<XMLProfile> pProfile;

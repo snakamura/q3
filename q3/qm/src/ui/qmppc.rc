@@ -998,6 +998,14 @@ NEWS.URL                TEMPLATE DISCARDABLE    "res\\news.url.template"
 // PROFILE
 //
 
+HEADER.XML              PROFILE DISCARDABLE     "res\\ppc\\header.xml"
+HEADEREDIT.XML          PROFILE DISCARDABLE     "res\\ppc\\headeredit.xml"
+KEYMAP.XML              PROFILE DISCARDABLE     "res\\ppc\\keymap.xml"
+MENUS.XML               PROFILE DISCARDABLE     "res\\ppc\\menus.xml"
+QMAIL.XML               PROFILE DISCARDABLE     "res\\ppc\\qmail.xml"
+TOOLBAR.BMP             PROFILE DISCARDABLE     "res\\toolbar.bmp"
+TOOLBARS.XML            PROFILE DISCARDABLE     "res\\toolbars.xml"
+
 .KEYMAP                 PROFILE DISCARDABLE     "res\\ppc\\.keymap"
 .MENUS                  PROFILE DISCARDABLE     "res\\ppc\\.menus"
 .TOOLBARS               PROFILE DISCARDABLE     "res\\.toolbars"

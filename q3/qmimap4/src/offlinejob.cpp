@@ -70,7 +70,7 @@ using namespace qs;
  *
  */
 
-const WCHAR* qmimap4::OfflineJobManager::FILENAME = L".offlinejob";
+const WCHAR* qmimap4::OfflineJobManager::FILENAME = L"offlinejob";
 
 qmimap4::OfflineJobManager::OfflineJobManager(
 	const WCHAR* pwszPath, QSTATUS* pstatus)

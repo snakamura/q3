@@ -7,7 +7,7 @@
  */
 
 #include <qmaccount.h>
-#include <qmextensions.h>
+#include <qmfilenames.h>
 #include <qmfolder.h>
 #include <qmmessageholder.h>
 #include <qmmessageoperation.h>
@@ -111,7 +111,7 @@ QSTATUS qm::AccountImpl::loadFolders()
 	DECLARE_QSTATUS();
 	
 	string_ptr<WSTRING> wstrPath(
-		concat(wstrPath_, L"\\", Extensions::FOLDERS));
+		concat(wstrPath_, L"\\", FileNames::FOLDERS_XML));
 	if (!wstrPath.get())
 		return QSTATUS_OUTOFMEMORY;
 	
@@ -167,12 +167,12 @@ QSTATUS qm::AccountImpl::saveFolders() const
 	DECLARE_QSTATUS();
 	
 	string_ptr<WSTRING> wstrTempPath(
-		concat(wstrPath_, L"\\_", Extensions::FOLDERS));
+		concat(wstrPath_, L"\\_", FileNames::FOLDERS_XML));
 	if (!wstrTempPath.get())
 		return QSTATUS_OUTOFMEMORY;
 	
 	string_ptr<WSTRING> wstrPath(
-		concat(wstrPath_, L"\\", Extensions::FOLDERS));
+		concat(wstrPath_, L"\\", FileNames::FOLDERS_XML));
 	if (!wstrPath.get())
 		return QSTATUS_OUTOFMEMORY;
 	
@@ -239,8 +239,8 @@ QSTATUS qm::AccountImpl::loadSubAccounts()
 {
 	DECLARE_QSTATUS();
 	
-	string_ptr<WSTRING> wstrPath(
-		concat(wstrPath_, L"\\", Extensions::ACCOUNT));
+	string_ptr<WSTRING> wstrPath(concat(
+		wstrPath_, L"\\", FileNames::ACCOUNT_XML));
 	if (!wstrPath.get())
 		return QSTATUS_OUTOFMEMORY;
 	
@@ -260,24 +260,32 @@ QSTATUS qm::AccountImpl::loadSubAccounts()
 	CHECK_QSTATUS();
 	pDefaultSubAccount.release();
 	
-	string_ptr<WSTRING> wstrFind(
-		concat(wstrPath_, L"\\*", Extensions::ACCOUNT));
+	ConcatW c[] = {
+		{ wstrPath_,			-1	},
+		{ L"\\",				1	},
+		{ FileNames::ACCOUNT,	-1	},
+		{ L"_*",				2	},
+		{ FileNames::XML_EXT,	-1	}
+	};
+	string_ptr<WSTRING> wstrFind(concat(c, countof(c)));
 	if (!wstrFind.get())
 		return QSTATUS_OUTOFMEMORY;
 	W2T(wstrFind.get(), ptszFind);
+	
+	size_t nOffset = wcslen(FileNames::ACCOUNT) + 1;
 	
 	WIN32_FIND_DATA fd;
 	AutoFindHandle hFind(::FindFirstFile(ptszFind, &fd));
 	if (hFind.get()) {
 		do {
 			T2W(fd.cFileName, pwszFileName);
-			if (wcscmp(pwszFileName, Extensions::ACCOUNT) == 0)
+			if (wcscmp(pwszFileName, FileNames::ACCOUNT_XML) == 0)
 				continue;
 			
 			const WCHAR* p = wcschr(pwszFileName, L'.');
 			assert(p);
-			string_ptr<WSTRING> wstrName(
-				allocWString(pwszFileName, p - pwszFileName));
+			string_ptr<WSTRING> wstrName(allocWString(
+				pwszFileName + nOffset, p - pwszFileName - nOffset));
 			if (!wstrName.get())
 				return QSTATUS_OUTOFMEMORY;
 			

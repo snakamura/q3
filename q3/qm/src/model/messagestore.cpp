@@ -6,7 +6,7 @@
  *
  */
 
-#include <qmextensions.h>
+#include <qmfilenames.h>
 
 #include <qsconv.h>
 #include <qserror.h>
@@ -87,8 +87,8 @@ qm::SingleMessageStore::SingleMessageStore(const WCHAR* pwszPath,
 	ClusterStorage::Init initMsg = {
 		pwszPath,
 		L"msg",
-		Extensions::BOX,
-		Extensions::MAP,
+		FileNames::BOX_EXT,
+		FileNames::MAP_EXT,
 		nBlockSize
 	};
 	std::auto_ptr<ClusterStorage> pStorage;
@@ -98,8 +98,8 @@ qm::SingleMessageStore::SingleMessageStore(const WCHAR* pwszPath,
 	ClusterStorage::Init initCache = {
 		pwszCachePath,
 		L"cache",
-		Extensions::BOX,
-		Extensions::MAP,
+		FileNames::BOX_EXT,
+		FileNames::MAP_EXT,
 		nCacheBlockSize
 	};
 	std::auto_ptr<ClusterStorage> pCacheStorage;
@@ -553,8 +553,8 @@ qm::MultiMessageStore::MultiMessageStore(const WCHAR* pwszPath,
 	ClusterStorage::Init initCache = {
 		pwszCachePath,
 		L"cache",
-		Extensions::BOX,
-		Extensions::MAP,
+		FileNames::BOX_EXT,
+		FileNames::MAP_EXT,
 		nCacheBlockSize
 	};
 	std::auto_ptr<ClusterStorage> pCacheStorage;

@@ -7,7 +7,7 @@
  */
 
 #include <qmapplication.h>
-#include <qmextensions.h>
+#include <qmfilenames.h>
 
 #include <qsconv.h>
 #include <qserror.h>
@@ -58,7 +58,7 @@ QSTATUS qm::FixedFormTextManager::load()
 	
 	string_ptr<WSTRING> wstrPath;
 	status = Application::getApplication().getProfilePath(
-		Extensions::TEXTS, &wstrPath);
+		FileNames::TEXTS_XML, &wstrPath);
 	CHECK_QSTATUS();
 	
 	W2T(wstrPath.get(), ptszPath);

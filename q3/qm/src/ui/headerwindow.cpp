@@ -8,7 +8,7 @@
 
 #include <qmaccount.h>
 #include <qmapplication.h>
-#include <qmextensions.h>
+#include <qmfilenames.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
 #include <qmmessagewindow.h>
@@ -75,7 +75,7 @@ QSTATUS qm::HeaderWindowImpl::load(MenuManager* pMenuManager)
 	
 	string_ptr<WSTRING> wstrPath;
 	status = Application::getApplication().getProfilePath(
-		Extensions::HEADER, &wstrPath);
+		FileNames::HEADER_XML, &wstrPath);
 	CHECK_QSTATUS();
 	
 	XMLReader reader(&status);

@@ -695,15 +695,9 @@ QSTATUS qmpop3::Pop3ReceiveSession::loadUIDList(
 {
 	DECLARE_QSTATUS();
 	
-	const ConcatW c[] = {
-		{ pAccount_->getPath(),			-1	},
-		{ L"\\",						-1	},
-		{ pSubAccount_->getIdentity(),	-1	},
-		{ L".uidl",						-1	}
-	};
-	string_ptr<WSTRING> wstrPath(concat(c, countof(c)));
-	if (!wstrPath.get())
-		return QSTATUS_OUTOFMEMORY;
+	string_ptr<WSTRING> wstrPath;
+	status = getUIDListPath(&wstrPath);
+	CHECK_QSTATUS();
 	
 	std::auto_ptr<UIDList> pUIDList;
 	status = newQsObject(&pUIDList);
@@ -723,19 +717,31 @@ QSTATUS qmpop3::Pop3ReceiveSession::saveUIDList(const UIDList* pUIDList) const
 	DECLARE_QSTATUS();
 	
 	if (pUIDList->isModified()) {
-		const ConcatW c[] = {
-			{ pAccount_->getPath(),			-1	},
-			{ L"\\",						-1	},
-			{ pSubAccount_->getIdentity(),	-1	},
-			{ L".uidl",						-1	}
-		};
-		string_ptr<WSTRING> wstrPath(concat(c, countof(c)));
-		if (!wstrPath.get())
-			return QSTATUS_OUTOFMEMORY;
-		
+		string_ptr<WSTRING> wstrPath;
+		status = getUIDListPath(&wstrPath);
+		CHECK_QSTATUS();
 		status = pUIDList->save(wstrPath.get());
 		CHECK_QSTATUS();
 	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qmpop3::Pop3ReceiveSession::getUIDListPath(WSTRING* pwstrPath) const
+{
+	const WCHAR* pwszIdentity = pSubAccount_->getIdentity();
+	const ConcatW c[] = {
+		{ pAccount_->getPath(),			-1	},
+		{ L"\\uidl",					-1	},
+		{ *pwszIdentity ? L"_" : L"",	-1	},
+		{ pwszIdentity,					-1	},
+		{ L".xml",						-1	}
+	};
+	string_ptr<WSTRING> wstrPath(concat(c, countof(c)));
+	if (!wstrPath.get())
+		return QSTATUS_OUTOFMEMORY;
+	
+	*pwstrPath = wstrPath.release();
 	
 	return QSTATUS_SUCCESS;
 }

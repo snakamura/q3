@@ -114,7 +114,7 @@ QSTATUS qmnntp::NntpReceiveSession::connect()
 	status = log.debug(L"Connected to the server.");
 	CHECK_QSTATUS();
 	
-	string_ptr<WSTRING> wstrPath(concat(pAccount_->getPath(), L"\\.lastid"));
+	string_ptr<WSTRING> wstrPath(concat(pAccount_->getPath(), L"\\lastid.xml"));
 	if (!wstrPath.get())
 		return QSTATUS_OUTOFMEMORY;
 	status = newQsObject(wstrPath.get(), &pLastIdList_);

@@ -7,7 +7,7 @@
  */
 
 #include <qmaccount.h>
-#include <qmextensions.h>
+#include <qmfilenames.h>
 #include <qmfolder.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
@@ -457,7 +457,7 @@ QSTATUS qm::NormalFolderImpl::getPath(WSTRING* pwstrPath) const
 	DECLARE_QSTATUS();
 	
 	WCHAR wsz[32];
-	swprintf(wsz, L"\\%03x%s", pThis_->getId(), Extensions::MSGLIST);
+	swprintf(wsz, L"\\%03x%s", pThis_->getId(), FileNames::MSGLIST_EXT);
 	*pwstrPath = concat(pThis_->getAccount()->getPath(), wsz);
 	
 	return *pwstrPath ? QSTATUS_SUCCESS : QSTATUS_OUTOFMEMORY;

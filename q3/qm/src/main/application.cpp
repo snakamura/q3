@@ -10,7 +10,7 @@
 #include <qmaccount.h>
 #include <qmapplication.h>
 #include <qmdocument.h>
-#include <qmextensions.h>
+#include <qmfilenames.h>
 #include <qmgoround.h>
 #include <qmmainwindow.h>
 #include <qmsecurity.h>
@@ -403,13 +403,13 @@ QSTATUS qm::Application::initialize()
 		return QSTATUS_OUTOFMEMORY;
 	
 	const WCHAR* pwszProfiles[] = {
-		L".qmail",
-		L".header",
-		L".headeredit",
-		L".keymap",
-		L".menus",
-		L".toolbars",
-		L"toolbar.bmp"
+		FileNames.HEADER_XML,
+		FileNames.HEADEREDIT_XML,
+		FileNames.KEYMAP_XML,
+		FileNames.MENUS_XML,
+		FileNames.QMAIL_XML,
+		FileNames.TOOLBAR_BMP,
+		FileNames.TOOLBARS_XML
 	};
 	for (n = 0; n < countof(pwszProfiles); ++n) {
 		status = pImpl_->ensureFile(wstrProfileDir.get(), 0,
@@ -418,7 +418,7 @@ QSTATUS qm::Application::initialize()
 	}
 	
 	string_ptr<WSTRING> wstrProfilePath;
-	status = getProfilePath(Extensions::QMAIL, &wstrProfilePath);
+	status = getProfilePath(FileNames::QMAIL_XML, &wstrProfilePath);
 	CHECK_QSTATUS();
 	status = newQsObject(wstrProfilePath.get(), &pImpl_->pProfile_);
 	CHECK_QSTATUS();
@@ -453,7 +453,7 @@ QSTATUS qm::Application::initialize()
 	pImpl_->wstrTemporaryFolder_ = wstrTempFolder.release();
 	
 	string_ptr<WSTRING> wstrMenuPath;
-	status = getProfilePath(Extensions::MENUS, &wstrMenuPath);
+	status = getProfilePath(FileNames::MENUS_XML, &wstrMenuPath);
 	CHECK_QSTATUS();
 	PopupMenuManager popupMenuManager(&status);
 	CHECK_QSTATUS();
@@ -473,7 +473,7 @@ QSTATUS qm::Application::initialize()
 		deleter<LoadMenuPopupMenu>());
 	
 	string_ptr<WSTRING> wstrBitmapPath;
-	status = getProfilePath(L"toolbar.bmp", &wstrBitmapPath);
+	status = getProfilePath(FileNames::TOOLBAR_BMP, &wstrBitmapPath);
 	CHECK_QSTATUS();
 	W2T(wstrBitmapPath.get(), ptszBitmapPath);
 #ifdef _WIN32_WCE
@@ -485,14 +485,14 @@ QSTATUS qm::Application::initialize()
 	if (!hBitmap)
 		return QSTATUS_FAIL;
 	string_ptr<WSTRING> wstrToolbarPath;
-	status = getProfilePath(Extensions::TOOLBARS, &wstrToolbarPath);
+	status = getProfilePath(FileNames::TOOLBARS_XML, &wstrToolbarPath);
 	CHECK_QSTATUS();
 	status = newQsObject(wstrToolbarPath.get(), hBitmap, toolbarItems,
 		countof(toolbarItems), &pImpl_->pToolbarManager_);
 	CHECK_QSTATUS();
 	
 	string_ptr<WSTRING> wstrKeyMapPath;
-	status = getProfilePath(Extensions::KEYMAP, &wstrKeyMapPath);
+	status = getProfilePath(FileNames::KEYMAP_XML, &wstrKeyMapPath);
 	CHECK_QSTATUS();
 	status = newQsObject(wstrKeyMapPath.get(), &pImpl_->pKeyMap_);
 	CHECK_QSTATUS();

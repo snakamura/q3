@@ -8,7 +8,7 @@
 
 #include <qmaccount.h>
 #include <qmdocument.h>
-#include <qmextensions.h>
+#include <qmfilenames.h>
 #include <qmmessage.h>
 #include <qmsecurity.h>
 
@@ -148,10 +148,12 @@ QSTATUS qm::SubAccountImpl::load()
 			status = CryptoUtil<PrivateKey>::getInstance(&pPrivateKey);
 			CHECK_QSTATUS();
 			ConcatW c[] = {
-				{ pAccount_->getPath(),	-1	},
-				{ L"\\",				1	},
-				{ wstrName_,			-1	},
-				{ Extensions::KEY,		-1	}
+				{ pAccount_->getPath(),		-1	},
+				{ L"\\",					1	},
+				{ FileNames::KEY,			-1	},
+				{ *wstrName_ ? L"_" : L"",	-1	},
+				{ wstrName_,				-1	},
+				{ FileNames::PEM_EXT,		-1	}
 			};
 			string_ptr<WSTRING> wstrPath(concat(c, countof(c)));
 			if (!wstrPath.get())
@@ -167,10 +169,12 @@ QSTATUS qm::SubAccountImpl::load()
 			status = CryptoUtil<Certificate>::getInstance(&pCertificate);
 			CHECK_QSTATUS();
 			ConcatW c[] = {
-				{ pAccount_->getPath(),	-1	},
-				{ L"\\",				1	},
-				{ wstrName_,			-1	},
-				{ Extensions::CERT,		-1	}
+				{ pAccount_->getPath(),		-1	},
+				{ L"\\",					1	},
+				{ FileNames::CERT,			-1	},
+				{ *wstrName_ ? L"_" : L"",	-1	},
+				{ wstrName_,				-1	},
+				{ FileNames::PEM_EXT,		-1	}
 			};
 			string_ptr<WSTRING> wstrPath(concat(c, countof(c)));
 			if (!wstrPath.get())
@@ -860,8 +864,10 @@ QSTATUS qm::SubAccount::setName(const WCHAR* pwszName)
 	ConcatW c[] = {
 		{ pImpl_->pAccount_->getPath(),	-1	},
 		{ L"\\",						1	},
+		{ FileNames::ACCOUNT,			-1	},
+		{ L"_",							1	},
 		{ wstrName.get(),				-1	},
-		{ Extensions::ACCOUNT,			-1	}
+		{ FileNames::XML_EXT,			-1	}
 	};
 	string_ptr<WSTRING> wstrPath(concat(c, countof(c)));
 	if (!wstrPath.get())

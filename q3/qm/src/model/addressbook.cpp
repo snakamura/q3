@@ -7,7 +7,7 @@
  */
 
 #include <qmapplication.h>
-#include <qmextensions.h>
+#include <qmfilenames.h>
 #include <qmsecurity.h>
 
 #include <qsconv.h>
@@ -358,7 +358,7 @@ QSTATUS qm::AddressBook::load()
 	
 	string_ptr<WSTRING> wstrPath;
 	status = Application::getApplication().getProfilePath(
-		Extensions::ADDRESSBOOK, &wstrPath);
+		FileNames::ADDRESSBOOK_XML, &wstrPath);
 	CHECK_QSTATUS();
 	
 	bool bReload = false;

@@ -8,7 +8,7 @@
 
 #include <qmaccount.h>
 #include <qmapplication.h>
-#include <qmextensions.h>
+#include <qmfilenames.h>
 
 #include <qsassert.h>
 #include <qsconv.h>
@@ -136,7 +136,7 @@ QSTATUS qm::SignatureManager::load()
 	
 	string_ptr<WSTRING> wstrPath;
 	status = Application::getApplication().getProfilePath(
-		Extensions::SIGNATURES, &wstrPath);
+		FileNames::SIGNATURES_XML, &wstrPath);
 	CHECK_QSTATUS();
 	
 	W2T(wstrPath.get(), ptszPath);

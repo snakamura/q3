@@ -7,7 +7,7 @@
  */
 
 #include <qmapplication.h>
-#include <qmextensions.h>
+#include <qmfilenames.h>
 #include <qmmacro.h>
 
 #include <qsconv.h>
@@ -71,7 +71,7 @@ QSTATUS qm::FilterManager::load()
 	
 	string_ptr<WSTRING> wstrPath;
 	status = Application::getApplication().getProfilePath(
-		Extensions::FILTERS, &wstrPath);
+		FileNames::FILTERS_XML, &wstrPath);
 	CHECK_QSTATUS();
 	
 	W2T(wstrPath.get(), ptszPath);

@@ -75,6 +75,7 @@ private:
 	qs::QSTATUS downloadReservedMessages(qm::NormalFolder* pFolder);
 	qs::QSTATUS loadUIDList(std::auto_ptr<UIDList>* papUIDList) const;
 	qs::QSTATUS saveUIDList(const UIDList* pUIDList) const;
+	qs::QSTATUS getUIDListPath(qs::WSTRING* pwstrPath) const;
 
 private:
 	Pop3ReceiveSession(const Pop3ReceiveSession&);

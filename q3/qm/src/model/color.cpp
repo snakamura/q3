@@ -8,7 +8,7 @@
 
 #include <qmaccount.h>
 #include <qmapplication.h>
-#include <qmextensions.h>
+#include <qmfilenames.h>
 #include <qmfolder.h>
 #include <qmmacro.h>
 
@@ -78,7 +78,7 @@ QSTATUS qm::ColorManager::load()
 	
 	string_ptr<WSTRING> wstrPath;
 	status = Application::getApplication().getProfilePath(
-		Extensions::COLORS, &wstrPath);
+		FileNames::COLORS_XML, &wstrPath);
 	CHECK_QSTATUS();
 	
 	W2T(wstrPath.get(), ptszPath);

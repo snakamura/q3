@@ -1067,13 +1067,13 @@ NEWS.URL                TEMPLATE DISCARDABLE    "res\\news.url.template"
 // PROFILE
 //
 
-.KEYMAP                 PROFILE DISCARDABLE     "res\\.keymap"
-.MENUS                  PROFILE DISCARDABLE     "res\\.menus"
-.TOOLBARS               PROFILE DISCARDABLE     "res\\.toolbars"
-.HEADER                 PROFILE DISCARDABLE     "res\\.header"
-.HEADEREDIT             PROFILE DISCARDABLE     "res\\.headeredit"
-.QMAIL                  PROFILE DISCARDABLE     "res\\.qmail"
+HEADER.XML              PROFILE DISCARDABLE     "res\\header.xml"
+HEADEREDIT.XML          PROFILE DISCARDABLE     "res\\headeredit.xml"
+KEYMAP.XML              PROFILE DISCARDABLE     "res\\keymap.xml"
+MENUS.XML               PROFILE DISCARDABLE     "res\\menus.xml"
+QMAIL.XML               PROFILE DISCARDABLE     "res\\qmail.xml"
 TOOLBAR.BMP             PROFILE DISCARDABLE     "res\\toolbar.bmp"
+TOOLBARS.XML            PROFILE DISCARDABLE     "res\\toolbars.xml"
 
 /////////////////////////////////////////////////////////////////////////////
 //

@@ -6,10 +6,10 @@
  *
  */
 
+#include <qmaccount.h>
 #include <qmapplication.h>
 #include <qmdocument.h>
-#include <qmaccount.h>
-#include <qmextensions.h>
+#include <qmfilenames.h>
 #include <qmsecurity.h>
 
 #include <qserror.h>
@@ -409,10 +409,15 @@ QSTATUS qm::Document::loadAccounts(const WCHAR* pwszPath)
 				_tcscmp(fd.cFileName, _T("..")) == 0)
 				continue;
 			
-			WSTRING wstr = concat(wstrPath.get(), L"\\", Extensions::ACCOUNT);
-			if (!wstr)
+			ConcatW c[] = {
+				{ wstrPath.get(),		-1	},
+				{ L"\\",				1	},
+				{ FileNames::ACCOUNT,	-1	},
+				{ FileNames::XML_EXT,	-1	}
+			};
+			wstrPath.reset(concat(c, countof(c)));
+			if (!wstrPath.get())
 				return QSTATUS_OUTOFMEMORY;
-			wstrPath.reset(wstr);
 			
 			W2T(wstrPath.get(), ptszPath);
 			DWORD dwAttributes = ::GetFileAttributes(ptszPath);

@@ -9,7 +9,7 @@
 #include <qmaccount.h>
 #include <qmapplication.h>
 #include <qmdocument.h>
-#include <qmextensions.h>
+#include <qmfilenames.h>
 #include <qmsession.h>
 
 #include <qsconv.h>
@@ -126,7 +126,7 @@ LRESULT qm::AccountDialog::onAddAccount()
 			return 0;
 		
 		string_ptr<WSTRING> wstrPath(concat(
-			wstrDir.get(), L"\\", Extensions::ACCOUNT));
+			wstrDir.get(), L"\\", FileNames::ACCOUNT_XML));
 		if (!wstrPath.get())
 			return 0;
 		XMLProfile profile(wstrPath.get(), &status);
@@ -201,16 +201,18 @@ LRESULT qm::AccountDialog::onAddSubAccount()
 			status = pAccount->save();
 			CHECK_QSTATUS();
 			
-			string_ptr<WSTRING> wstrAccountPath(
-				concat(pAccount->getPath(), L"\\", Extensions::ACCOUNT));
+			string_ptr<WSTRING> wstrAccountPath(concat(
+				pAccount->getPath(), L"\\", FileNames::ACCOUNT_XML));
 			if (!wstrAccountPath.get())
 				return 0;
 			
 			ConcatW c[] = {
-				{ pAccount->getPath(),	-1	},
-				{ L"\\",				1	},
-				{ pwszName,				-1	},
-				{ Extensions::ACCOUNT,	-1	}
+				{ pAccount->getPath(),		-1	},
+				{ L"\\",					1	},
+				{ FileNames::ACCOUNT,		-1	},
+				{ L"_",						1	},
+				{ pwszName,					-1	},
+				{ FileNames::XML_EXT,		-1	}
 			};
 			string_ptr<WSTRING> wstrPath(concat(c, countof(c)));
 			if (!wstrPath.get())

@@ -9,7 +9,7 @@
 #include <qmaccount.h>
 #include <qmapplication.h>
 #include <qmdocument.h>
-#include <qmextensions.h>
+#include <qmfilenames.h>
 #include <qmfolder.h>
 #include <qmmacro.h>
 #include <qmmessage.h>
@@ -215,7 +215,7 @@ QSTATUS qm::RuleManager::load()
 	
 	string_ptr<WSTRING> wstrPath;
 	status = Application::getApplication().getProfilePath(
-		Extensions::RULES, &wstrPath);
+		FileNames::RULES_XML, &wstrPath);
 	CHECK_QSTATUS();
 	
 	W2T(wstrPath.get(), ptszPath);
