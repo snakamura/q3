@@ -422,6 +422,14 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 	MessageDataList listMessageData;
 	listMessageData.reserve(nExists_ - nIdStart_);
 	
+	JunkFilter* pJunkFilter = pSubAccount_->isJunkFilterEnabled() ?
+		pDocument_->getJunkFilter() : 0;
+	NormalFolder* pJunkbox = pJunkFilter ? static_cast<NormalFolder*>(
+		pAccount_->getFolderByBoxFlag(Folder::FLAG_JUNKBOX)) : 0;
+	if (!pJunkbox)
+		pJunkFilter = 0;
+	unsigned int nJunkFilterFlags = pJunkFilter ? pJunkFilter->getFlags() : 0;
+	
 	struct GetMessageDataProcessHook : public ProcessHook
 	{
 		typedef std::vector<unsigned long> UidList;
@@ -443,7 +451,8 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 								  BodyStructureList& listBodyStructure,
 								  Imap4* pImap4,
 								  MacroVariableHolder* pGlobalVariable,
-								  Imap4ReceiveSession* pSession) :
+								  Imap4ReceiveSession* pSession,
+								  bool bNotifyNewMessage) :
 			pDocument_(pDocument),
 			pAccount_(pAccount),
 			pSubAccount_(pSubAccount),
@@ -460,7 +469,8 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			listBodyStructure_(listBodyStructure),
 			pImap4_(pImap4),
 			pGlobalVariable_(pGlobalVariable),
-			pSession_(pSession)
+			pSession_(pSession),
+			bNotifyNewMessage_(bNotifyNewMessage)
 		{
 		}
 		
@@ -653,7 +663,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 				break;
 			}
 			
-			if (!pAccount_->isSeen(nFlags))
+			if (bNotifyNewMessage_ && !pAccount_->isSeen(nFlags))
 				pSessionCallback_->notifyNewMessage(pmh);
 			
 			return RESULT_PROCESSED;
@@ -676,16 +686,23 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 		Imap4* pImap4_;
 		MacroVariableHolder* pGlobalVariable_;
 		Imap4ReceiveSession* pSession_;
+		bool bNotifyNewMessage_;
 	};
 	
 	if (nIdStart_ < nExists_) {
 		pCallback_->setMessage(IDS_DOWNLOADMESSAGESDATA);
 		
+		bool bNotifyNewMessage = !pFolder_->isFlag(Folder::FLAG_OUTBOX) &&
+			!pFolder_->isFlag(Folder::FLAG_SENTBOX) &&
+			!pFolder_->isFlag(Folder::FLAG_TRASHBOX) &&
+			!pFolder_->isFlag(Folder::FLAG_DRAFTBOX) &&
+			!pFolder_->isFlag(Folder::FLAG_JUNKBOX) &&
+			(!pJunkFilter || !pFolder_->isFlag(Folder::FLAG_INBOX));
 		MacroVariableHolder globalVariable;
 		GetMessageDataProcessHook hook(pDocument_, pAccount_, pSubAccount_,
 			pFolder_, hwnd_, pProfile_, pSessionCallback_, pSyncFilterSet,
 			nOption, nUidStart_, listMessageData, listMakeSeen, listMakeDeleted,
-			listBodyStructure, pImap4_.get(), &globalVariable, this);
+			listBodyStructure, pImap4_.get(), &globalVariable, this, bNotifyNewMessage);
 		Hook h(this, &hook);
 		for (unsigned int nId = nIdStart_ + 1; nId <= nExists_; nId += nFetchCount) {
 			unsigned long nEnd = QSMIN(static_cast<unsigned long>(nId + nFetchCount - 1), nExists_);
@@ -1045,69 +1062,63 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			HANDLE_ERROR();
 	}
 	
-	if (pSubAccount_->isJunkFilterEnabled()) {
-		JunkFilter* pJunkFilter = pDocument_->getJunkFilter();
-		if (pJunkFilter) {
-			unsigned int nJunkFilterFlags = pJunkFilter->getFlags();
-			if (pFolder_->isFlag(Folder::FLAG_INBOX)) {
-				NormalFolder* pJunkbox = static_cast<NormalFolder*>(
-					pAccount_->getFolderByBoxFlag(Folder::FLAG_JUNKBOX));
-				if (pJunkbox) {
-					pCallback_->setMessage(IDS_FILTERJUNK);
-					pSessionCallback_->setRange(0, listMessageData.size());
-					pSessionCallback_->setPos(0);
-					
-					UidList listJunk;
-					for (MessageDataList::size_type n = 0; n < listMessageData.size(); ++n) {
-						MessagePtrLock mpl(listMessageData[n].getMessagePtr());
-						Message msg;
-						if (mpl && !mpl->isFlag(MessageHolder::FLAG_DELETED) &&
-							mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg)) {
-							float fScore = pJunkFilter->getScore(msg);
-							if (fScore > pJunkFilter->getThresholdScore()) {
-								listJunk.push_back(mpl->getId());
-								mpl->setFlags(MessageHolder::FLAG_DELETED, MessageHolder::FLAG_DELETED);
-								pJunkFilter->manage(msg, JunkFilter::OPERATION_ADDJUNK);
-							}
-							else if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN) {
-								pJunkFilter->manage(msg, JunkFilter::OPERATION_ADDCLEAN);
-							}
-						}
+	if (pJunkFilter) {
+		if (pFolder_->isFlag(Folder::FLAG_INBOX)) {
+			pCallback_->setMessage(IDS_FILTERJUNK);
+			pSessionCallback_->setRange(0, listMessageData.size());
+			pSessionCallback_->setPos(0);
+			
+			UidList listJunk;
+			for (MessageDataList::size_type n = 0; n < listMessageData.size(); ++n) {
+				MessagePtrLock mpl(listMessageData[n].getMessagePtr());
+				Message msg;
+				if (mpl && !mpl->isFlag(MessageHolder::FLAG_DELETED) &&
+					mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg)) {
+					if (pJunkFilter->getScore(msg) > pJunkFilter->getThresholdScore()) {
+						listJunk.push_back(mpl->getId());
+						mpl->setFlags(MessageHolder::FLAG_DELETED, MessageHolder::FLAG_DELETED);
+						pJunkFilter->manage(msg, JunkFilter::OPERATION_ADDJUNK);
 						
-						pSessionCallback_->setPos(n);
+						if (!pAccount_->isSeen(mpl))
+							pSessionCallback_->notifyNewMessage(mpl);
 					}
-					
-					if (!listJunk.empty()) {
-						wstring_ptr wstrFolder(Util::getFolderName(pJunkbox));
-						MultipleRange range(&listJunk[0], listJunk.size(), true);
-						if (!pImap4_->copy(range, wstrFolder.get()))
-							HANDLE_ERROR();
-						Flags flags(Imap4::FLAG_DELETED);
-						Flags mask(Imap4::FLAG_DELETED);
-						if (!pImap4_->setFlags(range, flags, mask))
-							HANDLE_ERROR();
+					else if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN) {
+						pJunkFilter->manage(msg, JunkFilter::OPERATION_ADDCLEAN);
 					}
 				}
+				
+				pSessionCallback_->setPos(n);
 			}
-			else if (pFolder_->isFlag(Folder::FLAG_JUNKBOX)) {
-				if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN) {
-					pCallback_->setMessage(IDS_FILTERJUNK);
-					pSessionCallback_->setRange(0, listMessageData.size());
-					pSessionCallback_->setPos(0);
-					
-					for (MessageDataList::size_type n = 0; n < listMessageData.size(); ++n) {
-						MessagePtrLock mpl(listMessageData[n].getMessagePtr());
-						Message msg;
-						if (mpl && !mpl->isFlag(MessageHolder::FLAG_DELETED)) {
-							wstring_ptr wstrId(mpl->getMessageId());
-							if (pJunkFilter->getStatus(wstrId.get()) != JunkFilter::STATUS_JUNK) {
-								if (mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg))
-									pJunkFilter->manage(msg, JunkFilter::OPERATION_ADDJUNK);
-							}
+			
+			if (!listJunk.empty()) {
+				wstring_ptr wstrFolder(Util::getFolderName(pJunkbox));
+				MultipleRange range(&listJunk[0], listJunk.size(), true);
+				if (!pImap4_->copy(range, wstrFolder.get()))
+					HANDLE_ERROR();
+				Flags flags(Imap4::FLAG_DELETED);
+				Flags mask(Imap4::FLAG_DELETED);
+				if (!pImap4_->setFlags(range, flags, mask))
+					HANDLE_ERROR();
+			}
+		}
+		else if (pFolder_->isFlag(Folder::FLAG_JUNKBOX)) {
+			if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN) {
+				pCallback_->setMessage(IDS_FILTERJUNK);
+				pSessionCallback_->setRange(0, listMessageData.size());
+				pSessionCallback_->setPos(0);
+				
+				for (MessageDataList::size_type n = 0; n < listMessageData.size(); ++n) {
+					MessagePtrLock mpl(listMessageData[n].getMessagePtr());
+					Message msg;
+					if (mpl && !mpl->isFlag(MessageHolder::FLAG_DELETED)) {
+						wstring_ptr wstrId(mpl->getMessageId());
+						if (pJunkFilter->getStatus(wstrId.get()) != JunkFilter::STATUS_JUNK) {
+							if (mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg))
+								pJunkFilter->manage(msg, JunkFilter::OPERATION_ADDJUNK);
 						}
-						
-						pSessionCallback_->setPos(n);
 					}
+					
+					pSessionCallback_->setPos(n);
 				}
 			}
 		}

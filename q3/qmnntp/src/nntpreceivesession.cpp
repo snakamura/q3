@@ -194,20 +194,13 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 	
 	bool bUseXOver = pSubAccount_->getProperty(L"Nntp", L"UseXOVER", 1) != 0;
 	
-	JunkFilter* pJunkFilter = 0;
-	unsigned int nJunkFilterFlags = 0;
-	NormalFolder* pJunkbox = 0;
-	if (pSubAccount_->isJunkFilterEnabled()) {
-		pJunkFilter = pDocument_->getJunkFilter();
-		if (pJunkFilter) {
-			pJunkbox = static_cast<NormalFolder*>(
-				pAccount_->getFolderByBoxFlag(Folder::FLAG_JUNKBOX));
-			if (pJunkbox)
-				nJunkFilterFlags = pJunkFilter->getFlags();
-			else
-				pJunkFilter = 0;
-		}
-	}
+	JunkFilter* pJunkFilter = pSubAccount_->isJunkFilterEnabled() ?
+		pDocument_->getJunkFilter() : 0;
+	NormalFolder* pJunkbox = pJunkFilter ? static_cast<NormalFolder*>(
+		pAccount_->getFolderByBoxFlag(Folder::FLAG_JUNKBOX)) : 0;
+	if (!pJunkbox)
+		pJunkFilter = 0;
+	unsigned int nJunkFilterFlags = pJunkFilter ? pJunkFilter->getFlags() : 0;
 	
 	MacroVariableHolder globalVariable;
 	
@@ -455,17 +448,14 @@ bool qmnntp::NntpReceiveSession::storeMessage(const CHAR* pszMessage,
 {
 	Lock<Account> lock(*pAccount_);
 	
-	NormalFolder* pFolder = pFolder_;
-	
+	bool bJunk = false;
 	Message msgJunk;
 	if (pJunkFilter) {
-		if (msgJunk.create(pszMessage, nLen, Message::FLAG_NONE)) {
-			float fScore = pJunkFilter->getScore(msgJunk);
-			if (fScore > pJunkFilter->getThresholdScore())
-				pFolder = pJunkbox;
-		}
+		if (msgJunk.create(pszMessage, nLen, Message::FLAG_NONE))
+			bJunk = pJunkFilter->getScore(msgJunk) > pJunkFilter->getThresholdScore();
 	}
 	
+	NormalFolder* pFolder = bJunk ? pJunkbox : pFolder_;
 	MessageHolder* pmh = pAccount_->storeMessage(
 		pFolder, pszMessage, nLen, 0, nId, nFlags, nSize,
 		nFlags == MessageHolder::FLAG_INDEXONLY);
@@ -473,12 +463,13 @@ bool qmnntp::NntpReceiveSession::storeMessage(const CHAR* pszMessage,
 		return false;
 	
 	if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN) {
-		unsigned int nJunkOperation = pFolder != pJunkbox ?
-			JunkFilter::OPERATION_ADDCLEAN : JunkFilter::OPERATION_ADDJUNK;
+		unsigned int nJunkOperation = bJunk ?
+			JunkFilter::OPERATION_ADDJUNK : JunkFilter::OPERATION_ADDCLEAN;
 		pJunkFilter->manage(msgJunk, nJunkOperation);
 	}
 	
-	pSessionCallback_->notifyNewMessage(pmh);
+	if (!bJunk)
+		pSessionCallback_->notifyNewMessage(pmh);
 	
 	return true;
 }
