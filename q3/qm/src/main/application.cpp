@@ -629,13 +629,13 @@ wstring_ptr qm::Application::getVersion(bool bWithOSVersion) const
 #else
 		const WCHAR* pwszCPU = L"x86";
 #endif
-		swprintf(wstrVersion.get(), L"QMAIL %d.%d.%d / %s / %s",
+		swprintf(wstrVersion.get(), L"QMAIL %d.%d.%d.%d / %s / %s",
 			QMAIL_VERSION/100000, (QMAIL_VERSION%100000)/1000,
-			QMAIL_VERSION%1000, wstrOSVersion.get(), pwszCPU);
+			QMAIL_VERSION%1000, QMAIL_REVISION, wstrOSVersion.get(), pwszCPU);
 	}
 	else {
-		swprintf(wstrVersion.get(), L"QMAIL %d.%d.%d", QMAIL_VERSION/100000,
-			(QMAIL_VERSION%100000)/1000, QMAIL_VERSION%1000);
+		swprintf(wstrVersion.get(), L"QMAIL %d.%d.%d.%d", QMAIL_VERSION/100000,
+			(QMAIL_VERSION%100000)/1000, QMAIL_VERSION%1000, QMAIL_REVISION);
 	}
 	
 	return wstrVersion;

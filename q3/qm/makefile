@@ -28,5 +28,6 @@ include ../common.mak
 
 $(SRCDIR)/main/version.h: version
 	printf "const int QMAIL_VERSION = %d%02d%03d;\n" `cat version | tr '.' ' '` > $@
+	printf "const int QMAIL_REVISION = %d;\n" $(REVISION) >> $@
 
 $(OBJDIR)/main/application.obj: $(SRCDIR)/main/version.h
