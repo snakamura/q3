@@ -627,6 +627,9 @@ void qm::ListWindowImpl::dragGestureRecognized(const DragGestureEvent& event)
 	
 	Lock<ViewModel> lock(*pViewModel);
 	
+	if (getLineFromPoint(event.getPoint()) == -1)
+		return;
+	
 	MessageHolderList l;
 	pViewModel->getSelection(&l);
 	if (l.empty())
