@@ -1031,6 +1031,7 @@ bool qm::MAPIAddressBook::load(AddressBook* pAddressBook)
 		PR_OBJECT_TYPE,
 		PR_DISPLAY_NAME,
 		PR_EMAIL_ADDRESS,
+		PR_ADDRTYPE,
 		PR_CONTACT_EMAIL_ADDRESSES
 	};
 	SizedSPropTagArray(countof(props), columns) = {
@@ -1042,6 +1043,7 @@ bool qm::MAPIAddressBook::load(AddressBook* pAddressBook)
 		COLUMN_OBJECT_TYPE,
 		COLUMN_DISPLAY_NAME,
 		COLUMN_EMAIL_ADDRESS,
+		COLUMN_ADDRTYPE,
 		COLUMN_CONTACT_EMAIL_ADDRESSES
 	};
 	
@@ -1098,17 +1100,21 @@ bool qm::MAPIAddressBook::load(AddressBook* pAddressBook)
 					pEntry->addAddress(pAddress);
 				}
 			}
-			else if (PROP_TYPE(pRow->lpProps[COLUMN_EMAIL_ADDRESS].ulPropTag) == PT_UNICODE) {
-				const SPropValue& value = pRow->lpProps[COLUMN_EMAIL_ADDRESS];
-				const WCHAR* pwszAddress = value.Value.lpszW;
-				std::auto_ptr<AddressBookAddress> pAddress(
-					new AddressBookAddress(pEntry.get(),
-						pwszAddress,
-						static_cast<const WCHAR*>(0),
-						AddressBookAddress::CategoryList(),
-						static_cast<const WCHAR*>(0),
-						static_cast<const WCHAR*>(0), false));
-				pEntry->addAddress(pAddress);
+			else if (PROP_TYPE(pRow->lpProps[COLUMN_EMAIL_ADDRESS].ulPropTag) == PT_UNICODE &&
+				PROP_TYPE(pRow->lpProps[COLUMN_ADDRTYPE].ulPropTag) == PT_UNICODE) {
+				const SPropValue& valueType = pRow->lpProps[COLUMN_ADDRTYPE];
+				if (wcscmp(valueType.Value.lpszW, L"SMTP") == 0) {
+					const SPropValue& value = pRow->lpProps[COLUMN_EMAIL_ADDRESS];
+					const WCHAR* pwszAddress = value.Value.lpszW;
+					std::auto_ptr<AddressBookAddress> pAddress(
+						new AddressBookAddress(pEntry.get(),
+							pwszAddress,
+							static_cast<const WCHAR*>(0),
+							AddressBookAddress::CategoryList(),
+							static_cast<const WCHAR*>(0),
+							static_cast<const WCHAR*>(0), false));
+					pEntry->addAddress(pAddress);
+				}
 			}
 			else {
 				log.warnf(L"Skipping unknown PR_CONTACT_EMAIL_ADDRESSES or PR_EMAIL_ADDRESS: %08x, %08x.",
@@ -1193,7 +1199,8 @@ wstring_ptr qm::MAPIAddressBook::expandDistList(IDistList* pDistList) const
 	
 	ULONG props[] = {
 		PR_DISPLAY_NAME,
-		PR_EMAIL_ADDRESS
+		PR_EMAIL_ADDRESS,
+		PR_ADDRTYPE
 	};
 	SizedSPropTagArray(countof(props), columns) = {
 		countof(props)
@@ -1201,7 +1208,8 @@ wstring_ptr qm::MAPIAddressBook::expandDistList(IDistList* pDistList) const
 	memcpy(columns.aulPropTag, props, sizeof(props));
 	enum {
 		COLUMN_DISPLAY_NAME,
-		COLUMN_EMAIL_ADDRESS
+		COLUMN_EMAIL_ADDRESS,
+		COLUMN_ADDRTYPE
 	};
 	
 	hr = pTable->SetColumns(reinterpret_cast<LPSPropTagArray>(&columns), 0);
@@ -1223,6 +1231,11 @@ wstring_ptr qm::MAPIAddressBook::expandDistList(IDistList* pDistList) const
 		assert(pSRowSet->cRows == 1);
 		
 		SRow* pRow = pSRowSet->aRow;
+		
+		const SPropValue& valueType = pRow->lpProps[COLUMN_ADDRTYPE];
+		if (PROP_TYPE(valueType.ulPropTag) != PT_UNICODE ||
+			wcscmp(valueType.Value.lpszW, L"SMTP") != 0)
+			continue;
 		
 		const SPropValue& valueName = pRow->lpProps[COLUMN_DISPLAY_NAME];
 		if (PROP_TYPE(valueName.ulPropTag) != PT_UNICODE)
