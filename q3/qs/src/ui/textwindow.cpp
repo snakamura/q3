@@ -315,7 +315,7 @@ unsigned int qs::TextWindowImpl::getAverageCharWidth() const
 		ObjectSelector<HFONT> fontSelector(dc, hfont_);
 		TEXTMETRIC tm;
 		dc.getTextMetrics(&tm);
-		nAverageCharWidth_ = tm.tmAveCharWidth;
+		nAverageCharWidth_ = tm.tmAveCharWidth + tm.tmOverhang;
 	}
 	return nAverageCharWidth_;
 }
@@ -1405,7 +1405,7 @@ bool qs::TextWindowImpl::getTextExtent(const DeviceContext& dc,
 			int nPrev = pnDx[0];
 			for (int n = 1; n < nLen; ++n) {
 				int nNext = pnDx[n];
-				int nWidth = pnDx[n] - nPrev == nCharWidth ?
+				int nWidth = pnDx[n] - nPrev <= nCharWidth*3/2 ?
 					nCharWidth : nCharWidth*2;
 				pnDx[n] = pnDx[n - 1] + nWidth;
 				nPrev = nNext;
