@@ -55,6 +55,9 @@ protected:
 	LRESULT onDestroy();
 	LRESULT onLButtonDown(UINT nFlags,
 						  const POINT& pt);
+#ifdef _WIN32_WCE
+	LRESULT onWindowPosChanged(WINDOWPOS* pWindowPos);
+#endif
 	LRESULT onMessageAdded(WPARAM wParam,
 						   LPARAM lParam);
 	LRESULT onMessageRemoved(WPARAM wParam,

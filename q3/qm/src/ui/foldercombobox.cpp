@@ -120,6 +120,9 @@ public:
 	HFONT hfont_;
 	bool bShowAllCount_;
 	bool bShowUnseenCount_;
+#ifdef _WIN32_WCE
+	int nItemHeight_;
+#endif
 };
 
 Account* qm::FolderComboBoxImpl::getAccount(int nIndex) const
@@ -526,6 +529,9 @@ qm::FolderComboBox::FolderComboBox(WindowBase* pParentWindow,
 	pImpl_->hfont_ = 0;
 	pImpl_->bShowAllCount_ = pProfile->getInt(L"FolderComboBox", L"ShowAllCount", 1) != 0;
 	pImpl_->bShowUnseenCount_ = pProfile->getInt(L"FolderComboBox", L"ShowUnseenCount", 1) != 0;
+#ifdef _WIN32_WCE
+	pImpl_->nItemHeight_ = 0;
+#endif
 	
 	setWindowHandler(this, false);
 	
@@ -565,6 +571,9 @@ LRESULT qm::FolderComboBox::windowProc(UINT uMsg,
 		HANDLE_CREATE()
 		HANDLE_DESTROY()
 		HANDLE_LBUTTONDOWN()
+#ifdef _WIN32_WCE
+		HANDLE_WINDOWPOSCHANGED()
+#endif
 		HANDLE_MESSAGE(FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEADDED, onMessageAdded)
 		HANDLE_MESSAGE(FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEREMOVED, onMessageRemoved)
 		HANDLE_MESSAGE(FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEREFRESHED, onMessageRefreshed)
@@ -616,7 +625,7 @@ LRESULT qm::FolderComboBox::onCreate(CREATESTRUCT* pCreateStruct)
 	ObjectSelector<HFONT> selector(dc, pImpl_->hfont_);
 	TEXTMETRIC tm;
 	dc.getTextMetrics(&tm);
-	sendMessage(CB_SETITEMHEIGHT, -1, tm.tmHeight + tm.tmExternalLeading + 2);
+	pImpl_->nItemHeight_ = tm.tmHeight + tm.tmExternalLeading + 2;
 #endif
 	
 	return 0;
@@ -644,6 +653,15 @@ LRESULT qm::FolderComboBox::onLButtonDown(UINT nFlags,
 #endif
 	return DefaultWindowHandler::onLButtonDown(nFlags, pt);
 }
+
+#ifdef _WIN32_WCE
+LRESULT qm::FolderComboBox::onWindowPosChanged(WINDOWPOS* pWindowPos)
+{
+	if (sendMessage(CB_GETITEMHEIGHT, -1) != pImpl_->nItemHeight_)
+		sendMessage(CB_SETITEMHEIGHT, -1, pImpl_->nItemHeight_);
+	return DefaultWindowHandler::onWindowPosChanged(pWindowPos);
+}
+#endif
 
 LRESULT qm::FolderComboBox::onMessageAdded(WPARAM wParam,
 										   LPARAM lParam)

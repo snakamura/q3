@@ -560,6 +560,34 @@ protected:
 protected:
 	HWND getHandle() const;
 
+#ifdef _WIN32_WCE
+private:
+	class ComboBoxEditWindow :
+		public qs::WindowBase,
+		public qs::DefaultWindowHandler
+	{
+	public:
+		ComboBoxEditWindow(HWND hwnd,
+						   int nItemHeight);
+		virtual ~ComboBoxEditWindow();
+	
+	public:
+		virtual LRESULT windowProc(UINT uMsg,
+								   WPARAM wParam,
+								   LPARAM lParam);
+	
+	protected:
+		LRESULT onWindowPosChanged(WINDOWPOS* pWindowPos);
+	
+	private:
+		ComboBoxEditWindow(const ComboBoxEditWindow&);
+		ComboBoxEditWindow& operator=(const ComboBoxEditWindow&);
+	
+	private:
+		int nItemHeight_;
+	};
+#endif
+
 private:
 	ComboBoxHeaderEditItem(const ComboBoxHeaderEditItem&);
 	ComboBoxHeaderEditItem& operator=(const ComboBoxHeaderEditItem&);

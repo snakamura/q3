@@ -1476,7 +1476,8 @@ bool qm::ComboBoxHeaderEditItem::create(WindowBase* pParent,
 	ObjectSelector<HFONT> selector(dc, fonts.first);
 	TEXTMETRIC tm;
 	dc.getTextMetrics(&tm);
-	::SendMessage(hwnd_, CB_SETITEMHEIGHT, -1, tm.tmHeight + tm.tmExternalLeading + 2);
+	int nItemHeight = tm.tmHeight + tm.tmExternalLeading + 2;
+	new ComboBoxEditWindow(hwnd_, nItemHeight);
 #endif
 	
 	pItemWindow_.reset(new EditWindowItemWindow(getController(), this, hwnd_));
@@ -1530,6 +1531,43 @@ LRESULT qm::ComboBoxHeaderEditItem::onChange()
 HWND qm::ComboBoxHeaderEditItem::getHandle() const
 {
 	return hwnd_;
+}
+
+
+/****************************************************************************
+ *
+ * ComboBoxHeaderEditItem::ComboBoxEditWindow
+ *
+ */
+
+qm::ComboBoxHeaderEditItem::ComboBoxEditWindow::ComboBoxEditWindow(HWND hwnd,
+																   int nItemHeight) :
+	WindowBase(true),
+	nItemHeight_(nItemHeight)
+{
+	setWindowHandler(this, false);
+	subclassWindow(hwnd);
+}
+
+qm::ComboBoxHeaderEditItem::ComboBoxEditWindow::~ComboBoxEditWindow()
+{
+}
+
+LRESULT qm::ComboBoxHeaderEditItem::ComboBoxEditWindow::windowProc(UINT uMsg,
+																   WPARAM wParam,
+																   LPARAM lParam)
+{
+	BEGIN_MESSAGE_HANDLER()
+		HANDLE_WINDOWPOSCHANGED()
+	END_MESSAGE_HANDLER()
+	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
+}
+
+LRESULT qm::ComboBoxHeaderEditItem::ComboBoxEditWindow::onWindowPosChanged(WINDOWPOS* pWindowPos)
+{
+	if (sendMessage(CB_GETITEMHEIGHT, -1) != nItemHeight_)
+		sendMessage(CB_SETITEMHEIGHT, -1, nItemHeight_);
+	return DefaultWindowHandler::onWindowPosChanged(pWindowPos);
 }
 
 
