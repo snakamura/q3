@@ -29,6 +29,7 @@
 #include "account.h"
 #include "messageindex.h"
 #include "messagestore.h"
+#include "../junk/junk.h"
 #include "../util/confighelper.h"
 
 #pragma warning(disable:4786)
@@ -595,30 +596,8 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 			nJunkOperation = JunkFilter::OPERATION_ADDCLEAN |
 				(bMove ? JunkFilter::OPERATION_REMOVEJUNK : 0);
 		if (nJunkOperation != 0) {
-			for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-				MessageHolder* pmh = *it;
-				
-				wstring_ptr wstrId(pmh->getMessageId());
-				bool b = true;
-				switch (pJunkFilter_->getStatus(wstrId.get())) {
-				case JunkFilter::STATUS_NONE:
-					break;
-				case JunkFilter::STATUS_CLEAN:
-					b = (nJunkOperation & JunkFilter::OPERATION_ADDJUNK) != 0;
-					break;
-				case JunkFilter::STATUS_JUNK:
-					b = (nJunkOperation & JunkFilter::OPERATION_ADDCLEAN) != 0;
-					break;
-				default:
-					assert(false);
-					break;
-				}
-				if (b) {
-					Message msg;
-					if (pmh->getMessage(Account::GETMESSAGEFLAG_HTML, 0, SECURITYMODE_NONE, &msg))
-						pJunkFilter_->manage(msg, nJunkOperation);
-				}
-			}
+			for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it)
+				JunkFilterUtil::manage(pJunkFilter_, *it, nJunkOperation);
 		}
 	}
 	

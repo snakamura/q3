@@ -66,19 +66,29 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 	{
 		Lock<CriticalSection> lock(cs_);
 		
-		if (!init())
+		if (!init()) {
 			return 0.0F;
-		else if (nCleanCount_ < 100 || nJunkCount_ == 0)
+		}
+		else if (nCleanCount_ < 100 || nJunkCount_ == 0) {
+			log.debug(L"Filter a message as clean because it has not learned enough clean messages.");
 			return 0.0F;
+		}
+		else if (nJunkCount_ == 0) {
+			return 0.0F;
+		}
 		
 		string_ptr strId(getId(msg));
 		int nId = 0;
 		if (dpgetwb(pDepotId_, strId.get(), strlen(strId.get()),
 			0, sizeof(nId), reinterpret_cast<char*>(&nId)) != -1) {
-			if (nId > 0)
+			if (nId > 0) {
+				log.debug(L"Filter a message as clean because it has already been learned as clean.");
 				return 0.0F;
-			else if (nId < 0)
+			}
+			else if (nId < 0) {
+				log.debug(L"Filter a message as junk because it has already been learned as junk.");
 				return 1.0F;
+			}
 		}
 	}
 	
@@ -190,12 +200,8 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 	
 	if (log.isDebugEnabled()) {
 		log.debug(L"Rated tokens:");
-		for (List::const_iterator it = l.begin(); it != l.end(); ++it) {
-			WCHAR wszScore[64];
-			swprintf(wszScore, L", Score: %f", (*it).second);
-			wstring_ptr wstrLog(concat(L"Token: ", (*it).first, wszScore));
-			log.debug(wstrLog.get());
-		}
+		for (List::const_iterator it = l.begin(); it != l.end(); ++it)
+			log.debugf(L"Token: %s, Score: %f", (*it).first, (*it).second);
 	}
 	
 	float p1 = 1;
@@ -206,13 +212,7 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 	}
 	
 	float fScore = p1/(p1 + p2);
-	
-	if (log.isDebugEnabled()) {
-		WCHAR wszLog[64];
-		swprintf(wszLog, L"Score: %f", fScore);
-		log.debug(wszLog);
-	}
-	
+	log.debugf(L"Score: %f", fScore);
 	return fScore;
 }
 
@@ -269,8 +269,10 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 			reinterpret_cast<char*>(&nStatus), sizeof(nStatus), DP_DOVER);
 	}
 	
-	if (nOperation == 0)
+	if (nOperation == 0) {
+		log.debug(L"Ignoring an message already learned.");
 		return true;
+	}
 	
 	struct TokenizerCallbackImpl : public TokenizerCallback
 	{
@@ -311,12 +313,7 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 				dpput(pDepotToken_, pKey, nKeyLen, pValue, nValueLen, DP_DOVER);
 			}
 			
-			if (log_.isDebugEnabled()) {
-				WCHAR wszCount[64];
-				swprintf(wszCount, L", Clean: %u, Junk: %u", nCount[0], nCount[1]);
-				wstring_ptr wstrLog(concat(L"Token: ", pwszToken, wszCount));
-				log_.debug(wstrLog.get());
-			}
+			log_.debugf(L"Token: %s, Clean: %u, Junk: %u", pwszToken, nCount[0], nCount[1]);
 			
 			return true;
 		}
@@ -400,13 +397,19 @@ bool qmjunk::JunkFilterImpl::init()
 	if (pDepotToken_ && pDepotId_)
 		return true;
 	
-	if (!File::createDirectory(wstrPath_.get()))
+	Log log(InitThread::getInitThread().getLogger(), L"qmjunk::JunkFilterImpl");
+	
+	if (!File::createDirectory(wstrPath_.get())) {
+		log.error(L"Could not create a directory for a junk filter.");
 		return false;
+	}
 	
 	wstring_ptr wstrProfilePath(concat(wstrPath_.get(), L"\\junk.xml"));
 	XMLProfile profile(wstrProfilePath.get());
-	if (!profile.load())
+	if (!profile.load()) {
+		log.error(L"Could not load junk.xml.");
 		return false;
+	}
 	nCleanCount_ = profile.getInt(L"Junk", L"CleanCount", 0);
 	nJunkCount_ = profile.getInt(L"Junk", L"JunkCount", 0);
 	
@@ -450,16 +453,22 @@ bool qmjunk::JunkFilterImpl::flush() const
 
 DEPOT* qmjunk::JunkFilterImpl::open(const WCHAR* pwszName) const
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qmjunk::JunkFilterImpl");
+	
 	wstring_ptr wstrPath(concat(wstrPath_.get(), L"\\", pwszName));
 	string_ptr strPath(wcs2mbs(wstrPath.get()));
 	DEPOT* pDepot = dpopen(strPath.get(), DP_OWRITER | DP_OCREAT, -1);
-	if (!pDepot)
+	if (!pDepot) {
+		log.errorf(L"Could not open a database: %s.", pwszName);
 		return 0;
+	}
 	
 	int nBucket = dpbnum(pDepot);
 	int nCount = dprnum(pDepot);
-	if (nBucket != -1 && nCount != -1 && nBucket < dpprimenum(nCount*4 + 1))
+	if (nBucket != -1 && nCount != -1 && nBucket < dpprimenum(nCount*4 + 1)) {
+		log.debugf(L"Optimizing a database: %s.", pwszName);
 		dpoptimize(pDepot, -1);
+	}
 	
 	return pDepot;
 }

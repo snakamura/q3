@@ -6,9 +6,17 @@
  *
  */
 
+#include <qmaccount.h>
 #include <qmjunk.h>
+#include <qmmessage.h>
+#include <qmmessageholder.h>
+#include <qmsecurity.h>
 
 #include <qsassert.h>
+#include <qsinit.h>
+#include <qslog.h>
+
+#include "junk.h"
 
 using namespace qm;
 using namespace qs;
@@ -81,4 +89,50 @@ void qm::JunkFilterFactory::unregisterFactory(JunkFilterFactory* pFactory)
 {
 	assert(JunkFilterFactoryImpl::pFactory__ == pFactory);
 	JunkFilterFactoryImpl::pFactory__ = 0;
+}
+
+
+/****************************************************************************
+ *
+ * JunkFilterUtil
+ *
+ */
+
+bool qm::JunkFilterUtil::manage(JunkFilter* pJunkFilter,
+								MessageHolder* pmh,
+								unsigned int nOperation)
+{
+	Log log(InitThread::getInitThread().getLogger(), L"qm::JunkFilterUtil");
+	
+	wstring_ptr wstrId(pmh->getMessageId());
+	bool b = true;
+	JunkFilter::Status status = pJunkFilter->getStatus(wstrId.get());
+	switch (status) {
+	case JunkFilter::STATUS_NONE:
+		break;
+	case JunkFilter::STATUS_CLEAN:
+		b = nOperation & JunkFilter::OPERATION_REMOVECLEAN ||
+			nOperation & JunkFilter::OPERATION_ADDJUNK;
+		break;
+	case JunkFilter::STATUS_JUNK:
+		b = nOperation & JunkFilter::OPERATION_ADDCLEAN ||
+			nOperation & JunkFilter::OPERATION_REMOVEJUNK;
+		break;
+	default:
+		assert(false);
+		break;
+	}
+	if (!b) {
+		log.debugf(L"Ignoring an message already learned as %s.",
+			status == JunkFilter::STATUS_CLEAN ? L"clean" : L"junk");
+		return true;
+	}
+	
+	Message msg;
+	if (!pmh->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg)) {
+		log.error(L"Could not get a message while managing a junk filter.");
+		return false;
+	}
+	
+	return pJunkFilter->manage(msg, nOperation);
 }
