@@ -776,7 +776,7 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 		unsigned char nQuoteLength = quote.second;
 		
 		if (line.getLength() - nQuoteLength == 0) {
-			PhysicalLinePtr ptr(allocLine(n, 0, 0, cr, nQuoteDepth, nQuoteLength, 0, 0));
+			PhysicalLinePtr ptr(allocLine(n, nQuoteLength, 0, cr, nQuoteDepth, nQuoteLength, 0, 0));
 			pListLine->push_back(ptr.get());
 			ptr.release();
 			nQuoteLength = 0;
