@@ -2165,7 +2165,7 @@ Part::Field qs::AddressParser::parseAddress(const Part& part,
 			else if (token.type_ == Tokenizer::T_SPECIAL) {
 				if (*token.str_.get() == ',') {
 				}
-				else if (!bInGroup && *token.str_.get() == ';') {
+				else if (bInGroup && *token.str_.get() == ';') {
 					if (pbEnd)
 						*pbEnd = true;
 				}
