@@ -2467,8 +2467,8 @@ QSTATUS qs::AddressParser::parseAddress(const Part& part,
 	Tokenizer& t, Part::Field* pField, bool* pbEnd)
 {
 	assert(pField);
-	assert((nFlags_ & FLAG_INGROUP && pbEnd) ||
-		(!(nFlags_ & FLAG_INGROUP) && !pbEnd));
+	assert(((nFlags_ & FLAG_INGROUP) == FLAG_INGROUP && pbEnd) ||
+		((nFlags_ & FLAG_INGROUP) != FLAG_INGROUP && !pbEnd));
 	
 	DECLARE_QSTATUS();
 	
@@ -2477,7 +2477,7 @@ QSTATUS qs::AddressParser::parseAddress(const Part& part,
 		*pbEnd = false;
 	
 	bool bDisallowGroup = (nFlags_ & FLAG_DISALLOWGROUP) != 0;
-	bool bInGroup = (nFlags_ & FLAG_INGROUP) != 0;
+	bool bInGroup = (nFlags_ & FLAG_INGROUP) == FLAG_INGROUP;
 	State state = S_BEGIN;
 	string_ptr<STRING> strComment;
 	Phrases phrases;
@@ -3162,7 +3162,7 @@ QSTATUS qs::AddressListParser::parseAddressList(
 	unsigned int nFlags = 0;
 	if (nFlags_ & FLAG_DISALLOWGROUP)
 		nFlags |= AddressParser::FLAG_DISALLOWGROUP;
-	if (nFlags_ & FLAG_GROUP)
+	if ((nFlags_ & FLAG_GROUP) == FLAG_GROUP)
 		nFlags |= AddressParser::FLAG_INGROUP;
 	
 	STLWrapper<AddressList> wrapper(listAddress_);
@@ -3189,7 +3189,7 @@ QSTATUS qs::AddressListParser::parseAddressList(
 		
 		bool bEnd = false;
 		status = pParser->parseAddress(part, t, pField,
-			nFlags_ & FLAG_GROUP ? &bEnd : 0);
+			(nFlags_ & FLAG_GROUP) == FLAG_GROUP ? &bEnd : 0);
 		CHECK_QSTATUS();
 		if (*pField != Part::FIELD_EXIST)
 			return QSTATUS_SUCCESS;
