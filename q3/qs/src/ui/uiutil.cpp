@@ -12,6 +12,7 @@
 #include <qsinit.h>
 #include <qsosutil.h>
 #include <qsprofile.h>
+#include <qstheme.h>
 #include <qsuiutil.h>
 
 #ifndef _WIN32_WCE
@@ -111,3 +112,25 @@ wstring_ptr qs::UIUtil::browseFolder(HWND hwnd,
 	
 	return wstrPath;
 }
+
+#ifndef _WIN32_WCE
+bool qs::UIUtil::drawThemeBorder(Theme* pTheme,
+								 HWND hwnd,
+								 int nPartId,
+								 int nStateId)
+{
+	RECT rect;
+	::GetWindowRect(hwnd, &rect);
+	rect.right -= rect.left;
+	rect.left = 0;
+	rect.bottom -= rect.top;
+	rect.top = 0;
+	
+	WindowDeviceContext dc(hwnd);
+	int nBorderWidth = ::GetSystemMetrics(SM_CXEDGE);
+	int nBorderHeight = ::GetSystemMetrics(SM_CYEDGE);
+	dc.excludeClipRect(nBorderWidth, nBorderHeight,
+		rect.right - nBorderWidth, rect.bottom - nBorderHeight);
+	return pTheme->drawBackground(dc.getHandle(), nPartId, nStateId, rect, 0);
+}
+#endif

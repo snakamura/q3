@@ -11,6 +11,7 @@
 
 #include <qskeymap.h>
 #include <qsmenu.h>
+#include <qstheme.h>
 #include <qstoolbar.h>
 #include <qswindow.h>
 
@@ -55,9 +56,17 @@ public:
 							   LPARAM lParam);
 
 protected:
+	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
+	LRESULT onDestroy();
+#ifndef _WIN32_WCE
+	LRESULT onNcPaint(HRGN hrgn);
+#endif
 	LRESULT onSize(UINT nFlags,
 				   int cx,
 				   int cy);
+#ifndef _WIN32_WCE
+	LRESULT onThemeChanged();
+#endif
 
 public:
 	virtual void accountSelected(const FolderModelEvent& event);
@@ -72,6 +81,9 @@ private:
 	FolderListWindow* pFolderListWindow_;
 	ListWindow* pListWindow_;
 	std::auto_ptr<DelayedFolderModelHandler> pDelayedFolderModelHandler_;
+#ifndef _WIN32_WCE
+	std::auto_ptr<qs::Theme> pTheme_;
+#endif
 };
 
 

@@ -17,6 +17,7 @@ namespace qs {
 class UIUtil;
 
 class Profile;
+class Theme;
 
 
 /****************************************************************************
@@ -34,6 +35,12 @@ public:
 	static wstring_ptr browseFolder(HWND hwnd,
 									const WCHAR* pwszTitle,
 									const WCHAR* pwszInitialPath);
+#ifndef _WIN32_WCE
+	static bool drawThemeBorder(Theme* pTheme,
+								HWND hwnd,
+								int nPartId,
+								int nStateId);
+#endif
 };
 
 }

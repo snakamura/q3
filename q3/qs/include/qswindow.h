@@ -16,9 +16,13 @@
 #include <windows.h>
 #include <commctrl.h>
 
-#ifdef _WIN32_WCE
-#	define WM_CONTEXTMENU                  0x007B
-#	define WM_NCDESTROY                    0x0082
+#ifndef _WIN32_WCE
+#	ifndef WM_THEMECHANGED
+#		define WM_THEMECHANGED 0x031A
+#	endif
+#else
+#	define WM_CONTEXTMENU  0x007B
+#	define WM_NCDESTROY    0x0082
 #	ifndef ListView_SetCheckState
 #		define ListView_SetCheckState(hwndLV, i, fCheck) \
 			ListView_SetItemState(hwndLV, i, INDEXTOSTATEIMAGEMASK((fCheck)?2:1), LVIS_STATEIMAGEMASK)
@@ -931,6 +935,14 @@ public:
 
 #endif
 
+#ifndef _WIN32_WCE
+#define HANDLE_NCPAINT() \
+	case WM_NCPAINT: \
+		lResult = onNcPaint(reinterpret_cast<HRGN>(wParam)); \
+		break; \
+
+#endif
+
 #define HANDLE_PAINT() \
 	case WM_PAINT: \
 		lResult = onPaint(); \
@@ -1005,6 +1017,14 @@ public:
 	case WM_SYSKEYUP: \
 		lResult = onSysKeyUp(wParam, lParam & 0xffff, lParam); \
 		break; \
+
+#ifndef _WIN32_WCE
+#define HANDLE_THEMECHANGED() \
+	case WM_THEMECHANGED: \
+		lResult = onThemeChanged(); \
+		break; \
+
+#endif
 
 #define HANDLE_TIMER() \
 	case WM_TIMER: \
@@ -1129,6 +1149,9 @@ protected:
 						 short nDelta,
 						 const POINT& pt);
 #endif
+#ifndef _WIN32_WCE
+	LRESULT onNcPaint(HRGN hrgn);
+#endif
 	LRESULT onPaint();
 	LRESULT onPaste();
 #ifndef _WIN32_WCE
@@ -1158,6 +1181,9 @@ protected:
 	LRESULT onSysKeyUp(UINT nKey,
 					   UINT nRepeat,
 					   UINT nFlags);
+#ifndef _WIN32_WCE
+	LRESULT onThemeChanged();
+#endif
 	LRESULT onTimer(UINT nId);
 	LRESULT onVScroll(UINT nCode,
 					  UINT nPos,

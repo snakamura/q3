@@ -114,6 +114,26 @@ qs::ClientDeviceContext::~ClientDeviceContext()
 
 /****************************************************************************
  *
+ * WindowDeviceContext
+ *
+ */
+
+qs::WindowDeviceContext::WindowDeviceContext(HWND hwnd) :
+	DeviceContext(0),
+	hwnd_(hwnd)
+{
+	setHandle(::GetWindowDC(hwnd_));
+}
+
+qs::WindowDeviceContext::~WindowDeviceContext()
+{
+	if (getHandle())
+		::ReleaseDC(hwnd_, getHandle());
+}
+
+
+/****************************************************************************
+ *
  * PaintDeviceContext
  *
  */

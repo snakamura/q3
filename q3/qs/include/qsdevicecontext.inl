@@ -95,6 +95,15 @@ inline int qs::DeviceContext::getClipBox(RECT* pRect)
 	return ::GetClipBox(hdc_, pRect);
 }
 
+inline int qs::DeviceContext::excludeClipRect(int nLeft,
+											  int nTop,
+											  int nRight,
+											  int nBottom)
+{
+	assert(hdc_);
+	return ::ExcludeClipRect(hdc_, nLeft, nTop, nRight, nBottom);
+}
+
 inline HFONT qs::DeviceContext::selectObject(HFONT hfont)
 {
 	assert(hdc_);

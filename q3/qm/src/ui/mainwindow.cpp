@@ -23,10 +23,15 @@
 #include <qskeymap.h>
 #include <qsprofile.h>
 #include <qsstl.h>
+#include <qstheme.h>
+#include <qsuiutil.h>
 
 #include <algorithm>
 #include <memory>
 
+#ifndef _WIN32_WCE
+#	include <tmschema.h>
+#endif
 #ifdef _WIN32_WCE_PSPC
 #	include <aygshell.h>
 #endif
@@ -2053,10 +2058,51 @@ LRESULT qm::ListContainerWindow::windowProc(UINT uMsg,
 											LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
+		HANDLE_CREATE()
+		HANDLE_DESTROY()
+#ifndef _WIN32_WCE
+		HANDLE_NCPAINT()
+#endif
 		HANDLE_SIZE()
+#ifndef _WIN32_WCE
+		HANDLE_THEMECHANGED()
+#endif
 	END_MESSAGE_HANDLER()
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
+
+LRESULT qm::ListContainerWindow::onCreate(CREATESTRUCT* pCreateStruct)
+{
+	if (DefaultWindowHandler::onCreate(pCreateStruct) == -1)
+		return -1;
+	
+#ifndef _WIN32_WCE
+	pTheme_.reset(new Theme(getHandle(), L"ListView"));
+#endif
+	
+	return 0;
+}
+
+LRESULT qm::ListContainerWindow::onDestroy()
+{
+#ifndef _WIN32_WCE
+	pTheme_.reset(0);
+#endif
+	return DefaultWindowHandler::onDestroy();
+}
+
+#ifndef _WIN32_WCE
+LRESULT qm::ListContainerWindow::onNcPaint(HRGN hrgn)
+{
+	if (pTheme_->isActive()) {
+		qs::UIUtil::drawThemeBorder(pTheme_.get(), getHandle(), LVP_LISTDETAIL, 0);
+		return 0;
+	}
+	else {
+		return DefaultWindowHandler::onNcPaint(hrgn);
+	}
+}
+#endif
 
 LRESULT qm::ListContainerWindow::onSize(UINT nFlags,
 										int cx,
@@ -2070,6 +2116,14 @@ LRESULT qm::ListContainerWindow::onSize(UINT nFlags,
 			SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
 	return DefaultWindowHandler::onSize(nFlags, cx, cy);
 }
+
+#ifndef _WIN32_WCE
+LRESULT qm::ListContainerWindow::onThemeChanged()
+{
+	pTheme_.reset(new Theme(getHandle(), L"ListView"));
+	return 0;
+}
+#endif
 
 void qm::ListContainerWindow::accountSelected(const FolderModelEvent& event)
 {

@@ -17,6 +17,7 @@ namespace qs {
 
 class DeviceContext;
 	class ClientDeviceContext;
+	class WindowDeviceContext;
 	class PaintDeviceContext;
 	class CompatibleDeviceContext;
 template<class Object> class ObjectSelector;
@@ -53,6 +54,10 @@ public:
 	int setBkMode(int nBkMode);
 	
 	int getClipBox(RECT* pRect);
+	int excludeClipRect(int nLeft,
+						int nTop,
+						int nRight,
+						int nBottom);
 	
 	HFONT selectObject(HFONT hfont);
 	HPEN selectObject(HPEN hpen);
@@ -130,6 +135,27 @@ public:
 private:
 	ClientDeviceContext(const ClientDeviceContext&);
 	ClientDeviceContext& operator=(const ClientDeviceContext&);
+
+private:
+	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * WindowDeviceContext
+ *
+ */
+
+class QSEXPORTCLASS WindowDeviceContext : public DeviceContext
+{
+public:
+	explicit WindowDeviceContext(HWND hwnd);
+	virtual ~WindowDeviceContext();
+
+private:
+	WindowDeviceContext(const WindowDeviceContext&);
+	WindowDeviceContext& operator=(const WindowDeviceContext&);
 
 private:
 	HWND hwnd_;
