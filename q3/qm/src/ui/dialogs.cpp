@@ -2481,6 +2481,8 @@ LRESULT qm::InputBoxDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 {
 	DECLARE_QSTATUS();
 	
+	init(false);
+	
 	if (wstrMessage_)
 		setDlgItemText(IDC_MESSAGE, wstrMessage_);
 	
