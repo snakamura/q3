@@ -75,7 +75,7 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 			return -1.0F;
 		}
 		else if (nCleanCount_ < 100 || nJunkCount_ == 0) {
-			log.debug(L"Filter a message as clean because it has not learned enough clean messages.");
+			log.info(L"Filter a message as clean because it has not learned enough clean messages.");
 			return 0.0F;
 		}
 		else if (nJunkCount_ == 0) {
@@ -87,11 +87,11 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 		if (dpgetwb(pDepotId_, strId.get(), strlen(strId.get()),
 			0, sizeof(nId), reinterpret_cast<char*>(&nId)) != -1) {
 			if (nId > 0) {
-				log.debug(L"Filter a message as clean because it has already been learned as clean.");
+				log.info(L"Filter a message as clean because it has already been learned as clean.");
 				return 0.0F;
 			}
 			else if (nId < 0) {
-				log.debug(L"Filter a message as junk because it has already been learned as junk.");
+				log.info(L"Filter a message as junk because it has already been learned as junk.");
 				return 1.0F;
 			}
 		}
@@ -217,7 +217,7 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 		return 0.0F;
 	
 	if (log.isInfoEnabled()) {
-		log.debug(L"Rated tokens:");
+		log.info(L"Rated tokens:");
 		for (List::const_iterator it = l.begin(); it != l.end(); ++it)
 			log.infof(L"Token: %s, Score: %f", (*it).first, (*it).second);
 	}
