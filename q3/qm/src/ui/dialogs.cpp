@@ -648,7 +648,8 @@ qm::AddressBookDialog::AddressBookDialog(AddressBook* pAddressBook,
 	pAddressBook_(pAddressBook),
 	pProfile_(pProfile),
 	nSort_(SORT_NAME | SORT_ASCENDING),
-	wndAddressList_(this)
+	wndAddressList_(this),
+	wndSelectedAddressList_(this)
 {
 	Type types[] = {
 		TYPE_TO,
@@ -858,6 +859,7 @@ LRESULT qm::AddressBookDialog::onInitDialog(HWND hwndFocus,
 	addNotifyHandler(this);
 	init(false);
 	wndAddressList_.subclassWindow(hwndList);
+	wndSelectedAddressList_.subclassWindow(hwndSelected);
 	Window(hwndList).setFocus();
 	
 	pAddressBook_->setEnableReload(false);
@@ -1397,6 +1399,11 @@ AddressBookDialog::Type qm::AddressBookDialog::Item::getType() const
 	return type_;
 }
 
+void qm::AddressBookDialog::Item::setType(Type type)
+{
+	type_ = type;
+}
+
 
 /****************************************************************************
  *
@@ -1435,6 +1442,134 @@ LRESULT qm::AddressBookDialog::AddressListWindow::onChar(UINT nChar,
 	}
 	return DefaultWindowHandler::onChar(nChar, nRepeat, nFlags);
 }
+
+
+/****************************************************************************
+ *
+ * AddressBookDialog::SelectedAddressListWindow
+ *
+ */
+
+qm::AddressBookDialog::SelectedAddressListWindow::SelectedAddressListWindow(AddressBookDialog* pDialog) :
+	WindowBase(false),
+	pDialog_(pDialog)
+{
+	setWindowHandler(this, false);
+}
+
+qm::AddressBookDialog::SelectedAddressListWindow::~SelectedAddressListWindow()
+{
+}
+
+bool qm::AddressBookDialog::SelectedAddressListWindow::preSubclassWindow()
+{
+#if defined _WIN32_WCE && _WIN32_WCE >= 400 && defined _WIN32_WCE_PSPC
+	pDialog_->addNotifyHandler(this);
+#endif
+	return true;
+}
+
+LRESULT qm::AddressBookDialog::SelectedAddressListWindow::windowProc(UINT uMsg,
+																	 WPARAM wParam,
+																	 LPARAM lParam)
+{
+	BEGIN_MESSAGE_HANDLER()
+		HANDLE_CONTEXTMENU()
+		HANDLE_DESTROY()
+		HANDLE_LBUTTONDOWN()
+	END_MESSAGE_HANDLER()
+	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
+}
+
+LRESULT qm::AddressBookDialog::SelectedAddressListWindow::onContextMenu(HWND hwnd,
+																		const POINT& pt)
+{
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	AutoMenuHandle hmenu(::LoadMenu(hInst, MAKEINTRESOURCE(IDR_ADDRESSBOOK)));
+	HMENU hmenuSub = ::GetSubMenu(hmenu.get(), 0);
+	UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD;
+#ifndef _WIN32_WCE
+	nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
+#endif
+	UINT nId = ::TrackPopupMenu(hmenuSub, nFlags, pt.x, pt.y, 0, getHandle(), 0);
+	
+	struct {
+		UINT nId_;
+		Type type_;
+	} types[] = {
+		{ IDM_ADDRESSBOOK_CHANGETO,		TYPE_TO		},
+		{ IDM_ADDRESSBOOK_CHANGECC,		TYPE_CC		},
+		{ IDM_ADDRESSBOOK_CHANGEBCC,	TYPE_BCC	}
+	};
+	Type type = static_cast<Type>(-1);
+	for (int n = 0; n < countof(types) && type == -1; ++n) {
+		if (types[n].nId_ == nId)
+			type = types[n].type_;
+	}
+	if (type == -1)
+		return 0;
+	
+	int nItem = -1;
+	while (true) {
+		nItem = ListView_GetNextItem(getHandle(), nItem, LVNI_ALL | LVNI_SELECTED);
+		if (nItem == -1)
+			break;
+		
+		LVITEM item = {
+			LVIF_PARAM,
+			nItem
+		};
+		ListView_GetItem(getHandle(), &item);
+		
+		Item* pItem = reinterpret_cast<Item*>(item.lParam);
+		pItem->setType(type);
+		
+		item.mask = LVIF_IMAGE;
+		item.iImage = type;
+		ListView_SetItem(getHandle(), &item);
+	}
+	ListView_SortItems(getHandle(), &selectedItemComp, 0);
+	
+	return 0;
+}
+
+LRESULT qm::AddressBookDialog::SelectedAddressListWindow::onDestroy()
+{
+#if defined _WIN32_WCE && _WIN32_WCE >= 400 && defined _WIN32_WCE_PSPC
+	pDialog_->removeNotifyHandler(this);
+#endif
+	return DefaultWindowHandler::onDestroy();
+}
+
+LRESULT qm::AddressBookDialog::SelectedAddressListWindow::onLButtonDown(UINT nFlags,
+																		const POINT& pt)
+{
+#if defined _WIN32_WCE && _WIN32_WCE >= 300 && _WIN32_WCE < 400 && defined _WIN32_WCE_PSPC
+	if (tapAndHold(pt))
+		return 0;
+#endif
+	return DefaultWindowHandler::onLButtonDown(nFlags, pt);
+}
+
+LRESULT qm::AddressBookDialog::SelectedAddressListWindow::onNotify(NMHDR* pnmhdr,
+																   bool* pbHandled)
+{
+	BEGIN_NOTIFY_HANDLER()
+#if defined _WIN32_WCE && _WIN32_WCE >= 400 && defined _WIN32_WCE_PSPC
+		HANDLE_NOTIFY(NM_RECOGNIZEGESTURE, IDC_SELECTEDADDRESS, onRecognizeGesture)
+#endif
+	END_NOTIFY_HANDLER()
+	return 1;
+}
+
+#if defined _WIN32_WCE && _WIN32_WCE >= 400 && defined _WIN32_WCE_PSPC
+LRESULT qm::AddressBookDialog::SelectedAddressListWindow::onRecognizeGesture(NMHDR* pnmhdr,
+																			 bool* pbHandled)
+{
+	*pbHandled = true;
+	return TRUE;
+}
+#endif
 
 
 /****************************************************************************

@@ -167,6 +167,16 @@ BEGIN
     END
 END
 
+IDR_ADDRESSBOOK MENU DISCARDABLE 
+BEGIN
+    POPUP ""
+    BEGIN
+        MENUITEM "Change to &To",               IDM_ADDRESSBOOK_CHANGETO
+        MENUITEM "Change to &Cc",               IDM_ADDRESSBOOK_CHANGECC
+        MENUITEM "Change to &Bcc",              IDM_ADDRESSBOOK_CHANGEBCC
+    END
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

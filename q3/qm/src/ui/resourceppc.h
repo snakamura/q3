@@ -74,6 +74,7 @@
 #define IDD_COPYRULETEMPLATE            177
 #define IDD_ARGUMENT                    178
 #define IDD_CONDITION                   179
+#define IDR_ADDRESSBOOK                 180
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -595,6 +596,9 @@
 #define IDM_VIEW_TEMPLATE               45400
 #define IDM_FOCUS_HEADEREDITITEM        46000
 #define IDM_ADDRESSBOOK_ALLCATEGORY     47001
+#define IDM_ADDRESSBOOK_CHANGETO        47002
+#define IDM_ADDRESSBOOK_CHANGECC        47003
+#define IDM_ADDRESSBOOK_CHANGEBCC       47004
 #define IDM_ADDRESSBOOK_CATEGORY        47100
 #define IDM_ATTACHMENT_OPEN             48001
 #define IDM_ATTACHMENT_SAVE             48002
@@ -612,8 +616,8 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        180
-#define _APS_NEXT_COMMAND_VALUE         48000
+#define _APS_NEXT_RESOURCE_VALUE        181
+#define _APS_NEXT_COMMAND_VALUE         49000
 #define _APS_NEXT_CONTROL_VALUE         1264
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

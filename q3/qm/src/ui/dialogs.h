@@ -263,6 +263,7 @@ public:
 		const WCHAR* getValue() const;
 		qs::wstring_ptr releaseValue();
 		Type getType() const;
+		void setType(Type type);
 	
 	private:
 		Item(const Item&);
@@ -369,6 +370,47 @@ private:
 		AddressBookDialog* pDialog_;
 	};
 	friend class AddressListWindow;
+	
+	class SelectedAddressListWindow :
+		public qs::WindowBase,
+		public qs::DefaultWindowHandler,
+		public qs::NotifyHandler
+	{
+	public:
+		explicit SelectedAddressListWindow(AddressBookDialog* pDialog);
+		virtual ~SelectedAddressListWindow();
+	
+	public:
+		virtual bool preSubclassWindow();
+		virtual LRESULT windowProc(UINT uMsg,
+								   WPARAM wParam,
+								   LPARAM lParam);
+	
+	protected:
+		LRESULT onContextMenu(HWND hwnd,
+							  const POINT& pt);
+		LRESULT onDestroy();
+		LRESULT onLButtonDown(UINT nFlags,
+							  const POINT& pt);
+	
+	public:
+		virtual LRESULT onNotify(NMHDR* pnmhdr,
+								 bool* pbHandled);
+	
+	private:
+#if defined _WIN32_WCE && _WIN32_WCE >= 400 && defined _WIN32_WCE_PSPC
+		LRESULT onRecognizeGesture(NMHDR* pnmhdr,
+								   bool* pbHandled);
+#endif
+	
+	private:
+		SelectedAddressListWindow(const SelectedAddressListWindow&);
+		SelectedAddressListWindow& operator=(const SelectedAddressListWindow&);
+	
+	private:
+		AddressBookDialog* pDialog_;
+	};
+	friend class SelectedAddressListWindow;
 
 private:
 	struct CategoryLess :
@@ -386,6 +428,7 @@ private:
 	qs::wstring_ptr wstrFilter_;
 	AddressList listAddress_[3];
 	AddressListWindow wndAddressList_;
+	SelectedAddressListWindow wndSelectedAddressList_;
 };
 
 
