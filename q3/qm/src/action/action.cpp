@@ -1097,7 +1097,7 @@ bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 	assert((pTemplate && pwszEncoding) || (!pTemplate && !pwszEncoding));
 	
 	Message msg;
-	unsigned int nFlags = Account::GETMESSAGEFLAG_ALL;
+	unsigned int nFlags = Account::GETMESSAGEFLAG_ALL | Account::GETMESSAGEFLAG_NOFALLBACK;
 	if (!bDecryptVerify)
 		nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
 	if (!pmh->getMessage(nFlags, 0, &msg))
