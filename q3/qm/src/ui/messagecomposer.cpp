@@ -88,7 +88,8 @@ QSTATUS qm::MessageComposer::compose(Account* pAccount,
 			pSubAccount = pAccount->getCurrentSubAccount();
 	}
 	
-	Folder* pFolder = pAccount->getFolderByFlag(Folder::FLAG_OUTBOX);
+	Folder* pFolder = pAccount->getFolderByFlag(
+		bDraft_ ? Folder::FLAG_DRAFTBOX : Folder::FLAG_OUTBOX);
 	if (!pFolder || pFolder->getType() != Folder::TYPE_NORMAL)
 		return QSTATUS_FAIL;
 	
