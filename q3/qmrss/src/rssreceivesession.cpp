@@ -125,8 +125,16 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	
 	const WCHAR* pwszURL = pFolder_->getParam(L"URL");
 	if (!pwszURL || !*pwszURL) {
+#if 1
+		// TODO
+		// Not to treat this as an error because there is no way to create
+		// a folder which a user doesn't want to sync.
+		// See <BTS:872> for details.
+		return true;
+#else
 		reportError(IDS_ERROR_URL, 0);
 		return false;
+#endif
 	}
 	std::auto_ptr<HttpURL> pURL(HttpURL::create(pwszURL));
 	if (!pURL.get()) {
