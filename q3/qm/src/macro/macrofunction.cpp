@@ -336,7 +336,7 @@ const WCHAR* qm::MacroFunctionAdditive::getName() const
 	if (bAdd_)
 		return L"Add";
 	else
-		return L"Minus";
+		return L"Subtract";
 }
 
 
@@ -4707,6 +4707,7 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(MacroParser::
 			DECLARE_FUNCTION0(		Substring,			L"substring"											)
 			DECLARE_FUNCTION1(		SubstringSep,		L"substringafter",	true								)
 			DECLARE_FUNCTION1(		SubstringSep,		L"substringbefore",	false								)
+			DECLARE_FUNCTION1(		Additive,			L"subtract",		false								)
 		END_BLOCK()
 		BEGIN_BLOCK(L't', L'T')
 			DECLARE_FUNCTION1(		Boolean,			L"true",			true								)
