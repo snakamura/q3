@@ -175,6 +175,7 @@ public:
 	int paintBlock(DeviceContext* pdc, const POINT& pt, const RECT& rect,
 		int x, const WCHAR* pBegin, const WCHAR* pEnd,
 		DeviceContext* pdcTab, const SIZE& sizeTab) const;
+	COLORREF getLineColor(const TextModel::Line& line) const;
 	
 	void scrollHorizontal(int nPos);
 	void scrollVertical(int nLine);
@@ -980,6 +981,24 @@ int qs::TextWindowImpl::paintBlock(DeviceContext* pdc, const POINT& pt,
 	}
 	
 	return x;
+}
+
+COLORREF qs::TextWindowImpl::getLineColor(const TextModel::Line& line) const
+{
+	const WCHAR* p = line.getText();
+	size_t n = 0;
+	while (n < line.getLength() && (*p == L' ' || *p == L'\t')) {
+		++p;
+		++n;
+	}
+	if (n != line.getLength()) {
+		int m = 0;
+		while (m < countof(wstrQuote_) && !wcschr(wstrQuote_[m], *p))
+			++m;
+		if (m != countof(wstrQuote_))
+			return crQuote_[m];
+	}
+	return crForeground_;
 }
 
 void qs::TextWindowImpl::scrollHorizontal(int nPos)
@@ -3309,13 +3328,7 @@ LRESULT qs::TextWindow::onPaint()
 			const TextModel::Line& logicalLine =
 				pImpl_->pTextModel_->getLine(pPhysicalLine->nLogicalLine_);
 			
-			COLORREF cr = pImpl_->crForeground_;
-			for (int m = 0; m < countof(pImpl_->wstrQuote_); ++m) {
-				if (wcschr(pImpl_->wstrQuote_[m], logicalLine.getText()[0])) {
-					cr = pImpl_->crQuote_[m];
-					break;
-				}
-			}
+			COLORREF cr = pImpl_->getLineColor(logicalLine);
 			
 			const WCHAR* pBegin = logicalLine.getText() + pPhysicalLine->nPosition_;
 			const WCHAR* pEnd = pBegin + pPhysicalLine->nLength_;
