@@ -1606,6 +1606,10 @@ QSTATUS qm::Account::unstoreMessage(MessageHolder* pmh)
 	
 	DECLARE_QSTATUS();
 	
+	NormalFolder* pFolder = pmh->getFolder();
+	
+	Lock<Folder> lock(*pFolder);
+	
 	const MessageHolder::MessageBoxKey& key = pmh->getMessageBoxKey();
 	status = pImpl_->pMessageStore_->free(key.nOffset_,
 		key.nLength_, pmh->getMessageCacheKey());
@@ -1613,7 +1617,6 @@ QSTATUS qm::Account::unstoreMessage(MessageHolder* pmh)
 	
 	pImpl_->pMessageCache_->removeData(pmh->getMessageCacheKey());
 	
-	NormalFolder* pFolder = pmh->getFolder();
 	status = pFolder->removeMessage(pmh);
 	CHECK_QSTATUS();
 	
@@ -1671,6 +1674,8 @@ QSTATUS qm::Account::updateMessage(MessageHolder* pmh, const CHAR* pszMessage)
 	assert(pszMessage);
 	
 	DECLARE_QSTATUS();
+	
+	Lock<Folder> lock(*pmh->getFolder());
 	
 	Message header(pszMessage, static_cast<size_t>(-1),
 		Message::FLAG_NONE, &status);

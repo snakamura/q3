@@ -121,11 +121,13 @@ unsigned int qm::MessageHolder::getFlags() const
 
 QSTATUS qm::MessageHolder::getFrom(WSTRING* pwstrFrom) const
 {
+	Lock<Folder> lock(*pFolder_);
 	return pFolder_->getData(messageCacheKey_, ITEM_FROM, pwstrFrom);
 }
 
 QSTATUS qm::MessageHolder::getTo(WSTRING* pwstrTo) const
 {
+	Lock<Folder> lock(*pFolder_);
 	return pFolder_->getData(messageCacheKey_, ITEM_TO, pwstrTo);
 }
 
@@ -156,6 +158,7 @@ QSTATUS qm::MessageHolder::getDate(Time* pTime) const
 
 QSTATUS qm::MessageHolder::getSubject(WSTRING* pwstrSubject) const
 {
+	Lock<Folder> lock(*pFolder_);
 	return pFolder_->getData(messageCacheKey_, ITEM_SUBJECT, pwstrSubject);
 }
 
@@ -222,6 +225,7 @@ bool qm::MessageHolder::isFlag(Flag flag) const
 
 QSTATUS qm::MessageHolder::getMessageId(WSTRING* pwstrMessageId) const
 {
+	Lock<Folder> lock(*pFolder_);
 	return pFolder_->getData(messageCacheKey_, ITEM_MESSAGEID, pwstrMessageId);
 }
 
@@ -245,6 +249,7 @@ unsigned int qm::MessageHolder::getMessageIdHash() const
 
 QSTATUS qm::MessageHolder::getReference(WSTRING* pwstrReference) const
 {
+	Lock<Folder> lock(*pFolder_);
 	return pFolder_->getData(messageCacheKey_, ITEM_REFERENCE, pwstrReference);
 }
 
