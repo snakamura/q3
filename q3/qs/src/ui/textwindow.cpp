@@ -582,7 +582,9 @@ std::pair<unsigned int, unsigned int> qs::TextWindowImpl::getPhysicalLine(unsign
 	PhysicalLine line = { nLogicalLine, nChar, 0 };
 	LineList::const_iterator it = std::lower_bound(
 		listLine_.begin(), listLine_.end(), &line, PhysicalLineComp());
-	if (it == listLine_.end() || nChar != (*it)->nPosition_ - (*it)->nQuoteLength_)
+	if (it == listLine_.end() ||
+		(*it)->nLogicalLine_ != nLogicalLine ||
+		nChar < (*it)->nPosition_ - (*it)->nQuoteLength_)
 		--it;
 	
 #ifndef NDEBUG
@@ -601,7 +603,9 @@ std::pair<unsigned int, unsigned int> qs::TextWindowImpl::getPhysicalLine(unsign
 	assert(it == itD);
 #endif
 	
-	return std::make_pair(it - listLine_.begin(), nChar - (*it)->nPosition_);
+	unsigned int nPhysicalChar = nChar > (*it)->nPosition_ ?
+		nChar - (*it)->nPosition_ : 0;
+	return std::make_pair(it - listLine_.begin(), nPhysicalChar);
 }
 
 void qs::TextWindowImpl::getSelection(unsigned int* pnStartLine,
@@ -774,6 +778,7 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 			PhysicalLinePtr ptr(allocLine(n, 0, 0, cr, nQuoteDepth, nQuoteLength, 0, 0));
 			pListLine->push_back(ptr.get());
 			ptr.release();
+			nQuoteLength = 0;
 		}
 		else {
 			getLinks(line.getText(), line.getLength(), &listLogicalLinkItem);
@@ -831,6 +836,7 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 							listPhysicalLinkItem.size()));
 						pListLine->push_back(ptr.get());
 						ptr.release();
+						nQuoteLength = 0;
 						
 						bFull = static_cast<unsigned int>(size.cx) == nFormatWidth - nLineWidth;
 						pBegin += nFit;
@@ -857,6 +863,7 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 						++ptr->nLength_;
 					pListLine->push_back(ptr.get());
 					ptr.release();
+					nQuoteLength = 0;
 					if (bWrap) {
 						size_t nOffset = p - line.getText();
 						size_t nLength = 1;
@@ -868,6 +875,7 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 							nQuoteLength, &listPhysicalLinkItem[0], listPhysicalLinkItem.size()));
 						pListLine->push_back(ptr.get());
 						ptr.release();
+						nQuoteLength = 0;
 					}
 					
 					++p;
@@ -889,6 +897,7 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 							nQuoteLength, &listPhysicalLinkItem[0], listPhysicalLinkItem.size()));
 						pListLine->push_back(ptr.get());
 						ptr.release();
+						nQuoteLength = 0;
 						
 						bFull = true;
 						pLine = p;
@@ -908,6 +917,7 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 								nQuoteLength, &listPhysicalLinkItem[0], listPhysicalLinkItem.size()));
 							pListLine->push_back(ptr.get());
 							ptr.release();
+							nQuoteLength = 0;
 						}
 					}
 					pBegin = p;
@@ -918,6 +928,7 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 						0, cr, nQuoteDepth, nQuoteLength, 0, 0));
 					pListLine->push_back(ptr.get());
 					ptr.release();
+					nQuoteLength = 0;
 				}
 			}
 		}
@@ -1617,8 +1628,8 @@ void qs::TextWindowImpl::textSet(const TextModelEvent& event)
 	recalcLines();
 	caret_.nLine_ = 0;
 	caret_.nChar_ = 0;
-	caret_.nPos_ = 0;
-	caret_.nOldPos_ = 0;
+	caret_.nPos_ = listLine_.empty() ? 0 : getPosFromChar(caret_.nLine_, caret_.nChar_);
+	caret_.nOldPos_ = caret_.nPos_;
 	clearSelection();
 	pUndoManager_->clear();
 	scrollHorizontal(0);
@@ -1636,6 +1647,8 @@ TextWindowImpl::PhysicalLine* qs::TextWindowImpl::allocLine(size_t nLogicalLine,
 															LinkItem* pLinkItems,
 															size_t nLinkCount)
 {
+	assert(nQuoteLength == 0 || nQuoteLength == nPosition);
+	
 	size_t nSize = sizeof(PhysicalLine) -
 		sizeof(LinkItem) + sizeof(LinkItem)*nLinkCount;
 	
@@ -1983,9 +1996,9 @@ bool qs::TextWindowImpl::PhysicalLineComp::operator()(const PhysicalLine* pLhs,
 		return true;
 	else if (pRhs->nLogicalLine_ < pLhs->nLogicalLine_)
 		return false;
-	else if (pLhs->nPosition_ < pRhs->nPosition_)
+	else if (pLhs->nPosition_ - pLhs->nQuoteLength_ < pRhs->nPosition_ - pRhs->nQuoteLength_)
 		return true;
-	else if (pRhs->nPosition_ < pLhs->nPosition_)
+	else if (pRhs->nPosition_ - pRhs->nQuoteLength_ < pLhs->nPosition_ - pLhs->nQuoteLength_)
 		return false;
 	else
 		return false;
@@ -3096,8 +3109,9 @@ void qs::TextWindow::setShowCaret(bool bShowCaret)
 			if (bShowCaret) {
 				pImpl_->caret_.nLine_ = pImpl_->scrollPos_.nLine_;
 				pImpl_->caret_.nChar_ = 0;
-				pImpl_->caret_.nPos_ = 0;
-				pImpl_->caret_.nOldPos_ = 0;
+				pImpl_->caret_.nPos_ = pImpl_->listLine_.empty() ? 0 :
+					pImpl_->getPosFromChar(pImpl_->caret_.nLine_, pImpl_->caret_.nChar_);
+				pImpl_->caret_.nOldPos_ = pImpl_->caret_.nPos_;
 				
 				pImpl_->showCaret();
 				pImpl_->updateCaret(false);
