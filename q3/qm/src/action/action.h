@@ -1407,6 +1407,7 @@ public:
 
 public:
 	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
 
 private:
 	MessageSearchAction(const MessageSearchAction&);

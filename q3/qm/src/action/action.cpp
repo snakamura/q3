@@ -3251,6 +3251,14 @@ QSTATUS qm::MessageSearchAction::invoke(const ActionEvent& event)
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qm::MessageSearchAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+{
+	assert(pbEnabled);
+	*pbEnabled = pFolderModel_->getCurrentFolder() ||
+		pFolderModel_->getCurrentAccount();
+	return QSTATUS_SUCCESS;
+}
+
 
 /****************************************************************************
  *
