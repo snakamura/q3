@@ -1541,12 +1541,13 @@ QSTATUS qm::FolderCreateAction::invoke(const ActionEvent& event)
 		pFolderSelectionModel_->getAccount();
 	
 	CreateFolderDialog::Type type = CreateFolderDialog::TYPE_LOCALFOLDER;
-	bool bAllowRemote = pAccount->isSupport(Account::SUPPORT_REMOTEFOLDER);
+	bool bAllowRemote = pAccount->isSupport(Account::SUPPORT_REMOTEFOLDER) &&
+		(!pFolder || !pFolder->isFlag(Folder::FLAG_NOINFERIORS));
 	
 	if (pFolder) {
 		switch (pFolder->getType()) {
 		case Folder::TYPE_NORMAL:
-			if (pFolder->isFlag(Folder::FLAG_LOCAL)) {
+			if (pFolder->isFlag(Folder::FLAG_LOCAL) || !bAllowRemote) {
 				type = CreateFolderDialog::TYPE_LOCALFOLDER;
 				bAllowRemote = false;
 			}
