@@ -270,8 +270,11 @@ QSTATUS qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 		}
 		else {
 			const Part* pPart = 0;
-			status = util.getAlternativePart(L"text", L"plain", &pPart);
-			CHECK_QSTATUS();
+			if (PartUtil::isContentType(pMessage->getContentType(),
+				L"multipart", L"alternative")) {
+				status = util.getAlternativePart(L"text", L"plain", &pPart);
+				CHECK_QSTATUS();
+			}
 			if (pPart) {
 				status = PartUtil(*pPart).getBodyText(0, pwszEncoding, &wstrText);
 				CHECK_QSTATUS();
