@@ -3,18 +3,22 @@
 # $Id$
 
 
-SVNDIR=d:/home/svn
+SVNHOST=home.snak.org
+SVNDIR=/home/snakamura/svn
+SVNURI=svn+ssh://$SVNHOST$SVNDIR/q3/trunk/q3
 CGIFTPSCRIPT=d:/home/wince/q3/cgiftpscript
 WEBFTPSCRIPT=d:/home/wince/q3/webftpscript
 
-svnadmin dump $SVNDIR/q3 | gzip -c > $SVNDIR/q3-`date +%Y%m%d`.gz
+DATE=`date +%Y%m%d`
+ssh $SVNHOST "svnadmin dump $SVNDIR/q3 | gzip -c > $SVNDIR/q3-$DATE.gz"
+scp $SVNHOST:$SVNDIR/q3-$DATE.gz /cygdrive/d/home/svn
+
 
 if [ "$1" = "-norebuild" ]; then
 	REBUILD=0
 else
 	REBUILD=1
 fi
-
 
 VERSION=`cat version`
 DATE=`date +%Y%m%d`
@@ -34,7 +38,7 @@ if [ ! -d $ZIPDIR ]; then
 fi
 
 cd $BUILDDIR
-svn checkout file:///home/svn/q3/trunk/q3
+svn checkout $SVNURI
 cd q3
 
 make all
@@ -54,9 +58,7 @@ for p in $PLATFORMS; do
 done
 
 
-#ncftpput -f $WEBFTPUSER /omega/snak/software/q3/nightly $ZIPDIR/*
 (cd $ZIPDIR; ftp -i -s:$WEBFTPSCRIPT)
 
 echo $VERSION-$DATE > nightly
-#ncftpput -f $CGIFTPUSER /public_html/q3 nightly
 ftp -s:$CGIFTPSCRIPT
