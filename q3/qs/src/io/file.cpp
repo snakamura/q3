@@ -59,6 +59,26 @@ wstring_ptr qs::File::getTempFileName(const WCHAR* pwszDir)
 	return wstrPath;
 }
 
+bool qs::File::createDirectory(const WCHAR* pwszDir)
+{
+	assert(pwszDir);
+	assert(*(pwszDir + wcslen(pwszDir) - 1) != L'\\');
+	
+	W2T(pwszDir, ptszDir);
+	if (::CreateDirectory(ptszDir, 0))
+		return true;
+	
+	const WCHAR* p = wcsrchr(pwszDir, L'\\');
+	if (!p)
+		return false;
+	
+	wstring_ptr wstrParentDir(allocWString(pwszDir, p - pwszDir));
+	if (!createDirectory(wstrParentDir.get()))
+		return false;
+	
+	return ::CreateDirectory(ptszDir, 0) != 0;
+}
+
 bool qs::File::removeDirectory(const WCHAR* pwszDir)
 {
 	assert(pwszDir);

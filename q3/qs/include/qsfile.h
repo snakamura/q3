@@ -116,6 +116,14 @@ public:
 	static wstring_ptr getTempFileName(const WCHAR* pwszDir);
 	
 	/**
+	 * Create directory recursively.
+	 *
+	 * @param pwszDir [in] Directory which is created.
+	 * @return true if success, false otherwise.
+	 */
+	static bool createDirectory(const WCHAR* pwszDir);
+	
+	/**
 	 * Remove directory recursively.
 	 *
 	 * @param pwszDir [in] Directory which is removed.
