@@ -903,6 +903,8 @@ BEGIN
     IDS_FOLDERLISTBOXSIZE   "Box Size"
     IDS_FINDNOTFOUND        "Not found."
     IDS_CONFIRMCLOSEEDITFRAME "Send message?"
+    IDS_DIALUPCONNECT       "Dialup Connect"
+    IDS_DIALUPDISCONNECT    "Dialup Disconnect"
 END
 
 #endif    // Japanese resources

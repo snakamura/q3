@@ -54,6 +54,7 @@ class MessageMoveAction;
 class MessageMoveOtherAction;
 class MessagePropertyAction;
 class ToolAccountAction;
+class ToolDialupAction;
 class ToolGoRoundAction;
 class ToolOptionsAction;
 class ToolScriptAction;
@@ -1020,6 +1021,38 @@ private:
 	Document* pDocument_;
 	FolderModel* pFolderModel_;
 	SyncFilterManager* pSyncFilterManager_;
+};
+
+
+/****************************************************************************
+ *
+ * ToolDialupAction
+ *
+ */
+
+class ToolDialupAction : public qs::AbstractAction
+{
+public:
+	ToolDialupAction(SyncManager* pSyncManager, Document* pDocument,
+		SyncDialogManager* pSyncDialogManager, HWND hwnd, qs::QSTATUS* pstatus);
+	virtual ~ToolDialupAction();
+
+public:
+	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual qs::QSTATUS getText(const qs::ActionEvent& event, qs::WSTRING* pwstrText);
+
+private:
+	qs::QSTATUS isConnected(bool* pbConnected) const;
+
+private:
+	ToolDialupAction(const ToolDialupAction&);
+	ToolDialupAction& operator=(const ToolDialupAction&);
+
+private:
+	SyncManager* pSyncManager_;
+	Document* pDocument_;
+	SyncDialogManager* pSyncDialogManager_;
+	HWND hwnd_;
 };
 
 

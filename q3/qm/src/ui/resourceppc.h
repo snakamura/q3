@@ -113,7 +113,9 @@
 #define IDC_DRAFT                       1036
 #define IDS_CONFIRMCLOSEEDITFRAME       1036
 #define IDC_MARKED                      1037
+#define IDS_DIALUPCONNECT               1037
 #define IDC_DOWNLOAD                    1038
+#define IDS_DIALUPDISCONNECT            1038
 #define IDC_DOWNLOADTEXT                1039
 #define IDC_TOME                        1040
 #define IDC_CCME                        1041

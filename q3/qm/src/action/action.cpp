@@ -2202,6 +2202,99 @@ QSTATUS qm::ToolAccountAction::isEnabled(
 
 /****************************************************************************
  *
+ * ToolDialupAction
+ *
+ */
+
+qm::ToolDialupAction::ToolDialupAction(SyncManager* pSyncManager,
+	Document* pDocument, SyncDialogManager* pSyncDialogManager,
+	HWND hwnd, QSTATUS* pstatus) :
+	pSyncManager_(pSyncManager),
+	pDocument_(pDocument),
+	pSyncDialogManager_(pSyncDialogManager),
+	hwnd_(hwnd)
+{
+}
+
+qm::ToolDialupAction::~ToolDialupAction()
+{
+}
+
+QSTATUS qm::ToolDialupAction::invoke(const ActionEvent& event)
+{
+	DECLARE_QSTATUS();
+	
+	bool bConnected = false;
+	status = isConnected(&bConnected);
+	CHECK_QSTATUS();
+	if (!bConnected) {
+		std::auto_ptr<SyncData> pData;
+		status = newQsObject(pSyncManager_, pDocument_, hwnd_, &pData);
+		CHECK_QSTATUS();
+		
+		std::auto_ptr<SyncDialup> pDialup;
+		status = newQsObject(static_cast<const WCHAR*>(0), 0,
+			static_cast<const WCHAR*>(0), 0, &pDialup);
+		CHECK_QSTATUS();
+		pData->setDialup(pDialup.release());
+		
+		SyncDialog* pSyncDialog = 0;
+		status = pSyncDialogManager_->open(&pSyncDialog);
+		CHECK_QSTATUS();
+		pData->setCallback(pSyncDialog->getSyncManagerCallback());
+		
+		status = pSyncManager_->sync(pData.get());
+		CHECK_QSTATUS();
+		pData.release();
+	}
+	else {
+		RasConnection* p = 0;
+		status = RasConnection::getActiveConnection(0, &p);
+		CHECK_QSTATUS();
+		std::auto_ptr<RasConnection> pRasConnection(p);
+		RasConnection::Result result;
+		status = pRasConnection->disconnect(false, &result);
+		CHECK_QSTATUS();
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::ToolDialupAction::getText(
+	const ActionEvent& event, WSTRING* pwstrText)
+{
+	DECLARE_QSTATUS();
+	
+	bool bConnected = false;
+	status = isConnected(&bConnected);
+	CHECK_QSTATUS();
+	
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	UINT nId = bConnected ? IDS_DIALUPDISCONNECT : IDS_DIALUPCONNECT;
+	status = loadString(hInst, nId, pwstrText);
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::ToolDialupAction::isConnected(bool* pbConnected) const
+{
+	assert(pbConnected);
+	
+	DECLARE_QSTATUS();
+	
+	int nCount = 0;
+	status = RasConnection::getActiveConnectionCount(&nCount);
+	CHECK_QSTATUS();
+	
+	*pbConnected = nCount != 0;
+	
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
  * ToolGoRoundAction
  *
  */

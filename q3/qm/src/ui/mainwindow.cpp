@@ -429,6 +429,11 @@ QSTATUS qm::MainWindowImpl::initActions()
 		pActionMap_, IDM_TOOL_ACCOUNT, pDocument_,
 		pFolderModel_, pSyncManager_->getSyncFilterManager());
 	CHECK_QSTATUS();
+	status = InitAction4<ToolDialupAction, SyncManager*,
+		Document*, SyncDialogManager*, HWND>(
+		pActionMap_, IDM_TOOL_DIALUP, pSyncManager_,
+		pDocument_, pSyncDialogManager_, pThis_->getHandle());
+	CHECK_QSTATUS();
 	status = InitActionRange5<ToolGoRoundAction, SyncManager*,
 		Document*, GoRound*, SyncDialogManager*, HWND>(
 		pActionMap_, IDM_TOOL_GOROUND, IDM_TOOL_GOROUND + 100,
