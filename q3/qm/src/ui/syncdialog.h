@@ -99,6 +99,7 @@ protected:
 
 private:
 	LRESULT onCancel();
+	LRESULT onEsc();
 	LRESULT onHide();
 
 private:

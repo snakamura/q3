@@ -200,6 +200,7 @@
 #define IDC_DRAFTBOX                    1114
 #define IDC_TRASHBOX                    1115
 #define IDC_VALUE                       1116
+#define IDC_HIDE                        1117
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101

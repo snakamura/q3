@@ -207,8 +207,8 @@ QSTATUS qm::SyncDialog::enableCancel(bool bEnable)
 {
 	Window(getDlgItem(IDC_CANCEL)).enableWindow(bEnable);
 	
-	UINT nOldId = bEnable ? IDCANCEL : IDC_CANCEL;
-	UINT nNewId = bEnable ? IDC_CANCEL : IDCANCEL;
+	UINT nOldId = bEnable ? IDC_HIDE : IDC_CANCEL;
+	UINT nNewId = bEnable ? IDC_CANCEL : IDC_HIDE;
 	Window(getDlgItem(nNewId)).setFocus();
 	sendDlgItemMessage(nOldId, BM_SETSTYLE, BS_PUSHBUTTON, TRUE);
 	sendMessage(DM_SETDEFID, nNewId);
@@ -303,7 +303,8 @@ LRESULT qm::SyncDialog::onCommand(WORD nCode, WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_CANCEL, onCancel)
-		HANDLE_COMMAND_ID(IDCANCEL, onHide)
+		HANDLE_COMMAND_ID(IDC_HIDE, onHide)
+		HANDLE_COMMAND_ID(IDCANCEL, onEsc)
 	END_COMMAND_HANDLER()
 	return 1;
 }
@@ -375,6 +376,11 @@ LRESULT qm::SyncDialog::onCancel()
 	return 0;
 }
 
+LRESULT qm::SyncDialog::onEsc()
+{
+	return nCanceledTime_ == 0 ? onCancel() : onHide();
+}
+
 LRESULT qm::SyncDialog::onHide()
 {
 	hide();
@@ -392,7 +398,7 @@ void qm::SyncDialog::layout(int cx, int cy)
 {
 	Window message(getDlgItem(IDC_MESSAGE));
 	Window cancel(getDlgItem(IDC_CANCEL));
-	Window hide(getDlgItem(IDCANCEL));
+	Window hide(getDlgItem(IDC_HIDE));
 	Window error(getDlgItem(IDC_ERROR));
 	RECT rectMessage;
 	message.getWindowRect(&rectMessage);
