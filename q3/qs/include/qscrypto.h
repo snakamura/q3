@@ -563,6 +563,4 @@ private:
 
 }
 
-#include "qscrypto.inl"
-
 #endif // __QSCRYPTO_H__
