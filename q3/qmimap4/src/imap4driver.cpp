@@ -40,7 +40,8 @@ qmimap4::Imap4Driver::Imap4Driver(Account* pAccount, QSTATUS* pstatus) :
 	pSessionCache_(0),
 	pCallback_(0),
 	pOfflineJobManager_(0),
-	bOffline_(true)
+	bOffline_(true),
+	nForceOnline_(0)
 {
 	assert(pstatus);
 	
@@ -74,11 +75,26 @@ bool qmimap4::Imap4Driver::isSupport(Account::Support support)
 
 QSTATUS qmimap4::Imap4Driver::setOffline(bool bOffline)
 {
-	if (!bOffline_ && bOffline) {
+	if (!bOffline_ && bOffline && nForceOnline_ == 0) {
 		delete pSessionCache_;
 		pSessionCache_ = 0;
 	}
 	bOffline_ = bOffline;
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qmimap4::Imap4Driver::setForceOnline(bool bOnline)
+{
+	if (bOnline) {
+		++nForceOnline_;
+	}
+	else {
+		if (--nForceOnline_ == 0 && bOffline_) {
+			delete pSessionCache_;
+			pSessionCache_ = 0;
+		}
+	}
 	
 	return QSTATUS_SUCCESS;
 }
@@ -258,7 +274,9 @@ QSTATUS qmimap4::Imap4Driver::getMessage(SubAccount* pSubAccount,
 	*pbGet = false;
 	*pbMadeSeen = false;
 	
-	if (bOffline_)
+	if (bOffline_ &&
+		(nForceOnline_ == 0 ||
+		(nFlags & Account::GETMESSAGEFLAG_FORCEONLINE) == 0))
 		return QSTATUS_SUCCESS;
 	
 	int nOption = 0;

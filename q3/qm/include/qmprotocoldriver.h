@@ -1,5 +1,5 @@
 /*
- * $Id: qmprotocoldriver.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -41,6 +41,7 @@ public:
 public:
 	virtual bool isSupport(Account::Support support) = 0;
 	virtual qs::QSTATUS setOffline(bool bOffline) = 0;
+	virtual qs::QSTATUS setForceOnline(bool bOnline) = 0;
 	virtual qs::QSTATUS save() = 0;
 	
 	virtual qs::QSTATUS createFolder(SubAccount* pSubAccount,

@@ -827,6 +827,11 @@ QSTATUS qm::Account::setOffline(bool bOffline)
 	return pImpl_->pProtocolDriver_->setOffline(bOffline);
 }
 
+QSTATUS qm::Account::setForceOnline(bool bOnline)
+{
+	return pImpl_->pProtocolDriver_->setForceOnline(bOnline);
+}
+
 QSTATUS qm::Account::compact()
 {
 	DECLARE_QSTATUS();

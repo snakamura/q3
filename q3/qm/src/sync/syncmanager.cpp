@@ -674,6 +674,21 @@ QSTATUS qm::SyncManager::send(SyncManagerCallback* pSyncManagerCallback,
 		listMessagePtr).reserve(pOutbox->getCount());
 	CHECK_QSTATUS();
 	
+	struct ForceOnline
+	{
+		ForceOnline(Account* pAccount) :
+			pAccount_(pAccount)
+		{
+			pAccount_->setForceOnline(true);
+		}
+		
+		~ForceOnline()
+		{
+			pAccount_->setForceOnline(false);
+		}
+		Account* pAccount_;
+	} forceOnline(pAccount);
+	
 	{
 		Lock<Folder> lock(*pOutbox);
 		
@@ -683,7 +698,9 @@ QSTATUS qm::SyncManager::send(SyncManagerCallback* pSyncManagerCallback,
 				!pmh->isFlag(MessageHolder::FLAG_DELETED)) {
 				Message msg(&status);
 				CHECK_QSTATUS();
-				status = pmh->getMessage(Account::GETMESSAGEFLAG_HEADER,
+				status = pmh->getMessage(
+					Account::GETMESSAGEFLAG_HEADER |
+					Account::GETMESSAGEFLAG_FORCEONLINE,
 					L"X-QMAIL-SubAccount", &msg);
 				CHECK_QSTATUS();
 				
@@ -753,7 +770,9 @@ QSTATUS qm::SyncManager::send(SyncManagerCallback* pSyncManagerCallback,
 		if (mpl) {
 			Message msg(&status);
 			CHECK_QSTATUS();
-			status = mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg);
+			status = mpl->getMessage(
+				Account::GETMESSAGEFLAG_ALL |
+				Account::GETMESSAGEFLAG_FORCEONLINE, 0, &msg);
 			CHECK_QSTATUS();
 			const WCHAR* pwszRemoveFields[] = {
 				L"X-QMAIL-Account",

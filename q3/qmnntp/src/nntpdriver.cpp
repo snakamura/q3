@@ -1,5 +1,5 @@
 /*
- * $Id: nntpdriver.cpp,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -70,6 +70,11 @@ QSTATUS qmnntp::NntpDriver::setOffline(bool bOffline)
 	}
 	bOffline_ = bOffline;
 	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qmnntp::NntpDriver::setForceOnline(bool bOnline)
+{
 	return QSTATUS_SUCCESS;
 }
 

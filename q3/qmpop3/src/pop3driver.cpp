@@ -1,5 +1,5 @@
 /*
- * $Id: pop3driver.cpp,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -53,6 +53,11 @@ bool qmpop3::Pop3Driver::isSupport(Account::Support support)
 }
 
 QSTATUS qmpop3::Pop3Driver::setOffline(bool bOffline)
+{
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qmpop3::Pop3Driver::setForceOnline(bool bOnline)
 {
 	return QSTATUS_SUCCESS;
 }

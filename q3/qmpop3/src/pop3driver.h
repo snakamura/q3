@@ -1,5 +1,5 @@
 /*
- * $Id: pop3driver.h,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -33,6 +33,7 @@ public:
 public:
 	virtual bool isSupport(qm::Account::Support support);
 	virtual qs::QSTATUS setOffline(bool bOffline);
+	virtual qs::QSTATUS setForceOnline(bool bOnline);
 	virtual qs::QSTATUS save();
 	
 	virtual qs::QSTATUS createFolder(qm::SubAccount* pSubAccount,
