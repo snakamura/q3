@@ -1380,7 +1380,6 @@ bool qmimap4::FolderListGetter::listNamespaces()
 	}
 	else {
 		if (!pImap4_->list(false, L"", L""))
-
 			return false;
 	}
 	
