@@ -4433,7 +4433,8 @@ QSTATUS qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 			nIndex = pViewModel->getIndex(mpl);
 	}
 	
-	if (nIndex != static_cast<unsigned int>(-1)) {
+	if (nIndex != static_cast<unsigned int>(-1) ||
+		(bPreview && type == TYPE_NEXTUNSEEN)) {
 		ViewModel* pNewViewModel = pViewModel;
 		
 		switch (type) {
@@ -4525,18 +4526,20 @@ QSTATUS qm::ViewNavigateMessageAction::getNextUnseen(
 	
 	Lock<ViewModel> lock(*pViewModel);
 	
-	unsigned int nCount = pViewModel->getCount();
 	unsigned int nStart = nIndex;
-	for (bIncludeSelf ? 0 : ++nIndex; nIndex < nCount; ++nIndex) {
-		MessageHolder* pmh = pViewModel->getMessageHolder(nIndex);
-		if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
-			break;
-	}
-	if (nIndex == nCount) {
-		for (nIndex = 0; nIndex < nStart; ++nIndex) {
+	if (nIndex != -1) {
+		unsigned int nCount = pViewModel->getCount();
+		for (bIncludeSelf ? 0 : ++nIndex; nIndex < nCount; ++nIndex) {
 			MessageHolder* pmh = pViewModel->getMessageHolder(nIndex);
 			if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
 				break;
+		}
+		if (nIndex == nCount) {
+			for (nIndex = 0; nIndex < nStart; ++nIndex) {
+				MessageHolder* pmh = pViewModel->getMessageHolder(nIndex);
+				if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
+					break;
+			}
 		}
 	}
 	if (!bIncludeSelf && nIndex == nStart) {
