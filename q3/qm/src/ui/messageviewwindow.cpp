@@ -590,11 +590,12 @@ void qm::HtmlMessageViewWindow::setActive()
 	if (FAILED(hr))
 		return;
 	
-	BSTR bstrState;
+	bool bComplete = true;
+	BSTRPtr bstrState;
 	hr = pHTMLDocument->get_readyState(&bstrState);
-	bool bComplete = wcscmp(bstrState, L"complete") == 0 ||
-		wcscmp(bstrState, L"interactive") == 0;
-	::SysFreeString(bstrState);
+	if (SUCCEEDED(hr))
+		bComplete = wcscmp(bstrState.get(), L"complete") == 0 ||
+			wcscmp(bstrState.get(), L"interactive") == 0;
 	if (bComplete) {
 		ComPtr<IHTMLWindow2> pHTMLWindow;
 		hr = pHTMLDocument->get_parentWindow(&pHTMLWindow);
