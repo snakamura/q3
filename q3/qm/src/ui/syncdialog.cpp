@@ -1039,7 +1039,28 @@ void qm::SyncStatusWindow::updateScrollBar()
 		nItemCount,
 		nHeight/nItemHeight + (nHeight%nItemHeight == 0 ? 0 : 1)
 	};
-	setScrollInfo(SB_VERT, si);
+	
+	class RunnableImpl : public Runnable
+	{
+	public:
+		RunnableImpl(Window* pWindow,
+					 const SCROLLINFO& si) :
+			pWindow_(pWindow),
+			si_(si)
+		{
+		}
+		
+		virtual unsigned int run()
+		{
+			pWindow_->setScrollInfo(SB_VERT, si_);
+			return 0;
+		}
+	
+	private:
+		Window* pWindow_;
+		SCROLLINFO si_;
+	} runnable(this, si);
+	pSyncDialog_->getInitThread()->getSynchronizer()->syncExec(&runnable);
 }
 
 void qm::SyncStatusWindow::paintItem(DeviceContext* pdc,
