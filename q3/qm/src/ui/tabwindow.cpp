@@ -20,7 +20,10 @@
 #include "tabwindow.h"
 #include "uimanager.h"
 #include "uiutil.h"
+#include "../model/dataobject.h"
 #include "../uimodel/tabmodel.h"
+
+#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;
@@ -501,7 +504,7 @@ LRESULT qm::TabWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		reinterpret_cast<TabWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	
 	std::auto_ptr<TabCtrlWindow> pTabCtrl(new TabCtrlWindow(
-		pImpl_->pTabModel_, pImpl_->pProfile_,
+		pContext->pDocument_, pImpl_->pTabModel_, pImpl_->pProfile_,
 		pContext->pUIManager_->getMenuManager()));
 	if (!pTabCtrl->create(L"QmTabCtrlWindow", 0,
 		WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
@@ -571,10 +574,12 @@ LRESULT qm::TabWindow::onMessageChanged(WPARAM wParam,
  *
  */
 
-qm::TabCtrlWindow::TabCtrlWindow(TabModel* pTabModel,
+qm::TabCtrlWindow::TabCtrlWindow(Document* pDocument,
+								 TabModel* pTabModel,
 								 Profile* pProfile,
 								 MenuManager* pMenuManager) :
 	WindowBase(true),
+	pDocument_(pDocument),
 	pTabModel_(pTabModel),
 	pProfile_(pProfile),
 	pMenuManager_(pMenuManager),
@@ -666,6 +671,9 @@ LRESULT qm::TabCtrlWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		MAKEINTRESOURCE(IDB_FOLDER), 16, 0, CLR_DEFAULT, IMAGE_BITMAP, 0);
 	TabCtrl_SetImageList(getHandle(), hImageList);
 	
+	pDropTarget_.reset(new DropTarget(getHandle()));
+	pDropTarget_->setDropTargetHandler(this);
+	
 	return 0;
 }
 
@@ -678,6 +686,8 @@ LRESULT qm::TabCtrlWindow::onDestroy()
 	
 	HIMAGELIST hImageList = TabCtrl_SetImageList(getHandle(), 0);
 	ImageList_Destroy(hImageList);
+	
+	pDropTarget_.reset(0);
 	
 	return DefaultWindowHandler::onDestroy();
 }
@@ -729,6 +739,59 @@ LRESULT qm::TabCtrlWindow::onDeselectTemporary(WPARAM wParam,
 {
 	pTabModel_->setTemporary(-1);
 	return 0;
+}
+
+void qm::TabCtrlWindow::dragEnter(const DropTargetDragEvent& event)
+{
+	POINT pt = event.getPoint();
+	screenToClient(&pt);
+	ImageList_DragEnter(getHandle(), pt.x, pt.y);
+	
+	processDragEvent(event);
+}
+
+void qm::TabCtrlWindow::dragOver(const DropTargetDragEvent& event)
+{
+	processDragEvent(event);
+}
+
+void qm::TabCtrlWindow::dragExit(const DropTargetEvent& event)
+{
+	ImageList_DragLeave(getHandle());
+}
+
+void qm::TabCtrlWindow::drop(const DropTargetDropEvent& event)
+{
+	DWORD dwEffect = DROPEFFECT_NONE;
+	IDataObject* pDataObject = event.getDataObject();
+	if (FolderDataObject::canPasteFolder(pDataObject)) {
+		std::pair<Account*, Folder*> p(FolderDataObject::get(pDataObject, pDocument_));
+		if (p.first) {
+			pTabModel_->open(p.first);
+			dwEffect = DROPEFFECT_MOVE;
+		}
+		else if (p.second) {
+			pTabModel_->open(p.second);
+			dwEffect = DROPEFFECT_MOVE;
+		}
+	}
+	event.setEffect(dwEffect);
+	
+	ImageList_DragLeave(getHandle());
+}
+
+void qm::TabCtrlWindow::processDragEvent(const DropTargetDragEvent& event)
+{
+	POINT pt = event.getPoint();
+	screenToClient(&pt);
+	
+	DWORD dwEffect = DROPEFFECT_NONE;
+	IDataObject* pDataObject = event.getDataObject();
+	if (FolderDataObject::canPasteFolder(pDataObject))
+		dwEffect = DROPEFFECT_MOVE;
+	event.setEffect(dwEffect);
+	
+	ImageList_DragMove(pt.x, pt.y);
 }
 
 #endif // QMTABWINDOW

@@ -36,6 +36,7 @@
 #include "uiutil.h"
 #include "../model/dataobject.h"
 #include "../uimodel/foldermodel.h"
+#include "../util/util.h"
 
 #pragma warning(disable:4786)
 
@@ -421,7 +422,7 @@ void qm::FolderWindowImpl::documentInitialized(const DocumentEvent& event)
 	StringListFree<Profile::StringList> free(listFolders);
 	pProfile_->getStringList(L"FolderWindow", L"ExpandedFolders", &listFolders);
 	for (Profile::StringList::const_iterator it = listFolders.begin(); it != listFolders.end(); ++it) {
-		std::pair<Account*, Folder*> p(UIUtil::getAccountOrFolder(pDocument_, *it));
+		std::pair<Account*, Folder*> p(Util::getAccountOrFolder(pDocument_, *it));
 		HTREEITEM hItem = 0;
 		if (p.first)
 			hItem = getHandleFromAccount(p.first);
@@ -570,6 +571,7 @@ void qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
 	};
 	HTREEITEM hItem = TreeView_HitTest(pThis_->getHandle(), &info);
 	
+	DWORD dwEffect = DROPEFFECT_NONE;
 	IDataObject* pDataObject = event.getDataObject();
 	if (MessageDataObject::canPasteMessage(pDataObject)) {
 		if (hItem && TreeView_GetParent(pThis_->getHandle(), hItem)) {
@@ -597,7 +599,7 @@ void qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
 					messageBox(Application::getApplication().getResourceHandle(),
 						IDS_ERROR_COPYMESSAGES, MB_OK | MB_ICONERROR, pThis_->getParentFrame());
 				
-				event.setEffect(bMove ? DROPEFFECT_MOVE : DROPEFFECT_COPY);
+				dwEffect = bMove ? DROPEFFECT_MOVE : DROPEFFECT_COPY;
 			}
 		}
 	}
@@ -613,17 +615,18 @@ void qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
 				pAccount = getAccount(hItem);
 			}
 			
-			Folder* pFolder = FolderDataObject::getFolder(pDataObject, pDocument_);
+			Folder* pFolder = FolderDataObject::get(pDataObject, pDocument_).second;
 			if (pFolder && pFolder->getAccount() == pAccount &&
 				(!pTarget || !pFolder->isAncestorOf(pTarget))) {
 				if (!pAccount->moveFolder(pFolder, pTarget))
 					messageBox(Application::getApplication().getResourceHandle(),
 						IDS_ERROR_MOVEFOLDER, MB_OK | MB_ICONERROR, pThis_->getParentFrame());
 				
-				event.setEffect(DROPEFFECT_MOVE);
+				dwEffect = DROPEFFECT_MOVE;
 			}
 		}
 	}
+	event.setEffect(dwEffect);
 	
 	ImageList_DragLeave(pThis_->getHandle());
 }
@@ -649,12 +652,18 @@ LRESULT qm::FolderWindowImpl::onBeginDrag(NMHDR* pnmhdr,
 {
 	NMTREEVIEW* pnmtv = reinterpret_cast<NMTREEVIEW*>(pnmhdr);
 	
-	HTREEITEM hItem = pnmtv->itemNew.hItem;
-	if (!TreeView_GetParent(pThis_->getHandle(), hItem))
-		return 0;
+	std::auto_ptr<FolderDataObject> p;
 	
-	Folder* pFolder = getFolder(hItem);
-	std::auto_ptr<FolderDataObject> p(new FolderDataObject(pFolder));
+	HTREEITEM hItem = pnmtv->itemNew.hItem;
+	if (TreeView_GetParent(pThis_->getHandle(), hItem)) {
+		Folder* pFolder = getFolder(hItem);
+		p.reset(new FolderDataObject(pFolder));
+	}
+	else {
+		Account* pAccount = getAccount(hItem);
+		p.reset(new FolderDataObject(pAccount));
+	}
+	
 	p->AddRef();
 	ComPtr<IDataObject> pDataObject(p.release());
 	
@@ -941,7 +950,7 @@ void qm::FolderWindowImpl::processDragEvent(const DropTargetDragEvent& event)
 				pAccount = getAccount(hItem);
 			}
 			
-			Folder* pFolder = FolderDataObject::getFolder(pDataObject, pDocument_);
+			Folder* pFolder = FolderDataObject::get(pDataObject, pDocument_).second;
 			if (pFolder && pFolder->getAccount() == pAccount &&
 				(!pTarget || !pFolder->isAncestorOf(pTarget)))
 				dwEffect = DROPEFFECT_MOVE;
@@ -1132,9 +1141,9 @@ bool qm::FolderWindow::save()
 		if (item.state & TVIS_EXPANDED) {
 			wstring_ptr wstr;
 			if (TreeView_GetParent(hwnd, hItem))
-				wstr = UIUtil::formatFolder(pImpl_->getFolder(hItem));
+				wstr = Util::formatFolder(pImpl_->getFolder(hItem));
 			else
-				wstr = UIUtil::formatAccount(pImpl_->getAccount(hItem));
+				wstr = Util::formatAccount(pImpl_->getAccount(hItem));
 			listValue.push_back(wstr.release());
 		}
 	}

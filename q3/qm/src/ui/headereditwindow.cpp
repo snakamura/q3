@@ -29,6 +29,7 @@
 #include "../model/editmessage.h"
 #include "../model/signature.h"
 #include "../model/uri.h"
+#include "../util/util.h"
 
 #pragma warning(disable:4355)
 
@@ -1095,10 +1096,10 @@ void qm::AttachmentHeaderEditItem::paste()
 	if (hr != S_OK)
 		return;
 #endif
-	UIUtil::PathList listPath;
-	StringListFree<UIUtil::PathList> free(listPath);
-	UIUtil::getFilesOrURIs(pDataObject.get(), &listPath);
-	for (UIUtil::PathList::const_iterator it = listPath.begin(); it != listPath.end(); ++it)
+	Util::PathList listPath;
+	StringListFree<Util::PathList> free(listPath);
+	Util::getFilesOrURIs(pDataObject.get(), &listPath);
+	for (Util::PathList::const_iterator it = listPath.begin(); it != listPath.end(); ++it)
 		pEditMessage_->addAttachment(*it);
 }
 
@@ -1114,7 +1115,7 @@ bool qm::AttachmentHeaderEditItem::canPaste()
 	if (hr != S_OK)
 		return false;
 #endif
-	return UIUtil::hasFilesOrURIs(pDataObject.get());
+	return Util::hasFilesOrURIs(pDataObject.get());
 }
 
 void qm::AttachmentHeaderEditItem::selectAll()

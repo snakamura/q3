@@ -25,6 +25,7 @@
 #include "../model/dataobject.h"
 #include "../model/editmessage.h"
 #include "../model/uri.h"
+#include "../util/util.h"
 
 using namespace qm;
 using namespace qs;
@@ -348,7 +349,7 @@ void qm::EditWindowImpl::messageUpdate(const EditMessageEvent& event)
 void qm::EditWindowImpl::dragEnter(const DropTargetDragEvent& event)
 {
 	IDataObject* pDataObject = event.getDataObject();
-	bCanDrop_ = UIUtil::hasFilesOrURIs(pDataObject);
+	bCanDrop_ = Util::hasFilesOrURIs(pDataObject);
 	event.setEffect(bCanDrop_ ? DROPEFFECT_COPY : DROPEFFECT_NONE);
 	
 	POINT pt = event.getPoint();
@@ -376,10 +377,10 @@ void qm::EditWindowImpl::drop(const DropTargetDropEvent& event)
 {
 	IDataObject* pDataObject = event.getDataObject();
 	
-	UIUtil::PathList listPath;
-	StringListFree<UIUtil::PathList> free(listPath);
-	UIUtil::getFilesOrURIs(pDataObject, &listPath);
-	for (UIUtil::PathList::const_iterator it = listPath.begin(); it != listPath.end(); ++it)
+	Util::PathList listPath;
+	StringListFree<Util::PathList> free(listPath);
+	Util::getFilesOrURIs(pDataObject, &listPath);
+	for (Util::PathList::const_iterator it = listPath.begin(); it != listPath.end(); ++it)
 		pEditMessage_->addAttachment(*it);
 	
 	ImageList_DragLeave(pThis_->getHandle());

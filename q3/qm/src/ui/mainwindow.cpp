@@ -2219,6 +2219,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	std::auto_ptr<TabWindow> pTabWindow(new TabWindow(
 		pImpl_->pTabModel_.get(), pImpl_->pProfile_));
 	TabWindowCreateContext tabContext = {
+		pContext->pDocument_,
 		pContext->pUIManager_,
 	};
 	if (!pTabWindow->create(L"QmTabWindow", 0, dwStyle,

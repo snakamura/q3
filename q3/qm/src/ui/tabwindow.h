@@ -13,6 +13,7 @@
 
 #include <qmtabwindow.h>
 
+#include <qsdragdrop.h>
 #include <qsmenu.h>
 
 
@@ -34,10 +35,12 @@ class UIManager;
 
 class TabCtrlWindow :
 	public qs::WindowBase,
-	public qs::DefaultWindowHandler
+	public qs::DefaultWindowHandler,
+	public qs::DropTargetHandler
 {
 public:
-	TabCtrlWindow(TabModel* pTabModel,
+	TabCtrlWindow(Document* pDocument,
+				  TabModel* pTabModel,
 				  qs::Profile* pProfile,
 				  qs::MenuManager* pMenuManager);
 	virtual ~TabCtrlWindow();
@@ -71,6 +74,15 @@ protected:
 	LRESULT onDeselectTemporary(WPARAM wParam,
 								LPARAM lParam);
 
+public:
+	virtual void dragEnter(const qs::DropTargetDragEvent& event);
+	virtual void dragOver(const qs::DropTargetDragEvent& event);
+	virtual void dragExit(const qs::DropTargetEvent& event);
+	virtual void drop(const qs::DropTargetDropEvent& event);
+
+private:
+	void processDragEvent(const qs::DropTargetDragEvent& event);
+
 private:
 	TabCtrlWindow(const TabCtrlWindow&);
 	TabCtrlWindow& operator=(const TabCtrlWindow&);
@@ -81,6 +93,7 @@ private:
 	};
 
 private:
+	Document* pDocument_;
 	TabModel* pTabModel_;
 	qs::Profile* pProfile_;
 	qs::MenuManager* pMenuManager_;
@@ -88,6 +101,7 @@ private:
 	bool bMultiline_;
 	
 	HFONT hfont_;
+	std::auto_ptr<qs::DropTarget> pDropTarget_;
 };
 
 
@@ -99,6 +113,7 @@ private:
 
 struct TabWindowCreateContext
 {
+	Document* pDocument_;
 	UIManager* pUIManager_;
 };
 

@@ -149,6 +149,7 @@ public:
 	};
 
 public:
+	explicit FolderDataObject(Account* pAccount);
 	explicit FolderDataObject(Folder* pFolder);
 	~FolderDataObject();
 
@@ -180,8 +181,8 @@ public:
 
 public:
 	static bool canPasteFolder(IDataObject* pDataObject);
-	static Folder* getFolder(IDataObject* pDataObject,
-							 Document* pDocument);
+	static std::pair<Account*, Folder*> get(IDataObject* pDataObject,
+											Document* pDocument);
 
 private:
 	FolderDataObject(const FolderDataObject&);
@@ -189,6 +190,7 @@ private:
 
 private:
 	ULONG nRef_;
+	Account* pAccount_;
 	Folder* pFolder_;
 
 public:

@@ -67,6 +67,7 @@
 #include "../uimodel/securitymodel.h"
 #include "../uimodel/tabmodel.h"
 #include "../uimodel/viewmodel.h"
+#include "../util/util.h"
 
 #pragma warning(disable:4786)
 
@@ -2509,7 +2510,7 @@ void qm::FolderDeleteAction::invoke(const ActionEvent& event)
 	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	wstring_ptr wstrConfirm(loadString(hInst, IDS_CONFIRMREMOVEFOLDER));
-	wstring_ptr wstrName(UIUtil::formatFolders(l, L", "));
+	wstring_ptr wstrName(Util::formatFolders(l, L", "));
 	wstring_ptr wstrMessage(allocWString(wcslen(wstrConfirm.get()) + wcslen(wstrName.get()) + 64));
 	swprintf(wstrMessage.get(), wstrConfirm.get(), wstrName.get());
 	int nRet = messageBox(wstrMessage.get(), MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd_);
@@ -2607,7 +2608,7 @@ void qm::FolderEmptyAction::invoke(const ActionEvent& event)
 	if (bConfirm_) {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		wstring_ptr wstrConfirm(loadString(hInst, IDS_CONFIRMEMPTYFOLDER));
-		wstring_ptr wstrName(UIUtil::formatFolders(l, L", "));
+		wstring_ptr wstrName(Util::formatFolders(l, L", "));
 		wstring_ptr wstrMessage(allocWString(wcslen(wstrConfirm.get()) + wcslen(wstrName.get()) + 64));
 		swprintf(wstrMessage.get(), wstrConfirm.get(), wstrName.get());
 		if (messageBox(wstrMessage.get(), MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd_) != IDYES)

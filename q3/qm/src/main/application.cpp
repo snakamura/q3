@@ -50,6 +50,7 @@
 #include "../ui/uimanager.h"
 #include "../ui/uiutil.h"
 #include "../uimodel/foldermodel.h"
+#include "../util/util.h"
 
 using namespace qm;
 using namespace qs;
@@ -386,7 +387,7 @@ void qm::ApplicationImpl::restoreCurrentFolder()
 	
 	FolderModel* pFolderModel = pMainWindow_->getFolderModel();
 	
-	std::pair<Account*, Folder*> p(UIUtil::getAccountOrFolder(
+	std::pair<Account*, Folder*> p(Util::getAccountOrFolder(
 		pDocument_.get(), wstrFolder.get()));
 	if (p.first)
 		pFolderModel->setCurrent(p.first, 0, false);
@@ -401,9 +402,9 @@ void qm::ApplicationImpl::saveCurrentFolder()
 	FolderModel* pFolderModel = pMainWindow_->getFolderModel();
 	std::pair<Account*, Folder*> p(pFolderModel->getCurrent());
 	if (p.first)
-		wstr = UIUtil::formatAccount(p.first);
+		wstr = Util::formatAccount(p.first);
 	else if (p.second)
-		wstr = UIUtil::formatFolder(p.second);
+		wstr = Util::formatFolder(p.second);
 	
 	pProfile_->setString(L"Global", L"CurrentFolder", wstr.get() ? wstr.get() : L"");
 }

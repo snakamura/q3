@@ -51,7 +51,6 @@ class UIUtil
 {
 public:
 	typedef std::vector<qs::WSTRING> EncodingList;
-	typedef std::vector<qs::WSTRING> PathList;
 
 public:
 	static int loadWindowPlacement(qs::Profile* pProfile,
@@ -87,24 +86,10 @@ public:
 								  qs::wstring_ptr* pwstrName,
 								  int* pnSysIconIndex);
 	
-	static qs::wstring_ptr convertLFtoCRLF(const WCHAR* pwsz);
-	static qs::wstring_ptr convertCRLFtoLF(const WCHAR* pwsz);
-	
-	static qs::wstring_ptr formatAccount(Account* pAccount);
-	static qs::wstring_ptr formatFolder(Folder* pFolder);
-	static qs::wstring_ptr formatFolders(const Account::FolderList& l,
-										 const WCHAR* pwszSeparator);
-	static std::pair<Account*, Folder*> getAccountOrFolder(Document* pDocument,
-														   const WCHAR* pwsz);
-	
 	static bool addMessageToClipboard(HWND hwnd,
 									  MessageHolder* pmh);
 	static MessagePtr getMessageFromClipboard(HWND hwnd,
 											  Document* pDocument);
-	
-	static bool hasFilesOrURIs(IDataObject* pDataObject);
-	static void getFilesOrURIs(IDataObject* pDataObject,
-							   PathList* pList);
 };
 
 

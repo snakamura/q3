@@ -31,6 +31,7 @@
 #include "uiutil.h"
 #include "../model/addressbook.h"
 #include "../model/templatemanager.h"
+#include "../util/util.h"
 
 #pragma warning(disable:4786)
 
@@ -3985,7 +3986,7 @@ LRESULT qm::FixedFormTextDialog::onInitDialog(HWND hwndFocus,
 	
 	setDlgItemText(IDC_NAME, pText_->getName());
 	
-	wstring_ptr wstrText(UIUtil::convertLFtoCRLF(pText_->getText()));
+	wstring_ptr wstrText(Util::convertLFtoCRLF(pText_->getText()));
 	setDlgItemText(IDC_TEXT, wstrText.get());
 	
 	return TRUE;
@@ -3996,7 +3997,7 @@ LRESULT qm::FixedFormTextDialog::onOk()
 	wstring_ptr wstrName(getDlgItemText(IDC_NAME));
 	
 	wstring_ptr wstrText(getDlgItemText(IDC_TEXT));
-	wstrText = UIUtil::convertCRLFtoLF(wstrText.get());
+	wstrText = Util::convertCRLFtoLF(wstrText.get());
 	
 	pText_->setName(wstrName.get());
 	pText_->setText(wstrText.get());
@@ -6437,7 +6438,7 @@ LRESULT qm::SignatureDialog::onInitDialog(HWND hwndFocus,
 	if (pSignature_->isDefault())
 		sendDlgItemMessage(IDC_DEFAULT, BM_SETCHECK, BST_CHECKED);
 	
-	wstring_ptr wstrSignature(UIUtil::convertLFtoCRLF(pSignature_->getSignature()));
+	wstring_ptr wstrSignature(Util::convertLFtoCRLF(pSignature_->getSignature()));
 	setDlgItemText(IDC_SIGNATURE, wstrSignature.get());
 	
 	updateState();
@@ -6462,7 +6463,7 @@ LRESULT qm::SignatureDialog::onOk()
 	bool bDefault = sendDlgItemMessage(IDC_DEFAULT, BM_GETCHECK) == BST_CHECKED;
 	
 	wstring_ptr wstrSignature(getDlgItemText(IDC_SIGNATURE));
-	wstrSignature = UIUtil::convertCRLFtoLF(wstrSignature.get());
+	wstrSignature = Util::convertCRLFtoLF(wstrSignature.get());
 	
 	pSignature_->setName(wstrName.get());
 	pSignature_->setAccount(pwszAccount, pAccount);

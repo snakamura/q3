@@ -26,6 +26,7 @@
 
 #include "dataobject.h"
 #include "uri.h"
+#include "../util/util.h"
 
 using namespace qm;
 using namespace qs;
@@ -643,8 +644,16 @@ FORMATETC qm::FolderDataObject::formats__[] = {
 	}
 };
 
+qm::FolderDataObject::FolderDataObject(Account* pAccount) :
+	nRef_(0),
+	pAccount_(pAccount),
+	pFolder_(0)
+{
+}
+
 qm::FolderDataObject::FolderDataObject(Folder* pFolder) :
 	nRef_(0),
+	pAccount_(0),
 	pFolder_(pFolder)
 {
 }
@@ -688,14 +697,11 @@ STDMETHODIMP qm::FolderDataObject::GetData(FORMATETC* pFormat,
 	
 	HGLOBAL hGlobal = 0;
 	if (pFormat->cfFormat == nFormats__[FORMAT_FOLDER]) {
-		wstring_ptr wstrFolderName(pFolder_->getFullName());
-		ConcatW c[] = {
-			{ L"//",								2	},
-			{ pFolder_->getAccount()->getName(),	-1	},
-			{ L"/",									1	},
-			{ wstrFolderName.get(),					-1	}
-		};
-		wstring_ptr wstrName(concat(c, countof(c)));
+		wstring_ptr wstrName;
+		if (pAccount_)
+			wstrName = Util::formatAccount(pAccount_);
+		else
+			wstrName = Util::formatFolder(pFolder_);
 		hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT,
 			(wcslen(wstrName.get()) + 1)*sizeof(WCHAR));
 		if (!hGlobal)
@@ -791,21 +797,22 @@ bool qm::FolderDataObject::canPasteFolder(IDataObject* pDataObject)
 	return pDataObject->QueryGetData(&fe) == S_OK;
 }
 
-qm::Folder* qm::FolderDataObject::getFolder(IDataObject* pDataObject,
-											Document* pDocument)
+std::pair<Account*, qm::Folder*> qm::FolderDataObject::get(IDataObject* pDataObject,
+														   Document* pDocument)
 {
 	assert(pDataObject);
+	
+	;
 	
 	FORMATETC fe = formats__[FORMAT_FOLDER];
 	StgMedium stm;
 	HRESULT hr = pDataObject->GetData(&fe, &stm);
 	if (hr != S_OK)
-		return 0;
+		return std::pair<Account*, Folder*>(0, 0);
 	
 	LockGlobal lock(stm.hGlobal);
-	Folder* pFolder = pDocument->getFolder(0, static_cast<WCHAR*>(lock.get()));
 	
-	return pFolder;
+	return Util::getAccountOrFolder(pDocument, static_cast<const WCHAR*>(lock.get()));
 }
 
 
