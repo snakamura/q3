@@ -595,6 +595,8 @@ LRESULT qm::FolderParameterPage::onInitDialog(HWND hwndFocus,
 		ListView_SetItemText(hwndList, n, 1, const_cast<LPTSTR>(ptszValue));
 	}
 	
+	updateState();
+	
 	return TRUE;
 }
 
@@ -620,6 +622,7 @@ LRESULT qm::FolderParameterPage::onNotify(NMHDR* pnmhdr,
 {
 	BEGIN_NOTIFY_HANDLER()
 		HANDLE_NOTIFY(NM_DBLCLK, IDC_PARAMETER, onParameterDblClk)
+		HANDLE_NOTIFY(LVN_ITEMCHANGED, IDC_PARAMETER, onParameterItemChanged)
 	END_NOTIFY_HANDLER()
 	return DefaultPropertyPage::onNotify(pnmhdr, pbHandled);
 }
@@ -634,6 +637,14 @@ LRESULT qm::FolderParameterPage::onParameterDblClk(NMHDR* pnmhdr,
 												   bool* pbHandled)
 {
 	edit();
+	*pbHandled = true;
+	return 0;
+}
+
+LRESULT qm::FolderParameterPage::onParameterItemChanged(NMHDR* pnmhdr,
+														bool* pbHandled)
+{
+	updateState();
 	*pbHandled = true;
 	return 0;
 }
@@ -656,6 +667,13 @@ void qm::FolderParameterPage::edit()
 			ListView_SetItemText(hwndList, nItem, 1, const_cast<LPTSTR>(ptszValue));
 		}
 	}
+}
+
+void qm::FolderParameterPage::updateState()
+{
+	HWND hwndList = getDlgItem(IDC_PARAMETER);
+	int nItem = ListView_GetNextItem(hwndList, -1, LVNI_SELECTED);
+	Window(getDlgItem(IDC_EDIT)).enableWindow(nItem != -1);
 }
 
 

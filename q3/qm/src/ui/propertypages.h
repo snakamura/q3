@@ -260,9 +260,12 @@ private:
 	LRESULT onEdit();
 	LRESULT onParameterDblClk(NMHDR* pnmhdr,
 							  bool* pbHandled);
+	LRESULT onParameterItemChanged(NMHDR* pnmhdr,
+								   bool* pbHandled);
 
 private:
 	void edit();
+	void updateState();
 
 private:
 	FolderParameterPage(const FolderParameterPage&);
