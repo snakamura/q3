@@ -44,9 +44,10 @@ public:
 	virtual ~Imap4Driver();
 
 public:
+	virtual bool init();
+	virtual bool save();
 	virtual bool isSupport(qm::Account::Support support);
 	virtual void setOffline(bool bOffline);
-	virtual bool save();
 	
 	virtual std::auto_ptr<qm::NormalFolder> createFolder(qm::SubAccount* pSubAccount,
 														 const WCHAR* pwszName,

@@ -46,12 +46,26 @@ qmimap4::Imap4Driver::~Imap4Driver()
 {
 }
 
+bool qmimap4::Imap4Driver::init()
+{
+	return true;
+}
+
+bool qmimap4::Imap4Driver::save()
+{
+	Lock<CriticalSection> lock(cs_);
+	
+	return pOfflineJobManager_->save(pAccount_->getPath());
+}
+
 bool qmimap4::Imap4Driver::isSupport(Account::Support support)
 {
 	switch (support) {
 	case Account::SUPPORT_REMOTEFOLDER:
 		return true;
 	case Account::SUPPORT_LOCALFOLDERDOWNLOAD:
+		return false;
+	case Account::SUPPORT_LOCALFOLDERGETMESSAGE:
 		return false;
 	default:
 		assert(false);
@@ -67,13 +81,6 @@ void qmimap4::Imap4Driver::setOffline(bool bOffline)
 		pSessionCache_.reset(0);
 	
 	bOffline_ = bOffline;
-}
-
-bool qmimap4::Imap4Driver::save()
-{
-	Lock<CriticalSection> lock(cs_);
-	
-	return pOfflineJobManager_->save(pAccount_->getPath());
 }
 
 std::auto_ptr<NormalFolder> qmimap4::Imap4Driver::createFolder(SubAccount* pSubAccount,

@@ -43,9 +43,10 @@ public:
 	virtual ~ProtocolDriver();
 
 public:
+	virtual bool init() = 0;
+	virtual bool save() = 0;
 	virtual bool isSupport(Account::Support support) = 0;
 	virtual void setOffline(bool bOffline) = 0;
-	virtual bool save() = 0;
 	
 	virtual std::auto_ptr<NormalFolder> createFolder(SubAccount* pSubAccount,
 													 const WCHAR* pwszName,

@@ -352,8 +352,11 @@ bool qm::AccountImpl::getMessage(MessageHolder* pmh,
 		assert(false);
 		break;
 	}
-	if (pmh->getFolder()->isFlag(Folder::FLAG_LOCAL) ||
-		pmh->isFlag(MessageHolder::FLAG_LOCAL))
+	if ((pmh->getFolder()->isFlag(Folder::FLAG_LOCAL) &&
+		(!pProtocolDriver_->isSupport(Account::SUPPORT_LOCALFOLDERGETMESSAGE) ||
+		!pmh->getFolder()->isFlag(Folder::FLAG_SYNCABLE))))
+		bLoadFromStore = true;
+	else if (pmh->isFlag(MessageHolder::FLAG_LOCAL))
 		bLoadFromStore = true;
 	
 	bool bGet = false;
@@ -833,6 +836,10 @@ qm::Account::Account(const WCHAR* pwszPath,
 	pImpl_->pCurrentSubAccount_ = getSubAccount(wstrSubAccount.get());
 	if (!pImpl_->pCurrentSubAccount_)
 		pImpl_->pCurrentSubAccount_ = pImpl_->listSubAccount_.front();
+	
+	if (!pImpl_->pProtocolDriver_->init()) {
+		// TODO
+	}
 }
 
 qm::Account::~Account()
@@ -1095,13 +1102,18 @@ NormalFolder* qm::Account::createNormalFolder(const WCHAR* pwszName,
 		return 0;
 	
 	std::auto_ptr<NormalFolder> pNormalFolder;
-	if (bRemote)
+	if (bRemote) {
 		pNormalFolder = pImpl_->pProtocolDriver_->createFolder(
 			getCurrentSubAccount(), pwszName, pParent);
-	else
+	}
+	else {
+		unsigned int nFlags = Folder::FLAG_LOCAL;
+		if (pImpl_->pProtocolDriver_->isSupport(SUPPORT_LOCALFOLDERGETMESSAGE))
+			nFlags |= Folder::FLAG_SYNCABLE;
 		pNormalFolder.reset(new NormalFolder(generateFolderId(),
 			pwszName, pParent ? pParent->getSeparator() : L'/',
-			Folder::FLAG_LOCAL, 0, 0, 0, 0, 0, pParent, this));
+			nFlags, 0, 0, 0, 0, 0, pParent, this));
+	}
 	
 	pImpl_->listFolder_.push_back(pNormalFolder.get());
 	NormalFolder* pFolder = pNormalFolder.release();

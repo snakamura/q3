@@ -34,6 +34,16 @@ qmpop3::Pop3Driver::~Pop3Driver()
 {
 }
 
+bool qmpop3::Pop3Driver::init()
+{
+	return true;
+}
+
+bool qmpop3::Pop3Driver::save()
+{
+	return true;
+}
+
 bool qmpop3::Pop3Driver::isSupport(Account::Support support)
 {
 	switch (support) {
@@ -41,6 +51,8 @@ bool qmpop3::Pop3Driver::isSupport(Account::Support support)
 		return false;
 	case Account::SUPPORT_LOCALFOLDERDOWNLOAD:
 		return true;
+	case Account::SUPPORT_LOCALFOLDERGETMESSAGE:
+		return false;
 	default:
 		assert(false);
 		return false;
@@ -49,11 +61,6 @@ bool qmpop3::Pop3Driver::isSupport(Account::Support support)
 
 void qmpop3::Pop3Driver::setOffline(bool bOffline)
 {
-}
-
-bool qmpop3::Pop3Driver::save()
-{
-	return true;
 }
 
 std::auto_ptr<NormalFolder> qmpop3::Pop3Driver::createFolder(SubAccount* pSubAccount,
@@ -107,9 +114,8 @@ bool qmpop3::Pop3Driver::createDefaultFolders(Account::FolderList* pList)
 bool qmpop3::Pop3Driver::getRemoteFolders(SubAccount* pSubAccount,
 										  RemoteFolderList* pList)
 {
-	assert(pSubAccount);
-	assert(pList);
-	return true;
+	assert(false);
+	return false;
 }
 
 bool qmpop3::Pop3Driver::getMessage(SubAccount* pSubAccount,
@@ -119,17 +125,8 @@ bool qmpop3::Pop3Driver::getMessage(SubAccount* pSubAccount,
 									Message::Flag* pFlag,
 									bool* pbMadeSeen)
 {
-	assert(pSubAccount);
-	assert(pmh);
-	assert(pstrMessage);
-	assert(pFlag);
-	assert(pbMadeSeen);
-	
-	pstrMessage->reset(0);
-	*pFlag = Message::FLAG_EMPTY;
-	*pbMadeSeen = false;
-	
-	return true;
+	assert(false);
+	return false;
 }
 
 bool qmpop3::Pop3Driver::setMessagesFlags(SubAccount* pSubAccount,
@@ -138,19 +135,8 @@ bool qmpop3::Pop3Driver::setMessagesFlags(SubAccount* pSubAccount,
 										  unsigned int nFlags,
 										  unsigned int nMask)
 {
-	assert(pSubAccount);
-	assert(pFolder);
-	assert(!l.empty());
-	assert(std::find_if(l.begin(), l.end(),
-		std::not1(
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<Folder*>(),
-					std::mem_fun(&MessageHolder::getFolder),
-					std::identity<Folder*>()),
-				pFolder))) == l.end());
-	
-	return true;
+	assert(false);
+	return false;
 }
 
 bool qmpop3::Pop3Driver::appendMessage(SubAccount* pSubAccount,
@@ -158,10 +144,7 @@ bool qmpop3::Pop3Driver::appendMessage(SubAccount* pSubAccount,
 									   const CHAR* pszMessage,
 									   unsigned int nFlags)
 {
-	assert(pSubAccount);
-	assert(pFolder);
-	assert(pszMessage);
-	
+	assert(false);
 	return false;
 }
 
@@ -169,18 +152,7 @@ bool qmpop3::Pop3Driver::removeMessages(SubAccount* pSubAccount,
 										NormalFolder* pFolder,
 										const MessageHolderList& l)
 {
-	assert(pSubAccount);
-	assert(pFolder);
-	assert(!l.empty());
-	assert(std::find_if(l.begin(), l.end(),
-		std::not1(
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<Folder*>(),
-					std::mem_fun(&MessageHolder::getFolder),
-					std::identity<Folder*>()),
-				pFolder))) == l.end());
-	
+	assert(false);
 	return false;
 }
 
@@ -190,24 +162,14 @@ bool qmpop3::Pop3Driver::copyMessages(SubAccount* pSubAccount,
 									  NormalFolder* pFolderTo,
 									  bool bMove)
 {
-	assert(!l.empty());
-	assert(pFolderFrom);
-	assert(pFolderTo);
-	assert(std::find_if(l.begin(), l.end(),
-		std::not1(
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<Folder*>(),
-					std::mem_fun(&MessageHolder::getFolder),
-					std::identity<Folder*>()),
-				pFolderFrom))) == l.end());
-	
+	assert(false);
 	return false;
 }
 
 bool qmpop3::Pop3Driver::clearDeletedMessages(SubAccount* pSubAccount,
 											  NormalFolder* pFolder)
 {
+	assert(false);
 	return false;
 }
 

@@ -44,13 +44,35 @@ qmnntp::NntpDriver::~NntpDriver()
 	clearSession();
 }
 
+bool qmnntp::NntpDriver::init()
+{
+	// TODO
+	// This should be removed in the future.
+	// Just for compatibility.
+	const Account::FolderList& l = pAccount_->getFolders();
+	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		Folder* pFolder = *it;
+		if (pFolder->getType() == Folder::TYPE_NORMAL &&
+			!pFolder->isFlag(Folder::FLAG_LOCAL))
+			pFolder->setFlags(Folder::FLAG_LOCAL, Folder::FLAG_LOCAL);
+	}
+	return true;
+}
+
+bool qmnntp::NntpDriver::save()
+{
+	return true;
+}
+
 bool qmnntp::NntpDriver::isSupport(Account::Support support)
 {
 	switch (support) {
 	case Account::SUPPORT_REMOTEFOLDER:
-		return true;
+		return false;
 	case Account::SUPPORT_LOCALFOLDERDOWNLOAD:
 		return false;
+	case Account::SUPPORT_LOCALFOLDERGETMESSAGE:
+		return true;
 	default:
 		assert(false);
 		return false;
@@ -64,30 +86,27 @@ void qmnntp::NntpDriver::setOffline(bool bOffline)
 	bOffline_ = bOffline;
 }
 
-bool qmnntp::NntpDriver::save()
-{
-	return true;
-}
-
 std::auto_ptr<NormalFolder> qmnntp::NntpDriver::createFolder(SubAccount* pSubAccount,
 															 const WCHAR* pwszName,
 															 Folder* pParent)
 {
-	return new NormalFolder(pAccount_->generateFolderId(), pwszName,
-		L'/', Folder::FLAG_SYNCABLE, 0, 0, 0, 0, 0, pParent, pAccount_);
+	assert(false);
+	return 0;
 }
 
 bool qmnntp::NntpDriver::removeFolder(SubAccount* pSubAccount,
 									  NormalFolder* pFolder)
 {
-	return true;
+	assert(false);
+	return false;
 }
 
 bool qmnntp::NntpDriver::renameFolder(SubAccount* pSubAccount,
 									  NormalFolder* pFolder,
 									  const WCHAR* pwszName)
 {
-	return true;
+	assert(false);
+	return false;
 }
 
 bool qmnntp::NntpDriver::createDefaultFolders(Account::FolderList* pList)
@@ -164,22 +183,8 @@ bool qmnntp::NntpDriver::setMessagesFlags(SubAccount* pSubAccount,
 										  unsigned int nFlags,
 										  unsigned int nMask)
 {
-	assert(pSubAccount);
-	assert(pFolder);
-	assert(!l.empty());
-	assert(std::find_if(l.begin(), l.end(),
-		std::not1(
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<Folder*>(),
-					std::mem_fun(&MessageHolder::getFolder),
-					std::identity<Folder*>()),
-				pFolder))) == l.end());
-	
-	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it)
-		(*it)->setFlags(nFlags, nMask);
-	
-	return true;
+	assert(false);
+	return false;
 }
 
 bool qmnntp::NntpDriver::appendMessage(SubAccount* pSubAccount,
@@ -187,10 +192,7 @@ bool qmnntp::NntpDriver::appendMessage(SubAccount* pSubAccount,
 									   const CHAR* pszMessage,
 									   unsigned int nFlags)
 {
-	assert(pSubAccount);
-	assert(pFolder);
-	assert(pszMessage);
-	
+	assert(false);
 	return false;
 }
 
@@ -198,25 +200,8 @@ bool qmnntp::NntpDriver::removeMessages(SubAccount* pSubAccount,
 										NormalFolder* pFolder,
 										const MessageHolderList& l)
 {
-	assert(pSubAccount);
-	assert(pFolder);
-	assert(!l.empty());
-	assert(pAccount_->isLocked());
-	assert(std::find_if(l.begin(), l.end(),
-		std::not1(
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<Folder*>(),
-					std::mem_fun(&MessageHolder::getFolder),
-					std::identity<Folder*>()),
-				pFolder))) == l.end());
-	
-	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-		if (!pAccount_->unstoreMessage(*it))
-			return false;
-	}
-	
-	return true;
+	assert(false);
+	return false;
 }
 
 bool qmnntp::NntpDriver::copyMessages(SubAccount* pSubAccount,
@@ -225,25 +210,15 @@ bool qmnntp::NntpDriver::copyMessages(SubAccount* pSubAccount,
 									  NormalFolder* pFolderTo,
 									  bool bMove)
 {
-	assert(!l.empty());
-	assert(pFolderFrom);
-	assert(pFolderTo);
-	assert(std::find_if(l.begin(), l.end(),
-		std::not1(
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<Folder*>(),
-					std::mem_fun(&MessageHolder::getFolder),
-					std::identity<Folder*>()),
-				pFolderFrom))) == l.end());
-	
+	assert(false);
 	return false;
 }
 
 bool qmnntp::NntpDriver::clearDeletedMessages(SubAccount* pSubAccount,
 											  NormalFolder* pFolder)
 {
-	return true;
+	assert(false);
+	return false;
 }
 
 bool qmnntp::NntpDriver::prepareSession(SubAccount* pSubAccount,
