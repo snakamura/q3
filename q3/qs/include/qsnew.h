@@ -1,5 +1,5 @@
 /*
- * $Id: qsnew.h,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -434,6 +434,44 @@ QSTATUS newQsObject(const Arg1& arg1, const Arg2& arg2, const Arg3& arg3,
 	
 	Object* pObject = 0;
 	status = newQsObject(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, &pObject);
+	papObject->reset(pObject);
+	
+	return status;
+}
+
+template<class Object, class Arg1, class Arg2, class Arg3, class Arg4, class Arg5, class Arg6, class Arg7, class Arg8, class Arg9>
+QSTATUS newQsObject(const Arg1& arg1, const Arg2& arg2, const Arg3& arg3,
+	const Arg4& arg4, const Arg5& arg5, const Arg6& arg6, const Arg7& arg7,
+	const Arg8& arg8, const Arg9& arg9, Object** ppObject)
+{
+	assert(ppObject);
+	
+	DECLARE_QSTATUS();
+	
+	TRY_NEW()
+	*ppObject = new Object(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, &status);
+	CATCH_NEW()
+	if (!*ppObject) {
+		status = QSTATUS_OUTOFMEMORY;
+	}
+	else if (status != QSTATUS_SUCCESS) {
+		delete *ppObject;
+		*ppObject = 0;
+	}
+	return status;
+}
+
+template<class Object, class Arg1, class Arg2, class Arg3, class Arg4, class Arg5, class Arg6, class Arg7, class Arg8, class Arg9>
+QSTATUS newQsObject(const Arg1& arg1, const Arg2& arg2, const Arg3& arg3,
+	const Arg4& arg4, const Arg5& arg5, const Arg6& arg6, const Arg7& arg7,
+	const Arg8& arg8, const Arg9& arg9, std::auto_ptr<Object>* papObject)
+{
+	assert(papObject);
+	
+	DECLARE_QSTATUS();
+	
+	Object* pObject = 0;
+	status = newQsObject(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, &pObject);
 	papObject->reset(pObject);
 	
 	return status;

@@ -1,5 +1,5 @@
 /*
- * $Id: account.cpp,v 1.5 2003/05/27 05:26:06 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -51,6 +51,10 @@ public:
 	QSTATUS saveSubAccounts() const;
 	
 	QSTATUS fireFolderListChanged(const FolderListChangedEvent& event);
+
+public:
+	static QSTATUS createTemporaryMessage(
+		MessageHolder* pmh, Message* pMessage);
 
 private:
 	QSTATUS createDefaultFolders();
@@ -272,6 +276,43 @@ QSTATUS qm::AccountImpl::fireFolderListChanged(
 		status = (*it++)->folderListChanged(event);
 		CHECK_QSTATUS();
 	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::AccountImpl::createTemporaryMessage(
+	MessageHolder* pmh, Message* pMessage)
+{
+	DECLARE_QSTATUS();
+	
+	StringBuffer<WSTRING> buf(&status);
+	CHECK_QSTATUS();
+	
+	Time time;
+	status = pmh->getDate(&time);
+	CHECK_QSTATUS();
+	string_ptr<WSTRING> wstrDate;
+	status = time.format(L"Date: %W, %D %M1 %Y4 %h:%m:%s %z\n",
+		Time::FORMAT_ORIGINAL, &wstrDate);
+	CHECK_QSTATUS();
+	status = buf.append(wstrDate.get());
+	CHECK_QSTATUS();
+	
+	status = buf.append(L"Subject: ");
+	CHECK_QSTATUS();
+	string_ptr<WSTRING> wstrSubject;
+	status = pmh->getSubject(&wstrSubject);
+	CHECK_QSTATUS();
+	status = buf.append(wstrSubject.get());
+	CHECK_QSTATUS();
+	status = buf.append(L"\n");
+	CHECK_QSTATUS();
+	
+	MessageCreator creator;
+	status = creator.createHeader(pMessage,
+		buf.getCharArray(), buf.getLength());
+	CHECK_QSTATUS();
+	pMessage->setFlag(Message::FLAG_TEMPORARY);
 	
 	return QSTATUS_SUCCESS;
 }
@@ -1017,6 +1058,10 @@ QSTATUS qm::Account::getMessage(MessageHolder* pmh,
 				(nFlags & GETMESSAGEFLAG_METHOD_MASK) == GETMESSAGEFLAG_HEADER ?
 				key.nHeaderLength_ : key.nLength_;
 			status = pImpl_->pMessageStore_->load(key.nOffset_, nLength, pMessage);
+			CHECK_QSTATUS();
+		}
+		else {
+			status = AccountImpl::createTemporaryMessage(pmh, pMessage);
 			CHECK_QSTATUS();
 		}
 	}

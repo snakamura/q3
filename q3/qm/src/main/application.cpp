@@ -1,5 +1,5 @@
 /*
- * $Id: application.cpp,v 1.4 2003/06/02 08:57:12 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.

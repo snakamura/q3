@@ -1,5 +1,5 @@
 /*
- * $Id: mainwindow.cpp,v 1.13 2003/05/31 08:04:51 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -32,6 +32,7 @@
 #endif
 
 #include "editframewindow.h"
+#include "externaleditor.h"
 #include "foldercombobox.h"
 #include "folderlistwindow.h"
 #include "foldermodel.h"
@@ -162,6 +163,7 @@ public:
 	ActionMap* pActionMap_;
 	ActionInvoker* pActionInvoker_;
 	FindReplaceManager* pFindReplaceManager_;
+	ExternalEditorManager* pExternalEditorManager_;
 	MoveMenu* pMoveMenu_;
 	AttachmentMenu* pAttachmentMenu_;
 	ViewTemplateMenu* pViewTemplateMenu_;
@@ -320,20 +322,21 @@ QSTATUS qm::MainWindowImpl::initActions()
 		pActionMap_, IDM_MESSAGE_APPLYRULE,
 		pDocument_, pFolderModel_, pThis_->getHandle(), pProfile_);
 	CHECK_QSTATUS();
-	status = InitActionRange8<MessageApplyTemplateAction, TemplateMenu*,
+	status = InitActionRange9<MessageApplyTemplateAction, TemplateMenu*,
 		Document*, FolderModel*, MessageSelectionModel*,
-		EditFrameWindowManager*, HWND, Profile*, bool>(
+		EditFrameWindowManager*, ExternalEditorManager*, HWND, Profile*, bool>(
 		pActionMap_, IDM_MESSAGE_APPLYTEMPLATE, IDM_MESSAGE_APPLYTEMPLATE + 100,
 		pCreateTemplateMenu_, pDocument_, pFolderModel_, pMessageSelectionModel_,
-		pEditFrameWindowManager_, pThis_->getHandle(), pProfile_, false);
+		pEditFrameWindowManager_, pExternalEditorManager_,
+		pThis_->getHandle(), pProfile_, false);
 	CHECK_QSTATUS();
-	status = InitActionRange8<MessageApplyTemplateAction, TemplateMenu*,
+	status = InitActionRange9<MessageApplyTemplateAction, TemplateMenu*,
 		Document*, FolderModel*, MessageSelectionModel*,
-		EditFrameWindowManager*, HWND, Profile*, bool>(
+		EditFrameWindowManager*, ExternalEditorManager*, HWND, Profile*, bool>(
 		pActionMap_, IDM_MESSAGE_APPLYTEMPLATEEXTERNAL, IDM_MESSAGE_APPLYTEMPLATEEXTERNAL + 100,
 		pCreateTemplateExternalMenu_, pDocument_, pFolderModel_,
 		pMessageSelectionModel_, pEditFrameWindowManager_,
-		pThis_->getHandle(), pProfile_, true);
+		pExternalEditorManager_, pThis_->getHandle(), pProfile_, true);
 	CHECK_QSTATUS();
 	
 	struct {
@@ -348,19 +351,21 @@ QSTATUS qm::MainWindowImpl::initActions()
 		{ IDM_MESSAGE_REPLYALL,	IDM_MESSAGE_REPLYALLEXTERNAL,	L"reply_all"	},
 	};
 	for (int n = 0; n < countof(creates); ++n) {
-		status = InitAction8<MessageCreateAction, Document*,
+		status = InitAction9<MessageCreateAction, Document*,
 			FolderModel*, MessageSelectionModel*, const WCHAR*,
-			EditFrameWindowManager*, HWND, Profile*, bool >(
+			EditFrameWindowManager*, ExternalEditorManager*, HWND, Profile*, bool>(
 			pActionMap_, creates[n].nId_, pDocument_, pFolderModel_,
 			pMessageSelectionModel_, creates[n].pwszName_,
-			pEditFrameWindowManager_, pThis_->getHandle(), pProfile_, false);
+			pEditFrameWindowManager_, pExternalEditorManager_,
+			pThis_->getHandle(), pProfile_, false);
 		CHECK_QSTATUS();
-		status = InitAction8<MessageCreateAction, Document*,
+		status = InitAction9<MessageCreateAction, Document*,
 			FolderModel*, MessageSelectionModel*, const WCHAR*,
-			EditFrameWindowManager*, HWND, Profile*, bool >(
+			EditFrameWindowManager*, ExternalEditorManager*, HWND, Profile*, bool>(
 			pActionMap_, creates[n].nIdExternal_, pDocument_, pFolderModel_,
 			pMessageSelectionModel_, creates[n].pwszName_,
-			pEditFrameWindowManager_, pThis_->getHandle(), pProfile_, true);
+			pEditFrameWindowManager_, pExternalEditorManager_,
+			pThis_->getHandle(), pProfile_, true);
 		CHECK_QSTATUS();
 	}
 	
@@ -1120,6 +1125,7 @@ qm::MainWindow::MainWindow(Profile* pProfile, QSTATUS* pstatus) :
 	pImpl_->pActionMap_ = 0;
 	pImpl_->pActionInvoker_ = 0;
 	pImpl_->pFindReplaceManager_ = 0;
+	pImpl_->pExternalEditorManager_ = 0;
 	pImpl_->pMoveMenu_ = 0;
 	pImpl_->pAttachmentMenu_ = 0;
 	pImpl_->pViewTemplateMenu_ = 0;
@@ -1148,6 +1154,7 @@ qm::MainWindow::~MainWindow()
 		delete pImpl_->pActionMap_;
 		delete pImpl_->pActionInvoker_;
 		delete pImpl_->pFindReplaceManager_;
+		delete pImpl_->pExternalEditorManager_;
 		delete pImpl_->pMoveMenu_;
 		delete pImpl_->pAttachmentMenu_;
 		delete pImpl_->pViewTemplateMenu_;
@@ -1494,10 +1501,14 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		&pImpl_->pEditFrameWindowManager_);
 	CHECK_QSTATUS_VALUE(-1);
 	
+	status = newQsObject(pImpl_->pDocument_, pImpl_->pProfile_,
+		getHandle(), pImpl_->pFolderModel_, &pImpl_->pExternalEditorManager_);
+	CHECK_QSTATUS_VALUE(-1);
+	
 	status = newQsObject(pImpl_->pDocument_, pImpl_->pTempFileCleaner_,
 		pContext->pMenuManager_, pContext->pKeyMap_, pImpl_->pProfile_,
 		pImpl_->pViewModelManager_, pImpl_->pEditFrameWindowManager_,
-		&pImpl_->pMessageFrameWindowManager_);
+		pImpl_->pExternalEditorManager_, &pImpl_->pMessageFrameWindowManager_);
 	CHECK_QSTATUS_VALUE(-1);
 	
 	bool bVirticalFolderWindow = pImpl_->bVirticalFolderWindow_;

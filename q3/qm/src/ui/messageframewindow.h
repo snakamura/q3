@@ -1,5 +1,5 @@
 /*
- * $Id: messageframewindow.h,v 1.1.1.1 2003/04/29 08:07:32 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -22,6 +22,7 @@ class MessageFrameWindowManager;
 
 class Document;
 class EditFrameWindowManager;
+class ExternalEditorManager;
 class MessageFrameWindow;
 class MessageHolder;
 class TempFileCleaner;
@@ -40,7 +41,8 @@ public:
 	MessageFrameWindowManager(Document* pDocument,
 		TempFileCleaner* pTempFileCleaner, qs::MenuManager* pMenuManager,
 		qs::KeyMap* pKeyMap, qs::Profile* pProfile, ViewModelManager* pViewModelManager,
-		EditFrameWindowManager* pEditFrameWindowManager, qs::QSTATUS* pstatus);
+		EditFrameWindowManager* pEditFrameWindowManager,
+		ExternalEditorManager* pExternalEditorManager, qs::QSTATUS* pstatus);
 	~MessageFrameWindowManager();
 
 public:
@@ -67,6 +69,7 @@ private:
 	qs::Profile* pProfile_;
 	ViewModelManager* pViewModelManager_;
 	EditFrameWindowManager* pEditFrameWindowManager_;
+	ExternalEditorManager* pExternalEditorManager_;
 	FrameList listFrame_;
 	MessageFrameWindow* pCachedFrame_;
 };
@@ -82,6 +85,7 @@ struct MessageFrameWindowCreateContext
 {
 	Document* pDocument_;
 	EditFrameWindowManager* pEditFrameWindowManager_;
+	ExternalEditorManager* pExternalEditorManager_;
 	TempFileCleaner* pTempFileCleaner_;
 	qs::MenuManager* pMenuManager_;
 	qs::KeyMap* pKeyMap_;

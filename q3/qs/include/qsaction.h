@@ -1,5 +1,5 @@
 /*
- * $Id: qsaction.h,v 1.4 2003/05/14 08:52:16 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -318,6 +318,31 @@ private:
 
 /****************************************************************************
  *
+ * InitAction9
+ *
+ */
+
+template<class T, class Arg1, class Arg2, class Arg3, class Arg4, class Arg5, class Arg6, class Arg7, class Arg8, class Arg9>
+class InitAction9
+{
+public:
+	InitAction9(ActionMap* pActionMap, unsigned int nId,
+		const Arg1& arg1, const Arg2& arg2, const Arg3& arg3,
+		const Arg4& arg4, const Arg5& arg5, const Arg6& arg6,
+		const Arg7& arg7, const Arg8& arg8, const Arg9& arg9);
+	operator unsigned int() const;
+
+private:
+	InitAction9(const InitAction9&);
+	InitAction9& operator=(const InitAction9&);
+
+private:
+	unsigned int status_;
+};
+
+
+/****************************************************************************
+ *
  * InitActionRange1
  *
  */
@@ -501,6 +526,31 @@ public:
 private:
 	InitActionRange8(const InitActionRange8&);
 	InitActionRange8& operator=(const InitActionRange8&);
+
+private:
+	unsigned int status_;
+};
+
+
+/****************************************************************************
+ *
+ * InitActionRange9
+ *
+ */
+
+template<class T, class Arg1, class Arg2, class Arg3, class Arg4, class Arg5, class Arg6, class Arg7, class Arg8, class Arg9>
+class InitActionRange9
+{
+public:
+	InitActionRange9(ActionMap* pActionMap, unsigned int nFrom,
+		unsigned int nTo, const Arg1& arg1, const Arg2& arg2,
+		const Arg3& arg3, const Arg4& arg4, const Arg5& arg5,
+		const Arg6& arg6, const Arg7& arg7, const Arg8& arg8, const Arg9& arg9);
+	operator unsigned int() const;
+
+private:
+	InitActionRange9(const InitActionRange9&);
+	InitActionRange9& operator=(const InitActionRange9&);
 
 private:
 	unsigned int status_;

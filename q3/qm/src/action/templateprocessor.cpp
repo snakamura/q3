@@ -1,5 +1,5 @@
 /*
- * $Id: templateprocessor.cpp,v 1.4 2003/05/10 13:15:28 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -21,6 +21,7 @@
 #include "../model/editmessage.h"
 #include "../model/templatemanager.h"
 #include "../ui/editframewindow.h"
+#include "../ui/externaleditor.h"
 #include "../ui/foldermodel.h"
 #include "../ui/messageselectionmodel.h"
 
@@ -36,12 +37,14 @@ using namespace qs;
 
 qm::TemplateProcessor::TemplateProcessor(Document* pDocument,
 	FolderModel* pFolderModel, MessageSelectionModel* pMessageSelectionModel,
-	EditFrameWindowManager* pEditFrameWindowManager, HWND hwnd,
+	EditFrameWindowManager* pEditFrameWindowManager,
+	ExternalEditorManager* pExternalEditorManager, HWND hwnd,
 	Profile* pProfile, bool bExternalEditor) :
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
 	pMessageSelectionModel_(pMessageSelectionModel),
 	pEditFrameWindowManager_(pEditFrameWindowManager),
+	pExternalEditorManager_(pExternalEditorManager),
 	hwnd_(hwnd),
 	pProfile_(pProfile),
 	bExternalEditor_(bExternalEditor)
@@ -99,6 +102,10 @@ QSTATUS qm::TemplateProcessor::process(
 		(!bExternalEditor_ && bReverseExternalEditor);
 	
 	if (bExternalEditor) {
+#if 1
+		status = pExternalEditorManager_->open(wstrValue.get());
+		CHECK_QSTATUS();
+#else
 		string_ptr<WSTRING> wstrEditor;
 		status = pProfile_->getString(L"Global", L"ExternalEditor", L"", &wstrEditor);
 		CHECK_QSTATUS();
@@ -186,6 +193,7 @@ QSTATUS qm::TemplateProcessor::process(
 			};
 			::ShellExecuteEx(&sei);
 		}
+#endif
 	}
 	else {
 		MessageCreator creator;

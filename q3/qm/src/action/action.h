@@ -1,5 +1,5 @@
 /*
- * $Id: action.h,v 1.11 2003/05/31 08:04:51 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -14,8 +14,8 @@
 #include <qsaction.h>
 #include <qsstream.h>
 
-#include "messagecomposer.h"
 #include "templateprocessor.h"
+#include "../ui/messagecomposer.h"
 #include "../ui/messagewindow.h"
 
 
@@ -88,6 +88,7 @@ class Document;
 class EditFrameWindow;
 class EditFrameWindowManager;
 class EncodingMenu;
+class ExternalEditorManager;
 class FilterManager;
 class FindReplaceManager;
 class FolderModel;
@@ -756,7 +757,8 @@ public:
 	MessageApplyTemplateAction(TemplateMenu* pTemplateMenu,
 		Document* pDocument, FolderModel* pFolderModel,
 		MessageSelectionModel* pMessageSelectionModel,
-		EditFrameWindowManager* pEditFrameWindowManager, HWND hwnd,
+		EditFrameWindowManager* pEditFrameWindowManager,
+		ExternalEditorManager* pExternalEditorManager, HWND hwnd,
 		qs::Profile* pProfile, bool bExternalEditor, qs::QSTATUS* pstatus);
 	virtual ~MessageApplyTemplateAction();
 
@@ -787,8 +789,8 @@ public:
 		MessageSelectionModel* pMessageSelectionModel,
 		const WCHAR* pwszTemplateName,
 		EditFrameWindowManager* pEditFrameWindowManager,
-		HWND hwnd, qs::Profile* pProfile,
-		bool bExternalEditor, qs::QSTATUS* pstatus);
+		ExternalEditorManager* pExternalEditorManager, HWND hwnd,
+		qs::Profile* pProfile, bool bExternalEditor, qs::QSTATUS* pstatus);
 	virtual ~MessageCreateAction();
 
 public:

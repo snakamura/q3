@@ -1,5 +1,5 @@
 /*
- * $Id: qsaction.inl,v 1.2 2003/05/07 07:25:22 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -234,6 +234,35 @@ qs::InitAction8<T, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8>::operator uns
 
 /****************************************************************************
  *
+ * InitAction9
+ *
+ */
+
+template<class T, class Arg1, class Arg2, class Arg3, class Arg4, class Arg5, class Arg6, class Arg7, class Arg8, class Arg9>
+qs::InitAction9<T, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9>::InitAction9(
+	qs::ActionMap* pActionMap, unsigned int nId, const Arg1& arg1,
+	const Arg2& arg2, const Arg3& arg3, const Arg4& arg4, const Arg5& arg5,
+	const Arg6& arg6, const Arg7& arg7, const Arg8& arg8, const Arg9& arg9) :
+	status_(QSTATUS_SUCCESS)
+{
+	std::auto_ptr<T> pAction;
+	status_ = newQsObject(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, &pAction);
+	if (status_ == QSTATUS_SUCCESS) {
+		status_ = pActionMap->addAction(nId, pAction.get());
+		if (status_ == QSTATUS_SUCCESS)
+			pAction.release();
+	}
+}
+
+template<class T, class Arg1, class Arg2, class Arg3, class Arg4, class Arg5, class Arg6, class Arg7, class Arg8, class Arg9>
+qs::InitAction9<T, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9>::operator unsigned int() const
+{
+	return status_;
+}
+
+
+/****************************************************************************
+ *
  * InitActionRange1
  *
  */
@@ -453,6 +482,35 @@ qs::InitActionRange8<T, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8>::InitAct
 
 template<class T, class Arg1, class Arg2, class Arg3, class Arg4, class Arg5, class Arg6, class Arg7, class Arg8>
 qs::InitActionRange8<T, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8>::operator unsigned int() const
+{
+	return status_;
+}
+
+
+/****************************************************************************
+ *
+ * InitActionRange9
+ *
+ */
+
+template<class T, class Arg1, class Arg2, class Arg3, class Arg4, class Arg5, class Arg6, class Arg7, class Arg8, class Arg9>
+qs::InitActionRange9<T, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9>::InitActionRange9(
+	qs::ActionMap* pActionMap, unsigned int nFrom, unsigned int nTo,
+	const Arg1& arg1, const Arg2& arg2, const Arg3& arg3, const Arg4& arg4,
+	const Arg5& arg5, const Arg6& arg6, const Arg7& arg7, const Arg8& arg8, const Arg9& arg9) :
+	status_(QSTATUS_SUCCESS)
+{
+	std::auto_ptr<T> pAction;
+	status_ = newQsObject(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, &pAction);
+	if (status_ == QSTATUS_SUCCESS) {
+		status_ = pActionMap->addAction(nFrom, nTo, pAction.get());
+		if (status_ == QSTATUS_SUCCESS)
+			pAction.release();
+	}
+}
+
+template<class T, class Arg1, class Arg2, class Arg3, class Arg4, class Arg5, class Arg6, class Arg7, class Arg8, class Arg9>
+qs::InitActionRange9<T, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9>::operator unsigned int() const
 {
 	return status_;
 }

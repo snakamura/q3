@@ -1,5 +1,5 @@
 /*
- * $Id: syncmanager.cpp,v 1.3 2003/05/29 08:15:50 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -884,7 +884,7 @@ QSTATUS qm::SyncManager::WaitThread::stop()
 	status = join();
 	CHECK_QSTATUS();
 	
-	return status;
+	return QSTATUS_SUCCESS;
 }
 
 unsigned int qm::SyncManager::WaitThread::run()

@@ -1,5 +1,5 @@
 /*
- * $Id: editaction.h,v 1.6 2003/05/23 08:46:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -13,8 +13,8 @@
 #include <qsprofile.h>
 #include <qstextwindow.h>
 
-#include "messagecomposer.h"
 #include "../ui/editwindow.h"
+#include "../ui/messagecomposer.h"
 
 
 namespace qm {

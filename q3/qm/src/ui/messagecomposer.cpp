@@ -1,5 +1,5 @@
 /*
- * $Id: messagecomposer.cpp,v 1.1 2003/05/06 08:31:22 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.

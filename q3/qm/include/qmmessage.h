@@ -1,5 +1,5 @@
 /*
- * $Id: qmmessage.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -98,10 +98,10 @@ public:
 		size_t nLen, Message** ppMessage) const;
 	qs::QSTATUS createPart(const WCHAR* pwszMessage, size_t nLen,
 		qs::Part* pParent, bool bMessage, qs::Part** ppPart) const;
-
-private:
 	qs::QSTATUS createHeader(qs::Part* pPart,
 		const WCHAR* pwszMessage, size_t nLen) const;
+
+private:
 	qs::QSTATUS convertBody(qs::Converter* pConverter, const WCHAR* pwszBody,
 		size_t nBodyLen, qs::STRING* pstrBody, size_t* pnLen) const;
 

@@ -1,5 +1,5 @@
 /*
- * $Id: qsosutil.inl,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -92,6 +92,13 @@ inline HANDLE qs::AutoHandle::get() const
 	return handle_;
 }
 
+inline HANDLE qs::AutoHandle::release()
+{
+	HANDLE handle = handle_;
+	handle_ = 0;
+	return handle;
+}
+
 inline void qs::AutoHandle::close()
 {
 	if (handle_) {
@@ -120,6 +127,13 @@ inline qs::AutoFindHandle::~AutoFindHandle()
 inline HANDLE qs::AutoFindHandle::get() const
 {
 	return handle_;
+}
+
+inline HANDLE qs::AutoFindHandle::release()
+{
+	HANDLE handle = handle_;
+	handle_ = 0;
+	return handle;
 }
 
 inline void qs::AutoFindHandle::close()

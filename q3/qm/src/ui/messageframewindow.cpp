@@ -1,5 +1,5 @@
 /*
- * $Id: messageframewindow.cpp,v 1.7 2003/05/25 07:24:24 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -100,6 +100,7 @@ public:
 	ActionMap* pActionMap_;
 	ActionInvoker* pActionInvoker_;
 	FindReplaceManager* pFindReplaceManager_;
+	ExternalEditorManager* pExternalEditorManager_;
 	EditFrameWindowManager* pEditFrameWindowManager_;
 	MoveMenu* pMoveMenu_;
 	AttachmentMenu* pAttachmentMenu_;
@@ -157,19 +158,19 @@ QSTATUS qm::MessageFrameWindowImpl::initActions()
 		pActionMap_, IDOK, pThis_->getHandle());
 	CHECK_QSTATUS();
 #endif
-	status = InitActionRange8<MessageApplyTemplateAction, TemplateMenu*,
+	status = InitActionRange9<MessageApplyTemplateAction, TemplateMenu*,
 		Document*, FolderModel*, MessageSelectionModel*,
-		EditFrameWindowManager*, HWND, Profile*, bool>(
+		EditFrameWindowManager*, ExternalEditorManager*, HWND, Profile*, bool>(
 		pActionMap_, IDM_MESSAGE_APPLYTEMPLATE, IDM_MESSAGE_APPLYTEMPLATE + 100,
-		pCreateTemplateMenu_, pDocument_, this, this,
-		pEditFrameWindowManager_, pThis_->getHandle(), pProfile_, false);
+		pCreateTemplateMenu_, pDocument_, this, this, pEditFrameWindowManager_,
+		pExternalEditorManager_, pThis_->getHandle(), pProfile_, false);
 	CHECK_QSTATUS();
-	status = InitActionRange8<MessageApplyTemplateAction, TemplateMenu*,
+	status = InitActionRange9<MessageApplyTemplateAction, TemplateMenu*,
 		Document*, FolderModel*, MessageSelectionModel*,
-		EditFrameWindowManager*, HWND, Profile*, bool>(
+		EditFrameWindowManager*, ExternalEditorManager*, HWND, Profile*, bool>(
 		pActionMap_, IDM_MESSAGE_APPLYTEMPLATEEXTERNAL, IDM_MESSAGE_APPLYTEMPLATEEXTERNAL + 100,
-		pCreateTemplateExternalMenu_, pDocument_, this, this,
-		pEditFrameWindowManager_, pThis_->getHandle(), pProfile_, true);
+		pCreateTemplateExternalMenu_, pDocument_, this, this, pEditFrameWindowManager_,
+		pExternalEditorManager_, pThis_->getHandle(), pProfile_, true);
 	CHECK_QSTATUS();
 	
 	struct {
@@ -184,19 +185,19 @@ QSTATUS qm::MessageFrameWindowImpl::initActions()
 		{ IDM_MESSAGE_REPLYALL,	IDM_MESSAGE_REPLYALLEXTERNAL,	L"reply_all"	},
 	};
 	for (int n = 0; n < countof(creates); ++n) {
-		status = InitAction8<MessageCreateAction, Document*,
+		status = InitAction9<MessageCreateAction, Document*,
 			FolderModel*, MessageSelectionModel*, const WCHAR*,
-			EditFrameWindowManager*, HWND, Profile*, bool>(
+			EditFrameWindowManager*, ExternalEditorManager*, HWND, Profile*, bool>(
 			pActionMap_, creates[n].nId_, pDocument_, this,
 			this, creates[n].pwszName_, pEditFrameWindowManager_,
-			pThis_->getHandle(), pProfile_, false);
+			pExternalEditorManager_, pThis_->getHandle(), pProfile_, false);
 		CHECK_QSTATUS();
-		status = InitAction8<MessageCreateAction, Document*,
+		status = InitAction9<MessageCreateAction, Document*,
 			FolderModel*, MessageSelectionModel*, const WCHAR*,
-			EditFrameWindowManager*, HWND, Profile*, bool>(
+			EditFrameWindowManager*, ExternalEditorManager*, HWND, Profile*, bool>(
 			pActionMap_, creates[n].nIdExternal_, pDocument_, this,
 			this, creates[n].pwszName_, pEditFrameWindowManager_,
-			pThis_->getHandle(), pProfile_, true);
+			pExternalEditorManager_, pThis_->getHandle(), pProfile_, true);
 		CHECK_QSTATUS();
 	}
 	status = InitAction2<MessageDetachAction, Profile*, MessageSelectionModel*>(
@@ -511,6 +512,7 @@ qm::MessageFrameWindow::MessageFrameWindow(
 	pImpl_->pActionMap_ = 0;
 	pImpl_->pActionInvoker_ = 0;
 	pImpl_->pFindReplaceManager_ = 0;
+	pImpl_->pExternalEditorManager_ = 0;
 	pImpl_->pMoveMenu_ = 0;
 	pImpl_->pAttachmentMenu_ = 0;
 	pImpl_->pViewTemplateMenu_ = 0;
@@ -789,6 +791,7 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		static_cast<MessageFrameWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pDocument_ = pContext->pDocument_;
 	pImpl_->pEditFrameWindowManager_ = pContext->pEditFrameWindowManager_;
+	pImpl_->pExternalEditorManager_ = pContext->pExternalEditorManager_;
 	pImpl_->pTempFileCleaner_ = pContext->pTempFileCleaner_;
 	
 	status = pContext->pKeyMap_->createAccelerator(
@@ -959,7 +962,8 @@ qm::MessageFrameWindowManager::MessageFrameWindowManager(
 	Document* pDocument, TempFileCleaner* pTempFileCleaner,
 	MenuManager* pMenuManager, KeyMap* pKeyMap,
 	Profile* pProfile, ViewModelManager* pViewModelManager,
-	EditFrameWindowManager* pEditFrameWindowManager, QSTATUS* pstatus) :
+	EditFrameWindowManager* pEditFrameWindowManager,
+	ExternalEditorManager* pExternalEditorManager, QSTATUS* pstatus) :
 	pDocument_(pDocument),
 	pTempFileCleaner_(pTempFileCleaner),
 	pMenuManager_(pMenuManager),
@@ -967,6 +971,7 @@ qm::MessageFrameWindowManager::MessageFrameWindowManager(
 	pProfile_(pProfile),
 	pViewModelManager_(pViewModelManager),
 	pEditFrameWindowManager_(pEditFrameWindowManager), 
+	pExternalEditorManager_(pExternalEditorManager),
 	pCachedFrame_(0)
 {
 	assert(pstatus);
@@ -974,6 +979,8 @@ qm::MessageFrameWindowManager::MessageFrameWindowManager(
 	assert(pKeyMap);
 	assert(pProfile);
 	assert(pViewModelManager);
+	assert(pEditFrameWindowManager);
+	assert(pExternalEditorManager);
 	*pstatus = QSTATUS_SUCCESS;
 }
 
@@ -1095,6 +1102,7 @@ QSTATUS qm::MessageFrameWindowManager::create(MessageFrameWindow** ppFrame)
 	MessageFrameWindowCreateContext context = {
 		pDocument_,
 		pEditFrameWindowManager_,
+		pExternalEditorManager_,
 		pTempFileCleaner_,
 		pMenuManager_,
 		pKeyMap_

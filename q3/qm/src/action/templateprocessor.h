@@ -1,5 +1,5 @@
 /*
- * $Id: templateprocessor.h,v 1.3 2003/05/09 06:05:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -22,6 +22,7 @@ class TemplateProcessor;
 
 class Document;
 class EditFrameWindowManager;
+class ExternalEditorManager;
 class FolderModel;
 class MessageSelectionModel;
 class TemplateManager;
@@ -39,6 +40,7 @@ public:
 	TemplateProcessor(Document* pDocument, FolderModel* pFolderModel,
 		MessageSelectionModel* pMessageSelectionModel,
 		EditFrameWindowManager* pEditFrameWindowManager,
+		ExternalEditorManager* pExternalEditorManager,
 		HWND hwnd, qs::Profile* pProfile, bool bExternalEditor);
 	~TemplateProcessor();
 
@@ -71,6 +73,7 @@ private:
 	FolderModel* pFolderModel_;
 	MessageSelectionModel* pMessageSelectionModel_;
 	EditFrameWindowManager* pEditFrameWindowManager_;
+	ExternalEditorManager* pExternalEditorManager_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
 	bool bExternalEditor_;
