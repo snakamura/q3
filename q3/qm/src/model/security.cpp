@@ -12,6 +12,9 @@
 #include <qmsecurity.h>
 
 #include <qsconv.h>
+#include <qsinit.h>
+#include <qslog.h>
+#include <qsthread.h>
 
 #include <tchar.h>
 
@@ -29,10 +32,14 @@ using namespace qs;
 
 struct qm::SecurityImpl
 {
+	void loadCA();
+	
 	wstring_ptr wstrPath_;
+	Profile* pProfile_;
 	std::auto_ptr<Store> pStoreCA_;
 	std::auto_ptr<SMIMEUtility> pSMIMEUtility_;
 	std::auto_ptr<PGPUtility> pPGPUtility_;
+	CriticalSection cs_;
 	
 	static HINSTANCE hInstCrypto__;
 	static HINSTANCE hInstPGP__;
@@ -40,6 +47,26 @@ struct qm::SecurityImpl
 
 HINSTANCE qm::SecurityImpl::hInstCrypto__ = 0;
 HINSTANCE qm::SecurityImpl::hInstPGP__ = 0;
+
+void qm::SecurityImpl::loadCA()
+{
+	assert(!pStoreCA_.get());
+	
+	Log log(InitThread::getInitThread().getLogger(), L"qm::SecurityImpl");
+	
+	pStoreCA_ = Store::getInstance();
+	if (pProfile_->getInt(L"Security", L"LoadSystemStore", 1)) {
+		if (!pStoreCA_->loadSystem())
+			log.warn(L"Failed to load certificates from the system store.");
+	}
+	
+	wstring_ptr wstrCAPath(concat(wstrPath_.get(), L"\\", FileNames::CA_PEM));
+	W2T(wstrCAPath.get(), ptszCAPath);
+	if (::GetFileAttributes(ptszCAPath) != 0xffffffff) {
+		if (!pStoreCA_->load(wstrCAPath.get(), Store::FILETYPE_PEM))
+			log.warn(L"Failed to load certificates from ca.pem.");
+	}
+}
 
 
 /****************************************************************************
@@ -53,30 +80,8 @@ qm::Security::Security(const WCHAR* pwszPath,
 	pImpl_(0)
 {
 	pImpl_ = new SecurityImpl();
-	
-	if (SecurityImpl::hInstCrypto__) {
-		pImpl_->wstrPath_ = concat(pwszPath, L"\\security");
-		
-		pImpl_->pStoreCA_ = Store::getInstance();
-		if (pProfile->getInt(L"Security", L"LoadSystemStore", 1)) {
-			if (!pImpl_->pStoreCA_->loadSystem()) {
-				// TODO
-			}
-		}
-		
-		wstring_ptr wstrCAPath(concat(pImpl_->wstrPath_.get(), L"\\", FileNames::CA_PEM));
-		W2T(wstrCAPath.get(), ptszCAPath);
-		if (::GetFileAttributes(ptszCAPath) != 0xffffffff) {
-			if (!pImpl_->pStoreCA_->load(wstrCAPath.get(), Store::FILETYPE_PEM)) {
-				// TODO
-			}
-		}
-		
-		pImpl_->pSMIMEUtility_ = SMIMEUtility::getInstance();
-	}
-	
-	if (SecurityImpl::hInstPGP__)
-		pImpl_->pPGPUtility_ = PGPUtility::getInstance(pProfile);
+	pImpl_->wstrPath_ = concat(pwszPath, L"\\security");
+	pImpl_->pProfile_ = pProfile;
 }
 
 qm::Security::~Security()
@@ -86,11 +91,23 @@ qm::Security::~Security()
 
 const Store* qm::Security::getCA() const
 {
+	Lock<CriticalSection> lock(pImpl_->cs_);
+	
+	if (!pImpl_->pStoreCA_.get())
+		pImpl_->loadCA();
+	
 	return pImpl_->pStoreCA_.get();
 }
 
 const SMIMEUtility* qm::Security::getSMIMEUtility() const
 {
+	Lock<CriticalSection> lock(pImpl_->cs_);
+	
+	if (!pImpl_->pSMIMEUtility_.get()) {
+		if (SecurityImpl::hInstCrypto__)
+			pImpl_->pSMIMEUtility_ = SMIMEUtility::getInstance();
+	}
+	
 	return pImpl_->pSMIMEUtility_.get();
 }
 
@@ -115,6 +132,13 @@ std::auto_ptr<Certificate> qm::Security::getCertificate(const WCHAR* pwszName) c
 
 const PGPUtility* qm::Security::getPGPUtility() const
 {
+	Lock<CriticalSection> lock(pImpl_->cs_);
+	
+	if (!pImpl_->pPGPUtility_.get()) {
+		if (SecurityImpl::hInstPGP__)
+			pImpl_->pPGPUtility_ = PGPUtility::getInstance(pImpl_->pProfile_);
+	}
+	
 	return pImpl_->pPGPUtility_.get();
 }
 
