@@ -640,9 +640,13 @@ LRESULT qm::MessagePropertyPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 					++nCount;
 				++it;
 			}
+			
 			sendDlgItemMessage(flags[n].nId_, BM_SETCHECK,
 				nCount == 0 ? BST_UNCHECKED :
 				nCount == listMessage_.size() ? BST_CHECKED : BST_INDETERMINATE);
+			if (nCount == 0 || nCount == listMessage_.size())
+				Window(getDlgItem(flags[n].nId_)).setStyle(
+					BS_AUTOCHECKBOX, BS_AUTOCHECKBOX | BS_AUTO3STATE);
 		}
 	}
 	
