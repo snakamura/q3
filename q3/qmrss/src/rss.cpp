@@ -22,13 +22,19 @@ using namespace qs;
  *
  */
 
-qmrss::Channel::Channel()
+qmrss::Channel::Channel(const WCHAR* pwszURL)
 {
+	wstrURL_ = allocWString(pwszURL);
 }
 
 qmrss::Channel::~Channel()
 {
 	std::for_each(listItem_.begin(), listItem_.end(), qs::deleter<Item>());
+}
+
+const WCHAR* qmrss::Channel::getURL() const
+{
+	return wstrURL_.get();
 }
 
 const Time& qmrss::Channel::getPubDate() const
@@ -201,15 +207,19 @@ qmrss::RssParser::~RssParser()
 {
 }
 
-std::auto_ptr<Channel> qmrss::RssParser::parse(InputStream* pInputStream)
+std::auto_ptr<Channel> qmrss::RssParser::parse(const WCHAR* pwszURL,
+											   InputStream* pInputStream)
 {
+	std::auto_ptr<Channel> pChannel(new Channel(pwszURL));
+	
 	XMLReader reader;
-	RssContentHandler handler;
+	RssContentHandler handler(pChannel.get());
 	reader.setContentHandler(&handler);
 	InputSource source(pInputStream);
 	if (!reader.parse(&source))
-		return std::auto_ptr<Channel>(0);
-	return handler.getChannel();
+		return std::auto_ptr<Channel>();
+	
+	return pChannel;
 }
 
 
@@ -219,19 +229,13 @@ std::auto_ptr<Channel> qmrss::RssParser::parse(InputStream* pInputStream)
  *
  */
 
-qmrss::RssContentHandler::RssContentHandler()
+qmrss::RssContentHandler::RssContentHandler(Channel* pChannel) :
+	pChannel_(pChannel)
 {
 }
 
 qmrss::RssContentHandler::~RssContentHandler()
 {
-}
-
-std::auto_ptr<Channel> qmrss::RssContentHandler::getChannel()
-{
-	if (!pHandler_.get())
-		return std::auto_ptr<Channel>(0);
-	return pHandler_->getChannel();
 }
 
 bool qmrss::RssContentHandler::startElement(const WCHAR* pwszNamespaceURI,
@@ -245,7 +249,7 @@ bool qmrss::RssContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 				wcscmp(pwszLocalName, L"RDF") != 0)
 				return false;
 			
-			pHandler_.reset(new Rss10Handler());
+			pHandler_.reset(new Rss10Handler(pChannel_));
 		}
 		else {
 			if (wcscmp(pwszLocalName, L"rss") != 0)
@@ -256,7 +260,7 @@ bool qmrss::RssContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 				return false;
 			else if (wcscmp(pwszVersion, L"0.91") == 0 ||
 				wcscmp(pwszVersion, L"2.0") == 0)
-				pHandler_.reset(new Rss20Handler());
+				pHandler_.reset(new Rss20Handler(pChannel_));
 			else
 				return false;
 		}
@@ -297,20 +301,15 @@ qmrss::RssHandler::~RssHandler()
  *
  */
 
-qmrss::Rss10Handler::Rss10Handler() :
+qmrss::Rss10Handler::Rss10Handler(Channel* pChannel) :
+	pChannel_(pChannel),
 	pCurrentItem_(0)
 {
-	pChannel_.reset(new Channel());
 	stackState_.push_back(STATE_ROOT);
 }
 
 qmrss::Rss10Handler::~Rss10Handler()
 {
-}
-
-std::auto_ptr<Channel> qmrss::Rss10Handler::getChannel()
-{
-	return pChannel_;
 }
 
 bool qmrss::Rss10Handler::startElement(const WCHAR* pwszNamespaceURI,
@@ -514,20 +513,15 @@ bool qmrss::Rss10Handler::characters(const WCHAR* pwsz,
  *
  */
 
-qmrss::Rss20Handler::Rss20Handler() :
+qmrss::Rss20Handler::Rss20Handler(Channel* pChannel) :
+	pChannel_(pChannel),
 	pCurrentItem_(0)
 {
-	pChannel_.reset(new Channel());
 	stackState_.push_back(STATE_ROOT);
 }
 
 qmrss::Rss20Handler::~Rss20Handler()
 {
-}
-
-std::auto_ptr<Channel> qmrss::Rss20Handler::getChannel()
-{
-	return pChannel_;
 }
 
 bool qmrss::Rss20Handler::startElement(const WCHAR* pwszNamespaceURI,

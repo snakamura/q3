@@ -37,10 +37,11 @@ public:
 	typedef std::vector<Item*> ItemList;
 
 public:
-	Channel();
+	explicit Channel(const WCHAR* pwszURL);
 	~Channel();
 
 public:
+	const WCHAR* getURL() const;
 	const qs::Time& getPubDate() const;
 	const ItemList& getItems() const;
 
@@ -53,6 +54,7 @@ private:
 	Channel& operator=(Channel&);
 
 private:
+	qs::wstring_ptr wstrURL_;
 	qs::Time timePubDate_;
 	ItemList listItem_;
 };
@@ -120,7 +122,8 @@ public:
 	~RssParser();
 
 public:
-	std::auto_ptr<Channel> parse(qs::InputStream* pInputStream);
+	std::auto_ptr<Channel> parse(const WCHAR* pwszURL,
+								 qs::InputStream* pInputStream);
 
 private:
 	RssParser(const RssParser&);
@@ -137,11 +140,8 @@ private:
 class RssContentHandler : public qs::DefaultHandler
 {
 public:
-	RssContentHandler();
+	explicit RssContentHandler(Channel* pChannel);
 	virtual ~RssContentHandler();
-
-public:
-	std::auto_ptr<Channel> getChannel();
 
 public:
 	virtual bool startElement(const WCHAR* pwszNamespaceURI,
@@ -160,6 +160,7 @@ private:
 	RssContentHandler& operator=(const RssContentHandler&);
 
 private:
+	Channel* pChannel_;
 	std::auto_ptr<RssHandler> pHandler_;
 };
 
@@ -176,7 +177,6 @@ public:
 	virtual ~RssHandler();
 
 public:
-	virtual std::auto_ptr<Channel> getChannel() = 0;
 	virtual bool startElement(const WCHAR* pwszNamespaceURI,
 							  const WCHAR* pwszLocalName,
 							  const WCHAR* pwszQName,
@@ -199,11 +199,10 @@ public:
 class Rss10Handler : public RssHandler
 {
 public:
-	Rss10Handler();
+	explicit Rss10Handler(Channel* pChannel);
 	virtual ~Rss10Handler();
 
 public:
-	virtual std::auto_ptr<Channel> getChannel();
 	virtual bool startElement(const WCHAR* pwszNamespaceURI,
 							  const WCHAR* pwszLocalName,
 							  const WCHAR* pwszQName,
@@ -234,9 +233,9 @@ private:
 	typedef std::vector<State> StateStack;
 
 private:
+	Channel* pChannel_;
 	StateStack stackState_;
 	qs::StringBuffer<qs::WSTRING> buffer_;
-	std::auto_ptr<Channel> pChannel_;
 	Item* pCurrentItem_;
 };
 
@@ -250,11 +249,10 @@ private:
 class Rss20Handler : public RssHandler
 {
 public:
-	Rss20Handler();
+	explicit Rss20Handler(Channel* pChannel);
 	virtual ~Rss20Handler();
 
 public:
-	virtual std::auto_ptr<Channel> getChannel();
 	virtual bool startElement(const WCHAR* pwszNamespaceURI,
 							  const WCHAR* pwszLocalName,
 							  const WCHAR* pwszQName,
@@ -285,9 +283,9 @@ private:
 	typedef std::vector<State> StateStack;
 
 private:
+	Channel* pChannel_;
 	StateStack stackState_;
 	qs::StringBuffer<qs::WSTRING> buffer_;
-	std::auto_ptr<Channel> pChannel_;
 	Item* pCurrentItem_;
 };
 

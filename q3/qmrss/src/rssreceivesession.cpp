@@ -178,7 +178,8 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	
 	callback.setMessage(IDS_PARSERSS);
 	
-	std::auto_ptr<Channel> pChannel(RssParser().parse(method.getResponseBodyAsStream()));
+	std::auto_ptr<Channel> pChannel(RssParser().parse(
+		pwszURL, method.getResponseBodyAsStream()));
 	if (!pChannel.get()) {
 		reportError(IDS_ERROR_PARSE, 0);
 		return false;
@@ -246,8 +247,8 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 				}
 				
 				Message msg;
-				if (!createItemMessage(pItem, timePubDate, pBody.get() ? &header : 0,
-					pBody.get(), pBody.size(), content, &msg))
+				if (!createItemMessage(pChannel.get(), pItem, timePubDate,
+					pBody.get() ? &header : 0, pBody.get(), pBody.size(), content, &msg))
 					return false;
 				
 				Lock<Account> lock(*pAccount_);
@@ -324,7 +325,8 @@ void qmrss::RssReceiveSession::reportError(UINT nId,
 	pSessionCallback_->addError(info);
 }
 
-bool qmrss::RssReceiveSession::createItemMessage(const Item* pItem,
+bool qmrss::RssReceiveSession::createItemMessage(const Channel* pChannel,
+												 const Item* pItem,
 												 const Time& timePubDate,
 												 const Part* pHeader,
 												 const unsigned char* pBody,
@@ -455,9 +457,20 @@ bool qmrss::RssReceiveSession::createItemMessage(const Item* pItem,
 		if (!pHtmlPart->setField(L"Content-Type", contentType))
 			return false;
 		
+		string_ptr strBaseURL(wcs2mbs(pChannel->getURL()));
+		
 		XStringBuffer<XSTRING> body;
-		if (!body.append("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\r\n") ||
-			converter.encode(pwszContent, wcslen(pwszContent), &body) == -1)
+		if (!body.append("<html>\r\n") ||
+			!body.append("<head>\r\n") ||
+			!body.append("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\r\n") ||
+			!body.append("<base href=\"") ||
+			!body.append(strBaseURL.get()) ||
+			!body.append("\">\r\n") ||
+			!body.append("</head>\r\n") ||
+			!body.append("<body>\r\n") ||
+			converter.encode(pwszContent, wcslen(pwszContent), &body) == -1 ||
+			!body.append("</body>\r\n") ||
+			!body.append("</html>\r\n"))
 			return false;
 		
 		pHtmlPart->setBody(body.getXString());

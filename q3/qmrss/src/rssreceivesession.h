@@ -70,7 +70,8 @@ private:
 					 HttpMethod* pMethod);
 
 private:
-	static bool createItemMessage(const Item* pItem,
+	static bool createItemMessage(const Channel* pChannel,
+								  const Item* pItem,
 								  const qs::Time& timePubDate,
 								  const qs::Part* pHeader,
 								  const unsigned char* pBody,
