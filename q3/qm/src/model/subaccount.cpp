@@ -1,5 +1,5 @@
 /*
- * $Id: subaccount.cpp,v 1.5 2003/05/31 08:04:51 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -687,7 +687,8 @@ QSTATUS qm::SubAccount::isSelf(const Message& msg, bool* pbSelf) const
 				const WCHAR* pwszFields[] = {
 					L"Sender",
 					L"Posted",
-					L"X-ML-Name"
+					L"X-ML-Name",
+					L"Mailing-List"
 				};
 				for (int n = 0; n < countof(pwszFields) && *pbSelf; ++n) {
 					bool bHas = false;
