@@ -657,7 +657,8 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 	
 	struct ReceiveSessionTerm
 	{
-		ReceiveSessionTerm()
+		ReceiveSessionTerm() :
+			bConnected_(false)
 		{
 		}
 		
@@ -673,9 +674,13 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 		
 		void reset(std::auto_ptr<ReceiveSession> pSession)
 		{
-			if (pSession_.get())
+			if (pSession_.get()) {
+				if (bConnected_)
+					pSession_->disconnect();
 				pSession_->term();
+			}
 			pSession_ = pSession;
+			bConnected_ = false;
 		}
 		
 		void clear()
@@ -684,7 +689,13 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 			reset(pSession);
 		}
 		
+		void setConnected()
+		{
+			bConnected_ = true;
+		}
+		
 		std::auto_ptr<ReceiveSession> pSession_;
+		bool bConnected_;
 	};
 	
 	std::auto_ptr<Logger> pLogger;
@@ -703,8 +714,6 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 				if (pSubAccount != pItem->getSubAccount() ||
 					(session.get() && !session.get()->isConnected())) {
 					pSubAccount = 0;
-					if (session.get())
-						session.get()->disconnect();
 					session.clear();
 					pReceiveCallback.reset(0);
 					pLogger.reset(0);
@@ -714,28 +723,39 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 						pCallback, pItem, pData->isAuto(),
 						&pReceiveSession, &pReceiveCallback, &pLogger))
 						continue;
-					
 					session.reset(pReceiveSession);
-					if (!session.get()->connect() ||
-						!session.get()->applyOfflineJobs())
+					if (pCallback->isCanceled(pItem->getSlot(), false))
+						break;
+					
+					if (!session.get()->connect())
 						continue;
+					session.setConnected();
+					if (pCallback->isCanceled(pItem->getSlot(), false))
+						break;
+					
+					if (!session.get()->applyOfflineJobs())
+						continue;
+					if (pCallback->isCanceled(pItem->getSlot(), false))
+						break;
 					
 					pSubAccount = pItem->getSubAccount();
 				}
 				if (bSync) {
 					if (!syncFolder(pCallback, pItem, session.get()))
 						continue;
+					if (pCallback->isCanceled(pItem->getSlot(), false))
+						break;
 				}
 			}
 			
 			if (pItem->isSend()) {
 				if (!send(pData->getDocument(), pCallback, static_cast<const SendSyncItem*>(pItem)))
 					continue;
+				if (pCallback->isCanceled(pItem->getSlot(), false))
+					break;
 			}
 		}
 	}
-	if (session.get())
-		session.get()->disconnect();
 }
 
 bool qm::SyncManager::syncFolder(SyncManagerCallback* pSyncManagerCallback,
@@ -768,11 +788,20 @@ bool qm::SyncManager::syncFolder(SyncManagerCallback* pSyncManagerCallback,
 	if (!pSession->selectFolder(pFolder, nSelectFlags))
 		return false;
 	pFolder->setLastSyncTime(::GetTickCount());
+	if (pSyncManagerCallback->isCanceled(pItem->getSlot(), false))
+		return true;
+	
+	if (!pSession->updateMessages())
+		return false;
+	if (pSyncManagerCallback->isCanceled(pItem->getSlot(), false))
+		return true;
 	
 	const SyncFilterSet* pFilterSet = pReceiveItem ?
 		pReceiveItem->getFilterSet() : 0;
-	if (!pSession->updateMessages() || !pSession->downloadMessages(pFilterSet))
+	if (!pSession->downloadMessages(pFilterSet))
 		return false;
+	if (pSyncManagerCallback->isCanceled(pItem->getSlot(), false))
+		return true;
 	
 	if (!pFolder->getAccount()->flushMessageStore() ||
 		!pFolder->saveMessageHolders())
@@ -847,6 +876,9 @@ bool qm::SyncManager::send(Document* pDocument,
 				
 				if (bSend)
 					listMessagePtr.push_back(MessagePtr(pmh));
+				
+				if (pSyncManagerCallback->isCanceled(pItem->getSlot(), false))
+					return true;
 			}
 		}
 	}
@@ -869,20 +901,35 @@ bool qm::SyncManager::send(Document* pDocument,
 	struct SendSessionTerm
 	{
 		SendSessionTerm(SendSession* pSession) :
-			pSession_(pSession)
+			pSession_(pSession),
+			bConnected_(false)
 		{
 		}
 		
 		~SendSessionTerm()
 		{
+			if (bConnected_)
+				pSession_->disconnect();
 			pSession_->term();
 		}
 		
+		void setConnected()
+		{
+			bConnected_ = true;
+		}
+		
 		SendSession* pSession_;
+		bool bConnected_;
 	} term(pSession.get());
+	
+	if (pSyncManagerCallback->isCanceled(pItem->getSlot(), false))
+		return true;
 	
 	if (!pSession->connect())
 		return false;
+	term.setConnected();
+	if (pSyncManagerCallback->isCanceled(pItem->getSlot(), false))
+		return true;
 	
 	pCallback->setRange(0, listMessagePtr.size());
 	
@@ -890,7 +937,7 @@ bool qm::SyncManager::send(Document* pDocument,
 	l.resize(1);
 	
 	for (MessagePtrList::size_type m = 0; m < listMessagePtr.size(); ++m) {
-		if (pCallback->isCanceled(false))
+		if (pSyncManagerCallback->isCanceled(pItem->getSlot(), false))
 			return true;
 		
 		Message msg;
@@ -926,8 +973,6 @@ bool qm::SyncManager::send(Document* pDocument,
 		
 		pCallback->setPos(m + 1);
 	}
-	
-	pSession->disconnect();
 	
 	return true;
 }
