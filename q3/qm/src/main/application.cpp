@@ -248,7 +248,8 @@ QSTATUS qm::ApplicationImpl::saveCurrentFolder()
 
 bool qm::ApplicationImpl::canCheck()
 {
-	return !pMainWindow_->isShowingModalDialog();
+	return !pMainWindow_->isShowingModalDialog() &&
+		!pSyncManager_->isSyncing();
 }
 
 
