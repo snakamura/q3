@@ -966,17 +966,16 @@ void qm::SyncStatusWindow::paintProgress(qs::DeviceContext* pdc,
 	else if (nPos > nMax)
 		nPos = nMax;
 	
+	double dPercent = nMax == nMin ? 0 : static_cast<double>(nPos - nMin)/(nMax - nMin);
 	RECT rectHighlight = {
 		rect.left,
 		rect.top,
-		rect.left + (nMin == nMax ? 0 :
-			(rect.right - rect.left)*(nPos - nMin)/(nMax - nMin)),
+		rect.left + static_cast<long>((rect.right - rect.left)*dPercent),
 		rect.bottom
 	};
 	pdc->fillSolidRect(rectHighlight, ::GetSysColor(COLOR_ACTIVECAPTION));
 	RECT rectUnHighlight = {
-		rect.left + (nMin == nMax ? 0 :
-			(rect.right - rect.left)*(nPos - nMin)/(nMax - nMin)),
+		rectHighlight.right,
 		rect.top,
 		rect.right,
 		rect.bottom
