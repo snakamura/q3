@@ -24,7 +24,7 @@ class Recents;
 class RecentsHandler;
 class RecentsEvent;
 
-class Document;
+class AccountManager;
 
 
 /****************************************************************************
@@ -36,7 +36,7 @@ class Document;
 class Recents
 {
 public:
-	Recents(Document* pDocument,
+	Recents(AccountManager* pAccountManager,
 			qs::Profile* pProfile);
 	~Recents();
 

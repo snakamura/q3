@@ -6,7 +6,7 @@
  *
  */
 
-#include <qmdocument.h>
+#include <qmaccount.h>
 #include <qmmessageholder.h>
 #include <qmrecents.h>
 
@@ -32,7 +32,7 @@ struct qm::RecentsImpl
 	void fireRecentsChanged();
 	
 	Recents* pThis_;
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	unsigned int nMax_;
 	bool bAddAutoOnly_;
 	std::auto_ptr<qs::RegexPattern> pFilter_;
@@ -58,7 +58,7 @@ void qm::RecentsImpl::fireRecentsChanged()
  *
  */
 
-qm::Recents::Recents(Document* pDocument,
+qm::Recents::Recents(AccountManager* pAccountManager,
 					 Profile* pProfile) :
 	pImpl_(0)
 {
@@ -69,7 +69,7 @@ qm::Recents::Recents(Document* pDocument,
 	
 	pImpl_ = new RecentsImpl();
 	pImpl_->pThis_ = this;
-	pImpl_->pDocument_ = pDocument;
+	pImpl_->pAccountManager_ = pAccountManager;
 	pImpl_->nMax_ = pProfile->getInt(L"Recents", L"Max", 20);
 	pImpl_->bAddAutoOnly_ = pProfile->getInt(L"Recents", L"AddAutoOnly", 1) != 0;
 	pImpl_->pFilter_ = pFilter;
@@ -168,7 +168,7 @@ void qm::Recents::removeSeens()
 		
 		std::auto_ptr<URI> pURI(URI::parse(*it));
 		if (pURI.get()) {
-			MessagePtrLock mpl(pImpl_->pDocument_->getMessage(*pURI.get()));
+			MessagePtrLock mpl(pImpl_->pAccountManager_->getMessage(*pURI.get()));
 			if (mpl)
 				bRemove = mpl->isSeen();
 		}
