@@ -296,7 +296,7 @@ public:
 	QSTATUS reform();
 	QSTATUS scroll(Scroll scroll, int nPos, bool bRepeat);
 	QSTATUS moveCaret(MoveCaret moveCaret, unsigned int nLine,
-		unsigned int nChar, bool bRepeat, Select select);
+		unsigned int nChar, bool bRepeat, Select select, bool bScroll);
 	QSTATUS openLink();
 	TextWindowLinkHandler* getLinkHandler() const;
 	void setLinkHandler(TextWindowLinkHandler* pLinkHandler);

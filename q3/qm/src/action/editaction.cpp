@@ -217,7 +217,7 @@ QSTATUS qm::EditEditMoveCaretAction::invoke(const ActionEvent& event)
 		}
 	}
 	
-	return pTextWindow_->moveCaret(moveCaret_, 0, 0, false, select);
+	return pTextWindow_->moveCaret(moveCaret_, 0, 0, false, select, true);
 }
 
 QSTATUS qm::EditEditMoveCaretAction::isEnabled(

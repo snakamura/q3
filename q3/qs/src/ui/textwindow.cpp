@@ -48,6 +48,7 @@ public:
 	enum {
 		TIMER_DRAGSCROLL	= 1000,
 		DRAGSCROLL_BORDER	= 30,
+		DRAGSCROLL_DELAY	= 300,
 		DRAGSCROLL_INTERVAL	= 50
 	};
 	
@@ -164,8 +165,8 @@ public:
 		unsigned int* pnEndLine, unsigned int* pnEndChar, bool* pbReverse) const;
 	void expandSelection(unsigned int nStartLine, unsigned int nStartChar,
 		unsigned int nEndLine, unsigned int nEndChar);
-	QSTATUS startSelection(const POINT& pt);
-	QSTATUS updateSelection(const POINT& pt);
+	QSTATUS startSelection(const POINT& pt, bool bScroll);
+	QSTATUS updateSelection(const POINT& pt, bool bScroll);
 	void clearSelection();
 	std::pair<unsigned int, unsigned int> getSelection(unsigned int nLine) const;
 	
@@ -583,7 +584,7 @@ void qs::TextWindowImpl::expandSelection(unsigned int nStartLine,
 	invalidate(nStartLine, nStartChar, nEndLine, nEndChar);
 }
 
-QSTATUS qs::TextWindowImpl::startSelection(const POINT& pt)
+QSTATUS qs::TextWindowImpl::startSelection(const POINT& pt, bool bScroll)
 {
 	DECLARE_QSTATUS();
 	
@@ -599,13 +600,13 @@ QSTATUS qs::TextWindowImpl::startSelection(const POINT& pt)
 	selection_.nEndChar_ = nChar;
 	
 	status = pThis_->moveCaret(TextWindow::MOVECARET_POS,
-		nLine, nChar, false, TextWindow::SELECT_NONE);
+		nLine, nChar, false, TextWindow::SELECT_NONE, bScroll);
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::TextWindowImpl::updateSelection(const POINT& pt)
+QSTATUS qs::TextWindowImpl::updateSelection(const POINT& pt, bool bScroll)
 {
 	DECLARE_QSTATUS();
 	
@@ -617,8 +618,8 @@ QSTATUS qs::TextWindowImpl::updateSelection(const POINT& pt)
 	selection_.nEndLine_ = nLine;
 	selection_.nEndChar_ = nChar;
 	
-	pThis_->moveCaret(TextWindow::MOVECARET_POS,
-		nLine, nChar, false, TextWindow::SELECT_NONE);
+	pThis_->moveCaret(TextWindow::MOVECARET_POS, nLine,
+		nChar, false, TextWindow::SELECT_NONE, bScroll);
 	
 	return QSTATUS_SUCCESS;
 }
@@ -1263,7 +1264,7 @@ QSTATUS qs::TextWindowImpl::deleteText(bool bDeleteBackward)
 		if (!pThis_->isSelected()) {
 			status = pThis_->moveCaret(bDeleteBackward ?
 				TextWindow::MOVECARET_CHARLEFT : TextWindow::MOVECARET_CHARRIGHT,
-				0, 0, false, TextWindow::SELECT_SELECT);
+				0, 0, false, TextWindow::SELECT_SELECT, true);
 			CHECK_QSTATUS();
 			if (pThis_->isSelected()) {
 				std::swap(selection_.nStartLine_, selection_.nEndLine_);
@@ -1972,9 +1973,9 @@ QSTATUS qs::TextWindow::selectAll()
 {
 	DECLARE_QSTATUS();
 	
-	status = moveCaret(MOVECARET_DOCSTART, 0, 0, false, SELECT_CLEAR);
+	status = moveCaret(MOVECARET_DOCSTART, 0, 0, false, SELECT_CLEAR, false);
 	CHECK_QSTATUS();
-	status = moveCaret(MOVECARET_DOCEND, 0, 0, false, SELECT_SELECT);
+	status = moveCaret(MOVECARET_DOCEND, 0, 0, false, SELECT_SELECT, true);
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
@@ -2079,14 +2080,14 @@ QSTATUS qs::TextWindow::undo()
 		pImpl_->expandSelection(pItem->getStartLine(), pItem->getStartChar(),
 			pItem->getEndLine(), pItem->getEndChar());
 		status = moveCaret(TextWindow::MOVECARET_POS, pItem->getEndLine(),
-			pItem->getEndChar(), false, TextWindow::SELECT_NONE);
+			pItem->getEndChar(), false, TextWindow::SELECT_NONE, false);
 		CHECK_QSTATUS();
 		status = pImpl_->insertText(pItem->getText(), -1,
 			TextWindowImpl::INSERTTEXTFLAG_UNDO);
 		CHECK_QSTATUS();
 		
 		status = moveCaret(TextWindow::MOVECARET_POS, pItem->getCaretLine(),
-			 pItem->getCaretChar(), false, TextWindow::SELECT_NONE);
+			 pItem->getCaretChar(), false, TextWindow::SELECT_NONE, true);
 		CHECK_QSTATUS();
 	}
 	
@@ -2118,7 +2119,7 @@ QSTATUS qs::TextWindow::redo()
 		CHECK_QSTATUS();
 		
 		status = moveCaret(TextWindow::MOVECARET_POS,pItem->getCaretLine(),
-			 pItem->getCaretChar(), false, TextWindow::SELECT_NONE);
+			 pItem->getCaretChar(), false, TextWindow::SELECT_NONE, true);
 		CHECK_QSTATUS();
 	}
 	
@@ -2226,10 +2227,10 @@ QSTATUS qs::TextWindow::find(const WCHAR* pwszFind,
 	
 	if (*pbFound) {
 		status = moveCaret(MOVECARET_POS, end.first,
-			end.second, false, SELECT_CLEAR);
+			end.second, false, SELECT_CLEAR, false);
 		CHECK_QSTATUS();
 		status = moveCaret(MOVECARET_POS, start.first,
-			start.second, false, SELECT_SELECT);
+			start.second, false, SELECT_SELECT, true);
 		CHECK_QSTATUS();
 	}
 	
@@ -2378,7 +2379,7 @@ QSTATUS qs::TextWindow::reform()
 		TextWindowImpl::INSERTTEXTFLAG_NORMAL);
 	CHECK_QSTATUS();
 	
-	status = moveCaret(MOVECARET_CHARLEFT, 0, 0, false, SELECT_NONE);
+	status = moveCaret(MOVECARET_CHARLEFT, 0, 0, false, SELECT_NONE, true);
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
@@ -2477,8 +2478,8 @@ QSTATUS qs::TextWindow::scroll(Scroll scroll, int nPos, bool bRepeat)
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::TextWindow::moveCaret(MoveCaret moveCaret,
-	unsigned int nLine, unsigned int nChar, bool bRepeat, Select select)
+QSTATUS qs::TextWindow::moveCaret(MoveCaret moveCaret, unsigned int nLine,
+	unsigned int nChar, bool bRepeat, Select select, bool bScroll)
 {
 	DECLARE_QSTATUS();
 	
@@ -2624,7 +2625,7 @@ QSTATUS qs::TextWindow::moveCaret(MoveCaret moveCaret,
 		else if (select == SELECT_CLEAR)
 			pImpl_->clearSelection();
 		
-		pImpl_->updateCaret(true);
+		pImpl_->updateCaret(bScroll);
 	}
 	return QSTATUS_SUCCESS;
 }
@@ -3154,7 +3155,7 @@ LRESULT qs::TextWindow::onKeyDown(UINT nKey, UINT nRepeat, UINT nFlags)
 		}
 		if (bMoveCaret)
 			moveCaret(mc, 0, 0, (nFlags & 0x40000000) != 0,
-				::GetKeyState(VK_SHIFT) < 0 ? SELECT_SELECT : SELECT_CLEAR);
+				::GetKeyState(VK_SHIFT) < 0 ? SELECT_SELECT : SELECT_CLEAR, true);
 	}
 	else {
 		bool bScroll = true;
@@ -3220,11 +3221,11 @@ LRESULT qs::TextWindow::onLButtonDown(UINT nFlags, const POINT& pt)
 {
 	setFocus();
 	
-	pImpl_->startSelection(pt);
+	pImpl_->startSelection(pt, false);
 	setCapture();
 	
-	pImpl_->nTimerDragScroll_ = setTimer(
-		TextWindowImpl::TIMER_DRAGSCROLL, TextWindowImpl::DRAGSCROLL_INTERVAL);
+	pImpl_->nTimerDragScroll_ = setTimer(TextWindowImpl::TIMER_DRAGSCROLL,
+		TextWindowImpl::DRAGSCROLL_DELAY);
 	
 	return DefaultWindowHandler::onLButtonDown(nFlags, pt);
 }
@@ -3239,7 +3240,7 @@ LRESULT qs::TextWindow::onLButtonUp(UINT nFlags, const POINT& pt)
 		
 		releaseCapture();
 		
-		pImpl_->updateSelection(pt);
+		pImpl_->updateSelection(pt, false);
 		
 		// TODO
 		// Only if button was down near here, handle this?
@@ -3253,7 +3254,7 @@ LRESULT qs::TextWindow::onLButtonUp(UINT nFlags, const POINT& pt)
 LRESULT qs::TextWindow::onMouseMove(UINT nFlags, const POINT& pt)
 {
 	if (getCapture())
-		pImpl_->updateSelection(pt);
+		pImpl_->updateSelection(pt, true);
 	
 	return DefaultWindowHandler::onMouseMove(nFlags, pt);
 }
@@ -3493,6 +3494,9 @@ LRESULT qs::TextWindow::onSize(UINT nFlags, int cx, int cy)
 LRESULT qs::TextWindow::onTimer(UINT nId)
 {
 	if (nId == pImpl_->nTimerDragScroll_) {
+		killTimer(pImpl_->nTimerDragScroll_);
+		pImpl_->nTimerDragScroll_ = 0;
+		
 		POINT pt;
 		::GetCursorPos(&pt);
 		screenToClient(&pt);
@@ -3519,7 +3523,10 @@ LRESULT qs::TextWindow::onTimer(UINT nId)
 		}
 		
 		if (bScroll)
-			pImpl_->updateSelection(pt);
+			pImpl_->updateSelection(pt, true);
+		
+		pImpl_->nTimerDragScroll_ = setTimer(TextWindowImpl::TIMER_DRAGSCROLL,
+			TextWindowImpl::DRAGSCROLL_INTERVAL);
 		
 		return 0;
 	}
