@@ -1217,6 +1217,12 @@ QSTATUS qm::AddressBookDialog::createCategoryMenu(
 		MenuStack& s_;
 	} deleter(stackMenu);
 	
+	string_ptr<WSTRING> wstrThisCategory;
+	status = loadString(Application::getApplication().getResourceHandle(),
+		IDS_THISCATEGORY, &wstrThisCategory);
+	CHECK_QSTATUS();
+	W2T(wstrThisCategory.get(), ptszThisCategory);
+	
 	UINT nId = IDM_ADDRESSBOOK_CATEGORY;
 	AddressBook::CategoryList::const_iterator it = l.begin();
 	while (it != l.end()) {
@@ -1287,7 +1293,7 @@ QSTATUS qm::AddressBookDialog::createCategoryMenu(
 				CHECK_QSTATUS();
 				wstrName.release();
 				
-				::AppendMenu(hSubMenu, nFlags, nId++, _T("(This Category"));
+				::AppendMenu(hSubMenu, nFlags, nId++, ptszThisCategory);
 			}
 			else {
 				::AppendMenu(stackMenu.back().first, nFlags, nId++, ptszText);

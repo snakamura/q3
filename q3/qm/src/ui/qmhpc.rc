@@ -1060,6 +1060,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDS_CONFIRMREMOVESUBACCOUNT "Are you sure to remove this subaccount?"
     IDS_CONFIRMREMOVEFOLDER "Are you sure to remove this folder?"
+    IDS_THISCATEGORY        "(&This Category)"
 END
 
 #endif    // Japanese resources

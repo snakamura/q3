@@ -154,6 +154,7 @@
 #define IDS_CONFIRMREMOVESUBACCOUNT     1056
 #define IDS_CONFIRMREMOVEFOLDER         1057
 #define IDC_EXPORTFLAGS                 1058
+#define IDS_THISCATEGORY                1058
 #define IDC_NORMAL                      1059
 #define IDC_QMAIL20COMPATIBLE           1060
 #define IDC_IGNORE                      1061
