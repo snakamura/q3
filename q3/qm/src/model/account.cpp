@@ -256,6 +256,7 @@ bool qm::AccountImpl::getMessage(MessageHolder* pmh,
 	assert(pmh);
 	assert(pMessage);
 	assert((nFlags & Account::GETMESSAGEFLAG_METHOD_MASK) != 0);
+	assert(pThis_->isLocked());
 	
 #ifndef NDEBUG
 	Message::Flag flag = pMessage->getFlag();

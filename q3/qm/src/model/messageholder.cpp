@@ -317,7 +317,7 @@ void qm::MessageHolder::setId(unsigned int nId)
 void qm::MessageHolder::setFlags(unsigned int nFlags,
 								 unsigned int nMask)
 {
-	Lock<Account> lock(*getAccount());
+	assert(getAccount()->isLocked());
 	
 	unsigned int nOldFlags = nFlags_;
 	
