@@ -1061,13 +1061,14 @@ Part::Field qs::NoParseParser::parse(const Part& part,
 	if (!(nFlags_ & FLAG_SINGLEFIELD)) {
 		StringBuffer<STRING> buf(strValue.get());
 		unsigned int n = 1;
-		bool bExist = true;
-		while (bExist) {
+		while (true) {
 			string_ptr str(part.getRawField(pwszName, n));
-			if (str.get()) {
-				buf.append(strSeparator_.get());
-				buf.append(str.get());
-			}
+			if (!str.get())
+				break;
+			
+			buf.append(strSeparator_.get());
+			buf.append(str.get());
+			
 			++n;
 		}
 		strValue = buf.getString();
