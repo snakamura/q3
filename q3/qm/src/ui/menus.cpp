@@ -532,8 +532,8 @@ bool qm::RecentsMenu::createMenu(HMENU hmenu)
 			}
 		}
 	}
-	
-	::AppendMenu(hmenu, MF_SEPARATOR, -1, 0);
+	if (nId != IDM_MESSAGE_OPENRECENT)
+		::AppendMenu(hmenu, MF_SEPARATOR, -1, 0);
 	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	wstring_ptr wstrClear(loadString(hInst, IDS_CLEARRECENTS));
