@@ -585,7 +585,7 @@ LRESULT qm::FolderComboBox::onContextMenu(HWND hwnd,
 		::TrackPopupMenu(hmenu, nFlags, pt.x, pt.y, 0, getParentFrame(), 0);
 	}
 	
-	return DefaultWindowHandler::onContextMenu(hwnd, pt);
+	return 0;
 }
 
 LRESULT qm::FolderComboBox::onCreate(CREATESTRUCT* pCreateStruct)

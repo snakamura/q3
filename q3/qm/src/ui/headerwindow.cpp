@@ -873,7 +873,7 @@ LRESULT qm::AttachmentHeaderItem::AttachmentWindow::onContextMenu(HWND hwnd,
 #endif
 		::TrackPopupMenu(hmenu, nFlags, pt.x, pt.y, 0, getParentFrame(), 0);
 	}
-	return DefaultWindowHandler::onContextMenu(hwnd, pt);
+	return 0;
 }
 
 LRESULT qm::AttachmentHeaderItem::AttachmentWindow::onLButtonDown(UINT nFlags,

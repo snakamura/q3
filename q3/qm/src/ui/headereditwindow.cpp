@@ -1255,7 +1255,7 @@ LRESULT qm::AttachmentHeaderEditItem::AttachmentEditWindow::onContextMenu(HWND h
 #endif
 		::TrackPopupMenu(hmenu, nFlags, pt.x, pt.y, 0, getParentFrame(), 0);
 	}
-	return DefaultWindowHandler::onContextMenu(hwnd, pt);
+	return 0;
 }
 
 LRESULT qm::AttachmentHeaderEditItem::AttachmentEditWindow::onLButtonDown(UINT nFlags,

@@ -21,6 +21,7 @@
 #include <qmmessagewindow.h>
 #include <qmrecents.h>
 #include <qmsearch.h>
+#include <qmtabwindow.h>
 #include <qmtemplate.h>
 
 #include <qmscript.h>
@@ -63,6 +64,7 @@
 #include "../ui/securitymodel.h"
 #include "../ui/syncdialog.h"
 #include "../ui/syncutil.h"
+#include "../ui/tabmodel.h"
 #include "../ui/uiutil.h"
 #include "../ui/viewmodel.h"
 
@@ -4285,6 +4287,213 @@ bool qm::MessageSearchAction::isEnabled(const ActionEvent& event)
 }
 
 
+#ifdef QMTABWINDOW
+/****************************************************************************
+ *
+ * TabCloseAction
+ *
+ */
+
+qm::TabCloseAction::TabCloseAction(TabModel* pTabModel) :
+	pTabModel_(pTabModel)
+{
+}
+
+qm::TabCloseAction::~TabCloseAction()
+{
+}
+
+void qm::TabCloseAction::invoke(const ActionEvent& event)
+{
+	int nItem = TabActionUtil::getCurrent(pTabModel_);
+	if (nItem != -1)
+		pTabModel_->close(nItem);
+}
+
+bool qm::TabCloseAction::isEnabled(const ActionEvent& event)
+{
+	return pTabModel_->getCount() > 1;
+}
+
+
+/****************************************************************************
+ *
+ * TabCreateAction
+ *
+ */
+
+qm::TabCreateAction::TabCreateAction(TabModel* pTabModel,
+									 FolderSelectionModel* pFolderSelectionModel) :
+	pTabModel_(pTabModel),
+	pFolderSelectionModel_(pFolderSelectionModel)
+{
+}
+
+qm::TabCreateAction::~TabCreateAction()
+{
+}
+
+void qm::TabCreateAction::invoke(const ActionEvent& event)
+{
+	std::pair<Account*, Folder*> p(FolderActionUtil::getFocused(pFolderSelectionModel_));
+	if (p.first)
+		pTabModel_->open(p.first);
+	else if (p.second)
+		pTabModel_->open(p.second);
+}
+
+bool qm::TabCreateAction::isEnabled(const ActionEvent& event)
+{
+	std::pair<Account*, Folder*> p(FolderActionUtil::getFocused(pFolderSelectionModel_));
+	return p.first || p.second;
+}
+
+
+/****************************************************************************
+ *
+ * TabLockAction
+ *
+ */
+
+qm::TabLockAction::TabLockAction(TabModel* pTabModel) :
+	pTabModel_(pTabModel)
+{
+}
+
+qm::TabLockAction::~TabLockAction()
+{
+}
+
+void qm::TabLockAction::invoke(const ActionEvent& event)
+{
+	int nItem = TabActionUtil::getCurrent(pTabModel_);
+	if (nItem == -1)
+		return;
+	pTabModel_->setLocked(nItem, !pTabModel_->isLocked(nItem));
+}
+
+bool qm::TabLockAction::isEnabled(const ActionEvent& event)
+{
+	return TabActionUtil::getCurrent(pTabModel_) != -1;
+}
+
+bool qm::TabLockAction::isChecked(const ActionEvent& event)
+{
+	int nItem = TabActionUtil::getCurrent(pTabModel_);
+	return nItem == -1 ? false : pTabModel_->isLocked(nItem);
+}
+
+
+/****************************************************************************
+ *
+ * TabMoveAction
+ *
+ */
+
+qm::TabMoveAction::TabMoveAction(TabModel* pTabModel,
+								 bool bLeft) :
+	pTabModel_(pTabModel),
+	bLeft_(bLeft)
+{
+}
+
+qm::TabMoveAction::~TabMoveAction()
+{
+}
+
+void qm::TabMoveAction::invoke(const ActionEvent& event)
+{
+	int nItem = TabActionUtil::getCurrent(pTabModel_);
+	if ((bLeft_ && nItem == 0) ||
+		(!bLeft_ && nItem == pTabModel_->getCount() - 1))
+		return;
+	
+	pTabModel_->moveItem(nItem, bLeft_ ? -1 : 1);
+}
+
+bool qm::TabMoveAction::isEnabled(const ActionEvent& event)
+{
+	int nItem = TabActionUtil::getCurrent(pTabModel_);
+	return !((bLeft_ && nItem == 0) ||
+		(!bLeft_ && nItem == pTabModel_->getCount() - 1));
+}
+
+
+/****************************************************************************
+ *
+ * TabNavigateAction
+ *
+ */
+
+qm::TabNavigateAction::TabNavigateAction(TabModel* pTabModel,
+										 bool bPrev) :
+	pTabModel_(pTabModel),
+	bPrev_(bPrev)
+{
+}
+
+qm::TabNavigateAction::~TabNavigateAction()
+{
+}
+
+void qm::TabNavigateAction::invoke(const ActionEvent& event)
+{
+	int nItem = pTabModel_->getCurrent();
+	int nCount = pTabModel_->getCount();
+	if (bPrev_) {
+		if (nItem == 0)
+			nItem = nCount - 1;
+		else
+			--nItem;
+	}
+	else {
+		if (nItem == nCount - 1)
+			nItem = 0;
+		else
+			++nItem;
+	}
+	pTabModel_->setCurrent(nItem);
+}
+
+
+/****************************************************************************
+ *
+ * TabSelectAction
+ *
+ */
+
+qm::TabSelectAction::TabSelectAction(TabModel* pTabModel,
+									 unsigned int nBaseId) :
+	pTabModel_(pTabModel),
+	nBaseId_(nBaseId)
+{
+}
+
+qm::TabSelectAction::~TabSelectAction()
+{
+}
+
+void qm::TabSelectAction::invoke(const qs::ActionEvent& event)
+{
+	int nItem = getItem(event.getId());
+	if (nItem < 0 || pTabModel_->getCount() <= nItem)
+		return;
+	pTabModel_->setCurrent(nItem);
+}
+
+bool qm::TabSelectAction::isEnabled(const qs::ActionEvent& event)
+{
+	int nItem = getItem(event.getId());
+	return 0 <= nItem && nItem < pTabModel_->getCount();
+}
+
+int qm::TabSelectAction::getItem(unsigned int nId) const
+{
+	return nId - nBaseId_;
+}
+#endif // QMTABWINDOW
+
+
 /****************************************************************************
  *
  * ToolAccountAction
@@ -5721,6 +5930,25 @@ void qm::ViewShowSyncDialogAction::invoke(const ActionEvent& event)
 }
 
 
+#ifdef QMTABWINDOW
+/****************************************************************************
+ *
+ * ViewShowTabAction
+ *
+ */
+
+qm::ViewShowTabAction::ViewShowTabAction(TabWindow* pTabWindow) :
+	ViewShowControlAction<TabWindow>(pTabWindow, &qm::TabWindow::setShowTab,
+		&qm::TabWindow::isShowTab, IDS_SHOWTAB, IDS_HIDETAB)
+{
+}
+
+qm::ViewShowTabAction::~ViewShowTabAction()
+{
+}
+#endif
+
+
 /****************************************************************************
  *
  * ViewSortAction
@@ -5981,7 +6209,7 @@ std::pair<Account*, Folder*> qm::FolderActionUtil::getFocused(FolderSelectionMod
 	std::pair<Account*, Folder*> p(pModel->getTemporaryFocused());
 	if (!p.first && !p.second) {
 		p.second = pModel->getFocusedFolder();
-		p.first = p.second ? p.second->getAccount() : pModel->getAccount();
+		p.first = pModel->getAccount();
 	}
 	return p;
 }
@@ -6027,3 +6255,18 @@ Folder* qm::FolderActionUtil::getFolder(FolderModel* pModel)
 {
 	return getCurrent(pModel).second;
 }
+
+
+#ifdef QMTABWINDOW
+/****************************************************************************
+ *
+ * TabActionUtil
+ *
+ */
+
+int TabActionUtil::getCurrent(TabModel* pModel)
+{
+	int nItem = pModel->getTemporary();
+	return nItem != -1 ? nItem : pModel->getCurrent();
+}
+#endif

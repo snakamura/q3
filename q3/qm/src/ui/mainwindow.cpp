@@ -18,6 +18,7 @@
 #include <qmmessagewindow.h>
 #include <qmrecents.h>
 #include <qmsecurity.h>
+#include <qmtabwindow.h>
 
 #include <qsaccelerator.h>
 #include <qsconv.h>
@@ -61,6 +62,8 @@
 #include "statusbar.h"
 #include "syncdialog.h"
 #include "syncutil.h"
+#include "tabmodel.h"
+#include "tabwindow.h"
 #include "uimanager.h"
 #include "uiutil.h"
 #include "viewmodel.h"
@@ -92,7 +95,13 @@ class qm::MainWindowImpl :
 	public FolderSelectionModel,
 	public MessageWindowHandler,
 	public DefaultDocumentHandler,
+#ifdef QMTABWINDOW
+	public RecentsHandler,
+	public ViewModelManagerHandler,
+	public DefaultTabModelHandler
+#else
 	public RecentsHandler
+#endif
 {
 public:
 	enum {
@@ -100,16 +109,17 @@ public:
 		ID_LISTSPLITTERWINDOW	= 1002,
 		ID_FOLDERWINDOW			= 1003,
 		ID_FOLDERCOMBOBOX		= 1004,
-		ID_LISTCONTAINERWINDOW	= 1005,
-		ID_FOLDERLISTWINDOW		= 1006,
-		ID_LISTWINDOW			= 1007,
-		ID_MESSAGEWINDOW		= 1008,
-		ID_TOOLBAR				= 1009,
-		ID_STATUSBAR			= 1010,
-		ID_COMMANDBARMENU		= 1011,
-		ID_COMMANDBARBUTTON		= 1012,
-		ID_SYNCNOTIFICATION		= 1013,
-		ID_NOTIFYICON			= 1014
+		ID_TABWINDOW			= 1005,
+		ID_LISTCONTAINERWINDOW	= 1006,
+		ID_FOLDERLISTWINDOW		= 1007,
+		ID_LISTWINDOW			= 1008,
+		ID_MESSAGEWINDOW		= 1009,
+		ID_TOOLBAR				= 1010,
+		ID_STATUSBAR			= 1011,
+		ID_COMMANDBARMENU		= 1012,
+		ID_COMMANDBARBUTTON		= 1013,
+		ID_SYNCNOTIFICATION		= 1014,
+		ID_NOTIFYICON			= 1015,
 	};
 	
 	enum {
@@ -213,6 +223,14 @@ public:
 public:
 	virtual void recentsChanged(const RecentsEvent& event);
 
+#ifdef QMTABWINDOW
+public:
+	virtual void viewModelSelected(const ViewModelManagerEvent& event);
+
+public:
+	virtual void currentChanged(const TabModelEvent& event);
+#endif
+
 public:
 	MainWindow* pThis_;
 	
@@ -240,6 +258,9 @@ public:
 	SplitterWindow* pListSplitterWindow_;
 	FolderWindow* pFolderWindow_;
 	FolderComboBox* pFolderComboBox_;
+#ifdef QMTABWINDOW
+	TabWindow* pTabWindow_;
+#endif
 	ListContainerWindow* pListContainerWindow_;
 	FolderListWindow* pFolderListWindow_;
 	ListWindow* pListWindow_;
@@ -247,6 +268,9 @@ public:
 	StatusBar* pStatusBar_;
 	SyncNotificationWindow* pSyncNotificationWindow_;
 	std::auto_ptr<FolderModel> pFolderModel_;
+#ifdef QMTABWINDOW
+	std::auto_ptr<DefaultTabModel> pTabModel_;
+#endif
 	std::auto_ptr<FolderListModel> pFolderListModel_;
 	std::auto_ptr<ViewModelManager> pViewModelManager_;
 	std::auto_ptr<PreviewMessageModel> pPreviewModel_;
@@ -827,6 +851,39 @@ void qm::MainWindowImpl::initActions()
 		pDocument_,
 		pThis_->getHandle(),
 		pProfile_);
+#ifdef QMTABWINDOW
+	ADD_ACTION1(TabCloseAction,
+		IDM_TAB_CLOSE,
+		pTabModel_.get());
+	ADD_ACTION2(TabCreateAction,
+		IDM_TAB_CREATE,
+		pTabModel_.get(),
+		this);
+	ADD_ACTION1(TabLockAction,
+		IDM_TAB_LOCK,
+		pTabModel_.get());
+	ADD_ACTION2(TabMoveAction,
+		IDM_TAB_MOVELEFT,
+		pTabModel_.get(),
+		true);
+	ADD_ACTION2(TabMoveAction,
+		IDM_TAB_MOVERIGHT,
+		pTabModel_.get(),
+		false);
+	ADD_ACTION2(TabNavigateAction,
+		IDM_TAB_NAVIGATENEXT,
+		pTabModel_.get(),
+		false);
+	ADD_ACTION2(TabNavigateAction,
+		IDM_TAB_NAVIGATEPREV,
+		pTabModel_.get(),
+		true);
+	ADD_ACTION_RANGE2(TabSelectAction,
+		IDM_TAB_SELECT,
+		IDM_TAB_SELECT + 10,
+		pTabModel_.get(),
+		IDM_TAB_SELECT);
+#endif
 	ADD_ACTION6(ToolAccountAction,
 		IDM_TOOL_ACCOUNT,
 		pDocument_,
@@ -1056,6 +1113,11 @@ void qm::MainWindowImpl::initActions()
 	ADD_ACTION1(ViewShowSyncDialogAction,
 		IDM_VIEW_SHOWSYNCDIALOG,
 		pSyncDialogManager_);
+#ifdef QMTABWINDOW
+	ADD_ACTION1(ViewShowTabAction,
+		IDM_VIEW_SHOWTAB,
+		pTabWindow_);
+#endif
 	ADD_ACTION1(ViewShowToolbarAction<MainWindow>,
 		IDM_VIEW_SHOWTOOLBAR,
 		pThis_);
@@ -1393,6 +1455,28 @@ void qm::MainWindowImpl::recentsChanged(const RecentsEvent& event)
 #endif
 }
 
+#ifdef QMTABWINDOW
+void qm::MainWindowImpl::viewModelSelected(const ViewModelManagerEvent& event)
+{
+	ViewModel* pViewModel = event.getNewViewModel();
+	if (pViewModel) {
+		pTabModel_->setFolder(pViewModel->getFolder());
+	}
+	else {
+		Account* pAccount = pViewModelManager_->getCurrentAccount();
+		if (pAccount)
+			pTabModel_->setAccount(pAccount);
+	}
+}
+
+void qm::MainWindowImpl::currentChanged(const TabModelEvent& event)
+{
+	TabItem* pItem = pTabModel_->getItem(pTabModel_->getCurrent());
+	std::pair<Account*, Folder*> p(pItem->get());
+	pFolderModel_->setCurrent(p.first, p.second, false);
+}
+#endif // QMTABWINDOW
+
 
 /****************************************************************************
  *
@@ -1651,6 +1735,9 @@ qm::MainWindow::MainWindow(Profile* pProfile) :
 	pImpl_->pListSplitterWindow_ = 0;
 	pImpl_->pFolderWindow_ = 0;
 	pImpl_->pFolderComboBox_ = 0;
+#ifdef QMTABWINDOW
+	pImpl_->pTabWindow_ = 0;
+#endif
 	pImpl_->pListContainerWindow_ = 0;
 	pImpl_->pFolderListWindow_ = 0;
 	pImpl_->pListWindow_ = 0;
@@ -1705,6 +1792,11 @@ bool qm::MainWindow::save()
 		!pImpl_->pFolderWindow_->save() ||
 		!pImpl_->pFolderListWindow_->save())
 		return false;
+#ifdef QMTABWINDOW
+	if (!pImpl_->pTabModel_->save() ||
+		!pImpl_->pTabWindow_->save())
+		return false;
+#endif
 	
 	Profile* pProfile = pImpl_->pProfile_;
 	pProfile->setInt(L"MainWindow", L"ShowToolbar", pImpl_->bShowToolbar_);
@@ -2030,6 +2122,9 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		return -1;
 	
 	pImpl_->pFolderModel_.reset(new DefaultFolderModel());
+#ifdef QMTABWINDOW
+	pImpl_->pTabModel_.reset(new DefaultTabModel(pImpl_->pDocument_, pImpl_->pProfile_));
+#endif
 	pImpl_->pFolderListModel_.reset(new FolderListModel());
 	pImpl_->pEncodingModel_.reset(new DefaultEncodingModel());
 	pImpl_->pSecurityModel_.reset(new DefaultSecurityModel(
@@ -2103,14 +2198,34 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		return -1;
 	pImpl_->pListSplitterWindow_ = pListSplitterWindow.release();
 	
+#ifdef QMTABWINDOW
+	std::auto_ptr<TabWindow> pTabWindow(new TabWindow(
+		pImpl_->pTabModel_.get(), pImpl_->pProfile_));
+	TabWindowCreateContext tabContext = {
+		pContext->pUIManager_,
+	};
+	if (!pTabWindow->create(L"QmTabWindow", 0, dwStyle,
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+		pImpl_->pListSplitterWindow_->getHandle(), 0, 0,
+		MainWindowImpl::ID_TABWINDOW, &tabContext))
+		return -1;
+	pImpl_->pTabWindow_ = pTabWindow.release();
+	HWND hwndListContainerParent = pImpl_->pTabWindow_->getHandle();
+#else
+	HWND hwndListContainerParent = pImpl_->pListSplitterWindow_->getHandle();
+#endif
+	
 	std::auto_ptr<ListContainerWindow> pListContainerWindow(
 		new ListContainerWindow(pImpl_->pFolderModel_.get()));
 	if (!pListContainerWindow->create(L"QmListContainerWindow", 0,
-		dwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-		pImpl_->pListSplitterWindow_->getHandle(), dwExStyle, 0,
-		MainWindowImpl::ID_LISTCONTAINERWINDOW, 0))
+		dwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+		CW_USEDEFAULT, hwndListContainerParent, dwExStyle,
+		0, MainWindowImpl::ID_LISTCONTAINERWINDOW, 0))
 		return -1;
 	pImpl_->pListContainerWindow_ = pListContainerWindow.release();
+#ifdef QMTABWINDOW
+	pImpl_->pTabWindow_->setControl(pImpl_->pListContainerWindow_->getHandle());
+#endif
 	
 	std::auto_ptr<FolderListWindow> pFolderListWindow(new FolderListWindow(
 		pImpl_->pListContainerWindow_, pImpl_->pFolderListModel_.get(),
@@ -2162,7 +2277,11 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		return -1;
 	pImpl_->pMessageWindow_ = pMessageWindow.release();
 	
+#ifdef QMTABWINDOW
+	pImpl_->pListSplitterWindow_->add(0, 0, pImpl_->pTabWindow_);
+#else
 	pImpl_->pListSplitterWindow_->add(0, 0, pImpl_->pListContainerWindow_);
+#endif
 	pImpl_->pListSplitterWindow_->add(0, 1, pImpl_->pMessageWindow_);
 	
 	pImpl_->pFolderSplitterWindow_->add(0, 0, pImpl_->pFolderWindow_);
@@ -2225,9 +2344,12 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	pImpl_->pDelayedFolderModelHandler_.reset(new DelayedFolderModelHandler(pImpl_));
 	pImpl_->pFolderModel_->addFolderModelHandler(pImpl_->pDelayedFolderModelHandler_.get());
-	
 	pImpl_->pDocument_->addDocumentHandler(pImpl_);
 	pImpl_->pDocument_->getRecents()->addRecentsHandler(pImpl_);
+#ifdef QMTABWINDOW
+	pImpl_->pViewModelManager_->addViewModelManagerHandler(pImpl_);
+	pImpl_->pTabModel_->addTabModelHandler(pImpl_);
+#endif
 	pImpl_->pMessageWindow_->addMessageWindowHandler(pImpl_);
 	
 	pImpl_->initActions();
@@ -2268,6 +2390,10 @@ LRESULT qm::MainWindow::onDestroy()
 		pImpl_->pDelayedFolderModelHandler_.get());
 	pImpl_->pDocument_->removeDocumentHandler(pImpl_);
 	pImpl_->pDocument_->getRecents()->removeRecentsHandler(pImpl_);
+#ifdef QMTABWINDOW
+	pImpl_->pViewModelManager_->removeViewModelManagerHandler(pImpl_);
+	pImpl_->pTabModel_->removeTabModelHandler(pImpl_);
+#endif
 	
 	if (pImpl_->pToolbarCookie_)
 		pImpl_->pUIManager_->getToolbarManager()->destroy(pImpl_->pToolbarCookie_);

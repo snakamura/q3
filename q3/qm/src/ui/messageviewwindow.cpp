@@ -231,7 +231,7 @@ LRESULT qm::TextMessageViewWindow::onContextMenu(HWND hwnd,
 		::TrackPopupMenu(hmenu, nFlags, pt.x, pt.y, 0, getParentFrame(), 0);
 	}
 	
-	return TextWindow::onContextMenu(hwnd, pt);
+	return 0;
 }
 
 LRESULT qm::TextMessageViewWindow::onLButtonDown(UINT nFlags,

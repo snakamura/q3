@@ -10,6 +10,7 @@
 #define __QSUIUTIL_H__
 
 #include <qs.h>
+#include <qsstring.h>
 
 
 namespace qs {

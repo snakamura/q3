@@ -102,6 +102,15 @@ const qs::ActionItem menuItems[] = {
 	{ L"MessageUnmarkDownload",		IDM_MESSAGE_UNMARKDOWNLOAD		},
 	{ L"MessageUnmarkDownloadText",	IDM_MESSAGE_UNMARKDOWNLOADTEXT	},
 	{ L"MessageUnmarkSeen",			IDM_MESSAGE_UNMARKSEEN			},
+#ifdef QMTABWINDOW
+	{ L"TabClose",					IDM_TAB_CLOSE					},
+	{ L"TabCreate",					IDM_TAB_CREATE					},
+	{ L"TabLock",					IDM_TAB_LOCK					},
+	{ L"TabMoveLeft",				IDM_TAB_MOVELEFT				},
+	{ L"TabMoveRight",				IDM_TAB_MOVERIGHT				},
+	{ L"TabNavigateNext",			IDM_TAB_NAVIGATENEXT			},
+	{ L"TabNavigatePrev",			IDM_TAB_NAVIGATEPREV			},
+#endif
 	{ L"ToolAccount",				IDM_TOOL_ACCOUNT				},
 	{ L"ToolAddressBook",			IDM_TOOL_ADDRESSBOOK			},
 	{ L"ToolAttachment",			IDM_TOOL_ATTACHMENT				},
@@ -147,6 +156,7 @@ const qs::ActionItem menuItems[] = {
 	{ L"ViewShowPreview",			IDM_VIEW_SHOWPREVIEW			},
 	{ L"ViewShowStatusBar",			IDM_VIEW_SHOWSTATUSBAR			},
 	{ L"ViewShowSyncDialog",		IDM_VIEW_SHOWSYNCDIALOG			},
+	{ L"ViewShowTab",				IDM_VIEW_SHOWTAB				},
 	{ L"ViewShowToolbar",			IDM_VIEW_SHOWTOOLBAR			},
 };
 

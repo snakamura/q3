@@ -1689,6 +1689,8 @@ BEGIN
     IDS_WIDTH               "Width"
     IDS_CLEARRECENTS        "&Clear"
     IDS_UNSPECIFIED         "(Unspecified)"
+    IDS_SHOWTAB             "Show Ta&b"
+    IDS_HIDETAB             "Hide Ta&b"
     IDS_RESOURCEPATH        "Path"
     IDS_RULESETS            "RuleSets"
     IDS_RULES               "Rules"

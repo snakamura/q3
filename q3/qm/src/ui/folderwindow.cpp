@@ -1113,6 +1113,7 @@ bool qm::FolderWindow::save()
 	
 	Profile::StringList listValue;
 	StringListFree<Profile::StringList> free(listValue);
+	listValue.reserve(listItem.size());
 	for (FolderWindowImpl::ItemList::const_iterator it = listItem.begin(); it != listItem.end(); ++it) {
 		HTREEITEM hItem = *it;
 		TVITEM item = {
@@ -1211,7 +1212,7 @@ LRESULT qm::FolderWindow::onContextMenu(HWND hwnd,
 		postMessage(FolderWindowImpl::WM_FOLDERWINDOW_DESELECTTEMPORARY);
 	}
 	
-	return DefaultWindowHandler::onContextMenu(hwnd, pt);
+	return 0;
 }
 
 LRESULT qm::FolderWindow::onCreate(CREATESTRUCT* pCreateStruct)
@@ -1260,6 +1261,7 @@ LRESULT qm::FolderWindow::onDestroy()
 	
 	pImpl_->pParentWindow_->removeNotifyHandler(pImpl_);
 	pImpl_->pFolderModel_->removeFolderModelHandler(pImpl_);
+	pImpl_->pDocument_->removeDocumentHandler(pImpl_);
 	
 	pImpl_->pDropTarget_.reset(0);
 	

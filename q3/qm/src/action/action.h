@@ -88,6 +88,14 @@ class MessageOpenRecentAction;
 class MessageOpenURLAction;
 class MessagePropertyAction;
 class MessageSearchAction;
+#ifdef QMTABWINDOW
+class TabCloseAction;
+class TabCreateAction;
+class TabLockAction;
+class TabMoveAction;
+class TabNavigateAction;
+class TabSelectAction;
+#endif
 class ToolAccountAction;
 class ToolAutoPilotAction;
 class ToolDialupAction;
@@ -117,6 +125,9 @@ template<class WindowX> class ViewShowControlAction;
 	class ViewShowHeaderColumnAction;
 	class ViewShowPreviewAction;
 	template<class WindowX> class ViewShowStatusBarAction;
+#ifdef QMTABWINDOW
+	class ViewShowTabAction;
+#endif
 	template<class WindowX> class ViewShowToolbarAction;
 class ViewShowSyncDialogAction;
 class ViewSortAction;
@@ -126,6 +137,9 @@ class ViewSortThreadAction;
 class ViewTemplateAction;
 class ActionUtil;
 class FolderActionUtil;
+#ifdef QMTABWINDOW
+class TabActionUtil;
+#endif
 
 class AttachmentMenu;
 class AttachmentSelectionModel;
@@ -174,6 +188,10 @@ class SubAccountMenu;
 class SyncDialogManager;
 class SyncFilterManager;
 class SyncManager;
+#ifdef QMTABWINDOW
+class TabModel;
+class TabWindow;
+#endif
 class TempFileCleaner;
 class Template;
 class TemplateMenu;
@@ -2225,6 +2243,169 @@ private:
 };
 
 
+#ifdef QMTABWINDOW
+/****************************************************************************
+ *
+ * TabCloseAction
+ *
+ */
+
+class TabCloseAction : public qs::AbstractAction
+{
+public:
+	explicit TabCloseAction(TabModel* pTabModel);
+	virtual ~TabCloseAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	TabCloseAction(const TabCloseAction&);
+	TabCloseAction& operator=(const TabCloseAction&);
+
+private:
+	TabModel* pTabModel_;
+};
+
+
+/****************************************************************************
+ *
+ * TabCreateAction
+ *
+ */
+
+class TabCreateAction : public qs::AbstractAction
+{
+public:
+	TabCreateAction(TabModel* pTabModel,
+					FolderSelectionModel* pFolderSelectionModel);
+	virtual ~TabCreateAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	TabCreateAction(const TabCreateAction&);
+	TabCreateAction& operator=(const TabCreateAction&);
+
+private:
+	TabModel* pTabModel_;
+	FolderSelectionModel* pFolderSelectionModel_;
+};
+
+
+/****************************************************************************
+ *
+ * TabLockAction
+ *
+ */
+
+class TabLockAction : public qs::AbstractAction
+{
+public:
+	explicit TabLockAction(TabModel* pTabModel);
+	virtual ~TabLockAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
+
+private:
+	TabLockAction(const TabLockAction&);
+	TabLockAction& operator=(const TabLockAction&);
+
+private:
+	TabModel* pTabModel_;
+};
+
+
+/****************************************************************************
+ *
+ * TabMoveAction
+ *
+ */
+
+class TabMoveAction : public qs::AbstractAction
+{
+public:
+	TabMoveAction(TabModel* pTabModel,
+				  bool bLeft);
+	virtual ~TabMoveAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	TabMoveAction(const TabMoveAction&);
+	TabMoveAction& operator=(const TabMoveAction&);
+
+private:
+	TabModel* pTabModel_;
+	bool bLeft_;
+};
+
+
+/****************************************************************************
+ *
+ * TabNavigateAction
+ *
+ */
+
+class TabNavigateAction : public qs::AbstractAction
+{
+public:
+	TabNavigateAction(TabModel* pTabModel,
+					  bool bPrev);
+	virtual ~TabNavigateAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	TabNavigateAction(const TabNavigateAction&);
+	TabNavigateAction& operator=(const TabNavigateAction&);
+
+private:
+	TabModel* pTabModel_;
+	bool bPrev_;
+};
+
+
+/****************************************************************************
+ *
+ * TabSelectAction
+ *
+ */
+
+class TabSelectAction : public qs::AbstractAction
+{
+public:
+	TabSelectAction(TabModel* pTabModel,
+					unsigned int nBaseId);
+	virtual ~TabSelectAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	int getItem(unsigned int nId) const;
+
+private:
+	TabSelectAction(const TabSelectAction&);
+	TabSelectAction& operator=(const TabSelectAction&);
+
+private:
+	TabModel* pTabModel_;
+	unsigned int nBaseId_;
+};
+#endif // QMTABWINDOW
+
+
 /****************************************************************************
  *
  * ToolAccountAction
@@ -3096,23 +3277,24 @@ private:
 };
 
 
+#ifdef QMTABWINDOW
 /****************************************************************************
  *
- * ViewShowToolbarAction
+ * ViewShowTabAction
  *
  */
 
-template<class WindowX>
-class ViewShowToolbarAction : public ViewShowControlAction<WindowX>
+class ViewShowTabAction : public ViewShowControlAction<TabWindow>
 {
 public:
-	explicit ViewShowToolbarAction(WindowX* pWindow);
-	virtual ~ViewShowToolbarAction();
+	explicit ViewShowTabAction(TabWindow* pTabWindow);
+	virtual ~ViewShowTabAction();
 
 private:
-	ViewShowToolbarAction(const ViewShowToolbarAction&);
-	ViewShowToolbarAction& operator=(const ViewShowToolbarAction&);
+	ViewShowTabAction(const ViewShowTabAction&);
+	ViewShowTabAction& operator=(const ViewShowTabAction&);
 };
+#endif
 
 
 /****************************************************************************
@@ -3136,6 +3318,25 @@ private:
 
 private:
 	SyncDialogManager* pManager_;
+};
+
+
+/****************************************************************************
+ *
+ * ViewShowToolbarAction
+ *
+ */
+
+template<class WindowX>
+class ViewShowToolbarAction : public ViewShowControlAction<WindowX>
+{
+public:
+	explicit ViewShowToolbarAction(WindowX* pWindow);
+	virtual ~ViewShowToolbarAction();
+
+private:
+	ViewShowToolbarAction(const ViewShowToolbarAction&);
+	ViewShowToolbarAction& operator=(const ViewShowToolbarAction&);
 };
 
 
@@ -3312,6 +3513,20 @@ public:
 	static Folder* getFolder(FolderModel* pModel);
 };
 
+
+#ifdef QMTABWINDOW
+/****************************************************************************
+ *
+ * TabActionUtil
+ *
+ */
+
+class TabActionUtil
+{
+public:
+	static int getCurrent(TabModel* pModel);
+};
+#endif
 
 }
 

@@ -1088,7 +1088,7 @@ LRESULT qm::ListWindow::onContextMenu(HWND hwnd,
 		::TrackPopupMenu(hmenu, nFlags, pt.x, pt.y, 0, getParentFrame(), 0);
 	}
 	
-	return DefaultWindowHandler::onContextMenu(hwnd, pt);
+	return 0;
 }
 
 LRESULT qm::ListWindow::onCreate(CREATESTRUCT* pCreateStruct)
@@ -1169,6 +1169,8 @@ LRESULT qm::ListWindow::onDestroy()
 		::DeleteObject(pImpl_->hpenFocusedThreadLine_);
 		pImpl_->hpenFocusedThreadLine_ = 0;
 	}
+	
+	pImpl_->pViewModelManager_->removeViewModelManagerHandler(pImpl_);
 	
 	pImpl_->pDragGestureRecognizer_.reset(0);
 	pImpl_->pDropTarget_.reset(0);

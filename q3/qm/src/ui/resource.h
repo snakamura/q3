@@ -223,6 +223,8 @@
 #define IDC_TIMEOUT                     1074
 #define IDS_UNSPECIFIED                 1074
 #define IDC_CONNECTRECEIVEHOSTBEFORESEND 1075
+#define IDS_SHOWTAB                     1075
+#define IDS_HIDETAB                     1076
 #define IDC_INCOMINGPROTOCOL            1077
 #define IDS_RESOURCEPATH                1077
 #define IDC_OUTGOINGPROTOCOL            1078
@@ -604,13 +606,14 @@
 #define IDM_VIEW_SHOWPREVIEW            46035
 #define IDM_VIEW_SHOWSTATUSBAR          46036
 #define IDM_VIEW_SHOWSYNCDIALOG         46037
-#define IDM_VIEW_SHOWTOOLBAR            46038
-#define IDM_VIEW_SMIMEMODE              46039
-#define IDM_VIEW_SORTASCENDING          46040
-#define IDM_VIEW_SORTDESCENDING         46041
-#define IDM_VIEW_SORTFLOATTHREAD        46042
-#define IDM_VIEW_SORTTHREAD             46043
-#define IDM_VIEW_TEMPLATENONE           46044
+#define IDM_VIEW_SHOWTAB                46038
+#define IDM_VIEW_SHOWTOOLBAR            46039
+#define IDM_VIEW_SMIMEMODE              46040
+#define IDM_VIEW_SORTASCENDING          46041
+#define IDM_VIEW_SORTDESCENDING         46042
+#define IDM_VIEW_SORTFLOATTHREAD        46043
+#define IDM_VIEW_SORTTHREAD             46044
+#define IDM_VIEW_TEMPLATENONE           46045
 #define IDM_VIEW_ENCODING               46100
 #define IDM_VIEW_FILTER                 46200
 #define IDM_VIEW_SORT                   46300
@@ -636,6 +639,14 @@
 #define IDM_CONFIG_SYNCFILTERS          51007
 #define IDM_CONFIG_TEXTS                51008
 #define IDM_CONFIG_VIEWS                51009
+#define IDM_TAB_CLOSE                   52001
+#define IDM_TAB_CREATE                  52002
+#define IDM_TAB_LOCK                    52003
+#define IDM_TAB_MOVELEFT                52004
+#define IDM_TAB_MOVERIGHT               52005
+#define IDM_TAB_NAVIGATENEXT            52006
+#define IDM_TAB_NAVIGATEPREV            52007
+#define IDM_TAB_SELECT                  52100
 
 // Next default values for new objects
 // 
