@@ -399,6 +399,7 @@ public:
 private:
 	bool isNeedSelect(qm::NormalFolder* pFolder,
 					  unsigned int nLastSelectedTime);
+	bool isForceDisconnect(unsigned int nLastUsedTime) const;
 
 private:
 	SessionCache(const SessionCache&);

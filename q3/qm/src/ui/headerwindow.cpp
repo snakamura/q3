@@ -607,9 +607,12 @@ qm::AttachmentHeaderItem::~AttachmentHeaderItem()
 unsigned int qm::AttachmentHeaderItem::getHeight(unsigned int nWidth,
 												 unsigned int nFontHeight) const
 {
-	unsigned int nHeight = nFontHeight*4 + 7;
-	DWORD dwSize = ListView_ApproximateViewRect(wnd_.getHandle(), nWidth, nHeight, -1);
-	return QSMIN(unsigned int(HIWORD(dwSize)), nHeight);
+	unsigned int nMaxHeight = nFontHeight*4 + 7;
+	DWORD dwSize = ListView_ApproximateViewRect(wnd_.getHandle(), nWidth, nMaxHeight, -1);
+	unsigned int nHeight = unsigned int(HIWORD(dwSize));
+//	if (ListView_GetItemCount(wnd_.getHandle()) != 0)
+//		nHeight = QSMAX(nHeight, nFontHeight*2 + 7);
+	return QSMIN(nHeight, nMaxHeight);
 }
 
 bool qm::AttachmentHeaderItem::create(WindowBase* pParent,
@@ -618,7 +621,7 @@ bool qm::AttachmentHeaderItem::create(WindowBase* pParent,
 {
 	assert(!wnd_.getHandle());
 	
-	DWORD dwStyle = WS_CHILD | WS_VISIBLE | LVS_SMALLICON |
+	DWORD dwStyle = WS_CHILD | WS_VISIBLE | /*LVS_SMALLICON*/LVS_LIST |
 		LVS_NOLABELWRAP | LVS_SHAREIMAGELISTS;
 	if (!wnd_.create(L"QmAttachmentWindow", 0, dwStyle,
 		0, 0, 0, 0, pParent->getHandle(), 0, WC_LISTVIEWW, nId, 0))
@@ -647,6 +650,7 @@ void qm::AttachmentHeaderItem::layout(const RECT& rect,
 	wnd_.setWindowPos(0, rect.left, rect.top,
 		rect.right - rect.left, rect.bottom - rect.top,
 		SWP_NOZORDER | SWP_NOACTIVATE);
+	ListView_Arrange(wnd_.getHandle(), LVA_DEFAULT);
 }
 
 void qm::AttachmentHeaderItem::show(bool bShow)

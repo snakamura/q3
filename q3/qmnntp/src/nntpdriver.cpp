@@ -35,7 +35,9 @@ qmnntp::NntpDriver::NntpDriver(Account* pAccount,
 	pNntp_(0),
 	pCallback_(0),
 	pLogger_(0),
-	bOffline_(true)
+	bOffline_(true),
+	nForceDisconnect_(0),
+	nLastUsedTime_(0)
 {
 }
 
@@ -226,7 +228,13 @@ bool qmnntp::NntpDriver::prepareSession(SubAccount* pSubAccount,
 {
 	assert(pSubAccount);
 	
-	if (pSubAccount_ != pSubAccount) {
+	bool bConnect = pSubAccount_ != pSubAccount;
+	if (bConnect)
+		nForceDisconnect_ = pSubAccount->getProperty(L"Nntp", L"ForceDisconnect", 0);
+	else
+		bConnect = isForceDisconnect();
+	
+	if (bConnect) {
 		clearSession();
 		
 		std::auto_ptr<Logger> pLogger;
@@ -262,18 +270,24 @@ bool qmnntp::NntpDriver::prepareSession(SubAccount* pSubAccount,
 			return false;
 	}
 	
+	nLastUsedTime_ = ::GetTickCount();
+	
 	return true;
 }
 
 void qmnntp::NntpDriver::clearSession()
 {
-	if (pNntp_.get()) {
+	if (pNntp_.get() && !isForceDisconnect())
 		pNntp_->disconnect();
-		pNntp_.reset(0);
-		pCallback_.reset(0);
-		pLogger_.reset(0);
-		pSubAccount_ = 0;
-	}
+	pNntp_.reset(0);
+	pCallback_.reset(0);
+	pLogger_.reset(0);
+	pSubAccount_ = 0;
+}
+
+bool qmnntp::NntpDriver::isForceDisconnect() const
+{
+	return nForceDisconnect_ != 0 && nLastUsedTime_ + nForceDisconnect_*1000 < ::GetTickCount();
 }
 
 

@@ -1682,7 +1682,7 @@ qmimap4::SessionCache::SessionCache(Account* pAccount,
 qmimap4::SessionCache::~SessionCache()
 {
 	for (SessionList::iterator it = listSession_.begin(); it != listSession_.end(); ++it) {
-		if ((*it).pImap4_->checkConnection())
+		if (!isForceDisconnect((*it).nLastUsedTime_) && (*it).pImap4_->checkConnection())
 			(*it).pImap4_->disconnect();
 		delete (*it).pImap4_;
 		delete (*it).pLogger_;
@@ -1732,8 +1732,7 @@ bool qmimap4::SessionCache::getSession(NormalFolder* pFolder,
 	}
 	
 	if (pImap4.get()) {
-		if ((nForceDisconnect_ != 0 && (*it).nLastUsedTime_ + nForceDisconnect_*1000 < ::GetTickCount()) ||
-			!pImap4->checkConnection())
+		if (isForceDisconnect(nLastUsedTime) || !pImap4->checkConnection())
 			pImap4.reset(0);
 	}
 	
@@ -1786,6 +1785,11 @@ bool qmimap4::SessionCache::isNeedSelect(NormalFolder* pFolder,
 	else {
 		return nLastSelectedTime == 0;
 	}
+}
+
+bool qmimap4::SessionCache::isForceDisconnect(unsigned int nLastUsedTime) const
+{
+	return nForceDisconnect_ != 0 && nLastUsedTime + nForceDisconnect_*1000 < ::GetTickCount();
 }
 
 

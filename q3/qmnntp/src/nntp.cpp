@@ -150,6 +150,8 @@ void qmnntp::Nntp::disconnect()
 			break;
 		}
 		if (bQuit) {
+			pSocket_->setTimeout(1);
+			
 			unsigned int nCode = 0;
 			sendCommand("QUIT\r\n", &nCode);
 		}

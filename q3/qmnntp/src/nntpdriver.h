@@ -83,6 +83,7 @@ private:
 	bool prepareSession(qm::SubAccount* pSubAccount,
 						qm::NormalFolder* pFolder);
 	void clearSession();
+	bool isForceDisconnect() const;
 
 private:
 	NntpDriver(const NntpDriver&);
@@ -122,6 +123,8 @@ private:
 	std::auto_ptr<CallbackImpl> pCallback_;
 	std::auto_ptr<qs::Logger> pLogger_;
 	bool bOffline_;
+	unsigned int nForceDisconnect_;
+	unsigned int nLastUsedTime_;
 };
 
 
