@@ -984,8 +984,11 @@ public:
 	FileExitAction(HWND hwnd,
 				   Document* pDocument,
 				   SyncManager* pSyncManager,
+				   SyncDialogManager* pSyncDialogManager,
 				   TempFileCleaner* pTempFileCleaner,
-				   EditFrameWindowManager* pEditFrameWindowManager);
+				   EditFrameWindowManager* pEditFrameWindowManager,
+				   FolderModel* pFolderModel,
+				   qs::Profile* pProfile);
 	virtual ~FileExitAction();
 
 public:
@@ -1002,8 +1005,11 @@ private:
 	HWND hwnd_;
 	Document* pDocument_;
 	SyncManager* pSyncManager_;
+	SyncDialogManager* pSyncDialogManager_;
 	TempFileCleaner* pTempFileCleaner_;
 	EditFrameWindowManager* pEditFrameWindowManager_;
+	FolderModel* pFolderModel_;
+	qs::Profile* pProfile_;
 };
 
 
@@ -1411,8 +1417,22 @@ public:
 	virtual void invoke(const qs::ActionEvent& event);
 	virtual bool isEnabled(const qs::ActionEvent& event);
 
+public:
+	static void emptyTrash(Account* pAccount,
+						   FolderModel* pFolderModel,
+						   Document* pDocument,
+						   SyncManager* pSyncManager,
+						   SyncDialogManager* pSyncDialogManager,
+						   HWND hwnd,
+						   bool bConfirm);
+	static bool hasTrash(Account* pAccount);
+
 private:
+	Account* getAccount() const;
 	NormalFolder* getTrash() const;
+
+private:
+	static NormalFolder* getTrash(Account* pAccount);
 
 private:
 	FolderEmptyTrashAction(const FolderEmptyTrashAction&);

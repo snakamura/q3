@@ -492,13 +492,16 @@ void qm::MainWindowImpl::initActions()
 		IDM_FILE_DUMP,
 		pFolderModel_.get(),
 		pThis_->getHandle());
-	ADD_ACTION5(FileExitAction,
+	ADD_ACTION8(FileExitAction,
 		IDM_FILE_EXIT,
 		pThis_->getHandle(),
 		pDocument_,
 		pSyncManager_,
+		pSyncDialogManager_,
 		pTempFileCleaner_,
-		pEditFrameWindowManager_.get());
+		pEditFrameWindowManager_.get(),
+		pFolderModel_.get(),
+		pProfile_);
 	ADD_ACTION6(FileExportAction,
 		IDM_FILE_EXPORT,
 		pMessageSelectionModel_.get(),
