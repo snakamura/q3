@@ -310,6 +310,7 @@ public:
 public:
 	static void removeAttachments(qs::Part* pPart);
 	static void setAttachmentDeleted(qs::Part* pPart);
+	static bool isValidFileNameChar(WCHAR c);
 
 private:
 	AttachmentParser(const AttachmentParser&);

@@ -1702,6 +1702,13 @@ wstring_ptr qm::AttachmentParser::getName() const
 			wstrName = pContentType->getParameter(L"name");
 	}
 	
+	if (wstrName.get()) {
+		for (WCHAR* p = wstrName.get(); *p; ++p) {
+			if (!isValidFileNameChar(*p))
+				*p = L'_';
+		}
+	}
+	
 	return wstrName;
 }
 
@@ -1872,6 +1879,11 @@ void qm::AttachmentParser::setAttachmentDeleted(Part* pPart)
 	
 	NumberParser field(1, 0);
 	pPart->replaceField(L"X-QMAIL-AttachmentDeleted", field);
+}
+
+bool qm::AttachmentParser::isValidFileNameChar(WCHAR c)
+{
+	return wcschr(L"\\/:*?\"<>|", c) == 0;
 }
 
 

@@ -97,12 +97,7 @@ qm::URIFragment::URIFragment(Message* pMessage,
 			wstrName_ = concat(subject.getValue(), L".msg");
 	}
 	else if (type == TYPE_BODY) {
-		ContentDispositionParser contentDisposition;
-		if (pPartOrg->getField(L"Content-Disposition", &contentDisposition) == Part::FIELD_EXIST) {
-			wstring_ptr wstrFileName(contentDisposition.getParameter(L"filename"));
-			if (wstrFileName.get())
-				wstrName_ = wstrFileName;
-		}
+		wstrName_ = AttachmentParser(*pPartOrg).getName();
 	}
 }
 
