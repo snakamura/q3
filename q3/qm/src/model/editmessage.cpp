@@ -75,7 +75,9 @@ bool qm::EditMessage::setMessage(std::auto_ptr<Message> pMessage)
 	
 	clear();
 	
-	pBodyPart_ = getBodyPart(pMessage.get());
+	pMessage_ = pMessage;
+	
+	pBodyPart_ = getBodyPart(pMessage_.get());
 	if (!pBodyPart_) {
 		if (!makeMultipartMixed())
 			return false;
@@ -90,7 +92,7 @@ bool qm::EditMessage::setMessage(std::auto_ptr<Message> pMessage)
 		return false;
 	
 	UnstructuredParser account;
-	if (pMessage->getField(L"X-QMAIL-Account", &account) == Part::FIELD_EXIST) {
+	if (pMessage_->getField(L"X-QMAIL-Account", &account) == Part::FIELD_EXIST) {
 		Account* pAccount = pDocument_->getAccount(account.getValue());
 		if (pAccount && pAccount != pAccount_) {
 			pAccount_ = pAccount;
@@ -98,7 +100,7 @@ bool qm::EditMessage::setMessage(std::auto_ptr<Message> pMessage)
 		}
 	}
 	UnstructuredParser subaccount;
-	if (pMessage->getField(L"X-QMAIL-SubAccount", &subaccount) == Part::FIELD_EXIST) {
+	if (pMessage_->getField(L"X-QMAIL-SubAccount", &subaccount) == Part::FIELD_EXIST) {
 		SubAccount* pSubAccount = pAccount_->getSubAccount(subaccount.getValue());
 		if (pSubAccount)
 			pSubAccount_ = pSubAccount;
@@ -107,7 +109,7 @@ bool qm::EditMessage::setMessage(std::auto_ptr<Message> pMessage)
 	SignatureManager* pSignatureManager = pDocument_->getSignatureManager();
 	const Signature* pSignature = 0;
 	UnstructuredParser signature;
-	if (pMessage->getField(L"X-QMAIL-Signature", &signature) == Part::FIELD_EXIST) {
+	if (pMessage_->getField(L"X-QMAIL-Signature", &signature) == Part::FIELD_EXIST) {
 		if (*signature.getValue())
 			pSignature = pSignatureManager->getSignature(
 				pAccount_, signature.getValue());
@@ -118,11 +120,11 @@ bool qm::EditMessage::setMessage(std::auto_ptr<Message> pMessage)
 	if (pSignature)
 		wstrSignature_ = allocWString(pSignature->getName());
 	
-	AttachmentParser parser(*pMessage.get());
+	AttachmentParser parser(*pMessage_.get());
 	parser.getAttachments(true, &listAttachment_);
 	
 	XQMAILAttachmentParser attachment;
-	if (pMessage->getField(L"X-QMAIL-Attachment", &attachment) == Part::FIELD_EXIST) {
+	if (pMessage_->getField(L"X-QMAIL-Attachment", &attachment) == Part::FIELD_EXIST) {
 		const XQMAILAttachmentParser::AttachmentList& l = attachment.getAttachments();
 		for (XQMAILAttachmentParser::AttachmentList::const_iterator it = l.begin(); it != l.end(); ++it) {
 			wstring_ptr wstrURI(allocWString(*it));
@@ -137,9 +139,7 @@ bool qm::EditMessage::setMessage(std::auto_ptr<Message> pMessage)
 		L"X-QMAIL-Attachment"
 	};
 	for (int n = 0; n < countof(pwszFields); ++n)
-		pMessage->removeField(pwszFields[n]);
-	
-	pMessage_ = pMessage;
+		pMessage_->removeField(pwszFields[n]);
 	
 	fireMessageSet();
 	
