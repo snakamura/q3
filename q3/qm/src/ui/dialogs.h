@@ -1572,7 +1572,7 @@ public:
 public:
 	bool init(HWND hwnd);
 	void term();
-	bool isCanceled() const;
+	bool isCanceled();
 	void setTitle(UINT nId);
 	void setMessage(UINT nId);
 	void setMessage(const WCHAR* pwszMessage);

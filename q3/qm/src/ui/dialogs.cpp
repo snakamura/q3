@@ -4599,10 +4599,14 @@ void qm::ProgressDialog::term()
 	destroyWindow();
 }
 
-bool qm::ProgressDialog::isCanceled() const
+bool qm::ProgressDialog::isCanceled()
 {
+	HWND hwnd = getHandle();
+	if (sendDlgItemMessage(IDC_PROGRESS, PBM_GETPOS) % 10 == 0)
+		hwnd = 0;
+	
 	MSG msg;
-	while (::PeekMessage(&msg, getHandle(), 0, 0, PM_REMOVE)) {
+	while (::PeekMessage(&msg, hwnd, 0, 0, PM_REMOVE)) {
 		::TranslateMessage(&msg);
 		::DispatchMessage(&msg);
 	}
