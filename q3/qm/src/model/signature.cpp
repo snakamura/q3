@@ -12,7 +12,9 @@
 
 #include <qsassert.h>
 #include <qsconv.h>
+#include <qsfile.h>
 #include <qsosutil.h>
+#include <qsstream.h>
 
 #include <algorithm>
 
@@ -38,6 +40,18 @@ qm::SignatureManager::SignatureManager()
 qm::SignatureManager::~SignatureManager()
 {
 	clear();
+}
+
+const SignatureManager::SignatureList& qm::SignatureManager::getSignatures()
+{
+	load();
+	return listSignature_;
+}
+
+void qm::SignatureManager::setSignatures(SignatureList& listSignature)
+{
+	clear();
+	listSignature_.swap(listSignature);
 }
 
 void qm::SignatureManager::getSignatures(Account* pAccount,
@@ -92,6 +106,33 @@ const Signature* qm::SignatureManager::getDefaultSignature(Account* pAccount)
 	}
 	
 	return 0;
+}
+
+bool qm::SignatureManager::save() const
+{
+	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::SIGNATURES_XML));
+	
+	TemporaryFileRenamer renamer(wstrPath.get());
+	
+	FileOutputStream os(renamer.getPath());
+	if (!os)
+		return false;
+	OutputStreamWriter writer(&os, false, L"utf-8");
+	if (!writer)
+		return false;
+	BufferedWriter bufferedWriter(&writer, false);
+	
+	SignatureWriter signatureWriter(&bufferedWriter);
+	if (!signatureWriter.write(listSignature_))
+		return false;
+	
+	if (!bufferedWriter.close())
+		return false;
+	
+	if (!renamer.rename())
+		return false;
+	
+	return true;
 }
 
 void qm::SignatureManager::addSignature(std::auto_ptr<Signature> pSignature)
@@ -149,29 +190,69 @@ void qm::SignatureManager::clear()
  *
  */
 
-qm::Signature::Signature(std::auto_ptr<RegexPattern> pAccountName,
-						 wstring_ptr wstrName,
-						 bool bDefault,
-						 wstring_ptr wstrSignature) :
-	pAccountName_(pAccountName),
-	wstrName_(wstrName),
-	bDefault_(bDefault),
-	wstrSignature_(wstrSignature)
+qm::Signature::Signature() :
+	bDefault_(false)
 {
-	assert(wstrName_.get());
-	assert(wstrSignature_.get());
+	wstrName_ = allocWString(L"");
+	wstrSignature_ = allocWString(L"");
+}
+
+qm::Signature::Signature(const WCHAR* pwszAccount,
+						 std::auto_ptr<RegexPattern> pAccount,
+						 const WCHAR* pwszName,
+						 bool bDefault,
+						 const WCHAR* pwszSignature) :
+	pAccount_(pAccount),
+	bDefault_(bDefault)
+{
+	assert(pwszName);
+	assert(pwszSignature);
+	
+	if (pwszAccount)
+		wstrAccount_ = allocWString(pwszAccount);
+	wstrName_ = allocWString(pwszName);
+	wstrSignature_ = allocWString(pwszSignature);
+}
+
+qm::Signature::Signature(const Signature& signature) :
+	bDefault_(signature.bDefault_)
+{
+	if (signature.wstrAccount_.get()) {
+		wstrAccount_ = allocWString(signature.wstrAccount_.get());
+		pAccount_ = RegexCompiler().compile(wstrAccount_.get());
+		assert(pAccount_.get());
+	}
+	wstrName_ = allocWString(signature.wstrName_.get());
+	wstrSignature_ = allocWString(signature.wstrSignature_.get());
 }
 
 qm::Signature::~Signature()
 {
 }
 
+const WCHAR* qm::Signature::getAccount() const
+{
+	return wstrAccount_.get();
+}
+
+void qm::Signature::setAccount(const WCHAR* pwszAccount,
+							   std::auto_ptr<RegexPattern> pAccount)
+{
+	assert((pwszAccount && pAccount.get()) || (!pwszAccount && !pAccount.get()));
+	
+	if (pwszAccount)
+		wstrAccount_ = allocWString(pwszAccount);
+	else
+		wstrAccount_.reset(0);
+	pAccount_ = pAccount;
+}
+
 bool qm::Signature::match(Account* pAccount) const
 {
 	assert(pAccount);
 	
-	if (pAccountName_.get())
-		return pAccountName_->match(pAccount->getName());
+	if (pAccount_.get())
+		return pAccount_->match(pAccount->getName());
 	else
 		return true;
 }
@@ -181,14 +262,29 @@ const WCHAR* qm::Signature::getName() const
 	return wstrName_.get();
 }
 
+void qm::Signature::setName(const WCHAR* pwszName)
+{
+	wstrName_ = allocWString(pwszName);
+}
+
 bool qm::Signature::isDefault() const
 {
 	return bDefault_;
 }
 
+void qm::Signature::setDefault(bool bDefault)
+{
+	bDefault_ = bDefault;
+}
+
 const WCHAR* qm::Signature::getSignature() const
 {
 	return wstrSignature_.get();
+}
+
+void qm::Signature::setSignature(const WCHAR* pwszSignature)
+{
+	wstrSignature_ = allocWString(pwszSignature);
 }
 
 
@@ -243,11 +339,13 @@ bool qm::SignatureContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		assert(!wstrName_.get());
 		wstrName_ = allocWString(pwszName);
 		
-		assert(!pAccountName_.get());
+		assert(!wstrAccount_.get());
+		assert(!pAccount_.get());
 		if (pwszAccount) {
-			pAccountName_ = RegexCompiler().compile(pwszAccount);
-			if (!pAccountName_.get())
+			pAccount_ = RegexCompiler().compile(pwszAccount);
+			if (!pAccount_.get())
 				return false;
+			wstrAccount_ = allocWString(pwszAccount);
 		}
 		
 		state_ = STATE_SIGNATURE;
@@ -270,9 +368,12 @@ bool qm::SignatureContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 	else if (wcscmp(pwszLocalName, L"signature") == 0) {
 		assert(state_ == STATE_SIGNATURE);
 		
-		wstring_ptr wstrSignature(buffer_.getString());
-		std::auto_ptr<Signature> pSignature(new Signature(
-			pAccountName_, wstrName_, bDefault_, wstrSignature));
+		std::auto_ptr<Signature> pSignature(new Signature(wstrAccount_.get(),
+			pAccount_, wstrName_.get(), bDefault_, buffer_.getCharArray()));
+		
+		wstrAccount_.reset(0);
+		wstrName_.reset(0);
+		buffer_.remove();
 		
 		pManager_->addSignature(pSignature);
 		
@@ -299,6 +400,66 @@ bool qm::SignatureContentHandler::characters(const WCHAR* pwsz,
 				return false;
 		}
 	}
+	
+	return true;
+}
+
+
+/****************************************************************************
+ *
+ * SignatureWriter
+ *
+ */
+
+qm::SignatureWriter::SignatureWriter(Writer* pWriter) :
+	handler_(pWriter)
+{
+}
+
+qm::SignatureWriter::~SignatureWriter()
+{
+}
+
+bool qm::SignatureWriter::write(const SignatureManager::SignatureList& listSignature)
+{
+	if (!handler_.startDocument())
+		return false;
+	if (!handler_.startElement(0, 0, L"signatures", DefaultAttributes()))
+		return false;
+	
+	for (SignatureManager::SignatureList::const_iterator it = listSignature.begin(); it != listSignature.end(); ++it) {
+		const Signature* pSignature = *it;
+		if (!write(pSignature))
+			return false;
+	}
+	
+	if (!handler_.endElement(0, 0, L"signatures"))
+		return false;
+	if (!handler_.endDocument())
+		return false;
+	
+	return true;
+}
+
+bool qm::SignatureWriter::write(const Signature* pSignature)
+{
+	const WCHAR* pwszAccount = pSignature->getAccount();
+	bool bDefault = pSignature->isDefault();
+	const SimpleAttributes::Item items[] = {
+		{ L"name",		pSignature->getName()								},
+		{ L"account",	pwszAccount,					pwszAccount == 0	},
+		{ L"default",	bDefault ? L"true" : L"false",	!bDefault			}
+	};
+	SimpleAttributes attrs(items, countof(items));
+	if (!handler_.startElement(0, 0, L"signature", attrs))
+		return false;
+	
+	const WCHAR* pwszSignature = pSignature->getSignature();
+	if (!handler_.characters(pwszSignature, 0, wcslen(pwszSignature)))
+		return false;
+	
+	if (!handler_.endElement(0, 0, L"signature"))
+		return false;
 	
 	return true;
 }

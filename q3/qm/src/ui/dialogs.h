@@ -21,6 +21,7 @@
 #include "../model/addressbook.h"
 #include "../model/editmessage.h"
 #include "../model/goround.h"
+#include "../model/signature.h"
 
 
 namespace qm {
@@ -53,10 +54,13 @@ class DefaultDialog;
 	class ResourceDialog;
 	class SelectDialupEntryDialog;
 	class SelectSyncFilterDialog;
+	class SignatureDialog;
+	class SignaturesDialog;
 	class ViewsColumnDialog;
 	class ViewsDialog;
 
 class Account;
+class Document;
 class FixedFormText;
 class FixedFormTextManager;
 class GoRound;
@@ -1504,6 +1508,99 @@ private:
 private:
 	SyncFilterManager::FilterSetList list_;
 	const WCHAR* pwszName_;
+};
+
+
+/****************************************************************************
+ *
+ * SignatureDialog
+ *
+ */
+
+class SignatureDialog : public DefaultDialog
+{
+public:
+	SignatureDialog(Signature* pSignature,
+					Document* pDocument);
+	virtual ~SignatureDialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	LRESULT onNameChange();
+
+private:
+	void updateState();
+
+private:
+	static qs::wstring_ptr convertLFtoCRLF(const WCHAR* pwsz);
+	static qs::wstring_ptr convertCRLFtoLF(const WCHAR* pwsz);
+
+private:
+	SignatureDialog(const SignatureDialog&);
+	SignatureDialog& operator=(const SignatureDialog&);
+
+private:
+	Signature* pSignature_;
+	Document* pDocument_;
+};
+
+
+/****************************************************************************
+ *
+ * SignaturesDialog
+ *
+ */
+
+class SignaturesDialog : public DefaultDialog
+{
+public:
+	SignaturesDialog(SignatureManager* pSignatureManager,
+					 Document* pDocument);
+	virtual ~SignaturesDialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	LRESULT onAdd();
+	LRESULT onRemove();
+	LRESULT onEdit();
+	LRESULT onUp();
+	LRESULT onDown();
+	LRESULT onSignaturesSelChange();
+
+private:
+	void updateState();
+
+private:
+	static qs::wstring_ptr getName(const Signature* pSignature);
+
+private:
+	SignaturesDialog(const SignaturesDialog&);
+	SignaturesDialog& operator=(const SignaturesDialog&);
+
+private:
+	SignatureManager* pSignatureManager_;
+	Document* pDocument_;
+	SignatureManager::SignatureList listSignature_;
 };
 
 

@@ -2673,7 +2673,7 @@ LRESULT qm::GoRoundDialog::onInitDialog(HWND hwndFocus,
 		sendDlgItemMessage(IDC_COURSE, LB_ADDSTRING,
 			0, reinterpret_cast<LPARAM>(ptszName));
 	}
-	sendDlgItemMessage(IDC_COURSE, LB_SETCURSEL);
+	sendDlgItemMessage(IDC_COURSE, LB_SETCURSEL, 0);
 	
 	updateState();
 	
@@ -2702,6 +2702,9 @@ LRESULT qm::GoRoundDialog::onAdd()
 		sendDlgItemMessage(IDC_COURSE, LB_ADDSTRING,
 			0, reinterpret_cast<LPARAM>(ptszName));
 	}
+	
+	updateState();
+	
 	return 0;
 }
 
@@ -2715,6 +2718,8 @@ LRESULT qm::GoRoundDialog::onRemove()
 	listCourse_.erase(listCourse_.begin() + n);
 	
 	sendDlgItemMessage(IDC_COURSE, LB_DELETESTRING, n);
+	
+	updateState();
 	
 	return 0;
 }
@@ -2735,6 +2740,8 @@ LRESULT qm::GoRoundDialog::onEdit()
 		sendDlgItemMessage(IDC_COURSE, LB_SETCURSEL, n);
 	}
 	
+	updateState();
+	
 	return 0;
 }
 
@@ -2753,6 +2760,8 @@ LRESULT qm::GoRoundDialog::onUp()
 		n - 1, reinterpret_cast<LPARAM>(ptszName));
 	sendDlgItemMessage(IDC_COURSE, LB_SETCURSEL, n - 1);
 	
+	updateState();
+	
 	return 0;
 }
 
@@ -2770,6 +2779,8 @@ LRESULT qm::GoRoundDialog::onDown()
 	sendDlgItemMessage(IDC_COURSE, LB_INSERTSTRING,
 		n + 1, reinterpret_cast<LPARAM>(ptszName));
 	sendDlgItemMessage(IDC_COURSE, LB_SETCURSEL, n + 1);
+	
+	updateState();
 	
 	return 0;
 }
@@ -2898,6 +2909,9 @@ LRESULT qm::GoRoundCourseDialog::onAdd()
 		sendDlgItemMessage(IDC_ENTRY, LB_ADDSTRING,
 			0, reinterpret_cast<LPARAM>(ptszName));
 	}
+	
+	updateState();
+	
 	return 0;
 }
 
@@ -2911,6 +2925,8 @@ LRESULT qm::GoRoundCourseDialog::onRemove()
 	listEntry_.erase(listEntry_.begin() + n);
 	
 	sendDlgItemMessage(IDC_ENTRY, LB_DELETESTRING, n);
+	
+	updateState();
 	
 	return 0;
 }
@@ -2932,6 +2948,8 @@ LRESULT qm::GoRoundCourseDialog::onEdit()
 		sendDlgItemMessage(IDC_ENTRY, LB_SETCURSEL, n);
 	}
 	
+	updateState();
+	
 	return 0;
 }
 
@@ -2951,6 +2969,8 @@ LRESULT qm::GoRoundCourseDialog::onUp()
 		n - 1, reinterpret_cast<LPARAM>(ptszName));
 	sendDlgItemMessage(IDC_ENTRY, LB_SETCURSEL, n - 1);
 	
+	updateState();
+	
 	return 0;
 }
 
@@ -2969,6 +2989,8 @@ LRESULT qm::GoRoundCourseDialog::onDown()
 	sendDlgItemMessage(IDC_ENTRY, LB_INSERTSTRING,
 		n + 1, reinterpret_cast<LPARAM>(ptszName));
 	sendDlgItemMessage(IDC_ENTRY, LB_SETCURSEL, n + 1);
+	
+	updateState();
 	
 	return 0;
 }
@@ -4644,6 +4666,318 @@ LRESULT qm::SelectSyncFilterDialog::onOk()
 	pwszName_ = list_[nItem]->getName();
 	
 	return DefaultDialog::onOk();
+}
+
+
+/****************************************************************************
+ *
+ * SignatureDialog
+ *
+ */
+
+qm::SignatureDialog::SignatureDialog(Signature* pSignature,
+									 Document* pDocument) :
+	DefaultDialog(IDD_SIGNATURE),
+	pSignature_(pSignature),
+	pDocument_(pDocument)
+{
+}
+
+qm::SignatureDialog::~SignatureDialog()
+{
+}
+
+LRESULT qm::SignatureDialog::onCommand(WORD nCode,
+									   WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID_CODE(IDC_NAME, EN_CHANGE, onNameChange)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::SignatureDialog::onInitDialog(HWND hwndFocus,
+										  LPARAM lParam)
+{
+	init(false);
+	
+	setDlgItemText(IDC_NAME, pSignature_->getName());
+	
+	const Document::AccountList& l = pDocument_->getAccounts();
+	for (Document::AccountList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		W2T((*it)->getName(), ptszName);
+		sendDlgItemMessage(IDC_ACCOUNT, CB_ADDSTRING,
+			0, reinterpret_cast<LPARAM>(ptszName));
+	}
+	if (pSignature_->getAccount())
+		setDlgItemText(IDC_ACCOUNT, pSignature_->getAccount());
+	
+	if (pSignature_->isDefault())
+		sendDlgItemMessage(IDC_DEFAULT, BM_SETCHECK, BST_CHECKED);
+	
+	wstring_ptr wstrSignature(convertLFtoCRLF(pSignature_->getSignature()));
+	setDlgItemText(IDC_SIGNATURE, wstrSignature.get());
+	
+	updateState();
+	
+	return TRUE;
+}
+
+LRESULT qm::SignatureDialog::onOk()
+{
+	wstring_ptr wstrName(getDlgItemText(IDC_NAME));
+	
+	wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
+	const WCHAR* pwszAccount = 0;
+	std::auto_ptr<RegexPattern> pAccount;
+	if (*wstrAccount.get()) {
+		pAccount = RegexCompiler().compile(wstrAccount.get());
+		if (!pAccount.get())
+			return 0;
+		pwszAccount = wstrAccount.get();
+	}
+	
+	bool bDefault = sendDlgItemMessage(IDC_DEFAULT, BM_GETCHECK) == BST_CHECKED;
+	
+	wstring_ptr wstrSignature(getDlgItemText(IDC_SIGNATURE));
+	wstrSignature = convertCRLFtoLF(wstrSignature.get());
+	
+	pSignature_->setName(wstrName.get());
+	pSignature_->setAccount(pwszAccount, pAccount);
+	pSignature_->setDefault(bDefault);
+	pSignature_->setSignature(wstrSignature.get());
+	
+	return DefaultDialog::onOk();
+}
+
+LRESULT qm::SignatureDialog::onNameChange()
+{
+	updateState();
+	return 0;
+}
+
+void qm::SignatureDialog::updateState()
+{
+	wstring_ptr wstrName(getDlgItemText(IDC_NAME));
+	Window(getDlgItem(IDOK)).enableWindow(*wstrName.get() != L'\0');
+}
+
+wstring_ptr qm::SignatureDialog::convertLFtoCRLF(const WCHAR* pwsz)
+{
+	StringBuffer<WSTRING> buf;
+	while (*pwsz) {
+		if (*pwsz == L'\n')
+			buf.append(L'\r');
+		buf.append(*pwsz);
+		++pwsz;
+	}
+	return buf.getString();
+}
+
+wstring_ptr qm::SignatureDialog::convertCRLFtoLF(const WCHAR* pwsz)
+{
+	StringBuffer<WSTRING> buf;
+	while (*pwsz) {
+		if (*pwsz != L'\r')
+			buf.append(*pwsz);
+		++pwsz;
+	}
+	return buf.getString();
+}
+
+
+/****************************************************************************
+*
+* SignaturesDialog
+*
+*/
+
+qm::SignaturesDialog::SignaturesDialog(SignatureManager* pSignatureManager,
+									   Document* pDocument) :
+	DefaultDialog(IDD_SIGNATURES),
+	pSignatureManager_(pSignatureManager),
+	pDocument_(pDocument)
+{
+	const SignatureManager::SignatureList& l = pSignatureManager_->getSignatures();
+	listSignature_.reserve(l.size());
+	for (SignatureManager::SignatureList::const_iterator it = l.begin(); it != l.end(); ++it)
+		listSignature_.push_back(new Signature(**it));
+}
+
+qm::SignaturesDialog::~SignaturesDialog()
+{
+	std::for_each(listSignature_.begin(), listSignature_.end(), qs::deleter<Signature>());
+}
+
+LRESULT qm::SignaturesDialog::onCommand(WORD nCode,
+										WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_ADD, onAdd)
+		HANDLE_COMMAND_ID(IDC_DOWN, onDown)
+		HANDLE_COMMAND_ID(IDC_EDIT, onEdit)
+		HANDLE_COMMAND_ID(IDC_REMOVE, onRemove)
+		HANDLE_COMMAND_ID(IDC_UP, onUp)
+		HANDLE_COMMAND_ID_CODE(IDC_SIGNATURES, LBN_SELCHANGE, onSignaturesSelChange)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::SignaturesDialog::onInitDialog(HWND hwndFocus,
+										   LPARAM lParam)
+{
+	init(false);
+	
+	for (SignatureManager::SignatureList::const_iterator it = listSignature_.begin(); it != listSignature_.end(); ++it) {
+		const Signature* pSignature = *it;
+		wstring_ptr wstrName(getName(pSignature));
+		W2T(wstrName.get(), ptszName);
+		sendDlgItemMessage(IDC_SIGNATURES, LB_ADDSTRING,
+			0, reinterpret_cast<LPARAM>(ptszName));
+	}
+	sendDlgItemMessage(IDC_SIGNATURES, LB_SETCURSEL, 0);
+	
+	updateState();
+	
+	return TRUE;
+}
+
+LRESULT qm::SignaturesDialog::onOk()
+{
+	pSignatureManager_->setSignatures(listSignature_);
+	if (!pSignatureManager_->save()) {
+		// TODO
+	}
+	
+	return DefaultDialog::onOk();
+}
+
+LRESULT qm::SignaturesDialog::onAdd()
+{
+	std::auto_ptr<Signature> pSignature(new Signature());
+	SignatureDialog dialog(pSignature.get(), pDocument_);
+	if (dialog.doModal(getHandle()) == IDOK) {
+		listSignature_.push_back(pSignature.get());
+		Signature* p = pSignature.release();
+		
+		wstring_ptr wstrName(getName(p));
+		W2T(wstrName.get(), ptszName);
+		sendDlgItemMessage(IDC_SIGNATURES, LB_ADDSTRING,
+			0, reinterpret_cast<LPARAM>(ptszName));
+	}
+	
+	updateState();
+	
+	return 0;
+}
+
+LRESULT qm::SignaturesDialog::onRemove()
+{
+	int n = sendDlgItemMessage(IDC_SIGNATURES, LB_GETCURSEL);
+	if (n == LB_ERR)
+		return 0;
+	
+	delete listSignature_[n];
+	listSignature_.erase(listSignature_.begin() + n);
+	
+	sendDlgItemMessage(IDC_SIGNATURES, LB_DELETESTRING, n);
+	
+	updateState();
+	
+	return 0;
+}
+
+LRESULT qm::SignaturesDialog::onEdit()
+{
+	int n = sendDlgItemMessage(IDC_SIGNATURES, LB_GETCURSEL);
+	if (n == LB_ERR)
+		return 0;
+	
+	Signature* pSignature = listSignature_[n];
+	SignatureDialog dialog(pSignature, pDocument_);
+	if (dialog.doModal(getHandle()) == IDOK) {
+		sendDlgItemMessage(IDC_SIGNATURES, LB_DELETESTRING, n);
+		wstring_ptr wstrName(getName(pSignature));
+		W2T(wstrName.get(), ptszName);
+		sendDlgItemMessage(IDC_SIGNATURES, LB_INSERTSTRING,
+			n, reinterpret_cast<LPARAM>(ptszName));
+		sendDlgItemMessage(IDC_SIGNATURES, LB_SETCURSEL, n);
+	}
+	
+	updateState();
+	
+	return 0;
+}
+
+LRESULT qm::SignaturesDialog::onUp()
+{
+	int n = sendDlgItemMessage(IDC_SIGNATURES, LB_GETCURSEL);
+	if (n == LB_ERR || n == 0)
+		return 0;
+	
+	Signature* pSignature = listSignature_[n];
+	std::swap(listSignature_[n], listSignature_[n - 1]);
+	
+	sendDlgItemMessage(IDC_SIGNATURES, LB_DELETESTRING, n);
+	wstring_ptr wstrName(getName(pSignature));
+	W2T(wstrName.get(), ptszName);
+	sendDlgItemMessage(IDC_SIGNATURES, LB_INSERTSTRING,
+		n - 1, reinterpret_cast<LPARAM>(ptszName));
+	sendDlgItemMessage(IDC_SIGNATURES, LB_SETCURSEL, n - 1);
+	
+	updateState();
+	
+	return 0;
+}
+
+LRESULT qm::SignaturesDialog::onDown()
+{
+	int n = sendDlgItemMessage(IDC_SIGNATURES, LB_GETCURSEL);
+	if (n == LB_ERR || n == sendDlgItemMessage(IDC_SIGNATURES, LB_GETCOUNT) - 1)
+		return 0;
+	
+	Signature* pSignature = listSignature_[n];
+	std::swap(listSignature_[n], listSignature_[n + 1]);
+	
+	sendDlgItemMessage(IDC_SIGNATURES, LB_DELETESTRING, n);
+	wstring_ptr wstrName(getName(pSignature));
+	W2T(wstrName.get(), ptszName);
+	sendDlgItemMessage(IDC_SIGNATURES, LB_INSERTSTRING,
+		n + 1, reinterpret_cast<LPARAM>(ptszName));
+	sendDlgItemMessage(IDC_SIGNATURES, LB_SETCURSEL, n + 1);
+	
+	updateState();
+	
+	return 0;
+}
+
+LRESULT qm::SignaturesDialog::onSignaturesSelChange()
+{
+	updateState();
+	return 0;
+}
+
+void qm::SignaturesDialog::updateState()
+{
+	int n = sendDlgItemMessage(IDC_SIGNATURES, LB_GETCURSEL);
+	Window(getDlgItem(IDC_REMOVE)).enableWindow(n != LB_ERR);
+	Window(getDlgItem(IDC_EDIT)).enableWindow(n != LB_ERR);
+	Window(getDlgItem(IDC_UP)).enableWindow(n != LB_ERR && n != 0);
+	Window(getDlgItem(IDC_DOWN)).enableWindow(n != LB_ERR &&
+		n != sendDlgItemMessage(IDC_SIGNATURES, LB_GETCOUNT) - 1);
+}
+
+wstring_ptr qm::SignaturesDialog::getName(const Signature* pSignature)
+{
+	StringBuffer<WSTRING> buf(pSignature->getName());
+	if (pSignature->getAccount()) {
+		buf.append(L" [");
+		buf.append(pSignature->getAccount());
+		buf.append(L"]");
+	}
+	if (pSignature->isDefault())
+		buf.append(L" *");
+	return buf.getString();
 }
 
 

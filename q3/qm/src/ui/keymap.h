@@ -25,6 +25,7 @@ const qs::KeyNameToId mapKeyNameToId[] = {
 	{ L"AttachmentSave",				IDM_ATTACHMENT_SAVE,					0 },
 	{ L"AttachmentSaveAll",				IDM_ATTACHMENT_SAVEALL,					0 },
 	{ L"ConfigGoRound",					IDM_CONFIG_GOROUND,						0 },
+	{ L"ConfigSignature",				IDM_CONFIG_SIGNATURE,					0 },
 	{ L"ConfigViews",					IDM_CONFIG_VIEWS,						0 },
 	{ L"EditClearDeleted",				IDM_EDIT_CLEARDELETED,					0 },
 	{ L"EditCopy",						IDM_EDIT_COPY,							0 },

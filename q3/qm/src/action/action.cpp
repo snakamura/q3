@@ -221,9 +221,35 @@ qm::ConfigGoRoundAction::~ConfigGoRoundAction()
 {
 }
 
-void qm::ConfigGoRoundAction::invoke(const qs::ActionEvent& event)
+void qm::ConfigGoRoundAction::invoke(const ActionEvent& event)
 {
 	GoRoundDialog dialog(pGoRound_, pDocument_, pSyncFilterManager_);
+	dialog.doModal(hwnd_);
+}
+
+
+/****************************************************************************
+ *
+ * ConfigSignatureAction
+ *
+ */
+
+qm::ConfigSignatureAction::ConfigSignatureAction(SignatureManager* pSignatureManager,
+												 Document* pDocument,
+												 HWND hwnd) :
+	pSignatureManager_(pSignatureManager),
+	pDocument_(pDocument),
+	hwnd_(hwnd)
+{
+}
+
+qm::ConfigSignatureAction::~ConfigSignatureAction()
+{
+}
+
+void qm::ConfigSignatureAction::invoke(const ActionEvent& event)
+{
+	SignaturesDialog dialog(pSignatureManager_, pDocument_);
 	dialog.doModal(hwnd_);
 }
 

@@ -44,11 +44,14 @@ public:
 	~SignatureManager();
 
 public:
+	const SignatureList& getSignatures();
+	void setSignatures(SignatureList& listSignature);
 	void getSignatures(Account* pAccount,
 					   SignatureList* pList);
 	const Signature* getSignature(Account* pAccount,
 								  const WCHAR* pwszName);
 	const Signature* getDefaultSignature(Account* pAccount);
+	bool save() const;
 
 public:
 	void addSignature(std::auto_ptr<Signature> pSignature);
@@ -76,24 +79,33 @@ private:
 class Signature
 {
 public:
-	Signature(std::auto_ptr<qs::RegexPattern> pAccountName,
-			  qs::wstring_ptr wstrName,
+	Signature();
+	Signature(const WCHAR* pwszAccount,
+			  std::auto_ptr<qs::RegexPattern> pAccount,
+			  const WCHAR* pwszName,
 			  bool bDefault,
-			  qs::wstring_ptr wstrSignature);
+			  const WCHAR* pwszSignature);
+	Signature(const Signature& signature);
 	~Signature();
 
 public:
+	const WCHAR* getAccount() const;
+	void setAccount(const WCHAR* pwszAccount,
+					std::auto_ptr<qs::RegexPattern> pAccount);
 	bool match(Account* pAccount) const;
 	const WCHAR* getName() const;
+	void setName(const WCHAR* pwszName);
 	bool isDefault() const;
+	void setDefault(bool bDefault);
 	const WCHAR* getSignature() const;
+	void setSignature(const WCHAR* pwszSignature);
 
 private:
-	Signature(const Signature&);
 	Signature& operator=(const Signature&);
 
 private:
-	std::auto_ptr<qs::RegexPattern> pAccountName_;
+	qs::wstring_ptr wstrAccount_;
+	std::auto_ptr<qs::RegexPattern> pAccount_;
 	qs::wstring_ptr wstrName_;
 	bool bDefault_;
 	qs::wstring_ptr wstrSignature_;
@@ -138,10 +150,38 @@ private:
 private:
 	SignatureManager* pManager_;
 	State state_;
-	std::auto_ptr<qs::RegexPattern> pAccountName_;
+	qs::wstring_ptr wstrAccount_;
+	std::auto_ptr<qs::RegexPattern> pAccount_;
 	qs::wstring_ptr wstrName_;
 	bool bDefault_;
 	qs::StringBuffer<qs::WSTRING> buffer_;
+};
+
+
+/****************************************************************************
+ *
+ * SignatureWriter
+ *
+ */
+
+class SignatureWriter
+{
+public:
+	explicit SignatureWriter(qs::Writer* pWriter);
+	~SignatureWriter();
+
+public:
+	bool write(const SignatureManager::SignatureList& listSignature);
+
+private:
+	bool write(const Signature* pSignature);
+
+private:
+	SignatureWriter(const SignatureWriter&);
+	SignatureWriter& operator=(const SignatureWriter&);
+
+private:
+	qs::OutputHandler handler_;
 };
 
 }

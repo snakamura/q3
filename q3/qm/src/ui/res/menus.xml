@@ -127,6 +127,7 @@
 			<menuitem text="&amp;Options..." action="ToolOptions"/>
 			<separator/>
 			<popupmenu text="Conf&amp;ig">
+				<menuitem text="&amp;Signature..." action="ConfigSignature"/>
 				<menuitem text="&amp;Views..." action="ConfigViews"/>
 			</popupmenu>
 		</popupmenu>

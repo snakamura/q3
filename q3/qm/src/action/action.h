@@ -29,6 +29,7 @@ struct ActionParam;
 class AttachmentOpenAction;
 class AttachmentSaveAction;
 class ConfigGoRoundAction;
+class ConfigSignatureAction;
 class ConfigViewsAction;
 class DispatchAction;
 class EditClearDeletedAction;
@@ -146,6 +147,7 @@ class Recents;
 class RecentsMenu;
 class RuleManager;
 class ScriptMenu;
+class SignatureManager;
 class SortMenu;
 class SubAccountMenu;
 class SyncDialogManager;
@@ -268,6 +270,34 @@ private:
 	GoRound* pGoRound_;
 	Document* pDocument_;
 	SyncFilterManager* pSyncFilterManager_;
+	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * ConfigSignatureAction
+ *
+ */
+
+class ConfigSignatureAction : public qs::AbstractAction
+{
+public:
+	ConfigSignatureAction(SignatureManager* pSignatureManager,
+						  Document* pDocument,
+						  HWND hwnd);
+	virtual ~ConfigSignatureAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	ConfigSignatureAction(const ConfigSignatureAction&);
+	ConfigSignatureAction& operator=(const ConfigSignatureAction&);
+
+private:
+	SignatureManager* pSignatureManager_;
+	Document* pDocument_;
 	HWND hwnd_;
 };
 

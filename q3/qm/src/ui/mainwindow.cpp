@@ -323,6 +323,11 @@ void qm::MainWindowImpl::initActions()
 		pDocument_,
 		pSyncManager_->getSyncFilterManager(),
 		pThis_->getHandle());
+	ADD_ACTION3(ConfigSignatureAction,
+		IDM_CONFIG_SIGNATURE,
+		pDocument_->getSignatureManager(),
+		pDocument_,
+		pThis_->getHandle());
 	ADD_ACTION3(ConfigViewsAction,
 		IDM_CONFIG_VIEWS,
 		pUIManager_,

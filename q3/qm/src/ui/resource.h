@@ -63,6 +63,8 @@
 #define IDD_GOROUNDDIALUP               164
 #define IDD_ACCOUNTDETAIL               165
 #define IDD_RESOURCE                    166
+#define IDD_SIGNATURES                  167
+#define IDD_SIGNATURE                   168
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -321,6 +323,9 @@
 #define IDC_BACKUP                      1213
 #define IDC_CHECKALL                    1214
 #define IDC_CLEARALL                    1215
+#define IDC_SIGNATURES                  1216
+#define IDC_DEFAULT                     1217
+#define IDC_SIGNATURE                   1218
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -553,15 +558,16 @@
 #define IDM_ATTACHMENTEDIT_ADD          49001
 #define IDM_ATTACHMENTEDIT_DELETE       49002
 #define IDM_CONFIG_GOROUND              50001
-#define IDM_CONFIG_VIEWS                50002
+#define IDM_CONFIG_SIGNATURE            50002
+#define IDM_CONFIG_VIEWS                50003
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        167
+#define _APS_NEXT_RESOURCE_VALUE        169
 #define _APS_NEXT_COMMAND_VALUE         48000
-#define _APS_NEXT_CONTROL_VALUE         1216
+#define _APS_NEXT_CONTROL_VALUE         1219
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
