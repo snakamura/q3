@@ -844,10 +844,10 @@ NormalFolder* qm::FileEmptyTrashAction::getTrash() const
  *
  */
 
-qm::FileExitAction::FileExitAction(Window* pWindow, Document* pDocument,
+qm::FileExitAction::FileExitAction(HWND hwnd, Document* pDocument,
 	SyncManager* pSyncManager, TempFileCleaner* pTempFileCleaner,
 	EditFrameWindowManager* pEditFrameWindowManager, QSTATUS* pstatus) :
-	pWindow_(pWindow),
+	hwnd_(hwnd),
 	pDocument_(pDocument),
 	pSyncManager_(pSyncManager),
 	pTempFileCleaner_(pTempFileCleaner),
@@ -861,9 +861,12 @@ qm::FileExitAction::~FileExitAction()
 {
 }
 
-QSTATUS qm::FileExitAction::invoke(const ActionEvent& event)
+QSTATUS qm::FileExitAction::exit(bool bDestroy, bool* pbCanceled)
 {
 	DECLARE_QSTATUS();
+	
+	if (pbCanceled)
+		*pbCanceled = true;
 	
 	if (pSyncManager_->isSyncing()) {
 		// TODO
@@ -909,9 +912,18 @@ QSTATUS qm::FileExitAction::invoke(const ActionEvent& event)
 	} callback;
 	pTempFileCleaner_->clean(&callback);
 	
-	pWindow_->destroyWindow();
+	if (bDestroy)
+		Window(hwnd_).destroyWindow();
+	
+	if (pbCanceled)
+		*pbCanceled = false;
 	
 	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::FileExitAction::invoke(const ActionEvent& event)
+{
+	return exit(true, 0);
 }
 
 

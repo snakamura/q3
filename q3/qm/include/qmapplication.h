@@ -20,6 +20,7 @@ namespace qm {
 class Application;
 
 class Document;
+class MailFolderLock;
 
 
 /****************************************************************************
@@ -32,7 +33,7 @@ class QMEXPORTCLASS Application
 {
 public:
 	Application(HINSTANCE hInst, qs::WSTRING wstrMailFolder,
-		qs::WSTRING wstrProfile, qs::QSTATUS* pstatus);
+		qs::WSTRING wstrProfile, MailFolderLock* pLock, qs::QSTATUS* pstatus);
 	~Application();
 
 public:

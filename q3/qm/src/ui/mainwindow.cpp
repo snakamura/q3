@@ -327,9 +327,9 @@ QSTATUS qm::MainWindowImpl::initActions()
 	status = InitAction1<FileEmptyTrashAction, FolderModel*>(
 		pActionMap_, IDM_FILE_EMPTYTRASH, pFolderModel_);
 	CHECK_QSTATUS();
-	status = InitAction5<FileExitAction, Window*, Document*,
+	status = InitAction5<FileExitAction, HWND, Document*,
 		SyncManager*, TempFileCleaner*, EditFrameWindowManager*>(
-		pActionMap_, IDM_FILE_EXIT, pThis_, pDocument_,
+		pActionMap_, IDM_FILE_EXIT, pThis_->getHandle(), pDocument_,
 		pSyncManager_, pTempFileCleaner_, pEditFrameWindowManager_);
 	CHECK_QSTATUS();
 	status = InitAction2<FileExportAction, MessageSelectionModel*, HWND>(
@@ -1650,7 +1650,13 @@ LRESULT qm::MainWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		HANDLE_COPYDATA()
 		HANDLE_CREATE()
 		HANDLE_DESTROY()
+#ifndef _WIN32_WCE
+		HANDLE_ENDSESSION()
+#endif
 		HANDLE_INITMENUPOPUP()
+#ifndef _WIN32_WCE
+		HANDLE_QUERYENDSESSION()
+#endif
 		HANDLE_SIZE()
 	END_MESSAGE_HANDLER()
 	return FrameWindow::windowProc(uMsg, wParam, lParam);
@@ -1682,9 +1688,10 @@ LRESULT qm::MainWindow::onActivate(UINT nFlags, HWND hwnd, bool bMinimized)
 
 LRESULT qm::MainWindow::onClose()
 {
-	Action* pAction = pImpl_->pActionMap_->getAction(IDM_FILE_EXIT);
+	FileExitAction* pAction = static_cast<FileExitAction*>(
+		pImpl_->pActionMap_->getAction(IDM_FILE_EXIT));
 	assert(pAction);
-	pAction->invoke(ActionEvent(IDM_FILE_EXIT, 0));
+	pAction->exit(true, 0);
 	return 0;
 }
 
@@ -1972,6 +1979,15 @@ LRESULT qm::MainWindow::onDestroy()
 	return FrameWindow::onDestroy();
 }
 
+#ifndef _WIN32_WCE
+LRESULT qm::MainWindow::onEndSession(bool bEnd, int nOption)
+{
+	if (bEnd)
+		Application::getApplication().uninitialize();
+	return 0;
+}
+#endif
+
 LRESULT qm::MainWindow::onInitMenuPopup(HMENU hmenu, UINT nIndex, bool bSysMenu)
 {
 	DECLARE_QSTATUS();
@@ -2065,6 +2081,18 @@ LRESULT qm::MainWindow::onInitMenuPopup(HMENU hmenu, UINT nIndex, bool bSysMenu)
 	
 	return FrameWindow::onInitMenuPopup(hmenu, nIndex, bSysMenu);
 }
+
+#ifndef _WIN32_WCE
+LRESULT qm::MainWindow::onQueryEndSession(int nOption)
+{
+	FileExitAction* pAction = static_cast<FileExitAction*>(
+		pImpl_->pActionMap_->getAction(IDM_FILE_EXIT));
+	assert(pAction);
+	bool bCanceled = false;
+	pAction->exit(false, &bCanceled);
+	return !bCanceled;
+}
+#endif
 
 LRESULT qm::MainWindow::onSize(UINT nFlags, int cx, int cy)
 {

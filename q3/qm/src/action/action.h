@@ -536,10 +536,13 @@ private:
 class FileExitAction : public qs::AbstractAction
 {
 public:
-	FileExitAction(qs::Window* pWindow, Document* pDocument,
+	FileExitAction(HWND hwnd, Document* pDocument,
 		SyncManager* pSyncManager, TempFileCleaner* pTempFileCleaner,
 		EditFrameWindowManager* pEditFrameWindowManager, qs::QSTATUS* pstatus);
 	virtual ~FileExitAction();
+
+public:
+	qs::QSTATUS exit(bool bDestroy, bool* pbCanceled);
 
 public:
 	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
@@ -549,7 +552,7 @@ private:
 	FileExitAction& operator=(const FileExitAction&);
 
 private:
-	qs::Window* pWindow_;
+	HWND hwnd_;
 	Document* pDocument_;
 	SyncManager* pSyncManager_;
 	TempFileCleaner* pTempFileCleaner_;

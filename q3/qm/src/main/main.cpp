@@ -158,7 +158,8 @@ QSTATUS qm::main(const WCHAR* pwszCommandLine)
 	
 	bool bContinue = false;
 	HWND hwndPrev = 0;
-	MailFolderLock lock(wstrMailFolder.get(), &bContinue, &hwndPrev, &status);
+	std::auto_ptr<MailFolderLock> pLock;
+	status = newQsObject(wstrMailFolder.get(), &bContinue, &hwndPrev, &pLock);
 	CHECK_QSTATUS();
 	if (!bContinue) {
 		if (hwndPrev)
@@ -168,7 +169,7 @@ QSTATUS qm::main(const WCHAR* pwszCommandLine)
 	
 	std::auto_ptr<Application> pApplication;
 	status = newQsObject(g_hInstDll, wstrMailFolder.get(),
-		wstrProfile.get(), &pApplication);
+		wstrProfile.get(), pLock.get(), &pApplication);
 	CHECK_QSTATUS();
 	wstrMailFolder.release();
 	wstrProfile.release();
@@ -177,14 +178,12 @@ QSTATUS qm::main(const WCHAR* pwszCommandLine)
 	CHECK_QSTATUS();
 	
 	assert(getMainWindow());
-	status = lock.setWindow(getMainWindow()->getHandle());
+	status = pLock->setWindow(getMainWindow()->getHandle());
 	CHECK_QSTATUS();
 	handler.invoke(getMainWindow()->getHandle());
+	pLock.release();
 	
 	status = pApplication->run();
-	CHECK_QSTATUS();
-	
-	status = lock.unsetWindow();
 	CHECK_QSTATUS();
 	
 	status = pApplication->uninitialize();

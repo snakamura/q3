@@ -77,7 +77,13 @@ protected:
 	LRESULT onCopyData(HWND hwnd, COPYDATASTRUCT* pData);
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
 	LRESULT onDestroy();
+#ifndef _WIN32_WCE
+	LRESULT onEndSession(bool bEnd, int nOption);
+#endif
 	LRESULT onInitMenuPopup(HMENU hmenu, UINT nIndex, bool bSysMenu);
+#ifndef _WIN32_WCE
+	LRESULT onQueryEndSession(int nOption);
+#endif
 	LRESULT onSize(UINT nFlags, int cx, int cy);
 
 private:

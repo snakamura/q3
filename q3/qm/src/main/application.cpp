@@ -31,6 +31,7 @@
 #include <windows.h>
 #include <tchar.h>
 
+#include "main.h"
 #ifndef DEPENDCHECK
 #	include "version.h"
 #endif
@@ -73,6 +74,7 @@ public:
 public:
 	HINSTANCE hInst_;
 	HINSTANCE hInstResource_;
+	MailFolderLock* pLock_;
 	Winsock* pWinSock_;
 	WSTRING wstrMailFolder_;
 	WSTRING wstrTemporaryFolder_;
@@ -288,10 +290,11 @@ bool qm::ApplicationImpl::canCheck()
  */
 
 qm::Application::Application(HINSTANCE hInst, WSTRING wstrMailFolder,
-	WSTRING wstrProfile, QSTATUS* pstatus)
+	WSTRING wstrProfile, MailFolderLock* pLock, QSTATUS* pstatus)
 {
 	assert(wstrMailFolder);
 	assert(wstrProfile);
+	assert(pLock);
 	assert(pstatus);
 	
 	*pstatus = QSTATUS_SUCCESS;
@@ -302,6 +305,7 @@ qm::Application::Application(HINSTANCE hInst, WSTRING wstrMailFolder,
 	CHECK_QSTATUS_SET(pstatus);
 	pImpl_->hInst_ = hInst;
 	pImpl_->hInstResource_ = hInst;
+	pImpl_->pLock_ = pLock;
 	pImpl_->pWinSock_ = 0;
 	pImpl_->wstrMailFolder_ = wstrMailFolder;
 	pImpl_->wstrTemporaryFolder_ = 0;
@@ -553,6 +557,8 @@ QSTATUS qm::Application::uninitialize()
 	
 	DECLARE_QSTATUS();
 	
+	pImpl_->pLock_->unsetWindow();
+	
 	delete pImpl_->pNewMailChecker_;
 	pImpl_->pNewMailChecker_ = 0;
 	
@@ -606,6 +612,9 @@ QSTATUS qm::Application::uninitialize()
 	
 	delete pImpl_->pWinSock_;
 	pImpl_->pWinSock_ = 0;
+	
+	delete pImpl_->pLock_;
+	pImpl_->pLock_ = 0;
 	
 	return QSTATUS_SUCCESS;
 }

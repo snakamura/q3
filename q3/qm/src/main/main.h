@@ -11,6 +11,7 @@
 
 #include <qm.h>
 
+#include <qsthread.h>
 #include <qsutil.h>
 #include <qswindow.h>
 

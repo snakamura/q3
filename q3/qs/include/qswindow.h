@@ -667,6 +667,11 @@ public:
 		lResult = onDropFiles(reinterpret_cast<HDROP>(wParam)); \
 		break; \
 
+#define HANDLE_ENDSESSION() \
+	case WM_ENDSESSION: \
+		lResult = onEndSession(wParam != 0, lParam); \
+		break; \
+
 #endif
 
 #define HANDLE_ERASEBKGND() \
@@ -787,6 +792,14 @@ public:
 	case WM_PASTE: \
 		lResult = onPaste(); \
 		break; \
+
+#ifndef _WIN32_WCE
+#define HANDLE_QUERYENDSESSION() \
+	case WM_QUERYENDSESSION: \
+		lResult = onQueryEndSession(lParam); \
+		break; \
+
+#endif
 
 #define HANDLE_RBUTTONDBLCLK() \
 	case WM_RBUTTONDBLCLK: \
@@ -912,6 +925,7 @@ protected:
 	LRESULT onEraseBkgnd(HDC hdc);
 #ifndef _WIN32_WCE
 	LRESULT onDropFiles(HDROP hdrop);
+	LRESULT onEndSession(bool bEnd, int nOption);
 #endif
 	LRESULT onHScroll(UINT nCode, UINT nPos, HWND hwnd);
 	LRESULT onImeChar(UINT nChar, UINT nRepeat, UINT nFlags);
@@ -938,6 +952,9 @@ protected:
 #endif
 	LRESULT onPaint();
 	LRESULT onPaste();
+#ifndef _WIN32_WCE
+	LRESULT onQueryEndSession(int nOption);
+#endif
 	LRESULT onRButtonDblClk(UINT nFlags, const POINT& pt);
 	LRESULT onRButtonDown(UINT nFlags, const POINT& pt);
 	LRESULT onRButtonUp(UINT nFlags, const POINT& pt);
