@@ -226,6 +226,11 @@ bool qs::RegexMultiEscapeAtom::match(WCHAR c) const
 			return (c < L'a' || L'z' < c) && (c < L'A' || L'Z' < c) && (c < L'0' || L'9' < c);
 		else
 			return (L'a' <= c && c <= L'z') || (L'A' <= c && c <= L'Z') || (L'0' <= c && c <= L'9');
+	case TYPE_NUMBER:
+		if (bNegative_)
+			return c < L'0' || L'9' < c;
+		else
+			return L'0' <= c && c <= L'9';
 	default:
 		assert(false);
 		return false;
@@ -485,6 +490,9 @@ std::auto_ptr<RegexPieceNode> qs::RegexParser::parsePiece()
 		else if (*p_ == L'w' || *p_ == L'W')
 			pAtom.reset(new RegexMultiEscapeAtom(
 				RegexMultiEscapeAtom::TYPE_WORD, *p_ == L'W'));
+		else if (*p_ == L'd' || *p_ == L'D')
+			pAtom.reset(new RegexMultiEscapeAtom(
+				RegexMultiEscapeAtom::TYPE_NUMBER, *p_ == L'D'));
 		else
 			return 0;
 		++p_;

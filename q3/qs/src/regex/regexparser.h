@@ -224,7 +224,8 @@ public:
 	enum Type {
 		TYPE_DOT,
 		TYPE_WHITESPACE,
-		TYPE_WORD
+		TYPE_WORD,
+		TYPE_NUMBER
 	};
 
 public:
