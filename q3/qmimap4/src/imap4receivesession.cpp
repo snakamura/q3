@@ -1077,13 +1077,14 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 					if (pJunkFilter->getScore(msg) > pJunkFilter->getThresholdScore()) {
 						listJunk.push_back(mpl->getId());
 						mpl->setFlags(MessageHolder::FLAG_DELETED, MessageHolder::FLAG_DELETED);
-						pJunkFilter->manage(msg, JunkFilter::OPERATION_ADDJUNK);
-						
+						if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN)
+							pJunkFilter->manage(msg, JunkFilter::OPERATION_ADDJUNK);
+					}
+					else {
+						if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN)
+							pJunkFilter->manage(msg, JunkFilter::OPERATION_ADDCLEAN);
 						if (!pAccount_->isSeen(mpl))
 							pSessionCallback_->notifyNewMessage(mpl);
-					}
-					else if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN) {
-						pJunkFilter->manage(msg, JunkFilter::OPERATION_ADDCLEAN);
 					}
 				}
 				
