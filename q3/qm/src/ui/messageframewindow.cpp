@@ -318,6 +318,10 @@ void qm::MessageFrameWindowImpl::initActions()
 		this,
 		pProfile_,
 		pThis_->getHandle());
+	ADD_ACTION2(MessageOpenLinkAction,
+		IDM_MESSAGE_OPENLINK,
+		this,
+		pThis_->getHandle());
 	ADD_ACTION2(MessagePropertyAction,
 		IDM_MESSAGE_PROPERTY,
 		this,

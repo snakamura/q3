@@ -127,6 +127,7 @@ const qs::KeyNameToId mapKeyNameToId[] = {
 	{ L"MessageMoveOther",				IDM_MESSAGE_MOVEOTHER,					0 },
 	{ L"MessageNew",					IDM_MESSAGE_NEW,						0 },
 	{ L"MessageNewExternal",			IDM_MESSAGE_NEWEXTERNAL,				0 },
+	{ L"MessageOpenLink",				IDM_MESSAGE_OPENLINK,					0 },
 	{ L"MessageProperty",				IDM_MESSAGE_PROPERTY,					0 },
 	{ L"MessageReply",					IDM_MESSAGE_REPLY,						0 },
 	{ L"MessageReplyAll",				IDM_MESSAGE_REPLYALL,					0 },

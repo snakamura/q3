@@ -3351,6 +3351,47 @@ void qm::MessageOpenAttachmentAction::invoke(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * MessageOpenLinkAction
+ *
+ */
+
+qm::MessageOpenLinkAction::MessageOpenLinkAction(MessageSelectionModel* pMessageSelectionModel,
+												 HWND hwnd) :
+	pMessageSelectionModel_(pMessageSelectionModel),
+	hwnd_(hwnd)
+{
+}
+
+qm::MessageOpenLinkAction::~MessageOpenLinkAction()
+{
+}
+
+void qm::MessageOpenLinkAction::invoke(const ActionEvent& event)
+{
+	MessagePtrLock mpl(pMessageSelectionModel_->getFocusedMessage());
+	if (mpl) {
+		Account* pAccount = mpl->getFolder()->getAccount();
+		if (!pAccount->isSupport(Account::SUPPORT_EXTERNALLINK))
+			return;
+		
+		Message msg;
+		if (!mpl->getMessage(Account::GETMESSAGEFLAG_HEADER, L"X-QMAIL-Link", &msg))
+			return;
+		
+		UnstructuredParser link;
+		if (msg.getField(L"X-QMAIL-Link", &link) == Part::FIELD_EXIST)
+			UIUtil::openURL(hwnd_, link.getValue());
+	}
+}
+
+bool qm::MessageOpenLinkAction::isEnabled(const qs::ActionEvent& event)
+{
+	return pMessageSelectionModel_->hasFocusedMessage();
+}
+
+
+/****************************************************************************
+ *
  * MessageOpenRecent
  *
  */

@@ -138,6 +138,7 @@ struct ActionNameMap
 	{ L"MessageMoveOther",				IDM_MESSAGE_MOVEOTHER					},
 	{ L"MessageNew",					IDM_MESSAGE_NEW							},
 	{ L"MessageNewExternal",			IDM_MESSAGE_NEWEXTERNAL					},
+	{ L"MessageOpenLink",				IDM_MESSAGE_OPENLINK,					},
 	{ L"MessageOpenURL",				IDM_MESSAGE_OPENURL						},
 	{ L"MessageProperty",				IDM_MESSAGE_PROPERTY					},
 	{ L"MessageReply",					IDM_MESSAGE_REPLY						},

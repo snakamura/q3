@@ -79,6 +79,7 @@ const qs::ActionItem menuItems[] = {
 	{ L"MessageMarkSeen",			IDM_MESSAGE_MARKSEEN			},
 	{ L"MessageNew",				IDM_MESSAGE_NEW					},
 	{ L"MessageNewExternal",		IDM_MESSAGE_NEWEXTERNAL			},
+	{ L"MessageOpenLink",			IDM_MESSAGE_OPENLINK,			},
 	{ L"MessageProperty",			IDM_MESSAGE_PROPERTY			},
 	{ L"MessageReply",				IDM_MESSAGE_REPLY				},
 	{ L"MessageReplyAll",			IDM_MESSAGE_REPLYALL			},

@@ -27,6 +27,9 @@
 		<action name="FileOffline">
 			<key key="O" ctrl="true"/>
 		</action>
+		<action name="MessageOpenLink">
+			<key key="O" alt="true"/>
+		</action>
 		<action name="MessageSearch">
 			<key key="S" ctrl="true"/>
 		</action>

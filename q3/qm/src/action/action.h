@@ -73,6 +73,7 @@ class MessageMarkAction;
 class MessageMoveAction;
 class MessageMoveOtherAction;
 class MessageOpenAttachmentAction;
+class MessageOpenLinkAction;
 class MessageOpenRecentAction;
 class MessageOpenURLAction;
 class MessagePropertyAction;
@@ -1698,6 +1699,33 @@ private:
 private:
 	AttachmentMenu* pAttachmentMenu_;
 	AttachmentHelper helper_;
+	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * MessageOpenLinkAction
+ *
+ */
+
+class MessageOpenLinkAction : public qs::AbstractAction
+{
+public:
+	MessageOpenLinkAction(MessageSelectionModel* pMessageSelectionModel,
+						  HWND hwnd);
+	virtual ~MessageOpenLinkAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	MessageOpenLinkAction(const MessageOpenLinkAction&);
+	MessageOpenLinkAction& operator=(const MessageOpenLinkAction&);
+
+private:
+	MessageSelectionModel* pMessageSelectionModel_;
 	HWND hwnd_;
 };
 
