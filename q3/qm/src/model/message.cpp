@@ -1031,12 +1031,18 @@ QSTATUS qm::PartUtil::isAttachment(bool* pbAttachment) const
 			*pbAttachment = true;
 			return QSTATUS_SUCCESS;
 		}
+		
+		string_ptr<WSTRING> wstrFileName;
+		status = contentDisposition.getParameter(L"filename", &wstrFileName);
+		CHECK_QSTATUS();
+		if (wstrFileName.get()) {
+			*pbAttachment = true;
+			return QSTATUS_SUCCESS;
+		}
 	}
 	else if (field == Part::FIELD_ERROR) {
 		*pbAttachment = true;
 		return QSTATUS_SUCCESS;
-	}
-	else {
 	}
 	
 	const ContentTypeParser* pContentType = part_.getContentType();
