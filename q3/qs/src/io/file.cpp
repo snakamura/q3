@@ -590,8 +590,7 @@ qs::DividedFile::~DividedFile()
 bool qs::DividedFile::close()
 {
 	bool bFail = false;
-	DividedFileImpl::FileList::iterator it = pImpl_->listFile_.begin();
-	while (it != pImpl_->listFile_.end()) {
+	for (DividedFileImpl::FileList::iterator it = pImpl_->listFile_.begin(); it != pImpl_->listFile_.end(); ++it) {
 		BinaryFile* pFile = *it;
 		if (pFile) {
 			if (!pFile->close())
@@ -599,7 +598,6 @@ bool qs::DividedFile::close()
 			delete pFile;
 			*it = 0;
 		}
-		++it;
 	}
 	
 	return !bFail;
@@ -688,14 +686,11 @@ size_t qs::DividedFile::write(const unsigned char* p,
 bool qs::DividedFile::flush()
 {
 	bool bFail = false;
-	DividedFileImpl::FileList::iterator it = pImpl_->listFile_.begin();
-	while (it != pImpl_->listFile_.end()) {
+	for (DividedFileImpl::FileList::iterator it = pImpl_->listFile_.begin(); it != pImpl_->listFile_.end(); ++it) {
 		BinaryFile* pFile = *it;
 		if (pFile && !pFile->flush())
 			bFail = true;
-		++it;
 	}
-	
 	return !bFail;
 }
 
@@ -744,8 +739,20 @@ bool qs::DividedFile::setEndOfFile()
 
 size_t qs::DividedFile::getSize()
 {
-	assert(false);
-	return -1;
+	WIN32_FIND_DATA fd;
+	unsigned int n = 0;
+	while (true) {
+		wstring_ptr wstrPath(pImpl_->getPath(n));
+		W2T(wstrPath.get(), ptszPath);
+		AutoFindHandle hFind(::FindFirstFile(ptszPath, &fd));
+		if (!hFind.get())
+			break;
+		++n;
+	}
+	if (n == 0)
+		return 0;
+	
+	return pImpl_->nBlockSize_*(n - 1) + fd.nFileSizeLow;
 }
 
 

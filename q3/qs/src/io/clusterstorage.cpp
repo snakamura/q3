@@ -121,6 +121,8 @@ bool qs::ClusterStorageImpl::adjustMapSize()
 	
 	const size_t nBlockSize = CLUSTER_SIZE*BYTE_SIZE;
 	size_t nSize = pFile_->getSize();
+	if (nSize == -1)
+		return false;
 	size_t nBlock = nSize/nBlockSize + (nSize%nBlockSize == 0 ? 0 : 1);
 	if (map_.size() < nBlock) {
 		map_.resize(nBlock, 0xff);
