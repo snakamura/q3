@@ -371,7 +371,7 @@ public:
 	QSTATUS ensureDirectory(unsigned int nOffset) const;
 
 public:
-	typedef std::vector<bool> DirList;
+	typedef std::vector<int> DirList;
 
 public:
 	WSTRING wstrPath_;
@@ -493,7 +493,7 @@ QSTATUS qm::MultiMessageStoreImpl::ensureDirectory(unsigned int nOffset) const
 			status = STLWrapper<DirList>(listDir_).resize(nIndex + 1);
 			CHECK_QSTATUS();
 		}
-		listDir_[nIndex] = true;
+		listDir_[nIndex] = 1;
 	}
 	
 	return QSTATUS_SUCCESS;

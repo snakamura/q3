@@ -1,5 +1,5 @@
 /*
- * $Id: listwindow.cpp,v 1.3 2003/05/31 15:50:36 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -361,7 +361,7 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 	if (((pViewModel->getSort() & ViewModel::SORT_THREAD_MASK) == ViewModel::SORT_THREAD) &&
 		nThreadLeft != -1) {
 		if (nLevel > 0) {
-			typedef std::vector<bool> Line;
+			typedef std::vector<int> Line;
 			Line line;
 			status = STLWrapper<Line>(line).resize(nLevel);
 			if (status == QSTATUS_SUCCESS) {
@@ -372,7 +372,7 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 						break;
 					}
 					else if (nNextLevel <= nLevel) {
-						line[nNextLevel - 1] = true;
+						line[nNextLevel - 1] = 1;
 						nLevel = nNextLevel;
 					}
 				}
