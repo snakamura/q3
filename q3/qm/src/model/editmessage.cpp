@@ -33,8 +33,9 @@ using namespace qs;
  *
  */
 
-qm::EditMessage::EditMessage(Document* pDocument,
-	Account* pAccount, QSTATUS* pstatus) :
+qm::EditMessage::EditMessage(Profile* pProfile,
+	Document* pDocument, Account* pAccount, QSTATUS* pstatus) :
+	pProfile_(pProfile),
 	pDocument_(pDocument),
 	pAccount_(pAccount),
 	pSubAccount_(pAccount->getCurrentSubAccount()),
@@ -46,6 +47,12 @@ qm::EditMessage::EditMessage(Document* pDocument,
 	bEncrypt_(false),
 	bSign_(false)
 {
+	DECLARE_QSTATUS();
+	
+	int nAutoReform = 1;
+	status = pProfile_->getInt(L"EditWindow", L"AutoReform", 1, &nAutoReform);
+	CHECK_QSTATUS_SET(pstatus);
+	bAutoReform_ = nAutoReform != 0;
 }
 
 qm::EditMessage::~EditMessage()
@@ -563,9 +570,15 @@ QSTATUS qm::EditMessage::fixup()
 	CHECK_QSTATUS();
 	
 	if (bAutoReform_) {
-		// TODO
-		size_t nLineLen = 74;
-		size_t nTabWidth = 4;
+		int nLineLen = 74;
+		status = pProfile_->getInt(L"EditWindow",
+			L"ReformLineLength", 74, &nLineLen);
+		CHECK_QSTATUS();
+		int nTabWidth = 4;
+		status = pProfile_->getInt(L"EditWindow",
+			L"TabWidth", 4, &nTabWidth);
+		CHECK_QSTATUS();
+		
 		string_ptr<WSTRING> wstrBody;
 		status = TextUtil::fold(wstrBody_, wcslen(wstrBody_),
 			nLineLen, 0, 0, nTabWidth, &wstrBody);

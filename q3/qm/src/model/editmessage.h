@@ -89,7 +89,8 @@ public:
 	};
 
 public:
-	EditMessage(Document* pDocument, Account* pAccount, qs::QSTATUS* pstatus);
+	EditMessage(qs::Profile* pProfile, Document* pDocument,
+		Account* pAccount, qs::QSTATUS* pstatus);
 	~EditMessage();
 
 public:
@@ -163,6 +164,7 @@ private:
 	typedef std::vector<EditMessageHandler*> HandlerList;
 
 private:
+	qs::Profile* pProfile_;
 	Document* pDocument_;
 	Account* pAccount_;
 	SubAccount* pSubAccount_;

@@ -203,16 +203,11 @@ QSTATUS qm::TemplateProcessor::process(
 		std::auto_ptr<Message> pMessage(p);
 		
 		std::auto_ptr<EditMessage> pEditMessage;
-		status = newQsObject(pDocument_, pAccount, &pEditMessage);
+		status = newQsObject(pProfile_, pDocument_, pAccount, &pEditMessage);
 		CHECK_QSTATUS();
 		status = pEditMessage->setMessage(pMessage.get());
 		CHECK_QSTATUS();
 		pMessage.release();
-		
-		int nAutoReform = 1;
-		status = pProfile_->getInt(L"EditWindow", L"AutoReform", 1, &nAutoReform);
-		CHECK_QSTATUS();
-		pEditMessage->setAutoReform(nAutoReform != 0);
 		
 		status = pEditFrameWindowManager_->open(pEditMessage.get());
 		CHECK_QSTATUS();
