@@ -33,6 +33,7 @@ public:
 	virtual void getSelectedFolders(Account::FolderList* pList) = 0;
 	virtual bool hasSelectedFolder() = 0;
 	virtual Folder* getFocusedFolder() = 0;
+	virtual std::pair<Account*, Folder*> getTemporaryFocused() = 0;
 };
 
 }

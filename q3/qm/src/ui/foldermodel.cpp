@@ -46,7 +46,9 @@ qm::FolderModel::~FolderModel()
 
 qm::DefaultFolderModel::DefaultFolderModel() :
 	pCurrentAccount_(0),
-	pCurrentFolder_(0)
+	pCurrentFolder_(0),
+	pTemporaryAccount_(0),
+	pTemporaryFolder_(0)
 {
 }
 
@@ -62,6 +64,11 @@ Account* qm::DefaultFolderModel::getCurrentAccount() const
 Folder* qm::DefaultFolderModel::getCurrentFolder() const
 {
 	return pCurrentFolder_;
+}
+
+std::pair<Account*, Folder*> qm::DefaultFolderModel::getTemporary() const
+{
+	return std::make_pair(pTemporaryAccount_, pTemporaryFolder_);
 }
 
 void qm::DefaultFolderModel::setCurrent(Account* pAccount,
@@ -84,6 +91,13 @@ void qm::DefaultFolderModel::setCurrent(Account* pAccount,
 			fireAccountSelected(pAccount, bDelay);
 		}
 	}
+}
+
+void qm::DefaultFolderModel::setTemporary(Account* pAccount,
+										  Folder* pFolder)
+{
+	pTemporaryAccount_ = pAccount;
+	pTemporaryFolder_ = pFolder;
 }
 
 void qm::DefaultFolderModel::addFolderModelHandler(FolderModelHandler* pHandler)

@@ -44,6 +44,7 @@ public:
 public:
 	virtual Account* getCurrentAccount() const = 0;
 	virtual Folder* getCurrentFolder() const = 0;
+	virtual std::pair<Account*, Folder*> getTemporary() const = 0;
 };
 
 
@@ -62,6 +63,8 @@ public:
 	virtual void setCurrent(Account* pAccount,
 							Folder* pFolder,
 							bool bDelay) = 0;
+	virtual void setTemporary(Account* pAccount,
+							  Folder* pFolder) = 0;
 	virtual void addFolderModelHandler(FolderModelHandler* pHandler) = 0;
 	virtual void removeFolderModelHandler(FolderModelHandler* pHandler) = 0;
 };
@@ -82,9 +85,14 @@ public:
 public:
 	virtual Account* getCurrentAccount() const;
 	virtual Folder* getCurrentFolder() const;
+	virtual std::pair<Account*, Folder*> getTemporary() const;
 
 public:
-	virtual void setCurrent(Account* pAccount, Folder* pFolder, bool bDelay);
+	virtual void setCurrent(Account* pAccount,
+							Folder* pFolder,
+							bool bDelay);
+	virtual void setTemporary(Account* pAccount,
+							  Folder* pFolder);
 	virtual void addFolderModelHandler(FolderModelHandler* pHandler);
 	virtual void removeFolderModelHandler(FolderModelHandler* pHandler);
 
@@ -104,6 +112,8 @@ private:
 private:
 	Account* pCurrentAccount_;
 	Folder* pCurrentFolder_;
+	Account* pTemporaryAccount_;
+	Folder* pTemporaryFolder_;
 	HandlerList listHandler_;
 };
 

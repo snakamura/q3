@@ -63,7 +63,9 @@ public:
 		WM_FOLDERWINDOW_MESSAGEADDED		= WM_APP + 1301,
 		WM_FOLDERWINDOW_MESSAGEREMOVED		= WM_APP + 1302,
 		WM_FOLDERWINDOW_MESSAGEREFRESHED	= WM_APP + 1303,
-		WM_FOLDERWINDOW_MESSAGECHANGED		= WM_APP + 1304
+		WM_FOLDERWINDOW_MESSAGECHANGED		= WM_APP + 1304,
+		
+		WM_FOLDERWINDOW_DESELECTTEMPORARY	= WM_APP + 1310
 	};
 
 public:
@@ -1177,6 +1179,7 @@ LRESULT qm::FolderWindow::windowProc(UINT uMsg,
 		HANDLE_MESSAGE(FolderWindowImpl::WM_FOLDERWINDOW_MESSAGEREMOVED, onMessageRemoved)
 		HANDLE_MESSAGE(FolderWindowImpl::WM_FOLDERWINDOW_MESSAGEREFRESHED, onMessageRefreshed)
 		HANDLE_MESSAGE(FolderWindowImpl::WM_FOLDERWINDOW_MESSAGECHANGED, onMessageChanged)
+		HANDLE_MESSAGE(FolderWindowImpl::WM_FOLDERWINDOW_DESELECTTEMPORARY, onDeselectTemporary)
 	END_MESSAGE_HANDLER()
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
@@ -1186,6 +1189,25 @@ LRESULT qm::FolderWindow::onContextMenu(HWND hwnd,
 {
 	HMENU hmenu = pImpl_->pMenuManager_->getMenu(L"folder", false, false);
 	if (hmenu) {
+		TVHITTESTINFO info = {
+			{ pt.x, pt.y },
+		};
+		screenToClient(&info.pt);
+		HTREEITEM hItem = TreeView_HitTest(getHandle(), &info);
+		if (hItem) {
+			if (TreeView_GetParent(getHandle(), hItem))
+				pImpl_->pFolderModel_->setTemporary(0, pImpl_->getFolder(hItem));
+			else
+				pImpl_->pFolderModel_->setTemporary(pImpl_->getAccount(hItem), 0);
+		}
+		
+		struct TemporaryDeselector
+		{
+			TemporaryDeselector(HWND hwnd) : hwnd_(hwnd) {}
+			~TemporaryDeselector() { Window(hwnd_).postMessage(FolderWindowImpl::WM_FOLDERWINDOW_DESELECTTEMPORARY); }
+			HWND hwnd_;
+		} deselector(getHandle());
+		
 		UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
 #ifndef _WIN32_WCE
 		nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
@@ -1283,6 +1305,13 @@ LRESULT qm::FolderWindow::onMessageChanged(WPARAM wParam,
 										   LPARAM lParam)
 {
 	pImpl_->handleUpdateMessage(lParam);
+	return 0;
+}
+
+LRESULT qm::FolderWindow::onDeselectTemporary(WPARAM wParam,
+											  LPARAM lParam)
+{
+	pImpl_->pFolderModel_->setTemporary(0, 0);
 	return 0;
 }
 

@@ -2410,9 +2410,12 @@ qm::FolderCreateAction::~FolderCreateAction()
 
 void qm::FolderCreateAction::invoke(const ActionEvent& event)
 {
-	Folder* pFolder = pFolderSelectionModel_->getFocusedFolder();
-	Account* pAccount = pFolder ? pFolder->getAccount() :
-		pFolderSelectionModel_->getAccount();
+	std::pair<Account*, Folder*> p(FolderActionUtil::getFocused(pFolderSelectionModel_));
+	if (!p.first && !p.second)
+		return;
+	
+	Folder* pFolder = p.second;
+	Account* pAccount = p.first;
 	
 	CreateFolderDialog::Type type = CreateFolderDialog::TYPE_LOCALFOLDER;
 	bool bAllowRemote = pAccount->isSupport(Account::SUPPORT_REMOTEFOLDER) &&
@@ -2493,8 +2496,8 @@ void qm::FolderCreateAction::invoke(const ActionEvent& event)
 
 bool qm::FolderCreateAction::isEnabled(const ActionEvent& event)
 {
-	return pFolderSelectionModel_->getAccount() ||
-		pFolderSelectionModel_->getFocusedFolder();
+	std::pair<Account*, Folder*> p(FolderActionUtil::getFocused(pFolderSelectionModel_));
+	return p.first || p.second;
 }
 
 
@@ -2520,7 +2523,9 @@ qm::FolderDeleteAction::~FolderDeleteAction()
 void qm::FolderDeleteAction::invoke(const ActionEvent& event)
 {
 	Account::FolderList l;
-	pFolderSelectionModel_->getSelectedFolders(&l);
+	FolderActionUtil::getSelected(pFolderSelectionModel_, &l);
+	if (l.empty())
+		return;
 	
 	int nRet = messageBox(Application::getApplication().getResourceHandle(),
 		IDS_CONFIRMREMOVEFOLDER, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd_);
@@ -2562,7 +2567,7 @@ void qm::FolderDeleteAction::invoke(const ActionEvent& event)
 
 bool qm::FolderDeleteAction::isEnabled(const ActionEvent& event)
 {
-	return pFolderSelectionModel_->hasSelectedFolder();
+	return FolderActionUtil::hasSelected(pFolderSelectionModel_);
 }
 
 bool qm::FolderDeleteAction::deleteFolder(Folder* pFolder) const
@@ -2613,7 +2618,7 @@ qm::FolderEmptyAction::~FolderEmptyAction()
 void qm::FolderEmptyAction::invoke(const ActionEvent& event)
 {
 	Account::FolderList l;
-	pFolderSelectionModel_->getSelectedFolders(&l);
+	FolderActionUtil::getSelected(pFolderSelectionModel_, &l);
 	if (l.empty())
 		return;
 	
@@ -2644,7 +2649,7 @@ void qm::FolderEmptyAction::invoke(const ActionEvent& event)
 bool qm::FolderEmptyAction::isEnabled(const ActionEvent& event)
 {
 	Account::FolderList l;
-	pFolderSelectionModel_->getSelectedFolders(&l);
+	FolderActionUtil::getSelected(pFolderSelectionModel_, &l);
 	return l.size() > 1 || (l.size() == 1 && !l.front()->isFlag(Folder::FLAG_TRASHBOX));
 }
 
@@ -2790,13 +2795,7 @@ bool qm::FolderEmptyTrashAction::hasTrash(Account* pAccount)
 
 Account* qm::FolderEmptyTrashAction::getAccount() const
 {
-	Account* pAccount = pFolderModel_->getCurrentAccount();
-	if (!pAccount) {
-		Folder* pFolder = pFolderModel_->getCurrentFolder();
-		if (pFolder)
-			pAccount = pFolder->getAccount();
-	}
-	return pAccount;
+	return FolderActionUtil::getAccount(pFolderModel_);
 }
 
 NormalFolder* qm::FolderEmptyTrashAction::getTrash() const
@@ -2861,14 +2860,14 @@ qm::FolderPropertyAction::~FolderPropertyAction()
 
 void qm::FolderPropertyAction::invoke(const ActionEvent& event)
 {
-	Account::FolderList listFolder;
-	pFolderSelectionModel_->getSelectedFolders(&listFolder);
-	openProperty(listFolder, FolderPropertyAction::OPEN_PROPERTY, hwnd_, pProfile_);
+	Account::FolderList l;
+	FolderActionUtil::getSelected(pFolderSelectionModel_, &l);
+	openProperty(l, FolderPropertyAction::OPEN_PROPERTY, hwnd_, pProfile_);
 }
 
 bool qm::FolderPropertyAction::isEnabled(const ActionEvent& event)
 {
-	return pFolderSelectionModel_->hasSelectedFolder();
+	return FolderActionUtil::hasSelected(pFolderSelectionModel_);
 }
 
 void qm::FolderPropertyAction::openProperty(const Account::FolderList& listFolder,
@@ -2931,7 +2930,7 @@ qm::FolderRenameAction::~FolderRenameAction()
 
 void qm::FolderRenameAction::invoke(const ActionEvent& event)
 {
-	Folder* pFolder = pFolderSelectionModel_->getFocusedFolder();
+	Folder* pFolder = FolderActionUtil::getFocused(pFolderSelectionModel_).second;
 	if (pFolder) {
 		RenameDialog dialog(pFolder->getName());
 		if (dialog.doModal(hwnd_) != IDOK)
@@ -2967,7 +2966,7 @@ void qm::FolderRenameAction::invoke(const ActionEvent& event)
 
 bool qm::FolderRenameAction::isEnabled(const ActionEvent& event)
 {
-	return pFolderSelectionModel_->getFocusedFolder() != 0;
+	return FolderActionUtil::getFocused(pFolderSelectionModel_).second != 0;
 }
 
 
@@ -3017,12 +3016,7 @@ qm::FolderUpdateAction::~FolderUpdateAction()
 
 void qm::FolderUpdateAction::invoke(const ActionEvent& event)
 {
-	Account* pAccount = pFolderModel_->getCurrentAccount();
-	if (!pAccount) {
-		Folder* pFolder = pFolderModel_->getCurrentFolder();
-		if (pFolder)
-			pAccount = pFolder->getAccount();
-	}
+	Account* pAccount = FolderActionUtil::getAccount(pFolderModel_);
 	if (!pAccount)
 		return;
 	
@@ -3038,12 +3032,7 @@ void qm::FolderUpdateAction::invoke(const ActionEvent& event)
 
 bool qm::FolderUpdateAction::isEnabled(const ActionEvent& event)
 {
-	Account* pAccount = pFolderModel_->getCurrentAccount();
-	if (!pAccount) {
-		Folder* pFolder = pFolderModel_->getCurrentFolder();
-		if (pFolder)
-			pAccount = pFolder->getAccount();
-	}
+	Account* pAccount = FolderActionUtil::getAccount(pFolderModel_);
 	return pAccount && pAccount->isSupport(Account::SUPPORT_REMOTEFOLDER);
 }
 
@@ -6015,4 +6004,63 @@ void qm::ActionUtil::error(HWND hwnd,
 {
 	messageBox(Application::getApplication().getResourceHandle(),
 		nMessage, MB_OK | MB_ICONERROR, hwnd);
+}
+
+
+/****************************************************************************
+ *
+ * FolderActionUtil
+ *
+ */
+
+std::pair<Account*, Folder*> qm::FolderActionUtil::getFocused(FolderSelectionModel* pModel)
+{
+	std::pair<Account*, Folder*> p(pModel->getTemporaryFocused());
+	if (!p.first && !p.second) {
+		p.second = pModel->getFocusedFolder();
+		p.first = p.second ? p.second->getAccount() : pModel->getAccount();
+	}
+	return p;
+}
+
+void qm::FolderActionUtil::getSelected(FolderSelectionModel* pModel,
+									   Account::FolderList* pListFolder)
+{
+	std::pair<Account*, Folder*> p(pModel->getTemporaryFocused());
+	if (p.first)
+		;
+	else if (p.second)
+		pListFolder->push_back(p.second);
+	else
+		pModel->getSelectedFolders(pListFolder);
+}
+
+bool qm::FolderActionUtil::hasSelected(FolderSelectionModel* pModel)
+{
+	std::pair<Account*, Folder*> p(pModel->getTemporaryFocused());
+	if (p.first)
+		return false;
+	else if (p.second)
+		return true;
+	else
+		return pModel->hasSelectedFolder();
+}
+
+Account* qm::FolderActionUtil::getAccount(FolderModel* pModel)
+{
+	std::pair<Account*, Folder*> p(pModel->getTemporary());
+	if (p.first)
+		return p.first;
+	else if (p.second)
+		return p.second->getAccount();
+	
+	Account* pAccount = pModel->getCurrentAccount();
+	if (pAccount)
+		return pAccount;
+	
+	Folder* pFolder = pModel->getCurrentFolder();
+	if (pFolder)
+		return pFolder->getAccount();
+	
+	return 0;
 }

@@ -201,6 +201,7 @@ public:
 	virtual void getSelectedFolders(Account::FolderList* pList);
 	virtual bool hasSelectedFolder();
 	virtual Folder* getFocusedFolder();
+	virtual std::pair<Account*, Folder*> getTemporaryFocused();
 
 public:
 	virtual void messageChanged(const MessageWindowEvent& event);
@@ -1345,6 +1346,14 @@ Folder* qm::MainWindowImpl::getFocusedFolder()
 		return pFolderListModel_->getFocusedFolder();
 	else
 		return pFolderModel_->getCurrentFolder();
+}
+
+std::pair<Account*, Folder*> qm::MainWindowImpl::getTemporaryFocused()
+{
+	if (pFolderListWindow_->isActive())
+		return std::pair<Account*, Folder*>(0, 0);
+	else
+		return pFolderModel_->getTemporary();
 }
 
 void qm::MainWindowImpl::messageChanged(const MessageWindowEvent& event)

@@ -76,6 +76,7 @@ public:
 public:
 	virtual Account* getCurrentAccount() const;
 	virtual Folder* getCurrentFolder() const;
+	virtual std::pair<Account*, Folder*> getTemporary() const;
 
 public:
 	virtual void getSelectedMessages(AccountLock* pAccountLock,
@@ -537,6 +538,11 @@ Folder* qm::MessageFrameWindowImpl::getCurrentFolder() const
 {
 	ViewModel* pViewModel = pMessageModel_->getViewModel();
 	return pViewModel ? pViewModel->getFolder() : 0;
+}
+
+std::pair<Account*, Folder*> qm::MessageFrameWindowImpl::getTemporary() const
+{
+	return std::pair<Account*, Folder*>(0, 0);
 }
 
 void qm::MessageFrameWindowImpl::getSelectedMessages(AccountLock* pAccountLock,

@@ -69,6 +69,8 @@ protected:
 							   LPARAM lParam);
 	LRESULT onMessageChanged(WPARAM wParam,
 							 LPARAM lParam);
+	LRESULT onDeselectTemporary(WPARAM wParam,
+								LPARAM lParam);
 
 public:
 	virtual bool isShow() const;

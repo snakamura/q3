@@ -125,6 +125,7 @@ class ViewSortFloatThreadAction;
 class ViewSortThreadAction;
 class ViewTemplateAction;
 class ActionUtil;
+class FolderActionUtil;
 
 class AttachmentMenu;
 class AttachmentSelectionModel;
@@ -3292,6 +3293,22 @@ public:
 					  UINT nMessage);
 };
 
+
+/****************************************************************************
+ *
+ * FolderActionUtil
+ *
+ */
+
+class FolderActionUtil
+{
+public:
+	static std::pair<Account*, Folder*> getFocused(FolderSelectionModel* pModel);
+	static void getSelected(FolderSelectionModel* pModel,
+							Account::FolderList* pListFolder);
+	static bool hasSelected(FolderSelectionModel* pModel);
+	static Account* getAccount(FolderModel* pModel);
+};
 
 
 }
