@@ -3251,6 +3251,9 @@ LRESULT qs::TextWindow::onLButtonUp(UINT nFlags, const POINT& pt)
 				pt.y <= pImpl_->ptLastButtonDown_.y + cy/2)
 				pImpl_->openLink(pt);
 		}
+		
+		pImpl_->ptLastButtonDown_.x = -1;
+		pImpl_->ptLastButtonDown_.y = -1;
 	}
 	
 	return DefaultWindowHandler::onLButtonUp(nFlags, pt);
