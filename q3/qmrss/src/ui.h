@@ -28,12 +28,22 @@ public:
 	ReceivePage(qm::SubAccount* pSubAccount);
 	virtual ~ReceivePage();
 
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
 protected:
 	virtual LRESULT onInitDialog(HWND hwndFocus,
 								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
+
+private:
+	LRESULT onProxy(UINT nId);
+
+private:
+	void updateState();
 
 private:
 	ReceivePage(const ReceivePage&);

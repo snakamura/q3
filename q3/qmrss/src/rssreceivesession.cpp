@@ -133,18 +133,26 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	
 	log.debugf(L"Connecting to the site: %s", pwszURL);
 	
-	wstring_ptr wstrProxyHost(pSubAccount_->getProperty(L"Http", L"ProxyHost", L""));
-	unsigned short nProxyPort(pSubAccount_->getProperty(L"Http", L"ProxyPort", 8080));
-	bool bProxy = *wstrProxyHost.get() != L'\0';
-	if (bProxy && log.isDebugEnabled())
+	bool bUseProxy = false;
+	wstring_ptr wstrProxyHost;
+	unsigned short nProxyPort = 8080;
+	if (pSubAccount_->getProperty(L"Http", L"UseInternetSetting", 0)) {
+		bUseProxy = getInternetProxySetting(&wstrProxyHost, &nProxyPort);
+	}
+	else if (pSubAccount_->getProperty(L"Http", L"UseProxy", 0)) {
+		wstrProxyHost = pSubAccount_->getProperty(L"Http", L"ProxyHost", L"");
+		nProxyPort = pSubAccount_->getProperty(L"Http", L"ProxyPort", 8080);
+		bUseProxy = true;
+	}
+	if (bUseProxy && log.isDebugEnabled())
 		log.debugf(L"Using proxy: %s:%u", wstrProxyHost.get(), nProxyPort);
 	
 	CallbackImpl callback(pSubAccount_, pDocument_->getSecurity(), pSessionCallback_);
 	callback.setMessage(IDS_REQUESTRSS);
 	pSessionCallback_->setRange(0, 0);
 	
-	Http http(pSubAccount_->getTimeout(), bProxy ? wstrProxyHost.get() : 0,
-		bProxy ? nProxyPort : 0, &callback, &callback, &callback, pLogger_);
+	Http http(pSubAccount_->getTimeout(), bUseProxy ? wstrProxyHost.get() : 0,
+		bUseProxy ? nProxyPort : 0, &callback, &callback, &callback, pLogger_);
 	
 	const Feed* pFeed = pFeedList_->getFeed(pwszURL);
 	
@@ -457,6 +465,46 @@ bool qmrss::RssReceiveSession::createItemMessage(const Item* pItem,
 	}
 	
 	if (!pMessage->sortHeader())
+		return false;
+	
+	return true;
+}
+
+bool qmrss::RssReceiveSession::getInternetProxySetting(wstring_ptr* pwstrProxyHost,
+													   unsigned short* pnProxyPort)
+{
+	Registry reg(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings");
+	if (!reg)
+		return false;
+	
+	DWORD dwProxyEnable = 0;
+	if (!reg.getValue(L"ProxyEnable", &dwProxyEnable) || dwProxyEnable == 0)
+		return false;
+	
+	wstring_ptr wstrProxy;
+	if (!reg.getValue(L"ProxyServer", &wstrProxy))
+		return false;
+	
+	if (wcschr(wstrProxy.get(), L';')) {
+		const WCHAR* p = wcstok(wstrProxy.get(), L";");
+		while (p) {
+			if (wcsncmp(p, L"http=", 5) == 0) {
+				wstrProxy = allocWString(p + 5);
+				break;
+			}
+			p = wcstok(0, L";");
+		}
+	}
+	
+	const WCHAR* pPort = wcsrchr(wstrProxy.get(), L':');
+	if (!pPort)
+		return false;
+	
+	*pwstrProxyHost = allocWString(wstrProxy.get(), pPort - wstrProxy.get());
+	
+	WCHAR* pEnd = 0;
+	*pnProxyPort = static_cast<unsigned short>(wcstol(pPort + 1, &pEnd, 0));
+	if (*pEnd)
 		return false;
 	
 	return true;

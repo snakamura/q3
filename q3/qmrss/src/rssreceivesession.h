@@ -77,6 +77,8 @@ private:
 								  size_t nBodyLen,
 								  Content content,
 								  qm::Message* pMessage);
+	static bool getInternetProxySetting(qs::wstring_ptr* pwstrProxyHost,
+										unsigned short* pnProxyPort);
 
 private:
 	RssReceiveSession(const RssReceiveSession&);
