@@ -415,22 +415,7 @@ wstring_ptr qm::TabWindowImpl::getTitle(const TabItem* pItem) const
 
 int qm::TabWindowImpl::getFolderImage(Folder* pFolder)
 {
-	int nImage = UIUtil::getFolderImage(pFolder, false);
-	
-	const unsigned int nIgnore =
-		(Folder::FLAG_BOX_MASK & ~Folder::FLAG_INBOX) |
-		Folder::FLAG_IGNOREUNSEEN;
-	
-	bool bUnseen = false;
-	const Account::FolderList& l = pFolder->getAccount()->getFolders();
-	for (Account::FolderList::const_iterator it = l.begin(); it != l.end() && !bUnseen; ++it) {
-		Folder* p = *it;
-		if (p == pFolder ||
-			((p->getFlags() & nIgnore) == 0 && pFolder->isAncestorOf(p)))
-			bUnseen = p->getUnseenCount() != 0;
-	}
-	
-	return bUnseen ? nImage + 1 : nImage;
+	return UIUtil::getFolderImage(pFolder, false) + (pFolder->getUnseenCount() ? 1 : 0);
 }
 
 
