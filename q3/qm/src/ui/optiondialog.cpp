@@ -279,8 +279,10 @@ LRESULT qm::OptionDialog::onOk()
 		pPreviewWindow_->reloadProfiles();
 	if (nFlags & OptionDialogContext::FLAG_RELOADEDIT)
 		pEditFrameWindowManager_->reloadProfiles();
+#ifdef QMTABWINDOW
 	if (nFlags & OptionDialogContext::FLAG_RELOADTAB)
 		pTabWindow_->reloadProfiles();
+#endif
 	if (nFlags & OptionDialogContext::FLAG_RELOADADDRESSBOOK) {
 		pDocument_->getAddressBook()->reloadProfiles();
 		pAddressBookFrameWindowManager_->reloadProfiles();
