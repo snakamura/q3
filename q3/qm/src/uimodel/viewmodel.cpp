@@ -1664,6 +1664,9 @@ bool qm::ViewModelManager::save() const
 			return false;
 	}
 	
+	if (!pDefaultViewData_->save())
+		return false;
+	
 	return true;
 }
 
