@@ -73,6 +73,7 @@ public:
 						int cy);
 	bool setMessage(MessageHolder* pmh,
 					bool bResetEncoding);
+	void reloadProfiles(bool bInitialize);
 
 public:
 	virtual bool isMode(Mode mode) const;
@@ -280,6 +281,11 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	return true;
 }
 
+void qm::MessageWindowImpl::reloadProfiles(bool bInitialize)
+{
+	nSeenWait_ = pProfile_->getInt(pwszSection_, L"SeenWait", 0);
+}
+
 bool qm::MessageWindowImpl::isMode(Mode mode) const
 {
 	return (nMode_ & mode) != 0;
@@ -422,7 +428,9 @@ qm::MessageWindow::MessageWindow(MessageModel* pMessageModel,
 	pImpl_->pMessageModel_ = pMessageModel;
 	pImpl_->nMode_ = pProfile->getInt(pwszSection, L"ViewMode", MessageViewMode::MODE_QUOTE);
 	pImpl_->wstrTemplate_ = *wstrTemplate.get() ? wstrTemplate : 0;
-	pImpl_->nSeenWait_ = pProfile->getInt(pwszSection, L"SeenWait", 0);
+	pImpl_->nSeenWait_ = 0;
+	
+	pImpl_->reloadProfiles(true);
 	
 	pImpl_->pMessageModel_->addMessageModelHandler(pImpl_);
 	
@@ -519,6 +527,7 @@ void qm::MessageWindow::layout()
 
 void qm::MessageWindow::reloadProfiles()
 {
+	pImpl_->reloadProfiles(false);
 	pImpl_->pHeaderWindow_->reloadProfiles();
 	pImpl_->pFactory_->reloadProfiles();
 }
