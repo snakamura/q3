@@ -146,16 +146,6 @@ zip)
 	done
 	;;
 
-ziptool)
-	VERSION=`cat version`
-	DATE=`date +%Y%m%d`
-	ZIPDIR=./zip
-	
-	mkdir -p $ZIPDIR
-	
-	zip $ZIPDIR/tool-`printf $VERSION | tr . _`-$DATE.zip `/bin/find tool -regex ".*\(hta\|js\|xsl\)"`
-	;;
-
 *)
 	REVISION=`svn info | grep Revision | cut -d ' ' -f 2`
 	if [ -f revision ]; then
