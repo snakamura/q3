@@ -3689,6 +3689,9 @@ qm::MessageOpenURLAction::MessageOpenURLAction(Document* pDocument,
 											   bool bExternalEditor) :
 	processor_(pDocument, pFolderModel, pMessageSelectionModel, pSecurityModel,
 		pEditFrameWindowManager, pExternalEditorManager, hwnd, pProfile, bExternalEditor),
+	pDocument_(pDocument),
+	pFolderModel_(pFolderModel),
+	pProfile_(pProfile),
 	hwnd_(hwnd)
 {
 }
@@ -3699,30 +3702,53 @@ qm::MessageOpenURLAction::~MessageOpenURLAction()
 
 void qm::MessageOpenURLAction::invoke(const ActionEvent& event)
 {
-	if (event.getParam()) {
-		ActionParam* pParam = static_cast<ActionParam*>(event.getParam());
-		if (pParam->nArgs_ > 0) {
-			Variant v;
-			if (::VariantChangeType(&v, pParam->ppvarArgs_[0], 0, VT_BSTR) == S_OK) {
-				TemplateContext::Argument arg = {
-					L"url",
-					v.bstrVal
-				};
-				TemplateContext::ArgumentList listArgument(1, arg);
-				bool bExternalEditor = (event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0;
-				if (!processor_.process(L"url", listArgument, bExternalEditor)) {
-					ActionUtil::error(hwnd_, IDS_ERROR_OPENURL);
-					return;
-				}
+	if (!event.getParam())
+		return;
+	
+	ActionParam* pParam = static_cast<ActionParam*>(event.getParam());
+	if (pParam->nArgs_ == 0)
+		return;
+	
+	Variant v;
+	if (::VariantChangeType(&v, pParam->ppvarArgs_[0], 0, VT_BSTR) != S_OK)
+		return;
+	
+	Account* pAccount = pFolderModel_->getCurrentAccount();
+	if (!pAccount) {
+		Folder* pFolder = pFolderModel_->getCurrentFolder();
+		if (pFolder)
+			pAccount = pFolder->getAccount();
+	}
+	if (!pAccount || wcscmp(pAccount->getClass(), L"mail") != 0) {
+		wstring_ptr wstrAccount(pProfile_->getString(L"Global", L"DefaultMailAccount", L""));
+		if (*wstrAccount.get()) {
+			pAccount = pDocument_->getAccount(wstrAccount.get());
+		}
+		else {
+			pAccount = 0;
+			const Document::AccountList& l = pDocument_->getAccounts();
+			for (Document::AccountList::const_iterator it = l.begin(); it != l.end() && !pAccount; ++it) {
+				if (wcscmp((*it)->getClass(), L"mail") == 0)
+					pAccount = *it;
 			}
 		}
+		if (!pAccount)
+			return;
 	}
-}
-
-bool qm::MessageOpenURLAction::isEnabled(const ActionEvent& event)
-{
-	// TODO
-	return true;
+	else {
+		pAccount = 0;
+	}
+	
+	TemplateContext::Argument arg = {
+		L"url",
+		v.bstrVal
+	};
+	TemplateContext::ArgumentList listArgument(1, arg);
+	bool bExternalEditor = (event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0;
+	if (!processor_.process(L"url", listArgument, bExternalEditor, pAccount)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_OPENURL);
+		return;
+	}
 }
 
 

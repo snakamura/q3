@@ -55,7 +55,8 @@ public:
 				 bool bReverseExternalEditor) const;
 	bool process(const WCHAR* pwszTemplateName,
 				 const TemplateContext::ArgumentList& listArgument,
-				 bool bReverseExternalEditor) const;
+				 bool bReverseExternalEditor,
+				 Account* pAccountForced) const;
 
 private:
 	class MacroErrorHandlerImpl : public MacroErrorHandler

@@ -70,25 +70,29 @@ qm::TemplateProcessor::~TemplateProcessor()
 bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 									bool bReverseExternalEditor) const
 {
-	return process(pwszTemplateName,
-		TemplateContext::ArgumentList(), bReverseExternalEditor);
+	TemplateContext::ArgumentList l;
+	return process(pwszTemplateName, l, bReverseExternalEditor, 0);
 }
 
 bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 									const TemplateContext::ArgumentList& listArgument,
-									bool bReverseExternalEditor) const
+									bool bReverseExternalEditor,
+									Account* pAccountForced) const
 {
 	assert(pwszTemplateName);
 	
-	Account* pAccount = pFolderModel_->getCurrentAccount();
+	Account* pAccount = pAccountForced;
 	Folder* pFolder = 0;
 	if (!pAccount) {
-		pFolder = pFolderModel_->getCurrentFolder();
-		if (pFolder)
-			pAccount = pFolder->getAccount();
+		pAccount = pFolderModel_->getCurrentAccount();
+		if (!pAccount) {
+			pFolder = pFolderModel_->getCurrentFolder();
+			if (pFolder)
+				pAccount = pFolder->getAccount();
+		}
+		if (!pAccount)
+			return false;
 	}
-	if (!pAccount)
-		return false;
 	
 	const Template* pTemplate = pDocument_->getTemplateManager()->getTemplate(
 		pAccount, pFolder, pwszTemplateName);
@@ -96,14 +100,18 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 		return false;
 	
 	MessagePtrLock mpl(pMessageSelectionModel_->getFocusedMessage());
+	MessageHolder* pmh = 0;
+	if (!pAccountForced)
+		pmh = mpl;
 	
 	AccountLock lock;
 	MessageHolderList listSelected;
-	pMessageSelectionModel_->getSelectedMessages(&lock, 0, &listSelected);
+	if (!pAccountForced)
+		pMessageSelectionModel_->getSelectedMessages(&lock, 0, &listSelected);
 	
 	MacroErrorHandlerImpl handler;
 	Message msg;
-	TemplateContext context(mpl, mpl ? &msg : 0, listSelected, pAccount, pDocument_,
+	TemplateContext context(pmh, pmh ? &msg : 0, listSelected, pAccount, pDocument_,
 		hwnd_, pSecurityModel_->getSecurityMode(), pProfile_, &handler, listArgument);
 	
 	wstring_ptr wstrValue;

@@ -1939,7 +1939,6 @@ public:
 
 public:
 	virtual void invoke(const qs::ActionEvent& event);
-	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	MessageOpenURLAction(const MessageOpenURLAction&);
@@ -1947,6 +1946,9 @@ private:
 
 private:
 	TemplateProcessor processor_;
+	Document* pDocument_;
+	FolderModelBase* pFolderModel_;
+	qs::Profile* pProfile_;
 	HWND hwnd_;
 };
 
