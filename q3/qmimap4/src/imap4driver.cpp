@@ -75,6 +75,8 @@ bool qmimap4::Imap4Driver::isSupport(Account::Support support)
 
 QSTATUS qmimap4::Imap4Driver::setOffline(bool bOffline)
 {
+	Lock<CriticalSection> lock(cs_);
+	
 	if (!bOffline_ && bOffline && nForceOnline_ == 0) {
 		delete pSessionCache_;
 		pSessionCache_ = 0;
@@ -86,6 +88,8 @@ QSTATUS qmimap4::Imap4Driver::setOffline(bool bOffline)
 
 QSTATUS qmimap4::Imap4Driver::setForceOnline(bool bOnline)
 {
+	Lock<CriticalSection> lock(cs_);
+	
 	if (bOnline) {
 		++nForceOnline_;
 	}
@@ -101,6 +105,8 @@ QSTATUS qmimap4::Imap4Driver::setForceOnline(bool bOnline)
 
 QSTATUS qmimap4::Imap4Driver::save()
 {
+	Lock<CriticalSection> lock(cs_);
+	
 	return pOfflineJobManager_->save(pAccount_->getPath());
 }
 
@@ -114,6 +120,8 @@ QSTATUS qmimap4::Imap4Driver::createFolder(SubAccount* pSubAccount,
 	DECLARE_QSTATUS();
 	
 	*ppFolder = 0;
+	
+	Lock<CriticalSection> lock(cs_);
 	
 	string_ptr<WSTRING> wstrRootFolder;
 	status = pAccount_->getProperty(
@@ -249,6 +257,8 @@ QSTATUS qmimap4::Imap4Driver::getRemoteFolders(SubAccount* pSubAccount,
 	*ppFolder = 0;
 	*pnCount = 0;
 	
+	Lock<CriticalSection> lock(cs_);
+	
 	FolderListGetter getter(pAccount_, pSubAccount, &status);
 	CHECK_QSTATUS();
 	status = getter.getFolders(ppFolder, pnCount);
@@ -278,6 +288,8 @@ QSTATUS qmimap4::Imap4Driver::getMessage(SubAccount* pSubAccount,
 		(nForceOnline_ == 0 ||
 		(nFlags & Account::GETMESSAGEFLAG_FORCEONLINE) == 0))
 		return QSTATUS_SUCCESS;
+	
+	Lock<CriticalSection> lock(cs_);
 	
 	int nOption = 0;
 	status = pSubAccount->getProperty(L"Imap4", L"Option", 0xff, &nOption);
@@ -638,6 +650,8 @@ QSTATUS qmimap4::Imap4Driver::setMessagesFlags(SubAccount* pSubAccount,
 		status = Util::createRange(listUpdate, &pRange);
 		CHECK_QSTATUS();
 		
+		Lock<CriticalSection> lock(cs_);
+		
 		status = prepareSessionCache(pSubAccount);
 		CHECK_QSTATUS();
 		
@@ -682,6 +696,8 @@ QSTATUS qmimap4::Imap4Driver::appendMessage(SubAccount* pSubAccount,
 		pJob.release();
 	}
 	else {
+		Lock<CriticalSection> lock(cs_);
+		
 		status = prepareSessionCache(pSubAccount);
 		CHECK_QSTATUS();
 		
@@ -817,6 +833,8 @@ QSTATUS qmimap4::Imap4Driver::copyMessages(SubAccount* pSubAccount,
 		status = Util::createRange(listUpdate, &pRange);
 		CHECK_QSTATUS();
 		
+		Lock<CriticalSection> lock(cs_);
+		
 		status = prepareSessionCache(pSubAccount);
 		CHECK_QSTATUS();
 		
@@ -855,6 +873,8 @@ QSTATUS qmimap4::Imap4Driver::clearDeletedMessages(
 		// TODO
 	}
 	else {
+		Lock<CriticalSection> lock(cs_);
+		
 		status = prepareSessionCache(pSubAccount);
 		CHECK_QSTATUS();
 		
@@ -893,7 +913,8 @@ QSTATUS qmimap4::Imap4Driver::clearDeletedMessages(
 		
 		cacher.release();
 		
-		Lock<Folder> lock(*pFolder);
+		Lock<Folder> lock2(*pFolder);
+		
 		Folder::MessageHolderList l;
 		status = STLWrapper<Folder::MessageHolderList>(
 			l).resize(hook.listUid_.size());

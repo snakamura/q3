@@ -156,6 +156,7 @@ private:
 	OfflineJobManager* pOfflineJobManager_;
 	bool bOffline_;
 	unsigned int nForceOnline_;
+	qs::CriticalSection cs_;
 };
 
 
