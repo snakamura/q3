@@ -8,10 +8,10 @@
 		@Concat(
 			'To: ',
 			@Decode($from),
-			'\\n',
+			'\n',
 			@If(
 				$val,
-				@Concat('Cc: ', @Decode($val), '\\n'),
+				@Concat('Cc: ', @Decode($val), '\n'),
 				''
 			)
 		)
@@ -32,7 +32,7 @@
 		@Concat(
 			'Bcc: ',
 			@I(@Account(), X-QMAIL-SubAccount),
-			'\\n'
+			'\n'
 		)
 	)
 }In-Reply-To: {Message-Id}
@@ -45,7 +45,7 @@ References: {
 		)
 	)
 }
-X-QMAIL-Account: {@Account()}{@If(X-QMAIL-SubAccount, @Concat('\\nX-QMAIL-SubAccount: ', X-QMAIL-SubAccount), '')}
+X-QMAIL-Account: {@Account()}{@If(X-QMAIL-SubAccount, @Concat('\nX-QMAIL-SubAccount: ', X-QMAIL-SubAccount), '')}
 X-QMAIL-Macro: @ForEach(@Messages('{@Concat('//', @Account(), '/', @Folder())}', {@Id()}), @Replied(@True()))
 
 At {@FormatDate(@Date(Date), '%D %M1 %Y4 %h:%m:%s %z', 2)} {@Name(From)} wrote:

@@ -14,7 +14,7 @@
 	)
 }From: {@Decode(@Field('From'))}
 Subject: {@Subject()}
-X-QMAIL-Account: {@Account()}{@If(X-QMAIL-SubAccount, @Concat('\nX-QMAIL-SubAccount: ', X-QMAIL-SubAccount), '')}
+X-QMAIL-Account: {@Account()}{@If(X-QMAIL-SubAccount, @Concat('nX-QMAIL-SubAccount: ', X-QMAIL-SubAccount), '')}
 X-QMAIL-Macro: @ForEach(@Messages('{@Concat('//', @Account(), '/', @Folder())}', {@Id()}), @Delete())
 
 {@Body()}

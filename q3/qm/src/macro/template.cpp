@@ -224,24 +224,44 @@ QSTATUS qm::TemplateParser::parse(Reader* pReader, Template** ppTemplate)
 	StringBuffer<WSTRING> bufText(&status);
 	StringBuffer<WSTRING> bufMacro(&status);
 	bool bMacro = false;
+	WCHAR cNext = L'\0';
 	while (true) {
 		WCHAR c = L'\0';
-		size_t nRead = 0;
-		status = pReader->read(&c, 1, &nRead);
-		CHECK_QSTATUS();
-		if (nRead != 1)
-			break;
+		if (cNext) {
+			c = cNext;
+			cNext = L'\0';
+		}
+		else {
+			size_t nRead = 0;
+			status = pReader->read(&c, 1, &nRead);
+			CHECK_QSTATUS();
+			if (nRead != 1)
+				break;
+		}
+		
 		if (!bMacro) {
-			if (c == L'\\') {
+			if (c == L'{') {
+				size_t nRead = 0;
 				status = pReader->read(&c, 1, &nRead);
 				CHECK_QSTATUS();
-				if (nRead != 1)
-					return QSTATUS_FAIL;
-				status = bufText.append(c);
-				CHECK_QSTATUS();
+				if (nRead == 1 && c == L'{') {
+					status = bufText.append(L'{');
+					CHECK_QSTATUS();
+				}
+				else {
+					bMacro = true;
+					if (nRead == 1)
+						cNext = c;
+				}
 			}
-			else if (c == L'{') {
-				bMacro = true;
+			else if (c == L'}') {
+				status = bufText.append(L'}');
+				CHECK_QSTATUS();
+				size_t nRead = 0;
+				status = pReader->read(&c, 1, &nRead);
+				CHECK_QSTATUS();
+				if (nRead == 1 && c != L'}')
+					cNext = c;
 			}
 			else {
 				status = bufText.append(c);
@@ -249,28 +269,40 @@ QSTATUS qm::TemplateParser::parse(Reader* pReader, Template** ppTemplate)
 			}
 		}
 		else {
-			if (c == L'\\') {
+			if (c == L'{') {
+				status = bufMacro.append(L'{');
+				CHECK_QSTATUS();
+				size_t nRead = 0;
 				status = pReader->read(&c, 1, &nRead);
 				CHECK_QSTATUS();
-				if (nRead != 1)
-					return QSTATUS_FAIL;
-				status = bufMacro.append(c);
-				CHECK_QSTATUS();
+				if (nRead == 1 && c != L'{')
+					cNext = c;
 			}
 			else if (c == L'}') {
-				Macro* pMacro = 0;
-				status = parser.parse(bufMacro.getCharArray(), &pMacro);
+				size_t nRead = 0;
+				status = pReader->read(&c, 1, &nRead);
 				CHECK_QSTATUS();
-				std::auto_ptr<Macro> apMacro(pMacro);
-				string_ptr<WSTRING> wstrText(bufText.getString());
-				status = STLWrapper<Template::ValueList>(listValue
-					).push_back(std::make_pair(wstrText.get(), pMacro));
-				CHECK_QSTATUS();
-				wstrText.release();
-				apMacro.release();
-				bufText.remove();
-				bufMacro.remove();
-				bMacro = false;
+				if (nRead == 1 && c == L'}') {
+					status = bufMacro.append(L'}');
+					CHECK_QSTATUS();
+				}
+				else {
+					Macro* pMacro = 0;
+					status = parser.parse(bufMacro.getCharArray(), &pMacro);
+					CHECK_QSTATUS();
+					std::auto_ptr<Macro> apMacro(pMacro);
+					string_ptr<WSTRING> wstrText(bufText.getString());
+					status = STLWrapper<Template::ValueList>(listValue
+						).push_back(std::make_pair(wstrText.get(), pMacro));
+					CHECK_QSTATUS();
+					wstrText.release();
+					apMacro.release();
+					bufText.remove();
+					bufMacro.remove();
+					bMacro = false;
+					if (nRead == 1)
+						cNext = c;
+				}
 			}
 			else {
 				status = bufMacro.append(c);

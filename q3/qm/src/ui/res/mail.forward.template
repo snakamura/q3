@@ -16,7 +16,7 @@
 			)
 		),
 		@Concat(
-			@If(@Contain($addr, 'To: '), '', 'To: \\n'),
+			@If(@Contain($addr, 'To: '), '', 'To: \n'),
 			$addr
 		)
 	)
@@ -24,10 +24,10 @@
 {
 	@If(
 		@Multipart(),
-		@Concat('Content-Type: ', Content-Type, '\\n'),
+		@Concat('Content-Type: ', Content-Type, '\n'),
 		''
 	)
-}X-QMAIL-Account: {@Account()}{@If(X-QMAIL-SubAccount, @Concat('\\nX-QMAIL-SubAccount: ', X-QMAIL-SubAccount), '')}
+}X-QMAIL-Account: {@Account()}{@If(X-QMAIL-SubAccount, @Concat('\nX-QMAIL-SubAccount: ', X-QMAIL-SubAccount), '')}
 X-QMAIL-Macro: @ForEach(@Messages('{@Concat('//', @Account(), '/', @Folder())}', {@Id()}), @Forwarded(@True()))
 
 {
@@ -35,16 +35,16 @@ X-QMAIL-Macro: @ForEach(@Messages('{@Concat('//', @Account(), '/', @Folder())}',
 		@Set(
 			'forward',
 			@Concat(
-				'----- Original Message -----\\n',
+				'----- Original Message -----\n',
 				'From: ',
 				From,
-				'\\nTo: ',
+				'\nTo: ',
 				To,
-				'\\nDate: ',
+				'\nDate: ',
 				Date,
-				'\\nSubject: ',
+				'\nSubject: ',
 				Subject,
-				'\\n\\n'
+				'\n\n'
 			)
 		),
 		@Set('content-type', @FieldParameter('Content-Type')),
@@ -67,9 +67,9 @@ X-QMAIL-Macro: @ForEach(@Messages('{@Concat('//', @Account(), '/', @Folder())}',
 							'body',
 							@Concat(
 								$body,
-								'\\n--',
+								'\n--',
 								$boundary,
-								'\\n',
+								'\n',
 								@If(
 									@Equal($n, 0),
 									@Concat(
@@ -77,14 +77,14 @@ X-QMAIL-Macro: @ForEach(@Messages('{@Concat('//', @Account(), '/', @Folder())}',
 											@If(@Equal(@FieldParameter('Content-Type', 'charset', $part), 'us-ascii'), 'Content-Type', ''),
 											$part
 										),
-										'\\n\\n'
+										'\n\n'
 										$forward,
 										@Body('', @False(), $part)
 									),
 									@BeginWith(@FieldParameter('Content-Type', '', $part), 'text/'),
 									@Concat(
 										@Header('Content-Type', $part),
-										'Content-Type: application/octet-stream\\n\\n',
+										'Content-Type: application/octet-stream\n\n',
 										@Body('', @False(), $part)
 									),
 									$part
@@ -96,9 +96,9 @@ X-QMAIL-Macro: @ForEach(@Messages('{@Concat('//', @Account(), '/', @Folder())}',
 				),
 				@Concat(
 					$body,
-					'\\n--',
+					'\n--',
 					$boundary,
-					'--\\n'
+					'--\n'
 				)
 			),
 			@Multipart(),
