@@ -42,10 +42,14 @@ public:
 
 public:
 	const WCHAR* getURL() const;
+	const WCHAR* getTitle() const;
+	const WCHAR* getLink() const;
 	const qs::Time& getPubDate() const;
 	const ItemList& getItems() const;
 
 public:
+	void setTitle(qs::wstring_ptr wstrTitle);
+	void setLink(qs::wstring_ptr wstrLink);
 	void setPubDate(const qs::Time& time);
 	void addItem(std::auto_ptr<Item> pItem);
 
@@ -55,6 +59,8 @@ private:
 
 private:
 	qs::wstring_ptr wstrURL_;
+	qs::wstring_ptr wstrTitle_;
+	qs::wstring_ptr wstrLink_;
 	qs::Time timePubDate_;
 	ItemList listItem_;
 };
@@ -226,6 +232,8 @@ private:
 		STATE_ROOT,
 		STATE_RDF,
 		STATE_CHANNEL,
+		STATE_TITLE,
+		STATE_LINK,
 		STATE_DATE,
 		STATE_ITEM,
 		STATE_PROPERTY,
@@ -276,6 +284,8 @@ private:
 		STATE_ROOT,
 		STATE_RSS,
 		STATE_CHANNEL,
+		STATE_TITLE,
+		STATE_LINK,
 		STATE_PUBDATE,
 		STATE_ITEM,
 		STATE_PROPERTY,
@@ -325,6 +335,7 @@ private:
 	enum State {
 		STATE_ROOT,
 		STATE_FEED,
+		STATE_TITLE,
 		STATE_MODIFIED,
 		STATE_ENTRY,
 		STATE_PROPERTY,

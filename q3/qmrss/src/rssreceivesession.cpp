@@ -409,11 +409,13 @@ bool qmrss::RssReceiveSession::createItemMessage(const Channel* pChannel,
 		const WCHAR* pwszName_;
 		const WCHAR* pwszValue_;
 	} properties[] = {
-		{ L"X-RSS-Title",		pItem->getTitle()		},
-		{ L"X-RSS-Link",		pItem->getLink()		},
-		{ L"X-RSS-Category",	pItem->getCategory()	},
-		{ L"X-RSS-Subject",		pItem->getSubject()		},
-		{ L"X-RSS-Creator",		pItem->getCreator()		}
+		{ L"X-RSS-ChannelTitle",	pChannel->getTitle()	},
+		{ L"X-RSS-ChannelLink",		pChannel->getLink()		},
+		{ L"X-RSS-Title",			pItem->getTitle()		},
+		{ L"X-RSS-Link",			pItem->getLink()		},
+		{ L"X-RSS-Category",		pItem->getCategory()	},
+		{ L"X-RSS-Subject",			pItem->getSubject()		},
+		{ L"X-RSS-Creator",			pItem->getCreator()		}
 	};
 	for (int n = 0; n < countof(properties); ++n) {
 		if (properties[n].pwszValue_) {

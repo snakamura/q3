@@ -37,6 +37,16 @@ const WCHAR* qmrss::Channel::getURL() const
 	return wstrURL_.get();
 }
 
+const WCHAR* qmrss::Channel::getTitle() const
+{
+	return wstrTitle_.get();
+}
+
+const WCHAR* qmrss::Channel::getLink() const
+{
+	return wstrLink_.get();
+}
+
 const Time& qmrss::Channel::getPubDate() const
 {
 	return timePubDate_;
@@ -45,6 +55,16 @@ const Time& qmrss::Channel::getPubDate() const
 const Channel::ItemList& qmrss::Channel::getItems() const
 {
 	return listItem_;
+}
+
+void qmrss::Channel::setTitle(wstring_ptr wstrTitle)
+{
+	wstrTitle_ = wstrTitle;
+}
+
+void qmrss::Channel::setLink(wstring_ptr wstrLink)
+{
+	wstrLink_ = wstrLink;
 }
 
 void qmrss::Channel::setPubDate(const qs::Time& time)
@@ -362,7 +382,15 @@ bool qmrss::Rss10Handler::startElement(const WCHAR* pwszNamespaceURI,
 		}
 		break;
 	case STATE_CHANNEL:
-		if (pwszNamespaceURI && wcscmp(pwszNamespaceURI, L"http://purl.org/dc/elements/1.1/") == 0) {
+		if (pwszNamespaceURI && wcscmp(pwszNamespaceURI, L"http://purl.org/rss/1.0/") == 0) {
+			if (wcscmp(pwszLocalName, L"title") == 0)
+				stackState_.push_back(STATE_TITLE);
+			else if (wcscmp(pwszLocalName, L"link") == 0)
+				stackState_.push_back(STATE_LINK);
+			else
+				stackState_.push_back(STATE_UNKNOWN);
+		}
+		else if (pwszNamespaceURI && wcscmp(pwszNamespaceURI, L"http://purl.org/dc/elements/1.1/") == 0) {
 			if (wcscmp(pwszLocalName, L"date") == 0)
 				stackState_.push_back(STATE_DATE);
 			else
@@ -372,6 +400,8 @@ bool qmrss::Rss10Handler::startElement(const WCHAR* pwszNamespaceURI,
 			stackState_.push_back(STATE_UNKNOWN);
 		}
 		break;
+	case STATE_TITLE:
+	case STATE_LINK:
 	case STATE_DATE:
 		stackState_.push_back(STATE_UNKNOWN);
 		break;
@@ -434,6 +464,12 @@ bool qmrss::Rss10Handler::endElement(const WCHAR* pwszNamespaceURI,
 	case STATE_CHANNEL:
 		assert(wcscmp(pwszNamespaceURI, L"http://purl.org/rss/1.0/") == 0 &&
 			wcscmp(pwszLocalName, L"channel") == 0);
+		break;
+	case STATE_TITLE:
+		pChannel_->setTitle(buffer_.getString());
+		break;
+	case STATE_LINK:
+		pChannel_->setLink(buffer_.getString());
 		break;
 	case STATE_DATE:
 		{
@@ -515,12 +551,13 @@ bool qmrss::Rss10Handler::characters(const WCHAR* pwsz,
 	assert(!stackState_.empty());
 	
 	State state = stackState_.back();
-	if (state == STATE_DATE ||
+	if (state == STATE_TITLE ||
+		state == STATE_LINK ||
+		state == STATE_DATE ||
 		state == STATE_PROPERTY)
 		buffer_.append(pwsz + nStart, nLength);
 	return true;
 }
-
 
 
 /****************************************************************************
@@ -568,6 +605,12 @@ bool qmrss::Rss20Handler::startElement(const WCHAR* pwszNamespaceURI,
 				pChannel_->addItem(pItem);
 				stackState_.push_back(STATE_ITEM);
 			}
+			else if (wcscmp(pwszLocalName, L"title") == 0) {
+				stackState_.push_back(STATE_TITLE);
+			}
+			else if (wcscmp(pwszLocalName, L"link") == 0) {
+				stackState_.push_back(STATE_LINK);
+			}
 			else if (wcscmp(pwszLocalName, L"pubDate") == 0) {
 				stackState_.push_back(STATE_PUBDATE);
 			}
@@ -579,6 +622,8 @@ bool qmrss::Rss20Handler::startElement(const WCHAR* pwszNamespaceURI,
 			stackState_.push_back(STATE_UNKNOWN);
 		}
 		break;
+	case STATE_TITLE:
+	case STATE_LINK:
 	case STATE_PUBDATE:
 		stackState_.push_back(STATE_UNKNOWN);
 		break;
@@ -640,6 +685,12 @@ bool qmrss::Rss20Handler::endElement(const WCHAR* pwszNamespaceURI,
 		break;
 	case STATE_CHANNEL:
 		assert(!pwszNamespaceURI && wcscmp(pwszLocalName, L"channel") == 0);
+		break;
+	case STATE_TITLE:
+		pChannel_->setTitle(buffer_.getString());
+		break;
+	case STATE_LINK:
+		pChannel_->setLink(buffer_.getString());
 		break;
 	case STATE_PUBDATE:
 		{
@@ -727,7 +778,9 @@ bool qmrss::Rss20Handler::characters(const WCHAR* pwsz,
 	assert(!stackState_.empty());
 	
 	State state = stackState_.back();
-	if (state == STATE_PUBDATE ||
+	if (state == STATE_TITLE ||
+		state == STATE_LINK ||
+		state == STATE_PUBDATE ||
 		state == STATE_PROPERTY)
 		buffer_.append(pwsz + nStart, nLength);
 	return true;
@@ -775,6 +828,15 @@ bool qmrss::AtomHandler::startElement(const WCHAR* pwszNamespaceURI,
 				pChannel_->addItem(pItem);
 				stackState_.push_back(STATE_ENTRY);
 			}
+			else if (wcscmp(pwszLocalName, L"title") == 0) {
+				stackState_.push_back(STATE_TITLE);
+			}
+			else if (wcscmp(pwszLocalName, L"link") == 0) {
+				const WCHAR* pwszHref = attributes.getValue(L"href");
+				if (pwszHref)
+					pChannel_->setLink(allocWString(pwszHref));
+				stackState_.push_back(STATE_UNKNOWN);
+			}
 			else if (wcscmp(pwszLocalName, L"modified") == 0) {
 				stackState_.push_back(STATE_MODIFIED);
 			}
@@ -786,6 +848,7 @@ bool qmrss::AtomHandler::startElement(const WCHAR* pwszNamespaceURI,
 			stackState_.push_back(STATE_UNKNOWN);
 		}
 		break;
+	case STATE_TITLE:
 	case STATE_MODIFIED:
 		stackState_.push_back(STATE_UNKNOWN);
 		break;
@@ -861,6 +924,9 @@ bool qmrss::AtomHandler::endElement(const WCHAR* pwszNamespaceURI,
 	case STATE_FEED:
 		assert(wcscmp(pwszNamespaceURI, L"http://purl.org/atom/ns#") == 0 &&
 			wcscmp(pwszLocalName, L"feed") == 0);
+		break;
+	case STATE_TITLE:
+		pChannel_->setTitle(buffer_.getString());
 		break;
 	case STATE_MODIFIED:
 		{
@@ -948,7 +1014,8 @@ bool qmrss::AtomHandler::characters(const WCHAR* pwsz,
 	assert(!stackState_.empty());
 	
 	State state = stackState_.back();
-	if (state == STATE_MODIFIED ||
+	if (state == STATE_TITLE ||
+		state == STATE_MODIFIED ||
 		state == STATE_PROPERTY ||
 		state == STATE_NAME ||
 		state == STATE_EMAIL)
