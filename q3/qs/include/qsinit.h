@@ -1,5 +1,5 @@
 /*
- * $Id: qsinit.h,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -13,6 +13,12 @@
 
 namespace qs {
 
+class Init;
+class InitThread;
+
+class Synchronizer;
+
+
 /****************************************************************************
  *
  * Init
@@ -22,7 +28,8 @@ namespace qs {
 class QSEXPORTCLASS Init
 {
 public:
-	Init(HINSTANCE hInst, const WCHAR* pwszTitle, QSTATUS* pstatus);
+	Init(HINSTANCE hInst, const WCHAR* pwszTitle,
+		unsigned int nFlags, unsigned int nThreadFlags, QSTATUS* pstatus);
 	~Init();
 
 public:
@@ -31,6 +38,10 @@ public:
 	const WCHAR* getSystemEncoding() const;
 	const WCHAR* getDefaultFixedWidthFont() const;
 	const WCHAR* getDefaultProportionalFont() const;
+
+public:
+	InitThread* getInitThread();
+	void setInitThread(InitThread* pInitThread);
 
 public:
 	static Init& getInit();
@@ -53,8 +64,19 @@ private:
 class QSEXPORTCLASS InitThread
 {
 public:
-	explicit InitThread(QSTATUS* pstatus);
+	enum Flag {
+		FLAG_SYNCHRONIZER	= 0x01
+	};
+
+public:
+	InitThread(unsigned int nFlags, QSTATUS* pstatus);
 	~InitThread();
+
+public:
+	Synchronizer* getSynchronizer() const;
+
+public:
+	static InitThread& getInitThread();
 
 private:
 	InitThread(const InitThread&);

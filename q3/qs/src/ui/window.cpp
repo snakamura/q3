@@ -1,5 +1,5 @@
 /*
- * $Id: window.cpp,v 1.3 2003/05/21 15:59:41 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -385,6 +385,7 @@ private:
 	CommandHandlerList listCommandHandler_;
 	NotifyHandlerList listNotifyHandler_;
 	OwnerDrawHandlerList listOwnerDrawHandler_;
+	InitThread* pInitThread_;
 
 private:
 	static WindowMap* pMap__;
@@ -719,6 +720,7 @@ qs::WindowBase::WindowBase(bool bDeleteThis, QSTATUS* pstatus) :
 	pImpl_->bDeleteHandler_ = false;
 	pImpl_->procSubclass_ = 0;
 	pImpl_->pOrgWindowBase_ = 0;
+	pImpl_->pInitThread_ = &InitThread::getInitThread();
 }
 
 qs::WindowBase::~WindowBase()
@@ -967,6 +969,11 @@ bool qs::WindowBase::isFrame() const
 		return pImpl_->pOrgWindowBase_->isFrame();
 	else
 		return pImpl_->pWindowHandler_->isFrame();
+}
+
+InitThread* qs::WindowBase::getInitThread() const
+{
+	return pImpl_->pInitThread_;
 }
 
 LRESULT qs::WindowBase::defWindowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)

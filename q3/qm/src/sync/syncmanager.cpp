@@ -845,7 +845,7 @@ unsigned int qm::SyncManager::SyncThread::run()
 {
 	DECLARE_QSTATUS();
 	
-	InitThread init(&status);
+	InitThread init(0, &status);
 	CHECK_QSTATUS_VALUE(-1);
 	
 	pSyncManager_->syncData(pSyncData_);
@@ -880,7 +880,7 @@ unsigned int qm::SyncManager::ParallelSyncThread::run()
 {
 	DECLARE_QSTATUS();
 	
-	InitThread init(&status);
+	InitThread init(0, &status);
 	CHECK_QSTATUS_VALUE(-1);
 	
 	pSyncManager_->syncSlotData(pSyncData_, nSlot_);
@@ -928,7 +928,7 @@ unsigned int qm::SyncManager::WaitThread::run()
 {
 	DECLARE_QSTATUS();
 	
-	InitThread init(&status);
+	InitThread init(0, &status);
 	CHECK_QSTATUS_VALUE(-1);
 	
 	typedef SyncManager::ThreadList List;

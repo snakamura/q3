@@ -1,5 +1,5 @@
 /*
- * $Id: thread.cpp,v 1.1.1.1 2003/04/29 08:07:37 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -17,6 +17,9 @@
 #ifndef _WIN32_WCE
 #	include <process.h>
 #endif
+#include <tchar.h>
+
+#include "thread.h"
 
 using namespace qs;
 
@@ -314,4 +317,73 @@ QSTATUS qs::Event::wait(unsigned int nMillisecond)
 HANDLE qs::Event::getHandle() const
 {
 	return hEvent_;
+}
+
+
+/****************************************************************************
+ *
+ * Synchronizer
+ *
+ */
+
+qs::Synchronizer::Synchronizer(QSTATUS* pstatus) :
+	pWindow_(0)
+{
+	DECLARE_QSTATUS();
+	
+	std::auto_ptr<SynchronizerWindow> pWindow;
+	status = newQsObject(&pWindow);
+	CHECK_QSTATUS_SET(pstatus);
+	status = pWindow->create(L"QsSynchronizerWindow", 0, WS_POPUP,
+		0, 0, 0, 0, 0, 0, 0, 0, 0);
+	pWindow_ = pWindow.release();
+}
+
+qs::Synchronizer::~Synchronizer()
+{
+	pWindow_->destroyWindow();
+}
+
+QSTATUS qs::Synchronizer::syncExec(Runnable* pRunnable)
+{
+	DECLARE_QSTATUS();
+	
+	status = pWindow_->sendMessage(SynchronizerWindow::WM_SYNCEXEC,
+		0, reinterpret_cast<LPARAM>(pRunnable));
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * SynchronizerWindow
+ *
+ */
+
+qs::SynchronizerWindow::SynchronizerWindow(QSTATUS* pstatus) :
+	WindowBase(true, pstatus),
+	DefaultWindowHandler(pstatus)
+{
+	setWindowHandler(this, false);
+}
+
+qs::SynchronizerWindow::~SynchronizerWindow()
+{
+}
+
+LRESULT qs::SynchronizerWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	BEGIN_MESSAGE_HANDLER()
+		HANDLE_MESSAGE(WM_SYNCEXEC, onSyncExec)
+	END_MESSAGE_HANDLER()
+	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
+}
+
+LRESULT qs::SynchronizerWindow::onSyncExec(WPARAM wParam, LPARAM lParam)
+{
+	Runnable* pRunnable = reinterpret_cast<Runnable*>(lParam);
+	pRunnable->run();
+	return 0;
 }

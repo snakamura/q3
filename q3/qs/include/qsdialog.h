@@ -1,5 +1,5 @@
 /*
- * $Id: qsdialog.h,v 1.3 2003/06/01 16:27:36 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -26,6 +26,8 @@ class FileDialog;
 #ifdef _WIN32_WCE
 class BrowseFolderDialog;
 #endif
+
+class InitThread;
 
 
 /****************************************************************************
@@ -56,6 +58,8 @@ public:
 	
 	QSTATUS addOwnerDrawHandler(OwnerDrawHandler* podh);
 	QSTATUS removeOwnerDrawHandler(OwnerDrawHandler* podh);
+	
+	InitThread* getInitThread() const;
 
 public:
 	virtual LRESULT defWindowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);

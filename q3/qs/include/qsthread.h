@@ -1,5 +1,5 @@
 /*
- * $Id: qsthread.h,v 1.1.1.1 2003/04/29 08:07:35 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -13,6 +13,19 @@
 #include <windows.h>
 
 namespace qs {
+
+class Runnable;
+class Thread;
+class ThreadLocal;
+class CriticalSection;
+class SpinLock;
+class NoLock;
+template<class Object> class Lock;
+class Event;
+class Synchronizer;
+
+class SynchronizerWindow;
+
 
 /****************************************************************************
  *
@@ -220,6 +233,30 @@ private:
 
 private:
 	HANDLE hEvent_;
+};
+
+
+/****************************************************************************
+ *
+ * Synchronizer
+ *
+ */
+
+class QSEXPORTCLASS Synchronizer
+{
+public:
+	explicit Synchronizer(QSTATUS* pstatus);
+	~Synchronizer();
+
+public:
+	QSTATUS syncExec(Runnable* pRunnable);
+
+private:
+	Synchronizer(const Synchronizer&);
+	Synchronizer& operator=(const Synchronizer&);
+
+private:
+	SynchronizerWindow* pWindow_;
 };
 
 }

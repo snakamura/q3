@@ -1,5 +1,5 @@
 /*
- * $Id: qmail.cpp,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -113,7 +113,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hInstPrev,
 		return 0;
 	}
 	
-	qs::Init init(hInst, L"QMAIL", &status);
+	qs::Init init(hInst, L"QMAIL", 0, 0, &status);
 	CHECK_QSTATUS_VALUE(1);
 	
 #ifdef NDEBUG

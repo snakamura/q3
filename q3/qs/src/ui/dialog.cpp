@@ -1,5 +1,5 @@
 /*
- * $Id: dialog.cpp,v 1.3 2003/06/01 16:27:36 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -305,6 +305,7 @@ qs::DialogBase::DialogBase(bool bDeleteThis, QSTATUS* pstatus) :
 	pImpl_->bDeleteThis_ = bDeleteThis;
 	pImpl_->pDialogHandler_ = 0;
 	pImpl_->bDeleteHandler_ = false;
+	pImpl_->pInitThread_ = &InitThread::getInitThread();
 }
 
 qs::DialogBase::~DialogBase()
@@ -382,6 +383,11 @@ QSTATUS qs::DialogBase::removeOwnerDrawHandler(OwnerDrawHandler* podh)
 	assert(it != pImpl_->listOwnerDrawHandler_.end());
 	pImpl_->listOwnerDrawHandler_.erase(it, pImpl_->listOwnerDrawHandler_.end());
 	return QSTATUS_SUCCESS;
+}
+
+InitThread* qs::DialogBase::getInitThread() const
+{
+	return pImpl_->pInitThread_;
 }
 
 LRESULT qs::DialogBase::defWindowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)

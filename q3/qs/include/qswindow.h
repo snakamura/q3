@@ -1,5 +1,5 @@
 /*
- * $Id: qswindow.h,v 1.6 2003/05/21 15:59:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -63,6 +63,7 @@ class Cursor;
 class WaitCursor;
 
 class Action;
+class InitThread;
 
 
 /****************************************************************************
@@ -310,6 +311,8 @@ public:
 	QSTATUS getAccelerator(Accelerator** ppAccelerator);
 	QSTATUS preTranslateAccelerator(const MSG& msg, bool* pbProcessed);
 	bool isFrame() const;
+	
+	InitThread* getInitThread() const;
 
 public:
 	virtual LRESULT defWindowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);

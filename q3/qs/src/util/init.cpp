@@ -1,5 +1,5 @@
 /*
- * $Id: init.cpp,v 1.1.1.1 2003/04/29 08:07:37 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved
@@ -114,7 +114,8 @@ QSTATUS qs::InitImpl::setSystemEncodingAndFonts(const WCHAR* pwszEncoding)
  *
  */
 
-qs::Init::Init(HINSTANCE hInst, const WCHAR* pwszTitle, QSTATUS* pstatus) :
+qs::Init::Init(HINSTANCE hInst, const WCHAR* pwszTitle,
+	unsigned int nFlags, unsigned int nThreadFlags, QSTATUS* pstatus) :
 	pImpl_(0)
 {
 	assert(pstatus);
@@ -218,29 +219,25 @@ qs::Init::Init(HINSTANCE hInst, const WCHAR* pwszTitle, QSTATUS* pstatus) :
 	CHECK_QSTATUS_SET(pstatus);
 	assert(pImpl_->pInitThread_);
 	
+	InitImpl::pInit__ = this;
+	
 	std::auto_ptr<InitThread> apInitThread;
-	status = newQsObject(&apInitThread);
+	status = newQsObject(nThreadFlags, &apInitThread);
 	CHECK_QSTATUS_SET(pstatus);
 	status = pImpl_->pInitThread_->set(apInitThread.get());
 	CHECK_QSTATUS_SET(pstatus);
 	apInitThread.release();
-	
-	InitImpl::pInit__ = this;
 }
 
 qs::Init::~Init()
 {
-	InitImpl::pInit__ = 0;
-	
 	if (pImpl_->pInitThread_) {
-		void* pValue = 0;
-		if (pImpl_->pInitThread_->get(&pValue) == QSTATUS_SUCCESS) {
-			InitThread* pInitThread = static_cast<InitThread*>(pValue);
-			delete pInitThread;
-		}
+		delete getInitThread();
 		delete pImpl_->pInitThread_;
 		pImpl_->pInitThread_ = 0;
 	}
+	
+	InitImpl::pInit__ = 0;
 	
 	freeWString(pImpl_->wstrTitle_);
 	pImpl_->wstrTitle_ = 0;
@@ -301,6 +298,18 @@ const WCHAR* qs::Init::getDefaultProportionalFont() const
 	return pImpl_->wstrProportionalFont_;
 }
 
+InitThread* qs::Init::getInitThread()
+{
+	void* pValue = 0;
+	pImpl_->pInitThread_->get(&pValue);
+	return static_cast<InitThread*>(pValue);
+}
+
+void qs::Init::setInitThread(InitThread* pInitThread)
+{
+	pImpl_->pInitThread_->set(pInitThread);
+}
+
 Init& qs::Init::getInit()
 {
 	return *InitImpl::pInit__;
@@ -315,6 +324,7 @@ Init& qs::Init::getInit()
 
 struct qs::InitThreadImpl
 {
+	Synchronizer* pSynchronizer_;
 };
 
 
@@ -324,7 +334,7 @@ struct qs::InitThreadImpl
  *
  */
 
-qs::InitThread::InitThread(QSTATUS* pstatus) :
+qs::InitThread::InitThread(unsigned int nFlags, QSTATUS* pstatus) :
 	pImpl_(0)
 {
 	assert(pstatus);
@@ -335,6 +345,7 @@ qs::InitThread::InitThread(QSTATUS* pstatus) :
 	
 	status = newObject(&pImpl_);
 	CHECK_QSTATUS_SET(pstatus);
+	pImpl_->pSynchronizer_ = 0;
 	
 	Initializer* pInitializer = InitImpl::pInitializer__;
 	while (pInitializer) {
@@ -342,18 +353,41 @@ qs::InitThread::InitThread(QSTATUS* pstatus) :
 		CHECK_QSTATUS_SET(pstatus);
 		pInitializer = pInitializer->getNext();
 	}
+	
+	if (nFlags & FLAG_SYNCHRONIZER) {
+		status = newQsObject(&pImpl_->pSynchronizer_);
+		CHECK_QSTATUS_SET(pstatus);
+	}
+	
+	Init::getInit().setInitThread(this);
 }
 
 qs::InitThread::~InitThread()
 {
+	delete pImpl_->pSynchronizer_;
+	pImpl_->pSynchronizer_ = 0;
+	
 	Initializer* pInitializer = InitImpl::pInitializer__;
 	while (pInitializer) {
 		pInitializer->termThread();
 		pInitializer = pInitializer->getNext();
 	}
 	
+	Init::getInit().setInitThread(0);
+	
 	delete pImpl_;
 	pImpl_ = 0;
+}
+
+Synchronizer* qs::InitThread::getSynchronizer() const
+{
+	assert(pImpl_->pSynchronizer_);
+	return pImpl_->pSynchronizer_;
+}
+
+InitThread& qs::InitThread::getInitThread()
+{
+	return *Init::getInit().getInitThread();
 }
 
 

@@ -88,7 +88,8 @@ qm::SyncDialog::SyncDialog(Profile* pProfile, QSTATUS* pstatus) :
 	DefaultCommandHandler(pstatus),
 	pProfile_(pProfile),
 	pStatusWindow_(0),
-	bShowError_(false)
+	bShowError_(false),
+	nCanceledTime_(0)
 {
 	if (*pstatus != QSTATUS_SUCCESS)
 		return;
@@ -148,11 +149,6 @@ void qm::SyncDialog::resetCanceledTime()
 	nCanceledTime_ = 0;
 }
 
-void qm::SyncDialog::enableCancel(bool bEnable)
-{
-	sendMessage(WM_SYNCDIALOG_ENABLECANCEL, bEnable);
-}
-
 QSTATUS qm::SyncDialog::addError(const WCHAR* pwszError)
 {
 	assert(pwszError);
@@ -180,6 +176,71 @@ bool qm::SyncDialog::hasError() const
 	return Window(getDlgItem(IDC_ERROR)).getWindowTextLength() != 0;
 }
 
+QSTATUS qm::SyncDialog::enableCancel(bool bEnable)
+{
+	Window(getDlgItem(IDC_CANCEL)).enableWindow(bEnable);
+	
+	UINT nOldId = bEnable ? IDCANCEL : IDC_CANCEL;
+	UINT nNewId = bEnable ? IDC_CANCEL : IDCANCEL;
+	Window(getDlgItem(nNewId)).setFocus();
+	sendDlgItemMessage(nOldId, BM_SETSTYLE, BS_PUSHBUTTON, TRUE);
+	sendMessage(DM_SETDEFID, nNewId);
+	sendDlgItemMessage(nNewId, BM_SETSTYLE, BS_DEFPUSHBUTTON, TRUE);
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::SyncDialog::showDialupDialog(RASDIALPARAMS* prdp, bool* pbCancel) const
+{
+	assert(prdp);
+	assert(pbCancel);
+	
+	DECLARE_QSTATUS();
+	
+	T2W(prdp->szEntryName, pwszEntryName);
+	T2W(prdp->szUserName, pwszUserName);
+	T2W(prdp->szPassword, pwszPassword);
+	T2W(prdp->szDomain, pwszDomain);
+	
+	DialupDialog dialog(pwszEntryName, pwszUserName,
+		pwszPassword, pwszDomain, &status);
+	CHECK_QSTATUS();
+	int nRet = 0;
+	status = dialog.doModal(getHandle(), 0, &nRet);
+	CHECK_QSTATUS();
+	if (nRet == IDOK) {
+		// TODO
+		
+	}
+	else {
+		*pbCancel = true;
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::SyncDialog::selectDialupEntry(WSTRING* pwstrEntry) const
+{
+	assert(pwstrEntry);
+	
+	DECLARE_QSTATUS();
+	
+	SelectDialupEntryDialog dialog(pProfile_, &status);
+	CHECK_QSTATUS_VALUE(1);
+	int nRet = 0;
+	status = dialog.doModal(getHandle(), 0, &nRet);
+	CHECK_QSTATUS_VALUE(1);
+	
+	if (nRet == IDOK) {
+		string_ptr<WSTRING> wstrEntry(allocWString(dialog.getEntry()));
+		if (!wstrEntry.get())
+			return 1;
+		*pwstrEntry = wstrEntry.release();
+	}
+	
+	return 0;
+}
+
 INT_PTR qm::SyncDialog::dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	BEGIN_DIALOG_HANDLER()
@@ -187,9 +248,6 @@ INT_PTR qm::SyncDialog::dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		HANDLE_DESTROY()
 		HANDLE_INITDIALOG()
 		HANDLE_SIZE()
-		HANDLE_MESSAGE(WM_SYNCDIALOG_ENABLECANCEL, onEnableCancel)
-		HANDLE_MESSAGE(WM_SYNCDIALOG_SHOWDIALUPDIALOG, onShowDialupDialog)
-		HANDLE_MESSAGE(WM_SYNCDIALOG_SELECTDIALUPENTRY, onSelectDialupEntry)
 	END_DIALOG_HANDLER()
 	return DefaultDialogHandler::dialogProc(uMsg, wParam, lParam);
 }
@@ -269,52 +327,6 @@ LRESULT qm::SyncDialog::onSize(UINT nFlags, int cx, int cy)
 {
 	layout(cx, cy);
 	return DefaultDialogHandler::onSize(nFlags, cx, cy);
-}
-
-LRESULT qm::SyncDialog::onEnableCancel(WPARAM wParam, LPARAM lParam)
-{
-	bool bEnable = wParam != 0;
-	
-	Window(getDlgItem(IDC_CANCEL)).enableWindow(bEnable);
-	
-	UINT nOldId = bEnable ? IDCANCEL : IDC_CANCEL;
-	UINT nNewId = bEnable ? IDC_CANCEL : IDCANCEL;
-	Window(getDlgItem(nNewId)).setFocus();
-	sendDlgItemMessage(nOldId, BM_SETSTYLE, BS_PUSHBUTTON, TRUE);
-	sendMessage(DM_SETDEFID, nNewId);
-	sendDlgItemMessage(nNewId, BM_SETSTYLE, BS_DEFPUSHBUTTON, TRUE);
-	
-	return 0;
-}
-
-LRESULT qm::SyncDialog::onShowDialupDialog(WPARAM wParam, LPARAM lParam)
-{
-	bool bCancel = false;
-	showDialupDialog(reinterpret_cast<RASDIALPARAMS*>(lParam), &bCancel);
-	return bCancel;
-}
-
-LRESULT qm::SyncDialog::onSelectDialupEntry(WPARAM wParam, LPARAM lParam)
-{
-	DECLARE_QSTATUS();
-	
-	SelectDialupEntryData* pData =
-		reinterpret_cast<SelectDialupEntryData*>(lParam);
-	
-	SelectDialupEntryDialog dialog(pProfile_, &status);
-	CHECK_QSTATUS_VALUE(1);
-	int nRet = 0;
-	status = dialog.doModal(getHandle(), 0, &nRet);
-	CHECK_QSTATUS_VALUE(1);
-	
-	if (nRet == IDOK) {
-		string_ptr<WSTRING> wstrEntry(allocWString(dialog.getEntry()));
-		if (!wstrEntry.get())
-			return 1;
-		pData->wstrEntry_ = wstrEntry.release();
-	}
-	
-	return 0;
 }
 
 LRESULT qm::SyncDialog::onCancel()
@@ -399,35 +411,6 @@ void qm::SyncDialog::layout(int cx, int cy)
 #endif
 }
 
-QSTATUS qm::SyncDialog::showDialupDialog(RASDIALPARAMS* prdp, bool* pbCancel)
-{
-	assert(prdp);
-	assert(pbCancel);
-	
-	DECLARE_QSTATUS();
-	
-	T2W(prdp->szEntryName, pwszEntryName);
-	T2W(prdp->szUserName, pwszUserName);
-	T2W(prdp->szPassword, pwszPassword);
-	T2W(prdp->szDomain, pwszDomain);
-	
-	DialupDialog dialog(pwszEntryName, pwszUserName,
-		pwszPassword, pwszDomain, &status);
-	CHECK_QSTATUS();
-	int nRet = 0;
-	status = dialog.doModal(getHandle(), 0, &nRet);
-	CHECK_QSTATUS();
-	if (nRet == IDOK) {
-		// TODO
-		
-	}
-	else {
-		*pbCancel = true;
-	}
-	
-	return QSTATUS_SUCCESS;
-}
-
 
 /****************************************************************************
  *
@@ -486,7 +469,25 @@ QSTATUS qm::SyncStatusWindow::start()
 {
 	pSyncDialog_->resetCanceledTime();
 	pSyncDialog_->setMessage(L"");
-	pSyncDialog_->enableCancel(true);
+	class RunnableImpl : public Runnable
+	{
+	public:
+		RunnableImpl(SyncDialog* pSyncDialog) :
+			pSyncDialog_(pSyncDialog)
+		{
+		}
+		
+		virtual unsigned int run()
+		{
+			pSyncDialog_->enableCancel(true);
+			return 0;
+		}
+	
+	private:
+		SyncDialog* pSyncDialog_;
+	} runnable(pSyncDialog_);
+	pSyncDialog_->getInitThread()->getSynchronizer()->syncExec(&runnable);
+	
 	pSyncDialog_->show();
 	return QSTATUS_SUCCESS;
 }
@@ -500,7 +501,24 @@ void qm::SyncStatusWindow::end()
 	}
 	
 	pSyncDialog_->setMessage(L"");
-	pSyncDialog_->enableCancel(false);
+	class RunnableImpl : public Runnable
+	{
+	public:
+		RunnableImpl(SyncDialog* pSyncDialog) :
+			pSyncDialog_(pSyncDialog)
+		{
+		}
+		
+		virtual unsigned int run()
+		{
+			pSyncDialog_->enableCancel(false);
+			return 0;
+		}
+	
+	private:
+		SyncDialog* pSyncDialog_;
+	} runnable(pSyncDialog_);
+	pSyncDialog_->getInitThread()->getSynchronizer()->syncExec(&runnable);
 	
 	if (bEmpty && !pSyncDialog_->hasError())
 		pSyncDialog_->hide();
@@ -701,13 +719,26 @@ QSTATUS qm::SyncStatusWindow::selectDialupEntry(WSTRING* pwstrEntry)
 {
 	assert(pwstrEntry);
 	
-	DECLARE_QSTATUS();
+	class RunnableImpl : public Runnable
+	{
+	public:
+		RunnableImpl(SyncDialog* pSyncDialog, WSTRING* pwstrEntry) :
+			pSyncDialog_(pSyncDialog),
+			pwstrEntry_(pwstrEntry)
+		{
+		}
+		
+		virtual unsigned int run()
+		{
+			pSyncDialog_->selectDialupEntry(pwstrEntry_);
+			return 0;
+		}
 	
-	SyncDialog::SelectDialupEntryData data = { 0 };
-	if (pSyncDialog_->sendMessage(SyncDialog::WM_SYNCDIALOG_SELECTDIALUPENTRY,
-		0, reinterpret_cast<LPARAM>(&data)) != 0)
-		return QSTATUS_FAIL;
-	*pwstrEntry = data.wstrEntry_;
+	private:
+		SyncDialog* pSyncDialog_;
+		WSTRING* pwstrEntry_;
+	} runnable(pSyncDialog_, pwstrEntry);
+	pSyncDialog_->getInitThread()->getSynchronizer()->syncExec(&runnable);
 	
 	return QSTATUS_SUCCESS;
 }
@@ -715,9 +746,29 @@ QSTATUS qm::SyncStatusWindow::selectDialupEntry(WSTRING* pwstrEntry)
 QSTATUS qm::SyncStatusWindow::showDialupDialog(
 	RASDIALPARAMS* prdp, bool* pbCancel)
 {
-	*pbCancel = pSyncDialog_->sendMessage(
-		SyncDialog::WM_SYNCDIALOG_SHOWDIALUPDIALOG,
-		0, reinterpret_cast<LPARAM>(prdp)) != 0;
+	class RunnableImpl : public Runnable
+	{
+	public:
+		RunnableImpl(SyncDialog* pSyncDialog, RASDIALPARAMS* prdp, bool* pbCancel) :
+			pSyncDialog_(pSyncDialog),
+			prdp_(prdp),
+			pbCancel_(pbCancel)
+		{
+		}
+		
+		virtual unsigned int run()
+		{
+			pSyncDialog_->showDialupDialog(prdp_, pbCancel_);
+			return 0;
+		}
+	
+	private:
+		SyncDialog* pSyncDialog_;
+		RASDIALPARAMS* prdp_;
+		bool* pbCancel_;
+	} runnable(pSyncDialog_, prdp, pbCancel);
+	pSyncDialog_->getInitThread()->getSynchronizer()->syncExec(&runnable);
+	
 	return QSTATUS_SUCCESS;
 }
 
@@ -1166,7 +1217,7 @@ unsigned int qm::SyncDialogThread::run()
 {
 	DECLARE_QSTATUS();
 	
-	InitThread init(&status);
+	InitThread init(InitThread::FLAG_SYNCHRONIZER, &status);
 	CHECK_QSTATUS_VALUE(-1);
 	
 	std::auto_ptr<SyncDialog> pDialog;

@@ -65,19 +65,6 @@ class SyncDialog :
 	public qs::DefaultCommandHandler
 {
 public:
-	enum {
-		WM_SYNCDIALOG_ENABLECANCEL		= WM_APP + 1001,
-		WM_SYNCDIALOG_SHOWDIALUPDIALOG	= WM_APP + 1002,
-		WM_SYNCDIALOG_SELECTDIALUPENTRY	= WM_APP + 1003
-	};
-
-public:
-	struct SelectDialupEntryData
-	{
-		qs::WSTRING wstrEntry_;
-	};
-
-public:
 	SyncDialog(qs::Profile* pProfile, qs::QSTATUS* pstatus);
 	virtual ~SyncDialog();
 
@@ -90,9 +77,11 @@ public:
 	void setMessage(const WCHAR* pwszMessage);
 	unsigned int getCanceledTime() const;
 	void resetCanceledTime();
-	void enableCancel(bool bEnable);
 	qs::QSTATUS addError(const WCHAR* pwszError);
 	bool hasError() const;
+	qs::QSTATUS enableCancel(bool bEnable);
+	qs::QSTATUS showDialupDialog(RASDIALPARAMS* prdp, bool* pbCancel) const;
+	qs::QSTATUS selectDialupEntry(qs::WSTRING* pwstrEntry) const;
 
 public:
 	virtual INT_PTR dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -105,9 +94,6 @@ protected:
 	LRESULT onDestroy();
 	LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
 	LRESULT onSize(UINT nFlags, int cx, int cy);
-	LRESULT onEnableCancel(WPARAM wParam, LPARAM lParam);
-	LRESULT onShowDialupDialog(WPARAM wParam, LPARAM lParam);
-	LRESULT onSelectDialupEntry(WPARAM wParam, LPARAM lParam);
 
 private:
 	LRESULT onCancel();
@@ -116,14 +102,12 @@ private:
 private:
 	void layout();
 	void layout(int cx, int cy);
-	qs::QSTATUS showDialupDialog(RASDIALPARAMS* prdp, bool* pbCancel);
 
 private:
 	SyncDialog(const SyncDialog&);
 	SyncDialog& operator=(const SyncDialog&);
 
 private:
-	SyncDialogManager* pManager_;
 	qs::Profile* pProfile_;
 	SyncStatusWindow* pStatusWindow_;
 	bool bShowError_;
