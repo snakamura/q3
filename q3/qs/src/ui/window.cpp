@@ -28,6 +28,7 @@
 #	include <aygshell.h>
 #endif
 
+#include "dialog.h"
 #include "window.h"
 
 #pragma warning(disable:4786)
@@ -376,6 +377,7 @@ public:
 	void notifyOwnerDrawHandlers(DRAWITEMSTRUCT* pDrawItem) const;
 	void measureOwnerDrawHandlers(MEASUREITEMSTRUCT* pMeasureItem) const;
 	LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	QSTATUS destroy();
 
 public:
 	static QSTATUS getWindowMap(WindowMap** ppMap);
@@ -616,28 +618,11 @@ LRESULT qs::WindowBaseImpl::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	
-#if defined _WIN32_WCE && !defined _WIN32_WCE_EMULATION
-	case WM_DESTROY:
-#elif defined _WIN32_WCE_EMULATION
-	case 0x82:		// W_NCDESTROY is not defined winuser.h
-#else
+#if !defined _WIN32_WCE || defined _WIN32_WCE_EMULATION
 	case WM_NCDESTROY:
-#endif // _WIN32_WCE
-		{
-			WindowBaseImpl::WindowMap* pMap = 0;
-			status = WindowBaseImpl::getWindowMap(&pMap);
-			CHECK_QSTATUS_VALUE(0);
-			
-			if (procSubclass_)
-				pThis_->setWindowLong(GWL_WNDPROC, reinterpret_cast<LONG>(procSubclass_));
-			pMap->removeController(pThis_->getHandle());
-			assert(listCommandHandler_.size() == 0);
-			assert(listNotifyHandler_.size() == 0);
-			assert(listOwnerDrawHandler_.size() == 0);
-			if (bDeleteThis_)
-				delete pThis_;
-		}
+		destroy();
 		break;
+#endif
 	
 #if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
 	case WM_LBUTTONDOWN:
@@ -664,12 +649,39 @@ LRESULT qs::WindowBaseImpl::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return lResult;
 }
 
+QSTATUS qs::WindowBaseImpl::destroy()
+{
+	DECLARE_QSTATUS();
+	
+	WindowMap* pMap = 0;
+	status = getWindowMap(&pMap);
+	CHECK_QSTATUS();
+	
+	if (procSubclass_)
+		pThis_->setWindowLong(GWL_WNDPROC, reinterpret_cast<LONG>(procSubclass_));
+	pMap->removeController(pThis_->getHandle());
+	assert(listCommandHandler_.size() == 0);
+	assert(listNotifyHandler_.size() == 0);
+	assert(listOwnerDrawHandler_.size() == 0);
+	if (bDeleteThis_)
+		delete pThis_;
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qs::WindowBaseImpl::getWindowMap(WindowMap** ppMap)
 {
 	assert(ppMap);
 	*ppMap = pMap__;
 	return QSTATUS_SUCCESS;
 }
+
+
+/****************************************************************************
+ *
+ * WindowBaseImpl::InitializerImpl
+ *
+ */
 
 qs::WindowBaseImpl::InitializerImpl::InitializerImpl()
 {
@@ -681,12 +693,7 @@ qs::WindowBaseImpl::InitializerImpl::~InitializerImpl()
 
 QSTATUS qs::WindowBaseImpl::InitializerImpl::init()
 {
-	DECLARE_QSTATUS();
-	
-	status = newQsObject(&WindowBaseImpl::pMap__);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return newQsObject(&WindowBaseImpl::pMap__);
 }
 
 QSTATUS qs::WindowBaseImpl::InitializerImpl::term()
@@ -1073,7 +1080,18 @@ LRESULT CALLBACK qs::windowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	status = pMap->findController(hwnd, &pThis);
 	CHECK_QSTATUS_VALUE(0);
 	
-	return pThis->pImpl_->windowProc(uMsg, wParam, lParam);
+	LRESULT lResult = 0;
+	if (pThis)
+		lResult = pThis->pImpl_->windowProc(uMsg, wParam, lParam);
+	else
+		lResult = ::DefWindowProc(hwnd, uMsg, wParam, lParam);
+	
+#if defined _WIN32_WCE && !defined _WIN32_WCE_EMULATION
+	if (uMsg == WM_DESTROY)
+		WindowDestroy::getWindowDestroy()->process(hwnd);
+#endif
+	
+	return lResult;
 }
 
 
@@ -1203,6 +1221,243 @@ QSTATUS qs::ControllerMapBase::removeController(HWND hwnd)
 	
 	return QSTATUS_SUCCESS;
 }
+
+
+#if defined _WIN32_WCE && !defined _WIN32_WCE_EMULATION
+/****************************************************************************
+ *
+ * WindowDestroy
+ *
+ */
+
+ThreadLocal* qs::WindowDestroy::pWindowDestroy__;
+WindowDestroy::InitializerImpl qs::WindowDestroy::init__;
+
+qs::WindowDestroy::WindowDestroy(QSTATUS* pstatus)
+{
+}
+
+qs::WindowDestroy::~WindowDestroy()
+{
+}
+
+QSTATUS qs::WindowDestroy::process(HWND hwnd)
+{
+	DECLARE_QSTATUS();
+	
+	WindowList listWindow;
+	bool bMapped = false;
+	listWindow.push_back(hwnd);
+	for (WindowList::size_type n = 0; n < listWindow.size(); ++n) {
+		HWND hwnd = ::GetWindow(listWindow[n], GW_CHILD);
+		while (hwnd) {
+			if (!bMapped) {
+				status = isMapped(hwnd, &bMapped);
+				CHECK_QSTATUS();
+			}
+			listWindow.push_back(hwnd);
+			hwnd = ::GetWindow(hwnd, GW_HWNDNEXT);
+		}
+	}
+	if (bMapped) {
+		listWindow[0] = 0;
+		
+		WindowList::iterator it = listWindow.begin() + 1;
+		while (it != listWindow.end()) {
+			bool bMapped = false;
+			status = isMapped(*it, &bMapped);
+			CHECK_QSTATUS();
+			if (!bMapped)
+				*it = 0;
+			++it;
+		}
+		
+		listDestroy_.push_back(std::make_pair(hwnd, listWindow));
+	}
+	else {
+		WindowList::const_iterator itW = listWindow.begin();
+		while (itW != listWindow.end()) {
+			remove(*itW);
+			++itW;
+		}
+		
+		HWND hwndParent = ::GetParent(hwnd);
+		while (hwndParent) {
+			remove(hwndParent);
+			hwndParent = ::GetParent(hwndParent);
+		}
+		
+		WindowList listDestroy;
+		
+		DestroyList::iterator itD = listDestroy_.begin();
+		while (itD != listDestroy_.end()) {
+			WindowList& l = (*itD).second;
+			
+			WindowList::const_iterator it = std::find_if(
+				l.begin(), l.end(),
+				std::not1(
+					std::bind2nd(
+						binary_compose_f_gx_hy(
+							std::equal_to<HWND>(),
+							std::identity<HWND>(),
+							std::identity<HWND>()),
+						0)));
+			if (it == l.end()) {
+				listDestroy.push_back((*itD).first);
+				itD = listDestroy_.erase(itD);
+			}
+			else {
+				++itD;
+			}
+		}
+		
+		status = destroy(hwnd);
+		CHECK_QSTATUS();
+		
+		WindowList::reverse_iterator it = listDestroy.rbegin();
+		while (it != listDestroy.rend()) {
+			status = destroy(*it);
+			CHECK_QSTATUS();
+			++it;
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+WindowDestroy* qs::WindowDestroy::getWindowDestroy()
+{
+	void* pWindowDestroy = 0;
+	pWindowDestroy__->get(&pWindowDestroy);
+	return static_cast<WindowDestroy*>(pWindowDestroy);
+}
+
+QSTATUS qs::WindowDestroy::isMapped(HWND hwnd, bool* pbMapped)
+{
+	assert(pbMapped);
+	
+	DECLARE_QSTATUS();
+	
+	*pbMapped = false;
+	
+	WindowBaseImpl::WindowMap* pWindowMap = 0;
+	status = WindowBaseImpl::getWindowMap(&pWindowMap);
+	CHECK_QSTATUS();
+	
+	WindowBase* pWindow = 0;
+	status = pWindowMap->getController(hwnd, &pWindow);
+	CHECK_QSTATUS();
+	if (pWindow) {
+		*pbMapped = true;
+	}
+	else {
+		DialogBaseImpl::DialogMap* pDialogMap = 0;
+		status = DialogBaseImpl::getDialogMap(&pDialogMap);
+		CHECK_QSTATUS();
+		
+		DialogBase* pDialog = 0;
+		status = pDialogMap->getController(hwnd, &pDialog);
+		CHECK_QSTATUS();
+		if (pDialog)
+			*pbMapped = true;
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qs::WindowDestroy::destroy(HWND hwnd)
+{
+	DECLARE_QSTATUS();
+	
+	WindowBaseImpl::WindowMap* pWindowMap = 0;
+	status = WindowBaseImpl::getWindowMap(&pWindowMap);
+	CHECK_QSTATUS();
+	
+	WindowBase* pWindow = 0;
+	status = pWindowMap->getController(hwnd, &pWindow);
+	CHECK_QSTATUS();
+	if (pWindow) {
+		status = pWindow->pImpl_->destroy();
+		CHECK_QSTATUS();
+	}
+	else {
+		DialogBaseImpl::DialogMap* pDialogMap = 0;
+		status = DialogBaseImpl::getDialogMap(&pDialogMap);
+		CHECK_QSTATUS();
+		
+		DialogBase* pDialog = 0;
+		status = pDialogMap->getController(hwnd, &pDialog);
+		CHECK_QSTATUS();
+		if (pDialog) {
+			status = pDialog->pImpl_->destroy();
+			CHECK_QSTATUS();
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+void qs::WindowDestroy::remove(HWND hwnd)
+{
+	DestroyList::iterator itD = listDestroy_.begin();
+	while (itD != listDestroy_.end()) {
+		WindowList& l = (*itD).second;
+		WindowList::iterator itW = l.begin();
+		while (itW != l.end()) {
+			if (*itW == hwnd)
+				*itW = 0;
+			++itW;
+		}
+		++itD;
+	}
+}
+
+
+/****************************************************************************
+ *
+ * WindowDestroy::InitializerImpl
+ *
+ */
+
+qs::WindowDestroy::InitializerImpl::InitializerImpl()
+{
+}
+
+qs::WindowDestroy::InitializerImpl::~InitializerImpl()
+{
+}
+
+QSTATUS qs::WindowDestroy::InitializerImpl::init()
+{
+	return newQsObject(&WindowDestroy::pWindowDestroy__);
+}
+
+QSTATUS qs::WindowDestroy::InitializerImpl::term()
+{
+	delete WindowDestroy::pWindowDestroy__;
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qs::WindowDestroy::InitializerImpl::initThread()
+{
+	DECLARE_QSTATUS();
+	
+	std::auto_ptr<WindowDestroy> pWindowDestroy;
+	status = newQsObject(&pWindowDestroy);
+	CHECK_QSTATUS();
+	status = pWindowDestroy__->set(pWindowDestroy.get());
+	CHECK_QSTATUS();
+	pWindowDestroy.release();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qs::WindowDestroy::InitializerImpl::termThread()
+{
+	delete WindowDestroy::getWindowDestroy();
+	return QSTATUS_SUCCESS;
+}
+#endif
 
 
 /****************************************************************************

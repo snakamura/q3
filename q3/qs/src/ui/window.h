@@ -1,5 +1,5 @@
 /*
- * $Id: window.h,v 1.1.1.1 2003/04/29 08:07:37 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -109,6 +109,57 @@ private:
 private:
 	ControllerMapBase base_;
 };
+
+
+#if defined _WIN32_WCE && !defined _WIN32_WCE_EMULATION
+/****************************************************************************
+ *
+ * WindowDestroy
+ *
+ */
+
+class WindowDestroy
+{
+public:
+	WindowDestroy(QSTATUS* pstatus);
+	~WindowDestroy();
+
+public:
+	QSTATUS process(HWND hwnd);
+
+public:
+	static WindowDestroy* getWindowDestroy();
+
+private:
+	QSTATUS isMapped(HWND hwnd, bool* pbMapped);
+	QSTATUS destroy(HWND hwnd);
+	void remove(HWND hwnd);
+
+private:
+	typedef std::vector<HWND> WindowList;
+	typedef std::vector<std::pair<HWND, WindowList> > DestroyList;
+
+private:
+	DestroyList listDestroy_;
+
+private:
+	static ThreadLocal* pWindowDestroy__;
+	static class InitializerImpl : public Initializer
+	{
+	public:
+		InitializerImpl();
+		virtual ~InitializerImpl();
+	
+	public:
+		virtual QSTATUS init();
+		virtual QSTATUS term();
+		virtual QSTATUS initThread();
+		virtual QSTATUS termThread();
+	} init__;
+
+friend class InitializerImpl;
+};
+#endif
 
 }
 

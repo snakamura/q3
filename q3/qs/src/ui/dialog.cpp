@@ -137,29 +137,32 @@ INT_PTR qs::DialogBaseImpl::dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	nResult = pDialogHandler_->dialogProc(uMsg, wParam, lParam);
 	
 	switch (uMsg) {
-#if defined _WIN32_WCE && !defined _WIN32_WCE_EMULATION
-	case WM_DESTROY:
-#elif defined _WIN32_WCE_EMULATION
-	case 0x82:		// WM_NCDESTROY is not defined winuser.h
-#else
+#if !defined _WIN32_WCE || defined _WIN32_WCE_EMULATION
 	case WM_NCDESTROY:
-#endif // _WIN32_WCE
-		{
-			DialogMap* pMap = 0;
-			status = DialogBaseImpl::getDialogMap(&pMap);
-			CHECK_QSTATUS_VALUE(FALSE);
-			pMap->removeController(pThis_->getHandle());
-			DialogBaseImpl::removeModelessDialog(pThis_);
-			assert(listCommandHandler_.size() == 0);
-			assert(listNotifyHandler_.size() == 0);
-			assert(listOwnerDrawHandler_.size() == 0);
-			if (bDeleteThis_)
-				delete pThis_;
-		}
+		destroy();
 		break;
+#endif
 	}
 	
 	return nResult;
+}
+
+QSTATUS qs::DialogBaseImpl::destroy()
+{
+	DECLARE_QSTATUS();
+	
+	DialogMap* pMap = 0;
+	status = DialogBaseImpl::getDialogMap(&pMap);
+	CHECK_QSTATUS();
+	pMap->removeController(pThis_->getHandle());
+	DialogBaseImpl::removeModelessDialog(pThis_);
+	assert(listCommandHandler_.size() == 0);
+	assert(listNotifyHandler_.size() == 0);
+	assert(listOwnerDrawHandler_.size() == 0);
+	if (bDeleteThis_)
+		delete pThis_;
+	
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qs::DialogBaseImpl::getDialogMap(DialogMap** ppMap)
@@ -526,7 +529,16 @@ INT_PTR CALLBACK qs::dialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	status = pMap->findController(hwnd, &pThis);
 	CHECK_QSTATUS_VALUE(0);
 	
-	return pThis->pImpl_->dialogProc(uMsg, wParam, lParam);
+	INT_PTR nResult = 0;
+	if (pThis)
+		nResult = pThis->pImpl_->dialogProc(uMsg, wParam, lParam);
+	
+#if defined _WIN32_WCE && !defined _WIN32_WCE_EMULATION
+	if (uMsg == WM_DESTROY)
+		WindowDestroy::getWindowDestroy()->process(hwnd);
+#endif
+	
+	return nResult;
 }
 
 

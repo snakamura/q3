@@ -37,6 +37,7 @@ public:
 	void notifyOwnerDrawHandlers(DRAWITEMSTRUCT* pDrawItem) const;
 	void measureOwnerDrawHandlers(MEASUREITEMSTRUCT* pMeasureItem) const;
 	INT_PTR dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	QSTATUS destroy();
 
 public:
 	static QSTATUS getDialogMap(DialogMap** ppMap);

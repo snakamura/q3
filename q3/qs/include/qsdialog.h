@@ -74,6 +74,9 @@ private:
 private:
 	class DialogBaseImpl* pImpl_;
 
+#if 1//defined _WIN32_WCE && !defined _WIN32_WCE_EMULATION
+friend class WindowDestroy;
+#endif
 friend INT_PTR CALLBACK dialogProc(HWND, UINT, WPARAM, LPARAM);
 friend INT_PTR CALLBACK propertyPageProc(HWND, UINT, WPARAM, LPARAM);
 };

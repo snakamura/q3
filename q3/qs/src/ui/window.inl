@@ -1,5 +1,5 @@
 /*
- * $Id: window.inl,v 1.1.1.1 2003/04/29 08:07:37 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -83,15 +83,15 @@ qs::QSTATUS qs::ControllerMap<Controller>::findController(HWND hwnd, Controller*
 	if (!pThis) {
 		status = getThis(&pThis);
 		CHECK_QSTATUS_VALUE(0);
-		assert(pThis);
-		assert(!pThis->getHandle());
-		pThis->setHandle(hwnd);
-		status = setController(hwnd, pThis);
-		CHECK_QSTATUS_VALUE(0);
-		status = setThis(0);
-		CHECK_QSTATUS_VALUE(0);
+		if (pThis) {
+			assert(!pThis->getHandle());
+			pThis->setHandle(hwnd);
+			status = setController(hwnd, pThis);
+			CHECK_QSTATUS_VALUE(0);
+			status = setThis(0);
+			CHECK_QSTATUS_VALUE(0);
+		}
 	}
-	assert(pThis);
 	*ppController = pThis;
 	
 	return QSTATUS_SUCCESS;

@@ -18,6 +18,7 @@
 
 #ifdef _WIN32_WCE
 #	define WM_CONTEXTMENU                  0x007B
+#	define WM_NCDESTROY                    0x0082
 #	ifndef ListView_SetCheckState
 #		define ListView_SetCheckState(hwndLV, i, fCheck) \
 			ListView_SetItemState(hwndLV, i, INDEXTOSTATEIMAGEMASK((fCheck)?2:1), LVIS_STATEIMAGEMASK)
@@ -331,6 +332,9 @@ private:
 	class WindowBaseImpl* pImpl_;
 
 friend class WindowBaseImpl;
+#if 1//defined _WIN32_WCE && !defined _WIN32_WCE_EMULATION
+friend class WindowDestroy;
+#endif
 friend LRESULT CALLBACK windowProc(HWND, UINT, WPARAM, LPARAM);
 };
 
