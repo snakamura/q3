@@ -237,7 +237,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 		}
 		else if (bRFC822) {
 			std::auto_ptr<Part> pEnclosed(MessageCreator().createPart(
-				pDocument, pBody, nLen - nBodyLen, 0, false));
+				pDocument, pBody, nBodyLen, 0, false));
 			pPart->setEnclosedPart(pEnclosed);
 		}
 		else if (wcsicmp(pwszMediaType, L"text") == 0 && !bAttachment) {
