@@ -38,6 +38,10 @@ typedef WSTRING TSTRING;
 typedef STRING TSTRING;
 #endif
 
+template<class Char> struct CharTraits;
+template<class String> struct StringTraits;
+template<class XString> struct XStringTraits;
+
 template<class String> class basic_string_ptr;
 typedef basic_string_ptr<STRING> string_ptr;
 typedef basic_string_ptr<WSTRING> wstring_ptr;
@@ -533,6 +537,9 @@ struct CharTraits
 template<>
 struct CharTraits<CHAR>
 {
+	typedef STRING String;
+	typedef XSTRING XString;
+	
 	static size_t getLength(const CHAR* psz);
 	static const CHAR* getEmptyBuffer();
 	static CHAR toLower(CHAR c);
@@ -551,6 +558,9 @@ struct CharTraits<CHAR>
 template<>
 struct CharTraits<WCHAR>
 {
+	typedef WSTRING String;
+	typedef WXSTRING XString;
+	
 	static size_t getLength(const WCHAR* pwsz);
 	static const WCHAR* getEmptyBuffer();
 	static WCHAR toLower(WCHAR c);
@@ -658,6 +668,7 @@ class basic_string_ptr
 {
 public:
 	typedef typename StringTraits<String>::char_type Char;
+	typedef String String;
 
 public:
 	basic_string_ptr();
@@ -692,6 +703,7 @@ class basic_xstring_ptr
 {
 public:
 	typedef typename XStringTraits<XString>::char_type Char;
+	typedef XString XString;
 
 public:
 	basic_xstring_ptr();
