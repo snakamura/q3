@@ -10,6 +10,7 @@
 #define __ACTION_H__
 
 #include <qm.h>
+#include <qmaccount.h>
 
 #include <qsaction.h>
 #include <qsstream.h>

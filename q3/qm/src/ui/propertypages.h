@@ -27,6 +27,7 @@ class DefaultPropertyPage;
 	class FolderPropertyPage;
 	class MessagePropertyPage;
 
+class SearchUI;
 class SubAccount;
 class SyncFilterManager;
 
