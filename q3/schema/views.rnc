@@ -1,0 +1,49 @@
+datatypes xsd="http://www.w3.org/2001/XMLSchema-datatypes"
+
+element views {
+	element view {
+		element columns {
+			element column {
+				element title {
+					xsd:string
+				},
+				element macro {
+					xsd:string
+				},
+				element width {
+					xsd:unsignedInt
+				},
+				attribute indent {
+					xsd:boolean
+				}?,
+				attribute line {
+					xsd:boolean
+				}?,
+				attribute icon {
+					xsd:boolean
+				}?,
+				attribute align {
+					"left" | "right"
+				}?,
+				attribute sort {
+					"text" | "number" | "date"
+				}?
+			}*
+		},
+		element focus {
+			xsd:unsignedInt
+		},
+		element sort {
+			xsd:unsignedInt,
+			attribute direction {
+				"ascending" | "descending"
+			},
+			attribute thread {
+				xsd:boolean
+			}
+		},
+		attribute folder {
+			xsd:unsignedInt
+		}
+	}*
+}
