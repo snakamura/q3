@@ -2543,13 +2543,14 @@ QSTATUS qm::ToolDialupAction::isConnected(bool* pbConnected) const
  */
 
 qm::ToolGoRoundAction::ToolGoRoundAction(SyncManager* pSyncManager,
-	Document* pDocument, GoRound* pGoRound,
-	SyncDialogManager* pSyncDialogManager, HWND hwnd, QSTATUS* pstatus) :
+	Document* pDocument, GoRound* pGoRound, SyncDialogManager* pSyncDialogManager,
+	HWND hwnd, GoRoundMenu* pGoRoundMenu, QSTATUS* pstatus) :
 	pSyncManager_(pSyncManager),
 	pDocument_(pDocument),
 	pGoRound_(pGoRound),
 	pSyncDialogManager_(pSyncDialogManager),
-	hwnd_(hwnd)
+	hwnd_(hwnd),
+	pGoRoundMenu_(pGoRoundMenu)
 {
 }
 
@@ -2561,9 +2562,6 @@ QSTATUS qm::ToolGoRoundAction::invoke(const ActionEvent& event)
 {
 	DECLARE_QSTATUS();
 	
-	GoRoundCourseList* pCourseList = 0;
-	status = pGoRound_->getCourseList(&pCourseList);
-	CHECK_QSTATUS();
 	const GoRoundCourse* pCourse = 0;
 	if (event.getParam()) {
 		ActionParam* pParam = static_cast<ActionParam*>(event.getParam());
@@ -2571,14 +2569,16 @@ QSTATUS qm::ToolGoRoundAction::invoke(const ActionEvent& event)
 			Variant v;
 			if (::VariantChangeType(&v, pParam->ppvarArgs_[0], 0, VT_BSTR) != S_OK)
 				return QSTATUS_SUCCESS;
+			
+			GoRoundCourseList* pCourseList = 0;
+			status = pGoRound_->getCourseList(&pCourseList);
+			CHECK_QSTATUS();
 			pCourse = pCourseList->getCourse(v.bstrVal);
 		}
 	}
 	else {
-		if (pCourseList && pCourseList->getCount() > 0) {
-			pCourse = pCourseList->getCourse(event.getId() - IDM_TOOL_GOROUND);
-			assert(pCourse);
-		}
+		status = pGoRoundMenu_->getCourse(event.getId(), &pCourse);
+		CHECK_QSTATUS();
 	}
 	
 	std::auto_ptr<SyncData> pData;
@@ -2750,9 +2750,10 @@ QSTATUS qm::ToolScriptAction::isEnabled(
  */
 
 qm::ToolSubAccountAction::ToolSubAccountAction(Document* pDocument,
-	FolderModel* pFolderModel, QSTATUS* pstatus) :
+	FolderModel* pFolderModel, SubAccountMenu* pSubAccountMenu, QSTATUS* pstatus) :
 	pDocument_(pDocument),
-	pFolderModel_(pFolderModel)
+	pFolderModel_(pFolderModel),
+	pSubAccountMenu_(pSubAccountMenu)
 {
 }
 
@@ -2764,28 +2765,16 @@ QSTATUS qm::ToolSubAccountAction::invoke(const ActionEvent& event)
 {
 	DECLARE_QSTATUS();
 	
-	Account* pAccount = pFolderModel_->getCurrentAccount();
-	if (!pAccount) {
-		Folder* pFolder = pFolderModel_->getCurrentFolder();
-		if (pFolder)
-			pAccount = pFolder->getAccount();
-	}
-	if (pAccount) {
-		unsigned int nIndex = event.getId() - IDM_TOOL_SUBACCOUNT;
-		const Account::SubAccountList& listSubAccount = pAccount->getSubAccounts();
-		if (nIndex < listSubAccount.size()) {
-			SubAccount* pSubAccount = listSubAccount[nIndex];
-			const WCHAR* pwszName = pSubAccount->getName();
-			
-			const Document::AccountList& listAccount = pDocument_->getAccounts();
-			Document::AccountList::const_iterator it = listAccount.begin();
-			while (it != listAccount.end()) {
-				Account* pAccount = *it;
-				SubAccount* pSubAccount = pAccount->getSubAccount(pwszName);
-				if (pSubAccount)
-					pAccount->setCurrentSubAccount(pSubAccount);
-				++it;
-			}
+	const WCHAR* pwszName = pSubAccountMenu_->getName(event.getId());
+	if (pwszName) {
+		const Document::AccountList& listAccount = pDocument_->getAccounts();
+		Document::AccountList::const_iterator it = listAccount.begin();
+		while (it != listAccount.end()) {
+			Account* pAccount = *it;
+			SubAccount* pSubAccount = pAccount->getSubAccount(pwszName);
+			if (pSubAccount)
+				pAccount->setCurrentSubAccount(pSubAccount);
+			++it;
 		}
 	}
 	
@@ -2813,10 +2802,9 @@ QSTATUS qm::ToolSubAccountAction::isChecked(
 			pAccount = pFolder->getAccount();
 	}
 	if (pAccount) {
-		unsigned int nIndex = event.getId() - IDM_TOOL_SUBACCOUNT;
-		const Account::SubAccountList& l = pAccount->getSubAccounts();
-		if (nIndex < l.size())
-			*pbChecked = l[nIndex] == pAccount->getCurrentSubAccount();
+		const WCHAR* pwszName = pSubAccountMenu_->getName(event.getId());
+		SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
+		*pbChecked = wcscmp(pSubAccount->getName(), pwszName) == 0;
 	}
 	
 	return QSTATUS_SUCCESS;
@@ -2985,9 +2973,9 @@ QSTATUS qm::ViewEncodingAction::isChecked(const ActionEvent& event, bool* pbChec
  */
 
 qm::ViewFilterAction::ViewFilterAction(ViewModelManager* pViewModelManager,
-	FilterManager* pFilterManager, QSTATUS* pstatus) :
+	FilterMenu* pFilterMenu, QSTATUS* pstatus) :
 	pViewModelManager_(pViewModelManager),
-	pFilterManager_(pFilterManager)
+	pFilterMenu_(pFilterMenu)
 {
 }
 
@@ -3001,13 +2989,9 @@ QSTATUS qm::ViewFilterAction::invoke(const ActionEvent& event)
 	
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (pViewModel) {
-		unsigned int nIndex = event.getId() - IDM_VIEW_FILTER;
-		const FilterManager::FilterList* pList = 0;
-		status = pFilterManager_->getFilters(&pList);
-		CHECK_QSTATUS();
 		const Filter* pFilter = 0;
-		if (nIndex < pList->size())
-			pFilter = (*pList)[nIndex];
+		status = pFilterMenu_->getFilter(event.getId(), &pFilter);
+		CHECK_QSTATUS();
 		status = pViewModel->setFilter(pFilter);
 		CHECK_QSTATUS();
 	}
@@ -3037,13 +3021,9 @@ QSTATUS qm::ViewFilterAction::isChecked(
 	
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (pViewModel) {
-		unsigned int nIndex = event.getId() - IDM_VIEW_FILTER;
-		const FilterManager::FilterList* pList = 0;
-		status = pFilterManager_->getFilters(&pList);
-		CHECK_QSTATUS();
 		const Filter* pFilter = 0;
-		if (nIndex < pList->size())
-			pFilter = (*pList)[nIndex];
+		status = pFilterMenu_->getFilter(event.getId(), &pFilter);
+		CHECK_QSTATUS();
 		*pbChecked = pViewModel->getFilter() == pFilter;
 	}
 	
@@ -3966,9 +3946,10 @@ QSTATUS qm::ViewShowSyncDialogAction::invoke(const ActionEvent& event)
  *
  */
 
-qm::ViewSortAction::ViewSortAction(
-	ViewModelManager* pViewModelManager, QSTATUS* pstatus) :
-	pViewModelManager_(pViewModelManager)
+qm::ViewSortAction::ViewSortAction(ViewModelManager* pViewModelManager,
+	SortMenu* pSortMenu, QSTATUS* pstatus) :
+	pViewModelManager_(pViewModelManager),
+	pSortMenu_(pSortMenu)
 {
 	assert(pstatus);
 	*pstatus = QSTATUS_SUCCESS;
@@ -3984,11 +3965,7 @@ QSTATUS qm::ViewSortAction::invoke(const ActionEvent& event)
 	
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (pViewModel) {
-		unsigned int nSort = pViewModel->getSort();
-		nSort &= ~ViewModel::SORT_INDEX_MASK;
-		nSort &= ~ViewModel::SORT_DIRECTION_MASK;
-		nSort |= event.getId() - IDM_VIEW_SORT;
-		status = pViewModel->setSort(nSort);
+		status = pViewModel->setSort(pSortMenu_->getSort(event.getId()));
 		CHECK_QSTATUS();
 	}
 	
@@ -4011,8 +3988,8 @@ QSTATUS qm::ViewSortAction::isChecked(const ActionEvent& event, bool* pbChecked)
 	
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (pViewModel)
-		*pbChecked = event.getId() ==
-			(pViewModel->getSort() & ViewModel::SORT_INDEX_MASK) + IDM_VIEW_SORT;
+		*pbChecked = (pSortMenu_->getSort(event.getId()) & ViewModel::SORT_INDEX_MASK) ==
+			(pViewModel->getSort() & ViewModel::SORT_INDEX_MASK);
 	
 	return QSTATUS_SUCCESS;
 }

@@ -26,17 +26,27 @@ namespace qm {
 
 class AttachmentMenu;
 class EncodingMenu;
+class FilterMenu;
+class GoRoundMenu;
 class MoveMenu;
 class ScriptMenu;
+class SortMenu;
+class SubAccountMenu;
 class TemplateMenu;
 	class CreateTemplateMenu;
 	class ViewTemplateMenu;
 
 class Document;
+class Filter;
+class FilterManager;
+class FolderModel;
+class GoRound;
+class GoRoundCourse;
 class Message;
 class MessageHolder;
 class ScriptManager;
 class TemplateManager;
+class ViewModelManager;
 
 
 /****************************************************************************
@@ -47,6 +57,11 @@ class TemplateManager;
 
 class AttachmentMenu
 {
+public:
+	enum {
+		MAX_ATTACHMENT = 100
+	};
+
 public:
 	explicit AttachmentMenu(qs::QSTATUS* pstatus);
 	~AttachmentMenu();
@@ -77,8 +92,13 @@ private:
 class EncodingMenu
 {
 public:
+	enum {
+		MAX_ENCODING = 100
+	};
+
+public:
 	EncodingMenu(qs::Profile* pProfile, qs::QSTATUS* pstatus);
-	virtual ~EncodingMenu();
+	~EncodingMenu();
 
 public:
 	const WCHAR* getEncoding(unsigned int nId) const;
@@ -102,12 +122,78 @@ private:
 
 /****************************************************************************
  *
+ * FilterMenu
+ *
+ */
+
+class FilterMenu
+{
+public:
+	enum {
+		MAX_FILTER = 100
+	};
+
+public:
+	FilterMenu(FilterManager* pFilterManager, qs::QSTATUS* pstatus);
+	~FilterMenu();
+
+public:
+	qs::QSTATUS getFilter(unsigned int nId, const Filter** ppFilter) const;
+	qs::QSTATUS createMenu(HMENU hmenu);
+
+private:
+	FilterMenu(const FilterMenu&);
+	FilterMenu& operator=(const FilterMenu&);
+
+private:
+	FilterManager* pFilterManager_;
+};
+
+
+/****************************************************************************
+ *
+ * GoRoundMenu
+ *
+ */
+
+class GoRoundMenu
+{
+public:
+	enum {
+		MAX_COURSE = 100
+	};
+
+public:
+	GoRoundMenu(GoRound* pGoRound, qs::QSTATUS* pstatus);
+	~GoRoundMenu();
+
+public:
+	qs::QSTATUS getCourse(unsigned int nId,
+		const GoRoundCourse** ppCourse) const;
+	qs::QSTATUS createMenu(HMENU hmenu);
+
+private:
+	GoRoundMenu(const GoRoundMenu&);
+	GoRoundMenu& operator=(const GoRoundMenu&);
+
+private:
+	GoRound* pGoRound_;
+};
+
+
+/****************************************************************************
+ *
  * MoveMenu
  *
  */
 
 class MoveMenu
 {
+public:
+	enum {
+		MAX_FOLDER = 999
+	};
+
 public:
 	explicit MoveMenu(qs::QSTATUS* pstatus);
 	~MoveMenu();
@@ -157,6 +243,11 @@ private:
 class ScriptMenu
 {
 public:
+	enum {
+		MAX_SCRIPT = 100
+	};
+
+public:
 	ScriptMenu(ScriptManager* pScriptManager, qs::QSTATUS* pstatus);
 	~ScriptMenu();
 
@@ -183,18 +274,81 @@ private:
 
 /****************************************************************************
  *
+ * SortMenu
+ *
+ */
+
+class SortMenu
+{
+public:
+	enum {
+		MAX_SORT = 100
+	};
+
+public:
+	SortMenu(ViewModelManager* pViewModelManager, qs::QSTATUS* pstatus);
+	~SortMenu();
+
+public:
+	unsigned int getSort(unsigned int nId) const;
+	qs::QSTATUS createMenu(HMENU hmenu);
+
+private:
+	SortMenu(const SortMenu&);
+	SortMenu& operator=(const SortMenu&);
+
+private:
+	ViewModelManager* pViewModelManager_;
+};
+
+
+/****************************************************************************
+ *
+ * SubAccountMenu
+ *
+ */
+
+class SubAccountMenu
+{
+public:
+	enum {
+		MAX_SUBACCOUNT = 100
+	};
+
+public:
+	SubAccountMenu(FolderModel* pFolderModel, qs::QSTATUS* pstatus);
+	~SubAccountMenu();
+
+public:
+	const WCHAR* getName(unsigned int nId) const;
+	qs::QSTATUS createMenu(HMENU hmenu);
+
+private:
+	SubAccountMenu(const SubAccountMenu&);
+	SubAccountMenu& operator=(const SubAccountMenu&);
+
+private:
+	FolderModel* pFolderModel_;
+};
+
+
+/****************************************************************************
+ *
  * TemplateMenu
  *
  */
 
 class TemplateMenu
 {
+public:
+	enum {
+		MAX_TEMPLATE = 100
+	};
+
 protected:
 	TemplateMenu(const TemplateManager* pTemplateManager,
 		qs::QSTATUS* pstatus);
-
-public:
-	virtual ~TemplateMenu();
+	~TemplateMenu();
 
 public:
 	const WCHAR* getTemplate(unsigned int nId) const;
@@ -233,7 +387,7 @@ class CreateTemplateMenu : public TemplateMenu
 public:
 	CreateTemplateMenu(const TemplateManager* pTemplateManager,
 		bool bExternalEditor, qs::QSTATUS* pstatus);
-	virtual ~CreateTemplateMenu();
+	~CreateTemplateMenu();
 
 protected:
 	virtual const WCHAR* getPrefix() const;
@@ -261,7 +415,7 @@ class ViewTemplateMenu : public TemplateMenu
 public:
 	ViewTemplateMenu(const TemplateManager* pTemplateManager,
 		qs::QSTATUS* pstatus);
-	virtual ~ViewTemplateMenu();
+	~ViewTemplateMenu();
 
 protected:
 	virtual const WCHAR* getPrefix() const;

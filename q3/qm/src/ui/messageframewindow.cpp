@@ -175,14 +175,16 @@ QSTATUS qm::MessageFrameWindowImpl::initActions()
 	status = InitActionRange9<MessageApplyTemplateAction, TemplateMenu*,
 		Document*, FolderModelBase*, MessageSelectionModel*,
 		EditFrameWindowManager*, ExternalEditorManager*, HWND, Profile*, bool>(
-		pActionMap_, IDM_MESSAGE_APPLYTEMPLATE, IDM_MESSAGE_APPLYTEMPLATE + 100,
+		pActionMap_, IDM_MESSAGE_APPLYTEMPLATE,
+		IDM_MESSAGE_APPLYTEMPLATE + TemplateMenu::MAX_TEMPLATE,
 		pCreateTemplateMenu_, pDocument_, this, this, pEditFrameWindowManager_,
 		pExternalEditorManager_, pThis_->getHandle(), pProfile_, false);
 	CHECK_QSTATUS();
 	status = InitActionRange9<MessageApplyTemplateAction, TemplateMenu*,
 		Document*, FolderModelBase*, MessageSelectionModel*,
 		EditFrameWindowManager*, ExternalEditorManager*, HWND, Profile*, bool>(
-		pActionMap_, IDM_MESSAGE_APPLYTEMPLATEEXTERNAL, IDM_MESSAGE_APPLYTEMPLATEEXTERNAL + 100,
+		pActionMap_, IDM_MESSAGE_APPLYTEMPLATEEXTERNAL,
+		IDM_MESSAGE_APPLYTEMPLATEEXTERNAL + TemplateMenu::MAX_TEMPLATE,
 		pCreateTemplateExternalMenu_, pDocument_, this, this, pEditFrameWindowManager_,
 		pExternalEditorManager_, pThis_->getHandle(), pProfile_, true);
 	CHECK_QSTATUS();
@@ -221,7 +223,8 @@ QSTATUS qm::MessageFrameWindowImpl::initActions()
 	CHECK_QSTATUS();
 	status = InitActionRange4<MessageOpenAttachmentAction,
 		Profile*, AttachmentMenu*, TempFileCleaner*, HWND>(
-		pActionMap_, IDM_MESSAGE_ATTACHMENT, IDM_MESSAGE_ATTACHMENT + 100,
+		pActionMap_, IDM_MESSAGE_ATTACHMENT,
+		IDM_MESSAGE_ATTACHMENT + AttachmentMenu::MAX_ATTACHMENT,
 		pProfile_, pAttachmentMenu_, pTempFileCleaner_, pThis_->getHandle());
 	CHECK_QSTATUS();
 	status = InitAction3<MessageMarkAction, MessageSelectionModel*,
@@ -250,7 +253,7 @@ QSTATUS qm::MessageFrameWindowImpl::initActions()
 		0, MessageHolder::FLAG_SEEN);
 	CHECK_QSTATUS();
 	status = InitActionRange2<MessageMoveAction, MessageSelectionModel*, MoveMenu*>(
-		pActionMap_, IDM_MESSAGE_MOVE, IDM_MESSAGE_MOVE + 900, this, pMoveMenu_);
+		pActionMap_, IDM_MESSAGE_MOVE, IDM_MESSAGE_MOVE + MoveMenu::MAX_FOLDER, this, pMoveMenu_);
 	CHECK_QSTATUS();
 	status = InitAction3<MessageMoveOtherAction,
 		Document*, MessageSelectionModel*, HWND>(
@@ -262,14 +265,14 @@ QSTATUS qm::MessageFrameWindowImpl::initActions()
 	CHECK_QSTATUS();
 	status = InitActionRange4<ToolScriptAction,
 		ScriptMenu*, Document*, Profile*, MessageFrameWindow*>(
-		pActionMap_, IDM_TOOL_SCRIPT, IDM_TOOL_SCRIPT + 100,
+		pActionMap_, IDM_TOOL_SCRIPT, IDM_TOOL_SCRIPT + ScriptMenu::MAX_SCRIPT,
 		pScriptMenu_, pDocument_, pProfile_, pThis_);
 	CHECK_QSTATUS();
 	status = InitAction1<ViewEncodingAction, MessageWindow*>(
 		pActionMap_, IDM_VIEW_ENCODINGAUTODETECT, pMessageWindow_);
 	CHECK_QSTATUS();
 	status = InitActionRange2<ViewEncodingAction, MessageWindow*, EncodingMenu*>(
-		pActionMap_, IDM_VIEW_ENCODING, IDM_VIEW_ENCODING + 100,
+		pActionMap_, IDM_VIEW_ENCODING, IDM_VIEW_ENCODING + EncodingMenu::MAX_ENCODING,
 		pMessageWindow_, pEncodingMenu_);
 	CHECK_QSTATUS();
 	status = InitAction4<ViewMessageModeAction, MessageWindow*,
@@ -322,14 +325,18 @@ QSTATUS qm::MessageFrameWindowImpl::initActions()
 	status = InitAction1<ViewShowHeaderAction, MessageWindow*>(
 		pActionMap_, IDM_VIEW_SHOWHEADER, pMessageWindow_);
 	CHECK_QSTATUS();
-	status = InitAction1<ViewShowStatusBarAction<MessageFrameWindow>, MessageFrameWindow*>(
+	status = InitAction1<ViewShowStatusBarAction<MessageFrameWindow>,
+		MessageFrameWindow*>(
 		pActionMap_, IDM_VIEW_SHOWSTATUSBAR, pThis_);
 	CHECK_QSTATUS();
-	status = InitAction1<ViewShowToolbarAction<MessageFrameWindow>, MessageFrameWindow*>(
+	status = InitAction1<ViewShowToolbarAction<MessageFrameWindow>,
+		MessageFrameWindow*>(
 		pActionMap_, IDM_VIEW_SHOWTOOLBAR, pThis_);
 	CHECK_QSTATUS();
-	status = InitActionRange2<ViewTemplateAction, MessageWindow*, TemplateMenu*>(
-		pActionMap_, IDM_VIEW_TEMPLATE, IDM_VIEW_TEMPLATE + 100,
+	status = InitActionRange2<ViewTemplateAction,
+		MessageWindow*, TemplateMenu*>(
+		pActionMap_, IDM_VIEW_TEMPLATE,
+		IDM_VIEW_TEMPLATE + TemplateMenu::MAX_TEMPLATE,
 		pMessageWindow_, pViewTemplateMenu_);
 	CHECK_QSTATUS();
 	status = InitAction1<ViewTemplateAction, MessageWindow*>(

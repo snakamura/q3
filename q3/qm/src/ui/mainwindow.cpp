@@ -126,10 +126,6 @@ public:
 	QSTATUS initActions();
 	QSTATUS layoutChildren();
 	QSTATUS layoutChildren(int cx, int cy);
-	QSTATUS updateSortMenu(HMENU hmenu);
-	QSTATUS updateFilterMenu(HMENU hmenu);
-	QSTATUS updateGoRoundMenu(HMENU hmenu);
-	QSTATUS updateSubAccountMenu(HMENU hmenu);
 
 public:
 	virtual qs::QSTATUS preModalDialog(HWND hwndParent);
@@ -186,11 +182,15 @@ public:
 	FindReplaceManager* pFindReplaceManager_;
 	ExternalEditorManager* pExternalEditorManager_;
 	MoveMenu* pMoveMenu_;
+	FilterMenu* pFilterMenu_;
+	SortMenu* pSortMenu_;
 	AttachmentMenu* pAttachmentMenu_;
 	ViewTemplateMenu* pViewTemplateMenu_;
 	CreateTemplateMenu* pCreateTemplateMenu_;
 	CreateTemplateMenu* pCreateTemplateExternalMenu_;
 	EncodingMenu* pEncodingMenu_;
+	SubAccountMenu* pSubAccountMenu_;
+	GoRoundMenu* pGoRoundMenu_;
 	ScriptMenu* pScriptMenu_;
 	DelayedFolderModelHandler* pDelayedFolderModelHandler_;
 	bool bCreated_;
@@ -375,7 +375,8 @@ QSTATUS qm::MainWindowImpl::initActions()
 	status = InitActionRange9<MessageApplyTemplateAction, TemplateMenu*,
 		Document*, FolderModelBase*, MessageSelectionModel*,
 		EditFrameWindowManager*, ExternalEditorManager*, HWND, Profile*, bool>(
-		pActionMap_, IDM_MESSAGE_APPLYTEMPLATE, IDM_MESSAGE_APPLYTEMPLATE + 100,
+		pActionMap_, IDM_MESSAGE_APPLYTEMPLATE,
+		IDM_MESSAGE_APPLYTEMPLATE + TemplateMenu::MAX_TEMPLATE,
 		pCreateTemplateMenu_, pDocument_, pFolderModel_, pMessageSelectionModel_,
 		pEditFrameWindowManager_, pExternalEditorManager_,
 		pThis_->getHandle(), pProfile_, false);
@@ -383,7 +384,8 @@ QSTATUS qm::MainWindowImpl::initActions()
 	status = InitActionRange9<MessageApplyTemplateAction, TemplateMenu*,
 		Document*, FolderModelBase*, MessageSelectionModel*,
 		EditFrameWindowManager*, ExternalEditorManager*, HWND, Profile*, bool>(
-		pActionMap_, IDM_MESSAGE_APPLYTEMPLATEEXTERNAL, IDM_MESSAGE_APPLYTEMPLATEEXTERNAL + 100,
+		pActionMap_, IDM_MESSAGE_APPLYTEMPLATEEXTERNAL,
+		IDM_MESSAGE_APPLYTEMPLATEEXTERNAL + TemplateMenu::MAX_TEMPLATE,
 		pCreateTemplateExternalMenu_, pDocument_, pFolderModel_,
 		pMessageSelectionModel_, pEditFrameWindowManager_,
 		pExternalEditorManager_, pThis_->getHandle(), pProfile_, true);
@@ -436,7 +438,8 @@ QSTATUS qm::MainWindowImpl::initActions()
 	CHECK_QSTATUS();
 	status = InitActionRange4<MessageOpenAttachmentAction,
 		Profile*, AttachmentMenu*, TempFileCleaner*, HWND>(
-		pActionMap_, IDM_MESSAGE_ATTACHMENT, IDM_MESSAGE_ATTACHMENT + 100,
+		pActionMap_, IDM_MESSAGE_ATTACHMENT,
+		IDM_MESSAGE_ATTACHMENT + AttachmentMenu::MAX_ATTACHMENT,
 		pProfile_, pAttachmentMenu_, pTempFileCleaner_, pThis_->getHandle());
 	CHECK_QSTATUS();
 	status = InitAction3<MessageMarkAction, MessageSelectionModel*,
@@ -464,9 +467,8 @@ QSTATUS qm::MainWindowImpl::initActions()
 		pActionMap_, IDM_MESSAGE_MARKUNSEEN, pMessageSelectionModel_,
 		0, MessageHolder::FLAG_SEEN);
 	CHECK_QSTATUS();
-	status = InitActionRange2<MessageMoveAction,
-		MessageSelectionModel*, MoveMenu*>(
-		pActionMap_, IDM_MESSAGE_MOVE, IDM_MESSAGE_MOVE + 100,
+	status = InitActionRange2<MessageMoveAction, MessageSelectionModel*, MoveMenu*>(
+		pActionMap_, IDM_MESSAGE_MOVE, IDM_MESSAGE_MOVE + MoveMenu::MAX_FOLDER,
 		pMessageSelectionModel_, pMoveMenu_);
 	CHECK_QSTATUS();
 	status = InitAction3<MessageMoveOtherAction,
@@ -481,8 +483,10 @@ QSTATUS qm::MainWindowImpl::initActions()
 		pMessageSelectionModel_, pEditFrameWindowManager_,
 		pExternalEditorManager_, pThis_->getHandle(), pProfile_, false);
 	CHECK_QSTATUS();
-	status = InitAction2<MessagePropertyAction, MessageSelectionModel*, HWND>(
-		pActionMap_, IDM_MESSAGE_PROPERTY, pMessageSelectionModel_, pThis_->getHandle());
+	status = InitAction2<MessagePropertyAction,
+		MessageSelectionModel*, HWND>(
+		pActionMap_, IDM_MESSAGE_PROPERTY,
+		pMessageSelectionModel_, pThis_->getHandle());
 	CHECK_QSTATUS();
 	status = InitAction5<ToolAccountAction, Document*,
 		FolderModel*, SyncFilterManager*, Profile*, HWND>(
@@ -497,23 +501,25 @@ QSTATUS qm::MainWindowImpl::initActions()
 		pActionMap_, IDM_TOOL_DIALUP, pSyncManager_,
 		pDocument_, pSyncDialogManager_, pThis_->getHandle());
 	CHECK_QSTATUS();
-	status = InitActionRange5<ToolGoRoundAction, SyncManager*,
-		Document*, GoRound*, SyncDialogManager*, HWND>(
-		pActionMap_, IDM_TOOL_GOROUND, IDM_TOOL_GOROUND + 100,
-		pSyncManager_, pDocument_, pGoRound_,
-		pSyncDialogManager_, pThis_->getHandle());
+	status = InitActionRange6<ToolGoRoundAction, SyncManager*,
+		Document*, GoRound*, SyncDialogManager*, HWND, GoRoundMenu*>(
+		pActionMap_, IDM_TOOL_GOROUND, IDM_TOOL_GOROUND + GoRoundMenu::MAX_COURSE,
+		pSyncManager_, pDocument_, pGoRound_, pSyncDialogManager_,
+		pThis_->getHandle(), pGoRoundMenu_);
 	CHECK_QSTATUS();
 	status = InitAction1<ToolOptionsAction, Profile*>(
 		pActionMap_, IDM_TOOL_OPTIONS, pProfile_);
 	CHECK_QSTATUS();
 	status = InitActionRange4<ToolScriptAction,
 		ScriptMenu*, Document*, Profile*, MainWindow*>(
-		pActionMap_, IDM_TOOL_SCRIPT, IDM_TOOL_SCRIPT + 100,
+		pActionMap_, IDM_TOOL_SCRIPT, IDM_TOOL_SCRIPT + ScriptMenu::MAX_SCRIPT,
 		pScriptMenu_, pDocument_, pProfile_, pThis_);
 	CHECK_QSTATUS();
-	status = InitActionRange2<ToolSubAccountAction, Document*, FolderModel*>(
-		pActionMap_, IDM_TOOL_SUBACCOUNT, IDM_TOOL_SUBACCOUNT + 100,
-		pDocument_, pFolderModel_);
+	status = InitActionRange3<ToolSubAccountAction,
+		Document*, FolderModel*, SubAccountMenu*>(
+		pActionMap_, IDM_TOOL_SUBACCOUNT,
+		IDM_TOOL_SUBACCOUNT + SubAccountMenu::MAX_SUBACCOUNT,
+		pDocument_, pFolderModel_, pSubAccountMenu_);
 	CHECK_QSTATUS();
 	status = InitAction6<ToolSyncAction, SyncManager*, Document*,
 		FolderModel*, SyncDialogManager*, unsigned int, HWND>(
@@ -547,12 +553,12 @@ QSTATUS qm::MainWindowImpl::initActions()
 		pActionMap_, IDM_VIEW_ENCODINGAUTODETECT, pMessageWindow_);
 	CHECK_QSTATUS();
 	status = InitActionRange2<ViewEncodingAction, MessageWindow*, EncodingMenu*>(
-		pActionMap_, IDM_VIEW_ENCODING, IDM_VIEW_ENCODING + 100,
+		pActionMap_, IDM_VIEW_ENCODING, IDM_VIEW_ENCODING + EncodingMenu::MAX_ENCODING,
 		pMessageWindow_, pEncodingMenu_);
 	CHECK_QSTATUS();
-	status = InitAction2<ViewFilterAction, ViewModelManager*, FilterManager*>(
-		pActionMap_, IDM_VIEW_FILTER, pViewModelManager_,
-		pViewModelManager_->getFilterManager());
+	status = InitActionRange2<ViewFilterAction, ViewModelManager*, FilterMenu*>(
+		pActionMap_, IDM_VIEW_FILTER, IDM_VIEW_FILTER + FilterMenu::MAX_FILTER,
+		pViewModelManager_, pFilterMenu_);
 	CHECK_QSTATUS();
 	status = InitAction2<ViewFilterCustomAction, ViewModelManager*, HWND>(
 		pActionMap_, IDM_VIEW_FILTERCUSTOM, pViewModelManager_, pThis_->getHandle());
@@ -677,8 +683,9 @@ QSTATUS qm::MainWindowImpl::initActions()
 	status = InitAction1<ViewShowToolbarAction<MainWindow>, MainWindow*>(
 		pActionMap_, IDM_VIEW_SHOWTOOLBAR, pThis_);
 	CHECK_QSTATUS();
-	status = InitActionRange1<ViewSortAction, ViewModelManager*>(
-		pActionMap_, IDM_VIEW_SORT, IDM_VIEW_SORT + 100, pViewModelManager_);
+	status = InitActionRange2<ViewSortAction, ViewModelManager*, SortMenu*>(
+		pActionMap_, IDM_VIEW_SORT, IDM_VIEW_SORT + SortMenu::MAX_SORT,
+		pViewModelManager_, pSortMenu_);
 	CHECK_QSTATUS();
 	status = InitAction2<ViewSortDirectionAction, ViewModelManager*, bool>(
 		pActionMap_, IDM_VIEW_SORTASCENDING, pViewModelManager_, true);
@@ -692,8 +699,10 @@ QSTATUS qm::MainWindowImpl::initActions()
 	status = InitAction1<ViewTemplateAction, MessageWindow*>(
 		pActionMap_, IDM_VIEW_TEMPLATENONE, pMessageWindow_);
 	CHECK_QSTATUS();
-	status = InitActionRange2<ViewTemplateAction, MessageWindow*, TemplateMenu*>(
-		pActionMap_, IDM_VIEW_TEMPLATE, IDM_VIEW_TEMPLATE + 100,
+	status = InitActionRange2<ViewTemplateAction,
+		MessageWindow*, TemplateMenu*>(
+		pActionMap_, IDM_VIEW_TEMPLATE,
+		IDM_VIEW_TEMPLATE + TemplateMenu::MAX_TEMPLATE,
 		pMessageWindow_, pViewTemplateMenu_);
 	CHECK_QSTATUS();
 	
@@ -774,152 +783,6 @@ QSTATUS qm::MainWindowImpl::layoutChildren(int cx, int cy)
 	pListSplitterWindow_->setRowHeight(0, nListWindowHeight_);
 	
 	bLayouting_ = false;
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::MainWindowImpl::updateSortMenu(HMENU hmenu)
-{
-	DECLARE_QSTATUS();
-	
-	MENUITEMINFO mii = { sizeof(mii), MIIM_TYPE | MIIM_ID };
-	while (true) {
-		::GetMenuItemInfo(hmenu, 0, TRUE, &mii);
-		if (mii.fType & MFT_SEPARATOR)
-			break;
-		::DeleteMenu(hmenu, 0, MF_BYPOSITION);
-	}
-	
-	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
-	if (pViewModel) {
-		unsigned int nSortIndex = pViewModel->getSort() & ViewModel::SORT_INDEX_MASK;
-		UINT nPos = 0;
-		UINT nId = IDM_VIEW_SORT;
-		const ViewModel::ColumnList& l = pViewModel->getColumns();
-		ViewModel::ColumnList::const_iterator it = l.begin();
-		while (it != l.end()) {
-			const WCHAR* pwszTitle = (*it)->getTitle();
-			if (*pwszTitle) {
-				string_ptr<WSTRING> wstrTitle;
-				status = UIUtil::formatMenu(pwszTitle, &wstrTitle);
-				CHECK_QSTATUS();
-				W2T(wstrTitle.get(), ptszTitle);
-				::InsertMenu(hmenu, nPos, MF_BYPOSITION, nId, ptszTitle);
-				++nPos;
-			}
-			if (nId - IDM_VIEW_SORT == nSortIndex)
-				::CheckMenuItem(hmenu, nId, MF_BYCOMMAND | MF_CHECKED);
-			++nId;
-			++it;
-		}
-	}
-	else {
-		string_ptr<WSTRING> wstrNone;
-		status = loadString(Application::getApplication().getResourceHandle(),
-			IDS_NONE, &wstrNone);
-		CHECK_QSTATUS();
-		W2T(wstrNone.get(), ptszNone);
-		::InsertMenu(hmenu, 0, MF_BYPOSITION, IDM_VIEW_SORT, ptszNone);
-		::EnableMenuItem(hmenu, IDM_VIEW_SORT, MF_BYCOMMAND | MF_GRAYED);
-	}
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::MainWindowImpl::updateFilterMenu(HMENU hmenu)
-{
-	DECLARE_QSTATUS();
-	
-	MENUITEMINFO mii = { sizeof(mii), MIIM_TYPE | MIIM_ID };
-	while (true) {
-		::GetMenuItemInfo(hmenu, 2, TRUE, &mii);
-		if (mii.wID == IDM_VIEW_FILTERCUSTOM)
-			break;
-		::DeleteMenu(hmenu, 2, MF_BYPOSITION);
-	}
-	
-	UINT nPos = 2;
-	UINT nId = IDM_VIEW_FILTER;
-	FilterManager* pFilterManager = pViewModelManager_->getFilterManager();
-	const FilterManager::FilterList* pList = 0;
-	status = pFilterManager->getFilters(&pList);
-	CHECK_QSTATUS();
-	FilterManager::FilterList::const_iterator it = pList->begin();
-	while (it != pList->end()) {
-		const Filter* pFilter = *it;
-		string_ptr<WSTRING> wstrTitle;
-		status = UIUtil::formatMenu(pFilter->getName(), &wstrTitle);
-		CHECK_QSTATUS();
-		W2T(wstrTitle.get(), ptszTitle);
-		::InsertMenu(hmenu, nPos, MF_BYPOSITION, nId, ptszTitle);
-		++nId;
-		++nPos;
-		++it;
-	}
-	if (nPos != 2)
-		::InsertMenu(hmenu, nPos, MF_BYPOSITION | MF_SEPARATOR, -1, 0);
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::MainWindowImpl::updateGoRoundMenu(HMENU hmenu)
-{
-	DECLARE_QSTATUS();
-	
-	UINT nId = IDM_TOOL_GOROUND;
-	while (::DeleteMenu(hmenu, nId++, MF_BYCOMMAND));
-	
-	GoRoundCourseList* pList = 0;
-	status = pGoRound_->getCourseList(&pList);
-	CHECK_QSTATUS();
-	
-	if (pList && pList->getCount() > 0) {
-		for (size_t n = 0; n < pList->getCount(); ++n) {
-			GoRoundCourse* pCourse = pList->getCourse(n);
-			string_ptr<WSTRING> wstrName;
-			status = UIUtil::formatMenu(pCourse->getName(), &wstrName);
-			CHECK_QSTATUS();
-			W2T(wstrName.get(), ptszName);
-			::AppendMenu(hmenu, MF_STRING, IDM_TOOL_GOROUND + n, ptszName);
-		}
-	}
-	else {
-		string_ptr<WSTRING> wstrName;
-		status = loadString(Application::getApplication().getResourceHandle(),
-			IDS_GOROUND, &wstrName);
-		CHECK_QSTATUS();
-		W2T(wstrName.get(), ptszName);
-		::AppendMenu(hmenu, MF_STRING, IDM_TOOL_GOROUND, ptszName);
-	}
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::MainWindowImpl::updateSubAccountMenu(HMENU hmenu)
-{
-	DECLARE_QSTATUS();
-	
-	UINT nId = IDM_TOOL_SUBACCOUNT + 1;
-	while (::DeleteMenu(hmenu, nId++, MF_BYCOMMAND));
-	
-	Account* pAccount = pFolderModel_->getCurrentAccount();
-	if (!pAccount) {
-		Folder* pFolder = pFolderModel_->getCurrentFolder();
-		if (pFolder)
-			pAccount = pFolder->getAccount();
-	}
-	
-	if (pAccount) {
-		const Account::SubAccountList& l = pAccount->getSubAccounts();
-		assert(!l.empty());
-		for (Account::SubAccountList::size_type n = 1; n < l.size(); ++n) {
-			SubAccount* pSubAccount = l[n];
-			string_ptr<WSTRING> wstrText;
-			status = UIUtil::formatMenu(pSubAccount->getName(), &wstrText);
-			W2T(wstrText.get(), ptszName);
-			::AppendMenu(hmenu, MF_STRING, IDM_TOOL_SUBACCOUNT + n, ptszName);
-		}
-	}
 	
 	return QSTATUS_SUCCESS;
 }
@@ -1286,11 +1149,15 @@ qm::MainWindow::MainWindow(Profile* pProfile, QSTATUS* pstatus) :
 	pImpl_->pFindReplaceManager_ = 0;
 	pImpl_->pExternalEditorManager_ = 0;
 	pImpl_->pMoveMenu_ = 0;
+	pImpl_->pFilterMenu_ = 0;
+	pImpl_->pSortMenu_ = 0;
 	pImpl_->pAttachmentMenu_ = 0;
 	pImpl_->pViewTemplateMenu_ = 0;
 	pImpl_->pCreateTemplateMenu_ = 0;
 	pImpl_->pCreateTemplateExternalMenu_ = 0;
 	pImpl_->pEncodingMenu_ = 0;
+	pImpl_->pSubAccountMenu_ = 0;
+	pImpl_->pGoRoundMenu_ = 0;
 	pImpl_->pScriptMenu_ = 0;
 	pImpl_->pDelayedFolderModelHandler_ = 0;
 	pImpl_->bCreated_ = false;
@@ -1318,13 +1185,17 @@ qm::MainWindow::~MainWindow()
 		delete pImpl_->pFindReplaceManager_;
 		delete pImpl_->pExternalEditorManager_;
 		delete pImpl_->pMoveMenu_;
+		delete pImpl_->pFilterMenu_;
+		delete pImpl_->pSortMenu_;
 		delete pImpl_->pAttachmentMenu_;
 		delete pImpl_->pViewTemplateMenu_;
 		delete pImpl_->pCreateTemplateMenu_;
 		delete pImpl_->pCreateTemplateExternalMenu_;
 		delete pImpl_->pEncodingMenu_;
-		delete pImpl_->pDelayedFolderModelHandler_;
+		delete pImpl_->pSubAccountMenu_;
+		delete pImpl_->pGoRoundMenu_;
 		delete pImpl_->pScriptMenu_;
+		delete pImpl_->pDelayedFolderModelHandler_;
 		delete pImpl_;
 		pImpl_ = 0;
 	}
@@ -1933,6 +1804,13 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	status = newQsObject(&pImpl_->pMoveMenu_);
 	CHECK_QSTATUS_VALUE(-1);
 	
+	status = newQsObject(pImpl_->pViewModelManager_->getFilterManager(),
+		&pImpl_->pFilterMenu_);
+	CHECK_QSTATUS_VALUE(-1);
+	
+	status = newQsObject(pImpl_->pViewModelManager_, &pImpl_->pSortMenu_);
+	CHECK_QSTATUS_VALUE(-1);
+	
 	status = newQsObject(&pImpl_->pAttachmentMenu_);
 	CHECK_QSTATUS_VALUE(-1);
 	
@@ -1949,6 +1827,12 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	CHECK_QSTATUS_VALUE(-1);
 	
 	status = newQsObject(pImpl_->pProfile_, &pImpl_->pEncodingMenu_);
+	CHECK_QSTATUS();
+	
+	status = newQsObject(pImpl_->pFolderModel_, &pImpl_->pSubAccountMenu_);
+	CHECK_QSTATUS();
+	
+	status = newQsObject(pImpl_->pGoRound_, &pImpl_->pGoRoundMenu_);
 	CHECK_QSTATUS();
 	
 	status = newQsObject(pImpl_->pDocument_->getScriptManager(),
@@ -2021,19 +1905,19 @@ LRESULT qm::MainWindow::onInitMenuPopup(HMENU hmenu, UINT nIndex, bool bSysMenu)
 			}
 		}
 		else if (nIdLast == IDM_VIEW_SORTTHREAD) {
-			status = pImpl_->updateSortMenu(hmenu);
+			status = pImpl_->pSortMenu_->createMenu(hmenu);
 			// TODO
 		}
 		else if (nIdFirst == IDM_VIEW_FILTERNONE) {
-			status = pImpl_->updateFilterMenu(hmenu);
+			status = pImpl_->pFilterMenu_->createMenu(hmenu);
 			// TODO
 		}
 		else if (nIdFirst == IDM_TOOL_GOROUND) {
-			status = pImpl_->updateGoRoundMenu(hmenu);
+			status = pImpl_->pGoRoundMenu_->createMenu(hmenu);
 			// TODO
 		}
 		else if (nIdFirst == IDM_TOOL_SUBACCOUNT) {
-			status = pImpl_->updateSubAccountMenu(hmenu);
+			status = pImpl_->pSubAccountMenu_->createMenu(hmenu);
 			// TODO
 		}
 		else if (nIdFirst == IDM_MESSAGE_DETACH) {

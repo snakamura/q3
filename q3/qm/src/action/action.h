@@ -100,11 +100,12 @@ class EditFrameWindowManager;
 class EncodingMenu;
 class ExternalEditorManager;
 class Filter;
-class FilterManager;
+class FilterMenu;
 class FindReplaceManager;
 class FolderModel;
 class FolderSelectionModel;
 class GoRound;
+class GoRoundMenu;
 class ListWindow;
 class MainWindow;
 class MessageFrameWindow;
@@ -118,6 +119,8 @@ class NormalFolder;
 class ProgressDialog;
 class RuleManager;
 class ScriptMenu;
+class SortMenu;
+class SubAccountMenu;
 class SyncDialogManager;
 class SyncFilterManager;
 class SyncManager;
@@ -1244,7 +1247,7 @@ class ToolGoRoundAction : public qs::AbstractAction
 public:
 	ToolGoRoundAction(SyncManager* pSyncManager, Document* pDocument,
 		GoRound* pGoRound, SyncDialogManager* pSyncDialogManager,
-		HWND hwnd, qs::QSTATUS* pstatus);
+		HWND hwnd, GoRoundMenu* pGoRoundMenu, qs::QSTATUS* pstatus);
 	virtual ~ToolGoRoundAction();
 
 public:
@@ -1261,6 +1264,7 @@ private:
 	GoRound* pGoRound_;
 	SyncDialogManager* pSyncDialogManager_;
 	HWND hwnd_;
+	GoRoundMenu* pGoRoundMenu_;
 };
 
 
@@ -1335,8 +1339,8 @@ private:
 class ToolSubAccountAction : public qs::AbstractAction
 {
 public:
-	ToolSubAccountAction(Document* pDocument,
-		FolderModel* pFolderModel, qs::QSTATUS* pstatus);
+	ToolSubAccountAction(Document* pDocument, FolderModel* pFolderModel,
+		SubAccountMenu* pSubAccountMenu, qs::QSTATUS* pstatus);
 	virtual ~ToolSubAccountAction();
 
 public:
@@ -1351,6 +1355,7 @@ private:
 private:
 	Document* pDocument_;
 	FolderModel* pFolderModel_;
+	SubAccountMenu* pSubAccountMenu_;
 };
 
 
@@ -1430,7 +1435,7 @@ class ViewFilterAction : public qs::AbstractAction
 {
 public:
 	ViewFilterAction(ViewModelManager* pViewModelManager,
-		FilterManager* pFilterManager, qs::QSTATUS* pstatus);
+		FilterMenu* pFilterMenu, qs::QSTATUS* pstatus);
 	virtual ~ViewFilterAction();
 
 public:
@@ -1444,7 +1449,7 @@ private:
 
 private:
 	ViewModelManager* pViewModelManager_;
-	FilterManager* pFilterManager_;
+	FilterMenu* pFilterMenu_;
 };
 
 
@@ -1974,7 +1979,8 @@ private:
 class ViewSortAction : public qs::AbstractAction
 {
 public:
-	ViewSortAction(ViewModelManager* pViewModelManager, qs::QSTATUS* pstatus);
+	ViewSortAction(ViewModelManager* pViewModelManager,
+		SortMenu* pSortMenu, qs::QSTATUS* pstatus);
 	virtual ~ViewSortAction();
 
 public:
@@ -1988,6 +1994,7 @@ private:
 
 private:
 	ViewModelManager* pViewModelManager_;
+	SortMenu* pSortMenu_;
 };
 
 

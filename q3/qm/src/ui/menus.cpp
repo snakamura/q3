@@ -8,6 +8,7 @@
 
 #include <qmaccount.h>
 #include <qmapplication.h>
+#include <qmgoround.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
 
@@ -20,9 +21,13 @@
 
 #include <tchar.h>
 
+#include "foldermodel.h"
 #include "menus.h"
 #include "resourceinc.h"
 #include "uiutil.h"
+#include "viewmodel.h"
+#include "../model/filter.h"
+#include "../model/goround.h"
 #include "../model/templatemanager.h"
 #include "../script/scriptmanager.h"
 
@@ -105,7 +110,7 @@ QSTATUS qm::AttachmentMenu::createMenu(HMENU hmenu, const MessagePtrList& l)
 	
 	UINT nId = IDM_MESSAGE_ATTACHMENT;
 	MessagePtrList::const_iterator itM = l.begin();
-	while (itM != l.end()) {
+	while (itM != l.end() && nId < IDM_MESSAGE_ATTACHMENT + MAX_ATTACHMENT) {
 		MessagePtrLock mpl(*itM);
 		if (mpl) {
 			status = STLWrapper<List>(list_).push_back(
@@ -122,7 +127,8 @@ QSTATUS qm::AttachmentMenu::createMenu(HMENU hmenu, const MessagePtrList& l)
 			status = parser.getAttachments(&list);
 			CHECK_QSTATUS();
 			AttachmentParser::AttachmentList::iterator itA = list.begin();
-			while (itA != list.end()) {
+			while (itA != list.end() &&
+				nId < IDM_MESSAGE_ATTACHMENT + MAX_ATTACHMENT) {
 				string_ptr<WSTRING> wstrName;
 				status = UIUtil::formatMenu((*itA).first, &wstrName);
 				CHECK_QSTATUS();
@@ -200,7 +206,7 @@ QSTATUS qm::EncodingMenu::load(Profile* pProfile)
 	CHECK_QSTATUS();
 	
 	WCHAR* p = wcstok(wstrEncodings.get(), L" ");
-	while (p) {
+	while (p && listEncoding_.size() < MAX_ENCODING) {
 		string_ptr<WSTRING> wstrEncoding(allocWString(p));
 		if (!wstrEncoding.get())
 			return QSTATUS_OUTOFMEMORY;
@@ -210,6 +216,142 @@ QSTATUS qm::EncodingMenu::load(Profile* pProfile)
 		wstrEncoding.release();
 		
 		p = wcstok(0, L" ");
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * FilterMenu
+ *
+ */
+
+qm::FilterMenu::FilterMenu(FilterManager* pFilterManager, QSTATUS* pstatus) :
+	pFilterManager_(pFilterManager)
+{
+}
+
+qm::FilterMenu::~FilterMenu()
+{
+}
+
+QSTATUS qm::FilterMenu::getFilter(unsigned int nId, const Filter** ppFilter) const
+{
+	assert(ppFilter);
+	
+	DECLARE_QSTATUS();
+	
+	*ppFilter = 0;
+	
+	const FilterManager::FilterList* pList = 0;
+	status = pFilterManager_->getFilters(&pList);
+	CHECK_QSTATUS();
+	
+	if (IDM_VIEW_FILTER <= nId && nId < IDM_VIEW_FILTER + pList->size())
+		*ppFilter = (*pList)[nId - IDM_VIEW_FILTER];
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::FilterMenu::createMenu(HMENU hmenu)
+{
+	DECLARE_QSTATUS();
+	
+	MENUITEMINFO mii = { sizeof(mii), MIIM_TYPE | MIIM_ID };
+	while (true) {
+		::GetMenuItemInfo(hmenu, 2, TRUE, &mii);
+		if (mii.wID == IDM_VIEW_FILTERCUSTOM)
+			break;
+		::DeleteMenu(hmenu, 2, MF_BYPOSITION);
+	}
+	
+	UINT nPos = 2;
+	UINT nId = IDM_VIEW_FILTER;
+	const FilterManager::FilterList* pList = 0;
+	status = pFilterManager_->getFilters(&pList);
+	CHECK_QSTATUS();
+	FilterManager::FilterList::const_iterator it = pList->begin();
+	while (it != pList->end() && nId < IDM_VIEW_FILTER + MAX_FILTER) {
+		const Filter* pFilter = *it;
+		string_ptr<WSTRING> wstrTitle;
+		status = UIUtil::formatMenu(pFilter->getName(), &wstrTitle);
+		CHECK_QSTATUS();
+		W2T(wstrTitle.get(), ptszTitle);
+		::InsertMenu(hmenu, nPos, MF_BYPOSITION, nId, ptszTitle);
+		++nId;
+		++nPos;
+		++it;
+	}
+	if (nPos != 2)
+		::InsertMenu(hmenu, nPos, MF_BYPOSITION | MF_SEPARATOR, -1, 0);
+	
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * GoRoundMenu
+ *
+ */
+
+qm::GoRoundMenu::GoRoundMenu(GoRound* pGoRound, QSTATUS* pstatus) :
+	pGoRound_(pGoRound)
+{
+}
+
+qm::GoRoundMenu::~GoRoundMenu()
+{
+}
+
+QSTATUS qm::GoRoundMenu::getCourse(unsigned int nId,
+	const GoRoundCourse** ppCourse) const
+{
+	assert(ppCourse);
+	
+	DECLARE_QSTATUS();
+	
+	*ppCourse = 0;
+	
+	GoRoundCourseList* pCourseList = 0;
+	status = pGoRound_->getCourseList(&pCourseList);
+	CHECK_QSTATUS();
+	if (pCourseList && pCourseList->getCount() > nId - IDM_TOOL_GOROUND)
+		*ppCourse = pCourseList->getCourse(nId - IDM_TOOL_GOROUND);
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::GoRoundMenu::createMenu(HMENU hmenu)
+{
+	DECLARE_QSTATUS();
+	
+	UINT nId = IDM_TOOL_GOROUND;
+	while (::DeleteMenu(hmenu, nId++, MF_BYCOMMAND));
+	
+	GoRoundCourseList* pList = 0;
+	status = pGoRound_->getCourseList(&pList);
+	CHECK_QSTATUS();
+	
+	if (pList && pList->getCount() > 0) {
+		for (size_t n = 0; n < pList->getCount() && n < MAX_COURSE; ++n) {
+			GoRoundCourse* pCourse = pList->getCourse(n);
+			string_ptr<WSTRING> wstrName;
+			status = UIUtil::formatMenu(pCourse->getName(), &wstrName);
+			CHECK_QSTATUS();
+			W2T(wstrName.get(), ptszName);
+			::AppendMenu(hmenu, MF_STRING, IDM_TOOL_GOROUND + n, ptszName);
+		}
+	}
+	else {
+		string_ptr<WSTRING> wstrName;
+		status = loadString(Application::getApplication().getResourceHandle(),
+			IDS_GOROUND, &wstrName);
+		CHECK_QSTATUS();
+		W2T(wstrName.get(), ptszName);
+		::AppendMenu(hmenu, MF_STRING, IDM_TOOL_GOROUND, ptszName);
 	}
 	
 	return QSTATUS_SUCCESS;
@@ -283,7 +425,7 @@ QSTATUS qm::MoveMenu::createMenu(HMENU hmenu,
 	W2T(wstrThisFolder.get(), ptszThisFolder);
 	
 	Account::FolderList::const_iterator it = listFolder.begin();
-	while (it != listFolder.end()) {
+	while (it != listFolder.end() && mapMenu_.size() < MAX_FOLDER) {
 		Folder* pFolder = *it;
 		
 		Folder* pParent = pFolder->getParentFolder();
@@ -455,7 +597,7 @@ QSTATUS qm::ScriptMenu::createMenu(HMENU hmenu)
 	UINT nId = IDM_TOOL_SCRIPT;
 	
 	ScriptManager::NameList::iterator it = l.begin();
-	while (it != l.end()) {
+	while (it != l.end() && list_.size() < MAX_SCRIPT) {
 		string_ptr<WSTRING> wstrMenu;
 		status = UIUtil::formatMenu(*it, &wstrMenu);
 		CHECK_QSTATUS();
@@ -484,6 +626,153 @@ void qm::ScriptMenu::clear()
 {
 	std::for_each(list_.begin(), list_.end(), string_free<WSTRING>());
 	list_.clear();
+}
+
+
+/****************************************************************************
+ *
+ * SubAccountMenu
+ *
+ */
+
+qm::SubAccountMenu::SubAccountMenu(FolderModel* pFolderModel, QSTATUS* pstatus) :
+	pFolderModel_(pFolderModel)
+{
+}
+
+qm::SubAccountMenu::~SubAccountMenu()
+{
+}
+
+const WCHAR* qm::SubAccountMenu::getName(unsigned int nId) const
+{
+	const WCHAR* pwszName = 0;
+	
+	Account* pAccount = pFolderModel_->getCurrentAccount();
+	if (!pAccount) {
+		Folder* pFolder = pFolderModel_->getCurrentFolder();
+		if (pFolder)
+			pAccount = pFolder->getAccount();
+	}
+	if (pAccount) {
+		const Account::SubAccountList& listSubAccount = pAccount->getSubAccounts();
+		if (nId - IDM_TOOL_SUBACCOUNT < listSubAccount.size()) {
+			SubAccount* pSubAccount = listSubAccount[nId - IDM_TOOL_SUBACCOUNT];
+			pwszName = pSubAccount->getName();
+		}
+	}
+	
+	return pwszName;
+}
+
+QSTATUS qm::SubAccountMenu::createMenu(HMENU hmenu)
+{
+	DECLARE_QSTATUS();
+	
+	UINT nId = IDM_TOOL_SUBACCOUNT + 1;
+	while (::DeleteMenu(hmenu, nId++, MF_BYCOMMAND));
+	
+	Account* pAccount = pFolderModel_->getCurrentAccount();
+	if (!pAccount) {
+		Folder* pFolder = pFolderModel_->getCurrentFolder();
+		if (pFolder)
+			pAccount = pFolder->getAccount();
+	}
+	
+	if (pAccount) {
+		const Account::SubAccountList& l = pAccount->getSubAccounts();
+		assert(!l.empty());
+		Account::SubAccountList::size_type n = 1;
+		while (n < l.size() && n < MAX_SUBACCOUNT) {
+			SubAccount* pSubAccount = l[n];
+			string_ptr<WSTRING> wstrText;
+			status = UIUtil::formatMenu(pSubAccount->getName(), &wstrText);
+			W2T(wstrText.get(), ptszName);
+			::AppendMenu(hmenu, MF_STRING, IDM_TOOL_SUBACCOUNT + n, ptszName);
+			++n;
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * SortMenu
+ *
+ */
+
+qm::SortMenu::SortMenu(ViewModelManager* pViewModelManager, QSTATUS* pstatus) :
+	pViewModelManager_(pViewModelManager)
+{
+}
+
+qm::SortMenu::~SortMenu()
+{
+}
+
+unsigned int qm::SortMenu::getSort(unsigned int nId) const
+{
+	unsigned int nSort = 0;
+	
+	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
+	if (pViewModel) {
+		nSort = pViewModel->getSort();
+		nSort &= ~ViewModel::SORT_INDEX_MASK;
+		nSort &= ~ViewModel::SORT_DIRECTION_MASK;
+		nSort |= nId - IDM_VIEW_SORT;
+	}
+	
+	return nSort;
+}
+
+QSTATUS qm::SortMenu::createMenu(HMENU hmenu)
+{
+	DECLARE_QSTATUS();
+	
+	MENUITEMINFO mii = { sizeof(mii), MIIM_TYPE | MIIM_ID };
+	while (true) {
+		::GetMenuItemInfo(hmenu, 0, TRUE, &mii);
+		if (mii.fType & MFT_SEPARATOR)
+			break;
+		::DeleteMenu(hmenu, 0, MF_BYPOSITION);
+	}
+	
+	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
+	if (pViewModel) {
+		unsigned int nSortIndex = pViewModel->getSort() & ViewModel::SORT_INDEX_MASK;
+		UINT nPos = 0;
+		UINT nId = IDM_VIEW_SORT;
+		const ViewModel::ColumnList& l = pViewModel->getColumns();
+		ViewModel::ColumnList::const_iterator it = l.begin();
+		while (it != l.end() && nId < IDM_VIEW_SORT + MAX_SORT) {
+			const WCHAR* pwszTitle = (*it)->getTitle();
+			if (*pwszTitle) {
+				string_ptr<WSTRING> wstrTitle;
+				status = UIUtil::formatMenu(pwszTitle, &wstrTitle);
+				CHECK_QSTATUS();
+				W2T(wstrTitle.get(), ptszTitle);
+				::InsertMenu(hmenu, nPos, MF_BYPOSITION, nId, ptszTitle);
+				++nPos;
+			}
+			if (nId - IDM_VIEW_SORT == nSortIndex)
+				::CheckMenuItem(hmenu, nId, MF_BYCOMMAND | MF_CHECKED);
+			++nId;
+			++it;
+		}
+	}
+	else {
+		string_ptr<WSTRING> wstrNone;
+		status = loadString(Application::getApplication().getResourceHandle(),
+			IDS_NONE, &wstrNone);
+		CHECK_QSTATUS();
+		W2T(wstrNone.get(), ptszNone);
+		::InsertMenu(hmenu, 0, MF_BYPOSITION, IDM_VIEW_SORT, ptszNone);
+		::EnableMenuItem(hmenu, IDM_VIEW_SORT, MF_BYCOMMAND | MF_GRAYED);
+	}
+	
+	return QSTATUS_SUCCESS;
 }
 
 
@@ -533,7 +822,7 @@ QSTATUS qm::TemplateMenu::createMenu(HMENU hmenu, Account* pAccount)
 	UINT nId = getId();
 	
 	TemplateManager::NameList::iterator it = l.begin();
-	while (it != l.end()) {
+	while (it != l.end() && list_.size() < MAX_TEMPLATE) {
 		string_ptr<WSTRING> wstrMenu;
 		status = UIUtil::formatMenu(*it + wcslen(pwszPrefix) + 1, &wstrMenu);
 		CHECK_QSTATUS();
