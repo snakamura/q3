@@ -169,8 +169,11 @@ bool qm::AccountImpl::saveFolders() const
 		return false;
 	BufferedWriter bufferedWriter(&writer, false);
 	
+	Account::FolderList listFolder(listFolder_);
+	std::sort(listFolder.begin(), listFolder.end(), FolderLess());
+	
 	FolderWriter folderWriter(&bufferedWriter);
-	if (!folderWriter.write(listFolder_))
+	if (!folderWriter.write(listFolder))
 		return false;
 	
 	if (!bufferedWriter.close())
