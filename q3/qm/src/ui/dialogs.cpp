@@ -84,12 +84,21 @@ LRESULT qm::AccountDialog::onCommand(WORD nCode, WORD nId)
 
 LRESULT qm::AccountDialog::onDestroy()
 {
+	HIMAGELIST hImageList = TreeView_GetImageList(
+		getDlgItem(IDC_ACCOUNT), TVSIL_NORMAL);
+	ImageList_Destroy(hImageList);
+	
 	removeNotifyHandler(this);
 	return DefaultDialog::onDestroy();
 }
 
 LRESULT qm::AccountDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 {
+	HIMAGELIST hImageList = ImageList_LoadImage(
+		Application::getApplication().getResourceHandle(),
+		MAKEINTRESOURCE(IDB_ACCOUNT), 16, 0, CLR_DEFAULT, IMAGE_BITMAP, 0);
+	TreeView_SetImageList(getDlgItem(IDC_ACCOUNT), hImageList, TVSIL_NORMAL);
+	
 	init(true);
 	update();
 	updateState();
@@ -470,7 +479,7 @@ QSTATUS qm::AccountDialog::update()
 			TVI_ROOT,
 			TVI_SORT,
 			{
-				TVIF_TEXT | TVIF_PARAM,
+				TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM,
 				0,
 				0,
 				0,
@@ -497,14 +506,14 @@ QSTATUS qm::AccountDialog::update()
 				hItem,
 				TVI_SORT,
 				{
-					TVIF_TEXT | TVIF_PARAM,
+					TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM,
 					0,
 					0,
 					0,
 					const_cast<LPTSTR>(ptszName),
 					0,
-					0,
-					0,
+					1,
+					1,
 					0,
 					reinterpret_cast<LPARAM>(pSubAccount)
 				}

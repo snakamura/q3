@@ -47,6 +47,7 @@
 #define IDD_MULTIINPUTBOX               148
 #define IDB_SYNCNOTIFICATION            149
 #define IDD_CUSTOMFILTER                150
+#define IDB_ACCOUNT                     150
 #define IDD_MOVEMESSAGE                 151
 #define IDD_RENAME                      152
 #define IDD_MACROSEARCH                 153
