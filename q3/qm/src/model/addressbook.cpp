@@ -50,7 +50,8 @@ using namespace qs;
 
 qm::AddressBook::AddressBook(const WCHAR* pwszPath,
 							 Profile* pProfile,
-							 bool bLoadExternal)
+							 bool bLoadExternal) :
+	pProfile_(pProfile)
 {
 	assert(pProfile || !bLoadExternal);
 	
@@ -61,7 +62,7 @@ qm::AddressBook::AddressBook(const WCHAR* pwszPath,
 	::SystemTimeToFileTime(&st, &ft_);
 	
 	if (bLoadExternal)
-		initExternal(pProfile);
+		initExternal();
 	
 	load();
 }
@@ -149,6 +150,12 @@ bool qm::AddressBook::reload()
 	return load();
 }
 
+void qm::AddressBook::reloadProfiles()
+{
+	if (pExternalManager_.get())
+		initExternal();
+}
+
 bool qm::AddressBook::save() const
 {
 	return ConfigSaver<const AddressBook*, AddressBookWriter>::save(this, wstrPath_.get());
@@ -192,10 +199,9 @@ const AddressBookCategory* qm::AddressBook::getCategory(const WCHAR* pwszCategor
 	}
 }
 
-void qm::AddressBook::initExternal(Profile* pProfile)
+void qm::AddressBook::initExternal()
 {
-	assert(!pExternalManager_.get());
-	pExternalManager_.reset(new ExternalAddressBookManager(pProfile));
+	pExternalManager_.reset(new ExternalAddressBookManager(pProfile_));
 }
 
 bool qm::AddressBook::load()
@@ -914,7 +920,8 @@ qm::ExternalAddressBook::~ExternalAddressBook()
  *
  */
 
-qm::ExternalAddressBookManager::ExternalAddressBookManager(Profile* pProfile)
+qm::ExternalAddressBookManager::ExternalAddressBookManager(Profile* pProfile) :
+	bModified_(true)
 {
 	bool bAddressOnly = pProfile->getInt(L"AddressBook", L"AddressOnly", 0) != 0;
 	
@@ -947,17 +954,25 @@ qm::ExternalAddressBookManager::~ExternalAddressBookManager()
 
 bool qm::ExternalAddressBookManager::load(AddressBook* pAddressBook)
 {
-	return std::find_if(listAddressBook_.begin(), listAddressBook_.end(),
+	if (std::find_if(listAddressBook_.begin(), listAddressBook_.end(),
 		std::not1(
 			std::bind2nd(
 				std::mem_fun(&ExternalAddressBook::load),
-				pAddressBook))) == listAddressBook_.end();
+				pAddressBook))) != listAddressBook_.end())
+		return false;
+	
+	bModified_ = false;
+	
+	return true;
 }
 
 bool qm::ExternalAddressBookManager::isModified() const
 {
-	return std::find_if(listAddressBook_.begin(), listAddressBook_.end(),
-		std::mem_fun(&ExternalAddressBook::isModified)) != listAddressBook_.end();
+	if (listAddressBook_.empty())
+		return bModified_;
+	else
+		return std::find_if(listAddressBook_.begin(), listAddressBook_.end(),
+			std::mem_fun(&ExternalAddressBook::isModified)) != listAddressBook_.end();
 }
 
 void qm::ExternalAddressBookManager::init(std::auto_ptr<ExternalAddressBook> pAddressBook,

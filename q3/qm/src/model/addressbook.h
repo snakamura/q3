@@ -81,6 +81,7 @@ public:
 	qs::wstring_ptr expandAlias(const WCHAR* pwszAddresses) const;
 	const AddressBookEntry* getEntry(const WCHAR* pwszAddress) const;
 	bool reload();
+	void reloadProfiles();
 	bool save() const;
 
 public:
@@ -89,7 +90,7 @@ public:
 	const AddressBookCategory* getCategory(const WCHAR* pwszCategory);
 
 private:
-	void initExternal(qs::Profile* pProfile);
+	void initExternal();
 	bool load();
 	bool loadExternal();
 	void clear(unsigned int nType);
@@ -102,6 +103,7 @@ private:
 private:
 	qs::wstring_ptr wstrPath_;
 	FILETIME ft_;
+	qs::Profile* pProfile_;
 	EntryList listEntry_;
 	CategoryList listCategory_;
 	std::auto_ptr<ExternalAddressBookManager> pExternalManager_;
@@ -365,6 +367,7 @@ private:
 
 private:
 	AddressBookList listAddressBook_;
+	bool bModified_;
 };
 
 

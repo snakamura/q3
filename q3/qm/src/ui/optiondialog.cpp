@@ -836,12 +836,13 @@ bool qm::OptionAddressBookDialog::save(OptionDialogContext* pContext)
 	}
 	pProfile_->setString(L"AddressBook", L"Externals", buf.getCharArray());
 	
+	bool bAddressOnly = sendDlgItemMessage(IDC_ADDRESSONLY, BM_GETCHECK) == BST_CHECKED;
+	pProfile_->setInt(L"AddressBook", L"AddressOnly", bAddressOnly);
+	
 	UIUtil::setLogFontToProfile(pProfile_, L"AddressBookListWindow", lf_);
 	
+	pAddressBook_->reloadProfiles();
 	pAddressBookFrameWindowManager_->reloadProfiles();
-	
-	// TODO
-	// Reload addressbook.
 	
 	return true;
 }
