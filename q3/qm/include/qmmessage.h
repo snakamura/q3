@@ -24,7 +24,7 @@ class MessageCreator;
 class PartUtil;
 class AttachmentParser;
 
-class Document;
+class AccountManager;
 
 
 /****************************************************************************
@@ -148,10 +148,10 @@ public:
 	unsigned int getFlags() const;
 	void setFlags(unsigned int nFlags,
 				  unsigned int nMask);
-	std::auto_ptr<Message> createMessage(Document* pDocument,
+	std::auto_ptr<Message> createMessage(AccountManager* pAccountManager,
 										 const WCHAR* pwszMessage,
 									     size_t nLen) const;
-	std::auto_ptr<qs::Part> createPart(Document* pDocument,
+	std::auto_ptr<qs::Part> createPart(AccountManager* pAccountManager,
 									   const WCHAR* pwszMessage,
 									   size_t nLen,
 									   qs::Part* pParent,
@@ -175,7 +175,7 @@ public:
 							  std::auto_ptr<qs::Part> pPart);
 	static bool attachFileOrURI(qs::Part* pPart,
 								const AttachmentList& l,
-								Document* pDocument,
+								AccountManager* pAccountManager,
 								unsigned int nSecurityMode);
 	static std::auto_ptr<qs::Part> createPartFromFile(const WCHAR* pwszPath);
 	static std::auto_ptr<qs::Part> createRfc822Part(const qs::Part& part,

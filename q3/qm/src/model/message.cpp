@@ -7,7 +7,6 @@
  */
 
 #include <qmaccount.h>
-#include <qmdocument.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
 #include <qmsecurity.h>
@@ -200,11 +199,11 @@ void qm::MessageCreator::setFlags(unsigned int nFlags,
 	nFlags_ |= nFlags & nMask;
 }
 
-std::auto_ptr<Message> qm::MessageCreator::createMessage(Document* pDocument,
+std::auto_ptr<Message> qm::MessageCreator::createMessage(AccountManager* pAccountManager,
 														 const WCHAR* pwszMessage,
 														 size_t nLen) const
 {
-	std::auto_ptr<Part> pPart(createPart(pDocument, pwszMessage, nLen, 0, true));
+	std::auto_ptr<Part> pPart(createPart(pAccountManager, pwszMessage, nLen, 0, true));
 	if (!pPart.get())
 		return std::auto_ptr<Message>(0);
 	
@@ -214,7 +213,7 @@ std::auto_ptr<Message> qm::MessageCreator::createMessage(Document* pDocument,
 	return pMessage;
 }
 
-std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
+std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManager,
 												   const WCHAR* pwszMessage,
 												   size_t nLen,
 												   Part* pParent,
@@ -288,7 +287,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 				if (pBegin) {
 					MessageCreator creator(getCreatorForChild());
 					std::auto_ptr<Part> pChild(creator.createPart(
-						pDocument, pBegin, pEnd - pBegin, pPart.get(), false));
+						pAccountManager, pBegin, pEnd - pBegin, pPart.get(), false));
 					if (!pChild.get())
 						return std::auto_ptr<Part>(0);
 					pPart->addPart(pChild);
@@ -300,7 +299,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 		else if (bRFC822) {
 			MessageCreator creator(getCreatorForChild());
 			std::auto_ptr<Part> pEnclosed(creator.createPart(
-				pDocument, pBody, nBodyLen, 0, false));
+				pAccountManager, pBody, nBodyLen, 0, false));
 			if (!pEnclosed.get())
 				return std::auto_ptr<Part>(0);
 			pPart->setEnclosedPart(pEnclosed);
@@ -419,7 +418,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 	}
 	
 	if (bMessage && nFlags_ & FLAG_EXTRACTATTACHMENT) {
-		assert(pDocument);
+		assert(pAccountManager);
 		
 		XQMAILAttachmentParser attachment;
 		if (pPart->getField(L"X-QMAIL-Attachment", &attachment) == Part::FIELD_EXIST) {
@@ -433,7 +432,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 			}
 			
 			const XQMAILAttachmentParser::AttachmentList& l = attachment.getAttachments();
-			if (!attachFileOrURI(pPart.get(), l, pDocument, nSecurityMode_))
+			if (!attachFileOrURI(pPart.get(), l, pAccountManager, nSecurityMode_))
 				return std::auto_ptr<Part>(0);
 		}
 		pPart->removeField(L"X-QMAIL-Attachment");
@@ -787,7 +786,7 @@ bool qm::MessageCreator::makeMultipart(Part* pParentPart,
 
 bool qm::MessageCreator::attachFileOrURI(qs::Part* pPart,
 										 const AttachmentList& l,
-										 Document* pDocument,
+										 AccountManager* pAccountManager,
 										 unsigned int nSecurityMode)
 {
 	assert(pPart->isMultipart());
@@ -802,7 +801,7 @@ bool qm::MessageCreator::attachFileOrURI(qs::Part* pPart,
 			if (!pURI.get())
 				return false;
 			
-			MessagePtrLock mpl(pDocument->getMessage(*pURI.get()));
+			MessagePtrLock mpl(pAccountManager->getMessage(*pURI.get()));
 			if (!mpl)
 				return false;
 			
