@@ -1,4 +1,4 @@
-﻿/*
+/*
  * $Id$
  *
  * Copyright(C) 1998-2004 Satoshi Nakamura
@@ -950,7 +950,6 @@ LRESULT qm::EditHeaderEditItem::onKillFocus()
 		Window wnd(getHandle());
 		wstring_ptr wstrText(wnd.getWindowText());
 		if (*wstrText.get()) {
-			pAddressBook_->reload();
 			wstring_ptr wstr(pAddressBook_->expandAlias(wstrText.get()));
 			if (wstr.get())
 				wnd.setWindowText(wstr.get());

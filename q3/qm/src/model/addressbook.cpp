@@ -62,6 +62,8 @@ qm::AddressBook::AddressBook(const WCHAR* pwszPath,
 		if (initWAB())
 			bContactChanged_ = true;
 	}
+	
+	load();
 }
 
 qm::AddressBook::~AddressBook()
