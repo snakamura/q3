@@ -1465,6 +1465,7 @@ NEWS.QUOTE              TEMPLATE DISCARDABLE    "res\\news.quote.template"
 //
 
 COLORS.XML              PROFILE DISCARDABLE     "res\\colors.xml"
+FILTERS.XML             PROFILE DISCARDABLE     "res\\filters.xml"
 HEADER.XML              PROFILE DISCARDABLE     "res\\header.xml"
 HEADEREDIT.XML          PROFILE DISCARDABLE     "res\\headeredit.xml"
 KEYMAP.XML              PROFILE DISCARDABLE     "res\\hpc\\keymap.xml"

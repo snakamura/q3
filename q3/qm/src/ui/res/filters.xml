@@ -1,0 +1,4 @@
+<filters>
+	<filter name="Unseen">@Not(@Seen())</filter>
+	<filter name="New">@Not(@Passed(14))</filter>
+</filters>

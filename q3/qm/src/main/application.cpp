@@ -571,6 +571,7 @@ bool qm::Application::initialize()
 
 	ApplicationImpl::Resource resources[] = {
 		DECLARE_PROFILE(FileNames::COLORS_XML,		COLORS_XML_REVISION,				false	),
+		DECLARE_PROFILE(FileNames::FILTERS_XML,		FILTERS_XML_REVISION,				false	),
 		DECLARE_PROFILE(FileNames::HEADER_XML,		HEADER_XML_REVISION,				true	),
 		DECLARE_PROFILE(FileNames::HEADEREDIT_XML,	HEADEREDIT_XML_REVISION,			true	),
 		DECLARE_PROFILE(FileNames::KEYMAP_XML,		KEYMAP_XML_REVISION,				true	),
