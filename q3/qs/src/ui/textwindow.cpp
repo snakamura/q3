@@ -2064,6 +2064,9 @@ bool qs::TextWindow::replace(const WCHAR* pwszFind,
 {
 	assert(pwszFind);
 	
+	if (*pwszFind == L'\0')
+		return false;
+	
 	bool bFound = false;
 	
 	// TODO
