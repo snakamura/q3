@@ -1471,6 +1471,14 @@ bool qm::ComboBoxHeaderEditItem::create(WindowBase* pParent,
 	
 	Window(hwnd_).setFont(fonts.first);
 	
+#ifdef _WIN32_WCE
+	ClientDeviceContext dc(hwnd_);
+	ObjectSelector<HFONT> selector(dc, fonts.first);
+	TEXTMETRIC tm;
+	dc.getTextMetrics(&tm);
+	::SendMessage(hwnd_, CB_SETITEMHEIGHT, -1, tm.tmHeight + tm.tmExternalLeading + 2);
+#endif
+	
 	pItemWindow_.reset(new EditWindowItemWindow(getController(), this, hwnd_));
 	
 	pParent->addCommandHandler(this);

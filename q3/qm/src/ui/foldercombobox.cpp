@@ -611,6 +611,14 @@ LRESULT qm::FolderComboBox::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pProfile_, L"FolderComboBox", false);
 	setFont(pImpl_->hfont_);
 	
+#ifdef _WIN32_WCE
+	ClientDeviceContext dc(getHandle());
+	ObjectSelector<HFONT> selector(dc, pImpl_->hfont_);
+	TEXTMETRIC tm;
+	dc.getTextMetrics(&tm);
+	sendMessage(CB_SETITEMHEIGHT, -1, tm.tmHeight + tm.tmExternalLeading + 2);
+#endif
+	
 	return 0;
 }
 
