@@ -1626,13 +1626,13 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,6,114,70,10
     CONTROL         "&Horizontal Scroll Bar",IDC_SHOWHORIZONTALSCROLLBAR,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,126,77,10
-    PUSHBUTTON      "&Font...",IDC_FONT,132,12,50,14
-    PUSHBUTTON      "Co&lors...",IDC_COLORS,132,30,50,14
-    PUSHBUTTON      "H&eader Font...",IDC_HEADERFONT,132,48,50,14
     CONTROL         "Ta&b",IDC_SHOWTAB,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
                     6,138,27,10
     CONTROL         "&New Line",IDC_SHOWNEWLINE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,6,150,43,10
+    PUSHBUTTON      "&Font...",IDC_FONT,132,12,50,14
+    PUSHBUTTON      "Co&lors...",IDC_COLORS,132,30,50,14
+    PUSHBUTTON      "H&eader Font...",IDC_HEADERFONT,132,48,50,14
 END
 
 IDD_OPTIONHEADERWINDOW DIALOGEX 0, 0, 231, 170
