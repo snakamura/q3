@@ -38,7 +38,8 @@ using namespace qs;
  */
 
 qm::Message::Message() :
-	flag_(FLAG_EMPTY)
+	flag_(FLAG_EMPTY),
+	nSecurity_(SECURITY_NONE)
 {
 }
 
