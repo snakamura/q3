@@ -77,6 +77,12 @@ public:
 class QMEXPORTCLASS ReceiveSession
 {
 public:
+	enum SelectFlag {
+		SELECTFLAG_EMPTY	= 0x01,
+		SELECTFLAG_EXPUNGE	= 0x02
+	};
+
+public:
 	virtual ~ReceiveSession();
 
 public:
@@ -92,7 +98,7 @@ public:
 	virtual void disconnect() = 0;
 	virtual bool isConnected() = 0;
 	virtual bool selectFolder(NormalFolder* pFolder,
-							  bool bExpunge) = 0;
+							  unsigned int nFlags) = 0;
 	virtual bool closeFolder() = 0;
 	virtual bool updateMessages() = 0;
 	virtual bool downloadMessages(const SyncFilterSet* pSyncFilterSet) = 0;

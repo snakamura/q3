@@ -2331,28 +2331,27 @@ void qm::FolderEmptyTrashAction::invoke(const ActionEvent& event)
 	Account* pAccount = pTrash->getAccount();
 	Lock<Account> lock(*pAccount);
 	
-	// TODO
-	// Sync folder if online and trash is syncable
-	
-	MessageHolderList l(pTrash->getMessages());
-	if (!l.empty()) {
-		ProgressDialogMessageOperationCallback callback(
-			hwnd_, IDS_EMPTYTRASH, IDS_EMPTYTRASH);
-		if (!pAccount->removeMessages(l, pTrash, false, &callback)) {
-			ActionUtil::error(hwnd_, IDS_ERROR_EMPTYTRASH);
-			return;
-		}
-		
-		if (!pTrash->isFlag(Folder::FLAG_LOCAL)) {
-			if (!SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
-				hwnd_, SyncDialog::FLAG_NONE, pTrash, ReceiveSyncItem::FLAG_EXPUNGE)) {
+	if (pTrash->isFlag(Folder::FLAG_LOCAL)) {
+		MessageHolderList l(pTrash->getMessages());
+		if (!l.empty()) {
+			ProgressDialogMessageOperationCallback callback(
+				hwnd_, IDS_EMPTYTRASH, IDS_EMPTYTRASH);
+			if (!pAccount->removeMessages(l, pTrash, false, &callback)) {
 				ActionUtil::error(hwnd_, IDS_ERROR_EMPTYTRASH);
 				return;
 			}
+			
+			if (!pAccount->save()) {
+				ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
+				return;
+			}
 		}
-		
-		if (!pAccount->save()) {
-			ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
+	}
+	else {
+		if (!SyncUtil::syncFolder(pSyncManager_, pDocument_,
+			pSyncDialogManager_, hwnd_, SyncDialog::FLAG_NONE, pTrash,
+			ReceiveSyncItem::FLAG_EMPTY | ReceiveSyncItem::FLAG_EXPUNGE)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_EMPTYTRASH);
 			return;
 		}
 	}

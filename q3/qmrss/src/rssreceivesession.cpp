@@ -96,10 +96,10 @@ bool qmrss::RssReceiveSession::isConnected()
 }
 
 bool qmrss::RssReceiveSession::selectFolder(NormalFolder* pFolder,
-											bool bExpunge)
+											unsigned int nFlags)
 {
 	assert(pFolder);
-	assert(!bExpunge);
+	assert(nFlags == 0);
 	
 	pFolder_ = pFolder;
 	

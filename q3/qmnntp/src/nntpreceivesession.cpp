@@ -126,10 +126,10 @@ bool qmnntp::NntpReceiveSession::isConnected()
 }
 
 bool qmnntp::NntpReceiveSession::selectFolder(NormalFolder* pFolder,
-											  bool bExpunge)
+											  unsigned int nFlags)
 {
 	assert(pFolder);
-	assert(!bExpunge);
+	assert(nFlags == 0);
 	
 	pCallback_->setMessage(IDS_SELECTGROUP);
 	

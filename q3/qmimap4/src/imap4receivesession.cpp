@@ -245,7 +245,7 @@ bool qmimap4::Imap4ReceiveSession::isConnected()
 }
 
 bool qmimap4::Imap4ReceiveSession::selectFolder(NormalFolder* pFolder,
-												bool bExpunge)
+												unsigned int nFlags)
 {
 	assert(pFolder);
 	
@@ -258,7 +258,15 @@ bool qmimap4::Imap4ReceiveSession::selectFolder(NormalFolder* pFolder,
 	if (!pImap4_->select(wstrName.get()))
 		HANDLE_ERROR();
 	
-	if (bExpunge) {
+	if (nFlags & SELECTFLAG_EMPTY) {
+		ContinuousRange range(1, nExists_, false);
+		Flags flags(Imap4::FLAG_DELETED);
+		Flags mask(Imap4::FLAG_DELETED);
+		if (!pImap4_->setFlags(range, flags, mask))
+			HANDLE_ERROR();
+	}
+	
+	if (nFlags & SELECTFLAG_EXPUNGE) {
 		if (!pImap4_->close() || !pImap4_->select(wstrName.get()))
 			HANDLE_ERROR();
 	}

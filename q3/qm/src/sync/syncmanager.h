@@ -87,7 +87,8 @@ class ReceiveSyncItem : public SyncItem
 {
 public:
 	enum Flag {
-		FLAG_EXPUNGE	= 0x01
+		FLAG_EMPTY		= 0x01,
+		FLAG_EXPUNGE	= 0x02
 	};
 
 public:

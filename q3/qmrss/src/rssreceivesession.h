@@ -50,7 +50,7 @@ public:
 	virtual void disconnect();
 	virtual bool isConnected();
 	virtual bool selectFolder(qm::NormalFolder* pFolder,
-							  bool bExpunge);
+							  unsigned int nFlags);
 	virtual bool closeFolder();
 	virtual bool updateMessages();
 	virtual bool downloadMessages(const qm::SyncFilterSet* pSyncFilterSet);

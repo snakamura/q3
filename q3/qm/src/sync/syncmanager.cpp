@@ -751,8 +751,14 @@ bool qm::SyncManager::syncFolder(SyncManagerCallback* pSyncManagerCallback,
 	if (!pFolder->loadMessageHolders())
 		return false;
 	
-	bool bExpunge = pReceiveItem && pReceiveItem->isFlag(ReceiveSyncItem::FLAG_EXPUNGE);
-	if (!pSession->selectFolder(pFolder, bExpunge))
+	unsigned int nSelectFlags = 0;
+	if (pReceiveItem) {
+		if (pReceiveItem->isFlag(ReceiveSyncItem::FLAG_EMPTY))
+			nSelectFlags |= ReceiveSession::SELECTFLAG_EMPTY;
+		if (pReceiveItem->isFlag(ReceiveSyncItem::FLAG_EXPUNGE))
+			nSelectFlags |= ReceiveSession::SELECTFLAG_EXPUNGE;
+	}
+	if (!pSession->selectFolder(pFolder, nSelectFlags))
 		return false;
 	pFolder->setLastSyncTime(::GetTickCount());
 	
