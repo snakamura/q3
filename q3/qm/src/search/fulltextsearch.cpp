@@ -11,6 +11,7 @@
 #include <qmfolder.h>
 #include <qmuiutil.h>
 
+#include <qsfile.h>
 #include <qsosutil.h>
 #include <qsstl.h>
 
@@ -297,8 +298,7 @@ bool qm::FullTextSearchPage::updateIndex()
 	wstring_ptr wstrMsg(concat(pAccount_->getMessageStorePath(), L"\\msg"));
 	wstrCommand = FullTextSearchUtil::replace(wstrCommand.get(), L"$msg", wstrMsg.get());
 	
-	W2T(wstrIndex.get(), ptszIndex);
-	if (!::CreateDirectory(ptszIndex, 0))
+	if (!File::createDirectory(wstrIndex.get()))
 		return false;
 	
 	W2T(wstrCommand.get(), ptszCommand);
