@@ -4375,7 +4375,9 @@ void qm::TabEditTitleAction::invoke(const ActionEvent& event)
 	TabTitleDialog dialog(pItem->getTitle());
 	if (dialog.doModal(hwnd_) != IDOK)
 		return;
-	pTabModel_->setTitle(nItem, dialog.getTitle());
+	
+	const WCHAR* pwszTitle = dialog.getTitle();
+	pTabModel_->setTitle(nItem, *pwszTitle ? pwszTitle : 0);
 }
 
 bool qm::TabEditTitleAction::isEnabled(const ActionEvent& event)
