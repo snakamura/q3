@@ -88,8 +88,11 @@ qm::DefaultTabModel::DefaultTabModel(Document* pDocument,
 	pDocument_(pDocument),
 	pProfile_(pProfile),
 	nCurrent_(-1),
-	nTemporary_(-1)
+	nTemporary_(-1),
+	nReuse_(REUSE_NONE)
 {
+	nReuse_ = pProfile_->getInt(L"TabWindow", L"Reuse", REUSE_NONE);
+	
 	pDocument_->addDocumentHandler(this);
 }
 
@@ -166,18 +169,12 @@ void qm::DefaultTabModel::setLocked(int nItem,
 
 void qm::DefaultTabModel::open(Account* pAccount)
 {
-	int nItem = getItem(pAccount);
-	if (nItem == -1)
-		nItem = addAccount(pAccount, false);
-	setCurrent(nItem);
+	open(pAccount, true);
 }
 
 void qm::DefaultTabModel::open(Folder* pFolder)
 {
-	int nItem = getItem(pFolder);
-	if (nItem == -1)
-		nItem = addFolder(pFolder, false);
-	setCurrent(nItem);
+	open(pFolder, true);
 }
 
 void qm::DefaultTabModel::close(int nItem)
@@ -236,20 +233,20 @@ void qm::DefaultTabModel::setAccount(Account* pAccount)
 	}
 	
 	if (bOpen) {
-		open(pAccount);
+		open(pAccount, false);
 	}
 	else {
-		std::auto_ptr<TabItem> pOldItem(listItem_[nCurrent_]);
-		std::auto_ptr<TabItem> pNewItem(new TabItem(pAccount, false));
-		listItem_[nCurrent_] = pNewItem.get();
-		
-		assert(listItemOrder_.front() == pOldItem.get());
-		listItemOrder_.front() = pNewItem.get();
-		
-		std::pair<Account*, Folder*> pOld(pOldItem->get());
-		std::pair<Account*, Folder*> pNew(pNewItem->get());
-		resetHandlers(pOld.first, pOld.second, pNew.first, pNew.second);
-		fireItemChanged(nCurrent_, pOldItem.get(), pNewItem.release());
+		int nItem = -1;
+		if (nReuse_ & REUSE_CHANGE)
+			nItem = getItem(pAccount);
+		if (nItem != -1) {
+			setCurrent(nItem);
+		}
+		else {
+			assert(listItemOrder_.front() == listItem_[nCurrent_]);
+			setAccount(nCurrent_, pAccount);
+			assert(listItemOrder_.front() == listItem_[nCurrent_]);
+		}
 	}
 }
 
@@ -269,20 +266,20 @@ void qm::DefaultTabModel::setFolder(Folder* pFolder)
 	}
 	
 	if (bOpen) {
-		open(pFolder);
+		open(pFolder, false);
 	}
 	else {
-		std::auto_ptr<TabItem> pOldItem(listItem_[nCurrent_]);
-		std::auto_ptr<TabItem> pNewItem(new TabItem(pFolder, false));
-		listItem_[nCurrent_] = pNewItem.get();
-		
-		assert(listItemOrder_.front() == pOldItem.get());
-		listItemOrder_.front() = pNewItem.get();
-		
-		std::pair<Account*, Folder*> pOld(pOldItem->get());
-		std::pair<Account*, Folder*> pNew(pNewItem->get());
-		resetHandlers(pOld.first, pOld.second, pNew.first, pNew.second);
-		fireItemChanged(nCurrent_, pOldItem.get(), pNewItem.release());
+		int nItem = -1;
+		if (nReuse_ & REUSE_CHANGE)
+			nItem = getItem(pFolder);
+		if (nItem != -1) {
+			setCurrent(nItem);
+		}
+		else {
+			assert(listItemOrder_.front() == listItem_[nCurrent_]);
+			setFolder(nCurrent_, pFolder);
+			assert(listItemOrder_.front() == listItem_[nCurrent_]);
+		}
 	}
 }
 
@@ -419,6 +416,40 @@ void qm::DefaultTabModel::setCurrent(int nItem,
 	}
 }
 
+void qm::DefaultTabModel::open(Account* pAccount,
+							   bool bForce)
+{
+	int nItem = -1;
+	if (!bForce) {
+		nItem = getItem(pAccount);
+		if (nItem == -1 && nReuse_ & REUSE_OPEN) {
+			nItem = getReusableItem();
+			if (nItem != -1)
+				setAccount(nItem, pAccount);
+		}
+	}
+	if (nItem == -1)
+		nItem = addAccount(pAccount, false);
+	setCurrent(nItem);
+}
+
+void qm::DefaultTabModel::open(Folder* pFolder,
+							   bool bForce)
+{
+	int nItem = -1;
+	if (!bForce) {
+		nItem = getItem(pFolder);
+		if (nItem == -1 && nReuse_ & REUSE_OPEN) {
+			nItem = getReusableItem();
+			if (nItem != -1)
+				setFolder(nItem, pFolder);
+		}
+	}
+	if (nItem == -1)
+		nItem = addFolder(pFolder, false);
+	setCurrent(nItem);
+}
+
 int qm::DefaultTabModel::addAccount(Account* pAccount,
 									bool bLocked)
 {
@@ -467,6 +498,37 @@ void qm::DefaultTabModel::removeItem(int nItem)
 	setCurrent(nCurrent, true);
 }
 
+void qm::DefaultTabModel::setAccount(int nItem,
+									 Account* pAccount)
+{
+	std::auto_ptr<TabItem> pItem(new TabItem(pAccount, false));
+	setItem(nItem, pItem);
+}
+
+void qm::DefaultTabModel::setFolder(int nItem,
+									Folder* pFolder)
+{
+	std::auto_ptr<TabItem> pItem(new TabItem(pFolder, false));
+	setItem(nItem, pItem);
+}
+
+void qm::DefaultTabModel::setItem(int nItem,
+								  std::auto_ptr<TabItem> pItem)
+{
+	std::auto_ptr<TabItem> pOldItem(listItem_[nItem]);
+	listItem_[nItem] = pItem.get();
+	
+	ItemList::iterator it = std::find(listItemOrder_.begin(),
+		listItemOrder_.end(), pOldItem.get());
+	assert(it != listItemOrder_.end());
+	*it = pItem.get();
+	
+	std::pair<Account*, Folder*> pOld(pOldItem->get());
+	std::pair<Account*, Folder*> pNew(pItem->get());
+	resetHandlers(pOld.first, pOld.second, pNew.first, pNew.second);
+	fireItemChanged(nItem, pOldItem.get(), pItem.release());
+}
+
 int qm::DefaultTabModel::getItem(Account* pAccount) const
 {
 	ItemList::const_iterator it = std::find_if(
@@ -495,6 +557,16 @@ int qm::DefaultTabModel::getItem(Folder* pFolder) const
 				std::identity<Folder*>()),
 			pFolder));
 	return it != listItem_.end() ? it - listItem_.begin() : -1;
+}
+
+int qm::DefaultTabModel::getReusableItem() const
+{
+	ItemList::const_reverse_iterator it = std::find_if(
+		listItem_.rbegin(), listItem_.rend(),
+		std::not1(std::mem_fun(&TabItem::isLocked)));
+	if (it == listItem_.rend())
+		return -1;
+	return it.base() - listItem_.begin() - 1;
 }
 
 void qm::DefaultTabModel::resetHandlers(Account* pOldAccount,

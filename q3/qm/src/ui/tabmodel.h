@@ -152,13 +152,24 @@ protected:
 private:
 	void setCurrent(int nItem,
 					bool bForce);
+	void open(Account* pAccount,
+			  bool bForce);
+	void open(Folder* pFolder,
+			  bool bForce);
 	int addAccount(Account* pAccount,
 				   bool bLocked);
 	int addFolder(Folder* pFolder,
 				  bool bLocked);
 	void removeItem(int nItem);
+	void setAccount(int nItem,
+					Account* pAccount);
+	void setFolder(int nItem,
+				   Folder* pFolder);
+	void setItem(int nItem,
+				 std::auto_ptr<TabItem> pItem);
 	int getItem(Account* pAccount) const;
 	int getItem(Folder* pFolder) const;
+	int getReusableItem() const;
 	void resetHandlers(Account* pOldAccount,
 					   Folder* pOldFolder,
 					   Account* pNewAccount,
@@ -167,6 +178,13 @@ private:
 private:
 	DefaultTabModel(const DefaultTabModel&);
 	DefaultTabModel& operator=(const DefaultTabModel&);
+
+private:
+	enum {
+		REUSE_NONE		= 0x00,
+		REUSE_OPEN		= 0x01,
+		REUSE_CHANGE	= 0x02
+	};
 
 private:
 	typedef std::vector<TabItem*> ItemList;
@@ -180,6 +198,7 @@ private:
 	int nCurrent_;
 	int nTemporary_;
 	ItemList listItemOrder_;
+	unsigned int nReuse_;
 	AccountList listHandledAccount_;
 	HandlerList listHandler_;
 };
