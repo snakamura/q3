@@ -112,12 +112,21 @@ QSTATUS qm::MessageViewWindowFactory::getMessageViewWindow(
 		_wcsicmp(pContentType->getSubType(), L"html") == 0;
 	
 	if (bHtml && !pHtml_ && Application::getApplication().getAtlHandle()) {
-		status = newQsObject(pProfile_, pwszSection_, pMenuManager_, &pHtml_);
+		std::auto_ptr<HtmlMessageViewWindow> pHtml;
+		status = newQsObject(pProfile_, pwszSection_, pMenuManager_, &pHtml);
 		CHECK_QSTATUS();
 		HWND hwnd = pText_->getParent();
-		status = pHtml_->create(L"QmHtmlMessageViewWindow", L"Shell.Explorer",
-			WS_CHILD, 0, 0, 500, 500, hwnd, 0, 0, 1003, 0);
+#ifdef _WIN32_WCE
+		const WCHAR* pwszId = L"{8856F961-340A-11D0-A96B-00C04FD705A2}";
+		DWORD dwExStyle = WS_EX_CLIENTEDGE;
+#else
+		const WCHAR* pwszId = L"Shell.Explorer";
+		DWORD dwExStyle = 0;
+#endif
+		status = pHtml->create(L"QmHtmlMessageViewWindow", pwszId,
+			WS_CHILD, 0, 0, 500, 500, hwnd, dwExStyle, 0, 1003, 0);
 		CHECK_QSTATUS();
+		pHtml_ = pHtml.release();
 	}
 	else if (bHtml) {
 		bHtml = pHtml_ != 0;

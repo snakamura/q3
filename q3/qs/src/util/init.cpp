@@ -130,13 +130,12 @@ qs::Init::Init(HINSTANCE hInst, const WCHAR* pwszTitle,
 	::_set_new_handler(newHandler);
 #endif
 	
-#ifdef _WIN32_WCE
-	COINIT coinit = COINIT_MULTITHREADED;
-#else
-	COINIT coinit = COINIT_APARTMENTTHREADED;
-#endif
-#ifdef _WIN32_WCE
-	HRESULT hr = ::CoInitializeEx(0, coinit);
+#if _WIN32_WCE < 300
+	HRESULT hr = ::CoInitializeEx(0, COINIT_MULTITHREADED);
+#elif _WIN32_WCE >= 300
+	HRESULT hr = ::CoInitializeEx(0, COINIT_APARTMENTTHREADED);
+	if (hr == E_INVALIDARG)
+		hr = ::CoInitializeEx(0, COINIT_MULTITHREADED);
 #else
 	HRESULT hr = ::OleInitialize(0);
 #endif

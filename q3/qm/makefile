@@ -11,6 +11,9 @@ CPROJS			= -DQMEXPORT
 ifeq ($(PLATFORM),desktop)
 	CPROJS		+= -DQMHTMLVIEW
 endif
+ifeq ($(PLATFORM),sig3)
+	CPROJS		+= -DQMHTMLVIEW
+endif
 
 OBJS			= $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.obj, $(wildcard $(SRCDIR)/*/*.cpp))
 ifeq ($(PLATFORM),desktop)

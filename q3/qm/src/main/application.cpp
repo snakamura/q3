@@ -694,7 +694,11 @@ HINSTANCE qm::Application::getResourceHandle() const
 HINSTANCE qm::Application::getAtlHandle() const
 {
 	if (!pImpl_->hInstAtl_) {
+#ifdef _WIN32_WCE
+		pImpl_->hInstAtl_ = ::LoadLibrary(_T("atlce400.dll"));
+#else
 		pImpl_->hInstAtl_ = ::LoadLibrary(_T("atl.dll"));
+#endif
 		if (pImpl_->hInstAtl_) {
 			typedef BOOL (__stdcall *PFN_ATLAXWININIT)();
 			PFN_ATLAXWININIT pfnAtlAxWinInit = reinterpret_cast<PFN_ATLAXWININIT>(

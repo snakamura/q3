@@ -1,13 +1,13 @@
 #!/bin/sh
 #
-# $Id: $
+# $Id$
 
 MAKE=${MAKE:=make}
 
 TARGET=$1
 
-PLATFORMS="desktop ppc2002 hpc2000 ppc hpcpro"
-CPUS="sh3 sh4 mips arm xscale x86em"
+PLATFORMS="desktop ppc2002 hpc2000 ppc hpcpro sig3"
+CPUS="sh3 sh4 mips arm xscale armv4i x86em"
 BASELANGS="ja en"
 CODES="ansi unicode"
 DEBUGS="release debug"
@@ -44,6 +44,9 @@ else
 		;;
 	hpcpro)
 		CEVER=211
+		;;
+	sig3)
+		CEVER=410
 		;;
 	*)
 		echo "Unknown PLATFORM: $PLATFORM"

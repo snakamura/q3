@@ -20,6 +20,7 @@ CESDKPPCJADIR			= d:/dev/msevt/wce300/ms pocket pc
 CESDKPPCENDIR			= d:/dev/msevt/wce300/ms pocket pc
 CESDKHPCPROJADIR		= d:/dev/cetools/wce211/ms hpc pro
 CESDKHPCPROENDIR		= d:/dev/cetools/wce211/ms hpc pro
+CESDKSIGIIIDIR			= d:/dev/msevc4/wce410/sigmarioniii sdk
 STLPORTDIR				= d:/dev/stlport/STLport-4.5.1/stlport
 KCTRLDIR				= d:/home/wince/kctrl
 EVC4					= 1
@@ -94,6 +95,12 @@ else
 		BASEPLATFORM	= hpc
 		#####################################################################
 	endif
+	ifeq ($(PLATFORM),sig3)
+		# HPC2000 ###########################################################
+		SDKDIR			= $(CESDKSIGIIIDIR)
+		BASEPLATFORM	= hpc
+		#####################################################################
+	endif
 	COMPILERDIR			= $(EVCDIR)
 	ifeq ($(EVC4),1)
 		COMPILERBINDIR	= $(COMPILERDIR)/wce420/bin
@@ -102,12 +109,24 @@ else
 	endif
 	COMMONBINDIR		= $(COMPILERDIR)/../common/evc/bin
 	
-	SDKINCLUDEDIR		= $(SDKDIR)/include
-	SDKLIBDIR			= $(SDKDIR)/lib/$(LIBCPU)
-	MFCINCLUDEDIR		= $(SDKDIR)/mfc/include
-	MFCLIBDIR			= $(SDKDIR)/mfc/lib/$(LIBCPU)
-	ATLINCLUDEDIR		= $(SDKDIR)/atl/include
-	ATLLIBDIR			= $(SDKDIR)/atl/lib/$(LIBCPU)
+	ifeq ($(SDKINCLUDEDIR),)
+		SDKINCLUDEDIR		= $(SDKDIR)/include
+	endif
+	ifeq ($(SDKLIBDIR),)
+		SDKLIBDIR			= $(SDKDIR)/lib/$(LIBCPU)
+	endif
+	ifeq ($(MFCINCLUDEDIR),)
+		MFCINCLUDEDIR		= $(SDKDIR)/mfc/include
+	endif
+	ifeq ($(MFCLIBDIR),)
+		MFCLIBDIR			= $(SDKDIR)/mfc/lib/$(LIBCPU)
+	endif
+	ifeq ($(ATLINCLUDEDIR),)
+		ATLINCLUDEDIR		= $(SDKDIR)/atl/include
+	endif
+	ifeq ($(ATLLIBDIR),)
+		ATLLIBDIR			= $(SDKDIR)/atl/lib/$(LIBCPU)
+	endif
 	#########################################################################
 endif
 SDKBINDIR				= $(SDKDIR)/bin
@@ -140,6 +159,9 @@ else
 		CCC				= clarm
 	endif
 	ifeq ($(CPU),xscale)
+		CCC				= clarm
+	endif
+	ifeq ($(CPU),armv4i)
 		CCC				= clarm
 	endif
 	ifeq ($(CPU),x86em)
@@ -191,18 +213,7 @@ else
 	# WINCE #################################################################
 	ifndef EMULATION
 		SUBSYSTEM		= WINDOWSCE
-		ifeq ($(CEVER),300)
-			SUBSYSVER	= 3.00
-		endif
-		ifeq ($(CEVER),211)
-			SUBSYSVER	= 2.11
-		endif
-		ifeq ($(CEVER),201)
-			SUBSYSVER	= 2.01
-		endif
-		ifeq ($(CEVER),200)
-			SUBSYSVER	= 2.00
-		endif
+		SUBSYSVER		= $(shell echo $(CEVER) | sed -e 's/\(.\)\(..\)/\1.\2/')
 	else
 		SUBSYSTEM		= WINDOWS
 		SUBSYSVER		= 4.0
@@ -253,6 +264,7 @@ else
 	RCFLAGS				+=  -D _WIN32_WCE=$(CEVER) -D UNDER_CE=$(CEVER)
 	
 	LIBCPU				= $(CPU)
+	EXLIBCPU			= $(CPU)
 	ifeq ($(CPU),sh3)
 		DEFINES			+= -DSHx -DSH3 -D_SH3_
 		LDFLAGS			+= -MACHINE:SH3
@@ -276,6 +288,13 @@ else
 		DEFINES			+= -DARM -D_ARM_
 		LDFLAGS			+= -MACHINE:ARM
 		LIBCPU			= arm
+		EXLIBCPU		= arm
+	endif
+	ifeq ($(CPU),armv4i)
+		CCFLAGS			+= -QRarch4T -QRinterwork-return
+		DEFINES			+= -DARM -D_ARM_ -DARMV4I
+		LDFLAGS			+= -MACHINE:THUMB
+		EXLIBCPU		= arm
 	endif
 	ifeq ($(CPU),x86em)
 		CCFLAGS			+= -Gz

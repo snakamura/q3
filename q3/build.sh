@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: $
+# $Id$
 
 
 MAKE=${MAKE:=make}
@@ -8,7 +8,7 @@ MSDEV=${MSDEV:=d:/dev/msvs/common/msdev98/bin/msdev.exe}
 PURIFY=${PURIFY:=d:/dev/rational/purify/purify.exe}
 
 PROJECTS="qs qscrypto qm qmpop3 qmimap4 qmsmtp qmnntp qmscript q3"
-TARGETS="desktop.ansi.release desktop.unicode.release ppc2002.arm.ja hpc2000.arm.ja hpc2000.mips.ja ppc.arm.ja ppc.sh3.ja ppc.mips.ja hpcpro.arm.ja hpcpro.mips.ja hpcpro.sh3.ja hpcpro.sh4.ja"
+TARGETS="desktop.ansi.release desktop.unicode.release ppc2002.arm.ja hpc2000.arm.ja hpc2000.mips.ja ppc.arm.ja ppc.sh3.ja ppc.mips.ja hpcpro.arm.ja hpcpro.mips.ja hpcpro.sh3.ja hpcpro.sh4.ja sig3.armv4i.ja"
 
 if [ $# -eq 0 ]; then
 	COMMAND=all

@@ -28,6 +28,7 @@
 #	include <exdisp.h>
 #	include <mshtml.h>
 #	include <mshtmhst.h>
+#	include <urlmon.h>
 #endif
 
 #include "messagewindow.h"
