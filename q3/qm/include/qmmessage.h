@@ -171,6 +171,10 @@ public:
 						 const WCHAR* pwszName,
 						 const WCHAR* pwszValue,
 						 FieldType type);
+	static bool getAddressList(const WCHAR* pwszAddresses,
+							   qs::AddressListParser* pAddressList);
+	static bool getAddress(const WCHAR* pwszAddress,
+						   qs::AddressParser* pAddress);
 	static bool makeMultipart(qs::Part* pParentPart,
 							  std::auto_ptr<qs::Part> pPart);
 	static bool attachFileOrURI(qs::Part* pPart,

@@ -743,6 +743,26 @@ bool qm::MessageCreator::setField(Part* pPart,
 	return true;
 }
 
+bool qm::MessageCreator::getAddressList(const WCHAR* pwszAddresses,
+										AddressListParser* pAddressList)
+{
+	Part part;
+	if (!MessageCreator::setField(&part, L"Address",
+		pwszAddresses, MessageCreator::FIELDTYPE_ADDRESSLIST))
+		return false;
+	return part.getField(L"Address", pAddressList) == Part::FIELD_EXIST;
+}
+
+bool qm::MessageCreator::getAddress(const WCHAR* pwszAddress,
+									AddressParser* pAddress)
+{
+	Part part;
+	if (!MessageCreator::setField(&part, L"Address",
+		pwszAddress, MessageCreator::FIELDTYPE_ADDRESSLIST))
+		return false;
+	return part.getField(L"Address", pAddress) == Part::FIELD_EXIST;
+}
+
 bool qm::MessageCreator::makeMultipart(Part* pParentPart,
 									   std::auto_ptr<Part> pPart)
 {
