@@ -108,7 +108,47 @@ QSTATUS qmnntp::NntpDriver::createFolder(SubAccount* pSubAccount,
 QSTATUS qmnntp::NntpDriver::createDefaultFolders(
 	Folder*** pppFolder, size_t* pnCount)
 {
-	// TODO
+	DECLARE_QSTATUS();
+	
+	*pppFolder = 0;
+	*pnCount = 0;
+	
+	struct {
+		const WCHAR* pwszName_;
+		unsigned int nFlags_;
+	} folders[] = {
+		{ L"Outbox",	Folder::FLAG_LOCAL | Folder::FLAG_OUTBOX | Folder::FLAG_DRAFTBOX	},
+		{ L"Posted",	Folder::FLAG_LOCAL | Folder::FLAG_SENTBOX							},
+		{ L"Trash",		Folder::FLAG_LOCAL | Folder::FLAG_TRASHBOX							}
+	};
+	
+	malloc_ptr<Folder*> pFolder(static_cast<Folder**>(
+		malloc(countof(folders)*sizeof(Folder*))));
+	if (!pFolder.get())
+		return QSTATUS_OUTOFMEMORY;
+	
+	for (int n = 0; n < countof(folders); ++n) {
+		NormalFolder::Init init;
+		init.nId_ = n;
+		init.pwszName_ = folders[n].pwszName_;
+		init.cSeparator_ = L'/';
+		init.nFlags_ = folders[n].nFlags_;
+		init.nCount_ = 0;
+		init.nUnseenCount_ = 0;
+		init.pParentFolder_ = 0;
+		init.pAccount_ = pAccount_;
+		init.nValidity_ = 0;
+		init.nDownloadCount_ = 0;
+		
+		NormalFolder* p = 0;
+		status = newQsObject(init, &p);
+		CHECK_QSTATUS();
+		*(pFolder.get() + n) = p;
+	}
+	
+	*pppFolder = pFolder.release();
+	*pnCount = countof(folders);
+	
 	return QSTATUS_SUCCESS;
 }
 
