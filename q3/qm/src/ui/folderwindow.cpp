@@ -151,6 +151,9 @@ public:
 	std::auto_ptr<DropTarget> pDropTarget_;
 	
 	FolderMap mapFolder_;
+	
+	HTREEITEM hItemDragOver_;
+	DWORD dwDragOverLastChangedTime_;
 };
 
 Account* qm::FolderWindowImpl::getAccount(HTREEITEM hItem) const
@@ -418,6 +421,9 @@ void qm::FolderWindowImpl::folderSelected(const FolderModelEvent& event)
 
 void qm::FolderWindowImpl::dragEnter(const DropTargetDragEvent& event)
 {
+	hItemDragOver_ = 0;
+	dwDragOverLastChangedTime_ = 0;
+	
 	dragOver(event);
 }
 
@@ -459,16 +465,38 @@ void qm::FolderWindowImpl::dragOver(const DropTargetDragEvent& event)
 	}
 	
 	TreeView_SelectDropTarget(pThis_->getHandle(), hSelectItem);
+	
+	RECT rect;
+	pThis_->getClientRect(&rect);
+	if (pt.y < rect.top + 30)
+		pThis_->sendMessage(WM_VSCROLL, MAKEWPARAM(SB_LINEUP, 0), 0);
+	else if (pt.y > rect.bottom - 30)
+		pThis_->sendMessage(WM_VSCROLL, MAKEWPARAM(SB_LINEDOWN, 0), 0);
+	
+	if (hItem) {
+		if (hItemDragOver_ != hItem) {
+			hItemDragOver_ = hItem;
+			dwDragOverLastChangedTime_ = ::GetTickCount();
+		}
+		else if (dwDragOverLastChangedTime_ != -1 &&
+			::GetTickCount() - dwDragOverLastChangedTime_ > 500) {
+			TreeView_Expand(pThis_->getHandle(), hItem, TVE_EXPAND);
+			dwDragOverLastChangedTime_ = -1;
+		}
+	}
 }
 
 void qm::FolderWindowImpl::dragExit(const DropTargetEvent& event)
 {
 	TreeView_SelectDropTarget(pThis_->getHandle(), 0);
+	
+	hItemDragOver_ = 0;
+	dwDragOverLastChangedTime_ = 0;
 }
 
 void qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
 {
-	TreeView_SelectDropTarget(pThis_->getHandle(), 0);
+	dragExit(event);
 	
 	POINT pt = event.getPoint();
 	pThis_->screenToClient(&pt);
@@ -804,6 +832,8 @@ qm::FolderWindow::FolderWindow(WindowBase* pParentWindow,
 	pImpl_->hfont_ = 0;
 	pImpl_->bShowAllCount_ = pProfile->getInt(L"FolderWindow", L"ShowAllCount", 1) != 0;
 	pImpl_->bShowUnseenCount_ = pProfile->getInt(L"FolderWindow", L"ShowUnseenCount", 1) != 0;
+	pImpl_->hItemDragOver_ = 0;
+	pImpl_->dwDragOverLastChangedTime_ = -1;
 	
 	setWindowHandler(this, false);
 	
