@@ -1470,19 +1470,18 @@ BEGIN
     GROUPBOX        "Wrap",IDC_STATIC,6,0,194,45
     LTEXT           "&Tab Width",IDC_STATIC,5,52,35,8
     EDITTEXT        IDC_TABWIDTH,45,50,36,12,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "Show &Ruler",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,95,52,49,10
-    CONTROL         "Show &Vertical Scroll Bar",IDC_SHOWVERTICALSCROLLBAR,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,65,88,10
-    CONTROL         "Show &Horizontal Scroll Bar",
-                    IDC_SHOWHORIZONTALSCROLLBAR,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,75,94,10
+    CONTROL         "&Ruler",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,85,52,30,10
+    CONTROL         "&V Scroll Bar",IDC_SHOWVERTICALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,50,10
+    CONTROL         "&H Scroll Bar",IDC_SHOWHORIZONTALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,85,65,50,10
     PUSHBUTTON      "&Font...",IDC_FONT,150,50,50,12
     PUSHBUTTON      "Co&lors...",IDC_COLORS,150,65,50,12
-    LTEXT           "Wa&it",IDC_STATIC,5,87,14,8
-    EDITTEXT        IDC_SEENWAIT,24,85,18,12,ES_AUTOHSCROLL | ES_NUMBER,
+    LTEXT           "Wa&it",IDC_STATIC,5,82,14,8
+    EDITTEXT        IDC_SEENWAIT,24,80,18,12,ES_AUTOHSCROLL | ES_NUMBER,
                     WS_EX_RIGHT
-    LTEXT           "s before makeing the message seen",IDC_STATIC,43,87,108,
+    LTEXT           "s before makeing the message seen",IDC_STATIC,43,82,108,
                     8
 END
 
@@ -1501,13 +1500,12 @@ BEGIN
     GROUPBOX        "Wrap",IDC_STATIC,6,0,194,45
     LTEXT           "&Tab Width",IDC_STATIC,5,52,35,8
     EDITTEXT        IDC_TABWIDTH,45,50,36,12,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "Show &Ruler",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,95,52,49,10
-    CONTROL         "Show &Vertical Scroll Bar",IDC_SHOWVERTICALSCROLLBAR,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,65,88,10
-    CONTROL         "Show &Horizontal Scroll Bar",
-                    IDC_SHOWHORIZONTALSCROLLBAR,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,75,94,10
+    CONTROL         "&Ruler",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,85,52,30,10
+    CONTROL         "&V Scroll Bar",IDC_SHOWVERTICALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,50,10
+    CONTROL         "&H Scroll Bar",IDC_SHOWHORIZONTALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,85,65,50,10
     PUSHBUTTON      "&Font...",IDC_FONT,150,50,50,12
     PUSHBUTTON      "Co&lors...",IDC_COLORS,150,65,50,12
 END
@@ -1527,17 +1525,16 @@ BEGIN
     GROUPBOX        "Wrap",IDC_STATIC,6,0,194,45
     LTEXT           "&Tab Width",IDC_STATIC,5,52,35,8
     EDITTEXT        IDC_TABWIDTH,45,50,36,12,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "Show &Ruler",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,95,52,49,10
-    CONTROL         "Show &Vertical Scroll Bar",IDC_SHOWVERTICALSCROLLBAR,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,65,88,10
-    CONTROL         "Show &Horizontal Scroll Bar",
-                    IDC_SHOWHORIZONTALSCROLLBAR,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,75,94,10
-    CONTROL         "Show Ta&b",IDC_SHOWTAB,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,85,50,10
-    CONTROL         "Show &New Line",IDC_SHOWNEWLINE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,75,85,65,10
+    CONTROL         "&Ruler",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,85,52,30,10
+    CONTROL         "&V Scroll Bar",IDC_SHOWVERTICALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,50,10
+    CONTROL         "&H Scroll Bar",IDC_SHOWHORIZONTALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,85,65,50,10
+    CONTROL         "Ta&b",IDC_SHOWTAB,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    5,75,30,10
+    CONTROL         "&New Line",IDC_SHOWNEWLINE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,85,75,45,10
     PUSHBUTTON      "&Font...",IDC_FONT,150,50,50,12
     PUSHBUTTON      "Co&lors...",IDC_COLORS,150,65,50,12
     PUSHBUTTON      "H&eader Font...",IDC_HEADERFONT,150,80,50,12

@@ -1559,13 +1559,12 @@ BEGIN
                     WS_TABSTOP,12,60,47,10
     LTEXT           "&Tab Width",IDC_STATIC,6,87,30,8
     EDITTEXT        IDC_TABWIDTH,42,84,36,14,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "Show &Ruler",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,6,102,49,10
-    CONTROL         "Show &Vertical Scroll Bar",IDC_SHOWVERTICALSCROLLBAR,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,114,88,10
-    CONTROL         "Show &Horizontal Scroll Bar",
-                    IDC_SHOWHORIZONTALSCROLLBAR,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,6,126,94,10
+    CONTROL         "&Ruler",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,6,102,31,10
+    CONTROL         "&Vertical Scroll Bar",IDC_SHOWVERTICALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,114,70,10
+    CONTROL         "&Horizontal Scroll Bar",IDC_SHOWHORIZONTALSCROLLBAR,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,126,77,10
     PUSHBUTTON      "&Font...",IDC_FONT,132,12,50,14
     PUSHBUTTON      "Co&lors...",IDC_COLORS,132,30,50,14
     LTEXT           "Wa&it",IDC_STATIC,6,147,14,8
@@ -1590,13 +1589,12 @@ BEGIN
                     WS_TABSTOP,12,60,47,10
     LTEXT           "&Tab Width",IDC_STATIC,6,87,30,8
     EDITTEXT        IDC_TABWIDTH,42,84,36,14,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "Show &Ruler",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,6,102,49,10
-    CONTROL         "Show &Vertical Scroll Bar",IDC_SHOWVERTICALSCROLLBAR,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,114,88,10
-    CONTROL         "Show &Horizontal Scroll Bar",
-                    IDC_SHOWHORIZONTALSCROLLBAR,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,6,126,94,10
+    CONTROL         "&Ruler",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,6,102,31,10
+    CONTROL         "&Vertical Scroll Bar",IDC_SHOWVERTICALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,114,70,10
+    CONTROL         "&Horizontal Scroll Bar",IDC_SHOWHORIZONTALSCROLLBAR,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,126,77,10
     PUSHBUTTON      "&Font...",IDC_FONT,132,12,50,14
     PUSHBUTTON      "Co&lors...",IDC_COLORS,132,30,50,14
 END
@@ -1616,20 +1614,19 @@ BEGIN
                     WS_TABSTOP,12,60,47,10
     LTEXT           "&Tab Width",IDC_STATIC,6,87,30,8
     EDITTEXT        IDC_TABWIDTH,42,84,36,14,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "Show &Ruler",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,6,102,49,10
-    CONTROL         "Show &Vertical Scroll Bar",IDC_SHOWVERTICALSCROLLBAR,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,114,88,10
-    CONTROL         "Show &Horizontal Scroll Bar",
-                    IDC_SHOWHORIZONTALSCROLLBAR,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,6,126,94,10
+    CONTROL         "&Ruler",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,6,102,30,10
+    CONTROL         "&Vertical Scroll Bar",IDC_SHOWVERTICALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,114,70,10
+    CONTROL         "&Horizontal Scroll Bar",IDC_SHOWHORIZONTALSCROLLBAR,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,126,77,10
     PUSHBUTTON      "&Font...",IDC_FONT,132,12,50,14
     PUSHBUTTON      "Co&lors...",IDC_COLORS,132,30,50,14
     PUSHBUTTON      "H&eader Font...",IDC_HEADERFONT,132,48,50,14
-    CONTROL         "Show Ta&b",IDC_SHOWTAB,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,6,138,45,10
-    CONTROL         "Show &New Line",IDC_SHOWNEWLINE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,6,150,61,10
+    CONTROL         "Ta&b",IDC_SHOWTAB,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    6,138,27,10
+    CONTROL         "&New Line",IDC_SHOWNEWLINE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,6,150,43,10
 END
 
 IDD_OPTIONHEADERWINDOW DIALOGEX 0, 0, 231, 170
