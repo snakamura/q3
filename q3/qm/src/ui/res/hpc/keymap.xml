@@ -31,7 +31,7 @@
 			<key key="S" ctrl="true"/>
 		</action>
 		<action name="MessageOpenLink">
-			<key key="O" alt="true"/>
+			<key key="O" shift="true"/>
 		</action>
 		<action name="ViewFocusNext">
 			<key code="9"/>

@@ -28,7 +28,7 @@
 			<key key="O" ctrl="true"/>
 		</action>
 		<action name="MessageOpenLink">
-			<key key="O" alt="true"/>
+			<key key="O" shift="true"/>
 		</action>
 		<action name="MessageSearch">
 			<key key="S" ctrl="true"/>
