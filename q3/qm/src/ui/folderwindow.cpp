@@ -1027,7 +1027,7 @@ LRESULT qm::FolderWindow::onMessageChanged(WPARAM wParam, LPARAM lParam)
 
 bool qm::FolderWindow::isShow() const
 {
-	return isVisible();
+	return (getStyle() & WS_VISIBLE) != 0;
 }
 
 bool qm::FolderWindow::isActive() const

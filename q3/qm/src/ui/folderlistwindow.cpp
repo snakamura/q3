@@ -570,7 +570,7 @@ LRESULT qm::FolderListWindow::onLButtonDown(UINT nFlags, const POINT& pt)
 
 bool qm::FolderListWindow::isShow() const
 {
-	return isVisible();
+	return (getStyle() & WS_VISIBLE) != 0;
 }
 
 bool qm::FolderListWindow::isActive() const

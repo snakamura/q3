@@ -779,7 +779,7 @@ LRESULT qm::FolderComboBox::onMessageChanged(WPARAM wParam, LPARAM lParam)
 
 bool qm::FolderComboBox::isShow() const
 {
-	return isVisible();
+	return (getStyle() & WS_VISIBLE) != 0;
 }
 
 bool qm::FolderComboBox::isActive() const

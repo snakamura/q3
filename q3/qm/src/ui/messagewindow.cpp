@@ -722,7 +722,7 @@ LRESULT qm::MessageWindow::onMessageModelMessageChanged(
 
 bool qm::MessageWindow::isShow() const
 {
-	return isVisible();
+	return (getStyle() & WS_VISIBLE) != 0;
 }
 
 bool qm::MessageWindow::isActive() const

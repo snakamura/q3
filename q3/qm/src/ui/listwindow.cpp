@@ -1553,7 +1553,7 @@ LRESULT qm::ListWindow::onViewModelItemRemoved(WPARAM wParam, LPARAM lParam)
 
 bool qm::ListWindow::isShow() const
 {
-	return isVisible();
+	return (getStyle() & WS_VISIBLE) != 0;
 }
 
 bool qm::ListWindow::isActive() const
@@ -1707,7 +1707,7 @@ int qm::ListHeaderColumn::getWidth() const
 
 int qm::ListHeaderColumn::getHeight() const
 {
-	if (isVisible()) {
+	if (getStyle() & WS_VISIBLE) {
 		RECT rect;
 		getWindowRect(&rect);
 		return rect.bottom - rect.top;
