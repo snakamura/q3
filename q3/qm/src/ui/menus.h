@@ -436,6 +436,7 @@ protected:
 	virtual UINT getId() const = 0;
 	virtual UINT getNoneId() const = 0;
 	virtual int getBase() const = 0;
+	virtual bool isAddSeparator() const = 0;
 
 private:
 	void clear();
@@ -471,6 +472,7 @@ protected:
 	virtual UINT getId() const;
 	virtual UINT getNoneId() const;
 	virtual int getBase() const;
+	virtual bool isAddSeparator() const;
 
 private:
 	CreateTemplateMenu(const CreateTemplateMenu&);
@@ -498,6 +500,7 @@ protected:
 	virtual UINT getId() const;
 	virtual UINT getNoneId() const;
 	virtual int getBase() const;
+	virtual bool isAddSeparator() const;
 
 private:
 	ViewTemplateMenu(const ViewTemplateMenu&);

@@ -876,18 +876,22 @@ bool qm::TemplateMenu::createMenu(HMENU hmenu,
 	StringListFree<TemplateManager::NameList> free(l);
 	pTemplateManager_->getTemplateNames(pAccount, pwszPrefix, &l);
 	
-	UINT nId = getId();
-	
-	for (TemplateManager::NameList::iterator it = l.begin();
-		it != l.end() && list_.size() < MAX_TEMPLATE; ++it, ++nId) {
-		wstring_ptr wstrMenu(UIUtil::formatMenu(*it + wcslen(pwszPrefix) + 1));
-		W2T(wstrMenu.get(), ptszName);
-		::AppendMenu(hmenu, MF_STRING, nId, ptszName);
-		list_.push_back(*it);
-		*it = 0;
+	if (!l.empty()) {
+		if (isAddSeparator())
+			::AppendMenu(hmenu, MF_SEPARATOR, -1, 0);
+		
+		UINT nId = getId();
+		
+		for (TemplateManager::NameList::iterator it = l.begin();
+			it != l.end() && list_.size() < MAX_TEMPLATE; ++it, ++nId) {
+			wstring_ptr wstrMenu(UIUtil::formatMenu(*it + wcslen(pwszPrefix) + 1));
+			W2T(wstrMenu.get(), ptszName);
+			::AppendMenu(hmenu, MF_STRING, nId, ptszName);
+			list_.push_back(*it);
+			*it = 0;
+		}
 	}
-	
-	if (l.empty() && getNoneId()) {
+	else if (getNoneId()) {
 		UINT nId = getNoneId();
 		if (nId) {
 			HINSTANCE hInst = Application::getApplication().getResourceHandle();
@@ -946,6 +950,11 @@ int qm::CreateTemplateMenu::getBase() const
 	return 0;
 }
 
+bool qm::CreateTemplateMenu::isAddSeparator() const
+{
+	return false;
+}
+
 
 /****************************************************************************
  *
@@ -979,5 +988,10 @@ UINT qm::ViewTemplateMenu::getNoneId() const
 
 int qm::ViewTemplateMenu::getBase() const
 {
-	return 2;
+	return 1;
+}
+
+bool qm::ViewTemplateMenu::isAddSeparator() const
+{
+	return true;
 }
