@@ -207,6 +207,8 @@ public:
 	static HWND getForegroundWindow();
 	bool setForegroundWindow();
 	
+	bool flashWindow(bool bInvert);
+	
 	bool invalidate();
 	bool invalidate(bool bErase);
 	bool invalidateRect(const RECT& rect);

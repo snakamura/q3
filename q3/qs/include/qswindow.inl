@@ -293,6 +293,12 @@ inline bool qs::Window::setForegroundWindow()
 	return ::SetForegroundWindow(hwnd_) != 0;
 }
 
+inline bool qs::Window::flashWindow(bool bInvert)
+{
+	assert(hwnd_);
+	return ::FlashWindow(hwnd_, bInvert) != 0;
+}
+
 inline bool qs::Window::invalidate()
 {
 	return invalidate(true);

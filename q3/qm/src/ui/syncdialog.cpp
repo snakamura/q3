@@ -144,7 +144,7 @@ void qm::SyncDialog::show()
 		if (!isVisible()) {
 			bShowError_ = false;
 			layout();
-			showWindow();
+			showWindow(SW_SHOWNA);
 			
 			if (enableCancelOnShow_ != ENABLECANCEL_NONE)
 				enableCancel(enableCancelOnShow_ == ENABLECANCEL_ENABLE);
@@ -177,6 +177,7 @@ void qm::SyncDialog::hide()
 			return;
 		
 		setDlgItemText(IDC_ERROR, L"");
+		bShowError_ = false;
 		
 		showWindow(SW_HIDE);
 		if (Window::getForegroundWindow() == getHandle())
@@ -216,8 +217,11 @@ void qm::SyncDialog::addError(const WCHAR* pwszError)
 	if (!bShowError_) {
 		bShowError_ = true;
 		layout();
-		showWindow();
-		setForegroundWindow();
+		if (!isVisible()) {
+			showWindow(SW_SHOWNA);
+			setWindowPos(HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+		}
+		flashWindow(false);
 	}
 }
 
