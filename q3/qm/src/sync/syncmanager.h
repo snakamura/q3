@@ -173,6 +173,7 @@ public:
 	~SyncManager();
 
 public:
+	qs::QSTATUS dispose();
 	qs::QSTATUS sync(SyncData* pData);
 	bool isSyncing() const;
 	SyncFilterManager* getSyncFilterManager() const;
@@ -202,6 +203,9 @@ private:
 		virtual ~SyncThread();
 	
 	public:
+		void setWaitMode();
+	
+	public:
 		virtual unsigned int run();
 	
 	private:
@@ -211,6 +215,7 @@ private:
 	private:
 		SyncManager* pSyncManager_;
 		const SyncData* pSyncData_;
+		bool bWaitMode_;
 	};
 	
 	class ParallelSyncThread : public qs::Thread
@@ -231,27 +236,6 @@ private:
 		SyncManager* pSyncManager_;
 		const SyncData* pSyncData_;
 		unsigned int nSlot_;
-	};
-	
-	class WaitThread : public qs::Thread
-	{
-	public:
-		WaitThread(SyncManager* pSyncManager, qs::QSTATUS* pstatus);
-		virtual ~WaitThread();
-	
-	public:
-		qs::QSTATUS stop();
-	
-	public:
-		virtual unsigned int run();
-	
-	private:
-		WaitThread(const WaitThread&);
-		WaitThread& operator=(const WaitThread&);
-	
-	private:
-		SyncManager* pSyncManager_;
-		volatile bool bStop_;
 	};
 	
 	class ReceiveSessionCallbackImpl : public ReceiveSessionCallback
@@ -349,9 +333,7 @@ private:
 private:
 	qs::Profile* pProfile_;
 	SyncFilterManager* pSyncFilterManager_;
-	WaitThread* pWaitThread_;
 	ThreadList listThread_;
-	qs::Event* pEvent_;
 	SyncingFolderList listSyncingFolder_;
 	qs::CriticalSection cs_;
 

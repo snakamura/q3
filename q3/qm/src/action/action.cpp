@@ -790,6 +790,8 @@ QSTATUS qm::FileExitAction::invoke(const ActionEvent& event)
 	} callback;
 	pTempFileCleaner_->clean(&callback);
 	
+	pSyncManager_->dispose();
+	
 	pWindow_->destroyWindow();
 	
 	return QSTATUS_SUCCESS;

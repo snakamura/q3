@@ -298,9 +298,7 @@ QSTATUS qm::SyncData::addSend(Account* pAccount, SubAccount* pSubAccount)
 
 qm::SyncManager::SyncManager(Profile* pProfile, QSTATUS* pstatus) :
 	pProfile_(pProfile),
-	pSyncFilterManager_(0),
-	pWaitThread_(0),
-	pEvent_(0)
+	pSyncFilterManager_(0)
 {
 	assert(pstatus);
 	
@@ -313,25 +311,48 @@ qm::SyncManager::SyncManager(Profile* pProfile, QSTATUS* pstatus) :
 	
 	status = STLWrapper<ThreadList>(listThread_).reserve(THREAD_MAX);
 	CHECK_QSTATUS_SET(pstatus);
-	
-	status = newQsObject(&pEvent_);
-	CHECK_QSTATUS_SET(pstatus);
 }
 
 qm::SyncManager::~SyncManager()
 {
-	if (pWaitThread_) {
-		pWaitThread_->stop();
-		delete pWaitThread_;
+	if (pSyncFilterManager_)
+		dispose();
+}
+
+QSTATUS qm::SyncManager::dispose()
+{
+	DWORD dwCount = 0;
+	HANDLE handles[THREAD_MAX];
+	{
+		Lock<CriticalSection> lock(cs_);
+		dwCount = listThread_.size();
+		
+		for (ThreadList::size_type n = 0; n < listThread_.size(); ++n) {
+			SyncThread* pThread = listThread_[n];
+			handles[n] = pThread->getHandle();
+			pThread->setWaitMode();
+		}
+	}
+	
+	if (dwCount != 0) {
+		::WaitForMultipleObjects(dwCount, handles, TRUE, INFINITE);
+		
+		std::for_each(listThread_.begin(),
+			listThread_.end(), deleter<SyncThread>());
+		listThread_.clear();
 	}
 	
 	std::for_each(listSyncingFolder_.begin(), listSyncingFolder_.end(),
 		unary_compose_f_gx(
 			deleter<Event>(),
 			std::select2nd<SyncingFolderList::value_type>()));
-	delete pEvent_;
 	
 	delete pSyncFilterManager_;
+	
+	pProfile_ = 0;
+	pSyncFilterManager_ = 0;
+	
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::SyncManager::sync(SyncData* pData)
@@ -339,13 +360,6 @@ QSTATUS qm::SyncManager::sync(SyncData* pData)
 	DECLARE_QSTATUS();
 	
 	Lock<CriticalSection> lock(cs_);
-	
-	if (!pWaitThread_) {
-		status = newQsObject(this, &pWaitThread_);
-		CHECK_QSTATUS();
-		status = pWaitThread_->start();
-		CHECK_QSTATUS();
-	}
 	
 	if (listThread_.size() >= THREAD_MAX)
 		return QSTATUS_FAIL;
@@ -358,8 +372,6 @@ QSTATUS qm::SyncManager::sync(SyncData* pData)
 	CHECK_QSTATUS();
 	
 	listThread_.push_back(pThread.release());
-	
-	pEvent_->set();
 	
 	return QSTATUS_SUCCESS;
 }
@@ -838,7 +850,8 @@ qm::SyncManager::SyncThread::SyncThread(SyncManager* pSyncManager,
 	const SyncData* pData, QSTATUS* pstatus) :
 	Thread(pstatus),
 	pSyncManager_(pSyncManager),
-	pSyncData_(pData)
+	pSyncData_(pData),
+	bWaitMode_(false)
 {
 	if (*pstatus != QSTATUS_SUCCESS)
 		return;
@@ -849,6 +862,11 @@ qm::SyncManager::SyncThread::~SyncThread()
 	delete pSyncData_;
 }
 
+void qm::SyncManager::SyncThread::setWaitMode()
+{
+	bWaitMode_ = true;
+}
+
 unsigned int qm::SyncManager::SyncThread::run()
 {
 	DECLARE_QSTATUS();
@@ -857,6 +875,18 @@ unsigned int qm::SyncManager::SyncThread::run()
 	CHECK_QSTATUS_VALUE(-1);
 	
 	pSyncManager_->syncData(pSyncData_);
+	
+	Lock<CriticalSection> lock(pSyncManager_->cs_);
+	
+	if (!bWaitMode_) {
+		SyncManager::ThreadList::iterator it = std::find(
+			pSyncManager_->listThread_.begin(),
+			pSyncManager_->listThread_.end(), this);
+		assert(it != pSyncManager_->listThread_.end());
+		
+		pSyncManager_->listThread_.erase(it);
+		delete this;
+	}
 	
 	return 0;
 }
@@ -892,100 +922,6 @@ unsigned int qm::SyncManager::ParallelSyncThread::run()
 	CHECK_QSTATUS_VALUE(-1);
 	
 	pSyncManager_->syncSlotData(pSyncData_, nSlot_);
-	
-	return 0;
-}
-
-
-/****************************************************************************
- *
- * SyncManager::WaitThread
- *
- */
-
-qm::SyncManager::WaitThread::WaitThread(
-	SyncManager* pSyncManager, QSTATUS* pstatus) :
-	Thread(pstatus),
-	pSyncManager_(pSyncManager),
-	bStop_(false)
-{
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-}
-
-qm::SyncManager::WaitThread::~WaitThread()
-{
-}
-
-QSTATUS qm::SyncManager::WaitThread::stop()
-{
-	DECLARE_QSTATUS();
-	
-	bStop_ = true;
-	
-	status = pSyncManager_->pEvent_->set();
-	CHECK_QSTATUS();
-	
-	status = join();
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
-}
-
-unsigned int qm::SyncManager::WaitThread::run()
-{
-	DECLARE_QSTATUS();
-	
-	InitThread init(0, &status);
-	CHECK_QSTATUS_VALUE(-1);
-	
-	typedef SyncManager::ThreadList List;
-	List& l = pSyncManager_->listThread_;
-	
-	while (true) {
-		DWORD dwCount = 0;
-		HANDLE handles[THREAD_MAX];
-		{
-			Lock<CriticalSection> lock(pSyncManager_->cs_);
-			dwCount = l.size() + 1;
-			handles[0] = pSyncManager_->pEvent_->getHandle();
-			std::transform(l.begin(), l.end(), handles + 1, 
-				std::mem_fun(SyncThread::getHandle));
-		}
-		
-		HANDLE handle = 0;
-		DWORD dw = ::WaitForMultipleObjects(
-			dwCount, handles, FALSE, INFINITE);
-		if (WAIT_OBJECT_0 <= dw && dw < WAIT_OBJECT_0 + dwCount) {
-			handle = handles[dw - WAIT_OBJECT_0];
-		}
-		else if (WAIT_ABANDONED_0 <= dw && dw < WAIT_ABANDONED_0 + dwCount) {
-			handle = handles[dw - WAIT_ABANDONED_0];
-		}
-		else {
-			// TODO
-		}
-		
-		if (handle == pSyncManager_->pEvent_->getHandle()) {
-			if (bStop_) {
-				// TODO
-				// Discard all threads
-				return 0;
-			}
-		}
-		else {
-			Lock<CriticalSection> lock(pSyncManager_->cs_);
-			
-			List::iterator it = l.begin();
-			while (it != l.end() && (*it)->getHandle() != handle)
-				++it;
-			assert(it != l.end());
-			
-			SyncThread* pThread = *it;
-			l.erase(it);
-			delete pThread;
-		}
-	}
 	
 	return 0;
 }

@@ -96,7 +96,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hInstPrev,
 	nFlag |= _CRTDBG_LEAK_CHECK_DF;
 	nFlag &= ~_CRTDBG_CHECK_CRT_DF;
 	_CrtSetDbgFlag(nFlag);
-//	_CrtSetBreakAlloc(30086);
+//	_CrtSetBreakAlloc(30863);
 #endif // !NDEBUG && !_WIN32_WCE
 	
 	DECLARE_QSTATUS();
