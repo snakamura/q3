@@ -1,5 +1,6 @@
 At {@FormatDate(@Date(Date), '%D %M1 %Y4 %h:%m:%s %z', 2)} {@Name(From)} wrote:
-{@Progn(@Set('clipboard', @Clipboard()),
+{@Progn(@Set('quote', @Profile('', 'Global', 'Quote', '> ')),
+        @Set('clipboard', @Clipboard()),
         @If($clipboard,
-            @Quote($clipboard, '> '),
-            @Body('> ', 1)))}
+            @Quote($clipboard, $quote),
+            @Body($quote, 1)))}

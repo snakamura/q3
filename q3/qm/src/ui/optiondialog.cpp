@@ -196,6 +196,7 @@ LRESULT qm::OptionDialog::onInitDialog(HWND hwndFocus,
 		{ PANEL_SYNCFILTERS,	IDS_PANEL_SYNCFILTERS		},
 		{ PANEL_AUTOPILOT,		IDS_PANEL_AUTOPILOT			},
 		{ PANEL_MISC,			IDS_PANEL_MISC				},
+		{ PANEL_MISC2,			IDS_PANEL_MISC2				},
 #ifndef _WIN32_WCE
 		{ PANEL_JUNK,			IDS_PANEL_JUNK				},
 #endif
@@ -457,6 +458,7 @@ void qm::OptionDialog::setCurrentPanel(Panel panel,
 			PANEL2(PANEL_SYNCFILTERS, SyncFilterSets, pSyncFilterManager_, pProfile_);
 			PANEL3(PANEL_AUTOPILOT, AutoPilot, pAutoPilotManager_, pGoRound_, pProfile_);
 			PANEL1(PANEL_MISC, OptionMisc, pProfile_);
+			PANEL1(PANEL_MISC2, OptionMisc2, pProfile_);
 #ifndef _WIN32_WCE
 			PANEL1(PANEL_JUNK, OptionJunk, pDocument_->getJunkFilter());
 #endif
@@ -1264,7 +1266,7 @@ LRESULT qm::OptionMiscDialog::onCommand(WORD nCode,
 }
 
 LRESULT qm::OptionMiscDialog::onInitDialog(HWND hwndFocus,
-											   LPARAM lParam)
+										   LPARAM lParam)
 {
 	DialogUtil::loadBoolProperties(this, pProfile_,
 		L"Global", boolProperties__, countof(boolProperties__));
@@ -1334,6 +1336,53 @@ LRESULT qm::OptionMiscDialog::onBrowse()
 		setDlgItemText(IDC_TEMPORARYFOLDER, wstrPath.get());
 	
 	return 0;
+}
+
+
+/****************************************************************************
+ *
+ * OptionMisc2Dialog
+ *
+ */
+
+DialogUtil::BoolProperty qm::OptionMisc2Dialog::boolProperties__[] = {
+	{ L"Bcc",				IDC_BCC,				true	},
+	{ L"NoBccForML",		IDC_NOBCCFORML,			false	},
+	{ L"ForwardRfc822",		IDC_FORWARDRFC822,		false	},
+	{ L"OpenAddressBook",	IDC_OPENADDRESSBOOK,	false	}
+};
+
+qm::OptionMisc2Dialog::OptionMisc2Dialog(Profile* pProfile) :
+	DefaultDialog(IDD_OPTIONMISC2),
+	pProfile_(pProfile)
+{
+}
+
+qm::OptionMisc2Dialog::~OptionMisc2Dialog()
+{
+}
+
+LRESULT qm::OptionMisc2Dialog::onInitDialog(HWND hwndFocus,
+											LPARAM lParam)
+{
+	DialogUtil::loadBoolProperties(this, pProfile_,
+		L"Global", boolProperties__, countof(boolProperties__));
+	
+	wstring_ptr wstrQuote(pProfile_->getString(L"Global", L"Quote", L"> "));
+	setDlgItemText(IDC_QUOTE, wstrQuote.get());
+	
+	return FALSE;
+}
+
+bool qm::OptionMisc2Dialog::save(OptionDialogContext* pContext)
+{
+	DialogUtil::saveBoolProperties(this, pProfile_,
+		L"Global", boolProperties__, countof(boolProperties__));
+	
+	wstring_ptr wstrQuote(getDlgItemText(IDC_QUOTE));
+	pProfile_->setString(L"Global", L"Quote", wstrQuote.get());
+	
+	return true;
 }
 
 

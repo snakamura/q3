@@ -42,6 +42,7 @@ class OptionJunkDialog;
 #endif
 class OptionListDialog;
 class OptionMiscDialog;
+class OptionMisc2Dialog;
 class OptionSecurityDialog;
 class TextColorDialog;
 class AbstractOptionTextDialog;
@@ -133,6 +134,7 @@ public:
 		PANEL_AUTOPILOT,
 		
 		PANEL_MISC,
+		PANEL_MISC2,
 #ifndef _WIN32_WCE
 		PANEL_JUNK,
 #endif
@@ -634,6 +636,39 @@ private:
 private:
 	OptionMiscDialog(const OptionMiscDialog&);
 	OptionMiscDialog& operator=(const OptionMiscDialog&);
+
+private:
+	qs::Profile* pProfile_;
+
+private:
+	static DialogUtil::BoolProperty boolProperties__[];
+};
+
+
+/****************************************************************************
+ *
+ * OptionMisc2Dialog
+ *
+ */
+
+class OptionMisc2Dialog :
+	public DefaultDialog,
+	public AbstractOptionDialogPanel<OptionMisc2Dialog>
+{
+public:
+	explicit OptionMisc2Dialog(qs::Profile* pProfile);
+	virtual ~OptionMisc2Dialog();
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+public:
+	virtual bool save(OptionDialogContext* pContext);
+
+private:
+	OptionMisc2Dialog(const OptionMisc2Dialog&);
+	OptionMisc2Dialog& operator=(const OptionMisc2Dialog&);
 
 private:
 	qs::Profile* pProfile_;

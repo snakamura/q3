@@ -1705,6 +1705,23 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,82,75,50,12
 END
 
+IDD_OPTIONMISC2 DIALOG DISCARDABLE  0, 0, 137, 119
+STYLE WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&Bcc to myself",IDC_BCC,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,5,60,8
+    CONTROL         "Don't bcc if the original message seems from &ML",
+                    IDC_NOBCCFORML,"Button",BS_AUTOCHECKBOX | BS_TOP | 
+                    BS_MULTILINE | WS_TABSTOP,15,15,115,17
+    CONTROL         "Use message/rfc822 for &forwarding",IDC_FORWARDRFC822,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,35,125,8
+    CONTROL         "Open &address book when compose",IDC_OPENADDRESSBOOK,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,45,125,8
+    LTEXT           "&Quote",IDC_STATIC,5,62,20,8
+    EDITTEXT        IDC_QUOTE,30,60,40,12,ES_AUTOHSCROLL
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2301,6 +2318,7 @@ BEGIN
     IDS_PANEL_LIST          "List"
     IDS_PANEL_MESSAGE       "Message"
     IDS_PANEL_MISC          "Misc"
+    IDS_PANEL_MISC2         "Misc2"
     IDS_PANEL_PREVIEW       "Preview"
     IDS_PANEL_RULES         "Rules"
     IDS_PANEL_SECURITY      "Security"

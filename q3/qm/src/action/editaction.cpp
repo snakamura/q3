@@ -382,7 +382,7 @@ void qm::EditEditPasteWithQuoteAction::invoke(const ActionEvent& event)
 		if (!wstrText.get())
 			return;
 		
-		wstring_ptr wstrQuote(pProfile_->getString(L"EditWindow", L"PasteQuote", L"> "));
+		wstring_ptr wstrQuote(pProfile_->getString(L"Global", L"Quote", L"> "));
 		
 		XStringBuffer<WSTRING> buf;
 		bool bNewLine = true;
@@ -1125,9 +1125,9 @@ void qm::EditToolReformAllAction::invoke(const ActionEvent& event)
 		// TODO MSG
 	}
 	
-	// TODO
-	// Get line length and tab width
-	wxstring_ptr wstrReformedText(TextUtil::fold(wstrText.get(), -1, 74, 0, 0, 4));
+	int nLineLen = pProfile_->getInt(L"EditWindow", L"ReformLineLength", 74);
+	int nTabWidth = pProfile_->getInt(L"EditWindow", L"TabWidth", 4);
+	wxstring_ptr wstrReformedText(TextUtil::fold(wstrText.get(), -1, nLineLen, 0, 0, nTabWidth));
 	if (!pTextModel->setText(wstrReformedText.get(), -1)) {
 		// TODO MSG
 	}

@@ -109,6 +109,7 @@
 #define IDD_OPTIONJUNK                  210
 #define IDD_OPTIONEDIT2                 211
 #define IDD_SECURITY                    212
+#define IDD_OPTIONMISC2                 213
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -500,6 +501,10 @@
 #define IDC_EDITOR                      1391
 #define IDC_AUTOCREATE                  1393
 #define IDC_SECURITY                    1394
+#define IDC_NOBCCFORML                  1396
+#define IDC_FORWARDRFC822               1397
+#define IDC_OPENADDRESSBOOK             1398
+#define IDC_QUOTE                       1399
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -526,12 +531,13 @@
 #define IDS_PANEL_LIST                  2512
 #define IDS_PANEL_MESSAGE               2513
 #define IDS_PANEL_MISC                  2514
-#define IDS_PANEL_PREVIEW               2515
-#define IDS_PANEL_RULES                 2516
-#define IDS_PANEL_SECURITY              2517
-#define IDS_PANEL_SIGNATURES            2518
-#define IDS_PANEL_SYNCFILTERS           2519
-#define IDS_PANEL_TAB                   2520
+#define IDS_PANEL_MISC2                 2515
+#define IDS_PANEL_PREVIEW               2516
+#define IDS_PANEL_RULES                 2517
+#define IDS_PANEL_SECURITY              2518
+#define IDS_PANEL_SIGNATURES            2519
+#define IDS_PANEL_SYNCFILTERS           2520
+#define IDS_PANEL_TAB                   2521
 #define IDS_ERROR_CREATEFOLDER          10000
 #define IDS_ERROR_EXECUTEATTACHMENT     10001
 #define IDS_ERROR_DIALUP                10002
@@ -592,7 +598,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        213
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1395
+#define _APS_NEXT_CONTROL_VALUE         1400
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
