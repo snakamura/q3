@@ -123,31 +123,65 @@ SyncManagerCallback* qm::SyncDialog::getSyncManagerCallback() const
 
 void qm::SyncDialog::show()
 {
-	assert(::GetCurrentThreadId() == ::GetWindowThreadProcessId(getHandle(), 0));
-	
-	if (!isVisible()) {
-		bShowError_ = false;
-		layout();
-		showWindow();
-		
-		if (enableCancelOnShow_ != ENABLECANCEL_NONE)
-			enableCancel(enableCancelOnShow_ == ENABLECANCEL_ENABLE);
+	if (::GetCurrentThreadId() != ::GetWindowThreadProcessId(getHandle(), 0)) {
+		struct RunnableImpl : public Runnable
+		{
+			RunnableImpl(SyncDialog* pSyncDialog) :
+				pSyncDialog_(pSyncDialog)
+			{
+			}
+			
+			virtual void run()
+			{
+				pSyncDialog_->show();
+			}
+			
+			SyncDialog* pSyncDialog_;
+		} runnable(this);
+		getInitThread()->getSynchronizer()->syncExec(&runnable);
 	}
-	setForegroundWindow();
+	else {
+		if (!isVisible()) {
+			bShowError_ = false;
+			layout();
+			showWindow();
+			
+			if (enableCancelOnShow_ != ENABLECANCEL_NONE)
+				enableCancel(enableCancelOnShow_ == ENABLECANCEL_ENABLE);
+		}
+		setForegroundWindow();
+	}
 }
 
 void qm::SyncDialog::hide()
 {
-	assert(::GetCurrentThreadId() == ::GetWindowThreadProcessId(getHandle(), 0));
-	
-	if (!isVisible())
-		return;
-	
-	setDlgItemText(IDC_ERROR, L"");
-	
-	showWindow(SW_HIDE);
-	if (Window::getForegroundWindow() == getHandle())
-		getMainWindow()->setForegroundWindow();
+	if (::GetCurrentThreadId() != ::GetWindowThreadProcessId(getHandle(), 0)) {
+		struct RunnableImpl : public Runnable
+		{
+			RunnableImpl(SyncDialog* pSyncDialog) :
+				pSyncDialog_(pSyncDialog)
+			{
+			}
+			
+			virtual void run()
+			{
+				pSyncDialog_->hide();
+			}
+			
+			SyncDialog* pSyncDialog_;
+		} runnable(this);
+		getInitThread()->getSynchronizer()->syncExec(&runnable);
+	}
+	else {
+		if (!isVisible())
+			return;
+		
+		setDlgItemText(IDC_ERROR, L"");
+		
+		showWindow(SW_HIDE);
+		if (Window::getForegroundWindow() == getHandle())
+			getMainWindow()->setForegroundWindow();
+	}
 }
 
 void qm::SyncDialog::setMessage(const WCHAR* pwszMessage)
