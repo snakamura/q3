@@ -99,7 +99,11 @@ bool qm::ExternalEditorManager::open(const WCHAR* pwszMessage)
 		sizeof(sei),
 		SEE_MASK_NOCLOSEPROCESS,
 		hwnd_,
+#ifdef _WIN32_WCE
 		_T("open"),
+#else
+		0,
+#endif
 		ptszFile,
 		ptszParam,
 		0,

@@ -1842,7 +1842,11 @@ STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::Invoke(DISPID dispId
 				sizeof(sei),
 				0,
 				pHtmlMessageViewWindow_->getParentFrame(),
+#ifdef _WIN32_WCE
 				_T("open"),
+#else
+				0,
+#endif
 				tstrURL.get(),
 				0,
 				0,

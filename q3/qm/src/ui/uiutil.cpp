@@ -161,7 +161,11 @@ bool qm::UIUtil::openURL(HWND hwnd,
 		sizeof(info),
 		0,
 		hwnd,
+#ifdef _WIN32_WCE
 		_T("open"),
+#else
+		0,
+#endif
 		ptszURL,
 		0,
 		0,

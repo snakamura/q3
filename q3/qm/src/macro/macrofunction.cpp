@@ -1308,7 +1308,11 @@ MacroValuePtr qm::MacroFunctionExecute::value(MacroContext* pContext) const
 			sizeof(sei),
 			0,
 			pContext->getWindow(),
+#ifdef _WIN32_WCE
 			_T("open"),
+#else
+			0,
+#endif
 			ptszCommand,
 			ptszParam,
 			0,

@@ -276,7 +276,11 @@ AttachmentParser::Result qm::AttachmentHelper::open(const Part* pPart,
 		sizeof(sei),
 		0,
 		hwnd_,
+#ifdef _WIN32_WCE
 		_T("open"),
+#else
+		0,
+#endif
 		0,
 		0,
 		0,
