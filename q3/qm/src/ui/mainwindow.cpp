@@ -833,7 +833,7 @@ QSTATUS qm::MainWindowImpl::sizeChanged(const SplitterWindowEvent& event)
 {
 	DECLARE_QSTATUS();
 	
-	if (bCreated_) {
+	if (bCreated_ && !bLayouting_) {
 		SplitterWindow* pSplitterWindow = event.getSplitterWindow();
 		if (pSplitterWindow == pFolderSplitterWindow_) {
 			if (bVirticalFolderWindow_) {
