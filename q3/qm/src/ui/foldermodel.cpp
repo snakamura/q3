@@ -80,7 +80,7 @@ void qm::DefaultFolderModel::setCurrent(Account* pAccount,
 		}
 	}
 	else {
-		if (pAccount != pCurrentAccount_) {
+		if (pAccount != pCurrentAccount_ || !pAccount) {
 			pCurrentAccount_ = pAccount;
 			pCurrentFolder_ = 0;
 			fireAccountSelected(pAccount, bDelay);
