@@ -413,11 +413,44 @@ bool qm::DefaultSSLSocketCallback::checkCertificate(const Certificate& cert,
 	if (!bVerified && (nSslOption & SubAccount::SSLOPTION_ALLOWUNVERIFIEDCERTIFICATE) == 0)
 		return false;
 	
-	std::auto_ptr<Name> pName(cert.getSubject());
-	wstring_ptr wstrCommonName(pName->getCommonName());
-	if ((nSslOption & SubAccount::SSLOPTION_ALLOWDIFFERENTHOST) == 0 &&
-		_wcsicmp(wstrCommonName.get(), pSubAccount_->getHost(host_)) != 0)
-		return false;
+	if ((nSslOption & SubAccount::SSLOPTION_ALLOWDIFFERENTHOST) == 0) {
+		std::auto_ptr<Name> pName(cert.getSubject());
+		wstring_ptr wstrCommonName(pName->getCommonName());
+		
+		const WCHAR* pwszCommonName = wstrCommonName.get();
+		const WCHAR* pwszHost = pSubAccount_->getHost(host_);
+		while (pwszCommonName && pwszHost) {
+			const WCHAR* pCN = wcschr(pwszCommonName, L'.');
+			const WCHAR* pHost = wcschr(pwszHost, L'.');
+			if (pCN) {
+				if (pHost) {
+					if (pCN - pwszCommonName != 1 || *pwszCommonName != L'*') {
+						if (pCN - pwszCommonName != pHost - pwszHost ||
+							wcsncmp(pwszCommonName, pwszHost, pCN - pwszCommonName) != 0)
+							return false;
+					}
+				}
+				else {
+					return false;
+				}
+			}
+			else {
+				if (pHost) {
+					return false;
+				}
+				else {
+					if (wcscmp(pwszCommonName, pwszHost) != 0)
+						return false;
+					else
+						break;
+				}
+			}
+			
+			assert(pCN && pHost);
+			pwszCommonName = pCN + 1;
+			pwszHost = pHost + 1;
+		}
+	}
 	
 	return true;
 }
