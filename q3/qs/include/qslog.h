@@ -15,8 +15,9 @@
 namespace qs {
 
 class Logger;
-
-class OutputStream;
+class Log;
+class LogHandler;
+	class FileLogHandler;
 
 
 /****************************************************************************
@@ -37,8 +38,8 @@ public:
 	};
 
 public:
-	Logger(OutputStream* pStream,
-		   bool bDeleteStream,
+	Logger(LogHandler* pLogHandler,
+		   bool bDeleteHandler,
 		   Level level);
 	~Logger();
 
@@ -131,6 +132,54 @@ private:
 private:
 	Logger* pLogger_;
 	const WCHAR* pwszModule_;
+};
+
+
+/****************************************************************************
+ *
+ * LogHandler
+ *
+ */
+
+class QSEXPORTCLASS LogHandler
+{
+public:
+	virtual ~LogHandler();
+
+public:
+	virtual bool log(Logger::Level level,
+					 const WCHAR* pwszModule,
+					 const WCHAR* pwszMessage,
+					 const unsigned char* pData,
+					 size_t nDataLen) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * FileLogHandler
+ *
+ */
+
+class QSEXPORTCLASS FileLogHandler : public LogHandler
+{
+public:
+	explicit FileLogHandler(const WCHAR* pwszPath);
+	virtual ~FileLogHandler();
+
+public:
+	virtual bool log(Logger::Level level,
+					 const WCHAR* pwszModule,
+					 const WCHAR* pwszMessage,
+					 const unsigned char* pData,
+					 size_t nDataLen);
+
+private:
+	FileLogHandler(const FileLogHandler&);
+	FileLogHandler& operator=(const FileLogHandler&);
+
+private:
+	struct FileLogHandlerImpl* pImpl_;
 };
 
 }

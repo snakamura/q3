@@ -321,16 +321,10 @@ bool qs::InitThreadImpl::createLogger()
 		
 		wstring_ptr wstrPath(concat(pwszLogDir, wszName));
 		
-		std::auto_ptr<FileOutputStream> pStream(new FileOutputStream(wstrPath.get()));
-		if (!*pStream.get())
-			return false;
-		std::auto_ptr<BufferedOutputStream> pBufferedStream(
-			new BufferedOutputStream(pStream.get(), true));
-		pStream.release();
-		
+		std::auto_ptr<FileLogHandler> pLogHandler(new FileLogHandler(wstrPath.get()));
 		std::auto_ptr<Logger> pLogger(new Logger(
-			pBufferedStream.get(), true, init.getLogLevel()));
-		pBufferedStream.release();
+			pLogHandler.get(), true, init.getLogLevel()));
+		pLogHandler.release();
 		
 		pLogger_ = pLogger;
 	}

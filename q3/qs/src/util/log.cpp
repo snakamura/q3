@@ -22,8 +22,8 @@ using namespace qs;
 
 struct qs::LoggerImpl
 {
-	OutputStream* pStream_;
-	bool bDeleteStream_;
+	LogHandler* pLogHandler_;
+	bool bDeleteHandler_;
 	Logger::Level level_;
 };
 
@@ -34,22 +34,22 @@ struct qs::LoggerImpl
  *
  */
 
-qs::Logger::Logger(OutputStream* pStream,
-				   bool bDeleteStream,
+qs::Logger::Logger(LogHandler* pLogHandler,
+				   bool bDeleteHandler,
 				   Level level) :
 	pImpl_(0)
 {
 	pImpl_ = new LoggerImpl();
-	pImpl_->pStream_ = pStream;
-	pImpl_->bDeleteStream_ = bDeleteStream;
+	pImpl_->pLogHandler_ = pLogHandler;
+	pImpl_->bDeleteHandler_ = bDeleteHandler;
 	pImpl_->level_ = level;
 }
 
 qs::Logger::~Logger()
 {
 	if (pImpl_) {
-		if (pImpl_->bDeleteStream_)
-			delete pImpl_->pStream_;
+		if (pImpl_->bDeleteHandler_)
+			delete pImpl_->pLogHandler_;
 		delete pImpl_;
 	}
 }
@@ -72,6 +72,108 @@ void qs::Logger::log(Level level,
 	
 	if (level > pImpl_->level_)
 		return;
+	
+	pImpl_->pLogHandler_->log(level, pwszModule, pwszMessage, pData, nDataLen);
+}
+
+void qs::Logger::logf(Level level,
+					  const WCHAR* pwszModule,
+					  const WCHAR* pwszFormat,
+					  ...)
+{
+	va_list args;
+	va_start(args, pwszFormat);
+	logf(level, pwszModule, pwszFormat, args);
+	va_end(args);
+}
+
+void qs::Logger::logf(Level level,
+					  const WCHAR* pwszModule,
+					  const WCHAR* pwszFormat,
+					  va_list args)
+{
+	WCHAR wszMessage[256];
+	_vsnwprintf(wszMessage, countof(wszMessage), pwszFormat, args);
+	log(level, pwszModule, wszMessage, 0, 0);
+}
+
+bool qs::Logger::isEnabled(Level level) const
+{
+	return pImpl_->level_ >= level;
+}
+
+
+/****************************************************************************
+ *
+ * LogHandler
+ *
+ */
+
+qs::LogHandler::~LogHandler()
+{
+}
+
+
+/****************************************************************************
+ *
+ * FileLogHandlerImpl
+ *
+ */
+
+struct qs::FileLogHandlerImpl
+{
+	bool prepareStream();
+	
+	wstring_ptr wstrPath_;
+	std::auto_ptr<qs::OutputStream> pStream_;
+};
+
+bool qs::FileLogHandlerImpl::prepareStream()
+{
+	if (pStream_.get())
+		return true;
+	
+	std::auto_ptr<FileOutputStream> pFileOutputStream(
+		new FileOutputStream(wstrPath_.get()));
+	if (!*pFileOutputStream.get())
+		return false;
+	
+	pStream_.reset(new BufferedOutputStream(pFileOutputStream.get(), true));
+	pFileOutputStream.release();
+	
+	return true;
+}
+
+
+/****************************************************************************
+ *
+ * FileLogHandler
+ *
+ */
+
+qs::FileLogHandler::FileLogHandler(const WCHAR* pwszPath) :
+	pImpl_(0)
+{
+	pImpl_ = new FileLogHandlerImpl();
+	pImpl_->wstrPath_ = allocWString(pwszPath);
+}
+
+qs::FileLogHandler::~FileLogHandler()
+{
+	delete pImpl_;
+}
+
+bool qs::FileLogHandler::log(Logger::Level level,
+							 const WCHAR* pwszModule,
+							 const WCHAR* pwszMessage,
+							 const unsigned char* pData,
+							 size_t nDataLen)
+{
+	assert(pwszModule);
+	assert(pwszMessage);
+	
+	if (!pImpl_->prepareStream())
+		return false;
 	
 	Time time(Time::getCurrentTime());
 	wstring_ptr wstrTime(time.format(L"%Y4/%M0/%D-%h:%m:%s%z", Time::FORMAT_LOCAL));
@@ -100,43 +202,20 @@ void qs::Logger::log(Level level,
 	size_t nLen = wcslen(wstr.get());
 	xstring_size_ptr encoded(converter.encode(wstr.get(), &nLen));
 	if (!encoded.get())
-		return;
+		return false;
 	
 	if (pImpl_->pStream_->write(
 		reinterpret_cast<unsigned char*>(encoded.get()), encoded.size()) == -1)
-		return;
+		return false;
 	
 	if (pData) {
 		if (pImpl_->pStream_->write(pData, nDataLen) == -1)
-			return;
+			return false;
 		if (pImpl_->pStream_->write(reinterpret_cast<const unsigned char*>("\r\n"), 2) == -1)
-			return;
+			return false;
 	}
-	pImpl_->pStream_->flush();
-}
-
-void qs::Logger::logf(Level level,
-					  const WCHAR* pwszModule,
-					  const WCHAR* pwszFormat,
-					  ...)
-{
-	va_list args;
-	va_start(args, pwszFormat);
-	logf(level, pwszModule, pwszFormat, args);
-	va_end(args);
-}
-
-void qs::Logger::logf(Level level,
-					  const WCHAR* pwszModule,
-					  const WCHAR* pwszFormat,
-					  va_list args)
-{
-	WCHAR wszMessage[256];
-	_vsnwprintf(wszMessage, countof(wszMessage), pwszFormat, args);
-	log(level, pwszModule, wszMessage, 0, 0);
-}
-
-bool qs::Logger::isEnabled(Level level) const
-{
-	return pImpl_->level_ >= level;
+	if (!pImpl_->pStream_->flush())
+		return false;
+	
+	return true;
 }

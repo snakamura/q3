@@ -2580,12 +2580,9 @@ std::auto_ptr<Logger> qm::Account::openLogger(Host host) const
 	}
 	
 	wstring_ptr wstrPath(concat(wstrDir.get(), L"\\", wszName));
-	std::auto_ptr<FileOutputStream> pStream(new FileOutputStream(wstrPath.get()));
-	if (!*pStream.get())
-		return std::auto_ptr<Logger>(0);
-	
-	std::auto_ptr<Logger> pLogger(new Logger(pStream.get(), true, Logger::LEVEL_DEBUG));
-	pStream.release();
+	std::auto_ptr<FileLogHandler> pLogHandler(new FileLogHandler(wstrPath.get()));
+	std::auto_ptr<Logger> pLogger(new Logger(pLogHandler.get(), true, Logger::LEVEL_DEBUG));
+	pLogHandler.release();
 	return pLogger;
 }
 
