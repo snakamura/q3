@@ -586,6 +586,8 @@ public:
 private:
 	LRESULT onBrowse();
 	LRESULT onRename();
+	LRESULT onAttachmentEndLabelEdit(NMHDR* pnmhdr,
+									 bool* pbHandled);
 	LRESULT onAttachmentItemChanged(NMHDR* pnmhdr,
 									bool* pbHandled);
 

@@ -2115,6 +2115,7 @@ LRESULT qm::DetachDialog::onNotify(NMHDR* pnmhdr,
 								   bool* pbHandled)
 {
 	BEGIN_NOTIFY_HANDLER()
+		HANDLE_NOTIFY(LVN_ENDLABELEDIT, IDC_ATTACHMENT, onAttachmentEndLabelEdit)
 		HANDLE_NOTIFY(LVN_ITEMCHANGED, IDC_ATTACHMENT, onAttachmentItemChanged)
 	END_NOTIFY_HANDLER()
 	return 1;
@@ -2143,6 +2144,21 @@ LRESULT qm::DetachDialog::onRename()
 	}
 	
 	return 0;
+}
+
+LRESULT qm::DetachDialog::onAttachmentEndLabelEdit(NMHDR* pnmhdr,
+												   bool* pbHandled)
+{
+	*pbHandled = true;
+	
+	NMLVDISPINFO* pDispInfo = reinterpret_cast<NMLVDISPINFO*>(pnmhdr);
+	if (pDispInfo->item.iItem == -1 || !pDispInfo->item.pszText)
+		return 0;
+	
+	ListView_SetItemText(pDispInfo->hdr.hwndFrom,
+		pDispInfo->item.iItem, 0, pDispInfo->item.pszText);
+	
+	return 1;
 }
 
 LRESULT qm::DetachDialog::onAttachmentItemChanged(NMHDR* pnmhdr,
