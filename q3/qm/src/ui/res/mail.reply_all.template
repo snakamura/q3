@@ -12,9 +12,10 @@
                                  '')))
 }Subject: Re: {@Subject(@True(), @True())}
 {
-  @If(@Equal(@Profile('', 'Global', 'Bcc', '0'), '0'),
+  @If(@Equal(@Profile('', 'Global', 'Bcc', '1'), '0'),
       '',
-      @Or(@Exist('X-ML-Name'), @BeginWith(Subject, '[')),
+      @And(@Equal(@Profile('', 'Global', 'NoBccForML', '1'), '1'),
+           @Or(@Exist('X-ML-Name'), @BeginWith(Subject, '['))),
       '',
       @Concat('Bcc: ', @I(@Account(), X-QMAIL-SubAccount), '\n'))
 }In-Reply-To: {Message-Id}

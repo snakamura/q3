@@ -2,7 +2,7 @@
   @Progn(@Set('addr',
               @AddressBook('',
                            '',
-                           @If(@Equal(@Profile('', 'Global', 'Bcc', '0'), '0'),
+                           @If(@Equal(@Profile('', 'Global', 'Bcc', '1'), '0'),
                                '',
                                @I(@Account(), X-QMAIL-SubAccount)))),
          @Concat(@If(@Contain($addr, 'To: '),

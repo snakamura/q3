@@ -1,6 +1,6 @@
 X-QMAIL-Account: {@Account()}{@If(@Identity(), @Concat('\nX-QMAIL-SubAccount: ', @SubAccount()), '')}
 {
-  @If(@Equal(@Profile('', 'Global', 'Bcc', '0'), '0'),
+  @If(@Equal(@Profile('', 'Global', 'Bcc', '1'), '0'),
       '',
       @Concat('Bcc: ',
               @I(@Account(), X-QMAIL-SubAccount),
