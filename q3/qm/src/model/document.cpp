@@ -228,14 +228,15 @@ QSTATUS qm::Document::removeAccount(Account* pAccount)
 	AccountList::iterator it = std::find(l.begin(), l.end(), pAccount);
 	assert(it != l.end());
 	
-	status = pAccount->remove();
+	status = pAccount->deletePermanent();
 	CHECK_QSTATUS();
 	l.erase(it);
-	delete pAccount;
 	
 	status = pImpl_->fireAccountListChanged(
 		AccountListChangedEvent::TYPE_REMOVE, pAccount);
 	CHECK_QSTATUS();
+	
+	delete pAccount;
 	
 	return QSTATUS_SUCCESS;
 }
@@ -247,7 +248,7 @@ QSTATUS qm::Document::renameAccount(Account* pAccount, const WCHAR* pwszName)
 	
 	DECLARE_QSTATUS();
 	
-	status = pAccount->rename(pwszName);
+	status = pAccount->setName(pwszName);
 	CHECK_QSTATUS();
 	
 	AccountList& l = pImpl_->listAccount_;

@@ -91,6 +91,7 @@ private:
 	QSTATUS updateAccountList(bool bDropDown);
 	QSTATUS refreshFolderList(Account* pAccount, bool bDropDown);
 	QSTATUS addAccount(Account* pAccount, bool bDropDown);
+	QSTATUS removeAccount(Account* pAccount);
 	QSTATUS insertFolders(int nIndex, Account* pAccount, bool bDropDown);
 	QSTATUS insertFolder(int nIndex, Folder* pFolder, bool bDropDown);
 
@@ -222,7 +223,8 @@ QSTATUS qm::FolderComboBoxImpl::accountListChanged(
 		CHECK_QSTATUS();
 		break;
 	case AccountListChangedEvent::TYPE_REMOVE:
-		// TODO
+		status = removeAccount(event.getAccount());
+		CHECK_QSTATUS();
 		break;
 	case AccountListChangedEvent::TYPE_RENAME:
 		// TODO
@@ -414,6 +416,24 @@ QSTATUS qm::FolderComboBoxImpl::addAccount(Account* pAccount, bool bDropDown)
 	
 	status = pAccount->addAccountHandler(this);
 	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::FolderComboBoxImpl::removeAccount(Account* pAccount)
+{
+	DECLARE_QSTATUS();
+	
+	int nIndex = getIndexFromAccount(pAccount);
+	assert(nIndex != -1);
+	++nIndex;
+	
+	while (nIndex < ComboBox_GetCount(pThis_->getHandle())) {
+		Folder* pFolder = getFolder(nIndex);
+		if (!pFolder)
+			break;
+		ComboBox_DeleteString(pThis_->getHandle(), nIndex);
+	}
 	
 	return QSTATUS_SUCCESS;
 }

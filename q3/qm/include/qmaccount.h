@@ -136,8 +136,8 @@ public:
 
 // These methods are intended to be called from Document class
 public:
-	qs::QSTATUS remove();
-	qs::QSTATUS rename(const WCHAR* pwszName);
+	qs::QSTATUS deletePermanent();
+	qs::QSTATUS setName(const WCHAR* pwszName);
 
 // These methods are intended to be called from NormalFolder class
 public:
@@ -301,6 +301,7 @@ public:
 public:
 	virtual qs::QSTATUS subAccountListChanged(const AccountEvent& event) = 0;
 	virtual qs::QSTATUS folderListChanged(const FolderListChangedEvent& event) = 0;
+	virtual qs::QSTATUS accountDestroyed(const AccountEvent& event) = 0;
 };
 
 
@@ -319,6 +320,7 @@ public:
 public:
 	virtual qs::QSTATUS subAccountListChanged(const AccountEvent& event);
 	virtual qs::QSTATUS folderListChanged(const FolderListChangedEvent& event);
+	virtual qs::QSTATUS accountDestroyed(const AccountEvent& event);
 };
 
 

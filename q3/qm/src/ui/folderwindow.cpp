@@ -113,6 +113,7 @@ private:
 	QSTATUS updateAccountList();
 	QSTATUS refreshFolderList(Account* pAccount);
 	QSTATUS addAccount(Account* pAccount);
+	QSTATUS removeAccount(Account* pAccount);
 	QSTATUS insertFolders(HTREEITEM hItem, Account* pAccount);
 	int getFolderImage(Folder* pFolder, bool bSelected, bool bExpanded) const;
 	int getAccountImage(Account* pAccount, bool bSelected, bool bExpanded) const;
@@ -278,7 +279,8 @@ QSTATUS qm::FolderWindowImpl::accountListChanged(
 		CHECK_QSTATUS();
 		break;
 	case AccountListChangedEvent::TYPE_REMOVE:
-		// TODO
+		status = removeAccount(event.getAccount());
+		CHECK_QSTATUS();
 		break;
 	case AccountListChangedEvent::TYPE_RENAME:
 		// TODO
@@ -663,6 +665,14 @@ QSTATUS qm::FolderWindowImpl::addAccount(Account* pAccount)
 	status = pAccount->addAccountHandler(this);
 	CHECK_QSTATUS();
 	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::FolderWindowImpl::removeAccount(Account* pAccount)
+{
+	HTREEITEM hItem = getHandleFromAccount(pAccount);
+	assert(hItem);
+	TreeView_DeleteItem(pThis_->getHandle(), hItem);
 	return QSTATUS_SUCCESS;
 }
 

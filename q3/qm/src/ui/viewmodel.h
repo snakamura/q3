@@ -427,7 +427,8 @@ private:
  */
 
 class ViewModelManager :
-	public FolderModelHandler
+	public FolderModelHandler,
+	public DefaultAccountHandler
 {
 public:
 	typedef std::vector<ViewModel*> ViewModelList;
@@ -457,6 +458,9 @@ public:
 public:
 	virtual qs::QSTATUS accountSelected(const FolderModelEvent& event);
 	virtual qs::QSTATUS folderSelected(const FolderModelEvent& event);
+
+public:
+	virtual qs::QSTATUS accountDestroyed(const AccountEvent& event);
 
 private:
 	qs::QSTATUS setCurrentFolder(Account* pAccount, Folder* pFolder);

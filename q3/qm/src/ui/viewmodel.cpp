@@ -1816,6 +1816,38 @@ QSTATUS qm::ViewModelManager::folderSelected(const FolderModelEvent& event)
 	return setCurrentFolder(0, event.getFolder());
 }
 
+QSTATUS qm::ViewModelManager::accountDestroyed(const AccountEvent& event)
+{
+	Account* pAccount = event.getAccount();
+	
+	ViewModelList::iterator itV = listViewModel_.begin();
+	while (itV != listViewModel_.end()) {
+		ViewModel* pViewModel = *itV;
+		if (pViewModel->getFolder()->getAccount() == pAccount) {
+			delete pViewModel;
+			itV = listViewModel_.erase(itV);
+		}
+		else {
+			++itV;
+		}
+	}
+	
+	ProfileMap::iterator itP = std::find_if(
+		mapProfile_.begin(), mapProfile_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				std::equal_to<Account*>(),
+				std::select1st<ProfileMap::value_type>(),
+				std::identity<Account*>()),
+			pAccount));
+	if (itP != mapProfile_.end()) {
+		delete (*itP).second;
+		mapProfile_.erase(itP);
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::ViewModelManager::setCurrentFolder(Account* pAccount, Folder* pFolder)
 {
 	assert(pAccount || pFolder);
@@ -1881,6 +1913,9 @@ QSTATUS qm::ViewModelManager::getProfile(Folder* pFolder, Profile** ppProfile)
 			std::make_pair(pAccount, pProfile.get()));
 		CHECK_QSTATUS();
 		*ppProfile = pProfile.release();
+		
+		status = pAccount->addAccountHandler(this);
+		CHECK_QSTATUS();
 	}
 	else {
 		*ppProfile = (*it).second;

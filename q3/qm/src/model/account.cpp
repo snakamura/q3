@@ -15,6 +15,7 @@
 
 #include <qsconv.h>
 #include <qserror.h>
+#include <qsfile.h>
 #include <qsnew.h>
 #include <qsosutil.h>
 #include <qsprofile.h>
@@ -53,6 +54,7 @@ public:
 	
 	QSTATUS fireSubAccountListChanged();
 	QSTATUS fireFolderListChanged(const FolderListChangedEvent& event);
+	QSTATUS fireAccountDestroyed();
 
 public:
 	static QSTATUS createTemporaryMessage(
@@ -291,6 +293,25 @@ QSTATUS qm::AccountImpl::fireFolderListChanged(
 	AccountHandlerList::const_iterator it = listAccountHandler_.begin();
 	while (it != listAccountHandler_.end()) {
 		status = (*it++)->folderListChanged(event);
+		CHECK_QSTATUS();
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::AccountImpl::fireAccountDestroyed()
+{
+	DECLARE_QSTATUS();
+	
+	AccountHandlerList l;
+	status = STLWrapper<AccountHandlerList>(l).resize(listAccountHandler_.size());
+	CHECK_QSTATUS();
+	std::copy(listAccountHandler_.begin(), listAccountHandler_.end(), l.begin());
+	
+	AccountEvent event(pThis_);
+	AccountHandlerList::const_iterator it = l.begin();
+	while (it != l.end()) {
+		status = (*it++)->accountDestroyed(event);
 		CHECK_QSTATUS();
 	}
 	
@@ -1054,15 +1075,32 @@ QSTATUS qm::Account::removeAccountHandler(AccountHandler* pHandler)
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::Account::remove()
+QSTATUS qm::Account::deletePermanent()
 {
-	// TODO
+	DECLARE_QSTATUS();
+	
+	delete pImpl_->pMessageCache_;
+	pImpl_->pMessageCache_ = 0;
+	delete pImpl_->pMessageStore_;
+	pImpl_->pMessageStore_ = 0;
+	delete pImpl_->pProtocolDriver_;
+	pImpl_->pProtocolDriver_ = 0;
+	
+	status = File::removeDirectory(pImpl_->wstrPath_);
+	CHECK_QSTATUS();
+	
+	status = pImpl_->fireAccountDestroyed();
+	CHECK_QSTATUS();
+	
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::Account::rename(const WCHAR* pwszName)
+QSTATUS qm::Account::setName(const WCHAR* pwszName)
 {
 	// TODO
+	// Set name, set path, rename profiles of all subaccounts,
+	// close store and cache, close protocol driver
+	// (because protocol driver may open log)
 	return QSTATUS_SUCCESS;
 }
 
@@ -1709,6 +1747,11 @@ QSTATUS qm::DefaultAccountHandler::subAccountListChanged(
 
 QSTATUS qm::DefaultAccountHandler::folderListChanged(
 	const FolderListChangedEvent& event)
+{
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::DefaultAccountHandler::accountDestroyed(const AccountEvent& event)
 {
 	return QSTATUS_SUCCESS;
 }

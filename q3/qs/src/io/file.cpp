@@ -112,6 +112,7 @@ QSTATUS qs::File::removeDirectory(const WCHAR* pwszDir)
 			}
 		} while (::FindNextFile(hFind.get(), &fd));
 	}
+	hFind.close();
 	
 	assert(*(tstrPathBase.get() + nLen - 1) == _T('\\'));
 	*(tstrPathBase.get() + nLen - 1) = _T('\0');
