@@ -49,6 +49,9 @@ private:
 	static qs::xstring_ptr createMessage(const CHAR* pszHeader,
 										 PKCS7* pPKCS7,
 										 bool bEnveloped);
+	static qs::xstring_ptr createMessage(const CHAR* pszContent,
+										 size_t nLen,
+										 const qs::Part& part);
 
 private:
 	SMIMEUtilityImpl(const SMIMEUtilityImpl&);

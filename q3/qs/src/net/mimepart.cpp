@@ -513,6 +513,9 @@ void qs::Part::getFields(FieldList* pListField) const
 {
 	assert(pListField);
 	
+	if (!strHeader_.get())
+		return;
+	
 	StringBuffer<STRING> buf;
 	
 	for (const CHAR* p = strHeader_.get(); *p; ++p) {
@@ -535,6 +538,64 @@ void qs::Part::getFields(FieldList* pListField) const
 			buf.append(c);
 		}
 	}
+}
+
+bool qs::Part::copyFields(const Part& part,
+						  FieldFilter* pFilter)
+{
+	assert(pFilter);
+	
+	FieldList listOld;
+	FieldListFree freeOld(listOld);
+	getFields(&listOld);
+	
+	FieldList listNew;
+	FieldListFree freeNew(listNew);
+	part.getFields(&listNew);
+	
+	XStringBuffer<XSTRING> buf;
+	for (FieldList::iterator it = listOld.begin(); it != listOld.end(); ++it) {
+		if (!pFilter->accept((*it).first)) {
+			if (!buf.append((*it).second) ||
+				!buf.append("\r\n"))
+				return false;
+		}
+	}
+	for (FieldList::iterator it = listNew.begin(); it != listNew.end(); ++it) {
+		if (pFilter->accept((*it).first)) {
+			if (!buf.append((*it).second) ||
+				!buf.append("\r\n"))
+				return false;
+		}
+	}
+	strHeader_ = buf.getXString();
+	
+	clearHeaderLower();
+	
+	return true;
+}
+
+bool qs::Part::removeFields(FieldFilter* pFilter)
+{
+	assert(pFilter);
+	
+	FieldList l;
+	FieldListFree free(l);
+	getFields(&l);
+	
+	XStringBuffer<XSTRING> buf;
+	for (FieldList::iterator it = l.begin(); it != l.end(); ++it) {
+		if (!pFilter->accept((*it).first)) {
+			if (!buf.append((*it).second) ||
+				!buf.append("\r\n"))
+				return false;
+		}
+	}
+	strHeader_ = buf.getXString();
+	
+	clearHeaderLower();
+	
+	return true;
 }
 
 bool qs::Part::sortHeader()
@@ -1034,4 +1095,48 @@ void qs::Part::FieldListFree::free()
 			string_free<STRING>(),
 			string_free<STRING>()));
 	l_.clear();
+}
+
+
+/****************************************************************************
+ *
+ * FieldFilter
+ *
+ */
+
+qs::FieldFilter::~FieldFilter()
+{
+}
+
+
+/****************************************************************************
+ *
+ * PrefixFieldFilter
+ *
+ */
+
+qs::PrefixFieldFilter::PrefixFieldFilter(const CHAR* pszPrefix) :
+	pszPrefix_(pszPrefix),
+	nLen_(strlen(pszPrefix)),
+	bNot_(false)
+{
+}
+
+qs::PrefixFieldFilter::PrefixFieldFilter(const CHAR* pszPrefix,
+										 bool bNot) :
+	pszPrefix_(pszPrefix),
+	nLen_(strlen(pszPrefix)),
+	bNot_(bNot)
+{
+}
+
+qs::PrefixFieldFilter::~PrefixFieldFilter()
+{
+}
+
+bool qs::PrefixFieldFilter::accept(const CHAR* pszName)
+{
+	bool bAccept = strlen(pszName) > nLen_ &&
+		strncmp(pszName, pszPrefix_, nLen_) == 0;
+	return bNot_ ? !bAccept : bAccept;
 }

@@ -108,14 +108,11 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::sign(Part* pPart,
 		if (!strHeader.get())
 			return 0;
 		
-		const WCHAR* pwszFields[] = {
-			L"Bcc",
-			L"Resent-Bcc",
-		};
-		for (int n = 0; n < countof(pwszFields); ++n)
-			pPart->removeField(pwszFields[n]);
+		PrefixFieldFilter filter("content-", true);
+		if (!pPart->removeFields(&filter))
+			return 0;
 		
-		xstring_ptr strContent(pCallback->getContent(pPart));
+		xstring_ptr strContent(pPart->getContent());
 		if (!strContent.get())
 			return 0;
 		
@@ -159,7 +156,7 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
 	
 	char* pBuf = 0;
 	int nBufLen = BIO_get_mem_data(pOut.get(), &pBuf);
-	return allocXString(pBuf, nBufLen);
+	return createMessage(pBuf, nBufLen, part);
 }
 
 xstring_ptr qscrypto::SMIMEUtilityImpl::encrypt(Part* pPart,
@@ -205,14 +202,11 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::encrypt(Part* pPart,
 	if (!strHeader.get())
 		return 0;
 	
-	const WCHAR* pwszFields[] = {
-		L"Bcc",
-		L"Resent-Bcc",
-	};
-	for (int m = 0; m < countof(pwszFields); ++m)
-		pPart->removeField(pwszFields[m]);
+	PrefixFieldFilter filter("content-", true);
+	if (!pPart->removeFields(&filter))
+		return 0;
 	
-	xstring_ptr strContent(pCallback->getContent(pPart));
+	xstring_ptr strContent(pPart->getContent());
 	if (!strContent.get())
 		return 0;
 	
@@ -252,7 +246,7 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::decrypt(const Part& part,
 	
 	char* pBuf = 0;
 	int nBufLen = BIO_get_mem_data(pOut.get(), &pBuf);
-	return allocXString(pBuf, nBufLen);
+	return createMessage(pBuf, nBufLen, part);
 }
 
 xstring_ptr qscrypto::SMIMEUtilityImpl::createMessage(const CHAR* pszHeader,
@@ -277,15 +271,10 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::createMessage(const CHAR* pszHeader,
 	Part part;
 	if (!part.create(0, pszHeader, -1))
 		return 0;
-	const WCHAR* pwszFields[] = {
-		L"Content-Type",
-		L"Content-Transfer-Encoding",
-		L"Content-Disposition",
-		L"Content-ID",
-		L"Content-Description"
-	};
-	for (int n = 0; n < countof(pwszFields); ++n)
-		part.removeField(pwszFields[n]);
+	
+	PrefixFieldFilter filter("content-");
+	if (!part.removeFields(&filter))
+		return 0;
 	
 	ContentTypeParser contentType(L"application", L"pkcs7-mime");
 	contentType.setParameter(L"name", L"smime.p7m");
@@ -310,4 +299,41 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::createMessage(const CHAR* pszHeader,
 		return false;
 	
 	return part.getContent();
+}
+
+xstring_ptr qscrypto::SMIMEUtilityImpl::createMessage(const CHAR* pszContent,
+													  size_t nLen,
+													  const Part& part)
+{
+	BMFindString<STRING> bmfs("\r\n\r\n");
+	const CHAR* pBody = bmfs.find(pszContent, nLen);
+	if (pBody)
+		pBody += 4;
+	size_t nHeaderLen = pBody ? pBody - pszContent : nLen;
+	size_t nBodyLen = pBody ? pszContent + nLen - pBody : 0;
+	
+	Part headerPart;
+	if (!headerPart.create(0, pszContent, nHeaderLen))
+		return 0;
+	
+	PrefixFieldFilter filter("content-", true);
+	if (!headerPart.copyFields(part, &filter))
+		return 0;
+	const CHAR* pszHeader = headerPart.getHeader();
+	size_t nNewHeaderLen = strlen(pszHeader);
+	
+	xstring_ptr strMessage(allocXString(nNewHeaderLen + nBodyLen + 5));
+	if (!strMessage.get())
+		return 0;
+	
+	CHAR* p = strMessage.get();
+	strncpy(p, pszHeader, nNewHeaderLen);
+	p += nNewHeaderLen;
+	strncpy(p, "\r\n\r\n", 4);
+	p += 4;
+	if (pBody)
+		strncpy(p, pBody, nBodyLen);
+	*(p + nBodyLen) = '\0';
+	
+	return strMessage;
 }

@@ -87,7 +87,6 @@ public:
 	~SMIMECallbackImpl();
 
 public:
-	virtual qs::xstring_ptr getContent(qs::Part* pPart);
 	virtual std::auto_ptr<qs::Certificate> getCertificate(const WCHAR* pwszAddress);
 
 private:

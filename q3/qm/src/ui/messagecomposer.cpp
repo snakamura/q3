@@ -202,21 +202,6 @@ qm::SMIMECallbackImpl::~SMIMECallbackImpl()
 {
 }
 
-xstring_ptr qm::SMIMECallbackImpl::getContent(Part* pPart)
-{
-	assert(pPart);
-	
-	const WCHAR* pwszFields[] = {
-		L"X-QMAIL-Signature",
-		L"X-QMAIL-SubAccount",
-		L"X-QMAIL-EnvelopeFrom"
-	};
-	for (int n = 0; n < countof(pwszFields); ++n)
-		pPart->removeField(pwszFields[n]);
-	
-	return pPart->getContent();
-}
-
 std::auto_ptr<Certificate> qm::SMIMECallbackImpl::getCertificate(const WCHAR* pwszAddress)
 {
 	assert(pwszAddress);

@@ -22,6 +22,8 @@
 namespace qs {
 
 class Part;
+class FieldFilter;
+	class PrefixFieldFilter;
 class FieldParser;
 	class UnstructuredParser;
 	class DummyParser;
@@ -153,6 +155,9 @@ public:
 					 unsigned int nIndex);
 	
 	void getFields(FieldList* pListField) const;
+	bool copyFields(const Part& part,
+					FieldFilter* pFilter);
+	bool removeFields(FieldFilter* pFilter);
 	bool sortHeader();
 	
 	const ContentTypeParser* getContentType() const;
@@ -222,6 +227,50 @@ private:
 private:
 	static wstring_ptr wstrDefaultCharset__;
 	static unsigned int nGlobalOptions__;
+};
+
+
+/****************************************************************************
+ *
+ * FieldFilter
+ *
+ */
+
+class QSEXPORTCLASS FieldFilter
+{
+public:
+	virtual ~FieldFilter();
+
+public:
+	virtual bool accept(const CHAR* pszName) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * PrefixFieldFilter
+ *
+ */
+
+class QSEXPORTCLASS PrefixFieldFilter : public FieldFilter
+{
+public:
+	explicit PrefixFieldFilter(const CHAR* pszPrefix);
+	PrefixFieldFilter(const CHAR* pszPrefix,
+					  bool bNot);
+	virtual ~PrefixFieldFilter();
+
+public:
+	virtual bool accept(const CHAR* pszName);
+
+private:
+	PrefixFieldFilter(const PrefixFieldFilter&);
+	PrefixFieldFilter& operator=(const PrefixFieldFilter&);
+
+private:
+	const CHAR* pszPrefix_;
+	size_t nLen_;
+	bool bNot_;
 };
 
 

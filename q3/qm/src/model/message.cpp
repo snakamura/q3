@@ -663,14 +663,9 @@ bool qm::MessageCreator::makeMultipart(Part* pParentPart,
 	if (!pParentPart->setHeader(pPart->getHeader()))
 		return false;
 	
-	const WCHAR* pwszFields[] = {
-		L"Content-Transfer-Encoding",
-		L"Content-Disposition",
-		L"Content-ID",
-		L"Content-Description"
-	};
-	for (n = 0; n < countof(pwszFields); ++n)
-		pParentPart->removeField(pwszFields[n]);
+	PrefixFieldFilter filter("content-");
+	if (!pParentPart->removeFields(&filter))
+		return false;
 	
 	ContentTypeParser contentTypeNew(L"multipart", L"mixed");
 	WCHAR wszBoundary[128];
@@ -1454,39 +1449,8 @@ Part* qm::PartUtil::getEnclosingPart(Part* pCandidatePart) const
 
 bool qm::PartUtil::copyContentFields(Part* pPart) const
 {
-	ContentTypeParser contentType;
-	Part::Field fieldContentType = part_.getField(L"Content-Type", &contentType);
-	ContentTransferEncodingParser contentTransferEncoding;
-	Part::Field fieldContentTransferEncoding = part_.getField(
-		L"Content-Transfer-Encoding", &contentTransferEncoding);
-	ContentDispositionParser contentDisposition;
-	Part::Field fieldContentDisposition = part_.getField(
-		L"Content-Disposition", &contentDisposition);
-	MessageIdParser contentId;
-	Part::Field fieldContentId = part_.getField(L"Content-ID", &contentId);
-	UnstructuredParser contentDescription;
-	Part::Field fieldContentDescription = part_.getField(
-		L"Content-Description", &contentDescription);
-	
-	struct {
-		const WCHAR* pwszField_;
-		FieldParser* pParser_;
-		Part::Field field_;
-	} fields[] = {
-		{ L"Content-Type",				&contentType,				fieldContentType				},
-		{ L"Content-Transfer-Encoding",	&contentTransferEncoding,	fieldContentTransferEncoding	},
-		{ L"Content-Disposition",		&contentDisposition,		fieldContentDisposition			},
-		{ L"Content-ID",				&contentId,					fieldContentId					},
-		{ L"Content-Description",		&contentDescription,		fieldContentDescription			}
-	};
-	for (int n = 0; n < countof(fields); ++n) {
-		if (fields[n].field_ == Part::FIELD_EXIST) {
-			if (!pPart->replaceField(fields[n].pwszField_, *fields[n].pParser_))
-				return false;
-		}
-	}
-	
-	return true;
+	PrefixFieldFilter filter("content-");
+	return pPart->copyFields(part_, &filter);
 }
 
 wxstring_ptr qm::PartUtil::a2w(const CHAR* psz)

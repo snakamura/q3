@@ -440,15 +440,6 @@ public:
 
 public:
 	/**
-	 * Get content of the specified part.
-	 * Bcc and other unneeded fields will be removed.
-	 *
-	 * @param pPart [in] Part. This part will be modified.
-	 * @return Content. null if error occured.
-	 */
-	virtual xstring_ptr getContent(Part* pPart) = 0;
-	
-	/**
 	 * Get the certificate of the specified address.
 	 *
 	 * @param pwszAddress Address.
