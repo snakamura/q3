@@ -482,6 +482,7 @@ qm::SyncStatusWindow::SyncStatusWindow(SyncDialog* pSyncDialog, QSTATUS* pstatus
 	WindowBase(true, pstatus),
 	DefaultWindowHandler(pstatus),
 	pSyncDialog_(pSyncDialog),
+	bNewMessage_(false),
 	nFontHeight_(0),
 	wstrFinished_(0),
 	wstrCancel_(0),

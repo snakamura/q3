@@ -11,6 +11,7 @@
 #include <qsnew.h>
 #include <qsthread.h>
 
+#include "lastid.h"
 #include "main.h"
 #include "nntpreceivesession.h"
 #include "resourceinc.h"
@@ -44,7 +45,8 @@ qmnntp::NntpReceiveSession::NntpReceiveSession(QSTATUS* pstatus) :
 	pFolder_(0),
 	hwnd_(0),
 	pLogger_(0),
-	pSessionCallback_(0)
+	pSessionCallback_(0),
+	pLastIdList_(0)
 {
 }
 
@@ -52,6 +54,7 @@ qmnntp::NntpReceiveSession::~NntpReceiveSession()
 {
 	delete pNntp_;
 	delete pCallback_;
+	delete pLastIdList_;
 }
 
 QSTATUS qmnntp::NntpReceiveSession::init(Document* pDocument,
@@ -108,6 +111,12 @@ QSTATUS qmnntp::NntpReceiveSession::connect()
 	status = log.debug(L"Connected to the server.");
 	CHECK_QSTATUS();
 	
+	string_ptr<WSTRING> wstrPath(concat(pAccount_->getPath(), L"\\.lastid"));
+	if (!wstrPath.get())
+		return QSTATUS_OUTOFMEMORY;
+	status = newQsObject(wstrPath.get(), &pLastIdList_);
+	CHECK_QSTATUS();
+	
 	return QSTATUS_SUCCESS;
 }
 
@@ -116,6 +125,11 @@ QSTATUS qmnntp::NntpReceiveSession::disconnect()
 	assert(pNntp_);
 	
 	DECLARE_QSTATUS();
+	
+	if (pLastIdList_->isModified()) {
+		status = pLastIdList_->save();
+		CHECK_QSTATUS();
+	}
 	
 	Log log(pLogger_, L"qmnntp::NntpReceiveSession");
 	status = log.debug(L"Disconnecting from the server...");
@@ -177,6 +191,10 @@ QSTATUS qmnntp::NntpReceiveSession::downloadMessages(
 	
 	unsigned int nStart = pNntp_->getFirst();
 	{
+		unsigned int nLastId = pLastIdList_->getLastId(pNntp_->getGroup());
+		if (nLastId != 0)
+			nStart = nLastId + 1;
+		
 		Lock<Folder> lock(*pFolder_);
 		status = pFolder_->loadMessageHolders();
 		CHECK_QSTATUS();
@@ -185,7 +203,7 @@ QSTATUS qmnntp::NntpReceiveSession::downloadMessages(
 			unsigned int nId = pFolder_->getMessage(nCount - 1)->getId();
 			nStart = QSMAX(nStart, nId + 1);
 		}
-		else {
+		else if (nLastId == 0) {
 			unsigned int nInitialFetchCount = 0;
 			status = pSubAccount_->getProperty(L"Nntp", L"InitialFetchCount",
 				300, reinterpret_cast<int*>(&nInitialFetchCount));
@@ -289,15 +307,20 @@ QSTATUS qmnntp::NntpReceiveSession::downloadMessages(
 					}
 				}
 				
-				Lock<Folder> lock(*pFolder_);
-				
-				MessageHolder* pmh = 0;
-				status = pAccount_->storeMessage(pFolder_, pszMessage,
-					0, item.nId_, nFlags, item.nBytes_,
-					nFlags == MessageHolder::FLAG_INDEXONLY, &pmh);
-				CHECK_QSTATUS();
+				{
+					Lock<Folder> lock(*pFolder_);
+					
+					MessageHolder* pmh = 0;
+					status = pAccount_->storeMessage(pFolder_, pszMessage,
+						0, item.nId_, nFlags, item.nBytes_,
+						nFlags == MessageHolder::FLAG_INDEXONLY, &pmh);
+					CHECK_QSTATUS();
+				}
 				
 				status = pSessionCallback_->notifyNewMessage();
+				CHECK_QSTATUS();
+				
+				status = pLastIdList_->setLastId(pNntp_->getGroup(), item.nId_);
 				CHECK_QSTATUS();
 			}
 		}
@@ -326,6 +349,9 @@ QSTATUS qmnntp::NntpReceiveSession::downloadMessages(
 				CHECK_QSTATUS();
 				
 				status = pSessionCallback_->notifyNewMessage();
+				CHECK_QSTATUS();
+				
+				status = pLastIdList_->setLastId(pNntp_->getGroup(), n);
 				CHECK_QSTATUS();
 			}
 		}
