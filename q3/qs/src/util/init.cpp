@@ -63,6 +63,7 @@ struct qs::InitImpl
 	HINSTANCE hInst_;
 	wstring_ptr wstrTitle_;
 	wstring_ptr wstrSystemEncoding_;
+	wstring_ptr wstrMailEncoding_;
 	wstring_ptr wstrFixedWidthFont_;
 	wstring_ptr wstrProportionalFont_;
 	bool bLogEnabled_;
@@ -93,7 +94,12 @@ bool qs::InitImpl::setSystemEncodingAndFonts(const WCHAR* pwszEncoding)
 	if (!pwszEncoding)
 		pwszEncoding = cpinfo.wszWebCharset;
 	
+	const WCHAR* pwszBodyEncoding = cpinfo.wszBodyCharset;
+	if (!pwszBodyEncoding)
+		pwszBodyEncoding = pwszEncoding;
+	
 	wstrSystemEncoding_ = allocWString(pwszEncoding);
+	wstrMailEncoding_ = allocWString(pwszBodyEncoding);
 	wstrFixedWidthFont_ = allocWString(cpinfo.wszFixedWidthFont);
 	wstrProportionalFont_ = allocWString(cpinfo.wszProportionalFont);
 	
@@ -222,6 +228,11 @@ const WCHAR* qs::Init::getTitle() const
 const WCHAR* qs::Init::getSystemEncoding() const
 {
 	return pImpl_->wstrSystemEncoding_.get();
+}
+
+const WCHAR* qs::Init::getMailEncoding() const
+{
+	return pImpl_->wstrMailEncoding_.get();
 }
 
 const WCHAR* qs::Init::getDefaultFixedWidthFont() const

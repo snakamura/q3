@@ -473,7 +473,7 @@ bool qm::Application::initialize()
 {
 	pImpl_->pWinSock_.reset(new Winsock());
 	
-	Part::setDefaultCharset(L"iso-2022-jp");
+	Part::setDefaultCharset(Init::getInit().getMailEncoding());
 	Part::setGlobalOptions(Part::O_USE_COMMENT_AS_PHRASE |
 		Part::O_ALLOW_ENCODED_QSTRING |
 		Part::O_ALLOW_ENCODED_PARAMETER |

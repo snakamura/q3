@@ -39,6 +39,7 @@ public:
 	HINSTANCE getInstanceHandle() const;
 	const WCHAR* getTitle() const;
 	const WCHAR* getSystemEncoding() const;
+	const WCHAR* getMailEncoding() const;
 	const WCHAR* getDefaultFixedWidthFont() const;
 	const WCHAR* getDefaultProportionalFont() const;
 	bool isLogEnabled() const;
