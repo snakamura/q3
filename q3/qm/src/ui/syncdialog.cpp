@@ -105,8 +105,7 @@ qm::SyncDialog::SyncDialog(Profile* pProfile,
 	pPasswordManager_(pPasswordManager),
 	pStatusWindow_(0),
 	bShowError_(false),
-	nCanceledTime_(0),
-	enableCancelOnShow_(ENABLECANCEL_NONE)
+	nCanceledTime_(0)
 {
 	addCommandHandler(this);
 	setDialogHandler(this, false);
@@ -145,9 +144,6 @@ void qm::SyncDialog::show()
 			bShowError_ = false;
 			layout();
 			showWindow(SW_SHOWNA);
-			
-			if (enableCancelOnShow_ != ENABLECANCEL_NONE)
-				enableCancel(enableCancelOnShow_ == ENABLECANCEL_ENABLE);
 		}
 		setForegroundWindow();
 	}
@@ -235,21 +231,20 @@ void qm::SyncDialog::enableCancel(bool bEnable)
 {
 	assert(::GetCurrentThreadId() == ::GetWindowThreadProcessId(getHandle(), 0));
 	
-	if (!isVisible()) {
-		enableCancelOnShow_ = bEnable ? ENABLECANCEL_ENABLE : ENABLECANCEL_DISABLE;
-		return;
-	}
-	
-	Window(getDlgItem(IDC_CANCEL)).enableWindow(bEnable);
+	if (bEnable)
+		Window(getDlgItem(IDC_CANCEL)).enableWindow(bEnable);
 	
 	UINT nOldId = bEnable ? IDC_HIDE : IDC_CANCEL;
 	UINT nNewId = bEnable ? IDC_CANCEL : IDC_HIDE;
-	Window(getDlgItem(nNewId)).setFocus();
+	if (isActive())
+		Window(getDlgItem(nNewId)).setFocus();
+	
+	if (!bEnable)
+		Window(getDlgItem(IDC_CANCEL)).enableWindow(bEnable);
+	
 	sendDlgItemMessage(nOldId, BM_SETSTYLE, BS_PUSHBUTTON, TRUE);
 	sendMessage(DM_SETDEFID, nNewId);
 	sendDlgItemMessage(nNewId, BM_SETSTYLE, BS_DEFPUSHBUTTON, TRUE);
-	
-	enableCancelOnShow_ = ENABLECANCEL_NONE;
 }
 
 PasswordState qm::SyncDialog::getPassword(SubAccount* pSubAccount,
@@ -356,6 +351,7 @@ INT_PTR qm::SyncDialog::dialogProc(UINT uMsg,
 								   LPARAM lParam)
 {
 	BEGIN_DIALOG_HANDLER()
+		HANDLE_ACTIVATE()
 		HANDLE_CLOSE()
 		HANDLE_DESTROY()
 		HANDLE_INITDIALOG()
@@ -373,6 +369,22 @@ LRESULT qm::SyncDialog::onCommand(WORD nCode,
 		HANDLE_COMMAND_ID(IDCANCEL, onEsc)
 	END_COMMAND_HANDLER()
 	return CommandHandler::onCommand(nCode, nId);
+}
+
+LRESULT qm::SyncDialog::onActivate(UINT nFlags,
+								   HWND hwnd,
+								   bool bMinimized)
+{
+	if (nFlags == WA_ACTIVE) {
+		LRESULT nId = sendMessage(DM_GETDEFID);
+		if (HIWORD(nId) == DC_HASDEFID) {
+			Window wnd(getDlgItem(LOWORD(nId)));
+			if (!wnd.hasFocus())
+				wnd.setFocus();
+		}
+	}
+	
+	return DefaultDialogHandler::onActivate(nFlags, hwnd, bMinimized);
 }
 
 LRESULT qm::SyncDialog::onClose()
@@ -575,10 +587,11 @@ void qm::SyncStatusWindow::start(unsigned int nParam)
 		{
 			pSyncDialog_->resetCanceledTime();
 			pSyncDialog_->setMessage(L"");
-			pSyncDialog_->enableCancel(true);
 			
 			if (bShow_)
 				pSyncDialog_->show();
+			
+			pSyncDialog_->enableCancel(true);
 		}
 		
 		SyncDialog* pSyncDialog_;
@@ -613,11 +626,13 @@ void qm::SyncStatusWindow::end()
 		
 		virtual void run()
 		{
-			pSyncDialog_->setMessage(L"");
-			pSyncDialog_->enableCancel(false);
-			
-			if (bEmpty_ && !pSyncDialog_->hasError())
-				pSyncDialog_->hide();
+			if (bEmpty_) {
+				pSyncDialog_->setMessage(L"");
+				pSyncDialog_->enableCancel(false);
+				
+				if (!pSyncDialog_->hasError())
+					pSyncDialog_->hide();
+			}
 			
 			if (bNewMessage_)
 				pSyncDialog_->notifyNewMessage();
