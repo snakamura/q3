@@ -3391,7 +3391,7 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 				if (pFolder != pSearch)
 					pFolderModel_->setCurrent(0, pSearch, false);
 				
-				if (pFolder == pSearch || !pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
+				if (pFolder == pSearch || !pSearch->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
 					if (!pSearch->search(pDocument_, hwnd_,
 						pProfile_, pSecurityModel_->isDecryptVerify())) {
 						ActionUtil::error(hwnd_, IDS_ERROR_SEARCH);
