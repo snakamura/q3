@@ -472,6 +472,10 @@ void qm::FolderWindowImpl::dragOver(const DropTargetDragEvent& event)
 		pThis_->sendMessage(WM_VSCROLL, MAKEWPARAM(SB_LINEUP, 0), 0);
 	else if (pt.y > rect.bottom - 30)
 		pThis_->sendMessage(WM_VSCROLL, MAKEWPARAM(SB_LINEDOWN, 0), 0);
+	if (pt.x < rect.left + 30)
+		pThis_->sendMessage(WM_HSCROLL, MAKEWPARAM(SB_LEFT, 0), 0);
+	else if (pt.x > rect.right - 30)
+		pThis_->sendMessage(WM_HSCROLL, MAKEWPARAM(SB_RIGHT, 0), 0);
 	
 	if (hItem) {
 		if (hItemDragOver_ != hItem) {
