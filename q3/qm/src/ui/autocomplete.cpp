@@ -207,10 +207,9 @@ void qm::AutoCompleteEditSubclassWindow::showCandidates(AutoCompleteCallback::Ca
 	if (!pListWindow_) {
 		std::auto_ptr<AutoCompleteListWindow> pListWindow(
 			new AutoCompleteListWindow(this, getFont()));
-#ifndef _WIN32_WCE
 		DWORD dwExStyle = WS_EX_TOPMOST | WS_EX_TOOLWINDOW;
-#else
-		DWORD dwExStyle = WS_EX_TOPMOST | WS_EX_NOACTIVATE;
+#ifdef _WIN32_WCE
+		dwExStyle |= WS_EX_NOACTIVATE;
 #endif
 		if (!pListWindow->create(L"QmAutoCompleteListWindow", 0,
 			WS_POPUP | WS_BORDER | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VSCROLL,
