@@ -22,6 +22,7 @@ namespace qm {
 class Document;
 class DocumentHandler;
 	class DefaultDocumentHandler;
+class DocumentEvent;
 class AccountListChangedEvent;
 
 class Account;
@@ -98,6 +99,7 @@ public:
 	virtual ~DocumentHandler();
 
 public:
+	virtual qs::QSTATUS offlineStatusChanged(const DocumentEvent& event) = 0;
 	virtual qs::QSTATUS accountListChanged(const AccountListChangedEvent& event) = 0;
 };
 
@@ -115,11 +117,36 @@ public:
 	virtual ~DefaultDocumentHandler();
 
 public:
+	virtual qs::QSTATUS offlineStatusChanged(const DocumentEvent& event);
 	virtual qs::QSTATUS accountListChanged(const AccountListChangedEvent& event);
 
 private:
 	DefaultDocumentHandler(const DefaultDocumentHandler&);
 	DefaultDocumentHandler& operator=(const DefaultDocumentHandler&);
+};
+
+
+/****************************************************************************
+ *
+ * DocumentEvent
+ *
+ */
+
+class DocumentEvent
+{
+public:
+	DocumentEvent(Document* pDocument);
+	~DocumentEvent();
+
+public:
+	Document* getDocument() const;
+
+private:
+	DocumentEvent(const DocumentEvent&);
+	DocumentEvent& operator=(const DocumentEvent&);
+
+private:
+	Document* pDocument_;
 };
 
 

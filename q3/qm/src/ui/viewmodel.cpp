@@ -366,6 +366,7 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 	pDocument_(pDocument),
 	hwnd_(hwnd),
 	pColorSet_(0),
+	nUnseenCount_(0),
 	nSort_(SORT_ASCENDING | SORT_NOTHREAD),
 	pFilter_(0),
 	nLastSelection_(0),
@@ -455,6 +456,12 @@ unsigned int qm::ViewModel::getCount() const
 {
 	assert(isLocked());
 	return listItem_.size();
+}
+
+unsigned int qm::ViewModel::getUnseenCount() const
+{
+	assert(isLocked());
+	return nUnseenCount_;
 }
 
 const ViewModelItem* qm::ViewModel::getItem(unsigned int n)
@@ -728,6 +735,22 @@ bool qm::ViewModel::hasSelection() const
 		++it;
 	
 	return it != listItem_.end();
+}
+
+unsigned int qm::ViewModel::getSelectedCount() const
+{
+	assert(isLocked());
+	
+	unsigned int nCount = 0;
+	
+	ItemList::const_iterator it = listItem_.begin();
+	while (it != listItem_.end()) {
+		if ((*it)->getFlags() & FLAG_SELECTED)
+			++nCount;
+		++it;
+	}
+	
+	return nCount;
 }
 
 bool qm::ViewModel::isSelected(unsigned int n) const
@@ -1054,6 +1077,15 @@ QSTATUS qm::ViewModel::messageChanged(const MessageEvent& event)
 		listItem_.begin(), listItem_.end(),
 		std::bind2nd(ViewModelItemEqual(), &item));
 	if (it != listItem_.end()) {
+		unsigned int nOldFlags = event.getOldFlags();
+		unsigned int nNewFlags = event.getNewFlags();
+		if (nOldFlags & MessageHolder::FLAG_SEEN &&
+			!(nNewFlags & MessageHolder::FLAG_SEEN))
+			++nUnseenCount_;
+		else if (!(nOldFlags & MessageHolder::FLAG_SEEN) &&
+			nNewFlags & MessageHolder::FLAG_SEEN)
+			--nUnseenCount_;
+		
 		status = fireItemChanged(it - listItem_.begin());
 		CHECK_QSTATUS();
 	}
@@ -1282,6 +1314,8 @@ QSTATUS qm::ViewModel::update(bool bRestoreSelection)
 	status = STLWrapper<ItemList>(listItem_).reserve(nCount);
 	CHECK_QSTATUS();
 	
+	nUnseenCount_ = 0;
+	
 	MacroVariableHolder globalVariable(&status);
 	CHECK_QSTATUS();
 	for (unsigned int n = 0; n < nCount; ++n) {
@@ -1311,6 +1345,9 @@ QSTATUS qm::ViewModel::update(bool bRestoreSelection)
 			status = newQsObject(pmh, &pItem);
 			CHECK_QSTATUS();
 			listItem_.push_back(pItem.release());
+			
+			if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
+				++nUnseenCount_;
 		}
 	}
 	

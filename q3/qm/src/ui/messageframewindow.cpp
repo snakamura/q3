@@ -401,8 +401,8 @@ QSTATUS qm::MessageFrameWindowImpl::layoutChildren(int cx, int cy)
 		cy - nStatusBarHeight - nToolbarHeight, SWP_NOZORDER);
 	
 	int nWidth[] = {
-		cx - 210,
-		cx - 130,
+		cx - 230,
+		cx - 150,
 		cx - 70,
 		cx - 50,
 		cx - 30,

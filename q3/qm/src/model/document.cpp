@@ -46,6 +46,7 @@ struct qm::DocumentImpl
 {
 	typedef std::vector<DocumentHandler*> DocumentHandlerList;
 	
+	QSTATUS fireOfflineStatusChanged();
 	QSTATUS fireAccountListChanged(AccountListChangedEvent::Type type,
 		Account* pAccount) const;
 	
@@ -62,6 +63,20 @@ struct qm::DocumentImpl
 	bool bOffline_;
 	bool bCheckNewMail_;
 };
+
+QSTATUS qm::DocumentImpl::fireOfflineStatusChanged()
+{
+	DECLARE_QSTATUS();
+	
+	DocumentEvent event(pThis_);
+	DocumentHandlerList::const_iterator it = listDocumentHandler_.begin();
+	while (it != listDocumentHandler_.end()) {
+		status = (*it++)->offlineStatusChanged(event);
+		CHECK_QSTATUS();
+	}
+	
+	return QSTATUS_SUCCESS;
+}
 
 QSTATUS qm::DocumentImpl::fireAccountListChanged(
 	AccountListChangedEvent::Type type, Account* pAccount) const
@@ -443,6 +458,9 @@ QSTATUS qm::Document::setOffline(bool bOffline)
 		++it;
 	}
 	
+	status = pImpl_->fireOfflineStatusChanged();
+	CHECK_QSTATUS();
+	
 	return QSTATUS_SUCCESS;
 }
 
@@ -517,10 +535,37 @@ qm::DefaultDocumentHandler::~DefaultDocumentHandler()
 {
 }
 
+QSTATUS qm::DefaultDocumentHandler::offlineStatusChanged(
+	const DocumentEvent& event)
+{
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::DefaultDocumentHandler::accountListChanged(
 	const AccountListChangedEvent& event)
 {
 	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * DocumentEvent
+ *
+ */
+
+qm::DocumentEvent::DocumentEvent(Document* pDocument) :
+	pDocument_(pDocument)
+{
+}
+
+qm::DocumentEvent::~DocumentEvent()
+{
+}
+
+Document* qm::DocumentEvent::getDocument() const
+{
+	return pDocument_;
 }
 
 

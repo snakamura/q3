@@ -230,6 +230,7 @@ public:
 	ViewColumn& getColumn(unsigned int n);
 	
 	unsigned int getCount() const;
+	unsigned int getUnseenCount() const;
 	const ViewModelItem* getItem(unsigned int n);
 	MessageHolder* getMessageHolder(unsigned int n) const;
 	unsigned int getIndex(MessageHolder* pmh) const;
@@ -248,6 +249,7 @@ public:
 	qs::QSTATUS clearSelection();
 	qs::QSTATUS getSelection(Folder::MessageHolderList* pList) const;
 	bool hasSelection() const;
+	unsigned int getSelectedCount() const;
 	bool isSelected(unsigned int n) const;
 	unsigned int getLastSelection() const;
 	void setLastSelection(unsigned int n);
@@ -335,6 +337,7 @@ private:
 	const ColorSet* pColorSet_;
 	ColumnList listColumn_;
 	ItemList listItem_;
+	unsigned int nUnseenCount_;
 	unsigned int nSort_;
 	const Filter* pFilter_;
 	unsigned int nLastSelection_;

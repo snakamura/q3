@@ -1081,6 +1081,10 @@ BEGIN
     IDS_COPYMESSAGE         "Copying messages..."
     IDS_EMPTYTRASH          "Emptying trash..."
     IDS_DELETE              "Deleting messages..."
+    IDS_CUSTOM              "(Custom)"
+    IDS_VIEWMODELSTATUSTEMPLATE "%u Message(s), %u Unseen, %u Selected"
+    IDS_ONLINE              "Online"
+    IDS_OFFLINE             "Offline"
 END
 
 #endif    // “ú–{Œê resources

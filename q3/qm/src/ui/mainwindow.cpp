@@ -80,7 +80,10 @@ class qm::MainWindowImpl :
 	public SplitterWindowHandler,
 	public FolderModelHandler,
 	public FolderSelectionModel,
-	public MessageWindowHandler
+	public MessageWindowHandler,
+	public ViewModelManagerHandler,
+	public DefaultViewModelHandler,
+	public DefaultDocumentHandler
 {
 public:
 	enum {
@@ -149,6 +152,23 @@ public:
 
 public:
 	virtual QSTATUS messageChanged(const MessageWindowEvent& event);
+
+public:
+	virtual qs::QSTATUS viewModelSelected(
+		const ViewModelManagerEvent& event);
+
+public:
+	virtual qs::QSTATUS itemAdded(const ViewModelEvent& event);
+	virtual qs::QSTATUS itemRemoved(const ViewModelEvent& event);
+	virtual qs::QSTATUS itemChanged(const ViewModelEvent& event);
+	virtual qs::QSTATUS itemStateChanged(const ViewModelEvent& event);
+	virtual qs::QSTATUS updated(const ViewModelEvent& event);
+
+public:
+	virtual qs::QSTATUS offlineStatusChanged(const DocumentEvent& event);
+
+private:
+	qs::QSTATUS updateStatusBar(const ViewModel* pViewModel);
 
 public:
 	MainWindow* pThis_;
@@ -804,11 +824,10 @@ QSTATUS qm::MainWindowImpl::layoutChildren(int cx, int cy)
 	pListSplitterWindow_->setRowHeight(0, nListWindowHeight_);
 	
 	int nWidth[] = {
-		cx - 360,
+		cx - 350,
 		cx - 310,
-		cx - 260,
-		cx - 210,
-		cx - 130,
+		cx - 230,
+		cx - 150,
 		cx - 70,
 		cx - 50,
 		cx - 30,
@@ -965,12 +984,118 @@ QSTATUS qm::MainWindowImpl::messageChanged(const MessageWindowEvent& event)
 {
 	DECLARE_QSTATUS();
 	
-	MessageHolder* pmh = event.getMessageHolder();
-	if (pmh) {
-		if (bShowStatusBar_) {
-			status = UIUtil::updateStatusBar(pMessageWindow_,
-				pStatusBar_, 3, pmh, event.getMessage());
+	if (bShowStatusBar_) {
+		status = UIUtil::updateStatusBar(pMessageWindow_, pStatusBar_,
+			2, event.getMessageHolder(), event.getMessage());
+		CHECK_QSTATUS();
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::MainWindowImpl::viewModelSelected(
+	const ViewModelManagerEvent& event)
+{
+	DECLARE_QSTATUS();
+	
+	ViewModel* pOldViewModel = event.getOldViewModel();
+	if (pOldViewModel) {
+		status = pOldViewModel->removeViewModelHandler(this);
+		CHECK_QSTATUS();
+	}
+	
+	ViewModel* pNewViewModel = event.getNewViewModel();
+	if (pNewViewModel) {
+		status = pNewViewModel->addViewModelHandler(this);
+		CHECK_QSTATUS();
+	}
+	
+	status = updateStatusBar(pNewViewModel);
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::MainWindowImpl::itemAdded(const ViewModelEvent& event)
+{
+	return updateStatusBar(event.getViewModel());
+}
+
+QSTATUS qm::MainWindowImpl::itemRemoved(const ViewModelEvent& event)
+{
+	return updateStatusBar(event.getViewModel());
+}
+
+QSTATUS qm::MainWindowImpl::itemChanged(const ViewModelEvent& event)
+{
+	return updateStatusBar(event.getViewModel());
+}
+
+QSTATUS qm::MainWindowImpl::itemStateChanged(const ViewModelEvent& event)
+{
+	return updateStatusBar(event.getViewModel());
+}
+
+QSTATUS qm::MainWindowImpl::updated(const ViewModelEvent& event)
+{
+	return updateStatusBar(event.getViewModel());
+}
+
+QSTATUS qm::MainWindowImpl::offlineStatusChanged(const DocumentEvent& event)
+{
+	return updateStatusBar(pViewModelManager_->getCurrentViewModel());
+}
+
+QSTATUS qm::MainWindowImpl::updateStatusBar(const ViewModel* pViewModel)
+{
+	DECLARE_QSTATUS();
+	
+	if (bShowStatusBar_) {
+		if (pViewModel) {
+			Lock<ViewModel> lock(*pViewModel);
+			
+			HINSTANCE hInst = Application::getApplication().getResourceHandle();
+			string_ptr<WSTRING> wstrTemplate;
+			status = loadString(hInst, IDS_VIEWMODELSTATUSTEMPLATE, &wstrTemplate);
 			CHECK_QSTATUS();
+			WCHAR wsz[256];
+			swprintf(wsz, wstrTemplate.get(), pViewModel->getCount(),
+				pViewModel->getUnseenCount(), pViewModel->getSelectedCount());
+			status = pStatusBar_->setText(0, wsz);
+			CHECK_QSTATUS();
+			
+			UINT nOnlineId = pDocument_->isOffline() ? IDS_OFFLINE : IDS_ONLINE;
+			string_ptr<WSTRING> wstrOnline;
+			status = loadString(hInst, nOnlineId, &wstrOnline);
+			CHECK_QSTATUS();
+			status = pStatusBar_->setText(1, wstrOnline.get());
+			CHECK_QSTATUS();
+			
+			const WCHAR* pwszFilterName = 0;
+			UINT nFilterId = 0;
+			const Filter* pFilter = pViewModel->getFilter();
+			if (pFilter) {
+				pwszFilterName = pFilter->getName();
+				if (!*pwszFilterName)
+					nFilterId = IDS_CUSTOM;
+			}
+			else {
+				nFilterId = IDS_NONE;
+			}
+			string_ptr<WSTRING> wstrFilterName;
+			if (nFilterId != 0) {
+				status = loadString(hInst, nFilterId, &wstrFilterName);
+				CHECK_QSTATUS();
+				pwszFilterName = wstrFilterName.get();
+			}
+			status = pStatusBar_->setText(2, pwszFilterName);
+			CHECK_QSTATUS();
+		}
+		else {
+			for (int n = 0; n < 2; ++n) {
+				status = pStatusBar_->setText(n, L"");
+				CHECK_QSTATUS();
+			}
 		}
 	}
 	
@@ -1927,8 +2052,12 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pDelayedFolderModelHandler_);
 	CHECK_QSTATUS_VALUE(-1);
 	
+	status = pImpl_->pDocument_->addDocumentHandler(pImpl_);
+	CHECK_QSTATUS_VALUE(-1);
+	status = pImpl_->pViewModelManager_->addViewModelManagerHandler(pImpl_);
+	CHECK_QSTATUS_VALUE(-1);
 	status = pImpl_->pMessageWindow_->addMessageWindowHandler(pImpl_);
-	CHECK_QSTATUS();
+	CHECK_QSTATUS_VALUE(-1);
 	
 	status = pImpl_->initActions();
 	CHECK_QSTATUS_VALUE(-1);
@@ -1941,8 +2070,10 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 LRESULT qm::MainWindow::onDestroy()
 {
 	pImpl_->pMessageWindow_->removeMessageWindowHandler(pImpl_);
+	pImpl_->pViewModelManager_->removeViewModelManagerHandler(pImpl_);
 	pImpl_->pFolderModel_->removeFolderModelHandler(
 		pImpl_->pDelayedFolderModelHandler_);
+	pImpl_->pDocument_->removeDocumentHandler(pImpl_);
 	
 	::PostQuitMessage(0);
 	

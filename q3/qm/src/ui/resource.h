@@ -143,8 +143,12 @@
 #define IDS_EMPTYTRASH                  1049
 #define IDS_DELETE                      1050
 #define IDC_ENCODING                    1051
+#define IDS_CUSTOM                      1051
 #define IDC_TEMPLATE                    1052
+#define IDS_VIEWMODELSTATUSTEMPLATE     1052
 #define IDC_FILEPERMESSAGE              1053
+#define IDS_ONLINE                      1053
+#define IDS_OFFLINE                     1054
 #define IDC_EXPORTFLAGS                 1058
 #define IDC_NORMAL                      1059
 #define IDC_QMAIL20COMPATIBLE           1060
