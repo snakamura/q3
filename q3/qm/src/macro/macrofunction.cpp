@@ -524,7 +524,7 @@ MacroValuePtr qm::MacroFunctionAttachment::value(MacroContext* pContext) const
 	
 	LOG(Attachment);
 	
-	if (!checkArgSizeRange(pContext, 0, 1))
+	if (!checkArgSizeRange(pContext, 0, 2))
 		return MacroValuePtr();
 	
 	size_t nSize = getArgSize();
@@ -539,11 +539,19 @@ MacroValuePtr qm::MacroFunctionAttachment::value(MacroContext* pContext) const
 	
 	const WCHAR* pwszSep = L", ";
 	wstring_ptr wstrSep;
-	if (nSize == 1) {
+	if (nSize > 0) {
 		ARG(pValue, 0);
 		wstrSep = pValue->string();
 		pwszSep = wstrSep.get();
 	}
+	
+	bool bURI = false;
+	if (nSize > 1) {
+		ARG(pValue, 1);
+		bURI = pValue->boolean();
+	}
+	if (bURI && !pmh->getMessageHolder())
+		return error(*pContext, MacroErrorHandler::CODE_FAIL);
 	
 	AttachmentParser::AttachmentList l;
 	AttachmentParser::AttachmentListFree free(l);
@@ -553,7 +561,16 @@ MacroValuePtr qm::MacroFunctionAttachment::value(MacroContext* pContext) const
 	for (AttachmentParser::AttachmentList::iterator it = l.begin(); it != l.end(); ++it) {
 		if (it != l.begin())
 			buf.append(pwszSep);
-		buf.append((*it).first);
+		
+		if (bURI) {
+			URI uri(pmh->getMessageHolder(), pMessage,
+				(*it).second, URIFragment::TYPE_BODY);
+			wstring_ptr wstrURI(uri.toString());
+			buf.append(wstrURI.get());
+		}
+		else {
+			buf.append((*it).first);
+		}
 	}
 	
 	return MacroValueFactory::getFactory().newString(buf.getCharArray());
