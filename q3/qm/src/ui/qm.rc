@@ -1493,7 +1493,7 @@ BEGIN
     CONTROL         "Show un&seen count on folders",IDC_FOLDERSHOWUNSEEN,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,45,125,10
     PUSHBUTTON      "&Font...",IDC_WINDOWFONT,10,60,50,14
-    GROUPBOX        "Combo Box",IDC_STATIC,6,85,150,55
+    GROUPBOX        "Combo Box",IDC_STATIC,5,85,150,55
     CONTROL         "Show all &count",IDC_SHOWALL,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,10,95,60,10
     CONTROL         "Show uns&een count",IDC_SHOWUNSEEN,"Button",
