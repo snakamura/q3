@@ -24,6 +24,23 @@ include ../common.mak
 
 $(SRCDIR)/main/version.h: version revision
 	( \
+		getRevision() { \
+			svn info $$1 | grep "Last Changed Rev" | cut -f 4 -d ' '; \
+		}; \
+		getNewestRevision() { \
+			rev=`getRevision $$1`; \
+			for p in hpc ppc; do \
+				x=`dirname $$1`/$$p/`basename $$1`; \
+				if [ -f $$x ]; then \
+					revx=`getRevision $$x`; \
+					if [ $$rev -lt $$revx ]; then \
+						rev=$$revx; \
+					fi; \
+				fi; \
+			done; \
+			echo $$rev; \
+		}; \
+		\
 		printf "const int QMAIL_VERSION = %d%02d%03d;\n" \
 			`cat version | tr '.' ' '`; \
 		printf "const int QMAIL_REVISION = %d;\n" $(REVISION); \
@@ -31,7 +48,7 @@ $(SRCDIR)/main/version.h: version revision
 		for r in $(SRCDIR)/ui/res/*.xml $(SRCDIR)/ui/res/*.template $(SRCDIR)/ui/res/*.bmp; do \
 			printf "const int %s_REVISION = %d;\n" \
 				`basename $$r | tr 'a-z.' 'A-Z_'` \
-				`svn info $$r | grep "Last Changed Rev" | cut -f 4 -d ' '`; \
+				`getNewestRevision $$r`; \
 		done \
 	) > $@
 
