@@ -1953,7 +1953,7 @@ bool qm::FileImportAction::readMultipleMessages(NormalFolder* pFolder,
 					if (!wstrMessage.get())
 						return false;
 					
-					MessageCreator creator(/*MessageCreator::FLAG_RECOVER*/0, SECURITYMODE_NONE);
+					MessageCreator creator(MessageCreator::FLAG_RECOVER, SECURITYMODE_NONE);
 					std::auto_ptr<Message> pMessage(creator.createMessage(
 						0, wstrMessage.get(), wstrMessage.size()));
 					if (!pMessage.get())
