@@ -32,6 +32,7 @@
 #include "../util/util.h"
 
 #pragma warning(disable:4355)
+#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;
@@ -1569,6 +1570,14 @@ void qm::SignatureHeaderEditItem::updateEditMessage(EditMessage* pEditMessage)
 
 void qm::SignatureHeaderEditItem::accountChanged(const EditMessageEvent& event)
 {
+	Account* pAccount = pEditMessage_->getAccount();
+	SignatureManager* pSignatureManager = pEditMessage_->getDocument()->getSignatureManager();
+	const WCHAR* pwszSignature = pEditMessage_->getSignature();
+	if (pwszSignature && !pSignatureManager->getSignature(pAccount, pwszSignature)) {
+		const Signature* pSignature = pSignatureManager->getDefaultSignature(pAccount);
+		pEditMessage_->setSignature(pSignature ? pSignature->getName() : 0);
+	}
+	
 	update(event.getEditMessage());
 }
 
