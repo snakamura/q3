@@ -217,23 +217,38 @@ QSTATUS qm::FolderListWindowImpl::setCurrentAccount(Account* pAccount)
 	
 	if (pAccount) {
 		const Account::FolderList& l = pAccount->getFolders();
-		Account::FolderList listFolder;
-		status = STLWrapper<Account::FolderList>(listFolder).resize(l.size());
+		typedef std::vector<std::pair<Folder*, unsigned int> > FolderList;
+		FolderList listFolder;
+		status = STLWrapper<FolderList>(listFolder).reserve(l.size());
 		CHECK_QSTATUS();
-		std::copy(l.begin(), l.end(), listFolder.begin());
-		std::sort(listFolder.begin(), listFolder.end(), FolderLess());
+		Account::FolderList::const_iterator it = l.begin();
+		while (it != l.end()) {
+			Folder* pFolder = *it;
+			unsigned int nSize = 0;
+			status = pFolder->getSize(&nSize);
+			CHECK_QSTATUS();
+			listFolder.push_back(std::make_pair(pFolder, nSize));
+			++it;
+		}
+		std::sort(listFolder.begin(), listFolder.end(),
+			binary_compose_f_gx_hy(
+				FolderLess(),
+				std::select1st<FolderList::value_type>(),
+				std::select1st<FolderList::value_type>()));
 		
 		bInserting_ = true;
 		
-		for (Account::FolderList::size_type n = 0; n < listFolder.size(); ++n) {
-			Folder* pFolder = listFolder[n];
+		for (FolderList::size_type n = 0; n < listFolder.size(); ++n) {
+			Folder* pFolder = listFolder[n].first;
+			unsigned int nSize = listFolder[n].second;
+			unsigned int nDescendantSize = nSize;
+			for (FolderList::size_type m = n + 1; m < listFolder.size(); ++m) {
+				if (!pFolder->isAncestorOf(listFolder[m].first))
+					break;
+				nDescendantSize += listFolder[m].second;
+			}
 			
 			W2T(pFolder->getName(), ptszName);
-			
-			unsigned int nFlags = pFolder->getFlags();
-			int nImage = nFlags & Folder::FLAG_INBOX ? 6 :
-				(nFlags & Folder::FLAG_OUTBOX) || (nFlags & Folder::FLAG_SENTBOX) ? 8 :
-				nFlags & Folder::FLAG_TRASHBOX ? 10 : 2;
 			
 			LVITEM item = {
 				LVIF_IMAGE | LVIF_INDENT | LVIF_TEXT | LVIF_PARAM,
@@ -243,7 +258,7 @@ QSTATUS qm::FolderListWindowImpl::setCurrentAccount(Account* pAccount)
 				0,
 				const_cast<LPTSTR>(ptszName),
 				0,
-				nImage,
+				UIUtil::getFolderImage(pFolder, false),
 				reinterpret_cast<LPARAM>(pFolder),
 				getIndent(pFolder)
 			};
@@ -256,6 +271,8 @@ QSTATUS qm::FolderListWindowImpl::setCurrentAccount(Account* pAccount)
 			ListView_SetItemText(pThis_->getHandle(), nItem, 2, tsz);
 			wsprintf(tsz, _T("%d"), pFolder->getUnseenCount());
 			ListView_SetItemText(pThis_->getHandle(), nItem, 3, tsz);
+			wsprintf(tsz, _T("%dKB / %dKB"), nSize/1024, nDescendantSize/1024);
+			ListView_SetItemText(pThis_->getHandle(), nItem, 5, tsz);
 			
 			if (!pFolder->isFlag(Folder::FLAG_HIDE))
 				ListView_SetCheckState(pThis_->getHandle(), nItem, TRUE);

@@ -612,6 +612,28 @@ unsigned int qm::NormalFolder::getUnseenCount() const
 	return pImpl_->nUnseenCount_;
 }
 
+QSTATUS qm::NormalFolder::getSize(unsigned int* pnSize)
+{
+	assert(pnSize);
+	
+	DECLARE_QSTATUS();
+	
+	*pnSize = 0;
+	
+	Lock<Folder> lock(*this);
+	
+	status = loadMessageHolders();
+	CHECK_QSTATUS();
+	
+	MessageHolderList::const_iterator it = pImpl_->listMessageHolder_.begin();
+	while (it != pImpl_->listMessageHolder_.end()) {
+		*pnSize += (*it)->getSize();
+		++it;
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
 MessageHolder* qm::NormalFolder::getMessage(unsigned int n) const
 {
 	assert(pImpl_->bLoad_);
@@ -624,7 +646,8 @@ MessageHolder* qm::NormalFolder::getMessageById(unsigned int nId) const
 {
 	assert(pImpl_->bLoad_);
 	assert(isLocked());
-	
+
+#if 1
 	// TODO
 	// Binary search
 	const MessageHolderList& l = pImpl_->listMessageHolder_;
@@ -636,6 +659,18 @@ MessageHolder* qm::NormalFolder::getMessageById(unsigned int nId) const
 				std::identity<unsigned int>()),
 			nId));
 	return it != l.end() ? *it : 0;
+#else
+	MessageHolder mh(this, init, &status);
+	CHECK_QSTATUS();
+	MessageHolderList::const_iterator it = std::lower_bound(
+		pImpl_->listMessageHolder_.begin(),
+		pImpl_->listMessageHolder_.end(),
+		binary_compose_f_gx_hy(
+			std::less<unsigned int>(),
+			std::mem_fun(&MessageHolder::getId),
+			std::mem_fun(&MessageHolder::getId)));
+	return it != pImpl_->listMessageHolder_.end() && (*it).getId() == nId ? *it : 0;
+#endif
 }
 
 QSTATUS qm::NormalFolder::setMessagesFlags(const MessageHolderList& l,
@@ -1044,6 +1079,13 @@ unsigned int qm::QueryFolder::getUnseenCount() const
 {
 	// TODO
 	return 0;
+}
+
+QSTATUS qm::QueryFolder::getSize(unsigned int* pnSize)
+{
+	*pnSize = 0;
+	// TODO
+	return QSTATUS_SUCCESS;
 }
 
 MessageHolder* qm::QueryFolder::getMessage(unsigned int n) const
