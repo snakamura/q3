@@ -353,6 +353,9 @@
 #define IDM_FOCUS_HEADEREDITITEM        46000
 #define IDM_ADDRESSBOOK_ALLCATEGORY     47001
 #define IDM_ADDRESSBOOK_CATEGORY        47100
+#define IDM_ATTACHMENT_OPEN             48001
+#define IDM_ATTACHMENT_SAVE             48002
+#define IDM_ATTACHMENT_SAVEALL          48003
 
 // Next default values for new objects
 // 

@@ -24,6 +24,7 @@ class MessageFrameWindow;
 class MessageWindow;
 class HeaderWindow;
 
+class AttachmentSelectionModel;
 class Document;
 class Message;
 class MessageFrameWindowManager;
@@ -136,6 +137,7 @@ public:
 	MessageWindowItem* getFocusedItem() const;
 	
 	MessageModel* getMessageModel() const;
+	AttachmentSelectionModel* getAttachmentSelectionModel() const;
 	
 	qs::QSTATUS save() const;
 
@@ -184,6 +186,7 @@ public:
 	qs::QSTATUS layout();
 	bool isActive() const;
 	MessageWindowItem* getFocusedItem() const;
+	AttachmentSelectionModel* getAttachmentSelectionModel() const;
 
 public:
 	virtual qs::QSTATUS getWindowClass(WNDCLASS* pwc);

@@ -14,6 +14,7 @@
 #include <qsaction.h>
 #include <qsstream.h>
 
+#include "attachmenthelper.h"
 #include "templateprocessor.h"
 #include "../ui/messagecomposer.h"
 #include "../ui/messagewindow.h"
@@ -22,6 +23,8 @@
 namespace qm {
 
 struct ActionParam;
+class AttachmentOpenAction;
+class AttachmentSaveAction;
 class DispatchAction;
 class EditClearDeletedAction;
 class EditCommandAction;
@@ -88,6 +91,7 @@ class ViewSortThreadAction;
 class ViewTemplateAction;
 
 class AttachmentMenu;
+class AttachmentSelectionModel;
 class Document;
 class EditFrameWindow;
 class EditFrameWindowManager;
@@ -129,6 +133,66 @@ struct ActionParam
 {
 	VARIANT** ppvarArgs_;
 	size_t nArgs_;
+};
+
+
+/****************************************************************************
+ *
+ * AttachmentOpenAction
+ *
+ */
+
+class AttachmentOpenAction : public qs::AbstractAction
+{
+public:
+	AttachmentOpenAction(MessageModel* pMessageModel,
+		AttachmentSelectionModel* pAttachmentSelectionModel,
+		qs::Profile* pProfile, TempFileCleaner* pTempFileCleaner,
+		HWND hwnd, qs::QSTATUS* pstatus);
+	virtual ~AttachmentOpenAction();
+
+public:
+	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+
+private:
+	AttachmentOpenAction(const AttachmentOpenAction&);
+	AttachmentOpenAction& operator=(const AttachmentOpenAction&);
+
+private:
+	MessageModel* pMessageModel_;
+	AttachmentSelectionModel* pAttachmentSelectionModel_;
+	AttachmentHelper helper_;
+};
+
+
+/****************************************************************************
+ *
+ * AttachmentSaveAction
+ *
+ */
+
+class AttachmentSaveAction : public qs::AbstractAction
+{
+public:
+	AttachmentSaveAction(MessageModel* pMessageModel,
+		AttachmentSelectionModel* pAttachmentSelectionModel,
+		bool bAll, qs::Profile* pProfile, HWND hwnd, qs::QSTATUS* pstatus);
+	virtual ~AttachmentSaveAction();
+
+public:
+	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+
+private:
+	AttachmentSaveAction(const AttachmentSaveAction&);
+	AttachmentSaveAction& operator=(const AttachmentSaveAction&);
+
+private:
+	MessageModel* pMessageModel_;
+	AttachmentSelectionModel* pAttachmentSelectionModel_;
+	bool bAll_;
+	AttachmentHelper helper_;
 };
 
 
@@ -879,7 +943,8 @@ class MessageDetachAction : public qs::AbstractAction
 {
 public:
 	MessageDetachAction(qs::Profile* pProfile,
-		MessageSelectionModel* pMessageSelectionModel, qs::QSTATUS* pstatus);
+		MessageSelectionModel* pMessageSelectionModel,
+		HWND hwnd, qs::QSTATUS* pstatus);
 	virtual ~MessageDetachAction();
 
 public:
@@ -891,8 +956,8 @@ private:
 	MessageDetachAction& operator=(const MessageDetachAction&);
 
 private:
-	qs::Profile* pProfile_;
 	MessageSelectionModel* pMessageSelectionModel_;
+	AttachmentHelper helper_;
 };
 
 
@@ -987,16 +1052,15 @@ class MessageOpenAttachmentAction : public qs::AbstractAction
 public:
 	MessageOpenAttachmentAction(qs::Profile* pProfile,
 		AttachmentMenu* pAttachmentMenu, TempFileCleaner* pTempFileCleaner,
-		qs::QSTATUS* pstatus);
+		HWND hwnd, qs::QSTATUS* pstatus);
 	virtual ~MessageOpenAttachmentAction();
 
 public:
 	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
 
 private:
-	qs::Profile* pProfile_;
 	AttachmentMenu* pAttachmentMenu_;
-	TempFileCleaner* pTempFileCleaner_;
+	AttachmentHelper helper_;
 };
 
 

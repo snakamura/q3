@@ -17,6 +17,9 @@
 namespace qm {
 
 const qs::MenuItem menuItems[] = {
+	{ L"AttachmentOpen",			IDM_ATTACHMENT_OPEN				},
+	{ L"AttachmentSave",			IDM_ATTACHMENT_SAVE				},
+	{ L"AttachmentSaveAll",			IDM_ATTACHMENT_SAVEALL			},
 	{ L"EditClearDeleted",			IDM_EDIT_CLEARDELETED			},
 	{ L"EditCopy",					IDM_EDIT_COPY					},
 	{ L"EditCut",					IDM_EDIT_CUT					},

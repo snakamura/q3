@@ -423,7 +423,15 @@ private:
 class DetachDialog : public DefaultDialog, public qs::NotifyHandler
 {
 public:
-	typedef std::vector<std::pair<MessageHolder*, qs::WSTRING> > List;
+	struct Item
+	{
+		MessageHolder* pmh_;
+		qs::WSTRING wstrName_;
+		bool bSelected_;
+	};
+
+public:
+	typedef std::vector<Item> List;
 
 public:
 	DetachDialog(qs::Profile* pProfile, List& list, qs::QSTATUS* pstatus);

@@ -1,5 +1,5 @@
 /*
- * $Id: headerwindow.h,v 1.1.1.1 2003/04/29 08:07:32 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -13,6 +13,7 @@
 
 #include <qssax.h>
 
+#include "attachmentselectionmodel.h"
 #include "layout.h"
 #include "messagewindow.h"
 
@@ -231,10 +232,12 @@ private:
  *
  */
 
-class AttachmentHeaderItem : public HeaderItem
+class AttachmentHeaderItem :
+	public HeaderItem,
+	public AttachmentSelectionModel
 {
 public:
-	explicit AttachmentHeaderItem(qs::QSTATUS* pstatus);
+	AttachmentHeaderItem(qs::MenuManager* pMenuManager, qs::QSTATUS* pstatus);
 	virtual ~AttachmentHeaderItem();
 
 public:
@@ -250,12 +253,44 @@ public:
 	virtual bool isEmptyValue() const;
 	virtual bool isActive() const;
 
+public:
+	virtual qs::QSTATUS hasAttachment(bool* pbHas);
+	virtual qs::QSTATUS hasSelectedAttachment(bool* pbHas);
+	virtual qs::QSTATUS getSelectedAttachment(NameList* pList);
+
 private:
 	AttachmentHeaderItem(const AttachmentHeaderItem&);
 	AttachmentHeaderItem& operator=(const AttachmentHeaderItem&);
 
 private:
-	HWND hwnd_;
+	class AttachmentWindow :
+		public qs::WindowBase,
+		public qs::DefaultWindowHandler
+	{
+	public:
+		AttachmentWindow(AttachmentHeaderItem* pItem, qs::QSTATUS* pstatus);
+		virtual ~AttachmentWindow();
+	
+	public:
+		virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	
+	protected:
+		LRESULT onContextMenu(HWND hwnd, const POINT& pt);
+		LRESULT onLButtonDblClk(UINT nFlags, const POINT& pt);
+	
+	private:
+		AttachmentWindow(const AttachmentWindow&);
+		AttachmentWindow& operator=(const AttachmentWindow&);
+	
+	private:
+		AttachmentHeaderItem* pItem_;
+	};
+	friend class AttachmentWindow;
+
+private:
+//	HWND hwnd_;
+	qs::MenuManager* pMenuManager_;
+	AttachmentWindow wnd_;
 };
 
 
@@ -268,8 +303,12 @@ private:
 class HeaderWindowContentHandler : public qs::DefaultHandler
 {
 public:
-	HeaderWindowContentHandler(LineLayout* pLayout, qs::QSTATUS* pstatus);
+	HeaderWindowContentHandler(LineLayout* pLayout,
+		qs::MenuManager* pMenuManager, qs::QSTATUS* pstatus);
 	virtual ~HeaderWindowContentHandler();
+
+public:
+	AttachmentSelectionModel* getAttachmentSelectionModel() const;
 
 public:
 	virtual qs::QSTATUS startElement(const WCHAR* pwszNamespaceURI,
@@ -294,9 +333,11 @@ private:
 
 private:
 	LineLayout* pLayout_;
+	qs::MenuManager* pMenuManager_;
 	HeaderLine* pCurrentLine_;
 	HeaderItem* pCurrentItem_;
 	State state_;
+	AttachmentSelectionModel* pAttachmentSelectionModel_;
 };
 
 
@@ -309,6 +350,7 @@ private:
 struct HeaderWindowCreateContext
 {
 	Document* pDocument_;
+	qs::MenuManager* pMenuManager_;
 };
 
 }

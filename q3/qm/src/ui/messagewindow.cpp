@@ -524,6 +524,11 @@ MessageModel* qm::MessageWindow::getMessageModel() const
 	return pImpl_->pMessageModel_;
 }
 
+AttachmentSelectionModel* qm::MessageWindow::getAttachmentSelectionModel() const
+{
+	return pImpl_->pHeaderWindow_->getAttachmentSelectionModel();
+}
+
 QSTATUS qm::MessageWindow::save() const
 {
 	DECLARE_QSTATUS();
@@ -581,7 +586,8 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	status = newQsObject(pImpl_->pProfile_, &pHeaderWindow);
 	CHECK_QSTATUS_VALUE(-1);
 	HeaderWindowCreateContext context = {
-		pContext->pDocument_
+		pContext->pDocument_,
+		pContext->pMenuManager_,
 	};
 	status = pHeaderWindow->create(L"QmHeaderWindow", 0, WS_VISIBLE | WS_CHILD,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,

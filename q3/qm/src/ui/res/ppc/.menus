@@ -297,4 +297,9 @@
 		<separator/>
 		<menuitem text="Property..." action="MessageProperty"/>
 	</menu>
+	<menu name="attachment">
+		<menuitem text="Open" action="AttachmentOpen"/>
+		<menuitem text="Save..." action="AttachmentSave"/>
+		<menuitem text="Save All..." action="AttachmentSaveAll"/>
+	</menu>
 </menus>

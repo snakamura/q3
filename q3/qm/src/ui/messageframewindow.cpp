@@ -125,6 +125,23 @@ QSTATUS qm::MessageFrameWindowImpl::initActions()
 	status = newQsObject(&pFindReplaceManager_);
 	CHECK_QSTATUS();
 	
+	status = InitAction5<AttachmentOpenAction, MessageModel*,
+		AttachmentSelectionModel*, Profile*, TempFileCleaner*, HWND>(
+		pActionMap_, IDM_ATTACHMENT_OPEN, pMessageWindow_->getMessageModel(),
+		pMessageWindow_->getAttachmentSelectionModel(), pProfile_,
+		pTempFileCleaner_, pThis_->getHandle());
+	CHECK_QSTATUS();
+	status = InitAction5<AttachmentSaveAction, MessageModel*,
+		AttachmentSelectionModel*, bool, Profile*, HWND>(
+		pActionMap_, IDM_ATTACHMENT_SAVE, pMessageWindow_->getMessageModel(),
+		pMessageWindow_->getAttachmentSelectionModel(),
+		false, pProfile_, pThis_->getHandle());
+	CHECK_QSTATUS();
+	status = InitAction5<AttachmentSaveAction, MessageModel*,
+		AttachmentSelectionModel*, bool, Profile*, HWND>(
+		pActionMap_, IDM_ATTACHMENT_SAVEALL, pMessageWindow_->getMessageModel(),
+		pMessageWindow_->getAttachmentSelectionModel(),
+		true, pProfile_, pThis_->getHandle());
 	status = InitAction3<EditCommandAction, MessageWindow*,
 		EditCommandAction::PFN_DO, EditCommandAction::PFN_CANDO>(
 		pActionMap_, IDM_EDIT_COPY, pMessageWindow_,
@@ -200,13 +217,15 @@ QSTATUS qm::MessageFrameWindowImpl::initActions()
 			pExternalEditorManager_, pThis_->getHandle(), pProfile_, true);
 		CHECK_QSTATUS();
 	}
-	status = InitAction2<MessageDetachAction, Profile*, MessageSelectionModel*>(
-		pActionMap_, IDM_MESSAGE_DETACH, pProfile_, this);
+	status = InitAction3<MessageDetachAction,
+		Profile*, MessageSelectionModel*, HWND>(
+		pActionMap_, IDM_MESSAGE_DETACH,
+		pProfile_, this, pThis_->getHandle());
 	CHECK_QSTATUS();
-	status = InitActionRange3<MessageOpenAttachmentAction,
-		Profile*, AttachmentMenu*, TempFileCleaner*>(
+	status = InitActionRange4<MessageOpenAttachmentAction,
+		Profile*, AttachmentMenu*, TempFileCleaner*, HWND>(
 		pActionMap_, IDM_MESSAGE_ATTACHMENT, IDM_MESSAGE_ATTACHMENT + 100,
-		pProfile_, pAttachmentMenu_, pTempFileCleaner_);
+		pProfile_, pAttachmentMenu_, pTempFileCleaner_, pThis_->getHandle());
 	CHECK_QSTATUS();
 	status = InitAction3<MessageMarkAction, MessageSelectionModel*,
 		unsigned int, unsigned int>(

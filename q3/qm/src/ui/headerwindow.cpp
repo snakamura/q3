@@ -28,6 +28,7 @@
 #include <tchar.h>
 
 #include "headerwindow.h"
+#include "resourceinc.h"
 
 #pragma warning(disable:4786)
 
@@ -49,8 +50,8 @@ public:
 	};
 
 public:
-	QSTATUS load();
-	QSTATUS create();
+	QSTATUS load(MenuManager* pMenuManager);
+	QSTATUS create(MenuManager* pMenuManager);
 
 public:
 	HeaderWindow* pThis_;
@@ -61,9 +62,10 @@ public:
 	HFONT hfontBold_;
 	HBRUSH hbrBackground_;
 	LineLayout* pLayout_;
+	AttachmentSelectionModel* pAttachmentSelectionModel_;
 };
 
-QSTATUS qm::HeaderWindowImpl::load()
+QSTATUS qm::HeaderWindowImpl::load(MenuManager* pMenuManager)
 {
 	DECLARE_QSTATUS();
 	
@@ -77,27 +79,25 @@ QSTATUS qm::HeaderWindowImpl::load()
 	
 	XMLReader reader(&status);
 	CHECK_QSTATUS();
-	HeaderWindowContentHandler contentHandler(pLayout_, &status);
+	HeaderWindowContentHandler contentHandler(
+		pLayout_, pMenuManager, &status);
 	CHECK_QSTATUS();
 	reader.setContentHandler(&contentHandler);
 	W2T(wstrPath.get(), ptszPath);
 	if (::GetFileAttributes(ptszPath) != 0xffffffff) {
 		status = reader.parse(wstrPath.get());
 		CHECK_QSTATUS();
-	}
-	else {
-		// TODO
-		// Load default XML from resource.
+		pAttachmentSelectionModel_ = contentHandler.getAttachmentSelectionModel();
 	}
 	
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::HeaderWindowImpl::create()
+QSTATUS qm::HeaderWindowImpl::create(MenuManager* pMenuManager)
 {
 	DECLARE_QSTATUS();
 	
-	status = load();
+	status = load(pMenuManager);
 	CHECK_QSTATUS();
 	
 	std::pair<HFONT, HFONT> fonts(hfont_, hfontBold_);
@@ -134,6 +134,7 @@ qm::HeaderWindow::HeaderWindow(Profile* pProfile, QSTATUS* pstatus) :
 	pImpl_->hfontBold_ = 0;
 	pImpl_->hbrBackground_ = 0;
 	pImpl_->pLayout_ = 0;
+	pImpl_->pAttachmentSelectionModel_ = 0;
 	
 	setWindowHandler(this, false);
 }
@@ -213,6 +214,11 @@ MessageWindowItem* qm::HeaderWindow::getFocusedItem() const
 	return 0;
 }
 
+AttachmentSelectionModel* qm::HeaderWindow::getAttachmentSelectionModel() const
+{
+	return pImpl_->pAttachmentSelectionModel_;
+}
+
 QSTATUS qm::HeaderWindow::getWindowClass(WNDCLASS* pwc)
 {
 	DECLARE_QSTATUS();
@@ -262,7 +268,7 @@ LRESULT qm::HeaderWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	::GetClassInfo(getInstanceHandle(), ptszClassName, &wc);
 	pImpl_->hbrBackground_ = wc.hbrBackground;
 	
-	status = pImpl_->create();
+	status = pImpl_->create(pContext->pMenuManager_);
 	CHECK_QSTATUS_VALUE(-1);
 	
 	return 0;
@@ -719,9 +725,11 @@ QSTATUS qm::EditHeaderItem::canSelectAll(bool* pbCan)
  *
  */
 
-qm::AttachmentHeaderItem::AttachmentHeaderItem(QSTATUS* pstatus) :
+qm::AttachmentHeaderItem::AttachmentHeaderItem(
+	MenuManager* pMenuManager, QSTATUS* pstatus) :
 	HeaderItem(pstatus),
-	hwnd_(0)
+	pMenuManager_(pMenuManager),
+	wnd_(this, pstatus)
 {
 }
 
@@ -737,24 +745,24 @@ unsigned int qm::AttachmentHeaderItem::getHeight(unsigned int nFontHeight) const
 QSTATUS qm::AttachmentHeaderItem::create(WindowBase* pParent,
 	const std::pair<HFONT, HFONT>& fonts, UINT nId)
 {
-	assert(!hwnd_);
+	assert(!wnd_.getHandle());
 	
-	hwnd_ = ::CreateWindow(WC_LISTVIEW, 0,
+	DECLARE_QSTATUS();
+	
+	status = wnd_.create(L"QmAttachmentWindow", 0,
 		WS_CHILD | WS_VISIBLE | LVS_SMALLICON | LVS_SHAREIMAGELISTS,
-		0, 0, 0, 0, pParent->getHandle(), reinterpret_cast<HMENU>(nId),
-		Init::getInit().getInstanceHandle(), 0);
-	if (!hwnd_)
-		return QSTATUS_FAIL;
+		0, 0, 0, 0, pParent->getHandle(), 0, WC_LISTVIEWW, nId, 0);
+	CHECK_QSTATUS();
 	
-	ListView_SetBkColor(hwnd_, ::GetSysColor(COLOR_3DFACE));
-	ListView_SetTextBkColor(hwnd_, ::GetSysColor(COLOR_3DFACE));
+	ListView_SetBkColor(wnd_.getHandle(), ::GetSysColor(COLOR_3DFACE));
+	ListView_SetTextBkColor(wnd_.getHandle(), ::GetSysColor(COLOR_3DFACE));
 	SHFILEINFO info = { 0 };
 	HIMAGELIST hImageList = reinterpret_cast<HIMAGELIST>(::SHGetFileInfo(
 		_T("dummy.txt"), FILE_ATTRIBUTE_NORMAL, &info, sizeof(info),
 		SHGFI_USEFILEATTRIBUTES | SHGFI_SYSICONINDEX | SHGFI_SMALLICON));
-	ListView_SetImageList(hwnd_, hImageList, LVSIL_SMALL);
+	ListView_SetImageList(wnd_.getHandle(), hImageList, LVSIL_SMALL);
 	
-	Window(hwnd_).setFont(fonts.first);
+	wnd_.setFont(fonts.first);
 	
 	return QSTATUS_SUCCESS;
 }
@@ -767,7 +775,7 @@ QSTATUS qm::AttachmentHeaderItem::destroy()
 QSTATUS qm::AttachmentHeaderItem::layout(
 	const RECT& rect, unsigned int nFontHeight)
 {
-	Window(hwnd_).setWindowPos(0, rect.left, rect.top,
+	wnd_.setWindowPos(0, rect.left, rect.top,
 		rect.right - rect.left, rect.bottom - rect.top,
 		SWP_NOZORDER | SWP_NOACTIVATE);
 	return QSTATUS_SUCCESS;
@@ -775,7 +783,7 @@ QSTATUS qm::AttachmentHeaderItem::layout(
 
 QSTATUS qm::AttachmentHeaderItem::show(bool bShow)
 {
-	Window(hwnd_).showWindow(bShow ? SW_SHOW : SW_HIDE);
+	wnd_.showWindow(bShow ? SW_SHOW : SW_HIDE);
 	return QSTATUS_SUCCESS;
 }
 
@@ -783,7 +791,9 @@ QSTATUS qm::AttachmentHeaderItem::setMessage(const TemplateContext& context)
 {
 	DECLARE_QSTATUS();
 	
-	ListView_DeleteAllItems(hwnd_);
+	HWND hwnd = wnd_.getHandle();
+	
+	ListView_DeleteAllItems(hwnd);
 	
 	MessageHolderBase* pmh = context.getMessageHolder();
 	if (pmh) {
@@ -812,7 +822,7 @@ QSTATUS qm::AttachmentHeaderItem::setMessage(const TemplateContext& context)
 				0,
 				info.iIcon
 			};
-			ListView_InsertItem(hwnd_, &item);
+			ListView_InsertItem(hwnd, &item);
 			++n;
 		}
 	}
@@ -822,12 +832,105 @@ QSTATUS qm::AttachmentHeaderItem::setMessage(const TemplateContext& context)
 
 bool qm::AttachmentHeaderItem::isEmptyValue() const
 {
-	return ListView_GetItemCount(hwnd_) == 0;
+	return ListView_GetItemCount(wnd_.getHandle()) == 0;
 }
 
 bool qm::AttachmentHeaderItem::isActive() const
 {
-	return Window(hwnd_).hasFocus();
+	return wnd_.hasFocus();
+}
+
+QSTATUS qm::AttachmentHeaderItem::hasAttachment(bool* pbHas)
+{
+	assert(pbHas);
+	*pbHas = ListView_GetItemCount(wnd_.getHandle()) != 0;
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::AttachmentHeaderItem::hasSelectedAttachment(bool* pbHas)
+{
+	assert(pbHas);
+	*pbHas = ListView_GetSelectedCount(wnd_.getHandle()) != 0;
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::AttachmentHeaderItem::getSelectedAttachment(NameList* pList)
+{
+	assert(pList);
+	
+	DECLARE_QSTATUS();
+	
+	HWND hwnd = wnd_.getHandle();
+	
+	int nItem = ListView_GetNextItem(hwnd, -1, LVNI_ALL | LVNI_SELECTED);
+	while (nItem != -1) {
+		TCHAR tszName[MAX_PATH];
+		ListView_GetItemText(hwnd, nItem, 0, tszName, countof(tszName));
+		string_ptr<WSTRING> wstrName(tcs2wcs(tszName));
+		if (!wstrName.get())
+			return QSTATUS_OUTOFMEMORY;
+		status = STLWrapper<NameList>(*pList).push_back(wstrName.get());
+		CHECK_QSTATUS();
+		wstrName.release();
+		nItem = ListView_GetNextItem(hwnd, nItem, LVNI_ALL | LVNI_SELECTED);
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * AttachmentHeaderItem
+ *
+ */
+
+qm::AttachmentHeaderItem::AttachmentWindow::AttachmentWindow(
+	AttachmentHeaderItem* pItem, QSTATUS* pstatus) :
+	WindowBase(false, pstatus),
+	DefaultWindowHandler(pstatus),
+	pItem_(pItem)
+{
+	setWindowHandler(this, false);
+}
+
+qm::AttachmentHeaderItem::AttachmentWindow::~AttachmentWindow()
+{
+}
+
+LRESULT qm::AttachmentHeaderItem::AttachmentWindow::windowProc(
+	UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	BEGIN_MESSAGE_HANDLER()
+		HANDLE_CONTEXTMENU()
+		HANDLE_LBUTTONDBLCLK()
+	END_MESSAGE_HANDLER()
+	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
+}
+
+LRESULT qm::AttachmentHeaderItem::AttachmentWindow::onContextMenu(
+	HWND hwnd, const POINT& pt)
+{
+	DECLARE_QSTATUS();
+	
+	HMENU hmenu = 0;
+	status = pItem_->pMenuManager_->getMenu(L"attachment", false, false, &hmenu);
+	if (status == QSTATUS_SUCCESS) {
+		UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
+#ifndef _WIN32_WCE
+		nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
+#endif
+		::TrackPopupMenu(hmenu, nFlags, pt.x, pt.y, 0, getParentFrame(), 0);
+	}
+	return DefaultWindowHandler::onContextMenu(hwnd, pt);
+}
+
+LRESULT qm::AttachmentHeaderItem::AttachmentWindow::onLButtonDblClk(
+	UINT nFlags, const POINT& pt)
+{
+	Window(getParentFrame()).postMessage(WM_COMMAND,
+		MAKEWPARAM(IDM_ATTACHMENT_OPEN, 0), 0);
+	return DefaultWindowHandler::onLButtonDblClk(nFlags, pt);
 }
 
 
@@ -838,17 +941,24 @@ bool qm::AttachmentHeaderItem::isActive() const
  */
 
 qm::HeaderWindowContentHandler::HeaderWindowContentHandler(
-	LineLayout* pLayout, QSTATUS* pstatus) :
+	LineLayout* pLayout, MenuManager* pMenuManager, QSTATUS* pstatus) :
 	DefaultHandler(pstatus),
 	pLayout_(pLayout),
+	pMenuManager_(pMenuManager),
 	pCurrentLine_(0),
 	pCurrentItem_(0),
-	state_(STATE_ROOT)
+	state_(STATE_ROOT),
+	pAttachmentSelectionModel_(0)
 {
 }
 
 qm::HeaderWindowContentHandler::~HeaderWindowContentHandler()
 {
+}
+
+AttachmentSelectionModel* qm::HeaderWindowContentHandler::getAttachmentSelectionModel() const
+{
+	return pAttachmentSelectionModel_;
 }
 
 QSTATUS qm::HeaderWindowContentHandler::startElement(
@@ -945,7 +1055,7 @@ QSTATUS qm::HeaderWindowContentHandler::startElement(
 		assert(pCurrentLine_);
 		
 		std::auto_ptr<AttachmentHeaderItem> pItem;
-		status = newQsObject(&pItem);
+		status = newQsObject(pMenuManager_, &pItem);
 		CHECK_QSTATUS();
 		
 		for (int n = 0; n < attributes.getLength(); ++n) {
@@ -970,6 +1080,7 @@ QSTATUS qm::HeaderWindowContentHandler::startElement(
 		
 		status = pCurrentLine_->addItem(pItem.get());
 		CHECK_QSTATUS();
+		pAttachmentSelectionModel_ = pItem.get();
 		pCurrentItem_ = pItem.release();
 		
 		state_ = STATE_ITEM;

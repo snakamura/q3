@@ -1787,6 +1787,7 @@ qm::DetachDialog::DetachDialog(Profile* pProfile,
 
 qm::DetachDialog::~DetachDialog()
 {
+	freeWString(wstrFolder_);
 }
 
 const WCHAR* qm::DetachDialog::getFolder() const
@@ -1818,7 +1819,7 @@ LRESULT qm::DetachDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	HWND hwndList = getDlgItem(IDC_ATTACHMENT);
 	ListView_SetExtendedListViewStyle(hwndList, LVS_EX_CHECKBOXES);
 	for (List::size_type n = 0; n < list_.size(); ++n) {
-		W2T(list_[n].second, ptszName);
+		W2T(list_[n].wstrName_, ptszName);
 		LVITEM item = {
 			LVIF_TEXT,
 			n,
@@ -1829,7 +1830,8 @@ LRESULT qm::DetachDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 			0
 		};
 		ListView_InsertItem(hwndList, &item);
-		ListView_SetCheckState(hwndList, n, TRUE);
+		if (list_[n].bSelected_)
+			ListView_SetCheckState(hwndList, n, TRUE);
 	}
 	
 	setDlgItemText(IDC_FOLDER, wstrFolder_);
@@ -1850,20 +1852,21 @@ LRESULT qm::DetachDialog::onOk()
 			TCHAR tszName[MAX_PATH];
 			ListView_GetItemText(hwndList, n, 0, tszName, countof(tszName));
 			string_ptr<WSTRING> wstrName(tcs2wcs(tszName));
-			if (wstrName.get() && wcscmp(wstrName.get(), list_[n].second) != 0) {
-				freeWString(list_[n].second);
-				list_[n].second = wstrName.release();
+			if (wstrName.get() && wcscmp(wstrName.get(), list_[n].wstrName_) != 0) {
+				freeWString(list_[n].wstrName_);
+				list_[n].wstrName_ = wstrName.release();
 			}
 		}
 		else {
-			freeWString(list_[n].second);
-			list_[n].second = 0;
+			freeWString(list_[n].wstrName_);
+			list_[n].wstrName_ = 0;
 		}
 	}
 	
 	string_ptr<WSTRING> wstrFolder(allocWString(getDlgItemText(IDC_FOLDER)));
 	if (wstrFolder.get()) {
 		pProfile_->setString(L"Global", L"DetachFolder", wstrFolder.get());
+		freeWString(wstrFolder_);
 		wstrFolder_ = wstrFolder.release();
 	}
 	

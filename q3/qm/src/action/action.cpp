@@ -38,6 +38,7 @@
 #include "../model/tempfilecleaner.h"
 #include "../script/scriptmanager.h"
 #include "../sync/syncmanager.h"
+#include "../ui/attachmentselectionmodel.h"
 #include "../ui/dialogs.h"
 #include "../ui/editframewindow.h"
 #include "../ui/foldermodel.h"
@@ -60,59 +61,129 @@ using namespace qs;
 
 /****************************************************************************
  *
- * DetachCallbackImpl
+ * AttachmentOpenAction
  *
  */
 
-namespace {
-struct DetachCallbackImpl : public AttachmentParser::DetachCallback
+qm::AttachmentOpenAction::AttachmentOpenAction(MessageModel* pMessageModel,
+	AttachmentSelectionModel* pAttachmentSelectionModel, Profile* pProfile,
+	TempFileCleaner* pTempFileCleaner, HWND hwnd,  QSTATUS* pstatus) :
+	pMessageModel_(pMessageModel),
+	pAttachmentSelectionModel_(pAttachmentSelectionModel),
+	helper_(pProfile, pTempFileCleaner, hwnd)
 {
-	virtual QSTATUS confirmOverwrite(
-		const WCHAR* pwszPath, WSTRING* pwstrPath);
-};
 }
 
-QSTATUS DetachCallbackImpl::confirmOverwrite(
-	const WCHAR* pwszPath, WSTRING* pwstrPath)
+qm::AttachmentOpenAction::~AttachmentOpenAction()
 {
-	assert(pwszPath);
-	assert(pwstrPath);
-	
+}
+
+QSTATUS qm::AttachmentOpenAction::invoke(const ActionEvent& event)
+{
 	DECLARE_QSTATUS();
 	
-	*pwstrPath = 0;
-	
-	string_ptr<WSTRING> wstr;
-	status = loadString(Application::getApplication().getResourceHandle(),
-		IDS_CONFIRMOVERWRITE, &wstr);
-	CHECK_QSTATUS();
-	string_ptr<WSTRING> wstrMessage(concat(wstr.get(), pwszPath));
-	if (!wstrMessage.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	string_ptr<WSTRING> wstrPath;
-	int nMsg = 0;
-	status = messageBox(wstrMessage.get(), MB_YESNOCANCEL, &nMsg);
-	CHECK_QSTATUS();
-	switch (nMsg) {
-	case IDCANCEL:
-		break;
-	case IDYES:
-		wstrPath.reset(allocWString(pwszPath));
-		if (!wstrPath.get())
-			return QSTATUS_OUTOFMEMORY;
-		break;
-	case IDNO:
-		// TODO
-		// Open file dialog and pick new file name up.
-		break;
-	default:
-		break;
+	MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
+	if (mpl) {
+		Message msg(&status);
+		CHECK_QSTATUS();
+		status = mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg);
+		CHECK_QSTATUS();
+		
+		AttachmentParser parser(msg);
+		AttachmentParser::AttachmentList listAttachment;
+		AttachmentParser::AttachmentListFree freeAttachment(listAttachment);
+		status = parser.getAttachments(&listAttachment);
+		CHECK_QSTATUS();
+		
+		AttachmentSelectionModel::NameList listName;
+		StringListFree<AttachmentSelectionModel::NameList> freeName(listName);
+		status = pAttachmentSelectionModel_->getSelectedAttachment(&listName);
+		CHECK_QSTATUS();
+		AttachmentSelectionModel::NameList::const_iterator itN = listName.begin();
+		while (itN != listName.end()) {
+			AttachmentParser::AttachmentList::const_iterator itA = std::find_if(
+				listAttachment.begin(), listAttachment.end(),
+				std::bind2nd(
+					binary_compose_f_gx_hy(
+						string_equal<WCHAR>(),
+						std::select1st<AttachmentParser::AttachmentList::value_type>(),
+						std::identity<const WCHAR*>()),
+					*itN));
+			if (itA != listAttachment.end()) {
+				status = helper_.open((*itA).second, *itN,
+					(event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0);
+				CHECK_QSTATUS();
+			}
+			++itN;
+		}
 	}
 	
-	*pwstrPath = wstrPath.release();
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::AttachmentOpenAction::isEnabled(
+	const ActionEvent& event, bool* pbEnabled)
+{
+	return pAttachmentSelectionModel_->hasSelectedAttachment(pbEnabled);
+}
+
+
+/****************************************************************************
+ *
+ * AttachmentSaveAction
+ *
+ */
+
+qm::AttachmentSaveAction::AttachmentSaveAction(MessageModel* pMessageModel,
+	AttachmentSelectionModel* pAttachmentSelectionModel,
+	bool bAll, Profile* pProfile, HWND hwnd, QSTATUS* pstatus) :
+	pMessageModel_(pMessageModel),
+	pAttachmentSelectionModel_(pAttachmentSelectionModel),
+	bAll_(bAll),
+	helper_(pProfile, 0, hwnd)
+{
+}
+
+qm::AttachmentSaveAction::~AttachmentSaveAction()
+{
+}
+
+QSTATUS qm::AttachmentSaveAction::invoke(const ActionEvent& event)
+{
+	DECLARE_QSTATUS();
+	
+	MessagePtrList listMessagePtr;
+	status = STLWrapper<MessagePtrList>(listMessagePtr).push_back(
+		pMessageModel_->getCurrentMessage());
+	CHECK_QSTATUS();
+	
+	if (bAll_) {
+		status = helper_.detach(listMessagePtr, 0);
+		CHECK_QSTATUS();
+	}
+	else {
+		AttachmentSelectionModel::NameList listName;
+		StringListFree<AttachmentSelectionModel::NameList> freeName(listName);
+		status = pAttachmentSelectionModel_->getSelectedAttachment(&listName);
+		CHECK_QSTATUS();
+		
+		AttachmentHelper::NameList l;
+		status = STLWrapper<AttachmentHelper::NameList>(l).resize(listName.size());
+		CHECK_QSTATUS();
+		std::copy(listName.begin(), listName.end(), l.begin());
+		
+		status = helper_.detach(listMessagePtr, &l);
+		CHECK_QSTATUS();
+	}
 	
 	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::AttachmentSaveAction::isEnabled(
+	const ActionEvent& event, bool* pbEnabled)
+{
+	return bAll_ ? pAttachmentSelectionModel_->hasAttachment(pbEnabled) :
+		pAttachmentSelectionModel_->hasSelectedAttachment(pbEnabled);
 }
 
 
@@ -1806,9 +1877,9 @@ QSTATUS qm::MessageCreateFromClipboardAction::isEnabled(
  */
 
 qm::MessageDetachAction::MessageDetachAction(Profile* pProfile,
-	MessageSelectionModel* pMessageSelectionModel, QSTATUS* pstatus) :
-	pProfile_(pProfile),
-	pMessageSelectionModel_(pMessageSelectionModel)
+	MessageSelectionModel* pMessageSelectionModel, HWND hwnd, QSTATUS* pstatus) :
+	pMessageSelectionModel_(pMessageSelectionModel),
+	helper_(pProfile, 0, hwnd)
 {
 }
 
@@ -1824,96 +1895,8 @@ QSTATUS qm::MessageDetachAction::invoke(const ActionEvent& event)
 	status = pMessageSelectionModel_->getSelectedMessages(0, &listMessagePtr);
 	CHECK_QSTATUS();
 	
-	DetachDialog::List list;
-	struct Deleter
-	{
-		Deleter(DetachDialog::List& l) : l_(l) {}
-		~Deleter()
-		{
-			std::for_each(l_.begin(), l_.end(),
-				unary_compose_f_gx(
-					string_free<WSTRING>(),
-					std::select2nd<DetachDialog::List::value_type>()));
-		}
-		DetachDialog::List& l_;
-	} deleter(list);
-	
-	MessagePtrList::const_iterator itM = listMessagePtr.begin();
-	while (itM != listMessagePtr.end()) {
-		MessagePtrLock mpl(*itM);
-		if (mpl) {
-			Message msg(&status);
-			CHECK_QSTATUS();
-			status = mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, &msg);
-			CHECK_QSTATUS();
-			AttachmentParser parser(msg);
-			AttachmentParser::AttachmentList l;
-			AttachmentParser::AttachmentListFree free(l);
-			status = parser.getAttachments(&l);
-			CHECK_QSTATUS();
-			AttachmentParser::AttachmentList::iterator itA = l.begin();
-			while (itA != l.end()) {
-				string_ptr<WSTRING> wstrName(allocWString((*itA).first));
-				if (!wstrName.get())
-					return QSTATUS_OUTOFMEMORY;
-				status = STLWrapper<DetachDialog::List>(list).push_back(
-					DetachDialog::List::value_type(mpl, wstrName.get()));
-				CHECK_QSTATUS();
-				wstrName.release();
-				++itA;
-			}
-		}
-		++itM;
-	}
-	
-	if (!list.empty()) {
-		DetachDialog dialog(pProfile_, list, &status);
-		CHECK_QSTATUS();
-		int nRet = 0;
-		status = dialog.doModal(getMainWindow()->getHandle(), 0, &nRet);
-		CHECK_QSTATUS();
-		if (nRet == IDOK) {
-			const WCHAR* pwszFolder = dialog.getFolder();
-			
-			MessageHolder* pmh = 0;
-			Message msg(&status);
-			AttachmentParser::AttachmentList l;
-			AttachmentParser::AttachmentListFree free(l);
-			DetachCallbackImpl callback;
-			unsigned int n = 0;
-			DetachDialog::List::iterator it = list.begin();
-			while (it != list.end()) {
-				if ((*it).first != pmh) {
-					pmh = (*it).first;
-					n = 0;
-					status = msg.clear();
-					CHECK_QSTATUS();
-					free.free();
-				}
-				else {
-					++n;
-				}
-				if ((*it).second) {
-					if (msg.getFlag() == Message::FLAG_EMPTY) {
-						status = (*it).first->getMessage(
-							Account::GETMESSAGEFLAG_ALL, 0, &msg);
-						CHECK_QSTATUS();
-					}
-					if (l.empty()) {
-						status = AttachmentParser(msg).getAttachments(&l);
-						CHECK_QSTATUS();
-					}
-					assert(n < l.size());
-					const AttachmentParser::AttachmentList::value_type& v = l[n];
-					string_ptr<WSTRING> wstrPath;
-					status = AttachmentParser(*v.second).detach(
-						pwszFolder, v.first, &callback, &wstrPath);
-					CHECK_QSTATUS();
-				}
-				++it;
-			}
-		}
-	}
+	status = helper_.detach(listMessagePtr, 0);
+	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
 }
@@ -2048,10 +2031,9 @@ QSTATUS qm::MessageMoveOtherAction::isEnabled(
 
 qm::MessageOpenAttachmentAction::MessageOpenAttachmentAction(
 	Profile* pProfile, AttachmentMenu* pAttachmentMenu,
-	TempFileCleaner* pTempFileCleaner, QSTATUS* pstatus) :
-	pProfile_(pProfile),
+	TempFileCleaner* pTempFileCleaner, HWND hwnd, QSTATUS* pstatus) :
 	pAttachmentMenu_(pAttachmentMenu),
-	pTempFileCleaner_(pTempFileCleaner)
+	helper_(pProfile, pTempFileCleaner, hwnd)
 {
 }
 
@@ -2070,76 +2052,9 @@ QSTATUS qm::MessageOpenAttachmentAction::invoke(const ActionEvent& event)
 	status = pAttachmentMenu_->getPart(event.getId(), &msg, &wstrName, &pPart);
 	CHECK_QSTATUS();
 	
-	AttachmentParser parser(*pPart);
-	DetachCallbackImpl callback;
-	const WCHAR* pwszTempDir =
-		Application::getApplication().getTemporaryFolder();
-	string_ptr<WSTRING> wstrPath;
-	status = parser.detach(pwszTempDir, wstrName.get(), &callback, &wstrPath);
+	status = helper_.open(pPart, wstrName.get(),
+		(event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0);
 	CHECK_QSTATUS();
-	
-	if (wstrPath.get()) {
-		status = pTempFileCleaner_->add(wstrPath.get());
-		CHECK_QSTATUS();
-		
-		bool bOpenWithEditor = (event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0;
-		if (!bOpenWithEditor) {
-			const WCHAR* p = wcsrchr(wstrPath.get(), L'.');
-			if (p) {
-				++p;
-				
-				string_ptr<WSTRING> wstrExtensions;
-				status = pProfile_->getString(L"Global", L"WarnExtensions",
-					L"exe com pif bat scr htm html hta vbs js", &wstrExtensions);
-				CHECK_QSTATUS();
-				if (wcsstr(wstrExtensions.get(), p)) {
-					int nMsg = 0;
-					status = messageBox(
-						Application::getApplication().getResourceHandle(),
-						IDS_CONFIRMEXECUTEATTACHMENT,
-						MB_YESNO | MB_DEFBUTTON2 | MB_ICONWARNING, &nMsg);
-					CHECK_QSTATUS();
-					if (nMsg != IDYES)
-						return QSTATUS_SUCCESS;
-				}
-			}
-		}
-		
-		W2T(wstrPath.get(), ptszPath);
-		
-		string_ptr<TSTRING> tstrEditor;
-		if (bOpenWithEditor) {
-			string_ptr<WSTRING> wstrEditor;
-			status = pProfile_->getString(L"Global", L"Editor", L"", &wstrEditor);
-			CHECK_QSTATUS();
-			tstrEditor.reset(wcs2tcs(wstrEditor.get()));
-			if (!tstrEditor.get())
-				return QSTATUS_OUTOFMEMORY;
-		}
-		
-		SHELLEXECUTEINFO sei = {
-			sizeof(sei),
-			0,
-			getMainWindow()->getHandle(),
-			0,
-			0,
-			0,
-			0,
-			SW_SHOW
-		};
-		if (bOpenWithEditor) {
-			sei.lpFile = tstrEditor.get();
-			sei.lpParameters = ptszPath;
-		}
-		else {
-			sei.lpFile = ptszPath;
-		}
-		if (!::ShellExecuteEx(&sei)) {
-			status = messageBox(Application::getApplication().getResourceHandle(),
-				IDS_ERROR_EXECUTEATTACHMENT);
-			CHECK_QSTATUS();
-		}
-	}
 	
 	return QSTATUS_SUCCESS;
 }
