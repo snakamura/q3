@@ -650,6 +650,7 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 	
 	UnstructuredParser link;
 	if (pAccount->isSupport(Account::SUPPORT_EXTERNALLINK) &&
+		!pMessage->isMultipart() &&
 		pMessage->getField(L"X-QMAIL-Link", &link) == Part::FIELD_EXIST) {
 		wstrURL = allocWString(link.getValue());
 		bAllowExternal_ = true;

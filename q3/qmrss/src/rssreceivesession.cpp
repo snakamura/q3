@@ -193,6 +193,8 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 		timeLastModified = Time::getCurrentTime();
 	std::auto_ptr<Feed> pFeedNew(new Feed(pwszURL, timeLastModified));
 	
+	bool bUseContentEncoded = pSubAccount_->getProperty(L"Rss", L"UseContentEncoded", 1) != 0;
+	
 	const Channel::ItemList& listItem = pChannel->getItems();
 	pSessionCallback_->setRange(0, listItem.size());
 	pSessionCallback_->setPos(0);
@@ -227,8 +229,8 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 				}
 				
 				Message msg;
-				if (!createItemMessage(pItem, timePubDate,
-					pBody.get() ? &header : 0, pBody.get(), pBody.size(), &msg))
+				if (!createItemMessage(pItem, timePubDate, pBody.get() ? &header : 0,
+					pBody.get(), pBody.size(), bUseContentEncoded, &msg))
 					return false;
 				
 				Lock<Account> lock(*pAccount_);
@@ -308,6 +310,7 @@ bool qmrss::RssReceiveSession::createItemMessage(const Item* pItem,
 												 const Part* pHeader,
 												 const unsigned char* pBody,
 												 size_t nBodyLen,
+												 bool bUseContentEncoded,
 												 Message* pMessage)
 {
 	assert(pItem);
@@ -321,7 +324,10 @@ bool qmrss::RssReceiveSession::createItemMessage(const Item* pItem,
 	if (!pMessage->setField(L"X-QMAIL-Link", link))
 		return false;
 	
-	if (pBody) {
+	const WCHAR* pwszContentEncoded = bUseContentEncoded ? pItem->getContentEncoded() : 0;
+	
+	bool bMultipart = pBody || pwszContentEncoded;
+	if (bMultipart) {
 		ContentTypeParser contentType(L"multipart", L"alternative");
 		WCHAR wszBoundary[128];
 		Time time(Time::getCurrentTime());
@@ -368,7 +374,7 @@ bool qmrss::RssReceiveSession::createItemMessage(const Item* pItem,
 	UTF8Converter converter;
 	
 	Part* pTextPart = 0;
-	if (pBody) {
+	if (bMultipart) {
 		std::auto_ptr<Part> pPart(new Part());
 		pTextPart = pPart.get();
 		pMessage->addPart(pPart);
@@ -409,6 +415,22 @@ bool qmrss::RssReceiveSession::createItemMessage(const Item* pItem,
 		}
 		
 		if (!body.append(reinterpret_cast<const CHAR*>(pBody), nBodyLen))
+			return false;
+		
+		pHtmlPart->setBody(body.getXString());
+		pMessage->addPart(pHtmlPart);
+	}
+	else if (pwszContentEncoded) {
+		std::auto_ptr<Part> pHtmlPart(new Part());
+		
+		ContentTypeParser contentType(L"text", L"html");
+		contentType.setParameter(L"charset", L"utf-8");
+		if (!pHtmlPart->setField(L"Content-Type", contentType))
+			return false;
+		
+		XStringBuffer<XSTRING> body;
+		if (!body.append("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\r\n") ||
+			converter.encode(pwszContentEncoded, wcslen(pwszContentEncoded), &body) == -1)
 			return false;
 		
 		pHtmlPart->setBody(body.getXString());

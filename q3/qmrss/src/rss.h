@@ -78,6 +78,7 @@ public:
 	const WCHAR* getSubject() const;
 	const WCHAR* getCreator() const;
 	const qs::Time& getPubDate() const;
+	const WCHAR* getContentEncoded() const;
 
 public:
 	void setTitle(qs::wstring_ptr wstrTitle);
@@ -87,6 +88,7 @@ public:
 	void addSubject(qs::wstring_ptr wstrSubject);
 	void addCreator(qs::wstring_ptr wstrCreator);
 	void setPubDate(const qs::Time& time);
+	void setContentEncoded(qs::wstring_ptr wstrContentEncoded);
 
 private:
 	Item(const Item&);
@@ -100,6 +102,7 @@ private:
 	qs::wstring_ptr wstrSubject_;
 	qs::wstring_ptr wstrCreator_;
 	qs::Time timePubDate_;
+	qs::wstring_ptr wstrContentEncoded_;
 };
 
 

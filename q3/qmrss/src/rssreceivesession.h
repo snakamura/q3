@@ -67,6 +67,7 @@ private:
 								  const qs::Part* pHeader,
 								  const unsigned char* pBody,
 								  size_t nBodyLen,
+								  bool bUseContentEncoded,
 								  qm::Message* pMessage);
 
 private:

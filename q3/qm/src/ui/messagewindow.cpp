@@ -191,6 +191,7 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	MessageViewWindow* pMessageViewWindow = 0;
 	if (pmh && !bRawMode && bHtmlMode && !wstrTemplate_.get()) {
 		if (pAccount->isSupport(Account::SUPPORT_EXTERNALLINK) &&
+			!msg.isMultipart() &&
 			msg.hasField(L"X-QMAIL-Link")) {
 			pMessageViewWindow = pFactory_->getLinkMessageViewWindow();
 		}

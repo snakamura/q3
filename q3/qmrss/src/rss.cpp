@@ -101,6 +101,11 @@ const Time& qmrss::Item::getPubDate() const
 	return timePubDate_;
 }
 
+const WCHAR* qmrss::Item::getContentEncoded() const
+{
+	return wstrContentEncoded_.get();
+}
+
 void qmrss::Item::setTitle(wstring_ptr wstrTitle)
 {
 	wstrTitle_ = wstrTitle;
@@ -143,6 +148,11 @@ void qmrss::Item::addCreator(wstring_ptr wstrCreator)
 void qmrss::Item::setPubDate(const Time& time)
 {
 	timePubDate_ = time;
+}
+
+void qmrss::Item::setContentEncoded(qs::wstring_ptr wstrContentEncoded)
+{
+	wstrContentEncoded_ = wstrContentEncoded;
 }
 
 
@@ -431,14 +441,10 @@ bool qmrss::Rss10Handler::endElement(const WCHAR* pwszNamespaceURI,
 			}
 		}
 		else if (wcscmp(pwszNamespaceURI, L"http://purl.org/rss/1.0/modules/content/") == 0) {
-			if (wcscmp(pwszLocalName, L"encoded") == 0) {
-				if (!pCurrentItem_->getDescription())
-					pCurrentItem_->setDescription(buffer_.getString());
-				buffer_.remove();
-			}
-			else {
+			if (wcscmp(pwszLocalName, L"encoded") == 0)
+				pCurrentItem_->setContentEncoded(buffer_.getString());
+			else
 				assert(false);
-			}
 		}
 		else {
 			assert(false);
@@ -554,6 +560,12 @@ bool qmrss::Rss20Handler::startElement(const WCHAR* pwszNamespaceURI,
 			else
 				stackState_.push_back(STATE_UNKNOWN);
 		}
+		else if (wcscmp(pwszNamespaceURI, L"http://purl.org/rss/1.0/modules/content/") == 0) {
+			if (wcscmp(pwszLocalName, L"encoded") == 0)
+				stackState_.push_back(STATE_PROPERTY);
+			else
+				stackState_.push_back(STATE_UNKNOWN);
+		}
 		else {
 			stackState_.push_back(STATE_UNKNOWN);
 		}
@@ -644,6 +656,12 @@ bool qmrss::Rss20Handler::endElement(const WCHAR* pwszNamespaceURI,
 			else {
 				assert(false);
 			}
+		}
+		else if (wcscmp(pwszNamespaceURI, L"http://purl.org/rss/1.0/modules/content/") == 0) {
+			if (wcscmp(pwszLocalName, L"encoded") == 0)
+				pCurrentItem_->setContentEncoded(buffer_.getString());
+			else
+				assert(false);
 		}
 		else {
 			assert(false);
