@@ -401,8 +401,13 @@ void qm::ListWindowImpl::invalidateSelected()
 
 void qm::ListWindowImpl::ensureVisible(unsigned int nLine)
 {
-	SCROLLINFO si = { sizeof(si), SIF_POS | SIF_PAGE };
+	SCROLLINFO si = {
+		sizeof(si),
+		SIF_POS | SIF_PAGE | SIF_RANGE
+	};
 	pThis_->getScrollInfo(SB_VERT, &si);
+	if (si.nMax - si.nMin <= si.nPage)
+		return;
 	
 	if (nLine < static_cast<unsigned int>(si.nPos))
 		scrollVertical(nLine);
@@ -477,12 +482,15 @@ void qm::ListWindowImpl::updateScrollBar(bool bVertical)
 			nCount = pViewModel->getCount();
 		}
 		
+		unsigned int nPage = (rect.bottom - rect.top)/nLineHeight_;
+		if (nPage > nCount)
+			nPage = nCount;
 		SCROLLINFO si = {
 			sizeof(si),
 			SIF_PAGE | SIF_RANGE,
 			0,
-			nCount - 1,
-			(rect.bottom - rect.top)/nLineHeight_,
+			nCount == 0 ? 0 : nCount - 1,
+			nPage,
 			0,
 		};
 		pThis_->setScrollInfo(SB_VERT, si);
