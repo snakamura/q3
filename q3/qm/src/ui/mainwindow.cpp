@@ -114,6 +114,12 @@ public:
 		WM_MAINWINDOW_NOTIFYICON		= WM_APP + 1001,
 		WM_MAINWINDOW_RECENTSCHANGED	= WM_APP + 1002
 	};
+	
+#ifndef _WIN32_WCE_PSPC
+	enum {
+		HOTKEY_RECENTS	= 0xC000
+	};
+#endif
 
 public:
 	class MessageSelectionModelImpl : public MessageSelectionModel
@@ -173,6 +179,9 @@ public:
 	void layoutChildren(int cx,
 						int cy);
 	void updateStatusBar();
+#ifndef _WIN32_WCE_PSPC
+	void showRecentsMenu();
+#endif
 
 public:
 	virtual void preModalDialog(HWND hwndParent);
@@ -1077,6 +1086,30 @@ void qm::MainWindowImpl::updateStatusBar()
 	}
 }
 
+#ifndef _WIN32_WCE_PSPC
+void qm::MainWindowImpl::showRecentsMenu()
+{
+	AutoMenuHandle hmenu(::CreatePopupMenu());
+	if (pRecentsMenu_->createMenu(hmenu.get())) {
+		UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
+#ifndef _WIN32_WCE
+		nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
+#endif
+		POINT pt;
+#ifdef _WIN32_WCE
+		DWORD dwPos = ::GetMessagePos();
+		pt.x = static_cast<int>(dwPos & 0x0000ffff);
+		pt.y = static_cast<int>(dwPos & 0xffff0000) >> 16;
+#else
+		::GetCursorPos(&pt);
+#endif
+		pThis_->setForegroundWindow();
+		::TrackPopupMenu(hmenu.get(), nFlags, pt.x, pt.y, 0, pThis_->getHandle(), 0);
+		pThis_->postMessage(WM_NULL);
+	}
+}
+#endif
+
 void qm::MainWindowImpl::preModalDialog(HWND hwndParent)
 {
 	if (nShowingModalDialog_++ == 0) {
@@ -1744,6 +1777,9 @@ LRESULT qm::MainWindow::windowProc(UINT uMsg,
 #ifndef _WIN32_WCE
 		HANDLE_ENDSESSION()
 #endif
+#ifndef _WIN32_WCE_PSPC
+		HANDLE_HOTKEY()
+#endif
 		HANDLE_INITMENUPOPUP()
 #ifndef _WIN32_WCE
 		HANDLE_QUERYENDSESSION()
@@ -2030,6 +2066,11 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->notifyIcon_.hIcon = reinterpret_cast<HICON>(::LoadImage(hInst,
 		MAKEINTRESOURCE(IDI_MAINFRAME), IMAGE_ICON, 16, 16, 0));
 	_tcscpy(pImpl_->notifyIcon_.szTip, _T("QMAIL"));
+	
+	UINT nHotKeyModifier = pImpl_->pProfile_->getInt(
+		L"Recents", L"HotKeyModifiers", MOD_ALT | MOD_SHIFT);
+	UINT nHotKey = pImpl_->pProfile_->getInt(L"Recents", L"HotKey", 'A');
+	::RegisterHotKey(getHandle(), MainWindowImpl::HOTKEY_RECENTS, nHotKeyModifier, nHotKey);
 #endif
 	
 	pImpl_->bCreated_ = true;
@@ -2039,16 +2080,18 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 
 LRESULT qm::MainWindow::onDestroy()
 {
+#ifndef _WIN32_WCE_PSPC
+	::UnregisterHotKey(getHandle(), MainWindowImpl::HOTKEY_RECENTS);
+	
+	if (pImpl_->bNotifyIcon_)
+		Shell_NotifyIcon(NIM_DELETE, &pImpl_->notifyIcon_);
+#endif
+	
 	pImpl_->pMessageWindow_->removeMessageWindowHandler(pImpl_);
 	pImpl_->pFolderModel_->removeFolderModelHandler(
 		pImpl_->pDelayedFolderModelHandler_.get());
 	pImpl_->pDocument_->removeDocumentHandler(pImpl_);
 	pImpl_->pDocument_->getRecents()->removeRecentsHandler(pImpl_);
-	
-#ifndef _WIN32_WCE_PSPC
-	if (pImpl_->bNotifyIcon_)
-		Shell_NotifyIcon(NIM_DELETE, &pImpl_->notifyIcon_);
-#endif
 	
 	if (pImpl_->pToolbarCookie_)
 		pImpl_->pUIManager_->getToolbarManager()->destroy(pImpl_->pToolbarCookie_);
@@ -2064,6 +2107,17 @@ LRESULT qm::MainWindow::onEndSession(bool bEnd,
 {
 	if (bEnd)
 		Application::getApplication().uninitialize();
+	return 0;
+}
+#endif
+
+#ifndef _WIN32_WCE_PSPC
+LRESULT qm::MainWindow::onHotKey(UINT nId,
+								 UINT nModifier,
+								 UINT nKey)
+{
+	if (nId == MainWindowImpl::HOTKEY_RECENTS)
+		pImpl_->showRecentsMenu();
 	return 0;
 }
 #endif
@@ -2173,27 +2227,8 @@ LRESULT qm::MainWindow::onNotifyIcon(WPARAM wParam,
 									 LPARAM lParam)
 {
 	if (wParam == MainWindowImpl::ID_NOTIFYICON) {
-		if (lParam == WM_LBUTTONDOWN || lParam == WM_RBUTTONDOWN) {
-			AutoMenuHandle hmenu(::CreatePopupMenu());
-			if (pImpl_->pRecentsMenu_->createMenu(hmenu.get())) {
-				UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
-#ifndef _WIN32_WCE
-				nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
-#endif
-				POINT pt;
-#ifdef _WIN32_WCE
-				DWORD dwPos = ::GetMessagePos();
-				pt.x = static_cast<int>(dwPos & 0x0000ffff);
-				pt.y = static_cast<int>(dwPos & 0xffff0000) >> 16;
-#else
-				::GetCursorPos(&pt);
-#endif
-				::GetCursorPos(&pt);
-				setForegroundWindow();
-				::TrackPopupMenu(hmenu.get(), nFlags, pt.x, pt.y, 0, getHandle(), 0);
-				postMessage(WM_NULL);
-			}
-		}
+		if (lParam == WM_LBUTTONDOWN || lParam == WM_RBUTTONDOWN)
+			pImpl_->showRecentsMenu();
 	}
 	return 0;
 }

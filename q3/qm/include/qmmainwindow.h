@@ -91,6 +91,11 @@ protected:
 	LRESULT onEndSession(bool bEnd,
 						 int nOption);
 #endif
+#ifndef _WIN32_WCE_PSPC
+	LRESULT onHotKey(UINT nId,
+					 UINT nModifier,
+					 UINT nKey);
+#endif
 	LRESULT onInitMenuPopup(HMENU hmenu,
 							UINT nIndex,
 							bool bSysMenu);

@@ -831,6 +831,11 @@ public:
 		lResult = onEraseBkgnd(reinterpret_cast<HDC>(wParam)); \
 		break; \
 
+#define HANDLE_HOTKEY() \
+	case WM_HOTKEY: \
+		lResult = onHotKey(wParam, LOWORD(lParam), HIWORD(lParam)); \
+		break; \
+
 #define HANDLE_HSCROLL() \
 	case WM_HSCROLL: \
 		lResult = onHScroll(LOWORD(wParam), HIWORD(wParam), \
@@ -1106,6 +1111,9 @@ protected:
 	LRESULT onEndSession(bool bEnd,
 						 int nOption);
 #endif
+	LRESULT onHotKey(UINT nId,
+					 UINT nModifier,
+					 UINT nKey);
 	LRESULT onHScroll(UINT nCode,
 					  UINT nPos,
 					  HWND hwnd);
