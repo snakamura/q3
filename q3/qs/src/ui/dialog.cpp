@@ -7,6 +7,7 @@
  */
 
 #include <qsconv.h>
+#include <qsdevicecontext.h>
 #include <qsdialog.h>
 #include <qsfile.h>
 #include <qsinit.h>
@@ -1035,6 +1036,128 @@ LRESULT qs::BrowseFolderDialog::onNewFolder()
 	}
 	
 	return 0;
+}
+
+
+/****************************************************************************
+ *
+ * FontDialog
+ *
+ */
+
+static int CALLBACK enumFontFamProc(ENUMLOGFONT* pelf,
+									NEWTEXTMETRIC* pntm,
+									int nFontType,
+									LPARAM lParam)
+{
+	HWND hwnd = reinterpret_cast<HWND>(lParam);
+	Window(hwnd).sendMessage(CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(pelf->elfLogFont.lfFaceName));
+	return 1;
+}
+
+qs::FontDialog::FontDialog(const LOGFONT& lf) :
+	DefaultDialog(getDllInstanceHandle(), IDD_FONT),
+	lf_(lf)
+{
+}
+
+qs::FontDialog::~FontDialog()
+{
+}
+
+const LOGFONT& qs::FontDialog::getLogFont() const
+{
+	return lf_;
+}
+
+LRESULT qs::FontDialog::onInitDialog(HWND hwndFocus,
+									 LPARAM lParam)
+{
+	init(false);
+	
+	ClientDeviceContext dc(0);
+	dc.enumFontFamilies(0, reinterpret_cast<FONTENUMPROC>(enumFontFamProc),
+		reinterpret_cast<LPARAM>(getDlgItem(IDC_FONTFACE)));
+	T2W(lf_.lfFaceName, pwszFaceName);
+	setDlgItemText(IDC_FONTFACE, pwszFaceName);
+	
+	UINT nStyleIds[] = {
+		IDS_REGULAR,
+		IDS_ITALIC,
+		IDS_BOLD,
+		IDS_BOLDITALIC
+	};
+	for (int n = 0; n < countof(nStyleIds); ++n) {
+		wstring_ptr wstrStyle(loadString(getDllInstanceHandle(), nStyleIds[n]));
+		W2T(wstrStyle.get(), ptszStyle);
+		sendDlgItemMessage(IDC_FONTSTYLE, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(ptszStyle));
+	}
+	UINT nId = IDS_REGULAR;
+	if (lf_.lfWeight >= FW_BOLD)
+		nId = lf_.lfItalic ? IDS_BOLDITALIC : IDS_BOLD;
+	else
+		nId = lf_.lfItalic ? IDS_ITALIC : IDS_REGULAR;
+	wstring_ptr wstrStyle(loadString(getDllInstanceHandle(), nId));
+	setDlgItemText(IDC_FONTSTYLE, wstrStyle.get());
+	
+	int nSizes[] = {
+		8,
+		9,
+		10,
+		11,
+		12,
+		14,
+		16,
+		18,
+		20,
+		24,
+		26,
+		28,
+		36,
+		48,
+		72
+	};
+	for (int n = 0; n < countof(nSizes); ++n) {
+		TCHAR tszSize[32];
+		wsprintf(tszSize, _T("%d"), nSizes[n]);
+		sendDlgItemMessage(IDC_FONTSIZE, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(tszSize));
+	}
+	double dPointSize = -lf_.lfHeight*72.0/dc.getDeviceCaps(LOGPIXELSY);
+	WCHAR wszSize[64];
+	if (dPointSize == static_cast<int>(dPointSize))
+		swprintf(wszSize, L"%d", static_cast<int>(dPointSize));
+	else
+		swprintf(wszSize, L"%lf", dPointSize);
+	setDlgItemText(IDC_FONTSIZE, wszSize);
+	
+	return TRUE;
+}
+
+LRESULT qs::FontDialog::onOk()
+{
+	wstring_ptr wstrFaceName(getDlgItemText(IDC_FONTFACE));
+	W2T(wstrFaceName.get(), ptszFaceName);
+	wcsncpy(lf_.lfFaceName, ptszFaceName, countof(lf_.lfFaceName));
+	
+	wstring_ptr wstrStyle(getDlgItemText(IDC_FONTSTYLE));
+	wstring_ptr wstrBold(loadString(getDllInstanceHandle(), IDS_BOLD));
+	lf_.lfWeight = wcsstr(wstrStyle.get(), wstrBold.get()) ? FW_BOLD : FW_NORMAL;
+	wstring_ptr wstrItalic(loadString(getDllInstanceHandle(), IDS_ITALIC));
+	lf_.lfItalic = wcsstr(wstrStyle.get(), wstrItalic.get()) ? TRUE : FALSE;
+	
+	wstring_ptr wstrSize(getDlgItemText(IDC_FONTSIZE));
+	WCHAR* pEnd = 0;
+	double dPointSize = wcstod(wstrSize.get(), &pEnd);
+	if (*pEnd)
+		dPointSize = 9;
+	ClientDeviceContext dc(0);
+	double dHeight = dPointSize*dc.getDeviceCaps(LOGPIXELSY)/72;
+	long nHeight = static_cast<long>(dHeight);
+	if (dHeight - nHeight > 0.5)
+		++nHeight;
+	lf_.lfHeight = -nHeight;
+	
+	return DefaultDialog::onOk();
 }
 
 

@@ -87,7 +87,9 @@ int qs::DeviceContext::enumFontFamilies(const WCHAR* pwszFamily,
 										LPARAM lParam) const
 {
 	assert(hdc_);
-	tstring_ptr tstrFamily(wcs2tcs(pwszFamily));
+	tstring_ptr tstrFamily;
+	if (pwszFamily)
+		tstrFamily = wcs2tcs(pwszFamily);
 	return ::EnumFontFamilies(hdc_, tstrFamily.get(), pProc, lParam);
 }
 
@@ -177,10 +179,10 @@ CompatibleDeviceContext::~CompatibleDeviceContext()
  *
  */
 
-int CALLBACK enumFontFamProc(ENUMLOGFONT*,
-							 NEWTEXTMETRIC*,
-							 int,
-							 LPARAM);
+static int CALLBACK enumFontFamProc(ENUMLOGFONT*,
+									NEWTEXTMETRIC*,
+									int,
+									LPARAM);
 
 void qs::FontHelper::createLogFont(HDC hdc,
 								   const WCHAR* pwszFaceName,
@@ -214,10 +216,10 @@ void qs::FontHelper::createLogFont(HDC hdc,
 		plf->lfCharSet = nCharset;
 }
 
-int CALLBACK enumFontFamProc(ENUMLOGFONT* pelf,
-							 NEWTEXTMETRIC* pntm,
-							 int nFontType,
-							 LPARAM lParam)
+static int CALLBACK enumFontFamProc(ENUMLOGFONT* pelf,
+									NEWTEXTMETRIC* pntm,
+									int nFontType,
+									LPARAM lParam)
 {
 	LOGFONT* plf = reinterpret_cast<LOGFONT*>(lParam);
 	if (_tcscmp(plf->lfFaceName, pelf->elfLogFont.lfFaceName) == 0) {

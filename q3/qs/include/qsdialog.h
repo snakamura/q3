@@ -25,6 +25,7 @@ class DialogHandler;
 class FileDialog;
 #ifdef _WIN32_WCE
 class BrowseFolderDialog;
+class FontDialog;
 #endif
 
 class InitThread;
@@ -451,6 +452,37 @@ private:
 
 private:
 	struct BrowseFolderDialogImpl* pImpl_;
+};
+
+
+/****************************************************************************
+ *
+ * FontDialog
+ *
+ */
+
+class QSEXPORTCLASS FontDialog : public DefaultDialog
+{
+public:
+	explicit FontDialog(const LOGFONT& lf);
+	virtual ~FontDialog();
+
+public:
+	const LOGFONT& getLogFont() const;
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	FontDialog(const FontDialog&);
+	FontDialog& operator=(const FontDialog&);
+
+private:
+	LOGFONT lf_;
 };
 
 #endif

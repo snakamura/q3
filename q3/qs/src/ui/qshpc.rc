@@ -81,6 +81,23 @@ BEGIN
     EDITTEXT        IDC_FOLDERNAME,5,15,135,12,ES_AUTOHSCROLL
 END
 
+IDD_FONT DIALOG DISCARDABLE  0, 0, 155, 32
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE 0x80000000L
+CAPTION "Font"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Face",IDC_STATIC,5,5,20,8
+    COMBOBOX        IDC_FONTFACE,5,15,65,50,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "St&yle",IDC_STATIC,75,5,20,8
+    COMBOBOX        IDC_FONTSTYLE,75,15,48,50,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "&Size",IDC_STATIC,125,5,20,8
+    COMBOBOX        IDC_FONTSIZE,125,15,25,50,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -104,6 +121,14 @@ BEGIN
         RIGHTMARGIN, 138
         TOPMARGIN, 7
         BOTTOMMARGIN, 28
+    END
+
+    IDD_FONT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 148
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 25
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -136,6 +161,10 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDS_RAS_WAITINGBEFOREDISCONNECTING "Disconnecting..."
     IDS_RAS_DISCONNECTING   "Disconnecting..."
+    IDS_REGULAR             "Regular"
+    IDS_BOLD                "Bold"
+    IDS_ITALIC              "Italic"
+    IDS_BOLDITALIC          "Bold Italic"
 END
 
 STRINGTABLE DISCARDABLE 
