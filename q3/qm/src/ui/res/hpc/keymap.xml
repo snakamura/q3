@@ -39,6 +39,54 @@
 		<action name="ViewRefresh">
 			<key key="R" ctrl="true"/>
 		</action>
+		<action name="TabClose">
+			<key key="W" ctrl="true"/>
+		</action>
+		<action name="TabLock">
+			<key key="Z" alt="true"/>
+		</action>
+		<action name="TabMoveLeft">
+			<key code="25" alt="true"/>
+		</action>
+		<action name="TabMoveRight">
+			<key code="27" alt="true"/>
+		</action>
+		<action name="TabNavigateNext">
+			<key code="9" ctrl="true"/>
+		</action>
+		<action name="TabNavigatePrev">
+			<key code="9" shift="true" ctrl="true"/>
+		</action>
+		<action name="TabSelect0">
+			<key key="1" alt="true"/>
+		</action>
+		<action name="TabSelect1">
+			<key key="2" alt="true"/>
+		</action>
+		<action name="TabSelect2">
+			<key key="3" alt="true"/>
+		</action>
+		<action name="TabSelect3">
+			<key key="4" alt="true"/>
+		</action>
+		<action name="TabSelect4">
+			<key key="5" alt="true"/>
+		</action>
+		<action name="TabSelect5">
+			<key key="6" alt="true"/>
+		</action>
+		<action name="TabSelect6">
+			<key key="7" alt="true"/>
+		</action>
+		<action name="TabSelect7">
+			<key key="8" alt="true"/>
+		</action>
+		<action name="TabSelect8">
+			<key key="9" alt="true"/>
+		</action>
+		<action name="TabSelect9">
+			<key key="0" alt="true"/>
+		</action>
 		<action name="ToolGoround0">
 			<key key="[" virtual="false"/>
 		</action>

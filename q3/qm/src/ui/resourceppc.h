@@ -221,6 +221,8 @@
 #define IDC_TIMEOUT                     1074
 #define IDS_UNSPECIFIED                 1074
 #define IDC_CONNECTRECEIVEHOSTBEFORESEND 1075
+#define IDS_SHOWTAB                     1075
+#define IDS_HIDETAB                     1076
 #define IDC_INCOMINGPROTOCOL            1077
 #define IDS_RESOURCEPATH                1077
 #define IDC_OUTGOINGPROTOCOL            1078
@@ -634,6 +636,14 @@
 #define IDM_CONFIG_SYNCFILTERS          51007
 #define IDM_CONFIG_TEXTS                51008
 #define IDM_CONFIG_VIEWS                51009
+#define IDM_TAB_CLOSE                   52001
+#define IDM_TAB_CREATE                  52002
+#define IDM_TAB_LOCK                    52003
+#define IDM_TAB_MOVELEFT                52004
+#define IDM_TAB_MOVERIGHT               52005
+#define IDM_TAB_NAVIGATENEXT            52006
+#define IDM_TAB_NAVIGATEPREV            52007
+#define IDM_TAB_SELECT                  52100
 
 // Next default values for new objects
 // 

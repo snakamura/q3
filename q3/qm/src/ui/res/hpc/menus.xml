@@ -75,6 +75,7 @@
 				<menuitem text="Show &amp;Toolbar" action="ViewShowToolbar"/>
 				<menuitem text="Show &amp;Status Bar" action="ViewShowStatusBar"/>
 				<menuitem text="Show &amp;Folder" action="ViewShowFolder"/>
+				<menuitem text="Show Ta&amp;b" action="ViewShowTab"/>
 				<menuitem text="Show &amp;Header Column" action="ViewShowHeaderColumn"/>
 				<menuitem text="Show &amp;Preview" action="ViewShowPreview"/>
 				<menuitem text="Show &amp;Header" action="ViewShowHeader"/>
@@ -286,6 +287,8 @@
 		<menuitem text="Rep&amp;lace..." action="EditReplace"/>
 	</menu>
 	<menu name="folder">
+		<menuitem text="&amp;Open in New Tab" action="TabCreate"/>
+		<separator/>
 		<menuitem text="&amp;Create..." action="FolderCreate"/>
 		<menuitem text="&amp;Delete" action="FolderDelete"/>
 		<menuitem text="&amp;Rename..." action="FolderRename"/>
@@ -299,6 +302,8 @@
 		<menuitem text="&amp;Property..." action="FolderProperty"/>
 	</menu>
 	<menu name="folderlist">
+		<menuitem text="&amp;Open in New Tab" action="TabCreate"/>
+		<separator/>
 		<menuitem text="&amp;Create..." action="FolderCreate"/>
 		<menuitem text="&amp;Delete" action="FolderDelete"/>
 		<menuitem text="&amp;Rename..." action="FolderRename"/>
@@ -378,5 +383,10 @@
 	<menu name="attachmentedit">
 		<menuitem text="&amp;Add..." action="AttachmentEditAdd"/>
 		<menuitem text="&amp;Delete" action="AttachmentEditDelete"/>
+	</menu>
+	<menu name="tab">
+		<menuitem text="&amp;Close" action="TabClose"/>
+		<separator/>
+		<menuitem text="&amp;Lock" action="TabLock"/>
 	</menu>
 </menus>

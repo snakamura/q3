@@ -12,7 +12,10 @@ ifeq ($(PLATFORM),desktop)
 	CPROJS		+= -DQMHTMLVIEW -DQMTABWINDOW
 endif
 ifeq ($(PLATFORM),sig3)
-	CPROJS		+= -DQMHTMLVIEW
+	CPROJS		+= -DQMHTMLVIEW -DQMTABWINDOW
+endif
+ifeq ($(findstring hpc, $(PLATFORM)),hpc)
+	CPROJS		+= -DQMTABWINDOW
 endif
 
 OBJS			= $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.obj, $(wildcard $(SRCDIR)/*/*.cpp))
