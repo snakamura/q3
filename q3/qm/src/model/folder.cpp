@@ -376,32 +376,34 @@ void qm::NormalFolderImpl::messageHolderChanged(const MessageHolderEvent& event)
 		unsigned int nOldFlags = event.getOldFlags();
 		unsigned int nNewFlags = event.getNewFlags();
 		
-		unsigned int nUnseenCount = nUnseenCount_;
-		if (!(nOldFlags & MessageHolder::FLAG_SEEN) &&
-			(nNewFlags & MessageHolder::FLAG_SEEN))
-			--nUnseenCount_;
-		else if ((nOldFlags & MessageHolder::FLAG_SEEN) &&
-			!(nNewFlags & MessageHolder::FLAG_SEEN))
-			++nUnseenCount_;
-		if ((!(nOldFlags & MessageHolder::FLAG_DOWNLOAD) &&
-			!(nOldFlags & MessageHolder::FLAG_DOWNLOADTEXT)) &&
-			((nNewFlags & MessageHolder::FLAG_DOWNLOAD) ||
-			(nNewFlags & MessageHolder::FLAG_DOWNLOADTEXT)))
-			++nDownloadCount_;
-		else if (((nOldFlags & MessageHolder::FLAG_DOWNLOAD) ||
-			(nOldFlags & MessageHolder::FLAG_DOWNLOADTEXT)) &&
-			(!(nNewFlags & MessageHolder::FLAG_DOWNLOAD) &&
-			!(nNewFlags & MessageHolder::FLAG_DOWNLOADTEXT)))
-			--nDownloadCount_;
-		if (!(nOldFlags & MessageHolder::FLAG_DELETED) &&
-			(nNewFlags & MessageHolder::FLAG_DELETED))
-			++nDeletedCount_;
-		else if ((nOldFlags & MessageHolder::FLAG_DELETED) &&
-			!(nNewFlags & MessageHolder::FLAG_DELETED))
-			--nDeletedCount_;
-		
-		if (nUnseenCount != nUnseenCount_)
-			pThis_->getImpl()->fireUnseenCountChanged();
+		if (nOldFlags != nNewFlags) {
+			unsigned int nUnseenCount = nUnseenCount_;
+			if (!(nOldFlags & MessageHolder::FLAG_SEEN) &&
+				(nNewFlags & MessageHolder::FLAG_SEEN))
+				--nUnseenCount_;
+			else if ((nOldFlags & MessageHolder::FLAG_SEEN) &&
+				!(nNewFlags & MessageHolder::FLAG_SEEN))
+				++nUnseenCount_;
+			if ((!(nOldFlags & MessageHolder::FLAG_DOWNLOAD) &&
+				!(nOldFlags & MessageHolder::FLAG_DOWNLOADTEXT)) &&
+				((nNewFlags & MessageHolder::FLAG_DOWNLOAD) ||
+				(nNewFlags & MessageHolder::FLAG_DOWNLOADTEXT)))
+				++nDownloadCount_;
+			else if (((nOldFlags & MessageHolder::FLAG_DOWNLOAD) ||
+				(nOldFlags & MessageHolder::FLAG_DOWNLOADTEXT)) &&
+				(!(nNewFlags & MessageHolder::FLAG_DOWNLOAD) &&
+				!(nNewFlags & MessageHolder::FLAG_DOWNLOADTEXT)))
+				--nDownloadCount_;
+			if (!(nOldFlags & MessageHolder::FLAG_DELETED) &&
+				(nNewFlags & MessageHolder::FLAG_DELETED))
+				++nDeletedCount_;
+			else if ((nOldFlags & MessageHolder::FLAG_DELETED) &&
+				!(nNewFlags & MessageHolder::FLAG_DELETED))
+				--nDeletedCount_;
+			
+			if (nUnseenCount != nUnseenCount_)
+				pThis_->getImpl()->fireUnseenCountChanged();
+		}
 		
 		bModified_ = true;
 	}

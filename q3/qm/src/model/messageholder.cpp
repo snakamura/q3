@@ -346,6 +346,8 @@ void qm::MessageHolder::setKeys(MessageCacheKey messageCacheKey,
 		nReferenceHash_ = static_cast<unsigned int>(-1);
 	}
 	messageBoxKey_ = messageBoxKey;
+	
+	getAccount()->fireMessageHolderChanged(this, nFlags_, nFlags_);
 }
 
 
