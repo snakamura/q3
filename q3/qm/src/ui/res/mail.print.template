@@ -7,7 +7,7 @@
 	body {{ margin-left: 3em; margin-right: 3em; }}
 	.header-title {{ font-weight: bold; font-size: 90%; }}
 	.header-value {{ font-size: 90%; }}
-	.body {{ }}
+	.body {{ font-family: monospace }}
 	</style>
 </head>
 
@@ -43,7 +43,7 @@
 			<td colspan="2"><hr size="3" style="color: lightblue"></td>
 		</tr>
 		<tr>
-			<td colspan="2" class="body"><pre>{@HtmlEscape(@Body('', 1))}</pre></td>
+			<td colspan="2" class="body"><p>{@RegexReplace(@HtmlEscape(@Body('', 1)), '\n', '<br>', @True())}</p></td>
 		</tr>
 	</table>
 </body>
