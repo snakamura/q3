@@ -53,6 +53,9 @@ public:
 	enum {
 		WM_MESSAGEMODEL_MESSAGECHANGED	= WM_APP + 1201
 	};
+	enum {
+		TIMER_MAKESEEN	= 20
+	};
 
 public:
 	typedef std::vector<MessageWindowHandler*> HandlerList;
@@ -93,6 +96,7 @@ public:
 	MessageViewWindow* pMessageViewWindow_;
 	bool bCreated_;
 	bool bLayouting_;
+	unsigned int nSeenTimerId_;
 	
 	MessageModel* pMessageModel_;
 	std::auto_ptr<MessageViewWindowFactory> pFactory_;
@@ -100,6 +104,7 @@ public:
 	unsigned int nMode_;
 	wstring_ptr wstrEncoding_;
 	wstring_ptr wstrTemplate_;
+	unsigned int nSeenWait_;
 	
 	HandlerList listHandler_;
 };
@@ -146,12 +151,17 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	Account* pAccount = pMessageModel_->getCurrentAccount();
 	assert(!pmh || pmh->getFolder()->getAccount() == pAccount);
 	
+	if (nSeenTimerId_ != 0)
+		pThis_->killTimer(nSeenTimerId_);
+	
 	bool bRawMode = pThis_->isMode(MessageWindow::MODE_RAW);
 	bool bHtmlMode = pThis_->isMode(MessageWindow::MODE_HTML);
 	
 	Message msg;
 	if (pmh) {
-		unsigned int nFlags = Account::GETMESSAGEFLAG_MAKESEEN;
+		unsigned int nFlags = 0;
+		if (nSeenWait_ == 0)
+			nFlags |= Account::GETMESSAGEFLAG_MAKESEEN;
 		if (bRawMode)
 			nFlags |= Account::GETMESSAGEFLAG_ALL;
 		else if (bHtmlMode)
@@ -162,6 +172,9 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 			nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
 		if (!pmh->getMessage(nFlags, 0, &msg))
 			return false;
+		
+		if (nSeenWait_ != 0 && nSeenWait_ != -1)
+			nSeenTimerId_ = pThis_->setTimer(TIMER_MAKESEEN, nSeenWait_*1000);
 	}
 	
 	const ContentTypeParser* pContentType = 0;
@@ -310,9 +323,12 @@ qm::MessageWindow::MessageWindow(MessageModel* pMessageModel,
 	pImpl_->pHeaderWindow_ = 0;
 	pImpl_->pMessageViewWindow_ = 0;
 	pImpl_->bCreated_ = false;
+	pImpl_->bLayouting_ = false;
+	pImpl_->nSeenTimerId_ = 0;
 	pImpl_->nMode_ = nMode;
 	pImpl_->pMessageModel_ = pMessageModel;
 	pImpl_->wstrTemplate_ = *wstrTemplate.get() ? wstrTemplate : 0;
+	pImpl_->nSeenWait_ = pProfile->getInt(pwszSection, L"SeenWait", 0);
 	
 	pImpl_->pMessageModel_->addMessageModelHandler(pImpl_);
 	
@@ -494,6 +510,7 @@ LRESULT qm::MessageWindow::windowProc(UINT uMsg,
 		HANDLE_DESTROY()
 		HANDLE_LBUTTONDOWN()
 		HANDLE_SIZE()
+		HANDLE_TIMER()
 		HANDLE_MESSAGE(MessageWindowImpl::WM_MESSAGEMODEL_MESSAGECHANGED, onMessageModelMessageChanged)
 	END_MESSAGE_HANDLER()
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
@@ -568,6 +585,19 @@ LRESULT qm::MessageWindow::onSize(UINT nFlags,
 	if (pImpl_->bCreated_ && !pImpl_->bLayouting_)
 		pImpl_->layoutChildren(cx, cy);
 	return DefaultWindowHandler::onSize(nFlags, cx, cy);
+}
+
+LRESULT qm::MessageWindow::onTimer(UINT nId)
+{
+	if (nId == pImpl_->nSeenTimerId_) {
+		MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
+		if (mpl) {
+			Account* pAccount = mpl->getFolder()->getAccount();
+			pAccount->setMessagesFlags(MessageHolderList(1, mpl),
+				MessageHolder::FLAG_SEEN, MessageHolder::FLAG_SEEN);
+		}
+	}
+	return 0;
 }
 
 LRESULT qm::MessageWindow::onMessageModelMessageChanged(WPARAM wParam,
