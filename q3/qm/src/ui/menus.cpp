@@ -76,7 +76,10 @@ bool qm::AttachmentMenu::getPart(unsigned int nId,
 	unsigned int nFlags = Account::GETMESSAGEFLAG_ALL;
 	if (!pSecurityModel_->isDecryptVerify())
 		nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
-	if (!(*it).second->getMessage(nFlags, 0, pMessage))
+	MessagePtrLock mpl((*it).second);
+	if (!mpl)
+		return false;
+	if (!mpl->getMessage(nFlags, 0, pMessage))
 		return false;
 	
 	AttachmentParser parser(*pMessage);
@@ -114,7 +117,7 @@ bool qm::AttachmentMenu::createMenu(HMENU hmenu,
 	
 	MessagePtrLock mpl(ptr);
 	if (mpl) {
-		list_.push_back(List::value_type(nId, mpl));
+		list_.push_back(List::value_type(nId, ptr));
 		
 		Message msg;
 		unsigned int nFlags = Account::GETMESSAGEFLAG_TEXT;

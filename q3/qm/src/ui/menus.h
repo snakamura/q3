@@ -84,7 +84,7 @@ private:
 	AttachmentMenu& operator=(const AttachmentMenu&);
 
 private:
-	typedef std::vector<std::pair<unsigned int, MessageHolder*> > List;
+	typedef std::vector<std::pair<unsigned int, MessagePtr> > List;
 
 private:
 	SecurityModel* pSecurityModel_;
