@@ -574,6 +574,7 @@ bool qs::Part::copyFields(const Part& part,
 	strHeader_ = strHeader;
 	
 	clearHeaderLower();
+	updateContentType();
 	
 	return true;
 }
@@ -600,6 +601,7 @@ bool qs::Part::removeFields(FieldFilter* pFilter)
 	strHeader_ = strHeader;
 	
 	clearHeaderLower();
+	updateContentType();
 	
 	return true;
 }
