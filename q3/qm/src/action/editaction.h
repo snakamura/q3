@@ -241,8 +241,12 @@ private:
 class EditEditPasteWithQuoteAction : public qs::AbstractAction
 {
 public:
-	EditEditPasteWithQuoteAction(qs::TextWindow* pTextWindow,
-								 qs::Profile* pProfile);
+	EditEditPasteWithQuoteAction(Document* pDocument,
+								 EditMessageHolder* pEditMessageHolder,
+								 qs::TextWindow* pTextWindow,
+								 SecurityModel* pSecurityModel,
+								 qs::Profile* pProfile,
+								 HWND hwnd);
 	virtual ~EditEditPasteWithQuoteAction();
 
 public:
@@ -254,8 +258,12 @@ private:
 	EditEditPasteWithQuoteAction& operator=(const EditEditPasteWithQuoteAction&);
 
 private:
+	Document* pDocument_;
+	EditMessageHolder* pEditMessageHolder_;
 	qs::TextWindow* pTextWindow_;
+	SecurityModel* pSecurityModel_;
 	qs::Profile* pProfile_;
+	HWND hwnd_;
 };
 
 

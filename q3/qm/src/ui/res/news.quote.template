@@ -1,0 +1,5 @@
+At {@FormatDate(@Date(Date), '%D %M1 %Y4 %h:%m:%s %z', 2)} {@Name(From)} wrote:
+{@Progn(@Set('clipboard', @Clipboard()),
+        @If($clipboard,
+            @Quote($clipboard, '> '),
+            @Body('> ', 1)))}

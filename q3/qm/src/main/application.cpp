@@ -582,6 +582,7 @@ bool qm::Application::initialize()
 		DECLARE_TEMPLATE(L"mail",	L"edit",		MAIL_EDIT_TEMPLATE_REVISION					),
 		DECLARE_TEMPLATE(L"mail",	L"url",			MAIL_URL_TEMPLATE_REVISION					),
 		DECLARE_TEMPLATE(L"mail",	L"print",		MAIL_PRINT_TEMPLATE_REVISION				),
+		DECLARE_TEMPLATE(L"mail",	L"quote",		MAIL_QUOTE_TEMPLATE_REVISION				),
 		DECLARE_TEMPLATE(L"news",	L"new",			NEWS_NEW_TEMPLATE_REVISION					),
 		DECLARE_TEMPLATE(L"news",	L"reply",		NEWS_REPLY_TEMPLATE_REVISION				),
 		DECLARE_TEMPLATE(L"news",	L"reply_all",	NEWS_REPLY_ALL_TEMPLATE_REVISION			),
@@ -589,6 +590,7 @@ bool qm::Application::initialize()
 		DECLARE_TEMPLATE(L"news",	L"edit",		NEWS_EDIT_TEMPLATE_REVISION					),
 		DECLARE_TEMPLATE(L"news",	L"url",			NEWS_URL_TEMPLATE_REVISION					),
 		DECLARE_TEMPLATE(L"news",	L"print",		NEWS_PRINT_TEMPLATE_REVISION				),
+		DECLARE_TEMPLATE(L"news",	L"quote",		NEWS_QUOTE_TEMPLATE_REVISION				),
 	};
 	if (!pImpl_->ensureResources(resources, countof(resources)))
 		return false;

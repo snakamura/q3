@@ -2635,6 +2635,35 @@ const ReferencesParser::ReferenceList& qs::ReferencesParser::getReferences() con
 	return listReference_;
 }
 
+wstring_ptr qs::ReferencesParser::getValue() const
+{
+	StringBuffer<WSTRING> buf;
+	
+	for (ReferenceList::const_iterator it = listReference_.begin(); it != listReference_.end(); ++it) {
+		if (it != listReference_.begin())
+			buf.append(L' ');
+		
+		switch ((*it).second) {
+		case T_MSGID:
+			buf.append(L'<');
+			buf.append((*it).first);
+			buf.append(L'>');
+			break;
+		case T_PHRASE:
+			{
+				wstring_ptr wstrAtoms(FieldParserUtil<WSTRING>::getAtomsOrQString((*it).first, -1));
+				buf.append(wstrAtoms.get());
+			}
+			break;
+		default:
+			assert(false);
+			break;
+		}
+	}
+	
+	return buf.getString();
+}
+
 Part::Field qs::ReferencesParser::parse(const Part& part,
 										const WCHAR* pwszName)
 {

@@ -26,8 +26,10 @@
 #include "action.h"
 #include "editaction.h"
 #include "findreplace.h"
+#include "../model/dataobject.h"
 #include "../model/editmessage.h"
 #include "../model/fixedformtext.h"
+#include "../model/templatemanager.h"
 #include "../model/uri.h"
 #include "../ui/attachmentselectionmodel.h"
 #include "../ui/dialogs.h"
@@ -35,6 +37,9 @@
 #include "../ui/menus.h"
 #include "../ui/resourceinc.h"
 #include "../ui/syncutil.h"
+#include "../ui/uiutil.h"
+
+#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;
@@ -304,10 +309,18 @@ bool qm::EditEditMoveCaretAction::isEnabled(const ActionEvent& event)
  *
  */
 
-qm::EditEditPasteWithQuoteAction::EditEditPasteWithQuoteAction(TextWindow* pTextWindow,
-															   Profile* pProfile) :
+qm::EditEditPasteWithQuoteAction::EditEditPasteWithQuoteAction(Document* pDocument,
+															   EditMessageHolder* pEditMessageHolder,
+															   TextWindow* pTextWindow,
+															   SecurityModel* pSecurityModel,
+															   Profile* pProfile,
+															   HWND hwnd) :
+	pDocument_(pDocument),
+	pEditMessageHolder_(pEditMessageHolder),
 	pTextWindow_(pTextWindow),
-	pProfile_(pProfile)
+	pSecurityModel_(pSecurityModel),
+	pProfile_(pProfile),
+	hwnd_(hwnd)
 {
 }
 
@@ -317,22 +330,68 @@ qm::EditEditPasteWithQuoteAction::~EditEditPasteWithQuoteAction()
 
 void qm::EditEditPasteWithQuoteAction::invoke(const ActionEvent& event)
 {
-	wstring_ptr wstrText(Clipboard::getText(pTextWindow_->getHandle()));
-	if (!wstrText.get())
-		return;
+	MessagePtr ptr(UIUtil::getMessageFromClipboard(pTextWindow_->getHandle(), pDocument_));
 	
-	wstring_ptr wstrQuote(pProfile_->getString(L"EditWindow", L"PasteQuote", L"> "));
+	wstring_ptr wstrMessage;
+	wstring_ptr wstrMessageId;
 	
-	if (wstrText.get()) {
-		// TODO
-		// use malloc based buffer.
-		StringBuffer<WSTRING> buf;
+	MessagePtrLock mpl(ptr);
+	if (mpl) {
+		Message msg;
+		
+		NormalFolder* pFolder = mpl->getFolder();
+		Account* pAccount = pFolder->getAccount();
+		const TemplateManager* pManager = pDocument_->getTemplateManager();
+		const Template* pTemplate = pManager->getTemplate(pAccount, pFolder, L"quote");
+		if (pTemplate) {
+			TemplateContext context(mpl, &msg, MessageHolderList(),
+				pAccount, pDocument_, hwnd_, pSecurityModel_->isDecryptVerify(),
+				pProfile_, 0, TemplateContext::ArgumentList());
+			switch (pTemplate->getValue(context, &wstrMessage)) {
+			case Template::RESULT_SUCCESS:
+				break;
+			case Template::RESULT_ERROR:
+				ActionUtil::error(pTextWindow_->getParentFrame(), IDS_ERROR_PASTE);
+				return;
+			case Template::RESULT_CANCEL:
+				return;
+			}
+		}
+		
+		if (msg.getFlag() == Message::FLAG_EMPTY ||
+			msg.getFlag() == Message::FLAG_TEMPORARY) {
+			if (!mpl->getMessage(Account::GETMESSAGEFLAG_HEADER, L"Message-Id", &msg)) {
+				ActionUtil::error(pTextWindow_->getParentFrame(), IDS_ERROR_PASTE);
+				return;
+			}
+		}
+		MessageIdParser messageId;
+		if (msg.getField(L"Message-Id", &messageId) == Part::FIELD_EXIST)
+			wstrMessageId = allocWString(messageId.getMessageId());
+	}
+	if (wstrMessage.get()) {
+		if (!pTextWindow_->insertText(wstrMessage.get(), -1)) {
+			ActionUtil::error(pTextWindow_->getParentFrame(), IDS_ERROR_PASTE);
+			return;
+		}
+	}
+	else {
+		wstring_ptr wstrText(Clipboard::getText(pTextWindow_->getHandle()));
+		if (!wstrText.get())
+			return;
+		
+		wstring_ptr wstrQuote(pProfile_->getString(L"EditWindow", L"PasteQuote", L"> "));
+		
+		XStringBuffer<WSTRING> buf;
 		bool bNewLine = true;
 		for (const WCHAR* p = wstrText.get(); *p; ++p) {
-			if (bNewLine)
-				buf.append(wstrQuote.get());
+			if (bNewLine) {
+				if (!buf.append(wstrQuote.get()))
+					return;
+			}
 			bNewLine = *p == L'\n';
-			buf.append(*p);
+			if (!buf.append(*p))
+				return;
 		}
 		
 		if (!pTextWindow_->insertText(buf.getCharArray(), buf.getLength())) {
@@ -340,12 +399,49 @@ void qm::EditEditPasteWithQuoteAction::invoke(const ActionEvent& event)
 			return;
 		}
 	}
+	
+	if (wstrMessageId.get()) {
+		EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
+		
+		bool bFound = false;
+		wstring_ptr wstrInReplyTo = pEditMessage->getField(
+			L"In-Reply-To", EditMessage::FIELDTYPE_REFERENCES);
+		if (wstrInReplyTo.get()) {
+			Part part;
+			if (MessageCreator::setField(&part, L"In-Reply-To",
+				wstrInReplyTo.get(), MessageCreator::FIELDTYPE_REFERENCES)) {
+				ReferencesParser inReplyTo;
+				if (part.getField(L"In-Reply-To", &inReplyTo) == Part::FIELD_EXIST) {
+					const ReferencesParser::ReferenceList& l = inReplyTo.getReferences();
+					for (ReferencesParser::ReferenceList::const_iterator it = l.begin(); it != l.end() && !bFound; ++it) {
+						if ((*it).second == ReferencesParser::T_MSGID &&
+							wcscmp((*it).first, wstrMessageId.get()) == 0)
+							bFound = true;
+					}
+				}
+			}
+		}
+		if (!bFound) {
+			StringBuffer<WSTRING> buf;
+			if (wstrInReplyTo.get() && *wstrInReplyTo.get()) {
+				buf.append(wstrInReplyTo.get());
+				buf.append(L' ');
+			}
+			buf.append(L'<');
+			buf.append(wstrMessageId.get());
+			buf.append(L'>');
+			
+			pEditMessage->setField(L"In-Reply-To",
+				buf.getCharArray(), EditMessage::FIELDTYPE_REFERENCES);
+		}
+	}
 }
 
 bool qm::EditEditPasteWithQuoteAction::isEnabled(const ActionEvent& event)
 {
 	if (pTextWindow_->hasFocus())
-		return Clipboard::isFormatAvailable(Clipboard::CF_QSTEXT);
+		return Clipboard::isFormatAvailable(Clipboard::CF_QSTEXT) ||
+			Clipboard::isFormatAvailable(MessageDataObject::nFormats__[MessageDataObject::FORMAT_MESSAGEHOLDERLIST]);
 	else
 		return false;
 }

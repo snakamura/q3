@@ -89,6 +89,11 @@ public:
 	static qs::wstring_ptr formatFolder(Folder* pFolder);
 	static std::pair<Account*, Folder*> getAccountOrFolder(Document* pDocument,
 														   const WCHAR* pwsz);
+	
+	static bool addMessageToClipboard(HWND hwnd,
+									  MessageHolder* pmh);
+	static MessagePtr getMessageFromClipboard(HWND hwnd,
+											  Document* pDocument);
 };
 
 

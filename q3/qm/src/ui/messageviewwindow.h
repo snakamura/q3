@@ -116,6 +116,7 @@ public:
 	MessageViewWindowFactory(Document* pDocument,
 							 qs::Profile* pProfile,
 							 const WCHAR* pwszSection,
+							 MessageModel* pMessageModel,
 							 qs::MenuManager* pMenuManager,
 							 MessageViewWindowCallback* pCallback,
 							 bool bTextOnly);
@@ -141,6 +142,7 @@ private:
 	Document* pDocument_;
 	qs::Profile* pProfile_;
 	const WCHAR* pwszSection_;
+	MessageModel* pMessageModel_;
 	qs::MenuManager* pMenuManager_;
 	MessageViewWindowCallback* pCallback_;
 	bool bTextOnly_;
@@ -166,6 +168,7 @@ public:
 	TextMessageViewWindow(Document* pDocument,
 						  qs::Profile* pProfile,
 						  const WCHAR* pwszSection,
+						  MessageModel* pMessageModel,
 						  qs::MenuManager* pMenuManager);
 	virtual ~TextMessageViewWindow();
 
@@ -212,6 +215,7 @@ private:
 	std::auto_ptr<qs::ReadOnlyTextModel> pTextModel_;
 	Document* pDocument_;
 	qs::Profile* pProfile_;
+	MessageModel* pMessageModel_;
 	qs::MenuManager* pMenuManager_;
 };
 
@@ -232,6 +236,7 @@ class HtmlMessageViewWindow :
 public:
 	HtmlMessageViewWindow(qs::Profile* pProfile,
 						  const WCHAR* pwszSection,
+						  MessageModel* pMessageModel,
 						  qs::MenuManager* pMenuManager,
 						  MessageViewWindowCallback* pCallback);
 	virtual ~HtmlMessageViewWindow();
@@ -764,6 +769,7 @@ private:
 private:
 	qs::Profile* pProfile_;
 	const WCHAR* pwszSection_;
+	MessageModel* pMessageModel_;
 	qs::MenuManager* pMenuManager_;
 	MessageViewWindowCallback* pCallback_;
 	IWebBrowser2* pWebBrowser_;

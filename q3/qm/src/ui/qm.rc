@@ -1499,6 +1499,7 @@ MAIL.FORWARD            TEMPLATE DISCARDABLE    "res\\mail.forward.template"
 MAIL.EDIT               TEMPLATE DISCARDABLE    "res\\mail.edit.template"
 MAIL.URL                TEMPLATE DISCARDABLE    "res\\mail.url.template"
 MAIL.PRINT              TEMPLATE DISCARDABLE    "res\\mail.print.template"
+MAIL.QUOTE              TEMPLATE DISCARDABLE    "res\\mail.quote.template"
 NEWS.NEW                TEMPLATE DISCARDABLE    "res\\news.new.template"
 NEWS.REPLY              TEMPLATE DISCARDABLE    "res\\news.reply.template"
 NEWS.REPLY_ALL          TEMPLATE DISCARDABLE    "res\\news.reply_all.template"
@@ -1506,6 +1507,7 @@ NEWS.FORWARD            TEMPLATE DISCARDABLE    "res\\news.forward.template"
 NEWS.EDIT               TEMPLATE DISCARDABLE    "res\\news.edit.template"
 NEWS.URL                TEMPLATE DISCARDABLE    "res\\news.url.template"
 NEWS.PRINT              TEMPLATE DISCARDABLE    "res\\news.print.template"
+NEWS.QUOTE              TEMPLATE DISCARDABLE    "res\\news.quote.template"
 
 /////////////////////////////////////////////////////////////////////////////
 //

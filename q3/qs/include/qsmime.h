@@ -838,6 +838,7 @@ public:
 
 public:
 	const ReferenceList& getReferences() const;
+	wstring_ptr getValue() const;
 
 public:
 	virtual Part::Field parse(const Part& part,

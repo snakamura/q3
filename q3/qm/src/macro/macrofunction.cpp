@@ -725,9 +725,8 @@ MacroValuePtr qm::MacroFunctionClipboard::value(MacroContext* pContext) const
 	wstring_ptr wstrText;
 	if (nSize == 0) {
 		wstrText = Clipboard::getText();
-		if (!wstrText.get())
-			return error(*pContext, MacroErrorHandler::CODE_FAIL);
-		pwszText = wstrText.get();
+		if (wstrText.get())
+			pwszText = wstrText.get();
 	}
 	else {
 		MacroValuePtr pValueContent(getArg(0)->value(pContext));
@@ -3287,6 +3286,48 @@ const WCHAR* qm::MacroFunctionProgn::getName() const
 
 /****************************************************************************
  *
+ * MacroFunctionQuote
+ *
+ */
+
+qm::MacroFunctionQuote::MacroFunctionQuote()
+{
+}
+
+qm::MacroFunctionQuote::~MacroFunctionQuote()
+{
+}
+
+MacroValuePtr qm::MacroFunctionQuote::value(MacroContext* pContext) const
+{
+	assert(pContext);
+	
+	LOG(Quote);
+	
+	if (!checkArgSize(pContext, 2))
+		return MacroValuePtr();
+	
+	ARG(pValueText, 0);
+	wstring_ptr wstrText(pValueText->string());
+	
+	ARG(pValueQuote, 1);
+	wstring_ptr wstrQuote(pValueQuote->string());
+	
+	wxstring_ptr str(PartUtil::quote(wstrText.get(), wstrQuote.get()));
+	if (!str.get())
+		return error(*pContext, MacroErrorHandler::CODE_FAIL);
+	
+	return MacroValueFactory::getFactory().newString(str.get());
+}
+
+const WCHAR* qm::MacroFunctionQuote::getName() const
+{
+	return L"Quote";
+}
+
+
+/****************************************************************************
+ *
  * MacroFunctionReferences
  *
  */
@@ -4654,6 +4695,9 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(MacroParser::
 			DECLARE_FUNCTION0(		Profile,			L"profile"												)
 			DECLARE_FUNCTION0(		ProfileName,		L"profilename"											)
 			DECLARE_FUNCTION0(		Progn,				L"progn"												)
+		END_BLOCK()
+		BEGIN_BLOCK(L'q', L'Q')
+			DECLARE_FUNCTION0(		Quote,				L"quote"												)
 		END_BLOCK()
 		BEGIN_BLOCK(L'r', L'R')
 			DECLARE_FUNCTION0(		References,			L"references"											)

@@ -24,8 +24,10 @@
 #	include <mshtmdid.h>
 #endif
 
+#include "messagemodel.h"
 #include "messageviewwindow.h"
 #include "uiutil.h"
+#include "../model/uri.h"
 
 #pragma warning(disable:4786)
 
@@ -64,12 +66,14 @@ qm::MessageViewWindowCallback::~MessageViewWindowCallback()
 qm::MessageViewWindowFactory::MessageViewWindowFactory(Document* pDocument,
 													   Profile* pProfile,
 													   const WCHAR* pwszSection,
+													   MessageModel* pMessageModel,
 													   MenuManager* pMenuManager,
 													   MessageViewWindowCallback* pCallback,
 													   bool bTextOnly) :
 	pDocument_(pDocument),
 	pProfile_(pProfile),
 	pwszSection_(pwszSection),
+	pMessageModel_(pMessageModel),
 	pMenuManager_(pMenuManager),
 	pCallback_(pCallback),
 	bTextOnly_(bTextOnly),
@@ -80,8 +84,8 @@ qm::MessageViewWindowFactory::MessageViewWindowFactory(Document* pDocument,
 	pText_(0)
 #endif
 {
-	pText_ = new TextMessageViewWindow(pDocument_,
-		pProfile_, pwszSection_, pMenuManager_);
+	pText_ = new TextMessageViewWindow(pDocument_, pProfile_,
+		pwszSection_, pMessageModel_, pMenuManager_);
 }
 
 qm::MessageViewWindowFactory::~MessageViewWindowFactory()
@@ -151,7 +155,7 @@ bool qm::MessageViewWindowFactory::isSupported(const ContentTypeParser* pContent
 bool qm::MessageViewWindowFactory::createHtmlView()
 {
 	std::auto_ptr<HtmlMessageViewWindow> pHtml(new HtmlMessageViewWindow(
-		pProfile_, pwszSection_, pMenuManager_, pCallback_));
+		pProfile_, pwszSection_, pMessageModel_, pMenuManager_, pCallback_));
 	HWND hwnd = pText_->getParent();
 #ifdef _WIN32_WCE
 	const WCHAR* pwszId = L"{8856F961-340A-11D0-A96B-00C04FD705A2}";
@@ -179,10 +183,12 @@ bool qm::MessageViewWindowFactory::createHtmlView()
 qm::TextMessageViewWindow::TextMessageViewWindow(Document* pDocument,
 												 Profile* pProfile,
 												 const WCHAR* pwszSection,
+												 MessageModel* pMessageModel,
 												 MenuManager* pMenuManager) :
 	TextWindow(0, pProfile, pwszSection, true),
 	pDocument_(pDocument),
 	pProfile_(pProfile),
+	pMessageModel_(pMessageModel),
 	pMenuManager_(pMenuManager)
 {
 	pTextModel_.reset(new ReadOnlyTextModel());
@@ -360,6 +366,10 @@ bool qm::TextMessageViewWindow::openLink()
 void qm::TextMessageViewWindow::copy()
 {
 	TextWindow::copy();
+	
+	MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
+	if (mpl)
+		UIUtil::addMessageToClipboard(getHandle(), mpl);
 }
 
 bool qm::TextMessageViewWindow::canCopy()
@@ -388,11 +398,13 @@ bool qm::TextMessageViewWindow::canSelectAll()
 
 qm::HtmlMessageViewWindow::HtmlMessageViewWindow(Profile* pProfile,
 												 const WCHAR* pwszSection,
+												 MessageModel* pMessageModel,
 												 MenuManager* pMenuManager,
 												 MessageViewWindowCallback* pCallback) :
 	WindowBase(true),
 	pProfile_(pProfile),
 	pwszSection_(pwszSection),
+	pMessageModel_(pMessageModel),
 	pMenuManager_(pMenuManager),
 	pCallback_(pCallback),
 	pWebBrowser_(0),
@@ -811,6 +823,10 @@ bool qm::HtmlMessageViewWindow::openLink()
 void qm::HtmlMessageViewWindow::copy()
 {
 	pWebBrowser_->ExecWB(OLECMDID_COPY, OLECMDEXECOPT_DONTPROMPTUSER, 0, 0);
+	
+	MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
+	if (mpl)
+		UIUtil::addMessageToClipboard(getHandle(), mpl);
 }
 
 bool qm::HtmlMessageViewWindow::canCopy()

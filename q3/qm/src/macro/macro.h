@@ -84,6 +84,7 @@ class MacroExpr;
 		class MacroFunctionProfile;
 		class MacroFunctionProfileName;
 		class MacroFunctionProgn;
+		class MacroFunctionQuote;
 		class MacroFunctionReferences;
 		class MacroFunctionRegexFind;
 		class MacroFunctionRegexMatch;
@@ -1864,6 +1865,30 @@ protected:
 private:
 	MacroFunctionProgn(const MacroFunctionProgn&);
 	MacroFunctionProgn& operator=(const MacroFunctionProgn&);
+};
+
+
+/****************************************************************************
+ *
+ * MacroFunctionQuote
+ *
+ */
+
+class MacroFunctionQuote : public MacroFunction
+{
+public:
+	MacroFunctionQuote();
+	virtual ~MacroFunctionQuote();
+
+public:
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+
+protected:
+	virtual const WCHAR* getName() const;
+
+private:
+	MacroFunctionQuote(const MacroFunctionQuote&);
+	MacroFunctionQuote& operator=(const MacroFunctionQuote&);
 };
 
 

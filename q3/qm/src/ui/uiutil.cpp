@@ -23,6 +23,7 @@
 #include "resourceinc.h"
 #include "statusbar.h"
 #include "uiutil.h"
+#include "../model/dataobject.h"
 #include "../model/tempfilecleaner.h"
 #include "../model/uri.h"
 
@@ -407,6 +408,51 @@ std::pair<Account*, Folder*> qm::UIUtil::getAccountOrFolder(Document* pDocument,
 		p.first = pAccount;
 	
 	return p;
+}
+
+bool qm::UIUtil::addMessageToClipboard(HWND hwnd,
+									   MessageHolder* pmh)
+{
+	assert(hwnd);
+	assert(pmh);
+	
+	Clipboard clipboard(hwnd);
+	if (!clipboard)
+		return false;
+	
+	wstring_ptr wstrURI(URI(pmh).toString());
+	size_t nLen = wcslen(wstrURI.get());
+	HANDLE hMem = ::GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT,
+		(nLen + 2)*sizeof(WCHAR));
+	if (!hMem)
+		return false;
+	void* p = GlobalLock(hMem);
+	memcpy(p, wstrURI.get(), (nLen + 1)*sizeof(WCHAR));
+	*(reinterpret_cast<WCHAR*>(p) + nLen + 1) = L'\0';
+	GlobalUnlock(hMem);
+	clipboard.setData(MessageDataObject::nFormats__[MessageDataObject::FORMAT_MESSAGEHOLDERLIST], hMem);
+	
+	return true;
+}
+
+MessagePtr qm::UIUtil::getMessageFromClipboard(HWND hwnd,
+											   Document* pDocument)
+{
+	Clipboard clipboard(hwnd);
+	if (!clipboard)
+		return MessagePtr();
+	
+	HANDLE hMem = clipboard.getData(MessageDataObject::nFormats__[MessageDataObject::FORMAT_MESSAGEHOLDERLIST]);
+	if (!hMem)
+		return MessagePtr();
+	
+	void* p = GlobalLock(hMem);
+	std::auto_ptr<URI> pURI(URI::parse(static_cast<WCHAR*>(p)));
+	GlobalUnlock(hMem);
+	if (!pURI.get())
+		return MessagePtr();
+	
+	return pDocument->getMessage(*pURI.get());
 }
 
 

@@ -322,6 +322,13 @@ wstring_ptr qm::EditMessage::getField(const WCHAR* pwszName,
 					wstrValue = field.getValue();
 			}
 			break;
+		case FIELDTYPE_REFERENCES:
+			{
+				ReferencesParser field;
+				if (pMessage_->getField(pwszName, &field) == Part::FIELD_EXIST)
+					wstrValue = field.getValue();
+			}
+			break;
 		default:
 			assert(false);
 			break;
@@ -688,7 +695,8 @@ bool qm::EditMessage::applyFields()
 				MessageCreator::FieldType type_;
 			} types[] = {
 				{ FIELDTYPE_UNSTRUCTURED,	MessageCreator::FIELDTYPE_SINGLEUNSTRUCTURED	},
-				{ FIELDTYPE_ADDRESSLIST,	MessageCreator::FIELDTYPE_ADDRESSLIST			}
+				{ FIELDTYPE_ADDRESSLIST,	MessageCreator::FIELDTYPE_ADDRESSLIST			},
+				{ FIELDTYPE_REFERENCES,		MessageCreator::FIELDTYPE_REFERENCES			}
 			};
 			
 			MessageCreator::FieldType type;

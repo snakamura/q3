@@ -700,7 +700,8 @@ TextHeaderEditItem::Type qm::TextHeaderEditItem::parseType(const WCHAR* pwszType
 		Type type_;
 	} types[] = {
 		{ L"unstructured",	TYPE_UNSTRUCTURED	},
-		{ L"addressList",	TYPE_ADDRESSLIST	}
+		{ L"addressList",	TYPE_ADDRESSLIST	},
+		{ L"references",	TYPE_REFERENCES		}
 	};
 	for (int n = 0; n < countof(types); ++n) {
 		if (wcscmp(pwszType, types[n].pwszName_) == 0)

@@ -184,7 +184,8 @@ public:
 	
 	enum Type {
 		TYPE_UNSTRUCTURED,
-		TYPE_ADDRESSLIST
+		TYPE_ADDRESSLIST,
+		TYPE_REFERENCES
 	};
 
 protected:

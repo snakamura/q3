@@ -61,7 +61,8 @@ class EditMessage
 public:
 	enum FieldType {
 		FIELDTYPE_UNSTRUCTURED,
-		FIELDTYPE_ADDRESSLIST
+		FIELDTYPE_ADDRESSLIST,
+		FIELDTYPE_REFERENCES
 	};
 	
 public:
