@@ -1910,41 +1910,47 @@ QSTATUS qm::MacroFunctionFind::value(
 	MacroValuePtr pValue;
 	status = getArg(0)->value(pContext, &pValue);
 	CHECK_QSTATUS();
-	
 	string_ptr<WSTRING> wstr;
 	status = pValue->string(&wstr);
 	CHECK_QSTATUS();
-	
-	MacroValuePtr pValueSep;
-	status = getArg(1)->value(pContext, &pValueSep);
-	CHECK_QSTATUS();
-	
-	string_ptr<WSTRING> wstrSep;
-	status = pValueSep->string(&wstrSep);
-	CHECK_QSTATUS();
-	if (!bCase) {
-		string_ptr<WSTRING> wstrSepLower(tolower(wstrSep.get()));
-		if (!wstrSepLower.get())
-			return QSTATUS_OUTOFMEMORY;
-		string_ptr<WSTRING> wstrSepUpper(toupper(wstrSep.get()));
-		if (!wstrSepUpper.get())
-			return QSTATUS_OUTOFMEMORY;
-		if (wcscmp(wstrSepLower.get(), wstrSepUpper.get()) != 0) {
-			string_ptr<WSTRING> wstrLower(tolower(wstr.get()));
-			if (!wstrLower.get())
-				return QSTATUS_OUTOFMEMORY;
-			wstr.reset(wstrLower.release());
-			wstrSep.reset(wstrSepLower.release());
+	unsigned int nResult = -1;
+	size_t nLen = wcslen(wstr.get());
+	if (nIndex < nLen) {
+		MacroValuePtr pValueSep;
+		status = getArg(1)->value(pContext, &pValueSep);
+		CHECK_QSTATUS();
+		string_ptr<WSTRING> wstrSep;
+		status = pValueSep->string(&wstrSep);
+		CHECK_QSTATUS();
+		if (*wstrSep.get()) {
+			const WCHAR* p = 0;
+			if (*(wstrSep.get() + 1) == L'\0') {
+				if (bCase) {
+					p = wcschr(wstr.get() + nIndex, *wstrSep.get());
+				}
+				else {
+					WCHAR c = ::towlower(*wstrSep.get());
+					p = wstr.get() + nIndex;
+					while (*p) {
+						if (::tolower(*p) == c)
+							break;
+						++p;
+					}
+					if (!*p)
+						p = 0;
+				}
+			}
+			else {
+				BMFindString<WSTRING> bmfs(wstrSep.get(), wcslen(wstrSep.get()),
+					bCase ? 0 : BMFindString<WSTRING>::FLAG_IGNORECASE, &status);
+				CHECK_QSTATUS();
+				p = bmfs.find(wstr.get() + nIndex);
+			}
+			nResult = p ? p - wstr.get() : -1;
 		}
 	}
 	
-	BMFindString<WSTRING> bmfs(wstrSep.get(), &status);
-	CHECK_QSTATUS();
-	
-	const WCHAR* p = bmfs.find(wstr.get(), nIndex);
-	nIndex = p ? p - wstr.get() : -1;
-	
-	return MacroValueFactory::getFactory().newNumber(nIndex,
+	return MacroValueFactory::getFactory().newNumber(nResult,
 		reinterpret_cast<MacroValueNumber**>(ppValue));
 }
 
