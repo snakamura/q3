@@ -714,7 +714,7 @@ QSTATUS qmimap4::Imap4Driver::appendMessage(SubAccount* pSubAccount,
 		CHECK_QSTATUS();
 		
 		Imap4* pImap4 = 0;
-		SessionCacher cacher(pSessionCache_, pFolder, &pImap4, &status);
+		SessionCacher cacher(pSessionCache_, 0, &pImap4, &status);
 		CHECK_QSTATUS();
 		
 		string_ptr<WSTRING> wstrFolderName;
@@ -1858,15 +1858,14 @@ QSTATUS qmimap4::SessionCache::getSession(
 	std::auto_ptr<Logger> pLogger;
 	std::auto_ptr<Imap4> pImap4;
 	bool bSelect = true;
-	SessionList::iterator it = listSession_.end();
-	if (pFolder)
-		it = std::find_if(listSession_.begin(), listSession_.end(),
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<NormalFolder*>(),
-					mem_data_ref(&Session::pFolder_),
-					std::identity<NormalFolder*>()),
-				pFolder));
+	SessionList::iterator it = std::find_if(
+		listSession_.begin(), listSession_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				std::equal_to<NormalFolder*>(),
+				mem_data_ref(&Session::pFolder_),
+				std::identity<NormalFolder*>()),
+			pFolder));
 	if (it != listSession_.end()) {
 		pImap4.reset((*it).pImap4_);
 		pLogger.reset((*it).pLogger_);
@@ -1879,6 +1878,9 @@ QSTATUS qmimap4::SessionCache::getSession(
 			pImap4.reset((*it).pImap4_);
 			pLogger.reset((*it).pLogger_);
 			listSession_.erase(it);
+			
+			if (!pFolder)
+				pImap4.reset(0);
 		}
 	}
 	
