@@ -4772,7 +4772,7 @@ void qm::ViewFocusAction::invoke(const ActionEvent& event)
 			break;
 	}
 	if (nView == nViewCount)
-		return;
+		nView = 0;
 	
 	int n = 0;
 	View* pView = 0;
