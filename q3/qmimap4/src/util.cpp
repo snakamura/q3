@@ -195,15 +195,16 @@ string_ptr qmimap4::Util::getMessageFromEnvelope(const FetchDataEnvelope* pEnvel
 						bGroup = false;
 					}
 					else {
-						if (bSeparator)
-							buf.append(",\r\n\t");
-						
-						if (!pszMailbox)
-							return 0;
-						buf.append(pszMailbox);
-						buf.append(": ");
-						bSeparator = false;
-						bGroup = true;
+						// Because of BUG of courier-imap,
+						// I skip invalid group terminater.
+						if (pszMailbox) {
+							if (bSeparator)
+								buf.append(",\r\n\t");
+							buf.append(pszMailbox);
+							buf.append(": ");
+							bSeparator = false;
+							bGroup = true;
+						}
 					}
 				}
 			}
