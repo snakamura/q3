@@ -153,7 +153,8 @@ public:
 	virtual ~TokenizerCallback();
 
 public:
-	virtual bool token(const WCHAR* pwszToken) = 0;
+	virtual bool token(const WCHAR* pwszToken,
+					   size_t nLen) = 0;
 };
 
 

@@ -120,21 +120,19 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 					 std::select1st<TokenRateList::value_type>()));
 		}
 		
-		virtual bool token(const WCHAR* pwszToken)
+		virtual bool token(const WCHAR* pwszToken,
+						   size_t nLen)
 		{
-			if (std::find_if(listTokenRate_.begin(), listTokenRate_.end(),
-				std::bind2nd(
-					binary_compose_f_gx_hy(
-						string_equal<WCHAR>(),
-						std::select1st<TokenRateList::value_type>(),
-						std::identity<const WCHAR*>()),
-					pwszToken)) != listTokenRate_.end())
-				return true;
+			for (TokenRateList::const_iterator it = listTokenRate_.begin(); it != listTokenRate_.end(); ++it) {
+				if (wcslen((*it).first) == nLen &&
+					wcsncmp((*it).first, pwszToken, nLen) == 0)
+					return true;
+			}
 			
 			unsigned int nCount[2] = { 0, 0 };
 			
 			const char* pKey = reinterpret_cast<const char*>(pwszToken);
-			size_t nKeyLen = wcslen(pwszToken)*sizeof(WCHAR);
+			size_t nKeyLen = nLen*sizeof(WCHAR);
 			char* pValue = reinterpret_cast<char*>(nCount);
 			size_t nValueLen = sizeof(nCount);
 			
@@ -177,7 +175,7 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 				}
 			};
 			
-			wstring_ptr wstrToken(allocWString(pwszToken));
+			wstring_ptr wstrToken(allocWString(pwszToken, nLen));
 			listTokenRate_.push_back(std::make_pair(wstrToken.get(), dRate));
 			wstrToken.release();
 			std::random_shuffle(listTokenRate_.begin(), listTokenRate_.end());
@@ -303,12 +301,13 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 		{
 		}
 		
-		virtual bool token(const WCHAR* pwszToken)
+		virtual bool token(const WCHAR* pwszToken,
+						   size_t nLen)
 		{
 			unsigned int nCount[2] = { 0, 0 };
 			
 			const char* pKey = reinterpret_cast<const char*>(pwszToken);
-			size_t nKeyLen = wcslen(pwszToken)*sizeof(WCHAR);
+			size_t nKeyLen = nLen*sizeof(WCHAR);
 			char* pValue = reinterpret_cast<char*>(nCount);
 			size_t nValueLen = sizeof(nCount);
 			
@@ -329,7 +328,10 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 				dpput(pDepotToken_, pKey, nKeyLen, pValue, nValueLen, DP_DOVER);
 			}
 			
-			log_.debugf(L"Token: %s, Clean: %u, Junk: %u", pwszToken, nCount[0], nCount[1]);
+			if (log_.isDebugEnabled()) {
+				wstring_ptr wstrToken(allocWString(pwszToken, nLen));
+				log_.debugf(L"Token: %s, Clean: %u, Junk: %u", wstrToken.get(), nCount[0], nCount[1]);
+			}
 			
 			return true;
 		}
@@ -622,8 +624,7 @@ bool qmjunk::Tokenizer::getTokens(const WCHAR* pwszText,
 					++p;
 				} while (p < pEnd && getToken(*p) == token);
 				
-				wstring_ptr wstrToken(allocWString(pBegin, p - pBegin));
-				if (!pCallback->token(wstrToken.get()))
+				if (!pCallback->token(pBegin, p - pBegin))
 					return false;
 			}
 			break;
@@ -637,7 +638,7 @@ bool qmjunk::Tokenizer::getTokens(const WCHAR* pwszText,
 					++p;
 				} while (p < pEnd && (*p == L'\r' || *p == L'\n' || getToken(*p) == token));
 				
-				if (!pCallback->token(buf.getCharArray()))
+				if (!pCallback->token(buf.getCharArray(), buf.getLength()))
 					return false;
 			}
 			break;
@@ -648,7 +649,7 @@ bool qmjunk::Tokenizer::getTokens(const WCHAR* pwszText,
 				while (p < pEnd && getToken(*p) == TOKEN_IDEOGRAPHIC) {
 					wsz[1] = *p;
 					if (!isIgnoredToken(wsz)) {
-						if (!pCallback->token(wsz))
+						if (!pCallback->token(wsz, 2))
 							return false;
 					}
 					wsz[0] = *p;
