@@ -1295,7 +1295,8 @@ QSTATUS qm::Account::storeMessage(NormalFolder* pFolder,
 	assert(pFolder);
 	assert(pFolder->isLocked());
 	assert(pszMessage);
-	assert((nFlags & ~(MessageHolder::FLAG_USER_MASK | MessageHolder::FLAG_PARTIAL_MASK | MessageHolder::FLAG_LOCAL)) == 0);
+	assert((nFlags & ~(MessageHolder::FLAG_USER_MASK |
+		MessageHolder::FLAG_PARTIAL_MASK | MessageHolder::FLAG_LOCAL)) == 0);
 	assert(ppmh);
 	
 	DECLARE_QSTATUS();
@@ -1448,8 +1449,10 @@ QSTATUS qm::Account::cloneMessage(MessageHolder* pmh,
 		unsigned int nId = 0;
 		status = pFolderTo->generateId(&nId);
 		CHECK_QSTATUS();
+		unsigned int nFlags = pmh->getFlags() & (MessageHolder::FLAG_USER_MASK |
+			MessageHolder::FLAG_PARTIAL_MASK | MessageHolder::FLAG_LOCAL);
 		status = storeMessage(pFolderTo, strContent.get(), &msg,
-			nId, pmh->getFlags(), pmh->getSize(), false, ppmh);
+			nId, nFlags, pmh->getSize(), false, ppmh);
 		CHECK_QSTATUS();
 	}
 	
