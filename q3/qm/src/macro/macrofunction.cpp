@@ -4011,6 +4011,81 @@ const WCHAR* qm::MacroFunctionSize::getName() const
 
 /****************************************************************************
  *
+ * MacroFunctionSpecialFolder
+ *
+ */
+
+qm::MacroFunctionSpecialFolder::MacroFunctionSpecialFolder()
+{
+}
+
+qm::MacroFunctionSpecialFolder::~MacroFunctionSpecialFolder()
+{
+}
+
+MacroValuePtr qm::MacroFunctionSpecialFolder::value(MacroContext* pContext) const
+{
+	assert(pContext);
+	
+	LOG(SpecialFolder);
+	
+	if (!checkArgSizeRange(pContext, 1, 2))
+		return MacroValuePtr();
+	
+	size_t nSize = getArgSize();
+	
+	Account* pAccount = pContext->getAccount();
+	if (nSize > 1) {
+		ARG(pValue, 1);
+		wstring_ptr wstrAccount(pValue->string());
+		pAccount = pContext->getDocument()->getAccount(wstrAccount.get());
+		if (!pAccount)
+			return error(*pContext, MacroErrorHandler::CODE_UNKNOWNACCOUNT);
+	}
+	assert(pAccount);
+	
+	ARG(pValue, 0);
+	wstring_ptr wstrName(pValue->string());
+	
+	struct {
+		const WCHAR* pwszName_;
+		Folder::Flag flag_;
+	} flags[] = {
+		{ L"Inbox",		Folder::FLAG_INBOX		},
+		{ L"Outbox",	Folder::FLAG_OUTBOX		},
+		{ L"Sentbox",	Folder::FLAG_SENTBOX	},
+		{ L"Trashbox",	Folder::FLAG_TRASHBOX	},
+		{ L"Draftbox",	Folder::FLAG_DRAFTBOX	},
+		{ L"Searchbox",	Folder::FLAG_SEARCHBOX	}
+	};
+	
+	Folder::Flag flag = static_cast<Folder::Flag>(0);
+	for (int n = 0; n < countof(flags) && flag == 0; ++n) {
+		if (wcscmp(wstrName.get(), flags[n].pwszName_) == 0)
+			flag = flags[n].flag_;
+	}
+	if (flag == 0)
+		return error(*pContext, MacroErrorHandler::CODE_FAIL);
+	
+	const WCHAR* pwszFolderName = L"";
+	wstring_ptr wstrFolderName;
+	Folder* pFolder = pAccount->getFolderByFlag(flag);
+	if (pFolder) {
+		wstrFolderName = pFolder->getFullName();
+		pwszFolderName = wstrFolderName.get();
+	}
+	
+	return MacroValueFactory::getFactory().newString(pwszFolderName);
+}
+
+const WCHAR* qm::MacroFunctionSpecialFolder::getName() const
+{
+	return L"SpecialFolder";
+}
+
+
+/****************************************************************************
+ *
  * MacroFunctionSubAccount
  *
  */
@@ -4558,6 +4633,7 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(MacroParser::
 		DECLARE_FUNCTION_TYPE0(	Selected,			L"selected",										T	)
 		DECLARE_FUNCTION0(		Set,				L"set"													)
 		DECLARE_FUNCTION0(		Size,				L"size"													)
+		DECLARE_FUNCTION0(		SpecialFolder,		L"specialfolder"										)
 		DECLARE_FUNCTION0(		SubAccount,			L"subaccount"											)
 		DECLARE_FUNCTION0(		Subject,			L"subject"												)
 		DECLARE_FUNCTION0(		Substring,			L"substring"											)

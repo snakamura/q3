@@ -95,6 +95,7 @@ class MacroExpr;
 		class MacroFunctionSelected;
 		class MacroFunctionSet;
 		class MacroFunctionSize;
+		class MacroFunctionSpecialFolder;
 		class MacroFunctionSubAccount;
 		class MacroFunctionSubject;
 		class MacroFunctionSubstring;
@@ -2134,6 +2135,30 @@ protected:
 private:
 	MacroFunctionSize(const MacroFunctionSize&);
 	MacroFunctionSize& operator=(const MacroFunctionSize&);
+};
+
+
+/****************************************************************************
+ *
+ * MacroFunctionSpecialFolder
+ *
+ */
+
+class MacroFunctionSpecialFolder : public MacroFunction
+{
+public:
+	MacroFunctionSpecialFolder();
+	virtual ~MacroFunctionSpecialFolder();
+
+public:
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+
+protected:
+	virtual const WCHAR* getName() const;
+
+private:
+	MacroFunctionSpecialFolder(const MacroFunctionSpecialFolder&);
+	MacroFunctionSpecialFolder& operator=(const MacroFunctionSpecialFolder&);
 };
 
 
