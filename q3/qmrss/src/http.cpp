@@ -55,14 +55,23 @@ unsigned int qmrss::Http::invoke(HttpMethod* pMethod)
 	std::auto_ptr<SocketBase> pSocketBase;
 	
 	bool bProxied = wstrProxyHost_.get() != 0;
+	unsigned int nRetryCount = pMethod->getRetryCount() + 1;
 	if (bProxied) {
-		if (!pSocket->connect(wstrProxyHost_.get(), nProxyPort_))
+		bool bConnect = false;
+		for (unsigned int n = 0; n < nRetryCount && !bConnect; ++n)
+			bConnect = pSocket->connect(wstrProxyHost_.get(), nProxyPort_);
+		if (!bConnect)
 			return -1;
+		
+		// TODO
+		// Support SSL.
+		
 		pSocketBase = pSocket;
 	}
 	else {
-		if (!pSocket->connect(pMethod->getHost(), pMethod->getPort()))
-			return -1;
+		bool bConnect = false;
+		for (unsigned int n = 0; n < nRetryCount && !bConnect; ++n)
+			bConnect = pSocket->connect(pMethod->getHost(), pMethod->getPort());
 		
 		if (pMethod->isSsl()) {
 			SSLSocketFactory* pFactory = SSLSocketFactory::getFactory();
@@ -139,11 +148,6 @@ bool qmrss::HttpConnection::write(const unsigned char* p,
 	return true;
 }
 
-bool qmrss::HttpConnection::write(const WCHAR* p)
-{
-	return write(p, wcslen(p));
-}
-
 bool qmrss::HttpConnection::write(const WCHAR* p,
 								  size_t nLen)
 {
@@ -151,28 +155,11 @@ bool qmrss::HttpConnection::write(const WCHAR* p,
 	return write(reinterpret_cast<const unsigned char*>(str.get()), strlen(str.get()));
 }
 
-bool qmrss::HttpConnection::writeLine()
-{
-	return write(L"\r\n", 2);
-}
-
-bool qmrss::HttpConnection::writeLine(const WCHAR* p)
-{
-	return write(p, wcslen(p)) && writeLine();
-}
-
-bool qmrss::HttpConnection::writeLine(const WCHAR* p,
-									  size_t nLen)
-{
-	return write(p, nLen) && writeLine();
-}
-
 size_t qmrss::HttpConnection::read(unsigned char* p,
 								   size_t nLen)
 {
 	if (!prepareInputStream())
 		return -1;
-	
 	return pInputStream_->read(p, nLen);
 }
 
@@ -180,34 +167,7 @@ xstring_ptr qmrss::HttpConnection::readLine()
 {
 	if (!prepareInputStream())
 		return 0;
-	
-	bool bCr = false;
-	XStringBuffer<XSTRING> buf;
-	while (true) {
-		unsigned char c = 0;
-		size_t n = pInputStream_->read(&c, 1);
-		if (n == -1)
-			return 0;
-		else if (n == 0)
-			break;
-		
-		if (!buf.append(c))
-			return 0;
-		
-		if (bCr) {
-			if (c == '\n') {
-				buf.remove(buf.getLength() - 2, buf.getLength());
-				break;
-			}
-			else {
-				bCr = false;
-			}
-		}
-		else {
-			bCr = c == '\r';
-		}
-	}
-	return buf.getXString();
+	return HttpUtil::readLine(pInputStream_.get());
 }
 
 InputStream* qmrss::HttpConnection::getInputStream()
@@ -337,68 +297,71 @@ bool qmrss::AbstractHttpMethod::isReady() const
 	return pURL_.get() != 0;
 }
 
+unsigned int qmrss::AbstractHttpMethod::getRetryCount() const
+{
+	return 2;
+}
+
 unsigned int qmrss::AbstractHttpMethod::invoke(std::auto_ptr<HttpConnection> pConnection)
 {
 	assert(pConnection.get());
 	assert(pURL_.get());
 	
+	StringBuffer<WSTRING> requestHeader;
+	
 	const WCHAR* pwszName = getName();
+	requestHeader.append(pwszName);
+	requestHeader.append(L" ");
 	
-	StringBuffer<WSTRING> buf;
 	if (pConnection->isProxied()) {
-		buf.append(pURL_->getScheme());
-		buf.append(L"://");
-		buf.append(pURL_->getHost());
+		requestHeader.append(pURL_->getScheme());
+		requestHeader.append(L"://");
+		requestHeader.append(pURL_->getHost());
 	}
-	buf.append(pURL_->getPath());
+	requestHeader.append(pURL_->getPath());
 	if (pURL_->getQuery()) {
-		buf.append(L'?');
-		buf.append(pURL_->getQuery());
+		requestHeader.append(L'?');
+		requestHeader.append(pURL_->getQuery());
 	}
+	requestHeader.append(L" HTTP/1.0\r\n");
 	
-	if (!pConnection->write(pwszName) ||
-		!pConnection->write(L" ") ||
-		!pConnection->write(buf.getCharArray(), buf.getLength()) ||
-		!pConnection->writeLine(L" HTTP/1.0"))
-		return -1;
+	requestHeader.append(L"Host: ");
+	requestHeader.append(pURL_->getHost());
+	requestHeader.append(L"\r\n");
 	
-	if (!pConnection->write(L"Host: ") ||
-		!pConnection->writeLine(pURL_->getHost()))
-		return -1;
-	
-	if (!pConnection->writeLine(L"Connection: close"))
-		return -1;
+	requestHeader.append(L"Connection: close\r\n");
 	
 	for (HeaderList::const_iterator it = listRequestHeader_.begin(); it != listRequestHeader_.end(); ++it) {
-		if (!pConnection->write((*it).first) ||
-			!pConnection->write(L": ") ||
-			!pConnection->writeLine((*it).second))
-			return -1;
+		requestHeader.append((*it).first);
+		requestHeader.append(L": ");
+		requestHeader.append((*it).second);
+		requestHeader.append(L"\r\n");
 	}
 	
 	std::pair<const WCHAR*, const WCHAR*> credential(getCredential());
 	if (credential.first && credential.second) {
-		wstring_ptr wstrCredential(getBasicCredential(credential.first, credential.second));
+		wstring_ptr wstrCredential(HttpUtil::getBasicCredential(
+			credential.first, credential.second));
 		if (!wstrCredential.get())
 			return -1;
-		if (!pConnection->write(L"Authorization: Basic ") ||
-			!pConnection->writeLine(wstrCredential.get()))
-			return -1;
+		requestHeader.append(L"Authorization: Basic ");
+		requestHeader.append(wstrCredential.get());
+		requestHeader.append(L"\r\n");
 	}
 	
-	if (!writeRequestHeaders(pConnection.get()))
+	if (!getRequestHeaders(&requestHeader))
 		return -1;
 	
 	size_t nBodyLen = getRequestBodyLength();
 	if (nBodyLen != 0) {
-		WCHAR wszLen[32];
-		swprintf(wszLen, L"%u", nBodyLen);
-		if (!pConnection->write(L"Content-Length: ") ||
-			!pConnection->writeLine(wszLen))
-			return -1;
+		WCHAR wszLen[128];
+		swprintf(wszLen, L"Content-Length: %u\r\n", nBodyLen);
+		requestHeader.append(wszLen);
 	}
 	
-	if (!pConnection->writeLine())
+	requestHeader.append(L"\r\n");
+	
+	if (!pConnection->write(requestHeader.getCharArray(), requestHeader.getLength()))
 		return -1;
 	
 	if (nBodyLen != 0) {
@@ -409,29 +372,29 @@ unsigned int qmrss::AbstractHttpMethod::invoke(std::auto_ptr<HttpConnection> pCo
 	strResponseLine_ = pConnection->readLine();
 	if (!strResponseLine_.get())
 		return -1;
-	unsigned int nStatus = parseResponse(strResponseLine_.get());
+	unsigned int nStatus = HttpUtil::parseResponse(strResponseLine_.get());
 	if (nStatus == -1)
 		return -1;
 	
-	XStringBuffer<XSTRING> header;
+	XStringBuffer<XSTRING> responseHeader;
 	while (true) {
 		xstring_ptr str(pConnection->readLine());
 		if (!str.get())
 			return -1;
 		if (!*str.get())
 			break;
-		if (!header.append(str.get()) ||
-			!header.append("\r\n"))
+		if (!responseHeader.append(str.get()) ||
+			!responseHeader.append("\r\n"))
 			return -1;
 	}
-	strResponseHeader_ = header.getXString();
+	strResponseHeader_ = responseHeader.getXString();
 	
 	pConnection_ = pConnection;
 	
 	return nStatus;
 }
 
-bool qmrss::AbstractHttpMethod::writeRequestHeaders(HttpConnection* pConnection) const
+bool qmrss::AbstractHttpMethod::getRequestHeaders(StringBuffer<WSTRING>* pBuf) const
 {
 	return true;
 }
@@ -455,37 +418,6 @@ std::pair<const WCHAR*, const WCHAR*> qmrss::AbstractHttpMethod::getCredential()
 		pwszPassword = pURL_->getPassword();
 	}
 	return std::make_pair(pwszUserName, pwszPassword);
-}
-
-wstring_ptr qmrss::AbstractHttpMethod::getBasicCredential(const WCHAR* pwszUserName,
-														  const WCHAR* pwszPassword)
-{
-	wstring_ptr wstrCredential(concat(pwszUserName, L":", pwszPassword));
-	size_t nLen = wcslen(wstrCredential.get());
-	xstring_size_ptr strCredential(UTF8Converter().encode(wstrCredential.get(), &nLen));
-	if (!strCredential.get())
-		return 0;
-	malloc_size_ptr<unsigned char> pCredential(Base64Encoder(false).encode(
-		reinterpret_cast<const unsigned char*>(strCredential.get()), strCredential.size()));
-	return mbs2wcs(reinterpret_cast<const CHAR*>(pCredential.get()), pCredential.size());
-}
-
-unsigned int qmrss::AbstractHttpMethod::parseResponse(const char* p)
-{
-	if (strncmp(p, "HTTP/1.0 ", 9) != 0 &&
-		strncmp(p, "HTTP/1.1 ", 9) != 0)
-		return -1;
-	
-	char szStatus[4];
-	strncpy(szStatus, p + 9, 3);
-	szStatus[3] = '\0';
-	
-	char* pEnd = 0;
-	long nStatus = strtol(szStatus, &pEnd, 10);
-	if (*pEnd || nStatus < 0 || 600 < nStatus)
-		return -1;
-	
-	return static_cast<unsigned int>(nStatus);
 }
 
 
@@ -660,4 +592,73 @@ std::auto_ptr<HttpURL> qmrss::HttpURL::create(const WCHAR* pwszURL)
 	return std::auto_ptr<HttpURL>(new HttpURL(wstrScheme.get(),
 		wstrHost.get(), nPort, wstrUser.get(), wstrPassword.get(),
 		wstrPath.get(), wstrQuery.get()));
+}
+
+
+/****************************************************************************
+ *
+ * HttpUtil
+ *
+ */
+
+wstring_ptr qmrss::HttpUtil::getBasicCredential(const WCHAR* pwszUserName,
+												const WCHAR* pwszPassword)
+{
+	wstring_ptr wstrCredential(concat(pwszUserName, L":", pwszPassword));
+	size_t nLen = wcslen(wstrCredential.get());
+	xstring_size_ptr strCredential(UTF8Converter().encode(wstrCredential.get(), &nLen));
+	if (!strCredential.get())
+		return 0;
+	malloc_size_ptr<unsigned char> pCredential(Base64Encoder(false).encode(
+		reinterpret_cast<const unsigned char*>(strCredential.get()), strCredential.size()));
+	return mbs2wcs(reinterpret_cast<const CHAR*>(pCredential.get()), pCredential.size());
+}
+
+unsigned int qmrss::HttpUtil::parseResponse(const char* p)
+{
+	if (strncmp(p, "HTTP/1.0 ", 9) != 0 &&
+		strncmp(p, "HTTP/1.1 ", 9) != 0)
+		return -1;
+	
+	char szStatus[4];
+	strncpy(szStatus, p + 9, 3);
+	szStatus[3] = '\0';
+	
+	char* pEnd = 0;
+	long nStatus = strtol(szStatus, &pEnd, 10);
+	if (*pEnd || nStatus < 0 || 600 < nStatus)
+		return -1;
+	
+	return static_cast<unsigned int>(nStatus);
+}
+
+xstring_ptr qmrss::HttpUtil::readLine(InputStream* pInputStream)
+{
+	bool bCr = false;
+	XStringBuffer<XSTRING> buf;
+	while (true) {
+		unsigned char c = 0;
+		size_t n = pInputStream->read(&c, 1);
+		if (n == -1)
+			return 0;
+		else if (n == 0)
+			break;
+		
+		if (!buf.append(c))
+			return 0;
+		
+		if (bCr) {
+			if (c == '\n') {
+				buf.remove(buf.getLength() - 2, buf.getLength());
+				break;
+			}
+			else {
+				bCr = false;
+			}
+		}
+		else {
+			bCr = c == '\r';
+		}
+	}
+	return buf.getXString();
 }

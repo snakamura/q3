@@ -22,6 +22,7 @@ class HttpConnection;
 class HttpMethod;
 	class HttpMethodGet;
 class HttpURL;
+class HttpUtil;
 
 
 /****************************************************************************
@@ -90,13 +91,8 @@ public:
 	bool isProxied() const;
 	bool write(const unsigned char* p,
 			   size_t nLen);
-	bool write(const WCHAR* p);
 	bool write(const WCHAR* p,
 			   size_t nLen);
-	bool writeLine();
-	bool writeLine(const WCHAR* p);
-	bool writeLine(const WCHAR* p,
-				   size_t nLen);
 	size_t read(unsigned char* p,
 				size_t nLen);
 	qs::xstring_ptr readLine();
@@ -144,6 +140,7 @@ public:
 	virtual unsigned short getPort() const = 0;
 	virtual bool isSsl() const = 0;
 	virtual bool isReady() const = 0;
+	virtual unsigned int getRetryCount() const = 0;
 	virtual unsigned int invoke(std::auto_ptr<HttpConnection> pConnection) = 0;
 };
 
@@ -177,21 +174,17 @@ public:
 	virtual unsigned short getPort() const;
 	virtual bool isSsl() const;
 	virtual bool isReady() const;
+	virtual unsigned int getRetryCount() const;
 	virtual unsigned int invoke(std::auto_ptr<HttpConnection> pConnection);
 
 protected:
 	virtual const WCHAR* getName() const = 0;
-	virtual bool writeRequestHeaders(HttpConnection* pConnection) const;
+	virtual bool getRequestHeaders(qs::StringBuffer<qs::WSTRING>* pBuf) const;
 	virtual size_t getRequestBodyLength() const;
 	virtual bool writeRequestBody(HttpConnection* pConnection) const;
 
 private:
 	std::pair<const WCHAR*, const WCHAR*> getCredential() const;
-
-private:
-	static qs::wstring_ptr getBasicCredential(const WCHAR* pwszUserName,
-											  const WCHAR* pwszPassword);
-	static unsigned int parseResponse(const char* p);
 
 private:
 	AbstractHttpMethod(const AbstractHttpMethod&);
@@ -275,6 +268,22 @@ private:
 	qs::wstring_ptr wstrPassword_;
 	qs::wstring_ptr wstrPath_;
 	qs::wstring_ptr wstrQuery_;
+};
+
+
+/****************************************************************************
+ *
+ * HttpUtil
+ *
+ */
+
+class HttpUtil
+{
+public:
+	static qs::wstring_ptr getBasicCredential(const WCHAR* pwszUserName,
+											  const WCHAR* pwszPassword);
+	static unsigned int parseResponse(const char* p);
+	static qs::xstring_ptr readLine(qs::InputStream* pInputStream);
 };
 
 }
