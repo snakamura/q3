@@ -39,6 +39,7 @@ class DefaultDialog;
 	class MailFolderDialog;
 	class ProgressDialog;
 	class ReplaceDialog;
+	class SelectDialupEntryDialog;
 	class SelectSyncFilterDialog;
 
 class FixedFormText;
@@ -804,6 +805,46 @@ private:
 	qs::WSTRING wstrReplace_;
 	bool bMatchCase_;
 	Type type_;
+};
+
+
+/****************************************************************************
+ *
+ * SelectDialupEntryDialog
+ *
+ */
+
+class SelectDialupEntryDialog : public DefaultDialog
+{
+public:
+	SelectDialupEntryDialog(qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	virtual ~SelectDialupEntryDialog();
+
+public:
+	const WCHAR* getEntry() const;
+
+public:
+	virtual LRESULT onCommand(WORD nCode, WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	void updateState();
+
+private:
+	LRESULT onSelChange();
+
+private:
+	SelectDialupEntryDialog(const SelectDialupEntryDialog&);
+	SelectDialupEntryDialog& operator=(const SelectDialupEntryDialog&);
+
+private:
+	qs::Profile* pProfile_;
+	qs::WSTRING wstrEntry_;
 };
 
 

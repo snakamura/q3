@@ -2797,6 +2797,109 @@ LRESULT qm::ReplaceDialog::onReplace(UINT nId)
 
 /****************************************************************************
  *
+ * SelectDialupEntryDialog
+ *
+ */
+
+qm::SelectDialupEntryDialog::SelectDialupEntryDialog(
+	Profile* pProfile, QSTATUS* pstatus) :
+	DefaultDialog(IDD_SELECTDIALUPENTRY, pstatus),
+	pProfile_(pProfile),
+	wstrEntry_(0)
+{
+}
+
+qm::SelectDialupEntryDialog::~SelectDialupEntryDialog()
+{
+	freeWString(wstrEntry_);
+}
+
+const WCHAR* qm::SelectDialupEntryDialog::getEntry() const
+{
+	return wstrEntry_;
+}
+
+LRESULT qm::SelectDialupEntryDialog::onCommand(WORD nCode, WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID_CODE(IDC_ENTRY, LBN_SELCHANGE, onSelChange)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::SelectDialupEntryDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+{
+	DECLARE_QSTATUS();
+	
+	typedef RasConnection::EntryList List;
+	List listEntry;
+	StringListFree<List> free(listEntry);
+	status = RasConnection::getEntries(&listEntry);
+	CHECK_QSTATUS_VALUE(TRUE);
+	
+	List::const_iterator it = listEntry.begin();
+	while (it != listEntry.end()) {
+		W2T_STATUS(*it, ptszEntry);
+		CHECK_QSTATUS_VALUE(TRUE);
+		sendDlgItemMessage(IDC_ENTRY, LB_ADDSTRING, 0,
+			reinterpret_cast<LPARAM>(ptszEntry));
+		++it;
+	}
+	
+	string_ptr<WSTRING> wstrEntry;
+	status = pProfile_->getString(L"Dialup", L"Entry", 0, &wstrEntry);
+	CHECK_QSTATUS_VALUE(TRUE);
+	W2T_STATUS(wstrEntry.get(), ptszEntry);
+	CHECK_QSTATUS_VALUE(TRUE);
+	sendDlgItemMessage(IDC_ENTRY, LB_SELECTSTRING, -1,
+		reinterpret_cast<LPARAM>(ptszEntry));
+	
+	updateState();
+	
+	return TRUE;
+}
+
+LRESULT qm::SelectDialupEntryDialog::onOk()
+{
+	int nIndex = sendDlgItemMessage(IDC_ENTRY, LB_GETCURSEL);
+	if (nIndex == LB_ERR)
+		return 0;
+	
+	int nLen = sendDlgItemMessage(IDC_ENTRY, LB_GETTEXTLEN, nIndex);
+	if (nLen == LB_ERR)
+		return 0;
+	
+	string_ptr<TSTRING> tstrEntry(allocTString(nLen + 1));
+	if (!tstrEntry.get())
+		return 0;
+	
+	sendDlgItemMessage(IDC_ENTRY, LB_GETTEXT, nIndex,
+		reinterpret_cast<LPARAM>(tstrEntry.get()));
+	
+	wstrEntry_ = tcs2wcs(tstrEntry.get());
+	if (!wstrEntry_)
+		return 0;
+	
+	pProfile_->setString(L"Dialup", L"Entry", wstrEntry_);
+	
+	return DefaultDialog::onOk();
+}
+
+LRESULT qm::SelectDialupEntryDialog::onSelChange()
+{
+	updateState();
+	return 0;
+}
+
+void qm::SelectDialupEntryDialog::updateState()
+{
+	bool bEnable = sendDlgItemMessage(IDC_ENTRY, LB_GETCURSEL) != LB_ERR;
+	Window(getDlgItem(IDOK)).enableWindow(bEnable);
+}
+
+
+/****************************************************************************
+ *
  * SelectSyncFilterDialog
  *
  */

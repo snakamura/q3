@@ -610,6 +610,17 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,95,111,50,14
 END
 
+IDD_SELECTDIALUPENTRY DIALOG DISCARDABLE  0, 0, 183, 95
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Select Dialup Entry"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    LISTBOX         IDC_ENTRY,5,5,120,85,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,130,5,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,130,20,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -793,6 +804,14 @@ BEGIN
         RIGHTMARGIN, 142
         TOPMARGIN, 7
         BOTTOMMARGIN, 122
+    END
+
+    IDD_SELECTDIALUPENTRY, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 176
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 88
     END
 END
 #endif    // APSTUDIO_INVOKED

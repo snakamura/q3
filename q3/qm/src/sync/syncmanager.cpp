@@ -420,6 +420,8 @@ QSTATUS qm::SyncManager::syncData(const SyncData* pData)
 		if (!pwszEntry) {
 			status = pCallback->selectDialupEntry(&wstrEntry);
 			CHECK_QSTATUS();
+			if (!wstrEntry.get())
+				return QSTATUS_SUCCESS;
 			pwszEntry = wstrEntry.get();
 		}
 		assert(pwszEntry);

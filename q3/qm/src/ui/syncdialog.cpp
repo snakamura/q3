@@ -189,6 +189,7 @@ INT_PTR qm::SyncDialog::dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		HANDLE_SIZE()
 		HANDLE_MESSAGE(WM_SYNCDIALOG_ENABLECANCEL, onEnableCancel)
 		HANDLE_MESSAGE(WM_SYNCDIALOG_SHOWDIALUPDIALOG, onShowDialupDialog)
+		HANDLE_MESSAGE(WM_SYNCDIALOG_SELECTDIALUPENTRY, onSelectDialupEntry)
 	END_DIALOG_HANDLER()
 	return DefaultDialogHandler::dialogProc(uMsg, wParam, lParam);
 }
@@ -291,6 +292,29 @@ LRESULT qm::SyncDialog::onShowDialupDialog(WPARAM wParam, LPARAM lParam)
 	bool bCancel = false;
 	showDialupDialog(reinterpret_cast<RASDIALPARAMS*>(lParam), &bCancel);
 	return bCancel;
+}
+
+LRESULT qm::SyncDialog::onSelectDialupEntry(WPARAM wParam, LPARAM lParam)
+{
+	DECLARE_QSTATUS();
+	
+	SelectDialupEntryData* pData =
+		reinterpret_cast<SelectDialupEntryData*>(lParam);
+	
+	SelectDialupEntryDialog dialog(pProfile_, &status);
+	CHECK_QSTATUS_VALUE(1);
+	int nRet = 0;
+	status = dialog.doModal(getHandle(), 0, &nRet);
+	CHECK_QSTATUS_VALUE(1);
+	
+	if (nRet == IDOK) {
+		string_ptr<WSTRING> wstrEntry(allocWString(dialog.getEntry()));
+		if (!wstrEntry.get())
+			return 1;
+		pData->wstrEntry_ = wstrEntry.release();
+	}
+	
+	return 0;
 }
 
 LRESULT qm::SyncDialog::onCancel()
@@ -679,7 +703,11 @@ QSTATUS qm::SyncStatusWindow::selectDialupEntry(WSTRING* pwstrEntry)
 	
 	DECLARE_QSTATUS();
 	
-	// TODO
+	SyncDialog::SelectDialupEntryData data = { 0 };
+	if (pSyncDialog_->sendMessage(SyncDialog::WM_SYNCDIALOG_SELECTDIALUPENTRY,
+		0, reinterpret_cast<LPARAM>(&data)) != 0)
+		return QSTATUS_FAIL;
+	*pwstrEntry = data.wstrEntry_;
 	
 	return QSTATUS_SUCCESS;
 }

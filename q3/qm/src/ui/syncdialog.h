@@ -67,7 +67,14 @@ class SyncDialog :
 public:
 	enum {
 		WM_SYNCDIALOG_ENABLECANCEL		= WM_APP + 1001,
-		WM_SYNCDIALOG_SHOWDIALUPDIALOG	= WM_APP + 1002
+		WM_SYNCDIALOG_SHOWDIALUPDIALOG	= WM_APP + 1002,
+		WM_SYNCDIALOG_SELECTDIALUPENTRY	= WM_APP + 1003
+	};
+
+public:
+	struct SelectDialupEntryData
+	{
+		qs::WSTRING wstrEntry_;
 	};
 
 public:
@@ -100,6 +107,7 @@ protected:
 	LRESULT onSize(UINT nFlags, int cx, int cy);
 	LRESULT onEnableCancel(WPARAM wParam, LPARAM lParam);
 	LRESULT onShowDialupDialog(WPARAM wParam, LPARAM lParam);
+	LRESULT onSelectDialupEntry(WPARAM wParam, LPARAM lParam);
 
 private:
 	LRESULT onCancel();
