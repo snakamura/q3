@@ -2260,7 +2260,7 @@ qm::FileOfflineAction::~FileOfflineAction()
 
 void qm::FileOfflineAction::invoke(const ActionEvent& event)
 {
-	pDocument_->setOffline(!pDocument_->isOffline());
+	toggleOffline(pDocument_, pSyncManager_);
 }
 
 bool qm::FileOfflineAction::isEnabled(const ActionEvent& event)
@@ -2271,6 +2271,13 @@ bool qm::FileOfflineAction::isEnabled(const ActionEvent& event)
 bool qm::FileOfflineAction::isChecked(const ActionEvent& event)
 {
 	return pDocument_->isOffline();
+}
+
+void qm::FileOfflineAction::toggleOffline(Document* pDocument,
+										  SyncManager* pSyncManager)
+{
+	if (!pSyncManager->isSyncing())
+		pDocument->setOffline(!pDocument->isOffline());
 }
 
 

@@ -162,6 +162,7 @@ public:
 	MainWindowStatusBar(Document* pDocument,
 						ViewModelManager* pViewModelManager,
 						FolderModel* pFolderModel,
+						SyncManager* pSyncManager,
 						MessageWindow* pMessageWindow,
 						EncodingModel* pEncodingModel,
 						int nOffset,
@@ -172,6 +173,15 @@ public:
 
 public:
 	void updateListParts(const WCHAR* pwszText);
+
+public:
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
+
+protected:
+	LRESULT onLButtonDown(UINT nFlags,
+						  const POINT& pt);
 
 protected:
 	virtual HMENU getMenu(int nPart);
@@ -187,6 +197,7 @@ private:
 	Document* pDocument_;
 	ViewModelManager* pViewModelManager_;
 	FolderModel* pFolderModel_;
+	SyncManager* pSyncManager_;
 	FilterMenu* pFilterMenu_;
 	unsigned int nCount_;
 	unsigned int nUnseenCount_;

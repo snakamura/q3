@@ -1262,6 +1262,10 @@ public:
 	virtual bool isEnabled(const qs::ActionEvent& event);
 	virtual bool isChecked(const qs::ActionEvent& event);
 
+public:
+	static void toggleOffline(Document* pDocument,
+							  SyncManager* pSyncManager);
+
 private:
 	FileOfflineAction(const FileOfflineAction&);
 	FileOfflineAction& operator=(const FileOfflineAction&);
