@@ -525,7 +525,8 @@ class QSEXPORTCLASS AddressParser : public FieldParser
 {
 public:
 	enum Flag {
-		FLAG_INGROUP	= 0x01
+		FLAG_DISALLOWGROUP	= 0x01,
+		FLAG_INGROUP		= 0x03,
 	};
 
 private:
@@ -609,8 +610,9 @@ class QSEXPORTCLASS AddressListParser : public FieldParser
 {
 public:
 	enum Flag{
-		FLAG_SINGLEFIELD		= 0x01,
-		FLAG_GROUP				= 0x02
+		FLAG_SINGLEFIELD	= 0x01,
+		FLAG_DISALLOWGROUP	= 0x02,
+		FLAG_GROUP			= 0x06
 	};
 
 public:

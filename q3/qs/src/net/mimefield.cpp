@@ -345,6 +345,8 @@ QSTATUS qs::AddrSpecParser::parseAddrSpec(const Part& part, Tokenizer& t,
 		case S_SUBDOMAIN:
 			switch (token) {
 			case Tokenizer::T_END:
+				if (type == TYPE_INGROUP)
+					return FieldParser::parseError();
 				state = S_END;
 				break;
 			case Tokenizer::T_SPECIAL:
@@ -2474,6 +2476,7 @@ QSTATUS qs::AddressParser::parseAddress(const Part& part,
 	if (pbEnd)
 		*pbEnd = false;
 	
+	bool bDisallowGroup = (nFlags_ & FLAG_DISALLOWGROUP) != 0;
 	bool bInGroup = (nFlags_ & FLAG_INGROUP) != 0;
 	State state = S_BEGIN;
 	string_ptr<STRING> strComment;
@@ -2511,6 +2514,8 @@ QSTATUS qs::AddressParser::parseAddress(const Part& part,
 		case S_BEGIN:
 			switch (token) {
 			case Tokenizer::T_END:
+				if (bInGroup)
+					return parseError();
 				state = S_END;
 				break;
 			case Tokenizer::T_SPECIAL:
@@ -2552,7 +2557,7 @@ QSTATUS qs::AddressParser::parseAddress(const Part& part,
 				else if (*strToken.get() == '<') {
 					state = S_LEFTANGLE;
 				}
-				else if (*strToken.get() == ':' && !bInGroup) {
+				else if (*strToken.get() == ':' && !bDisallowGroup) {
 					status = newQsObject(AddressListParser::FLAG_GROUP, &pGroup_);
 					CHECK_QSTATUS();
 					status = pGroup_->parseAddressList(part, t, pField);
@@ -2619,7 +2624,7 @@ QSTATUS qs::AddressParser::parseAddress(const Part& part,
 				strToken.release();
 				break;
 			case Tokenizer::T_END:
-				if (part.isOption(Part::O_ALLOW_ADDRESS_WITHOUT_DOMAIN)) {
+				if (!bInGroup && part.isOption(Part::O_ALLOW_ADDRESS_WITHOUT_DOMAIN)) {
 					string_ptr<STRING> strMailbox;
 					status = getMailboxFromPhrases(phrases,
 						part.isOption(Part::O_ALLOW_INVALID_PERIOD_IN_LOCALPART),
@@ -2680,6 +2685,8 @@ QSTATUS qs::AddressParser::parseAddress(const Part& part,
 			break;
 		case S_RIGHTANGLE:
 			if (token == Tokenizer::T_END) {
+				if (bInGroup)
+					return parseError();
 			}
 			else if (token == Tokenizer::T_SPECIAL) {
 				if (*strToken.get() == ',') {
@@ -3150,6 +3157,8 @@ QSTATUS qs::AddressListParser::parseAddressList(
 	*pField = Part::FIELD_ERROR;
 	
 	unsigned int nFlags = 0;
+	if (nFlags_ & FLAG_DISALLOWGROUP)
+		nFlags |= AddressParser::FLAG_DISALLOWGROUP;
 	if (nFlags_ & FLAG_GROUP)
 		nFlags |= AddressParser::FLAG_INGROUP;
 	
