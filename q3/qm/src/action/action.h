@@ -1253,6 +1253,9 @@ public:
 	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
+	bool deleteFolder(Folder* pFolder) const;
+
+private:
 	FolderDeleteAction(const FolderDeleteAction&);
 	FolderDeleteAction& operator=(const FolderDeleteAction&);
 

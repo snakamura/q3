@@ -2396,28 +2396,31 @@ void qm::FolderDeleteAction::invoke(const ActionEvent& event)
 		return;
 	
 	if (l.size() == 1) {
-		Folder* pFolder = l[0];
-		Account* pAccount = pFolder->getAccount();
-		if (pFolderModel_->getCurrentFolder() == pFolder) {
-			Folder* pParent = pFolder->getParentFolder();
-			if (pParent)
-				pFolderModel_->setCurrent(0, pParent, false);
-			else
-				pFolderModel_->setCurrent(pAccount, 0, false);
-		}
-		if (!pAccount->removeFolder(pFolder)) {
+		if (!deleteFolder(l[0])) {
 			ActionUtil::error(hwnd_, IDS_ERROR_DELETEFOLDER);
 			return;
 		}
 	}
 	else {
-		std::sort(l.begin(), l.end(), std::not2(FolderLess()));
+		std::sort(l.begin(), l.end(), FolderLess());
+		
+		Folder* pPrevious = 0;
+		for (Account::FolderList::iterator it = l.begin(); it != l.end(); ) {
+			Folder* pFolder = *it;
+			if (pPrevious && pPrevious->isAncestorOf(pFolder)) {
+				it = l.erase(it);
+			}
+			else {
+				pPrevious = pFolder;
+				++it;
+			}
+		}
+		
+		Account* pAccount = pFolderModel_->getCurrentAccount();
 		
 		for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 			Folder* pFolder = *it;
-			Account* pAccount = pFolder->getAccount();
-			assert(pFolderModel_->getCurrentAccount() == pAccount);
-			if (!pAccount->removeFolder(pFolder)) {
+			if (!deleteFolder(pFolder)) {
 				ActionUtil::error(hwnd_, IDS_ERROR_DELETEFOLDER);
 				return;
 			}
@@ -2428,6 +2431,29 @@ void qm::FolderDeleteAction::invoke(const ActionEvent& event)
 bool qm::FolderDeleteAction::isEnabled(const ActionEvent& event)
 {
 	return pFolderSelectionModel_->hasSelectedFolder();
+}
+
+bool qm::FolderDeleteAction::deleteFolder(Folder* pFolder) const
+{
+	Account* pAccount = pFolder->getAccount();
+	
+	Folder* pTrash = pAccount->getFolderByFlag(Folder::FLAG_TRASHBOX);
+	if (pTrash &&
+		!pTrash->isAncestorOf(pFolder) &&
+		!pFolder->isAncestorOf(pTrash) &&
+		!pTrash->isFlag(Folder::FLAG_NOINFERIORS)) {
+		return pAccount->moveFolder(pFolder, pTrash);
+	}
+	else {
+		if (pFolderModel_->getCurrentFolder() == pFolder) {
+			Folder* pParent = pFolder->getParentFolder();
+			if (pParent)
+				pFolderModel_->setCurrent(0, pParent, false);
+			else
+				pFolderModel_->setCurrent(pAccount, 0, false);
+		}
+		return pAccount->removeFolder(pFolder);
+	}
 }
 
 
@@ -2530,6 +2556,26 @@ void qm::FolderEmptyTrashAction::invoke(const ActionEvent& event)
 	
 	Account* pAccount = pTrash->getAccount();
 	Lock<Account> lock(*pAccount);
+	
+	const Account::FolderList& l = pAccount->getFolders();
+	Account::FolderList listChildren;
+	bool bSelected = false;
+	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		Folder* pFolder = *it;
+		if (pFolder->getParentFolder() == pTrash) {
+			listChildren.push_back(pFolder);
+			if (pFolderModel_->getCurrentFolder() == pFolder)
+				bSelected = true;
+		}
+	}
+	if (bSelected)
+		pFolderModel_->setCurrent(0, pTrash, false);
+	for (Account::FolderList::const_iterator it = listChildren.begin(); it != listChildren.end(); ++it) {
+		if (!pAccount->removeFolder(*it)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_EMPTYTRASH);
+			return;
+		}
+	}
 	
 	if (pTrash->isFlag(Folder::FLAG_LOCAL)) {
 		MessageHolderList l(pTrash->getMessages());
