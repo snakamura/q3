@@ -1040,7 +1040,7 @@ bool qm::WindowsAddressBook::load(AddressBook* pAddressBook)
 	ULONG props[] = {
 		PR_ENTRYID,
 		PR_DISPLAY_NAME,
-		PR_EMAIL_ADDRESS
+		PR_CONTACT_EMAIL_ADDRESSES
 	};
 	SizedSPropTagArray(countof(props), columns) = {
 		countof(props)
@@ -1095,22 +1095,35 @@ bool qm::WindowsAddressBook::load(AddressBook* pAddressBook)
 									pEntry->setName(wstrName.get());
 							}
 							break;
-						case PROP_ID(PR_EMAIL_ADDRESS):
+						case PROP_ID(PR_CONTACT_EMAIL_ADDRESSES):
 							{
-								wstring_ptr wstrAddress;
-								if (PROP_TYPE(nTag) == PT_STRING8)
-									wstrAddress = mbs2wcs(pValue->Value.lpszA);
-								else if (PROP_TYPE(nTag) == PT_UNICODE)
-									wstrAddress = allocWString(pValue->Value.lpszW);
-								if (wstrAddress.get()) {
-									std::auto_ptr<AddressBookAddress> pAddress(
-										new AddressBookAddress(pEntry.get(),
-											wstrAddress.get(),
-											static_cast<const WCHAR*>(0),
-											AddressBookAddress::CategoryList(),
-											static_cast<const WCHAR*>(0),
-											static_cast<const WCHAR*>(0), false));
-									pEntry->addAddress(pAddress);
+								if (PROP_TYPE(nTag) == PT_MV_STRING8) {
+									SLPSTRArray* pArray = &pValue->Value.MVszA;
+									for (unsigned int n = 0; n < pArray->cValues; ++n) {
+										wstring_ptr wstrAddress(mbs2wcs(*(pArray->lppszA + n)));
+										std::auto_ptr<AddressBookAddress> pAddress(
+											new AddressBookAddress(pEntry.get(),
+												wstrAddress.get(),
+												static_cast<const WCHAR*>(0),
+												AddressBookAddress::CategoryList(),
+												static_cast<const WCHAR*>(0),
+												static_cast<const WCHAR*>(0), false));
+										pEntry->addAddress(pAddress);
+									}
+								}
+								else if (PROP_TYPE(nTag) == PT_MV_UNICODE) {
+									SWStringArray* pArray = &pValue->Value.MVszW;
+									for (unsigned int n = 0; n < pArray->cValues; ++n) {
+										const WCHAR* pwszAddress = *(pArray->lppszW + n);
+										std::auto_ptr<AddressBookAddress> pAddress(
+											new AddressBookAddress(pEntry.get(),
+												pwszAddress,
+												static_cast<const WCHAR*>(0),
+												AddressBookAddress::CategoryList(),
+												static_cast<const WCHAR*>(0),
+												static_cast<const WCHAR*>(0), false));
+										pEntry->addAddress(pAddress);
+									}
 								}
 							}
 							break;
