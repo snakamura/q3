@@ -1016,17 +1016,24 @@ void qs::TextWindowImpl::scrollVertical(int nLine)
 void qs::TextWindowImpl::updateScrollBar()
 {
 	if (bShowVerticalScrollBar_) {
-		unsigned int nLineInWindow = getLineInWindow();
 		SCROLLINFO si = {
 			sizeof(si),
-			SIF_PAGE | SIF_POS | SIF_RANGE | SIF_DISABLENOSCROLL,
-			0,
-			listLine_.size() - 1,
-			nLineInWindow,
-			scrollPos_.nLine_,
-			scrollPos_.nLine_
+			SIF_PAGE | SIF_POS | SIF_RANGE
 		};
-		pThis_->setScrollInfo(SB_VERT, si, true);
+		pThis_->getScrollInfo(SB_VERT, &si);
+		
+		unsigned int nPage = getLineInWindow();
+		if (nPage > listLine_.size())
+			nPage = listLine_.size();
+		if (si.nMin != 0 || si.nMax != static_cast<int>(listLine_.size() - 1) ||
+			si.nPage != nPage || si.nPos != scrollPos_.nLine_) {
+			si.fMask = SIF_PAGE | SIF_POS | SIF_RANGE | SIF_DISABLENOSCROLL;
+			si.nMin = 0;
+			si.nMax = listLine_.size() - 1;
+			si.nPage = nPage;
+			si.nPos = scrollPos_.nLine_;
+			pThis_->setScrollInfo(SB_VERT, si, true);
+		}
 	}
 	
 	RECT rect;
@@ -1038,17 +1045,23 @@ void qs::TextWindowImpl::updateScrollBar()
 	else
 		nWidth = rect.right - rect.left;
 	if (bShowHorizontalScrollBar_) {
-		
+		unsigned int nPage = rect.right - rect.left;
+		if (nPage > nWidth)
+			nPage = nWidth;
 		SCROLLINFO si = {
 			sizeof(si),
-			SIF_PAGE | SIF_POS | SIF_RANGE | SIF_DISABLENOSCROLL,
-			0,
-			nWidth - 1,
-			rect.right - rect.left,
-			scrollPos_.nPos_,
-			scrollPos_.nPos_
+			SIF_PAGE | SIF_POS | SIF_RANGE
 		};
-		pThis_->setScrollInfo(SB_HORZ, si, true);
+		pThis_->getScrollInfo(SB_HORZ, &si);
+		if (si.nMin != 0 || si.nMax != nWidth - 1 ||
+			si.nPage != nPage || si.nPos != scrollPos_.nPos_) {
+			si.fMask = SIF_PAGE | SIF_POS | SIF_RANGE | SIF_DISABLENOSCROLL;
+			si.nMin = 0;
+			si.nMax = nWidth - 1;
+			si.nPage = rect.right - rect.left;
+			si.nPos = scrollPos_.nPos_;
+			pThis_->setScrollInfo(SB_HORZ, si, true);
+		}
 	}
 	bHorizontalScrollable_ = nWidth > rect.right - rect.left;
 }
