@@ -664,7 +664,7 @@ private:
 class FindDialog : public DefaultDialog
 {
 public:
-	FindDialog(qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	FindDialog(qs::Profile* pProfile, bool bSupportRegex, qs::QSTATUS* pstatus);
 	virtual ~FindDialog();
 
 public:
@@ -697,6 +697,7 @@ private:
 
 private:
 	qs::Profile* pProfile_;
+	bool bSupportRegex_;
 	qs::WSTRING wstrFind_;
 	bool bMatchCase_;
 	bool bRegex_;

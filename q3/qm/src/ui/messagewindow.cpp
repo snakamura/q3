@@ -564,6 +564,11 @@ QSTATUS qm::MessageWindow::find(const WCHAR* pwszFind,
 	return pImpl_->pMessageViewWindow_->find(pwszFind, nFlags, pbFound);
 }
 
+unsigned int qm::MessageWindow::getSupportedFindFlags() const
+{
+	return pImpl_->pMessageViewWindow_->getSupportedFindFlags();
+}
+
 QSTATUS qm::MessageWindow::openLink()
 {
 	return pImpl_->pMessageViewWindow_->openLink();

@@ -77,6 +77,7 @@ public:
 	virtual qs::QSTATUS setSelectMode(bool bSelectMode) = 0;
 	virtual qs::QSTATUS find(const WCHAR* pwszFind,
 		unsigned int nFlags, bool* pbFound) = 0;
+	virtual unsigned int getSupportedFindFlags() const = 0;
 	virtual qs::QSTATUS openLink() = 0;
 };
 
@@ -156,6 +157,7 @@ public:
 	virtual qs::QSTATUS setSelectMode(bool bSelectMode);
 	virtual qs::QSTATUS find(const WCHAR* pwszFind,
 		unsigned int nFlags, bool* pbFound);
+	virtual unsigned int getSupportedFindFlags() const;
 	virtual qs::QSTATUS openLink();
 
 public:
@@ -212,6 +214,7 @@ public:
 	virtual qs::QSTATUS setSelectMode(bool bSelectMode);
 	virtual qs::QSTATUS find(const WCHAR* pwszFind,
 		unsigned int nFlags, bool* pbFound);
+	virtual unsigned int getSupportedFindFlags() const;
 	virtual qs::QSTATUS openLink();
 
 public:

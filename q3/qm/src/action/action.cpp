@@ -666,7 +666,8 @@ QSTATUS qm::EditFindAction::invoke(const ActionEvent& event)
 	
 	bool bFound = false;
 	if (type_ == TYPE_NORMAL) {
-		FindDialog dialog(pProfile_, &status);
+		bool bSupportRegex = (pMessageWindow_->getSupportedFindFlags() & MessageWindow::FIND_REGEX) != 0;
+		FindDialog dialog(pProfile_, bSupportRegex, &status);
 		CHECK_QSTATUS();
 		int nRet = 0;
 		status = dialog.doModal(hwndFrame, 0, &nRet);

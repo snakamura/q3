@@ -144,6 +144,7 @@ public:
 	bool isSelectMode() const;
 	qs::QSTATUS setSelectMode(bool bSelectMode);
 	qs::QSTATUS find(const WCHAR* pwszFind, unsigned int nFlags, bool* pbFound);
+	unsigned int getSupportedFindFlags() const;
 	qs::QSTATUS openLink();
 	MessageWindowItem* getFocusedItem() const;
 	

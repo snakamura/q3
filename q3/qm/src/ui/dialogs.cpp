@@ -2738,9 +2738,10 @@ void qm::ExportDialog::updateState()
  *
  */
 
-qm::FindDialog::FindDialog(Profile* pProfile, QSTATUS* pstatus) :
+qm::FindDialog::FindDialog(Profile* pProfile, bool bSupportRegex, QSTATUS* pstatus) :
 	DefaultDialog(IDD_FIND, pstatus),
 	pProfile_(pProfile),
+	bSupportRegex_(bSupportRegex),
 	wstrFind_(0),
 	bMatchCase_(false),
 	bRegex_(false),
@@ -2807,11 +2808,13 @@ LRESULT qm::FindDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	sendDlgItemMessage(IDC_MATCHCASE, BM_SETCHECK,
 		nMatchCase ? BST_CHECKED : BST_UNCHECKED);
 	
-	int nRegex = 0;
-	status = pProfile_->getInt(L"Find", L"Regex", 0, &nRegex);
-	CHECK_QSTATUS();
-	sendDlgItemMessage(IDC_REGEX, BM_SETCHECK,
-		nRegex ? BST_CHECKED : BST_UNCHECKED);
+	if (bSupportRegex_) {
+		int nRegex = 0;
+		status = pProfile_->getInt(L"Find", L"Regex", 0, &nRegex);
+		CHECK_QSTATUS();
+		sendDlgItemMessage(IDC_REGEX, BM_SETCHECK,
+			nRegex ? BST_CHECKED : BST_UNCHECKED);
+	}
 	
 	updateState();
 	
@@ -2866,7 +2869,9 @@ LRESULT qm::FindDialog::onRegexChange()
 
 void qm::FindDialog::updateState()
 {
-	bool bRegex = sendDlgItemMessage(IDC_REGEX, BM_GETCHECK) == BST_CHECKED;
+	Window(getDlgItem(IDC_REGEX)).enableWindow(bSupportRegex_);
+	bool bRegex = bSupportRegex_ &&
+		sendDlgItemMessage(IDC_REGEX, BM_GETCHECK) == BST_CHECKED;
 	Window(getDlgItem(IDC_MATCHCASE)).enableWindow(!bRegex);
 }
 

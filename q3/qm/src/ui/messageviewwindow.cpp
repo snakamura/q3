@@ -343,6 +343,13 @@ QSTATUS qm::TextMessageViewWindow::find(const WCHAR* pwszFind,
 	return TextWindow::find(pwszFind, nFindFlags, pbFound);
 }
 
+unsigned int qm::TextMessageViewWindow::getSupportedFindFlags() const
+{
+	return MessageWindow::FIND_MATCHCASE |
+		MessageWindow::FIND_REGEX |
+		MessageWindow::FIND_PREVIOUS;
+}
+
 QSTATUS qm::TextMessageViewWindow::openLink()
 {
 	return TextWindow::openLink();
@@ -790,6 +797,11 @@ QSTATUS qm::HtmlMessageViewWindow::find(const WCHAR* pwszFind,
 	*pbFound = bFound == VARIANT_TRUE;
 	
 	return QSTATUS_SUCCESS;
+}
+
+unsigned int qm::HtmlMessageViewWindow::getSupportedFindFlags() const
+{
+	return MessageWindow::FIND_MATCHCASE | MessageWindow::FIND_PREVIOUS;
 }
 
 QSTATUS qm::HtmlMessageViewWindow::openLink()

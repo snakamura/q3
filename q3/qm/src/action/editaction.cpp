@@ -222,7 +222,7 @@ QSTATUS qm::EditEditFindAction::invoke(const ActionEvent& event)
 	
 	bool bFound = false;
 	if (type_ == TYPE_NORMAL) {
-		FindDialog dialog(pProfile_, &status);
+		FindDialog dialog(pProfile_, true, &status);
 		CHECK_QSTATUS();
 		int nRet = 0;
 		status = dialog.doModal(hwndFrame, 0, &nRet);
