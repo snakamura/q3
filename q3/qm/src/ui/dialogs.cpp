@@ -466,7 +466,7 @@ QSTATUS qm::AccountDialog::update()
 		W2T(pAccount->getName(), ptszName);
 		TVINSERTSTRUCT tis = {
 			TVI_ROOT,
-			TVI_LAST,
+			TVI_SORT,
 			{
 				TVIF_TEXT | TVIF_PARAM,
 				0,
@@ -493,7 +493,7 @@ QSTATUS qm::AccountDialog::update()
 			W2T(pwszName, ptszName);
 			TVINSERTSTRUCT tis = {
 				hItem,
-				TVI_LAST,
+				TVI_SORT,
 				{
 					TVIF_TEXT | TVIF_PARAM,
 					0,
