@@ -81,6 +81,24 @@ public:
 	typedef std::vector<std::pair<STRING, STRING> > FieldList;
 
 public:
+	class QSEXPORTCLASS FieldListFree
+	{
+	public:
+		FieldListFree(FieldList& l);
+		~FieldListFree();
+	
+	public:
+		void free();
+
+	private:
+		FieldListFree(const FieldListFree&);
+		FieldListFree& operator=(const FieldListFree&);
+	
+	private:
+		FieldList& l_;
+	};
+
+public:
 	Part();
 	explicit Part(unsigned int nOptions);
 	virtual ~Part();

@@ -540,23 +540,7 @@ void qs::Part::getFields(FieldList* pListField) const
 bool qs::Part::sortHeader()
 {
 	FieldList l;
-	struct Deleter
-	{
-		Deleter(Part::FieldList& l) :
-			l_(l)
-		{
-		}
-		
-		~Deleter()
-		{
-			std::for_each(l_.begin(), l_.end(),
-				unary_compose_fx_gx(
-					string_free<STRING>(),
-					string_free<STRING>()));
-		}
-		
-		Part::FieldList& l_;
-	} deleter(l);
+	FieldListFree free(l);
 	getFields(&l);
 	std::sort(l.begin(), l.end(), FieldComparator());
 	
@@ -1024,4 +1008,30 @@ CHAR* qs::Part::getFieldEndPos(const CHAR* pBegin) const
 	assert(*p != ' ' && *p != '\t');
 	
 	return const_cast<CHAR*>(p);
+}
+
+
+/****************************************************************************
+ *
+ * Part::FieldListFree
+ *
+ */
+
+qs::Part::FieldListFree::FieldListFree(FieldList& l) :
+	l_(l)
+{
+}
+
+qs::Part::FieldListFree::~FieldListFree()
+{
+	free();
+}
+
+void qs::Part::FieldListFree::free()
+{
+	std::for_each(l_.begin(), l_.end(),
+		unary_compose_fx_gx(
+			string_free<STRING>(),
+			string_free<STRING>()));
+	l_.clear();
 }

@@ -2241,29 +2241,7 @@ bool qm::MessageCombineAction::combine(const MessageHolderList& l,
 	StringBuffer<STRING> buf;
 	
 	Part::FieldList listField;
-	struct Deleter
-	{
-		Deleter(Part::FieldList& l) :
-			l_(l)
-		{
-		}
-		
-		~Deleter()
-		{
-			clear();
-		}
-		
-		void clear()
-		{
-			for (Part::FieldList::iterator it = l_.begin(); it != l_.end(); ++it) {
-				freeString((*it).first);
-				freeString((*it).second);
-			}
-			l_.clear();
-		}
-		
-		Part::FieldList& l_;
-	} deleter(listField);
+	Part::FieldListFree free(listField);
 	
 	for (MessageHolderList::const_iterator it = listMessageHolder.begin(); it != listMessageHolder.end(); ++it) {
 		MessageHolder* pmh = *it;
@@ -2289,7 +2267,7 @@ bool qm::MessageCombineAction::combine(const MessageHolderList& l,
 		}
 	}
 	
-	deleter.clear();
+	free.free();
 	pMessage->getFields(&listField);
 	for (Part::FieldList::const_iterator itF = listField.begin(); itF != listField.end(); ++itF) {
 		if (isSpecialField((*itF).first)) {
