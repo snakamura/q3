@@ -85,6 +85,9 @@ protected:
 	LRESULT onQueryEndSession(int nOption);
 #endif
 	LRESULT onSize(UINT nFlags, int cx, int cy);
+	LRESULT onItemAdded(WPARAM wParam, LPARAM lParam);
+	LRESULT onItemRemoved(WPARAM wParam, LPARAM lParam);
+	LRESULT onItemChanged(WPARAM wParam, LPARAM lParam);
 
 private:
 	MainWindow(const MainWindow&);

@@ -101,6 +101,12 @@ public:
 		ID_COMMANDBARBUTTON		= 1012,
 		ID_SYNCNOTIFICATION		= 1013
 	};
+	
+	enum {
+		WM_MAINWINDOW_ITEMADDED		= WM_APP + 1101,
+		WM_MAINWINDOW_ITEMREMOVED	= WM_APP + 1102,
+		WM_MAINWINDOW_ITEMCHANGED	= WM_APP + 1103
+	};
 
 public:
 	class MessageSelectionModelImpl : public MessageSelectionModel
@@ -132,6 +138,7 @@ public:
 	QSTATUS initActions();
 	QSTATUS layoutChildren();
 	QSTATUS layoutChildren(int cx, int cy);
+	QSTATUS updateStatusBar();
 
 public:
 	virtual qs::QSTATUS preModalDialog(HWND hwndParent);
@@ -166,9 +173,6 @@ public:
 
 public:
 	virtual qs::QSTATUS offlineStatusChanged(const DocumentEvent& event);
-
-private:
-	qs::QSTATUS updateStatusBar(const ViewModel* pViewModel);
 
 public:
 	MainWindow* pThis_;
@@ -841,6 +845,66 @@ QSTATUS qm::MainWindowImpl::layoutChildren(int cx, int cy)
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qm::MainWindowImpl::updateStatusBar()
+{
+	assert(::GetCurrentThreadId() == ::GetWindowThreadProcessId(pThis_->getHandle(), 0));
+	
+	DECLARE_QSTATUS();
+	
+	if (bShowStatusBar_) {
+		ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
+		
+		if (pViewModel) {
+			Lock<ViewModel> lock(*pViewModel);
+			
+			HINSTANCE hInst = Application::getApplication().getResourceHandle();
+			string_ptr<WSTRING> wstrTemplate;
+			status = loadString(hInst, IDS_VIEWMODELSTATUSTEMPLATE, &wstrTemplate);
+			CHECK_QSTATUS();
+			WCHAR wsz[256];
+			swprintf(wsz, wstrTemplate.get(), pViewModel->getCount(),
+				pViewModel->getUnseenCount(), pViewModel->getSelectedCount());
+			status = pStatusBar_->setText(0, wsz);
+			CHECK_QSTATUS();
+			
+			UINT nOnlineId = pDocument_->isOffline() ? IDS_OFFLINE : IDS_ONLINE;
+			string_ptr<WSTRING> wstrOnline;
+			status = loadString(hInst, nOnlineId, &wstrOnline);
+			CHECK_QSTATUS();
+			status = pStatusBar_->setText(1, wstrOnline.get());
+			CHECK_QSTATUS();
+			
+			const WCHAR* pwszFilterName = 0;
+			UINT nFilterId = 0;
+			const Filter* pFilter = pViewModel->getFilter();
+			if (pFilter) {
+				pwszFilterName = pFilter->getName();
+				if (!*pwszFilterName)
+					nFilterId = IDS_CUSTOM;
+			}
+			else {
+				nFilterId = IDS_NONE;
+			}
+			string_ptr<WSTRING> wstrFilterName;
+			if (nFilterId != 0) {
+				status = loadString(hInst, nFilterId, &wstrFilterName);
+				CHECK_QSTATUS();
+				pwszFilterName = wstrFilterName.get();
+			}
+			status = pStatusBar_->setText(2, pwszFilterName);
+			CHECK_QSTATUS();
+		}
+		else {
+			for (int n = 0; n < 2; ++n) {
+				status = pStatusBar_->setText(n, L"");
+				CHECK_QSTATUS();
+			}
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::MainWindowImpl::preModalDialog(HWND hwndParent)
 {
 	DECLARE_QSTATUS();
@@ -1010,7 +1074,7 @@ QSTATUS qm::MainWindowImpl::viewModelSelected(
 		CHECK_QSTATUS();
 	}
 	
-	status = updateStatusBar(pNewViewModel);
+	status = updateStatusBar();
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
@@ -1018,88 +1082,35 @@ QSTATUS qm::MainWindowImpl::viewModelSelected(
 
 QSTATUS qm::MainWindowImpl::itemAdded(const ViewModelEvent& event)
 {
-	return updateStatusBar(event.getViewModel());
+	pThis_->postMessage(WM_MAINWINDOW_ITEMADDED);
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::MainWindowImpl::itemRemoved(const ViewModelEvent& event)
 {
-	return updateStatusBar(event.getViewModel());
+	pThis_->postMessage(WM_MAINWINDOW_ITEMREMOVED);
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::MainWindowImpl::itemChanged(const ViewModelEvent& event)
 {
-	return updateStatusBar(event.getViewModel());
+	pThis_->postMessage(WM_MAINWINDOW_ITEMCHANGED);
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::MainWindowImpl::itemStateChanged(const ViewModelEvent& event)
 {
-	return updateStatusBar(event.getViewModel());
+	return updateStatusBar();
 }
 
 QSTATUS qm::MainWindowImpl::updated(const ViewModelEvent& event)
 {
-	return updateStatusBar(event.getViewModel());
+	return updateStatusBar();
 }
 
 QSTATUS qm::MainWindowImpl::offlineStatusChanged(const DocumentEvent& event)
 {
-	return updateStatusBar(pViewModelManager_->getCurrentViewModel());
-}
-
-QSTATUS qm::MainWindowImpl::updateStatusBar(const ViewModel* pViewModel)
-{
-	DECLARE_QSTATUS();
-	
-	if (bShowStatusBar_) {
-		if (pViewModel) {
-			Lock<ViewModel> lock(*pViewModel);
-			
-			HINSTANCE hInst = Application::getApplication().getResourceHandle();
-			string_ptr<WSTRING> wstrTemplate;
-			status = loadString(hInst, IDS_VIEWMODELSTATUSTEMPLATE, &wstrTemplate);
-			CHECK_QSTATUS();
-			WCHAR wsz[256];
-			swprintf(wsz, wstrTemplate.get(), pViewModel->getCount(),
-				pViewModel->getUnseenCount(), pViewModel->getSelectedCount());
-			status = pStatusBar_->setText(0, wsz);
-			CHECK_QSTATUS();
-			
-			UINT nOnlineId = pDocument_->isOffline() ? IDS_OFFLINE : IDS_ONLINE;
-			string_ptr<WSTRING> wstrOnline;
-			status = loadString(hInst, nOnlineId, &wstrOnline);
-			CHECK_QSTATUS();
-			status = pStatusBar_->setText(1, wstrOnline.get());
-			CHECK_QSTATUS();
-			
-			const WCHAR* pwszFilterName = 0;
-			UINT nFilterId = 0;
-			const Filter* pFilter = pViewModel->getFilter();
-			if (pFilter) {
-				pwszFilterName = pFilter->getName();
-				if (!*pwszFilterName)
-					nFilterId = IDS_CUSTOM;
-			}
-			else {
-				nFilterId = IDS_NONE;
-			}
-			string_ptr<WSTRING> wstrFilterName;
-			if (nFilterId != 0) {
-				status = loadString(hInst, nFilterId, &wstrFilterName);
-				CHECK_QSTATUS();
-				pwszFilterName = wstrFilterName.get();
-			}
-			status = pStatusBar_->setText(2, pwszFilterName);
-			CHECK_QSTATUS();
-		}
-		else {
-			for (int n = 0; n < 2; ++n) {
-				status = pStatusBar_->setText(n, L"");
-				CHECK_QSTATUS();
-			}
-		}
-	}
-	
-	return QSTATUS_SUCCESS;
+	return updateStatusBar();
 }
 
 
@@ -1736,6 +1747,9 @@ LRESULT qm::MainWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		HANDLE_QUERYENDSESSION()
 #endif
 		HANDLE_SIZE()
+		HANDLE_MESSAGE(MainWindowImpl::WM_MAINWINDOW_ITEMADDED, onItemAdded)
+		HANDLE_MESSAGE(MainWindowImpl::WM_MAINWINDOW_ITEMREMOVED, onItemRemoved)
+		HANDLE_MESSAGE(MainWindowImpl::WM_MAINWINDOW_ITEMCHANGED, onItemChanged)
 	END_MESSAGE_HANDLER()
 	return FrameWindow::windowProc(uMsg, wParam, lParam);
 }
@@ -2202,6 +2216,24 @@ LRESULT qm::MainWindow::onSize(UINT nFlags, int cx, int cy)
 		(nFlags == SIZE_RESTORED || nFlags == SIZE_MAXIMIZED))
 		pImpl_->layoutChildren(cx, cy);
 	return FrameWindow::onSize(nFlags, cx, cy);
+}
+
+LRESULT qm::MainWindow::onItemAdded(WPARAM wParam, LPARAM lParam)
+{
+	pImpl_->updateStatusBar();
+	return 0;
+}
+
+LRESULT qm::MainWindow::onItemRemoved(WPARAM wParam, LPARAM lParam)
+{
+	pImpl_->updateStatusBar();
+	return 0;
+}
+
+LRESULT qm::MainWindow::onItemChanged(WPARAM wParam, LPARAM lParam)
+{
+	pImpl_->updateStatusBar();
+	return 0;
 }
 
 
