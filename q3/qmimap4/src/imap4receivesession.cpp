@@ -650,7 +650,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 				break;
 			}
 			
-			if ((nFlags & MessageHolder::FLAG_SEEN) == 0)
+			if (!pAccount_->isSeen(nFlags))
 				pSessionCallback_->notifyNewMessage(pmh);
 			
 			return RESULT_PROCESSED;

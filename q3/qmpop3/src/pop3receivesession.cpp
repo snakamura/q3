@@ -294,7 +294,7 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 			if (!pmh)
 				return false;
 			
-			if ((nFlags & MessageHolder::FLAG_SEEN) == 0)
+			if (!pAccount_->isSeen(nFlags))
 				pSessionCallback_->notifyNewMessage(pmh);
 		}
 		
