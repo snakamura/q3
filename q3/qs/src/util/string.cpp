@@ -1,5 +1,5 @@
 /*
- * $Id: string.cpp,v 1.1.1.1 2003/04/29 08:07:37 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -30,12 +30,12 @@ typedef std::__sgi_alloc string_alloc;
 
 QSEXPORTPROC STRING qs::allocString(size_t nSize)
 {
-	nSize = (nSize + 1)*sizeof(CHAR);
-	void* p = string_alloc::allocate(nSize + sizeof(int));
+	nSize = (nSize + 1)*sizeof(CHAR) + sizeof(size_t);
+	void* p = string_alloc::allocate(nSize);
 	if (!p)
 		return 0;
-	*static_cast<int*>(p) = nSize;
-	return static_cast<STRING>(static_cast<char*>(p) + sizeof(int));
+	*static_cast<size_t*>(p) = nSize;
+	return static_cast<STRING>(static_cast<char*>(p) + sizeof(size_t));
 }
 
 QSEXPORTPROC STRING qs::allocString(const CHAR* psz)
@@ -70,19 +70,19 @@ QSEXPORTPROC STRING qs::reallocString(STRING str, size_t nSize)
 QSEXPORTPROC void qs::freeString(STRING str)
 {
 	if (str) {
-		void* p = reinterpret_cast<char*>(str) - sizeof(int);
-		string_alloc::deallocate(p, *static_cast<int*>(p));
+		void* p = reinterpret_cast<char*>(str) - sizeof(size_t);
+		string_alloc::deallocate(p, *static_cast<size_t*>(p));
 	}
 }
 
 QSEXPORTPROC WSTRING qs::allocWString(size_t nSize)
 {
-	nSize = (nSize + 1)*sizeof(WCHAR);
-	void* p = string_alloc::allocate(nSize + sizeof(int));
+	nSize = (nSize + 1)*sizeof(WCHAR) + sizeof(size_t);
+	void* p = string_alloc::allocate(nSize);
 	if (!p)
 		return 0;
-	*static_cast<int*>(p) = nSize;
-	return reinterpret_cast<WSTRING>(static_cast<char*>(p) + sizeof(int));
+	*static_cast<size_t*>(p) = nSize;
+	return reinterpret_cast<WSTRING>(static_cast<char*>(p) + sizeof(size_t));
 }
 
 QSEXPORTPROC WSTRING qs::allocWString(const WCHAR* pwsz)
@@ -117,8 +117,8 @@ QSEXPORTPROC WSTRING qs::reallocWString(WSTRING wstr, size_t nSize)
 QSEXPORTPROC void qs::freeWString(WSTRING wstr)
 {
 	if (wstr) {
-		void* p = reinterpret_cast<char*>(wstr) - sizeof(int);
-		string_alloc::deallocate(p, *static_cast<int*>(p));
+		void* p = reinterpret_cast<char*>(wstr) - sizeof(size_t);
+		string_alloc::deallocate(p, *static_cast<size_t*>(p));
 	}
 }
 
