@@ -775,24 +775,22 @@ Part::Field qs::UnstructuredParser::parse(const Part& part,
 	if (!strValue.get())
 		return Part::FIELD_NOTEXIST;
 	
-	wstrValue_ = decode(strValue.get(), -1, false, 0);
-	
-	if (isAscii(wstrValue_.get())) {
-		bool bRaw = part.isOption(Part::O_ALLOW_RAW_FIELD) ||
-			!part.hasField(L"MIME-Version");
-		if (bRaw) {
-			std::auto_ptr<Converter> pConverter(
-				ConverterFactory::getInstance(part.getDefaultCharset()));
-			if (!pConverter.get())
-				return Part::FIELD_ERROR;
-			
-			string_ptr strRawValue(wcs2mbs(wstrValue_.get()));
-			size_t nLen = strlen(strRawValue.get());
-			wxstring_size_ptr decoded(pConverter->decode(strRawValue.get(), &nLen));
-			if (!decoded.get())
-				return Part::FIELD_ERROR;
-			wstrValue_ = allocWString(decoded.get());
-		}
+	std::auto_ptr<Converter> pConverter;
+	if (isRawValue(strValue.get())) {
+		if (!part.hasField(L"MIME-Version"))
+			pConverter = ConverterFactory::getInstance(part.getDefaultCharset());
+		else if (part.isOption(Part::O_ALLOW_RAW_FIELD))
+			pConverter = ConverterFactory::getInstance(part.getHeaderCharset().get());
+	}
+	if (pConverter.get()) {
+		size_t nLen = strlen(strValue.get());
+		wxstring_size_ptr decoded(pConverter->decode(strValue.get(), &nLen));
+		if (!decoded.get())
+			return Part::FIELD_ERROR;
+		wstrValue_ = allocWString(decoded.get());
+	}
+	else {
+		wstrValue_ = decode(strValue.get(), -1, false, 0);
 	}
 	
 	return Part::FIELD_EXIST;
@@ -919,6 +917,16 @@ bool qs::UnstructuredParser::isLastTokenEncode(const WCHAR* pwsz, size_t nLen)
 		--p;
 		if (p == pwsz)
 			break;
+	}
+	return false;
+}
+
+bool qs::UnstructuredParser::isRawValue(const CHAR* psz)
+{
+	for (const CHAR* p = psz; *p; ++p) {
+		unsigned char c = *p;
+		if (c >= 0x80 || c == 0x1b)
+			return true;
 	}
 	return false;
 }

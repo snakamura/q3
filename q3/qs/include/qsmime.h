@@ -362,6 +362,7 @@ private:
 								   size_t nLen);
 	static bool isLastTokenEncode(const WCHAR* pwsz,
 								  size_t nLen);
+	static bool isRawValue(const CHAR* psz);
 
 private:
 	UnstructuredParser(const UnstructuredParser&);
