@@ -46,6 +46,7 @@ struct qm::DocumentImpl
 {
 	typedef std::vector<DocumentHandler*> DocumentHandlerList;
 	
+	QSTATUS setOffline(bool bOffline);
 	QSTATUS fireOfflineStatusChanged();
 	QSTATUS fireAccountListChanged(AccountListChangedEvent::Type type,
 		Account* pAccount) const;
@@ -60,9 +61,26 @@ struct qm::DocumentImpl
 	SignatureManager* pSignatureManager_;
 	AddressBook* pAddressBook_;
 	Security* pSecurity_;
-	bool bOffline_;
+	unsigned int nOnline_;
 	bool bCheckNewMail_;
 };
+
+QSTATUS qm::DocumentImpl::setOffline(bool bOffline)
+{
+	DECLARE_QSTATUS();
+	
+	Document::AccountList::iterator it = listAccount_.begin();
+	while (it != listAccount_.end()) {
+		status = (*it)->setOffline(bOffline);
+		CHECK_QSTATUS();
+		++it;
+	}
+	
+	status = fireOfflineStatusChanged();
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
 
 QSTATUS qm::DocumentImpl::fireOfflineStatusChanged()
 {
@@ -149,7 +167,7 @@ qm::Document::Document(Profile* pProfile, QSTATUS* pstatus) :
 	pImpl_->pSignatureManager_ = pSignatureManager.release();
 	pImpl_->pAddressBook_ = pAddressBook.release();
 	pImpl_->pSecurity_ = pSecurity.release();
-	pImpl_->bOffline_ = true;
+	pImpl_->nOnline_ = 0;
 	pImpl_->bCheckNewMail_ = nCheckNewMail != 0;
 }
 
@@ -480,25 +498,46 @@ const Security* qm::Document::getSecurity() const
 
 bool qm::Document::isOffline() const
 {
-	return pImpl_->bOffline_;
+	return pImpl_->nOnline_ == 0;
 }
 
 QSTATUS qm::Document::setOffline(bool bOffline)
 {
+	assert((pImpl_->nOnline_ & 0x7fffffff) == 0);
+	
 	DECLARE_QSTATUS();
 	
-	pImpl_->bOffline_ = bOffline;
+	if (bOffline)
+		pImpl_->nOnline_ &= 0x7fffffff;
+	else
+		pImpl_->nOnline_ |= 0x80000000;
 	
-	AccountList::iterator it = pImpl_->listAccount_.begin();
-	while (it != pImpl_->listAccount_.end()) {
-		status = (*it)->setOffline(bOffline);
-		CHECK_QSTATUS();
-		++it;
-	}
-	
-	status = pImpl_->fireOfflineStatusChanged();
+	status = pImpl_->setOffline(bOffline);
 	CHECK_QSTATUS();
 	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::Document::incrementInternalOnline()
+{
+	DECLARE_QSTATUS();
+	
+	if (pImpl_->nOnline_++ == 0) {
+		status = pImpl_->setOffline(false);
+		CHECK_QSTATUS();
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::Document::decrementInternalOnline()
+{
+	DECLARE_QSTATUS();
+	
+	if (--pImpl_->nOnline_ == 0) {
+		status = pImpl_->setOffline(true);
+		CHECK_QSTATUS();
+	}
 	return QSTATUS_SUCCESS;
 }
 

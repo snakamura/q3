@@ -652,11 +652,13 @@ private:
 class FileOfflineAction : public qs::AbstractAction
 {
 public:
-	FileOfflineAction(Document* pDocument, qs::QSTATUS* pstatus);
+	FileOfflineAction(Document* pDocument,
+		SyncManager* pSyncManager, qs::QSTATUS* pstatus);
 	virtual ~FileOfflineAction();
 
 public:
 	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
 	virtual qs::QSTATUS isChecked(const qs::ActionEvent& event, bool* pbChecked);
 
 private:
@@ -665,6 +667,7 @@ private:
 
 private:
 	Document* pDocument_;
+	SyncManager* pSyncManager_;
 };
 
 

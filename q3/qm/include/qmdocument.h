@@ -71,6 +71,8 @@ public:
 	
 	bool isOffline() const;
 	qs::QSTATUS setOffline(bool bOffline);
+	qs::QSTATUS incrementInternalOnline();
+	qs::QSTATUS decrementInternalOnline();
 	bool isCheckNewMail() const;
 	void setCheckNewMail(bool bCheckNewMail);
 	qs::QSTATUS save();

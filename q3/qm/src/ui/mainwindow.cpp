@@ -373,8 +373,8 @@ QSTATUS qm::MainWindowImpl::initActions()
 	status = InitAction2<FileImportAction, FolderModel*, HWND>(
 		pActionMap_, IDM_FILE_IMPORT, pFolderModel_, pThis_->getHandle());
 	CHECK_QSTATUS();
-	status = InitAction1<FileOfflineAction, Document*>(
-		pActionMap_, IDM_FILE_OFFLINE, pDocument_);
+	status = InitAction2<FileOfflineAction, Document*, SyncManager*>(
+		pActionMap_, IDM_FILE_OFFLINE, pDocument_, pSyncManager_);
 	CHECK_QSTATUS();
 	status = InitAction1<FilePrintAction, MessageSelectionModel*>(
 		pActionMap_, IDM_FILE_PRINT, pMessageSelectionModel_);

@@ -69,8 +69,7 @@ public:
 		GETMESSAGEFLAG_POSSIBLE		= 0x05,
 		GETMESSAGEFLAG_METHOD_MASK	= 0x0f,
 		
-		GETMESSAGEFLAG_MAKESEEN		= 0x10,
-		GETMESSAGEFLAG_FORCEONLINE	= 0x20
+		GETMESSAGEFLAG_MAKESEEN		= 0x10
 	};
 	
 	enum Support {
@@ -124,7 +123,6 @@ public:
 	qs::QSTATUS updateFolders();
 	
 	qs::QSTATUS setOffline(bool bOffline);
-	qs::QSTATUS setForceOnline(bool bOnline);
 	qs::QSTATUS compact();
 	qs::QSTATUS save() const;
 	qs::QSTATUS flushMessageStore() const;

@@ -358,6 +358,7 @@ private:
 
 private:
 	qs::Profile* pProfile_;
+	qs::Synchronizer* pSynchronizer_;
 	SyncFilterManager* pSyncFilterManager_;
 	ThreadList listThread_;
 	SyncingFolderList listSyncingFolder_;

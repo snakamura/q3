@@ -1418,8 +1418,10 @@ QSTATUS qm::FileImportAction::readLine(InputStream* pStream,
  *
  */
 
-qm::FileOfflineAction::FileOfflineAction(Document* pDocument, QSTATUS* pstatus) :
-	pDocument_(pDocument)
+qm::FileOfflineAction::FileOfflineAction(Document* pDocument,
+	SyncManager* pSyncManager, QSTATUS* pstatus) :
+	pDocument_(pDocument),
+	pSyncManager_(pSyncManager)
 {
 }
 
@@ -1430,6 +1432,13 @@ qm::FileOfflineAction::~FileOfflineAction()
 QSTATUS qm::FileOfflineAction::invoke(const ActionEvent& event)
 {
 	return pDocument_->setOffline(!pDocument_->isOffline());
+}
+
+QSTATUS qm::FileOfflineAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+{
+	assert(pbEnabled);
+	*pbEnabled = !pSyncManager_->isSyncing();
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::FileOfflineAction::isChecked(const ActionEvent& event, bool* pbChecked)

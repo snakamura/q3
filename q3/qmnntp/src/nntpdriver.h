@@ -38,7 +38,6 @@ public:
 public:
 	virtual bool isSupport(qm::Account::Support support);
 	virtual qs::QSTATUS setOffline(bool bOffline);
-	virtual qs::QSTATUS setForceOnline(bool bOnline);
 	virtual qs::QSTATUS save();
 	
 	virtual qs::QSTATUS createFolder(qm::SubAccount* pSubAccount,

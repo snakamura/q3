@@ -75,11 +75,6 @@ QSTATUS qmnntp::NntpDriver::setOffline(bool bOffline)
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmnntp::NntpDriver::setForceOnline(bool bOnline)
-{
-	return QSTATUS_SUCCESS;
-}
-
 QSTATUS qmnntp::NntpDriver::save()
 {
 	return QSTATUS_SUCCESS;

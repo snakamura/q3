@@ -45,7 +45,6 @@ public:
 public:
 	virtual bool isSupport(Account::Support support) = 0;
 	virtual qs::QSTATUS setOffline(bool bOffline) = 0;
-	virtual qs::QSTATUS setForceOnline(bool bOnline) = 0;
 	virtual qs::QSTATUS save() = 0;
 	
 	virtual qs::QSTATUS createFolder(SubAccount* pSubAccount,

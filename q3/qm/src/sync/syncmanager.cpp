@@ -8,6 +8,7 @@
 
 #include <qmaccount.h>
 #include <qmapplication.h>
+#include <qmdocument.h>
 #include <qmfolder.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
@@ -327,6 +328,7 @@ QSTATUS qm::SyncData::addSend(Account* pAccount,
 
 qm::SyncManager::SyncManager(Profile* pProfile, QSTATUS* pstatus) :
 	pProfile_(pProfile),
+	pSynchronizer_(InitThread::getInitThread().getSynchronizer()),
 	pSyncFilterManager_(0)
 {
 	assert(pstatus);
@@ -505,6 +507,7 @@ QSTATUS qm::SyncManager::syncData(const SyncData* pData)
 		if (result == RasConnection::RAS_CANCEL)
 			return QSTATUS_SUCCESS;
 	}
+	
 	struct DialupDisconnector
 	{
 		DialupDisconnector(RasConnection* pRasConnection) :
@@ -522,6 +525,47 @@ QSTATUS qm::SyncManager::syncData(const SyncData* pData)
 		
 		RasConnection* pRasConnection_;
 	} disconnector(pRasConnection.get());
+	
+	struct InternalOnline
+	{
+		InternalOnline(Document* pDocument, Synchronizer* pSynchronizer) :
+			pDocument_(pDocument),
+			pSynchronizer_(pSynchronizer)
+		{
+			RunnableImpl runnable(pDocument_, true);
+			pSynchronizer_->syncExec(&runnable);
+		}
+		
+		~InternalOnline()
+		{
+			RunnableImpl runnable(pDocument_, false);
+			pSynchronizer_->syncExec(&runnable);
+		}
+		
+		struct RunnableImpl : public Runnable
+		{
+			RunnableImpl(Document* pDocument, bool bIncrement) :
+				pDocument_(pDocument),
+				bIncrement_(bIncrement)
+			{
+			}
+			
+			virtual unsigned int run()
+			{
+				if (bIncrement_)
+					pDocument_->incrementInternalOnline();
+				else
+					pDocument_->decrementInternalOnline();
+				return 0;
+			}
+			
+			Document* pDocument_;
+			bool bIncrement_;
+		};
+		
+		Document* pDocument_;
+		Synchronizer* pSynchronizer_;
+	} internalOnline(pData->getDocument(), pSynchronizer_);
 	
 	unsigned int nSlot = pData->getSlotCount();
 	if (nSlot > 0) {
@@ -738,21 +782,6 @@ QSTATUS qm::SyncManager::send(Document* pDocument,
 		listMessagePtr).reserve(pOutbox->getCount());
 	CHECK_QSTATUS();
 	
-	struct ForceOnline
-	{
-		ForceOnline(Account* pAccount) :
-			pAccount_(pAccount)
-		{
-			pAccount_->setForceOnline(true);
-		}
-		
-		~ForceOnline()
-		{
-			pAccount_->setForceOnline(false);
-		}
-		Account* pAccount_;
-	} forceOnline(pAccount);
-	
 	{
 		Lock<Folder> lock(*pOutbox);
 		
@@ -763,8 +792,7 @@ QSTATUS qm::SyncManager::send(Document* pDocument,
 				Message msg(&status);
 				CHECK_QSTATUS();
 				status = pmh->getMessage(
-					Account::GETMESSAGEFLAG_HEADER |
-					Account::GETMESSAGEFLAG_FORCEONLINE,
+					Account::GETMESSAGEFLAG_HEADER,
 					L"X-QMAIL-SubAccount", &msg);
 				CHECK_QSTATUS();
 				
@@ -835,8 +863,7 @@ QSTATUS qm::SyncManager::send(Document* pDocument,
 			Message msg(&status);
 			CHECK_QSTATUS();
 			status = mpl->getMessage(
-				Account::GETMESSAGEFLAG_ALL |
-				Account::GETMESSAGEFLAG_FORCEONLINE, 0, &msg);
+				Account::GETMESSAGEFLAG_ALL, 0, &msg);
 			CHECK_QSTATUS();
 			const WCHAR* pwszRemoveFields[] = {
 				L"X-QMAIL-Account",

@@ -43,7 +43,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hInstPrev,
 	
 	DECLARE_QSTATUS();
 	
-	Init init(hInst, L"QMAIL", 0, 0, &status);
+	Init init(hInst, L"QMAIL", 0, InitThread::FLAG_SYNCHRONIZER, &status);
 	CHECK_QSTATUS_VALUE(1);
 	
 #ifdef _WIN32_WCE

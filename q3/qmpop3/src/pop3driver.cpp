@@ -57,11 +57,6 @@ QSTATUS qmpop3::Pop3Driver::setOffline(bool bOffline)
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmpop3::Pop3Driver::setForceOnline(bool bOnline)
-{
-	return QSTATUS_SUCCESS;
-}
-
 QSTATUS qmpop3::Pop3Driver::save()
 {
 	return QSTATUS_SUCCESS;
