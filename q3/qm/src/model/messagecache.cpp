@@ -118,15 +118,10 @@ wstring_ptr qm::MessageCache::getData(MessageCacheKey key,
 			
 			insert(pItem);
 			
-			if (nSize_ >= nMaxSize_) {
-				std::auto_ptr<CacheItem> pRemove(pNewLast_->pNewPrev_);
-				ItemMap::iterator it = map_.find(pRemove->getKey());
-				assert(it != map_.end());
-				remove(it);
-			}
-			else {
+			if (nSize_ >= nMaxSize_)
+				removeData(pNewLast_->pNewPrev_->getKey());
+			else
 				++nSize_;
-			}
 			
 			wstrData = allocWString(pItem->getItem(item));
 		}
