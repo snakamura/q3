@@ -16,6 +16,7 @@
 
 #include <algorithm>
 
+#include "confighelper.h"
 #include "goround.h"
 
 using namespace qm;
@@ -30,58 +31,24 @@ using namespace qs;
 
 struct qm::GoRoundImpl
 {
-	bool load();
-	void clear();
+	GoRoundImpl();
 	
-	FILETIME ft_;
+	bool load();
+	
+	GoRound* pThis_;
 	GoRound::CourseList listCourse_;
+	ConfigHelper<GoRound, GoRoundContentHandler, GoRoundWriter> helper_;
 };
+
+qm::GoRoundImpl::GoRoundImpl() :
+	helper_(Application::getApplication().getProfilePath(FileNames::GOROUND_XML).get())
+{
+}
 
 bool qm::GoRoundImpl::load()
 {
-	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::GOROUND_XML));
-	
-	W2T(wstrPath.get(), ptszPath);
-	AutoHandle hFile(::CreateFile(ptszPath, GENERIC_READ, 0, 0,
-		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
-	if (hFile.get()) {
-		FILETIME ft;
-		::GetFileTime(hFile.get(), 0, 0, &ft);
-		hFile.close();
-		
-		if (::CompareFileTime(&ft, &ft_) != 0) {
-			FileInputStream fileStream(wstrPath.get());
-			if (!fileStream)
-				return false;
-			BufferedInputStream stream(&fileStream, false);
-			
-			clear();
-			
-			XMLReader reader;
-			GoRoundContentHandler handler(&listCourse_);
-			reader.setContentHandler(&handler);
-			InputSource source(&stream);
-			if (!reader.parse(&source))
-				return false;
-			
-			ft_ = ft;
-		}
-	}
-	else {
-		clear();
-		
-		SYSTEMTIME st;
-		::GetSystemTime(&st);
-		::SystemTimeToFileTime(&st, &ft_);
-	}
-	
-	return true;
-}
-
-void qm::GoRoundImpl::clear()
-{
-	std::for_each(listCourse_.begin(), listCourse_.end(), deleter<GoRoundCourse>());
-	listCourse_.clear();
+	GoRoundContentHandler handler(&listCourse_);
+	return helper_.load(pThis_, &handler);
 }
 
 
@@ -95,18 +62,12 @@ qm::GoRound::GoRound() :
 	pImpl_(0)
 {
 	pImpl_ = new GoRoundImpl();
-	
-	SYSTEMTIME st;
-	::GetSystemTime(&st);
-	::SystemTimeToFileTime(&st, &pImpl_->ft_);
+	pImpl_->pThis_ = this;
 }
 
 qm::GoRound::~GoRound()
 {
-	if (pImpl_) {
-		pImpl_->clear();
-		delete pImpl_;
-	}
+	clear();
 }
 
 const GoRound::CourseList& qm::GoRound::getCourses() const
@@ -123,7 +84,7 @@ const GoRound::CourseList& qm::GoRound::getCourses(bool bReload) const
 
 void qm::GoRound::setCourses(CourseList& listCourse)
 {
-	pImpl_->clear();
+	clear();
 	pImpl_->listCourse_.swap(listCourse);
 }
 
@@ -144,29 +105,14 @@ GoRoundCourse* qm::GoRound::getCourse(const WCHAR* pwszCourse) const
 
 bool qm::GoRound::save() const
 {
-	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::GOROUND_XML));
-	
-	TemporaryFileRenamer renamer(wstrPath.get());
-	
-	FileOutputStream os(renamer.getPath());
-	if (!os)
-		return false;
-	OutputStreamWriter writer(&os, false, L"utf-8");
-	if (!writer)
-		return false;
-	BufferedWriter bufferedWriter(&writer, false);
-	
-	GoRoundWriter goRoundWriter(&bufferedWriter);
-	if (!goRoundWriter.write(this))
-		return false;
-	
-	if (!bufferedWriter.close())
-		return false;
-	
-	if (!renamer.rename())
-		return false;
-	
-	return true;
+	return pImpl_->helper_.save(this);
+}
+
+void qm::GoRound::clear()
+{
+	std::for_each(pImpl_->listCourse_.begin(),
+		pImpl_->listCourse_.end(), deleter<GoRoundCourse>());
+	pImpl_->listCourse_.clear();
 }
 
 

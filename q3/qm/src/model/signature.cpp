@@ -30,11 +30,9 @@ using namespace qs;
  *
  */
 
-qm::SignatureManager::SignatureManager()
+qm::SignatureManager::SignatureManager() :
+	helper_(Application::getApplication().getProfilePath(FileNames::SIGNATURES_XML).get())
 {
-	SYSTEMTIME st;
-	::GetSystemTime(&st);
-	::SystemTimeToFileTime(&st, &ft_);
 }
 
 qm::SignatureManager::~SignatureManager()
@@ -116,29 +114,7 @@ const Signature* qm::SignatureManager::getDefaultSignature(Account* pAccount)
 
 bool qm::SignatureManager::save() const
 {
-	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::SIGNATURES_XML));
-	
-	TemporaryFileRenamer renamer(wstrPath.get());
-	
-	FileOutputStream os(renamer.getPath());
-	if (!os)
-		return false;
-	OutputStreamWriter writer(&os, false, L"utf-8");
-	if (!writer)
-		return false;
-	BufferedWriter bufferedWriter(&writer, false);
-	
-	SignatureWriter signatureWriter(&bufferedWriter);
-	if (!signatureWriter.write(this))
-		return false;
-	
-	if (!bufferedWriter.close())
-		return false;
-	
-	if (!renamer.rename())
-		return false;
-	
-	return true;
+	return helper_.save(this);
 }
 
 void qm::SignatureManager::addSignature(std::auto_ptr<Signature> pSignature)
@@ -147,46 +123,17 @@ void qm::SignatureManager::addSignature(std::auto_ptr<Signature> pSignature)
 	pSignature.release();
 }
 
-bool qm::SignatureManager::load()
-{
-	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::SIGNATURES_XML));
-	
-	W2T(wstrPath.get(), ptszPath);
-	AutoHandle hFile(::CreateFile(ptszPath, GENERIC_READ, 0, 0,
-		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
-	if (hFile.get()) {
-		FILETIME ft;
-		::GetFileTime(hFile.get(), 0, 0, &ft);
-		hFile.close();
-		
-		if (::CompareFileTime(&ft, &ft_) != 0) {
-			clear();
-			
-			XMLReader reader;
-			SignatureContentHandler handler(this);
-			reader.setContentHandler(&handler);
-			if (!reader.parse(wstrPath.get()))
-				return false;
-			
-			ft_ = ft;
-		}
-	}
-	else {
-		clear();
-		
-		SYSTEMTIME st;
-		::GetSystemTime(&st);
-		::SystemTimeToFileTime(&st, &ft_);
-	}
-	
-	return true;
-}
-
 void qm::SignatureManager::clear()
 {
 	std::for_each(listSignature_.begin(),
 		listSignature_.end(), deleter<Signature>());
 	listSignature_.clear();
+}
+
+bool qm::SignatureManager::load()
+{
+	SignatureContentHandler handler(this);
+	return helper_.load(this, &handler);
 }
 
 

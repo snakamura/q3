@@ -18,6 +18,8 @@
 
 #include <vector>
 
+#include "confighelper.h"
+
 namespace qm {
 
 class ColorManager;
@@ -25,6 +27,7 @@ class ColorSet;
 class ColorEntry;
 class ColorList;
 class ColorContentHandler;
+class ColorWriter;
 
 class Folder;
 class Macro;
@@ -55,10 +58,10 @@ public:
 
 public:
 	void addColorSet(std::auto_ptr<ColorSet> pSet);
+	void clear();
 
 private:
 	bool load();
-	void clear();
 
 private:
 	ColorManager(const ColorManager&);
@@ -66,6 +69,7 @@ private:
 
 private:
 	ColorSetList listColorSet_;
+	ConfigHelper<ColorManager, ColorContentHandler, ColorWriter> helper_;
 };
 
 

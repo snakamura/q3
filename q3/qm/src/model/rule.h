@@ -22,6 +22,8 @@
 
 #include <vector>
 
+#include "confighelper.h"
+
 namespace qm {
 
 class RuleManager;
@@ -36,6 +38,7 @@ class RuleAction;
 	class ApplyRuleAction;
 class RuleContext;
 class RuleContentHandler;
+class RuleWriter;
 
 class Account;
 class Document;
@@ -76,10 +79,10 @@ public:
 
 public:
 	void addRuleSet(std::auto_ptr<RuleSet> pRuleSet);
+	void clear();
 
 private:
 	bool load();
-	void clear();
 	void getRules(const Folder* pFolder,
 				  RuleList* pList) const;
 
@@ -88,8 +91,8 @@ private:
 	RuleManager& operator=(const RuleManager&);
 
 private:
-	FILETIME ft_;
 	RuleSetList listRuleSet_;
+	ConfigHelper<RuleManager, RuleContentHandler, RuleWriter> helper_;
 };
 
 

@@ -18,12 +18,15 @@
 
 #include <vector>
 
+#include "confighelper.h"
+
 
 namespace qm {
 
 class SignatureManager;
 class Signature;
 class SignatureContentHandler;
+class SignatureWriter;
 
 class Account;
 
@@ -56,18 +59,18 @@ public:
 
 public:
 	void addSignature(std::auto_ptr<Signature> pSignature);
+	void clear();
 
 private:
 	bool load();
-	void clear();
 
 private:
 	SignatureManager(const SignatureManager&);
 	SignatureManager& operator=(const SignatureManager&);
 
 private:
-	FILETIME ft_;
 	SignatureList listSignature_;
+	ConfigHelper<SignatureManager, SignatureContentHandler, SignatureWriter> helper_;
 };
 
 

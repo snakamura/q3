@@ -17,6 +17,8 @@
 
 #include <vector>
 
+#include "confighelper.h"
+
 
 namespace qm {
 
@@ -49,10 +51,10 @@ public:
 
 public:
 	void addText(std::auto_ptr<FixedFormText> pText);
+	void clear();
 
 private:
 	bool load();
-	void clear();
 
 private:
 	FixedFormTextManager(const FixedFormTextManager&);
@@ -60,7 +62,7 @@ private:
 
 private:
 	TextList listText_;
-	FILETIME ft_;
+	ConfigHelper<FixedFormTextManager, FixedFormTextContentHandler, FixedFormTextWriter> helper_;
 };
 
 

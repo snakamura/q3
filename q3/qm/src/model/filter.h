@@ -16,6 +16,8 @@
 #include <qssax.h>
 #include <qsstring.h>
 
+#include "confighelper.h"
+
 
 namespace qm {
 
@@ -51,17 +53,19 @@ public:
 	void setFilters(FilterList& listFilter);
 	bool save() const;
 
+public:
+	void clear();
+
 private:
 	bool load();
-	void clear();
 
 private:
 	FilterManager(const FilterManager&);
 	FilterManager& operator=(const FilterManager&);
 
 private:
-	FILETIME ft_;
 	FilterList listFilter_;
+	ConfigHelper<FilterManager, FilterContentHandler, FilterWriter> helper_;
 };
 
 

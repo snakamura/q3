@@ -26,6 +26,7 @@
 #include <algorithm>
 
 #include "account.h"
+#include "confighelper.h"
 #include "messageindex.h"
 #include "messagestore.h"
 
@@ -170,30 +171,9 @@ bool qm::AccountImpl::loadFolders()
 bool qm::AccountImpl::saveFolders() const
 {
 	wstring_ptr wstrPath(concat(wstrPath_.get(), L"\\", FileNames::FOLDERS_XML));
-	TemporaryFileRenamer renamer(wstrPath.get());
-	
-	FileOutputStream os(renamer.getPath());
-	if (!os)
-		return false;
-	OutputStreamWriter writer(&os, false, L"utf-8");
-	if (!writer)
-		return false;
-	BufferedWriter bufferedWriter(&writer, false);
-	
 	Account::FolderList listFolder(listFolder_);
 	std::sort(listFolder.begin(), listFolder.end(), FolderLess());
-	
-	FolderWriter folderWriter(&bufferedWriter);
-	if (!folderWriter.write(listFolder))
-		return false;
-	
-	if (!bufferedWriter.close())
-		return false;
-	
-	if (!renamer.rename())
-		return false;
-	
-	return true;
+	return ConfigSaver<const Account::FolderList&, FolderWriter>::save(listFolder, wstrPath.get());
 }
 
 bool qm::AccountImpl::loadSubAccounts()

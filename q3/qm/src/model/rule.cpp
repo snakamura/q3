@@ -39,11 +39,9 @@ using namespace qs;
  *
  */
 
-qm::RuleManager::RuleManager()
+qm::RuleManager::RuleManager() :
+	helper_(Application::getApplication().getProfilePath(FileNames::RULES_XML).get())
 {
-	SYSTEMTIME st;
-	::GetSystemTime(&st);
-	::SystemTimeToFileTime(&st, &ft_);
 }
 
 qm::RuleManager::~RuleManager()
@@ -219,29 +217,7 @@ bool qm::RuleManager::apply(Folder* pFolder,
 
 bool qm::RuleManager::save() const
 {
-	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::RULES_XML));
-	
-	TemporaryFileRenamer renamer(wstrPath.get());
-	
-	FileOutputStream os(renamer.getPath());
-	if (!os)
-		return false;
-	OutputStreamWriter writer(&os, false, L"utf-8");
-	if (!writer)
-		return false;
-	BufferedWriter bufferedWriter(&writer, false);
-	
-	RuleWriter ruleWriter(&bufferedWriter);
-	if (!ruleWriter.write(this))
-		return false;
-	
-	if (!bufferedWriter.close())
-		return false;
-	
-	if (!renamer.rename())
-		return false;
-	
-	return true;
+	return helper_.save(this);
 }
 
 void qm::RuleManager::addRuleSet(std::auto_ptr<RuleSet> pRuleSet)
@@ -250,46 +226,17 @@ void qm::RuleManager::addRuleSet(std::auto_ptr<RuleSet> pRuleSet)
 	pRuleSet.release();
 }
 
-bool qm::RuleManager::load()
-{
-	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::RULES_XML));
-	
-	W2T(wstrPath.get(), ptszPath);
-	AutoHandle hFile(::CreateFile(ptszPath, GENERIC_READ, 0, 0,
-		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
-	if (hFile.get()) {
-		FILETIME ft;
-		::GetFileTime(hFile.get(), 0, 0, &ft);
-		hFile.close();
-		
-		if (::CompareFileTime(&ft, &ft_) != 0) {
-			clear();
-			
-			XMLReader reader;
-			RuleContentHandler handler(this);
-			reader.setContentHandler(&handler);
-			if (!reader.parse(wstrPath.get()))
-				return false;
-			
-			ft_ = ft;
-		}
-	}
-	else {
-		clear();
-		
-		SYSTEMTIME st;
-		::GetSystemTime(&st);
-		::SystemTimeToFileTime(&st, &ft_);
-	}
-	
-	return true;
-}
-
 void qm::RuleManager::clear()
 {
 	std::for_each(listRuleSet_.begin(),
 		listRuleSet_.end(), deleter<RuleSet>());
 	listRuleSet_.clear();
+}
+
+bool qm::RuleManager::load()
+{
+	RuleContentHandler handler(this);
+	return helper_.load(this, &handler);
 }
 
 void qm::RuleManager::getRules(const Folder* pFolder,

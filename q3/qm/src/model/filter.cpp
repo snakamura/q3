@@ -29,11 +29,9 @@ using namespace qs;
  *
  */
 
-qm::FilterManager::FilterManager()
+qm::FilterManager::FilterManager() :
+	helper_(Application::getApplication().getProfilePath(FileNames::FILTERS_XML).get())
 {
-	SYSTEMTIME st;
-	::GetSystemTime(&st);
-	::SystemTimeToFileTime(&st, &ft_);
 }
 
 qm::FilterManager::~FilterManager()
@@ -75,70 +73,19 @@ void qm::FilterManager::setFilters(FilterList& listFilter)
 
 bool qm::FilterManager::save() const
 {
-	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::FILTERS_XML));
-	
-	TemporaryFileRenamer renamer(wstrPath.get());
-	
-	FileOutputStream os(renamer.getPath());
-	if (!os)
-		return false;
-	OutputStreamWriter writer(&os, false, L"utf-8");
-	if (!writer)
-		return false;
-	BufferedWriter bufferedWriter(&writer, false);
-	
-	FilterWriter filterWriter(&bufferedWriter);
-	if (!filterWriter.write(this))
-		return false;
-	
-	if (!bufferedWriter.close())
-		return false;
-	
-	if (!renamer.rename())
-		return false;
-	
-	return true;
-}
-
-bool qm::FilterManager::load()
-{
-	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::FILTERS_XML));
-	
-	W2T(wstrPath.get(), ptszPath);
-	AutoHandle hFile(::CreateFile(ptszPath, GENERIC_READ, 0, 0,
-		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
-	if (hFile.get()) {
-		FILETIME ft;
-		::GetFileTime(hFile.get(), 0, 0, &ft);
-		hFile.close();
-		
-		if (::CompareFileTime(&ft, &ft_) != 0) {
-			clear();
-			
-			XMLReader reader;
-			FilterContentHandler handler(&listFilter_);
-			reader.setContentHandler(&handler);
-			if (!reader.parse(wstrPath.get()))
-				return false;
-			
-			ft_ = ft;
-		}
-	}
-	else {
-		clear();
-		
-		SYSTEMTIME st;
-		::GetSystemTime(&st);
-		::SystemTimeToFileTime(&st, &ft_);
-	}
-	
-	return true;
+	return helper_.save(this);
 }
 
 void qm::FilterManager::clear()
 {
 	std::for_each(listFilter_.begin(), listFilter_.end(), deleter<Filter>());
 	listFilter_.clear();
+}
+
+bool qm::FilterManager::load()
+{
+	FilterContentHandler handler(&listFilter_);
+	return helper_.load(this, &handler);
 }
 
 

@@ -30,7 +30,8 @@ using namespace qs;
  *
  */
 
-qm::ColorManager::ColorManager()
+qm::ColorManager::ColorManager() :
+	helper_(Application::getApplication().getProfilePath(FileNames::COLORS_XML).get())
 {
 	load();
 }
@@ -70,29 +71,7 @@ std::auto_ptr<ColorList> qm::ColorManager::getColorList(Folder* pFolder) const
 
 bool qm::ColorManager::save() const
 {
-	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::COLORS_XML));
-	
-	TemporaryFileRenamer renamer(wstrPath.get());
-	
-	FileOutputStream os(renamer.getPath());
-	if (!os)
-		return false;
-	OutputStreamWriter writer(&os, false, L"utf-8");
-	if (!writer)
-		return false;
-	BufferedWriter bufferedWriter(&writer, false);
-	
-	ColorWriter colorWriter(&bufferedWriter);
-	if (!colorWriter.write(this))
-		return false;
-	
-	if (!bufferedWriter.close())
-		return false;
-	
-	if (!renamer.rename())
-		return false;
-	
-	return true;
+	return helper_.save(this);
 }
 
 void qm::ColorManager::addColorSet(std::auto_ptr<ColorSet> pSet)
@@ -101,29 +80,16 @@ void qm::ColorManager::addColorSet(std::auto_ptr<ColorSet> pSet)
 	pSet.release();
 }
 
-bool qm::ColorManager::load()
-{
-	clear();
-	
-	wstring_ptr wstrPath(
-		Application::getApplication().getProfilePath(FileNames::COLORS_XML));
-	
-	W2T(wstrPath.get(), ptszPath);
-	if (::GetFileAttributes(ptszPath) != 0xffffffff) {
-		XMLReader reader;
-		ColorContentHandler handler(this);
-		reader.setContentHandler(&handler);
-		if (!reader.parse(wstrPath.get()))
-			return false;
-	}
-	
-	return true;
-}
-
 void qm::ColorManager::clear()
 {
 	std::for_each(listColorSet_.begin(), listColorSet_.end(), deleter<ColorSet>());
 	listColorSet_.clear();
+}
+
+bool qm::ColorManager::load()
+{
+	ColorContentHandler handler(this);
+	return helper_.load(this, &handler);
 }
 
 

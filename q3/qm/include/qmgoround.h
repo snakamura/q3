@@ -42,6 +42,7 @@ public:
 	void setCourses(CourseList& listCourse);
 	GoRoundCourse* getCourse(const WCHAR* pwszCourse) const;
 	bool save() const;
+	void clear();
 
 private:
 	GoRound(const GoRound&);

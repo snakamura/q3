@@ -13,6 +13,7 @@
 #include <qstextutil.h>
 #include <qsthread.h>
 
+#include "confighelper.h"
 #include "password.h"
 
 using namespace qm;
@@ -27,21 +28,25 @@ using namespace qs;
 
 struct qm::PasswordManagerImpl
 {
+	PasswordManagerImpl();
 	bool load();
 	
+	PasswordManager* pThis_;
 	PasswordManagerCallback* pCallback_;
 	PasswordManager::PasswordList listPassword_;
 	qs::CriticalSection cs_;
+	ConfigHelper<PasswordManager, PasswordContentHandler, PasswordWriter> helper_;
 };
+
+qm::PasswordManagerImpl::PasswordManagerImpl() :
+	helper_(Application::getApplication().getProfilePath(FileNames::PASSWORDS_XML).get())
+{
+}
 
 bool qm::PasswordManagerImpl::load()
 {
-	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::PASSWORDS_XML));
-	
-	XMLReader reader;
 	PasswordContentHandler handler(&listPassword_);
-	reader.setContentHandler(&handler);
-	return reader.parse(wstrPath.get());
+	return helper_.load(pThis_, &handler);
 }
 
 
@@ -55,17 +60,15 @@ qm::PasswordManager::PasswordManager(PasswordManagerCallback* pCallback) :
 	pImpl_(0)
 {
 	pImpl_ = new PasswordManagerImpl();
+	pImpl_->pThis_ = this;
 	pImpl_->pCallback_ = pCallback;
 	pImpl_->load();
 }
 
 qm::PasswordManager::~PasswordManager()
 {
-	if (pImpl_) {
-		std::for_each(pImpl_->listPassword_.begin(),
-			pImpl_->listPassword_.end(), qs::deleter<Password>());
-		delete pImpl_;
-	}
+	clear();
+	delete pImpl_;
 }
 
 wstring_ptr qm::PasswordManager::getPassword(const PasswordCondition& condition,
@@ -132,29 +135,13 @@ void qm::PasswordManager::removePassword(const PasswordCondition& condition)
 
 bool qm::PasswordManager::save() const
 {
-	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::PASSWORDS_XML));
-	
-	TemporaryFileRenamer renamer(wstrPath.get());
-	
-	FileOutputStream os(renamer.getPath());
-	if (!os)
-		return false;
-	OutputStreamWriter writer(&os, false, L"utf-8");
-	if (!writer)
-		return false;
-	BufferedWriter bufferedWriter(&writer, false);
-	
-	PasswordWriter passwordWriter(&bufferedWriter);
-	if (!passwordWriter.write(this))
-		return false;
-	
-	if (!bufferedWriter.close())
-		return false;
-	
-	if (!renamer.rename())
-		return false;
-	
-	return true;
+	return pImpl_->helper_.save(this);
+}
+
+void qm::PasswordManager::clear()
+{
+	std::for_each(pImpl_->listPassword_.begin(),
+		pImpl_->listPassword_.end(), qs::deleter<Password>());
 }
 
 const PasswordManager::PasswordList& qm::PasswordManager::getPasswords() const

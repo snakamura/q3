@@ -71,6 +71,7 @@ public:
 					 bool bPermanent);
 	void removePassword(const PasswordCondition& condition);
 	bool save() const;
+	void clear();
 
 public:
 	const PasswordList& getPasswords() const;

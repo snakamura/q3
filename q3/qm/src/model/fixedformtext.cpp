@@ -29,11 +29,9 @@ using namespace qs;
  *
  */
 
-qm::FixedFormTextManager::FixedFormTextManager()
+qm::FixedFormTextManager::FixedFormTextManager() :
+	helper_(Application::getApplication().getProfilePath(FileNames::TEXTS_XML).get())
 {
-	SYSTEMTIME st;
-	::GetSystemTime(&st);
-	::SystemTimeToFileTime(&st, &ft_);
 }
 
 qm::FixedFormTextManager::~FixedFormTextManager()
@@ -65,73 +63,22 @@ void qm::FixedFormTextManager::addText(std::auto_ptr<FixedFormText> pText)
 	pText.release();
 }
 
-bool qm::FixedFormTextManager::save() const
-{
-	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::TEXTS_XML));
-	
-	TemporaryFileRenamer renamer(wstrPath.get());
-	
-	FileOutputStream os(renamer.getPath());
-	if (!os)
-		return false;
-	OutputStreamWriter writer(&os, false, L"utf-8");
-	if (!writer)
-		return false;
-	BufferedWriter bufferedWriter(&writer, false);
-	
-	FixedFormTextWriter textWriter(&bufferedWriter);
-	if (!textWriter.write(this))
-		return false;
-	
-	if (!bufferedWriter.close())
-		return false;
-	
-	if (!renamer.rename())
-		return false;
-	
-	return true;
-}
-
-bool qm::FixedFormTextManager::load()
-{
-	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::TEXTS_XML));
-	
-	W2T(wstrPath.get(), ptszPath);
-	AutoHandle hFile(::CreateFile(ptszPath, GENERIC_READ, 0, 0,
-		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
-	if (hFile.get()) {
-		FILETIME ft;
-		::GetFileTime(hFile.get(), 0, 0, &ft);
-		hFile.close();
-		
-		if (::CompareFileTime(&ft, &ft_) != 0) {
-			clear();
-			
-			XMLReader reader;
-			FixedFormTextContentHandler handler(this);
-			reader.setContentHandler(&handler);
-			if (!reader.parse(wstrPath.get()))
-				return false;
-			
-			ft_ = ft;
-		}
-	}
-	else {
-		clear();
-		
-		SYSTEMTIME st;
-		::GetSystemTime(&st);
-		::SystemTimeToFileTime(&st, &ft_);
-	}
-	
-	return true;
-}
-
 void qm::FixedFormTextManager::clear()
 {
 	std::for_each(listText_.begin(),
 		listText_.end(), deleter<FixedFormText>());
 	listText_.clear();
+}
+
+bool qm::FixedFormTextManager::save() const
+{
+	return helper_.save(this);
+}
+
+bool qm::FixedFormTextManager::load()
+{
+	FixedFormTextContentHandler handler(this);
+	return helper_.load(this, &handler);
 }
 
 
