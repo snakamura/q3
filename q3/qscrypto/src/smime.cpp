@@ -370,8 +370,8 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::createMessage(const CHAR* pszContent,
 	CHAR* p = strMessage.get();
 	strncpy(p, pszHeader, nNewHeaderLen);
 	p += nNewHeaderLen;
-	strncpy(p, "\r\n\r\n", 4);
-	p += 4;
+	strncpy(p, "\r\n", 2);
+	p += 2;
 	if (pBody)
 		strncpy(p, pBody, nBodyLen);
 	*(p + nBodyLen) = '\0';
