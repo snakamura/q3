@@ -978,18 +978,30 @@ LRESULT qm::FolderWindow::onLButtonDown(UINT nFlags, const POINT& pt)
 
 LRESULT qm::FolderWindow::onMessageAdded(WPARAM wParam, LPARAM lParam)
 {
+	MSG msg;
+	while (::PeekMessage(&msg, getHandle(),
+		FolderWindowImpl::WM_FOLDERWINDOW_MESSAGEADDED,
+		FolderWindowImpl::WM_FOLDERWINDOW_MESSAGEADDED, PM_REMOVE));
 	pImpl_->update(reinterpret_cast<Folder*>(lParam));
 	return 0;
 }
 
 LRESULT qm::FolderWindow::onMessageRemoved(WPARAM wParam, LPARAM lParam)
 {
+	MSG msg;
+	while (::PeekMessage(&msg, getHandle(),
+		FolderWindowImpl::WM_FOLDERWINDOW_MESSAGEREMOVED,
+		FolderWindowImpl::WM_FOLDERWINDOW_MESSAGEREMOVED, PM_REMOVE));
 	pImpl_->update(reinterpret_cast<Folder*>(lParam));
 	return 0;
 }
 
 LRESULT qm::FolderWindow::onMessageChanged(WPARAM wParam, LPARAM lParam)
 {
+	MSG msg;
+	while (::PeekMessage(&msg, getHandle(),
+		FolderWindowImpl::WM_FOLDERWINDOW_MESSAGECHANGED,
+		FolderWindowImpl::WM_FOLDERWINDOW_MESSAGECHANGED, PM_REMOVE));
 	pImpl_->update(reinterpret_cast<NormalFolder*>(lParam));
 	return 0;
 }

@@ -2253,18 +2253,30 @@ LRESULT qm::MainWindow::onSize(UINT nFlags, int cx, int cy)
 
 LRESULT qm::MainWindow::onItemAdded(WPARAM wParam, LPARAM lParam)
 {
+	MSG msg;
+	while (::PeekMessage(&msg, getHandle(),
+		MainWindowImpl::WM_MAINWINDOW_ITEMADDED,
+		MainWindowImpl::WM_MAINWINDOW_ITEMADDED, PM_REMOVE));
 	pImpl_->updateStatusBar();
 	return 0;
 }
 
 LRESULT qm::MainWindow::onItemRemoved(WPARAM wParam, LPARAM lParam)
 {
+	MSG msg;
+	while (::PeekMessage(&msg, getHandle(),
+		MainWindowImpl::WM_MAINWINDOW_ITEMREMOVED,
+		MainWindowImpl::WM_MAINWINDOW_ITEMREMOVED, PM_REMOVE));
 	pImpl_->updateStatusBar();
 	return 0;
 }
 
 LRESULT qm::MainWindow::onItemChanged(WPARAM wParam, LPARAM lParam)
 {
+	MSG msg;
+	while (::PeekMessage(&msg, getHandle(),
+		MainWindowImpl::WM_MAINWINDOW_ITEMCHANGED,
+		MainWindowImpl::WM_MAINWINDOW_ITEMCHANGED, PM_REMOVE));
 	pImpl_->updateStatusBar();
 	return 0;
 }

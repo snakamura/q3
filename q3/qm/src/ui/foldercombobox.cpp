@@ -735,18 +735,30 @@ LRESULT qm::FolderComboBox::onLButtonDown(UINT nFlags, const POINT& pt)
 
 LRESULT qm::FolderComboBox::onMessageAdded(WPARAM wParam, LPARAM lParam)
 {
+	MSG msg;
+	while (::PeekMessage(&msg, getHandle(),
+		FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEADDED,
+		FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEADDED, PM_REMOVE));
 	pImpl_->update(reinterpret_cast<Folder*>(lParam));
 	return 0;
 }
 
 LRESULT qm::FolderComboBox::onMessageRemoved(WPARAM wParam, LPARAM lParam)
 {
+	MSG msg;
+	while (::PeekMessage(&msg, getHandle(),
+		FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEREMOVED,
+		FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEREMOVED, PM_REMOVE));
 	pImpl_->update(reinterpret_cast<Folder*>(lParam));
 	return 0;
 }
 
 LRESULT qm::FolderComboBox::onMessageChanged(WPARAM wParam, LPARAM lParam)
 {
+	MSG msg;
+	while (::PeekMessage(&msg, getHandle(),
+		FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGECHANGED,
+		FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGECHANGED, PM_REMOVE));
 	pImpl_->update(reinterpret_cast<NormalFolder*>(lParam));
 	return 0;
 }
