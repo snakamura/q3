@@ -32,6 +32,7 @@
 #include <tchar.h>
 
 #include "main.h"
+#include "resourcefile.h"
 #ifndef DEPENDCHECK
 #	include "version.h"
 #endif
@@ -59,12 +60,12 @@ struct qm::ApplicationImpl : public NewMailCheckerCallback
 {
 public:
 	enum ResourceState {
-		RS_EXIST,
-		RS_EXISTPROFILE,
-		RS_NOTEXIST,
-		RS_SAMEREVISION,
-		RS_OVERWRITE,
-		RS_OVERWRITEPROFILE
+		RS_NOTEXIST			= 0x00,
+		RS_EXIST			= 0x01,
+		RS_OVERWRITE		= 0x02,
+		RS_SAMEREVISION		= 0x04,
+		RS_PROFILE			= 0x10,
+		RS_BACKUP			= 0x20
 	};
 	
 	struct Resource
@@ -77,7 +78,7 @@ public:
 		const WCHAR* pwszResourceName_;
 		unsigned int nRevision_;
 		bool bOverwrite_;
-		ResourceState state_;
+		unsigned int nState_;
 	};
 
 public:
@@ -216,6 +217,10 @@ bool qm::ApplicationImpl::ensureResources(Resource* pResource,
 		ResourceDialog::ResourceList& l_;
 	} deleter(listResource);
 	
+	wstring_ptr wstrResourceFilePath(concat(wstrMailFolder_.get(),
+		L"\\profiles\\", FileNames::RESOURCES_XML));
+	ResourceFileList files(wstrResourceFilePath.get());
+	
 	size_t nMailFolderLen = wcslen(wstrMailFolder_.get()) + 1;
 	
 	for (size_t n = 0; n < nCount; ++n) {
@@ -229,88 +234,108 @@ bool qm::ApplicationImpl::ensureResources(Resource* pResource,
 			baseDir.append(L'\\');
 		}
 		
-		unsigned int nRevision = pProfile_->getInt(
-			L"Resource", p->pwszResourceName_, 0);
-		p->state_ = RS_NOTEXIST;
+		p->nState_ = RS_NOTEXIST;
 		
 		struct {
 			bool bTry_;
 			bool bProfile_;
-			ResourceState state_;
 		} tries[] = {
-			{ p->pwszProfile_ != 0,	true,	RS_EXISTPROFILE	},
-			{ true,					false,	RS_EXIST		}
+			{ *p->pwszProfile_ != L'0',	true	},
+			{ true,						false	}
 		};
-		for (int m = 0; m < countof(tries); ++m) {
+		for (int m = 0; m < countof(tries) && p->nState_ == RS_NOTEXIST; ++m) {
 			if (tries[m].bTry_) {
 				wstring_ptr wstrPath(getResourcePath(*p, tries[m].bProfile_));
+				
+				const WCHAR* pwszName = wstrPath.get() + nMailFolderLen;
+				const ResourceFile* pFile = files.getResourceFile(pwszName);
+				unsigned int nRevision = pFile ? pFile->getRevision() : 0;
+				
 				W2T(wstrPath.get(), ptszPath);
-				if (::GetFileAttributes(ptszPath) != 0xffffffff) {
+				WIN32_FIND_DATA fd;
+				AutoFindHandle hFind(::FindFirstFile(ptszPath, &fd));
+				if (hFind.get()) {
 					if (p->bOverwrite_ && nRevision != p->nRevision_) {
-						p->state_ = tries[m].state_;
-						wstring_ptr wstr(allocWString(wstrPath.get() + nMailFolderLen));
-						listResource.push_back(std::make_pair(wstr.get(), true));
-						wstr.release();
+						if (pFile && ::CompareFileTime(&pFile->getModified(), &fd.ftLastWriteTime) == 0) {
+							p->nState_ = RS_OVERWRITE | (tries[m].bProfile_ ? RS_PROFILE : 0);
+						}
+						else {
+							p->nState_ = RS_EXIST | (tries[m].bProfile_ ? RS_PROFILE : 0);
+							wstring_ptr wstrName(allocWString(pwszName));
+							listResource.push_back(std::make_pair(wstrName.get(), true));
+							wstrName.release();
+						}
 					}
 					else {
-						p->state_ = RS_SAMEREVISION;
+						p->nState_ = RS_SAMEREVISION;
 					}
 				}
 			}
 		}
 	}
 	
-	bool bBackup = true;
 	if (!listResource.empty()) {
 		ResourceDialog dialog(listResource);
 		if (dialog.doModal(0) != IDOK)
 			return false;
 		
+		bool bBackup = dialog.isBackup();
+		
 		size_t nResource = 0;
 		for (size_t n = 0; n < nCount; ++n) {
 			Resource* p = pResource + n;
 			
-			if (p->state_ == RS_EXIST || p->state_ == RS_EXISTPROFILE) {
-				if (listResource[nResource].second)
-					p->state_ = p->state_ == RS_EXIST ?
-						RS_OVERWRITE : RS_OVERWRITEPROFILE;
+			if (p->nState_ & RS_EXIST) {
+				if (listResource[nResource].second) {
+					p->nState_ &= ~RS_EXIST;
+					p->nState_ |= RS_OVERWRITE | (bBackup ? RS_BACKUP : 0);
+				}
 				++nResource;
 			}
 		}
 		assert(nResource == listResource.size());
-		
-		bBackup = dialog.isBackup();
 	}
 	
 	for (size_t n = 0; n < nCount; ++n) {
 		const Resource* p = pResource + n;
 		
-		if (p->state_ == RS_NOTEXIST ||
-			p->state_ == RS_OVERWRITE ||
-			p->state_ == RS_OVERWRITEPROFILE) {
-			wstring_ptr wstrPath(getResourcePath(*p, p->state_ == RS_OVERWRITEPROFILE));
+		if (p->nState_ == RS_NOTEXIST || p->nState_ & RS_OVERWRITE) {
+			wstring_ptr wstrPath(getResourcePath(*p, (p->nState_ & RS_PROFILE) != 0));
 			
 			if (!ensureParentDirectory(wstrPath.get()))
 				return false;
 			
-			if (bBackup && (p->state_ == RS_OVERWRITE || p->state_ == RS_OVERWRITEPROFILE)) {
+			W2T(wstrPath.get(), ptszPath);
+			
+			if (p->nState_ & RS_BACKUP) {
 				wstring_ptr wstrBackupPath(concat(wstrPath.get(), L".bak"));
-				W2T(wstrPath.get(), ptszOld);
 				W2T(wstrBackupPath.get(), ptszNew);
 				if (::GetFileAttributes(ptszNew) != 0xffffffff) {
 					if (!::DeleteFile(ptszNew))
 						return false;
 				}
-				if (!::MoveFile(ptszOld, ptszNew))
+				if (!::MoveFile(ptszPath, ptszNew))
 					return false;
 			}
 			
 			if (!detachResource(wstrPath.get(), p->pwszResourceType_, p->pwszResourceName_))
 				return false;
+			
+			WIN32_FIND_DATA fd;
+			AutoFindHandle hFind(::FindFirstFile(ptszPath, &fd));
+			if (!hFind.get())
+				return false;
+			files.setResourceFile(wstrPath.get() + nMailFolderLen,
+				p->nRevision_, &fd.ftLastWriteTime);
 		}
-		
-		pProfile_->setInt(L"Resource", p->pwszResourceName_, p->nRevision_);
+		else if (p->nState_ & RS_EXIST) {
+			wstring_ptr wstrPath(getResourcePath(*p, (p->nState_ & RS_PROFILE) != 0));
+			files.setResourceFile(wstrPath.get() + nMailFolderLen, p->nRevision_, 0);
+		}
 	}
+	
+	if (!files.save())
+		return false;
 	
 	return true;
 }
@@ -431,7 +456,7 @@ wstring_ptr qm::ApplicationImpl::getResourcePath(const Resource& resource,
 		buf.append(L'\\');
 	}
 	
-	if (bProfile && resource.pwszProfile_) {
+	if (bProfile && *resource.pwszProfile_) {
 		buf.append(resource.pwszProfile_);
 		buf.append(L'\\');
 	}
@@ -538,7 +563,7 @@ bool qm::Application::initialize()
 	{ \
 		wstrTemplateDir.get(), \
 		classname, \
-		0, \
+		L"", \
 		name L".template", \
 		L"TEMPLATE", \
 		classname L"." name, \

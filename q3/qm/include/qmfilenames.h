@@ -43,6 +43,7 @@ struct FileNames
 	static const WCHAR* MSGLIST_EXT;
 	static const WCHAR* PEM_EXT;
 	static const WCHAR* QMAIL_XML;
+	static const WCHAR* RESOURCES_XML;
 	static const WCHAR* RULES_XML;
 	static const WCHAR* SIGNATURES_XML;
 	static const WCHAR* SYNCFILTERS_XML;

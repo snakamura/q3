@@ -34,6 +34,7 @@ const WCHAR* qm::FileNames::MENUS_XML		= L"menus.xml";
 const WCHAR* qm::FileNames::MSGLIST_EXT		= L".msglist";
 const WCHAR* qm::FileNames::PEM_EXT			= L".pem";
 const WCHAR* qm::FileNames::QMAIL_XML		= L"qmail.xml";
+const WCHAR* qm::FileNames::RESOURCES_XML	= L"resources.xml";
 const WCHAR* qm::FileNames::RULES_XML		= L"rules.xml";
 const WCHAR* qm::FileNames::SIGNATURES_XML	= L"signatures.xml";
 const WCHAR* qm::FileNames::SYNCFILTERS_XML	= L"syncfilters.xml";
