@@ -72,6 +72,7 @@ private:
 
 private:
 	JobList listJob_;
+	mutable bool bModified_;
 	qs::CriticalSection cs_;
 
 private:

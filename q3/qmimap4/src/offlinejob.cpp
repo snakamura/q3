@@ -70,7 +70,8 @@ using namespace qs;
 
 const WCHAR* qmimap4::OfflineJobManager::FILENAME = L"offlinejob";
 
-qmimap4::OfflineJobManager::OfflineJobManager(const WCHAR* pwszPath)
+qmimap4::OfflineJobManager::OfflineJobManager(const WCHAR* pwszPath) :
+	bModified_(false)
 {
 	assert(pwszPath);
 	
@@ -88,6 +89,8 @@ void qmimap4::OfflineJobManager::add(std::auto_ptr<OfflineJob> pJob)
 {
 	Lock<CriticalSection> lock(cs_);
 	
+	bModified_ = true;
+	
 	bool bMerged = false;
 	if (!listJob_.empty())
 		bMerged = listJob_.back()->merge(pJob.get());
@@ -104,6 +107,8 @@ bool qmimap4::OfflineJobManager::apply(Account* pAccount,
 	assert(pImap4);
 	
 	Lock<CriticalSection> lock(cs_);
+	
+	bModified_ = true;
 	
 	struct Deleter
 	{
@@ -160,6 +165,9 @@ bool qmimap4::OfflineJobManager::save(const WCHAR* pwszPath) const
 {
 	Lock<CriticalSection> lock(cs_);
 	
+	if (!bModified_ || listJob_.empty())
+		return true;
+	
 	wstring_ptr wstrPath(concat(pwszPath, L"\\", FILENAME));
 	
 	TemporaryFileRenamer renamer(wstrPath.get());
@@ -182,6 +190,8 @@ bool qmimap4::OfflineJobManager::save(const WCHAR* pwszPath) const
 	if (!renamer.rename())
 		return false;
 	
+	bModified_ = false;
+	
 	return true;
 }
 
@@ -194,6 +204,8 @@ bool qmimap4::OfflineJobManager::copyJobs(NormalFolder* pFolderFrom,
 	assert(pFolderTo);
 	
 	Lock<CriticalSection> lock(cs_);
+	
+	bModified_ = true;
 	
 	wstring_ptr wstrFolderFrom(Util::getFolderName(pFolderFrom));
 	
@@ -246,6 +258,8 @@ bool qmimap4::OfflineJobManager::load(const WCHAR* pwszPath)
 			pJob.release();
 		}
 	}
+	
+	bModified_ = false;
 	
 	return true;
 }
