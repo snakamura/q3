@@ -258,17 +258,18 @@ bool qmimap4::Imap4ReceiveSession::selectFolder(NormalFolder* pFolder,
 	if (!pImap4_->select(wstrName.get()))
 		HANDLE_ERROR();
 	
-	if (nFlags & SELECTFLAG_EMPTY) {
-		ContinuousRange range(1, nExists_, false);
-		Flags flags(Imap4::FLAG_DELETED);
-		Flags mask(Imap4::FLAG_DELETED);
-		if (!pImap4_->setFlags(range, flags, mask))
-			HANDLE_ERROR();
-	}
-	
-	if (nFlags & SELECTFLAG_EXPUNGE) {
-		if (!pImap4_->close() || !pImap4_->select(wstrName.get()))
-			HANDLE_ERROR();
+	if (nExists_ != 0) {
+		if (nFlags & SELECTFLAG_EMPTY) {
+			ContinuousRange range(1, nExists_, false);
+			Flags flags(Imap4::FLAG_DELETED);
+			Flags mask(Imap4::FLAG_DELETED);
+			if (!pImap4_->setFlags(range, flags, mask))
+				HANDLE_ERROR();
+		}
+		if (nFlags & SELECTFLAG_EXPUNGE) {
+			if (!pImap4_->close() || !pImap4_->select(wstrName.get()))
+				HANDLE_ERROR();
+		}
 	}
 	
 	pFolder_ = pFolder;
