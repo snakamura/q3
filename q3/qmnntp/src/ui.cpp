@@ -24,52 +24,13 @@ using namespace qs;
  */
 
 qmnntp::ReceivePage::ReceivePage(SubAccount* pSubAccount, QSTATUS* pstatus) :
-	PropertyPage(getResourceHandle(), IDD_RECEIVE, false, pstatus),
-	DefaultDialogHandler(pstatus),
-	DefaultCommandHandler(pstatus),
+	DefaultPropertyPage(getResourceHandle(), IDD_RECEIVE, pstatus),
 	pSubAccount_(pSubAccount)
 {
-	DECLARE_QSTATUS();
-	
-	status = addCommandHandler(this);
-	CHECK_QSTATUS_SET(pstatus);
-	status = addNotifyHandler(this);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	setDialogHandler(this, false);
 }
 
 qmnntp::ReceivePage::~ReceivePage()
 {
-}
-
-INT_PTR qmnntp::ReceivePage::dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-	BEGIN_DIALOG_HANDLER()
-		HANDLE_DESTROY()
-		HANDLE_INITDIALOG()
-	END_DIALOG_HANDLER()
-	return DefaultDialogHandler::dialogProc(uMsg, wParam, lParam);
-}
-
-LRESULT qmnntp::ReceivePage::onCommand(WORD nCode, WORD nId)
-{
-	return 1;
-}
-
-LRESULT qmnntp::ReceivePage::onNotify(NMHDR* pnmhdr, bool* pbHandled)
-{
-	BEGIN_NOTIFY_HANDLER()
-		HANDLE_NOTIFY_CODE(PSN_APPLY, onApply)
-	END_NOTIFY_HANDLER()
-	return 1;
-}
-
-LRESULT qmnntp::ReceivePage::onDestroy()
-{
-	removeCommandHandler(this);
-	removeNotifyHandler(this);
-	return 0;
 }
 
 LRESULT qmnntp::ReceivePage::onInitDialog(HWND hwndFocus, LPARAM lParam)
@@ -108,7 +69,7 @@ LRESULT qmnntp::ReceivePage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	return TRUE;
 }
 
-LRESULT qmnntp::ReceivePage::onApply(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qmnntp::ReceivePage::onOk()
 {
 	pSubAccount_->setPort(Account::HOST_RECEIVE, getDlgItemInt(IDC_PORT));
 	pSubAccount_->setSsl(Account::HOST_RECEIVE,
@@ -122,7 +83,7 @@ LRESULT qmnntp::ReceivePage::onApply(NMHDR* pnmhdr, bool* pbHandled)
 	pSubAccount_->setLog(Account::HOST_RECEIVE,
 		sendDlgItemMessage(IDC_LOG, BM_GETCHECK) == BST_CHECKED);
 	
-	return 0;
+	return DefaultPropertyPage::onOk();
 }
 
 
@@ -133,52 +94,13 @@ LRESULT qmnntp::ReceivePage::onApply(NMHDR* pnmhdr, bool* pbHandled)
  */
 
 qmnntp::SendPage::SendPage(SubAccount* pSubAccount, QSTATUS* pstatus) :
-	PropertyPage(getResourceHandle(), IDD_SEND, false, pstatus),
-	DefaultDialogHandler(pstatus),
-	DefaultCommandHandler(pstatus),
+	DefaultPropertyPage(getResourceHandle(), IDD_SEND, pstatus),
 	pSubAccount_(pSubAccount)
 {
-	DECLARE_QSTATUS();
-	
-	status = addCommandHandler(this);
-	CHECK_QSTATUS_SET(pstatus);
-	status = addNotifyHandler(this);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	setDialogHandler(this, false);
 }
 
 qmnntp::SendPage::~SendPage()
 {
-}
-
-INT_PTR qmnntp::SendPage::dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-	BEGIN_DIALOG_HANDLER()
-		HANDLE_DESTROY()
-		HANDLE_INITDIALOG()
-	END_DIALOG_HANDLER()
-	return DefaultDialogHandler::dialogProc(uMsg, wParam, lParam);
-}
-
-LRESULT qmnntp::SendPage::onCommand(WORD nCode, WORD nId)
-{
-	return 1;
-}
-
-LRESULT qmnntp::SendPage::onNotify(NMHDR* pnmhdr, bool* pbHandled)
-{
-	BEGIN_NOTIFY_HANDLER()
-		HANDLE_NOTIFY_CODE(PSN_APPLY, onApply)
-	END_NOTIFY_HANDLER()
-	return 1;
-}
-
-LRESULT qmnntp::SendPage::onDestroy()
-{
-	removeCommandHandler(this);
-	removeNotifyHandler(this);
-	return 0;
 }
 
 LRESULT qmnntp::SendPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
@@ -202,7 +124,7 @@ LRESULT qmnntp::SendPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	return TRUE;
 }
 
-LRESULT qmnntp::SendPage::onApply(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qmnntp::SendPage::onOk()
 {
 	pSubAccount_->setPort(Account::HOST_SEND, getDlgItemInt(IDC_PORT));
 	pSubAccount_->setSsl(Account::HOST_SEND,
@@ -210,5 +132,5 @@ LRESULT qmnntp::SendPage::onApply(NMHDR* pnmhdr, bool* pbHandled)
 	pSubAccount_->setLog(Account::HOST_SEND,
 		sendDlgItemMessage(IDC_LOG, BM_GETCHECK) == BST_CHECKED);
 	
-	return 0;
+	return DefaultPropertyPage::onOk();
 }

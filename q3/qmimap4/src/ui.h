@@ -1,5 +1,5 @@
 /*
- * $Id: ui.h,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -22,31 +22,17 @@ namespace qmimap4 {
  *
  */
 
-class ReceivePage :
-	public qs::PropertyPage,
-	public qs::DefaultDialogHandler,
-	public qs::DefaultCommandHandler,
-	public qs::NotifyHandler
+class ReceivePage : public qs::DefaultPropertyPage
 {
 public:
 	ReceivePage(qm::SubAccount* pSubAccount, qs::QSTATUS* pstatus);
 	virtual ~ReceivePage();
 
-public:
-	virtual INT_PTR dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
-
-public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
-
-public:
-	virtual LRESULT onNotify(NMHDR* pnmhdr, bool* pbHandled);
-
 protected:
-	virtual LRESULT onDestroy();
 	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
 
-private:
-	LRESULT onApply(NMHDR* pnmhdr, bool* pbHandled);
+protected:
+	virtual LRESULT onOk();
 
 private:
 	ReceivePage(const ReceivePage&);
