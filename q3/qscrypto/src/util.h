@@ -31,7 +31,7 @@ class BIOPtr
 {
 public:
 	BIOPtr(BIO* p) : p_(p) {}
-	~BIOPtr() { BIO_free(p_); }
+	~BIOPtr() { if (p_) BIO_free(p_); }
 
 public:
 	BIO* get() const { return p_; }
@@ -55,7 +55,7 @@ class PKCS7Ptr
 {
 public:
 	PKCS7Ptr(PKCS7* p) : p_(p) {}
-	~PKCS7Ptr() { PKCS7_free(p_); }
+	~PKCS7Ptr() { if (p_) PKCS7_free(p_); }
 
 public:
 	PKCS7* get() const { return p_; }
@@ -79,7 +79,7 @@ class X509Ptr
 {
 public:
 	X509Ptr(X509* p) : p_(p) {}
-	~X509Ptr() { X509_free(p_); }
+	~X509Ptr() { if (p_) X509_free(p_); }
 
 public:
 	X509* get() const { return p_; }
@@ -102,8 +102,16 @@ private:
 class X509StackPtr
 {
 public:
-	X509StackPtr(STACK_OF(X509)* p) : p_(p) {}
-	~X509StackPtr() { sk_X509_pop_free(p_, X509_free); }
+	X509StackPtr(STACK_OF(X509)* p, bool bPop) : p_(p), bPop_(bPop) {}
+	~X509StackPtr()
+	{
+		if (p_) {
+			if (bPop_)
+				sk_X509_pop_free(p_, X509_free);
+			else
+				sk_X509_free(p_);
+		}
+	}
 
 public:
 	STACK_OF(X509)* get() const { return p_; }
@@ -114,6 +122,7 @@ private:
 
 private:
 	STACK_OF(X509)* p_;
+	bool bPop_;
 };
 
 
@@ -127,7 +136,7 @@ class EVP_PKEYPtr
 {
 public:
 	EVP_PKEYPtr(EVP_PKEY* p) : p_(p) {}
-	~EVP_PKEYPtr() { EVP_PKEY_free(p_); }
+	~EVP_PKEYPtr() { if (p_) EVP_PKEY_free(p_); }
 
 public:
 	EVP_PKEY* get() const { return p_; }

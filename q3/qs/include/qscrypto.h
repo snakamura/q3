@@ -52,6 +52,13 @@ public:
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	virtual wstring_ptr getCommonName() const = 0;
+	
+	/**
+	 * Get email address.
+	 *
+	 * @return Email address. null if failed.
+	 */
+	virtual wstring_ptr getEmailAddress() const = 0;
 };
 
 
@@ -340,6 +347,12 @@ public:
 		TYPE_ENVELOPED,
 		TYPE_ENVELOPEDORSIGNED
 	};
+	
+	enum Verify {
+		VERIFY_OK				= 0x00,
+		VERIFY_FAILED			= 0x01,
+		VERIFY_ADDRESSNOTMATCH	= 0x02
+	};
 
 public:
 	virtual ~SMIMEUtility();
@@ -369,26 +382,26 @@ public:
 	 * @param bMultipart [in] true if sign as multipart/signed, false otherwise.
 	 * @param pPrivateKey [in] Private key to sign.
 	 * @param pCertificate [in] Certificate collesponding to the private key.
-	 * @param pCallback [in] Callback.
 	 * @return Signed content. null if error occured.
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	virtual xstring_ptr sign(Part* pPart,
 							 bool bMultipart,
 							 const PrivateKey* pPrivateKey,
-							 const Certificate* pCertificate,
-							 SMIMECallback* pCallback) const = 0;
+							 const Certificate* pCertificate) const = 0;
 	
 	/**
 	 * Verify the specified part.
 	 *
 	 * @param part [in] Part to be verified.
 	 * @param pStoreCA [in] Certificate store of CA.
+	 * @param pnVerify [out] Verified status.
 	 * @return Verified content. null if error occured.
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	virtual xstring_ptr verify(const Part& part,
-							   const Store* pStoreCA) const = 0;
+							   const Store* pStoreCA,
+							   unsigned int* pnVerify) const = 0;
 	
 	/**
 	 * Encrypt the specified part.

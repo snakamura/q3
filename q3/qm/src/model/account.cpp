@@ -1764,10 +1764,20 @@ bool qm::Account::getMessage(MessageHolder* pmh,
 			switch (type) {
 			case SMIMEUtility::TYPE_SIGNED:
 			case SMIMEUtility::TYPE_MULTIPARTSIGNED:
-				strMessage = pSMIMEUtility->verify(*pMessage, pImpl_->pSecurity_->getCA());
-				if (!strMessage.get())
-					return false;
-				nSecurity |= Message::SECURITY_VERIFIED;
+				{
+					unsigned int nVerify = 0;
+					strMessage = pSMIMEUtility->verify(*pMessage,
+						pImpl_->pSecurity_->getCA(), &nVerify);
+					if (!strMessage.get())
+						return false;
+					
+					if (nVerify == SMIMEUtility::VERIFY_OK)
+						nSecurity |= Message::SECURITY_VERIFIED;
+					if (nVerify & SMIMEUtility::VERIFY_FAILED)
+						nSecurity |= Message::SECURITY_VERIFICATIONFAILED;
+					if (nVerify & SMIMEUtility::VERIFY_ADDRESSNOTMATCH)
+						nSecurity |= Message::SECURITY_ADDRESSNOTMATCH;
+				}
 				break;
 			case SMIMEUtility::TYPE_ENVELOPED:
 				{

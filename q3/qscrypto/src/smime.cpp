@@ -89,8 +89,7 @@ SMIMEUtility::Type qscrypto::SMIMEUtilityImpl::getType(const ContentTypeParser* 
 xstring_ptr qscrypto::SMIMEUtilityImpl::sign(Part* pPart,
 											 bool bMultipart,
 											 const PrivateKey* pPrivateKey,
-											 const Certificate* pCertificate,
-											 SMIMECallback* pCallback) const
+											 const Certificate* pCertificate) const
 {
 	assert(pPart);
 	assert(pPrivateKey);
@@ -126,9 +125,13 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::sign(Part* pPart,
 }
 
 xstring_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
-											   const Store* pStoreCA) const
+											   const Store* pStoreCA,
+											   unsigned int* pnVerify) const
 {
 	assert(pStoreCA);
+	assert(pnVerify);
+	
+	*pnVerify = VERIFY_OK;
 	
 	X509_STORE* pStore = static_cast<const StoreImpl*>(pStoreCA)->getStore();
 	
@@ -150,12 +153,40 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
 		if (!pPKCS7.get())
 			return 0;
 		
-		if (PKCS7_verify(pPKCS7.get(), 0, pStore, 0, pOut.get(), 0) != 1)
-			return 0;
+		if (PKCS7_verify(pPKCS7.get(), 0, pStore, 0, pOut.get(), 0) != 1) {
+			*pnVerify |= VERIFY_FAILED;
+			if (PKCS7_verify(pPKCS7.get(), 0, pStore, 0, pOut.get(),
+				PKCS7_NOVERIFY | PKCS7_NOSIGS) != 1)
+				return 0;
+		}
+		
+		bool bMatch = false;
+		X509StackPtr certs(PKCS7_get0_signers(pPKCS7.get(), 0, 0), false);
+		if (certs.get()) {
+			AddressListParser from(AddressListParser::FLAG_DISALLOWGROUP);
+			Part::Field fieldFrom = part.getField(L"From", &from);
+			AddressListParser sender(AddressListParser::FLAG_DISALLOWGROUP);
+			Part::Field fieldSender = part.getField(L"Sender", &from);
+			
+			for (int n = 0; n < sk_X509_num(certs.get()) && !bMatch; ++n) {
+				CertificateImpl cert(sk_X509_value(certs.get(), n));
+				std::auto_ptr<Name> pName(cert.getSubject());
+				if (pName.get()) {
+					wstring_ptr wstrAddress = pName->getEmailAddress();
+					if (wstrAddress.get())
+						bMatch = contains(from, wstrAddress.get()) ||
+							contains(sender, wstrAddress.get());
+				}
+			}
+		}
+		if (!bMatch)
+			*pnVerify |= VERIFY_ADDRESSNOTMATCH;
 	}
 	
 	char* pBuf = 0;
 	int nBufLen = BIO_get_mem_data(pOut.get(), &pBuf);
+	if (!pBuf)
+		return 0;
 	return createMessage(pBuf, nBufLen, part);
 }
 
@@ -167,7 +198,7 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::encrypt(Part* pPart,
 	assert(pCipher);
 	assert(pCallback);
 	
-	X509StackPtr pCertificates(sk_X509_new_null());
+	X509StackPtr pCertificates(sk_X509_new_null(), true);
 	
 	const WCHAR* pwszAddresses[] = {
 		L"To",
@@ -254,6 +285,8 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::decrypt(const Part& part,
 	
 	char* pBuf = 0;
 	int nBufLen = BIO_get_mem_data(pOut.get(), &pBuf);
+	if (!pBuf)
+		return 0;
 	return createMessage(pBuf, nBufLen, part);
 }
 
@@ -344,4 +377,23 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::createMessage(const CHAR* pszContent,
 	*(p + nBodyLen) = '\0';
 	
 	return strMessage;
+}
+
+bool qscrypto::SMIMEUtilityImpl::contains(const AddressListParser& addressList,
+										  const WCHAR* pwszAddress)
+{
+	const AddressListParser::AddressList& l = addressList.getAddressList();
+	for (AddressListParser::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		if (contains(**it, pwszAddress))
+			return true;
+	}
+	return false;
+}
+
+bool qscrypto::SMIMEUtilityImpl::contains(const AddressParser& address,
+										  const WCHAR* pwszAddress)
+{
+	assert(!address.getGroup());
+	wstring_ptr wstrAddress(address.getAddress());
+	return _wcsicmp(wstrAddress.get(), pwszAddress) == 0;
 }

@@ -10,6 +10,7 @@
 #define __SMIME_H__
 
 #include <qscrypto.h>
+#include <qsmime.h>
 
 #include <openssl/pkcs7.h>
 
@@ -34,10 +35,10 @@ public:
 	virtual qs::xstring_ptr sign(qs::Part* pPart,
 								 bool bMultipart,
 								 const qs::PrivateKey* pPrivateKey,
-								 const qs::Certificate* pCertificate,
-								 qs::SMIMECallback* pCallback) const;
+								 const qs::Certificate* pCertificate) const;
 	virtual qs::xstring_ptr verify(const qs::Part& part,
-								   const qs::Store* pStoreCA) const;
+								   const qs::Store* pStoreCA,
+								   unsigned int* pnVerify) const;
 	virtual qs::xstring_ptr encrypt(qs::Part* pPart,
 									const qs::Cipher* pCipher,
 									qs::SMIMECallback* pCallback) const;
@@ -52,6 +53,10 @@ private:
 	static qs::xstring_ptr createMessage(const CHAR* pszContent,
 										 size_t nLen,
 										 const qs::Part& part);
+	static bool contains(const qs::AddressListParser& addressList,
+						 const WCHAR* pwszAddress);
+	static bool contains(const qs::AddressParser& address,
+						 const WCHAR* pwszAddress);
 
 private:
 	SMIMEUtilityImpl(const SMIMEUtilityImpl&);

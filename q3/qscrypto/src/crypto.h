@@ -30,6 +30,10 @@ public:
 
 public:
 	virtual qs::wstring_ptr getCommonName() const;
+	virtual qs::wstring_ptr getEmailAddress() const;
+
+private:
+	qs::wstring_ptr getText(int nid) const;
 
 private:
 	NameImpl(const NameImpl&);

@@ -222,23 +222,20 @@ void qm::UIUtil::updateStatusBar(MessageWindow* pMessageWindow,
 		}
 		pStatusBar->setText(nOffset + 2, pwszTemplate);
 		
+		// TODO
+		// Use icon
 		unsigned int nSecurity = msg.getSecurity();
-		if (nSecurity & Message::SECURITY_DECRYPTED) {
-			// TODO
-			// Use icon
+		if (nSecurity & Message::SECURITY_DECRYPTED)
 			pStatusBar->setText(nOffset + 3, L"D");
-		}
-		else {
+		else
 			pStatusBar->setText(nOffset + 3, L"");
-		}
-		if (nSecurity & Message::SECURITY_VERIFIED) {
-			// TODO
-			// Use icon
+		if (nSecurity & Message::SECURITY_VERIFIED)
 			pStatusBar->setText(nOffset + 4, L"V");
-		}
-		else {
+		else if ((nSecurity & Message::SECURITY_VERIFICATIONFAILED) ||
+				 (nSecurity & Message::SECURITY_ADDRESSNOTMATCH))
+			pStatusBar->setText(nOffset + 4, L"X");
+		else
 			pStatusBar->setText(nOffset + 4, L"");
-		}
 	}
 	else {
 		for (int n = 1; n < 5; ++n)

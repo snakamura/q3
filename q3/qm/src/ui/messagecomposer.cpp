@@ -150,7 +150,7 @@ bool qm::MessageComposer::compose(Account* pAccount,
 			PrivateKey* pPrivateKey = pSubAccount->getPrivateKey();
 			if (pCertificate && pPrivateKey) {
 				xstring_ptr strMessage(pSMIMEUtility->sign(pMessage,
-					bMultipart, pPrivateKey, pCertificate, &callback));
+					bMultipart, pPrivateKey, pCertificate));
 				if (!strMessage.get())
 					return false;
 				if (!pMessage->create(strMessage.get(), -1, Message::FLAG_NONE))

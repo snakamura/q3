@@ -52,15 +52,25 @@ qscrypto::NameImpl::~NameImpl()
 
 wstring_ptr qscrypto::NameImpl::getCommonName() const
 {
-	int nLen = X509_NAME_get_text_by_NID(pName_, NID_commonName, 0, 0);
+	return getText(NID_commonName);
+}
+
+wstring_ptr qscrypto::NameImpl::getEmailAddress() const
+{
+	return getText(NID_pkcs9_emailAddress);
+}
+
+wstring_ptr qscrypto::NameImpl::getText(int nid) const
+{
+	int nLen = X509_NAME_get_text_by_NID(pName_, nid, 0, 0);
 	if (nLen == -1)
 		return 0;
 	
-	string_ptr strName(allocString(nLen + 1));
-	if (X509_NAME_get_text_by_NID(pName_, NID_commonName, strName.get(), nLen + 1) == -1)
+	string_ptr strText(allocString(nLen + 1));
+	if (X509_NAME_get_text_by_NID(pName_, nid, strText.get(), nLen + 1) == -1)
 		return 0;
 	
-	return mbs2wcs(strName.get());
+	return mbs2wcs(strText.get());
 }
 
 
