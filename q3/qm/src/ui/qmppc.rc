@@ -629,19 +629,19 @@ BEGIN
     LTEXT           "Type",IDC_STATIC,5,25,25,8
     LTEXT           "",IDC_TYPE,35,25,100,8
     CONTROL         "&Sync when opened",IDC_SYNCWHENOPEN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,50,70,10
+                    BS_AUTO3STATE | WS_TABSTOP,10,50,70,10
     CONTROL         "&Cache when read",IDC_CACHEWHENREAD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,60,70,10
+                    BS_AUTO3STATE | WS_TABSTOP,10,60,70,10
     GROUPBOX        "Flag",IDC_STATIC,5,40,80,35
-    CONTROL         "&Inbox",IDC_INBOX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+    CONTROL         "&Inbox",IDC_INBOX,"Button",BS_AUTO3STATE | WS_TABSTOP,
                     10,85,40,10
-    CONTROL         "&Outbox",IDC_OUTBOX,"Button",BS_AUTOCHECKBOX | 
+    CONTROL         "&Outbox",IDC_OUTBOX,"Button",BS_AUTO3STATE | 
                     WS_TABSTOP,10,95,40,10
-    CONTROL         "&Sentbox",IDC_SENTBOX,"Button",BS_AUTOCHECKBOX | 
+    CONTROL         "&Sentbox",IDC_SENTBOX,"Button",BS_AUTO3STATE | 
                     WS_TABSTOP,10,105,40,10
-    CONTROL         "&Draftbox",IDC_DRAFTBOX,"Button",BS_AUTOCHECKBOX | 
+    CONTROL         "&Draftbox",IDC_DRAFTBOX,"Button",BS_AUTO3STATE | 
                     WS_TABSTOP,10,115,40,10
-    CONTROL         "&Trashbox",IDC_TRASHBOX,"Button",BS_AUTOCHECKBOX | 
+    CONTROL         "&Trashbox",IDC_TRASHBOX,"Button",BS_AUTO3STATE | 
                     WS_TABSTOP,10,125,43,10
     GROUPBOX        "Box Type",IDC_STATIC,5,75,80,65
 END

@@ -1,5 +1,5 @@
 /*
- * $Id: qmfolderlistwindow.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -21,6 +21,7 @@ namespace qm {
 
 class FolderListWindow;
 
+class FolderListModel;
 class FolderModel;
 
 
@@ -36,7 +37,8 @@ class FolderListWindow :
 	public View
 {
 public:
-	FolderListWindow(qs::WindowBase* pParentWindow, FolderModel* pFolderModel,
+	FolderListWindow(qs::WindowBase* pParentWindow,
+		FolderListModel* pFolderListModel, FolderModel* pFolderModel,
 		qs::Profile* pProfile, qs::QSTATUS* pstatus);
 	virtual ~FolderListWindow();
 

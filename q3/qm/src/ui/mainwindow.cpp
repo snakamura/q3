@@ -34,6 +34,7 @@
 #include "editframewindow.h"
 #include "externaleditor.h"
 #include "foldercombobox.h"
+#include "folderlistmodel.h"
 #include "folderlistwindow.h"
 #include "foldermodel.h"
 #include "folderselectionmodel.h"
@@ -162,6 +163,7 @@ public:
 	MessageWindow* pMessageWindow_;
 	StatusBar* pStatusBar_;
 	FolderModel* pFolderModel_;
+	FolderListModel* pFolderListModel_;
 	ViewModelManager* pViewModelManager_;
 	MessageSelectionModelImpl* pMessageSelectionModel_;
 	MessageSelectionModelImpl* pListOnlyMessageSelectionModel_;
@@ -899,7 +901,8 @@ QSTATUS qm::MainWindowImpl::getSelectedFolders(Account::FolderList* pList)
 	DECLARE_QSTATUS();
 	
 	if (pFolderListWindow_->isActive()) {
-		// TODO
+		status = pFolderListModel_->getSelectedFolders(pList);
+		CHECK_QSTATUS();
 	}
 	else {
 		Folder* pFolder = pFolderModel_->getCurrentFolder();
@@ -917,13 +920,10 @@ QSTATUS qm::MainWindowImpl::hasSelectedFolder(bool* pbHas)
 {
 	assert(pbHas);
 	
-	if (pFolderListWindow_->isActive()) {
-		// TODO
-		*pbHas = false;
-	}
-	else {
+	if (pFolderListWindow_->isActive())
+		*pbHas = pFolderListModel_->hasSelectedFolder();
+	else
 		*pbHas = pFolderModel_->getCurrentFolder() != 0;
-	}
 	
 	return QSTATUS_SUCCESS;
 }
@@ -1167,6 +1167,7 @@ qm::MainWindow::MainWindow(Profile* pProfile, QSTATUS* pstatus) :
 	pImpl_->pMessageWindow_ = 0;
 	pImpl_->pStatusBar_ = 0;
 	pImpl_->pFolderModel_ = 0;
+	pImpl_->pFolderListModel_ = 0;
 	pImpl_->pViewModelManager_ = 0;
 	pImpl_->pMessageSelectionModel_ = 0;
 	pImpl_->pListOnlyMessageSelectionModel_ = 0;
@@ -1196,6 +1197,7 @@ qm::MainWindow::~MainWindow()
 	if (pImpl_) {
 		delete pImpl_->pAccelerator_;
 		delete pImpl_->pFolderModel_;
+		delete pImpl_->pFolderListModel_;
 		delete pImpl_->pViewModelManager_;
 		delete pImpl_->pMessageSelectionModel_;
 		delete pImpl_->pListOnlyMessageSelectionModel_;
@@ -1542,6 +1544,9 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	CHECK_QSTATUS_VALUE(-1);
 	pImpl_->pFolderModel_ = pFolderModel.release();
 	
+	status = newQsObject(&pImpl_->pFolderListModel_);
+	CHECK_QSTATUS_VALUE(-1);
+	
 	status = newQsObject(pImpl_->pProfile_, pImpl_->pDocument_,
 		getHandle(), pImpl_->pFolderModel_, &pImpl_->pViewModelManager_);
 	CHECK_QSTATUS_VALUE(-1);
@@ -1634,7 +1639,8 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	std::auto_ptr<FolderListWindow> pFolderListWindow;
 	status = newQsObject(pImpl_->pListContainerWindow_,
-		pImpl_->pFolderModel_, pImpl_->pProfile_, &pFolderListWindow);
+		pImpl_->pFolderListModel_, pImpl_->pFolderModel_,
+		pImpl_->pProfile_, &pFolderListWindow);
 	CHECK_QSTATUS_VALUE(-1);
 	FolderListWindowCreateContext folderListContext = {
 		pContext->pDocument_,

@@ -13,7 +13,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Japanese resources
+// “ú–{Œê resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
 #ifdef _WIN32
@@ -633,19 +633,19 @@ BEGIN
     LTEXT           "Type",IDC_STATIC,5,35,25,8
     LTEXT           "",IDC_TYPE,35,35,185,8
     CONTROL         "&Sync when opened",IDC_SYNCWHENOPEN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,70,90,10
+                    BS_AUTO3STATE | WS_TABSTOP,10,70,90,10
     CONTROL         "&Cache when read",IDC_CACHEWHENREAD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,80,90,10
+                    BS_AUTO3STATE | WS_TABSTOP,10,80,90,10
     GROUPBOX        "Flag",IDC_STATIC,5,55,105,75
-    CONTROL         "&Inbox",IDC_INBOX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+    CONTROL         "&Inbox",IDC_INBOX,"Button",BS_AUTO3STATE | WS_TABSTOP,
                     120,70,45,10
-    CONTROL         "&Outbox",IDC_OUTBOX,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,120,80,45,10
-    CONTROL         "&Sentbox",IDC_SENTBOX,"Button",BS_AUTOCHECKBOX | 
+    CONTROL         "&Outbox",IDC_OUTBOX,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    120,80,45,10
+    CONTROL         "&Sentbox",IDC_SENTBOX,"Button",BS_AUTO3STATE | 
                     WS_TABSTOP,120,90,45,10
-    CONTROL         "&Draftbox",IDC_DRAFTBOX,"Button",BS_AUTOCHECKBOX | 
+    CONTROL         "&Draftbox",IDC_DRAFTBOX,"Button",BS_AUTO3STATE | 
                     WS_TABSTOP,120,100,45,10
-    CONTROL         "&Trashbox",IDC_TRASHBOX,"Button",BS_AUTOCHECKBOX | 
+    CONTROL         "&Trashbox",IDC_TRASHBOX,"Button",BS_AUTO3STATE | 
                     WS_TABSTOP,120,110,45,10
     GROUPBOX        "Box Type",IDC_STATIC,115,55,105,75
 END
@@ -982,7 +982,7 @@ BEGIN
     IDS_FOLDERTYPETEMPLATE  "%s (%s)"
 END
 
-#endif    // Japanese resources
+#endif    // “ú–{Œê resources
 /////////////////////////////////////////////////////////////////////////////
 
 

@@ -1,5 +1,5 @@
 /*
- * $Id: folderlistwindow.cpp,v 1.3 2003/05/18 04:43:45 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -21,6 +21,7 @@
 
 #include <tchar.h>
 
+#include "folderlistmodel.h"
 #include "folderlistwindow.h"
 #include "foldermodel.h"
 #include "keymap.h"
@@ -56,6 +57,7 @@ public:
 
 private:
 	QSTATUS setCurrentAccount(Account* pAccount);
+	QSTATUS updateFolderListModel();
 
 private:
 	static int getIndent(Folder* pFolder);
@@ -63,6 +65,7 @@ private:
 public:
 	FolderListWindow* pThis_;
 	WindowBase* pParentWindow_;
+	FolderListModel* pFolderListModel_;
 	FolderModel* pFolderModel_;
 	MenuManager* pMenuManager_;
 	Profile* pProfile_;
@@ -185,6 +188,9 @@ LRESULT qm::FolderListWindowImpl::onNotify(NMHDR* pnmhdr, bool* pbHandled)
 					(pnmlv->uNewState & 0x1000) == 0);
 			}
 		}
+		
+		updateFolderListModel();
+		
 		break;
 	}
 	
@@ -256,6 +262,36 @@ QSTATUS qm::FolderListWindowImpl::setCurrentAccount(Account* pAccount)
 		bInserting_ = false;
 	}
 	
+	updateFolderListModel();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::FolderListWindowImpl::updateFolderListModel()
+{
+	DECLARE_QSTATUS();
+	
+	int nCount = ListView_GetItemCount(pThis_->getHandle());
+	
+	Account::FolderList l;
+	if (nCount != 0) {
+		status = STLWrapper<Account::FolderList>(l).reserve(nCount);
+		CHECK_QSTATUS();
+		
+		int nItem = -1;
+		while (true) {
+			nItem = ListView_GetNextItem(pThis_->getHandle(),
+				nItem, LVNI_ALL | LVNI_SELECTED);
+			if (nItem == -1)
+				break;
+			Folder* pFolder = getFolder(nItem);
+			l.push_back(pFolder);
+		}
+	}
+	
+	status = pFolderListModel_->setSelectedFolder(l);
+	CHECK_QSTATUS();
+	
 	return QSTATUS_SUCCESS;
 }
 
@@ -280,7 +316,8 @@ int qm::FolderListWindowImpl::getIndent(Folder* pFolder)
  */
 
 qm::FolderListWindow::FolderListWindow(WindowBase* pParentWindow,
-	FolderModel* pFolderModel, Profile* pProfile, QSTATUS* pstatus) :
+	FolderListModel* pFolderListModel, FolderModel* pFolderModel,
+	Profile* pProfile, QSTATUS* pstatus) :
 	WindowBase(true, pstatus),
 	DefaultWindowHandler(pstatus),
 	pImpl_(0)
@@ -291,6 +328,7 @@ qm::FolderListWindow::FolderListWindow(WindowBase* pParentWindow,
 	CHECK_QSTATUS_SET(pstatus);
 	pImpl_->pThis_ = this;
 	pImpl_->pParentWindow_ = pParentWindow;
+	pImpl_->pFolderListModel_ = pFolderListModel;
 	pImpl_->pFolderModel_ = pFolderModel;
 	pImpl_->pMenuManager_ = 0;
 	pImpl_->pProfile_ = pProfile;
@@ -340,8 +378,7 @@ QSTATUS qm::FolderListWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
 	status = DefaultWindowHandler::preCreateWindow(pCreateStruct);
 	CHECK_QSTATUS();
 	
-	pCreateStruct->style |= LVS_REPORT | LVS_SINGLESEL |
-		LVS_NOSORTHEADER | LVS_SHOWSELALWAYS;
+	pCreateStruct->style |= LVS_REPORT | LVS_NOSORTHEADER | LVS_SHOWSELALWAYS;
 	
 	return QSTATUS_SUCCESS;
 }
@@ -397,7 +434,7 @@ LRESULT qm::FolderListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pMenuManager_ = pContext->pMenuManager_;
 	
 	status = pContext->pKeyMap_->createAccelerator(
-		CustomAcceleratorFactory(), L"FolderWindow",
+		CustomAcceleratorFactory(), L"FolderListWindow",
 		mapKeyNameToId, countof(mapKeyNameToId), &pImpl_->pAccelerator_);
 	CHECK_QSTATUS_VALUE(-1);
 	
