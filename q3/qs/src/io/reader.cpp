@@ -1,5 +1,5 @@
 /*
- * $Id: reader.cpp,v 1.1.1.1 2003/04/29 08:07:35 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -47,6 +47,7 @@ struct qs::InputStreamReaderImpl
 	WSTRING wstr_;
 	WCHAR* pwEnd_;
 	WCHAR* pwCurrent_;
+	bool bSkipBOM_;
 };
 
 QSTATUS qs::InputStreamReaderImpl::mapBuffer()
@@ -82,6 +83,12 @@ QSTATUS qs::InputStreamReaderImpl::mapBuffer()
 		CHECK_QSTATUS();
 		pwEnd_ = wstr_ + nDecodeLen;
 		pwCurrent_ = wstr_;
+		
+		if (bSkipBOM_ && nDecodeLen != 0) {
+			if (*pwCurrent_ == 0xfeff)
+				++pwCurrent_;
+			bSkipBOM_ = false;
+		}
 		
 		if (pBuf_ + nLen != pBufEnd_) {
 			if (nRead == -1)
@@ -148,6 +155,8 @@ qs::InputStreamReader::InputStreamReader(InputStream* pInputStream,
 	pImpl_->wstr_ = 0;
 	pImpl_->pwEnd_ = 0;
 	pImpl_->pwCurrent_ = 0;
+	pImpl_->bSkipBOM_ = _wcsnicmp(pwszEncoding, L"utf-", 4) == 0 ||
+		_wcsnicmp(pwszEncoding, L"ucs-", 4) == 0;
 }
 
 qs::InputStreamReader::~InputStreamReader()
