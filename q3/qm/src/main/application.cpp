@@ -34,7 +34,6 @@
 #include "main.h"
 #ifndef DEPENDCHECK
 #	include "version.h"
-#	include "resources.h"
 #endif
 #include "../model/dataobject.h"
 #include "../model/tempfilecleaner.h"
