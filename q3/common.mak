@@ -13,6 +13,7 @@ VS6DIR					= d:/dev/msvs
 VC6DIR					= d:/dev/msvs/vc98
 VS7DIR					= c:/Program Files/Microsoft Visual Studio .NET 2003
 VC7DIR					= d:/dev/msvs2003/vc7
+VC7						= 0
 EVCDIR					= d:/dev/msevc4/evc
 EVC4					= 1
 PLATFORMSDKDIR			= d:/dev/mssdk
@@ -30,6 +31,8 @@ CESDKHPCPROENDIR		= d:/dev/msevt/wce211/ms hpc pro
 SVNDIR					= d:/dev/subversion
 STLPORTDIR				= ../lib/stlport
 KCTRLDIR				= ../lib/kctrl
+
+-include ../env.mak
 
 
 ifeq ($(PROJECTNAME),)
