@@ -44,6 +44,7 @@ const WCHAR* qm::FileNames::RESOURCES_XML	= L"resources.xml";
 const WCHAR* qm::FileNames::RULES_XML		= L"rules.xml";
 const WCHAR* qm::FileNames::SIGNATURES_XML	= L"signatures.xml";
 const WCHAR* qm::FileNames::SYNCFILTERS_XML	= L"syncfilters.xml";
+const WCHAR* qm::FileNames::TABS_XML		= L"tabs.xml";
 const WCHAR* qm::FileNames::TEXTS_XML		= L"texts.xml";
 const WCHAR* qm::FileNames::TOOLBAR_BMP		= L"toolbar.bmp";
 const WCHAR* qm::FileNames::TOOLBARS_XML	= L"toolbars.xml";

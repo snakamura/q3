@@ -14,6 +14,7 @@
 #include <qm.h>
 
 #include <qsprofile.h>
+#include <qssax.h>
 
 #include <vector>
 
@@ -26,6 +27,8 @@ class TabModel;
 class TabModelHandler;
 	class DefaultTabModelHandler;
 class TabModelEvent;
+class TabModelContentHandler;
+class TabModelWriter;
 
 class Account;
 class Folder;
@@ -109,12 +112,17 @@ class DefaultTabModel :
 	public DefaultAccountHandler
 {
 public:
+	typedef std::vector<TabItem*> ItemList;
+
+public:
 	DefaultTabModel(Document* pDocument,
-					qs::Profile* pProfile);
+					qs::Profile* pProfile,
+					const WCHAR* pwszPath);
 	virtual ~DefaultTabModel();
 
 public:
 	bool save() const;
+	const ItemList& getItems() const;
 
 public:
 	virtual int getCount();
@@ -164,9 +172,11 @@ private:
 	void open(Folder* pFolder,
 			  bool bForce);
 	int addAccount(Account* pAccount,
-				   bool bLocked);
+				   bool bLocked,
+				   const WCHAR* pwszTitle);
 	int addFolder(Folder* pFolder,
-				  bool bLocked);
+				  bool bLocked,
+				  const WCHAR* pwszTitle);
 	void removeItem(int nItem);
 	void setAccount(int nItem,
 					Account* pAccount);
@@ -194,13 +204,13 @@ private:
 	};
 
 private:
-	typedef std::vector<TabItem*> ItemList;
 	typedef std::vector<std::pair<Account*, int> > AccountList;
 	typedef std::vector<TabModelHandler*> HandlerList;
 
 private:
 	Document* pDocument_;
 	qs::Profile* pProfile_;
+	qs::wstring_ptr wstrPath_;
 	ItemList listItem_;
 	int nCurrent_;
 	int nTemporary_;
@@ -208,6 +218,8 @@ private:
 	unsigned int nReuse_;
 	AccountList listHandledAccount_;
 	HandlerList listHandler_;
+	
+	friend class TabModelContentHandler;
 };
 
 
@@ -289,6 +301,74 @@ private:
 	const TabItem* pOldItem_;
 	const TabItem* pNewItem_;
 	int nAmount_;
+};
+
+
+/****************************************************************************
+ *
+ * TabModelContentHandler
+ *
+ */
+
+class TabModelContentHandler : public qs::DefaultHandler
+{
+public:
+	TabModelContentHandler(DefaultTabModel* pTabModel,
+						   Document* pDocument);
+	virtual ~TabModelContentHandler();
+
+public:
+	virtual bool startElement(const WCHAR* pwszNamespaceURI,
+							  const WCHAR* pwszLocalName,
+							  const WCHAR* pwszQName,
+							  const qs::Attributes& attributes);
+	virtual bool endElement(const WCHAR* pwszNamespaceURI,
+							const WCHAR* pwszLocalName,
+							const WCHAR* pwszQName);
+	virtual bool characters(const WCHAR* pwsz,
+							size_t nStart,
+							size_t nLength);
+
+private:
+	TabModelContentHandler(const TabModelContentHandler&);
+	TabModelContentHandler& operator=(const TabModelContentHandler&);
+
+private:
+	enum State {
+		STATE_ROOT,
+		STATE_TABS,
+		STATE_TAB
+	};
+
+private:
+	DefaultTabModel* pTabModel_;
+	Document* pDocument_;
+	State state_;
+};
+
+
+/****************************************************************************
+ *
+ * TabModelWriter
+ *
+ */
+
+class TabModelWriter
+{
+public:
+	TabModelWriter(qs::Writer* pWriter);
+	~TabModelWriter();
+
+public:
+	bool write(const DefaultTabModel* pTabModel);
+	bool write(const TabItem* pItem);
+
+private:
+	TabModelWriter(const TabModelWriter&);
+	TabModelWriter& operator=(const TabModelWriter&);
+
+private:
+	qs::OutputHandler handler_;
 };
 
 }

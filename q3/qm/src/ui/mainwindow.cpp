@@ -8,6 +8,7 @@
 
 #include <qmapplication.h>
 #include <qmdocument.h>
+#include <qmfilenames.h>
 #include <qmfoldercombobox.h>
 #include <qmfolderlistwindow.h>
 #include <qmfolderwindow.h>
@@ -2132,7 +2133,8 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	pImpl_->pFolderModel_.reset(new DefaultFolderModel());
 #ifdef QMTABWINDOW
-	pImpl_->pTabModel_.reset(new DefaultTabModel(pImpl_->pDocument_, pImpl_->pProfile_));
+	pImpl_->pTabModel_.reset(new DefaultTabModel(pImpl_->pDocument_, pImpl_->pProfile_,
+		Application::getApplication().getProfilePath(FileNames::TABS_XML).get()));
 #endif
 	pImpl_->pFolderListModel_.reset(new FolderListModel());
 	pImpl_->pEncodingModel_.reset(new DefaultEncodingModel());

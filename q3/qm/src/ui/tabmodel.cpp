@@ -17,6 +17,7 @@
 
 #include "tabmodel.h"
 #include "uiutil.h"
+#include "../model/confighelper.h"
 
 #pragma warning(disable:4786)
 
@@ -103,13 +104,15 @@ qm::TabModel::~TabModel()
  */
 
 qm::DefaultTabModel::DefaultTabModel(Document* pDocument,
-									 Profile* pProfile) :
+									 Profile* pProfile,
+									 const WCHAR* pwszPath) :
 	pDocument_(pDocument),
 	pProfile_(pProfile),
 	nCurrent_(-1),
 	nTemporary_(-1),
 	nReuse_(REUSE_NONE)
 {
+	wstrPath_ = allocWString(pwszPath);
 	nReuse_ = pProfile_->getInt(L"TabWindow", L"Reuse", REUSE_NONE);
 	
 	pDocument_->addDocumentHandler(this);
@@ -124,24 +127,17 @@ qm::DefaultTabModel::~DefaultTabModel()
 
 bool qm::DefaultTabModel::save() const
 {
-	Profile::StringList listValue;
-	StringListFree<Profile::StringList> free(listValue);
-	listValue.reserve(listItem_.size());
-	for (ItemList::const_iterator it = listItem_.begin(); it != listItem_.end(); ++it) {
-		TabItem* pItem = *it;
-		std::pair<Account*, Folder*> p(pItem->get());
-		wstring_ptr wstr(p.first ? UIUtil::formatAccount(p.first) : UIUtil::formatFolder(p.second));
-		
-		if (pItem->isLocked())
-			wstr = concat(L"+", wstr.get());
-		
-		listValue.push_back(wstr.release());
-	}
+	if (!ConfigSaver<const DefaultTabModel*, TabModelWriter>::save(this, wstrPath_.get()))
+		return false;
 	
-	pProfile_->setStringList(L"TabWindow", L"Tabs", listValue);
 	pProfile_->setInt(L"TabWindow", L"CurrentTab", nCurrent_);
 	
 	return true;
+}
+
+const DefaultTabModel::ItemList& qm::DefaultTabModel::getItems() const
+{
+	return listItem_;
 }
 
 int qm::DefaultTabModel::getCount()
@@ -335,23 +331,11 @@ void qm::DefaultTabModel::accountListChanged(const AccountListChangedEvent& even
 
 void qm::DefaultTabModel::documentInitialized(const DocumentEvent& event)
 {
-	Profile::StringList listFolders;
-	StringListFree<Profile::StringList> free(listFolders);
-	pProfile_->getStringList(L"TabWindow", L"Tabs", &listFolders);
-	for (Profile::StringList::const_iterator it = listFolders.begin(); it != listFolders.end(); ++it) {
-		const WCHAR* pwsz = *it;
-		
-		bool bLocked = false;
-		if (*pwsz == L'+') {
-			bLocked = true;
-			++pwsz;
-		}
-		
-		std::pair<Account*, Folder*> p(UIUtil::getAccountOrFolder(pDocument_, pwsz));
-		if (p.first)
-			addAccount(p.first, bLocked);
-		else if (p.second)
-			addFolder(p.second, bLocked);
+	XMLReader reader;
+	TabModelContentHandler handler(this, pDocument_);
+	reader.setContentHandler(&handler);
+	if (!reader.parse(wstrPath_.get())) {
+		// TODO
 	}
 	
 	if (!listItem_.empty()) {
@@ -453,7 +437,7 @@ void qm::DefaultTabModel::open(Account* pAccount,
 		}
 	}
 	if (nItem == -1)
-		nItem = addAccount(pAccount, false);
+		nItem = addAccount(pAccount, false, 0);
 	setCurrent(nItem);
 }
 
@@ -470,14 +454,15 @@ void qm::DefaultTabModel::open(Folder* pFolder,
 		}
 	}
 	if (nItem == -1)
-		nItem = addFolder(pFolder, false);
+		nItem = addFolder(pFolder, false, 0);
 	setCurrent(nItem);
 }
 
 int qm::DefaultTabModel::addAccount(Account* pAccount,
-									bool bLocked)
+									bool bLocked,
+									const WCHAR* pwszTitle)
 {
-	std::auto_ptr<TabItem> pItem(new TabItem(pAccount, bLocked, 0));
+	std::auto_ptr<TabItem> pItem(new TabItem(pAccount, bLocked, pwszTitle));
 	listItem_.push_back(pItem.get());
 	listItemOrder_.push_back(pItem.get());
 	resetHandlers(0, 0, pAccount, 0);
@@ -487,9 +472,10 @@ int qm::DefaultTabModel::addAccount(Account* pAccount,
 }
 
 int qm::DefaultTabModel::addFolder(Folder* pFolder,
-								   bool bLocked)
+								   bool bLocked,
+								   const WCHAR* pwszTitle)
 {
-	std::auto_ptr<TabItem> pItem(new TabItem(pFolder, bLocked, 0));
+	std::auto_ptr<TabItem> pItem(new TabItem(pFolder, bLocked, pwszTitle));
 	listItem_.push_back(pItem.get());
 	listItemOrder_.push_back(pItem.get());
 	resetHandlers(0, 0, 0, pFolder);
@@ -754,6 +740,173 @@ const TabItem* qm::TabModelEvent::getNewItem() const
 int qm::TabModelEvent::getAmount() const
 {
 	return nAmount_;
+}
+
+
+/****************************************************************************
+ *
+ * TabModelContentHandler
+ *
+ */
+
+qm::TabModelContentHandler::TabModelContentHandler(DefaultTabModel* pTabModel,
+												   Document* pDocument) :
+	pTabModel_(pTabModel),
+	pDocument_(pDocument),
+	state_(STATE_ROOT)
+{
+}
+
+qm::TabModelContentHandler::~TabModelContentHandler()
+{
+}
+
+bool qm::TabModelContentHandler::startElement(const WCHAR* pwszNamespaceURI,
+											  const WCHAR* pwszLocalName,
+											  const WCHAR* pwszQName,
+											  const qs::Attributes& attributes)
+{
+	if (wcscmp(pwszLocalName, L"tabs") == 0) {
+		if (state_ != STATE_ROOT)
+			return false;
+		if (attributes.getLength() != 0)
+			return false;
+		state_ = STATE_TABS;
+	}
+	else if (wcscmp(pwszLocalName, L"tab") == 0) {
+		if (state_ != STATE_TABS)
+			return false;
+		
+		const WCHAR* pwszAccount = 0;
+		const WCHAR* pwszFolder = 0;
+		bool bLocked = false;
+		const WCHAR* pwszTitle = 0;
+		for (int n = 0; n < attributes.getLength(); ++n) {
+			const WCHAR* pwszAttrName = attributes.getLocalName(n);
+			if (wcscmp(pwszAttrName, L"account") == 0)
+				pwszAccount = attributes.getValue(n);
+			else if (wcscmp(pwszAttrName, L"folder") == 0)
+				pwszFolder = attributes.getValue(n);
+			else if (wcscmp(pwszAttrName, L"locked") == 0)
+				bLocked = wcscmp(attributes.getValue(n), L"true") == 0;
+			else if (wcscmp(pwszAttrName, L"title") == 0)
+				pwszTitle = attributes.getValue(n);
+			else
+				return false;
+		}
+		if (!pwszAccount)
+			return false;
+		
+		Account* pAccount = pDocument_->getAccount(pwszAccount);
+		if (pAccount) {
+			Folder* pFolder = 0;
+			if (pwszFolder)
+				pFolder = pAccount->getFolder(pwszFolder);
+			
+			std::auto_ptr<TabItem> pItem;
+			if (pFolder)
+				pTabModel_->addFolder(pFolder, bLocked, pwszTitle);
+			else
+				pTabModel_->addAccount(pAccount, bLocked, pwszTitle);
+		}
+		
+		state_ = STATE_TAB;
+	}
+	else {
+		return false;
+	}
+	return true;
+}
+
+bool qm::TabModelContentHandler::endElement(const WCHAR* pwszNamespaceURI,
+											const WCHAR* pwszLocalName,
+											const WCHAR* pwszQName)
+{
+	if (wcscmp(pwszLocalName, L"tabs") == 0) {
+		assert(state_ == STATE_TABS);
+		state_ = STATE_ROOT;
+	}
+	else if (wcscmp(pwszLocalName, L"tab") == 0) {
+		assert(state_ == STATE_TAB);
+		state_ = STATE_TABS;
+	}
+	else {
+		return false;
+	}
+	return true;
+}
+
+bool qm::TabModelContentHandler::characters(const WCHAR* pwsz,
+											size_t nStart,
+											size_t nLength)
+{
+	const WCHAR* p = pwsz + nStart;
+	for (size_t n = 0; n < nLength; ++n, ++p) {
+		if (*p != L' ' && *p != L'\t' && *p != '\n')
+			return false;
+	}
+	return true;
+}
+
+
+/****************************************************************************
+ *
+ * TabModelWriter
+ *
+ */
+
+qm::TabModelWriter::TabModelWriter(Writer* pWriter) :
+	handler_(pWriter)
+{
+}
+
+qm::TabModelWriter::~TabModelWriter()
+{
+}
+
+bool qm::TabModelWriter::write(const DefaultTabModel* pTabModel)
+{
+	if (!handler_.startDocument())
+		return false;
+	if (!handler_.startElement(0, 0, L"tabs", DefaultAttributes()))
+		return false;
+	
+	const DefaultTabModel::ItemList& listItem = pTabModel->getItems();
+	for (DefaultTabModel::ItemList::const_iterator it = listItem.begin(); it != listItem.end(); ++it) {
+		const TabItem* pItem = *it;
+		if (!write(pItem))
+			return false;
+	}
+	
+	if (!handler_.endElement(0, 0, L"tabs"))
+		return false;
+	if (!handler_.endDocument())
+		return false;
+	
+	return true;
+}
+
+bool qm::TabModelWriter::write(const TabItem* pItem)
+{
+	std::pair<Account*, Folder*> p(pItem->get());
+	
+	Account* pAccount = p.first ? p.first : p.second->getAccount();
+	const WCHAR* pwszAccount = pAccount->getName();
+	wstring_ptr wstrFolder;
+	if (p.second)
+		wstrFolder = p.second->getFullName();
+	bool bLocked = pItem->isLocked();
+	const WCHAR* pwszTitle = pItem->getTitle();
+	
+	const SimpleAttributes::Item items[] = {
+		{ L"account",	pwszAccount																},
+		{ L"folder",	wstrFolder.get(),				!wstrFolder.get()						},
+		{ L"locked",	bLocked ? L"true" : L"false",	!bLocked								},
+		{ L"title",		pwszTitle,						!pwszTitle								}
+	};
+	SimpleAttributes attrs(items, countof(items));
+	return handler_.startElement(0, 0, L"tab", attrs) &&
+		handler_.endElement(0, 0, L"tab");
 }
 
 #endif // QMTABWINDOW

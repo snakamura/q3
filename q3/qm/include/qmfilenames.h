@@ -53,6 +53,7 @@ struct FileNames
 	static const WCHAR* RULES_XML;
 	static const WCHAR* SIGNATURES_XML;
 	static const WCHAR* SYNCFILTERS_XML;
+	static const WCHAR* TABS_XML;
 	static const WCHAR* TEXTS_XML;
 	static const WCHAR* TOOLBAR_BMP;
 	static const WCHAR* TOOLBARS_XML;
