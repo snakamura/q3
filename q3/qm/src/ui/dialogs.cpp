@@ -4389,6 +4389,7 @@ LRESULT qm::GoRoundEntryDialog::onCommand(WORD nCode,
 										  WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_EDIT, onEdit)
 		HANDLE_COMMAND_ID_CODE(IDC_ACCOUNT, CBN_EDITCHANGE, onAccountEditChange)
 		HANDLE_COMMAND_ID_CODE(IDC_ACCOUNT, CBN_SELCHANGE, onAccountSelChange)
 		HANDLE_COMMAND_ID_CODE(IDC_SELECTFOLDER, BN_CLICKED, onSelectFolderClicked)
@@ -4511,6 +4512,14 @@ LRESULT qm::GoRoundEntryDialog::onOk()
 	return DefaultDialog::onOk();
 }
 
+LRESULT qm::GoRoundEntryDialog::onEdit()
+{
+	SyncFilterSetsDialog dialog(pSyncFilterManager_);
+	if (dialog.doModal(getHandle()) == IDOK)
+		updateFilter();
+	return 0;
+}
+
 LRESULT qm::GoRoundEntryDialog::onAccountEditChange()
 {
 	updateState();
@@ -4539,7 +4548,7 @@ void qm::GoRoundEntryDialog::updateState()
 	
 	updateSubAccount(pAccount);
 	updateFolder(pAccount);
-	updateFilter(pAccount);
+	updateFilter();
 	
 	Window(getDlgItem(IDC_FOLDER)).enableWindow(
 		sendDlgItemMessage(IDC_SELECTFOLDER, BM_GETCHECK) != BST_CHECKED);
@@ -4614,7 +4623,7 @@ void qm::GoRoundEntryDialog::updateFolder(Account* pAccount)
 	setDlgItemText(IDC_FOLDER, wstrFolder.get());
 }
 
-void qm::GoRoundEntryDialog::updateFilter(Account* pAccount)
+void qm::GoRoundEntryDialog::updateFilter()
 {
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	
@@ -4622,14 +4631,12 @@ void qm::GoRoundEntryDialog::updateFilter(Account* pAccount)
 	
 	sendDlgItemMessage(IDC_SYNCFILTER, CB_RESETCONTENT);
 	
-	if (pAccount) {
-		const SyncFilterManager::FilterSetList& l = pSyncFilterManager_->getFilterSets();
-		for (SyncFilterManager::FilterSetList::const_iterator it = l.begin(); it != l.end(); ++it) {
-			SyncFilterSet* pSet = *it;
-			W2T(pSet->getName(), ptszName);
-			sendDlgItemMessage(IDC_SYNCFILTER, CB_ADDSTRING,
-				0, reinterpret_cast<LPARAM>(ptszName));
-		}
+	const SyncFilterManager::FilterSetList& l = pSyncFilterManager_->getFilterSets();
+	for (SyncFilterManager::FilterSetList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		SyncFilterSet* pSet = *it;
+		W2T(pSet->getName(), ptszName);
+		sendDlgItemMessage(IDC_SYNCFILTER, CB_ADDSTRING,
+			0, reinterpret_cast<LPARAM>(ptszName));
 	}
 	
 	setDlgItemText(IDC_SYNCFILTER, wstrFilter.get());
@@ -6533,11 +6540,9 @@ bool qm::SignaturesDialog::edit(Signature* p) const
  *
  */
 
-qm::SyncFilterDialog::SyncFilterDialog(SyncFilter* pSyncFilter,
-									   Account* pAccount) :
+qm::SyncFilterDialog::SyncFilterDialog(SyncFilter* pSyncFilter) :
 	DefaultDialog(IDD_SYNCFILTER),
-	pSyncFilter_(pSyncFilter),
-	pAccount_(pAccount)
+	pSyncFilter_(pSyncFilter)
 {
 }
 
@@ -6563,18 +6568,6 @@ LRESULT qm::SyncFilterDialog::onInitDialog(HWND hwndFocus,
 	wstring_ptr wstrCondition(pSyncFilter_->getCondition()->getString());
 	setDlgItemText(IDC_CONDITION, wstrCondition.get());
 	
-	if (pAccount_) {
-		Account::FolderList l(pAccount_->getFolders());
-		std::sort(l.begin(), l.end(), FolderLess());
-		for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-			Folder* pFolder = *it;
-			
-			wstring_ptr wstrName(pFolder->getFullName());
-			W2T(wstrName.get(), ptszName);
-			sendDlgItemMessage(IDC_FOLDER, CB_ADDSTRING,
-				0, reinterpret_cast<LPARAM>(ptszName));
-		}
-	}
 	setDlgItemText(IDC_FOLDER, pSyncFilter_->getFolder());
 	
 	const TCHAR* ptszActions[] = {
@@ -6603,32 +6596,17 @@ LRESULT qm::SyncFilterDialog::onInitDialog(HWND hwndFocus,
 	int nType = 0;
 	
 	const SyncFilter::ActionList& listAction = pSyncFilter_->getActions();
-	if (listAction.empty()) {
-		const WCHAR* pwszProtocol = L"pop3";
-		if (pAccount_)
-			pwszProtocol = pAccount_->getType(Account::HOST_RECEIVE);
-		
-		if (wcscmp(pwszProtocol, L"imap4") == 0)
-			nAction = 1;
-		else if (wcscmp(pwszProtocol, L"nntp") == 0)
-			nAction = 2;
-	}
-	else {
+	if (!listAction.empty()) {
 		const SyncFilterAction* pAction = listAction.front();
 		const WCHAR* pwszAction = pAction->getName();
 		if (wcscmp(pwszAction, L"download") == 0) {
 			const WCHAR* pwszProtocol = L"pop3";
-			if (pAccount_) {
-				pwszProtocol = pAccount_->getType(Account::HOST_RECEIVE);
-			}
-			else {
-				if (pAction->getParam(L"line"))
-					pwszProtocol = L"pop3";
-				else if (pAction->getParam(L"type"))
-					pwszProtocol = L"imap4";
-				else
-					pwszProtocol = L"nntp";
-			}
+			if (pAction->getParam(L"line"))
+				pwszProtocol = L"pop3";
+			else if (pAction->getParam(L"type"))
+				pwszProtocol = L"imap4";
+			else
+				pwszProtocol = L"nntp";
 			
 			if (wcscmp(pwszProtocol, L"imap4") == 0) {
 				nAction = 1;
@@ -6800,11 +6778,9 @@ void qm::SyncFilterDialog::updateState()
 *
 */
 
-qm::SyncFiltersDialog::SyncFiltersDialog(SyncFilterSet* pSyncFilterSet,
-										 Document* pDocument) :
+qm::SyncFiltersDialog::SyncFiltersDialog(SyncFilterSet* pSyncFilterSet) :
 	AbstractListDialog<SyncFilter, SyncFilterSet::FilterList>(IDD_SYNCFILTERS, IDC_FILTERS),
-	pSyncFilterSet_(pSyncFilterSet),
-	pDocument_(pDocument)
+	pSyncFilterSet_(pSyncFilterSet)
 {
 	const SyncFilterSet::FilterList& l = pSyncFilterSet->getFilters();
 	SyncFilterSet::FilterList& list = getList();
@@ -6864,7 +6840,7 @@ wstring_ptr qm::SyncFiltersDialog::getLabel(const SyncFilter* p) const
 std::auto_ptr<SyncFilter> qm::SyncFiltersDialog::create() const
 {
 	std::auto_ptr<SyncFilter> pFilter(new SyncFilter());
-	SyncFilterDialog dialog(pFilter.get(), getAccount());
+	SyncFilterDialog dialog(pFilter.get());
 	if (dialog.doModal(getHandle()) != IDOK)
 		return std::auto_ptr<SyncFilter>();
 	return pFilter;
@@ -6872,7 +6848,7 @@ std::auto_ptr<SyncFilter> qm::SyncFiltersDialog::create() const
 
 bool qm::SyncFiltersDialog::edit(SyncFilter* p) const
 {
-	SyncFilterDialog dialog(p, getAccount());
+	SyncFilterDialog dialog(p);
 	return dialog.doModal(getHandle()) == IDOK;
 }
 
@@ -6890,11 +6866,6 @@ LRESULT qm::SyncFiltersDialog::onNameChange()
 	updateState();
 	return 0;
 }
-Account* qm::SyncFiltersDialog::getAccount() const
-{
-	wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
-	return pDocument_->getAccount(wstrAccount.get());
-}
 
 
 /****************************************************************************
@@ -6903,11 +6874,9 @@ Account* qm::SyncFiltersDialog::getAccount() const
 *
 */
 
-qm::SyncFilterSetsDialog::SyncFilterSetsDialog(SyncFilterManager* pSyncFilterManager,
-											   Document* pDocument) :
+qm::SyncFilterSetsDialog::SyncFilterSetsDialog(SyncFilterManager* pSyncFilterManager) :
 	AbstractListDialog<SyncFilterSet, SyncFilterManager::FilterSetList>(IDD_SYNCFILTERSETS, IDC_FILTERSETS),
-	pSyncFilterManager_(pSyncFilterManager),
-	pDocument_(pDocument)
+	pSyncFilterManager_(pSyncFilterManager)
 {
 	const SyncFilterManager::FilterSetList& l = pSyncFilterManager->getFilterSets();
 	SyncFilterManager::FilterSetList& list = getList();
@@ -6937,7 +6906,7 @@ wstring_ptr qm::SyncFilterSetsDialog::getLabel(const SyncFilterSet* p) const
 std::auto_ptr<SyncFilterSet> qm::SyncFilterSetsDialog::create() const
 {
 	std::auto_ptr<SyncFilterSet> pFilterSet(new SyncFilterSet());
-	SyncFiltersDialog dialog(pFilterSet.get(), pDocument_);
+	SyncFiltersDialog dialog(pFilterSet.get());
 	if (dialog.doModal(getHandle()) != IDOK)
 		return std::auto_ptr<SyncFilterSet>();
 	return pFilterSet;
@@ -6945,7 +6914,7 @@ std::auto_ptr<SyncFilterSet> qm::SyncFilterSetsDialog::create() const
 
 bool qm::SyncFilterSetsDialog::edit(SyncFilterSet* p) const
 {
-	SyncFiltersDialog dialog(p, pDocument_);
+	SyncFiltersDialog dialog(p);
 	return dialog.doModal(getHandle()) == IDOK;
 }
 

@@ -380,10 +380,9 @@ void qm::MainWindowImpl::initActions()
 		pDocument_->getSignatureManager(),
 		pDocument_,
 		pThis_->getHandle());
-	ADD_ACTION3(ConfigSyncFiltersAction,
+	ADD_ACTION2(ConfigSyncFiltersAction,
 		IDM_CONFIG_SYNCFILTERS,
 		pSyncManager_->getSyncFilterManager(),
-		pDocument_,
 		pThis_->getHandle());
 	ADD_ACTION2(ConfigTextsAction,
 		IDM_CONFIG_TEXTS,

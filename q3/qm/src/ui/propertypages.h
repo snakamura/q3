@@ -69,12 +69,22 @@ public:
 						SyncFilterManager* pSyncFilterManager);
 	virtual ~AccountAdvancedPage();
 
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
 protected:
 	virtual LRESULT onInitDialog(HWND hwndFocus,
 								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
+
+private:
+	LRESULT onEdit();
+
+private:
+	void updateFilter();
 
 private:
 	AccountAdvancedPage(const AccountAdvancedPage&);

@@ -61,6 +61,15 @@ qm::AccountAdvancedPage::~AccountAdvancedPage()
 {
 }
 
+LRESULT qm::AccountAdvancedPage::onCommand(WORD nCode,
+										   WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_EDIT, onEdit)
+	END_COMMAND_HANDLER()
+	return DefaultPropertyPage::onCommand(nCode, nId);
+}
+
 LRESULT qm::AccountAdvancedPage::onInitDialog(HWND hwndFocus,
 											  LPARAM lParam)
 {
@@ -68,17 +77,8 @@ LRESULT qm::AccountAdvancedPage::onInitDialog(HWND hwndFocus,
 	wstring_ptr wstrMyAddress = pSubAccount_->getMyAddress();
 	setDlgItemText(IDC_MYADDRESS, wstrMyAddress.get());
 	
-	const SyncFilterManager::FilterSetList& l = pSyncFilterManager_->getFilterSets();
-	for (SyncFilterManager::FilterSetList::const_iterator it = l.begin(); it != l.end(); ++it) {
-		SyncFilterSet* pSet = *it;
-		W2T(pSet->getName(), ptszName);
-		sendDlgItemMessage(IDC_SYNCFILTER, CB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszName));
-	}
-	W2T(pSubAccount_->getSyncFilterName(), ptszName);
-	if (sendDlgItemMessage(IDC_SYNCFILTER, CB_SELECTSTRING,
-		-1, reinterpret_cast<LPARAM>(ptszName)) == CB_ERR)
-		sendDlgItemMessage(IDC_SYNCFILTER, CB_SETCURSEL, 0);
+	setDlgItemText(IDC_SYNCFILTER, pSubAccount_->getSyncFilterName());
+	updateFilter();
 	
 	setDlgItemInt(IDC_TIMEOUT, pSubAccount_->getTimeout());
 	sendDlgItemMessage(IDC_CONNECTRECEIVEHOSTBEFORESEND, BM_SETCHECK,
@@ -114,6 +114,31 @@ LRESULT qm::AccountAdvancedPage::onOk()
 		sendDlgItemMessage(IDC_ADDMESSAGEID, BM_GETCHECK) == BST_CHECKED);
 	
 	return DefaultPropertyPage::onOk();
+}
+
+LRESULT qm::AccountAdvancedPage::onEdit()
+{
+	SyncFilterSetsDialog dialog(pSyncFilterManager_);
+	if (dialog.doModal(getHandle()) == IDOK)
+		updateFilter();
+	return 0;
+}
+
+void qm::AccountAdvancedPage::updateFilter()
+{
+	wstring_ptr wstrFilter(getDlgItemText(IDC_SYNCFILTER));
+	
+	sendDlgItemMessage(IDC_SYNCFILTER, CB_RESETCONTENT);
+	
+	const SyncFilterManager::FilterSetList& l = pSyncFilterManager_->getFilterSets();
+	for (SyncFilterManager::FilterSetList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		SyncFilterSet* pSet = *it;
+		W2T(pSet->getName(), ptszName);
+		sendDlgItemMessage(IDC_SYNCFILTER, CB_ADDSTRING,
+			0, reinterpret_cast<LPARAM>(ptszName));
+	}
+	
+	setDlgItemText(IDC_SYNCFILTER, wstrFilter.get());
 }
 
 

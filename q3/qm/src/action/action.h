@@ -465,7 +465,6 @@ class ConfigSyncFiltersAction : public qs::AbstractAction
 {
 public:
 	ConfigSyncFiltersAction(SyncFilterManager* pManager,
-							Document* pDocument,
 							HWND hwnd);
 	virtual ~ConfigSyncFiltersAction();
 
@@ -478,7 +477,6 @@ private:
 
 private:
 	SyncFilterManager* pManager_;
-	Document* pDocument_;
 	HWND hwnd_;
 };
 

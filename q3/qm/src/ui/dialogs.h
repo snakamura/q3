@@ -1631,6 +1631,7 @@ protected:
 	virtual LRESULT onOk();
 
 private:
+	LRESULT onEdit();
 	LRESULT onAccountEditChange();
 	LRESULT onAccountSelChange();
 	LRESULT onSelectFolderClicked();
@@ -1639,7 +1640,7 @@ private:
 	void updateState();
 	void updateSubAccount(Account* pAccount);
 	void updateFolder(Account* pAccount);
-	void updateFilter(Account* pAccount);
+	void updateFilter();
 
 private:
 	GoRoundEntryDialog(const GoRoundEntryDialog&);
@@ -2480,8 +2481,7 @@ private:
 class SyncFilterDialog : public DefaultDialog
 {
 public:
-	SyncFilterDialog(SyncFilter* pSyncFilter,
-					 Account* pAccount);
+	explicit SyncFilterDialog(SyncFilter* pSyncFilter);
 	virtual ~SyncFilterDialog();
 
 public:
@@ -2508,7 +2508,6 @@ private:
 
 private:
 	SyncFilter* pSyncFilter_;
-	Account* pAccount_;
 };
 
 
@@ -2521,8 +2520,7 @@ private:
 class SyncFiltersDialog : public AbstractListDialog<SyncFilter, SyncFilterSet::FilterList>
 {
 public:
-	SyncFiltersDialog(SyncFilterSet* pSyncFilterSet,
-					  Document* pDocument);
+	explicit SyncFiltersDialog(SyncFilterSet* pSyncFilterSet);
 	virtual ~SyncFiltersDialog();
 
 public:
@@ -2546,15 +2544,11 @@ private:
 	LRESULT onNameChange();
 
 private:
-	Account* getAccount() const;
-
-private:
 	SyncFiltersDialog(const SyncFiltersDialog&);
 	SyncFiltersDialog& operator=(const SyncFiltersDialog&);
 
 private:
 	SyncFilterSet* pSyncFilterSet_;
-	Document* pDocument_;
 };
 
 
@@ -2567,8 +2561,7 @@ private:
 class SyncFilterSetsDialog : public AbstractListDialog<SyncFilterSet, SyncFilterManager::FilterSetList>
 {
 public:
-	SyncFilterSetsDialog(SyncFilterManager* pSyncFilterManager,
-						 Document* pDocument);
+	explicit SyncFilterSetsDialog(SyncFilterManager* pSyncFilterManager);
 	virtual ~SyncFilterSetsDialog();
 
 protected:
@@ -2585,7 +2578,6 @@ private:
 
 private:
 	SyncFilterManager* pSyncFilterManager_;
-	Document* pDocument_;
 };
 
 
