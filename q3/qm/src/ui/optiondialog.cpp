@@ -726,8 +726,10 @@ void qm::OptionDialog::clearDefaultButton(HWND hwnd)
 {
 	Window wnd(hwnd);
 	int nDefId = wnd.sendMessage(DM_GETDEFID);
-	if (HIWORD(nDefId) == DC_HASDEFID)
+	if (HIWORD(nDefId) == DC_HASDEFID) {
 		wnd.sendDlgItemMessage(LOWORD(nDefId), BM_SETSTYLE, BS_PUSHBUTTON, TRUE);
+		wnd.sendMessage(DM_SETDEFID, IDOK);
+	}
 }
 
 
