@@ -119,6 +119,7 @@ public:
 	};
 	
 	enum Flag {
+		FLAG_NONE		= 0x00,
 		FLAG_ANSWERED	= 0x01,
 		FLAG_FLAGGED	= 0x02,
 		FLAG_DELETED	= 0x04,
@@ -1190,6 +1191,10 @@ public:
 
 public:
 	static std::auto_ptr<FetchDataFlags> create(List* pList);
+
+public:
+	static Imap4::Flag parseFlag(const std::pair<const CHAR*, size_t>& flag,
+								 bool bAllowRecent);
 
 private:
 	FetchDataFlags(const FetchDataFlags&);

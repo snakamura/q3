@@ -1949,26 +1949,12 @@ std::auto_ptr<ResponseFlags> qmimap4::ResponseFlags::create(List* pList)
 		if ((*it)->getType() != ListItem::TYPE_TEXT)
 			return std::auto_ptr<ResponseFlags>(0);
 		
-		struct {
-			const CHAR* pszName_;
-			Imap4::Flag flag_;
-		} flags[] = {
-			{ "\\ANSWERED",	Imap4::FLAG_ANSWERED	},
-			{ "\\FLAGGED",	Imap4::FLAG_FLAGGED		},
-			{ "\\DELETED",	Imap4::FLAG_DELETED		},
-			{ "\\SEEN",		Imap4::FLAG_SEEN		},
-			{ "\\DRAFT",	Imap4::FLAG_DRAFT		},
-		};
 		std::pair<const CHAR*, size_t> flag(static_cast<ListItemText*>(*it)->getText().get());
-		int n = 0;
-		while (n < countof(flags)) {
-			if (TokenUtil::isEqualIgnoreCase(flag, flags[n].pszName_)) {
-				nSystemFlags |= flags[n].flag_;
-				break;
-			}
-			++n;
+		Imap4::Flag systemFlag = FetchDataFlags::parseFlag(flag, false);
+		if (systemFlag != Imap4::FLAG_NONE) {
+			nSystemFlags |= systemFlag;
 		}
-		if (n == countof(flags)) {
+		else {
 			string_ptr str(allocString(flag.first, flag.second));
 			listCustomFlag.push_back(str.get());
 			str.release();
@@ -3192,28 +3178,13 @@ std::auto_ptr<FetchDataFlags> qmimap4::FetchDataFlags::create(List* pList)
 		if ((*it)->getType() != ListItem::TYPE_TEXT)
 			return std::auto_ptr<FetchDataFlags>(0);
 		
-		struct {
-			const CHAR* pszName_;
-			Imap4::Flag flag_;
-		} systemFlags[] = {
-			{ "\\ANSWERED",	Imap4::FLAG_ANSWERED	},
-			{ "\\FLAGGED",	Imap4::FLAG_FLAGGED		},
-			{ "\\DELETED",	Imap4::FLAG_DELETED		},
-			{ "\\SEEN",		Imap4::FLAG_SEEN		},
-			{ "\\DRAFT",	Imap4::FLAG_DRAFT		},
-			{ "\\RECENT",	Imap4::FLAG_RECENT		}
-		};
 		std::pair<const CHAR*, size_t> flag(
 			static_cast<ListItemText*>(*it)->getText().get());
-		int n = 0;
-		while (n < countof(systemFlags)) {
-			if (TokenUtil::isEqualIgnoreCase(flag, systemFlags[n].pszName_)) {
-				nSystemFlags |= systemFlags[n].flag_;
-				break;
-			}
-			++n;
+		Imap4::Flag systemFlag = parseFlag(flag, true);
+		if (systemFlag != Imap4::FLAG_NONE) {
+			nSystemFlags |= systemFlag;
 		}
-		if (n == countof(systemFlags)) {
+		else {
 			string_ptr str(allocString(flag.first, flag.second));
 			listCustomFlag.push_back(str.get());
 			str.release();
@@ -3221,6 +3192,46 @@ std::auto_ptr<FetchDataFlags> qmimap4::FetchDataFlags::create(List* pList)
 	}
 	
 	return std::auto_ptr<FetchDataFlags>(new FetchDataFlags(nSystemFlags, listCustomFlag));
+}
+
+Imap4::Flag qmimap4::FetchDataFlags::parseFlag(const std::pair<const CHAR*, size_t>& flag,
+												bool bAllowRecent)
+{
+	Imap4::Flag f = Imap4::FLAG_NONE;
+	if (flag.second > 1 && *flag.first == '\\') {
+		switch (*(flag.first + 1)) {
+		case 'A':
+		case 'a':
+			if (TokenUtil::isEqualIgnoreCase(flag, "\\ANSWERED"))
+				f = Imap4::FLAG_ANSWERED;
+			break;
+		case 'D':
+		case 'd':
+			if (TokenUtil::isEqualIgnoreCase(flag, "\\DELETED"))
+				f = Imap4::FLAG_DELETED;
+			else if (TokenUtil::isEqualIgnoreCase(flag, "\\DRAFT"))
+				f = Imap4::FLAG_DRAFT;
+			break;
+		case 'F':
+		case 'f':
+			if (TokenUtil::isEqualIgnoreCase(flag, "\\FLAGGED"))
+				f = Imap4::FLAG_FLAGGED;
+			break;
+		case 'R':
+		case 'r':
+			if (bAllowRecent && TokenUtil::isEqualIgnoreCase(flag, "\\RECENT"))
+				f = Imap4::FLAG_RECENT;
+			break;
+		case 'S':
+		case 's':
+			if (TokenUtil::isEqualIgnoreCase(flag, "\\SEEN"))
+				f = Imap4::FLAG_SEEN;
+			break;
+		default:
+			break;
+		}
+	}
+	return f;
 }
 
 
