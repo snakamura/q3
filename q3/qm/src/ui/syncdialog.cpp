@@ -193,6 +193,8 @@ QSTATUS qm::SyncDialog::addError(const WCHAR* pwszError)
 	if (!bShowError_) {
 		bShowError_ = true;
 		layout();
+		showWindow();
+		setForegroundWindow();
 	}
 	
 	return QSTATUS_SUCCESS;
