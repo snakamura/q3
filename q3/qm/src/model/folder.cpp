@@ -572,31 +572,6 @@ QSTATUS qm::NormalFolder::updateMessageFlags(
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::NormalFolder::removeAllMessages(MessageOperationCallback* pCallback)
-{
-	DECLARE_QSTATUS();
-	
-	Lock<Account> lock(*getAccount());
-	
-	status = loadMessageHolders();
-	CHECK_QSTATUS();
-	
-	if (pImpl_->listMessageHolder_.empty())
-		return QSTATUS_SUCCESS;
-	
-	MessageHolderList l;
-	status = STLWrapper<MessageHolderList>(l).resize(
-		pImpl_->listMessageHolder_.size());
-	CHECK_QSTATUS();
-	std::copy(pImpl_->listMessageHolder_.begin(),
-		pImpl_->listMessageHolder_.end(), l.begin());
-	
-	status = getAccount()->removeMessages(l, false, pCallback);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
-}
-
 Folder::Type qm::NormalFolder::getType() const
 {
 	return TYPE_NORMAL;
@@ -667,6 +642,22 @@ MessageHolder* qm::NormalFolder::getMessage(unsigned int n) const
 	assert(getAccount()->isLocked());
 	assert(n < pImpl_->listMessageHolder_.size());
 	return pImpl_->listMessageHolder_[n];
+}
+
+QSTATUS qm::NormalFolder::getMessages(const MessageHolderList** ppList)
+{
+	assert(ppList);
+	
+	DECLARE_QSTATUS();
+	
+	Lock<Account> lock(*getAccount());
+	
+	status = loadMessageHolders();
+	CHECK_QSTATUS();
+	
+	*ppList = &pImpl_->listMessageHolder_;
+	
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::NormalFolder::loadMessageHolders()
@@ -1073,6 +1064,12 @@ MessageHolder* qm::QueryFolder::getMessage(unsigned int n) const
 {
 	// TODO
 	return 0;
+}
+
+QSTATUS qm::QueryFolder::getMessages(const MessageHolderList** ppList)
+{
+	// TODO
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::QueryFolder::loadMessageHolders()

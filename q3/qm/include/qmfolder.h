@@ -123,6 +123,7 @@ public:
 	virtual qs::QSTATUS getSize(unsigned int* pnSize) = 0;
 	virtual qs::QSTATUS getBoxSize(unsigned int* pnSize) = 0;
 	virtual MessageHolder* getMessage(unsigned int n) const = 0;
+	virtual qs::QSTATUS getMessages(const MessageHolderList** ppList) = 0;
 	virtual qs::QSTATUS loadMessageHolders() = 0;
 	virtual qs::QSTATUS saveMessageHolders() = 0;
 	virtual qs::QSTATUS deletePermanent() = 0;
@@ -169,7 +170,6 @@ public:
 	qs::QSTATUS getMessageById(unsigned int nId, MessagePtr* pptr);
 	MessageHolder* getMessageById(unsigned int nId) const;
 	qs::QSTATUS updateMessageFlags(const FlagList& listFlag, bool* pbClear);
-	qs::QSTATUS removeAllMessages(MessageOperationCallback* pCallback);
 
 public:
 	virtual Type getType() const;
@@ -178,6 +178,7 @@ public:
 	virtual qs::QSTATUS getSize(unsigned int* pnSize);
 	virtual qs::QSTATUS getBoxSize(unsigned int* pnSize);
 	virtual MessageHolder* getMessage(unsigned int n) const;
+	virtual qs::QSTATUS getMessages(const MessageHolderList** ppList);
 	virtual qs::QSTATUS loadMessageHolders();
 	virtual qs::QSTATUS saveMessageHolders();
 	virtual qs::QSTATUS deletePermanent();
@@ -231,6 +232,7 @@ public:
 	virtual qs::QSTATUS getSize(unsigned int* pnSize);
 	virtual qs::QSTATUS getBoxSize(unsigned int* pnSize);
 	virtual MessageHolder* getMessage(unsigned int n) const;
+	virtual qs::QSTATUS getMessages(const MessageHolderList** ppList);
 	virtual qs::QSTATUS loadMessageHolders();
 	virtual qs::QSTATUS saveMessageHolders();
 	virtual qs::QSTATUS deletePermanent();

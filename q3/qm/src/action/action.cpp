@@ -901,22 +901,33 @@ QSTATUS qm::FileEmptyTrashAction::invoke(const ActionEvent& event)
 	NormalFolder* pTrash = getTrash();
 	if (pTrash) {
 		Account* pAccount = pTrash->getAccount();
+		Lock<Account> lock(*pAccount);
 		
 		// TODO
 		// Sync folder if online and trash is syncable
 		
-		ProgressDialogMessageOperationCallback callback(
-			hwndFrame_, IDS_EMPTYTRASH, IDS_EMPTYTRASH);
-		status = pTrash->removeAllMessages(&callback);
+		const MessageHolderList* pList = 0;
+		status = pTrash->getMessages(&pList);
 		CHECK_QSTATUS();
-		
-		if (!pTrash->isFlag(Folder::FLAG_LOCAL)) {
-			status = pAccount->clearDeletedMessages(pTrash);
+		if (!pList->empty()) {
+			MessageHolderList l;
+			status = STLWrapper<MessageHolderList>(l).resize(pList->size());
+			CHECK_QSTATUS();
+			std::copy(pList->begin(), pList->end(), l.begin());
+			
+			ProgressDialogMessageOperationCallback callback(
+				hwndFrame_, IDS_EMPTYTRASH, IDS_EMPTYTRASH);
+			status = pAccount->removeMessages(l, false, &callback);
+			CHECK_QSTATUS();
+			
+			if (!pTrash->isFlag(Folder::FLAG_LOCAL)) {
+				status = pAccount->clearDeletedMessages(pTrash);
+				CHECK_QSTATUS();
+			}
+			
+			status = pAccount->save();
 			CHECK_QSTATUS();
 		}
-		
-		status = pAccount->save();
-		CHECK_QSTATUS();
 	}
 	
 	return QSTATUS_SUCCESS;
@@ -1846,12 +1857,21 @@ QSTATUS qm::FolderEmptyAction::invoke(const ActionEvent& event)
 	while (it != l.end()) {
 		Folder* pFolder = *it;
 		
-		// TODO
-		// This can be done if the folder is a query folder.
-		if (pFolder->getType() == Folder::TYPE_NORMAL &&
-			!pFolder->isFlag(Folder::FLAG_TRASHBOX)) {
-			status = static_cast<NormalFolder*>(pFolder)->removeAllMessages(0);
+		if (!pFolder->isFlag(Folder::FLAG_TRASHBOX)) {
+			Account* pAccount = pFolder->getAccount();
+			Lock<Account> lock(*pAccount);
+			
+			const MessageHolderList* pList = 0;
+			status = pFolder->getMessages(&pList);
 			CHECK_QSTATUS();
+			if (!pList->empty()) {
+				MessageHolderList l;
+				status = STLWrapper<MessageHolderList>(l).resize(pList->size());
+				CHECK_QSTATUS();
+				std::copy(pList->begin(), pList->end(), l.begin());
+				status = pAccount->removeMessages(l, false, 0);
+				CHECK_QSTATUS();
+			}
 		}
 		
 		++it;
