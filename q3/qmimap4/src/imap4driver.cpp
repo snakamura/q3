@@ -1403,8 +1403,10 @@ bool qmimap4::FolderListGetter::listFolders()
 	pCallback_->setFolderDataList(&listFolderData_);
 	
 	for (NamespaceList::iterator itNS = listNamespace_.begin(); itNS != listNamespace_.end(); ++itNS) {
-		if (!pImap4_->list(false, L"", (*itNS).first))
-			return false;
+		if (*(*itNS).first) {
+			if (!pImap4_->list(false, L"", (*itNS).first))
+				return false;
+		}
 		if (!pImap4_->list(false, (*itNS).first, L"*"))
 			return false;
 	}
