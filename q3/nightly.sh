@@ -24,7 +24,7 @@ VERSION=`cat version`
 DATE=`date +%Y%m%d`
 
 BUILDDIR=`pwd`/build
-ZIPDIR=$BUILDDIR/zip
+ZIPDIR=$BUILDDIR/q3/zip
 
 if [ $REBUILD -ne 0 ]; then
 	rm -rf $BUILDDIR
@@ -33,29 +33,13 @@ fi
 if [ ! -d $BUILDDIR ]; then
 	mkdir $BUILDDIR
 fi
-if [ ! -d $ZIPDIR ]; then
-	mkdir $ZIPDIR
-fi
 
 cd $BUILDDIR
 svn checkout $SVNURI
 cd q3
 
 make all NODEPEND=1
-
-zip -j $ZIPDIR/q3-desktop-x86-ja-$VERSION-$DATE.zip \
-	*/bin/desktop/ansi/release/*.exe \
-	*/lib/desktop/ansi/release/*.dll
-zip -j $ZIPDIR/q3u-desktop-x86-ja-$VERSION-$DATE.zip \
-	*/bin/desktop/unicode/release/*.exe \
-	*/lib/desktop/unicode/release/*.dll
-
-PLATFORMS="ppc2002.arm.ja hpc2000.arm.ja hpc2000.mips.ja ppc.arm.ja ppc.mips.ja ppc.sh3.ja hpcpro.arm.ja hpcpro.mips.ja hpcpro.sh3.ja hpcpro.sh4.ja sig3.armv4i.ja"
-for p in $PLATFORMS; do
-	zip -j $ZIPDIR/q3u-`printf $p | tr . -`-$VERSION-$DATE.zip \
-		*/bin/`printf $p | tr . /`/release/*.exe \
-		*/lib/`printf $p | tr . /`/release/*.dll
-done
+make zip
 
 
 (cd $ZIPDIR; ftp -i -s:$WEBFTPSCRIPT)

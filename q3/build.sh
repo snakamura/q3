@@ -8,7 +8,9 @@ MSDEV=${MSDEV:=d:/dev/msvs/common/msdev98/bin/msdev.exe}
 PURIFY=${PURIFY:=d:/dev/rational/purify/purify.exe}
 
 PROJECTS="qs qscrypto qm qmpop3 qmimap4 qmsmtp qmnntp qmscript q3"
-TARGETS="desktop.ansi.release desktop.unicode.release ppc2002.arm.ja hpc2000.arm.ja hpc2000.mips.ja ppc.arm.ja ppc.sh3.ja ppc.mips.ja hpcpro.arm.ja hpcpro.mips.ja hpcpro.sh3.ja hpcpro.sh4.ja sig3.armv4i.ja"
+DESKTOPTARGETS="desktop.ansi.release desktop.unicode.release"
+CETARGETS="ppc2002.arm.ja hpc2000.arm.ja hpc2000.mips.ja ppc.arm.ja ppc.sh3.ja ppc.mips.ja hpcpro.arm.ja hpcpro.mips.ja hpcpro.sh3.ja hpcpro.sh4.ja sig3.armv4i.ja"
+TARGETS="$DESKTOPTARGETS $CETARGETS"
 
 if [ $# -eq 0 ]; then
 	COMMAND=all
@@ -108,6 +110,27 @@ checksize)
 all)
 	for t in $TARGETS; do
 		./build.sh $t
+	done
+	;;
+
+zip)
+	VERSION=`cat version`
+	DATE=`date +%Y%m%d`
+	ZIPDIR=./zip
+	
+	mkdir -p $ZIPDIR
+	
+	zip -j $ZIPDIR/q3-desktop-x86-ja-$VERSION-$DATE.zip \
+		*/bin/desktop/ansi/release/*.exe \
+		*/lib/desktop/ansi/release/*.dll
+	zip -j $ZIPDIR/q3u-desktop-x86-ja-$VERSION-$DATE.zip \
+		*/bin/desktop/unicode/release/*.exe \
+		*/lib/desktop/unicode/release/*.dll
+	
+	for t in $CETARGETS; do
+		zip -j $ZIPDIR/q3u-`printf $t | tr . -`-$VERSION-$DATE.zip \
+			*/bin/`printf $t | tr . /`/release/*.exe \
+			*/lib/`printf $t | tr . /`/release/*.dll
 	done
 	;;
 
