@@ -68,6 +68,7 @@ class AddressBook;
 class AddressBookFrameWindowManager;
 class Document;
 class FolderComboBox;
+class FolderListWindow;
 class FolderWindow;
 class ListWindow;
 class MainWindow;
@@ -114,6 +115,7 @@ public:
 				 FolderWindow* pFolderWindow,
 				 FolderComboBox* pFolderComboBox,
 				 ListWindow* pListWindow,
+				 FolderListWindow* pFolderListWindow,
 				 AddressBookFrameWindowManager* pAddressBookFrameWindowManager,
 				 qs::Profile* pProfile,
 				 Panel panel);
@@ -191,6 +193,7 @@ private:
 	FolderWindow* pFolderWindow_;
 	FolderComboBox* pFolderComboBox_;
 	ListWindow* pListWindow_;
+	FolderListWindow* pFolderListWindow_;
 	AddressBookFrameWindowManager* pAddressBookFrameWindowManager_;
 	qs::Profile* pProfile_;
 	Panel panel_;
@@ -290,6 +293,7 @@ public:
 				 FolderWindow* pFolderWindow,
 				 FolderComboBox* pFolderComboBox,
 				 ListWindow* pListWindow,
+				 FolderListWindow* pFolderListWindow,
 				 AddressBookFrameWindowManager* pAddressBookFrameWindowManager);
 	int showDialog(HWND hwndParent,
 				   OptionDialog::Panel panel) const;
@@ -311,6 +315,7 @@ private:
 	FolderWindow* pFolderWindow_;
 	FolderComboBox* pFolderComboBox_;
 	ListWindow* pListWindow_;
+	FolderListWindow* pFolderListWindow_;
 	AddressBookFrameWindowManager* pAddressBookFrameWindowManager_;
 };
 
@@ -450,6 +455,7 @@ class OptionListWindowDialog :
 {
 public:
 	OptionListWindowDialog(ListWindow* pListWindow,
+						   FolderListWindow* pFolderListWindow,
 						   qs::Profile* pProfile);
 	virtual ~OptionListWindowDialog();
 
@@ -473,6 +479,7 @@ private:
 
 private:
 	ListWindow* pListWindow_;
+	FolderListWindow* pFolderListWindow_;
 	qs::Profile* pProfile_;
 	LOGFONT lf_;
 };

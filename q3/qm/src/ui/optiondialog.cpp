@@ -8,6 +8,7 @@
 
 #include <qmdocument.h>
 #include <qmfoldercombobox.h>
+#include <qmfolderlistwindow.h>
 #include <qmfolderwindow.h>
 #include <qmlistwindow.h>
 #include <qmmainwindow.h>
@@ -46,6 +47,7 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 							   FolderWindow* pFolderWindow,
 							   FolderComboBox* pFolderComboBox,
 							   ListWindow* pListWindow,
+							   FolderListWindow* pFolderListWindow,
 							   AddressBookFrameWindowManager* pAddressBookFrameWindowManager,
 							   Profile* pProfile,
 							   Panel panel) :
@@ -60,6 +62,7 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 	pFolderWindow_(pFolderWindow),
 	pFolderComboBox_(pFolderComboBox),
 	pListWindow_(pListWindow),
+	pFolderListWindow_(pFolderListWindow),
 	pAddressBookFrameWindowManager_(pAddressBookFrameWindowManager),
 	pProfile_(pProfile),
 	panel_(panel),
@@ -392,7 +395,7 @@ void qm::OptionDialog::setCurrentPanel(Panel panel)
 		BEGIN_PANEL()
 			PANEL2(PANEL_FOLDERWINDOW, OptionFolderWindow, pFolderWindow_, pProfile_);
 			PANEL2(PANEL_FOLDERCOMBOBOX, OptionFolderComboBox, pFolderComboBox_, pProfile_);
-			PANEL2(PANEL_LISTWINDOW, OptionListWindow, pListWindow_, pProfile_);
+			PANEL3(PANEL_LISTWINDOW, OptionListWindow, pListWindow_, pFolderListWindow_, pProfile_);
 			PANEL3(PANEL_ADDRESSBOOK, OptionAddressBook, pDocument_->getAddressBook(), pAddressBookFrameWindowManager_, pProfile_);
 			PANEL3(PANEL_RULES, RuleSets, pDocument_->getRuleManager(), pDocument_, pProfile_);
 			PANEL3(PANEL_COLORS, ColorSets, pColorManager_, pDocument_, pProfile_);
@@ -708,6 +711,7 @@ qm::OptionDialogManager::OptionDialogManager(Document* pDocument,
 	pFolderWindow_(0),
 	pFolderComboBox_(0),
 	pListWindow_(0),
+	pFolderListWindow_(0),
 	pAddressBookFrameWindowManager_(0)
 {
 }
@@ -720,12 +724,14 @@ void qm::OptionDialogManager::initUIs(MainWindow* pMainWindow,
 									  FolderWindow* pFolderWindow,
 									  FolderComboBox* pFolderComboBox,
 									  ListWindow* pListWindow,
+									  FolderListWindow* pFolderListWindow,
 									  AddressBookFrameWindowManager* pAddressBookFrameWindowManager)
 {
 	pMainWindow_ = pMainWindow;
 	pFolderWindow_ = pFolderWindow;
 	pFolderComboBox_ = pFolderComboBox;
 	pListWindow_ = pListWindow;
+	pFolderListWindow_ = pFolderListWindow;
 	pAddressBookFrameWindowManager_ = pAddressBookFrameWindowManager;
 }
 
@@ -743,12 +749,13 @@ int qm::OptionDialogManager::showDialog(HWND hwndParent,
 	assert(pFolderWindow_);
 	assert(pFolderComboBox_);
 	assert(pListWindow_);
+	assert(pFolderListWindow_);
 	assert(pAddressBookFrameWindowManager_);
 	
-	OptionDialog dialog(pDocument_, pGoRound_, pFilterManager_,
-		pColorManager_, pSyncManager_->getSyncFilterManager(),
-		pAutoPilotManager_, pMainWindow_, pFolderWindow_, pFolderComboBox_,
-		pListWindow_, pAddressBookFrameWindowManager_, pProfile_, panel);
+	OptionDialog dialog(pDocument_, pGoRound_, pFilterManager_, pColorManager_,
+		pSyncManager_->getSyncFilterManager(), pAutoPilotManager_,
+		pMainWindow_, pFolderWindow_, pFolderComboBox_, pListWindow_,
+		pFolderListWindow_, pAddressBookFrameWindowManager_, pProfile_, panel);
 	return dialog.doModal(hwndParent);
 }
 
@@ -1012,9 +1019,11 @@ struct {
 }
 
 qm::OptionListWindowDialog::OptionListWindowDialog(ListWindow* pListWindow,
+												   FolderListWindow* pFolderListWindow,
 												   Profile* pProfile) :
 	DefaultDialog(IDD_OPTIONLISTWINDOW),
 	pListWindow_(pListWindow),
+	pFolderListWindow_(pFolderListWindow),
 	pProfile_(pProfile)
 {
 	UIUtil::getLogFontFromProfile(pProfile_, L"ListWindow", false, &lf_);
@@ -1051,8 +1060,10 @@ bool qm::OptionListWindowDialog::save(OptionDialogContext* pContext)
 		pProfile_->setInt(L"ListWindow", listWindowFlags[n].pwszKey_, bShow);
 	}
 	UIUtil::setLogFontToProfile(pProfile_, L"ListWindow", lf_);
+	UIUtil::setLogFontToProfile(pProfile_, L"FolderListWindow", lf_);
 	
 	pListWindow_->reloadProfiles();
+	pFolderListWindow_->reloadProfiles();
 	
 	return true;
 }

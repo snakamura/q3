@@ -51,6 +51,7 @@ public:
 						   bool bShowSize);
 	void open(int nItem);
 	Folder* getFolder(int nItem) const;
+	void reloadProfiles(bool bInitialize);
 
 public:
 	virtual LRESULT onNotify(NMHDR* pnmhdr,
@@ -240,6 +241,22 @@ Folder* qm::FolderListWindowImpl::getFolder(int nItem) const
 	return reinterpret_cast<Folder*>(item.lParam);
 }
 
+void qm::FolderListWindowImpl::reloadProfiles(bool bInitialize)
+{
+	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_, L"FolderListWindow", false);
+	if (!bInitialize) {
+		assert(hfont_);
+		pThis_->setFont(hfont);
+		::DeleteObject(hfont_);
+	}
+	hfont_ = hfont;
+	
+	if (!bInitialize) {
+		pThis_->invalidate();
+		Window(ListView_GetHeader(pThis_->getHandle())).invalidate();
+	}
+}
+
 LRESULT qm::FolderListWindowImpl::onNotify(NMHDR* pnmhdr,
 										   bool* pbHandled)
 {
@@ -355,6 +372,8 @@ qm::FolderListWindow::FolderListWindow(WindowBase* pParentWindow,
 	pImpl_->bSizeShown_ = false;
 	pImpl_->bInserting_ = false;
 	
+	pImpl_->reloadProfiles(true);
+	
 	setWindowHandler(this, false);
 	
 	pParentWindow->addNotifyHandler(pImpl_);
@@ -364,6 +383,11 @@ qm::FolderListWindow::FolderListWindow(WindowBase* pParentWindow,
 qm::FolderListWindow::~FolderListWindow()
 {
 	delete pImpl_;
+}
+
+void qm::FolderListWindow::reloadProfiles()
+{
+	pImpl_->reloadProfiles(false);
 }
 
 bool qm::FolderListWindow::save() const
@@ -448,8 +472,6 @@ LRESULT qm::FolderListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	pImpl_->nId_ = getWindowLong(GWL_ID);
 	
-	pImpl_->hfont_ = qs::UIUtil::createFontFromProfile(
-		pImpl_->pProfile_, L"FolderListWindow", false);
 	setFont(pImpl_->hfont_);
 	
 	HIMAGELIST hImageList = ImageList_LoadImage(
