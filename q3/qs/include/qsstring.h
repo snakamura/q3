@@ -1,5 +1,5 @@
 /*
- * $Id: qsstring.h,v 1.1.1.1 2003/04/29 08:07:35 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -128,6 +128,7 @@ struct CharTraits<CHAR>
 {
 	static size_t getLength(const CHAR* psz);
 	static const CHAR* getEmptyBuffer();
+	static CHAR toLower(CHAR c);
 	static int compare(const CHAR* lhs, const CHAR* rhs);
 	static int compare(const CHAR* lhs, const CHAR* rhs, size_t nLen);
 	static int compareIgnoreCase(const CHAR* lhs, const CHAR* rhs);
@@ -139,6 +140,7 @@ struct CharTraits<WCHAR>
 {
 	static size_t getLength(const WCHAR* pwsz);
 	static const WCHAR* getEmptyBuffer();
+	static WCHAR toLower(WCHAR c);
 	static int compare(const WCHAR* lhs, const WCHAR* rhs);
 	static int compare(const WCHAR* lhs, const WCHAR* rhs, size_t nLen);
 	static int compareIgnoreCase(const WCHAR* lhs, const WCHAR* rhs);

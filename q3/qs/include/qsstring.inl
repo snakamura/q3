@@ -1,5 +1,5 @@
 /*
- * $Id: qsstring.inl,v 1.2 2003/05/30 08:02:05 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -32,6 +32,12 @@ template<>
 inline const CHAR* qs::CharTraits<CHAR>::getEmptyBuffer()
 {
 	return "";
+}
+
+template<>
+inline CHAR qs::CharTraits<CHAR>::toLower(CHAR c)
+{
+	return ::tolower(c);
 }
 
 template<>
@@ -75,6 +81,12 @@ template<>
 inline const WCHAR* qs::CharTraits<WCHAR>::getEmptyBuffer()
 {
 	return L"";
+}
+
+template<>
+inline WCHAR qs::CharTraits<WCHAR>::toLower(WCHAR c)
+{
+	return ::towlower(c);
 }
 
 template<>
@@ -726,7 +738,8 @@ template<class String>
 qs::BMFindString<String>::Char qs::BMFindString<String>::getChar(
 	const Char* psz, size_t nLen, size_t n) const
 {
-	return nFlags_ & FLAG_REVERSE ? *(psz + nLen - n - 1) : *(psz + n);
+	char c = nFlags_ & FLAG_REVERSE ? *(psz + nLen - n - 1) : *(psz + n);
+	return nFlags_ & FLAG_IGNORECASE ? CharTraits<Char>::toLower(c) : c;
 }
 
 
