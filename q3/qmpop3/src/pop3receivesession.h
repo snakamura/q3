@@ -123,6 +123,19 @@ private:
 		qm::SubAccount* pSubAccount_;
 		qm::ReceiveSessionCallback* pSessionCallback_;
 	};
+	
+	class UIDSaver
+	{
+	public:
+		UIDSaver(Pop3ReceiveSession* pSession,
+				 UIDList* pList);
+		~UIDSaver();
+	
+	private:
+		Pop3ReceiveSession* pSession_;
+		UIDList* pUIDList_;
+	};
+	friend class UIDSaver;
 
 private:
 	std::auto_ptr<Pop3> pPop3_;

@@ -146,11 +146,6 @@ bool qmpop3::Pop3ReceiveSession::closeFolder()
 	
 	pFolder_ = 0;
 	
-	if (pUIDList_.get()) {
-		if (!saveUIDList(pUIDList_.get()))
-			return false;
-	}
-	
 	return true;
 }
 
@@ -161,6 +156,8 @@ bool qmpop3::Pop3ReceiveSession::updateMessages()
 
 bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilterSet)
 {
+	UIDSaver saver(this, pUIDList_.get());
+	
 	unsigned int nCount = pPop3_->getMessageCount();
 	
 	pCallback_->setMessage(IDS_DOWNLOADMESSAGES);
@@ -686,6 +683,30 @@ void qmpop3::Pop3ReceiveSession::CallbackImpl::setPos(unsigned int nPos)
 }
 
 
+/****************************************************************************
+ *
+ * Pop3ReceiveSession::UIDSaver
+ *
+ */
+
+qmpop3::Pop3ReceiveSession::UIDSaver::UIDSaver(Pop3ReceiveSession* pSession,
+											   UIDList* pUIDList) :
+	pSession_(pSession),
+	pUIDList_(pUIDList)
+{
+}
+
+qmpop3::Pop3ReceiveSession::UIDSaver::~UIDSaver()
+{
+	if (pUIDList_) {
+		if (!pSession_->saveUIDList(pUIDList_)) {
+			// TODO
+			// LOG
+		}
+	}
+}
+
+	
 /****************************************************************************
  *
  * Pop3ReceiveSessionUI
