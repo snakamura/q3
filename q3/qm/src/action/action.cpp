@@ -2440,6 +2440,7 @@ bool qm::FolderDeleteAction::deleteFolder(Folder* pFolder) const
 	
 	Folder* pTrash = pAccount->getFolderByFlag(Folder::FLAG_TRASHBOX);
 	if (pTrash &&
+		pFolder != pTrash &&
 		!pTrash->isAncestorOf(pFolder) &&
 		!pFolder->isAncestorOf(pTrash) &&
 		!pTrash->isFlag(Folder::FLAG_NOINFERIORS)) {
