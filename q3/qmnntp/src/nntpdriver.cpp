@@ -132,7 +132,7 @@ QSTATUS qmnntp::NntpDriver::createDefaultFolders(Account::FolderList* pList)
 	
 	for (int n = 0; n < countof(folders); ++n) {
 		NormalFolder::Init init;
-		init.nId_ = n;
+		init.nId_ = n + 1;
 		init.pwszName_ = folders[n].pwszName_;
 		init.cSeparator_ = L'/';
 		init.nFlags_ = folders[n].nFlags_;
