@@ -1557,7 +1557,6 @@ STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::Invoke(
 	DISPID dispId, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS* pDispParams,
 	VARIANT* pVarResult, EXCEPINFO* pExcepInfo, unsigned int* pnArgErr)
 {
-#if 1
 	if (dispId == DISPID_BEFORENAVIGATE2) {
 		if (!pDispParams || pDispParams->cArgs != 7)
 			return E_INVALIDARG;
@@ -1601,60 +1600,7 @@ STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::Invoke(
 			};
 			::ShellExecuteEx(&sei);
 		}
-		
-		return S_OK;
 	}
-#else
-	if (dispId == DISPID_BEFORENAVIGATE2) {
-		if (!pDispParams || pDispParams->cArgs != 7)
-			return E_INVALIDARG;
-		
-		VARIANT* pVarWebBrowser = pDispParams->rgvarg + 6;
-		if (pVarWebBrowser->vt != VT_DISPATCH)
-			return E_INVALIDARG;
-		ComPtr<IWebBrowser2> pWebBrowser;
-		HRESULT hr = pVarWebBrowser->pdispVal->QueryInterface(IID_IWebBrowser2,
-			reinterpret_cast<void**>(&pWebBrowser));
-		if (FAILED(hr))
-			return hr;
-		BSTR bstrLocation = 0;
-		hr = pWebBrowser->get_LocationURL(&bstrLocation);
-		if (FAILED(hr))
-			return hr;
-		bool bAboutBlank = *bstrLocation == L'\0' ||
-			wcscmp(bstrLocation, L"about:blank") == 0;
-		::SysFreeString(bstrLocation);
-		
-		VARIANT* pVarURL = pDispParams->rgvarg + 5;
-		if (pVarURL->vt != (VT_VARIANT | VT_BYREF) ||
-			pVarURL->pvarVal->vt != VT_BSTR)
-			return E_INVALIDARG;
-		BSTR bstrURL = pVarURL->pvarVal->bstrVal;
-		bool bInlineContent = wcsncmp(bstrURL, L"cid:", 4) == 0 ||
-			wcsncmp(bstrURL, L"res://", 6) == 0;
-		
-		if (!bAboutBlank || !bInlineContent) {
-			VARIANT* pVarCancel = pDispParams->rgvarg;
-			if (pVarCancel->vt != (VT_BOOL | VT_BYREF))
-				return E_INVALIDARG;
-			*pVarCancel->pboolVal = VARIANT_TRUE;
-			
-			string_ptr<TSTRING> tstrURL(wcs2tcs(bstrURL));
-			if (!tstrURL.get())
-				return E_OUTOFMEMORY;
-			SHELLEXECUTEINFO sei = {
-				sizeof(sei),
-				0,
-				0,
-				_T("open"),
-				tstrURL.get(),
-			};
-			::ShellExecuteEx(&sei);
-		}
-		
-		return S_OK;
-	}
-#endif
 	else if (dispId == DISPID_DOCUMENTCOMPLETE) {
 		if (!pDispParams || pDispParams->cArgs != 2)
 			return E_INVALIDARG;
@@ -1679,8 +1625,11 @@ STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::Invoke(
 			}
 		}
 	}
+	else {
+		return E_NOTIMPL;
+	}
 	
-	return E_NOTIMPL;
+	return S_OK;
 }
 
 #endif // QMHTMLVIEW

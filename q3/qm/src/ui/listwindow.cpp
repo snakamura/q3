@@ -1000,6 +1000,11 @@ QSTATUS qm::ListWindow::setShowHeaderColumn(bool bShow)
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qm::ListWindow::save() const
+{
+	return pImpl_->pHeaderColumn_->save();
+}
+
 QSTATUS qm::ListWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
 {
 	DECLARE_QSTATUS();
@@ -1775,6 +1780,17 @@ QSTATUS qm::ListHeaderColumn::setShow(bool bShow)
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qm::ListHeaderColumn::save() const
+{
+	DECLARE_QSTATUS();
+	
+	status = pImpl_->pProfile_->setInt(L"ListWindow",
+		L"ShowHeaderColumn", pImpl_->bShow_ ? 1 : 0);
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::ListHeaderColumn::getSuperClass(WSTRING* pwstrSuperClass)
 {
 	assert(pwstrSuperClass);
@@ -1825,9 +1841,6 @@ LRESULT qm::ListHeaderColumn::onCreate(CREATESTRUCT* pCreateStruct)
 
 LRESULT qm::ListHeaderColumn::onDestroy()
 {
-	pImpl_->pProfile_->setInt(L"ListWindow",
-		L"ShowHeaderColumn", pImpl_->bShow_ ? 1 : 0);
-	
 	HIMAGELIST hImageList = Header_SetImageList(getHandle(), 0);
 	ImageList_Destroy(hImageList);
 	

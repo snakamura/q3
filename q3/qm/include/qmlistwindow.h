@@ -1,5 +1,5 @@
 /*
- * $Id: qmlistwindow.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -64,6 +64,7 @@ public:
 	HFONT getFont() const;
 	bool isShowHeaderColumn() const;
 	qs::QSTATUS setShowHeaderColumn(bool bShow);
+	qs::QSTATUS save() const;
 
 public:
 	virtual qs::QSTATUS preCreateWindow(CREATESTRUCT* pCreateStruct);
@@ -130,6 +131,7 @@ public:
 	qs::QSTATUS setViewModel(ViewModel* pViewModel);
 	bool isShow() const;
 	qs::QSTATUS setShow(bool bShow);
+	qs::QSTATUS save() const;
 
 public:
 	virtual qs::QSTATUS getSuperClass(qs::WSTRING* pwstrSuperClass);

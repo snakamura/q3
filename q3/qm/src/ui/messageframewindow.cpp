@@ -590,6 +590,9 @@ QSTATUS qm::MessageFrameWindow::save() const
 {
 	DECLARE_QSTATUS();
 	
+	status = pImpl_->pMessageWindow_->save();
+	CHECK_QSTATUS();
+	
 	Profile* pProfile = pImpl_->pProfile_;
 	
 	status = pProfile->setInt(L"MessageFrameWindow",

@@ -136,6 +136,8 @@ public:
 	MessageWindowItem* getFocusedItem() const;
 	
 	MessageModel* getMessageModel() const;
+	
+	qs::QSTATUS save() const;
 
 public:
 	virtual qs::QSTATUS getAccelerator(qs::Accelerator** ppAccelerator);
@@ -143,7 +145,6 @@ public:
 
 protected:
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
-	LRESULT onDestroy();
 	LRESULT onLButtonDown(UINT nFlags, const POINT& pt);
 	LRESULT onSize(UINT nFlags, int cx, int cy);
 	

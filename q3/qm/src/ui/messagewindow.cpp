@@ -524,6 +524,25 @@ MessageModel* qm::MessageWindow::getMessageModel() const
 	return pImpl_->pMessageModel_;
 }
 
+QSTATUS qm::MessageWindow::save() const
+{
+	DECLARE_QSTATUS();
+	
+	Profile* pProfile = pImpl_->pProfile_;
+	
+	status = pProfile->setInt(pImpl_->pwszSection_,
+		L"ShowHeaderWindow", pImpl_->bShowHeaderWindow_);
+	CHECK_QSTATUS();
+	status = pProfile->setInt(pImpl_->pwszSection_,
+		L"HtmlMode", pImpl_->bHtmlMode_);
+	CHECK_QSTATUS();
+	status = pProfile->setInt(pImpl_->pwszSection_,
+		L"DecryptVerifyMode", pImpl_->bDecryptVerifyMode_);
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::MessageWindow::getAccelerator(Accelerator** ppAccelerator)
 {
 	assert(ppAccelerator);
@@ -535,7 +554,6 @@ LRESULT qm::MessageWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_CREATE()
-		HANDLE_DESTROY()
 		HANDLE_LBUTTONDOWN()
 		HANDLE_SIZE()
 		HANDLE_MESSAGE(MessageWindowImpl::WM_MESSAGEMODEL_MESSAGECHANGED, onMessageModelMessageChanged)
@@ -579,11 +597,6 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	status = pImpl_->pFactory_->create(getHandle());
 	CHECK_QSTATUS_VALUE(-1);
-//	ContentTypeParser contentType(L"text", L"plain", &status);
-//	CHECK_QSTATUS_VALUE(-1);
-//	status = pImpl_->pFactory_->getMessageViewWindow(
-//		&contentType, &pImpl_->pMessageViewWindow_);
-//	CHECK_QSTATUS_VALUE(-1);
 	pImpl_->pMessageViewWindow_ = pImpl_->pFactory_->getTextMessageViewWindow();
 	status = pImpl_->layoutChildren();
 	CHECK_QSTATUS_VALUE(-1);
@@ -592,19 +605,6 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->bCreated_ = true;
 	
 	return 0;
-}
-
-LRESULT qm::MessageWindow::onDestroy()
-{
-	Profile* pProfile = pImpl_->pProfile_;
-	
-	pProfile->setInt(pImpl_->pwszSection_, L"ShowHeaderWindow",
-		pImpl_->bShowHeaderWindow_);
-	pProfile->setInt(pImpl_->pwszSection_, L"HtmlMode", pImpl_->bHtmlMode_);
-	pProfile->setInt(pImpl_->pwszSection_,
-		L"DecryptVerifyMode", pImpl_->bDecryptVerifyMode_);
-	
-	return DefaultWindowHandler::onDestroy();
 }
 
 LRESULT qm::MessageWindow::onLButtonDown(UINT nFlags, const POINT& pt)
