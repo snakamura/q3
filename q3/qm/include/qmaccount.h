@@ -225,6 +225,7 @@ public:
 	ProtocolDriver* getProtocolDriver() const;
 	MessageHolder* storeMessage(NormalFolder* pFolder,
 								const CHAR* pszMessage,
+								size_t nLen,
 								const Message* pHeader,
 								unsigned int nId,
 								unsigned int nFlags,

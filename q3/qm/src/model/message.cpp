@@ -76,6 +76,9 @@ bool qm::Message::create(const CHAR* pszMessage,
 bool qm::Message::createHeader(const CHAR* pszHeader,
 							   size_t nLen)
 {
+	if (nLen == -1)
+		nLen = strlen(pszHeader);
+	
 	const CHAR* pBody = Part::getBody(pszHeader, nLen);
 	return create(pszHeader, pBody ? pBody - pszHeader + 4 : nLen, FLAG_HEADERONLY);
 }

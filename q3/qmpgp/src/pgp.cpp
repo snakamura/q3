@@ -137,10 +137,7 @@ xstring_ptr qmpgp::PGPUtilityImpl::sign(Part* pPart,
 		if (!strContent.get())
 			return 0;
 		
-		const CHAR* pBody = strstr(strContent.get(), "\r\n\r\n");
-		assert(pBody);
-		pBody += 4;
-		
+		const CHAR* pBody = Part::getBody(strContent.get(), -1);
 		xstring_ptr strBody(pDriver_->sign(pBody,
 			Driver::SIGNFLAG_CLEARTEXT, pwszUserId, pwszPassphrase));
 		if (!strBody.get())
@@ -186,10 +183,7 @@ xstring_ptr qmpgp::PGPUtilityImpl::encrypt(Part* pPart,
 		if (!strContent.get())
 			return 0;
 		
-		const CHAR* pBody = strstr(strContent.get(), "\r\n\r\n");
-		assert(pBody);
-		pBody += 4;
-		
+		const CHAR* pBody = Part::getBody(strContent.get(), -1);
 		xstring_ptr strBody(pDriver_->encrypt(pBody, listRecipient));
 		if (!strBody.get())
 			return 0;
@@ -239,10 +233,7 @@ xstring_ptr qmpgp::PGPUtilityImpl::signAndEncrypt(Part* pPart,
 		if (!strContent.get())
 			return 0;
 		
-		const CHAR* pBody = strstr(strContent.get(), "\r\n\r\n");
-		assert(pBody);
-		pBody += 4;
-		
+		const CHAR* pBody = Part::getBody(strContent.get(), -1);
 		xstring_ptr strBody(pDriver_->signAndEncrypt(pBody,
 			pwszUserId, pwszPassphrase, listRecipient));
 		if (!strBody.get())

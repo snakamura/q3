@@ -267,7 +267,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 				
 				xstring_ptr strContent(msg.getContent());
 				MessageHolder* pmh = pAccount_->storeMessage(pFolder_,
-					strContent.get(), &msg, -1, nFlags, -1, false);
+					strContent.get(), -1, &msg, -1, nFlags, -1, false);
 				if (!pmh)
 					return false;
 				

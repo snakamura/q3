@@ -258,11 +258,7 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 			if (!pPop3_->getMessage(n, nMaxLine, &strMessage, &nGetSize))
 				HANDLE_ERROR();
 			
-			size_t nLen = -1;
-			CHAR* p = strstr(strMessage.get(), "\r\n\r\n");
-			if (p)
-				nLen = p - strMessage.get() + 4;
-			if (!msg.create(strMessage.get(), nLen, Message::FLAG_HEADERONLY))
+			if (!msg.createHeader(strMessage.get(), nGetSize))
 				return false;
 		}
 		
@@ -296,7 +292,7 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 			Lock<Account> lock(*pAccount_);
 			
 			MessageHolder* pmh = pAccount_->storeMessage(pFolder_,
-				strMessage.get(), &msg, -1, nFlags, nSize, false);
+				strMessage.get(), nGetSize, &msg, -1, nFlags, nSize, false);
 			if (!pmh)
 				return false;
 			
@@ -892,11 +888,7 @@ bool qmpop3::Pop3SyncFilterCallback::getMessage(unsigned int nFlag)
 		if (!pPop3_->getMessage(nMessage_, nMaxLine, &str, pnGetSize_))
 			return false;
 		
-		size_t nLen = -1;
-		CHAR* p = strstr(str.get(), "\r\n\r\n");
-		if (p)
-			nLen = p - str.get() + 4;
-		if (!pMessage_->create(str.get(), nLen, Message::FLAG_HEADERONLY))
+		if (!pMessage_->createHeader(str.get(), *pnGetSize_))
 			return false;
 	}
 	

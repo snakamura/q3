@@ -235,6 +235,7 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 				buf.append("\r\n");
 				
 				const CHAR* pszMessage = buf.getCharArray();
+				size_t nLen = buf.getLength();
 				unsigned int nFlags = MessageHolder::FLAG_INDEXONLY;
 				
 				xstring_ptr strMessage;
@@ -264,6 +265,8 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 								}
 								if (strMessage.get()) {
 									pszMessage = strMessage.get();
+									/// TODO
+									nLen = strlen(pszMessage);
 									nFlags = 0;
 								}
 							}
@@ -278,7 +281,7 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 					Lock<Account> lock(*pAccount_);
 					
 					MessageHolder* pmh = pAccount_->storeMessage(pFolder_,
-						pszMessage, 0, item.nId_, nFlags, item.nBytes_,
+						pszMessage, nLen, 0, item.nId_, nFlags, item.nBytes_,
 						nFlags == MessageHolder::FLAG_INDEXONLY);
 					if (!pmh)
 						return false;
@@ -307,8 +310,9 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 				
 				Lock<Account> lock(*pAccount_);
 				
+				/// TODO
 				MessageHolder* pmh = pAccount_->storeMessage(pFolder_,
-					strMessage.get(), 0, n, MessageHolder::FLAG_INDEXONLY, -1, true);
+					strMessage.get(), -1, 0, n, MessageHolder::FLAG_INDEXONLY, -1, true);
 				if (!pmh)
 					return false;
 				
@@ -641,11 +645,7 @@ bool qmnntp::NntpSyncFilterCallback::getMessage(unsigned int nFlag)
 		if (pNntp_->getMessage(nMessage_, Nntp::GETMESSAGEFLAG_HEAD, &str, &nSize_))
 			return false;
 		
-		size_t nLen = -1;
-		CHAR* p = strstr(str.get(), "\r\n\r\n");
-		if (p)
-			nLen = p - str.get() + 4;
-		if (!pMessage_->create(str.get(), nLen, Message::FLAG_HEADERONLY))
+		if (!pMessage_->createHeader(str.get(), nSize_))
 			return false;
 	}
 	

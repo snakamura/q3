@@ -434,8 +434,8 @@ bool qm::AccountImpl::appendMessage(NormalFolder* pFolder,
 	Lock<Account> lock(*pThis_);
 	
 	if (pFolder->isFlag(Folder::FLAG_LOCAL)) {
-		MessageHolder* pmh = pThis_->storeMessage(pFolder, pszMessage,
-			&msgHeader, static_cast<unsigned int>(-1), nFlags, nSize, false);
+		MessageHolder* pmh = pThis_->storeMessage(pFolder,
+			pszMessage, -1, &msgHeader, -1, nFlags, nSize, false);
 		if (!pmh)
 			return false;
 		if (pptr)
@@ -1827,18 +1827,13 @@ bool qm::Account::importMessage(NormalFolder* pFolder,
 	assert(pFolder);
 	assert(pszMessage);
 	
-	size_t nHeaderLen = static_cast<size_t>(-1);
-	const CHAR* p = strstr(pszMessage, "\r\n\r\n");
-	if (p)
-		nHeaderLen = p - pszMessage + 4;
-	
-	Message msgHeader;
-	if (!msgHeader.create(pszMessage, nHeaderLen, Message::FLAG_HEADERONLY))
+	Message header;
+	if (!header.createHeader(pszMessage, -1))
 		return false;
 	
 	unsigned int nMessageFlags = 0;
 	NumberParser flags(NumberParser::FLAG_HEX);
-	Part::Field field = msgHeader.getField(L"X-QMAIL-Flags", &flags);
+	Part::Field field = header.getField(L"X-QMAIL-Flags", &flags);
 	if (field == Part::FIELD_EXIST) {
 		switch (nFlags) {
 		case Account::IMPORTFLAG_NORMALFLAGS:
@@ -1880,9 +1875,9 @@ bool qm::Account::importMessage(NormalFolder* pFolder,
 		}
 	}
 	if (field != Part::FIELD_NOTEXIST)
-		msgHeader.removeField(L"X-QMAIL-Flags");
+		header.removeField(L"X-QMAIL-Flags");
 	
-	return pImpl_->appendMessage(pFolder, pszMessage, msgHeader, nMessageFlags, -1, 0);
+	return pImpl_->appendMessage(pFolder, pszMessage, header, nMessageFlags, -1, 0);
 }
 
 bool qm::Account::appendMessage(NormalFolder* pFolder,
@@ -2241,6 +2236,7 @@ ProtocolDriver* qm::Account::getProtocolDriver() const
 
 MessageHolder* qm::Account::storeMessage(NormalFolder* pFolder,
 										 const CHAR* pszMessage,
+										 size_t nLen,
 										 const Message* pHeader,
 										 unsigned int nId,
 										 unsigned int nFlags,
@@ -2253,12 +2249,14 @@ MessageHolder* qm::Account::storeMessage(NormalFolder* pFolder,
 	assert((nFlags & ~(MessageHolder::FLAG_USER_MASK |
 		MessageHolder::FLAG_PARTIAL_MASK | MessageHolder::FLAG_LOCAL)) == 0);
 	
-	if (nSize == static_cast<size_t>(-1))
-		nSize = strlen(pszMessage);
+	if (nLen == -1)
+		nLen = strlen(pszMessage);
+	if (nSize == -1)
+		nSize = nLen;
 	
 	Message header;
 	if (!pHeader) {
-		if (!header.createHeader(pszMessage, nSize))
+		if (!header.createHeader(pszMessage, nLen))
 			return 0;
 		pHeader = &header;
 	}
@@ -2284,7 +2282,7 @@ MessageHolder* qm::Account::storeMessage(NormalFolder* pFolder,
 	unsigned int nHeaderLength = 0;
 	unsigned int nIndexKey = -1;
 	unsigned int nIndexLength = 0;
-	if (!pImpl_->pMessageStore_->save(pszMessage, nSize, pHeader, bIndexOnly,
+	if (!pImpl_->pMessageStore_->save(pszMessage, nLen, pHeader, bIndexOnly,
 		&nOffset, &nLength, &nHeaderLength, &nIndexKey, &nIndexLength))
 		return 0;
 	
@@ -2414,7 +2412,7 @@ MessageHolder* qm::Account::cloneMessage(MessageHolder* pmh,
 			return 0;
 		unsigned int nFlags = pmh->getFlags() & (MessageHolder::FLAG_USER_MASK |
 			MessageHolder::FLAG_PARTIAL_MASK | MessageHolder::FLAG_LOCAL);
-		return storeMessage(pFolderTo, strContent.get(),
+		return storeMessage(pFolderTo, strContent.get(), -1,
 			&msg, nId, nFlags, pmh->getSize(), false);
 	}
 }

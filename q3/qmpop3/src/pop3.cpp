@@ -247,10 +247,12 @@ bool qmpop3::Pop3::getMessage(unsigned int nMsg,
 		POP3_ERROR_OR(nMaxLine == 0xffffffff ? POP3_ERROR_RETR : POP3_ERROR_TOP);
 	
 	size_t nLen = strContent.size();
+	if (nLen >= 2 && strContent[nLen - 1] == '\n' && strContent[nLen - 2] == '\r') {
+		nLen -= 2;
+		strContent[nLen] = '\0';
+	}
 	if (pnSize)
 		*pnSize = nLen;
-	if (nLen >= 2 && strContent[nLen - 1] == '\n' && strContent[nLen - 2] == '\r')
-		strContent[nLen - 2] = '\0';
 	
 	pstrMessage->reset(strContent.release());
 	

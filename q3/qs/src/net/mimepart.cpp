@@ -1013,6 +1013,9 @@ const CHAR* qs::Part::getBody(const CHAR* pszContent,
 {
 	assert(pszContent);
 	
+	if (nLen == -1)
+		nLen = strlen(pszContent);
+	
 	const CHAR* pBody = pszContent;
 	if (nLen < 2 || strncmp(pBody, "\r\n", 2) != 0) {
 		BMFindString<STRING> bmfs("\r\n\r\n");
@@ -1022,10 +1025,8 @@ const CHAR* qs::Part::getBody(const CHAR* pszContent,
 	}
 	if (pBody)
 		pBody += 2;
-	if (pBody == pszContent + nLen)
-		pBody = 0;
 	
-	assert(!pBody || (pszContent <= pBody && pBody < pszContent + nLen));
+	assert(!pBody || (pszContent <= pBody && pBody <= pszContent + nLen));
 	
 	return pBody;
 }

@@ -619,8 +619,8 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			
 			Lock<Account> lock(*pAccount_);
 			
-			MessageHolder* pmh = pAccount_->storeMessage(pFolder_,
-				buf.getCharArray(), &msg, nUid, nFlags, nSize, true);
+			MessageHolder* pmh = pAccount_->storeMessage(pFolder_, buf.getCharArray(),
+				buf.getLength(), &msg, nUid, nFlags, nSize, true);
 			if (!pmh)
 				return RESULT_ERROR;
 			
