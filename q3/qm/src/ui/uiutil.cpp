@@ -166,10 +166,12 @@ int qm::UIUtil::getFolderImage(Folder* pFolder,
 				nImage = 8;
 			else if (nFlags & Folder::FLAG_TRASHBOX)
 				nImage = 10;
-			else if (bSelected)
-				nImage = 4;
+			else if (nFlags & Folder::FLAG_NOSELECT)
+				nImage = bSelected ? 16 : 14;
+			else if (nFlags & Folder::FLAG_LOCAL)
+				nImage = bSelected ? 4 : 2;
 			else
-				nImage = 2;
+				nImage = bSelected ? 20 : 18;
 		}
 		break;
 	case Folder::TYPE_QUERY:
