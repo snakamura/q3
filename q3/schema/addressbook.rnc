@@ -17,12 +17,11 @@ element addressBook {
 				attribute alias {
 					xsd:string
 				}?,
-				## カテゴリ
-				## '/'で区切る
-				## 今のところ複数指定は不可（出来た方が良い？）
+				## カテゴリ（'/'で区切って階層化）
+				## 複数指定する場合には','で区切る
 				attribute category {
 					xsd:string {
-						pattern = "[^/]+(/[^/]+)*"
+						pattern = "([^/,]+(/[^/,]+)*)+(,([^/,]+(/[^/,]+)*))*"
 					}
 				}?,
 				## コメント

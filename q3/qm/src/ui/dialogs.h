@@ -146,6 +146,7 @@ public:
 
 public:
 	typedef std::vector<qs::WSTRING> AddressList;
+	typedef std::vector<qs::WSTRING> CategoryNameList;
 
 public:
 	class Item
@@ -206,13 +207,27 @@ private:
 	qs::QSTATUS select(Type type);
 	qs::QSTATUS remove();
 	qs::QSTATUS layout();
-	qs::QSTATUS createCategoryMenu(
-		const AddressBook::CategoryList& l, HMENU* phmenu);
+	qs::QSTATUS createCategoryMenu(const AddressBook::CategoryList& l,
+		HMENU* phmenu, CategoryNameList* pList);
 	qs::QSTATUS setCurrentCategory(const WCHAR* pwszCategory);
+	bool isCategory(const AddressBookAddress::CategoryList& listCategory) const;
+
+private:
+	static size_t getCategoryLevel(const WCHAR* pwszCategory);
+	static qs::QSTATUS getCategoryName(const WCHAR* pwszCategory,
+		size_t nLevel, bool bFull, qs::WSTRING* pwstrName);
 
 private:
 	AddressBookDialog(const AddressBookDialog&);
 	AddressBookDialog& operator=(const AddressBookDialog&);
+
+private:
+	struct CategoryLess :
+		public std::binary_function<AddressBookCategory*, AddressBookCategory*, bool>
+	{
+		bool operator()(const AddressBookCategory* pLhs,
+			const AddressBookCategory* pRhs);
+	};
 
 private:
 	AddressBook* pAddressBook_;

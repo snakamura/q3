@@ -30,6 +30,7 @@ namespace qm {
 class AddressBook;
 class AddressBookEntry;
 class AddressBookAddress;
+class AddressBookCategory;
 class AddressBookContentHandler;
 
 class Security;
@@ -52,7 +53,7 @@ public:
 
 public:
 	typedef std::vector<AddressBookEntry*> EntryList;
-	typedef std::vector<qs::WSTRING> CategoryList;
+	typedef std::vector<AddressBookCategory*> CategoryList;
 	typedef std::vector<std::pair<const WCHAR*, AddressBookEntry*> > EntryMap;
 
 public:
@@ -61,7 +62,7 @@ public:
 
 public:
 	qs::QSTATUS getEntries(const EntryList** ppList);
-	qs::QSTATUS getCategories(const CategoryList** ppList);
+	qs::QSTATUS getCategories(CategoryList* pList);
 	qs::QSTATUS getAddress(const WCHAR* pwszAlias,
 		const AddressBookAddress** ppAddress);
 	qs::QSTATUS expandAlias(const WCHAR* pwszAddresses,
@@ -72,6 +73,8 @@ public:
 
 public:
 	qs::QSTATUS addEntry(AddressBookEntry* pEntry);
+	qs::QSTATUS getCategory(const WCHAR* pwszCategory,
+		const AddressBookCategory** ppCategory);
 
 private:
 	qs::QSTATUS initWAB();
@@ -222,8 +225,11 @@ private:
 class AddressBookAddress
 {
 public:
+	typedef std::vector<const AddressBookCategory*> CategoryList;
+
+public:
 	AddressBookAddress(const AddressBookEntry* pEntry,
-		const WCHAR* pwszAlias, const WCHAR* pwszCategory,
+		const WCHAR* pwszAlias, const CategoryList& listCategory,
 		const WCHAR* pwszComment, const WCHAR* pwszCertificate,
 		bool bRFC2822, qs::QSTATUS* pstatus);
 	~AddressBookAddress();
@@ -232,7 +238,7 @@ public:
 	const AddressBookEntry* getEntry() const;
 	const WCHAR* getAddress() const;
 	const WCHAR* getAlias() const;
-	const WCHAR* getCategory() const;
+	const CategoryList& getCategories() const;
 	const WCHAR* getComment() const;
 	const WCHAR* getCertificate() const;
 	bool isRFC2822() const;
@@ -249,10 +255,34 @@ private:
 	const AddressBookEntry* pEntry_;
 	qs::WSTRING wstrAddress_;
 	qs::WSTRING wstrAlias_;
-	qs::WSTRING wstrCategory_;
+	CategoryList listCategory_;
 	qs::WSTRING wstrComment_;
 	qs::WSTRING wstrCertificate_;
 	bool bRFC2822_;
+};
+
+
+/****************************************************************************
+ *
+ * AddressBookCategory
+ *
+ */
+
+class AddressBookCategory
+{
+public:
+	AddressBookCategory(const WCHAR* pwszName, qs::QSTATUS* pstatus);
+	~AddressBookCategory();
+
+public:
+	const WCHAR* getName() const;
+
+private:
+	AddressBookCategory(const AddressBookCategory&);
+	AddressBookCategory& operator=(const AddressBookCategory&);
+
+private:
+	qs::WSTRING wstrName_;
 };
 
 

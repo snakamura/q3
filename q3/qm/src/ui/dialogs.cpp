@@ -929,11 +929,15 @@ LRESULT qm::AddressBookDialog::onCategory()
 	RECT rect;
 	Window(getDlgItem(IDC_CATEGORY)).getWindowRect(&rect);
 	
-	const AddressBook::CategoryList* pList = 0;
-	status = pAddressBook_->getCategories(&pList);
+	AddressBook::CategoryList listCategory;
+	status = pAddressBook_->getCategories(&listCategory);
 	if (status == QSTATUS_SUCCESS) {
+		std::sort(listCategory.begin(), listCategory.end(), CategoryLess());
+		
 		AutoMenuHandle hmenu;
-		status = createCategoryMenu(*pList, &hmenu);
+		CategoryNameList listName;
+		StringListFree<CategoryNameList> free(listName);
+		status = createCategoryMenu(listCategory, &hmenu, &listName);
 		if (status == QSTATUS_SUCCESS) {
 			unsigned int nFlags = TPM_LEFTALIGN |
 				TPM_TOPALIGN | TPM_NONOTIFY | TPM_RETURNCMD;
@@ -946,8 +950,8 @@ LRESULT qm::AddressBookDialog::onCategory()
 				;
 			else if (nCommand == IDM_ADDRESSBOOK_ALLCATEGORY)
 				setCurrentCategory(0);
-			else if (nCommand - IDM_ADDRESSBOOK_CATEGORY < pList->size())
-				setCurrentCategory((*pList)[nCommand - IDM_ADDRESSBOOK_CATEGORY]);
+			else if (nCommand - IDM_ADDRESSBOOK_CATEGORY < listName.size())
+				setCurrentCategory(listName[nCommand - IDM_ADDRESSBOOK_CATEGORY]);
 		}
 	}
 	
@@ -1014,9 +1018,10 @@ QSTATUS qm::AddressBookDialog::update()
 		while (itA != l.end()) {
 			AddressBookAddress* pAddress = *itA;
 			
-			const WCHAR* pwszCategory = pAddress->getCategory();
-			if (!wstrCategory_ ||
-				(pwszCategory && wcsncmp(pwszCategory, wstrCategory_, nCategoryLen) == 0)) {
+			if (isCategory(pAddress->getCategories())) {
+//			const WCHAR* pwszCategory = pAddress->getCategory();
+//			if (!wstrCategory_ ||
+//				(pwszCategory && wcsncmp(pwszCategory, wstrCategory_, nCategoryLen) == 0)) {
 				LVITEM item = {
 					LVIF_TEXT | LVIF_PARAM,
 					n,
@@ -1176,22 +1181,121 @@ QSTATUS qm::AddressBookDialog::layout()
 }
 
 QSTATUS qm::AddressBookDialog::createCategoryMenu(
-	const AddressBook::CategoryList& l, HMENU* phmenu)
+	const AddressBook::CategoryList& l, HMENU* phmenu, CategoryNameList* pList)
 {
 	assert(phmenu);
+	assert(pList);
 	
 	DECLARE_QSTATUS();
 	
 	AutoMenuHandle hmenu(::CreatePopupMenu());
 	
-	for (AddressBook::CategoryList::size_type n = 0; n < l.size(); ++n) {
-		bool bCheck = wstrCategory_ && wcscmp(wstrCategory_, l[n]) == 0;
-		string_ptr<WSTRING> wstrText;
-		status = UIUtil::formatMenu(l[n], &wstrText);
-		CHECK_QSTATUS();
-		W2T(wstrText.get(), ptszCategory);
-		::AppendMenu(hmenu.get(), MF_STRING | (bCheck ? MF_CHECKED : 0),
-			IDM_ADDRESSBOOK_CATEGORY + n, ptszCategory);
+	typedef std::vector<std::pair<HMENU, WSTRING> > MenuStack;
+	MenuStack stackMenu;
+	status = STLWrapper<MenuStack>(stackMenu).push_back(
+		MenuStack::value_type(hmenu.get(), 0));
+	CHECK_QSTATUS();
+	
+	struct Deleter
+	{
+		typedef std::vector<std::pair<HMENU, WSTRING> > MenuStack;
+		
+		Deleter(MenuStack& s) :
+			s_(s)
+		{
+		}
+		
+		~Deleter()
+		{
+			MenuStack::iterator it = s_.begin();
+			while (it != s_.end()) {
+				freeWString((*it).second);
+				++it;
+			}
+		}
+		
+		MenuStack& s_;
+	} deleter(stackMenu);
+	
+	UINT nId = IDM_ADDRESSBOOK_CATEGORY;
+	AddressBook::CategoryList::const_iterator it = l.begin();
+	while (it != l.end()) {
+		const AddressBookCategory* pCategory = *it;
+		
+		size_t nLevel = getCategoryLevel(pCategory->getName());
+		
+		while (true) {
+			bool bPop = false;
+			if (nLevel < stackMenu.size()) {
+				bPop = true;
+			}
+			else if (stackMenu.size() > 1) {
+				string_ptr<WSTRING> wstrName;
+				status = getCategoryName(pCategory->getName(),
+					stackMenu.size() - 2, false, &wstrName);
+				CHECK_QSTATUS();
+				if (wcscmp(wstrName.get(), stackMenu.back().second) != 0)
+					bPop = true;
+			}
+			if (!bPop)
+				break;
+			freeWString(stackMenu.back().second);
+			stackMenu.pop_back();
+		}
+		
+		while (nLevel >= stackMenu.size()) {
+			string_ptr<WSTRING> wstrName;
+			status = getCategoryName(pCategory->getName(),
+				stackMenu.size() - 1, false, &wstrName);
+			CHECK_QSTATUS();
+			
+			string_ptr<WSTRING> wstrText;
+			status = UIUtil::formatMenu(wstrName.get(), &wstrText);
+			CHECK_QSTATUS();
+			W2T(wstrText.get(), ptszText);
+			
+			bool bSubMenu = false;
+			if (nLevel > stackMenu.size()) {
+				bSubMenu = true;
+			}
+			else {
+				if (it + 1 != l.end()) {
+					const WCHAR* pwszNext = (*(it + 1))->getName();
+					size_t nLen = wcslen(pCategory->getName());
+					bSubMenu = wcsncmp(pCategory->getName(), pwszNext, nLen) == 0 &&
+						*(pwszNext + nLen) == L'/';
+				}
+			}
+			
+			string_ptr<WSTRING> wstrFullName;
+			status = getCategoryName(pCategory->getName(),
+				stackMenu.size() - 1, true, &wstrFullName);
+			CHECK_QSTATUS();
+			bool bCheck = wstrCategory_ && wcscmp(wstrFullName.get(), wstrCategory_) == 0;
+			status = STLWrapper<CategoryNameList>(*pList).push_back(wstrFullName.get());
+			CHECK_QSTATUS();
+			wstrFullName.release();
+			
+			unsigned int nFlags = MF_STRING | (bCheck ? MF_CHECKED : 0);
+			
+			if (bSubMenu) {
+				HMENU hSubMenu = ::CreatePopupMenu();
+				::AppendMenu(stackMenu.back().first, MF_POPUP,
+					reinterpret_cast<UINT_PTR>(hSubMenu), ptszText);
+				status = STLWrapper<MenuStack>(stackMenu).push_back(
+					std::make_pair(hSubMenu, wstrName.get()));
+				CHECK_QSTATUS();
+				wstrName.release();
+				
+				::AppendMenu(hSubMenu, nFlags, nId++, _T("(This Category"));
+			}
+			else {
+				::AppendMenu(stackMenu.back().first, nFlags, nId++, ptszText);
+				break;
+			}
+		}
+		
+		++it;
 	}
 	
 	::AppendMenu(hmenu.get(), MF_SEPARATOR, -1, 0);
@@ -1248,6 +1352,72 @@ QSTATUS qm::AddressBookDialog::setCurrentCategory(const WCHAR* pwszCategory)
 	return QSTATUS_SUCCESS;
 }
 
+bool qm::AddressBookDialog::isCategory(
+	const AddressBookAddress::CategoryList& listCategory) const
+{
+	if (!wstrCategory_)
+		return true;
+	
+	size_t nLen = wcslen(wstrCategory_);
+	
+	AddressBookAddress::CategoryList::const_iterator it = listCategory.begin();
+	while (it != listCategory.end()) {
+		const AddressBookCategory* pCategory = *it;
+		const WCHAR* pwszCategory = pCategory->getName();
+		
+		if (wcscmp(pwszCategory, wstrCategory_) == 0)
+			return true;
+		else if (wcslen(pwszCategory) > nLen &&
+			wcsncmp(pwszCategory, wstrCategory_, nLen) == 0 &&
+			*(pwszCategory + nLen) == L'/')
+			return true;
+		
+		++it;
+	}
+	
+	return false;
+}
+
+size_t qm::AddressBookDialog::getCategoryLevel(const WCHAR* pwszCategory)
+{
+	assert(pwszCategory);
+	return std::count(pwszCategory, pwszCategory + wcslen(pwszCategory), L'/') + 1;
+}
+
+QSTATUS qm::AddressBookDialog::getCategoryName(const WCHAR* pwszCategory,
+	size_t nLevel, bool bFull, WSTRING* pwstrName)
+{
+	assert(pwszCategory);
+	assert(pwstrName);
+	
+	DECLARE_QSTATUS();
+	
+	const WCHAR* p = pwszCategory;
+	while (nLevel != 0) {
+		while (*p++ != L'/')
+			;
+		--nLevel;
+	}
+	
+	const WCHAR* pEnd = wcschr(p, L'/');
+	
+	string_ptr<WSTRING> wstrName;
+	if (bFull) {
+		size_t nLen = pEnd ? pEnd - pwszCategory : wcslen(pwszCategory);
+		wstrName.reset(allocWString(pwszCategory, nLen));
+	}
+	else {
+		size_t nLen = pEnd ? pEnd - p : wcslen(p);
+		wstrName.reset(allocWString(p, nLen));
+	}
+	if (!wstrName.get())
+		return QSTATUS_OUTOFMEMORY;
+	
+	*pwstrName = wstrName.release();
+	
+	return QSTATUS_SUCCESS;
+}
+
 
 /****************************************************************************
  *
@@ -1282,6 +1452,38 @@ WSTRING qm::AddressBookDialog::Item::releaseValue()
 AddressBookDialog::Type qm::AddressBookDialog::Item::getType() const
 {
 	return type_;
+}
+
+
+/****************************************************************************
+ *
+ * AddressBookDialog::CategoryLess
+ *
+ */
+
+bool qm::AddressBookDialog::CategoryLess::operator()(
+	const AddressBookCategory* pLhs, const AddressBookCategory* pRhs)
+{
+	const WCHAR* pwszLhs = pLhs->getName();
+	const WCHAR* pwszRhs = pRhs->getName();
+	
+	while (*pwszLhs && *pwszRhs) {
+		if (*pwszLhs == *pwszRhs)
+			;
+		else if (*pwszLhs == L'/')
+			return true;
+		else if (*pwszRhs == L'/')
+			return false;
+		else if (*pwszLhs < *pwszRhs)
+			return true;
+		else if (*pwszLhs > *pwszRhs)
+			return false;
+		
+		++pwszLhs;
+		++pwszRhs;
+	}
+	
+	return *pwszRhs != L'\0';
 }
 
 
