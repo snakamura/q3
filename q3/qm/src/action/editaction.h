@@ -22,6 +22,7 @@ namespace qm {
 class EditAttachmentEditAddAction;
 class EditAttachmentEditDeleteAction;
 class EditEditCommandAction;
+class EditEditDeleteAction;
 class EditEditFindAction;
 class EditEditMoveCaretAction;
 class EditEditPasteWithQuoteAction;
@@ -132,6 +133,32 @@ private:
 	EditWindow* pEditWindow_;
 	PFN_DO pfnDo_;
 	PFN_CANDO pfnCanDo_;
+};
+
+
+/****************************************************************************
+ *
+ * EditEditDeleteAction
+ *
+ */
+
+class EditEditDeleteAction : public qs::AbstractAction
+{
+public:
+	EditEditDeleteAction(qs::TextWindow* pTextWindow,
+						 qs::TextWindow::DeleteTextFlag flag);
+	virtual ~EditEditDeleteAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	EditEditDeleteAction(const EditEditDeleteAction&);
+	EditEditDeleteAction& operator=(const EditEditDeleteAction&);
+
+private:
+	qs::TextWindow* pTextWindow_;
+	qs::TextWindow::DeleteTextFlag flag_;
 };
 
 

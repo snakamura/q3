@@ -58,13 +58,6 @@ public:
 		INSERTTEXTFLAG_REDO
 	};
 	
-	enum DeleteTextFlag {
-		DELETETEXTFLAG_DELETECHAR,
-		DELETETEXTFLAG_DELETEBACKWARDCHAR,
-		DELETETEXTFLAG_DELETEWORD,
-		DELETETEXTFLAG_DELETEBACKWARDWORD
-	};
-	
 	enum CharType {
 		CHARTYPE_NONE,
 		CHARTYPE_SPACE,
@@ -225,7 +218,7 @@ public:
 	bool insertText(const WCHAR* pwsz,
 					size_t nLen,
 					InsertTextFlag flag);
-	bool deleteText(DeleteTextFlag flag);
+	bool deleteText(TextWindow::DeleteTextFlag flag);
 	
 	size_t getReformQuoteLength(const WCHAR* pwszLine,
 								size_t nLen) const;
@@ -1234,22 +1227,22 @@ bool qs::TextWindowImpl::insertText(const WCHAR* pwsz,
 	return true;
 }
 
-bool qs::TextWindowImpl::deleteText(DeleteTextFlag flag)
+bool qs::TextWindowImpl::deleteText(TextWindow::DeleteTextFlag flag)
 {
 	if (pTextModel_->isEditable()) {
 		if (!pThis_->isSelected()) {
 			TextWindow::MoveCaret mc;
 			switch (flag) {
-			case DELETETEXTFLAG_DELETECHAR:
+			case TextWindow::DELETETEXTFLAG_DELETECHAR:
 				mc = TextWindow::MOVECARET_CHARRIGHT;
 				break;
-			case DELETETEXTFLAG_DELETEBACKWARDCHAR:
+			case TextWindow::DELETETEXTFLAG_DELETEBACKWARDCHAR:
 				mc = TextWindow::MOVECARET_CHARLEFT;
 				break;
-			case DELETETEXTFLAG_DELETEWORD:
+			case TextWindow::DELETETEXTFLAG_DELETEWORD:
 				mc = TextWindow::MOVECARET_WORDRIGHT;
 				break;
-			case DELETETEXTFLAG_DELETEBACKWARDWORD:
+			case TextWindow::DELETETEXTFLAG_DELETEBACKWARDWORD:
 				mc = TextWindow::MOVECARET_WORDLEFT;
 				break;
 			default:
@@ -1901,6 +1894,11 @@ bool qs::TextWindow::insertText(const WCHAR* pwszText,
 {
 	return pImpl_->insertText(pwszText, nLen,
 		TextWindowImpl::INSERTTEXTFLAG_NORMAL);
+}
+
+bool qs::TextWindow::deleteText(DeleteTextFlag flag)
+{
+	return pImpl_->deleteText(flag);
 }
 
 bool qs::TextWindow::isSelected() const
@@ -3181,18 +3179,16 @@ LRESULT qs::TextWindow::onKeyDown(UINT nKey,
 								  UINT nFlags)
 {
 	if (nKey == VK_BACK) {
-		TextWindowImpl::DeleteTextFlag flag =
-			TextWindowImpl::DELETETEXTFLAG_DELETEBACKWARDCHAR;
+		DeleteTextFlag flag = DELETETEXTFLAG_DELETEBACKWARDCHAR;
 		if (::GetKeyState(VK_CONTROL) < 0 &&
 			(!pImpl_->bAtok_ || !::ImmGetOpenStatus(pImpl_->hImc_)))
-			flag = TextWindowImpl::DELETETEXTFLAG_DELETEBACKWARDWORD;
+			flag = DELETETEXTFLAG_DELETEBACKWARDWORD;
 		pImpl_->deleteText(flag);
 		return 0;
 	}
 	else if (nKey == VK_DELETE) {
 		pImpl_->deleteText(::GetKeyState(VK_CONTROL) < 0 ?
-			TextWindowImpl::DELETETEXTFLAG_DELETEWORD :
-			TextWindowImpl::DELETETEXTFLAG_DELETECHAR);
+			DELETETEXTFLAG_DELETEWORD : DELETETEXTFLAG_DELETECHAR);
 		return 0;
 	}
 	

@@ -293,6 +293,13 @@ public:
 		FIND_PREVIOUS		= 0x04,
 		FIND_REFORMED		= 0x08,
 	};
+	
+	enum DeleteTextFlag {
+		DELETETEXTFLAG_DELETECHAR,
+		DELETETEXTFLAG_DELETEBACKWARDCHAR,
+		DELETETEXTFLAG_DELETEWORD,
+		DELETETEXTFLAG_DELETEBACKWARDWORD
+	};
 
 public:
 	TextWindow(TextModel* pTextModel,
@@ -306,6 +313,7 @@ public:
 	void setTextModel(TextModel* pTextModel);
 	bool insertText(const WCHAR* pwszText,
 					size_t nLen);
+	bool deleteText(DeleteTextFlag flag);
 	bool isSelected() const;
 	wstring_ptr getSelectedText() const;
 	bool selectAll();

@@ -110,6 +110,23 @@ void qm::EditFrameWindowImpl::initActions()
 		pEditWindow_,
 		&EditWindowItem::cut,
 		&EditWindowItem::canCut);
+	
+	struct {
+		UINT nId_;
+		TextWindow::DeleteTextFlag flag_;
+	} deletes[] = {
+		{ IDM_EDIT_DELETECHAR,			TextWindow::DELETETEXTFLAG_DELETECHAR			},
+		{ IDM_EDIT_DELETEWORD,			TextWindow::DELETETEXTFLAG_DELETEWORD			},
+		{ IDM_EDIT_DELETEBACKWARDCHAR,	TextWindow::DELETETEXTFLAG_DELETEBACKWARDCHAR	},
+		{ IDM_EDIT_DELETEBACKWARDWORD,	TextWindow::DELETETEXTFLAG_DELETEBACKWARDWORD	}
+	};
+	for (int n = 0; n < countof(deletes); ++n) {
+		ADD_ACTION2(EditEditDeleteAction,
+			deletes[n].nId_,
+			pEditWindow_->getTextWindow(),
+			deletes[n].flag_);
+	}
+	
 	ADD_ACTION3(EditEditFindAction,
 		IDM_EDIT_FIND,
 		pEditWindow_->getTextWindow(),

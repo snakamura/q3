@@ -149,6 +149,29 @@ bool qm::EditEditCommandAction::isEnabled(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * EditEditDeleteAction
+ *
+ */
+
+qm::EditEditDeleteAction::EditEditDeleteAction(TextWindow* pTextWindow,
+											   TextWindow::DeleteTextFlag flag) :
+	pTextWindow_(pTextWindow),
+	flag_(flag)
+{
+}
+
+qm::EditEditDeleteAction::~EditEditDeleteAction()
+{
+}
+
+void qm::EditEditDeleteAction::invoke(const qs::ActionEvent& event)
+{
+	pTextWindow_->deleteText(flag_);
+}
+
+
+/****************************************************************************
+ *
  * EditEditFindAction
  *
  */
