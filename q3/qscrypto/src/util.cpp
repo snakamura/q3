@@ -25,13 +25,13 @@ malloc_size_ptr<unsigned char> qscrypto::Util::createBIOFromStream(InputStream* 
 {
 	assert(pStream);
 	
-	const size_t nOneSize = 2048;
+	const size_t nInitialSize = 2048;
 	size_t nLen = 0;
 	size_t nBufSize = 0;
 	malloc_ptr<unsigned char> p;
 	while (true) {
 		if (nLen == nBufSize) {
-			nBufSize += nOneSize;
+			nBufSize = nBufSize == 0 ? nInitialSize : nBufSize*2;
 			malloc_ptr<unsigned char> pNew(static_cast<unsigned char*>(
 				realloc(p.get(), nBufSize)));
 			if (!pNew.get())
