@@ -59,6 +59,7 @@ class DefaultWindowHandlerBase;
 #if _WIN32_WCE >= 200 && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
 		class CommandBand;
 #endif
+class DisableRedraw;
 class Cursor;
 class WaitCursor;
 
@@ -1150,6 +1151,27 @@ private:
 };
 
 #endif // _WIN32_WCE >= 200 && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
+
+
+/****************************************************************************
+ *
+ * DisableRedraw
+ *
+ */
+
+class QSEXPORTCLASS DisableRedraw
+{
+public:
+	explicit DisableRedraw(HWND hwnd);
+	~DisableRedraw();
+
+private:
+	DisableRedraw(const DisableRedraw&);
+	DisableRedraw& operator=(const DisableRedraw&);
+
+private:
+	HWND hwnd_;
+};
 
 
 /****************************************************************************

@@ -1,5 +1,5 @@
 /*
- * $Id: qswindow.inl,v 1.2 2003/05/04 07:34:43 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.

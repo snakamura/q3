@@ -362,6 +362,8 @@ QSTATUS qm::AccountDialog::update()
 	
 	HWND hwnd = getDlgItem(IDC_ACCOUNT);
 	
+	DisableRedraw disable(hwnd);
+	
 	TreeView_DeleteAllItems(hwnd);
 	
 	string_ptr<WSTRING> wstrDefault;

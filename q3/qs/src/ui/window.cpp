@@ -1689,6 +1689,24 @@ LRESULT qs::CommandBand::onSize(UINT nFlags, int cx, int cy)
 
 /****************************************************************************
  *
+ * DisableRedraw
+ *
+ */
+
+qs::DisableRedraw::DisableRedraw(HWND hwnd) :
+	hwnd_(hwnd)
+{
+	::SendMessage(hwnd_, WM_SETREDRAW, FALSE, 0);
+}
+
+qs::DisableRedraw::~DisableRedraw()
+{
+	::SendMessage(hwnd_, WM_SETREDRAW, TRUE, 0);
+}
+
+
+/****************************************************************************
+ *
  * Cursor
  *
  */
