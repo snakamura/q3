@@ -131,7 +131,7 @@ qm::Document::Document(Profile* pProfile,
 	JunkFilterFactory* pJunkFilterFactory = JunkFilterFactory::getFactory();
 	if (pJunkFilterFactory) {
 		wstring_ptr wstrJunkPath(concat(pwszMailFolder, L"\\junk"));
-		pImpl_->pJunkFilter_ = pJunkFilterFactory->createJunkFilter(wstrJunkPath.get());
+		pImpl_->pJunkFilter_ = pJunkFilterFactory->createJunkFilter(wstrJunkPath.get(), pProfile);
 	}
 	
 	pImpl_->nOnline_ = 0;
@@ -481,6 +481,11 @@ bool qm::Document::save()
 {
 	for (AccountList::iterator it = pImpl_->listAccount_.begin(); it != pImpl_->listAccount_.end(); ++it) {
 		if (!(*it)->save())
+			return false;
+	}
+	
+	if (pImpl_->pJunkFilter_.get()) {
+		if (!pImpl_->pJunkFilter_->save())
 			return false;
 	}
 	

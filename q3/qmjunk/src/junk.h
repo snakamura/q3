@@ -35,7 +35,8 @@ class TokenizerCallback;
 class JunkFilterImpl : public qm::JunkFilter
 {
 public:
-	explicit JunkFilterImpl(const WCHAR* pwszPath);
+	JunkFilterImpl(const WCHAR* pwszPath,
+				   qs::Profile* pProfile);
 	virtual ~JunkFilterImpl();
 
 public:
@@ -44,6 +45,7 @@ public:
 						unsigned int nOperation);
 	virtual float getThresholdScore();
 	virtual unsigned int getFlags();
+	virtual bool save();
 
 private:
 	bool init();
@@ -58,6 +60,7 @@ private:
 
 private:
 	qs::wstring_ptr wstrPath_;
+	qs::Profile* pProfile_;
 	DEPOT* pDepotToken_;
 	DEPOT* pDepotId_;
 	unsigned int nCleanCount_;
@@ -81,7 +84,8 @@ public:
 	virtual ~JunkFilterFactoryImpl();
 
 public:
-	virtual std::auto_ptr<qm::JunkFilter> createJunkFilter(const WCHAR* pwszPath);
+	virtual std::auto_ptr<qm::JunkFilter> createJunkFilter(const WCHAR* pwszPath,
+														   qs::Profile* pProfile);
 
 private:
 	JunkFilterFactoryImpl(const JunkFilterFactoryImpl&);

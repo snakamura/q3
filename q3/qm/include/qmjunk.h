@@ -12,6 +12,7 @@
 #include <qm.h>
 
 #include <qs.h>
+#include <qsprofile.h>
 
 #include <memory>
 
@@ -54,9 +55,11 @@ public:
 						unsigned int nOperation) = 0;
 	virtual float getThresholdScore() = 0;
 	virtual unsigned int getFlags() = 0;
+	virtual bool save() = 0;
 
 public:
-	static std::auto_ptr<JunkFilter> getInstance(const WCHAR* pwszPath);
+	static std::auto_ptr<JunkFilter> getInstance(const WCHAR* pwszPath,
+												 qs::Profile* pProfile);
 };
 
 
@@ -75,7 +78,8 @@ public:
 	virtual ~JunkFilterFactory();
 
 public:
-	virtual std::auto_ptr<JunkFilter> createJunkFilter(const WCHAR* pwszPath) = 0;
+	virtual std::auto_ptr<JunkFilter> createJunkFilter(const WCHAR* pwszPath,
+													   qs::Profile* pProfile) = 0;
 
 public:
 	static JunkFilterFactory* getFactory();

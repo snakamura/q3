@@ -28,12 +28,13 @@ qm::JunkFilter::~JunkFilter()
 {
 }
 
-std::auto_ptr<JunkFilter> qm::JunkFilter::getInstance(const WCHAR* pwszPath)
+std::auto_ptr<JunkFilter> qm::JunkFilter::getInstance(const WCHAR* pwszPath,
+													  Profile* pProfile)
 {
 	JunkFilterFactory* pFactory = JunkFilterFactory::getFactory();
 	if (!pFactory)
 		return std::auto_ptr<JunkFilter>();
-	return pFactory->createJunkFilter(pwszPath);
+	return pFactory->createJunkFilter(pwszPath, pProfile);
 }
 
 

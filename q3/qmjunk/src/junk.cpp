@@ -30,7 +30,9 @@ using namespace qs;
  *
  */
 
-qmjunk::JunkFilterImpl::JunkFilterImpl(const WCHAR* pwszPath) :
+qmjunk::JunkFilterImpl::JunkFilterImpl(const WCHAR* pwszPath,
+									   Profile* pProfile) :
+	pProfile_(pProfile),
 	pDepotToken_(0),
 	pDepotId_(0),
 	nCleanCount_(-1),
@@ -39,12 +41,18 @@ qmjunk::JunkFilterImpl::JunkFilterImpl(const WCHAR* pwszPath) :
 	nFlags_(FLAG_AUTOLEARN | FLAG_MANUALLEARN)
 {
 	wstrPath_ = allocWString(pwszPath);
+	
+	wstring_ptr wstrThresholdScore(pProfile->getString(L"JunkFilter", L"ThresholdScore", L"0.95"));
+	WCHAR* pEnd = 0;
+	double dThresholdScore = wcstod(wstrThresholdScore.get(), &pEnd);
+	if (!*pEnd)
+		fThresholdScore_ = static_cast<float>(dThresholdScore);
+	
+	nFlags_ = pProfile->getInt(L"JunkFilter", L"Flags", FLAG_AUTOLEARN | FLAG_MANUALLEARN);
 }
 
 qmjunk::JunkFilterImpl::~JunkFilterImpl()
 {
-	flush();
-	
 	if (pDepotToken_)
 		dpclose(pDepotToken_);
 	if (pDepotId_)
@@ -312,23 +320,31 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 	if (nOperation & OPERATION_REMOVEJUNK && nJunkCount_ != 0)
 		--nJunkCount_;
 	
-	flush();
-	
 	return true;
 }
 
 float qmjunk::JunkFilterImpl::getThresholdScore()
 {
-	init();
-	
 	return fThresholdScore_;
 }
 
 unsigned int qmjunk::JunkFilterImpl::getFlags()
 {
-	init();
-	
 	return nFlags_;
+}
+
+bool qmjunk::JunkFilterImpl::save()
+{
+	if (!flush())
+		return false;
+	
+	WCHAR wszThresholdScore[64];
+	swprintf(wszThresholdScore, L"%f", fThresholdScore_);
+	pProfile_->setString(L"JunkFilter", L"ThresholdScore", wszThresholdScore);
+	
+	pProfile_->setInt(L"JunkFilter", L"Flags", nFlags_);
+	
+	return true;
 }
 
 bool qmjunk::JunkFilterImpl::init()
@@ -345,14 +361,6 @@ bool qmjunk::JunkFilterImpl::init()
 		return false;
 	nCleanCount_ = profile.getInt(L"Junk", L"CleanCount", 0);
 	nJunkCount_ = profile.getInt(L"Junk", L"JunkCount", 0);
-	
-	wstring_ptr wstrThresholdScore(profile.getString(L"Junk", L"ThresholdScore", L"0.95"));
-	WCHAR* pEnd = 0;
-	double dThresholdScore = wcstod(wstrThresholdScore.get(), &pEnd);
-	if (!*pEnd)
-		fThresholdScore_ = static_cast<float>(dThresholdScore);
-	
-	nFlags_ = profile.getInt(L"Junk", L"Flags", FLAG_AUTOLEARN | FLAG_MANUALLEARN);
 	
 	if (!pDepotToken_) {
 		wstring_ptr wstrTokenPath(concat(wstrPath_.get(), L"\\token"));
@@ -380,13 +388,6 @@ bool qmjunk::JunkFilterImpl::flush() const
 		XMLProfile profile(wstrProfilePath.get());
 		profile.setInt(L"Junk", L"CleanCount", nCleanCount_);
 		profile.setInt(L"Junk", L"JunkCount", nJunkCount_);
-		
-		WCHAR wszThresholdScore[64];
-		swprintf(wszThresholdScore, L"%f", fThresholdScore_);
-		profile.setString(L"Junk", L"ThresholdScore", wszThresholdScore);
-		
-		profile.setInt(L"Junk", L"Flags", nFlags_);
-		
 		if (!profile.save())
 			return false;
 	}
@@ -438,9 +439,10 @@ qmjunk::JunkFilterFactoryImpl::~JunkFilterFactoryImpl()
 	unregisterFactory(this);
 }
 
-std::auto_ptr<JunkFilter> qmjunk::JunkFilterFactoryImpl::createJunkFilter(const WCHAR* pwszPath)
+std::auto_ptr<JunkFilter> qmjunk::JunkFilterFactoryImpl::createJunkFilter(const WCHAR* pwszPath,
+																		  Profile* pProfile)
 {
-	return std::auto_ptr<JunkFilter>(new JunkFilterImpl(pwszPath));
+	return std::auto_ptr<JunkFilter>(new JunkFilterImpl(pwszPath, pProfile));
 }
 
 
