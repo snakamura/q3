@@ -1186,7 +1186,8 @@ void qm::SyncDialogThread::run()
 		pDialog.reset(new SyncDialog(pProfile_));
 		Window wnd(Window::getForegroundWindow());
 		pDialog->create(0);
-		wnd.setForegroundWindow();
+		if (wnd)
+			wnd.setForegroundWindow();
 		pDialog_ = pDialog.get();
 	}
 	
