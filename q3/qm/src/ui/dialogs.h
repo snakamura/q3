@@ -1545,7 +1545,8 @@ private:
 class MailFolderDialog : public qs::DefaultDialog
 {
 public:
-	explicit MailFolderDialog(HINSTANCE hInstResource);
+	MailFolderDialog(HINSTANCE hInstResource,
+					 const WCHAR* pwszMailFolder);
 	virtual ~MailFolderDialog();
 
 public:

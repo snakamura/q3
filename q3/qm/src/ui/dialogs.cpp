@@ -3901,9 +3901,12 @@ LRESULT qm::InputBoxDialog::onOk()
  *
  */
 
-qm::MailFolderDialog::MailFolderDialog(HINSTANCE hInstResource) :
+qm::MailFolderDialog::MailFolderDialog(HINSTANCE hInstResource,
+									   const WCHAR* pwszMailFolder) :
 	DefaultDialog(hInstResource, IDD_MAILFOLDER)
 {
+	if (pwszMailFolder)
+		wstrMailFolder_ = allocWString(pwszMailFolder);
 }
 
 qm::MailFolderDialog::~MailFolderDialog()
@@ -3929,7 +3932,12 @@ LRESULT qm::MailFolderDialog::onInitDialog(HWND hwndFocus,
 										   LPARAM lParam)
 {
 	init(false);
+	
+	if (wstrMailFolder_.get())
+		setDlgItemText(IDC_MAILFOLDER, wstrMailFolder_.get());
+	
 	updateState();
+	
 	return TRUE;
 }
 

@@ -16,12 +16,15 @@
 
 #include <memory>
 
+#include <shlobj.h>
 #include <tchar.h>
 #include <windows.h>
 
 #include "main.h"
 #include "../ui/actionid.h"
 #include "../ui/dialogs.h"
+
+#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;
@@ -114,8 +117,6 @@ int qm::main(const WCHAR* pwszCommandLine)
 					wstrMailFolder = concat(wstrPath.get(), p - wstrPath.get(), L"\\mail", -1);
 				else
 					wstrMailFolder = allocWString(L"\\mail");
-				if (!File::createDirectory(wstrMailFolder.get()))
-					return 1;
 			}
 			if (!wstrProfile.get())
 				wstrProfile = allocWString(L"");
@@ -140,7 +141,16 @@ int qm::main(const WCHAR* pwszCommandLine)
 			if (bSelect) {
 				// TODO
 				// Use resource handle
-				MailFolderDialog dialog(g_hInstDll);
+#ifndef _WIN32_WCE
+				if (!wstrMailFolder.get() || !*wstrMailFolder.get()) {
+					TCHAR tszAppDir[MAX_PATH];
+					if (::SHGetSpecialFolderPath(0, tszAppDir, CSIDL_APPDATA, TRUE)) {
+						T2W(tszAppDir, pwszAppDir);
+						wstrMailFolder = concat(pwszAppDir, L"\\mail");
+					}
+				}
+#endif
+				MailFolderDialog dialog(g_hInstDll, wstrMailFolder.get());
 				if (dialog.doModal(0) != IDOK)
 					return 1;
 				wstrMailFolder = allocWString(dialog.getMailFolder());
@@ -156,6 +166,8 @@ int qm::main(const WCHAR* pwszCommandLine)
 				wstrProfile = allocWString(L"");
 		}
 	}
+	if (!File::createDirectory(wstrMailFolder.get()))
+		return 1;
 	
 	bool bContinue = false;
 	HWND hwndPrev = 0;
