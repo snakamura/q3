@@ -2,15 +2,18 @@
 	<keymap name="MainWindow">
 		<action name="EditCopy">
 			<key key="C" ctrl="true"/>
+			<key code="2d" ctrl="true"/>
 		</action>
 		<action name="EditCut">
 			<key key="X" ctrl="true"/>
+			<key code="2e" shift="true"/>
 		</action>
 		<action name="EditFind">
 			<key key="F" ctrl="true"/>
 		</action>
 		<action name="EditPaste">
 			<key key="V" ctrl="true"/>
+			<key code="2d" shift="true"/>
 		</action>
 		<action name="EditSelectAll">
 			<key key="A" ctrl="true"/>
@@ -225,12 +228,15 @@
 	<keymap name="MessageFrameWindow">
 		<action name="EditCopy">
 			<key key="C" ctrl="true"/>
+			<key code="2d" ctrl="true"/>
 		</action>
 		<action name="EditCut">
 			<key key="X" ctrl="true"/>
+			<key code="2e" shift="true"/>
 		</action>
 		<action name="EditPaste">
 			<key key="V" ctrl="true"/>
+			<key code="2d" shift="true"/>
 		</action>
 		<action name="EditSelectAll">
 			<key key="A" ctrl="true"/>
@@ -316,15 +322,18 @@
 	<keymap name="EditWindow">
 		<action name="EditCopy">
 			<key key="C" ctrl="true"/>
+			<key code="2d" ctrl="true"/>
 		</action>
 		<action name="EditCut">
 			<key key="X" ctrl="true"/>
+			<key code="2e" shift="true"/>
 		</action>
 		<action name="EditFind">
 			<key key="F" ctrl="true"/>
 		</action>
 		<action name="EditPaste">
 			<key key="V" ctrl="true"/>
+			<key code="2d" shift="true"/>
 		</action>
 		<action name="EditRedo">
 			<key key="Y" ctrl="true"/>
