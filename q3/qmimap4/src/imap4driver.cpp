@@ -1349,11 +1349,11 @@ QSTATUS qmimap4::FolderUtil::getFolderData(const WCHAR* pwszName,
 		const WCHAR* pwszName_;
 		unsigned int nFlags_;
 	} flags[] = {
-		{ L"Inbox",					Folder::FLAG_INBOX		},
-		{ wstrSpecialFolders_[0],	Folder::FLAG_OUTBOX		},
-		{ wstrSpecialFolders_[1],	Folder::FLAG_DRAFTBOX	},
-		{ wstrSpecialFolders_[2],	Folder::FLAG_SENTBOX	},
-		{ wstrSpecialFolders_[3],	Folder::FLAG_TRASHBOX	}
+		{ L"Inbox",					Folder::FLAG_INBOX | Folder::FLAG_NORENAME	},
+		{ wstrSpecialFolders_[0],	Folder::FLAG_OUTBOX							},
+		{ wstrSpecialFolders_[1],	Folder::FLAG_DRAFTBOX						},
+		{ wstrSpecialFolders_[2],	Folder::FLAG_SENTBOX						},
+		{ wstrSpecialFolders_[3],	Folder::FLAG_TRASHBOX						}
 	};
 	for (int n = 0; n < countof(flags); ++n) {
 		if (Util::isEqualFolderName(wstr.get(), flags[n].pwszName_, cSeparator))
