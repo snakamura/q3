@@ -134,15 +134,18 @@ QSTATUS qmpop3::Pop3Driver::getRemoteFolders(
 }
 
 QSTATUS qmpop3::Pop3Driver::getMessage(SubAccount* pSubAccount,
-	MessageHolder* pmh, unsigned int nFlags, Message* pMessage,
-	bool* pbGet, bool* pbMadeSeen)
+	MessageHolder* pmh, unsigned int nFlags, STRING* pstrMessage,
+	Message::Flag* pFlag, bool* pbGet, bool* pbMadeSeen)
 {
 	assert(pSubAccount);
 	assert(pmh);
-	assert(pMessage);
+	assert(pstrMessage);
+	assert(pFlag);
 	assert(pbGet);
 	assert(pbMadeSeen);
 	
+	*pstrMessage = 0;
+	*pFlag = Message::FLAG_EMPTY;
 	*pbGet = false;
 	*pbMadeSeen = false;
 	

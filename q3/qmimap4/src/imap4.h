@@ -943,6 +943,7 @@ public:
 	const PartPath& getPartPath() const;
 	const FieldList& getFieldList() const;
 	const CHAR* getContent() const;
+	qs::STRING releaseContent();
 
 private:
 	FetchDataBody(const FetchDataBody&);

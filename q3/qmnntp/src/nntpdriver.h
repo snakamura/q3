@@ -52,8 +52,8 @@ public:
 		qm::SubAccount* pSubAccount, RemoteFolderList* pList);
 	
 	virtual qs::QSTATUS getMessage(qm::SubAccount* pSubAccount,
-		qm::MessageHolder* pmh, unsigned int nFlags,
-		qm::Message* pMessage, bool* pbGet, bool* pbMadeSeen);
+		qm::MessageHolder* pmh, unsigned int nFlags, qs::STRING* pstrMessage,
+		qm::Message::Flag* pFlag, bool* pbGet, bool* pbMadeSeen);
 	virtual qs::QSTATUS setMessagesFlags(qm::SubAccount* pSubAccount,
 		qm::NormalFolder* pFolder, const qm::Folder::MessageHolderList& l,
 		unsigned int nFlags, unsigned int nMask);

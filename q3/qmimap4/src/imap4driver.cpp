@@ -316,12 +316,13 @@ QSTATUS qmimap4::Imap4Driver::getRemoteFolders(
 }
 
 QSTATUS qmimap4::Imap4Driver::getMessage(SubAccount* pSubAccount,
-	MessageHolder* pmh, unsigned int nFlags, Message* pMessage,
-	bool* pbGet, bool* pbMadeSeen)
+	MessageHolder* pmh, unsigned int nFlags, STRING* pstrMessage,
+	Message::Flag* pFlag, bool* pbGet, bool* pbMadeSeen)
 {
 	assert(pSubAccount);
 	assert(pmh);
-	assert(pMessage);
+	assert(pstrMessage);
+	assert(pFlag);
 	assert(pbGet);
 	assert(pbMadeSeen);
 	assert(!pmh->getFolder()->isFlag(Folder::FLAG_LOCAL));
@@ -329,6 +330,8 @@ QSTATUS qmimap4::Imap4Driver::getMessage(SubAccount* pSubAccount,
 	
 	DECLARE_QSTATUS();
 	
+	*pstrMessage = 0;
+	*pFlag = Message::FLAG_EMPTY;
 	*pbGet = false;
 	*pbMadeSeen = false;
 	
@@ -351,11 +354,12 @@ QSTATUS qmimap4::Imap4Driver::getMessage(SubAccount* pSubAccount,
 	struct BodyProcessHook : public ProcessHook
 	{
 		BodyProcessHook(unsigned int nUid, bool bHeaderOnly,
-			MessageHolder* pmh, Message* pMessage) :
+			MessageHolder* pmh, STRING* pstrMessage, Message::Flag* pFlag) :
 			nUid_(nUid),
 			bHeaderOnly_(bHeaderOnly),
 			pmh_(pmh),
-			pMessage_(pMessage)
+			pstrMessage_(pstrMessage),
+			pFlag_(pFlag)
 		{
 		}
 		
@@ -394,10 +398,8 @@ QSTATUS qmimap4::Imap4Driver::getMessage(SubAccount* pSubAccount,
 				if (((s == FetchDataBody::SECTION_NONE && !bHeaderOnly_) ||
 					(s == FetchDataBody::SECTION_HEADER && bHeaderOnly_)) &&
 					pBody->getPartPath().empty()) {
-					status = pMessage_->create(
-						pBody->getContent(), static_cast<size_t>(-1),
-						bHeaderOnly_ ? Message::FLAG_HEADERONLY : Message::FLAG_NONE);
-					CHECK_QSTATUS();
+					*pstrMessage_ = pBody->releaseContent();
+					*pFlag_ = bHeaderOnly_ ? Message::FLAG_HEADERONLY : Message::FLAG_NONE;
 				}
 			}
 			
@@ -407,7 +409,8 @@ QSTATUS qmimap4::Imap4Driver::getMessage(SubAccount* pSubAccount,
 		unsigned int nUid_;
 		bool bHeaderOnly_;
 		MessageHolder* pmh_;
-		Message* pMessage_;
+		STRING* pstrMessage_;
+		Message::Flag* pFlag_;
 	};
 	
 	struct BodyStructureProcessHook : public ProcessHook
@@ -469,13 +472,15 @@ QSTATUS qmimap4::Imap4Driver::getMessage(SubAccount* pSubAccount,
 		
 		BodyListProcessHook(unsigned int nUid,
 			FetchDataBodyStructure* pBodyStructure, const PartList& listPart,
-			unsigned int nPartCount, MessageHolder* pmh, Message* pMessage) :
+			unsigned int nPartCount, MessageHolder* pmh,
+			STRING* pstrMessage, Message::Flag* pFlag) :
 			nUid_(nUid),
 			pBodyStructure_(pBodyStructure),
 			listPart_(listPart),
 			nPartCount_(nPartCount),
 			pmh_(pmh),
-			pMessage_(pMessage)
+			pstrMessage_(pstrMessage),
+			pFlag_(pFlag)
 		{
 		}
 		
@@ -535,9 +540,8 @@ QSTATUS qmimap4::Imap4Driver::getMessage(SubAccount* pSubAccount,
 				status = Util::getContentFromBodyStructureAndBodies(
 					listPart_, listBody, &strContent);
 				CHECK_QSTATUS();
-				status = pMessage_->create(strContent.get(),
-					static_cast<size_t>(-1), Message::FLAG_TEXTONLY);
-				CHECK_QSTATUS();
+				*pstrMessage_ = strContent.release();
+				*pFlag_ = Message::FLAG_TEXTONLY;
 			}
 			
 			return QSTATUS_SUCCESS;
@@ -548,7 +552,8 @@ QSTATUS qmimap4::Imap4Driver::getMessage(SubAccount* pSubAccount,
 		const PartList& listPart_;
 		unsigned int nPartCount_;
 		MessageHolder* pmh_;
-		Message* pMessage_;
+		STRING* pstrMessage_;
+		Message::Flag* pFlag_;
 	};
 	
 	SingleRange range(pmh->getId(), true, &status);
@@ -601,7 +606,7 @@ QSTATUS qmimap4::Imap4Driver::getMessage(SubAccount* pSubAccount,
 				CHECK_QSTATUS();
 				
 				BodyListProcessHook hook(pmh->getId(), pBodyStructure,
-					listPart, nPartCount, pmh, pMessage);
+					listPart, nPartCount, pmh, pstrMessage, pFlag);
 				Hook h(pCallback_, &hook);
 				
 				status = pImap4->fetch(range, strArg.get());
@@ -611,14 +616,14 @@ QSTATUS qmimap4::Imap4Driver::getMessage(SubAccount* pSubAccount,
 	}
 	else {
 		if (bHeaderOnly) {
-			BodyProcessHook hook(pmh->getId(), true, pmh, pMessage);
+			BodyProcessHook hook(pmh->getId(), true, pmh, pstrMessage, pFlag);
 			Hook h(pCallback_, &hook);
 			status = pImap4->getHeader(range,
 				(nFlags & Account::GETMESSAGEFLAG_MAKESEEN) == 0);
 			CHECK_QSTATUS();
 		}
 		else {
-			BodyProcessHook hook(pmh->getId(), false, pmh, pMessage);
+			BodyProcessHook hook(pmh->getId(), false, pmh, pstrMessage, pFlag);
 			Hook h(pCallback_, &hook);
 			status = pImap4->getMessage(range,
 				(nFlags & Account::GETMESSAGEFLAG_MAKESEEN) == 0);
@@ -628,7 +633,7 @@ QSTATUS qmimap4::Imap4Driver::getMessage(SubAccount* pSubAccount,
 	
 	cacher.release();
 	
-	*pbGet = pMessage->getFlag() != Message::FLAG_EMPTY;
+	*pbGet = *pFlag != Message::FLAG_EMPTY;
 	*pbMadeSeen = *pbGet;
 	
 	return QSTATUS_SUCCESS;

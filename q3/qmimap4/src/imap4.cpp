@@ -2590,6 +2590,13 @@ const CHAR* qmimap4::FetchDataBody::getContent() const
 	return strContent_;
 }
 
+STRING qmimap4::FetchDataBody::releaseContent()
+{
+	STRING strContent = strContent_;
+	strContent_ = 0;
+	return strContent;
+}
+
 
 /****************************************************************************
  *

@@ -160,17 +160,20 @@ QSTATUS qmnntp::NntpDriver::getRemoteFolders(
 }
 
 QSTATUS qmnntp::NntpDriver::getMessage(SubAccount* pSubAccount,
-	MessageHolder* pmh, unsigned int nFlags, Message* pMessage,
-	bool* pbGet, bool* pbMadeSeen)
+	MessageHolder* pmh, unsigned int nFlags, STRING* pstrMessage,
+	Message::Flag* pFlag, bool* pbGet, bool* pbMadeSeen)
 {
 	assert(pSubAccount);
 	assert(pmh);
-	assert(pMessage);
+	assert(pstrMessage);
+	assert(pFlag);
 	assert(pbGet);
 	assert(pbMadeSeen);
 	
 	DECLARE_QSTATUS();
 	
+	*pstrMessage = 0;
+	*pFlag = Message::FLAG_EMPTY;
 	*pbGet = false;
 	*pbMadeSeen = false;
 	
@@ -183,8 +186,8 @@ QSTATUS qmnntp::NntpDriver::getMessage(SubAccount* pSubAccount,
 			Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage);
 		CHECK_QSTATUS();
 		if (strMessage.get()) {
-			status = pMessage->create(strMessage.get(), -1, Message::FLAG_NONE);
-			CHECK_QSTATUS();
+			*pstrMessage = strMessage.release();
+			*pFlag = Message::FLAG_NONE;
 			*pbGet = true;
 		}
 	}

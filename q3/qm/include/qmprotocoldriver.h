@@ -12,6 +12,7 @@
 #include <qm.h>
 #include <qmaccount.h>
 #include <qmfolder.h>
+#include <qmmessage.h>
 
 #include <qs.h>
 
@@ -23,7 +24,6 @@ namespace qm {
 class ProtocolDriver;
 class ProtocolFactory;
 
-class Message;
 class MessageHolder;
 class Security;
 
@@ -58,8 +58,8 @@ public:
 		SubAccount* pSubAccount, RemoteFolderList* pList) = 0;
 	
 	virtual qs::QSTATUS getMessage(SubAccount* pSubAccount,
-		MessageHolder* pmh, unsigned int nFlags,
-		Message* pMessage, bool* pbGet, bool* pbMadeSeen) = 0;
+		MessageHolder* pmh, unsigned int nFlags, qs::STRING* pstrMessage,
+		Message::Flag* pFlag, bool* pbGet, bool* pbMadeSeen) = 0;
 	virtual qs::QSTATUS setMessagesFlags(SubAccount* pSubAccount,
 		NormalFolder* pFolder, const Folder::MessageHolderList& l,
 		unsigned int nFlags, unsigned int nMask) = 0;

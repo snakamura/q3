@@ -141,7 +141,7 @@ public:
 	qs::QSTATUS getData(MessageCacheKey key,
 		MessageCacheItem item, qs::WSTRING* pwstrData) const;
 	qs::QSTATUS getMessage(MessageHolder* pmh,
-		unsigned int nFlags, Message* pMessage) const;
+		unsigned int nFlags, Message* pMessage);
 	qs::QSTATUS setMessagesFlags(NormalFolder* pFolder,
 		const Folder::MessageHolderList& l,
 		unsigned int nFlags, unsigned int nMask) const;
