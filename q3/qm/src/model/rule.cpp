@@ -438,7 +438,7 @@ void qm::Rule::setAction(std::auto_ptr<RuleAction> pAction)
 bool qm::Rule::match(MacroContext* pContext) const
 {
 	MacroValuePtr pValue(pCondition_->value(pContext));
-	return pValue->boolean();
+	return pValue.get() && pValue->boolean();
 }
 
 bool qm::Rule::apply(const RuleContext& context) const
