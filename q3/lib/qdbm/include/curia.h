@@ -1,6 +1,6 @@
 /*************************************************************************************************
  * The extended API of QDBM
- *                                                      Copyright (C) 2000-2004 Mikio Hirabayashi
+ *                                                      Copyright (C) 2000-2005 Mikio Hirabayashi
  * This file is part of QDBM, Quick Database Manager.
  * QDBM is free software; you can redistribute it and/or modify it under the terms of the GNU
  * Lesser General Public License as published by the Free Software Foundation; either version
@@ -48,7 +48,8 @@ enum {                                   /* enumeration for open modes */
   CR_OWRITER = 1 << 1,                   /* open as a writer */
   CR_OCREAT = 1 << 2,                    /* a writer creating */
   CR_OTRUNC = 1 << 3,                    /* a writer truncating */
-  CR_ONOLCK = 1 << 4                     /* open without locking */
+  CR_ONOLCK = 1 << 4,                    /* open without locking */
+  CR_OSPARSE = 1 << 5                    /* create as sparse files */
 };
 
 enum {                                   /* enumeration for write modes */
@@ -65,6 +66,8 @@ enum {                                   /* enumeration for write modes */
    means it creates a new database if not exist, `CR_OTRUNC', which means it creates a new
    database regardless if one exists.  Both of `CR_OREADER' and `CR_OWRITER' can be added to by
    bitwise or: `CR_ONOLCK', which means it opens a database directory without file locking.
+   `CR_OCREAT' can be added to by bitwise or: `CR_OSPARSE', which means it creates database
+   files as sparse files.
    `bnum' specifies the number of elements of each bucket array.  If it is not more than 0,
    the default value is specified.  The size of each bucket array is determined on creating,
    and can not be changed except for by optimization of the database.  Suggested size of each
@@ -294,6 +297,23 @@ int crremove(const char *name);
    There is no guarantee that all records in a repaired database directory correspond to the
    original or expected state. */
 int crrepair(const char *name);
+
+
+/* Dump all records as endian independent data.
+   `curia' specifies a database handle.
+   `name' specifies the name of an output directory.
+   If successful, the return value is true, else, it is false.
+   Note that large objects are ignored. */
+int crexportdb(CURIA *curia, const char *name);
+
+
+/* Load all records from endian independent data.
+   `curia' specifies a database handle connected as a writer.  The database of the handle must
+   be empty.
+   `name' specifies the name of an input directory.
+   If successful, the return value is true, else, it is false.
+   Note that large objects are ignored. */
+int crimportdb(CURIA *curia, const char *name);
 
 
 /* Store a large object.

@@ -1,6 +1,6 @@
 /*************************************************************************************************
  * The extended advanced API of QDBM
- *                                                      Copyright (C) 2000-2004 Mikio Hirabayashi
+ *                                                      Copyright (C) 2000-2005 Mikio Hirabayashi
  * This file is part of QDBM, Quick Database Manager.
  * QDBM is free software; you can redistribute it and/or modify it under the terms of the GNU
  * Lesser General Public License as published by the Free Software Foundation; either version
@@ -93,6 +93,8 @@ extern "C" {
 #define vltranabort    vstranabort_
 #define vlremove       vsremove_
 #define vlrepair       vsrepair_
+#define vlexportdb     vsexportdb_
+#define vlimportdb     vsimportdb_
 
 #define DEPOT          CURIA
 
@@ -187,6 +189,14 @@ extern "C" {
 #define \
   dprepair(db) \
   crrepair(db)
+
+#define \
+  dpexportdb(db, name) \
+  crexportdb(db, name)
+
+#define \
+  dpimportdb(db, name) \
+  crimportdb(db, name)
 
 #define \
   dpmemsync(db) \

@@ -1,6 +1,6 @@
 /*************************************************************************************************
  * The basic API of QDBM
- *                                                      Copyright (C) 2000-2004 Mikio Hirabayashi
+ *                                                      Copyright (C) 2000-2005 Mikio Hirabayashi
  * This file is part of QDBM, Quick Database Manager.
  * QDBM is free software; you can redistribute it and/or modify it under the terms of the GNU
  * Lesser General Public License as published by the Free Software Foundation; either version
@@ -79,7 +79,8 @@ enum {                                   /* enumeration for open modes */
   DP_OWRITER = 1 << 1,                   /* open as a writer */
   DP_OCREAT = 1 << 2,                    /* a writer creating */
   DP_OTRUNC = 1 << 3,                    /* a writer truncating */
-  DP_ONOLCK = 1 << 4                     /* open without locking */
+  DP_ONOLCK = 1 << 4,                    /* open without locking */
+  DP_OSPARSE = 1 << 5                    /* create as a sparse file */
 };
 
 enum {                                   /* enumeration for write modes */
@@ -111,6 +112,8 @@ const char *dperrmsg(int ecode);
    means it creates a new database if not exist, `DP_OTRUNC', which means it creates a new
    database regardless if one exists.  Both of `DP_OREADER' and `DP_OWRITER' can be added to by
    bitwise or: `DP_ONOLCK', which means it opens a database file without file locking.
+   `DP_OCREAT' can be added to by bitwise or: `DP_OSPARSE', which means it creates a database
+   file as a sparse file.
    `bnum' specifies the number of elements of the bucket array.  If it is not more than 0,
    the default value is specified.  The size of a bucket array is determined on creating,
    and can not be changed except for by optimization of the database.  Suggested size of a
@@ -338,6 +341,21 @@ int dpremove(const char *name);
    There is no guarantee that all records in a repaired database file correspond to the original
    or expected state. */
 int dprepair(const char *name);
+
+
+/* Dump all records as endian independent data.
+   `depot' specifies a database handle.
+   `name' specifies the name of an output file.
+   If successful, the return value is true, else, it is false. */
+int dpexportdb(DEPOT *depot, const char *name);
+
+
+/* Load all records from endian independent data.
+   `depot' specifies a database handle connected as a writer.  The database of the handle must
+   be empty.
+   `name' specifies the name of an input file.
+   If successful, the return value is true, else, it is false. */
+int dpimportdb(DEPOT *depot, const char *name);
 
 
 /* Hash function used inside Depot.

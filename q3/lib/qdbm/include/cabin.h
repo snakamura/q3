@@ -1,6 +1,6 @@
 /*************************************************************************************************
  * The utitlity API of QDBM
- *                                                      Copyright (C) 2000-2004 Mikio Hirabayashi
+ *                                                      Copyright (C) 2000-2005 Mikio Hirabayashi
  * This file is part of QDBM, Quick Database Manager.
  * QDBM is free software; you can redistribute it and/or modify it under the terms of the GNU
  * Lesser General Public License as published by the Free Software Foundation; either version
@@ -23,6 +23,7 @@ extern "C" {
 
 
 #include <stdlib.h>
+#include <time.h>
 
 
 
@@ -925,6 +926,62 @@ char *cbiconv(const char *ptr, int size, const char *icode, const char *ocode, i
    and UTF-16LE are supported.  If none of them matches, ISO-8859-1 is selected.  This function
    is available only if QDBM was built with ICONV enabled. */
 const char *cbencname(const char *ptr, int size);
+
+
+/* Get the jet lag of the local time in seconds.
+   The return value is the jet lag of the local time in seconds. */
+int cbjetlag(void);
+
+
+/* Get the Gregorian calendar of a time.
+   `t' specifies a source time.  If it is negative, the current time is specified.
+   `jl' specifies the jet lag of a location in seconds.
+   `yearp' specifies the pointer to a variable to which the year is assigned.  If it is `NULL',
+   it is not used.
+   `monp' specifies the pointer to a variable to which the month is assigned.  If it is `NULL',
+   it is not used.  1 means January and 12 means December.
+   `dayp' specifies the pointer to a variable to which the day of the month is assigned.  If it
+   is `NULL', it is not used.
+   `hourp' specifies the pointer to a variable to which the hours is assigned.  If it is `NULL',
+   it is not used.
+   `minp' specifies the pointer to a variable to which the minutes is assigned.  If it is `NULL',
+   it is not used.
+   `secp' specifies the pointer to a variable to which the seconds is assigned.  If it is `NULL',
+   it is not used. */
+void cbcalendar(time_t t, int jl, int *yearp, int *monp, int *dayp,
+                int *hourp, int *minp, int *secp);
+
+
+/* Get the day of week of a date.
+   `year' specifies the year of a date.
+   `mon' specifies the month of the date.
+   `day' specifies the day of the date.
+   The return value is the day of week of the date.  0 means Sunday and 6 means Saturday. */
+int cbdayofweek(int year, int mon, int day);
+
+
+/* Get the string for a date in W3CDTF.
+   `t' specifies a source time.  If it is negative, the current time is specified.
+   `jl' specifies the jet lag of a location in seconds.
+   The return value is the string of the date in W3CDTF (YYYY-MM-DDThh:mm:ddTZD).
+   Because the region of the return value is allocated with the `malloc' call, it should be
+   released with the `free' call if it is no longer in use. */
+char *cbdatestrwww(time_t t, int jl);
+
+
+/* Get the string for a date in RFC 1123 format.
+   `t' specifies a source time.  If it is negative, the current time is specified.
+   `jl' specifies the jet lag of a location in seconds.
+   The return value is the string of the date in RFC 1123 format (Wdy, DD-Mon-YYYY hh:mm:dd TZD).
+   Because the region of the return value is allocated with the `malloc' call, it should be
+   released with the `free' call if it is no longer in use. */
+char *cbdatestrhttp(time_t t, int jl);
+
+
+/* Get the time value of a date string in decimal, W3CDTF, or RFC 1123.
+   `str' specifies a date string in decimal, W3CDTF, or RFC 1123.
+   The return value is the time value of the date or -1 if the format is invalid. */
+time_t cbstrmktime(const char *str);
 
 
 /* Get user and system processing times.

@@ -1,0 +1,30 @@
+diff -ur qdbm-1.8.21.orig/VCmakefile qdbm-1.8.21/VCmakefile
+--- qdbm-1.8.21.orig/VCmakefile	2004-04-27 12:17:38.000000000 +0900
++++ qdbm-1.8.21/VCmakefile	2005-03-24 14:45:36.828732500 +0900
+@@ -18,7 +18,7 @@
+ # Debug configuration
+ !IF "$(CFG)" == "Debug" || "$(CFG)" == "debug"
+ !MESSAGE Build using debug configuration
+-BASE_FLAGS = /MLd /W3 /ZI /Od /FD /GZ /Fo"$(OUTDIR)\\" /Fd"$(OUTDIR)\\" 
++BASE_FLAGS = /MLd /W3 /Z7 /Od /FD /GZ /Fo"$(OUTDIR)\\" /Fd"$(OUTDIR)\\" 
+ BASE_DEFS = -D_DEBUG -D__DEBUG__ 
+ OUTDIR = .\Debug
+ LIB_APPEND = _d
+@@ -27,7 +27,7 @@
+ # Threaded debug configuration
+ !ELSEIF "$(CFG)" == "TDebug" || "$(CFG)" == "tdebug"
+ !MESSAGE Build using threaded debug configuration
+-BASE_FLAGS = /MDd /W3 /ZI /Od /FD /GZ /Fo"$(OUTDIR)\\" /Fd"$(OUTDIR)\\" 
++BASE_FLAGS = /MDd /W3 /Z7 /Od /FD /GZ /Fo"$(OUTDIR)\\" /Fd"$(OUTDIR)\\" 
+ BASE_DEFS = -D_DEBUG -D__DEBUG__ 
+ OUTDIR = .\TDebug
+ LIB_APPEND = _td
+@@ -45,7 +45,7 @@
+ # Static threaded debug configuration
+ !ELSEIF "$(CFG)" == "STDebug" || "$(CFG)" == "stdebug"
+ !MESSAGE Build using static threaded debug configuration
+-BASE_FLAGS = /MTd /W3 /ZI /Od /FD /GZ /Fo"$(OUTDIR)\\" /Fd"$(OUTDIR)\\" 
++BASE_FLAGS = /MTd /W3 /Z7 /Od /FD /GZ /Fo"$(OUTDIR)\\" /Fd"$(OUTDIR)\\" 
+ BASE_DEFS = -D_DEBUG -D__DEBUG__ 
+ OUTDIR = .\STDebug
+ LIB_APPEND = _std

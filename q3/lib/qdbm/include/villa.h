@@ -1,6 +1,6 @@
 /*************************************************************************************************
  * The advanced API of QDBM
- *                                                      Copyright (C) 2000-2004 Mikio Hirabayashi
+ *                                                      Copyright (C) 2000-2005 Mikio Hirabayashi
  * This file is part of QDBM, Quick Database Manager.
  * QDBM is free software; you can redistribute it and/or modify it under the terms of the GNU
  * Lesser General Public License as published by the Free Software Foundation; either version
@@ -440,6 +440,21 @@ int vlremove(const char *name);
    There is no guarantee that all records in a repaired database file correspond to the original
    or expected state. */
 int vlrepair(const char *name, VLCFUNC cmp);
+
+
+/* Dump all records as endian independent data.
+   `villa' specifies a database handle.
+   `name' specifies the name of an output file.
+   If successful, the return value is true, else, it is false. */
+int vlexportdb(VILLA *villa, const char *name);
+
+
+/* Load all records from endian independent data.
+   `villa' specifies a database handle connected as a writer.  The database of the handle must
+   be empty.
+   `name' specifies the name of an input file.
+   If successful, the return value is true, else, it is false. */
+int vlimportdb(VILLA *villa, const char *name);
 
 
 

@@ -1,6 +1,6 @@
 /*************************************************************************************************
  * System configurations for QDBM
- *                                                      Copyright (C) 2000-2004 Mikio Hirabayashi
+ *                                                      Copyright (C) 2000-2005 Mikio Hirabayashi
  * This file is part of QDBM, Quick Database Manager.
  * QDBM is free software; you can redistribute it and/or modify it under the terms of the GNU
  * Lesser General Public License as published by the Free Software Foundation; either version
@@ -337,6 +337,16 @@ int _qdbm_msync(const void *start, size_t length, int flags);
 
 
 /*************************************************************************************************
+ * for reentrant time routines
+ *************************************************************************************************/
+
+
+struct tm *_qdbm_gmtime(const time_t *timep, struct tm *result);
+struct tm *_qdbm_localtime(const time_t *timep, struct tm *result);
+
+
+
+/*************************************************************************************************
  * for systems without times
  *************************************************************************************************/
 
@@ -490,7 +500,7 @@ extern const char *(*_qdbm_encname)(const char *, int);
  *************************************************************************************************/
 
 
-#define _QDBM_VERSION  "1.8.18"
+#define _QDBM_VERSION  "1.8.21"
 
 #undef TRUE
 #define TRUE           1
