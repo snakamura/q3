@@ -411,17 +411,13 @@ bool qmjunk::JunkFilterImpl::init()
 	nJunkCount_ = profile.getInt(L"Junk", L"JunkCount", 0);
 	
 	if (!pDepotToken_) {
-		wstring_ptr wstrTokenPath(concat(wstrPath_.get(), L"\\token"));
-		string_ptr strTokenPath(wcs2mbs(wstrTokenPath.get()));
-		pDepotToken_ = dpopen(strTokenPath.get(), DP_OWRITER | DP_OCREAT, -1);
+		pDepotToken_ = open(L"token");
 		if (!pDepotToken_)
 			return false;
 	}
 	
 	if (!pDepotId_) {
-		wstring_ptr wstrIdPath(concat(wstrPath_.get(), L"\\id"));
-		string_ptr strIdPath(wcs2mbs(wstrIdPath.get()));
-		pDepotId_ = dpopen(strIdPath.get(), DP_OWRITER | DP_OCREAT, -1);
+		pDepotId_ = open(L"id");
 		if (!pDepotId_)
 			return false;
 	}
@@ -450,6 +446,22 @@ bool qmjunk::JunkFilterImpl::flush() const
 	}
 	
 	return true;
+}
+
+DEPOT* qmjunk::JunkFilterImpl::open(const WCHAR* pwszName) const
+{
+	wstring_ptr wstrPath(concat(wstrPath_.get(), L"\\", pwszName));
+	string_ptr strPath(wcs2mbs(wstrPath.get()));
+	DEPOT* pDepot = dpopen(strPath.get(), DP_OWRITER | DP_OCREAT, -1);
+	if (!pDepot)
+		return 0;
+	
+	int nBucket = dpbnum(pDepot);
+	int nCount = dprnum(pDepot);
+	if (nBucket != -1 && nCount != -1 && nBucket < dpprimenum(nCount*4 + 1))
+		dpoptimize(pDepot, -1);
+	
+	return pDepot;
 }
 
 string_ptr qmjunk::JunkFilterImpl::getId(const qs::Part& part)

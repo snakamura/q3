@@ -51,6 +51,7 @@ public:
 private:
 	bool init();
 	bool flush() const;
+	DEPOT* open(const WCHAR* pwszName) const;
 
 private:
 	static qs::string_ptr getId(const qs::Part& part);
