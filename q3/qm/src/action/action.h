@@ -112,6 +112,7 @@ class MessageSelectionModel;
 class MessageWindow;
 class MoveMenu;
 class NormalFolder;
+class ProgressDialog;
 class RuleManager;
 class ScriptMenu;
 class SyncDialogManager;
@@ -601,7 +602,8 @@ public:
 
 public:
 	static qs::QSTATUS readMessage(NormalFolder* pFolder,
-		qs::InputStream* pStream, bool bMultiple, unsigned int nFlags);
+		qs::InputStream* pStream, bool bMultiple, unsigned int nFlags,
+		ProgressDialog* pDialog, int* pnPos, bool* pbCanceled);
 
 private:
 	static qs::QSTATUS readLine(qs::InputStream* pStream, CHAR cPrev,

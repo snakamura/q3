@@ -967,6 +967,8 @@ BEGIN
     IDS_LOCALFOLDER         "Local"
     IDS_REMOTEFOLDER        "Remote"
     IDS_FOLDERTYPETEMPLATE  "%s (%s)"
+    IDS_EXPORT              "Exporting..."
+    IDS_IMPORT              "Importing..."
 END
 
 #endif    // Japanese resources

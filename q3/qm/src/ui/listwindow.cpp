@@ -781,7 +781,7 @@ QSTATUS qm::ListWindowImpl::drop(const DropTargetDropEvent& event)
 							
 							status = FileImportAction::readMessage(
 								static_cast<NormalFolder*>(pFolder), &bufferedStream,
-								false, Account::IMPORTFLAG_NORMALFLAGS);
+								false, Account::IMPORTFLAG_NORMALFLAGS, 0, 0, 0);
 							CHECK_QSTATUS();
 						}
 					}

@@ -30,6 +30,7 @@
 #include <tchar.h>
 
 #include "action.h"
+#include "actionutil.h"
 #include "findreplace.h"
 #include "../model/dataobject.h"
 #include "../model/filter.h"
@@ -953,6 +954,12 @@ QSTATUS qm::FileExportAction::invoke(const ActionEvent& event)
 				// Get template and encoding
 			}
 			
+			ProgressDialog progressDialog(IDS_EXPORT, &status);
+			CHECK_QSTATUS();
+			ProgressDialogInit init(&progressDialog, IDS_EXPORT,
+				IDS_EXPORT, 0, l.size(), 0, &status);
+			CHECK_QSTATUS();
+			
 			if (dialog.isFilePerMessage()) {
 				const WCHAR* pwszPath = dialog.getPath();
 				const WCHAR* pFileName = wcsrchr(pwszPath, L'\\');
@@ -963,6 +970,11 @@ QSTATUS qm::FileExportAction::invoke(const ActionEvent& event)
 				
 				MessagePtrList::size_type n = 0;
 				while (n < l.size()) {
+					if (progressDialog.isCanceled())
+						break;
+					status = progressDialog.setPos(n);
+					CHECK_QSTATUS();
+					
 					WCHAR wszNumber[32];
 					swprintf(wszNumber, L"%d", n);
 					ConcatW c[] = {
@@ -986,6 +998,8 @@ QSTATUS qm::FileExportAction::invoke(const ActionEvent& event)
 					
 					++n;
 				}
+				status = progressDialog.setPos(n);
+				CHECK_QSTATUS();
 			}
 			else {
 				FileOutputStream fileStream(dialog.getPath(), &status);
@@ -993,20 +1007,29 @@ QSTATUS qm::FileExportAction::invoke(const ActionEvent& event)
 				BufferedOutputStream stream(&fileStream, false, &status);
 				CHECK_QSTATUS();
 				
+				int nPos = 0;
 				if (l.size() == 1) {
 					status = writeMessage(&stream, l.front(),
 						dialog.isExportFlags(), pTemplate, pwszEncoding, false);
 					CHECK_QSTATUS();
+					++nPos;
 				}
 				else {
 					MessagePtrList::iterator it = l.begin();
 					while (it != l.end()) {
+						if (progressDialog.isCanceled())
+							break;
+						status = progressDialog.setPos(nPos++);
+						CHECK_QSTATUS();
+						
 						status = writeMessage(&stream, *it,
 							dialog.isExportFlags(), pTemplate, pwszEncoding, true);
 						CHECK_QSTATUS();
 						++it;
 					}
 				}
+				status = progressDialog.setPos(nPos);
+				CHECK_QSTATUS();
 				
 				status = stream.close();
 				CHECK_QSTATUS();
@@ -1127,6 +1150,13 @@ QSTATUS qm::FileImportAction::invoke(const ActionEvent& event)
 		status = dialog.doModal(getMainWindow()->getHandle(), 0, &nRet);
 		CHECK_QSTATUS();
 		if (nRet == IDOK) {
+			ProgressDialog progressDialog(IDS_IMPORT, &status);
+			CHECK_QSTATUS();
+			ProgressDialogInit init(&progressDialog, IDS_IMPORT,
+				IDS_IMPORT, 0, 100, 0, &status);
+			CHECK_QSTATUS();
+			int nPos = 0;
+			
 			const WCHAR* pwszPath = dialog.getPath();
 			const WCHAR* pBegin = pwszPath;
 			while (true) {
@@ -1141,9 +1171,13 @@ QSTATUS qm::FileImportAction::invoke(const ActionEvent& event)
 				BufferedInputStream stream(&fileStream, false, &status);
 				CHECK_QSTATUS();
 				
+				bool bCanceled = false;
 				status = readMessage(static_cast<NormalFolder*>(pFolder),
-					&stream, dialog.isMultiple(), dialog.getFlags());
+					&stream, dialog.isMultiple(), dialog.getFlags(),
+					&progressDialog, &nPos, &bCanceled);
 				CHECK_QSTATUS();
+				if (bCanceled)
+					break;
 				
 				if (!pEnd)
 					break;
@@ -1169,10 +1203,13 @@ QSTATUS qm::FileImportAction::isEnabled(const ActionEvent& event, bool* pbEnable
 }
 
 QSTATUS qm::FileImportAction::readMessage(NormalFolder* pFolder,
-	InputStream* pStream, bool bMultiple, unsigned int nFlags)
+	InputStream* pStream, bool bMultiple, unsigned int nFlags,
+	ProgressDialog* pDialog, int* pnPos, bool* pbCanceled)
 {
 	assert(pFolder);
 	assert(pStream);
+	assert((pDialog && pnPos && pbCanceled) ||
+		(!pDialog && !pnPos && !pbCanceled));
 	
 	DECLARE_QSTATUS();
 	
@@ -1191,6 +1228,15 @@ QSTATUS qm::FileImportAction::readMessage(NormalFolder* pFolder,
 			
 			if (!bNewLine || strncmp(strLine.get(), "From ", 5) == 0) {
 				if (buf.getLength() != 0) {
+					if (pDialog) {
+						if (pDialog->isCanceled()) {
+							*pbCanceled = true;
+							return QSTATUS_SUCCESS;
+						}
+						status = pDialog->setPos((*pnPos)++ % 100);
+						CHECK_QSTATUS();
+					}
+					
 					status = pFolder->getAccount()->importMessage(pFolder,
 						buf.getCharArray(), nFlags);
 					CHECK_QSTATUS();
@@ -1262,6 +1308,15 @@ QSTATUS qm::FileImportAction::readMessage(NormalFolder* pFolder,
 		}
 		if (bCR) {
 			status = buf.append("\r\n");
+			CHECK_QSTATUS();
+		}
+		
+		if (pDialog) {
+			if (pDialog->isCanceled()) {
+				*pbCanceled = true;
+				return QSTATUS_SUCCESS;
+			}
+			status = pDialog->setPos((*pnPos)++ % 100);
 			CHECK_QSTATUS();
 		}
 		
@@ -1764,15 +1819,7 @@ QSTATUS qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 		ProgressDialog dialog(IDS_APPLYMESSAGERULES, &status);
 		CHECK_QSTATUS();
 		RuleCallbackImpl callback(&dialog);
-		
-		struct Init
-		{
-			Init(ProgressDialog* pDialog, QSTATUS* pstatus) :
-				pDialog_(pDialog)
-				{ pDialog_->init(); }
-			~Init() { pDialog_->term(); }
-			ProgressDialog* pDialog_;
-		} init(&dialog, &status);
+		ProgressDialogInit init(&dialog, &status);
 		CHECK_QSTATUS();
 		
 		status = pRuleManager_->apply(static_cast<NormalFolder*>(pFolder),
