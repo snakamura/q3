@@ -1402,7 +1402,8 @@ LRESULT qm::AttachmentHeaderEditItem::AttachmentEditWindow::onContextMenu(
 	DECLARE_QSTATUS();
 	
 	HMENU hmenu = 0;
-	status = pItem_->pMenuManager_->getMenu(L"attachmentedit", false, false, &hmenu);
+	status = pItem_->pMenuManager_->getMenu(
+		L"attachmentedit", false, false, &hmenu);
 	if (status == QSTATUS_SUCCESS) {
 		UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
 #ifndef _WIN32_WCE

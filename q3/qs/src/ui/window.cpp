@@ -329,11 +329,16 @@ bool qs::Window::setDlgItemText(int nDlgItem, const WCHAR* pwszText)
 bool qs::Window::tapAndHold(const POINT& pt)
 {
 	assert(hwnd_);
+	
 	SHRGINFO rgi = { sizeof(rgi), hwnd_, { pt.x, pt.y }, SHRG_RETURNCMD };
 	if (::SHRecognizeGesture(&rgi) != GN_CONTEXTMENU)
 		return false;
-	sendMessage(WM_CONTEXTMENU,
-		reinterpret_cast<WPARAM>(hwnd_), MAKELPARAM(pt.x, pt.y));
+	
+	POINT ptScreen = pt;
+	clientToScreen(&ptScreen);
+	sendMessage(WM_CONTEXTMENU, reinterpret_cast<WPARAM>(hwnd_),
+		MAKELPARAM(ptScreen.x, ptScreen.y));
+	
 	return true;
 }
 #endif
@@ -636,9 +641,16 @@ LRESULT qs::WindowBaseImpl::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	
 #if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
 	case WM_LBUTTONDOWN:
-		if (::GetKeyState(VK_MENU) < 0)
+		if (::GetKeyState(VK_MENU) < 0) {
+			POINT pt = {
+				static_cast<short>(LOWORD(lParam)),
+				static_cast<short>(HIWORD(lParam))
+			};
+			pThis_->clientToScreen(&pt);
 			return pThis_->sendMessage(WM_CONTEXTMENU,
-				reinterpret_cast<WPARAM>(pThis_->getHandle()), lParam);
+				reinterpret_cast<WPARAM>(pThis_->getHandle()),
+				MAKELPARAM(pt.x, pt.y));
+		}
 		break;
 	
 	case WM_KEYDOWN:
