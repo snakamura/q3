@@ -815,6 +815,7 @@ QSTATUS qm::SyncManager::send(SyncManagerCallback* pSyncManagerCallback,
 			CHECK_QSTATUS();
 			const WCHAR* pwszRemoveFields[] = {
 				L"X-QMAIL-Account",
+				L"X-QMAIL-SubAccount",
 				L"X-QMAIL-Signature"
 			};
 			for (int n = 0; n < countof(pwszRemoveFields); ++n) {
