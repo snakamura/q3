@@ -862,6 +862,8 @@ QSTATUS qm::Account::compact()
 	}
 	status = pImpl_->pMessageStore_->freeUnused();
 	CHECK_QSTATUS();
+	status = save();
+	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
 }
