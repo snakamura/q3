@@ -175,37 +175,9 @@ QSTATUS qm::AttachmentHelper::detach(
 			};
 			status = STLWrapper<DetachDialog::List>(list).push_back(item);
 			CHECK_QSTATUS();
-			status = pmh->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, &msg);
-			CHECK_QSTATUS();
-			AttachmentParser parser(msg);
-			AttachmentParser::AttachmentList l;
-			AttachmentParser::AttachmentListFree free(l);
-			status = parser.getAttachments(false, &l);
-			CHECK_QSTATUS();
-			AttachmentParser::AttachmentList::iterator itA = l.begin();
-			while (itA != l.end()) {
-				string_ptr<WSTRING> wstrName(allocWString((*itA).first));
-				if (!wstrName.get())
-					return QSTATUS_OUTOFMEMORY;
-				
-				bool bSelected = true;
-				if (pListName) {
-					NameList::const_iterator itN = std::find_if(
-						pListName->begin(), pListName->end(),
-						std::bind2nd(string_equal<WCHAR>(), wstrName.get()));
-					bSelected = itN != pListName->end();
-				}
-				
-				DetachDialog::Item item = {
-					pmh,
-					wstrName.get(),
-					bSelected
-				};
-				status = STLWrapper<DetachDialog::List>(list).push_back(item);
-				CHECK_QSTATUS();
-				wstrName.release();
-				++itA;
-			}
+			wstrName.release();
+			
+			++itA;
 		}
 		
 		++itM;
