@@ -229,11 +229,11 @@ public:
 						ColorManager* pColorManager,
 						SyncManager* pSyncManager,
 						AutoPilotManager* pAutoPilotManager,
-						FolderWindow* pFolderWindow,
 						qs::Profile* pProfile);
 	~OptionDialogManager();
 
 public:
+	void initUIs(FolderWindow* pFolderWindow);
 	int showDialog(HWND hwndParent,
 				   OptionDialog::Panel panel) const;
 	bool canShowDialog() const;
@@ -249,8 +249,8 @@ private:
 	ColorManager* pColorManager_;
 	SyncManager* pSyncManager_;
 	AutoPilotManager* pAutoPilotManager_;
-	FolderWindow* pFolderWindow_;
 	qs::Profile* pProfile_;
+	FolderWindow* pFolderWindow_;
 };
 
 

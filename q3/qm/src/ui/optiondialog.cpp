@@ -641,7 +641,6 @@ qm::OptionDialogManager::OptionDialogManager(Document* pDocument,
 											 ColorManager* pColorManager,
 											 SyncManager* pSyncManager,
 											 AutoPilotManager* pAutoPilotManager,
-											 FolderWindow* pFolderWindow,
 											 Profile* pProfile) :
 	pDocument_(pDocument),
 	pGoRound_(pGoRound),
@@ -649,8 +648,8 @@ qm::OptionDialogManager::OptionDialogManager(Document* pDocument,
 	pColorManager_(pColorManager),
 	pSyncManager_(pSyncManager),
 	pAutoPilotManager_(pAutoPilotManager),
-	pFolderWindow_(pFolderWindow),
-	pProfile_(pProfile)
+	pProfile_(pProfile),
+	pFolderWindow_(0)
 {
 }
 
@@ -658,9 +657,23 @@ qm::OptionDialogManager::~OptionDialogManager()
 {
 }
 
+void qm::OptionDialogManager::initUIs(FolderWindow* pFolderWindow)
+{
+	pFolderWindow_ = pFolderWindow;
+}
+
 int qm::OptionDialogManager::showDialog(HWND hwndParent,
 										OptionDialog::Panel panel) const
 {
+	assert(pDocument_);
+	assert(pGoRound_);
+	assert(pFilterManager_);
+	assert(pColorManager_);
+	assert(pSyncManager_);
+	assert(pAutoPilotManager_);
+	assert(pProfile_);
+	assert(pFolderWindow_);
+	
 	OptionDialog dialog(pDocument_, pGoRound_, pFilterManager_,
 		pColorManager_, pSyncManager_->getSyncFilterManager(),
 		pAutoPilotManager_, pFolderWindow_, pProfile_, panel);
