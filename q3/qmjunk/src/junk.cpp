@@ -727,7 +727,7 @@ qmjunk::Tokenizer::Token qmjunk::Tokenizer::getToken(WCHAR c)
 		return TOKEN_LATIN;
 	else if (c < 0x7f)
 		return TOKEN_SEPARATOR;
-	else if (c < 0x200)
+	else if (c < 0x500)
 		return TOKEN_LATIN;
 	else if (0x30a1 <= c && c <= 0x30fe)		// Katakana
 		return TOKEN_KATAKANA;
