@@ -1044,8 +1044,11 @@ QSTATUS qm::MainWindowImpl::MessageSelectionModelImpl::selectAll()
 		return QSTATUS_FAIL;
 	
 	Lock<ViewModel> lock(*pViewModel);
-	status = pViewModel->setSelection(0, pViewModel->getCount() - 1);
-	CHECK_QSTATUS();
+	unsigned int nCount = pViewModel->getCount();
+	if (nCount != 0) {
+		status = pViewModel->setSelection(0,  nCount - 1);
+		CHECK_QSTATUS();
+	}
 	
 	return QSTATUS_SUCCESS;
 }

@@ -650,6 +650,8 @@ QSTATUS qm::ViewModel::setSelection(unsigned int n)
 QSTATUS qm::ViewModel::setSelection(unsigned int nStart, unsigned int nEnd)
 {
 	assert(isLocked());
+	assert(nStart < getCount());
+	assert(nEnd < getCount());
 	
 	DECLARE_QSTATUS();
 	
@@ -664,30 +666,19 @@ QSTATUS qm::ViewModel::setSelection(unsigned int nStart, unsigned int nEnd)
 		}
 		++n;
 	}
-	if (nEnd != static_cast<unsigned int>(-1)) {
-		while (n <= nEnd) {
-			if (!isSelected(n)) {
-				status = addSelection(n);
-				CHECK_QSTATUS();
-			}
-			++n;
+	while (n <= nEnd) {
+		if (!isSelected(n)) {
+			status = addSelection(n);
+			CHECK_QSTATUS();
 		}
-		while (n < listItem_.size()) {
-			if (isSelected(n)) {
-				status = removeSelection(n);
-				CHECK_QSTATUS();
-			}
-			++n;
-		}
+		++n;
 	}
-	else {
-		while (n < listItem_.size()) {
-			if (!isSelected(n)) {
-				status = addSelection(n);
-				CHECK_QSTATUS();
-			}
-			++n;
+	while (n < listItem_.size()) {
+		if (isSelected(n)) {
+			status = removeSelection(n);
+			CHECK_QSTATUS();
 		}
+		++n;
 	}
 	
 	return QSTATUS_SUCCESS;
