@@ -359,6 +359,9 @@ QSTATUS qm::MainWindowImpl::initActions()
 	CHECK_QSTATUS();
 	pSelectAllMessageAction.release();
 	pSelectAllAction.release();
+	status = InitAction1<FileCompactAction, FolderModel*>(
+		pActionMap_, IDM_FILE_COMPACT, pFolderModel_);
+	CHECK_QSTATUS();
 	status = InitAction2<FileEmptyTrashAction, FolderModel*, HWND>(
 		pActionMap_, IDM_FILE_EMPTYTRASH, pFolderModel_, pThis_->getHandle());
 	CHECK_QSTATUS();
@@ -384,9 +387,6 @@ QSTATUS qm::MainWindowImpl::initActions()
 	CHECK_QSTATUS();
 	status = InitAction2<FileSaveAction, Document*, ViewModelManager*>(
 		pActionMap_, IDM_FILE_SAVE, pDocument_, pViewModelManager_);
-	CHECK_QSTATUS();
-	status = InitAction1<FolderCompactAction, FolderModel*>(
-		pActionMap_, IDM_FOLDER_COMPACT, pFolderModel_);
 	CHECK_QSTATUS();
 	status = InitAction2<FolderCreateAction, FolderSelectionModel*, HWND>(
 		pActionMap_, IDM_FOLDER_CREATE, this, pThis_->getHandle());

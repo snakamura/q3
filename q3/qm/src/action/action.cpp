@@ -789,6 +789,49 @@ QSTATUS qm::FileCloseAction::invoke(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * FileCompactAction
+ *
+ */
+
+qm::FileCompactAction::FileCompactAction(
+	FolderModel* pFolderModel, QSTATUS* pstatus) :
+	pFolderModel_(pFolderModel)
+{
+}
+
+qm::FileCompactAction::~FileCompactAction()
+{
+}
+
+QSTATUS qm::FileCompactAction::invoke(const ActionEvent& event)
+{
+	DECLARE_QSTATUS();
+	
+	Account* pAccount = pFolderModel_->getCurrentAccount();
+	if (!pAccount) {
+		Folder* pFolder = pFolderModel_->getCurrentFolder();
+		if (pFolder)
+			pAccount = pFolder->getAccount();
+	}
+	if (pAccount) {
+		status = pAccount->compact();
+		CHECK_QSTATUS();
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::FileCompactAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+{
+	assert(pbEnabled);
+	*pbEnabled = pFolderModel_->getCurrentAccount() ||
+		pFolderModel_->getCurrentFolder();
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
  * FileEmptyTrashAction
  *
  */
@@ -1547,49 +1590,6 @@ QSTATUS qm::FileSaveAction::invoke(const ActionEvent& event)
 	status = Application::getApplication().save();
 	CHECK_QSTATUS();
 	
-	return QSTATUS_SUCCESS;
-}
-
-
-/****************************************************************************
- *
- * FolderCompactAction
- *
- */
-
-qm::FolderCompactAction::FolderCompactAction(
-	FolderModel* pFolderModel, QSTATUS* pstatus) :
-	pFolderModel_(pFolderModel)
-{
-}
-
-qm::FolderCompactAction::~FolderCompactAction()
-{
-}
-
-QSTATUS qm::FolderCompactAction::invoke(const ActionEvent& event)
-{
-	DECLARE_QSTATUS();
-	
-	Account* pAccount = pFolderModel_->getCurrentAccount();
-	if (!pAccount) {
-		Folder* pFolder = pFolderModel_->getCurrentFolder();
-		if (pFolder)
-			pAccount = pFolder->getAccount();
-	}
-	if (pAccount) {
-		status = pAccount->compact();
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::FolderCompactAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
-{
-	assert(pbEnabled);
-	*pbEnabled = pFolderModel_->getCurrentAccount() ||
-		pFolderModel_->getCurrentFolder();
 	return QSTATUS_SUCCESS;
 }
 

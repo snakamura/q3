@@ -35,6 +35,7 @@ class EditFindAction;
 class EditPasteMessageAction;
 class EditSelectAllMessageAction;
 class FileCloseAction;
+class FileCompactAction;
 class FileEmptyTrashAction;
 class FileExitAction;
 class FileExportAction;
@@ -43,7 +44,6 @@ class FileOfflineAction;
 class FilePrintAction;
 class FileSalvageAction;
 class FileSaveAction;
-class FolderCompactAction;
 class FolderCreateAction;
 class FolderDeleteAction;
 class FolderPropertyAction;
@@ -517,6 +517,31 @@ private:
 
 /****************************************************************************
  *
+ * FileCompactAction
+ *
+ */
+
+class FileCompactAction : public qs::AbstractAction
+{
+public:
+	FileCompactAction(FolderModel* pFolderModel, qs::QSTATUS* pstatus);
+	virtual ~FileCompactAction();
+
+public:
+	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+
+private:
+	FileCompactAction(const FileCompactAction&);
+	FileCompactAction& operator=(const FileCompactAction&);
+
+private:
+	FolderModel* pFolderModel_;
+};
+
+
+/****************************************************************************
+ *
  * FileEmptyTrashAction
  *
  */
@@ -747,31 +772,6 @@ private:
 private:
 	Document* pDocument_;
 	ViewModelManager* pViewModelManager_;
-};
-
-
-/****************************************************************************
- *
- * FolderCompactAction
- *
- */
-
-class FolderCompactAction : public qs::AbstractAction
-{
-public:
-	FolderCompactAction(FolderModel* pFolderModel, qs::QSTATUS* pstatus);
-	virtual ~FolderCompactAction();
-
-public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
-
-private:
-	FolderCompactAction(const FolderCompactAction&);
-	FolderCompactAction& operator=(const FolderCompactAction&);
-
-private:
-	FolderModel* pFolderModel_;
 };
 
 

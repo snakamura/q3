@@ -9,6 +9,7 @@
 			<menuitem text="Import..." action="FileImport"/>
 			<menuitem text="Export..." action="FileExport"/>
 			<separator/>
+			<menuitem text="&amp;Compact" action="FileCompact"/>
 			<menuitem text="Sa&amp;lvage" action="FileSalvage"/>
 			<separator/>
 			<menuitem text="Offline" action="FileOffline"/>
@@ -240,7 +241,6 @@
 		<menuitem text="Update" action="FolderUpdate"/>
 		<separator/>
 		<menuitem text="Emptry" action="FolderEmpty"/>
-		<menuitem text="Compact" action="FolderCompact"/>
 		<separator/>
 		<menuitem text="Show Size" action="FolderShowSize"/>
 		<separator/>
@@ -253,7 +253,6 @@
 		<menuitem text="Update" action="FolderUpdate"/>
 		<separator/>
 		<menuitem text="Emptry" action="FolderEmpty"/>
-		<menuitem text="Compact" action="FolderCompact"/>
 		<separator/>
 		<menuitem text="Show Size" action="FolderShowSize"/>
 		<separator/>
