@@ -91,6 +91,7 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 		pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
 		if (!pAccount)
 			return false;
+		pFolder = p.second;
 	}
 	
 	const Template* pTemplate = pDocument_->getTemplateManager()->getTemplate(
