@@ -888,11 +888,17 @@ bool qm::SyncManager::send(Document* pDocument,
 		if (pCallback->isCanceled(false))
 			return true;
 		
-		MessagePtrLock mpl(listMessagePtr[m]);
-		if (mpl) {
-			Message msg;
-			if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, SECURITYMODE_NONE, &msg))
-				return false;
+		Message msg;
+		bool bGet = false;
+		{
+			MessagePtrLock mpl(listMessagePtr[m]);
+			if (mpl) {
+				if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, SECURITYMODE_NONE, &msg))
+					return false;
+				bGet = true;
+			}
+		}
+		if (bGet) {
 			const WCHAR* pwszRemoveFields[] = {
 				L"X-QMAIL-Account",
 				L"X-QMAIL-SubAccount",
@@ -903,14 +909,17 @@ bool qm::SyncManager::send(Document* pDocument,
 			if (!pSession->sendMessage(&msg))
 				return false;
 			
-			l[0] = mpl;
-			if (!pAccount->setMessagesFlags(l,
-				MessageHolder::FLAG_SENT, MessageHolder::FLAG_SENT) ||
-				!pAccount->copyMessages(l, pOutbox, pSentbox, true, 0))
-				return false;
-			
-			pCallback->setPos(m + 1);
+			MessagePtrLock mpl(listMessagePtr[m]);
+			if (mpl) {
+				l[0] = mpl;
+				if (!pAccount->setMessagesFlags(l,
+					MessageHolder::FLAG_SENT, MessageHolder::FLAG_SENT) ||
+					!pAccount->copyMessages(l, pOutbox, pSentbox, true, 0))
+					return false;
+			}
 		}
+		
+		pCallback->setPos(m + 1);
 	}
 	
 	pSession->disconnect();
