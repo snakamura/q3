@@ -279,6 +279,7 @@ QSTATUS qs::TextUtil::decodePassword(const WCHAR* pwsz, WSTRING* pwstr)
 	size_t nDecodeLen = 0;
 	status = encoder.decode(pBuf.get(), p - pBuf.get(), &pDecode, &nDecodeLen);
 	CHECK_QSTATUS();
+	malloc_ptr<unsigned char> pDecodeFree(pDecode);
 	
 	string_ptr<WSTRING> wstr(allocWString(
 		reinterpret_cast<WCHAR*>(pDecode), nDecodeLen/sizeof(WCHAR)));
