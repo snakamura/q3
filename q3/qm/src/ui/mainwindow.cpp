@@ -117,8 +117,8 @@ public:
 		virtual ~MessageSelectionModelImpl();
 	
 	public:
-		virtual QSTATUS getSelectedMessages(
-			AccountLock* pAccountLock, MessageHolderList* pList);
+		virtual QSTATUS getSelectedMessages(AccountLock* pAccountLock,
+			Folder** ppFolder, MessageHolderList* pList);
 		virtual QSTATUS hasSelectedMessage(bool* pbHas);
 		virtual QSTATUS getFocusedMessage(MessagePtr* pptr);
 		virtual QSTATUS hasFocusedMessage(bool* pbHas);
@@ -412,15 +412,15 @@ QSTATUS qm::MainWindowImpl::initActions()
 	status = InitAction1<FolderShowSizeAction, FolderListWindow*>(
 		pActionMap_, IDM_FOLDER_SHOWSIZE, pFolderListWindow_);
 	CHECK_QSTATUS();
-	status = InitAction6<MessageApplyRuleAction, RuleManager*,
-		FolderModel*, ViewModelManager*, Document*, HWND, Profile*>(
+	status = InitAction5<MessageApplyRuleAction, RuleManager*,
+		FolderModel*, Document*, HWND, Profile*>(
 		pActionMap_, IDM_MESSAGE_APPLYRULE, pDocument_->getRuleManager(),
-		pFolderModel_, 0, pDocument_, pThis_->getHandle(), pProfile_);
+		pFolderModel_, pDocument_, pThis_->getHandle(), pProfile_);
 	CHECK_QSTATUS();
-	status = InitAction6<MessageApplyRuleAction, RuleManager*,
-		FolderModel*, ViewModelManager*, Document*, HWND, Profile*>(
+	status = InitAction5<MessageApplyRuleAction, RuleManager*,
+		MessageSelectionModel*, Document*, HWND, Profile*>(
 		pActionMap_, IDM_MESSAGE_APPLYRULESELECTED, pDocument_->getRuleManager(),
-		pFolderModel_, pViewModelManager_, pDocument_, pThis_->getHandle(), pProfile_);
+		pMessageSelectionModel_, pDocument_, pThis_->getHandle(), pProfile_);
 	CHECK_QSTATUS();
 	status = InitActionRange9<MessageApplyTemplateAction, TemplateMenu*,
 		Document*, FolderModelBase*, MessageSelectionModel*,
@@ -1206,18 +1206,23 @@ qm::MainWindowImpl::MessageSelectionModelImpl::~MessageSelectionModelImpl()
 }
 
 QSTATUS qm::MainWindowImpl::MessageSelectionModelImpl::getSelectedMessages(
-	AccountLock* pAccountLock, MessageHolderList* pList)
+	AccountLock* pAccountLock, Folder** ppFolder, MessageHolderList* pList)
 {
 	assert(pAccountLock);
 	assert(pList);
 	
 	DECLARE_QSTATUS();
 	
+	if (ppFolder)
+		*ppFolder = 0;
+	
 	if (pMainWindowImpl_->pListWindow_->isActive()) {
 		ViewModel* pViewModel = pMainWindowImpl_->pViewModelManager_->getCurrentViewModel();
 		if (pViewModel) {
 			Lock<ViewModel> lock(*pViewModel);
 			pAccountLock->set(pViewModel->getFolder()->getAccount());
+			if (ppFolder)
+				*ppFolder = pViewModel->getFolder();
 			status = pViewModel->getSelection(pList);
 			CHECK_QSTATUS();
 		}
@@ -1226,6 +1231,8 @@ QSTATUS qm::MainWindowImpl::MessageSelectionModelImpl::getSelectedMessages(
 		MessagePtrLock mpl(pMainWindowImpl_->pPreviewModel_->getCurrentMessage());
 		if (mpl) {
 			pAccountLock->set(mpl->getAccount());
+			if (ppFolder)
+				*ppFolder = mpl->getFolder();
 			status = STLWrapper<MessageHolderList>(*pList).push_back(mpl);
 			CHECK_QSTATUS();
 		}
@@ -2213,7 +2220,7 @@ LRESULT qm::MainWindow::onInitMenuPopup(HMENU hmenu, UINT nIndex, bool bSysMenu)
 		else if (nIdFirst == IDM_MESSAGE_DETACH) {
 			AccountLock lock;
 			MessageHolderList l;
-			status = pImpl_->pMessageSelectionModel_->getSelectedMessages(&lock, &l);
+			status = pImpl_->pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
 			if (status == QSTATUS_SUCCESS) {
 				status = pImpl_->pAttachmentMenu_->createMenu(hmenu, l);
 				// TODO

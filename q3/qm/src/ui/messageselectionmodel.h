@@ -20,6 +20,7 @@
 namespace qm {
 
 class AccountLock;
+class Folder;
 
 
 /****************************************************************************
@@ -34,8 +35,8 @@ public:
 	virtual ~MessageSelectionModel();
 
 public:
-	virtual qs::QSTATUS getSelectedMessages(
-		AccountLock* pAccountLock, MessageHolderList* pList) = 0;
+	virtual qs::QSTATUS getSelectedMessages(AccountLock* pAccountLock,
+		Folder** ppFolder, MessageHolderList* pList) = 0;
 	virtual qs::QSTATUS hasSelectedMessage(bool* pbHas) = 0;
 	virtual qs::QSTATUS getFocusedMessage(MessagePtr* pptr) = 0;
 	virtual qs::QSTATUS hasFocusedMessage(bool* pbHas) = 0;

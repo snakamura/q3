@@ -409,7 +409,7 @@ QSTATUS qm::EditCopyMessageAction::invoke(const ActionEvent& event)
 	
 	AccountLock lock;
 	MessageHolderList l;
-	status = pMessageSelectionModel_->getSelectedMessages(&lock, &l);
+	status = pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
 	CHECK_QSTATUS();
 	
 	Account* pAccount = lock.get();
@@ -462,7 +462,7 @@ QSTATUS qm::EditCutMessageAction::invoke(const ActionEvent& event)
 	
 	AccountLock lock;
 	MessageHolderList l;
-	status = pMessageSelectionModel_->getSelectedMessages(&lock, &l);
+	status = pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
 	CHECK_QSTATUS();
 	
 	Account* pAccount = lock.get();
@@ -516,7 +516,7 @@ QSTATUS qm::EditDeleteCacheAction::invoke(const ActionEvent& event)
 	
 	AccountLock lock;
 	MessageHolderList l;
-	status = pModel_->getSelectedMessages(&lock, &l);
+	status = pModel_->getSelectedMessages(&lock, 0, &l);
 	CHECK_QSTATUS();
 	
 	if (!l.empty()) {
@@ -578,7 +578,7 @@ QSTATUS qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 	if (pMessageSelectionModel_) {
 		AccountLock lock;
 		MessageHolderList l;
-		status = pMessageSelectionModel_->getSelectedMessages(&lock, &l);
+		status = pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
 		CHECK_QSTATUS();
 		
 		Account* pAccount = lock.get();
@@ -1059,7 +1059,7 @@ QSTATUS qm::FileExportAction::invoke(const ActionEvent& event)
 	
 	AccountLock lock;
 	MessageHolderList l;
-	status = pModel_->getSelectedMessages(&lock, &l);
+	status = pModel_->getSelectedMessages(&lock, 0, &l);
 	CHECK_QSTATUS();
 	
 	Account* pAccount = lock.get();
@@ -2084,11 +2084,23 @@ QSTATUS qm::FolderUpdateAction::isEnabled(const ActionEvent& event, bool* pbEnab
  */
 
 qm::MessageApplyRuleAction::MessageApplyRuleAction(RuleManager* pRuleManager,
-	FolderModel* pFolderModel, ViewModelManager* pViewModelManager,
-	Document* pDocument, HWND hwnd, Profile* pProfile, QSTATUS* pstatus) :
+	FolderModel* pFolderModel, Document* pDocument, HWND hwnd,
+	Profile* pProfile, QSTATUS* pstatus) :
 	pRuleManager_(pRuleManager),
 	pFolderModel_(pFolderModel),
-	pViewModelManager_(pViewModelManager),
+	pMessageSelectionModel_(0),
+	pDocument_(pDocument),
+	hwnd_(hwnd),
+	pProfile_(pProfile)
+{
+}
+
+qm::MessageApplyRuleAction::MessageApplyRuleAction(RuleManager* pRuleManager,
+	MessageSelectionModel* pMessageSelectionModel,
+	Document* pDocument, HWND hwnd, Profile* pProfile, QSTATUS* pstatus) :
+	pRuleManager_(pRuleManager),
+	pFolderModel_(0),
+	pMessageSelectionModel_(pMessageSelectionModel),
 	pDocument_(pDocument),
 	hwnd_(hwnd),
 	pProfile_(pProfile)
@@ -2123,30 +2135,33 @@ QSTATUS qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 		ProgressDialog* pDialog_;
 	};
 	
-	Folder* pFolder = pFolderModel_->getCurrentFolder();
-	if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL) {
-		const MessageHolderList* pList = 0;
-		MessageHolderList listMessageHolder;
-		if (pViewModelManager_) {
-			ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
-			if (pViewModel) {
-				Lock<ViewModel> lock(*pViewModel);
-				
-				status = pViewModel->getSelection(&listMessageHolder);
-				CHECK_QSTATUS();
-			}
-			pList = &listMessageHolder;
+	ProgressDialog dialog(IDS_APPLYMESSAGERULES, &status);
+	CHECK_QSTATUS();
+	RuleCallbackImpl callback(&dialog);
+	
+	if (pFolderModel_) {
+		Folder* pFolder = pFolderModel_->getCurrentFolder();
+		if (pFolder) {
+			ProgressDialogInit init(&dialog, hwnd_, &status);
+			CHECK_QSTATUS();
+			status = pRuleManager_->apply(pFolder,
+				0, pDocument_, hwnd_, pProfile_, &callback);
+			CHECK_QSTATUS();
 		}
-		
-		ProgressDialog dialog(IDS_APPLYMESSAGERULES, &status);
+	}
+	else {
+		AccountLock lock;
+		Folder* pFolder = 0;
+		MessageHolderList l;
+		status = pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
 		CHECK_QSTATUS();
-		RuleCallbackImpl callback(&dialog);
-		ProgressDialogInit init(&dialog, hwnd_, &status);
-		CHECK_QSTATUS();
-		
-		status = pRuleManager_->apply(static_cast<NormalFolder*>(pFolder),
-			pList, pDocument_, hwnd_, pProfile_, &callback);
-		CHECK_QSTATUS();
+		if (!l.empty()) {
+			ProgressDialogInit init(&dialog, hwnd_, &status);
+			CHECK_QSTATUS();
+			status = pRuleManager_->apply(pFolder, &l,
+				pDocument_, hwnd_, pProfile_, &callback);
+			CHECK_QSTATUS();
+		}
 	}
 	
 	return QSTATUS_SUCCESS;
@@ -2157,18 +2172,14 @@ QSTATUS qm::MessageApplyRuleAction::isEnabled(
 {
 	assert(pbEnabled);
 	
-	Folder* pFolder = pFolderModel_->getCurrentFolder();
-	*pbEnabled = pFolder && pFolder->getType() == Folder::TYPE_NORMAL;
+	DECLARE_QSTATUS();
 	
-	if (*pbEnabled && pViewModelManager_) {
-		ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
-		if (pViewModel) {
-			Lock<ViewModel> lock(*pViewModel);
-			*pbEnabled = pViewModel->hasSelection();
-		}
-		else {
-			*pbEnabled = false;
-		}
+	if (pFolderModel_) {
+		*pbEnabled = pFolderModel_->getCurrentFolder() != 0;
+	}
+	else {
+		status = pMessageSelectionModel_->hasSelectedMessage(pbEnabled);
+		CHECK_QSTATUS();
 	}
 	
 	return QSTATUS_SUCCESS;
@@ -2244,7 +2255,7 @@ QSTATUS qm::MessageCombineAction::invoke(const ActionEvent& event)
 	
 	AccountLock lock;
 	MessageHolderList l;
-	status = pMessageSelectionModel_->getSelectedMessages(&lock, &l);
+	status = pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
 	CHECK_QSTATUS();
 	
 	Account* pAccount = lock.get();
@@ -2552,7 +2563,7 @@ QSTATUS qm::MessageDeleteAttachmentAction::invoke(const ActionEvent& event)
 	
 	AccountLock lock;
 	MessageHolderList l;
-	status = pMessageSelectionModel_->getSelectedMessages(&lock, &l);
+	status = pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
 	CHECK_QSTATUS();
 	
 	Account* pAccount = lock.get();
@@ -2617,7 +2628,7 @@ QSTATUS qm::MessageDetachAction::invoke(const ActionEvent& event)
 	
 	AccountLock lock;
 	MessageHolderList l;
-	status = pMessageSelectionModel_->getSelectedMessages(&lock, &l);
+	status = pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
 	CHECK_QSTATUS();
 	
 	status = helper_.detach(l, 0);
@@ -2655,7 +2666,7 @@ QSTATUS qm::MessageExpandDigestAction::invoke(const ActionEvent& event)
 	
 	AccountLock lock;
 	MessageHolderList l;
-	status = pMessageSelectionModel_->getSelectedMessages(&lock, &l);
+	status = pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
 	CHECK_QSTATUS();
 	
 	Account* pAccount = lock.get();
@@ -2732,7 +2743,7 @@ QSTATUS qm::MessageMarkAction::invoke(const ActionEvent& event)
 	
 	AccountLock lock;
 	MessageHolderList l;
-	status = pModel_->getSelectedMessages(&lock, &l);
+	status = pModel_->getSelectedMessages(&lock, 0, &l);
 	CHECK_QSTATUS();
 	
 	Account* pAccount = lock.get();
@@ -2777,7 +2788,7 @@ QSTATUS qm::MessageMoveAction::invoke(const ActionEvent& event)
 	if (pFolderTo) {
 		AccountLock lock;
 		MessageHolderList l;
-		status = pModel_->getSelectedMessages(&lock, &l);
+		status = pModel_->getSelectedMessages(&lock, 0, &l);
 		CHECK_QSTATUS();
 		
 		Account* pAccount = lock.get();
@@ -2834,7 +2845,7 @@ QSTATUS qm::MessageMoveOtherAction::invoke(const ActionEvent& event)
 		if (pFolderTo) {
 			AccountLock lock;
 			MessageHolderList l;
-			status = pModel_->getSelectedMessages(&lock, &l);
+			status = pModel_->getSelectedMessages(&lock, 0, &l);
 			CHECK_QSTATUS();
 			
 			Account* pAccount = lock.get();
@@ -2978,7 +2989,7 @@ QSTATUS qm::MessagePropertyAction::invoke(const ActionEvent& event)
 	
 	AccountLock lock;
 	MessageHolderList l;
-	status = pModel_->getSelectedMessages(&lock, &l);
+	status = pModel_->getSelectedMessages(&lock, 0, &l);
 	CHECK_QSTATUS();
 	
 	Account* pAccount = lock.get();

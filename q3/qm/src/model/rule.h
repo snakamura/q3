@@ -54,9 +54,8 @@ public:
 	~RuleManager();
 
 public:
-	qs::QSTATUS apply(NormalFolder* pFolder,
-		const MessageHolderList* pList, Document* pDocument,
-		HWND hwnd, qs::Profile* pProfile, RuleCallback* pCallback);
+	qs::QSTATUS apply(const Folder* pFolder, const MessageHolderList* pList,
+		Document* pDocument, HWND hwnd, qs::Profile* pProfile, RuleCallback* pCallback);
 
 public:
 	qs::QSTATUS addRuleSet(RuleSet* pRuleSet);
@@ -64,8 +63,7 @@ public:
 private:
 	qs::QSTATUS load();
 	void clear();
-	qs::QSTATUS getRuleSet(NormalFolder* pFolder,
-		const RuleSet** ppRuleSet) const;
+	qs::QSTATUS getRuleSet(const Folder* pFolder, const RuleSet** ppRuleSet) const;
 
 private:
 	RuleManager(const RuleManager&);
@@ -114,7 +112,7 @@ public:
 	~RuleSet();
 
 public:
-	qs::QSTATUS matchName(const NormalFolder* pFolder, bool* pbMatch) const;
+	qs::QSTATUS matchName(const Folder* pFolder, bool* pbMatch) const;
 	size_t getCount() const;
 	const Rule* getRule(size_t nIndex) const;
 
@@ -219,12 +217,11 @@ private:
 class RuleContext
 {
 public:
-	RuleContext(Folder* pFolder, const MessageHolderList& l,
+	RuleContext(const MessageHolderList& l,
 		Document* pDocument, Account* pAccount);
 	~RuleContext();
 
 public:
-	Folder* getFolder() const;
 	const MessageHolderList& getMessageHolderList() const;
 	Document* getDocument() const;
 	Account* getAccount() const;
@@ -234,7 +231,6 @@ private:
 	RuleContext& operator=(const RuleContext&);
 
 private:
-	Folder* pFolder_;
 	const MessageHolderList& listMessageHolder_;
 	Document* pDocument_;
 	Account* pAccount_;

@@ -51,7 +51,7 @@ qm::RuleManager::~RuleManager()
 	clear();
 }
 
-QSTATUS qm::RuleManager::apply(NormalFolder* pFolder,
+QSTATUS qm::RuleManager::apply(const Folder* pFolder,
 	const MessageHolderList* pList, Document* pDocument,
 	HWND hwnd, Profile* pProfile, RuleCallback* pCallback)
 {
@@ -87,19 +87,22 @@ QSTATUS qm::RuleManager::apply(NormalFolder* pFolder,
 	
 	struct FolderAccessor : public Accessor
 	{
-		FolderAccessor(NormalFolder* pFolder) :
+		FolderAccessor(const Folder* pFolder) :
 			pFolder_(pFolder)
 		{
 		}
+		
 		virtual unsigned int getCount() const
 		{
 			return pFolder_->getCount();
 		}
+		
 		virtual MessageHolder* getMessage(unsigned int n) const
 		{
 			return pFolder_->getMessage(n);
 		}
-		NormalFolder* pFolder_;
+		
+		const Folder* pFolder_;
 	};
 	
 	struct ListAccessor : public Accessor
@@ -108,14 +111,17 @@ QSTATUS qm::RuleManager::apply(NormalFolder* pFolder,
 			l_(l)
 		{
 		}
+		
 		virtual unsigned int getCount() const
 		{
 			return l_.size();
 		}
+		
 		virtual MessageHolder* getMessage(unsigned int n) const
 		{
 			return l_[n];
 		}
+		
 		const MessageHolderList& l_;
 	};
 	
@@ -185,7 +191,7 @@ QSTATUS qm::RuleManager::apply(NormalFolder* pFolder,
 		const MessageHolderList& l = ll[m];
 		if (!l.empty()) {
 			const Rule* pRule = pRuleSet->getRule(m);
-			RuleContext context(pFolder, l, pDocument, pAccount);
+			RuleContext context(l, pDocument, pAccount);
 			status = pRule->apply(context);
 			CHECK_QSTATUS();
 			
@@ -248,8 +254,8 @@ void qm::RuleManager::clear()
 	listRuleSet_.clear();
 }
 
-QSTATUS qm::RuleManager::getRuleSet(NormalFolder* pFolder,
-	const RuleSet** ppRuleSet) const
+QSTATUS qm::RuleManager::getRuleSet(
+	const Folder* pFolder, const RuleSet** ppRuleSet) const
 {
 	assert(pFolder);
 	assert(ppRuleSet);
@@ -327,7 +333,7 @@ qm::RuleSet::~RuleSet()
 	std::for_each(listRule_.begin(), listRule_.end(), deleter<Rule>());
 }
 
-QSTATUS qm::RuleSet::matchName(const NormalFolder* pFolder, bool* pbMatch) const
+QSTATUS qm::RuleSet::matchName(const Folder* pFolder, bool* pbMatch) const
 {
 	assert(pFolder);
 	assert(pbMatch);
@@ -500,15 +506,12 @@ QSTATUS qm::CopyRule::apply(const RuleContext& context) const
  *
  */
 
-qm::RuleContext::RuleContext(Folder* pFolder,
-	const MessageHolderList& l, Document* pDocument, Account* pAccount) :
-	pFolder_(pFolder),
+qm::RuleContext::RuleContext(const MessageHolderList& l,
+	Document* pDocument, Account* pAccount) :
 	listMessageHolder_(l),
 	pDocument_(pDocument),
 	pAccount_(pAccount)
 {
-	assert(pFolder);
-	assert(pFolder->getAccount() == pAccount);
 	assert(!l.empty());
 	assert(pDocument);
 	assert(pAccount);
@@ -517,11 +520,6 @@ qm::RuleContext::RuleContext(Folder* pFolder,
 
 qm::RuleContext::~RuleContext()
 {
-}
-
-Folder* qm::RuleContext::getFolder() const
-{
-	return pFolder_;
 }
 
 const MessageHolderList& qm::RuleContext::getMessageHolderList() const
