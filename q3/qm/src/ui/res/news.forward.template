@@ -1,6 +1,23 @@
 Newsgroups:
 Subject: Fw: {@Subject(@False(), @False())}
 X-QMAIL-Account: {@Account()}{@If(X-QMAIL-SubAccount, @Concat('\nX-QMAIL-SubAccount: ', X-QMAIL-SubAccount), '')}
-X-QMAIL-Macro: @ForEach(@Messages('{@Concat('//', @Account(), '/', @Folder())}', {@Id()}), @Forwarded(@True()))
-X-QMAIL-Attachment: {@Selected()}
-
+X-QMAIL-Macro: @ForEach(@Messages('{@Concat('//', @Account(), '/', @Folder())}', {@Id()}), @Forwarded(@True())){
+  @If(@Equal(@Profile('', 'Global', 'ForwardRfc822', '0'), '1'),
+      @Concat('\nX-QMAIL-Attachment: ', @Selected(), '\n\n'),
+      @Concat('\nX-QMAIL-Attachment: ',
+              @Attachment(',', @True()),
+              '\n\n',
+              'Forwarded by '
+              @I(),
+              '\n----- Original Message -----\n',
+              'From: ',
+              From,
+              '\nNewsgroups: ',
+              Newsgroups,
+              '\nDate: ',
+              Date,
+              '\nSubject: ',
+              Subject,
+              '\n\n'
+              @Body('', 1)))
+}

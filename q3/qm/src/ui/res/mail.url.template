@@ -1,15 +1,8 @@
 X-QMAIL-Account: {@Account()}{@If(@Identity(), @Concat('\nX-QMAIL-SubAccount: ', @SubAccount()), '')}
 {
-	@If(
-		@Equal(
-			@Profile('', 'Global', 'Bcc', '0'),
-			'0'
-		),
-		'',
-		@Concat(
-			'Bcc: ',
-			@I(@Account(), X-QMAIL-SubAccount),
-			'\n'
-		)
-	)
+  @If(@Equal(@Profile('', 'Global', 'Bcc', '0'), '0'),
+      '',
+      @Concat('Bcc: ',
+              @I(@Account(), X-QMAIL-SubAccount),
+              '\n'))
 }{@ParseUrl($url)}

@@ -1,2 +1,6 @@
-X-QMAIL-Account: {@Account()}{@If(@Identity(), @Concat('\nX-QMAIL-SubAccount: ', @SubAccount()), '')}
+X-QMAIL-Account: {@Account()}{
+  @If(@Identity(),
+      @Concat('\nX-QMAIL-SubAccount: ', @SubAccount()),
+      '')
+}
 {@ParseUrl($url)}

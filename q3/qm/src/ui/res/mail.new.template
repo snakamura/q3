@@ -1,25 +1,16 @@
 {
-	@Progn(
-		@Set(
-			'addr',
-			@AddressBook(
-				'',
-				'',
-				@If(
-					@Equal(
-						@Profile('', 'Global', 'Bcc', '0'),
-						'0'
-					),
-					'',
-					@I()
-				)
-			)
-		),
-		@Concat(
-			@If(@Contain($addr, 'To: '), '', 'To: \n'),
-			$addr
-		)
-	)
+  @Progn(@Set('addr',
+              @AddressBook('',
+                           '',
+                           @If(@Equal(@Profile('', 'Global', 'Bcc', '0'), '0'),
+                               '',
+                               @I()))),
+         @Concat(@If(@Contain($addr, 'To: '), '', 'To: \n'),
+                 $addr))
 }Subject: 
-X-QMAIL-Account: {@Account()}{@If(@Identity(), @Concat('\nX-QMAIL-SubAccount: ', @SubAccount()), '')}
+X-QMAIL-Account: {@Account()}{
+  @If(@Identity(),
+      @Concat('\nX-QMAIL-SubAccount: ', @SubAccount()),
+      '')
+}
 

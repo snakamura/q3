@@ -43,7 +43,7 @@
 			<td colspan="2"><hr size="3" style="color: lightblue"></td>
 		</tr>
 		<tr>
-			<td colspan="2" class="body"><pre>{@HtmlEscape(@Body('', @True()))}</pre></td>
+			<td colspan="2" class="body"><pre>{@HtmlEscape(@Body('', 1))}</pre></td>
 		</tr>
 	</table>
 </body>
