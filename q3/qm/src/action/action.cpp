@@ -921,9 +921,10 @@ QSTATUS qm::FileExitAction::invoke(const ActionEvent& event)
  *
  */
 
-qm::FileExportAction::FileExportAction(
-	MessageSelectionModel* pModel, QSTATUS* pstatus) :
-	pModel_(pModel)
+qm::FileExportAction::FileExportAction(MessageSelectionModel* pModel,
+	HWND hwndFrame, QSTATUS* pstatus) :
+	pModel_(pModel),
+	hwndFrame_(hwndFrame)
 {
 }
 
@@ -943,7 +944,7 @@ QSTATUS qm::FileExportAction::invoke(const ActionEvent& event)
 		ExportDialog dialog(l.size() == 1, &status);
 		CHECK_QSTATUS();
 		int nRet = 0;
-		status = dialog.doModal(getMainWindow()->getHandle(), 0, &nRet);
+		status = dialog.doModal(hwndFrame_, 0, &nRet);
 		CHECK_QSTATUS();
 		if (nRet == IDOK) {
 			const Template* pTemplate = 0;
@@ -1126,9 +1127,10 @@ QSTATUS qm::FileExportAction::writeMessage(OutputStream* pStream,
  *
  */
 
-qm::FileImportAction::FileImportAction(
-	FolderModel* pFolderModel, QSTATUS* pstatus) :
-	pFolderModel_(pFolderModel)
+qm::FileImportAction::FileImportAction(FolderModel* pFolderModel,
+	HWND hwndFrame, QSTATUS* pstatus) :
+	pFolderModel_(pFolderModel),
+	hwndFrame_(hwndFrame)
 {
 	assert(pstatus);
 	*pstatus = QSTATUS_SUCCESS;
@@ -1147,7 +1149,7 @@ QSTATUS qm::FileImportAction::invoke(const ActionEvent& event)
 		ImportDialog dialog(&status);
 		CHECK_QSTATUS();
 		int nRet = 0;
-		status = dialog.doModal(getMainWindow()->getHandle(), 0, &nRet);
+		status = dialog.doModal(hwndFrame_, 0, &nRet);
 		CHECK_QSTATUS();
 		if (nRet == IDOK) {
 			ProgressDialog progressDialog(IDS_IMPORT, &status);
@@ -1520,9 +1522,10 @@ QSTATUS qm::FolderCompactAction::isEnabled(const ActionEvent& event, bool* pbEna
  *
  */
 
-qm::FolderCreateAction::FolderCreateAction(
-	FolderSelectionModel* pFolderSelectionModel, QSTATUS* pstatus) :
-	pFolderSelectionModel_(pFolderSelectionModel)
+qm::FolderCreateAction::FolderCreateAction(FolderSelectionModel* pFolderSelectionModel,
+	HWND hwndFrame, QSTATUS* pstatus) :
+	pFolderSelectionModel_(pFolderSelectionModel),
+	hwndFrame_(hwndFrame)
 {
 	assert(pstatus);
 	*pstatus = QSTATUS_SUCCESS;
@@ -1572,7 +1575,7 @@ QSTATUS qm::FolderCreateAction::invoke(const ActionEvent& event)
 	CreateFolderDialog dialog(type, bAllowRemote, &status);
 	CHECK_QSTATUS();
 	int nRet = 0;
-	status = dialog.doModal(getMainWindow()->getHandle(), 0, &nRet);
+	status = dialog.doModal(hwndFrame_, 0, &nRet);
 	CHECK_QSTATUS();
 	if (nRet == IDOK) {
 		switch (dialog.getType()) {
@@ -2324,11 +2327,12 @@ QSTATUS qm::MessagePropertyAction::isEnabled(
 
 qm::ToolAccountAction::ToolAccountAction(Document* pDocument,
 	FolderModel* pFolderModel, SyncFilterManager* pSyncFilterManager,
-	Profile* pProfile, QSTATUS* pstatus) :
+	Profile* pProfile, HWND hwndFrame, QSTATUS* pstatus) :
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
 	pSyncFilterManager_(pSyncFilterManager),
-	pProfile_(pProfile)
+	pProfile_(pProfile),
+	hwndFrame_(hwndFrame)
 {
 }
 
@@ -2354,7 +2358,7 @@ QSTATUS qm::ToolAccountAction::invoke(const ActionEvent& event)
 		pSyncFilterManager_, pProfile_, &status);
 	CHECK_QSTATUS();
 	int nRet = 0;
-	status = dialog.doModal(getMainWindow()->getHandle(), 0, &nRet);
+	status = dialog.doModal(hwndFrame_, 0, &nRet);
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
@@ -3012,8 +3016,9 @@ QSTATUS qm::ViewFilterAction::isChecked(
  */
 
 qm::ViewFilterCustomAction::ViewFilterCustomAction(
-	ViewModelManager* pViewModelManager, QSTATUS* pstatus) :
+	ViewModelManager* pViewModelManager, HWND hwndFrame, QSTATUS* pstatus) :
 	pViewModelManager_(pViewModelManager),
+	hwndFrame_(hwndFrame),
 	pFilter_(0)
 {
 }
@@ -3037,7 +3042,7 @@ QSTATUS qm::ViewFilterCustomAction::invoke(const ActionEvent& event)
 		CustomFilterDialog dialog(wstrMacro.get(), &status);
 		CHECK_QSTATUS();
 		int nRet = 0;
-		status = dialog.doModal(getMainWindow()->getHandle(), 0, &nRet);
+		status = dialog.doModal(hwndFrame_, 0, &nRet);
 		CHECK_QSTATUS();
 		if (nRet == IDOK) {
 			std::auto_ptr<Filter> pFilter;

@@ -566,7 +566,8 @@ private:
 class FileExportAction : public qs::AbstractAction
 {
 public:
-	FileExportAction(MessageSelectionModel* pModel, qs::QSTATUS* pstatus);
+	FileExportAction(MessageSelectionModel* pModel,
+		HWND hwndFrame, qs::QSTATUS* pstatus);
 	virtual ~FileExportAction();
 
 public:
@@ -584,6 +585,7 @@ private:
 
 private:
 	MessageSelectionModel* pModel_;
+	HWND hwndFrame_;
 };
 
 
@@ -596,7 +598,8 @@ private:
 class FileImportAction : public qs::AbstractAction
 {
 public:
-	FileImportAction(FolderModel* pFolderModel, qs::QSTATUS* pstatus);
+	FileImportAction(FolderModel* pFolderModel,
+		HWND hwndFrame, qs::QSTATUS* pstatus);
 	virtual ~FileImportAction();
 
 public:
@@ -618,6 +621,7 @@ private:
 
 private:
 	FolderModel* pFolderModel_;
+	HWND hwndFrame_;
 };
 
 
@@ -731,7 +735,8 @@ private:
 class FolderCreateAction : public qs::AbstractAction
 {
 public:
-	FolderCreateAction(FolderSelectionModel* pFolderSelectionModel, qs::QSTATUS* pstatus);
+	FolderCreateAction(FolderSelectionModel* pFolderSelectionModel,
+		HWND hwndFrame, qs::QSTATUS* pstatus);
 	virtual ~FolderCreateAction();
 
 public:
@@ -744,6 +749,7 @@ private:
 
 private:
 	FolderSelectionModel* pFolderSelectionModel_;
+	HWND hwndFrame_;
 };
 
 
@@ -1143,8 +1149,8 @@ class ToolAccountAction : public qs::AbstractAction
 {
 public:
 	ToolAccountAction(Document* pDocument, FolderModel* pFolderModel,
-		SyncFilterManager* pSyncFilterManager,
-		qs::Profile* pProfile, qs::QSTATUS* pstatus);
+		SyncFilterManager* pSyncFilterManager, qs::Profile* pProfile,
+		HWND hwndFrame, qs::QSTATUS* pstatus);
 	virtual ~ToolAccountAction();
 
 public:
@@ -1160,6 +1166,7 @@ private:
 	FolderModel* pFolderModel_;
 	SyncFilterManager* pSyncFilterManager_;
 	qs::Profile* pProfile_;
+	HWND hwndFrame_;
 };
 
 
@@ -1444,7 +1451,8 @@ private:
 class ViewFilterCustomAction : public qs::AbstractAction
 {
 public:
-	ViewFilterCustomAction(ViewModelManager* pViewModelManager, qs::QSTATUS* pstatus);
+	ViewFilterCustomAction(ViewModelManager* pViewModelManager,
+		HWND hwndFrame, qs::QSTATUS* pstatus);
 	virtual ~ViewFilterCustomAction();
 
 public:
@@ -1458,6 +1466,7 @@ private:
 
 private:
 	ViewModelManager* pViewModelManager_;
+	HWND hwndFrame_;
 	Filter* pFilter_;
 };
 

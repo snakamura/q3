@@ -332,11 +332,11 @@ QSTATUS qm::MainWindowImpl::initActions()
 		pActionMap_, IDM_FILE_EXIT, pThis_, pDocument_,
 		pSyncManager_, pTempFileCleaner_, pEditFrameWindowManager_);
 	CHECK_QSTATUS();
-	status = InitAction1<FileExportAction, MessageSelectionModel*>(
-		pActionMap_, IDM_FILE_EXPORT, pMessageSelectionModel_);
+	status = InitAction2<FileExportAction, MessageSelectionModel*, HWND>(
+		pActionMap_, IDM_FILE_EXPORT, pMessageSelectionModel_, pThis_->getHandle());
 	CHECK_QSTATUS();
-	status = InitAction1<FileImportAction, FolderModel*>(
-		pActionMap_, IDM_FILE_IMPORT, pFolderModel_);
+	status = InitAction2<FileImportAction, FolderModel*, HWND>(
+		pActionMap_, IDM_FILE_IMPORT, pFolderModel_, pThis_->getHandle());
 	CHECK_QSTATUS();
 	status = InitAction1<FileOfflineAction, Document*>(
 		pActionMap_, IDM_FILE_OFFLINE, pDocument_);
@@ -350,8 +350,8 @@ QSTATUS qm::MainWindowImpl::initActions()
 	status = InitAction1<FolderCompactAction, FolderModel*>(
 		pActionMap_, IDM_FOLDER_COMPACT, pFolderModel_);
 	CHECK_QSTATUS();
-	status = InitAction1<FolderCreateAction, FolderSelectionModel*>(
-		pActionMap_, IDM_FOLDER_CREATE, this);
+	status = InitAction2<FolderCreateAction, FolderSelectionModel*, HWND>(
+		pActionMap_, IDM_FOLDER_CREATE, this, pThis_->getHandle());
 	CHECK_QSTATUS();
 	status = InitAction1<FolderDeleteAction, FolderSelectionModel*>(
 		pActionMap_, IDM_FOLDER_DELETE, this);
@@ -482,10 +482,10 @@ QSTATUS qm::MainWindowImpl::initActions()
 	status = InitAction2<MessagePropertyAction, MessageSelectionModel*, HWND>(
 		pActionMap_, IDM_MESSAGE_PROPERTY, pMessageSelectionModel_, pThis_->getHandle());
 	CHECK_QSTATUS();
-	status = InitAction4<ToolAccountAction, Document*,
-		FolderModel*, SyncFilterManager*, Profile*>(
+	status = InitAction5<ToolAccountAction, Document*,
+		FolderModel*, SyncFilterManager*, Profile*, HWND>(
 		pActionMap_, IDM_TOOL_ACCOUNT, pDocument_, pFolderModel_,
-		pSyncManager_->getSyncFilterManager(), pProfile_);
+		pSyncManager_->getSyncFilterManager(), pProfile_, pThis_->getHandle());
 	CHECK_QSTATUS();
 	status = InitAction1<ToolCheckNewMailAction, Document*>(
 		pActionMap_, IDM_TOOL_CHECKNEWMAIL, pDocument_);
@@ -552,8 +552,8 @@ QSTATUS qm::MainWindowImpl::initActions()
 		pActionMap_, IDM_VIEW_FILTER, pViewModelManager_,
 		pViewModelManager_->getFilterManager());
 	CHECK_QSTATUS();
-	status = InitAction1<ViewFilterCustomAction, ViewModelManager*>(
-		pActionMap_, IDM_VIEW_FILTERCUSTOM, pViewModelManager_);
+	status = InitAction2<ViewFilterCustomAction, ViewModelManager*, HWND>(
+		pActionMap_, IDM_VIEW_FILTERCUSTOM, pViewModelManager_, pThis_->getHandle());
 	CHECK_QSTATUS();
 	status = InitAction1<ViewFilterNoneAction, ViewModelManager*>(
 		pActionMap_, IDM_VIEW_FILTERNONE, pViewModelManager_);
