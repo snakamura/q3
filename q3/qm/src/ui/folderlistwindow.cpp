@@ -45,6 +45,7 @@ class qm::FolderListWindowImpl :
 public:
 	QSTATUS loadColumns();
 	QSTATUS saveColumns();
+	QSTATUS setCurrentAccount(Account* pAccount, bool bShowSize);
 	QSTATUS open(int nItem);
 	Folder* getFolder(int nItem) const;
 
@@ -59,7 +60,6 @@ private:
 	LRESULT onItemChanged(NMHDR* pnmhdr, bool* pbHandled);
 
 private:
-	QSTATUS setCurrentAccount(Account* pAccount);
 	QSTATUS updateFolderListModel();
 
 private:
@@ -77,6 +77,7 @@ public:
 	
 	UINT nId_;
 	HFONT hfont_;
+	bool bSizeShown_;
 	bool bInserting_;
 };
 
@@ -143,6 +144,99 @@ QSTATUS qm::FolderListWindowImpl::saveColumns()
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qm::FolderListWindowImpl::setCurrentAccount(
+	Account* pAccount, bool bShowSize)
+{
+	DECLARE_QSTATUS();
+	
+	DisableRedraw disable(pThis_->getHandle());
+	
+	ListView_DeleteAllItems(pThis_->getHandle());
+	
+	if (pAccount) {
+		const Account::FolderList& l = pAccount->getFolders();
+		typedef std::vector<std::pair<Folder*, std::pair<unsigned int, unsigned int> > > FolderList;
+		FolderList listFolder;
+		status = STLWrapper<FolderList>(listFolder).reserve(l.size());
+		CHECK_QSTATUS();
+		Account::FolderList::const_iterator it = l.begin();
+		while (it != l.end()) {
+			Folder* pFolder = *it;
+			unsigned int nSize = 0;
+			unsigned int nBoxSize = 0;
+			if (bShowSize) {
+				status = pFolder->getSize(&nSize);
+				CHECK_QSTATUS();
+				status = pFolder->getBoxSize(&nBoxSize);
+				CHECK_QSTATUS();
+			}
+			listFolder.push_back(std::make_pair(pFolder,
+				std::make_pair(nSize, nBoxSize)));
+			++it;
+		}
+		std::sort(listFolder.begin(), listFolder.end(),
+			binary_compose_f_gx_hy(
+				FolderLess(),
+				std::select1st<FolderList::value_type>(),
+				std::select1st<FolderList::value_type>()));
+		
+		bInserting_ = true;
+		
+		for (FolderList::size_type n = 0; n < listFolder.size(); ++n) {
+			Folder* pFolder = listFolder[n].first;
+			
+			W2T(pFolder->getName(), ptszName);
+			
+			LVITEM item = {
+				LVIF_IMAGE | LVIF_INDENT | LVIF_TEXT | LVIF_PARAM,
+				n,
+				0,
+				0,
+				0,
+				const_cast<LPTSTR>(ptszName),
+				0,
+				UIUtil::getFolderImage(pFolder, false),
+				reinterpret_cast<LPARAM>(pFolder),
+				getIndent(pFolder)
+			};
+			int nItem = ListView_InsertItem(pThis_->getHandle(), &item);
+			
+			TCHAR tsz[64];
+			wsprintf(tsz, _T("%d"), pFolder->getId());
+			ListView_SetItemText(pThis_->getHandle(), nItem, 1, tsz);
+			wsprintf(tsz, _T("%d"), pFolder->getCount());
+			ListView_SetItemText(pThis_->getHandle(), nItem, 2, tsz);
+			wsprintf(tsz, _T("%d"), pFolder->getUnseenCount());
+			ListView_SetItemText(pThis_->getHandle(), nItem, 3, tsz);
+			if (bShowSize) {
+				unsigned int nSize = listFolder[n].second.first;
+				unsigned int nBoxSize = listFolder[n].second.second;
+				unsigned int nDescendantSize = nSize;
+				unsigned int nDescendantBoxSize = nBoxSize;
+				for (FolderList::size_type m = n + 1; m < listFolder.size(); ++m) {
+					if (!pFolder->isAncestorOf(listFolder[m].first))
+						break;
+					nDescendantSize += listFolder[m].second.first;
+					nDescendantBoxSize += listFolder[m].second.second;
+				}
+				wsprintf(tsz, _T("%d/%dKB (%d/%dKB)"), nBoxSize/1024,
+					nSize/1024, nDescendantBoxSize/1024, nDescendantSize/1024);
+				ListView_SetItemText(pThis_->getHandle(), nItem, 4, tsz);
+			}
+			
+			if (!pFolder->isFlag(Folder::FLAG_HIDE))
+				ListView_SetCheckState(pThis_->getHandle(), nItem, TRUE);
+		}
+		
+		bSizeShown_ = bShowSize;
+		bInserting_ = false;
+	}
+	
+	updateFolderListModel();
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::FolderListWindowImpl::open(int nItem)
 {
 	DECLARE_QSTATUS();
@@ -181,12 +275,12 @@ LRESULT qm::FolderListWindowImpl::onNotify(NMHDR* pnmhdr, bool* pbHandled)
 
 QSTATUS qm::FolderListWindowImpl::accountChanged(const FolderListModelEvent& event)
 {
-	return setCurrentAccount(pFolderListModel_->getAccount());
+	return setCurrentAccount(pFolderListModel_->getAccount(), false);
 }
 
 QSTATUS qm::FolderListWindowImpl::folderListChanged(const FolderListModelEvent& event)
 {
-	return setCurrentAccount(pFolderListModel_->getAccount());
+	return setCurrentAccount(pFolderListModel_->getAccount(), false);
 }
 
 LRESULT qm::FolderListWindowImpl::onItemChanged(NMHDR* pnmhdr, bool* pbHandled)
@@ -204,93 +298,6 @@ LRESULT qm::FolderListWindowImpl::onItemChanged(NMHDR* pnmhdr, bool* pbHandled)
 	updateFolderListModel();
 	
 	return 0;
-}
-
-QSTATUS qm::FolderListWindowImpl::setCurrentAccount(Account* pAccount)
-{
-	DECLARE_QSTATUS();
-	
-	DisableRedraw disable(pThis_->getHandle());
-	
-	ListView_DeleteAllItems(pThis_->getHandle());
-	
-	if (pAccount) {
-		const Account::FolderList& l = pAccount->getFolders();
-		typedef std::vector<std::pair<Folder*, std::pair<unsigned int, unsigned int> > > FolderList;
-		FolderList listFolder;
-		status = STLWrapper<FolderList>(listFolder).reserve(l.size());
-		CHECK_QSTATUS();
-		Account::FolderList::const_iterator it = l.begin();
-		while (it != l.end()) {
-			Folder* pFolder = *it;
-			unsigned int nSize = 0;
-			status = pFolder->getSize(&nSize);
-			CHECK_QSTATUS();
-			unsigned int nBoxSize = 0;
-			status = pFolder->getBoxSize(&nBoxSize);
-			CHECK_QSTATUS();
-			listFolder.push_back(std::make_pair(pFolder,
-				std::make_pair(nSize, nBoxSize)));
-			++it;
-		}
-		std::sort(listFolder.begin(), listFolder.end(),
-			binary_compose_f_gx_hy(
-				FolderLess(),
-				std::select1st<FolderList::value_type>(),
-				std::select1st<FolderList::value_type>()));
-		
-		bInserting_ = true;
-		
-		for (FolderList::size_type n = 0; n < listFolder.size(); ++n) {
-			Folder* pFolder = listFolder[n].first;
-			unsigned int nSize = listFolder[n].second.first;
-			unsigned int nBoxSize = listFolder[n].second.second;
-			unsigned int nDescendantSize = nSize;
-			unsigned int nDescendantBoxSize = nBoxSize;
-			for (FolderList::size_type m = n + 1; m < listFolder.size(); ++m) {
-				if (!pFolder->isAncestorOf(listFolder[m].first))
-					break;
-				nDescendantSize += listFolder[m].second.first;
-				nDescendantBoxSize += listFolder[m].second.second;
-			}
-			
-			W2T(pFolder->getName(), ptszName);
-			
-			LVITEM item = {
-				LVIF_IMAGE | LVIF_INDENT | LVIF_TEXT | LVIF_PARAM,
-				n,
-				0,
-				0,
-				0,
-				const_cast<LPTSTR>(ptszName),
-				0,
-				UIUtil::getFolderImage(pFolder, false),
-				reinterpret_cast<LPARAM>(pFolder),
-				getIndent(pFolder)
-			};
-			int nItem = ListView_InsertItem(pThis_->getHandle(), &item);
-			
-			TCHAR tsz[64];
-			wsprintf(tsz, _T("%d"), pFolder->getId());
-			ListView_SetItemText(pThis_->getHandle(), nItem, 1, tsz);
-			wsprintf(tsz, _T("%d"), pFolder->getCount());
-			ListView_SetItemText(pThis_->getHandle(), nItem, 2, tsz);
-			wsprintf(tsz, _T("%d"), pFolder->getUnseenCount());
-			ListView_SetItemText(pThis_->getHandle(), nItem, 3, tsz);
-			wsprintf(tsz, _T("%d/%dKB (%d/%dKB)"), nBoxSize/1024,
-				nSize/1024, nDescendantBoxSize/1024, nDescendantSize/1024);
-			ListView_SetItemText(pThis_->getHandle(), nItem, 4, tsz);
-			
-			if (!pFolder->isFlag(Folder::FLAG_HIDE))
-				ListView_SetCheckState(pThis_->getHandle(), nItem, TRUE);
-		}
-		
-		bInserting_ = false;
-	}
-	
-	updateFolderListModel();
-	
-	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::FolderListWindowImpl::updateFolderListModel()
@@ -367,6 +374,7 @@ qm::FolderListWindow::FolderListWindow(WindowBase* pParentWindow,
 	pImpl_->pDocument_ = 0;
 	pImpl_->nId_ = 0;
 	pImpl_->hfont_ = 0;
+	pImpl_->bSizeShown_ = false;
 	pImpl_->bInserting_ = false;
 	
 	setWindowHandler(this, false);
@@ -389,6 +397,24 @@ qm::FolderListWindow::~FolderListWindow()
 QSTATUS qm::FolderListWindow::save()
 {
 	return pImpl_->saveColumns();
+}
+
+bool qm::FolderListWindow::isSizeShown() const
+{
+	return pImpl_->bSizeShown_;
+}
+
+QSTATUS qm::FolderListWindow::showSize()
+{
+	DECLARE_QSTATUS();
+	
+	if (!pImpl_->bSizeShown_) {
+		status = pImpl_->setCurrentAccount(
+			pImpl_->pFolderListModel_->getAccount(), true);
+		CHECK_QSTATUS();
+	}
+	
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::FolderListWindow::getSuperClass(WSTRING* pwstrSuperClass)

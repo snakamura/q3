@@ -21,6 +21,8 @@
 			<menuitem text="&amp;Emptry" action="FolderEmpty"/>
 			<menuitem text="C&amp;ompact" action="FolderCompact"/>
 			<separator/>
+			<menuitem text="&amp;Show Size" action="FolderShowSize"/>
+			<separator/>
 			<menuitem text="&amp;Property..." action="FolderProperty"/>
 		</popupmenu>
 		<popupmenu text="&amp;Edit">
@@ -250,6 +252,8 @@
 		<menuitem text="&amp;Emptry" action="FolderEmpty"/>
 		<menuitem text="C&amp;ompact" action="FolderCompact"/>
 		<separator/>
+		<menuitem text="&amp;Show Size" action="FolderShowSize"/>
+		<separator/>
 		<menuitem text="&amp;Property..." action="FolderProperty"/>
 	</menu>
 	<menu name="folderlist">
@@ -259,6 +263,8 @@
 		<separator/>
 		<menuitem text="&amp;Emptry" action="FolderEmpty"/>
 		<menuitem text="C&amp;ompact" action="FolderCompact"/>
+		<separator/>
+		<menuitem text="&amp;Show Size" action="FolderShowSize"/>
 		<separator/>
 		<menuitem text="&amp;Property..." action="FolderProperty"/>
 	</menu>

@@ -44,6 +44,8 @@ public:
 
 public:
 	qs::QSTATUS save();
+	bool isSizeShown() const;
+	qs::QSTATUS showSize();
 
 public:
 	virtual qs::QSTATUS getSuperClass(qs::WSTRING* pwstrSuperClass);

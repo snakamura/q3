@@ -10,6 +10,7 @@
 #include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmfolder.h>
+#include <qmfolderlistwindow.h>
 #include <qmgoround.h>
 #include <qmlistwindow.h>
 #include <qmmainwindow.h>
@@ -1785,6 +1786,36 @@ QSTATUS qm::FolderUpdateAction::isEnabled(const ActionEvent& event, bool* pbEnab
 	}
 	*pbEnabled = pAccount && pAccount->isSupport(Account::SUPPORT_REMOTEFOLDER);
 	
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * FolderShowSizeAction
+ *
+ */
+
+qm::FolderShowSizeAction::FolderShowSizeAction(
+	FolderListWindow* pFolderListWindow, QSTATUS* pstatus) :
+	pFolderListWindow_(pFolderListWindow)
+{
+}
+
+qm::FolderShowSizeAction::~FolderShowSizeAction()
+{
+}
+
+QSTATUS qm::FolderShowSizeAction::invoke(const ActionEvent& event)
+{
+	return pFolderListWindow_->showSize();
+}
+
+QSTATUS qm::FolderShowSizeAction::isEnabled(
+	const ActionEvent& event, bool* pbEnabled)
+{
+	*pbEnabled = pFolderListWindow_->isShow() &&
+		!pFolderListWindow_->isSizeShown();
 	return QSTATUS_SUCCESS;
 }
 

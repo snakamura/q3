@@ -266,7 +266,8 @@
 #define IDM_FOLDER_DELETE               42003
 #define IDM_FOLDER_EMPTY                42004
 #define IDM_FOLDER_PROPERTY             42005
-#define IDM_FOLDER_UPDATE               42006
+#define IDM_FOLDER_SHOWSIZE             42006
+#define IDM_FOLDER_UPDATE               42007
 #define IDM_MESSAGE_APPLYRULE           43001
 #define IDM_MESSAGE_APPLYRULESELECTED   43002
 #define IDM_MESSAGE_APPLYTEMPLATENONE   43003

@@ -46,6 +46,7 @@ class FolderCompactAction;
 class FolderCreateAction;
 class FolderDeleteAction;
 class FolderPropertyAction;
+class FolderShowSizeAction;
 class FolderUpdateAction;
 class MessageApplyRuleAction;
 class MessageApplyTemplateAction;
@@ -102,6 +103,7 @@ class ExternalEditorManager;
 class Filter;
 class FilterMenu;
 class FindReplaceManager;
+class FolderListWindow;
 class FolderModel;
 class FolderSelectionModel;
 class GoRound;
@@ -812,6 +814,31 @@ private:
 private:
 	FolderSelectionModel* pModel_;
 	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * FolderShowSizeAction
+ *
+ */
+
+class FolderShowSizeAction : public qs::AbstractAction
+{
+public:
+	FolderShowSizeAction(FolderListWindow* pFolderListWindow, qs::QSTATUS* pstatus);
+	virtual ~FolderShowSizeAction();
+
+public:
+	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+
+private:
+	FolderShowSizeAction(const FolderShowSizeAction&);
+	FolderShowSizeAction& operator=(const FolderShowSizeAction&);
+
+private:
+	FolderListWindow* pFolderListWindow_;
 };
 
 

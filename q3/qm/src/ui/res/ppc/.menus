@@ -233,6 +233,8 @@
 		<menuitem text="Emptry" action="FolderEmpty"/>
 		<menuitem text="Compact" action="FolderCompact"/>
 		<separator/>
+		<menuitem text="Show Size" action="FolderShowSize"/>
+		<separator/>
 		<menuitem text="Property..." action="FolderProperty"/>
 	</menu>
 	<menu name="folderlist">
@@ -242,6 +244,8 @@
 		<separator/>
 		<menuitem text="Emptry" action="FolderEmpty"/>
 		<menuitem text="Compact" action="FolderCompact"/>
+		<separator/>
+		<menuitem text="Show Size" action="FolderShowSize"/>
 		<separator/>
 		<menuitem text="Property..." action="FolderProperty"/>
 	</menu>

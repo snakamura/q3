@@ -362,6 +362,9 @@ QSTATUS qm::MainWindowImpl::initActions()
 	status = InitAction1<FolderUpdateAction, FolderModel*>(
 		pActionMap_, IDM_FOLDER_UPDATE, pFolderModel_);
 	CHECK_QSTATUS();
+	status = InitAction1<FolderShowSizeAction, FolderListWindow*>(
+		pActionMap_, IDM_FOLDER_SHOWSIZE, pFolderListWindow_);
+	CHECK_QSTATUS();
 	status = InitAction6<MessageApplyRuleAction, RuleManager*,
 		FolderModel*, ViewModelManager*, Document*, HWND, Profile*>(
 		pActionMap_, IDM_MESSAGE_APPLYRULE, pDocument_->getRuleManager(),
