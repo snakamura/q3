@@ -21,6 +21,7 @@
 
 #include "main.h"
 #include "../ui/dialogs.h"
+#include "../ui/resourceinc.h"
 
 using namespace qm;
 using namespace qs;
@@ -393,19 +394,16 @@ QSTATUS qm::MailFolderLock::lock(const WCHAR* pwszMailFolder, bool* pbContinue)
 		string_ptr<WSTRING> wstrName;
 		status = read(hFile.get(), 0, &wstrName);
 		CHECK_QSTATUS();
-		// TODO
-		// Load from resource
-		StringBuffer<WSTRING> buf(&status);
+		
+		string_ptr<WSTRING> wstrTemplate;
+		status = loadString(g_hInstDll, IDS_CONFIRM_IGNORELOCK, &wstrTemplate);
 		CHECK_QSTATUS();
-		status = buf.append(L"This mail folder is locked by '");
-		CHECK_QSTATUS();
-		status = buf.append(wstrName.get());
-		CHECK_QSTATUS();
-		status = buf.append(L"'\nWould you like to continue?");
-		CHECK_QSTATUS();
+		string_ptr<WSTRING> wstrMessage(allocWString(
+			wcslen(wstrTemplate.get()) + wcslen(wstrName.get())));
+		swprintf(wstrMessage.get(), wstrTemplate.get(), wstrName.get());
 		
 		int nRet= 0;
-		status = messageBox(buf.getCharArray(),
+		status = messageBox(wstrMessage.get(),
 			MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2, &nRet);
 		CHECK_QSTATUS();
 		*pbContinue = nRet == IDYES;

@@ -135,6 +135,7 @@
 #define IDC_USER4                       1045
 #define IDS_IMPORT                      1045
 #define IDC_FROM                        1046
+#define IDS_CONFIRM_IGNORELOCK          1046
 #define IDC_PATH                        1047
 #define IDC_ENCODING                    1051
 #define IDC_TEMPLATE                    1052

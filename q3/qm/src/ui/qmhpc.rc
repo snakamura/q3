@@ -971,6 +971,7 @@ BEGIN
     IDS_FOLDERTYPETEMPLATE  "%s (%s)"
     IDS_EXPORT              "Exporting..."
     IDS_IMPORT              "Importing..."
+    IDS_CONFIRM_IGNORELOCK  "This mail folder is locked by '%s'.\nWould you like to continue?"
 END
 
 #endif    // Japanese resources
