@@ -10,6 +10,7 @@
 
 #include <qstheme.h>
 
+#include <tchar.h>
 #include <uxtheme.h>
 
 using namespace qs;
@@ -42,7 +43,7 @@ qs::Theme::Theme(HWND hwnd,
 	pImpl_->hInstUxTheme_ = 0;
 	pImpl_->hTheme_ = 0;
 	
-	pImpl_->hInstUxTheme_ = ::LoadLibrary(L"uxtheme.dll");
+	pImpl_->hInstUxTheme_ = ::LoadLibrary(_T("uxtheme.dll"));
 	if (pImpl_->hInstUxTheme_) {
 		typedef BOOL (WINAPI *PFN_ISTHEMEACTIVE)();
 		PFN_ISTHEMEACTIVE pfnIsThemeActive = reinterpret_cast<PFN_ISTHEMEACTIVE>(
