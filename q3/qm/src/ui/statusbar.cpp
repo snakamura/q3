@@ -41,6 +41,12 @@ bool qm::StatusBar::setText(int n,
 	return sendMessage(SB_SETTEXT, n, reinterpret_cast<LPARAM>(ptszText)) != 0;
 }
 
+bool qm::StatusBar::setIcon(int n,
+							HICON hIcon)
+{
+	return sendMessage(SB_SETICON, n, reinterpret_cast<LPARAM>(hIcon)) != 0;
+}
+
 void qm::StatusBar::setSimple(bool bSimple)
 {
 	sendMessage(SB_SIMPLE, bSimple);

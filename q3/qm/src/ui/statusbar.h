@@ -35,6 +35,8 @@ public:
 				 size_t nCount);
 	bool setText(int n,
 				 const WCHAR* pwszText);
+	bool setIcon(int n,
+				 HICON hIcon);
 	void setSimple(bool bSimple);
 
 public:

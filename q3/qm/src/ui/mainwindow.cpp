@@ -1341,8 +1341,8 @@ void qm::MainWindowImpl::layoutChildren(int cx,
 #ifdef _WIN32_WCE_PSPC
 			int nWidth[] = {
 				cx - 110,
-				cx - 70,
-				cx - 50,
+				cx - 78,
+				cx - 54,
 				cx - 30,
 				-1
 			};
@@ -1352,8 +1352,8 @@ void qm::MainWindowImpl::layoutChildren(int cx,
 				cx - 310,
 				cx - 230,
 				cx - 150,
-				cx - 70,
-				cx - 50,
+				cx - 78,
+				cx - 54,
 				cx - 30,
 				-1
 			};

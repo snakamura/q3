@@ -76,6 +76,9 @@ public:
 								MessageHolder* pmh,
 								Message& msg,
 								const qs::ContentTypeParser* pContentType);
+	static void setStatusBarIcon(StatusBar* pStatusBar,
+								 int nPart,
+								 UINT nIcon);
 	
 	static qs::wstring_ptr writeTemporaryFile(const WCHAR* pwszValue,
 											  const WCHAR* pwszPrefix,

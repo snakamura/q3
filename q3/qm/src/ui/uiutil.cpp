@@ -253,20 +253,20 @@ void qm::UIUtil::updateStatusBar(MessageWindow* pMessageWindow,
 		pStatusBar->setText(nOffset + 2, pwszTemplate);
 #endif
 		
-		// TODO
-		// Use icon
 		unsigned int nSecurity = msg.getSecurity();
 		if (nSecurity & Message::SECURITY_DECRYPTED)
-			pStatusBar->setText(nOffset + 3, L"D");
+			setStatusBarIcon(pStatusBar, nOffset + 3, IDI_DECRYPTED);
 		else
-			pStatusBar->setText(nOffset + 3, L"");
-		if (nSecurity & Message::SECURITY_VERIFIED)
-			pStatusBar->setText(nOffset + 4, L"V");
-		else if ((nSecurity & Message::SECURITY_VERIFICATIONFAILED) ||
-				 (nSecurity & Message::SECURITY_ADDRESSNOTMATCH))
-			pStatusBar->setText(nOffset + 4, L"X");
+			setStatusBarIcon(pStatusBar, nOffset + 3, 0);
+		
+		HICON hIconVerified = 0;
+		if ((nSecurity & Message::SECURITY_VERIFICATIONFAILED) ||
+			(nSecurity & Message::SECURITY_ADDRESSNOTMATCH))
+			setStatusBarIcon(pStatusBar, nOffset + 4, IDI_UNVERIFIED);
+		else if (nSecurity & Message::SECURITY_VERIFIED)
+			setStatusBarIcon(pStatusBar, nOffset + 4, IDI_VERIFIED);
 		else
-			pStatusBar->setText(nOffset + 4, L"");
+			setStatusBarIcon(pStatusBar, nOffset + 4, 0);
 	}
 	else {
 #ifdef _WIN32_WCE_PSPC
@@ -277,6 +277,18 @@ void qm::UIUtil::updateStatusBar(MessageWindow* pMessageWindow,
 		for (int n = 1; n < nMax; ++n)
 			pStatusBar->setText(nOffset + n, L"");
 	}
+}
+
+void qm::UIUtil::setStatusBarIcon(StatusBar* pStatusBar,
+								  int nPart,
+								  UINT nIcon)
+{
+	HICON hIcon = 0;
+	if (nIcon != 0)
+		hIcon = reinterpret_cast<HICON>(::LoadImage(
+			Application::getApplication().getResourceHandle(),
+			MAKEINTRESOURCE(nIcon), IMAGE_ICON, 16, 16, LR_SHARED));
+	pStatusBar->setIcon(nPart, hIcon);
 }
 
 wstring_ptr qm::UIUtil::writeTemporaryFile(const WCHAR* pwszValue,
