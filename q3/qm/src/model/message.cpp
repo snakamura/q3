@@ -1708,37 +1708,35 @@ void qm::AttachmentParser::getAttachments(bool bIncludeDeleted,
 		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it)
 			AttachmentParser(**it).getAttachments(bIncludeDeleted, pList);
 	}
+	else if (util.isAttachment()) {
+		wstring_ptr wstrName(getName());
+		if (!wstrName.get() || !*wstrName.get())
+			wstrName = allocWString(L"Untitled");
+		wstring_ptr wstrOrigName = allocWString(wstrName.get());
+		
+		int n = 1;
+		while (true) {
+			AttachmentList::iterator it = std::find_if(
+				pList->begin(), pList->end(),
+				std::bind2nd(
+					binary_compose_f_gx_hy(
+						string_equal<WCHAR>(),
+						std::select1st<AttachmentList::value_type>(),
+						std::identity<const WCHAR*>()),
+					wstrName.get()));
+			if (it == pList->end())
+				break;
+			
+			WCHAR wsz[32];
+			swprintf(wsz, L"[%d]", n++);
+			wstrName = concat(wstrOrigName.get(), wsz);
+		}
+		pList->push_back(AttachmentList::value_type(
+			wstrName.get(), const_cast<Part*>(&part_)));
+		wstrName.release();
+	}
 	else if (part_.getEnclosedPart()) {
 		AttachmentParser(*part_.getEnclosedPart()).getAttachments(bIncludeDeleted, pList);
-	}
-	else {
-		if (util.isAttachment()) {
-			wstring_ptr wstrName(getName());
-			if (!wstrName.get() || !*wstrName.get())
-				wstrName = allocWString(L"Untitled");
-			wstring_ptr wstrOrigName = allocWString(wstrName.get());
-			
-			int n = 1;
-			while (true) {
-				AttachmentList::iterator it = std::find_if(
-					pList->begin(), pList->end(),
-					std::bind2nd(
-						binary_compose_f_gx_hy(
-							string_equal<WCHAR>(),
-							std::select1st<AttachmentList::value_type>(),
-							std::identity<const WCHAR*>()),
-						wstrName.get()));
-				if (it == pList->end())
-					break;
-				
-				WCHAR wsz[32];
-				swprintf(wsz, L"[%d]", n++);
-				wstrName = concat(wstrOrigName.get(), wsz);
-			}
-			pList->push_back(AttachmentList::value_type(
-				wstrName.get(), const_cast<Part*>(&part_)));
-			wstrName.release();
-		}
 	}
 }
 
@@ -1791,17 +1789,27 @@ AttachmentParser::Result qm::AttachmentParser::detach(const WCHAR* pwszDir,
 		return RESULT_FAIL;
 	BufferedOutputStream bufferedStream(&stream, false);
 	
-	const CHAR* pBody = part_.getBody();
-	size_t nLen = strlen(pBody);
-	const unsigned char* p = reinterpret_cast<const unsigned char*>(pBody);
-	if (pEncoder.get()) {
-		ByteInputStream inputStream(p, nLen, false);
-		if (!pEncoder->decode(&inputStream, &bufferedStream))
+	const Part* pEnclosedPart = part_.getEnclosedPart();
+	if (pEnclosedPart) {
+		xstring_ptr strContent(pEnclosedPart->getContent());
+		size_t nLen = strlen(strContent.get());
+		const unsigned char* p = reinterpret_cast<const unsigned char*>(strContent.get());
+		if (bufferedStream.write(p, nLen) != nLen)
 			return RESULT_FAIL;
 	}
 	else {
-		if (bufferedStream.write(p, nLen) != nLen)
-			return RESULT_FAIL;
+		const CHAR* pBody = part_.getBody();
+		size_t nLen = strlen(pBody);
+		const unsigned char* p = reinterpret_cast<const unsigned char*>(pBody);
+		if (pEncoder.get()) {
+			ByteInputStream inputStream(p, nLen, false);
+			if (!pEncoder->decode(&inputStream, &bufferedStream))
+				return RESULT_FAIL;
+		}
+		else {
+			if (bufferedStream.write(p, nLen) != nLen)
+				return RESULT_FAIL;
+		}
 	}
 	
 	if (!bufferedStream.close())
@@ -1831,8 +1839,19 @@ void qm::AttachmentParser::removeAttachments(Part* pPart)
 			removeAttachments(*it);
 	}
 	else {
-		if (util.isAttachment())
-			pPart->setBody("", 0);
+		Part* pEnclosedPart = pPart->getEnclosedPart();
+		if (util.isAttachment()) {
+			if (pEnclosedPart) {
+				pEnclosedPart->setBody("", 0);
+				pEnclosedPart->setHeader("");
+			}
+			else {
+				pPart->setBody("", 0);
+			}
+		}
+		else if (pEnclosedPart) {
+			removeAttachments(pEnclosedPart);
+		}
 	}
 }
 

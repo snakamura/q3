@@ -922,7 +922,7 @@ Part* qs::Part::getParentPart() const
 	return pParent_;
 }
 
-const Part* qs::Part::getEnclosedPart() const
+Part* qs::Part::getEnclosedPart() const
 {
 	return pPartEnclosed_.get();
 }

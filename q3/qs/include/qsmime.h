@@ -191,7 +191,7 @@ public:
 	Part* getParentPart() const;
 
 public:
-	const Part* getEnclosedPart() const;
+	Part* getEnclosedPart() const;
 	void setEnclosedPart(std::auto_ptr<Part> pPart);
 
 public:
