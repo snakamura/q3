@@ -75,7 +75,7 @@ qs::ToolbarManager::ToolbarManager(const WCHAR* pwszPath, HBITMAP hBitmap,
 	UINT nFlags = ILC_COLOR32 | ILC_MASK;
 #endif
 	HIMAGELIST hImageList = ImageList_Create(16, 16, nFlags, 16, 16);
-	ImageList_AddMasked(hImageList, hBitmap, RGB(198, 195, 198));
+	ImageList_AddMasked(hImageList, hBitmap, RGB(192, 192, 192));
 	
 	status = newObject(&pImpl_);
 	CHECK_QSTATUS_SET(pstatus);
