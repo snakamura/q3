@@ -1629,6 +1629,9 @@ BEGIN
                     5,125,27,10
     CONTROL         "&New Line",IDC_SHOWNEWLINE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,5,135,43,10
+    CONTROL         "H&ide header while editing a body",
+                    IDC_HIDEHEADERIFNOFOCUS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,145,115,10
     PUSHBUTTON      "&Font...",IDC_FONT,130,10,50,14
     PUSHBUTTON      "Co&lors...",IDC_COLORS,130,25,50,14
     PUSHBUTTON      "H&eader Font...",IDC_HEADERFONT,130,40,50,14

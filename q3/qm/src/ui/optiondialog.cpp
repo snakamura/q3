@@ -1814,8 +1814,13 @@ LRESULT qm::AbstractOptionTextDialog::onWrapChange(UINT nId)
  */
 
 DialogUtil::BoolProperty qm::OptionEditDialog::boolProperties__[] = {
-	{ L"ShowTab",		IDC_SHOWTAB,		true	},
-	{ L"ShowNewLine",	IDC_SHOWNEWLINE,	true	}
+	{ L"ShowTab",				IDC_SHOWTAB,				true	},
+	{ L"ShowNewLine",			IDC_SHOWNEWLINE,			true	},
+#ifdef _WIN32_WCE
+	{ L"HideHeaderIfNoFocus",	IDC_HIDEHEADERIFNOFOCUS,	true	}
+#else
+	{ L"HideHeaderIfNoFocus",	IDC_HIDEHEADERIFNOFOCUS,	false	}
+#endif
 };
 
 qm::OptionEditDialog::OptionEditDialog(EditFrameWindowManager* pEditFrameWindowManager,

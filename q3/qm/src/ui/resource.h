@@ -485,6 +485,7 @@
 #define IDC_AUTOLEARN                   1375
 #define IDC_THRESHOLD                   1376
 #define IDC_MAXSIZE                     1377
+#define IDC_HIDEHEADERIFNOFOCUS         1379
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -576,7 +577,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        209
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1378
+#define _APS_NEXT_CONTROL_VALUE         1380
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

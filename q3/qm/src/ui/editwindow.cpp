@@ -58,6 +58,7 @@ public:
 	void layoutChildren(int cx,
 						int cy);
 	bool updateEditMessage() const;
+	void reloadProfiles(bool bInitialize);
 
 public:
 	virtual void copy();
@@ -178,6 +179,14 @@ bool qm::EditWindowImpl::updateEditMessage() const
 	}
 	
 	return true;
+}
+
+void qm::EditWindowImpl::reloadProfiles(bool bInitialize)
+{
+	bHideHeaderIfNoFocus_ = pProfile_->getInt(L"EditWindow", L"HideHeaderIfNoFocus", 0) != 0;
+	
+	if (!bInitialize)
+		layoutChildren();
 }
 
 void qm::EditWindowImpl::copy()
@@ -399,7 +408,7 @@ qm::EditWindow::EditWindow(Profile* pProfile) :
 {
 	pImpl_ = new EditWindowImpl();
 	pImpl_->pThis_ = this;
-	pImpl_->bHideHeaderIfNoFocus_ = pProfile->getInt(L"EditWindow", L"HideHeaderIfNoFocus", 0) != 0;
+	pImpl_->bHideHeaderIfNoFocus_ = false;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pEditMessage_ = 0;
 	pImpl_->pHeaderEditWindow_ = 0;
@@ -409,6 +418,8 @@ qm::EditWindow::EditWindow(Profile* pProfile) :
 	pImpl_->bHeaderEdit_ = false;
 	pImpl_->pLastFocusedItem_ = 0;
 	pImpl_->bCanDrop_ = false;
+	
+	pImpl_->reloadProfiles(true);
 	
 	setWindowHandler(this, false);
 }
@@ -491,6 +502,7 @@ void qm::EditWindow::reloadProfiles()
 {
 	pImpl_->pHeaderEditWindow_->reloadProfiles();
 	pImpl_->pTextWindow_->reloadProfiles(pImpl_->pProfile_, L"EditWindow");
+	pImpl_->reloadProfiles(false);
 }
 
 Accelerator* qm::EditWindow::getAccelerator()
