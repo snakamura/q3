@@ -789,6 +789,7 @@ STDMETHODIMP qmscript::MessageImpl::get_content(VARIANT* pvarContent)
 
 STDMETHODIMP qmscript::MessageImpl::get_bodyText(BSTR bstrQuote,
 												 BSTR bstrCharset,
+												 VARIANT_BOOL bForceRfc822Inline,
 												 BSTR* pbstrBody)
 {
 	const WCHAR* pwszQuote = 0;
@@ -798,7 +799,8 @@ STDMETHODIMP qmscript::MessageImpl::get_bodyText(BSTR bstrQuote,
 	if (bstrCharset && *bstrCharset)
 		pwszCharset = bstrCharset;
 	
-	wxstring_ptr wstrBody(PartUtil(msg_).getBodyText(pwszQuote, pwszCharset));
+	wxstring_ptr wstrBody(PartUtil(msg_).getBodyText(pwszQuote,
+		pwszCharset, bForceRfc822Inline == VARIANT_TRUE));
 	if (!wstrBody.get())
 		return E_FAIL;
 	

@@ -9,4 +9,4 @@ X-QMAIL-Account: {@Account()}{@If(X-QMAIL-SubAccount, @Concat('\nX-QMAIL-SubAcco
 X-QMAIL-Macro: @ForEach(@Messages('{@Concat('//', @Account(), '/', @Folder())}', {@Id()}), @Delete())
 X-QMAIL-Attachment: {@Attachment(',', @True())}
 
-{@Body('', @True())}
+{@Body('', 2)}

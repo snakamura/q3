@@ -281,7 +281,7 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 			wstrText = allocWXString(wstr.get());
 		}
 		else if (nFlags & FLAG_INCLUDEHEADER) {
-			wstrText = util.getFormattedText(false, pwszEncoding);
+			wstrText = util.getFormattedText(false, pwszEncoding, true);
 		}
 		else {
 			const Part* pPart = 0;
@@ -289,9 +289,9 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 				pPart = util.getAlternativePart(L"text", L"plain");
 			
 			if (pPart)
-				wstrText = PartUtil(*pPart).getBodyText(0, pwszEncoding);
+				wstrText = PartUtil(*pPart).getBodyText(0, pwszEncoding, true);
 			else
-				wstrText = util.getBodyText(0, pwszEncoding);
+				wstrText = util.getBodyText(0, pwszEncoding, true);
 		}
 		
 		if (!wstrText.get())

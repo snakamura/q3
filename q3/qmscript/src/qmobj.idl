@@ -81,7 +81,8 @@ library qm
 	interface IAccountList : IDispatch
 	{
 		[propget, id(DISPID_VALUE)]
-		HRESULT item([in] VARIANT varIndexOrName, [out, retval] IAccount** ppAccount);
+		HRESULT item([in] VARIANT varIndexOrName,
+					 [out, retval] IAccount** ppAccount);
 		[propget]
 		HRESULT length([out, retval] unsigned int* pnLength);
 		[id(DISPID_NEWENUM), restricted, hidden]
@@ -141,7 +142,8 @@ library qm
 	interface IFolderList : IDispatch
 	{
 		[propget, id(DISPID_VALUE)]
-		HRESULT item([in] VARIANT varIndexOrName, [out, retval] IFolder** ppFolder);
+		HRESULT item([in] VARIANT varIndexOrName,
+					 [out, retval] IFolder** ppFolder);
 		[propget]
 		HRESULT length([out, retval] unsigned int* pnLength);
 		[id(DISPID_NEWENUM), restricted, hidden]
@@ -185,7 +187,8 @@ library qm
 	interface IMessageHolderList : IDispatch
 	{
 		[propget, id(DISPID_VALUE)]
-		HRESULT item([in] unsigned int nIndex, [out, retval] IMessageHolder** ppMessageHolder);
+		HRESULT item([in] unsigned int nIndex,
+					 [out, retval] IMessageHolder** ppMessageHolder);
 		[propget]
 		HRESULT length([out, retval] unsigned int* pnLength);
 	};
@@ -201,8 +204,9 @@ library qm
 		HRESULT content([out, retval] VARIANT* pvarContent);
 		[propget]
 		HRESULT bodyText([in, defaultvalue("")] BSTR bstrQuote,
-			[in, defaultvalue("")] BSTR bstrCharset,
-			[out, retval] BSTR* pbstrBody);
+						 [in, defaultvalue("")] BSTR bstrCharset,
+						 [in, defaultvalue(0)] VARIANT_BOOL bForceRfc822Inline,
+						 [out, retval] BSTR* pbstrBody);
 	};
 	
 	[
@@ -213,9 +217,9 @@ library qm
 	interface IMainWindow : IDispatch
 	{
 		HRESULT invokeAction([in] BSTR bstrAction,
-			[in, optional] VARIANT arg1,
-			[in, optional] VARIANT arg2,
-			[in, optional] VARIANT arg3);
+							 [in, optional] VARIANT arg1,
+							 [in, optional] VARIANT arg2,
+							 [in, optional] VARIANT arg3);
 	}
 	
 	[
@@ -226,9 +230,9 @@ library qm
 	interface IEditFrameWindow : IDispatch
 	{
 		HRESULT invokeAction([in] BSTR bstrAction,
-			[in, optional] VARIANT arg1,
-			[in, optional] VARIANT arg2,
-			[in, optional] VARIANT arg3);
+							 [in, optional] VARIANT arg1,
+							 [in, optional] VARIANT arg2,
+							 [in, optional] VARIANT arg3);
 	}
 	
 	[
@@ -239,9 +243,9 @@ library qm
 	interface IMessageFrameWindow : IDispatch
 	{
 		HRESULT invokeAction([in] BSTR bstrAction,
-			[in, optional] VARIANT arg1,
-			[in, optional] VARIANT arg2,
-			[in, optional] VARIANT arg3);
+							 [in, optional] VARIANT arg1,
+							 [in, optional] VARIANT arg2,
+							 [in, optional] VARIANT arg3);
 	}
 	
 	[
@@ -252,9 +256,12 @@ library qm
 	interface IMacro : IDispatch
 	{
 		HRESULT evaluate([in] IMessageHolder* pMessageHolder,
-			[in] IAccount* pAccount, [out, retval] VARIANT* pvarResult);
-		HRESULT setVariable([in] BSTR bstrName, [in] VARIANT var);
-		HRESULT getVariable([in] BSTR bstrName, [out, retval] VARIANT* pVar);
+						 [in] IAccount* pAccount,
+						 [out, retval] VARIANT* pvarResult);
+		HRESULT setVariable([in] BSTR bstrName,
+							[in] VARIANT var);
+		HRESULT getVariable([in] BSTR bstrName,
+							[out, retval] VARIANT* pVar);
 		HRESULT removeVariable([in] BSTR bstrName);
 	};
 	
@@ -265,7 +272,8 @@ library qm
 	]
 	interface IMacroParser : IDispatch
 	{
-		HRESULT parse([in] BSTR bstrMacro, [out, retval] IMacro** ppMacro);
+		HRESULT parse([in] BSTR bstrMacro,
+					  [out, retval] IMacro** ppMacro);
 	};
 	
 	[
@@ -276,7 +284,8 @@ library qm
 	interface IArgumentList : IDispatch
 	{
 		[propget, id(DISPID_VALUE)]
-		HRESULT item([in] unsigned int nIndex, [out, retval] VARIANT* pvarArg);
+		HRESULT item([in] unsigned int nIndex,
+					 [out, retval] VARIANT* pvarArg);
 		[propget]
 		HRESULT length([out, retval] unsigned int* pnLength);
 		[id(DISPID_NEWENUM), restricted, hidden]

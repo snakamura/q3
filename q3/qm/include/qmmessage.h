@@ -203,14 +203,18 @@ public:
 					bool bBodyOnly,
 					qs::XStringBuffer<qs::WXSTRING>* pBuf) const;
 	qs::wxstring_ptr getBodyText(const WCHAR* pwszQuote,
-								 const WCHAR* pwszCharset) const;
+								 const WCHAR* pwszCharset,
+								 bool bForceRfc822Inline) const;
 	bool getBodyText(const WCHAR* pwszQuote,
 					 const WCHAR* pwszCharset,
+					 bool bForceRfc288Inline,
 					 qs::XStringBuffer<qs::WXSTRING>* pBuf) const;
 	qs::wxstring_ptr getFormattedText(bool bUseSendersTimeZone,
-									  const WCHAR* pwszCharset) const;
+									  const WCHAR* pwszCharset,
+									  bool bForceRfc822Inline) const;
 	bool getFormattedText(bool bUseSendersTimeZone,
 						  const WCHAR* pwszCharset,
+						  bool bForceRfc822Inline,
 						  qs::XStringBuffer<qs::WXSTRING>* pBuf) const;
 	bool getDigest(MessageList* pList) const;
 	DigestMode getDigestMode() const;

@@ -618,11 +618,18 @@ MacroValuePtr qm::MacroFunctionBody::value(MacroContext* pContext) const
 			return MacroValuePtr();
 	}
 	
-	bool bView = false;
+	enum View {
+		VIEW_NONE,
+		VIEW_FORCERFC822INLINE,
+		VIEW_INLINE
+	};
+	unsigned int nView = 0;
 	if (nSize > 1) {
 		ARG(pValue, 1);
-		bView = pValue->boolean();
+		nView = pValue->number();
 	}
+	if (nView > 2)
+		nView = 0;
 	
 	wstring_ptr wstrQuote;
 	if (nSize > 0) {
@@ -631,7 +638,7 @@ MacroValuePtr qm::MacroFunctionBody::value(MacroContext* pContext) const
 	}
 	
 	Message* pMessage = getMessage(pContext,
-		bView ? MacroContext::MESSAGETYPE_TEXT : MacroContext::MESSAGETYPE_ALL, 0);
+		nView != VIEW_NONE ? MacroContext::MESSAGETYPE_TEXT : MacroContext::MESSAGETYPE_ALL, 0);
 	if (!pMessage)
 		return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
 	
@@ -640,10 +647,10 @@ MacroValuePtr qm::MacroFunctionBody::value(MacroContext* pContext) const
 	
 	wxstring_ptr wstrBody;
 	PartUtil util(*pPart);
-	if (bView)
-		wstrBody = util.getBodyText(wstrQuote.get(), 0);
-	else
+	if (nView == VIEW_NONE)
 		wstrBody = util.getAllText(wstrQuote.get(), 0, true);
+	else
+		wstrBody = util.getBodyText(wstrQuote.get(), 0, nView == VIEW_FORCERFC822INLINE);
 	if (!wstrBody.get())
 		return MacroValuePtr();
 	

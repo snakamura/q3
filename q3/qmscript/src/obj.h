@@ -644,6 +644,7 @@ public:
 	STDMETHOD(get_content)(VARIANT* pvarContent);
 	STDMETHOD(get_bodyText)(BSTR bstrQuote,
 							BSTR bstrCharset,
+							VARIANT_BOOL bForceRfc822Inline,
 							BSTR* pbstrBody);
 
 private:

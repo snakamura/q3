@@ -1061,16 +1061,18 @@ bool qm::PartUtil::getAllText(const WCHAR* pwszQuote,
 }
 
 wxstring_ptr qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
-									   const WCHAR* pwszCharset) const
+									   const WCHAR* pwszCharset,
+									   bool bForceRfc822Inline) const
 {
 	XStringBuffer<WXSTRING> buf;
-	if (!getBodyText(pwszQuote, pwszCharset, &buf))
+	if (!getBodyText(pwszQuote, pwszCharset, bForceRfc822Inline, &buf))
 		return 0;
 	return buf.getXString();
 }
 
 bool qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
 							   const WCHAR* pwszCharset,
+							   bool bForceRfc822Inline,
 							   XStringBuffer<WXSTRING>* pBuf) const
 {
 	if (part_.isMultipart()) {
@@ -1102,7 +1104,7 @@ bool qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
 			}
 			
 			size_t nPrevLen = pBuf->getLength();
-			if (!PartUtil(**it).getBodyText(pwszQuote, pwszCharset, pBuf))
+			if (!PartUtil(**it).getBodyText(pwszQuote, pwszCharset, bForceRfc822Inline, pBuf))
 				return false;
 			if (pBuf->getLength() == nPrevLen)
 				pBuf->remove(nLen, -1);
@@ -1115,9 +1117,9 @@ bool qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
 		bool bAttachment = part_.isAttachment();
 		if (pwszQuote) {
 			wxstring_ptr wstrBody;
-			if (!bAttachment && part_.getEnclosedPart()) {
+			if (part_.getEnclosedPart() && (!bAttachment || bForceRfc822Inline)) {
 				PartUtil util(*part_.getEnclosedPart());
-				wstrBody = util.getFormattedText(false, pwszCharset);
+				wstrBody = util.getFormattedText(false, pwszCharset, bForceRfc822Inline);
 				if (!wstrBody.get())
 					return false;
 			}
@@ -1133,9 +1135,9 @@ bool qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
 			}
 		}
 		else {
-			if (!bAttachment && part_.getEnclosedPart()) {
+			if (part_.getEnclosedPart() && (!bAttachment || bForceRfc822Inline)) {
 				PartUtil util(*part_.getEnclosedPart());
-				if (!util.getFormattedText(false, pwszCharset, pBuf))
+				if (!util.getFormattedText(false, pwszCharset, bForceRfc822Inline, pBuf))
 					return false;
 			}
 			else if (!bAttachment) {
@@ -1149,16 +1151,18 @@ bool qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
 }
 
 wxstring_ptr qm::PartUtil::getFormattedText(bool bUseSendersTimeZone,
-											const WCHAR* pwszCharset) const
+											const WCHAR* pwszCharset,
+											bool bForceRfc822Inline) const
 {
 	XStringBuffer<WXSTRING> buf;
-	if (!getFormattedText(bUseSendersTimeZone, pwszCharset, &buf))
+	if (!getFormattedText(bUseSendersTimeZone, pwszCharset, bForceRfc822Inline, &buf))
 		return 0;
 	return buf.getXString();
 }
 
 bool qm::PartUtil::getFormattedText(bool bUseSendersTimeZone,
 									const WCHAR* pwszCharset,
+									bool bForceRfc822Inline,
 									XStringBuffer<WXSTRING>* pBuf) const
 {
 	const WCHAR* pwszFields[] = {
@@ -1222,7 +1226,7 @@ bool qm::PartUtil::getFormattedText(bool bUseSendersTimeZone,
 	
 	if (!pBuf->append(L"\n"))
 		return false;
-	if (!getBodyText(0, pwszCharset, pBuf))
+	if (!getBodyText(0, pwszCharset, bForceRfc822Inline, pBuf))
 		return false;
 	
 	return true;
