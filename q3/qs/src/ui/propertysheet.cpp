@@ -291,13 +291,13 @@ int CALLBACK qs::propertySheetProc(HWND hwnd,
 			pThis->centerWindow();
 #endif
 			pMap->setThis(0);
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 			Window wndTab(::GetDlgItem(hwnd, 0x3020));
 			wndTab.setStyle(TCS_BOTTOM, TCS_BOTTOM);
 #endif
 		}
 		break;
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	case PSCB_GETVERSION:
 		return COMCTL32_VERSION;
 #endif

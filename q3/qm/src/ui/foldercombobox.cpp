@@ -636,7 +636,7 @@ LRESULT qm::FolderComboBox::onDestroy()
 LRESULT qm::FolderComboBox::onLButtonDown(UINT nFlags,
 										  const POINT& pt)
 {
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	if (tapAndHold(pt))
 		return 0;
 #endif

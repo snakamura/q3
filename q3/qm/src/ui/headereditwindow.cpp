@@ -1262,7 +1262,7 @@ LRESULT qm::AttachmentHeaderEditItem::AttachmentEditWindow::onContextMenu(HWND h
 LRESULT qm::AttachmentHeaderEditItem::AttachmentEditWindow::onLButtonDown(UINT nFlags,
 																		  const POINT& pt)
 {
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && _WIN32_WCE < 400 && _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 300 && _WIN32_WCE < 400 && defined _WIN32_WCE_PSPC
 	if (tapAndHold(pt))
 		return 0;
 #endif

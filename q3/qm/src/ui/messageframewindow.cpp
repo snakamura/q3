@@ -990,7 +990,7 @@ bool qm::MessageFrameWindowManager::open(ViewModel* pViewModel,
 		pFrame = pCachedFrame_;
 		pCachedFrame_ = 0;
 	}
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	else if (!listFrame_.empty()) {
 		pFrame = listFrame_.front();
 	}
@@ -1077,7 +1077,7 @@ MessageFrameWindow* qm::MessageFrameWindowManager::create()
 {
 	std::auto_ptr<MessageFrameWindow> pFrame(
 		new MessageFrameWindow(this, pViewModelManager_, pProfile_));
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	DWORD dwStyle = WS_CLIPCHILDREN;
 	DWORD dwExStyle = WS_EX_CAPTIONOKBTN;
 #elif defined _WIN32_WCE

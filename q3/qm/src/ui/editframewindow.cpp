@@ -789,7 +789,7 @@ qm::EditFrameWindowManager::~EditFrameWindowManager()
 bool qm::EditFrameWindowManager::open(std::auto_ptr<EditMessage> pEditMessage)
 {
 	std::auto_ptr<EditFrameWindow> pFrame(new EditFrameWindow(this, pProfile_));
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	DWORD dwStyle = WS_CLIPCHILDREN;
 	DWORD dwExStyle = WS_EX_CAPTIONOKBTN;
 #elif defined _WIN32_WCE

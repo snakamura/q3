@@ -1207,7 +1207,7 @@ LRESULT qm::ListWindow::onLButtonDown(UINT nFlags,
 {
 	setFocus();
 	
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	bool bTapAndHold = false;
 #endif
 	
@@ -1251,7 +1251,7 @@ LRESULT qm::ListWindow::onLButtonDown(UINT nFlags,
 			
 			pImpl_->ensureVisible(nLine);
 			
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 			if (tapAndHold(pt))
 				return 0;
 			bTapAndHold = true;
@@ -1264,7 +1264,7 @@ LRESULT qm::ListWindow::onLButtonDown(UINT nFlags,
 		}
 	}
 	
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	if (!bTapAndHold) {
 		if (tapAndHold(pt))
 			return 0;
