@@ -12,6 +12,7 @@
 #include <qsstl.h>
 
 #include <algorithm>
+#include <functional>
 
 #include "regexnfa.h"
 #include "regexparser.h"
