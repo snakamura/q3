@@ -95,14 +95,15 @@ bool qm::RuleManager::apply(Folder* pFolder,
 	if (!pFolder->loadMessageHolders())
 		return false;
 	
-	const RuleSet* pRuleSet = getRuleSet(pFolder);
-	if (!pRuleSet) {
-		log.debug(L"No rule set for this folder was found.");
+	RuleList listRule;
+	getRules(pFolder, &listRule);
+	if (listRule.empty()) {
+		log.debug(L"No rule for this folder was found.");
 		return true;
 	}
 	
 	typedef std::vector<MessageHolderList> ListList;
-	ListList ll(pRuleSet->getCount());
+	ListList ll(listRule.size());
 	
 	struct Accessor
 	{
@@ -174,8 +175,8 @@ bool qm::RuleManager::apply(Folder* pFolder,
 		
 		MessageHolder* pmh = accessor.getMessage(n);
 		Message msg;
-		for (size_t m = 0; m < pRuleSet->getCount(); ++m) {
-			const Rule* pRule = pRuleSet->getRule(m);
+		for (RuleList::size_type m = 0; m < listRule.size(); ++m) {
+			const Rule* pRule = listRule[m];
 			MacroContext context(pmh, &msg, MessageHolderList(), pAccount, pDocument,
 				hwnd, pProfile, false, nSecurityMode, 0, &globalVariable);
 			bool bMatch = pRule->match(&context);
@@ -196,13 +197,13 @@ bool qm::RuleManager::apply(Folder* pFolder,
 	pCallback->setPos(0);
 	
 	int nMessage = 0;
-	for (size_t m = 0; m < pRuleSet->getCount(); ++m) {
+	for (RuleList::size_type m = 0; m < listRule.size(); ++m) {
 		if (pCallback->isCanceled())
 			return true;
 		
 		const MessageHolderList& l = ll[m];
 		if (!l.empty()) {
-			const Rule* pRule = pRuleSet->getRule(m);
+			const Rule* pRule = listRule[m];
 			RuleContext context(l, pDocument, pAccount, pFolder,
 				hwnd, pProfile, &globalVariable, nSecurityMode);
 			if (!pRule->apply(context))
@@ -291,17 +292,20 @@ void qm::RuleManager::clear()
 	listRuleSet_.clear();
 }
 
-const RuleSet* qm::RuleManager::getRuleSet(const Folder* pFolder) const
+void qm::RuleManager::getRules(const Folder* pFolder,
+							   RuleList* pList) const
 {
 	assert(pFolder);
+	assert(pList);
+	assert(pList->empty());
 	
 	for (RuleSetList::const_iterator it = listRuleSet_.begin(); it != listRuleSet_.end(); ++it) {
 		const RuleSet* pRuleSet = *it;
-		if (pRuleSet->matchName(pFolder))
-			return pRuleSet;
+		if (pRuleSet->matchName(pFolder)) {
+			const RuleSet::RuleList& l = pRuleSet->getRules();
+			std::copy(l.begin(), l.end(), std::back_inserter(*pList));
+		}
 	}
-	
-	return 0;
 }
 
 
@@ -422,17 +426,6 @@ void qm::RuleSet::setRules(RuleList& listRule)
 {
 	clear();
 	listRule_.swap(listRule);
-}
-
-size_t qm::RuleSet::getCount() const
-{
-	return listRule_.size();
-}
-
-const Rule* qm::RuleSet::getRule(size_t nIndex) const
-{
-	assert(nIndex < listRule_.size());
-	return listRule_[nIndex];
 }
 
 void qm::RuleSet::addRule(std::auto_ptr<Rule> pRule)

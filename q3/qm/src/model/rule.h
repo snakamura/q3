@@ -55,6 +55,7 @@ class RuleManager
 {
 public:
 	typedef std::vector<RuleSet*> RuleSetList;
+	typedef std::vector<Rule*> RuleList;
 
 public:
 	RuleManager();
@@ -79,7 +80,8 @@ public:
 private:
 	bool load();
 	void clear();
-	const RuleSet* getRuleSet(const Folder* pFolder) const;
+	void getRules(const Folder* pFolder,
+				  RuleList* pList) const;
 
 private:
 	RuleManager(const RuleManager&);
@@ -142,8 +144,6 @@ public:
 	bool matchName(const Folder* pFolder) const;
 	const RuleList& getRules() const;
 	void setRules(RuleList& listRule);
-	size_t getCount() const;
-	const Rule* getRule(size_t nIndex) const;
 
 public:
 	void addRule(std::auto_ptr<Rule> pRule);
