@@ -88,6 +88,9 @@ public:
 	virtual bool isAllFolder() const;
 	virtual bool isRecursive() const;
 
+public:
+	virtual LRESULT onCommand(WORD nCode, WORD nId);
+
 protected:
 	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
 
@@ -96,6 +99,12 @@ protected:
 
 private:
 	static qs::QSTATUS getLiteral(const WCHAR* pwsz, qs::WSTRING* pwstr);
+
+private:
+	LRESULT onImap4Command();
+
+private:
+	void updateState();
 
 private:
 	Imap4SearchPage(const Imap4SearchPage&);

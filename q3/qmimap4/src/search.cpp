@@ -152,6 +152,14 @@ bool qmimap4::Imap4SearchPage::isRecursive() const
 	return bRecursive_;
 }
 
+LRESULT qmimap4::Imap4SearchPage::onCommand(WORD nCode, WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_IMAP4COMMAND, onImap4Command)
+	END_COMMAND_HANDLER()
+	return SearchPropertyPage::onCommand(nCode, nId);
+}
+
 LRESULT qmimap4::Imap4SearchPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 {
 	DECLARE_QSTATUS();
@@ -189,6 +197,8 @@ LRESULT qmimap4::Imap4SearchPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 			nFolder = 0;
 	}
 	sendDlgItemMessage(IDC_CURRENT + nFolder, BM_SETCHECK, BST_CHECKED);
+	
+	updateState();
 	
 	return TRUE;
 }
@@ -251,6 +261,18 @@ LRESULT qmimap4::Imap4SearchPage::onOk()
 			bAllFolder_ ? 2 : bRecursive_ ? 1 : 0);
 	}
 	return SearchPropertyPage::onOk();
+}
+
+LRESULT qmimap4::Imap4SearchPage::onImap4Command()
+{
+	updateState();
+	return 0;
+}
+
+void qmimap4::Imap4SearchPage::updateState()
+{
+	bool bEnable = sendDlgItemMessage(IDC_IMAP4COMMAND, BM_GETCHECK) != BST_CHECKED;
+	Window(getDlgItem(IDC_SEARCHBODY)).enableWindow(bEnable);
 }
 
 QSTATUS qmimap4::Imap4SearchPage::getLiteral(const WCHAR* pwsz, WSTRING* pwstr)

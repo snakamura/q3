@@ -231,6 +231,8 @@ LRESULT qm::MacroSearchPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	}
 	sendDlgItemMessage(IDC_CURRENT + nFolder, BM_SETCHECK, BST_CHECKED);
 	
+	updateState();
+	
 	return TRUE;
 }
 
