@@ -1189,8 +1189,8 @@ void qs::BMFindString<String>::init(const Char* pszPattern,
 	if (nFlags_ & FLAG_REVERSE)
 		std::reverse(strPattern_.get(), strPattern_.get() + nLen);
 	
-	createSkipTable(pszPattern, nLen, skip_);
-	pNext_ = createNextTable(pszPattern, nLen);
+	createSkipTable(strPattern_.get(), nLen, skip_);
+	pNext_ = createNextTable(strPattern_.get(), nLen);
 }
 
 template<class String>
@@ -1206,7 +1206,7 @@ void qs::BMFindString<String>::createSkipTable(const Char* pszPattern,
 
 template<class String>
 qs::auto_ptr_array<size_t> qs::BMFindString<String>::createNextTable(const Char* pszPattern,
-																 size_t nLen)
+																	 size_t nLen)
 {
 	auto_ptr_array<size_t> pNext(new size_t[nLen]);
 	
