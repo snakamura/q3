@@ -1093,7 +1093,7 @@ void qm::AddressHeaderEditItem::getCandidates(const WCHAR* pwszInput,
 											  CandidateList* pList)
 {
 	getCandidates(pwszInput, pAddressBook_, pList);
-	getCandidates(pwszInput, pRecentAddress_, pList);
+	getCandidates(pwszInput, pRecentAddress_, pAddressBook_, pList);
 	std::sort(pList->begin(), pList->end(), string_less_i<WCHAR>());
 }
 
@@ -1128,6 +1128,7 @@ void qm::AddressHeaderEditItem::getCandidates(const WCHAR* pwszInput,
 
 void qm::AddressHeaderEditItem::getCandidates(const WCHAR* pwszInput,
 											  const RecentAddress* pRecentAddress,
+											  const AddressBook* pAddressBook,
 											  CandidateList* pList)
 {
 	size_t nLen = wcslen(pwszInput);
@@ -1141,7 +1142,8 @@ void qm::AddressHeaderEditItem::getCandidates(const WCHAR* pwszInput,
 		wstring_ptr wstrAddress(pAddress->getAddress());
 		bool bMatchAddress = _wcsnicmp(wstrAddress.get(), pwszInput, nLen) == 0;
 		if ((bMatchName || bMatchAddress) &&
-			((pwszPhrase && *pwszPhrase) || !bMatchAddress || wcslen(wstrAddress.get()) != nLen)) {
+			((pwszPhrase && *pwszPhrase) || !bMatchAddress || wcslen(wstrAddress.get()) != nLen) &&
+			!pAddressBook->getEntry(wstrAddress.get())) {
 			wstring_ptr wstrValue(pAddress->getValue());
 			pList->push_back(wstrValue.get());
 			wstrValue.release();

@@ -405,6 +405,7 @@ private:
 							  CandidateList* pList);
 	static void getCandidates(const WCHAR* pwszInput,
 							  const RecentAddress* pRecentAddress,
+							  const AddressBook* pAddressBook,
 							  CandidateList* pList);
 	static bool isMatchName(const WCHAR* pwszName,
 							const WCHAR* pwszInput,
