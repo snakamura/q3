@@ -114,6 +114,10 @@ public:
 	virtual void drop(const DropTargetDropEvent& event);
 
 private:
+	HIMAGELIST createDragImage(const POINT& ptCursor,
+							   POINT* pptHotspot);
+
+private:
 	static int getMessageImage(MessageHolder* pmh,
 							   unsigned int nFlags);
 
@@ -633,8 +637,9 @@ void qm::ListWindowImpl::dragGestureRecognized(const DragGestureEvent& event)
 	p->AddRef();
 	ComPtr<IDataObject> pDataObject(p.release());
 	
-	HIMAGELIST hImageList = ImageList_Duplicate(hImageList_);
-	ImageList_BeginDrag(hImageList, 0, 0, 0);
+	POINT ptHotspot;
+	HIMAGELIST hImageList = createDragImage(event.getPoint(), &ptHotspot);
+	ImageList_BeginDrag(hImageList, 0, ptHotspot.x, ptHotspot.y);
 	
 	DragSource source;
 	source.setDragSourceHandler(this);
@@ -756,6 +761,78 @@ void qm::ListWindowImpl::drop(const DropTargetDropEvent& event)
 	}
 	
 	ImageList_DragLeave(pThis_->getHandle());
+}
+
+HIMAGELIST qm::ListWindowImpl::createDragImage(const POINT& ptCursor,
+											   POINT* pptHotspot)
+{
+	assert(pptHotspot);
+	
+	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
+	assert(pViewModel);
+	
+	unsigned int nWidth = pHeaderColumn_->getWidth();
+	
+	SCROLLINFO si = {
+		sizeof(si),
+		SIF_PAGE | SIF_POS
+	};
+	pThis_->getScrollInfo(SB_VERT, &si);
+	
+	unsigned int nStart = -1;
+	unsigned int nEnd = -1;
+	unsigned int nCount = pViewModel->getCount();
+	for (unsigned int n = si.nPos; n < nCount && n <= si.nPos + si.nPage; ++n) {
+		if (pViewModel->isSelected(n)) {
+			if (nStart == -1)
+				nStart = n;
+			nEnd = n;
+		}
+	}
+	unsigned int nHeight = nLineHeight_*(nEnd - nStart + 1);
+	
+	ClientDeviceContext dc(pThis_->getHandle());
+	GdiObject<HBITMAP> hbm(::CreateCompatibleBitmap(dc.getHandle(), nWidth, nHeight));
+	CompatibleDeviceContext dcMem(dc.getHandle());
+	{
+		ObjectSelector<HFONT> fontSelector(dcMem, hfont_);
+		ObjectSelector<HBITMAP> selector(dcMem, hbm.get());
+		RECT rect = {
+			0,
+			0,
+			nWidth,
+			nHeight
+		};
+		dcMem.fillSolidRect(rect, ::GetSysColor(COLOR_WINDOW));
+		
+		int nTop = 0;
+		for (unsigned int n = nStart; n <= nEnd; ++n) {
+			if (pViewModel->isSelected(n)) {
+				RECT r = {
+					0,
+					nTop,
+					nWidth,
+					nTop + nLineHeight_
+				};
+				PaintInfo pi(&dcMem, pViewModel, n, r);
+				paintMessage(pi);
+			}
+			nTop += nLineHeight_;
+		}
+	}
+	
+#ifdef _WIN32_WCE
+	UINT nFlags = ILC_COLOR | ILC_MASK;
+#else
+	UINT nFlags = ILC_COLOR32 | ILC_MASK;
+#endif
+	HIMAGELIST hImageList = ImageList_Create(nWidth, nHeight, nFlags, 1, 0);
+	ImageList_AddMasked(hImageList, hbm.get(), ::GetSysColor(COLOR_WINDOW));
+	
+	pptHotspot->x = ptCursor.x + pThis_->getScrollPos(SB_HORZ);
+	pptHotspot->y = ptCursor.y - pHeaderColumn_->getHeight() - (nStart - si.nPos)*nLineHeight_;
+	
+	return hImageList;
 }
 
 int qm::ListWindowImpl::getMessageImage(MessageHolder* pmh,
