@@ -700,7 +700,7 @@ bool qm::AccountImpl::processSMIME(const SMIMEUtility* pSMIMEUtility,
 {
 	xstring_size_ptr strMessage;
 	wstring_ptr wstrSignedBy;
-	unsigned int nSecurity = Message::SECURITY_NONE;
+	unsigned int nSecurity = pMessage->getSecurity();
 	switch (type) {
 	case SMIMEUtility::TYPE_SIGNED:
 	case SMIMEUtility::TYPE_MULTIPARTSIGNED:
@@ -767,7 +767,7 @@ bool qm::AccountImpl::processPGP(const PGPUtility* pPGPUtility,
 	xstring_size_ptr strMessage;
 	unsigned int nVerify = 0;
 	wstring_ptr wstrSignedBy;
-	unsigned int nSecurity = Message::SECURITY_NONE;
+	unsigned int nSecurity = pMessage->getSecurity();
 	switch (type) {
 	case PGPUtility::TYPE_MIMEENCRYPTED:
 		strMessage = pPGPUtility->decryptAndVerify(*pMessage,
