@@ -79,6 +79,7 @@ void qmnntp::NntpDriver::setSubAccount(qm::SubAccount* pSubAccount)
 	if (pSubAccount != pSubAccount_) {
 		clearSession();
 		pSubAccount_ = pSubAccount;
+		nForceDisconnect_ = pSubAccount_->getProperty(L"Nntp", L"ForceDisconnect", 0);
 	}
 }
 
@@ -169,8 +170,10 @@ bool qmnntp::NntpDriver::getMessage(MessageHolder* pmh,
 	xstring_ptr strMessage;
 	unsigned int nSize = pmh->getSize();
 	if (!pNntp_->getMessage(pmh->getId(),
-		Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage, &nSize))
+		Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage, &nSize)) {
+		clearSession();
 		return false;
+	}
 	if (!strMessage.get())
 		return false;
 	
@@ -216,9 +219,7 @@ bool qmnntp::NntpDriver::copyMessages(const MessageHolderList& l,
 bool qmnntp::NntpDriver::prepareSession(NormalFolder* pFolder)
 {
 	bool bConnect = !pNntp_.get();
-	if (bConnect)
-		nForceDisconnect_ = pSubAccount_->getProperty(L"Nntp", L"ForceDisconnect", 0);
-	else
+	if (!bConnect)
 		bConnect = isForceDisconnect();
 	
 	if (bConnect) {
