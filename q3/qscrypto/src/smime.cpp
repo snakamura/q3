@@ -41,6 +41,9 @@ SMIMEUtilityImpl::Type qscrypto::SMIMEUtilityImpl::getType(
 	DECLARE_QSTATUS();
 	
 	const ContentTypeParser* pContentType = part.getContentType();
+	if (!pContentType)
+		return TYPE_NONE;
+	
 	const WCHAR* pwszMediaType = pContentType->getMediaType();
 	const WCHAR* pwszSubType = pContentType->getSubType();
 	if (wcscmp(pwszMediaType, L"multipart") == 0 &&
