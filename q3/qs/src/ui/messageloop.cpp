@@ -30,6 +30,7 @@ public:
 	QSTATUS processIdle();
 
 public:
+	static bool isIdleMessage(const MSG& msg);
 	static MessageLoop* getMessageLoop();
 
 public:
@@ -66,6 +67,17 @@ QSTATUS qs::MessageLoopImpl::processIdle()
 	}
 	
 	return QSTATUS_SUCCESS;
+}
+
+bool qs::MessageLoopImpl::isIdleMessage(const MSG& msg)
+{
+	if (msg.message == WM_PAINT ||
+		msg.message == 0x0118)
+		return false;
+	else if (msg.message == WM_KEYDOWN && LOWORD(msg.lParam) > 0)
+		return false;
+	else
+		return true;
 }
 
 MessageLoop* qs::MessageLoopImpl::getMessageLoop()
@@ -162,44 +174,34 @@ QSTATUS qs::MessageLoop::run()
 			if (!::GetMessage(&msg, 0, 0, 0))
 				return QSTATUS_SUCCESS;
 			
-			switch (msg.message) {
-			case WM_KEYDOWN:
-			case WM_SYSKEYDOWN:
-			case WM_LBUTTONDOWN:
-			case WM_RBUTTONDOWN:
-			case WM_MBUTTONDOWN:
-			case WM_VSCROLL:
-			case WM_HSCROLL:
-			case WM_COMMAND:
-				break;
+			bool bProcess = true;
 #if !defined _WIN32_WCE || _WIN32_WCE >= 211
-			case WM_MOUSEWHEEL:
+			if (msg.message == WM_MOUSEWHEEL) {
 				msg.hwnd = ::WindowFromPoint(msg.pt);
-				assert(msg.hwnd);
-				if (::GetWindowThreadProcessId(msg.hwnd, 0) != dwThreadId)
-					continue;
-				break;
+				bProcess = msg.hwnd &&
+					::GetWindowThreadProcessId(msg.hwnd, 0) == dwThreadId;
+			}
 #endif
+			if (bProcess) {
+				bool bProcessed = false;
+				status = DialogBase::processDialogMessage(&msg, &bProcessed);
+				CHECK_QSTATUS();
+				if (bProcessed)
+					continue;
+				status = PropertySheetBase::processDialogMessage(&msg, &bProcessed);
+				CHECK_QSTATUS();
+				if (bProcessed)
+					continue;
+				status = WindowBase::translateAccelerator(msg, &bProcessed);
+				CHECK_QSTATUS();
+				if (bProcessed)
+					continue;
+				
+				::TranslateMessage(&msg);
+				::DispatchMessage(&msg);
 			}
 			
-			bool bProcessed = false;
-			status = DialogBase::processDialogMessage(&msg, &bProcessed);
-			CHECK_QSTATUS();
-			if (bProcessed)
-				continue;
-			status = PropertySheetBase::processDialogMessage(&msg, &bProcessed);
-			CHECK_QSTATUS();
-			if (bProcessed)
-				continue;
-			status = WindowBase::translateAccelerator(msg, &bProcessed);
-			CHECK_QSTATUS();
-			if (bProcessed)
-				continue;
-			
-			::TranslateMessage(&msg);
-			::DispatchMessage(&msg);
-			
-			if (msg.message != WM_PAINT && msg.message != 0x0118)
+			if (!bIdle && MessageLoopImpl::isIdleMessage(msg))
 				bIdle = true;
 		} while (::PeekMessage(&msg, 0, 0, 0, PM_NOREMOVE));
 	}
