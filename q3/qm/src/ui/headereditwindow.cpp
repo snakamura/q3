@@ -1534,6 +1534,7 @@ HWND qm::ComboBoxHeaderEditItem::getHandle() const
 }
 
 
+#ifdef _WIN32_WCE
 /****************************************************************************
  *
  * ComboBoxHeaderEditItem::ComboBoxEditWindow
@@ -1569,6 +1570,7 @@ LRESULT qm::ComboBoxHeaderEditItem::ComboBoxEditWindow::onWindowPosChanged(WINDO
 		sendMessage(CB_SETITEMHEIGHT, -1, nItemHeight_);
 	return DefaultWindowHandler::onWindowPosChanged(pWindowPos);
 }
+#endif // _WIN32_WCE
 
 
 /****************************************************************************
