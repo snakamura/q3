@@ -154,6 +154,7 @@ LRESULT qm::AccountDialog::onAddAccount()
 		profile.setInt(L"Receive", L"Port", dialog.getReceivePort());
 		profile.setString(L"Send", L"Type", dialog.getSendProtocol());
 		profile.setInt(L"Send", L"Port", dialog.getSendPort());
+		initProfileForClass(dialog.getClass(), &profile);
 		if (!profile.save()) {
 			messageBox(hInst, IDS_ERROR_CREATEACCOUNT, MB_OK | MB_ICONERROR, getHandle());
 			return 0;
@@ -540,6 +541,46 @@ void qm::AccountDialog::updateState()
 		sendMessage(DM_SETDEFID, IDOK);
 		sendDlgItemMessage(IDOK, BM_SETSTYLE, BS_DEFPUSHBUTTON, TRUE);
 	}
+}
+
+void qm::AccountDialog::initProfileForClass(const WCHAR* pwszClass,
+											qs::Profile* pProfile)
+{
+	// TODO
+	// Use skelton or something?
+	
+	enum Class {
+		MAIL,
+		NEWS,
+		RSS
+	};
+	struct {
+		const WCHAR* pwszClass_;
+		Class class_;
+	} classes[] = {
+		{ L"mail",	MAIL	},
+		{ L"news",	NEWS	},
+		{ L"rss",	RSS		}
+	};
+	Class c = MAIL;
+	for (int n = 0; n < countof(classes); ++n) {
+		if (wcscmp(pwszClass, classes[n].pwszClass_) == 0) {
+			c = classes[n].class_;
+			break;
+		}
+	}
+	
+	struct {
+		const WCHAR* pwszSection_;
+		const WCHAR* pwszKey_;
+		int nValue_[3];
+	} numbers[] = {
+		{ L"Global",	L"AddMessageId",	{	1,	0,	0	}	},
+		{ L"Global",	L"TreatAsSent",		{	1,	0,	0	}	}
+	};
+	for (int n = 0; n < countof(numbers); ++n)
+		pProfile->setInt(numbers[n].pwszSection_,
+			numbers[n].pwszKey_, numbers[n].nValue_[c]);
 }
 
 

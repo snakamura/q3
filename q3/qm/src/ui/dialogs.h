@@ -203,6 +203,10 @@ private:
 	void updateState();
 
 private:
+	static void initProfileForClass(const WCHAR* pwszClass,
+									qs::Profile* pProfile);
+
+private:
 	AccountDialog(const AccountDialog&);
 	AccountDialog& operator=(const AccountDialog&);
 
