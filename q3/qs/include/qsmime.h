@@ -71,7 +71,8 @@ public:
 		O_ALLOW_SPECIALS_IN_REFERENCES			= 0x00004000,
 		O_ALLOW_INVALID_PERIOD_IN_LOCALPART		= 0x00008000,
 		O_ALLOW_SINGLE_DIGIT_TIME				= 0x00010000,
-		O_ALLOW_DATE_WITH_RUBBISH				= 0x00020000
+		O_ALLOW_DATE_WITH_RUBBISH				= 0x00020000,
+		O_ALLOW_RAW_PARAMETER					= 0x00040000
 	};
 	
 	enum Field {
@@ -312,6 +313,7 @@ public:
 							 const WCHAR* pwszCharset,
 							 const WCHAR* pwszEncoding,
 							 bool bOneBlock);
+	static string_ptr convertToUTF8(const CHAR* psz);
 	static bool isAscii(const WCHAR* pwsz);
 	static bool isAscii(const WCHAR* pwsz,
 						size_t nLen);

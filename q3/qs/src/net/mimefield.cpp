@@ -596,6 +596,23 @@ string_ptr qs::FieldParser::encode(const WCHAR* pwsz,
 	return buf.getString();
 }
 
+string_ptr qs::FieldParser::convertToUTF8(const CHAR* psz)
+{
+	std::auto_ptr<Converter> pConverter(
+		ConverterFactory::getInstance(Part::getDefaultCharset()));
+	if (!pConverter.get())
+		return 0;
+	
+	size_t nEncodedLen = strlen(psz);
+	wxstring_size_ptr decoded(pConverter->decode(psz, &nEncodedLen));
+	if (!decoded.get())
+		return 0;
+	
+	size_t nDecodedLen = decoded.size();
+	xstring_size_ptr str(UTF8Converter().encode(decoded.get(), &nDecodedLen));
+	return allocString(str.get(), str.size());
+}
+
 bool qs::FieldParser::isAscii(const WCHAR* pwsz)
 {
 	return isAscii(pwsz, -1);
@@ -761,10 +778,8 @@ Part::Field qs::UnstructuredParser::parse(const Part& part,
 	wstrValue_ = decode(strValue.get(), -1, false, 0);
 	
 	if (isAscii(wstrValue_.get())) {
-		bool bRaw = part.isOption(Part::O_ALLOW_RAW_FIELD);
-		if (!bRaw) {
-			bRaw = !part.hasField(L"MIME-Version");
-		}
+		bool bRaw = part.isOption(Part::O_ALLOW_RAW_FIELD) ||
+			!part.hasField(L"MIME-Version");
 		if (bRaw) {
 			std::auto_ptr<Converter> pConverter(
 				ConverterFactory::getInstance(part.getDefaultCharset()));
@@ -2940,11 +2955,19 @@ Part::Field qs::ParameterFieldParser::parseParameter(const Part& part,
 			}
 			else {
 				wstring_ptr wstrValue;
-				if (part.isOption(Part::O_ALLOW_ENCODED_PARAMETER) &&
-					(part.isOption(Part::O_ALLOW_ENCODED_QSTRING) || token.type_ == Tokenizer::T_ATOM))
-					wstrValue = decode(token.str_.get(), -1, false, 0);
-				else
-					wstrValue = mbs2wcs(token.str_.get());
+				if (part.isOption(Part::O_ALLOW_RAW_PARAMETER)) {
+					size_t nLen = strlen(token.str_.get());
+					wxstring_size_ptr wstr(UTF8Converter().decode(token.str_.get(), &nLen));
+					if (!isAscii(wstr.get(), wstr.size()))
+						wstrValue = allocWString(wstr.get(), wstr.size());
+				}
+				if (!wstrValue.get()) {
+					if (part.isOption(Part::O_ALLOW_ENCODED_PARAMETER) &&
+						(part.isOption(Part::O_ALLOW_ENCODED_QSTRING) || token.type_ == Tokenizer::T_ATOM))
+						wstrValue = decode(token.str_.get(), -1, false, 0);
+					else
+						wstrValue = mbs2wcs(token.str_.get());
+				}
 				wstring_ptr wstrName(mbs2wcs(strName.get()));
 				listParameter_.push_back(std::make_pair(wstrName.get(), wstrValue.get()));
 				wstrName.release();
@@ -3315,6 +3338,12 @@ Part::Field qs::ContentTypeParser::parse(const Part& part,
 	if (!strValue.get())
 		return Part::FIELD_NOTEXIST;
 	
+	if (part.isOption(Part::O_ALLOW_RAW_PARAMETER)) {
+		string_ptr str(convertToUTF8(strValue.get()));
+		if (str.get())
+			strValue = str;
+	}
+	
 	Tokenizer t(strValue.get(), -1,
 		Tokenizer::F_TSPECIAL | Tokenizer::F_RECOGNIZECOMMENT);
 	
@@ -3402,6 +3431,12 @@ Part::Field qs::ContentDispositionParser::parse(const Part& part,
 	string_ptr strValue(part.getRawField(pwszName, 0));
 	if (!strValue.get())
 		return Part::FIELD_NOTEXIST;
+	
+	if (part.isOption(Part::O_ALLOW_RAW_PARAMETER)) {
+		string_ptr str(convertToUTF8(strValue.get()));
+		if (str.get())
+			strValue = str;
+	}
 	
 	Tokenizer t(strValue.get(), -1, Tokenizer::F_TSPECIAL);
 	
