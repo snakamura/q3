@@ -4167,10 +4167,10 @@ qm::MessageSearchAction::~MessageSearchAction()
 void qm::MessageSearchAction::invoke(const ActionEvent& event)
 {
 	std::pair<Account*, Folder*> p(FolderActionUtil::getCurrent(pFolderModel_));
-	Folder* pFolder = p.second;
-	Account* pAccount = p.first;
+	Account* pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
 	if (!pAccount)
 		return;
+	Folder* pFolder = p.second;
 	
 	Folder* pSearchFolder = pAccount->getFolderByFlag(Folder::FLAG_SEARCHBOX);
 	if (!pSearchFolder || pSearchFolder->getType() != Folder::TYPE_QUERY)
@@ -5061,13 +5061,10 @@ qm::ViewNavigateFolderAction::~ViewNavigateFolderAction()
 void qm::ViewNavigateFolderAction::invoke(const ActionEvent& event)
 {
 	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
-	Account* pAccount = p.first;
+	Account* pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
+	if (!pAccount)
+		return;
 	Folder* pFolder = p.second;
-	if (!pAccount) {
-		if (!pFolder)
-			return;
-		pAccount = pFolder->getAccount();
-	}
 	bool bFolderSelected = pFolder != 0;
 	
 	switch (type_) {
