@@ -7,6 +7,7 @@
  */
 
 #include <qmdocument.h>
+#include <qmeditwindow.h>
 #include <qmfoldercombobox.h>
 #include <qmfolderlistwindow.h>
 #include <qmfolderwindow.h>
@@ -22,6 +23,7 @@
 #include <tchar.h>
 
 #include "addressbookwindow.h"
+#include "editframewindow.h"
 #include "messageframewindow.h"
 #include "optiondialog.h"
 #include "resourceinc.h"
@@ -257,6 +259,8 @@ LRESULT qm::OptionDialog::onOk()
 		pMainWindow_->layout();
 	if (nFlags & OptionDialogContext::FLAG_LAYOUTMESSAGEWINDOW)
 		pMessageFrameWindowManager_->layout();
+	if (nFlags & OptionDialogContext::FLAG_LAYOUTEDITWINDOW)
+		pEditFrameWindowManager_->layout();
 	
 	nEnd_ = IDOK;
 	return 0;
@@ -935,6 +939,7 @@ qm::OptionEditWindowDialog::OptionEditWindowDialog(EditFrameWindowManager* pEdit
 	pProfile_(pProfile)
 {
 	UIUtil::getLogFontFromProfile(pProfile_, L"EditWindow", false, &lf_);
+	UIUtil::getLogFontFromProfile(pProfile_, L"HeaderEditWindow", false, &lfHeader_);
 }
 
 qm::OptionEditWindowDialog::~OptionEditWindowDialog()
@@ -946,6 +951,7 @@ LRESULT qm::OptionEditWindowDialog::onCommand(WORD nCode,
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_FONT, onFont)
+		HANDLE_COMMAND_ID(IDC_HEADERFONT, onHeaderFont)
 	END_COMMAND_HANDLER()
 	return DefaultDialog::onCommand(nCode, nId);
 }
@@ -959,6 +965,11 @@ LRESULT qm::OptionEditWindowDialog::onInitDialog(HWND hwndFocus,
 bool qm::OptionEditWindowDialog::save(OptionDialogContext* pContext)
 {
 	UIUtil::setLogFontToProfile(pProfile_, L"EditWindow", lf_);
+	UIUtil::setLogFontToProfile(pProfile_, L"HeaderEditWindow", lfHeader_);
+	
+	pEditFrameWindowManager_->reloadProfiles();
+	
+	pContext->setFlags(OptionDialogContext::FLAG_LAYOUTEDITWINDOW);
 	
 	return true;
 }
@@ -966,6 +977,12 @@ bool qm::OptionEditWindowDialog::save(OptionDialogContext* pContext)
 LRESULT qm::OptionEditWindowDialog::onFont()
 {
 	UIUtil::browseFont(getParentPopup(), &lf_);
+	return 0;
+}
+
+LRESULT qm::OptionEditWindowDialog::onHeaderFont()
+{
+	UIUtil::browseFont(getParentPopup(), &lfHeader_);
 	return 0;
 }
 

@@ -509,6 +509,17 @@ bool qm::EditFrameWindow::tryClose()
 	return !bCancel;
 }
 
+void qm::EditFrameWindow::layout()
+{
+	pImpl_->layoutChildren();
+	pImpl_->pEditWindow_->layout();
+}
+
+void qm::EditFrameWindow::reloadProfiles()
+{
+	pImpl_->pEditWindow_->reloadProfiles();
+}
+
 bool qm::EditFrameWindow::isShowToolbar() const
 {
 	return pImpl_->bShowToolbar_;
@@ -904,4 +915,16 @@ void qm::EditFrameWindowManager::postModalDialog(HWND hwndParent)
 		if ((*it)->getHandle() != hwndParent)
 			(*it)->enableWindow(true);
 	}
+}
+
+void qm::EditFrameWindowManager::layout()
+{
+	for (FrameList::iterator it = listFrame_.begin(); it != listFrame_.end(); ++it)
+		(*it)->layout();
+}
+
+void qm::EditFrameWindowManager::reloadProfiles()
+{
+	for (FrameList::iterator it = listFrame_.begin(); it != listFrame_.end(); ++it)
+		(*it)->reloadProfiles();
 }

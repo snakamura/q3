@@ -419,6 +419,7 @@
 #define IDC_FOLDERSHOWUNSEEN            1312
 #define IDC_FONT                        1314
 #define IDC_SHOWALL                     1315
+#define IDC_HEADERFONT                  1315
 #define IDC_SHOWUNSEEN                  1316
 #define IDC_SINGLECLICK                 1317
 #define IDC_POCKETOUTLOOK               1319

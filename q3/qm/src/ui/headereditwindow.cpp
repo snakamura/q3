@@ -61,6 +61,7 @@ public:
 				MenuManager* pMenuManager,
 				HeaderEditLineCallback* pLineCallback,
 				HeaderEditItemCallback* pItemCallback);
+	void reloadProfiles(bool bInitialize);
 
 public:
 	HeaderEditWindow* pThis_;
@@ -108,6 +109,26 @@ bool qm::HeaderEditWindowImpl::create(const WCHAR* pwszClass,
 	return pLayout_->create(pThis_, fonts, &nId, 0);
 }
 
+void qm::HeaderEditWindowImpl::reloadProfiles(bool bInitialize)
+{
+	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_, L"HeaderEditWindow", false);
+	LOGFONT lf;
+	::GetObject(hfont, sizeof(lf), &lf);
+	lf.lfWeight = FW_BOLD;
+	HFONT hfontBold = ::CreateFontIndirect(&lf);
+	if (!bInitialize) {
+		assert(hfont_);
+		::DeleteObject(hfont_);
+		assert(hfontBold_);
+		::DeleteObject(hfontBold_);
+		
+		std::pair<HFONT, HFONT> fonts(hfont, hfontBold);
+		pLayout_->setFont(fonts);
+	}
+	hfont_ = hfont;
+	hfontBold_ = hfontBold;
+}
+
 
 /****************************************************************************
  *
@@ -126,6 +147,8 @@ qm::HeaderEditWindow::HeaderEditWindow(Profile* pProfile) :
 	pImpl_->hfontBold_ = 0;
 	pImpl_->hbrBackground_ = 0;
 	pImpl_->pController_ = 0;
+	
+	pImpl_->reloadProfiles(true);
 	
 	setWindowHandler(this, false);
 }
@@ -251,6 +274,11 @@ AttachmentSelectionModel* qm::HeaderEditWindow::getAttachmentSelectionModel() co
 	return pImpl_->pAttachmentSelectionModel_;
 }
 
+void qm::HeaderEditWindow::reloadProfiles()
+{
+	pImpl_->reloadProfiles(false);
+}
+
 void qm::HeaderEditWindow::getWindowClass(WNDCLASS* pwc)
 {
 	DefaultWindowHandler::getWindowClass(pwc);
@@ -277,13 +305,6 @@ LRESULT qm::HeaderEditWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	HeaderEditWindowCreateContext* pContext =
 		static_cast<HeaderEditWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pController_ = pContext->pController_;
-	
-	pImpl_->hfont_ = qs::UIUtil::createFontFromProfile(
-		pImpl_->pProfile_, L"HeaderEditWindow", false);
-	LOGFONT lf;
-	::GetObject(pImpl_->hfont_, sizeof(lf), &lf);
-	lf.lfWeight = FW_BOLD;
-	pImpl_->hfontBold_ = ::CreateFontIndirect(&lf);
 	
 	wstring_ptr wstrClassName(getClassName());
 	W2T(wstrClassName.get(), ptszClassName);

@@ -281,7 +281,8 @@ class OptionDialogContext
 public:
 	enum Flag {
 		FLAG_LAYOUTMAINWINDOW		= 0x01,
-		FLAG_LAYOUTMESSAGEWINDOW	= 0x02
+		FLAG_LAYOUTMESSAGEWINDOW	= 0x02,
+		FLAG_LAYOUTEDITWINDOW		= 0x04
 	};
 
 public:
@@ -436,6 +437,7 @@ public:
 
 private:
 	LRESULT onFont();
+	LRESULT onHeaderFont();
 
 private:
 	OptionEditWindowDialog(const OptionEditWindowDialog&);
@@ -445,6 +447,7 @@ private:
 	EditFrameWindowManager* pEditFrameWindowManager_;
 	qs::Profile* pProfile_;
 	LOGFONT lf_;
+	LOGFONT lfHeader_;
 };
 
 

@@ -49,6 +49,8 @@ public:
 	void initialShow();
 	void close();
 	bool tryClose();
+	void layout();
+	void reloadProfiles();
 	
 	bool isShowToolbar() const;
 	void setShowToolbar(bool bShow);
@@ -125,6 +127,8 @@ public:
 	void restoreFocusedItem();
 	bool isHeaderEdit() const;
 	void setHeaderEdit(bool bHeaderEdit);
+	void layout();
+	void reloadProfiles();
 
 public:
 	virtual qs::Accelerator* getAccelerator();
@@ -175,6 +179,7 @@ public:
 	EditWindowItem* getPrevFocusItem(EditWindowItem* pItem) const;
 	EditWindowItem* getItemByNumber(unsigned int nNumber) const;
 	AttachmentSelectionModel* getAttachmentSelectionModel() const;
+	void reloadProfiles();
 
 public:
 	virtual void getWindowClass(WNDCLASS* pwc);

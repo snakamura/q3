@@ -482,6 +482,16 @@ void qm::EditWindow::setHeaderEdit(bool bHeaderEdit)
 	}
 }
 
+void qm::EditWindow::layout()
+{
+	pImpl_->layoutChildren();
+}
+
+void qm::EditWindow::reloadProfiles()
+{
+	pImpl_->pHeaderEditWindow_->reloadProfiles();
+}
+
 Accelerator* qm::EditWindow::getAccelerator()
 {
 	return pImpl_->pAccelerator_.get();

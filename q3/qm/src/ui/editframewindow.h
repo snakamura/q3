@@ -52,6 +52,8 @@ public:
 	bool closeAll();
 	void preModalDialog(HWND hwndParent);
 	void postModalDialog(HWND hwndParent);
+	void layout();
+	void reloadProfiles();
 
 private:
 	EditFrameWindowManager(const EditFrameWindowManager&);
