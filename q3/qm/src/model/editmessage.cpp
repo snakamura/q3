@@ -679,6 +679,13 @@ bool qm::EditMessage::applyFields()
 		it = listField_.erase(it);
 	}
 	
+	if (!pMessage_->sortHeader())
+		return false;
+	if (pMessage_.get() != pBodyPart_) {
+		if (!pBodyPart_->sortHeader())
+			return false;
+	}
+	
 	return true;
 }
 
