@@ -726,9 +726,16 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 				reinterpret_cast<void**>(&pHTMLDocument)) == S_OK) {
 				ComPtr<IHTMLElement> pBody;
 				if (pHTMLDocument->get_body(&pBody) == S_OK && pBody.get()) {
-					BSTRPtr bstr(::SysAllocString(L""));
-					if (bstr.get())
-						pBody->put_innerHTML(bstr.get());
+					BSTRPtr bstrBody(::SysAllocString(L""));
+					if (bstrBody.get())
+						pBody->put_innerHTML(bstrBody.get());
+					
+					ComPtr<IHTMLStyle> pStyle;
+					if (pBody->get_style(&pStyle) == S_OK && pStyle.get()) {
+						BSTRPtr bstrStyle(::SysAllocString(L"window"));
+						if (bstrStyle.get())
+							pStyle->put_background(bstrStyle.get());
+					}
 				}
 			}
 		}
