@@ -649,9 +649,7 @@ private:
  *
  */
 
-class OptionEditWindowDialog :
-	public DefaultDialog,
-	public AbstractOptionDialogPanel<OptionEditWindowDialog>
+class OptionEditWindowDialog : public AbstractOptionTextWindowDialog
 {
 public:
 	OptionEditWindowDialog(EditFrameWindowManager* pEditFrameWindowManager,
@@ -670,7 +668,6 @@ public:
 	virtual bool save(OptionDialogContext* pContext);
 
 private:
-	LRESULT onFont();
 	LRESULT onHeaderFont();
 
 private:
@@ -680,7 +677,6 @@ private:
 private:
 	EditFrameWindowManager* pEditFrameWindowManager_;
 	qs::Profile* pProfile_;
-	LOGFONT lf_;
 	LOGFONT lfHeader_;
 };
 

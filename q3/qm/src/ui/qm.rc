@@ -1605,8 +1605,27 @@ IDD_OPTIONEDITWINDOW DIALOGEX 0, 0, 231, 170
 STYLE DS_SETFONT | WS_CHILD
 FONT 9, "‚l‚r ‚oƒSƒVƒbƒN", 0, 0, 0x0
 BEGIN
-    PUSHBUTTON      "&Font...",IDC_FONT,5,5,50,14
-    PUSHBUTTON      "&Header Font...",IDC_HEADERFONT,60,5,50,14
+    GROUPBOX        "Wrap",IDC_STATIC,6,6,120,72
+    CONTROL         "Wrap at &window width",IDC_WRAPWINDOWWIDTH,"Button",
+                    BS_AUTORADIOBUTTON,12,18,84,10
+    CONTROL         "Wrap at the &specified column",IDC_WRAPCOLUMN,"Button",
+                    BS_AUTORADIOBUTTON,12,30,102,10
+    LTEXT           "&Column",IDC_STATIC,24,45,24,8
+    EDITTEXT        IDC_CHARINLINE,54,42,36,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "W&ord Wrap",IDC_WORDWRAP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,12,60,47,10
+    LTEXT           "&Tab Width",IDC_STATIC,6,87,30,8
+    EDITTEXT        IDC_TABWIDTH,42,84,36,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Show &Ruler",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,6,102,49,10
+    CONTROL         "Show &Vertical Scroll Bar",IDC_SHOWVERTICALSCROLLBAR,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,114,88,10
+    CONTROL         "Show &Horizontal Scroll Bar",
+                    IDC_SHOWHORIZONTALSCROLLBAR,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,6,126,94,10
+    PUSHBUTTON      "&Font...",IDC_FONT,132,12,50,14
+    PUSHBUTTON      "Co&lors...",IDC_COLORS,132,30,50,14
+    PUSHBUTTON      "&Header Font...",IDC_HEADERFONT,132,48,50,14
 END
 
 IDD_OPTIONHEADERWINDOW DIALOGEX 0, 0, 231, 170

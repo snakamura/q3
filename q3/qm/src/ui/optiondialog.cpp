@@ -1287,11 +1287,10 @@ LRESULT qm::AbstractOptionTextWindowDialog::onWrapChange(UINT nId)
 
 qm::OptionEditWindowDialog::OptionEditWindowDialog(EditFrameWindowManager* pEditFrameWindowManager,
 												   Profile* pProfile) :
-	DefaultDialog(IDD_OPTIONEDITWINDOW),
+	AbstractOptionTextWindowDialog(IDD_OPTIONEDITWINDOW, pProfile, L"EditWindow"),
 	pEditFrameWindowManager_(pEditFrameWindowManager),
 	pProfile_(pProfile)
 {
-	qs::UIUtil::getLogFontFromProfile(pProfile_, L"EditWindow", false, &lf_);
 	qs::UIUtil::getLogFontFromProfile(pProfile_, L"HeaderEditWindow", false, &lfHeader_);
 }
 
@@ -1303,21 +1302,22 @@ LRESULT qm::OptionEditWindowDialog::onCommand(WORD nCode,
 											  WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
-		HANDLE_COMMAND_ID(IDC_FONT, onFont)
 		HANDLE_COMMAND_ID(IDC_HEADERFONT, onHeaderFont)
 	END_COMMAND_HANDLER()
-	return DefaultDialog::onCommand(nCode, nId);
+	return AbstractOptionTextWindowDialog::onCommand(nCode, nId);
 }
 
 LRESULT qm::OptionEditWindowDialog::onInitDialog(HWND hwndFocus,
 												 LPARAM lParam)
 {
-	return FALSE;
+	return AbstractOptionTextWindowDialog::onInitDialog(hwndFocus, lParam);
 }
 
 bool qm::OptionEditWindowDialog::save(OptionDialogContext* pContext)
 {
-	qs::UIUtil::setLogFontToProfile(pProfile_, L"EditWindow", lf_);
+	if (!AbstractOptionTextWindowDialog::save(pContext))
+		return false;
+	
 	qs::UIUtil::setLogFontToProfile(pProfile_, L"HeaderEditWindow", lfHeader_);
 	
 	pEditFrameWindowManager_->reloadProfiles();
@@ -1325,12 +1325,6 @@ bool qm::OptionEditWindowDialog::save(OptionDialogContext* pContext)
 	pContext->setFlags(OptionDialogContext::FLAG_LAYOUTEDITWINDOW);
 	
 	return true;
-}
-
-LRESULT qm::OptionEditWindowDialog::onFont()
-{
-	qs::UIUtil::browseFont(getParentPopup(), &lf_);
-	return 0;
 }
 
 LRESULT qm::OptionEditWindowDialog::onHeaderFont()
