@@ -10,6 +10,7 @@
 #	define INITGUID
 #endif
 
+#include <qmmessage.h>
 #include <qmsecurity.h>
 
 #include <qsconv.h>
@@ -133,7 +134,7 @@ const AddressBookEntry* qm::AddressBook::getEntry(const WCHAR* pwszAddress) cons
 	
 	prepareEntryMap();
 	
-	EntryMap::value_type v(pwszAddress, 0);
+	EntryMap::value_type v(const_cast<WSTRING>(pwszAddress), 0);
 	EntryMap::const_iterator it = std::lower_bound(
 		mapEntry_.begin(), mapEntry_.end(), v,
 		binary_compose_f_gx_hy(
@@ -272,7 +273,7 @@ void qm::AddressBook::clear(unsigned int nType)
 		deleter<AddressBookCategory>());
 	listCategory_.clear();
 	
-	mapEntry_.clear();
+	clearEntryMap();
 }
 
 void qm::AddressBook::prepareEntryMap() const
@@ -286,8 +287,18 @@ void qm::AddressBook::prepareEntryMap() const
 		const AddressBookEntry::AddressList& l = pEntry->getAddresses();
 		for (AddressBookEntry::AddressList::const_iterator itA = l.begin(); itA != l.end(); ++itA) {
 			AddressBookAddress* pAddress = *itA;
-			if (!pAddress->isRFC2822()) {
-				EntryMap::value_type v(pAddress->getAddress(), pEntry);
+			
+			wstring_ptr wstrAddress;
+			if (pAddress->isRFC2822()) {
+				AddressParser address(0);
+				if (MessageCreator::getAddress(pAddress->getAddress(), &address))
+					wstrAddress = address.getAddress();
+			}
+			else {
+				wstrAddress = allocWString(pAddress->getAddress());
+			}
+			if (wstrAddress.get()) {
+				EntryMap::value_type v(wstrAddress.get(), pEntry);
 				
 				EntryMap::iterator itM = std::lower_bound(
 					mapEntry_.begin(), mapEntry_.end(), v,
@@ -297,9 +308,20 @@ void qm::AddressBook::prepareEntryMap() const
 						std::select1st<EntryMap::value_type>()));
 				if (itM == mapEntry_.end() || _wcsicmp((*itM).first, v.first) != 0)
 					mapEntry_.insert(itM, v);
+				
+				wstrAddress.release();
 			}
 		}
 	}
+}
+
+void qm::AddressBook::clearEntryMap()
+{
+	std::for_each(mapEntry_.begin(), mapEntry_.end(),
+		unary_compose_f_gx(
+			string_free<WSTRING>(),
+			std::select1st<EntryMap::value_type>()));
+	mapEntry_.clear();
 }
 
 

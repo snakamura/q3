@@ -66,7 +66,7 @@ public:
 public:
 	typedef std::vector<AddressBookEntry*> EntryList;
 	typedef std::vector<AddressBookCategory*> CategoryList;
-	typedef std::vector<std::pair<const WCHAR*, AddressBookEntry*> > EntryMap;
+	typedef std::vector<std::pair<qs::WSTRING, AddressBookEntry*> > EntryMap;
 
 public:
 	AddressBook(const WCHAR* pwszPath,
@@ -95,6 +95,7 @@ private:
 	bool loadExternal();
 	void clear(unsigned int nType);
 	void prepareEntryMap() const;
+	void clearEntryMap();
 
 private:
 	AddressBook(const AddressBook&);
