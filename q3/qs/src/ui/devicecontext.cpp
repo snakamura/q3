@@ -50,13 +50,28 @@ bool qs::DeviceContext::getTextExtentEx(const WCHAR* pwszString,
 	
 	if (pnDx) {
 		int nDx = pnFit ? *pnFit : nLen;
-		int* p = pnDx;
+		int* pn = pnDx;
+#if 1
+		const CHAR* p = str.get();
+		for (int n = 0; n < nDx; ++n, ++p) {
+			if (::IsDBCSLeadByte(*p)) {
+				*pn++ = dx[n + 1];
+				++p;
+				++n;
+			}
+			else {
+				*pn++ = dx[n];
+			}
+		}
+#else
+		// This works well on NT but not on 9x but it should.
 		for (int n = 0; n < nDx; ++n) {
 			if (n == 0 || dx[n] != dx[n - 1])
-				*p++ = dx[n];
+				*pn++ = dx[n];
 		}
+#endif
 		if (pnFit)
-			*pnFit = p - pnDx;
+			*pnFit = pn - pnDx;
 	}
 	else if (pnFit) {
 		if (*pnFit == nLen)
