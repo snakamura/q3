@@ -3004,7 +3004,7 @@ wstring_ptr qm::MacroFunctionParseURL::decode(const WCHAR* p,
 	wxstring_size_ptr decoded(converter.decode(buf.getCharArray(), &n));
 	if (!decoded.get())
 		return 0;
-	return decoded.release();
+	return allocWString(decoded.get(), decoded.size());
 }
 
 bool qm::MacroFunctionParseURL::isHex(WCHAR c)
