@@ -1,11 +1,12 @@
 /*
- * $Id: addressbook.cpp,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
+#include <qmapplication.h>
 #include <qmextensions.h>
 
 #include <qsconv.h>
@@ -29,19 +30,11 @@ using namespace qs;
  *
  */
 
-qm::AddressBook::AddressBook(const WCHAR* pwszPath,
-	const Security* pSecurity, QSTATUS* pstatus) :
-	wstrPath_(0),
+qm::AddressBook::AddressBook(const Security* pSecurity, QSTATUS* pstatus) :
 	pSecurity_(pSecurity),
 	pSMIMECallback_(0)
 {
 	DECLARE_QSTATUS();
-	
-	wstrPath_ = concat(pwszPath, L"\\", Extensions::ADDRESSBOOK);
-	if (!wstrPath_) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
 	
 	SYSTEMTIME st;
 	::GetSystemTime(&st);
@@ -53,7 +46,6 @@ qm::AddressBook::AddressBook(const WCHAR* pwszPath,
 
 qm::AddressBook::~AddressBook()
 {
-	freeWString(wstrPath_);
 	clear();
 	delete pSMIMECallback_;
 }
@@ -192,7 +184,12 @@ QSTATUS qm::AddressBook::load()
 {
 	DECLARE_QSTATUS();
 	
-	W2T(wstrPath_, ptszPath);
+	string_ptr<WSTRING> wstrPath;
+	status = Application::getApplication().getProfilePath(
+		Extensions::ADDRESSBOOK, &wstrPath);
+	CHECK_QSTATUS();
+	
+	W2T(wstrPath.get(), ptszPath);
 	AutoHandle hFile(::CreateFile(ptszPath, GENERIC_READ, 0, 0,
 		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
 	if (hFile.get()) {
@@ -208,7 +205,7 @@ QSTATUS qm::AddressBook::load()
 			AddressBookContentHandler handler(this, &status);
 			CHECK_QSTATUS();
 			reader.setContentHandler(&handler);
-			status = reader.parse(wstrPath_);
+			status = reader.parse(wstrPath.get());
 			CHECK_QSTATUS();
 			
 			ft_ = ft;

@@ -1,5 +1,5 @@
 /*
- * $Id: qmgoround.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -30,7 +30,7 @@ class GoRoundCourseList;
 class GoRound
 {
 public:
-	GoRound(const WCHAR* pwszPath, qs::QSTATUS* pstatus);
+	explicit GoRound(qs::QSTATUS* pstatus);
 	~GoRound();
 
 public:

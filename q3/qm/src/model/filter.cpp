@@ -1,11 +1,12 @@
 /*
- * $Id: filter.cpp,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
+#include <qmapplication.h>
 #include <qmextensions.h>
 #include <qmmacro.h>
 
@@ -29,21 +30,13 @@ using namespace qs;
  *
  */
 
-qm::FilterManager::FilterManager(const WCHAR* pwszPath, QSTATUS* pstatus) :
-	wstrPath_(0)
+qm::FilterManager::FilterManager(QSTATUS* pstatus)
 {
-	assert(pwszPath);
 	assert(pstatus);
 	
 	DECLARE_QSTATUS();
 	
 	*pstatus = QSTATUS_SUCCESS;
-	
-	wstrPath_ = concat(pwszPath, L"\\", Extensions::FILTERS);
-	if (!wstrPath_) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
 	
 	SYSTEMTIME st;
 	::GetSystemTime(&st);
@@ -55,7 +48,6 @@ qm::FilterManager::FilterManager(const WCHAR* pwszPath, QSTATUS* pstatus) :
 
 qm::FilterManager::~FilterManager()
 {
-	freeWString(wstrPath_);
 	clear();
 }
 
@@ -77,7 +69,12 @@ QSTATUS qm::FilterManager::load()
 {
 	DECLARE_QSTATUS();
 	
-	W2T(wstrPath_, ptszPath);
+	string_ptr<WSTRING> wstrPath;
+	status = Application::getApplication().getProfilePath(
+		Extensions::FILTERS, &wstrPath);
+	CHECK_QSTATUS();
+	
+	W2T(wstrPath.get(), ptszPath);
 	AutoHandle hFile(::CreateFile(ptszPath, GENERIC_READ, 0, 0,
 		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
 	if (hFile.get()) {
@@ -93,7 +90,7 @@ QSTATUS qm::FilterManager::load()
 			FilterContentHandler handler(&listFilter_, &status);
 			CHECK_QSTATUS();
 			reader.setContentHandler(&handler);
-			status = reader.parse(wstrPath_);
+			status = reader.parse(wstrPath.get());
 			CHECK_QSTATUS();
 			
 			ft_ = ft;

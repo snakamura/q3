@@ -1,12 +1,11 @@
 /*
- * $Id: viewmodel.cpp,v 1.5 2003/05/31 15:50:37 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
-#include <qmapplication.h>
 #include <qmaccount.h>
 #include <qmextensions.h>
 #include <qmfolder.h>
@@ -1587,13 +1586,11 @@ qm::ViewModelManager::ViewModelManager(Profile* pProfile, Document* pDocument,
 	
 	DECLARE_QSTATUS();
 	
-	const WCHAR* pwszMailFolder =
-		Application::getApplication().getMailFolder();
 	std::auto_ptr<FilterManager> pFilterManager;
-	status = newQsObject(pwszMailFolder, &pFilterManager);
+	status = newQsObject(&pFilterManager);
 	CHECK_QSTATUS_SET(pstatus);
 	std::auto_ptr<ColorManager> pColorManager;
-	status = newQsObject(pwszMailFolder, &pColorManager);
+	status = newQsObject(&pColorManager);
 	CHECK_QSTATUS_SET(pstatus);
 	
 	status = newQsObject(this, &pDelayedFolderModelHandler_);

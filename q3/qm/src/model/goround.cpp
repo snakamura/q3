@@ -1,11 +1,12 @@
 /*
- * $Id: goround.cpp,v 1.2 2003/05/29 08:15:50 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
+#include <qmapplication.h>
 #include <qmextensions.h>
 #include <qmgoround.h>
 
@@ -31,7 +32,6 @@ struct qm::GoRoundImpl
 {
 	QSTATUS load();
 	
-	WSTRING wstrPath_;
 	FILETIME ft_;
 	GoRoundCourseList* pCourseList_;
 };
@@ -40,7 +40,12 @@ QSTATUS qm::GoRoundImpl::load()
 {
 	DECLARE_QSTATUS();
 	
-	W2T(wstrPath_, ptszPath);
+	string_ptr<WSTRING> wstrPath;
+	status = Application::getApplication().getProfilePath(
+		Extensions::GOROUND, &wstrPath);
+	CHECK_QSTATUS();
+	
+	W2T(wstrPath.get(), ptszPath);
 	AutoHandle hFile(::CreateFile(ptszPath, GENERIC_READ, 0, 0,
 		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
 	if (hFile.get()) {
@@ -52,7 +57,7 @@ QSTATUS qm::GoRoundImpl::load()
 			delete pCourseList_;
 			pCourseList_ = 0;
 			
-			FileInputStream fileStream(wstrPath_, &status);
+			FileInputStream fileStream(wstrPath.get(), &status);
 			CHECK_QSTATUS();
 			BufferedInputStream stream(&fileStream, false, &status);
 			CHECK_QSTATUS();
@@ -74,25 +79,18 @@ QSTATUS qm::GoRoundImpl::load()
  *
  */
 
-qm::GoRound::GoRound(const WCHAR* pwszPath, QSTATUS* pstatus) :
+qm::GoRound::GoRound(QSTATUS* pstatus) :
 	pImpl_(0)
 {
-	assert(pwszPath);
 	assert(pstatus);
 	
 	DECLARE_QSTATUS();
 	
 	*pstatus = QSTATUS_SUCCESS;
 	
-	string_ptr<WSTRING> wstrPath(concat(pwszPath, L"\\", Extensions::GOROUND));
-	if (!wstrPath.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
-	
 	status = newObject(&pImpl_);
 	CHECK_QSTATUS_SET(pstatus);
-	pImpl_->wstrPath_ = wstrPath.release();
+	
 	SYSTEMTIME st;
 	::GetSystemTime(&st);
 	::SystemTimeToFileTime(&st, &pImpl_->ft_);
@@ -102,7 +100,6 @@ qm::GoRound::GoRound(const WCHAR* pwszPath, QSTATUS* pstatus) :
 qm::GoRound::~GoRound()
 {
 	if (pImpl_) {
-		freeWString(pImpl_->wstrPath_);
 		delete pImpl_->pCourseList_;
 		delete pImpl_;
 	}

@@ -1,5 +1,5 @@
 /*
- * $Id: rule.cpp,v 1.2 2003/05/18 19:16:10 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -7,6 +7,7 @@
  */
 
 #include <qmaccount.h>
+#include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmextensions.h>
 #include <qmfolder.h>
@@ -34,17 +35,11 @@ using namespace qs;
  *
  */
 
-qm::RuleManager::RuleManager(const WCHAR* pwszPath, QSTATUS* pstatus) :
-	wstrPath_(0)
+qm::RuleManager::RuleManager(QSTATUS* pstatus)
 {
 	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 	
-	wstrPath_ = concat(pwszPath, L"\\", Extensions::RULES);
-	if (!wstrPath_) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
+	*pstatus = QSTATUS_SUCCESS;
 	
 	SYSTEMTIME st;
 	::GetSystemTime(&st);
@@ -53,7 +48,6 @@ qm::RuleManager::RuleManager(const WCHAR* pwszPath, QSTATUS* pstatus) :
 
 qm::RuleManager::~RuleManager()
 {
-	freeWString(wstrPath_);
 	clear();
 }
 
@@ -167,7 +161,12 @@ QSTATUS qm::RuleManager::load()
 {
 	DECLARE_QSTATUS();
 	
-	W2T(wstrPath_, ptszPath);
+	string_ptr<WSTRING> wstrPath;
+	status = Application::getApplication().getProfilePath(
+		Extensions::RULES, &wstrPath);
+	CHECK_QSTATUS();
+	
+	W2T(wstrPath.get(), ptszPath);
 	AutoHandle hFile(::CreateFile(ptszPath, GENERIC_READ, 0, 0,
 		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
 	if (hFile.get()) {
@@ -183,7 +182,7 @@ QSTATUS qm::RuleManager::load()
 			RuleContentHandler handler(this, &status);
 			CHECK_QSTATUS();
 			reader.setContentHandler(&handler);
-			status = reader.parse(wstrPath_);
+			status = reader.parse(wstrPath.get());
 			CHECK_QSTATUS();
 			
 			ft_ = ft;

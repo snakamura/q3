@@ -307,10 +307,7 @@ qm::SyncManager::SyncManager(Profile* pProfile, QSTATUS* pstatus) :
 	
 	DECLARE_QSTATUS();
 	
-	const WCHAR* pwszMailFolder =
-		Application::getApplication().getMailFolder();
-	
-	status = newQsObject(pwszMailFolder, &pSyncFilterManager_);
+	status = newQsObject(&pSyncFilterManager_);
 	CHECK_QSTATUS_SET(pstatus);
 	
 	status = STLWrapper<ThreadList>(listThread_).reserve(THREAD_MAX);

@@ -1,11 +1,12 @@
 /*
- * $Id: fixedformtext.cpp,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
+#include <qmapplication.h>
 #include <qmextensions.h>
 
 #include <qsconv.h>
@@ -27,12 +28,11 @@ using namespace qs;
  *
  */
 
-qm::FixedFormTextManager::FixedFormTextManager(
-	const WCHAR* pwszPath, QSTATUS* pstatus)
+qm::FixedFormTextManager::FixedFormTextManager(QSTATUS* pstatus)
 {
 	DECLARE_QSTATUS();
 	
-	status = load(pwszPath);
+	status = load();
 	CHECK_QSTATUS_SET(pstatus);
 }
 
@@ -52,14 +52,14 @@ QSTATUS qm::FixedFormTextManager::addText(FixedFormText* pText)
 	return STLWrapper<TextList>(listText_).push_back(pText);
 }
 
-QSTATUS qm::FixedFormTextManager::load(const WCHAR* pwszPath)
+QSTATUS qm::FixedFormTextManager::load()
 {
 	DECLARE_QSTATUS();
 	
-	string_ptr<WSTRING> wstrPath(concat(
-		pwszPath, L"\\", Extensions::TEXTS));
-	if (!wstrPath.get())
-		return QSTATUS_OUTOFMEMORY;
+	string_ptr<WSTRING> wstrPath;
+	status = Application::getApplication().getProfilePath(
+		Extensions::TEXTS, &wstrPath);
+	CHECK_QSTATUS();
 	
 	W2T(wstrPath.get(), ptszPath);
 	if (::GetFileAttributes(ptszPath) != 0xffffffff) {

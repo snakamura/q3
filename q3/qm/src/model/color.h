@@ -1,5 +1,5 @@
 /*
- * $Id: color.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -40,7 +40,7 @@ class MacroParser;
 class ColorManager
 {
 public:
-	ColorManager(const WCHAR* pwszPath, qs::QSTATUS* pstatus);
+	explicit ColorManager(qs::QSTATUS* pstatus);
 	~ColorManager();
 
 public:
@@ -50,7 +50,7 @@ public:
 	qs::QSTATUS addColorSet(ColorSet* pSet);
 
 private:
-	qs::QSTATUS load(const WCHAR* pwszPath);
+	qs::QSTATUS load();
 
 private:
 	ColorManager(const ColorManager&);

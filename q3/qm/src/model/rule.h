@@ -1,5 +1,5 @@
 /*
- * $Id: rule.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -50,7 +50,7 @@ class NormalFolder;
 class RuleManager
 {
 public:
-	RuleManager(const WCHAR* pwszPath, qs::QSTATUS* pstatus);
+	explicit RuleManager(qs::QSTATUS* pstatus);
 	~RuleManager();
 
 public:
@@ -74,7 +74,6 @@ private:
 	typedef std::vector<RuleSet*> RuleSetList;
 
 private:
-	qs::WSTRING wstrPath_;
 	FILETIME ft_;
 	RuleSetList listRuleSet_;
 };

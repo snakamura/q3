@@ -1,5 +1,5 @@
 /*
- * $Id: addressbook.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -42,8 +42,7 @@ public:
 	typedef std::vector<qs::WSTRING> CategoryList;
 
 public:
-	AddressBook(const WCHAR* pwszPath,
-		const Security* pSecurity, qs::QSTATUS* pstatus);
+	AddressBook(const Security* pSecurity, qs::QSTATUS* pstatus);
 	~AddressBook();
 
 public:
@@ -87,7 +86,6 @@ private:
 	friend class SMIMECallbackImpl;
 
 private:
-	qs::WSTRING wstrPath_;
 	const Security* pSecurity_;
 	FILETIME ft_;
 	EntryList listEntry_;

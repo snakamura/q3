@@ -1,5 +1,5 @@
 /*
- * $Id: headereditwindow.cpp,v 1.1.1.1 2003/04/29 08:07:32 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -68,11 +68,10 @@ QSTATUS qm::HeaderEditWindowImpl::load(HeaderEditLineCallback* pCallback)
 	CHECK_QSTATUS();
 	pLayout_->setLineSpacing(1);
 	
-	string_ptr<WSTRING> wstrPath(concat(
-		Application::getApplication().getMailFolder(),
-		L"\\", Extensions::HEADEREDIT));
-	if (!wstrPath.get())
-		return QSTATUS_OUTOFMEMORY;
+	string_ptr<WSTRING> wstrPath;
+	status = Application::getApplication().getProfilePath(
+		Extensions::HEADEREDIT, &wstrPath);
+	CHECK_QSTATUS();
 	
 	XMLReader reader(&status);
 	CHECK_QSTATUS();

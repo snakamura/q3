@@ -1,5 +1,5 @@
 /*
- * $Id: color.cpp,v 1.2 2003/05/31 15:50:36 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -7,6 +7,7 @@
  */
 
 #include <qmaccount.h>
+#include <qmapplication.h>
 #include <qmextensions.h>
 #include <qmfolder.h>
 #include <qmmacro.h>
@@ -29,11 +30,11 @@ using namespace qs;
  *
  */
 
-qm::ColorManager::ColorManager(const WCHAR* pwszPath, QSTATUS* pstatus)
+qm::ColorManager::ColorManager(QSTATUS* pstatus)
 {
 	DECLARE_QSTATUS();
 	
-	status = load(pwszPath);
+	status = load();
 	CHECK_QSTATUS_SET(pstatus);
 }
 
@@ -71,14 +72,14 @@ QSTATUS qm::ColorManager::addColorSet(ColorSet* pSet)
 	return STLWrapper<ColorSetList>(listColorSet_).push_back(pSet);
 }
 
-QSTATUS qm::ColorManager::load(const WCHAR* pwszPath)
+QSTATUS qm::ColorManager::load()
 {
 	DECLARE_QSTATUS();
 	
-	string_ptr<WSTRING> wstrPath(concat(
-		pwszPath, L"\\", Extensions::COLORS));
-	if (!wstrPath.get())
-		return QSTATUS_OUTOFMEMORY;
+	string_ptr<WSTRING> wstrPath;
+	status = Application::getApplication().getProfilePath(
+		Extensions::COLORS, &wstrPath);
+	CHECK_QSTATUS();
 	
 	W2T(wstrPath.get(), ptszPath);
 	if (::GetFileAttributes(ptszPath) != 0xffffffff) {

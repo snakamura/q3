@@ -1,5 +1,5 @@
 /*
- * $Id: syncfilter.cpp,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -7,6 +7,7 @@
  */
 
 #include <qmaccount.h>
+#include <qmapplication.h>
 #include <qmextensions.h>
 #include <qmfolder.h>
 #include <qmsyncfilter.h>
@@ -43,7 +44,6 @@ public:
 
 public:
 	SyncFilterManager* pThis_;
-	WSTRING wstrPath_;
 	SyncFilterManager::FilterSetList listFilterSet_;
 	FILETIME ft_;
 };
@@ -52,7 +52,12 @@ QSTATUS qm::SyncFilterManagerImpl::load()
 {
 	DECLARE_QSTATUS();
 	
-	W2T(wstrPath_, ptszPath);
+	string_ptr<WSTRING> wstrPath;
+	status = Application::getApplication().getProfilePath(
+		Extensions::SYNCFILTERS, &wstrPath);
+	CHECK_QSTATUS();
+	
+	W2T(wstrPath.get(), ptszPath);
 	AutoHandle hFile(::CreateFile(ptszPath, GENERIC_READ, 0, 0,
 		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
 	if (hFile.get()) {
@@ -68,7 +73,7 @@ QSTATUS qm::SyncFilterManagerImpl::load()
 			SyncFilterContentHandler handler(pThis_, &status);
 			CHECK_QSTATUS();
 			reader.setContentHandler(&handler);
-			status = reader.parse(wstrPath_);
+			status = reader.parse(wstrPath.get());
 			CHECK_QSTATUS();
 			
 			ft_ = ft;
@@ -95,25 +100,16 @@ void qm::SyncFilterManagerImpl::clear()
  *
  */
 
-qm::SyncFilterManager::SyncFilterManager(
-	const WCHAR* pwszPath, QSTATUS* pstatus) :
+qm::SyncFilterManager::SyncFilterManager(QSTATUS* pstatus) :
 	pImpl_(0)
 {
 	assert(pstatus);
 	
 	DECLARE_QSTATUS();
 	
-	string_ptr<WSTRING> wstrPath(
-		concat(pwszPath, L"\\", Extensions::SYNCFILTERS));
-	if (!wstrPath.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
-	
 	status = newObject(&pImpl_);
 	CHECK_QSTATUS_SET(pstatus);
 	pImpl_->pThis_ = this;
-	pImpl_->wstrPath_ = wstrPath.release();
 	
 	SYSTEMTIME st;
 	::GetSystemTime(&st);
@@ -123,7 +119,6 @@ qm::SyncFilterManager::SyncFilterManager(
 qm::SyncFilterManager::~SyncFilterManager()
 {
 	if (pImpl_) {
-		freeWString(pImpl_->wstrPath_);
 		pImpl_->clear();
 		delete pImpl_;
 	}

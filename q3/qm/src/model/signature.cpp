@@ -1,5 +1,5 @@
 /*
- * $Id: signature.cpp,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -7,6 +7,7 @@
  */
 
 #include <qmaccount.h>
+#include <qmapplication.h>
 #include <qmextensions.h>
 
 #include <qsassert.h>
@@ -29,16 +30,8 @@ using namespace qs;
  *
  */
 
-qm::SignatureManager::SignatureManager(
-	const WCHAR* pwszPath, QSTATUS* pstatus) :
-	wstrPath_(0)
+qm::SignatureManager::SignatureManager(QSTATUS* pstatus)
 {
-	wstrPath_ = concat(pwszPath, L"\\", Extensions::SIGNATURES);
-	if (!wstrPath_) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
-	
 	SYSTEMTIME st;
 	::GetSystemTime(&st);
 	::SystemTimeToFileTime(&st, &ft_);
@@ -47,7 +40,6 @@ qm::SignatureManager::SignatureManager(
 qm::SignatureManager::~SignatureManager()
 {
 	clear();
-	freeWString(wstrPath_);
 }
 
 QSTATUS qm::SignatureManager::getSignatures(
@@ -142,7 +134,12 @@ QSTATUS qm::SignatureManager::load()
 {
 	DECLARE_QSTATUS();
 	
-	W2T(wstrPath_, ptszPath);
+	string_ptr<WSTRING> wstrPath;
+	status = Application::getApplication().getProfilePath(
+		Extensions::SIGNATURES, &wstrPath);
+	CHECK_QSTATUS();
+	
+	W2T(wstrPath.get(), ptszPath);
 	AutoHandle hFile(::CreateFile(ptszPath, GENERIC_READ, 0, 0,
 		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
 	if (hFile.get()) {
@@ -158,7 +155,7 @@ QSTATUS qm::SignatureManager::load()
 			SignatureContentHandler handler(this, &status);
 			CHECK_QSTATUS();
 			reader.setContentHandler(&handler);
-			status = reader.parse(wstrPath_);
+			status = reader.parse(wstrPath.get());
 			CHECK_QSTATUS();
 			
 			ft_ = ft;

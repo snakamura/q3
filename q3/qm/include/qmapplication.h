@@ -1,5 +1,5 @@
 /*
- * $Id: qmapplication.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -43,6 +43,8 @@ public:
 	HINSTANCE getAtlHandle() const;
 	const WCHAR* getMailFolder() const;
 	const WCHAR* getTemporaryFolder() const;
+	qs::QSTATUS getProfilePath(const WCHAR* pwszName,
+		qs::WSTRING* pwstrPath) const;
 	qs::QSTATUS getVersion(bool bWithOSVersion,
 		qs::WSTRING* pwstrVersion) const;
 	qs::QSTATUS getOSVersion(qs::WSTRING* pwstrOSVersion) const;

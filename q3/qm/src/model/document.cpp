@@ -1,5 +1,5 @@
 /*
- * $Id: document.cpp,v 1.2 2003/05/19 07:13:18 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -95,7 +95,7 @@ qm::Document::Document(QSTATUS* pstatus) :
 		Application::getApplication().getMailFolder();
 	
 	std::auto_ptr<RuleManager> pRuleManager;
-	status = newQsObject(pwszMailFolder, &pRuleManager);
+	status = newQsObject(&pRuleManager);
 	CHECK_QSTATUS_SET(pstatus);
 	
 	std::auto_ptr<TemplateManager> pTemplateManager;
@@ -107,7 +107,7 @@ qm::Document::Document(QSTATUS* pstatus) :
 	CHECK_QSTATUS_SET(pstatus);
 	
 	std::auto_ptr<SignatureManager> pSignatureManager;
-	status = newQsObject(pwszMailFolder, &pSignatureManager);
+	status = newQsObject(&pSignatureManager);
 	CHECK_QSTATUS_SET(pstatus);
 	
 	std::auto_ptr<Security> pSecurity;
@@ -115,7 +115,7 @@ qm::Document::Document(QSTATUS* pstatus) :
 	CHECK_QSTATUS_SET(pstatus);
 	
 	std::auto_ptr<AddressBook> pAddressBook;
-	status = newQsObject(pwszMailFolder, pSecurity.get(), &pAddressBook);
+	status = newQsObject(pSecurity.get(), &pAddressBook);
 	CHECK_QSTATUS_SET(pstatus);
 	
 	status = newObject(&pImpl_);

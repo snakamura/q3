@@ -1,5 +1,5 @@
 /*
- * $Id: signature.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -40,7 +40,7 @@ public:
 	typedef std::vector<Signature*> SignatureList;
 
 public:
-	SignatureManager(const WCHAR* pwszPath, qs::QSTATUS* pstatus);
+	explicit SignatureManager(qs::QSTATUS* pstatus);
 	~SignatureManager();
 
 public:
@@ -62,7 +62,6 @@ private:
 	SignatureManager& operator=(const SignatureManager&);
 
 private:
-	qs::WSTRING wstrPath_;
 	FILETIME ft_;
 	SignatureList listSignature_;
 };

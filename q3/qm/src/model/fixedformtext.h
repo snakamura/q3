@@ -1,5 +1,5 @@
 /*
- * $Id: fixedformtext.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -37,7 +37,7 @@ public:
 	typedef std::vector<FixedFormText*> TextList;
 
 public:
-	FixedFormTextManager(const WCHAR* pwszPath, qs::QSTATUS* pstatus);
+	explicit FixedFormTextManager(qs::QSTATUS* pstatus);
 	~FixedFormTextManager();
 
 public:
@@ -47,7 +47,7 @@ public:
 	qs::QSTATUS addText(FixedFormText* pText);
 
 private:
-	qs::QSTATUS load(const WCHAR* pwszPath);
+	qs::QSTATUS load();
 
 private:
 	FixedFormTextManager(const FixedFormTextManager&);

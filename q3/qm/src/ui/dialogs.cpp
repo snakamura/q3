@@ -2307,7 +2307,7 @@ qm::InsertTextDialog::InsertTextDialog(QSTATUS* pstatus) :
 {
 	DECLARE_QSTATUS();
 	
-	status = newQsObject(Application::getApplication().getMailFolder(), &pManager_);
+	status = newQsObject(&pManager_);
 	CHECK_QSTATUS_SET(pstatus);
 }
 
