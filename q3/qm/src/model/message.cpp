@@ -1850,9 +1850,9 @@ void qm::AttachmentParser::getAttachments(bool bIncludeDeleted,
 			wstrName.get(), const_cast<Part*>(&part_)));
 		wstrName.release();
 	}
-	else if (part_.getEnclosedPart()) {
+	
+	if (part_.getEnclosedPart())
 		AttachmentParser(*part_.getEnclosedPart()).getAttachments(bIncludeDeleted, pList);
-	}
 }
 
 AttachmentParser::Result qm::AttachmentParser::detach(const WCHAR* pwszDir,
