@@ -456,7 +456,8 @@ bool qm::Application::initialize()
 		pImpl_->pToolbarManager_.get(),
 		pImpl_->pKeyMap_.get()
 	};
-	if (!pMainWindow->create(L"QmMainWindow", L"QMAIL", dwStyle,
+	wstring_ptr wstrTitle(getVersion(false));
+	if (!pMainWindow->create(L"QmMainWindow", wstrTitle.get(), dwStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 		0, dwExStyle, 0, 0, &context))
 		return false;
