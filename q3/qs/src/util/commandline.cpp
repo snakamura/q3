@@ -1,5 +1,5 @@
 /*
- * $Id: commandline.cpp,v 1.1.1.1 2003/04/29 08:07:37 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -70,13 +70,16 @@ QSTATUS qs::CommandLine::parse(Reader& reader)
 	CHECK_QSTATUS();
 	
 	bool bInQuote = false;
+	bool bPrevSpace = true;
 	WCHAR c = 0;
 	size_t nRead = 0;
-	while (true) {
+	while (nRead != static_cast<size_t>(-1)) {
 		status = reader.read(&c, 1, &nRead);
 		CHECK_QSTATUS();
 		if (nRead == static_cast<size_t>(-1))
-			break;
+			c = L' ';
+		
+		bool bSpace = false;
 		if (c == L'\"') {
 			bInQuote = !bInQuote;
 		}
@@ -89,15 +92,19 @@ QSTATUS qs::CommandLine::parse(Reader& reader)
 			CHECK_QSTATUS();
 		}
 		else if (c == L' ' && !bInQuote) {
-			status = pImpl_->pHandler_->process(buffer.getCharArray());
-			CHECK_QSTATUS();
-			status = buffer.remove(0, static_cast<size_t>(-1));
-			CHECK_QSTATUS();
+			if (!bPrevSpace) {
+				status = pImpl_->pHandler_->process(buffer.getCharArray());
+				CHECK_QSTATUS();
+				status = buffer.remove(0, static_cast<size_t>(-1));
+				CHECK_QSTATUS();
+			}
+			bSpace = true;
 		}
 		else {
 			status = buffer.append(c);
 			CHECK_QSTATUS();
 		}
+		bPrevSpace = bSpace;
 	}
 	
 	return QSTATUS_SUCCESS;

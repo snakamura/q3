@@ -259,8 +259,11 @@ bool qm::ApplicationImpl::canCheck()
  *
  */
 
-qm::Application::Application(HINSTANCE hInst, QSTATUS* pstatus)
+qm::Application::Application(HINSTANCE hInst, WSTRING wstrMailFolder,
+	WSTRING wstrProfile, QSTATUS* pstatus)
 {
+	assert(wstrMailFolder);
+	assert(wstrProfile);
 	assert(pstatus);
 	
 	*pstatus = QSTATUS_SUCCESS;
@@ -272,9 +275,9 @@ qm::Application::Application(HINSTANCE hInst, QSTATUS* pstatus)
 	pImpl_->hInst_ = hInst;
 	pImpl_->hInstResource_ = hInst;
 	pImpl_->pWinSock_ = 0;
-	pImpl_->wstrMailFolder_ = 0;
+	pImpl_->wstrMailFolder_ = wstrMailFolder;
 	pImpl_->wstrTemporaryFolder_ = 0;
-	pImpl_->wstrProfileName_ = 0;
+	pImpl_->wstrProfileName_ = wstrProfile;
 	pImpl_->pProfile_ = 0;
 	pImpl_->pDocument_ = 0;
 	pImpl_->pKeyMap_ = 0;
@@ -320,44 +323,7 @@ QSTATUS qm::Application::initialize()
 		Part::O_ALLOW_SPECIALS_IN_REFERENCES |
 		Part::O_ALLOW_INVALID_PERIOD_IN_LOCALPART);
 	
-	bool bShowDialog = false;
-	Registry reg(HKEY_CURRENT_USER,
-		L"Software\\sn\\q3\\Setting", &status);
-	CHECK_QSTATUS();
-	string_ptr<WSTRING> wstrMailFolder;
-	status = reg.getValue(L"MailFolder", &wstrMailFolder);
-	CHECK_QSTATUS();
-	if (!wstrMailFolder.get()) {
-		MailFolderDialog dialog(&status);
-		CHECK_QSTATUS();
-		int nRet = 0;
-		status = dialog.doModal(0, 0, &nRet);
-		CHECK_QSTATUS();
-		if (nRet != IDOK)
-			return QSTATUS_FAIL;
-		wstrMailFolder.reset(allocWString(dialog.getMailFolder()));
-		if (!wstrMailFolder.get())
-			return QSTATUS_OUTOFMEMORY;
-		
-		status = reg.setValue(L"MailFolder", wstrMailFolder.get());
-		CHECK_QSTATUS();
-		
-		bShowDialog = true;
-	}
-	int nLen = wcslen(wstrMailFolder.get());
-	if (*(wstrMailFolder.get() + nLen - 1) == L'\\')
-		*(wstrMailFolder.get() + nLen - 1) = L'\0';
-	
-	string_ptr<WSTRING> wstrProfileName;
-	status = reg.getValue(L"Profile", &wstrProfileName);
-	CHECK_QSTATUS();
-	if (!wstrProfileName.get()) {
-		wstrProfileName.reset(allocWString(L""));
-		if (!wstrProfileName.get())
-			return QSTATUS_OUTOFMEMORY;
-	}
-	
-	status = pImpl_->ensureDirectory(wstrMailFolder.get(), 0);
+	status = pImpl_->ensureDirectory(pImpl_->wstrMailFolder_, 0);
 	CHECK_QSTATUS();
 	const WCHAR* pwszDirs[] = {
 		L"accounts",
@@ -368,7 +334,7 @@ QSTATUS qm::Application::initialize()
 	};
 	for (int n = 0; n < countof(pwszDirs); ++n) {
 		status = pImpl_->ensureDirectory(
-			wstrMailFolder.get(), pwszDirs[n]);
+			pImpl_->wstrMailFolder_, pwszDirs[n]);
 		CHECK_QSTATUS();
 	}
 	
@@ -380,13 +346,13 @@ QSTATUS qm::Application::initialize()
 		L"edit"
 	};
 	for (n = 0; n < countof(pwszTemplates); ++n) {
-		status = pImpl_->ensureFile(wstrMailFolder.get(),
+		status = pImpl_->ensureFile(pImpl_->wstrMailFolder_,
 			L"templates", L"TEMPLATE", pwszTemplates[n], L"template");
 		CHECK_QSTATUS();
 	}
 	
 	string_ptr<WSTRING> wstrProfileDir(
-		concat(wstrMailFolder.get(), L"\\profiles"));
+		concat(pImpl_->wstrMailFolder_, L"\\profiles"));
 	if (!wstrProfileDir.get())
 		return QSTATUS_OUTOFMEMORY;
 	
@@ -402,9 +368,6 @@ QSTATUS qm::Application::initialize()
 			0, L"PROFILE", pwszProfiles[n], 0);
 		CHECK_QSTATUS();
 	}
-	
-	pImpl_->wstrMailFolder_ = wstrMailFolder.release();
-	pImpl_->wstrProfileName_ = wstrProfileName.release();
 	
 	string_ptr<WSTRING> wstrProfilePath;
 	status = getProfilePath(Extensions::QMAIL, &wstrProfilePath);
@@ -484,16 +447,12 @@ QSTATUS qm::Application::initialize()
 	
 	status = newQsObject(pImpl_->pProfile_, &pImpl_->pDocument_);
 	CHECK_QSTATUS();
-	
 	status = newQsObject(pImpl_->pProfile_, &pImpl_->pSyncManager_);
 	CHECK_QSTATUS();
-	
 	status = newQsObject(pImpl_->pProfile_, &pImpl_->pSyncDialogManager_);
 	CHECK_QSTATUS();
-	
 	status = newQsObject(&pImpl_->pGoRound_);
 	CHECK_QSTATUS();
-	
 	status = newQsObject(&pImpl_->pTempFileCleaner_);
 	CHECK_QSTATUS();
 	
@@ -532,8 +491,7 @@ QSTATUS qm::Application::initialize()
 	CHECK_QSTATUS();
 	
 	pImpl_->pMainWindow_->updateWindow();
-	if (bShowDialog)
-		pImpl_->pMainWindow_->setForegroundWindow();
+	pImpl_->pMainWindow_->setForegroundWindow();
 	
 	int nOffline = 0;
 	status = pImpl_->pProfile_->getInt(L"Global", L"Offline", 1, &nOffline);

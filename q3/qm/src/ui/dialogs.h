@@ -727,10 +727,10 @@ private:
  *
  */
 
-class MailFolderDialog : public DefaultDialog
+class MailFolderDialog : public qs::DefaultDialog
 {
 public:
-	explicit MailFolderDialog(qs::QSTATUS* pstatus);
+	MailFolderDialog(HINSTANCE hInstResource, qs::QSTATUS* pstatus);
 	virtual ~MailFolderDialog();
 
 public:

@@ -2597,8 +2597,8 @@ LRESULT qm::InsertTextDialog::onOk()
  *
  */
 
-qm::MailFolderDialog::MailFolderDialog(QSTATUS* pstatus) :
-	DefaultDialog(IDD_MAILFOLDER, pstatus),
+qm::MailFolderDialog::MailFolderDialog(HINSTANCE hInstResource, QSTATUS* pstatus) :
+	DefaultDialog(hInstResource, IDD_MAILFOLDER, pstatus),
 	wstrMailFolder_(0)
 {
 }

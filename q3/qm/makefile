@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2003/05/30 06:22:56 snakamura Exp $
+# $Id$
 #
 # Makefile for qm
 
@@ -19,7 +19,6 @@ else
 	RESES		= $(OBJDIR)/ui/$(PROJECTNAME)$(BASEPLATFORM).res
 endif
 DEFFILE			= $(OBJDIR)/$(PROJECTNAME).def
-EXTRADEFFILE	= $(SRCDIR)/qm.def
 BASEADDRESS		= 0x30000000
 
 include ../common.mak

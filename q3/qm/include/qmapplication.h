@@ -31,7 +31,8 @@ class Document;
 class QMEXPORTCLASS Application
 {
 public:
-	Application(HINSTANCE hInst, qs::QSTATUS* pstatus);
+	Application(HINSTANCE hInst, qs::WSTRING wstrMailFolder,
+		qs::WSTRING wstrProfile, qs::QSTATUS* pstatus);
 	~Application();
 
 public:
