@@ -577,6 +577,9 @@ QSTATUS qm::NormalFolder::removeAllMessages(MessageOperationCallback* pCallback)
 	status = loadMessageHolders();
 	CHECK_QSTATUS();
 	
+	if (pImpl_->listMessageHolder_.empty())
+		return QSTATUS_SUCCESS;
+	
 	MessageHolderList l;
 	status = STLWrapper<MessageHolderList>(l).resize(
 		pImpl_->listMessageHolder_.size());

@@ -1775,6 +1775,55 @@ QSTATUS qm::FolderDeleteAction::isEnabled(const ActionEvent& event, bool* pbEnab
 
 /****************************************************************************
  *
+ * FolderEmptyAction
+ *
+ */
+
+qm::FolderEmptyAction::FolderEmptyAction(FolderSelectionModel* pModel, QSTATUS* pstatus) :
+	pModel_(pModel)
+{
+	assert(pstatus);
+	*pstatus = QSTATUS_SUCCESS;
+}
+
+qm::FolderEmptyAction::~FolderEmptyAction()
+{
+}
+
+QSTATUS qm::FolderEmptyAction::invoke(const ActionEvent& event)
+{
+	DECLARE_QSTATUS();
+	
+	Account::FolderList l;
+	status = pModel_->getSelectedFolders(&l);
+	CHECK_QSTATUS();
+	
+	Account::FolderList::const_iterator it = l.begin();
+	while (it != l.end()) {
+		Folder* pFolder = *it;
+		
+		// TODO
+		// This can be done if the folder is a query folder.
+		if (pFolder->getType() == Folder::TYPE_NORMAL) {
+			status = static_cast<NormalFolder*>(pFolder)->removeAllMessages(0);
+			CHECK_QSTATUS();
+		}
+		
+		++it;
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::FolderEmptyAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+{
+	assert(pbEnabled);
+	return pModel_->hasSelectedFolder(pbEnabled);
+}
+
+
+/****************************************************************************
+ *
  * FolderPropertyAction
  *
  */

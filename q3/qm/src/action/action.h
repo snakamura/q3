@@ -46,6 +46,7 @@ class FileSalvageAction;
 class FileSaveAction;
 class FolderCreateAction;
 class FolderDeleteAction;
+class FolderEmptyAction;
 class FolderPropertyAction;
 class FolderRenameAction;
 class FolderShowSizeAction;
@@ -826,6 +827,31 @@ private:
 private:
 	FolderModel* pFolderModel_;
 	FolderSelectionModel* pFolderSelectionModel_;
+};
+
+
+/****************************************************************************
+ *
+ * FolderEmptyAction
+ *
+ */
+
+class FolderEmptyAction : public qs::AbstractAction
+{
+public:
+	FolderEmptyAction(FolderSelectionModel* pModel, qs::QSTATUS* pstatus);
+	virtual ~FolderEmptyAction();
+
+public:
+	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+
+private:
+	FolderEmptyAction(const FolderEmptyAction&);
+	FolderEmptyAction& operator=(const FolderEmptyAction&);
+
+private:
+	FolderSelectionModel* pModel_;
 };
 
 

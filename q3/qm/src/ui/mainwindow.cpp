@@ -394,6 +394,9 @@ QSTATUS qm::MainWindowImpl::initActions()
 	status = InitAction2<FolderDeleteAction, FolderModel*, FolderSelectionModel*>(
 		pActionMap_, IDM_FOLDER_DELETE, pFolderModel_, this);
 	CHECK_QSTATUS();
+	status = InitAction1<FolderEmptyAction, FolderSelectionModel*>(
+		pActionMap_, IDM_FOLDER_EMPTY, this);
+	CHECK_QSTATUS();
 	status = InitAction2<FolderPropertyAction, FolderSelectionModel*, HWND>(
 		pActionMap_, IDM_FOLDER_PROPERTY, this, pThis_->getHandle());
 	CHECK_QSTATUS();
