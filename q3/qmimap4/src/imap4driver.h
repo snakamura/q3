@@ -213,7 +213,7 @@ private:
 
 private:
 	qs::WSTRING wstrRootFolder_;
-	qs::WSTRING wstrSpecialFolders_[3];
+	qs::WSTRING wstrSpecialFolders_[4];
 };
 
 
