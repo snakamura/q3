@@ -68,8 +68,8 @@
 			<popupmenu text="&amp;Template" action="ViewTemplate"/>
 			<popupmenu text="&amp;Encoding" action="ViewEncoding"/>
 			<separator/>
-			<separator/>
 			<menuitem text="Customi&amp;ze Columns..." action="ConfigViews"/>
+			<separator/>
 			<popupmenu text="Show &amp;Controls">
 				<menuitem text="Show &amp;Toolbar" action="ViewShowToolbar"/>
 				<menuitem text="Show &amp;Status Bar" action="ViewShowStatusBar"/>
