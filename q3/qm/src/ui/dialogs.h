@@ -200,6 +200,9 @@ private:
 	LRESULT onCategory();
 	LRESULT onSelect(UINT nId);
 	LRESULT onRemove();
+#if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
+	LRESULT onFilterChange();
+#endif
 	LRESULT onAddressColumnClick(NMHDR* pnmhdr, bool* pbHandled);
 	LRESULT onAddressDblClk(NMHDR* pnmhdr, bool* pbHandled);
 
@@ -212,6 +215,8 @@ private:
 		HMENU* phmenu, CategoryNameList* pList);
 	qs::QSTATUS setCurrentCategory(const WCHAR* pwszCategory);
 	bool isCategory(const AddressBookAddress::CategoryList& listCategory) const;
+	bool isMatchFilter(const AddressBookEntry* pEntry) const;
+	bool isMatchFilter(const AddressBookAddress* pAddress) const;
 
 private:
 	static size_t getCategoryLevel(const WCHAR* pwszCategory);
@@ -259,6 +264,7 @@ private:
 	qs::Profile* pProfile_;
 	unsigned int nSort_;
 	qs::WSTRING wstrCategory_;
+	qs::WSTRING wstrFilter_;
 	AddressList listAddress_[3];
 	AddressListWindow wndAddressList_;
 };

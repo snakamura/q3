@@ -236,6 +236,8 @@
 #define IDC_ALLFOLDER                   1130
 #define IDC_SEARCHBODY                  1131
 #define IDC_DRIVER                      1133
+#define IDC_FILTER                      1134
+#define IDC_FILTERLABEL                 1135
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -412,7 +414,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        156
 #define _APS_NEXT_COMMAND_VALUE         48000
-#define _APS_NEXT_CONTROL_VALUE         1134
+#define _APS_NEXT_CONTROL_VALUE         1136
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

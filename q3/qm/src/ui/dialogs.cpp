@@ -635,6 +635,7 @@ qm::AddressBookDialog::AddressBookDialog(AddressBook* pAddressBook,
 	pProfile_(pProfile),
 	nSort_(SORT_NAME | SORT_ASCENDING),
 	wstrCategory_(0),
+	wstrFilter_(0),
 	wndAddressList_(this, pstatus)
 {
 	DECLARE_QSTATUS();
@@ -676,6 +677,7 @@ qm::AddressBookDialog::AddressBookDialog(AddressBook* pAddressBook,
 qm::AddressBookDialog::~AddressBookDialog()
 {
 	freeWString(wstrCategory_);
+	freeWString(wstrFilter_);
 	for (int n = 0; n < countof(listAddress_); ++n)
 		std::for_each(listAddress_[n].begin(),
 			listAddress_[n].end(), string_free<WSTRING>());
@@ -700,6 +702,9 @@ LRESULT qm::AddressBookDialog::onCommand(WORD nCode, WORD nId)
 		HANDLE_COMMAND_ID(IDC_CATEGORY, onCategory)
 		HANDLE_COMMAND_ID_RANGE(IDC_TO, IDC_BCC, onSelect)
 		HANDLE_COMMAND_ID(IDC_REMOVE, onRemove)
+#if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
+		HANDLE_COMMAND_ID_CODE(IDC_FILTER, EN_CHANGE, onFilterChange)
+#endif
 	END_COMMAND_HANDLER()
 	return DefaultDialog::onCommand(nCode, nId);
 }
@@ -976,6 +981,17 @@ LRESULT qm::AddressBookDialog::onRemove()
 	return 0;
 }
 
+#if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
+LRESULT qm::AddressBookDialog::onFilterChange()
+{
+	freeWString(wstrFilter_);
+	string_ptr<WSTRING> wstrFilter(getDlgItemText(IDC_FILTER));
+	wstrFilter_ = tolower(wstrFilter.get());
+	update();
+	return 0;
+}
+#endif
+
 LRESULT qm::AddressBookDialog::onAddressColumnClick(NMHDR* pnmhdr, bool* pbHandled)
 {
 	NMLISTVIEW* pnm = reinterpret_cast<NMLISTVIEW*>(pnmhdr);
@@ -1023,13 +1039,15 @@ QSTATUS qm::AddressBookDialog::update()
 	AddressBook::EntryList::const_iterator itE = pList->begin();
 	while (itE != pList->end()) {
 		AddressBookEntry* pEntry = *itE;
+		bool bMatchEntry = isMatchFilter(pEntry);
 		W2T(pEntry->getName(), ptszName);
 		const AddressBookEntry::AddressList& l = pEntry->getAddresses();
 		AddressBookEntry::AddressList::const_iterator itA = l.begin();
 		while (itA != l.end()) {
 			AddressBookAddress* pAddress = *itA;
 			
-			if (isCategory(pAddress->getCategories())) {
+			if (isCategory(pAddress->getCategories()) &&
+				(bMatchEntry || isMatchFilter(pAddress))) {
 				LVITEM item = {
 					LVIF_TEXT | LVIF_PARAM,
 					n,
@@ -1168,6 +1186,8 @@ QSTATUS qm::AddressBookDialog::layout()
 	
 	Window(getDlgItem(IDC_CATEGORY)).setWindowPos(0, 5, 5, nLeftWidth,
 		nButtonHeight, SWP_NOZORDER | SWP_NOACTIVATE);
+	Window(getDlgItem(IDC_FILTER)).setWindowPos(0, nLeftWidth + 5*2, 5,
+		nRightWidth, nButtonHeight, SWP_NOZORDER | SWP_NOACTIVATE);
 	Window(getDlgItem(IDC_ADDRESS)).setWindowPos(0, 5, nButtonHeight + 5*2,
 		nLeftWidth, nHeight - nButtonHeight - 5*3, SWP_NOZORDER | SWP_NOACTIVATE);
 	Window(getDlgItem(IDC_SELECTEDADDRESS)).setWindowPos(0,
@@ -1181,6 +1201,9 @@ QSTATUS qm::AddressBookDialog::layout()
 			nTop, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 		nTop += nButtonHeight + nDx[n];
 	}
+	
+	Window(getDlgItem(IDC_FILTERLABEL)).setWindowPos(
+		0, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOACTIVATE);
 	
 #ifndef _WIN32_WCE
 	Window(getDlgItem(IDC_SIZEGRIP)).setWindowPos(0,
@@ -1394,6 +1417,22 @@ bool qm::AddressBookDialog::isCategory(
 	}
 	
 	return false;
+}
+
+bool qm::AddressBookDialog::isMatchFilter(const AddressBookEntry* pEntry) const
+{
+	if (!wstrFilter_)
+		return true;
+	
+	string_ptr<WSTRING> wstrName(tolower(pEntry->getName()));
+	return wcsstr(wstrName.get(), wstrFilter_) != 0;
+}
+
+bool qm::AddressBookDialog::isMatchFilter(const AddressBookAddress* pAddress) const
+{
+	if (!wstrFilter_)
+		return true;
+	return wcsstr(pAddress->getAddress(), wstrFilter_) != 0;
 }
 
 size_t qm::AddressBookDialog::getCategoryLevel(const WCHAR* pwszCategory)
