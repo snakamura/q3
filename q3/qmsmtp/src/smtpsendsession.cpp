@@ -442,7 +442,7 @@ wstring_ptr qmsmtp::SmtpSendSessionUI::getDisplayName()
 
 short qmsmtp::SmtpSendSessionUI::getDefaultPort(bool bSecure)
 {
-	return bSecure ? 495 : 25;
+	return bSecure ? 465 : 25;
 }
 
 bool qmsmtp::SmtpSendSessionUI::isSupported(Support support)
