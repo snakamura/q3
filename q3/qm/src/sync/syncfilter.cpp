@@ -87,34 +87,22 @@ const SyncFilterManager::FilterSetList& qm::SyncFilterManager::getFilterSets(boo
 	return pImpl_->listFilterSet_;
 }
 
-const SyncFilterSet* qm::SyncFilterManager::getFilterSet(const Account* pAccount,
-														 const WCHAR* pwszName) const
+const SyncFilterSet* qm::SyncFilterManager::getFilterSet(const WCHAR* pwszName) const
 {
-	if (pwszName) {
-		if (!pImpl_->load())
-			return 0;
-		
-		for (FilterSetList::const_iterator it = pImpl_->listFilterSet_.begin(); it != pImpl_->listFilterSet_.end(); ++it) {
-			if ((*it)->match(pAccount, pwszName))
-				return *it;
-		}
-	}
-	
-	return 0;
-}
-
-void qm::SyncFilterManager::getFilterSets(const Account* pAccount,
-										  FilterSetList* pList) const
-{
-	assert(pList);
+	assert(pwszName);
 	
 	if (!pImpl_->load())
-		return;
+		return 0;
 	
-	for (FilterSetList::const_iterator it = pImpl_->listFilterSet_.begin(); it != pImpl_->listFilterSet_.end(); ++it) {
-		if ((*it)->match(pAccount, 0))
-			pList->push_back(*it);
-	}
+	FilterSetList::const_iterator it = std::find_if(
+		pImpl_->listFilterSet_.begin(), pImpl_->listFilterSet_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				string_equal<WCHAR>(),
+				std::mem_fun(&SyncFilterSet::getName),
+				std::identity<const WCHAR*>()),
+			pwszName));
+	return it != pImpl_->listFilterSet_.end() ? *it : 0;
 }
 
 void qm::SyncFilterManager::setFilterSets(FilterSetList& listFilterSet)
@@ -152,8 +140,6 @@ struct qm::SyncFilterSetImpl
 {
 	void clear();
 	
-	wstring_ptr wstrAccount_;
-	std::auto_ptr<RegexPattern> pAccount_;
 	wstring_ptr wstrName_;
 	SyncFilterSet::FilterList listFilter_;
 };
@@ -178,18 +164,12 @@ qm::SyncFilterSet::SyncFilterSet() :
 	pImpl_->wstrName_ = allocWString(L"");
 }
 
-qm::SyncFilterSet::SyncFilterSet(const WCHAR* pwszAccount,
-								 std::auto_ptr<RegexPattern> pAccount,
-								 const WCHAR* pwszName) :
+qm::SyncFilterSet::SyncFilterSet(const WCHAR* pwszName) :
 	pImpl_(0)
 {
-	assert((pwszAccount && pAccount.get()) || (!pwszAccount && !pAccount.get()));
 	assert(pwszName);
 	
 	pImpl_ = new SyncFilterSetImpl();
-	if (pwszAccount)
-		pImpl_->wstrAccount_ = allocWString(pwszAccount);
-	pImpl_->pAccount_ = pAccount;
 	pImpl_->wstrName_ = allocWString(pwszName);
 }
 
@@ -197,12 +177,6 @@ qm::SyncFilterSet::SyncFilterSet(const SyncFilterSet& filterSet) :
 	pImpl_(0)
 {
 	pImpl_ = new SyncFilterSetImpl();
-	
-	if (filterSet.pImpl_->wstrAccount_.get()) {
-		pImpl_->wstrAccount_ = allocWString(filterSet.pImpl_->wstrAccount_.get());
-		pImpl_->pAccount_ = RegexCompiler().compile(pImpl_->wstrAccount_.get());
-		assert(pImpl_->pAccount_.get());
-	}
 	
 	pImpl_->wstrName_ = allocWString(filterSet.pImpl_->wstrName_.get());
 	
@@ -216,24 +190,6 @@ qm::SyncFilterSet::~SyncFilterSet()
 {
 	pImpl_->clear();
 	delete pImpl_;
-}
-
-const WCHAR* qm::SyncFilterSet::getAccount() const
-{
-	return pImpl_->wstrAccount_.get();
-}
-
-void qm::SyncFilterSet::setAccount(const WCHAR* pwszAccount,
-								   std::auto_ptr<qs::RegexPattern> pAccount)
-{
-	assert((pwszAccount && pAccount.get()) || (!pwszAccount && !pAccount.get()));
-	
-	if (pwszAccount)
-		pImpl_->wstrAccount_ = allocWString(pwszAccount);
-	else
-		pImpl_->wstrAccount_.reset(0);
-	
-	pImpl_->pAccount_ = pAccount;
 }
 
 const WCHAR* qm::SyncFilterSet::getName() const
@@ -267,22 +223,6 @@ void qm::SyncFilterSet::setFilters(FilterList& listFilter)
 {
 	pImpl_->clear();
 	pImpl_->listFilter_.swap(listFilter);
-}
-
-bool qm::SyncFilterSet::match(const Account* pAccount,
-							  const WCHAR* pwszName) const
-{
-	assert(pAccount);
-	
-	if (pImpl_->pAccount_.get()) {
-		if (!pImpl_->pAccount_->match(pAccount->getName()))
-			return false;
-	}
-	
-	if (pwszName)
-		return wcscmp(pImpl_->wstrName_.get(), pwszName) == 0;
-	else
-		return true;
 }
 
 void qm::SyncFilterSet::addFilter(std::auto_ptr<SyncFilter> pFilter)
@@ -567,12 +507,11 @@ bool qm::SyncFilterContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (state_ != STATE_FILTERS)
 			return false;
 		
-		const WCHAR* pwszAccount = 0;
 		const WCHAR* pwszName = 0;
 		for (int n = 0; n < attributes.getLength(); ++n) {
 			const WCHAR* pwszAttrName = attributes.getLocalName(n);
 			if (wcscmp(pwszAttrName, L"account") == 0)
-				pwszAccount = attributes.getValue(n);
+				; // Just for compatibility
 			else if (wcscmp(pwszAttrName, L"name") == 0)
 				pwszName = attributes.getValue(n);
 			else
@@ -581,14 +520,7 @@ bool qm::SyncFilterContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (!pwszName)
 			return false;
 		
-		std::auto_ptr<RegexPattern> pAccount;
-		if (pwszAccount) {
-			pAccount = RegexCompiler().compile(pwszAccount);
-			if (!pAccount.get())
-				return false;
-		}
-		
-		std::auto_ptr<SyncFilterSet> pSet(new SyncFilterSet(pwszAccount, pAccount, pwszName));
+		std::auto_ptr<SyncFilterSet> pSet(new SyncFilterSet(pwszName));
 		pCurrentFilterSet_ = pSet.get();
 		pManager_->addFilterSet(pSet);
 		
@@ -783,10 +715,8 @@ bool qm::SyncFilterWriter::write(const SyncFilterManager* pManager)
 bool qm::SyncFilterWriter::write(const SyncFilterSet* pFilterSet)
 {
 	const WCHAR* pwszName = pFilterSet->getName();
-	const WCHAR* pwszAccount = pFilterSet->getAccount();
 	const SimpleAttributes::Item items[] = {
 		{ L"name",		pwszName							},
-		{ L"account",	pwszAccount,	pwszAccount == 0	}
 	};
 	SimpleAttributes attrs(items, countof(items));
 	if (!handler_.startElement(0, 0, L"filterSet", attrs))

@@ -141,7 +141,7 @@ bool qm::SyncUtil::sync(SyncManager* pSyncManager,
 	if (bReceive) {
 		if (bSelectSyncFilter) {
 			SelectSyncFilterDialog dialog(pSyncManager->getSyncFilterManager(),
-				pAccount, pSubAccount->getSyncFilterName());
+				pSubAccount->getSyncFilterName());
 			if (dialog.doModal(hwnd) != IDOK)
 				return true;
 			pData->addFolders(pAccount, pSubAccount, 0, dialog.getName());

@@ -2377,7 +2377,6 @@ class SelectSyncFilterDialog : public DefaultDialog
 {
 public:
 	SelectSyncFilterDialog(SyncFilterManager* pManager,
-						   Account* pAccount,
 						   const WCHAR* pwszDefaultName);
 	virtual ~SelectSyncFilterDialog();
 
@@ -2396,8 +2395,8 @@ private:
 	SelectSyncFilterDialog& operator=(const SelectSyncFilterDialog&);
 
 private:
-	SyncFilterManager::FilterSetList list_;
-	const WCHAR* pwszName_;
+	SyncFilterManager* pManager_;
+	qs::wstring_ptr wstrName_;
 };
 
 

@@ -4623,8 +4623,7 @@ void qm::GoRoundEntryDialog::updateFilter(Account* pAccount)
 	sendDlgItemMessage(IDC_SYNCFILTER, CB_RESETCONTENT);
 	
 	if (pAccount) {
-		SyncFilterManager::FilterSetList l;
-		pSyncFilterManager_->getFilterSets(pAccount, &l);
+		const SyncFilterManager::FilterSetList& l = pSyncFilterManager_->getFilterSets();
 		for (SyncFilterManager::FilterSetList::const_iterator it = l.begin(); it != l.end(); ++it) {
 			SyncFilterSet* pSet = *it;
 			W2T(pSet->getName(), ptszName);
@@ -6308,12 +6307,12 @@ void qm::SelectDialupEntryDialog::updateState()
  */
 
 qm::SelectSyncFilterDialog::SelectSyncFilterDialog(SyncFilterManager* pManager,
-												   Account* pAccount,
 												   const WCHAR* pwszDefaultName) :
 	DefaultDialog(IDD_SELECTSYNCFILTER),
-	pwszName_(pwszDefaultName)
+	pManager_(pManager)
 {
-	pManager->getFilterSets(pAccount, &list_);
+	if (pwszDefaultName)
+		wstrName_ = allocWString(pwszDefaultName);
 }
 
 qm::SelectSyncFilterDialog::~SelectSyncFilterDialog()
@@ -6322,7 +6321,7 @@ qm::SelectSyncFilterDialog::~SelectSyncFilterDialog()
 
 const WCHAR* qm::SelectSyncFilterDialog::getName() const
 {
-	return pwszName_;
+	return wstrName_.get();
 }
 
 LRESULT qm::SelectSyncFilterDialog::onInitDialog(HWND hwndFocus,
@@ -6330,19 +6329,26 @@ LRESULT qm::SelectSyncFilterDialog::onInitDialog(HWND hwndFocus,
 {
 	init(false);
 	
-	if (list_.empty()) {
+	const SyncFilterManager::FilterSetList& l = pManager_->getFilterSets();
+	
+	if (l.empty()) {
 		endDialog(IDOK);
 	}
 	else {
 		typedef SyncFilterManager::FilterSetList List;
-		for (List::const_iterator it = list_.begin(); it != list_.end(); ++it) {
+		for (List::const_iterator it = l.begin(); it != l.end(); ++it) {
 			W2T((*it)->getName(), ptszName);
 			sendDlgItemMessage(IDC_FILTERSETLIST, LB_ADDSTRING,
 				0, reinterpret_cast<LPARAM>(ptszName));
 		}
-		W2T(pwszName_, ptszName);
-		sendDlgItemMessage(IDC_FILTERSETLIST, LB_SELECTSTRING,
-			-1, reinterpret_cast<LPARAM>(ptszName));
+		if (wstrName_.get()) {
+			W2T(wstrName_.get(), ptszName);
+			sendDlgItemMessage(IDC_FILTERSETLIST, LB_SELECTSTRING,
+				-1, reinterpret_cast<LPARAM>(ptszName));
+		}
+		else {
+			sendDlgItemMessage(IDC_FILTERSETLIST, LB_SETCURSEL, 0);
+		}
 	}
 	
 	return TRUE;
@@ -6354,8 +6360,12 @@ LRESULT qm::SelectSyncFilterDialog::onOk()
 	if (nItem == LB_ERR)
 		return onCancel();
 	
-	assert(nItem < list_.size());
-	pwszName_ = list_[nItem]->getName();
+	int nLen = sendDlgItemMessage(IDC_FILTERSETLIST, LB_GETTEXTLEN, nItem);
+	tstring_ptr tstrName(allocTString(nLen + 10));
+	sendDlgItemMessage(IDC_FILTERSETLIST, LB_GETTEXT,
+		nItem, reinterpret_cast<LPARAM>(tstrName.get()));
+	
+	wstrName_ = tcs2wcs(tstrName.get());
 	
 	return DefaultDialog::onOk();
 }
@@ -6821,18 +6831,6 @@ LRESULT qm::SyncFiltersDialog::onInitDialog(HWND hwndFocus,
 {
 	setDlgItemText(IDC_NAME, pSyncFilterSet_->getName());
 	
-	const Document::AccountList& listAccount = pDocument_->getAccounts();
-	for (Document::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
-		Account* pAccount = *it;
-		W2T(pAccount->getName(), ptszName);
-		sendDlgItemMessage(IDC_ACCOUNT, CB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszName));
-	}
-	
-	const WCHAR* pwszAccount = pSyncFilterSet_->getAccount();
-	if (pwszAccount)
-		setDlgItemText(IDC_ACCOUNT, pwszAccount);
-	
 	return AbstractListDialog<SyncFilter, SyncFilterSet::FilterList>::onInitDialog(hwndFocus, lParam);
 }
 
@@ -6840,20 +6838,7 @@ LRESULT qm::SyncFiltersDialog::onOk()
 {
 	wstring_ptr wstrName(getDlgItemText(IDC_NAME));
 	
-	wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
-	const WCHAR* pwszAccount = 0;
-	std::auto_ptr<RegexPattern> pAccount;
-	if (*wstrAccount.get()) {
-		pAccount = RegexCompiler().compile(wstrAccount.get());
-		if (!pAccount.get()) {
-			// TODO MSG
-			return 0;
-		}
-		pwszAccount = wstrAccount.get();
-	}
-	
 	pSyncFilterSet_->setName(wstrName.get());
-	pSyncFilterSet_->setAccount(pwszAccount, pAccount);
 	pSyncFilterSet_->setFilters(getList());
 	
 	return AbstractListDialog<SyncFilter, SyncFilterSet::FilterList>::onOk();
@@ -6946,17 +6931,7 @@ LRESULT qm::SyncFilterSetsDialog::onOk()
 
 wstring_ptr qm::SyncFilterSetsDialog::getLabel(const SyncFilterSet* p) const
 {
-	StringBuffer<WSTRING> buf;
-	
-	const WCHAR* pwszAccount = p->getAccount();
-	if (pwszAccount) {
-		buf.append(L'[');
-		buf.append(pwszAccount);
-		buf.append(L"] ");
-	}
-	buf.append(p->getName());
-	
-	return buf.getString();
+	return allocWString(p->getName());
 }
 
 std::auto_ptr<SyncFilterSet> qm::SyncFilterSetsDialog::create() const

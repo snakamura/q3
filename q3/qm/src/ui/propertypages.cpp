@@ -68,8 +68,7 @@ LRESULT qm::AccountAdvancedPage::onInitDialog(HWND hwndFocus,
 	wstring_ptr wstrMyAddress = pSubAccount_->getMyAddress();
 	setDlgItemText(IDC_MYADDRESS, wstrMyAddress.get());
 	
-	SyncFilterManager::FilterSetList l;
-	pSyncFilterManager_->getFilterSets(pSubAccount_->getAccount(), &l);
+	const SyncFilterManager::FilterSetList& l = pSyncFilterManager_->getFilterSets();
 	for (SyncFilterManager::FilterSetList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		SyncFilterSet* pSet = *it;
 		W2T(pSet->getName(), ptszName);

@@ -323,7 +323,7 @@ void qm::SyncData::addFolder(Account* pAccount,
 							 unsigned int nFlags)
 {
 	SyncFilterManager* pManager = pManager_->getSyncFilterManager();
-	const SyncFilterSet* pFilterSet = pManager->getFilterSet(pAccount, pwszFilterName);
+	const SyncFilterSet* pFilterSet = pManager->getFilterSet(pwszFilterName);
 	std::auto_ptr<ReceiveSyncItem> pItem(new ReceiveSyncItem(
 		nSlot_, pAccount, pSubAccount, pFolder, pFilterSet, nFlags));
 	listItem_.push_back(pItem.get());

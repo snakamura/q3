@@ -49,10 +49,7 @@ public:
 public:
 	const FilterSetList& getFilterSets();
 	const FilterSetList& getFilterSets(bool bReload);
-	const SyncFilterSet* getFilterSet(const Account* pAccount,
-									  const WCHAR* pwszName) const;
-	void getFilterSets(const Account* pAccount,
-					   FilterSetList* pList) const;
+	const SyncFilterSet* getFilterSet(const WCHAR* pwszName) const;
 	void setFilterSets(FilterSetList& listFilterSet);
 	bool save() const;
 	void clear();
@@ -82,23 +79,16 @@ public:
 
 public:
 	SyncFilterSet();
-	SyncFilterSet(const WCHAR* pwszAccount,
-				  std::auto_ptr<qs::RegexPattern> pAccount,
-				  const WCHAR* pwszName);
+	SyncFilterSet(const WCHAR* pwszName);
 	SyncFilterSet(const SyncFilterSet& filterSet);
 	~SyncFilterSet();
 
 public:
-	const WCHAR* getAccount() const;
-	void setAccount(const WCHAR* pwszAccount,
-					std::auto_ptr<qs::RegexPattern> pAccount);
 	const WCHAR* getName() const;
 	void setName(const WCHAR* pwszAccount);
 	const FilterList& getFilters() const;
 	const SyncFilter* getFilter(SyncFilterCallback* pCallback) const;
 	void setFilters(FilterList& listFilter);
-	bool match(const Account* pAccount,
-			   const WCHAR* pwszName) const;
 
 public:
 	void addFilter(std::auto_ptr<SyncFilter> pFilter);
