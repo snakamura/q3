@@ -480,6 +480,14 @@ void qm::MessageFrameWindowImpl::layoutChildren(int cx,
 	pMessageWindow_->setWindowPos(0, 0, nTopBarHeight, cx,
 		cy - nStatusBarHeight - nTopBarHeight - nBottomBarHeight, SWP_NOZORDER);
 	
+#ifdef _WIN32_WCE_PSPC
+	int nWidth[] = {
+		cx - 70,
+		cx - 50,
+		cx - 30,
+		-1
+	};
+#else
 	int nWidth[] = {
 		cx - 230,
 		cx - 150,
@@ -488,6 +496,7 @@ void qm::MessageFrameWindowImpl::layoutChildren(int cx,
 		cx - 30,
 		-1
 	};
+#endif
 	pStatusBar_->setParts(nWidth, countof(nWidth));
 	
 	bLayouting_ = false;

@@ -216,6 +216,9 @@ void qm::UIUtil::updateStatusBar(MessageWindow* pMessageWindow,
 								 const ContentTypeParser* pContentType)
 {
 	if (pmh) {
+#ifdef _WIN32_WCE_PSPC
+		nOffset -= 2;
+#else
 		const WCHAR* pwszEncoding = pEncodingModel->getEncoding();
 		wstring_ptr wstrCharset;
 		if (!pwszEncoding) {
@@ -247,6 +250,7 @@ void qm::UIUtil::updateStatusBar(MessageWindow* pMessageWindow,
 			pwszTemplate = wstrNone.get();
 		}
 		pStatusBar->setText(nOffset + 2, pwszTemplate);
+#endif
 		
 		// TODO
 		// Use icon
@@ -264,7 +268,12 @@ void qm::UIUtil::updateStatusBar(MessageWindow* pMessageWindow,
 			pStatusBar->setText(nOffset + 4, L"");
 	}
 	else {
-		for (int n = 1; n < 5; ++n)
+#ifdef _WIN32_WCE_PSPC
+		int nMax = 3;
+#else
+		int nMax = 5;
+#endif
+		for (int n = 1; n < nMax; ++n)
 			pStatusBar->setText(nOffset + n, L"");
 	}
 }

@@ -1140,6 +1140,15 @@ void qm::MainWindowImpl::layoutChildren(int cx,
 	
 	if (bShowStatusBar_) {
 		if (bShowPreviewWindow_) {
+#ifdef _WIN32_WCE_PSPC
+			int nWidth[] = {
+				cx - 110,
+				cx - 70,
+				cx - 50,
+				cx - 30,
+				-1
+			};
+#else
 			int nWidth[] = {
 				cx - 350,
 				cx - 310,
@@ -1150,14 +1159,22 @@ void qm::MainWindowImpl::layoutChildren(int cx,
 				cx - 30,
 				-1
 			};
+#endif
 			pStatusBar_->setParts(nWidth, countof(nWidth));
 		}
 		else {
+#ifdef _WIN32_WCE_PSPC
+			int nWidth[] = {
+				cx - 40,
+				-1
+			};
+#else
 			int nWidth[] = {
 				cx - 120,
 				cx - 80,
 				-1
 			};
+#endif
 			pStatusBar_->setParts(nWidth, countof(nWidth));
 		}
 	}
@@ -1527,6 +1544,7 @@ void qm::MainWindowImpl::StatusBarInfo::update(Document* pDocument,
 			}
 		}
 		
+#ifndef _WIN32_WCE_PSPC
 		wstring_ptr wstrFilter(wstrFilter_);
 		const Filter* pFilter = pViewModel->getFilter();
 		if (pFilter) {
@@ -1541,6 +1559,7 @@ void qm::MainWindowImpl::StatusBarInfo::update(Document* pDocument,
 		}
 		if (!wstrFilter.get() || wcscmp(wstrFilter.get(), wstrFilter_.get()) != 0)
 			pStatusBar->setText(2, wstrFilter_.get());
+#endif
 	}
 	else {
 		nCount_ = -1;
