@@ -232,7 +232,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 				if (!finder.getNext(&pBegin, &pEnd, &bEnd))
 					return std::auto_ptr<Part>(0);
 				if (pBegin) {
-					MessageCreator creator(nFlags_ & FLAG_ENCODETEXT, SECURITYMODE_NONE);
+					MessageCreator creator(getCreatorForChild());
 					std::auto_ptr<Part> pChild(creator.createPart(
 						pDocument, pBegin, pEnd - pBegin, pPart.get(), false));
 					if (!pChild.get())
@@ -244,7 +244,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 			}
 		}
 		else if (bRFC822) {
-			MessageCreator creator(nFlags_ & FLAG_ENCODETEXT, SECURITYMODE_NONE);
+			MessageCreator creator(getCreatorForChild());
 			std::auto_ptr<Part> pEnclosed(creator.createPart(
 				pDocument, pBody, nBodyLen, 0, false));
 			if (!pEnclosed.get())
@@ -346,6 +346,12 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 		}
 		else {
 			xstring_ptr strBody(PartUtil::w2a(pBody, nBodyLen));
+			if (!strBody.get() && nFlags_ & FLAG_RECOVER) {
+				std::auto_ptr<Converter> pConverter(
+					ConverterFactory::getInstance(Part::getDefaultCharset()));
+				size_t nLen = nBodyLen;
+				strBody.reset(pConverter->encode(pBody, &nLen).release());
+			}
 			if (!strBody.get())
 				return std::auto_ptr<Part>(0);
 			pPart->setBody(strBody);
@@ -565,6 +571,11 @@ xstring_size_ptr qm::MessageCreator::convertBody(Converter* pConverter,
 	}
 	
 	return buf.getXStringSize();
+}
+
+MessageCreator qm::MessageCreator::getCreatorForChild() const
+{
+	return MessageCreator(nFlags_ & (FLAG_ENCODETEXT | FLAG_RECOVER), SECURITYMODE_NONE);
 }
 
 bool qm::MessageCreator::setField(Part* pPart,

@@ -143,6 +143,7 @@ private:
 	qs::xstring_size_ptr convertBody(qs::Converter* pConverter,
 									 const WCHAR* pwszBody,
 									 size_t nBodyLen) const;
+	MessageCreator getCreatorForChild() const;
 
 public:
 	static bool setField(qs::Part* pPart,
