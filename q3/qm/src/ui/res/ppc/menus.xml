@@ -92,24 +92,24 @@
 			</popupmenu>
 			<separator/>
 			<popupmenu text="Move" action="MessageMove"/>
+			<separator/>
 			<menuitem text="Apply Rules" action="MessageApplyRule"/>
 			<menuitem text="Apply Rules to All" action="MessageApplyRuleAll"/>
-			<menuitem text="Apply Rules to Selected" action="MessageApplyRuleSelected"/>
 			<separator/>
 			<menuitem text="Search..." action="MessageSearch"/>
-			<separator/>
-			<popupmenu text="Attachment" action="MessageAttachment"/>
 			<separator/>
 			<menuitem text="Property..." action="MessageProperty"/>
 		</popupmenu>
 		<popupmenu text="Tool">
-			<menuitem text="Send  Receive" action="ToolSync"/>
-			<menuitem text="Receive" action="ToolReceive"/>
-			<menuitem text="Send" action="ToolSend"/>
-			<popupmenu text="Go Round" action="ToolGoRound"/>
-			<menuitem text="Cancel" action="ToolCancel"/>
-			<separator/>
-			<menuitem text="Dialup Connect..." action="ToolDialup"/>
+			<popupmenu text="Sync">
+				<menuitem text="Send  Receive" action="ToolSync"/>
+				<menuitem text="Receive" action="ToolReceive"/>
+				<menuitem text="Send" action="ToolSend"/>
+				<popupmenu text="Go Round" action="ToolGoRound"/>
+				<menuitem text="Cancel" action="ToolCancel"/>
+				<separator/>
+				<menuitem text="Dialup Connect..." action="ToolDialup"/>
+			</popupmenu>
 			<separator/>
 			<menuitem text="Address Book..." action="ToolAddressBook"/>
 			<menuitem text="Add From to Address Book..." action="ToolAddAddress"/>
@@ -339,9 +339,10 @@
 		<popupmenu text="Template" action="MessageApplyTemplate"/>
 		<separator/>
 		<menuitem text="Delete" action="EditDelete"/>
-		<menuitem text="Select All" action="EditSelectAll"/>
 		<separator/>
 		<popupmenu text="Move" action="MessageMove"/>
+		<separator/>
+		<menuitem text="Apply Rules" action="MessageApplyRuleSelected"/>
 		<separator/>
 		<popupmenu text="Attachment" action="MessageAttachment"/>
 		<separator/>
