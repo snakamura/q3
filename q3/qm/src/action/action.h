@@ -752,6 +752,7 @@ public:
 							MessageModel* pMessageModel,
 							ViewModelHolder* pViewModelHolder,
 							bool bDirect,
+							bool bDontSelectNextIfDeletedFlag,
 							HWND hwnd,
 							qs::Profile* pProfile);
 	virtual ~EditDeleteMessageAction();
@@ -772,6 +773,7 @@ private:
 	MessageModel* pMessageModel_;
 	ViewModelHolder* pViewModelHolder_;
 	bool bDirect_;
+	bool bDontSelectNextIfDeletedFlag_;
 	HWND hwnd_;
 	bool bConfirm_;
 };
@@ -2075,6 +2077,7 @@ public:
 					  MessageModel* pMessageModel,
 					  ViewModelHolder* pViewModelHolder,
 					  MoveMenu* pMoveMenu,
+					  bool bDontSelectNextIfDeletedFlag,
 					  HWND hwnd);
 	virtual ~MessageMoveAction();
 
@@ -2091,6 +2094,7 @@ private:
 	MessageModel* pMessageModel_;
 	ViewModelHolder* pViewModelHolder_;
 	MoveMenu* pMoveMenu_;
+	bool bDontSelectNextIfDeletedFlag_;
 	HWND hwnd_;
 };
 
@@ -2108,6 +2112,7 @@ public:
 						   MessageSelectionModel* pMessageSelectionModel,
 						   MessageModel* pMessageModel,
 						   ViewModelHolder* pViewModelHolder,
+						   bool bDontSelectNextIfDeletedFlag,
 						   qs::Profile* pProfile,
 						   HWND hwnd);
 	virtual ~MessageMoveOtherAction();
@@ -2125,6 +2130,7 @@ private:
 	MessageSelectionModel* pMessageSelectionModel_;
 	MessageModel* pMessageModel_;
 	ViewModelHolder* pViewModelHolder_;
+	bool bDontSelectNextIfDeletedFlag_;
 	qs::Profile* pProfile_;
 	HWND hwnd_;
 };

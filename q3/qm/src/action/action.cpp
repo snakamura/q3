@@ -772,12 +772,14 @@ qm::EditDeleteMessageAction::EditDeleteMessageAction(MessageSelectionModel* pMes
 													 MessageModel* pMessageModel,
 													 ViewModelHolder* pViewModelHolder,
 													 bool bDirect,
+													 bool bDontSelectNextIfDeletedFlag,
 													 HWND hwnd,
 													 Profile* pProfile) :
 	pMessageSelectionModel_(pMessageSelectionModel),
 	pMessageModel_(pMessageModel),
 	pViewModelHolder_(pViewModelHolder),
 	bDirect_(bDirect),
+	bDontSelectNextIfDeletedFlag_(bDontSelectNextIfDeletedFlag),
 	hwnd_(hwnd),
 	bConfirm_(false)
 {
@@ -805,12 +807,19 @@ void qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 	if (!confirm())
 		return;
 	
-	unsigned int nIndex = l.size() == 1 ?
-		pViewModel->getIndex(l.front()) : pViewModel->getFocused();
-	if (nIndex < pViewModel->getCount() - 1)
-		MessageActionUtil::select(pViewModel, nIndex + 1, pMessageModel_);
-	
 	Account* pAccount = lock.get();
+	
+	bool bSelectNext = !bDontSelectNextIfDeletedFlag_ ||
+		!pAccount->isSupport(Account::SUPPORT_DELETEDMESSAGE) ||
+		pFolder->getType() != Folder::TYPE_NORMAL ||
+		pFolder->isFlag(Folder::FLAG_LOCAL);
+	if (bSelectNext) {
+		unsigned int nIndex = l.size() == 1 ?
+			pViewModel->getIndex(l.front()) : pViewModel->getFocused();
+		if (nIndex < pViewModel->getCount() - 1)
+			MessageActionUtil::select(pViewModel, nIndex + 1, pMessageModel_);
+	}
+	
 	ProgressDialogMessageOperationCallback callback(
 		hwnd_, IDS_DELETE, IDS_DELETE);
 	if (!pAccount->removeMessages(l, pFolder, bDirect_, &callback)) {
@@ -3917,11 +3926,13 @@ qm::MessageMoveAction::MessageMoveAction(MessageSelectionModel* pMessageSelectio
 										 MessageModel* pMessageModel,
 										 ViewModelHolder* pViewModelHolder,
 										 MoveMenu* pMoveMenu,
+										 bool bDontSelectNextIfDeletedFlag,
 										 HWND hwnd) :
 	pMessageSelectionModel_(pMessageSelectionModel),
 	pMessageModel_(pMessageModel),
 	pViewModelHolder_(pViewModelHolder),
 	pMoveMenu_(pMoveMenu),
+	bDontSelectNextIfDeletedFlag_(bDontSelectNextIfDeletedFlag),
 	hwnd_(hwnd)
 {
 }
@@ -3944,20 +3955,26 @@ void qm::MessageMoveAction::invoke(const ActionEvent& event)
 	Folder* pFolderFrom = 0;
 	MessageHolderList l;
 	pMessageSelectionModel_->getSelectedMessages(&lock, &pFolderFrom, &l);
-	
+	assert(pFolderFrom == pViewModel->getFolder());
 	if (l.empty())
 		return;
 	
-	bool bMove = (event.getModifier() & ActionEvent::MODIFIER_CTRL) == 0;
+	Account* pAccount = lock.get();
 	
+	bool bMove = (event.getModifier() & ActionEvent::MODIFIER_CTRL) == 0;
 	if (bMove) {
-		unsigned int nIndex = l.size() == 1 ?
-			pViewModel->getIndex(l.front()) : pViewModel->getFocused();
-		if (nIndex < pViewModel->getCount() - 1)
-			MessageActionUtil::select(pViewModel, nIndex + 1, pMessageModel_);
+		bool bSelectNext = !bDontSelectNextIfDeletedFlag_ ||
+			!pAccount->isSupport(Account::SUPPORT_DELETEDMESSAGE) ||
+			pFolderFrom->getType() != Folder::TYPE_NORMAL ||
+			pFolderFrom->isFlag(Folder::FLAG_LOCAL);
+		if (bSelectNext) {
+			unsigned int nIndex = l.size() == 1 ?
+				pViewModel->getIndex(l.front()) : pViewModel->getFocused();
+			if (nIndex < pViewModel->getCount() - 1)
+				MessageActionUtil::select(pViewModel, nIndex + 1, pMessageModel_);
+		}
 	}
 	
-	Account* pAccount = lock.get();
 	UINT nId = bMove ? IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
 	ProgressDialogMessageOperationCallback callback(hwnd_, nId, nId);
 	if (!pAccount->copyMessages(l, pFolderFrom, pFolderTo, bMove, &callback)) {
@@ -3982,12 +3999,14 @@ qm::MessageMoveOtherAction::MessageMoveOtherAction(Document* pDocument,
 												   MessageSelectionModel* pMessageSelectionModel,
 												   MessageModel* pMessageModel,
 												   ViewModelHolder* pViewModelHolder,
+												   bool bDontSelectNextIfDeletedFlag,
 												   Profile* pProfile,
 												   HWND hwnd) :
 	pDocument_(pDocument),
 	pMessageSelectionModel_(pMessageSelectionModel),
 	pMessageModel_(pMessageModel),
 	pViewModelHolder_(pViewModelHolder),
+	bDontSelectNextIfDeletedFlag_(bDontSelectNextIfDeletedFlag),
 	pProfile_(pProfile),
 	hwnd_(hwnd)
 {
@@ -4007,6 +4026,7 @@ void qm::MessageMoveOtherAction::invoke(const ActionEvent& event)
 	Folder* pFolderFrom = 0;
 	MessageHolderList l;
 	pMessageSelectionModel_->getSelectedMessages(&lock, &pFolderFrom, &l);
+	assert(pFolderFrom == pViewModel->getFolder());
 	if (l.empty())
 		return;
 	
@@ -4023,10 +4043,16 @@ void qm::MessageMoveOtherAction::invoke(const ActionEvent& event)
 	bool bMove = !dialog.isCopy();
 	
 	if (bMove) {
-		unsigned int nIndex = l.size() == 1 ?
-			pViewModel->getIndex(l.front()) : pViewModel->getFocused();
-		if (nIndex < pViewModel->getCount() - 1)
-			MessageActionUtil::select(pViewModel, nIndex + 1, pMessageModel_);
+		bool bSelectNext = !bDontSelectNextIfDeletedFlag_ ||
+			!pAccount->isSupport(Account::SUPPORT_DELETEDMESSAGE) ||
+			pFolderFrom->getType() != Folder::TYPE_NORMAL ||
+			pFolderFrom->isFlag(Folder::FLAG_LOCAL);
+		if (bSelectNext) {
+			unsigned int nIndex = l.size() == 1 ?
+				pViewModel->getIndex(l.front()) : pViewModel->getFocused();
+			if (nIndex < pViewModel->getCount() - 1)
+				MessageActionUtil::select(pViewModel, nIndex + 1, pMessageModel_);
+		}
 	}
 	
 	UINT nId = bMove ? IDS_MOVEMESSAGE : IDS_COPYMESSAGE;

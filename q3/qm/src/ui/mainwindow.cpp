@@ -449,22 +449,39 @@ void qm::MainWindowImpl::initActions()
 		IDM_EDIT_DELETECACHE,
 		pMessageSelectionModel_.get(),
 		pThis_->getHandle());
-	ADD_ACTION6(EditDeleteMessageAction,
-		IDM_EDIT_DELETE,
-		pMessageSelectionModel_.get(),
-		pPreviewModel_.get(),
-		this,
-		false,
-		pThis_->getHandle(),
-		pProfile_);
-	ADD_ACTION6(EditDeleteMessageAction,
-		IDM_EDIT_DELETEDIRECT,
-		pMessageSelectionModel_.get(),
-		pPreviewModel_.get(),
-		this,
-		true,
-		pThis_->getHandle(),
-		pProfile_);
+	
+	struct {
+		UINT nId_;
+		bool bDirect_;
+	} deletes[] = {
+		{ IDM_EDIT_DELETE,			false	},
+		{ IDM_EDIT_DELETEDIRECT,	true	}
+	};
+	for (int n = 0; n < countof(deletes); ++n) {
+		std::auto_ptr<EditDeleteMessageAction> pEditDeleteMessageAction1(
+			new EditDeleteMessageAction(pMessageSelectionModel_.get(),
+				pPreviewModel_.get(), this, deletes[n].bDirect_,
+				true, pThis_->getHandle(), pProfile_));
+		std::auto_ptr<EditDeleteMessageAction> pEditDeleteMessageAction2(
+			new EditDeleteMessageAction(pMessageSelectionModel_.get(),
+				pPreviewModel_.get(), this, deletes[n].bDirect_,
+				false, pThis_->getHandle(), pProfile_));
+		Action* pEditDeleteMessageActions[] = {
+			0,
+			0,
+			0,
+			pEditDeleteMessageAction1.get(),
+			pEditDeleteMessageAction2.get()
+		};
+		ADD_ACTION3(DispatchAction,
+			deletes[n].nId_,
+			pViews,
+			pEditDeleteMessageActions,
+			countof(pViews));
+		pEditDeleteMessageAction1.release();
+		pEditDeleteMessageAction2.release();
+	}
+	
 	ADD_ACTION3(EditFindAction,
 		IDM_EDIT_FIND,
 		pMessageWindow_,
@@ -837,22 +854,50 @@ void qm::MainWindowImpl::initActions()
 			operations[n].operation_,
 			pThis_->getHandle());
 	}
-	ADD_ACTION_RANGE5(MessageMoveAction,
+	
+	std::auto_ptr<MessageMoveAction> pMessageMoveAction1(new MessageMoveAction(
+		pMessageSelectionModel_.get(), pPreviewModel_.get(),
+		this, pMoveMenu_.get(), true, pThis_->getHandle()));
+	std::auto_ptr<MessageMoveAction> pMessageMoveAction2(new MessageMoveAction(
+		pMessageSelectionModel_.get(), pPreviewModel_.get(),
+		this, pMoveMenu_.get(), false, pThis_->getHandle()));
+	Action* pMessageMoveActions[] = {
+		0,
+		0,
+		0,
+		pMessageMoveAction1.get(),
+		pMessageMoveAction2.get()
+	};
+	ADD_ACTION_RANGE3(DispatchAction,
 		IDM_MESSAGE_MOVE,
 		IDM_MESSAGE_MOVE + MoveMenu::MAX_FOLDER,
-		pMessageSelectionModel_.get(),
-		pPreviewModel_.get(),
-		this,
-		pMoveMenu_.get(),
-		pThis_->getHandle());
-	ADD_ACTION6(MessageMoveOtherAction,
+		pViews,
+		pMessageMoveActions,
+		countof(pViews));
+	pMessageMoveAction1.release();
+	pMessageMoveAction2.release();
+	
+	std::auto_ptr<MessageMoveOtherAction> pMessageMoveOtherAction1(
+		new MessageMoveOtherAction(pDocument_, pMessageSelectionModel_.get(),
+			pPreviewModel_.get(), this, true, pProfile_, pThis_->getHandle()));
+	std::auto_ptr<MessageMoveOtherAction> pMessageMoveOtherAction2(
+		new MessageMoveOtherAction(pDocument_, pMessageSelectionModel_.get(),
+			pPreviewModel_.get(), this, false, pProfile_, pThis_->getHandle()));
+	Action* pMessageMoveOtherActions[] = {
+		0,
+		0,
+		0,
+		pMessageMoveOtherAction1.get(),
+		pMessageMoveOtherAction2.get()
+	};
+	ADD_ACTION3(DispatchAction,
 		IDM_MESSAGE_MOVEOTHER,
-		pDocument_,
-		pMessageSelectionModel_.get(),
-		pPreviewModel_.get(),
-		this,
-		pProfile_,
-		pThis_->getHandle());
+		pViews,
+		pMessageMoveOtherActions,
+		countof(pViews));
+	pMessageMoveOtherAction1.release();
+	pMessageMoveOtherAction2.release();
+	
 	ADD_ACTION_RANGE4(MessageOpenRecentAction,
 		IDM_MESSAGE_OPENRECENT,
 		IDM_MESSAGE_OPENRECENT + RecentsMenu::MAX_RECENTS,

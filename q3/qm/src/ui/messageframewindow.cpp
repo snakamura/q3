@@ -162,20 +162,22 @@ void qm::MessageFrameWindowImpl::initActions()
 		pMessageWindow_,
 		&MessageWindowItem::copy,
 		&MessageWindowItem::canCopy);
-	ADD_ACTION6(EditDeleteMessageAction,
+	ADD_ACTION7(EditDeleteMessageAction,
 		IDM_EDIT_DELETE,
 		this,
 		pMessageModel_.get(),
 		pMessageModel_.get(),
 		false,
+		false,
 		pThis_->getHandle(),
 		pProfile_);
-	ADD_ACTION6(EditDeleteMessageAction,
+	ADD_ACTION7(EditDeleteMessageAction,
 		IDM_EDIT_DELETEDIRECT,
 		this,
 		pMessageModel_.get(),
 		pMessageModel_.get(),
 		true,
+		false,
 		pThis_->getHandle(),
 		pProfile_);
 	ADD_ACTION3(EditFindAction,
@@ -328,20 +330,22 @@ void qm::MessageFrameWindowImpl::initActions()
 			pThis_->getHandle());
 	}
 	
-	ADD_ACTION_RANGE5(MessageMoveAction,
+	ADD_ACTION_RANGE6(MessageMoveAction,
 		IDM_MESSAGE_MOVE,
 		IDM_MESSAGE_MOVE + MoveMenu::MAX_FOLDER,
 		this,
 		pMessageModel_.get(),
 		pMessageModel_.get(),
 		pMoveMenu_.get(),
+		false,
 		pThis_->getHandle());
-	ADD_ACTION6(MessageMoveOtherAction,
+	ADD_ACTION7(MessageMoveOtherAction,
 		IDM_MESSAGE_MOVEOTHER,
 		pDocument_,
 		this,
 		pMessageModel_.get(),
 		pMessageModel_.get(),
+		false,
 		pProfile_,
 		pThis_->getHandle());
 	ADD_ACTION2(MessageOpenLinkAction,
