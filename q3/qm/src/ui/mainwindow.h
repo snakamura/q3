@@ -15,6 +15,7 @@
 #include <qstoolbar.h>
 #include <qswindow.h>
 
+#include "statusbar.h"
 #include "../sync/syncmanager.h"
 #include "../uimodel/foldermodel.h"
 
@@ -22,6 +23,7 @@ namespace qm {
 
 class ListContainerWindow;
 class SyncNotificationWindow;
+class MainWindowStatusBar;
 struct MainWindowCreateContext;
 
 class AutoPilot;
@@ -144,6 +146,46 @@ private:
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
 	HBITMAP hbm_;
+};
+
+
+/****************************************************************************
+ *
+ * MainWindowStatusBar
+ *
+ */
+
+class MainWindowStatusBar : public MessageStatusBar
+{
+public:
+	MainWindowStatusBar(Document* pDocument,
+						ViewModelManager* pViewModelManager,
+						MessageWindow* pMessageWindow,
+						EncodingModel* pEncodingModel,
+						int nOffset);
+	virtual ~MainWindowStatusBar();
+
+public:
+	void updateListParts(const WCHAR* pwszText);
+
+public:
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
+
+private:
+	MainWindowStatusBar(const MainWindowStatusBar&);
+	MainWindowStatusBar& operator=(const MainWindowStatusBar&);
+
+private:
+	Document* pDocument_;
+	ViewModelManager* pViewModelManager_;
+	unsigned int nCount_;
+	unsigned int nUnseenCount_;
+	unsigned int nSelectedCount_;
+	bool bOffline_;
+	qs::wstring_ptr wstrFilter_;
+	qs::wstring_ptr wstrText_;
 };
 
 

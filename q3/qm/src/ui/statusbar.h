@@ -11,10 +11,20 @@
 
 #include <qm.h>
 
+#include <qsmime.h>
 #include <qswindow.h>
 
 
 namespace qm {
+
+class StatusBar;
+	class MessageStatusBar;
+
+class Message;
+class MessageHolder;
+class MessageWindow;
+class EncodingModel;
+
 
 /****************************************************************************
  *
@@ -41,14 +51,48 @@ public:
 #endif
 	void setSimple(bool bSimple);
 
-public:
-	virtual LRESULT windowProc(UINT uMsg,
-							   WPARAM wParam,
-							   LPARAM lParam);
-
 private:
 	StatusBar(const StatusBar&);
 	StatusBar& operator=(const StatusBar&);
+};
+
+
+/****************************************************************************
+ *
+ * MessageStatusBar
+ *
+ */
+
+class MessageStatusBar : public StatusBar
+{
+public:
+	MessageStatusBar(MessageWindow* pMessageWindow,
+					 EncodingModel* pEncodingModel,
+					 int nOffset);
+	virtual ~MessageStatusBar();
+
+public:
+	void updateMessageParts(MessageHolder* pmh,
+							Message& msg,
+							const qs::ContentTypeParser* pContentType);
+
+private:
+	void setIconOrText(int nPart,
+					   UINT nIcon,
+					   const WCHAR* pwszText);
+#ifndef _WIN32_WCE
+	void setIconId(int nPart,
+				   UINT nIcon);
+#endif
+
+private:
+	MessageStatusBar(const MessageStatusBar&);
+	MessageStatusBar& operator=(const MessageStatusBar&);
+
+private:
+	MessageWindow* pMessageWindow_;
+	EncodingModel* pEncodingModel_;
+	int nOffset_;
 };
 
 }

@@ -9,7 +9,6 @@
 #include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmfolder.h>
-#include <qmmessagewindow.h>
 #include <qmpassword.h>
 #include <qmuiutil.h>
 
@@ -21,12 +20,10 @@
 
 #include "dialogs.h"
 #include "resourceinc.h"
-#include "statusbar.h"
 #include "uiutil.h"
 #include "../model/dataobject.h"
 #include "../model/tempfilecleaner.h"
 #include "../model/uri.h"
-#include "../uimodel/encodingmodel.h"
 
 using namespace qm;
 using namespace qs;
@@ -207,103 +204,6 @@ int qm::UIUtil::getFolderImage(Folder* pFolder,
 	}
 	return nImage;
 }
-
-void qm::UIUtil::updateStatusBar(MessageWindow* pMessageWindow,
-								 EncodingModel* pEncodingModel,
-								 StatusBar* pStatusBar,
-								 int nOffset,
-								 MessageHolder* pmh,
-								 Message& msg,
-								 const ContentTypeParser* pContentType)
-{
-	if (pmh) {
-#ifdef _WIN32_WCE_PSPC
-		nOffset -= 2;
-#else
-		const WCHAR* pwszEncoding = pEncodingModel->getEncoding();
-		wstring_ptr wstrCharset;
-		if (!pwszEncoding) {
-			if (!pContentType) {
-				if (msg.isMultipart()) {
-					const Part::PartList& listPart = msg.getPartList();
-					if (!listPart.empty())
-						pContentType = listPart.front()->getContentType();
-				}
-				else {
-					pContentType = msg.getContentType();
-				}
-			}
-			if (pContentType)
-				wstrCharset = pContentType->getParameter(L"charset");
-			pwszEncoding = wstrCharset.get();
-		}
-		if (!pwszEncoding)
-			pwszEncoding = L"us-ascii";
-		pStatusBar->setText(nOffset + 1, pwszEncoding);
-		
-		const WCHAR* pwszTemplate = pMessageWindow->getTemplate();
-		wstring_ptr wstrNone;
-		if (pwszTemplate) {
-			pwszTemplate += 5;
-		}
-		else {
-			wstrNone = loadString(Application::getApplication().getResourceHandle(), IDS_NONE);
-			pwszTemplate = wstrNone.get();
-		}
-		pStatusBar->setText(nOffset + 2, pwszTemplate);
-#endif
-		
-		unsigned int nSecurity = msg.getSecurity();
-		if (nSecurity & Message::SECURITY_DECRYPTED)
-			setStatusBarIconOrText(pStatusBar, nOffset + 3, IDI_DECRYPTED, L"D");
-		else
-			setStatusBarIconOrText(pStatusBar, nOffset + 3, 0, L"");
-		
-		HICON hIconVerified = 0;
-		if ((nSecurity & Message::SECURITY_VERIFICATIONFAILED) ||
-			(nSecurity & Message::SECURITY_ADDRESSNOTMATCH))
-			setStatusBarIconOrText(pStatusBar, nOffset + 4, IDI_UNVERIFIED, L"X");
-		else if (nSecurity & Message::SECURITY_VERIFIED)
-			setStatusBarIconOrText(pStatusBar, nOffset + 4, IDI_VERIFIED, L"V");
-		else
-			setStatusBarIconOrText(pStatusBar, nOffset + 4, 0, L"");
-	}
-	else {
-#ifdef _WIN32_WCE_PSPC
-		int nMax = 3;
-#else
-		int nMax = 5;
-#endif
-		for (int n = 1; n < nMax; ++n)
-			pStatusBar->setText(nOffset + n, L"");
-	}
-}
-
-void qm::UIUtil::setStatusBarIconOrText(StatusBar* pStatusBar,
-										int nPart,
-										UINT nIcon,
-										const WCHAR* pwszText)
-{
-#ifndef _WIN32_WCE
-	setStatusBarIcon(pStatusBar, nPart, nIcon);
-#else
-	pStatusBar->setText(nPart, pwszText);
-#endif
-}
-
-#ifndef _WIN32_WCE
-void qm::UIUtil::setStatusBarIcon(StatusBar* pStatusBar,
-								  int nPart,
-								  UINT nIcon)
-{
-	HICON hIcon = 0;
-	if (nIcon != 0)
-		hIcon = reinterpret_cast<HICON>(::LoadImage(
-			Application::getApplication().getResourceHandle(),
-			MAKEINTRESOURCE(nIcon), IMAGE_ICON, 16, 16, LR_SHARED));
-	pStatusBar->setIcon(nPart, hIcon);
-}
-#endif
 
 wstring_ptr qm::UIUtil::writeTemporaryFile(const WCHAR* pwszValue,
 										   const WCHAR* pwszPrefix,

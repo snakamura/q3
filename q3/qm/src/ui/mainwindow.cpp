@@ -163,31 +163,6 @@ public:
 		MainWindowImpl* pMainWindowImpl_;
 		bool bListOnly_;
 	};
-	
-	class StatusBarInfo
-	{
-	public:
-		StatusBarInfo();
-		~StatusBarInfo();
-	
-	public:
-		void update(Document* pDocument,
-					ViewModel* pViewModel,
-					const WCHAR* pwszText,
-					StatusBar* pStatusBar);
-	
-	private:
-		StatusBarInfo(const StatusBarInfo&);
-		StatusBarInfo& operator=(const StatusBarInfo&);
-	
-	private:
-		unsigned int nCount_;
-		unsigned int nUnseenCount_;
-		unsigned int nSelectedCount_;
-		bool bOffline_;
-		wstring_ptr wstrFilter_;
-		wstring_ptr wstrText_;
-	};
 
 public:
 	void initActions();
@@ -273,7 +248,7 @@ public:
 	FolderListWindow* pFolderListWindow_;
 	ListWindow* pListWindow_;
 	MessageWindow* pMessageWindow_;
-	StatusBar* pStatusBar_;
+	MainWindowStatusBar* pStatusBar_;
 	SyncNotificationWindow* pSyncNotificationWindow_;
 	std::auto_ptr<FolderModel> pFolderModel_;
 #ifdef QMTABWINDOW
@@ -312,7 +287,6 @@ public:
 	int nInitialShow_;
 	bool bLayouting_;
 	int nShowingModalDialog_;
-	StatusBarInfo statusBarInfo_;
 	HWND hwndLastFocused_;
 #ifndef _WIN32_WCE_PSPC
 	NOTIFYICONDATA notifyIcon_;
@@ -1384,10 +1358,8 @@ void qm::MainWindowImpl::updateStatusBar()
 {
 	assert(::GetCurrentThreadId() == ::GetWindowThreadProcessId(pThis_->getHandle(), 0));
 	
-	if (bShowStatusBar_) {
-		ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
-		statusBarInfo_.update(pDocument_, pViewModel, 0, pStatusBar_);
-	}
+	if (bShowStatusBar_)
+		pStatusBar_->updateListParts(0);
 }
 
 #ifndef _WIN32_WCE_PSPC
@@ -1546,21 +1518,17 @@ void qm::MainWindowImpl::setViewModel(ViewModel* pViewModel)
 void qm::MainWindowImpl::messageChanged(const MessageWindowEvent& event)
 {
 	if (bShowStatusBar_) {
-		ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
-		statusBarInfo_.update(pDocument_, pViewModel, L"", pStatusBar_);
+		pStatusBar_->updateListParts(L"");
 		if (bShowPreviewWindow_)
-			UIUtil::updateStatusBar(pMessageWindow_, pEncodingModel_.get(),
-				pStatusBar_, 2, event.getMessageHolder(),
+			pStatusBar_->updateMessageParts(event.getMessageHolder(),
 				event.getMessage(), event.getContentType());
 	}
 }
 
 void qm::MainWindowImpl::statusTextChanged(const MessageWindowStatusTextEvent& event)
 {
-	if (bShowStatusBar_) {
-		ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
-		statusBarInfo_.update(pDocument_, pViewModel, event.getText(), pStatusBar_);
-	}
+	if (bShowStatusBar_)
+		pStatusBar_->updateListParts(event.getText());
 }
 
 void qm::MainWindowImpl::accountListChanged(const AccountManagerEvent& event)
@@ -1722,107 +1690,6 @@ bool qm::MainWindowImpl::MessageSelectionModelImpl::canSelect()
 {
 	return pMainWindowImpl_->pListWindow_->isActive() &&
 		pMainWindowImpl_->pViewModelManager_->getCurrentViewModel();
-}
-
-
-/****************************************************************************
- *
- * MainWindowImpl::StatusBarInfo
- *
- */
-
-qm::MainWindowImpl::StatusBarInfo::StatusBarInfo() :
-	nCount_(-1),
-	nUnseenCount_(-1),
-	nSelectedCount_(-1),
-	bOffline_(true)
-{
-}
-
-qm::MainWindowImpl::StatusBarInfo::~StatusBarInfo()
-{
-}
-
-void qm::MainWindowImpl::StatusBarInfo::update(Document* pDocument,
-											   ViewModel* pViewModel,
-											   const WCHAR* pwszText,
-											   StatusBar* pStatusBar)
-{
-	assert(pDocument);
-	assert(pStatusBar);
-	assert(!pwszText || !*pwszText || pViewModel);
-	
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	
-	if (pwszText) {
-		if (*pwszText) {
-			if (!wstrText_.get() || wcscmp(wstrText_.get(), pwszText) != 0) {
-				nCount_ = -1;
-				nUnseenCount_ = -1;
-				nSelectedCount_ = -1;
-				wstrText_ = allocWString(pwszText);
-				pStatusBar->setText(0, wstrText_.get());
-			}
-		}
-		else {
-			wstrText_.reset(0);
-		}
-	}
-	
-	if (pViewModel) {
-		Lock<ViewModel> lock(*pViewModel);
-		
-		if (!wstrText_.get()) {
-			unsigned int nCount = nCount_;
-			unsigned int nUnseenCount = nUnseenCount_;
-			unsigned int nSelectedCount = nSelectedCount_;
-			nCount_ = pViewModel->getCount();
-			nUnseenCount_ = pViewModel->getUnseenCount();
-			nSelectedCount_ = pViewModel->getSelectedCount();
-			if (nCount != nCount_ ||
-				nUnseenCount != nUnseenCount_ ||
-				nSelectedCount != nSelectedCount_) {
-				wstring_ptr wstrTemplate(loadString(hInst, IDS_VIEWMODELSTATUSTEMPLATE));
-				WCHAR wsz[256];
-				swprintf(wsz, wstrTemplate.get(), nCount_, nUnseenCount_, nSelectedCount_);
-				pStatusBar->setText(0, wsz);
-			}
-		}
-		
-#ifndef _WIN32_WCE_PSPC
-		wstring_ptr wstrFilter(wstrFilter_);
-		const Filter* pFilter = pViewModel->getFilter();
-		if (pFilter) {
-			const WCHAR* pwszName = pFilter->getName();
-			if (*pwszName)
-				wstrFilter_ = allocWString(pwszName);
-			else
-				wstrFilter_ = loadString(hInst, IDS_CUSTOM);
-		}
-		else {
-			wstrFilter_ = loadString(hInst, IDS_NONE);
-		}
-		if (!wstrFilter.get() || wcscmp(wstrFilter.get(), wstrFilter_.get()) != 0)
-			pStatusBar->setText(2, wstrFilter_.get());
-#endif
-	}
-	else {
-		nCount_ = -1;
-		nUnseenCount_ = -1;
-		nSelectedCount_ = -1;
-		wstrFilter_.reset(0);
-		
-		pStatusBar->setText(0, L"");
-		pStatusBar->setText(2, L"");
-	}
-	
-	bool bOffline = bOffline_;
-	bOffline_ = pDocument->isOffline();
-	if (bOffline != bOffline_) {
-		UINT nOnlineId = bOffline_ ? IDS_OFFLINE : IDS_ONLINE;
-		wstring_ptr wstrOnline(loadString(hInst, nOnlineId));
-		pStatusBar->setText(1, wstrOnline.get());
-	}
 }
 
 
@@ -2422,7 +2289,9 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 #if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	dwStatusBarStyle |= CCS_NOPARENTALIGN;
 #endif
-	std::auto_ptr<StatusBar> pStatusBar(new StatusBar());
+	std::auto_ptr<MainWindowStatusBar> pStatusBar(new MainWindowStatusBar(
+		pImpl_->pDocument_, pImpl_->pViewModelManager_.get(),
+		pImpl_->pMessageWindow_, pImpl_->pEncodingModel_.get(), 2));
 	if (!pStatusBar->create(L"QmStatusBarWindow", 0, dwStatusBarStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, getHandle(),
 		0, STATUSCLASSNAMEW, MainWindowImpl::ID_STATUSBAR, 0))
@@ -2813,6 +2682,115 @@ void qm::ListContainerWindow::folderSelected(const FolderModelEvent& event)
 	
 	if (bActive)
 		pListWindow_->setActive();
+}
+
+
+/****************************************************************************
+ *
+ * MainWindowStatusBar
+ *
+ */
+
+qm::MainWindowStatusBar::MainWindowStatusBar(Document* pDocument,
+											 ViewModelManager* pViewModelManager,
+											 MessageWindow* pMessageWindow,
+											 EncodingModel* pEncodingModel,
+											 int nOffset) :
+	MessageStatusBar(pMessageWindow, pEncodingModel, nOffset),
+	pDocument_(pDocument),
+	pViewModelManager_(pViewModelManager),
+	nCount_(-1),
+	nUnseenCount_(-1),
+	nSelectedCount_(-1),
+	bOffline_(true)
+{
+}
+
+qm::MainWindowStatusBar::~MainWindowStatusBar()
+{
+}
+
+void qm::MainWindowStatusBar::updateListParts(const WCHAR* pwszText)
+{
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	
+	if (pwszText) {
+		if (*pwszText) {
+			if (!wstrText_.get() || wcscmp(wstrText_.get(), pwszText) != 0) {
+				nCount_ = -1;
+				nUnseenCount_ = -1;
+				nSelectedCount_ = -1;
+				wstrText_ = allocWString(pwszText);
+				setText(0, wstrText_.get());
+			}
+		}
+		else {
+			wstrText_.reset(0);
+		}
+	}
+	
+	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
+	if (pViewModel) {
+		Lock<ViewModel> lock(*pViewModel);
+		
+		if (!wstrText_.get()) {
+			unsigned int nCount = nCount_;
+			unsigned int nUnseenCount = nUnseenCount_;
+			unsigned int nSelectedCount = nSelectedCount_;
+			nCount_ = pViewModel->getCount();
+			nUnseenCount_ = pViewModel->getUnseenCount();
+			nSelectedCount_ = pViewModel->getSelectedCount();
+			if (nCount != nCount_ ||
+				nUnseenCount != nUnseenCount_ ||
+				nSelectedCount != nSelectedCount_) {
+				wstring_ptr wstrTemplate(loadString(hInst, IDS_VIEWMODELSTATUSTEMPLATE));
+				WCHAR wsz[256];
+				swprintf(wsz, wstrTemplate.get(), nCount_, nUnseenCount_, nSelectedCount_);
+				setText(0, wsz);
+			}
+		}
+		
+#ifndef _WIN32_WCE_PSPC
+		wstring_ptr wstrFilter(wstrFilter_);
+		const Filter* pFilter = pViewModel->getFilter();
+		if (pFilter) {
+			const WCHAR* pwszName = pFilter->getName();
+			if (*pwszName)
+				wstrFilter_ = allocWString(pwszName);
+			else
+				wstrFilter_ = loadString(hInst, IDS_CUSTOM);
+		}
+		else {
+			wstrFilter_ = loadString(hInst, IDS_NONE);
+		}
+		if (!wstrFilter.get() || wcscmp(wstrFilter.get(), wstrFilter_.get()) != 0)
+			setText(2, wstrFilter_.get());
+#endif
+	}
+	else {
+		nCount_ = -1;
+		nUnseenCount_ = -1;
+		nSelectedCount_ = -1;
+		wstrFilter_.reset(0);
+		
+		setText(0, L"");
+		setText(2, L"");
+	}
+	
+	bool bOffline = bOffline_;
+	bOffline_ = pDocument_->isOffline();
+	if (bOffline != bOffline_) {
+		UINT nOnlineId = bOffline_ ? IDS_OFFLINE : IDS_ONLINE;
+		wstring_ptr wstrOnline(loadString(hInst, nOnlineId));
+		setText(1, wstrOnline.get());
+	}
+}
+
+LRESULT qm::MainWindowStatusBar::windowProc(UINT uMsg,
+											WPARAM wParam,
+											LPARAM lParam)
+{
+	return MessageStatusBar::windowProc(uMsg, wParam, lParam);
 }
 
 

@@ -37,7 +37,6 @@ class MessageWindow;
 class PasswordManager;
 class ProgressDialog;
 class SecurityModel;
-class StatusBar;
 class TempFileCleaner;
 
 
@@ -68,23 +67,6 @@ public:
 	
 	static int getFolderImage(Folder* pFolder,
 							  bool bSelected);
-	
-	static void updateStatusBar(MessageWindow* pMessageWindow,
-								EncodingModel* pEncodingModel,
-								StatusBar* pStatusBar,
-								int nOffset,
-								MessageHolder* pmh,
-								Message& msg,
-								const qs::ContentTypeParser* pContentType);
-	static void setStatusBarIconOrText(StatusBar* pStatusBar,
-									   int nPart,
-									   UINT nIcon,
-									   const WCHAR* pwszText);
-#ifndef _WIN32_WCE
-	static void setStatusBarIcon(StatusBar* pStatusBar,
-								 int nPart,
-								 UINT nIcon);
-#endif
 	
 	static qs::wstring_ptr writeTemporaryFile(const WCHAR* pwszValue,
 											  const WCHAR* pwszPrefix,

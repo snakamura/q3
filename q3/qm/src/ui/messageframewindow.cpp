@@ -103,7 +103,7 @@ public:
 	ViewModelManager* pViewModelManager_;
 	std::auto_ptr<MessageMessageModel> pMessageModel_;
 	MessageWindow* pMessageWindow_;
-	StatusBar* pStatusBar_;
+	MessageStatusBar* pStatusBar_;
 	std::auto_ptr<Accelerator> pAccelerator_;
 	std::auto_ptr<ActionMap> pActionMap_;
 	std::auto_ptr<ActionInvoker> pActionInvoker_;
@@ -543,8 +543,8 @@ void qm::MessageFrameWindowImpl::messageChanged(const MessageWindowEvent& event)
 		
 		if (bShowStatusBar_) {
 			pStatusBar_->setText(0, L"");
-			UIUtil::updateStatusBar(pMessageWindow_, pEncodingModel_.get(),
-				pStatusBar_, 0, pmh, event.getMessage(), event.getContentType());
+			pStatusBar_->updateMessageParts(pmh,
+				event.getMessage(), event.getContentType());
 		}
 	}
 	else {
@@ -898,7 +898,8 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 #if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	dwStatusBarStyle |= CCS_NOPARENTALIGN;
 #endif
-	std::auto_ptr<StatusBar> pStatusBar(new StatusBar());
+	std::auto_ptr<MessageStatusBar> pStatusBar(new MessageStatusBar(
+		pImpl_->pMessageWindow_, pImpl_->pEncodingModel_.get(), 0));
 	if (!pStatusBar->create(L"QmStatusBarWindow", 0, dwStatusBarStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, getHandle(),
 		0, STATUSCLASSNAMEW, MessageFrameWindowImpl::ID_STATUSBAR, 0))
