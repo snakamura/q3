@@ -1513,7 +1513,25 @@ IDD_OPTIONMESSAGEWINDOW DIALOG DISCARDABLE  0, 0, 137, 119
 STYLE WS_CHILD
 FONT 9, "Tahoma"
 BEGIN
-    PUSHBUTTON      "&Font...",IDC_FONT,5,5,50,12
+    CONTROL         "Wrap at &window width",IDC_WRAPWINDOWWIDTH,"Button",
+                    BS_AUTORADIOBUTTON,10,10,84,10
+    CONTROL         "Wrap at the &specified column",IDC_WRAPCOLUMN,"Button",
+                    BS_AUTORADIOBUTTON,10,20,102,10
+    LTEXT           "&Column",IDC_STATIC,20,32,24,8
+    EDITTEXT        IDC_CHARINLINE,50,30,20,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "W&ord Wrap",IDC_WORDWRAP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,80,31,47,10
+    GROUPBOX        "Wrap",IDC_STATIC,5,0,127,45
+    LTEXT           "&Tab Width",IDC_STATIC,5,53,34,8
+    EDITTEXT        IDC_TABWIDTH,45,50,20,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Show &Ruler",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,65,49,10
+    CONTROL         "Show &V Scroll Bar",IDC_SHOWVERTICALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,75,70,10
+    CONTROL         "Show &H Scroll Bar",IDC_SHOWHORIZONTALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,85,70,10
+    PUSHBUTTON      "&Font...",IDC_FONT,82,50,50,12
+    PUSHBUTTON      "Co&lors...",IDC_COLORS,82,65,50,12
 END
 
 IDD_OPTIONEDITWINDOW DIALOG DISCARDABLE  0, 0, 137, 119

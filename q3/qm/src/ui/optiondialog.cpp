@@ -926,67 +926,6 @@ LRESULT qm::OptionAddressBookDialog::onFont()
 
 /****************************************************************************
  *
- * OptionEditWindowDialog
- *
- */
-
-qm::OptionEditWindowDialog::OptionEditWindowDialog(EditFrameWindowManager* pEditFrameWindowManager,
-												   Profile* pProfile) :
-	DefaultDialog(IDD_OPTIONEDITWINDOW),
-	pEditFrameWindowManager_(pEditFrameWindowManager),
-	pProfile_(pProfile)
-{
-	qs::UIUtil::getLogFontFromProfile(pProfile_, L"EditWindow", false, &lf_);
-	qs::UIUtil::getLogFontFromProfile(pProfile_, L"HeaderEditWindow", false, &lfHeader_);
-}
-
-qm::OptionEditWindowDialog::~OptionEditWindowDialog()
-{
-}
-
-LRESULT qm::OptionEditWindowDialog::onCommand(WORD nCode,
-											  WORD nId)
-{
-	BEGIN_COMMAND_HANDLER()
-		HANDLE_COMMAND_ID(IDC_FONT, onFont)
-		HANDLE_COMMAND_ID(IDC_HEADERFONT, onHeaderFont)
-	END_COMMAND_HANDLER()
-	return DefaultDialog::onCommand(nCode, nId);
-}
-
-LRESULT qm::OptionEditWindowDialog::onInitDialog(HWND hwndFocus,
-												 LPARAM lParam)
-{
-	return FALSE;
-}
-
-bool qm::OptionEditWindowDialog::save(OptionDialogContext* pContext)
-{
-	qs::UIUtil::setLogFontToProfile(pProfile_, L"EditWindow", lf_);
-	qs::UIUtil::setLogFontToProfile(pProfile_, L"HeaderEditWindow", lfHeader_);
-	
-	pEditFrameWindowManager_->reloadProfiles();
-	
-	pContext->setFlags(OptionDialogContext::FLAG_LAYOUTEDITWINDOW);
-	
-	return true;
-}
-
-LRESULT qm::OptionEditWindowDialog::onFont()
-{
-	qs::UIUtil::browseFont(getParentPopup(), &lf_);
-	return 0;
-}
-
-LRESULT qm::OptionEditWindowDialog::onHeaderFont()
-{
-	qs::UIUtil::browseFont(getParentPopup(), &lfHeader_);
-	return 0;
-}
-
-
-/****************************************************************************
- *
  * OptionFolderComboBoxDialog
  *
  */
@@ -1234,87 +1173,37 @@ LRESULT qm::OptionListWindowDialog::onFont()
 
 /****************************************************************************
  *
- * OptionMessageWindowDialog
+ * AbstractOptionTextWindowDialog
  *
  */
 
-qm::OptionMessageWindowDialog::OptionMessageWindowDialog(MessageFrameWindowManager* pMessageFrameWindowManager,
-														 Profile* pProfile) :
-	DefaultDialog(IDD_OPTIONMESSAGEWINDOW),
-	pMessageFrameWindowManager_(pMessageFrameWindowManager),
-	pProfile_(pProfile)
-{
-	qs::UIUtil::getLogFontFromProfile(pProfile_, L"MessageWindow", false, &lf_);
-}
-
-qm::OptionMessageWindowDialog::~OptionMessageWindowDialog()
-{
-}
-
-LRESULT qm::OptionMessageWindowDialog::onCommand(WORD nCode,
-											  WORD nId)
-{
-	BEGIN_COMMAND_HANDLER()
-		HANDLE_COMMAND_ID(IDC_FONT, onFont)
-	END_COMMAND_HANDLER()
-	return DefaultDialog::onCommand(nCode, nId);
-}
-
-LRESULT qm::OptionMessageWindowDialog::onInitDialog(HWND hwndFocus,
-												 LPARAM lParam)
-{
-	return FALSE;
-}
-
-bool qm::OptionMessageWindowDialog::save(OptionDialogContext* pContext)
-{
-	qs::UIUtil::setLogFontToProfile(pProfile_, L"MessageWindow", lf_);
-	
-	pMessageFrameWindowManager_->reloadProfiles();
-	
-	return true;
-}
-
-LRESULT qm::OptionMessageWindowDialog::onFont()
-{
-	qs::UIUtil::browseFont(getParentPopup(), &lf_);
-	return 0;
-}
-
-
-/****************************************************************************
- *
- * OptionPreviewWindowDialog
- *
- */
-
-DialogUtil::BoolProperty qm::OptionPreviewWindowDialog::boolProperties__[] = {
+DialogUtil::BoolProperty qm::AbstractOptionTextWindowDialog::boolProperties__[] = {
 	{ L"WordWrap",					IDC_WORDWRAP,					false	},
 	{ L"ShowRuler",					IDC_SHOWRULER,					false	},
 	{ L"ShowVerticalScrollBar",		IDC_SHOWVERTICALSCROLLBAR,		true	},
 	{ L"ShowHorizontalScrollBar",	IDC_SHOWHORIZONTALSCROLLBAR,	false	}
 };
 
-DialogUtil::IntProperty qm::OptionPreviewWindowDialog::intProperties__[] = {
-	{ L"TabWidth",	IDC_TABWIDTH,	4	},
-	{ L"SeenWait",	IDC_SEENWAIT,	0	}
+DialogUtil::IntProperty qm::AbstractOptionTextWindowDialog::intProperties__[] = {
+	{ L"TabWidth",	IDC_TABWIDTH,	4	}
 };
 
-qm::OptionPreviewWindowDialog::OptionPreviewWindowDialog(MessageWindow* pPreviewWindow,
-														 Profile* pProfile) :
-	DefaultDialog(IDD_OPTIONPREVIEWWINDOW),
-	pPreviewWindow_(pPreviewWindow),
-	pProfile_(pProfile)
+qm::AbstractOptionTextWindowDialog::AbstractOptionTextWindowDialog(UINT nId,
+																   Profile* pProfile,
+																   const WCHAR* pwszSection) :
+	DefaultDialog(nId),
+	pProfile_(pProfile),
+	pwszSection_(pwszSection)
 {
-	qs::UIUtil::getLogFontFromProfile(pProfile_, L"PreviewWindow", false, &lf_);
+	qs::UIUtil::getLogFontFromProfile(pProfile_, pwszSection_, false, &lf_);
 }
 
-qm::OptionPreviewWindowDialog::~OptionPreviewWindowDialog()
+qm::AbstractOptionTextWindowDialog::~AbstractOptionTextWindowDialog()
 {
 }
 
-LRESULT qm::OptionPreviewWindowDialog::onCommand(WORD nCode,
-												WORD nId)
+LRESULT qm::AbstractOptionTextWindowDialog::onCommand(WORD nCode,
+													  WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_COLORS, onColors)
@@ -1325,10 +1214,10 @@ LRESULT qm::OptionPreviewWindowDialog::onCommand(WORD nCode,
 	return DefaultDialog::onCommand(nCode, nId);
 }
 
-LRESULT qm::OptionPreviewWindowDialog::onInitDialog(HWND hwndFocus,
-												   LPARAM lParam)
+LRESULT qm::AbstractOptionTextWindowDialog::onInitDialog(HWND hwndFocus,
+														 LPARAM lParam)
 {
-	unsigned int nCharInLine = pProfile_->getInt(L"PreviewWindow", L"CharInLine", 0);
+	unsigned int nCharInLine = pProfile_->getInt(pwszSection_, L"CharInLine", 0);
 	if (nCharInLine == 0) {
 		sendDlgItemMessage(IDC_WRAPWINDOWWIDTH, BM_SETCHECK, BST_CHECKED);
 		setDlgItemInt(IDC_CHARINLINE, 80);
@@ -1339,56 +1228,195 @@ LRESULT qm::OptionPreviewWindowDialog::onInitDialog(HWND hwndFocus,
 	}
 	
 	DialogUtil::loadBoolProperties(this, pProfile_,
-		L"PreviewWindow", boolProperties__, countof(boolProperties__));
+		pwszSection_, boolProperties__, countof(boolProperties__));
 	DialogUtil::loadIntProperties(this, pProfile_,
-		L"PreviewWindow", intProperties__, countof(intProperties__));
+		pwszSection_, intProperties__, countof(intProperties__));
 	
 	updateState();
 	
 	return FALSE;
 }
 
-bool qm::OptionPreviewWindowDialog::save(OptionDialogContext* pContext)
+bool qm::AbstractOptionTextWindowDialog::save(OptionDialogContext* pContext)
 {
 	unsigned int nCharInLine = 0;
 	if (sendDlgItemMessage(IDC_WRAPCOLUMN, BM_GETCHECK) == BST_CHECKED)
 		nCharInLine = getDlgItemInt(IDC_CHARINLINE);
-	pProfile_->setInt(L"PreviewWindow", L"CharInLine", nCharInLine);
+	pProfile_->setInt(pwszSection_, L"CharInLine", nCharInLine);
 	
 	DialogUtil::saveBoolProperties(this, pProfile_,
-		L"PreviewWindow", boolProperties__, countof(boolProperties__));
+		pwszSection_, boolProperties__, countof(boolProperties__));
 	DialogUtil::saveIntProperties(this, pProfile_,
-		L"PreviewWindow", intProperties__, countof(intProperties__));
+		pwszSection_, intProperties__, countof(intProperties__));
 	
-	qs::UIUtil::setLogFontToProfile(pProfile_, L"PreviewWindow", lf_);
-	
-	pPreviewWindow_->reloadProfiles();
+	qs::UIUtil::setLogFontToProfile(pProfile_, pwszSection_, lf_);
 	
 	return true;
 }
 
-LRESULT qm::OptionPreviewWindowDialog::onColors()
+void qm::AbstractOptionTextWindowDialog::updateState()
+{
+	bool bEnable = sendDlgItemMessage(IDC_WRAPCOLUMN, BM_GETCHECK) == BST_CHECKED;
+	Window(getDlgItem(IDC_CHARINLINE)).enableWindow(bEnable);
+}
+
+LRESULT qm::AbstractOptionTextWindowDialog::onColors()
 {
 	// TODO
 	return 0;
 }
 
-LRESULT qm::OptionPreviewWindowDialog::onFont()
+LRESULT qm::AbstractOptionTextWindowDialog::onFont()
 {
 	qs::UIUtil::browseFont(getParentPopup(), &lf_);
 	return 0;
 }
 
-LRESULT qm::OptionPreviewWindowDialog::onWrapChange(UINT nId)
+LRESULT qm::AbstractOptionTextWindowDialog::onWrapChange(UINT nId)
 {
 	updateState();
 	return 0;
 }
 
-void qm::OptionPreviewWindowDialog::updateState()
+
+/****************************************************************************
+ *
+ * OptionEditWindowDialog
+ *
+ */
+
+qm::OptionEditWindowDialog::OptionEditWindowDialog(EditFrameWindowManager* pEditFrameWindowManager,
+												   Profile* pProfile) :
+	DefaultDialog(IDD_OPTIONEDITWINDOW),
+	pEditFrameWindowManager_(pEditFrameWindowManager),
+	pProfile_(pProfile)
 {
-	bool bEnable = sendDlgItemMessage(IDC_WRAPCOLUMN, BM_GETCHECK) == BST_CHECKED;
-	Window(getDlgItem(IDC_CHARINLINE)).enableWindow(bEnable);
+	qs::UIUtil::getLogFontFromProfile(pProfile_, L"EditWindow", false, &lf_);
+	qs::UIUtil::getLogFontFromProfile(pProfile_, L"HeaderEditWindow", false, &lfHeader_);
+}
+
+qm::OptionEditWindowDialog::~OptionEditWindowDialog()
+{
+}
+
+LRESULT qm::OptionEditWindowDialog::onCommand(WORD nCode,
+											  WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_FONT, onFont)
+		HANDLE_COMMAND_ID(IDC_HEADERFONT, onHeaderFont)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::OptionEditWindowDialog::onInitDialog(HWND hwndFocus,
+												 LPARAM lParam)
+{
+	return FALSE;
+}
+
+bool qm::OptionEditWindowDialog::save(OptionDialogContext* pContext)
+{
+	qs::UIUtil::setLogFontToProfile(pProfile_, L"EditWindow", lf_);
+	qs::UIUtil::setLogFontToProfile(pProfile_, L"HeaderEditWindow", lfHeader_);
+	
+	pEditFrameWindowManager_->reloadProfiles();
+	
+	pContext->setFlags(OptionDialogContext::FLAG_LAYOUTEDITWINDOW);
+	
+	return true;
+}
+
+LRESULT qm::OptionEditWindowDialog::onFont()
+{
+	qs::UIUtil::browseFont(getParentPopup(), &lf_);
+	return 0;
+}
+
+LRESULT qm::OptionEditWindowDialog::onHeaderFont()
+{
+	qs::UIUtil::browseFont(getParentPopup(), &lfHeader_);
+	return 0;
+}
+
+
+/****************************************************************************
+ *
+ * OptionMessageWindowDialog
+ *
+ */
+
+qm::OptionMessageWindowDialog::OptionMessageWindowDialog(MessageFrameWindowManager* pMessageFrameWindowManager,
+														 Profile* pProfile) :
+	AbstractOptionTextWindowDialog(IDD_OPTIONMESSAGEWINDOW, pProfile, L"MessageWindow"),
+	pMessageFrameWindowManager_(pMessageFrameWindowManager),
+	pProfile_(pProfile)
+{
+}
+
+qm::OptionMessageWindowDialog::~OptionMessageWindowDialog()
+{
+}
+
+LRESULT qm::OptionMessageWindowDialog::onInitDialog(HWND hwndFocus,
+												 LPARAM lParam)
+{
+	return AbstractOptionTextWindowDialog::onInitDialog(hwndFocus, lParam);
+}
+
+bool qm::OptionMessageWindowDialog::save(OptionDialogContext* pContext)
+{
+	if (!AbstractOptionTextWindowDialog::save(pContext))
+		return false;
+	
+	pMessageFrameWindowManager_->reloadProfiles();
+	
+	return true;
+}
+
+
+/****************************************************************************
+ *
+ * OptionPreviewWindowDialog
+ *
+ */
+
+DialogUtil::IntProperty qm::OptionPreviewWindowDialog::intProperties__[] = {
+	{ L"SeenWait",	IDC_SEENWAIT,	0	}
+};
+
+qm::OptionPreviewWindowDialog::OptionPreviewWindowDialog(MessageWindow* pPreviewWindow,
+														 Profile* pProfile) :
+	AbstractOptionTextWindowDialog(IDD_OPTIONPREVIEWWINDOW, pProfile, L"PreviewWindow"),
+	pPreviewWindow_(pPreviewWindow),
+	pProfile_(pProfile)
+{
+}
+
+qm::OptionPreviewWindowDialog::~OptionPreviewWindowDialog()
+{
+}
+
+LRESULT qm::OptionPreviewWindowDialog::onInitDialog(HWND hwndFocus,
+												   LPARAM lParam)
+{
+	DialogUtil::loadIntProperties(this, pProfile_,
+		L"PreviewWindow", intProperties__, countof(intProperties__));
+	
+	return AbstractOptionTextWindowDialog::onInitDialog(hwndFocus, lParam);
+}
+
+bool qm::OptionPreviewWindowDialog::save(OptionDialogContext* pContext)
+{
+	if (!AbstractOptionTextWindowDialog::save(pContext))
+		return false;
+	
+	DialogUtil::saveIntProperties(this, pProfile_,
+		L"PreviewWindow", intProperties__, countof(intProperties__));
+	
+	pPreviewWindow_->reloadProfiles();
+	
+	return true;
 }
 
 

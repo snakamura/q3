@@ -35,13 +35,14 @@ class OptionDialogPanel;
 class OptionDialogContext;
 class OptionDialogManager;
 class OptionAddressBookDialog;
-class OptionEditWindowDialog;
 class OptionFolderComboBoxDialog;
 class OptionFolderWindowDialog;
 class OptionHeaderWindowDialog;
 class OptionListWindowDialog;
-class OptionMessageWindowDialog;
-class OptionPreviewWindowDialog;
+class AbstractOptionTextWindowDialog;
+	class OptionEditWindowDialog;
+	class OptionMessageWindowDialog;
+	class OptionPreviewWindowDialog;
 #ifdef QMTABWINDOW
 class OptionTabWindowDialog;
 #endif
@@ -421,48 +422,6 @@ private:
 
 /****************************************************************************
  *
- * OptionEditWindowDialog
- *
- */
-
-class OptionEditWindowDialog :
-	public DefaultDialog,
-	public AbstractOptionDialogPanel<OptionEditWindowDialog>
-{
-public:
-	OptionEditWindowDialog(EditFrameWindowManager* pEditFrameWindowManager,
-						   qs::Profile* pProfile);
-	virtual ~OptionEditWindowDialog();
-
-public:
-	virtual LRESULT onCommand(WORD nCode,
-							  WORD nId);
-
-protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus,
-								 LPARAM lParam);
-
-public:
-	virtual bool save(OptionDialogContext* pContext);
-
-private:
-	LRESULT onFont();
-	LRESULT onHeaderFont();
-
-private:
-	OptionEditWindowDialog(const OptionEditWindowDialog&);
-	OptionEditWindowDialog& operator=(const OptionEditWindowDialog&);
-
-private:
-	EditFrameWindowManager* pEditFrameWindowManager_;
-	qs::Profile* pProfile_;
-	LOGFONT lf_;
-	LOGFONT lfHeader_;
-};
-
-
-/****************************************************************************
- *
  * OptionFolderComboBoxDialog
  *
  */
@@ -636,18 +595,68 @@ private:
 
 /****************************************************************************
  *
- * OptionMessageWindowDialog
+ * AbstractOptionTextWindowDialog
  *
  */
 
-class OptionMessageWindowDialog :
+class AbstractOptionTextWindowDialog :
 	public DefaultDialog,
-	public AbstractOptionDialogPanel<OptionMessageWindowDialog>
+	public AbstractOptionDialogPanel<AbstractOptionTextWindowDialog>
 {
 public:
-	OptionMessageWindowDialog(MessageFrameWindowManager* pMessageFrameWindowManager,
-							  qs::Profile* pProfile);
-	virtual ~OptionMessageWindowDialog();
+	AbstractOptionTextWindowDialog(UINT nId,
+								   qs::Profile* pProfile,
+								   const WCHAR* pwszSection);
+	virtual ~AbstractOptionTextWindowDialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+public:
+	virtual bool save(OptionDialogContext* pContext) = 0;
+
+protected:
+	virtual void updateState();
+
+private:
+	LRESULT onColors();
+	LRESULT onFont();
+	LRESULT onWrapChange(UINT nId);
+
+private:
+	AbstractOptionTextWindowDialog(const AbstractOptionTextWindowDialog&);
+	AbstractOptionTextWindowDialog& operator=(const AbstractOptionTextWindowDialog&);
+
+private:
+	qs::Profile* pProfile_;
+	const WCHAR* pwszSection_;
+	LOGFONT lf_;
+
+private:
+	static DialogUtil::BoolProperty boolProperties__[];
+	static DialogUtil::IntProperty intProperties__[];
+};
+
+
+/****************************************************************************
+ *
+ * OptionEditWindowDialog
+ *
+ */
+
+class OptionEditWindowDialog :
+	public DefaultDialog,
+	public AbstractOptionDialogPanel<OptionEditWindowDialog>
+{
+public:
+	OptionEditWindowDialog(EditFrameWindowManager* pEditFrameWindowManager,
+						   qs::Profile* pProfile);
+	virtual ~OptionEditWindowDialog();
 
 public:
 	virtual LRESULT onCommand(WORD nCode,
@@ -662,6 +671,39 @@ public:
 
 private:
 	LRESULT onFont();
+	LRESULT onHeaderFont();
+
+private:
+	OptionEditWindowDialog(const OptionEditWindowDialog&);
+	OptionEditWindowDialog& operator=(const OptionEditWindowDialog&);
+
+private:
+	EditFrameWindowManager* pEditFrameWindowManager_;
+	qs::Profile* pProfile_;
+	LOGFONT lf_;
+	LOGFONT lfHeader_;
+};
+
+
+/****************************************************************************
+ *
+ * OptionMessageWindowDialog
+ *
+ */
+
+class OptionMessageWindowDialog : public AbstractOptionTextWindowDialog
+{
+public:
+	OptionMessageWindowDialog(MessageFrameWindowManager* pMessageFrameWindowManager,
+							  qs::Profile* pProfile);
+	virtual ~OptionMessageWindowDialog();
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+public:
+	virtual bool save(OptionDialogContext* pContext);
 
 private:
 	OptionMessageWindowDialog(const OptionMessageWindowDialog&);
@@ -670,7 +712,6 @@ private:
 private:
 	MessageFrameWindowManager* pMessageFrameWindowManager_;
 	qs::Profile* pProfile_;
-	LOGFONT lf_;
 };
 
 
@@ -680,18 +721,12 @@ private:
  *
  */
 
-class OptionPreviewWindowDialog :
-	public DefaultDialog,
-	public AbstractOptionDialogPanel<OptionPreviewWindowDialog>
+class OptionPreviewWindowDialog : public AbstractOptionTextWindowDialog
 {
 public:
 	OptionPreviewWindowDialog(MessageWindow* pPreviewWindow,
 							  qs::Profile* pProfile);
 	virtual ~OptionPreviewWindowDialog();
-
-public:
-	virtual LRESULT onCommand(WORD nCode,
-							  WORD nId);
 
 protected:
 	virtual LRESULT onInitDialog(HWND hwndFocus,
@@ -701,24 +736,14 @@ public:
 	virtual bool save(OptionDialogContext* pContext);
 
 private:
-	LRESULT onColors();
-	LRESULT onFont();
-	LRESULT onWrapChange(UINT nId);
-
-private:
-	void updateState();
-
-private:
 	OptionPreviewWindowDialog(const OptionPreviewWindowDialog&);
 	OptionPreviewWindowDialog& operator=(const OptionPreviewWindowDialog&);
 
 private:
 	MessageWindow* pPreviewWindow_;
 	qs::Profile* pProfile_;
-	LOGFONT lf_;
 
 private:
-	static DialogUtil::BoolProperty boolProperties__[];
 	static DialogUtil::IntProperty intProperties__[];
 };
 
