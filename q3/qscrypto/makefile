@@ -12,9 +12,9 @@ LIBRARIES		= qs
 
 EXTERNALINCS	= -I"$(OPENSSLDIR)/include" -I"$(WCECOMPATDIR)/include"
 ifeq ($(PLATFORM),win)
-	EXTERNALLIBS= "$(OPENSSLDIR)/lib/win/libeay32.lib" "$(OPENSSLDIR)/lib/win/ssleay32.lib"
+	EXTERNALLIBS= "$(OPENSSLDIR)/lib/win/libeay32$(DSUFFIX).lib" "$(OPENSSLDIR)/lib/win/ssleay32$(DSUFFIX).lib"
 else
-	EXTERNALLIBS= "$(OPENSSLDIR)/lib/wce/$(EXLIBCPU)/libeay32.lib" "$(OPENSSLDIR)/lib/wce/$(EXLIBCPU)/ssleay32.lib"
+	EXTERNALLIBS= "$(OPENSSLDIR)/lib/wce/$(EXLIBCPU)/libeay32$(DSUFFIX).lib" "$(OPENSSLDIR)/lib/wce/$(EXLIBCPU)/ssleay32$(DSUFFIX).lib"
 endif
 
 OBJS			= $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.obj, $(wildcard $(SRCDIR)/*.cpp))
