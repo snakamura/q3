@@ -207,7 +207,9 @@ public:
 	static HWND getForegroundWindow();
 	bool setForegroundWindow();
 	
+#ifndef _WIN32_WCE
 	bool flashWindow(bool bInvert);
+#endif
 	
 	bool invalidate();
 	bool invalidate(bool bErase);

@@ -217,7 +217,9 @@ void qm::SyncDialog::addError(const WCHAR* pwszError)
 			showWindow(SW_SHOWNA);
 			setWindowPos(HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 		}
+#ifndef _WIN32_WCE
 		flashWindow(false);
+#endif
 	}
 }
 

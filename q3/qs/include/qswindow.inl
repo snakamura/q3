@@ -293,11 +293,13 @@ inline bool qs::Window::setForegroundWindow()
 	return ::SetForegroundWindow(hwnd_) != 0;
 }
 
+#ifndef _WIN32_WCE
 inline bool qs::Window::flashWindow(bool bInvert)
 {
 	assert(hwnd_);
 	return ::FlashWindow(hwnd_, bInvert) != 0;
 }
+#endif
 
 inline bool qs::Window::invalidate()
 {
