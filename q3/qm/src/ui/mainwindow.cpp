@@ -1891,7 +1891,8 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pStatusBar_ = pStatusBar.release();
 	
 	std::auto_ptr<SyncNotificationWindow> pSyncNotificationWindow;
-	status = newQsObject(pImpl_->pSyncManager_, &pSyncNotificationWindow);
+	status = newQsObject(pImpl_->pSyncManager_,
+		pImpl_->pSyncDialogManager_, &pSyncNotificationWindow);
 	CHECK_QSTATUS_VALUE(-1);
 	status = pSyncNotificationWindow->create(L"QmSyncNotificationWindow",
 		0, dwStyle & ~WS_VISIBLE, 0, 0, SyncNotificationWindow::WIDTH,
@@ -2162,11 +2163,12 @@ QSTATUS qm::ListContainerWindow::folderSelected(const FolderModelEvent& event)
  *
  */
 
-qm::SyncNotificationWindow::SyncNotificationWindow(
-	SyncManager* pSyncManager, QSTATUS* pstatus) :
+qm::SyncNotificationWindow::SyncNotificationWindow(SyncManager* pSyncManager,
+	SyncDialogManager* pSyncDialogManager, QSTATUS* pstatus) :
 	WindowBase(true, pstatus),
 	DefaultWindowHandler(pstatus),
 	pSyncManager_(pSyncManager),
+	pSyncDialogManager_(pSyncDialogManager),
 	hbm_(0)
 {
 	setWindowHandler(this, false);
@@ -2193,6 +2195,7 @@ LRESULT qm::SyncNotificationWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM 
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_CREATE()
 		HANDLE_DESTROY()
+		HANDLE_LBUTTONDOWN()
 		HANDLE_PAINT()
 		HANDLE_MESSAGE(WM_SYNCNOTIFICATION_STATUSCHANGED, onStatusChanged)
 	END_MESSAGE_HANDLER()
@@ -2221,6 +2224,18 @@ LRESULT qm::SyncNotificationWindow::onDestroy()
 	::DeleteObject(hbm_);
 	pSyncManager_->removeSyncManagerHandler(this);
 	return DefaultWindowHandler::onDestroy();
+}
+
+LRESULT qm::SyncNotificationWindow::onLButtonDown(UINT nFlags, const POINT& pt)
+{
+	DECLARE_QSTATUS();
+	
+	SyncDialog* pDialog = 0;
+	status = pSyncDialogManager_->open(&pDialog);
+	if (status == QSTATUS_SUCCESS)
+		pDialog->show();
+	
+	return DefaultWindowHandler::onLButtonDown(nFlags, pt);
 }
 
 LRESULT qm::SyncNotificationWindow::onPaint()

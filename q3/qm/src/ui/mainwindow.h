@@ -92,7 +92,8 @@ public:
 	};
 
 public:
-	SyncNotificationWindow(SyncManager* pSyncManager, qs::QSTATUS* pstatus);
+	SyncNotificationWindow(SyncManager* pSyncManager,
+		SyncDialogManager* pSyncDialogManager, qs::QSTATUS* pstatus);
 	virtual ~SyncNotificationWindow();
 
 public:
@@ -102,6 +103,7 @@ public:
 protected:
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
 	LRESULT onDestroy();
+	LRESULT onLButtonDown(UINT nFlags, const POINT& pt);
 	LRESULT onPaint();
 	LRESULT onStatusChanged(WPARAM wParam, LPARAM lParam);
 
@@ -114,6 +116,7 @@ private:
 
 private:
 	SyncManager* pSyncManager_;
+	SyncDialogManager* pSyncDialogManager_;
 	HBITMAP hbm_;
 };
 
