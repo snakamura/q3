@@ -33,8 +33,9 @@ class OptionDialogPanel;
 	template<class Dialog> class AbstractOptionDialogPanel;
 class OptionDialogContext;
 class OptionDialogManager;
-class OptionFolderWindowDialog;
 class OptionFolderComboBoxDialog;
+class OptionFolderWindowDialog;
+class OptionListWindowDialog;
 template<class T, class List, class Manager, class EditDialog> class RuleColorSetsDialog;
 template<class T, class List, class Container, class EditDialog> class RulesColorsDialog;
 class ColorSetsDialog;
@@ -65,6 +66,7 @@ class LayoutUtil;
 class Document;
 class FolderComboBox;
 class FolderWindow;
+class ListWindow;
 class MainWindow;
 
 
@@ -84,6 +86,7 @@ public:
 		
 		PANEL_FOLDERWINDOW,
 		PANEL_FOLDERCOMBOBOX,
+		PANEL_LISTWINDOW,
 		PANEL_RULES,
 		PANEL_COLORS,
 		PANEL_GOROUND,
@@ -106,6 +109,7 @@ public:
 				 MainWindow* pMainWindow,
 				 FolderWindow* pFolderWindow,
 				 FolderComboBox* pFolderComboBox,
+				 ListWindow* pListWindow,
 				 qs::Profile* pProfile,
 				 Panel panel);
 	~OptionDialog();
@@ -181,6 +185,7 @@ private:
 	MainWindow* pMainWindow_;
 	FolderWindow* pFolderWindow_;
 	FolderComboBox* pFolderComboBox_;
+	ListWindow* pListWindow_;
 	qs::Profile* pProfile_;
 	Panel panel_;
 	PanelList listPanel_;
@@ -277,7 +282,8 @@ public:
 public:
 	void initUIs(MainWindow* pMainWindow,
 				 FolderWindow* pFolderWindow,
-				 FolderComboBox* pFolderComboBox);
+				 FolderComboBox* pFolderComboBox,
+				 ListWindow* pListWindow);
 	int showDialog(HWND hwndParent,
 				   OptionDialog::Panel panel) const;
 	bool canShowDialog() const;
@@ -297,6 +303,47 @@ private:
 	MainWindow* pMainWindow_;
 	FolderWindow* pFolderWindow_;
 	FolderComboBox* pFolderComboBox_;
+	ListWindow* pListWindow_;
+};
+
+
+/****************************************************************************
+ *
+ * OptionFolderComboBoxDialog
+ *
+ */
+
+class OptionFolderComboBoxDialog :
+	public DefaultDialog,
+	public AbstractOptionDialogPanel<OptionFolderComboBoxDialog>
+{
+public:
+	OptionFolderComboBoxDialog(FolderComboBox* pFolderComboBox,
+							   qs::Profile* pProfile);
+	virtual ~OptionFolderComboBoxDialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+public:
+	virtual bool save(OptionDialogContext* pContext);
+
+private:
+	LRESULT onFont();
+
+private:
+	OptionFolderComboBoxDialog(const OptionFolderComboBoxDialog&);
+	OptionFolderComboBoxDialog& operator=(const OptionFolderComboBoxDialog&);
+
+private:
+	FolderComboBox* pFolderComboBox_;
+	qs::Profile* pProfile_;
+	LOGFONT lf_;
 };
 
 
@@ -342,18 +389,18 @@ private:
 
 /****************************************************************************
  *
- * OptionFolderComboBoxDialog
+ * OptionListWindowDialog
  *
  */
 
-class OptionFolderComboBoxDialog :
+class OptionListWindowDialog :
 	public DefaultDialog,
-	public AbstractOptionDialogPanel<OptionFolderComboBoxDialog>
+	public AbstractOptionDialogPanel<OptionListWindowDialog>
 {
 public:
-	OptionFolderComboBoxDialog(FolderComboBox* pFolderComboBox,
-							   qs::Profile* pProfile);
-	virtual ~OptionFolderComboBoxDialog();
+	OptionListWindowDialog(ListWindow* pListWindow,
+						   qs::Profile* pProfile);
+	virtual ~OptionListWindowDialog();
 
 public:
 	virtual LRESULT onCommand(WORD nCode,
@@ -370,11 +417,11 @@ private:
 	LRESULT onFont();
 
 private:
-	OptionFolderComboBoxDialog(const OptionFolderComboBoxDialog&);
-	OptionFolderComboBoxDialog& operator=(const OptionFolderComboBoxDialog&);
+	OptionListWindowDialog(const OptionListWindowDialog&);
+	OptionListWindowDialog& operator=(const OptionListWindowDialog&);
 
 private:
-	FolderComboBox* pFolderComboBox_;
+	ListWindow* pListWindow_;
 	qs::Profile* pProfile_;
 	LOGFONT lf_;
 };

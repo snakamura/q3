@@ -85,6 +85,8 @@ public:
 	void scrollHorizontal(int nPos);
 	void updateScrollBar(bool bVertical);
 	unsigned int getLineFromPoint(const POINT& pt) const;
+	void reloadProfiles(bool bInitialize);
+	void updateLineHeight();
 
 public:
 	virtual void viewModelSelected(const ViewModelManagerEvent& event);
@@ -173,13 +175,10 @@ void qm::ListWindowImpl::layoutChildren()
 void qm::ListWindowImpl::layoutChildren(int cx,
 										int cy)
 {
-	if (pHeaderColumn_) {
-		RECT rect;
-		pHeaderColumn_->getWindowRect(&rect);
+	if (pHeaderColumn_)
 		pHeaderColumn_->setWindowPos(0, 0, 0,
 			cx + pThis_->getScrollPos(SB_HORZ),
-			rect.bottom - rect.top, SWP_NOMOVE | SWP_NOZORDER);
-	}
+			pHeaderColumn_->getPreferredHeight(), SWP_NOMOVE | SWP_NOZORDER);
 	updateScrollBar(true);
 	updateScrollBar(false);
 	pThis_->invalidate();
@@ -533,6 +532,39 @@ unsigned int qm::ListWindowImpl::getLineFromPoint(const POINT& pt) const
 	return nLine < pViewModel->getCount() ? nLine : static_cast<unsigned int>(-1);
 }
 
+void qm::ListWindowImpl::reloadProfiles(bool bInitialize)
+{
+#ifdef _WIN32_WCE_PSPC
+	bool bSingleClickOpen = true;
+#else
+	bool bSingleClickOpen = false;
+#endif
+	bSingleClickOpen_ = pProfile_->getInt(L"ListWindow", L"SingleClickOpen", bSingleClickOpen) != 0;
+	
+	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_, L"ListWindow", false);
+	if (!bInitialize) {
+		assert(hfont_);
+		pHeaderColumn_->setFont(hfont);
+		::DeleteObject(hfont_);
+	}
+	hfont_ = hfont;
+	if (!bInitialize) {
+		updateLineHeight();
+		layoutChildren();
+		pHeaderColumn_->invalidate();
+	}
+}
+
+void qm::ListWindowImpl::updateLineHeight()
+{
+	ClientDeviceContext dc(pThis_->getHandle());
+	ObjectSelector<HFONT> selector(dc, hfont_);
+	TEXTMETRIC tm;
+	dc.getTextMetrics(&tm);
+	nLineHeight_ = tm.tmHeight +
+		tm.tmExternalLeading + ListWindowImpl::LINE_SPACING;
+}
+
 void qm::ListWindowImpl::viewModelSelected(const ViewModelManagerEvent& event)
 {
 	ViewModel* pOldViewModel = event.getOldViewModel();
@@ -883,12 +915,6 @@ qm::ListWindow::ListWindow(ViewModelManager* pViewModelManager,
 	WindowBase(true),
 	pImpl_(0)
 {
-#ifdef _WIN32_WCE_PSPC
-	bool bSingleClickOpen = true;
-#else
-	bool bSingleClickOpen = false;
-#endif
-	
 	pImpl_ = new ListWindowImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->pProfile_ = pProfile;
@@ -898,13 +924,15 @@ qm::ListWindow::ListWindow(ViewModelManager* pViewModelManager,
 	pImpl_->pViewModelManager_ = pViewModelManager;
 	pImpl_->hfont_ = 0;
 	pImpl_->nLineHeight_ = 0;
-	pImpl_->bSingleClickOpen_ = pProfile->getInt(L"ListWindow", L"SingleClickOpen", bSingleClickOpen) != 0;
+	pImpl_->bSingleClickOpen_ = false;
 	pImpl_->pHeaderColumn_ = 0;
 	pImpl_->hImageList_ = 0;
 	pImpl_->hImageListData_ = 0;
 	pImpl_->hpenThreadLine_ = 0;
 	pImpl_->hpenFocusedThreadLine_ = 0;
 	pImpl_->bCanDrop_ = false;
+	
+	pImpl_->reloadProfiles(true);
 	
 	pImpl_->pViewModelManager_->addViewModelManagerHandler(pImpl_);
 	
@@ -1032,6 +1060,11 @@ void qm::ListWindow::setShowHeaderColumn(bool bShow)
 	}
 }
 
+void qm::ListWindow::reloadProfiles()
+{
+	pImpl_->reloadProfiles(false);
+}
+
 bool qm::ListWindow::save()
 {
 	return pImpl_->pHeaderColumn_->save();
@@ -1115,15 +1148,7 @@ LRESULT qm::ListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
 	
-	pImpl_->hfont_ = UIUtil::createFontFromProfile(
-		pImpl_->pProfile_, L"ListWindow", false);
-	
-	ClientDeviceContext dc(getHandle());
-	ObjectSelector<HFONT> selector(dc, pImpl_->hfont_);
-	TEXTMETRIC tm;
-	dc.getTextMetrics(&tm);
-	pImpl_->nLineHeight_ = tm.tmHeight +
-		tm.tmExternalLeading + ListWindowImpl::LINE_SPACING;
+	pImpl_->updateLineHeight();
 	
 	if (!pImpl_->createHeaderColumn())
 		return -1;
@@ -1771,6 +1796,15 @@ int qm::ListHeaderColumn::getHeight() const
 	}
 }
 
+int qm::ListHeaderColumn::getPreferredHeight() const
+{
+	ClientDeviceContext dc(getHandle());
+	ObjectSelector<HFONT> selector(dc, pImpl_->pListWindow_->getFont());
+	TEXTMETRIC tm;
+	dc.getTextMetrics(&tm);
+	return tm.tmHeight + tm.tmExternalLeading + 8;
+}
+
 void qm::ListHeaderColumn::setViewModel(ViewModel* pViewModel)
 {
 	for (int n = Header_GetItemCount(getHandle()) - 1; n >= 0; --n)
@@ -1839,13 +1873,7 @@ wstring_ptr qm::ListHeaderColumn::getSuperClass()
 
 bool qm::ListHeaderColumn::preCreateWindow(CREATESTRUCT* pCreateStruct)
 {
-	ClientDeviceContext dc(0);
-	ObjectSelector<HFONT> selector(dc, pImpl_->pListWindow_->getFont());
-	TEXTMETRIC tm;
-	dc.getTextMetrics(&tm);
-	pCreateStruct->cy = tm.tmHeight + tm.tmExternalLeading + 8;
 	pCreateStruct->style |= HDS_FULLDRAG | HDS_BUTTONS | HDS_HORZ;
-	
 	return DefaultWindowHandler::preCreateWindow(pCreateStruct);
 }
 

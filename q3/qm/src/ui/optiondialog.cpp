@@ -9,6 +9,7 @@
 #include <qmdocument.h>
 #include <qmfoldercombobox.h>
 #include <qmfolderwindow.h>
+#include <qmlistwindow.h>
 #include <qmmainwindow.h>
 
 #include <qsras.h>
@@ -43,6 +44,7 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 							   MainWindow* pMainWindow,
 							   FolderWindow* pFolderWindow,
 							   FolderComboBox* pFolderComboBox,
+							   ListWindow* pListWindow,
 							   Profile* pProfile,
 							   Panel panel) :
 	DefaultDialog(IDD_OPTION),
@@ -55,6 +57,7 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 	pMainWindow_(pMainWindow),
 	pFolderWindow_(pFolderWindow),
 	pFolderComboBox_(pFolderComboBox),
+	pListWindow_(pListWindow),
 	pProfile_(pProfile),
 	panel_(panel),
 	pCurrentPanel_(0),
@@ -147,6 +150,7 @@ LRESULT qm::OptionDialog::onInitDialog(HWND hwndFocus,
 	} items[] = {
 		{ PANEL_FOLDERWINDOW,	IDS_PANEL_FOLDERWINDOW		},
 		{ PANEL_FOLDERCOMBOBOX,	IDS_PANEL_FOLDERCOMBOBOX	},
+		{ PANEL_LISTWINDOW,		IDS_PANEL_LISTWINDOW		},
 		{ PANEL_RULES,			IDS_PANEL_RULES				},
 		{ PANEL_COLORS,			IDS_PANEL_COLORS			},
 		{ PANEL_GOROUND,		IDS_PANEL_GOROUND			},
@@ -384,6 +388,7 @@ void qm::OptionDialog::setCurrentPanel(Panel panel)
 		BEGIN_PANEL()
 			PANEL2(PANEL_FOLDERWINDOW, OptionFolderWindow, pFolderWindow_, pProfile_);
 			PANEL2(PANEL_FOLDERCOMBOBOX, OptionFolderComboBox, pFolderComboBox_, pProfile_);
+			PANEL2(PANEL_LISTWINDOW, OptionListWindow, pListWindow_, pProfile_);
 			PANEL3(PANEL_RULES, RuleSets, pDocument_->getRuleManager(), pDocument_, pProfile_);
 			PANEL3(PANEL_COLORS, ColorSets, pColorManager_, pDocument_, pProfile_);
 			PANEL4(PANEL_GOROUND, GoRound, pGoRound_, pDocument_, pSyncFilterManager_, pProfile_);
@@ -696,7 +701,8 @@ qm::OptionDialogManager::OptionDialogManager(Document* pDocument,
 	pProfile_(pProfile),
 	pMainWindow_(0),
 	pFolderWindow_(0),
-	pFolderComboBox_(0)
+	pFolderComboBox_(0),
+	pListWindow_(0)
 {
 }
 
@@ -706,11 +712,13 @@ qm::OptionDialogManager::~OptionDialogManager()
 
 void qm::OptionDialogManager::initUIs(MainWindow* pMainWindow,
 									  FolderWindow* pFolderWindow,
-									  FolderComboBox* pFolderComboBox)
+									  FolderComboBox* pFolderComboBox,
+									  ListWindow* pListWindow)
 {
 	pMainWindow_ = pMainWindow;
 	pFolderWindow_ = pFolderWindow;
 	pFolderComboBox_ = pFolderComboBox;
+	pListWindow_ = pListWindow;
 }
 
 int qm::OptionDialogManager::showDialog(HWND hwndParent,
@@ -726,17 +734,89 @@ int qm::OptionDialogManager::showDialog(HWND hwndParent,
 	assert(pMainWindow_);
 	assert(pFolderWindow_);
 	assert(pFolderComboBox_);
+	assert(pListWindow_);
 	
 	OptionDialog dialog(pDocument_, pGoRound_, pFilterManager_,
 		pColorManager_, pSyncManager_->getSyncFilterManager(),
 		pAutoPilotManager_, pMainWindow_, pFolderWindow_,
-		pFolderComboBox_, pProfile_, panel);
+		pFolderComboBox_, pListWindow_, pProfile_, panel);
 	return dialog.doModal(hwndParent);
 }
 
 bool qm::OptionDialogManager::canShowDialog() const
 {
 	return !pSyncManager_->isSyncing();
+}
+
+
+/****************************************************************************
+ *
+ * OptionFolderComboBoxDialog
+ *
+ */
+
+namespace {
+struct {
+	const WCHAR* pwszKey_;
+	UINT nId_;
+} folderComboBoxFlags[] = {
+	{ L"ShowAllCount",		IDC_SHOWALL		},
+	{ L"ShowUnseenCount",	IDC_SHOWUNSEEN	}
+};
+}
+
+qm::OptionFolderComboBoxDialog::OptionFolderComboBoxDialog(FolderComboBox* pFolderComboBox,
+														   Profile* pProfile) :
+	DefaultDialog(IDD_OPTIONFOLDERCOMBOBOX),
+	pFolderComboBox_(pFolderComboBox),
+	pProfile_(pProfile)
+{
+	UIUtil::getLogFontFromProfile(pProfile_, L"FolderComboBox", false, &lf_);
+}
+
+qm::OptionFolderComboBoxDialog::~OptionFolderComboBoxDialog()
+{
+}
+
+LRESULT qm::OptionFolderComboBoxDialog::onCommand(WORD nCode,
+												  WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_FONT, onFont)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::OptionFolderComboBoxDialog::onInitDialog(HWND hwndFocus,
+													 LPARAM lParam)
+{
+	for (int n = 0; n < countof(folderComboBoxFlags); ++n) {
+		bool bShow = pProfile_->getInt(L"FolderComboBox", folderComboBoxFlags[n].pwszKey_, 1) != 0;
+		sendDlgItemMessage(folderComboBoxFlags[n].nId_, BM_SETCHECK, bShow ? BST_CHECKED : BST_UNCHECKED);
+	}
+	
+	return FALSE;
+}
+
+bool qm::OptionFolderComboBoxDialog::save(OptionDialogContext* pContext)
+{
+	for (int n = 0; n < countof(folderComboBoxFlags); ++n) {
+		bool bShow = sendDlgItemMessage(folderComboBoxFlags[n].nId_, BM_GETCHECK) == BST_CHECKED;
+		pProfile_->setInt(L"FolderComboBox", folderComboBoxFlags[n].pwszKey_, bShow);
+	}
+	UIUtil::setLogFontToProfile(pProfile_, L"FolderComboBox", lf_);
+	
+	pFolderComboBox_->reloadProfiles();
+	
+	pContext->setFlags(OptionDialogContext::FLAG_LAYOUTMAINWINDOW);
+	
+	return true;
+}
+
+LRESULT qm::OptionFolderComboBoxDialog::onFont()
+{
+	UIUtil::browseFont(getParentPopup(), &lf_);
+	return 0;
 }
 
 
@@ -813,7 +893,7 @@ LRESULT qm::OptionFolderWindowDialog::onFont()
 
 /****************************************************************************
  *
- * OptionFolderComboBoxDialog
+ * OptionListWindowDialog
  *
  */
 
@@ -821,27 +901,26 @@ namespace {
 struct {
 	const WCHAR* pwszKey_;
 	UINT nId_;
-} folderComboBoxFlags[] = {
-	{ L"ShowAllCount",		IDC_SHOWALL		},
-	{ L"ShowUnseenCount",	IDC_SHOWUNSEEN	}
+} listWindowFlags[] = {
+	{ L"SingleClickOpen",	IDC_SINGLECLICK	}
 };
 }
 
-qm::OptionFolderComboBoxDialog::OptionFolderComboBoxDialog(FolderComboBox* pFolderComboBox,
-														   Profile* pProfile) :
-	DefaultDialog(IDD_OPTIONFOLDERCOMBOBOX),
-	pFolderComboBox_(pFolderComboBox),
+qm::OptionListWindowDialog::OptionListWindowDialog(ListWindow* pListWindow,
+												   Profile* pProfile) :
+	DefaultDialog(IDD_OPTIONLISTWINDOW),
+	pListWindow_(pListWindow),
 	pProfile_(pProfile)
 {
-	UIUtil::getLogFontFromProfile(pProfile_, L"FolderComboBox", false, &lf_);
+	UIUtil::getLogFontFromProfile(pProfile_, L"ListWindow", false, &lf_);
 }
 
-qm::OptionFolderComboBoxDialog::~OptionFolderComboBoxDialog()
+qm::OptionListWindowDialog::~OptionListWindowDialog()
 {
 }
 
-LRESULT qm::OptionFolderComboBoxDialog::onCommand(WORD nCode,
-												  WORD nId)
+LRESULT qm::OptionListWindowDialog::onCommand(WORD nCode,
+											  WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_FONT, onFont)
@@ -849,33 +928,31 @@ LRESULT qm::OptionFolderComboBoxDialog::onCommand(WORD nCode,
 	return DefaultDialog::onCommand(nCode, nId);
 }
 
-LRESULT qm::OptionFolderComboBoxDialog::onInitDialog(HWND hwndFocus,
-													 LPARAM lParam)
+LRESULT qm::OptionListWindowDialog::onInitDialog(HWND hwndFocus,
+												 LPARAM lParam)
 {
-	for (int n = 0; n < countof(folderComboBoxFlags); ++n) {
-		bool bShow = pProfile_->getInt(L"FolderComboBox", folderComboBoxFlags[n].pwszKey_, 1) != 0;
-		sendDlgItemMessage(folderComboBoxFlags[n].nId_, BM_SETCHECK, bShow ? BST_CHECKED : BST_UNCHECKED);
+	for (int n = 0; n < countof(listWindowFlags); ++n) {
+		bool bShow = pProfile_->getInt(L"ListWindow", listWindowFlags[n].pwszKey_, 1) != 0;
+		sendDlgItemMessage(listWindowFlags[n].nId_, BM_SETCHECK, bShow ? BST_CHECKED : BST_UNCHECKED);
 	}
 	
 	return FALSE;
 }
 
-bool qm::OptionFolderComboBoxDialog::save(OptionDialogContext* pContext)
+bool qm::OptionListWindowDialog::save(OptionDialogContext* pContext)
 {
-	for (int n = 0; n < countof(folderComboBoxFlags); ++n) {
-		bool bShow = sendDlgItemMessage(folderComboBoxFlags[n].nId_, BM_GETCHECK) == BST_CHECKED;
-		pProfile_->setInt(L"FolderComboBox", folderComboBoxFlags[n].pwszKey_, bShow);
+	for (int n = 0; n < countof(listWindowFlags); ++n) {
+		bool bShow = sendDlgItemMessage(listWindowFlags[n].nId_, BM_GETCHECK) == BST_CHECKED;
+		pProfile_->setInt(L"ListWindow", listWindowFlags[n].pwszKey_, bShow);
 	}
-	UIUtil::setLogFontToProfile(pProfile_, L"FolderComboBox", lf_);
+	UIUtil::setLogFontToProfile(pProfile_, L"ListWindow", lf_);
 	
-	pFolderComboBox_->reloadProfiles();
-	
-	pContext->setFlags(OptionDialogContext::FLAG_LAYOUTMAINWINDOW);
+	pListWindow_->reloadProfiles();
 	
 	return true;
 }
 
-LRESULT qm::OptionFolderComboBoxDialog::onFont()
+LRESULT qm::OptionListWindowDialog::onFont()
 {
 	UIUtil::browseFont(getParentPopup(), &lf_);
 	return 0;

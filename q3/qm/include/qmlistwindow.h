@@ -67,6 +67,7 @@ public:
 	HFONT getFont() const;
 	bool isShowHeaderColumn() const;
 	void setShowHeaderColumn(bool bShow);
+	void reloadProfiles();
 	bool save();
 
 public:
@@ -149,6 +150,7 @@ public:
 public:
 	int getWidth() const;
 	int getHeight() const;
+	int getPreferredHeight() const;
 
 // These methods are intended to be called from ListWindow class
 public:

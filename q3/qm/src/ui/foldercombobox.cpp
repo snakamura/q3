@@ -229,12 +229,12 @@ void qm::FolderComboBoxImpl::reloadProfiles(bool bInitialize)
 		::DeleteObject(hfont_);
 	}
 	hfont_ = hfont;
-#ifdef _WIN32_WCE
-	if (!bInitialize)
-		updateItemHeight();
-#endif
 	
 	if (!bInitialize) {
+#ifdef _WIN32_WCE
+		updateItemHeight();
+#endif
+		
 		int nIndex = ComboBox_GetCurSel(pThis_->getHandle());
 		updateAccountList(false);
 		ComboBox_SetCurSel(pThis_->getHandle(), nIndex);

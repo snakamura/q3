@@ -1412,6 +1412,15 @@ BEGIN
     PUSHBUTTON      "&Font...",IDC_FONT,5,35,50,12
 END
 
+IDD_OPTIONLISTWINDOW DIALOG DISCARDABLE  0, 0, 205, 100
+STYLE WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&Single click to open message",IDC_SINGLECLICK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,5,105,10
+    PUSHBUTTON      "&Font...",IDC_FONT,5,20,50,12
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2014,6 +2023,7 @@ BEGIN
     IDS_PANEL_GOROUND       "Go Round"
     IDS_PANEL_FOLDERCOMBOBOX "Folder ComboBox"
     IDS_PANEL_FOLDERWINDOW  "Folder Window"
+    IDS_PANEL_LISTWINDOW    "List Window"
     IDS_PANEL_RULES         "Rules"
     IDS_PANEL_SIGNATURES    "Signatures"
     IDS_PANEL_SYNCFILTERS   "Sync Filters"
