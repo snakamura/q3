@@ -234,21 +234,26 @@ public:
 public:
 	bool isRootFolderSpecified() const;
 	const WCHAR* getRootFolder() const;
+	WCHAR getRootFolderSeparator() const;
+	void setRootFolderSeparator(WCHAR c);
 	void getFolderData(const WCHAR* pwszName,
 					   WCHAR cSeparator,
 					   unsigned int nAttributes,
 					   qs::wstring_ptr* pwstrName,
 					   unsigned int* pnFlags) const;
+	void save() const;
 
-public:
-	static void saveSpecialFolders(qm::Account* pAccount);
+private:
+	void saveSpecialFolders() const;
 
 private:
 	FolderUtil(const FolderUtil&);
 	FolderUtil& operator=(const FolderUtil&);
 
 private:
+	qm::Account* pAccount_;
 	qs::wstring_ptr wstrRootFolder_;
+	WCHAR cRootFolderSeparator_;
 	qs::wstring_ptr wstrSpecialFolders_[5];
 };
 

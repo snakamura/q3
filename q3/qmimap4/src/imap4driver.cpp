@@ -97,6 +97,7 @@ std::auto_ptr<NormalFolder> qmimap4::Imap4Driver::createFolder(const WCHAR* pwsz
 	Lock<CriticalSection> lock(cs_);
 	
 	wstring_ptr wstrRootFolder(pAccount_->getProperty(L"Imap4", L"RootFolder", L""));
+	wstring_ptr wstrRootFolderSeparator(pAccount_->getProperty(L"Imap4", L"RootFolderSeparator", L"/"));
 	
 	if (!prepareSessionCache(false))
 		return std::auto_ptr<NormalFolder>(0);
@@ -112,11 +113,11 @@ std::auto_ptr<NormalFolder> qmimap4::Imap4Driver::createFolder(const WCHAR* pwsz
 		wstring_ptr wstrParentName(pParent->getFullName());
 		cSeparator = pParent->getSeparator();
 		ConcatW c[] = {
-			{ wstrRootFolder.get(),	-1	},
-			{ L"/",					1	},
-			{ wstrParentName.get(),	-1	},
-			{ &cSeparator,			1	},
-			{ pwszName,				-1	}
+			{ wstrRootFolder.get(),				-1	},
+			{ wstrRootFolderSeparator.get(),	1	},
+			{ wstrParentName.get(),				-1	},
+			{ &cSeparator,						1	},
+			{ pwszName,							-1	}
 		};
 		bool bChildOfRoot = pParent->isFlag(Folder::FLAG_CHILDOFROOT) &&
 			*wstrRootFolder.get() != L'\0';
@@ -125,9 +126,9 @@ std::auto_ptr<NormalFolder> qmimap4::Imap4Driver::createFolder(const WCHAR* pwsz
 	}
 	else {
 		ConcatW c[] = {
-			{ wstrRootFolder.get(),	-1	},
-			{ L"/",					1	},
-			{ pwszName,				-1	}
+			{ wstrRootFolder.get(),				-1	},
+			{ wstrRootFolderSeparator.get(),	1	},
+			{ pwszName,							-1	}
 		};
 		bool bChildOfRoot = *wstrRootFolder.get() != L'\0';
 		wstrFullName = concat(c + (bChildOfRoot ? 0 : 2),
@@ -301,8 +302,6 @@ bool qmimap4::Imap4Driver::getRemoteFolders(RemoteFolderList* pList)
 	assert(pList);
 	
 	Lock<CriticalSection> lock(cs_);
-	
-	FolderUtil::saveSpecialFolders(pAccount_);
 	
 	FolderListGetter getter(pAccount_, pSubAccount_, pPasswordCallback_, pSecurity_);
 	if (!getter.update())
@@ -1148,9 +1147,16 @@ std::auto_ptr<ProtocolDriver> qmimap4::Imap4Factory::createDriver(Account* pAcco
  *
  */
 
-qmimap4::FolderUtil::FolderUtil(Account* pAccount)
+qmimap4::FolderUtil::FolderUtil(Account* pAccount) :
+	pAccount_(pAccount),
+	cRootFolderSeparator_(L'/')
 {
 	wstrRootFolder_ = pAccount->getProperty(L"Imap4", L"RootFolder", L"");
+	
+	wstring_ptr wstrRootFolderSeparator(pAccount->getProperty(
+		L"Imap4", L"RootFolderSeparator", L"/"));
+	if (*wstrRootFolderSeparator.get())
+		cRootFolderSeparator_ = *wstrRootFolderSeparator.get();
 	
 	struct {
 		const WCHAR* pwszKey_;
@@ -1179,6 +1185,16 @@ bool qmimap4::FolderUtil::isRootFolderSpecified() const
 const WCHAR* qmimap4::FolderUtil::getRootFolder() const
 {
 	return wstrRootFolder_.get();
+}
+
+WCHAR qmimap4::FolderUtil::getRootFolderSeparator() const
+{
+	return cRootFolderSeparator_;
+}
+
+void qmimap4::FolderUtil::setRootFolderSeparator(WCHAR c)
+{
+	cRootFolderSeparator_ = c;
 }
 
 void qmimap4::FolderUtil::getFolderData(const WCHAR* pwszName,
@@ -1240,7 +1256,15 @@ void qmimap4::FolderUtil::getFolderData(const WCHAR* pwszName,
 	*pnFlags = nFlags;
 }
 
-void qmimap4::FolderUtil::saveSpecialFolders(Account* pAccount)
+void qmimap4::FolderUtil::save() const
+{
+	WCHAR wszRootFolderSeparator[] = { cRootFolderSeparator_, L'\0' };
+	pAccount_->setProperty(L"Imap4", L"RootFolderSeparator", wszRootFolderSeparator);
+	
+	saveSpecialFolders();
+}
+
+void qmimap4::FolderUtil::saveSpecialFolders() const
 {
 	struct {
 		Folder::Flag flag_;
@@ -1253,14 +1277,14 @@ void qmimap4::FolderUtil::saveSpecialFolders(Account* pAccount)
 		{ Folder::FLAG_JUNKBOX,		L"JunkFolder"		}
 	};
 	
-	const Account::FolderList& l = pAccount->getFolders();
+	const Account::FolderList& l = pAccount_->getFolders();
 	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		Folder* pFolder = *it;
 		unsigned int nBoxFlags = pFolder->getFlags() & Folder::FLAG_BOX_MASK;
 		for (int n = 0; n < countof(flags); ++n) {
 			if (nBoxFlags & flags[n].flag_) {
 				wstring_ptr wstrName(pFolder->getFullName());
-				pAccount->setProperty(L"Imap4", flags[n].pwszKey_, wstrName.get());
+				pAccount_->setProperty(L"Imap4", flags[n].pwszKey_, wstrName.get());
 			}
 		}
 	}
@@ -1283,6 +1307,7 @@ qmimap4::FolderListGetter::FolderListGetter(Account* pAccount,
 	pSecurity_(pSecurity)
 {
 	pFolderUtil_.reset(new FolderUtil(pAccount_));
+	pFolderUtil_->save();
 }
 
 qmimap4::FolderListGetter::~FolderListGetter()
@@ -1306,6 +1331,8 @@ qmimap4::FolderListGetter::~FolderListGetter()
 			delete (*it).pFolder_;
 		freeWString((*it).wstrFullName_);
 	}
+	
+	pFolderUtil_->save();
 }
 
 bool qmimap4::FolderListGetter::update()
@@ -1353,6 +1380,7 @@ bool qmimap4::FolderListGetter::listNamespaces()
 	}
 	else {
 		if (!pImap4_->list(false, L"", L""))
+
 			return false;
 	}
 	
@@ -1619,13 +1647,16 @@ bool qmimap4::FolderListGetter::CallbackImpl::processNamespace(ResponseNamespace
 bool qmimap4::FolderListGetter::CallbackImpl::processList(ResponseList* pList)
 {
 	if (pListNamespace_) {
-		const WCHAR* pwszRootFolder = pGetter_->pFolderUtil_->getRootFolder();
-		WCHAR wszSeparator[] = { pList->getSeparator(), L'\0' };
+		FolderUtil* pFolderUtil = pGetter_->pFolderUtil_.get();
 		wstring_ptr wstr;
-		if (pwszRootFolder && *pwszRootFolder)
-			wstr = concat(pwszRootFolder, wszSeparator, pList->getMailbox());
-		else
+		if (pFolderUtil->isRootFolderSpecified()) {
+			WCHAR wszSeparator[] = { pList->getSeparator(), L'\0' };
+			wstr = concat(pFolderUtil->getRootFolder(), wszSeparator, pList->getMailbox());
+			pFolderUtil->setRootFolderSeparator(pList->getSeparator());
+		}
+		else {
 			wstr = allocWString(pList->getMailbox());
+		}
 		pListNamespace_->push_back(std::make_pair(wstr.get(), pList->getSeparator()));
 		wstr.release();
 	}
