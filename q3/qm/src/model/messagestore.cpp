@@ -470,9 +470,9 @@ QSTATUS qm::MultiMessageStoreImpl::getOffset(bool bIncrement, unsigned int *pnOf
 		nOffset_ = nOffset;
 	}
 	
-	*pnOffset = nOffset_;
 	if (bIncrement)
 		++nOffset_;
+	*pnOffset = nOffset_;
 	
 	return QSTATUS_SUCCESS;
 }
