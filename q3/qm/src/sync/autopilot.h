@@ -71,6 +71,35 @@ private:
 	AutoPilot(const AutoPilot&);
 	AutoPilot& operator=(const AutoPilot&);
 
+#ifndef _WIN32_WCE
+private:
+	class UnseenCountUpdater
+	{
+	public:
+		UnseenCountUpdater(Document* pDocument,
+						   qs::Profile* pProfile);
+		~UnseenCountUpdater();
+	
+	public:
+		void update();
+	
+	private:
+		bool updateAccount(Account* pAccount);
+	
+	private:
+		UnseenCountUpdater(const UnseenCountUpdater&);
+		UnseenCountUpdater& operator=(const UnseenCountUpdater&);
+	
+	private:
+		typedef HRESULT (STDAPICALLTYPE *PFN_SHSETUNREADMAILCOUNT)(LPCWSTR, DWORD, LPCWSTR);
+	
+	private:
+		Document* pDocument_;
+		PFN_SHSETUNREADMAILCOUNT pfnSHSetUnreadMailCount_;
+		qs::wstring_ptr wstrPath_;
+	};
+#endif
+
 private:
 	AutoPilotManager* pAutoPilotManager_;
 	qs::Profile* pProfile_;
@@ -85,6 +114,9 @@ private:
 	unsigned int nId_;
 	bool bEnabled_;
 	unsigned int nCount_;
+#ifndef _WIN32_WCE
+	UnseenCountUpdater unseenCountUpdater_;
+#endif
 };
 
 

@@ -47,6 +47,10 @@ qm::AutoPilot::AutoPilot(AutoPilotManager* pAutoPilotManager,
 	nId_(0),
 	bEnabled_(false),
 	nCount_(0)
+#ifndef _WIN32_WCE
+	,
+	unseenCountUpdater_(pDocument, pProfile)
+#endif
 {
 	bEnabled_ = pProfile->getInt(L"AutoPilot", L"Enabled", 0) != 0;
 	bOnlyWhenConnected_ = pProfile->getInt(L"AutoPilot", L"OnlyWhenConnected", 0) != 0;
@@ -110,12 +114,77 @@ void qm::AutoPilot::timerTimeout(unsigned int nId)
 		Recents* pRecents = pDocument_->getRecents();
 		pRecents->removeSeens();
 		
+#ifndef _WIN32_WCE
+		unseenCountUpdater_.update();
+#endif
+		
 		++nCount_;
 		if (nCount_ == 100000)
 			nCount_ = 0;
 	}
 }
 
+
+#ifndef _WIN32_WCE
+/****************************************************************************
+ *
+ * AutoPilot::UnseenCountUpdater
+ *
+ */
+
+qm::AutoPilot::UnseenCountUpdater::UnseenCountUpdater(Document* pDocument,
+													  Profile* pProfile) :
+	pDocument_(pDocument),
+	pfnSHSetUnreadMailCount_(0)
+{
+	if (pProfile->getInt(L"Global", L"ShowUnseenCountOnWelcome", 0)) {
+		HINSTANCE hInst = ::LoadLibrary(L"shell32.dll");
+		pfnSHSetUnreadMailCount_ = reinterpret_cast<PFN_SHSETUNREADMAILCOUNT>(
+			::GetProcAddress(hInst, "SHSetUnreadMailCountW"));
+		
+		TCHAR tszPath[MAX_PATH];
+		::GetModuleFileName(0, tszPath, countof(tszPath));
+		wstrPath_ = tcs2wcs(tszPath);
+	}
+}
+
+qm::AutoPilot::UnseenCountUpdater::~UnseenCountUpdater()
+{
+}
+
+void qm::AutoPilot::UnseenCountUpdater::update()
+{
+	if (!pfnSHSetUnreadMailCount_)
+		return;
+	
+	const Document::AccountList& l = pDocument_->getAccounts();
+	std::for_each(l.begin(), l.end(),
+		std::bind1st(
+			std::mem_fun(&UnseenCountUpdater::updateAccount),
+			this));
+}
+
+bool qm::AutoPilot::UnseenCountUpdater::updateAccount(Account* pAccount)
+{
+	if (wcscmp(pAccount->getClass(), L"mail") != 0)
+		return false;
+	
+	SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
+	const WCHAR* pwszAddress = pSubAccount->getSenderAddress();
+	if (!pwszAddress || !*pwszAddress)
+		return false;
+	
+	unsigned int nCount = 0;
+	if (pSubAccount->getProperty(L"Global", L"ShowUnseenCountOnWelcome", 1)) {
+		Folder* pFolder = pAccount->getFolderByFlag(Folder::FLAG_INBOX);
+		if (pFolder)
+			nCount = pFolder->getUnseenCount();
+	}
+	(*pfnSHSetUnreadMailCount_)(pwszAddress, nCount, wstrPath_.get());
+	
+	return true;
+}
+#endif
 
 /****************************************************************************
  *
