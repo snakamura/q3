@@ -200,7 +200,6 @@ const SyncFilter* qm::SyncFilterSet::getFilter(SyncFilterCallback* pCallback) co
 {
 	assert(pCallback);
 	
-	bool bMatch = false;
 	for (SyncFilterSetImpl::FilterList::const_iterator it = pImpl_->listFilter_.begin(); it != pImpl_->listFilter_.end(); ++it) {
 		if ((*it)->match(pCallback))
 			return *it;
