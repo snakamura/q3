@@ -646,7 +646,7 @@ QSTATUS qm::MessageCreator::setField(Part* pPart,
 			CHECK_QSTATUS();
 			if (f != Part::FIELD_EXIST)
 				return QSTATUS_FAIL;
-			status = pPart->setField(pwszName, addressList, true);
+			status = pPart->replaceField(pwszName, addressList);
 			CHECK_QSTATUS();
 		}
 		break;
@@ -671,7 +671,7 @@ QSTATUS qm::MessageCreator::setField(Part* pPart,
 		{
 			SimpleParser contentTransferEncoding(pwszValue, false, &status);
 			CHECK_QSTATUS();
-			status = pPart->setField(pwszName, contentTransferEncoding);
+			status = pPart->replaceField(pwszName, contentTransferEncoding);
 			CHECK_QSTATUS();
 		}
 		break;
