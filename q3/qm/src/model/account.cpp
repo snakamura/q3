@@ -1337,6 +1337,9 @@ QSTATUS qm::Account::updateFolders()
 			CHECK_QSTATUS();
 			itF = pImpl_->listFolder_.erase(itF);
 		}
+		else {
+			++itF;
+		}
 	}
 	
 	FolderListChangedEvent event(this, FolderListChangedEvent::TYPE_ALL, 0);
