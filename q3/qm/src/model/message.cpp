@@ -713,16 +713,44 @@ bool qm::MessageCreator::attachFileOrURI(qs::Part* pPart,
 			std::auto_ptr<URI> pURI(URI::parse(pwszAttachment));
 			if (!pURI.get())
 				return false;
+			
 			MessagePtrLock mpl(pDocument->getMessage(*pURI.get()));
 			if (!mpl)
 				return false;
+			
 			Message msg;
 			unsigned int nFlags = Account::GETMESSAGEFLAG_ALL;
 			if (!bDecryptVerify)
 				nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
 			if (!mpl->getMessage(nFlags, 0, &msg))
 				return false;
-			pChildPart = createRfc822Part(msg);
+			
+			const URIFragment& fragment = pURI->getFragment();
+			const Part* pPart = fragment.getPart(&msg);
+			if (!pPart)
+				return false;
+			switch (fragment.getType()) {
+			case URIFragment::TYPE_NONE:
+				pChildPart = createRfc822Part(*pPart, false);
+				break;
+			case URIFragment::TYPE_MIME:
+				pChildPart = createRfc822Part(*pPart, true);
+				break;
+			case URIFragment::TYPE_BODY:
+				pChildPart = createClonedPart(*pPart);
+				break;
+			case URIFragment::TYPE_HEADER:
+				assert(pPart->getEnclosedPart());
+				pChildPart = createRfc822Part(*pPart->getEnclosedPart(), true);
+				break;
+			case URIFragment::TYPE_TEXT:
+				assert(pPart->getEnclosedPart());
+				pChildPart = createClonedPart(*pPart->getEnclosedPart());
+				break;
+			default:
+				assert(false);
+				break;
+			}
 		}
 		else {
 			pChildPart = createPartFromFile(pwszAttachment);
@@ -795,7 +823,8 @@ std::auto_ptr<Part> qm::MessageCreator::createPartFromFile(const WCHAR* pwszPath
 	return pPart;
 }
 
-std::auto_ptr<Part> qm::MessageCreator::createRfc822Part(const Message& msg)
+std::auto_ptr<Part> qm::MessageCreator::createRfc822Part(const Part& part,
+														 bool bHeaderOnly)
 {
 	std::auto_ptr<Part> pPart(new Part());
 	
@@ -803,10 +832,28 @@ std::auto_ptr<Part> qm::MessageCreator::createRfc822Part(const Message& msg)
 	if (!pPart->setField(L"Content-Type", contentType))
 		return std::auto_ptr<Part>(0);
 	
-	xstring_ptr strContent(msg.getContent());
-	if (!strContent.get())
-		return std::auto_ptr<Part>(0);
-	pPart->setBody(strContent);
+	if (bHeaderOnly) {
+		pPart->setBody(part.getHeader(), -1);
+	}
+	else {
+		xstring_ptr strContent(part.getContent());
+		if (!strContent.get())
+			return std::auto_ptr<Part>(0);
+		pPart->setBody(strContent);
+	}
+	
+	return pPart;
+}
+
+std::auto_ptr<Part> qm::MessageCreator::createClonedPart(const Part& part)
+{
+	std::auto_ptr<Part> pPart(part.clone());
+	if (!pPart.get())
+		return std::auto_ptr<Part>();
+	
+	PrefixFieldFilter filter("content-", true);
+	if (!pPart->removeFields(&filter))
+		return std::auto_ptr<Part>();
 	
 	return pPart;
 }

@@ -152,7 +152,9 @@ public:
 								Document* pDocument,
 								bool bDecryptVerify);
 	static std::auto_ptr<qs::Part> createPartFromFile(const WCHAR* pwszPath);
-	static std::auto_ptr<qs::Part> createRfc822Part(const Message& msg);
+	static std::auto_ptr<qs::Part> createRfc822Part(const qs::Part& part,
+													bool bHeaderOnly);
+	static std::auto_ptr<qs::Part> createClonedPart(const qs::Part& part);
 	static qs::wstring_ptr getContentTypeFromExtension(const WCHAR* pwszExtension);
 
 private:

@@ -56,10 +56,7 @@ qm::URIFragment::URIFragment(Message* pMessage,
 		break;
 	case TYPE_HEADER:
 	case TYPE_TEXT:
-		assert(pPart == pMessage ||
-			(pPart->getContentType() &&
-			wcsicmp(pPart->getContentType()->getMediaType(), L"message") == 0 &&
-			wcsicmp(pPart->getContentType()->getSubType(), L"rfc822") == 0));
+		assert(pPart == pMessage || pPart->getEnclosedPart());
 		break;
 	default:
 		assert(false);
@@ -154,6 +151,25 @@ const Part* qm::URIFragment::getPart(const Message* pMessage) const
 		pPart = pPart->getPart(*it - 1);
 	}
 	
+	switch (type_) {
+	case TYPE_NONE:
+		break;
+	case TYPE_MIME:
+		if (!pPart->getParentPart())
+			return 0;
+		break;
+	case TYPE_BODY:
+		break;
+	case TYPE_HEADER:
+	case TYPE_TEXT:
+		if (pPart != pMessage && !pPart->getEnclosedPart())
+			return 0;
+		break;
+	default:
+		assert(false);
+		break;
+	}
+	
 	return pPart;
 }
 
@@ -233,6 +249,11 @@ unsigned int qm::URI::getValidity() const
 unsigned int qm::URI::getId() const
 {
 	return nId_;
+}
+
+const URIFragment& qm::URI::getFragment() const
+{
+	return fragment_;
 }
 
 wstring_ptr qm::URI::toString() const
@@ -329,20 +350,18 @@ std::auto_ptr<URI> qm::URI::parse(const WCHAR* pwszURI)
 					break;
 				pwszFragment = p + 1;
 			}
-			else if (wcscmp(pwszFragment, L"MIME") == 0) {
-				type = URIFragment::TYPE_MIME;
-			}
-			else if (wcscmp(pwszFragment, L"BODY") == 0) {
-				type = URIFragment::TYPE_BODY;
-			}
-			else if (wcscmp(pwszFragment, L"HEADER") == 0) {
-				type = URIFragment::TYPE_HEADER;
-			}
-			else if (wcscmp(pwszFragment, L"TEXT") == 0) {
-				type = URIFragment::TYPE_TEXT;
-			}
 			else {
-				return pURI;
+				if (wcscmp(pwszFragment, L"MIME") == 0)
+					type = URIFragment::TYPE_MIME;
+				else if (wcscmp(pwszFragment, L"BODY") == 0)
+					type = URIFragment::TYPE_BODY;
+				else if (wcscmp(pwszFragment, L"HEADER") == 0)
+					type = URIFragment::TYPE_HEADER;
+				else if (wcscmp(pwszFragment, L"TEXT") == 0)
+					type = URIFragment::TYPE_TEXT;
+				else
+					return pURI;
+				break;
 			}
 		}
 	}

@@ -99,6 +99,7 @@ public:
 	const WCHAR* getFolder() const;
 	unsigned int getValidity() const;
 	unsigned int getId() const;
+	const URIFragment& getFragment() const;
 	qs::wstring_ptr toString() const;
 
 public:
