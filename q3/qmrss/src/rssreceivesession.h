@@ -58,6 +58,8 @@ public:
 
 private:
 	void clearFeeds();
+	void reportError(UINT nId,
+					 HttpMethod* pMethod);
 
 private:
 	static bool createItemMessage(const Item* pItem,

@@ -132,6 +132,7 @@ public:
 								  const WCHAR* pwszValue) = 0;
 
 public:
+	virtual const CHAR* getResponseLine() const = 0;
 	virtual const CHAR* getResponseHeader() const = 0;
 	virtual qs::malloc_size_ptr<unsigned char> getResponseBody() const = 0;
 	virtual qs::InputStream* getResponseBodyAsStream() const = 0;
@@ -162,6 +163,7 @@ public:
 								  const WCHAR* pwszValue);
 
 public:
+	virtual const CHAR* getResponseLine() const;
 	virtual const CHAR* getResponseHeader() const;
 	virtual qs::malloc_size_ptr<unsigned char> getResponseBody() const;
 	virtual qs::InputStream* getResponseBodyAsStream() const;
@@ -192,6 +194,7 @@ private:
 private:
 	std::auto_ptr<HttpURL> pURL_;
 	HeaderList listRequestHeader_;
+	qs::xstring_ptr strResponseLine_;
 	qs::xstring_ptr strResponseHeader_;
 	std::auto_ptr<HttpConnection> pConnection_;
 };

@@ -15,6 +15,10 @@
 #define IDS_REQUESTRSS                  1004
 #define IDS_PARSERSS                    1005
 #define IDS_PROCESSRSS                  1006
+#define IDS_ERROR_MESSAGE               10000
+#define IDS_ERROR_URL                   11000
+#define IDS_ERROR_GET                   11001
+#define IDS_ERROR_PARSE                 11002
 
 // Next default values for new objects
 // 

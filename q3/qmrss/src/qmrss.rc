@@ -122,6 +122,18 @@ BEGIN
     IDS_PROCESSRSS          "Processing RSS..."
 END
 
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_MESSAGE       "RSS error."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_URL           "URL is not specified."
+    IDS_ERROR_GET           "Error occured while getting RSS."
+    IDS_ERROR_PARSE         "Error occured while parsing RSS."
+END
+
 #endif    // “ú–{Œê resources
 /////////////////////////////////////////////////////////////////////////////
 

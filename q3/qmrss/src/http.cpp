@@ -267,6 +267,11 @@ void qmrss::AbstractHttpMethod::setRequestHeader(const WCHAR* pwszName,
 	wstrValue.release();
 }
 
+const CHAR* qmrss::AbstractHttpMethod::getResponseLine() const
+{
+	return strResponseLine_.get();
+}
+
 const CHAR* qmrss::AbstractHttpMethod::getResponseHeader() const
 {
 	return strResponseHeader_.get();
@@ -383,10 +388,10 @@ unsigned int qmrss::AbstractHttpMethod::invoke(std::auto_ptr<HttpConnection> pCo
 			return -1;
 	}
 	
-	xstring_ptr strResponse(pConnection->readLine());
-	if (!strResponse.get())
+	strResponseLine_ = pConnection->readLine();
+	if (!strResponseLine_.get())
 		return -1;
-	unsigned int nStatus = parseResponse(strResponse.get());
+	unsigned int nStatus = parseResponse(strResponseLine_.get());
 	if (nStatus == -1)
 		return -1;
 	

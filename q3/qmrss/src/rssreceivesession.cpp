@@ -122,8 +122,10 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	Log log(pLogger_, L"qmrss::RssReceiveSession");
 	
 	const WCHAR* pwszURL = pFolder_->getParam(L"URL");
-	if (!pwszURL)
+	if (!pwszURL || !*pwszURL) {
+		reportError(IDS_ERROR_URL, 0);
 		return false;
+	}
 	
 	// TODO
 	// Check if minimum duration has been exceeded since last update.
@@ -157,16 +159,21 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	method.setRequestHeader(L"User-Agent", wstrUserAgent.get());
 	
 	unsigned int nCode = http.invoke(&method);
-	if (nCode == 304)
+	if (nCode == 304) {
 		return true;
-	else if (nCode != 200)
+	}
+	else if (nCode != 200) {
+		reportError(IDS_ERROR_GET, &method);
 		return false;
+	}
 	
 	callback.setMessage(IDS_PARSERSS);
 	
 	std::auto_ptr<Channel> pChannel(RssParser().parse(method.getResponseBodyAsStream()));
-	if (!pChannel.get())
+	if (!pChannel.get()) {
+		reportError(IDS_ERROR_PARSE, 0);
 		return false;
+	}
 	
 	Part header;
 	if (!header.create(0, method.getResponseHeader(), -1))
@@ -272,6 +279,28 @@ void qmrss::RssReceiveSession::clearFeeds()
 	}
 	for (FeedList::List::const_iterator it = listRemove.begin(); it != listRemove.end(); ++it)
 		pFeedList_->removeFeed(*it);
+}
+
+void qmrss::RssReceiveSession::reportError(UINT nId,
+										   HttpMethod* pMethod)
+{
+	HINSTANCE hInst = getResourceHandle();
+	
+	wstring_ptr wstrMessage(loadString(hInst, IDS_ERROR_MESSAGE));
+	
+	wstring_ptr wstrDescription(loadString(hInst, nId));
+	wstring_ptr wstrResponse;
+	if (pMethod)
+		wstrResponse = mbs2wcs(pMethod->getResponseLine());
+	
+	const WCHAR* pwszDescription[] = {
+		wstrDescription.get(),
+		wstrResponse.get()
+	};
+	
+	SessionErrorInfo info(pAccount_, pSubAccount_, pFolder_,
+		wstrMessage.get(), 0, pwszDescription, countof(pwszDescription));
+	pSessionCallback_->addError(info);
 }
 
 bool qmrss::RssReceiveSession::createItemMessage(const Item* pItem,
