@@ -324,8 +324,11 @@ std::auto_ptr<Certificate> qm::SMIMECallbackImpl::getCertificate(const WCHAR* pw
 	const AddressBookEntry::AddressList& l = pEntry->getAddresses();
 	for (AddressBookEntry::AddressList::const_iterator itA = l.begin(); itA != l.end(); ++itA) {
 		const AddressBookAddress* pAddress = *itA;
-		if (_wcsicmp(pAddress->getAddress(), pwszAddress) == 0)
-			return pSecurity_->getCertificate(pAddress->getCertificate());
+		if (_wcsicmp(pAddress->getAddress(), pwszAddress) == 0) {
+			const WCHAR* pwszCertificate = pAddress->getCertificate();
+			if (pwszCertificate)
+				return pSecurity_->getCertificate(pwszCertificate);
+		}
 	}
 	return std::auto_ptr<Certificate>(0);
 }
