@@ -142,7 +142,7 @@ wstring_ptr qs::AbstractAccelerator::getKeyFromId(UINT nId)
 	}
 	else if (VK_F1 <= nKey && nKey <= VK_F12) {
 		WCHAR wsz[8];
-		swprintf(wsz, L"F%d", nKey - VK_F1);
+		swprintf(wsz, L"F%d", nKey - VK_F1 + 1);
 		buffer.append(wsz);
 	}
 	else {
