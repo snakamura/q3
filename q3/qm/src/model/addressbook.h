@@ -329,7 +329,7 @@ public:
 	virtual ~ExternalAddressBook();
 
 public:
-	virtual bool init() = 0;
+	virtual bool init(bool bAddressOnly) = 0;
 	virtual void term() = 0;
 	virtual bool load(AddressBook* pAddressBook) = 0;
 	virtual bool isModified() = 0;
@@ -353,7 +353,8 @@ public:
 	bool isModified() const;
 
 private:
-	void init(std::auto_ptr<ExternalAddressBook> pAddressBook);
+	void init(std::auto_ptr<ExternalAddressBook> pAddressBook,
+			  bool bAddressOnly);
 
 private:
 	ExternalAddressBookManager(const ExternalAddressBookManager&);
@@ -387,7 +388,8 @@ public:
 	virtual bool isModified();
 
 protected:
-	bool init(IAddrBook* pAddrBook);
+	bool init(IAddrBook* pAddrBook,
+			  bool bAddressOnly);
 
 protected:
 	virtual void freeBuffer(void* pBuffer) const = 0;
@@ -447,6 +449,7 @@ private:
 private:
 	IAddrBook* pAddrBook_;
 	ULONG nConnection_;
+	bool bAddressOnly_;
 	bool bModified_;
 };
 
@@ -464,7 +467,7 @@ public:
 	virtual ~WindowsAddressBook();
 
 public:
-	virtual bool init();
+	virtual bool init(bool bAddressOnly);
 	virtual void term();
 
 protected:
@@ -493,7 +496,7 @@ public:
 	virtual ~OutlookAddressBook();
 
 public:
-	virtual bool init();
+	virtual bool init(bool bAddressOnly);
 	virtual void term();
 
 protected:
@@ -523,7 +526,7 @@ public:
 	virtual ~PocketOutlookAddressBook();
 
 public:
-	virtual bool init();
+	virtual bool init(bool bAddressOnly);
 	virtual void term();
 	virtual bool load(AddressBook* pAddressBook);
 	virtual bool isModified();
@@ -563,6 +566,7 @@ private:
 	HANDLE hCategoryDB_;
 	HANDLE hContactsDB_;
 	NotificationWindow* pNotificationWindow_;
+	bool bAddressOnly_;
 	bool bModified_;
 };
 

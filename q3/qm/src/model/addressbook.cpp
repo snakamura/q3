@@ -916,9 +916,10 @@ qm::ExternalAddressBook::~ExternalAddressBook()
 
 qm::ExternalAddressBookManager::ExternalAddressBookManager(Profile* pProfile)
 {
+	bool bAddressOnly = pProfile->getInt(L"AddressBook", L"AddressOnly", 0) != 0;
+	
 	wstring_ptr wstrExternals(pProfile->getString(L"AddressBook",
 		L"Externals", L"WAB Outlook PocketOutlook"));
-	
 	const WCHAR* p = wcstok(wstrExternals.get(), L" ");
 	while (p) {
 		std::auto_ptr<ExternalAddressBook> pAddressBook;
@@ -932,7 +933,7 @@ qm::ExternalAddressBookManager::ExternalAddressBookManager(Profile* pProfile)
 			pAddressBook.reset(new PocketOutlookAddressBook());
 #endif
 		if (pAddressBook.get())
-			init(pAddressBook);
+			init(pAddressBook, bAddressOnly);
 		
 		p = wcstok(0, L" ");
 	}
@@ -959,9 +960,10 @@ bool qm::ExternalAddressBookManager::isModified() const
 		std::mem_fun(&ExternalAddressBook::isModified)) != listAddressBook_.end();
 }
 
-void qm::ExternalAddressBookManager::init(std::auto_ptr<ExternalAddressBook> pAddressBook)
+void qm::ExternalAddressBookManager::init(std::auto_ptr<ExternalAddressBook> pAddressBook,
+										  bool bAddressOnly)
 {
-	if (pAddressBook->init()) {
+	if (pAddressBook->init(bAddressOnly)) {
 		listAddressBook_.push_back(pAddressBook.get());
 		pAddressBook.release();
 	}
@@ -978,6 +980,7 @@ void qm::ExternalAddressBookManager::init(std::auto_ptr<ExternalAddressBook> pAd
 qm::MAPIAddressBook::MAPIAddressBook() :
 	pAddrBook_(0),
 	nConnection_(0),
+	bAddressOnly_(false),
 	bModified_(true)
 {
 }
@@ -1113,7 +1116,7 @@ bool qm::MAPIAddressBook::load(AddressBook* pAddressBook)
 							static_cast<const WCHAR*>(0),
 							AddressBookAddress::CategoryList(),
 							static_cast<const WCHAR*>(0),
-							static_cast<const WCHAR*>(0), false));
+							static_cast<const WCHAR*>(0), bAddressOnly_));
 					pEntry->addAddress(pAddress);
 				}
 			}
@@ -1129,7 +1132,7 @@ bool qm::MAPIAddressBook::load(AddressBook* pAddressBook)
 							static_cast<const WCHAR*>(0),
 							AddressBookAddress::CategoryList(),
 							static_cast<const WCHAR*>(0),
-							static_cast<const WCHAR*>(0), false));
+							static_cast<const WCHAR*>(0), bAddressOnly_));
 					pEntry->addAddress(pAddress);
 				}
 			}
@@ -1176,7 +1179,8 @@ bool qm::MAPIAddressBook::isModified()
 	return bModified_;
 }
 
-bool qm::MAPIAddressBook::init(IAddrBook* pAddrBook)
+bool qm::MAPIAddressBook::init(IAddrBook* pAddrBook,
+							   bool bAddressOnly)
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qm::MAPIAddressBook");
 	
@@ -1197,6 +1201,8 @@ bool qm::MAPIAddressBook::init(IAddrBook* pAddrBook)
 	
 	pAddrBook_ = pAddrBook;
 	pAddrBook_->AddRef();
+	
+	bAddressOnly_ = bAddressOnly;
 	
 	return true;
 }
@@ -1260,32 +1266,33 @@ wstring_ptr qm::MAPIAddressBook::expandDistList(IMAPIContainer* pContainer,
 			continue;
 		
 		wstring_ptr wstrName;
-		
-		ULONG nEntrySize = pRow->lpProps[COLUMN_ENTRYID].Value.bin.cb;
-		ENTRYID* pEntryId = reinterpret_cast<ENTRYID*>(
-			pRow->lpProps[COLUMN_ENTRYID].Value.bin.lpb);
-		ComPtr<IMailUser> pMailUser;
-		ULONG nType = 0;
-		hr = pContainer->OpenEntry(nEntrySize, pEntryId, &IID_IMailUser,
-			MAPI_BEST_ACCESS, &nType, reinterpret_cast<IUnknown**>(&pMailUser));
-		if (hr == S_OK) {
-			SPropValue* pValue = 0;
-			ULONG nValues = 0;
-			hr = pMailUser->GetProps(reinterpret_cast<LPSPropTagArray>(&columns),
-				fMapiUnicode, &nValues, &pValue);
+		if (!bAddressOnly_) {
+			ULONG nEntrySize = pRow->lpProps[COLUMN_ENTRYID].Value.bin.cb;
+			ENTRYID* pEntryId = reinterpret_cast<ENTRYID*>(
+				pRow->lpProps[COLUMN_ENTRYID].Value.bin.lpb);
+			ComPtr<IMailUser> pMailUser;
+			ULONG nType = 0;
+			hr = pContainer->OpenEntry(nEntrySize, pEntryId, &IID_IMailUser,
+				MAPI_BEST_ACCESS, &nType, reinterpret_cast<IUnknown**>(&pMailUser));
 			if (hr == S_OK) {
-				const SPropValue& valueSubject = pValue[COLUMN_NORMALIZED_SUBJECT];
-				if (PROP_TYPE(valueSubject.ulPropTag) == PT_TSTRING)
-					wstrName = tcs2wcs(valueSubject.Value.LPSZ);
+				SPropValue* pValue = 0;
+				ULONG nValues = 0;
+				hr = pMailUser->GetProps(reinterpret_cast<LPSPropTagArray>(&columns),
+					fMapiUnicode, &nValues, &pValue);
+				if (hr == S_OK) {
+					const SPropValue& valueSubject = pValue[COLUMN_NORMALIZED_SUBJECT];
+					if (PROP_TYPE(valueSubject.ulPropTag) == PT_TSTRING)
+						wstrName = tcs2wcs(valueSubject.Value.LPSZ);
+				}
+				freeBuffer(pValue);
 			}
-			freeBuffer(pValue);
-		}
-		
-		if (!wstrName.get()) {
-			const SPropValue& valueName = pRow->lpProps[COLUMN_DISPLAY_NAME];
-			if (PROP_TYPE(valueName.ulPropTag) != PT_TSTRING)
-				continue;
-			wstrName = tcs2wcs(valueName.Value.LPSZ);
+			
+			if (!wstrName.get()) {
+				const SPropValue& valueName = pRow->lpProps[COLUMN_DISPLAY_NAME];
+				if (PROP_TYPE(valueName.ulPropTag) != PT_TSTRING)
+					continue;
+				wstrName = tcs2wcs(valueName.Value.LPSZ);
+			}
 		}
 		
 		const SPropValue& valueAddress = pRow->lpProps[COLUMN_EMAIL_ADDRESS];
@@ -1295,7 +1302,11 @@ wstring_ptr qm::MAPIAddressBook::expandDistList(IMAPIContainer* pContainer,
 		
 		if (buf.getLength() != 0)
 			buf.append(L", ");
-		buf.append(AddressParser(wstrName.get(), pwszAddress).getValue().get());
+		
+		if (bAddressOnly_)
+			buf.append(pwszAddress);
+		else
+			buf.append(AddressParser(wstrName.get(), pwszAddress).getValue().get());
 	}
 	
 	if (buf.getLength() == 0)
@@ -1394,7 +1405,7 @@ qm::WindowsAddressBook::~WindowsAddressBook()
 	term();
 }
 
-bool qm::WindowsAddressBook::init()
+bool qm::WindowsAddressBook::init(bool bAddressOnly)
 {
 	Registry reg(HKEY_LOCAL_MACHINE, L"Software\\Microsoft\\WAB\\DLLPath");
 	if (!reg)
@@ -1420,7 +1431,7 @@ bool qm::WindowsAddressBook::init()
 	if ((*pfnWABOpen)(&pAddrBook, &pWABObject, &param, 0) != S_OK)
 		return false;
 	
-	if (!MAPIAddressBook::init(pAddrBook.get()))
+	if (!MAPIAddressBook::init(pAddrBook.get(), bAddressOnly))
 		return false;
 	
 	pWABObject_ = pWABObject.release();
@@ -1464,7 +1475,7 @@ qm::OutlookAddressBook::~OutlookAddressBook()
 	term();
 }
 
-bool qm::OutlookAddressBook::init()
+bool qm::OutlookAddressBook::init(bool bAddressOnly)
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qm::OutlookAddressBook");
 	
@@ -1524,7 +1535,7 @@ bool qm::OutlookAddressBook::init()
 	if (!pfnMAPIFreeBuffer_)
 		return false;
 	
-	if (!MAPIAddressBook::init(pAddrBook.get()))
+	if (!MAPIAddressBook::init(pAddrBook.get(), bAddressOnly))
 		return false;
 	
 	return true;
@@ -1560,6 +1571,7 @@ qm::PocketOutlookAddressBook::PocketOutlookAddressBook() :
 	hCategoryDB_(0),
 	hContactsDB_(0),
 	pNotificationWindow_(0),
+	bAddressOnly_(false),
 	bModified_(true)
 {
 }
@@ -1569,7 +1581,7 @@ qm::PocketOutlookAddressBook::~PocketOutlookAddressBook()
 	term();
 }
 
-bool qm::PocketOutlookAddressBook::init()
+bool qm::PocketOutlookAddressBook::init(bool bAddressOnly)
 {
 	std::auto_ptr<NotificationWindow> pWindow(new NotificationWindow(this));
 	if (!pWindow->create(L"QmAddressBookNotificationWindow",
@@ -1588,6 +1600,8 @@ bool qm::PocketOutlookAddressBook::init()
 		pNotificationWindow_->getHandle());
 	if (!hContactsDB_)
 		return false;
+	
+	bAddressOnly_ = bAddressOnly;
 	
 	return true;
 }
@@ -1766,7 +1780,7 @@ bool qm::PocketOutlookAddressBook::load(AddressBook* pAddressBook)
 			if (pVal[nAddress].wFlags != CEDB_PROPNOTFOUND) {
 				std::auto_ptr<AddressBookAddress> pAddress(
 					new AddressBookAddress(pEntry.get(), pVal[nAddress].val.lpwstr,
-						0, listCategory, 0, 0, false));
+						0, listCategory, 0, 0, bAddressOnly_));
 				pEntry->addAddress(pAddress);
 			}
 		}
