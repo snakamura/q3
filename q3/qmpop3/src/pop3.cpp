@@ -575,6 +575,8 @@ bool qmpop3::Pop3::receive(string_ptr* pstrResponse,
 	if (pstrContent) {
 		bufContent.remove(bufContent.getLength() - 2, bufContent.getLength());
 		*pstrContent = bufContent.getXStringSize();
+		if (!pstrContent->get())
+			return false;
 	}
 	
 	nError_ = POP3_ERROR_SUCCESS;

@@ -54,9 +54,9 @@ QSEXPORTPROC string_ptr qs::reallocString(string_ptr str,
 										  size_t nSize)
 {
 	string_ptr strNew(allocString(nSize));
-	nSize = QSMIN(strlen(str.get()), nSize);
-	strncpy(strNew.get(), str.get(), nSize);
-	*(strNew.get() + nSize) = '\0';
+	size_t nLen = QSMIN(str.get() ? strlen(str.get()) : 0, nSize);
+	strncpy(strNew.get(), str.get(), nLen);
+	*(strNew.get() + nLen) = '\0';
 	return strNew;
 }
 
@@ -97,9 +97,9 @@ QSEXPORTPROC xstring_ptr qs::reallocXString(xstring_ptr str,
 	xstring_ptr strNew(allocXString(nSize));
 	if (!strNew.get())
 		return 0;
-	nSize = QSMIN(strlen(str.get()), nSize);
-	strncpy(strNew.get(), str.get(), nSize);
-	*(strNew.get() + nSize) = '\0';
+	size_t nLen = QSMIN(str.get() ? strlen(str.get()) : 0, nSize);
+	strncpy(strNew.get(), str.get(), nLen);
+	*(strNew.get() + nLen) = '\0';
 	return strNew;
 }
 
@@ -160,9 +160,9 @@ QSEXPORTPROC wstring_ptr qs::reallocWString(wstring_ptr wstr,
 											size_t nSize)
 {
 	wstring_ptr wstrNew(allocWString(nSize));
-	nSize = QSMIN(wcslen(wstr.get()), nSize);
-	wcsncpy(wstrNew.get(), wstr.get(), nSize);
-	*(wstrNew.get() + nSize) = L'\0';
+	size_t nLen = QSMIN(wstr.get() ? wcslen(wstr.get()) : 0, nSize);
+	wcsncpy(wstrNew.get(), wstr.get(), nLen);
+	*(wstrNew.get() + nLen) = L'\0';
 	return wstrNew;
 }
 
@@ -172,9 +172,9 @@ QSEXPORTPROC wxstring_ptr qs::reallocWXString(wxstring_ptr wstr,
 	wxstring_ptr wstrNew(allocWXString(nSize));
 	if (!wstrNew.get())
 		return 0;
-	nSize = QSMIN(wcslen(wstr.get()), nSize);
-	wcsncpy(wstrNew.get(), wstr.get(), nSize);
-	*(wstrNew.get() + nSize) = L'\0';
+	size_t nLen = QSMIN(wstr.get() ? wcslen(wstr.get()) : 0, nSize);
+	wcsncpy(wstrNew.get(), wstr.get(), nLen);
+	*(wstrNew.get() + nLen) = L'\0';
 	return wstrNew;
 }
 

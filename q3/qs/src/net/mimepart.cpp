@@ -568,7 +568,10 @@ bool qs::Part::copyFields(const Part& part,
 				return false;
 		}
 	}
-	strHeader_ = buf.getXString();
+	xstring_ptr strHeader(buf.getXString());
+	if (!strHeader.get())
+		return false;
+	strHeader_ = strHeader;
 	
 	clearHeaderLower();
 	
@@ -591,7 +594,10 @@ bool qs::Part::removeFields(FieldFilter* pFilter)
 				return false;
 		}
 	}
-	strHeader_ = buf.getXString();
+	xstring_ptr strHeader(buf.getXString());
+	if (!strHeader.get())
+		return false;
+	strHeader_ = strHeader;
 	
 	clearHeaderLower();
 	
@@ -611,7 +617,10 @@ bool qs::Part::sortHeader()
 			!buf.append("\r\n"))
 			return false;
 	}
-	strHeader_ = buf.getXString();
+	xstring_ptr strHeader(buf.getXString());
+	if (!strHeader.get())
+		return false;
+	strHeader_ = strHeader;
 	
 	clearHeaderLower();
 	

@@ -667,7 +667,6 @@ public:
 
 public:
 	basic_string_ptr& operator=(basic_string_ptr& s);
-//	String* operator&();
 	Char operator[](size_t n) const;
 	Char& operator[](size_t n);
 
@@ -702,7 +701,6 @@ public:
 
 public:
 	basic_xstring_ptr& operator=(basic_xstring_ptr& s);
-//	XString* operator&();
 	Char operator[](size_t n) const;
 	Char& operator[](size_t n);
 

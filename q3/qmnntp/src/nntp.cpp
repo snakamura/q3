@@ -506,6 +506,8 @@ bool qmnntp::Nntp::receive(const CHAR* pszMultilineCodes[],
 	if (pstrContent && bMultiLine) {
 		bufContent.remove(bufContent.getLength() - 2, bufContent.getLength());
 		*pstrContent = bufContent.getXString();
+		if (!pstrContent->get())
+			return false;
 	}
 	
 	nError_ = NNTP_ERROR_SUCCESS;

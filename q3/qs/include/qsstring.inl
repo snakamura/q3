@@ -298,14 +298,7 @@ qs::basic_string_ptr<String>& qs::basic_string_ptr<String>::operator=(basic_stri
 		reset(s.release());
 	return *this;
 }
-/*
-template<class String>
-String* qs::basic_string_ptr<String>::operator&()
-{
-	assert(!str_);
-	return &str_;
-}
-*/
+
 template<class String>
 qs::basic_string_ptr<String>::Char qs::basic_string_ptr<String>::operator[](size_t n) const
 {
@@ -383,14 +376,7 @@ qs::basic_xstring_ptr<XString>& qs::basic_xstring_ptr<XString>::operator=(basic_
 		reset(s.release());
 	return *this;
 }
-/*
-template<class XString>
-XString* qs::basic_xstring_ptr<XString>::operator&()
-{
-	assert(!str_);
-	return &str_;
-}
-*/
+
 template<class XString>
 qs::basic_xstring_ptr<XString>::Char qs::basic_xstring_ptr<XString>::operator[](size_t n) const
 {
@@ -633,7 +619,7 @@ qs::StringBuffer<String>::StringBuffer(size_t nLen)
 template<class String>
 qs::StringBuffer<String>::StringBuffer(const Char* psz)
 {
-	init(psz, static_cast<size_t>(-1));
+	init(psz, -1);
 }
 
 template<class String>
@@ -651,7 +637,8 @@ qs::StringBuffer<String>::~StringBuffer()
 template<class String>
 qs::basic_string_ptr<String> qs::StringBuffer<String>::getString()
 {
-	assert(str_.get());
+	if (!str_.get())
+		init(CharTraits<Char>::getEmptyBuffer(), 0);
 	basic_string_ptr<String> str(str_);
 	init(0, 0);
 	return str;
@@ -660,8 +647,7 @@ qs::basic_string_ptr<String> qs::StringBuffer<String>::getString()
 template<class String>
 const qs::StringBuffer<String>::Char* qs::StringBuffer<String>::getCharArray() const QNOTHROW()
 {
-	assert(str_.get());
-	return str_.get();
+	return str_.get() ? str_.get() : CharTraits<Char>::getEmptyBuffer();
 }
 
 template<class String>
@@ -686,16 +672,15 @@ void qs::StringBuffer<String>::append(const Char c)
 template<class String>
 void qs::StringBuffer<String>::append(const Char* psz)
 {
-	append(psz, static_cast<size_t>(-1));
+	append(psz, -1);
 }
 
 template<class String>
 void qs::StringBuffer<String>::append(const Char* psz,
 									  size_t nLen)
 {
-	if (nLen == static_cast<size_t>(-1))
+	if (nLen == -1)
 		nLen = CharTraits<Char>::getLength(psz);
-	
 	if (nLen == 0)
 		return;
 	
@@ -717,7 +702,7 @@ template<class String>
 void qs::StringBuffer<String>::insert(size_t nPos,
 									  const Char* psz)
 {
-	insert(nPos, psz, static_cast<size_t>(-1));
+	insert(nPos, psz, -1);
 }
 
 template<class String>
@@ -725,9 +710,9 @@ void qs::StringBuffer<String>::insert(size_t nPos,
 									  const Char* psz,
 									  size_t nLen)
 {
-	assert(nPos <= static_cast<size_t>(pEnd_ - str_.get()));
+	assert(nPos <= getLength());
 	
-	if (nLen == static_cast<size_t>(-1))
+	if (nLen == -1)
 		nLen = CharTraits<Char>::getLength(psz);
 	
 	// TODO
@@ -759,10 +744,10 @@ void qs::StringBuffer<String>::remove(size_t nStart,
 									  size_t nEnd)
 									  QNOTHROW()
 {
-	assert(nStart <= static_cast<size_t>(pEnd_ - str_.get()));
+	assert(nStart <= getLength());
 	
 	if (str_.get() && nStart != nEnd) {
-		if (nEnd >= static_cast<size_t>(pEnd_ - str_.get())) {
+		if (nEnd >= getLength()) {
 			pEnd_ = str_.get() + nStart;
 		}
 		else {
@@ -788,27 +773,26 @@ void qs::StringBuffer<String>::init(const Char* psz,
 	nLen_ = 0;
 	pEnd_ = 0;
 	
-	if (!psz || nLen == 0) {
-		str_ = StringTraits<String>::allocString(nLen);
-		*str_.get() = Char();
-		pEnd_ = str_.get();
+	if (nLen == -1)
+		nLen = psz ? CharTraits<Char>::getLength(psz) : 0;
+	
+	if (!psz) {
+		if (nLen != 0) {
+			str_ = StringTraits<String>::allocString(nLen);
+			*str_.get() = Char();
+			pEnd_ = str_.get();
+		}
 	}
 	else {
-		if (nLen == static_cast<size_t>(-1))
-			nLen = CharTraits<Char>::getLength(psz);
 		str_ = StringTraits<String>::allocString(psz, nLen);
 		pEnd_ = str_.get() + nLen;
 	}
 	nLen_ = nLen;
-	
-	assert(str_.get());
 }
 
 template<class String>
 void qs::StringBuffer<String>::allocBuffer(size_t nLen)
 {
-	assert(str_.get());
-	
 	size_t nEnd = pEnd_ - str_.get();
 	
 	basic_string_ptr<String> str;
@@ -844,7 +828,10 @@ qs::XStringBuffer<XString>::~XStringBuffer()
 template<class XString>
 qs::basic_xstring_ptr<XString> qs::XStringBuffer<XString>::getXString()
 {
-	assert(str_.get());
+	if (!str_.get()) {
+		if (!init(CharTraits<Char>::getEmptyBuffer(), 0))
+			return 0;
+	}
 	basic_xstring_ptr<XString> str(str_);
 	init(0, 0);
 	return str;
@@ -853,7 +840,10 @@ qs::basic_xstring_ptr<XString> qs::XStringBuffer<XString>::getXString()
 template<class XString>
 qs::basic_xstring_size_ptr<XString> qs::XStringBuffer<XString>::getXStringSize()
 {
-	assert(str_.get());
+	if (!str_.get()) {
+		if (!init(CharTraits<Char>::getEmptyBuffer(), 0))
+			return basic_xstring_size_ptr<XString>();
+	}
 	basic_xstring_size_ptr<XString> str(str_, pEnd_ - str_.get());
 	init(0, 0);
 	return str;
@@ -862,8 +852,7 @@ qs::basic_xstring_size_ptr<XString> qs::XStringBuffer<XString>::getXStringSize()
 template<class XString>
 const qs::XStringBuffer<XString>::Char* qs::XStringBuffer<XString>::getCharArray() const
 {
-	assert(str_.get());
-	return str_.get();
+	return str_.get() ? str_.get() : CharTraits<Char>::getEmptyBuffer();
 }
 
 template<class XString>
@@ -897,7 +886,6 @@ bool qs::XStringBuffer<XString>::append(const Char* psz,
 {
 	if (nLen == -1)
 		nLen = CharTraits<Char>::getLength(psz);
-	
 	if (nLen == 0)
 		return true;
 	
@@ -931,7 +919,7 @@ bool qs::XStringBuffer<XString>::insert(size_t nPos,
 										const Char* psz,
 										size_t nLen)
 {
-	assert(nPos <= static_cast<size_t>(pEnd_ - str_.get()));
+	assert(nPos <= getLength());
 	
 	if (nLen == -1)
 		nLen = CharTraits<Char>::getLength(psz);
@@ -968,10 +956,10 @@ template<class XString>
 void qs::XStringBuffer<XString>::remove(size_t nStart,
 										size_t nEnd)
 {
-	assert(nStart <= static_cast<size_t>(pEnd_ - str_.get()));
+	assert(nStart <= getLength());
 	
 	if (str_.get() && nStart != nEnd) {
-		if (nEnd >= static_cast<size_t>(pEnd_ - str_.get())) {
+		if (nEnd >= getLength()) {
 			pEnd_ = str_.get() + nStart;
 		}
 		else {
@@ -1023,16 +1011,19 @@ bool qs::XStringBuffer<XString>::init(const Char* psz,
 	nLen_ = 0;
 	pEnd_ = 0;
 	
-	if (!psz || nLen == 0) {
-		str_ = XStringTraits<XString>::allocXString(nLen);
-		if (!str_.get())
-			return false;
-		*str_.get() = Char();
-		pEnd_ = str_.get();
+	if (nLen == -1)
+		nLen = psz ? CharTraits<Char>::getLength(psz) : 0;
+	
+	if (!psz) {
+		if (nLen != 0) {
+			str_ = XStringTraits<XString>::allocXString(nLen);
+			if (!str_.get())
+				return false;
+			*str_.get() = Char();
+			pEnd_ = str_.get();
+		}
 	}
 	else {
-		if (nLen == static_cast<size_t>(-1))
-			nLen = CharTraits<Char>::getLength(psz);
 		str_ = XStringTraits<XString>::allocXString(psz, nLen);
 		if (!str_.get())
 			return false;
@@ -1040,16 +1031,12 @@ bool qs::XStringBuffer<XString>::init(const Char* psz,
 	}
 	nLen_ = nLen;
 	
-	assert(str_.get());
-	
 	return true;
 }
 
 template<class XString>
 bool qs::XStringBuffer<XString>::allocBuffer(size_t nLen)
 {
-	assert(str_.get());
-	
 	size_t nEnd = pEnd_ - str_.get();
 	
 	basic_xstring_ptr<XString> str;
@@ -1143,7 +1130,7 @@ qs::BMFindString<String>::~BMFindString()
 template<class String>
 const qs::BMFindString<String>::Char* qs::BMFindString<String>::find(const Char* psz) const
 {
-	return find(psz, static_cast<size_t>(-1));
+	return find(psz, -1);
 }
 
 template<class String>
@@ -1152,7 +1139,7 @@ const qs::BMFindString<String>::Char* qs::BMFindString<String>::find(const Char*
 {
 	assert(psz);
 	
-	if (nLen == static_cast<size_t>(-1))
+	if (nLen == -1)
 		nLen = CharTraits<Char>::getLength(psz);
 	
 	int nPatternLen = CharTraits<Char>::getLength(strPattern_.get());

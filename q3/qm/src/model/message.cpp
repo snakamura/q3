@@ -532,8 +532,7 @@ xstring_size_ptr qm::MessageCreator::convertBody(Converter* pConverter,
 		pBegin = p;
 	}
 	
-	size_t nLen = buf.getLength();
-	return xstring_size_ptr(buf.getXString(), nLen);
+	return buf.getXStringSize();
 }
 
 bool qm::MessageCreator::setField(Part* pPart,
