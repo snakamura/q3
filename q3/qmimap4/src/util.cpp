@@ -38,10 +38,14 @@ wstring_ptr qmimap4::Util::getFolderName(NormalFolder* pFolder)
 	if (pFolder->isFlag(Folder::FLAG_CHILDOFROOT)) {
 		Account* pAccount = pFolder->getAccount();
 		wstring_ptr wstrRootFolder(pAccount->getProperty(L"Imap4", L"RootFolder", L""));
-		
+		wstring_ptr wstrRootFolderSeparator(pAccount->getProperty(L"Imap4", L"RootFolderSeparator", L"/"));
 		if (*wstrRootFolder.get()) {
-			WCHAR wsz[] = { pFolder->getSeparator(), L'\0' };
-			wstrName = concat(wstrRootFolder.get(), wsz, wstrName.get());
+			ConcatW c[] = {
+				{ wstrRootFolder.get(),				-1	},
+				{ wstrRootFolderSeparator.get(),	1	},
+				{ wstrName.get(),					-1	}
+			};
+			wstrName = concat(c, countof(c));
 		}
 	}
 	
