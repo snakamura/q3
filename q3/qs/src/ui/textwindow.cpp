@@ -729,11 +729,13 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 					++p;
 				
 				int nFit = 0;
+				bool bFull = false;
 				do {
 					SIZE size;
 					getTextExtent(dc, pBegin, p - pBegin,
 						nWidth - nLineWidth, &nFit, 0, &size);
-					if (nFit != p - pBegin || p == pEnd) {
+					if (nFit != p - pBegin || p == pEnd ||
+						size.cx == nWidth - nLineWidth) {
 						size_t nOffset = pLine - line.getText();
 						size_t nLength = pBegin + nFit - pLine;
 						status = convertLogicalLinksToPhysicalLinks(
@@ -751,6 +753,7 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 						CHECK_QSTATUS();
 						ptr.release();
 						
+						bFull = size.cx == nWidth - nLineWidth;
 						pBegin += nFit;
 						pLine = pBegin;
 						nLineWidth = 0;
@@ -803,8 +806,9 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 					nLineWidth = 0;
 				}
 				else if (*p == L'\t') {
+					++p;
 					unsigned int nNextTabStop = getNextTabStop(nLineWidth);
-					if (nNextTabStop > nWidth) {
+					if (nNextTabStop >= nWidth) {
 						size_t nOffset = pLine - line.getText();
 						size_t nLength = p - pLine;
 						status = convertLogicalLinksToPhysicalLinks(
@@ -821,13 +825,12 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 						CHECK_QSTATUS();
 						ptr.release();
 						
+						bFull = true;
 						pLine = p;
-						pBegin = p;
 						nLineWidth = 0;
 					}
 					else {
 						nLineWidth = nNextTabStop;
-						++p;
 						
 						if (p == pEnd) {
 							size_t nOffset = pLine - line.getText();
@@ -847,6 +850,18 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 							ptr.release();
 						}
 					}
+					pBegin = p;
+				}
+				
+				if (p == pEnd && bFull &&
+					n == pTextModel_->getLineCount() - 1) {
+					PhysicalLinePtr ptr(allocLine(n,
+						p - line.getText(), 0, 0, 0));
+					if (!ptr.get())
+						return QSTATUS_OUTOFMEMORY;
+					status = STLWrapper<LineList>(*pListLine).push_back(ptr.get());
+					CHECK_QSTATUS();
+					ptr.release();
 				}
 			}
 		}
