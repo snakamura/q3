@@ -1603,15 +1603,15 @@ QSTATUS qm::Account::unstoreMessage(MessageHolder* pmh)
 	
 	Lock<Folder> lock(*pFolder);
 	
-	const MessageHolder::MessageBoxKey& key = pmh->getMessageBoxKey();
-	status = pImpl_->pMessageStore_->free(key.nOffset_,
-		key.nLength_, pmh->getMessageCacheKey());
-	CHECK_QSTATUS();
-	
-	pImpl_->pMessageCache_->removeData(pmh->getMessageCacheKey());
+	MessageHolder::MessageBoxKey key = pmh->getMessageBoxKey();
+	MessageCacheKey cacheKey = pmh->getMessageCacheKey();
 	
 	status = pFolder->removeMessage(pmh);
 	CHECK_QSTATUS();
+	
+	status = pImpl_->pMessageStore_->free(key.nOffset_, key.nLength_, cacheKey);
+	CHECK_QSTATUS();
+	pImpl_->pMessageCache_->removeData(cacheKey);
 	
 	return QSTATUS_SUCCESS;
 }
