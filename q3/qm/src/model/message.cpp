@@ -292,17 +292,28 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 					pEncoder = EncoderFactory::getInstance(pwszEncoding);
 				}
 				if (!pEncoder.get()) {
-					bool b7bit = true;
-					for (size_t n = 0; n < strBody.size(); ++n) {
-						unsigned char c = *(strBody.get() + n);
-						if (c >= 0x80) {
-							b7bit = false;
+					unsigned char* p = reinterpret_cast<unsigned char*>(strBody.get());
+					unsigned char* pEnd = p + strBody.size();
+					size_t nLineLen = 0;
+					while (p < pEnd) {
+						if (*p >= 0x80)
 							break;
+						
+						if (*p == '\r' && p + 1 < pEnd && *(p + 1) == '\n') {
+							nLineLen = 0;
+							++p;
 						}
+						else {
+							++nLineLen;
+							if (nLineLen >= MAX_LINE_LENGTH)
+								break;
+						}
+						
+						++p;
 					}
 					
 					const WCHAR* pwszEncoding = 0;
-					if (b7bit) {
+					if (p == pEnd) {
 						pwszEncoding = L"7bit";
 					}
 					else {
