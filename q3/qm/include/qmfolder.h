@@ -14,6 +14,7 @@
 #include <qmmessageholder.h>
 
 #include <qs.h>
+#include <qsprofile.h>
 #include <qsstring.h>
 
 #include <vector>
@@ -30,6 +31,7 @@ class FolderEvent;
 class MessageEvent;
 
 class Account;
+class Document;
 class Message;
 class MessageHolder;
 class MessageOperationCallback;
@@ -64,6 +66,7 @@ public:
 		FLAG_SENTBOX		= 0x00000400,
 		FLAG_TRASHBOX		= 0x00000800,
 		FLAG_DRAFTBOX		= 0x00001000,
+		FLAG_SEARCHBOX		= 0x00002000,
 		FLAG_BOX_MASK		= 0x0000ff00,
 		
 		FLAG_SYNCABLE		= 0x00010000,
@@ -113,7 +116,8 @@ public:
 public:
 	qs::QSTATUS setName(const WCHAR* pwszName);
 
-protected:
+// These methods are intended to be called from impl classes.
+public:
 	struct FolderImpl* getImpl() const;
 
 public:
@@ -190,11 +194,6 @@ public:
 	qs::QSTATUS removeMessage(MessageHolder* pmh);
 	qs::QSTATUS moveMessages(const MessageHolderList& l, NormalFolder* pFolder);
 
-// These methods are intended to be called from MessageHolder class
-public:
-	qs::QSTATUS fireMessageFlagChanged(MessageHolder* pmh,
-		unsigned int nOldFlags, unsigned int nNewFlags);
-
 private:
 	NormalFolder(const NormalFolder&);
 	NormalFolder& operator=(const NormalFolder&);
@@ -215,7 +214,10 @@ class QMEXPORTCLASS QueryFolder : public Folder
 public:
 	struct Init : public Folder::Init
 	{
+		const WCHAR* pwszDriver_;
 		const WCHAR* pwszCondition_;
+		Folder* pTargetFolder_;
+		bool bRecursive_;
 	};
 
 public:
@@ -223,7 +225,13 @@ public:
 	virtual ~QueryFolder();
 
 public:
+	const WCHAR* getDriver() const;
 	const WCHAR* getCondition() const;
+	Folder* getTargetFolder() const;
+	bool isRecursive() const;
+	qs::QSTATUS set(const WCHAR* pwszDriver, const WCHAR* pwszCondition,
+		Folder* pTargetFolder, bool bRecursive);
+	qs::QSTATUS search(Document* pDocument, HWND hwnd, qs::Profile* pProfile);
 
 public:
 	virtual Type getType() const;
@@ -283,7 +291,8 @@ public:
 public:
 	virtual qs::QSTATUS messageAdded(const FolderEvent& event) = 0;
 	virtual qs::QSTATUS messageRemoved(const FolderEvent& event) = 0;
-	virtual qs::QSTATUS messageChanged(const MessageEvent& event) = 0;
+	virtual qs::QSTATUS messageRefreshed(const FolderEvent& event) = 0;
+	virtual qs::QSTATUS unseenCountChanged(const FolderEvent& event) = 0;
 	virtual qs::QSTATUS folderDestroyed(const FolderEvent& event) = 0;
 };
 
@@ -311,37 +320,6 @@ private:
 private:
 	Folder* pFolder_;
 	MessageHolder* pmh_;
-};
-
-
-/****************************************************************************
- *
- * MessageEvent
- *
- */
-
-class MessageEvent
-{
-public:
-	MessageEvent(NormalFolder* pFolder, MessageHolder* pmh,
-		unsigned int nOldFlags, unsigned int nNewFlags);
-	~MessageEvent();
-
-public:
-	NormalFolder* getFolder() const;
-	MessageHolder* getMessageHolder() const;
-	unsigned int getOldFlags() const;
-	unsigned int getNewFlags() const;
-
-private:
-	MessageEvent(const MessageEvent&);
-	MessageEvent& operator=(const MessageEvent&);
-
-private:
-	NormalFolder* pFolder_;
-	MessageHolder* pmh_;
-	unsigned int nOldFlags_;
-	unsigned int nNewFlags_;
 };
 
 }

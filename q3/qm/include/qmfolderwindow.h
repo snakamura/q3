@@ -54,6 +54,7 @@ protected:
 	LRESULT onLButtonDown(UINT nFlags, const POINT& pt);
 	LRESULT onMessageAdded(WPARAM wParam, LPARAM lParam);
 	LRESULT onMessageRemoved(WPARAM wParam, LPARAM lParam);
+	LRESULT onMessageRefreshed(WPARAM wParam, LPARAM lParam);
 	LRESULT onMessageChanged(WPARAM wParam, LPARAM lParam);
 
 public:

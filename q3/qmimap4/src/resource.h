@@ -4,6 +4,7 @@
 //
 #define IDS_IMAP4                       100
 #define IDD_RECEIVE                     101
+#define IDD_SEARCH                      102
 #define IDS_INITIALIZE                  1000
 #define IDC_PORT                        1000
 #define IDS_LOOKUP                      1001
@@ -28,6 +29,12 @@
 #define IDS_APPLYOFFLINEJOBS            1011
 #define IDC_STARTTLS                    1011
 #define IDC_NAMESPACE                   1012
+#define IDC_SEARCHBODY                  1013
+#define IDC_IMAP4COMMAND                1014
+#define IDC_CONDITION                   1127
+#define IDC_CURRENT                     1128
+#define IDC_RECURSIVE                   1129
+#define IDC_ALLFOLDER                   1130
 #define IDS_ERROR_MESSAGE               10000
 #define IDS_ERROR_GREETING              11000
 #define IDS_ERROR_LOGIN                 11001
@@ -82,7 +89,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        102
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1013
+#define _APS_NEXT_CONTROL_VALUE         1015
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

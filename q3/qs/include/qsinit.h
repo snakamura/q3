@@ -100,7 +100,7 @@ private:
  *
  */
 
-class Initializer
+class QSEXPORTCLASS Initializer
 {
 public:
 	Initializer();

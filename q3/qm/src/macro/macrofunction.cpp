@@ -1478,71 +1478,8 @@ QSTATUS qm::MacroFunctionExecute::value(
 		status = pValueInput->string(&wstrInput);
 		CHECK_QSTATUS();
 		
-		SECURITY_ATTRIBUTES sa = { sizeof(sa), 0, TRUE };
-		AutoHandle hInputRead;
-		AutoHandle hInputWrite;
-		if (!::CreatePipe(&hInputRead, &hInputWrite, &sa, 0))
-			return error(*pContext, MacroErrorHandler::CODE_FAIL);
-		AutoHandle hInput;
-		if (!::DuplicateHandle(::GetCurrentProcess(), hInputWrite.get(),
-			::GetCurrentProcess(), &hInput, 0, FALSE, DUPLICATE_SAME_ACCESS))
-			return error(*pContext, MacroErrorHandler::CODE_FAIL);
-		hInputWrite.close();
-		
-		AutoHandle hOutputRead;
-		AutoHandle hOutputWrite;
-		if (!::CreatePipe(&hOutputRead, &hOutputWrite, &sa, 0))
-			return error(*pContext, MacroErrorHandler::CODE_FAIL);
-		AutoHandle hOutput;
-		if (!::DuplicateHandle(::GetCurrentProcess(), hOutputRead.get(),
-			::GetCurrentProcess(), &hOutput, 0, FALSE, DUPLICATE_SAME_ACCESS))
-			return error(*pContext, MacroErrorHandler::CODE_FAIL);
-		hOutputRead.close();
-		
-		STARTUPINFO si = { sizeof(si) };
-		si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
-		si.hStdInput = hInputRead.get();
-		si.hStdOutput = hOutputWrite.get();
-		si.wShowWindow = SW_HIDE;
-		PROCESS_INFORMATION pi;
-		W2T(wstrCommand.get(), ptszCommand);
-		if (!::CreateProcess(0, const_cast<LPTSTR>(ptszCommand),
-			0, 0, TRUE, 0, 0, 0, &si, &pi))
-			return error(*pContext, MacroErrorHandler::CODE_FAIL);
-		AutoHandle hProcess(pi.hProcess);
-		::CloseHandle(pi.hThread);
-		hInputRead.close();
-		hOutputWrite.close();
-		
-		string_ptr<STRING> strInput(wcs2mbs(wstrInput.get()));
-		if (!strInput.get())
-			return QSTATUS_OUTOFMEMORY;
-		std::pair<const CHAR*, HANDLE> p(strInput.get(), hInput.get());
-		DWORD dwThreadId = 0;
-		AutoHandle hThread(::CreateThread(0, 0, writeProc, &p, 0, &dwThreadId));
-		if (!hThread.get())
-			return error(*pContext, MacroErrorHandler::CODE_FAIL);
-		hInput.release();
-		
-		StringBuffer<STRING> bufRead(&status);
+		status = Process::exec(wstrCommand.get(), wstrInput.get(), &wstrOutput);
 		CHECK_QSTATUS();
-		char buf[1024];
-		DWORD dwRead = 0;
-		while (::ReadFile(hOutput.get(), buf, sizeof(buf), &dwRead, 0) && dwRead != 0) {
-			status = bufRead.append(buf, dwRead);
-			CHECK_QSTATUS();
-		}
-		wstrOutput.reset(mbs2wcs(bufRead.getCharArray()));
-		if (!wstrOutput.get())
-			return QSTATUS_OUTOFMEMORY;
-		
-		HANDLE hWaits[] = { hProcess.get(), hThread.get() };
-		::WaitForMultipleObjects(sizeof(hWaits)/sizeof(hWaits[0]),
-			hWaits, TRUE, INFINITE);
-		
-		DWORD dwExitCode = 0;
-		if (!::GetExitCodeThread(hThread.get(), &dwExitCode) || dwExitCode != 0)
-			return error(*pContext, MacroErrorHandler::CODE_FAIL);
 		
 		pwszResult = wstrOutput.get();
 #endif

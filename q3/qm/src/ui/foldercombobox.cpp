@@ -53,7 +53,8 @@ public:
 	enum {
 		WM_FOLDERCOMBOBOX_MESSAGEADDED		= WM_APP + 1401,
 		WM_FOLDERCOMBOBOX_MESSAGEREMOVED	= WM_APP + 1402,
-		WM_FOLDERCOMBOBOX_MESSAGECHANGED	= WM_APP + 1403
+		WM_FOLDERCOMBOBOX_MESSAGEREFRESHED	= WM_APP + 1403,
+		WM_FOLDERCOMBOBOX_MESSAGECHANGED	= WM_APP + 1404
 	};
 
 public:
@@ -64,6 +65,7 @@ public:
 	int getIndexFromAccount(Account* pAccount) const;
 	int getIndexFromFolder(Folder* pFolder) const;
 	QSTATUS update(Folder* pFolder);
+	QSTATUS handleUpdateMessage(LPARAM lParam);
 
 public:
 	virtual LRESULT onCommand(WORD nCode, WORD nId);
@@ -79,7 +81,8 @@ public:
 public:
 	virtual QSTATUS messageAdded(const FolderEvent& event);
 	virtual QSTATUS messageRemoved(const FolderEvent& event);
-	virtual QSTATUS messageChanged(const MessageEvent& event);
+	virtual QSTATUS messageRefreshed(const FolderEvent& event);
+	virtual QSTATUS unseenCountChanged(const FolderEvent& event);
 	virtual QSTATUS folderDestroyed(const FolderEvent& event);
 
 public:
@@ -192,6 +195,24 @@ QSTATUS qm::FolderComboBoxImpl::update(Folder* pFolder)
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qm::FolderComboBoxImpl::handleUpdateMessage(LPARAM lParam)
+{
+	MSG msg;
+	while (true) {
+		if (!::PeekMessage(&msg, pThis_->getHandle(),
+			FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEADDED,
+			FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGECHANGED, PM_NOREMOVE))
+			break;
+		else if (msg.lParam != lParam)
+			break;
+		::PeekMessage(&msg, pThis_->getHandle(),
+			FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEADDED,
+			FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGECHANGED, PM_REMOVE);
+	}
+	
+	return update(reinterpret_cast<Folder*>(lParam));
+}
+
 LRESULT qm::FolderComboBoxImpl::onCommand(WORD nCode, WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
@@ -287,12 +308,17 @@ QSTATUS qm::FolderComboBoxImpl::messageRemoved(const FolderEvent& event)
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderComboBoxImpl::messageChanged(const MessageEvent& event)
+QSTATUS qm::FolderComboBoxImpl::messageRefreshed(const FolderEvent& event)
 {
-	if ((event.getOldFlags() & MessageHolder::FLAG_SEEN) !=
-		(event.getNewFlags() & MessageHolder::FLAG_SEEN))
-		pThis_->postMessage(WM_FOLDERCOMBOBOX_MESSAGECHANGED,
-			0, reinterpret_cast<LPARAM>(event.getFolder()));
+	pThis_->postMessage(WM_FOLDERCOMBOBOX_MESSAGEREFRESHED,
+		0, reinterpret_cast<LPARAM>(event.getFolder()));
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::FolderComboBoxImpl::unseenCountChanged(const FolderEvent& event)
+{
+	pThis_->postMessage(WM_FOLDERCOMBOBOX_MESSAGECHANGED,
+		0, reinterpret_cast<LPARAM>(event.getFolder()));
 	return QSTATUS_SUCCESS;
 }
 
@@ -659,6 +685,7 @@ LRESULT qm::FolderComboBox::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		HANDLE_LBUTTONDOWN()
 		HANDLE_MESSAGE(FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEADDED, onMessageAdded)
 		HANDLE_MESSAGE(FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEREMOVED, onMessageRemoved)
+		HANDLE_MESSAGE(FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEREFRESHED, onMessageRefreshed)
 		HANDLE_MESSAGE(FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGECHANGED, onMessageChanged)
 	END_MESSAGE_HANDLER()
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
@@ -733,55 +760,25 @@ LRESULT qm::FolderComboBox::onLButtonDown(UINT nFlags, const POINT& pt)
 
 LRESULT qm::FolderComboBox::onMessageAdded(WPARAM wParam, LPARAM lParam)
 {
-	MSG msg;
-	while (true) {
-		if (!::PeekMessage(&msg, getHandle(),
-			FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEADDED,
-			FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEADDED, PM_NOREMOVE))
-			break;
-		else if (msg.lParam != lParam)
-			break;
-		::PeekMessage(&msg, getHandle(),
-			FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEADDED,
-			FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEADDED, PM_REMOVE);
-	}
-	pImpl_->update(reinterpret_cast<Folder*>(lParam));
+	pImpl_->handleUpdateMessage(lParam);
 	return 0;
 }
 
 LRESULT qm::FolderComboBox::onMessageRemoved(WPARAM wParam, LPARAM lParam)
 {
-	MSG msg;
-	while (true) {
-		if (!::PeekMessage(&msg, getHandle(),
-			FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEADDED,
-			FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEADDED, PM_NOREMOVE))
-			break;
-		else if (msg.lParam != lParam)
-			break;
-		::PeekMessage(&msg, getHandle(),
-			FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEADDED,
-			FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEADDED, PM_REMOVE);
-	}
-	pImpl_->update(reinterpret_cast<Folder*>(lParam));
+	pImpl_->handleUpdateMessage(lParam);
+	return 0;
+}
+
+LRESULT qm::FolderComboBox::onMessageRefreshed(WPARAM wParam, LPARAM lParam)
+{
+	pImpl_->handleUpdateMessage(lParam);
 	return 0;
 }
 
 LRESULT qm::FolderComboBox::onMessageChanged(WPARAM wParam, LPARAM lParam)
 {
-	MSG msg;
-	while (true) {
-		if (!::PeekMessage(&msg, getHandle(),
-			FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEADDED,
-			FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEADDED, PM_NOREMOVE))
-			break;
-		else if (msg.lParam != lParam)
-			break;
-		::PeekMessage(&msg, getHandle(),
-			FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEADDED,
-			FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEADDED, PM_REMOVE);
-	}
-	pImpl_->update(reinterpret_cast<NormalFolder*>(lParam));
+	pImpl_->handleUpdateMessage(lParam);
 	return 0;
 }
 

@@ -416,10 +416,13 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 	
 	status = pFolder_->addFolderHandler(this);
 	CHECK_QSTATUS_SET(pstatus);
+	status = pFolder->getAccount()->addMessageHolderHandler(this);
+	CHECK_QSTATUS_SET(pstatus);
 }
 
 qm::ViewModel::~ViewModel()
 {
+	pFolder_->getAccount()->removeMessageHolderHandler(this);
 	pFolder_->removeFolderHandler(this);
 	std::for_each(listItem_.begin(), listItem_.end(), deleter<ViewModelItem>());
 	std::for_each(listColumn_.begin(), listColumn_.end(), deleter<ViewColumn>());
@@ -1074,7 +1077,24 @@ QSTATUS qm::ViewModel::messageRemoved(const FolderEvent& event)
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ViewModel::messageChanged(const MessageEvent& event)
+QSTATUS qm::ViewModel::messageRefreshed(const FolderEvent& event)
+{
+	return update(true);
+}
+
+QSTATUS qm::ViewModel::unseenCountChanged(const FolderEvent& event)
+{
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::ViewModel::folderDestroyed(const FolderEvent& event)
+{
+	fireDestroyed();
+	pViewModelManager_->removeViewModel(this);
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::ViewModel::messageHolderChanged(const MessageHolderEvent& event)
 {
 	DECLARE_QSTATUS();
 	
@@ -1101,10 +1121,8 @@ QSTATUS qm::ViewModel::messageChanged(const MessageEvent& event)
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ViewModel::folderDestroyed(const FolderEvent& event)
+QSTATUS qm::ViewModel::messageHolderDestroyed(const MessageHolderEvent& event)
 {
-	fireDestroyed();
-	pViewModelManager_->removeViewModel(this);
 	return QSTATUS_SUCCESS;
 }
 

@@ -66,7 +66,6 @@ qm::ProtocolFactoryImpl::FactoryList::iterator
 }
 
 
-
 /****************************************************************************
  *
  * ProtocolFactory

@@ -27,6 +27,9 @@
 		<action name="FileOffline">
 			<key key="O" ctrl="true"/>
 		</action>
+		<action name="MessageSearch">
+			<key key="S" ctrl="true"/>
+		</action>
 		<action name="ViewFocusNext">
 			<key code="9"/>
 		</action>

@@ -114,6 +114,7 @@ QSTATUS qmpop3::Pop3Driver::createDefaultFolders(Account::FolderList* pList)
 		init.pAccount_ = pAccount_;
 		init.nValidity_ = 0;
 		init.nDownloadCount_ = 0;
+		init.nDeletedCount_ = 0;
 		
 		NormalFolder* p = 0;
 		status = newQsObject(init, &p);

@@ -17,6 +17,7 @@
 #include <qmmessage.h>
 #include <qmmessageholder.h>
 #include <qmmessagewindow.h>
+#include <qmsearch.h>
 
 #include <qmscript.h>
 
@@ -3057,6 +3058,149 @@ QSTATUS qm::MessagePropertyAction::isEnabled(
 
 /****************************************************************************
  *
+ * MessageSearchAction
+ *
+ */
+
+qm::MessageSearchAction::MessageSearchAction(FolderModel* pFolderModel,
+	Document* pDocument, HWND hwnd, Profile* pProfile, QSTATUS* pstatus) :
+	pFolderModel_(pFolderModel),
+	pDocument_(pDocument),
+	hwnd_(hwnd),
+	pProfile_(pProfile)
+{
+}
+
+qm::MessageSearchAction::~MessageSearchAction()
+{
+}
+
+QSTATUS qm::MessageSearchAction::invoke(const ActionEvent& event)
+{
+	DECLARE_QSTATUS();
+	
+	Folder* pFolder = pFolderModel_->getCurrentFolder();
+	Account* pAccount = pFolder ? pFolder->getAccount() :
+		pFolderModel_->getCurrentAccount();
+	
+	Folder* pSearchFolder = pAccount->getFolderByFlag(Folder::FLAG_SEARCHBOX);
+	if (!pSearchFolder || pSearchFolder->getType() != Folder::TYPE_QUERY)
+		return QSTATUS_SUCCESS;
+	QueryFolder* pSearch = static_cast<QueryFolder*>(pSearchFolder);
+	
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	string_ptr<WSTRING> wstrTitle;
+	status = loadString(hInst, IDS_SEARCH, &wstrTitle);
+	CHECK_QSTATUS();
+	
+	typedef std::vector<std::pair<SearchUI*, SearchPropertyPage*> > UIList;
+	UIList listUI;
+	struct Deleter
+	{
+		typedef std::vector<std::pair<SearchUI*, SearchPropertyPage*> > UIList;
+		
+		Deleter(UIList& l) :
+			l_(l)
+		{
+		}
+		
+		~Deleter()
+		{
+			UIList::iterator it = l_.begin();
+			while (it != l_.end()) {
+				delete (*it).first;
+				delete (*it).second;
+				++it;
+			}
+		}
+		
+		UIList& l_;
+	} deleter(listUI);
+	
+	SearchDriverFactory::NameList listName;
+	status = SearchDriverFactory::getNames(&listName);
+	CHECK_QSTATUS();
+	status = STLWrapper<UIList>(listUI).reserve(listName.size());
+	CHECK_QSTATUS();
+	SearchDriverFactory::NameList::iterator itN = listName.begin();
+	while (itN != listName.end()) {
+		SearchUI* pUI = 0;
+		status = SearchDriverFactory::getUI(*itN, pAccount, pProfile_, &pUI);
+		CHECK_QSTATUS();
+		if (pUI)
+			listUI.push_back(UIList::value_type(pUI, 0));
+		++itN;
+	}
+	std::sort(listUI.begin(), listUI.end(),
+		binary_compose_f_gx_hy(
+			std::less<int>(),
+			unary_compose_f_gx(
+				std::mem_fun(&SearchUI::getIndex),
+				std::select1st<UIList::value_type>()),
+			unary_compose_f_gx(
+				std::mem_fun(&SearchUI::getIndex),
+				std::select1st<UIList::value_type>())));
+	
+	string_ptr<WSTRING> wstrStartName;
+	status = pProfile_->getString(L"Search", L"Page", 0, &wstrStartName);
+	CHECK_QSTATUS();
+	
+	int nStartPage = 0;
+	PropertySheetBase sheet(hInst, wstrTitle.get(), false, &status);
+	CHECK_QSTATUS_VALUE(0);
+	for (UIList::size_type n = 0; n < listUI.size(); ++n) {
+		SearchPropertyPage* pPage = 0;
+		status = listUI[n].first->createPropertyPage(pFolder == 0, &pPage);
+		CHECK_QSTATUS();
+		listUI[n].second = pPage;
+		status = sheet.add(pPage);
+		CHECK_QSTATUS();
+		if (wcscmp(pPage->getDriver(), wstrStartName.get()) == 0)
+			nStartPage = n;
+	}
+	status = sheet.setStartPage(nStartPage);
+	CHECK_QSTATUS();
+	
+	int nRet = 0;
+	status = sheet.doModal(hwnd_, 0, &nRet);
+	CHECK_QSTATUS_VALUE(0);
+	if (nRet == IDOK) {
+		UIList::size_type nPage = 0;
+		while (nPage < listUI.size()) {
+			if (listUI[nPage].second->getCondition())
+				break;
+			++nPage;
+		}
+		
+		if (nPage != listUI.size()) {
+			SearchPropertyPage* pPage = listUI[nPage].second;
+			const WCHAR* pwszCondition = pPage->getCondition();
+			if (*pwszCondition) {
+				WaitCursor cursor;
+				
+				status = pSearch->set(pPage->getDriver(), pwszCondition,
+					pPage->isAllFolder() ? 0 : pFolder, pPage->isRecursive());
+				CHECK_QSTATUS();
+				if (pFolder == pSearch) {
+					status = pSearch->search(pDocument_, hwnd_, pProfile_);
+					CHECK_QSTATUS();
+				}
+				else {
+					status = pFolderModel_->setCurrent(0, pSearch, false);
+					CHECK_QSTATUS();
+				}
+			}
+			status = pProfile_->setString(L"Search", L"Page", pPage->getDriver());
+			CHECK_QSTATUS();
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
  * ToolAccountAction
  *
  */
@@ -4430,12 +4574,14 @@ QSTATUS qm::ViewOpenLinkAction::invoke(const ActionEvent& event)
 
 qm::ViewRefreshAction::ViewRefreshAction(SyncManager* pSyncManager,
 	Document* pDocument, FolderModel* pFolderModel,
-	SyncDialogManager* pSyncDialogManager, HWND hwnd, QSTATUS* pstatus) :
+	SyncDialogManager* pSyncDialogManager, HWND hwnd,
+	Profile* pProfile, QSTATUS* pstatus) :
 	pSyncManager_(pSyncManager),
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
 	pSyncDialogManager_(pSyncDialogManager),
-	hwnd_(hwnd)
+	hwnd_(hwnd),
+	pProfile_(pProfile)
 {
 	assert(pstatus);
 	*pstatus = QSTATUS_SUCCESS;
@@ -4451,16 +4597,23 @@ QSTATUS qm::ViewRefreshAction::invoke(const ActionEvent& event)
 	
 	Folder* pFolder = pFolderModel_->getCurrentFolder();
 	if (pFolder) {
-		if (pFolder->getType() == Folder::TYPE_NORMAL) {
+		switch (pFolder->getType()) {
+		case Folder::TYPE_NORMAL:
 			if (pFolder->isFlag(Folder::FLAG_SYNCABLE)) {
 				status = SyncUtil::syncFolder(pSyncManager_, pDocument_,
 				pSyncDialogManager_, hwnd_, SyncDialog::FLAG_NONE,
 				static_cast<NormalFolder*>(pFolder));
 				CHECK_QSTATUS();
 			}
-		}
-		else if (pFolder->getType() == Folder::TYPE_QUERY) {
-			// TODO
+			break;
+		case Folder::TYPE_QUERY:
+			status = static_cast<QueryFolder*>(pFolder)->search(
+				pDocument_, hwnd_, pProfile_);
+			CHECK_QSTATUS();
+			break;
+		default:
+			assert(false);
+			break;
 		}
 	}
 	
@@ -4471,7 +4624,9 @@ QSTATUS qm::ViewRefreshAction::isEnabled(const ActionEvent& event, bool* pbEnabl
 {
 	assert(pbEnabled);
 	Folder* pFolder = pFolderModel_->getCurrentFolder();
-	*pbEnabled = pFolder != 0;
+	*pbEnabled = pFolder &&
+		(pFolder->getType() == Folder::TYPE_QUERY ||
+		pFolder->isFlag(Folder::FLAG_SYNCABLE));
 	return QSTATUS_SUCCESS;
 }
 

@@ -83,6 +83,26 @@ BEGIN
                     130,35,10
 END
 
+IDD_SEARCH DIALOG DISCARDABLE  0, 0, 214, 129
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "IMAP4"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    LTEXT           "&Search for",IDC_STATIC,5,8,35,8
+    EDITTEXT        IDC_CONDITION,40,5,170,14,ES_AUTOHSCROLL
+    CONTROL         "Search &Body",IDC_SEARCHBODY,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,30,65,10
+    CONTROL         "IMAP4 &Command",IDC_IMAP4COMMAND,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,40,75,10
+    GROUPBOX        "Folder",IDC_STATIC,115,25,75,45
+    CONTROL         "C&urrent",IDC_CURRENT,"Button",BS_AUTORADIOBUTTON,120,
+                    35,55,10
+    CONTROL         "&Recursive",IDC_RECURSIVE,"Button",BS_AUTORADIOBUTTON,
+                    120,45,55,10
+    CONTROL         "All &Folder",IDC_ALLFOLDER,"Button",BS_AUTORADIOBUTTON,
+                    120,55,55,10
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -98,6 +118,14 @@ BEGIN
         RIGHTMARGIN, 216
         TOPMARGIN, 7
         BOTTOMMARGIN, 138
+    END
+
+    IDD_SEARCH, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 207
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 122
     END
 END
 #endif    // APSTUDIO_INVOKED

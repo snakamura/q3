@@ -92,6 +92,8 @@ public:
 	const WCHAR* getClass() const;
 	const WCHAR* getType(Host host) const;
 	bool isSupport(Support support) const;
+	const WCHAR* getMessageStorePath() const;
+	bool isMultiMessageStore() const;
 	
 	qs::QSTATUS getProperty(const WCHAR* pwszSection,
 		const WCHAR* pwszKey, int nDefault, int* pnValue) const;
@@ -145,6 +147,9 @@ public:
 	qs::QSTATUS addAccountHandler(AccountHandler* pHandler);
 	qs::QSTATUS removeAccountHandler(AccountHandler* pHandler);
 	
+	qs::QSTATUS addMessageHolderHandler(MessageHolderHandler* pHandler);
+	qs::QSTATUS removeMessageHolderHandler(MessageHolderHandler* pHandler);
+	
 	void lock() const;
 	void unlock() const;
 #ifndef NDEBUG
@@ -161,6 +166,9 @@ public:
 		MessageCacheItem item, qs::WSTRING* pwstrData) const;
 	qs::QSTATUS getMessage(MessageHolder* pmh,
 		unsigned int nFlags, Message* pMessage);
+	qs::QSTATUS fireMessageHolderChanged(MessageHolder* pmh,
+		unsigned int nOldFlags, unsigned int nNewFlags);
+	qs::QSTATUS fireMessageHolderDestroyed(MessageHolder* pmh);
 
 // These methods are intended to be called from ReceiveSession class
 public:

@@ -24,6 +24,8 @@ namespace qm {
 class MessageHolderBase;
 	class MessageHolder;
 	class AbstractMessageHolder;
+class MessageHolderHandler;
+class MessageHolderEvent;
 class MessagePtr;
 class MessagePtrLock;
 
@@ -169,6 +171,7 @@ public:
 	void setId(unsigned int nId);
 	void setFlags(unsigned int nFlags, unsigned int nMask);
 	void setFolder(NormalFolder* pFolder);
+	qs::QSTATUS destroy();
 
 // These methods are intended to be called from Account class
 public:
@@ -242,6 +245,53 @@ private:
 	unsigned int nId_;
 	unsigned int nSize_;
 	unsigned int nTextSize_;
+};
+
+
+/****************************************************************************
+ *
+ * MessageHolderHandler
+ *
+ */
+
+class MessageHolderHandler
+{
+public:
+	virtual ~MessageHolderHandler();
+
+public:
+	virtual qs::QSTATUS messageHolderChanged(const MessageHolderEvent& event) = 0;
+	virtual qs::QSTATUS messageHolderDestroyed(const MessageHolderEvent& event) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * MessageHolderEvent
+ *
+ */
+
+class MessageHolderEvent
+{
+public:
+	MessageHolderEvent(MessageHolder* pmh);
+	MessageHolderEvent(MessageHolder* pmh,
+		unsigned int nOldFlags, unsigned int nNewFlags);
+	~MessageHolderEvent();
+
+public:
+	MessageHolder* getMessageHolder() const;
+	unsigned int getOldFlags() const;
+	unsigned int getNewFlags() const;
+
+private:
+	MessageHolderEvent(const MessageHolderEvent&);
+	MessageHolderEvent& operator=(const MessageHolderEvent&);
+
+private:
+	MessageHolder* pmh_;
+	unsigned int nOldFlags_;
+	unsigned int nNewFlags_;
 };
 
 

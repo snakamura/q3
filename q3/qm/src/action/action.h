@@ -66,6 +66,7 @@ class MessageMoveOtherAction;
 class MessageOpenAttachmentAction;
 class MessageOpenURLAction;
 class MessagePropertyAction;
+class MessageSearchAction;
 class ToolAccountAction;
 class ToolCheckNewMailAction;
 class ToolDialupAction;
@@ -1386,6 +1387,34 @@ private:
 
 /****************************************************************************
  *
+ * MessageSearchAction
+ *
+ */
+
+class MessageSearchAction : public qs::AbstractAction
+{
+public:
+	MessageSearchAction(FolderModel* pFolderModel, Document* pDocument,
+		HWND hwnd, qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	virtual ~MessageSearchAction();
+
+public:
+	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+
+private:
+	MessageSearchAction(const MessageSearchAction&);
+	MessageSearchAction& operator=(const MessageSearchAction&);
+
+private:
+	FolderModel* pFolderModel_;
+	Document* pDocument_;
+	HWND hwnd_;
+	qs::Profile* pProfile_;
+};
+
+
+/****************************************************************************
+ *
  * ToolAccountAction
  *
  */
@@ -1952,7 +1981,7 @@ class ViewRefreshAction : public qs::AbstractAction
 public:
 	ViewRefreshAction(SyncManager* pSyncManager, Document* pDocument,
 		FolderModel* pFolderModel, SyncDialogManager* pSyncDialogManager,
-		HWND hwnd, qs::QSTATUS* pstatus);
+		HWND hwnd, qs::Profile* pProfile, qs::QSTATUS* pstatus);
 	virtual ~ViewRefreshAction();
 
 public:
@@ -1969,6 +1998,7 @@ private:
 	FolderModel* pFolderModel_;
 	SyncDialogManager* pSyncDialogManager_;
 	HWND hwnd_;
+	qs::Profile* pProfile_;
 };
 
 

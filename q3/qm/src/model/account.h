@@ -82,7 +82,10 @@ private:
 		STATE_VALIDITY,
 		STATE_DOWNLOADCOUNT,
 		STATE_DELETEDCOUNT,
-		STATE_CONDITION
+		STATE_DRIVER,
+		STATE_CONDITION,
+		STATE_TARGETFOLDER,
+		STATE_RECURSIVE
 	};
 
 public:
@@ -125,7 +128,10 @@ private:
 	unsigned int nValidity_;
 	unsigned int nDownloadCount_;
 	unsigned int nDeletedCount_;
+	qs::WSTRING wstrDriver_;
 	qs::WSTRING wstrCondition_;
+	unsigned int nTargetFolderId_;
+	bool bRecursive_;
 	qs::StringBuffer<qs::WSTRING>* pBuffer_;
 };
 

@@ -79,6 +79,7 @@
 			<popupmenu text="Move" action="MessageMove"/>
 			<menuitem text="Apply Rules" action="MessageApplyRule"/>
 			<menuitem text="Apply Rules to Selected" action="MessageApplyRuleSelected"/>
+			<separator/>
 			<menuitem text="Search..." action="MessageSearch"/>
 			<separator/>
 			<popupmenu text="Attachment" action="MessageAttachment"/>

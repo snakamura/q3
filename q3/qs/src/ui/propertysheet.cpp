@@ -1,5 +1,5 @@
 /*
- * $Id: propertysheet.cpp,v 1.2 2003/06/01 08:40:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -234,7 +234,7 @@ qs::PropertySheetBase::PropertySheetBase(HINSTANCE hInstResource,
 	pImpl_->bDeleteThis_ = bDeleteThis;
 	memset(&pImpl_->psh_, 0, sizeof(pImpl_->psh_));
 	pImpl_->psh_.dwSize = sizeof(pImpl_->psh_);
-	pImpl_->psh_.dwFlags = PSH_DEFAULT | PSH_USECALLBACK;
+	pImpl_->psh_.dwFlags = PSH_DEFAULT | PSH_USECALLBACK | PSH_NOAPPLYNOW;
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	pImpl_->psh_.dwFlags |= PSH_MAXIMIZE;
 #endif
@@ -438,6 +438,11 @@ qs::PropertyPage::PropertyPage(HINSTANCE hInstResource,
 qs::PropertyPage::~PropertyPage()
 {
 	delete pImpl_;
+}
+
+PropertySheetBase* qs::PropertyPage::getSheet() const
+{
+	return pImpl_->pSheet_;
 }
 
 QSTATUS qs::PropertyPage::create(

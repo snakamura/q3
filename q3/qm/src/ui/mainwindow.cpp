@@ -573,6 +573,11 @@ QSTATUS qm::MainWindowImpl::initActions()
 		pActionMap_, IDM_MESSAGE_PROPERTY,
 		pMessageSelectionModel_, pThis_->getHandle());
 	CHECK_QSTATUS();
+	status = InitAction4<MessageSearchAction,
+		FolderModel*, Document*, HWND, Profile*>(
+		pActionMap_, IDM_MESSAGE_SEARCH, pFolderModel_,
+		pDocument_, pThis_->getHandle(), pProfile_);
+	CHECK_QSTATUS();
 	status = InitAction5<ToolAccountAction, Document*,
 		FolderModel*, SyncFilterManager*, Profile*, HWND>(
 		pActionMap_, IDM_TOOL_ACCOUNT, pDocument_, pFolderModel_,
@@ -720,10 +725,10 @@ QSTATUS qm::MainWindowImpl::initActions()
 		pActionMap_, IDM_VIEW_RAWMODE, pMessageWindow_,
 		&MessageWindow::isRawMode, &MessageWindow::setRawMode, true);
 	CHECK_QSTATUS();
-	status = InitAction5<ViewRefreshAction, SyncManager*,
-		Document*, FolderModel*, SyncDialogManager*, HWND>(
+	status = InitAction6<ViewRefreshAction, SyncManager*,
+		Document*, FolderModel*, SyncDialogManager*, HWND, Profile*>(
 		pActionMap_, IDM_VIEW_REFRESH, pSyncManager_, pDocument_,
-		pFolderModel_, pSyncDialogManager_, pThis_->getHandle());
+		pFolderModel_, pSyncDialogManager_, pThis_->getHandle(), pProfile_);
 	CHECK_QSTATUS();
 	status = InitAction2<ViewScrollAction, HWND, ViewScrollAction::Scroll>(
 		pActionMap_, IDM_VIEW_SCROLLLINEUP,
@@ -1033,8 +1038,8 @@ QSTATUS qm::MainWindowImpl::folderSelected(const FolderModelEvent& event)
 	status = pViewModelManager_->setCurrentFolder(event.getFolder());
 	CHECK_QSTATUS();
 	
+	Folder* pFolder = pFolderModel_->getCurrentFolder();
 	if (!pDocument_->isOffline()) {
-		Folder* pFolder = pFolderModel_->getCurrentFolder();
 		if (pFolder->getType() == Folder::TYPE_NORMAL &&
 			pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
 			pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
@@ -1043,6 +1048,12 @@ QSTATUS qm::MainWindowImpl::folderSelected(const FolderModelEvent& event)
 				SyncDialog::FLAG_NONE, static_cast<NormalFolder*>(pFolder));
 			CHECK_QSTATUS();
 		}
+	}
+	
+	if (pFolder->getType() == Folder::TYPE_QUERY) {
+		status = static_cast<QueryFolder*>(pFolder)->search(
+			pDocument_, pThis_->getHandle(), pProfile_);
+//		CHECK_QSTATUS();
 	}
 	
 	return QSTATUS_SUCCESS;

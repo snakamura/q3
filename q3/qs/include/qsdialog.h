@@ -249,6 +249,9 @@ public:
 		bool bDeleteThis, QSTATUS* pstatus);
 	virtual ~PropertyPage();
 
+public:
+	PropertySheetBase* getSheet() const;
+
 private:
 	QSTATUS create(PropertySheetBase* pSheet, HPROPSHEETPAGE* phpsp);
 

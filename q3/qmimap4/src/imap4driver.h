@@ -13,6 +13,7 @@
 
 #include <qs.h>
 #include <qssocket.h>
+#include <qsthread.h>
 
 #include "imap4.h"
 #include "util.h"
@@ -76,6 +77,9 @@ public:
 
 public:
 	OfflineJobManager* getOfflineJobManager() const;
+	qs::QSTATUS search(qm::SubAccount* pSubAccount, qm::NormalFolder* pFolder,
+		const WCHAR* pwszCondition, const WCHAR* pwszCharset,
+		bool bUseCharset, qm::MessageHolderList* pList);
 
 private:
 	qs::QSTATUS prepareSessionCache(qm::SubAccount* pSubAccount);
@@ -97,6 +101,7 @@ private:
 		virtual qs::QSTATUS processFetchResponse(ResponseFetch* pFetch);
 		virtual qs::QSTATUS processListResponse(ResponseList* pList);
 		virtual qs::QSTATUS processExpungeResponse(ResponseExpunge* pExpunge);
+		virtual qs::QSTATUS processSearchResponse(ResponseSearch* pSearch);
 	};
 	
 	class CallbackImpl : public AbstractCallback

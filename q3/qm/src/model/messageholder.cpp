@@ -330,13 +330,19 @@ void qm::MessageHolder::setFlags(unsigned int nFlags, unsigned int nMask)
 	nFlags_ |= nFlags & nMask;
 	
 	if (nOldFlags != nFlags_)
-		pFolder_->fireMessageFlagChanged(this, nOldFlags, nFlags_);
+		getAccount()->fireMessageHolderChanged(this, nOldFlags, nFlags_);
 }
 
 void qm::MessageHolder::setFolder(NormalFolder* pFolder)
 {
 	assert(getAccount()->isLocked());
 	pFolder_ = pFolder;
+}
+
+QSTATUS qm::MessageHolder::destroy()
+{
+	assert(getAccount()->isLocked());
+	return getAccount()->fireMessageHolderDestroyed(this);
 }
 
 void qm::MessageHolder::setKeys(MessageCacheKey messageCacheKey,
@@ -497,6 +503,58 @@ QSTATUS qm::AbstractMessageHolder::getAddress(
 	}
 	
 	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * MessageHolderHandler
+ *
+ */
+
+qm::MessageHolderHandler::~MessageHolderHandler()
+{
+}
+
+
+/****************************************************************************
+ *
+ * MessageHolderEvent
+ *
+ */
+
+qm::MessageHolderEvent::MessageHolderEvent(MessageHolder* pmh) :
+	pmh_(pmh),
+	nOldFlags_(0),
+	nNewFlags_(0)
+{
+}
+
+qm::MessageHolderEvent::MessageHolderEvent(MessageHolder* pmh,
+	unsigned int nOldFlags, unsigned int nNewFlags) :
+	pmh_(pmh),
+	nOldFlags_(nOldFlags),
+	nNewFlags_(nNewFlags)
+{
+}
+
+qm::MessageHolderEvent::~MessageHolderEvent()
+{
+}
+
+MessageHolder* qm::MessageHolderEvent::getMessageHolder() const
+{
+	return pmh_;
+}
+
+unsigned int qm::MessageHolderEvent::getOldFlags() const
+{
+	return nOldFlags_;
+}
+
+unsigned int qm::MessageHolderEvent::getNewFlags() const
+{
+	return nNewFlags_;
 }
 
 

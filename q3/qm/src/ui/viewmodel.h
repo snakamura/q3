@@ -192,7 +192,9 @@ private:
  *
  */
 
-class ViewModel : public FolderHandler
+class ViewModel :
+	public FolderHandler,
+	public MessageHolderHandler
 {
 public:
 	enum Flag {
@@ -274,8 +276,13 @@ public:
 public:
 	virtual qs::QSTATUS messageAdded(const FolderEvent& event);
 	virtual qs::QSTATUS messageRemoved(const FolderEvent& event);
-	virtual qs::QSTATUS messageChanged(const MessageEvent& event);
+	virtual qs::QSTATUS messageRefreshed(const FolderEvent& event);
+	virtual qs::QSTATUS unseenCountChanged(const FolderEvent& event);
 	virtual qs::QSTATUS folderDestroyed(const FolderEvent& event);
+
+public:
+	virtual qs::QSTATUS messageHolderChanged(const MessageHolderEvent& event);
+	virtual qs::QSTATUS messageHolderDestroyed(const MessageHolderEvent& event);
 
 private:
 	qs::QSTATUS loadColumns();

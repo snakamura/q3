@@ -389,6 +389,22 @@ private:
 	bool bOpen_;
 };
 
+
+/****************************************************************************
+ *
+ * Process
+ *
+ */
+
+class QSEXPORTCLASS Process
+{
+public:
+#ifndef _WIN32_WCE
+	static QSTATUS exec(const WCHAR* pwszCommand,
+		const WCHAR* pwszInput, WSTRING* pwstrOutput);
+#endif
+};
+
 }
 
 #include <qsosutil.inl>

@@ -997,6 +997,70 @@ OfflineJobManager* qmimap4::Imap4Driver::getOfflineJobManager() const
 	return pOfflineJobManager_;
 }
 
+QSTATUS qmimap4::Imap4Driver::search(SubAccount* pSubAccount,
+	NormalFolder* pFolder, const WCHAR* pwszCondition,
+	const WCHAR* pwszCharset, bool bUseCharset, MessageHolderList* pList)
+{
+	assert(pSubAccount);
+	assert(pFolder);
+	assert(pwszCondition);
+	assert(pList);
+	
+	DECLARE_QSTATUS();
+	
+	if (!bOffline_) {
+		Lock<CriticalSection> lock(cs_);
+		
+		status = prepareSessionCache(pSubAccount);
+		CHECK_QSTATUS();
+		
+		Imap4* pImap4 = 0;
+		SessionCacher cacher(pSessionCache_, pFolder, &pImap4, &status);
+		CHECK_QSTATUS();
+		
+		struct SearchProcessHook : public ProcessHook
+		{
+			SearchProcessHook(NormalFolder* pFolder, MessageHolderList* pList) :
+				pFolder_(pFolder),
+				pList_(pList)
+			{
+			}
+			
+			virtual QSTATUS processSearchResponse(ResponseSearch* pSearch)
+			{
+				DECLARE_QSTATUS();
+				
+				status = pFolder_->loadMessageHolders();
+				CHECK_QSTATUS();
+				
+				const ResponseSearch::ResultList& l = pSearch->getResult();
+				ResponseSearch::ResultList::const_iterator it = l.begin();
+				while (it != l.end()) {
+					MessageHolder* pmh = pFolder_->getMessageById(*it);
+					if (pmh) {
+						status = STLWrapper<MessageHolderList>(*pList_).push_back(pmh);
+						CHECK_QSTATUS();
+					}
+					++it;
+				}
+				
+				return QSTATUS_SUCCESS;
+			}
+			
+			NormalFolder* pFolder_;
+			MessageHolderList* pList_;
+		} hook(pFolder, pList);
+		
+		Hook h(pCallback_, &hook);
+		status = pImap4->search(pwszCondition, pwszCharset, bUseCharset, true);
+		CHECK_QSTATUS();
+		
+		cacher.release();
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qmimap4::Imap4Driver::prepareSessionCache(SubAccount* pSubAccount)
 {
 	DECLARE_QSTATUS();
@@ -1073,6 +1137,12 @@ QSTATUS qmimap4::Imap4Driver::ProcessHook::processListResponse(
 
 QSTATUS qmimap4::Imap4Driver::ProcessHook::processExpungeResponse(
 	ResponseExpunge* pExpunge)
+{
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qmimap4::Imap4Driver::ProcessHook::processSearchResponse(
+	ResponseSearch* pSearch)
 {
 	return QSTATUS_SUCCESS;
 }
@@ -1218,6 +1288,7 @@ QSTATUS qmimap4::Imap4Driver::CallbackImpl::response(Response* pResponse)
 		PROCESS_RESPONSE(EXPUNGE, Expunge)
 		PROCESS_RESPONSE(FETCH, Fetch)
 		PROCESS_RESPONSE(LIST, List)
+		PROCESS_RESPONSE(SEARCH, Search)
 	END_PROCESS_RESPONSE()
 	
 	return QSTATUS_SUCCESS;
