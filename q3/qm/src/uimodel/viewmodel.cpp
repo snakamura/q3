@@ -823,6 +823,11 @@ bool qm::ViewModel::save() const
 	return true;
 }
 
+void qm::ViewModel::destroy()
+{
+	fireDestroyed();
+}
+
 void qm::ViewModel::addViewModelHandler(ViewModelHandler* pHandler)
 {
 	listHandler_.push_back(pHandler);
@@ -1180,7 +1185,6 @@ void qm::ViewModel::unseenCountChanged(const FolderEvent& event)
 
 void qm::ViewModel::folderDestroyed(const FolderEvent& event)
 {
-	fireDestroyed();
 	pViewModelManager_->removeViewModel(this);
 }
 
@@ -1696,6 +1700,7 @@ void qm::ViewModelManager::removeViewModel(ViewModel* pViewModel)
 	ViewModelList::iterator itM = std::remove(listViewModel_.begin(),
 		listViewModel_.end(), pViewModel);
 	listViewModel_.erase(itM, listViewModel_.end());
+	pViewModel->destroy();
 	delete pViewModel;
 }
 
@@ -1707,8 +1712,9 @@ void qm::ViewModelManager::accountDestroyed(const AccountEvent& event)
 	while (itV != listViewModel_.end()) {
 		ViewModel* pViewModel = *itV;
 		if (pViewModel->getFolder()->getAccount() == pAccount) {
-			delete pViewModel;
 			itV = listViewModel_.erase(itV);
+			pViewModel->destroy();
+			delete pViewModel;
 		}
 		else {
 			++itV;

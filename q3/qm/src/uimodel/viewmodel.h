@@ -348,6 +348,8 @@ public:
 	void invalidateColors(const ColorManager* pColorManager);
 	bool save() const;
 	
+	void destroy();
+	
 	void addViewModelHandler(ViewModelHandler* pHandler);
 	void removeViewModelHandler(ViewModelHandler* pHandler);
 	
