@@ -307,7 +307,8 @@ ifeq ($(PLATFORM),desktop)
 						  ole32.lib \
 						  oleaut32.lib \
 						  uuid.lib \
-						  urlmon.lib
+						  urlmon.lib \
+						  crypt32.lib
 	ifneq ($(VC7),1)
 		LIBS			+= msvcirt$(DSUFFIX).lib
 	endif
@@ -405,6 +406,9 @@ else
 	endif
 	ifeq ($(PLATFORM),sig3)
 		LIBS			+= urlmon.lib
+	endif
+	ifeq ($(shell if [ "$(PLATFORM)" = ppc2002 ]; then echo 0; elif [ -z "$(CEVER)" ]; then echo 1; elif [ $(CEVER) -ge 400 ]; then echo 0; else echo 1; fi),0)
+		LIBS			+= crypt32.lib
 	endif
 	ifdef KCTRL
 		LIBS			+= $(KCTRLDIR)/lib/$(LIBCPU)/kctrl.lib

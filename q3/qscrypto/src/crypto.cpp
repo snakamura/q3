@@ -13,6 +13,11 @@
 
 #include <stdio.h>
 
+#if !defined _WIN32_WCE || _WIN32_WCE > 300 || defined PLATFORM_PPC2002
+#	include <tchar.h>
+#	include <wincrypt.h>
+#endif
+
 #include <openssl/pem.h>
 
 #include "crypto.h"
@@ -404,6 +409,31 @@ bool qscrypto::StoreImpl::load(const WCHAR* pwszPath,
 		assert(false);
 		break;
 	}
+#endif
+	
+	return true;
+}
+
+bool qscrypto::StoreImpl::loadSystem()
+{
+#if !defined _WIN32_WCE || _WIN32_WCE > 300 || defined PLATFORM_PPC2002
+	HCERTSTORE hStore = ::CertOpenSystemStore(0, _T("ROOT"));
+	if (!hStore)
+		return false;
+	
+	const CERT_CONTEXT* pContext = 0;
+	while (true) {
+		pContext = ::CertEnumCertificatesInStore(hStore, pContext);
+		if (!pContext)
+			break;
+		
+		unsigned char* p = pContext->pbCertEncoded;
+		X509Ptr x509(d2i_X509(0, &p, pContext->cbCertEncoded));
+		if (x509.get())
+			X509_STORE_add_cert(pStore_, x509.get());
+	}
+	::CertFreeCertificateContext(pContext);
+	::CertCloseStore(hStore, 0);
 #endif
 	
 	return true;

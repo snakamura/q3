@@ -165,6 +165,7 @@ public:
 public:
 	virtual bool load(const WCHAR* pwszPath,
 					  FileType type);
+	virtual bool loadSystem();
 
 private:
 	StoreImpl(const StoreImpl&);

@@ -298,6 +298,8 @@ public:
 	 */
 	virtual bool load(const WCHAR* pwszPath,
 					  FileType type) = 0;
+	
+	virtual bool loadSystem() = 0;
 
 public:
 	/**

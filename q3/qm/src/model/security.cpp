@@ -58,6 +58,12 @@ qm::Security::Security(const WCHAR* pwszPath,
 		pImpl_->wstrPath_ = concat(pwszPath, L"\\security");
 		
 		pImpl_->pStoreCA_ = Store::getInstance();
+		if (pProfile->getInt(L"Security", L"LoadSystemStore", 1)) {
+			if (!pImpl_->pStoreCA_->loadSystem()) {
+				// TODO
+			}
+		}
+		
 		wstring_ptr wstrCAPath(concat(pImpl_->wstrPath_.get(), L"\\", FileNames::CA_PEM));
 		W2T(wstrCAPath.get(), ptszCAPath);
 		if (::GetFileAttributes(ptszCAPath) != 0xffffffff) {
