@@ -184,6 +184,7 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 		if (pMessageViewWindow_)
 			pMessageViewWindow_->getWindow().showWindow(SW_HIDE);
 		pMessageViewWindow->getWindow().showWindow(SW_SHOW);
+		pMessageViewWindow->setSelectMode(bSelectMode_);
 		pMessageViewWindow_ = pMessageViewWindow;
 		bLayout = true;
 	}
@@ -280,7 +281,7 @@ qm::MessageWindow::MessageWindow(MessageModel* pMessageModel,
 	pImpl_->bCreated_ = false;
 	pImpl_->pMessageModel_ = pMessageModel;
 	pImpl_->wstrTemplate_ = *wstrTemplate.get() ? wstrTemplate : 0;
-	pImpl_->bSelectMode_ = false;
+	pImpl_->bSelectMode_ = pProfile->getInt(pwszSection, L"SelectMode", 0) != 0;
 	
 	pImpl_->pMessageModel_->addMessageModelHandler(pImpl_);
 	
@@ -447,6 +448,7 @@ bool qm::MessageWindow::save()
 	pProfile->setInt(pImpl_->pwszSection_, L"ShowHeaderWindow", pImpl_->bShowHeaderWindow_);
 	pProfile->setInt(pImpl_->pwszSection_, L"HtmlMode", pImpl_->bHtmlMode_);
 	pProfile->setInt(pImpl_->pwszSection_, L"HtmlOnlineMode", pImpl_->bHtmlOnlineMode_);
+	pProfile->setInt(pImpl_->pwszSection_, L"SelectMode", pImpl_->bSelectMode_);
 	pProfile->setString(pImpl_->pwszSection_, L"Template",
 		pImpl_->wstrTemplate_.get() ? pImpl_->wstrTemplate_.get() : L"");
 	
@@ -520,6 +522,7 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (!pImpl_->pFactory_->create(getHandle()))
 		return -1;
 	pImpl_->pMessageViewWindow_ = pImpl_->pFactory_->getTextMessageViewWindow();
+	pImpl_->pMessageViewWindow_->setSelectMode(pImpl_->bSelectMode_);
 	pImpl_->layoutChildren();
 	pImpl_->pMessageViewWindow_->getWindow().showWindow(SW_SHOW);
 	
