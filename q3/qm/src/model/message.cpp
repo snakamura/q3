@@ -1477,13 +1477,199 @@ QSTATUS qm::PartUtil::getFormattedText(bool bUseSendersTimeZone,
 
 QSTATUS qm::PartUtil::getDigest(MessageList* pList) const
 {
-	// TODO
+	assert(pList);
+	
+	DECLARE_QSTATUS();
+	
+	struct Deleter
+	{
+		Deleter(MessageList* p) :
+			p_(p)
+		{
+		}
+		
+		~Deleter()
+		{
+			if (p_) {
+				std::for_each(p_->begin(), p_->end(), deleter<Message>());
+				p_->clear();
+			}
+		}
+		
+		void release()
+		{
+			p_ = 0;
+		}
+		
+		MessageList* p_;
+	} deleter(pList);
+	
+	DigestMode mode = DIGEST_NONE;
+	status = getDigestMode(&mode);
+	CHECK_QSTATUS();
+	if (mode == DIGEST_NONE)
+		return QSTATUS_SUCCESS;
+	
+	AddressListParser to(0, &status);
+	CHECK_QSTATUS();
+	Part::Field fieldTo;
+	status = part_.getField(L"To", &to, &fieldTo);
+	CHECK_QSTATUS();
+	
+	AddressListParser replyTo(0, &status);
+	CHECK_QSTATUS();
+	Part::Field fieldReplyTo;
+	status = part_.getField(L"Reply-To", &replyTo, &fieldReplyTo);
+	CHECK_QSTATUS();
+	
+	switch (mode) {
+	case DIGEST_MULTIPART:
+		{
+			const Part::PartList& l = part_.getPartList();
+			Part::PartList::const_iterator it = l.begin();
+			while (it != l.end()) {
+				const Part* pEnclosedPart = (*it)->getEnclosedPart();
+				if (pEnclosedPart || PartUtil(**it).isText()) {
+					string_ptr<STRING> strContent;
+					if (pEnclosedPart) {
+						status = pEnclosedPart->getContent(&strContent);
+						CHECK_QSTATUS();
+					}
+					else {
+						status = (*it)->getContent(&strContent);
+						CHECK_QSTATUS();
+					}
+					std::auto_ptr<Message> pMessage;
+					status = newQsObject(strContent.get(),
+						-1, Message::FLAG_NONE, &pMessage);
+					CHECK_QSTATUS();
+					
+					if (fieldTo == Part::FIELD_EXIST) {
+						status = pMessage->setField(L"To", to);
+						CHECK_QSTATUS();
+					}
+					if (fieldReplyTo == Part::FIELD_EXIST) {
+						status = pMessage->setField(L"Reply-To", replyTo);
+						CHECK_QSTATUS();
+					}
+					status = STLWrapper<MessageList>(
+						*pList).push_back(pMessage.get());
+					CHECK_QSTATUS();
+					pMessage.release();
+				}
+				++it;
+			}
+		}
+		break;
+	case DIGEST_RFC1153:
+		{
+			BMFindString<WSTRING> bmfsStart(
+				L"\n-----------------------------------"
+				L"-----------------------------------\n", &status);
+			CHECK_QSTATUS();
+			const WCHAR* pwszSeparator = L"\n------------------------------\n";
+			size_t nSeparatorLen = wcslen(pwszSeparator);
+			BMFindString<WSTRING> bmfsSeparator(pwszSeparator, &status);
+			CHECK_QSTATUS();
+			
+			MessageCreator creator;
+			
+			string_ptr<WSTRING> wstrBody;
+			status = part_.getBodyText(&wstrBody);
+			CHECK_QSTATUS();
+			const WCHAR* p = bmfsStart.find(wstrBody.get());
+			while (p) {
+				p = wcschr(p + 1, L'\n');
+				assert(p);
+				
+				const WCHAR* pEnd = bmfsSeparator.find(p);
+				if (!pEnd)
+					break;
+				
+				Message* pMessage = 0;
+				status = creator.createMessage(p, pEnd - p, &pMessage);
+				CHECK_QSTATUS();
+				std::auto_ptr<Message> apMessage(pMessage);
+				
+				if (fieldTo == Part::FIELD_EXIST) {
+					status = pMessage->setField(L"To", to);
+					CHECK_QSTATUS();
+				}
+				if (fieldReplyTo == Part::FIELD_EXIST) {
+					status = pMessage->setField(L"Reply-To", replyTo);
+					CHECK_QSTATUS();
+				}
+				status = STLWrapper<MessageList>(*pList).push_back(pMessage);
+				CHECK_QSTATUS();
+				apMessage.release();
+				
+				if (wcsncmp(pEnd + nSeparatorLen + 1, L"End of ", 7) == 0)
+					break;
+				p = pEnd;
+			}
+		}
+		break;
+	default:
+		assert(false);
+		break;
+	}
+	
+	deleter.release();
+	
 	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::PartUtil::getDigestMode(DigestMode* pMode) const
 {
-	// TODO
+	assert(pMode);
+	
+	DECLARE_QSTATUS();
+	
+	*pMode = DIGEST_NONE;
+	
+	const ContentTypeParser* pContentType = part_.getContentType();
+	if (!pContentType || wcsicmp(pContentType->getMediaType(), L"text") == 0) {
+		UnstructuredParser subject(&status);
+		Part::Field f;
+		status = part_.getField(L"Subject", &subject, &f);
+		CHECK_QSTATUS();
+		if (f != Part::FIELD_EXIST)
+			return QSTATUS_SUCCESS;
+		
+		string_ptr<WSTRING> wstrSubject(tolower(subject.getValue()));
+		if (!wstrSubject.get())
+			return QSTATUS_OUTOFMEMORY;
+		if (!wcsstr(wstrSubject.get(), L"digest"))
+			return QSTATUS_SUCCESS;
+		
+		string_ptr<WSTRING> wstrBody;
+		status = part_.getBodyText(&wstrBody);
+		CHECK_QSTATUS();
+		BMFindString<WSTRING> bmfs(
+			L"\n----------------------------------"
+			L"------------------------------------\n", &status);
+		CHECK_QSTATUS();
+		if (bmfs.find(wstrBody.get()))
+			*pMode = DIGEST_RFC1153;
+	}
+	else if (wcsicmp(pContentType->getMediaType(), L"multipart") == 0) {
+		if (wcsicmp(pContentType->getSubType(), L"mixed") != 0 &&
+			wcsicmp(pContentType->getSubType(), L"digest") != 0)
+			return QSTATUS_SUCCESS;
+		
+		const Part::PartList& l = part_.getPartList();
+		Part::PartList::const_iterator it = l.begin();
+		while (it != l.end()) {
+			bool b = false;
+			status = PartUtil(**it).isAttachment(&b);
+			CHECK_QSTATUS();
+			if (b)
+				return QSTATUS_SUCCESS;
+			++it;
+		}
+		*pMode = DIGEST_MULTIPART;
+	}
+	
 	return QSTATUS_SUCCESS;
 }
 
