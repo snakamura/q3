@@ -513,6 +513,12 @@ INT_PTR CALLBACK qs::propertyPageProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 		}
 		break;
 	
+#if defined _WIN32_WCE && !defined _WIN32_WCE_EMULATION
+	case WM_DESTROY:
+		WindowDestroy::getWindowDestroy()->process(hwnd);
+		break;
+#endif
+	
 	default:
 		break;
 	}
