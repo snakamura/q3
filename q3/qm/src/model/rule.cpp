@@ -736,6 +736,41 @@ std::auto_ptr<RuleAction> qm::DeleteRuleAction::clone() const
 
 /****************************************************************************
  *
+ * DeleteCacheRuleAction
+ *
+ */
+
+qm::DeleteCacheRuleAction::DeleteCacheRuleAction()
+{
+}
+
+qm::DeleteCacheRuleAction::DeleteCacheRuleAction(const DeleteCacheRuleAction& action)
+{
+}
+
+qm::DeleteCacheRuleAction::~DeleteCacheRuleAction()
+{
+}
+
+RuleAction::Type qm::DeleteCacheRuleAction::getType() const
+{
+	return TYPE_DELETECACHE;
+}
+
+bool qm::DeleteCacheRuleAction::apply(const RuleContext& context) const
+{
+	return context.getAccount()->deleteMessagesCache(
+		context.getMessageHolderList());
+}
+
+std::auto_ptr<RuleAction> qm::DeleteCacheRuleAction::clone() const
+{
+	return std::auto_ptr<RuleAction>(new DeleteCacheRuleAction(*this));
+}
+
+
+/****************************************************************************
+ *
  * ApplyRuleAction
  *
  */
@@ -1045,6 +1080,17 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		state_ = STATE_DELETE;
 	}
+	else if (wcscmp(pwszLocalName, L"deleteCache") == 0) {
+		if (state_ != STATE_RULE)
+			return false;
+		assert(pCondition_.get());
+		
+		std::auto_ptr<RuleAction> pAction(new DeleteCacheRuleAction());
+		std::auto_ptr<Rule> pRule(new Rule(pCondition_, pAction));
+		pCurrentRuleSet_->addRule(pRule);
+		
+		state_ = STATE_DELETECACHE;
+	}
 	else if (wcscmp(pwszLocalName, L"apply") == 0) {
 		if (state_ != STATE_RULE)
 			return false;
@@ -1125,6 +1171,10 @@ bool qm::RuleContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 	}
 	else if (wcscmp(pwszLocalName, L"delete") == 0) {
 		assert(state_ == STATE_DELETE);
+		state_ = STATE_RULE;
+	}
+	else if (wcscmp(pwszLocalName, L"deleteCache") == 0) {
+		assert(state_ == STATE_DELETECACHE);
 		state_ = STATE_RULE;
 	}
 	else if (wcscmp(pwszLocalName, L"apply") == 0) {
@@ -1239,6 +1289,10 @@ bool qm::RuleWriter::write(const Rule* pRule)
 			if (!write(static_cast<const DeleteRuleAction*>(pAction)))
 				return false;
 			break;
+		case RuleAction::TYPE_DELETECACHE:
+			if (!write(static_cast<const DeleteCacheRuleAction*>(pAction)))
+				return false;
+			break;
 		case RuleAction::TYPE_APPLY:
 			if (!write(static_cast<const ApplyRuleAction*>(pAction)))
 				return false;
@@ -1299,6 +1353,12 @@ bool qm::RuleWriter::write(const DeleteRuleAction* pAction)
 	SimpleAttributes attrs(L"direct", pAction->isDirect() ? L"true" : L"false");
 	return handler_.startElement(0, 0, L"delete", attrs) &&
 		handler_.endElement(0, 0, L"delete");
+}
+
+bool qm::RuleWriter::write(const DeleteCacheRuleAction* pAction)
+{
+	return handler_.startElement(0, 0, L"deleteCache", DefaultAttributes()) &&
+		handler_.endElement(0, 0, L"deleteCache");
 }
 
 bool qm::RuleWriter::write(const ApplyRuleAction* pAction)

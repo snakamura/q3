@@ -32,6 +32,7 @@ class RuleAction;
 	class NullRuleAction;
 	class CopyRuleAction;
 	class DeleteRuleAction;
+	class DeleteCacheRuleAction;
 	class ApplyRuleAction;
 class RuleContext;
 class RuleContentHandler;
@@ -207,6 +208,7 @@ public:
 		TYPE_MOVE,
 		TYPE_COPY,
 		TYPE_DELETE,
+		TYPE_DELETECACHE,
 		TYPE_APPLY
 	};
 
@@ -304,6 +306,33 @@ private:
 
 private:
 	bool bDirect_;
+};
+
+
+/****************************************************************************
+ *
+ * DeleteCacheRuleAction
+ *
+ */
+
+class DeleteCacheRuleAction : public RuleAction
+{
+public:
+	DeleteCacheRuleAction();
+
+private:
+	DeleteCacheRuleAction(const DeleteCacheRuleAction& action);
+
+public:
+	virtual ~DeleteCacheRuleAction();
+
+public:
+	virtual Type getType() const;
+	virtual bool apply(const RuleContext& context) const;
+	virtual std::auto_ptr<RuleAction> clone() const;
+
+private:
+	DeleteCacheRuleAction& operator=(const DeleteCacheRuleAction&);
 };
 
 
@@ -423,6 +452,7 @@ private:
 		STATE_TEMPLATE,
 		STATE_ARGUMENT,
 		STATE_DELETE,
+		STATE_DELETECACHE,
 		STATE_APPLY
 	};
 
@@ -458,6 +488,7 @@ private:
 	bool write(const Rule* pRule);
 	bool write(const CopyRuleAction* pAction);
 	bool write(const DeleteRuleAction* pAction);
+	bool write(const DeleteCacheRuleAction* pAction);
 	bool write(const ApplyRuleAction* pAction);
 
 private:

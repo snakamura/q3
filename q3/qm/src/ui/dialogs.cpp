@@ -5034,6 +5034,7 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 		L"Move",
 		L"Copy",
 		L"Delete",
+		L"DeleteCache",
 		L"Apply"
 	};
 	for (int n = 0; n < countof(pwszTypes); ++n) {
@@ -5076,9 +5077,12 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 					bDirect ? BST_CHECKED : BST_UNCHECKED);
 			}
 			break;
+		case RuleAction::TYPE_DELETECACHE:
+			nItem = 4;
+			break;
 		case RuleAction::TYPE_APPLY:
 			{
-				nItem = 4;
+				nItem = 5;
 				
 				wstring_ptr wstrMacro(static_cast<ApplyRuleAction*>(pAction)->getMacro()->getString());
 				setDlgItemText(IDC_MACRO, wstrMacro.get());
@@ -5140,6 +5144,9 @@ LRESULT qm::RuleDialog::onOk()
 		}
 		break;
 	case 4:
+		pAction.reset(new DeleteCacheRuleAction());
+		break;
+	case 5:
 		{
 			wstring_ptr wstrMacro(getDlgItemText(IDC_MACRO));
 			std::auto_ptr<Macro> pMacro(MacroParser(MacroParser::TYPE_RULE).parse(wstrMacro.get()));
@@ -5259,6 +5266,8 @@ void qm::RuleDialog::updateState(bool bUpdateFolder)
 		nEnd = 6;
 		break;
 	case 4:
+		break;
+	case 5:
 		nStart = 6;
 		nEnd = 8;
 		bEnable = Window(getDlgItem(IDC_MACRO)).getWindowTextLength() != 0;
