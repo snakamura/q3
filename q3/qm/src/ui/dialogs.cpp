@@ -3149,7 +3149,7 @@ void qm::ProgressDialog::term()
 bool qm::ProgressDialog::isCanceled() const
 {
 	MSG msg;
-	while (::PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
+	while (::PeekMessage(&msg, getHandle(), 0, 0, PM_REMOVE)) {
 		::TranslateMessage(&msg);
 		::DispatchMessage(&msg);
 	}
