@@ -1322,7 +1322,6 @@ LRESULT qm::FolderWindow::onMessageChanged(WPARAM wParam,
 LRESULT qm::FolderWindow::onDeselectTemporary(WPARAM wParam,
 											  LPARAM lParam)
 {
-	messageBox(L"Deselected");
 	pImpl_->pFolderModel_->setTemporary(0, 0);
 	return 0;
 }
