@@ -1883,7 +1883,17 @@ QSTATUS qm::FolderEmptyAction::invoke(const ActionEvent& event)
 QSTATUS qm::FolderEmptyAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
 {
 	assert(pbEnabled);
-	return pModel_->hasSelectedFolder(pbEnabled);
+	
+	DECLARE_QSTATUS();
+	
+	Account::FolderList l;
+	status = pModel_->getSelectedFolders(&l);
+	CHECK_QSTATUS();
+	
+	*pbEnabled = l.size() > 1 ||
+		(l.size() == 1 && !l.front()->isFlag(Folder::FLAG_TRASHBOX));
+	
+	return QSTATUS_SUCCESS;
 }
 
 
