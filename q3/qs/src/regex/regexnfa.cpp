@@ -1,5 +1,5 @@
 /*
- * $Id: regexnfa.cpp,v 1.1.1.1 2003/04/29 08:07:35 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -367,8 +367,8 @@ QSTATUS qs::RegexNfaMatcher::match(const WCHAR* pwsz, bool* pbMatch)
 	
 	status = STLWrapper<States>(states_).resize(pNfa_->getStateCount());
 	CHECK_QSTATUS();
-	std::fill(states_.begin(), states_.end(), false);
-	states_.front() = true;
+	std::fill(states_.begin(), states_.end(), 0);
+	states_.front() = 1;
 	
 	epsilonTransition();
 	
@@ -379,7 +379,7 @@ QSTATUS qs::RegexNfaMatcher::match(const WCHAR* pwsz, bool* pbMatch)
 		++pwsz;
 	}
 
-	*pbMatch = states_[1];
+	*pbMatch = states_[1] != 0;
 	
 	return QSTATUS_SUCCESS;
 }
@@ -398,7 +398,7 @@ void qs::RegexNfaMatcher::epsilonTransition(unsigned int n)
 			if (pState->isEpsilon()) {
 				unsigned int nTo = pState->getTo();
 				if (!states_[nTo]) {
-					states_[nTo] = true;
+					states_[nTo] = 1;
 					epsilonTransition(nTo);
 				}
 			}
@@ -422,7 +422,7 @@ QSTATUS qs::RegexNfaMatcher::makeTransition(WCHAR c)
 			const RegexNfaState* pState = pNfa_->getState(n);
 			while (pState) {
 				if (pState->match(c))
-					states[pState->getTo()] = true;
+					states[pState->getTo()] = 1;
 				pState = pState->getNext();
 			}
 		}
