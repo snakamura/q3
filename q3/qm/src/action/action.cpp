@@ -870,11 +870,9 @@ void qm::FileDumpAction::invoke(const qs::ActionEvent& event)
 	
 	for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
 		Folder* pFolder = *it;
-		if (pFolder->getType() == Folder::TYPE_NORMAL) {
-			if (!dumpFolder(wstrPath.get(), static_cast<NormalFolder*>(pFolder), &dialog)) {
-				ActionUtil::error(hwnd_, IDS_ERROR_DUMP);
-				return;
-			}
+		if (!dumpFolder(wstrPath.get(), pFolder, pFolder->getType() != Folder::TYPE_NORMAL, &dialog)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_DUMP);
+			return;
 		}
 	}
 }
@@ -885,12 +883,16 @@ bool qm::FileDumpAction::isEnabled(const qs::ActionEvent& event)
 }
 
 bool qm::FileDumpAction::dumpFolder(const WCHAR* pwszPath,
-									NormalFolder* pFolder,
+									Folder* pFolder,
+									bool bCreateDirectoryOnly,
 									ProgressDialog* pDialog)
 {
 	wstring_ptr wstrDir(getDirectory(pwszPath, pFolder));
 	if (!File::createDirectory(wstrDir.get()))
 		return false;
+	
+	if (bCreateDirectoryOnly)
+		return true;
 	
 	unsigned int nCount = pFolder->getCount();
 	for (unsigned int n = 0; n < nCount; ++n) {
@@ -916,17 +918,27 @@ bool qm::FileDumpAction::dumpFolder(const WCHAR* pwszPath,
 }
 
 wstring_ptr qm::FileDumpAction::getDirectory(const WCHAR* pwszPath,
-											 NormalFolder* pFolder)
+											 Folder* pFolder)
 {
 	assert(pwszPath);
 	assert(pFolder);
 	
-	// TODO
-	// Include flags or something?
-	wstring_ptr wstrName(pFolder->getFullName());
-	std::replace(wstrName.get(), wstrName.get() + wcslen(wstrName.get()),
-		pFolder->getSeparator(), L'\\');
-	return concat(pwszPath, L"\\", wstrName.get());
+	wstring_ptr wstrParentPath;
+	if (pFolder->getParentFolder())
+		wstrParentPath = getDirectory(pwszPath, pFolder->getParentFolder());
+	else
+		wstrParentPath = allocWString(pwszPath);
+	
+	WCHAR wsz[32];
+	swprintf(wsz, L"$$%c%x", pFolder->getType() == Folder::TYPE_NORMAL ? L'n' : L'q', pFolder->getFlags());
+	
+	ConcatW c[] = {
+		{ wstrParentPath.get(),	-1	},
+		{ L"\\",				1	},
+		{ pFolder->getName(),	-1	},
+		{ wsz,					-1	}
+	};
+	return concat(c, countof(c));
 }
 
 

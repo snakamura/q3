@@ -650,12 +650,13 @@ public:
 
 private:
 	bool dumpFolder(const WCHAR* pwszPath,
-					NormalFolder* pFolder,
+					Folder* pFolder,
+					bool bCreateDirectoryOnly,
 					ProgressDialog* pDialog);
 
 private:
 	static qs::wstring_ptr getDirectory(const WCHAR* pwszPath,
-										NormalFolder* pFolder);
+										Folder* pFolder);
 
 private:
 	FileDumpAction(const FileDumpAction&);
