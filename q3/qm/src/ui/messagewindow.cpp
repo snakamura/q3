@@ -340,6 +340,9 @@ qm::MessageWindow::MessageWindow(MessageModel* pMessageModel,
 	status = pProfile->getInt(pwszSection,
 		L"DecryptVerifyMode", 0, &nDecryptVerifyMode);
 	CHECK_QSTATUS_SET(pstatus);
+	string_ptr<WSTRING> wstrTemplate;
+	status = pProfile->getString(pwszSection, L"Template", L"", &wstrTemplate);
+	CHECK_QSTATUS_SET(pstatus);
 	
 	status = newObject(&pImpl_);
 	CHECK_QSTATUS_SET(pstatus);
@@ -359,7 +362,7 @@ qm::MessageWindow::MessageWindow(MessageModel* pMessageModel,
 	pImpl_->pMessageModel_ = pMessageModel;
 	pImpl_->pFactory_ = 0;
 	pImpl_->wstrEncoding_ = 0;
-	pImpl_->wstrTemplate_ = 0;
+	pImpl_->wstrTemplate_ = *wstrTemplate.get() ? wstrTemplate.release() : 0;
 	pImpl_->bSelectMode_ = false;
 	
 	status = pImpl_->pMessageModel_->addMessageModelHandler(pImpl_);
@@ -601,6 +604,9 @@ QSTATUS qm::MessageWindow::save() const
 	CHECK_QSTATUS();
 	status = pProfile->setInt(pImpl_->pwszSection_,
 		L"DecryptVerifyMode", pImpl_->bDecryptVerifyMode_);
+	CHECK_QSTATUS();
+	status = pProfile->setString(pImpl_->pwszSection_,
+		L"Template", pImpl_->wstrTemplate_ ? pImpl_->wstrTemplate_ : L"");
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
