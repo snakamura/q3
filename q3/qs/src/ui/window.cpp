@@ -915,6 +915,13 @@ bool qs::WindowBase::translateAccelerator(const MSG& msg)
 		msg.message != WM_SYSCHAR)
 		return false;
 	
+	if ((msg.message == WM_KEYDOWN || msg.message == WM_KEYUP) &&
+		(msg.wParam == VK_CONTROL || msg.wParam == VK_SHIFT))
+		return false;
+	else if ((msg.message == WM_SYSKEYDOWN || msg.message == WM_SYSKEYUP) &&
+		msg.wParam == VK_MENU)
+		return false;
+	
 	bool bProcessed = false;
 	
 	WindowBaseImpl::WindowMap* pMap = WindowBaseImpl::getWindowMap();
