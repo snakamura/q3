@@ -634,6 +634,12 @@ public:
 		lResult = onCopy(); \
 		break; \
 
+#define HANDLE_COPYDATA() \
+	case WM_COPYDATA: \
+		lResult = onCopyData(reinterpret_cast<HWND>(wParam), \
+			reinterpret_cast<COPYDATASTRUCT*>(lParam)); \
+		break; \
+
 #define HANDLE_CREATE() \
 	case WM_CREATE: \
 		lResult = onCreate(reinterpret_cast<CREATESTRUCT*>(lParam)); \
@@ -898,6 +904,7 @@ protected:
 	LRESULT onCommand(UINT nCode, UINT nId, HWND hwnd);
 	LRESULT onContextMenu(HWND hwnd, const POINT& pt);
 	LRESULT onCopy();
+	LRESULT onCopyData(HWND hwnd, COPYDATASTRUCT* pData);
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
 	LRESULT onCtlColorStatic(HDC hdc, HWND hwnd);
 	LRESULT onCut();

@@ -1,5 +1,5 @@
 /*
- * $Id: qmaction.h,v 1.2 2003/05/14 08:52:16 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -32,6 +32,7 @@ public:
 	~ActionInvoker();
 
 public:
+	qs::QSTATUS invoke(UINT nId, VARIANT** ppvarArgs, size_t nArgs) const;
 	qs::QSTATUS invoke(const WCHAR* pwszAction,
 		VARIANT** ppvarArgs, size_t nArgs) const;
 

@@ -122,6 +122,7 @@ struct ActionNameMap
 	{ L"MessageMoveOther",				IDM_MESSAGE_MOVEOTHER					},
 	{ L"MessageNew",					IDM_MESSAGE_NEW							},
 	{ L"MessageNewExternal",			IDM_MESSAGE_NEWEXTERNAL					},
+	{ L"MessageOpenURL",				IDM_MESSAGE_OPENURL						},
 	{ L"MessageProperty",				IDM_MESSAGE_PROPERTY					},
 	{ L"MessageReply",					IDM_MESSAGE_REPLY						},
 	{ L"MessageReplyExternal",			IDM_MESSAGE_REPLYEXTERNAL				},
@@ -275,6 +276,27 @@ qm::ActionInvoker::~ActionInvoker()
 {
 }
 
+QSTATUS qm::ActionInvoker::invoke(UINT nId,
+	VARIANT** ppvarArgs, size_t nArgs) const
+{
+	DECLARE_QSTATUS();
+	
+	Action* pAction = pActionMap_->getAction(nId);
+	if (pAction) {
+		ActionParam param = { ppvarArgs, nArgs };
+		ActionEvent event(nId, 0, &param);
+		bool bEnabled = false;
+		status = pAction->isEnabled(event, &bEnabled);
+		CHECK_QSTATUS();
+		if (bEnabled) {
+			status = pAction->invoke(event);
+			CHECK_QSTATUS();
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::ActionInvoker::invoke(const WCHAR* pwszAction,
 	VARIANT** ppvarArgs, size_t nArgs) const
 {
@@ -295,16 +317,8 @@ QSTATUS qm::ActionInvoker::invoke(const WCHAR* pwszAction,
 			mem_data_ref(&ActionNameMap::pwszName_)));
 	if (pMap != actionNameMap + countof(actionNameMap) &&
 		wcscmp(pMap->pwszName_, pwszAction) == 0) {
-		Action* pAction = pActionMap_->getAction(pMap->nId_);
-		ActionParam param = { ppvarArgs, nArgs };
-		ActionEvent event(pMap->nId_, 0, &param);
-		bool bEnabled = false;
-		status = pAction->isEnabled(event, &bEnabled);
+		status = invoke(pMap->nId_, ppvarArgs, nArgs);
 		CHECK_QSTATUS();
-		if (bEnabled) {
-			status = pAction->invoke(event);
-			CHECK_QSTATUS();
-		}
 	}
 	
 	return QSTATUS_SUCCESS;

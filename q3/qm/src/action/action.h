@@ -56,6 +56,7 @@ class MessageMarkAction;
 class MessageMoveAction;
 class MessageMoveOtherAction;
 class MessageOpenAttachmentAction;
+class MessageOpenURLAction;
 class MessagePropertyAction;
 class ToolAccountAction;
 class ToolCheckNewMailAction;
@@ -1072,6 +1073,35 @@ public:
 private:
 	AttachmentMenu* pAttachmentMenu_;
 	AttachmentHelper helper_;
+};
+
+
+/****************************************************************************
+ *
+ * MessageOpenURLAction
+ *
+ */
+
+class MessageOpenURLAction : public qs::AbstractAction
+{
+public:
+	MessageOpenURLAction(Document* pDocument, FolderModelBase* pFolderModel,
+		MessageSelectionModel* pMessageSelectionModel,
+		EditFrameWindowManager* pEditFrameWindowManager,
+		ExternalEditorManager* pExternalEditorManager, HWND hwnd,
+		qs::Profile* pProfile, bool bExternalEditor, qs::QSTATUS* pstatus);
+	virtual ~MessageOpenURLAction();
+
+public:
+	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+
+private:
+	MessageOpenURLAction(const MessageOpenURLAction&);
+	MessageOpenURLAction& operator=(const MessageOpenURLAction&);
+
+private:
+	TemplateProcessor processor_;
 };
 
 

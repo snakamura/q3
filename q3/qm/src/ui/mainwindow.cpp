@@ -472,6 +472,13 @@ QSTATUS qm::MainWindowImpl::initActions()
 	status = InitAction1<MessageMoveOtherAction, MessageSelectionModel*>(
 		pActionMap_, IDM_MESSAGE_MOVEOTHER, pMessageSelectionModel_);
 	CHECK_QSTATUS();
+	status = InitAction8<MessageOpenURLAction, Document*,
+		FolderModelBase*, MessageSelectionModel*, EditFrameWindowManager*,
+		ExternalEditorManager*, HWND, Profile*, bool>(
+		pActionMap_, IDM_MESSAGE_OPENURL, pDocument_, pFolderModel_,
+		pMessageSelectionModel_, pEditFrameWindowManager_,
+		pExternalEditorManager_, pThis_->getHandle(), pProfile_, false);
+	CHECK_QSTATUS();
 	status = InitAction2<MessagePropertyAction, MessageSelectionModel*, HWND>(
 		pActionMap_, IDM_MESSAGE_PROPERTY, pMessageSelectionModel_, pThis_->getHandle());
 	CHECK_QSTATUS();
@@ -1638,6 +1645,7 @@ LRESULT qm::MainWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_ACTIVATE()
 		HANDLE_CLOSE()
+		HANDLE_COPYDATA()
 		HANDLE_CREATE()
 		HANDLE_DESTROY()
 		HANDLE_INITMENUPOPUP()
@@ -1675,8 +1683,17 @@ LRESULT qm::MainWindow::onClose()
 	Action* pAction = pImpl_->pActionMap_->getAction(IDM_FILE_EXIT);
 	assert(pAction);
 	pAction->invoke(ActionEvent(IDM_FILE_EXIT, 0));
-	
 	return 0;
+}
+
+LRESULT qm::MainWindow::onCopyData(HWND hwnd, COPYDATASTRUCT* pData)
+{
+	Variant v(::SysAllocString(static_cast<WCHAR*>(pData->lpData)));
+	if (v.bstrVal) {
+		VARIANT* pvars[] = { &v };
+		pImpl_->pActionInvoker_->invoke(pData->dwData, pvars, countof(pvars));
+	}
+	return 1;
 }
 
 LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)

@@ -12,6 +12,7 @@
 #include <qm.h>
 
 #include <qsutil.h>
+#include <qswindow.h>
 
 
 namespace qm {
@@ -29,10 +30,9 @@ public:
 	virtual ~MainCommandLineHandler();
 
 public:
-	const WCHAR* getGoRound() const;
 	const WCHAR* getMailFolder() const;
 	const WCHAR* getProfile() const;
-	const WCHAR* getURL() const;
+	void invoke(HWND hwnd);
 
 public:
 	virtual qs::QSTATUS process(const WCHAR* pwszOption);
@@ -44,17 +44,17 @@ private:
 private:
 	enum State {
 		STATE_NONE,
-		STATE_GOROUND,
 		STATE_MAILFOLDER,
 		STATE_PROFILE,
+		STATE_GOROUND,
 		STATE_URL
 	};
 
 private:
 	State state_;
-	qs::WSTRING wstrGoRound_;
 	qs::WSTRING wstrMailFolder_;
 	qs::WSTRING wstrProfile_;
+	qs::WSTRING wstrGoRound_;
 	qs::WSTRING wstrURL_;
 };
 
@@ -69,7 +69,7 @@ class MailFolderLock
 {
 public:
 	MailFolderLock(const WCHAR* pwszMailFolder,
-		bool* pbContinue, qs::QSTATUS* pstatus);
+		bool* pbContinue, HWND* phwnd, qs::QSTATUS* pstatus);
 	~MailFolderLock();
 
 public:
@@ -77,7 +77,8 @@ public:
 	qs::QSTATUS unsetWindow();
 
 private:
-	qs::QSTATUS lock(const WCHAR* pwszMailFolder, bool* pbContinue);
+	qs::QSTATUS lock(const WCHAR* pwszMailFolder,
+		bool* pbContinue, HWND* phwnd);
 	qs::QSTATUS unlock();
 	qs::QSTATUS read(HANDLE hFile, HWND* phwnd, qs::WSTRING* pwstrName);
 

@@ -74,6 +74,7 @@ public:
 protected:
 	LRESULT onActivate(UINT nFlags, HWND hwnd, bool bMinimized);
 	LRESULT onClose();
+	LRESULT onCopyData(HWND hwnd, COPYDATASTRUCT* pData);
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
 	LRESULT onDestroy();
 	LRESULT onInitMenuPopup(HMENU hmenu, UINT nIndex, bool bSysMenu);

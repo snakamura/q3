@@ -2189,6 +2189,57 @@ QSTATUS qm::MessageOpenAttachmentAction::invoke(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * MessageOpenURLAction
+ *
+ */
+
+qm::MessageOpenURLAction::MessageOpenURLAction(Document* pDocument,
+	FolderModelBase* pFolderModel, MessageSelectionModel* pMessageSelectionModel,
+	EditFrameWindowManager* pEditFrameWindowManager,
+	ExternalEditorManager* pExternalEditorManager,
+	HWND hwnd, Profile* pProfile, bool bExternalEditor, QSTATUS* pstatus) :
+	processor_(pDocument, pFolderModel, pMessageSelectionModel,
+		pEditFrameWindowManager, pExternalEditorManager, hwnd,
+		pProfile, bExternalEditor)
+{
+}
+
+qm::MessageOpenURLAction::~MessageOpenURLAction()
+{
+}
+
+QSTATUS qm::MessageOpenURLAction::invoke(const ActionEvent& event)
+{
+	DECLARE_QSTATUS();
+	
+	if (event.getParam()) {
+		ActionParam* pParam = static_cast<ActionParam*>(event.getParam());
+		if (pParam->nArgs_ > 0) {
+			Variant v;
+			if (::VariantChangeType(&v, pParam->ppvarArgs_[0], 0, VT_BSTR) == S_OK) {
+				// TODO
+				// Pass argument to the template
+				status = processor_.process(L"url",
+					(event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0);
+				CHECK_QSTATUS();
+			}
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::MessageOpenURLAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+{
+	assert(pbEnabled);
+	// TODO
+	*pbEnabled = true;
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
  * MessagePropertyAction
  *
  */
@@ -2462,19 +2513,30 @@ QSTATUS qm::ToolGoRoundAction::invoke(const ActionEvent& event)
 {
 	DECLARE_QSTATUS();
 	
-	std::auto_ptr<SyncData> pData;
-	status = newQsObject(pSyncManager_, pDocument_,
-		hwnd_, SyncDialog::FLAG_SHOWDIALOG, &pData);
-	
-	const GoRoundCourse* pCourse = 0;
 	GoRoundCourseList* pCourseList = 0;
 	status = pGoRound_->getCourseList(&pCourseList);
 	CHECK_QSTATUS();
-	if (pCourseList && pCourseList->getCount() > 0) {
-		pCourse = pCourseList->getCourse(event.getId() - IDM_TOOL_GOROUND);
-		assert(pCourse);
+	const GoRoundCourse* pCourse = 0;
+	if (event.getParam()) {
+		ActionParam* pParam = static_cast<ActionParam*>(event.getParam());
+		if (pParam->nArgs_ > 0) {
+			Variant v;
+			if (::VariantChangeType(&v, pParam->ppvarArgs_[0], 0, VT_BSTR) != S_OK)
+				return QSTATUS_SUCCESS;
+			pCourse = pCourseList->getCourse(v.bstrVal);
+		}
+	}
+	else {
+		if (pCourseList && pCourseList->getCount() > 0) {
+			pCourse = pCourseList->getCourse(event.getId() - IDM_TOOL_GOROUND);
+			assert(pCourse);
+		}
 	}
 	
+	std::auto_ptr<SyncData> pData;
+	status = newQsObject(pSyncManager_, pDocument_,
+		hwnd_, SyncDialog::FLAG_SHOWDIALOG, &pData);
+	CHECK_QSTATUS();
 	status = SyncUtil::createGoRoundData(pCourse, pDocument_, pData.get());
 	CHECK_QSTATUS();
 	

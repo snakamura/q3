@@ -157,10 +157,14 @@ QSTATUS qm::main(const WCHAR* pwszCommandLine)
 	}
 	
 	bool bContinue = false;
-	MailFolderLock lock(wstrMailFolder.get(), &bContinue, &status);
+	HWND hwndPrev = 0;
+	MailFolderLock lock(wstrMailFolder.get(), &bContinue, &hwndPrev, &status);
 	CHECK_QSTATUS();
-	if (!bContinue)
+	if (!bContinue) {
+		if (hwndPrev)
+			handler.invoke(hwndPrev);
 		return QSTATUS_SUCCESS;
+	}
 	
 	std::auto_ptr<Application> pApplication;
 	status = newQsObject(g_hInstDll, wstrMailFolder.get(),
@@ -175,6 +179,7 @@ QSTATUS qm::main(const WCHAR* pwszCommandLine)
 	assert(getMainWindow());
 	status = lock.setWindow(getMainWindow()->getHandle());
 	CHECK_QSTATUS();
+	handler.invoke(getMainWindow()->getHandle());
 	
 	status = pApplication->run();
 	CHECK_QSTATUS();
@@ -197,24 +202,19 @@ QSTATUS qm::main(const WCHAR* pwszCommandLine)
 
 qm::MainCommandLineHandler::MainCommandLineHandler() :
 	state_(STATE_NONE),
-	wstrGoRound_(0),
 	wstrMailFolder_(0),
 	wstrProfile_(0),
+	wstrGoRound_(0),
 	wstrURL_(0)
 {
 }
 
 qm::MainCommandLineHandler::~MainCommandLineHandler()
 {
-	freeWString(wstrGoRound_);
 	freeWString(wstrMailFolder_);
 	freeWString(wstrProfile_);
+	freeWString(wstrGoRound_);
 	freeWString(wstrURL_);
-}
-
-const WCHAR* qm::MainCommandLineHandler::getGoRound() const
-{
-	return wstrGoRound_;
 }
 
 const WCHAR* qm::MainCommandLineHandler::getMailFolder() const
@@ -227,9 +227,30 @@ const WCHAR* qm::MainCommandLineHandler::getProfile() const
 	return wstrProfile_;
 }
 
-const WCHAR* qm::MainCommandLineHandler::getURL() const
+void qm::MainCommandLineHandler::invoke(HWND hwnd)
 {
-	return wstrURL_;
+	struct {
+		WCHAR* pwsz_;
+		DWORD dwData_;
+	} commands[] = {
+		{ wstrGoRound_,	IDM_TOOL_GOROUND	},
+		{ wstrURL_,		IDM_MESSAGE_OPENURL	}
+	};
+	
+	COPYDATASTRUCT data = {
+		0,
+		0,
+		0
+	};
+	for (int n = 0; n < countof(commands) && data.dwData == 0; ++n) {
+		if (commands[n].pwsz_) {
+			data.dwData = commands[n].dwData_;
+			data.cbData = (wcslen(commands[n].pwsz_) + 1)*sizeof(WCHAR);
+			data.lpData = commands[n].pwsz_;
+		}
+	}
+	if (data.dwData != 0)
+		::SendMessage(hwnd, WM_COPYDATA, 0, reinterpret_cast<LPARAM>(&data));
 }
 
 QSTATUS qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
@@ -240,16 +261,16 @@ QSTATUS qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
 		const WCHAR* pwsz_;
 		State state_;
 	} options[] = {
-		{ L"g",	STATE_GOROUND		},
 		{ L"d",	STATE_MAILFOLDER	},
 		{ L"p",	STATE_PROFILE		},
+		{ L"g",	STATE_GOROUND		},
 		{ L"s",	STATE_URL			}
 	};
 	
 	WSTRING* pwstr[] = {
-		&wstrGoRound_,
 		&wstrMailFolder_,
 		&wstrProfile_,
+		&wstrGoRound_,
 		&wstrURL_
 	};
 	
@@ -262,12 +283,12 @@ QSTATUS qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
 			}
 		}
 		break;
-	case STATE_GOROUND:
 	case STATE_MAILFOLDER:
 	case STATE_PROFILE:
+	case STATE_GOROUND:
 	case STATE_URL:
 		{
-			WSTRING& wstr = *pwstr[state_ - STATE_GOROUND];
+			WSTRING& wstr = *pwstr[state_ - STATE_MAILFOLDER];
 			wstr = allocWString(pwszOption);
 			if (!wstr)
 				return QSTATUS_OUTOFMEMORY;
@@ -289,14 +310,14 @@ QSTATUS qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
  */
 
 qm::MailFolderLock::MailFolderLock(const WCHAR* pwszMailFolder,
-	bool* pbContinue, QSTATUS* pstatus) :
+	bool* pbContinue, HWND* phwnd, QSTATUS* pstatus) :
 	tstrPath_(0),
 	hFile_(0),
 	pMutex_(0)
 {
 	DECLARE_QSTATUS();
 	
-	status = lock(pwszMailFolder, pbContinue);
+	status = lock(pwszMailFolder, pbContinue, phwnd);
 	CHECK_QSTATUS_SET(pstatus);
 }
 
@@ -361,7 +382,8 @@ QSTATUS qm::MailFolderLock::unsetWindow()
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::MailFolderLock::lock(const WCHAR* pwszMailFolder, bool* pbContinue)
+QSTATUS qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
+	bool* pbContinue, HWND* phwnd)
 {
 	assert(pwszMailFolder);
 	assert(pbContinue);
@@ -397,6 +419,7 @@ QSTATUS qm::MailFolderLock::lock(const WCHAR* pwszMailFolder, bool* pbContinue)
 		status = read(hFileRead.get(), &hwnd, 0);
 		CHECK_QSTATUS();
 		::SetForegroundWindow(hwnd);
+		*phwnd = hwnd;
 	}
 	else if (::GetLastError() == ERROR_ALREADY_EXISTS) {
 		string_ptr<WSTRING> wstrName;

@@ -211,8 +211,8 @@ QSTATUS qm::EditEditMoveCaretAction::invoke(const ActionEvent& event)
 		ActionParam* pParam = static_cast<ActionParam*>(event.getParam());
 		if (pParam->nArgs_ > 0) {
 			Variant v;
-			::VariantChangeType(&v, pParam->ppvarArgs_[0], 0, VT_BOOL);
-			if (v.boolVal == VARIANT_TRUE)
+			if (::VariantChangeType(&v, pParam->ppvarArgs_[0], 0, VT_BOOL) == S_OK &&
+				v.boolVal == VARIANT_TRUE)
 				select = TextWindow::SELECT_SELECT;
 		}
 	}
