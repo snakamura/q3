@@ -92,7 +92,7 @@
 			<separator/>
 			<popupmenu text="Mar&amp;k">
 				<menuitem text="Mark &amp;Seen" action="MessageMarkSeen"/>
-				<menuitem text="Mark &amp;Uneen" action="MessageUnmarkSeen"/>
+				<menuitem text="Mark &amp;Unseen" action="MessageUnmarkSeen"/>
 				<separator/>
 				<menuitem text="&amp;Mark" action="MessageMark"/>
 				<menuitem text="Unmar&amp;k" action="MessageUnmark"/>
@@ -188,7 +188,7 @@
 			<separator/>
 			<popupmenu text="Mar&amp;k">
 				<menuitem text="Mark &amp;Seen" action="MessageMarkSeen"/>
-				<menuitem text="Mark &amp;Uneen" action="MessageUnmarkSeen"/>
+				<menuitem text="Mark &amp;Unseen" action="MessageUnmarkSeen"/>
 				<separator/>
 				<menuitem text="&amp;Mark" action="MessageMark"/>
 				<menuitem text="Unmar&amp;k" action="MessageUnmark"/>
@@ -328,7 +328,7 @@
 		<separator/>
 		<popupmenu text="Mar&amp;k">
 			<menuitem text="Mark &amp;Seen" action="MessageMarkSeen"/>
-			<menuitem text="Mark &amp;Uneen" action="MessageUnmarkSeen"/>
+			<menuitem text="Mark &amp;Unseen" action="MessageUnmarkSeen"/>
 			<separator/>
 			<menuitem text="&amp;Mark" action="MessageMark"/>
 			<menuitem text="Unmar&amp;k" action="MessageUnmark"/>
@@ -358,7 +358,7 @@
 		<separator/>
 		<popupmenu text="Mar&amp;k">
 			<menuitem text="Mark &amp;Seen" action="MessageMarkSeen"/>
-			<menuitem text="Mark &amp;Uneen" action="MessageUnmarkSeen"/>
+			<menuitem text="Mark &amp;Unseen" action="MessageUnmarkSeen"/>
 			<separator/>
 			<menuitem text="&amp;Mark" action="MessageMark"/>
 			<menuitem text="Unmar&amp;k" action="MessageUnmark"/>
