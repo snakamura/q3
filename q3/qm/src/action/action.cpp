@@ -2506,7 +2506,8 @@ bool qm::FolderDeleteAction::deleteFolder(Folder* pFolder) const
 		pFolder != pTrash &&
 		!pTrash->isAncestorOf(pFolder) &&
 		!pFolder->isAncestorOf(pTrash) &&
-		!pTrash->isFlag(Folder::FLAG_NOINFERIORS)) {
+		!pTrash->isFlag(Folder::FLAG_NOINFERIORS) &&
+		(pFolder->isFlag(Folder::FLAG_LOCAL) || !pTrash->isFlag(Folder::FLAG_LOCAL))) {
 		wstring_ptr wstrName;
 		if (pAccount->getFolder(pTrash, pFolder->getName())) {
 			wstrName = allocWString(pFolder->getName(), wcslen(pFolder->getName()) + 32);
