@@ -1,5 +1,5 @@
 /*
- * $Id: viewmodel.inl,v 1.1.1.1 2003/04/29 08:07:33 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -47,6 +47,17 @@ inline qm::ViewModelItem::ViewModelItem(unsigned int nMessageIdHash) :
 
 inline qm::ViewModelItem::~ViewModelItem()
 {
+}
+
+inline void* qm::ViewModelItem::operator new(size_t n)
+{
+	assert(n == sizeof(ViewModelItem));
+	return std::__sgi_alloc::allocate(n);
+}
+
+inline void qm::ViewModelItem::operator delete(void* p)
+{
+	std::__sgi_alloc::deallocate(p, sizeof(ViewModelItem));
 }
 
 inline qm::MessageHolder* qm::ViewModelItem::getMessageHolder() const

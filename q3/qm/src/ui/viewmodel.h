@@ -1,5 +1,5 @@
 /*
- * $Id: viewmodel.h,v 1.3 2003/05/22 06:39:53 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -153,6 +153,10 @@ public:
 	ViewModelItem(MessageHolder* pmh, qs::QSTATUS* pstatus);
 	ViewModelItem(unsigned int nMessageIdHash);
 	~ViewModelItem();
+
+public:
+	void* operator new(size_t n);
+	void operator delete(void* p);
 
 public:
 	MessageHolder* getMessageHolder() const;

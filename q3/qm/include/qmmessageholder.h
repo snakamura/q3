@@ -1,5 +1,5 @@
 /*
- * $Id: qmmessageholder.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -128,6 +128,10 @@ public:
 	MessageHolder(NormalFolder* pFolder,
 		const Init& init, qs::QSTATUS* pstatus);
 	virtual ~MessageHolder();
+
+public:
+	void* operator new(size_t n);
+	void operator delete(void* p);
 
 public:
 	virtual unsigned int getId() const;

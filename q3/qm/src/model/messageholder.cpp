@@ -1,5 +1,5 @@
 /*
- * $Id: messageholder.cpp,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -95,6 +95,17 @@ qm::MessageHolder::MessageHolder(NormalFolder* pFolder,
 
 qm::MessageHolder::~MessageHolder()
 {
+}
+
+void* qm::MessageHolder::operator new(size_t n)
+{
+	assert(n == sizeof(MessageHolder));
+	return std::__sgi_alloc::allocate(n);
+}
+
+void qm::MessageHolder::operator delete(void* p)
+{
+	std::__sgi_alloc::deallocate(p, sizeof(MessageHolder));
 }
 
 unsigned int qm::MessageHolder::getId() const
