@@ -1435,6 +1435,8 @@ QSTATUS qm::Account::compact()
 					boxKey.nLength_, pmh->getMessageCacheKey(), 0,
 					&boxKey.nOffset_, &cacheKey);
 				CHECK_QSTATUS();
+				if (pmh->getMessageCacheKey() != cacheKey)
+					pImpl_->pMessageCache_->removeData(pmh->getMessageCacheKey());
 				pmh->setKeys(cacheKey, boxKey);
 				
 				MessageStore::Refer refer = {
