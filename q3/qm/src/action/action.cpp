@@ -671,22 +671,29 @@ QSTATUS qm::EditFindAction::invoke(const ActionEvent& event)
 		int nRet = 0;
 		status = dialog.doModal(hwndFrame, 0, &nRet);
 		CHECK_QSTATUS();
-		if (nRet == IDOK) {
-			status = pFindReplaceManager_->setData(dialog.getFind(),
-				dialog.isMatchCase() ? FindReplaceData::FLAG_MATCHCASE : 0);
-			CHECK_QSTATUS();
-			
-			status = pMessageWindow_->find(dialog.getFind(),
-				dialog.isMatchCase(), dialog.isPrev(), &bFound);
-			CHECK_QSTATUS();
-		}
+		if (nRet != IDOK)
+			return QSTATUS_SUCCESS;
+		
+		status = pFindReplaceManager_->setData(dialog.getFind(),
+			(dialog.isMatchCase() ? FindReplaceData::FLAG_MATCHCASE : 0) |
+			(dialog.isRegex() ? FindReplaceData::FLAG_REGEX : 0));
+		CHECK_QSTATUS();
+		
+		unsigned int nFlags =
+			(dialog.isMatchCase() ? MessageWindow::FIND_MATCHCASE : 0) |
+			(dialog.isRegex() ? MessageWindow::FIND_REGEX : 0) |
+			(dialog.isPrev() ? MessageWindow::FIND_PREVIOUS : 0);
+		status = pMessageWindow_->find(dialog.getFind(), nFlags, &bFound);
+		CHECK_QSTATUS();
 	}
 	else {
 		const FindReplaceData* pData = pFindReplaceManager_->getData();
 		assert(pData);
-		status = pMessageWindow_->find(pData->getFind(),
-			(pData->getFlags() & FindReplaceData::FLAG_MATCHCASE) != 0,
-			type_ == TYPE_PREV, &bFound);
+		unsigned int nFlags =
+			(pData->getFlags() & FindReplaceData::FLAG_MATCHCASE ? MessageWindow::FIND_MATCHCASE : 0) |
+			(pData->getFlags() & FindReplaceData::FLAG_REGEX ? MessageWindow::FIND_REGEX : 0) |
+			(type_ == TYPE_PREV ? MessageWindow::FIND_PREVIOUS : 0);
+		status = pMessageWindow_->find(pData->getFind(), nFlags, &bFound);
 		CHECK_QSTATUS();
 	}
 	

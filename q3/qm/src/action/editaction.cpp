@@ -231,12 +231,15 @@ QSTATUS qm::EditEditFindAction::invoke(const ActionEvent& event)
 			return QSTATUS_SUCCESS;
 		
 		status = pFindReplaceManager_->setData(dialog.getFind(),
-			dialog.isMatchCase() ? FindReplaceData::FLAG_MATCHCASE : 0);
+			(dialog.isMatchCase() ? FindReplaceData::FLAG_MATCHCASE : 0) |
+			(dialog.isRegex() ? FindReplaceData::FLAG_REGEX : 0));
 		CHECK_QSTATUS();
 		
 		unsigned int nFlags = 0;
 		if (dialog.isMatchCase())
 			nFlags |= TextWindow::FIND_MATCHCASE;
+		if (dialog.isRegex())
+			nFlags |= TextWindow::FIND_REGEX;
 		if (dialog.isPrev())
 			nFlags |= TextWindow::FIND_PREVIOUS;
 		
@@ -250,18 +253,20 @@ QSTATUS qm::EditEditFindAction::invoke(const ActionEvent& event)
 		unsigned int nFlags = 0;
 		if (pData->getFlags() & FindReplaceData::FLAG_MATCHCASE)
 			nFlags |= TextWindow::FIND_MATCHCASE;
+		if (pData->getFlags() & FindReplaceData::FLAG_REGEX)
+			nFlags |= TextWindow::FIND_REGEX;
 		if (type_ == TYPE_PREV)
 			nFlags |= TextWindow::FIND_PREVIOUS;
 		
-		status = pTextWindow_->find(pData->getFind(), nFlags, &bFound);
-		CHECK_QSTATUS();
-		
-		if (bFound) {
-			const WCHAR* pwszReplace = pData->getReplace();
-			if (pwszReplace) {
-				status = pTextWindow_->insertText(pwszReplace, -1);
-				CHECK_QSTATUS();
-			}
+		const WCHAR* pwszReplace = pData->getReplace();
+		if (pwszReplace) {
+			status = pTextWindow_->replace(pData->getFind(),
+				pwszReplace, nFlags, &bFound);
+			CHECK_QSTATUS();
+		}
+		else {
+			status = pTextWindow_->find(pData->getFind(), nFlags, &bFound);
+			CHECK_QSTATUS();
 		}
 	}
 	
@@ -438,6 +443,8 @@ QSTATUS qm::EditEditReplaceAction::invoke(const ActionEvent& event)
 	unsigned int nFlags = 0;
 	if (dialog.isMatchCase())
 		nFlags |= TextWindow::FIND_MATCHCASE;
+	if (dialog.isRegex())
+		nFlags |= TextWindow::FIND_REGEX;
 	if (type == ReplaceDialog::TYPE_PREV)
 		nFlags |= TextWindow::FIND_PREVIOUS;
 	
@@ -448,26 +455,21 @@ QSTATUS qm::EditEditReplaceAction::invoke(const ActionEvent& event)
 		
 		while (true) {
 			bool bFound = false;
-			status = pTextWindow_->find(dialog.getFind(), nFlags, &bFound);
+			status = pTextWindow_->replace(dialog.getFind(),
+				dialog.getReplace(), nFlags, &bFound);
 			CHECK_QSTATUS();
 			if (!bFound)
 				break;
-			status = pTextWindow_->insertText(dialog.getReplace(), -1);
-			CHECK_QSTATUS();
 		}
 	}
 	else {
 		bool bFound = false;
-		status = pTextWindow_->find(dialog.getFind(), nFlags, &bFound);
+		status = pTextWindow_->replace(dialog.getFind(),
+			dialog.getReplace(), nFlags, &bFound);
 		CHECK_QSTATUS();
-		if (bFound) {
-			status = pTextWindow_->insertText(dialog.getReplace(), -1);
-			CHECK_QSTATUS();
-		}
-		else {
+		if (!bFound)
 			messageBox(Application::getApplication().getResourceHandle(),
 				IDS_FINDNOTFOUND, hwndFrame);
-		}
 	}
 	
 	return QSTATUS_SUCCESS;

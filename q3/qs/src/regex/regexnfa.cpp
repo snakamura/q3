@@ -402,8 +402,8 @@ qs::RegexNfaMatcher::~RegexNfaMatcher()
 {
 }
 
-QSTATUS qs::RegexNfaMatcher::match(const WCHAR* pwsz,
-	size_t nLen, bool* pbMatch, RegexPattern::RangeList* pList)
+QSTATUS qs::RegexNfaMatcher::match(const WCHAR* pwsz, size_t nLen,
+	bool* pbMatch, RegexRangeList* pList) const
 {
 	assert(pwsz);
 	assert(pbMatch);
@@ -422,9 +422,12 @@ QSTATUS qs::RegexNfaMatcher::match(const WCHAR* pwsz,
 }
 
 QSTATUS qs::RegexNfaMatcher::search(const WCHAR* pwsz, size_t nLen,
-	const WCHAR** ppStart, const WCHAR** ppEnd, RegexPattern::RangeList* pList)
+	const WCHAR* p, bool bReverse, const WCHAR** ppStart,
+	const WCHAR** ppEnd, RegexRangeList* pList) const
 {
 	assert(pwsz);
+	assert(p);
+	assert(pwsz <= p && p <= pwsz + nLen);
 	assert(ppStart);
 	assert(ppEnd);
 	
@@ -435,22 +438,24 @@ QSTATUS qs::RegexNfaMatcher::search(const WCHAR* pwsz, size_t nLen,
 	
 	const WCHAR* pStart = pwsz;
 	const WCHAR* pEnd = pwsz + nLen;
-	while (pStart < pEnd) {
-		status = match(pStart, pEnd, false, ppEnd, pList);
+	if (bReverse)
+		--p;
+	while (bReverse ? p >= pStart : p < pEnd) {
+		status = match(p, pEnd, false, ppEnd, pList);
 		CHECK_QSTATUS();
 		if (*ppEnd) {
-			assert(*ppEnd != pStart);
-			*ppStart = pStart;
+			assert(*ppEnd != p);
+			*ppStart = p;
 			break;
 		}
-		++pStart;
+		bReverse ? --p : ++p;
 	}
 	
 	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qs::RegexNfaMatcher::match(const WCHAR* pStart, const WCHAR* pEnd,
-	bool bMatch, const WCHAR** ppEnd, RegexPattern::RangeList* pList)
+	bool bMatch, const WCHAR** ppEnd, RegexRangeList* pList) const
 {
 	assert(pStart);
 	assert(pEnd);
@@ -460,12 +465,15 @@ QSTATUS qs::RegexNfaMatcher::match(const WCHAR* pStart, const WCHAR* pEnd,
 	
 	*ppEnd = 0;
 	
+	Stack stackMatch;
+	Stack stackBackTrack;
+	
 	const WCHAR* p = pStart;
 	const RegexNfaState* pState = pNfa_->getState(0);
 	while (p <= pEnd) {
 		const WCHAR* pMatch = 0;
 		while (pState) {
-			if (*p && pState->match(*p)) {
+			if (p != pEnd && pState->match(*p)) {
 				pMatch = p;
 				break;
 			}
@@ -478,11 +486,11 @@ QSTATUS qs::RegexNfaMatcher::match(const WCHAR* pStart, const WCHAR* pEnd,
 		}
 		if (pState) {
 			if (pState->getNext()) {
-				status = STLWrapper<Stack>(stackBackTrack_).push_back(
+				status = STLWrapper<Stack>(stackBackTrack).push_back(
 					std::make_pair(pState->getNext(), p));
 				CHECK_QSTATUS();
 			}
-			status = STLWrapper<Stack>(stackMatch_).push_back(
+			status = STLWrapper<Stack>(stackMatch).push_back(
 				std::make_pair(pState, pMatch));
 			CHECK_QSTATUS();
 			pState = pNfa_->getState(pState->getTo());
@@ -493,17 +501,17 @@ QSTATUS qs::RegexNfaMatcher::match(const WCHAR* pStart, const WCHAR* pEnd,
 				break;
 			}
 		}
-		else if (!stackBackTrack_.empty()) {
-			pState = stackBackTrack_.back().first;
-			p = stackBackTrack_.back().second;
-			stackBackTrack_.pop_back();
+		else if (!stackBackTrack.empty()) {
+			pState = stackBackTrack.back().first;
+			p = stackBackTrack.back().second;
+			stackBackTrack.pop_back();
 			
-			while (stackMatch_.size() > 1 && stackMatch_.back().second != p)
-				stackMatch_.pop_back();
-			stackMatch_.pop_back();
+			while (stackMatch.size() > 1 && stackMatch.back().second != p)
+				stackMatch.pop_back();
+			stackMatch.pop_back();
 			
 			if (pState->getNext()) {
-				status = STLWrapper<Stack>(stackBackTrack_).push_back(
+				status = STLWrapper<Stack>(stackBackTrack).push_back(
 					std::make_pair(pState->getNext(), p));
 				CHECK_QSTATUS();
 			}
@@ -514,20 +522,20 @@ QSTATUS qs::RegexNfaMatcher::match(const WCHAR* pStart, const WCHAR* pEnd,
 	}
 	
 	if (*ppEnd && pList) {
-		Stack::const_iterator itM = stackMatch_.begin();
-		while (itM != stackMatch_.end()) {
+		Stack::const_iterator itM = stackMatch.begin();
+		while (itM != stackMatch.end()) {
 			if ((*itM).second) {
 				const RegexNfaState* pState = (*itM).first;
 				const RegexNfaState::GroupList& l = pState->getGroupList();
 				RegexNfaState::GroupList::const_iterator itG = l.begin();
 				while (itG != l.end()) {
 					unsigned int nGroup = *itG;
-					if (pList->size() <= nGroup) {
-						status = STLWrapper<RegexPattern::RangeList>(
-							*pList).resize(nGroup + 1);
+					if (pList->list_.size() <= nGroup) {
+						status = STLWrapper<RegexRangeList::List>(
+							pList->list_).resize(nGroup + 1);
 						CHECK_QSTATUS();
 					}
-					RegexRange& range = (*pList)[nGroup];
+					RegexRange& range = pList->list_[nGroup];
 					if (!range.pStart_)
 						range.pStart_ = (*itM).second;
 					range.pEnd_ = (*itM).second + 1;

@@ -10,6 +10,7 @@
 #define __QSREGEX_H__
 
 #include <qs.h>
+#include <qsstring.h>
 
 #include <vector>
 
@@ -29,12 +30,29 @@ class RegexNfa;
  *
  */
 
-struct RegexRange
+struct QSEXPORTCLASS RegexRange
 {
 	RegexRange();
 	
 	const WCHAR* pStart_;
 	const WCHAR* pEnd_;
+};
+
+
+/****************************************************************************
+ *
+ * RegexRangeList
+ *
+ */
+
+struct QSEXPORTCLASS RegexRangeList
+{
+	typedef std::vector<RegexRange> List;
+	
+	QSTATUS getReplace(const WCHAR* pwszReplace, WSTRING* pwstr) const;
+	QSTATUS getReplace(const WCHAR* pwszReplace, StringBuffer<WSTRING>* pBuf) const;
+	
+	List list_;
 };
 
 
@@ -47,18 +65,16 @@ struct RegexRange
 class QSEXPORTCLASS RegexPattern
 {
 public:
-	typedef std::vector<RegexRange> RangeList;
-
-public:
 	RegexPattern(RegexNfa* pNfa, QSTATUS* pstatus);
 	~RegexPattern();
 
 public:
 	QSTATUS match(const WCHAR* pwsz, bool* pbMatch) const;
 	QSTATUS match(const WCHAR* pwsz, size_t nLen,
-		bool* pbMatch, RangeList* pList) const;
-	QSTATUS search(const WCHAR* pwsz, size_t nLen, const WCHAR** ppStart,
-		const WCHAR** ppEnd, RangeList* pList) const;
+		bool* pbMatch, RegexRangeList* pList) const;
+	QSTATUS search(const WCHAR* pwsz, size_t nLen, const WCHAR* p,
+		bool bReverse, const WCHAR** ppStart, const WCHAR** ppEnd,
+		RegexRangeList* pList) const;
 
 private:
 	RegexPattern(const RegexPattern&);

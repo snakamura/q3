@@ -4017,7 +4017,8 @@ QSTATUS qm::MacroFunctionRegexFind::value(
 	
 	const WCHAR* pStart = 0;
 	const WCHAR* pEnd = 0;
-	status = pPattern->search(wstrValue.get() + nIndex, -1, &pStart, &pEnd, 0);
+	status = pPattern->search(wstrValue.get() + nIndex, -1,
+		wstrValue.get() + nIndex, false, &pStart, &pEnd, 0);
 	CHECK_QSTATUS();
 	
 	return MacroValueFactory::getFactory().newNumber(
@@ -4177,15 +4178,15 @@ QSTATUS qm::MacroFunctionRegexReplace::value(
 	while (pStart < pEnd) {
 		const WCHAR* pMatchStart = 0;
 		const WCHAR* pMatchEnd = 0;
-		RegexPattern::RangeList listRange;
-		status = pPattern->search(pStart, pEnd - pStart,
-			&pMatchStart, &pMatchEnd, &listRange);
+		RegexRangeList listRange;
+		status = pPattern->search(pStart, pEnd - pStart, pStart,
+			false, &pMatchStart, &pMatchEnd, &listRange);
 		CHECK_QSTATUS();
 		
 		if (pMatchStart) {
 			status = buf.append(pStart, pMatchStart - pStart);
 			CHECK_QSTATUS();
-			status = replace(&buf, wstrReplace.get(), listRange);
+			status = listRange.getReplace(wstrReplace.get(), &buf);
 			CHECK_QSTATUS();
 			if (!bGlobal) {
 				status = buf.append(pMatchEnd);
@@ -4210,46 +4211,6 @@ QSTATUS qm::MacroFunctionRegexReplace::value(
 const WCHAR* qm::MacroFunctionRegexReplace::getName() const
 {
 	return L"RegexReplace";
-}
-
-QSTATUS qm::MacroFunctionRegexReplace::replace(qs::StringBuffer<WSTRING>* pBuf,
-	const WCHAR* pwszReplace, qs::RegexPattern::RangeList& listRange)
-{
-	DECLARE_QSTATUS();
-	
-	for (const WCHAR* p = pwszReplace; *p; ++p) {
-		if (*p == L'$') {
-			WCHAR c = *(p + 1);
-			if (L'0' <= c && c <= L'9') {
-				unsigned int nIndex = c - L'0';
-				if (nIndex < listRange.size() && listRange[nIndex].pStart_) {
-					const RegexRange& range = listRange[nIndex];
-					status = pBuf->append(range.pStart_, range.pEnd_ - range.pStart_);
-					CHECK_QSTATUS();
-					++p;
-				}
-				else {
-					status = pBuf->append(*p);
-					CHECK_QSTATUS();
-				}
-			}
-			else if (c == L'$') {
-				status = pBuf->append(c);
-				CHECK_QSTATUS();
-				++p;
-			}
-			else {
-				status = pBuf->append(L'$');
-				CHECK_QSTATUS();
-			}
-		}
-		else {
-			status = pBuf->append(*p);
-			CHECK_QSTATUS();
-		}
-	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 

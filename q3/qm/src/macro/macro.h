@@ -1962,10 +1962,6 @@ protected:
 	virtual const WCHAR* getName() const;
 
 private:
-	static qs::QSTATUS replace(qs::StringBuffer<qs::WSTRING>* pBuf,
-		const WCHAR* pwszReplace, qs::RegexPattern::RangeList& listRange);
-
-private:
 	MacroFunctionRegexReplace(const MacroFunctionRegexReplace&);
 	MacroFunctionRegexReplace& operator=(const MacroFunctionRegexReplace&);
 };

@@ -114,6 +114,13 @@ class MessageWindow :
 	public View
 {
 public:
+	enum Find {
+		FIND_MATCHCASE	= 0x01,
+		FIND_REGEX		= 0x02,
+		FIND_PREVIOUS	= 0x04
+	};
+
+public:
 	MessageWindow(MessageModel* pMessageModel, qs::Profile* pProfile,
 		const WCHAR* pwszSection, qs::QSTATUS* pstatus);
 	virtual ~MessageWindow();
@@ -136,8 +143,7 @@ public:
 	qs::QSTATUS scrollPage(bool bPrev, bool* pbScrolled);
 	bool isSelectMode() const;
 	qs::QSTATUS setSelectMode(bool bSelectMode);
-	qs::QSTATUS find(const WCHAR* pwszFind,
-		bool bMatchCase, bool bPrev, bool* pbFound);
+	qs::QSTATUS find(const WCHAR* pwszFind, unsigned int nFlags, bool* pbFound);
 	qs::QSTATUS openLink();
 	MessageWindowItem* getFocusedItem() const;
 	

@@ -559,10 +559,9 @@ QSTATUS qm::MessageWindow::setSelectMode(bool bSelectMode)
 }
 
 QSTATUS qm::MessageWindow::find(const WCHAR* pwszFind,
-	bool bMatchCase, bool bPrev, bool* pbFound)
+	unsigned int nFlags, bool* pbFound)
 {
-	return pImpl_->pMessageViewWindow_->find(
-		pwszFind, bMatchCase, bPrev, pbFound);
+	return pImpl_->pMessageViewWindow_->find(pwszFind, nFlags, pbFound);
 }
 
 QSTATUS qm::MessageWindow::openLink()

@@ -670,6 +670,7 @@ public:
 public:
 	const WCHAR* getFind() const;
 	bool isMatchCase() const;
+	bool isRegex() const;
 	bool isPrev() const;
 
 public:
@@ -680,6 +681,10 @@ protected:
 
 private:
 	LRESULT onFind(UINT nId);
+	LRESULT onRegexChange();
+
+private:
+	void updateState();
 
 private:
 	FindDialog(const FindDialog&);
@@ -694,6 +699,7 @@ private:
 	qs::Profile* pProfile_;
 	qs::WSTRING wstrFind_;
 	bool bMatchCase_;
+	bool bRegex_;
 	bool bPrev_;
 };
 
@@ -1000,6 +1006,7 @@ public:
 	const WCHAR* getFind() const;
 	const WCHAR* getReplace() const;
 	bool isMatchCase() const;
+	bool isRegex() const;
 	Type getType() const;
 
 public:
@@ -1010,6 +1017,10 @@ protected:
 
 private:
 	LRESULT onReplace(UINT nId);
+	LRESULT onRegexChange();
+
+private:
+	void updateState();
 
 private:
 	ReplaceDialog(const ReplaceDialog&);
@@ -1025,6 +1036,7 @@ private:
 	qs::WSTRING wstrFind_;
 	qs::WSTRING wstrReplace_;
 	bool bMatchCase_;
+	bool bRegex_;
 	Type type_;
 };
 

@@ -32,6 +32,71 @@ qs::RegexRange::RegexRange() :
 
 /****************************************************************************
  *
+ * RegexRangeList
+ *
+ */
+
+QSTATUS qs::RegexRangeList::getReplace(const WCHAR* pwszReplace, WSTRING* pwstr) const
+{
+	assert(pwszReplace);
+	assert(pwstr);
+	
+	DECLARE_QSTATUS();
+	
+	*pwstr = 0;
+	
+	StringBuffer<WSTRING> buf(&status);
+	CHECK_QSTATUS();
+	status = getReplace(pwszReplace, &buf);
+	CHECK_QSTATUS();
+	
+	*pwstr = buf.getString();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qs::RegexRangeList::getReplace(const WCHAR* pwszReplace, StringBuffer<WSTRING>* pBuf) const
+{
+	DECLARE_QSTATUS();
+	
+	for (const WCHAR* p = pwszReplace; *p; ++p) {
+		if (*p == L'$') {
+			WCHAR c = *(p + 1);
+			if (L'0' <= c && c <= L'9') {
+				unsigned int nIndex = c - L'0';
+				if (nIndex < list_.size() && list_[nIndex].pStart_) {
+					const RegexRange& range = list_[nIndex];
+					status = pBuf->append(range.pStart_, range.pEnd_ - range.pStart_);
+					CHECK_QSTATUS();
+					++p;
+				}
+				else {
+					status = pBuf->append(*p);
+					CHECK_QSTATUS();
+				}
+			}
+			else if (c == L'$') {
+				status = pBuf->append(c);
+				CHECK_QSTATUS();
+				++p;
+			}
+			else {
+				status = pBuf->append(L'$');
+				CHECK_QSTATUS();
+			}
+		}
+		else {
+			status = pBuf->append(*p);
+			CHECK_QSTATUS();
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
  * RegexPatternImpl
  *
  */
@@ -74,7 +139,7 @@ QSTATUS qs::RegexPattern::match(const WCHAR* pwsz, bool* pbMatch) const
 }
 
 QSTATUS qs::RegexPattern::match(const WCHAR* pwsz,
-	size_t nLen, bool* pbMatch, RangeList* pList) const
+	size_t nLen, bool* pbMatch, RegexRangeList* pList) const
 {
 	assert(pwsz);
 	assert(pbMatch);
@@ -92,7 +157,8 @@ QSTATUS qs::RegexPattern::match(const WCHAR* pwsz,
 }
 
 QSTATUS qs::RegexPattern::search(const WCHAR* pwsz, size_t nLen,
-	const WCHAR** ppStart, const WCHAR** ppEnd, RangeList* pList) const
+	const WCHAR* p, bool bReverse, const WCHAR** ppStart,
+	const WCHAR** ppEnd, RegexRangeList* pList) const
 {
 	assert(pwsz);
 	assert(ppStart);
@@ -104,7 +170,7 @@ QSTATUS qs::RegexPattern::search(const WCHAR* pwsz, size_t nLen,
 		nLen = wcslen(pwsz);
 	
 	RegexNfaMatcher matcher(pImpl_->pNfa_);
-	status = matcher.search(pwsz, nLen, ppStart, ppEnd, pList);
+	status = matcher.search(pwsz, nLen, p, bReverse, ppStart, ppEnd, pList);
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;

@@ -76,7 +76,7 @@ public:
 	virtual qs::QSTATUS scrollPage(bool bPrev, bool* pbScrolled) = 0;
 	virtual qs::QSTATUS setSelectMode(bool bSelectMode) = 0;
 	virtual qs::QSTATUS find(const WCHAR* pwszFind,
-		bool bMatchCase, bool bPrev, bool* pbFound) = 0;
+		unsigned int nFlags, bool* pbFound) = 0;
 	virtual qs::QSTATUS openLink() = 0;
 };
 
@@ -155,7 +155,7 @@ public:
 	virtual qs::QSTATUS scrollPage(bool bPrev, bool* pbScrolled);
 	virtual qs::QSTATUS setSelectMode(bool bSelectMode);
 	virtual qs::QSTATUS find(const WCHAR* pwszFind,
-		bool bMatchCase, bool bPrev, bool* pbFound);
+		unsigned int nFlags, bool* pbFound);
 	virtual qs::QSTATUS openLink();
 
 public:
@@ -211,7 +211,7 @@ public:
 	virtual qs::QSTATUS scrollPage(bool bPrev, bool* pbScrolled);
 	virtual qs::QSTATUS setSelectMode(bool bSelectMode);
 	virtual qs::QSTATUS find(const WCHAR* pwszFind,
-		bool bMatchCase, bool bPrev, bool* pbFound);
+		unsigned int nFlags, bool* pbFound);
 	virtual qs::QSTATUS openLink();
 
 public:

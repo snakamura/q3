@@ -267,8 +267,9 @@ public:
 	
 	enum Find {
 		FIND_MATCHCASE		= 0x01,
-		FIND_PREVIOUS		= 0x02,
-		FIND_REFORMED		= 0x04
+		FIND_REGEX			= 0x02,
+		FIND_PREVIOUS		= 0x04,
+		FIND_REFORMED		= 0x08,
 	};
 
 public:
@@ -295,6 +296,8 @@ public:
 	QSTATUS redo();
 	QSTATUS canRedo(bool* pbCan) const;
 	QSTATUS find(const WCHAR* pwszFind, unsigned int nFlags, bool* pbFound);
+	QSTATUS replace(const WCHAR* pwszFind, const WCHAR* pwszReplace,
+		unsigned int nFlags, bool* pbFound);
 	QSTATUS reform();
 	QSTATUS scroll(Scroll scroll, int nPos, bool bRepeat);
 	QSTATUS moveCaret(MoveCaret moveCaret, unsigned int nLine,

@@ -148,13 +148,14 @@ public:
 
 public:
 	QSTATUS match(const WCHAR* pwsz, size_t nLen,
-		bool* pbMatch, RegexPattern::RangeList* pList);
-	QSTATUS search(const WCHAR* pwsz, size_t nLen, const WCHAR** ppStart,
-		const WCHAR** ppEnd, RegexPattern::RangeList* pList);
+		bool* pbMatch, RegexRangeList* pList) const;
+	QSTATUS search(const WCHAR* pwsz, size_t nLen, const WCHAR* p,
+		bool bReverse, const WCHAR** ppStart, const WCHAR** ppEnd,
+		RegexRangeList* pList) const;
 
 private:
 	QSTATUS match(const WCHAR* pStart, const WCHAR* pEnd, bool bMatch,
-		const WCHAR** ppEnd, RegexPattern::RangeList* pList);
+		const WCHAR** ppEnd, RegexRangeList* pList) const;
 
 private:
 	RegexNfaMatcher(const RegexNfaMatcher&);
@@ -165,8 +166,6 @@ private:
 
 private:
 	const RegexNfa* pNfa_;
-	Stack stackMatch_;
-	Stack stackBackTrack_;
 };
 
 }

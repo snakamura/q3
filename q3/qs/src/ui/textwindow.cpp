@@ -11,6 +11,7 @@
 #include <qsinit.h>
 #include <qsnew.h>
 #include <qsprofile.h>
+#include <qsregex.h>
 #include <qstextutil.h>
 #include <qstextwindow.h>
 #include <qsuiutil.h>
@@ -2211,6 +2212,12 @@ QSTATUS qs::TextWindow::canRedo(bool* pbCan) const
 QSTATUS qs::TextWindow::find(const WCHAR* pwszFind,
 	unsigned int nFlags, bool* pbFound)
 {
+	return replace(pwszFind, 0, nFlags, pbFound);
+}
+
+QSTATUS qs::TextWindow::replace(const WCHAR* pwszFind,
+	const WCHAR* pwszReplace, unsigned int nFlags, bool* pbFound)
+{
 	assert(pwszFind);
 	assert(pbFound);
 	
@@ -2234,17 +2241,21 @@ QSTATUS qs::TextWindow::find(const WCHAR* pwszFind,
 		nChar = pImpl_->caret_.nChar_;
 	}
 	
+	bool bRegex = (nFlags & FIND_REGEX) != 0;
+	std::auto_ptr<RegexPattern> pPattern;
+	if (bRegex) {
+		RegexPattern* p = 0;
+		status = RegexCompiler().compile(pwszFind, &p);
+		CHECK_QSTATUS();
+		pPattern.reset(p);
+	}
+	RegexRangeList listRange;
+	
 	std::pair<unsigned int, unsigned int> start(0, 0);
 	std::pair<unsigned int, unsigned int> end(0, 0);
 	
 	size_t nLen = wcslen(pwszFind);
 	if (nFlags & FIND_PREVIOUS) {
-		unsigned int nBMFlags = BMFindString<WSTRING>::FLAG_REVERSE |
-			((nFlags & FIND_MATCHCASE) == 0 ?
-				BMFindString<WSTRING>::FLAG_IGNORECASE : 0);
-		BMFindString<WSTRING> bmfs(pwszFind, nLen, nBMFlags, &status);
-		CHECK_QSTATUS();
-		
 		if (nLine == -1)
 			nLine = pImpl_->listLine_.size() - 1;
 		if (nChar == -1)
@@ -2252,29 +2263,50 @@ QSTATUS qs::TextWindow::find(const WCHAR* pwszFind,
 		
 		unsigned int nLogicalLine = pImpl_->listLine_[nLine]->nLogicalLine_;
 		unsigned int nLogicalChar = pImpl_->listLine_[nLine]->nPosition_ + nChar;
-		while (nLogicalLine != -1) {
-			TextModel::Line line = pImpl_->pTextModel_->getLine(nLogicalLine);
-			const WCHAR* p = bmfs.find(line.getText(),
-				nLogicalChar == -1 ? line.getLength() : nLogicalChar);
-			if (p) {
-				nLogicalChar = p - line.getText();
-				break;
+		if (bRegex) {
+			while (nLogicalLine != -1) {
+				TextModel::Line line = pImpl_->pTextModel_->getLine(nLogicalLine);
+				const WCHAR* pStart = 0;
+				const WCHAR* pEnd = 0;
+				status = pPattern->search(line.getText(), line.getLength(),
+					line.getText() + (nLogicalChar == -1 ? line.getLength() : nLogicalChar),
+					true, &pStart, &pEnd, &listRange);
+				CHECK_QSTATUS();
+				if (pStart) {
+					nLogicalChar = pStart - line.getText();
+					nLen = pEnd - pStart;
+					break;
+				}
+				nLogicalChar = -1;
+				--nLogicalLine;
 			}
-			nLogicalChar = -1;
-			--nLogicalLine;
+		}
+		else {
+			unsigned int nBMFlags = BMFindString<WSTRING>::FLAG_REVERSE |
+				((nFlags & FIND_MATCHCASE) == 0 ?
+					BMFindString<WSTRING>::FLAG_IGNORECASE : 0);
+			BMFindString<WSTRING> bmfs(pwszFind, nLen, nBMFlags, &status);
+			CHECK_QSTATUS();
+			
+			while (nLogicalLine != -1) {
+				TextModel::Line line = pImpl_->pTextModel_->getLine(nLogicalLine);
+				const WCHAR* p = bmfs.find(line.getText(),
+					nLogicalChar == -1 ? line.getLength() : nLogicalChar);
+				if (p) {
+					nLogicalChar = p - line.getText();
+					break;
+				}
+				nLogicalChar = -1;
+				--nLogicalLine;
+			}
 		}
 		if (nLogicalLine != -1) {
-			start = pImpl_->getPhysicalLine(nLogicalLine, nLogicalChar);
-			end = pImpl_->getPhysicalLine(nLogicalLine, nLogicalChar + nLen);
+			start = pImpl_->getPhysicalLine(nLogicalLine, nLogicalChar + nLen);
+			end = pImpl_->getPhysicalLine(nLogicalLine, nLogicalChar);
 			*pbFound = true;
 		}
 	}
 	else {
-		unsigned int nBMFlags = (nFlags & FIND_MATCHCASE) == 0 ?
-			BMFindString<WSTRING>::FLAG_IGNORECASE : 0;
-		BMFindString<WSTRING> bmfs(pwszFind, nLen, nBMFlags, &status);
-		CHECK_QSTATUS();
-		
 		if (nLine == -1)
 			nLine = 0;
 		if (nChar == -1)
@@ -2282,16 +2314,41 @@ QSTATUS qs::TextWindow::find(const WCHAR* pwszFind,
 		
 		unsigned int nLogicalLine = pImpl_->listLine_[nLine]->nLogicalLine_;
 		unsigned int nLogicalChar = pImpl_->listLine_[nLine]->nPosition_ + nChar;
-		while (nLogicalLine < pImpl_->pTextModel_->getLineCount()) {
-			TextModel::Line line = pImpl_->pTextModel_->getLine(nLogicalLine);
-			const WCHAR* p = bmfs.find(line.getText() + nLogicalChar,
-				line.getLength() - nLogicalChar);
-			if (p) {
-				nLogicalChar = p - line.getText();
-				break;
+		if (bRegex) {
+			while (nLogicalLine < pImpl_->pTextModel_->getLineCount()) {
+				TextModel::Line line = pImpl_->pTextModel_->getLine(nLogicalLine);
+				const WCHAR* pStart = 0;
+				const WCHAR* pEnd = 0;
+				status = pPattern->search(line.getText() + nLogicalChar,
+					line.getLength() - nLogicalChar, line.getText() + nLogicalChar,
+					false, &pStart, &pEnd, &listRange);
+				CHECK_QSTATUS();
+				if (pStart) {
+					nLogicalChar = pStart - line.getText();
+					nLen = pEnd - pStart;
+					break;
+				}
+				nLogicalChar = 0;
+				++nLogicalLine;
 			}
-			nLogicalChar = 0;
-			++nLogicalLine;
+		}
+		else {
+			unsigned int nBMFlags = (nFlags & FIND_MATCHCASE) == 0 ?
+				BMFindString<WSTRING>::FLAG_IGNORECASE : 0;
+			BMFindString<WSTRING> bmfs(pwszFind, nLen, nBMFlags, &status);
+			CHECK_QSTATUS();
+			
+			while (nLogicalLine < pImpl_->pTextModel_->getLineCount()) {
+				TextModel::Line line = pImpl_->pTextModel_->getLine(nLogicalLine);
+				const WCHAR* p = bmfs.find(line.getText() + nLogicalChar,
+					line.getLength() - nLogicalChar);
+				if (p) {
+					nLogicalChar = p - line.getText();
+					break;
+				}
+				nLogicalChar = 0;
+				++nLogicalLine;
+			}
 		}
 		if (nLogicalLine != pImpl_->pTextModel_->getLineCount()) {
 			start = pImpl_->getPhysicalLine(nLogicalLine, nLogicalChar);
@@ -2301,12 +2358,26 @@ QSTATUS qs::TextWindow::find(const WCHAR* pwszFind,
 	}
 	
 	if (*pbFound) {
-		status = moveCaret(MOVECARET_POS, end.first,
-			end.second, false, SELECT_CLEAR, false);
-		CHECK_QSTATUS();
 		status = moveCaret(MOVECARET_POS, start.first,
-			start.second, false, SELECT_SELECT, true);
+			start.second, false, SELECT_CLEAR, false);
 		CHECK_QSTATUS();
+		status = moveCaret(MOVECARET_POS, end.first,
+			end.second, false, SELECT_SELECT, true);
+		CHECK_QSTATUS();
+		
+		if (pwszReplace) {
+			if (bRegex) {
+				string_ptr<WSTRING> wstrReplace;
+				status = listRange.getReplace(pwszReplace, &wstrReplace);
+				CHECK_QSTATUS();
+				status = insertText(wstrReplace.get(), -1);
+				CHECK_QSTATUS();
+			}
+			else {
+				status = insertText(pwszReplace, -1);
+				CHECK_QSTATUS();
+			}
+		}
 	}
 	
 	return QSTATUS_SUCCESS;

@@ -559,9 +559,11 @@ BEGIN
                     WS_TABSTOP
     CONTROL         "Match &Case",IDC_MATCHCASE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,5,25,60,10
-    DEFPUSHBUTTON   "Find &Next",IDC_FINDNEXT,30,45,50,14
-    PUSHBUTTON      "Find &Previous",IDC_FINDPREV,85,45,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,85,65,50,14
+    CONTROL         "&Regular Expression",IDC_REGEX,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,35,85,10
+    DEFPUSHBUTTON   "Find &Next",IDC_FINDNEXT,30,55,50,14
+    PUSHBUTTON      "Find &Previous",IDC_FINDPREV,85,55,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,85,75,50,14
 END
 
 IDD_REPLACE DIALOG DISCARDABLE  0, 0, 139, 189
@@ -577,10 +579,12 @@ BEGIN
                     WS_TABSTOP
     CONTROL         "Match &Case",IDC_MATCHCASE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,5,40,60,10
-    DEFPUSHBUTTON   "Replace &Next",IDC_REPLACENEXT,10,55,60,14
-    PUSHBUTTON      "Replace &Previous",IDC_REPLACEPREV,75,55,60,14
-    PUSHBUTTON      "Replace &All",IDC_REPLACEALL,10,75,60,14
-    PUSHBUTTON      "Cancel",IDCANCEL,75,75,60,14
+    CONTROL         "&Regular Expression",IDC_REGEX,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,50,85,10
+    DEFPUSHBUTTON   "Replace &Next",IDC_REPLACENEXT,10,65,60,14
+    PUSHBUTTON      "Replace &Previous",IDC_REPLACEPREV,75,65,60,14
+    PUSHBUTTON      "Replace &All",IDC_REPLACEALL,10,85,60,14
+    PUSHBUTTON      "Cancel",IDCANCEL,75,85,60,14
 END
 
 IDD_CREATESUBACCOUNT DIALOG DISCARDABLE  0, 0, 139, 189

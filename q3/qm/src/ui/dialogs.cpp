@@ -2742,7 +2742,8 @@ qm::FindDialog::FindDialog(Profile* pProfile, QSTATUS* pstatus) :
 	DefaultDialog(IDD_FIND, pstatus),
 	pProfile_(pProfile),
 	wstrFind_(0),
-	bMatchCase_(0),
+	bMatchCase_(false),
+	bRegex_(false),
 	bPrev_(false)
 {
 }
@@ -2762,6 +2763,11 @@ bool qm::FindDialog::isMatchCase() const
 	return bMatchCase_;
 }
 
+bool qm::FindDialog::isRegex() const
+{
+	return bRegex_;
+}
+
 bool qm::FindDialog::isPrev() const
 {
 	return bPrev_;
@@ -2771,6 +2777,7 @@ LRESULT qm::FindDialog::onCommand(WORD nCode, WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID_RANGE(IDC_FINDNEXT, IDC_FINDPREV, onFind)
+		HANDLE_COMMAND_ID(IDC_REGEX, onRegexChange)
 	END_COMMAND_HANDLER()
 	return DefaultDialog::onCommand(nCode, nId);
 }
@@ -2799,6 +2806,14 @@ LRESULT qm::FindDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	CHECK_QSTATUS();
 	sendDlgItemMessage(IDC_MATCHCASE, BM_SETCHECK,
 		nMatchCase ? BST_CHECKED : BST_UNCHECKED);
+	
+	int nRegex = 0;
+	status = pProfile_->getInt(L"Find", L"Regex", 0, &nRegex);
+	CHECK_QSTATUS();
+	sendDlgItemMessage(IDC_REGEX, BM_SETCHECK,
+		nRegex ? BST_CHECKED : BST_UNCHECKED);
+	
+	updateState();
 	
 	return TRUE;
 }
@@ -2832,11 +2847,27 @@ LRESULT qm::FindDialog::onFind(UINT nId)
 	status = pProfile_->setInt(L"Find", L"MatchCase", bMatchCase_ ? 1 : 0);
 	CHECK_QSTATUS();
 	
+	bRegex_ = sendDlgItemMessage(IDC_REGEX, BM_GETCHECK) == BST_CHECKED;
+	status = pProfile_->setInt(L"Find", L"Regex", bRegex_ ? 1 : 0);
+	CHECK_QSTATUS();
+	
 	bPrev_ = nId == IDC_FINDPREV;
 	
 	endDialog(IDOK);
 	
 	return 0;
+}
+
+LRESULT qm::FindDialog::onRegexChange()
+{
+	updateState();
+	return 0;
+}
+
+void qm::FindDialog::updateState()
+{
+	bool bRegex = sendDlgItemMessage(IDC_REGEX, BM_GETCHECK) == BST_CHECKED;
+	Window(getDlgItem(IDC_MATCHCASE)).enableWindow(!bRegex);
 }
 
 
@@ -3652,7 +3683,8 @@ qm::ReplaceDialog::ReplaceDialog(Profile* pProfile, QSTATUS* pstatus) :
 	pProfile_(pProfile),
 	wstrFind_(0),
 	wstrReplace_(0),
-	bMatchCase_(0),
+	bMatchCase_(false),
+	bRegex_(false),
 	type_(TYPE_NEXT)
 {
 }
@@ -3678,6 +3710,11 @@ bool qm::ReplaceDialog::isMatchCase() const
 	return bMatchCase_;
 }
 
+bool qm::ReplaceDialog::isRegex() const
+{
+	return bRegex_;
+}
+
 ReplaceDialog::Type qm::ReplaceDialog::getType() const
 {
 	return type_;
@@ -3687,6 +3724,7 @@ LRESULT qm::ReplaceDialog::onCommand(WORD nCode, WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID_RANGE(IDC_REPLACENEXT, IDC_REPLACEALL, onReplace)
+		HANDLE_COMMAND_ID(IDC_REGEX, onRegexChange)
 	END_COMMAND_HANDLER()
 	return DefaultDialog::onCommand(nCode, nId);
 }
@@ -3726,6 +3764,14 @@ LRESULT qm::ReplaceDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	CHECK_QSTATUS();
 	sendDlgItemMessage(IDC_MATCHCASE, BM_SETCHECK,
 		nMatchCase ? BST_CHECKED : BST_UNCHECKED);
+	
+	int nRegex = 0;
+	status = pProfile_->getInt(L"Find", L"Regex", 0, &nRegex);
+	CHECK_QSTATUS();
+	sendDlgItemMessage(IDC_REGEX, BM_SETCHECK,
+		nRegex ? BST_CHECKED : BST_UNCHECKED);
+	
+	updateState();
 	
 	return TRUE;
 }
@@ -3772,12 +3818,28 @@ LRESULT qm::ReplaceDialog::onReplace(UINT nId)
 	status = pProfile_->setInt(L"Find", L"MatchCase", bMatchCase_ ? 1 : 0);
 	CHECK_QSTATUS();
 	
+	bRegex_ = sendDlgItemMessage(IDC_REGEX, BM_GETCHECK) == BST_CHECKED;
+	status = pProfile_->setInt(L"Find", L"Regex", bRegex_ ? 1 : 0);
+	CHECK_QSTATUS();
+	
 	type_ = nId == IDC_REPLACEPREV ? TYPE_PREV :
 		nId == IDC_REPLACEALL ? TYPE_ALL : TYPE_NEXT;
 	
 	endDialog(IDOK);
 	
 	return 0;
+}
+
+LRESULT qm::ReplaceDialog::onRegexChange()
+{
+	updateState();
+	return 0;
+}
+
+void qm::ReplaceDialog::updateState()
+{
+	bool bRegex = sendDlgItemMessage(IDC_REGEX, BM_GETCHECK) == BST_CHECKED;
+	Window(getDlgItem(IDC_MATCHCASE)).enableWindow(!bRegex);
 }
 
 

@@ -10,6 +10,7 @@
 #include <qmfolder.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
+#include <qmmessagewindow.h>
 #include <qmtemplate.h>
 
 #include <qsconv.h>
@@ -333,11 +334,13 @@ QSTATUS qm::TextMessageViewWindow::setSelectMode(bool bSelectMode)
 }
 
 QSTATUS qm::TextMessageViewWindow::find(const WCHAR* pwszFind,
-	bool bMatchCase, bool bPrev, bool* pbFound)
+	unsigned int nFlags, bool* pbFound)
 {
-	unsigned int nFlags = (bMatchCase ? FIND_MATCHCASE : 0) |
-		(bPrev ? FIND_PREVIOUS : 0);
-	return TextWindow::find(pwszFind, nFlags, pbFound);
+	unsigned int nFindFlags =
+		(nFlags & MessageWindow::FIND_MATCHCASE ? FIND_MATCHCASE : 0) |
+		(nFlags & MessageWindow::FIND_REGEX ? FIND_REGEX : 0) |
+		(nFlags & MessageWindow::FIND_PREVIOUS ? FIND_PREVIOUS : 0);
+	return TextWindow::find(pwszFind, nFindFlags, pbFound);
 }
 
 QSTATUS qm::TextMessageViewWindow::openLink()
@@ -710,12 +713,14 @@ QSTATUS qm::HtmlMessageViewWindow::setSelectMode(bool bSelectMode)
 }
 
 QSTATUS qm::HtmlMessageViewWindow::find(const WCHAR* pwszFind,
-	bool bMatchCase, bool bPrev, bool* pbFound)
+	unsigned int nFlags, bool* pbFound)
 {
 	assert(pwszFind);
 	assert(pbFound);
 	
 	DECLARE_QSTATUS();
+	
+	bool bPrev = (nFlags & MessageWindow::FIND_PREVIOUS) != 0;
 	
 	HRESULT hr = S_OK;
 	ComPtr<IDispatch> pDispDocument;
@@ -774,7 +779,7 @@ QSTATUS qm::HtmlMessageViewWindow::find(const WCHAR* pwszFind,
 		return QSTATUS_OUTOFMEMORY;
 	VARIANT_BOOL bFound = VARIANT_FALSE;
 	hr = pRange->findText(bstrFind.get(), bPrev ? -1 : 1,
-		bMatchCase ? 4 : 0, &bFound);
+		nFlags & MessageWindow::FIND_MATCHCASE ? 4 : 0, &bFound);
 	if (FAILED(hr))
 		return QSTATUS_FAIL;
 	if (bFound == VARIANT_TRUE) {
