@@ -44,6 +44,16 @@ element copy {
 	attribute folder {
 		xsd:string
 	}
+} |
+element delete {
+	attribute direct {
+		xsd:boolean
+	}?
+} |
+element apply {
+	attribute macro {
+		xsd:string
+	}
 }
 
 template = element template {
