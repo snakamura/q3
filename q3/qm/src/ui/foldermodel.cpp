@@ -124,8 +124,8 @@ QSTATUS qm::DefaultFolderModel::fireAccountSelected(
 	
 	FolderModelEvent event(pAccount, bDelay);
 	
-	HandlerList::const_iterator it = listHandler_.begin();
-	while (it != listHandler_.end()) {
+	HandlerList::const_reverse_iterator it = listHandler_.rbegin();
+	while (it != listHandler_.rend()) {
 		status = (*it)->accountSelected(event);
 		CHECK_QSTATUS();
 		++it;
@@ -143,8 +143,8 @@ QSTATUS qm::DefaultFolderModel::fireFolderSelected(
 	
 	FolderModelEvent event(pFolder, bDelay);
 	
-	HandlerList::const_iterator it = listHandler_.begin();
-	while (it != listHandler_.end()) {
+	HandlerList::const_reverse_iterator it = listHandler_.rbegin();
+	while (it != listHandler_.rend()) {
 		status = (*it)->folderSelected(event);
 		CHECK_QSTATUS();
 		++it;
