@@ -170,6 +170,7 @@ public:
 	
 	FolderMap mapFolder_;
 	
+	HTREEITEM hItemDragTarget_;
 	HTREEITEM hItemDragOver_;
 	DWORD dwDragOverLastChangedTime_;
 };
@@ -525,6 +526,7 @@ void qm::FolderWindowImpl::dragDropEnd(const DragSourceDropEvent& event)
 
 void qm::FolderWindowImpl::dragEnter(const DropTargetDragEvent& event)
 {
+	hItemDragTarget_ = 0;
 	hItemDragOver_ = 0;
 	dwDragOverLastChangedTime_ = 0;
 	
@@ -538,10 +540,6 @@ void qm::FolderWindowImpl::dragEnter(const DropTargetDragEvent& event)
 void qm::FolderWindowImpl::dragOver(const DropTargetDragEvent& event)
 {
 	processDragEvent(event);
-	
-	POINT pt = event.getPoint();
-	pThis_->screenToClient(&pt);
-	ImageList_DragMove(pt.x, pt.y);
 }
 
 void qm::FolderWindowImpl::dragExit(const DropTargetEvent& event)
@@ -550,6 +548,7 @@ void qm::FolderWindowImpl::dragExit(const DropTargetEvent& event)
 	TreeView_SelectDropTarget(pThis_->getHandle(), 0);
 	ImageList_DragShowNolock(TRUE);
 	
+	hItemDragTarget_ = 0;
 	hItemDragOver_ = 0;
 	dwDragOverLastChangedTime_ = 0;
 	
@@ -562,6 +561,7 @@ void qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
 	TreeView_SelectDropTarget(pThis_->getHandle(), 0);
 	ImageList_DragShowNolock(TRUE);
 	
+	hItemDragTarget_ = 0;
 	hItemDragOver_ = 0;
 	dwDragOverLastChangedTime_ = 0;
 	
@@ -959,37 +959,77 @@ void qm::FolderWindowImpl::processDragEvent(const DropTargetDragEvent& event)
 	}
 	event.setEffect(dwEffect);
 	
-	ImageList_DragShowNolock(FALSE);
-	TreeView_SelectDropTarget(pThis_->getHandle(), hSelectItem);
-	
-	RECT rect;
-	pThis_->getClientRect(&rect);
-	if (pt.y < rect.top + 30)
-		pThis_->sendMessage(WM_VSCROLL, MAKEWPARAM(SB_LINEUP, 0), 0);
-	else if (pt.y > rect.bottom - 30)
-		pThis_->sendMessage(WM_VSCROLL, MAKEWPARAM(SB_LINEDOWN, 0), 0);
-	if (pt.x < rect.left + 30)
-		pThis_->sendMessage(WM_HSCROLL, MAKEWPARAM(SB_LEFT, 0), 0);
-	else if (pt.x > rect.right - 30)
-		pThis_->sendMessage(WM_HSCROLL, MAKEWPARAM(SB_RIGHT, 0), 0);
-	
-	if (hItem && (info.flags & TVHT_ONITEMBUTTON || info.flags & TVHT_ONITEMICON)) {
-		if (hItemDragOver_ != hItem) {
-			hItemDragOver_ = hItem;
-			dwDragOverLastChangedTime_ = ::GetTickCount();
+	{
+		struct ShowLock
+		{
+			ShowLock() :
+				bLock_(false)
+			{
+			}
+			
+			~ShowLock()
+			{
+				if (bLock_)
+					ImageList_DragShowNolock(TRUE);
+			}
+			
+			void lock() {
+				if (!bLock_)
+					ImageList_DragShowNolock(FALSE);
+				bLock_ = true;
+			}
+			
+			bool bLock_;
+		} lock;
+		
+		if (hSelectItem != hItemDragTarget_) {
+			lock.lock();
+			TreeView_SelectDropTarget(pThis_->getHandle(), hSelectItem);
+			hItemDragTarget_ = hSelectItem;
 		}
-		else if (dwDragOverLastChangedTime_ != -1 &&
-			::GetTickCount() - dwDragOverLastChangedTime_ > nDragOpenWait_) {
-			TreeView_Expand(pThis_->getHandle(), hItem, TVE_TOGGLE);
-			dwDragOverLastChangedTime_ = -1;
+		
+		RECT rect;
+		pThis_->getClientRect(&rect);
+		
+		int nVScroll = -1;
+		if (pt.y < rect.top + 30)
+			nVScroll = SB_LINEUP;
+		else if (pt.y > rect.bottom - 30)
+			nVScroll = SB_LINEDOWN;
+		if (nVScroll != -1) {
+			lock.lock();
+			pThis_->sendMessage(WM_VSCROLL, MAKEWPARAM(nVScroll, 0), 0);
+		}
+		
+		int nHScroll = -1;
+		if (pt.x < rect.left + 30)
+			nHScroll = SB_LEFT;
+		else if (pt.x > rect.right - 30)
+			nHScroll = SB_RIGHT;
+		if (nHScroll != -1) {
+			lock.lock();
+			pThis_->sendMessage(WM_HSCROLL, MAKEWPARAM(nHScroll, 0), 0);
+		}
+		
+		if (hItem && (info.flags & TVHT_ONITEMBUTTON || info.flags & TVHT_ONITEMICON)) {
+			if (hItemDragOver_ != hItem) {
+				hItemDragOver_ = hItem;
+				dwDragOverLastChangedTime_ = ::GetTickCount();
+			}
+			else if (dwDragOverLastChangedTime_ != -1 &&
+				::GetTickCount() - dwDragOverLastChangedTime_ > nDragOpenWait_) {
+				lock.lock();
+				TreeView_Expand(pThis_->getHandle(), hItem, TVE_TOGGLE);
+				dwDragOverLastChangedTime_ = -1;
+			}
+		}
+		else {
+			hItemDragOver_ = 0;
+			dwDragOverLastChangedTime_ = 0;
 		}
 	}
-	else {
-		hItemDragOver_ = 0;
-		dwDragOverLastChangedTime_ = 0;
-	}
 	
-	ImageList_DragShowNolock(TRUE);
+	ImageList_DragMove(pt.x, pt.y);
 }
 
 int qm::FolderWindowImpl::getFolderImage(Folder* pFolder,
@@ -1057,6 +1097,7 @@ qm::FolderWindow::FolderWindow(WindowBase* pParentWindow,
 	pImpl_->bShowAllCount_ = pProfile->getInt(L"FolderWindow", L"ShowAllCount", 1) != 0;
 	pImpl_->bShowUnseenCount_ = pProfile->getInt(L"FolderWindow", L"ShowUnseenCount", 1) != 0;
 	pImpl_->nDragOpenWait_ = pProfile->getInt(L"FolderWindow", L"DragOpenWait", 500);
+	pImpl_->hItemDragTarget_ = 0;
 	pImpl_->hItemDragOver_ = 0;
 	pImpl_->dwDragOverLastChangedTime_ = -1;
 	
