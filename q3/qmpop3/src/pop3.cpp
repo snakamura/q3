@@ -211,8 +211,10 @@ void qmpop3::Pop3::disconnect()
 			bQuit = false;
 			break;
 		}
-		if (bQuit)
+		if (bQuit) {
+			pSocket_->setTimeout(1);
 			sendCommand("QUIT\r\n");
+		}
 		pSocket_.reset(0);
 	}
 }
