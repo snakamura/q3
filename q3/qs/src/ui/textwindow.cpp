@@ -979,6 +979,10 @@ void qs::TextWindowImpl::scrollHorizontal(int nPos)
 		pThis_->scrollWindow(scrollPos_.nPos_ - nPos, 0,
 			&rectClip, &rectClip, 0, 0, SW_INVALIDATE);
 		
+		if (bShowRuler_)
+			pRuler_->setWindowPos(0, -nPos, 0, 0, 0,
+				SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+		
 		scrollPos_.nPos_ = nPos;
 		updateScrollBar();
 	}
@@ -1017,7 +1021,7 @@ void qs::TextWindowImpl::updateScrollBar()
 	RECT rect;
 	getClientRectWithoutMargin(&rect);
 	
-	unsigned int nWidth = 0;
+	int nWidth = 0;
 	if (nCharInLine_ != 0)
 		nWidth = nCharInLine_*getAverageCharWidth();
 	else
@@ -1288,14 +1292,14 @@ QSTATUS qs::TextWindowImpl::textUpdated(const TextModelEvent& event)
 QSTATUS qs::TextWindowImpl::textSet(const TextModelEvent& event)
 {
 	recalcLines();
-	scrollPos_.nLine_ = 0;
 	caret_.nLine_ = 0;
 	caret_.nChar_ = 0;
 	caret_.nPos_ = 0;
 	caret_.nOldPos_ = 0;
 	clearSelection();
 	pUndoManager_->clear();
-	updateScrollBar();
+	scrollHorizontal(0);
+	scrollVertical(0);
 	updateCaret(true);
 	return QSTATUS_SUCCESS;
 }
@@ -3326,9 +3330,17 @@ LRESULT qs::TextWindow::onSetFocus(HWND hwnd)
 
 LRESULT qs::TextWindow::onSize(UINT nFlags, int cx, int cy)
 {
-	if (pImpl_->bShowRuler_)
-		pImpl_->pRuler_->setWindowPos(0, 0, 0, cx,
+	if (pImpl_->bShowRuler_) {
+		unsigned int nCharInLine = getCharInLine();
+		int nWidth = 0;
+		if (nCharInLine == 0)
+			nWidth = cx;
+		else
+			nWidth = pImpl_->nMarginLeft_ +
+				pImpl_->getAverageCharWidth()*nCharInLine;
+		pImpl_->pRuler_->setWindowPos(0, 0, 0, nWidth,
 			TextWindowImpl::RULER_HEIGHT, SWP_NOZORDER);
+	}
 	
 	pImpl_->nLineInWindow_ = 0;
 	
