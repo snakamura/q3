@@ -80,7 +80,7 @@ LRESULT qm::AccountAdvancedPage::onInitDialog(HWND hwndFocus,
 	setDlgItemText(IDC_MYADDRESS, wstrMyAddress.get());
 	
 	setDlgItemText(IDC_SYNCFILTER, pSubAccount_->getSyncFilterName());
-	sendDlgItemMessage(IDC_SYNCFILTER, CB_SETDROPPEDWIDTH, 200);
+	sendDlgItemMessage(IDC_SYNCFILTER, CB_SETDROPPEDWIDTH, 150);
 	updateFilter();
 	
 	setDlgItemInt(IDC_TIMEOUT, pSubAccount_->getTimeout());

@@ -4437,7 +4437,7 @@ LRESULT qm::GoRoundEntryDialog::onInitDialog(HWND hwndFocus,
 	const WCHAR* pwszFilter = pEntry_->getFilter();
 	if (pwszFilter)
 		setDlgItemText(IDC_SYNCFILTER, pwszFilter);
-	sendDlgItemMessage(IDC_SYNCFILTER, CB_SETDROPPEDWIDTH, 200);
+	sendDlgItemMessage(IDC_SYNCFILTER, CB_SETDROPPEDWIDTH, 150);
 	
 	if (pEntry_->isFlag(GoRoundEntry::FLAG_SEND) &&
 		pEntry_->isFlag(GoRoundEntry::FLAG_RECEIVE))
