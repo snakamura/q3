@@ -639,6 +639,10 @@ QSTATUS qm::SyncStatusWindow::setPos(
 	Lock<CriticalSection> lock(cs_);
 	ItemList::iterator it = getItem(nId);
 	(*it)->setPos(bSub, nPos);
+	
+	if (!bSub)
+		(*it)->setPos(true, 0);
+	
 	invalidate(false);
 	return QSTATUS_SUCCESS;
 }
@@ -694,6 +698,7 @@ QSTATUS qm::SyncStatusWindow::setMessage(
 		ItemList::iterator it = getItem(nId);
 		status = (*it)->setMessage(pwszMessage);
 		CHECK_QSTATUS();
+		(*it)->setPos(true, 0);
 		invalidate(false);
 	}
 	

@@ -392,10 +392,7 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadMessages(
 	CHECK_QSTATUS();
 	
 	if (nDeleteOnServer || nDeleteBefore != 0) {
-		status = pCallback_->setMessage(IDS_DELETEMESSAGE);
-		CHECK_QSTATUS();
-		
-		for (n = 0; n < pUIDList_->getCount(); ++n) {
+		for (size_t n = 0; n < pUIDList_->getCount(); ++n) {
 			UID* pUID = pUIDList_->getUID(n);
 			
 			bool bDelete = false;
@@ -414,37 +411,37 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadMessages(
 		}
 	}
 	
-	if (!listDelete.empty()) {
-		UIDList::IndexList l;
-		status = STLWrapper<UIDList::IndexList>(l).reserve(listDelete.size());
+	UIDList::IndexList l;
+	status = STLWrapper<UIDList::IndexList>(l).reserve(listDelete.size());
+	CHECK_QSTATUS();
+	for (DeleteList::size_type m = 0; m < listDelete.size(); ++m) {
+		if (listDelete[m].first)
+			l.push_back(m);
+	}
+	
+	if (l.size()) {
+		status = pCallback_->setMessage(IDS_DELETEMESSAGE);
 		CHECK_QSTATUS();
+		status = pSessionCallback_->setRange(0, l.size());
+		CHECK_QSTATUS();
+		status = pSessionCallback_->setPos(0);
+		CHECK_QSTATUS();
+		
 		for (DeleteList::size_type n = 0; n < listDelete.size(); ++n) {
-			if (listDelete[n].first)
-				l.push_back(n);
+			if (listDelete[n].first) {
+				status = pSessionCallback_->setPos(n + 1);
+				CHECK_QSTATUS();
+				
+				status = pPop3_->deleteMessage(n);
+				CHECK_QSTATUS_ERROR();
+				
+				MessagePtrLock mpl(listDelete[n].second);
+				if (mpl)
+					mpl->setFlags(0, MessageHolder::FLAG_DELETED);
+			}
 		}
 		
-		if (l.size()) {
-			status = pSessionCallback_->setRange(0, l.size());
-			CHECK_QSTATUS();
-			status = pSessionCallback_->setPos(0);
-			CHECK_QSTATUS();
-			
-			for (n = 0; n < listDelete.size(); ++n) {
-				if (listDelete[n].first) {
-					status = pSessionCallback_->setPos(n + 1);
-					CHECK_QSTATUS();
-					
-					status = pPop3_->deleteMessage(n);
-					CHECK_QSTATUS_ERROR();
-					
-					MessagePtrLock mpl(listDelete[n].second);
-					if (mpl)
-						mpl->setFlags(0, MessageHolder::FLAG_DELETED);
-				}
-			}
-			
-			pUIDList_->remove(l);
-		}
+		pUIDList_->remove(l);
 	}
 	
 	return QSTATUS_SUCCESS;
