@@ -37,6 +37,17 @@ inline void qs::Log::fatal(const WCHAR* pwszMessage,
 		pLogger_->log(Logger::LEVEL_FATAL, pwszModule_, pwszMessage, pData, nDataLen);
 }
 
+inline void qs::Log::fatalf(const WCHAR* pwszFormat,
+							...)
+{
+	if (pLogger_) {
+		va_list args;
+		va_start(args, pwszFormat);
+		pLogger_->logf(Logger::LEVEL_FATAL, pwszModule_, pwszFormat, args);
+		va_end(args);
+	}
+}
+
 inline bool qs::Log::isFatalEnabled() const
 {
 	return pLogger_ ? pLogger_->isEnabled(Logger::LEVEL_FATAL) : false;
@@ -53,6 +64,17 @@ inline void qs::Log::error(const WCHAR* pwszMessage,
 {
 	if (pLogger_)
 		pLogger_->log(Logger::LEVEL_ERROR, pwszModule_, pwszMessage, pData, nDataLen);
+}
+
+inline void qs::Log::errorf(const WCHAR* pwszFormat,
+							...)
+{
+	if (pLogger_) {
+		va_list args;
+		va_start(args, pwszFormat);
+		pLogger_->logf(Logger::LEVEL_ERROR, pwszModule_, pwszFormat, args);
+		va_end(args);
+	}
 }
 
 inline bool qs::Log::isErrorEnabled() const
@@ -73,6 +95,17 @@ inline void qs::Log::warn(const WCHAR* pwszMessage,
 		pLogger_->log(Logger::LEVEL_WARN, pwszModule_, pwszMessage, pData, nDataLen);
 }
 
+inline void qs::Log::warnf(const WCHAR* pwszFormat,
+						   ...)
+{
+	if (pLogger_) {
+		va_list args;
+		va_start(args, pwszFormat);
+		pLogger_->logf(Logger::LEVEL_WARN, pwszModule_, pwszFormat, args);
+		va_end(args);
+	}
+}
+
 inline bool qs::Log::isWarnEnabled() const
 {
 	return pLogger_ ? pLogger_->isEnabled(Logger::LEVEL_WARN) : false;
@@ -91,6 +124,17 @@ inline void qs::Log::info(const WCHAR* pwszMessage,
 		pLogger_->log(Logger::LEVEL_INFO, pwszModule_, pwszMessage, pData, nDataLen);
 }
 
+inline void qs::Log::infof(const WCHAR* pwszFormat,
+						   ...)
+{
+	if (pLogger_) {
+		va_list args;
+		va_start(args, pwszFormat);
+		pLogger_->logf(Logger::LEVEL_INFO, pwszModule_, pwszFormat, args);
+		va_end(args);
+	}
+}
+
 inline bool qs::Log::isInfoEnabled() const
 {
 	return pLogger_ ? pLogger_->isEnabled(Logger::LEVEL_INFO) : false;
@@ -107,6 +151,17 @@ inline void qs::Log::debug(const WCHAR* pwszMessage,
 {
 	if (pLogger_)
 		pLogger_->log(Logger::LEVEL_DEBUG, pwszModule_, pwszMessage, pData, nDataLen);
+}
+
+inline void qs::Log::debugf(const WCHAR* pwszFormat,
+							...)
+{
+	if (pLogger_) {
+		va_list args;
+		va_start(args, pwszFormat);
+		pLogger_->logf(Logger::LEVEL_DEBUG, pwszModule_, pwszFormat, args);
+		va_end(args);
+	}
 }
 
 inline bool qs::Log::isDebugEnabled() const

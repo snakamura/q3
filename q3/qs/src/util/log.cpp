@@ -118,6 +118,27 @@ void qs::Logger::log(Level level,
 	pImpl_->pStream_->flush();
 }
 
+void qs::Logger::logf(Level level,
+					  const WCHAR* pwszModule,
+					  const WCHAR* pwszFormat,
+					  ...)
+{
+	va_list args;
+	va_start(args, pwszFormat);
+	logf(level, pwszModule, pwszFormat, args);
+	va_end(args);
+}
+
+void qs::Logger::logf(Level level,
+					  const WCHAR* pwszModule,
+					  const WCHAR* pwszFormat,
+					  va_list args)
+{
+	WCHAR wszMessage[256];
+	_vsnwprintf(wszMessage, countof(wszMessage), pwszFormat, args);
+	log(level, pwszModule, wszMessage, 0, 0);
+}
+
 bool qs::Logger::isEnabled(Level level) const
 {
 	return pImpl_->level_ >= level;
