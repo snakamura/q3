@@ -882,7 +882,15 @@ QSTATUS qmimap4::Imap4Driver::clearDeletedMessages(
 	DECLARE_QSTATUS();
 	
 	if (bOffline_) {
-		// TODO
+		string_ptr<WSTRING> wstrFolder;
+		status = pFolder->getFullName(&wstrFolder);
+		CHECK_QSTATUS();
+		std::auto_ptr<ExpungeOfflineJob> pJob;
+		status = newQsObject(wstrFolder.get(), &pJob);
+		CHECK_QSTATUS();
+		status = pOfflineJobManager_->add(pJob.get());
+		CHECK_QSTATUS();
+		pJob.release();
 	}
 	else {
 		Lock<CriticalSection> lock(cs_);

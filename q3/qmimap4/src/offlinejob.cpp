@@ -130,9 +130,6 @@ QSTATUS qmimap4::OfflineJobManager::apply(Account* pAccount,
 		JobList& l_;
 	} deleter(listJob_);
 	
-	// TODO
-	// Sort listJob_ not to select folder each time
-	
 	status = pCallback->setRange(0, listJob_.size());
 	CHECK_QSTATUS();
 	
@@ -156,8 +153,13 @@ QSTATUS qmimap4::OfflineJobManager::apply(Account* pAccount,
 				pPrevFolder = pFolder;
 			}
 		}
-		status = pJob->apply(pAccount, pImap4);
+		
+		bool bClosed = false;
+		status = pJob->apply(pAccount, pImap4, &bClosed);
 		CHECK_QSTATUS();
+		if (bClosed)
+			pPrevFolder = 0;
+		
 		delete pJob;
 		pJob = 0;
 	}
@@ -328,7 +330,7 @@ qmimap4::OfflineJob::~OfflineJob()
 	freeWString(wstrFolder_);
 }
 
-QSTATUS qmimap4::OfflineJob::write(qs::OutputStream* pStream) const
+QSTATUS qmimap4::OfflineJob::write(OutputStream* pStream) const
 {
 	DECLARE_QSTATUS();
 	
@@ -363,7 +365,7 @@ qmimap4::AppendOfflineJob::AppendOfflineJob(
 }
 
 qmimap4::AppendOfflineJob::AppendOfflineJob(
-	InputStream* pStream, qs::QSTATUS* pstatus) :
+	InputStream* pStream, QSTATUS* pstatus) :
 	OfflineJob(pStream, pstatus),
 	nId_(0)
 {
@@ -385,8 +387,13 @@ OfflineJob::Type qmimap4::AppendOfflineJob::getType() const
 	return TYPE_APPEND;
 }
 
-QSTATUS qmimap4::AppendOfflineJob::apply(Account* pAccount, Imap4* pImap4) const
+QSTATUS qmimap4::AppendOfflineJob::apply(Account* pAccount,
+	Imap4* pImap4, bool* pbClosed) const
 {
+	assert(pAccount);
+	assert(pImap4);
+	assert(pbClosed);
+	
 	DECLARE_QSTATUS();
 	
 	Folder* pFolder = 0;
@@ -525,8 +532,13 @@ OfflineJob::Type qmimap4::CopyOfflineJob::getType() const
 	return TYPE_COPY;
 }
 
-QSTATUS qmimap4::CopyOfflineJob::apply(Account* pAccount, Imap4* pImap4) const
+QSTATUS qmimap4::CopyOfflineJob::apply(Account* pAccount,
+	Imap4* pImap4, bool* pbClosed) const
 {
+	assert(pAccount);
+	assert(pImap4);
+	assert(pbClosed);
+	
 	DECLARE_QSTATUS();
 	
 	assert(!listUidFrom_.empty());
@@ -670,13 +682,77 @@ QSTATUS qmimap4::CopyOfflineJob::merge(OfflineJob* pOfflineJob, bool* pbMerged)
 
 /****************************************************************************
  *
+ * ExpungeOfflineJob
+ *
+ */
+
+qmimap4::ExpungeOfflineJob::ExpungeOfflineJob(
+	const WCHAR* pwszFolder, QSTATUS* pstatus) :
+	OfflineJob(pwszFolder, pstatus)
+{
+}
+
+qmimap4::ExpungeOfflineJob::ExpungeOfflineJob(
+	InputStream* pStream, QSTATUS* pstatus) :
+	OfflineJob(pStream, pstatus)
+{
+}
+
+qmimap4::ExpungeOfflineJob::~ExpungeOfflineJob()
+{
+}
+
+OfflineJob::Type qmimap4::ExpungeOfflineJob::getType() const
+{
+	return TYPE_EXPUNGE;
+}
+
+QSTATUS qmimap4::ExpungeOfflineJob::apply(Account* pAccount,
+	Imap4* pImap4, bool* pbClosed) const
+{
+	assert(pAccount);
+	assert(pImap4);
+	assert(pbClosed);
+	
+	DECLARE_QSTATUS();
+	
+	status = pImap4->close();
+	CHECK_QSTATUS();
+	*pbClosed = true;
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qmimap4::ExpungeOfflineJob::write(OutputStream* pStream) const
+{
+	return OfflineJob::write(pStream);
+}
+
+bool qmimap4::ExpungeOfflineJob::isCreateMessage(const WCHAR* pwszFolder, unsigned long nId)
+{
+	return false;
+}
+
+QSTATUS qmimap4::ExpungeOfflineJob::merge(OfflineJob* pOfflineJob, bool* pbMerged)
+{
+	assert(pOfflineJob);
+	assert(pbMerged);
+	
+	*pbMerged = true;
+	
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
  * SetFlagsOfflineJob
  *
  */
 
 qmimap4::SetFlagsOfflineJob::SetFlagsOfflineJob(const WCHAR* pwszFolder,
 	const UidList& listUid, unsigned int nFlags, unsigned int nMask,
-	qs::QSTATUS* pstatus) :
+	QSTATUS* pstatus) :
 	OfflineJob(pwszFolder, pstatus),
 	nFlags_(nFlags),
 	nMask_(nMask)
@@ -722,8 +798,12 @@ OfflineJob::Type qmimap4::SetFlagsOfflineJob::getType() const
 	return TYPE_SETFLAGS;
 }
 
-QSTATUS qmimap4::SetFlagsOfflineJob::apply(Account* pAccount, Imap4* pImap4) const
+QSTATUS qmimap4::SetFlagsOfflineJob::apply(Account* pAccount,
+	Imap4* pImap4, bool* pbClosed) const
 {
+	assert(pAccount);
+	assert(pImap4);
+	assert(pbClosed);
 	assert(!listUid_.empty());
 	
 	DECLARE_QSTATUS();
@@ -846,6 +926,7 @@ QSTATUS qmimap4::OfflineJobFactory::getInstance(
 	BEGIN_OFFLINEJOB()
 		DECLARE_OFFLINEJOB(TYPE_APPEND, AppendOfflineJob)
 		DECLARE_OFFLINEJOB(TYPE_COPY, CopyOfflineJob)
+		DECLARE_OFFLINEJOB(TYPE_EXPUNGE, ExpungeOfflineJob)
 		DECLARE_OFFLINEJOB(TYPE_SETFLAGS, SetFlagsOfflineJob)
 	END_OFFLINEJOB()
 	
@@ -853,7 +934,7 @@ QSTATUS qmimap4::OfflineJobFactory::getInstance(
 }
 
 QSTATUS qmimap4::OfflineJobFactory::writeInstance(
-	qs::OutputStream* pStream, OfflineJob* pJob) const
+	OutputStream* pStream, OfflineJob* pJob) const
 {
 	DECLARE_QSTATUS();
 	

@@ -24,6 +24,7 @@ class OfflineJobManager;
 class OfflineJob;
 	class AppendOfflineJob;
 	class CopyOfflineJob;
+	class ExpungeOfflineJob;
 	class SetFlagsOfflineJob;
 class OfflineJobFactory;
 
@@ -87,7 +88,8 @@ public:
 	enum Type {
 		TYPE_APPEND		= 1,
 		TYPE_COPY		= 2,
-		TYPE_SETFLAGS	= 3
+		TYPE_EXPUNGE	= 3,
+		TYPE_SETFLAGS	= 4
 	};
 
 protected:
@@ -99,7 +101,8 @@ public:
 
 public:
 	virtual Type getType() const = 0;
-	virtual qs::QSTATUS apply(qm::Account* pAccount, Imap4* pImap4) const = 0;
+	virtual qs::QSTATUS apply(qm::Account* pAccount,
+		Imap4* pImap4, bool* pbClosed) const = 0;
 	virtual qs::QSTATUS write(qs::OutputStream* pStream) const = 0;
 	virtual bool isCreateMessage(const WCHAR* pwszFolder, unsigned long nId) = 0;
 	virtual qs::QSTATUS merge(OfflineJob* pOfflineJob, bool* pbMerged) = 0;
@@ -128,7 +131,8 @@ public:
 
 public:
 	virtual Type getType() const;
-	virtual qs::QSTATUS apply(qm::Account* pAccount, Imap4* pImap4) const;
+	virtual qs::QSTATUS apply(qm::Account* pAccount,
+		Imap4* pImap4, bool* pbClosed) const;
 	virtual qs::QSTATUS write(qs::OutputStream* pStream) const;
 	virtual bool isCreateMessage(const WCHAR* pwszFolder, unsigned long nId);
 	virtual qs::QSTATUS merge(OfflineJob* pOfflineJob, bool* pbMerged);
@@ -171,7 +175,8 @@ public:
 
 public:
 	virtual Type getType() const;
-	virtual qs::QSTATUS apply(qm::Account* pAccount, Imap4* pImap4) const;
+	virtual qs::QSTATUS apply(qm::Account* pAccount,
+		Imap4* pImap4, bool* pbClosed) const;
 	virtual qs::QSTATUS write(qs::OutputStream* pStream) const;
 	virtual bool isCreateMessage(const WCHAR* pwszFolder, unsigned long nId);
 	virtual qs::QSTATUS merge(OfflineJob* pOfflineJob, bool* pbMerged);
@@ -185,6 +190,33 @@ private:
 	UidList listUidFrom_;
 	ItemList listItemTo_;
 	bool bMove_;
+};
+
+
+/****************************************************************************
+ *
+ * ExpungeOfflineJob
+ *
+ */
+
+class ExpungeOfflineJob : public OfflineJob
+{
+public:
+	ExpungeOfflineJob(const WCHAR* pwszFolder, qs::QSTATUS* pstatus);
+	ExpungeOfflineJob(qs::InputStream* pStream, qs::QSTATUS* pstatus);
+	virtual ~ExpungeOfflineJob();
+
+public:
+	virtual Type getType() const;
+	virtual qs::QSTATUS apply(qm::Account* pAccount,
+		Imap4* pImap4, bool* pbClosed) const;
+	virtual qs::QSTATUS write(qs::OutputStream* pStream) const;
+	virtual bool isCreateMessage(const WCHAR* pwszFolder, unsigned long nId);
+	virtual qs::QSTATUS merge(OfflineJob* pOfflineJob, bool* pbMerged);
+
+private:
+	ExpungeOfflineJob(const ExpungeOfflineJob&);
+	ExpungeOfflineJob& operator=(const ExpungeOfflineJob&);
 };
 
 
@@ -207,7 +239,8 @@ public:
 
 public:
 	virtual Type getType() const;
-	virtual qs::QSTATUS apply(qm::Account* pAccount, Imap4* pImap4) const;
+	virtual qs::QSTATUS apply(qm::Account* pAccount,
+		Imap4* pImap4, bool* pbClosed) const;
 	virtual qs::QSTATUS write(qs::OutputStream* pStream) const;
 	virtual bool isCreateMessage(const WCHAR* pwszFolder, unsigned long nId);
 	virtual qs::QSTATUS merge(OfflineJob* pOfflineJob, bool* pbMerged);
