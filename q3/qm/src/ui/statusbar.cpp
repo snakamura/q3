@@ -1,5 +1,5 @@
 /*
- * $Id: statusbar.cpp,v 1.1.1.1 2003/04/29 08:07:32 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -27,6 +27,27 @@ qm::StatusBar::StatusBar(QSTATUS* pstatus) :
 
 qm::StatusBar::~StatusBar()
 {
+}
+
+QSTATUS qm::StatusBar::setParts(int* pnWidth, size_t nCount)
+{
+	BOOL b = sendMessage(SB_SETPARTS, nCount,
+		reinterpret_cast<LPARAM>(pnWidth));
+	return b ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+}
+
+QSTATUS qm::StatusBar::setText(int n, const WCHAR* pwszText)
+{
+	DECLARE_QSTATUS();
+	
+	W2T(pwszText, ptszText);
+	BOOL b = sendMessage(SB_SETTEXT, n, reinterpret_cast<LPARAM>(ptszText));
+	return b ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+}
+
+void qm::StatusBar::setSimple(bool bSimple)
+{
+	sendMessage(SB_SIMPLE, bSimple);
 }
 
 LRESULT qm::StatusBar::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)

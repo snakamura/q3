@@ -36,6 +36,12 @@ public:
 		FLAG_HTMLONLY,
 		FLAG_TEMPORARY
 	};
+	
+	enum Security {
+		SECURITY_NONE		= 0x00,
+		SECURITY_DECRYPTED	= 0x01,
+		SECURITY_VERIFIED	= 0x02
+	};
 
 public:
 	explicit Message(qs::QSTATUS* pstatus);
@@ -45,9 +51,13 @@ public:
 
 public:
 	qs::QSTATUS create(const CHAR* pszMessage, size_t nLen, Flag flag);
+	qs::QSTATUS create(const CHAR* pszMessage, size_t nLen,
+		Flag flag, unsigned int nSecurity);
 	qs::QSTATUS clear();
 	Flag getFlag() const;
 	void setFlag(Flag flag);
+	unsigned int getSecurity() const;
+	void setSecurity(unsigned int nSecurity);
 
 private:
 	Message(const Message&);
@@ -55,6 +65,7 @@ private:
 
 private:
 	Flag flag_;
+	unsigned int nSecurity_;
 };
 
 

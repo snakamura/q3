@@ -55,12 +55,19 @@ qm::Message::~Message()
 
 QSTATUS qm::Message::create(const CHAR* pszMessage, size_t nLen, Flag flag)
 {
+	return create(pszMessage, nLen, flag, SECURITY_NONE);
+}
+
+QSTATUS qm::Message::create(const CHAR* pszMessage,
+	size_t nLen, Flag flag, unsigned int nSecurity)
+{
 	DECLARE_QSTATUS();
 	
 	status = Part::create(0, pszMessage, nLen);
 	CHECK_QSTATUS();
 	
 	flag_ = flag;
+	nSecurity_ = nSecurity;
 	
 	return QSTATUS_SUCCESS;
 }
@@ -79,6 +86,16 @@ Message::Flag qm::Message::getFlag() const
 void qm::Message::setFlag(Flag flag)
 {
 	flag_ = flag;
+}
+
+unsigned int qm::Message::getSecurity() const
+{
+	return nSecurity_;
+}
+
+void qm::Message::setSecurity(unsigned int nSecurity)
+{
+	nSecurity_ = nSecurity;
 }
 
 

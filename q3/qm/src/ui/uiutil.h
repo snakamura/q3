@@ -23,7 +23,11 @@ class UIUtil;
 class ProgressDialogInit;
 
 class Folder;
+class Message;
+class MessageHolder;
+class MessageWindow;
 class ProgressDialog;
+class StatusBar;
 
 
 /****************************************************************************
@@ -44,6 +48,9 @@ public:
 	static qs::QSTATUS openURL(HWND hwnd, const WCHAR* pwszURL);
 	
 	static int getFolderImage(Folder* pFolder, bool bSelected);
+	
+	static qs::QSTATUS updateStatusBar(MessageWindow* pMessageWindow,
+		StatusBar* pStatusBar, int nOffset, MessageHolder* pmh, Message& msg);
 };
 
 

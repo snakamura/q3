@@ -53,12 +53,18 @@ public:
 	};
 
 public:
+	typedef std::vector<MessageWindowHandler*> HandlerList;
+
+public:
 	QSTATUS layoutChildren();
 	QSTATUS layoutChildren(int cx, int cy);
 	QSTATUS setMessage(MessageHolder* pmh, bool bResetEncoding);
 
 public:
 	virtual QSTATUS messageChanged(const MessageModelEvent& event);
+
+private:
+	QSTATUS fireMessageChanged(MessageHolder* pmh, Message& msg) const;
 
 public:
 	MessageWindow* pThis_;
@@ -83,6 +89,8 @@ public:
 	WSTRING wstrEncoding_;
 	WSTRING wstrTemplate_;
 	bool bSelectMode_;
+	
+	HandlerList listHandler_;
 };
 
 QSTATUS qm::MessageWindowImpl::layoutChildren()
@@ -140,6 +148,7 @@ QSTATUS qm::MessageWindowImpl::setMessage(MessageHolder* pmh, bool bResetEncodin
 		status = pmh->getMessage(nFlags, 0, &msg);
 		CHECK_QSTATUS();
 		
+		unsigned int nSecurity = Message::SECURITY_NONE;
 		const Security* pSecurity = pDocument_->getSecurity();
 		if (Security::isEnabled() && bDecryptVerifyMode_) {
 			const SMIMEUtility* pSMIMEUtility = pSecurity->getSMIMEUtility();
@@ -161,6 +170,7 @@ QSTATUS qm::MessageWindowImpl::setMessage(MessageHolder* pmh, bool bResetEncodin
 					status = pSMIMEUtility->verify(msg,
 						pSecurity->getCA(), &strMessage);
 					CHECK_QSTATUS();
+					nSecurity |= Message::SECURITY_VERIFIED;
 					break;
 				case SMIMEUtility::TYPE_ENVELOPED:
 					{
@@ -171,6 +181,7 @@ QSTATUS qm::MessageWindowImpl::setMessage(MessageHolder* pmh, bool bResetEncodin
 							status = pSMIMEUtility->decrypt(msg,
 								pPrivateKey, pCertificate, &strMessage);
 							CHECK_QSTATUS();
+							nSecurity |= Message::SECURITY_DECRYPTED;
 						}
 					}
 					break;
@@ -181,7 +192,8 @@ QSTATUS qm::MessageWindowImpl::setMessage(MessageHolder* pmh, bool bResetEncodin
 				if (!strMessage.get())
 					break;
 				
-				status = msg.create(strMessage.get(), -1, Message::FLAG_NONE);
+				status = msg.create(strMessage.get(), -1,
+					Message::FLAG_NONE, nSecurity);
 				CHECK_QSTATUS();
 				type = pSMIMEUtility->getType(msg);
 			}
@@ -253,6 +265,9 @@ QSTATUS qm::MessageWindowImpl::setMessage(MessageHolder* pmh, bool bResetEncodin
 		CHECK_QSTATUS();
 	}
 	
+	status = fireMessageChanged(pmh, msg);
+	CHECK_QSTATUS();
+	
 	return QSTATUS_SUCCESS;
 }
 
@@ -267,6 +282,23 @@ QSTATUS qm::MessageWindowImpl::messageChanged(const MessageModelEvent& event)
 			reinterpret_cast<LPARAM>(event.getMessageHolder()));
 		return QSTATUS_SUCCESS;
 	}
+}
+
+QSTATUS qm::MessageWindowImpl::fireMessageChanged(
+	MessageHolder* pmh, Message& msg) const
+{
+	DECLARE_QSTATUS();
+	
+	MessageWindowEvent event(pmh, msg);
+	
+	HandlerList::const_iterator it = listHandler_.begin();
+	while (it != listHandler_.end()) {
+		status = (*it)->messageChanged(event);
+		CHECK_QSTATUS();
+		++it;
+	}
+	
+	return QSTATUS_SUCCESS;
 }
 
 
@@ -578,6 +610,20 @@ QSTATUS qm::MessageWindow::save() const
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qm::MessageWindow::addMessageWindowHandler(MessageWindowHandler* pHandler)
+{
+	return STLWrapper<MessageWindowImpl::HandlerList>(
+		pImpl_->listHandler_).push_back(pHandler);
+}
+
+QSTATUS qm::MessageWindow::removeMessageWindowHandler(MessageWindowHandler* pHandler)
+{
+	MessageWindowImpl::HandlerList::iterator it = std::remove(
+		pImpl_->listHandler_.begin(), pImpl_->listHandler_.end(), pHandler);
+	pImpl_->listHandler_.erase(it, pImpl_->listHandler_.end());
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::MessageWindow::getAccelerator(Accelerator** ppAccelerator)
 {
 	assert(ppAccelerator);
@@ -683,6 +729,44 @@ QSTATUS qm::MessageWindow::setActive()
 	else
 		setFocus();
 	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * MessageWindowHandler
+ *
+ */
+
+qm::MessageWindowHandler::~MessageWindowHandler()
+{
+}
+
+
+/****************************************************************************
+ *
+ * MessageWindowEvent
+ *
+ */
+
+qm::MessageWindowEvent::MessageWindowEvent(MessageHolder* pmh, Message& msg) :
+	pmh_(pmh),
+	msg_(msg)
+{
+}
+
+qm::MessageWindowEvent::~MessageWindowEvent()
+{
+}
+
+MessageHolder* qm::MessageWindowEvent::getMessageHolder() const
+{
+	return pmh_;
+}
+
+Message& qm::MessageWindowEvent::getMessage() const
+{
+	return msg_;
 }
 
 

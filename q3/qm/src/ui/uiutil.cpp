@@ -6,7 +6,9 @@
  *
  */
 
+#include <qmapplication.h>
 #include <qmfolder.h>
+#include <qmmessagewindow.h>
 
 #include <qsconv.h>
 #include <qsnew.h>
@@ -15,6 +17,8 @@
 #include <tchar.h>
 
 #include "dialogs.h"
+#include "resourceinc.h"
+#include "statusbar.h"
 #include "uiutil.h"
 
 using namespace qm;
@@ -187,6 +191,57 @@ int qm::UIUtil::getFolderImage(Folder* pFolder, bool bSelected)
 	else
 		nImage = 2;
 	return nImage;
+}
+
+QSTATUS qm::UIUtil::updateStatusBar(MessageWindow* pMessageWindow,
+	StatusBar* pStatusBar, int nOffset, MessageHolder* pmh, Message& msg)
+{
+	DECLARE_QSTATUS();
+	
+	const WCHAR* pwszEncoding = pMessageWindow->getEncoding();
+	string_ptr<WSTRING> wstrCharset;
+	if (!pwszEncoding) {
+		const ContentTypeParser* pContentType = msg.getContentType();
+		if (pContentType) {
+			status = pContentType->getParameter(L"charset", &wstrCharset);
+			CHECK_QSTATUS();
+		}
+		pwszEncoding = wstrCharset.get();
+	}
+	if (!pwszEncoding)
+		pwszEncoding = L"us-ascii";
+	status = pStatusBar->setText(nOffset + 1, pwszEncoding);
+	CHECK_QSTATUS();
+	
+	const WCHAR* pwszTemplate = pMessageWindow->getTemplate();
+	string_ptr<WSTRING> wstrNone;
+	if (pwszTemplate) {
+		pwszTemplate += 5;
+	}
+	else {
+		status = loadString(Application::getApplication().getResourceHandle(),
+			IDS_NONE, &wstrNone);
+		CHECK_QSTATUS();
+		pwszTemplate = wstrNone.get();
+	}
+	status = pStatusBar->setText(nOffset + 2, pwszTemplate);
+	CHECK_QSTATUS();
+	
+	unsigned int nSecurity = msg.getSecurity();
+	if (nSecurity & Message::SECURITY_DECRYPTED) {
+		// TODO
+		// Use icon
+		status = pStatusBar->setText(nOffset + 3, L"D");
+		CHECK_QSTATUS();
+	}
+	if (nSecurity & Message::SECURITY_VERIFIED) {
+		// TODO
+		// Use icon
+		status = pStatusBar->setText(nOffset + 4, L"V");
+		CHECK_QSTATUS();
+	}
+	
+	return QSTATUS_SUCCESS;
 }
 
 

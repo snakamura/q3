@@ -22,6 +22,8 @@ namespace qm {
 
 class MessageFrameWindow;
 class MessageWindow;
+class MessageWindowHandler;
+class MessageWindowEvent;
 class HeaderWindow;
 
 class AttachmentSelectionModel;
@@ -141,6 +143,9 @@ public:
 	AttachmentSelectionModel* getAttachmentSelectionModel() const;
 	
 	qs::QSTATUS save() const;
+	
+	qs::QSTATUS addMessageWindowHandler(MessageWindowHandler* pHandler);
+	qs::QSTATUS removeMessageWindowHandler(MessageWindowHandler* pHandler);
 
 public:
 	virtual qs::QSTATUS getAccelerator(qs::Accelerator** ppAccelerator);
@@ -164,6 +169,48 @@ private:
 
 private:
 	class MessageWindowImpl* pImpl_;
+};
+
+
+/****************************************************************************
+ *
+ * MessageWindowHandler
+ *
+ */
+
+class MessageWindowHandler
+{
+public:
+	virtual ~MessageWindowHandler();
+
+public:
+	virtual qs::QSTATUS messageChanged(const MessageWindowEvent& event) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * MessageWindowEvent
+ *
+ */
+
+class MessageWindowEvent
+{
+public:
+	MessageWindowEvent(MessageHolder* pmh, Message& msg);
+	~MessageWindowEvent();
+
+public:
+	MessageHolder* getMessageHolder() const;
+	Message& getMessage() const;
+
+private:
+	MessageWindowEvent(const MessageWindowEvent&);
+	MessageWindowEvent& operator=(const MessageWindowEvent&);
+
+private:
+	MessageHolder* pmh_;
+	Message& msg_;
 };
 
 

@@ -8,6 +8,7 @@
 
 #include <qmapplication.h>
 #include <qmdocument.h>
+#include <qmmessage.h>
 #include <qmmessagewindow.h>
 #include <qmsecurity.h>
 
@@ -46,7 +47,7 @@ using namespace qs;
  */
 
 class qm::MessageFrameWindowImpl :
-	public MessageModelHandler,
+	public MessageWindowHandler,
 	public FolderModelBase,
 	public MessageSelectionModel
 {
@@ -65,7 +66,7 @@ public:
 	QSTATUS layoutChildren(int cx, int cy);
 
 public:
-	virtual QSTATUS messageChanged(const MessageModelEvent& event);
+	virtual QSTATUS messageChanged(const MessageWindowEvent& event);
 
 public:
 	virtual Account* getCurrentAccount() const;
@@ -399,12 +400,23 @@ QSTATUS qm::MessageFrameWindowImpl::layoutChildren(int cx, int cy)
 	pMessageWindow_->setWindowPos(0, 0, nToolbarHeight, cx,
 		cy - nStatusBarHeight - nToolbarHeight, SWP_NOZORDER);
 	
+	int nWidth[] = {
+		cx - 210,
+		cx - 130,
+		cx - 70,
+		cx - 50,
+		cx - 30,
+		-1
+	};
+	status = pStatusBar_->setParts(nWidth, countof(nWidth));
+	CHECK_QSTATUS();
+	
 	bLayouting_ = false;
 	
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::MessageFrameWindowImpl::messageChanged(const MessageModelEvent& event)
+QSTATUS qm::MessageFrameWindowImpl::messageChanged(const MessageWindowEvent& event)
 {
 	DECLARE_QSTATUS();
 	
@@ -417,6 +429,12 @@ QSTATUS qm::MessageFrameWindowImpl::messageChanged(const MessageModelEvent& even
 				wstrSubject.get(), L" - ", wstrTitle_));
 			if (wstrTitle.get())
 				pThis_->setWindowText(wstrTitle.get());
+		}
+		
+		if (bShowStatusBar_) {
+			status = UIUtil::updateStatusBar(pMessageWindow_,
+				pStatusBar_, 0, pmh, event.getMessage());
+			CHECK_QSTATUS();
 		}
 	}
 	else {
@@ -890,7 +908,7 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	status = pImpl_->initActions();
 	CHECK_QSTATUS();
 	
-	status = getMessageModel()->addMessageModelHandler(pImpl_);
+	status = pImpl_->pMessageWindow_->addMessageWindowHandler(pImpl_);
 	CHECK_QSTATUS();
 	
 	pImpl_->wstrTitle_ = getWindowText();
@@ -904,7 +922,7 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 
 LRESULT qm::MessageFrameWindow::onDestroy()
 {
-	getMessageModel()->removeMessageModelHandler(pImpl_);
+	pImpl_->pMessageWindow_->removeMessageWindowHandler(pImpl_);
 	
 	return FrameWindow::onDestroy();
 }

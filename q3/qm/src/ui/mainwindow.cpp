@@ -14,6 +14,7 @@
 #include <qmgoround.h>
 #include <qmlistwindow.h>
 #include <qmmainwindow.h>
+#include <qmmessage.h>
 #include <qmmessagewindow.h>
 #include <qmsecurity.h>
 
@@ -78,7 +79,8 @@ class qm::MainWindowImpl :
 	public ModalHandler,
 	public SplitterWindowHandler,
 	public FolderModelHandler,
-	public FolderSelectionModel
+	public FolderSelectionModel,
+	public MessageWindowHandler
 {
 public:
 	enum {
@@ -144,6 +146,9 @@ public:
 	virtual qs::QSTATUS getSelectedFolders(Account::FolderList* pList);
 	virtual qs::QSTATUS hasSelectedFolder(bool* pbHas);
 	virtual Folder* getFocusedFolder();
+
+public:
+	virtual QSTATUS messageChanged(const MessageWindowEvent& event);
 
 public:
 	MainWindow* pThis_;
@@ -798,6 +803,20 @@ QSTATUS qm::MainWindowImpl::layoutChildren(int cx, int cy)
 	pListSplitterWindow_->showPane(0, 1, bShowPreviewWindow_);
 	pListSplitterWindow_->setRowHeight(0, nListWindowHeight_);
 	
+	int nWidth[] = {
+		cx - 360,
+		cx - 310,
+		cx - 260,
+		cx - 210,
+		cx - 130,
+		cx - 70,
+		cx - 50,
+		cx - 30,
+		-1
+	};
+	status = pStatusBar_->setParts(nWidth, countof(nWidth));
+	CHECK_QSTATUS();
+	
 	bLayouting_ = false;
 	
 	return QSTATUS_SUCCESS;
@@ -940,6 +959,22 @@ Folder* qm::MainWindowImpl::getFocusedFolder()
 		return pFolderListModel_->getFocusedFolder();
 	else
 		return pFolderModel_->getCurrentFolder();
+}
+
+QSTATUS qm::MainWindowImpl::messageChanged(const MessageWindowEvent& event)
+{
+	DECLARE_QSTATUS();
+	
+	MessageHolder* pmh = event.getMessageHolder();
+	if (pmh) {
+		if (bShowStatusBar_) {
+			status = UIUtil::updateStatusBar(pMessageWindow_,
+				pStatusBar_, 3, pmh, event.getMessage());
+			CHECK_QSTATUS();
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
 }
 
 
@@ -1892,6 +1927,9 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pDelayedFolderModelHandler_);
 	CHECK_QSTATUS_VALUE(-1);
 	
+	status = pImpl_->pMessageWindow_->addMessageWindowHandler(pImpl_);
+	CHECK_QSTATUS();
+	
 	status = pImpl_->initActions();
 	CHECK_QSTATUS_VALUE(-1);
 	
@@ -1902,6 +1940,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 
 LRESULT qm::MainWindow::onDestroy()
 {
+	pImpl_->pMessageWindow_->removeMessageWindowHandler(pImpl_);
 	pImpl_->pFolderModel_->removeFolderModelHandler(
 		pImpl_->pDelayedFolderModelHandler_);
 	

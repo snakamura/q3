@@ -1,5 +1,5 @@
 /*
- * $Id: statusbar.h,v 1.1.1.1 2003/04/29 08:07:32 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -27,6 +27,11 @@ class StatusBar : public qs::WindowBase, qs::DefaultWindowHandler
 public:
 	StatusBar(qs::QSTATUS* pstatus);
 	virtual ~StatusBar();
+
+public:
+	qs::QSTATUS setParts(int* pnWidth, size_t nCount);
+	qs::QSTATUS setText(int n, const WCHAR* pwszText);
+	void setSimple(bool bSimple);
 
 public:
 	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);

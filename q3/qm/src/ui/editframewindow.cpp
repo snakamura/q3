@@ -318,6 +318,15 @@ QSTATUS qm::EditFrameWindowImpl::layoutChildren(int cx, int cy)
 	pEditWindow_->setWindowPos(0, 0, nToolbarHeight, cx,
 		cy - nStatusBarHeight - nToolbarHeight, SWP_NOZORDER);
 	
+	int nWidth[] = {
+		cx - 110,
+		cx - 80,
+		cx - 50,
+		-1
+	};
+	status = pStatusBar_->setParts(nWidth, countof(nWidth));
+	CHECK_QSTATUS();
+	
 	bLayouting_ = false;
 	
 	return QSTATUS_SUCCESS;
