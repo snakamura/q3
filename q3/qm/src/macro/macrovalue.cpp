@@ -13,6 +13,8 @@
 
 #include <algorithm>
 
+#include "../model/uri.h"
+
 using namespace qm;
 using namespace qs;
 
@@ -656,7 +658,17 @@ const MacroValueMessageList::MessageList& qm::MacroValueMessageList::getMessageL
 
 wstring_ptr qm::MacroValueMessageList::string() const
 {
-	return allocWString(L"");
+	StringBuffer<WSTRING> buf;
+	for (MessageList::const_iterator it = list_.begin(); it != list_.end(); ++it) {
+		MessagePtrLock mpl(*it);
+		if (mpl) {
+			if (buf.getLength() != 0)
+				buf.append(L", ");
+			wstring_ptr wstrURI(URI::getURI(mpl));
+			buf.append(wstrURI.get());
+		}
+	}
+	return buf.getString();
 }
 
 bool qm::MacroValueMessageList::boolean() const
