@@ -131,9 +131,6 @@ QSTATUS qmpop3::Pop3ReceiveSession::connect()
 	status = log.debug(L"Connected to the server.");
 	CHECK_QSTATUS();
 	
-	status = prepare();
-	CHECK_QSTATUS();
-	
 	return QSTATUS_SUCCESS;
 }
 
@@ -159,7 +156,14 @@ QSTATUS qmpop3::Pop3ReceiveSession::disconnect()
 QSTATUS qmpop3::Pop3ReceiveSession::selectFolder(NormalFolder* pFolder)
 {
 	assert(pFolder);
+	
+	DECLARE_QSTATUS();
+	
+	status = prepare();
+	CHECK_QSTATUS();
+	
 	pFolder_ = pFolder;
+	
 	return QSTATUS_SUCCESS;
 }
 
