@@ -104,6 +104,8 @@ void qmnntp::NntpReceiveSession::disconnect()
 	
 	Log log(pLogger_, L"qmnntp::NntpReceiveSession");
 	
+	clearLastIds();
+	
 	if (pLastIdList_->isModified()) {
 		if (!pLastIdList_->save())
 			log.error(L"Failed to save last id list.");
@@ -368,6 +370,21 @@ bool qmnntp::NntpReceiveSession::downloadReservedMessages(NormalFolder* pFolder)
 	}
 	
 	return true;
+}
+
+void qmnntp::NntpReceiveSession::clearLastIds()
+{
+	typedef std::vector<const WCHAR*> NameList;
+	NameList listRemove;
+	
+	const LastIdList::IdList& listId = pLastIdList_->getList();
+	for (LastIdList::IdList::const_iterator it = listId.begin(); it != listId.end(); ++it) {
+		if (!pAccount_->getFolder((*it).first))
+			listRemove.push_back((*it).first);
+	}
+	
+	for (NameList::const_iterator it = listRemove.begin(); it != listRemove.end(); ++it)
+		pLastIdList_->removeLastId(*it);
 }
 
 

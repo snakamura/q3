@@ -82,6 +82,23 @@ void qmnntp::LastIdList::setLastId(const WCHAR* pwszName,
 	bModified_ = true;
 }
 
+void qmnntp::LastIdList::removeLastId(const WCHAR* pwszName)
+{
+	IdList::iterator it = std::find_if(listId_.begin(), listId_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				string_equal<WCHAR>(),
+				std::select1st<IdList::value_type>(),
+				std::identity<const WCHAR*>()),
+			pwszName));
+	if (it != listId_.end()) {
+		freeWString((*it).first);
+		listId_.erase(it);
+	}
+	
+	bModified_ = true;
+}
+
 bool qmnntp::LastIdList::isModified() const
 {
 	return bModified_;

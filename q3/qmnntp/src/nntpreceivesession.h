@@ -67,6 +67,9 @@ public:
 	virtual bool applyOfflineJobs();
 
 private:
+	void clearLastIds();
+
+private:
 	bool downloadReservedMessages();
 	bool downloadReservedMessages(qm::NormalFolder* pFolder);
 

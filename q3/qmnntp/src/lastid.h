@@ -40,6 +40,7 @@ public:
 	unsigned int getLastId(const WCHAR* pwszName) const;
 	void setLastId(const WCHAR* pwszName,
 				   unsigned int nId);
+	void removeLastId(const WCHAR* pwszName);
 	bool isModified() const;
 	bool save();
 
