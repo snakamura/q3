@@ -896,9 +896,9 @@ bool qmimap4::Imap4Driver::search(NormalFolder* pFolder,
 	return true;
 }
 
-bool qmimap4::Imap4Driver::prepareSessionCache(bool bDisconnect)
+bool qmimap4::Imap4Driver::prepareSessionCache(bool bClear)
 {
-	if (bDisconnect)
+	if (bClear)
 		pSessionCache_.reset(0);
 	
 	if (!pSessionCache_.get()) {
