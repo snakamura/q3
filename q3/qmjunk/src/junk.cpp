@@ -28,6 +28,40 @@ using namespace qs;
 
 /****************************************************************************
  *
+ * DepotPtr
+ *
+ */
+
+qmjunk::DepotPtr::DepotPtr(DEPOT* pDepot) :
+	pDepot_(pDepot)
+{
+}
+
+qmjunk::DepotPtr::DepotPtr(DepotPtr& ptr) :
+	pDepot_(ptr.pDepot_)
+{
+	ptr.pDepot_ = 0;
+}
+
+qmjunk::DepotPtr::~DepotPtr()
+{
+	if (pDepot_)
+		dpclose(pDepot_);
+}
+
+DEPOT* qmjunk::DepotPtr::operator->() const
+{
+	return pDepot_;
+}
+
+DEPOT* qmjunk::DepotPtr::get() const
+{
+	return pDepot_;
+}
+
+
+/****************************************************************************
+ *
  * JunkFilterImpl
  *
  */
@@ -35,8 +69,6 @@ using namespace qs;
 qmjunk::JunkFilterImpl::JunkFilterImpl(const WCHAR* pwszPath,
 									   Profile* pProfile) :
 	pProfile_(pProfile),
-	pDepotToken_(0),
-	pDepotId_(0),
 	nCleanCount_(-1),
 	nJunkCount_(-1),
 	fThresholdScore_(0.95f),
@@ -54,14 +86,12 @@ qmjunk::JunkFilterImpl::JunkFilterImpl(const WCHAR* pwszPath,
 	
 	nFlags_ = pProfile->getInt(L"JunkFilter", L"Flags", FLAG_AUTOLEARN | FLAG_MANUALLEARN);
 	nMaxTextLen_ = pProfile->getInt(L"JunkFilter", L"MaxTextLen", 32*1024);
+	
+	init();
 }
 
 qmjunk::JunkFilterImpl::~JunkFilterImpl()
 {
-	if (pDepotToken_)
-		dpclose(pDepotToken_);
-	if (pDepotId_)
-		dpclose(pDepotId_);
 }
 
 float qmjunk::JunkFilterImpl::getScore(const Message& msg)
@@ -71,10 +101,7 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 	{
 		Lock<CriticalSection> lock(cs_);
 		
-		if (!init()) {
-			return -1.0F;
-		}
-		else if (nCleanCount_ < 100 || nJunkCount_ == 0) {
+		if (nCleanCount_ < 100 || nJunkCount_ == 0) {
 			log.info(L"Filter a message as clean because it has not learned enough clean messages.");
 			return 0.0F;
 		}
@@ -82,9 +109,13 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 			return 0.0F;
 		}
 		
+		DepotPtr pDepotId(openId());
+		if (!pDepotId.get())
+			return -1.0F;
+		
 		string_ptr strId(getId(msg));
 		int nId = 0;
-		if (dpgetwb(pDepotId_, strId.get(), strlen(strId.get()),
+		if (dpgetwb(pDepotId.get(), strId.get(), strlen(strId.get()),
 			0, sizeof(nId), reinterpret_cast<char*>(&nId)) != -1) {
 			if (nId > 0) {
 				log.info(L"Filter a message as clean because it has already been learned as clean.");
@@ -201,7 +232,13 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 		CriticalSection& cs_;
 		TokenRateList listTokenRate_;
 		const unsigned int nMax_;
-	} callback(pDepotToken_, nCleanCount_, nJunkCount_, cs_);
+	};
+	
+	DepotPtr pDepotToken(openToken());
+	if (!pDepotToken.get())
+		return -1.0F;
+	
+	TokenizerCallbackImpl callback(pDepotToken.get(), nCleanCount_, nJunkCount_, cs_);
 	if (!Tokenizer(nMaxTextLen_).getTokens(msg, &callback))
 		return -1.0F;
 	
@@ -242,14 +279,15 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 	{
 		Lock<CriticalSection> lock(cs_);
 		
-		if (!init())
+		DepotPtr pDepotId(openId());
+		if (!pDepotId.get())
 			return false;
 		
 		bModified_ = true;
 		
 		string_ptr strId(getId(msg));
 		int nStatus = 0;
-		if (dpgetwb(pDepotId_, strId.get(), strlen(strId.get()),
+		if (dpgetwb(pDepotId.get(), strId.get(), strlen(strId.get()),
 			0, sizeof(nStatus), reinterpret_cast<char*>(&nStatus)) == -1)
 			nStatus = STATUS_NONE;
 		if (nStatus > 0) {
@@ -279,7 +317,7 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 			else if (nOperation & JunkFilter::OPERATION_ADDJUNK)
 				nStatus = STATUS_JUNK;
 		}
-		dpput(pDepotId_, strId.get(), strlen(strId.get()),
+		dpput(pDepotId.get(), strId.get(), strlen(strId.get()),
 			reinterpret_cast<char*>(&nStatus), sizeof(nStatus), DP_DOVER);
 	}
 	
@@ -340,7 +378,13 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 		DEPOT* pDepotToken_;
 		CriticalSection& cs_;
 		Log& log_;
-	} callback(nOperation, pDepotToken_, cs_, log);
+	};
+	
+	DepotPtr pDepotToken(openToken());
+	if (!pDepotToken.get())
+		return false;
+	
+	TokenizerCallbackImpl callback(nOperation, pDepotToken.get(), cs_, log);
 	if (!Tokenizer(nMaxTextLen_).getTokens(msg, &callback))
 		return false;
 	
@@ -369,13 +413,14 @@ JunkFilter::Status qmjunk::JunkFilterImpl::getStatus(const WCHAR* pwszId)
 	
 	Lock<CriticalSection> lock(cs_);
 	
-	if (!init())
+	DepotPtr pDepotId(openId());
+	if (!pDepotId.get())
 		return STATUS_NONE;
 	
 	string_ptr strId(wcs2mbs(pwszId));
 	
 	int nStatus = 0;
-	if (dpgetwb(pDepotId_, strId.get(), strlen(strId.get()),
+	if (dpgetwb(pDepotId.get(), strId.get(), strlen(strId.get()),
 		0, sizeof(nStatus), reinterpret_cast<char*>(&nStatus)) == -1)
 		return STATUS_NONE;
 	else if (nStatus > 0)
@@ -434,9 +479,6 @@ bool qmjunk::JunkFilterImpl::save()
 
 bool qmjunk::JunkFilterImpl::init()
 {
-	if (pDepotToken_ && pDepotId_)
-		return true;
-	
 	Log log(InitThread::getInitThread().getLogger(), L"qmjunk::JunkFilterImpl");
 	
 	if (!File::createDirectory(wstrPath_.get())) {
@@ -452,18 +494,6 @@ bool qmjunk::JunkFilterImpl::init()
 	}
 	nCleanCount_ = profile.getInt(L"Junk", L"CleanCount", 0);
 	nJunkCount_ = profile.getInt(L"Junk", L"JunkCount", 0);
-	
-	if (!pDepotToken_) {
-		pDepotToken_ = open(L"token");
-		if (!pDepotToken_)
-			return false;
-	}
-	
-	if (!pDepotId_) {
-		pDepotId_ = open(L"id");
-		if (!pDepotId_)
-			return false;
-	}
 	
 	return true;
 }
@@ -488,43 +518,40 @@ bool qmjunk::JunkFilterImpl::flush() const
 		}
 	}
 	
-	if (pDepotToken_) {
-		if (!dpsync(pDepotToken_)) {
-			log.error(L"Could not sync token database.");
-			return false;
-		}
-	}
-	if (pDepotId_) {
-		if (!dpsync(pDepotId_)) {
-			log.error(L"Could not sync id database.");
-			return false;
-		}
-	}
-	
 	bModified_ = false;
 	
 	return true;
 }
 
-DEPOT* qmjunk::JunkFilterImpl::open(const WCHAR* pwszName) const
+DepotPtr qmjunk::JunkFilterImpl::openToken() const
+{
+	return open(L"token");
+}
+
+DepotPtr qmjunk::JunkFilterImpl::openId() const
+{
+	return open(L"id");
+}
+
+DepotPtr qmjunk::JunkFilterImpl::open(const WCHAR* pwszName) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmjunk::JunkFilterImpl");
 	
 	wstring_ptr wstrPath(concat(wstrPath_.get(), L"\\", pwszName));
 	string_ptr strPath(wcs2mbs(wstrPath.get()));
-	DEPOT* pDepot = dpopen(strPath.get(), DP_OWRITER | DP_OCREAT, -1);
-	if (!pDepot) {
+	DepotPtr pDepot(dpopen(strPath.get(), DP_OWRITER | DP_OCREAT, -1));
+	if (!pDepot.get()) {
 		log.errorf(L"Could not open a database: %s.", pwszName);
 		return 0;
 	}
 	
-	int nBucket = dpbnum(pDepot);
-	int nCount = dprnum(pDepot);
+	int nBucket = dpbnum(pDepot.get());
+	int nCount = dprnum(pDepot.get());
 	if (nBucket != -1 && nCount != -1 && nBucket < dpprimenum(nCount*4 + 1)) {
 		log.debugf(L"Optimizing a database: %s.", pwszName);
-		if (!dpoptimize(pDepot, -1))
+		if (!dpoptimize(pDepot.get(), -1))
 			log.errorf(L"Could not optimize the database: %s.", pwszName);
-		if (!dpsync(pDepot))
+		if (!dpsync(pDepot.get()))
 			log.errorf(L"Could not sync the database: %s.", pwszName);
 	}
 	

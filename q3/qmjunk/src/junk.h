@@ -28,6 +28,33 @@ class TokenizerCallback;
 
 /****************************************************************************
  *
+ * DepotPtr
+ *
+ */
+
+class DepotPtr
+{
+public:
+	explicit DepotPtr(DEPOT* pDepot);
+	DepotPtr(DepotPtr& ptr);
+	~DepotPtr();
+
+public:
+	DEPOT* operator->() const;
+
+public:
+	DEPOT* get() const;
+
+private:
+	DepotPtr& operator=(const DepotPtr&);
+
+private:
+	DEPOT* pDepot_;
+};
+
+
+/****************************************************************************
+ *
  * JunkFilterImpl
  *
  */
@@ -56,7 +83,9 @@ public:
 private:
 	bool init();
 	bool flush() const;
-	DEPOT* open(const WCHAR* pwszName) const;
+	DepotPtr openToken() const;
+	DepotPtr openId() const;
+	DepotPtr open(const WCHAR* pwszName) const;
 
 private:
 	static qs::string_ptr getId(const qs::Part& part);
@@ -68,8 +97,6 @@ private:
 private:
 	qs::wstring_ptr wstrPath_;
 	qs::Profile* pProfile_;
-	DEPOT* pDepotToken_;
-	DEPOT* pDepotId_;
 	volatile unsigned int nCleanCount_;
 	volatile unsigned int nJunkCount_;
 	float fThresholdScore_;
