@@ -361,8 +361,8 @@ public:
 	unsigned int getDialupDisconnectWait() const;
 	void setDialupDisconnectWait(unsigned int nWait);
 	
-	qs::PrivateKey* getPrivateKey() const;
-	qs::Certificate* getCertificate() const;
+	std::auto_ptr<qs::PrivateKey> getPrivateKey(PasswordManager* pPasswordManager) const;
+	std::auto_ptr<qs::Certificate> getCertificate(PasswordManager* pPasswordManager) const;
 	
 	int getProperty(const WCHAR* pwszSection,
 					const WCHAR* pwszKey,

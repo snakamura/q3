@@ -658,10 +658,10 @@ bool qm::AccountImpl::processSMIME(const SMIMEUtility* pSMIMEUtility,
 	case SMIMEUtility::TYPE_ENVELOPED:
 		{
 			SubAccount* pSubAccount = pThis_->getCurrentSubAccount();
-			PrivateKey* pPrivateKey = pSubAccount->getPrivateKey();
-			Certificate* pCertificate = pSubAccount->getCertificate();
-			if (pPrivateKey && pCertificate) {
-				strMessage = pSMIMEUtility->decrypt(*pMessage, pPrivateKey, pCertificate);
+			std::auto_ptr<PrivateKey> pPrivateKey(pSubAccount->getPrivateKey(pPasswordManager_));
+			std::auto_ptr<Certificate> pCertificate(pSubAccount->getCertificate(pPasswordManager_));
+			if (pPrivateKey.get() && pCertificate.get()) {
+				strMessage = pSMIMEUtility->decrypt(*pMessage, pPrivateKey.get(), pCertificate.get());
 				if (!strMessage.get())
 					return false;
 				nSecurity |= Message::SECURITY_DECRYPTED;

@@ -95,6 +95,35 @@ private:
 
 /****************************************************************************
  *
+ * FilePassword
+ *
+ */
+
+class FilePassword : public Password
+{
+public:
+	FilePassword(const WCHAR* pwszPath,
+				const WCHAR* pwszPassword,
+				bool bPermanent);
+	virtual ~FilePassword();
+
+public:
+	const WCHAR* getPath() const;
+
+public:
+	virtual bool visit(const PasswordVisitor& visitor) const;
+
+private:
+	FilePassword(const FilePassword&);
+	FilePassword& operator=(const FilePassword&);
+
+private:
+	qs::wstring_ptr wstrPath_;
+};
+
+
+/****************************************************************************
+ *
  * PGPPassword
  *
  */

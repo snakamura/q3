@@ -24,10 +24,12 @@ class PasswordManagerCallback;
 class PasswordVisitor;
 	class PasswordCondition;
 		class AccountPasswordCondition;
+		class FilePasswordCondition;
 		class PGPPasswordCondition;
 
-class Password;
 class AccountPassword;
+class FilePassword;
+class Password;
 class PGPPassword;
 
 
@@ -112,6 +114,7 @@ public:
 
 public:
 	virtual bool visit(const AccountPassword& password) const = 0;
+	virtual bool visit(const FilePassword& password) const = 0;
 	virtual bool visit(const PGPPassword& password) const = 0;
 };
 
@@ -134,6 +137,7 @@ public:
 
 public:
 	virtual bool visit(const AccountPassword& password) const;
+	virtual bool visit(const FilePassword& password) const;
 	virtual bool visit(const PGPPassword& password) const;
 };
 
@@ -168,6 +172,35 @@ private:
 	Account* pAccount_;
 	SubAccount* pSubAccount_;
 	Account::Host host_;
+};
+
+
+/****************************************************************************
+ *
+ * FilePasswordCondition
+ *
+ */
+
+class QMEXPORTCLASS FilePasswordCondition : public PasswordCondition
+{
+public:
+	explicit FilePasswordCondition(const WCHAR* pwszPath);
+	virtual ~FilePasswordCondition();
+
+public:
+	virtual std::auto_ptr<Password> createPassword(const WCHAR* pwszPassword,
+												   bool bPermanent) const;
+	virtual qs::wstring_ptr getHint() const;
+
+public:
+	virtual bool visit(const FilePassword& password) const;
+
+private:
+	FilePasswordCondition(const FilePasswordCondition&);
+	FilePasswordCondition& operator=(const FilePasswordCondition&);
+
+private:
+	const WCHAR* pwszPath_;
 };
 
 

@@ -7,12 +7,15 @@
  */
 
 #include <qmfilenames.h>
+#include <qmpassword.h>
 #include <qmpgp.h>
 #include <qmsecurity.h>
 
 #include <qsconv.h>
 
 #include <tchar.h>
+
+#include "security.h"
 
 using namespace qm;
 using namespace qs;
@@ -153,4 +156,44 @@ bool qm::Security::isSMIMEEnabled()
 bool qm::Security::isPGPEnabled()
 {
 	return SecurityImpl::hInstPGP__ != 0;
+}
+
+
+/****************************************************************************
+ *
+ * FileCryptoPasswordCallback
+ *
+ */
+
+qm::FileCryptoPasswordCallback::FileCryptoPasswordCallback(PasswordManager* pPasswordManager,
+														   const WCHAR* pwszPath) :
+														   pPasswordManager_(pPasswordManager),
+														   pwszPath_(pwszPath),
+														   state_(PASSWORDSTATE_ONETIME)
+{
+}
+
+qm::FileCryptoPasswordCallback::~FileCryptoPasswordCallback()
+{
+}
+
+void qm::FileCryptoPasswordCallback::save()
+{
+	if (state_ == PASSWORDSTATE_SESSION || state_ == PASSWORDSTATE_SAVE) {
+		FilePasswordCondition condition(pwszPath_);
+		pPasswordManager_->setPassword(condition,
+			wstrPassword_.get(), state_ == PASSWORDSTATE_SAVE);
+	}
+}
+
+wstring_ptr qm::FileCryptoPasswordCallback::getPassword()
+{
+	FilePasswordCondition condition(pwszPath_);
+	wstring_ptr wstrPassword = pPasswordManager_->getPassword(condition, false, &state_);
+	if (!wstrPassword.get())
+		return 0;
+	
+	wstrPassword_ = allocWString(wstrPassword.get());
+	
+	return wstrPassword;
 }

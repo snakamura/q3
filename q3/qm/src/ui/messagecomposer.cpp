@@ -148,25 +148,24 @@ bool qm::MessageComposer::compose(Account* pAccount,
 	const Security* pSecurity = pDocument_->getSecurity();
 	const SMIMEUtility* pSMIMEUtility = pSecurity->getSMIMEUtility();
 	if (pSMIMEUtility && (nFlags & FLAG_SMIMESIGN || nFlags & FLAG_SMIMEENCRYPT)) {
-		const Certificate* pSelfCertificate = 0;
+		std::auto_ptr<Certificate> pSelfCertificate;
 		if (pProfile_->getInt(L"Security", L"EncryptForSelf", 0))
-			pSelfCertificate = pSubAccount->getCertificate();
-		SMIMECallbackImpl callback(pSecurity,
-			pDocument_->getAddressBook(), pSelfCertificate);
+			pSelfCertificate = pSubAccount->getCertificate(pPasswordManager_);
+		SMIMECallbackImpl callback(pSecurity, pDocument_->getAddressBook(), pSelfCertificate.get());
 		
 		if (nFlags & FLAG_SMIMESIGN) {
 			bool bMultipart = (nFlags & FLAG_SMIMEENCRYPT) == 0 &&
 				pProfile_->getInt(L"Security", L"MultipartSigned", 1) != 0;
-			Certificate* pCertificate = pSubAccount->getCertificate();
-			PrivateKey* pPrivateKey = pSubAccount->getPrivateKey();
-			if (pCertificate && pPrivateKey) {
-				xstring_ptr strMessage(pSMIMEUtility->sign(pMessage,
-					bMultipart, pPrivateKey, pCertificate));
-				if (!strMessage.get())
-					return false;
-				if (!pMessage->create(strMessage.get(), -1, Message::FLAG_NONE))
-					return false;
-			}
+			std::auto_ptr<Certificate> pCertificate(pSubAccount->getCertificate(pPasswordManager_));
+			std::auto_ptr<PrivateKey> pPrivateKey(pSubAccount->getPrivateKey(pPasswordManager_));
+			if (!pCertificate.get() || !pPrivateKey.get())
+				return false;
+			xstring_ptr strMessage(pSMIMEUtility->sign(pMessage,
+				bMultipart, pPrivateKey.get(), pCertificate.get()));
+			if (!strMessage.get())
+				return false;
+			if (!pMessage->create(strMessage.get(), -1, Message::FLAG_NONE))
+				return false;
 		}
 		if (nFlags & FLAG_SMIMEENCRYPT) {
 			std::auto_ptr<Cipher> pCipher(Cipher::getInstance(L"des3"));

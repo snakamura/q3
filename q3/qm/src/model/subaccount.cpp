@@ -12,6 +12,7 @@
 #include <qmmessage.h>
 #include <qmsecurity.h>
 
+#include <qsconv.h>
 #include <qsmime.h>
 #include <qsprofile.h>
 #include <qsstl.h>
@@ -21,6 +22,8 @@
 #include <memory>
 #include <utility>
 #include <vector>
+
+#include "security.h"
 
 #pragma warning(disable:4786)
 
@@ -60,8 +63,6 @@ struct qm::SubAccountImpl
 	wstring_ptr wstrDialupEntry_;
 	bool bDialupShowDialog_;
 	unsigned int nDialupDisconnectWait_;
-	std::auto_ptr<PrivateKey> pPrivateKey_;
-	std::auto_ptr<Certificate> pCertificate_;
 	AddressList listMyAddress_;
 	std::auto_ptr<Profile> pProfile_;
 	wstring_ptr wstrSyncFilterName_;
@@ -105,40 +106,6 @@ void qm::SubAccountImpl::load()
 	
 	wstring_ptr wstrMyAddress(pProfile_->getString(L"Global", L"MyAddress", 0));
 	pThis_->setMyAddress(wstrMyAddress.get());
-	
-	if (Security::isSMIMEEnabled()) {
-		{
-			std::auto_ptr<PrivateKey> pPrivateKey(PrivateKey::getInstance());
-			ConcatW c[] = {
-				{ pAccount_->getPath(),				-1	},
-				{ L"\\",							1	},
-				{ FileNames::KEY,					-1	},
-				{ *wstrName_.get() ? L"_" : L"",	-1	},
-				{ wstrName_.get(),					-1	},
-				{ FileNames::PEM_EXT,				-1	}
-			};
-			wstring_ptr wstrPath(concat(c, countof(c)));
-			if (pPrivateKey->load(wstrPath.get(),
-				PrivateKey::FILETYPE_PEM, 0))
-				pPrivateKey_ = pPrivateKey;
-		}
-		
-		{
-			std::auto_ptr<Certificate> pCertificate(Certificate::getInstance());
-			ConcatW c[] = {
-				{ pAccount_->getPath(),				-1	},
-				{ L"\\",							1	},
-				{ FileNames::CERT,					-1	},
-				{ *wstrName_.get() ? L"_" : L"",	-1	},
-				{ wstrName_.get(),					-1	},
-				{ FileNames::PEM_EXT,				-1	}
-			};
-			wstring_ptr wstrPath(concat(c, countof(c)));
-			if (pCertificate->load(wstrPath.get(),
-				Certificate::FILETYPE_PEM, 0))
-				pCertificate_ = pCertificate;
-		}
-	}
 }
 
 
@@ -454,14 +421,88 @@ void qm::SubAccount::setDialupDisconnectWait(unsigned int nWait)
 	pImpl_->nDialupDisconnectWait_ = nWait;
 }
 
-PrivateKey* qm::SubAccount::getPrivateKey() const
+std::auto_ptr<PrivateKey> qm::SubAccount::getPrivateKey(PasswordManager* pPasswordManager) const
 {
-	return pImpl_->pPrivateKey_.get();
+	if (!Security::isSMIMEEnabled())
+		return std::auto_ptr<PrivateKey>();
+	
+	std::auto_ptr<PrivateKey> pPrivateKey(PrivateKey::getInstance());
+	
+	wstring_ptr wstrPath;
+	if (*pImpl_->wstrName_.get()) {
+		ConcatW c[] = {
+			{ pImpl_->pAccount_->getPath(),				-1	},
+			{ L"\\",									1	},
+			{ FileNames::KEY,							-1	},
+			{ L"_",										1	},
+			{ pImpl_->wstrName_.get(),					-1	},
+			{ FileNames::PEM_EXT,						-1	}
+		};
+		wstrPath = concat(c, countof(c));
+		W2T(wstrPath.get(), ptszPath);
+		if (::GetFileAttributes(ptszPath) == -1)
+			wstrPath.reset(0);
+	}
+	if (!wstrPath.get()) {
+		ConcatW c[] = {
+			{ pImpl_->pAccount_->getPath(),				-1	},
+			{ L"\\",									1	},
+			{ FileNames::KEY,							-1	},
+			{ FileNames::PEM_EXT,						-1	}
+		};
+		wstrPath = concat(c, countof(c));
+	}
+	
+	FileCryptoPasswordCallback callback(pPasswordManager, wstrPath.get());
+	
+	if (!pPrivateKey->load(wstrPath.get(), PrivateKey::FILETYPE_PEM, &callback))
+		return std::auto_ptr<PrivateKey>();
+	
+	callback.save();
+	
+	return pPrivateKey;
 }
 
-Certificate* qm::SubAccount::getCertificate() const
+std::auto_ptr<Certificate> qm::SubAccount::getCertificate(PasswordManager* pPasswordManager) const
 {
-	return pImpl_->pCertificate_.get();
+	if (!Security::isSMIMEEnabled())
+		return std::auto_ptr<Certificate>();
+	
+	std::auto_ptr<Certificate> pCertificate(Certificate::getInstance());
+	
+	wstring_ptr wstrPath;
+	if (*pImpl_->wstrName_.get()) {
+		ConcatW c[] = {
+			{ pImpl_->pAccount_->getPath(),				-1	},
+			{ L"\\",									1	},
+			{ FileNames::CERT,							-1	},
+			{ L"_",										1	},
+			{ pImpl_->wstrName_.get(),					-1	},
+			{ FileNames::PEM_EXT,						-1	}
+		};
+		wstrPath = concat(c, countof(c));
+		W2T(wstrPath.get(), ptszPath);
+		if (::GetFileAttributes(ptszPath) == -1)
+			wstrPath.reset(0);
+	}
+	if (!wstrPath.get()) {
+		ConcatW c[] = {
+			{ pImpl_->pAccount_->getPath(),				-1	},
+			{ L"\\",									1	},
+			{ FileNames::CERT,							-1	},
+			{ FileNames::PEM_EXT,						-1	}
+		};
+		wstrPath = concat(c, countof(c));
+	}
+	
+	FileCryptoPasswordCallback callback(pPasswordManager, wstrPath.get());
+	
+	if (!pCertificate->load(wstrPath.get(), Certificate::FILETYPE_PEM, &callback))
+		return std::auto_ptr<Certificate>();
+	
+	callback.save();
+	
+	return pCertificate;
 }
 
 int qm::SubAccount::getProperty(const WCHAR* pwszSection,

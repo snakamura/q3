@@ -235,6 +235,11 @@ bool qm::PasswordCondition::visit(const AccountPassword& password) const
 	return false;
 }
 
+bool qm::PasswordCondition::visit(const FilePassword& password) const
+{
+	return false;
+}
+
 bool qm::PasswordCondition::visit(const PGPPassword& password) const
 {
 	return false;
@@ -331,6 +336,67 @@ bool qm::AccountPasswordCondition::visit(const AccountPassword& password) const
 	return password.getHost() == host_ &&
 		wcscmp(password.getAccount(), pAccount_->getName()) == 0 &&
 		wcscmp(password.getSubAccount(), pSubAccount_->getName()) == 0;
+}
+
+
+/****************************************************************************
+ *
+ * FilePassword
+ *
+ */
+
+qm::FilePassword::FilePassword(const WCHAR* pwszPath,
+							   const WCHAR* pwszPassword,
+							   bool bPermanent) :
+	Password(pwszPassword, bPermanent)
+{
+	wstrPath_ = allocWString(pwszPath);
+}
+
+qm::FilePassword::~FilePassword()
+{
+}
+
+const WCHAR* qm::FilePassword::getPath() const
+{
+	return wstrPath_.get();
+}
+
+bool qm::FilePassword::visit(const PasswordVisitor& visitor) const
+{
+	return visitor.visit(*this);
+}
+
+
+/****************************************************************************
+ *
+ * FilePasswordCondition
+ *
+ */
+
+qm::FilePasswordCondition::FilePasswordCondition(const WCHAR* pwszPath) :
+	pwszPath_(pwszPath)
+{
+}
+
+qm::FilePasswordCondition::~FilePasswordCondition()
+{
+}
+
+std::auto_ptr<Password> qm::FilePasswordCondition::createPassword(const WCHAR* pwszPassword,
+																  bool bPermanent) const
+{
+	return std::auto_ptr<Password>(new FilePassword(pwszPath_, pwszPassword, bPermanent));
+}
+
+wstring_ptr qm::FilePasswordCondition::getHint() const
+{
+	return allocWString(pwszPath_);
+}
+
+bool qm::FilePasswordCondition::visit(const FilePassword& password) const
+{
+	return wcscmp(password.getPath(), pwszPath_) == 0;
 }
 
 
@@ -451,6 +517,26 @@ bool qm::PasswordContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		state_ = STATE_CONDITION;
 	}
+	else if (wcscmp(pwszLocalName, L"filePassword") == 0) {
+		if (state_ != STATE_PASSWORDS)
+			return false;
+		
+		const WCHAR* pwszPath = 0;
+		for (int n = 0; n < attributes.getLength(); ++n) {
+			const WCHAR* pwszAttrName = attributes.getLocalName(n);
+			if (wcscmp(pwszAttrName, L"path") == 0)
+				pwszPath = attributes.getValue(n);
+			else
+				return false;
+		}
+		if (!pwszPath)
+			return false;
+		
+		assert(!pPassword_.get());
+		pPassword_.reset(new FilePassword(pwszPath, L"", true));
+		
+		state_ = STATE_CONDITION;
+	}
 	else if (wcscmp(pwszLocalName, L"pgpPassword") == 0) {
 		if (state_ != STATE_PASSWORDS)
 			return false;
@@ -493,6 +579,7 @@ bool qm::PasswordContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		state_ = STATE_ROOT;
 	}
 	else if (wcscmp(pwszLocalName, L"accountPassword") == 0 ||
+		wcscmp(pwszLocalName, L"filePassword") == 0 ||
 		wcscmp(pwszLocalName, L"pgpPassword") == 0) {
 		assert(state_ == STATE_CONDITION);
 		assert(pPassword_.get());
@@ -574,6 +661,12 @@ bool qm::PasswordWriter::write(const PasswordManager* pManager)
 					};
 					SimpleAttributes attrs(item, countof(item));
 					return pWriter_->write(password, L"accountPassword", attrs);
+				}
+				
+				virtual bool visit(const FilePassword& password) const
+				{
+					SimpleAttributes attrs(L"path", password.getPath());
+					return pWriter_->write(password, L"filePassword", attrs);
 				}
 				
 				virtual bool visit(const PGPPassword& password) const
