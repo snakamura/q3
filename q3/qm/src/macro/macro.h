@@ -1237,9 +1237,9 @@ protected:
 
 private:
 	static qs::QSTATUS replacePhrase(AddressBook* pAddressBook,
-		qs::AddressListParser* pAddressList);
+		qs::AddressListParser* pAddressList, bool bForce);
 	static qs::QSTATUS replacePhrase(AddressBook* pAddressBook,
-		qs::AddressParser* pAddress);
+		qs::AddressParser* pAddress, bool bForce);
 
 private:
 	MacroFunctionFormatAddress(const MacroFunctionFormatAddress&);

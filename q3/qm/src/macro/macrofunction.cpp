@@ -2220,20 +2220,26 @@ QSTATUS qm::MacroFunctionFormatAddress::value(
 	if (nSize < 1 || 3 < nSize)
 		return error(*pContext, MacroErrorHandler::CODE_INVALIDARGSIZE);
 	
-	bool bLookup = false;
+	enum Lookup {
+		LOOKUP_NONE,
+		LOOKUP_EMPTY,
+		LOOKUP_FORCE
+	} lookup = LOOKUP_NONE;
 	if (nSize > 2) {
 		MacroValuePtr pValue;
 		status = getArg(2)->value(pContext, &pValue);
 		CHECK_QSTATUS();
-		bLookup = pValue->boolean();
+		unsigned int n = pValue->number();
+		if (n > 2)
+			n = 0;
+		lookup = static_cast<Lookup>(n);
 	}
 	
 	enum Type {
 		TYPE_ALL,
 		TYPE_ADDRESS,
 		TYPE_NAME
-	};
-	Type type = TYPE_ALL;
+	} type = TYPE_ALL;
 	if (nSize > 1) {
 		MacroValuePtr pValue;
 		status = getArg(1)->value(pContext, &pValue);
@@ -2264,9 +2270,9 @@ QSTATUS qm::MacroFunctionFormatAddress::value(
 		status = part.getField(pValueField->getName(), &address, &field);
 		CHECK_QSTATUS();
 		if (field == Part::FIELD_EXIST) {
-			if (bLookup) {
+			if (lookup != LOOKUP_NONE) {
 				AddressBook* pAddressBook = pContext->getDocument()->getAddressBook();
-				status = replacePhrase(pAddressBook, &address);
+				status = replacePhrase(pAddressBook, &address, lookup == LOOKUP_FORCE);
 				CHECK_QSTATUS();
 			}
 			switch (type) {
@@ -2300,7 +2306,7 @@ const WCHAR* qm::MacroFunctionFormatAddress::getName() const
 }
 
 QSTATUS qm::MacroFunctionFormatAddress::replacePhrase(
-	AddressBook* pAddressBook, AddressListParser* pAddressList)
+	AddressBook* pAddressBook, AddressListParser* pAddressList, bool bForce)
 {
 	assert(pAddressBook);
 	assert(pAddressList);
@@ -2310,7 +2316,7 @@ QSTATUS qm::MacroFunctionFormatAddress::replacePhrase(
 	const AddressListParser::AddressList& l = pAddressList->getAddressList();
 	AddressListParser::AddressList::const_iterator it = l.begin();
 	while (it != l.end()) {
-		status = replacePhrase(pAddressBook, *it);
+		status = replacePhrase(pAddressBook, *it, bForce);
 		CHECK_QSTATUS();
 		++it;
 	}
@@ -2319,7 +2325,7 @@ QSTATUS qm::MacroFunctionFormatAddress::replacePhrase(
 }
 
 QSTATUS qm::MacroFunctionFormatAddress::replacePhrase(
-	AddressBook* pAddressBook, AddressParser* pAddress)
+	AddressBook* pAddressBook, AddressParser* pAddress, bool bForce)
 {
 	assert(pAddressBook);
 	assert(pAddress);
@@ -2328,11 +2334,11 @@ QSTATUS qm::MacroFunctionFormatAddress::replacePhrase(
 	
 	AddressListParser* pGroup = pAddress->getGroup();
 	if (pGroup) {
-		status = replacePhrase(pAddressBook, pGroup);
+		status = replacePhrase(pAddressBook, pGroup, bForce);
 		CHECK_QSTATUS();
 	}
 	else {
-		if (!pAddress->getPhrase()) {
+		if (!pAddress->getPhrase() || bForce) {
 			string_ptr<WSTRING> wstrAddress(concat(
 				pAddress->getMailbox(), L"@", pAddress->getHost()));
 			if (!wstrAddress.get())
