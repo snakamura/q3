@@ -67,7 +67,8 @@ public:
 
 private:
 	bool downloadReservedMessages();
-	bool downloadReservedMessages(qm::NormalFolder* pFolder);
+	bool downloadReservedMessages(qm::NormalFolder* pFolder,
+								  unsigned int* pnPos);
 
 private:
 	bool processCapabilityResponse(ResponseCapability* pCapability);

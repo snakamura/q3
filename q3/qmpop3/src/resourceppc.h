@@ -26,6 +26,7 @@
 #define IDC_STARTTLS                    1008
 #define IDS_DELETEMESSAGE               1009
 #define IDC_HANDLESTATUS                1009
+#define IDS_DOWNLOADRESERVEDMESSAGES    1010
 #define IDS_ERROR_MESSAGE               10000
 #define IDS_ERROR_GREETING              11000
 #define IDS_ERROR_APOP                  11001

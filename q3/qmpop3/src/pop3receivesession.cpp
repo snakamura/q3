@@ -501,26 +501,44 @@ bool qmpop3::Pop3ReceiveSession::prepare()
 
 bool qmpop3::Pop3ReceiveSession::downloadReservedMessages()
 {
-	if (bReservedDownload_) {
-		assert(bCacheAll_);
-		
-		const Account::FolderList& l = pAccount_->getFolders();
-		for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-			Folder* pFolder = *it;
-			if (pFolder->getType() == Folder::TYPE_NORMAL) {
-				if (!downloadReservedMessages(static_cast<NormalFolder*>(pFolder)))
-					return false;
-			}
+	if (!bReservedDownload_)
+		return true;
+	
+	assert(bCacheAll_);
+	
+	Account::FolderList l(pAccount_->getFolders());
+	std::sort(l.begin(), l.end(), FolderLess());
+	
+	unsigned int nCount = 0;
+	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		Folder* pFolder = *it;
+		if (pFolder->getType() == Folder::TYPE_NORMAL)
+			nCount += static_cast<NormalFolder*>(pFolder)->getDownloadCount();
+	}
+	if (nCount == 0)
+		return true;
+	
+	pCallback_->setMessage(IDS_DOWNLOADRESERVEDMESSAGES);
+	pSessionCallback_->setRange(0, nCount);
+	
+	unsigned int nPos = 0;
+	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		Folder* pFolder = *it;
+		if (pFolder->getType() == Folder::TYPE_NORMAL) {
+			if (!downloadReservedMessages(static_cast<NormalFolder*>(pFolder), &nPos))
+				return false;
 		}
 	}
 	
 	return true;
 }
 
-bool qmpop3::Pop3ReceiveSession::downloadReservedMessages(NormalFolder* pFolder)
+bool qmpop3::Pop3ReceiveSession::downloadReservedMessages(NormalFolder* pFolder,
+														  unsigned int* pnPos)
 {
 	assert(pFolder);
 	assert(pFolder->getAccount() == pAccount_);
+	assert(pnPos);
 	assert(bCacheAll_);
 	
 	Time time(Time::getCurrentTime());
@@ -547,6 +565,10 @@ bool qmpop3::Pop3ReceiveSession::downloadReservedMessages(NormalFolder* pFolder)
 	for (List::const_iterator it = l.begin(); it != l.end(); ++it) {
 		MessagePtrLock mpl(*it);
 		if (mpl) {
+			if (pSessionCallback_->isCanceled(false))
+				return true;
+			pSessionCallback_->setPos(++(*pnPos));
+			
 			Message msg;
 			if (!mpl->getMessage(Account::GETMESSAGEFLAG_HEADER, 0, &msg))
 				return false;

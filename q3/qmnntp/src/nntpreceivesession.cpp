@@ -251,8 +251,9 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 							const WCHAR* pwszName = pAction->getName();
 							if (wcscmp(pwszName, L"download") == 0) {
 								if (state != STATE_ALL) {
+									unsigned int nSize = item.nBytes_;
 									if (!pNntp_->getMessage(item.nId_,
-										Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage))
+										Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage, &nSize))
 										HANDLE_ERROR();
 								}
 								if (strMessage.get()) {
@@ -290,7 +291,7 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 			pSessionCallback_->setPos(n);
 			
 			xstring_ptr strMessage;
-			if (!pNntp_->getMessage(n, Nntp::GETMESSAGEFLAG_HEAD, &strMessage))
+			if (!pNntp_->getMessage(n, Nntp::GETMESSAGEFLAG_HEAD, &strMessage, 0))
 				HANDLE_ERROR();
 			
 			if (strMessage.get()) {
@@ -321,20 +322,39 @@ bool qmnntp::NntpReceiveSession::applyOfflineJobs()
 
 bool qmnntp::NntpReceiveSession::downloadReservedMessages()
 {
-	const Account::FolderList& l = pAccount_->getFolders();
+	Account::FolderList l(pAccount_->getFolders());
+	std::sort(l.begin(), l.end(), FolderLess());
+	
+	unsigned int nCount = 0;
 	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		Folder* pFolder = *it;
-		if (pFolder->getType() == Folder::TYPE_NORMAL) {
-			if (!downloadReservedMessages(static_cast<NormalFolder*>(pFolder)))
+		if (pFolder->getType() == Folder::TYPE_NORMAL &&
+			pFolder->getFlags() & Folder::FLAG_SYNCABLE)
+			nCount += static_cast<NormalFolder*>(pFolder)->getDownloadCount();
+	}
+	if (nCount == 0)
+		return true;
+	
+	pCallback_->setMessage(IDS_DOWNLOADRESERVEDMESSAGES);
+	pSessionCallback_->setRange(0, nCount);
+	
+	unsigned int nPos = 0;
+	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		Folder* pFolder = *it;
+		if (pFolder->getType() == Folder::TYPE_NORMAL &&
+			pFolder->getFlags() & Folder::FLAG_SYNCABLE) {
+			if (!downloadReservedMessages(static_cast<NormalFolder*>(pFolder), &nPos))
 				return false;
 		}
 	}
 	return true;
 }
 
-bool qmnntp::NntpReceiveSession::downloadReservedMessages(NormalFolder* pFolder)
+bool qmnntp::NntpReceiveSession::downloadReservedMessages(NormalFolder* pFolder,
+														  unsigned int* pnPos)
 {
 	assert(pFolder);
+	assert(pnPos);
 	
 	if (pFolder->getDownloadCount() == 0)
 		return true;
@@ -365,9 +385,14 @@ bool qmnntp::NntpReceiveSession::downloadReservedMessages(NormalFolder* pFolder)
 	for (List::const_iterator it = l.begin(); it != l.end(); ++it) {
 		MessagePtrLock mpl(*it);
 		if (mpl) {
+			if (pSessionCallback_->isCanceled(false))
+				return true;
+			pSessionCallback_->setPos(++(*pnPos));
+			
 			xstring_ptr strMessage;
+			unsigned int nSize = mpl->getSize();
 			if (!pNntp_->getMessage(mpl->getId(),
-				Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage))
+				Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage, &nSize))
 				HANDLE_ERROR();
 			
 			unsigned int nMask = MessageHolder::FLAG_DOWNLOAD |
@@ -593,10 +618,11 @@ bool qmnntp::NntpSyncFilterCallback::getMessage(unsigned int nFlag)
 		xstring_ptr& str = *pstrMessage_;
 		
 		str.reset(0);
-		if (pNntp_->getMessage(nMessage_, Nntp::GETMESSAGEFLAG_HEAD, &str))
+		unsigned int nSize = nSize_;
+		if (pNntp_->getMessage(nMessage_, Nntp::GETMESSAGEFLAG_HEAD, &str, &nSize_))
 			return false;
 		
-		size_t nLen = static_cast<size_t>(-1);
+		size_t nLen = -1;
 		CHAR* p = strstr(str.get(), "\r\n\r\n");
 		if (p)
 			nLen = p - str.get() + 4;

@@ -131,6 +131,7 @@ BEGIN
     IDS_AUTHENTICATING      "Authenticating..."
     IDS_SELECTGROUP         "Selecting group..."
     IDS_DOWNLOADMESSAGES    "Download messages..."
+    IDS_DOWNLOADRESERVEDMESSAGES "Downloading reserved messages."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -174,11 +175,11 @@ BEGIN
     IDS_ERROR_SOCKET_CONNECTTIMEOUT "connect timeout"
     IDS_ERROR_SOCKET_RECV   "recv"
     IDS_ERROR_SOCKET_RECVTIMEOUT "recv timeout"
+    IDS_ERROR_SOCKET_SEND   "send"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_ERROR_SOCKET_SEND   "send"
     IDS_ERROR_SOCKET_SENDTIMEOUT "send timeout"
     IDS_ERROR_SOCKET_CANCEL "cancel"
     IDS_ERROR_SOCKET_UNKNOWN "unknown"

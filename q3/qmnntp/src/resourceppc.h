@@ -18,6 +18,7 @@
 #define IDS_SELECTGROUP                 1005
 #define IDC_FETCHCOUNT                  1005
 #define IDS_DOWNLOADMESSAGES            1006
+#define IDS_DOWNLOADRESERVEDMESSAGES    1007
 #define IDS_ERROR_MESSAGE               10000
 #define IDS_ERROR_GREETING              11000
 #define IDS_ERROR_GROUP                 11001

@@ -131,6 +131,7 @@ BEGIN
     IDS_AUTHENTICATING      "Authenticating..."
     IDS_SELECTGROUP         "Selecting group..."
     IDS_DOWNLOADMESSAGES    "Download messages..."
+    IDS_DOWNLOADRESERVEDMESSAGES "Downloading reserved messages."
 END
 
 STRINGTABLE DISCARDABLE 

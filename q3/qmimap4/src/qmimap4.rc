@@ -155,6 +155,7 @@ BEGIN
     IDS_SETFLAGS            "Setting flags..."
     IDS_DOWNLOADMESSAGES    "Downloading messages..."
     IDS_APPLYOFFLINEJOBS    "Applying offline jobs..."
+    IDS_DOWNLOADRESERVEDMESSAGES "Downloading reserved messages..."
     IDS_IMAP4SEARCH         "IMAP4"
 END
 

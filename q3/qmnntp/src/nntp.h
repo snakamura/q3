@@ -111,10 +111,12 @@ public:
 	bool group(const WCHAR* pwszGroup);
 	bool getMessage(unsigned int n,
 					GetMessageFlag flag,
-					qs::xstring_ptr* pstrMessage);
+					qs::xstring_ptr* pstrMessage,
+					unsigned int* pnSize);
 	bool getMessage(const WCHAR* pwszMessageId,
 					GetMessageFlag flag,
-					qs::xstring_ptr* pstrMessage);
+					qs::xstring_ptr* pstrMessage,
+					unsigned int* pnSize);
 	bool getMessagesData(unsigned int nStart,
 						 unsigned int nEnd,
 						 std::auto_ptr<MessagesData>* ppMessageData);
@@ -128,7 +130,8 @@ private:
 	bool getMessage(unsigned int n,
 					const WCHAR* pwszMessageId,
 					GetMessageFlag flag,
-					qs::xstring_ptr* pstrMessage);
+					qs::xstring_ptr* pstrMessage,
+					unsigned int* pnSize);
 	bool receive(unsigned int* pnCode);
 	bool receive(unsigned int* pnCode,
 				 qs::string_ptr* pstrResponse);
@@ -136,7 +139,7 @@ private:
 				 size_t nCodeCount,
 				 unsigned int* pnCode,
 				 qs::string_ptr* pstrResponse,
-				 qs::xstring_ptr* pstrContent);
+				 qs::xstring_size_ptr* pstrContent);
 	bool sendCommand(const CHAR* pszCommand,
 					 unsigned int* pnCode);
 	bool sendCommand(const CHAR* pszCommand,
@@ -147,14 +150,14 @@ private:
 					 size_t nCodeCount,
 					 unsigned int* pnCode,
 					 qs::string_ptr* pstrResponse,
-					 qs::xstring_ptr* pstrContent);
+					 qs::xstring_size_ptr* pstrContent);
 	bool send(const SendData* pSendData,
 			  size_t nDataLen,
 			  const CHAR* pszMultilineCodes[],
 			  size_t nCodeCount,
 			  unsigned int* pnCode,
 			  qs::string_ptr* pstrResponse,
-			  qs::xstring_ptr* pstrContent);
+			  qs::xstring_size_ptr* pstrContent);
 	void setErrorResponse(const CHAR* pszErrorResponse);
 
 private:

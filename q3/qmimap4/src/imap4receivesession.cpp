@@ -1038,13 +1038,30 @@ bool qmimap4::Imap4ReceiveSession::applyOfflineJobs()
 
 bool qmimap4::Imap4ReceiveSession::downloadReservedMessages()
 {
-	const Account::FolderList& listFolder = pAccount_->getFolders();
-	for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
+	Account::FolderList l(pAccount_->getFolders());
+	std::sort(l.begin(), l.end(), FolderLess());
+	
+	unsigned int nCount = 0;
+	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		Folder* pFolder = *it;
+		if (pFolder->getType() == Folder::TYPE_NORMAL &&
+			!(pFolder->getFlags() & Folder::FLAG_LOCAL) &&
+			pFolder->getFlags() & Folder::FLAG_SYNCABLE)
+			nCount += static_cast<NormalFolder*>(pFolder)->getDownloadCount();
+	}
+	if (nCount == 0)
+		return true;
+	
+	pCallback_->setMessage(IDS_DOWNLOADRESERVEDMESSAGES);
+	pSessionCallback_->setRange(0, nCount);
+	
+	unsigned int nPos = 0;
+	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		Folder* pFolder = *it;
 		if (pFolder->getType() == Folder::TYPE_NORMAL &&
 			!(pFolder->getFlags() & Folder::FLAG_LOCAL) &&
 			pFolder->getFlags() & Folder::FLAG_SYNCABLE) {
-			if (!downloadReservedMessages(static_cast<NormalFolder*>(pFolder)))
+			if (!downloadReservedMessages(static_cast<NormalFolder*>(pFolder), &nPos))
 				return false;
 		}
 	}
@@ -1052,19 +1069,26 @@ bool qmimap4::Imap4ReceiveSession::downloadReservedMessages()
 	return true;
 }
 
-bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolder)
+bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolder,
+															unsigned int* pnPos)
 {
-	if (pFolder->getDownloadCount() != 0) {
-		int nOption = pSubAccount_->getProperty(L"Imap4", L"Option", 0xff);
-		
+	assert(pFolder);
+	assert(pnPos);
+	
+	if (pFolder->getDownloadCount() == 0)
+		return true;
+	
+	int nOption = pSubAccount_->getProperty(L"Imap4", L"Option", 0xff);
+	
+	typedef std::vector<unsigned long> UidList;
+	UidList listAll;
+	UidList listText;
+	
+	{
 		Lock<Account> lock(*pAccount_);
 		
 		if (!pFolder->loadMessageHolders())
 			return false;
-		
-		typedef std::vector<unsigned long> UidList;
-		UidList listAll;
-		UidList listText;
 		
 		for (unsigned int n = 0; n < pFolder->getCount(); ++n) {
 			MessageHolder* pmh = pFolder->getMessage(n);
@@ -1074,215 +1098,219 @@ bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolde
 			else if (nFlags & MessageHolder::FLAG_DOWNLOADTEXT)
 				listText.push_back(pmh->getId());
 		}
+	}
+	
+	if (listAll.empty() && listText.empty())
+		return true;
+	
+	wstring_ptr wstrName(Util::getFolderName(pFolder));
+	if (!pImap4_->select(wstrName.get()))
+		HANDLE_ERROR();
+	
+	if (!listAll.empty()) {
+		class MessageProcessHook : public AbstractMessageProcessHook
+		{
+		public:
+			typedef std::vector<unsigned long> UidList;
 		
-		if (!listAll.empty() || !listText.empty()) {
-			wstring_ptr wstrName(Util::getFolderName(pFolder));
-			if (!pImap4_->select(wstrName.get()))
-				HANDLE_ERROR();
-		}
-		
-		if (!listAll.empty()) {
-			class MessageProcessHook : public AbstractMessageProcessHook
+		public:
+			MessageProcessHook(NormalFolder* pFolder,
+							   const UidList& listUid,
+							   ReceiveSessionCallback* pSessionCallback,
+							   unsigned int* pnPos) :
+				pFolder_(pFolder),
+				listUid_(listUid),
+				pSessionCallback_(pSessionCallback),
+				pnPos_(pnPos)
 			{
-			public:
-				typedef std::vector<unsigned long> UidList;
-			
-			public:
-				MessageProcessHook(NormalFolder* pFolder,
-								   const UidList& listUid) :
-					pFolder_(pFolder),
-					listUid_(listUid)
-				{
-				}
-			
-			protected:
-				virtual Account* getAccount()
-				{
-					return pFolder_->getAccount();
-				}
-				
-				virtual bool isHeader()
-				{
-					return false;
-				}
-				
-				virtual bool isMakeUnseen()
-				{
-					return true;
-				}
-				
-				virtual MessagePtr getMessagePtr(unsigned long nUid)
-				{
-					MessageHolder* pmh = 0;
-					UidList::const_iterator it = std::lower_bound(
-						listUid_.begin(), listUid_.end(), nUid);
-					if (it != listUid_.end() && *it == nUid)
-						pmh = pFolder_->getMessageHolderById(nUid);
-					return MessagePtr(pmh);
-				}
-				
-				virtual void processed()
-				{
-				}
-			
-			private:
-				NormalFolder* pFolder_;
-				const UidList& listUid_;
-			} hook(pFolder, listAll);
-			
-			// TODO
-			// Callback progress
-			
-			Hook h(this, &hook);
-			
-			MultipleRange range(&listAll[0], listAll.size(), true);
-			if (!pImap4_->getMessage(range, true))
-				HANDLE_ERROR();
-		}
+			}
 		
-		if (!listText.empty()) {
+		protected:
+			virtual Account* getAccount()
+			{
+				return pFolder_->getAccount();
+			}
+			
+			virtual bool isHeader()
+			{
+				return false;
+			}
+			
+			virtual bool isMakeUnseen()
+			{
+				return true;
+			}
+			
+			virtual MessagePtr getMessagePtr(unsigned long nUid)
+			{
+				UidList::const_iterator it = std::lower_bound(
+					listUid_.begin(), listUid_.end(), nUid);
+				if (it == listUid_.end() || *it != nUid)
+					return MessagePtr();
+				return pFolder_->getMessageById(nUid);
+			}
+			
+			virtual void processed()
+			{
+				pSessionCallback_->setPos(++(*pnPos_));
+			}
+		
+		private:
+			NormalFolder* pFolder_;
+			const UidList& listUid_;
+			ReceiveSessionCallback* pSessionCallback_;
+			unsigned int* pnPos_;
+		} hook(pFolder, listAll, pSessionCallback_, pnPos);
+		
+		Hook h(this, &hook);
+		
+		MultipleRange range(&listAll[0], listAll.size(), true);
+		if (!pImap4_->getMessage(range, true))
+			HANDLE_ERROR();
+	}
+	
+	if (!listText.empty()) {
+		typedef std::vector<FetchDataBodyStructure*> BodyStructureList;
+		BodyStructureList listBodyStructure;
+		container_deleter<BodyStructureList> deleter(listBodyStructure);
+		listBodyStructure.resize(listText.size());
+		
+		class BodyStructureProcessHook : public AbstractBodyStructureProcessHook
+		{
+		public:
+			typedef std::vector<unsigned long> UidList;
 			typedef std::vector<FetchDataBodyStructure*> BodyStructureList;
-			BodyStructureList listBodyStructure;
-			container_deleter<BodyStructureList> deleter(listBodyStructure);
-			listBodyStructure.resize(listText.size());
-			
-			class BodyStructureProcessHook : public AbstractBodyStructureProcessHook
+		
+		public:
+			BodyStructureProcessHook(const UidList& listUid,
+									 BodyStructureList& listBodyStructure) :
+				listUid_(listUid),
+				listBodyStructure_(listBodyStructure)
 			{
-			public:
-				typedef std::vector<unsigned long> UidList;
-				typedef std::vector<FetchDataBodyStructure*> BodyStructureList;
-			
-			public:
-				BodyStructureProcessHook(const UidList& listUid,
-										 BodyStructureList& listBodyStructure) :
-					listUid_(listUid),
-					listBodyStructure_(listBodyStructure)
-				{
-				}
-			
-			protected:
-				virtual bool setBodyStructure(unsigned long nUid,
-											  FetchDataBodyStructure* pBodyStructure,
-											  bool* pbSet)
-				{
-					UidList::const_iterator it = std::lower_bound(
-						listUid_.begin(), listUid_.end(), nUid);
-					if (it != listUid_.end() && *it == nUid) {
-						listBodyStructure_[it - listUid_.begin()] = pBodyStructure;
-						*pbSet = true;
-					}
-					return true;
-				}
-				
-				virtual void processed()
-				{
-				}
-			
-			private:
-				const UidList& listUid_;
-				BodyStructureList& listBodyStructure_;
-			} hook(listText, listBodyStructure);
-			Hook h(this, &hook);
-			
-			// TODO
-			// Callback progress
-			
-			MultipleRange range(&listText[0], listText.size(), true);
-			if (!pImap4_->getBodyStructure(range))
-				HANDLE_ERROR();
-			
-			class PartialMessageProcessHook : public AbstractPartialMessageProcessHook
-			{
-			public:
-				typedef std::vector<unsigned long> UidList;
-			
-			public:
-				PartialMessageProcessHook(NormalFolder* pFolder,
-										  const UidList& listUid,
+			}
+		
+		protected:
+			virtual bool setBodyStructure(unsigned long nUid,
 										  FetchDataBodyStructure* pBodyStructure,
-										  const PartList& listPart,
-										  unsigned int nPartCount,
-										  bool bAll) :
-					pFolder_(pFolder),
-					listUid_(listUid),
-					pBodyStructure_(pBodyStructure),
-					listPart_(listPart),
-					nPartCount_(nPartCount),
-					bAll_(bAll)
-				{
+										  bool* pbSet)
+			{
+				UidList::const_iterator it = std::lower_bound(
+					listUid_.begin(), listUid_.end(), nUid);
+				if (it != listUid_.end() && *it == nUid) {
+					listBodyStructure_[it - listUid_.begin()] = pBodyStructure;
+					*pbSet = true;
 				}
-				
-			protected:
-				virtual qm::Account* getAccount()
-				{
-					return pFolder_->getAccount();
-				}
-				
-				virtual bool isAll()
-				{
-					return bAll_;
-				}
-				
-				virtual const PartList& getPartList()
-				{
-					return listPart_;
-				}
-				
-				virtual unsigned int getPartCount()
-				{
-					return nPartCount_;
-				}
-				
-				virtual bool isMakeUnseen()
-				{
-					return true;
-				}
-				
-				virtual qm::MessagePtr getMessagePtr(unsigned long nUid)
-				{
-					MessageHolder* pmh = 0;
-					UidList::const_iterator it = std::lower_bound(
-						listUid_.begin(), listUid_.end(), nUid);
-					if (it != listUid_.end() && *it == nUid)
-						pmh = pFolder_->getMessageHolderById(nUid);
-					return MessagePtr(pmh);
-				}
-				
-				virtual void processed()
-				{
-				}
+				return true;
+			}
 			
-			private:
-				NormalFolder* pFolder_;
-				const UidList& listUid_;
-				FetchDataBodyStructure* pBodyStructure_;
-				const PartList& listPart_;
-				unsigned int nPartCount_;
-				bool bAll_;
-			};
-			for (UidList::size_type n = 0; n < listText.size(); ++n) {
-				if (listBodyStructure[n]) {
-					Util::PartList listPart;
-					Util::PartListDeleter deleter(listPart);
-					unsigned int nPath = 0;
-					Util::getPartsFromBodyStructure(listBodyStructure[n], &nPath, &listPart);
+			virtual void processed()
+			{
+			}
+		
+		private:
+			const UidList& listUid_;
+			BodyStructureList& listBodyStructure_;
+		} hook(listText, listBodyStructure);
+		Hook h(this, &hook);
+		
+		MultipleRange range(&listText[0], listText.size(), true);
+		if (!pImap4_->getBodyStructure(range))
+			HANDLE_ERROR();
+		
+		class PartialMessageProcessHook : public AbstractPartialMessageProcessHook
+		{
+		public:
+			typedef std::vector<unsigned long> UidList;
+		
+		public:
+			PartialMessageProcessHook(NormalFolder* pFolder,
+									  const UidList& listUid,
+									  FetchDataBodyStructure* pBodyStructure,
+									  const PartList& listPart,
+									  unsigned int nPartCount,
+									  bool bAll) :
+				pFolder_(pFolder),
+				listUid_(listUid),
+				pBodyStructure_(pBodyStructure),
+				listPart_(listPart),
+				nPartCount_(nPartCount),
+				bAll_(bAll)
+			{
+			}
+			
+		protected:
+			virtual qm::Account* getAccount()
+			{
+				return pFolder_->getAccount();
+			}
+			
+			virtual bool isAll()
+			{
+				return bAll_;
+			}
+			
+			virtual const PartList& getPartList()
+			{
+				return listPart_;
+			}
+			
+			virtual unsigned int getPartCount()
+			{
+				return nPartCount_;
+			}
+			
+			virtual bool isMakeUnseen()
+			{
+				return true;
+			}
+			
+			virtual qm::MessagePtr getMessagePtr(unsigned long nUid)
+			{
+				UidList::const_iterator it = std::lower_bound(
+					listUid_.begin(), listUid_.end(), nUid);
+				if (it == listUid_.end() || *it != nUid)
+					return MessagePtr();
+				return pFolder_->getMessageById(nUid);
+			}
+			
+			virtual void processed()
+			{
+			}
+		
+		private:
+			NormalFolder* pFolder_;
+			const UidList& listUid_;
+			FetchDataBodyStructure* pBodyStructure_;
+			const PartList& listPart_;
+			unsigned int nPartCount_;
+			bool bAll_;
+		};
+		for (UidList::size_type n = 0; n < listText.size(); ++n) {
+			if (listBodyStructure[n]) {
+				if (pSessionCallback_->isCanceled(false))
+					return true;
+				pSessionCallback_->setPos(++(*pnPos));
+				
+				Util::PartList listPart;
+				Util::PartListDeleter deleter(listPart);
+				unsigned int nPath = 0;
+				Util::getPartsFromBodyStructure(listBodyStructure[n], &nPath, &listPart);
+				
+				if (!listPart.empty()) {
+					string_ptr strArg;
+					unsigned int nPartCount = 0;
+					bool bAll = false;
+					Util::getFetchArgFromPartList(listPart, Util::FETCHARG_TEXT,
+						true, (nOption & OPTION_TRUSTBODYSTRUCTURE) == 0,
+						&strArg, &nPartCount, &bAll);
 					
-					if (!listPart.empty()) {
-						string_ptr strArg;
-						unsigned int nPartCount = 0;
-						bool bAll = false;
-						Util::getFetchArgFromPartList(listPart, Util::FETCHARG_TEXT,
-							true, (nOption & OPTION_TRUSTBODYSTRUCTURE) == 0,
-							&strArg, &nPartCount, &bAll);
-						
-						PartialMessageProcessHook hook(pFolder, listText,
-							listBodyStructure[n], listPart, nPartCount, bAll);
-						Hook h(this, &hook);
-						
-						SingleRange range(listText[n], true);
-						if (!pImap4_->fetch(range, strArg.get()))
-							HANDLE_ERROR();
-					}
+					PartialMessageProcessHook hook(pFolder, listText,
+						listBodyStructure[n], listPart, nPartCount, bAll);
+					Hook h(this, &hook);
+					
+					SingleRange range(listText[n], true);
+					if (!pImap4_->fetch(range, strArg.get()))
+						HANDLE_ERROR();
 				}
 			}
 		}

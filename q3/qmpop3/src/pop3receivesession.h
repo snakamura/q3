@@ -78,7 +78,8 @@ public:
 private:
 	bool prepare();
 	bool downloadReservedMessages();
-	bool downloadReservedMessages(qm::NormalFolder* pFolder);
+	bool downloadReservedMessages(qm::NormalFolder* pFolder,
+								  unsigned int* pnPos);
 	std::auto_ptr<UIDList> loadUIDList() const;
 	bool saveUIDList(const UIDList* pUIDList) const;
 	qs::wstring_ptr getUIDListPath() const;

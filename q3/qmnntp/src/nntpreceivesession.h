@@ -73,7 +73,8 @@ private:
 
 private:
 	bool downloadReservedMessages();
-	bool downloadReservedMessages(qm::NormalFolder* pFolder);
+	bool downloadReservedMessages(qm::NormalFolder* pFolder,
+								  unsigned int* pnPos);
 
 private:
 	NntpReceiveSession(const NntpReceiveSession&);

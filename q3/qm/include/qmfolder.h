@@ -277,7 +277,7 @@ private:
  *
  */
 
-class FolderLess : public std::binary_function<Folder*, Folder*, bool>
+class QMEXPORTCLASS FolderLess : public std::binary_function<Folder*, Folder*, bool>
 {
 public:
 	bool operator()(const Folder* pFolderLhs,

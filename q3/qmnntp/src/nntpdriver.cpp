@@ -166,8 +166,9 @@ bool qmnntp::NntpDriver::getMessage(SubAccount* pSubAccount,
 		return false;
 	
 	xstring_ptr strMessage;
+	unsigned int nSize = pmh->getSize();
 	if (!pNntp_->getMessage(pmh->getId(),
-		Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage))
+		Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage, &nSize))
 		return false;
 	if (!strMessage.get())
 		return false;

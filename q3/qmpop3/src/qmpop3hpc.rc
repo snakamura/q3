@@ -147,6 +147,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDS_SAVEUID             "Saving UID..."
     IDS_DELETEMESSAGE       "Deleting messages..."
+    IDS_DOWNLOADRESERVEDMESSAGES "Downloading reserved messages..."
 END
 
 STRINGTABLE DISCARDABLE 
