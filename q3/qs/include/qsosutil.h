@@ -22,6 +22,7 @@ struct Rect;
 class AutoHandle;
 class AutoFindHandle;
 class AutoMenuHandle;
+class LockGlobal;
 template<class Interface> class ComPtr;
 class BSTRPtr;
 class Variant;
@@ -158,6 +159,31 @@ private:
 
 private:
 	HMENU hmenu_;
+};
+
+
+/****************************************************************************
+ *
+ * LockGlobal
+ *
+ */
+
+class QSEXPORTCLASS LockGlobal
+{
+public:
+	LockGlobal(HGLOBAL hGlobal);
+	~LockGlobal();
+
+public:
+	void* get() const;
+
+private:
+	LockGlobal(const LockGlobal&);
+	LockGlobal& operator=(const LockGlobal&);
+
+private:
+	HGLOBAL hGlobal_;
+	void* p_;
 };
 
 

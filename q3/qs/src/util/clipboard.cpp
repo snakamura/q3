@@ -95,25 +95,20 @@ bool qs::Clipboard::setText(HWND hwnd,
 	size_t nCount = std::count(pwszText, pwszText + nTextLen, L'\n');
 	
 #ifdef UNICODE
-#ifdef _WIN32_WCE
-	HANDLE hMem = ::LocalAlloc(LMEM_FIXED, (nTextLen + nCount + 1)*sizeof(WCHAR));
+	HANDLE hMem = GlobalAlloc(GMEM_FIXED, (nTextLen + nCount + 1)*sizeof(WCHAR));
 	if (!hMem)
 		return false;
-	WCHAR* pwszMem = reinterpret_cast<WCHAR*>(hMem);
-#else // _WIN32_WCE
-	HANDLE hMem = ::GlobalAlloc(LMEM_FIXED, (nTextLen + nCount + 1)*sizeof(WCHAR));
-	if (!hMem)
-		return false;
-	WCHAR* pwszMem = static_cast<WCHAR*>(::GlobalLock(hMem));
-#endif
+	LockGlobal lock(hMem);
+	WCHAR* pwszMem = static_cast<WCHAR*>(lock.get());
 	const WCHAR* pSrc = pwszText;
 	WCHAR* pDst = pwszMem;
 #else // UNICODE
 	tstring_ptr tstrText(wcs2tcs(pwszText));
-	HANDLE hMem = ::GlobalAlloc(LMEM_FIXED, (strlen(tstrText.get()) + nCount + 1)*sizeof(CHAR));
+	HANDLE hMem = GlobalAlloc(GMEM_FIXED, (strlen(tstrText.get()) + nCount + 1)*sizeof(CHAR));
 	if (!hMem)
 		return false;
-	TCHAR* ptszMem = static_cast<TCHAR*>(::GlobalLock(hMem));
+	LockGlobal lock(hMem);
+	TCHAR* ptszMem = static_cast<TCHAR*>(lock.get());
 	const TCHAR* pSrc = tstrText.get();
 	TCHAR* pDst = ptszMem;
 #endif
@@ -123,10 +118,6 @@ bool qs::Clipboard::setText(HWND hwnd,
 		*pDst++ = *pSrc++;
 	}
 	*pDst = _T('\0');
-	
-#ifndef _WIN32_WCE
-	::GlobalUnlock(hMem);
-#endif
 	
 	if (!clipboard.setData(CF_QSTEXT, hMem)) {
 #ifdef _WIN32_WCE
@@ -162,13 +153,8 @@ wstring_ptr qs::Clipboard::getText(HWND hwnd)
 	if (!hMem)
 		return 0;
 	
-	const TCHAR* psz = 0;
-	
-#ifdef _WIN32_WCE
-	psz = reinterpret_cast<const TCHAR*>(hMem);
-#else // _WIN32_WCE
-	psz = static_cast<const TCHAR*>(::GlobalLock(hMem));
-#endif
+	LockGlobal lock(hMem);
+	const TCHAR* psz = static_cast<const TCHAR*>(lock.get());
 	
 #ifdef UNICODE
 	wstring_ptr wstrText(allocWString(wcslen(psz) + 1));
@@ -185,10 +171,6 @@ wstring_ptr qs::Clipboard::getText(HWND hwnd)
 		++pSrc;
 	}
 	*pDst = L'\0';
-	
-#ifndef _WIN32_WCE
-	::GlobalUnlock(hMem);
-#endif // _WIN32_WCE
 	
 	return wstrText;
 }

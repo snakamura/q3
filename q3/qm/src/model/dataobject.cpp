@@ -165,9 +165,8 @@ STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
 		if (!hGlobal)
 			return E_OUTOFMEMORY;
 		
-		WCHAR* p = reinterpret_cast<WCHAR*>(GlobalLock(hGlobal));
-		wcscpy(p, wstrName.get());
-		GlobalUnlock(hGlobal);
+		LockGlobal lock(hGlobal);
+		wcscpy(static_cast<WCHAR*>(lock.get()), wstrName.get());
 	}
 	else if (pFormat->cfFormat == nFormats__[FORMAT_MESSAGEHOLDERLIST]) {
 		typedef std::vector<WCHAR> Buffer;
@@ -188,18 +187,16 @@ STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
 			buf.size()*sizeof(WCHAR));
 		if (!hGlobal)
 			return E_OUTOFMEMORY;
-		WCHAR* p = reinterpret_cast<WCHAR*>(GlobalLock(hGlobal));
-		memcpy(p, &buf[0], buf.size()*sizeof(WCHAR));
-		GlobalUnlock(hGlobal);
+		LockGlobal lock(hGlobal);
+		memcpy(static_cast<WCHAR*>(lock.get()), &buf[0], buf.size()*sizeof(WCHAR));
 	}
 	else if (pFormat->cfFormat == nFormats__[FORMAT_FLAG]) {
 		hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, sizeof(Flag));
 		if (!hGlobal)
 			return E_OUTOFMEMORY;
 		
-		Flag* pFlag = reinterpret_cast<Flag*>(GlobalLock(hGlobal));
-		*pFlag = flag_;
-		GlobalUnlock(hGlobal);
+		LockGlobal lock(hGlobal);
+		*static_cast<Flag*>(lock.get()) = flag_;
 	}
 #ifndef _WIN32_WCE
 	else if (pFormat->cfFormat == nFormats__[FORMAT_FILECONTENTS]) {
@@ -223,9 +220,8 @@ STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
 		hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, nLen);
 		if (!hGlobal)
 			return E_OUTOFMEMORY;
-		CHAR* p = reinterpret_cast<CHAR*>(GlobalLock(hGlobal));
-		memcpy(p, strContent.get(), nLen);
-		GlobalUnlock(hGlobal);
+		LockGlobal lock(hGlobal);
+		memcpy(static_cast<CHAR*>(lock.get()), strContent.get(), nLen);
 	}
 	else if (pFormat->cfFormat == nFormats__[FORMAT_FILEDESCRIPTOR]) {
 		hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT,
@@ -233,8 +229,8 @@ STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
 			(listMessagePtr_.size() - 1)*sizeof(FILEDESCRIPTOR));
 		if (!hGlobal)
 			return E_OUTOFMEMORY;
-		FILEGROUPDESCRIPTOR* pfgd =
-			reinterpret_cast<FILEGROUPDESCRIPTOR*>(GlobalLock(hGlobal));
+		LockGlobal lock(hGlobal);
+		FILEGROUPDESCRIPTOR* pfgd = static_cast<FILEGROUPDESCRIPTOR*>(lock.get());
 		pfgd->cItems = listMessagePtr_.size();
 		MessagePtrList::size_type n = 0;
 		while (n < listMessagePtr_.size()) {
@@ -254,7 +250,6 @@ STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
 			
 			++n;
 		}
-		GlobalUnlock(hGlobal);
 		
 		if (n != listMessagePtr_.size()) {
 			GlobalFree(hGlobal);
@@ -320,14 +315,8 @@ STDMETHODIMP qm::MessageDataObject::SetData(FORMATETC* pFormat,
 	if (pFormat->tymed != TYMED_HGLOBAL)
 		return DV_E_TYMED;
 	
-	void* pData = GlobalLock(pMedium->hGlobal);
-	struct Deleter
-	{
-		Deleter(HGLOBAL hGlobal) : hGlobal_(hGlobal) {}
-		~Deleter() { GlobalUnlock(hGlobal_); }
-		HGLOBAL hGlobal_;
-	} deleter(pMedium->hGlobal);
-	
+	LockGlobal lock(pMedium->hGlobal);
+	void* pData = lock.get();
 	if (pFormat->cfFormat == nFormats__[FORMAT_FOLDER]) {
 		pFolder_ = pDocument_->getFolder(0, static_cast<WCHAR*>(pData));
 	}
@@ -476,21 +465,11 @@ bool qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
 	Folder* pFolderFrom = getFolder(pDataObject, pDocument);
 	
 	FORMATETC fe = formats__[FORMAT_MESSAGEHOLDERLIST];
-	STGMEDIUM stm;
+	StgMedium stm;
 	hr = pDataObject->GetData(&fe, &stm);
 	if (hr == S_OK) {
-		struct Deleter
-		{
-			Deleter(STGMEDIUM& stm) : stm_(stm) {}
-			~Deleter()
-			{
-				GlobalUnlock(stm_.hGlobal);
-				::ReleaseStgMedium(&stm_);
-			}
-			STGMEDIUM& stm_;
-		} deleter(stm);
-		
-		const WCHAR* p = reinterpret_cast<const WCHAR*>(GlobalLock(stm.hGlobal));
+		LockGlobal lock(stm.hGlobal);
+		const WCHAR* p = static_cast<const WCHAR*>(lock.get());
 		MessagePtrList listMessagePtr;
 		while (*p) {
 			std::auto_ptr<URI> pURI(URI::parse(p));
@@ -556,27 +535,24 @@ MessageDataObject::Flag qm::MessageDataObject::getPasteFlag(IDataObject* pDataOb
 	Flag flag = FLAG_NONE;
 	
 	FORMATETC fe = formats__[FORMAT_FLAG];
-	STGMEDIUM stm;
+	StgMedium stm;
 	HRESULT hr = pDataObject->GetData(&fe, &stm);
 	if (hr == S_OK) {
-		flag = *reinterpret_cast<Flag*>(GlobalLock(stm.hGlobal));
-		GlobalUnlock(stm.hGlobal);
-		::ReleaseStgMedium(&stm);
+		LockGlobal lock(stm.hGlobal);
+		flag = *static_cast<Flag*>(lock.get());
 	}
 	
 	if (flag == FLAG_NONE) {
 		Account* pAccount = 0;
 		FORMATETC fe = formats__[FORMAT_FOLDER];
-		STGMEDIUM stm;
+		StgMedium stm;
 		hr = pDataObject->GetData(&fe, &stm);
 		if (hr == S_OK) {
-			const WCHAR* pwszName = reinterpret_cast<const WCHAR*>(
-				GlobalLock(stm.hGlobal));
+			LockGlobal lock(stm.hGlobal);
+			const WCHAR* pwszName = static_cast<const WCHAR*>(lock.get());
 			Folder* pFolderFrom = pDocument->getFolder(0, pwszName);
 			if (pFolderFrom)
 				pAccount = pFolderFrom->getAccount();
-			GlobalUnlock(stm.hGlobal);
-			::ReleaseStgMedium(&stm);
 		}
 		flag = pFolder->getAccount() != pAccount ? FLAG_COPY : FLAG_MOVE;
 	}
@@ -590,15 +566,13 @@ qm::Folder* qm::MessageDataObject::getFolder(IDataObject* pDataObject,
 	assert(pDataObject);
 	
 	FORMATETC fe = formats__[FORMAT_FOLDER];
-	STGMEDIUM stm;
+	StgMedium stm;
 	HRESULT hr = pDataObject->GetData(&fe, &stm);
 	if (hr != S_OK)
 		return 0;
 	
-	void* pData = GlobalLock(stm.hGlobal);
-	Folder* pFolder = pDocument->getFolder(0, static_cast<WCHAR*>(pData));
-	GlobalUnlock(stm.hGlobal);
-	::ReleaseStgMedium(&stm);
+	LockGlobal lock(stm.hGlobal);
+	Folder* pFolder = pDocument->getFolder(0, static_cast<WCHAR*>(lock.get()));
 	
 	return pFolder;
 }
@@ -607,23 +581,13 @@ bool qm::MessageDataObject::getURIs(IDataObject* pDataObject,
 									URIList* pList)
 {
 	FORMATETC fe = formats__[FORMAT_MESSAGEHOLDERLIST];
-	STGMEDIUM stm;
+	StgMedium stm;
 	HRESULT hr = pDataObject->GetData(&fe, &stm);
 	if (hr != S_OK)
 		return false;
 	
-	struct Deleter
-	{
-		Deleter(STGMEDIUM& stm) : stm_(stm) {}
-		~Deleter()
-		{
-			GlobalUnlock(stm_.hGlobal);
-			::ReleaseStgMedium(&stm_);
-		}
-		STGMEDIUM& stm_;
-	} deleter(stm);
-	
-	const WCHAR* p = reinterpret_cast<const WCHAR*>(GlobalLock(stm.hGlobal));
+	LockGlobal lock(stm.hGlobal);
+	const WCHAR* p = reinterpret_cast<const WCHAR*>(lock.get());
 	while (*p) {
 		std::auto_ptr<URI> pURI(URI::parse(p));
 		pList->push_back(pURI.get());
@@ -732,9 +696,8 @@ STDMETHODIMP qm::FolderDataObject::GetData(FORMATETC* pFormat,
 		if (!hGlobal)
 			return E_OUTOFMEMORY;
 		
-		WCHAR* p = reinterpret_cast<WCHAR*>(GlobalLock(hGlobal));
-		wcscpy(p, wstrName.get());
-		GlobalUnlock(hGlobal);
+		LockGlobal lock(hGlobal);
+		wcscpy(static_cast<WCHAR*>(lock.get()), wstrName.get());
 	}
 	
 	pMedium->tymed = TYMED_HGLOBAL;
@@ -829,15 +792,13 @@ qm::Folder* qm::FolderDataObject::getFolder(IDataObject* pDataObject,
 	assert(pDataObject);
 	
 	FORMATETC fe = formats__[FORMAT_FOLDER];
-	STGMEDIUM stm;
+	StgMedium stm;
 	HRESULT hr = pDataObject->GetData(&fe, &stm);
 	if (hr != S_OK)
 		return 0;
 	
-	void* pData = GlobalLock(stm.hGlobal);
-	Folder* pFolder = pDocument->getFolder(0, static_cast<WCHAR*>(pData));
-	GlobalUnlock(stm.hGlobal);
-	::ReleaseStgMedium(&stm);
+	LockGlobal lock(stm.hGlobal);
+	Folder* pFolder = pDocument->getFolder(0, static_cast<WCHAR*>(lock.get()));
 	
 	return pFolder;
 }
@@ -938,9 +899,8 @@ STDMETHODIMP qm::URIDataObject::GetData(FORMATETC* pFormat,
 		hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, pBody.size());
 		if (!hGlobal)
 			return E_OUTOFMEMORY;
-		CHAR* p = reinterpret_cast<CHAR*>(GlobalLock(hGlobal));
-		memcpy(p, pBody.get(), pBody.size());
-		GlobalUnlock(hGlobal);
+		LockGlobal lock(hGlobal);
+		memcpy(static_cast<CHAR*>(lock.get()), pBody.get(), pBody.size());
 	}
 	else if (pFormat->cfFormat == nFormats__[FORMAT_FILEDESCRIPTOR]) {
 		hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT,
@@ -948,8 +908,8 @@ STDMETHODIMP qm::URIDataObject::GetData(FORMATETC* pFormat,
 			(listURI_.size() - 1)*sizeof(FILEDESCRIPTOR));
 		if (!hGlobal)
 			return E_OUTOFMEMORY;
-		FILEGROUPDESCRIPTOR* pfgd =
-			reinterpret_cast<FILEGROUPDESCRIPTOR*>(GlobalLock(hGlobal));
+		LockGlobal lock(hGlobal);
+		FILEGROUPDESCRIPTOR* pfgd = static_cast<FILEGROUPDESCRIPTOR*>(lock.get());
 		pfgd->cItems = listURI_.size();
 		URIList::size_type n = 0;
 		while (n < listURI_.size()) {
@@ -968,7 +928,6 @@ STDMETHODIMP qm::URIDataObject::GetData(FORMATETC* pFormat,
 			
 			++n;
 		}
-		GlobalUnlock(hGlobal);
 		
 		if (n != listURI_.size()) {
 			GlobalFree(hGlobal);

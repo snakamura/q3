@@ -426,10 +426,12 @@ bool qm::UIUtil::addMessageToClipboard(HWND hwnd,
 		(nLen + 2)*sizeof(WCHAR));
 	if (!hMem)
 		return false;
-	void* p = GlobalLock(hMem);
-	memcpy(p, wstrURI.get(), (nLen + 1)*sizeof(WCHAR));
-	*(reinterpret_cast<WCHAR*>(p) + nLen + 1) = L'\0';
-	GlobalUnlock(hMem);
+	{
+		LockGlobal lock(hMem);
+		void* p = lock.get();
+		memcpy(p, wstrURI.get(), (nLen + 1)*sizeof(WCHAR));
+		*(reinterpret_cast<WCHAR*>(p) + nLen + 1) = L'\0';
+	}
 	clipboard.setData(MessageDataObject::nFormats__[MessageDataObject::FORMAT_MESSAGEHOLDERLIST], hMem);
 	
 	return true;
@@ -446,9 +448,9 @@ MessagePtr qm::UIUtil::getMessageFromClipboard(HWND hwnd,
 	if (!hMem)
 		return MessagePtr();
 	
-	void* p = GlobalLock(hMem);
+	LockGlobal lock(hMem);
+	void* p = lock.get();
 	std::auto_ptr<URI> pURI(URI::parse(static_cast<WCHAR*>(p)));
-	GlobalUnlock(hMem);
 	if (!pURI.get())
 		return MessagePtr();
 	

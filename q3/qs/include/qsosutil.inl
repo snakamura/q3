@@ -201,6 +201,31 @@ inline HMENU* qs::AutoMenuHandle::operator&()
 
 /****************************************************************************
  *
+ * LockGlobal
+ *
+ */
+
+inline qs::LockGlobal::LockGlobal(HGLOBAL hGlobal) :
+	hGlobal_(hGlobal),
+	p_(0)
+{
+	p_ = GlobalLock(hGlobal_);
+}
+
+inline qs::LockGlobal::~LockGlobal()
+{
+	if (p_)
+		GlobalUnlock(hGlobal_);
+}
+
+inline void* qs::LockGlobal::get() const
+{
+	return p_;
+}
+
+
+/****************************************************************************
+ *
  * ComPtr
  *
  */
