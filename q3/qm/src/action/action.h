@@ -646,6 +646,9 @@ class EditPasteMessageAction : public qs::AbstractAction
 public:
 	EditPasteMessageAction(Document* pDocument,
 						   FolderModel* pFolderModel,
+						   SyncManager* pSyncManager,
+						   SyncDialogManager* pSyncDialogManager,
+						   qs::Profile* pProfile,
 						   HWND hwnd);
 	virtual ~EditPasteMessageAction();
 
@@ -660,6 +663,9 @@ private:
 private:
 	Document* pDocument_;
 	FolderModel* pFolderModel_;
+	SyncManager* pSyncManager_;
+	SyncDialogManager* pSyncDialogManager_;
+	qs::Profile* pProfile_;
 	HWND hwnd_;
 };
 
@@ -904,6 +910,8 @@ class FileImportAction : public qs::AbstractAction
 public:
 	FileImportAction(FolderModel* pFolderModel,
 					 Document* pDocument,
+					 SyncManager* pSyncManager,
+					 SyncDialogManager* pSyncDialogManager,
 					 qs::Profile* pProfile,
 					 HWND hwnd);
 	virtual ~FileImportAction();
@@ -942,6 +950,8 @@ private:
 private:
 	FolderModel* pFolderModel_;
 	Document* pDocument_;
+	SyncManager* pSyncManager_;
+	SyncDialogManager* pSyncDialogManager_;
 	qs::Profile* pProfile_;
 	HWND hwnd_;
 };

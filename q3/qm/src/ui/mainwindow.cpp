@@ -412,8 +412,9 @@ void qm::MainWindowImpl::initActions()
 		false,
 		pFindReplaceManager_.get());
 	
-	std::auto_ptr<EditPasteMessageAction> pPasteMessageAction(new EditPasteMessageAction(
-		pDocument_, pFolderModel_.get(), pThis_->getHandle()));
+	std::auto_ptr<EditPasteMessageAction> pPasteMessageAction(
+		new EditPasteMessageAction(pDocument_, pFolderModel_.get(),
+			pSyncManager_, pSyncDialogManager_, pProfile_, pThis_->getHandle()));
 	Action* pEditPasteActions[] = {
 		pPasteMessageAction.get(),
 		pPasteMessageAction.get(),
@@ -473,10 +474,12 @@ void qm::MainWindowImpl::initActions()
 		pDocument_,
 		pProfile_,
 		pThis_->getHandle());
-	ADD_ACTION4(FileImportAction,
+	ADD_ACTION6(FileImportAction,
 		IDM_FILE_IMPORT,
 		pFolderModel_.get(),
 		pDocument_,
+		pSyncManager_,
+		pSyncDialogManager_,
 		pProfile_,
 		pThis_->getHandle());
 	ADD_ACTION2(FileLoadAction,
@@ -1992,7 +1995,9 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pMessageFrameWindowManager_.get()));
 	ListWindowCreateContext listContext = {
 		pContext->pDocument_,
-		pContext->pUIManager_
+		pContext->pUIManager_,
+		pImpl_->pSyncManager_,
+		pImpl_->pSyncDialogManager_
 	};
 	if (!pListWindow->create(L"QmListWindow",
 		0, dwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,

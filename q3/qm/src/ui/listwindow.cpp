@@ -32,6 +32,8 @@
 #include "listwindow.h"
 #include "messageframewindow.h"
 #include "resourceinc.h"
+#include "syncdialog.h"
+#include "syncutil.h"
 #include "uimanager.h"
 #include "viewmodel.h"
 #include "../action/action.h"
@@ -123,6 +125,8 @@ public:
 	std::auto_ptr<Accelerator> pAccelerator_;
 	Document* pDocument_;
 	ViewModelManager* pViewModelManager_;
+	SyncManager* pSyncManager_;
+	SyncDialogManager* pSyncDialogManager_;
 	
 	HFONT hfont_;
 	int nLineHeight_;
@@ -709,6 +713,14 @@ void qm::ListWindowImpl::drop(const DropTargetDropEvent& event)
 							}
 						}
 					}
+					
+					if (!pFolder->isFlag(Folder::FLAG_LOCAL) &&
+						pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
+						pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
+						SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
+							pThis_->getParentFrame(), SyncDialog::FLAG_NONE,
+							static_cast<NormalFolder*>(pFolder), 0);
+					}
 				}
 			}
 #endif
@@ -963,6 +975,8 @@ LRESULT qm::ListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		static_cast<ListWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pDocument_ = pContext->pDocument_;
 	pImpl_->pMenuManager_ = pContext->pUIManager_->getMenuManager();
+	pImpl_->pSyncManager_ = pContext->pSyncManager_;
+	pImpl_->pSyncDialogManager_ = pContext->pSyncDialogManager_;
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(

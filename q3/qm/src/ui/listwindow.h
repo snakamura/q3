@@ -22,6 +22,8 @@ class PaintInfo;
 struct ListWindowCreateContext;
 
 class Document;
+class SyncDialogManager;
+class SyncManager;
 class UIManager;
 
 
@@ -70,6 +72,8 @@ struct ListWindowCreateContext
 {
 	Document* pDocument_;
 	UIManager* pUIManager_;
+	SyncManager* pSyncManager_;
+	SyncDialogManager* pSyncDialogManager_;
 };
 
 }

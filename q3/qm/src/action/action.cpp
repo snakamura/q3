@@ -794,9 +794,15 @@ bool qm::EditFindAction::isEnabled(const ActionEvent& event)
 
 qm::EditPasteMessageAction::EditPasteMessageAction(Document* pDocument,
 												   FolderModel* pFolderModel,
+												   SyncManager* pSyncManager,
+												   SyncDialogManager* pSyncDialogManager,
+												   Profile* pProfile,
 												   HWND hwnd) :
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
+	pSyncManager_(pSyncManager),
+	pSyncDialogManager_(pSyncDialogManager),
+	pProfile_(pProfile),
 	hwnd_(hwnd)
 {
 }
@@ -822,6 +828,13 @@ void qm::EditPasteMessageAction::invoke(const ActionEvent& event)
 			pDocument_, pNormalFolder, flag, &callback)) {
 			ActionUtil::error(hwnd_, IDS_ERROR_PASTEMESSAGES);
 			return;
+		}
+		
+		if (!pFolder->isFlag(Folder::FLAG_LOCAL) &&
+			pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
+			pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
+			SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
+				hwnd_, SyncDialog::FLAG_NONE, pNormalFolder, 0);
 		}
 #ifdef _WIN32_WCE
 		Clipboard clipboard(0);
@@ -1442,10 +1455,14 @@ bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 
 qm::FileImportAction::FileImportAction(FolderModel* pFolderModel,
 									   Document* pDocument,
+									   SyncManager* pSyncManager,
+									   SyncDialogManager* pSyncDialogManager,
 									   Profile* pProfile,
 									   HWND hwnd) :
 	pFolderModel_(pFolderModel),
 	pDocument_(pDocument),
+	pSyncManager_(pSyncManager),
+	pSyncDialogManager_(pSyncDialogManager),
 	pProfile_(pProfile),
 	hwnd_(hwnd)
 {
@@ -1463,9 +1480,17 @@ void qm::FileImportAction::invoke(const ActionEvent& event)
 			ActionUtil::error(hwnd_, IDS_ERROR_IMPORT);
 			return;
 		}
-		if (!pFolder->getAccount()->save()) {
-			ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
-			return;
+		if (!pFolder->isFlag(Folder::FLAG_LOCAL) &&
+			pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
+			pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
+			SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
+				hwnd_, SyncDialog::FLAG_NONE, static_cast<NormalFolder*>(pFolder), 0);
+		}
+		else {
+			if (!pFolder->getAccount()->save()) {
+				ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
+				return;
+			}
 		}
 	}
 }
@@ -2354,7 +2379,7 @@ qm::FolderEmptyTrashAction::FolderEmptyTrashAction(SyncManager* pSyncManager,
 												   FolderModel* pFolderModel,
 												   SyncDialogManager* pSyncDialogManager,
 												   HWND hwnd,
-												   qs::Profile* pProfile) :
+												   Profile* pProfile) :
 	pSyncManager_(pSyncManager),
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
