@@ -221,6 +221,7 @@ QSTATUS qm::FolderWindowImpl::update(Folder* pFolder)
 	HWND hwnd = pThis_->getHandle();
 	
 	HTREEITEM hParent = TreeView_GetParent(hwnd, hItem);
+	HTREEITEM hRoot = hParent;
 	while (hParent) {
 		TVITEM item = {
 			TVIF_HANDLE | TVIF_STATE,
@@ -232,11 +233,16 @@ QSTATUS qm::FolderWindowImpl::update(Folder* pFolder)
 		if (!(item.state & TVIS_EXPANDED))
 			hItem = hParent;
 		hParent = TreeView_GetParent(hwnd, hParent);
+		if (hParent)
+			hRoot = hParent;
 	}
 	
-	RECT rect;
-	if (TreeView_GetItemRect(hwnd, hItem, &rect, FALSE))
-		pThis_->invalidateRect(rect);
+	HTREEITEM hItems[] = { hItem, hRoot };
+	for (int n = 0; n < countof(hItems); ++n) {
+		RECT rect;
+		if (TreeView_GetItemRect(hwnd, hItems[n], &rect, FALSE))
+			pThis_->invalidateRect(rect);
+	}
 	
 	return QSTATUS_SUCCESS;
 }
