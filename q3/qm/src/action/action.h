@@ -52,6 +52,7 @@ class MessageApplyRuleAction;
 class MessageApplyTemplateAction;
 class MessageCreateAction;
 class MessageCreateFromClipboardAction;
+class MessageDeleteAttachmentAction;
 class MessageDetachAction;
 class MessageMarkAction;
 class MessageMoveAction;
@@ -986,6 +987,32 @@ private:
 
 private:
 	MessageComposer composer_;
+};
+
+
+/****************************************************************************
+ *
+ * MessageDeleteAttachmentAction
+ *
+ */
+
+class MessageDeleteAttachmentAction : public qs::AbstractAction
+{
+public:
+	MessageDeleteAttachmentAction(
+		MessageSelectionModel* pMessageSelectionModel, qs::QSTATUS* pstatus);
+	virtual ~MessageDeleteAttachmentAction();
+
+public:
+	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+
+private:
+	MessageDeleteAttachmentAction(const MessageDeleteAttachmentAction&);
+	MessageDeleteAttachmentAction& operator=(const MessageDeleteAttachmentAction&);
+
+private:
+	MessageSelectionModel* pMessageSelectionModel_;
 };
 
 

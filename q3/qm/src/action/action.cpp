@@ -2063,6 +2063,66 @@ QSTATUS qm::MessageCreateFromClipboardAction::isEnabled(
 
 /****************************************************************************
  *
+ * MessageDeleteAttachmentAction
+ *
+ */
+
+qm::MessageDeleteAttachmentAction::MessageDeleteAttachmentAction(
+	MessageSelectionModel* pMessageSelectionModel, qs::QSTATUS* pstatus) :
+	pMessageSelectionModel_(pMessageSelectionModel)
+{
+}
+
+qm::MessageDeleteAttachmentAction::~MessageDeleteAttachmentAction()
+{
+}
+
+QSTATUS qm::MessageDeleteAttachmentAction::invoke(const ActionEvent& event)
+{
+	DECLARE_QSTATUS();
+	
+	MessagePtrList listMessagePtr;
+	status = pMessageSelectionModel_->getSelectedMessages(0, &listMessagePtr);
+	CHECK_QSTATUS();
+	
+	MessagePtrList::const_iterator it = listMessagePtr.begin();
+	while (it != listMessagePtr.end()) {
+		MessagePtrLock mpl(*it);
+		if (mpl) {
+			Message msg(&status);
+			CHECK_QSTATUS();
+			status = mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg);
+			CHECK_QSTATUS();
+			status = AttachmentParser::removeAttachments(&msg);
+			CHECK_QSTATUS();
+			
+			NormalFolder* pFolder = mpl->getFolder();
+			status = pFolder->appendMessage(msg,
+				mpl->getFlags() & MessageHolder::FLAG_USER_MASK);
+			CHECK_QSTATUS();
+			
+			Folder::MessageHolderList l;
+			status = STLWrapper<Folder::MessageHolderList>(l).push_back(mpl);
+			CHECK_QSTATUS();
+			status = pFolder->removeMessages(l, false, 0);
+			CHECK_QSTATUS();
+		}
+		++it;
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::MessageDeleteAttachmentAction::isEnabled(
+	const ActionEvent& event, bool* pbEnabled)
+{
+	assert(pbEnabled);
+	return pMessageSelectionModel_->hasSelectedMessage(pbEnabled);
+}
+
+
+/****************************************************************************
+ *
  * MessageDetachAction
  *
  */

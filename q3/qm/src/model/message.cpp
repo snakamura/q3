@@ -2039,9 +2039,32 @@ QSTATUS qm::AttachmentParser::detach(const WCHAR* pwszDir,
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::AttachmentParser::remove(Message* pMessage) const
+QSTATUS qm::AttachmentParser::removeAttachments(Part* pPart)
 {
-	// TODO
+	assert(pPart);
+	
+	DECLARE_QSTATUS();
+	
+	PartUtil util(*pPart);
+	if (util.isMultipart()) {
+		const Part::PartList& l = pPart->getPartList();
+		Part::PartList::const_iterator it = l.begin();
+		while (it != l.end()) {
+			status = removeAttachments(*it);
+			CHECK_QSTATUS();
+			++it;
+		}
+	}
+	else {
+		bool bAttachment = false;
+		status = util.isAttachment(&bAttachment);
+		CHECK_QSTATUS();
+		if (bAttachment) {
+			status = pPart->setBody("", 0);
+			CHECK_QSTATUS();
+		}
+	}
+	
 	return QSTATUS_SUCCESS;
 }
 

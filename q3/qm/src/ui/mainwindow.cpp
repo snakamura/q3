@@ -433,6 +433,9 @@ QSTATUS qm::MainWindowImpl::initActions()
 		pActionMap_, IDM_MESSAGE_CREATEFROMCLIPBOARD, false,
 		pDocument_, pProfile_, pThis_->getHandle(), pFolderModel_);
 	CHECK_QSTATUS();
+	status = InitAction1<MessageDeleteAttachmentAction, MessageSelectionModel*>(
+		pActionMap_, IDM_MESSAGE_DELETEATTACHMENT, pMessageSelectionModel_);
+	CHECK_QSTATUS();
 	status = InitAction3<MessageDetachAction,
 		Profile*, MessageSelectionModel*, HWND>(
 		pActionMap_, IDM_MESSAGE_DETACH, pProfile_,

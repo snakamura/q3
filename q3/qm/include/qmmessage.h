@@ -228,7 +228,9 @@ public:
 	qs::QSTATUS getAttachments(AttachmentList* pList) const;
 	qs::QSTATUS detach(const WCHAR* pwszDir, const WCHAR* pwszName,
 		DetachCallback* pCallback, qs::WSTRING* pwstrPath) const;
-	qs::QSTATUS remove(Message* pMessage) const;
+
+public:
+	static qs::QSTATUS removeAttachments(qs::Part* pPart);
 
 private:
 	AttachmentParser(const AttachmentParser&);

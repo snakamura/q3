@@ -217,6 +217,9 @@ QSTATUS qm::MessageFrameWindowImpl::initActions()
 			pExternalEditorManager_, pThis_->getHandle(), pProfile_, true);
 		CHECK_QSTATUS();
 	}
+	status = InitAction1<MessageDeleteAttachmentAction, MessageSelectionModel*>(
+		pActionMap_, IDM_MESSAGE_DELETEATTACHMENT, this);
+	CHECK_QSTATUS();
 	status = InitAction3<MessageDetachAction,
 		Profile*, MessageSelectionModel*, HWND>(
 		pActionMap_, IDM_MESSAGE_DETACH,
