@@ -1347,7 +1347,7 @@ bool qmimap4::FolderListGetter::listNamespaces()
 {
 	pCallback_->setNamespaceList(&listNamespace_);
 	
-	bool bUseNamespace = pSubAccount_->getProperty(L"Imap4", L"UseNamespace", 1) &&
+	bool bUseNamespace = pSubAccount_->getProperty(L"Imap4", L"UseNamespace", 0) &&
 		pImap4_->getCapability() & Imap4::CAPABILITY_NAMESPACE;
 	if (bUseNamespace) {
 		if (!pImap4_->namespaceList())
