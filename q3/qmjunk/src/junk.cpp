@@ -604,8 +604,7 @@ bool qmjunk::Tokenizer::getTokens(const WCHAR* pwszText,
 	while (p < pEnd) {
 		Token token = getToken(*p);
 		switch (token) {
-		case TOKEN_LATEN:
-		case TOKEN_KATAKANA:
+		case TOKEN_LATIN:
 			{
 				const WCHAR* pBegin = p;
 				do {
@@ -617,14 +616,30 @@ bool qmjunk::Tokenizer::getTokens(const WCHAR* pwszText,
 					return false;
 			}
 			break;
+		case TOKEN_KATAKANA:
+		case TOKEN_FULLWIDTHLATIN:
+			{
+				StringBuffer<WSTRING> buf;
+				do {
+					if (*p != L'\r' && *p != L'\n')
+						buf.append(*p);
+					++p;
+				} while (p < pEnd && (*p == L'\r' || *p == L'\n' || getToken(*p) == token));
+				
+				if (!pCallback->token(buf.getCharArray()))
+					return false;
+			}
+			break;
 		case TOKEN_IDEOGRAPHIC:
 			{
 				WCHAR wsz[3] = { *p, L'\0', L'\0' };
 				++p;
 				while (p < pEnd && getToken(*p) == TOKEN_IDEOGRAPHIC) {
 					wsz[1] = *p;
-					if (!pCallback->token(wsz))
-						return false;
+					if (!isIgnoredToken(wsz)) {
+						if (!pCallback->token(wsz))
+							return false;
+					}
 					wsz[0] = *p;
 					++p;
 				}
@@ -649,15 +664,32 @@ qmjunk::Tokenizer::Token qmjunk::Tokenizer::getToken(WCHAR c)
 	if ((L'a' <= c && c <= L'z') ||
 		(L'A' <= c && c <= L'Z') ||
 		(L'0' <= c && c <= L'9'))
-		return TOKEN_LATEN;
+		return TOKEN_LATIN;
 	else if (c < 0x7f)
 		return TOKEN_SEPARATOR;
 	else if (c < 0x200)
-		return TOKEN_LATEN;
-	else if (0x30a1 <= c && c <= 0x30fe)
+		return TOKEN_LATIN;
+	else if (0x30a1 <= c && c <= 0x30fe)		// Katakana
 		return TOKEN_KATAKANA;
+	else if ((0xff10 <= c && c <= 0xff19) ||	// Fullwidth Digit
+		(0xff21 <= c && c <= 0xff3a) ||			// Fullwidth Latin Capital
+		(0xff41 <= c && c <= 0xff5a))			// Fullwidth Latin Small
+		return TOKEN_FULLWIDTHLATIN;
 	else
 		return TOKEN_IDEOGRAPHIC;
+}
+
+bool qmjunk::Tokenizer::isIgnoredToken(const WCHAR* pwsz)
+{
+	while (*pwsz) {
+		if ((0x3041 <= *pwsz && *pwsz <= 0x309e) ||	// Hiragana
+			*pwsz == 0x3000 ||						// Ideographic Space
+			*pwsz == 0x3001 ||						// Ideographic Comma
+			*pwsz == 0x3002)						// Ideographic Full Stop
+			return true;
+		++pwsz;
+	}
+	return false;
 }
 
 

@@ -121,14 +121,16 @@ public:
 
 private:
 	enum Token {
-		TOKEN_LATEN,
+		TOKEN_LATIN,
 		TOKEN_IDEOGRAPHIC,
 		TOKEN_SEPARATOR,
-		TOKEN_KATAKANA
+		TOKEN_KATAKANA,
+		TOKEN_FULLWIDTHLATIN
 	};
 
 private:
 	static Token getToken(WCHAR c);
+	static bool isIgnoredToken(const WCHAR* pwsz);
 
 private:
 	Tokenizer(const Tokenizer&);
