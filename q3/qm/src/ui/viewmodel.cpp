@@ -91,7 +91,8 @@ void qm::ViewColumn::setWidth(unsigned int nWidth)
 	nWidth_ = nWidth;
 }
 
-wstring_ptr qm::ViewColumn::getText(MessageHolder* pmh) const
+wstring_ptr qm::ViewColumn::getText(const ViewModel* pViewModel,
+									MessageHolder* pmh) const
 {
 	assert(pmh);
 	
@@ -130,7 +131,11 @@ wstring_ptr qm::ViewColumn::getText(MessageHolder* pmh) const
 		// TODO
 		break;
 	case ViewColumn::TYPE_OTHER:
-		// TODO
+		{
+			MacroValuePtr pValue(pViewModel->getValue(pMacro_.get(), pmh));
+			if (pValue.get())
+				wstrText = pValue->string();
+		}
 		break;
 	default:
 		assert(false);
@@ -142,7 +147,8 @@ wstring_ptr qm::ViewColumn::getText(MessageHolder* pmh) const
 	return wstrText;
 }
 
-unsigned int qm::ViewColumn::getNumber(MessageHolder* pmh) const
+unsigned int qm::ViewColumn::getNumber(const ViewModel* pViewModel,
+									   MessageHolder* pmh) const
 {
 	assert(pmh);
 	
@@ -176,7 +182,11 @@ unsigned int qm::ViewColumn::getNumber(MessageHolder* pmh) const
 		nValue = pmh->getFlags();
 		break;
 	case ViewColumn::TYPE_OTHER:
-		// TODO
+		{
+			MacroValuePtr pValue(pViewModel->getValue(pMacro_.get(), pmh));
+			if (pValue.get())
+				nValue = pValue->number();
+		}
 		break;
 	default:
 		assert(false);
@@ -185,7 +195,8 @@ unsigned int qm::ViewColumn::getNumber(MessageHolder* pmh) const
 	return nValue;
 }
 
-void qm::ViewColumn::getTime(MessageHolder* pmh,
+void qm::ViewColumn::getTime(const ViewModel* pViewModel,
+							 MessageHolder* pmh,
 							 Time* pTime) const
 {
 	assert(pmh);
@@ -755,6 +766,16 @@ bool qm::ViewModel::isLocked() const
 	return nLock_ != 0;
 }
 #endif
+
+MacroValuePtr qm::ViewModel::getValue(const Macro* pMacro,
+									  MessageHolder* pmh) const
+{
+	Message msg;
+	MacroContext context(pmh, &msg, MessageHolderList(),
+		pFolder_->getAccount(), pDocument_, hwnd_, pProfile_, true,
+		/*pSecurityModel_->isDecryptVerify()*/false, 0, 0);
+	return pMacro->value(&context);
+}
 
 void qm::ViewModel::messageAdded(const FolderEvent& event)
 {
@@ -1726,20 +1747,20 @@ bool qm::ViewModelItemComp::operator()(const ViewModelItem* pLhs,
 		int nComp = 0;
 		unsigned int nFlags = column_.getFlags();
 		if ((nFlags & ViewColumn::FLAG_SORT_MASK) == ViewColumn::FLAG_SORT_NUMBER) {
-			unsigned int nLhs = column_.getNumber(pmhLhs);
-			unsigned int nRhs = column_.getNumber(pmhRhs);
+			unsigned int nLhs = column_.getNumber(pViewModel_, pmhLhs);
+			unsigned int nRhs = column_.getNumber(pViewModel_, pmhRhs);
 			nComp = nLhs < nRhs ? -1 : nLhs > nRhs ? 1 : 0;
 		}
 		else if ((nFlags & ViewColumn::FLAG_SORT_MASK) == ViewColumn::FLAG_SORT_DATE) {
 			Time timeLhs;
-			column_.getTime(pmhLhs, &timeLhs);
+			column_.getTime(pViewModel_, pmhLhs, &timeLhs);
 			Time timeRhs;
-			column_.getTime(pmhRhs, &timeRhs);
+			column_.getTime(pViewModel_, pmhRhs, &timeRhs);
 			nComp = timeLhs < timeRhs ? -1 : timeLhs > timeRhs ? 1 : 0;
 		}
 		else {
-			wstring_ptr wstrTextLhs(column_.getText(pmhLhs));
-			wstring_ptr wstrTextRhs(column_.getText(pmhRhs));
+			wstring_ptr wstrTextLhs(column_.getText(pViewModel_, pmhLhs));
+			wstring_ptr wstrTextRhs(column_.getText(pViewModel_, pmhRhs));
 			nComp = _wcsicmp(wstrTextLhs.get(), wstrTextRhs.get());
 		}
 		if (bThread_ && nComp == 0)

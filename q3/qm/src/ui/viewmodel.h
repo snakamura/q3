@@ -40,6 +40,7 @@ class Document;
 class Filter;
 class FilterManager;
 class Folder;
+class MacroValuePtr;
 class MacroVariableHolder;
 class MessageHolder;
 class Macro;
@@ -97,9 +98,12 @@ public:
 	void setFlags(unsigned int nFlags);
 	unsigned int getWidth() const;
 	void setWidth(unsigned int nWidth);
-	qs::wstring_ptr getText(MessageHolder* pmh) const;
-	unsigned int getNumber(MessageHolder* pmh) const;
-	void getTime(MessageHolder* pmh,
+	qs::wstring_ptr getText(const ViewModel* pViewModel,
+							MessageHolder* pmh) const;
+	unsigned int getNumber(const ViewModel* pViewModel,
+						   MessageHolder* pmh) const;
+	void getTime(const ViewModel* pViewModel,
+				 MessageHolder* pmh,
 				 qs::Time* pTime) const;
 
 public:
@@ -276,6 +280,11 @@ public:
 #ifndef NDEBUG
 	bool isLocked() const;
 #endif
+
+// These methods are intended to be called from ViewColumn.
+public:
+	MacroValuePtr getValue(const Macro* pMacro,
+						   MessageHolder* pmh) const;
 
 public:
 	virtual void messageAdded(const FolderEvent& event);
