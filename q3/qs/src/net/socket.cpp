@@ -314,7 +314,10 @@ bool qs::Socket::close()
 		if (pImpl_->socket_) {
 			log.debug(L"Closing socket...");
 			
-			if (::closesocket(pImpl_->socket_)) {
+			SOCKET s = pImpl_->socket_;
+			pImpl_->socket_ = 0;
+			
+			if (::closesocket(s)) {
 				pImpl_->nError_ = SOCKET_ERROR_CLOSESOCKET;
 				return false;
 			}
