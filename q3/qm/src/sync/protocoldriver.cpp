@@ -49,9 +49,11 @@ struct qm::ProtocolFactoryImpl
 	static FactoryList::iterator getIterator(const WCHAR* pwszName);
 	
 	static FactoryList listFactory__;
+	static std::auto_ptr<PasswordCallback> pPasswordCallback_;
 };
 
 qm::ProtocolFactoryImpl::FactoryList qm::ProtocolFactoryImpl::listFactory__;
+std::auto_ptr<PasswordCallback> qm::ProtocolFactoryImpl::pPasswordCallback_;
 
 ProtocolFactoryImpl::FactoryList::iterator qm::ProtocolFactoryImpl::getIterator(const WCHAR* pwszName)
 {
@@ -88,7 +90,13 @@ std::auto_ptr<ProtocolDriver> qm::ProtocolFactory::getDriver(Account* pAccount,
 	if (it == ProtocolFactoryImpl::listFactory__.end())
 		return std::auto_ptr<ProtocolDriver>(0);
 	
-	return (*it).second->createDriver(pAccount, pSecurity);
+	return (*it).second->createDriver(pAccount,
+		ProtocolFactoryImpl::pPasswordCallback_.get(), pSecurity);
+}
+
+void qm::ProtocolFactory::setPasswordCallback(std::auto_ptr<PasswordCallback> pPasswordCallback)
+{
+	ProtocolFactoryImpl::pPasswordCallback_ = pPasswordCallback;
 }
 
 void qm::ProtocolFactory::registerFactory(const WCHAR* pwszName,

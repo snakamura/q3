@@ -648,7 +648,8 @@ qmpop3::Pop3ReceiveSession::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
 													   ReceiveSessionCallback* pSessionCallback) :
 	DefaultSSLSocketCallback(pSubAccount, Account::HOST_RECEIVE, pSecurity),
 	pSubAccount_(pSubAccount),
-	pSessionCallback_(pSessionCallback)
+	pSessionCallback_(pSessionCallback),
+	result_(PasswordCallback::RESULT_ONETIME)
 {
 }
 
@@ -690,18 +691,15 @@ void qmpop3::Pop3ReceiveSession::CallbackImpl::connected()
 bool qmpop3::Pop3ReceiveSession::CallbackImpl::getUserInfo(wstring_ptr* pwstrUserName,
 														   wstring_ptr* pwstrPassword)
 {
-	assert(pwstrUserName);
-	assert(pwstrPassword);
-	
-	*pwstrUserName = allocWString(pSubAccount_->getUserName(Account::HOST_RECEIVE));
-	*pwstrPassword = allocWString(pSubAccount_->getPassword(Account::HOST_RECEIVE));
-	
-	return true;
+	result_ = Util::getUserInfo(pSubAccount_, Account::HOST_RECEIVE,
+		pSessionCallback_, pwstrUserName, pwstrPassword);
+	return result_ != PasswordCallback::RESULT_ERROR;
 }
 
 void qmpop3::Pop3ReceiveSession::CallbackImpl::setPassword(const WCHAR* pwszPassword)
 {
-	// TODO
+	Util::setPassword(pSubAccount_, Account::HOST_RECEIVE,
+		result_, pSessionCallback_, pwszPassword);
 }
 
 void qmpop3::Pop3ReceiveSession::CallbackImpl::authenticating()

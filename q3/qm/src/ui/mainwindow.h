@@ -26,6 +26,7 @@ class Document;
 class FolderListWindow;
 class GoRound;
 class ListWindow;
+class PasswordManager;
 class SyncDialogManager;
 class SyncManager;
 class TempFileCleaner;
@@ -152,6 +153,7 @@ struct MainWindowCreateContext
 {
 	Document* pDocument_;
 	UIManager* pUIManager_;
+	PasswordManager* pPasswordManager_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
 	GoRound* pGoRound_;

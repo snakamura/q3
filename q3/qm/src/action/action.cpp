@@ -3845,12 +3845,14 @@ bool qm::MessageSearchAction::isEnabled(const ActionEvent& event)
 
 qm::ToolAccountAction::ToolAccountAction(Document* pDocument,
 										 FolderModel* pFolderModel,
-										 SyncFilterManager* pSyncFilterManager,
+										 PasswordManager* pPasswordManager,
+										 SyncManager* pSyncManager,
 										 Profile* pProfile,
 										 HWND hwnd) :
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
-	pSyncFilterManager_(pSyncFilterManager),
+	pPasswordManager_(pPasswordManager),
+	pSyncManager_(pSyncManager),
 	pProfile_(pProfile),
 	hwnd_(hwnd)
 {
@@ -3862,6 +3864,11 @@ qm::ToolAccountAction::~ToolAccountAction()
 
 void qm::ToolAccountAction::invoke(const ActionEvent& event)
 {
+	if (pSyncManager_->isSyncing()) {
+		ActionUtil::error(hwnd_, IDS_SYNCHRONIZING);
+		return;
+	}
+	
 	bool bOffline = pDocument_->isOffline();
 	if (!bOffline)
 		pDocument_->setOffline(true);
@@ -3873,7 +3880,8 @@ void qm::ToolAccountAction::invoke(const ActionEvent& event)
 			pAccount = pFolder->getAccount();
 	}
 	
-	AccountDialog dialog(pDocument_, pAccount, pSyncFilterManager_, pProfile_);
+	AccountDialog dialog(pDocument_, pAccount, pPasswordManager_,
+		pSyncManager_->getSyncFilterManager(), pProfile_);
 	dialog.doModal(hwnd_, 0);
 	
 	if (!bOffline)
@@ -3882,9 +3890,7 @@ void qm::ToolAccountAction::invoke(const ActionEvent& event)
 
 bool qm::ToolAccountAction::isEnabled(const ActionEvent& event)
 {
-	// TODO
-	// Check if syncing or not
-	return true;
+	return !pSyncManager_->isSyncing();
 }
 
 

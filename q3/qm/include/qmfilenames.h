@@ -41,6 +41,7 @@ struct FileNames
 	static const WCHAR* MAP_EXT;
 	static const WCHAR* MENUS_XML;
 	static const WCHAR* MSGLIST_EXT;
+	static const WCHAR* PASSWORDS_XML;
 	static const WCHAR* PEM_EXT;
 	static const WCHAR* QMAIL_XML;
 	static const WCHAR* RESOURCES_XML;

@@ -124,3 +124,28 @@ Pop3::Secure qmpop3::Util::getSecure(SubAccount* pSubAccount)
 		return Pop3::SECURE_NONE;
 	}
 }
+
+PasswordCallback::Result qmpop3::Util::getUserInfo(SubAccount* pSubAccount,
+												   Account::Host host,
+												   PasswordCallback* pPasswordCallback,
+												   wstring_ptr* pwstrUserName,
+												   wstring_ptr* pwstrPassword)
+{
+	assert(pwstrUserName);
+	assert(pwstrPassword);
+	
+	*pwstrUserName = allocWString(pSubAccount->getUserName(host));
+	return pPasswordCallback->getPassword(pSubAccount, host, pwstrPassword);
+}
+
+void qmpop3::Util::setPassword(SubAccount* pSubAccount,
+							   Account::Host host,
+							   PasswordCallback::Result result,
+							   PasswordCallback* pPasswordCallback,
+							   const WCHAR* pwszPassword)
+{
+	if (result == PasswordCallback::RESULT_SESSION ||
+		result == PasswordCallback::RESULT_SAVE)
+		pPasswordCallback->setPassword(pSubAccount, host,
+			pwszPassword, result == PasswordCallback::RESULT_SAVE);
+}

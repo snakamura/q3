@@ -1549,7 +1549,7 @@ qmimap4::Imap4ReceiveSession::CallbackImpl::CallbackImpl(Imap4ReceiveSession* pS
 														 SubAccount* pSubAccount,
 														 const Security* pSecurity,
 														 ReceiveSessionCallback* pSessionCallback) :
-	AbstractCallback(pSubAccount, pSecurity),
+	AbstractCallback(pSubAccount, pSessionCallback, pSecurity),
 	pSession_(pSession),
 	pSessionCallback_(pSessionCallback)
 {

@@ -128,7 +128,8 @@ qmnntp::NntpSendSession::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
 													SendSessionCallback* pSessionCallback) :
 	DefaultSSLSocketCallback(pSubAccount, Account::HOST_SEND, pSecurity),
 	pSubAccount_(pSubAccount),
-	pSessionCallback_(pSessionCallback)
+	pSessionCallback_(pSessionCallback),
+	result_(PasswordCallback::RESULT_ONETIME)
 {
 }
 
@@ -170,18 +171,15 @@ void qmnntp::NntpSendSession::CallbackImpl::connected()
 bool qmnntp::NntpSendSession::CallbackImpl::getUserInfo(wstring_ptr* pwstrUserName,
 														wstring_ptr* pwstrPassword)
 {
-	assert(pwstrUserName);
-	assert(pwstrPassword);
-	
-	*pwstrUserName = allocWString(pSubAccount_->getUserName(Account::HOST_SEND));
-	*pwstrPassword = allocWString(pSubAccount_->getPassword(Account::HOST_SEND));
-	
-	return true;
+	result_ = Util::getUserInfo(pSubAccount_, Account::HOST_SEND,
+		pSessionCallback_, pwstrUserName, pwstrPassword);
+	return result_ != PasswordCallback::RESULT_ERROR;
 }
 
 void qmnntp::NntpSendSession::CallbackImpl::setPassword(const WCHAR* pwszPassword)
 {
-	// TODO
+	Util::setPassword(pSubAccount_, Account::HOST_SEND,
+		result_, pSessionCallback_, pwszPassword);
 }
 
 

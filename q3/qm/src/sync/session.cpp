@@ -25,6 +25,17 @@ struct SendSessionFactoryImpl;
 
 /****************************************************************************
  *
+ * PasswordCallback
+ *
+ */
+
+qm::PasswordCallback::~PasswordCallback()
+{
+}
+
+
+/****************************************************************************
+ *
  * SessionCallback
  *
  */

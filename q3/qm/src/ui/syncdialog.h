@@ -27,6 +27,8 @@ class SyncDialog;
 class SyncStatusWindow;
 class SyncDialogThread;
 
+class PasswordManager;
+
 
 /****************************************************************************
  *
@@ -37,7 +39,8 @@ class SyncDialogThread;
 class SyncDialogManager
 {
 public:
-	explicit SyncDialogManager(qs::Profile* pProfile);
+	SyncDialogManager(qs::Profile* pProfile,
+					  PasswordManager* pPasswordManager);
 	~SyncDialogManager();
 
 public:
@@ -50,6 +53,7 @@ private:
 
 private:
 	qs::Profile* pProfile_;
+	PasswordManager* pPasswordManager_;
 	std::auto_ptr<SyncDialogThread> pThread_;
 };
 
@@ -73,7 +77,8 @@ public:
 	};
 
 public:
-	explicit SyncDialog(qs::Profile* pProfile);
+	SyncDialog(qs::Profile* pProfile,
+			   PasswordManager* pPasswordManager);
 	virtual ~SyncDialog();
 
 public:
@@ -88,8 +93,15 @@ public:
 	void addError(const WCHAR* pwszError);
 	bool hasError() const;
 	void enableCancel(bool bEnable);
-	bool showDialupDialog(RASDIALPARAMS* prdp) const;
-	qs::wstring_ptr selectDialupEntry() const;
+	PasswordCallback::Result getPassword(SubAccount* pSubAccount,
+										 Account::Host host,
+										 qs::wstring_ptr* pwstrPassword);
+	void setPassword(SubAccount* pSubAccount,
+					 Account::Host host,
+					 const WCHAR* pwszPassword,
+					 bool bPermanent);
+	bool showDialupDialog(RASDIALPARAMS* prdp);
+	qs::wstring_ptr selectDialupEntry();
 	void notifyNewMessage() const;
 	bool save() const;
 
@@ -127,6 +139,7 @@ private:
 
 private:
 	qs::Profile* pProfile_;
+	PasswordManager* pPasswordManager_;
 	SyncStatusWindow* pStatusWindow_;
 	bool bShowError_;
 	qs::CriticalSection csError_;
@@ -229,6 +242,13 @@ public:
 	virtual void addError(unsigned int nId,
 						  const SessionErrorInfo& info);
 	virtual bool isCanceled(unsigned int nId, bool bForce);
+	virtual PasswordCallback::Result getPassword(SubAccount* pSubAccount,
+												 Account::Host host,
+												 qs::wstring_ptr* pwstrPassword);
+	virtual void setPassword(SubAccount* pSubAccount,
+							 Account::Host host,
+							 const WCHAR* pwszPassword,
+							 bool bPermanent);
 	virtual qs::wstring_ptr selectDialupEntry();
 	virtual bool showDialupDialog(RASDIALPARAMS* prdp);
 	virtual void notifyNewMessage(unsigned int nId);
@@ -279,7 +299,8 @@ private:
 class SyncDialogThread : public qs::Thread
 {
 public:
-	SyncDialogThread(qs::Profile* pProfile);
+	SyncDialogThread(qs::Profile* pProfile,
+					 PasswordManager* pPasswordManager);
 	virtual ~SyncDialogThread();
 
 public:
@@ -295,6 +316,7 @@ private:
 
 private:
 	qs::Profile* pProfile_;
+	PasswordManager* pPasswordManager_;
 	SyncDialog* pDialog_;
 	std::auto_ptr<qs::Event> pEvent_;
 };

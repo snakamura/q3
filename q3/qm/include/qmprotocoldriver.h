@@ -25,6 +25,7 @@ class ProtocolDriver;
 class ProtocolFactory;
 
 class MessageHolder;
+class PasswordCallback;
 class Security;
 
 
@@ -47,40 +48,32 @@ public:
 	virtual bool save() = 0;
 	virtual bool isSupport(Account::Support support) = 0;
 	virtual void setOffline(bool bOffline) = 0;
+	virtual void setSubAccount(SubAccount* pSubAccount) = 0;
 	
-	virtual std::auto_ptr<NormalFolder> createFolder(SubAccount* pSubAccount,
-													 const WCHAR* pwszName,
+	virtual std::auto_ptr<NormalFolder> createFolder(const WCHAR* pwszName,
 													 Folder* pParent) = 0;
-	virtual bool removeFolder(SubAccount* pSubAccount,
-							  NormalFolder* pFolder) = 0;
-	virtual bool renameFolder(SubAccount* pSubAccount,
-							  NormalFolder* pFolder,
+	virtual bool removeFolder(NormalFolder* pFolder) = 0;
+	virtual bool renameFolder(NormalFolder* pFolder,
 							  const WCHAR* pwszName) = 0;
 	virtual bool createDefaultFolders(Account::FolderList* pList) = 0;
-	virtual bool getRemoteFolders(SubAccount* pSubAccount,
-								  RemoteFolderList* pList) = 0;
+	virtual bool getRemoteFolders(RemoteFolderList* pList) = 0;
 	virtual std::pair<const WCHAR**, size_t> getFolderParamNames() = 0;
 	
-	virtual bool getMessage(SubAccount* pSubAccount,
-							MessageHolder* pmh,
+	virtual bool getMessage(MessageHolder* pmh,
 							unsigned int nFlags,
 							qs::xstring_ptr* pstrMessage,
 							Message::Flag* pFlag,
 							bool* pbMadeSeen) = 0;
-	virtual bool setMessagesFlags(SubAccount* pSubAccount,
-								  NormalFolder* pFolder,
+	virtual bool setMessagesFlags(NormalFolder* pFolder,
 								  const MessageHolderList& l,
 								  unsigned int nFlags,
 								  unsigned int nMask) = 0;
-	virtual bool appendMessage(SubAccount* pSubAccount,
-							   NormalFolder* pFolder,
+	virtual bool appendMessage(NormalFolder* pFolder,
 							   const CHAR* pszMessage,
 							   unsigned int nFlags) = 0;
-	virtual bool removeMessages(SubAccount* pSubAccount,
-								NormalFolder* pFolder,
+	virtual bool removeMessages(NormalFolder* pFolder,
 								const MessageHolderList& l) = 0;
-	virtual bool copyMessages(SubAccount* pSubAccount,
-							  const MessageHolderList& l,
+	virtual bool copyMessages(const MessageHolderList& l,
 							  NormalFolder* pFolderFrom,
 							  NormalFolder* pFolderTo,
 							  bool bMove) = 0;
@@ -104,9 +97,11 @@ public:
 public:
 	static std::auto_ptr<ProtocolDriver> getDriver(Account* pAccount,
 												   const Security* pSecurity);
+	static void setPasswordCallback(std::auto_ptr<PasswordCallback> pPasswordCallback);
 
 protected:
 	virtual std::auto_ptr<ProtocolDriver> createDriver(Account* pAccount,
+													   PasswordCallback* pPasswordCallback,
 													   const Security* pSecurity) = 0;
 
 protected:

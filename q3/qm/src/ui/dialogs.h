@@ -11,6 +11,7 @@
 
 #include <qm.h>
 #include <qmfolder.h>
+#include <qmsession.h>
 #include <qmsyncfilter.h>
 
 #include <qs.h>
@@ -49,6 +50,7 @@ class DefaultDialog;
 	class InputBoxDialog;
 	class MailFolderDialog;
 	class MoveMessageDialog;
+	class PasswordDialog;
 	class ParameterDialog;
 	class ProgressDialog;
 	class RenameDialog;
@@ -67,6 +69,7 @@ class GoRound;
 class GoRoundCourse;
 class GoRoundDialup;
 class GoRoundEntry;
+class PasswordManager;
 class TemplateManager;
 class UIManager;
 
@@ -104,6 +107,7 @@ class AccountDialog :
 public:
 	AccountDialog(Document* pDocument,
 				  Account* pAccount,
+				  PasswordManager* pPasswordManager,
 				  SyncFilterManager* pSyncFilterManager,
 				  qs::Profile* pProfile);
 	virtual ~AccountDialog();
@@ -141,6 +145,7 @@ private:
 private:
 	Document* pDocument_;
 	SubAccount* pSubAccount_;
+	PasswordManager* pPasswordManager_;
 	SyncFilterManager* pSyncFilterManager_;
 	qs::Profile* pProfile_;
 };
@@ -1260,6 +1265,52 @@ private:
 	NormalFolder* pFolder_;
 	bool bCopy_;
 	bool bShowHidden_;
+};
+
+
+/****************************************************************************
+ *
+ * PasswordDialog
+ *
+ */
+
+class PasswordDialog : public DefaultDialog
+{
+public:
+	explicit PasswordDialog(const WCHAR* pwszHint);
+	PasswordDialog(SubAccount* pSubAccount,
+				   Account::Host host);
+	virtual ~PasswordDialog();
+
+public:
+	const WCHAR* getPassword() const;
+	PasswordCallback::Result getResult() const;
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	LRESULT onPasswordChange();
+
+private:
+	void updateState();
+
+private:
+	PasswordDialog(const PasswordDialog&);
+	PasswordDialog& operator=(const PasswordDialog&);
+
+private:
+	qs::wstring_ptr wstrHint_;
+	qs::wstring_ptr wstrPassword_;
+	PasswordCallback::Result result_;
 };
 
 

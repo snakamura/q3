@@ -225,6 +225,7 @@ public:
 	Profile* pProfile_;
 	Document* pDocument_;
 	UIManager* pUIManager_;
+	PasswordManager* pPasswordManager_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
 	GoRound* pGoRound_;
@@ -767,11 +768,12 @@ void qm::MainWindowImpl::initActions()
 		pDocument_,
 		pThis_->getHandle(),
 		pProfile_);
-	ADD_ACTION5(ToolAccountAction,
+	ADD_ACTION6(ToolAccountAction,
 		IDM_TOOL_ACCOUNT,
 		pDocument_,
 		pFolderModel_.get(),
-		pSyncManager_->getSyncFilterManager(),
+		pPasswordManager_,
+		pSyncManager_,
 		pProfile_,
 		pThis_->getHandle());
 	ADD_ACTION1(ToolCheckNewMailAction,
@@ -1521,6 +1523,7 @@ qm::MainWindow::MainWindow(Profile* pProfile) :
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pDocument_ = 0;
 	pImpl_->pUIManager_ = 0;
+	pImpl_->pPasswordManager_ = 0;
 	pImpl_->pSyncManager_ = 0;
 	pImpl_->pSyncDialogManager_ = 0;
 	pImpl_->pGoRound_ = 0;
@@ -1878,6 +1881,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		static_cast<MainWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pDocument_ = pContext->pDocument_;
 	pImpl_->pUIManager_ = pContext->pUIManager_;
+	pImpl_->pPasswordManager_ = pContext->pPasswordManager_;
 	pImpl_->pSyncManager_ = pContext->pSyncManager_;
 	pImpl_->pSyncDialogManager_ = pContext->pSyncDialogManager_;
 	pImpl_->pGoRound_ = pContext->pGoRound_;

@@ -64,10 +64,10 @@ public:
 public:
 	virtual bool load(const WCHAR* pwszPath,
 					  FileType type,
-					  qs::PasswordCallback* pCallback);
+					  qs::CryptoPasswordCallback* pCallback);
 	virtual bool load(qs::InputStream* pStream,
 					  FileType type,
-					  qs::PasswordCallback* pCallback);
+					  qs::CryptoPasswordCallback* pCallback);
 	virtual qs::wstring_ptr getText() const;
 	virtual std::auto_ptr<qs::Name> getSubject() const;
 	virtual std::auto_ptr<qs::Name> getIssuer() const;
@@ -100,10 +100,10 @@ public:
 public:
 	virtual bool load(const WCHAR* pwszPath,
 					  FileType type,
-					  qs::PasswordCallback* pCallback);
+					  qs::CryptoPasswordCallback* pCallback);
 	virtual bool load(qs::InputStream* pStream,
 					  FileType type,
-					  qs::PasswordCallback* pCallback);
+					  qs::CryptoPasswordCallback* pCallback);
 
 private:
 	PrivateKeyImpl(const PrivateKeyImpl&);
@@ -132,10 +132,10 @@ public:
 public:
 	virtual bool load(const WCHAR* pwszPath,
 					  FileType type,
-					  qs::PasswordCallback* pCallback);
+					  qs::CryptoPasswordCallback* pCallback);
 	virtual bool load(qs::InputStream* pStream,
 					  FileType type,
-					  qs::PasswordCallback* pCallback);
+					  qs::CryptoPasswordCallback* pCallback);
 
 private:
 	PublicKeyImpl(const PublicKeyImpl&);

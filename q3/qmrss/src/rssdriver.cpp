@@ -56,23 +56,24 @@ void qmrss::RssDriver::setOffline(bool bOffline)
 {
 }
 
-std::auto_ptr<NormalFolder> qmrss::RssDriver::createFolder(SubAccount* pSubAccount,
-														   const WCHAR* pwszName,
+void qmrss::RssDriver::setSubAccount(qm::SubAccount* pSubAccount)
+{
+}
+
+std::auto_ptr<NormalFolder> qmrss::RssDriver::createFolder(const WCHAR* pwszName,
 														   Folder* pParent)
 {
 	assert(false);
 	return std::auto_ptr<NormalFolder>(0);
 }
 
-bool qmrss::RssDriver::removeFolder(SubAccount* pSubAccount,
-									NormalFolder* pFolder)
+bool qmrss::RssDriver::removeFolder(NormalFolder* pFolder)
 {
 	assert(false);
 	return false;
 }
 
-bool qmrss::RssDriver::renameFolder(SubAccount* pSubAccount,
-									NormalFolder* pFolder,
+bool qmrss::RssDriver::renameFolder(NormalFolder* pFolder,
 									const WCHAR* pwszName)
 {
 	assert(false);
@@ -104,8 +105,7 @@ bool qmrss::RssDriver::createDefaultFolders(Account::FolderList* pList)
 	return true;
 }
 
-bool qmrss::RssDriver::getRemoteFolders(SubAccount* pSubAccount,
-										RemoteFolderList* pList)
+bool qmrss::RssDriver::getRemoteFolders(RemoteFolderList* pList)
 {
 	assert(false);
 	return false;
@@ -116,8 +116,7 @@ std::pair<const WCHAR**, size_t> qmrss::RssDriver::getFolderParamNames()
 	return std::pair<const WCHAR**, size_t>(pwszParams__, countof(pwszParams__));
 }
 
-bool qmrss::RssDriver::getMessage(SubAccount* pSubAccount,
-								  MessageHolder* pmh,
+bool qmrss::RssDriver::getMessage(MessageHolder* pmh,
 								  unsigned int nFlags,
 								  xstring_ptr* pstrMessage,
 								  Message::Flag* pFlag,
@@ -127,8 +126,7 @@ bool qmrss::RssDriver::getMessage(SubAccount* pSubAccount,
 	return false;
 }
 
-bool qmrss::RssDriver::setMessagesFlags(SubAccount* pSubAccount,
-										NormalFolder* pFolder,
+bool qmrss::RssDriver::setMessagesFlags(NormalFolder* pFolder,
 										const MessageHolderList& l,
 										unsigned int nFlags,
 										unsigned int nMask)
@@ -137,8 +135,7 @@ bool qmrss::RssDriver::setMessagesFlags(SubAccount* pSubAccount,
 	return false;
 }
 
-bool qmrss::RssDriver::appendMessage(SubAccount* pSubAccount,
-									 NormalFolder* pFolder,
+bool qmrss::RssDriver::appendMessage(NormalFolder* pFolder,
 									 const CHAR* pszMessage,
 									 unsigned int nFlags)
 {
@@ -146,16 +143,14 @@ bool qmrss::RssDriver::appendMessage(SubAccount* pSubAccount,
 	return false;
 }
 
-bool qmrss::RssDriver::removeMessages(SubAccount* pSubAccount,
-									  NormalFolder* pFolder,
+bool qmrss::RssDriver::removeMessages(NormalFolder* pFolder,
 									  const MessageHolderList& l)
 {
 	assert(false);
 	return false;
 }
 
-bool qmrss::RssDriver::copyMessages(SubAccount* pSubAccount,
-									const MessageHolderList& l,
+bool qmrss::RssDriver::copyMessages(const MessageHolderList& l,
 									NormalFolder* pFolderFrom,
 									NormalFolder* pFolderTo,
 									bool bMove)
@@ -184,9 +179,11 @@ qmrss::RssFactory::~RssFactory()
 }
 
 std::auto_ptr<ProtocolDriver> qmrss::RssFactory::createDriver(Account* pAccount,
+															  PasswordCallback* pPasswordCallback,
 															  const Security* pSecurity)
 {
 	assert(pAccount);
+	assert(pPasswordCallback);
 	assert(pSecurity);
 	
 	return std::auto_ptr<ProtocolDriver>(new RssDriver(pAccount));

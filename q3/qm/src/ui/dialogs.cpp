@@ -60,10 +60,12 @@ qm::DefaultDialog::~DefaultDialog()
 
 qm::AccountDialog::AccountDialog(Document* pDocument,
 								 Account* pAccount,
+								 PasswordManager* pPasswordManager,
 								 SyncFilterManager* pSyncFilterManager,
 								 Profile* pProfile) :
 	DefaultDialog(IDD_ACCOUNT),
 	pDocument_(pDocument),
+	pPasswordManager_(pPasswordManager),
 	pSubAccount_(pAccount ? pAccount->getCurrentSubAccount() : 0),
 	pSyncFilterManager_(pSyncFilterManager),
 	pProfile_(pProfile)
@@ -156,8 +158,7 @@ LRESULT qm::AccountDialog::onAddAccount()
 			return 0;
 		}
 		
-		std::auto_ptr<Account> pAccount(new Account(
-			wstrDir.get(), pDocument_->getSecurity()));
+		std::auto_ptr<Account> pAccount(new Account(wstrDir.get(), pDocument_->getSecurity()));
 		Account* p = pAccount.get();
 		pDocument_->addAccount(pAccount);
 		pSubAccount_ = p->getCurrentSubAccount();
@@ -364,7 +365,7 @@ LRESULT qm::AccountDialog::onProperty()
 		std::auto_ptr<PropertyPage> pSendPage(pSendUI->createPropertyPage(pSubAccount));
 		
 		AccountGeneralPage generalPage(pSubAccount, pReceiveUI.get(), pSendUI.get());
-		AccountUserPage userPage(pSubAccount, pReceiveUI.get(), pSendUI.get());
+		AccountUserPage userPage(pSubAccount, pPasswordManager_, pReceiveUI.get(), pSendUI.get());
 		AccountDetailPage detailPage(pSubAccount, pReceiveUI.get(), pSendUI.get());
 		AccountDialupPage dialupPage(pSubAccount);
 		AccountAdvancedPage advancedPage(pSubAccount, pSyncFilterManager_);
@@ -4226,6 +4227,98 @@ void qm::MoveMessageDialog::updateState()
 	}
 	
 	Window(getDlgItem(IDOK)).enableWindow(bEnable);
+}
+
+
+/****************************************************************************
+ *
+ * PasswordDialog
+ *
+ */
+
+qm::PasswordDialog::PasswordDialog(const WCHAR* pwszHint) :
+	DefaultDialog(IDD_PASSWORD),
+	result_(PasswordCallback::RESULT_ONETIME)
+{
+	wstrHint_ = allocWString(pwszHint);
+}
+
+qm::PasswordDialog::PasswordDialog(SubAccount* pSubAccount,
+								   Account::Host host) :
+	DefaultDialog(IDD_PASSWORD),
+	result_(PasswordCallback::RESULT_ONETIME)
+{
+	StringBuffer<WSTRING> buf;
+	buf.append(L'[');
+	buf.append(pSubAccount->getAccount()->getName());
+	if (*pSubAccount->getName()) {
+		buf.append(L'/');
+		buf.append(pSubAccount->getName());
+	}
+	buf.append(L"] ");
+	buf.append(pSubAccount->getUserName(host));
+	
+	wstrHint_ = buf.getString();
+}
+
+qm::PasswordDialog::~PasswordDialog()
+{
+}
+
+const WCHAR* qm::PasswordDialog::getPassword() const
+{
+	return wstrPassword_.get();
+}
+
+PasswordCallback::Result qm::PasswordDialog::getResult() const
+{
+	return result_;
+}
+
+LRESULT qm::PasswordDialog::onCommand(WORD nCode,
+									  WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID_CODE(IDC_PASSWORD, EN_CHANGE, onPasswordChange)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::PasswordDialog::onInitDialog(HWND hwndFocus,
+										 LPARAM lParam)
+{
+	init(false);
+	
+	setDlgItemText(IDC_HINT, wstrHint_.get());
+	sendDlgItemMessage(IDC_SESSION, BM_SETCHECK, BST_CHECKED);
+	
+	return TRUE;
+}
+
+LRESULT qm::PasswordDialog::onOk()
+{
+	wstrPassword_ = getDlgItemText(IDC_PASSWORD);
+	
+	if (sendDlgItemMessage(IDC_DONTSAVE, BM_GETCHECK) == BST_CHECKED)
+		result_ = PasswordCallback::RESULT_ONETIME;
+	else if (sendDlgItemMessage(IDC_SESSION, BM_GETCHECK) == BST_CHECKED)
+		result_ = PasswordCallback::RESULT_SESSION;
+	else if (sendDlgItemMessage(IDC_SAVE, BM_GETCHECK) == BST_CHECKED)
+		result_ = PasswordCallback::RESULT_SAVE;
+	
+	return DefaultDialog::onOk();
+}
+
+LRESULT qm::PasswordDialog::onPasswordChange()
+{
+	updateState();
+	return 0;
+}
+
+void qm::PasswordDialog::updateState()
+{
+	Window(getDlgItem(IDOK)).enableWindow(
+		Window(getDlgItem(IDC_PASSWORD)).getWindowTextLength() != 0);
 }
 
 

@@ -328,9 +328,6 @@ public:
 	const WCHAR* getUserName(Account::Host host) const;
 	void setUserName(Account::Host host,
 					 const WCHAR* pwszUserName);
-	const WCHAR* getPassword(Account::Host host) const;
-	void setPassword(Account::Host host,
-					 const WCHAR* pwszPassword);
 	Secure getSecure(Account::Host host) const;
 	void setSecure(Account::Host host,
 				   Secure secure);

@@ -32,6 +32,7 @@ const WCHAR* qm::FileNames::KEYMAP_XML		= L"keymap.xml";
 const WCHAR* qm::FileNames::MAP_EXT			= L".map";
 const WCHAR* qm::FileNames::MENUS_XML		= L"menus.xml";
 const WCHAR* qm::FileNames::MSGLIST_EXT		= L".msglist";
+const WCHAR* qm::FileNames::PASSWORDS_XML	= L"passwords.xml";
 const WCHAR* qm::FileNames::PEM_EXT			= L".pem";
 const WCHAR* qm::FileNames::QMAIL_XML		= L"qmail.xml";
 const WCHAR* qm::FileNames::RESOURCES_XML	= L"resources.xml";

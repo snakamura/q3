@@ -27,12 +27,13 @@
 
 namespace qm {
 
-class SessionCallback;
+class PasswordCallback;
+	class SessionCallback;
+		class ReceiveSessionCallback;
+		class SendSessionCallback;
 class ReceiveSession;
-class ReceiveSessionCallback;
 class ReceiveSessionFactory;
 class SendSession;
-class SendSessionCallback;
 class SendSessionFactory;
 class SessionErrorInfo;
 class DefaultSSLSocketCallback;
@@ -46,11 +47,41 @@ class SyncFilterSet;
 
 /****************************************************************************
  *
+ * PasswordCallback
+ *
+ */
+
+class QMEXPORTCLASS PasswordCallback
+{
+public:
+	enum Result {
+		RESULT_ERROR,
+		RESULT_ONETIME,
+		RESULT_SESSION,
+		RESULT_SAVE
+	};
+
+public:
+	virtual ~PasswordCallback();
+
+public:
+	virtual Result getPassword(SubAccount* pSubAccount,
+							   Account::Host host,
+							   qs::wstring_ptr* pwstrPassword) = 0;
+	virtual void setPassword(SubAccount* pSubAccount,
+							 Account::Host host,
+							 const WCHAR* pwszPassword,
+							 bool bPermanent) = 0;
+};
+
+
+/****************************************************************************
+ *
  * SessionCallback
  *
  */
 
-class QMEXPORTCLASS SessionCallback
+class QMEXPORTCLASS SessionCallback : public PasswordCallback
 {
 public:
 	virtual ~SessionCallback();

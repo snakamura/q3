@@ -217,7 +217,8 @@ bool qm::Document::renameAccount(Account* pAccount,
 	if (!::MoveFile(ptszOldPath, ptszNewPath))
 		return false;
 	
-	std::auto_ptr<Account> pNewAccount(new Account(wstrNewPath.get(), getSecurity()));
+	std::auto_ptr<Account> pNewAccount(new Account(
+		wstrNewPath.get(), pImpl_->pSecurity_.get()));
 	it = std::lower_bound(l.begin(), l.end(), pNewAccount.get(), AccountLess());
 	l.insert(it, pNewAccount.get());
 	pAccount = pNewAccount.release();

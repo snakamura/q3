@@ -9,6 +9,7 @@
 #include <qmapplication.h>
 #include <qmfolder.h>
 #include <qmmessagewindow.h>
+#include <qmpassword.h>
 #include <qmuiutil.h>
 
 #include <qsconv.h>
@@ -451,4 +452,55 @@ qm::ProgressDialogInit::~ProgressDialogInit()
 {
 	if (pDialog_)
 		pDialog_->term();
+}
+
+
+/****************************************************************************
+ *
+ * DefaultPasswordCallback
+ *
+ */
+
+qm::DefaultPasswordCallback::DefaultPasswordCallback(PasswordManager* pPasswordManager) :
+	pPasswordManager_(pPasswordManager)
+{
+}
+
+qm::DefaultPasswordCallback::~DefaultPasswordCallback()
+{
+}
+
+PasswordCallback::Result qm::DefaultPasswordCallback::getPassword(SubAccount* pSubAccount,
+																  Account::Host host,
+																  wstring_ptr* pwstrPassword)
+{
+	Account* pAccount = pSubAccount->getAccount();
+	AccountPasswordCondition condition(pAccount->getName(), pSubAccount->getName(), host);
+	wstring_ptr wstrPassword(pPasswordManager_->getPassword(condition, false));
+	if (wstrPassword.get()) {
+		*pwstrPassword = wstrPassword;
+		return PasswordCallback::RESULT_ONETIME;
+	}
+	
+	HWND hwnd = Window::getForegroundWindow();
+	if (::GetWindowThreadProcessId(hwnd, 0) != ::GetCurrentThreadId())
+		hwnd = getMainWindow()->getHandle();
+	
+	PasswordDialog dialog(pSubAccount, host);
+	if (dialog.doModal(hwnd) != IDOK)
+		return RESULT_ERROR;
+	
+	*pwstrPassword = allocWString(dialog.getPassword());
+	
+	return dialog.getResult();
+}
+
+void qm::DefaultPasswordCallback::setPassword(SubAccount* pSubAccount,
+											  Account::Host host,
+											  const WCHAR* pwszPassword,
+											  bool bPermanent)
+{
+	Account* pAccount = pSubAccount->getAccount();
+	AccountPasswordCondition condition(pAccount->getName(), pSubAccount->getName(), host);
+	pPasswordManager_->setPassword(condition, pwszPassword, bPermanent);
 }

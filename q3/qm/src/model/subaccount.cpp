@@ -49,7 +49,6 @@ struct qm::SubAccountImpl
 	wstring_ptr wstrHost_[Account::HOST_SIZE];
 	short nPort_[Account::HOST_SIZE];
 	wstring_ptr wstrUserName_[Account::HOST_SIZE];
-	wstring_ptr wstrPassword_[Account::HOST_SIZE];
 	SubAccount::Secure secure_[Account::HOST_SIZE];
 	bool bLog_[Account::HOST_SIZE];
 	long nTimeout_;
@@ -80,8 +79,6 @@ void qm::SubAccountImpl::load()
 	LOAD_STRING(L"Receive",	L"Host",			0,	wstrHost_[Account::HOST_RECEIVE]	);
 	LOAD_STRING(L"Send",	L"UserName",		0,	wstrUserName_[Account::HOST_SEND]	);
 	LOAD_STRING(L"Receive",	L"UserName",		0,	wstrUserName_[Account::HOST_RECEIVE]);
-	LOAD_STRING(L"Send",	L"Password",		0,	wstrPassword_[Account::HOST_SEND]	);
-	LOAD_STRING(L"Receive",	L"Password",		0,	wstrPassword_[Account::HOST_RECEIVE]);
 	LOAD_STRING(L"Receive",	L"SyncFilterName",	0,	wstrSyncFilterName_					);
 	LOAD_STRING(L"Dialup",	L"Entry",			0,	wstrDialupEntry_					);
 
@@ -105,23 +102,6 @@ void qm::SubAccountImpl::load()
 	LOAD_INT(L"Dialup",		L"ShowDialog",					0,		bDialupShowDialog_,				bool,					bDialupShowDialog			);
 	LOAD_INT(L"Dialup",		L"DisconnectWait",				0,		nDialupDisconnectWait_,			unsigned int,			nDialupDisconnectWait		);
 #pragma warning(default:4800)
-	
-	struct {
-		Account::Host host_;
-		const WCHAR* pwszSection_;
-	} entries[] = {
-		{ Account::HOST_SEND,		L"Send"		},
-		{ Account::HOST_RECEIVE,	L"Receive"	}
-	};
-	for (int n = 0; n < countof(entries); ++n) {
-		wstring_ptr& wstrPassword = wstrPassword_[entries[n].host_];
-		if (!*wstrPassword.get()) {
-			wstring_ptr wstrEncodedPassword(pProfile_->getString(
-				entries[n].pwszSection_, L"EncodedPassword", 0));
-			wstring_ptr wstr(TextUtil::decodePassword(wstrEncodedPassword.get()));
-			wstrPassword = wstr;
-		}
-	}
 	
 	wstring_ptr wstrMyAddress(pProfile_->getString(L"Global", L"MyAddress", 0));
 	pThis_->setMyAddress(wstrMyAddress.get());
@@ -360,17 +340,6 @@ void qm::SubAccount::setUserName(Account::Host host,
 								 const WCHAR* pwszUserName)
 {
 	pImpl_->wstrUserName_[host] = allocWString(pwszUserName);
-}
-
-const WCHAR* qm::SubAccount::getPassword(Account::Host host) const
-{
-	return pImpl_->wstrPassword_[host].get();
-}
-
-void qm::SubAccount::setPassword(Account::Host host,
-								 const WCHAR* pwszPassword)
-{
-	pImpl_->wstrPassword_[host] = allocWString(pwszPassword);
 }
 
 SubAccount::Secure qm::SubAccount::getSecure(Account::Host host) const
@@ -625,21 +594,6 @@ bool qm::SubAccount::save() const
 	SAVE_INT(L"Dialup",		L"Type",						dialupType_						);
 	SAVE_INT(L"Dialup",		L"ShowDialog",					bDialupShowDialog_				);
 	SAVE_INT(L"Dialup",		L"DisconnectWait",				nDialupDisconnectWait_			);
-	
-	struct {
-		Account::Host host_;
-		const WCHAR* pwszSection_;
-	} entries[] = {
-		{ Account::HOST_SEND,		L"Send"		},
-		{ Account::HOST_RECEIVE,	L"Receive"	}
-	};
-	for (int n = 0; n < countof(entries); ++n) {
-		wstring_ptr wstrEncodedPassword(TextUtil::encodePassword(
-			pImpl_->wstrPassword_[entries[n].host_].get()));
-		pImpl_->pProfile_->setString(entries[n].pwszSection_,
-			L"EncodedPassword", wstrEncodedPassword.get());
-		pImpl_->pProfile_->setString(entries[n].pwszSection_, L"Password", L"");
-	}
 	
 	wstring_ptr wstrMyAddress(getMyAddress());
 	pImpl_->pProfile_->setString(L"Global", L"MyAddress", wstrMyAddress.get());

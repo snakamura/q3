@@ -9,6 +9,7 @@
 #include <qmaccount.h>
 #include <qmapplication.h>
 #include <qmfolder.h>
+#include <qmpassword.h>
 
 #include <qsconv.h>
 #include <qsinit.h>
@@ -37,8 +38,10 @@ using namespace qs;
  *
  */
 
-qm::SyncDialogManager::SyncDialogManager(Profile* pProfile) :
-	pProfile_(pProfile)
+qm::SyncDialogManager::SyncDialogManager(Profile* pProfile,
+										 PasswordManager* pPasswordManager) :
+	pProfile_(pProfile),
+	pPasswordManager_(pPasswordManager)
 {
 }
 
@@ -51,7 +54,8 @@ qm::SyncDialogManager::~SyncDialogManager()
 SyncDialog* qm::SyncDialogManager::open()
 {
 	if (!pThread_.get()) {
-		std::auto_ptr<SyncDialogThread> pThread(new SyncDialogThread(pProfile_));
+		std::auto_ptr<SyncDialogThread> pThread(
+			new SyncDialogThread(pProfile_, pPasswordManager_));
 		if (!pThread->start())
 			return 0;
 		pThread_ = pThread;
@@ -94,9 +98,11 @@ bool qm::SyncDialogManager::save() const
  *
  */
 
-qm::SyncDialog::SyncDialog(Profile* pProfile) :
+qm::SyncDialog::SyncDialog(Profile* pProfile,
+						   PasswordManager* pPasswordManager) :
 	Dialog(Application::getApplication().getResourceHandle(), IDD_SYNC, false),
 	pProfile_(pProfile),
+	pPasswordManager_(pPasswordManager),
 	pStatusWindow_(0),
 	bShowError_(false),
 	nCanceledTime_(0)
@@ -189,15 +195,77 @@ void qm::SyncDialog::enableCancel(bool bEnable)
 	sendDlgItemMessage(nNewId, BM_SETSTYLE, BS_DEFPUSHBUTTON, TRUE);
 }
 
-bool qm::SyncDialog::showDialupDialog(RASDIALPARAMS* prdp) const
+PasswordCallback::Result qm::SyncDialog::getPassword(SubAccount* pSubAccount,
+													 Account::Host host,
+													 wstring_ptr* pwstrPassword)
+{
+	Account* pAccount = pSubAccount->getAccount();
+	AccountPasswordCondition condition(pAccount->getName(), pSubAccount->getName(), host);
+	wstring_ptr wstrPassword(pPasswordManager_->getPassword(condition, false));
+	if (wstrPassword.get()) {
+		*pwstrPassword = wstrPassword;
+		return PasswordCallback::RESULT_ONETIME;
+	}
+	
+	struct RunnableImpl : public Runnable
+	{
+		RunnableImpl(SyncDialog* pSyncDialog,
+					 SubAccount* pSubAccount,
+					 Account::Host host) :
+			pSyncDialog_(pSyncDialog),
+			pSubAccount_(pSubAccount),
+			host_(host),
+			result_(PasswordCallback::RESULT_ERROR)
+		{
+		}
+		
+		virtual void run()
+		{
+			pSyncDialog_->show();
+			
+			PasswordDialog dialog(pSubAccount_, host_);
+			if (dialog.doModal(pSyncDialog_->getHandle()) == IDOK) {
+				wstrPassword_ = allocWString(dialog.getPassword());
+				result_ = dialog.getResult();
+			}
+		}
+		
+		SyncDialog* pSyncDialog_;
+		SubAccount* pSubAccount_;
+		Account::Host host_;
+		wstring_ptr wstrPassword_;
+		PasswordCallback::Result result_;
+	} runnable(this, pSubAccount, host);
+	
+	getInitThread()->getSynchronizer()->syncExec(&runnable);
+	
+	if (!runnable.wstrPassword_.get())
+		return PasswordCallback::RESULT_ERROR;
+	
+	*pwstrPassword = runnable.wstrPassword_;
+	
+	return runnable.result_;
+}
+
+void qm::SyncDialog::setPassword(SubAccount* pSubAccount,
+								 Account::Host host,
+								 const WCHAR* pwszPassword,
+								 bool bPermanent)
+{
+	Account* pAccount = pSubAccount->getAccount();
+	AccountPasswordCondition condition(pAccount->getName(), pSubAccount->getName(), host);
+	pPasswordManager_->setPassword(condition, pwszPassword, bPermanent);
+}
+
+bool qm::SyncDialog::showDialupDialog(RASDIALPARAMS* prdp)
 {
 	assert(prdp);
 	
 	struct RunnableImpl : public Runnable
 	{
-		RunnableImpl(HWND hwnd,
+		RunnableImpl(SyncDialog* pSyncDialog,
 					 RASDIALPARAMS* prdp) :
-			hwnd_(hwnd),
+			pSyncDialog_(pSyncDialog),
 			prdp_(prdp),
 			bCancel_(false)
 		{
@@ -205,13 +273,15 @@ bool qm::SyncDialog::showDialupDialog(RASDIALPARAMS* prdp) const
 		
 		virtual void run()
 		{
+			pSyncDialog_->show();
+			
 			T2W(prdp_->szEntryName, pwszEntryName);
 			T2W(prdp_->szUserName, pwszUserName);
 			T2W(prdp_->szPassword, pwszPassword);
 			T2W(prdp_->szDomain, pwszDomain);
 			
 			DialupDialog dialog(pwszEntryName, pwszUserName, pwszPassword, pwszDomain);
-			if (dialog.doModal(hwnd_, 0) == IDOK) {
+			if (dialog.doModal(pSyncDialog_->getHandle()) == IDOK) {
 				W2T(dialog.getUserName(), ptszUserName);
 				_tcsncpy(prdp_->szUserName, ptszUserName, UNLEN);
 				W2T(dialog.getPassword(), ptszPassword);
@@ -224,37 +294,43 @@ bool qm::SyncDialog::showDialupDialog(RASDIALPARAMS* prdp) const
 			}
 		}
 		
-		HWND hwnd_;
+		SyncDialog* pSyncDialog_;
 		RASDIALPARAMS* prdp_;
 		bool bCancel_;
-	} runnable(getHandle(), prdp);
+	} runnable(this, prdp);
+	
 	getInitThread()->getSynchronizer()->syncExec(&runnable);
+	
 	return !runnable.bCancel_;
 }
 
-wstring_ptr qm::SyncDialog::selectDialupEntry() const
+wstring_ptr qm::SyncDialog::selectDialupEntry()
 {
 	struct RunnableImpl : public Runnable
 	{
-		RunnableImpl(Profile* pProfile,
-					 HWND hwnd) :
-			pProfile_(pProfile),
-			hwnd_(hwnd)
+		RunnableImpl(SyncDialog* pSyncDialog,
+					 Profile* pProfile) :
+			pSyncDialog_(pSyncDialog),
+			pProfile_(pProfile)
 		{
 		}
 		
 		virtual void run()
 		{
+			pSyncDialog_->show();
+			
 			SelectDialupEntryDialog dialog(pProfile_);
-			if (dialog.doModal(hwnd_, 0) == IDOK)
+			if (dialog.doModal(pSyncDialog_->getHandle()) == IDOK)
 				wstrEntry_ = allocWString(dialog.getEntry());
 		}
 		
+		SyncDialog* pSyncDialog_;
 		Profile* pProfile_;
-		HWND hwnd_;
 		wstring_ptr wstrEntry_;
-	} runnable(pProfile_, getHandle());
+	} runnable(this, pProfile_);
+	
 	getInitThread()->getSynchronizer()->syncExec(&runnable);
+	
 	return runnable.wstrEntry_;
 }
 
@@ -704,6 +780,21 @@ bool qm::SyncStatusWindow::isCanceled(unsigned int nId,
 		return ::GetTickCount() - nCanceledTime > 10*1000;
 }
 
+PasswordCallback::Result qm::SyncStatusWindow::getPassword(SubAccount* pSubAccount,
+														   Account::Host host,
+														   wstring_ptr* pwstrPassword)
+{
+	return pSyncDialog_->getPassword(pSubAccount, host, pwstrPassword);
+}
+
+void qm::SyncStatusWindow::setPassword(SubAccount* pSubAccount,
+									   Account::Host host,
+									   const WCHAR* pwszPassword,
+									   bool bPermanent)
+{
+	pSyncDialog_->setPassword(pSubAccount, host, pwszPassword, bPermanent);
+}
+
 wstring_ptr qm::SyncStatusWindow::selectDialupEntry()
 {
 	struct RunnableImpl : public Runnable
@@ -1146,8 +1237,10 @@ void qm::SyncStatusWindow::Item::updateMessage()
  *
  */
 
-qm::SyncDialogThread::SyncDialogThread(qs::Profile* pProfile) :
+qm::SyncDialogThread::SyncDialogThread(qs::Profile* pProfile,
+									   PasswordManager* pPasswordManager) :
 	pProfile_(pProfile),
+	pPasswordManager_(pPasswordManager),
 	pDialog_(0)
 {
 	pEvent_.reset(new Event(true, false));
@@ -1182,7 +1275,7 @@ void qm::SyncDialogThread::run()
 			Event* pEvent_;
 		} set(pEvent_.get());
 		
-		pDialog.reset(new SyncDialog(pProfile_));
+		pDialog.reset(new SyncDialog(pProfile_, pPasswordManager_));
 		Window wnd(Window::getForegroundWindow());
 		pDialog->create(0);
 		if (wnd)

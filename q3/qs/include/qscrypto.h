@@ -21,7 +21,7 @@ class Name;
 class Certificate;
 class PrivateKey;
 class PublicKey;
-class PasswordCallback;
+class CryptoPasswordCallback;
 class Store;
 class Cipher;
 class SMIMEUtility;
@@ -90,7 +90,7 @@ public:
 	 */
 	virtual bool load(const WCHAR* pwszPath,
 					  FileType type,
-					  PasswordCallback* pCallback) = 0;
+					  CryptoPasswordCallback* pCallback) = 0;
 	
 	/**
 	 * Load certificate from the specified stream.
@@ -102,7 +102,7 @@ public:
 	 */
 	virtual bool load(InputStream* pStream,
 					  FileType type,
-					  PasswordCallback* pCallback) = 0;
+					  CryptoPasswordCallback* pCallback) = 0;
 	
 	/**
 	 * Serialize this certificate to text.
@@ -167,7 +167,7 @@ public:
 	 */
 	virtual bool load(const WCHAR* pwszPath,
 					  FileType type,
-					  PasswordCallback* pCallback) = 0;
+					  CryptoPasswordCallback* pCallback) = 0;
 	
 	/**
 	 * Load private key from the specified stream.
@@ -180,7 +180,7 @@ public:
 	 */
 	virtual bool load(InputStream* pStream,
 					  FileType type,
-					  PasswordCallback* pCallback) = 0;
+					  CryptoPasswordCallback* pCallback) = 0;
 
 public:
 	/**
@@ -221,7 +221,7 @@ public:
 	 */
 	virtual bool load(const WCHAR* pwszPath,
 					  FileType type,
-					  PasswordCallback* pCallback) = 0;
+					  CryptoPasswordCallback* pCallback) = 0;
 	
 	/**
 	 * Load public key from the specified stream.
@@ -234,7 +234,7 @@ public:
 	 */
 	virtual bool load(InputStream* pStream,
 					  FileType type,
-					  PasswordCallback* pCallback) = 0;
+					  CryptoPasswordCallback* pCallback) = 0;
 
 public:
 	/**
@@ -249,14 +249,14 @@ public:
 
 /****************************************************************************
  *
- * PasswordCallback
+ * CryptoPasswordCallback
  *
  */
 
-class QSEXPORTCLASS PasswordCallback
+class QSEXPORTCLASS CryptoPasswordCallback
 {
 public:
-	virtual ~PasswordCallback();
+	virtual ~CryptoPasswordCallback();
 
 public:
 	/**

@@ -9,6 +9,7 @@
 #include <qmaccount.h>
 #include <qmapplication.h>
 #include <qmmessageholder.h>
+#include <qmpassword.h>
 #include <qmsearch.h>
 #include <qmsecurity.h>
 #include <qmsession.h>
@@ -469,9 +470,11 @@ LRESULT qm::AccountGeneralPage::onOk()
  */
 
 qm::AccountUserPage::AccountUserPage(SubAccount* pSubAccount,
+									 PasswordManager* pPasswordManager,
 									 ReceiveSessionUI* pReceiveUI,
 									 SendSessionUI* pSendUI) :
 	DefaultPropertyPage(IDD_ACCOUNTUSER),
+	pPasswordManager_(pPasswordManager),
 	pSubAccount_(pSubAccount),
 	pReceiveUI_(pReceiveUI),
 	pSendUI_(pSendUI)
@@ -495,11 +498,11 @@ LRESULT qm::AccountUserPage::onInitDialog(HWND hwndFocus,
 										  LPARAM lParam)
 {
 	setDlgItemText(IDC_RECEIVEUSERNAME, pSubAccount_->getUserName(Account::HOST_RECEIVE));
-	setDlgItemText(IDC_RECEIVEPASSWORD, pSubAccount_->getPassword(Account::HOST_RECEIVE));
+	setPassword(IDC_RECEIVEPASSWORD, Account::HOST_RECEIVE);
 	sendDlgItemMessage(IDC_SENDAUTHENTICATE, BM_SETCHECK,
 		*pSubAccount_->getUserName(Account::HOST_SEND) ? BST_CHECKED : BST_UNCHECKED);
 	setDlgItemText(IDC_SENDUSERNAME, pSubAccount_->getUserName(Account::HOST_SEND));
-	setDlgItemText(IDC_SENDPASSWORD, pSubAccount_->getPassword(Account::HOST_SEND));
+	setPassword(IDC_SENDPASSWORD, Account::HOST_SEND);
 	
 	if (!pReceiveUI_->isSupported(ReceiveSessionUI::SUPPORT_USER)) {
 		Window(getDlgItem(IDC_RECEIVEUSERNAME)).enableWindow(false);
@@ -519,25 +522,17 @@ LRESULT qm::AccountUserPage::onInitDialog(HWND hwndFocus,
 LRESULT qm::AccountUserPage::onOk()
 {
 	wstring_ptr wstrReceiveUserName(getDlgItemText(IDC_RECEIVEUSERNAME));
-	if (wstrReceiveUserName.get())
-		pSubAccount_->setUserName(Account::HOST_RECEIVE, wstrReceiveUserName.get());
-	
-	wstring_ptr wstrReceivePassword(getDlgItemText(IDC_RECEIVEPASSWORD));
-	if (wstrReceivePassword.get())
-		pSubAccount_->setPassword(Account::HOST_RECEIVE, wstrReceivePassword.get());
+	pSubAccount_->setUserName(Account::HOST_RECEIVE, wstrReceiveUserName.get());
+	getPassword(IDC_RECEIVEPASSWORD, Account::HOST_RECEIVE, false);
 	
 	if (sendDlgItemMessage(IDC_SENDAUTHENTICATE, BM_GETCHECK) == BST_CHECKED) {
 		wstring_ptr wstrSendUserName(getDlgItemText(IDC_SENDUSERNAME));
-		if (wstrSendUserName.get())
-			pSubAccount_->setUserName(Account::HOST_SEND, wstrSendUserName.get());
-		
-		wstring_ptr wstrSendPassword(getDlgItemText(IDC_SENDPASSWORD));
-		if (wstrSendPassword.get())
-			pSubAccount_->setPassword(Account::HOST_SEND, wstrSendPassword.get());
+		pSubAccount_->setUserName(Account::HOST_SEND, wstrSendUserName.get());
+		getPassword(IDC_SENDPASSWORD, Account::HOST_SEND, false);
 	}
 	else {
 		pSubAccount_->setUserName(Account::HOST_SEND, L"");
-		pSubAccount_->setPassword(Account::HOST_SEND, L"");
+		getPassword(IDC_SENDPASSWORD, Account::HOST_SEND, true);
 	}
 	
 	return DefaultPropertyPage::onOk();
@@ -547,6 +542,35 @@ LRESULT qm::AccountUserPage::onSendAuthenticate()
 {
 	updateState();
 	return 0;
+}
+
+void qm::AccountUserPage::setPassword(UINT nId,
+									  Account::Host host)
+{
+	AccountPasswordCondition condition(
+		pSubAccount_->getAccount()->getName(),
+		pSubAccount_->getName(), host);
+	wstring_ptr wstrPassword(pPasswordManager_->getPassword(condition, true));
+	if (wstrPassword.get())
+		setDlgItemText(nId, wstrPassword.get());
+}
+
+void qm::AccountUserPage::getPassword(UINT nId,
+									  Account::Host host,
+									  bool bForceRemove)
+{
+	AccountPasswordCondition condition(
+		pSubAccount_->getAccount()->getName(),
+		pSubAccount_->getName(), host);
+	
+	wstring_ptr wstrPassword;
+	if (!bForceRemove)
+		wstrPassword = getDlgItemText(nId);
+	
+	if (wstrPassword.get() && *wstrPassword.get())
+		pPasswordManager_->setPassword(condition, wstrPassword.get(), true);
+	else
+		pPasswordManager_->removePassword(condition);
 }
 
 void qm::AccountUserPage::updateState()

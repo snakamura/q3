@@ -76,11 +76,11 @@ std::auto_ptr<PublicKey> qs::PublicKey::getInstance()
 
 /****************************************************************************
  *
- * PasswordCallback
+ * CryptoPasswordCallback
  *
  */
 
-qs::PasswordCallback::~PasswordCallback()
+qs::CryptoPasswordCallback::~CryptoPasswordCallback()
 {
 }
 

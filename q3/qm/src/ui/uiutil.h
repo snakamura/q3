@@ -11,6 +11,7 @@
 
 #include <qm.h>
 #include <qmmessageoperation.h>
+#include <qmsession.h>
 
 #include <qs.h>
 #include <qsprofile.h>
@@ -24,11 +25,13 @@ namespace qm {
 class UIUtil;
 class ProgressDialogInit;
 template<class Callback> class ProgressDialogMessageOperationCallbackBase;
+class DefaultPasswordCallback;
 
 class Folder;
 class Message;
 class MessageHolder;
 class MessageWindow;
+class PasswordManager;
 class ProgressDialog;
 class StatusBar;
 class TempFileCleaner;
@@ -150,6 +153,36 @@ private:
 };
 
 typedef ProgressDialogMessageOperationCallbackBase<MessageOperationCallback> ProgressDialogMessageOperationCallback;
+
+
+/****************************************************************************
+ *
+ * DefaultPasswordCallback
+ *
+ */
+
+class DefaultPasswordCallback : public PasswordCallback
+{
+public:
+	explicit DefaultPasswordCallback(PasswordManager* pPasswordManager);
+	virtual ~DefaultPasswordCallback();
+
+public:
+	virtual Result getPassword(SubAccount* pSubAccount,
+							   Account::Host host,
+							   qs::wstring_ptr* pwstrPassword);
+	virtual void setPassword(SubAccount* pSubAccount,
+							 Account::Host host,
+							 const WCHAR* pwszPassword,
+							 bool bPermanent);
+
+private:
+	DefaultPasswordCallback(const DefaultPasswordCallback&);
+	DefaultPasswordCallback& operator=(const DefaultPasswordCallback&);
+
+private:
+	PasswordManager* pPasswordManager_;
+};
 
 }
 

@@ -28,6 +28,7 @@ class DefaultPropertyPage;
 	class FolderPropertyPage;
 	class MessagePropertyPage;
 
+class PasswordManager;
 class ReceiveSessionUI;
 class SearchUI;
 class SendSessionUI;
@@ -205,6 +206,7 @@ class AccountUserPage : public DefaultPropertyPage
 {
 public:
 	AccountUserPage(SubAccount* pSubAccount,
+					PasswordManager* pPasswordManager,
 					ReceiveSessionUI* pReceiveUI,
 					SendSessionUI* pSendUI);
 	virtual ~AccountUserPage();
@@ -224,6 +226,11 @@ private:
 	LRESULT onSendAuthenticate();
 
 private:
+	void setPassword(UINT nId,
+					 Account::Host host);
+	void getPassword(UINT nId,
+					 Account::Host host,
+					 bool bForceRemove);
 	void updateState();
 
 private:
@@ -232,6 +239,7 @@ private:
 
 private:
 	SubAccount* pSubAccount_;
+	PasswordManager* pPasswordManager_;
 	ReceiveSessionUI* pReceiveUI_;
 	SendSessionUI* pSendUI_;
 };

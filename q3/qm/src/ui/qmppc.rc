@@ -1063,6 +1063,25 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,80,110,50,12
 END
 
+IDD_PASSWORD DIALOG DISCARDABLE  0, 0, 137, 155
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Password"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Password",IDC_STATIC,5,5,35,8
+    LTEXT           "",IDC_HINT,5,15,127,8
+    EDITTEXT        IDC_PASSWORD,5,25,127,12,ES_PASSWORD | ES_AUTOHSCROLL
+    CONTROL         "&Don't save",IDC_DONTSAVE,"Button",BS_AUTORADIOBUTTON,
+                    10,55,70,10
+    CONTROL         "&Remember until this session ends",IDC_SESSION,"Button",
+                    BS_AUTORADIOBUTTON,10,65,120,10
+    CONTROL         "&Save permanently",IDC_SAVE,"Button",BS_AUTORADIOBUTTON,
+                    10,75,100,10
+    GROUPBOX        "",IDC_STATIC,5,45,127,45
+    DEFPUSHBUTTON   "OK",IDOK,26,95,50,12
+    PUSHBUTTON      "Cancel",IDCANCEL,82,95,50,12
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

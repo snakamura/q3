@@ -32,13 +32,15 @@ const unsigned int qmnntp::NntpDriver::nSupport__ =
 	Account::SUPPORT_LOCALFOLDERGETMESSAGE;
 
 qmnntp::NntpDriver::NntpDriver(Account* pAccount,
+							   PasswordCallback* pPasswordCallback,
 							   const Security* pSecurity) :
 	pAccount_(pAccount),
+	pPasswordCallback_(pPasswordCallback),
 	pSecurity_(pSecurity),
-	pSubAccount_(0),
 	pNntp_(0),
 	pCallback_(0),
 	pLogger_(0),
+	pSubAccount_(0),
 	bOffline_(true),
 	nForceDisconnect_(0),
 	nLastUsedTime_(0)
@@ -82,23 +84,28 @@ void qmnntp::NntpDriver::setOffline(bool bOffline)
 	bOffline_ = bOffline;
 }
 
-std::auto_ptr<NormalFolder> qmnntp::NntpDriver::createFolder(SubAccount* pSubAccount,
-															 const WCHAR* pwszName,
+void qmnntp::NntpDriver::setSubAccount(qm::SubAccount* pSubAccount)
+{
+	if (pSubAccount != pSubAccount_) {
+		clearSession();
+		pSubAccount_ = pSubAccount;
+	}
+}
+
+std::auto_ptr<NormalFolder> qmnntp::NntpDriver::createFolder(const WCHAR* pwszName,
 															 Folder* pParent)
 {
 	assert(false);
 	return std::auto_ptr<NormalFolder>(0);
 }
 
-bool qmnntp::NntpDriver::removeFolder(SubAccount* pSubAccount,
-									  NormalFolder* pFolder)
+bool qmnntp::NntpDriver::removeFolder(NormalFolder* pFolder)
 {
 	assert(false);
 	return false;
 }
 
-bool qmnntp::NntpDriver::renameFolder(SubAccount* pSubAccount,
-									  NormalFolder* pFolder,
+bool qmnntp::NntpDriver::renameFolder(NormalFolder* pFolder,
 									  const WCHAR* pwszName)
 {
 	assert(false);
@@ -130,8 +137,7 @@ bool qmnntp::NntpDriver::createDefaultFolders(Account::FolderList* pList)
 	return true;
 }
 
-bool qmnntp::NntpDriver::getRemoteFolders(SubAccount* pSubAccount,
-										  RemoteFolderList* pList)
+bool qmnntp::NntpDriver::getRemoteFolders(RemoteFolderList* pList)
 {
 	// TODO
 	return true;
@@ -142,14 +148,12 @@ std::pair<const WCHAR**, size_t> qmnntp::NntpDriver::getFolderParamNames()
 	return std::pair<const WCHAR**, size_t>(0, 0);
 }
 
-bool qmnntp::NntpDriver::getMessage(SubAccount* pSubAccount,
-									MessageHolder* pmh,
+bool qmnntp::NntpDriver::getMessage(MessageHolder* pmh,
 									unsigned int nFlags,
 									xstring_ptr* pstrMessage,
 									Message::Flag* pFlag,
 									bool* pbMadeSeen)
 {
-	assert(pSubAccount);
 	assert(pmh);
 	assert(pstrMessage);
 	assert(pFlag);
@@ -162,7 +166,7 @@ bool qmnntp::NntpDriver::getMessage(SubAccount* pSubAccount,
 	if (bOffline_)
 		return true;
 	
-	if (!prepareSession(pSubAccount, pmh->getFolder()))
+	if (!prepareSession(pmh->getFolder()))
 		return false;
 	
 	xstring_ptr strMessage;
@@ -179,8 +183,7 @@ bool qmnntp::NntpDriver::getMessage(SubAccount* pSubAccount,
 	return true;
 }
 
-bool qmnntp::NntpDriver::setMessagesFlags(SubAccount* pSubAccount,
-										  NormalFolder* pFolder,
+bool qmnntp::NntpDriver::setMessagesFlags(NormalFolder* pFolder,
 										  const MessageHolderList& l,
 										  unsigned int nFlags,
 										  unsigned int nMask)
@@ -189,8 +192,7 @@ bool qmnntp::NntpDriver::setMessagesFlags(SubAccount* pSubAccount,
 	return false;
 }
 
-bool qmnntp::NntpDriver::appendMessage(SubAccount* pSubAccount,
-									   NormalFolder* pFolder,
+bool qmnntp::NntpDriver::appendMessage(NormalFolder* pFolder,
 									   const CHAR* pszMessage,
 									   unsigned int nFlags)
 {
@@ -198,16 +200,14 @@ bool qmnntp::NntpDriver::appendMessage(SubAccount* pSubAccount,
 	return false;
 }
 
-bool qmnntp::NntpDriver::removeMessages(SubAccount* pSubAccount,
-										NormalFolder* pFolder,
+bool qmnntp::NntpDriver::removeMessages(NormalFolder* pFolder,
 										const MessageHolderList& l)
 {
 	assert(false);
 	return false;
 }
 
-bool qmnntp::NntpDriver::copyMessages(SubAccount* pSubAccount,
-									  const MessageHolderList& l,
+bool qmnntp::NntpDriver::copyMessages(const MessageHolderList& l,
 									  NormalFolder* pFolderFrom,
 									  NormalFolder* pFolderTo,
 									  bool bMove)
@@ -216,14 +216,11 @@ bool qmnntp::NntpDriver::copyMessages(SubAccount* pSubAccount,
 	return false;
 }
 
-bool qmnntp::NntpDriver::prepareSession(SubAccount* pSubAccount,
-										NormalFolder* pFolder)
+bool qmnntp::NntpDriver::prepareSession(NormalFolder* pFolder)
 {
-	assert(pSubAccount);
-	
-	bool bConnect = pSubAccount_ != pSubAccount;
+	bool bConnect = !pNntp_.get();
 	if (bConnect)
-		nForceDisconnect_ = pSubAccount->getProperty(L"Nntp", L"ForceDisconnect", 0);
+		nForceDisconnect_ = pSubAccount_->getProperty(L"Nntp", L"ForceDisconnect", 0);
 	else
 		bConnect = isForceDisconnect();
 	
@@ -234,23 +231,22 @@ bool qmnntp::NntpDriver::prepareSession(SubAccount* pSubAccount,
 		std::auto_ptr<CallbackImpl> pCallback;
 		std::auto_ptr<Nntp> pNntp;
 		
-		if (pSubAccount->isLog(Account::HOST_RECEIVE))
+		if (pSubAccount_->isLog(Account::HOST_RECEIVE))
 			pLogger = pAccount_->openLogger(Account::HOST_RECEIVE);
 		
-		pCallback.reset(new CallbackImpl(pSubAccount, pSecurity_));
+		pCallback.reset(new CallbackImpl(pSubAccount_, pPasswordCallback_, pSecurity_));
 		
-		pNntp.reset(new Nntp(pSubAccount->getTimeout(), pCallback.get(),
+		pNntp.reset(new Nntp(pSubAccount_->getTimeout(), pCallback.get(),
 			pCallback.get(), pCallback.get(), pLogger.get()));
 		if (!pNntp->connect(
-			pSubAccount->getHost(Account::HOST_RECEIVE),
-			pSubAccount->getPort(Account::HOST_RECEIVE),
-			pSubAccount->getSecure(Account::HOST_RECEIVE) == SubAccount::SECURE_SSL))
+			pSubAccount_->getHost(Account::HOST_RECEIVE),
+			pSubAccount_->getPort(Account::HOST_RECEIVE),
+			pSubAccount_->getSecure(Account::HOST_RECEIVE) == SubAccount::SECURE_SSL))
 			return false;
 		
 		pNntp_ = pNntp;
 		pCallback_ = pCallback;
 		pLogger_ = pLogger;
-		pSubAccount_ = pSubAccount;
 	}
 	
 	assert(pNntp_.get());
@@ -275,7 +271,6 @@ void qmnntp::NntpDriver::clearSession()
 	pNntp_.reset(0);
 	pCallback_.reset(0);
 	pLogger_.reset(0);
-	pSubAccount_ = 0;
 }
 
 bool qmnntp::NntpDriver::isForceDisconnect() const
@@ -291,8 +286,9 @@ bool qmnntp::NntpDriver::isForceDisconnect() const
  */
 
 qmnntp::NntpDriver::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
+											   PasswordCallback* pPasswordCallback,
 											   const Security* pSecurity) :
-	AbstractCallback(pSubAccount, pSecurity)
+	AbstractCallback(pSubAccount, pPasswordCallback, pSecurity)
 {
 }
 
@@ -354,7 +350,9 @@ qmnntp::NntpFactory::~NntpFactory()
 }
 
 std::auto_ptr<ProtocolDriver> qmnntp::NntpFactory::createDriver(Account* pAccount,
+																PasswordCallback* pPasswordCallback,
 																const Security* pSecurity)
 {
-	return std::auto_ptr<ProtocolDriver>(new NntpDriver(pAccount, pSecurity));
+	return std::auto_ptr<ProtocolDriver>(new NntpDriver(
+		pAccount, pPasswordCallback, pSecurity));
 }

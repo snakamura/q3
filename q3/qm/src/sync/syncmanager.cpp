@@ -1070,6 +1070,21 @@ qm::SyncManager::ReceiveSessionCallbackImpl::~ReceiveSessionCallbackImpl()
 {
 }
 
+PasswordCallback::Result qm::SyncManager::ReceiveSessionCallbackImpl::getPassword(SubAccount* pSubAccount,
+																				  Account::Host host,
+																				  wstring_ptr* pwstrPassword)
+{
+	return pCallback_->getPassword(pSubAccount, host, pwstrPassword);
+}
+
+void qm::SyncManager::ReceiveSessionCallbackImpl::setPassword(SubAccount* pSubAccount,
+															  Account::Host host,
+															  const WCHAR* pwszPassword,
+															  bool bPermanent)
+{
+	pCallback_->setPassword(pSubAccount, host, pwszPassword, bPermanent);
+}
+
 bool qm::SyncManager::ReceiveSessionCallbackImpl::isCanceled(bool bForce)
 {
 	return pCallback_->isCanceled(nId_, bForce);
@@ -1130,6 +1145,21 @@ qm::SyncManager::SendSessionCallbackImpl::SendSessionCallbackImpl(SyncManagerCal
 
 qm::SyncManager::SendSessionCallbackImpl::~SendSessionCallbackImpl()
 {
+}
+
+PasswordCallback::Result qm::SyncManager::SendSessionCallbackImpl::getPassword(SubAccount* pSubAccount,
+																			   Account::Host host,
+																			   wstring_ptr* pwstrPassword)
+{
+	return pCallback_->getPassword(pSubAccount, host, pwstrPassword);
+}
+
+void qm::SyncManager::SendSessionCallbackImpl::setPassword(SubAccount* pSubAccount,
+														   Account::Host host,
+														   const WCHAR* pwszPassword,
+														   bool bPermanent)
+{
+	pCallback_->setPassword(pSubAccount, host, pwszPassword, bPermanent);
 }
 
 bool qm::SyncManager::SendSessionCallbackImpl::isCanceled(bool bForce)

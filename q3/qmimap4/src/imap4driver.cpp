@@ -36,9 +36,12 @@ using namespace qs;
 const unsigned int qmimap4::Imap4Driver::nSupport__ = Account::SUPPORT_REMOTEFOLDER;
 
 qmimap4::Imap4Driver::Imap4Driver(Account* pAccount,
+								  PasswordCallback* pPasswordCallback,
 								  const Security* pSecurity) :
 	pAccount_(pAccount),
+	pPasswordCallback_(pPasswordCallback),
 	pSecurity_(pSecurity),
+	pSubAccount_(0),
 	bOffline_(true)
 {
 	pOfflineJobManager_.reset(new OfflineJobManager(pAccount_->getPath()));
@@ -75,18 +78,24 @@ void qmimap4::Imap4Driver::setOffline(bool bOffline)
 	bOffline_ = bOffline;
 }
 
-std::auto_ptr<NormalFolder> qmimap4::Imap4Driver::createFolder(SubAccount* pSubAccount,
-															   const WCHAR* pwszName,
+void qmimap4::Imap4Driver::setSubAccount(qm::SubAccount* pSubAccount)
+{
+	if (pSubAccount_ != pSubAccount) {
+		pSubAccount_ = pSubAccount;
+		pSessionCache_.reset(0);
+	}
+}
+
+std::auto_ptr<NormalFolder> qmimap4::Imap4Driver::createFolder(const WCHAR* pwszName,
 															   Folder* pParent)
 {
-	assert(pSubAccount);
 	assert(pwszName);
 	
 	Lock<CriticalSection> lock(cs_);
 	
 	wstring_ptr wstrRootFolder(pAccount_->getProperty(L"Imap4", L"RootFolder", L""));
 	
-	if (!prepareSessionCache(pSubAccount))
+	if (!prepareSessionCache())
 		return std::auto_ptr<NormalFolder>(0);
 	
 	SessionCacher cacher(pSessionCache_.get(), 0);
@@ -180,15 +189,13 @@ std::auto_ptr<NormalFolder> qmimap4::Imap4Driver::createFolder(SubAccount* pSubA
 		hook.nFlags_, 0, 0, 0, 0, 0, pParent, pAccount_));
 }
 
-bool qmimap4::Imap4Driver::removeFolder(SubAccount* pSubAccount,
-										NormalFolder* pFolder)
+bool qmimap4::Imap4Driver::removeFolder(NormalFolder* pFolder)
 {
-	assert(pSubAccount);
 	assert(pFolder);
 	
 	Lock<CriticalSection> lock(cs_);
 	
-	if (!prepareSessionCache(pSubAccount))
+	if (!prepareSessionCache())
 		return false;
 	
 	SessionCacher cacher(pSessionCache_.get(), 0);
@@ -206,17 +213,15 @@ bool qmimap4::Imap4Driver::removeFolder(SubAccount* pSubAccount,
 	return true;
 }
 
-bool qmimap4::Imap4Driver::renameFolder(SubAccount* pSubAccount,
-										NormalFolder* pFolder,
+bool qmimap4::Imap4Driver::renameFolder(NormalFolder* pFolder,
 										const WCHAR* pwszName)
 {
-	assert(pSubAccount);
 	assert(pFolder);
 	assert(pwszName);
 	
 	Lock<CriticalSection> lock(cs_);
 	
-	if (!prepareSessionCache(pSubAccount))
+	if (!prepareSessionCache())
 		return false;
 	
 	SessionCacher cacher(pSessionCache_.get(), 0);
@@ -246,17 +251,15 @@ bool qmimap4::Imap4Driver::createDefaultFolders(Account::FolderList* pList)
 	return true;
 }
 
-bool qmimap4::Imap4Driver::getRemoteFolders(SubAccount* pSubAccount,
-											RemoteFolderList* pList)
+bool qmimap4::Imap4Driver::getRemoteFolders(RemoteFolderList* pList)
 {
-	assert(pSubAccount);
 	assert(pList);
 	
 	Lock<CriticalSection> lock(cs_);
 	
 	FolderUtil::saveSpecialFolders(pAccount_);
 	
-	FolderListGetter getter(pAccount_, pSubAccount, pSecurity_);
+	FolderListGetter getter(pAccount_, pSubAccount_, pPasswordCallback_, pSecurity_);
 	if (!getter.update())
 		return false;
 	getter.getFolders(pList);
@@ -269,14 +272,12 @@ std::pair<const WCHAR**, size_t> qmimap4::Imap4Driver::getFolderParamNames()
 	return std::pair<const WCHAR**, size_t>(0, 0);
 }
 
-bool qmimap4::Imap4Driver::getMessage(SubAccount* pSubAccount,
-									  MessageHolder* pmh,
+bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 									  unsigned int nFlags,
 									  xstring_ptr* pstrMessage,
 									  Message::Flag* pFlag,
 									  bool* pbMadeSeen)
 {
-	assert(pSubAccount);
 	assert(pmh);
 	assert(pstrMessage);
 	assert(pFlag);
@@ -293,9 +294,9 @@ bool qmimap4::Imap4Driver::getMessage(SubAccount* pSubAccount,
 	
 	Lock<CriticalSection> lock(cs_);
 	
-	int nOption = pSubAccount->getProperty(L"Imap4", L"Option", 0xff);
+	int nOption = pSubAccount_->getProperty(L"Imap4", L"Option", 0xff);
 	
-	if (!prepareSessionCache(pSubAccount))
+	if (!prepareSessionCache())
 		return false;
 	
 	SessionCacher cacher(pSessionCache_.get(), pmh->getFolder());
@@ -573,13 +574,11 @@ bool qmimap4::Imap4Driver::getMessage(SubAccount* pSubAccount,
 	return true;
 }
 
-bool qmimap4::Imap4Driver::setMessagesFlags(SubAccount* pSubAccount,
-											NormalFolder* pFolder,
+bool qmimap4::Imap4Driver::setMessagesFlags(NormalFolder* pFolder,
 											const MessageHolderList& l,
 											unsigned int nFlags,
 											unsigned int nMask)
 {
-	assert(pSubAccount);
 	assert(pFolder);
 	assert(!l.empty());
 	assert(std::find_if(l.begin(), l.end(),
@@ -624,7 +623,7 @@ bool qmimap4::Imap4Driver::setMessagesFlags(SubAccount* pSubAccount,
 		
 		Lock<CriticalSection> lock(cs_);
 		
-		if (!prepareSessionCache(pSubAccount))
+		if (!prepareSessionCache())
 			return false;
 		
 		SessionCacher cacher(pSessionCache_.get(), pFolder);
@@ -641,12 +640,10 @@ bool qmimap4::Imap4Driver::setMessagesFlags(SubAccount* pSubAccount,
 	return true;
 }
 
-bool qmimap4::Imap4Driver::appendMessage(SubAccount* pSubAccount,
-										 NormalFolder* pFolder,
+bool qmimap4::Imap4Driver::appendMessage(NormalFolder* pFolder,
 										 const CHAR* pszMessage,
 										 unsigned int nFlags)
 {
-	assert(pSubAccount);
 	assert(pFolder);
 	assert(pszMessage);
 	
@@ -666,7 +663,7 @@ bool qmimap4::Imap4Driver::appendMessage(SubAccount* pSubAccount,
 	else {
 		Lock<CriticalSection> lock(cs_);
 		
-		if (!prepareSessionCache(pSubAccount))
+		if (!prepareSessionCache())
 			return false;
 		
 		SessionCacher cacher(pSessionCache_.get(), 0);
@@ -686,11 +683,9 @@ bool qmimap4::Imap4Driver::appendMessage(SubAccount* pSubAccount,
 	return true;
 }
 
-bool qmimap4::Imap4Driver::removeMessages(SubAccount* pSubAccount,
-										  NormalFolder* pFolder,
+bool qmimap4::Imap4Driver::removeMessages(NormalFolder* pFolder,
 										  const MessageHolderList& l)
 {
-	assert(pSubAccount);
 	assert(pFolder);
 	assert(!l.empty());
 	assert(std::find_if(l.begin(), l.end(),
@@ -702,17 +697,15 @@ bool qmimap4::Imap4Driver::removeMessages(SubAccount* pSubAccount,
 					std::identity<Folder*>()),
 				pFolder))) == l.end());
 	
-	return setMessagesFlags(pSubAccount, pFolder, l,
+	return setMessagesFlags(pFolder, l,
 		MessageHolder::FLAG_DELETED, MessageHolder::FLAG_DELETED);
 }
 
-bool qmimap4::Imap4Driver::copyMessages(SubAccount* pSubAccount,
-										const MessageHolderList& l,
+bool qmimap4::Imap4Driver::copyMessages(const MessageHolderList& l,
 										NormalFolder* pFolderFrom,
 										NormalFolder* pFolderTo,
 										bool bMove)
 {
-	assert(pSubAccount);
 	assert(!l.empty());
 	assert(pFolderFrom);
 	assert(pFolderTo);
@@ -780,7 +773,7 @@ bool qmimap4::Imap4Driver::copyMessages(SubAccount* pSubAccount,
 		
 		Lock<CriticalSection> lock(cs_);
 		
-		if (!prepareSessionCache(pSubAccount))
+		if (!prepareSessionCache())
 			return false;
 		
 		SessionCacher cacher(pSessionCache_.get(), pFolderFrom);
@@ -809,14 +802,12 @@ OfflineJobManager* qmimap4::Imap4Driver::getOfflineJobManager() const
 	return pOfflineJobManager_.get();
 }
 
-bool qmimap4::Imap4Driver::search(SubAccount* pSubAccount,
-								  NormalFolder* pFolder,
+bool qmimap4::Imap4Driver::search(NormalFolder* pFolder,
 								  const WCHAR* pwszCondition,
 								  const WCHAR* pwszCharset,
 								  bool bUseCharset,
 								  MessageHolderList* pList)
 {
-	assert(pSubAccount);
 	assert(pFolder);
 	assert(pwszCondition);
 	assert(pList);
@@ -824,7 +815,7 @@ bool qmimap4::Imap4Driver::search(SubAccount* pSubAccount,
 	if (!bOffline_) {
 		Lock<CriticalSection> lock(cs_);
 		
-		if (!prepareSessionCache(pSubAccount))
+		if (!prepareSessionCache())
 			return false;
 		
 		SessionCacher cacher(pSessionCache_.get(), pFolder);
@@ -872,15 +863,14 @@ bool qmimap4::Imap4Driver::search(SubAccount* pSubAccount,
 	return true;
 }
 
-bool qmimap4::Imap4Driver::prepareSessionCache(SubAccount* pSubAccount)
+bool qmimap4::Imap4Driver::prepareSessionCache()
 {
-	if (!pSessionCache_.get() || pSessionCache_->getSubAccount() != pSubAccount) {
-		pSessionCache_.reset(0);
-		pCallback_.reset(new CallbackImpl(pSubAccount, pSecurity_));
+	if (!pSessionCache_.get()) {
+		pCallback_.reset(new CallbackImpl(pSubAccount_, pPasswordCallback_, pSecurity_));
 		
 		int nMaxSession = pAccount_->getProperty(L"Imap4", L"MaxSession", 5);
 		pSessionCache_.reset(new SessionCache(pAccount_,
-			pSubAccount, pCallback_.get(), nMaxSession));
+			pSubAccount_, pCallback_.get(), nMaxSession));
 	}
 	
 	return true;
@@ -997,8 +987,9 @@ bool qmimap4::Imap4Driver::FlagProcessHook::processFetchResponse(ResponseFetch* 
  */
 
 qmimap4::Imap4Driver::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
+												 PasswordCallback* pPasswordCallback,
 												 const Security* pSecurity) :
-	AbstractCallback(pSubAccount, pSecurity),
+	AbstractCallback(pSubAccount, pPasswordCallback, pSecurity),
 	pProcessHook_(0)
 {
 }
@@ -1112,12 +1103,15 @@ qmimap4::Imap4Factory::~Imap4Factory()
 }
 
 std::auto_ptr<ProtocolDriver> qmimap4::Imap4Factory::createDriver(Account* pAccount,
+																  PasswordCallback* pPasswordCallback,
 																  const qm::Security* pSecurity)
 {
 	assert(pAccount);
+	assert(pPasswordCallback);
 	assert(pSecurity);
 	
-	return std::auto_ptr<ProtocolDriver>(new Imap4Driver(pAccount, pSecurity));
+	return std::auto_ptr<ProtocolDriver>(new Imap4Driver(
+		pAccount, pPasswordCallback, pSecurity));
 }
 
 
@@ -1251,9 +1245,11 @@ void qmimap4::FolderUtil::saveSpecialFolders(Account* pAccount)
 
 qmimap4::FolderListGetter::FolderListGetter(Account* pAccount,
 											SubAccount* pSubAccount,
+											PasswordCallback* pPasswordCallback,
 											const Security* pSecurity) :
 	pAccount_(pAccount),
 	pSubAccount_(pSubAccount),
+	pPasswordCallback_(pPasswordCallback),
 	pSecurity_(pSecurity)
 {
 	pFolderUtil_.reset(new FolderUtil(pAccount_));
@@ -1298,7 +1294,7 @@ void qmimap4::FolderListGetter::getFolders(Imap4Driver::RemoteFolderList* pList)
 
 bool qmimap4::FolderListGetter::connect()
 {
-	pCallback_.reset(new CallbackImpl(this, pSecurity_));
+	pCallback_.reset(new CallbackImpl(this, pPasswordCallback_, pSecurity_));
 	
 	if (pSubAccount_->isLog(Account::HOST_RECEIVE))
 		pLogger_ = pAccount_->openLogger(Account::HOST_RECEIVE);
@@ -1448,8 +1444,9 @@ bool qmimap4::FolderListGetter::FolderDataLess::operator()(
  */
 
 qmimap4::FolderListGetter::CallbackImpl::CallbackImpl(FolderListGetter* pGetter,
+													  PasswordCallback* pPasswordCallback,
 													  const Security* pSecurity) :
-	AbstractCallback(pGetter->pSubAccount_, pSecurity),
+	AbstractCallback(pGetter->pSubAccount_, pPasswordCallback, pSecurity),
 	pGetter_(pGetter),
 	pListNamespace_(0),
 	pListFolderData_(0)

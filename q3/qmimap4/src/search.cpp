@@ -53,7 +53,7 @@ bool qmimap4::Imap4SearchDriver::search(const SearchContext& context,
 		if (pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
 			!pFolder->isFlag(Folder::FLAG_NOSELECT) &&
 			!pFolder->isFlag(Folder::FLAG_LOCAL)) {
-			if (!pDriver->search(pSubAccount, pFolder, context.getCondition(),
+			if (!pDriver->search(pFolder, context.getCondition(),
 				wstrCharset.get(), nUseCharset != 0, pList))
 				return false;
 		}

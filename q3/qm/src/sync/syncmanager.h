@@ -366,6 +366,15 @@ private:
 		virtual ~ReceiveSessionCallbackImpl();
 	
 	public:
+		virtual Result getPassword(SubAccount* pSubAccount,
+								   Account::Host host,
+								   qs::wstring_ptr* pwstrPassword);
+		virtual void setPassword(SubAccount* pSubAccount,
+								 Account::Host host,
+								 const WCHAR* pwszPassword,
+								 bool bPermanent);
+	
+	public:
 		virtual bool isCanceled(bool bForce);
 		virtual void setPos(unsigned int n);
 		virtual void setRange(unsigned int nMin,
@@ -395,6 +404,15 @@ private:
 	public:
 		explicit SendSessionCallbackImpl(SyncManagerCallback* pCallback);
 		virtual ~SendSessionCallbackImpl();
+	
+	public:
+		virtual Result getPassword(SubAccount* pSubAccount,
+								   Account::Host host,
+								   qs::wstring_ptr* pwstrPassword);
+		virtual void setPassword(SubAccount* pSubAccount,
+								 Account::Host host,
+								 const WCHAR* pwszPassword,
+								 bool bPermanent);
 	
 	public:
 		virtual bool isCanceled(bool bForce);
@@ -507,6 +525,13 @@ public:
 						  const SessionErrorInfo& info) = 0;
 	virtual bool isCanceled(unsigned int nId,
 							bool bForce) = 0;
+	virtual PasswordCallback::Result getPassword(SubAccount* pSubAccount,
+												 Account::Host host,
+												 qs::wstring_ptr* pwstrPassword) = 0;
+	virtual void setPassword(SubAccount* pSubAccount,
+							 Account::Host host,
+							 const WCHAR* pwszPassword,
+							 bool bPermanent) = 0;
 	virtual qs::wstring_ptr selectDialupEntry() = 0;
 	virtual bool showDialupDialog(RASDIALPARAMS* prdp) = 0;
 	virtual void notifyNewMessage(unsigned int nId) = 0;

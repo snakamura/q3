@@ -334,8 +334,7 @@ bool qm::AccountImpl::getMessage(MessageHolder* pmh,
 	if (!bLoadFromStore) {
 		xstring_ptr strMessage;
 		Message::Flag remoteFlag = Message::FLAG_EMPTY;
-		if (!pProtocolDriver_->getMessage(pThis_->getCurrentSubAccount(),
-			pmh, nFlags, &strMessage, &remoteFlag, &bMadeSeen))
+		if (!pProtocolDriver_->getMessage(pmh, nFlags, &strMessage, &remoteFlag, &bMadeSeen))
 			return false;
 		bGet = remoteFlag != Message::FLAG_EMPTY;
 		if (bGet) {
@@ -416,9 +415,7 @@ bool qm::AccountImpl::appendMessage(NormalFolder* pFolder,
 			return false;
 	}
 	else {
-		SubAccount* pSubAccount = pThis_->getCurrentSubAccount();
-		if (!pProtocolDriver_->appendMessage(
-			pSubAccount, pFolder, pszMessage, nFlags))
+		if (!pProtocolDriver_->appendMessage(pFolder, pszMessage, nFlags))
 			return false;
 	}
 	
@@ -468,8 +465,7 @@ bool qm::AccountImpl::removeMessages(NormalFolder* pFolder,
 				pCallback->step(l.size());
 		}
 		else {
-			if (!pProtocolDriver_->removeMessages(
-				pThis_->getCurrentSubAccount(), pFolder, l))
+			if (!pProtocolDriver_->removeMessages(pFolder, l))
 				return false;
 			
 			if (pCallback)
@@ -549,9 +545,7 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 				return false;
 		}
 		else {
-			SubAccount* pSubAccount = pThis_->getCurrentSubAccount();
-			if (!pProtocolDriver_->copyMessages(pSubAccount,
-				l, pFolderFrom, pFolderTo, bMove))
+			if (!pProtocolDriver_->copyMessages(l, pFolderFrom, pFolderTo, bMove))
 				return false;
 		}
 		
@@ -586,9 +580,7 @@ bool qm::AccountImpl::setMessagesFlags(NormalFolder* pFolder,
 			(*it)->setFlags(nFlags, nMask);
 	}
 	else {
-		SubAccount* pSubAccount = pThis_->getCurrentSubAccount();
-		if (!pProtocolDriver_->setMessagesFlags(
-			pSubAccount, pFolder, l, nFlags, nMask))
+		if (!pProtocolDriver_->setMessagesFlags(pFolder, l, nFlags, nMask))
 			return false;
 	}
 	
@@ -825,6 +817,7 @@ qm::Account::Account(const WCHAR* pwszPath,
 	if (!pImpl_->pProtocolDriver_->init()) {
 		// TODO
 	}
+	pImpl_->pProtocolDriver_->setSubAccount(pImpl_->pCurrentSubAccount_);
 }
 
 qm::Account::~Account()
@@ -975,8 +968,8 @@ void qm::Account::removeSubAccount(SubAccount* pSubAccount)
 	assert(it != pImpl_->listSubAccount_.end());
 	pImpl_->listSubAccount_.erase(it, pImpl_->listSubAccount_.end());
 	
-	if (pImpl_->pCurrentSubAccount_ == pSubAccount)
-		pImpl_->pCurrentSubAccount_ = pImpl_->listSubAccount_.front();
+	if (getCurrentSubAccount() == pSubAccount)
+		setCurrentSubAccount(pImpl_->listSubAccount_.front());
 	
 	if (!pSubAccount->deletePermanent()) {
 		// TODO LOG
@@ -1005,6 +998,7 @@ SubAccount* qm::Account::getCurrentSubAccount() const
 void qm::Account::setCurrentSubAccount(SubAccount* pSubAccount)
 {
 	pImpl_->pCurrentSubAccount_ = pSubAccount;
+	pImpl_->pProtocolDriver_->setSubAccount(pSubAccount);
 }
 
 Folder* qm::Account::getFolder(const WCHAR* pwszName) const
@@ -1150,8 +1144,7 @@ NormalFolder* qm::Account::createNormalFolder(const WCHAR* pwszName,
 		if (p && *(p + 1) != L'\0')
 			return 0;
 		
-		pNormalFolder = pImpl_->pProtocolDriver_->createFolder(
-			getCurrentSubAccount(), pwszName, pParent);
+		pNormalFolder = pImpl_->pProtocolDriver_->createFolder(pwszName, pParent);
 	}
 	else {
 		if (wcschr(pwszName, cSeparator))
@@ -1215,8 +1208,7 @@ bool qm::Account::removeFolder(Folder* pFolder)
 	
 	if (pFolder->getType() == Folder::TYPE_NORMAL &&
 		!pFolder->isFlag(Folder::FLAG_LOCAL)) {
-		if (!pImpl_->pProtocolDriver_->removeFolder(
-			getCurrentSubAccount(), static_cast<NormalFolder*>(pFolder)))
+		if (!pImpl_->pProtocolDriver_->removeFolder(static_cast<NormalFolder*>(pFolder)))
 			return false;
 	}
 	
@@ -1247,7 +1239,7 @@ bool qm::Account::renameFolder(Folder* pFolder,
 	
 	if (pFolder->getType() == Folder::TYPE_NORMAL &&
 		!pFolder->isFlag(Folder::FLAG_LOCAL)) {
-		if (!pImpl_->pProtocolDriver_->renameFolder(getCurrentSubAccount(),
+		if (!pImpl_->pProtocolDriver_->renameFolder(
 			static_cast<NormalFolder*>(pFolder), pwszName))
 			return false;
 	}
@@ -1279,8 +1271,7 @@ bool qm::Account::updateFolders()
 {
 	typedef ProtocolDriver::RemoteFolderList List;
 	List l;
-	if (!pImpl_->pProtocolDriver_->getRemoteFolders(
-		getCurrentSubAccount(), &l))
+	if (!pImpl_->pProtocolDriver_->getRemoteFolders(&l))
 		return false;
 	
 	struct Deleter

@@ -55,23 +55,24 @@ void qmpop3::Pop3Driver::setOffline(bool bOffline)
 {
 }
 
-std::auto_ptr<NormalFolder> qmpop3::Pop3Driver::createFolder(SubAccount* pSubAccount,
-															 const WCHAR* pwszName,
+void qmpop3::Pop3Driver::setSubAccount(SubAccount* pSubAccount)
+{
+}
+
+std::auto_ptr<NormalFolder> qmpop3::Pop3Driver::createFolder(const WCHAR* pwszName,
 															 Folder* pParent)
 {
 	assert(false);
 	return std::auto_ptr<NormalFolder>(0);
 }
 
-bool qmpop3::Pop3Driver::removeFolder(SubAccount* pSubAccount,
-									  NormalFolder* pFolder)
+bool qmpop3::Pop3Driver::removeFolder(NormalFolder* pFolder)
 {
 	assert(false);
 	return false;
 }
 
-bool qmpop3::Pop3Driver::renameFolder(SubAccount* pSubAccount,
-									  NormalFolder* pFolder,
+bool qmpop3::Pop3Driver::renameFolder(NormalFolder* pFolder,
 									  const WCHAR* pwszName)
 {
 	assert(false);
@@ -103,8 +104,7 @@ bool qmpop3::Pop3Driver::createDefaultFolders(Account::FolderList* pList)
 	return true;
 }
 
-bool qmpop3::Pop3Driver::getRemoteFolders(SubAccount* pSubAccount,
-										  RemoteFolderList* pList)
+bool qmpop3::Pop3Driver::getRemoteFolders(RemoteFolderList* pList)
 {
 	assert(false);
 	return false;
@@ -115,8 +115,7 @@ std::pair<const WCHAR**, size_t> qmpop3::Pop3Driver::getFolderParamNames()
 	return std::pair<const WCHAR**, size_t>(0, 0);
 }
 
-bool qmpop3::Pop3Driver::getMessage(SubAccount* pSubAccount,
-									MessageHolder* pmh,
+bool qmpop3::Pop3Driver::getMessage(MessageHolder* pmh,
 									unsigned int nFlags,
 									xstring_ptr* pstrMessage,
 									Message::Flag* pFlag,
@@ -126,8 +125,7 @@ bool qmpop3::Pop3Driver::getMessage(SubAccount* pSubAccount,
 	return false;
 }
 
-bool qmpop3::Pop3Driver::setMessagesFlags(SubAccount* pSubAccount,
-										  NormalFolder* pFolder,
+bool qmpop3::Pop3Driver::setMessagesFlags(NormalFolder* pFolder,
 										  const MessageHolderList& l,
 										  unsigned int nFlags,
 										  unsigned int nMask)
@@ -136,8 +134,7 @@ bool qmpop3::Pop3Driver::setMessagesFlags(SubAccount* pSubAccount,
 	return false;
 }
 
-bool qmpop3::Pop3Driver::appendMessage(SubAccount* pSubAccount,
-									   NormalFolder* pFolder,
+bool qmpop3::Pop3Driver::appendMessage(NormalFolder* pFolder,
 									   const CHAR* pszMessage,
 									   unsigned int nFlags)
 {
@@ -145,16 +142,14 @@ bool qmpop3::Pop3Driver::appendMessage(SubAccount* pSubAccount,
 	return false;
 }
 
-bool qmpop3::Pop3Driver::removeMessages(SubAccount* pSubAccount,
-										NormalFolder* pFolder,
+bool qmpop3::Pop3Driver::removeMessages(NormalFolder* pFolder,
 										const MessageHolderList& l)
 {
 	assert(false);
 	return false;
 }
 
-bool qmpop3::Pop3Driver::copyMessages(SubAccount* pSubAccount,
-									  const MessageHolderList& l,
+bool qmpop3::Pop3Driver::copyMessages(const MessageHolderList& l,
 									  NormalFolder* pFolderFrom,
 									  NormalFolder* pFolderTo,
 									  bool bMove)
@@ -183,9 +178,11 @@ qmpop3::Pop3Factory::~Pop3Factory()
 }
 
 std::auto_ptr<ProtocolDriver> qmpop3::Pop3Factory::createDriver(Account* pAccount,
+																PasswordCallback* pPasswordCallback,
 																const Security* pSecurity)
 {
 	assert(pAccount);
+	assert(pPasswordCallback);
 	assert(pSecurity);
 	
 	return std::auto_ptr<ProtocolDriver>(new Pop3Driver(pAccount));

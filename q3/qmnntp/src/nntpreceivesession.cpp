@@ -437,7 +437,7 @@ void qmnntp::NntpReceiveSession::clearLastIds()
 qmnntp::NntpReceiveSession::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
 													   const Security* pSecurity,
 													   ReceiveSessionCallback* pSessionCallback) :
-	AbstractCallback(pSubAccount, pSecurity),
+	AbstractCallback(pSubAccount, pSessionCallback, pSecurity),
 	pSessionCallback_(pSessionCallback)
 {
 }

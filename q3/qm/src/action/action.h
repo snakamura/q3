@@ -143,6 +143,7 @@ class MessageSelectionModel;
 class MessageWindow;
 class MoveMenu;
 class NormalFolder;
+class PasswordManager;
 class PreviewMessageModel;
 class ProgressDialog;
 class Recents;
@@ -1978,7 +1979,8 @@ class ToolAccountAction : public qs::AbstractAction
 public:
 	ToolAccountAction(Document* pDocument,
 					  FolderModel* pFolderModel,
-					  SyncFilterManager* pSyncFilterManager,
+					  PasswordManager* pPasswordManager,
+					  SyncManager* pSyncManager,
 					  qs::Profile* pProfile,
 					  HWND hwnd);
 	virtual ~ToolAccountAction();
@@ -1994,7 +1996,8 @@ private:
 private:
 	Document* pDocument_;
 	FolderModel* pFolderModel_;
-	SyncFilterManager* pSyncFilterManager_;
+	PasswordManager* pPasswordManager_;
+	SyncManager* pSyncManager_;
 	qs::Profile* pProfile_;
 	HWND hwnd_;
 };

@@ -34,7 +34,6 @@ class Account;
 class Document;
 class Message;
 class MessageHolder;
-class MessageOperationCallback;
 
 
 /****************************************************************************

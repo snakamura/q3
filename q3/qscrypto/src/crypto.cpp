@@ -112,7 +112,7 @@ X509* qscrypto::CertificateImpl::releaseX509()
 
 bool qscrypto::CertificateImpl::load(const WCHAR* pwszPath,
 									 FileType type,
-									 PasswordCallback* pCallback)
+									 CryptoPasswordCallback* pCallback)
 {
 	assert(pwszPath);
 	
@@ -126,7 +126,7 @@ bool qscrypto::CertificateImpl::load(const WCHAR* pwszPath,
 
 bool qscrypto::CertificateImpl::load(InputStream* pStream,
 									 FileType type,
-									 PasswordCallback* pCallback)
+									 CryptoPasswordCallback* pCallback)
 {
 	assert(pStream);
 	
@@ -204,7 +204,7 @@ EVP_PKEY* qscrypto::PrivateKeyImpl::getKey() const
 
 bool qscrypto::PrivateKeyImpl::load(const WCHAR* pwszPath,
 									FileType type,
-									PasswordCallback* pCallback)
+									CryptoPasswordCallback* pCallback)
 {
 	assert(pwszPath);
 	
@@ -218,7 +218,7 @@ bool qscrypto::PrivateKeyImpl::load(const WCHAR* pwszPath,
 
 bool qscrypto::PrivateKeyImpl::load(InputStream* pStream,
 									FileType type,
-									PasswordCallback* pCallback)
+									CryptoPasswordCallback* pCallback)
 {
 	assert(pStream);
 	
@@ -268,7 +268,7 @@ EVP_PKEY* qscrypto::PublicKeyImpl::getKey() const
 
 bool qscrypto::PublicKeyImpl::load(const WCHAR* pwszPath,
 								   FileType type,
-								   PasswordCallback* pCallback)
+								   CryptoPasswordCallback* pCallback)
 {
 	assert(pwszPath);
 	
@@ -282,7 +282,7 @@ bool qscrypto::PublicKeyImpl::load(const WCHAR* pwszPath,
 
 bool qscrypto::PublicKeyImpl::load(InputStream* pStream,
 								   FileType type,
-								   PasswordCallback* pCallback)
+								   CryptoPasswordCallback* pCallback)
 {
 	assert(pStream);
 	
@@ -491,7 +491,7 @@ extern "C" int passwordCallback(char* pBuf,
 								int nRWFlag,
 								void* pParam)
 {
-	PasswordCallback* pCallback = static_cast<PasswordCallback*>(pParam);
+	CryptoPasswordCallback* pCallback = static_cast<CryptoPasswordCallback*>(pParam);
 	
 	QTRY {
 		wstring_ptr wstrPassword(pCallback->getPassword());

@@ -152,6 +152,7 @@ class AbstractCallback :
 {
 public:
 	AbstractCallback(qm::SubAccount* pSubAccount,
+					 qm::PasswordCallback* pPasswordCallback,
 					 const qm::Security* pSecurity);
 	virtual ~AbstractCallback();
 
@@ -167,6 +168,8 @@ private:
 
 private:
 	qm::SubAccount* pSubAccount_;
+	qm::PasswordCallback* pPasswordCallback_;
+	qm::PasswordCallback::Result result_;
 };
 
 }

@@ -126,6 +126,7 @@ private:
 	private:
 		qm::SubAccount* pSubAccount_;
 		qm::ReceiveSessionCallback* pSessionCallback_;
+		qm::PasswordCallback::Result result_;
 	};
 	
 	class UIDSaver
