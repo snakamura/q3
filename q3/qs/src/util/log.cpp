@@ -74,10 +74,7 @@ void qs::Logger::log(Level level,
 		return;
 	
 	Time time(Time::getCurrentTime());
-	WCHAR wszTime[32];
-	swprintf(wszTime, L"%04d/%02d/%02d-%02d:%02d:%02d",
-		time.wYear, time.wMonth, time.wDay,
-		time.wHour, time.wMinute, time.wSecond);
+	wstring_ptr wstrTime(time.format(L"%Y4/%M0/%D-%h:%m:%s%z", Time::FORMAT_LOCAL));
 	
 	const WCHAR* pwszLevels[] = {
 		L"FATAL",
@@ -90,7 +87,7 @@ void qs::Logger::log(Level level,
 		{ L"[",					1	},
 		{ pwszLevels[level],	-1	},
 		{ L" ",					1	},
-		{ wszTime,				-1	},
+		{ wstrTime.get(),		-1	},
 		{ L" ",					1	},
 		{ pwszModule,			-1	},
 		{ L"] ",				2	},
