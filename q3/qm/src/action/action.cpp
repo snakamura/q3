@@ -1573,7 +1573,7 @@ bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 			return false;
 	}
 	
-	xstring_ptr strContent(msg.getContent());
+	xstring_size_ptr strContent(msg.getContent());
 	if (!strContent.get())
 		return false;
 	
@@ -1606,8 +1606,7 @@ bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 		}
 	}
 	else {
-		if (pStream->write(reinterpret_cast<unsigned char*>(strContent.get()),
-			strlen(strContent.get())) == -1)
+		if (pStream->write(reinterpret_cast<unsigned char*>(strContent.get()), strContent.size()) == -1)
 			return false;
 	}
 	
@@ -1813,7 +1812,7 @@ bool qm::FileImportAction::readSingleMessage(NormalFolder* pFolder,
 		return false;
 	BufferedInputStream bufferedStream(&stream, false);
 	
-	xstring_ptr strContent;
+	xstring_size_ptr strContent;
 	if (pwszEncoding) {
 		InputStreamReader reader(&bufferedStream, false, pwszEncoding);
 		if (!reader)
@@ -1894,11 +1893,11 @@ bool qm::FileImportAction::readSingleMessage(NormalFolder* pFolder,
 				return false;
 		}
 		
-		strContent = buf.getXString();
+		strContent = buf.getXStringSize();
 	}
 	
 	Account* pAccount = pFolder->getAccount();
-	if (!pAccount->importMessage(pFolder, strContent.get(), nFlags))
+	if (!pAccount->importMessage(pFolder, strContent.get(), strContent.size(), nFlags))
 		return false;
 	
 	return true;
@@ -1952,7 +1951,7 @@ bool qm::FileImportAction::readMultipleMessages(NormalFolder* pFolder,
 					pDialog->setPos((*pnPos)++ % 100);
 				}
 				
-				xstring_ptr strContent;
+				xstring_size_ptr strContent;
 				if (pwszEncoding) {
 					std::auto_ptr<Converter> pConverter(ConverterFactory::getInstance(pwszEncoding));
 					if (!pConverter.get())
@@ -1972,11 +1971,11 @@ bool qm::FileImportAction::readMultipleMessages(NormalFolder* pFolder,
 					strContent = pMessage->getContent();
 				}
 				else {
-					strContent = buf.getXString();
+					strContent = buf.getXStringSize();
 				}
 				
 				Account* pAccount = pFolder->getAccount();
-				if (!pAccount->importMessage(pFolder, strContent.get(), nFlags))
+				if (!pAccount->importMessage(pFolder, strContent.get(), strContent.size(), nFlags))
 					return false;
 				
 				buf.remove();

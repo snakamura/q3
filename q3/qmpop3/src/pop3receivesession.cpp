@@ -218,16 +218,15 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 			}
 		}
 		
-		xstring_ptr strMessage;
+		xstring_size_ptr strMessage;
 		Message msg;
 		State state = STATE_NONE;
-		unsigned int nGetSize = 0;
 		unsigned int nMaxLine = 0xffffffff;
 		bool bIgnore = false;
 		if (pSyncFilterSet) {
 			Pop3SyncFilterCallback callback(pDocument_, pAccount_,
 				pFolder_, &msg, nSize, hwnd_, pProfile_, &globalVariable,
-				pPop3_.get(), n, strMessage.getThis(), &state, &nGetSize);
+				pPop3_.get(), n, &strMessage, &state);
 			const SyncFilter* pFilter = pSyncFilterSet->getFilter(&callback);
 			if (pFilter) {
 				const SyncFilter::ActionList& listAction = pFilter->getActions();
@@ -253,16 +252,15 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 			}
 		}
 		if (!bIgnore && state != STATE_ALL && (state != STATE_HEADER || nMaxLine != 0)) {
-			strMessage.reset(0);
-			nGetSize = nSize;
-			if (!pPop3_->getMessage(n, nMaxLine, &strMessage, &nGetSize))
+			strMessage.reset(0, -1);
+			if (!pPop3_->getMessage(n, nMaxLine, &strMessage, nSize))
 				HANDLE_ERROR();
 			
-			if (!msg.createHeader(strMessage.get(), nGetSize))
+			if (!msg.createHeader(strMessage.get(), strMessage.size()))
 				return false;
 		}
 		
-		bool bPartial = bIgnore || (nMaxLine != 0xffffffff && nSize > nGetSize);
+		bool bPartial = bIgnore || (nMaxLine != 0xffffffff && nSize > strMessage.size());
 		
 		if (!bIgnore) {
 			UnstructuredParser uid(pwszUID, L"utf-8");
@@ -292,7 +290,7 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 			Lock<Account> lock(*pAccount_);
 			
 			MessageHolder* pmh = pAccount_->storeMessage(pFolder_,
-				strMessage.get(), nGetSize, &msg, -1, nFlags, nSize, false);
+				strMessage.get(), strMessage.size(), &msg, -1, nFlags, nSize, false);
 			if (!pmh)
 				return false;
 			
@@ -582,11 +580,10 @@ bool qmpop3::Pop3ReceiveSession::downloadReservedMessages(NormalFolder* pFolder,
 			if (msg.getField(L"X-UIDL", &uidl) == Part::FIELD_EXIST) {
 				size_t nIndex = pUIDList_->getIndex(uidl.getValue());
 				if (nIndex != -1) {
-					xstring_ptr strMessage;
-					unsigned int nSize = listSize_[nIndex];
-					if (!pPop3_->getMessage(nIndex, 0xffffffff, &strMessage, &nSize))
+					xstring_size_ptr strMessage;
+					if (!pPop3_->getMessage(nIndex, 0xffffffff, &strMessage, listSize_[nIndex]))
 						HANDLE_ERROR();
-					if (!pAccount_->updateMessage(mpl, strMessage.get(), nSize))
+					if (!pAccount_->updateMessage(mpl, strMessage.get(), strMessage.size()))
 						return false;
 					
 					UID* pUID = pUIDList_->getUID(nIndex);
@@ -836,9 +833,8 @@ qmpop3::Pop3SyncFilterCallback::Pop3SyncFilterCallback(Document* pDocument,
 													   MacroVariableHolder* pGlobalVariable,
 													   Pop3* pPop3,
 													   unsigned int nMessage,
-													   xstring_ptr* pstrMessage,
-													   Pop3ReceiveSession::State* pState,
-													   unsigned int* pnGetSize) :
+													   xstring_size_ptr* pstrMessage,
+													   Pop3ReceiveSession::State* pState) :
 	pDocument_(pDocument),
 	pAccount_(pAccount),
 	pFolder_(pFolder),
@@ -850,8 +846,7 @@ qmpop3::Pop3SyncFilterCallback::Pop3SyncFilterCallback(Document* pDocument,
 	pPop3_(pPop3),
 	nMessage_(nMessage),
 	pstrMessage_(pstrMessage),
-	pState_(pState),
-	pnGetSize_(pnGetSize)
+	pState_(pState)
 {
 }
 
@@ -881,14 +876,13 @@ bool qmpop3::Pop3SyncFilterCallback::getMessage(unsigned int nFlag)
 	}
 	
 	if (bDownload) {
-		xstring_ptr& str = *pstrMessage_;
+		xstring_size_ptr& str = *pstrMessage_;
 		
-		str.reset(0);
-		*pnGetSize_ = nSize_;
-		if (!pPop3_->getMessage(nMessage_, nMaxLine, &str, pnGetSize_))
+		str.reset(0, -1);
+		if (!pPop3_->getMessage(nMessage_, nMaxLine, &str, nSize_))
 			return false;
 		
-		if (!pMessage_->createHeader(str.get(), *pnGetSize_))
+		if (!pMessage_->createHeader(str.get(), str.size()))
 			return false;
 	}
 	

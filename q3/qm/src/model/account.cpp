@@ -68,6 +68,7 @@ public:
 					Message* pMessage);
 	bool appendMessage(NormalFolder* pFolder,
 					   const CHAR* pszMessage,
+					   size_t nLen,
 					   const Message& msgHeader,
 					   unsigned int nFlags,
 					   unsigned int nSize,
@@ -422,6 +423,7 @@ bool qm::AccountImpl::getMessage(MessageHolder* pmh,
 
 bool qm::AccountImpl::appendMessage(NormalFolder* pFolder,
 									const CHAR* pszMessage,
+									size_t nLen,
 									const Message& msgHeader,
 									unsigned int nFlags,
 									unsigned int nSize,
@@ -435,14 +437,14 @@ bool qm::AccountImpl::appendMessage(NormalFolder* pFolder,
 	
 	if (pFolder->isFlag(Folder::FLAG_LOCAL)) {
 		MessageHolder* pmh = pThis_->storeMessage(pFolder,
-			pszMessage, -1, &msgHeader, -1, nFlags, nSize, false);
+			pszMessage, nLen, &msgHeader, -1, nFlags, nSize, false);
 		if (!pmh)
 			return false;
 		if (pptr)
 			*pptr = MessagePtr(pmh);
 	}
 	else {
-		if (!pProtocolDriver_->appendMessage(pFolder, pszMessage, nFlags))
+		if (!pProtocolDriver_->appendMessage(pFolder, pszMessage, nLen, nFlags))
 			return false;
 	}
 	
@@ -640,7 +642,7 @@ bool qm::AccountImpl::processSMIME(const SMIMEUtility* pSMIMEUtility,
 								   SMIMEUtility::Type type,
 								   Message* pMessage)
 {
-	xstring_ptr strMessage;
+	xstring_size_ptr strMessage;
 	wstring_ptr wstrSignedBy;
 	unsigned int nSecurity = Message::SECURITY_NONE;
 	switch (type) {
@@ -683,7 +685,7 @@ bool qm::AccountImpl::processSMIME(const SMIMEUtility* pSMIMEUtility,
 	if (!strMessage.get())
 		return false;
 	
-	if (!pMessage->create(strMessage.get(), -1, Message::FLAG_NONE, nSecurity))
+	if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE, nSecurity))
 		return false;
 	
 	if (wstrSignedBy.get())
@@ -706,7 +708,7 @@ bool qm::AccountImpl::processPGP(const PGPUtility* pPGPUtility,
 			return false;
 	}
 	
-	xstring_ptr strMessage;
+	xstring_size_ptr strMessage;
 	unsigned int nVerify = 0;
 	wstring_ptr wstrSignedBy;
 	unsigned int nSecurity = Message::SECURITY_NONE;
@@ -750,7 +752,7 @@ bool qm::AccountImpl::processPGP(const PGPUtility* pPGPUtility,
 	if (nVerify & PGPUtility::VERIFY_ADDRESSNOTMATCH)
 		nSecurity |= Message::SECURITY_ADDRESSNOTMATCH;
 	
-	if (!pMessage->create(strMessage.get(), -1, Message::FLAG_NONE, nSecurity))
+	if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE, nSecurity))
 		return false;
 	
 	if (wstrSignedBy.get())
@@ -1822,13 +1824,14 @@ bool qm::Account::flushMessageStore() const
 
 bool qm::Account::importMessage(NormalFolder* pFolder,
 								const CHAR* pszMessage,
+								size_t nLen,
 								unsigned int nFlags)
 {
 	assert(pFolder);
 	assert(pszMessage);
 	
 	Message header;
-	if (!header.createHeader(pszMessage, -1))
+	if (!header.createHeader(pszMessage, nLen))
 		return false;
 	
 	unsigned int nMessageFlags = 0;
@@ -1877,7 +1880,7 @@ bool qm::Account::importMessage(NormalFolder* pFolder,
 	if (field != Part::FIELD_NOTEXIST)
 		header.removeField(L"X-QMAIL-Flags");
 	
-	return pImpl_->appendMessage(pFolder, pszMessage, header, nMessageFlags, -1, 0);
+	return pImpl_->appendMessage(pFolder, pszMessage, nLen, header, nMessageFlags, -1, 0);
 }
 
 bool qm::Account::appendMessage(NormalFolder* pFolder,
@@ -1888,10 +1891,11 @@ bool qm::Account::appendMessage(NormalFolder* pFolder,
 	assert(pFolder);
 	assert(msg.getFlag() != Message::FLAG_EMPTY);
 	
-	xstring_ptr strMessage(msg.getContent());
+	xstring_size_ptr strMessage(msg.getContent());
 	if (!strMessage.get())
 		return false;
-	return pImpl_->appendMessage(pFolder, strMessage.get(), msg, nFlags, -1, pptr);
+	return pImpl_->appendMessage(pFolder, strMessage.get(),
+		strMessage.size(), msg, nFlags, -1, pptr);
 }
 
 bool qm::Account::removeMessages(const MessageHolderList& l,
@@ -2404,7 +2408,7 @@ MessageHolder* qm::Account::cloneMessage(MessageHolder* pmh,
 		Message msg;
 		if (!pmh->getMessage(GETMESSAGEFLAG_POSSIBLE, 0, SECURITYMODE_NONE, &msg))
 			return 0;
-		xstring_ptr strContent(msg.getContent());
+		xstring_size_ptr strContent(msg.getContent());
 		if (!strContent.get())
 			return 0;
 		unsigned int nId = pFolderTo->generateId();
@@ -2412,7 +2416,7 @@ MessageHolder* qm::Account::cloneMessage(MessageHolder* pmh,
 			return 0;
 		unsigned int nFlags = pmh->getFlags() & (MessageHolder::FLAG_USER_MASK |
 			MessageHolder::FLAG_PARTIAL_MASK | MessageHolder::FLAG_LOCAL);
-		return storeMessage(pFolderTo, strContent.get(), -1,
+		return storeMessage(pFolderTo, strContent.get(), strContent.size(),
 			&msg, nId, nFlags, pmh->getSize(), false);
 	}
 }

@@ -83,6 +83,7 @@ public:
 								  unsigned int nMask) = 0;
 	virtual bool appendMessage(NormalFolder* pFolder,
 							   const CHAR* pszMessage,
+							   size_t nLen,
 							   unsigned int nFlags) = 0;
 	virtual bool removeMessages(NormalFolder* pFolder,
 								const MessageHolderList& l) = 0;

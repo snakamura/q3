@@ -111,12 +111,12 @@ public:
 	bool group(const WCHAR* pwszGroup);
 	bool getMessage(unsigned int n,
 					GetMessageFlag flag,
-					qs::xstring_ptr* pstrMessage,
-					unsigned int* pnSize);
+					qs::xstring_size_ptr* pstrMessage,
+					unsigned int nEstimatedSize);
 	bool getMessage(const WCHAR* pwszMessageId,
 					GetMessageFlag flag,
-					qs::xstring_ptr* pstrMessage,
-					unsigned int* pnSize);
+					qs::xstring_size_ptr* pstrMessage,
+					unsigned int nEstimatedSize);
 	bool getMessagesData(unsigned int nStart,
 						 unsigned int nEnd,
 						 std::auto_ptr<MessagesData>* ppMessageData);
@@ -130,8 +130,8 @@ private:
 	bool getMessage(unsigned int n,
 					const WCHAR* pwszMessageId,
 					GetMessageFlag flag,
-					qs::xstring_ptr* pstrMessage,
-					unsigned int* pnSize);
+					qs::xstring_size_ptr* pstrMessage,
+					unsigned int nEstimatedSize);
 	bool receive(unsigned int* pnCode);
 	bool receive(unsigned int* pnCode,
 				 qs::string_ptr* pstrResponse);

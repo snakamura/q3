@@ -349,12 +349,12 @@ bool qmimap4::AppendOfflineJob::apply(Account* pAccount,
 				0, SECURITYMODE_NONE, &msg))
 				return false;
 			
-			xstring_ptr strContent(msg.getContent());
+			xstring_size_ptr strContent(msg.getContent());
 			if (!strContent.get())
 				return false;
 			
 			Flags flags(Util::getImap4FlagsFromMessageFlags(mpl->getFlags()));
-			if (!pImap4->append(wstrName.get(), strContent.get(), flags))
+			if (!pImap4->append(wstrName.get(), strContent.get(), strContent.size(), flags))
 				return false;
 			
 			if (!pAccount->unstoreMessages(MessageHolderList(1, mpl), 0))

@@ -100,10 +100,10 @@ PGPUtility::Type qmpgp::PGPUtilityImpl::getType(const ContentTypeParser* pConten
 	return TYPE_NONE;
 }
 
-xstring_ptr qmpgp::PGPUtilityImpl::sign(Part* pPart,
-										bool bMime,
-										const WCHAR* pwszUserId,
-										const WCHAR* pwszPassphrase) const
+xstring_size_ptr qmpgp::PGPUtilityImpl::sign(Part* pPart,
+											 bool bMime,
+											 const WCHAR* pwszUserId,
+											 const WCHAR* pwszPassphrase) const
 {
 	assert(pPart);
 	assert(pwszUserId);
@@ -115,40 +115,41 @@ xstring_ptr qmpgp::PGPUtilityImpl::sign(Part* pPart,
 	if (bMime) {
 		xstring_ptr strHeader(allocXString(pPart->getHeader()));
 		if (!strHeader.get())
-			return 0;
+			return xstring_size_ptr();
 		
 		PrefixFieldFilter filter("content-", true);
 		if (!pPart->removeFields(&filter))
-			return 0;
+			return xstring_size_ptr();
 		
-		xstring_ptr strContent(pPart->getContent());
+		xstring_size_ptr strContent(pPart->getContent());
 		if (!strContent.get())
-			return 0;
+			return xstring_size_ptr();
 		
-		xstring_ptr strSignature(pDriver_->sign(strContent.get(),
+		xstring_size_ptr strSignature(pDriver_->sign(strContent.get(),
 			Driver::SIGNFLAG_DETACH, pwszUserId, pwszPassphrase));
 		if (!strSignature.get())
-			return 0;
+			return xstring_size_ptr();
 		
-		return createMultipartSignedMessage(strHeader.get(), *pPart, strSignature.get());
+		return createMultipartSignedMessage(strHeader.get(),
+			*pPart, strSignature.get(), strSignature.size());
 	}
 	else {
-		xstring_ptr strContent(pPart->getContent());
+		xstring_size_ptr strContent(pPart->getContent());
 		if (!strContent.get())
-			return 0;
+			return xstring_size_ptr();
 		
-		const CHAR* pBody = Part::getBody(strContent.get(), -1);
-		xstring_ptr strBody(pDriver_->sign(pBody,
+		const CHAR* pBody = Part::getBody(strContent.get(), strContent.size());
+		xstring_size_ptr strBody(pDriver_->sign(pBody,
 			Driver::SIGNFLAG_CLEARTEXT, pwszUserId, pwszPassphrase));
 		if (!strBody.get())
-			return 0;
+			return xstring_size_ptr();
 		
-		return createMessage(pPart->getHeader(), strBody.get());
+		return createMessage(pPart->getHeader(), strBody.get(), strBody.size());
 	}
 }
 
-xstring_ptr qmpgp::PGPUtilityImpl::encrypt(Part* pPart,
-										   bool bMime) const
+xstring_size_ptr qmpgp::PGPUtilityImpl::encrypt(Part* pPart,
+												bool bMime) const
 {
 	assert(pPart);
 	
@@ -162,40 +163,40 @@ xstring_ptr qmpgp::PGPUtilityImpl::encrypt(Part* pPart,
 	if (bMime) {
 		xstring_ptr strHeader(allocXString(pPart->getHeader()));
 		if (!strHeader.get())
-			return 0;
+			return xstring_size_ptr();
 		
 		PrefixFieldFilter filter("content-", true);
 		if (!pPart->removeFields(&filter))
-			return 0;
+			return xstring_size_ptr();
 		
-		xstring_ptr strContent(pPart->getContent());
+		xstring_size_ptr strContent(pPart->getContent());
 		if (!strContent.get())
-			return 0;
+			return xstring_size_ptr();
 		
-		xstring_ptr strBody(pDriver_->encrypt(strContent.get(), listRecipient));
+		xstring_size_ptr strBody(pDriver_->encrypt(strContent.get(), listRecipient));
 		if (!strBody.get())
-			return 0;
+			return xstring_size_ptr();
 		
-		return createMultipartEncryptedMessage(strHeader.get(), strBody.get());
+		return createMultipartEncryptedMessage(strHeader.get(), strBody.get(), strBody.size());
 	}
 	else {
-		xstring_ptr strContent(pPart->getContent());
+		xstring_size_ptr strContent(pPart->getContent());
 		if (!strContent.get())
-			return 0;
+			return xstring_size_ptr();
 		
-		const CHAR* pBody = Part::getBody(strContent.get(), -1);
-		xstring_ptr strBody(pDriver_->encrypt(pBody, listRecipient));
+		const CHAR* pBody = Part::getBody(strContent.get(), strContent.size());
+		xstring_size_ptr strBody(pDriver_->encrypt(pBody, listRecipient));
 		if (!strBody.get())
-			return 0;
+			return xstring_size_ptr();
 		
-		return createMessage(pPart->getHeader(), strBody.get());
+		return createMessage(pPart->getHeader(), strBody.get(), strBody.size());
 	}
 }
 
-xstring_ptr qmpgp::PGPUtilityImpl::signAndEncrypt(Part* pPart,
-												  bool bMime,
-												  const WCHAR* pwszUserId,
-												  const WCHAR* pwszPassphrase) const
+xstring_size_ptr qmpgp::PGPUtilityImpl::signAndEncrypt(Part* pPart,
+													   bool bMime,
+													   const WCHAR* pwszUserId,
+													   const WCHAR* pwszPassphrase) const
 {
 	assert(pPart);
 	assert(pwszUserId);
@@ -211,42 +212,42 @@ xstring_ptr qmpgp::PGPUtilityImpl::signAndEncrypt(Part* pPart,
 	if (bMime) {
 		xstring_ptr strHeader(allocXString(pPart->getHeader()));
 		if (!strHeader.get())
-			return 0;
+			return xstring_size_ptr();
 		
 		PrefixFieldFilter filter("content-", true);
 		if (!pPart->removeFields(&filter))
-			return 0;
+			return xstring_size_ptr();
 		
-		xstring_ptr strContent(pPart->getContent());
+		xstring_size_ptr strContent(pPart->getContent());
 		if (!strContent.get())
-			return 0;
+			return xstring_size_ptr();
 		
-		xstring_ptr strBody(pDriver_->signAndEncrypt(strContent.get(),
+		xstring_size_ptr strBody(pDriver_->signAndEncrypt(strContent.get(),
 			pwszUserId, pwszPassphrase, listRecipient));
 		if (!strBody.get())
-			return 0;
+			return xstring_size_ptr();
 		
-		return createMultipartEncryptedMessage(strHeader.get(), strBody.get());
+		return createMultipartEncryptedMessage(strHeader.get(), strBody.get(), strBody.size());
 	}
 	else {
-		xstring_ptr strContent(pPart->getContent());
+		xstring_size_ptr strContent(pPart->getContent());
 		if (!strContent.get())
-			return 0;
+			return xstring_size_ptr();
 		
-		const CHAR* pBody = Part::getBody(strContent.get(), -1);
-		xstring_ptr strBody(pDriver_->signAndEncrypt(pBody,
+		const CHAR* pBody = Part::getBody(strContent.get(), strContent.size());
+		xstring_size_ptr strBody(pDriver_->signAndEncrypt(pBody,
 			pwszUserId, pwszPassphrase, listRecipient));
 		if (!strBody.get())
-			return 0;
+			return xstring_size_ptr();
 		
-		return createMessage(pPart->getHeader(), strBody.get());
+		return createMessage(pPart->getHeader(), strBody.get(), strBody.size());
 	}
 }
 
-xstring_ptr qmpgp::PGPUtilityImpl::verify(const Part& part,
-										  bool bMime,
-										  unsigned int* pnVerify,
-										  wstring_ptr* pwstrSignedBy) const
+xstring_size_ptr qmpgp::PGPUtilityImpl::verify(const Part& part,
+											   bool bMime,
+											   unsigned int* pnVerify,
+											   wstring_ptr* pwstrSignedBy) const
 {
 	assert(pnVerify);
 	assert(pwstrSignedBy);
@@ -257,9 +258,9 @@ xstring_ptr qmpgp::PGPUtilityImpl::verify(const Part& part,
 	if (bMime) {
 		assert(getType(part, false) == TYPE_MIMESIGNED);
 		
-		xstring_ptr strContent(part.getPart(0)->getContent());
+		xstring_size_ptr strContent(part.getPart(0)->getContent());
 		if (!strContent.get())
-			return 0;
+			return xstring_size_ptr();
 		
 		bool bVerified = pDriver_->verify(strContent.get(),
 			part.getPart(1)->getBody(), pwstrSignedBy);
@@ -268,27 +269,27 @@ xstring_ptr qmpgp::PGPUtilityImpl::verify(const Part& part,
 		if (!checkUserId(part, pwstrSignedBy->get()))
 			*pnVerify |= VERIFY_ADDRESSNOTMATCH;
 		
-		return createMessage(strContent.get(), part);
+		return createMessage(strContent.get(), strContent.size(), part);
 	}
 	else {
 		assert(getType(part, true) == TYPE_INLINESIGNED);
 		
-		xstring_ptr strBody(pDriver_->decryptAndVerify(
+		xstring_size_ptr strBody(pDriver_->decryptAndVerify(
 			part.getBody(), 0, pnVerify, pwstrSignedBy));
 		if (!strBody.get())
-			return 0;
+			return xstring_size_ptr();
 		if (!checkUserId(part, pwstrSignedBy->get()))
 			*pnVerify |= VERIFY_ADDRESSNOTMATCH;
 		
-		return createMessage(part.getHeader(), strBody.get());
+		return createMessage(part.getHeader(), strBody.get(), strBody.size());
 	}
 }
 
-xstring_ptr qmpgp::PGPUtilityImpl::decryptAndVerify(const Part& part,
-													bool bMime,
-													const WCHAR* pwszPassphrase,
-													unsigned int* pnVerify,
-													wstring_ptr* pwstrSignedBy) const
+xstring_size_ptr qmpgp::PGPUtilityImpl::decryptAndVerify(const Part& part,
+														 bool bMime,
+														 const WCHAR* pwszPassphrase,
+														 unsigned int* pnVerify,
+														 wstring_ptr* pwstrSignedBy) const
 {
 	assert(pnVerify);
 	assert(pwstrSignedBy);
@@ -299,28 +300,28 @@ xstring_ptr qmpgp::PGPUtilityImpl::decryptAndVerify(const Part& part,
 	if (bMime) {
 		assert(getType(part, false) == TYPE_MIMEENCRYPTED);
 		
-		xstring_ptr strContent(pDriver_->decryptAndVerify(part.getPart(1)->getBody(),
+		xstring_size_ptr strContent(pDriver_->decryptAndVerify(part.getPart(1)->getBody(),
 			pwszPassphrase, pnVerify, pwstrSignedBy));
 		if (!strContent.get())
-			return 0;
+			return xstring_size_ptr();
 		if (*pnVerify != VERIFY_NONE) {
 			if (!checkUserId(part, pwstrSignedBy->get()))
 				*pnVerify |= VERIFY_ADDRESSNOTMATCH;
 		}
-		return createMessage(strContent.get(), part);
+		return createMessage(strContent.get(), strContent.size(), part);
 	}
 	else {
 		assert(getType(part, true) == TYPE_INLINEENCRYPTED);
 		
-		xstring_ptr strBody(pDriver_->decryptAndVerify(part.getBody(),
+		xstring_size_ptr strBody(pDriver_->decryptAndVerify(part.getBody(),
 			pwszPassphrase, pnVerify, pwstrSignedBy));
 		if (!strBody.get())
-			return 0;
+			return xstring_size_ptr();
 		if (*pnVerify != VERIFY_NONE) {
 			if (!checkUserId(part, pwstrSignedBy->get()))
 				*pnVerify |= VERIFY_ADDRESSNOTMATCH;
 		}
-		return createMessage(part.getHeader(), strBody.get());
+		return createMessage(part.getHeader(), strBody.get(), strBody.size());
 	}
 }
 
@@ -414,20 +415,20 @@ bool qmpgp::PGPUtilityImpl::contains(const AddressParser& address,
 	return _wcsicmp(wstrAddress.get(), pwszAddress) == 0;
 }
 
-xstring_ptr qmpgp::PGPUtilityImpl::createMessage(const CHAR* pszHeader,
-												 const CHAR* pszBody)
+xstring_size_ptr qmpgp::PGPUtilityImpl::createMessage(const CHAR* pszHeader,
+													  const CHAR* pszBody,
+													  size_t nBodyLen)
 {
 	XStringBuffer<XSTRING> buf;
-	if (!buf.append(pszHeader) || !buf.append("\r\n") || !buf.append(pszBody))
-		return 0;
-	return buf.getXString();
+	if (!buf.append(pszHeader) || !buf.append("\r\n") || !buf.append(pszBody, nBodyLen))
+		return xstring_size_ptr();
+	return buf.getXStringSize();
 }
 
-xstring_ptr qmpgp::PGPUtilityImpl::createMessage(const CHAR* pszContent,
-												 const Part& part)
+xstring_size_ptr qmpgp::PGPUtilityImpl::createMessage(const CHAR* pszContent,
+													  size_t nLen,
+													  const Part& part)
 {
-	size_t nLen = strlen(pszContent);
-	
 	BMFindString<STRING> bmfs("\r\n\r\n");
 	const CHAR* pBody = bmfs.find(pszContent, nLen);
 	if (pBody)
@@ -437,18 +438,18 @@ xstring_ptr qmpgp::PGPUtilityImpl::createMessage(const CHAR* pszContent,
 	
 	Part header;
 	if (!header.create(0, pszContent, nHeaderLen))
-		return 0;
+		return xstring_size_ptr();
 	
 	PrefixFieldFilter filter("content-", true);
 	if (!header.copyFields(part, &filter))
-		return 0;
+		return xstring_size_ptr();
 	
 	const CHAR* pszHeader = header.getHeader();
 	size_t nNewHeaderLen = strlen(pszHeader);
 	
 	xstring_ptr strMessage(allocXString(nNewHeaderLen + nBodyLen + 5));
 	if (!strMessage.get())
-		return 0;
+		return xstring_size_ptr();
 	
 	CHAR* p = strMessage.get();
 	strncpy(p, pszHeader, nNewHeaderLen);
@@ -459,12 +460,13 @@ xstring_ptr qmpgp::PGPUtilityImpl::createMessage(const CHAR* pszContent,
 		strncpy(p, pBody, nBodyLen);
 	*(p + nBodyLen) = '\0';
 	
-	return strMessage;
+	return xstring_size_ptr(strMessage.release(), nNewHeaderLen + 2 + nBodyLen);
 }
 
-xstring_ptr qmpgp::PGPUtilityImpl::createMultipartSignedMessage(const CHAR* pszHeader,
-																const Part& part,
-																const CHAR* pszSignature)
+xstring_size_ptr qmpgp::PGPUtilityImpl::createMultipartSignedMessage(const CHAR* pszHeader,
+																	 const Part& part,
+																	 const CHAR* pszSignature,
+																	 size_t nSignatureLen)
 {
 	assert(pszHeader);
 	assert(pszSignature);
@@ -472,11 +474,11 @@ xstring_ptr qmpgp::PGPUtilityImpl::createMultipartSignedMessage(const CHAR* pszH
 	Part msg;
 	{
 		if (!msg.create(0, pszHeader, -1))
-			return 0;
+			return xstring_size_ptr();
 		
 		PrefixFieldFilter filter("content-");
 		if (!msg.removeFields(&filter))
-			return 0;
+			return xstring_size_ptr();
 		msg.setBody(0);
 		
 		ContentTypeParser contentType(L"multipart", L"signed");
@@ -489,12 +491,12 @@ xstring_ptr qmpgp::PGPUtilityImpl::createMultipartSignedMessage(const CHAR* pszH
 		contentType.setParameter(L"protocol", L"application/pgp-signature");
 		contentType.setParameter(L"micalg", L"pgp-sha1");
 		if (!msg.setField(L"Content-Type", contentType))
-			return false;
+			return xstring_size_ptr();
 	}
 	
 	std::auto_ptr<Part> pPartContent(part.clone());
 	if (!pPartContent.get())
-		return false;
+		return xstring_size_ptr();
 	msg.addPart(pPartContent);
 	
 	std::auto_ptr<Part> pPartSignature(new Part());
@@ -502,21 +504,22 @@ xstring_ptr qmpgp::PGPUtilityImpl::createMultipartSignedMessage(const CHAR* pszH
 		ContentTypeParser contentType(L"application", L"pgp-signature");
 		contentType.setParameter(L"name", L"signature.asc");
 		if (!pPartSignature->setField(L"Content-Type", contentType))
-			return false;
+			return xstring_size_ptr();
 		
-		if (!pPartSignature->setBody(pszSignature, -1))
-			return false;
+		if (!pPartSignature->setBody(pszSignature, nSignatureLen))
+			return xstring_size_ptr();
 	}
 	msg.addPart(pPartSignature);
 	
 	if (!msg.sortHeader())
-		return 0;
+		return xstring_size_ptr();
 	
 	return msg.getContent();
 }
 
-xstring_ptr qmpgp::PGPUtilityImpl::createMultipartEncryptedMessage(const CHAR* pszHeader,
-																   const CHAR* pszBody)
+xstring_size_ptr qmpgp::PGPUtilityImpl::createMultipartEncryptedMessage(const CHAR* pszHeader,
+																		const CHAR* pszBody,
+																		size_t nBodyLen)
 {
 	assert(pszHeader);
 	assert(pszBody);
@@ -524,11 +527,11 @@ xstring_ptr qmpgp::PGPUtilityImpl::createMultipartEncryptedMessage(const CHAR* p
 	Part msg;
 	{
 		if (!msg.create(0, pszHeader, -1))
-			return 0;
+			return xstring_size_ptr();
 		
 		PrefixFieldFilter filter("content-");
 		if (!msg.removeFields(&filter))
-			return 0;
+			return xstring_size_ptr();
 		msg.setBody(0);
 		
 		ContentTypeParser contentType(L"multipart", L"encrypted");
@@ -540,17 +543,17 @@ xstring_ptr qmpgp::PGPUtilityImpl::createMultipartEncryptedMessage(const CHAR* p
 		contentType.setParameter(L"boundary", wszBoundary);
 		contentType.setParameter(L"protocol", L"application/pgp-encrypted");
 		if (!msg.setField(L"Content-Type", contentType))
-			return false;
+			return xstring_size_ptr();
 	}
 	
 	std::auto_ptr<Part> pPartHeader(new Part());
 	{
 		ContentTypeParser contentType(L"application", L"pgp-encrypted");
 		if (!pPartHeader->setField(L"Content-Type", contentType))
-			return false;
+			return xstring_size_ptr();
 		
 		if (!pPartHeader->setBody("Version: 1\r\n", -1))
-			return false;
+			return xstring_size_ptr();
 	}
 	msg.addPart(pPartHeader);
 	
@@ -558,15 +561,15 @@ xstring_ptr qmpgp::PGPUtilityImpl::createMultipartEncryptedMessage(const CHAR* p
 	{
 		ContentTypeParser contentType(L"application", L"octet-stream");
 		if (!pPartBody->setField(L"Content-Type", contentType))
-			return false;
+			return xstring_size_ptr();
 		
-		if (!pPartBody->setBody(pszBody, -1))
-			return false;
+		if (!pPartBody->setBody(pszBody, nBodyLen))
+			return xstring_size_ptr();
 	}
 	msg.addPart(pPartBody);
 	
 	if (!msg.sortHeader())
-		return 0;
+		return xstring_size_ptr();
 	
 	return msg.getContent();
 }

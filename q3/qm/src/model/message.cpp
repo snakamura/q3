@@ -933,10 +933,11 @@ std::auto_ptr<Part> qm::MessageCreator::createRfc822Part(const Part& part,
 		pPart->setBody(part.getHeader(), -1);
 	}
 	else {
-		xstring_ptr strContent(part.getContent());
+		xstring_size_ptr strContent(part.getContent());
 		if (!strContent.get())
 			return std::auto_ptr<Part>(0);
-		pPart->setBody(strContent);
+		xstring_ptr strBody(strContent.release());
+		pPart->setBody(strBody);
 	}
 	
 	return pPart;
@@ -1372,14 +1373,14 @@ bool qm::PartUtil::getDigest(MessageList* pList) const
 			for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it) {
 				const Part* pEnclosedPart = (*it)->getEnclosedPart();
 				if (pEnclosedPart || (*it)->isText()) {
-					xstring_ptr strContent;
+					xstring_size_ptr strContent;
 					if (pEnclosedPart)
 						strContent = pEnclosedPart->getContent();
 					else
 						strContent = (*it)->getContent();
 					
 					std::auto_ptr<Message> pMessage(new Message());
-					if (!pMessage->create(strContent.get(), -1, Message::FLAG_NONE))
+					if (!pMessage->create(strContent.get(), strContent.size(), Message::FLAG_NONE))
 						return false;
 					
 					if (fieldTo == Part::FIELD_EXIST) {
@@ -1905,8 +1906,8 @@ AttachmentParser::Result qm::AttachmentParser::detach(const WCHAR* pwszDir,
 	
 	const Part* pEnclosedPart = part_.getEnclosedPart();
 	if (pEnclosedPart) {
-		xstring_ptr strContent(pEnclosedPart->getContent());
-		size_t nLen = strlen(strContent.get());
+		xstring_size_ptr strContent(pEnclosedPart->getContent());
+		size_t nLen = strContent.size();
 		const unsigned char* p = reinterpret_cast<const unsigned char*>(strContent.get());
 		if (bufferedStream.write(p, nLen) != nLen)
 			return RESULT_FAIL;

@@ -159,17 +159,16 @@ bool qmnntp::NntpDriver::getMessage(MessageHolder* pmh,
 	if (!prepareSession(pmh->getFolder()))
 		return false;
 	
-	xstring_ptr strMessage;
-	unsigned int nSize = pmh->getSize();
+	xstring_size_ptr strMessage;
 	if (!pNntp_->getMessage(pmh->getId(),
-		Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage, &nSize)) {
+		Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage, pmh->getSize())) {
 		clearSession();
 		return false;
 	}
 	if (!strMessage.get())
 		return false;
 	
-	if (!pCallback->message(strMessage.get(), nSize, Message::FLAG_NONE, false))
+	if (!pCallback->message(strMessage.get(), strMessage.size(), Message::FLAG_NONE, false))
 		return false;
 	
 	return true;
@@ -186,6 +185,7 @@ bool qmnntp::NntpDriver::setMessagesFlags(NormalFolder* pFolder,
 
 bool qmnntp::NntpDriver::appendMessage(NormalFolder* pFolder,
 									   const CHAR* pszMessage,
+									   size_t nLen,
 									   unsigned int nFlags)
 {
 	assert(false);

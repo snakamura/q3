@@ -66,11 +66,11 @@ std::auto_ptr<Message> qm::EditMessage::getMessage(bool bFixup)
 	if (!applyFields())
 		return std::auto_ptr<Message>();
 	
-	xstring_ptr strContent(pMessage_->getContent());
+	xstring_size_ptr strContent(pMessage_->getContent());
 	if (!strContent.get())
 		return std::auto_ptr<Message>();
 	std::auto_ptr<Message> pMessage(new Message());
-	if (!pMessage->create(strContent.get(), -1, Message::FLAG_NONE))
+	if (!pMessage->create(strContent.get(), strContent.size(), Message::FLAG_NONE))
 		return std::auto_ptr<Message>();
 	
 	wxstring_ptr wstrHeader(PartUtil::a2w(pBodyPart_->getHeader()));

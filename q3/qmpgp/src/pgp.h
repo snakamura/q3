@@ -38,25 +38,25 @@ public:
 	virtual Type getType(const qs::Part& part,
 						 bool bCheckInline) const;
 	virtual Type getType(const qs::ContentTypeParser* pContentType) const;
-	virtual qs::xstring_ptr sign(qs::Part* pPart,
-								 bool bMime,
-								 const WCHAR* pwszUserId,
-								 const WCHAR* pwszPassphrase) const;
-	virtual qs::xstring_ptr encrypt(qs::Part* pPart,
-									bool bMime) const;
-	virtual qs::xstring_ptr signAndEncrypt(qs::Part* pPart,
-										   bool bMime,
-										   const WCHAR* pwszUserId,
-										   const WCHAR* pwszPassphrase) const;
-	virtual qs::xstring_ptr verify(const qs::Part& part,
-								   bool bMime,
-								   unsigned int* pnVerify,
-								   qs::wstring_ptr* pwstrSignedBy) const;
-	virtual qs::xstring_ptr decryptAndVerify(const qs::Part& part,
-											 bool bMime,
-											 const WCHAR* pwszPassphrase,
-											 unsigned int* pnVerify,
-											 qs::wstring_ptr* pwstrSignedBy) const;
+	virtual qs::xstring_size_ptr sign(qs::Part* pPart,
+									  bool bMime,
+									  const WCHAR* pwszUserId,
+									  const WCHAR* pwszPassphrase) const;
+	virtual qs::xstring_size_ptr encrypt(qs::Part* pPart,
+										 bool bMime) const;
+	virtual qs::xstring_size_ptr signAndEncrypt(qs::Part* pPart,
+												bool bMime,
+												const WCHAR* pwszUserId,
+												const WCHAR* pwszPassphrase) const;
+	virtual qs::xstring_size_ptr verify(const qs::Part& part,
+										bool bMime,
+										unsigned int* pnVerify,
+										qs::wstring_ptr* pwstrSignedBy) const;
+	virtual qs::xstring_size_ptr decryptAndVerify(const qs::Part& part,
+												  bool bMime,
+												  const WCHAR* pwszPassphrase,
+												  unsigned int* pnVerify,
+												  qs::wstring_ptr* pwstrSignedBy) const;
 
 private:
 	bool checkUserId(const qs::Part& part,
@@ -72,15 +72,19 @@ private:
 						 const WCHAR* pwszAddress);
 	static bool contains(const qs::AddressParser& address,
 						 const WCHAR* pwszAddress);
-	static qs::xstring_ptr createMessage(const CHAR* pszHeader,
-										 const CHAR* pszBody);
-	static qs::xstring_ptr createMessage(const CHAR* pszContent,
-										 const qs::Part& part);
-	static qs::xstring_ptr createMultipartSignedMessage(const CHAR* pszHeader,
-														const qs::Part& part,
-														const CHAR* pszSignature);
-	static qs::xstring_ptr createMultipartEncryptedMessage(const CHAR* pszHeader,
-														   const CHAR* pszBody);
+	static qs::xstring_size_ptr createMessage(const CHAR* pszHeader,
+											  const CHAR* pszBody,
+											  size_t nBodyLen);
+	static qs::xstring_size_ptr createMessage(const CHAR* pszContent,
+											  size_t nLen,
+											  const qs::Part& part);
+	static qs::xstring_size_ptr createMultipartSignedMessage(const CHAR* pszHeader,
+															 const qs::Part& part,
+															 const CHAR* pszSignature,
+															 size_t nSignatureLen);
+	static qs::xstring_size_ptr createMultipartEncryptedMessage(const CHAR* pszHeader,
+																const CHAR* pszBody,
+																size_t nBodyLen);
 
 private:
 	PGPUtilityImpl(const PGPUtilityImpl&);

@@ -223,19 +223,19 @@ bool qmnntp::Nntp::group(const WCHAR* pwszGroup)
 
 bool qmnntp::Nntp::getMessage(unsigned int n,
 							  GetMessageFlag flag,
-							  xstring_ptr* pstrMessage,
-							  unsigned int* pnSize)
+							  xstring_size_ptr* pstrMessage,
+							  unsigned int nEstimatedSize)
 {
-	return getMessage(n, 0, flag, pstrMessage, pnSize);
+	return getMessage(n, 0, flag, pstrMessage, nEstimatedSize);
 }
 
 bool qmnntp::Nntp::getMessage(const WCHAR* pwszMessageId,
 							  GetMessageFlag flag,
-							  xstring_ptr* pstrMessage,
-							  unsigned int* pnSize)
+							  xstring_size_ptr* pstrMessage,
+							  unsigned int nEstimatedSize)
 {
 	assert(pwszMessageId);
-	return getMessage(-1, pwszMessageId, flag, pstrMessage, pnSize);
+	return getMessage(-1, pwszMessageId, flag, pstrMessage, nEstimatedSize);
 }
 
 bool qmnntp::Nntp::getMessagesData(unsigned int nStart,
@@ -334,8 +334,8 @@ const WCHAR* qmnntp::Nntp::getLastErrorResponse() const
 bool qmnntp::Nntp::getMessage(unsigned int n,
 							  const WCHAR* pwszMessageId,
 							  GetMessageFlag flag,
-							  xstring_ptr* pstrMessage,
-							  unsigned int* pnSize)
+							  xstring_size_ptr* pstrMessage,
+							  unsigned int nEstimatedSize)
 {
 	assert((n != -1 && !pwszMessageId) || (n == -1 && pwszMessageId));
 	assert(pstrMessage);
@@ -380,8 +380,8 @@ bool qmnntp::Nntp::getMessage(unsigned int n,
 		"222"
 	};
 	
-	if (pnSize)
-		pNntpCallback_->setRange(0, *pnSize);
+	if (nEstimatedSize != -1)
+		pNntpCallback_->setRange(0, nEstimatedSize);
 	
 	unsigned int nCode = 0;
 	string_ptr strResponse;
@@ -392,9 +392,7 @@ bool qmnntp::Nntp::getMessage(unsigned int n,
 	else if (nCode != types[flag].nCode_ && nCode != nCodeNotFound)
 		NNTP_ERROR(error | NNTP_ERROR_RESPONSE);
 	
-	if (*pnSize)
-		*pnSize = strContent.size();
-	pstrMessage->reset(strContent.release());
+	*pstrMessage = strContent;
 	
 	return true;
 }

@@ -677,7 +677,7 @@ bool qm::EditFileSaveAction::save(const WCHAR* pwszPath)
 	if (!pMessage.get())
 		return false;
 	
-	xstring_ptr strMessage(pMessage->getContent());
+	xstring_size_ptr strMessage(pMessage->getContent());
 	if (!strMessage.get())
 		return false;
 	
@@ -685,8 +685,7 @@ bool qm::EditFileSaveAction::save(const WCHAR* pwszPath)
 	if (!stream)
 		return false;
 	BufferedOutputStream bufferedStream(&stream, false);
-	if (bufferedStream.write(reinterpret_cast<unsigned char*>(strMessage.get()),
-		strlen(strMessage.get())) == -1)
+	if (bufferedStream.write(reinterpret_cast<unsigned char*>(strMessage.get()), strMessage.size()) == -1)
 		return false;
 	if (!bufferedStream.close())
 		return false;

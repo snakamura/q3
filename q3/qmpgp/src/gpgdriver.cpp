@@ -37,10 +37,10 @@ qmpgp::GPGDriver::~GPGDriver()
 {
 }
 
-xstring_ptr qmpgp::GPGDriver::sign(const CHAR* pszText,
-								   SignFlag signFlag,
-								   const WCHAR* pwszUserId,
-								   const WCHAR* pwszPassphrase) const
+xstring_size_ptr qmpgp::GPGDriver::sign(const CHAR* pszText,
+										SignFlag signFlag,
+										const WCHAR* pwszUserId,
+										const WCHAR* pwszPassphrase) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::GPGDriver");
 	
@@ -61,7 +61,7 @@ xstring_ptr qmpgp::GPGDriver::sign(const CHAR* pszText,
 		break;
 	default:
 		assert(false);
-		return 0;
+		return xstring_size_ptr();
 	}
 	command.append(L" --local-user \"");
 	command.append(pwszUserId);
@@ -72,7 +72,7 @@ xstring_ptr qmpgp::GPGDriver::sign(const CHAR* pszText,
 	XStringBuffer<STRING> buf;
 	string_ptr strPassphrase(wcs2mbs(pwszPassphrase));
 	if (!buf.append(strPassphrase.get()) || !buf.append('\n') || !buf.append(pszText))
-		return 0;
+		return xstring_size_ptr();
 	const unsigned char* p = reinterpret_cast<const unsigned char*>(buf.getCharArray());
 	
 	log.debug(L"Data into stdin", p, buf.getLength());
@@ -89,14 +89,14 @@ xstring_ptr qmpgp::GPGDriver::sign(const CHAR* pszText,
 	
 	if (nCode != 0) {
 		log.errorf(L"Command exited with: %d", nCode);
-		return 0;
+		return xstring_size_ptr();
 	}
 	
-	return allocXString(reinterpret_cast<const CHAR*>(stdout.getBuffer()), stdout.getLength());
+	return xstring_size_ptr(allocXString(reinterpret_cast<const CHAR*>(stdout.getBuffer()), stdout.getLength()), stdout.getLength());
 }
 
-xstring_ptr qmpgp::GPGDriver::encrypt(const CHAR* pszText,
-									  const UserIdList& listRecipient) const
+xstring_size_ptr qmpgp::GPGDriver::encrypt(const CHAR* pszText,
+										   const UserIdList& listRecipient) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::GPGDriver");
 	
@@ -131,16 +131,16 @@ xstring_ptr qmpgp::GPGDriver::encrypt(const CHAR* pszText,
 	
 	if (nCode != 0) {
 		log.errorf(L"Command exited with: %d", nCode);
-		return 0;
+		return xstring_size_ptr();
 	}
 	
-	return allocXString(reinterpret_cast<const CHAR*>(stdout.getBuffer()), stdout.getLength());
+	return xstring_size_ptr(allocXString(reinterpret_cast<const CHAR*>(stdout.getBuffer()), stdout.getLength()), stdout.getLength());
 }
 
-xstring_ptr qmpgp::GPGDriver::signAndEncrypt(const CHAR* pszText,
-											 const WCHAR* pwszUserId,
-											 const WCHAR* pwszPassphrase,
-											 const UserIdList& listRecipient) const
+xstring_size_ptr qmpgp::GPGDriver::signAndEncrypt(const CHAR* pszText,
+												  const WCHAR* pwszUserId,
+												  const WCHAR* pwszPassphrase,
+												  const UserIdList& listRecipient) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::GPGDriver");
 	
@@ -164,7 +164,7 @@ xstring_ptr qmpgp::GPGDriver::signAndEncrypt(const CHAR* pszText,
 	XStringBuffer<STRING> buf;
 	string_ptr strPassphrase(wcs2mbs(pwszPassphrase));
 	if (!buf.append(strPassphrase.get()) || !buf.append('\n') || !buf.append(pszText))
-		return 0;
+		return xstring_size_ptr();
 	const unsigned char* p = reinterpret_cast<const unsigned char*>(buf.getCharArray());
 	
 	log.debug(L"Data into stdin", p, buf.getLength());
@@ -181,10 +181,10 @@ xstring_ptr qmpgp::GPGDriver::signAndEncrypt(const CHAR* pszText,
 	
 	if (nCode != 0) {
 		log.errorf(L"Command exited with: %d", nCode);
-		return 0;
+		return xstring_size_ptr();
 	}
 	
-	return allocXString(reinterpret_cast<const CHAR*>(stdout.getBuffer()), stdout.getLength());
+	return xstring_size_ptr(allocXString(reinterpret_cast<const CHAR*>(stdout.getBuffer()), stdout.getLength()), stdout.getLength());
 }
 
 bool qmpgp::GPGDriver::verify(const CHAR* pszContent,
@@ -231,16 +231,16 @@ bool qmpgp::GPGDriver::verify(const CHAR* pszContent,
 	
 	if (nCode != 0 && nCode != 1) {
 		log.errorf(L"Command exited with: %d", nCode);
-		return 0;
+		return false;
 	}
 	
 	return checkVerified(stderr.getBuffer(), stderr.getLength(), pwstrUserId) == PGPUtility::VERIFY_OK;
 }
 
-xstring_ptr qmpgp::GPGDriver::decryptAndVerify(const CHAR* pszContent,
-											   const WCHAR* pwszPassphrase,
-											   unsigned int* pnVerify,
-											   wstring_ptr* pwstrUserId) const
+xstring_size_ptr qmpgp::GPGDriver::decryptAndVerify(const CHAR* pszContent,
+													const WCHAR* pwszPassphrase,
+													unsigned int* pnVerify,
+													wstring_ptr* pwstrUserId) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::GPGDriver");
 	
@@ -260,7 +260,7 @@ xstring_ptr qmpgp::GPGDriver::decryptAndVerify(const CHAR* pszContent,
 	if (pwszPassphrase) {
 		string_ptr strPassphrase(wcs2mbs(pwszPassphrase));
 		if (!buf.append(strPassphrase.get()) || !buf.append('\n') || !buf.append(pszContent))
-			return 0;
+			return xstring_size_ptr();
 		p = reinterpret_cast<const unsigned char*>(buf.getCharArray());
 		nLen = buf.getLength();
 	}
@@ -283,12 +283,12 @@ xstring_ptr qmpgp::GPGDriver::decryptAndVerify(const CHAR* pszContent,
 	
 	if (nCode != 0 && nCode != 1) {
 		log.errorf(L"Command exited with: %d", nCode);
-		return 0;
+		return xstring_size_ptr();
 	}
 	
 	*pnVerify = checkVerified(stderr.getBuffer(), stderr.getLength(), pwstrUserId);
 	
-	return allocXString(reinterpret_cast<const CHAR*>(stdout.getBuffer()), stdout.getLength());
+	return xstring_size_ptr(allocXString(reinterpret_cast<const CHAR*>(stdout.getBuffer()), stdout.getLength()), stdout.getLength());
 }
 
 bool qmpgp::GPGDriver::getAlternatives(const WCHAR* pwszUserId,

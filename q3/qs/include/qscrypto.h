@@ -389,10 +389,10 @@ public:
 	 * @return Signed content. null if error occured.
 	 * @exception std::bad_alloc Out of memory.
 	 */
-	virtual xstring_ptr sign(Part* pPart,
-							 bool bMultipart,
-							 const PrivateKey* pPrivateKey,
-							 const Certificate* pCertificate) const = 0;
+	virtual xstring_size_ptr sign(Part* pPart,
+								  bool bMultipart,
+								  const PrivateKey* pPrivateKey,
+								  const Certificate* pCertificate) const = 0;
 	
 	/**
 	 * Verify the specified part.
@@ -403,10 +403,10 @@ public:
 	 * @return Verified content. null if error occured.
 	 * @exception std::bad_alloc Out of memory.
 	 */
-	virtual xstring_ptr verify(const Part& part,
-							   const Store* pStoreCA,
-							   unsigned int* pnVerify,
-							   wstring_ptr* pwstrSignedBy) const = 0;
+	virtual xstring_size_ptr verify(const Part& part,
+									const Store* pStoreCA,
+									unsigned int* pnVerify,
+									wstring_ptr* pwstrSignedBy) const = 0;
 	
 	/**
 	 * Encrypt the specified part.
@@ -417,9 +417,9 @@ public:
 	 * @return Encrypted content. null if error occured.
 	 * @exception std::bad_alloc Out of memory.
 	 */
-	virtual xstring_ptr encrypt(Part* pPart,
-								const Cipher* pCipher,
-								SMIMECallback* pCallback) const = 0;
+	virtual xstring_size_ptr encrypt(Part* pPart,
+									 const Cipher* pCipher,
+									 SMIMECallback* pCallback) const = 0;
 	
 	/**
 	 * Decrypt the specified part.
@@ -430,10 +430,10 @@ public:
 	 * @return Decrypted content. null if error occured.
 	 * @exception std::bad_alloc Out of memory.
 	 */
-	virtual xstring_ptr decrypt(const Part& part,
-								const PrivateKey* pPrivateKey,
-								const Certificate* pCertificate) const = 0;
-
+	virtual xstring_size_ptr decrypt(const Part& part,
+									 const PrivateKey* pPrivateKey,
+									 const Certificate* pCertificate) const = 0;
+	
 public:
 	/**
 	 * Get new S/MIME utility.

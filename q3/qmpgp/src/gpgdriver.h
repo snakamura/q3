@@ -32,23 +32,23 @@ public:
 	virtual ~GPGDriver();
 
 public:
-	virtual qs::xstring_ptr sign(const CHAR* pszText,
-								 SignFlag signFlag,
-								 const WCHAR* pwszUserId,
-								 const WCHAR* pwszPassphrase) const;
-	virtual qs::xstring_ptr encrypt(const CHAR* pszText,
-									const UserIdList& listRecipient) const;
-	virtual qs::xstring_ptr signAndEncrypt(const CHAR* pszText,
-										   const WCHAR* pwszUserId,
-										   const WCHAR* pwszPassphrase,
-										   const UserIdList& listRecipient) const;
+	virtual qs::xstring_size_ptr sign(const CHAR* pszText,
+									  SignFlag signFlag,
+									  const WCHAR* pwszUserId,
+									  const WCHAR* pwszPassphrase) const;
+	virtual qs::xstring_size_ptr encrypt(const CHAR* pszText,
+										 const UserIdList& listRecipient) const;
+	virtual qs::xstring_size_ptr signAndEncrypt(const CHAR* pszText,
+												const WCHAR* pwszUserId,
+												const WCHAR* pwszPassphrase,
+												const UserIdList& listRecipient) const;
 	virtual bool verify(const CHAR* pszContent,
 						const CHAR* pszSignature,
 						qs::wstring_ptr* pwstrUserId) const;
-	virtual qs::xstring_ptr decryptAndVerify(const CHAR* pszContent,
-											 const WCHAR* pwszPassphrase,
-											 unsigned int* pnVerify,
-											 qs::wstring_ptr* pwstrUserId) const;
+	virtual qs::xstring_size_ptr decryptAndVerify(const CHAR* pszContent,
+												  const WCHAR* pwszPassphrase,
+												  unsigned int* pnVerify,
+												  qs::wstring_ptr* pwstrUserId) const;
 	virtual bool getAlternatives(const WCHAR* pwszUserId,
 								 UserIdList* pList) const;
 

@@ -240,12 +240,12 @@ std::auto_ptr<Part> qs::Part::clone() const
 	return pPart;
 }
 
-xstring_ptr qs::Part::getContent() const
+xstring_size_ptr qs::Part::getContent() const
 {
 	XStringBuffer<XSTRING> buf;
 	if (!getContent(&buf))
-		return 0;
-	return buf.getXString();
+		return xstring_size_ptr();
+	return buf.getXStringSize();
 }
 
 bool qs::Part::getContent(XStringBuffer<XSTRING>* pBuf) const

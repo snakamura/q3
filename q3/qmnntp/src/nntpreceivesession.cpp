@@ -238,7 +238,7 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 				size_t nLen = buf.getLength();
 				unsigned int nFlags = MessageHolder::FLAG_INDEXONLY;
 				
-				xstring_ptr strMessage;
+				xstring_size_ptr strMessage;
 				bool bIgnore = false;
 				if (pSyncFilterSet) {
 					bool bDownload = false;
@@ -258,15 +258,13 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 							const WCHAR* pwszName = pAction->getName();
 							if (wcscmp(pwszName, L"download") == 0) {
 								if (state != STATE_ALL) {
-									unsigned int nSize = item.nBytes_;
 									if (!pNntp_->getMessage(item.nId_,
-										Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage, &nSize))
+										Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage, item.nBytes_))
 										HANDLE_ERROR();
 								}
 								if (strMessage.get()) {
 									pszMessage = strMessage.get();
-									/// TODO
-									nLen = strlen(pszMessage);
+									nLen = strMessage.size();
 									nFlags = 0;
 								}
 							}
@@ -300,8 +298,8 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 				return true;
 			pSessionCallback_->setPos(n);
 			
-			xstring_ptr strMessage;
-			if (!pNntp_->getMessage(n, Nntp::GETMESSAGEFLAG_HEAD, &strMessage, 0))
+			xstring_size_ptr strMessage;
+			if (!pNntp_->getMessage(n, Nntp::GETMESSAGEFLAG_HEAD, &strMessage, -1))
 				HANDLE_ERROR();
 			
 			if (strMessage.get()) {
@@ -310,9 +308,9 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 				
 				Lock<Account> lock(*pAccount_);
 				
-				/// TODO
 				MessageHolder* pmh = pAccount_->storeMessage(pFolder_,
-					strMessage.get(), -1, 0, n, MessageHolder::FLAG_INDEXONLY, -1, true);
+					strMessage.get(), strMessage.size(), 0, n,
+					MessageHolder::FLAG_INDEXONLY, -1, true);
 				if (!pmh)
 					return false;
 				
@@ -400,16 +398,15 @@ bool qmnntp::NntpReceiveSession::downloadReservedMessages(NormalFolder* pFolder,
 				return true;
 			pSessionCallback_->setPos(++(*pnPos));
 			
-			xstring_ptr strMessage;
-			unsigned int nSize = mpl->getSize();
+			xstring_size_ptr strMessage;
 			if (!pNntp_->getMessage(mpl->getId(),
-				Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage, &nSize))
+				Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage, mpl->getSize()))
 				HANDLE_ERROR();
 			
 			unsigned int nMask = MessageHolder::FLAG_DOWNLOAD |
 				MessageHolder::FLAG_DOWNLOADTEXT;
 			if (strMessage.get()) {
-				if (!pAccount_->updateMessage(mpl, strMessage.get(), nSize))
+				if (!pAccount_->updateMessage(mpl, strMessage.get(), strMessage.size()))
 					return false;
 				nMask |=  MessageHolder::FLAG_SEEN |
 					MessageHolder::FLAG_PARTIAL_MASK;
@@ -595,7 +592,7 @@ qmnntp::NntpSyncFilterCallback::NntpSyncFilterCallback(Document* pDocument,
 													   MacroVariableHolder* pGlobalVariable,
 													   Nntp* pNntp,
 													   unsigned int nMessage,
-													   qs::xstring_ptr* pstrMessage,
+													   qs::xstring_size_ptr* pstrMessage,
 													   NntpReceiveSession::State* pState) :
 	pDocument_(pDocument),
 	pAccount_(pAccount),
@@ -638,14 +635,13 @@ bool qmnntp::NntpSyncFilterCallback::getMessage(unsigned int nFlag)
 	}
 	
 	if (bDownload) {
-		xstring_ptr& str = *pstrMessage_;
+		xstring_size_ptr& str = *pstrMessage_;
 		
-		str.reset(0);
-		unsigned int nSize = nSize_;
-		if (pNntp_->getMessage(nMessage_, Nntp::GETMESSAGEFLAG_HEAD, &str, &nSize_))
+		str.reset(0, -1);
+		if (pNntp_->getMessage(nMessage_, Nntp::GETMESSAGEFLAG_HEAD, &str, nSize_))
 			return false;
 		
-		if (!pMessage_->createHeader(str.get(), nSize_))
+		if (!pMessage_->createHeader(str.get(), str.size()))
 			return false;
 	}
 	

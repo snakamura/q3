@@ -155,20 +155,20 @@ bool qm::MessageComposer::compose(Account* pAccount,
 			std::auto_ptr<PrivateKey> pPrivateKey(pSubAccount->getPrivateKey(pPasswordManager_));
 			if (!pCertificate.get() || !pPrivateKey.get())
 				return false;
-			xstring_ptr strMessage(pSMIMEUtility->sign(pMessage,
+			xstring_size_ptr strMessage(pSMIMEUtility->sign(pMessage,
 				bMultipart, pPrivateKey.get(), pCertificate.get()));
 			if (!strMessage.get())
 				return false;
-			if (!pMessage->create(strMessage.get(), -1, Message::FLAG_NONE))
+			if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE))
 				return false;
 		}
 		if (nFlags & FLAG_SMIMEENCRYPT) {
 			std::auto_ptr<Cipher> pCipher(Cipher::getInstance(L"des3"));
-			xstring_ptr strMessage(pSMIMEUtility->encrypt(
+			xstring_size_ptr strMessage(pSMIMEUtility->encrypt(
 				pMessage, pCipher.get(), &callback));
 			if (!strMessage.get())
 				return false;
-			if (!pMessage->create(strMessage.get(), -1, Message::FLAG_NONE))
+			if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE))
 				return false;
 		}
 	}
@@ -187,27 +187,27 @@ bool qm::MessageComposer::compose(Account* pAccount,
 		bool bMime = (nFlags & FLAG_PGPMIME) != 0;
 		if (nFlags & FLAG_PGPSIGN && nFlags & FLAG_PGPENCRYPT) {
 			const WCHAR* pwszUserId = pSubAccount->getSenderAddress();
-			xstring_ptr strMessage(pPGPUtility->signAndEncrypt(
+			xstring_size_ptr strMessage(pPGPUtility->signAndEncrypt(
 				pMessage, bMime, pwszUserId, wstrPassword.get()));
 			if (!strMessage.get())
 				return false;
-			if (!pMessage->create(strMessage.get(), -1, Message::FLAG_NONE))
+			if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE))
 				return false;
 		}
 		else if (nFlags & FLAG_PGPSIGN) {
 			const WCHAR* pwszUserId = pSubAccount->getSenderAddress();
-			xstring_ptr strMessage(pPGPUtility->sign(pMessage,
+			xstring_size_ptr strMessage(pPGPUtility->sign(pMessage,
 				bMime, pwszUserId, wstrPassword.get()));
 			if (!strMessage.get())
 				return false;
-			if (!pMessage->create(strMessage.get(), -1, Message::FLAG_NONE))
+			if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE))
 				return false;
 		}
 		else if (nFlags & FLAG_PGPENCRYPT) {
-			xstring_ptr strMessage(pPGPUtility->encrypt(pMessage, bMime));
+			xstring_size_ptr strMessage(pPGPUtility->encrypt(pMessage, bMime));
 			if (!strMessage.get())
 				return false;
-			if (!pMessage->create(strMessage.get(), -1, Message::FLAG_NONE))
+			if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE))
 				return false;
 		}
 		

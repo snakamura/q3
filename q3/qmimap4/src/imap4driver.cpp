@@ -665,6 +665,7 @@ bool qmimap4::Imap4Driver::setMessagesFlags(NormalFolder* pFolder,
 
 bool qmimap4::Imap4Driver::appendMessage(NormalFolder* pFolder,
 										 const CHAR* pszMessage,
+										 size_t nLen,
 										 unsigned int nFlags)
 {
 	assert(pFolder);
@@ -674,7 +675,7 @@ bool qmimap4::Imap4Driver::appendMessage(NormalFolder* pFolder,
 	
 	if (bOffline_) {
 		MessageHolder* pmh = pAccount_->storeMessage(pFolder, pszMessage,
-			-1, 0, -1, nFlags | MessageHolder::FLAG_LOCAL, -1, false);
+			nLen, 0, -1, nFlags | MessageHolder::FLAG_LOCAL, -1, false);
 		if (!pmh)
 			return false;
 		
@@ -697,7 +698,7 @@ bool qmimap4::Imap4Driver::appendMessage(NormalFolder* pFolder,
 		wstring_ptr wstrFolderName(Util::getFolderName(pFolder));
 		
 		Flags flags(Util::getImap4FlagsFromMessageFlags(nFlags));
-		if (!pImap4->append(wstrFolderName.get(), pszMessage, flags))
+		if (!pImap4->append(wstrFolderName.get(), pszMessage, nLen, flags))
 			return false;
 		
 		cacher.release();

@@ -169,6 +169,7 @@ public:
 	bool flushMessageStore() const;
 	bool importMessage(NormalFolder* pFolder,
 					   const CHAR* pszMessage,
+					   size_t nLen,
 					   unsigned int nFlags);
 	
 	bool appendMessage(NormalFolder* pFolder,

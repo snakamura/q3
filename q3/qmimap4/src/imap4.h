@@ -182,6 +182,7 @@ public:
 	
 	bool append(const WCHAR* pwszFolderName,
 				const CHAR* pszMessage,
+				size_t nLen,
 				const Flags& flags);
 	bool list(bool bSubscribeOnly,
 			  const WCHAR* pwszRef,
@@ -237,6 +238,7 @@ private:
 			  bool bAcceptContinue,
 			  ParserCallback* pCallback);
 	bool send(const CHAR** pszContents,
+			  const size_t* pnLen,
 			  size_t nCount,
 			  const CHAR* pszTag,
 			  bool bAcceptContinue,

@@ -231,7 +231,7 @@ bool qmsmtp::SmtpSendSession::sendMessage(Message* pMessage)
 	for (int m = 0; m < countof(pwszRemoveFields); ++m)
 		pMessage->removeField(*(pwszRemoveFields + m));
 	
-	xstring_ptr strContent(pMessage->getContent());
+	xstring_size_ptr strContent(pMessage->getContent());
 	
 	string_ptr strEnvelopeFrom(wcs2mbs(wstrEnvelopeFrom.get()));
 	Smtp::SendMessageData data = {
@@ -239,7 +239,7 @@ bool qmsmtp::SmtpSendSession::sendMessage(Message* pMessage)
 		const_cast<const CHAR**>(&vecAddress[0]),
 		vecAddress.size(),
 		strContent.get(),
-		strlen(strContent.get())
+		strContent.size()
 	};
 	if (!pSmtp_->sendMessage(data))
 		HANDLE_ERROR();

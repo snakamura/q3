@@ -106,11 +106,11 @@ void qmpop3::Pop3SendSession::disconnect()
 
 bool qmpop3::Pop3SendSession::sendMessage(Message* pMessage)
 {
-	xstring_ptr strContent(pMessage->getContent());
+	xstring_size_ptr strContent(pMessage->getContent());
 	if (!strContent.get())
 		return false;
 	
-	if (!pPop3_->sendMessage(strContent.get(), -1))
+	if (!pPop3_->sendMessage(strContent.get(), strContent.size()))
 		HANDLE_ERROR();
 	
 	return true;

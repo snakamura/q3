@@ -763,10 +763,10 @@ HRESULT qmscript::MessageImpl::internalQueryInterface(REFIID riid,
 
 STDMETHODIMP qmscript::MessageImpl::get_content(VARIANT* pvarContent)
 {
-	xstring_ptr strContent(msg_.getContent());
+	xstring_size_ptr strContent(msg_.getContent());
 	if (!strContent.get())
 		return E_FAIL;
-	size_t nLen = strlen(strContent.get());
+	size_t nLen = strContent.size();
 	
 	SAFEARRAY* psa = ::SafeArrayCreateVector(VT_UI1, 0, nLen);
 	if (!psa)

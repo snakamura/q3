@@ -141,6 +141,7 @@ bool qmpop3::Pop3Driver::setMessagesFlags(NormalFolder* pFolder,
 
 bool qmpop3::Pop3Driver::appendMessage(NormalFolder* pFolder,
 									   const CHAR* pszMessage,
+									   size_t nLen,
 									   unsigned int nFlags)
 {
 	assert(false);

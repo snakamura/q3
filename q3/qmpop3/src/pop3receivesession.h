@@ -236,9 +236,8 @@ public:
 						   qm::MacroVariableHolder* pGlobalVariable,
 						   Pop3* pPop3,
 						   unsigned int nMessage,
-						   qs::xstring_ptr* pstrMessage,
-						   Pop3ReceiveSession::State* pState,
-						   unsigned int* pnGetSize);
+						   qs::xstring_size_ptr* pstrMessage,
+						   Pop3ReceiveSession::State* pState);
 	virtual ~Pop3SyncFilterCallback();
 
 public:
@@ -263,9 +262,8 @@ private:
 	qm::MacroVariableHolder* pGlobalVariable_;
 	Pop3* pPop3_;
 	unsigned int nMessage_;
-	qs::xstring_ptr* pstrMessage_;
+	qs::xstring_size_ptr* pstrMessage_;
 	Pop3ReceiveSession::State* pState_;
-	unsigned int* pnGetSize_;
 	std::auto_ptr<Pop3MessageHolder> pmh_;
 };
 

@@ -115,8 +115,8 @@ public:
 	unsigned int getMessageCount() const;
 	bool getMessage(unsigned int nMsg,
 					unsigned int nMaxLine,
-					qs::xstring_ptr* pstrMessage,
-					unsigned int* pnSize);
+					qs::xstring_size_ptr* pstrMessage,
+					unsigned int nEstimatedSize);
 	bool getMessageSize(unsigned int nMsg,
 						unsigned int* pnSize);
 	bool getMessageSizes(MessageSizeList* pList);

@@ -213,16 +213,15 @@ STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
 		Message msg;
 		if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, SECURITYMODE_NONE, &msg))
 			return E_FAIL;
-		xstring_ptr strContent(msg.getContent());
+		xstring_size_ptr strContent(msg.getContent());
 		if (!strContent.get())
 			return E_FAIL;
 		
-		size_t nLen = strlen(strContent.get());
-		hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, nLen);
+		hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, strContent.size());
 		if (!hGlobal)
 			return E_OUTOFMEMORY;
 		LockGlobal lock(hGlobal);
-		memcpy(static_cast<CHAR*>(lock.get()), strContent.get(), nLen);
+		memcpy(static_cast<CHAR*>(lock.get()), strContent.get(), strContent.size());
 	}
 	else if (pFormat->cfFormat == nFormats__[FORMAT_FILEDESCRIPTOR]) {
 		hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT,

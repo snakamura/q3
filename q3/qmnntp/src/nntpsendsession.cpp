@@ -106,11 +106,11 @@ void qmnntp::NntpSendSession::disconnect()
 
 bool qmnntp::NntpSendSession::sendMessage(Message* pMessage)
 {
-	xstring_ptr strContent(pMessage->getContent());
+	xstring_size_ptr strContent(pMessage->getContent());
 	if (!strContent.get())
 		return false;
 	
-	if (!pNntp_->postMessage(strContent.get(), -1))
+	if (!pNntp_->postMessage(strContent.get(), strContent.size()))
 		HANDLE_ERROR();
 	
 	return true;

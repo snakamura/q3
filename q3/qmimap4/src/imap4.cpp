@@ -431,13 +431,14 @@ bool qmimap4::Imap4::expunge()
 
 bool qmimap4::Imap4::append(const WCHAR* pwszFolderName,
 							const CHAR* pszMessage,
+							size_t nLen,
 							const Flags& flags)
 {
 	assert(pwszFolderName);
 	assert(pszMessage);
 	
-	size_t nLen = wcslen(pwszFolderName);
-	xstring_size_ptr strFolderName(utf7Converter_.encode(pwszFolderName, &nLen));
+	size_t nFolderNameLen = wcslen(pwszFolderName);
+	xstring_size_ptr strFolderName(utf7Converter_.encode(pwszFolderName, &nFolderNameLen));
 	if (!strFolderName.get())
 		IMAP4_ERROR(IMAP4_ERROR_OTHER | IMAP4_ERROR_APPEND);
 	string_ptr strQuotedFolderName(getQuotedString(strFolderName.get()));
@@ -449,7 +450,7 @@ bool qmimap4::Imap4::append(const WCHAR* pwszFolderName,
 		pszSeparator = " ";
 	
 	CHAR szLen[32];
-	sprintf(szLen, "%d", strlen(pszMessage));
+	sprintf(szLen, "%d", nLen);
 	
 	const Concat c[] = {
 		{ "APPEND ",					-1 },
@@ -479,9 +480,13 @@ bool qmimap4::Imap4::append(const WCHAR* pwszFolderName,
 		pszMessage,
 		"\r\n"
 	};
+	const size_t nContentLen[] = {
+		nLen,
+		2
+	};
 	
 	Imap4ParserCallback callback(pImap4Callback_);
-	if (!send(pszContents, countof(pszContents), strTag.get(), false, &callback))
+	if (!send(pszContents, nContentLen, countof(pszContents), strTag.get(), false, &callback))
 		IMAP4_ERROR_OR(IMAP4_ERROR_APPEND);
 	if (callback.getResponse() != ResponseState::FLAG_OK)
 		IMAP4_ERROR(IMAP4_ERROR_RESPONSE | IMAP4_ERROR_APPEND);
@@ -958,7 +963,7 @@ bool qmimap4::Imap4::sendCommand(const CHAR* pszCommand,
 		bAcceptContinue = true;
 	}
 	
-	return send(pszContents, countof(pszContents), pszTag, bAcceptContinue, pCallback);
+	return send(pszContents, 0, countof(pszContents), pszTag, bAcceptContinue, pCallback);
 }
 
 bool qmimap4::Imap4::send(const CHAR* pszContent,
@@ -966,10 +971,11 @@ bool qmimap4::Imap4::send(const CHAR* pszContent,
 						  bool bAcceptContinue,
 						  ParserCallback* pCallback)
 {
-	return send(&pszContent, 1, pszTag, bAcceptContinue, pCallback);
+	return send(&pszContent, 0, 1, pszTag, bAcceptContinue, pCallback);
 }
 
 bool qmimap4::Imap4::send(const CHAR** pszContents,
+						  const size_t* pnLen,
 						  size_t nCount,
 						  const CHAR* pszTag,
 						  bool bAcceptContinue,
@@ -983,7 +989,9 @@ bool qmimap4::Imap4::send(const CHAR** pszContents,
 	
 	for (size_t n = 0; n < nCount; ++n) {
 		const CHAR* pszContent = *(pszContents + n);
-		size_t nLen = strlen(pszContent);
+		size_t nLen = pnLen ? *(pnLen + n) : -1;
+		if (nLen == -1)
+			nLen = strlen(pszContent);
 		
 		size_t nTotalSend = 0;
 		while (nTotalSend < nLen) {

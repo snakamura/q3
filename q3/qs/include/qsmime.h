@@ -115,7 +115,7 @@ public:
 				size_t nLen);
 	void clear();
 	std::auto_ptr<Part> clone() const;
-	xstring_ptr getContent() const;
+	xstring_size_ptr getContent() const;
 	bool getContent(XStringBuffer<XSTRING>* pBuf) const;
 
 public:

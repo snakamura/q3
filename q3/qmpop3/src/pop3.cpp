@@ -224,8 +224,8 @@ unsigned int qmpop3::Pop3::getMessageCount() const
 
 bool qmpop3::Pop3::getMessage(unsigned int nMsg,
 							  unsigned int nMaxLine,
-							  xstring_ptr* pstrMessage,
-							  unsigned int* pnSize)
+							  xstring_size_ptr* pstrMessage,
+							  unsigned int nEstimatedSize)
 {
 	assert(pstrMessage);
 	
@@ -238,12 +238,13 @@ bool qmpop3::Pop3::getMessage(unsigned int nMsg,
 	else
 		sprintf(szRetr, "TOP %d %d\r\n", nMsg + 1, nMaxLine);
 	
-	if (pnSize)
-		pPop3Callback_->setRange(0, *pnSize);
+	if (nEstimatedSize != -1)
+		pPop3Callback_->setRange(0, nEstimatedSize);
 	
 	string_ptr strResponse;
 	xstring_size_ptr strContent;
-	if (!sendCommand(szRetr, &strResponse, &strContent, pnSize ? *pnSize : 0))
+	if (!sendCommand(szRetr, &strResponse, &strContent,
+		nEstimatedSize != -1 ? nEstimatedSize : 0))
 		POP3_ERROR_OR(nMaxLine == 0xffffffff ? POP3_ERROR_RETR : POP3_ERROR_TOP);
 	
 	size_t nLen = strContent.size();
@@ -251,10 +252,8 @@ bool qmpop3::Pop3::getMessage(unsigned int nMsg,
 		nLen -= 2;
 		strContent[nLen] = '\0';
 	}
-	if (pnSize)
-		*pnSize = nLen;
 	
-	pstrMessage->reset(strContent.release());
+	pstrMessage->reset(strContent.release(), nLen);
 	
 	nError_ = POP3_ERROR_SUCCESS;
 	

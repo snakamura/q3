@@ -204,7 +204,7 @@ public:
 						   qm::MacroVariableHolder* pGlobalVariable,
 						   Nntp* pNntp,
 						   unsigned int nMessage,
-						   qs::xstring_ptr* pstrMessage,
+						   qs::xstring_size_ptr* pstrMessage,
 						   NntpReceiveSession::State* pState);
 	virtual ~NntpSyncFilterCallback();
 
@@ -230,7 +230,7 @@ private:
 	qm::MacroVariableHolder* pGlobalVariable_;
 	Nntp* pNntp_;
 	unsigned int nMessage_;
-	qs::xstring_ptr* pstrMessage_;
+	qs::xstring_size_ptr* pstrMessage_;
 	NntpReceiveSession::State* pState_;
 	unsigned int* pnGetSize_;
 	std::auto_ptr<NntpMessageHolder> pmh_;
