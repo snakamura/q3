@@ -673,6 +673,20 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 	
 	HRESULT hr = S_OK;
 	
+	ComPtr<IDispatch> pDisp;
+	if (pWebBrowser_->get_Document(&pDisp) == S_OK && pDisp.get()) {
+		ComPtr<IHTMLDocument2> pHTMLDocument;
+		if (pDisp->QueryInterface(IID_IHTMLDocument2,
+			reinterpret_cast<void**>(&pHTMLDocument)) == S_OK) {
+			ComPtr<IHTMLElement> pBody;
+			if (pHTMLDocument->get_body(&pBody) == S_OK && pBody.get()) {
+				BSTRPtr bstr(::SysAllocString(L""));
+				if (bstr.get())
+					pBody->put_innerHTML(bstr.get());
+			}
+		}
+	}
+	
 	ComPtr<IOleControl> pControl;
 	hr = pWebBrowser_->QueryInterface(IID_IOleControl,
 		reinterpret_cast<void**>(&pControl));
@@ -701,6 +715,8 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 		bAllowExternal_ = false;
 	}
 	BSTRPtr bstrURL(::SysAllocString(wstrURL.get()));
+	if (!bstrURL.get())
+		return false;
 	int n = 0;
 	Variant v[4];
 	v[0].vt = VT_I4;
