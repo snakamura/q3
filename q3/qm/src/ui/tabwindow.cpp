@@ -289,6 +289,10 @@ void qm::TabWindowImpl::getChildRect(RECT* pRect)
 	pThis_->getClientRect(&rect);
 	*pRect = rect;
 	if (bShowTab_ && TabCtrl_GetItemCount(pTabCtrl_->getHandle()) != 0) {
+		RECT rectTab;
+		pTabCtrl_->getClientRect(&rectTab);
+		if (rectTab.left == rectTab.right || rectTab.top == rectTab.bottom)
+			pTabCtrl_->setWindowPos(0, 0, 0, rect.right, rect.bottom, SWP_NOMOVE | SWP_NOZORDER);
 		TabCtrl_AdjustRect(pTabCtrl_->getHandle(), FALSE, &rect);
 		pRect->top = rect.top - 4;
 	}
