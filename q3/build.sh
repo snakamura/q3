@@ -102,12 +102,12 @@ run|run.unicode|run.debug|run.debug.unicode|debug|debug.unicode|purify|purify.un
 	;;
 
 countline)
-	wc `/bin/find . -regex ".*/\(include\|src\)/.*\.\(h\|cpp\|inl\|idl\)$" -a ! -regex ".*/build/.*"` | sort
+	wc `/bin/find . -regex ".*/\(include\|src\)/.*\.\(h\|cpp\|inl\|idl\|rc\)$"` | sort
 	;;
 
 countclass)
-	(for f in `/bin/find . -regex ".*\.\(h\|cpp\|inl\)$" -a ! -regex ".*/build/.*"`; do
-		cat $$f | tr -d '\r' | grep '^\(class\|struct\) .*[^;>]$$'
+	(for f in `/bin/find . -regex ".*\.\(h\|cpp\|inl\)$"`; do
+		cat $f | tr -d '\r' | grep '^\(class\|struct\) .*[^;>]$'
 	done) | wc
 	;;
 
