@@ -17,6 +17,7 @@
 				<menuitem text="Dump..." action="FileDump"/>
 				<menuitem text="Load..." action="FileLoad"/>
 			</popupmenu>
+			<separator/>
 			<menuitem text="Exit" action="FileExit"/>
 		</popupmenu>
 		<popupmenu text="Edit">
