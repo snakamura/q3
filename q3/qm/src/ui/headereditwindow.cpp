@@ -1570,14 +1570,6 @@ void qm::SignatureHeaderEditItem::updateEditMessage(EditMessage* pEditMessage)
 
 void qm::SignatureHeaderEditItem::accountChanged(const EditMessageEvent& event)
 {
-	Account* pAccount = pEditMessage_->getAccount();
-	SignatureManager* pSignatureManager = pEditMessage_->getDocument()->getSignatureManager();
-	const WCHAR* pwszSignature = pEditMessage_->getSignature();
-	if (pwszSignature && !pSignatureManager->getSignature(pAccount, pwszSignature)) {
-		const Signature* pSignature = pSignatureManager->getDefaultSignature(pAccount);
-		pEditMessage_->setSignature(pSignature ? pSignature->getName() : 0);
-	}
-	
 	update(event.getEditMessage());
 }
 
@@ -1610,22 +1602,27 @@ void qm::SignatureHeaderEditItem::update(EditMessage* pEditMessage)
 	SignatureManager::SignatureList l;
 	pSignatureManager->getSignatures(pEditMessage->getAccount(), &l);
 	
-	int nSelect = 0;
 	Window combo(getHandle());
 	combo.sendMessage(CB_RESETCONTENT);
 	combo.sendMessage(CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(_T("None")));
 	
+	int nSelect = 0;
+	int nDefault = -1;
 	for (SignatureManager::SignatureList::iterator it = l.begin(); it != l.end(); ++it) {
 		const Signature* pSignature = *it;
 		const WCHAR* pwszName = pSignature->getName();
 		W2T(pwszName, ptszName);
 		int nItem = combo.sendMessage(CB_ADDSTRING, 0,
 			reinterpret_cast<LPARAM>(ptszName));
-		if (nSelect == 0) {
-			if (pwszSignature && wcscmp(pwszName, pwszSignature) == 0)
+		if (nSelect == 0 && pwszSignature) {
+			if (wcscmp(pwszName, pwszSignature) == 0)
 				nSelect = nItem;
 		}
+		if (nDefault == -1 && pSignature->isDefault())
+			nDefault = nItem;
 	}
+	if (pwszSignature && nSelect == 0 && nDefault != -1)
+		nSelect = nDefault;
 	
 	combo.sendMessage(CB_SETCURSEL, nSelect);
 }
