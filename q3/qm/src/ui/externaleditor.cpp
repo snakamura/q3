@@ -40,7 +40,6 @@ qm::ExternalEditorManager::ExternalEditorManager(Document* pDocument,
 												 FolderModel* pFolderModel,
 												 SecurityModel* pSecurityModel) :
 	composer_(false, pDocument, pPasswordManager, pProfile, hwnd, pFolderModel, pSecurityModel),
-	pDocument_(pDocument),
 	pProfile_(pProfile),
 	hwnd_(hwnd),
 	pSecurityModel_(pSecurityModel),

@@ -93,7 +93,6 @@ private:
 
 private:
 	MessageComposer composer_;
-	Document* pDocument_;
 	qs::Profile* pProfile_;
 	HWND hwnd_;
 	SecurityModel* pSecurityModel_;
