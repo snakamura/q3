@@ -459,14 +459,16 @@ QSTATUS qmsmtp::SmtpSendSession::CallbackImpl::getLocalHost(
 	WSTRING* pwstrLocalHost)
 {
 	assert(pwstrLocalHost);
-	
-	DECLARE_QSTATUS();
-	
-	status = pSubAccount_->getProperty(L"Smtp",
+	return pSubAccount_->getProperty(L"Smtp",
 		L"LocalHost", L"", pwstrLocalHost);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qmsmtp::SmtpSendSession::CallbackImpl::getAuthMethods(
+	WSTRING* pwstrAuthMethods)
+{
+	assert(pwstrAuthMethods);
+	return pSubAccount_->getProperty(L"Smtp",
+		L"AuthMethods", L"", pwstrAuthMethods);
 }
 
 QSTATUS qmsmtp::SmtpSendSession::CallbackImpl::authenticating()

@@ -1,5 +1,5 @@
 /*
- * $Id: smtp.h,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -53,6 +53,12 @@ public:
 		SMTP_ERROR_DATA				= 0x00000700,
 		SMTP_ERROR_MASK_HIGHLEVEL	= 0x0000ff00,
 	};
+	
+	enum Auth {
+		AUTH_LOGIN		= 0x01,
+		AUTH_PLAIN		= 0x02,
+		AUTH_CRAMMD5	= 0x04
+	};
 
 public:
 	struct Option
@@ -100,6 +106,7 @@ private:
 	qs::QSTATUS sendCommand(const CHAR* psz,
 		unsigned int* pnCode, qs::STRING* pstrResponse);
 	qs::QSTATUS setErrorResponse(const CHAR* pszErrorResponse);
+	qs::QSTATUS getAuthMethods(unsigned int* pnAuth);
 
 private:
 	Smtp(const Smtp&);
@@ -132,6 +139,7 @@ public:
 		qs::WSTRING* pwstrPassword) = 0;
 	virtual qs::QSTATUS setPassword(const WCHAR* pwszPassword) = 0;
 	virtual qs::QSTATUS getLocalHost(qs::WSTRING* pwstrLocalHost) = 0;
+	virtual qs::QSTATUS getAuthMethods(qs::WSTRING* pwstrAuthMethods) = 0;
 	
 	virtual qs::QSTATUS authenticating() = 0;
 	virtual qs::QSTATUS setRange(unsigned int nMin, unsigned int nMax) = 0;

@@ -1,5 +1,5 @@
 /*
- * $Id: smtpsendsession.h,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -73,6 +73,7 @@ private:
 			qs::WSTRING* pwstrPassword);
 		virtual qs::QSTATUS setPassword(const WCHAR* pwszPassword);
 		virtual qs::QSTATUS getLocalHost(qs::WSTRING* pwstrLocalHost);
+		virtual qs::QSTATUS getAuthMethods(qs::WSTRING* pwstrAuthMethods);
 		
 		virtual qs::QSTATUS authenticating();
 		virtual qs::QSTATUS setRange(unsigned int nMin, unsigned int nMax);

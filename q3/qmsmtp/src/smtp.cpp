@@ -1,5 +1,5 @@
 /*
- * $Id: smtp.cpp,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -134,29 +134,24 @@ QSTATUS qmsmtp::Smtp::connect(const WCHAR* pwszHost, short nPort, bool bSsl)
 		CHECK_ERROR(!strPassword.get(), QSTATUS_OUTOFMEMORY,
 			SMTP_ERROR_AUTH | SMTP_ERROR_OTHER);
 		
-		enum Auth {
-			LOGIN		= 0x01,
-			PLAIN		= 0x02,
-			CRAM_MD5	= 0x04
-		};
 		struct
 		{
 			const CHAR* pszKey_;
 			Auth auth_;
 		} keys[] = {
-			{ "LOGIN",		LOGIN		},
-			{ "PLAIN",		PLAIN		},
-			{ "CRAM-MD5",	CRAM_MD5	}
+			{ "LOGIN",		AUTH_LOGIN		},
+			{ "PLAIN",		AUTH_PLAIN		},
+			{ "CRAM-MD5",	AUTH_CRAMMD5	}
 		};
 		unsigned int nAuth = 0;
 		const CHAR* p = strstr(strResult.get(), "\r\n");
 		assert(p);
 		p += 2;
-		while (true) {
+		while (nAuth == 0) {
 			const CHAR* pEnd = strstr(p, "\r\n");
 			if (!pEnd)
 				break;
-			if (strcmp(p + 4, "AUTH") == 0 &&
+			if (strncmp(p + 4, "AUTH", 4) == 0 &&
 				(*(p + 8) == ' ' || *(p + 8) == '=')) {
 				p += 9;
 				pEnd = p;
@@ -175,13 +170,18 @@ QSTATUS qmsmtp::Smtp::connect(const WCHAR* pwszHost, short nPort, bool bSsl)
 					p = pEnd + 1;
 					pEnd = p;
 				}
-				break;
 			}
 			p = pEnd + 2;
 		}
 		
+		unsigned int nAllowedMethods = 0;
+		status = getAuthMethods(&nAllowedMethods);
+		CHECK_QSTATUS();
+		nAuth &= nAllowedMethods;
+		CHECK_ERROR(nAuth == 0, QSTATUS_FAIL, SMTP_ERROR_AUTH);
+		
 		Base64Encoder encoder(false, &status);
-		if (nAuth & CRAM_MD5) {
+		if (nAuth & AUTH_CRAMMD5) {
 			string_ptr<STRING> strMessage;
 			status = sendCommand("AUTH CRAM-MD5\r\n", &nCode, &strMessage);
 			CHECK_QSTATUS_ERROR_OR(SMTP_ERROR_AUTH);
@@ -216,7 +216,7 @@ QSTATUS qmsmtp::Smtp::connect(const WCHAR* pwszHost, short nPort, bool bSsl)
 					nAuth = 0;
 			}
 		}
-		if (nAuth & PLAIN) {
+		if (nAuth & AUTH_PLAIN) {
 			size_t nUserNameLen = strlen(strUserName.get());
 			size_t nPasswordLen = strlen(strPassword.get());
 			string_ptr<STRING> strKey(allocString(nUserNameLen*2 + nPasswordLen + 10));
@@ -247,7 +247,7 @@ QSTATUS qmsmtp::Smtp::connect(const WCHAR* pwszHost, short nPort, bool bSsl)
 			if (nCode == 2)
 				nAuth = 0;
 		}
-		if (nAuth & LOGIN) {
+		if (nAuth & AUTH_LOGIN) {
 			status = sendCommand("AUTH LOGIN\r\n", &nCode);
 			CHECK_QSTATUS_ERROR_OR(SMTP_ERROR_AUTH);
 			if (nCode == 3) {
@@ -502,6 +502,44 @@ QSTATUS qmsmtp::Smtp::setErrorResponse(const CHAR* pszErrorResponse)
 	wstrErrorResponse_ = mbs2wcs(pszErrorResponse);
 	if (!wstrErrorResponse_)
 		return QSTATUS_OUTOFMEMORY;
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qmsmtp::Smtp::getAuthMethods(unsigned int* pnAuth)
+{
+	assert(pnAuth);
+	
+	DECLARE_QSTATUS();
+	
+	*pnAuth = 0;
+	
+	string_ptr<WSTRING> wstrAuthMethods;
+	status = pSmtpCallback_->getAuthMethods(&wstrAuthMethods);
+	CHECK_QSTATUS();
+	
+	struct {
+		const WCHAR* pwsz_;
+		Auth auth_;
+	} methods[] = {
+		{ L"LOGIN",		AUTH_LOGIN		},
+		{ L"PLAIN",		AUTH_PLAIN		},
+		{ L"CRAM-MD5",	AUTH_CRAMMD5	}
+	};
+	
+	const WCHAR* p = wcstok(wstrAuthMethods.get(), L" ");
+	while (p) {
+		for (int n = 0; n < countof(methods); ++n) {
+			if (wcscmp(p, methods[n].pwsz_) == 0) {
+				*pnAuth |= methods[n].auth_;
+				break;
+			}
+		}
+		p = wcstok(0, L" ");
+	}
+	
+	if (*pnAuth == 0)
+		*pnAuth = 0xffffffff;
 	
 	return QSTATUS_SUCCESS;
 }
