@@ -114,7 +114,7 @@ LRESULT qmimap4::ReceivePage::onCommand(WORD nCode,
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_NAMESPACE, onNamespace)
 	END_COMMAND_HANDLER()
-		return DefaultPropertyPage::onCommand(nCode, nId);
+	return DefaultPropertyPage::onCommand(nCode, nId);
 }
 
 LRESULT qmimap4::ReceivePage::onNamespace()

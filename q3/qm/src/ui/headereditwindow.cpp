@@ -934,7 +934,7 @@ LRESULT qm::EditHeaderEditItem::onCommand(WORD nCode,
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID_CODE(nId_, EN_KILLFOCUS, onKillFocus)
 	END_COMMAND_HANDLER()
-	return DefaultCommandHandler::onCommand(nCode, nId);
+	return CommandHandler::onCommand(nCode, nId);
 }
 
 LRESULT qm::EditHeaderEditItem::onKillFocus()
@@ -1505,7 +1505,7 @@ LRESULT qm::ComboBoxHeaderEditItem::onCommand(WORD nCode,
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID_CODE(nId_, CBN_SELCHANGE, onChange)
 	END_COMMAND_HANDLER()
-	return DefaultCommandHandler::onCommand(nCode, nId);
+	return CommandHandler::onCommand(nCode, nId);
 }
 
 LRESULT qm::ComboBoxHeaderEditItem::onChange()

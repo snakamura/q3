@@ -379,7 +379,7 @@ LRESULT qm::SyncDialog::onCommand(WORD nCode,
 		HANDLE_COMMAND_ID(IDC_HIDE, onHide)
 		HANDLE_COMMAND_ID(IDCANCEL, onEsc)
 	END_COMMAND_HANDLER()
-	return 1;
+	return CommandHandler::onCommand(nCode, nId);
 }
 
 LRESULT qm::SyncDialog::onClose()

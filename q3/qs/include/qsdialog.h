@@ -221,7 +221,7 @@ private:
 class QSEXPORTCLASS DefaultDialog :
 	public Dialog,
 	public DefaultDialogHandler,
-	public DefaultCommandHandler
+	public CommandHandler
 {
 protected:
 	DefaultDialog(HINSTANCE hInst,
@@ -339,7 +339,7 @@ friend class PropertySheetBase;
 class QSEXPORTCLASS DefaultPropertyPage :
 	public PropertyPage,
 	public DefaultDialogHandler,
-	public DefaultCommandHandler,
+	public CommandHandler,
 	public NotifyHandler
 {
 protected:

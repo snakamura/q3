@@ -537,7 +537,7 @@ LRESULT qs::DefaultDialog::onCommand(WORD nCode,
 		HANDLE_COMMAND_ID_CODE(IDOK, 0x1000, onOk)
 #endif
 	END_COMMAND_HANDLER()
-	return 1;
+	return CommandHandler::onCommand(nCode, nId);
 }
 
 LRESULT qs::DefaultDialog::onDestroy()
@@ -870,7 +870,7 @@ LRESULT qs::BrowseFolderDialogImpl::onNotify(NMHDR* pnmhdr,
 	BEGIN_NOTIFY_HANDLER()
 		HANDLE_NOTIFY(TVN_ITEMEXPANDING, IDC_FOLDER, onItemExpanding);
 	END_NOTIFY_HANDLER()
-	return 1;
+	return NotifyHandler::onNotify(pnmhdr, pbHandled);
 }
 
 LRESULT qs::BrowseFolderDialogImpl::onItemExpanding(NMHDR* pnmhdr,

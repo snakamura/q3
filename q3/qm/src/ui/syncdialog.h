@@ -67,7 +67,7 @@ private:
 class SyncDialog :
 	public qs::Dialog,
 	public qs::DefaultDialogHandler,
-	public qs::DefaultCommandHandler
+	public qs::CommandHandler
 {
 public:
 	enum Flag {

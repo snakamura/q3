@@ -645,7 +645,7 @@ LRESULT qs::ToolbarNotifyHandler::onNotify(NMHDR* pnmhdr,
 		HANDLE_NOTIFY_CODE(TTN_GETDISPINFO, onGetDispInfo)
 #endif
 	END_NOTIFY_HANDLER()
-	return 1;
+	return NotifyHandler::onNotify(pnmhdr, pbHandled);
 }
 
 LRESULT qs::ToolbarNotifyHandler::onDropDown(NMHDR* pnmhdr,

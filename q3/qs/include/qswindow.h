@@ -46,7 +46,6 @@ class DefWindowProcHolder;
 class CommandUpdate;
 	class CommandUpdateMenu;
 class CommandHandler;
-	class DefaultCommandHandler;
 
 class NotifyHandler;
 class OwnerDrawHandler;
@@ -602,24 +601,6 @@ public:
 	case id: \
 		handler(pcu); \
 		break; \
-
-
-/****************************************************************************
- *
- * DefaultCommandHandler
- *
- */
-
-class QSEXPORTCLASS DefaultCommandHandler : public CommandHandler
-{
-public:
-	DefaultCommandHandler();
-	virtual ~DefaultCommandHandler();
-
-public:
-	virtual LRESULT onCommand(WORD nCode,
-							  WORD nId);
-};
 
 
 /****************************************************************************

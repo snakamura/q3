@@ -1684,8 +1684,7 @@ LRESULT qm::ListHeaderColumnImpl::onNotify(NMHDR* pnmhdr,
 		HANDLE_NOTIFY(HDN_ITEMCHANGING, nId_, onItemChanging)
 		HANDLE_NOTIFY(HDN_ITEMCLICK, nId_, onItemClick)
 	END_NOTIFY_HANDLER()
-	
-	return 0;
+	return NotifyHandler::onNotify(pnmhdr, pbHandled);
 }
 
 LRESULT qm::ListHeaderColumnImpl::onItemChanging(NMHDR* pnmhdr,

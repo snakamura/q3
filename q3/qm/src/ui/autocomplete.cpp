@@ -162,7 +162,7 @@ LRESULT qm::AutoCompleteEditSubclassWindow::onCommand(WORD nCode,
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID_CODE(nId_, EN_CHANGE, onChange)
 	END_COMMAND_HANDLER()
-	return 1;
+	return CommandHandler::onCommand(nCode, nId);
 }
 
 LRESULT qm::AutoCompleteEditSubclassWindow::onChange()

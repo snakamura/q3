@@ -440,7 +440,7 @@ INT_PTR qs::DefaultPropertyPage::dialogProc(UINT uMsg,
 LRESULT qs::DefaultPropertyPage::onCommand(WORD nCode,
 										   WORD nId)
 {
-	return 1;
+	return CommandHandler::onCommand(nCode, nId);
 }
 
 LRESULT qs::DefaultPropertyPage::onNotify(NMHDR* pnmhdr,
@@ -449,7 +449,7 @@ LRESULT qs::DefaultPropertyPage::onNotify(NMHDR* pnmhdr,
 	BEGIN_NOTIFY_HANDLER()
 		HANDLE_NOTIFY_CODE(PSN_APPLY, onApply)
 	END_NOTIFY_HANDLER()
-	return 1;
+	return NotifyHandler::onNotify(pnmhdr, pbHandled);
 }
 
 LRESULT qs::DefaultPropertyPage::onDestroy()

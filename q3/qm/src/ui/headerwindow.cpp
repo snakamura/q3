@@ -765,7 +765,7 @@ LRESULT qm::AttachmentHeaderItem::onNotify(NMHDR* pnmhdr,
 	BEGIN_NOTIFY_HANDLER()
 		HANDLE_NOTIFY_CODE(LVN_BEGINDRAG, onBeginDrag);
 	END_NOTIFY_HANDLER()
-	return 1;
+	return NotifyHandler::onNotify(pnmhdr, pbHandled);
 }
 
 LRESULT qm::AttachmentHeaderItem::onBeginDrag(NMHDR* pnmhdr,

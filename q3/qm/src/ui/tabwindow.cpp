@@ -156,7 +156,7 @@ LRESULT qm::TabWindowImpl::onNotify(NMHDR* pnmhdr,
 	BEGIN_NOTIFY_HANDLER()
 		HANDLE_NOTIFY(TCN_SELCHANGE, ID_TABCTRL, onSelChange)
 	END_NOTIFY_HANDLER()
-	return 1;
+	return NotifyHandler::onNotify(pnmhdr, pbHandled);
 }
 
 void qm::TabWindowImpl::itemAdded(const TabModelEvent& event)

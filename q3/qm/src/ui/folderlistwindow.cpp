@@ -250,7 +250,7 @@ LRESULT qm::FolderListWindowImpl::onNotify(NMHDR* pnmhdr,
 #endif
 		HANDLE_NOTIFY(LVN_ITEMCHANGED, nId_, onItemChanged)
 	END_NOTIFY_HANDLER()
-	return 1;
+	return NotifyHandler::onNotify(pnmhdr, pbHandled);
 }
 
 void qm::FolderListWindowImpl::accountChanged(const FolderListModelEvent& event)

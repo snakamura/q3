@@ -290,7 +290,7 @@ private:
 
 class EditHeaderEditItem :
 	public TextHeaderEditItem,
-	public qs::DefaultCommandHandler
+	public qs::CommandHandler
 {
 public:
 	EditHeaderEditItem(EditWindowFocusController* pController);
@@ -518,7 +518,7 @@ private:
 
 class ComboBoxHeaderEditItem :
 	public HeaderEditItem,
-	public qs::DefaultCommandHandler
+	public qs::CommandHandler
 {
 public:
 	explicit ComboBoxHeaderEditItem(EditWindowFocusController* pController);

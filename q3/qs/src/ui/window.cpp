@@ -1452,23 +1452,8 @@ qs::CommandHandler::~CommandHandler()
 {
 }
 
-
-/****************************************************************************
- *
- * DefaultCommandHandler
- *
- */
-
-qs::DefaultCommandHandler::DefaultCommandHandler()
-{
-}
-
-qs::DefaultCommandHandler::~DefaultCommandHandler()
-{
-}
-
-LRESULT qs::DefaultCommandHandler::onCommand(WORD nCode,
-											 WORD nId)
+LRESULT qs::CommandHandler::onCommand(WORD nCode,
+									  WORD nId)
 {
 	return 1;
 }
@@ -1482,6 +1467,12 @@ LRESULT qs::DefaultCommandHandler::onCommand(WORD nCode,
 
 qs::NotifyHandler::~NotifyHandler()
 {
+}
+
+LRESULT qs::NotifyHandler::onNotify(NMHDR* pnmhdr,
+									bool* pbHandled)
+{
+	return 1;
 }
 
 

@@ -382,7 +382,7 @@ LRESULT qm::FolderWindowImpl::onNotify(NMHDR* pnmhdr,
 		HANDLE_NOTIFY(TVN_ITEMEXPANDED, nId_, onItemExpanded)
 		HANDLE_NOTIFY(TVN_SELCHANGED, nId_, onSelChanged)
 	END_NOTIFY_HANDLER()
-	return 1;
+	return NotifyHandler::onNotify(pnmhdr, pbHandled);
 }
 
 void qm::FolderWindowImpl::offlineStatusChanged(const DocumentEvent& event)

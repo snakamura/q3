@@ -124,7 +124,7 @@ LRESULT qm::AccountDialog::onNotify(NMHDR* pnmhdr,
 	BEGIN_NOTIFY_HANDLER()
 		HANDLE_NOTIFY(TVN_SELCHANGED, IDC_ACCOUNT, onAccountSelChanged);
 	END_NOTIFY_HANDLER()
-	return 1;
+	return NotifyHandler::onNotify(pnmhdr, pbHandled);
 }
 
 LRESULT qm::AccountDialog::onAddAccount()
@@ -1131,7 +1131,7 @@ LRESULT qm::AddressBookDialog::onNotify(NMHDR* pnmhdr,
 		HANDLE_NOTIFY(LVN_COLUMNCLICK, IDC_ADDRESS, onAddressColumnClick)
 		HANDLE_NOTIFY(NM_DBLCLK, IDC_ADDRESS, onAddressDblClk)
 	END_NOTIFY_HANDLER()
-	return 1;
+	return NotifyHandler::onNotify(pnmhdr, pbHandled);
 }
 
 LRESULT qm::AddressBookDialog::onSize(UINT nFlags,
@@ -1799,7 +1799,7 @@ LRESULT qm::AddressBookDialog::SelectedAddressListWindow::onNotify(NMHDR* pnmhdr
 		HANDLE_NOTIFY(NM_RECOGNIZEGESTURE, IDC_SELECTEDADDRESS, onRecognizeGesture)
 #endif
 	END_NOTIFY_HANDLER()
-	return 1;
+	return NotifyHandler::onNotify(pnmhdr, pbHandled);
 }
 
 #if defined _WIN32_WCE && _WIN32_WCE >= 400 && defined _WIN32_WCE_PSPC
@@ -2039,7 +2039,7 @@ LRESULT qm::AttachmentDialog::onNotify(NMHDR* pnmhdr,
 	BEGIN_NOTIFY_HANDLER()
 		HANDLE_NOTIFY(LVN_ITEMCHANGED, IDC_ATTACHMENT, onAttachmentItemChanged);
 	END_NOTIFY_HANDLER()
-	return 1;
+	return NotifyHandler::onNotify(pnmhdr, pbHandled);
 }
 
 LRESULT qm::AttachmentDialog::onAdd()
@@ -2653,7 +2653,7 @@ LRESULT qm::CopyRuleTemplateDialog::onNotify(NMHDR* pnmhdr,
 	BEGIN_NOTIFY_HANDLER()
 		HANDLE_NOTIFY(LVN_ITEMCHANGED, IDC_ARGUMENT, onArgumentItemChanged);
 	END_NOTIFY_HANDLER()
-	return 1;
+	return NotifyHandler::onNotify(pnmhdr, pbHandled);
 }
 
 LRESULT qm::CopyRuleTemplateDialog::onAdd()
@@ -3333,7 +3333,7 @@ LRESULT qm::DetachDialog::onNotify(NMHDR* pnmhdr,
 		HANDLE_NOTIFY(LVN_ENDLABELEDIT, IDC_ATTACHMENT, onAttachmentEndLabelEdit)
 		HANDLE_NOTIFY(LVN_ITEMCHANGED, IDC_ATTACHMENT, onAttachmentItemChanged)
 	END_NOTIFY_HANDLER()
-	return 1;
+	return NotifyHandler::onNotify(pnmhdr, pbHandled);
 }
 
 LRESULT qm::DetachDialog::onBrowse()
@@ -4998,7 +4998,7 @@ LRESULT qm::MoveMessageDialog::onNotify(NMHDR* pnmhdr,
 	BEGIN_NOTIFY_HANDLER()
 		HANDLE_NOTIFY(TVN_SELCHANGED, IDC_FOLDER, onFolderSelChanged);
 	END_NOTIFY_HANDLER()
-	return 1;
+	return NotifyHandler::onNotify(pnmhdr, pbHandled);
 }
 
 LRESULT qm::MoveMessageDialog::onInitDialog(HWND hwndFocus,
@@ -7152,7 +7152,7 @@ LRESULT qm::ViewsDialog::onNotify(NMHDR* pnmhdr,
 		HANDLE_NOTIFY(NM_DBLCLK, IDC_COLUMNS, onColumnsDblClk)
 		HANDLE_NOTIFY(LVN_ITEMCHANGED, IDC_COLUMNS, onColumnsItemChanged)
 	END_NOTIFY_HANDLER()
-	return 1;
+	return NotifyHandler::onNotify(pnmhdr, pbHandled);
 }
 
 LRESULT qm::ViewsDialog::onDestroy()
