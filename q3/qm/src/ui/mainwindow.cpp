@@ -650,30 +650,30 @@ QSTATUS qm::MainWindowImpl::initActions()
 		pActionMap_, IDM_VIEW_PREVFOLDER, pDocument_, pFolderModel_,
 		ViewNavigateFolderAction::TYPE_PREVFOLDER);
 	CHECK_QSTATUS();
-	status = InitAction4<ViewNavigateMessageAction, ViewModelManager*,
-		FolderModel*, MessageWindow*, ViewNavigateMessageAction::Type>(
-		pActionMap_, IDM_VIEW_NEXTMESSAGE, pViewModelManager_,
-		pFolderModel_, pMessageWindow_, ViewNavigateMessageAction::TYPE_NEXT);
+	status = InitAction5<ViewNavigateMessageAction, ViewModelManager*,
+		FolderModel*, MainWindow*, MessageWindow*, ViewNavigateMessageAction::Type>(
+		pActionMap_, IDM_VIEW_NEXTMESSAGE, pViewModelManager_, pFolderModel_,
+		pThis_, pMessageWindow_, ViewNavigateMessageAction::TYPE_NEXT);
 	CHECK_QSTATUS();
-	status = InitAction4<ViewNavigateMessageAction, ViewModelManager*,
-		FolderModel*, MessageWindow*, ViewNavigateMessageAction::Type>(
-		pActionMap_, IDM_VIEW_PREVMESSAGE, pViewModelManager_,
-		pFolderModel_, pMessageWindow_, ViewNavigateMessageAction::TYPE_PREV);
+	status = InitAction5<ViewNavigateMessageAction, ViewModelManager*,
+		FolderModel*, MainWindow*, MessageWindow*, ViewNavigateMessageAction::Type>(
+		pActionMap_, IDM_VIEW_PREVMESSAGE, pViewModelManager_, pFolderModel_,
+		pThis_, pMessageWindow_, ViewNavigateMessageAction::TYPE_PREV);
 	CHECK_QSTATUS();
-	status = InitAction4<ViewNavigateMessageAction, ViewModelManager*,
-		FolderModel*, MessageWindow*, ViewNavigateMessageAction::Type>(
-		pActionMap_, IDM_VIEW_NEXTUNSEENMESSAGE, pViewModelManager_,
-		pFolderModel_, pMessageWindow_, ViewNavigateMessageAction::TYPE_NEXTUNSEEN);
+	status = InitAction5<ViewNavigateMessageAction, ViewModelManager*,
+		FolderModel*, MainWindow*, MessageWindow*, ViewNavigateMessageAction::Type>(
+		pActionMap_, IDM_VIEW_NEXTUNSEENMESSAGE, pViewModelManager_, pFolderModel_,
+		pThis_, pMessageWindow_, ViewNavigateMessageAction::TYPE_NEXTUNSEEN);
 	CHECK_QSTATUS();
-	status = InitAction4<ViewNavigateMessageAction, ViewModelManager*,
-		FolderModel*, MessageWindow*, ViewNavigateMessageAction::Type>(
-		pActionMap_, IDM_VIEW_NEXTMESSAGEPAGE, pViewModelManager_,
-		pFolderModel_, pMessageWindow_, ViewNavigateMessageAction::TYPE_NEXTPAGE);
+	status = InitAction5<ViewNavigateMessageAction, ViewModelManager*,
+		FolderModel*, MainWindow*, MessageWindow*, ViewNavigateMessageAction::Type>(
+		pActionMap_, IDM_VIEW_NEXTMESSAGEPAGE, pViewModelManager_, pFolderModel_,
+		pThis_, pMessageWindow_, ViewNavigateMessageAction::TYPE_NEXTPAGE);
 	CHECK_QSTATUS();
-	status = InitAction4<ViewNavigateMessageAction, ViewModelManager*,
-		FolderModel*, MessageWindow*, ViewNavigateMessageAction::Type>(
-		pActionMap_, IDM_VIEW_PREVMESSAGEPAGE, pViewModelManager_,
-		pFolderModel_, pMessageWindow_, ViewNavigateMessageAction::TYPE_PREVPAGE);
+	status = InitAction5<ViewNavigateMessageAction, ViewModelManager*,
+		FolderModel*, MainWindow*, MessageWindow*, ViewNavigateMessageAction::Type>(
+		pActionMap_, IDM_VIEW_PREVMESSAGEPAGE, pViewModelManager_, pFolderModel_,
+		pThis_, pMessageWindow_, ViewNavigateMessageAction::TYPE_PREVPAGE);
 	CHECK_QSTATUS();
 	status = InitAction4<ViewMessageModeAction, MessageWindow*,
 		ViewMessageModeAction::PFN_IS, ViewMessageModeAction::PFN_SET, bool>(

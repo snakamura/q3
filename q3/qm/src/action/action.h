@@ -1746,8 +1746,8 @@ public:
 
 public:
 	ViewNavigateMessageAction(ViewModelManager* pViewModelManager,
-		FolderModel* pFolderModel, MessageWindow* pMessageWindow,
-		Type type, qs::QSTATUS* pstatus);
+		FolderModel* pFolderModel, MainWindow* pMainWindow,
+		MessageWindow* pMessageWindow, Type type, qs::QSTATUS* pstatus);
 	ViewNavigateMessageAction(ViewModelManager* pViewModelManager,
 		ViewModelHolder* pViewModelHolder, MessageWindow* pMessageWindow,
 		Type type, qs::QSTATUS* pstatus);
@@ -1769,6 +1769,7 @@ private:
 	ViewModelManager* pViewModelManager_;
 	FolderModel* pFolderModel_;
 	ViewModelHolder* pViewModelHolder_;
+	MainWindow* pMainWindow_;
 	MessageWindow* pMessageWindow_;
 	Type type_;
 };

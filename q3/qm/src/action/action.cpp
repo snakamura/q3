@@ -3654,10 +3654,12 @@ QSTATUS qm::ViewNavigateFolderAction::isEnabled(
 
 qm::ViewNavigateMessageAction::ViewNavigateMessageAction(
 	ViewModelManager* pViewModelManager, FolderModel* pFolderModel,
-	MessageWindow* pMessageWindow, Type type, QSTATUS* pstatus) :
+	MainWindow* pMainWindow, MessageWindow* pMessageWindow,
+	Type type, QSTATUS* pstatus) :
 	pViewModelManager_(pViewModelManager),
 	pFolderModel_(pFolderModel),
 	pViewModelHolder_(0),
+	pMainWindow_(pMainWindow),
 	pMessageWindow_(pMessageWindow),
 	type_(type)
 {
@@ -3673,6 +3675,7 @@ qm::ViewNavigateMessageAction::ViewNavigateMessageAction(
 	pViewModelManager_(pViewModelManager),
 	pFolderModel_(0),
 	pViewModelHolder_(pViewModelHolder),
+	pMainWindow_(0),
 	pMessageWindow_(pMessageWindow),
 	type_(type)
 {
@@ -3692,14 +3695,20 @@ QSTATUS qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 	
 	Type type = type_;
 	bool bPreview = pFolderModel_ != 0;
+	assert((bPreview && pFolderModel_ && pMainWindow_) ||
+		(!bPreview && !pFolderModel_ && !pMainWindow_));
 	
 	MessageModel* pMessageModel = pMessageWindow_->getMessageModel();
 	
-	if (bPreview && (type_ == TYPE_NEXTPAGE || type_ == TYPE_PREVPAGE)) {
+	if (bPreview && (type == TYPE_NEXTPAGE || type == TYPE_PREVPAGE)) {
 		MessagePtrLock lock(pMessageModel->getCurrentMessage());
 		if (!lock)
 			type = TYPE_SELF;
 	}
+	
+	if (bPreview && !pMainWindow_->isShowPreviewWindow() &&
+		(type == TYPE_NEXTPAGE || type == TYPE_NEXTPAGE || type == TYPE_SELF))
+		return QSTATUS_SUCCESS;
 	
 	bool bScrolled = true;
 	switch (type) {
