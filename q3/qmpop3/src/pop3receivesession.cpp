@@ -364,9 +364,8 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadMessages(
 	while (it != listFolder.end()) {
 		if ((*it)->getType() == Folder::TYPE_NORMAL) {
 			NormalFolder* pFolder = static_cast<NormalFolder*>(*it);
+			Lock<Folder> lock(*pFolder);
 			if (pFolder->getDeletedCount() != 0) {
-				Lock<Folder> lock(*pFolder);
-				
 				status = pFolder->loadMessageHolders();
 				CHECK_QSTATUS();
 				
@@ -378,22 +377,41 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadMessages(
 						status = pmh->getMessage(
 							Account::GETMESSAGEFLAG_HEADER, L"X-UIDL", &msg);
 						CHECK_QSTATUS();
-						UnstructuredParser uid(&status);
-						CHECK_QSTATUS();
-						Part::Field f;
-						status = msg.getField(L"X-UIDL", &uid, &f);
-						CHECK_QSTATUS();
 						
-						size_t nIndex = -1;
-						if (f == Part::FIELD_EXIST) {
-							nIndex = pUIDList_->getIndex(uid.getValue());
-							if (nIndex != -1) {
-								status = listDelete.add(nIndex, MessagePtr(pmh));
-								CHECK_QSTATUS();
+						Part::Field f;
+						
+						bool bSkip = false;
+						if (*pwszIdentity) {
+							UnstructuredParser subaccount(&status);
+							CHECK_QSTATUS();
+							status = msg.getField(L"X-QMAIL-SubAccount", &subaccount, &f);
+							CHECK_QSTATUS();
+							if (f == Part::FIELD_EXIST) {
+								SubAccount* pSubAccount = pAccount_->getSubAccount(subaccount.getValue());
+								bSkip = !pSubAccount || wcscmp(pSubAccount->getIdentity(), pwszIdentity) != 0;
+							}
+							else {
+								bSkip = true;
 							}
 						}
-						if (nIndex == -1)
-							pmh->setFlags(0, MessageHolder::FLAG_DELETED);
+						
+						if (!bSkip) {
+							UnstructuredParser uid(&status);
+							CHECK_QSTATUS();
+							status = msg.getField(L"X-UIDL", &uid, &f);
+							CHECK_QSTATUS();
+							
+							size_t nIndex = -1;
+							if (f == Part::FIELD_EXIST) {
+								nIndex = pUIDList_->getIndex(uid.getValue());
+								if (nIndex != -1) {
+									status = listDelete.add(nIndex, MessagePtr(pmh));
+									CHECK_QSTATUS();
+								}
+							}
+							if (nIndex == -1)
+								pmh->setFlags(0, MessageHolder::FLAG_DELETED);
+						}
 					}
 				}
 			}
