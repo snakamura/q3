@@ -172,11 +172,16 @@ QSTATUS qs::FrameWindow::processIdle()
 #ifndef _WIN32_WCE_PSPC
 	HWND hwnd = getToolbar();
 #ifdef _WIN32_WCE
-	UINT nId = 0;
-	status = getBarId(1, &nId);
-	CHECK_QSTATUS();
-	hwnd = CommandBands_GetCommandBar(hwnd,
-		::SendMessage(hwnd, RB_IDTOINDEX, nId, 0));
+	if (Window(hwnd).isVisible()) {
+		UINT nId = 0;
+		status = getBarId(1, &nId);
+		CHECK_QSTATUS();
+		hwnd = CommandBands_GetCommandBar(hwnd,
+			::SendMessage(hwnd, RB_IDTOINDEX, nId, 0));
+	}
+	else {
+		hwnd = 0;
+	}
 #endif
 	Window wnd(hwnd);
 	if (wnd.getHandle() && wnd.isVisible()) {
