@@ -1284,7 +1284,7 @@ bool qm::PartUtil::getDigest(MessageList* pList) const
 						strContent = (*it)->getContent();
 					
 					std::auto_ptr<Message> pMessage(new Message());
-					if (pMessage->create(strContent.get(), -1, Message::FLAG_NONE))
+					if (!pMessage->create(strContent.get(), -1, Message::FLAG_NONE))
 						return false;
 					
 					if (fieldTo == Part::FIELD_EXIST) {
@@ -1330,11 +1330,11 @@ bool qm::PartUtil::getDigest(MessageList* pList) const
 				
 				std::auto_ptr<Message> pMessage(creator.createMessage(0, p, pEnd - p));
 				
-				if (fieldTo == Part::FIELD_EXIST) {
+				if (!pMessage->hasField(L"To") && fieldTo == Part::FIELD_EXIST) {
 					if (!pMessage->setField(L"To", to))
 						return false;
 				}
-				if (fieldReplyTo == Part::FIELD_EXIST) {
+				if (!pMessage->hasField(L"Reply-To") && fieldReplyTo == Part::FIELD_EXIST) {
 					if (!pMessage->setField(L"Reply-To", replyTo))
 						return false;
 				}
@@ -1377,7 +1377,7 @@ PartUtil::DigestMode qm::PartUtil::getDigestMode() const
 		}
 	}
 	else if (wcsicmp(pContentType->getMediaType(), L"multipart") == 0) {
-		if (wcsicmp(pContentType->getSubType(), L"mixed") == 0 &&
+		if (wcsicmp(pContentType->getSubType(), L"mixed") == 0 ||
 			wcsicmp(pContentType->getSubType(), L"digest") == 0) {
 			const Part::PartList& l = part_.getPartList();
 			Part::PartList::const_iterator it = l.begin();
