@@ -3770,6 +3770,7 @@ LRESULT qm::ViewsDialog::onNotify(NMHDR* pnmhdr,
 								  bool* pbHandled)
 {
 	BEGIN_NOTIFY_HANDLER()
+		HANDLE_NOTIFY(NM_DBLCLK, IDC_COLUMNS, onColumnsDblClk)
 		HANDLE_NOTIFY(LVN_ITEMCHANGED, IDC_COLUMNS, onColumnsItemChanged)
 	END_NOTIFY_HANDLER()
 	return 1;
@@ -3943,6 +3944,14 @@ LRESULT qm::ViewsDialog::onInherit()
 		setColumns(pViewModel->getColumns());
 		update();
 	}
+	return 0;
+}
+
+LRESULT qm::ViewsDialog::onColumnsDblClk(NMHDR* pnmhdr,
+										 bool* pbHandled)
+{
+	onEdit();
+	*pbHandled = true;
 	return 0;
 }
 
