@@ -22,6 +22,7 @@
 
 #ifndef _WIN32_WCE
 #	define USES_IID_IDistList
+#	define USES_IID_IMailUser
 #	define USES_IID_IMAPIAdviseSink
 #	define USES_IID_IMAPIContainer
 #	include <mapiguid.h>
@@ -1031,6 +1032,7 @@ bool qm::MAPIAddressBook::load(AddressBook* pAddressBook)
 		PR_ENTRYID,
 		PR_OBJECT_TYPE,
 		PR_DISPLAY_NAME,
+		PR_NORMALIZED_SUBJECT,
 		PR_EMAIL_ADDRESS,
 		PR_ADDRTYPE,
 		PR_CONTACT_EMAIL_ADDRESSES
@@ -1043,6 +1045,7 @@ bool qm::MAPIAddressBook::load(AddressBook* pAddressBook)
 		COLUMN_ENTRYID,
 		COLUMN_OBJECT_TYPE,
 		COLUMN_DISPLAY_NAME,
+		COLUMN_NORMALIZED_SUBJECT,
 		COLUMN_EMAIL_ADDRESS,
 		COLUMN_ADDRTYPE,
 		COLUMN_CONTACT_EMAIL_ADDRESSES
@@ -1072,12 +1075,20 @@ bool qm::MAPIAddressBook::load(AddressBook* pAddressBook)
 		
 		SRow* pRow = pSRowSet->aRow;
 		
-		const SPropValue& valueName = pRow->lpProps[COLUMN_DISPLAY_NAME];
-		if (PROP_TYPE(valueName.ulPropTag) != PT_TSTRING) {
-			log.warn(L"Skipping non-string PR_DISPLAY_NAME.");
-			continue;
+		LPCTSTR ptszName = 0;
+		const SPropValue& valueSubject = pRow->lpProps[COLUMN_NORMALIZED_SUBJECT];
+		if (PROP_TYPE(valueSubject.ulPropTag) == PT_TSTRING) {
+			ptszName = valueSubject.Value.LPSZ;
 		}
-		T2W(valueName.Value.LPSZ, pwszName);
+		else {
+			const SPropValue& valueName = pRow->lpProps[COLUMN_DISPLAY_NAME];
+			if (PROP_TYPE(valueName.ulPropTag) != PT_TSTRING) {
+				log.warn(L"Skipping non-string PR_DISPLAY_NAME.");
+				continue;
+			}
+			ptszName = valueName.Value.LPSZ;
+		}
+		T2W(ptszName, pwszName);
 		
 		std::auto_ptr<AddressBookEntry> pEntry(new AddressBookEntry(pwszName, 0, true));
 		
@@ -1134,7 +1145,7 @@ bool qm::MAPIAddressBook::load(AddressBook* pAddressBook)
 			hr = pContainer->OpenEntry(nEntrySize, pEntryId, &IID_IDistList,
 				MAPI_BEST_ACCESS, &nType, reinterpret_cast<IUnknown**>(&pDistList));
 			if (hr == S_OK) {
-				wstring_ptr wstrDistList = expandDistList(pDistList.get());
+				wstring_ptr wstrDistList = expandDistList(pContainer.get(), pDistList.get());
 				if (wstrDistList.get()) {
 					std::auto_ptr<AddressBookAddress> pAddress(
 						new AddressBookAddress(pEntry.get(),
@@ -1190,7 +1201,8 @@ bool qm::MAPIAddressBook::init(IAddrBook* pAddrBook)
 	return true;
 }
 
-wstring_ptr qm::MAPIAddressBook::expandDistList(IDistList* pDistList) const
+wstring_ptr qm::MAPIAddressBook::expandDistList(IMAPIContainer* pContainer,
+												IDistList* pDistList) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qm::MAPIAddressBook");
 	
@@ -1204,7 +1216,9 @@ wstring_ptr qm::MAPIAddressBook::expandDistList(IDistList* pDistList) const
 	StringBuffer<WSTRING> buf;
 	
 	ULONG props[] = {
+		PR_ENTRYID,
 		PR_DISPLAY_NAME,
+		PR_NORMALIZED_SUBJECT,
 		PR_EMAIL_ADDRESS,
 		PR_ADDRTYPE
 	};
@@ -1213,7 +1227,9 @@ wstring_ptr qm::MAPIAddressBook::expandDistList(IDistList* pDistList) const
 	};
 	memcpy(columns.aulPropTag, props, sizeof(props));
 	enum {
+		COLUMN_ENTRYID,
 		COLUMN_DISPLAY_NAME,
+		COLUMN_NORMALIZED_SUBJECT,
 		COLUMN_EMAIL_ADDRESS,
 		COLUMN_ADDRTYPE
 	};
@@ -1243,10 +1259,34 @@ wstring_ptr qm::MAPIAddressBook::expandDistList(IDistList* pDistList) const
 			_tcscmp(valueType.Value.LPSZ, _T("SMTP")) != 0)
 			continue;
 		
-		const SPropValue& valueName = pRow->lpProps[COLUMN_DISPLAY_NAME];
-		if (PROP_TYPE(valueName.ulPropTag) != PT_TSTRING)
-			continue;
-		T2W(valueName.Value.LPSZ, pwszName);
+		wstring_ptr wstrName;
+		
+		ULONG nEntrySize = pRow->lpProps[COLUMN_ENTRYID].Value.bin.cb;
+		ENTRYID* pEntryId = reinterpret_cast<ENTRYID*>(
+			pRow->lpProps[COLUMN_ENTRYID].Value.bin.lpb);
+		ComPtr<IMailUser> pMailUser;
+		ULONG nType = 0;
+		hr = pContainer->OpenEntry(nEntrySize, pEntryId, &IID_IMailUser,
+			MAPI_BEST_ACCESS, &nType, reinterpret_cast<IUnknown**>(&pMailUser));
+		if (hr == S_OK) {
+			SPropValue* pValue = 0;
+			ULONG nValues = 0;
+			hr = pMailUser->GetProps(reinterpret_cast<LPSPropTagArray>(&columns),
+				fMapiUnicode, &nValues, &pValue);
+			if (hr == S_OK) {
+				const SPropValue& valueSubject = pValue[COLUMN_NORMALIZED_SUBJECT];
+				if (PROP_TYPE(valueSubject.ulPropTag) == PT_TSTRING)
+					wstrName = tcs2wcs(valueSubject.Value.LPSZ);
+			}
+			freeBuffer(pValue);
+		}
+		
+		if (!wstrName.get()) {
+			const SPropValue& valueName = pRow->lpProps[COLUMN_DISPLAY_NAME];
+			if (PROP_TYPE(valueName.ulPropTag) != PT_TSTRING)
+				continue;
+			wstrName = tcs2wcs(valueName.Value.LPSZ);
+		}
 		
 		const SPropValue& valueAddress = pRow->lpProps[COLUMN_EMAIL_ADDRESS];
 		if (PROP_TYPE(valueAddress.ulPropTag) != PT_TSTRING)
@@ -1255,7 +1295,7 @@ wstring_ptr qm::MAPIAddressBook::expandDistList(IDistList* pDistList) const
 		
 		if (buf.getLength() != 0)
 			buf.append(L", ");
-		buf.append(AddressParser(pwszName, pwszAddress).getValue().get());
+		buf.append(AddressParser(wstrName.get(), pwszAddress).getValue().get());
 	}
 	
 	if (buf.getLength() == 0)

@@ -393,7 +393,8 @@ protected:
 	virtual void freeBuffer(void* pBuffer) const = 0;
 
 private:
-	qs::wstring_ptr expandDistList(IDistList* pDistList) const;
+	qs::wstring_ptr expandDistList(IMAPIContainer* pContainer,
+								   IDistList* pDistList) const;
 
 private:
 	class IMAPIAdviseSinkImpl : public IMAPIAdviseSink
