@@ -528,6 +528,9 @@ QSTATUS qm::MainWindowImpl::initActions()
 		pActionMap_, IDM_VIEW_NEXTACCOUNT, pDocument_, pFolderModel_,
 		ViewNavigateFolderAction::TYPE_NEXTACCOUNT);
 	CHECK_QSTATUS();
+	status = InitAction1<ViewOpenLinkAction, MessageWindow*>(
+		pActionMap_, IDM_VIEW_OPENLINK, pMessageWindow_);
+	CHECK_QSTATUS();
 	status = InitAction3<ViewNavigateFolderAction,
 		Document*, FolderModel*, ViewNavigateFolderAction::Type>(
 		pActionMap_, IDM_VIEW_PREVACCOUNT, pDocument_, pFolderModel_,

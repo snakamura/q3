@@ -130,6 +130,7 @@ public:
 	qs::QSTATUS setSelectMode(bool bSelectMode);
 	qs::QSTATUS find(const WCHAR* pwszFind,
 		bool bMatchCase, bool bPrev, bool* pbFound);
+	qs::QSTATUS openLink();
 	MessageWindowItem* getFocusedItem() const;
 	
 	MessageModel* getMessageModel() const;

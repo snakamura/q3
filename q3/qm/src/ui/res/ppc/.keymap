@@ -179,6 +179,9 @@
 		<action name="ViewNextUnseenMessage">
 			<key key="M"/>
 		</action>
+		<action name="ViewOpenLink">
+			<key code="20" ctrl="true"/>
+		</action>
 		<action name="ViewPrevMessage">
 			<key key="P"/>
 			<key code="8"/>
@@ -258,6 +261,9 @@
 		</action>
 		<action name="ViewNextUnseenMessage">
 			<key key="M"/>
+		</action>
+		<action name="ViewOpenLink">
+			<key code="20" ctrl="true"/>
 		</action>
 		<action name="ViewPrevMessage">
 			<key key="P"/>

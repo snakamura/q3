@@ -66,6 +66,9 @@
 			<key code="2e" shift="true"/>
 			<key key="D" shift="true"/>
 		</action>
+		<action name="FileSave">
+			<key key="W"/>
+		</action>
 		<action name="MessageApplyRule">
 			<key key="L"/>
 		</action>
@@ -188,6 +191,9 @@
 		<action name="ViewNextUnseenMessage">
 			<key key="M"/>
 		</action>
+		<action name="ViewOpenLink">
+			<key code="20" ctrl="true"/>
+		</action>
 		<action name="ViewPrevMessage">
 			<key key="P"/>
 			<key code="8"/>
@@ -276,6 +282,9 @@
 		</action>
 		<action name="ViewNextUnseenMessage">
 			<key key="M"/>
+		</action>
+		<action name="ViewOpenLink">
+			<key code="20" ctrl="true"/>
 		</action>
 		<action name="ViewPrevMessage">
 			<key key="P"/>

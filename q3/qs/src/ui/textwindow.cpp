@@ -192,8 +192,10 @@ public:
 	
 	size_t getReformQuoteLength(const WCHAR* pwszLine, size_t nLen) const;
 	
+	const LinkItem* getLinkItem(unsigned int nLine, unsigned int nChar);
 	std::pair<int, const LinkItem*> getLinkItemFromPoint(const POINT& pt) const;
 	QSTATUS openLink(const POINT& pt);
+	QSTATUS getURL(int nLine, const LinkItem* pLinkItem, WSTRING* pwstrURL) const;
 
 public:
 	virtual QSTATUS textUpdated(const TextModelEvent& event);
@@ -214,7 +216,6 @@ private:
 		size_t nLength, LinkItemList* pListPhysicalLink) const;
 	void fillPhysicalLinks(LinkItemList* pList,
 		DeviceContext* pdc, const WCHAR* pwsz) const;
-	QSTATUS getURL(int nLine, const LinkItem* pLinkItem, WSTRING* pwstrURL) const;
 
 public:
 	TextWindow* pThis_;
@@ -1241,6 +1242,20 @@ size_t qs::TextWindowImpl::getReformQuoteLength(
 	return p - pwszLine;
 }
 
+const TextWindowImpl::LinkItem* qs::TextWindowImpl::getLinkItem(
+	unsigned int nLine, unsigned int nChar)
+{
+	const PhysicalLine* pLine = listLine_[nLine];
+	if (pLine->items_.nCount_ != 0) {
+		for (size_t n = 0; n < pLine->items_.nCount_; ++n) {
+			const LinkItem& item = pLine->items_.items_[n];
+			if (item.nOffset_ <= nChar && nChar <= item.nOffset_ + item.nLength_)
+				return &item;
+		}
+	}
+	return 0;
+}
+
 std::pair<int, const TextWindowImpl::LinkItem*> qs::TextWindowImpl::getLinkItemFromPoint(
 	const POINT& pt) const
 {
@@ -1277,6 +1292,52 @@ QSTATUS qs::TextWindowImpl::openLink(const POINT& pt)
 			CHECK_QSTATUS();
 		}
 	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qs::TextWindowImpl::getURL(int nLine,
+	const LinkItem* pLinkItem, WSTRING* pwstrURL) const
+{
+	assert(0 <= nLine && nLine < static_cast<int>(listLine_.size()));
+	assert(pLinkItem);
+	assert(pwstrURL);
+	
+	DECLARE_QSTATUS();
+	
+	const PhysicalLine* pLine = listLine_[nLine];
+	
+	TextModel::Line line = pTextModel_->getLine(pLine->nLogicalLine_);
+	const WCHAR* pBegin = line.getText() + pLine->nPosition_ + pLinkItem->nOffset_;
+	const WCHAR* pEnd = pBegin + pLinkItem->nLength_;
+	if (pLinkItem->nOffset_ == 0 && pLine->nPosition_ != 0) {
+		while (pBegin >= line.getText() && TextUtil::isURLChar(*pBegin))
+			--pBegin;
+		++pBegin;
+	}
+	
+	if (pLinkItem->nOffset_ + pLinkItem->nLength_ == pLine->nLength_) {
+		while (pEnd - line.getText() < static_cast<int>(line.getLength()) &&
+			TextUtil::isURLChar(*pEnd))
+			++pEnd;
+	}
+	
+	string_ptr<WSTRING> wstrURL(allocWString(pBegin, pEnd - pBegin));
+	if (!wstrURL.get())
+		return QSTATUS_OUTOFMEMORY;
+	
+	URLSchemaList::const_iterator it = listURLSchema_.begin();
+	while (it != listURLSchema_.end()) {
+		if (wcsncmp(*it, wstrURL.get(), wcslen(*it)) == 0)
+			break;
+		++it;
+	}
+	if (it == listURLSchema_.end()) {
+		wstrURL.reset(concat(L"mailto:", wstrURL.get()));
+		if (!wstrURL.get())
+			return QSTATUS_OUTOFMEMORY;
+	}
+	*pwstrURL = wstrURL.release();
 	
 	return QSTATUS_SUCCESS;
 }
@@ -1502,52 +1563,6 @@ void qs::TextWindowImpl::fillPhysicalLinks(LinkItemList* pList,
 		(*it).nRight_ = size.cx;
 		++it;
 	}
-}
-
-QSTATUS qs::TextWindowImpl::getURL(int nLine,
-	const LinkItem* pLinkItem, WSTRING* pwstrURL) const
-{
-	assert(0 <= nLine && nLine < static_cast<int>(listLine_.size()));
-	assert(pLinkItem);
-	assert(pwstrURL);
-	
-	DECLARE_QSTATUS();
-	
-	const PhysicalLine* pLine = listLine_[nLine];
-	
-	TextModel::Line line = pTextModel_->getLine(pLine->nLogicalLine_);
-	const WCHAR* pBegin = line.getText() + pLine->nPosition_ + pLinkItem->nOffset_;
-	const WCHAR* pEnd = pBegin + pLinkItem->nLength_;
-	if (pLinkItem->nOffset_ == 0 && pLine->nPosition_ != 0) {
-		while (pBegin >= line.getText() && TextUtil::isURLChar(*pBegin))
-			--pBegin;
-		++pBegin;
-	}
-	
-	if (pLinkItem->nOffset_ + pLinkItem->nLength_ == pLine->nLength_) {
-		while (pEnd - line.getText() < static_cast<int>(line.getLength()) &&
-			TextUtil::isURLChar(*pEnd))
-			++pEnd;
-	}
-	
-	string_ptr<WSTRING> wstrURL(allocWString(pBegin, pEnd - pBegin));
-	if (!wstrURL.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	URLSchemaList::const_iterator it = listURLSchema_.begin();
-	while (it != listURLSchema_.end()) {
-		if (wcsncmp(*it, wstrURL.get(), wcslen(*it)) == 0)
-			break;
-		++it;
-	}
-	if (it == listURLSchema_.end()) {
-		wstrURL.reset(concat(L"mailto:", wstrURL.get()));
-		if (!wstrURL.get())
-			return QSTATUS_OUTOFMEMORY;
-	}
-	*pwstrURL = wstrURL.release();
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -2516,6 +2531,43 @@ QSTATUS qs::TextWindow::moveCaret(MoveCaret moveCaret,
 		
 		pImpl_->updateCaret(true);
 	}
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qs::TextWindow::openLink()
+{
+	DECLARE_QSTATUS();
+	
+	if (pImpl_->pLinkHandler_) {
+		string_ptr<WSTRING> wstrURL;
+		if (isSelected()) {
+			status = getSelectedText(&wstrURL);
+			CHECK_QSTATUS();
+			
+			const WCHAR* pSrc = wstrURL.get();
+			WCHAR* pDst = wstrURL.get();
+			while (*pSrc) {
+				if (*pSrc != L'\n')
+					*pDst++ = *pSrc;
+				++pSrc;
+			}
+			*pDst = L'\0';
+			
+			status = pImpl_->pLinkHandler_->openLink(wstrURL.get());
+			CHECK_QSTATUS();
+		}
+		else {
+			const TextWindowImpl::LinkItem* pLinkItem =
+				pImpl_->getLinkItem(pImpl_->caret_.nLine_, pImpl_->caret_.nChar_);
+			if (pLinkItem) {
+				status = pImpl_->getURL(pImpl_->caret_.nLine_, pLinkItem, &wstrURL);
+				CHECK_QSTATUS();
+				status = pImpl_->pLinkHandler_->openLink(wstrURL.get());
+				CHECK_QSTATUS();
+			}
+		}
+	}
+	
 	return QSTATUS_SUCCESS;
 }
 

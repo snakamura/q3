@@ -198,6 +198,7 @@ const qs::KeyNameToId mapKeyNameToId[] = {
 	{ L"ViewNextMessage",				IDM_VIEW_NEXTMESSAGE,					0 },
 	{ L"ViewNextMessagePage",			IDM_VIEW_NEXTMESSAGEPAGE,				0 },
 	{ L"ViewNextUnseenMessage",			IDM_VIEW_NEXTUNSEENMESSAGE,				0 },
+	{ L"ViewOpenLink",					IDM_VIEW_OPENLINK,						0 },
 	{ L"ViewPrevAccount",				IDM_VIEW_PREVACCOUNT,					0 },
 	{ L"ViewPrevFolder",				IDM_VIEW_PREVFOLDER,					0 },
 	{ L"ViewPrevMessage",				IDM_VIEW_PREVMESSAGE,					0 },

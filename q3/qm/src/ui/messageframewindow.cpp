@@ -270,6 +270,9 @@ QSTATUS qm::MessageFrameWindowImpl::initActions()
 		pActionMap_, IDM_VIEW_NEXTMESSAGE, pMessageWindow_,
 		ViewNavigateMessageAction::TYPE_NEXT);
 	CHECK_QSTATUS();
+	status = InitAction1<ViewOpenLinkAction, MessageWindow*>(
+		pActionMap_, IDM_VIEW_OPENLINK, pMessageWindow_);
+	CHECK_QSTATUS();
 	status = InitAction2<ViewNavigateMessageAction,
 		MessageWindow*, ViewNavigateMessageAction::Type>(
 		pActionMap_, IDM_VIEW_PREVMESSAGE, pMessageWindow_,

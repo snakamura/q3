@@ -70,6 +70,7 @@ public:
 	virtual qs::QSTATUS setSelectMode(bool bSelectMode) = 0;
 	virtual qs::QSTATUS find(const WCHAR* pwszFind,
 		bool bMatchCase, bool bPrev, bool* pbFound) = 0;
+	virtual qs::QSTATUS openLink() = 0;
 };
 
 
@@ -149,6 +150,7 @@ public:
 	virtual qs::QSTATUS setSelectMode(bool bSelectMode);
 	virtual qs::QSTATUS find(const WCHAR* pwszFind,
 		bool bMatchCase, bool bPrev, bool* pbFound);
+	virtual qs::QSTATUS openLink();
 
 public:
 	virtual qs::QSTATUS copy();
@@ -205,6 +207,7 @@ public:
 	virtual qs::QSTATUS setSelectMode(bool bSelectMode);
 	virtual qs::QSTATUS find(const WCHAR* pwszFind,
 		bool bMatchCase, bool bPrev, bool* pbFound);
+	virtual qs::QSTATUS openLink();
 
 public:
 	virtual qs::QSTATUS copy();

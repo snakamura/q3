@@ -70,6 +70,7 @@ class ViewLockPreviewAction;
 class ViewMessageModeAction;
 class ViewNavigateFolderAction;
 class ViewNavigateMessageAction;
+class ViewOpenLinkAction;
 class ViewRefreshAction;
 class ViewScrollAction;
 class ViewSelectModeAction;
@@ -1517,6 +1518,30 @@ private:
 	ViewModelManager* pViewModelManager_;
 	MessageWindow* pMessageWindow_;
 	Type type_;
+};
+
+
+/****************************************************************************
+ *
+ * ViewOpenLinkAction
+ *
+ */
+
+class ViewOpenLinkAction : public qs::AbstractAction
+{
+public:
+	ViewOpenLinkAction(MessageWindow* pMessageWindow, qs::QSTATUS* pstatus);
+	virtual ~ViewOpenLinkAction();
+
+public:
+	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+
+private:
+	ViewOpenLinkAction(const ViewOpenLinkAction&);
+	ViewOpenLinkAction& operator=(const ViewOpenLinkAction&);
+
+private:
+	MessageWindow* pMessageWindow_;
 };
 
 

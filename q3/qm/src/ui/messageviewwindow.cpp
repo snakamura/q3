@@ -317,6 +317,11 @@ QSTATUS qm::TextMessageViewWindow::find(const WCHAR* pwszFind,
 	return TextWindow::find(pwszFind, nFlags, pbFound);
 }
 
+QSTATUS qm::TextMessageViewWindow::openLink()
+{
+	return TextWindow::openLink();
+}
+
 QSTATUS qm::TextMessageViewWindow::copy()
 {
 	return TextWindow::copy();
@@ -734,6 +739,11 @@ QSTATUS qm::HtmlMessageViewWindow::find(const WCHAR* pwszFind,
 	}
 	*pbFound = bFound == VARIANT_TRUE;
 	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::HtmlMessageViewWindow::openLink()
+{
 	return QSTATUS_SUCCESS;
 }
 

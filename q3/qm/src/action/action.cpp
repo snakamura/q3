@@ -3463,6 +3463,28 @@ QSTATUS qm::ViewNavigateMessageAction::isEnabled(
 
 /****************************************************************************
  *
+ * ViewOpenLinkAction
+ *
+ */
+
+qm::ViewOpenLinkAction::ViewOpenLinkAction(
+	MessageWindow* pMessageWindow, QSTATUS* pstatus) :
+	pMessageWindow_(pMessageWindow)
+{
+}
+
+qm::ViewOpenLinkAction::~ViewOpenLinkAction()
+{
+}
+
+QSTATUS qm::ViewOpenLinkAction::invoke(const ActionEvent& event)
+{
+	return pMessageWindow_->openLink();
+}
+
+
+/****************************************************************************
+ *
  * ViewRefreshAction
  *
  */

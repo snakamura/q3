@@ -505,6 +505,11 @@ QSTATUS qm::MessageWindow::find(const WCHAR* pwszFind,
 		pwszFind, bMatchCase, bPrev, pbFound);
 }
 
+QSTATUS qm::MessageWindow::openLink()
+{
+	return pImpl_->pMessageViewWindow_->openLink();
+}
+
 MessageWindowItem* qm::MessageWindow::getFocusedItem() const
 {
 	if (pImpl_->pMessageViewWindow_ &&

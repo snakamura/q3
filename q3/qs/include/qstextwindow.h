@@ -1,5 +1,5 @@
 /*
- * $Id: qstextwindow.h,v 1.1.1.1 2003/04/29 08:07:35 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -297,6 +297,7 @@ public:
 	QSTATUS scroll(Scroll scroll, int nPos, bool bRepeat);
 	QSTATUS moveCaret(MoveCaret moveCaret, unsigned int nLine,
 		unsigned int nChar, bool bRepeat, Select select);
+	QSTATUS openLink();
 	TextWindowLinkHandler* getLinkHandler() const;
 	void setLinkHandler(TextWindowLinkHandler* pLinkHandler);
 	

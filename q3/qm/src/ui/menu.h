@@ -95,6 +95,7 @@ const qs::MenuItem menuItems[] = {
 	{ L"ViewNextMessage",			IDM_VIEW_NEXTMESSAGE			},
 	{ L"ViewNextMessagePage",		IDM_VIEW_NEXTMESSAGEPAGE		},
 	{ L"ViewNextUnseenMessage",		IDM_VIEW_NEXTUNSEENMESSAGE		},
+	{ L"ViewOpenLink",				IDM_VIEW_OPENLINK				},
 	{ L"ViewPrevMessage",			IDM_VIEW_PREVMESSAGE			},
 	{ L"ViewPrevMessagePage",		IDM_VIEW_PREVMESSAGEPAGE		},
 	{ L"ViewRawMode",				IDM_VIEW_RAWMODE				},
