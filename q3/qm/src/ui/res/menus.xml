@@ -9,7 +9,7 @@
 			<separator/>
 			<menuitem text="&amp;Offline" action="FileOffline"/>
 			<separator/>
-			<popupmenu text="&amp;Maintanance">
+			<popupmenu text="&amp;Maintenance">
 				<menuitem text="&amp;Compact" action="FileCompact"/>
 				<menuitem text="Sa&amp;lvage" action="FileSalvage"/>
 				<menuitem text="Chec&amp;k" action="FileCheck"/>
