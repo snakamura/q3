@@ -1189,6 +1189,9 @@ LRESULT qm::FolderWindow::onContextMenu(HWND hwnd,
 		screenToClient(&info.pt);
 		HTREEITEM hItem = TreeView_HitTest(getHandle(), &info);
 		if (hItem) {
+#if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
+			TreeView_SelectDropTarget(getHandle(), hItem);
+#endif
 			if (TreeView_GetParent(getHandle(), hItem))
 				pImpl_->pFolderModel_->setTemporary(0, pImpl_->getFolder(hItem));
 			else
@@ -1201,6 +1204,10 @@ LRESULT qm::FolderWindow::onContextMenu(HWND hwnd,
 #endif
 		::TrackPopupMenu(hmenu, nFlags, pt.x, pt.y, 0, getParentFrame(), 0);
 		
+#if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
+		if (hItem)
+			TreeView_SelectDropTarget(getHandle(), 0);
+#endif
 		postMessage(FolderWindowImpl::WM_FOLDERWINDOW_DESELECTTEMPORARY);
 	}
 	
@@ -1262,7 +1269,10 @@ LRESULT qm::FolderWindow::onDestroy()
 LRESULT qm::FolderWindow::onLButtonDown(UINT nFlags,
 										const POINT& pt)
 {
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
+	if (::GetKeyState(VK_MENU) < 0)
+		return 0;
+#elif defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	TVHITTESTINFO info = {
 		{ pt.x, pt.y },
 	};
@@ -1312,6 +1322,7 @@ LRESULT qm::FolderWindow::onMessageChanged(WPARAM wParam,
 LRESULT qm::FolderWindow::onDeselectTemporary(WPARAM wParam,
 											  LPARAM lParam)
 {
+	messageBox(L"Deselected");
 	pImpl_->pFolderModel_->setTemporary(0, 0);
 	return 0;
 }
