@@ -126,7 +126,6 @@ public:
 						   const ViewModelItem* pItem) const;
 	void getTime(const ViewModel* pViewModel,
 				 const ViewModelItem* pItem,
-				 bool bLatest,
 				 qs::Time* pTime) const;
 
 public:
@@ -204,9 +203,10 @@ public:
 	void setMessageFlags(unsigned int nFlags);
 	unsigned int getLevel() const;
 	unsigned int getMessageIdHash() const;
-	const MessageDate& getLatest() const;
-	bool updateLatest(const MessageDate& dateLatest);
-	void clearLatest();
+	ViewModelItem* getLatestItem() const;
+	bool updateLatestItem(ViewModelItem* pItem,
+						  const ViewModelItemComp& comp);
+	void clearLatestItem();
 	const MacroValue* getCache(unsigned int n) const;
 	void setCache(unsigned int n,
 				  MacroValue* pValue) const;
@@ -227,7 +227,7 @@ private:
 	unsigned int nFlags_;
 	COLORREF cr_;
 	unsigned int nMessageFlags_;
-	MessageDate dateLatest_;
+	ViewModelItem* pLatestItem_;
 };
 
 
@@ -697,6 +697,8 @@ public:
 public:
 	bool operator()(const ViewModelItem* pLhs,
 					const ViewModelItem* pRhs) const;
+	int compare(const ViewModelItem* pLhs,
+				const ViewModelItem* pRhs) const;
 
 private:
 	const ViewModel* pViewModel_;

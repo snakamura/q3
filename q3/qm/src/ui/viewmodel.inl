@@ -23,9 +23,10 @@ inline qm::ViewModelItem::ViewModelItem(MessageHolder* pmh) :
 	pParentItem_(0),
 	nFlags_(0),
 	cr_(0xffffffff),
-	nMessageFlags_(pmh->getFlags())
+	nMessageFlags_(pmh->getFlags()),
+	pLatestItem_(0)
 {
-	clearLatest();
+	clearLatestItem();
 }
 
 inline qm::ViewModelItem::ViewModelItem(unsigned int nMessageIdHash) :
@@ -33,7 +34,8 @@ inline qm::ViewModelItem::ViewModelItem(unsigned int nMessageIdHash) :
 	pParentItem_(0),
 	nFlags_(0),
 	cr_(0xffffffff),
-	nMessageFlags_(nMessageIdHash)
+	nMessageFlags_(nMessageIdHash),
+	pLatestItem_(0)
 {
 }
 
@@ -129,30 +131,30 @@ inline unsigned int qm::ViewModelItem::getMessageIdHash() const
 	return pmh_ ? pmh_->getMessageIdHash() : nMessageFlags_;
 }
 
-inline const qm::MessageDate& qm::ViewModelItem::getLatest() const
+inline qm::ViewModelItem* qm::ViewModelItem::getLatestItem() const
 {
-	return dateLatest_;
+	return pLatestItem_;
 }
 
-inline bool qm::ViewModelItem::updateLatest(const MessageDate& dateLatest)
+inline bool qm::ViewModelItem::updateLatestItem(ViewModelItem* pItem,
+												const ViewModelItemComp& comp)
 {
-	qs::Time timeOld;
-	dateLatest_.getTime(&timeOld);
-	qs::Time timeNew;
-	dateLatest.getTime(&timeNew);
-	if (timeOld >= timeNew)
+	assert(pItem);
+	assert(pItem != this);
+	
+	if (comp.compare(pItem, pLatestItem_) <= 0)
 		return false;
 	
-	dateLatest_ = dateLatest;
+	pLatestItem_ = pItem;
 	if (pParentItem_)
-		pParentItem_->updateLatest(dateLatest);
+		pParentItem_->updateLatestItem(pItem, comp);
 	
 	return true;
 }
 
-inline void qm::ViewModelItem::clearLatest()
+inline void qm::ViewModelItem::clearLatestItem()
 {
-	dateLatest_ = pmh_->getDate();
+	pLatestItem_ = this;
 }
 
 inline const qm::MacroValue* qm::ViewModelItem::getCache(unsigned int n) const

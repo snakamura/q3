@@ -256,7 +256,6 @@ unsigned int qm::ViewColumn::getNumber(const ViewModel* pViewModel,
 
 void qm::ViewColumn::getTime(const ViewModel* pViewModel,
 							 const ViewModelItem* pItem,
-							 bool bLatest,
 							 Time* pTime) const
 {
 	assert(pItem);
@@ -273,10 +272,7 @@ void qm::ViewColumn::getTime(const ViewModel* pViewModel,
 		bCurrent = true;
 		break;
 	case ViewColumn::TYPE_DATE:
-		if (bLatest)
-			pItem->getLatest().getTime(pTime);
-		else
-			pmh->getDate(pTime);
+		pmh->getDate(pTime);
 		break;
 	case ViewColumn::TYPE_FROM:
 	case ViewColumn::TYPE_TO:
@@ -938,7 +934,8 @@ void qm::ViewModel::messageAdded(const FolderMessageEvent& event)
 					ViewModelItem* pParentItem = *itParent;
 					pItem->setParentItem(pParentItem);
 					if (isFloatThread(nSort_)) {
-						if (pParentItem->updateLatest(pItem->getLatest())) {
+						ViewModelItemComp comp(getComparator(nSort_));
+						if (pParentItem->updateLatestItem(pItem.get(), comp)) {
 							ItemList::iterator itThreadBegin = itParent;
 							while ((*itThreadBegin)->getParentItem())
 								--itThreadBegin;
@@ -946,7 +943,6 @@ void qm::ViewModel::messageAdded(const FolderMessageEvent& event)
 							while (itThreadEnd != listItem_.end() && (*itThreadEnd)->getParentItem())
 								++itThreadEnd;
 							
-							ViewModelItemComp comp(getComparator(nSort_));
 							if ((nSort_ & SORT_DIRECTION_MASK) == SORT_ASCENDING) {
 								ItemList::iterator itInsert = itThreadEnd;
 								while (itInsert != listItem_.end()) {
@@ -1153,13 +1149,14 @@ void qm::ViewModel::messageRemoved(const FolderMessageEvent& event)
 	if (isFloatThread(nSort_)) {
 		assert(listThread.size() == listItem_.size());
 		
+		ViewModelItemComp comp(getComparator(nSort_));
 		for (ThreadList::size_type n = 0; n < listThread.size(); ++n) {
 			if (listThread[n]) {
 				ViewModelItem* pItem = listItem_[n];
-				pItem->clearLatest();
+				pItem->clearLatestItem();
 				ViewModelItem* pParentItem = pItem->getParentItem();
 				if (pParentItem)
-					pParentItem->updateLatest(pItem->getLatest());
+					pParentItem->updateLatestItem(pItem, comp);
 				
 				bSort = true;
 			}
@@ -1291,11 +1288,7 @@ ViewModelItemComp qm::ViewModel::getComparator(unsigned int nSort) const
 
 bool qm::ViewModel::isFloatThread(unsigned int nSort) const
 {
-	if ((nSort & SORT_THREAD_MASK) != SORT_THREAD || !(nSort & SORT_FLOATTHREAD))
-		return false;
-	
-	const ViewColumn& column = getColumn(nSort & SORT_INDEX_MASK);
-	return column.getType() == ViewColumn::TYPE_DATE;
+	return (nSort & SORT_THREAD_MASK) == SORT_THREAD && nSort & SORT_FLOATTHREAD;
 }
 
 void qm::ViewModel::makeParentLink(bool bUpdateLatest)
@@ -1322,14 +1315,15 @@ void qm::ViewModel::makeParentLink(bool bUpdateLatest)
 		ViewModelItem* pItem = *it;
 		makeParentLink(listItemSortedByMessageIdHash, listItemSortedByPointer, pItem);
 		if (bUpdateLatest)
-			pItem->clearLatest();
+			pItem->clearLatestItem();
 	}
 	if (bUpdateLatest) {
+		ViewModelItemComp comp(getComparator(nSort_));
 		for (ItemList::iterator it = listItem_.begin(); it != listItem_.end(); ++it) {
 			ViewModelItem* pItem = *it;
 			ViewModelItem* pParentItem = pItem->getParentItem();
 			if (pParentItem)
-				pParentItem->updateLatest(pItem->getLatest());
+				pParentItem->updateLatestItem(pItem->getLatestItem(), comp);
 		}
 	}
 }
@@ -1924,38 +1918,44 @@ bool qm::ViewModelItemComp::operator()(const ViewModelItem* pLhs,
 	}
 	
 	if (!bFixed) {
-		MessageHolder* pmhLhs = pLhs->getMessageHolder();
-		MessageHolder* pmhRhs = pRhs->getMessageHolder();
-		
-		int nComp = 0;
-		unsigned int nFlags = column_.getFlags();
-		if ((nFlags & ViewColumn::FLAG_SORT_MASK) == ViewColumn::FLAG_SORT_NUMBER) {
-			unsigned int nLhs = column_.getNumber(pViewModel_, pLhs);
-			unsigned int nRhs = column_.getNumber(pViewModel_, pRhs);
-			nComp = nLhs < nRhs ? -1 : nLhs > nRhs ? 1 : 0;
-		}
-		else if ((nFlags & ViewColumn::FLAG_SORT_MASK) == ViewColumn::FLAG_SORT_DATE) {
-			bool bLatest = bThread_ && bFloat_ && nLevel == 0;
-			Time timeLhs;
-			column_.getTime(pViewModel_, pLhs, bLatest, &timeLhs);
-			Time timeRhs;
-			column_.getTime(pViewModel_, pRhs, bLatest, &timeRhs);
-			nComp = timeLhs < timeRhs ? -1 : timeLhs > timeRhs ? 1 : 0;
-		}
-		else {
-			wstring_ptr wstrTextLhs(column_.getText(pViewModel_, pLhs));
-			wstring_ptr wstrTextRhs(column_.getText(pViewModel_, pRhs));
-			nComp = _wcsicmp(wstrTextLhs.get(), wstrTextRhs.get());
-		}
-		if (bThread_ && nComp == 0)
+		bool bLatest = bThread_ && bFloat_ && nLevel == 0;
+		int nComp = compare(bLatest ? pLhs->getLatestItem() : pLhs,
+			bLatest ? pRhs->getLatestItem() : pRhs);
+		if (bThread_ && nComp == 0) {
+			MessageHolder* pmhLhs = pLhs->getMessageHolder();
+			MessageHolder* pmhRhs = pRhs->getMessageHolder();
 			nComp = pmhLhs->getId() < pmhRhs->getId() ? -1 :
 				pmhLhs->getId() > pmhRhs->getId() ? 1 : 0;
+		}
 		if (!bAscending_)
 			nComp = -nComp;
 		bLess = nComp < 0;
 	}
 	
 	return bLess;
+}
+
+int qm::ViewModelItemComp::compare(const ViewModelItem* pLhs,
+								   const ViewModelItem* pRhs) const
+{
+	unsigned int nFlags = column_.getFlags();
+	if ((nFlags & ViewColumn::FLAG_SORT_MASK) == ViewColumn::FLAG_SORT_NUMBER) {
+		unsigned int nLhs = column_.getNumber(pViewModel_, pLhs);
+		unsigned int nRhs = column_.getNumber(pViewModel_, pRhs);
+		return nLhs < nRhs ? -1 : nLhs > nRhs ? 1 : 0;
+	}
+	else if ((nFlags & ViewColumn::FLAG_SORT_MASK) == ViewColumn::FLAG_SORT_DATE) {
+		Time timeLhs;
+		column_.getTime(pViewModel_, pLhs, &timeLhs);
+		Time timeRhs;
+		column_.getTime(pViewModel_, pRhs, &timeRhs);
+		return timeLhs < timeRhs ? -1 : timeLhs > timeRhs ? 1 : 0;
+	}
+	else {
+		wstring_ptr wstrLhs(column_.getText(pViewModel_, pLhs));
+		wstring_ptr wstrRhs(column_.getText(pViewModel_, pRhs));
+		return _wcsicmp(wstrLhs.get(), wstrRhs.get());
+	}
 }
 
 
