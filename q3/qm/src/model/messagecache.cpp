@@ -191,19 +191,14 @@ QSTATUS qm::MessageCache::getData(MessageCacheKey key,
 		
 		p += sizeof(size_t);
 		
-		union {
-			char buf_[sizeof(size_t)];
-			size_t n_;
-		} x;
 		UTF8Converter converter(&status);
 		CHECK_QSTATUS();
 		if (nMaxSize_ != 0) {
 			int n = 0;
 			string_ptr<WSTRING> items[ITEM_MAX];
 			for (n = 0; n < ITEM_MAX; ++n) {
-//				size_t nLen = *reinterpret_cast<size_t*>(p);
-				memcpy(x.buf_, p, sizeof(size_t));
-				size_t nLen = x.n_;
+				size_t nLen = 0;
+				memcpy(&nLen, p, sizeof(nLen));
 				p += sizeof(size_t);
 				size_t nDecodedLen = 0;
 				status = converter.decode(reinterpret_cast<CHAR*>(p),
@@ -235,14 +230,12 @@ QSTATUS qm::MessageCache::getData(MessageCacheKey key,
 		}
 		else {
 			for (int n = 0; n < item; ++n) {
-//				size_t nLen = *reinterpret_cast<size_t*>(p);
-				memcpy(x.buf_, p, sizeof(size_t));
-				size_t nLen = x.n_;
+				size_t nLen = 0;
+				memcpy(&nLen, p, sizeof(nLen));
 				p += sizeof(size_t) + nLen;
 			}
-//			size_t nLen = *reinterpret_cast<size_t*>(p);
-			memcpy(x.buf_, p, sizeof(size_t));
-			size_t nLen = x.n_;
+			size_t nLen = 0;
+			memcpy(&nLen, p, sizeof(nLen));
 			p += sizeof(size_t);
 			size_t nDecodedLen = 0;
 			status = converter.decode(reinterpret_cast<CHAR*>(p),
