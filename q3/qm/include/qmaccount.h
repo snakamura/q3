@@ -268,6 +268,11 @@ public:
 		DIALUPTYPE_WHENEVERNOTCONNECTED,
 		DIALUPTYPE_CONNECT
 	};
+	
+	enum SSLOption {
+		SSLOPTION_ALLOWUNVERIFIEDCERTIFICATE	= 0x01,
+		SSLOPTION_ALLOWDIFFERENTHOST			= 0x02
+	};
 
 public:
 	SubAccount(Account* pAccount,
@@ -318,8 +323,8 @@ public:
 	void setTreatAsSent(bool bTreatAsSent);
 	bool isAddMessageId() const;
 	void setAddMessageId(bool bAddMessageId);
-	bool isAllowUnverifiedCertificate() const;
-	void setAllowUnverifiedCertificate(bool bAllow) const;
+	unsigned int getSslOption() const;
+	void setSslOption(unsigned int nSslOption);
 	
 	DialupType getDialupType() const;
 	void setDialupType(DialupType type);

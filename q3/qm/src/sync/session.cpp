@@ -379,10 +379,16 @@ const Store* qm::DefaultSSLSocketCallback::getCertStore()
 bool qm::DefaultSSLSocketCallback::checkCertificate(const Certificate& cert,
 													bool bVerified)
 {
-	if (!bVerified && !pSubAccount_->isAllowUnverifiedCertificate())
+	unsigned int nSslOption = pSubAccount_->getSslOption();
+	
+	if (!bVerified && (nSslOption & SubAccount::SSLOPTION_ALLOWUNVERIFIEDCERTIFICATE) == 0)
 		return false;
 	
 	std::auto_ptr<Name> pName(cert.getSubject());
 	wstring_ptr wstrCommonName(pName->getCommonName());
-	return _wcsicmp(wstrCommonName.get(), pSubAccount_->getHost(host_)) == 0;
+	if ((nSslOption & SubAccount::SSLOPTION_ALLOWDIFFERENTHOST) == 0 &&
+		_wcsicmp(wstrCommonName.get(), pSubAccount_->getHost(host_)) != 0)
+		return false;
+	
+	return true;
 }
