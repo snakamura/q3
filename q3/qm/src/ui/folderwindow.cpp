@@ -288,11 +288,14 @@ void qm::FolderWindowImpl::expand(HTREEITEM hItem,
 	
 	bool b = true;
 	if (!bExpand) {
-		HTREEITEM hParent = TreeView_GetSelection(hwnd);
-		while (hParent && b) {
-			if (hParent == hItem)
-				b = false;
-			hParent = TreeView_GetParent(hwnd, hParent);
+		HTREEITEM hSelection = TreeView_GetSelection(hwnd);
+		if (hSelection) {
+			HTREEITEM hParent = TreeView_GetParent(hwnd, hSelection);
+			while (hParent && b) {
+				if (hParent == hItem)
+					b = false;
+				hParent = TreeView_GetParent(hwnd, hParent);
+			}
 		}
 	}
 	if (b)
