@@ -504,8 +504,7 @@ bool qm::SyncManager::syncData(const SyncData* pData)
 		if (pwszDialFrom)
 			RasConnection::setLocation(pwszDialFrom);
 		
-		pRasConnection.reset(new RasConnection(
-			pDialup->getDisconnectWait(), &rasCallback));
+		pRasConnection.reset(new RasConnection(&rasCallback));
 		
 		const WCHAR* pwszEntry = pDialup->getEntry();
 		wstring_ptr wstrEntry;
@@ -527,20 +526,23 @@ bool qm::SyncManager::syncData(const SyncData* pData)
 	
 	struct DialupDisconnector
 	{
-		DialupDisconnector(RasConnection* pRasConnection) :
-			pRasConnection_(pRasConnection)
+		DialupDisconnector(RasConnection* pRasConnection,
+						   unsigned int nWait) :
+			pRasConnection_(pRasConnection),
+			nWait_(nWait)
 		{
 		}
 		
 		~DialupDisconnector()
 		{
 			if (pRasConnection_)
-				pRasConnection_->disconnect(true);
+				pRasConnection_->disconnect(nWait_);
 		}
 		
 		RasConnection* pRasConnection_;
-	} disconnector(!pDialup || pDialup->getFlags() & SyncDialup::FLAG_NOTDISCONNECT ?
-		0 : pRasConnection.get());
+		unsigned int nWait_;
+	} disconnector(!pDialup || pDialup->getFlags() & SyncDialup::FLAG_NOTDISCONNECT ? 0 : pRasConnection.get(),
+		pDialup ? pDialup->getDisconnectWait() : 0);
 	
 	struct InternalOnline
 	{

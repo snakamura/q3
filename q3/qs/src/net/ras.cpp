@@ -316,7 +316,6 @@ struct qs::RasConnectionImpl
 						   UINT nId);
 	
 	HRASCONN hrasconn_;
-	unsigned int nDisconnectWait_;
 	RasConnectionCallback* pCallback_;
 };
 
@@ -342,13 +341,11 @@ static void CALLBACK lineProc(DWORD hDevice,
 							  DWORD dwParam2,
 							  DWORD dwParam3);
 
-qs::RasConnection::RasConnection(unsigned int nDisconnectWait,
-								 RasConnectionCallback* pCallback) :
+qs::RasConnection::RasConnection(RasConnectionCallback* pCallback) :
 	pImpl_(0)
 {
 	pImpl_ = new RasConnectionImpl();
 	pImpl_->hrasconn_ = 0;
-	pImpl_->nDisconnectWait_ = nDisconnectWait;
 	pImpl_->pCallback_ = pCallback;
 }
 
@@ -359,7 +356,6 @@ qs::RasConnection::RasConnection(HRASCONN hrasconn) :
 	
 	pImpl_ = new RasConnectionImpl();
 	pImpl_->hrasconn_ = hrasconn;
-	pImpl_->nDisconnectWait_ = 0;
 	pImpl_->pCallback_ = 0;
 }
 
@@ -430,15 +426,15 @@ RasConnection::Result qs::RasConnection::connect(const WCHAR* pwszEntry)
 	return RAS_SUCCESS;
 }
 
-RasConnection::Result qs::RasConnection::disconnect(bool bWait)
+RasConnection::Result qs::RasConnection::disconnect(unsigned int nWait)
 {
 	if (!pImpl_->hrasconn_)
 		return RAS_FAIL;
 	
-	if (pImpl_->pCallback_ && bWait && pImpl_->nDisconnectWait_ != 0) {
+	if (pImpl_->pCallback_ && nWait != 0) {
 		RasConnectionImpl::setMessage(pImpl_->pCallback_,
 			IDS_RAS_WAITINGBEFOREDISCONNECTING);
-		for (unsigned int n = 0; n < pImpl_->nDisconnectWait_*10; ++n) {
+		for (unsigned int n = 0; n < nWait*10; ++n) {
 			if (pImpl_->pCallback_->isCanceled())
 				break;
 			::Sleep(100);
@@ -446,7 +442,7 @@ RasConnection::Result qs::RasConnection::disconnect(bool bWait)
 	}
 	
 	if (pImpl_->pCallback_) {
-		if (pImpl_->pCallback_->isCanceled())
+		if (nWait != 0 && pImpl_->pCallback_->isCanceled())
 			return RAS_CANCEL;
 		RasConnectionImpl::setMessage(pImpl_->pCallback_, IDS_RAS_DISCONNECTING);
 	}
@@ -747,7 +743,8 @@ qs::RasWindow::RasWindow(RasConnection* pConnection,
 	pConnection_(pConnection),
 	pCallback_(pCallback),
 	nTimerId_(0),
-	bEnd_(false)
+	bEnd_(false),
+	bCanceled_(false)
 {
 	setWindowHandler(this, false);
 }
@@ -777,8 +774,10 @@ LRESULT qs::RasWindow::windowProc(UINT uMsg,
 LRESULT qs::RasWindow::onTimer(UINT nId)
 {
 	if (nId == nTimerId_) {
-		if (pCallback_->isCanceled())
+		if (pCallback_->isCanceled()) {
+			bCanceled_ = true;
 			end(true);
+		}
 		return 0;
 	}
 	
@@ -798,14 +797,17 @@ LRESULT qs::RasWindow::onRasDialEvent(WPARAM wParam,
 		bool bDisconnect = false;
 		
 		if (dwError != 0) {
-			TCHAR szMessage[256];
-			if (RasAPI::rasGetErrorString(dwError, szMessage, countof(szMessage)) == 0) {
-				T2W(szMessage, pwszMessage);
-				pCallback_->error(pwszMessage);
+			if (!bCanceled_) {
+				TCHAR szMessage[256];
+				if (RasAPI::rasGetErrorString(dwError, szMessage, countof(szMessage)) == 0) {
+					T2W(szMessage, pwszMessage);
+					pCallback_->error(pwszMessage);
+				}
 			}
 			bDisconnect = true;
 		}
 		else if (pCallback_->isCanceled()) {
+			bCanceled_ = true;
 			bDisconnect = true;
 		}
 		else {
@@ -845,7 +847,7 @@ LRESULT qs::RasWindow::onRasDialEvent(WPARAM wParam,
 void qs::RasWindow::end(bool bDisconnect)
 {
 	if (bDisconnect)
-		pConnection_->disconnect(false);
+		pConnection_->disconnect(0);
 	bEnd_ = true;
 	killTimer(nTimerId_);
 	nTimerId_ = 0;

@@ -59,6 +59,7 @@ private:
 	RasConnectionCallback* pCallback_;
 	UINT nTimerId_;
 	bool bEnd_;
+	bool bCanceled_;
 
 private:
 	static const UINT nRasDialEventMessage__;

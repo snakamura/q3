@@ -4871,7 +4871,7 @@ void qm::ToolDialupAction::invoke(const ActionEvent& event)
 		std::auto_ptr<RasConnection> pRasConnection(
 			RasConnection::getActiveConnection(0));
 		if (pRasConnection.get()) {
-			RasConnection::Result result = pRasConnection->disconnect(false);
+			RasConnection::Result result = pRasConnection->disconnect(0);
 			if (result == RasConnection::RAS_FAIL) {
 				ActionUtil::error(hwnd_, IDS_ERROR_DIALUPDISCONNECT);
 				return;

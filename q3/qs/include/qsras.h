@@ -120,14 +120,13 @@ public:
 	typedef std::vector<WSTRING> EntryList;
 
 public:
-	RasConnection(unsigned int nDisconnectWait,
-				  RasConnectionCallback* pCallback);
+	explicit RasConnection(RasConnectionCallback* pCallback);
 	explicit RasConnection(HRASCONN hrasconn);
 	~RasConnection();
 
 public:
 	Result connect(const WCHAR* pwszEntry);
-	Result disconnect(bool bWait);
+	Result disconnect(unsigned int nWait);
 	
 public:
 	static std::auto_ptr<RasConnection> getActiveConnection(size_t nIndex);
