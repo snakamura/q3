@@ -193,8 +193,8 @@ QSTATUS qm::MessageComposer::compose(Account* pAccount,
 		}
 	}
 	
-	status = static_cast<NormalFolder*>(pFolder)->appendMessage(
-		*pMessage, bDraft_ ? MessageHolder::FLAG_DRAFT : 0);
+	status = static_cast<NormalFolder*>(pFolder)->appendMessage(*pMessage,
+		MessageHolder::FLAG_SEEN | (bDraft_ ? MessageHolder::FLAG_DRAFT : 0));
 	CHECK_QSTATUS();
 	
 	if (pwszMacro) {
