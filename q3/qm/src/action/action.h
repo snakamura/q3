@@ -37,6 +37,7 @@ class EditDeleteMessageAction;
 class EditFindAction;
 class EditPasteMessageAction;
 class EditSelectAllMessageAction;
+class FileCheckAction;
 class FileCloseAction;
 class FileCompactAction;
 class FileDumpAction;
@@ -549,6 +550,33 @@ private:
 
 private:
 	MessageSelectionModel* pMessageSelectionModel_;
+};
+
+
+/****************************************************************************
+ *
+ * FileCheckAction
+ *
+ */
+
+class FileCheckAction : public qs::AbstractAction
+{
+public:
+	FileCheckAction(FolderModel* pFolderModel,
+					HWND hwnd);
+	virtual ~FileCheckAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	FileCheckAction(const FileCheckAction&);
+	FileCheckAction& operator=(const FileCheckAction&);
+
+private:
+	FolderModel* pFolderModel_;
+	HWND hwnd_;
 };
 
 

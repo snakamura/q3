@@ -1308,6 +1308,8 @@ void  qm::Account::setOffline(bool bOffline)
 
 bool qm::Account::compact(MessageOperationCallback* pCallback)
 {
+	assert(pCallback);
+	
 	Lock<Account> lock(*this);
 	
 	if (!save())
@@ -1351,6 +1353,9 @@ bool qm::Account::compact(MessageOperationCallback* pCallback)
 bool qm::Account::salvage(NormalFolder* pFolder,
 						  MessageOperationCallback* pCallback)
 {
+	assert(pFolder);
+	assert(pCallback);
+	
 	Lock<Account> lock(*this);
 	
 	pCallback->show();
@@ -1369,10 +1374,6 @@ bool qm::Account::salvage(NormalFolder* pFolder,
 		{
 		}
 		
-		~CallbackImpl()
-		{
-		}
-	
 	public:
 		virtual void setCount(unsigned int nCount)
 		{
@@ -1397,6 +1398,97 @@ bool qm::Account::salvage(NormalFolder* pFolder,
 	
 	if (!pImpl_->pMessageStore_->salvage(listData, &callback))
 		return false;
+	if (!save())
+		return false;
+	
+	return true;
+}
+
+bool qm::Account::check(MessageOperationCallback* pCallback)
+{
+	assert(pCallback);
+	
+	Lock<Account> lock(*this);
+	
+	MessageHolderList listMessageHolder;
+	for (FolderList::const_iterator it = pImpl_->listFolder_.begin(); it != pImpl_->listFolder_.end(); ++it) {
+		Folder* pFolder = *it;
+		if (pFolder->getType() == Folder::TYPE_NORMAL) {
+			if (!pFolder->loadMessageHolders())
+				return false;
+			
+			unsigned int nCount = pFolder->getCount();
+			listMessageHolder.reserve(listMessageHolder.size() + nCount);
+			for (unsigned int n = 0; n < nCount; ++n)
+				listMessageHolder.push_back(pFolder->getMessage(n));
+		}
+	}
+	
+	pCallback->setCount(listMessageHolder.size());
+	pCallback->show();
+	
+	class CallbackImpl : public MessageStoreCheckCallback
+	{
+	public:
+		typedef std::vector<MessageCacheKey> KeyList;
+	
+	public:
+		CallbackImpl(MessageCache* pMessageCache,
+					 const MessageHolderList& listMessageHolder,
+					 MessageOperationCallback* pCallback) :
+			pMessageCache_(pMessageCache),
+			listMessageHolder_(listMessageHolder),
+			listKey_(listMessageHolder.size()),
+			pCallback_(pCallback)
+		{
+		}
+	
+	public:
+		void apply()
+		{
+			for (KeyList::size_type n = 0; n < listKey_.size(); ++n) {
+				MessageHolder* pmh = listMessageHolder_[n];
+				MessageCacheKey cacheKey = pmh->getMessageCacheKey();
+				if (cacheKey != listKey_[n]) {
+					pMessageCache_->removeData(cacheKey);
+					pmh->setKeys(listKey_[n], pmh->getMessageBoxKey());
+				}
+			}
+		}
+	
+	public:
+		virtual unsigned int getCount()
+		{
+			return listMessageHolder_.size();
+		}
+		
+		virtual bool getHeader(unsigned int n,
+							   Message* pMessage)
+		{
+			unsigned int nFlags = Account::GETMESSAGEFLAG_HEADER |
+				Account::GETMESSAGEFLAG_NOFALLBACK | Account::GETMESSAGEFLAG_NOSECURITY;
+			return listMessageHolder_[n]->getMessage(nFlags, 0, pMessage);
+		}
+		
+		virtual void setKey(unsigned int n,
+							MessageCacheKey key)
+		{
+			assert(n < listKey_.size());
+			listKey_[n] = key;
+			
+			pCallback_->step(1);
+		}
+	
+	private:
+		MessageCache* pMessageCache_;
+		const MessageHolderList& listMessageHolder_;
+		KeyList listKey_;
+		MessageOperationCallback* pCallback_;
+	} callback(pImpl_->pMessageCache_.get(), listMessageHolder, pCallback);
+	
+	if (!pImpl_->pMessageStore_->check(&callback))
+		return false;
+	callback.apply();
 	if (!save())
 		return false;
 	

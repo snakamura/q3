@@ -7,13 +7,15 @@
 			<menuitem text="Import..." action="FileImport"/>
 			<menuitem text="Export..." action="FileExport"/>
 			<separator/>
-			<menuitem text="&amp;Compact" action="FileCompact"/>
-			<menuitem text="Sa&amp;lvage" action="FileSalvage"/>
-			<menuitem text="&amp;Dump..." action="FileDump"/>
-			<menuitem text="Lo&amp;ad..." action="FileLoad"/>
-			<separator/>
 			<menuitem text="Offline" action="FileOffline"/>
 			<separator/>
+			<popupmenu text="Maintenance">
+				<menuitem text="Compact" action="FileCompact"/>
+				<menuitem text="Salvage" action="FileSalvage"/>
+				<menuitem text="Dump..." action="FileDump"/>
+				<menuitem text="Load..." action="FileLoad"/>
+				<menuitem text="Check" action="FileCheck"/>
+			</popupmenu>
 			<menuitem text="Exit" action="FileExit"/>
 		</popupmenu>
 		<popupmenu text="Edit">

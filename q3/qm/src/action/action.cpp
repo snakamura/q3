@@ -718,6 +718,47 @@ bool qm::EditSelectAllMessageAction::isEnabled(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * FileCheckAction
+ *
+ */
+
+qm::FileCheckAction::FileCheckAction(FolderModel* pFolderModel,
+									 HWND hwnd) :
+	pFolderModel_(pFolderModel),
+	hwnd_(hwnd)
+{
+}
+
+qm::FileCheckAction::~FileCheckAction()
+{
+}
+
+void qm::FileCheckAction::invoke(const qs::ActionEvent& event)
+{
+	Account* pAccount = pFolderModel_->getCurrentAccount();
+	if (!pAccount) {
+		Folder* pFolder = pFolderModel_->getCurrentFolder();
+		if (pFolder)
+			pAccount = pFolder->getAccount();
+	}
+	if (pAccount) {
+		ProgressDialogMessageOperationCallback callback(
+			hwnd_, IDS_CHECK, IDS_CHECK);
+		if (!pAccount->check(&callback)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_CHECK);
+			return;
+		}
+	}
+}
+
+bool qm::FileCheckAction::isEnabled(const qs::ActionEvent& event)
+{
+	return pFolderModel_->getCurrentAccount() || pFolderModel_->getCurrentFolder();
+}
+
+
+/****************************************************************************
+ *
  * FileCloseAction
  *
  */

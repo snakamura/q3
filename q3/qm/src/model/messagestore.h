@@ -24,6 +24,7 @@ class MessageStore;
 	class SingleMessageStore;
 	class MultiMessageStore;
 class MessageStoreSalvageCallback;
+class MessageStoreCheckCallback;
 class MessageStoreUtil;
 
 class MessageCache;
@@ -72,6 +73,7 @@ public:
 						 MessageOperationCallback* pCallback) = 0;
 	virtual bool salvage(const DataList& listData,
 						 MessageStoreSalvageCallback* pCallback) = 0;
+	virtual bool check(MessageStoreCheckCallback* pCallback) = 0;
 	virtual bool freeUnused() = 0;
 	virtual qs::malloc_ptr<unsigned char> readCache(MessageCacheKey key) = 0;
 };
@@ -113,6 +115,7 @@ public:
 						 MessageOperationCallback* pCallback);
 	virtual bool salvage(const DataList& listData,
 						 MessageStoreSalvageCallback* pCallback);
+	virtual bool check(MessageStoreCheckCallback* pCallback);
 	virtual bool freeUnused();
 	virtual qs::malloc_ptr<unsigned char> readCache(MessageCacheKey key);
 
@@ -160,6 +163,7 @@ public:
 						 MessageOperationCallback* pCallback);
 	virtual bool salvage(const DataList& listData,
 						 MessageStoreSalvageCallback* pCallback);
+	virtual bool check(MessageStoreCheckCallback* pCallback);
 	virtual bool freeUnused();
 	virtual qs::malloc_ptr<unsigned char> readCache(MessageCacheKey key);
 
@@ -192,6 +196,26 @@ public:
 
 /****************************************************************************
  *
+ * MessageStoreCheckCallback
+ *
+ */
+
+class MessageStoreCheckCallback
+{
+public:
+	virtual ~MessageStoreCheckCallback();
+
+public:
+	virtual unsigned int getCount() = 0;
+	virtual bool getHeader(unsigned int n,
+						   Message* pMessage) = 0;
+	virtual void setKey(unsigned int n,
+						MessageCacheKey key) = 0;
+};
+
+
+/****************************************************************************
+ *
  * MessageStoreUtil
  *
  */
@@ -202,6 +226,10 @@ public:
 	static void freeUnrefered(qs::ClusterStorage* pStorage,
 							  const MessageStore::DataList& listData,
 							  unsigned int nSeparatorSize);
+	static std::auto_ptr<qs::ClusterStorage> checkCache(qs::ClusterStorage* pStorage,
+														const WCHAR* pwszPath,
+														unsigned int nBlockSize,
+														MessageStoreCheckCallback* pCallback);
 };
 
 }

@@ -385,6 +385,10 @@ void qm::MainWindowImpl::initActions()
 	pSelectAllMessageAction.release();
 	pSelectAllAction.release();
 	
+	ADD_ACTION2(FileCheckAction,
+		IDM_FILE_CHECK,
+		pFolderModel_.get(),
+		pThis_->getHandle());
 	ADD_ACTION2(FileCompactAction,
 		IDM_FILE_COMPACT,
 		pFolderModel_.get(),

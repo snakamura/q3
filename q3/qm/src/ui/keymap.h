@@ -53,6 +53,7 @@ const qs::KeyNameToId mapKeyNameToId[] = {
 	{ L"EditReplace",					IDM_EDIT_REPLACE,						0 },
 	{ L"EditSelectAll",					IDM_EDIT_SELECTALL,						0 },
 	{ L"EditUndo",						IDM_EDIT_UNDO,							0 },
+	{ L"FileCheck",						IDM_FILE_CHECK,							0 },
 	{ L"FileClose",						IDM_FILE_CLOSE,							0 },
 	{ L"FileCompact",					IDM_FILE_COMPACT,						0 },
 	{ L"FileDraft",						IDM_FILE_DRAFT,							0 },

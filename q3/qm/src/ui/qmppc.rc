@@ -1155,6 +1155,7 @@ BEGIN
     IDS_SALVAGE             "Salvaging messages..."
     IDS_DUMP                "Dumping messages..."
     IDS_LOAD                "Loading messages..."
+    IDS_CHECK               "Checking messages..."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1193,6 +1194,7 @@ BEGIN
     IDS_ERROR_SEND          "Error occured while sending."
     IDS_ERROR_DUMP          "Error occured while dumping messages."
     IDS_ERROR_LOAD          "Error occured while loading messages."
+    IDS_ERROR_CHECK         "Error occured while checking messages."
 END
 
 #endif    // Japanese resources

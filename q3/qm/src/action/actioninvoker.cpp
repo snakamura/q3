@@ -60,6 +60,7 @@ struct ActionNameMap
 	{ L"EditReplace",					IDM_EDIT_REPLACE						},
 	{ L"EditSelectAll",					IDM_EDIT_SELECTALL						},
 	{ L"EditUndo",						IDM_EDIT_UNDO							},
+	{ L"FileCheck",						IDM_FILE_CHECK							},
 	{ L"FileClose",						IDM_FILE_CLOSE							},
 	{ L"FileCompact",					IDM_FILE_COMPACT						},
 	{ L"FileDraft",						IDM_FILE_DRAFT							},

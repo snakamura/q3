@@ -148,6 +148,7 @@ public:
 	bool compact(MessageOperationCallback* pCallback);
 	bool salvage(NormalFolder* pFolder,
 				 MessageOperationCallback* pCallback);
+	bool check(MessageOperationCallback* pCallback);
 	bool save() const;
 	bool flushMessageStore() const;
 	bool importMessage(NormalFolder* pFolder,
