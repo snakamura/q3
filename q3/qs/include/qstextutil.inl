@@ -52,5 +52,5 @@ inline bool qs::TextUtil::isBreakAfter(WCHAR c)
 		c == L'}' ||
 		c == L'%' ||
 		c == L'-' ||
-		c >= 0x100;
+		c >= 0x500;
 }
