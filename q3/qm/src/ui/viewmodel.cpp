@@ -1515,6 +1515,8 @@ ViewDataItem* qm::ViewModelManager::getViewDataItem(Folder* pFolder)
 						}
 						if (type == ViewColumn::TYPE_NONE) {
 							pMacro = parser.parse(wstrMacro.get());
+							if (!pMacro.get())
+								return false;
 							type = ViewColumn::TYPE_OTHER;
 						}
 						
@@ -2117,6 +2119,8 @@ bool qm::ViewDataContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		}
 		if (type_ == ViewColumn::TYPE_NONE) {
 			pMacro_ = parser_.parse(pwszMacro);
+			if (!pMacro_.get())
+				return false;
 			type_ = ViewColumn::TYPE_OTHER;
 		}
 		
