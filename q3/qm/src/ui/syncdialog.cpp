@@ -237,6 +237,8 @@ PasswordCallback::Result qm::SyncDialog::getPassword(SubAccount* pSubAccount,
 		PasswordCallback::Result result_;
 	} runnable(this, pSubAccount, host);
 	
+	Lock<CriticalSection> lock(csPassword_);
+	
 	getInitThread()->getSynchronizer()->syncExec(&runnable);
 	
 	if (!runnable.wstrPassword_.get())

@@ -144,6 +144,7 @@ private:
 	bool bShowError_;
 	qs::CriticalSection csError_;
 	volatile unsigned int nCanceledTime_;
+	qs::CriticalSection csPassword_;
 };
 
 
