@@ -16,6 +16,7 @@
 #include <qmmessageholder.h>
 
 #include <qsconv.h>
+#include <qsinit.h>
 #include <qsosutil.h>
 
 #include <algorithm>
@@ -58,16 +59,22 @@ bool qm::RuleManager::apply(const Folder* pFolder,
 	assert(pDocument);
 	assert(hwnd);
 	
-	if (!load())
+	Log log(InitThread::getInitThread().getLogger(), L"qm::RuleManager");
+	
+	if (!load()) {
+		log.error(L"Error occured while loading rules.");
 		return false;
+	}
 	
 	Account* pAccount = pFolder->getAccount();
 	
 	Lock<Account> lock(*pAccount);
 	
 	const RuleSet* pRuleSet = getRuleSet(pFolder);
-	if (!pRuleSet)
+	if (!pRuleSet) {
+		log.debug(L"No rule set for this folder was found.");
 		return true;
+	}
 	
 	typedef std::vector<MessageHolderList> ListList;
 	ListList ll(pRuleSet->getCount());
@@ -124,6 +131,15 @@ bool qm::RuleManager::apply(const Folder* pFolder,
 		static_cast<const Accessor&>(listAccessor) :
 		static_cast<const Accessor&>(folderAccessor);
 	
+	unsigned int nCount = accessor.getCount();
+	if (log.isDebugEnabled()) {
+		WCHAR wsz[128];
+		swprintf(wsz, L"%u messages are to be processed.", nCount);
+		log.debug(wsz);
+	}
+	if (nCount == 0)
+		return true;
+	
 	pCallback->checkingMessages();
 	pCallback->setRange(0, accessor.getCount());
 	
@@ -145,10 +161,24 @@ bool qm::RuleManager::apply(const Folder* pFolder,
 			if (bMatch) {
 				ll[m].push_back(pmh);
 				++nMatch;
+				
+				if (log.isDebugEnabled()) {
+					WCHAR wsz[128];
+					swprintf(wsz, L"Id=%u matches rule=%u.", pmh->getId(), m);
+					log.debug(wsz);
+				}
+				
 				break;
 			}
 		}
 	}
+	if (log.isDebugEnabled()) {
+		WCHAR wsz[128];
+		swprintf(wsz, L"%u messages match.", nMatch);
+		log.debug(wsz);
+	}
+	if (nMatch == 0)
+		return true;
 	
 	pCallback->applyingRule();
 	pCallback->setRange(0, nMatch);
