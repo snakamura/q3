@@ -164,7 +164,7 @@ qm::ColorSet::ColorSet(const ColorSet& colorset)
 		assert(pFolder_.get());
 	}
 	
-	for (ColorList::const_iterator it = colorset.listColor_.begin(); it != colorset.listColor_.end(); ++it)
+	for (ColorSet::ColorList::const_iterator it = colorset.listColor_.begin(); it != colorset.listColor_.end(); ++it)
 		listColor_.push_back(new ColorEntry(**it));
 }
 
