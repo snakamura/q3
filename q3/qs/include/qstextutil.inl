@@ -1,5 +1,5 @@
 /*
- * $Id: qstextutil.inl,v 1.1.1.1 2003/04/29 08:07:35 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -41,7 +41,8 @@ inline bool qs::TextUtil::isBreakBefore(WCHAR c)
 		c == L'[' ||
 		c == L'{' ||
 		c == L'\t' ||
-		c == L'$';
+		c == L'$' ||
+		c >= 0x100;
 }
 
 inline bool qs::TextUtil::isBreakAfter(WCHAR c)

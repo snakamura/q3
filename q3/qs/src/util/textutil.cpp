@@ -60,7 +60,7 @@ QSTATUS qs::TextUtil::fold(const WCHAR* pwszText, size_t nLen,
 		else if (!isHalfWidth(c))
 			nCharLen = 2;
 		
-		if (isBreakSelf(c))
+		if (p != pLine && (isBreakSelf(c) || isBreakBefore(c)))
 			pBreak = p;
 		
 		bool bFlushed = true;
