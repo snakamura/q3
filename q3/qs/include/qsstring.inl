@@ -627,6 +627,12 @@ size_t qs::StringBuffer<String>::getLength() const QNOTHROW()
 }
 
 template<class String>
+size_t qs::StringBuffer<String>::getCapacity() const QNOTHROW()
+{
+	return nLen_;
+}
+
+template<class String>
 typename qs::StringBuffer<String>::Char qs::StringBuffer<String>::get(size_t n) const QNOTHROW()
 {
 	assert(n < getLength());
@@ -829,6 +835,12 @@ template<class XString>
 size_t qs::XStringBuffer<XString>::getLength() const
 {
 	return pEnd_ - str_.get();
+}
+
+template<class XString>
+size_t qs::XStringBuffer<XString>::getCapacity() const
+{
+	return nLen_;
 }
 
 template<class XString>

@@ -921,6 +921,13 @@ public:
 	size_t getLength() const QNOTHROW();
 	
 	/**
+	 * Get buffer capacity.
+	 *
+	 * @return Buffer capacity.
+	 */
+	size_t getCapacity() const QNOTHROW();
+	
+	/**
 	 * Get character of the specified position.
 	 *
 	 * @param n [in] Position.
@@ -1081,6 +1088,13 @@ public:
 	 * @return Buffer length.
 	 */
 	size_t getLength() const;
+	
+	/**
+	 * Get buffer capacity.
+	 *
+	 * @return Buffer capacity.
+	 */
+	size_t getCapacity() const;
 	
 	/**
 	 * Get character of the specified position.
