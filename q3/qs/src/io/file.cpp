@@ -169,7 +169,6 @@ bool qs::BinaryFileImpl::open(const WCHAR* pwszPath,
 	
 	DWORD dwMode = 0;
 	DWORD dwDescription = 0;
-	DWORD dwShare = FILE_SHARE_READ;
 	
 	if (nMode & BinaryFile::MODE_CREATE)
 		dwDescription = CREATE_ALWAYS;
@@ -178,7 +177,6 @@ bool qs::BinaryFileImpl::open(const WCHAR* pwszPath,
 		dwMode |= GENERIC_WRITE;
 		if (dwDescription == 0)
 			dwDescription = OPEN_ALWAYS;
-		dwShare = 0;
 	}
 	if (nMode & BinaryFile::MODE_READ) {
 		dwMode |= GENERIC_READ;
@@ -187,7 +185,7 @@ bool qs::BinaryFileImpl::open(const WCHAR* pwszPath,
 	}
 	
 	W2T(pwszPath, ptszPath);
-	AutoHandle hFile(::CreateFile(ptszPath, dwMode, dwShare,
+	AutoHandle hFile(::CreateFile(ptszPath, dwMode, FILE_SHARE_READ,
 		0, dwDescription, FILE_ATTRIBUTE_NORMAL, 0));
 	if (!hFile.get())
 		return false;
@@ -371,6 +369,8 @@ size_t qs::BinaryFile::write(const unsigned char* p,
 {
 	assert(p);
 	
+	size_t nWritten = nWrite;
+	
 	if (static_cast<size_t>(pImpl_->pBufEnd_ - pImpl_->pCurrent_) >= nWrite) {
 		memcpy(pImpl_->pCurrent_, p, nWrite);
 		pImpl_->pCurrent_ += nWrite;
@@ -413,7 +413,7 @@ size_t qs::BinaryFile::write(const unsigned char* p,
 		}
 	}
 	
-	return nWrite;
+	return nWritten;
 }
 
 bool qs::BinaryFile::flush()
@@ -680,7 +680,7 @@ size_t qs::DividedFile::write(const unsigned char* p,
 	}
 	pImpl_->nPosition_ += nWriteAll;
 	
-	return nWrite;
+	return nWriteAll;
 }
 
 bool qs::DividedFile::flush()

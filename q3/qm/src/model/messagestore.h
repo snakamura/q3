@@ -11,6 +11,7 @@
 
 #include <qmmessage.h>
 #include <qmmessagecache.h>
+#include <qmmessageoperation.h>
 
 #include <qs.h>
 #include <qsclusterstorage.h>
@@ -37,14 +38,15 @@ class MessageCache;
 class MessageStore
 {
 public:
-	struct Refer {
+	struct Data
+	{
 		unsigned int nOffset_;
 		unsigned int nLength_;
 		MessageCacheKey key_;
 	};
 
 public:
-	typedef std::vector<Refer> ReferList;
+	typedef std::vector<Data> DataList;
 
 public:
 	virtual ~MessageStore();
@@ -66,16 +68,11 @@ public:
 	virtual bool free(unsigned int nOffset,
 					  unsigned int nLength,
 					  MessageCacheKey key) = 0;
-	virtual bool compact(unsigned int nOffset,
-						 unsigned int nLength,
-						 MessageCacheKey key,
-						 MessageStore* pmsOld,
-						 unsigned int* pnOffset,
-						 MessageCacheKey* pKey) = 0;
-	virtual bool freeUnused() = 0;
-	virtual bool freeUnrefered(const ReferList& listRefer) = 0;
-	virtual bool salvage(const ReferList& listRefer,
+	virtual bool compact(DataList* pListData,
+						 MessageOperationCallback* pCallback) = 0;
+	virtual bool salvage(const DataList& listData,
 						 MessageStoreSalvageCallback* pCallback) = 0;
+	virtual bool freeUnused() = 0;
 	virtual qs::malloc_ptr<unsigned char> readCache(MessageCacheKey key) = 0;
 };
 
@@ -112,16 +109,11 @@ public:
 	virtual bool free(unsigned int nOffset,
 					  unsigned int nLength,
 					  MessageCacheKey key);
-	virtual bool compact(unsigned int nOffset,
-						 unsigned int nLength,
-						 MessageCacheKey key,
-						 MessageStore* pmsOld,
-						 unsigned int* pnOffset,
-						 MessageCacheKey* pKey);
-	virtual bool freeUnused();
-	virtual bool freeUnrefered(const ReferList& listRefer);
-	virtual bool salvage(const ReferList& listRefer,
+	virtual bool compact(DataList* pListData,
+						 MessageOperationCallback* pCallback);
+	virtual bool salvage(const DataList& listData,
 						 MessageStoreSalvageCallback* pCallback);
+	virtual bool freeUnused();
 	virtual qs::malloc_ptr<unsigned char> readCache(MessageCacheKey key);
 
 private:
@@ -164,16 +156,11 @@ public:
 	virtual bool free(unsigned int nOffset,
 					  unsigned int nLength,
 					  MessageCacheKey key);
-	virtual bool compact(unsigned int nOffset,
-						 unsigned int nLength,
-						 MessageCacheKey key,
-						 MessageStore* pmsOld,
-						 unsigned int* pnOffset,
-						 MessageCacheKey* pKey);
-	virtual bool freeUnused();
-	virtual bool freeUnrefered(const ReferList& listRefer);
-	virtual bool salvage(const ReferList& listRefer,
+	virtual bool compact(DataList* pListData,
+						 MessageOperationCallback* pCallback);
+	virtual bool salvage(const DataList& listData,
 						 MessageStoreSalvageCallback* pCallback);
+	virtual bool freeUnused();
 	virtual qs::malloc_ptr<unsigned char> readCache(MessageCacheKey key);
 
 private:
@@ -212,11 +199,9 @@ public:
 class MessageStoreUtil
 {
 public:
-	static bool freeUnrefered(qs::ClusterStorage* pStorage,
-							  const MessageStore::ReferList& listRefer,
+	static void freeUnrefered(qs::ClusterStorage* pStorage,
+							  const MessageStore::DataList& listData,
 							  unsigned int nSeparatorSize);
-	static bool freeUnreferedCache(qs::ClusterStorage* pCacheStorage,
-								   const MessageStore::ReferList& listRefer);
 };
 
 }

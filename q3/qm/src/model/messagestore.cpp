@@ -48,6 +48,8 @@ struct qm::SingleMessageStoreImpl
 	};
 	
 	wstring_ptr wstrPath_;
+	wstring_ptr wstrCachePath_;
+	unsigned int nCacheBlockSize_;
 	std::auto_ptr<ClusterStorage> pStorage_;
 	std::auto_ptr<ClusterStorage> pCacheStorage_;
 	CriticalSection cs_;
@@ -72,27 +74,17 @@ qm::SingleMessageStore::SingleMessageStore(const WCHAR* pwszPath,
 										   unsigned int nCacheBlockSize)
 {
 	wstring_ptr wstrPath(allocWString(pwszPath));
+	wstring_ptr wstrCachePath(allocWString(pwszCachePath));
 	
-	ClusterStorage::Init initMsg = {
-		pwszPath,
-		L"msg",
-		FileNames::BOX_EXT,
-		FileNames::MAP_EXT,
-		nBlockSize
-	};
-	std::auto_ptr<ClusterStorage> pStorage(new ClusterStorage(initMsg));
-	
-	ClusterStorage::Init initCache = {
-		pwszCachePath,
-		L"cache",
-		FileNames::BOX_EXT,
-		FileNames::MAP_EXT,
-		nCacheBlockSize
-	};
-	std::auto_ptr<ClusterStorage> pCacheStorage(new ClusterStorage(initCache));
+	std::auto_ptr<ClusterStorage> pStorage(new ClusterStorage(pwszPath,
+		L"msg", FileNames::BOX_EXT, FileNames::MAP_EXT, nBlockSize));
+	std::auto_ptr<ClusterStorage> pCacheStorage(new ClusterStorage(pwszCachePath,
+		L"cache", FileNames::BOX_EXT, FileNames::MAP_EXT, nCacheBlockSize));
 	
 	pImpl_ = new SingleMessageStoreImpl();
 	pImpl_->wstrPath_ = wstrPath;
+	pImpl_->wstrCachePath_ = wstrCachePath;
+	pImpl_->nCacheBlockSize_ = nCacheBlockSize;
 	pImpl_->pStorage_ = pStorage;
 	pImpl_->pCacheStorage_ = pCacheStorage;
 }
@@ -229,63 +221,67 @@ bool qm::SingleMessageStore::free(unsigned int nOffset,
 	return true;
 }
 
-bool qm::SingleMessageStore::compact(unsigned int nOffset,
-									 unsigned int nLength,
-									 MessageCacheKey key,
-									 MessageStore* pmsOld,
-									 unsigned int* pnOffset,
-									 MessageCacheKey* pKey)
+bool qm::SingleMessageStore::compact(DataList* pListData,
+									 MessageOperationCallback* pCallback)
 {
-	assert(pnOffset);
-	assert(pKey);
+	assert(pListData);
+	assert(pCallback);
+	
+	pCallback->setCount(pListData->size());
+	pCallback->show();
 	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
-	ClusterStorage* pCacheStorage = !pmsOld ? 0 :
-		static_cast<SingleMessageStore*>(pmsOld)->pImpl_->pCacheStorage_.get();
-	size_t nDataLen = 0;
-	if (pImpl_->pCacheStorage_->load(reinterpret_cast<unsigned char*>(&nDataLen),
-		key, sizeof(nDataLen)) != sizeof(nDataLen))
-		return false;
-	*pKey = pImpl_->pCacheStorage_->compact(key,
-		nDataLen + sizeof(nDataLen), pCacheStorage);
-	if (*pKey == -1)
-		return false;
+	std::auto_ptr<ClusterStorage> pCacheStorage(new ClusterStorage(
+		pImpl_->wstrCachePath_.get(), L"compact",
+		FileNames::BOX_EXT, FileNames::MAP_EXT, pImpl_->nCacheBlockSize_));
+	ClusterStorage* pOldCacheStorage = pImpl_->pCacheStorage_.get();
 	
-	if (nOffset != -1) {
-		ClusterStorage* pStorage = !pmsOld ? 0 :
-			static_cast<SingleMessageStore*>(pmsOld)->pImpl_->pStorage_.get();
-		size_t nLen = nLength + SingleMessageStoreImpl::SEPARATOR_SIZE*2;
-		*pnOffset = pImpl_->pStorage_->compact(nOffset, nLen, pStorage);
-		if (*pnOffset == -1)
+	for (DataList::iterator it = pListData->begin(); it != pListData->end(); ++it) {
+		Data& data = *it;
+		
+		size_t nDataLen = 0;
+		unsigned int nLoad = pImpl_->pCacheStorage_->load(
+			reinterpret_cast<unsigned char*>(&nDataLen), data.key_, sizeof(nDataLen));
+		if (nLoad != sizeof(nDataLen))
 			return false;
-	}
-	else {
-		*pnOffset = nOffset;
+		data.key_ = pCacheStorage->compact(data.key_,
+			nDataLen + sizeof(nDataLen), pOldCacheStorage);
+		if (data.key_ == -1)
+			return false;
+		
+		if (data.nOffset_ != -1) {
+			size_t nLen = data.nLength_ + SingleMessageStoreImpl::SEPARATOR_SIZE*2;
+			data.nOffset_ = pImpl_->pStorage_->compact(data.nOffset_, nLen, 0);
+			if (data.nOffset_ == -1)
+				return false;
+		}
+		
+		pCallback->step(1);
 	}
 	
+	if (!pImpl_->pCacheStorage_->close())
+		return false;
+	if (!pCacheStorage->rename(pImpl_->wstrCachePath_.get(), L"cache"))
+		return false;
+	pImpl_->pCacheStorage_ = pCacheStorage;
+	
+	MessageStoreUtil::freeUnrefered(pImpl_->pStorage_.get(),
+		*pListData, SingleMessageStoreImpl::SEPARATOR_SIZE*2);
+	
+	return true;
+}
+
+bool qm::SingleMessageStore::salvage(const DataList& listData,
+									 MessageStoreSalvageCallback* pCallback)
+{
+	// TODO
 	return true;
 }
 
 bool qm::SingleMessageStore::freeUnused()
 {
-	Lock<CriticalSection> lock(pImpl_->cs_);
-	return pImpl_->pCacheStorage_->freeUnused() &&
-		pImpl_->pStorage_->freeUnused();
-}
-
-bool qm::SingleMessageStore::freeUnrefered(const ReferList& listRefer)
-{
-	return MessageStoreUtil::freeUnrefered(pImpl_->pStorage_.get(),
-		listRefer, SingleMessageStoreImpl::SEPARATOR_SIZE*2) &&
-		MessageStoreUtil::freeUnreferedCache(pImpl_->pCacheStorage_.get(), listRefer);
-}
-
-bool qm::SingleMessageStore::salvage(const ReferList& listRefer,
-									 MessageStoreSalvageCallback* pCallback)
-{
-	// TODO
-	return true;
+	return pImpl_->pStorage_->freeUnused() && pImpl_->pStorage_->flush();
 }
 
 malloc_ptr<unsigned char> qm::SingleMessageStore::readCache(MessageCacheKey key)
@@ -331,12 +327,15 @@ public:
 	unsigned int getOffset(bool bIncrement);
 	wstring_ptr getPath(unsigned int nOffset) const;
 	bool ensureDirectory(unsigned int nOffset) const;
+	void freeUnrefered(const MessageStore::DataList& listData);
 
 public:
 	typedef std::vector<int> DirList;
 
 public:
 	wstring_ptr wstrPath_;
+	wstring_ptr wstrCachePath_;
+	unsigned int nCacheBlockSize_;
 	std::auto_ptr<ClusterStorage> pCacheStorage_;
 	unsigned int nOffset_;
 	CriticalSection cs_;
@@ -437,6 +436,30 @@ bool qm::MultiMessageStoreImpl::ensureDirectory(unsigned int nOffset) const
 	return true;
 }
 
+void qm::MultiMessageStoreImpl::freeUnrefered(const MessageStore::DataList& listData)
+{
+	typedef std::vector<unsigned int> List;
+	List l;
+	l.resize(listData.size());
+	std::transform(listData.begin(), listData.end(),
+		l.begin(), mem_data_ref(&MessageStore::Data::nOffset_));
+	std::sort(l.begin(), l.end());
+	
+	List::const_iterator it = l.begin();
+	unsigned int nOffset = getOffset(false);
+	for (unsigned int n = 0; n <= nOffset; ++n) {
+		if (it != l.end() && *it == n) {
+			++it;
+		}
+		else {
+			wstring_ptr wstrPath(getPath(n));
+			W2T(wstrPath.get(), ptszPath);
+			if (::GetFileAttributes(ptszPath) != 0xffffffff)
+				::DeleteFile(ptszPath);
+		}
+	}
+}
+
 
 /****************************************************************************
  *
@@ -449,18 +472,14 @@ qm::MultiMessageStore::MultiMessageStore(const WCHAR* pwszPath,
 										 unsigned int nCacheBlockSize)
 {
 	wstring_ptr wstrPath(allocWString(pwszPath));
-	
-	ClusterStorage::Init initCache = {
-		pwszCachePath,
-		L"cache",
-		FileNames::BOX_EXT,
-		FileNames::MAP_EXT,
-		nCacheBlockSize
-	};
-	std::auto_ptr<ClusterStorage> pCacheStorage(new ClusterStorage(initCache));
+	wstring_ptr wstrCachePath(allocWString(pwszCachePath));
+	std::auto_ptr<ClusterStorage> pCacheStorage(new ClusterStorage(pwszCachePath,
+		L"cache", FileNames::BOX_EXT, FileNames::MAP_EXT, nCacheBlockSize));
 	
 	pImpl_ = new MultiMessageStoreImpl();
 	pImpl_->wstrPath_ = wstrPath;
+	pImpl_->wstrCachePath_ = wstrCachePath;
+	pImpl_->nCacheBlockSize_ = nCacheBlockSize;
 	pImpl_->pCacheStorage_ = pCacheStorage;
 	pImpl_->nOffset_ = -1;
 	
@@ -604,76 +623,62 @@ bool qm::MultiMessageStore::free(unsigned int nOffset,
 	return true;
 }
 
-bool qm::MultiMessageStore::compact(unsigned int nOffset,
-									unsigned int nLength,
-									MessageCacheKey key,
-									MessageStore* pmsOld,
-									unsigned int* pnOffset,
-									MessageCacheKey* pKey)
+bool qm::MultiMessageStore::compact(DataList* pListData,
+									MessageOperationCallback* pCallback)
 {
-	assert(pnOffset);
-	assert(pKey);
+	assert(pListData);
+	assert(pCallback);
+	
+	pCallback->setCount(pListData->size());
+	pCallback->show();
 	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
-	ClusterStorage* pCacheStorage = !pmsOld ? 0 :
-		static_cast<MultiMessageStore*>(pmsOld)->pImpl_->pCacheStorage_.get();
-	size_t nDataLen = 0;
-	unsigned int nLoad = pImpl_->pCacheStorage_->load(
-		reinterpret_cast<unsigned char*>(&nDataLen), key, sizeof(nDataLen));
-	if (nLoad != sizeof(nDataLen))
-		return false;
-	*pKey = pImpl_->pCacheStorage_->compact(key,
-		nDataLen + sizeof(nDataLen), pCacheStorage);
-	if (*pKey == -1)
-		return false;
+	std::auto_ptr<ClusterStorage> pCacheStorage(new ClusterStorage(
+		pImpl_->wstrCachePath_.get(), L"compact",
+		FileNames::BOX_EXT, FileNames::MAP_EXT, pImpl_->nCacheBlockSize_));
+	ClusterStorage* pOldCacheStorage = pImpl_->pCacheStorage_.get();
 	
-	*pnOffset = nOffset;
+	for (DataList::iterator it = pListData->begin(); it != pListData->end(); ++it) {
+		Data& data = *it;
+		
+		size_t nDataLen = 0;
+		unsigned int nLoad = pImpl_->pCacheStorage_->load(
+			reinterpret_cast<unsigned char*>(&nDataLen), data.key_, sizeof(nDataLen));
+		if (nLoad != sizeof(nDataLen))
+			return false;
+		data.key_ = pCacheStorage->compact(data.key_,
+			nDataLen + sizeof(nDataLen), pOldCacheStorage);
+		if (data.key_ == -1)
+			return false;
+		
+		pCallback->step(1);
+	}
+	
+	if (!pImpl_->pCacheStorage_->close())
+		return false;
+	if (!pCacheStorage->rename(pImpl_->wstrCachePath_.get(), L"cache"))
+		return false;
+	pImpl_->pCacheStorage_ = pCacheStorage;
+	
+	pImpl_->freeUnrefered(*pListData);
 	
 	return true;
 }
 
 bool qm::MultiMessageStore::freeUnused()
 {
-	Lock<CriticalSection> lock(pImpl_->cs_);
-	return pImpl_->pCacheStorage_->freeUnused();
+	return true;
 }
 
-bool qm::MultiMessageStore::freeUnrefered(const ReferList& listRefer)
-{
-	typedef std::vector<unsigned int> List;
-	List l;
-	l.resize(listRefer.size());
-	std::transform(listRefer.begin(), listRefer.end(),
-		l.begin(), mem_data_ref(&Refer::nOffset_));
-	std::sort(l.begin(), l.end());
-	
-	List::const_iterator it = l.begin();
-	
-	unsigned int nOffset = pImpl_->getOffset(false);
-	for (unsigned int n = 0; n <= nOffset; ++n) {
-		if (it != l.end() && *it == n) {
-			++it;
-		}
-		else {
-			wstring_ptr wstrPath(pImpl_->getPath(n));
-			W2T(wstrPath.get(), ptszPath);
-			if (::GetFileAttributes(ptszPath) != 0xffffffff)
-				::DeleteFile(ptszPath);
-		}
-	}
-	
-	return MessageStoreUtil::freeUnreferedCache(pImpl_->pCacheStorage_.get(), listRefer);
-}
-
-bool qm::MultiMessageStore::salvage(const ReferList& listRefer,
+bool qm::MultiMessageStore::salvage(const DataList& listData,
 									MessageStoreSalvageCallback* pCallback)
 {
 	typedef std::vector<unsigned int> List;
 	List l;
-	l.resize(listRefer.size());
-	std::transform(listRefer.begin(), listRefer.end(),
-		l.begin(), mem_data_ref(&Refer::nOffset_));
+	l.resize(listData.size());
+	std::transform(listData.begin(), listData.end(),
+		l.begin(), mem_data_ref(&Data::nOffset_));
 	std::sort(l.begin(), l.end());
 	
 	List::const_iterator it = l.begin();
@@ -701,7 +706,7 @@ bool qm::MultiMessageStore::salvage(const ReferList& listRefer,
 				::DeleteFile(ptszPath);
 			}
 		}
-		pCallback->step(n);
+		pCallback->step(1);
 	}
 	
 	return true;
@@ -754,13 +759,13 @@ qm::MessageStoreSalvageCallback::~MessageStoreSalvageCallback()
  *
  */
 
-bool qm::MessageStoreUtil::freeUnrefered(ClusterStorage* pStorage,
-										 const MessageStore::ReferList& listRefer,
+void qm::MessageStoreUtil::freeUnrefered(ClusterStorage* pStorage,
+										 const MessageStore::DataList& listData,
 										 unsigned int nSeparatorSize)
 {
 	ClusterStorage::ReferList l;
-	l.reserve(listRefer.size());
-	for (MessageStore::ReferList::const_iterator it = listRefer.begin(); it != listRefer.end(); ++it) {
+	l.reserve(listData.size());
+	for (MessageStore::DataList::const_iterator it = listData.begin(); it != listData.end(); ++it) {
 		ClusterStorage::Refer refer = {
 			(*it).nOffset_,
 			(*it).nLength_ + nSeparatorSize
@@ -768,29 +773,5 @@ bool qm::MessageStoreUtil::freeUnrefered(ClusterStorage* pStorage,
 		l.push_back(refer);
 	}
 	
-	return pStorage->freeUnrefered(l);
-}
-
-bool qm::MessageStoreUtil::freeUnreferedCache(ClusterStorage* pCacheStorage,
-											  const MessageStore::ReferList& listRefer)
-{
-	ClusterStorage::ReferList l;
-	l.reserve(listRefer.size());
-	for (MessageStore::ReferList::const_iterator it = listRefer.begin(); it != listRefer.end(); ++it) {
-		unsigned int nOffset = (*it).key_;
-		
-		size_t nSize = 0;
-		unsigned int nLoad = pCacheStorage->load(
-			reinterpret_cast<unsigned char*>(&nSize), nOffset, sizeof(size_t));
-		if (nLoad != sizeof(size_t))
-			return false;
-		
-		ClusterStorage::Refer refer = {
-			nOffset,
-			nSize + sizeof(nSize)
-		};
-		l.push_back(refer);
-	}
-	
-	return pCacheStorage->freeUnrefered(l);
+	pStorage->freeUnrefered(l);
 }

@@ -82,6 +82,8 @@ public:
 						  unsigned int nFlags,
 						  unsigned int nMask);
 	
+	bool getDataList(MessageStore::DataList* pList) const;
+	
 	void fireSubAccountListChanged();
 	void fireFolderListChanged(const FolderListChangedEvent& event);
 	void fireAccountDestroyed();
@@ -595,6 +597,31 @@ bool qm::AccountImpl::setMessagesFlags(NormalFolder* pFolder,
 			return false;
 	}
 	
+	return true;
+}
+
+bool qm::AccountImpl::getDataList(MessageStore::DataList* pList) const
+{
+	for (Account::FolderList::const_iterator it = listFolder_.begin(); it != listFolder_.end(); ++it) {
+		Folder* pFolder = *it;
+		if (pFolder->getType() == Folder::TYPE_NORMAL) {
+			if (!pFolder->loadMessageHolders())
+				return false;
+			
+			unsigned int nCount = pFolder->getCount();
+			pList->reserve(pList->size() + nCount);
+			for (unsigned int n = 0; n < nCount; ++n) {
+				MessageHolder* pmh = pFolder->getMessage(n);
+				const MessageHolder::MessageBoxKey& boxKey = pmh->getMessageBoxKey();
+				MessageStore::Data data = {
+					boxKey.nOffset_,
+					boxKey.nLength_,
+					pmh->getMessageCacheKey()
+				};
+				pList->push_back(data);
+			}
+		}
+	}
 	return true;
 }
 
@@ -1283,52 +1310,39 @@ bool qm::Account::compact(MessageOperationCallback* pCallback)
 {
 	Lock<Account> lock(*this);
 	
-	unsigned int nCount = 0;
-	for (Account::FolderList::iterator it = pImpl_->listFolder_.begin(); it != pImpl_->listFolder_.end(); ++it) {
-		Folder* pFolder = *it;
-		if (pFolder->getType() == Folder::TYPE_NORMAL) {
-			if (!pFolder->loadMessageHolders())
-				return false;
-			nCount += pFolder->getCount();
-		}
-	}
-	pCallback->setCount(nCount);
-	pCallback->show();
+	if (!save())
+		return false;
 	
-	unsigned int nStep = 0;
-	MessageStore::ReferList listRefer;
-	for (Account::FolderList::iterator it = pImpl_->listFolder_.begin(); it != pImpl_->listFolder_.end(); ++it) {
+	MessageStore::DataList listData;
+	if (!pImpl_->getDataList(&listData))
+		return false;
+	
+	if (!pImpl_->pMessageStore_->compact(&listData, pCallback))
+		return false;
+	
+	MessageStore::DataList::size_type d = 0;
+	for (FolderList::const_iterator it = pImpl_->listFolder_.begin(); it != pImpl_->listFolder_.end(); ++it) {
 		Folder* pFolder = *it;
 		if (pFolder->getType() == Folder::TYPE_NORMAL) {
 			unsigned int nCount = pFolder->getCount();
-			for (unsigned n = 0; n < nCount; ++n) {
+			for (unsigned int n = 0; n < nCount; ++n) {
+				const MessageStore::Data& data = listData[d++];
+				
 				MessageHolder* pmh = pFolder->getMessage(n);
+				MessageCacheKey cacheKey = pmh->getMessageCacheKey();
+				if (cacheKey != data.key_)
+					pImpl_->pMessageCache_->removeData(cacheKey);
 				MessageHolder::MessageBoxKey boxKey = pmh->getMessageBoxKey();
-				MessageCacheKey cacheKey = 0;
-				if (!pImpl_->pMessageStore_->compact(boxKey.nOffset_,
-					boxKey.nLength_, pmh->getMessageCacheKey(), 0,
-					&boxKey.nOffset_, &cacheKey))
-					return false;
-				if (pmh->getMessageCacheKey() != cacheKey)
-					pImpl_->pMessageCache_->removeData(pmh->getMessageCacheKey());
-				pmh->setKeys(cacheKey, boxKey);
-				
-				MessageStore::Refer refer = {
-					boxKey.nOffset_,
-					boxKey.nLength_,
-					cacheKey
-				};
-				listRefer.push_back(refer);
-				
-				pCallback->step(++nStep);
+				boxKey.nOffset_ = data.nOffset_;
+				pmh->setKeys(data.key_, boxKey);
 			}
 		}
 	}
-	if (!pImpl_->pMessageStore_->freeUnrefered(listRefer))
-		return false;
-	if (!pImpl_->pMessageStore_->freeUnused())
-		return false;
+	
 	if (!save())
+		return false;
+	
+	if (!pImpl_->pMessageStore_->freeUnused())
 		return false;
 	
 	return true;
@@ -1341,27 +1355,9 @@ bool qm::Account::salvage(NormalFolder* pFolder,
 	
 	pCallback->show();
 	
-	MessageStore::ReferList listRefer;
-	
-	for (Account::FolderList::iterator it = pImpl_->listFolder_.begin(); it != pImpl_->listFolder_.end(); ++it) {
-		Folder* pFolder = *it;
-		if (pFolder->getType() == Folder::TYPE_NORMAL) {
-			if (!pFolder->loadMessageHolders())
-				return false;
-			unsigned int nCount = pFolder->getCount();
-			for (unsigned n = 0; n < nCount; ++n) {
-				MessageHolder* pmh = pFolder->getMessage(n);
-				MessageHolder::MessageBoxKey boxKey = pmh->getMessageBoxKey();
-				
-				MessageStore::Refer refer = {
-					boxKey.nOffset_,
-					boxKey.nLength_,
-					pmh->getMessageCacheKey()
-				};
-				listRefer.push_back(refer);
-			}
-		}
-	}
+	MessageStore::DataList listData;
+	if (!pImpl_->getDataList(&listData))
+		return false;
 	
 	class CallbackImpl : public MessageStoreSalvageCallback
 	{
@@ -1399,7 +1395,7 @@ bool qm::Account::salvage(NormalFolder* pFolder,
 		MessageOperationCallback* pCallback_;
 	} callback(pFolder, pCallback);
 	
-	if (!pImpl_->pMessageStore_->salvage(listRefer, &callback))
+	if (!pImpl_->pMessageStore_->salvage(listData, &callback))
 		return false;
 	if (!save())
 		return false;

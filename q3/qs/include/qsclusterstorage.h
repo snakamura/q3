@@ -25,15 +25,6 @@ namespace qs {
 class QSEXPORTCLASS ClusterStorage
 {
 public:
-	struct Init
-	{
-		const WCHAR* pwszPath_;
-		const WCHAR* pwszName_;
-		const WCHAR* pwszBoxExt_;
-		const WCHAR* pwszMapExt_;
-		size_t nBlockSize_;
-	};
-	
 	struct Refer
 	{
 		unsigned int nOffset_;
@@ -44,14 +35,11 @@ public:
 	typedef std::vector<Refer> ReferList;
 
 public:
-	/**
-	 * Create instance.
-	 * Call operator! to check if file is opened or not.
-	 *
-	 * @param init [in] Initialize data.
-	 * @exception std::bad_alloc Out of memory.
-	 */
-	explicit ClusterStorage(const Init& init);
+	ClusterStorage(const WCHAR* pwszPath,
+				   const WCHAR* pwszName,
+				   const WCHAR* pwszBoxExt,
+				   const WCHAR* pwszMapExt,
+				   size_t nBlockSize);
 	
 	~ClusterStorage();
 
@@ -77,6 +65,16 @@ public:
 	 * @return true if success, false otherwise.
 	 */
 	bool flush();
+	
+	/**
+	 * Rename storage.
+	 *
+	 * @param pwszPath [in] New path.
+	 * @param pwszName [in] New name.
+	 * @return true if success, false otherwise.
+	 */
+	bool rename(const WCHAR* pwszPath,
+				const WCHAR* pwszName);
 	
 	/**
 	 * Load data.
@@ -117,22 +115,21 @@ public:
 	 *
 	 * @param nOffset [in] Offset.
 	 * @param nLength [in] Length.
-	 * @param pmsOld [in] Old storage. Can be null.
+	 * @param pcsOld [in] Old storage. Can be null.
 	 *                    If null, data will be loaded from this storage.
 	 * @return New offset. -1 if error occured.
 	 */
 	unsigned int compact(unsigned int nOffset,
 						 unsigned int nLength,
-						 ClusterStorage* pmsOld);
+						 ClusterStorage* pcsOld);
 	
 	/**
 	 * Free unrefered storage.
 	 *
 	 * @param listRefer [in] List of where are referred.
-	 * @return true if success, false otherwise.
 	 * @exception std::bad_alloc Out of memory.
 	 */
-	bool freeUnrefered(const ReferList& listRefer);
+	void freeUnrefered(const ReferList& listRefer);
 	
 	/**
 	 * Free unused storage.
