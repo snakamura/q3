@@ -78,7 +78,8 @@ bool qs::XMLParser::parse(const InputSource& source)
 		XMLParserContext::WAIT_STARTELEMENT |
 		XMLParserContext::WAIT_PROCESSINGINSTRUCTION |
 		XMLParserContext::WAIT_COMMENT |
-		XMLParserContext::WAIT_WS);
+		XMLParserContext::WAIT_WS |
+		XMLParserContext::WAIT_DOCTYPE);
 	if (!parse(context))
 		return false;
 	
@@ -294,7 +295,18 @@ bool qs::XMLParser::parse(XMLParserContext& context)
 						return false;
 				}
 				else {
-					return false;
+					wstring_ptr wstrName;
+					WCHAR cNext = L'\0';
+					if (!context.getString(c, L" \t\n\r", &wstrName, &cNext))
+						return false;
+					if (context.isWait(XMLParserContext::WAIT_DOCTYPE) &&
+						wcscmp(wstrName.get(), L"DOCTYPE") == 0) {
+						if (!parseDoctype(context))
+							return false;
+					}
+					else {
+						return false;
+					}
 				}
 			}
 			else if (c == '/') {
@@ -792,6 +804,129 @@ bool qs::XMLParser::parsePI(XMLParserContext& context)
 			wstrTarget.get(), buf.getCharArray()))
 			return false;
 	}
+	
+	return true;
+}
+
+bool qs::XMLParser::parseDoctype(XMLParserContext& context)
+{
+	WCHAR c = L'\0';
+	do {
+		if (!context.getChar(&c))
+			return false;
+	} while (isWhitespace(c));
+	
+	wstring_ptr wstrQName;
+	WCHAR cNext = L'\0';
+	if (!context.getString(c, L" \t\n\r>", &wstrQName, &cNext))
+		return false;
+	if (!validateQName(wstrQName.get()))
+		return false;
+	c = cNext;
+	
+	while (isWhitespace(c)) {
+		if (!context.getChar(&c))
+			return false;
+	}
+	
+	if (c == L'P') {
+		if (!parsePublicId(context, c))
+			return false;
+		
+		do {
+			if (!context.getChar(&c))
+				return false;
+		} while (isWhitespace(c));
+	}
+	else if (c == L'S') {
+		if (!parseSystemId(context, c))
+			return false;
+		
+		do {
+			if (!context.getChar(&c))
+				return false;
+		} while (isWhitespace(c));
+	}
+	
+	if (c == L'[') {
+		// TODO
+		// Parse internal subset.
+		do {
+			if (!context.getChar(&c))
+				return false;
+		} while (isWhitespace(c));
+	}
+	if (c != L'>')
+		return false;
+	
+	return true;
+}
+
+bool qs::XMLParser::parsePublicId(XMLParserContext& context,
+								  WCHAR c)
+{
+	assert(c == L'P');
+	
+	wstring_ptr wstrName;
+	WCHAR cNext = L'\0';
+	if (!context.getString(c, L" \t\n\r", &wstrName, &cNext))
+		return false;
+	if (wcscmp(wstrName.get(), L"PUBLIC") != 0)
+		return false;
+	
+	do {
+		if (!context.getChar(&c))
+			return false;
+	} while (isWhitespace(c));
+	
+	if (!parseLiteral(context, c))
+		return false;
+	
+	do {
+		if (!context.getChar(&c))
+			return false;
+	} while (isWhitespace(c));
+	
+	if (!parseLiteral(context, c))
+		return false;
+	
+	return true;
+}
+
+bool qs::XMLParser::parseSystemId(XMLParserContext& context,
+								  WCHAR c)
+{
+	assert(c == L'S');
+	
+	wstring_ptr wstrName;
+	WCHAR cNext = L'\0';
+	if (!context.getString(c, L" \t\n\r", &wstrName, &cNext))
+		return false;
+	if (wcscmp(wstrName.get(), L"SYSTEM") != 0)
+		return false;
+	
+	do {
+		if (!context.getChar(&c))
+			return false;
+	} while (isWhitespace(c));
+	
+	if (!parseLiteral(context, c))
+		return false;
+	
+	return true;
+}
+
+bool qs::XMLParser::parseLiteral(XMLParserContext& context,
+								 WCHAR c)
+{
+	if (c != L'\'' && c != L'\"')
+		return false;
+	WCHAR cQuote = c;
+	
+	do {
+		if (!context.getChar(&c))
+			return false;
+	} while (c != cQuote);
 	
 	return true;
 }

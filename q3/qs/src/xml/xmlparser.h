@@ -76,6 +76,13 @@ private:
 	bool parseComment(XMLParserContext& context);
 	bool parseCDATASection(XMLParserContext& context);
 	bool parsePI(XMLParserContext& context);
+	bool parseDoctype(XMLParserContext& context);
+	bool parsePublicId(XMLParserContext& context,
+					   WCHAR c);
+	bool parseSystemId(XMLParserContext& context,
+					   WCHAR c);
+	bool parseLiteral(XMLParserContext& context,
+					  WCHAR c);
 
 private:
 	static bool getChar(InputStream* pInputStream,
@@ -120,7 +127,8 @@ public:
 		WAIT_PROCESSINGINSTRUCTION	= 0x04,
 		WAIT_COMMENT				= 0x08,
 		WAIT_CHARACTER				= 0x10,
-		WAIT_WS						= 0x20
+		WAIT_WS						= 0x20,
+		WAIT_DOCTYPE				= 0x40
 	};
 
 public:
