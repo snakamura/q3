@@ -1047,8 +1047,8 @@ void qs::TextWindowImpl::showCaret()
 	int nLineHeight = getLineHeight();
 	pThis_->createCaret(2, nLineHeight);
 	POINT pt = {
-		caret_.nPos_ + nMarginLeft_,
-		caret_.nLine_*nLineHeight + nMarginTop_
+		caret_.nPos_ + nMarginLeft_ - scrollPos_.nPos_,
+		(caret_.nLine_ - scrollPos_.nLine_)*nLineHeight + nMarginTop_
 	};
 	pThis_->setCaretPos(pt);
 	pThis_->showCaret();
@@ -1300,6 +1300,7 @@ QSTATUS qs::TextWindowImpl::textSet(const TextModelEvent& event)
 	pUndoManager_->clear();
 	scrollHorizontal(0);
 	scrollVertical(0);
+	updateScrollBar();
 	updateCaret(true);
 	return QSTATUS_SUCCESS;
 }
@@ -2646,13 +2647,20 @@ bool qs::TextWindow::isShowCaret() const
 
 void qs::TextWindow::setShowCaret(bool bShowCaret)
 {
-	pImpl_->bShowCaret_ = bShowCaret;
-	if (pImpl_->bShowCaret_) {
-		pImpl_->showCaret();
-		pImpl_->updateCaret(false);
-	}
-	else {
-		pImpl_->hideCaret();
+	if (pImpl_->bShowCaret_ != bShowCaret) {
+		pImpl_->bShowCaret_ = bShowCaret;
+		if (bShowCaret) {
+			pImpl_->caret_.nLine_ = pImpl_->scrollPos_.nLine_;
+			pImpl_->caret_.nChar_ = 0;
+			pImpl_->caret_.nPos_ = 0;
+			pImpl_->caret_.nOldPos_ = 0;
+			
+			pImpl_->showCaret();
+			pImpl_->updateCaret(false);
+		}
+		else {
+			pImpl_->hideCaret();
+		}
 	}
 }
 
