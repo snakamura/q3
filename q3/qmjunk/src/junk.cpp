@@ -186,9 +186,13 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 			std::random_shuffle(listTokenRate_.begin(), listTokenRate_.end());
 			std::sort(listTokenRate_.begin(), listTokenRate_.end(), &RateLess::comp);
 			if (listTokenRate_.size() > nMax_) {
-				assert(listTokenRate_.size() == nMax_ + 1);
-				freeWString(listTokenRate_.back().first);
-				listTokenRate_.pop_back();
+				double d = listTokenRate_[nMax_].second;
+				TokenRateList::iterator itD = listTokenRate_.begin() + nMax_ + 1;
+				while (itD != listTokenRate_.end() && (*itD).second == d)
+					++itD;
+				for (TokenRateList::iterator it = itD; it != listTokenRate_.end(); ++it)
+					freeWString((*it).first);
+				listTokenRate_.erase(itD, listTokenRate_.end());
 			}
 			
 			return true;
