@@ -30,11 +30,32 @@ using namespace qs;
  */
 
 namespace {
-struct DetachCallbackImpl : public AttachmentParser::DetachCallback
+class DetachCallbackImpl : public AttachmentParser::DetachCallback
 {
+public:
+	DetachCallbackImpl(HWND hwnd);
+	~DetachCallbackImpl();
+
+public:
 	virtual QSTATUS confirmOverwrite(
 		const WCHAR* pwszPath, WSTRING* pwstrPath);
+
+private:
+	DetachCallbackImpl(const DetachCallbackImpl&);
+	DetachCallbackImpl& operator=(const DetachCallbackImpl&);
+
+private:
+	HWND hwnd_;
 };
+}
+
+DetachCallbackImpl::DetachCallbackImpl(HWND hwnd) :
+	hwnd_(hwnd)
+{
+}
+
+DetachCallbackImpl::~DetachCallbackImpl()
+{
 }
 
 QSTATUS DetachCallbackImpl::confirmOverwrite(
@@ -57,7 +78,7 @@ QSTATUS DetachCallbackImpl::confirmOverwrite(
 	
 	string_ptr<WSTRING> wstrPath;
 	int nMsg = 0;
-	status = messageBox(wstrMessage.get(), MB_YESNOCANCEL, &nMsg);
+	status = messageBox(wstrMessage.get(), MB_YESNOCANCEL, hwnd_, 0, 0, &nMsg);
 	CHECK_QSTATUS();
 	switch (nMsg) {
 	case IDCANCEL:
@@ -174,7 +195,7 @@ QSTATUS qm::AttachmentHelper::detach(
 			Message msg(&status);
 			AttachmentParser::AttachmentList l;
 			AttachmentParser::AttachmentListFree free(l);
-			DetachCallbackImpl callback;
+			DetachCallbackImpl callback(hwnd_);
 			unsigned int n = 0;
 			DetachDialog::List::iterator it = list.begin();
 			while (it != list.end()) {
@@ -223,12 +244,14 @@ QSTATUS qm::AttachmentHelper::open(const Part* pPart,
 	DECLARE_QSTATUS();
 	
 	AttachmentParser parser(*pPart);
-	DetachCallbackImpl callback;
+	DetachCallbackImpl callback(hwnd_);
 	const WCHAR* pwszTempDir =
 		Application::getApplication().getTemporaryFolder();
 	string_ptr<WSTRING> wstrPath;
 	status = parser.detach(pwszTempDir, pwszName, &callback, &wstrPath);
 	CHECK_QSTATUS();
+	if (!wstrPath.get())
+		return QSTATUS_SUCCESS;
 	
 	status = pTempFileCleaner_->add(wstrPath.get());
 	CHECK_QSTATUS();
@@ -247,7 +270,7 @@ QSTATUS qm::AttachmentHelper::open(const Part* pPart,
 				status = messageBox(
 					Application::getApplication().getResourceHandle(),
 					IDS_CONFIRMEXECUTEATTACHMENT,
-					MB_YESNO | MB_DEFBUTTON2 | MB_ICONWARNING, &nMsg);
+					MB_YESNO | MB_DEFBUTTON2 | MB_ICONWARNING, hwnd_, 0, 0, &nMsg);
 				CHECK_QSTATUS();
 				if (nMsg != IDYES)
 					return QSTATUS_SUCCESS;
@@ -286,7 +309,7 @@ QSTATUS qm::AttachmentHelper::open(const Part* pPart,
 	}
 	if (!::ShellExecuteEx(&sei)) {
 		status = messageBox(Application::getApplication().getResourceHandle(),
-			IDS_ERROR_EXECUTEATTACHMENT);
+			IDS_ERROR_EXECUTEATTACHMENT, hwnd_);
 		CHECK_QSTATUS();
 	}
 	
