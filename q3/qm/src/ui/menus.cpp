@@ -239,7 +239,7 @@ bool qm::FilterMenu::createMenu(HMENU hmenu)
 		const Filter* pFilter = *it;
 		wstring_ptr wstrTitle(UIUtil::formatMenu(pFilter->getName()));
 		W2T(wstrTitle.get(), ptszTitle);
-		::InsertMenu(hmenu, nPos, MF_BYPOSITION, nId, ptszTitle);
+		::InsertMenu(hmenu, nPos, MF_BYPOSITION | MF_STRING, nId, ptszTitle);
 	}
 	if (nPos != 2)
 		::InsertMenu(hmenu, nPos, MF_BYPOSITION | MF_SEPARATOR, -1, 0);
@@ -274,7 +274,13 @@ const GoRoundCourse* qm::GoRoundMenu::getCourse(unsigned int nId) const
 
 bool qm::GoRoundMenu::createMenu(HMENU hmenu)
 {
-	while (::DeleteMenu(hmenu, 0, MF_BYPOSITION));
+	while (true) {
+		MENUITEMINFO mii = { sizeof(mii), MIIM_TYPE };
+		if (!::GetMenuItemInfo(hmenu, 0, TRUE, &mii) ||
+			(mii.fType & MFT_SEPARATOR) != 0)
+			break;
+		::DeleteMenu(hmenu, 0, MF_BYPOSITION);
+	}
 	
 	const GoRound::CourseList& l = pGoRound_->getCourses();
 	if (!l.empty()) {
@@ -282,22 +288,15 @@ bool qm::GoRoundMenu::createMenu(HMENU hmenu)
 			GoRoundCourse* pCourse = l[n];
 			wstring_ptr wstrName(UIUtil::formatMenu(pCourse->getName()));
 			W2T(wstrName.get(), ptszName);
-			::AppendMenu(hmenu, MF_STRING, IDM_TOOL_GOROUND + n, ptszName);
+			::InsertMenu(hmenu, n, MF_STRING | MF_BYPOSITION, IDM_TOOL_GOROUND + n, ptszName);
 		}
 	}
 	else {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		wstring_ptr wstrName(loadString(hInst, IDS_GOROUND));
 		W2T(wstrName.get(), ptszName);
-		::AppendMenu(hmenu, MF_STRING, IDM_TOOL_GOROUND, ptszName);
+		::InsertMenu(hmenu, 0, MF_STRING | MF_BYPOSITION, IDM_TOOL_GOROUND, ptszName);
 	}
-	
-	::AppendMenu(hmenu, MF_SEPARATOR, -1, 0);
-	
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrEdit(loadString(hInst, IDS_EDIT));
-	W2T(wstrEdit.get(), ptszEdit);
-	::AppendMenu(hmenu, MF_STRING, IDM_CONFIG_GOROUND, ptszEdit);
 	
 	return true;
 }
@@ -763,7 +762,7 @@ bool qm::SortMenu::createMenu(HMENU hmenu)
 			if (*pwszTitle) {
 				wstring_ptr wstrTitle(UIUtil::formatMenu(pwszTitle));
 				W2T(wstrTitle.get(), ptszTitle);
-				::InsertMenu(hmenu, nPos, MF_BYPOSITION, nId, ptszTitle);
+				::InsertMenu(hmenu, nPos, MF_STRING | MF_BYPOSITION, nId, ptszTitle);
 				++nPos;
 			}
 			if (nId - IDM_VIEW_SORT == nSortIndex)
@@ -774,7 +773,7 @@ bool qm::SortMenu::createMenu(HMENU hmenu)
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		wstring_ptr wstrNone(loadString(hInst, IDS_NONE));
 		W2T(wstrNone.get(), ptszNone);
-		::InsertMenu(hmenu, 0, MF_BYPOSITION, IDM_VIEW_SORT, ptszNone);
+		::InsertMenu(hmenu, 0, MF_STRING | MF_BYPOSITION, IDM_VIEW_SORT, ptszNone);
 		::EnableMenuItem(hmenu, IDM_VIEW_SORT, MF_BYCOMMAND | MF_GRAYED);
 	}
 	

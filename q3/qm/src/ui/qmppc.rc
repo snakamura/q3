@@ -145,6 +145,8 @@ BEGIN
     POPUP ""
     BEGIN
         MENUITEM "&Go Round",                   IDM_TOOL_GOROUND
+        MENUITEM SEPARATOR
+        MENUITEM "&Edit...",                    IDM_CONFIG_GOROUND
     END
 END
 
@@ -1532,7 +1534,6 @@ BEGIN
     IDS_WIDTH               "Width"
     IDS_CLEARRECENTS        "&Clear"
     IDS_UNSPECIFIED         "(Unspecified)"
-    IDS_EDIT                "&Edit..."
     IDS_RESOURCEPATH        "Path"
 END
 

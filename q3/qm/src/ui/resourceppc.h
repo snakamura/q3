@@ -203,7 +203,6 @@
 #define IDC_TIMEOUT                     1074
 #define IDS_UNSPECIFIED                 1074
 #define IDC_CONNECTRECEIVEHOSTBEFORESEND 1075
-#define IDS_EDIT                        1076
 #define IDC_INCOMINGPROTOCOL            1077
 #define IDS_RESOURCEPATH                1077
 #define IDC_OUTGOINGPROTOCOL            1078
