@@ -163,7 +163,7 @@ LRESULT qm::AccountDialog::onAddAccount()
 		}
 		
 		std::auto_ptr<Account> pAccount(new Account(wstrDir.get(),
-			pDocument_->getSecurity(), pPasswordManager_));
+			pDocument_->getSecurity(), pPasswordManager_, pDocument_->getJunkFilter()));
 		Account* p = pAccount.get();
 		pDocument_->addAccount(pAccount);
 		pSubAccount_ = p->getCurrentSubAccount();
@@ -397,7 +397,7 @@ LRESULT qm::AccountDialog::onProperty()
 		AccountUserPage userPage(pSubAccount, pPasswordManager_, pReceiveUI.get(), pSendUI.get());
 		AccountDetailPage detailPage(pSubAccount, pReceiveUI.get(), pSendUI.get());
 		AccountDialupPage dialupPage(pSubAccount);
-		AccountAdvancedPage advancedPage(pSubAccount, pSyncFilterManager_);
+		AccountAdvancedPage advancedPage(pSubAccount, pDocument_, pSyncFilterManager_);
 		PropertySheetBase sheet(hInst, wstrTitle.get(), false);
 		sheet.add(&generalPage);
 		sheet.add(&userPage);

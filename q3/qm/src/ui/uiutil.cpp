@@ -187,7 +187,8 @@ int qm::UIUtil::getFolderImage(Folder* pFolder,
 				(nFlags & Folder::FLAG_SENTBOX) ||
 				(nFlags & Folder::FLAG_DRAFTBOX))
 				nImage = 8;
-			else if (nFlags & Folder::FLAG_TRASHBOX)
+			else if (nFlags & Folder::FLAG_TRASHBOX ||
+				nFlags & Folder::FLAG_JUNKBOX)
 				nImage = 10;
 			else if (nFlags & Folder::FLAG_NOSELECT)
 				nImage = bSelected ? 16 : 14;

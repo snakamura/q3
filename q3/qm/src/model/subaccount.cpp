@@ -66,6 +66,7 @@ struct qm::SubAccountImpl
 	AddressList listMyAddress_;
 	std::auto_ptr<Profile> pProfile_;
 	wstring_ptr wstrSyncFilterName_;
+	bool bJunkFilterEnabled_;
 };
 
 void qm::SubAccountImpl::load()
@@ -102,6 +103,7 @@ void qm::SubAccountImpl::load()
 	LOAD_INT(L"Dialup",		L"Type",						0,		dialupType_,					SubAccount::DialupType,	dialupType					);
 	LOAD_INT(L"Dialup",		L"ShowDialog",					0,		bDialupShowDialog_,				bool,					bDialupShowDialog			);
 	LOAD_INT(L"Dialup",		L"DisconnectWait",				0,		nDialupDisconnectWait_,			unsigned int,			nDialupDisconnectWait		);
+	LOAD_INT(L"JunkFilter",	L"Enabled",						0,		bJunkFilterEnabled_,			bool,					nJunkFilterEnabled			);
 #pragma warning(default:4800)
 	
 	wstring_ptr wstrMyAddress(pProfile_->getString(L"Global", L"MyAddress", 0));
@@ -561,6 +563,16 @@ void qm::SubAccount::setSyncFilterName(const WCHAR* pwszName)
 	pImpl_->wstrSyncFilterName_ = allocWString(pwszName);
 }
 
+bool qm::SubAccount::isJunkFilterEnabled() const
+{
+	return pImpl_->bJunkFilterEnabled_;
+}
+
+void qm::SubAccount::setJunkFilterEnabled(bool bEnabled)
+{
+	pImpl_->bJunkFilterEnabled_ = bEnabled;
+}
+
 bool qm::SubAccount::isSelf(const Message& msg) const
 {
 	bool bSelf = false;
@@ -635,6 +647,7 @@ bool qm::SubAccount::save() const
 	SAVE_INT(L"Dialup",		L"Type",						dialupType_						);
 	SAVE_INT(L"Dialup",		L"ShowDialog",					bDialupShowDialog_				);
 	SAVE_INT(L"Dialup",		L"DisconnectWait",				nDialupDisconnectWait_			);
+	SAVE_INT(L"JunkFilter",	L"Enabled",						bJunkFilterEnabled_				);
 	
 	wstring_ptr wstrMyAddress(getMyAddress());
 	pImpl_->pProfile_->setString(L"Global", L"MyAddress", wstrMyAddress.get());

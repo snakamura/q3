@@ -89,9 +89,9 @@ bool qm::MessageComposer::compose(Account* pAccount,
 			pSubAccount = pAccount->getCurrentSubAccount();
 	}
 	
-	Folder* pFolder = pAccount->getFolderByFlag(
-		bDraft_ ? Folder::FLAG_DRAFTBOX : Folder::FLAG_OUTBOX);
-	if (!pFolder || pFolder->getType() != Folder::TYPE_NORMAL)
+	NormalFolder* pFolder = static_cast<NormalFolder*>(pAccount->getFolderByBoxFlag(
+		bDraft_ ? Folder::FLAG_DRAFTBOX : Folder::FLAG_OUTBOX));
+	if (!pFolder)
 		return false;
 	
 	bool bResent = PartUtil(*pMessage).isResent();

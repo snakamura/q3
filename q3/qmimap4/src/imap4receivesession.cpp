@@ -10,6 +10,7 @@
 #include <qmfolder.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
+#include <qmjunk.h>
 
 #include <qsthread.h>
 
@@ -55,6 +56,7 @@ class qmimap4::MessageData
 {
 public:
 	enum Type {
+		TYPE_NONE,
 		TYPE_HEADER,
 		TYPE_TEXT,
 		TYPE_HTML,
@@ -644,6 +646,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 				listMessageData_.push_back(MessageData(pmh, MessageData::TYPE_HEADER, 0));
 				break;
 			case DOWNLOAD_NONE:
+				listMessageData_.push_back(MessageData(pmh, MessageData::TYPE_NONE, 0));
 				break;
 			default:
 				assert(false);
@@ -716,139 +719,238 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 		}
 	}
 	
-	if (!listMessageData.empty()) {
-		pCallback_->setMessage(IDS_DOWNLOADMESSAGES);
-		
-		UidList listAllUid;
-		UidList listHeaderUid;
-		MessageDataList listPartial;
-		for (MessageDataList::const_iterator it = listMessageData.begin(); it != listMessageData.end(); ++it) {
-			switch ((*it).getType()) {
-			case MessageData::TYPE_HEADER:
-				listHeaderUid.push_back((*it).getId());
-				break;
-			case MessageData::TYPE_TEXT:
-			case MessageData::TYPE_HTML:
-				listPartial.push_back(*it);
-				break;
-			case MessageData::TYPE_ALL:
-				listAllUid.push_back((*it).getId());
-				break;
-			default:
-				break;
-			}
+	pCallback_->setMessage(IDS_DOWNLOADMESSAGES);
+	
+	UidList listAllUid;
+	UidList listHeaderUid;
+	MessageDataList listPartial;
+	for (MessageDataList::const_iterator it = listMessageData.begin(); it != listMessageData.end(); ++it) {
+		switch ((*it).getType()) {
+		case MessageData::TYPE_HEADER:
+			listHeaderUid.push_back((*it).getId());
+			break;
+		case MessageData::TYPE_TEXT:
+		case MessageData::TYPE_HTML:
+			listPartial.push_back(*it);
+			break;
+		case MessageData::TYPE_ALL:
+			listAllUid.push_back((*it).getId());
+			break;
+		default:
+			break;
 		}
-		
-		unsigned int nPos = 0;
-		pSessionCallback_->setRange(0,
-			listHeaderUid.size() + listAllUid.size() +
-			listPartial.size()*(nOption & OPTION_USEBODYSTRUCTUREALWAYS ? 1 : 2));
-		pSessionCallback_->setPos(0);
-		
-		if ((nOption & OPTION_USEBODYSTRUCTUREALWAYS) == 0 && !listPartial.empty()) {
-			class BodyStructureProcessHook : public AbstractBodyStructureProcessHook
-			{
-			public:
-				typedef std::vector<FetchDataBodyStructure*> BodyStructureList;
-			
-			public:
-				BodyStructureProcessHook(MessageDataList& listMessageData,
-										 BodyStructureList& listBodyStructure,
-										 ReceiveSessionCallback* pSessionCallback,
-										 unsigned int* pnPos) :
-					listMessageData_(listMessageData),
-					listBodyStructure_(listBodyStructure),
-					pSessionCallback_(pSessionCallback),
-					pnPos_(pnPos)
-				{
-				}
-				
-			protected:
-				virtual bool setBodyStructure(unsigned long nUid,
-											  FetchDataBodyStructure* pBodyStructure,
-											  bool* pbSet)
-				{
-					MessageDataList::iterator it = std::find_if(
-						listMessageData_.begin(), listMessageData_.end(),
-						std::bind2nd(
-							binary_compose_f_gx_hy(
-								std::equal_to<unsigned long>(),
-								std::mem_fun_ref(&MessageData::getId),
-								std::identity<unsigned long>()),
-							nUid));
-					if (it != listMessageData_.end()) {
-						listBodyStructure_.push_back(pBodyStructure);
-						(*it).setBodyStructure(pBodyStructure);
-						*pbSet = true;
-					}
-					
-					return true;
-				}
-				
-				virtual void processed()
-				{
-					++(*pnPos_);
-					pSessionCallback_->setPos(*pnPos_);
-				}
-			
-			private:
-				MessageDataList& listMessageData_;
-				BodyStructureList& listBodyStructure_;
-				ReceiveSessionCallback* pSessionCallback_;
-				unsigned int* pnPos_;
-			} hook(listPartial, listBodyStructure, pSessionCallback_, &nPos);
-			Hook h(this, &hook);
-			
-			UidList listPartialUid;
-			listPartialUid.resize(listPartial.size());
-			std::transform(listPartial.begin(), listPartial.end(),
-				listPartialUid.begin(), std::mem_fun_ref(&MessageData::getId));
-			MultipleRange range(&listPartialUid[0], listPartialUid.size(), true);
-			if (!pImap4_->getBodyStructure(range))
-				HANDLE_ERROR();
-			
-			bool bMoved = false;
-			for (MessageDataList::iterator it = listPartial.begin(); it != listPartial.end(); ) {
-				FetchDataBodyStructure* pBodyStructure = (*it).getBodyStructure();
-				if (!pBodyStructure || !Util::hasAttachmentPart(pBodyStructure)) {
-					listAllUid.push_back((*it).getId());
-					it = listPartial.erase(it);
-					bMoved = true;
-				}
-				else {
-					++it;
-				}
-			}
-			if (bMoved)
-				std::sort(listAllUid.begin(), listAllUid.end());
-		}
-		
-		class MessageProcessHook : public AbstractMessageProcessHook
+	}
+	
+	unsigned int nPos = 0;
+	pSessionCallback_->setRange(0,
+		listHeaderUid.size() + listAllUid.size() +
+		listPartial.size()*(nOption & OPTION_USEBODYSTRUCTUREALWAYS ? 1 : 2));
+	pSessionCallback_->setPos(0);
+	
+	if ((nOption & OPTION_USEBODYSTRUCTUREALWAYS) == 0 && !listPartial.empty()) {
+		class BodyStructureProcessHook : public AbstractBodyStructureProcessHook
 		{
 		public:
-			MessageProcessHook(Account* pAccount,
-							   const MessageDataList& listMessageData,
-							   ReceiveSessionCallback* pSessionCallback,
-							   bool bHeader,
-							   unsigned int* pnPos) :
-				pAccount_(pAccount),
+			typedef std::vector<FetchDataBodyStructure*> BodyStructureList;
+		
+		public:
+			BodyStructureProcessHook(MessageDataList& listMessageData,
+									 BodyStructureList& listBodyStructure,
+									 ReceiveSessionCallback* pSessionCallback,
+									 unsigned int* pnPos) :
 				listMessageData_(listMessageData),
-				it_(listMessageData_.begin()),
+				listBodyStructure_(listBodyStructure),
 				pSessionCallback_(pSessionCallback),
-				bHeader_(bHeader),
 				pnPos_(pnPos)
 			{
 			}
-		
+			
 		protected:
-			virtual Account* getAccount()
+			virtual bool setBodyStructure(unsigned long nUid,
+										  FetchDataBodyStructure* pBodyStructure,
+										  bool* pbSet)
+			{
+				MessageDataList::iterator it = std::find_if(
+					listMessageData_.begin(), listMessageData_.end(),
+					std::bind2nd(
+						binary_compose_f_gx_hy(
+							std::equal_to<unsigned long>(),
+							std::mem_fun_ref(&MessageData::getId),
+							std::identity<unsigned long>()),
+						nUid));
+				if (it != listMessageData_.end()) {
+					listBodyStructure_.push_back(pBodyStructure);
+					(*it).setBodyStructure(pBodyStructure);
+					*pbSet = true;
+				}
+				
+				return true;
+			}
+			
+			virtual void processed()
+			{
+				++(*pnPos_);
+				pSessionCallback_->setPos(*pnPos_);
+			}
+		
+		private:
+			MessageDataList& listMessageData_;
+			BodyStructureList& listBodyStructure_;
+			ReceiveSessionCallback* pSessionCallback_;
+			unsigned int* pnPos_;
+		} hook(listPartial, listBodyStructure, pSessionCallback_, &nPos);
+		Hook h(this, &hook);
+		
+		UidList listPartialUid;
+		listPartialUid.resize(listPartial.size());
+		std::transform(listPartial.begin(), listPartial.end(),
+			listPartialUid.begin(), std::mem_fun_ref(&MessageData::getId));
+		MultipleRange range(&listPartialUid[0], listPartialUid.size(), true);
+		if (!pImap4_->getBodyStructure(range))
+			HANDLE_ERROR();
+		
+		bool bMoved = false;
+		for (MessageDataList::iterator it = listPartial.begin(); it != listPartial.end(); ) {
+			FetchDataBodyStructure* pBodyStructure = (*it).getBodyStructure();
+			if (!pBodyStructure || !Util::hasAttachmentPart(pBodyStructure)) {
+				listAllUid.push_back((*it).getId());
+				it = listPartial.erase(it);
+				bMoved = true;
+			}
+			else {
+				++it;
+			}
+		}
+		if (bMoved)
+			std::sort(listAllUid.begin(), listAllUid.end());
+	}
+	
+	class MessageProcessHook : public AbstractMessageProcessHook
+	{
+	public:
+		MessageProcessHook(Account* pAccount,
+						   const MessageDataList& listMessageData,
+						   ReceiveSessionCallback* pSessionCallback,
+						   bool bHeader,
+						   unsigned int* pnPos) :
+			pAccount_(pAccount),
+			listMessageData_(listMessageData),
+			it_(listMessageData_.begin()),
+			pSessionCallback_(pSessionCallback),
+			bHeader_(bHeader),
+			pnPos_(pnPos)
+		{
+		}
+	
+	protected:
+		virtual Account* getAccount()
+		{
+			return pAccount_;
+		}
+		
+		virtual bool isHeader()
+		{
+			return bHeader_;
+		}
+		
+		virtual bool isMakeUnseen()
+		{
+			return false;
+		}
+		
+		virtual MessagePtr getMessagePtr(unsigned long nUid)
+		{
+			MessageDataList::const_iterator m = std::find_if(
+				it_, listMessageData_.end(),
+				std::bind2nd(
+					binary_compose_f_gx_hy(
+						std::equal_to<unsigned long>(),
+						std::mem_fun_ref(&MessageData::getId),
+						std::identity<unsigned long>()),
+					nUid));
+			if (m == listMessageData_.end()) {
+				m = std::find_if(listMessageData_.begin(), it_,
+					std::bind2nd(
+						binary_compose_f_gx_hy(
+							std::equal_to<unsigned long>(),
+							std::mem_fun_ref(&MessageData::getId),
+							std::identity<unsigned long>()),
+						nUid));
+				if (m == it_)
+					return 0;
+			}
+			
+			it_ = m;
+			
+			return (*it_).getMessagePtr();
+		}
+		
+		virtual void processed()
+		{
+			++(*pnPos_);
+			pSessionCallback_->setPos(*pnPos_);
+		}
+	
+	private:
+		Account* pAccount_;
+		const MessageDataList& listMessageData_;
+		MessageDataList::const_iterator it_;
+		ReceiveSessionCallback* pSessionCallback_;
+		bool bHeader_;
+		unsigned int* pnPos_;
+	};
+	
+	if (!listAllUid.empty()) {
+		MessageProcessHook hook(pAccount_,
+			listMessageData, pSessionCallback_, false, &nPos);
+		Hook h(this, &hook);
+		
+		MultipleRange range(&listAllUid[0], listAllUid.size(), true);
+		if (!pImap4_->getMessage(range, true))
+			HANDLE_ERROR();
+	}
+	
+	if (!listPartial.empty()) {
+		class PartialMessageProcessHook : public AbstractPartialMessageProcessHook
+		{
+		public:
+			PartialMessageProcessHook(Account* pAccount,
+									  const MessageDataList& listMessageData,
+									  FetchDataBodyStructure* pBodyStructure,
+									  const PartList& listPart,
+									  unsigned int nPartCount,
+									  bool bAll,
+									  unsigned int nOption) :
+				pAccount_(pAccount),
+				listMessageData_(listMessageData),
+				it_(listMessageData_.begin()),
+				pBodyStructure_(pBodyStructure),
+				listPart_(listPart),
+				nPartCount_(nPartCount),
+				bAll_(bAll),
+				nOption_(nOption)
+			{
+			}
+			
+		protected:
+			virtual qm::Account* getAccount()
 			{
 				return pAccount_;
 			}
 			
-			virtual bool isHeader()
+			virtual bool isAll()
 			{
-				return bHeader_;
+				return bAll_;
+			}
+			
+			virtual const PartList& getPartList()
+			{
+				return listPart_;
+			}
+			
+			virtual unsigned int getPartCount()
+			{
+				return nPartCount_;
 			}
 			
 			virtual bool isMakeUnseen()
@@ -883,164 +985,126 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 				return (*it_).getMessagePtr();
 			}
 			
+			virtual unsigned int getOption()
+			{
+				return nOption_;
+			}
+			
 			virtual void processed()
 			{
-				++(*pnPos_);
-				pSessionCallback_->setPos(*pnPos_);
 			}
 		
 		private:
 			Account* pAccount_;
 			const MessageDataList& listMessageData_;
 			MessageDataList::const_iterator it_;
-			ReceiveSessionCallback* pSessionCallback_;
-			bool bHeader_;
-			unsigned int* pnPos_;
+			FetchDataBodyStructure* pBodyStructure_;
+			const PartList& listPart_;
+			unsigned int nPartCount_;
+			bool bAll_;
+			unsigned int nOption_;
 		};
 		
-		if (!listAllUid.empty()) {
-			MessageProcessHook hook(pAccount_,
-				listMessageData, pSessionCallback_, false, &nPos);
-			Hook h(this, &hook);
+		for (MessageDataList::iterator it = listPartial.begin(); it != listPartial.end(); ++it) {
+			Util::PartList listPart;
+			Util::PartListDeleter deleter(listPart);
+			unsigned int nPath = 0;
+			Util::getPartsFromBodyStructure((*it).getBodyStructure(), &nPath, &listPart);
 			
-			MultipleRange range(&listAllUid[0], listAllUid.size(), true);
-			if (!pImap4_->getMessage(range, true))
-				HANDLE_ERROR();
+			if (!listPart.empty()) {
+				string_ptr strArg;
+				unsigned int nPartCount = 0;
+				bool bAll = false;
+				Util::getFetchArgFromPartList(listPart,
+					(*it).getType() == MessageData::TYPE_HTML ?
+						Util::FETCHARG_HTML : Util::FETCHARG_TEXT,
+					true, (nOption & OPTION_TRUSTBODYSTRUCTURE) == 0,
+					&strArg, &nPartCount, &bAll);
+				
+				PartialMessageProcessHook hook(pAccount_, listMessageData,
+					(*it).getBodyStructure(), listPart, nPartCount, bAll, nOption);
+				Hook h(this, &hook);
+				
+				SingleRange range((*it).getId(), true);
+				if (!pImap4_->fetch(range, strArg.get()))
+					HANDLE_ERROR();
+			}
+			
+			pSessionCallback_->setPos(nPos);
+			++nPos;
 		}
+	}
+	
+	if (!listHeaderUid.empty()) {
+		MessageProcessHook hook(pAccount_,
+			listMessageData, pSessionCallback_, true, &nPos);
+		Hook h(this, &hook);
 		
-		if (!listPartial.empty()) {
-			class PartialMessageProcessHook : public AbstractPartialMessageProcessHook
-			{
-			public:
-				PartialMessageProcessHook(Account* pAccount,
-										  const MessageDataList& listMessageData,
-										  FetchDataBodyStructure* pBodyStructure,
-										  const PartList& listPart,
-										  unsigned int nPartCount,
-										  bool bAll,
-										  unsigned int nOption) :
-					pAccount_(pAccount),
-					listMessageData_(listMessageData),
-					it_(listMessageData_.begin()),
-					pBodyStructure_(pBodyStructure),
-					listPart_(listPart),
-					nPartCount_(nPartCount),
-					bAll_(bAll),
-					nOption_(nOption)
-				{
-				}
-				
-			protected:
-				virtual qm::Account* getAccount()
-				{
-					return pAccount_;
-				}
-				
-				virtual bool isAll()
-				{
-					return bAll_;
-				}
-				
-				virtual const PartList& getPartList()
-				{
-					return listPart_;
-				}
-				
-				virtual unsigned int getPartCount()
-				{
-					return nPartCount_;
-				}
-				
-				virtual bool isMakeUnseen()
-				{
-					return false;
-				}
-				
-				virtual MessagePtr getMessagePtr(unsigned long nUid)
-				{
-					MessageDataList::const_iterator m = std::find_if(
-						it_, listMessageData_.end(),
-						std::bind2nd(
-							binary_compose_f_gx_hy(
-								std::equal_to<unsigned long>(),
-								std::mem_fun_ref(&MessageData::getId),
-								std::identity<unsigned long>()),
-							nUid));
-					if (m == listMessageData_.end()) {
-						m = std::find_if(listMessageData_.begin(), it_,
-							std::bind2nd(
-								binary_compose_f_gx_hy(
-									std::equal_to<unsigned long>(),
-									std::mem_fun_ref(&MessageData::getId),
-									std::identity<unsigned long>()),
-								nUid));
-						if (m == it_)
-							return 0;
+		MultipleRange range(&listHeaderUid[0], listHeaderUid.size(), true);
+		if (!pImap4_->getHeader(range, true))
+			HANDLE_ERROR();
+	}
+	
+	if (pSubAccount_->isJunkFilterEnabled()) {
+		JunkFilter* pJunkFilter = pDocument_->getJunkFilter();
+		if (pJunkFilter) {
+			unsigned int nJunkFilterFlags = pJunkFilter->getFlags();
+			if (pFolder_->isFlag(Folder::FLAG_INBOX)) {
+				NormalFolder* pJunkbox = static_cast<NormalFolder*>(
+					pAccount_->getFolderByBoxFlag(Folder::FLAG_JUNKBOX));
+				if (pJunkbox) {
+					pCallback_->setMessage(IDS_FILTERJUNK);
+					pSessionCallback_->setRange(0, listMessageData.size());
+					pSessionCallback_->setPos(0);
+					
+					UidList listJunk;
+					for (MessageDataList::size_type n = 0; n < listMessageData.size(); ++n) {
+						MessagePtrLock mpl(listMessageData[n].getMessagePtr());
+						Message msg;
+						if (mpl && !mpl->isFlag(MessageHolder::FLAG_DELETED) &&
+							mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg)) {
+							float fScore = pJunkFilter->getScore(msg);
+							if (fScore > pJunkFilter->getThresholdScore()) {
+								listJunk.push_back(mpl->getId());
+								mpl->setFlags(MessageHolder::FLAG_DELETED, MessageHolder::FLAG_DELETED);
+							}
+							else if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN) {
+								pJunkFilter->manage(msg, JunkFilter::OPERATION_ADDCLEAN);
+							}
+						}
+						
+						pSessionCallback_->setPos(n);
 					}
 					
-					it_ = m;
-					
-					return (*it_).getMessagePtr();
+					if (!listJunk.empty()) {
+						wstring_ptr wstrFolder(Util::getFolderName(pJunkbox));
+						MultipleRange range(&listJunk[0], listJunk.size(), true);
+						if (!pImap4_->copy(range, wstrFolder.get()))
+							HANDLE_ERROR();
+						Flags flags(Imap4::FLAG_DELETED);
+						Flags mask(Imap4::FLAG_DELETED);
+						if (!pImap4_->setFlags(range, flags, mask))
+							HANDLE_ERROR();
+					}
 				}
-				
-				virtual unsigned int getOption()
-				{
-					return nOption_;
-				}
-				
-				virtual void processed()
-				{
-				}
-			
-			private:
-				Account* pAccount_;
-				const MessageDataList& listMessageData_;
-				MessageDataList::const_iterator it_;
-				FetchDataBodyStructure* pBodyStructure_;
-				const PartList& listPart_;
-				unsigned int nPartCount_;
-				bool bAll_;
-				unsigned int nOption_;
-			};
-			
-			for (MessageDataList::iterator it = listPartial.begin(); it != listPartial.end(); ++it) {
-				Util::PartList listPart;
-				Util::PartListDeleter deleter(listPart);
-				unsigned int nPath = 0;
-				Util::getPartsFromBodyStructure((*it).getBodyStructure(), &nPath, &listPart);
-				
-				if (!listPart.empty()) {
-					string_ptr strArg;
-					unsigned int nPartCount = 0;
-					bool bAll = false;
-					Util::getFetchArgFromPartList(listPart,
-						(*it).getType() == MessageData::TYPE_HTML ?
-							Util::FETCHARG_HTML : Util::FETCHARG_TEXT,
-						true, (nOption & OPTION_TRUSTBODYSTRUCTURE) == 0,
-						&strArg, &nPartCount, &bAll);
-					
-					PartialMessageProcessHook hook(pAccount_, listMessageData,
-						(*it).getBodyStructure(), listPart, nPartCount, bAll, nOption);
-					Hook h(this, &hook);
-					
-					SingleRange range((*it).getId(), true);
-					if (!pImap4_->fetch(range, strArg.get()))
-						HANDLE_ERROR();
-				}
-				
-				pSessionCallback_->setPos(nPos);
-				++nPos;
 			}
-		}
-		
-		if (!listHeaderUid.empty()) {
-			MessageProcessHook hook(pAccount_,
-				listMessageData, pSessionCallback_, true, &nPos);
-			Hook h(this, &hook);
-			
-			MultipleRange range(&listHeaderUid[0], listHeaderUid.size(), true);
-			if (!pImap4_->getHeader(range, true))
-				HANDLE_ERROR();
+			else if (pFolder_->isFlag(Folder::FLAG_JUNKBOX)) {
+				if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN) {
+					pCallback_->setMessage(IDS_FILTERJUNK);
+					pSessionCallback_->setRange(0, listMessageData.size());
+					pSessionCallback_->setPos(0);
+					
+					for (MessageDataList::size_type n = 0; n < listMessageData.size(); ++n) {
+						MessagePtrLock mpl(listMessageData[n].getMessagePtr());
+						Message msg;
+						if (mpl && !mpl->isFlag(MessageHolder::FLAG_DELETED) &&
+							mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg))
+							pJunkFilter->manage(msg, JunkFilter::OPERATION_ADDJUNK);
+						
+						pSessionCallback_->setPos(n);
+					}
+				}
+			}
 		}
 	}
 	

@@ -34,7 +34,9 @@ using namespace qs;
  */
 
 const unsigned int qmimap4::Imap4Driver::nSupport__ =
-	Account::SUPPORT_REMOTEFOLDER | Account::SUPPORT_DELETEDMESSAGE;
+	Account::SUPPORT_REMOTEFOLDER |
+	Account::SUPPORT_DELETEDMESSAGE |
+	Account::SUPPORT_JUNKFILTER;
 
 qmimap4::Imap4Driver::Imap4Driver(Account* pAccount,
 								  PasswordCallback* pPasswordCallback,
@@ -564,7 +566,8 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 				bool bAll = false;
 				Util::getFetchArgFromPartList(listPart,
 					bHtml ? Util::FETCHARG_HTML : Util::FETCHARG_TEXT,
-					false, (nOption & OPTION_TRUSTBODYSTRUCTURE) == 0,
+					(nFlags & Account::GETMESSAGEFLAG_MAKESEEN) == 0,
+					(nOption & OPTION_TRUSTBODYSTRUCTURE) == 0,
 					&strArg, &nPartCount, &bAll);
 				
 				BodyListProcessHook hook(pmh->getId(), pBodyStructure,
@@ -1156,7 +1159,8 @@ qmimap4::FolderUtil::FolderUtil(Account* pAccount)
 		{ L"OutboxFolder",		L"Outbox"	},
 		{ L"DraftboxFolder",	L"Outbox"	},
 		{ L"SentboxFolder",		L"Sentbox"	},
-		{ L"TrashFolder",		L"Trash"	}
+		{ L"TrashFolder",		L"Trash"	},
+		{ L"JunkFolder",		L"Junk"		}
 	};
 	for (int n = 0; n < countof(folders); ++n)
 		wstrSpecialFolders_[n] = pAccount->getProperty(L"Imap4",
@@ -1224,7 +1228,8 @@ void qmimap4::FolderUtil::getFolderData(const WCHAR* pwszName,
 		{ wstrSpecialFolders_[0].get(),	Folder::FLAG_OUTBOX							},
 		{ wstrSpecialFolders_[1].get(),	Folder::FLAG_DRAFTBOX						},
 		{ wstrSpecialFolders_[2].get(),	Folder::FLAG_SENTBOX						},
-		{ wstrSpecialFolders_[3].get(),	Folder::FLAG_TRASHBOX						}
+		{ wstrSpecialFolders_[3].get(),	Folder::FLAG_TRASHBOX						},
+		{ wstrSpecialFolders_[4].get(),	Folder::FLAG_JUNKBOX						}
 	};
 	for (int n = 0; n < countof(flags); ++n) {
 		if (Util::isEqualFolderName(wstr.get(), flags[n].pwszName_, cSeparator))
@@ -1244,7 +1249,8 @@ void qmimap4::FolderUtil::saveSpecialFolders(Account* pAccount)
 		{ Folder::FLAG_OUTBOX,		L"OutboxFolder"		},
 		{ Folder::FLAG_DRAFTBOX,	L"DraftboxFolder"	},
 		{ Folder::FLAG_SENTBOX,		L"SentboxFolder"	},
-		{ Folder::FLAG_TRASHBOX,	L"TrashFolder"		}
+		{ Folder::FLAG_TRASHBOX,	L"TrashFolder"		},
+		{ Folder::FLAG_JUNKBOX,		L"JunkFolder"		}
 	};
 	
 	const Account::FolderList& l = pAccount->getFolders();

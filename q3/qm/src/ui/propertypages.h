@@ -66,6 +66,7 @@ class AccountAdvancedPage : public DefaultPropertyPage
 {
 public:
 	AccountAdvancedPage(SubAccount* pSubAccount,
+						Document* pDocument,
 						SyncFilterManager* pSyncFilterManager);
 	virtual ~AccountAdvancedPage();
 
@@ -92,6 +93,7 @@ private:
 
 private:
 	SubAccount* pSubAccount_;
+	Document* pDocument_;
 	SyncFilterManager* pSyncFilterManager_;
 };
 

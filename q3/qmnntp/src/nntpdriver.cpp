@@ -29,7 +29,8 @@ using namespace qs;
 
 const unsigned int qmnntp::NntpDriver::nSupport__ =
 	Account::SUPPORT_LOCALFOLDERSYNC |
-	Account::SUPPORT_LOCALFOLDERGETMESSAGE;
+	Account::SUPPORT_LOCALFOLDERGETMESSAGE |
+	Account::SUPPORT_JUNKFILTER;
 
 qmnntp::NntpDriver::NntpDriver(Account* pAccount,
 							   PasswordCallback* pPasswordCallback,
@@ -120,7 +121,8 @@ bool qmnntp::NntpDriver::createDefaultFolders(Account::FolderList* pList)
 	} folders[] = {
 		{ L"Outbox",	Folder::FLAG_LOCAL | Folder::FLAG_OUTBOX | Folder::FLAG_DRAFTBOX	},
 		{ L"Posted",	Folder::FLAG_LOCAL | Folder::FLAG_SENTBOX							},
-		{ L"Trash",		Folder::FLAG_LOCAL | Folder::FLAG_TRASHBOX							}
+		{ L"Trash",		Folder::FLAG_LOCAL | Folder::FLAG_TRASHBOX							},
+		{ L"Junk",		Folder::FLAG_LOCAL | Folder::FLAG_JUNKBOX							}
 	};
 	
 	pList->reserve(countof(folders));

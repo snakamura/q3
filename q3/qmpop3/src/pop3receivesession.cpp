@@ -11,6 +11,7 @@
 #include <qmmessage.h>
 #include <qmmessageholder.h>
 #include <qmsecurity.h>
+#include <qmjunk.h>
 
 #include <qsconv.h>
 #include <qsstream.h>
@@ -185,6 +186,21 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 		time.wDay
 	};
 	
+	JunkFilter* pJunkFilter = 0;
+	unsigned int nJunkFilterFlags = 0;
+	NormalFolder* pJunkbox = 0;
+	if (pSubAccount_->isJunkFilterEnabled()) {
+		pJunkFilter = pDocument_->getJunkFilter();
+		if (pJunkFilter) {
+			pJunkbox = static_cast<NormalFolder*>(
+				pAccount_->getFolderByBoxFlag(Folder::FLAG_JUNKBOX));
+			if (pJunkbox)
+				nJunkFilterFlags = pJunkFilter->getFlags();
+			else
+				pJunkFilter = 0;
+		}
+	}
+	
 	MacroVariableHolder globalVariable;
 	
 	DeleteList listDelete;
@@ -289,10 +305,27 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 			
 			Lock<Account> lock(*pAccount_);
 			
-			MessageHolder* pmh = pAccount_->storeMessage(pFolder_,
+			NormalFolder* pFolder = pFolder_;
+			
+			Message msgJunk;
+			if (pJunkFilter) {
+				if (msgJunk.create(strMessage.get(), -1, Message::FLAG_NONE)) {
+					float fScore = pJunkFilter->getScore(msgJunk);
+					if (fScore > pJunkFilter->getThresholdScore())
+						pFolder = pJunkbox;
+				}
+			}
+			
+			MessageHolder* pmh = pAccount_->storeMessage(pFolder,
 				strMessage.get(), strMessage.size(), &msg, -1, nFlags, nSize, false);
 			if (!pmh)
 				return false;
+			
+			if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN) {
+				unsigned int nJunkOperation = pFolder != pJunkbox ?
+					JunkFilter::OPERATION_ADDCLEAN : JunkFilter::OPERATION_ADDJUNK;
+				pJunkFilter->manage(msgJunk, nJunkOperation);
+			}
 			
 			if (!pAccount_->isSeen(nFlags))
 				pSessionCallback_->notifyNewMessage(pmh);

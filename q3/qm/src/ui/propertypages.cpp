@@ -52,9 +52,11 @@ qm::DefaultPropertyPage::~DefaultPropertyPage()
  */
 
 qm::AccountAdvancedPage::AccountAdvancedPage(SubAccount* pSubAccount,
+											 Document* pDocument,
 											 SyncFilterManager* pSyncFilterManager) :
 	DefaultPropertyPage(IDD_ACCOUNTADVANCED),
 	pSubAccount_(pSubAccount),
+	pDocument_(pDocument),
 	pSyncFilterManager_(pSyncFilterManager)
 {
 }
@@ -90,6 +92,11 @@ LRESULT qm::AccountAdvancedPage::onInitDialog(HWND hwndFocus,
 		pSubAccount_->isTreatAsSent() ? BST_CHECKED : BST_UNCHECKED);
 	sendDlgItemMessage(IDC_ADDMESSAGEID, BM_SETCHECK,
 		pSubAccount_->isAddMessageId() ? BST_CHECKED : BST_UNCHECKED);
+	sendDlgItemMessage(IDC_JUNKFILTER, BM_SETCHECK,
+		pSubAccount_->isJunkFilterEnabled() ? BST_CHECKED : BST_UNCHECKED);
+	
+	if (!pDocument_->getJunkFilter())
+		Window(getDlgItem(IDC_JUNKFILTER)).enableWindow(false);
 	
 	return TRUE;
 }
@@ -115,6 +122,8 @@ LRESULT qm::AccountAdvancedPage::onOk()
 		sendDlgItemMessage(IDC_TREATASSENT, BM_GETCHECK) == BST_CHECKED);
 	pSubAccount_->setAddMessageId(
 		sendDlgItemMessage(IDC_ADDMESSAGEID, BM_GETCHECK) == BST_CHECKED);
+	pSubAccount_->setJunkFilterEnabled(
+		sendDlgItemMessage(IDC_JUNKFILTER, BM_GETCHECK) == BST_CHECKED);
 	
 	return DefaultPropertyPage::onOk();
 }
@@ -916,7 +925,8 @@ struct
 	{ Folder::FLAG_OUTBOX,			IDC_OUTBOX,			Folder::FLAG_NOSELECT,	false,	true	},
 	{ Folder::FLAG_SENTBOX,			IDC_SENTBOX,		Folder::FLAG_NOSELECT,	false,	true	},
 	{ Folder::FLAG_DRAFTBOX,		IDC_DRAFTBOX,		Folder::FLAG_NOSELECT,	false,	true	},
-	{ Folder::FLAG_TRASHBOX,		IDC_TRASHBOX,		Folder::FLAG_NOSELECT,	false,	true	}
+	{ Folder::FLAG_TRASHBOX,		IDC_TRASHBOX,		Folder::FLAG_NOSELECT,	false,	true	},
+	{ Folder::FLAG_JUNKBOX,			IDC_JUNKBOX,		Folder::FLAG_NOSELECT,	false,	true	}
 };
 };
 

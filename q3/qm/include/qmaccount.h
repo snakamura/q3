@@ -42,6 +42,7 @@ class MessageOperationCallback;
 class PasswordManager;
 class ProtocolDriver;
 class Security;
+class JunkFilter;
 
 
 /****************************************************************************
@@ -83,7 +84,8 @@ public:
 		SUPPORT_LOCALFOLDERGETMESSAGE	= 0x04,
 		SUPPORT_LOCALFOLDERDOWNLOAD		= 0x08,
 		SUPPORT_EXTERNALLINK			= 0x10,
-		SUPPORT_DELETEDMESSAGE			= 0x20
+		SUPPORT_DELETEDMESSAGE			= 0x20,
+		SUPPORT_JUNKFILTER				= 0x40
 	};
 
 public:
@@ -94,7 +96,8 @@ public:
 public:
 	Account(const WCHAR* pwszPath,
 			const Security* pSecurity,
-			PasswordManager* pPasswordManager);
+			PasswordManager* pPasswordManager,
+			JunkFilter* pJunkFilter);
 	~Account();
 
 public:
@@ -133,7 +136,7 @@ public:
 	Folder* getFolder(Folder* pParent,
 					  const WCHAR* pwszName) const;
 	Folder* getFolderById(unsigned int nId) const;
-	Folder* getFolderByFlag(unsigned int nFlag) const;
+	Folder* getFolderByBoxFlag(unsigned int nBoxFlag) const;
 	Folder* getFolderByParam(const WCHAR* pwszName,
 							 const WCHAR* pwszValue) const;
 	const FolderList& getFolders() const;
@@ -388,6 +391,9 @@ public:
 	
 	const WCHAR* getSyncFilterName() const;
 	void setSyncFilterName(const WCHAR* pwszName);
+	
+	bool isJunkFilterEnabled() const;
+	void setJunkFilterEnabled(bool bEnabled);
 	
 	bool isSelf(const Message& msg) const;
 	

@@ -4166,7 +4166,7 @@ MacroValuePtr qm::MacroFunctionSpecialFolder::value(MacroContext* pContext) cons
 	
 	const WCHAR* pwszFolderName = L"";
 	wstring_ptr wstrFolderName;
-	Folder* pFolder = pAccount->getFolderByFlag(flag);
+	Folder* pFolder = pAccount->getFolderByBoxFlag(flag);
 	if (pFolder) {
 		wstrFolderName = pFolder->getFullName();
 		pwszFolderName = wstrFolderName.get();

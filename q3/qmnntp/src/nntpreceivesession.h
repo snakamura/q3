@@ -9,6 +9,7 @@
 #ifndef __NNTPRECEIVESESSION_H__
 #define __NNTPRECEIVESESSION_H__
 
+#include <qmjunk.h>
 #include <qmmacro.h>
 #include <qmsession.h>
 #include <qmsyncfilter.h>
@@ -70,12 +71,18 @@ public:
 	virtual bool applyOfflineJobs();
 
 private:
-	void clearLastIds();
-
-private:
 	bool downloadReservedMessages();
 	bool downloadReservedMessages(qm::NormalFolder* pFolder,
 								  unsigned int* pnPos);
+	void clearLastIds();
+	bool storeMessage(const CHAR* pszMessage,
+					  size_t nLen,
+					  unsigned int nId,
+					  unsigned int nFlags,
+					  unsigned int nSize,
+					  qm::JunkFilter* pJunkFilter,
+					  unsigned int nJunkFilterFlags,
+					  qm::NormalFolder* pJunkbox);
 
 private:
 	NntpReceiveSession(const NntpReceiveSession&);

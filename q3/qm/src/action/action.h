@@ -13,6 +13,7 @@
 #include <qmaccount.h>
 #include <qmmessagewindow.h>
 #include <qmsecurity.h>
+#include <qmjunk.h>
 
 #include <qsaction.h>
 #include <qsstream.h>
@@ -80,6 +81,7 @@ class MessageCreateFromFileAction;
 class MessageDeleteAttachmentAction;
 class MessageDetachAction;
 class MessageExpandDigestAction;
+class MessageManageJunkAction;
 class MessageMarkAction;
 class MessageMoveAction;
 class MessageMoveOtherAction;
@@ -2002,6 +2004,37 @@ private:
 
 /****************************************************************************
  *
+ * MessageManageJunkAction
+ *
+ */
+
+class MessageManageJunkAction : public qs::AbstractAction
+{
+public:
+	MessageManageJunkAction(MessageSelectionModel* pMessageSelectionModel,
+							JunkFilter* pJunkFilter,
+							JunkFilter::Operation operation,
+							HWND hwnd);
+	virtual ~MessageManageJunkAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	MessageManageJunkAction(const MessageManageJunkAction&);
+	MessageManageJunkAction& operator=(const MessageManageJunkAction&);
+
+private:
+	MessageSelectionModel* pMessageSelectionModel_;
+	JunkFilter* pJunkFilter_;
+	JunkFilter::Operation operation_;
+	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
  * MessageMarkAction
  *
  */
@@ -3080,6 +3113,7 @@ public:
 private:
 	std::pair<ViewModel*, unsigned int> getNextUnseen(ViewModel* pViewModel,
 													  unsigned int nIndex) const;
+	bool isUnseenFolder(const Folder* pFolder) const;
 
 private:
 	ViewNavigateMessageAction(const ViewNavigateMessageAction&);

@@ -12,6 +12,7 @@
 #include <qmfilenames.h>
 #include <qmrecents.h>
 #include <qmsecurity.h>
+#include <qmjunk.h>
 
 #include <qsconv.h>
 #include <qsosutil.h>
@@ -66,6 +67,7 @@ struct qm::DocumentImpl
 	std::auto_ptr<AddressBook> pAddressBook_;
 	std::auto_ptr<Security> pSecurity_;
 	std::auto_ptr<Recents> pRecents_;
+	std::auto_ptr<JunkFilter> pJunkFilter_;
 	unsigned int nOnline_;
 };
 
@@ -125,6 +127,13 @@ qm::Document::Document(Profile* pProfile,
 	pImpl_->pAddressBook_.reset(new AddressBook(app.getProfilePath(FileNames::ADDRESSBOOK_XML).get(), pProfile, true));
 	pImpl_->pSecurity_.reset(new Security(pwszMailFolder, pProfile));
 	pImpl_->pRecents_.reset(new Recents(this, pProfile));
+	
+	JunkFilterFactory* pJunkFilterFactory = JunkFilterFactory::getFactory();
+	if (pJunkFilterFactory) {
+		wstring_ptr wstrJunkPath(concat(pwszMailFolder, L"\\junk"));
+		pImpl_->pJunkFilter_ = pJunkFilterFactory->createJunkFilter(wstrJunkPath.get());
+	}
+	
 	pImpl_->nOnline_ = 0;
 }
 
@@ -228,7 +237,7 @@ bool qm::Document::renameAccount(Account* pAccount,
 		return false;
 	
 	std::auto_ptr<Account> pNewAccount(new Account(wstrNewPath.get(),
-		pImpl_->pSecurity_.get(), pImpl_->pPasswordManager_));
+		pImpl_->pSecurity_.get(), pImpl_->pPasswordManager_, pImpl_->pJunkFilter_.get()));
 	it = std::lower_bound(l.begin(), l.end(), pNewAccount.get(), AccountLess());
 	l.insert(it, pNewAccount.get());
 	pAccount = pNewAccount.release();
@@ -342,8 +351,9 @@ bool qm::Document::loadAccounts(const WCHAR* pwszPath)
 				WCHAR* p = wcsrchr(wstrPath.get(), L'\\');
 				assert(p);
 				*p = L'\0';
-				std::auto_ptr<Account> pAccount(new Account(wstrPath.get(),
-					pImpl_->pSecurity_.get(), pImpl_->pPasswordManager_));
+				std::auto_ptr<Account> pAccount(new Account(
+					wstrPath.get(), pImpl_->pSecurity_.get(),
+					pImpl_->pPasswordManager_, pImpl_->pJunkFilter_.get()));
 				// TODO ERROR CHECK
 				l.push_back(pAccount.get());
 				pAccount.release();
@@ -431,6 +441,11 @@ const Security* qm::Document::getSecurity() const
 Recents* qm::Document::getRecents() const
 {
 	return pImpl_->pRecents_.get();
+}
+
+JunkFilter* qm::Document::getJunkFilter() const
+{
+	return pImpl_->pJunkFilter_.get();
 }
 
 bool qm::Document::isOffline() const

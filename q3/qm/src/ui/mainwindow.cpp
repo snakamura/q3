@@ -811,6 +811,23 @@ void qm::MainWindowImpl::initActions()
 			pThis_->getHandle());
 	}
 	
+	struct {
+		UINT nId_;
+		JunkFilter::Operation operation_;
+	} operations[] = {
+		{ IDM_MESSAGE_ADDCLEAN,		JunkFilter::OPERATION_ADDCLEAN		},
+		{ IDM_MESSAGE_REMOVECLEAN,	JunkFilter::OPERATION_REMOVECLEAN	},
+		{ IDM_MESSAGE_ADDJUNK,		JunkFilter::OPERATION_ADDJUNK		},
+		{ IDM_MESSAGE_REMOVEJUNK,	JunkFilter::OPERATION_REMOVEJUNK	}
+	};
+	for (int n = 0; n < countof(operations); ++n) {
+		ADD_ACTION4(MessageManageJunkAction,
+			operations[n].nId_,
+			pMessageSelectionModel_.get(),
+			pDocument_->getJunkFilter(),
+			operations[n].operation_,
+			pThis_->getHandle());
+	}
 	ADD_ACTION_RANGE3(MessageMoveAction,
 		IDM_MESSAGE_MOVE,
 		IDM_MESSAGE_MOVE + MoveMenu::MAX_FOLDER,

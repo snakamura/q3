@@ -203,12 +203,12 @@ bool qm::SyncUtil::goRound(SyncManager* pSyncManager,
 					pwszFilter = pSubAccount->getSyncFilterName();
 				
 				if (pEntry->isFlag(GoRoundEntry::FLAG_SEND)) {
-					Folder* pFolder = pAccount->getFolderByFlag(Folder::FLAG_OUTBOX);
-					if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL) {
+					NormalFolder* pOutbox = static_cast<NormalFolder*>(
+						pAccount->getFolderByBoxFlag(Folder::FLAG_OUTBOX));
+					if (pOutbox)
 						pData->addSend(pAccount, pSubAccount,
 							static_cast<SendSyncItem::ConnectReceiveBeforeSend>(
 								pEntry->getConnectReceiveBeforeSend()), 0);
-					}
 				}
 				if (pEntry->isFlag(GoRoundEntry::FLAG_RECEIVE)) {
 					if (pEntry->isFlag(GoRoundEntry::FLAG_SELECTFOLDER)) {
@@ -230,8 +230,9 @@ bool qm::SyncUtil::goRound(SyncManager* pSyncManager,
 			Account* pAccount = *it;
 			SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
 			
-			Folder* pFolder = pAccount->getFolderByFlag(Folder::FLAG_OUTBOX);
-			if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL)
+			NormalFolder* pOutbox = static_cast<NormalFolder*>(
+				pAccount->getFolderByBoxFlag(Folder::FLAG_OUTBOX));
+			if (pOutbox)
 				pData->addSend(pAccount, pSubAccount, SendSyncItem::CRBS_NONE, 0);
 			
 			pData->addFolders(pAccount, pSubAccount, 0, pSubAccount->getSyncFilterName());

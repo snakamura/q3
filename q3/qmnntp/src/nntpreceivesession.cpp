@@ -194,6 +194,21 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 	
 	bool bUseXOver = pSubAccount_->getProperty(L"Nntp", L"UseXOVER", 1) != 0;
 	
+	JunkFilter* pJunkFilter = 0;
+	unsigned int nJunkFilterFlags = 0;
+	NormalFolder* pJunkbox = 0;
+	if (pSubAccount_->isJunkFilterEnabled()) {
+		pJunkFilter = pDocument_->getJunkFilter();
+		if (pJunkFilter) {
+			pJunkbox = static_cast<NormalFolder*>(
+				pAccount_->getFolderByBoxFlag(Folder::FLAG_JUNKBOX));
+			if (pJunkbox)
+				nJunkFilterFlags = pJunkFilter->getFlags();
+			else
+				pJunkFilter = 0;
+		}
+	}
+	
 	MacroVariableHolder globalVariable;
 	
 	if (bUseXOver) {
@@ -204,11 +219,13 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 			if (!pNntp_->getMessagesData(n, n + nStep - 1, &pData))
 				HANDLE_ERROR();
 			
+			bool bDownload = false;
 			for (size_t m = 0; m < pData->getCount(); ++m) {
 				if (pSessionCallback_->isCanceled(false))
 					return true;
-				if ((n + m) % 10 == 0)
+				if (bDownload || (n + m) % 10 == 0)
 					pSessionCallback_->setPos(n + m);
+				bDownload = false;
 				
 				const MessagesData::Item& item = pData->getItem(m);
 				
@@ -241,7 +258,6 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 				xstring_size_ptr strMessage;
 				bool bIgnore = false;
 				if (pSyncFilterSet) {
-					bool bDownload = false;
 					Message msg;
 					if (!msg.create(buf.getCharArray(), buf.getLength(), Message::FLAG_TEMPORARY))
 						return false;
@@ -267,6 +283,7 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 									nLen = strMessage.size();
 									nFlags = 0;
 								}
+								bDownload = true;
 							}
 							else if (wcscmp(pwszName, L"ignore") == 0) {
 								bIgnore = true;
@@ -276,15 +293,9 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 				}
 				
 				if (!bIgnore) {
-					Lock<Account> lock(*pAccount_);
-					
-					MessageHolder* pmh = pAccount_->storeMessage(pFolder_,
-						pszMessage, nLen, 0, item.nId_, nFlags, item.nBytes_,
-						nFlags == MessageHolder::FLAG_INDEXONLY);
-					if (!pmh)
+					if (!storeMessage(pszMessage, nLen, item.nId_, nFlags,
+						item.nBytes_, pJunkFilter, nJunkFilterFlags, pJunkbox))
 						return false;
-					
-					pSessionCallback_->notifyNewMessage(pmh);
 				}
 				
 				pLastIdList_->setLastId(pNntp_->getGroup(), item.nId_);
@@ -306,15 +317,10 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 				// TODO
 				// Process sync filter ?
 				
-				Lock<Account> lock(*pAccount_);
-				
-				MessageHolder* pmh = pAccount_->storeMessage(pFolder_,
-					strMessage.get(), strMessage.size(), 0, n,
-					MessageHolder::FLAG_INDEXONLY, -1, true);
-				if (!pmh)
+				if (!storeMessage(strMessage.get(), strMessage.size(),
+					n, MessageHolder::FLAG_HEADERONLY, -1,
+					pJunkFilter, nJunkFilterFlags, pJunkbox))
 					return false;
-				
-				pSessionCallback_->notifyNewMessage(pmh);
 				
 				pLastIdList_->setLastId(pNntp_->getGroup(), n);
 			}
@@ -436,6 +442,45 @@ void qmnntp::NntpReceiveSession::clearLastIds()
 	
 	for (NameList::const_iterator it = listRemove.begin(); it != listRemove.end(); ++it)
 		pLastIdList_->removeLastId(*it);
+}
+
+bool qmnntp::NntpReceiveSession::storeMessage(const CHAR* pszMessage,
+											  size_t nLen,
+											  unsigned int nId,
+											  unsigned int nFlags,
+											  unsigned int nSize,
+											  JunkFilter* pJunkFilter,
+											  unsigned int nJunkFilterFlags,
+											  NormalFolder* pJunkbox)
+{
+	Lock<Account> lock(*pAccount_);
+	
+	NormalFolder* pFolder = pFolder_;
+	
+	Message msgJunk;
+	if (pJunkFilter) {
+		if (msgJunk.create(pszMessage, nLen, Message::FLAG_NONE)) {
+			float fScore = pJunkFilter->getScore(msgJunk);
+			if (fScore > pJunkFilter->getThresholdScore())
+				pFolder = pJunkbox;
+		}
+	}
+	
+	MessageHolder* pmh = pAccount_->storeMessage(
+		pFolder, pszMessage, nLen, 0, nId, nFlags, nSize,
+		nFlags == MessageHolder::FLAG_INDEXONLY);
+	if (!pmh)
+		return false;
+	
+	if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN) {
+		unsigned int nJunkOperation = pFolder != pJunkbox ?
+			JunkFilter::OPERATION_ADDCLEAN : JunkFilter::OPERATION_ADDJUNK;
+		pJunkFilter->manage(msgJunk, nJunkOperation);
+	}
+	
+	pSessionCallback_->notifyNewMessage(pmh);
+	
+	return true;
 }
 
 

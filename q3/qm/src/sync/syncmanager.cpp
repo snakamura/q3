@@ -128,10 +128,10 @@ qm::SendSyncItem::SendSyncItem(unsigned int nSlot,
 	pOutbox_(0),
 	bConnectReceiveBeforeSend_(false)
 {
-	Folder* pFolder = pAccount->getFolderByFlag(Folder::FLAG_OUTBOX);
-	if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL &&
-		pFolder->isFlag(Folder::FLAG_SYNCABLE))
-		pOutbox_ = static_cast<NormalFolder*>(pFolder);
+	NormalFolder* pOutbox = static_cast<NormalFolder*>(
+		pAccount->getFolderByBoxFlag(Folder::FLAG_OUTBOX));
+	if (pOutbox && pOutbox->isFlag(Folder::FLAG_SYNCABLE))
+		pOutbox_ = pOutbox;
 	
 	switch (crbs) {
 	case CRBS_NONE:
@@ -785,17 +785,17 @@ bool qm::SyncManager::send(Document* pDocument,
 	
 	Account* pAccount = pItem->getAccount();
 	SubAccount* pSubAccount = pItem->getSubAccount();
-	Folder* pFolder = pAccount->getFolderByFlag(Folder::FLAG_OUTBOX);
-	if (!pFolder || pFolder->getType() != Folder::TYPE_NORMAL)
+	NormalFolder* pOutbox = static_cast<NormalFolder*>(
+		pAccount->getFolderByBoxFlag(Folder::FLAG_OUTBOX));
+	if (!pOutbox)
 		return false;
-	NormalFolder* pOutbox = static_cast<NormalFolder*>(pFolder);
 	if (!pOutbox->loadMessageHolders())
 		return false;
 	
-	pFolder = pAccount->getFolderByFlag(Folder::FLAG_SENTBOX);
-	if (!pFolder || pFolder->getType() != Folder::TYPE_NORMAL)
+	NormalFolder* pSentbox = static_cast<NormalFolder*>(
+		pAccount->getFolderByBoxFlag(Folder::FLAG_SENTBOX));
+	if (!pSentbox)
 		return false;
-	NormalFolder* pSentbox = static_cast<NormalFolder*>(pFolder);
 	
 	const WCHAR* pwszIdentity = pSubAccount->getIdentity();
 	assert(pwszIdentity);

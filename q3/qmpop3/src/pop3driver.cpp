@@ -25,7 +25,8 @@ using namespace qs;
  *
  */
 
-const unsigned int qmpop3::Pop3Driver::nSupport__ = Account::SUPPORT_LOCALFOLDERDOWNLOAD;
+const unsigned int qmpop3::Pop3Driver::nSupport__ =
+	Account::SUPPORT_LOCALFOLDERDOWNLOAD | Account::SUPPORT_JUNKFILTER;
 
 qmpop3::Pop3Driver::Pop3Driver(Account* pAccount) :
 	pAccount_(pAccount)
@@ -97,7 +98,8 @@ bool qmpop3::Pop3Driver::createDefaultFolders(Account::FolderList* pList)
 		{ L"Inbox",		Folder::FLAG_LOCAL | Folder::FLAG_INBOX | Folder::FLAG_SYNCABLE		},
 		{ L"Outbox",	Folder::FLAG_LOCAL | Folder::FLAG_OUTBOX | Folder::FLAG_DRAFTBOX	},
 		{ L"Sentbox",	Folder::FLAG_LOCAL | Folder::FLAG_SENTBOX							},
-		{ L"Trash",		Folder::FLAG_LOCAL | Folder::FLAG_TRASHBOX							}
+		{ L"Trash",		Folder::FLAG_LOCAL | Folder::FLAG_TRASHBOX							},
+		{ L"Junk",		Folder::FLAG_LOCAL | Folder::FLAG_JUNKBOX							}
 	};
 	
 	pList->reserve(countof(folders));

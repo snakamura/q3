@@ -178,7 +178,7 @@ bool qm::AutoPilot::UnseenCountUpdater::updateAccount(Account* pAccount)
 	
 	unsigned int nCount = 0;
 	if (pSubAccount->getProperty(L"Global", L"ShowUnseenCountOnWelcome", 1)) {
-		Folder* pFolder = pAccount->getFolderByFlag(Folder::FLAG_INBOX);
+		Folder* pFolder = pAccount->getFolderByBoxFlag(Folder::FLAG_INBOX);
 		if (pFolder)
 			nCount = pFolder->getUnseenCount();
 	}

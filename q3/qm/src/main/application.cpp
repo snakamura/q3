@@ -626,7 +626,8 @@ bool qm::Application::initialize()
 		L"pop3",
 		L"imap4",
 		L"nntp",
-		L"rss"
+		L"rss",
+		L"junk"
 	};
 	for (int n = 0; n < countof(pwszLibraries); ++n)
 		ApplicationImpl::loadLibrary(pwszLibraries[n]);

@@ -1280,6 +1280,13 @@ int qm::FolderLess::compareSingle(const Folder* pFolderLhs,
 	else if (pFolderRhs->isFlag(Folder::FLAG_SEARCHBOX)) {
 		return -1;
 	}
+	else if (pFolderLhs->isFlag(Folder::FLAG_JUNKBOX)) {
+		if (!pFolderRhs->isFlag(Folder::FLAG_JUNKBOX))
+			return 1;
+	}
+	else if (pFolderRhs->isFlag(Folder::FLAG_JUNKBOX)) {
+		return -1;
+	}
 	else if (pFolderLhs->isFlag(Folder::FLAG_TRASHBOX)) {
 		if (!pFolderRhs->isFlag(Folder::FLAG_TRASHBOX))
 			return 1;

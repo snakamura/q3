@@ -155,6 +155,7 @@ BEGIN
     IDS_APPLYOFFLINEJOBS    "Applying offline jobs..."
     IDS_DOWNLOADRESERVEDMESSAGES "Downloading reserved messages..."
     IDS_IMAP4SEARCH         "IMAP4"
+    IDS_FILTERJUNK          "Filtering junk messages..."
 END
 
 STRINGTABLE DISCARDABLE 

@@ -2659,7 +2659,7 @@ bool qm::FolderDeleteAction::deleteFolder(Folder* pFolder) const
 {
 	Account* pAccount = pFolder->getAccount();
 	
-	Folder* pTrash = pAccount->getFolderByFlag(Folder::FLAG_TRASHBOX);
+	Folder* pTrash = pAccount->getFolderByBoxFlag(Folder::FLAG_TRASHBOX);
 	if (pTrash &&
 		pFolder != pTrash &&
 		!pTrash->isAncestorOf(pFolder) &&
@@ -2896,12 +2896,8 @@ NormalFolder* qm::FolderEmptyTrashAction::getTrash() const
 NormalFolder* qm::FolderEmptyTrashAction::getTrash(Account* pAccount)
 {
 	assert(pAccount);
-	
-	Folder* pTrash = pAccount->getFolderByFlag(Folder::FLAG_TRASHBOX);
-	if (pTrash && pTrash->getType() == Folder::TYPE_NORMAL)
-		return static_cast<NormalFolder*>(pTrash);
-	else
-		return 0;
+	return static_cast<NormalFolder*>(
+		pAccount->getFolderByBoxFlag(Folder::FLAG_TRASHBOX));
 }
 
 
@@ -3863,6 +3859,55 @@ bool qm::MessageExpandDigestAction::expandDigest(Account* pAccount,
 
 /****************************************************************************
  *
+ * MessageManageJunkAction
+ *
+ */
+
+qm::MessageManageJunkAction::MessageManageJunkAction(MessageSelectionModel* pMessageSelectionModel,
+													 JunkFilter* pJunkFilter,
+													 JunkFilter::Operation operation,
+													 HWND hwnd) :
+	pMessageSelectionModel_(pMessageSelectionModel),
+	pJunkFilter_(pJunkFilter),
+	operation_(operation),
+	hwnd_(hwnd)
+{
+}
+
+qm::MessageManageJunkAction::~MessageManageJunkAction()
+{
+}
+
+void qm::MessageManageJunkAction::invoke(const ActionEvent& event)
+{
+	AccountLock lock;
+	MessageHolderList l;
+	pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
+	
+	ProgressDialog progressDialog(IDS_PROCESSING);
+	ProgressDialogInit init(&progressDialog, hwnd_,
+		IDS_PROCESSING, IDS_PROCESSING, 0, l.size(), 0);
+	
+	for (MessageHolderList::size_type n = 0; n < l.size(); ++n) {
+		MessageHolder* pmh = l[n];
+		Message msg;
+		if (pmh->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg))
+			pJunkFilter_->manage(msg, operation_);
+		
+		if (progressDialog.isCanceled())
+			break;
+		progressDialog.setPos(n);
+	}
+}
+
+bool qm::MessageManageJunkAction::isEnabled(const ActionEvent& event)
+{
+	return pJunkFilter_ != 0;
+}
+
+
+/****************************************************************************
+ *
  * MessageMarkAction
  *
  */
@@ -4281,10 +4326,10 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 		return;
 	Folder* pFolder = p.second;
 	
-	Folder* pSearchFolder = pAccount->getFolderByFlag(Folder::FLAG_SEARCHBOX);
-	if (!pSearchFolder || pSearchFolder->getType() != Folder::TYPE_QUERY)
+	QueryFolder* pSearch = static_cast<QueryFolder*>(
+		pAccount->getFolderByBoxFlag(Folder::FLAG_SEARCHBOX));
+	if (!pSearch)
 		return;
-	QueryFolder* pSearch = static_cast<QueryFolder*>(pSearchFolder);
 	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	wstring_ptr wstrTitle(loadString(hInst, IDS_SEARCH));
@@ -5835,18 +5880,12 @@ std::pair<ViewModel*, unsigned int> qm::ViewNavigateMessageAction::getNextUnseen
 		Folder* pUnseenFolder = 0;
 		Account::FolderList::const_iterator it = itThis;
 		for (++it; it != listFolder.end() && !pUnseenFolder; ++it) {
-			if (!(*it)->isFlag(Folder::FLAG_TRASHBOX) &&
-				!(*it)->isFlag(Folder::FLAG_IGNOREUNSEEN) &&
-				!(*it)->isHidden() &&
-				(*it)->getUnseenCount() != 0)
+			if (isUnseenFolder(*it))
 				pUnseenFolder = *it;
 		}
 		if (!pUnseenFolder) {
 			for (it = listFolder.begin(); it != itThis && !pUnseenFolder; ++it) {
-				if (!(*it)->isFlag(Folder::FLAG_TRASHBOX) &&
-					!(*it)->isFlag(Folder::FLAG_IGNOREUNSEEN) &&
-					!(*it)->isHidden() &&
-					(*it)->getUnseenCount() != 0)
+				if (isUnseenFolder(*it))
 					pUnseenFolder = *it;
 			}
 		}
@@ -5861,6 +5900,18 @@ std::pair<ViewModel*, unsigned int> qm::ViewNavigateMessageAction::getNextUnseen
 	}
 	
 	return unseen;
+}
+
+bool qm::ViewNavigateMessageAction::isUnseenFolder(const Folder* pFolder) const
+{
+	const unsigned int nIgnoreFlags = Folder::FLAG_TRASHBOX |
+		Folder::FLAG_JUNKBOX | Folder::FLAG_IGNOREUNSEEN;
+	if (pFolder->getFlags() & nIgnoreFlags)
+		return false;
+	else if (pFolder->isHidden())
+		return false;
+	else
+		return pFolder->getUnseenCount() != 0;
 }
 
 

@@ -95,7 +95,7 @@ public:
 	
 	public:
 		void free();
-
+	
 	private:
 		FieldListFree(const FieldListFree&);
 		FieldListFree& operator=(const FieldListFree&);

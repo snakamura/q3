@@ -250,6 +250,7 @@
 #define IDC_FINDNEXT                    1088
 #define IDS_CONFIRM_SAVEADDRESSBOOK     1088
 #define IDC_FINDPREV                    1089
+#define IDS_PROCESSING                  1089
 #define IDC_FIND                        1090
 #define IDC_REPLACE                     1091
 #define IDC_REPLACENEXT                 1092
@@ -394,6 +395,8 @@
 #define IDC_NEWENTRY                    1295
 #define IDC_NEWADDRESS                  1296
 #define IDC_COMMENT                     1298
+#define IDC_JUNKBOX                     1306
+#define IDC_JUNKFILTER                  1307
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -464,7 +467,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        192
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1306
+#define _APS_NEXT_CONTROL_VALUE         1308
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

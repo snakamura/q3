@@ -15,6 +15,7 @@
 #include <qmpgp.h>
 #include <qmprotocoldriver.h>
 #include <qmsecurity.h>
+#include <qmjunk.h>
 
 #include <qsconv.h>
 #include <qsfile.h>
@@ -121,6 +122,7 @@ public:
 	Profile* pProfile_;
 	const Security* pSecurity_;
 	PasswordManager* pPasswordManager_;
+	JunkFilter* pJunkFilter_;
 	Account::SubAccountList listSubAccount_;
 	SubAccount* pCurrentSubAccount_;
 	Account::FolderList listFolder_;
@@ -158,7 +160,7 @@ bool qm::AccountImpl::loadFolders()
 			return false;
 	}
 	
-	if (!pThis_->getFolderByFlag(Folder::FLAG_SEARCHBOX)) {
+	if (!pThis_->getFolderByBoxFlag(Folder::FLAG_SEARCHBOX)) {
 		std::auto_ptr<QueryFolder> pFolder(new QueryFolder(
 			pThis_->generateFolderId(), L"Search", L'/',
 			Folder::FLAG_LOCAL | Folder::FLAG_SEARCHBOX,
@@ -471,12 +473,16 @@ bool qm::AccountImpl::removeMessages(NormalFolder* pFolder,
 	if (l.empty())
 		return true;
 	
+	if (!bDirect)
+		bDirect = pFolder->isFlag(Folder::FLAG_TRASHBOX) ||
+			pFolder->isFlag(Folder::FLAG_JUNKBOX);
+	
 	NormalFolder* pTrash = 0;
 	if (!bDirect)
 		pTrash = static_cast<NormalFolder*>(
-			pThis_->getFolderByFlag(Folder::FLAG_TRASHBOX));
+			pThis_->getFolderByBoxFlag(Folder::FLAG_TRASHBOX));
 	
-	if (pTrash && pFolder != pTrash) {
+	if (pTrash) {
 		if (!copyMessages(pFolder, pTrash, l, true, pCallback))
 			return false;
 	}
@@ -576,6 +582,26 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 		
 		if (pCallback)
 			pCallback->step(l.size());
+	}
+	
+	if (pJunkFilter_ && pJunkFilter_->getFlags() & JunkFilter::FLAG_MANUALLEARN) {
+		unsigned int nJunkOperation = 0;
+		if (pFolderTo->isFlag(Folder::FLAG_JUNKBOX) &&
+			!pFolderFrom->isFlag(Folder::FLAG_JUNKBOX))
+			nJunkOperation = JunkFilter::OPERATION_ADDJUNK |
+				(bMove ? JunkFilter::OPERATION_REMOVECLEAN : 0);
+		else if (pFolderFrom->isFlag(Folder::FLAG_JUNKBOX) &&
+			!pFolderTo->isFlag(Folder::FLAG_JUNKBOX))
+			nJunkOperation = JunkFilter::OPERATION_ADDCLEAN |
+				(bMove ? JunkFilter::OPERATION_REMOVEJUNK : 0);
+		if (nJunkOperation != 0) {
+			for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+				MessageHolder* pmh = *it;
+				Message msg;
+				if (pmh->getMessage(Account::GETMESSAGEFLAG_HTML, 0, SECURITYMODE_NONE, &msg))
+					pJunkFilter_->manage(msg, nJunkOperation);
+			}
+		}
 	}
 	
 	return true;
@@ -805,8 +831,8 @@ bool qm::AccountImpl::createTemporaryMessage(MessageHolder* pmh, Message* pMessa
 		const WCHAR* pwszPrefix_;
 		const WCHAR* pwszSuffix_;
 	} fields[] = {
-		{ L"From",			&MessageHolder::getFrom,		0,		L" <unknown@unknown-host.unknown-domain>"	},
-		{ L"To",			&MessageHolder::getTo,			0,		L" <unknown@unknown-host.unknown-domain>"	},
+		{ L"From",			&MessageHolder::getFrom,		L"\"",	L"\" <unknown@unknown-host.unknown-domain>"	},
+		{ L"To",			&MessageHolder::getTo,			L"\"",	L"\" <unknown@unknown-host.unknown-domain>"	},
 		{ L"Subject",		&MessageHolder::getSubject,		0,		0											},
 		{ L"Message-Id",	&MessageHolder::getMessageId,	L"<",	L">"										}
 	};
@@ -824,8 +850,8 @@ bool qm::AccountImpl::createTemporaryMessage(MessageHolder* pmh, Message* pMessa
 		}
 	}
 	
-	if (!MessageCreator().createHeader(pMessage,
-		buf.getCharArray(), buf.getLength()))
+	MessageCreator creator(MessageCreator::FLAG_RECOVERHEADER, SECURITYMODE_NONE);
+	if (!creator.createHeader(pMessage, buf.getCharArray(), buf.getLength()))
 		return false;
 	pMessage->setFlag(Message::FLAG_TEMPORARY);
 	
@@ -896,7 +922,8 @@ bool qm::AccountImpl::createDefaultFolders()
 
 qm::Account::Account(const WCHAR* pwszPath,
 					 const Security* pSecurity,
-					 PasswordManager* pPasswordManager) :
+					 PasswordManager* pPasswordManager,
+					 JunkFilter* pJunkFilter) :
 	pImpl_(0)
 {
 	assert(pwszPath);
@@ -965,6 +992,8 @@ qm::Account::Account(const WCHAR* pwszPath,
 	
 	pImpl_->pProtocolDriver_ = ProtocolFactory::getDriver(this, pSecurity);
 	pImpl_->bDeletedAsSeen_ = pImpl_->pProtocolDriver_->isSupport(SUPPORT_DELETEDMESSAGE);
+	
+	pImpl_->pJunkFilter_ = isSupport(SUPPORT_JUNKFILTER) ? pJunkFilter : 0;
 	
 	if (!pImpl_->loadFolders()) {
 		// TODO
@@ -1213,9 +1242,9 @@ Folder* qm::Account::getFolderById(unsigned int nId) const
 	return it != l.end() ? *it : 0;
 }
 
-Folder* qm::Account::getFolderByFlag(unsigned int nFlag) const
+Folder* qm::Account::getFolderByBoxFlag(unsigned int nBoxFlag) const
 {
-	assert((nFlag & ~Folder::FLAG_BOX_MASK) == 0);
+	assert((nBoxFlag & ~Folder::FLAG_BOX_MASK) == 0);
 	
 	const FolderList& l = pImpl_->listFolder_;
 	FolderList::const_iterator it = std::find_if(
@@ -1225,8 +1254,16 @@ Folder* qm::Account::getFolderByFlag(unsigned int nFlag) const
 				contains<unsigned int>(),
 				std::mem_fun(&Folder::getFlags),
 				std::identity<unsigned int>()),
-			nFlag));
-	return it != l.end() ? *it : 0;
+			nBoxFlag));
+	if (it == l.end())
+		return 0;
+	
+	Folder::Type type = nBoxFlag != Folder::FLAG_SEARCHBOX ?
+		Folder::TYPE_NORMAL : Folder::TYPE_QUERY;
+	if ((*it)->getType() != type)
+		return 0;
+	
+	return *it;
 }
 
 Folder* qm::Account::getFolderByParam(const WCHAR* pwszName,
