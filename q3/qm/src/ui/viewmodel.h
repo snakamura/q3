@@ -304,8 +304,6 @@ public:
 	virtual void messageHolderDestroyed(const MessageHolderEvent& event);
 
 private:
-//	void loadColumns();
-//	void saveColumns() const;
 	void update(bool bRestoreSelection);
 	void sort(unsigned int nSort,
 			  bool bRestoreSelection,
@@ -367,7 +365,6 @@ private:
 	HWND hwnd_;
 	SecurityModel* pSecurityModel_;
 	const ColorSet* pColorSet_;
-//	ColumnList listColumn_;
 	ItemList listItem_;
 	unsigned int nUnseenCount_;
 	unsigned int nSort_;
@@ -480,7 +477,6 @@ class ViewModelManager : public DefaultAccountHandler
 {
 public:
 	typedef std::vector<ViewModel*> ViewModelList;
-//	typedef std::vector<std::pair<Account*, qs::Profile*> > ProfileMap;
 
 public:
 	ViewModelManager(qs::Profile* pProfile,
@@ -514,7 +510,6 @@ private:
 	void setCurrentFolder(Account* pAccount,
 						  Folder* pFolder);
 	void setCurrentViewModel(ViewModel* pViewModel);
-//	qs::Profile* getProfile(Folder* pFolder);
 	ViewDataItem* getViewDataItem(Folder* pFolder);
 
 private:
@@ -537,7 +532,6 @@ private:
 	Account* pCurrentAccount_;
 	ViewModelList listViewModel_;
 	ViewModel* pCurrentViewModel_;
-//	ProfileMap mapProfile_;
 	ViewDataMap mapViewData_;
 	std::auto_ptr<FilterManager> pFilterManager_;
 	std::auto_ptr<ColorManager> pColorManager_;

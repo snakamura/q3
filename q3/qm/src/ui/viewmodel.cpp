@@ -353,12 +353,6 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 	
 	pColorSet_ = pColorManager->getColorSet(pFolder_);
 	
-//	WCHAR wszSection[32];
-//	swprintf(wszSection, L"Folder%d", pFolder_->getId());
-//	nSort_ = pProfile_->getInt(wszSection, L"Sort", SORT_ASCENDING | SORT_NOTHREAD | 1);
-//	nFocused_ = pProfile_->getInt(wszSection, L"Focus", 0);
-	
-//	loadColumns();
 	nSort_ = pDataItem_->getSort();
 	nFocused_ = pDataItem_->getFocus();
 	if ((nSort_ & SORT_INDEX_MASK) >= getColumnCount())
@@ -386,7 +380,6 @@ qm::ViewModel::~ViewModel()
 	pFolder_->getAccount()->removeMessageHolderHandler(this);
 	pFolder_->removeFolderHandler(this);
 	std::for_each(listItem_.begin(), listItem_.end(), deleter<ViewModelItem>());
-//	std::for_each(listColumn_.begin(), listColumn_.end(), deleter<ViewColumn>());
 }
 
 Folder* qm::ViewModel::getFolder() const
@@ -707,15 +700,8 @@ void qm::ViewModel::payAttention(unsigned int n)
 
 bool qm::ViewModel::save() const
 {
-//	WCHAR wszSection[32];
-//	swprintf(wszSection, L"Folder%d", pFolder_->getId());
-//	pProfile_->setInt(wszSection, L"Sort", nSort_);
-//	pProfile_->setInt(wszSection, L"Focus", nFocused_);
-//	
-//	saveColumns();
 	pDataItem_->setSort(nSort_);
 	pDataItem_->setFocus(nFocused_);
-	
 	return true;
 }
 
@@ -978,165 +964,7 @@ void qm::ViewModel::messageHolderChanged(const MessageHolderEvent& event)
 void qm::ViewModel::messageHolderDestroyed(const MessageHolderEvent& event)
 {
 }
-/*
-void qm::ViewModel::loadColumns()
-{
-	MacroParser parser(MacroParser::TYPE_COLUMN);
-	
-	WCHAR wszSection[32];
-	swprintf(wszSection, L"Folder%d", pFolder_->getId());
-	
-	int nColumn = 0;
-	while (true) {
-		wstring_ptr wstrTitle;
-		ViewColumn::Type type = ViewColumn::TYPE_NONE;
-		std::auto_ptr<Macro> pMacro;
-		int nFlags = 0;
-		int nWidth = 0;
-		
-		WCHAR wszKey[32];
-		
-		swprintf(wszKey, L"ColumnTitle%d", nColumn);
-		wstrTitle = pProfile_->getString(wszSection, wszKey, 0);
-		
-		swprintf(wszKey, L"ColumnMacro%d", nColumn);
-		wstring_ptr wstrMacro(pProfile_->getString(wszSection, wszKey, 0));
-		if (!*wstrMacro.get())
-			break;
-		if (*wstrMacro.get() == L'%') {
-			struct {
-				const WCHAR* pwszMacro_;
-				ViewColumn::Type type_;
-			} defaults[] = {
-				{ L"%id",		ViewColumn::TYPE_ID			},
-				{ L"%date",		ViewColumn::TYPE_DATE		},
-				{ L"%from",		ViewColumn::TYPE_FROM		},
-				{ L"%to",		ViewColumn::TYPE_TO			},
-				{ L"%fromto",	ViewColumn::TYPE_FROMTO		},
-				{ L"%subject",	ViewColumn::TYPE_SUBJECT	},
-				{ L"%size",		ViewColumn::TYPE_SIZE		},
-				{ L"%flags",	ViewColumn::TYPE_FLAGS		}
-			};
-			for (int n = 0; n < countof(defaults) && type == ViewColumn::TYPE_NONE; ++n) {
-				if (_wcsicmp(wstrMacro.get(), defaults[n].pwszMacro_) == 0)
-					type = defaults[n].type_;
-			}
-		}
-		if (type == ViewColumn::TYPE_NONE) {
-			pMacro = parser.parse(wstrMacro.get());
-			type = ViewColumn::TYPE_OTHER;
-		}
-		
-		swprintf(wszKey, L"ColumnFlags%d", nColumn);
-		nFlags = pProfile_->getInt(wszSection, wszKey, 0);
-		
-		swprintf(wszKey, L"ColumnWidth%d", nColumn);
-		nWidth = pProfile_->getInt(wszSection, wszKey, 0);
-		
-		std::auto_ptr<ViewColumn> pColumn(new ViewColumn(
-			wstrTitle.get(), type, pMacro, nFlags, nWidth));
-		listColumn_.push_back(pColumn.get());
-		pColumn.release();
-		
-		++nColumn;
-	}
-	
-	if (nColumn == 0) {
-		struct {
-			const WCHAR* pwszTitle_;
-			ViewColumn::Type type_;
-			unsigned int nFlags_;
-			unsigned int nWidth_;
-		} columns[] = {
-			{
-				L"",
-				ViewColumn::TYPE_FLAGS,
-				ViewColumn::FLAG_ICON | ViewColumn::FLAG_SORT_NUMBER,
-				28
-			},
-			{
-				L"Date",
-				ViewColumn::TYPE_DATE,
-				ViewColumn::FLAG_SORT_DATE,
-				80
-			},
-			{
-				L"From / To",
-				ViewColumn::TYPE_FROMTO,
-				ViewColumn::FLAG_SORT_TEXT,
-				120
-			},
-			{
-				L"Subject",
-				ViewColumn::TYPE_SUBJECT,
-				ViewColumn::FLAG_INDENT | ViewColumn::FLAG_LINE | ViewColumn::FLAG_SORT_TEXT,
-				250
-			},
-			{
-				L"Size",
-				ViewColumn::TYPE_SIZE,
-				ViewColumn::FLAG_RIGHTALIGN | ViewColumn::FLAG_SORT_NUMBER,
-				40
-			}
-		};
-		for (int n = 0; n < countof(columns); ++n) {
-			std::auto_ptr<Macro> pMacro;
-			std::auto_ptr<ViewColumn> pColumn(new ViewColumn(
-				columns[n].pwszTitle_, columns[n].type_, pMacro,
-				columns[n].nFlags_, columns[n].nWidth_));
-			listColumn_.push_back(pColumn.get());
-			pColumn.release();
-		}
-	}
-}
 
-void qm::ViewModel::saveColumns() const
-{
-	WCHAR wszSection[32];
-	swprintf(wszSection, L"Folder%d", pFolder_->getId());
-	
-	for (ColumnList::size_type n = 0; n < listColumn_.size(); ++n) {
-		ViewColumn* pColumn = listColumn_[n];
-		
-		WCHAR wszKey[32];
-		
-		swprintf(wszKey, L"ColumnTitle%d", n);
-		pProfile_->setString(wszSection, wszKey, pColumn->getTitle());
-		
-		struct {
-			ViewColumn::Type type_;
-			const WCHAR* pwszMacro_;
-		} macros[] = {
-			{ ViewColumn::TYPE_ID,		L"%Id"				},
-			{ ViewColumn::TYPE_DATE,	L"%Date"			},
-			{ ViewColumn::TYPE_FROM,	L"%From"			},
-			{ ViewColumn::TYPE_TO,		L"%To"				},
-			{ ViewColumn::TYPE_FROMTO,	L"%FromTo"			},
-			{ ViewColumn::TYPE_SUBJECT,	L"%Subject"			},
-			{ ViewColumn::TYPE_SIZE,	L"%Size"			},
-			{ ViewColumn::TYPE_FLAGS,	L"%Flags"			}
-		};
-		const WCHAR* pwszMacro = 0;
-		for (int m = 0; m < countof(macros) && !pwszMacro; ++m) {
-			if (macros[m].type_ == pColumn->getType())
-				pwszMacro = macros[m].pwszMacro_;
-		}
-		wstring_ptr wstrMacro;
-		if (!pwszMacro) {
-			wstrMacro = pColumn->getMacro()->getString();
-			pwszMacro = wstrMacro.get();
-		}
-		swprintf(wszKey, L"ColumnMacro%d", n);
-		pProfile_->setString(wszSection, wszKey, pwszMacro);
-		
-		swprintf(wszKey, L"ColumnFlags%d", n);
-		pProfile_->setInt(wszSection, wszKey, pColumn->getFlags());
-		
-		swprintf(wszKey, L"ColumnWidth%d", n);
-		pProfile_->setInt(wszSection, wszKey, pColumn->getWidth());
-	}
-}
-*/
 void qm::ViewModel::update(bool bRestoreSelection)
 {
 	Lock<ViewModel> lock(*this);
@@ -1487,9 +1315,6 @@ ViewModel* qm::ViewModelManager::getViewModel(Folder* pFolder)
 	if (it != listViewModel_.end())
 		return *it;
 	
-//	Profile* pProfile = getProfile(pFolder);
-//	std::auto_ptr<ViewModel> pViewModel(new ViewModel(this, pFolder, pProfile,
-//		pDocument_, hwnd_, pSecurityModel_, pColorManager_.get()));
 	ViewDataItem* pViewDataItem = getViewDataItem(pFolder);
 	std::auto_ptr<ViewModel> pViewModel(new ViewModel(this, pFolder, pViewDataItem,
 		pProfile_, pDocument_, hwnd_, pSecurityModel_, pColorManager_.get()));
@@ -1504,10 +1329,6 @@ bool qm::ViewModelManager::save() const
 			return false;
 	}
 	
-//	for (ProfileMap::const_iterator itP = mapProfile_.begin(); itP != mapProfile_.end(); ++itP) {
-//		if (!(*itP).second->save())
-//			return false;
-//	}
 	for (ViewDataMap::const_iterator it = mapViewData_.begin(); it != mapViewData_.end(); ++it) {
 		if (!(*it).second->save())
 			return false;
@@ -1603,34 +1424,7 @@ void qm::ViewModelManager::setCurrentViewModel(ViewModel* pViewModel)
 	
 	fireViewModelSelected(pViewModel, pOldViewModel);
 }
-/*
-Profile* qm::ViewModelManager::getProfile(Folder* pFolder)
-{
-	assert(pFolder);
-	
-	Account* pAccount = pFolder->getAccount();
-	ProfileMap::iterator it = std::find_if(
-		mapProfile_.begin(), mapProfile_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				std::equal_to<Account*>(),
-				std::select1st<ProfileMap::value_type>(),
-				std::identity<Account*>()),
-			pAccount));
-	if (it != mapProfile_.end())
-		return (*it).second;
-	
-	wstring_ptr wstrPath(concat(pAccount->getPath(), L"\\", FileNames::VIEW_XML));
-	
-	std::auto_ptr<XMLProfile> pProfile(new XMLProfile(wstrPath.get()));
-	// TODO
-	// Ignore load error?
-	pProfile->load();
-	mapProfile_.push_back(std::make_pair(pAccount, pProfile.get()));
-	pAccount->addAccountHandler(this);
-	return pProfile.release();
-}
-*/
+
 ViewDataItem* qm::ViewModelManager::getViewDataItem(Folder* pFolder)
 {
 	assert(pFolder);
@@ -1672,6 +1466,10 @@ ViewDataItem* qm::ViewModelManager::getViewDataItem(Folder* pFolder)
 					
 					WCHAR wszSection[32];
 					swprintf(wszSection, L"Folder%d", nId);
+					
+					pItem->setSort(pProfile->getInt(wszSection, L"Sort",
+						ViewModel::SORT_ASCENDING | ViewModel::SORT_NOTHREAD | 1));
+					pItem->setFocus(pProfile->getInt(wszSection, L"Focus", 0));
 					
 					int nColumn = 0;
 					while (true) {
