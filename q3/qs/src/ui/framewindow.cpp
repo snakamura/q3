@@ -7,6 +7,7 @@
  */
 
 #include <qsaction.h>
+#include <qsuiutil.h>
 #include <qswindow.h>
 
 #ifdef _WIN32_WCE_PSPC
@@ -358,6 +359,14 @@ LRESULT qs::FrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 			rbbi.fStyle = cbri.fStyle;
 			rbbi.wID = cbri.wID;
 			rbbi.cx = cbri.cxRestored;
+#if _WIN32_WCE >= 421
+			const int nDefaultBarHeight = 24;
+			rbbi.fMask |= RBBIM_CHILDSIZE;
+			rbbi.fStyle |= RBBS_VARIABLEHEIGHT;
+			rbbi.cyChild = 16 + static_cast<int>((nDefaultBarHeight - 16)*(UIUtil::getLogPixel()/96.0));
+			rbbi.cyMaxChild = rbbi.cyChild;
+			rbbi.cyIntegral = 1;
+#endif
 			CommandBands_AddBands(pImpl_->hwndBands_, getInstanceHandle(), 1, &rbbi);
 			
 			HWND hwndBarButton = CommandBands_GetCommandBar(pImpl_->hwndBands_, 0);

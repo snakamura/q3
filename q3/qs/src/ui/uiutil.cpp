@@ -145,6 +145,12 @@ bool qs::UIUtil::drawThemeBorder(Theme* pTheme,
 }
 #endif
 
+int qs::UIUtil::getLogPixel()
+{
+	ClientDeviceContext dc(0);
+	return dc.getDeviceCaps(LOGPIXELSY);
+}
+
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 void qs::UIUtil::getWorkArea(RECT* pRect)
 {
@@ -152,7 +158,7 @@ void qs::UIUtil::getWorkArea(RECT* pRect)
 	
 	const int nDefaultMenuHeight = 26;
 	ClientDeviceContext dc(0);
-	int nMenuHeight = static_cast<int>(nDefaultMenuHeight*(dc.getDeviceCaps(LOGPIXELSY)/96.0));
+	int nMenuHeight = static_cast<int>(nDefaultMenuHeight*(getLogPixel()/96.0));
 	
 	SIPINFO si = { sizeof(si) };
 	::SHSipInfo(SPI_GETSIPINFO, 0, &si, 0);
