@@ -2887,17 +2887,23 @@ QSTATUS qm::ToolSyncAction::invoke(const ActionEvent& event)
 		CHECK_QSTATUS();
 	}
 	if (nSync_ & SYNC_RECEIVE) {
-		SelectSyncFilterDialog dialog(pSyncManager_->getSyncFilterManager(),
-			pAccount, pSubAccount->getSyncFilterName(), &status);
-		CHECK_QSTATUS();
-		int nRet = 0;
-		status = dialog.doModal(hwnd_, 0, &nRet);
-		CHECK_QSTATUS();
-		if (nRet != IDOK)
-			return QSTATUS_SUCCESS;
-		
-		status = pData->addFolders(pAccount, pSubAccount, 0, dialog.getName());
-		CHECK_QSTATUS();
+		if (event.getModifier() & ActionEvent::MODIFIER_SHIFT) {
+			SelectSyncFilterDialog dialog(pSyncManager_->getSyncFilterManager(),
+				pAccount, pSubAccount->getSyncFilterName(), &status);
+			CHECK_QSTATUS();
+			int nRet = 0;
+			status = dialog.doModal(hwnd_, 0, &nRet);
+			CHECK_QSTATUS();
+			if (nRet != IDOK)
+				return QSTATUS_SUCCESS;
+			status = pData->addFolders(pAccount, pSubAccount, 0, dialog.getName());
+			CHECK_QSTATUS();
+		}
+		else {
+			status = pData->addFolders(pAccount, pSubAccount,
+				0, pSubAccount->getSyncFilterName());
+			CHECK_QSTATUS();
+		}
 	}
 	
 	if (!pData->isEmpty()) {
