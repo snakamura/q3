@@ -27,6 +27,8 @@ class SyncItem;
 class SyncData;
 class SyncManager;
 class SyncManagerCallback;
+class SyncManagerHandler;
+class SyncManagerEvent;
 
 class Account;
 class Folder;
@@ -179,6 +181,11 @@ public:
 	qs::QSTATUS sync(SyncData* pData);
 	bool isSyncing() const;
 	SyncFilterManager* getSyncFilterManager() const;
+	qs::QSTATUS addSyncManagerHandler(SyncManagerHandler* pHandler);
+	qs::QSTATUS removeSyncManagerHandler(SyncManagerHandler* pHandler);
+
+public:
+	qs::QSTATUS fireStatusChanged() const;
 
 private:
 	SyncManager(const SyncManager&);
@@ -219,6 +226,7 @@ private:
 		const SyncData* pSyncData_;
 		bool bWaitMode_;
 	};
+	friend class SyncThread;
 	
 	class ParallelSyncThread : public qs::Thread
 	{
@@ -239,6 +247,7 @@ private:
 		const SyncData* pSyncData_;
 		unsigned int nSlot_;
 	};
+	friend class ParallelSyncThread;
 	
 	class ReceiveSessionCallbackImpl : public ReceiveSessionCallback
 	{
@@ -334,6 +343,7 @@ private:
 private:
 	typedef std::vector<SyncThread*> ThreadList;
 	typedef std::vector<std::pair<NormalFolder*, qs::Event*> > SyncingFolderList;
+	typedef std::vector<SyncManagerHandler*> SyncManagerHandlerList;
 
 private:
 	qs::Profile* pProfile_;
@@ -341,10 +351,7 @@ private:
 	ThreadList listThread_;
 	SyncingFolderList listSyncingFolder_;
 	qs::CriticalSection cs_;
-
-friend class SyncThread;
-friend class ParallelSyncThread;
-friend class WaitThread;
+	SyncManagerHandlerList listHandler_;
 };
 
 
@@ -380,6 +387,40 @@ public:
 	virtual qs::QSTATUS showDialupDialog(
 		RASDIALPARAMS* prdp, bool* pbCancel) = 0;
 	virtual qs::QSTATUS notifyNewMessage(unsigned int nId) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * SyncManagerHandler
+ *
+ */
+
+class SyncManagerHandler
+{
+public:
+	virtual ~SyncManagerHandler();
+
+public:
+	virtual qs::QSTATUS statusChanged(const SyncManagerEvent& event) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * SyncManagerEvent
+ *
+ */
+
+class SyncManagerEvent
+{
+public:
+	SyncManagerEvent();
+	~SyncManagerEvent();
+
+private:
+	SyncManagerEvent(const SyncManagerEvent&);
+	SyncManagerEvent& operator=(const SyncManagerEvent&);
 };
 
 }

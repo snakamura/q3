@@ -393,6 +393,35 @@ SyncFilterManager* qm::SyncManager::getSyncFilterManager() const
 	return pSyncFilterManager_;
 }
 
+QSTATUS qm::SyncManager::addSyncManagerHandler(SyncManagerHandler* pHandler)
+{
+	return STLWrapper<SyncManagerHandlerList>(listHandler_).push_back(pHandler);
+}
+
+QSTATUS qm::SyncManager::removeSyncManagerHandler(SyncManagerHandler* pHandler)
+{
+	SyncManagerHandlerList::iterator it = std::remove(
+		listHandler_.begin(), listHandler_.end(), pHandler);
+	assert(it != listHandler_.end());
+	listHandler_.erase(it, listHandler_.end());
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::SyncManager::fireStatusChanged() const
+{
+	DECLARE_QSTATUS();
+	
+	SyncManagerEvent event;
+	SyncManagerHandlerList::const_iterator it = listHandler_.begin();
+	while (it != listHandler_.end()) {
+		status = (*it)->statusChanged(event);
+		CHECK_QSTATUS();
+		++it;
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::SyncManager::syncData(const SyncData* pData)
 {
 	DECLARE_QSTATUS();
@@ -902,6 +931,20 @@ unsigned int qm::SyncManager::SyncThread::run()
 	InitThread init(0, &status);
 	CHECK_QSTATUS_VALUE(-1);
 	
+	struct StatusChange
+	{
+		StatusChange(SyncManager* pSyncManager) :
+			pSyncManager_(pSyncManager)
+		{
+			pSyncManager_->fireStatusChanged();
+		}
+		~StatusChange()
+		{
+			pSyncManager_->fireStatusChanged();
+		}
+		SyncManager* pSyncManager_;
+	} statusChange(pSyncManager_);
+	
 	pSyncManager_->syncData(pSyncData_);
 	
 	Lock<CriticalSection> lock(pSyncManager_->cs_);
@@ -1188,5 +1231,31 @@ qm::SyncManager::FolderWait::~FolderWait()
  */
 
 qm::SyncManagerCallback::~SyncManagerCallback()
+{
+}
+
+
+/****************************************************************************
+ *
+ * SyncManagerHandler
+ *
+ */
+
+qm::SyncManagerHandler::~SyncManagerHandler()
+{
+}
+
+
+/****************************************************************************
+ *
+ * SyncManagerEvent
+ *
+ */
+
+qm::SyncManagerEvent::SyncManagerEvent()
+{
+}
+
+qm::SyncManagerEvent::~SyncManagerEvent()
 {
 }

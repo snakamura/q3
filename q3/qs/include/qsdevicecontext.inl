@@ -1,5 +1,5 @@
 /*
- * $Id: qsdevicecontext.inl,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -188,6 +188,12 @@ inline int qs::DeviceContext::getDeviceCaps(int nIndex) const
 {
 	assert(hdc_);
 	return ::GetDeviceCaps(hdc_, nIndex);
+}
+
+inline bool qs::DeviceContext::drawIcon(int x, int y, HICON hIcon)
+{
+	assert(hdc_);
+	return ::DrawIcon(hdc_, x, y, hIcon) != 0;
 }
 
 inline void qs::DeviceContext::setHandle(HDC hdc)

@@ -92,7 +92,8 @@ public:
 		ID_TOOLBAR				= 1009,
 		ID_STATUSBAR			= 1010,
 		ID_COMMANDBARMENU		= 1011,
-		ID_COMMANDBARBUTTON		= 1012
+		ID_COMMANDBARBUTTON		= 1012,
+		ID_SYNCNOTIFICATION		= 1013
 	};
 
 public:
@@ -172,6 +173,7 @@ public:
 	ListWindow* pListWindow_;
 	MessageWindow* pMessageWindow_;
 	StatusBar* pStatusBar_;
+	SyncNotificationWindow* pSyncNotificationWindow_;
 	FolderModel* pFolderModel_;
 	FolderListModel* pFolderListModel_;
 	ViewModelManager* pViewModelManager_;
@@ -730,6 +732,9 @@ QSTATUS qm::MainWindowImpl::layoutChildren(int cx, int cy)
 		cx, rectStatusBar.bottom - rectStatusBar.top, SWP_NOZORDER);
 	pStatusBar_->showWindow(bShowStatusBar_ ? SW_SHOW : SW_HIDE);
 	
+	pSyncNotificationWindow_->setWindowPos(HWND_TOP,
+		cx - SyncNotificationWindow::WIDTH, nToolbarHeight, 0, 0, SWP_NOSIZE);
+	
 	pFolderSplitterWindow_->setWindowPos(0,
 		0, nToolbarHeight + nFolderComboBoxHeight, cx,
 		cy - nStatusBarHeight - nToolbarHeight - nFolderComboBoxHeight,
@@ -1252,6 +1257,7 @@ qm::MainWindow::MainWindow(Profile* pProfile, QSTATUS* pstatus) :
 	pImpl_->pListWindow_ = 0;
 	pImpl_->pMessageWindow_ = 0;
 	pImpl_->pStatusBar_ = 0;
+	pImpl_->pSyncNotificationWindow_ = 0;
 	pImpl_->pFolderModel_ = 0;
 	pImpl_->pFolderListModel_ = 0;
 	pImpl_->pViewModelManager_ = 0;
@@ -1884,6 +1890,16 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	CHECK_QSTATUS_VALUE(-1);
 	pImpl_->pStatusBar_ = pStatusBar.release();
 	
+	std::auto_ptr<SyncNotificationWindow> pSyncNotificationWindow;
+	status = newQsObject(pImpl_->pSyncManager_, &pSyncNotificationWindow);
+	CHECK_QSTATUS_VALUE(-1);
+	status = pSyncNotificationWindow->create(L"QmSyncNotificationWindow",
+		0, dwStyle & ~WS_VISIBLE, 0, 0, SyncNotificationWindow::WIDTH,
+		SyncNotificationWindow::HEIGHT, getHandle(), 0,
+		0, MainWindowImpl::ID_SYNCNOTIFICATION, 0);
+	CHECK_QSTATUS_VALUE(-1);
+	pImpl_->pSyncNotificationWindow_ = pSyncNotificationWindow.release();
+	
 	status = pImpl_->layoutChildren();
 	CHECK_QSTATUS_VALUE(-1);
 	
@@ -2136,5 +2152,104 @@ QSTATUS qm::ListContainerWindow::folderSelected(const FolderModelEvent& event)
 	if (bActive)
 		pListWindow_->setActive();
 	
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * SyncNotificationWindow
+ *
+ */
+
+qm::SyncNotificationWindow::SyncNotificationWindow(
+	SyncManager* pSyncManager, QSTATUS* pstatus) :
+	WindowBase(true, pstatus),
+	DefaultWindowHandler(pstatus),
+	pSyncManager_(pSyncManager),
+	hbm_(0)
+{
+	setWindowHandler(this, false);
+}
+
+qm::SyncNotificationWindow::~SyncNotificationWindow()
+{
+}
+
+QSTATUS qm::SyncNotificationWindow::getWindowClass(WNDCLASS* pwc)
+{
+	DECLARE_QSTATUS();
+	
+	status = DefaultWindowHandler::getWindowClass(pwc);
+	CHECK_QSTATUS();
+	
+	pwc->hbrBackground = reinterpret_cast<HBRUSH>(::GetStockObject(BLACK_BRUSH));
+	
+	return QSTATUS_SUCCESS;
+}
+
+LRESULT qm::SyncNotificationWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	BEGIN_MESSAGE_HANDLER()
+		HANDLE_CREATE()
+		HANDLE_DESTROY()
+		HANDLE_PAINT()
+		HANDLE_MESSAGE(WM_SYNCNOTIFICATION_STATUSCHANGED, onStatusChanged)
+	END_MESSAGE_HANDLER()
+	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
+}
+
+LRESULT qm::SyncNotificationWindow::onCreate(CREATESTRUCT* pCreateStruct)
+{
+	if (DefaultWindowHandler::onCreate(pCreateStruct) == -1)
+		return -1;
+	
+	DECLARE_QSTATUS();
+	
+	hbm_ = static_cast<HBITMAP>(::LoadImage(
+		Application::getApplication().getResourceHandle(),
+		MAKEINTRESOURCE(IDB_SYNCNOTIFICATION), IMAGE_BITMAP, 0, 0, 0));
+	
+	status = pSyncManager_->addSyncManagerHandler(this);
+	CHECK_QSTATUS_VALUE(-1);
+	
+	return 0;
+}
+
+LRESULT qm::SyncNotificationWindow::onDestroy()
+{
+	::DeleteObject(hbm_);
+	pSyncManager_->removeSyncManagerHandler(this);
+	return DefaultWindowHandler::onDestroy();
+}
+
+LRESULT qm::SyncNotificationWindow::onPaint()
+{
+	DECLARE_QSTATUS();
+	
+	PaintDeviceContext dc(getHandle(), &status);
+	CHECK_QSTATUS_VALUE(0);
+	
+	CompatibleDeviceContext dcMem(dc.getHandle(), &status);
+	CHECK_QSTATUS_VALUE(0);
+	ObjectSelector<HBITMAP> selector(dcMem, hbm_);
+	
+	dc.bitBlt(0, 0, WIDTH, HEIGHT, dcMem.getHandle(), 0, 0, SRCCOPY);
+	
+	return 0;
+}
+
+LRESULT qm::SyncNotificationWindow::onStatusChanged(WPARAM wParam, LPARAM lParam)
+{
+	if (pSyncManager_->isSyncing())
+		showWindow(SW_SHOW);
+	else
+		showWindow(SW_HIDE);
+	return 0;
+}
+
+QSTATUS qm::SyncNotificationWindow::statusChanged(const SyncManagerEvent& event)
+{
+	postMessage(WM_SYNCNOTIFICATION_STATUSCHANGED);
 	return QSTATUS_SUCCESS;
 }

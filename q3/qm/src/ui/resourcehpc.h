@@ -46,6 +46,7 @@
 #define IDD_FOLDERPROPERTY              146
 #define IDD_SINGLEINPUTBOX              147
 #define IDD_MULTIINPUTBOX               148
+#define IDB_SYNCNOTIFICATION            149
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -361,7 +362,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        149
+#define _APS_NEXT_RESOURCE_VALUE        150
 #define _APS_NEXT_COMMAND_VALUE         48000
 #define _APS_NEXT_CONTROL_VALUE         1118
 #define _APS_NEXT_SYMED_VALUE           101

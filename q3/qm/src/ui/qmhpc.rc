@@ -177,6 +177,7 @@ IDB_HEADER              BITMAP  DISCARDABLE     "res\\header.bmp"
 IDB_LIST                BITMAP  DISCARDABLE     "res\\list.bmp"
 IDB_LISTDATA            BITMAP  DISCARDABLE     "res\\listdata.bmp"
 IDB_ADDRESSBOOK         BITMAP  DISCARDABLE     "res\\addressbook.bmp"
+IDB_SYNCNOTIFICATION    BITMAP  DISCARDABLE     "res\\syncnotification.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //

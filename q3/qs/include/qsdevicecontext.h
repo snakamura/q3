@@ -79,6 +79,8 @@ public:
 		FONTENUMPROC pProc, LPARAM lParam) const;
 	
 	int getDeviceCaps(int nIndex) const;
+	
+	bool drawIcon(int x, int y, HICON hIcon);
 
 protected:
 	void setHandle(HDC hdc);
