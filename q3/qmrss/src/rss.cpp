@@ -128,8 +128,8 @@ wstring_ptr qmrss::Item::getHash() const
 	wstring_ptr wstrTime(timePubDate_.format(L"%Y4%M0%D%h%m%s%z", Time::FORMAT_ORIGINAL));
 	buf.append(wstrTime.get());
 	
-	size_t nLen = wcslen(wstrTime.get());
-	xstring_size_ptr str(UTF8Converter().encode(wstrTime.get(), &nLen));
+	size_t nLen = buf.getLength();
+	xstring_size_ptr str(UTF8Converter().encode(buf.getCharArray(), &nLen));
 	
 	CHAR szMD5[128/8*2 + 1];
 	MD5::md5ToString(reinterpret_cast<unsigned char*>(str.get()), str.size(), szMD5);
