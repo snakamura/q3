@@ -1145,7 +1145,7 @@ LRESULT qs::FontDialog::onOk()
 {
 	wstring_ptr wstrFaceName(getDlgItemText(IDC_FONTFACE));
 	W2T(wstrFaceName.get(), ptszFaceName);
-	wcsncpy(lf_.lfFaceName, ptszFaceName, countof(lf_.lfFaceName));
+	_tcsncpy(lf_.lfFaceName, ptszFaceName, countof(lf_.lfFaceName));
 	
 	wstring_ptr wstrStyle(getDlgItemText(IDC_FONTSTYLE));
 	wstring_ptr wstrBold(loadString(getDllInstanceHandle(), IDS_BOLD));
