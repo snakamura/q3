@@ -1,4 +1,4 @@
-# $Id: common.mak,v 1.12 2003/05/30 06:22:56 snakamura Exp $
+# $Id$
 #
 # Common makefile
 #
@@ -378,7 +378,7 @@ DEFINES					+= $(CPROJS)
 ifndef BUILDEXTRA
 	BUILDEXTRA			= 0
 endif
-BUILDNUMBER				= $(shell echo $$((`date +%y` << 11 | `date +%m` << 7 | `date +%d` << 2 | $(BUILDEXTRA))))
+BUILDNUMBER				= $(shell echo $$((`date +%-y` << 11 | `date +%-m` << 7 | `date +%-d` << 2 | $(BUILDEXTRA))))
 NVERSION				= $(shell cat version | tr '.' ','),$(BUILDNUMBER)
 SVERSION				= $(shell cat version | sed -e 's/\./, /g'), $(BUILDNUMBER)
 RCDEFINES				= -DNVERSION="$(NVERSION)" -DSVERSION="\"$(SVERSION)\"" -DSUFFIX="\"$(SUFFIX)\""
