@@ -456,7 +456,7 @@ QSTATUS qmsmtp::Smtp::receive(unsigned int* pnCode, STRING* pstrResponse)
 		CHECK_QSTATUS_ERROR(SMTP_ERROR_SELECT | pSocket_->getLastError());
 		CHECK_ERROR(nSelect == 0, QSTATUS_FAIL, SMTP_ERROR_TIMEOUT);
 		
-		int nLen = sizeof(nLen);
+		int nLen = sizeof(buf);
 		status = pSocket_->recv(buf, &nLen, 0);
 		CHECK_QSTATUS_ERROR(SMTP_ERROR_RECEIVE | pSocket_->getLastError());
 		CHECK_ERROR(nLen == 0, QSTATUS_FAIL, SMTP_ERROR_DISCONNECT);
