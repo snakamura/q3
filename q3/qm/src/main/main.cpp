@@ -150,11 +150,9 @@ int qm::main(const WCHAR* pwszCommandLine)
 						pfn = reinterpret_cast<PFN>(::GetProcAddress(
 							lib, "SHGetSpecialFolderPathW"));
 					if (pfn) {
-						TCHAR tszAppDir[MAX_PATH];
-						if ((*pfn)(0, tszAppDir, CSIDL_APPDATA, TRUE)) {
-							T2W(tszAppDir, pwszAppDir);
-							wstrMailFolder = concat(pwszAppDir, L"\\mail");
-						}
+						WCHAR wszAppDir[MAX_PATH];
+						if ((*pfn)(0, wszAppDir, CSIDL_APPDATA, TRUE))
+							wstrMailFolder = concat(wszAppDir, L"\\mail");
 					}
 				}
 #endif
