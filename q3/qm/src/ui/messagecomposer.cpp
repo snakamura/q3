@@ -144,7 +144,8 @@ bool qm::MessageComposer::compose(Account* pAccount,
 			pDocument_->getAddressBook(), pSelfCertificate);
 		
 		if (nFlags & FLAG_SIGN) {
-			bool bMultipart = pProfile_->getInt(L"Security", L"MultipartSigned", 1) != 0;
+			bool bMultipart = (nFlags & FLAG_ENCRYPT) == 0 &&
+				pProfile_->getInt(L"Security", L"MultipartSigned", 1) != 0;
 			Certificate* pCertificate = pSubAccount->getCertificate();
 			PrivateKey* pPrivateKey = pSubAccount->getPrivateKey();
 			if (pCertificate && pPrivateKey) {
