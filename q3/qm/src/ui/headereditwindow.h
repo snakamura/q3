@@ -290,15 +290,11 @@ private:
 
 class EditHeaderEditItem :
 	public TextHeaderEditItem,
-	public qs::DefaultCommandHandler,
-	public AutoCompleteCallback
+	public qs::DefaultCommandHandler
 {
 public:
 	EditHeaderEditItem(EditWindowFocusController* pController);
 	virtual ~EditHeaderEditItem();
-
-public:
-	void setExpandAlias(bool bExpandAlias);
 
 public:
 	virtual void setEditMessage(EditMessage* pEditMessage,
@@ -337,8 +333,56 @@ public:
 	virtual LRESULT onCommand(WORD nCode,
 							  WORD nId);
 
+protected:
+	virtual LRESULT onKillFocus();
+
 private:
-	LRESULT onKillFocus();
+	EditHeaderEditItem(const EditHeaderEditItem&);
+	EditHeaderEditItem& operator=(const EditHeaderEditItem&);
+
+private:
+	EditMessage* pEditMessage_;
+	qs::WindowBase* pParent_;
+	unsigned int nId_;
+};
+
+
+/****************************************************************************
+ *
+ * AddressHeaderEditItem
+ *
+ */
+
+class AddressHeaderEditItem :
+	public EditHeaderEditItem,
+	public AutoCompleteCallback
+{
+public:
+	enum Flag {
+		FLAG_EXPANDALIAS	= 0x01,
+		FLAG_AUTOCOMPLETE	= 0x02
+	};
+
+public:
+	AddressHeaderEditItem(EditWindowFocusController* pController);
+	virtual ~AddressHeaderEditItem();
+
+public:
+	void setExpandAlias(bool bExpandAlias);
+	void setAutoComplete(bool bAutoComplete);
+
+public:
+	virtual void setEditMessage(EditMessage* pEditMessage,
+								bool bReset);
+
+public:
+	virtual bool create(qs::WindowBase* pParent,
+						const std::pair<HFONT, HFONT>& fonts,
+						UINT nId);
+	virtual void destroy();
+
+protected:
+	virtual LRESULT onKillFocus();
 
 public:
 	virtual std::pair<size_t, size_t> getInput(const WCHAR* pwszText,
@@ -355,15 +399,12 @@ private:
 							size_t nInputLen);
 
 private:
-	EditHeaderEditItem(const EditHeaderEditItem&);
-	EditHeaderEditItem& operator=(const EditHeaderEditItem&);
+	AddressHeaderEditItem(const AddressHeaderEditItem&);
+	AddressHeaderEditItem& operator=(const AddressHeaderEditItem&);
 
 private:
-	EditMessage* pEditMessage_;
-	bool bExpandAlias_;
+	unsigned int nFlags_;
 	AddressBook* pAddressBook_;
-	qs::WindowBase* pParent_;
-	unsigned int nId_;
 	std::auto_ptr<AutoComplete> pAutoComplete_;
 };
 

@@ -1,15 +1,15 @@
 <headerEdit>
 	<line class="mail">
 		<static width="4.5em" style="bold">To:</static>
-		<edit type="addressList" field="To" number="0" expandAlias="true"/>
+		<address field="To" number="0"/>
 	</line>
 	<line class="mail" hideIfNoFocus="true">
 		<static width="4.5em" style="bold">Cc:</static>
-		<edit type="addressList" field="Cc" number="1" initialFocus="false" expandAlias="true"/>
+		<address field="Cc" number="1" initialFocus="false"/>
 	</line>
 	<line class="mail" hideIfNoFocus="true">
 		<static width="4.5em" style="bold">Bcc:</static>
-		<edit type="addressList" field="Bcc" number="2" initialFocus="false" expandAlias="true"/>
+		<address field="Bcc" number="2" initialFocus="false"/>
 	</line>
 	<line class="news">
 		<static width="4.5em" style="bold">Newsgroups:</static>

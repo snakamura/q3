@@ -774,8 +774,6 @@ UINT qm::StaticHeaderEditItem::getWindowExStyle() const
 qm::EditHeaderEditItem::EditHeaderEditItem(EditWindowFocusController* pController) :
 	TextHeaderEditItem(pController),
 	pEditMessage_(0),
-	bExpandAlias_(false),
-	pAddressBook_(0),
 	pParent_(0),
 	nId_(0)
 {
@@ -785,16 +783,10 @@ qm::EditHeaderEditItem::~EditHeaderEditItem()
 {
 }
 
-void qm::EditHeaderEditItem::setExpandAlias(bool bExpandAlias)
-{
-	bExpandAlias_ = bExpandAlias;
-}
-
 void qm::EditHeaderEditItem::setEditMessage(EditMessage* pEditMessage,
 											bool bReset)
 {
 	pEditMessage_ = pEditMessage;
-	pAddressBook_ = pEditMessage->getDocument()->getAddressBook();
 	TextHeaderEditItem::setEditMessage(pEditMessage, bReset);
 }
 
@@ -839,9 +831,6 @@ bool qm::EditHeaderEditItem::create(qs::WindowBase* pParent,
 	if (!TextHeaderEditItem::create(pParent, fonts, nId))
 		return false;
 	pParent->addCommandHandler(this);
-	
-	if (getType() == TYPE_ADDRESSLIST)
-		pAutoComplete_.reset(new AutoComplete(getHandle(), pParent, this));
 	
 	pParent_ = pParent;
 	nId_ = nId;
@@ -950,7 +939,75 @@ LRESULT qm::EditHeaderEditItem::onCommand(WORD nCode,
 
 LRESULT qm::EditHeaderEditItem::onKillFocus()
 {
-	if (bExpandAlias_) {
+	if (pEditMessage_)
+		updateEditMessage(pEditMessage_);
+	return 0;
+}
+
+
+/****************************************************************************
+ *
+ * AddressHeaderEditItem
+ *
+ */
+
+qm::AddressHeaderEditItem::AddressHeaderEditItem(EditWindowFocusController* pController) :
+	EditHeaderEditItem(pController),
+	nFlags_(FLAG_EXPANDALIAS | FLAG_AUTOCOMPLETE),
+	pAddressBook_(0)
+{
+	setType(TYPE_ADDRESSLIST);
+}
+
+qm::AddressHeaderEditItem::~AddressHeaderEditItem()
+{
+}
+
+void qm::AddressHeaderEditItem::setExpandAlias(bool bExpandAlias)
+{
+	if (bExpandAlias)
+		nFlags_ |= FLAG_EXPANDALIAS;
+	else
+		nFlags_ &= ~FLAG_EXPANDALIAS;
+}
+
+void qm::AddressHeaderEditItem::setAutoComplete(bool bAutoComplete)
+{
+	if (bAutoComplete)
+		nFlags_ |= FLAG_AUTOCOMPLETE;
+	else
+		nFlags_ &= ~FLAG_AUTOCOMPLETE;
+}
+
+void qm::AddressHeaderEditItem::setEditMessage(EditMessage* pEditMessage,
+											   bool bReset)
+{
+	pAddressBook_ = pEditMessage->getDocument()->getAddressBook();
+	EditHeaderEditItem::setEditMessage(pEditMessage, bReset);
+}
+
+bool qm::AddressHeaderEditItem::create(qs::WindowBase* pParent,
+									   const std::pair<HFONT, HFONT>& fonts,
+									   UINT nId)
+{
+	if (!EditHeaderEditItem::create(pParent, fonts, nId))
+		return false;
+	
+	if (nFlags_ & FLAG_AUTOCOMPLETE)
+		pAutoComplete_.reset(new AutoComplete(getHandle(), pParent, this));
+	
+	return true;
+}
+
+void qm::AddressHeaderEditItem::destroy()
+{
+	pAutoComplete_.reset(0);
+	EditHeaderEditItem::destroy();
+}
+
+LRESULT qm::AddressHeaderEditItem::onKillFocus()
+{
+	if (nFlags_ & FLAG_EXPANDALIAS) {
 		Window wnd(getHandle());
 		wstring_ptr wstrText(wnd.getWindowText());
 		if (*wstrText.get()) {
@@ -959,15 +1016,11 @@ LRESULT qm::EditHeaderEditItem::onKillFocus()
 				wnd.setWindowText(wstr.get());
 		}
 	}
-	
-	if (pEditMessage_)
-		updateEditMessage(pEditMessage_);
-	
-	return 0;
+	return EditHeaderEditItem::onKillFocus();
 }
 
-std::pair<size_t, size_t> qm::EditHeaderEditItem::getInput(const WCHAR* pwszText,
-														   size_t nCaret)
+std::pair<size_t, size_t> qm::AddressHeaderEditItem::getInput(const WCHAR* pwszText,
+															  size_t nCaret)
 {
 	const WCHAR* pBegin = pwszText + nCaret;
 	if (nCaret != 0) {
@@ -995,8 +1048,8 @@ std::pair<size_t, size_t> qm::EditHeaderEditItem::getInput(const WCHAR* pwszText
 	return std::pair<size_t, size_t>(pBegin - pwszText, pEnd - pBegin);
 }
 
-void qm::EditHeaderEditItem::getCandidates(const WCHAR* pwszInput,
-										   CandidateList* pList)
+void qm::AddressHeaderEditItem::getCandidates(const WCHAR* pwszInput,
+											  CandidateList* pList)
 {
 	const AddressBook::EntryList& listEntry = pAddressBook_->getEntries();
 	for (AddressBook::EntryList::const_iterator it = listEntry.begin(); it != listEntry.end(); ++it)
@@ -1004,9 +1057,9 @@ void qm::EditHeaderEditItem::getCandidates(const WCHAR* pwszInput,
 	std::sort(pList->begin(), pList->end(), string_less_i<WCHAR>());
 }
 
-void qm::EditHeaderEditItem::getCandidates(const WCHAR* pwszInput,
-										   const AddressBookEntry* pEntry,
-										   CandidateList* pList)
+void qm::AddressHeaderEditItem::getCandidates(const WCHAR* pwszInput,
+											  const AddressBookEntry* pEntry,
+											  CandidateList* pList)
 {
 	size_t nLen = wcslen(pwszInput);
 	bool bMatchName = isMatchName(pEntry->getName(), pwszInput, nLen);
@@ -1022,9 +1075,9 @@ void qm::EditHeaderEditItem::getCandidates(const WCHAR* pwszInput,
 	}
 }
 
-bool qm::EditHeaderEditItem::isMatchName(const WCHAR* pwszName,
-										 const WCHAR* pwszInput,
-										 size_t nInputLen)
+bool qm::AddressHeaderEditItem::isMatchName(const WCHAR* pwszName,
+											const WCHAR* pwszInput,
+											size_t nInputLen)
 {
 	if (_wcsnicmp(pwszName, pwszInput, nInputLen) == 0)
 		return true;
@@ -1774,19 +1827,37 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 		state_ = STATE_LINE;
 	}
 	else if (wcscmp(pwszLocalName, L"static") == 0 ||
-		wcscmp(pwszLocalName, L"edit") == 0) {
+		wcscmp(pwszLocalName, L"edit") == 0 ||
+		wcscmp(pwszLocalName, L"address") == 0) {
 		if (state_ != STATE_LINE)
 			return false;
 		
 		if (!bIgnore_) {
 			assert(pCurrentLine_);
 			
-			bool bEdit = wcscmp(pwszLocalName, L"edit") == 0;
+			enum Type {
+				TYPE_STATIC,
+				TYPE_EDIT,
+				TYPE_ADDRESS
+			};
+			Type type = TYPE_STATIC;
+			if (wcscmp(pwszLocalName, L"edit") == 0)
+				type = TYPE_EDIT;
+			else if (wcscmp(pwszLocalName, L"address") == 0)
+				type = TYPE_ADDRESS;
+			
 			std::auto_ptr<TextHeaderEditItem> pItem;
-			if (!bEdit)
+			switch (type) {
+			case TYPE_STATIC:
 				pItem.reset(new StaticHeaderEditItem(pController_));
-			else
+				break;
+			case TYPE_EDIT:
 				pItem.reset(new EditHeaderEditItem(pController_));
+				break;
+			case TYPE_ADDRESS:
+				pItem.reset(new AddressHeaderEditItem(pController_));
+				break;
+			}
 			
 			for (int n = 0; n < attributes.getLength(); ++n) {
 				const WCHAR* pwszAttrLocalName = attributes.getLocalName(n);
@@ -1799,7 +1870,7 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 				else if (wcscmp(pwszAttrLocalName, L"field") == 0) {
 					pItem->setField(attributes.getValue(n));
 				}
-				else if (wcscmp(pwszAttrLocalName, L"type") == 0) {
+				else if (wcscmp(pwszAttrLocalName, L"type") == 0 && type != TYPE_ADDRESS) {
 					pItem->setType(TextHeaderEditItem::parseType(attributes.getValue(n)));
 				}
 				else if (wcscmp(pwszAttrLocalName, L"number") == 0) {
@@ -1808,8 +1879,12 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 				else if (wcscmp(pwszAttrLocalName, L"initialFocus") == 0) {
 					pItem->setInitialFocus(wcscmp(attributes.getValue(n), L"true") == 0);
 				}
-				else if (wcscmp(pwszAttrLocalName, L"expandAlias") == 0 && bEdit) {
-					static_cast<EditHeaderEditItem*>(pItem.get())->setExpandAlias(
+				else if (wcscmp(pwszAttrLocalName, L"expandAlias") == 0 && type == TYPE_ADDRESS) {
+					static_cast<AddressHeaderEditItem*>(pItem.get())->setExpandAlias(
+						wcscmp(attributes.getValue(n), L"true") == 0);
+				}
+				else if (wcscmp(pwszAttrLocalName, L"autoComplete") == 0 && type == TYPE_ADDRESS) {
+					static_cast<AddressHeaderEditItem*>(pItem.get())->setAutoComplete(
 						wcscmp(attributes.getValue(n), L"true") == 0);
 				}
 				else {
@@ -1926,6 +2001,7 @@ bool qm::HeaderEditWindowContentHandler::endElement(const WCHAR* pwszNamespaceUR
 	}
 	else if (wcscmp(pwszLocalName, L"static") == 0 ||
 		wcscmp(pwszLocalName, L"edit") == 0 ||
+		wcscmp(pwszLocalName, L"address") == 0 ||
 		wcscmp(pwszLocalName, L"attachment") == 0 ||
 		wcscmp(pwszLocalName, L"signature") == 0 ||
 		wcscmp(pwszLocalName, L"account") == 0) {
