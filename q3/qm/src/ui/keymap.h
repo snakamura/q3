@@ -278,8 +278,11 @@ const qs::KeyNameToId mapKeyNameToId[] = {
 	{ L"ViewFilterNone",				IDM_VIEW_FILTERNONE,					0 },
 	{ L"ViewFocusNext",					IDM_VIEW_FOCUSNEXT,						0 },
 	{ L"ViewFocusPrev",					IDM_VIEW_FOCUSPREV,						0 },
+#ifdef QMHTMLVIEW
+	{ L"ViewHtmlInternetZoneMode",		IDM_VIEW_HTMLINTERNETZONEMODE,			0 },
 	{ L"ViewHtmlMode",					IDM_VIEW_HTMLMODE,						0 },
 	{ L"ViewHtmlOnlineMode",			IDM_VIEW_HTMLONLINEMODE,				0 },
+#endif
 	{ L"ViewLockPreview",				IDM_VIEW_LOCKPREVIEW,					0 },
 	{ L"ViewNextAccount",				IDM_VIEW_NEXTACCOUNT,					0 },
 	{ L"ViewNextFolder",				IDM_VIEW_NEXTFOLDER,					0 },

@@ -29,6 +29,7 @@
 		</columns>
 		<focus>0</focus>
 		<sort direction="ascending" thread="false">1</sort>
+		<mode quote="true"></mode>
 	</view>
 	<view class="news">
 		<columns>
@@ -60,6 +61,7 @@
 		</columns>
 		<focus>0</focus>
 		<sort direction="ascending" thread="false">1</sort>
+		<mode quote="true"></mode>
 	</view>
 	<view class="rss">
 		<columns>
@@ -86,5 +88,6 @@
 		</columns>
 		<focus>0</focus>
 		<sort direction="ascending" thread="false">1</sort>
+		<mode quote="true" htmlonline="true" internetzone="true"></mode>
 	</view>
 </views>

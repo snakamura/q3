@@ -508,6 +508,9 @@ LRESULT qm::HtmlMessageViewWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (FAILED(hr))
 		return -1;
 	
+	pSecurityManager_ = new IInternetSecurityManagerImpl();
+	pSecurityManager_->AddRef();
+	
 	pServiceProvider_ = new IServiceProviderImpl(this);
 	pServiceProvider_->AddRef();
 	hr = pSite->SetSite(static_cast<IServiceProvider*>(pServiceProvider_));
@@ -584,6 +587,10 @@ LRESULT qm::HtmlMessageViewWindow::onDestroy()
 	if (pServiceProvider_) {
 		pServiceProvider_->Release();
 		pServiceProvider_ = 0;
+	}
+	if (pSecurityManager_) {
+		pSecurityManager_->Release();
+		pSecurityManager_ = 0;
 	}
 	if (pWebBrowserEvents_) {
 		pWebBrowserEvents_->Release();
@@ -692,6 +699,8 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 			return false;
 		pControl->OnAmbientPropertyChange(DISPID_AMBIENT_DLCONTROL);
 	}
+	
+	pSecurityManager_->setInternetZone((nFlags & FLAG_INTERNETZONE) != 0);
 	
 	wstring_ptr wstrURL;
 	bool bClear = true;
@@ -1100,14 +1109,24 @@ HtmlMessageViewWindow::ContentManager& qm::HtmlMessageViewWindow::ContentManager
  *
  */
 
-qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::IInternetSecurityManagerImpl(bool bProhibitAll) :
+qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::IInternetSecurityManagerImpl() :
 	nRef_(0),
-	bProhibitAll_(bProhibitAll)
+	bInternetZone_(false)
 {
 }
 
 qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::~IInternetSecurityManagerImpl()
 {
+}
+
+bool qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::isInternetZone() const
+{
+	return bInternetZone_;
+}
+
+void qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::setInternetZone(bool bInternetZone)
+{
+	bInternetZone_ = bInternetZone;
 }
 
 STDMETHODIMP_(ULONG) qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::AddRef()
@@ -1153,7 +1172,7 @@ STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::MapUrlToZo
 	if (!pdwZone)
 		return E_INVALIDARG;
 	
-	*pdwZone = URLZONE_INTERNET;
+	*pdwZone = bInternetZone_ ? URLZONE_INTERNET : URLZONE_UNTRUSTED;
 	
 	return S_OK;
 }
@@ -1175,7 +1194,7 @@ STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::ProcessUrl
 																					   DWORD dwFlags,
 																					   DWORD dwReserved)
 {
-	if (bProhibitAll_) {
+	if (!bInternetZone_) {
 		if (cbPolicy < sizeof(DWORD))
 			return S_FALSE;
 		
@@ -1476,17 +1495,12 @@ STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocolFactory::LockServer(BOOL
 
 qm::HtmlMessageViewWindow::IServiceProviderImpl::IServiceProviderImpl(HtmlMessageViewWindow* pHtmlMessageViewWindow) :
 	nRef_(0),
-	pHtmlMessageViewWindow_(pHtmlMessageViewWindow),
-	pSecurityManager_(0)
+	pHtmlMessageViewWindow_(pHtmlMessageViewWindow)
 {
-	pSecurityManager_ = new IInternetSecurityManagerImpl(true);
-	pSecurityManager_->AddRef();
 }
 
 qm::HtmlMessageViewWindow::IServiceProviderImpl::~IServiceProviderImpl()
 {
-	if (pSecurityManager_)
-		pSecurityManager_->Release();
 }
 
 STDMETHODIMP_(ULONG) qm::HtmlMessageViewWindow::IServiceProviderImpl::AddRef()
@@ -1523,8 +1537,9 @@ STDMETHODIMP qm::HtmlMessageViewWindow::IServiceProviderImpl::QueryService(REFGU
 	
 	if (guidService == SID_SInternetSecurityManager &&
 		riid == IID_IInternetSecurityManager) {
-		pSecurityManager_->AddRef();
-		*ppv = static_cast<IInternetSecurityManager*>(pSecurityManager_);
+		IInternetSecurityManagerImpl* pSecurityManager = pHtmlMessageViewWindow_->pSecurityManager_;
+		pSecurityManager->AddRef();
+		*ppv = static_cast<IInternetSecurityManager*>(pSecurityManager);
 	}
 	
 	return *ppv ? S_OK : E_NOINTERFACE;

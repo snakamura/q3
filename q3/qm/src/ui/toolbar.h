@@ -251,8 +251,11 @@ const qs::ActionItem toolbarItems[] = {
 	{ L"ViewFilterNone",				IDM_VIEW_FILTERNONE							},
 	{ L"ViewFocusNext",					IDM_VIEW_FOCUSNEXT							},
 	{ L"ViewFocusPrev",					IDM_VIEW_FOCUSPREV							},
+#ifdef QMHTMLVIEW
+	{ L"ViewHtmlInternetZoneMode",		IDM_VIEW_HTMLINTERNETZONEMODE				},
 	{ L"ViewHtmlMode",					IDM_VIEW_HTMLMODE							},
 	{ L"ViewHtmlOnlineMode",			IDM_VIEW_HTMLONLINEMODE						},
+#endif
 	{ L"ViewLockPreview",				IDM_VIEW_LOCKPREVIEW						},
 	{ L"ViewNextAccount",				IDM_VIEW_NEXTACCOUNT						},
 	{ L"ViewNextFolder",				IDM_VIEW_NEXTFOLDER							},

@@ -63,7 +63,8 @@ public:
 	enum Flag {
 		FLAG_RAWMODE		= 0x01,
 		FLAG_INCLUDEHEADER	= 0x02,
-		FLAG_ONLINEMODE		= 0x04
+		FLAG_ONLINEMODE		= 0x04,
+		FLAG_INTERNETZONE	= 0x08
 	};
 
 public:
@@ -343,8 +344,12 @@ private:
 	class IInternetSecurityManagerImpl : public IInternetSecurityManager
 	{
 	public:
-		explicit IInternetSecurityManagerImpl(bool bProhibitAll);
+		IInternetSecurityManagerImpl();
 		~IInternetSecurityManagerImpl();
+	
+	public:
+		bool isInternetZone() const;
+		void setInternetZone(bool bInternetZone);
 	
 	public:
 		STDMETHOD_(ULONG, AddRef)();
@@ -390,7 +395,7 @@ private:
 	
 	private:
 		ULONG nRef_;
-		bool bProhibitAll_;
+		bool bInternetZone_;
 	};
 	
 	class InternetProtocol :
@@ -519,8 +524,8 @@ private:
 	private:
 		ULONG nRef_;
 		HtmlMessageViewWindow* pHtmlMessageViewWindow_;
-		IInternetSecurityManagerImpl* pSecurityManager_;
 	};
+	friend class IServiceProviderImpl;
 	
 	class IDocHostUIHandlerDispatchImpl : public IDocHostUIHandlerDispatch
 	{
@@ -839,6 +844,7 @@ private:
 	MessageViewWindowCallback* pCallback_;
 	IWebBrowser2* pWebBrowser_;
 	IServiceProviderImpl* pServiceProvider_;
+	IInternetSecurityManagerImpl* pSecurityManager_;
 	DWebBrowserEvents2Impl* pWebBrowserEvents_;
 	DWORD dwConnectionPointCookie_;
 	bool bAllowExternal_;

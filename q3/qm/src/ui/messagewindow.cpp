@@ -267,7 +267,8 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	
 	unsigned int nFlags = (bRawMode ? MessageViewWindow::FLAG_RAWMODE : 0) |
 		(!bShowHeaderWindow_ ? MessageViewWindow::FLAG_INCLUDEHEADER : 0) |
-		(pMode && pMode->isMode(MessageViewMode::MODE_HTMLONLINE) ? MessageViewWindow::FLAG_ONLINEMODE : 0);
+		(pMode && pMode->isMode(MessageViewMode::MODE_HTMLONLINE) ? MessageViewWindow::FLAG_ONLINEMODE : 0) |
+		(pMode && pMode->isMode(MessageViewMode::MODE_INTERNETZONE) ? MessageViewWindow::FLAG_INTERNETZONE : 0);
 	if (!pMessageViewWindow->setMessage(pmh, pmh ? &msg : 0,
 		pTemplate, pEncodingModel_->getEncoding(), nFlags, pSecurityModel_->getSecurityMode()))
 		return false;
@@ -328,6 +329,7 @@ void qm::MessageWindowImpl::messageViewModeChanged(const MessageViewModeEvent& e
 	case MessageViewMode::MODE_RAW:
 	case MessageViewMode::MODE_HTML:
 	case MessageViewMode::MODE_HTMLONLINE:
+	case MessageViewMode::MODE_INTERNETZONE:
 		{
 			MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
 			setMessage(mpl, false);

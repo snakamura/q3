@@ -412,6 +412,11 @@ void qm::MessageFrameWindowImpl::initActions()
 		SECURITYMODE_PGP,
 		Security::isPGPEnabled());
 	ADD_ACTION3(ViewMessageModeAction,
+		IDM_VIEW_HTMLINTERNETZONEMODE,
+		pMessageViewModeHolder_,
+		MessageViewMode::MODE_INTERNETZONE,
+		true);
+	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_HTMLMODE,
 		pMessageViewModeHolder_,
 		MessageViewMode::MODE_HTML,

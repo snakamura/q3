@@ -38,7 +38,8 @@ public:
 		MODE_HTML			= 0x02,
 		MODE_HTMLONLINE		= 0x04,
 		MODE_SELECT			= 0x08,
-		MODE_QUOTE			= 0x10
+		MODE_QUOTE			= 0x10,
+		MODE_INTERNETZONE	= 0x20
 	};
 
 public:
