@@ -1063,7 +1063,7 @@ public:
 	QueryFolder* pThis_;
 	WSTRING wstrDriver_;
 	WSTRING wstrCondition_;
-	Folder* pTargetFolder_;
+	WSTRING wstrTargetFolder_;
 	bool bRecursive_;
 	MessageHolderList listMessageHolder_;
 	unsigned int nUnseenCount_;
@@ -1129,26 +1129,18 @@ qm::QueryFolder::QueryFolder(const Init& init, QSTATUS* pstatus) :
 	if (*pstatus != QSTATUS_SUCCESS)
 		return;
 	
-	string_ptr<WSTRING> wstrDriver(allocWString(init.pwszDriver_));
-	if (!wstrDriver.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
-	
-	string_ptr<WSTRING> wstrCondition(allocWString(init.pwszCondition_));
-	if (!wstrCondition.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
-	
 	status = newObject(&pImpl_);
 	CHECK_QSTATUS_SET(pstatus);
 	pImpl_->pThis_ = this;
-	pImpl_->wstrDriver_ = wstrDriver.release();
-	pImpl_->wstrCondition_ = wstrCondition.release();
-	pImpl_->pTargetFolder_ = init.pTargetFolder_;
-	pImpl_->bRecursive_ = init.bRecursive_;
+	pImpl_->wstrDriver_ = 0;
+	pImpl_->wstrCondition_ = 0;
+	pImpl_->wstrTargetFolder_ = 0;
+	pImpl_->bRecursive_ = false;
 	pImpl_->nUnseenCount_ = 0;
+	
+	status = set(init.pwszDriver_, init.pwszCondition_,
+		init.pwszTargetFolder_, init.bRecursive_);
+	CHECK_QSTATUS_SET(pstatus);
 	
 	status = getAccount()->addMessageHolderHandler(pImpl_);
 	CHECK_QSTATUS_SET(pstatus);
@@ -1160,6 +1152,7 @@ qm::QueryFolder::~QueryFolder()
 		getAccount()->removeMessageHolderHandler(pImpl_);
 		freeWString(pImpl_->wstrDriver_);
 		freeWString(pImpl_->wstrCondition_);
+		freeWString(pImpl_->wstrTargetFolder_);
 		delete pImpl_;
 	}
 }
@@ -1174,9 +1167,9 @@ const WCHAR* qm::QueryFolder::getCondition() const
 	return pImpl_->wstrCondition_;
 }
 
-Folder* qm::QueryFolder::getTargetFolder() const
+const WCHAR* qm::QueryFolder::getTargetFolder() const
 {
-	return pImpl_->pTargetFolder_;
+	return pImpl_->wstrTargetFolder_;
 }
 
 bool qm::QueryFolder::isRecursive() const
@@ -1185,8 +1178,12 @@ bool qm::QueryFolder::isRecursive() const
 }
 
 QSTATUS qm::QueryFolder::set(const WCHAR* pwszDriver,
-	const WCHAR* pwszCondition, Folder* pTargetFolder, bool bRecursive)
+	const WCHAR* pwszCondition, const WCHAR* pwszTargetFolder, bool bRecursive)
 {
+	assert(pwszDriver);
+	assert(pwszCondition);
+	assert(!pwszTargetFolder || *pwszTargetFolder);
+	
 	string_ptr<WSTRING> wstrDriver(allocWString(pwszDriver));
 	if (!wstrDriver.get())
 		return QSTATUS_OUTOFMEMORY;
@@ -1195,11 +1192,19 @@ QSTATUS qm::QueryFolder::set(const WCHAR* pwszDriver,
 	if (!wstrCondition.get())
 		return QSTATUS_OUTOFMEMORY;
 	
+	string_ptr<WSTRING> wstrTargetFolder;
+	if (pwszTargetFolder) {
+		wstrTargetFolder.reset(allocWString(pwszTargetFolder));
+		if (!wstrTargetFolder.get())
+			return QSTATUS_OUTOFMEMORY;
+	}
+	
 	freeWString(pImpl_->wstrDriver_);
 	pImpl_->wstrDriver_ = wstrDriver.release();
 	freeWString(pImpl_->wstrCondition_);
 	pImpl_->wstrCondition_ = wstrCondition.release();
-	pImpl_->pTargetFolder_ = pTargetFolder;
+	freeWString(pImpl_->wstrTargetFolder_);
+	pImpl_->wstrTargetFolder_ = wstrTargetFolder.release();
 	pImpl_->bRecursive_ = bRecursive;
 	
 	return QSTATUS_SUCCESS;
@@ -1222,7 +1227,7 @@ QSTATUS qm::QueryFolder::search(Document* pDocument,
 		return QSTATUS_SUCCESS;
 	
 	SearchContext context(pImpl_->wstrCondition_,
-		pImpl_->pTargetFolder_, pImpl_->bRecursive_, &status);
+		pImpl_->wstrTargetFolder_, pImpl_->bRecursive_, &status);
 	CHECK_QSTATUS();
 	status = pDriver->search(context, &pImpl_->listMessageHolder_);
 	CHECK_QSTATUS();

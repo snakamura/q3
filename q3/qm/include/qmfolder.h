@@ -216,7 +216,7 @@ public:
 	{
 		const WCHAR* pwszDriver_;
 		const WCHAR* pwszCondition_;
-		Folder* pTargetFolder_;
+		const WCHAR* pwszTargetFolder_;
 		bool bRecursive_;
 	};
 
@@ -227,10 +227,10 @@ public:
 public:
 	const WCHAR* getDriver() const;
 	const WCHAR* getCondition() const;
-	Folder* getTargetFolder() const;
+	const WCHAR* getTargetFolder() const;
 	bool isRecursive() const;
 	qs::QSTATUS set(const WCHAR* pwszDriver, const WCHAR* pwszCondition,
-		Folder* pTargetFolder, bool bRecursive);
+		const WCHAR* pwszTargetFolder, bool bRecursive);
 	qs::QSTATUS search(Document* pDocument, HWND hwnd, qs::Profile* pProfile);
 
 public:

@@ -148,7 +148,7 @@ QSTATUS qm::AccountImpl::loadFolders()
 		init.pAccount_ = pThis_;
 		init.pwszDriver_ = L"macro";
 		init.pwszCondition_ = L"@False()";
-		init.pTargetFolder_ = 0;
+		init.pwszTargetFolder_ = 0;
 		init.bRecursive_ = false;
 		std::auto_ptr<QueryFolder> pFolder;
 		status = newQsObject(init, &pFolder);
@@ -1088,16 +1088,8 @@ QSTATUS qm::Account::getFolder(const WCHAR* pwszName, Folder** ppFolder) const
 
 Folder* qm::Account::getFolder(Folder* pParent, const WCHAR* pwszName) const
 {
-	const FolderList& l = pImpl_->listFolder_;
-//	FolderList::const_iterator it = l.begin();
-//	while (it != l.end()) {
-//		if ((*it)->getParentFolder() == pParent &&
-//			wcscmp((*it)->getName(), pwszName) == 0)
-//			break;
-//		++it;
-//	}
 	FolderList::const_iterator it = std::find_if(
-		l.begin(), l.end(),
+		pImpl_->listFolder_.begin(), pImpl_->listFolder_.end(),
 		unary_compose_f_gx_hy(
 			binary_and_t<bool>(),
 			std::bind2nd(
@@ -1112,7 +1104,7 @@ Folder* qm::Account::getFolder(Folder* pParent, const WCHAR* pwszName) const
 					std::mem_fun(&Folder::getName),
 					std::identity<const WCHAR*>()),
 				pwszName)));
-	return it != l.end() ? *it : 0;
+	return it != pImpl_->listFolder_.end() ? *it : 0;
 }
 
 Folder* qm::Account::getFolderById(unsigned int nId) const
@@ -1201,7 +1193,7 @@ QSTATUS qm::Account::createNormalFolder(const WCHAR* pwszName,
 
 QSTATUS qm::Account::createQueryFolder(const WCHAR* pwszName,
 	Folder* pParent, const WCHAR* pwszDriver, const WCHAR* pwszCondition,
-	NormalFolder* pTargetFolder, bool bRecursive, QueryFolder** ppFolder)
+	const WCHAR* pwszTargetFolder, bool bRecursive, QueryFolder** ppFolder)
 {
 	DECLARE_QSTATUS();
 	
@@ -1219,7 +1211,7 @@ QSTATUS qm::Account::createQueryFolder(const WCHAR* pwszName,
 	init.pAccount_ = this;
 	init.pwszDriver_ = pwszDriver;
 	init.pwszCondition_ = pwszCondition;
-	init.pTargetFolder_ = pTargetFolder;
+	init.pwszTargetFolder_ = pwszTargetFolder;
 	init.bRecursive_ = bRecursive;
 	std::auto_ptr<QueryFolder> pFolder;
 	status = newQsObject(init, &pFolder);
@@ -2470,7 +2462,7 @@ qm::FolderContentHandler::FolderContentHandler(Account* pAccount,
 	nDeletedCount_(0),
 	wstrDriver_(0),
 	wstrCondition_(0),
-	nTargetFolderId_(0),
+	wstrTargetFolder_(0),
 	bRecursive_(false),
 	pBuffer_(0)
 {
@@ -2485,6 +2477,7 @@ qm::FolderContentHandler::~FolderContentHandler()
 	freeWString(wstrName_);
 	freeWString(wstrDriver_);
 	freeWString(wstrCondition_);
+	freeWString(wstrTargetFolder_);
 	delete pBuffer_;
 }
 
@@ -2621,12 +2614,10 @@ QSTATUS qm::FolderContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		init.pAccount_ = pAccount_;
 		init.pwszDriver_ = wstrDriver_;
 		init.pwszCondition_ = wstrCondition_;
-		init.pTargetFolder_ = 0;
+		init.pwszTargetFolder_ = wstrTargetFolder_;
 		init.bRecursive_ = bRecursive_;
 		if (nParentId_ != 0)
 			init.pParentFolder_ = getFolder(nParentId_);
-		if (nTargetFolderId_ != 0)
-			init.pTargetFolder_ = getFolder(nTargetFolderId_);
 		
 		std::auto_ptr<QueryFolder> pFolder;
 		status = newQsObject(init, &pFolder);
@@ -2641,6 +2632,8 @@ QSTATUS qm::FolderContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		wstrDriver_ = 0;
 		freeWString(wstrCondition_);
 		wstrCondition_ = 0;
+		freeWString(wstrTargetFolder_);
+		wstrTargetFolder_ = 0;
 		
 		state_ = STATE_FOLDERS;
 	}
@@ -2753,9 +2746,12 @@ QSTATUS qm::FolderContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 	}
 	else if (wcscmp(pwszLocalName, L"targetFolder") == 0) {
 		assert(state_ == STATE_TARGETFOLDER);
+		assert(!bNormal_);
 		
-		status = getNumber(&nTargetFolderId_);
-		CHECK_QSTATUS();
+		assert(!wstrTargetFolder_);
+		string_ptr<WSTRING> wstrTargetFolder(pBuffer_->getString());
+		if (*wstrTargetFolder.get())
+			wstrTargetFolder_ = wstrTargetFolder.release();
 		
 		state_ = STATE_QUERYFOLDER;
 	}
@@ -2934,8 +2930,10 @@ QSTATUS qm::FolderWriter::write(const Account::FolderList& l)
 				CHECK_QSTATUS();
 				status = writeString(L"condition", pQueryFolder->getCondition(), -1);
 				CHECK_QSTATUS();
-				Folder* pTargetFolder = pQueryFolder->getTargetFolder();
-				status = writeNumber(L"targetFolder", pTargetFolder ? pTargetFolder->getId() : 0);
+				const WCHAR* pwszTargetFolder = pQueryFolder->getTargetFolder();
+				if (!pwszTargetFolder)
+					pwszTargetFolder = L"";
+				status = writeString(L"targetFolder", pwszTargetFolder, -1);
 				CHECK_QSTATUS();
 				status = writeNumber(L"recursive", pQueryFolder->isRecursive());
 				CHECK_QSTATUS();

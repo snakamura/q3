@@ -153,13 +153,13 @@ public:
 	typedef std::vector<NormalFolder*> FolderList;
 
 public:
-	SearchContext(const WCHAR* pwszCondition, Folder* pTargetFolder,
+	SearchContext(const WCHAR* pwszCondition, const WCHAR* pwszTargetFolder,
 		bool bRecursive, qs::QSTATUS* pstatus);
 	~SearchContext();
 
 public:
 	const WCHAR* getCondition() const;
-	Folder* getTargetFolder() const;
+	const WCHAR* getTargetFolder() const;
 	bool isRecursive() const;
 	qs::QSTATUS getTargetFolders(Account* pAccount, FolderList* pList) const;
 
@@ -169,7 +169,7 @@ private:
 
 private:
 	qs::WSTRING wstrCondition_;
-	Folder* pTargetFolder_;
+	qs::WSTRING wstrTargetFolder_;
 	bool bRecursive_;
 };
 

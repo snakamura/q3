@@ -3225,8 +3225,14 @@ QSTATUS qm::MessageSearchAction::invoke(const ActionEvent& event)
 			if (*pwszCondition) {
 				WaitCursor cursor;
 				
+				string_ptr<WSTRING> wstrFolder;
+				if (!pPage->isAllFolder()) {
+					status = pFolder->getFullName(&wstrFolder);
+					CHECK_QSTATUS();
+				}
+				
 				status = pSearch->set(pPage->getDriver(), pwszCondition,
-					pPage->isAllFolder() ? 0 : pFolder, pPage->isRecursive());
+					wstrFolder.get(), pPage->isRecursive());
 				CHECK_QSTATUS();
 				if (pFolder == pSearch) {
 					status = pSearch->search(pDocument_, hwnd_, pProfile_);

@@ -130,7 +130,7 @@ private:
 	unsigned int nDeletedCount_;
 	qs::WSTRING wstrDriver_;
 	qs::WSTRING wstrCondition_;
-	unsigned int nTargetFolderId_;
+	qs::WSTRING wstrTargetFolder_;
 	bool bRecursive_;
 	qs::StringBuffer<qs::WSTRING>* pBuffer_;
 };

@@ -123,7 +123,7 @@ public:
 		Folder* pParent, bool bRemote, NormalFolder** ppFolder);
 	qs::QSTATUS createQueryFolder(const WCHAR* pwszName, Folder* pParent,
 		const WCHAR* pwszDriver, const WCHAR* pwszCondition,
-		NormalFolder* pTargetFolder, bool bRecursive, QueryFolder** ppFolder);
+		const WCHAR* pwszTargetFolder, bool bRecursive, QueryFolder** ppFolder);
 	qs::QSTATUS removeFolder(Folder* pFolder);
 	qs::QSTATUS renameFolder(Folder* pFolder, const WCHAR* pwszName);
 	qs::QSTATUS showFolder(Folder* pFolder, bool bShow);

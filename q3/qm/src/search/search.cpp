@@ -212,9 +212,9 @@ QSTATUS qm::SearchDriverFactory::unregist(const WCHAR* pwszName)
  */
 
 qm::SearchContext::SearchContext(const WCHAR* pwszCondition,
-	Folder* pTargetFolder, bool bRecursive, QSTATUS* pstatus) :
+	const WCHAR* pwszTargetFolder, bool bRecursive, QSTATUS* pstatus) :
 	wstrCondition_(0),
-	pTargetFolder_(pTargetFolder),
+	wstrTargetFolder_(0),
 	bRecursive_(bRecursive)
 {
 	string_ptr<WSTRING> wstrCondition(allocWString(pwszCondition));
@@ -222,12 +222,24 @@ qm::SearchContext::SearchContext(const WCHAR* pwszCondition,
 		*pstatus = QSTATUS_OUTOFMEMORY;
 		return;
 	}
+	
+	string_ptr<WSTRING> wstrTargetFolder;
+	if (pwszTargetFolder) {
+		wstrTargetFolder.reset(allocWString(pwszTargetFolder));
+		if (!wstrTargetFolder.get()) {
+			*pstatus = QSTATUS_OUTOFMEMORY;
+			return;
+		}
+	}
+	
 	wstrCondition_ = wstrCondition.release();
+	wstrTargetFolder_ = wstrTargetFolder.release();
 }
 
 qm::SearchContext::~SearchContext()
 {
 	freeWString(wstrCondition_);
+	freeWString(wstrTargetFolder_);
 }
 
 const WCHAR* qm::SearchContext::getCondition() const
@@ -235,9 +247,9 @@ const WCHAR* qm::SearchContext::getCondition() const
 	return wstrCondition_;
 }
 
-Folder* qm::SearchContext::getTargetFolder() const
+const WCHAR* qm::SearchContext::getTargetFolder() const
 {
-	return pTargetFolder_;
+	return wstrTargetFolder_;
 }
 
 bool qm::SearchContext::isRecursive() const
@@ -253,7 +265,13 @@ QSTATUS qm::SearchContext::getTargetFolders(
 	
 	DECLARE_QSTATUS();
 	
-	if (pTargetFolder_) {
+	Folder* pTargetFolder = 0;
+	if (wstrTargetFolder_) {
+		status = pAccount->getFolder(wstrTargetFolder_, &pTargetFolder);
+		CHECK_QSTATUS();
+	}
+	
+	if (pTargetFolder) {
 		if (bRecursive_) {
 			const Account::FolderList& l = pAccount->getFolders();
 			Account::FolderList::const_iterator it = l.begin();
@@ -262,8 +280,8 @@ QSTATUS qm::SearchContext::getTargetFolders(
 				
 				if (pFolder->getType() == Folder::TYPE_NORMAL &&
 					!pFolder->isHidden() &&
-					(pFolder == pTargetFolder_ ||
-					pTargetFolder_->isAncestorOf(pFolder))) {
+					(pFolder == pTargetFolder ||
+					pTargetFolder->isAncestorOf(pFolder))) {
 					status = STLWrapper<FolderList>(*pList).push_back(
 						static_cast<NormalFolder*>(pFolder));
 					CHECK_QSTATUS();
@@ -273,9 +291,9 @@ QSTATUS qm::SearchContext::getTargetFolders(
 			}
 		}
 		else {
-			if (pTargetFolder_->getType() == Folder::TYPE_NORMAL) {
+			if (pTargetFolder->getType() == Folder::TYPE_NORMAL) {
 				status = STLWrapper<FolderList>(*pList).push_back(
-					static_cast<NormalFolder*>(pTargetFolder_));
+					static_cast<NormalFolder*>(pTargetFolder));
 				CHECK_QSTATUS();
 			}
 		}

@@ -197,7 +197,7 @@ public:
 public:
 	const WCHAR* getDriver() const;
 	const WCHAR* getCondition() const;
-	Folder* getTargetFolder() const;
+	const WCHAR* getTargetFolder() const;
 	bool isRecursive() const;
 
 protected:
@@ -224,7 +224,7 @@ private:
 	Account::FolderList listFolder_;
 	int nDriver_;
 	qs::WSTRING wstrCondition_;
-	Folder* pTargetFolder_;
+	qs::WSTRING wstrTargetFolder_;
 	bool bRecursive_;
 };
 

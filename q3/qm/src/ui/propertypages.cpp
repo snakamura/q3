@@ -412,7 +412,7 @@ qm::FolderConditionPage::FolderConditionPage(QueryFolder* pFolder,
 	pProfile_(pProfile),
 	nDriver_(0),
 	wstrCondition_(0),
-	pTargetFolder_(0),
+	wstrTargetFolder_(0),
 	bRecursive_(false)
 {
 }
@@ -421,6 +421,7 @@ qm::FolderConditionPage::~FolderConditionPage()
 {
 	std::for_each(listUI_.begin(), listUI_.end(), deleter<SearchUI>());
 	freeWString(wstrCondition_);
+	freeWString(wstrTargetFolder_);
 }
 
 const WCHAR* qm::FolderConditionPage::getDriver() const
@@ -433,9 +434,9 @@ const WCHAR* qm::FolderConditionPage::getCondition() const
 	return wstrCondition_;
 }
 
-Folder* qm::FolderConditionPage::getTargetFolder() const
+const WCHAR* qm::FolderConditionPage::getTargetFolder() const
 {
-	return pTargetFolder_;
+	return wstrTargetFolder_;
 }
 
 bool qm::FolderConditionPage::isRecursive() const
@@ -464,7 +465,8 @@ LRESULT qm::FolderConditionPage::onOk()
 	nDriver_ = sendDlgItemMessage(IDC_DRIVER, CB_GETCURSEL);
 	wstrCondition_ = getDlgItemText(IDC_CONDITION);
 	int nFolder = sendDlgItemMessage(IDC_FOLDER, CB_GETCURSEL);
-	pTargetFolder_ = nFolder == 0 ? 0 : listFolder_[nFolder];
+	if (nFolder != 0)
+		listFolder_[nFolder - 1]->getFullName(&wstrTargetFolder_);
 	bRecursive_ = sendDlgItemMessage(IDC_RECURSIVE, BM_GETCHECK) == BST_CHECKED;
 	
 	return DefaultPropertyPage::onOk();
@@ -531,6 +533,13 @@ QSTATUS qm::FolderConditionPage::initFolder()
 	std::copy(l.begin(), l.end(), listFolder_.begin());
 	std::sort(listFolder_.begin(), listFolder_.end(), FolderLess());
 	
+	Folder* pTargetFolder = 0;
+	const WCHAR* pwszTargetFolder = pFolder_->getTargetFolder();
+	if (pwszTargetFolder) {
+		status = pAccount->getFolder(pwszTargetFolder, &pTargetFolder);
+		CHECK_QSTATUS();
+	}
+	
 	int nIndex = 0;
 	for (Account::FolderList::size_type n = 0; n < listFolder_.size(); ++n) {
 		Folder* pFolder = listFolder_[n];
@@ -550,7 +559,7 @@ QSTATUS qm::FolderConditionPage::initFolder()
 		sendDlgItemMessage(IDC_FOLDER, CB_ADDSTRING, 0,
 			reinterpret_cast<LPARAM>(ptszName));
 		
-		if (pFolder_->getTargetFolder() == pFolder)
+		if (pTargetFolder == pFolder)
 			nIndex = n + 1;
 	}
 	sendDlgItemMessage(IDC_FOLDER, CB_SETCURSEL, nIndex);
