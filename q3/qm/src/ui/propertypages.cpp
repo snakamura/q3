@@ -161,7 +161,7 @@ LRESULT qm::AccountDetailPage::onInitDialog(HWND hwndFocus,
 		sendDlgItemMessage(IDC_RECEIVENOSECURE, BM_SETCHECK, BST_CHECKED);
 		break;
 	}
-	sendDlgItemMessage(IDC_RECEIVELOG,
+	sendDlgItemMessage(IDC_RECEIVELOG, BM_SETCHECK,
 		pSubAccount_->isLog(Account::HOST_RECEIVE) ? BST_CHECKED : BST_UNCHECKED);
 	
 	setDlgItemInt(IDC_SENDPORT, pSubAccount_->getPort(Account::HOST_SEND));
@@ -176,7 +176,7 @@ LRESULT qm::AccountDetailPage::onInitDialog(HWND hwndFocus,
 		sendDlgItemMessage(IDC_SENDNOSECURE, BM_SETCHECK, BST_CHECKED);
 		break;
 	}
-	sendDlgItemMessage(IDC_SENDLOG,
+	sendDlgItemMessage(IDC_SENDLOG, BM_SETCHECK,
 		pSubAccount_->isLog(Account::HOST_SEND) ? BST_CHECKED : BST_UNCHECKED);
 	
 	if (!pReceiveUI_->isSupported(ReceiveSessionUI::SUPPORT_HOST)) {
