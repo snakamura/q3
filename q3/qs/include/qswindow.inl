@@ -766,6 +766,9 @@ IMPLEMENT_DEFAULTPROC2(CopyData, HWND, COPYDATASTRUCT*,
 IMPLEMENT_DEFAULTPROC1(Create, CREATESTRUCT*,
 	WM_CREATE, 0, reinterpret_cast<LPARAM>(arg1))
 
+IMPLEMENT_DEFAULTPROC2(CtlColorEdit, HDC, HWND,
+	WM_CTLCOLOREDIT, reinterpret_cast<WPARAM>(arg1), reinterpret_cast<LPARAM>(arg2))
+
 IMPLEMENT_DEFAULTPROC2(CtlColorStatic, HDC, HWND,
 	WM_CTLCOLORSTATIC, reinterpret_cast<WPARAM>(arg1), reinterpret_cast<LPARAM>(arg2))
 

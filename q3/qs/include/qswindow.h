@@ -796,6 +796,12 @@ public:
 		lResult = onCreate(reinterpret_cast<CREATESTRUCT*>(lParam)); \
 		break; \
 
+#define HANDLE_CTLCOLOREDIT() \
+	case WM_CTLCOLOREDIT: \
+		lResult = onCtlColorEdit(reinterpret_cast<HDC>(wParam), \
+			reinterpret_cast<HWND>(lParam)); \
+		break; \
+
 #define HANDLE_CTLCOLORSTATIC() \
 	case WM_CTLCOLORSTATIC: \
 		lResult = onCtlColorStatic(reinterpret_cast<HDC>(wParam), \
@@ -1148,6 +1154,8 @@ protected:
 	LRESULT onCopyData(HWND hwnd,
 					   COPYDATASTRUCT* pData);
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
+	LRESULT onCtlColorEdit(HDC hdc,
+						   HWND hwnd);
 	LRESULT onCtlColorStatic(HDC hdc,
 							 HWND hwnd);
 	LRESULT onCut();
