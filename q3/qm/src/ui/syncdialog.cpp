@@ -1343,10 +1343,7 @@ void qm::SyncDialogThread::run()
 		} set(pEvent_.get());
 		
 		pDialog.reset(new SyncDialog(pProfile_, pPasswordManager_));
-		Window wnd(Window::getForegroundWindow());
 		pDialog->create(0);
-		if (wnd)
-			wnd.setForegroundWindow();
 		pDialog_ = pDialog.get();
 	}
 	
