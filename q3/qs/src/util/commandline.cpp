@@ -72,7 +72,7 @@ bool qs::CommandLine::parse(Reader* pReader)
 		if (c == L'\"') {
 			bInQuote = !bInQuote;
 		}
-		else if (c == L'\\') {
+		else if (c == L'^') {
 			nRead = pReader->read(&c, 1);
 			if (nRead == -1)
 				return false;
