@@ -1,5 +1,5 @@
 /*
- * $Id: file.cpp,v 1.1.1.1 2003/04/29 08:07:35 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -807,5 +807,101 @@ QSTATUS qs::DividedFile::getSize(size_t* pnSize)
 	assert(false);
 	assert(pnSize);
 	*pnSize = 0;
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * TemporaryFileRenamer
+ *
+ */
+
+qs::TemporaryFileRenamer::TemporaryFileRenamer(
+	const WCHAR* pwszPath, QSTATUS* pstatus) :
+	wstrOriginalPath_(0),
+	wstrTemporaryPath_(0),
+#ifndef UNICODE
+	tstrOriginalPath_(0),
+	tstrTemporaryPath_(0),
+#endif
+	bRenamed_(false)
+{
+	string_ptr<WSTRING> wstrOriginalPath(allocWString(pwszPath));
+	if (!wstrOriginalPath.get()) {
+		*pstatus = QSTATUS_OUTOFMEMORY;
+		return;
+	}
+	
+	string_ptr<WSTRING> wstrTemporaryPath(concat(pwszPath, L".tmp"));
+	if (!wstrTemporaryPath.get()) {
+		*pstatus = QSTATUS_OUTOFMEMORY;
+		return;
+	}
+	
+#ifndef UNICODE
+	string_ptr<TSTRING> tstrOriginalPath(wcs2tcs(wstrOriginalPath.get()));
+	if (!tstrOriginalPath.get()) {
+		*pstatus = QSTATUS_OUTOFMEMORY;
+		return;
+	}
+	
+	string_ptr<TSTRING> tstrTemporaryPath(wcs2tcs(wstrTemporaryPath.get()));
+	if (!tstrTemporaryPath.get()) {
+		*pstatus = QSTATUS_OUTOFMEMORY;
+		return;
+	}
+#endif
+	
+	wstrOriginalPath_ = wstrOriginalPath.release();
+	wstrTemporaryPath_ = wstrTemporaryPath.release();
+#ifndef UNICODE
+	tstrOriginalPath_ = tstrOriginalPath.release();
+	tstrTemporaryPath_ = tstrTemporaryPath.release();
+#endif
+}
+
+qs::TemporaryFileRenamer::~TemporaryFileRenamer()
+{
+	if (!bRenamed_) {
+#ifdef UNICODE
+		const TCHAR* ptszPath = wstrTempoaryPath_;
+#else
+		const TCHAR* ptszPath = tstrTemporaryPath_;
+#endif
+		::DeleteFile(ptszPath);
+	}
+	
+	freeWString(wstrOriginalPath_);
+	freeWString(wstrTemporaryPath_);
+#ifndef UNICODE
+	freeTString(tstrOriginalPath_);
+	freeTString(tstrTemporaryPath_);
+#endif
+}
+
+const WCHAR* qs::TemporaryFileRenamer::getPath() const
+{
+	return wstrTemporaryPath_;
+}
+
+QSTATUS qs::TemporaryFileRenamer::rename()
+{
+#ifdef UNICODE
+	const TCHAR* ptszOriginalPath = wstrOriginalPath_;
+	const TCHAR* ptszTemporaryPath = wstrTempoaryPath_;
+#else
+	const TCHAR* ptszOriginalPath = tstrOriginalPath_;
+	const TCHAR* ptszTemporaryPath = tstrTemporaryPath_;
+#endif
+	if (::GetFileAttributes(ptszOriginalPath) != 0xffffffff) {
+		if (!::DeleteFile(ptszOriginalPath))
+			return QSTATUS_FAIL;
+	}
+	if (!::MoveFile(ptszTemporaryPath, ptszOriginalPath))
+		return QSTATUS_FAIL;
+	
+	bRenamed_ = true;
+	
 	return QSTATUS_SUCCESS;
 }

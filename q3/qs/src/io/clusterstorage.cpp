@@ -1,5 +1,5 @@
 /*
- * $Id: clusterstorage.cpp,v 1.1.1.1 2003/04/29 08:07:35 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -95,9 +95,11 @@ QSTATUS qs::ClusterStorageImpl::saveMap() const
 	if (!wstrPath.get())
 		return QSTATUS_OUTOFMEMORY;
 	
-	FileOutputStream fileStream(wstrPath.get(), &status);
+	TemporaryFileRenamer renamer(wstrPath.get(), &status);
 	CHECK_QSTATUS();
 	
+	FileOutputStream fileStream(renamer.getPath(), &status);
+	CHECK_QSTATUS();
 	BufferedOutputStream stream(&fileStream, false, &status);
 	CHECK_QSTATUS();
 	
@@ -108,6 +110,12 @@ QSTATUS qs::ClusterStorageImpl::saveMap() const
 		CHECK_QSTATUS();
 		++it;
 	}
+	
+	status = stream.close();
+	CHECK_QSTATUS();
+	
+	status = renamer.rename();
+	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
 }

@@ -1,5 +1,5 @@
 /*
- * $Id: offlinejob.cpp,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -12,6 +12,7 @@
 #include <qsassert.h>
 #include <qsconv.h>
 #include <qserror.h>
+#include <qsfile.h>
 #include <qsnew.h>
 #include <qsstl.h>
 #include <qsstream.h>
@@ -161,7 +162,10 @@ QSTATUS qmimap4::OfflineJobManager::save(const WCHAR* pwszPath) const
 	if (!wstrPath.get())
 		return QSTATUS_OUTOFMEMORY;
 	
-	FileOutputStream stream(wstrPath.get(), &status);
+	TemporaryFileRenamer renamer(wstrPath.get(), &status);
+	CHECK_QSTATUS();
+	
+	FileOutputStream stream(renamer.getPath(), &status);
 	CHECK_QSTATUS();
 	BufferedOutputStream bufferedStream(&stream, false, &status);
 	CHECK_QSTATUS();
@@ -176,6 +180,9 @@ QSTATUS qmimap4::OfflineJobManager::save(const WCHAR* pwszPath) const
 	}
 	
 	status = bufferedStream.close();
+	CHECK_QSTATUS();
+	
+	status = renamer.rename();
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;

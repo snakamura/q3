@@ -1,5 +1,5 @@
 /*
- * $Id: folder.cpp,v 1.3 2003/05/18 02:52:35 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -12,13 +12,14 @@
 #include <qmmessage.h>
 #include <qmmessageholder.h>
 
-#include <qserror.h>
 #include <qsassert.h>
-#include <qsnew.h>
-#include <qsthread.h>
-#include <qsstream.h>
-#include <qsstl.h>
 #include <qsconv.h>
+#include <qserror.h>
+#include <qsfile.h>
+#include <qsnew.h>
+#include <qsstl.h>
+#include <qsstream.h>
+#include <qsthread.h>
 
 #include <memory>
 #include <algorithm>
@@ -376,10 +377,6 @@ public:
 	typedef Folder::MessageHolderList MessageHolderList;
 
 public:
-	QSTATUS getInputStream(std::auto_ptr<InputStream>* papStream) const;
-	QSTATUS getOutputStream(std::auto_ptr<OutputStream>* papStream) const;
-	
-private:
 	QSTATUS getPath(WSTRING* pwstrPath) const;
 
 public:
@@ -391,59 +388,6 @@ public:
 	MessageHolderList listMessageHolder_;
 	bool bLoad_;
 };
-
-QSTATUS qm::NormalFolderImpl::getInputStream(
-	std::auto_ptr<InputStream>* papStream) const
-{
-	assert(papStream);
-	assert(!papStream->get());
-	
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrPath;
-	status = getPath(&wstrPath);
-	CHECK_QSTATUS();
-	
-	W2T(wstrPath.get(), ptszPath);
-	if (::GetFileAttributes(ptszPath) == 0xffffffff)
-		return QSTATUS_SUCCESS;
-	
-	std::auto_ptr<FileInputStream> pFileStream;
-	status = newQsObject(wstrPath.get(), &pFileStream);
-	CHECK_QSTATUS();
-	
-	std::auto_ptr<BufferedInputStream> pBufferedStream;
-	status = newQsObject(pFileStream.get(), true, &pBufferedStream);
-	CHECK_QSTATUS();
-	pFileStream.release();
-	
-	*papStream = pBufferedStream;
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::NormalFolderImpl::getOutputStream(
-	std::auto_ptr<OutputStream>* papStream) const
-{
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrPath;
-	status = getPath(&wstrPath);
-	CHECK_QSTATUS();
-	
-	std::auto_ptr<FileOutputStream> pFileStream;
-	status = newQsObject(wstrPath.get(), &pFileStream);
-	CHECK_QSTATUS();
-	
-	std::auto_ptr<BufferedOutputStream> pBufferedStream;
-	status = newQsObject(pFileStream.get(), true, &pBufferedStream);
-	CHECK_QSTATUS();
-	pFileStream.release();
-	
-	*papStream = pBufferedStream;
-	
-	return QSTATUS_SUCCESS;
-}
 
 QSTATUS qm::NormalFolderImpl::getPath(WSTRING* pwstrPath) const
 {
@@ -716,17 +660,22 @@ QSTATUS qm::NormalFolder::loadMessageHolders()
 	pImpl_->nUnseenCount_ = 0;
 	pImpl_->nDownloadCount_ = 0;
 	
-	std::auto_ptr<InputStream> pStream;
-	status = pImpl_->getInputStream(&pStream);
+	string_ptr<WSTRING> wstrPath;
+	status = pImpl_->getPath(&wstrPath);
 	CHECK_QSTATUS();
 	
-	if (pStream.get()) {
-		STLWrapper<MessageHolderList> wrapper(
-			pImpl_->listMessageHolder_);
+	W2T(wstrPath.get(), ptszPath);
+	if (::GetFileAttributes(ptszPath) != 0xffffffff) {
+		FileInputStream fileStream(wstrPath.get(), &status);
+		CHECK_QSTATUS();
+		BufferedInputStream stream(&fileStream, false, &status);
+		CHECK_QSTATUS();
+		
+		STLWrapper<MessageHolderList> wrapper(pImpl_->listMessageHolder_);
 		MessageHolder::Init init;
 		size_t nRead = 0;
 		while (true) {
-			status = pStream->read(reinterpret_cast<unsigned char*>(&init),
+			status = stream.read(reinterpret_cast<unsigned char*>(&init),
 				sizeof(init), &nRead);
 			if (nRead == static_cast<size_t>(-1))
 				break;
@@ -745,8 +694,6 @@ QSTATUS qm::NormalFolder::loadMessageHolders()
 				pmh->isFlag(MessageHolder::FLAG_DOWNLOADTEXT))
 				++pImpl_->nDownloadCount_;
 		}
-		status = pStream->close();
-		CHECK_QSTATUS();
 	}
 	
 	pImpl_->bLoad_ = true;
@@ -763,8 +710,16 @@ QSTATUS qm::NormalFolder::saveMessageHolders()
 	if (!pImpl_->bLoad_)
 		return QSTATUS_SUCCESS;
 	
-	std::auto_ptr<OutputStream> pStream;
-	status = pImpl_->getOutputStream(&pStream);
+	string_ptr<WSTRING> wstrPath;
+	status = pImpl_->getPath(&wstrPath);
+	CHECK_QSTATUS();
+	
+	TemporaryFileRenamer renamer(wstrPath.get(), &status);
+	CHECK_QSTATUS();
+	
+	FileOutputStream fileStream(renamer.getPath(), &status);
+	CHECK_QSTATUS();
+	BufferedOutputStream stream(&fileStream, false, &status);
 	CHECK_QSTATUS();
 	
 	MessageHolder::Init init;
@@ -772,13 +727,14 @@ QSTATUS qm::NormalFolder::saveMessageHolders()
 	MessageHolderList::const_iterator it = l.begin();
 	while (it != l.end()) {
 		(*it)->getInit(&init);
-		status = pStream->write(
-			reinterpret_cast<unsigned char*>(&init), sizeof(init));
+		status = stream.write(reinterpret_cast<unsigned char*>(&init), sizeof(init));
 		CHECK_QSTATUS();
-		
 		++it;
 	}
-	status = pStream->close();
+	status = stream.close();
+	CHECK_QSTATUS();
+	
+	status = renamer.rename();
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;

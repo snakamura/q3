@@ -1,5 +1,5 @@
 /*
- * $Id: uid.cpp,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -8,6 +8,7 @@
 
 #include <qsconv.h>
 #include <qserror.h>
+#include <qsfile.h>
 #include <qsnew.h>
 #include <qsstream.h>
 
@@ -166,7 +167,10 @@ QSTATUS qmpop3::UIDList::save(const WCHAR* pwszPath) const
 	
 	DECLARE_QSTATUS();
 	
-	FileOutputStream stream(pwszPath, &status);
+	TemporaryFileRenamer renamer(pwszPath, &status);
+	CHECK_QSTATUS();
+	
+	FileOutputStream stream(renamer.getPath(), &status);
 	CHECK_QSTATUS();
 	OutputStreamWriter writer(&stream, false, L"utf-8", &status);
 	CHECK_QSTATUS();
@@ -179,6 +183,9 @@ QSTATUS qmpop3::UIDList::save(const WCHAR* pwszPath) const
 	CHECK_QSTATUS();
 	
 	status = bufferedWriter.close();
+	CHECK_QSTATUS();
+	
+	status = renamer.rename();
 	CHECK_QSTATUS();
 	
 	bModified_ = false;

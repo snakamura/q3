@@ -1,18 +1,19 @@
 /*
- * $Id: profile.cpp,v 1.1.1.1 2003/04/29 08:07:37 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
-#include <qsprofile.h>
-#include <qserror.h>
-#include <qsosutil.h>
-#include <qsnew.h>
-#include <qsstream.h>
-#include <qsstl.h>
 #include <qsconv.h>
+#include <qserror.h>
+#include <qsfile.h>
+#include <qsnew.h>
+#include <qsosutil.h>
+#include <qsprofile.h>
+#include <qsstl.h>
+#include <qsstream.h>
 #include <qsthread.h>
 
 #include <algorithm>
@@ -865,7 +866,10 @@ QSTATUS qs::XMLProfile::saveImpl(const WCHAR* pwszPath) const
 {
 	DECLARE_QSTATUS();
 	
-	FileOutputStream outputStream(pwszPath, &status);
+	TemporaryFileRenamer renamer(pwszPath, &status);
+	CHECK_QSTATUS();
+	
+	FileOutputStream outputStream(renamer.getPath(), &status);
 	CHECK_QSTATUS();
 	OutputStreamWriter writer(&outputStream, false, L"utf-8", &status);
 	CHECK_QSTATUS();
@@ -930,6 +934,9 @@ QSTATUS qs::XMLProfile::saveImpl(const WCHAR* pwszPath) const
 	CHECK_QSTATUS();
 	
 	status = bufferedWriter.close();
+	CHECK_QSTATUS();
+	
+	status = renamer.rename();
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;

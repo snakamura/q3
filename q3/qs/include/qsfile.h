@@ -1,5 +1,5 @@
 /*
- * $Id: qsfile.h,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -121,6 +121,37 @@ private:
 
 private:
 	struct DividedFileImpl* pImpl_;
+};
+
+
+/****************************************************************************
+ *
+ * TemporaryFileRenamer
+ *
+ */
+
+class QSEXPORTCLASS TemporaryFileRenamer
+{
+public:
+	TemporaryFileRenamer(const WCHAR* pwszPath, QSTATUS* pstatus);
+	~TemporaryFileRenamer();
+
+public:
+	const WCHAR* getPath() const;
+	QSTATUS rename();
+
+private:
+	TemporaryFileRenamer(const TemporaryFileRenamer&);
+	TemporaryFileRenamer& operator=(const TemporaryFileRenamer&);
+
+private:
+	WSTRING wstrOriginalPath_;
+	WSTRING wstrTemporaryPath_;
+#ifndef UNICODE
+	TSTRING tstrOriginalPath_;
+	TSTRING tstrTemporaryPath_;
+#endif
+	bool bRenamed_;
 };
 
 }
