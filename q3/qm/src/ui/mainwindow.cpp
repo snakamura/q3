@@ -2143,6 +2143,24 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pProfile_, pImpl_->pViewModelManager_.get(),
 		pImpl_->pEditFrameWindowManager_.get(), pImpl_->pExternalEditorManager_.get()));
 	
+	pImpl_->pMoveMenu_.reset(new MoveMenu());
+	pImpl_->pFilterMenu_.reset(new FilterMenu(
+		pImpl_->pViewModelManager_->getFilterManager()));
+	pImpl_->pSortMenu_.reset(new SortMenu(pImpl_->pViewModelManager_.get()));
+	pImpl_->pAttachmentMenu_.reset(new AttachmentMenu(pImpl_->pSecurityModel_.get()));
+	pImpl_->pViewTemplateMenu_.reset(new ViewTemplateMenu(
+		pImpl_->pDocument_->getTemplateManager()));
+	pImpl_->pCreateTemplateMenu_.reset(new CreateTemplateMenu(
+		pImpl_->pDocument_->getTemplateManager(), false));
+	pImpl_->pCreateTemplateExternalMenu_.reset(new CreateTemplateMenu(
+		pImpl_->pDocument_->getTemplateManager(), true));
+	pImpl_->pEncodingMenu_.reset(new EncodingMenu(pImpl_->pProfile_));
+	pImpl_->pSubAccountMenu_.reset(new SubAccountMenu(pImpl_->pFolderModel_.get()));
+	pImpl_->pGoRoundMenu_.reset(new GoRoundMenu(pImpl_->pGoRound_));
+	pImpl_->pScriptMenu_.reset(new ScriptMenu(pImpl_->pDocument_->getScriptManager()));
+	pImpl_->pRecentsMenu_.reset(new RecentsMenu(
+		pImpl_->pDocument_->getRecents(), pImpl_->pDocument_));
+	
 	bool bVirticalFolderWindow = pImpl_->bVirticalFolderWindow_;
 	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
@@ -2291,7 +2309,9 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 #endif
 	std::auto_ptr<MainWindowStatusBar> pStatusBar(new MainWindowStatusBar(
 		pImpl_->pDocument_, pImpl_->pViewModelManager_.get(),
-		pImpl_->pMessageWindow_, pImpl_->pEncodingModel_.get(), 2));
+		pImpl_->pFolderModel_.get(), pImpl_->pMessageWindow_,
+		pImpl_->pEncodingModel_.get(), 2, pImpl_->pEncodingMenu_.get(),
+		pImpl_->pViewTemplateMenu_.get()));
 	if (!pStatusBar->create(L"QmStatusBarWindow", 0, dwStatusBarStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, getHandle(),
 		0, STATUSCLASSNAMEW, MainWindowImpl::ID_STATUSBAR, 0))
@@ -2323,24 +2343,6 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		new MainWindowImpl::MessageSelectionModelImpl(pImpl_, false));
 	pImpl_->pListOnlyMessageSelectionModel_.reset(
 		new MainWindowImpl::MessageSelectionModelImpl(pImpl_, true));
-	
-	pImpl_->pMoveMenu_.reset(new MoveMenu());
-	pImpl_->pFilterMenu_.reset(new FilterMenu(
-		pImpl_->pViewModelManager_->getFilterManager()));
-	pImpl_->pSortMenu_.reset(new SortMenu(pImpl_->pViewModelManager_.get()));
-	pImpl_->pAttachmentMenu_.reset(new AttachmentMenu(pImpl_->pSecurityModel_.get()));
-	pImpl_->pViewTemplateMenu_.reset(new ViewTemplateMenu(
-		pImpl_->pDocument_->getTemplateManager()));
-	pImpl_->pCreateTemplateMenu_.reset(new CreateTemplateMenu(
-		pImpl_->pDocument_->getTemplateManager(), false));
-	pImpl_->pCreateTemplateExternalMenu_.reset(new CreateTemplateMenu(
-		pImpl_->pDocument_->getTemplateManager(), true));
-	pImpl_->pEncodingMenu_.reset(new EncodingMenu(pImpl_->pProfile_));
-	pImpl_->pSubAccountMenu_.reset(new SubAccountMenu(pImpl_->pFolderModel_.get()));
-	pImpl_->pGoRoundMenu_.reset(new GoRoundMenu(pImpl_->pGoRound_));
-	pImpl_->pScriptMenu_.reset(new ScriptMenu(pImpl_->pDocument_->getScriptManager()));
-	pImpl_->pRecentsMenu_.reset(new RecentsMenu(
-		pImpl_->pDocument_->getRecents(), pImpl_->pDocument_));
 	
 	pImpl_->pDelayedFolderModelHandler_.reset(new DelayedFolderModelHandler(pImpl_));
 	pImpl_->pFolderModel_->addFolderModelHandler(pImpl_->pDelayedFolderModelHandler_.get());
@@ -2693,12 +2695,16 @@ void qm::ListContainerWindow::folderSelected(const FolderModelEvent& event)
 
 qm::MainWindowStatusBar::MainWindowStatusBar(Document* pDocument,
 											 ViewModelManager* pViewModelManager,
+											 FolderModel* pFolderModel,
 											 MessageWindow* pMessageWindow,
 											 EncodingModel* pEncodingModel,
-											 int nOffset) :
-	MessageStatusBar(pMessageWindow, pEncodingModel, nOffset),
+											 int nOffset,
+											 EncodingMenu* pEncodingMenu,
+											 ViewTemplateMenu* pViewTemplateMenu) :
+	MessageStatusBar(pMessageWindow, pEncodingModel, nOffset, pEncodingMenu, pViewTemplateMenu),
 	pDocument_(pDocument),
 	pViewModelManager_(pViewModelManager),
+	pFolderModel_(pFolderModel),
 	nCount_(-1),
 	nUnseenCount_(-1),
 	nSelectedCount_(-1),
@@ -2791,6 +2797,12 @@ LRESULT qm::MainWindowStatusBar::windowProc(UINT uMsg,
 											LPARAM lParam)
 {
 	return MessageStatusBar::windowProc(uMsg, wParam, lParam);
+}
+
+Account* qm::MainWindowStatusBar::getAccount()
+{
+	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
+	return p.first ? p.first : p.second ? p.second->getAccount() : 0;
 }
 
 

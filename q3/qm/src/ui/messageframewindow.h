@@ -13,19 +13,28 @@
 
 #include <qsprofile.h>
 
+#include "statusbar.h"
+
 
 namespace qm {
 
 class MessageFrameWindowManager;
+class MessageFrameWindowStatusBar;
+struct MessageFrameWindowCreateContext;
 
 class Document;
 class EditFrameWindowManager;
+class EncodingMenu;
+class EncodingModel;
 class ExternalEditorManager;
 class MessageFrameWindow;
 class MessageHolder;
+class MessageModel;
+class MessageWindow;
 class TempFileCleaner;
 class UIManager;
 class ViewModelManager;
+class ViewTemplateMenu;
 
 
 /****************************************************************************
@@ -74,6 +83,35 @@ private:
 	ExternalEditorManager* pExternalEditorManager_;
 	FrameList listFrame_;
 	MessageFrameWindow* pCachedFrame_;
+};
+
+
+/****************************************************************************
+ *
+ * MessageFrameWindowStatusBar
+ *
+ */
+
+class MessageFrameWindowStatusBar : public MessageStatusBar
+{
+public:
+	MessageFrameWindowStatusBar(MessageModel* pMessageModel,
+								MessageWindow* pMessageWindow,
+								EncodingModel* pEncodingModel,
+								int nOffset,
+								EncodingMenu* pEncodingMenu,
+								ViewTemplateMenu* pViewTemplateMenu);
+	virtual ~MessageFrameWindowStatusBar();
+
+private:
+	virtual Account* getAccount();
+
+private:
+	MessageFrameWindowStatusBar(const MessageFrameWindowStatusBar&);
+	MessageFrameWindowStatusBar& operator=(const MessageFrameWindowStatusBar&);
+
+private:
+	MessageModel* pMessageModel_;
 };
 
 

@@ -20,10 +20,12 @@ namespace qm {
 class StatusBar;
 	class MessageStatusBar;
 
+class EncodingMenu;
+class EncodingModel;
 class Message;
 class MessageHolder;
 class MessageWindow;
-class EncodingModel;
+class ViewTemplateMenu;
 
 
 /****************************************************************************
@@ -41,8 +43,10 @@ public:
 	virtual ~StatusBar();
 
 public:
+	int getParts(int nParts,
+				 int* pnWidth) const;
 	bool setParts(int* pnWidth,
-				 size_t nCount);
+				  size_t nCount);
 	bool setText(int nPart,
 				 const WCHAR* pwszText);
 #ifndef _WIN32_WCE
@@ -50,6 +54,8 @@ public:
 				 HICON hIcon);
 #endif
 	void setSimple(bool bSimple);
+	bool getRect(int nPart,
+				 RECT* pRect) const;
 
 private:
 	StatusBar(const StatusBar&);
@@ -68,13 +74,30 @@ class MessageStatusBar : public StatusBar
 public:
 	MessageStatusBar(MessageWindow* pMessageWindow,
 					 EncodingModel* pEncodingModel,
-					 int nOffset);
+					 int nOffset,
+					 EncodingMenu* pEncodingMenu,
+					 ViewTemplateMenu* pViewTemplateMenu);
 	virtual ~MessageStatusBar();
 
 public:
 	void updateMessageParts(MessageHolder* pmh,
 							Message& msg,
 							const qs::ContentTypeParser* pContentType);
+
+public:
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
+
+protected:
+	LRESULT onContextMenu(HWND hwnd,
+						  const POINT& pt);
+
+protected:
+	int getPart(const POINT& pt) const;
+
+private:
+	virtual Account* getAccount() = 0;
 
 private:
 	void setIconOrText(int nPart,
@@ -93,6 +116,8 @@ private:
 	MessageWindow* pMessageWindow_;
 	EncodingModel* pEncodingModel_;
 	int nOffset_;
+	EncodingMenu* pEncodingMenu_;
+	ViewTemplateMenu* pViewTemplateMenu_;
 };
 
 }

@@ -160,9 +160,12 @@ class MainWindowStatusBar : public MessageStatusBar
 public:
 	MainWindowStatusBar(Document* pDocument,
 						ViewModelManager* pViewModelManager,
+						FolderModel* pFolderModel,
 						MessageWindow* pMessageWindow,
 						EncodingModel* pEncodingModel,
-						int nOffset);
+						int nOffset,
+						EncodingMenu* pEncodingMenu,
+						ViewTemplateMenu* pViewTemplateMenu);
 	virtual ~MainWindowStatusBar();
 
 public:
@@ -174,12 +177,16 @@ public:
 							   LPARAM lParam);
 
 private:
+	virtual Account* getAccount();
+
+private:
 	MainWindowStatusBar(const MainWindowStatusBar&);
 	MainWindowStatusBar& operator=(const MainWindowStatusBar&);
 
 private:
 	Document* pDocument_;
 	ViewModelManager* pViewModelManager_;
+	FolderModel* pFolderModel_;
 	unsigned int nCount_;
 	unsigned int nUnseenCount_;
 	unsigned int nSelectedCount_;

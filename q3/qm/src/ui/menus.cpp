@@ -148,8 +148,7 @@ bool qm::AttachmentMenu::createMenu(HMENU hmenu,
  *
  */
 
-qm::EncodingMenu::EncodingMenu(Profile* pProfile) :
-	bMenuCreated_(false)
+qm::EncodingMenu::EncodingMenu(Profile* pProfile)
 {
 	load(pProfile);
 }
@@ -170,14 +169,12 @@ const WCHAR* qm::EncodingMenu::getEncoding(unsigned int nId) const
 
 bool qm::EncodingMenu::createMenu(HMENU hmenu)
 {
-	if (bMenuCreated_)
-		return true;
+	while (::DeleteMenu(hmenu, 2, MF_BYPOSITION));
 	
 	for (EncodingList::size_type n = 0; n < listEncoding_.size(); ++n) {
 		W2T(listEncoding_[n], ptszEncoding);
 		::AppendMenu(hmenu, MF_STRING, IDM_VIEW_ENCODING + n, ptszEncoding);
 	}
-	bMenuCreated_ = true;
 	
 	return true;
 }

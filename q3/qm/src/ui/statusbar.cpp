@@ -10,6 +10,7 @@
 #include <qmmessage.h>
 #include <qmmessagewindow.h>
 
+#include "menus.h"
 #include "resource.h"
 #include "statusbar.h"
 #include "../uimodel/encodingmodel.h"
@@ -32,6 +33,13 @@ qm::StatusBar::StatusBar() :
 
 qm::StatusBar::~StatusBar()
 {
+}
+
+int qm::StatusBar::getParts(int nParts,
+							int* pnWidth) const
+{
+	return const_cast<StatusBar*>(this)->sendMessage(
+		SB_GETPARTS, nParts, reinterpret_cast<LPARAM>(pnWidth));
 }
 
 bool qm::StatusBar::setParts(int* pnWidth,
@@ -60,6 +68,13 @@ void qm::StatusBar::setSimple(bool bSimple)
 	sendMessage(SB_SIMPLE, bSimple);
 }
 
+bool qm::StatusBar::getRect(int nPart,
+							RECT* pRect) const
+{
+	return const_cast<StatusBar*>(this)->sendMessage(
+		SB_GETRECT, nPart, reinterpret_cast<LPARAM>(pRect)) != 0;
+}
+
 
 /****************************************************************************
  *
@@ -69,10 +84,14 @@ void qm::StatusBar::setSimple(bool bSimple)
 
 qm::MessageStatusBar::MessageStatusBar(MessageWindow* pMessageWindow,
 									   EncodingModel* pEncodingModel,
-									   int nOffset) :
+									   int nOffset,
+									   EncodingMenu* pEncodingMenu,
+									   ViewTemplateMenu* pViewTemplateMenu) :
 	pMessageWindow_(pMessageWindow),
 	pEncodingModel_(pEncodingModel),
-	nOffset_(nOffset)
+	nOffset_(nOffset),
+	pEncodingMenu_(pEncodingMenu),
+	pViewTemplateMenu_(pViewTemplateMenu)
 {
 #ifdef _WIN32_WCE_PSPC
 	nOffset_ -= 2;
@@ -146,6 +165,61 @@ void qm::MessageStatusBar::updateMessageParts(MessageHolder* pmh,
 		for (int n = 1; n < nMax; ++n)
 			setText(nOffset_ + n, L"");
 	}
+}
+
+LRESULT qm::MessageStatusBar::windowProc(UINT uMsg,
+										 WPARAM wParam,
+										 LPARAM lParam)
+{
+	BEGIN_MESSAGE_HANDLER()
+		HANDLE_CONTEXTMENU()
+	END_MESSAGE_HANDLER()
+	return StatusBar::windowProc(uMsg, wParam, lParam);
+}
+
+LRESULT qm::MessageStatusBar::onContextMenu(HWND hwnd,
+											const POINT& pt)
+{
+#ifndef _WIN32_WCE_PSPC
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	
+	POINT ptClient = pt;
+	screenToClient(&ptClient);
+	int nPart = getPart(ptClient);
+	if (nOffset_ + 1 <= nPart && nPart <= nOffset_ + 2) {
+		UINT nId = nPart == nOffset_ + 1 ? IDR_VIEWENCODING : IDR_VIEWTEMPLATE;
+		HMENU hmenu = ::LoadMenu(hInst, MAKEINTRESOURCE(nId));
+		HMENU hmenuSub = ::GetSubMenu(hmenu, 0);
+		if (nPart == nOffset_ + 1)
+			pEncodingMenu_->createMenu(hmenuSub);
+		else if (nPart == nOffset_ + 2)
+			pViewTemplateMenu_->createMenu(hmenuSub, getAccount());
+		
+		UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
+#ifndef _WIN32_WCE
+		nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
+#endif
+		::TrackPopupMenu(hmenuSub, nFlags, pt.x, pt.y, 0, getParentFrame(), 0);
+		::DestroyMenu(hmenu);
+	}
+#endif
+	
+	return StatusBar::onContextMenu(hwnd, pt);
+}
+
+int qm::MessageStatusBar::getPart(const POINT& pt) const
+{
+	typedef std::vector<int> PartList;
+	PartList listPart;
+	listPart.resize(10);
+	int nParts = getParts(listPart.size(), &listPart[0]);
+	for (int n = 0; n < nParts; ++n) {
+		RECT rect;
+		getRect(n, &rect);
+		if (::PtInRect(&rect, pt))
+			return n;
+	}
+	return -1;
 }
 
 void qm::MessageStatusBar::setIconOrText(int nPart,

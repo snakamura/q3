@@ -103,7 +103,7 @@ public:
 	ViewModelManager* pViewModelManager_;
 	std::auto_ptr<MessageMessageModel> pMessageModel_;
 	MessageWindow* pMessageWindow_;
-	MessageStatusBar* pStatusBar_;
+	MessageFrameWindowStatusBar* pStatusBar_;
 	std::auto_ptr<Accelerator> pAccelerator_;
 	std::auto_ptr<ActionMap> pActionMap_;
 	std::auto_ptr<ActionInvoker> pActionInvoker_;
@@ -870,6 +870,17 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pSecurityModel_.reset(new DefaultSecurityModel(
 		pImpl_->pProfile_->getInt(L"MessageWindow", L"SecurityMode", 0)));
 	
+	pImpl_->pMoveMenu_.reset(new MoveMenu());
+	pImpl_->pAttachmentMenu_.reset(new AttachmentMenu(pImpl_->pSecurityModel_.get()));
+	pImpl_->pViewTemplateMenu_.reset(new ViewTemplateMenu(
+		pImpl_->pDocument_->getTemplateManager()));
+	pImpl_->pCreateTemplateMenu_.reset(new CreateTemplateMenu(
+		pImpl_->pDocument_->getTemplateManager(), false));
+	pImpl_->pCreateTemplateExternalMenu_.reset(new CreateTemplateMenu(
+		pImpl_->pDocument_->getTemplateManager(), true));
+	pImpl_->pEncodingMenu_.reset(new EncodingMenu(pImpl_->pProfile_));
+	pImpl_->pScriptMenu_.reset(new ScriptMenu(pImpl_->pDocument_->getScriptManager()));
+	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
 		&acceleratorFactory, L"MessageFrameWindow", mapKeyNameToId, countof(mapKeyNameToId));
@@ -898,8 +909,10 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 #if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	dwStatusBarStyle |= CCS_NOPARENTALIGN;
 #endif
-	std::auto_ptr<MessageStatusBar> pStatusBar(new MessageStatusBar(
-		pImpl_->pMessageWindow_, pImpl_->pEncodingModel_.get(), 0));
+	std::auto_ptr<MessageFrameWindowStatusBar> pStatusBar(new MessageFrameWindowStatusBar(
+		pImpl_->pMessageModel_.get(), pImpl_->pMessageWindow_,
+		pImpl_->pEncodingModel_.get(), 0, pImpl_->pEncodingMenu_.get(),
+		pImpl_->pViewTemplateMenu_.get()));
 	if (!pStatusBar->create(L"QmStatusBarWindow", 0, dwStatusBarStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, getHandle(),
 		0, STATUSCLASSNAMEW, MessageFrameWindowImpl::ID_STATUSBAR, 0))
@@ -907,17 +920,6 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pStatusBar_ = pStatusBar.release();
 	
 	pImpl_->layoutChildren();
-	
-	pImpl_->pMoveMenu_.reset(new MoveMenu());
-	pImpl_->pAttachmentMenu_.reset(new AttachmentMenu(pImpl_->pSecurityModel_.get()));
-	pImpl_->pViewTemplateMenu_.reset(new ViewTemplateMenu(
-		pImpl_->pDocument_->getTemplateManager()));
-	pImpl_->pCreateTemplateMenu_.reset(new CreateTemplateMenu(
-		pImpl_->pDocument_->getTemplateManager(), false));
-	pImpl_->pCreateTemplateExternalMenu_.reset(new CreateTemplateMenu(
-		pImpl_->pDocument_->getTemplateManager(), true));
-	pImpl_->pEncodingMenu_.reset(new EncodingMenu(pImpl_->pProfile_));
-	pImpl_->pScriptMenu_.reset(new ScriptMenu(pImpl_->pDocument_->getScriptManager()));
 	
 	pImpl_->initActions();
 	
@@ -1162,4 +1164,31 @@ MessageFrameWindow* qm::MessageFrameWindowManager::create()
 	MessageFrameWindow* p = pFrame.release();
 	p->initialShow();
 	return p;
+}
+
+
+/****************************************************************************
+ *
+ * MessageFrameWindowStatusBar
+ *
+ */
+
+qm::MessageFrameWindowStatusBar::MessageFrameWindowStatusBar(MessageModel* pMessageModel,
+															 MessageWindow* pMessageWindow,
+															 EncodingModel* pEncodingModel,
+															 int nOffset,
+															 EncodingMenu* pEncodingMenu,
+															 ViewTemplateMenu* pViewTemplateMenu) :
+	MessageStatusBar(pMessageWindow, pEncodingModel, nOffset, pEncodingMenu, pViewTemplateMenu),
+	pMessageModel_(pMessageModel)
+{
+}
+
+qm::MessageFrameWindowStatusBar::~MessageFrameWindowStatusBar()
+{
+}
+
+Account* qm::MessageFrameWindowStatusBar::getAccount()
+{
+	return pMessageModel_->getCurrentAccount();
 }

@@ -127,7 +127,6 @@ private:
 
 private:
 	EncodingList listEncoding_;
-	bool bMenuCreated_;
 };
 
 
