@@ -103,6 +103,7 @@
 #define IDD_OPTIONPREVIEWWINDOW         204
 #define IDD_OPTIONMESSAGEWINDOW         205
 #define IDD_OPTIONHEADERWINDOW          206
+#define IDD_TEXTCOLOR                   207
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -443,6 +444,16 @@
 #define IDC_SEENWAIT                    1340
 #define IDC_SHOWTAB                     1341
 #define IDC_SHOWNEWLINE                 1342
+#define IDC_QUOTE1                      1345
+#define IDC_QUOTE2                      1346
+#define IDC_LINK                        1347
+#define IDC_SYSTEMCOLOR                 1348
+#define IDC_CUSTOMCOLOR                 1349
+#define IDC_CHOOSEFOREGROUND            1350
+#define IDC_CHOOSEBACKGROUND            1351
+#define IDC_CHOOSEQUOTE1                1352
+#define IDC_CHOOSEQUOTE2                1353
+#define IDC_CHOOSELINK                  1354
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -530,9 +541,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        203
+#define _APS_NEXT_RESOURCE_VALUE        208
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1343
+#define _APS_NEXT_CONTROL_VALUE         1355
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -39,6 +39,7 @@ class OptionFolderComboBoxDialog;
 class OptionFolderWindowDialog;
 class OptionHeaderWindowDialog;
 class OptionListWindowDialog;
+class TextColorDialog;
 class AbstractOptionTextWindowDialog;
 	class OptionEditWindowDialog;
 	class OptionMessageWindowDialog;
@@ -595,6 +596,89 @@ private:
 
 /****************************************************************************
  *
+ * TextColorDialog
+ *
+ */
+
+class TextColorDialog : public DefaultDialog
+{
+public:
+	class Data
+	{
+	public:
+		Data(qs::Profile* pProfile,
+			 const WCHAR* pwszSection);
+		Data(const Data& data);
+		~Data();
+	
+	public:
+		Data& operator=(const Data& data);
+	
+	public:
+		void save(qs::Profile* pProfile,
+				  const WCHAR* pwszSection) const;
+	
+	private:
+		bool bSystemColor_;
+		COLORREF crForeground_;
+		COLORREF crBackground_;
+		qs::wstring_ptr wstrQuote_[2];
+		COLORREF crQuote_[2];
+		COLORREF crLink_;
+		
+		friend class TextColorDialog;
+	};
+
+public:
+	explicit TextColorDialog(const Data& data);
+	virtual ~TextColorDialog();
+
+public:
+	const Data& getData() const;
+
+public:
+	virtual INT_PTR dialogProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onDestroy();
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	LRESULT onCtlColorEdit(HDC hdc,
+						   HWND hwnd);
+	LRESULT onCtlColorStatic(HDC hdc,
+							 HWND hwnd);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	LRESULT onChoose(UINT nId);
+	LRESULT onColor(UINT nId);
+
+private:
+	void updateState();
+	void updateBackgroundBrush();
+
+private:
+	TextColorDialog(const TextColorDialog&);
+	TextColorDialog& operator=(const TextColorDialog&);
+
+private:
+	Data data_;
+	HBRUSH hbrBackground_;
+};
+
+
+/****************************************************************************
+ *
  * AbstractOptionTextWindowDialog
  *
  */
@@ -636,6 +720,7 @@ private:
 	qs::Profile* pProfile_;
 	const WCHAR* pwszSection_;
 	LOGFONT lf_;
+	TextColorDialog::Data color_;
 
 private:
 	static DialogUtil::BoolProperty boolProperties__[];
