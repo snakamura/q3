@@ -16,11 +16,7 @@ ifeq ($(PLATFORM),sig3)
 endif
 
 OBJS			= $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.obj, $(wildcard $(SRCDIR)/*/*.cpp))
-ifeq ($(PLATFORM),desktop)
-	RESES		= $(OBJDIR)/ui/$(PROJECTNAME).res
-else
-	RESES		= $(OBJDIR)/ui/$(PROJECTNAME)$(BASEPLATFORM).res
-endif
+RESES			= $(OBJDIR)/ui/$(PROJECTNAME)$(BASEPLATFORM).res
 DEFFILE			= $(OBJDIR)/$(PROJECTNAME).def
 BASEADDRESS		= 0x30000000
 

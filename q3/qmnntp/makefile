@@ -7,11 +7,7 @@ PROJECTTYPE		= dll
 LIBRARIES		= qs qm
 
 OBJS			= $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.obj, $(wildcard $(SRCDIR)/*.cpp))
-ifeq ($(PLATFORM),desktop)
-	RESES		= $(OBJDIR)/$(PROJECTNAME).res
-else
-	RESES		= $(OBJDIR)/$(PROJECTNAME)$(BASEPLATFORM).res
-endif
+RESES			= $(OBJDIR)/$(PROJECTNAME)$(BASEPLATFORM).res
 DEFFILE			= $(OBJDIR)/$(PROJECTNAME).def
 BASEADDRESS		= 0x36000000
 

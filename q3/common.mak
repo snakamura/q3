@@ -70,6 +70,8 @@ ifeq ($(PLATFORM),desktop)
 	endif
 	COMPILERINCLUDEDIR	= $(COMPILERDIR)/include
 	COMPILERLIBDIR		= $(COMPILERDIR)/lib
+	
+	BASEPLATFORM		=
 	#########################################################################
 else
 	# WINCE #################################################################
@@ -467,6 +469,8 @@ NVERSION				= $(shell cat version | tr '.' ','),$(REVISION)
 SVERSION				= $(shell cat version | sed -e 's/\./, /g'), $(REVISION)
 RCDEFINES				= -DNVERSION="$(NVERSION)" -DSVERSION="\"$(SVERSION)\"" -DSUFFIX="\"$(SUFFIX)\""
 
+RCHEADER				= $(dir $(subst $(OBJDIR), $(SRCDIR), $(RESES)))resource$(BASEPLATFORM).h
+
 ifneq ($(TLBS),)
 	INCLUDES			+= -I$(TLBDIR)
 endif
@@ -529,7 +533,7 @@ $(OBJDIR)/%.obj: $(SRCDIR)/%.c
 $(SRCDIR)/%.rcx: $(SRCDIR)/%.rc
 	$(RCPP) $< > $@
 
-$(OBJDIR)/%.res: $(SRCDIR)/%.rcx $(TLBS) version revision
+$(OBJDIR)/%.res: $(SRCDIR)/%.rcx $(RCHEADER) $(TLBS) version revision
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	$(RC) $(RCFLAGS) $(RCDEFINES) -fo $@ $<
 
