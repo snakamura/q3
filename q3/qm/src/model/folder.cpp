@@ -295,6 +295,8 @@ Account* qm::Folder::getAccount() const
 
 QSTATUS qm::Folder::addFolderHandler(FolderHandler* pHandler)
 {
+	Lock<Account> lock(*getAccount());
+	
 	assert(std::find(pImpl_->listFolderHandler_.begin(),
 		pImpl_->listFolderHandler_.end(), pHandler) ==
 		pImpl_->listFolderHandler_.end());
@@ -304,11 +306,13 @@ QSTATUS qm::Folder::addFolderHandler(FolderHandler* pHandler)
 
 QSTATUS qm::Folder::removeFolderHandler(FolderHandler* pHandler)
 {
-	FolderImpl::FolderHandlerList& l = pImpl_->listFolderHandler_;
+	Lock<Account> lock(*getAccount());
+	
 	FolderImpl::FolderHandlerList::iterator it = std::remove(
-		l.begin(), l.end(), pHandler);
-	assert(it != l.end());
-	l.erase(it, l.end());
+		pImpl_->listFolderHandler_.begin(),
+		pImpl_->listFolderHandler_.end(), pHandler);
+	assert(it != pImpl_->listFolderHandler_.end());
+	pImpl_->listFolderHandler_.erase(it, pImpl_->listFolderHandler_.end());
 	return QSTATUS_SUCCESS;
 }
 
