@@ -208,6 +208,34 @@ QSTATUS qm::AddressBook::expandAlias(
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qm::AddressBook::getEntry(const WCHAR* pwszAddress,
+	const AddressBookEntry** ppEntry)
+{
+	assert(pwszAddress);
+	assert(ppEntry);
+	
+	DECLARE_QSTATUS();
+	
+	*ppEntry = 0;
+	
+	status = load();
+	CHECK_QSTATUS();
+	status = prepareEntryMap();
+	CHECK_QSTATUS();
+	
+	EntryMap::value_type v(pwszAddress, 0);
+	EntryMap::const_iterator it = std::lower_bound(
+		mapEntry_.begin(), mapEntry_.end(), v,
+		binary_compose_f_gx_hy(
+			string_less_i<WCHAR>(),
+			std::select1st<EntryMap::value_type>(),
+			std::select1st<EntryMap::value_type>()));
+	if (it != mapEntry_.end() && _wcsicmp((*it).first, pwszAddress) == 0)
+		*ppEntry = (*it).second;
+	
+	return QSTATUS_SUCCESS;
+}
+
 SMIMECallback* qm::AddressBook::getSMIMECallback() const
 {
 	return pSMIMECallback_;
@@ -701,6 +729,46 @@ void qm::AddressBook::clear(unsigned int nType)
 	std::for_each(listCategory_.begin(),
 		listCategory_.end(), string_free<WSTRING>());
 	listCategory_.clear();
+	
+	mapEntry_.clear();
+}
+
+QSTATUS qm::AddressBook::prepareEntryMap()
+{
+	DECLARE_QSTATUS();
+	
+	if (mapEntry_.empty()) {
+		EntryList::const_iterator itE = listEntry_.begin();
+		while (itE != listEntry_.end()) {
+			AddressBookEntry* pEntry = *itE;
+			
+			const AddressBookEntry::AddressList& l = pEntry->getAddresses();
+			AddressBookEntry::AddressList::const_iterator itA = l.begin();
+			while (itA != l.end()) {
+				AddressBookAddress* pAddress = *itA;
+				if (!pAddress->isRFC2822()) {
+					EntryMap::value_type v(pAddress->getAddress(), pEntry);
+					
+					EntryMap::iterator itM = std::lower_bound(
+						mapEntry_.begin(), mapEntry_.end(), v,
+						binary_compose_f_gx_hy(
+							string_less_i<WCHAR>(),
+							std::select1st<EntryMap::value_type>(),
+							std::select1st<EntryMap::value_type>()));
+					if (itM == mapEntry_.end() || _wcsicmp((*itM).first, v.first) != 0) {
+						EntryMap::iterator p;
+						status = STLWrapper<EntryMap>(mapEntry_).insert(itM, v, &p);
+						CHECK_QSTATUS();
+					}
+				}
+				++itA;
+			}
+			
+			++itE;
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
 }
 
 
@@ -1008,6 +1076,11 @@ const WCHAR* qm::AddressBookAddress::getComment() const
 const WCHAR* qm::AddressBookAddress::getCertificate() const
 {
 	return wstrCertificate_;
+}
+
+bool qm::AddressBookAddress::isRFC2822() const
+{
+	return bRFC2822_;
 }
 
 QSTATUS qm::AddressBookAddress::getValue(WSTRING* pwstrValue) const

@@ -2252,6 +2252,18 @@ QSTATUS qs::AddressParser::getValue(WSTRING* pwstrValue) const
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qs::AddressParser::setPhrase(const WCHAR* pwszPhrase)
+{
+	string_ptr<WSTRING> wstrPhrase(allocWString(pwszPhrase));
+	if (!wstrPhrase.get())
+		return QSTATUS_OUTOFMEMORY;
+	
+	freeWString(wstrPhrase_);
+	wstrPhrase_ = wstrPhrase.release();
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qs::AddressParser::parse(const Part& part,
 	const WCHAR* pwszName, Part::Field* pField)
 {

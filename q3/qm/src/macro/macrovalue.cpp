@@ -256,6 +256,16 @@ void qm::MacroValueField::term()
 	strField_ = 0;
 }
 
+const WCHAR* qm::MacroValueField::getName() const
+{
+	return wstrName_;
+}
+
+const CHAR* qm::MacroValueField::getField() const
+{
+	return strField_;
+}
+
 QSTATUS qm::MacroValueField::getAddresses(std::vector<WSTRING>* pAddresses) const
 {
 	assert(pAddresses);

@@ -27,6 +27,7 @@
 #include <algorithm>
 
 #include "macro.h"
+#include "../model/addressbook.h"
 #include "../script/scriptmanager.h"
 #include "../ui/dialogs.h"
 
@@ -2049,6 +2050,161 @@ QSTATUS qm::MacroFunctionForEach::value(
 const WCHAR* qm::MacroFunctionForEach::getName() const
 {
 	return L"ForEach";
+}
+
+
+/****************************************************************************
+ *
+ * MacroFunctionFormatAddress
+ *
+ */
+
+qm::MacroFunctionFormatAddress::MacroFunctionFormatAddress(QSTATUS* pstatus) :
+	MacroFunction(pstatus)
+{
+}
+
+qm::MacroFunctionFormatAddress::~MacroFunctionFormatAddress()
+{
+}
+
+QSTATUS qm::MacroFunctionFormatAddress::value(
+	MacroContext* pContext, MacroValue** ppValue) const
+{
+	assert(pContext);
+	assert(ppValue);
+	
+	DECLARE_QSTATUS();
+	
+	size_t nSize = getArgSize();
+	if (nSize < 1 || 3 < nSize)
+		return error(*pContext, MacroErrorHandler::CODE_INVALIDARGSIZE);
+	
+	bool bLookup = false;
+	if (nSize > 2) {
+		MacroValuePtr pValue;
+		status = getArg(2)->value(pContext, &pValue);
+		CHECK_QSTATUS();
+		bLookup = pValue->boolean();
+	}
+	
+	enum Type {
+		TYPE_ALL,
+		TYPE_ADDRESS,
+		TYPE_NAME
+	};
+	Type type = TYPE_ALL;
+	if (nSize > 1) {
+		MacroValuePtr pValue;
+		status = getArg(1)->value(pContext, &pValue);
+		CHECK_QSTATUS();
+		unsigned int n = pValue->number();
+		if (n > 2)
+			n = 0;
+		type = static_cast<Type>(n);
+	}
+	
+	MacroValuePtr pValue;
+	status = getArg(0)->value(pContext, &pValue);
+	CHECK_QSTATUS();
+	if (pValue->getType() != MacroValue::TYPE_FIELD)
+		return error(*pContext, MacroErrorHandler::CODE_INVALIDARGTYPE);
+	
+	MacroValueField* pValueField = static_cast<MacroValueField*>(pValue.get());
+	
+	string_ptr<WSTRING> wstrValue;
+	
+	Part part(0, pValueField->getField(), static_cast<size_t>(-1), &status);
+	CHECK_QSTATUS();
+	AddressListParser address(0, &status);
+	CHECK_QSTATUS();
+	Part::Field field;
+	status = part.getField(pValueField->getName(), &address, &field);
+	CHECK_QSTATUS();
+	if (field == Part::FIELD_EXIST) {
+		if (bLookup) {
+			status = replacePhrase(pContext->getDocument()->getAddressBook(), &address);
+			CHECK_QSTATUS();
+		}
+		switch (type) {
+		case TYPE_ALL:
+			status = address.getValue(&wstrValue);
+			CHECK_QSTATUS();
+			break;
+		case TYPE_ADDRESS:
+			status = address.getAddresses(&wstrValue);
+			CHECK_QSTATUS();
+			break;
+		case TYPE_NAME:
+			status = address.getNames(&wstrValue);
+			CHECK_QSTATUS();
+			break;
+		default:
+			assert(false);
+			break;
+		}
+	}
+	
+	const WCHAR* pwszValue = wstrValue.get() ? wstrValue.get() : L"";
+	return MacroValueFactory::getFactory().newString(pwszValue,
+		reinterpret_cast<MacroValueString**>(ppValue));
+}
+
+const WCHAR* qm::MacroFunctionFormatAddress::getName() const
+{
+	return L"FormatAddress";
+}
+
+QSTATUS qm::MacroFunctionFormatAddress::replacePhrase(
+	AddressBook* pAddressBook, AddressListParser* pAddressList)
+{
+	assert(pAddressBook);
+	assert(pAddressList);
+	
+	DECLARE_QSTATUS();
+	
+	const AddressListParser::AddressList& l = pAddressList->getAddressList();
+	AddressListParser::AddressList::const_iterator it = l.begin();
+	while (it != l.end()) {
+		status = replacePhrase(pAddressBook, *it);
+		CHECK_QSTATUS();
+		++it;
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::MacroFunctionFormatAddress::replacePhrase(
+	AddressBook* pAddressBook, AddressParser* pAddress)
+{
+	assert(pAddressBook);
+	assert(pAddress);
+	
+	DECLARE_QSTATUS();
+	
+	AddressListParser* pGroup = pAddress->getGroup();
+	if (pGroup) {
+		status = replacePhrase(pAddressBook, pGroup);
+		CHECK_QSTATUS();
+	}
+	else {
+		if (!pAddress->getPhrase()) {
+			string_ptr<WSTRING> wstrAddress(concat(
+				pAddress->getMailbox(), L"@", pAddress->getHost()));
+			if (!wstrAddress.get())
+				return QSTATUS_OUTOFMEMORY;
+			
+			const AddressBookEntry* pEntry = 0;
+			status = pAddressBook->getEntry(wstrAddress.get(), &pEntry);
+			CHECK_QSTATUS();
+			if (pEntry) {
+				status = pAddress->setPhrase(pEntry->getName());
+				CHECK_QSTATUS();
+			}
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
 }
 
 
@@ -4785,6 +4941,7 @@ QSTATUS qm::MacroFunctionFactory::newFunction(MacroParser::Type type,
 		DECLARE_FUNCTION0(		Folder, 			L"folder"												)
 		DECLARE_FUNCTION0(		ForEach,			L"foreach"												)
 		DECLARE_FUNCTION1(		Flag,				L"forwarded",		MessageHolder::FLAG_FORWARDED		)
+		DECLARE_FUNCTION_TYPE0(	FormatAddress, 		L"formataddress",									T	)
 		DECLARE_FUNCTION0(		FormatDate, 		L"formatdate"											)
 		DECLARE_FUNCTION1(		Relative,			L"greater",			false								)
 		DECLARE_FUNCTION0(		Header, 			L"header"												)

@@ -546,6 +546,7 @@ public:
 	AddressListParser* getGroup() const;
 	QSTATUS getAddress(WSTRING* pwstrAddress) const;
 	QSTATUS getValue(WSTRING* pwstrValue) const;
+	QSTATUS setPhrase(const WCHAR* pwszPhrase);
 
 public:
 	virtual QSTATUS parse(const Part& part,

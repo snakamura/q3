@@ -57,6 +57,7 @@ class MacroExpr;
 		class MacroFunctionFlag;
 		class MacroFunctionFolder;
 		class MacroFunctionForEach;
+		class MacroFunctionFormatAddress;
 		class MacroFunctionFormatDate;
 		class MacroFunctionFunction;
 		class MacroFunctionHeader;
@@ -94,6 +95,8 @@ class MacroExpr;
 		class MacroFunctionWhile;
 class MacroExprPtr;
 class MacroFunctionFactory;
+
+class AddressBook;
 
 
 /****************************************************************************
@@ -1210,6 +1213,37 @@ protected:
 private:
 	MacroFunctionForEach(const MacroFunctionForEach&);
 	MacroFunctionForEach& operator=(const MacroFunctionForEach&);
+};
+
+
+/****************************************************************************
+ *
+ * MacroFunctionFormatAddress
+ *
+ */
+
+class MacroFunctionFormatAddress : public MacroFunction
+{
+public:
+	explicit MacroFunctionFormatAddress(qs::QSTATUS* pstatus);
+	virtual ~MacroFunctionFormatAddress();
+
+public:
+	virtual qs::QSTATUS value(MacroContext* pContext,
+		MacroValue** ppValue) const;
+
+protected:
+	virtual const WCHAR* getName() const;
+
+private:
+	static qs::QSTATUS replacePhrase(AddressBook* pAddressBook,
+		qs::AddressListParser* pAddressList);
+	static qs::QSTATUS replacePhrase(AddressBook* pAddressBook,
+		qs::AddressParser* pAddress);
+
+private:
+	MacroFunctionFormatAddress(const MacroFunctionFormatAddress&);
+	MacroFunctionFormatAddress& operator=(const MacroFunctionFormatAddress&);
 };
 
 

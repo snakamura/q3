@@ -406,6 +406,8 @@ public:
 	void term();
 
 public:
+	const WCHAR* getName() const;
+	const CHAR* getField() const;
 	qs::QSTATUS getAddresses(std::vector<qs::WSTRING>* pAddresses) const;
 	qs::QSTATUS getNames(std::vector<qs::WSTRING>* pNames) const;
 

@@ -53,6 +53,7 @@ public:
 public:
 	typedef std::vector<AddressBookEntry*> EntryList;
 	typedef std::vector<qs::WSTRING> CategoryList;
+	typedef std::vector<std::pair<const WCHAR*, AddressBookEntry*> > EntryMap;
 
 public:
 	AddressBook(const Security* pSecurity, qs::QSTATUS* pstatus);
@@ -65,6 +66,8 @@ public:
 		const AddressBookAddress** ppAddress);
 	qs::QSTATUS expandAlias(const WCHAR* pwszAddresses,
 		qs::WSTRING* pwstrAddresses);
+	qs::QSTATUS getEntry(const WCHAR* pwszAddress,
+		const AddressBookEntry** ppEntry);
 	qs::SMIMECallback* getSMIMECallback() const;
 
 public:
@@ -75,6 +78,7 @@ private:
 	qs::QSTATUS load();
 	qs::QSTATUS loadWAB();
 	void clear(unsigned int nType);
+	qs::QSTATUS prepareEntryMap();
 
 private:
 	AddressBook(const AddressBook&);
@@ -167,6 +171,7 @@ private:
 	HANDLE hContactsDB_;
 	NotificationWindow* pNotificationWindow_;
 #endif
+	EntryMap mapEntry_;
 };
 
 
@@ -230,6 +235,7 @@ public:
 	const WCHAR* getCategory() const;
 	const WCHAR* getComment() const;
 	const WCHAR* getCertificate() const;
+	bool isRFC2822() const;
 	qs::QSTATUS getValue(qs::WSTRING* pwstrValue) const;
 
 public:
