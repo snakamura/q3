@@ -1,5 +1,5 @@
 /*
- * $Id: qmeditwindow.h,v 1.3 2003/05/24 06:53:18 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -44,6 +44,7 @@ public:
 public:
 	EditWindow* getEditWindow() const;
 	void close();
+	bool tryClose();
 	
 	bool isShowToolbar() const;
 	qs::QSTATUS setShowToolbar(bool bShow);

@@ -1,5 +1,5 @@
 /*
- * $Id: editframewindow.cpp,v 1.13 2003/05/31 08:04:51 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -377,6 +377,40 @@ void qm::EditFrameWindow::close()
 	pImpl_->pManager_->close(this);
 }
 
+bool qm::EditFrameWindow::tryClose()
+{
+	DECLARE_QSTATUS();
+	
+	bool bCancel = true;
+	
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	int nMsg = 0;
+	status = messageBox(hInst, IDS_CONFIRMCLOSEEDITFRAME,
+		MB_YESNOCANCEL | MB_DEFBUTTON1 | MB_ICONQUESTION,
+		getHandle(), 0, 0, &nMsg);
+	if (status == QSTATUS_SUCCESS) {
+		switch (nMsg) {
+		case IDYES:
+			{
+				Action* pAction = pImpl_->pActionMap_->getAction(IDM_FILE_SEND);
+				assert(pAction);
+				status = pAction->invoke(ActionEvent(IDM_FILE_SEND, 0));
+				bCancel = status != QSTATUS_SUCCESS;
+			}
+			break;
+		case IDNO:
+			bCancel = false;
+			break;
+		default:
+			break;
+		}
+		if (!bCancel)
+			pImpl_->pManager_->close(this);
+	}
+	
+	return !bCancel;
+}
+
 bool qm::EditFrameWindow::isShowToolbar() const
 {
 	return pImpl_->bShowToolbar_;
@@ -610,33 +644,7 @@ LRESULT qm::EditFrameWindow::onActivate(UINT nFlags, HWND hwnd, bool bMinimized)
 
 LRESULT qm::EditFrameWindow::onClose()
 {
-	DECLARE_QSTATUS();
-	
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	int nMsg = 0;
-	status = messageBox(hInst, IDS_CONFIRMCLOSEEDITFRAME,
-		MB_YESNOCANCEL | MB_DEFBUTTON1 | MB_ICONQUESTION,
-		getHandle(), 0, 0, &nMsg);
-	if (status == QSTATUS_SUCCESS) {
-		bool bCancel = false;
-		switch (nMsg) {
-		case IDYES:
-			{
-				Action* pAction = pImpl_->pActionMap_->getAction(IDM_FILE_SEND);
-				assert(pAction);
-				status = pAction->invoke(ActionEvent(IDM_FILE_SEND, 0));
-				bCancel = status != QSTATUS_SUCCESS;
-			}
-			break;
-		case IDNO:
-			break;
-		default:
-			bCancel = true;
-			break;
-		}
-		if (!bCancel)
-			pImpl_->pManager_->close(this);
-	}
+	tryClose();
 	
 	return 0;
 }
@@ -830,6 +838,22 @@ void qm::EditFrameWindowManager::close(EditFrameWindow* pEditFrameWindow)
 	pEditFrameWindow->destroyWindow();
 }
 
+QSTATUS qm::EditFrameWindowManager::closeAll(bool* pbClosed)
+{
+	assert(pbClosed);
+	
+	DECLARE_QSTATUS();
+	
+	while (!listFrame_.empty()) {
+		EditFrameWindow* pWindow = listFrame_.back();
+		if (!pWindow->tryClose())
+			break;
+	}
+	
+	*pbClosed = listFrame_.empty();
+	
+	return QSTATUS_SUCCESS;
+}
 
 QSTATUS qm::EditFrameWindowManager::preModalDialog(HWND hwndParent)
 {

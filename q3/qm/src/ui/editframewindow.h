@@ -1,5 +1,5 @@
 /*
- * $Id: editframewindow.h,v 1.1.1.1 2003/04/29 08:07:32 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -40,6 +40,7 @@ public:
 public:
 	qs::QSTATUS open(EditMessage* pEditMessage);
 	void close(EditFrameWindow* pEditFrameWindow);
+	qs::QSTATUS closeAll(bool* pbClosed);
 	qs::QSTATUS preModalDialog(HWND hwndParent);
 	qs::QSTATUS postModalDialog(HWND hwndParent);
 

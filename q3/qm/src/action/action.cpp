@@ -39,6 +39,7 @@
 #include "../script/scriptmanager.h"
 #include "../sync/syncmanager.h"
 #include "../ui/dialogs.h"
+#include "../ui/editframewindow.h"
 #include "../ui/foldermodel.h"
 #include "../ui/menus.h"
 #include "../ui/messagemodel.h"
@@ -472,7 +473,7 @@ qm::EditFindAction::EditFindAction(MessageWindow* pMessageWindow,
 }
 
 qm::EditFindAction::EditFindAction(MessageWindow* pMessageWindow, bool bNext,
-	FindReplaceManager* pFindReplaceManager, qs::QSTATUS* pstatus) :
+	FindReplaceManager* pFindReplaceManager, QSTATUS* pstatus) :
 	pMessageWindow_(pMessageWindow),
 	pProfile_(0),
 	pFindReplaceManager_(pFindReplaceManager),
@@ -718,14 +719,16 @@ NormalFolder* qm::FileEmptyTrashAction::getTrash() const
  *
  */
 
-qm::FileExitAction::FileExitAction(Window* pWindow, Document* pDocument,
-	ViewModelManager* pViewModelManager, SyncManager* pSyncManager,
-	TempFileCleaner* pTempFileCleaner, qs::QSTATUS* pstatus) :
+qm::FileExitAction::FileExitAction(Window* pWindow,
+	Document* pDocument, ViewModelManager* pViewModelManager,
+	SyncManager* pSyncManager, TempFileCleaner* pTempFileCleaner,
+	EditFrameWindowManager* pEditFrameWindowManager, QSTATUS* pstatus) :
 	pWindow_(pWindow),
 	pDocument_(pDocument),
 	pViewModelManager_(pViewModelManager),
 	pSyncManager_(pSyncManager),
-	pTempFileCleaner_(pTempFileCleaner)
+	pTempFileCleaner_(pTempFileCleaner),
+	pEditFrameWindowManager_(pEditFrameWindowManager)
 {
 	assert(pstatus);
 	*pstatus = QSTATUS_SUCCESS;
@@ -744,6 +747,12 @@ QSTATUS qm::FileExitAction::invoke(const ActionEvent& event)
 		// Show message
 		return QSTATUS_SUCCESS;
 	}
+	
+	bool bClosed = false;
+	status = pEditFrameWindowManager_->closeAll(&bClosed);
+	CHECK_QSTATUS();
+	if (!bClosed)
+		return QSTATUS_SUCCESS;
 	
 	status = pDocument_->save();
 	CHECK_QSTATUS();

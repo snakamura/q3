@@ -459,8 +459,9 @@ class FileExitAction : public qs::AbstractAction
 {
 public:
 	FileExitAction(qs::Window* pWindow, Document* pDocument,
-		ViewModelManager* pViewModelManager, SyncManager* pSyncManager,
-		TempFileCleaner* pTempFileCleaner, qs::QSTATUS* pstatus);
+		ViewModelManager* pViewModelManager,
+		SyncManager* pSyncManager, TempFileCleaner* pTempFileCleaner,
+		EditFrameWindowManager* pEditFrameWindowManager, qs::QSTATUS* pstatus);
 	virtual ~FileExitAction();
 
 public:
@@ -476,6 +477,7 @@ private:
 	ViewModelManager* pViewModelManager_;
 	SyncManager* pSyncManager_;
 	TempFileCleaner* pTempFileCleaner_;
+	EditFrameWindowManager* pEditFrameWindowManager_;
 };
 
 
