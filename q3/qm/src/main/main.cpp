@@ -10,11 +10,13 @@
 #include <qmapplication.h>
 #include <qmmain.h>
 
+#include <qsfile.h>
 #include <qsosutil.h>
 #include <qsthread.h>
 
 #include <memory>
 
+#include <tchar.h>
 #include <windows.h>
 
 #include "main.h"
@@ -100,6 +102,25 @@ int qm::main(const WCHAR* pwszCommandLine)
 	const WCHAR* pwszProfile = handler.getProfile();
 	if (pwszProfile)
 		wstrProfile = allocWString(pwszProfile);
+	
+	if (!wstrMailFolder.get() || !wstrProfile.get()) {
+		TCHAR tszPath[MAX_PATH + 1];
+		if (::GetModuleFileName(0, tszPath, MAX_PATH) > 5 &&
+			_tcsicmp(tszPath + _tcslen(tszPath) - 5, _T("x.exe")) == 0) {
+			if (!wstrMailFolder.get()) {
+				wstring_ptr wstrPath(tcs2wcs(tszPath));
+				const WCHAR* p = wcsrchr(wstrPath.get(), L'\\');
+				if (p)
+					wstrMailFolder = concat(wstrPath.get(), p - wstrPath.get(), L"\\mail", -1);
+				else
+					wstrMailFolder = allocWString(L"\\mail");
+				if (!File::createDirectory(wstrMailFolder.get()))
+					return 1;
+			}
+			if (!wstrProfile.get())
+				wstrProfile = allocWString(L"");
+		}
+	}
 	
 	if (!wstrMailFolder.get() || !wstrProfile.get()) {
 		Registry reg(HKEY_CURRENT_USER, L"Software\\sn\\q3\\Setting");
