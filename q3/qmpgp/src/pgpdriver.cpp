@@ -203,7 +203,27 @@ bool qmpgp::PGPDriver::getAlternatives(const WCHAR* pwszUserId,
 	if (nCode != 0)
 		return false;
 	
-	// TODO
+	const CHAR* p = reinterpret_cast<const CHAR*>(stdout.getBuffer());
+	size_t nLen = stdout.getLength();
+	while (nLen > 3) {
+		if (*p == ' ') {
+			const CHAR* pStart = p;
+			while (*pStart == ' ')
+				++pStart;
+			const CHAR* pEnd = pStart;
+			while (*pEnd != '\r' && *pEnd != '\n')
+				++pEnd;
+			wstring_ptr wstrUserId(mbs2wcs(pStart, pEnd - pStart));
+			pList->push_back(wstrUserId.get());
+			wstrUserId.release();
+		}
+		while (*p != '\n') {
+			++p;
+			--nLen;
+		}
+		++p;
+		--nLen;
+	}
 	
 	return true;
 }
