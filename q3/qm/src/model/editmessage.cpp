@@ -311,11 +311,6 @@ wstring_ptr qm::EditMessage::getField(const WCHAR* pwszName,
 	else {
 		switch (type) {
 		case FIELDTYPE_UNSTRUCTURED:
-			{
-				UnstructuredParser field;
-				if (pMessage_->getField(pwszName, &field) == Part::FIELD_EXIST)
-					wstrValue = allocWString(field.getValue());
-			}
 			break;
 		case FIELDTYPE_ADDRESSLIST:
 			{
@@ -334,6 +329,11 @@ wstring_ptr qm::EditMessage::getField(const WCHAR* pwszName,
 		default:
 			assert(false);
 			break;
+		}
+		if (!wstrValue.get()) {
+			UnstructuredParser field;
+			if (pMessage_->getField(pwszName, &field) == Part::FIELD_EXIST)
+				wstrValue = allocWString(field.getValue());
 		}
 	}
 	

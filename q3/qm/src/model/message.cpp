@@ -223,7 +223,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 				return std::auto_ptr<Part>(0);
 			
 			BoundaryFinder<WCHAR, WSTRING> finder(pBody - 1, nBodyLen + 1,
-				wstrBoundary.get(), L"\n", (nFlags_ & FLAG_RECOVER) != 0);
+				wstrBoundary.get(), L"\n", (nFlags_ & FLAG_RECOVERBODY) != 0);
 			
 			while (true) {
 				const WCHAR* pBegin = 0;
@@ -346,7 +346,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 		}
 		else {
 			xstring_ptr strBody(PartUtil::w2a(pBody, nBodyLen));
-			if (!strBody.get() && nFlags_ & FLAG_RECOVER) {
+			if (!strBody.get() && nFlags_ & FLAG_RECOVERBODY) {
 				std::auto_ptr<Converter> pConverter(
 					ConverterFactory::getInstance(Part::getDefaultCharset()));
 				size_t nLen = nBodyLen;
@@ -522,7 +522,7 @@ bool qm::MessageCreator::createHeader(Part* pPart,
 				bMulti ? FIELDTYPE_MULTIUNSTRUCTURED : FIELDTYPE_SINGLEUNSTRUCTURED);
 		}
 		if (!bSet) {
-			if ((nFlags_ & FLAG_RECOVER) == 0 ||
+			if ((nFlags_ & FLAG_RECOVERHEADER) == 0 ||
 				!setField(pPart, pwszName, pwszValue, FIELDTYPE_MULTIUNSTRUCTURED))
 				return false;
 		}

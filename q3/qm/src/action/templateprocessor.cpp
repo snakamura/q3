@@ -142,7 +142,7 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 		return pExternalEditorManager_->open(wstrValue.get());
 	}
 	else {
-		MessageCreator creator;
+		MessageCreator creator(MessageCreator::FLAG_RECOVERHEADER, SECURITYMODE_NONE);
 		std::auto_ptr<Message> pMessage(creator.createMessage(
 			pDocument_, wstrValue.get(), -1));
 		if (!pMessage.get())
