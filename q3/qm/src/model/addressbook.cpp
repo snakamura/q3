@@ -61,7 +61,7 @@ qm::AddressBook::AddressBook(const Security* pSecurity, QSTATUS* pstatus) :
 	CHECK_QSTATUS_SET(pstatus);
 	
 	status = initWAB();
-	CHECK_QSTATUS_SET(pstatus);
+//	CHECK_QSTATUS_SET(pstatus);
 }
 
 qm::AddressBook::~AddressBook()
@@ -331,7 +331,7 @@ QSTATUS qm::AddressBook::load()
 		bCleared = true;
 		
 		status = loadWAB();
-		CHECK_QSTATUS();
+//		CHECK_QSTATUS();
 	}
 	
 	if (bCleared) {
@@ -370,6 +370,9 @@ QSTATUS qm::AddressBook::loadWAB()
 	DECLARE_QSTATUS();
 	
 #ifndef _WIN32_WCE
+	if (!pAddrBook_)
+		return QSTATUS_FAIL;
+	
 	ULONG nSize = 0;
 	ENTRYID* pEntryId = 0;
 	if (pAddrBook_->GetPAB(&nSize, &pEntryId) != S_OK)
@@ -483,6 +486,9 @@ QSTATUS qm::AddressBook::loadWAB()
 		}
 	}
 #else
+	if (!hContactsDB_)
+		return QSTATUS_FAIL;
+	
 	typedef std::vector<std::pair<unsigned int, WSTRING> > CategoryMap;
 	CategoryMap mapCategory;
 	struct Deleter
@@ -552,9 +558,6 @@ QSTATUS qm::AddressBook::loadWAB()
 			std::less<unsigned int>(),
 			std::select1st<CategoryMap::value_type>(),
 			std::select1st<CategoryMap::value_type>()));
-	
-	if (!hContactsDB_)
-		return QSTATUS_FAIL;
 	
 	DWORD dwIndex = 0;
 	::CeSeekDatabase(hContactsDB_, CEDB_SEEK_BEGINNING, 0, &dwIndex);
