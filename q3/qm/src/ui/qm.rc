@@ -377,10 +377,10 @@ BEGIN
     CONTROL         "Export Fla&gs",IDC_EXPORTFLAGS,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,45,35,165,10
     LTEXT           "&Template",IDC_STATIC,5,53,30,8
-    COMBOBOX        IDC_TEMPLATE,45,50,110,30,CBS_DROPDOWNLIST |
-                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_TEMPLATE,45,50,110,30,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
     LTEXT           "&Encoding",IDC_STATIC,5,68,35,8
-    COMBOBOX        IDC_ENCODING,45,66,110,30,CBS_DROPDOWN | 
+    COMBOBOX        IDC_ENCODING,45,66,110,30,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
                     WS_VSCROLL | WS_TABSTOP
     DEFPUSHBUTTON   "OK",IDOK,105,85,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,160,85,50,14
@@ -495,8 +495,8 @@ BEGIN
     LTEXT           "&My Address",IDC_STATIC,5,23,40,8
     EDITTEXT        IDC_MYADDRESS,45,20,175,14,ES_AUTOHSCROLL
     LTEXT           "&Sync Filter",IDC_STATIC,5,38,33,8
-    COMBOBOX        IDC_SYNCFILTER,45,35,85,45,CBS_DROPDOWNLIST | CBS_SORT | 
-                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_SYNCFILTER,45,35,85,45,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    CBS_SORT | WS_VSCROLL | WS_TABSTOP
     LTEXT           "&Timeout",IDC_STATIC,5,53,30,8
     EDITTEXT        IDC_TIMEOUT,45,50,40,14,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "&Connect receive host before send",
@@ -559,8 +559,8 @@ CAPTION "Find"
 FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
 BEGIN
     LTEXT           "&Find what",IDC_STATIC,5,8,30,8
-    COMBOBOX        IDC_FIND,40,5,110,65,CBS_DROPDOWN | WS_VSCROLL | 
-                    WS_TABSTOP
+    COMBOBOX        IDC_FIND,40,5,110,65,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
     CONTROL         "Match &Case",IDC_MATCHCASE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,5,25,60,10
     CONTROL         "&Regular Expression",IDC_REGEX,"Button",BS_AUTOCHECKBOX | 
@@ -576,11 +576,11 @@ CAPTION "Replace"
 FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
 BEGIN
     LTEXT           "&Find what",IDC_STATIC,5,8,30,8
-    COMBOBOX        IDC_FIND,55,5,110,65,CBS_DROPDOWN | WS_VSCROLL | 
-                    WS_TABSTOP
+    COMBOBOX        IDC_FIND,55,5,110,65,CBS_DROPDOWN | CBS_AUTOHSCROLL |
+                    WS_VSCROLL | WS_TABSTOP
     LTEXT           "&Replace with",IDC_STATIC,5,23,45,8
-    COMBOBOX        IDC_REPLACE,55,20,110,65,CBS_DROPDOWN | WS_VSCROLL | 
-                    WS_TABSTOP
+    COMBOBOX        IDC_REPLACE,55,20,110,65,CBS_DROPDOWN | CBS_AUTOHSCROLL |
+                    WS_VSCROLL | WS_TABSTOP
     CONTROL         "Match &Case",IDC_MATCHCASE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,5,35,60,10
     CONTROL         "&Regular Expression",IDC_REGEX,"Button",BS_AUTOCHECKBOX | 
@@ -597,8 +597,8 @@ CAPTION "Create Subaccount"
 FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
 BEGIN
     LTEXT           "&Name",IDC_STATIC,5,6,25,8
-    COMBOBOX        IDC_NAME,30,5,150,50,CBS_DROPDOWN | CBS_SORT | 
-                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_NAME,30,5,150,50,CBS_DROPDOWN | CBS_AUTOHSCROLL |
+                    CBS_SORT | WS_VSCROLL | WS_TABSTOP
     DEFPUSHBUTTON   "OK",IDOK,75,25,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,130,25,50,14
 END
@@ -731,8 +731,8 @@ CAPTION "Simple"
 FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
 BEGIN
     LTEXT           "&Search for",IDC_STATIC,5,8,35,8
-    COMBOBOX        IDC_CONDITION,40,5,170,75,CBS_DROPDOWN | WS_VSCROLL | 
-                    WS_TABSTOP
+    COMBOBOX        IDC_CONDITION,40,5,170,75,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
     CONTROL         "Match &Case",IDC_MATCHCASE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,5,25,60,10
     CONTROL         "Search &Body",IDC_SEARCHBODY,"Button",BS_AUTOCHECKBOX | 
@@ -754,8 +754,8 @@ CAPTION "Full Text"
 FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
 BEGIN
     LTEXT           "&Search for",IDC_STATIC,5,8,35,8
-    COMBOBOX        IDC_CONDITION,40,5,170,75,CBS_DROPDOWN | WS_VSCROLL | 
-                    WS_TABSTOP
+    COMBOBOX        IDC_CONDITION,40,5,170,75,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
     GROUPBOX        "Folder",IDC_STATIC,5,25,75,45
     CONTROL         "C&urrent",IDC_CURRENT,"Button",BS_AUTORADIOBUTTON,10,35,
                     55,10
@@ -783,7 +783,7 @@ BEGIN
                     WS_TABSTOP,50,50,45,10
 END
 
-IDD_VIEWS DIALOGEX 0, 0, 279, 190
+IDD_VIEWS DIALOG DISCARDABLE  0, 0, 279, 190
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Customize View"
 FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
