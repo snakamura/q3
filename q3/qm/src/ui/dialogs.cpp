@@ -2431,6 +2431,8 @@ LRESULT qm::FindDialog::onCommand(WORD nCode,
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID_RANGE(IDC_FINDNEXT, IDC_FINDPREV, onFind)
+		HANDLE_COMMAND_ID_CODE(IDC_FIND, CBN_EDITCHANGE, onFindChange)
+		HANDLE_COMMAND_ID_CODE(IDC_FIND, CBN_SELCHANGE, onFindSelChange)
 		HANDLE_COMMAND_ID(IDC_REGEX, onRegexChange)
 	END_COMMAND_HANDLER()
 	return DefaultDialog::onCommand(nCode, nId);
@@ -2498,6 +2500,18 @@ LRESULT qm::FindDialog::onFind(UINT nId)
 	return 0;
 }
 
+LRESULT qm::FindDialog::onFindChange()
+{
+	updateState();
+	return 0;
+}
+
+LRESULT qm::FindDialog::onFindSelChange()
+{
+	postMessage(WM_COMMAND, MAKEWPARAM(IDC_FIND, CBN_EDITCHANGE));
+	return 0;
+}
+
 LRESULT qm::FindDialog::onRegexChange()
 {
 	updateState();
@@ -2510,6 +2524,11 @@ void qm::FindDialog::updateState()
 	bool bRegex = bSupportRegex_ &&
 		sendDlgItemMessage(IDC_REGEX, BM_GETCHECK) == BST_CHECKED;
 	Window(getDlgItem(IDC_MATCHCASE)).enableWindow(!bRegex);
+	
+	Window edit(Window(getDlgItem(IDC_FIND)).getWindow(GW_CHILD));
+	bool bEnable = edit.getWindowTextLength() != 0;
+	Window(getDlgItem(IDC_FINDNEXT)).enableWindow(bEnable);
+	Window(getDlgItem(IDC_FINDPREV)).enableWindow(bEnable);
 }
 
 
@@ -3271,6 +3290,8 @@ LRESULT qm::ReplaceDialog::onCommand(WORD nCode,
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID_RANGE(IDC_REPLACENEXT, IDC_REPLACEALL, onReplace)
+		HANDLE_COMMAND_ID_CODE(IDC_FIND, CBN_EDITCHANGE, onFindChange)
+		HANDLE_COMMAND_ID_CODE(IDC_FIND, CBN_SELCHANGE, onFindSelChange)
 		HANDLE_COMMAND_ID(IDC_REGEX, onRegexChange)
 	END_COMMAND_HANDLER()
 	return DefaultDialog::onCommand(nCode, nId);
@@ -3358,6 +3379,18 @@ LRESULT qm::ReplaceDialog::onReplace(UINT nId)
 	return 0;
 }
 
+LRESULT qm::ReplaceDialog::onFindChange()
+{
+	updateState();
+	return 0;
+}
+
+LRESULT qm::ReplaceDialog::onFindSelChange()
+{
+	postMessage(WM_COMMAND, MAKEWPARAM(IDC_FIND, CBN_EDITCHANGE));
+	return 0;
+}
+
 LRESULT qm::ReplaceDialog::onRegexChange()
 {
 	updateState();
@@ -3368,6 +3401,12 @@ void qm::ReplaceDialog::updateState()
 {
 	bool bRegex = sendDlgItemMessage(IDC_REGEX, BM_GETCHECK) == BST_CHECKED;
 	Window(getDlgItem(IDC_MATCHCASE)).enableWindow(!bRegex);
+	
+	Window edit(Window(getDlgItem(IDC_FIND)).getWindow(GW_CHILD));
+	bool bEnable = edit.getWindowTextLength() != 0;
+	Window(getDlgItem(IDC_REPLACENEXT)).enableWindow(bEnable);
+	Window(getDlgItem(IDC_REPLACEPREV)).enableWindow(bEnable);
+	Window(getDlgItem(IDC_REPLACEALL)).enableWindow(bEnable);
 }
 
 

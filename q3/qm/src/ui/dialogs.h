@@ -189,7 +189,8 @@ public:
 	const AddressList& getAddresses(Type type) const;
 
 public:
-	virtual INT_PTR dialogProc(UINT uMsg, WPARAM wParam,
+	virtual INT_PTR dialogProc(UINT uMsg,
+							   WPARAM wParam,
 							   LPARAM lParam);
 
 public:
@@ -733,7 +734,13 @@ protected:
 								 LPARAM lParam);
 
 private:
+	LRESULT onUpdateState(WPARAM wParam,
+						  LPARAM lParam);
+
+private:
 	LRESULT onFind(UINT nId);
+	LRESULT onFindChange();
+	LRESULT onFindSelChange();
 	LRESULT onRegexChange();
 
 private:
@@ -1091,6 +1098,8 @@ protected:
 
 private:
 	LRESULT onReplace(UINT nId);
+	LRESULT onFindChange();
+	LRESULT onFindSelChange();
 	LRESULT onRegexChange();
 
 private:
