@@ -158,18 +158,20 @@ void qm::MessageFrameWindowImpl::initActions()
 		pMessageWindow_,
 		&MessageWindowItem::copy,
 		&MessageWindowItem::canCopy);
-	ADD_ACTION4(EditDeleteMessageAction,
+	ADD_ACTION5(EditDeleteMessageAction,
 		IDM_EDIT_DELETE,
 		pMessageModel_.get(),
 		pMessageModel_.get(),
 		false,
-		pThis_->getHandle());
-	ADD_ACTION4(EditDeleteMessageAction,
+		pThis_->getHandle(),
+		pProfile_);
+	ADD_ACTION5(EditDeleteMessageAction,
 		IDM_EDIT_DELETEDIRECT,
 		pMessageModel_.get(),
 		pMessageModel_.get(),
 		true,
-		pThis_->getHandle());
+		pThis_->getHandle(),
+		pProfile_);
 	ADD_ACTION3(EditFindAction,
 		IDM_EDIT_FIND,
 		pMessageWindow_,

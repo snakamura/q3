@@ -229,7 +229,10 @@
 #define IDS_NAME                        1082
 #define IDC_MAILFOLDER                  1083
 #define IDS_VALUE                       1083
+#define IDS_CONFIRMEMPTYFOLDER          1084
 #define IDC_ERROR                       1085
+#define IDS_CONFIRMEMPTYTRASH           1085
+#define IDS_CONFIRMDELETEMESSAGE        1086
 #define IDC_MATCHCASE                   1087
 #define IDC_FINDNEXT                    1088
 #define IDC_FINDPREV                    1089

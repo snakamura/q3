@@ -398,16 +398,18 @@ void qm::MainWindowImpl::initActions()
 		IDM_EDIT_DELETECACHE,
 		pMessageSelectionModel_.get(),
 		pThis_->getHandle());
-	ADD_ACTION3(EditDeleteMessageAction,
+	ADD_ACTION4(EditDeleteMessageAction,
 		IDM_EDIT_DELETE,
 		pMessageSelectionModel_.get(),
 		false,
-		pThis_->getHandle());
-	ADD_ACTION3(EditDeleteMessageAction,
+		pThis_->getHandle(),
+		pProfile_);
+	ADD_ACTION4(EditDeleteMessageAction,
 		IDM_EDIT_DELETEDIRECT,
 		pMessageSelectionModel_.get(),
 		true,
-		pThis_->getHandle());
+		pThis_->getHandle(),
+		pProfile_);
 	ADD_ACTION3(EditFindAction,
 		IDM_EDIT_FIND,
 		pMessageWindow_,
@@ -529,10 +531,11 @@ void qm::MainWindowImpl::initActions()
 		pFolderModel_.get(),
 		this,
 		pThis_->getHandle());
-	ADD_ACTION2(FolderEmptyAction,
+	ADD_ACTION3(FolderEmptyAction,
 		IDM_FOLDER_EMPTY,
 		this,
-		pThis_->getHandle());
+		pThis_->getHandle(),
+		pProfile_);
 	ADD_ACTION6(FolderEmptyTrashAction,
 		IDM_FOLDER_EMPTYTRASH,
 		pSyncManager_,

@@ -1522,6 +1522,9 @@ BEGIN
     IDS_COLORS              "Colors"
     IDS_NAME                "Name"
     IDS_VALUE               "Value"
+    IDS_CONFIRMEMPTYFOLDER  "Are you sure to delete all messages in these folders?"
+    IDS_CONFIRMEMPTYTRASH   "Are you sure to delete all messages in Trash?"
+    IDS_CONFIRMDELETEMESSAGE "Are you sure to delete selected messages?"
 END
 
 STRINGTABLE DISCARDABLE 

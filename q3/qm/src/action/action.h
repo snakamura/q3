@@ -634,16 +634,21 @@ class EditDeleteMessageAction : public qs::AbstractAction
 public:
 	EditDeleteMessageAction(MessageSelectionModel* pMessageSelectionModel,
 							bool bDirect,
-							HWND hwnd);
+							HWND hwnd,
+							qs::Profile* pProfile);
 	EditDeleteMessageAction(MessageModel* pMessageModel,
 							ViewModelHolder* pViewModelHolder,
 							bool bDirect,
-							HWND hwnd);
+							HWND hwnd,
+							qs::Profile* pProfile);
 	virtual ~EditDeleteMessageAction();
 
 public:
 	virtual void invoke(const qs::ActionEvent& event);
 	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	bool confirm() const;
 
 private:
 	EditDeleteMessageAction(const EditDeleteMessageAction&);
@@ -655,6 +660,7 @@ private:
 	ViewModelHolder* pViewModelHolder_;
 	bool bDirect_;
 	HWND hwnd_;
+	bool bConfirm_;
 };
 
 
@@ -1252,7 +1258,8 @@ class FolderEmptyAction : public qs::AbstractAction
 {
 public:
 	FolderEmptyAction(FolderSelectionModel* pFolderSelectionModel,
-					  HWND hwnd);
+					  HWND hwnd,
+					  qs::Profile* pProfile);
 	virtual ~FolderEmptyAction();
 
 public:
@@ -1266,6 +1273,7 @@ private:
 private:
 	FolderSelectionModel* pFolderSelectionModel_;
 	HWND hwnd_;
+	bool bConfirm_;
 };
 
 
@@ -1303,7 +1311,7 @@ private:
 	FolderModel* pFolderModel_;
 	SyncDialogManager* pSyncDialogManager_;
 	HWND hwnd_;
-	qs::Profile* pProfile_;
+	bool bConfirm_;
 };
 
 

@@ -687,24 +687,30 @@ bool qm::EditDeleteCacheAction::isEnabled(const ActionEvent& event)
 
 qm::EditDeleteMessageAction::EditDeleteMessageAction(MessageSelectionModel* pMessageSelectionModel,
 													 bool bDirect,
-													 HWND hwnd) :
+													 HWND hwnd,
+													 Profile* pProfile) :
 	pMessageSelectionModel_(pMessageSelectionModel),
 	pMessageModel_(0),
 	bDirect_(bDirect),
-	hwnd_(hwnd)
+	hwnd_(hwnd),
+	bConfirm_(false)
 {
+	bConfirm_ = pProfile->getInt(L"Global", L"ConfirmDeleteMessage", 0) != 0;
 }
 
 qm::EditDeleteMessageAction::EditDeleteMessageAction(MessageModel* pMessageModel,
 													 ViewModelHolder* pViewModelHolder,
 													 bool bDirect,
-													 HWND hwnd) :
+													 HWND hwnd,
+													 Profile* pProfile) :
 	pMessageSelectionModel_(0),
 	pMessageModel_(pMessageModel),
 	pViewModelHolder_(pViewModelHolder),
 	bDirect_(bDirect),
-	hwnd_(hwnd)
+	hwnd_(hwnd),
+	bConfirm_(false)
 {
+	bConfirm_ = pProfile->getInt(L"Global", L"ConfirmDeleteMessage", 0) != 0;
 }
 
 qm::EditDeleteMessageAction::~EditDeleteMessageAction()
@@ -720,13 +726,17 @@ void qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 		pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
 		
 		Account* pAccount = lock.get();
-		if (!l.empty()) {
-			ProgressDialogMessageOperationCallback callback(
-				hwnd_, IDS_DELETE, IDS_DELETE);
-			if (!pAccount->removeMessages(l, pFolder, bDirect_, &callback)) {
-				ActionUtil::error(hwnd_, IDS_ERROR_DELETEMESSAGES);
-				return;
-			}
+		if (l.empty())
+			return;
+		
+		if (!confirm())
+			return;
+		
+		ProgressDialogMessageOperationCallback callback(
+			hwnd_, IDS_DELETE, IDS_DELETE);
+		if (!pAccount->removeMessages(l, pFolder, bDirect_, &callback)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_DELETEMESSAGES);
+			return;
 		}
 	}
 	else {
@@ -735,19 +745,23 @@ void qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 		Lock<ViewModel> lock(*pViewModel);
 		
 		MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
-		if (mpl) {
-			unsigned int nIndex = pViewModel->getIndex(mpl);
-			if (nIndex < pViewModel->getCount() - 1) {
-				MessageHolder* pmh = pViewModel->getMessageHolder(nIndex + 1);
-				pMessageModel_->setMessage(pmh);
-			}
-			
-			Account* pAccount = mpl->getFolder()->getAccount();
-			MessageHolderList l(1, mpl);
-			if (!pAccount->removeMessages(l, pViewModel->getFolder(), bDirect_, 0)) {
-				ActionUtil::error(hwnd_, IDS_ERROR_DELETEMESSAGES);
-				return;
-			}
+		if (!mpl)
+			return;
+		
+		if (!confirm())
+			return;
+		
+		unsigned int nIndex = pViewModel->getIndex(mpl);
+		if (nIndex < pViewModel->getCount() - 1) {
+			MessageHolder* pmh = pViewModel->getMessageHolder(nIndex + 1);
+			pMessageModel_->setMessage(pmh);
+		}
+		
+		Account* pAccount = mpl->getFolder()->getAccount();
+		MessageHolderList l(1, mpl);
+		if (!pAccount->removeMessages(l, pViewModel->getFolder(), bDirect_, 0)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_DELETEMESSAGES);
+			return;
 		}
 	}
 }
@@ -761,6 +775,15 @@ bool qm::EditDeleteMessageAction::isEnabled(const ActionEvent& event)
 		MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
 		return mpl != 0;
 	}
+}
+
+bool qm::EditDeleteMessageAction::confirm() const
+{
+	if (bConfirm_)
+		return messageBox(Application::getApplication().getResourceHandle(),
+			IDS_CONFIRMDELETEMESSAGE, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd_) == IDYES;
+	else
+		return true;
 }
 
 
@@ -2382,10 +2405,13 @@ bool qm::FolderDeleteAction::isEnabled(const ActionEvent& event)
  */
 
 qm::FolderEmptyAction::FolderEmptyAction(FolderSelectionModel* pFolderSelectionModel,
-										 HWND hwnd) :
+										 HWND hwnd,
+										 Profile* pProfile) :
 	pFolderSelectionModel_(pFolderSelectionModel),
-	hwnd_(hwnd)
+	hwnd_(hwnd),
+	bConfirm_(true)
 {
+	bConfirm_ = pProfile->getInt(L"Global", L"ConfirmEmptyFolder", 1) != 0;
 }
 
 qm::FolderEmptyAction::~FolderEmptyAction()
@@ -2396,6 +2422,14 @@ void qm::FolderEmptyAction::invoke(const ActionEvent& event)
 {
 	Account::FolderList l;
 	pFolderSelectionModel_->getSelectedFolders(&l);
+	if (l.empty())
+		return;
+	
+	if (bConfirm_) {
+		if (messageBox(Application::getApplication().getResourceHandle(),
+			IDS_CONFIRMEMPTYFOLDER, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd_) != IDYES)
+			return;
+	}
 	
 	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		Folder* pFolder = *it;
@@ -2440,8 +2474,9 @@ qm::FolderEmptyTrashAction::FolderEmptyTrashAction(SyncManager* pSyncManager,
 	pFolderModel_(pFolderModel),
 	pSyncDialogManager_(pSyncDialogManager),
 	hwnd_(hwnd),
-	pProfile_(pProfile)
+	bConfirm_(true)
 {
+	bConfirm_ = pProfile->getInt(L"Global", L"ConfirmEmptyTrash", 1) != 0;
 }
 
 qm::FolderEmptyTrashAction::~FolderEmptyTrashAction()
@@ -2453,6 +2488,12 @@ void qm::FolderEmptyTrashAction::invoke(const ActionEvent& event)
 	NormalFolder* pTrash = getTrash();
 	if (!pTrash)
 		return;
+	
+	if (bConfirm_) {
+		if (messageBox(Application::getApplication().getResourceHandle(),
+			IDS_CONFIRMEMPTYTRASH, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd_) != IDYES)
+			return;
+	}
 	
 	Account* pAccount = pTrash->getAccount();
 	Lock<Account> lock(*pAccount);
