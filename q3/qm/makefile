@@ -7,7 +7,7 @@ PROJECTTYPE		= dll
 LIBRARIES		= qs
 
 CPROJS			= -DQMEXPORT
-ifeq ($(PLATFORM),desktop)
+ifeq ($(PLATFORM),win)
 	CPROJS		+= -DQMHTMLVIEW -DQMTABWINDOW
 endif
 ifeq ($(PLATFORM),sig3)

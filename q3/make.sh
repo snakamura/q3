@@ -6,7 +6,7 @@ MAKE=${MAKE:=make}
 
 TARGET=$1
 
-PLATFORMS="desktop ppc2003se ppc2003 ppc2002 hpc2000 ppc hpcpro sig3"
+PLATFORMS="win ppc2003se ppc2003 ppc2002 hpc2000 ppc hpcpro sig3"
 CPUS="sh3 sh4 mips arm xscale armv4 armv4i x86em"
 BASELANGS="ja en"
 CODES="ansi unicode"
@@ -27,7 +27,7 @@ checkValue()
 PLATFORM=`echo $TARGET | cut -d . -f 1`
 checkValue "$PLATFORM" "$PLATFORMS" PLATFORM
 
-if [ "$PLATFORM" = "desktop" ]; then
+if [ "$PLATFORM" = "win" ]; then
 	BASELANG=ja
 	CODE=`echo $TARGET | cut -d . -f 2`
 	checkValue "$CODE" "$CODES" CODE

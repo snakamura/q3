@@ -55,7 +55,7 @@ END
 #if defined(APSTUDIO_INVOKED) || \
     !(defined(PLATFORM_PPC) || defined(PLATFORM_PPC2002) || defined(PLATFORM_HPC2000) || \
     defined(PLATFORM_HPCPRO))
-IDR_TYPELIB             TYPELIB DISCARDABLE     "..\\tlb\\desktop\\qmobj.tlb"
+IDR_TYPELIB             TYPELIB DISCARDABLE     "..\\tlb\\win\\qmobj.tlb"
 #endif
 #if defined(APSTUDIO_INVOKED) || defined(PLATFORM_PPC)
 #if defined(APSTUDIO_INVOKED)

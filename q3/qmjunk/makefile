@@ -10,7 +10,7 @@ PROJECTTYPE		= dll
 LIBRARIES		= qs qm
 
 EXTERNALINCS	= -I"$(QDBMDIR)/include"
-ifeq ($(PLATFORM),desktop)
+ifeq ($(PLATFORM),win)
 	EXTERNALLIBS= "$(QDBMDIR)/lib/win/qdbm_t$(DSUFFIX).lib"
 else
 	EXTERNALLIBS= "$(QDBMDIR)/lib/wce/$(EXLIBCPU)/qdbm_t$(DSUFFIX).lib"

@@ -5,7 +5,7 @@
 # Targets
 #     target
 #     clean
-#     clean.desktop
+#     clean.win
 #     clean.wce
 
 BINDIR					= d:/util/cygwin/bin
@@ -49,8 +49,8 @@ ifdef EMULATION
 	endif
 endif
 
-ifeq ($(PLATFORM),desktop)
-	# DESKTOP ###############################################################
+ifeq ($(PLATFORM),win)
+	# WINDOWS ###############################################################
 	SDKDIR				= $(PLATFORMSDKDIR)
 	ifeq ($(VC7),1)
 		COMPILERDIR		= $(VC7DIR)
@@ -184,8 +184,8 @@ endif
 SDKBINDIR				= $(SDKDIR)/bin
 
 
-ifeq ($(PLATFORM),desktop)
-	# DESKTOP ###############################################################
+ifeq ($(PLATFORM),win)
+	# WINDOWS ###############################################################
 	CCC					= cl
 	#########################################################################
 else
@@ -241,7 +241,7 @@ ifdef DEBUG
 	BASENAME			= debug
 	DSUFFIX				= d
 	CCFLAGS				= -Od
-ifeq ($(PLATFORM),desktop)
+ifeq ($(PLATFORM),win)
 		CCFLAGS			+= -GZ
 endif
 	DEFINES				= -D_DEBUG
@@ -262,7 +262,7 @@ else
 	LDFLAGS				= -RELEASE -OPT:REF
 endif
 
-ifneq ($(PLATFORM),desktop)
+ifneq ($(PLATFORM),win)
 	CODE				= unicode
 endif
 
@@ -274,8 +274,8 @@ endif
 
 SUFFIX					= $(USUFFIX)$(DSUFFIX)
 
-ifeq ($(PLATFORM),desktop)
-	# DESKTOP ###############################################################
+ifeq ($(PLATFORM),win)
+	# WINDOWS ###############################################################
 	SUBSYSTEM			= WINDOWS
 	SUBSYSVER			= 4.0
 	#########################################################################
@@ -296,8 +296,8 @@ DEFINES					+= -DWIN32 -D_WIN32 -D_MT -DSTRICT
 LDFLAGS					+= -NOLOGO -INCREMENTAL:NO -SUBSYSTEM:$(SUBSYSTEM),$(SUBSYSVER)
 RCFLAGS					+= -l 0x411
 MIDLFLAGS				= -Oicf
-ifeq ($(PLATFORM),desktop)
-	# DESKTOP ###############################################################
+ifeq ($(PLATFORM),win)
+	# WINDOWS ###############################################################
 	CCFLAGS				+= -GX -GB -MD$(DSUFFIX)
 	DEFINES				+= -DMT -D_DLL -DWINVER=0x400 -D_WIN32_WINNT=0x400 -D_WIN32_IE=0x600 -DTAPI_CURRENT_VERSION=0x00010004
 	ifeq ($(CODE),unicode)
@@ -458,8 +458,8 @@ SRCDIR					= src
 OBJDIRBASE				= obj
 TLBDIRBASE				= tlb
 
-ifeq ($(PLATFORM),desktop)
-	# DESKTOP ###############################################################
+ifeq ($(PLATFORM),win)
+	# WINDOWS ###############################################################
 	OBJDIR				= $(OBJDIRBASE)/$(PLATFORM)/$(CODE)/$(BASENAME)
 	TARGETDIR			= $(TARGETDIRBASE)/$(PLATFORM)/$(CODE)/$(BASENAME)
 	#########################################################################
@@ -481,7 +481,7 @@ STLPORTFLAGS			= -D_STLP_NO_IOSTREAMS
 ifdef DEBUG
 	STLPORTFLAGS		+= -D_STLP_USE_NEWALLOC
 endif
-ifeq ($(PLATFORM),desktop)
+ifeq ($(PLATFORM),win)
 	STLPORTFLAGS		+= -D_STLP_NEW_PLATFORM_SDK
 endif
 ifdef STLPORTEXPORT
@@ -521,7 +521,7 @@ PROJECTINCLUDES			= -I$(INCLUDEDIR)
 PROJECTINCLUDES			+= $(foreach L,$(LIBRARIES),-I../$(L)/include)
 PROJECTINCLUDES			+= $(foreach I,$(EXTRAINCLUDES),-I../$(I)/include)
 INCLUDES				+= $(PROJECTINCLUDES)
-ifeq ($(PLATFORM),desktop)
+ifeq ($(PLATFORM),win)
 	LIBDIRBASE			= $(PLATFORM)/$(CODE)/$(BASENAME)
 else
 	LIBDIRBASE			= $(PLATFORM)/$(CPU)/$(BASELANG)/$(BASENAME)
@@ -545,9 +545,9 @@ clean:
 	done
 	-rm -f version revision
 
-clean.desktop:
+clean.win:
 	-for d in $(OBJDIRBASE) $(TLBDIRBASE) $(TARGETDIRBASE); do \
-		if [ -d $$d/desktop ]; then rm -rf $$d/desktop; fi \
+		if [ -d $$d/win ]; then rm -rf $$d/win; fi \
 	done
 	-rm -f version revision
 

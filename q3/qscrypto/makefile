@@ -11,7 +11,7 @@ PROJECTTYPE		= dll
 LIBRARIES		= qs
 
 EXTERNALINCS	= -I"$(OPENSSLDIR)/include" -I"$(WCECOMPATDIR)/include"
-ifeq ($(PLATFORM),desktop)
+ifeq ($(PLATFORM),win)
 	EXTERNALLIBS= "$(OPENSSLDIR)/lib/win/libeay32.lib" "$(OPENSSLDIR)/lib/win/ssleay32.lib"
 else
 	EXTERNALLIBS= "$(OPENSSLDIR)/lib/wce/$(EXLIBCPU)/libeay32.lib" "$(OPENSSLDIR)/lib/wce/$(EXLIBCPU)/ssleay32.lib"

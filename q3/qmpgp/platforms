@@ -1,4 +1,4 @@
-desktop.ansi.release
-desktop.unicode.release
-desktop.ansi.debug
-desktop.unicode.debug
+win.ansi.release
+win.unicode.release
+win.ansi.debug
+win.unicode.debug

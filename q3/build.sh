@@ -9,9 +9,9 @@ PURIFY=${PURIFY:=d:/dev/rational/purify/purify.exe}
 DOXYGEN=${DOXYGEN:=d:/dev/doxygen/doxygen.exe}
 
 PROJECTS="qs qscrypto qm qmpop3 qmimap4 qmsmtp qmnntp qmrss qmscript qmpgp qmjunk q3"
-DESKTOPTARGETS="desktop.ansi.release desktop.unicode.release"
+WINTARGETS="win.ansi.release win.unicode.release"
 WCETARGETS="ppc2003se.armv4.ja ppc2003.armv4.ja ppc2002.arm.ja hpc2000.arm.ja hpc2000.mips.ja ppc.arm.ja ppc.sh3.ja ppc.mips.ja hpcpro.arm.ja hpcpro.mips.ja hpcpro.sh3.ja hpcpro.sh4.ja sig3.armv4i.ja"
-TARGETS="$DESKTOPTARGETS $WCETARGETS"
+TARGETS="$WINTARGETS $WCETARGETS"
 
 if [ $# -eq 0 ]; then
 	COMMAND=all
@@ -20,7 +20,7 @@ else
 fi
 
 case $COMMAND in
-clean | clean.desktop | clean.wce)
+clean | clean.win | clean.wce)
 	for p in $PROJECTS; do
 		cd $p
 		$MAKE $COMMAND
@@ -96,10 +96,10 @@ run|run.unicode|run.debug|run.debug.unicode|debug|debug.unicode|purify|purify.un
 	
 	RUNPATH=`pwd`/lib
 	for p in $PROJECTS; do
-		RUNPATH="$RUNPATH:`pwd`/$p/lib/desktop/$CODE/$DEBUG"
+		RUNPATH="$RUNPATH:`pwd`/$p/lib/win/$CODE/$DEBUG"
 	done
 	
-	PATH="$PATH:$RUNPATH" $EXEC q3/bin/desktop/$CODE/$DEBUG/q3$SUFFIX.exe &
+	PATH="$PATH:$RUNPATH" $EXEC q3/bin/win/$CODE/$DEBUG/q3$SUFFIX.exe &
 	;;
 
 countline)
@@ -126,8 +126,8 @@ all)
 	done
 	;;
 
-desktop)
-	for t in $DESKTOPTARGETS; do
+win)
+	for t in $WINTARGETS; do
 		./build.sh $t
 	done
 	;;
@@ -145,12 +145,12 @@ zip)
 	
 	mkdir -p $ZIPDIR
 	
-	zip -j $ZIPDIR/q3-desktop-x86-ja-`printf $VERSION | tr . _`-$DATE.zip \
-		*/bin/desktop/ansi/release/*.exe \
-		*/lib/desktop/ansi/release/*.dll
-	zip -j $ZIPDIR/q3u-desktop-x86-ja-`printf $VERSION | tr . _`-$DATE.zip \
-		*/bin/desktop/unicode/release/*.exe \
-		*/lib/desktop/unicode/release/*.dll
+	zip -j $ZIPDIR/q3-win-x86-ja-`printf $VERSION | tr . _`-$DATE.zip \
+		*/bin/win/ansi/release/*.exe \
+		*/lib/win/ansi/release/*.dll
+	zip -j $ZIPDIR/q3u-win-x86-ja-`printf $VERSION | tr . _`-$DATE.zip \
+		*/bin/win/unicode/release/*.exe \
+		*/lib/win/unicode/release/*.dll
 	
 	for t in $WCETARGETS; do
 		zip -j $ZIPDIR/q3u-`printf $t | tr . -`-`printf $VERSION | tr . _`-$DATE.zip \
