@@ -1,17 +1,5 @@
 {
-	@Header(
-		@Concat(
-			'Message-Id,Subject,To,Cc,Bcc,From,Date,X-QMAIL-Account,X-QMAIL-Macro',
-			@If(
-				@Equal(
-					@FieldParameter('Content-Type', 'charset'),
-					'us-ascii'
-				),
-				',Content-Type',
-				''
-			)
-		)
-	)
+	@Header('Message-Id,Subject,To,Cc,Bcc,From,Date,MIME-Version,Content-Type,Content-Transfer-Encoding,Content-Disposition,X-Mailer,X-QMAIL-Account,X-QMAIL-Macro')
 }To: {@Decode(@Field('To'))}
 Cc: {@Decode(@Field('Cc'))}
 Bcc: {@Decode(@Field('Bcc'))}
@@ -19,5 +7,6 @@ From: {@Decode(@Field('From'))}
 Subject: {@Subject()}
 X-QMAIL-Account: {@Account()}{@If(X-QMAIL-SubAccount, @Concat('\nX-QMAIL-SubAccount: ', X-QMAIL-SubAccount), '')}
 X-QMAIL-Macro: @ForEach(@Messages('{@Concat('//', @Account(), '/', @Folder())}', {@Id()}), @Delete())
+X-QMAIL-Attachment: {@Attachment(',', @True())}
 
-{@Body()}
+{@Body('', @True())}
