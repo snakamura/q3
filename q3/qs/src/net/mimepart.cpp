@@ -58,15 +58,21 @@ bool FieldComparator::operator()(const std::pair<STRING, STRING>& lhs,
 	};
 	
 	for (int n = 0; n < countof(pszFields); ++n) {
-		if (strcmp(pszFieldLhs, pszFields[n]) == 0)
-			return true;
-		else if (strcmp(pszFieldRhs, pszFields[n]) == 0)
+		bool l = strcmp(pszFieldLhs, pszFields[n]) == 0;
+		bool r = strcmp(pszFieldRhs, pszFields[n]) == 0;
+		if (l)
+			return !r;
+		else if (r)
 			return false;
 	}
-	if (strncmp(pszFieldLhs, "x-", 2) == 0)
-		return strncmp(pszFieldRhs, "x-", 2) == 0 ? strcmp(pszFieldLhs, pszFieldRhs) < 0 : false;
-	else if (strncmp(pszFieldRhs, "x-", 2) == 0)
+	
+	bool l = strncmp(pszFieldLhs, "x-", 2) == 0;
+	bool r = strncmp(pszFieldRhs, "x-", 2) == 0;
+	if (l)
+		return r ? strcmp(pszFieldLhs, pszFieldRhs) < 0 : false;
+	else if (r)
 		return true;
+	
 	return false;
 }
 
