@@ -124,10 +124,13 @@ QSTATUS qm::SyncUtil::createGoRoundData(const GoRoundCourse* pCourse,
 					pwszFilterName = pSubAccount->getSyncFilterName();
 				
 				if (pEntry->isFlag(GoRoundEntry::FLAG_SEND)) {
-					status = pData->addSend(pAccount, pSubAccount,
-						static_cast<SyncItem::ConnectReceiveBeforeSend>(
-							pEntry->getConnectReceiveBeforeSend()));
-					CHECK_QSTATUS();
+					Folder* pFolder = pAccount->getFolderByFlag(Folder::FLAG_OUTBOX);
+					if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL) {
+						status = pData->addSend(pAccount, pSubAccount,
+							static_cast<SyncItem::ConnectReceiveBeforeSend>(
+								pEntry->getConnectReceiveBeforeSend()));
+						CHECK_QSTATUS();
+					}
 				}
 				if (pEntry->isFlag(GoRoundEntry::FLAG_RECEIVE)) {
 					if (pEntry->isFlag(GoRoundEntry::FLAG_SELECTFOLDER)) {
@@ -151,11 +154,17 @@ QSTATUS qm::SyncUtil::createGoRoundData(const GoRoundCourse* pCourse,
 		while (it != listAccount.end()) {
 			Account* pAccount = *it;
 			SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
-			status = pData->addSend(pAccount, pSubAccount, SyncItem::CRBS_NONE);
-			CHECK_QSTATUS();
+			
+			Folder* pFolder = pAccount->getFolderByFlag(Folder::FLAG_OUTBOX);
+			if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL) {
+				status = pData->addSend(pAccount, pSubAccount, SyncItem::CRBS_NONE);
+				CHECK_QSTATUS();
+			}
+			
 			status = pData->addFolders(pAccount, pSubAccount, 0,
 				pSubAccount->getSyncFilterName());
 			CHECK_QSTATUS();
+			
 			++it;
 		}
 	}
