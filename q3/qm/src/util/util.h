@@ -44,6 +44,9 @@ public:
 	static std::pair<Account*, Folder*> getAccountOrFolder(Document* pDocument,
 														   const WCHAR* pwsz);
 	
+	static unsigned int getMessageCount(Account* pAccount);
+	static unsigned int getUnseenMessageCount(Account* pAccount);
+	
 	static bool hasFilesOrURIs(IDataObject* pDataObject);
 	static void getFilesOrURIs(IDataObject* pDataObject,
 							   PathList* pList);

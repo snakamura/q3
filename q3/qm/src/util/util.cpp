@@ -108,6 +108,33 @@ std::pair<Account*, Folder*> qm::Util::getAccountOrFolder(Document* pDocument,
 	return p;
 }
 
+unsigned int qm::Util::getMessageCount(Account* pAccount)
+{
+	unsigned int nCount = 0;
+	
+	const Account::FolderList& l = pAccount->getFolders();
+	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it)
+		nCount += (*it)->getCount();
+	
+	return nCount;
+}
+
+unsigned int qm::Util::getUnseenMessageCount(Account* pAccount)
+{
+	unsigned int nCount = 0;
+	
+	const unsigned int nIgnore =
+		(Folder::FLAG_BOX_MASK & ~Folder::FLAG_INBOX) |
+		Folder::FLAG_IGNOREUNSEEN;
+	const Account::FolderList& l = pAccount->getFolders();
+	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		Folder* pFolder = *it;
+		if ((pFolder->getFlags() & nIgnore) == 0)
+			nCount += pFolder->getUnseenCount();
+	}
+	
+	return nCount;
+}
 
 bool qm::Util::hasFilesOrURIs(IDataObject* pDataObject)
 {

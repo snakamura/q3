@@ -727,6 +727,17 @@ LRESULT qm::FolderWindowImpl::onGetDispInfo(NMHDR* pnmhdr,
 				buf.append(pSubAccount->getName());
 				buf.append(L"]");
 			}
+			
+			WCHAR wsz[64] = L"";
+			if (bShowAllCount_ && bShowUnseenCount_)
+				swprintf(wsz, L" (%d/%d)", Util::getUnseenMessageCount(pAccount),
+					Util::getMessageCount(pAccount));
+			else if (bShowAllCount_)
+				swprintf(wsz, L" (%d)", Util::getMessageCount(pAccount));
+			else if (bShowUnseenCount_)
+				swprintf(wsz, L" (%d)", Util::getUnseenMessageCount(pAccount));
+			buf.append(wsz);
+			
 			W2T(buf.getCharArray(), ptszText);
 			_tcsncpy(item.pszText, ptszText, item.cchTextMax);
 		}
