@@ -221,7 +221,7 @@ size_t qs::ByteInputStream::read(unsigned char* p,
 struct qs::BufferedInputStreamImpl
 {
 	enum {
-		BUFFER_SIZE	= 4096
+		BUFFER_SIZE	= 8192
 	};
 	
 	bool mapBuffer();

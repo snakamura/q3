@@ -32,7 +32,7 @@ qs::Writer::~Writer()
 struct qs::OutputStreamWriterImpl
 {
 	enum {
-		BUFFER_SIZE	= 128
+		BUFFER_SIZE	= 8192
 	};
 	
 	bool flushBuffer();

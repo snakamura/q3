@@ -128,7 +128,7 @@ bool qs::FileOutputStream::flush()
 struct qs::ByteOutputStreamImpl
 {
 	enum {
-		BUFFER_SIZE	= 128
+		BUFFER_SIZE	= 1024
 	};
 	
 	bool allocBuffer(size_t nSize);
@@ -315,7 +315,7 @@ bool qs::XStringOutputStream::flush()
 struct qs::BufferedOutputStreamImpl
 {
 	enum {
-		BUFFER_SIZE	= 4096
+		BUFFER_SIZE	= 8192
 	};
 	
 	bool flushBuffer();

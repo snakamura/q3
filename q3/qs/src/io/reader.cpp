@@ -32,7 +32,7 @@ qs::Reader::~Reader()
 struct qs::InputStreamReaderImpl
 {
 	enum {
-		BUFFER_SIZE	= 128
+		BUFFER_SIZE	= 8192
 	};
 	
 	bool mapBuffer();
