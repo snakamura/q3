@@ -6,6 +6,8 @@
  *
  */
 
+#include <qsinit.h>
+#include <qslog.h>
 #include <qsosutil.h>
 #include <qsstream.h>
 
@@ -39,6 +41,8 @@ xstring_ptr qmpgp::PGPDriver::sign(const CHAR* pszText,
 								   const WCHAR* pwszUserId,
 								   const WCHAR* pwszPassphrase) const
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::PGPDriver");
+	
 	wstring_ptr wstrPGP(getCommand());
 	
 	StringBuffer<WSTRING> command;
@@ -64,12 +68,27 @@ xstring_ptr qmpgp::PGPDriver::sign(const CHAR* pszText,
 	command.append(pwszPassphrase);
 	command.append(L"\" -a -f");
 	
-	ByteInputStream stdin(reinterpret_cast<const unsigned char*>(pszText), strlen(pszText), false);
-	ByteOutputStream stdout;
+	log.debugf(L"Signing with commandline: %s", command.getCharArray());
 	
-	int nCode = Process::exec(command.getCharArray(), &stdin, &stdout, 0);
-	if (nCode != 0)
+	const unsigned char* p = reinterpret_cast<const unsigned char*>(pszText);
+	size_t nLen = strlen(pszText);
+	
+	log.debug(L"Data into stdin", p, nLen);
+	
+	ByteInputStream stdin(p, nLen, false);
+	ByteOutputStream stdout;
+	ByteOutputStream stderr;
+	
+	int nCode = Process::exec(command.getCharArray(), &stdin, &stdout, log.isDebugEnabled() ? &stderr : 0);
+	
+	log.debugf(L"Command exited with: %d", nCode);
+	log.debug(L"Data from stdout", stdout.getBuffer(), stdout.getLength());
+	log.debug(L"Data from stderr", stderr.getBuffer(), stderr.getLength());
+	
+	if (nCode != 0) {
+		log.errorf(L"Command exited with: %d", nCode);
 		return 0;
+	}
 	
 	return allocXString(reinterpret_cast<const CHAR*>(stdout.getBuffer()), stdout.getLength());
 }
@@ -77,6 +96,8 @@ xstring_ptr qmpgp::PGPDriver::sign(const CHAR* pszText,
 xstring_ptr qmpgp::PGPDriver::encrypt(const CHAR* pszText,
 									  const UserIdList& listRecipient) const
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::PGPDriver");
+	
 	wstring_ptr wstrPGP(getCommand());
 	
 	StringBuffer<WSTRING> command;
@@ -89,12 +110,27 @@ xstring_ptr qmpgp::PGPDriver::encrypt(const CHAR* pszText,
 	}
 	command.append(L" -a -f");
 	
-	ByteInputStream stdin(reinterpret_cast<const unsigned char*>(pszText), strlen(pszText), false);
-	ByteOutputStream stdout;
+	log.debugf(L"Encrypting with commandline: %s", command.getCharArray());
 	
-	int nCode = Process::exec(command.getCharArray(), &stdin, &stdout, 0);
-	if (nCode != 0)
+	const unsigned char* p = reinterpret_cast<const unsigned char*>(pszText);
+	size_t nLen = strlen(pszText);
+	
+	log.debug(L"Data into stdin", p, nLen);
+	
+	ByteInputStream stdin(p, nLen, false);
+	ByteOutputStream stdout;
+	ByteOutputStream stderr;
+	
+	int nCode = Process::exec(command.getCharArray(), &stdin, &stdout, log.isDebugEnabled() ? &stderr : 0);
+	
+	log.debugf(L"Command exited with: %d", nCode);
+	log.debug(L"Data from stdout", stdout.getBuffer(), stdout.getLength());
+	log.debug(L"Data from stderr", stderr.getBuffer(), stderr.getLength());
+	
+	if (nCode != 0) {
+		log.errorf(L"Command exited with: %d", nCode);
 		return 0;
+	}
 	
 	return allocXString(reinterpret_cast<const CHAR*>(stdout.getBuffer()), stdout.getLength());
 }
@@ -104,6 +140,8 @@ xstring_ptr qmpgp::PGPDriver::signAndEncrypt(const CHAR* pszText,
 											 const WCHAR* pwszPassphrase,
 											 const UserIdList& listRecipient) const
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::PGPDriver");
+	
 	wstring_ptr wstrPGP(getCommand());
 	
 	StringBuffer<WSTRING> command;
@@ -121,12 +159,27 @@ xstring_ptr qmpgp::PGPDriver::signAndEncrypt(const CHAR* pszText,
 	}
 	command.append(L" -a -f");
 	
-	ByteInputStream stdin(reinterpret_cast<const unsigned char*>(pszText), strlen(pszText), false);
-	ByteOutputStream stdout;
+	log.debugf(L"Signing and encrypting with commandline: %s", command.getCharArray());
 	
-	int nCode = Process::exec(command.getCharArray(), &stdin, &stdout, 0);
-	if (nCode != 0)
+	const unsigned char* p = reinterpret_cast<const unsigned char*>(pszText);
+	size_t nLen = strlen(pszText);
+	
+	log.debug(L"Data into stdin", p, nLen);
+	
+	ByteInputStream stdin(p, nLen, false);
+	ByteOutputStream stdout;
+	ByteOutputStream stderr;
+	
+	int nCode = Process::exec(command.getCharArray(), &stdin, &stdout, log.isDebugEnabled() ? &stderr : 0);
+	
+	log.debugf(L"Command exited with: %d", nCode);
+	log.debug(L"Data from stdout", stdout.getBuffer(), stdout.getLength());
+	log.debug(L"Data from stderr", stderr.getBuffer(), stderr.getLength());
+	
+	if (nCode != 0) {
+		log.errorf(L"Command exited with: %d", nCode);
 		return 0;
+	}
 	
 	return allocXString(reinterpret_cast<const CHAR*>(stdout.getBuffer()), stdout.getLength());
 }
@@ -135,12 +188,18 @@ bool qmpgp::PGPDriver::verify(const CHAR* pszContent,
 							  const CHAR* pszSignature,
 							  wstring_ptr* pwstrUserId) const
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::PGPDriver");
+	
 	wstring_ptr wstrPGP(getCommand());
 	
 	wstring_ptr wstrContentPath(Util::writeTemporaryFile(pszContent));
 	if (!wstrContentPath.get())
 		return false;
 	FileDeleter deleter(wstrContentPath.get());
+	
+	log.debugf(L"Creating a temporary file for verifying: %s", wstrContentPath.get());
+	log.debug(L"Data in the temporary file",
+		reinterpret_cast<const unsigned char*>(pszContent), strlen(pszContent));
 	
 	StringBuffer<WSTRING> command;
 	command.append(wstrPGP.get());
@@ -149,14 +208,27 @@ bool qmpgp::PGPDriver::verify(const CHAR* pszContent,
 	command.append(wstrContentPath.get());
 	command.append(L"\"");
 	
+	log.debugf(L"Verifying with commandline: %s", command.getCharArray());
+	
 	const unsigned char* p = reinterpret_cast<const unsigned char*>(pszSignature);
-	ByteInputStream stdin(p, strlen(pszSignature), false);
+	size_t nLen = strlen(pszSignature);
+	
+	log.debug(L"Data into stdin", p, nLen);
+	
+	ByteInputStream stdin(p, nLen, false);
 	ByteOutputStream stdout;
 	ByteOutputStream stderr;
 	
 	int nCode = Process::exec(command.getCharArray(), &stdin, &stdout, &stderr);
-	if (nCode != 0 && nCode != 1)
+	
+	log.debugf(L"Command exited with: %d", nCode);
+	log.debug(L"Data from stdout", stdout.getBuffer(), stdout.getLength());
+	log.debug(L"Data from stderr", stderr.getBuffer(), stderr.getLength());
+	
+	if (nCode != 0 && nCode != 1) {
+		log.errorf(L"Command exited with: %d", nCode);
 		return 0;
+	}
 	
 	return checkVerified(stderr.getBuffer(), stderr.getLength(), pwstrUserId) == PGPUtility::VERIFY_OK;
 }
@@ -166,6 +238,8 @@ xstring_ptr qmpgp::PGPDriver::decryptAndVerify(const CHAR* pszContent,
 											   unsigned int* pnVerify,
 											   wstring_ptr* pwstrUserId) const
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::PGPDriver");
+	
 	wstring_ptr wstrPGP(getCommand());
 	
 	StringBuffer<WSTRING> command;
@@ -177,13 +251,27 @@ xstring_ptr qmpgp::PGPDriver::decryptAndVerify(const CHAR* pszContent,
 	}
 	command.append(L" -f");
 	
-	ByteInputStream stdin(reinterpret_cast<const unsigned char*>(pszContent), strlen(pszContent), false);
+	log.debugf(L"Decrypting and verifying with commandline: %s", command.getCharArray());
+	
+	const unsigned char* p = reinterpret_cast<const unsigned char*>(pszContent);
+	size_t nLen = strlen(pszContent);
+	
+	log.debug(L"Data into stdin", p, nLen);
+	
+	ByteInputStream stdin(p, nLen, false);
 	ByteOutputStream stdout;
 	ByteOutputStream stderr;
 	
 	int nCode = Process::exec(command.getCharArray(), &stdin, &stdout, &stderr);
-	if (nCode != 0 && nCode != 1)
+	
+	log.debugf(L"Command exited with: %d", nCode);
+	log.debug(L"Data from stdout", stdout.getBuffer(), stdout.getLength());
+	log.debug(L"Data from stderr", stderr.getBuffer(), stderr.getLength());
+	
+	if (nCode != 0 && nCode != 1) {
+		log.errorf(L"Command exited with: %d", nCode);
 		return 0;
+	}
 	
 	*pnVerify = checkVerified(stderr.getBuffer(), stderr.getLength(), pwstrUserId);
 	
@@ -193,6 +281,8 @@ xstring_ptr qmpgp::PGPDriver::decryptAndVerify(const CHAR* pszContent,
 bool qmpgp::PGPDriver::getAlternatives(const WCHAR* pwszUserId,
 									   UserIdList* pList) const
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::PGPDriver");
+	
 	wstring_ptr wstrPGP(getCommand());
 	
 	StringBuffer<WSTRING> command;
@@ -201,11 +291,21 @@ bool qmpgp::PGPDriver::getAlternatives(const WCHAR* pwszUserId,
 	command.append(pwszUserId);
 	command.append(L"\"");
 	
-	ByteOutputStream stdout;
+	log.debugf(L"Getting alternatives with commandline: %s", command.getCharArray());
 	
-	int nCode = Process::exec(command.getCharArray(), 0, &stdout, 0);
-	if (nCode != 0)
+	ByteOutputStream stdout;
+	ByteOutputStream stderr;
+	
+	int nCode = Process::exec(command.getCharArray(), 0, &stdout, log.isDebugEnabled() ? &stderr : 0);
+	
+	log.debugf(L"Command exited with: %d", nCode);
+	log.debug(L"Data from stdout", stdout.getBuffer(), stdout.getLength());
+	log.debug(L"Data from stderr", stderr.getBuffer(), stderr.getLength());
+	
+	if (nCode != 0) {
+		log.errorf(L"Command exited with: %d", nCode);
 		return false;
+	}
 	
 	const CHAR* p = reinterpret_cast<const CHAR*>(stdout.getBuffer());
 	size_t nLen = stdout.getLength();
