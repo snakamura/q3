@@ -374,7 +374,7 @@ QSTATUS qm::AddressBook::load()
 	if (bReload || bClear || bContactChanged_) {
 		clear(TYPE_BOTH);
 		
-		if (bReload) {
+		if (!bClear) {
 			XMLReader reader(&status);
 			CHECK_QSTATUS();
 			AddressBookContentHandler handler(this, &status);
@@ -382,12 +382,10 @@ QSTATUS qm::AddressBook::load()
 			reader.setContentHandler(&handler);
 			status = reader.parse(wstrPath.get());
 			CHECK_QSTATUS();
-			
 		}
-		if (bClear || bContactChanged_) {
-			status = loadWAB();
-//			CHECK_QSTATUS();
-		}
+		
+		status = loadWAB();
+//		CHECK_QSTATUS();
 	}
 	
 	return QSTATUS_SUCCESS;
