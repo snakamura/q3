@@ -62,7 +62,14 @@ public:
 		POP3_ERROR_DELE				= 0x00000a00,
 		POP3_ERROR_NOOP				= 0x00000b00,
 		POP3_ERROR_XTNDXMIT			= 0x00000c00,
+		POP3_ERROR_STLS				= 0x00000d00,
 		POP3_ERROR_MASK_HIGHLEVEL	= 0x0000ff00
+	};
+	
+	enum Ssl {
+		SSL_NONE		= 0x00,
+		SSL_SSL			= 0x01,
+		SSL_STARTTLS	= 0x02
 	};
 	
 private:
@@ -100,7 +107,7 @@ public:
 
 public:
 	qs::QSTATUS connect(const WCHAR* pwszHost,
-		short nPort, bool bApop, bool bSsl);
+		short nPort, bool bApop, Ssl ssl);
 	qs::QSTATUS disconnect();
 	qs::QSTATUS getMessageCount() const;
 	qs::QSTATUS getMessage(unsigned int nMsg, unsigned int nMaxLine,

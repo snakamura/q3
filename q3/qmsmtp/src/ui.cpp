@@ -80,7 +80,7 @@ LRESULT qmsmtp::SendPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	CHECK_QSTATUS_VALUE(TRUE);
 	int nStartTls = 0;
 	status = pSubAccount_->getProperty(L"Smtp", L"STARTTLS", 0, &nStartTls);
-	CHECK_QSTATUS();
+	CHECK_QSTATUS_VALUE(TRUE);
 	
 	setDlgItemInt(IDC_PORT, pSubAccount_->getPort(Account::HOST_SEND));
 	sendDlgItemMessage(IDC_SSL, BM_SETCHECK,

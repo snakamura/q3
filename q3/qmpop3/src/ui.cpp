@@ -1,5 +1,5 @@
 /*
- * $Id: ui.cpp,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -84,6 +84,9 @@ LRESULT qmpop3::ReceivePage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	int nApop = 0;
 	status = pSubAccount_->getProperty(L"Pop3", L"Apop", 0, &nApop);
 	CHECK_QSTATUS_VALUE(TRUE);
+	int nStartTls = 0;
+	status = pSubAccount_->getProperty(L"Pop3", L"STARTTLS", 0, &nStartTls);
+	CHECK_QSTATUS_VALUE(TRUE);
 	unsigned int nNoopInterval = 0;
 	status = pSubAccount_->getProperty(L"Pop3", L"NoopInterval",
 		100, reinterpret_cast<int*>(&nNoopInterval));
@@ -101,6 +104,7 @@ LRESULT qmpop3::ReceivePage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 		nDeleteOnServer ? BST_CHECKED : BST_UNCHECKED);
 	setDlgItemInt(IDC_DELETEBEFORE, nDeleteBefore);
 	sendDlgItemMessage(IDC_APOP, BM_SETCHECK, nApop ? BST_CHECKED : BST_UNCHECKED);
+	sendDlgItemMessage(IDC_STARTTLS, BM_SETCHECK, nStartTls ? BST_CHECKED : BST_UNCHECKED);
 	sendDlgItemMessage(IDC_LOG, BM_SETCHECK,
 		pSubAccount_->isLog(Account::HOST_RECEIVE) ? BST_CHECKED : BST_UNCHECKED);
 	
@@ -120,6 +124,8 @@ LRESULT qmpop3::ReceivePage::onApply(NMHDR* pnmhdr, bool* pbHandled)
 	pSubAccount_->setProperty(L"Pop3", L"DeleteBefore", getDlgItemInt(IDC_DELETEBEFORE));
 	pSubAccount_->setProperty(L"Pop3", L"Apop",
 		sendDlgItemMessage(IDC_APOP, BM_GETCHECK) == BST_CHECKED ? 1 : 0);
+	pSubAccount_->setProperty(L"Pop3", L"STARTTLS",
+		sendDlgItemMessage(IDC_STARTTLS, BM_GETCHECK) == BST_CHECKED ? 1 : 0);
 	pSubAccount_->setLog(Account::HOST_RECEIVE,
 		sendDlgItemMessage(IDC_LOG, BM_GETCHECK) == BST_CHECKED);
 	
@@ -189,11 +195,15 @@ LRESULT qmpop3::SendPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	int nApop = 0;
 	status = pSubAccount_->getProperty(L"Pop3Send", L"Apop", 0, &nApop);
 	CHECK_QSTATUS_VALUE(TRUE);
+	int nStartTls = 0;
+	status = pSubAccount_->getProperty(L"Pop3Send", L"STARTTLS", 0, &nStartTls);
+	CHECK_QSTATUS_VALUE(TRUE);
 	
 	setDlgItemInt(IDC_PORT, pSubAccount_->getPort(Account::HOST_SEND));
 	sendDlgItemMessage(IDC_SSL, BM_SETCHECK,
 		pSubAccount_->isSsl(Account::HOST_SEND) ? BST_CHECKED : BST_UNCHECKED);
 	sendDlgItemMessage(IDC_APOP, BM_SETCHECK, nApop ? BST_CHECKED : BST_UNCHECKED);
+	sendDlgItemMessage(IDC_STARTTLS, BM_SETCHECK, nStartTls ? BST_CHECKED : BST_UNCHECKED);
 	sendDlgItemMessage(IDC_LOG, BM_SETCHECK,
 		pSubAccount_->isLog(Account::HOST_SEND) ? BST_CHECKED : BST_UNCHECKED);
 	
@@ -207,6 +217,8 @@ LRESULT qmpop3::SendPage::onApply(NMHDR* pnmhdr, bool* pbHandled)
 		sendDlgItemMessage(IDC_SSL, BM_GETCHECK) == BST_CHECKED);
 	pSubAccount_->setProperty(L"Pop3Send", L"Apop",
 		sendDlgItemMessage(IDC_APOP, BM_GETCHECK) == BST_CHECKED ? 1 : 0);
+	pSubAccount_->setProperty(L"Pop3Send", L"STARTTLS",
+		sendDlgItemMessage(IDC_STARTTLS, BM_GETCHECK) == BST_CHECKED ? 1 : 0);
 	pSubAccount_->setLog(Account::HOST_SEND,
 		sendDlgItemMessage(IDC_LOG, BM_GETCHECK) == BST_CHECKED);
 	

@@ -50,7 +50,8 @@ QSTATUS qmpop3::Util::reportError(Pop3* pPop3,
 			{ Pop3::POP3_ERROR_TOP,			IDS_ERROR_TOP		},
 			{ Pop3::POP3_ERROR_DELE,		IDS_ERROR_DELE		},
 			{ Pop3::POP3_ERROR_NOOP,		IDS_ERROR_NOOP		},
-			{ Pop3::POP3_ERROR_XTNDXMIT,	IDS_ERROR_XTNDXMIT	}
+			{ Pop3::POP3_ERROR_XTNDXMIT,	IDS_ERROR_XTNDXMIT	},
+			{ Pop3::POP3_ERROR_STLS,		IDS_ERROR_STLS		}
 		},
 		{
 			{ Pop3::POP3_ERROR_INITIALIZE,		IDS_ERROR_INITIALIZE		},
@@ -114,6 +115,30 @@ QSTATUS qmpop3::Util::reportError(Pop3* pPop3,
 		nError, pwszDescription, countof(pwszDescription));
 	status = pSessionCallback->addError(info);
 	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qmpop3::Util::getSsl(SubAccount* pSubAccount, Pop3::Ssl* pSsl)
+{
+	assert(pSubAccount);
+	assert(pSsl);
+	
+	DECLARE_QSTATUS();
+	
+	Pop3::Ssl ssl = Pop3::SSL_NONE;
+	if (pSubAccount->isSsl(Account::HOST_RECEIVE)) {
+		ssl = Pop3::SSL_SSL;
+	}
+	else {
+		int nStartTls = 0;
+		status = pSubAccount->getProperty(L"Pop3", L"STARTTLS", 0, &nStartTls);
+		CHECK_QSTATUS();
+		if (nStartTls)
+			ssl = Pop3::SSL_STARTTLS;
+	}
+	
+	*pSsl = ssl;
 	
 	return QSTATUS_SUCCESS;
 }

@@ -97,9 +97,11 @@ QSTATUS qmpop3::Pop3SendSession::connect()
 	int nApop = 0;
 	status = pSubAccount_->getProperty(L"Pop3Send", L"Apop", 0, &nApop);
 	CHECK_QSTATUS();
+	Pop3::Ssl ssl = Pop3::SSL_NONE;
+	status = Util::getSsl(pSubAccount_, &ssl);
+	CHECK_QSTATUS();
 	status = pPop3_->connect(pSubAccount_->getHost(Account::HOST_SEND),
-		pSubAccount_->getPort(Account::HOST_SEND),
-		nApop != 0, pSubAccount_->isSsl(Account::HOST_SEND));
+		pSubAccount_->getPort(Account::HOST_SEND), nApop != 0, ssl);
 	CHECK_QSTATUS_ERROR();
 	
 	status = log.debug(L"Connected to the server.");

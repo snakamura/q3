@@ -23,6 +23,7 @@
 #define IDS_DOWNLOADMESSAGES            1007
 #define IDC_DELETEBEFORE                1007
 #define IDS_SAVEUID                     1008
+#define IDC_STARTTLS                    1008
 #define IDS_DELETEMESSAGE               1009
 #define IDS_ERROR_MESSAGE               10000
 #define IDS_ERROR_GREETING              11000
@@ -37,6 +38,7 @@
 #define IDS_ERROR_DELE                  11009
 #define IDS_ERROR_NOOP                  11010
 #define IDS_ERROR_XTNDXMIT              11011
+#define IDS_ERROR_STLS                  11012
 #define IDS_ERROR_INITIALIZE            12000
 #define IDS_ERROR_CONNECT               12001
 #define IDS_ERROR_GENERATEDIGEST        12002

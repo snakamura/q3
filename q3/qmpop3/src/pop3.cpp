@@ -69,7 +69,7 @@ qmpop3::Pop3::~Pop3()
 }
 
 QSTATUS qmpop3::Pop3::connect(const WCHAR* pwszHost,
-	short nPort, bool bApop, bool bSsl)
+	short nPort, bool bApop, Ssl ssl)
 {
 	assert(pwszHost);
 	
@@ -87,7 +87,7 @@ QSTATUS qmpop3::Pop3::connect(const WCHAR* pwszHost,
 	status = pSocket->connect(pwszHost, nPort);
 	CHECK_QSTATUS_ERROR(POP3_ERROR_CONNECT | pSocket->getLastError());
 	
-	if (bSsl) {
+	if (ssl == SSL_SSL) {
 		SSLSocketFactory* pFactory = SSLSocketFactory::getFactory();
 		CHECK_ERROR(!pFactory, QSTATUS_FAIL, POP3_ERROR_SSL);
 		SSLSocket* pSSLSocket = 0;
@@ -104,6 +104,19 @@ QSTATUS qmpop3::Pop3::connect(const WCHAR* pwszHost,
 	string_ptr<STRING> strGreeting;
 	status = receive(&strGreeting);
 	CHECK_QSTATUS_ERROR_OR(POP3_ERROR_GREETING);
+	
+	if (ssl == SSL_STARTTLS) {
+		status = sendCommand("STLS\r\n");
+		CHECK_QSTATUS_ERROR_OR(POP3_ERROR_STLS);
+		
+		SSLSocketFactory* pFactory = SSLSocketFactory::getFactory();
+		CHECK_ERROR(!pFactory, QSTATUS_FAIL, POP3_ERROR_SSL);
+		SSLSocket* pSSLSocket = 0;
+		status = pFactory->createSSLSocket(static_cast<Socket*>(pSocket_),
+			true, pSSLSocketCallback_, pLogger_, &pSSLSocket);
+		CHECK_QSTATUS_ERROR(POP3_ERROR_SSL);
+		pSocket_ = pSSLSocket;
+	}
 	
 	string_ptr<WSTRING> wstrUserName;
 	string_ptr<WSTRING> wstrPassword;

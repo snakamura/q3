@@ -93,14 +93,14 @@ LRESULT qmimap4::ReceivePage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	CHECK_QSTATUS_VALUE(TRUE);
 	int nUseNamespace = 0;
 	status = pSubAccount_->getProperty(L"Imap4", L"UseNamespace", 0, &nUseNamespace);
-	CHECK_QSTATUS();
+	CHECK_QSTATUS_VALUE(TRUE);
 	int nCloseFolder = 0;
 	status = pSubAccount_->getProperty(
 		L"Imap4", L"CloseFolder", 0, &nCloseFolder);
 	CHECK_QSTATUS_VALUE(TRUE);
 	int nStartTls = 0;
 	status = pSubAccount_->getProperty(L"Imap4", L"STARTTLS", 0, &nStartTls);
-	CHECK_QSTATUS();
+	CHECK_QSTATUS_VALUE(TRUE);
 	
 	setDlgItemInt(IDC_PORT, pSubAccount_->getPort(Account::HOST_RECEIVE));
 	sendDlgItemMessage(IDC_SSL, BM_SETCHECK,
