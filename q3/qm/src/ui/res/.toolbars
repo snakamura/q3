@@ -1,0 +1,45 @@
+<toolbars>
+	<toolbar name="mainframe">
+		<button image="0" action="MessageNew"/>
+		<button image="1" action="MessageReply"/>
+		<button image="2" action="MessageReplyAll"/>
+		<button image="3" action="MessageForward"/>
+		<separator/>
+		<button image="5" action="EditDelete"/>
+		<separator/>
+		<button image="20" action="ViewPrevMessage"/>
+		<button image="21" action="ViewNextMessage"/>
+		<button image="22" action="ViewNextUnseenMessage"/>
+		<separator/>
+		<button image="6" action="MessageSearch"/>
+		<separator/>
+		<button image="7" action="ToolSync"/>
+		<button image="8" action="ToolGoround0"/>
+	</toolbar>
+	<toolbar name="messageframe">
+		<button image="0" action="MessageNew"/>
+		<button image="1" action="MessageReply"/>
+		<button image="2" action="MessageReplyAll"/>
+		<button image="3" action="MessageForward"/>
+		<separator/>
+		<button image="5" action="EditDelete"/>
+		<separator/>
+		<button image="20" action="ViewPrevMessage"/>
+		<button image="21" action="ViewNextMessage"/>
+		<button image="22" action="ViewNextUnseenMessage"/>
+	</toolbar>
+	<toolbar name="editframe">
+		<button image="15" action="FileSend"/>
+		<button image="16" action="FileDraft"/>
+		<separator/>
+		<button image="10" action="EditCut"/>
+		<button image="11" action="EditCopy"/>
+		<button image="12" action="EditPaste"/>
+		<button image="13" action="EditUndo"/>
+		<button image="14" action="EditRedo"/>
+		<separator/>
+		<button image="18" action="ToolAddressBook"/>
+		<button image="17" action="ToolInsertText"/>
+		<button image="19" action="ToolAttachment"/>
+	</toolbar>
+</toolbars>

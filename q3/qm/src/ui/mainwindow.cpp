@@ -1668,27 +1668,19 @@ QSTATUS qm::MainWindow::getToolbarButtons(Toolbar* pToolbar, bool* pbToolbar)
 {
 	assert(pToolbar);
 	assert(pbToolbar);
-	
-	static TBBUTTON	tbButton[] = {
-		{ 0,	IDM_MESSAGE_NEW,				TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-		{ 1,	IDM_MESSAGE_REPLY,				TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-		{ 2,	IDM_MESSAGE_REPLYALL,			TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-		{ 3,	IDM_MESSAGE_FORWARD,			TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-		{ 0,	0,								TBSTATE_ENABLED, TBSTYLE_SEP,	 0, 0 },
-		{ 4,	IDM_EDIT_DELETE,				TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-		{ 0,	0,								TBSTATE_ENABLED, TBSTYLE_SEP,	 0, 0 },
-		{ 5,	IDM_MESSAGE_SEARCH,				TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-		{ 0,	0,								TBSTATE_ENABLED, TBSTYLE_SEP,	 0, 0 },
-		{ 6,	IDM_TOOL_SYNC,					TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-		{ 7,	IDM_TOOL_GOROUND,				TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-		{ 8,	IDM_TOOL_CANCEL,				TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-	};
-	pToolbar->ptbButton_ = tbButton;
-	pToolbar->nSize_ = sizeof(tbButton)/sizeof(tbButton[0]);
-	pToolbar->nId_ = MainWindowImpl::ID_TOOLBAR;
-	pToolbar->nBitmapId_ = IDB_TOOLBAR;
-	
 	*pbToolbar = true;
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::MainWindow::createToolbarButtons(void* pCreateParam, HWND hwndToolbar)
+{
+	DECLARE_QSTATUS();
+	
+	MainWindowCreateContext* pContext =
+		static_cast<MainWindowCreateContext*>(pCreateParam);
+	
+	status = pContext->pToolbarManager_->createToolbar(L"mainframe", hwndToolbar);
+	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
 }
@@ -1909,7 +1901,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	status = newQsObject(pImpl_->pDocument_, pImpl_->pSyncManager_,
 		pImpl_->pSyncDialogManager_, pContext->pKeyMap_,
 		pImpl_->pProfile_, pContext->pMenuManager_,
-		&pImpl_->pEditFrameWindowManager_);
+		pContext->pToolbarManager_, &pImpl_->pEditFrameWindowManager_);
 	CHECK_QSTATUS_VALUE(-1);
 	
 	status = newQsObject(pImpl_->pDocument_, pImpl_->pProfile_,
@@ -1917,8 +1909,8 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	CHECK_QSTATUS_VALUE(-1);
 	
 	status = newQsObject(pImpl_->pDocument_, pImpl_->pTempFileCleaner_,
-		pContext->pMenuManager_, pContext->pKeyMap_, pImpl_->pProfile_,
-		pImpl_->pViewModelManager_, pImpl_->pEditFrameWindowManager_,
+		pContext->pMenuManager_, pContext->pToolbarManager_, pContext->pKeyMap_,
+		pImpl_->pProfile_, pImpl_->pViewModelManager_, pImpl_->pEditFrameWindowManager_,
 		pImpl_->pExternalEditorManager_, &pImpl_->pMessageFrameWindowManager_);
 	CHECK_QSTATUS_VALUE(-1);
 	

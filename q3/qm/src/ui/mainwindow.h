@@ -11,6 +11,7 @@
 
 #include <qskeymap.h>
 #include <qsmenu.h>
+#include <qstoolbar.h>
 #include <qswindow.h>
 
 #include "foldermodel.h"
@@ -135,6 +136,7 @@ struct MainWindowCreateContext
 	GoRound* pGoRound_;
 	TempFileCleaner* pTempFileCleaner_;
 	qs::MenuManager* pMenuManager_;
+	qs::ToolbarManager* pToolbarManager_;
 	qs::KeyMap* pKeyMap_;
 };
 

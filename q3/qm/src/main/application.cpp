@@ -26,6 +26,7 @@
 #include <qsprofile.h>
 #include <qssocket.h>
 #include <qsstream.h>
+#include <qstoolbar.h>
 #include <qswindow.h>
 
 #include <algorithm>
@@ -46,6 +47,7 @@
 #include "../ui/menu.h"
 #include "../ui/newmailchecker.h"
 #include "../ui/syncdialog.h"
+#include "../ui/toolbar.h"
 
 using namespace qm;
 using namespace qs;
@@ -89,6 +91,7 @@ public:
 	TempFileCleaner* pTempFileCleaner_;
 	MainWindow* pMainWindow_;
 	MenuManager* pMenuManager_;
+	ToolbarManager* pToolbarManager_;
 	NewMailChecker* pNewMailChecker_;
 	HINSTANCE hInstAtl_;
 	
@@ -320,6 +323,7 @@ qm::Application::Application(HINSTANCE hInst, WSTRING wstrMailFolder,
 	pImpl_->pTempFileCleaner_ = 0;
 	pImpl_->pMainWindow_ = 0;
 	pImpl_->pMenuManager_ = 0;
+	pImpl_->pToolbarManager_ = 0;
 	pImpl_->pNewMailChecker_ = 0;
 	pImpl_->hInstAtl_ = 0;
 	
@@ -403,7 +407,9 @@ QSTATUS qm::Application::initialize()
 		L".header",
 		L".headeredit",
 		L".keymap",
-		L".menus"
+		L".menus",
+		L".toolbars",
+		L"toolbar.bmp"
 	};
 	for (n = 0; n < countof(pwszProfiles); ++n) {
 		status = pImpl_->ensureFile(wstrProfileDir.get(), 0,
@@ -465,6 +471,25 @@ QSTATUS qm::Application::initialize()
 	CHECK_QSTATUS();
 	std::for_each(pPopupMenus, pPopupMenus + countof(pPopupMenus),
 		deleter<LoadMenuPopupMenu>());
+	
+	string_ptr<WSTRING> wstrBitmapPath;
+	status = getProfilePath(L"toolbar.bmp", &wstrBitmapPath);
+	CHECK_QSTATUS();
+	W2T(wstrBitmapPath.get(), ptszBitmapPath);
+#ifdef _WIN32_WCE
+	HBITMAP hBitmap = ::SHLoadDIBitmap(ptszBitmapPath);
+#else
+	HBITMAP hBitmap = reinterpret_cast<HBITMAP>(::LoadImage(0,
+		ptszBitmapPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
+#endif
+	if (!hBitmap)
+		return QSTATUS_FAIL;
+	string_ptr<WSTRING> wstrToolbarPath;
+	status = getProfilePath(Extensions::TOOLBARS, &wstrToolbarPath);
+	CHECK_QSTATUS();
+	status = newQsObject(wstrToolbarPath.get(), hBitmap, toolbarItems,
+		countof(toolbarItems), &pImpl_->pToolbarManager_);
+	CHECK_QSTATUS();
 	
 	string_ptr<WSTRING> wstrKeyMapPath;
 	status = getProfilePath(Extensions::KEYMAP, &wstrKeyMapPath);
@@ -529,6 +554,7 @@ QSTATUS qm::Application::initialize()
 		pImpl_->pGoRound_,
 		pImpl_->pTempFileCleaner_,
 		pImpl_->pMenuManager_,
+		pImpl_->pToolbarManager_,
 		pImpl_->pKeyMap_
 	};
 	status = pMainWindow->create(L"QmMainWindow", L"QMAIL", dwStyle,
@@ -592,6 +618,9 @@ QSTATUS qm::Application::uninitialize()
 	
 	delete pImpl_->pMenuManager_;
 	pImpl_->pMenuManager_ = 0;
+	
+	delete pImpl_->pToolbarManager_;
+	pImpl_->pToolbarManager_ = 0;
 	
 	delete pImpl_->pTempFileCleaner_;
 	pImpl_->pTempFileCleaner_ = 0;

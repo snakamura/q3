@@ -1,5 +1,5 @@
 /*
- * $Id: framewindow.cpp,v 1.2 2003/05/04 07:34:43 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -124,6 +124,11 @@ QSTATUS qs::FrameWindow::getToolbarButtons(Toolbar* pToolbar, bool* pbToolbar)
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qs::FrameWindow::createToolbarButtons(void* pCreateParam, HWND hwndToolbar)
+{
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qs::FrameWindow::getMenuHandle(void* pCreateParam, HMENU* phmenu)
 {
 	assert(phmenu);
@@ -193,7 +198,13 @@ LRESULT qs::FrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	setMenu(hmenu);
 #endif
 	
-	Toolbar toolbar;
+	Toolbar toolbar = {
+		0,
+		0,
+		0,
+		0,
+		0,
+	};
 	bool bToolbar = false;
 	status = getToolbarButtons(&toolbar, &bToolbar);
 	CHECK_QSTATUS_VALUE(-1);
@@ -257,6 +268,8 @@ LRESULT qs::FrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 #elif _WIN32_WCE >= 200
 		pImpl_->hwndBands_ = CommandBands_Create(getInstanceHandle(),
 			getHandle(), toolbar.nId_, RBS_VARHEIGHT | RBS_BANDBORDERS, 0);
+		if (!pImpl_->hwndBands_)
+			return -1;
 		
 		COMMANDBANDSRESTOREINFO cbri[2];
 		for (int n = 0; n < 2; ++n) {
@@ -292,9 +305,14 @@ LRESULT qs::FrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 				pImpl_->hInstResource_, nMenuId, 0);
 		
 		HWND hwndBarButton = CommandBands_GetCommandBar(pImpl_->hwndBands_, 1);
-		CommandBar_AddBitmap(hwndBarButton,
-			pImpl_->hInstResource_, toolbar.nBitmapId_, 5, 0, 0);
-		CommandBar_AddButtons(hwndBarButton, toolbar.nSize_, toolbar.ptbButton_);
+		if (toolbar.nBitmapCount_ != 0)
+			CommandBar_AddBitmap(hwndBarButton, pImpl_->hInstResource_,
+				toolbar.nBitmapId_, toolbar.nBitmapCount_, 0, 0);
+		if (toolbar.nSize_ != 0)
+			CommandBar_AddButtons(hwndBarButton, toolbar.nSize_, toolbar.ptbButton_);
+		
+		status = createToolbarButtons(pCreateStruct->lpCreateParams, hwndBarButton);
+		CHECK_QSTATUS_VALUE(-1);
 		
 		for (n = 0; n < 2; ++n) {
 			if (cbri[n].fMaximized)
@@ -312,20 +330,32 @@ LRESULT qs::FrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 #elif defined _WIN32_WCE
 		pImpl_->hwndBands_ = CommandBar_Create(
 			pImpl_->hInstResource, getHandle(), ID_BAR);
+		if (!pImpl_->hwndBands_)
+			return -1;
+		
 		if (hmenu)
 			CommandBar_InsertMenubar(pImpl_->hwndBands_,
 				0, reinterpret_cast<LPTSTR>(hmenu), 0)
 		else
 			CommandBar_InsertMenubar(pImpl_->hwndBands_,
 				pImpl_->hInstResource_, nMenuId, 0);
+		
+		status = createToolbarButtons(pCreateStruct->lpCreateParams, pImpl_->hwndBands_);
+		CHECK_QSTATUS_VALUE(-1);
+		
 		CommandBar_AddAdornments(pImpl_->hwndBands_, 0, 0);
 #else // _WIN32_WCE
 		pImpl_->hwndBands_ = ::CreateToolbarEx(getHandle(),
 			WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS |
 			WS_CLIPCHILDREN | TBSTYLE_FLAT | CCS_TOP,
-			toolbar.nId_, toolbar.nSize_, pImpl_->hInstResource_,
+			toolbar.nId_, toolbar.nBitmapCount_, pImpl_->hInstResource_,
 			toolbar.nBitmapId_, toolbar.ptbButton_, toolbar.nSize_,
 			16, 16, 16, 16, sizeof(TBBUTTON));
+		if (!pImpl_->hwndBands_)
+			return -1;
+		
+		status = createToolbarButtons(pCreateStruct->lpCreateParams, pImpl_->hwndBands_);
+		CHECK_QSTATUS_VALUE(-1);
 #endif // _WIN32_WCE
 	}
 	

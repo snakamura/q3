@@ -66,6 +66,7 @@ public:
 
 protected:
 	virtual qs::QSTATUS getToolbarButtons(Toolbar* pToolbar, bool* pbToolbar);
+	virtual qs::QSTATUS createToolbarButtons(void* pCreateParam, HWND hwndToolbar);
 #if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
 	virtual qs::QSTATUS getBarId(int n, UINT* pnId) const;
 	virtual qs::QSTATUS getCommandBandsRestoreInfo(int n,

@@ -1,5 +1,5 @@
 /*
- * $Id: extensions.cpp,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -34,5 +34,6 @@ const WCHAR* qm::Extensions::RULES			= L".rules";
 const WCHAR* qm::Extensions::SIGNATURES		= L".signatures";
 const WCHAR* qm::Extensions::SYNCFILTERS	= L".syncfilters";
 const WCHAR* qm::Extensions::TEXTS			= L".texts";
+const WCHAR* qm::Extensions::TOOLBARS		= L".toolbars";
 const WCHAR* qm::Extensions::VIEW			= L".view";
 const WCHAR* qm::Extensions::QMAIL			= L".qmail";

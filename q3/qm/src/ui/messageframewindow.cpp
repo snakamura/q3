@@ -695,26 +695,19 @@ QSTATUS qm::MessageFrameWindow::getToolbarButtons(Toolbar* pToolbar, bool* pbToo
 {
 	assert(pToolbar);
 	assert(pbToolbar);
-	static TBBUTTON	tbButton[] = {
-		{ 0,	IDM_MESSAGE_NEW,				TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-		{ 1,	IDM_MESSAGE_REPLY,				TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-		{ 2,	IDM_MESSAGE_REPLYALL,			TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-		{ 3,	IDM_MESSAGE_FORWARD,			TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-		{ 0,	0,								TBSTATE_ENABLED, TBSTYLE_SEP,	 0, 0 },
-		{ 4,	IDM_EDIT_DELETE,				TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-		{ 0,	0,								TBSTATE_ENABLED, TBSTYLE_SEP,	 0, 0 },
-		{ 5,	IDM_MESSAGE_SEARCH,				TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-		{ 0,	0,								TBSTATE_ENABLED, TBSTYLE_SEP,	 0, 0 },
-		{ 6,	IDM_TOOL_SYNC,					TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-		{ 7,	IDM_TOOL_GOROUND,				TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-		{ 8,	IDM_TOOL_CANCEL,				TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-	};
-	pToolbar->ptbButton_ = tbButton;
-	pToolbar->nSize_ = sizeof(tbButton)/sizeof(tbButton[0]);
-	pToolbar->nId_ = MessageFrameWindowImpl::ID_TOOLBAR;
-	pToolbar->nBitmapId_ = IDB_TOOLBAR;
-	
 	*pbToolbar = true;
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::MessageFrameWindow::createToolbarButtons(void* pCreateParam, HWND hwndToolbar)
+{
+	DECLARE_QSTATUS();
+	
+	MessageFrameWindowCreateContext* pContext =
+		static_cast<MessageFrameWindowCreateContext*>(pCreateParam);
+	
+	status = pContext->pToolbarManager_->createToolbar(L"messageframe", hwndToolbar);
+	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
 }
@@ -1033,15 +1026,15 @@ LRESULT qm::MessageFrameWindow::onSize(UINT nFlags, int cx, int cy)
  *
  */
 
-qm::MessageFrameWindowManager::MessageFrameWindowManager(
-	Document* pDocument, TempFileCleaner* pTempFileCleaner,
-	MenuManager* pMenuManager, KeyMap* pKeyMap,
-	Profile* pProfile, ViewModelManager* pViewModelManager,
-	EditFrameWindowManager* pEditFrameWindowManager,
+qm::MessageFrameWindowManager::MessageFrameWindowManager(Document* pDocument,
+	TempFileCleaner* pTempFileCleaner, MenuManager* pMenuManager,
+	ToolbarManager* pToolbarManager, KeyMap* pKeyMap, Profile* pProfile,
+	ViewModelManager* pViewModelManager, EditFrameWindowManager* pEditFrameWindowManager,
 	ExternalEditorManager* pExternalEditorManager, QSTATUS* pstatus) :
 	pDocument_(pDocument),
 	pTempFileCleaner_(pTempFileCleaner),
 	pMenuManager_(pMenuManager),
+	pToolbarManager_(pToolbarManager),
 	pKeyMap_(pKeyMap),
 	pProfile_(pProfile),
 	pViewModelManager_(pViewModelManager),
@@ -1201,6 +1194,7 @@ QSTATUS qm::MessageFrameWindowManager::create(MessageFrameWindow** ppFrame)
 		pExternalEditorManager_,
 		pTempFileCleaner_,
 		pMenuManager_,
+		pToolbarManager_,
 		pKeyMap_
 	};
 	status = pFrame->create(L"QmMessageFrameWindow", L"QMAIL", dwStyle,

@@ -1,5 +1,5 @@
 /*
- * $Id: menu.h,v 1.1.1.1 2003/04/29 08:07:36 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -25,7 +25,7 @@ class MenuContentHandler : public DefaultHandler
 {
 public:
 	MenuContentHandler(MenuManager* pMenuManager,
-		const MenuItem* pMenuItem, size_t nMenuItemCount,
+		const ActionItem* pItem, size_t nItemCount,
 		const PopupMenuManager& popupMenuManager, QSTATUS* pstatus);
 	virtual ~MenuContentHandler();
 
@@ -61,8 +61,8 @@ private:
 
 private:
 	MenuManager* pMenuManager_;
-	const MenuItem* pMenuItem_;
-	size_t nMenuItemCount_;
+	const ActionItem* pActionItem_;
+	size_t nActionItemCount_;
 	const PopupMenuManager& popupMenuManager_;
 	StateStack stackState_;
 	MenuStack stackMenu_;

@@ -485,26 +485,19 @@ QSTATUS qm::EditFrameWindow::getToolbarButtons(
 {
 	assert(pToolbar);
 	assert(pbToolbar);
-	static TBBUTTON	tbButton[] = {
-		{ 0,	IDM_MESSAGE_NEW,				TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-		{ 1,	IDM_MESSAGE_REPLY,				TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-		{ 2,	IDM_MESSAGE_REPLYALL,			TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-		{ 3,	IDM_MESSAGE_FORWARD,			TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-		{ 0,	0,								TBSTATE_ENABLED, TBSTYLE_SEP,	 0, 0 },
-		{ 4,	IDM_EDIT_DELETE,				TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-		{ 0,	0,								TBSTATE_ENABLED, TBSTYLE_SEP,	 0, 0 },
-		{ 5,	IDM_MESSAGE_SEARCH,				TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-		{ 0,	0,								TBSTATE_ENABLED, TBSTYLE_SEP,	 0, 0 },
-		{ 6,	IDM_TOOL_SYNC,					TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-		{ 7,	IDM_TOOL_GOROUND,				TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-		{ 8,	IDM_TOOL_CANCEL,				TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-	};
-	pToolbar->ptbButton_ = tbButton;
-	pToolbar->nSize_ = sizeof(tbButton)/sizeof(tbButton[0]);
-	pToolbar->nId_ = EditFrameWindowImpl::ID_TOOLBAR;
-	pToolbar->nBitmapId_ = IDB_TOOLBAR;
-	
 	*pbToolbar = true;
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::EditFrameWindow::createToolbarButtons(void* pCreateParam, HWND hwndToolbar)
+{
+	DECLARE_QSTATUS();
+	
+	EditFrameWindowCreateContext* pContext =
+		static_cast<EditFrameWindowCreateContext*>(pCreateParam);
+	
+	status = pContext->pToolbarManager_->createToolbar(L"editframe", hwndToolbar);
+	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
 }
@@ -775,13 +768,15 @@ LRESULT qm::EditFrameWindow::onSize(UINT nFlags, int cx, int cy)
 
 qm::EditFrameWindowManager::EditFrameWindowManager(Document* pDocument,
 	SyncManager* pSyncManager, SyncDialogManager* pSyncDialogManager,
-	KeyMap* pKeyMap, Profile* pProfile, qs::MenuManager* pMenuManager, QSTATUS* pstatus) :
+	KeyMap* pKeyMap, Profile* pProfile, MenuManager* pMenuManager,
+	ToolbarManager* pToolbarManager, QSTATUS* pstatus) :
 	pDocument_(pDocument),
 	pSyncManager_(pSyncManager),
 	pSyncDialogManager_(pSyncDialogManager),
 	pKeyMap_(pKeyMap),
 	pProfile_(pProfile),
-	pMenuManager_(pMenuManager)
+	pMenuManager_(pMenuManager),
+	pToolbarManager_(pToolbarManager)
 {
 }
 
@@ -818,6 +813,7 @@ QSTATUS qm::EditFrameWindowManager::open(EditMessage* pEditMessage)
 		pSyncManager_,
 		pSyncDialogManager_,
 		pMenuManager_,
+		pToolbarManager_,
 		pKeyMap_
 	};
 	status = pFrame->create(L"QmEditFrameWindow", L"QMAIL", dwStyle,

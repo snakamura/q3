@@ -12,6 +12,7 @@
 #include <qskeymap.h>
 #include <qsmenu.h>
 #include <qsprofile.h>
+#include <qstoolbar.h>
 
 
 namespace qm {
@@ -36,8 +37,8 @@ class EditFrameWindowManager
 public:
 	EditFrameWindowManager(Document* pDocument, SyncManager* pSyncManager,
 		SyncDialogManager* pSyncDialogManager, qs::KeyMap* pKeyMap,
-		qs::Profile* pProfile, qs::MenuManager* pContextMenuManager,
-		qs::QSTATUS* pstatus);
+		qs::Profile* pProfile, qs::MenuManager* pMenuManager,
+		qs::ToolbarManager* pToolbarManager, qs::QSTATUS* pstatus);
 	~EditFrameWindowManager();
 
 public:
@@ -61,6 +62,7 @@ private:
 	qs::KeyMap* pKeyMap_;
 	qs::Profile* pProfile_;
 	qs::MenuManager* pMenuManager_;
+	qs::ToolbarManager* pToolbarManager_;
 	FrameList listFrame_;
 };
 
@@ -77,6 +79,7 @@ struct EditFrameWindowCreateContext
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
 	qs::MenuManager* pMenuManager_;
+	qs::ToolbarManager* pToolbarManager_;
 	qs::KeyMap* pKeyMap_;
 };
 

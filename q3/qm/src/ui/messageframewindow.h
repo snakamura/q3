@@ -14,6 +14,7 @@
 #include <qskeymap.h>
 #include <qsmenu.h>
 #include <qsprofile.h>
+#include <qstoolbar.h>
 
 
 namespace qm {
@@ -40,7 +41,8 @@ class MessageFrameWindowManager
 public:
 	MessageFrameWindowManager(Document* pDocument,
 		TempFileCleaner* pTempFileCleaner, qs::MenuManager* pMenuManager,
-		qs::KeyMap* pKeyMap, qs::Profile* pProfile, ViewModelManager* pViewModelManager,
+		qs::ToolbarManager* pToolbarManager, qs::KeyMap* pKeyMap,
+		qs::Profile* pProfile, ViewModelManager* pViewModelManager,
 		EditFrameWindowManager* pEditFrameWindowManager,
 		ExternalEditorManager* pExternalEditorManager, qs::QSTATUS* pstatus);
 	~MessageFrameWindowManager();
@@ -66,6 +68,7 @@ private:
 	Document* pDocument_;
 	TempFileCleaner* pTempFileCleaner_;
 	qs::MenuManager* pMenuManager_;
+	qs::ToolbarManager* pToolbarManager_;
 	qs::KeyMap* pKeyMap_;
 	qs::Profile* pProfile_;
 	ViewModelManager* pViewModelManager_;
@@ -89,6 +92,7 @@ struct MessageFrameWindowCreateContext
 	ExternalEditorManager* pExternalEditorManager_;
 	TempFileCleaner* pTempFileCleaner_;
 	qs::MenuManager* pMenuManager_;
+	qs::ToolbarManager* pToolbarManager_;
 	qs::KeyMap* pKeyMap_;
 };
 

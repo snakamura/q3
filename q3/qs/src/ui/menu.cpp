@@ -1,11 +1,12 @@
 /*
- * $Id: menu.cpp,v 1.2 2003/05/18 02:52:36 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
+#include <qsaction.h>
 #include <qsconv.h>
 #include <qsmenu.h>
 #include <qsnew.h>
@@ -38,7 +39,7 @@ struct qs::MenuManagerImpl
 	typedef std::vector<Menu> MenuMap;
 	
 	QSTATUS load(const WCHAR* pwszPath,
-		const MenuItem* pMenuItem, size_t nMenuItemCount,
+		const ActionItem* pItem, size_t nItemCount,
 		const PopupMenuManager& popupMenuManager);
 	
 	static QSTATUS cloneMenu(HMENU hmenu, bool bBar, HMENU* phmenu);
@@ -48,7 +49,7 @@ struct qs::MenuManagerImpl
 };
 
 QSTATUS qs::MenuManagerImpl::load(const WCHAR* pwszPath,
-	const MenuItem* pMenuItem, size_t nMenuItemCount,
+	const ActionItem* pItem, size_t nItemCount,
 	const PopupMenuManager& popupMenuManager)
 {
 	assert(pwszPath);
@@ -57,8 +58,8 @@ QSTATUS qs::MenuManagerImpl::load(const WCHAR* pwszPath,
 	
 	XMLReader reader(&status);
 	CHECK_QSTATUS();
-	MenuContentHandler handler(pThis_, pMenuItem,
-		nMenuItemCount, popupMenuManager, &status);
+	MenuContentHandler handler(pThis_, pItem,
+		nItemCount, popupMenuManager, &status);
 	CHECK_QSTATUS();
 	reader.setContentHandler(&handler);
 	status = reader.parse(pwszPath);
@@ -123,12 +124,12 @@ QSTATUS qs::MenuManagerImpl::cloneMenu(HMENU hmenu, bool bBar, HMENU* phmenu)
  */
 
 qs::MenuManager::MenuManager(const WCHAR* pwszPath,
-	const MenuItem* pMenuItem, size_t nMenuItemCount,
+	const ActionItem* pItem, size_t nItemCount,
 	const PopupMenuManager& popupMenuManager, QSTATUS* pstatus) :
 	pImpl_(0)
 {
 	assert(pwszPath);
-	assert(pMenuItem);
+	assert(pItem);
 	assert(pstatus);
 	
 	DECLARE_QSTATUS();
@@ -139,8 +140,8 @@ qs::MenuManager::MenuManager(const WCHAR* pwszPath,
 	CHECK_QSTATUS_SET(pstatus);
 	pImpl_->pThis_ = this;
 	
-	status = pImpl_->load(pwszPath, pMenuItem,
-		nMenuItemCount, popupMenuManager);
+	status = pImpl_->load(pwszPath, pItem,
+		nItemCount, popupMenuManager);
 	CHECK_QSTATUS_SET(pstatus);
 }
 
@@ -321,12 +322,12 @@ QSTATUS qs::PopupMenuManager::createSubMenu(
  */
 
 qs::MenuContentHandler::MenuContentHandler(MenuManager* pMenuManager,
-	const MenuItem* pMenuItem, size_t nMenuItemCount,
+	const ActionItem* pItem, size_t nItemCount,
 	const PopupMenuManager& popupMenuManager, QSTATUS* pstatus) :
 	DefaultHandler(pstatus),
 	pMenuManager_(pMenuManager),
-	pMenuItem_(pMenuItem),
-	nMenuItemCount_(nMenuItemCount),
+	pActionItem_(pItem),
+	nActionItemCount_(nItemCount),
 	popupMenuManager_(popupMenuManager)
 {
 	assert(pstatus);
@@ -562,10 +563,20 @@ QSTATUS qs::MenuContentHandler::characters(
 
 UINT qs::MenuContentHandler::getActionId(const WCHAR* pwszAction)
 {
-	UINT nId = -1;
-	for (size_t n = 0; n < nMenuItemCount_ && nId == -1; ++n) {
-		if (wcscmp((pMenuItem_ + n)->pwszAction_, pwszAction) == 0)
-			nId = (pMenuItem_ + n)->nId_;
-	}
-	return nId;
+	ActionItem item = {
+		pwszAction,
+		0
+	};
+	
+	const ActionItem* pItem = std::lower_bound(
+		pActionItem_, pActionItem_ + nActionItemCount_, item,
+		binary_compose_f_gx_hy(
+			string_less<WCHAR>(),
+			mem_data_ref(&ActionItem::pwszAction_),
+			mem_data_ref(&ActionItem::pwszAction_)));
+	if (pItem != pActionItem_ + nActionItemCount_ &&
+		wcscmp(pItem->pwszAction_, pwszAction) == 0)
+		return pItem->nId_;
+	else
+		return -1;
 }

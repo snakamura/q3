@@ -9,14 +9,14 @@
 #ifndef __MENU_H__
 #define __MENU_H__
 
-#include <qsmenu.h>
+#include <qsaction.h>
 
 #include "resourceinc.h"
 
 
 namespace qm {
 
-const qs::MenuItem menuItems[] = {
+const qs::ActionItem menuItems[] = {
 	{ L"AttachmentEditAdd",			IDM_ATTACHMENTEDIT_ADD,			},
 	{ L"AttachmentEditDelete",		IDM_ATTACHMENTEDIT_DELETE,		},
 	{ L"AttachmentOpen",			IDM_ATTACHMENT_OPEN				},
@@ -77,9 +77,9 @@ const qs::MenuItem menuItems[] = {
 	{ L"MessageNewExternal",		IDM_MESSAGE_NEWEXTERNAL			},
 	{ L"MessageProperty",			IDM_MESSAGE_PROPERTY			},
 	{ L"MessageReply",				IDM_MESSAGE_REPLY				},
-	{ L"MessageReplyExternal",		IDM_MESSAGE_REPLYEXTERNAL		},
 	{ L"MessageReplyAll",			IDM_MESSAGE_REPLYALL			},
 	{ L"MessageReplyAllExternal",	IDM_MESSAGE_REPLYALLEXTERNAL	},
+	{ L"MessageReplyExternal",		IDM_MESSAGE_REPLYEXTERNAL		},
 	{ L"MessageSearch",				IDM_MESSAGE_SEARCH				},
 	{ L"MessageUnmark",				IDM_MESSAGE_UNMARK				},
 	{ L"MessageUnmarkDeleted",		IDM_MESSAGE_UNMARKDELETED		},

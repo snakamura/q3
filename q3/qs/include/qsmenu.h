@@ -1,5 +1,5 @@
 /*
- * $Id: qsmenu.h,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -15,24 +15,12 @@
 
 namespace qs {
 
-struct MenuItem;
 class MenuManager;
 class PopupMenu;
 	class LoadMenuPopupMenu;
 class PopupMenuManager;
 
-
-/****************************************************************************
- *
- * MenuItem
- *
- */
-
-struct QSEXPORTCLASS MenuItem
-{
-	const WCHAR* pwszAction_;
-	UINT nId_;
-};
+struct ActionItem;
 
 
 /****************************************************************************
@@ -44,8 +32,7 @@ struct QSEXPORTCLASS MenuItem
 class QSEXPORTCLASS MenuManager
 {
 public:
-	MenuManager(const WCHAR* pwszPath,
-		const MenuItem* pMenuItem, size_t nMenuItemCount,
+	MenuManager(const WCHAR* pwszPath, const ActionItem* pItem, size_t nItemCount,
 		const PopupMenuManager& popupMenuManager, QSTATUS* pstatus);
 	~MenuManager();
 

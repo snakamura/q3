@@ -171,7 +171,6 @@ IDI_MAINFRAME           ICON    DISCARDABLE     "res\\qmail.ico"
 // Bitmap
 //
 
-IDB_TOOLBAR             BITMAP  DISCARDABLE     "res\\toolbar.bmp"
 IDB_FOLDER              BITMAP  DISCARDABLE     "res\\folder.bmp"
 IDB_HEADER              BITMAP  DISCARDABLE     "res\\header.bmp"
 IDB_LIST                BITMAP  DISCARDABLE     "res\\list.bmp"
@@ -1070,9 +1069,11 @@ NEWS.URL                TEMPLATE DISCARDABLE    "res\\news.url.template"
 
 .KEYMAP                 PROFILE DISCARDABLE     "res\\.keymap"
 .MENUS                  PROFILE DISCARDABLE     "res\\.menus"
+.TOOLBARS               PROFILE DISCARDABLE     "res\\.toolbars"
 .HEADER                 PROFILE DISCARDABLE     "res\\.header"
 .HEADEREDIT             PROFILE DISCARDABLE     "res\\.headeredit"
 .QMAIL                  PROFILE DISCARDABLE     "res\\.qmail"
+TOOLBAR.BMP             PROFILE DISCARDABLE     "res\\toolbar.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //

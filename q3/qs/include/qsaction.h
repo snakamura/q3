@@ -556,6 +556,19 @@ private:
 	unsigned int status_;
 };
 
+
+/****************************************************************************
+ *
+ * ActionItem
+ *
+ */
+
+struct QSEXPORTCLASS ActionItem
+{
+	const WCHAR* pwszAction_;
+	UINT nId_;
+};
+
 }
 
 #include <qsaction.inl>

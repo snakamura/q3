@@ -3,7 +3,6 @@
 // Used by qmhpc.rc
 //
 #define IDI_MAINFRAME                   102
-#define IDB_TOOLBAR                     103
 #define IDB_FOLDER                      104
 #define IDB_HEADER                      105
 #define IDB_LIST                        106

@@ -3,7 +3,6 @@
 // Used by qm.rc
 //
 #define IDI_MAINFRAME                   102
-#define IDB_TOOLBAR                     103
 #define IDB_FOLDER                      104
 #define IDB_HEADER                      105
 #define IDB_LIST                        106
@@ -415,7 +414,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        156
+#define _APS_NEXT_RESOURCE_VALUE        157
 #define _APS_NEXT_COMMAND_VALUE         48000
 #define _APS_NEXT_CONTROL_VALUE         1136
 #define _APS_NEXT_SYMED_VALUE           101

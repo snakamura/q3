@@ -1,5 +1,5 @@
 /*
- * $Id: qmextensions.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -43,6 +43,7 @@ struct Extensions
 	static const WCHAR* SIGNATURES;
 	static const WCHAR* SYNCFILTERS;
 	static const WCHAR* TEXTS;
+	static const WCHAR* TOOLBARS;
 	static const WCHAR* VIEW;
 	static const WCHAR* QMAIL;
 };

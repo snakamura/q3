@@ -1032,6 +1032,7 @@ public:
 		int nSize_;
 		int nId_;
 		int nBitmapId_;
+		int nBitmapCount_;
 	};
 
 public:
@@ -1045,6 +1046,7 @@ public:
 
 protected:
 	virtual QSTATUS getToolbarButtons(Toolbar* pToolbar, bool* pbToolbar);
+	virtual QSTATUS createToolbarButtons(void* pCreateParam, HWND hwndToolbar);
 #if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
 	virtual QSTATUS getBarId(int n, UINT* pnId) const = 0;
 	virtual QSTATUS getCommandBandsRestoreInfo(int n,
