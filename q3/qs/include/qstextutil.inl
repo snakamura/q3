@@ -42,7 +42,7 @@ inline bool qs::TextUtil::isBreakBefore(WCHAR c)
 		c == L'{' ||
 		c == L'\t' ||
 		c == L'$' ||
-		c >= 0x100;
+		c >= 0x500;
 }
 
 inline bool qs::TextUtil::isBreakAfter(WCHAR c)
