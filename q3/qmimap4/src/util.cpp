@@ -656,6 +656,26 @@ QSTATUS qmimap4::Util::createRange(const Folder::MessageHolderList& l,
 	return QSTATUS_SUCCESS;
 }
 
+bool qmimap4::Util::isEqualFolderName(const WCHAR* pwszLhs,
+	const WCHAR* pwszRhs, WCHAR cSeparator)
+{
+	if (wcscmp(pwszLhs, pwszRhs) == 0) {
+		return true;
+	}
+	else if (_wcsnicmp(pwszLhs, L"INBOX", 5) == 0 &&
+		_wcsnicmp(pwszRhs, L"INBOX", 5) == 0) {
+		if (*(pwszLhs + 5) == L'\0' && *(pwszRhs + 5) == L'\0')
+			return true;
+		else if (*(pwszLhs + 5) == cSeparator && *(pwszRhs + 5) == cSeparator)
+			return wcscmp(pwszLhs + 6, pwszRhs + 6) == 0;
+		else
+			return false;
+	}
+	else {
+		return false;
+	}
+}
+
 std::pair<FetchDataBody*, FetchDataBody*> qmimap4::Util::getBodyFromBodyList(
 	const BodyList& listBody, const unsigned int* pPath)
 {

@@ -199,10 +199,11 @@ QSTATUS qmimap4::Imap4Driver::createFolder(SubAccount* pSubAccount,
 		{
 			DECLARE_QSTATUS();
 			
-			if (wcscmp(pList->getMailbox(), pwszName_) == 0 ||
-				(_wcsnicmp(pList->getMailbox(), L"Inbox", 5) == 0 &&
-				_wcsnicmp(pwszName_, L"Inbox", 5) == 0 &&
-				wcscmp(pList->getMailbox() + 5, pwszName_ + 5) == 0)) {
+//			if (wcscmp(pList->getMailbox(), pwszName_) == 0 ||
+//				(_wcsnicmp(pList->getMailbox(), L"Inbox", 5) == 0 &&
+//				_wcsnicmp(pwszName_, L"Inbox", 5) == 0 &&
+//				wcscmp(pList->getMailbox() + 5, pwszName_ + 5) == 0)) {
+			if (Util::isEqualFolderName(pList->getMailbox(), pwszName_, pList->getSeparator())) {
 				bFound_ = true;
 				string_ptr<WSTRING> wstrName;
 				status = folderUtil_.getFolderData(pList->getMailbox(),
@@ -1326,10 +1327,8 @@ QSTATUS qmimap4::FolderUtil::getFolderData(const WCHAR* pwszName,
 		{ wstrSpecialFolders_[2],	Folder::FLAG_TRASHBOX						}
 	};
 	for (int n = 0; n < countof(flags); ++n) {
-		if (wcscmp(wstr.get(), flags[n].pwszName_) == 0) {
+		if (Util::isEqualFolderName(wstr.get(), flags[n].pwszName_, cSeparator))
 			nFlags |= flags[n].nFlags_;
-			break;
-		}
 	}
 	
 	*pwstrName = wstr.release();

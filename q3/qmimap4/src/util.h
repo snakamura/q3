@@ -88,6 +88,8 @@ public:
 		const qm::Folder::MessageHolderList& l, UidList* pList);
 	static qs::QSTATUS createRange(const qm::Folder::MessageHolderList& l,
 		std::auto_ptr<MultipleRange>* apRange);
+	static bool isEqualFolderName(const WCHAR* pwszLhs,
+		const WCHAR* pwszRhs, WCHAR cSeparator);
 
 private:
 	static std::pair<FetchDataBody*, FetchDataBody*> getBodyFromBodyList(
