@@ -19,7 +19,9 @@
 #include <algorithm>
 
 #ifndef _WIN32_WCE
+#	define USES_IID_IDistList
 #	define USES_IID_IMAPIAdviseSink
+#	define USES_IID_IMAPIContainer
 #	include <mapiguid.h>
 #else
 #	include <addrmapi.h>
@@ -1028,17 +1030,18 @@ bool qm::WindowsAddressBook::load(AddressBook* pAddressBook)
 		return false;
 	
 	ULONG nType = 0;
-	ComPtr<IABContainer> pABC;
-	if (pAddrBook_->OpenEntry(nSize, pEntryId,
-		0, 0, &nType, reinterpret_cast<IUnknown**>(&pABC)) != S_OK)
+	ComPtr<IMAPIContainer> pContainer;
+	if (pAddrBook_->OpenEntry(nSize, pEntryId, &IID_IMAPIContainer,
+		MAPI_BEST_ACCESS, &nType, reinterpret_cast<IUnknown**>(&pContainer)) != S_OK)
 		return false;
 	
 	ComPtr<IMAPITable> pTable;
-	if (pABC->GetContentsTable(0, &pTable) != S_OK)
+	if (pContainer->GetContentsTable(MAPI_UNICODE, &pTable) != S_OK)
 		return false;
 	
 	ULONG props[] = {
 		PR_ENTRYID,
+		PR_OBJECT_TYPE,
 		PR_DISPLAY_NAME,
 		PR_CONTACT_EMAIL_ADDRESSES
 	};
@@ -1054,87 +1057,61 @@ bool qm::WindowsAddressBook::load(AddressBook* pAddressBook)
 				SRowSet* pSRowSet = 0;
 				if (pTable->QueryRows(1, 0, &pSRowSet) != S_OK)
 					break;
-				struct Deleter
-				{
-					Deleter(IWABObject* pWABObject, SRowSet* pSRowSet) :
-						pWABObject_(pWABObject),
-						pSRowSet_(pSRowSet)
-					{
-					}
-					
-					~Deleter()
-					{
-						for (ULONG n = 0; n < pSRowSet_->cRows; ++n)
-							pWABObject_->FreeBuffer(pSRowSet_->aRow[n].lpProps);
-						pWABObject_->FreeBuffer(pSRowSet_);
-					}
-					
-					IWABObject* pWABObject_;
-					SRowSet* pSRowSet_;
-				} deleter(pWABObject_, pSRowSet);
+				RowSetDeleter deleter(pWABObject_, pSRowSet);
 				if (pSRowSet->cRows == 0)
 					break;
+				assert(pSRowSet->cRows == 1);
 				
-				for (ULONG nRow = 0; nRow < pSRowSet->cRows; ++nRow) {
-					SRow* pRow = pSRowSet->aRow + nRow;
-					
-					std::auto_ptr<AddressBookEntry> pEntry(new AddressBookEntry(0, 0, true));
-					
-					for (ULONG nValue = 0; nValue < pRow->cValues; ++nValue) {
-						SPropValue* pValue = pRow->lpProps + nValue;
-						ULONG nTag = pValue->ulPropTag;
-						switch (PROP_ID(nTag)) {
-						case PROP_ID(PR_DISPLAY_NAME):
-							{
-								wstring_ptr wstrName;
-								if (PROP_TYPE(nTag) == PT_STRING8)
-									wstrName = mbs2wcs(pValue->Value.lpszA);
-								else if (PROP_TYPE(nTag) == PT_UNICODE)
-									wstrName = allocWString(pValue->Value.lpszW);
-								if (wstrName.get())
-									pEntry->setName(wstrName.get());
-							}
-							break;
-						case PROP_ID(PR_CONTACT_EMAIL_ADDRESSES):
-							{
-								if (PROP_TYPE(nTag) == PT_MV_STRING8) {
-									SLPSTRArray* pArray = &pValue->Value.MVszA;
-									for (unsigned int n = 0; n < pArray->cValues; ++n) {
-										wstring_ptr wstrAddress(mbs2wcs(*(pArray->lppszA + n)));
-										std::auto_ptr<AddressBookAddress> pAddress(
-											new AddressBookAddress(pEntry.get(),
-												wstrAddress.get(),
-												static_cast<const WCHAR*>(0),
-												AddressBookAddress::CategoryList(),
-												static_cast<const WCHAR*>(0),
-												static_cast<const WCHAR*>(0), false));
-										pEntry->addAddress(pAddress);
-									}
-								}
-								else if (PROP_TYPE(nTag) == PT_MV_UNICODE) {
-									SWStringArray* pArray = &pValue->Value.MVszW;
-									for (unsigned int n = 0; n < pArray->cValues; ++n) {
-										const WCHAR* pwszAddress = *(pArray->lppszW + n);
-										std::auto_ptr<AddressBookAddress> pAddress(
-											new AddressBookAddress(pEntry.get(),
-												pwszAddress,
-												static_cast<const WCHAR*>(0),
-												AddressBookAddress::CategoryList(),
-												static_cast<const WCHAR*>(0),
-												static_cast<const WCHAR*>(0), false));
-										pEntry->addAddress(pAddress);
-									}
-								}
-							}
-							break;
-						default:
-							break;
+				SRow* pRow = pSRowSet->aRow;
+				
+				const SPropValue& valueName = pRow->lpProps[2];
+				if (PROP_TYPE(valueName.ulPropTag) != PT_UNICODE)
+					continue;
+				const WCHAR* pwszName = valueName.Value.lpszW;
+				
+				std::auto_ptr<AddressBookEntry> pEntry(new AddressBookEntry(pwszName, 0, true));
+				
+				ULONG nEntrySize = pRow->lpProps[0].Value.bin.cb;
+				ENTRYID* pEntryId = reinterpret_cast<ENTRYID*>(pRow->lpProps[0].Value.bin.lpb);
+				LONG nObjectType = pRow->lpProps[1].Value.l;
+				if (nObjectType == MAPI_MAILUSER) {
+					const SPropValue& value = pRow->lpProps[3];
+					if (PROP_TYPE(value.ulPropTag) == PT_MV_UNICODE) {
+						const SWStringArray& array = value.Value.MVszW;
+						for (unsigned int n = 0; n < array.cValues; ++n) {
+							const WCHAR* pwszAddress = array.lppszW[n];
+							std::auto_ptr<AddressBookAddress> pAddress(
+								new AddressBookAddress(pEntry.get(),
+									pwszAddress,
+									static_cast<const WCHAR*>(0),
+									AddressBookAddress::CategoryList(),
+									static_cast<const WCHAR*>(0),
+									static_cast<const WCHAR*>(0), false));
+							pEntry->addAddress(pAddress);
 						}
 					}
-					
-					if (pEntry->getName() && !pEntry->getAddresses().empty())
-						pAddressBook->addEntry(pEntry);
 				}
+				else if (nObjectType == MAPI_DISTLIST) {
+					ULONG nType = 0;
+					ComPtr<IDistList> pDistList;
+					if (pContainer->OpenEntry(nEntrySize, pEntryId, &IID_IDistList, MAPI_BEST_ACCESS,
+						&nType, reinterpret_cast<IUnknown**>(&pDistList)) == S_OK) {
+						wstring_ptr wstrDistList = expandDistList(pDistList.get());
+						if (wstrDistList.get()) {
+							std::auto_ptr<AddressBookAddress> pAddress(
+								new AddressBookAddress(pEntry.get(),
+									wstrDistList.get(),
+									static_cast<const WCHAR*>(0),
+									AddressBookAddress::CategoryList(),
+									static_cast<const WCHAR*>(0),
+									static_cast<const WCHAR*>(0), true));
+							pEntry->addAddress(pAddress);
+						}
+					}
+				}
+				
+				if (!pEntry->getAddresses().empty())
+					pAddressBook->addEntry(pEntry);
 			}
 		}
 	}
@@ -1147,6 +1124,60 @@ bool qm::WindowsAddressBook::load(AddressBook* pAddressBook)
 bool qm::WindowsAddressBook::isModified()
 {
 	return bModified_;
+}
+
+wstring_ptr qm::WindowsAddressBook::expandDistList(IDistList* pDistList) const
+{
+	ComPtr<IMAPITable> pTable;
+	if (pDistList->GetContentsTable(MAPI_UNICODE, &pTable) != S_OK)
+		return 0;
+	
+	StringBuffer<WSTRING> buf;
+	
+	ULONG props[] = {
+		PR_DISPLAY_NAME,
+		PR_EMAIL_ADDRESS
+	};
+	SizedSPropTagArray(countof(props), columns) = {
+		countof(props)
+	};
+	memcpy(columns.aulPropTag, props, sizeof(props));
+	
+	if (pTable->SetColumns(reinterpret_cast<LPSPropTagArray>(&columns), 0) == S_OK) {
+		LONG nRowsSought = 0;
+		if (pTable->SeekRow(BOOKMARK_BEGINNING, 0, &nRowsSought) == S_OK) {
+			while (true) {
+				SRowSet* pSRowSet = 0;
+				if (pTable->QueryRows(1, 0, &pSRowSet) != S_OK)
+					break;
+				RowSetDeleter deleter(pWABObject_, pSRowSet);
+				if (pSRowSet->cRows == 0)
+					break;
+				assert(pSRowSet->cRows == 1);
+				
+				SRow* pRow = pSRowSet->aRow;
+				
+				const SPropValue& valueName = pRow->lpProps[0];
+				if (PROP_TYPE(valueName.ulPropTag) != PT_UNICODE)
+					continue;
+				const WCHAR* pwszName = valueName.Value.lpszW;
+				
+				const SPropValue& valueAddress = pRow->lpProps[1];
+				if (PROP_TYPE(valueAddress.ulPropTag) != PT_UNICODE)
+					continue;
+				const WCHAR* pwszAddress = valueAddress.Value.lpszW;
+				
+				if (buf.getLength() != 0)
+					buf.append(L", ");
+				buf.append(AddressParser(pwszName, pwszAddress).getValue().get());
+			}
+		}
+	}
+	
+	if (buf.getLength() == 0)
+		return 0;
+	
+	return buf.getString();
 }
 
 
@@ -1198,6 +1229,27 @@ STDMETHODIMP_(ULONG) qm::WindowsAddressBook::IMAPIAdviseSinkImpl::OnNotify(ULONG
 {
 	pAddressBook_->bModified_ = true;
 	return S_OK;
+}
+
+
+/****************************************************************************
+ *
+ * WindowsAddressBook::RowSetDeleter
+ *
+ */
+
+qm::WindowsAddressBook::RowSetDeleter::RowSetDeleter(IWABObject* pWABObject,
+													 SRowSet* pSRowSet) :
+	pWABObject_(pWABObject),
+	pSRowSet_(pSRowSet)
+{
+}
+
+qm::WindowsAddressBook::RowSetDeleter::~RowSetDeleter()
+{
+	for (ULONG n = 0; n < pSRowSet_->cRows; ++n)
+		pWABObject_->FreeBuffer(pSRowSet_->aRow[n].lpProps);
+	pWABObject_->FreeBuffer(pSRowSet_);
 }
 
 #else // _WIN32_WCE

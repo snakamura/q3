@@ -382,6 +382,9 @@ public:
 	virtual bool isModified();
 
 private:
+	qs::wstring_ptr expandDistList(IDistList* pDistList) const;
+
+private:
 	class IMAPIAdviseSinkImpl : public IMAPIAdviseSink
 	{
 	public:
@@ -407,6 +410,22 @@ private:
 		WindowsAddressBook* pAddressBook_;
 	};
 	friend class IMAPIAdviseSinkImpl;
+	
+	class RowSetDeleter
+	{
+	public:
+		RowSetDeleter(IWABObject* pWABObject,
+					  SRowSet* pSRowSet);
+		~RowSetDeleter();
+	
+	private:
+		RowSetDeleter(const RowSetDeleter&);
+		RowSetDeleter& operator=(const RowSetDeleter&);
+	
+	private:
+		IWABObject* pWABObject_;
+		SRowSet* pSRowSet_;
+	};
 
 private:
 	WindowsAddressBook(const WindowsAddressBook&);
