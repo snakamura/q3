@@ -712,14 +712,27 @@ QSTATUS qm::SubAccount::isSelf(const Message& msg, bool* pbSelf) const
 		status = msg.getField(L"From", &from, &field);
 		CHECK_QSTATUS();
 		if (field == Part::FIELD_EXIST) {
-			const AddressListParser::AddressList& l = from.getAddressList();
-			if (!l.empty()) {
-				AddressParser* p = l.front();
-				*pbSelf = isMyAddress(p->getMailbox(), p->getHost());
+			const AddressListParser::AddressList& listFrom = from.getAddressList();
+			if (!listFrom.empty()) {
+				AddressParser* pFrom = listFrom.front();
+				if (isMyAddress(pFrom->getMailbox(), pFrom->getHost())) {
+					AddressListParser sender(0, &status);
+					CHECK_QSTATUS();
+					status = msg.getField(L"Sender", &sender, &field);
+					CHECK_QSTATUS();
+					if (field == Part::FIELD_EXIST) {
+						const AddressListParser::AddressList& listSender =
+							sender.getAddressList();
+						if (!listSender.empty()) {
+							AddressParser* pSender = listSender.front();
+							*pbSelf = wcsicmp(pFrom->getMailbox(), pSender->getMailbox()) == 0 &&
+								wcsicmp(pFrom->getHost(), pSender->getHost()) == 0;
+						}
+					}
+				}
 			}
 			if (*pbSelf) {
 				const WCHAR* pwszFields[] = {
-					L"Sender",
 					L"Posted",
 					L"X-ML-Name",
 					L"Mailing-List"
