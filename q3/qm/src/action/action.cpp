@@ -4349,6 +4349,43 @@ bool qm::TabCreateAction::isEnabled(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * TabEditTitleAction
+ *
+ */
+
+qm::TabEditTitleAction::TabEditTitleAction(TabModel* pTabModel,
+										   HWND hwnd) :
+	pTabModel_(pTabModel),
+	hwnd_(hwnd)
+{
+}
+
+qm::TabEditTitleAction::~TabEditTitleAction()
+{
+}
+
+void qm::TabEditTitleAction::invoke(const ActionEvent& event)
+{
+	int nItem = TabActionUtil::getCurrent(pTabModel_);
+	if (nItem == -1)
+		return;
+	
+	const TabItem* pItem = pTabModel_->getItem(nItem);
+	
+	TabTitleDialog dialog(pItem->getTitle());
+	if (dialog.doModal(hwnd_) != IDOK)
+		return;
+	pTabModel_->setTitle(nItem, dialog.getTitle());
+}
+
+bool qm::TabEditTitleAction::isEnabled(const ActionEvent& event)
+{
+	return TabActionUtil::getCurrent(pTabModel_) != -1;
+}
+
+
+/****************************************************************************
+ *
  * TabLockAction
  *
  */
@@ -4367,7 +4404,9 @@ void qm::TabLockAction::invoke(const ActionEvent& event)
 	int nItem = TabActionUtil::getCurrent(pTabModel_);
 	if (nItem == -1)
 		return;
-	pTabModel_->setLocked(nItem, !pTabModel_->isLocked(nItem));
+	
+	const TabItem* pItem = pTabModel_->getItem(nItem);
+	pTabModel_->setLocked(nItem, !pItem->isLocked());
 }
 
 bool qm::TabLockAction::isEnabled(const ActionEvent& event)
@@ -4378,7 +4417,10 @@ bool qm::TabLockAction::isEnabled(const ActionEvent& event)
 bool qm::TabLockAction::isChecked(const ActionEvent& event)
 {
 	int nItem = TabActionUtil::getCurrent(pTabModel_);
-	return nItem == -1 ? false : pTabModel_->isLocked(nItem);
+	if (nItem == -1)
+		return false;
+	else
+		return pTabModel_->getItem(nItem)->isLocked();
 }
 
 

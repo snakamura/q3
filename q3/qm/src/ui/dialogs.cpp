@@ -6922,6 +6922,48 @@ bool qm::SyncFilterSetsDialog::edit(SyncFilterSet* p) const
 }
 
 
+#ifdef QMTABWINDOW
+/****************************************************************************
+ *
+ * TabTitleDialog
+ *
+ */
+
+qm::TabTitleDialog::TabTitleDialog(const WCHAR* pwszTitle) :
+	DefaultDialog(IDD_TABTITLE)
+{
+	if (pwszTitle)
+		wstrTitle_ = allocWString(pwszTitle);
+}
+
+qm::TabTitleDialog::~TabTitleDialog()
+{
+}
+
+const WCHAR* qm::TabTitleDialog::getTitle() const
+{
+	return wstrTitle_.get();
+}
+
+LRESULT qm::TabTitleDialog::onInitDialog(HWND hwndFocus,
+										 LPARAM lParam)
+{
+	init(false);
+	
+	if (wstrTitle_.get())
+		setDlgItemText(IDC_TITLE, wstrTitle_.get());
+	
+	return TRUE;
+}
+
+LRESULT qm::TabTitleDialog::onOk()
+{
+	wstrTitle_ = getDlgItemText(IDC_TITLE);
+	return DefaultDialog::onOk();
+}
+#endif // TABWINDOW
+
+
 /****************************************************************************
  *
  * ViewsColumnDialog

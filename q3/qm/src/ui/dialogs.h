@@ -74,6 +74,9 @@ class DefaultDialog;
 	class SelectSyncFilterDialog;
 	class SignatureDialog;
 	class SyncFilterDialog;
+#ifdef TABWINDOW
+	class TabTitleDialog;
+#endif
 	class ViewsColumnDialog;
 	class ViewsDialog;
 	template<class T, class List> class AbstractListDialog;
@@ -2579,6 +2582,39 @@ private:
 private:
 	SyncFilterManager* pSyncFilterManager_;
 };
+
+
+#ifdef QMTABWINDOW
+/****************************************************************************
+ *
+ * TabTitleDialog
+ *
+ */
+
+class TabTitleDialog : public DefaultDialog
+{
+public:
+	explicit TabTitleDialog(const WCHAR* pwszTitle);
+	virtual ~TabTitleDialog();
+
+public:
+	const WCHAR* getTitle() const;
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	TabTitleDialog(const TabTitleDialog&);
+	TabTitleDialog& operator=(const TabTitleDialog&);
+
+private:
+	qs::wstring_ptr wstrTitle_;
+};
+#endif
 
 
 /****************************************************************************

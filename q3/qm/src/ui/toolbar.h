@@ -138,6 +138,7 @@ const qs::ActionItem toolbarItems[] = {
 #ifdef QMTABWINDOW
 	{ L"TabClose",						IDM_TAB_CLOSE								},
 	{ L"TabCreate",						IDM_TAB_CREATE								},
+	{ L"TabEditTitle",					IDM_TAB_EDITTITLE							},
 	{ L"TabLock",						IDM_TAB_LOCK								},
 	{ L"TabMoveLeft",					IDM_TAB_MOVELEFT							},
 	{ L"TabMoveRight",					IDM_TAB_MOVERIGHT							},

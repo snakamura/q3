@@ -91,6 +91,7 @@ class MessageSearchAction;
 #ifdef QMTABWINDOW
 class TabCloseAction;
 class TabCreateAction;
+class TabEditTitleAction;
 class TabLockAction;
 class TabMoveAction;
 class TabNavigateAction;
@@ -2293,6 +2294,33 @@ private:
 private:
 	TabModel* pTabModel_;
 	FolderSelectionModel* pFolderSelectionModel_;
+};
+
+
+/****************************************************************************
+ *
+ * TabEditTitleAction
+ *
+ */
+
+class TabEditTitleAction : public qs::AbstractAction
+{
+public:
+	TabEditTitleAction(TabModel* pTabModel,
+					   HWND hwnd);
+	virtual ~TabEditTitleAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	TabEditTitleAction(const TabEditTitleAction&);
+	TabEditTitleAction& operator=(const TabEditTitleAction&);
+
+private:
+	TabModel* pTabModel_;
+	HWND hwnd_;
 };
 
 

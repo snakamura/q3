@@ -155,6 +155,7 @@ const qs::KeyNameToId mapKeyNameToId[] = {
 #ifdef QMTABWINDOW
 	{ L"TabClose",						IDM_TAB_CLOSE,							0 },
 	{ L"TabCreate",						IDM_TAB_CREATE,							0 },
+	{ L"TabEditTitle",					IDM_TAB_EDITTITLE,						0 },
 	{ L"TabLock",						IDM_TAB_LOCK,							0 },
 	{ L"TabMoveLeft",					IDM_TAB_MOVELEFT,						0 },
 	{ L"TabMoveRight",					IDM_TAB_MOVERIGHT,						0 },

@@ -31,19 +31,25 @@ using namespace qs;
  */
 
 qm::TabItem::TabItem(Account* pAccount,
-					 bool bLocked) :
+					 bool bLocked,
+					 const WCHAR* pwszTitle) :
 	pAccount_(pAccount),
 	pFolder_(0),
 	bLocked_(bLocked)
 {
+	if (pwszTitle)
+		wstrTitle_ = allocWString(pwszTitle);
 }
 
 qm::TabItem::TabItem(Folder* pFolder,
-					 bool bLocked) :
+					 bool bLocked,
+					 const WCHAR* pwszTitle) :
 	pAccount_(0),
 	pFolder_(pFolder),
 	bLocked_(bLocked)
 {
+	if (pwszTitle)
+		wstrTitle_ = allocWString(pwszTitle);
 }
 
 qm::TabItem::~TabItem()
@@ -63,6 +69,19 @@ bool qm::TabItem::isLocked() const
 void qm::TabItem::setLocked(bool bLocked)
 {
 	bLocked_ = bLocked;
+}
+
+const WCHAR* qm::TabItem::getTitle() const
+{
+	return wstrTitle_.get();
+}
+
+void qm::TabItem::setTitle(const WCHAR* pwszTitle)
+{
+	if (pwszTitle)
+		wstrTitle_ = allocWString(pwszTitle);
+	else
+		wstrTitle_.reset(0);
 }
 
 
@@ -150,21 +169,26 @@ void qm::DefaultTabModel::setTemporary(int nItem)
 	nTemporary_ = nItem;
 }
 
-TabItem* qm::DefaultTabModel::getItem(int nItem)
+const TabItem* qm::DefaultTabModel::getItem(int nItem)
 {
 	assert(0 <= nItem && nItem < static_cast<int>(listItem_.size()));
 	return listItem_[nItem];
 }
 
-bool qm::DefaultTabModel::isLocked(int nItem)
-{
-	return listItem_[nItem]->isLocked();
-}
-
 void qm::DefaultTabModel::setLocked(int nItem,
 									bool bLocked)
 {
-	listItem_[nItem]->setLocked(bLocked);
+	TabItem* pItem = listItem_[nItem];
+	pItem->setLocked(bLocked);
+	fireItemChanged(nItem, pItem, pItem);
+}
+
+void qm::DefaultTabModel::setTitle(int nItem,
+								   const WCHAR* pwszTitle)
+{
+	TabItem* pItem = listItem_[nItem];
+	pItem->setTitle(pwszTitle);
+	fireItemChanged(nItem, pItem, pItem);
 }
 
 void qm::DefaultTabModel::open(Account* pAccount)
@@ -453,7 +477,7 @@ void qm::DefaultTabModel::open(Folder* pFolder,
 int qm::DefaultTabModel::addAccount(Account* pAccount,
 									bool bLocked)
 {
-	std::auto_ptr<TabItem> pItem(new TabItem(pAccount, bLocked));
+	std::auto_ptr<TabItem> pItem(new TabItem(pAccount, bLocked, 0));
 	listItem_.push_back(pItem.get());
 	listItemOrder_.push_back(pItem.get());
 	resetHandlers(0, 0, pAccount, 0);
@@ -465,7 +489,7 @@ int qm::DefaultTabModel::addAccount(Account* pAccount,
 int qm::DefaultTabModel::addFolder(Folder* pFolder,
 								   bool bLocked)
 {
-	std::auto_ptr<TabItem> pItem(new TabItem(pFolder, bLocked));
+	std::auto_ptr<TabItem> pItem(new TabItem(pFolder, bLocked, 0));
 	listItem_.push_back(pItem.get());
 	listItemOrder_.push_back(pItem.get());
 	resetHandlers(0, 0, 0, pFolder);
@@ -501,14 +525,16 @@ void qm::DefaultTabModel::removeItem(int nItem)
 void qm::DefaultTabModel::setAccount(int nItem,
 									 Account* pAccount)
 {
-	std::auto_ptr<TabItem> pItem(new TabItem(pAccount, false));
+	std::auto_ptr<TabItem> pItem(new TabItem(
+		pAccount, false, listItem_[nItem]->getTitle()));
 	setItem(nItem, pItem);
 }
 
 void qm::DefaultTabModel::setFolder(int nItem,
 									Folder* pFolder)
 {
-	std::auto_ptr<TabItem> pItem(new TabItem(pFolder, false));
+	std::auto_ptr<TabItem> pItem(new TabItem(
+		pFolder, false, listItem_[nItem]->getTitle()));
 	setItem(nItem, pItem);
 }
 
@@ -680,8 +706,8 @@ qm::TabModelEvent::TabModelEvent(TabModel* pTabModel,
 
 qm::TabModelEvent::TabModelEvent(TabModel* pTabModel,
 								 int nItem,
-								 TabItem* pOldItem,
-								 TabItem* pNewItem) :
+								 const TabItem* pOldItem,
+								 const TabItem* pNewItem) :
 	pTabModel_(pTabModel),
 	nItem_(nItem),
 	pOldItem_(pOldItem),
@@ -715,12 +741,12 @@ int qm::TabModelEvent::getItem() const
 	return nItem_;
 }
 
-TabItem* qm::TabModelEvent::getOldItem() const
+const TabItem* qm::TabModelEvent::getOldItem() const
 {
 	return pOldItem_;
 }
 
-TabItem* qm::TabModelEvent::getNewItem() const
+const TabItem* qm::TabModelEvent::getNewItem() const
 {
 	return pNewItem_;
 }

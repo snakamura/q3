@@ -87,6 +87,7 @@
 #define IDD_ADDRESSBOOKENTRY            188
 #define IDD_ADDRESSBOOKADDRESS          189
 #define IDD_ADDADDRESS                  190
+#define IDD_TABTITLE                    191
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -653,20 +654,21 @@
 #define IDM_CONFIG_VIEWS                51009
 #define IDM_TAB_CLOSE                   52001
 #define IDM_TAB_CREATE                  52002
-#define IDM_TAB_LOCK                    52003
-#define IDM_TAB_MOVELEFT                52004
-#define IDM_TAB_MOVERIGHT               52005
-#define IDM_TAB_NAVIGATENEXT            52006
-#define IDM_TAB_NAVIGATEPREV            52007
+#define IDM_TAB_EDITTITLE               52003
+#define IDM_TAB_LOCK                    52004
+#define IDM_TAB_MOVELEFT                52005
+#define IDM_TAB_MOVERIGHT               52006
+#define IDM_TAB_NAVIGATENEXT            52007
+#define IDM_TAB_NAVIGATEPREV            52008
 #define IDM_TAB_SELECT                  52100
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        191
+#define _APS_NEXT_RESOURCE_VALUE        192
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1305
+#define _APS_NEXT_CONTROL_VALUE         1306
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -41,20 +41,25 @@ class TabItem
 {
 public:
 	TabItem(Account* pAccount,
-			bool bLocked);
+			bool bLocked,
+			const WCHAR* pwszTitle);
 	TabItem(Folder* pFolder,
-			bool bLocked);
+			bool bLocked,
+			const WCHAR* pwszTitle);
 	~TabItem();
 
 public:
 	std::pair<Account*, Folder*> get() const;
 	bool isLocked() const;
 	void setLocked(bool bLocked);
+	const WCHAR* getTitle() const;
+	void setTitle(const WCHAR* pwszTitle);
 
 private:
 	Account* pAccount_;
 	Folder* pFolder_;
 	bool bLocked_;
+	qs::wstring_ptr wstrTitle_;
 };
 
 
@@ -75,10 +80,11 @@ public:
 	virtual void setCurrent(int nItem) = 0;
 	virtual int getTemporary() = 0;
 	virtual void setTemporary(int nItem) = 0;
-	virtual TabItem* getItem(int nItem) = 0;
-	virtual bool isLocked(int nItem) = 0;
+	virtual const TabItem* getItem(int nItem) = 0;
 	virtual void setLocked(int nItem,
 						   bool bLocked) = 0;
+	virtual void setTitle(int nItem,
+						  const WCHAR* pwszTitle) = 0;
 	virtual void open(Account* pAccount) = 0;
 	virtual void open(Folder* pFolder) = 0;
 	virtual void close(int nItem) = 0;
@@ -116,10 +122,11 @@ public:
 	virtual void setCurrent(int nItem);
 	virtual int getTemporary();
 	virtual void setTemporary(int nItem);
-	virtual TabItem* getItem(int nItem);
-	virtual bool isLocked(int nItem);
+	virtual const TabItem* getItem(int nItem);
 	virtual void setLocked(int nItem,
 						   bool bLocked);
+	virtual void setTitle(int nItem,
+						  const WCHAR* pwszTitle);
 	virtual void open(Account* pAccount);
 	virtual void open(Folder* pFolder);
 	virtual void close(int nItem);
@@ -258,8 +265,8 @@ public:
 				  int nItem);
 	TabModelEvent(TabModel* pTabModel,
 				  int nItem,
-				  TabItem* pOldItem,
-				  TabItem* pNewItem);
+				  const TabItem* pOldItem,
+				  const TabItem* pNewItem);
 	TabModelEvent(TabModel* pTabModel,
 				  int nItem,
 				  int nAmount);
@@ -268,8 +275,8 @@ public:
 public:
 	TabModel* getTabModel() const;
 	int getItem() const;
-	TabItem* getOldItem() const;
-	TabItem* getNewItem() const;
+	const TabItem* getOldItem() const;
+	const TabItem* getNewItem() const;
 	int getAmount() const;
 
 private:
@@ -279,8 +286,8 @@ private:
 private:
 	TabModel* pTabModel_;
 	int nItem_;
-	TabItem* pOldItem_;
-	TabItem* pNewItem_;
+	const TabItem* pOldItem_;
+	const TabItem* pNewItem_;
 	int nAmount_;
 };
 

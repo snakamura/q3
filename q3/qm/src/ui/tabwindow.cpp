@@ -86,8 +86,7 @@ private:
 	void update(int nItem);
 	void resetHandlers(Folder* pOldFolder,
 					   Folder* pNewFolder);
-	wstring_ptr getTitle(Account* pAccount);
-	wstring_ptr getTitle(Folder* pFolder);
+	wstring_ptr getTitle(const TabItem* pItem) const;
 
 private:
 	static int getFolderImage(Folder* pFolder);
@@ -160,10 +159,10 @@ LRESULT qm::TabWindowImpl::onNotify(NMHDR* pnmhdr,
 void qm::TabWindowImpl::itemAdded(const TabModelEvent& event)
 {
 	int nItem = event.getItem();
-	TabItem* pItem = event.getNewItem();
+	const TabItem* pItem = event.getNewItem();
 	std::pair<Account*, Folder*> p(pItem->get());
 	
-	wstring_ptr wstrName(p.first ? getTitle(p.first) : getTitle(p.second));
+	wstring_ptr wstrName(getTitle(pItem));
 	W2T(wstrName.get(), ptszName);
 	
 	TCITEM item = {
@@ -186,7 +185,7 @@ void qm::TabWindowImpl::itemAdded(const TabModelEvent& event)
 void qm::TabWindowImpl::itemRemoved(const TabModelEvent& event)
 {
 	int nItem = event.getItem();
-	TabItem* pItem = event.getOldItem();
+	const TabItem* pItem = event.getOldItem();
 	std::pair<Account*, Folder*> p(pItem->get());
 	
 	TabCtrl_DeleteItem(pTabCtrl_->getHandle(), nItem);
@@ -200,9 +199,9 @@ void qm::TabWindowImpl::itemRemoved(const TabModelEvent& event)
 void qm::TabWindowImpl::itemChanged(const TabModelEvent& event)
 {
 	int nItem = event.getItem();
-	TabItem* pOldItem = event.getOldItem();
+	const TabItem* pOldItem = event.getOldItem();
 	std::pair<Account*, Folder*> pOld(pOldItem->get());
-	TabItem* pNewItem = event.getNewItem();
+	const TabItem* pNewItem = event.getNewItem();
 	std::pair<Account*, Folder*> pNew(pNewItem->get());
 	
 	update(nItem);
@@ -219,10 +218,10 @@ void qm::TabWindowImpl::itemMoved(const TabModelEvent& event)
 	TabCtrl_DeleteItem(pTabCtrl_->getHandle(), nItem);
 	
 	int nAmount = event.getAmount();
-	TabItem* pItem = pTabModel_->getItem(nItem + nAmount);
+	const TabItem* pItem = pTabModel_->getItem(nItem + nAmount);
 	std::pair<Account*, Folder*> p(pItem->get());
 	
-	wstring_ptr wstrName(p.first ? getTitle(p.first) : getTitle(p.second));
+	wstring_ptr wstrName(getTitle(pItem));
 	W2T(wstrName.get(), ptszName);
 	
 	TCITEM item = {
@@ -301,7 +300,7 @@ void qm::TabWindowImpl::update(Folder* pFolder)
 	
 	int nCount = pTabModel_->getCount();
 	for (int n = 0; n < nCount; ++n) {
-		TabItem* pItem = pTabModel_->getItem(n);
+		const TabItem* pItem = pTabModel_->getItem(n);
 		if (pItem->get().second == pFolder)
 			update(n);
 	}
@@ -309,10 +308,10 @@ void qm::TabWindowImpl::update(Folder* pFolder)
 
 void qm::TabWindowImpl::update(int nItem)
 {
-	TabItem* pItem = pTabModel_->getItem(nItem);
+	const TabItem* pItem = pTabModel_->getItem(nItem);
 	std::pair<Account*, Folder*> p(pItem->get());
 	
-	wstring_ptr wstrName(p.first ? getTitle(p.first) : getTitle(p.second));
+	wstring_ptr wstrName(getTitle(pItem));
 	W2T(wstrName.get(), ptszName);
 	
 	TCITEM item = {
@@ -365,29 +364,45 @@ void qm::TabWindowImpl::resetHandlers(Folder* pOldFolder,
 	}
 }
 
-wstring_ptr qm::TabWindowImpl::getTitle(Account* pAccount)
+wstring_ptr qm::TabWindowImpl::getTitle(const TabItem* pItem) const
 {
-	return concat(L"[", pAccount->getName(), L"]");
-}
-
-wstring_ptr qm::TabWindowImpl::getTitle(Folder* pFolder)
-{
-	WCHAR wsz[64] = L"";
-	if (bShowAllCount_ && bShowUnseenCount_)
-		swprintf(wsz, L" (%d/%d)", pFolder->getUnseenCount(), pFolder->getCount());
-	else if (bShowAllCount_)
-		swprintf(wsz, L" (%d)", pFolder->getCount());
-	else if (bShowUnseenCount_)
-		swprintf(wsz, L" (%d)", pFolder->getUnseenCount());
+	const WCHAR* pwszTitle = pItem->getTitle();
 	
-	ConcatW c[] = {
-		{ L"[",								1	},
-		{ pFolder->getAccount()->getName(),	-1	},
-		{ L"] ",							2	},
-		{ pFolder->getName(),				-1	},
-		{ wsz,								-1	}
-	};
-	return concat(c, countof(c));
+	std::pair<Account*, Folder*> p(pItem->get());
+	if (p.first) {
+		if (pwszTitle) {
+			return allocWString(pwszTitle);
+		}
+		else {
+			Account* pAccount = p.first;
+			return concat(L"[", pAccount->getName(), L"]");
+		}
+	}
+	else {
+		Folder* pFolder = p.second;
+		
+		WCHAR wsz[64] = L"";
+		if (bShowAllCount_ && bShowUnseenCount_)
+			swprintf(wsz, L" (%d/%d)", pFolder->getUnseenCount(), pFolder->getCount());
+		else if (bShowAllCount_)
+			swprintf(wsz, L" (%d)", pFolder->getCount());
+		else if (bShowUnseenCount_)
+			swprintf(wsz, L" (%d)", pFolder->getUnseenCount());
+		
+		if (pwszTitle) {
+			return concat(pwszTitle, wsz);
+		}
+		else {
+			ConcatW c[] = {
+				{ L"[",								1	},
+				{ pFolder->getAccount()->getName(),	-1	},
+				{ L"] ",							2	},
+				{ pFolder->getName(),				-1	},
+				{ wsz,								-1	}
+			};
+			return concat(c, countof(c));
+		}
+	}
 }
 
 int qm::TabWindowImpl::getFolderImage(Folder* pFolder)

@@ -389,6 +389,8 @@
 	<menu name="tab">
 		<menuitem text="&amp;Close" action="TabClose"/>
 		<separator/>
+		<menuitem text="&amp;Edit Title..." action="TabEditTitle"/>
+		<separator/>
 		<menuitem text="&amp;Lock" action="TabLock"/>
 	</menu>
 </menus>

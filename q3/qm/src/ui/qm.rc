@@ -1434,6 +1434,23 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,150,110,50,14
 END
 
+#if defined(APSTUDIO_INVOKED) || defined(QMTABWINDOW)
+#if defined(APSTUDIO_INVOKED)
+IDD_TABTITLE$(QMTABWINDOW) DIALOG DISCARDABLE  0, 0, 190, 55
+#else
+IDD_TABTITLE DIALOG DISCARDABLE  0, 0, 190, 55
+#endif
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Title"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    LTEXT           "&Title",IDC_STATIC,5,5,20,8
+    EDITTEXT        IDC_TITLE,5,15,180,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,80,35,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,135,35,50,14
+END
+#endif
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1521,6 +1538,14 @@ BEGIN
         RIGHTMARGIN, 198
         TOPMARGIN, 7
         BOTTOMMARGIN, 123
+    END
+
+    "IDD_TABTITLE$(QMTABWINDOW)", DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 183
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 48
     END
 END
 #endif    // APSTUDIO_INVOKED

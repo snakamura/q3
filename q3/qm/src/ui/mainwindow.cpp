@@ -858,6 +858,10 @@ void qm::MainWindowImpl::initActions()
 		IDM_TAB_CREATE,
 		pTabModel_.get(),
 		this);
+	ADD_ACTION2(TabEditTitleAction,
+		IDM_TAB_EDITTITLE,
+		pTabModel_.get(),
+		pThis_->getHandle());
 	ADD_ACTION1(TabLockAction,
 		IDM_TAB_LOCK,
 		pTabModel_.get());
@@ -1475,7 +1479,7 @@ void qm::MainWindowImpl::viewModelSelected(const ViewModelManagerEvent& event)
 
 void qm::MainWindowImpl::currentChanged(const TabModelEvent& event)
 {
-	TabItem* pItem = pTabModel_->getItem(pTabModel_->getCurrent());
+	const TabItem* pItem = pTabModel_->getItem(pTabModel_->getCurrent());
 	std::pair<Account*, Folder*> p(pItem->get());
 	pFolderModel_->setCurrent(p.first, p.second, false);
 }
