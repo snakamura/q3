@@ -10,6 +10,7 @@
 
 #include "crypto.h"
 #include "ssl.h"
+#include "util.h"
 
 using namespace qs;
 using namespace qscrypto;
@@ -210,8 +211,8 @@ bool qscrypto::SSLSocketImpl::connect(Socket* pSocket)
 			log.debug(L"Failed to verify server certificate.");
 	}
 	
-	X509* pX509 = SSL_get_peer_certificate(pSSL_);
-	CertificateImpl cert(pX509);
+	X509Ptr pX509(SSL_get_peer_certificate(pSSL_));
+	CertificateImpl cert(pX509.get());
 	if (log.isDebugEnabled()) {
 		wstring_ptr wstrCert(cert.getText());
 		log.debug(wstrCert.get());
