@@ -487,7 +487,7 @@ bool qm::EditMessage::fixup()
 		buf.append(wstrSignature.get());
 	
 	MessageCreator creator(MessageCreator::FLAG_ADDCONTENTTYPE |
-		MessageCreator::FLAG_EXPANDALIAS);
+		MessageCreator::FLAG_EXPANDALIAS | MessageCreator::FLAG_ENCODETEXT);
 	std::auto_ptr<Message> pBodyMessage(creator.createMessage(
 		pDocument_, buf.getCharArray(), buf.getLength()));
 	if (!pBodyMessage.get())

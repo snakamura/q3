@@ -2886,7 +2886,8 @@ void qm::MessageCreateFromClipboardAction::invoke(const ActionEvent& event)
 		MessageCreator creator(MessageCreator::FLAG_ADDCONTENTTYPE |
 			MessageCreator::FLAG_EXPANDALIAS |
 			MessageCreator::FLAG_EXTRACTATTACHMENT |
-			(pSecurityModel_->isDecryptVerify() ? MessageCreator::FLAG_DECRYPTVERIFY : 0));
+			(pSecurityModel_->isDecryptVerify() ? MessageCreator::FLAG_DECRYPTVERIFY : 0) |
+			MessageCreator::FLAG_ENCODETEXT);
 		std::auto_ptr<Message> pMessage(creator.createMessage(pDocument_, wstrMessage.get(), -1));
 		
 		unsigned int nFlags = 0;
