@@ -277,6 +277,7 @@
 #define IDC_APPLYTOALL                  1160
 #define IDC_APPLYTOCHILDREN             1161
 #define IDC_PARAMETER                   1163
+#define IDC_SYNCABLE                    1166
 #define IDS_COLUMNTYPE_ID               1200
 #define IDS_COLUMNTYPE_DATE             1201
 #define IDS_COLUMNTYPE_FROM             1202
@@ -523,7 +524,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        161
 #define _APS_NEXT_COMMAND_VALUE         48000
-#define _APS_NEXT_CONTROL_VALUE         1166
+#define _APS_NEXT_CONTROL_VALUE         1167
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -1736,7 +1736,7 @@ bool qm::FileLoadAction::loadFolder(Account* pAccount,
 								pwszName = wstrRemoteName.get();
 							}
 							pChildFolder = pAccount->createNormalFolder(
-								pwszName, pFolder, bRemote);
+								pwszName, pFolder, bRemote, false);
 							if (!pChildFolder)
 								return false;
 							pAccount->setFolderFlags(pChildFolder, nFlags,
@@ -2061,18 +2061,24 @@ void qm::FolderCreateAction::invoke(const ActionEvent& event)
 			CreateFolderDialog::TYPE_LOCALFOLDER;
 	}
 	
-	CreateFolderDialog dialog(type, bAllowRemote);
+	unsigned int nFlags = 0;
+	if (bAllowRemote)
+		nFlags |= CreateFolderDialog::FLAG_ALLOWREMOTE;
+	if (pAccount->isSupport(Account::SUPPORT_LOCALFOLDERSYNC))
+		nFlags |= CreateFolderDialog::FLAG_ALLOWLOCALSYNC;
+	
+	CreateFolderDialog dialog(type, nFlags);
 	if (dialog.doModal(hwnd_) == IDOK) {
 		NormalFolder* pNormalFolder = 0;
 		QueryFolder* pQueryFolder = 0;
 		switch (dialog.getType()) {
 		case CreateFolderDialog::TYPE_LOCALFOLDER:
 			pNormalFolder = pAccount->createNormalFolder(
-				dialog.getName(), pFolder, false);
+				dialog.getName(), pFolder, false, dialog.isSyncable());
 			break;
 		case CreateFolderDialog::TYPE_REMOTEFOLDER:
 			pNormalFolder = pAccount->createNormalFolder(
-				dialog.getName(), pFolder, true);
+				dialog.getName(), pFolder, true, true);
 			break;
 		case CreateFolderDialog::TYPE_QUERYFOLDER:
 			pQueryFolder = pAccount->createQueryFolder(dialog.getName(),

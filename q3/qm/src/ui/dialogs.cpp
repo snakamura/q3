@@ -1822,10 +1822,11 @@ void qm::CreateAccountDialog::updateState()
  */
 
 qm::CreateFolderDialog::CreateFolderDialog(Type type,
-										   bool bAllowRemote) :
+										   unsigned int nFlags) :
 	DefaultDialog(IDD_CREATEFOLDER),
 	type_(type),
-	bAllowRemote_(bAllowRemote)
+	nFlags_(nFlags),
+	bSyncable_(false)
 {
 }
 
@@ -1841,6 +1842,11 @@ CreateFolderDialog::Type qm::CreateFolderDialog::getType() const
 const WCHAR* qm::CreateFolderDialog::getName() const
 {
 	return wstrName_.get();
+}
+
+bool qm::CreateFolderDialog::isSyncable() const
+{
+	return bSyncable_;
 }
 
 LRESULT qm::CreateFolderDialog::onCommand(WORD nCode,
@@ -1859,7 +1865,10 @@ LRESULT qm::CreateFolderDialog::onInitDialog(HWND hwndFocus,
 {
 	init(false);
 	
-	Window(getDlgItem(IDC_REMOTEFOLDER)).enableWindow(bAllowRemote_);
+	Window(getDlgItem(IDC_REMOTEFOLDER)).enableWindow(
+		(nFlags_ & FLAG_ALLOWREMOTE) != 0);
+	if (nFlags_ & FLAG_ALLOWLOCALSYNC)
+		sendDlgItemMessage(IDC_SYNCABLE, BM_SETCHECK, BST_CHECKED);
 	
 	UINT nIds[] = {
 		IDC_LOCALFOLDER,
@@ -1888,6 +1897,7 @@ LRESULT qm::CreateFolderDialog::onOk()
 	}
 	
 	wstrName_ = getDlgItemText(IDC_NAME);
+	bSyncable_ = sendDlgItemMessage(IDC_SYNCABLE, BM_GETCHECK) == BST_CHECKED;
 	
 	return DefaultDialog::onOk();
 }
@@ -1908,6 +1918,9 @@ void qm::CreateFolderDialog::updateState()
 {
 	Window(getDlgItem(IDOK)).enableWindow(
 		Window(getDlgItem(IDC_NAME)).getWindowTextLength() != 0);
+	Window(getDlgItem(IDC_SYNCABLE)).enableWindow(
+		nFlags_ & FLAG_ALLOWLOCALSYNC &&
+		sendDlgItemMessage(IDC_LOCALFOLDER, BM_GETCHECK) == BST_CHECKED);
 }
 
 

@@ -1084,7 +1084,8 @@ const Account::FolderList& qm::Account::getFolders() const
 
 NormalFolder* qm::Account::createNormalFolder(const WCHAR* pwszName,
 											  Folder* pParent,
-											  bool bRemote)
+											  bool bRemote,
+											  bool bSyncable)
 {
 	if (getFolder(pParent, pwszName))
 		return 0;
@@ -1097,9 +1098,7 @@ NormalFolder* qm::Account::createNormalFolder(const WCHAR* pwszName,
 			getCurrentSubAccount(), pwszName, pParent);
 	}
 	else {
-		unsigned int nFlags = Folder::FLAG_LOCAL;
-		if (pImpl_->pProtocolDriver_->isSupport(SUPPORT_LOCALFOLDERSYNC))
-			nFlags |= Folder::FLAG_SYNCABLE;
+		unsigned int nFlags = Folder::FLAG_LOCAL | (bSyncable ? Folder::FLAG_SYNCABLE : 0);
 		pNormalFolder.reset(new NormalFolder(generateFolderId(),
 			pwszName, pParent ? pParent->getSeparator() : L'/',
 			nFlags, 0, 0, 0, 0, 0, pParent, this));

@@ -433,15 +433,21 @@ public:
 		TYPE_REMOTEFOLDER,
 		TYPE_QUERYFOLDER
 	};
+	
+	enum Flag {
+		FLAG_ALLOWREMOTE	= 0x01,
+		FLAG_ALLOWLOCALSYNC	= 0x02
+	};
 
 public:
 	CreateFolderDialog(Type type,
-					   bool bAllowRemote);
+					   unsigned int nFlags);
 	virtual ~CreateFolderDialog();
 
 public:
 	Type getType() const;
 	const WCHAR* getName() const;
+	bool isSyncable() const;
 
 public:
 	virtual LRESULT onCommand(WORD nCode,
@@ -467,8 +473,9 @@ private:
 
 private:
 	Type type_;
-	bool bAllowRemote_;
+	unsigned int nFlags_;
 	qs::wstring_ptr wstrName_;
+	bool bSyncable_;
 };
 
 

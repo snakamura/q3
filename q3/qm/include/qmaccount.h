@@ -133,7 +133,8 @@ public:
 	const FolderList& getFolders() const;
 	NormalFolder* createNormalFolder(const WCHAR* pwszName,
 									 Folder* pParent,
-									 bool bRemote);
+									 bool bRemote,
+									 bool bSyncable);
 	QueryFolder* createQueryFolder(const WCHAR* pwszName,
 								   Folder* pParent,
 								   const WCHAR* pwszDriver,
