@@ -224,6 +224,9 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 			content = CONTENT_CONTENTENCODED;
 	}
 	
+	const WCHAR* pwszUpdateIfModified = pFolder_->getParam(L"UpdateIfModified");
+	bool bUpdateIfModified = pwszUpdateIfModified && wcscmp(pwszUpdateIfModified, L"true") == 0;
+	
 	const Channel::ItemList& listItem = pChannel->getItems();
 	pSessionCallback_->setRange(0, listItem.size());
 	pSessionCallback_->setPos(0);
@@ -235,8 +238,15 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 		
 		const WCHAR* pwszLink = pItem->getLink();
 		if (pwszLink) {
-			wstring_ptr wstrHash(pItem->getHash());
-			if (!pFeed || !pFeed->getItem(wstrHash.get())) {
+			const WCHAR* pwszKey = pItem->getId();
+			if (!pwszKey)
+				pwszKey = pwszLink;
+			wstring_ptr wstrHash;
+			if (bUpdateIfModified) {
+				wstrHash = pItem->getHash();
+				pwszKey = wstrHash.get();
+			}
+			if (!pFeed || !pFeed->getItem(pwszKey)) {
 				unsigned int nFlags = 0;
 				
 				Part header;
@@ -274,7 +284,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 				pSessionCallback_->notifyNewMessage(pmh);
 			}
 			
-			std::auto_ptr<FeedItem> pItem(new FeedItem(wstrHash.get()));
+			std::auto_ptr<FeedItem> pItem(new FeedItem(pwszKey));
 			pFeedNew->addItem(pItem);
 		}
 	}

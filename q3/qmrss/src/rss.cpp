@@ -113,6 +113,11 @@ const WCHAR* qmrss::Item::getContentEncoded() const
 	return wstrContentEncoded_.get();
 }
 
+const WCHAR* qmrss::Item::getId() const
+{
+	return wstrId_.get();
+}
+
 wstring_ptr qmrss::Item::getHash() const
 {
 	StringBuffer<WSTRING> buf;
@@ -123,7 +128,8 @@ wstring_ptr qmrss::Item::getHash() const
 		wstrCategory_.get(),
 		wstrSubject_.get(),
 		wstrCreator_.get(),
-		wstrContentEncoded_.get()
+		wstrContentEncoded_.get(),
+		wstrId_.get()
 	};
 	for (int n = 0; n < countof(pwsz); ++n) {
 		const WCHAR* p = pwsz[n];
@@ -190,6 +196,11 @@ void qmrss::Item::setPubDate(const Time& time)
 void qmrss::Item::setContentEncoded(qs::wstring_ptr wstrContentEncoded)
 {
 	wstrContentEncoded_ = wstrContentEncoded;
+}
+
+void qmrss::Item::setId(qs::wstring_ptr wstrId)
+{
+	wstrId_ = wstrId;
 }
 
 
@@ -783,7 +794,8 @@ bool qmrss::AtomHandler::startElement(const WCHAR* pwszNamespaceURI,
 			if (wcscmp(pwszLocalName, L"title") == 0 ||
 				wcscmp(pwszLocalName, L"modified") == 0 ||
 				wcscmp(pwszLocalName, L"summary") == 0 ||
-				wcscmp(pwszLocalName, L"content") == 0) {
+				wcscmp(pwszLocalName, L"content") == 0 ||
+				wcscmp(pwszLocalName, L"id") == 0) {
 				stackState_.push_back(STATE_PROPERTY);
 			}
 			else if (wcscmp(pwszLocalName, L"link") == 0) {
@@ -882,6 +894,9 @@ bool qmrss::AtomHandler::endElement(const WCHAR* pwszNamespaceURI,
 			}
 			else if (wcscmp(pwszLocalName, L"content") == 0) {
 				pCurrentItem_->setContentEncoded(buffer_.getString());
+			}
+			else if (wcscmp(pwszLocalName, L"id") == 0) {
+				pCurrentItem_->setId(buffer_.getString());
 			}
 			else {
 				assert(false);

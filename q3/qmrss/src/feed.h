@@ -95,7 +95,7 @@ public:
 	const WCHAR* getURL() const;
 	const qs::Time& getLastModified() const;
 	const ItemList& getItems() const;
-	const FeedItem* getItem(const WCHAR* pwszHash) const;
+	const FeedItem* getItem(const WCHAR* pwszKey) const;
 	void addItem(std::auto_ptr<FeedItem> pItem);
 
 private:
@@ -118,18 +118,18 @@ private:
 class FeedItem
 {
 public:
-	FeedItem(const WCHAR* pwszHash);
+	FeedItem(const WCHAR* pwszKey);
 	~FeedItem();
 
 public:
-	const WCHAR* getHash() const;
+	const WCHAR* getKey() const;
 
 private:
 	FeedItem(const FeedItem&);
 	FeedItem& operator=(const FeedItem&);
 
 private:
-	qs::wstring_ptr wstrHash_;
+	qs::wstring_ptr wstrKey_;
 };
 
 

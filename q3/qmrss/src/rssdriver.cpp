@@ -28,7 +28,8 @@ const WCHAR* qmrss::RssDriver::pwszParams__[] = {
 	L"URL",
 	L"UserName",
 	L"Password",
-	L"UseDescriptionAsContent"
+	L"UseDescriptionAsContent",
+	L"UpdateIfModified"
 };
 
 qmrss::RssDriver::RssDriver(Account* pAccount) :
