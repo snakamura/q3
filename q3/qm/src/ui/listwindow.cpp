@@ -406,7 +406,7 @@ void qm::ListWindowImpl::ensureVisible(unsigned int nLine)
 		SIF_POS | SIF_PAGE | SIF_RANGE
 	};
 	pThis_->getScrollInfo(SB_VERT, &si);
-	if (si.nMax - si.nMin <= static_cast<int>(si.nPage))
+	if (si.nMax - si.nMin < static_cast<int>(si.nPage))
 		return;
 	
 	if (nLine < static_cast<unsigned int>(si.nPos))
