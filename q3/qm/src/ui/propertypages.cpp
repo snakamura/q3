@@ -98,7 +98,7 @@ LRESULT qm::AccountAdvancedPage::onInitDialog(HWND hwndFocus,
 #ifndef _WIN32_WCE
 	sendDlgItemMessage(IDC_JUNKFILTER, BM_SETCHECK,
 		pSubAccount_->isJunkFilterEnabled() ? BST_CHECKED : BST_UNCHECKED);
-	if (!pJunkFilter_)
+	if (!pJunkFilter_ || !pSubAccount_->getAccount()->isSupport(Account::SUPPORT_JUNKFILTER))
 		Window(getDlgItem(IDC_JUNKFILTER)).enableWindow(false);
 #endif
 	
