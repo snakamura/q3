@@ -25,7 +25,8 @@ const unsigned int qmrss::RssDriver::nSupport__ =
 	Account::SUPPORT_EXTERNALLINK;
 
 const WCHAR* qmrss::RssDriver::pwszParams__[] = {
-	L"URL"
+	L"URL",
+	L"UseDescriptionAsContent"
 };
 
 qmrss::RssDriver::RssDriver(Account* pAccount) :

@@ -62,7 +62,7 @@ BEGIN
     EDITTEXT        IDC_HOST,40,20,173,14,ES_AUTOHSCROLL
     LTEXT           "&Port",IDC_STATIC,10,38,20,8
     EDITTEXT        IDC_PORT,40,35,30,14,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "&Use content:encoded",IDC_USECONTENTENCODED,"Button",
+    CONTROL         "&Make multipart",IDC_MAKEMULTIPART,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,60,85,10
 END
 

@@ -12,7 +12,7 @@
 #define IDC_PORT                        1001
 #define IDS_CONNECTING                  1002
 #define IDS_CONNECTED                   1003
-#define IDC_USECONTENTENCODED           1003
+#define IDC_MAKEMULTIPART               1003
 #define IDS_REQUESTRSS                  1004
 #define IDS_PARSERSS                    1005
 #define IDS_PROCESSRSS                  1006

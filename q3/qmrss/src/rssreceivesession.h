@@ -34,6 +34,13 @@ class Item;
 
 class RssReceiveSession : public qm::ReceiveSession
 {
+private:
+	enum Content {
+		CONTENT_NONE,
+		CONTENT_CONTENTENCODED,
+		CONTENT_DESCRIPTION
+	};
+
 public:
 	explicit RssReceiveSession(FeedManager* pFeedManager);
 	virtual ~RssReceiveSession();
@@ -68,7 +75,7 @@ private:
 								  const qs::Part* pHeader,
 								  const unsigned char* pBody,
 								  size_t nBodyLen,
-								  bool bUseContentEncoded,
+								  Content content,
 								  qm::Message* pMessage);
 
 private:

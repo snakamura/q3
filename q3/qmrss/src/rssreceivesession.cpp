@@ -194,7 +194,14 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 		timeLastModified = Time::getCurrentTime();
 	std::auto_ptr<Feed> pFeedNew(new Feed(pwszURL, timeLastModified));
 	
-	bool bUseContentEncoded = pSubAccount_->getProperty(L"Rss", L"UseContentEncoded", 1) != 0;
+	Content content = CONTENT_NONE;
+	if (pSubAccount_->getProperty(L"Rss", L"MakeMultipart", 1)) {
+		const WCHAR* pwsz = pFolder_->getParam(L"UseDescriptionAsContent");
+		if (pwsz && wcscmp(pwsz, L"true") == 0)
+			content = CONTENT_DESCRIPTION;
+		else
+			content = CONTENT_CONTENTENCODED;
+	}
 	
 	const Channel::ItemList& listItem = pChannel->getItems();
 	pSessionCallback_->setRange(0, listItem.size());
@@ -232,7 +239,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 				
 				Message msg;
 				if (!createItemMessage(pItem, timePubDate, pBody.get() ? &header : 0,
-					pBody.get(), pBody.size(), bUseContentEncoded, &msg))
+					pBody.get(), pBody.size(), content, &msg))
 					return false;
 				
 				Lock<Account> lock(*pAccount_);
@@ -314,7 +321,7 @@ bool qmrss::RssReceiveSession::createItemMessage(const Item* pItem,
 												 const Part* pHeader,
 												 const unsigned char* pBody,
 												 size_t nBodyLen,
-												 bool bUseContentEncoded,
+												 Content content,
 												 Message* pMessage)
 {
 	assert(pItem);
@@ -328,9 +335,17 @@ bool qmrss::RssReceiveSession::createItemMessage(const Item* pItem,
 	if (!pMessage->setField(L"X-QMAIL-Link", link))
 		return false;
 	
-	const WCHAR* pwszContentEncoded = bUseContentEncoded ? pItem->getContentEncoded() : 0;
+	const WCHAR* pwszContent = 0;
+	switch (content) {
+	case CONTENT_CONTENTENCODED:
+		pwszContent = pItem->getContentEncoded();
+		break;
+	case CONTENT_DESCRIPTION:
+		pwszContent = pItem->getDescription();
+		break;
+	}
 	
-	bool bMultipart = pBody || pwszContentEncoded;
+	bool bMultipart = pBody || pwszContent;
 	if (bMultipart) {
 		ContentTypeParser contentType(L"multipart", L"alternative");
 		WCHAR wszBoundary[128];
@@ -424,7 +439,7 @@ bool qmrss::RssReceiveSession::createItemMessage(const Item* pItem,
 		pHtmlPart->setBody(body.getXString());
 		pMessage->addPart(pHtmlPart);
 	}
-	else if (pwszContentEncoded) {
+	else if (pwszContent) {
 		std::auto_ptr<Part> pHtmlPart(new Part());
 		
 		ContentTypeParser contentType(L"text", L"html");
@@ -434,7 +449,7 @@ bool qmrss::RssReceiveSession::createItemMessage(const Item* pItem,
 		
 		XStringBuffer<XSTRING> body;
 		if (!body.append("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\r\n") ||
-			converter.encode(pwszContentEncoded, wcslen(pwszContentEncoded), &body) == -1)
+			converter.encode(pwszContent, wcslen(pwszContent), &body) == -1)
 			return false;
 		
 		pHtmlPart->setBody(body.getXString());
