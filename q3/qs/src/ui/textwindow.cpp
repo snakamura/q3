@@ -3109,7 +3109,9 @@ LRESULT qs::TextWindow::windowProc(UINT uMsg,
 		HANDLE_LBUTTONDOWN()
 		HANDLE_LBUTTONUP()
 		HANDLE_MOUSEMOVE()
+#if !defined _WIN32_WCE || _WIN32_WCE >= 211
 		HANDLE_MOUSEWHEEL()
+#endif
 #ifndef _WIN32_WCE
 		HANDLE_NCPAINT()
 #endif
