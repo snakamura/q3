@@ -402,7 +402,7 @@ struct qs::UTF7ConverterImpl
 				const CHAR* pEnd,
 				WCHAR** ppDst);
 	
-	static Type getType(CHAR c);
+	static Type getType(WCHAR c);
 	
 	bool bModified_;
 	bool bEncoded_;
@@ -440,19 +440,19 @@ bool qs::UTF7ConverterImpl::decode(const CHAR* p,
 	return true;
 }
 
-UTF7ConverterImpl::Type qs::UTF7ConverterImpl::getType(CHAR c)
+UTF7ConverterImpl::Type qs::UTF7ConverterImpl::getType(WCHAR c)
 {
-	if (('a' <= c && c <= 'z') ||
-		('A' <= c && c <= 'Z') ||
-		('0' <= c && c <= '9'))
+	if ((L'a' <= c && c <= L'z') ||
+		(L'A' <= c && c <= L'Z') ||
+		(L'0' <= c && c <= L'9'))
 		return TYPE_D;
 	
-	const CHAR* pszD = "\'(),-./:?";
-	const CHAR* pszO = "!\"#$%&*;<=>@[]^_\'{|}";
+	const WCHAR* pszD = L"\'(),-./:?";
+	const WCHAR* pszO = L"!\"#$%&*;<=>@[]^_\'{|}";
 	
-	if (strchr(pszD, c))
+	if (wcschr(pszD, c))
 		return TYPE_D;
-	else if (strchr(pszO, c))
+	else if (wcschr(pszO, c))
 		return TYPE_O;
 	else
 		return TYPE_E;
