@@ -838,7 +838,9 @@ int qm::FolderWindowImpl::getAccountImage(Account* pAccount,
 {
 	bool bUnseen = false;
 	
-	const unsigned int nIgnore = Folder::FLAG_BOX_MASK & ~Folder::FLAG_INBOX;
+	const unsigned int nIgnore =
+		(Folder::FLAG_BOX_MASK & ~Folder::FLAG_INBOX) |
+		Folder::FLAG_IGNOREUNSEEN;
 	
 	const Account::FolderList& l = pAccount->getFolders();
 	Account::FolderList::const_iterator it = l.begin();
