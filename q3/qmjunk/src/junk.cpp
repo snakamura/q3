@@ -15,6 +15,8 @@
 #include <qsmd5.h>
 #include <qsprofile.h>
 
+#include <algorithm>
+
 #include "junk.h"
 
 #pragma warning(disable:4786)
@@ -100,12 +102,14 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 		TokenizerCallbackImpl(DEPOT* pDepotToken,
 							  const volatile unsigned int& nCleanCount,
 							  const volatile unsigned int& nJunkCount,
-							  CriticalSection& cs) :
+							  CriticalSection& cs,
+							  bool bSaveToken) :
 			pDepotToken_(pDepotToken),
 			nCleanCount_(nCleanCount),
 			nJunkCount_(nJunkCount),
 			cs_(cs),
-			nMax_(15)
+			nMax_(15),
+			bSaveToken_(bSaveToken)
 		{
 			listTokenRate_.reserve(nMax_);
 		}
@@ -141,58 +145,65 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 				dpgetwb(pDepotToken_, pKey, nKeyLen, 0, nValueLen, pValue);
 			}
 			
-			float fRate = 0.4F;
+			double dRate = 0.4;
 			if (nCount[0]*2 + nCount[1] > 5) {
 				if (nCount[0] == 0) {
-					fRate = nCount[1] > 10 ? 0.9999F : 0.9998F;
+					dRate = nCount[1] > 10 ? 0.9999 : 0.9998;
 				}
 				else if (nCount[1] == 0) {
-					fRate = nCount[0] > 10 ? 0.0001F : 0.0002F;
+					dRate = nCount[0] > 10 ? 0.0001 : 0.0002;
 				}
 				else {
-					float fClean = static_cast<float>(nCount[0])*2/static_cast<float>(nCleanCount_);
-					if (fClean > 1.0F)
-						fClean = 1.0F;
-					float fJunk = static_cast<float>(nCount[1])/static_cast<float>(nJunkCount_);
-					if (fJunk > 1.0F)
-						fJunk = 1.0F;
-					fRate = fJunk/(fClean + fJunk);
-					if (fRate > 0.99F)
-						fRate = 0.99F;
+					double dClean = static_cast<double>(nCount[0])*2/static_cast<double>(nCleanCount_);
+					if (dClean > 1.0)
+						dClean = 1.0;
+					double dJunk = static_cast<double>(nCount[1])/static_cast<double>(nJunkCount_);
+					if (dJunk > 1.0)
+						dJunk = 1.0;
+					dRate = dJunk/(dClean + dJunk);
+					if (dRate > 0.99)
+						dRate = 0.99;
+					else if (dRate < 0.01)
+						dRate = 0.01;
 				}
 			}
 			
-			float fDiff = fRate > 0.5F ? fRate - 0.5F : 0.5F - fRate;
-			
-			TokenRateList::iterator itR = listTokenRate_.begin();
-			while (itR != listTokenRate_.end()) {
-				float f = (*itR).second;
-				float fD = f > 0.5F ? f - 0.5F : 0.5F - f;
-				if (fDiff > fD)
-					break;
-				++itR;
-			}
-			if (itR - listTokenRate_.begin() <= static_cast<int>(nMax_)) {
-				listTokenRate_.insert(itR, std::make_pair(allocWString(pwszToken).release(), fRate));
-				if (listTokenRate_.size() > nMax_) {
-					assert(listTokenRate_.size() == nMax_ + 1);
-					freeWString(listTokenRate_.back().first);
-					listTokenRate_.pop_back();
+			struct RateLess
+			{
+				static bool comp(const std::pair<WSTRING, double>& p1,
+								 const std::pair<WSTRING, double>& p2)
+				{
+					double d1 = p1.second;
+					double d2 = p2.second;
+					return (d1 > 0.5 ? d1 - 0.5 : 0.5 - d1) > (d2 > 0.5 ? d2 - 0.5 : 0.5 - d2);
 				}
+			};
+			
+			wstring_ptr wstrToken;
+			if (bSaveToken_)
+				wstrToken = allocWString(pwszToken);
+			listTokenRate_.push_back(std::make_pair(wstrToken.release(), dRate));
+			std::random_shuffle(listTokenRate_.begin(), listTokenRate_.end());
+			std::sort(listTokenRate_.begin(), listTokenRate_.end(), &RateLess::comp);
+			if (listTokenRate_.size() > nMax_) {
+				assert(listTokenRate_.size() == nMax_ + 1);
+				freeWString(listTokenRate_.back().first);
+				listTokenRate_.pop_back();
 			}
 			
 			return true;
 		}
 		
-		typedef std::vector<std::pair<WSTRING, float> > TokenRateList;
+		typedef std::vector<std::pair<WSTRING, double> > TokenRateList;
 		
 		DEPOT* pDepotToken_;
 		const volatile unsigned int& nCleanCount_;
 		const volatile unsigned int& nJunkCount_;
 		CriticalSection& cs_;
+		bool bSaveToken_;
 		TokenRateList listTokenRate_;
 		const unsigned int nMax_;
-	} callback(pDepotToken_, nCleanCount_, nJunkCount_, cs_);
+	} callback(pDepotToken_, nCleanCount_, nJunkCount_, cs_, log.isInfoEnabled());
 	if (!Tokenizer(nMaxTextLen_).getTokens(msg, &callback))
 		return -1.0F;
 	
@@ -201,21 +212,21 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 	if (l.empty())
 		return 0.0F;
 	
-	if (log.isDebugEnabled()) {
+	if (log.isInfoEnabled()) {
 		log.debug(L"Rated tokens:");
 		for (List::const_iterator it = l.begin(); it != l.end(); ++it)
-			log.debugf(L"Token: %s, Score: %f", (*it).first, (*it).second);
+			log.infof(L"Token: %s, Score: %f", (*it).first, (*it).second);
 	}
 	
-	float p1 = 1;
-	float p2 = 1;
+	double p1 = 1.0;
+	double p2 = 1.0;
 	for (List::const_iterator it = l.begin(); it != l.end(); ++it) {
 		p1 *= (*it).second;
 		p2 *= (1 - (*it).second);
 	}
 	
-	float fScore = p1/(p1 + p2);
-	log.debugf(L"Score: %f", fScore);
+	float fScore = static_cast<float>(p1/(p1 + p2));
+	log.infof(L"Score: %f", fScore);
 	return fScore;
 }
 
