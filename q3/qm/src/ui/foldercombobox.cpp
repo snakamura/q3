@@ -1,5 +1,5 @@
 /*
- * $Id: foldercombobox.cpp,v 1.3 2003/05/18 04:43:45 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -79,12 +79,14 @@ public:
 
 private:
 	QSTATUS clearAccountList();
-	QSTATUS updateAccountList();
-	QSTATUS refreshFolderList(Account* pAccount);
-	QSTATUS addAccount(Account* pAccount);
-	QSTATUS insertFolders(int nIndex, Account* pAccount);
+	QSTATUS updateAccountList(bool bDropDown);
+	QSTATUS refreshFolderList(Account* pAccount, bool bDropDown);
+	QSTATUS addAccount(Account* pAccount, bool bDropDown);
+	QSTATUS insertFolders(int nIndex, Account* pAccount, bool bDropDown);
 
 private:
+	LRESULT onCloseUp();
+	LRESULT onDropDown();
 	LRESULT onSelEndOk();
 	
 public:
@@ -157,6 +159,8 @@ int qm::FolderComboBoxImpl::getIndexFromFolder(Folder* pFolder) const
 LRESULT qm::FolderComboBoxImpl::onCommand(WORD nCode, WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID_CODE(nId_, CBN_CLOSEUP, onCloseUp)
+		HANDLE_COMMAND_ID_CODE(nId_, CBN_DROPDOWN, onDropDown)
 		HANDLE_COMMAND_ID_CODE(nId_, CBN_SELENDOK, onSelEndOk)
 	END_COMMAND_HANDLER()
 	return 1;
@@ -171,15 +175,15 @@ QSTATUS qm::FolderComboBoxImpl::accountListChanged(
 {
 	DECLARE_QSTATUS();
 	
+	bool bDropDown = ComboBox_GetDroppedState(pThis_->getHandle()) != 0;
+	
 	switch (event.getType()) {
 	case AccountListChangedEvent::TYPE_ALL:
-		status = clearAccountList();
-		CHECK_QSTATUS();
-		status = updateAccountList();
+		status = updateAccountList(bDropDown);
 		CHECK_QSTATUS();
 		break;
 	case AccountListChangedEvent::TYPE_ADD:
-		status = addAccount(event.getAccount());
+		status = addAccount(event.getAccount(), bDropDown);
 		CHECK_QSTATUS();
 		break;
 	case AccountListChangedEvent::TYPE_REMOVE:
@@ -199,24 +203,26 @@ QSTATUS qm::FolderComboBoxImpl::folderListChanged(const FolderListChangedEvent& 
 {
 	DECLARE_QSTATUS();
 	
+	bool bDropDown = ComboBox_GetDroppedState(pThis_->getHandle()) != 0;
+	
 	switch (event.getType()) {
 	case FolderListChangedEvent::TYPE_ALL:
-		status = refreshFolderList(event.getAccount());
+		status = refreshFolderList(event.getAccount(), bDropDown);
 		CHECK_QSTATUS();
 		break;
 	case FolderListChangedEvent::TYPE_ADD:
 		// TODO
-		status = refreshFolderList(event.getAccount());
+		status = refreshFolderList(event.getAccount(), bDropDown);
 		CHECK_QSTATUS();
 		break;
 	case FolderListChangedEvent::TYPE_REMOVE:
 		// TODO
-		status = refreshFolderList(event.getAccount());
+		status = refreshFolderList(event.getAccount(), bDropDown);
 		CHECK_QSTATUS();
 		break;
 	case FolderListChangedEvent::TYPE_RENAME:
 		// TODO
-		status = refreshFolderList(event.getAccount());
+		status = refreshFolderList(event.getAccount(), bDropDown);
 		CHECK_QSTATUS();
 		break;
 	default:
@@ -279,21 +285,24 @@ QSTATUS qm::FolderComboBoxImpl::clearAccountList()
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderComboBoxImpl::updateAccountList()
+QSTATUS qm::FolderComboBoxImpl::updateAccountList(bool bDropDown)
 {
 	DECLARE_QSTATUS();
+	
+	status = clearAccountList();
+	CHECK_QSTATUS();
 	
 	const Document::AccountList& l = pDocument_->getAccounts();
 	Document::AccountList::const_iterator it = l.begin();
 	while (it != l.end()) {
-		status = addAccount(*it++);
+		status = addAccount(*it++, bDropDown);
 		CHECK_QSTATUS();
 	}
 	
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderComboBoxImpl::refreshFolderList(Account* pAccount)
+QSTATUS qm::FolderComboBoxImpl::refreshFolderList(Account* pAccount, bool bDropDown)
 {
 	DECLARE_QSTATUS();
 	
@@ -308,7 +317,7 @@ QSTATUS qm::FolderComboBoxImpl::refreshFolderList(Account* pAccount)
 		ComboBox_DeleteString(pThis_->getHandle(), nIndex);
 	}
 	
-	status = insertFolders(nIndex - 1, pAccount);
+	status = insertFolders(nIndex - 1, pAccount, bDropDown);
 	CHECK_QSTATUS();
 	
 	ComboBox_SetCurSel(pThis_->getHandle(), nIndex - 1);
@@ -316,7 +325,7 @@ QSTATUS qm::FolderComboBoxImpl::refreshFolderList(Account* pAccount)
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderComboBoxImpl::addAccount(Account* pAccount)
+QSTATUS qm::FolderComboBoxImpl::addAccount(Account* pAccount, bool bDropDown)
 {
 	assert(pAccount);
 	
@@ -329,14 +338,19 @@ QSTATUS qm::FolderComboBoxImpl::addAccount(Account* pAccount)
 		if (p && wcscmp(p->getName(), pAccount->getName()) > 0)
 			break;
 	}
-	W2T(pAccount->getName(), ptszName);
+	
+	string_ptr<WSTRING> wstrName(concat(L"[", pAccount->getName(), L"]"));
+	if (!wstrName.get())
+		return QSTATUS_OUTOFMEMORY;
+	
+	W2T(wstrName.get(), ptszName);
 	int nIndex = ComboBox_InsertString(pThis_->getHandle(), nInsert, ptszName);
 	if (nIndex == CB_ERR)
 		return QSTATUS_FAIL;
 	ComboBox_SetItemData(pThis_->getHandle(), nIndex,
 		reinterpret_cast<LPARAM>(pAccount));
 	
-	status = insertFolders(nIndex, pAccount);
+	status = insertFolders(nIndex, pAccount, bDropDown);
 	CHECK_QSTATUS();
 	
 	status = pAccount->addAccountHandler(this);
@@ -345,7 +359,8 @@ QSTATUS qm::FolderComboBoxImpl::addAccount(Account* pAccount)
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderComboBoxImpl::insertFolders(int nIndex, Account* pAccount)
+QSTATUS qm::FolderComboBoxImpl::insertFolders(
+	int nIndex, Account* pAccount, bool bDropDown)
 {
 	assert(nIndex != CB_ERR);
 	assert(pAccount);
@@ -366,13 +381,29 @@ QSTATUS qm::FolderComboBoxImpl::insertFolders(int nIndex, Account* pAccount)
 		if (UIUtil::isShowFolder(pFolder)) {
 			StringBuffer<WSTRING> buf(&status);
 			CHECK_QSTATUS();
-			for (unsigned int n = 0; n <= pFolder->getLevel(); ++n) {
-				status = buf.append(L" ");
+			if (bDropDown) {
+				for (unsigned int n = 0; n <= pFolder->getLevel(); ++n) {
+					status = buf.append(L" ");
+					CHECK_QSTATUS();
+				}
+				status = buf.append(pFolder->getName());
+				CHECK_QSTATUS();
+				
+			}
+			else {
+				status = buf.append(L"[");
+				CHECK_QSTATUS();
+				status = buf.append(pAccount->getName());
+				CHECK_QSTATUS();
+				status = buf.append(L"] ");
+				CHECK_QSTATUS();
+				
+				string_ptr<WSTRING> wstrFullName;
+				status = pFolder->getFullName(&wstrFullName);
+				CHECK_QSTATUS();
+				status = buf.append(wstrFullName.get());
 				CHECK_QSTATUS();
 			}
-			status = buf.append(pFolder->getName());
-			CHECK_QSTATUS();
-			
 			W2T(buf.getCharArray(), ptszName);
 			int nFolderIndex = ComboBox_InsertString(
 				pThis_->getHandle(), ++nIndex, ptszName);
@@ -386,6 +417,22 @@ QSTATUS qm::FolderComboBoxImpl::insertFolders(int nIndex, Account* pAccount)
 	}
 	
 	return QSTATUS_SUCCESS;
+}
+
+LRESULT qm::FolderComboBoxImpl::onCloseUp()
+{
+	int nItem = ComboBox_GetCurSel(pThis_->getHandle());
+	updateAccountList(false);
+	ComboBox_SetCurSel(pThis_->getHandle(), nItem);
+	return 0;
+}
+
+LRESULT qm::FolderComboBoxImpl::onDropDown()
+{
+	int nItem = ComboBox_GetCurSel(pThis_->getHandle());
+	updateAccountList(true);
+	ComboBox_SetCurSel(pThis_->getHandle(), nItem);
+	return 0;
 }
 
 LRESULT qm::FolderComboBoxImpl::onSelEndOk()
