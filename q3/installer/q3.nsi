@@ -17,6 +17,7 @@ XPStyle on
 
 Var STARTMENU_FOLDER
 Var MAILBOX_FOLDER
+Var REMOVE_MAILBOX
 
 InstallDir "$PROGRAMFILES\QMAIL3"
 InstallDirRegKey HKLM "SOFTWARE\sn\q3" "InstallDir"
@@ -39,6 +40,7 @@ Page custom MailBoxFolder
 ;UninstPage uninstConfirm
 ;UninstPage instfiles
 !insertmacro MUI_UNPAGE_WELCOME
+UninstPage custom un.RemoveMailBox
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_UNPAGE_FINISH
@@ -58,6 +60,7 @@ Section "Core (required)" Core
   File ..\bin\win\${CODE}\release\qmsmtp${POSTFIX}.dll
   
   WriteRegStr HKCU "SOFTWARE\sn\q3\Setting" "MailFolder" "$MAILBOX_FOLDER"
+  CreateDirectory "$MAILBOX_FOLDER"
   
   WriteRegStr HKLM "SOFTWARE\sn\q3" "InstallDir" "$INSTDIR"
   
@@ -167,6 +170,11 @@ Section "Uninstall"
     StrCmp $R0 $SMPROGRAMS startMenuDeleteLoopDone startMenuDeleteLoop
   startMenuDeleteLoopDone:
   
+  ReadRegStr $MAILBOX_FOLDER HKCU "Software\sn\q3\Setting" "MailFolder"
+  StrCmp $MAILBOX_FOLDER "" +3
+    IntCmp $REMOVE_MAILBOX 0 +2
+      RMDir /r $MAILBOX_FOLDER
+  
   DeleteRegKey HKLM SOFTWARE\sn\q3
   DeleteRegKey /ifempty HKLM SOFTWARE\sn
   DeleteRegKey HKCU Software\sn\q3
@@ -206,12 +214,27 @@ Function MailBoxFolder
 
   !insertmacro MUI_HEADER_TEXT "Choose Mailbox Location" "Choose the folder in which to store mail data."
   ReadRegStr $MAILBOX_FOLDER HKCU "Software\sn\q3\Setting" "MailFolder"
-  StrCmp $MAILBOX_FOLDER "" +2
-    GoTo +2
+  StrCmp $MAILBOX_FOLDER "" +1 +2
     StrCpy $MAILBOX_FOLDER "$APPDATA\mail"
   !insertmacro MUI_INSTALLOPTIONS_WRITE "mailbox.ini" "Field 2" "State" "$MAILBOX_FOLDER"
   !insertmacro MUI_INSTALLOPTIONS_DISPLAY "mailbox.ini"
   !insertmacro MUI_INSTALLOPTIONS_READ $MAILBOX_FOLDER "mailbox.ini" "Field 2" "State"
+
+FunctionEnd
+
+
+Function un.onInit
+
+  !insertmacro MUI_INSTALLOPTIONS_EXTRACT "remove.ini"
+
+FunctionEnd
+
+
+Function un.RemoveMailBox
+
+  !insertmacro MUI_HEADER_TEXT "Remove Mailbox" "Remove the folder in which mail data are stored."
+  !insertmacro MUI_INSTALLOPTIONS_DISPLAY "remove.ini"
+  !insertmacro MUI_INSTALLOPTIONS_READ $REMOVE_MAILBOX "remove.ini" "Field 1" "State"
 
 FunctionEnd
 
