@@ -57,6 +57,15 @@ public:
 		INSERTTEXTFLAG_UNDO,
 		INSERTTEXTFLAG_REDO
 	};
+	
+	enum CharType {
+		CHARTYPE_NONE,
+		CHARTYPE_SPACE,
+		CHARTYPE_NEWLINE,
+		CHARTYPE_ASCII,
+		CHARTYPE_MARK,
+		CHARTYPE_OTHER
+	};
 
 public:
 	struct LinkItem
@@ -209,6 +218,7 @@ public:
 	static PhysicalLine* allocLine(size_t nLogicalLine, size_t nPosition,
 		size_t nLength, COLORREF cr, LinkItem* pLinkItems, size_t nLinkCount);
 	static void freeLine(PhysicalLine* pLine);
+	static CharType getCharType(WCHAR c);
 
 private:
 	bool getTextExtent(const DeviceContext& dc, const WCHAR* pwszString,
@@ -1454,6 +1464,22 @@ void qs::TextWindowImpl::freeLine(PhysicalLine* pLine)
 	std::__sgi_alloc::deallocate(pLine, sizeof(nSize));
 }
 
+TextWindowImpl::CharType qs::TextWindowImpl::getCharType(WCHAR c)
+{
+	const WCHAR wszMark[] = L"!\"#$%&\'()*+,-.:;<=>?[\\]^_`{}~/";
+	
+	if (c == L' ' || c == L'\t')
+		return CHARTYPE_SPACE;
+	else if (c == L'\n')
+		return CHARTYPE_NEWLINE;
+	else if (c > 0x7f)
+		return CHARTYPE_OTHER;
+	else if (wcschr(wszMark, c))
+		return CHARTYPE_MARK;
+	else
+		return CHARTYPE_ASCII;
+}
+
 bool qs::TextWindowImpl::getTextExtent(const DeviceContext& dc,
 	const WCHAR* pwszString, int nCount, int nMaxExtent,
 	int* pnFit, int* pnDx, SIZE* pSize) const
@@ -2547,6 +2573,132 @@ QSTATUS qs::TextWindow::moveCaret(MoveCaret moveCaret, unsigned int nLine,
 				pImpl_->caret_.nOldPos_ = pImpl_->caret_.nPos_;
 			}
 			break;
+		case MOVECARET_WORDLEFT:
+			if (pImpl_->caret_.nLine_ != 0 || pImpl_->caret_.nChar_ != 0) {
+				unsigned int nLine = pImpl_->caret_.nLine_;
+				unsigned int nChar = pImpl_->caret_.nChar_;
+				TextWindowImpl::CharType firstType = TextWindowImpl::CHARTYPE_NONE;
+				bool bBreak = false;
+				while (!bBreak) {
+					const TextWindowImpl::PhysicalLine* pLine =
+						pImpl_->listLine_[nLine];
+					TextModel::Line line = pImpl_->pTextModel_->getLine(
+						pLine->nLogicalLine_);
+					if (nChar == -1)
+						nChar = pLine->nLength_ + 1;
+					for (unsigned int n = nChar; n > 0 && !bBreak; --n) {
+						if (n == 1 && pLine->nPosition_ == 0) {
+							bBreak = true;
+							nChar = 0;
+							break;
+						}
+						WCHAR c = *(line.getText() + pLine->nPosition_ + n - 2);
+						TextWindowImpl::CharType type = TextWindowImpl::getCharType(c);
+						if (firstType == TextWindowImpl::CHARTYPE_NONE) {
+							firstType = type;
+						}
+						else {
+							switch (type) {
+							case TextWindowImpl::CHARTYPE_SPACE:
+							case TextWindowImpl::CHARTYPE_MARK:
+								bBreak = firstType != TextWindowImpl::CHARTYPE_SPACE &&
+									firstType != TextWindowImpl::CHARTYPE_MARK;
+								break;
+							case TextWindowImpl::CHARTYPE_NEWLINE:
+								bBreak = true;
+								break;
+							case TextWindowImpl::CHARTYPE_ASCII:
+							case TextWindowImpl::CHARTYPE_OTHER:
+								if (firstType == TextWindowImpl::CHARTYPE_SPACE ||
+									firstType == TextWindowImpl::CHARTYPE_MARK)
+									firstType = type;
+								else
+									bBreak = type != firstType;
+								break;
+							default:
+								assert(false);
+								break;
+							}
+							if (bBreak)
+								nChar = n - 1;
+						}
+					}
+					if (bBreak) {
+						break;
+					}
+					else if (nLine == 0) {
+						nChar = 0;
+						break;
+					}
+					--nLine;
+					nChar = -1;
+				}
+				pImpl_->caret_.nLine_ = nLine;
+				pImpl_->caret_.nChar_ = nChar;
+				status = pImpl_->getPosFromChar(pImpl_->caret_.nLine_,
+					pImpl_->caret_.nChar_, &pImpl_->caret_.nPos_);
+				CHECK_QSTATUS();
+				pImpl_->caret_.nOldPos_ = pImpl_->caret_.nPos_;
+			}
+			break;
+		case MOVECARET_WORDRIGHT:
+			if (pImpl_->caret_.nLine_ != nLineCount - 1 ||
+				pImpl_->caret_.nChar_ != pLine->nLength_) {
+				unsigned int nLine = pImpl_->caret_.nLine_;
+				unsigned int nChar = pImpl_->caret_.nChar_;
+				TextWindowImpl::CharType firstType = TextWindowImpl::CHARTYPE_NONE;
+				bool bBreak = false;
+				while (nLine < pImpl_->listLine_.size()) {
+					const TextWindowImpl::PhysicalLine* pLine =
+						pImpl_->listLine_[nLine];
+					TextModel::Line line = pImpl_->pTextModel_->getLine(
+						pLine->nLogicalLine_);
+					for (unsigned int n = nChar; n < pLine->nLength_ && !bBreak; ++n) {
+						WCHAR c = *(line.getText() + pLine->nPosition_ + n);
+						TextWindowImpl::CharType type = TextWindowImpl::getCharType(c);
+						if (firstType == TextWindowImpl::CHARTYPE_NONE) {
+							firstType = type;
+						}
+						else {
+							switch (type) {
+							case TextWindowImpl::CHARTYPE_SPACE:
+							case TextWindowImpl::CHARTYPE_MARK:
+								firstType = type;
+								break;
+							case TextWindowImpl::CHARTYPE_NEWLINE:
+								bBreak = true;
+								break;
+							case TextWindowImpl::CHARTYPE_ASCII:
+							case TextWindowImpl::CHARTYPE_OTHER:
+								bBreak = type != firstType;
+								break;
+							default:
+								assert(false);
+								break;
+							}
+							if (bBreak)
+								nChar = n;
+						}
+					}
+					if (bBreak)
+						break;
+					++nLine;
+					nChar = 0;
+				}
+				if (nLine < pImpl_->listLine_.size()) {
+					pImpl_->caret_.nLine_ = nLine;
+					pImpl_->caret_.nChar_ = nChar;
+				}
+				else {
+					pImpl_->caret_.nLine_ = pImpl_->listLine_.size() - 1;
+					pImpl_->caret_.nChar_ = pImpl_->listLine_[pImpl_->caret_.nLine_]->nLength_;
+				}
+				status = pImpl_->getPosFromChar(pImpl_->caret_.nLine_,
+					pImpl_->caret_.nChar_, &pImpl_->caret_.nPos_);
+				CHECK_QSTATUS();
+				pImpl_->caret_.nOldPos_ = pImpl_->caret_.nPos_;
+			}
+			break;
 		case MOVECARET_LINESTART:
 			pImpl_->caret_.nChar_ = 0;
 			status = pImpl_->getPosFromChar(pImpl_->caret_.nLine_,
@@ -3146,10 +3298,12 @@ LRESULT qs::TextWindow::onKeyDown(UINT nKey, UINT nRepeat, UINT nFlags)
 		MoveCaret mc;
 		switch (nKey) {
 		case VK_LEFT:
-			mc = MOVECARET_CHARLEFT;
+			mc = ::GetKeyState(VK_CONTROL) < 0 ?
+				MOVECARET_WORDLEFT : MOVECARET_CHARLEFT;
 			break;
 		case VK_RIGHT:
-			mc = MOVECARET_CHARRIGHT;
+			mc = ::GetKeyState(VK_CONTROL) < 0 ?
+				MOVECARET_WORDRIGHT : MOVECARET_CHARRIGHT;
 			break;
 		case VK_UP:
 			mc = MOVECARET_LINEUP;
