@@ -1,6 +1,6 @@
-diff -ur qdbm-1.8.21.orig/VCmakefile qdbm-1.8.21/VCmakefile
---- qdbm-1.8.21.orig/VCmakefile	2004-04-27 12:17:38.000000000 +0900
-+++ qdbm-1.8.21/VCmakefile	2005-03-24 14:45:36.828732500 +0900
+diff -uNr qdbm-1.8.22.orig/VCmakefile qdbm-1.8.22/VCmakefile
+--- qdbm-1.8.22.orig/VCmakefile	2005-03-24 22:39:58.807511000 +0900
++++ qdbm-1.8.22/VCmakefile	2005-03-24 22:41:09.823136000 +0900
 @@ -18,7 +18,7 @@
  # Debug configuration
  !IF "$(CFG)" == "Debug" || "$(CFG)" == "debug"

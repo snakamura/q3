@@ -468,7 +468,7 @@ double odvectorcosine(const int *avec, const int *bvec, int vnum);
    `idnum' specifies the division number of inverted index.
    `cbnum' specifies the number of buckets for dirty buffers.
    `csiz' specifies the maximum bytes to use memory for dirty buffers.
-   The default setting is equivalent to `odsettuning(16381, 7, 131071, 4194304)'.  This function
+   The default setting is equivalent to `odsettuning(32749, 7, 262139, 8388608)'.  This function
    should be called before opening a handle. */
 void odsettuning(int ibnum, int idnum, int cbnum, int csiz);
 

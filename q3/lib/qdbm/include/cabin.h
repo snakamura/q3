@@ -611,7 +611,7 @@ CBLIST *cbsplit(const char *ptr, int size, const char *delim);
 
 
 /* Read whole data of a file.
-   `name' specifies the name of a file.
+   `name' specifies the name of a file.  If it is `NULL', the standard input is specified.
    `sp' specifies the pointer to a variable to which the size of the region of the return
    value is assigned.  If it is `NULL', it is not used.
    The return value is the pointer to the allocated region of the read data.  Because an
@@ -623,7 +623,7 @@ char *cbreadfile(const char *name, int *sp);
 
 
 /* Write a serial datum into a file.
-   `name specifies the name of a file.
+   `name specifies the name of a file.  If it is `NULL', the standard output is specified.
    `ptr' specifies the pointer to the region of the source content.
    `size' specifies the size of the region.  If it is negative, the size is assigned with
    `strlen(ptr)'.
@@ -633,15 +633,18 @@ int cbwritefile(const char *name, const char *ptr, int size);
 
 
 /* Read every line of a file.
-   `name' specifies the name of a file.
-   The return value is a list handle of the lines if successful, else it is NULL.
-   Line separators are cut out. */
+   `name' specifies the name of a file.  If it is `NULL', the standard input is specified.
+   The return value is a list handle of the lines if successful, else it is NULL.  Line
+   separators are cut out.  Because the handle of the return value is opened with the function
+   `cblistopen', it should be closed with the function `cblistclose' if it is no longer in use. */
 CBLIST *cbreadlines(const char *name);
 
 
 /* Read names of files in a directory.
    `name' specifies the name of a directory.
-   The return value is a list handle of names if successful, else it is NULL. */
+   The return value is a list handle of names if successful, else it is NULL.
+   Because the handle of the return value is opened with the function `cblistopen', it should
+   be closed with the function `cblistclose' if it is no longer in use. */
 CBLIST *cbdirlist(const char *name);
 
 

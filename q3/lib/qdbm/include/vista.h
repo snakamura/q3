@@ -24,7 +24,7 @@ extern "C" {
 
 
 /*************************************************************************************************
- * macros borrowing symbols from Villa
+ * macros to borrow symbols from Villa
  *************************************************************************************************/
 
 
@@ -33,192 +33,72 @@ extern "C" {
 #include <cabin.h>
 #include <stdlib.h>
 
-#define VS_DNUM        16
+#define VLREC          VSTREC
+#define VLIDX          VSTIDX
+#define VLLEAF         VSTLEAF
+#define VLNODE         VSTNODE
+#define VLCFUNC        VSTCFUNC
 
-#define VLREC          VSREC_
-#define VLIDX          VSIDX_
-#define VLLEAF         VSLEAF_
-#define VLNODE         VSNODE_
-#define VLCFUNC        VSCFUNC_
+#define VL_CMPLEX      VST_CMPLEX
+#define VL_CMPINT      VST_CMPINT
+#define VL_CMPNUM      VST_CMPNUM
+#define VL_CMPDEC      VST_CMPDEC
 
-#define VL_CMPLEX      VS_CMPLEX_
-#define VL_CMPINT      VS_CMPINT_
-#define VL_CMPNUM      VS_CMPNUM_
-#define VL_CMPDEC      VS_CMPDEC_
+#define VILLA          VISTA
 
-#define VILLA          VISTA_
+#define VL_OREADER     VST_OREADER
+#define VL_OWRITER     VST_OWRITER
+#define VL_OCREAT      VST_OCREAT
+#define VL_OTRUNC      VST_OTRUNC
+#define VL_ONOLCK      VST_ONOLCK
+#define VL_OZCOMP      VST_OZCOMP
 
-#define VL_OREADER     VS_OREADER_
-#define VL_OWRITER     VS_OWRITER_
-#define VL_OCREAT      VS_OCREAT_
-#define VL_ONOLCK      VS_ONOLCK_
+#define VL_DOVER       VST_DOVER
+#define VL_DKEEP       VST_DKEEP
+#define VL_DDUP        VST_DDUP
 
-#define VL_DOVER       VS_DOVER_
-#define VL_DKEEP       VS_DKEEP_
-#define VL_DDUP        VS_DDUP_
+#define VL_JFORWARD    VST_JFORWARD
+#define VL_JBACKWARD   VST_JBACKWARD
 
-#define VL_JFORWARD    VS_JFORWARD_
-#define VL_JBACKWARD   VS_JBACKWARD_
+#define vlopen         vstopen
+#define vlclose        vstclose
+#define vlput          vstput
+#define vlout          vstout
+#define vlget          vstget
+#define vlvnum         vstvnum
+#define vlputlist      vstputlist
+#define vloutlist      vstoutlist
+#define vlgetlist      vstgetlist
+#define vlcurfirst     vstcurfirst
+#define vlcurlast      vstcurlast
+#define vlcurprev      vstcurprev
+#define vlcurnext      vstcurnext
+#define vlcurjump      vstcurjump
+#define vlcurkey       vstcurkey
+#define vlcurval       vstcurval
+#define vlsettuning    vstsettuning
+#define vlsync         vstsync
+#define vloptimize     vstoptimize
+#define vlname         vstname
+#define vlfsiz         vstfsiz
+#define vllnum         vstlnum
+#define vlnnum         vstnnum
+#define vlrnum         vstrnum
+#define vlwritable     vstwritable
+#define vlfatalerror   vstfatalerror
+#define vlinode        vstinode
+#define vlmtime        vstmtime
+#define vltranbegin    vsttranbegin
+#define vltrancommit   vsttrancommit
+#define vltranabort    vsttranabort
+#define vlremove       vstremove
+#define vlrepair       vstrepair
+#define vlexportdb     vstexportdb
+#define vlimportdb     vstimportdb
 
-#define vlopen         vsopen_
-#define vlclose        vsclose_
-#define vlput          vsput_
-#define vlout          vsout_
-#define vlget          vsget_
-#define vlvnum         vsvnum_
-#define vlputlist      vsputlist_
-#define vloutlist      vsoutlist_
-#define vlgetlist      vsgetlist_
-#define vlcurfirst     vscurfirst_
-#define vlcurlast      vscurlast_
-#define vlcurprev      vscurprev_
-#define vlcurnext      vscurnext_
-#define vlcurjump      vscurjump_
-#define vlcurkey       vscurkey_
-#define vlcurval       vscurval_
-#define vlsettuning    vssettuning_
-#define vlsync         vssync_
-#define vloptimize     vsoptimize_
-#define vlname         vsname_
-#define vlfsiz         vsfsiz_
-#define vllnum         vslnum_
-#define vlnnum         vsnnum_
-#define vlrnum         vsrnum_
-#define vlwritable     vswritable_
-#define vlfatalerror   vsfatalerror_
-#define vlinode        vsinode_
-#define vlmtime        vsmtime_
-#define vltranbegin    vstranbegin_
-#define vltrancommit   vstrancommit_
-#define vltranabort    vstranabort_
-#define vlremove       vsremove_
-#define vlrepair       vsrepair_
-#define vlexportdb     vsexportdb_
-#define vlimportdb     vsimportdb_
-
-#define DEPOT          CURIA
-
-#define \
-  dpopen(name, omode, bnum) \
-  cropen(name, omode, ((bnum / VS_DNUM) * 4), VS_DNUM)
-
-#define \
-  dpclose(db) \
-  crclose(db)
-
-#define \
-  dpput(db, kbuf, ksiz, vbuf, vsiz, dmode) \
-  crput(db, kbuf, ksiz, vbuf, vsiz, dmode)
-
-#define \
-  dpout(db, kbuf, ksiz) \
-  crout(db, kbuf, ksiz)
-
-#define \
-  dpget(db, kbuf, ksiz, start, max, sp) \
-  crget(db, kbuf, ksiz, start, max, sp)
-
-#define \
-  dpvsiz(db, kbuf, ksiz) \
-  crvsiz(db, kbuf, ksiz)
-
-#define \
-  dpiterinit(db) \
-  criterinit(db)
-
-#define \
-  dpiternext(db, sp) \
-  criternext(db, sp)
-
-#define \
-  dpsetalign(db, align) \
-  crsetalign(db, align)
-
-#define \
-  dpsync(db) \
-  crsync(db)
-
-#define \
-  dpoptimize(db, bnum) \
-  croptimize(db, bnum)
-
-#define \
-  dpname(db) \
-  crname(db)
-
-#define \
-  dpfsiz(db) \
-  crfsiz(db)
-
-#define \
-  dpbnum(db) \
-  crbnum(db)
-
-#define \
-  dpbusenum(db) \
-  crbusenum(db)
-
-#define \
-  dprnum(db) \
-  crrnum(db)
-
-#define \
-  dpwritable(db) \
-  crwritable(db)
-
-#define \
-  dpfatalerror(db) \
-  crfatalerror(db)
-
-#define \
-  dpinode(db) \
-  crinode(db)
-
-#define \
-  dpmtime(db) \
-  crmtime(db)
-
-#define \
-  dpfdesc(db) \
-  crfdesc(db)
-
-#define \
-  dpremove(db) \
-  crremove(db)
-
-#define \
-  dprepair(db) \
-  crrepair(db)
-
-#define \
-  dpexportdb(db, name) \
-  crexportdb(db, name)
-
-#define \
-  dpimportdb(db, name) \
-  crimportdb(db, name)
-
-#define \
-  dpmemsync(db) \
-  crmemsync(db)
-
-#define \
-  dpgetflags(db) \
-  crgetflags(db)
-
-#define \
-  dpsetflags(db, flags) \
-  crsetflags(db, flags)
-
-
-
-/*************************************************************************************************
- * including real definition
- *************************************************************************************************/
-
-
-#include "villa.h"
-
+#ifndef _VISTA_C
+#include <villa.h>
+#endif
 
 
 #if defined(__cplusplus)                 /* export for C++ */

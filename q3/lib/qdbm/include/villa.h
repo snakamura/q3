@@ -218,7 +218,7 @@ int vlvnum(VILLA *villa, const char *kbuf, int ksiz);
    `vals' specifies a list handle of values.  The list should not be empty.
    If successful, the return value is true, else, it is false.
    The cursor becomes unavailable due to updating database. */
-int vlputlist(VILLA *villa, const char *kbuf, int ksiz, CBLIST *vals);
+int vlputlist(VILLA *villa, const char *kbuf, int ksiz, const CBLIST *vals);
 
 
 /* Delete all records corresponding a key.
@@ -238,7 +238,9 @@ int vloutlist(VILLA *villa, const char *kbuf, int ksiz);
    `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned
    with `strlen(kbuf)'.
    If successful, the return value is a list handle of the values of the corresponding records,
-   else, it is `NULL'.  `NULL' is returned when no record corresponds to the specified key. */
+   else, it is `NULL'.  `NULL' is returned when no record corresponds to the specified key.
+   Because the handle of the return value is opened with the function `cblistopen', it should
+   be closed with the function `cblistclose' if it is no longer in use. */
 CBLIST *vlgetlist(VILLA *villa, const char *kbuf, int ksiz);
 
 
