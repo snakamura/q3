@@ -170,7 +170,7 @@ void qm::AttachmentSaveAction::invoke(const ActionEvent& event)
 	MessageHolderList listMessageHolder(1, mpl);
 	
 	if (bAll_) {
-		if (!helper_.detach(listMessageHolder, 0)) {
+		if (helper_.detach(listMessageHolder, 0) == AttachmentParser::RESULT_FAIL) {
 			ActionUtil::error(hwnd_, IDS_ERROR_DETACHATTACHMENT);
 			return;
 		}
