@@ -28,6 +28,7 @@ class AutoPilotEntry;
 class AutoPilotContentHandler;
 class AutoPilotWriter;
 
+class AccountManager;
 class Document;
 class GoRound;
 class SyncDialogManager;
@@ -76,7 +77,7 @@ private:
 	class UnseenCountUpdater
 	{
 	public:
-		UnseenCountUpdater(Document* pDocument,
+		UnseenCountUpdater(AccountManager* pAccountManager,
 						   qs::Profile* pProfile);
 		~UnseenCountUpdater();
 	
@@ -94,7 +95,7 @@ private:
 		typedef HRESULT (STDAPICALLTYPE *PFN_SHSETUNREADMAILCOUNT)(LPCWSTR, DWORD, LPCWSTR);
 	
 	private:
-		Document* pDocument_;
+		AccountManager* pAccountManager_;
 		PFN_SHSETUNREADMAILCOUNT pfnSHSetUnreadMailCount_;
 		qs::wstring_ptr wstrPath_;
 	};

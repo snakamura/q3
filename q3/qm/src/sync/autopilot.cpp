@@ -6,6 +6,7 @@
  *
  */
 
+#include <qmaccount.h>
 #include <qmdocument.h>
 #include <qmgoround.h>
 #include <qmrecents.h>
@@ -134,9 +135,9 @@ void qm::AutoPilot::timerTimeout(unsigned int nId)
  *
  */
 
-qm::AutoPilot::UnseenCountUpdater::UnseenCountUpdater(Document* pDocument,
+qm::AutoPilot::UnseenCountUpdater::UnseenCountUpdater(AccountManager* pAccountManager,
 													  Profile* pProfile) :
-	pDocument_(pDocument),
+	pAccountManager_(pAccountManager),
 	pfnSHSetUnreadMailCount_(0)
 {
 	if (pProfile->getInt(L"Global", L"ShowUnseenCountOnWelcome", 0)) {
@@ -159,7 +160,7 @@ void qm::AutoPilot::UnseenCountUpdater::update()
 	if (!pfnSHSetUnreadMailCount_)
 		return;
 	
-	const Document::AccountList& l = pDocument_->getAccounts();
+	const AccountManager::AccountList& l = pAccountManager_->getAccounts();
 	std::for_each(l.begin(), l.end(),
 		std::bind1st(
 			std::mem_fun(&UnseenCountUpdater::updateAccount),
