@@ -1672,16 +1672,16 @@ IDD_OPTIONSECURITY DIALOG DISCARDABLE  0, 0, 231, 170
 STYLE WS_CHILD
 FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
 BEGIN
-    GROUPBOX        "SSL && S/MIME",IDC_STATIC,5,5,160,25
+    GROUPBOX        "SSL && S/MIME",IDC_STATIC,5,5,170,25
     CONTROL         "&Load certificates from a system store",IDC_SYSTEMSTORE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,15,130,10
-    GROUPBOX        "S/MIME",IDC_STATIC,5,35,160,35
+    GROUPBOX        "S/MIME",IDC_STATIC,5,35,170,35
     CONTROL         "Use &multipart/signed when sign a message",
                     IDC_MULTIPARTSIGNED,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,10,45,145,10
     CONTROL         "&Encrypt a message for myself",IDC_ENCRYPTFORSELF,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,55,110,10
-    GROUPBOX        "PGP",IDC_STATIC,5,75,160,35
+    GROUPBOX        "PGP",IDC_STATIC,5,75,170,35
     CONTROL         "&PGP",IDC_PGP,"Button",BS_AUTORADIOBUTTON,10,85,30,10
     CONTROL         "&GnuPG",IDC_GNUPG,"Button",BS_AUTORADIOBUTTON,10,95,40,
                     10
