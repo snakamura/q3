@@ -108,7 +108,11 @@
 			<separator/>
 			<popupmenu text="Script" action="ToolScript"/>
 			<separator/>
-			<menuitem text="Auto Pilot" action="ToolAutoPilot"/>
+			<popupmenu text="Auto Pilot">
+				<menuitem text="On" action="ToolAutoPilot"/>
+				<separator/>
+				<menuitem text="Edit..." action="ConfigAutoPilot"/>
+			</popupmenu>
 			<separator/>
 			<popupmenu text="Sub Account" action="ToolSubAccount"/>
 			<menuitem text="Account..." action="ToolAccount"/>

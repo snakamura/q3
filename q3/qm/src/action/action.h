@@ -29,6 +29,7 @@ namespace qm {
 struct ActionParam;
 class AttachmentOpenAction;
 class AttachmentSaveAction;
+class ConfigAutoPilotAction;
 class ConfigColorsAction;
 class ConfigFiltersAction;
 class ConfigGoRoundAction;
@@ -128,6 +129,7 @@ class ActionUtil;
 class AttachmentMenu;
 class AttachmentSelectionModel;
 class AutoPilot;
+class AutoPilotManager;
 class ColorManager;
 class Document;
 class EditFrameWindow;
@@ -258,6 +260,34 @@ private:
 	AttachmentSelectionModel* pAttachmentSelectionModel_;
 	bool bAll_;
 	AttachmentHelper helper_;
+	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * ConfigAutoPilotAction
+ *
+ */
+
+class ConfigAutoPilotAction : public qs::AbstractAction
+{
+public:
+	ConfigAutoPilotAction(AutoPilotManager* pAutoPilotManager,
+						  GoRound* pGoRound,
+						  HWND hwnd);
+	virtual ~ConfigAutoPilotAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	ConfigAutoPilotAction(const ConfigAutoPilotAction&);
+	ConfigAutoPilotAction& operator=(const ConfigAutoPilotAction&);
+
+private:
+	AutoPilotManager* pAutoPilotManager_;
+	GoRound* pGoRound_;
 	HWND hwnd_;
 };
 

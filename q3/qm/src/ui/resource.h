@@ -81,6 +81,8 @@
 #define IDD_SYNCFILTERSETS              182
 #define IDD_SYNCFILTERS                 183
 #define IDD_SYNCFILTER                  184
+#define IDD_AUTOPILOT                   185
+#define IDD_AUTOPILOTENTRY              186
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -375,6 +377,8 @@
 #define IDC_MAXLINE                     1272
 #define IDC_MAXLINELABEL                1274
 #define IDC_TYPELABEL                   1275
+#define IDC_ENTRIES                     1276
+#define IDC_INTERVAL                    1278
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -621,22 +625,23 @@
 #define IDM_ATTACHMENT_SAVEALL          49003
 #define IDM_ATTACHMENTEDIT_ADD          50001
 #define IDM_ATTACHMENTEDIT_DELETE       50002
-#define IDM_CONFIG_COLORS               51001
-#define IDM_CONFIG_FILTERS              51002
-#define IDM_CONFIG_GOROUND              51003
-#define IDM_CONFIG_RULES                51004
-#define IDM_CONFIG_SIGNATURES           51005
-#define IDM_CONFIG_SYNCFILTERS          51006
-#define IDM_CONFIG_TEXTS                51007
-#define IDM_CONFIG_VIEWS                51008
+#define IDM_CONFIG_AUTOPILOT            51001
+#define IDM_CONFIG_COLORS               51002
+#define IDM_CONFIG_FILTERS              51003
+#define IDM_CONFIG_GOROUND              51004
+#define IDM_CONFIG_RULES                51005
+#define IDM_CONFIG_SIGNATURES           51006
+#define IDM_CONFIG_SYNCFILTERS          51007
+#define IDM_CONFIG_TEXTS                51008
+#define IDM_CONFIG_VIEWS                51009
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        185
+#define _APS_NEXT_RESOURCE_VALUE        187
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1276
+#define _APS_NEXT_CONTROL_VALUE         1279
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

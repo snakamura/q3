@@ -28,6 +28,7 @@
 #include "../model/goround.h"
 #include "../model/rule.h"
 #include "../model/signature.h"
+#include "../sync/autopilot.h"
 
 
 namespace qm {
@@ -37,6 +38,7 @@ class DefaultDialog;
 	class AddressBookDialog;
 	class ArgumentDialog;
 	class AttachmentDialog;
+	class AutoPilotEntryDialog;
 	class ColorDialog;
 	class ConditionDialog;
 	class CopyRuleTemplateDialog;
@@ -70,6 +72,7 @@ class DefaultDialog;
 	class ViewsColumnDialog;
 	class ViewsDialog;
 	template<class T, class List> class AbstractListDialog;
+		class AutoPilotDialog;
 		class FiltersDialog;
 		class FixedFormTextsDialog;
 		class GoRoundDialog;
@@ -525,6 +528,79 @@ private:
 
 private:
 	EditMessage::AttachmentList& listAttachment_;
+};
+
+
+/****************************************************************************
+ *
+ * AutoPilotDialog
+ *
+ */
+
+class AutoPilotDialog : public AbstractListDialog<AutoPilotEntry, AutoPilotManager::EntryList>
+{
+public:
+	AutoPilotDialog(AutoPilotManager* pManager,
+					GoRound* pGoRound);
+	virtual ~AutoPilotDialog();
+
+protected:
+	virtual LRESULT onOk();
+
+protected:
+	virtual qs::wstring_ptr getLabel(const AutoPilotEntry* p) const;
+	virtual std::auto_ptr<AutoPilotEntry> create() const;
+	virtual bool edit(AutoPilotEntry* p) const;
+
+private:
+	AutoPilotDialog(const AutoPilotDialog&);
+	AutoPilotDialog& operator=(const AutoPilotDialog&);
+
+private:
+	AutoPilotManager* pManager_;
+	GoRound* pGoRound_;
+};
+
+
+/****************************************************************************
+ *
+ * AutoPilotEntryDialog
+ *
+ */
+
+class AutoPilotEntryDialog : public DefaultDialog
+{
+public:
+	AutoPilotEntryDialog(AutoPilotEntry* pEntry,
+						 GoRound* pGoRound);
+	virtual ~AutoPilotEntryDialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	LRESULT onCourseEditChange();
+	LRESULT onCourseSelChange();
+	LRESULT onIntervalChange();
+
+private:
+	void updateState();
+
+private:
+	AutoPilotEntryDialog(const AutoPilotEntryDialog&);
+	AutoPilotEntryDialog& operator=(const AutoPilotEntryDialog&);
+
+private:
+	AutoPilotEntry* pEntry_;
+	GoRound* pGoRound_;
 };
 
 

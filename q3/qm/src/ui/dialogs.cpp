@@ -1847,6 +1847,149 @@ void qm::AttachmentDialog::updateState()
 
 /****************************************************************************
  *
+ * AutoPilotDialog
+ *
+ */
+
+qm::AutoPilotDialog::AutoPilotDialog(AutoPilotManager* pManager,
+									 GoRound* pGoRound) :
+	AbstractListDialog<AutoPilotEntry, AutoPilotManager::EntryList>(IDD_AUTOPILOT, IDC_ENTRIES),
+	pManager_(pManager),
+	pGoRound_(pGoRound)
+{
+	const AutoPilotManager::EntryList& l = pManager->getEntries();
+	AutoPilotManager::EntryList& list = getList();
+	list.reserve(l.size());
+	for (AutoPilotManager::EntryList::const_iterator it = l.begin(); it != l.end(); ++it)
+		list.push_back(new AutoPilotEntry(**it));
+}
+
+qm::AutoPilotDialog::~AutoPilotDialog()
+{
+}
+
+LRESULT qm::AutoPilotDialog::onOk()
+{
+	pManager_->setEntries(getList());
+	if (!pManager_->save()) {
+		// TODO
+	}
+	return AbstractListDialog<AutoPilotEntry, AutoPilotManager::EntryList>::onOk();
+}
+
+wstring_ptr qm::AutoPilotDialog::getLabel(const AutoPilotEntry* p) const
+{
+	return allocWString(p->getCourse());
+}
+
+std::auto_ptr<AutoPilotEntry> qm::AutoPilotDialog::create() const
+{
+	std::auto_ptr<AutoPilotEntry> pEntry(new AutoPilotEntry());
+	AutoPilotEntryDialog dialog(pEntry.get(), pGoRound_);
+	if (dialog.doModal(getHandle()) != IDOK)
+		return std::auto_ptr<AutoPilotEntry>();
+	return pEntry;
+}
+
+bool qm::AutoPilotDialog::edit(AutoPilotEntry* p) const
+{
+	AutoPilotEntryDialog dialog(p, pGoRound_);
+	return dialog.doModal(getHandle()) == IDOK;
+}
+
+
+/****************************************************************************
+ *
+ * AutoPilotEntryDialog
+ *
+ */
+
+qm::AutoPilotEntryDialog::AutoPilotEntryDialog(AutoPilotEntry* pEntry,
+											   GoRound* pGoRound) :
+	DefaultDialog(IDD_AUTOPILOTENTRY),
+	pEntry_(pEntry),
+	pGoRound_(pGoRound)
+{
+}
+
+qm::AutoPilotEntryDialog::~AutoPilotEntryDialog()
+{
+}
+
+LRESULT qm::AutoPilotEntryDialog::onCommand(WORD nCode,
+											WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID_CODE(IDC_COURSE, CBN_EDITCHANGE, onCourseEditChange)
+		HANDLE_COMMAND_ID_CODE(IDC_COURSE, CBN_SELCHANGE, onCourseSelChange)
+		HANDLE_COMMAND_ID_CODE(IDC_INTERVAL, EN_CHANGE, onIntervalChange)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::AutoPilotEntryDialog::onInitDialog(HWND hwndFocus,
+											   LPARAM lParam)
+{
+	init(false);
+	
+	const GoRound::CourseList& listCourse = pGoRound_->getCourses();
+	for (GoRound::CourseList::const_iterator it = listCourse.begin(); it != listCourse.end(); ++it) {
+		W2T((*it)->getName(), ptszCourse);
+		sendDlgItemMessage(IDC_COURSE, CB_ADDSTRING,
+			0, reinterpret_cast<LPARAM>(ptszCourse));
+	}
+	setDlgItemText(IDC_COURSE, pEntry_->getCourse());
+	setDlgItemInt(IDC_INTERVAL, pEntry_->getInterval());
+	
+	updateState();
+	
+	return TRUE;
+}
+
+LRESULT qm::AutoPilotEntryDialog::onOk()
+{
+	wstring_ptr wstrCourse(getDlgItemText(IDC_COURSE));
+	if (!*wstrCourse.get())
+		return 0;
+	
+	int nInterval = getDlgItemInt(IDC_INTERVAL);
+	if (nInterval == 0)
+		return 0;
+	
+	pEntry_->setCourse(wstrCourse.get());
+	pEntry_->setInterval(nInterval);
+	
+	return DefaultDialog::onOk();
+}
+
+LRESULT qm::AutoPilotEntryDialog::onCourseEditChange()
+{
+	updateState();
+	return 0;
+}
+
+LRESULT qm::AutoPilotEntryDialog::onCourseSelChange()
+{
+	postMessage(WM_COMMAND, MAKEWPARAM(IDC_COURSE, CBN_EDITCHANGE));
+	return 0;
+}
+
+LRESULT qm::AutoPilotEntryDialog::onIntervalChange()
+{
+	updateState();
+	return 0;
+}
+
+void qm::AutoPilotEntryDialog::updateState()
+{
+	Window(getDlgItem(IDOK)).enableWindow(
+		Window(getDlgItem(IDC_COURSE)).getWindowTextLength() != 0 &&
+		getDlgItemInt(IDC_INTERVAL) != 0);
+}
+
+
+/****************************************************************************
+ *
  * ColorDialog
  *
  */

@@ -58,6 +58,7 @@ public:
 	~AutoPilot();
 
 public:
+	AutoPilotManager* getAutoPilotManager() const;
 	void start(HWND hwnd);
 	bool isEnabled() const;
 	void setEnabled(bool bEnabled);
@@ -121,7 +122,7 @@ public:
 public:
 	const EntryList& getEntries();
 	const EntryList& getEntries(bool bReload);
-	void setEntryList(EntryList& listEntry);
+	void setEntries(EntryList& listEntry);
 	bool save() const;
 	void clear();
 
@@ -150,6 +151,7 @@ private:
 class AutoPilotEntry
 {
 public:
+	AutoPilotEntry();
 	AutoPilotEntry(const WCHAR* pwszCourse,
 				   int nInterval);
 	AutoPilotEntry(const AutoPilotEntry& entry);

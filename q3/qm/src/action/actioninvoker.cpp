@@ -31,6 +31,7 @@ struct ActionNameMap
 	{ L"AttachmentOpen",				IDM_ATTACHMENT_OPEN						},
 	{ L"AttachmentSave",				IDM_ATTACHMENT_SAVE						},
 	{ L"AttachmentSaveAll",				IDM_ATTACHMENT_SAVEALL					},
+	{ L"ConfigAutoPilot",				IDM_CONFIG_AUTOPILOT					},
 	{ L"ConfigColors",					IDM_CONFIG_COLORS						},
 	{ L"ConfigGoRound",					IDM_CONFIG_GOROUND						},
 	{ L"ConfigRules",					IDM_CONFIG_RULES						},

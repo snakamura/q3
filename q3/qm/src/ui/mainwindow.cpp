@@ -70,6 +70,7 @@
 #include "../model/filter.h"
 #include "../model/goround.h"
 #include "../model/tempfilecleaner.h"
+#include "../sync/autopilot.h"
 #include "../sync/syncmanager.h"
 
 #pragma warning(disable:4786)
@@ -321,6 +322,11 @@ void qm::MainWindowImpl::initActions()
 		pSecurityModel_.get(),
 		true,
 		pProfile_,
+		pThis_->getHandle());
+	ADD_ACTION3(ConfigAutoPilotAction,
+		IDM_CONFIG_AUTOPILOT,
+		pAutoPilot_->getAutoPilotManager(),
+		pGoRound_,
 		pThis_->getHandle());
 	ADD_ACTION4(ConfigColorsAction,
 		IDM_CONFIG_COLORS,

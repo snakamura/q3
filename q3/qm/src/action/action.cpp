@@ -205,6 +205,32 @@ bool qm::AttachmentSaveAction::isEnabled(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * ConfigAutoPilotAction
+ *
+ */
+
+qm::ConfigAutoPilotAction::ConfigAutoPilotAction(AutoPilotManager* pAutoPilotManager,
+												 GoRound* pGoRound,
+												 HWND hwnd) :
+	pAutoPilotManager_(pAutoPilotManager),
+	pGoRound_(pGoRound),
+	hwnd_(hwnd)
+{
+}
+
+qm::ConfigAutoPilotAction::~ConfigAutoPilotAction()
+{
+}
+
+void qm::ConfigAutoPilotAction::invoke(const ActionEvent& event)
+{
+	AutoPilotDialog dialog(pAutoPilotManager_, pGoRound_);
+	dialog.doModal(hwnd_);
+}
+
+
+/****************************************************************************
+ *
  * ConfigColorsAction
  *
  */

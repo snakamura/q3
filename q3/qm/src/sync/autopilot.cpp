@@ -61,6 +61,11 @@ qm::AutoPilot::~AutoPilot()
 	}
 }
 
+AutoPilotManager* qm::AutoPilot::getAutoPilotManager() const
+{
+	return pAutoPilotManager_;
+}
+
 void qm::AutoPilot::start(HWND hwnd)
 {
 	hwnd_ = hwnd;
@@ -149,7 +154,7 @@ const AutoPilotManager::EntryList& qm::AutoPilotManager::getEntries(bool bReload
 	return listEntry_;
 }
 
-void qm::AutoPilotManager::setEntryList(EntryList& listEntry)
+void qm::AutoPilotManager::setEntries(EntryList& listEntry)
 {
 	clear();
 	listEntry_.swap(listEntry);
@@ -184,6 +189,12 @@ bool qm::AutoPilotManager::load()
  * AutoPilotEntry
  *
  */
+
+qm::AutoPilotEntry::AutoPilotEntry() :
+	nInterval_(5)
+{
+	wstrCourse_ = allocWString(L"");
+}
 
 qm::AutoPilotEntry::AutoPilotEntry(const WCHAR* pwszCourse,
 								   int nInterval) :
