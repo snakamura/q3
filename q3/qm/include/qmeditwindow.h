@@ -167,7 +167,7 @@ public:
 	void releaseEditMessage(EditMessage* pEditMessage);
 	void updateEditMessage(EditMessage* pEditMessage);
 	int getHeight() const;
-	void layout();
+	void layout(const RECT& rect);
 	EditWindowItem* getFocusedItem() const;
 	EditWindowItem* getInitialFocusedItem() const;
 	EditWindowItem* getNextFocusItem(EditWindowItem* pItem) const;
@@ -186,9 +186,6 @@ protected:
 	LRESULT onCtlColorStatic(HDC hdc,
 							 HWND hwnd);
 	LRESULT onDestroy();
-	LRESULT onSize(UINT nFlags,
-				   int cx,
-				   int cy);
 
 private:
 	HeaderEditWindow(const HeaderEditWindow&);

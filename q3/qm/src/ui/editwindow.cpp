@@ -111,6 +111,7 @@ public:
 	std::auto_ptr<EditWindowItemWindow> pItemWindow_;
 	std::auto_ptr<DropTarget> pDropTarget_;
 	bool bCreated_;
+	bool bLayouting_;
 	
 	bool bHeaderEdit_;
 	EditWindowItem* pLastFocusedItem_;
@@ -127,7 +128,9 @@ void qm::EditWindowImpl::layoutChildren()
 void qm::EditWindowImpl::layoutChildren(int cx,
 										int cy)
 {
-	pHeaderEditWindow_->layout();
+	bLayouting_ = true;
+	
+	pHeaderEditWindow_->layout(Rect(0, 0, cx, cy));
 	
 	int nHeaderHeight = pHeaderEditWindow_->getHeight();
 	pHeaderEditWindow_->setWindowPos(0, 0, 0, cx, nHeaderHeight, SWP_NOZORDER);
@@ -136,6 +139,8 @@ void qm::EditWindowImpl::layoutChildren(int cx,
 	int nY = bHeaderEdit_ ? 0 : nHeaderHeight;
 	int nHeight = cy > nY ? cy - nY : 0;
 	pTextWindow_->setWindowPos(HWND_TOP, 0, nY, cx, nHeight, 0);
+	
+	bLayouting_ = false;
 }
 
 bool qm::EditWindowImpl::updateEditMessage() const
@@ -424,6 +429,7 @@ qm::EditWindow::EditWindow(Profile* pProfile) :
 	pImpl_->pHeaderEditWindow_ = 0;
 	pImpl_->pTextWindow_ = 0;
 	pImpl_->bCreated_ = false;
+	pImpl_->bLayouting_ = false;
 	pImpl_->bHeaderEdit_ = false;
 	pImpl_->pLastFocusedItem_ = 0;
 	pImpl_->bCanDrop_ = false;
@@ -586,7 +592,7 @@ LRESULT qm::EditWindow::onSize(UINT nFlags,
 							   int cx,
 							   int cy)
 {
-	if (pImpl_->bCreated_)
+	if (pImpl_->bCreated_ && !pImpl_->bLayouting_)
 		pImpl_->layoutChildren(cx, cy);
 	return DefaultWindowHandler::onSize(nFlags, cx, cy);
 }

@@ -78,19 +78,18 @@ public:
 public:
 	unsigned int getItemCount() const;
 	LineLayoutItem* getItem(unsigned int n) const;
-	unsigned int getHeight(unsigned int nFontHeight) const;
 	bool create(qs::WindowBase* pParent,
 				const std::pair<HFONT, HFONT>& fonts,
 				UINT* pnId) const;
 	void destroy() const;
-	void layout(const RECT& rect,
-				unsigned int nFontHeight) const;
+	unsigned int layout(const RECT& rect,
+						unsigned int nFontHeight) const;
 	void show(bool bShow) const;
 
 public:
 	void addItem(std::auto_ptr<LineLayoutItem> pItem);
 
-protected:
+public:
 	virtual bool isHidden() const;
 
 private:
@@ -136,7 +135,8 @@ public:
 				  Unit unit);
 
 public:
-	virtual unsigned int getHeight(unsigned int nFontHeight) const = 0;
+	virtual unsigned int getHeight(unsigned int nWidth,
+								   unsigned int nFontHeight) const = 0;
 	virtual bool create(qs::WindowBase* pParent,
 						const std::pair<HFONT, HFONT>& fonts,
 						UINT nId) = 0;

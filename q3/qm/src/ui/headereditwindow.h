@@ -65,7 +65,7 @@ public:
 	HeaderEditItem* getFocusedItem() const;
 	HeaderEditItem* getInitialFocusItem() const;
 
-protected:
+public:
 	virtual bool isHidden() const;
 
 private:
@@ -266,7 +266,8 @@ public:
 	virtual bool isFocusItem() const;
 
 public:
-	virtual unsigned int getHeight(unsigned int nFontHeight) const;
+	virtual unsigned int getHeight(unsigned int nWidth,
+								   unsigned int nFontHeight) const;
 
 protected:
 	virtual const TCHAR* getWindowClassName() const;
@@ -305,7 +306,8 @@ public:
 	virtual bool isFocusItem() const;
 
 public:
-	virtual unsigned int getHeight(unsigned int nFontHeight) const;
+	virtual unsigned int getHeight(unsigned int nWidth,
+								   unsigned int nFontHeight) const;
 	virtual bool create(qs::WindowBase* pParent,
 						const std::pair<HFONT, HFONT>& fonts,
 						UINT nId);
@@ -375,7 +377,8 @@ public:
 	virtual bool isFocusItem() const;
 
 public:
-	virtual unsigned int getHeight(unsigned int nFontHeight) const;
+	virtual unsigned int getHeight(unsigned int nWidth,
+								   unsigned int nFontHeight) const;
 	virtual bool create(qs::WindowBase* pParent,
 						const std::pair<HFONT, HFONT>& fonts,
 						UINT nId);
@@ -462,7 +465,8 @@ public:
 	virtual bool isFocusItem() const;
 
 public:
-	virtual unsigned int getHeight(unsigned int nFontHeight) const;
+	virtual unsigned int getHeight(unsigned int nWidth,
+								   unsigned int nFontHeight) const;
 	virtual bool create(qs::WindowBase* pParent,
 						const std::pair<HFONT, HFONT>& fonts,
 						UINT nId);

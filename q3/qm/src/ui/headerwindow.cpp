@@ -135,17 +135,13 @@ void qm::HeaderWindow::setMessage(const TemplateContext* pContext)
 	}
 }
 
-void qm::HeaderWindow::layout()
+void qm::HeaderWindow::layout(const RECT& rect)
 {
 	ClientDeviceContext dc(getHandle());
 	ObjectSelector<HFONT> fontSelecter(dc, pImpl_->hfont_);
 	TEXTMETRIC tm;
 	dc.getTextMetrics(&tm);
 	unsigned int nFontHeight = tm.tmHeight + tm.tmExternalLeading;
-	
-	RECT rect;
-	getClientRect(&rect);
-	
 	pImpl_->pLayout_->layout(rect, nFontHeight);
 }
 
@@ -196,7 +192,6 @@ LRESULT qm::HeaderWindow::windowProc(UINT uMsg,
 		HANDLE_CREATE()
 		HANDLE_CTLCOLORSTATIC()
 		HANDLE_DESTROY()
-		HANDLE_SIZE()
 	END_MESSAGE_HANDLER()
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
@@ -251,15 +246,6 @@ LRESULT qm::HeaderWindow::onDestroy()
 	}
 	
 	return DefaultWindowHandler::onDestroy();
-}
-
-LRESULT qm::HeaderWindow::onSize(UINT nFlags,
-								 int cx,
-								 int cy)
-{
-	layout();
-	
-	return DefaultWindowHandler::onSize(nFlags, cx, cy);
 }
 
 
@@ -428,7 +414,8 @@ void qm::TextHeaderItem::setStyle(unsigned int nStyle)
 	nStyle_ = nStyle;
 }
 
-unsigned int qm::TextHeaderItem::getHeight(unsigned int nFontHeight) const
+unsigned int qm::TextHeaderItem::getHeight(unsigned int nWidth,
+										   unsigned int nFontHeight) const
 {
 	return nFontHeight;
 }
@@ -458,7 +445,7 @@ void qm::TextHeaderItem::destroy()
 void qm::TextHeaderItem::layout(const RECT& rect,
 								unsigned int nFontHeight)
 {
-	unsigned int nHeight = getHeight(nFontHeight);
+	unsigned int nHeight = getHeight(rect.right - rect.left, nFontHeight);
 	Window(hwnd_).setWindowPos(0, rect.left,
 		rect.top + ((rect.bottom - rect.top) - nHeight)/2,
 		rect.right - rect.left, nHeight,
@@ -617,9 +604,12 @@ qm::AttachmentHeaderItem::~AttachmentHeaderItem()
 {
 }
 
-unsigned int qm::AttachmentHeaderItem::getHeight(unsigned int nFontHeight) const
+unsigned int qm::AttachmentHeaderItem::getHeight(unsigned int nWidth,
+												 unsigned int nFontHeight) const
 {
-	return nFontHeight + 7;
+	unsigned int nHeight = nFontHeight*4 + 7;
+	DWORD dwSize = ListView_ApproximateViewRect(wnd_.getHandle(), nWidth, nHeight, -1);
+	return QSMIN(unsigned int(HIWORD(dwSize)), nHeight);
 }
 
 bool qm::AttachmentHeaderItem::create(WindowBase* pParent,
@@ -628,8 +618,9 @@ bool qm::AttachmentHeaderItem::create(WindowBase* pParent,
 {
 	assert(!wnd_.getHandle());
 	
-	if (!wnd_.create(L"QmAttachmentWindow", 0,
-		WS_CHILD | WS_VISIBLE | LVS_SMALLICON | LVS_SHAREIMAGELISTS,
+	DWORD dwStyle = WS_CHILD | WS_VISIBLE | LVS_SMALLICON |
+		LVS_NOLABELWRAP | LVS_SHAREIMAGELISTS;
+	if (!wnd_.create(L"QmAttachmentWindow", 0, dwStyle,
 		0, 0, 0, 0, pParent->getHandle(), 0, WC_LISTVIEWW, nId, 0))
 		return false;
 	

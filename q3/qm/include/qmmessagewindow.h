@@ -260,7 +260,7 @@ public:
 public:
 	int getHeight() const;
 	void setMessage(const TemplateContext* pContext);
-	void layout();
+	void layout(const RECT& rect);
 	bool isActive() const;
 	MessageWindowItem* getFocusedItem() const;
 	AttachmentSelectionModel* getAttachmentSelectionModel() const;
@@ -276,9 +276,6 @@ protected:
 	LRESULT onCtlColorStatic(HDC hdc,
 							 HWND hwnd);
 	LRESULT onDestroy();
-	LRESULT onSize(UINT nFlags,
-				   int cx,
-				   int cy);
 
 private:
 	HeaderWindow(const HeaderWindow&);

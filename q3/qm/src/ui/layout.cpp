@@ -70,17 +70,17 @@ void qm::LineLayout::layout(const RECT& rect,
 							unsigned int nFontHeight)
 {
 	RECT r = rect;
-	
+
 	int nTop = 0;
 	for (LineList::const_iterator it = listLine_.begin(); it != listLine_.end(); ++it) {
-		unsigned int nHeight = (*it)->getHeight(nFontHeight);
-		if (nHeight != 0) {
-			if (nTop == 0)
-				nTop = 5;
-			r.top = nTop;
-			r.bottom = nTop + nHeight;
-			(*it)->layout(r, nFontHeight);
-			nTop = r.bottom + nLineSpacing_;
+		unsigned int nHeight = 0;
+		if (!(*it)->isHidden()) {
+			r.top = nTop == 0 ? 5 : nTop;
+			r.bottom = r.top;
+			nHeight = (*it)->layout(r, nFontHeight);
+			r.bottom = r.top + nHeight;
+			if (nHeight != 0)
+				nTop = r.bottom + nLineSpacing_;
 		}
 		(*it)->show(nHeight != 0);
 	}
@@ -129,18 +129,6 @@ LineLayoutItem* qm::LineLayoutLine::getItem(unsigned int n) const
 	return listItem_[n];
 }
 
-unsigned int qm::LineLayoutLine::getHeight(unsigned int nFontHeight) const
-{
-	unsigned int nHeight = 0;
-	
-	if (!isHidden()) {
-		for (ItemList::const_iterator it = listItem_.begin(); it != listItem_.end(); ++it)
-			nHeight = QSMAX(nHeight, (*it)->getHeight(nFontHeight));
-	}
-	
-	return nHeight;
-}
-
 bool qm::LineLayoutLine::create(WindowBase* pParent,
 								const std::pair<HFONT, HFONT>& fonts,
 								UINT* pnId) const
@@ -158,9 +146,11 @@ void qm::LineLayoutLine::destroy() const
 		(*it)->destroy();
 }
 
-void qm::LineLayoutLine::layout(const RECT& rect,
-								unsigned int nFontHeight) const
+unsigned int qm::LineLayoutLine::layout(const RECT& rect,
+										unsigned int nFontHeight) const
 {
+	assert(!isHidden());
+	
 	int nWidth = rect.right - rect.left - (listItem_.size() - 1)*2 - 10;
 	
 	typedef std::vector<int> WidthList;
@@ -211,12 +201,20 @@ void qm::LineLayoutLine::layout(const RECT& rect,
 		}
 	}
 	
-	RECT r = { 5, rect.top, 5, rect.bottom };
+	unsigned int nHeight = 0;
+	for (ItemList::size_type n = 0; n < listItem_.size(); ++n)
+		nHeight = QSMAX(nHeight, listItem_[n]->getHeight(listWidth[n], nFontHeight));
+	if (nHeight == 0)
+		return 0;
+	
+	RECT r = { 5, rect.top, 5, rect.top + nHeight };
 	for (ItemList::size_type n = 0; n < listItem_.size(); ++n) {
 		r.right = r.left + listWidth[n];
 		listItem_[n]->layout(r, nFontHeight);
 		r.left = r.right + 2;
 	}
+	
+	return nHeight;
 }
 
 void qm::LineLayoutLine::show(bool bShow) const

@@ -164,17 +164,13 @@ int qm::HeaderEditWindow::getHeight() const
 	return pImpl_->pLayout_->getHeight();
 }
 
-void qm::HeaderEditWindow::layout()
+void qm::HeaderEditWindow::layout(const RECT& rect)
 {
 	ClientDeviceContext dc(getHandle());
 	ObjectSelector<HFONT> fontSelecter(dc, pImpl_->hfont_);
 	TEXTMETRIC tm;
 	dc.getTextMetrics(&tm);
 	unsigned int nFontHeight = tm.tmHeight + tm.tmExternalLeading;
-	
-	RECT rect;
-	getClientRect(&rect);
-	
 	pImpl_->pLayout_->layout(rect, nFontHeight);
 }
 
@@ -259,7 +255,6 @@ LRESULT qm::HeaderEditWindow::windowProc(UINT uMsg,
 		HANDLE_CREATE()
 		HANDLE_CTLCOLORSTATIC()
 		HANDLE_DESTROY()
-		HANDLE_SIZE()
 	END_MESSAGE_HANDLER()
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
@@ -316,15 +311,6 @@ LRESULT qm::HeaderEditWindow::onDestroy()
 	}
 	
 	return DefaultWindowHandler::onDestroy();
-}
-
-LRESULT qm::HeaderEditWindow::onSize(UINT nFlags,
-									 int cx,
-									 int cy)
-{
-	layout();
-	
-	return DefaultWindowHandler::onSize(nFlags, cx, cy);
 }
 
 
@@ -640,7 +626,7 @@ void qm::TextHeaderEditItem::destroy()
 void qm::TextHeaderEditItem::layout(const RECT& rect,
 									unsigned int nFontHeight)
 {
-	unsigned int nHeight = getHeight(nFontHeight);
+	unsigned int nHeight = getHeight(rect.right - rect.left, nFontHeight);
 	Window(hwnd_).setWindowPos(0, rect.left,
 		rect.top + ((rect.bottom - rect.top) - nHeight)/2,
 		rect.right - rect.left, nHeight,
@@ -752,7 +738,8 @@ bool qm::StaticHeaderEditItem::isFocusItem() const
 	return false;
 }
 
-unsigned int qm::StaticHeaderEditItem::getHeight(unsigned int nFontHeight) const
+unsigned int qm::StaticHeaderEditItem::getHeight(unsigned int nWidth,
+												 unsigned int nFontHeight) const
 {
 	return nFontHeight;
 }
@@ -834,7 +821,8 @@ bool qm::EditHeaderEditItem::isFocusItem() const
 	return true;
 }
 
-unsigned int qm::EditHeaderEditItem::getHeight(unsigned int nFontHeight) const
+unsigned int qm::EditHeaderEditItem::getHeight(unsigned int nWidth,
+											   unsigned int nFontHeight) const
 {
 	return nFontHeight + 7;
 }
@@ -1027,9 +1015,12 @@ bool qm::AttachmentHeaderEditItem::isFocusItem() const
 	return true;
 }
 
-unsigned int qm::AttachmentHeaderEditItem::getHeight(unsigned int nFontHeight) const
+unsigned int qm::AttachmentHeaderEditItem::getHeight(unsigned int nWidth,
+													 unsigned int nFontHeight) const
 {
-	return (ListView_GetItemCount(wnd_.getHandle()) != 0 ? nFontHeight*3 : nFontHeight) + 7;
+	unsigned int nHeight = nFontHeight*4 + 7;
+	DWORD dwSize = ListView_ApproximateViewRect(wnd_.getHandle(), nWidth, nHeight, -1);
+	return QSMIN(unsigned int(HIWORD(dwSize)), nHeight);
 }
 
 bool qm::AttachmentHeaderEditItem::create(WindowBase* pParent,
@@ -1038,7 +1029,8 @@ bool qm::AttachmentHeaderEditItem::create(WindowBase* pParent,
 {
 	assert(!wnd_.getHandle());
 	
-	DWORD dwStyle = WS_CHILD | WS_VISIBLE | LVS_SMALLICON | LVS_SHAREIMAGELISTS;
+	DWORD dwStyle = WS_CHILD | WS_VISIBLE | LVS_SMALLICON |
+		LVS_NOLABELWRAP | LVS_SHAREIMAGELISTS;
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	dwStyle |= WS_BORDER;
 #endif
@@ -1273,7 +1265,8 @@ bool qm::ComboBoxHeaderEditItem::isFocusItem() const
 	return true;
 }
 
-unsigned int qm::ComboBoxHeaderEditItem::getHeight(unsigned int nFontHeight) const
+unsigned int qm::ComboBoxHeaderEditItem::getHeight(unsigned int nWidth,
+												   unsigned int nFontHeight) const
 {
 	RECT rect;
 	Window(hwnd_).getWindowRect(&rect);
@@ -1320,8 +1313,7 @@ void qm::ComboBoxHeaderEditItem::layout(const RECT& rect,
 										unsigned int nFontHeight)
 {
 	Window(hwnd_).setWindowPos(0, rect.left, rect.top,
-		rect.right - rect.left, 100,
-		SWP_NOZORDER | SWP_NOACTIVATE);
+		rect.right - rect.left, 100, SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
 void qm::ComboBoxHeaderEditItem::show(bool bShow)

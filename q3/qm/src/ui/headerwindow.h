@@ -56,7 +56,7 @@ public:
 public:
 	void fixup();
 
-protected:
+public:
 	virtual bool isHidden() const;
 
 private:
@@ -150,7 +150,8 @@ public:
 	void setStyle(unsigned int nStyle);
 
 public:
-	virtual unsigned int getHeight(unsigned int nFontHeight) const;
+	virtual unsigned int getHeight(unsigned int nWidth,
+								   unsigned int nFontHeight) const;
 	virtual bool create(qs::WindowBase* pParent,
 						const std::pair<HFONT, HFONT>& fonts,
 						UINT nId);
@@ -249,7 +250,8 @@ public:
 	virtual ~AttachmentHeaderItem();
 
 public:
-	virtual unsigned int getHeight(unsigned int nFontHeight) const;
+	virtual unsigned int getHeight(unsigned int nWidth,
+								   unsigned int nFontHeight) const;
 	virtual bool create(qs::WindowBase* pParent,
 						const std::pair<HFONT, HFONT>& fonts,
 						UINT nId);

@@ -89,6 +89,7 @@ public:
 	HeaderWindow* pHeaderWindow_;
 	MessageViewWindow* pMessageViewWindow_;
 	bool bCreated_;
+	bool bLayouting_;
 	
 	MessageModel* pMessageModel_;
 	std::auto_ptr<MessageViewWindowFactory> pFactory_;
@@ -110,9 +111,11 @@ void qm::MessageWindowImpl::layoutChildren()
 void qm::MessageWindowImpl::layoutChildren(int cx,
 										   int cy)
 {
+	bLayouting_ = true;
+	
 	int nHeaderHeight = 0;
 	if (bShowHeaderWindow_) {
-		pHeaderWindow_->layout();
+		pHeaderWindow_->layout(Rect(0, 0, cx, cy));
 		nHeaderHeight = pHeaderWindow_->getHeight();
 	}
 	
@@ -125,6 +128,8 @@ void qm::MessageWindowImpl::layoutChildren(int cx,
 		pMessageViewWindow_->getWindow().setWindowPos(
 			HWND_TOP, 0, nY, cx, nHeight, 0);
 	}
+	
+	bLayouting_ = false;
 }
 
 bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
@@ -519,6 +524,7 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pMessageViewWindow_->getWindow().showWindow(SW_SHOW);
 	
 	pImpl_->bCreated_ = true;
+	pImpl_->bLayouting_ = false;
 	
 	return 0;
 }
@@ -541,7 +547,7 @@ LRESULT qm::MessageWindow::onSize(UINT nFlags,
 								  int cx,
 								  int cy)
 {
-	if (pImpl_->bCreated_)
+	if (pImpl_->bCreated_ && !pImpl_->bLayouting_)
 		pImpl_->layoutChildren(cx, cy);
 	return DefaultWindowHandler::onSize(nFlags, cx, cy);
 }
