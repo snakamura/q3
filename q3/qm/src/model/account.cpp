@@ -380,13 +380,6 @@ bool qm::AccountImpl::getMessage(MessageHolder* pmh,
 		}
 	}
 	
-	const WCHAR* pwszRemove[] = {
-		L"X-QMAIL-SignedBy",
-		L"X-QMAIL-Verification"
-	};
-	for (int n = 0; n < countof(pwszRemove); ++n)
-		pMessage->removeField(pwszRemove[n]);
-	
 	if ((nFlags & Account::GETMESSAGEFLAG_MAKESEEN) &&
 		!bMadeSeen &&
 		!pmh->isFlag(MessageHolder::FLAG_SEEN)) {
@@ -665,14 +658,8 @@ bool qm::AccountImpl::processSMIME(const SMIMEUtility* pSMIMEUtility,
 	if (!pMessage->create(strMessage.get(), -1, Message::FLAG_NONE, nSecurity))
 		return false;
 	
-	if (wstrSignedBy.get()) {
-		UnstructuredParser signedBy(wstrSignedBy.get(), L"utf-8");
-		if (!pMessage->replaceField(L"X-QMAIL-SignedBy", signedBy))
-			return 0;
-	}
-	else {
-		pMessage->removeField(L"X-QMAIL-SignedBy");
-	}
+	if (wstrSignedBy.get())
+		pMessage->setParam(L"SignedBy", wstrSignedBy.get());
 	
 	return true;
 }
@@ -738,14 +725,8 @@ bool qm::AccountImpl::processPGP(const PGPUtility* pPGPUtility,
 	if (!pMessage->create(strMessage.get(), -1, Message::FLAG_NONE, nSecurity))
 		return false;
 	
-	if (wstrSignedBy.get()) {
-		UnstructuredParser signedBy(wstrSignedBy.get(), L"utf-8");
-		if (!pMessage->replaceField(L"X-QMAIL-SignedBy", signedBy))
-			return 0;
-	}
-	else {
-		pMessage->removeField(L"X-QMAIL-SignedBy");
-	}
+	if (wstrSignedBy.get())
+		pMessage->setParam(L"SignedBy", wstrSignedBy.get());
 	
 	return true;
 }
@@ -2194,12 +2175,10 @@ bool qm::Account::getMessage(MessageHolder* pmh,
 		unsigned int n = 0;
 		if (nSecurity & Message::SECURITY_VERIFY_ERROR_MASK)
 			n = nSecurity >> 12;
-		NumberParser verification(n, 0);
-		if (!pMessage->replaceField(L"X-QMAIL-Verification", verification))
-			return false;
-	}
-	else {
-		pMessage->removeField(L"X-QMAIL-Verification");
+		
+		WCHAR wsz[32];
+		wsprintf(wsz, L"%d", n);
+		pMessage->setParam(L"Verification", wsz);
 	}
 	
 	return true;

@@ -1487,7 +1487,7 @@ MacroValuePtr qm::MacroFunctionFieldParameter::value(MacroContext* pContext) con
 	
 	if (!checkArgSizeRange(pContext, 1, 3))
 		return MacroValuePtr();
-
+	
 	size_t nSize = getArgSize();
 	
 	MessageHolderBase* pmh = pContext->getMessageHolder();
@@ -3021,6 +3021,52 @@ bool qm::MacroFunctionParseURL::isHex(WCHAR c)
 	return (L'0' <= c && c <= L'9') ||
 		(L'a' <= c && c <= 'f') ||
 		(L'A' <= c && c <= 'F');
+}
+
+
+/****************************************************************************
+ *
+ * MacroFunctionParam
+ *
+ */
+
+qm::MacroFunctionParam::MacroFunctionParam()
+{
+}
+
+qm::MacroFunctionParam::~MacroFunctionParam()
+{
+}
+
+MacroValuePtr qm::MacroFunctionParam::value(MacroContext* pContext) const
+{
+	assert(pContext);
+	
+	LOG(Param);
+	
+	if (!checkArgSize(pContext, 1))
+		return MacroValuePtr();
+	
+	size_t nSize = getArgSize();
+	
+	MessageHolderBase* pmh = pContext->getMessageHolder();
+	if (!pmh)
+		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
+	
+	Message* pMessage = getMessage(pContext, MacroContext::MESSAGETYPE_HEADER, 0);
+	if (!pMessage)
+		return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
+	
+	ARG(pValue, 0);
+	wstring_ptr wstrName(pValue->string());
+	
+	const WCHAR* pwszValue = pMessage->getParam(wstrName.get());
+	return MacroValueFactory::getFactory().newString(pwszValue ? pwszValue : L"");
+}
+
+const WCHAR* qm::MacroFunctionParam::getName() const
+{
+	return L"Param";
 }
 
 
@@ -4698,6 +4744,7 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(MacroParser::
 		END_BLOCK()
 		BEGIN_BLOCK(L'p', L'P')
 			DECLARE_FUNCTION0(		ParseURL,			L"parseurl"												)
+			DECLARE_FUNCTION0(		Param,				L"param"												)
 			DECLARE_FUNCTION0(		Part,				L"part"													)
 			DECLARE_FUNCTION0(		Passed,				L"passed"												)
 			DECLARE_FUNCTION1(		Flag,				L"partial",			MessageHolder::FLAG_PARTIAL_MASK	)

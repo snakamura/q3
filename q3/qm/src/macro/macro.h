@@ -78,6 +78,7 @@ class MacroExpr;
 		class MacroFunctionOr;
 		class MacroFunctionOSVersion;
 		class MacroFunctionParseURL;
+		class MacroFunctionParam;
 		class MacroFunctionPart;
 		class MacroFunctionPassed;
 		class MacroFunctionProcessId;
@@ -1724,6 +1725,30 @@ private:
 private:
 	MacroFunctionParseURL(const MacroFunctionParseURL&);
 	MacroFunctionParseURL& operator=(const MacroFunctionParseURL&);
+};
+
+
+/****************************************************************************
+ *
+ * MacroFunctionParam
+ *
+ */
+
+class MacroFunctionParam : public MacroFunction
+{
+public:
+	MacroFunctionParam();
+	virtual ~MacroFunctionParam();
+
+public:
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+
+protected:
+	virtual const WCHAR* getName() const;
+
+private:
+	MacroFunctionParam(const MacroFunctionParam&);
+	MacroFunctionParam& operator=(const MacroFunctionParam&);
 };
 
 
