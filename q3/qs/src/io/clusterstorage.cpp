@@ -9,11 +9,14 @@
 #include <qsclusterstorage.h>
 #include <qsconv.h>
 #include <qsfile.h>
+#include <qsosutil.h>
 #include <qsstl.h>
 #include <qsstream.h>
 
 #include <numeric>
 #include <vector>
+
+#include <tchar.h>
 
 using namespace qs;
 
@@ -433,16 +436,49 @@ bool qs::ClusterStorage::rename(const WCHAR* pwszPath,
 		pImpl_->wstrBoxExt_.get(),
 		pImpl_->wstrMapExt_.get()
 	};
+	if (pImpl_->nBlockSize_ != -1) {
+		{
+			wstring_ptr wstrFind(concat(wstrPath.get(), L"*", pImpl_->wstrBoxExt_.get()));
+			W2T(wstrFind.get(), ptszFind);
+			WIN32_FIND_DATA fd;
+			AutoFindHandle hFind(::FindFirstFile(ptszFind, &fd));
+			if (hFind.get()) {
+				W2T(pwszPath, ptszPath);
+				do {
+					tstring_ptr tstrDeletePath(concat(ptszPath, _T("\\"), fd.cFileName));
+					if (!::DeleteFile(tstrDeletePath.get()))
+						return false;
+				} while (::FindNextFile(hFind.get(), &fd));
+			}
+		}
+		for (int n = 0; ; ++n) {
+			WCHAR wsz[16];
+			swprintf(wsz, L"%03u", n);
+			wstring_ptr wstrOldPath(concat(pImpl_->wstrPath_.get(), wsz, pImpl_->wstrBoxExt_.get()));
+			W2T(wstrOldPath.get(), ptszOldPath);
+			if (::GetFileAttributes(ptszOldPath) == 0xffffffff)
+				break;
+			
+			wstring_ptr wstrNewPath(concat(wstrPath.get(), wsz, pImpl_->wstrBoxExt_.get()));
+			W2T(wstrNewPath.get(), ptszNewPath);
+			
+			if (!::MoveFile(ptszOldPath, ptszNewPath))
+				return false;
+		}
+		
+		pwszExt[0] = 0;
+	}
 	for (int n = 0; n < countof(pwszExt); ++n) {
-		wstring_ptr wstrOldPath(concat(pImpl_->wstrPath_.get(), pwszExt[n]));
-		wstring_ptr wstrNewPath(concat(wstrPath.get(), pwszExt[n]));
-		
-		W2T(wstrOldPath.get(), ptszOldPath);
-		W2T(wstrNewPath.get(), ptszNewPath);
-		
-		if (!::DeleteFile(ptszNewPath) ||
-			!::MoveFile(ptszOldPath, ptszNewPath))
-			return false;
+		if (pwszExt[n]) {
+			wstring_ptr wstrOldPath(concat(pImpl_->wstrPath_.get(), pwszExt[n]));
+			wstring_ptr wstrNewPath(concat(wstrPath.get(), pwszExt[n]));
+			
+			W2T(wstrOldPath.get(), ptszOldPath);
+			W2T(wstrNewPath.get(), ptszNewPath);
+			
+			if (!::DeleteFile(ptszNewPath) || !::MoveFile(ptszOldPath, ptszNewPath))
+				return false;
+		}
 	}
 	
 	pImpl_->wstrPath_ = wstrPath;
