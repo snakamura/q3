@@ -1684,12 +1684,11 @@ QSTATUS qmimap4::FolderListGetter::CallbackImpl::processList(
 			bChildOfRootFolder =
 				wcsncmp(pwszName, pwszRootFolder, nRootFolderLen) == 0 &&
 				*(pwszName + nRootFolderLen) == pList->getSeparator();
-			if (bChildOfRootFolder) {
+			if (bChildOfRootFolder)
 				pwszName = pList->getMailbox() + nRootFolderLen + 1;
-				if (!*pwszName)
-					return QSTATUS_SUCCESS;
-			}
 		}
+		if (!*pwszName)
+			return QSTATUS_SUCCESS;
 		
 		string_ptr<WSTRING> wstr(allocWString(pwszName));
 		if (!wstr.get())
