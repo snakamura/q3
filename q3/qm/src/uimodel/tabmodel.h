@@ -317,7 +317,7 @@ class TabModelContentHandler : public qs::DefaultHandler
 {
 public:
 	TabModelContentHandler(DefaultTabModel* pTabModel,
-						   Document* pDocument);
+						   AccountManager* pAccountManager);
 	virtual ~TabModelContentHandler();
 
 public:
@@ -345,7 +345,7 @@ private:
 
 private:
 	DefaultTabModel* pTabModel_;
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	State state_;
 };
 

@@ -334,8 +334,7 @@ void qm::DefaultTabModel::documentInitialized(const DocumentEvent& event)
 
 void qm::DefaultTabModel::accountListChanged(const AccountManagerEvent& event)
 {
-	const Document::AccountList& listAccount = pDocument_->getAccounts();
-	
+	const AccountManager::AccountList& listAccount = pDocument_->getAccounts();
 	for (ItemList::reverse_iterator it = listItem_.rbegin(); it != listItem_.rend(); ++it) {
 		TabItem* pItem = *it;
 		std::pair<Account*, Folder*> p(pItem->get());
@@ -751,9 +750,9 @@ int qm::TabModelEvent::getAmount() const
  */
 
 qm::TabModelContentHandler::TabModelContentHandler(DefaultTabModel* pTabModel,
-												   Document* pDocument) :
+												   AccountManager* pAccountManager) :
 	pTabModel_(pTabModel),
-	pDocument_(pDocument),
+	pAccountManager_(pAccountManager),
 	state_(STATE_ROOT)
 {
 }
@@ -798,7 +797,7 @@ bool qm::TabModelContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (!pwszAccount)
 			return false;
 		
-		Account* pAccount = pDocument_->getAccount(pwszAccount);
+		Account* pAccount = pAccountManager_->getAccount(pwszAccount);
 		if (pAccount) {
 			Folder* pFolder = 0;
 			if (pwszFolder)
