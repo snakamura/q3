@@ -469,8 +469,10 @@ QSTATUS qm::MainWindowImpl::initActions()
 		pActionMap_, IDM_MESSAGE_MOVE, IDM_MESSAGE_MOVE + 100,
 		pMessageSelectionModel_, pMoveMenu_);
 	CHECK_QSTATUS();
-	status = InitAction1<MessageMoveOtherAction, MessageSelectionModel*>(
-		pActionMap_, IDM_MESSAGE_MOVEOTHER, pMessageSelectionModel_);
+	status = InitAction3<MessageMoveOtherAction,
+		Document*, MessageSelectionModel*, HWND>(
+		pActionMap_, IDM_MESSAGE_MOVEOTHER, pDocument_,
+		pMessageSelectionModel_, pThis_->getHandle());
 	CHECK_QSTATUS();
 	status = InitAction8<MessageOpenURLAction, Document*,
 		FolderModelBase*, MessageSelectionModel*, EditFrameWindowManager*,

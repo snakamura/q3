@@ -686,6 +686,20 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,85,35,50,14
 END
 
+IDD_MOVEMESSAGE DIALOG DISCARDABLE  0, 0, 139, 189
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Move messages"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    CONTROL         "Tree1",IDC_FOLDER,"SysTreeView32",TVS_HASBUTTONS | 
+                    TVS_HASLINES | TVS_SHOWSELALWAYS | WS_BORDER | 
+                    WS_TABSTOP,5,5,130,135
+    CONTROL         "&Copy",IDC_COPY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
+                    145,31,10
+    DEFPUSHBUTTON   "OK",IDOK,30,161,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,85,161,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -864,6 +878,14 @@ BEGIN
     END
 
     IDD_CUSTOMFILTER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 132
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 182
+    END
+
+    IDD_MOVEMESSAGE, DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 132

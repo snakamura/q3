@@ -167,3 +167,22 @@ QSTATUS qm::UIUtil::openURL(HWND hwnd, const WCHAR* pwszURL)
 	
 	return QSTATUS_SUCCESS;
 }
+
+int qm::UIUtil::getFolderImage(Folder* pFolder, bool bSelected)
+{
+	int nImage = 0;
+	unsigned int nFlags = pFolder->getFlags();
+	if (nFlags & Folder::FLAG_INBOX)
+		nImage = 6;
+	else if ((nFlags & Folder::FLAG_OUTBOX) ||
+		(nFlags & Folder::FLAG_SENTBOX) ||
+		(nFlags & Folder::FLAG_DRAFTBOX))
+		nImage = 8;
+	else if (nFlags & Folder::FLAG_TRASHBOX)
+		nImage = 10;
+	else if (bSelected)
+		nImage = 4;
+	else
+		nImage = 2;
+	return nImage;
+}

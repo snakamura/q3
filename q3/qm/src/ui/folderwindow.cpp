@@ -617,7 +617,7 @@ QSTATUS qm::FolderWindowImpl::addAccount(Account* pAccount)
 {
 	DECLARE_QSTATUS();
 	
-	W2T(pAccount->getName(), ptszAccountName);
+	W2T(pAccount->getName(), ptszName);
 	
 	TVINSERTSTRUCT tvisAccount = {
 		TVI_ROOT,
@@ -627,7 +627,7 @@ QSTATUS qm::FolderWindowImpl::addAccount(Account* pAccount)
 			0,
 			0,
 			0,
-			const_cast<LPTSTR>(ptszAccountName),
+			const_cast<LPTSTR>(ptszName),
 			0,
 			I_IMAGECALLBACK,
 			I_IMAGECALLBACK,
@@ -660,48 +660,47 @@ QSTATUS qm::FolderWindowImpl::insertFolders(HTREEITEM hItem, Account* pAccount)
 	
 	const Account::FolderList& l = pAccount->getFolders();
 	Account::FolderList listFolder;
-	status = STLWrapper<Account::FolderList>(listFolder).resize(l.size());
+	status = STLWrapper<Account::FolderList>(listFolder).reserve(l.size());
 	CHECK_QSTATUS();
-	std::copy(l.begin(), l.end(), listFolder.begin());
+	std::remove_copy_if(l.begin(), l.end(),
+		std::back_inserter(listFolder), std::mem_fun(&Folder::isHidden));
 	std::sort(listFolder.begin(), listFolder.end(), FolderLess());
 	
 	Account::FolderList::const_iterator it = listFolder.begin();
 	while (it != listFolder.end()) {
 		Folder* pFolder = *it;
 		
-		if (!pFolder->isHidden()) {
-			TVINSERTSTRUCT tvisFolder = {
-				hItem,
-				TVI_LAST,
-				{
-					TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE,
-					0,
-					0,
-					0,
-					LPSTR_TEXTCALLBACK,
-					0,
-					I_IMAGECALLBACK,
-					I_IMAGECALLBACK,
-					0,
-					reinterpret_cast<LPARAM>(pFolder)
-				}
-			};
-			Folder* pParentFolder = pFolder->getParentFolder();
-			if (pParentFolder) {
-				tvisFolder.hParent = getHandleFromFolder(pParentFolder);
-				assert(tvisFolder.hParent);
+		TVINSERTSTRUCT tvisFolder = {
+			hItem,
+			TVI_LAST,
+			{
+				TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE,
+				0,
+				0,
+				0,
+				LPSTR_TEXTCALLBACK,
+				0,
+				I_IMAGECALLBACK,
+				I_IMAGECALLBACK,
+				0,
+				reinterpret_cast<LPARAM>(pFolder)
 			}
-			
-			HTREEITEM hItemFolder = TreeView_InsertItem(
-				pThis_->getHandle(), &tvisFolder);
-			if (!hItemFolder)
-				return QSTATUS_FAIL;
-			status = wrapper.push_back(std::make_pair(pFolder, hItemFolder));
-			CHECK_QSTATUS();
-			
-			status = pFolder->addFolderHandler(this);
-			CHECK_QSTATUS();
+		};
+		Folder* pParentFolder = pFolder->getParentFolder();
+		if (pParentFolder) {
+			tvisFolder.hParent = getHandleFromFolder(pParentFolder);
+			assert(tvisFolder.hParent);
 		}
+		
+		HTREEITEM hItemFolder = TreeView_InsertItem(
+			pThis_->getHandle(), &tvisFolder);
+		if (!hItemFolder)
+			return QSTATUS_FAIL;
+		status = wrapper.push_back(std::make_pair(pFolder, hItemFolder));
+		CHECK_QSTATUS();
+		
+		status = pFolder->addFolderHandler(this);
+		CHECK_QSTATUS();
 		
 		++it;
 	}
@@ -712,19 +711,7 @@ QSTATUS qm::FolderWindowImpl::insertFolders(HTREEITEM hItem, Account* pAccount)
 int qm::FolderWindowImpl::getFolderImage(Folder* pFolder,
 	bool bSelected, bool bExpanded) const
 {
-	int nImage = 0;
-	unsigned int nFlags = pFolder->getFlags();
-	if (nFlags & Folder::FLAG_INBOX)
-		nImage = 6;
-	else if ((nFlags & Folder::FLAG_OUTBOX) || (nFlags & Folder::FLAG_SENTBOX))
-		nImage = 8;
-	else if (nFlags & Folder::FLAG_TRASHBOX)
-		nImage = 10;
-	else if (bSelected)
-		nImage = 4;
-	else
-		nImage = 2;
-	
+	int nImage = UIUtil::getFolderImage(pFolder, bSelected);
 	bool bUnseen = false;
 	if (bExpanded) {
 		bUnseen = pFolder->getUnseenCount() != 0;

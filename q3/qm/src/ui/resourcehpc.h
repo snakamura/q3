@@ -48,6 +48,7 @@
 #define IDD_MULTIINPUTBOX               148
 #define IDB_SYNCNOTIFICATION            149
 #define IDD_CUSTOMFILTER                150
+#define IDD_MOVEMESSAGE                 151
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -208,6 +209,7 @@
 #define IDC_HIDE                        1117
 #define IDC_TREATASSENT                 1118
 #define IDC_CLASS                       1119
+#define IDC_COPY                        1122
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -371,9 +373,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        151
+#define _APS_NEXT_RESOURCE_VALUE        152
 #define _APS_NEXT_COMMAND_VALUE         48000
-#define _APS_NEXT_CONTROL_VALUE         1121
+#define _APS_NEXT_CONTROL_VALUE         1123
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

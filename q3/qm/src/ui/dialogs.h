@@ -39,6 +39,7 @@ class DefaultDialog;
 	class InputBoxDialog;
 	class InsertTextDialog;
 	class MailFolderDialog;
+	class MoveMessageDialog;
 	class ProgressDialog;
 	class ReplaceDialog;
 	class SelectDialupEntryDialog;
@@ -797,6 +798,51 @@ private:
 
 private:
 	qs::WSTRING wstrMailFolder_;
+};
+
+
+/****************************************************************************
+ *
+ * MoveMessageDialog
+ *
+ */
+
+class MoveMessageDialog : public DefaultDialog, public qs::NotifyHandler
+{
+public:
+	MoveMessageDialog(Document* pDocument, qs::QSTATUS* pstatus);
+	virtual ~MoveMessageDialog();
+
+public:
+	NormalFolder* getFolder() const;
+	bool isCopy() const;
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+public:
+	virtual LRESULT onDestroy();
+	virtual LRESULT onNotify(NMHDR* pnmhdr, bool* pbHandled);
+
+private:
+	LRESULT onFolderSelChanged(NMHDR* pnmhdr, bool* pbHandled);
+
+private:
+	qs::QSTATUS insertAccount(Account* pAccount);
+	qs::QSTATUS insertFolders(HTREEITEM hItem, Account* pAccount);
+	void updateState();
+
+private:
+	MoveMessageDialog(const MoveMessageDialog&);
+	MoveMessageDialog& operator=(const MoveMessageDialog&);
+
+private:
+	Document* pDocument_;
+	NormalFolder* pFolder_;
+	bool bCopy_;
 };
 
 

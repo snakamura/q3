@@ -2792,6 +2792,227 @@ void qm::MailFolderDialog::updateState()
 
 /****************************************************************************
  *
+ * MoveMessageDialog
+ *
+ */
+
+qm::MoveMessageDialog::MoveMessageDialog(Document* pDocument, QSTATUS* pstatus) :
+	DefaultDialog(IDD_MOVEMESSAGE, pstatus),
+	pDocument_(pDocument),
+	pFolder_(0),
+	bCopy_(false)
+{
+}
+
+qm::MoveMessageDialog::~MoveMessageDialog()
+{
+}
+
+NormalFolder* qm::MoveMessageDialog::getFolder() const
+{
+	return pFolder_;
+}
+
+bool qm::MoveMessageDialog::isCopy() const
+{
+	return bCopy_;
+}
+
+LRESULT qm::MoveMessageDialog::onDestroy()
+{
+	HIMAGELIST hImageList = TreeView_SetImageList(getHandle(), 0, TVSIL_NORMAL);
+	ImageList_Destroy(hImageList);
+	
+	removeNotifyHandler(this);
+	
+	return DefaultDialog::onDestroy();
+}
+
+LRESULT qm::MoveMessageDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+{
+	DECLARE_QSTATUS();
+	
+	init(false);
+	
+	HIMAGELIST hImageList = ImageList_LoadImage(
+		Application::getApplication().getResourceHandle(),
+		MAKEINTRESOURCE(IDB_FOLDER), 16, 0, CLR_DEFAULT, IMAGE_BITMAP, 0);
+	TreeView_SetImageList(getDlgItem(IDC_FOLDER), hImageList, TVSIL_NORMAL);
+	
+	const Document::AccountList& listAccount = pDocument_->getAccounts();
+	Document::AccountList::const_iterator it = listAccount.begin();
+	while (it != listAccount.end()) {
+		status = insertAccount(*it);
+		CHECK_QSTATUS();
+		++it;
+	}
+	
+	updateState();
+	addNotifyHandler(this);
+	
+	return TRUE;
+}
+
+LRESULT qm::MoveMessageDialog::onOk()
+{
+	HWND hwnd = getDlgItem(IDC_FOLDER);
+	HTREEITEM hItem = TreeView_GetSelection(hwnd);
+	if (!TreeView_GetParent(hwnd, hItem))
+		return 0;
+	
+	TVITEM item = {
+		TVIF_HANDLE | TVIF_PARAM,
+		hItem
+	};
+	TreeView_GetItem(hwnd, &item);
+	
+	Folder* pFolder = reinterpret_cast<Folder*>(item.lParam);
+	if (pFolder->getType() != Folder::TYPE_NORMAL)
+		return 0;
+	pFolder_ = static_cast<NormalFolder*>(pFolder);
+	
+	bCopy_ = sendDlgItemMessage(IDC_COPY, BM_GETCHECK) == BST_CHECKED;
+	
+	return DefaultDialog::onOk();
+}
+
+LRESULT qm::MoveMessageDialog::onNotify(NMHDR* pnmhdr, bool* pbHandled)
+{
+	BEGIN_NOTIFY_HANDLER()
+		HANDLE_NOTIFY(TVN_SELCHANGED, IDC_FOLDER, onFolderSelChanged);
+	END_NOTIFY_HANDLER()
+	return 1;
+}
+
+LRESULT qm::MoveMessageDialog::onFolderSelChanged(NMHDR* pnmhdr, bool* pbHandled)
+{
+	updateState();
+	*pbHandled = true;
+	return 0;
+}
+
+QSTATUS qm::MoveMessageDialog::insertAccount(Account* pAccount)
+{
+	assert(pAccount);
+	
+	DECLARE_QSTATUS();
+	
+	W2T(pAccount->getName(), ptszName);
+	
+	TVINSERTSTRUCT tvisAccount = {
+		TVI_ROOT,
+		TVI_SORT,
+		{
+			TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE,
+			0,
+			0,
+			0,
+			const_cast<LPTSTR>(ptszName),
+			0,
+			0,
+			0,
+			0,
+			reinterpret_cast<LPARAM>(pAccount)
+		}
+	};
+	HTREEITEM hItemAccount = TreeView_InsertItem(
+		getDlgItem(IDC_FOLDER), &tvisAccount);
+	if (!hItemAccount)
+		return QSTATUS_FAIL;
+	
+	status = insertFolders(hItemAccount, pAccount);
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::MoveMessageDialog::insertFolders(HTREEITEM hItem, Account* pAccount)
+{
+	assert(hItem);
+	assert(pAccount);
+	
+	DECLARE_QSTATUS();
+	
+	const Account::FolderList& l = pAccount->getFolders();
+	Account::FolderList listFolder;
+	status = STLWrapper<Account::FolderList>(listFolder).reserve(l.size());
+	CHECK_QSTATUS();
+	std::remove_copy_if(l.begin(), l.end(),
+		std::back_inserter(listFolder), std::mem_fun(&Folder::isHidden));
+	std::sort(listFolder.begin(), listFolder.end(), FolderLess());
+	
+	typedef std::vector<std::pair<Folder*, HTREEITEM> > Stack;
+	Stack stack;
+	status = STLWrapper<Stack>(stack).push_back(Stack::value_type(0, hItem));
+	CHECK_QSTATUS();
+	
+	Account::FolderList::const_iterator it = listFolder.begin();
+	while (it != listFolder.end()) {
+		Folder* pFolder = *it;
+		
+		W2T(pFolder->getName(), ptszName);
+		
+		TVINSERTSTRUCT tvisFolder = {
+			hItem,
+			TVI_LAST,
+			{
+				TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE,
+				0,
+				0,
+				0,
+				const_cast<LPTSTR>(ptszName),
+				0,
+				UIUtil::getFolderImage(pFolder, false),
+				UIUtil::getFolderImage(pFolder, true),
+				0,
+				reinterpret_cast<LPARAM>(pFolder)
+			}
+		};
+		Folder* pParentFolder = pFolder->getParentFolder();
+		while (stack.back().first != pParentFolder)
+			stack.pop_back();
+		assert(!stack.empty());
+		tvisFolder.hParent = stack.back().second;
+		
+		HTREEITEM hItemFolder = TreeView_InsertItem(
+			getDlgItem(IDC_FOLDER), &tvisFolder);
+		if (!hItemFolder)
+			return QSTATUS_FAIL;
+		
+		status = STLWrapper<Stack>(stack).push_back(
+			Stack::value_type(pFolder, hItemFolder));
+		CHECK_QSTATUS();
+		
+		++it;
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+void qm::MoveMessageDialog::updateState()
+{
+	bool bEnable = false;
+	
+	HWND hwnd = getDlgItem(IDC_FOLDER);
+	HTREEITEM hItem = TreeView_GetSelection(hwnd);
+	if (TreeView_GetParent(hwnd, hItem)) {
+		TVITEM item = {
+			TVIF_HANDLE | TVIF_PARAM,
+			hItem
+		};
+		TreeView_GetItem(hwnd, &item);
+		
+		Folder* pFolder = reinterpret_cast<Folder*>(item.lParam);
+		if (pFolder->getType() == Folder::TYPE_NORMAL)
+			bEnable = true;
+	}
+	
+	Window(getDlgItem(IDOK)).enableWindow(bEnable);
+}
+
+
+/****************************************************************************
+ *
  * ProgressDialog
  *
  */

@@ -37,6 +37,8 @@ public:
 	
 	static qs::QSTATUS formatMenu(const WCHAR* pwszText, qs::WSTRING* pwstrText);
 	static qs::QSTATUS openURL(HWND hwnd, const WCHAR* pwszURL);
+	
+	static int getFolderImage(Folder* pFolder, bool bSelected);
 };
 
 }

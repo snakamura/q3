@@ -252,8 +252,10 @@ QSTATUS qm::MessageFrameWindowImpl::initActions()
 	status = InitActionRange2<MessageMoveAction, MessageSelectionModel*, MoveMenu*>(
 		pActionMap_, IDM_MESSAGE_MOVE, IDM_MESSAGE_MOVE + 900, this, pMoveMenu_);
 	CHECK_QSTATUS();
-	status = InitAction1<MessageMoveOtherAction, MessageSelectionModel*>(
-		pActionMap_, IDM_MESSAGE_MOVEOTHER, this);
+	status = InitAction3<MessageMoveOtherAction,
+		Document*, MessageSelectionModel*, HWND>(
+		pActionMap_, IDM_MESSAGE_MOVEOTHER,
+		pDocument_, this, pThis_->getHandle());
 	CHECK_QSTATUS();
 	status = InitAction2<MessagePropertyAction, MessageSelectionModel*, HWND>(
 		pActionMap_, IDM_MESSAGE_PROPERTY, this, pThis_->getHandle());

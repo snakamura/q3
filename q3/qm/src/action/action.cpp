@@ -1522,7 +1522,8 @@ QSTATUS qm::FolderCompactAction::isEnabled(const ActionEvent& event, bool* pbEna
  *
  */
 
-qm::FolderCreateAction::FolderCreateAction(FolderSelectionModel* pFolderSelectionModel,
+qm::FolderCreateAction::FolderCreateAction(
+	FolderSelectionModel* pFolderSelectionModel,
 	HWND hwndFrame, QSTATUS* pstatus) :
 	pFolderSelectionModel_(pFolderSelectionModel),
 	hwndFrame_(hwndFrame)
@@ -2129,9 +2130,11 @@ QSTATUS qm::MessageMoveAction::isEnabled(const ActionEvent& event, bool* pbEnabl
  *
  */
 
-qm::MessageMoveOtherAction::MessageMoveOtherAction(
-	MessageSelectionModel* pModel, QSTATUS* pstatus) :
-	pModel_(pModel)
+qm::MessageMoveOtherAction::MessageMoveOtherAction(Document* pDocument,
+	MessageSelectionModel* pModel, HWND hwndFrame, QSTATUS* pstatus) :
+	pDocument_(pDocument),
+	pModel_(pModel),
+	hwndFrame_(hwndFrame)
 {
 }
 
@@ -2141,7 +2144,28 @@ qm::MessageMoveOtherAction::~MessageMoveOtherAction()
 
 QSTATUS qm::MessageMoveOtherAction::invoke(const ActionEvent& event)
 {
-	// TODO
+	DECLARE_QSTATUS();
+	
+	MoveMessageDialog dialog(pDocument_, &status);
+	CHECK_QSTATUS();
+	int nRet = 0;
+	status = dialog.doModal(hwndFrame_, 0, &nRet);
+	CHECK_QSTATUS();
+	if (nRet == IDOK) {
+		NormalFolder* pFolderTo = dialog.getFolder();
+		if (pFolderTo) {
+			Folder* pFolderFrom = 0;
+			MessagePtrList l;
+			status = pModel_->getSelectedMessages(&pFolderFrom, &l);
+			CHECK_QSTATUS();
+			if (!l.empty()) {
+				status = pFolderFrom->copyMessages(
+					l, pFolderTo, !dialog.isCopy());
+				CHECK_QSTATUS();
+			}
+		}
+	}
+	
 	return QSTATUS_SUCCESS;
 }
 
