@@ -764,6 +764,9 @@ QSTATUS qm::FileExitAction::invoke(const ActionEvent& event)
 		CHECK_QSTATUS();
 		status = Application::getApplication().save();
 		CHECK_QSTATUS();
+		
+		pDocument_->setOffline(true);
+		pSyncManager_->dispose();
 	}
 	
 	struct CallbackImpl : public TempFileCleanerCallback
@@ -789,8 +792,6 @@ QSTATUS qm::FileExitAction::invoke(const ActionEvent& event)
 		}
 	} callback;
 	pTempFileCleaner_->clean(&callback);
-	
-	pSyncManager_->dispose();
 	
 	pWindow_->destroyWindow();
 	

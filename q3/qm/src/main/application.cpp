@@ -472,8 +472,6 @@ QSTATUS qm::Application::uninitialize()
 	}
 #endif
 	
-	pImpl_->pDocument_->setOffline(true);
-	
 	delete pImpl_->pMenuManager_;
 	pImpl_->pMenuManager_ = 0;
 	
