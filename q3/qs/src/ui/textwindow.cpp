@@ -1850,7 +1850,8 @@ qs::TextWindow::TextWindow(TextModel* pTextModel, Profile* pProfile,
 		{ L"ShowHorizontalScrollBar",	0,	0 },
 		{ L"ShowCaret",					0,	0 },
 		{ L"ShowRuler",					0,	0 },
-		{ L"ReformLineLength",			74,	0 }
+		{ L"ReformLineLength",			74,	0 },
+		{ L"AdjustExtent",				0,	0 },
 	};
 	for (n = 0; n < countof(initNumbers); ++n) {
 		status = pProfile->getInt(pwszSection, initNumbers[n].pwszKey_,
@@ -1885,7 +1886,7 @@ qs::TextWindow::TextWindow(TextModel* pTextModel, Profile* pProfile,
 	LOGFONT lf;
 	::GetObject(font.get(), sizeof(lf), &lf);
 	bool bAdjustExtent = lf.lfPitchAndFamily & FIXED_PITCH &&
-		lf.lfWeight != FW_NORMAL;
+		(initNumbers[14].nValue_ != 0 || lf.lfWeight != FW_NORMAL);
 	
 	TextWindowImpl::URLSchemaList listURLSchema;
 	int nClickableURL = 0;
