@@ -389,6 +389,10 @@ void qm::MainWindowImpl::initActions()
 		IDM_FILE_COMPACT,
 		pFolderModel_.get(),
 		pThis_->getHandle());
+	ADD_ACTION2(FileDumpAction,
+		IDM_FILE_DUMP,
+		pFolderModel_.get(),
+		pThis_->getHandle());
 	ADD_ACTION5(FileExitAction,
 		IDM_FILE_EXIT,
 		pThis_->getHandle(),
@@ -403,6 +407,10 @@ void qm::MainWindowImpl::initActions()
 		pThis_->getHandle());
 	ADD_ACTION2(FileImportAction,
 		IDM_FILE_IMPORT,
+		pFolderModel_.get(),
+		pThis_->getHandle());
+	ADD_ACTION2(FileLoadAction,
+		IDM_FILE_LOAD,
 		pFolderModel_.get(),
 		pThis_->getHandle());
 	ADD_ACTION2(FileOfflineAction,

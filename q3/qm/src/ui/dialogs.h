@@ -1004,6 +1004,8 @@ public:
 	void setRange(unsigned int nMin,
 				  unsigned int nMax);
 	void setPos(unsigned int n);
+	void setStep(unsigned int n);
+	void step();
 
 protected:
 	virtual LRESULT onDestroy();

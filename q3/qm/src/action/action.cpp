@@ -23,8 +23,10 @@
 #include <qmscript.h>
 
 #include <qsconv.h>
+#include <qsfile.h>
 #include <qsstl.h>
 #include <qsstream.h>
+#include <qsuiutil.h>
 #include <qswindow.h>
 
 #include <algorithm>
@@ -778,6 +780,117 @@ bool qm::FileCompactAction::isEnabled(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * FileDumpAction
+ *
+ */
+
+qm::FileDumpAction::FileDumpAction(FolderModel* pFolderModel,
+								   HWND hwnd) :
+								   pFolderModel_(pFolderModel),
+								   hwnd_(hwnd)
+{
+}
+
+qm::FileDumpAction::~FileDumpAction()
+{
+}
+
+void qm::FileDumpAction::invoke(const qs::ActionEvent& event)
+{
+	Account* pAccount = pFolderModel_->getCurrentAccount();
+	if (!pAccount) {
+		Folder* pFolder = pFolderModel_->getCurrentFolder();
+		if (!pFolder)
+			return;
+		pAccount = pFolder->getAccount();
+	}
+	
+	
+	wstring_ptr wstrPath(qs::UIUtil::browseFolder(hwnd_, 0, 0));
+	if (!wstrPath.get())
+		return;
+	
+	Lock<Account> lock(*pAccount);
+	
+	const Account::FolderList& listFolder = pAccount->getFolders();
+	
+	unsigned int nCount = 0;
+	for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
+		Folder* pFolder = *it;
+		if (pFolder->getType() == Folder::TYPE_NORMAL) {
+			if (!pFolder->loadMessageHolders())
+				return;
+			nCount += pFolder->getCount();
+		}
+	}
+	
+	ProgressDialog dialog(IDS_DUMP);
+	ProgressDialogInit init(&dialog, hwnd_, IDS_DUMP, IDS_DUMP, 0, nCount, 0);
+	
+	for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
+		Folder* pFolder = *it;
+		if (pFolder->getType() == Folder::TYPE_NORMAL) {
+			if (!dumpFolder(wstrPath.get(), static_cast<NormalFolder*>(pFolder), &dialog)) {
+				ActionUtil::error(hwnd_, IDS_ERROR_DUMP);
+				return;
+			}
+		}
+	}
+}
+
+bool qm::FileDumpAction::isEnabled(const qs::ActionEvent& event)
+{
+	return pFolderModel_->getCurrentAccount() || pFolderModel_->getCurrentFolder();
+}
+
+bool qm::FileDumpAction::dumpFolder(const WCHAR* pwszPath,
+									NormalFolder* pFolder,
+									ProgressDialog* pDialog)
+{
+	wstring_ptr wstrDir(getDirectory(pwszPath, pFolder));
+	if (!File::createDirectory(wstrDir.get()))
+		return false;
+	
+	unsigned int nCount = pFolder->getCount();
+	for (unsigned int n = 0; n < nCount; ++n) {
+		MessageHolder* pmh = pFolder->getMessage(n);
+		
+		WCHAR wszName[32];
+		swprintf(wszName, L"%u", pmh->getId());
+		
+		wstring_ptr wstrPath(concat(wstrDir.get(), L"\\", wszName));
+		FileOutputStream fileStream(wstrPath.get());
+		if (!fileStream)
+			return false;
+		BufferedOutputStream stream(&fileStream, false);
+		if (!FileExportAction::writeMessage(&stream, pmh, true, 0, 0, false, false))
+			return false;
+		
+		if (pDialog->isCanceled())
+			break;
+		pDialog->step();
+	}
+	
+	return true;
+}
+
+wstring_ptr qm::FileDumpAction::getDirectory(const WCHAR* pwszPath,
+											 NormalFolder* pFolder)
+{
+	assert(pwszPath);
+	assert(pFolder);
+	
+	// TODO
+	// Include flags or something?
+	wstring_ptr wstrName(pFolder->getFullName());
+	std::replace(wstrName.get(), wstrName.get() + wcslen(wstrName.get()),
+		pFolder->getSeparator(), L'\\');
+	return concat(pwszPath, L"\\", wstrName.get());
+}
+
+
+/****************************************************************************
+ *
  * FileExitAction
  *
  */
@@ -972,7 +1085,7 @@ bool qm::FileExportAction::export(const MessageHolderList& l)
 }
 
 bool qm::FileExportAction::writeMessage(OutputStream* pStream,
-										const MessagePtr& ptr,
+										MessageHolder* pmh,
 										bool bAddFlags,
 										const Template* pTemplate,
 										const WCHAR* pwszEncoding,
@@ -980,68 +1093,66 @@ bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 										bool bDecryptVerify)
 {
 	assert(pStream);
+	assert(pmh);
 	assert((pTemplate && pwszEncoding) || (!pTemplate && !pwszEncoding));
 	
-	MessagePtrLock mpl(ptr);
-	if (mpl) {
-		Message msg;
-		unsigned int nFlags = Account::GETMESSAGEFLAG_ALL;
-		if (!bDecryptVerify)
-			nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
-		if (!mpl->getMessage(nFlags, 0, &msg))
+	Message msg;
+	unsigned int nFlags = Account::GETMESSAGEFLAG_ALL;
+	if (!bDecryptVerify)
+		nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
+	if (!pmh->getMessage(nFlags, 0, &msg))
+		return false;
+	
+	if (bAddFlags) {
+		unsigned int nFlags = pmh->getFlags() & MessageHolder::FLAG_USER_MASK;
+		NumberParser flags(nFlags, NumberParser::FLAG_HEX);
+		if (!msg.replaceField(L"X-QMAIL-Flags", flags))
+			return false;
+	}
+	
+	xstring_ptr strContent;
+	if (pTemplate) {
+		// TODO
+		// Process template
+	}
+	else {
+		strContent = msg.getContent();
+		if (!strContent.get())
+			return false;
+	}
+	
+	if (bWriteSeparator) {
+		if (pStream->write(reinterpret_cast<const unsigned char*>("From \r\n"), 7) == -1)
 			return false;
 		
-		if (bAddFlags) {
-			unsigned int nFlags = mpl->getFlags() & MessageHolder::FLAG_USER_MASK;
-			NumberParser flags(nFlags, NumberParser::FLAG_HEX);
-			if (!msg.replaceField(L"X-QMAIL-Flags", flags))
-				return false;
-		}
-		
-		xstring_ptr strContent;
-		if (pTemplate) {
-			// TODO
-			// Process template
-		}
-		else {
-			strContent = msg.getContent();
-			if (!strContent.get())
-				return false;
-		}
-		
-		if (bWriteSeparator) {
-			if (pStream->write(reinterpret_cast<const unsigned char*>("From \r\n"), 7) == -1)
-				return false;
-			
-			const CHAR* p = strContent.get();
-			while (*p) {
-				const CHAR* pCheck = p;
-				while (*pCheck == '>')
-					++pCheck;
-				if (strncmp(pCheck, "From ", 5) == 0) {
-					if (pStream->write(reinterpret_cast<unsigned char*>(">"), 1) == -1)
-						return false;
-				}
-				
-				const CHAR* pEnd = strstr(p, "\r\n");
-				size_t nLen = pEnd ? pEnd - p + 2 : strlen(p);
-				
-				if (pStream->write(reinterpret_cast<const unsigned char*>(p), nLen) == -1)
-					return false;
-				
-				p += nLen;
-			}
-			
-			if (p - strContent.get() < 2 || *(p - 1) != '\n' || *(p - 2) != '\r') {
-				if (pStream->write(reinterpret_cast<const unsigned char*>("\r\n"), 2) == -1)
+		const CHAR* p = strContent.get();
+		while (*p) {
+			const CHAR* pCheck = p;
+			while (*pCheck == '>')
+				++pCheck;
+			if (strncmp(pCheck, "From ", 5) == 0) {
+				if (pStream->write(reinterpret_cast<unsigned char*>(">"), 1) == -1)
 					return false;
 			}
+			
+			const CHAR* pEnd = strstr(p, "\r\n");
+			size_t nLen = pEnd ? pEnd - p + 2 : strlen(p);
+			
+			if (pStream->write(reinterpret_cast<const unsigned char*>(p), nLen) == -1)
+				return false;
+			
+			p += nLen;
 		}
-		else {
-			if (pStream->write(reinterpret_cast<unsigned char*>(strContent.get()),
-				strlen(strContent.get())) == -1)
+		
+		if (p - strContent.get() < 2 || *(p - 1) != '\n' || *(p - 2) != '\r') {
+			if (pStream->write(reinterpret_cast<const unsigned char*>("\r\n"), 2) == -1)
 				return false;
 		}
+	}
+	else {
+		if (pStream->write(reinterpret_cast<unsigned char*>(strContent.get()),
+			strlen(strContent.get())) == -1)
+			return false;
 	}
 	
 	return true;
@@ -1305,6 +1416,107 @@ bool qm::FileImportAction::readLine(InputStream* pStream,
 	*pstrLine = buf.getString();
 	*pbNewLine = bNewLine;
 	
+	return true;
+}
+
+
+/****************************************************************************
+ *
+ * FileLoadAction
+ *
+ */
+
+qm::FileLoadAction::FileLoadAction(FolderModel* pFolderModel,
+								   HWND hwnd) :
+								   pFolderModel_(pFolderModel),
+								   hwnd_(hwnd)
+{
+}
+
+qm::FileLoadAction::~FileLoadAction()
+{
+}
+
+void qm::FileLoadAction::invoke(const qs::ActionEvent& event)
+{
+	Account* pAccount = pFolderModel_->getCurrentAccount();
+	if (!pAccount) {
+		Folder* pFolder = pFolderModel_->getCurrentFolder();
+		if (!pFolder)
+			return;
+		pAccount = pFolder->getAccount();
+	}
+	
+	
+	wstring_ptr wstrPath(qs::UIUtil::browseFolder(hwnd_, 0, 0));
+	if (!wstrPath.get())
+		return;
+	
+	ProgressDialog dialog(IDS_LOAD);
+	ProgressDialogInit init(&dialog, hwnd_, IDS_LOAD, IDS_LOAD, 0, 100, 0);
+	
+	int nPos = 0;
+	if (!loadFolder(pAccount, 0, wstrPath.get(), &dialog, &nPos)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_LOAD);
+		return;
+	}
+}
+
+bool qm::FileLoadAction::isEnabled(const qs::ActionEvent& event)
+{
+	return pFolderModel_->getCurrentAccount() || pFolderModel_->getCurrentFolder();
+}
+
+bool qm::FileLoadAction::loadFolder(Account* pAccount,
+									Folder* pFolder,
+									const WCHAR* pwszPath,
+									ProgressDialog* pDialog,
+									int* pnPos)
+{
+	wstring_ptr wstrFind(concat(pwszPath, L"\\*.*"));
+	W2T(wstrFind.get(), ptszFind);
+	WIN32_FIND_DATA fd;
+	AutoFindHandle hFind(::FindFirstFile(ptszFind, &fd));
+	if (hFind.get()) {
+		do {
+			if (_tcscmp(fd.cFileName, _T(".")) == 0 ||
+				_tcscmp(fd.cFileName, _T("..")) == 0)
+				continue;
+			
+			T2W(fd.cFileName, pwszName);
+			wstring_ptr wstrPath(concat(pwszPath, L"\\", pwszName));
+			if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+				const WCHAR* pwszFullName = pwszName;
+				wstring_ptr wstrFullName;
+				if (pFolder) {
+					wstring_ptr wstrParentName(pFolder->getFullName());
+					WCHAR wszSeparator[] = { pFolder->getSeparator(), L'\0' };
+					wstrFullName = concat(wstrParentName.get(), wszSeparator, pwszName);
+					pwszFullName = wstrFullName.get();
+				}
+				Folder* pChildFolder = pAccount->getFolder(pwszFullName);
+				if (!pChildFolder) {
+					// TODO
+					// Create query folder, specify flags...
+					pChildFolder = pAccount->createNormalFolder(pwszName, pFolder, false);
+					if (!pChildFolder)
+						return false;
+				}
+				if (!loadFolder(pAccount, pChildFolder, wstrPath.get(), pDialog, pnPos))
+					return false;
+			}
+			else if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL) {
+				FileInputStream fileStream(wstrPath.get());
+				if (!fileStream)
+					return false;
+				BufferedInputStream stream(&fileStream, false);
+				bool bCanceled = false;
+				if (!FileImportAction::readMessage(static_cast<NormalFolder*>(pFolder),
+					&stream, false, 0, pDialog, pnPos, &bCanceled))
+					return false;
+			}
+		} while (::FindNextFile(hFind.get(), &fd));
+	}
 	return true;
 }
 

@@ -3181,6 +3181,16 @@ void qm::ProgressDialog::setPos(unsigned int n)
 	sendDlgItemMessage(IDC_PROGRESS, PBM_SETPOS, n);
 }
 
+void qm::ProgressDialog::setStep(unsigned int n)
+{
+	sendDlgItemMessage(IDC_PROGRESS, PBM_SETSTEP, n);
+}
+
+void qm::ProgressDialog::step()
+{
+	sendDlgItemMessage(IDC_PROGRESS, PBM_STEPIT);
+}
+
 LRESULT qm::ProgressDialog::onDestroy()
 {
 	return DefaultDialog::onDestroy();

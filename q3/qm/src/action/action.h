@@ -39,9 +39,11 @@ class EditPasteMessageAction;
 class EditSelectAllMessageAction;
 class FileCloseAction;
 class FileCompactAction;
+class FileDumpAction;
 class FileExitAction;
 class FileExportAction;
 class FileImportAction;
+class FileLoadAction;
 class FileOfflineAction;
 class FilePrintAction;
 class FileSalvageAction;
@@ -603,6 +605,42 @@ private:
 
 /****************************************************************************
  *
+ * FileDumpAction
+ *
+ */
+
+class FileDumpAction : public qs::AbstractAction
+{
+public:
+	FileDumpAction(FolderModel* pFolderModel,
+				   HWND hwnd);
+	virtual ~FileDumpAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	bool dumpFolder(const WCHAR* pwszPath,
+					NormalFolder* pFolder,
+					ProgressDialog* pDialog);
+
+private:
+	static qs::wstring_ptr getDirectory(const WCHAR* pwszPath,
+										NormalFolder* pFolder);
+
+private:
+	FileDumpAction(const FileDumpAction&);
+	FileDumpAction& operator=(const FileDumpAction&);
+
+private:
+	FolderModel* pFolderModel_;
+	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
  * FileExitAction
  *
  */
@@ -657,9 +695,9 @@ public:
 private:
 	bool export(const MessageHolderList& l);
 
-private:
+public:
 	static bool writeMessage(qs::OutputStream* pStream,
-							 const MessagePtr& ptr,
+							 MessageHolder* pmh,
 							 bool bAddFlags,
 							 const Template* pTemplate,
 							 const WCHAR* pwszEncoding,
@@ -716,6 +754,40 @@ private:
 private:
 	FileImportAction(const FileImportAction&);
 	FileImportAction& operator=(const FileImportAction&);
+
+private:
+	FolderModel* pFolderModel_;
+	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * FileLoadAction
+ *
+ */
+
+class FileLoadAction : public qs::AbstractAction
+{
+public:
+	FileLoadAction(FolderModel* pFolderModel,
+				   HWND hwnd);
+	virtual ~FileLoadAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	bool loadFolder(Account* pAccount,
+					Folder* pFolder,
+					const WCHAR* pwszPath,
+					ProgressDialog* pDialog,
+					int* pnPos);
+
+private:
+	FileLoadAction(const FileLoadAction&);
+	FileLoadAction& operator=(const FileLoadAction&);
 
 private:
 	FolderModel* pFolderModel_;

@@ -311,6 +311,7 @@ qm::ProgressDialogInit::ProgressDialogInit(ProgressDialog* pDialog,
 	pDialog->setMessage(nMessage);
 	pDialog->setRange(nMin, nMax);
 	pDialog->setPos(nPos);
+	pDialog->setStep(1);
 }
 
 qm::ProgressDialogInit::~ProgressDialogInit()

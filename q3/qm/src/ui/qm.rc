@@ -1224,6 +1224,8 @@ BEGIN
     IDS_SYNCHRONIZING       "This operation is not allowed while synchronizing."
     IDS_COMPACT             "Compacting..."
     IDS_SALVAGE             "Salvaging messages..."
+    IDS_DUMP                "Dumping messages..."
+    IDS_LOAD                "Loading messages..."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1260,6 +1262,8 @@ BEGIN
     IDS_ERROR_OPENFILE      "Error occured while opening file."
     IDS_ERROR_SAVEFILE      "Error occured while saving file."
     IDS_ERROR_SEND          "Error occured while sending."
+    IDS_ERROR_DUMP          "Error occured while dumping messages."
+    IDS_ERROR_LOAD          "Error occured while loading messages."
 END
 
 #endif    // “ú–{Œê resources

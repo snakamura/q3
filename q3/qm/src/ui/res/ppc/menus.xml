@@ -9,6 +9,8 @@
 			<separator/>
 			<menuitem text="&amp;Compact" action="FileCompact"/>
 			<menuitem text="Sa&amp;lvage" action="FileSalvage"/>
+			<menuitem text="&amp;Dump..." action="FileDump"/>
+			<menuitem text="Lo&amp;ad..." action="FileLoad"/>
 			<separator/>
 			<menuitem text="Offline" action="FileOffline"/>
 			<separator/>
