@@ -45,6 +45,7 @@ public:
 	void destroy() const;
 	void layout(const RECT& rect,
 				unsigned int nFontHeight);
+	void setFont(const std::pair<HFONT, HFONT>& fonts);
 
 public:
 	void setLineSpacing(unsigned int nLineSpacing);
@@ -89,6 +90,7 @@ public:
 				unsigned int nFontHeight,
 				unsigned int* pnHeight) const;
 	void show(bool bShow) const;
+	void setFont(const std::pair<HFONT, HFONT>& fonts);
 
 public:
 	void addItem(std::auto_ptr<LineLayoutItem> pItem);
@@ -150,6 +152,7 @@ public:
 						const RECT& rect,
 						unsigned int nFontHeight) = 0;
 	virtual void show(bool bShow) = 0;
+	virtual void setFont(const std::pair<HFONT, HFONT>& fonts) = 0;
 
 public:
 	static bool parseWidth(const WCHAR* pwszWidth,

@@ -1812,6 +1812,7 @@ void qm::MainWindow::initialShow()
 void qm::MainWindow::layout()
 {
 	pImpl_->layoutChildren();
+	pImpl_->pMessageWindow_->layout();
 }
 
 bool qm::MainWindow::save()

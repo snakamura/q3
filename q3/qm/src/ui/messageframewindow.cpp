@@ -691,6 +691,17 @@ void qm::MessageFrameWindow::initialShow()
 	showWindow(pImpl_->nInitialShow_);
 }
 
+void qm::MessageFrameWindow::layout()
+{
+	pImpl_->layoutChildren();
+	pImpl_->pMessageWindow_->layout();
+}
+
+void qm::MessageFrameWindow::reloadProfiles()
+{
+	pImpl_->pMessageWindow_->reloadProfiles();
+}
+
 bool qm::MessageFrameWindow::save()
 {
 	if (!pImpl_->pMessageWindow_->save())
@@ -1142,6 +1153,23 @@ void qm::MessageFrameWindowManager::postModalDialog(HWND hwndParent)
 		if ((*it)->getHandle() != hwndParent)
 			(*it)->enableWindow(true);
 	}
+}
+
+void qm::MessageFrameWindowManager::layout()
+{
+	for (FrameList::const_iterator it = listFrame_.begin(); it != listFrame_.end(); ++it)
+		(*it)->layout();
+}
+
+void qm::MessageFrameWindowManager::reloadProfiles()
+{
+	if (pCachedFrame_) {
+		pCachedFrame_->destroyWindow();
+		pCachedFrame_ = 0;
+	}
+	
+	for (FrameList::const_iterator it = listFrame_.begin(); it != listFrame_.end(); ++it)
+		(*it)->reloadProfiles();
 }
 
 bool qm::MessageFrameWindowManager::save() const

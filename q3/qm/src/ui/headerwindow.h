@@ -208,6 +208,7 @@ public:
 						const RECT& rect,
 						unsigned int nFontHeight);
 	virtual void show(bool bShow);
+	virtual void setFont(const std::pair<HFONT, HFONT>& fonts);
 
 public:
 	virtual void setMessage(const TemplateContext* pContext);
@@ -321,6 +322,7 @@ public:
 						const RECT& rect,
 						unsigned int nFontHeight);
 	virtual void show(bool bShow);
+	virtual void setFont(const std::pair<HFONT, HFONT>& fonts);
 
 public:
 	virtual void setMessage(const TemplateContext* pContext);

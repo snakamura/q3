@@ -12,6 +12,7 @@
 #include <qmfolderwindow.h>
 #include <qmlistwindow.h>
 #include <qmmainwindow.h>
+#include <qmmessagewindow.h>
 #include <qmtabwindow.h>
 
 #include <qsras.h>
@@ -21,6 +22,7 @@
 #include <tchar.h>
 
 #include "addressbookwindow.h"
+#include "messageframewindow.h"
 #include "optiondialog.h"
 #include "resourceinc.h"
 #include "../sync/syncmanager.h"
@@ -173,6 +175,7 @@ LRESULT qm::OptionDialog::onInitDialog(HWND hwndFocus,
 		{ PANEL_LISTWINDOW,		IDS_PANEL_LISTWINDOW		},
 		{ PANEL_PREVIEWWINDOW,	IDS_PANEL_PREVIEWWINDOW		},
 		{ PANEL_MESSAGEWINDOW,	IDS_PANEL_MESSAGEWINDOW		},
+		{ PANEL_HEADERWINDOW,	IDS_PANEL_HEADERWINDOW		},
 		{ PANEL_EDITWINDOW,		IDS_PANEL_EDITWINDOW		},
 #ifdef QMTABWINDOW
 		{ PANEL_TABWINDOW,		IDS_PANEL_TABWINDOW			},
@@ -252,6 +255,8 @@ LRESULT qm::OptionDialog::onOk()
 	unsigned int nFlags = context.getFlags();
 	if (nFlags & OptionDialogContext::FLAG_LAYOUTMAINWINDOW)
 		pMainWindow_->layout();
+	if (nFlags & OptionDialogContext::FLAG_LAYOUTMESSAGEWINDOW)
+		pMessageFrameWindowManager_->layout();
 	
 	nEnd_ = IDOK;
 	return 0;
@@ -418,6 +423,7 @@ void qm::OptionDialog::setCurrentPanel(Panel panel)
 			PANEL3(PANEL_LISTWINDOW, OptionListWindow, pListWindow_, pFolderListWindow_, pProfile_);
 			PANEL2(PANEL_PREVIEWWINDOW, OptionPreviewWindow, pPreviewWindow_, pProfile_);
 			PANEL2(PANEL_MESSAGEWINDOW, OptionMessageWindow, pMessageFrameWindowManager_, pProfile_);
+			PANEL3(PANEL_HEADERWINDOW, OptionHeaderWindow, pMessageFrameWindowManager_, pPreviewWindow_, pProfile_);
 			PANEL2(PANEL_EDITWINDOW, OptionEditWindow, pEditFrameWindowManager_, pProfile_);
 #ifdef QMTABWINDOW
 			PANEL2(PANEL_TABWINDOW, OptionTabWindow, pTabWindow_, pProfile_);
@@ -1100,6 +1106,62 @@ bool qm::OptionFolderWindowDialog::save(OptionDialogContext* pContext)
 }
 
 LRESULT qm::OptionFolderWindowDialog::onFont()
+{
+	UIUtil::browseFont(getParentPopup(), &lf_);
+	return 0;
+}
+
+
+/****************************************************************************
+ *
+ * OptionHeaderWindowDialog
+ *
+ */
+
+qm::OptionHeaderWindowDialog::OptionHeaderWindowDialog(MessageFrameWindowManager* pMessageFrameWindowManager,
+													   MessageWindow* pPreviewWindow,
+													   Profile* pProfile) :
+	DefaultDialog(IDD_OPTIONHEADERWINDOW),
+	pMessageFrameWindowManager_(pMessageFrameWindowManager),
+	pPreviewWindow_(pPreviewWindow),
+	pProfile_(pProfile)
+{
+	UIUtil::getLogFontFromProfile(pProfile_, L"HeaderWindow", false, &lf_);
+}
+
+qm::OptionHeaderWindowDialog::~OptionHeaderWindowDialog()
+{
+}
+
+LRESULT qm::OptionHeaderWindowDialog::onCommand(WORD nCode,
+											  WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_FONT, onFont)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::OptionHeaderWindowDialog::onInitDialog(HWND hwndFocus,
+												 LPARAM lParam)
+{
+	return FALSE;
+}
+
+bool qm::OptionHeaderWindowDialog::save(OptionDialogContext* pContext)
+{
+	UIUtil::setLogFontToProfile(pProfile_, L"HeaderWindow", lf_);
+	
+	pMessageFrameWindowManager_->reloadProfiles();
+	pPreviewWindow_->reloadProfiles();
+	
+	pContext->setFlags(OptionDialogContext::FLAG_LAYOUTMAINWINDOW |
+		OptionDialogContext::FLAG_LAYOUTMESSAGEWINDOW);
+	
+	return true;
+}
+
+LRESULT qm::OptionHeaderWindowDialog::onFont()
 {
 	UIUtil::browseFont(getParentPopup(), &lf_);
 	return 0;

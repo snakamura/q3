@@ -37,6 +37,7 @@ class OptionAddressBookDialog;
 class OptionEditWindowDialog;
 class OptionFolderComboBoxDialog;
 class OptionFolderWindowDialog;
+class OptionHeaderWindowDialog;
 class OptionListWindowDialog;
 class OptionMessageWindowDialog;
 class OptionPreviewWindowDialog;
@@ -105,6 +106,7 @@ public:
 		PANEL_LISTWINDOW,
 		PANEL_PREVIEWWINDOW,
 		PANEL_MESSAGEWINDOW,
+		PANEL_HEADERWINDOW,
 		PANEL_EDITWINDOW,
 #ifdef QMTABWINDOW
 		PANEL_TABWINDOW,
@@ -278,7 +280,8 @@ class OptionDialogContext
 {
 public:
 	enum Flag {
-		FLAG_LAYOUTMAINWINDOW	= 0x01
+		FLAG_LAYOUTMAINWINDOW		= 0x01,
+		FLAG_LAYOUTMESSAGEWINDOW	= 0x02
 	};
 
 public:
@@ -520,6 +523,48 @@ private:
 
 private:
 	FolderWindow* pFolderWindow_;
+	qs::Profile* pProfile_;
+	LOGFONT lf_;
+};
+
+
+/****************************************************************************
+ *
+ * OptionHeaderWindowDialog
+ *
+ */
+
+class OptionHeaderWindowDialog :
+	public DefaultDialog,
+	public AbstractOptionDialogPanel<OptionHeaderWindowDialog>
+{
+public:
+	OptionHeaderWindowDialog(MessageFrameWindowManager* pMessageFrameWindowManager,
+							 MessageWindow* pPreviewWindow,
+							 qs::Profile* pProfile);
+	virtual ~OptionHeaderWindowDialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+public:
+	virtual bool save(OptionDialogContext* pContext);
+
+private:
+	LRESULT onFont();
+
+private:
+	OptionHeaderWindowDialog(const OptionHeaderWindowDialog&);
+	OptionHeaderWindowDialog& operator=(const OptionHeaderWindowDialog&);
+
+private:
+	MessageFrameWindowManager* pMessageFrameWindowManager_;
+	MessageWindow* pPreviewWindow_;
 	qs::Profile* pProfile_;
 	LOGFONT lf_;
 };

@@ -510,6 +510,18 @@ AttachmentSelectionModel* qm::MessageWindow::getAttachmentSelectionModel() const
 	return pImpl_->pHeaderWindow_->getAttachmentSelectionModel();
 }
 
+void qm::MessageWindow::layout()
+{
+	pImpl_->layoutChildren();
+}
+
+void qm::MessageWindow::reloadProfiles()
+{
+	// TODO
+	
+	pImpl_->pHeaderWindow_->reloadProfiles();
+}
+
 bool qm::MessageWindow::save()
 {
 	Profile* pProfile = pImpl_->pProfile_;

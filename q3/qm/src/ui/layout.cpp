@@ -99,6 +99,12 @@ void qm::LineLayout::layout(const RECT& rect,
 	Window::endDeferWindowPos(hdwp);
 }
 
+void qm::LineLayout::setFont(const std::pair<HFONT, HFONT>& fonts)
+{
+	for (LineList::const_iterator it = listLine_.begin(); it != listLine_.end(); ++it)
+		(*it)->setFont(fonts);
+}
+
 void qm::LineLayout::setLineSpacing(unsigned int nLineSpacing)
 {
 	nLineSpacing_ = nLineSpacing;
@@ -236,6 +242,12 @@ void qm::LineLayoutLine::show(bool bShow) const
 {
 	for (ItemList::const_iterator it = listItem_.begin(); it != listItem_.end(); ++it)
 		(*it)->show(bShow);
+}
+
+void qm::LineLayoutLine::setFont(const std::pair<HFONT, HFONT>& fonts)
+{
+	for (ItemList::const_iterator it = listItem_.begin(); it != listItem_.end(); ++it)
+		(*it)->setFont(fonts);
 }
 
 void qm::LineLayoutLine::addItem(std::auto_ptr<LineLayoutItem> pItem)

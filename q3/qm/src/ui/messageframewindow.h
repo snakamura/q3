@@ -61,6 +61,8 @@ public:
 	void close(MessageFrameWindow* pMessageFrameWindow);
 	void preModalDialog(HWND hwndParent);
 	void postModalDialog(HWND hwndParent);
+	void layout();
+	void reloadProfiles();
 	bool save() const;
 
 private:

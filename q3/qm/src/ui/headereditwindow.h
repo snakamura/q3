@@ -218,6 +218,7 @@ public:
 						const RECT& rect,
 						unsigned int nFontHeight);
 	virtual void show(bool bShow);
+	virtual void setFont(const std::pair<HFONT, HFONT>& fonts);
 
 public:
 	virtual void fieldChanged(const EditMessageFieldEvent& event);
@@ -459,6 +460,7 @@ public:
 						const RECT& rect,
 						unsigned int nFontHeight);
 	virtual void show(bool bShow);
+	virtual void setFont(const std::pair<HFONT, HFONT>& fonts);
 
 public:
 	virtual void setFocus();
@@ -555,6 +557,7 @@ public:
 						const RECT& rect,
 						unsigned int nFontHeight);
 	virtual void show(bool bShow);
+	virtual void setFont(const std::pair<HFONT, HFONT>& fonts);
 
 public:
 	virtual void setFocus();
@@ -571,6 +574,11 @@ protected:
 
 #ifdef _WIN32_WCE
 private:
+	int calcItemHeight(HFONT hfont);
+#endif
+
+#ifdef _WIN32_WCE
+private:
 	class ComboBoxEditWindow :
 		public qs::WindowBase,
 		public qs::DefaultWindowHandler
@@ -579,6 +587,9 @@ private:
 		ComboBoxEditWindow(HWND hwnd,
 						   int nItemHeight);
 		virtual ~ComboBoxEditWindow();
+	
+	public:
+		void setItemHeight(int nItemHeight);
 	
 	public:
 		virtual LRESULT windowProc(UINT uMsg,
@@ -606,6 +617,9 @@ private:
 	std::auto_ptr<EditWindowItemWindow> pItemWindow_;
 	qs::WindowBase* pParent_;
 	UINT nId_;
+#ifdef _WIN32_WCE
+	ComboBoxEditWindow* pComboBoxEditWindow_;
+#endif
 };
 
 

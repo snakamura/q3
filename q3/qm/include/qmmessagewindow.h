@@ -60,6 +60,8 @@ public:
 	MessageMessageModel* getMessageModel() const;
 	const ActionInvoker* getActionInvoker() const;
 	void initialShow();
+	void layout();
+	void reloadProfiles();
 	bool save();
 	
 	bool isShowToolbar() const;
@@ -153,6 +155,8 @@ public:
 	MessageViewModeHolder* getMessageViewModeHolder() const;
 	AttachmentSelectionModel* getAttachmentSelectionModel() const;
 	
+	void layout();
+	void reloadProfiles();
 	bool save();
 	
 	void addMessageWindowHandler(MessageWindowHandler* pHandler);
@@ -282,6 +286,7 @@ public:
 	bool isActive() const;
 	MessageWindowItem* getFocusedItem() const;
 	AttachmentSelectionModel* getAttachmentSelectionModel() const;
+	void reloadProfiles();
 
 public:
 	virtual void getWindowClass(WNDCLASS* pwc);

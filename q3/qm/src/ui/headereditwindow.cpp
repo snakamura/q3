@@ -645,6 +645,11 @@ void qm::TextHeaderEditItem::show(bool bShow)
 	Window(hwnd_).showWindow(bShow ? SW_SHOW : SW_HIDE);
 }
 
+void qm::TextHeaderEditItem::setFont(const std::pair<HFONT, HFONT>& fonts)
+{
+	Window(hwnd_).setFont((nStyle_ & STYLE_BOLD) ? fonts.second : fonts.first);
+}
+
 void qm::TextHeaderEditItem::fieldChanged(const EditMessageFieldEvent& event)
 {
 	if (!getValue() && wcsicmp(event.getName(), wstrField_.get()) == 0)
@@ -1259,6 +1264,11 @@ void qm::AttachmentHeaderEditItem::show(bool bShow)
 	wnd_.showWindow(bShow ? SW_SHOW : SW_HIDE);
 }
 
+void qm::AttachmentHeaderEditItem::setFont(const std::pair<HFONT, HFONT>& fonts)
+{
+	wnd_.setFont(fonts.first);
+}
+
 void qm::AttachmentHeaderEditItem::setFocus()
 {
 	wnd_.setFocus();
@@ -1464,6 +1474,9 @@ qm::ComboBoxHeaderEditItem::ComboBoxHeaderEditItem(EditWindowFocusController* pC
 	pParent_(0),
 	nId_(0)
 {
+#ifdef _WIN32_WCE
+	pComboBoxEditWindow_ = 0;
+#endif
 }
 
 qm::ComboBoxHeaderEditItem::~ComboBoxHeaderEditItem()
@@ -1519,12 +1532,7 @@ bool qm::ComboBoxHeaderEditItem::create(WindowBase* pParent,
 	Window(hwnd_).setFont(fonts.first);
 	
 #ifdef _WIN32_WCE
-	ClientDeviceContext dc(hwnd_);
-	ObjectSelector<HFONT> selector(dc, fonts.first);
-	TEXTMETRIC tm;
-	dc.getTextMetrics(&tm);
-	int nItemHeight = tm.tmHeight + tm.tmExternalLeading + 2;
-	new ComboBoxEditWindow(hwnd_, nItemHeight);
+	pComboBoxEditWindow_ = new ComboBoxEditWindow(hwnd_, calcItemHeight(fonts.first));
 #endif
 	
 	pItemWindow_.reset(new EditWindowItemWindow(getController(), this, hwnd_));
@@ -1556,6 +1564,14 @@ void qm::ComboBoxHeaderEditItem::show(bool bShow)
 	Window(hwnd_).showWindow(bShow ? SW_SHOW : SW_HIDE);
 }
 
+void qm::ComboBoxHeaderEditItem::setFont(const std::pair<HFONT, HFONT>& fonts)
+{
+	Window(hwnd_).setFont(fonts.first);
+#ifdef _WIN32_WCE
+	pComboBoxEditWindow_->setItemHeight(calcItemHeight(fonts.first));
+#endif
+}
+
 void qm::ComboBoxHeaderEditItem::setFocus()
 {
 	Window(hwnd_).setFocus();
@@ -1580,6 +1596,16 @@ HWND qm::ComboBoxHeaderEditItem::getHandle() const
 	return hwnd_;
 }
 
+#ifdef _WIN32_WCE
+int qm::ComboBoxHeaderEditItem::calcItemHeight(HFONT hfont)
+{
+	ClientDeviceContext dc(hwnd_);
+	ObjectSelector<HFONT> selector(dc, hfont);
+	TEXTMETRIC tm;
+	dc.getTextMetrics(&tm);
+	return tm.tmHeight + tm.tmExternalLeading + 2;
+}
+#endif
 
 #ifdef _WIN32_WCE
 /****************************************************************************
@@ -1599,6 +1625,11 @@ qm::ComboBoxHeaderEditItem::ComboBoxEditWindow::ComboBoxEditWindow(HWND hwnd,
 
 qm::ComboBoxHeaderEditItem::ComboBoxEditWindow::~ComboBoxEditWindow()
 {
+}
+
+void qm::ComboBoxHeaderEditItem::ComboBoxEditWindow::setItemHeight(int nItemHeight)
+{
+	nItemHeight_ = nItemHeight;
 }
 
 LRESULT qm::ComboBoxHeaderEditItem::ComboBoxEditWindow::windowProc(UINT uMsg,

@@ -54,6 +54,7 @@ public:
 public:
 	bool load(MenuManager* pMenuManager);
 	bool create(MenuManager* pMenuManager);
+	void reloadProfiles(bool bInitialize);
 
 public:
 	virtual void registerCallback(TextHeaderItem* pItem,
@@ -103,6 +104,26 @@ bool qm::HeaderWindowImpl::create(MenuManager* pMenuManager)
 	return true;
 }
 
+void qm::HeaderWindowImpl::reloadProfiles(bool bInitialize)
+{
+	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_, L"HeaderWindow", false);
+	LOGFONT lf;
+	::GetObject(hfont, sizeof(lf), &lf);
+	lf.lfWeight = FW_BOLD;
+	HFONT hfontBold = ::CreateFontIndirect(&lf);
+	if (!bInitialize) {
+		assert(hfont_);
+		::DeleteObject(hfont_);
+		assert(hfontBold_);
+		::DeleteObject(hfontBold_);
+		
+		std::pair<HFONT, HFONT> fonts(hfont, hfontBold);
+		pLayout_->setFont(fonts);
+	}
+	hfont_ = hfont;
+	hfontBold_ = hfontBold;
+}
+
 void qm::HeaderWindowImpl::registerCallback(TextHeaderItem* pItem,
 											TextHeaderItemCallback* pCallback)
 {
@@ -127,6 +148,8 @@ qm::HeaderWindow::HeaderWindow(Profile* pProfile) :
 	pImpl_->hfontBold_ = 0;
 	pImpl_->hbrBackground_ = 0;
 	pImpl_->pAttachmentSelectionModel_ = 0;
+	
+	pImpl_->reloadProfiles(true);
 	
 	setWindowHandler(this, false);
 }
@@ -193,6 +216,11 @@ AttachmentSelectionModel* qm::HeaderWindow::getAttachmentSelectionModel() const
 	return pImpl_->pAttachmentSelectionModel_;
 }
 
+void qm::HeaderWindow::reloadProfiles()
+{
+	pImpl_->reloadProfiles(false);
+}
+
 void qm::HeaderWindow::getWindowClass(WNDCLASS* pwc)
 {
 	DefaultWindowHandler::getWindowClass(pwc);
@@ -218,13 +246,6 @@ LRESULT qm::HeaderWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	HeaderWindowCreateContext* pContext =
 		static_cast<HeaderWindowCreateContext*>(pCreateStruct->lpCreateParams);
-	
-	pImpl_->hfont_ = UIUtil::createFontFromProfile(
-		pImpl_->pProfile_, L"HeaderWindow", false);
-	LOGFONT lf;
-	::GetObject(pImpl_->hfont_, sizeof(lf), &lf);
-	lf.lfWeight = FW_BOLD;
-	pImpl_->hfontBold_ = ::CreateFontIndirect(&lf);
 	
 	wstring_ptr wstrClassName(getClassName());
 	W2T(wstrClassName.get(), ptszClassName);
@@ -543,6 +564,11 @@ void qm::TextHeaderItem::show(bool bShow)
 	Window(hwnd_).showWindow(bShow ? SW_SHOW : SW_HIDE);
 }
 
+void qm::TextHeaderItem::setFont(const std::pair<HFONT, HFONT>& fonts)
+{
+	Window(hwnd_).setFont((nStyle_ & STYLE_BOLD) ? fonts.second : fonts.first);
+}
+
 void qm::TextHeaderItem::setMessage(const TemplateContext* pContext)
 {
 	if (pContext) {
@@ -775,6 +801,11 @@ HDWP qm::AttachmentHeaderItem::layout(HDWP hdwp,
 void qm::AttachmentHeaderItem::show(bool bShow)
 {
 	wnd_.showWindow(bShow ? SW_SHOW : SW_HIDE);
+}
+
+void qm::AttachmentHeaderItem::setFont(const std::pair<HFONT, HFONT>& fonts)
+{
+	wnd_.setFont(fonts.first);
 }
 
 void qm::AttachmentHeaderItem::setMessage(const TemplateContext* pContext)
