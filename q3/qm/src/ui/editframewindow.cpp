@@ -844,7 +844,8 @@ void qm::EditFrameWindowManager::close(EditFrameWindow* pEditFrameWindow)
 	if (it != listFrame_.end())
 		listFrame_.erase(it);
 	
-	EditMessageHolder* pHolder = (*it)->getEditWindow()->getEditMessageHolder();
+	EditWindow* pEditWindow = pEditFrameWindow->getEditWindow();
+	EditMessageHolder* pHolder = pEditWindow->getEditMessageHolder();
 	pHolder->releaseEditMessage();
 	pEditFrameWindow->destroyWindow();
 }
