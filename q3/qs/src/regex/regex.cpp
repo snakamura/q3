@@ -91,6 +91,25 @@ QSTATUS qs::RegexPattern::match(const WCHAR* pwsz,
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qs::RegexPattern::search(const WCHAR* pwsz, size_t nLen,
+	const WCHAR** ppStart, const WCHAR** ppEnd, RangeList* pList) const
+{
+	assert(pwsz);
+	assert(ppStart);
+	assert(ppEnd);
+	
+	DECLARE_QSTATUS();
+	
+	if (nLen == -1)
+		nLen = wcslen(pwsz);
+	
+	RegexNfaMatcher matcher(pImpl_->pNfa_);
+	status = matcher.search(pwsz, nLen, ppStart, ppEnd, pList);
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
 
 /****************************************************************************
  *

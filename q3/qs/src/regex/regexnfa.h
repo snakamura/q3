@@ -48,7 +48,7 @@ public:
 	QSTATUS createState(unsigned int* pn);
 	QSTATUS setTransition(unsigned int nFrom,
 		unsigned int nTo, const RegexAtom* pAtom);
-	QSTATUS pushGroup();
+	QSTATUS pushGroup(unsigned int nGroup);
 	void popGroup();
 
 private:
@@ -56,14 +56,13 @@ private:
 	RegexNfa& operator=(const RegexNfa&);
 
 private:
-	typedef std::vector<RegexNfaState*> StateList;
+	typedef std::vector<std::pair<RegexNfaState*, RegexNfaState*> > StateList;
 	typedef std::vector<unsigned int> GroupStack;
 
 private:
 	RegexNode* pNode_;
 	StateList listState_;
 	GroupStack stackGroup_;
-	unsigned int nMaxGroup_;
 };
 
 
@@ -80,7 +79,7 @@ public:
 
 public:
 	RegexNfaState(const RegexAtom* pAtom, unsigned int nTo,
-		const GroupList& listGroup, RegexNfaState* pNext, QSTATUS* pstatus);
+		const GroupList& listGroup, RegexNfaState* pPrev, QSTATUS* pstatus);
 	~RegexNfaState();
 
 public:
@@ -88,7 +87,7 @@ public:
 	bool isEpsilon() const;
 	unsigned int getTo() const;
 	const GroupList& getGroupList() const;
-	const RegexNfaState* getNext() const;
+	RegexNfaState* getNext() const;
 
 private:
 	RegexNfaState(const RegexNfaState&);
@@ -150,6 +149,12 @@ public:
 public:
 	QSTATUS match(const WCHAR* pwsz, size_t nLen,
 		bool* pbMatch, RegexPattern::RangeList* pList);
+	QSTATUS search(const WCHAR* pwsz, size_t nLen, const WCHAR** ppStart,
+		const WCHAR** ppEnd, RegexPattern::RangeList* pList);
+
+private:
+	QSTATUS match(const WCHAR* pStart, const WCHAR* pEnd, bool bMatch,
+		const WCHAR** ppEnd, RegexPattern::RangeList* pList);
 
 private:
 	RegexNfaMatcher(const RegexNfaMatcher&);

@@ -57,6 +57,8 @@ public:
 	QSTATUS match(const WCHAR* pwsz, bool* pbMatch) const;
 	QSTATUS match(const WCHAR* pwsz, size_t nLen,
 		bool* pbMatch, RangeList* pList) const;
+	QSTATUS search(const WCHAR* pwsz, size_t nLen, const WCHAR** ppStart,
+		const WCHAR** ppEnd, RangeList* pList) const;
 
 private:
 	RegexPattern(const RegexPattern&);

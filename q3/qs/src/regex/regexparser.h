@@ -64,11 +64,12 @@ public:
 	typedef std::vector<RegexNode*> NodeList;
 
 public:
-	RegexRegexNode(RegexNode* pNode, QSTATUS* pstatus);
+	RegexRegexNode(unsigned int nGroup, QSTATUS* pstatus);
 	virtual ~RegexRegexNode();
 
 public:
 	const NodeList& getNodeList() const;
+	unsigned int getGroup() const;
 
 public:
 	QSTATUS addNode(RegexNode* pNode);
@@ -82,6 +83,7 @@ private:
 
 private:
 	NodeList listNode_;
+	unsigned int nGroup_;
 };
 
 
@@ -181,7 +183,7 @@ public:
 	virtual ~RegexAtom();
 
 public:
-	virtual const RegexNode* getNode() const;
+	virtual const RegexRegexNode* getNode() const;
 	virtual bool match(WCHAR c) const = 0;
 };
 
@@ -221,7 +223,8 @@ class RegexMultiEscapeAtom : public RegexAtom
 public:
 	enum Type {
 		TYPE_DOT,
-		TYPE_WHITESPACE
+		TYPE_WHITESPACE,
+		TYPE_WORD
 	};
 
 public:
@@ -330,11 +333,11 @@ private:
 class RegexNodeAtom : public RegexAtom
 {
 public:
-	RegexNodeAtom(RegexNode* pNode, QSTATUS* pstatus);
+	RegexNodeAtom(RegexRegexNode* pNode, QSTATUS* pstatus);
 	virtual ~RegexNodeAtom();
 
 public:
-	virtual const RegexNode* getNode() const;
+	virtual const RegexRegexNode* getNode() const;
 	virtual bool match(WCHAR c) const;
 
 private:
@@ -342,7 +345,7 @@ private:
 	RegexNodeAtom& operator=(const RegexNodeAtom&);
 
 private:
-	RegexNode* pNode_;
+	RegexRegexNode* pNode_;
 };
 
 
@@ -410,7 +413,7 @@ private:
 private:
 	const WCHAR* pwszPattern_;
 	const WCHAR* p_;
-	RegexNode* pNode_;
+	unsigned int nGroup_;
 
 private:
 	static const WCHAR wszSingleEscapeChar__[];
