@@ -575,7 +575,8 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 				bool bAll = false;
 				Util::getFetchArgFromPartList(listPart,
 					bHtml ? Util::FETCHARG_HTML : Util::FETCHARG_TEXT,
-					false, &strArg, &nPartCount, &bAll);
+					false, (nOption & OPTION_TRUSTBODYSTRUCTURE) == 0,
+					&strArg, &nPartCount, &bAll);
 				
 				BodyListProcessHook hook(pmh->getId(), pBodyStructure,
 					listPart, nPartCount, pmh, nOption, pstrMessage, pFlag);

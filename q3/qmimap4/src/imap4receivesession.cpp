@@ -523,7 +523,11 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 					return RESULT_ERROR;
 			}
 			if (pBodyStructure) {
-				string_ptr strBodyStructure(Util::getHeaderFromBodyStructure(pBodyStructure));
+				// Content-Type's parameter of multipart and Content-Disposition is
+				// extension data of BODYSTRUCTURE. Thus these data may not be returned.
+				// To get these headers always, don't get them from BODYSTURCTURE response,
+				// use BODY[HEADER (Content-Type Content-Disposition)] instead.
+				string_ptr strBodyStructure(Util::getHeaderFromBodyStructure(pBodyStructure, false));
 				if (!buf.append(strBodyStructure.get()))
 					return RESULT_ERROR;
 			}
@@ -1009,7 +1013,8 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 					Util::getFetchArgFromPartList(listPart,
 						(*it).getType() == MessageData::TYPE_HTML ?
 							Util::FETCHARG_HTML : Util::FETCHARG_TEXT,
-						true, &strArg, &nPartCount, &bAll);
+						true, (nOption & OPTION_TRUSTBODYSTRUCTURE) == 0,
+						&strArg, &nPartCount, &bAll);
 					
 					PartialMessageProcessHook hook(pAccount_, listMessageData,
 						(*it).getBodyStructure(), listPart, nPartCount, bAll, nOption);
@@ -1290,7 +1295,8 @@ bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolde
 					unsigned int nPartCount = 0;
 					bool bAll = false;
 					Util::getFetchArgFromPartList(listPart, Util::FETCHARG_TEXT,
-						true, &strArg, &nPartCount, &bAll);
+						true, (nOption & OPTION_TRUSTBODYSTRUCTURE) == 0,
+						&strArg, &nPartCount, &bAll);
 					
 					PartialMessageProcessHook hook(pFolder, listText,
 						listBodyStructure[n], listPart, nPartCount, bAll, nOption);

@@ -67,7 +67,8 @@ public:
 													  const FetchDataFlags::FlagList& listCustomFlag);
 	static unsigned int getImap4FlagsFromMessageFlags(unsigned int nFlags);
 	static qs::string_ptr getMessageFromEnvelope(const FetchDataEnvelope* pEnvelope);
-	static qs::string_ptr getHeaderFromBodyStructure(const FetchDataBodyStructure* pBodyStructure);
+	static qs::string_ptr getHeaderFromBodyStructure(const FetchDataBodyStructure* pBodyStructure,
+													 bool bIncludeContentTypeAndDisposition);
 	static unsigned long getTextSizeFromBodyStructure(const FetchDataBodyStructure* pBodyStructure);
 	static void getPartsFromBodyStructure(const FetchDataBodyStructure* pBodyStructure,
 										  const unsigned int* pBasePath,
@@ -78,11 +79,13 @@ public:
 	static void getFetchArgFromPartList(const PartList& listPart,
 										FetchArg arg,
 										bool bPeek,
+										bool bFetchAllMime,
 										qs::string_ptr* pstrArg,
 										unsigned int* pnCount,
 										bool* pbAll);
 	static bool isInlineTextPart(const FetchDataBodyStructure* pBodyStructure);
 	static bool isInlineHtmlPart(const FetchDataBodyStructure* pBodyStructure);
+	static bool isMultipart(const FetchDataBodyStructure* pBodyStructure);
 	static bool hasAttachmentPart(const FetchDataBodyStructure* pBodyStructure);
 	static size_t getPathLength(const unsigned int* pPath);
 	static qs::string_ptr formatPath(const unsigned int* pPath);
@@ -99,6 +102,7 @@ private:
 																		 const unsigned int* pPath);
 	static qs::string_ptr getBoundaryFromBodyStructureOrMime(const FetchDataBodyStructure* pBodyStructure,
 															 const FetchDataBody* pMime);
+	static const CHAR* getBoundaryFromBodyStructure(const FetchDataBodyStructure* pBodyStructure);
 	static bool appendBoundaryToBuffer(const FetchDataBodyStructure* pBodyStructure,
 									   const FetchDataBody* pMime,
 									   qs::XStringBuffer<qs::XSTRING>* pBuf,
