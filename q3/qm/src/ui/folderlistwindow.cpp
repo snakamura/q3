@@ -82,7 +82,6 @@ public:
 	MenuManager* pMenuManager_;
 	Profile* pProfile_;
 	std::auto_ptr<Accelerator> pAccelerator_;
-	Document* pDocument_;
 	
 	UINT nId_;
 	HFONT hfont_;
@@ -351,7 +350,6 @@ qm::FolderListWindow::FolderListWindow(WindowBase* pParentWindow,
 	pImpl_->pFolderModel_ = pFolderModel;
 	pImpl_->pMenuManager_ = 0;
 	pImpl_->pProfile_ = pProfile;
-	pImpl_->pDocument_ = 0;
 	pImpl_->nId_ = 0;
 	pImpl_->hfont_ = 0;
 	pImpl_->bSizeShown_ = false;
@@ -440,7 +438,6 @@ LRESULT qm::FolderListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	FolderListWindowCreateContext* pContext =
 		static_cast<FolderListWindowCreateContext*>(pCreateStruct->lpCreateParams);
-	pImpl_->pDocument_ = pContext->pDocument_;
 	pImpl_->pMenuManager_ = pContext->pUIManager_->getMenuManager();
 	
 	CustomAcceleratorFactory acceleratorFactory;

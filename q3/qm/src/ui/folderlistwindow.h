@@ -26,7 +26,6 @@ class UIManager;
 
 struct FolderListWindowCreateContext
 {
-	Document* pDocument_;
 	UIManager* pUIManager_;
 };
 

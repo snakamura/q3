@@ -2362,7 +2362,6 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pListContainerWindow_, pImpl_->pFolderListModel_.get(),
 		pImpl_->pFolderModel_.get(), pImpl_->pProfile_));
 	FolderListWindowCreateContext folderListContext = {
-		pContext->pDocument_,
 		pContext->pUIManager_
 	};
 	if (!pFolderListWindow->create(L"QmFolderListWindow",
