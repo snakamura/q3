@@ -1,5 +1,5 @@
 /*
- * $Id: macrovalue.cpp,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -138,7 +138,7 @@ QSTATUS qm::MacroValueString::string(WSTRING* pwstr) const
 
 bool qm::MacroValueString::boolean() const
 {
-	return *wstr_ != L'0';
+	return *wstr_ != L'\0';
 }
 
 long qm::MacroValueString::number() const
