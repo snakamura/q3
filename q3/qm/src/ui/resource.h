@@ -41,6 +41,7 @@
 #define IDD_FIND                        141
 #define IDD_REPLACE                     142
 #define IDD_CREATESUBACCOUNT            143
+#define IDD_DIALUP                      144
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -174,7 +175,11 @@
 #define IDS_FILTER_OPEN                 1103
 #define IDC_CANCEL                      1103
 #define IDS_FILTER_SAVE                 1104
+#define IDC_USERNAME                    1104
 #define IDS_FILTER_ATTACHMENT           1105
+#define IDC_PASSWORD                    1105
+#define IDC_DOMAIN                      1106
+#define IDC_DIALFROM                    1107
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -329,9 +334,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        144
+#define _APS_NEXT_RESOURCE_VALUE        145
 #define _APS_NEXT_COMMAND_VALUE         48000
-#define _APS_NEXT_CONTROL_VALUE         1104
+#define _APS_NEXT_CONTROL_VALUE         1109
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -389,6 +389,8 @@ public:
 	virtual qs::QSTATUS addError(unsigned int nId,
 		const SessionErrorInfo& info) = 0;
 	virtual bool isCanceled(unsigned int nId, bool bForce) = 0;
+	virtual qs::QSTATUS showDialupDialog(
+		RASDIALPARAMS* prdp, bool* pbCancel) = 0;
 };
 
 }

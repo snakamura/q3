@@ -31,6 +31,7 @@ class DefaultDialog;
 	class CreateFolderDialog;
 	class CreateSubAccountDialog;
 	class DetachDialog;
+	class DialupDialog;
 	class ExportDialog;
 	class FindDialog;
 	class ImportDialog;
@@ -458,6 +459,51 @@ private:
 	qs::Profile* pProfile_;
 	List& list_;
 	qs::WSTRING wstrFolder_;
+};
+
+
+/****************************************************************************
+ *
+ * DialupDialog
+ *
+ */
+
+class DialupDialog : public DefaultDialog
+{
+public:
+	DialupDialog(const WCHAR* pwszEntry, const WCHAR* pwszUsername,
+		const WCHAR* pwszPassword, const WCHAR* pwszDomain, qs::QSTATUS* pstatus);
+	virtual ~DialupDialog();
+
+public:
+	const WCHAR* getUsername() const;
+	const WCHAR* getPassword() const;
+	const WCHAR* getDomain() const;
+
+public:
+	virtual LRESULT onCommand(WORD nCode, WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	LRESULT onDialProperty();
+
+private:
+	void updateLocation();
+
+private:
+	DialupDialog(const DialupDialog&);
+	DialupDialog& operator=(const DialupDialog&);
+
+private:
+	qs::WSTRING wstrEntry_;
+	qs::WSTRING wstrUsername_;
+	qs::WSTRING wstrPassword_;
+	qs::WSTRING wstrDomain_;
 };
 
 

@@ -15,6 +15,7 @@
 #include <qmsyncfilter.h>
 
 #include <qserror.h>
+#include <qsinit.h>
 #include <qsnew.h>
 #include <qsstl.h>
 
@@ -416,7 +417,10 @@ QSTATUS qm::SyncManager::syncData(const SyncData* pData)
 		RasConnection::Result result;
 		status = pRasConnection->connect(pwszEntry, &result);
 		CHECK_QSTATUS();
-		pCallback->setMessage(-1, L"");
+		status = pCallback->setMessage(-1, L"");
+		CHECK_QSTATUS();
+		if (result == RasConnection::RAS_CANCEL)
+			return QSTATUS_SUCCESS;
 	}
 	
 	unsigned int nSlot = pData->getSlotCount();
@@ -816,6 +820,11 @@ qm::SyncManager::SyncThread::~SyncThread()
 
 unsigned int qm::SyncManager::SyncThread::run()
 {
+	DECLARE_QSTATUS();
+	
+	InitThread init(&status);
+	CHECK_QSTATUS_VALUE(-1);
+	
 	pSyncManager_->syncData(pSyncData_);
 	
 	return 0;
@@ -846,6 +855,11 @@ qm::SyncManager::ParallelSyncThread::~ParallelSyncThread()
 
 unsigned int qm::SyncManager::ParallelSyncThread::run()
 {
+	DECLARE_QSTATUS();
+	
+	InitThread init(&status);
+	CHECK_QSTATUS_VALUE(-1);
+	
 	pSyncManager_->syncSlotData(pSyncData_, nSlot_);
 	
 	return 0;
@@ -890,6 +904,9 @@ QSTATUS qm::SyncManager::WaitThread::stop()
 unsigned int qm::SyncManager::WaitThread::run()
 {
 	DECLARE_QSTATUS();
+	
+	InitThread init(&status);
+	CHECK_QSTATUS_VALUE(-1);
 	
 	typedef SyncManager::ThreadList List;
 	List& l = pSyncManager_->listThread_;
@@ -1085,8 +1102,8 @@ QSTATUS qm::SyncManager::RasConnectionCallbackImpl::preConnect(
 	DECLARE_QSTATUS();
 	
 	if (pDialup_->getFlags() & SyncDialup::FLAG_SHOWDIALOG) {
-		// TODO
-		// Show Dialog
+		status = pCallback_->showDialupDialog(prdp, pbCancel);
+		CHECK_QSTATUS();
 	}
 	
 	return QSTATUS_SUCCESS;

@@ -18,6 +18,7 @@
 
 #include <tchar.h>
 
+#include "dialogs.h"
 #include "resourceinc.h"
 #include "syncdialog.h"
 
@@ -182,6 +183,7 @@ INT_PTR qm::SyncDialog::dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		HANDLE_DESTROY()
 		HANDLE_INITDIALOG()
 		HANDLE_SIZE()
+		HANDLE_MESSAGE(WM_SYNCDIALOG_SHOWDIALUPDIALOG, onShowDialupDialog)
 	END_DIALOG_HANDLER()
 	return DefaultDialogHandler::dialogProc(uMsg, wParam, lParam);
 }
@@ -261,6 +263,13 @@ LRESULT qm::SyncDialog::onSize(UINT nFlags, int cx, int cy)
 {
 	layout(cx, cy);
 	return DefaultDialogHandler::onSize(nFlags, cx, cy);
+}
+
+LRESULT qm::SyncDialog::onShowDialupDialog(WPARAM wParam, LPARAM lParam)
+{
+	bool bCancel = false;
+	showDialupDialog(reinterpret_cast<RASDIALPARAMS*>(lParam), &bCancel);
+	return bCancel;
 }
 
 LRESULT qm::SyncDialog::onCancel()
@@ -345,6 +354,35 @@ void qm::SyncDialog::layout(int cx, int cy)
 #endif
 }
 
+QSTATUS qm::SyncDialog::showDialupDialog(RASDIALPARAMS* prdp, bool* pbCancel)
+{
+	assert(prdp);
+	assert(pbCancel);
+	
+	DECLARE_QSTATUS();
+	
+	T2W(prdp->szEntryName, pwszEntryName);
+	T2W(prdp->szUserName, pwszUserName);
+	T2W(prdp->szPassword, pwszPassword);
+	T2W(prdp->szDomain, pwszDomain);
+	
+	DialupDialog dialog(pwszEntryName, pwszUserName,
+		pwszPassword, pwszDomain, &status);
+	CHECK_QSTATUS();
+	int nRet = 0;
+	status = dialog.doModal(getHandle(), 0, &nRet);
+	CHECK_QSTATUS();
+	if (nRet == IDOK) {
+		// TODO
+		
+	}
+	else {
+		*pbCancel = true;
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
 
 /****************************************************************************
  *
@@ -402,18 +440,30 @@ LRESULT qm::SyncStatusWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam
 QSTATUS qm::SyncStatusWindow::start()
 {
 	pSyncDialog_->resetCanceledTime();
+	pSyncDialog_->setMessage(L"");
+	pSyncDialog_->show();
 	return QSTATUS_SUCCESS;
 }
 
 void qm::SyncStatusWindow::end()
 {
+	bool bEmpty = false;
+	{
+		Lock<CriticalSection> lock(cs_);
+		bEmpty = listItem_.empty();
+	}
+	
+	pSyncDialog_->setMessage(L"");
+	
+	if (bEmpty && !pSyncDialog_->hasError())
+		pSyncDialog_->hide();
 }
 
 QSTATUS qm::SyncStatusWindow::startThread(unsigned int nId)
 {
 	DECLARE_QSTATUS();
 	
-	pSyncDialog_->show();
+//	pSyncDialog_->show();
 	
 	std::auto_ptr<Item> pItem;
 	status = newQsObject(nId, &pItem);
@@ -434,17 +484,17 @@ QSTATUS qm::SyncStatusWindow::startThread(unsigned int nId)
 
 void qm::SyncStatusWindow::endThread(unsigned int nId)
 {
-	bool bEmpty = false;
+//	bool bEmpty = false;
 	{
 		Lock<CriticalSection> lock(cs_);
 		ItemList::iterator it = getItem(nId);
 		delete *it;
 		listItem_.erase(it);
-		bEmpty = listItem_.empty();
+//		bEmpty = listItem_.empty();
 	}
 	
-	if (bEmpty && !pSyncDialog_->hasError())
-		pSyncDialog_->hide();
+//	if (bEmpty && !pSyncDialog_->hasError())
+//		pSyncDialog_->hide();
 	
 	invalidate(false);
 	updateScrollBar();
@@ -598,6 +648,15 @@ bool qm::SyncStatusWindow::isCanceled(unsigned int nId, bool bForce)
 		return true;
 	else
 		return ::GetTickCount() - nCanceledTime > 10*1000;
+}
+
+QSTATUS qm::SyncStatusWindow::showDialupDialog(
+	RASDIALPARAMS* prdp, bool* pbCancel)
+{
+	*pbCancel = pSyncDialog_->sendMessage(
+		SyncDialog::WM_SYNCDIALOG_SHOWDIALUPDIALOG,
+		0, reinterpret_cast<LPARAM>(prdp));
+	return QSTATUS_SUCCESS;
 }
 
 LRESULT qm::SyncStatusWindow::onCreate(CREATESTRUCT* pCreateStruct)

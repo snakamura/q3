@@ -606,6 +606,8 @@ QSTATUS qs::RasConnection::getLocation(WSTRING* pwstrLocation)
 	
 	const TCHAR* ptszLocation = 0;
 	
+	malloc_ptr<LINETRANSLATECAPS> ptc;
+	
 	HLINEAPP hLineApp = 0;
 	DWORD dwNumDevs = 0;
 	if (::lineInitialize(&hLineApp, getInstanceHandle(),
@@ -620,7 +622,7 @@ QSTATUS qs::RasConnection::getLocation(WSTRING* pwstrLocation)
 			MAKELONG(0, 4), &dwVersion, &lineExtId);
 #endif
 		
-		malloc_ptr<LINETRANSLATECAPS> ptc(static_cast<LPLINETRANSLATECAPS>(
+		ptc.reset(static_cast<LPLINETRANSLATECAPS>(
 			::malloc(sizeof(LINETRANSLATECAPS) + 10240)));
 		if (ptc.get()) {
 			ptc->dwTotalSize = sizeof(LINETRANSLATECAPS) + 10240;
@@ -658,7 +660,7 @@ QSTATUS qs::RasConnection::getLocation(WSTRING* pwstrLocation)
 	
 	if (ptszLocation) {
 		string_ptr<WSTRING> wstrLocation(tcs2wcs(ptszLocation));
-		if (wstrLocation.get())
+		if (!wstrLocation.get())
 			return QSTATUS_OUTOFMEMORY;
 		*pwstrLocation = wstrLocation.release();
 	}

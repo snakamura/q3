@@ -15,6 +15,7 @@
 #include <qsconv.h>
 #include <qsmime.h>
 #include <qsnew.h>
+#include <qsras.h>
 #include <qsuiutil.h>
 
 #include <algorithm>
@@ -1917,6 +1918,138 @@ void qm::DetachDialog::updateState()
 	HWND hwndList = getDlgItem(IDC_ATTACHMENT);
 	Window(getDlgItem(IDC_RENAME)).enableWindow(
 		ListView_GetSelectedCount(hwndList) != 0);
+}
+
+
+/****************************************************************************
+ *
+ * DialupDialog
+ *
+ */
+
+qm::DialupDialog::DialupDialog(const WCHAR* pwszEntry, const WCHAR* pwszUsername,
+	const WCHAR* pwszPassword, const WCHAR* pwszDomain,QSTATUS* pstatus) :
+	DefaultDialog(IDD_DIALUP, pstatus),
+	wstrEntry_(0),
+	wstrUsername_(0),
+	wstrPassword_(0),
+	wstrDomain_(0)
+{
+	const WCHAR* pwsz[] = {
+		pwszEntry,
+		pwszUsername,
+		pwszPassword,
+		pwszDomain
+	};
+	string_ptr<WSTRING> wstr[4];
+	for (int n = 0; n < countof(pwsz); ++n) {
+		wstr[n].reset(allocWString(pwsz[n]));
+		if (!wstr[n].get()) {
+			*pstatus = QSTATUS_OUTOFMEMORY;
+			return;
+		}
+	}
+	
+	wstrEntry_ = wstr[0].release();
+	wstrUsername_ = wstr[1].release();
+	wstrPassword_ = wstr[2].release();
+	wstrDomain_ = wstr[3].release();
+}
+
+qm::DialupDialog::~DialupDialog()
+{
+	freeWString(wstrEntry_);
+	freeWString(wstrUsername_);
+	freeWString(wstrPassword_);
+	freeWString(wstrDomain_);
+}
+
+const WCHAR* qm::DialupDialog::getUsername() const
+{
+	return wstrUsername_;
+}
+
+const WCHAR* qm::DialupDialog::getPassword() const
+{
+	return wstrPassword_;
+}
+
+const WCHAR* qm::DialupDialog::getDomain() const
+{
+	return wstrDomain_;
+}
+
+LRESULT qm::DialupDialog::onCommand(WORD nCode, WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_DIALPROPERTY, onDialProperty)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::DialupDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+{
+	init(false);
+	
+	struct {
+		UINT nId_;
+		const WCHAR* pwsz_;
+	} items[] = {
+		{ IDC_ENTRY,	wstrEntry_		},
+		{ IDC_USERNAME,	wstrUsername_	},
+		{ IDC_PASSWORD,	wstrPassword_	},
+		{ IDC_DOMAIN,	wstrDomain_		}
+	};
+	for (int n = 0; n < countof(items); ++n)
+		setDlgItemText(items[n].nId_, items[n].pwsz_);
+	
+	updateLocation();
+	
+	if (!*wstrPassword_) {
+		Window(getDlgItem(IDC_PASSWORD)).setFocus();
+		return FALSE;
+	}
+	
+	return TRUE;
+}
+
+LRESULT qm::DialupDialog::onOk()
+{
+	struct {
+		UINT nId_;
+		WSTRING* pwstr_;
+	} items[] = {
+		{ IDC_ENTRY,	&wstrEntry_		},
+		{ IDC_USERNAME,	&wstrUsername_	},
+		{ IDC_PASSWORD,	&wstrPassword_	},
+		{ IDC_DOMAIN,	&wstrDomain_	}
+	};
+	for (int n = 0; n < countof(items); ++n) {
+		string_ptr<WSTRING> wstr(getDlgItemText(items[n].nId_));
+		if (wstr.get()) {
+			freeWString(*items[n].pwstr_);
+			*items[n].pwstr_ = wstr.release();
+		}
+	}
+	
+	return DefaultDialog::onOk();
+}
+
+LRESULT qm::DialupDialog::onDialProperty()
+{
+	RasConnection::selectLocation(getHandle());
+	updateLocation();
+	return 0;
+}
+
+void qm::DialupDialog::updateLocation()
+{
+	DECLARE_QSTATUS();
+	
+	string_ptr<WSTRING> wstrLocation;
+	status = RasConnection::getLocation(&wstrLocation);
+	if (status == QSTATUS_SUCCESS)
+		setDlgItemText(IDC_DIALFROM, wstrLocation.get());
 }
 
 

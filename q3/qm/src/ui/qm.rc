@@ -591,6 +591,25 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,130,25,50,14
 END
 
+IDD_DIALUP DIALOG DISCARDABLE  0, 0, 149, 129
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialup Connection"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    LTEXT           "",IDC_ENTRY,5,5,140,8
+    LTEXT           "&Username",IDC_STATIC,5,23,40,8
+    EDITTEXT        IDC_USERNAME,50,20,95,14,ES_AUTOHSCROLL
+    LTEXT           "&Password",IDC_STATIC,5,38,40,8
+    EDITTEXT        IDC_PASSWORD,50,35,95,14,ES_PASSWORD | ES_AUTOHSCROLL
+    LTEXT           "&Domain",IDC_STATIC,5,53,40,8
+    EDITTEXT        IDC_DOMAIN,50,50,95,14,ES_AUTOHSCROLL
+    LTEXT           "Dial &from",IDC_STATIC,5,75,40,8
+    LTEXT           "",IDC_DIALFROM,50,75,95,8
+    PUSHBUTTON      "Dial &properties...",IDC_DIALPROPERTY,75,91,70,14
+    DEFPUSHBUTTON   "&Connect",IDOK,40,111,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,95,111,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -766,6 +785,14 @@ BEGIN
         RIGHTMARGIN, 177
         TOPMARGIN, 7
         BOTTOMMARGIN, 39
+    END
+
+    IDD_DIALUP, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 142
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 122
     END
 END
 #endif    // APSTUDIO_INVOKED

@@ -65,6 +65,11 @@ class SyncDialog :
 	public qs::DefaultCommandHandler
 {
 public:
+	enum {
+		WM_SYNCDIALOG_SHOWDIALUPDIALOG = WM_APP + 1001
+	};
+
+public:
 	SyncDialog(qs::Profile* pProfile, qs::QSTATUS* pstatus);
 	virtual ~SyncDialog();
 
@@ -91,6 +96,7 @@ protected:
 	LRESULT onDestroy();
 	LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
 	LRESULT onSize(UINT nFlags, int cx, int cy);
+	LRESULT onShowDialupDialog(WPARAM wParam, LPARAM lParam);
 
 private:
 	LRESULT onCancel();
@@ -99,6 +105,7 @@ private:
 private:
 	void layout();
 	void layout(int cx, int cy);
+	qs::QSTATUS showDialupDialog(RASDIALPARAMS* prdp, bool* pbCancel);
 
 private:
 	SyncDialog(const SyncDialog&);
@@ -192,6 +199,8 @@ public:
 	virtual qs::QSTATUS setMessage(unsigned int nId, const WCHAR* pwszMessage);
 	virtual qs::QSTATUS addError(unsigned int nId, const SessionErrorInfo& info);
 	virtual bool isCanceled(unsigned int nId, bool bForce);
+	virtual qs::QSTATUS showDialupDialog(
+		RASDIALPARAMS* prdp, bool* pbCancel);
 
 protected:
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);

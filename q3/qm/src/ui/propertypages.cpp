@@ -1,5 +1,5 @@
 /*
- * $Id: propertypages.cpp,v 1.6 2003/06/01 08:40:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -239,7 +239,7 @@ LRESULT qm::AccountDialupPage::onOk()
 
 LRESULT qm::AccountDialupPage::onDialProperty()
 {
-	// TODO
+	RasConnection::selectLocation(getHandle());
 	return 0;
 }
 
