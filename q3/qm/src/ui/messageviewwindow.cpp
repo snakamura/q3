@@ -20,6 +20,7 @@
 #include <tchar.h>
 #ifdef QMHTMLVIEW
 #	include <mshtmcid.h>
+#	include <mshtmdid.h>
 #endif
 
 #include "messageviewwindow.h"
@@ -111,7 +112,7 @@ QSTATUS qm::MessageViewWindowFactory::getMessageViewWindow(
 		_wcsicmp(pContentType->getSubType(), L"html") == 0;
 	
 	if (bHtml && !pHtml_ && Application::getApplication().getAtlHandle()) {
-		status = newQsObject(pMenuManager_, &pHtml_);
+		status = newQsObject(pProfile_, pwszSection_, pMenuManager_, &pHtml_);
 		CHECK_QSTATUS();
 		HWND hwnd = pText_->getParent();
 		status = pHtml_->create(L"QmHtmlMessageViewWindow", L"Shell.Explorer",
@@ -351,10 +352,12 @@ QSTATUS qm::TextMessageViewWindow::canSelectAll(bool* pbCan)
  *
  */
 
-qm::HtmlMessageViewWindow::HtmlMessageViewWindow(
-	MenuManager* pMenuManager, QSTATUS* pstatus) :
+qm::HtmlMessageViewWindow::HtmlMessageViewWindow(Profile* pProfile,
+	const WCHAR* pwszSection, MenuManager* pMenuManager, QSTATUS* pstatus) :
 	WindowBase(true, pstatus),
 	DefaultWindowHandler(pstatus),
+	pProfile_(pProfile),
+	pwszSection_(pwszSection),
 	pMenuManager_(pMenuManager),
 	pWebBrowser_(0),
 	pServiceProvider_(0),
@@ -408,6 +411,22 @@ LRESULT qm::HtmlMessageViewWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	HRESULT hr = S_OK;
 	
+	ComPtr<IUnknown> pUnkHost;
+	hr = (*pfnAtlAxGetHost)(getHandle(), &pUnkHost);
+	if (FAILED(hr))
+		return -1;
+	
+	IAxWinAmbientDispatch* pAmbientDispatch;
+	hr = pUnkHost->QueryInterface(IID_IAxWinAmbientDispatch,
+		reinterpret_cast<void**>(&pAmbientDispatch));
+	if (FAILED(hr))
+		return -1;
+	pAmbientDispatch->Release();
+	std::auto_ptr<AmbientDispatchHook> pHook;
+	status = newQsObject(this, pAmbientDispatch, &pHook);
+	CHECK_QSTATUS_VALUE(-1);
+	pHook.release();
+	
 	ComPtr<IUnknown> pUnkControl;
 	hr = (*pfnAtlAxGetControl)(getHandle(), &pUnkControl);
 	if (FAILED(hr))
@@ -416,14 +435,7 @@ LRESULT qm::HtmlMessageViewWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		reinterpret_cast<void**>(&pWebBrowser_));
 	if (FAILED(hr))
 		return -1;
-	hr = pWebBrowser_->put_Offline(VARIANT_TRUE);
-	if (FAILED(hr))
-		return -1;
 	
-	ComPtr<IUnknown> pUnkHost;
-	hr = (*pfnAtlAxGetHost)(getHandle(), &pUnkHost);
-	if (FAILED(hr))
-		return -1;
 	ComPtr<IObjectWithSite> pSite;
 	hr = pUnkHost->QueryInterface(IID_IObjectWithSite,
 		reinterpret_cast<void**>(&pSite));
@@ -514,6 +526,7 @@ LRESULT qm::HtmlMessageViewWindow::onDestroy()
 		pWebBrowserEvents_->Release();
 		pWebBrowserEvents_ = 0;
 	}
+	
 	return DefaultWindowHandler::onDestroy();
 }
 
@@ -1074,7 +1087,9 @@ STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::QueryInterface(
 {
 	*ppv = 0;
 	
-	if (riid == IID_IUnknown || riid == IID_IInternetProtocol) {
+	if (riid == IID_IUnknown ||
+		riid == IID_IInternetProtocol ||
+		riid == IID_IInternetProtocolRoot) {
 		AddRef();
 		*ppv = static_cast<IInternetProtocol*>(this);
 	}
@@ -1151,9 +1166,6 @@ STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Suspend()
 STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Terminate(
 	DWORD dwOptions)
 {
-//	if (pContent_)
-//		pContent_->destroy();
-	
 	return S_OK;
 }
 
@@ -1630,6 +1642,275 @@ STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::Invoke(
 	}
 	
 	return S_OK;
+}
+
+
+/****************************************************************************
+ *
+ * HtmlMessageViewWindow::AmbientDispatchHook
+ *
+ */
+
+HtmlMessageViewWindow::AmbientDispatchHook::Map qm::HtmlMessageViewWindow::AmbientDispatchHook::map__;
+
+qm::HtmlMessageViewWindow::AmbientDispatchHook::AmbientDispatchHook(
+	HtmlMessageViewWindow* pHtmlMessageViewWindow, IDispatch* pDispatch, QSTATUS* pstatus) :
+	nRef_(1),
+	dwDLControl_(DLCTL_DLIMAGES | DLCTL_VIDEOS | DLCTL_BGSOUNDS | DLCTL_NO_CLIENTPULL),
+	pDispatch_(pDispatch),
+	pDispatchVtbl_(0)
+{
+	assert(pstatus);
+	
+	DECLARE_QSTATUS();
+	
+	*pstatus = QSTATUS_SUCCESS;
+	
+	int nForceOffline = 1;
+	status = pHtmlMessageViewWindow->pProfile_->getInt(
+		pHtmlMessageViewWindow->pwszSection_, L"ForceOffline", 1, &nForceOffline);
+	CHECK_QSTATUS_SET(pstatus);
+	if (nForceOffline)
+		dwDLControl_ |= DLCTL_FORCEOFFLINE;
+	
+	IDispatchType* pDispatchType = reinterpret_cast<IDispatchType*>(pDispatch);
+	pDispatchVtbl_ = pDispatchType->pVtbl;
+	pDispatchType->pVtbl = reinterpret_cast<IDispatchType*>(this)->pVtbl;
+	
+	status = STLWrapper<Map>(map__).push_back(
+		Map::value_type(pDispatchType, this));
+	CHECK_QSTATUS_SET(pstatus);
+}
+
+qm::HtmlMessageViewWindow::AmbientDispatchHook::~AmbientDispatchHook()
+{
+	Map::iterator it = map__.begin();
+	while (it != map__.end() && (*it).second != this)
+		++it;
+	assert(it != map__.end());
+	map__.erase(it);
+}
+
+STDMETHODIMP_(ULONG) qm::HtmlMessageViewWindow::AmbientDispatchHook::AddRef()
+{
+	return (*getVtbl()->AddRef)(getDispatchType());
+}
+
+STDMETHODIMP_(ULONG) qm::HtmlMessageViewWindow::AmbientDispatchHook::Release()
+{
+	AmbientDispatchHook* pThis = getThis();
+	ULONG nRef = (*getVtbl()->Release)(getDispatchType());
+	if (--pThis->nRef_ == 0) {
+		IDispatchType* pDispatchType = reinterpret_cast<IDispatchType*>(pThis->pDispatch_);
+		pDispatchType->pVtbl = pThis->pDispatchVtbl_;
+		delete pThis;
+	}
+	return nRef;
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::QueryInterface(
+	REFIID riid, void** ppv)
+{
+	return (*getVtbl()->QueryInterface)(getDispatchType(), riid, ppv);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::GetIDsOfNames(
+	REFIID riid, OLECHAR** rgszNames, unsigned int cNames, LCID lcid, DISPID* pDispId)
+{
+	return (*getVtbl()->GetIDsOfNames)(getDispatchType(),
+		riid, rgszNames, cNames, lcid, pDispId);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::GetTypeInfo(
+	unsigned int nTypeInfo, LCID lcid, ITypeInfo** ppTypeInfo)
+{
+	return (*getVtbl()->GetTypeInfo)(getDispatchType(), nTypeInfo, lcid, ppTypeInfo);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::GetTypeInfoCount(
+	unsigned int* pcTypeInfo)
+{
+	return (*getVtbl()->GetTypeInfoCount)(getDispatchType(), pcTypeInfo);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::Invoke(
+	DISPID dispId, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS* pDispParams,
+	VARIANT* pVarResult, EXCEPINFO* pExcepInfo, unsigned int* pnArgErr)
+{
+	if (dispId == DISPID_AMBIENT_DLCONTROL) {
+		::VariantInit(pVarResult);
+		pVarResult->vt = VT_I4;
+		pVarResult->lVal = getThis()->dwDLControl_;
+		return S_OK;
+	}
+	
+	return (*getVtbl()->Invoke)(getDispatchType(), dispId, riid,
+		lcid, wFlags, pDispParams, pVarResult, pExcepInfo, pnArgErr);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::put_AllowWindowlessActivation(VARIANT_BOOL b)
+{
+	return (*getVtbl()->put_AllowWindowlessActivation)(getDispatchType(), b);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::get_AllowWindowlessActivation(VARIANT_BOOL* pb)
+{
+	return (*getVtbl()->get_AllowWindowlessActivation)(getDispatchType(), pb);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::put_BackColor(OLE_COLOR cr)
+{
+	return (*getVtbl()->put_BackColor)(getDispatchType(), cr);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::get_BackColor(OLE_COLOR* pcr)
+{
+	return (*getVtbl()->get_BackColor)(getDispatchType(), pcr);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::put_ForeColor(OLE_COLOR cr)
+{
+	return (*getVtbl()->put_ForeColor)(getDispatchType(), cr);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::get_ForeColor(OLE_COLOR* pcr)
+{
+	return (*getVtbl()->get_ForeColor)(getDispatchType(), pcr);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::put_LocaleID(LCID lcid)
+{
+	return (*getVtbl()->put_LocaleID)(getDispatchType(), lcid);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::get_LocaleID(LCID* plcid)
+{
+	return (*getVtbl()->get_LocaleID)(getDispatchType(), plcid);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::put_UserMode(VARIANT_BOOL b)
+{
+	return (*getVtbl()->put_UserMode)(getDispatchType(), b);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::get_UserMode(VARIANT_BOOL* pb)
+{
+	return (*getVtbl()->get_UserMode)(getDispatchType(), pb);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::put_DisplayAsDefault(VARIANT_BOOL b)
+{
+	return (*getVtbl()->put_DisplayAsDefault)(getDispatchType(), b);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::get_DisplayAsDefault(VARIANT_BOOL* pb)
+{
+	return (*getVtbl()->get_DisplayAsDefault)(getDispatchType(), pb);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::put_Font(IFontDisp* pFont)
+{
+	return (*getVtbl()->put_Font)(getDispatchType(), pFont);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::get_Font(IFontDisp** ppFont)
+{
+	return (*getVtbl()->get_Font)(getDispatchType(), ppFont);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::put_MessageReflect(VARIANT_BOOL b)
+{
+	return (*getVtbl()->put_MessageReflect)(getDispatchType(), b);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::get_MessageReflect(VARIANT_BOOL* pb)
+{
+	return (*getVtbl()->get_MessageReflect)(getDispatchType(), pb);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::get_ShowGrabHandles(VARIANT_BOOL* pb)
+{
+	return (*getVtbl()->get_ShowGrabHandles)(getDispatchType(), pb);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::get_ShowHatching(VARIANT_BOOL* pb)
+{
+	return (*getVtbl()->get_ShowHatching)(getDispatchType(), pb);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::put_DocHostFlags(DWORD dw)
+{
+	return (*getVtbl()->put_DocHostFlags)(getDispatchType(), dw);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::get_DocHostFlags(DWORD* pdw)
+{
+	return (*getVtbl()->get_DocHostFlags)(getDispatchType(), pdw);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::put_DocHostDoubleClickFlags(DWORD dw)
+{
+	return (*getVtbl()->put_DocHostDoubleClickFlags)(getDispatchType(), dw);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::get_DocHostDoubleClickFlags(DWORD* pdw)
+{
+	return (*getVtbl()->get_DocHostDoubleClickFlags)(getDispatchType(), pdw);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::put_AllowContextMenu(VARIANT_BOOL b)
+{
+	return (*getVtbl()->put_AllowContextMenu)(getDispatchType(), b);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::get_AllowContextMenu(VARIANT_BOOL* pb)
+{
+	return (*getVtbl()->get_AllowContextMenu)(getDispatchType(), pb);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::put_AllowShowUI(VARIANT_BOOL b)
+{
+	return (*getVtbl()->put_AllowShowUI)(getDispatchType(), b);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::get_AllowShowUI(VARIANT_BOOL* pb)
+{
+	return (*getVtbl()->get_AllowShowUI)(getDispatchType(), pb);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::put_OptionKeyPath(BSTR bstr)
+{
+	return (*getVtbl()->put_OptionKeyPath)(getDispatchType(), bstr);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::get_OptionKeyPath(BSTR* pbstr)
+{
+	return (*getVtbl()->get_OptionKeyPath)(getDispatchType(), pbstr);
+}
+
+HtmlMessageViewWindow::AmbientDispatchHook* qm::HtmlMessageViewWindow::AmbientDispatchHook::getThis()
+{
+	return get(reinterpret_cast<IDispatchType*>(this));
+}
+
+HtmlMessageViewWindow::AmbientDispatchHook::IDispatchType* qm::HtmlMessageViewWindow::AmbientDispatchHook::getDispatchType()
+{
+	return reinterpret_cast<IDispatchType*>(reinterpret_cast<char*>(this));
+}
+
+HtmlMessageViewWindow::AmbientDispatchHook::IDispatchVtbl* qm::HtmlMessageViewWindow::AmbientDispatchHook::getVtbl()
+{
+	return getThis()->pDispatchVtbl_;
+}
+
+HtmlMessageViewWindow::AmbientDispatchHook* qm::HtmlMessageViewWindow::AmbientDispatchHook::get(
+	IDispatchType* pDispatchType)
+{
+	Map::const_iterator it = map__.begin();
+	while (it != map__.end() && (*it).first != pDispatchType)
+		++it;
+	assert(it != map__.end());
+	return (*it).second;
 }
 
 #endif // QMHTMLVIEW

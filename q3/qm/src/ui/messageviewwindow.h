@@ -184,8 +184,8 @@ class HtmlMessageViewWindow :
 	public MessageViewWindow
 {
 public:
-	HtmlMessageViewWindow(qs::MenuManager* pMenuManager,
-		qs::QSTATUS* pstatus);
+	HtmlMessageViewWindow(qs::Profile* pProfile, const WCHAR* pwszSection,
+		qs::MenuManager* pMenuManager, qs::QSTATUS* pstatus);
 	virtual ~HtmlMessageViewWindow();
 
 public:
@@ -324,6 +324,7 @@ private:
 		const unsigned char* pCurrent_;
 		IInternetProtocolSink* pSink_;
 	};
+	friend class InternetProtocol;
 	
 	class IServiceProviderImpl : public IServiceProvider
 	{
@@ -437,11 +438,141 @@ private:
 		IWebBrowser2* pWebBrowser_;
 	};
 	friend class DWebBrowserEvents2Impl;
+	
+	class AmbientDispatchHook : public IAxWinAmbientDispatch
+	{
+	public:
+		struct IDispatchType;
+		struct IDispatchVtbl
+		{
+			HRESULT (STDMETHODCALLTYPE* QueryInterface)(
+				IDispatchType*, REFIID, void**);
+			ULONG (STDMETHODCALLTYPE* AddRef)(IDispatchType*);
+			ULONG (STDMETHODCALLTYPE* Release)(IDispatchType*);
+			HRESULT (STDMETHODCALLTYPE* GetTypeInfoCount)(IDispatchType*, UINT*);
+			HRESULT (STDMETHODCALLTYPE* GetTypeInfo)(
+				IDispatchType*, UINT, LCID, ITypeInfo**);
+			HRESULT (STDMETHODCALLTYPE* GetIDsOfNames)(IDispatchType*,
+				REFIID, LPOLESTR*, UINT, LCID, DISPID*);
+			HRESULT (STDMETHODCALLTYPE* Invoke)(IDispatchType*, DISPID,
+				REFIID, LCID, WORD, DISPPARAMS*, VARIANT*, EXCEPINFO*, UINT*);
+			HRESULT (STDMETHODCALLTYPE* put_AllowWindowlessActivation)(IDispatchType*, VARIANT_BOOL);
+			HRESULT (STDMETHODCALLTYPE* get_AllowWindowlessActivation)(IDispatchType*, VARIANT_BOOL*);
+			HRESULT (STDMETHODCALLTYPE* put_BackColor)(IDispatchType*, OLE_COLOR);
+			HRESULT (STDMETHODCALLTYPE* get_BackColor)(IDispatchType*, OLE_COLOR*);
+			HRESULT (STDMETHODCALLTYPE* put_ForeColor)(IDispatchType*, OLE_COLOR);
+			HRESULT (STDMETHODCALLTYPE* get_ForeColor)(IDispatchType*, OLE_COLOR*);
+			HRESULT (STDMETHODCALLTYPE* put_LocaleID)(IDispatchType*, LCID);
+			HRESULT (STDMETHODCALLTYPE* get_LocaleID)(IDispatchType*, LCID*);
+			HRESULT (STDMETHODCALLTYPE* put_UserMode)(IDispatchType*, VARIANT_BOOL);
+			HRESULT (STDMETHODCALLTYPE* get_UserMode)(IDispatchType*, VARIANT_BOOL*);
+			HRESULT (STDMETHODCALLTYPE* put_DisplayAsDefault)(IDispatchType*, VARIANT_BOOL);
+			HRESULT (STDMETHODCALLTYPE* get_DisplayAsDefault)(IDispatchType*, VARIANT_BOOL*);
+			HRESULT (STDMETHODCALLTYPE* put_Font)(IDispatchType*, IFontDisp*);
+			HRESULT (STDMETHODCALLTYPE* get_Font)(IDispatchType*, IFontDisp**);
+			HRESULT (STDMETHODCALLTYPE* put_MessageReflect)(IDispatchType*, VARIANT_BOOL);
+			HRESULT (STDMETHODCALLTYPE* get_MessageReflect)(IDispatchType*, VARIANT_BOOL*);
+			HRESULT (STDMETHODCALLTYPE* get_ShowGrabHandles)(IDispatchType*, VARIANT_BOOL*);
+			HRESULT (STDMETHODCALLTYPE* get_ShowHatching)(IDispatchType*, VARIANT_BOOL*);
+			HRESULT (STDMETHODCALLTYPE* put_DocHostFlags)(IDispatchType*, DWORD);
+			HRESULT (STDMETHODCALLTYPE* get_DocHostFlags)(IDispatchType*, DWORD*);
+			HRESULT (STDMETHODCALLTYPE* put_DocHostDoubleClickFlags)(IDispatchType*, DWORD);
+			HRESULT (STDMETHODCALLTYPE* get_DocHostDoubleClickFlags)(IDispatchType*, DWORD*);
+			HRESULT (STDMETHODCALLTYPE* put_AllowContextMenu)(IDispatchType*, VARIANT_BOOL);
+			HRESULT (STDMETHODCALLTYPE* get_AllowContextMenu)(IDispatchType*, VARIANT_BOOL*);
+			HRESULT (STDMETHODCALLTYPE* put_AllowShowUI)(IDispatchType*, VARIANT_BOOL);
+			HRESULT (STDMETHODCALLTYPE* get_AllowShowUI)(IDispatchType*, VARIANT_BOOL*);
+			HRESULT (STDMETHODCALLTYPE* put_OptionKeyPath)(IDispatchType*, BSTR);
+			HRESULT (STDMETHODCALLTYPE* get_OptionKeyPath)(IDispatchType*, BSTR*);
+		};
+		
+		struct IDispatchType
+		{
+			IDispatchVtbl* pVtbl;
+		};
+	
+	public:
+		typedef std::vector<std::pair<IDispatchType*, AmbientDispatchHook*> > Map;
+	
+	public:
+		AmbientDispatchHook(HtmlMessageViewWindow* pHtmlMessageViewWindow,
+			IDispatch* pDispatch, qs::QSTATUS* pstatus);
+		~AmbientDispatchHook();
+	
+	public:
+		STDMETHOD_(ULONG, AddRef)();
+		STDMETHOD_(ULONG, Release)();
+		STDMETHOD(QueryInterface)(REFIID riid, void** pv);
+	
+	public:
+		STDMETHOD(GetIDsOfNames)(REFIID riid, OLECHAR** rgszNames,
+			unsigned int cNames, LCID lcid, DISPID* pDispId);
+		STDMETHOD(GetTypeInfo)(unsigned int nTypeInfo,
+			LCID lcid, ITypeInfo** ppTypeInfo);
+		STDMETHOD(GetTypeInfoCount)(unsigned int* pcTypeInfo);
+		STDMETHOD(Invoke)(DISPID dispId, REFIID riid, LCID lcid,
+			WORD wFlags, DISPPARAMS* pDispParams, VARIANT* pVarResult,
+			EXCEPINFO* pExcepInfo, unsigned int* pnArgErr);
+	
+	public:
+		STDMETHOD(put_AllowWindowlessActivation)(VARIANT_BOOL b);
+		STDMETHOD(get_AllowWindowlessActivation)(VARIANT_BOOL* pb);
+		STDMETHOD(put_BackColor)(OLE_COLOR cr);
+		STDMETHOD(get_BackColor)(OLE_COLOR* pcr);
+		STDMETHOD(put_ForeColor)(OLE_COLOR cr);
+		STDMETHOD(get_ForeColor)(OLE_COLOR* pcr);
+		STDMETHOD(put_LocaleID)(LCID lcid);
+		STDMETHOD(get_LocaleID)(LCID* plcid);
+		STDMETHOD(put_UserMode)(VARIANT_BOOL b);
+		STDMETHOD(get_UserMode)(VARIANT_BOOL* pb);
+		STDMETHOD(put_DisplayAsDefault)(VARIANT_BOOL b);
+		STDMETHOD(get_DisplayAsDefault)(VARIANT_BOOL* pb);
+		STDMETHOD(put_Font)(IFontDisp* pFont);
+		STDMETHOD(get_Font)(IFontDisp** ppFont);
+		STDMETHOD(put_MessageReflect)(VARIANT_BOOL b);
+		STDMETHOD(get_MessageReflect)(VARIANT_BOOL* pb);
+		STDMETHOD(get_ShowGrabHandles)(VARIANT_BOOL* pb);
+		STDMETHOD(get_ShowHatching)(VARIANT_BOOL* pb);
+		STDMETHOD(put_DocHostFlags)(DWORD dw);
+		STDMETHOD(get_DocHostFlags)(DWORD* pdw);
+		STDMETHOD(put_DocHostDoubleClickFlags)(DWORD dw);
+		STDMETHOD(get_DocHostDoubleClickFlags)(DWORD* pdw);
+		STDMETHOD(put_AllowContextMenu)(VARIANT_BOOL b);
+		STDMETHOD(get_AllowContextMenu)(VARIANT_BOOL* pb);
+		STDMETHOD(put_AllowShowUI)(VARIANT_BOOL b);
+		STDMETHOD(get_AllowShowUI)(VARIANT_BOOL* pb);
+		STDMETHOD(put_OptionKeyPath)(BSTR bstr);
+		STDMETHOD(get_OptionKeyPath)(BSTR* pbstr);
+	
+	private:
+		AmbientDispatchHook* getThis();
+		IDispatchType* getDispatchType();
+		IDispatchVtbl* getVtbl();
+	
+	private:
+		static AmbientDispatchHook* get(IDispatchType* pDispatchType);
+	
+	private:
+		AmbientDispatchHook(const AmbientDispatchHook&);
+		AmbientDispatchHook& operator=(const AmbientDispatchHook&);
+	
+	private:
+		ULONG nRef_;
+		DWORD dwDLControl_;
+		IDispatch* pDispatch_;
+		IDispatchVtbl* pDispatchVtbl_;
+	
+	private:
+		static Map map__;
+	};
+	friend class AmbientDispatchHook;
 
 private:
 	typedef std::vector<Content> ContentList;
 
 private:
+	qs::Profile* pProfile_;
+	const WCHAR* pwszSection_;
 	qs::MenuManager* pMenuManager_;
 	IWebBrowser2* pWebBrowser_;
 	IServiceProviderImpl* pServiceProvider_;
@@ -449,8 +580,6 @@ private:
 	DWORD dwConnectionPointCookie_;
 	ContentList listContent_;
 	bool bActivate_;
-
-friend class InternetProtocol;
 };
 
 #endif // QMHTMLVIEW
