@@ -226,20 +226,26 @@ endif
 ifdef DEBUG
 	BASENAME			= debug
 	DSUFFIX				= d
-	CCFLAGS				= -Zi -Od -Fd$(OBJDIR)/
+	CCFLAGS				= -Od
 ifeq ($(PLATFORM),desktop)
 		CCFLAGS			+= -GZ
 endif
 	DEFINES				= -D_DEBUG
-	LDFLAGS				= -DEBUG -DEBUGTYPE:CV -PDB:$(TARGETDIR)/$(PROJECTNAME).pdb -FIXED:NO
 	RCFLAGS				= -d _DEBUG
+	SYMBOL				= 1
 else
 	BASENAME			= release
 	DSUFFIX				=
 	CCFLAGS				= -O1 -Oi
 	DEFINES				= -DNDEBUG
-	LDFLAGS				= -RELEASE -OPT:REF
 	RCFLAGS				= -d NDEBUG
+endif
+
+ifdef SYMBOL
+	CCFLAGS				+= -Zi -Fd$(OBJDIR)/
+	LDFLAGS				= -DEBUG -DEBUGTYPE:CV -PDB:$(TARGETDIR)/$(PROJECTNAME).pdb -FIXED:NO
+else
+	LDFLAGS				= -RELEASE -OPT:REF
 endif
 
 ifneq ($(PLATFORM),desktop)
