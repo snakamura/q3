@@ -224,6 +224,8 @@ bool qmsmtp::Smtp::connect(const WCHAR* pwszHost,
 		}
 		if (nAuth != 0)
 			SMTP_ERROR(SMTP_ERROR_AUTH);
+		
+		pSmtpCallback_->setPassword(wstrPassword.get());
 	}
 	
 	return true;
