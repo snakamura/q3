@@ -1039,6 +1039,8 @@ LRESULT qs::BrowseFolderDialog::onNewFolder()
 	return 0;
 }
 
+#endif
+
 
 /****************************************************************************
  *
@@ -1079,6 +1081,7 @@ LRESULT qs::FontDialog::onInitDialog(HWND hwndFocus,
 	ClientDeviceContext dc(0);
 	dc.enumFontFamilies(0, reinterpret_cast<FONTENUMPROC>(enumFontFamProc),
 		reinterpret_cast<LPARAM>(getDlgItem(IDC_FONTFACE)));
+	sendDlgItemMessage(IDC_FONTFACE, CB_SELECTSTRING, 0, reinterpret_cast<LPARAM>(lf_.lfFaceName));
 	T2W(lf_.lfFaceName, pwszFaceName);
 	setDlgItemText(IDC_FONTFACE, pwszFaceName);
 	
@@ -1099,33 +1102,40 @@ LRESULT qs::FontDialog::onInitDialog(HWND hwndFocus,
 	else
 		nId = lf_.lfItalic ? IDS_ITALIC : IDS_REGULAR;
 	wstring_ptr wstrStyle(loadString(getDllInstanceHandle(), nId));
+	W2T(wstrStyle.get(), ptszStyle);
+	sendDlgItemMessage(IDC_FONTSTYLE, CB_SELECTSTRING, 0, reinterpret_cast<LPARAM>(ptszStyle));
 	setDlgItemText(IDC_FONTSTYLE, wstrStyle.get());
 	
-	int nSizes[] = {
-		8,
-		9,
-		10,
-		11,
-		12,
-		14,
-		16,
-		18,
-		20,
-		24,
-		26,
-		28,
-		36,
-		48,
-		72
+	const WCHAR* pwszSizes[] = {
+		L"8",
+		L"9",
+		L"10",
+		L"10.5",
+		L"11",
+		L"12",
+		L"14",
+		L"16",
+		L"18",
+		L"20",
+		L"24",
+		L"26",
+		L"28",
+		L"36",
+		L"48",
+		L"72"
 	};
-	for (int n = 0; n < countof(nSizes); ++n) {
-		TCHAR tszSize[32];
-		wsprintf(tszSize, _T("%d"), nSizes[n]);
-		sendDlgItemMessage(IDC_FONTSIZE, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(tszSize));
+	for (int n = 0; n < countof(pwszSizes); ++n) {
+		W2T(pwszSizes[n], ptszSize);
+		sendDlgItemMessage(IDC_FONTSIZE, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(ptszSize));
 	}
 	double dPointSize = -lf_.lfHeight*72.0/dc.getDeviceCaps(LOGPIXELSY);
 	WCHAR wszSize[64];
 	swprintf(wszSize, L"%.1lf", dPointSize);
+	size_t nLen = wcslen(wszSize);
+	if (nLen > 2 && wcscmp(wszSize + nLen - 2, L".0") == 0)
+		wszSize[nLen - 2] = L'\0';
+	W2T(wszSize, ptszSize);
+	sendDlgItemMessage(IDC_FONTSIZE, CB_SELECTSTRING, 0, reinterpret_cast<LPARAM>(ptszSize));
 	setDlgItemText(IDC_FONTSIZE, wszSize);
 	
 	return TRUE;
@@ -1158,6 +1168,8 @@ LRESULT qs::FontDialog::onOk()
 	return DefaultDialog::onOk();
 }
 
+
+#ifdef _WIN32_WCE
 
 /****************************************************************************
  *

@@ -56,24 +56,71 @@ IDC_LINK                CURSOR  DISCARDABLE     "res\\link.cur"
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// Dialog
+//
+
+IDD_FONT DIALOG DISCARDABLE  0, 0, 170, 105
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Font"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    LTEXT           "&Face",IDC_STATIC,5,5,20,8
+    COMBOBOX        IDC_FONTFACE,5,15,75,70,CBS_SIMPLE | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "St&yle",IDC_STATIC,85,5,25,8
+    COMBOBOX        IDC_FONTSTYLE,85,15,48,65,CBS_SIMPLE | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Size",IDC_STATIC,140,5,20,8
+    COMBOBOX        IDC_FONTSIZE,140,15,25,65,CBS_SIMPLE | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,60,85,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,115,85,50,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_FONT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 163
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 98
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // String Table
 //
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_RAS_OPENPORT     "Opening port..."
-    IDS_RAS_PORTOPENED   "Port opened."
-    IDS_RAS_CONNECTDEVICE "Connecting device..."
+    IDS_RAS_OPENPORT        "Opening port..."
+    IDS_RAS_PORTOPENED      "Port opened."
+    IDS_RAS_CONNECTDEVICE   "Connecting device..."
     IDS_RAS_DEVICECONNECTED "Device connected."
-    IDS_RAS_AUTHENTICATE "Authenticating..."
-    IDS_RAS_AUTHENTICATED "Authenticated."
-    IDS_RAS_CONNECTED    "Connected."
+    IDS_RAS_AUTHENTICATE    "Authenticating..."
+    IDS_RAS_AUTHENTICATED   "Authenticated."
+    IDS_RAS_CONNECTED       "Connected."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_RAS_WAITINGBEFOREDISCONNECTING "Disconnecting..."
-    IDS_RAS_DISCONNECTING "Disconnecting..."
+    IDS_RAS_DISCONNECTING   "Disconnecting..."
+    IDS_REGULAR             "Regular"
+    IDS_BOLD                "Bold"
+    IDS_ITALIC              "Italic"
+    IDS_BOLDITALIC          "Bold Italic"
 END
 
 #endif    // “ú–{Œê resources

@@ -25,8 +25,8 @@ class DialogHandler;
 class FileDialog;
 #ifdef _WIN32_WCE
 class BrowseFolderDialog;
-class FontDialog;
 #endif
+class FontDialog;
 
 class InitThread;
 
@@ -454,6 +454,8 @@ private:
 	struct BrowseFolderDialogImpl* pImpl_;
 };
 
+#endif
+
 
 /****************************************************************************
  *
@@ -484,8 +486,6 @@ private:
 private:
 	LOGFONT lf_;
 };
-
-#endif
 
 }
 

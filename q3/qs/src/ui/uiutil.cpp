@@ -106,7 +106,7 @@ void qs::UIUtil::setLogFontToProfile(Profile* pProfile,
 bool qs::UIUtil::browseFont(HWND hwnd,
 							LOGFONT* pLogFont)
 {
-#if !defined _WIN32_WCE || (_WIN32_WCE >= 400 && !defined _WIN32_WCE_PSPC)
+#if 0//!defined _WIN32_WCE || (_WIN32_WCE >= 400 && !defined _WIN32_WCE_PSPC)
 	CHOOSEFONT cf = {
 		sizeof(cf),
 		hwnd,
