@@ -59,6 +59,7 @@ class FolderCreateAction;
 class FolderDeleteAction;
 class FolderEmptyAction;
 class FolderEmptyTrashAction;
+class FolderExpandAction;
 class FolderPropertyAction;
 class FolderRenameAction;
 class FolderShowSizeAction;
@@ -132,6 +133,7 @@ class FixedFormTextManager;
 class FolderListWindow;
 class FolderModel;
 class FolderSelectionModel;
+class FolderWindow;
 class GoRound;
 class GoRoundMenu;
 class ListWindow;
@@ -1241,6 +1243,32 @@ private:
 	SyncDialogManager* pSyncDialogManager_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
+};
+
+
+/****************************************************************************
+ *
+ * FolderExpandAction
+ *
+ */
+
+class FolderExpandAction : public qs::AbstractAction
+{
+public:
+	FolderExpandAction(FolderWindow* pFolderWindow,
+					   bool bExpand);
+	virtual ~FolderExpandAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	FolderExpandAction(const FolderExpandAction&);
+	FolderExpandAction& operator=(const FolderExpandAction&);
+
+private:
+	FolderWindow* pFolderWindow_;
+	bool bExpand_;
 };
 
 

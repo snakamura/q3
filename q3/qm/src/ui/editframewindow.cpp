@@ -156,8 +156,9 @@ void qm::EditFrameWindowImpl::initActions()
 		pEditWindow_,
 		&EditWindowItem::paste,
 		&EditWindowItem::canPaste);
-	ADD_ACTION2(EditEditPasteWithQuoteAction,
+	ADD_ACTION3(EditEditPasteWithQuoteAction,
 		IDM_EDIT_PASTEWITHQUOTE,
+		pDocument_,
 		pEditWindow_->getTextWindow(),
 		pProfile_);
 	ADD_ACTION3(EditEditCommandAction,

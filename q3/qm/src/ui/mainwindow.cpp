@@ -529,6 +529,14 @@ void qm::MainWindowImpl::initActions()
 		pSyncDialogManager_,
 		pThis_->getHandle(),
 		pProfile_);
+	ADD_ACTION2(FolderExpandAction,
+		IDM_FOLDER_EXPAND,
+		pFolderWindow_,
+		true);
+	ADD_ACTION2(FolderExpandAction,
+		IDM_FOLDER_COLLAPSE,
+		pFolderWindow_,
+		false);
 	ADD_ACTION3(FolderPropertyAction,
 		IDM_FOLDER_PROPERTY,
 		this,

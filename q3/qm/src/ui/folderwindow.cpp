@@ -77,6 +77,8 @@ public:
 	HTREEITEM getHandleFromAccount(Account* pAccount) const;
 	HTREEITEM getHandleFromFolder(Folder* pFolder) const;
 	void update(Folder* pFolder);
+	void expand(HTREEITEM hItem,
+				bool bExpand);
 	void handleUpdateMessage(LPARAM lParam);
 
 public:
@@ -274,6 +276,30 @@ void qm::FolderWindowImpl::update(Folder* pFolder)
 		if (TreeView_GetItemRect(hwnd, hItems[n], &rect, FALSE))
 			pThis_->invalidateRect(rect);
 	}
+}
+
+void qm::FolderWindowImpl::expand(HTREEITEM hItem,
+								  bool bExpand)
+{
+	if (!hItem)
+		return;
+	
+	HWND hwnd = pThis_->getHandle();
+	
+	bool b = true;
+	if (!bExpand) {
+		HTREEITEM hParent = TreeView_GetSelection(hwnd);
+		while (hParent && b) {
+			if (hParent == hItem)
+				b = false;
+			hParent = TreeView_GetParent(hwnd, hParent);
+		}
+	}
+	if (b)
+		TreeView_Expand(hwnd, hItem, bExpand ? TVE_EXPAND : TVE_COLLAPSE);
+	
+	expand(TreeView_GetChild(hwnd, hItem), bExpand);
+	expand(TreeView_GetNextSibling(hwnd, hItem), bExpand);
 }
 
 void qm::FolderWindowImpl::handleUpdateMessage(LPARAM lParam)
@@ -934,6 +960,17 @@ qm::FolderWindow::FolderWindow(WindowBase* pParentWindow,
 qm::FolderWindow::~FolderWindow()
 {
 	delete pImpl_;
+}
+
+void qm::FolderWindow::expand(bool bExpand)
+{
+	HWND hwnd = getHandle();
+	
+	pImpl_->expand(TreeView_GetRoot(hwnd), bExpand);
+	
+	HTREEITEM hItem = TreeView_GetSelection(hwnd);
+	if (hItem)
+		TreeView_EnsureVisible(hwnd, hItem);
 }
 
 wstring_ptr qm::FolderWindow::getSuperClass()

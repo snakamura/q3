@@ -47,6 +47,12 @@
 		</action>
 	</keymap>
 	<keymap name="FolderWindow">
+		<action name="FolderCollapse">
+			<key code="6d" shift="true"/>
+		</action>
+		<action name="FolderExpand">
+			<key code="6b" shift="true"/>
+		</action>
 		<action name="FolderProperty">
 			<key code="d" alt="true"/>
 		</action>

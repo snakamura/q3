@@ -43,6 +43,9 @@ public:
 	virtual ~FolderWindow();
 
 public:
+	void expand(bool bExpand);
+
+public:
 	virtual qs::wstring_ptr getSuperClass();
 	virtual bool preCreateWindow(CREATESTRUCT* pCreateStruct);
 	virtual qs::Accelerator* getAccelerator();

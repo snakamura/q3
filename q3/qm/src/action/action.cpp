@@ -11,6 +11,7 @@
 #include <qmdocument.h>
 #include <qmfolder.h>
 #include <qmfolderlistwindow.h>
+#include <qmfolderwindow.h>
 #include <qmgoround.h>
 #include <qmlistwindow.h>
 #include <qmmainwindow.h>
@@ -2449,6 +2450,29 @@ NormalFolder* qm::FolderEmptyTrashAction::getTrash() const
 			return static_cast<NormalFolder*>(pTrash);
 	}
 	return 0;
+}
+
+
+/****************************************************************************
+ *
+ * FolderExpandAction
+ *
+ */
+
+qm::FolderExpandAction::FolderExpandAction(FolderWindow* pFolderWindow,
+										   bool bExpand) :
+	pFolderWindow_(pFolderWindow),
+	bExpand_(bExpand)
+{
+}
+
+qm::FolderExpandAction::~FolderExpandAction()
+{
+}
+
+void qm::FolderExpandAction::invoke(const ActionEvent& event)
+{
+	pFolderWindow_->expand(bExpand_);
 }
 
 
