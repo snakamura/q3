@@ -142,11 +142,13 @@ public:
 		p_ = 0;
 		return p;
 	}
-	void reset(T* p = 0)
+	void reset(T* p = 0,
+			   size_t nSize = 0)
 	{
 		if (p != p_) {
 			free(p_);
 			p_ = p;
+			nSize_ = nSize;
 		}
 	}
 	size_t size() const { return nSize_; }
