@@ -183,8 +183,8 @@ bool qm::RuleManager::apply(Folder* pFolder,
 		const MessageHolderList& l = ll[m];
 		if (!l.empty()) {
 			const Rule* pRule = pRuleSet->getRule(m);
-			RuleContext context(l, pDocument, pAccount,
-				pFolder, hwnd, pProfile, nSecurityMode);
+			RuleContext context(l, pDocument, pAccount, pFolder,
+				hwnd, pProfile, &globalVariable, nSecurityMode);
 			if (!pRule->apply(context))
 				return false;
 			
@@ -531,7 +531,7 @@ bool qm::ApplyRule::apply(const RuleContext& context) const
 		Message msg;
 		MacroContext c(*it, &msg, MessageHolderList(), context.getAccount(),
 			context.getDocument(), context.getWindow(), context.getProfile(),
-			false, context.getSecurityMode(), 0, 0);
+			false, context.getSecurityMode(), 0, context.getGlobalVariable());
 		MacroValuePtr pValue(pMacroApply_->value(&c));
 		if (!pValue.get())
 			return false;
@@ -552,6 +552,7 @@ qm::RuleContext::RuleContext(const MessageHolderList& l,
 							 Folder* pFolder,
 							 HWND hwnd,
 							 Profile* pProfile,
+							 MacroVariableHolder* pGlobalVariable,
 							 unsigned int nSecurityMode) :
 	listMessageHolder_(l),
 	pDocument_(pDocument),
@@ -559,6 +560,7 @@ qm::RuleContext::RuleContext(const MessageHolderList& l,
 	pFolder_(pFolder),
 	hwnd_(hwnd),
 	pProfile_(pProfile),
+	pGlobalVariable_(pGlobalVariable),
 	nSecurityMode_(nSecurityMode)
 {
 	assert(!l.empty());
@@ -568,6 +570,7 @@ qm::RuleContext::RuleContext(const MessageHolderList& l,
 	assert(pFolder);
 	assert(hwnd);
 	assert(pProfile);
+	assert(pGlobalVariable);
 }
 
 qm::RuleContext::~RuleContext()
@@ -602,6 +605,11 @@ HWND qm::RuleContext::getWindow() const
 Profile* qm::RuleContext::getProfile() const
 {
 	return pProfile_;
+}
+
+MacroVariableHolder* qm::RuleContext::getGlobalVariable() const
+{
+	return pGlobalVariable_;
 }
 
 unsigned int qm::RuleContext::getSecurityMode() const

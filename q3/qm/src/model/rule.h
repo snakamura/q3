@@ -293,6 +293,7 @@ public:
 				Folder* pFolder,
 				HWND hwnd,
 				qs::Profile* pProfile,
+				MacroVariableHolder* pGlobalVariable,
 				unsigned int nSecurityMode);
 	~RuleContext();
 
@@ -303,6 +304,7 @@ public:
 	Folder* getFolder() const;
 	HWND getWindow() const;
 	qs::Profile* getProfile() const;
+	MacroVariableHolder* getGlobalVariable() const;
 	unsigned int getSecurityMode() const;
 
 private:
@@ -316,6 +318,7 @@ private:
 	Folder* pFolder_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
+	MacroVariableHolder* pGlobalVariable_;
 	unsigned int nSecurityMode_;
 };
 
