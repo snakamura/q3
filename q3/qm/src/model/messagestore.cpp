@@ -289,7 +289,8 @@ QSTATUS qm::SingleMessageStore::compact(unsigned int nOffset,
 	if (nOffset != -1) {
 		ClusterStorage* pStorage = !pmsOld ? 0 :
 			static_cast<SingleMessageStore*>(pmsOld)->pImpl_->pStorage_;
-		status = pImpl_->pStorage_->compact(nOffset, nLength, pStorage, pnOffset);
+		size_t nLen = nLength + SingleMessageStoreImpl::SEPARATOR_SIZE*2;
+		status = pImpl_->pStorage_->compact(nOffset, nLen, pStorage, pnOffset);
 		CHECK_QSTATUS();
 	}
 	else {
