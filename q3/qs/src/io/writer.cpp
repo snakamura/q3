@@ -38,6 +38,8 @@ struct qs::OutputStreamWriterImpl
 	bool flushBuffer();
 	bool write(const WCHAR* p,
 			   size_t nSize);
+	bool writeToStream(const unsigned char* p,
+					   size_t nLen);
 	
 	OutputStream* pOutputStream_;
 	bool bDelete_;
@@ -55,8 +57,7 @@ bool qs::OutputStreamWriterImpl::flushBuffer()
 		if (!encoded.get())
 			return false;
 		
-		if (pOutputStream_->write(
-			reinterpret_cast<unsigned char*>(encoded.get()), encoded.size()) == -1)
+		if (!writeToStream(reinterpret_cast<unsigned char*>(encoded.get()), encoded.size()))
 			return false;
 		
 		if (nLen != static_cast<size_t>(pCurrent_ - pBuf_))
@@ -81,8 +82,7 @@ bool qs::OutputStreamWriterImpl::write(const WCHAR* p,
 				return false;
 			assert(nSize - nLen < BUFFER_SIZE);
 			
-			if (pOutputStream_->write(
-				reinterpret_cast<unsigned char*>(encoded.get()), encoded.size()) == -1)
+			if (!writeToStream(reinterpret_cast<unsigned char*>(encoded.get()), encoded.size()))
 				return false;
 			
 			if (nLen != nSize)
@@ -111,6 +111,34 @@ bool qs::OutputStreamWriterImpl::write(const WCHAR* p,
 				nSize -= nLen;
 			}
 		}
+	}
+	
+	return true;
+}
+
+bool qs::OutputStreamWriterImpl::writeToStream(const unsigned char* p,
+											   size_t nLen)
+{
+	const unsigned char* pszNewLine = reinterpret_cast<const unsigned char*>("\r\n");
+	
+	const unsigned char* pBegin = p;
+	const unsigned char* pEnd = p + nLen;
+	while (true) {
+		if (p == pEnd || *p == '\r' || *p == '\n') {
+			if (p != pBegin) {
+				if (pOutputStream_->write(pBegin, p - pBegin) == -1)
+					return false;
+			}
+			if (p == pEnd) {
+				break;
+			}
+			else if (*p == '\n') {
+				if (pOutputStream_->write(pszNewLine, 2) == -1)
+					return false;
+			}
+			pBegin = p + 1;
+		}
+		++p;
 	}
 	
 	return true;
@@ -173,7 +201,8 @@ bool qs::OutputStreamWriter::close()
 	return pImpl_->pOutputStream_->close();
 }
 
-size_t qs::OutputStreamWriter::write(const WCHAR* p, size_t nWrite)
+size_t qs::OutputStreamWriter::write(const WCHAR* p,
+									 size_t nWrite)
 {
 	assert(p);
 	
