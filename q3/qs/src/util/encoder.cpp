@@ -728,14 +728,12 @@ malloc_size_ptr<unsigned char> qs::UuencodeEncoder::decode(const unsigned char* 
 		pEnd = UuencodeEncoderImpl::find(pBegin, "\r\n");
 	}
 	
-	while (pEnd && strncmp(reinterpret_cast<const char*>(pBegin), "end", 3) != 0) {
-		if (pBegin != pEnd)
+	while (strncmp(reinterpret_cast<const char*>(pBegin), "end", 3) != 0) {
+		if (!pEnd)
 			return malloc_size_ptr<unsigned char>();
 		pBegin = pEnd + 2;
 		pEnd = UuencodeEncoderImpl::find(pBegin, "\r\n");
 	}
-	if (!pEnd)
-		return malloc_size_ptr<unsigned char>();
 	
 	return malloc_size_ptr<unsigned char>(pDst, p - pDst.get());
 }
