@@ -1,0 +1,16 @@
+diff -uNr MS HPC Pro.orig/include/kfuncs.h MS HPC Pro/include/kfuncs.h
+--- MS HPC Pro.orig/include/kfuncs.h	1999-04-15 09:56:50.000000000 -0700
++++ MS HPC Pro/include/kfuncs.h	2003-06-18 00:39:08.000000000 -0700
+@@ -59,10 +59,12 @@
+ #pragma intrinsic (DebugBreak)
+ #else
+ extern void __asm(char[], ...);
++#if _MSC_VER < 1202
+ _inline void DebugBreak() {
+ 	__asm("break 1");
+ }
+ #endif
++#endif
+ 
+ #elif defined(PPC)
+ 

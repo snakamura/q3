@@ -1,0 +1,15 @@
+diff -uNr hpc2000.orig/include/kfuncs.h hpc2000/include/kfuncs.h
+--- hpc2000.orig/include/kfuncs.h	2000-08-01 13:55:32.000000000 -0700
++++ hpc2000/include/kfuncs.h	2003-06-18 00:48:39.000000000 -0700
+@@ -67,9 +67,11 @@
+ #else
+ #pragma warning(disable:4052)
+ extern void __asm(char[], ...);
++#if _MSC_VER < 1202
+ _inline void DebugBreak() {
+ 	__asm("break 1");
+ }
++#endif
+ #pragma warning(default:4052)
+ #endif
+ 

@@ -10,7 +10,7 @@
 
 BINDIR					= d:/util/cygwin/bin
 VCDIR					= d:/dev/msvs/vc98
-EVCDIR					= d:/dev/msevt/evc
+EVCDIR					= d:/dev/msevc4/evc
 PLATFORMSDKDIR			= d:/dev/mssdk
 CESDKPPC2002JADIR		= d:/dev/msevt/wce300/pocket pc 2002
 CESDKPPC2002ENDIR		= d:/dev/msevt/wce300/pocket pc 2002
@@ -22,6 +22,7 @@ CESDKHPCPROJADIR		= d:/dev/cetools/wce211/ms hpc pro
 CESDKHPCPROENDIR		= d:/dev/cetools/wce211/ms hpc pro
 STLPORTDIR				= d:/dev/stlport/STLport-4.5.1/stlport
 KCTRLDIR				= d:/home/wince/kctrl
+EVC4					= 1
 
 
 ifeq ($(PROJECTNAME),)
@@ -94,7 +95,11 @@ else
 		#####################################################################
 	endif
 	COMPILERDIR			= $(EVCDIR)
-	COMPILERBINDIR		= $(COMPILERDIR)/wce300/bin
+	ifeq ($(EVC4),1)
+		COMPILERBINDIR	= $(COMPILERDIR)/wce420/bin
+	else
+		COMPILERBINDIR	= $(COMPILERDIR)/wce300/bin
+	endif
 	COMMONBINDIR		= $(COMPILERDIR)/../common/evc/bin
 	
 	SDKINCLUDEDIR		= $(SDKDIR)/include
@@ -290,6 +295,10 @@ else
 	else
 		DEFINES			+= -D_WIN32_WCE_EMULATION
 		RCFLAGS			+= -D _WIN32_WCE_EMULATION
+	endif
+	
+	ifeq ($(EVC4),1)
+		MIDLFLAGS		+= -msc_ver 1000
 	endif
 	
 	LIBS				= coredll.lib \

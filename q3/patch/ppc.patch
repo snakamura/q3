@@ -1,0 +1,15 @@
+diff -uNr MS Pocket PC.orig/include/kfuncs.h MS Pocket PC/include/kfuncs.h
+--- MS Pocket PC.orig/include/kfuncs.h	2003-06-18 00:34:46.000000000 -0700
++++ MS Pocket PC/include/kfuncs.h	2003-06-18 00:48:08.000000000 -0700
+@@ -67,9 +67,11 @@
+ #else
+ #pragma warning(disable:4052)
+ extern void __asm(char[], ...);
++#if _MSC_VER < 1202
+ _inline void DebugBreak() {
+     __asm("break 1");
+ }
++#endif
+ #pragma warning(default:4052)
+ #endif
+ 

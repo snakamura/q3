@@ -1,5 +1,5 @@
 /*
- * $Id: messagecache.cpp,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -51,10 +51,18 @@ qm::MessageCache::MessageCache(
 
 qm::MessageCache::~MessageCache()
 {
+#if _MSC_VER == 1202 && defined MIPS
+	ItemMap::const_iterator it = map_.begin();
+	while (it != map_.end()) {
+		delete (*it).second;
+		++it;
+	}
+#else
 	std::for_each(map_.begin(), map_.end(),
 		unary_compose_f_gx(
 			deleter<CacheItem>(),
 			std::select2nd<ItemMap::value_type>()));
+#endif
 	delete pNewLast_;
 }
 
@@ -297,7 +305,11 @@ void qm::MessageCache::remove(ItemMap::iterator it)
 	
 	CacheItem* pItem = (*it).second;
 	
+#if _MSC_VER == 1202 && defined MIPS
+	map_.erase((*it).first);
+#else
 	map_.erase(it);
+#endif
 	
 	if (pItem == pNewFirst_)
 		pNewFirst_ = pItem->pNewNext_;
