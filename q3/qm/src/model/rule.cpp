@@ -477,6 +477,39 @@ void qm::CopyRule::addTemplateArgument(wstring_ptr wstrName,
 
 /****************************************************************************
  *
+ * ApplyRule
+ *
+ */
+
+qm::ApplyRule::ApplyRule(std::auto_ptr<Macro> pMacro,
+						 std::auto_ptr<Macro> pMacroApply) :
+	Rule(pMacro),
+	pMacroApply_(pMacroApply)
+{
+}
+
+qm::ApplyRule::~ApplyRule()
+{
+}
+
+bool qm::ApplyRule::apply(const RuleContext& context) const
+{
+	const MessageHolderList& l = context.getMessageHolderList();
+	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		Message msg;
+		MacroContext c(*it, &msg, MessageHolderList(), context.getAccount(),
+			context.getDocument(), context.getWindow(), context.getProfile(),
+			false, context.isDecryptVerify(), 0, 0);
+		MacroValuePtr pValue(pMacroApply_->value(&c));
+		if (!pValue.get())
+			return false;
+	}
+	return true;
+}
+
+
+/****************************************************************************
+ *
  * RuleContext
  *
  */
@@ -639,8 +672,7 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		wcscmp(pwszLocalName, L"move") == 0) {
 		if (state_ != STATE_RULE)
 			return false;
-		if (!pMacro_.get())
-			return false;
+		assert(pMacro_.get());
 		
 		bool bMove = wcscmp(pwszLocalName, L"move") == 0;
 		const WCHAR* pwszAccount = 0;
@@ -705,6 +737,31 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		state_ = STATE_ARGUMENT;
 	}
+	else if (wcscmp(pwszLocalName, L"apply") == 0) {
+		if (state_ != STATE_RULE)
+			return false;
+		assert(pMacro_.get());
+		
+		const WCHAR* pwszMacro = 0;
+		for (int n = 0; n < attributes.getLength(); ++n) {
+			const WCHAR* pwszAttrName = attributes.getLocalName(n);
+			if (wcscmp(pwszAttrName, L"macro") == 0)
+				pwszMacro = attributes.getValue(n);
+			else
+				return false;
+		}
+		if (!pwszMacro)
+			return false;
+		
+		std::auto_ptr<Macro> pMacroApply(parser_.parse(pwszMacro));
+		if (!pMacroApply.get())
+			return false;
+		
+		std::auto_ptr<Rule> pRule(new ApplyRule(pMacro_, pMacroApply));
+		pCurrentRuleSet_->addRule(pRule);
+		
+		state_ = STATE_APPLY;
+	}
 	else {
 		return false;
 	}
@@ -756,6 +813,10 @@ bool qm::RuleContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 			wstrTemplateArgumentName_, buffer_.getString());
 		
 		state_ = STATE_TEMPLATE;
+	}
+	else if (wcscmp(pwszLocalName, L"apply") == 0) {
+		assert(state_ == STATE_APPLY);
+		state_ = STATE_RULE;
 	}
 	else {
 		return false;

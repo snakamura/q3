@@ -30,6 +30,7 @@ class RuleSet;
 class Rule;
 	class NullRule;
 	class CopyRule;
+	class ApplyRule;
 class RuleContext;
 class RuleContentHandler;
 
@@ -228,6 +229,31 @@ private:
 
 /****************************************************************************
  *
+ * ApplyRule
+ *
+ */
+
+class ApplyRule : public Rule
+{
+public:
+	ApplyRule(std::auto_ptr<Macro> pMacro,
+			  std::auto_ptr<Macro> pMacroApply);
+	virtual ~ApplyRule();
+
+public:
+	virtual bool apply(const RuleContext& context) const;
+
+private:
+	ApplyRule(const ApplyRule&);
+	ApplyRule& operator=(const ApplyRule&);
+
+private:
+	std::auto_ptr<Macro> pMacroApply_;
+};
+
+
+/****************************************************************************
+ *
  * RuleContext
  *
  */
@@ -304,7 +330,8 @@ private:
 		STATE_RULE,
 		STATE_MOVE,
 		STATE_TEMPLATE,
-		STATE_ARGUMENT
+		STATE_ARGUMENT,
+		STATE_APPLY
 	};
 
 private:
