@@ -112,6 +112,7 @@ class MessageSelectionModel;
 class MessageWindow;
 class MoveMenu;
 class NormalFolder;
+class RuleManager;
 class ScriptMenu;
 class SyncDialogManager;
 class SyncFilterManager;
@@ -827,8 +828,9 @@ private:
 class MessageApplyRuleAction : public qs::AbstractAction
 {
 public:
-	MessageApplyRuleAction(Document* pDocument, FolderModel* pFolderModel,
-		HWND hwnd, qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	MessageApplyRuleAction(RuleManager* pRuleManager,
+		FolderModel* pFolderModel, Document* pDocument, HWND hwnd,
+		qs::Profile* pProfile, qs::QSTATUS* pstatus);
 	virtual ~MessageApplyRuleAction();
 
 public:
@@ -840,8 +842,9 @@ private:
 	MessageApplyRuleAction& operator=(const MessageApplyRuleAction&);
 
 private:
-	Document* pDocument_;
+	RuleManager* pRuleManager_;
 	FolderModel* pFolderModel_;
+	Document* pDocument_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
 };

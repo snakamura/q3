@@ -362,9 +362,10 @@ QSTATUS qm::MainWindowImpl::initActions()
 	status = InitAction1<FolderUpdateAction, FolderModel*>(
 		pActionMap_, IDM_FOLDER_UPDATE, pFolderModel_);
 	CHECK_QSTATUS();
-	status = InitAction4<MessageApplyRuleAction, Document*, FolderModel*, HWND, Profile*>(
-		pActionMap_, IDM_MESSAGE_APPLYRULE,
-		pDocument_, pFolderModel_, pThis_->getHandle(), pProfile_);
+	status = InitAction5<MessageApplyRuleAction,
+		RuleManager*, FolderModel*, Document*, HWND, Profile*>(
+		pActionMap_, IDM_MESSAGE_APPLYRULE, pDocument_->getRuleManager(),
+		pFolderModel_, pDocument_, pThis_->getHandle(), pProfile_);
 	CHECK_QSTATUS();
 	status = InitActionRange9<MessageApplyTemplateAction, TemplateMenu*,
 		Document*, FolderModelBase*, MessageSelectionModel*,

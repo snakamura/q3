@@ -1703,10 +1703,12 @@ QSTATUS qm::FolderUpdateAction::isEnabled(const ActionEvent& event, bool* pbEnab
  *
  */
 
-qm::MessageApplyRuleAction::MessageApplyRuleAction(Document* pDocument,
-	FolderModel* pFolderModel, HWND hwnd, Profile* pProfile, QSTATUS* pstatus) :
-	pDocument_(pDocument),
+qm::MessageApplyRuleAction::MessageApplyRuleAction(
+	RuleManager* pRuleManager, FolderModel* pFolderModel,
+	Document* pDocument, HWND hwnd, Profile* pProfile, QSTATUS* pstatus) :
+	pRuleManager_(pRuleManager),
 	pFolderModel_(pFolderModel),
+	pDocument_(pDocument),
 	hwnd_(hwnd),
 	pProfile_(pProfile)
 {
@@ -1756,8 +1758,7 @@ QSTATUS qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 		} init(&dialog, &status);
 		CHECK_QSTATUS();
 		
-		RuleManager* pRuleManager = pDocument_->getRuleManager();
-		status = pRuleManager->apply(static_cast<NormalFolder*>(pFolder),
+		status = pRuleManager_->apply(static_cast<NormalFolder*>(pFolder),
 			pDocument_, hwnd_, pProfile_, &callback);
 		CHECK_QSTATUS();
 	}
