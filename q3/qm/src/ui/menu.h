@@ -65,6 +65,7 @@ const qs::ActionItem menuItems[] = {
 	{ L"FolderShowSize",			IDM_FOLDER_SHOWSIZE				},
 	{ L"FolderUpdate",				IDM_FOLDER_UPDATE				},
 	{ L"MessageApplyRule",			IDM_MESSAGE_APPLYRULE			},
+	{ L"MessageApplyRuleAll",		IDM_MESSAGE_APPLYRULEALL		},
 	{ L"MessageApplyRuleSelected",	IDM_MESSAGE_APPLYRULESELECTED	},
 	{ L"MessageCombine",			IDM_MESSAGE_COMBINE				},
 	{ L"MessageCreateFromClipboard",IDM_MESSAGE_CREATEFROMCLIPBOARD	},

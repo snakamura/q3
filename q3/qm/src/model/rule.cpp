@@ -72,6 +72,9 @@ bool qm::RuleManager::apply(Folder* pFolder,
 	
 	Lock<Account> lock(*pAccount);
 	
+	if (!pFolder->loadMessageHolders())
+		return false;
+	
 	const RuleSet* pRuleSet = getRuleSet(pFolder);
 	if (!pRuleSet) {
 		log.debug(L"No rule set for this folder was found.");
@@ -138,7 +141,7 @@ bool qm::RuleManager::apply(Folder* pFolder,
 	if (nCount == 0)
 		return true;
 	
-	pCallback->checkingMessages();
+	pCallback->checkingMessages(pFolder);
 	pCallback->setRange(0, accessor.getCount());
 	
 	int nMatch = 0;
@@ -168,7 +171,7 @@ bool qm::RuleManager::apply(Folder* pFolder,
 	if (nMatch == 0)
 		return true;
 	
-	pCallback->applyingRule();
+	pCallback->applyingRule(pFolder);
 	pCallback->setRange(0, nMatch);
 	pCallback->setPos(0);
 	

@@ -2577,6 +2577,7 @@ bool qm::FolderUpdateAction::isEnabled(const ActionEvent& event)
 
 qm::MessageApplyRuleAction::MessageApplyRuleAction(RuleManager* pRuleManager,
 												   FolderModel* pFolderModel,
+												   bool bAll,
 												   SecurityModel* pSecurityModel,
 												   Document* pDocument,
 												   HWND hwnd,
@@ -2584,6 +2585,7 @@ qm::MessageApplyRuleAction::MessageApplyRuleAction(RuleManager* pRuleManager,
 	pRuleManager_(pRuleManager),
 	pFolderModel_(pFolderModel),
 	pMessageSelectionModel_(0),
+	bAll_(bAll),
 	pSecurityModel_(pSecurityModel),
 	pDocument_(pDocument),
 	hwnd_(hwnd),
@@ -2600,6 +2602,7 @@ qm::MessageApplyRuleAction::MessageApplyRuleAction(RuleManager* pRuleManager,
 	pRuleManager_(pRuleManager),
 	pFolderModel_(0),
 	pMessageSelectionModel_(pMessageSelectionModel),
+	bAll_(false),
 	pSecurityModel_(pSecurityModel),
 	pDocument_(pDocument),
 	hwnd_(hwnd),
@@ -2629,14 +2632,16 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 			return pDialog_->isCanceled();
 		}
 		
-		virtual void checkingMessages()
+		virtual void checkingMessages(Folder* pFolder)
 		{
-			pDialog_->setMessage(IDS_APPLYRULE_CHECKINGMESSAGES);
+			wstring_ptr wstrMessage(getMessage(IDS_APPLYRULE_CHECKINGMESSAGES, pFolder));
+			pDialog_->setMessage(wstrMessage.get());
 		}
 		
-		virtual void applyingRule()
+		virtual void applyingRule(Folder* pFolder)
 		{
-			pDialog_->setMessage(IDS_APPLYRULE_APPLYINGRULE);
+			wstring_ptr wstrMessage(getMessage(IDS_APPLYRULE_APPLYINGRULE, pFolder));
+			pDialog_->setMessage(wstrMessage.get());
 		}
 		
 		virtual void setRange(unsigned int nMin,
@@ -2650,6 +2655,14 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 			pDialog_->setPos(nPos);
 		}
 		
+		wstring_ptr getMessage(UINT nId,
+							   Folder* pFolder) {
+			HINSTANCE hInst = Application::getApplication().getResourceHandle();
+			wstring_ptr wstrMessage(loadString(hInst, nId));
+			wstring_ptr wstrName(pFolder->getFullName());
+			return concat(wstrMessage.get(), L" : ", wstrName.get());
+		}
+		
 		ProgressDialog* pDialog_;
 	};
 	
@@ -2657,13 +2670,38 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 	RuleCallbackImpl callback(&dialog);
 	
 	if (pFolderModel_) {
-		Folder* pFolder = pFolderModel_->getCurrentFolder();
-		if (pFolder) {
+		if (bAll_) {
+			Account* pAccount = pFolderModel_->getCurrentAccount();
+			if (!pAccount) {
+				Folder* pFolder = pFolderModel_->getCurrentFolder();
+				if (!pFolder)
+					return;
+				pAccount = pFolder->getAccount();
+			}
+			Account::FolderList l(pAccount->getFolders());
+			std::sort(l.begin(), l.end(), FolderLess());
+			
 			ProgressDialogInit init(&dialog, hwnd_);
-			if (!pRuleManager_->apply(pFolder, 0, pDocument_, hwnd_,
-				pProfile_, pSecurityModel_->isDecryptVerify(), &callback)) {
-				ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
-				return;
+			for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+				Folder* pFolder = *it;
+				if (pFolder->getType() == Folder::TYPE_NORMAL) {
+					if (!pRuleManager_->apply(pFolder, 0, pDocument_, hwnd_,
+						pProfile_, pSecurityModel_->isDecryptVerify(), &callback)) {
+						ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
+						return;
+					}
+				}
+			}
+		}
+		else {
+			Folder* pFolder = pFolderModel_->getCurrentFolder();
+			if (pFolder) {
+				ProgressDialogInit init(&dialog, hwnd_);
+				if (!pRuleManager_->apply(pFolder, 0, pDocument_, hwnd_,
+					pProfile_, pSecurityModel_->isDecryptVerify(), &callback)) {
+					ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
+					return;
+				}
 			}
 		}
 	}
@@ -2686,7 +2724,8 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 bool qm::MessageApplyRuleAction::isEnabled(const ActionEvent& event)
 {
 	if (pFolderModel_)
-		return pFolderModel_->getCurrentFolder() != 0;
+		return pFolderModel_->getCurrentFolder() != 0 ||
+			(bAll_ && pFolderModel_->getCurrentAccount() != 0);
 	else
 		return pMessageSelectionModel_->hasSelectedMessage();
 }

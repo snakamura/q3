@@ -4123,6 +4123,11 @@ void qm::ProgressDialog::setMessage(UINT nId)
 	setDlgItemText(IDC_MESSAGE, wstrMessage.get());
 }
 
+void qm::ProgressDialog::setMessage(const WCHAR* pwszMessage)
+{
+	setDlgItemText(IDC_MESSAGE, pwszMessage);
+}
+
 void qm::ProgressDialog::setRange(unsigned int nMin,
 								  unsigned int nMax)
 {

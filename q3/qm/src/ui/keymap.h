@@ -89,6 +89,7 @@ const qs::KeyNameToId mapKeyNameToId[] = {
 	{ L"HeaderEditItem8",				IDM_FOCUS_HEADEREDITITEM + 8,			0 },
 	{ L"HeaderEditItem9",				IDM_FOCUS_HEADEREDITITEM + 9,			0 },
 	{ L"MessageApplyRule",				IDM_MESSAGE_APPLYRULE,					0 },
+	{ L"MessageApplyRuleAll",			IDM_MESSAGE_APPLYRULEALL,				0 },
 	{ L"MessageApplyRuleSelected",		IDM_MESSAGE_APPLYRULESELECTED,			0 },
 	{ L"MessageApplyTemplate0",			IDM_MESSAGE_APPLYTEMPLATE,				0 },
 	{ L"MessageApplyTemplate1",			IDM_MESSAGE_APPLYTEMPLATE + 1,			0 },

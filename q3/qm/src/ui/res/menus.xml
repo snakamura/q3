@@ -100,6 +100,7 @@
 			<separator/>
 			<popupmenu text="&amp;Move" action="MessageMove"/>
 			<menuitem text="Appl&amp;y Rules" action="MessageApplyRule"/>
+			<menuitem text="Apply Rules t&amp;o All" action="MessageApplyRuleAll"/>
 			<menuitem text="Apply Ru&amp;les to Selected" action="MessageApplyRuleSelected"/>
 			<separator/>
 			<menuitem text="&amp;Search..." action="MessageSearch"/>

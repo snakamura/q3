@@ -1310,6 +1310,7 @@ class MessageApplyRuleAction : public qs::AbstractAction
 public:
 	MessageApplyRuleAction(RuleManager* pRuleManager,
 						   FolderModel* pFolderModel,
+						   bool bAll,
 						   SecurityModel* pSecurityModel,
 						   Document* pDocument,
 						   HWND hwnd,
@@ -1334,6 +1335,7 @@ private:
 	RuleManager* pRuleManager_;
 	FolderModel* pFolderModel_;
 	MessageSelectionModel* pMessageSelectionModel_;
+	bool bAll_;
 	SecurityModel* pSecurityModel_;
 	Document* pDocument_;
 	HWND hwnd_;

@@ -1259,6 +1259,7 @@ public:
 	bool isCanceled() const;
 	void setTitle(UINT nId);
 	void setMessage(UINT nId);
+	void setMessage(const WCHAR* pwszMessage);
 	void setRange(unsigned int nMin,
 				  unsigned int nMax);
 	void setPos(unsigned int n);
