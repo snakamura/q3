@@ -33,6 +33,7 @@ public:
 					  qs::Profile* pProfile,
 					  qs::Logger* pLogger,
 					  qm::SendSessionCallback* pCallback);
+	virtual void term();
 	virtual bool connect();
 	virtual void disconnect();
 	virtual bool sendMessage(qm::Message* pMessage);

@@ -40,6 +40,10 @@ bool qmrss::RssSendSession::init(Document* pDocument,
 	return false;
 }
 
+void qmrss::RssSendSession::term()
+{
+}
+
 bool qmrss::RssSendSession::connect()
 {
 	return false;

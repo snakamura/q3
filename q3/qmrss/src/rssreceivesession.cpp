@@ -71,6 +71,13 @@ bool qmrss::RssReceiveSession::init(Document* pDocument,
 	return true;
 }
 
+void qmrss::RssReceiveSession::term()
+{
+	clearFeeds();
+	if (pFeedList_->isModified())
+		pFeedList_->save();
+}
+
 bool qmrss::RssReceiveSession::connect()
 {
 	wstring_ptr wstrPath(concat(pAccount_->getPath(), L"\\feed.xml"));
@@ -80,9 +87,6 @@ bool qmrss::RssReceiveSession::connect()
 
 void qmrss::RssReceiveSession::disconnect()
 {
-	clearFeeds();
-	if (pFeedList_->isModified())
-		pFeedList_->save();
 }
 
 bool qmrss::RssReceiveSession::isConnected()

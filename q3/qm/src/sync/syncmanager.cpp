@@ -229,12 +229,12 @@ unsigned int qm::SyncDialup::getDisconnectWait() const
 qm::SyncData::SyncData(SyncManager* pManager,
 					   Document* pDocument,
 					   HWND hwnd,
-					   bool bAddToRecents,
+					   bool bAuto,
 					   unsigned int nCallbackParam) :
 	pManager_(pManager),
 	pDocument_(pDocument),
 	hwnd_(hwnd),
-	bAddToRecents_(bAddToRecents),
+	bAuto_(bAuto),
 	nCallbackParam_(nCallbackParam),
 	pCallback_(0),
 	nSlot_(0)
@@ -256,9 +256,9 @@ HWND qm::SyncData::getWindow() const
 	return hwnd_;
 }
 
-bool qm::SyncData::isAddToRecents() const
+bool qm::SyncData::isAuto() const
 {
-	return bAddToRecents_;
+	return bAuto_;
 }
 
 unsigned int qm::SyncData::getCallbackParam() const
@@ -638,8 +638,40 @@ bool qm::SyncManager::syncSlotData(const SyncData* pData,
 		unsigned int nParam_;
 	} caller(pCallback, ::GetCurrentThreadId(), pData->getCallbackParam());
 	
+	struct ReceiveSessionTerm
+	{
+		ReceiveSessionTerm()
+		{
+		}
+		
+		~ReceiveSessionTerm()
+		{
+			clear();
+		}
+		
+		ReceiveSession* get() const
+		{
+			return pSession_.get();
+		}
+		
+		void reset(std::auto_ptr<ReceiveSession> pSession)
+		{
+			if (pSession_.get())
+				pSession_->term();
+			pSession_ = pSession;
+		}
+		
+		void clear()
+		{
+			std::auto_ptr<ReceiveSession> pSession;
+			reset(pSession);
+		}
+		
+		std::auto_ptr<ReceiveSession> pSession_;
+	};
+	
 	std::auto_ptr<Logger> pLogger;
-	std::auto_ptr<ReceiveSession> pReceiveSession;
+	ReceiveSessionTerm session;
 	std::auto_ptr<ReceiveSessionCallback> pReceiveCallback;
 	SubAccount* pSubAccount = 0;
 	const SyncData::ItemList& l = pData->getItems();
@@ -652,22 +684,29 @@ bool qm::SyncManager::syncSlotData(const SyncData* pData,
 			
 			if (bSync || (pItem->isSend() && static_cast<const SendSyncItem*>(pItem)->isConnectReceiveBeforeSend())) {
 				if (pSubAccount != pItem->getSubAccount() ||
-					(pReceiveSession.get() && !pReceiveSession->isConnected())) {
+					(session.get() && !session.get()->isConnected())) {
 					pSubAccount = 0;
-					if (pReceiveSession.get())
-						pReceiveSession->disconnect();
-					pReceiveSession.reset(0);
+					if (session.get())
+						session.get()->disconnect();
+					session.clear();
 					pReceiveCallback.reset(0);
 					pLogger.reset(0);
 					
+					std::auto_ptr<ReceiveSession> pReceiveSession;
 					if (!openReceiveSession(pData->getDocument(), pData->getWindow(),
-						pCallback, pItem, pData->isAddToRecents(),
+						pCallback, pItem, pData->isAuto(),
 						&pReceiveSession, &pReceiveCallback, &pLogger))
 						continue;
+					
+					session.reset(pReceiveSession);
+					if (!session.get()->connect() ||
+						!session.get()->applyOfflineJobs())
+						continue;
+					
 					pSubAccount = pItem->getSubAccount();
 				}
 				if (bSync) {
-					if (!syncFolder(pCallback, pItem, pReceiveSession.get()))
+					if (!syncFolder(pCallback, pItem, session.get()))
 						continue;
 				}
 			}
@@ -678,8 +717,8 @@ bool qm::SyncManager::syncSlotData(const SyncData* pData,
 			}
 		}
 	}
-	if (pReceiveSession.get())
-		pReceiveSession->disconnect();
+	if (session.get())
+		session.get()->disconnect();
 	
 	return true;
 }
@@ -802,8 +841,25 @@ bool qm::SyncManager::send(Document* pDocument,
 	std::auto_ptr<SendSessionCallbackImpl> pCallback(
 		new SendSessionCallbackImpl(pSyncManagerCallback));
 	if (!pSession->init(pDocument, pAccount, pSubAccount,
-		pProfile_, pLogger.get(), pCallback.get()) ||
-		!pSession->connect())
+		pProfile_, pLogger.get(), pCallback.get()))
+		return false;
+	
+	struct SendSessionTerm
+	{
+		SendSessionTerm(SendSession* pSession) :
+			pSession_(pSession)
+		{
+		}
+		
+		~SendSessionTerm()
+		{
+			pSession_->term();
+		}
+		
+		SendSession* pSession_;
+	} term(pSession.get());
+	
+	if (!pSession->connect())
 		return false;
 	
 	pCallback->setRange(0, listMessagePtr.size());
@@ -879,9 +935,7 @@ bool qm::SyncManager::openReceiveSession(Document* pDocument,
 	std::auto_ptr<ReceiveSessionCallbackImpl> pCallback(new ReceiveSessionCallbackImpl(
 		pSyncManagerCallback, pDocument->getRecents(), bAuto));
 	if (!pSession->init(pDocument, pAccount, pSubAccount,
-		hwnd, pProfile_, pLogger.get(), pCallback.get()) ||
-		!pSession->connect() ||
-		!pSession->applyOfflineJobs())
+		hwnd, pProfile_, pLogger.get(), pCallback.get()))
 		return false;
 	
 	*ppSession = pSession;

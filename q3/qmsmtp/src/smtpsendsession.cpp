@@ -74,6 +74,10 @@ bool qmsmtp::SmtpSendSession::init(Document* pDocument,
 	return true;
 }
 
+void qmsmtp::SmtpSendSession::term()
+{
+}
+
 bool qmsmtp::SmtpSendSession::connect()
 {
 	assert(!pSmtp_.get());

@@ -203,6 +203,10 @@ bool qmimap4::Imap4ReceiveSession::init(Document* pDocument,
 	return true;
 }
 
+void qmimap4::Imap4ReceiveSession::term()
+{
+}
+
 bool qmimap4::Imap4ReceiveSession::connect()
 {
 	assert(!pImap4_.get());

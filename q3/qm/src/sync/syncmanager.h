@@ -207,14 +207,14 @@ public:
 	SyncData(SyncManager* pManager,
 			 Document* pDocument,
 			 HWND hwnd,
-			 bool bAddToRecents,
+			 bool bAuto,
 			 unsigned int nCallbackParam);
 	~SyncData();
 
 public:
 	Document* getDocument() const;
 	HWND getWindow() const;
-	bool isAddToRecents() const;
+	bool isAuto() const;
 	unsigned int getCallbackParam() const;
 	const SyncDialup* getDialup() const;
 	bool isEmpty() const;
@@ -245,7 +245,7 @@ private:
 	SyncManager* pManager_;
 	Document* pDocument_;
 	HWND hwnd_;
-	bool bAddToRecents_;
+	bool bAuto_;
 	unsigned int nCallbackParam_;
 	SyncManagerCallback* pCallback_;
 	std::auto_ptr<SyncDialup> pDialup_;

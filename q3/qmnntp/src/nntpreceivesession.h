@@ -57,6 +57,7 @@ public:
 					  qs::Profile* pProfile,
 					  qs::Logger* pLogger,
 					  qm::ReceiveSessionCallback* pCallback);
+	virtual void term();
 	virtual bool connect();
 	virtual void disconnect();
 	virtual bool isConnected();

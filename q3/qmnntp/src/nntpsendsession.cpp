@@ -68,6 +68,10 @@ bool qmnntp::NntpSendSession::init(Document* pDocument,
 	return true;
 }
 
+void qmnntp::NntpSendSession::term()
+{
+}
+
 bool qmnntp::NntpSendSession::connect()
 {
 	assert(!pNntp_.get());

@@ -67,6 +67,10 @@ bool qmpop3::Pop3SendSession::init(Document* pDocument,
 	return true;
 }
 
+void qmpop3::Pop3SendSession::term()
+{
+}
+
 bool qmpop3::Pop3SendSession::connect()
 {
 	assert(!pPop3_.get());

@@ -76,6 +76,18 @@ bool qmnntp::NntpReceiveSession::init(Document* pDocument,
 	return true;
 }
 
+void qmnntp::NntpReceiveSession::term()
+{
+	clearLastIds();
+	
+	if (pLastIdList_->isModified()) {
+		if (!pLastIdList_->save()) {
+			Log log(pLogger_, L"qmnntp::NntpReceiveSession");
+			log.error(L"Failed to save last id list.");
+		}
+	}
+}
+
 bool qmnntp::NntpReceiveSession::connect()
 {
 	assert(!pNntp_.get());
@@ -103,18 +115,8 @@ void qmnntp::NntpReceiveSession::disconnect()
 	assert(pNntp_.get());
 	
 	Log log(pLogger_, L"qmnntp::NntpReceiveSession");
-	
-	clearLastIds();
-	
-	if (pLastIdList_->isModified()) {
-		if (!pLastIdList_->save())
-			log.error(L"Failed to save last id list.");
-	}
-	
 	log.debug(L"Disconnecting from the server...");
-	
 	pNntp_->disconnect();
-	
 	log.debug(L"Disconnected from the server.");
 }
 

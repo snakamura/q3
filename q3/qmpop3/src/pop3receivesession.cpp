@@ -92,6 +92,10 @@ bool qmpop3::Pop3ReceiveSession::init(Document* pDocument,
 	return true;
 }
 
+void qmpop3::Pop3ReceiveSession::term()
+{
+}
+
 bool qmpop3::Pop3ReceiveSession::connect()
 {
 	assert(!pPop3_.get());

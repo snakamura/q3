@@ -87,6 +87,7 @@ public:
 					  qs::Profile* pProfile,
 					  qs::Logger* pLogger,
 					  ReceiveSessionCallback* pCallback) = 0;
+	virtual void term() = 0;
 	virtual bool connect() = 0;
 	virtual void disconnect() = 0;
 	virtual bool isConnected() = 0;
@@ -189,6 +190,7 @@ public:
 					  qs::Profile* pProfile,
 					  qs::Logger* pLogger,
 					  SendSessionCallback* pCallback) = 0;
+	virtual void term() = 0;
 	virtual bool connect() = 0;
 	virtual void disconnect() = 0;
 	virtual bool sendMessage(Message* pMessage) = 0;
