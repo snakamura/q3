@@ -68,7 +68,7 @@ std::auto_ptr<NormalFolder> qmpop3::Pop3Driver::createFolder(SubAccount* pSubAcc
 															 Folder* pParent)
 {
 	assert(false);
-	return 0;
+	return std::auto_ptr<NormalFolder>(0);
 }
 
 bool qmpop3::Pop3Driver::removeFolder(SubAccount* pSubAccount,
@@ -198,5 +198,5 @@ std::auto_ptr<ProtocolDriver> qmpop3::Pop3Factory::createDriver(Account* pAccoun
 	assert(pAccount);
 	assert(pSecurity);
 	
-	return new Pop3Driver(pAccount);
+	return std::auto_ptr<ProtocolDriver>(new Pop3Driver(pAccount));
 }

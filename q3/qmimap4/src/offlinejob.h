@@ -145,7 +145,7 @@ public:
 	virtual bool merge(OfflineJob* pOfflineJob);
 
 public:
-	static std::auto_ptr<AppendOfflineJob> create(qs::InputStream* pStream);
+	static std::auto_ptr<OfflineJob> create(qs::InputStream* pStream);
 
 private:
 	AppendOfflineJob(const AppendOfflineJob&);
@@ -195,7 +195,7 @@ public:
 	virtual bool merge(OfflineJob* pOfflineJob);
 
 public:
-	static std::auto_ptr<CopyOfflineJob> create(qs::InputStream* pStream);
+	static std::auto_ptr<OfflineJob> create(qs::InputStream* pStream);
 
 private:
 	CopyOfflineJob(const CopyOfflineJob&);
@@ -232,7 +232,7 @@ public:
 	virtual bool merge(OfflineJob* pOfflineJob);
 
 public:
-	static std::auto_ptr<ExpungeOfflineJob> create(qs::InputStream* pStream);
+	static std::auto_ptr<OfflineJob> create(qs::InputStream* pStream);
 
 private:
 	ExpungeOfflineJob(const ExpungeOfflineJob&);
@@ -269,7 +269,7 @@ public:
 	virtual bool merge(OfflineJob* pOfflineJob);
 
 public:
-	static std::auto_ptr<SetFlagsOfflineJob> create(qs::InputStream* pStream);
+	static std::auto_ptr<OfflineJob> create(qs::InputStream* pStream);
 
 private:
 	SetFlagsOfflineJob(const SetFlagsOfflineJob&);

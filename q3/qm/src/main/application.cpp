@@ -335,13 +335,13 @@ bool qm::Application::initialize()
 	wstring_ptr wstrProfileDir(concat(
 		pImpl_->wstrMailFolder_.get(), L"\\profiles"));
 	const WCHAR* pwszProfiles[] = {
-		FileNames.HEADER_XML,
-		FileNames.HEADEREDIT_XML,
-		FileNames.KEYMAP_XML,
-		FileNames.MENUS_XML,
-		FileNames.QMAIL_XML,
-		FileNames.TOOLBAR_BMP,
-		FileNames.TOOLBARS_XML
+		FileNames::HEADER_XML,
+		FileNames::HEADEREDIT_XML,
+		FileNames::KEYMAP_XML,
+		FileNames::MENUS_XML,
+		FileNames::QMAIL_XML,
+		FileNames::TOOLBAR_BMP,
+		FileNames::TOOLBARS_XML
 	};
 	for (int n = 0; n < countof(pwszProfiles); ++n) {
 		if (!pImpl_->ensureFile(wstrProfileDir.get(), 0,

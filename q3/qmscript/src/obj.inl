@@ -305,20 +305,17 @@ STDMETHODIMP qmscript::EnumBase<I, piid, T, Traits>::Clone(I** ppEnum)
  *
  */
 
-template<>
 inline bool qmscript::EnumTraits<VARIANT>::init(VARIANT* p) const
 {
 	::VariantInit(p);
 	return true;
 }
 
-template<>
 inline void qmscript::EnumTraits<VARIANT>::destroy(VARIANT* p) const
 {
 	::VariantClear(p);
 }
 
-template<>
 inline bool qmscript::EnumTraits<VARIANT>::copy(VARIANT* pTo,
 												VARIANT* pFrom) const
 {

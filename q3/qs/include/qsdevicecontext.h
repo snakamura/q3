@@ -209,7 +209,7 @@ private:
  */
 
 template<class Object>
-class QSEXPORTCLASS ObjectSelector
+class ObjectSelector
 {
 public:
 	ObjectSelector(DeviceContext& dc,
@@ -233,7 +233,7 @@ private:
  */
 
 template<class Object>
-class QSEXPORTCLASS GdiObject
+class GdiObject
 {
 public:
 	GdiObject(Object o);

@@ -657,7 +657,7 @@ template<class String>
 class basic_string_ptr
 {
 public:
-	typedef StringTraits<String>::char_type Char;
+	typedef typename StringTraits<String>::char_type Char;
 
 public:
 	basic_string_ptr();
@@ -691,7 +691,7 @@ template<class XString>
 class basic_xstring_ptr
 {
 public:
-	typedef XStringTraits<XString>::char_type Char;
+	typedef typename XStringTraits<XString>::char_type Char;
 
 public:
 	basic_xstring_ptr();
@@ -725,7 +725,7 @@ template<class XString>
 class basic_xstring_size_ptr
 {
 public:
-	typedef XStringTraits<XString>::char_type Char;
+	typedef typename XStringTraits<XString>::char_type Char;
 
 public:
 	basic_xstring_size_ptr();
@@ -843,10 +843,10 @@ struct string_free : public std::unary_function<String, void*>
  */
 
 template<class String>
-class QSEXPORTCLASS StringBuffer
+class StringBuffer
 {
 public:
-	typedef StringTraits<String>::char_type Char;
+	typedef typename StringTraits<String>::char_type Char;
 
 public:
 	/**
@@ -1026,10 +1026,10 @@ private:
  */
 
 template<class XString>
-class QSEXPORTCLASS XStringBuffer
+class XStringBuffer
 {
 public:
-	typedef XStringTraits<XString>::char_type Char;
+	typedef typename XStringTraits<XString>::char_type Char;
 
 public:
 	/**
@@ -1213,14 +1213,14 @@ public:
 	~XStringBufferLock();
 
 public:
-	XStringBuffer<XString>::Char* get() const;
+	typename XStringBuffer<XString>::Char* get() const;
 
 public:
 	void unlock(size_t nSize);
 
 private:
 	XStringBuffer<XString>* pBuf_;
-	XStringBuffer<XString>::Char* p_;
+	typename XStringBuffer<XString>::Char* p_;
 };
 
 
@@ -1287,7 +1287,7 @@ public:
 	};
 
 public:
-	typedef StringTraits<String>::char_type Char;
+	typedef typename StringTraits<String>::char_type Char;
 
 public:
 	/**

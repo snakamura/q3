@@ -80,7 +80,7 @@ std::auto_ptr<Script> qm::ScriptManager::getScript(const WCHAR* pwszName,
 	assert(pModalHandler);
 	
 	if (!pFactory_)
-		return 0;
+		return std::auto_ptr<Script>(0);
 	
 	ConcatW c[] = {
 		{ wstrPath_.get(),	-1 },
@@ -95,7 +95,7 @@ std::auto_ptr<Script> qm::ScriptManager::getScript(const WCHAR* pwszName,
 	WIN32_FIND_DATA fd;
 	AutoFindHandle hFind(::FindFirstFile(ptszFind, &fd));
 	if (!hFind.get())
-		return 0;
+		return std::auto_ptr<Script>(0);
 	T2W(fd.cFileName, pwszFileName);
 	
 	struct {
@@ -121,11 +121,11 @@ std::auto_ptr<Script> qm::ScriptManager::getScript(const WCHAR* pwszName,
 	
 	FileInputStream stream(wstrPath.get());
 	if (!stream)
-		return 0;
+		return std::auto_ptr<Script>(0);
 	BufferedInputStream bufferedStream(&stream, false);
 	InputStreamReader reader(&bufferedStream, false, 0);
 	if (!reader)
-		return 0;
+		return std::auto_ptr<Script>(0);
 	
 	ScriptFactory::Init init = {
 		pwszLang,
@@ -200,11 +200,11 @@ std::auto_ptr<Script> qm::ScriptManager::createScript(const WCHAR* pwszScript,
 													  ModalHandler* pModalHandler) const
 {
 	if (!pFactory_)
-		return 0;
+		return std::auto_ptr<Script>(0);
 	
 	StringReader reader(pwszScript, false);
 	if (!reader)
-		return 0;
+		return std::auto_ptr<Script>(0);
 	ScriptFactory::Init init = {
 		pwszLanguage,
 		&reader,

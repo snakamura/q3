@@ -178,7 +178,8 @@ wstring_ptr qm::FullTextSearchUI::getDisplayName()
 
 std::auto_ptr<SearchPropertyPage> qm::FullTextSearchUI::createPropertyPage(bool bAllFolder)
 {
-	return new FullTextSearchPage(pAccount_, pProfile_, bAllFolder);
+	return std::auto_ptr<SearchPropertyPage>(
+		new FullTextSearchPage(pAccount_, pProfile_, bAllFolder));
 }
 
 
@@ -339,19 +340,19 @@ std::auto_ptr<SearchDriver> qm::FullTextSearchDriverFactory::createDriver(Docume
 																		  HWND hwnd,
 																		  Profile* pProfile)
 {
+	std::auto_ptr<SearchDriver> pDriver;
 	if (pAccount->isMultiMessageStore())
-		return new FullTextSearchDriver(pAccount, pProfile);
-	else
-		return 0;
+		pDriver.reset(new FullTextSearchDriver(pAccount, pProfile));
+	return pDriver;
 }
 
 std::auto_ptr<SearchUI> qm::FullTextSearchDriverFactory::createUI(Account* pAccount,
 																  Profile* pProfile)
 {
+	std::auto_ptr<SearchUI> pUI;
 	if (pAccount->isMultiMessageStore())
-		return new FullTextSearchUI(pAccount, pProfile);
-	else
-		return 0;
+		pUI.reset(new FullTextSearchUI(pAccount, pProfile));
+	return pUI;
 }
 
 qm::FullTextSearchDriverFactory::InitializerImpl::InitializerImpl()

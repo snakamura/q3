@@ -1266,7 +1266,7 @@ bool qm::Account::updateFolders()
 		
 		~Deleter2()
 		{
-			std::for_each(l_.begin(), l_.end(), deleter<Folder>());
+			std::for_each(l_.begin(), l_.end(), qs::deleter<Folder>());
 		}
 		
 		const FolderList& l_;
@@ -2182,13 +2182,13 @@ std::auto_ptr<Logger> qm::Account::openLogger(Host host) const
 	W2T(wstrDir.get(), ptszDir);
 	if (::GetFileAttributes(ptszDir) == 0xffffffff) {
 		if (!::CreateDirectory(ptszDir, 0))
-			return 0;
+			return std::auto_ptr<Logger>(0);
 	}
 	
 	wstring_ptr wstrPath(concat(wstrDir.get(), L"\\", wszName));
 	std::auto_ptr<FileOutputStream> pStream(new FileOutputStream(wstrPath.get()));
 	if (!*pStream.get())
-		return 0;
+		return std::auto_ptr<Logger>(0);
 	
 	std::auto_ptr<Logger> pLogger(new Logger(pStream.get(), true, Logger::LEVEL_DEBUG));
 	pStream.release();

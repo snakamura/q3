@@ -93,7 +93,7 @@ std::auto_ptr<NormalFolder> qmnntp::NntpDriver::createFolder(SubAccount* pSubAcc
 															 Folder* pParent)
 {
 	assert(false);
-	return 0;
+	return std::auto_ptr<NormalFolder>(0);
 }
 
 bool qmnntp::NntpDriver::removeFolder(SubAccount* pSubAccount,
@@ -363,5 +363,5 @@ qmnntp::NntpFactory::~NntpFactory()
 std::auto_ptr<ProtocolDriver> qmnntp::NntpFactory::createDriver(Account* pAccount,
 																const Security* pSecurity)
 {
-	return new NntpDriver(pAccount, pSecurity);
+	return std::auto_ptr<ProtocolDriver>(new NntpDriver(pAccount, pSecurity));
 }

@@ -3028,7 +3028,7 @@ bool qm::MessageExpandDigestAction::expandDigest(Account* pAccount,
 		
 		~Deleter()
 		{
-			std::for_each(l_.begin(), l_.end(), deleter<Message>());
+			std::for_each(l_.begin(), l_.end(), qs::deleter<Message>());
 		}
 		
 		PartUtil::MessageList& l_;

@@ -115,7 +115,7 @@ std::auto_ptr<ReceiveSession> qm::ReceiveSessionFactory::getSession(const WCHAR*
 	ReceiveSessionFactoryImpl::FactoryList::iterator it =
 		ReceiveSessionFactoryImpl::getIterator(pwszName);
 	if (it == ReceiveSessionFactoryImpl::listFactory__.end())
-		return 0;
+		return std::auto_ptr<ReceiveSession>(0);
 	return (*it).second->createSession();
 }
 
@@ -124,7 +124,7 @@ std::auto_ptr<ReceiveSessionUI> qm::ReceiveSessionFactory::getUI(const WCHAR* pw
 	ReceiveSessionFactoryImpl::FactoryList::iterator it =
 		ReceiveSessionFactoryImpl::getIterator(pwszName);
 	if (it == ReceiveSessionFactoryImpl::listFactory__.end())
-		return 0;
+		return std::auto_ptr<ReceiveSessionUI>(0);
 	return (*it).second->createUI();
 }
 
@@ -242,7 +242,7 @@ std::auto_ptr<SendSession> qm::SendSessionFactory::getSession(const WCHAR* pwszN
 	SendSessionFactoryImpl::FactoryList::iterator it =
 		SendSessionFactoryImpl::getIterator(pwszName);
 	if (it == SendSessionFactoryImpl::listFactory__.end())
-		return 0;
+		return std::auto_ptr<SendSession>(0);
 	return (*it).second->createSession();
 }
 
@@ -251,7 +251,7 @@ std::auto_ptr<SendSessionUI> qm::SendSessionFactory::getUI(const WCHAR* pwszName
 	SendSessionFactoryImpl::FactoryList::iterator it =
 		SendSessionFactoryImpl::getIterator(pwszName);
 	if (it == SendSessionFactoryImpl::listFactory__.end())
-		return 0;
+		return std::auto_ptr<SendSessionUI>(0);
 	return (*it).second->createUI();
 }
 

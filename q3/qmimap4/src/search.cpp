@@ -97,7 +97,8 @@ wstring_ptr qmimap4::Imap4SearchUI::getDisplayName()
 
 std::auto_ptr<SearchPropertyPage> qmimap4::Imap4SearchUI::createPropertyPage(bool bAllFolder)
 {
-	return new Imap4SearchPage(pAccount_, pProfile_, bAllFolder);
+	return std::auto_ptr<SearchPropertyPage>(
+		new Imap4SearchPage(pAccount_, pProfile_, bAllFolder));
 }
 
 
@@ -296,17 +297,17 @@ std::auto_ptr<SearchDriver> qmimap4::Imap4SearchDriverFactory::createDriver(Docu
 																			HWND hwnd,
 																			Profile* pProfile)
 {
+	std::auto_ptr<SearchDriver> pDriver;
 	if (wcscmp(pAccount->getType(Account::HOST_RECEIVE), L"imap4") == 0)
-		return new Imap4SearchDriver(pAccount, pProfile);
-	else
-		return 0;
+		pDriver.reset(new Imap4SearchDriver(pAccount, pProfile));
+	return pDriver;
 }
 
 std::auto_ptr<SearchUI> qmimap4::Imap4SearchDriverFactory::createUI(Account* pAccount,
 																	Profile* pProfile)
 {
+	std::auto_ptr<SearchUI> pUI;
 	if (wcscmp(pAccount->getType(Account::HOST_RECEIVE), L"imap4") == 0)
-		return new Imap4SearchUI(pAccount, pProfile);
-	else
-		return 0;
+		pUI.reset(new Imap4SearchUI(pAccount, pProfile));
+	return pUI;
 }

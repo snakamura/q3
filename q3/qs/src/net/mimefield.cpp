@@ -2483,8 +2483,7 @@ Part::Field qs::AddressListParser::parseAddressList(const Part& part,
 		~Deleter()
 		{
 			if (p_) {
-				std::for_each(p_->begin(), p_->end(),
-					deleter<AddressParser>());
+				std::for_each(p_->begin(), p_->end(), qs::deleter<AddressParser>());
 				p_->clear();
 			}
 		}

@@ -229,7 +229,7 @@ short qmpop3::Pop3SendSessionUI::getDefaultPort()
 
 std::auto_ptr<PropertyPage> qmpop3::Pop3SendSessionUI::createPropertyPage(SubAccount* pSubAccount)
 {
-	return new SendPage(pSubAccount);
+	return std::auto_ptr<PropertyPage>(new SendPage(pSubAccount));
 }
 
 
@@ -253,10 +253,10 @@ qmpop3::Pop3SendSessionFactory::~Pop3SendSessionFactory()
 
 std::auto_ptr<SendSession> qmpop3::Pop3SendSessionFactory::createSession()
 {
-	return new Pop3SendSession();
+	return std::auto_ptr<SendSession>(new Pop3SendSession());
 }
 
 std::auto_ptr<SendSessionUI> qmpop3::Pop3SendSessionFactory::createUI()
 {
-	return new Pop3SendSessionUI();
+	return std::auto_ptr<SendSessionUI>(new Pop3SendSessionUI());
 }

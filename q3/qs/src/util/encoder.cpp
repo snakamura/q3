@@ -149,7 +149,7 @@ std::auto_ptr<Encoder> qs::EncoderFactory::getInstance(const WCHAR* pwszName)
 		++it;
 	}
 	if (it == pMap->end())
-		return 0;
+		return std::auto_ptr<Encoder>(0);
 	
 	return (*it)->createInstance();
 }
@@ -396,7 +396,7 @@ const WCHAR* qs::Base64EncoderFactory::getName() const
 
 std::auto_ptr<Encoder> qs::Base64EncoderFactory::createInstance()
 {
-	return new Base64Encoder(true);
+	return std::auto_ptr<Encoder>(new Base64Encoder(true));
 }
 
 
@@ -423,7 +423,7 @@ const WCHAR* qs::BEncoderFactory::getName() const
 
 std::auto_ptr<Encoder> qs::BEncoderFactory::createInstance()
 {
-	return new Base64Encoder(false);
+	return std::auto_ptr<Encoder>(new Base64Encoder(false));
 }
 
 
@@ -680,7 +680,7 @@ const WCHAR* qs::QuotedPrintableEncoderFactory::getName() const
 
 std::auto_ptr<Encoder> qs::QuotedPrintableEncoderFactory::createInstance()
 {
-	return new QuotedPrintableEncoder(false);
+	return std::auto_ptr<Encoder>(new QuotedPrintableEncoder(false));
 }
 
 
@@ -707,7 +707,7 @@ const WCHAR* qs::QEncoderFactory::getName() const
 
 std::auto_ptr<Encoder> qs::QEncoderFactory::createInstance()
 {
-	return new QuotedPrintableEncoder(true);
+	return std::auto_ptr<Encoder>(new QuotedPrintableEncoder(true));
 }
 
 
@@ -932,7 +932,7 @@ const WCHAR* qs::UuencodeEncoderFactory::getName() const
 
 std::auto_ptr<Encoder> qs::UuencodeEncoderFactory::createInstance()
 {
-	return new UuencodeEncoder();
+	return std::auto_ptr<Encoder>(new UuencodeEncoder());
 }
 
 
@@ -959,5 +959,5 @@ const WCHAR* qs::XUuencodeEncoderFactory::getName() const
 
 std::auto_ptr<Encoder> qs::XUuencodeEncoderFactory::createInstance()
 {
-	return new UuencodeEncoder();
+	return std::auto_ptr<Encoder>(new UuencodeEncoder());
 }

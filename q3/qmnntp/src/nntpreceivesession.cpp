@@ -471,7 +471,7 @@ short qmnntp::NntpReceiveSessionUI::getDefaultPort()
 
 std::auto_ptr<PropertyPage> qmnntp::NntpReceiveSessionUI::createPropertyPage(SubAccount* pSubAccount)
 {
-	return new ReceivePage(pSubAccount);
+	return std::auto_ptr<PropertyPage>(new ReceivePage(pSubAccount));
 }
 
 
@@ -495,12 +495,12 @@ qmnntp::NntpReceiveSessionFactory::~NntpReceiveSessionFactory()
 
 std::auto_ptr<ReceiveSession> qmnntp::NntpReceiveSessionFactory::createSession()
 {
-	return new NntpReceiveSession();
+	return std::auto_ptr<ReceiveSession>(new NntpReceiveSession());
 }
 
 std::auto_ptr<ReceiveSessionUI> qmnntp::NntpReceiveSessionFactory::createUI()
 {
-	return new NntpReceiveSessionUI();
+	return std::auto_ptr<ReceiveSessionUI>(new NntpReceiveSessionUI());
 }
 
 
@@ -590,8 +590,9 @@ std::auto_ptr<MacroContext> qmnntp::NntpSyncFilterCallback::getMacroContext()
 	if (!pmh_.get())
 		pmh_.reset(new NntpMessageHolder(this, pFolder_, pMessage_, nSize_));
 	
-	return new MacroContext(pmh_.get(), pMessage_, MessageHolderList(), pAccount_,
-		pDocument_, hwnd_, pProfile_, false, false, 0, pGlobalVariable_);
+	return std::auto_ptr<MacroContext>(new MacroContext(pmh_.get(),
+		pMessage_, MessageHolderList(), pAccount_, pDocument_,
+		hwnd_, pProfile_, false, false, 0, pGlobalVariable_));
 }
 
 

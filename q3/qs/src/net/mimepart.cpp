@@ -226,25 +226,25 @@ std::auto_ptr<Part> qs::Part::clone() const
 	
 	if (strHeader_.get()) {
 		if (!pPart->setHeader(strHeader_.get()))
-			return 0;
+			return std::auto_ptr<Part>(0);
 	}
 	
 	if (strBody_.get()) {
 		if (!pPart->setBody(strBody_.get(), -1))
-			return 0;
+			return std::auto_ptr<Part>(0);
 	}
 	
 	if (pPartEnclosed_.get()) {
 		pPart->pPartEnclosed_ = pPartEnclosed_->clone();
 		if (!pPart->pPartEnclosed_.get())
-			return 0;
+			return std::auto_ptr<Part>(0);
 	}
 	
 	PartList::const_iterator it = listPart_.begin();
 	while (it != listPart_.end()) {
 		std::auto_ptr<Part> pPartChild((*it)->clone());
 		if (!pPartChild.get())
-			return 0;
+			return std::auto_ptr<Part>(0);
 		pPart->addPart(pPartChild);
 		++it;
 	}

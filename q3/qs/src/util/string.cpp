@@ -473,14 +473,14 @@ QSEXPORTPROC wstring_ptr qs::concat(const ConcatW* pConcat,
 
 struct qs::StringTokenizerImpl
 {
-	StringTokenzerImpl();
+	StringTokenizerImpl();
 	~StringTokenizerImpl();
 	
 	typedef std::vector<WSTRING> TokenList;
 	TokenList listToken_;
 };
 
-qs::StringTokenizerImpl::StringTokenzerImpl()
+qs::StringTokenizerImpl::StringTokenizerImpl()
 {
 }
 

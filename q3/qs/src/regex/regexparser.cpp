@@ -597,7 +597,7 @@ std::auto_ptr<RegexRegexNode> qs::RegexParser::parse()
 	std::auto_ptr<RegexRegexNode> pNode(parseRegex(
 		false, RegexRegexNode::GROUPTYPE_NORMAL));
 	if (*p_ != L'\0')
-		return 0;
+		return std::auto_ptr<RegexRegexNode>(0);
 	return pNode;
 }
 
@@ -614,7 +614,7 @@ std::auto_ptr<RegexRegexNode> qs::RegexParser::parseRegex(bool bCapture,
 	while (true) {
 		std::auto_ptr<RegexNode> pNode(parseBranch());
 		if (!pNode.get())
-			return 0;
+			return std::auto_ptr<RegexRegexNode>(0);
 		pRegexNode->addNode(pNode);
 		
 		if (*p_ != L'|' || *p_ == L')')
@@ -637,7 +637,7 @@ std::auto_ptr<RegexNode> qs::RegexParser::parseBranch()
 			pBrunchNode.reset(new RegexBrunchNode(pPieceNode));
 		pPieceNode = parsePiece();
 		if (!pPieceNode.get())
-			return 0;
+			return std::auto_ptr<RegexNode>(0);
 		if (pBrunchNode.get())
 			pBrunchNode->addNode(pPieceNode);
 	}
@@ -647,7 +647,7 @@ std::auto_ptr<RegexNode> qs::RegexParser::parseBranch()
 	else if (pPieceNode.get())
 		return pPieceNode;
 	else
-		return new RegexEmptyNode();
+		return std::auto_ptr<RegexNode>(new RegexEmptyNode());
 }
 
 std::auto_ptr<RegexPieceNode> qs::RegexParser::parsePiece()
@@ -677,20 +677,20 @@ std::auto_ptr<RegexPieceNode> qs::RegexParser::parsePiece()
 				else if (*p_ == L'!')
 					groupType = RegexRegexNode::GROUPTYPE_NEGATIVELOOKBEHIND;
 				else
-					return 0;
+					return std::auto_ptr<RegexPieceNode>(0);
 			}
 			else if (*p_ == L'>') {
 				groupType = RegexRegexNode::GROUPTYPE_INDEPENDENT;
 			}
 			else {
-				return 0;
+				return std::auto_ptr<RegexPieceNode>(0);
 			}
 			++p_;
 		}
 		
 		std::auto_ptr<RegexRegexNode> pNode(parseRegex(bCapture, groupType));
 		if (*p_ != L')')
-			return 0;
+			return std::auto_ptr<RegexPieceNode>(0);
 		pAtom.reset(new RegexNodeAtom(pNode));
 		
 		++p_;
@@ -698,7 +698,7 @@ std::auto_ptr<RegexPieceNode> qs::RegexParser::parsePiece()
 	else if (*p_ == L'[') {
 		pAtom = parseCharGroup();
 		if (!pAtom.get())
-			return 0;
+			return std::auto_ptr<RegexPieceNode>(0);
 	}
 	else if (*p_ == L'.') {
 		RegexMultiEscapeAtom::Type type = nMode_ & RegexCompiler::MODE_DOTALL ?
@@ -753,7 +753,7 @@ std::auto_ptr<RegexPieceNode> qs::RegexParser::parsePiece()
 		else if (L'1' <= *p_ && *p_ <= L'9') {
 			unsigned int n = *p_ - L'0';
 			if (!checkReference(n))
-				return 0;
+				return std::auto_ptr<RegexPieceNode>(0);
 			while (L'0' <= *(p_ + 1) && *(p_ + 1) <= L'9') {
 				unsigned int nNext = n*10 + (*(p_ + 1) - L'0');
 				if (!checkReference(nNext))
@@ -764,13 +764,13 @@ std::auto_ptr<RegexPieceNode> qs::RegexParser::parsePiece()
 			pAtom.reset(new RegexReferenceAtom(n));
 		}
 		else {
-			return 0;
+			return std::auto_ptr<RegexPieceNode>(0);
 		}
 		++p_;
 	}
 	else if (*p_ == L'?' || *p_ == L'*' || *p_ == L'+' ||
 		*p_ == L']' || *p_ == L'{' || *p_ == L'}') {
-		return 0;
+		return std::auto_ptr<RegexPieceNode>(0);
 	}
 	else {
 		const WCHAR* p = p_;
@@ -803,7 +803,7 @@ std::auto_ptr<RegexPieceNode> qs::RegexParser::parsePiece()
 		pQuantifier = parseQuantity();
 	}
 	
-	return new RegexPieceNode(pAtom, pQuantifier);
+	return std::auto_ptr<RegexPieceNode>(new RegexPieceNode(pAtom, pQuantifier));
 }
 
 std::auto_ptr<RegexCharGroupAtom> qs::RegexParser::parseCharGroup()
@@ -823,14 +823,14 @@ std::auto_ptr<RegexCharGroupAtom> qs::RegexParser::parseCharGroup()
 		++p_;
 	}
 	else if (*p_ == L'[' || *p_ == L']') {
-		return 0;
+		return std::auto_ptr<RegexCharGroupAtom>(0);
 	}
 	
 	while (*p_ != L']') {
 		WCHAR cStart = L'\0';
 		bool bDash = false;
 		if (*p_ == L'[') {
-			return 0;
+			return std::auto_ptr<RegexCharGroupAtom>(0);
 		}
 		else if (*p_ == L'\\') {
 			++p_;
@@ -843,7 +843,7 @@ std::auto_ptr<RegexCharGroupAtom> qs::RegexParser::parseCharGroup()
 				pCharGroupAtom->addAtomCharGroup(pAtom);
 			}
 			else {
-				return 0;
+				return std::auto_ptr<RegexCharGroupAtom>(0);
 			}
 		}
 		else if (*p_ == L'-') {
@@ -868,14 +868,14 @@ std::auto_ptr<RegexCharGroupAtom> qs::RegexParser::parseCharGroup()
 					std::auto_ptr<RegexCharGroupAtom> pSubAtom(new RegexCharGroupAtom());
 					pCharGroupAtom->setSubAtom(pSubAtom);
 					if (*p_ != L']')
-						return 0;
+						return std::auto_ptr<RegexCharGroupAtom>(0);
 				}
 				else if (*p_ == L'\\' && !bDash) {
 					++p_;
 					if (wcschr(wszSingleEscapeChar__, *p_))
 						pCharGroupAtom->addRangeCharGroup(cStart, getSingleEscapedChar(*p_));
 					else
-						return 0;
+						return std::auto_ptr<RegexCharGroupAtom>(0);
 					++p_;
 				}
 				else if (!bDash) {
@@ -883,7 +883,7 @@ std::auto_ptr<RegexCharGroupAtom> qs::RegexParser::parseCharGroup()
 					++p_;
 				}
 				else {
-					return 0;
+					return std::auto_ptr<RegexCharGroupAtom>(0);
 				}
 			}
 			else {
@@ -904,7 +904,7 @@ std::auto_ptr<RegexQuantifier> qs::RegexParser::parseQuantity()
 	
 	++p_;
 	if (*p_ < L'0' || L'9' < *p_)
-		return 0;
+		return std::auto_ptr<RegexQuantifier>(0);
 	
 	unsigned int nMin = 0;
 	while (L'0' <= *p_ && *p_ <= L'9') {
@@ -930,22 +930,22 @@ std::auto_ptr<RegexQuantifier> qs::RegexParser::parseQuantity()
 				++p_;
 			}
 			if (nMin > nMax)
-				return 0;
+				return std::auto_ptr<RegexQuantifier>(0);
 			if (*p_ == L'}') {
 				++p_;
 				pQuantifier.reset(new RegexQuantifier(RegexQuantifier::TYPE_RANGE,
 					nMin, nMax, parseQuantifierOption()));
 			}
 			else {
-				return 0;
+				return std::auto_ptr<RegexQuantifier>(0);
 			}
 		}
 		else {
-			return 0;
+			return std::auto_ptr<RegexQuantifier>(0);
 		}
 	}
 	else {
-		return 0;
+		return std::auto_ptr<RegexQuantifier>(0);
 	}
 	
 	return pQuantifier;

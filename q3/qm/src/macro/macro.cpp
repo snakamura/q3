@@ -451,11 +451,11 @@ void qm::MacroArgumentHolder::addArgument(MacroValuePtr pValue)
 MacroValuePtr qm::MacroArgumentHolder::getArgument(unsigned int n) const
 {
 	if (listArgument_.empty())
-		return 0;
+		return MacroValuePtr();
 	
 	const std::vector<MacroValue*>& v = listArgument_.back();
 	if (n >= v.size())
-		return 0;
+		return MacroValuePtr();
 	else
 		return v[n]->clone();
 }
@@ -493,7 +493,7 @@ MacroValuePtr qm::MacroExpr::error(const MacroContext& context,
 		log.error(wstrLog.get());
 	}
 	
-	return 0;
+	return MacroValuePtr();
 }
 
 
@@ -601,7 +601,7 @@ MacroValuePtr qm::MacroFieldCache::value(MacroContext* pContext) const
 	}
 	else {
 		assert(false);
-		return 0;
+		return MacroValuePtr();
 	}
 }
 
@@ -979,7 +979,7 @@ std::auto_ptr<Macro> qm::MacroParser::parse(const WCHAR* pwszMacro,
 		
 		~Deleter()
 		{
-			std::for_each(stack_.begin(), stack_.end(), deleter<MacroFunction>());
+			std::for_each(stack_.begin(), stack_.end(), qs::deleter<MacroFunction>());
 		}
 		
 		FunctionStack& stack_;
@@ -1105,7 +1105,7 @@ std::auto_ptr<Macro> qm::MacroParser::parse(const WCHAR* pwszMacro,
 	
 	assert(pMacroExpr.get());
 	
-	return new Macro(pMacroExpr);
+	return std::auto_ptr<Macro>(new Macro(pMacroExpr));
 }
 
 void qm::MacroParser::setErrorHandler(MacroErrorHandler* pErrorHandler)
@@ -1142,7 +1142,7 @@ std::auto_ptr<Macro> qm::MacroParser::error(MacroErrorHandler::Code code,
 		log.error(wstrLog.get());
 	}
 	
-	return 0;
+	return std::auto_ptr<Macro>(0);
 }
 
 
@@ -1201,7 +1201,7 @@ MacroValuePtr qm::MacroVariableHolder::getVariable(const WCHAR* pwszName) const
 	if (it != pImpl_->mapVariable_.end())
 		return (*it).second->clone();
 	else
-		return 0;
+		return MacroValuePtr();
 }
 
 void qm::MacroVariableHolder::setVariable(const WCHAR* pwszName,

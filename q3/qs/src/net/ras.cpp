@@ -466,7 +466,7 @@ RasConnection::Result qs::RasConnection::disconnect(bool bWait)
 std::auto_ptr<RasConnection> qs::RasConnection::getActiveConnection(size_t nIndex)
 {
 	if (!RasAPI::isInit())
-		return 0;
+		return std::auto_ptr<RasConnection>(0);
 	
 	HRASCONN hrasconn = 0;
 	RASCONN rasconn = { sizeof(rasconn) };
@@ -478,11 +478,11 @@ std::auto_ptr<RasConnection> qs::RasConnection::getActiveConnection(size_t nInde
 		RasConnList listRasConn;
 		listRasConn.resize(dwSize/sizeof(RASCONN));
 		if (RasAPI::rasEnumConnections(&listRasConn[0], &dwSize, &dwConnection) != 0)
-			return 0;
+			return std::auto_ptr<RasConnection>(0);
 		if (nIndex == -1)
 			nIndex = 0;
 		if (nIndex >= dwConnection)
-			return 0;
+			return std::auto_ptr<RasConnection>(0);
 		hrasconn = listRasConn[nIndex].hrasconn;
 	}
 	else if (dwConnection != 0) {
@@ -490,10 +490,10 @@ std::auto_ptr<RasConnection> qs::RasConnection::getActiveConnection(size_t nInde
 		hrasconn = rasconn.hrasconn;
 	}
 	else {
-		return 0;
+		return std::auto_ptr<RasConnection>(0);
 	}
 	
-	return new RasConnection(hrasconn);
+	return std::auto_ptr<RasConnection>(new RasConnection(hrasconn));
 }
 
 int qs::RasConnection::getActiveConnectionCount()

@@ -671,7 +671,7 @@ const WCHAR* qs::RegexNfaNfaState::match(const WCHAR* pStart,
 		break;
 	default:
 		assert(false);
-		break;
+		return 0;
 	}
 }
 

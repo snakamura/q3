@@ -167,16 +167,16 @@ std::auto_ptr<Name> qscrypto::CertificateImpl::getSubject() const
 {
 	X509_NAME* pX509Name = X509_get_subject_name(pX509_);
 	if (!pX509Name)
-		return 0;
-	return new NameImpl(pX509Name);
+		return std::auto_ptr<Name>(0);
+	return std::auto_ptr<Name>(new NameImpl(pX509Name));
 }
 
 std::auto_ptr<Name> qscrypto::CertificateImpl::getIssuer() const
 {
 	X509_NAME* pX509Name = X509_get_issuer_name(pX509_);
 	if (!pX509Name)
-		return 0;
-	return new NameImpl(pX509Name);
+		return std::auto_ptr<Name>(0);
+	return std::auto_ptr<Name>(new NameImpl(pX509Name));
 }
 
 
@@ -445,24 +445,24 @@ qscrypto::CryptoFactoryImpl::~CryptoFactoryImpl()
 
 std::auto_ptr<Certificate> qscrypto::CryptoFactoryImpl::createCertificate()
 {
-	return new CertificateImpl();
+	return std::auto_ptr<Certificate>(new CertificateImpl());
 }
 
 std::auto_ptr<PrivateKey> qscrypto::CryptoFactoryImpl::createPrivateKey()
 {
-	return new PrivateKeyImpl();
+	return std::auto_ptr<PrivateKey>(new PrivateKeyImpl());
 }
 
 std::auto_ptr<PublicKey> qscrypto::CryptoFactoryImpl::createPublicKey()
 {
-	return new PublicKeyImpl();
+	return std::auto_ptr<PublicKey>(new PublicKeyImpl());
 }
 
 std::auto_ptr<Store> qscrypto::CryptoFactoryImpl::createStore()
 {
 	std::auto_ptr<StoreImpl> pStore(new StoreImpl());
 	if (!pStore->getStore())
-		return 0;
+		return std::auto_ptr<Store>(0);
 	return pStore;
 }
 
@@ -470,13 +470,13 @@ std::auto_ptr<Cipher> qscrypto::CryptoFactoryImpl::createCipher(const WCHAR* pws
 {
 	std::auto_ptr<CipherImpl> pCipher(new CipherImpl(pwszName));
 	if (!pCipher->getCipher())
-		return 0;
+		return std::auto_ptr<Cipher>(0);
 	return pCipher;
 }
 
 std::auto_ptr<SMIMEUtility> qscrypto::CryptoFactoryImpl::createSMIMEUtility()
 {
-	return new SMIMEUtilityImpl();
+	return std::auto_ptr<SMIMEUtility>(new SMIMEUtilityImpl());
 }
 
 

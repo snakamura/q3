@@ -202,7 +202,7 @@ qs::SystemAcceleratorFactory::~SystemAcceleratorFactory()
 std::auto_ptr<Accelerator> qs::SystemAcceleratorFactory::createAccelerator(const ACCEL* pAccel,
 																		   int nSize)
 {
-	return new SystemAccelerator(pAccel, nSize);
+	return std::auto_ptr<Accelerator>(new SystemAccelerator(pAccel, nSize));
 }
 
 
@@ -319,5 +319,5 @@ qs::CustomAcceleratorFactory::~CustomAcceleratorFactory()
 std::auto_ptr<Accelerator> qs::CustomAcceleratorFactory::createAccelerator(const ACCEL* pAccel,
 																		   int nSize)
 {
-	return new CustomAccelerator(pAccel, nSize);
+	return std::auto_ptr<Accelerator>(new CustomAccelerator(pAccel, nSize));
 }

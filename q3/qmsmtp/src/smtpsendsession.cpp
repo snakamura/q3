@@ -439,7 +439,7 @@ short qmsmtp::SmtpSendSessionUI::getDefaultPort()
 
 std::auto_ptr<PropertyPage> qmsmtp::SmtpSendSessionUI::createPropertyPage(SubAccount* pSubAccount)
 {
-	return new SendPage(pSubAccount);
+	return std::auto_ptr<PropertyPage>(new SendPage(pSubAccount));
 }
 
 
@@ -463,10 +463,10 @@ qmsmtp::SmtpSendSessionFactory::~SmtpSendSessionFactory()
 
 std::auto_ptr<SendSession> qmsmtp::SmtpSendSessionFactory::createSession()
 {
-	return new SmtpSendSession();
+	return std::auto_ptr<SendSession>(new SmtpSendSession());
 }
 
 std::auto_ptr<SendSessionUI> qmsmtp::SmtpSendSessionFactory::createUI()
 {
-	return new SmtpSendSessionUI();
+	return std::auto_ptr<SendSessionUI>(new SmtpSendSessionUI());
 }

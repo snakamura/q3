@@ -212,8 +212,8 @@ private:
 template<class Op1, class Op2>
 struct pair_less_t :
 	public std::binary_function<
-		std::pair<Op1::first_argument_type, Op2::first_argument_type>,
-		std::pair<Op2::second_argument_type, Op2::second_argument_type>,
+		std::pair<typename Op1::first_argument_type, typename Op2::first_argument_type>,
+		std::pair<typename Op2::second_argument_type, typename Op2::second_argument_type>,
 		bool>
 {
 	pair_less_t(const Op1& op1, const Op2& op2) :

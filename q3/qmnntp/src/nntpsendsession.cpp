@@ -229,7 +229,7 @@ short qmnntp::NntpSendSessionUI::getDefaultPort()
 
 std::auto_ptr<PropertyPage> qmnntp::NntpSendSessionUI::createPropertyPage(SubAccount* pSubAccount)
 {
-	return new SendPage(pSubAccount);
+	return std::auto_ptr<PropertyPage>(new SendPage(pSubAccount));
 }
 
 
@@ -253,10 +253,10 @@ qmnntp::NntpSendSessionFactory::~NntpSendSessionFactory()
 
 std::auto_ptr<SendSession> qmnntp::NntpSendSessionFactory::createSession()
 {
-	return new NntpSendSession();
+	return std::auto_ptr<SendSession>(new NntpSendSession());
 }
 
 std::auto_ptr<SendSessionUI> qmnntp::NntpSendSessionFactory::createUI()
 {
-	return new NntpSendSessionUI();
+	return std::auto_ptr<SendSessionUI>(new NntpSendSessionUI());
 }

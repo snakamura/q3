@@ -112,7 +112,8 @@ std::auto_ptr<ViewColumn> qm::ViewColumn::clone() const
 		assert(pMacro.get());
 	}
 	
-	return new ViewColumn(wstrTitle_.get(), type_, pMacro, nFlags_, nWidth_);
+	return std::auto_ptr<ViewColumn>(new ViewColumn(
+		wstrTitle_.get(), type_, pMacro, nFlags_, nWidth_));
 }
 
 wstring_ptr qm::ViewColumn::getText(const ViewModel* pViewModel,

@@ -190,7 +190,7 @@ private:
  */
 
 template<class Object>
-class QSEXPORTCLASS Lock
+class Lock
 {
 public:
 	explicit Lock(const Object& o);

@@ -1650,7 +1650,7 @@ short qmimap4::Imap4ReceiveSessionUI::getDefaultPort()
 
 std::auto_ptr<PropertyPage> qmimap4::Imap4ReceiveSessionUI::createPropertyPage(SubAccount* pSubAccount)
 {
-	return new ReceivePage(pSubAccount);
+	return std::auto_ptr<PropertyPage>(new ReceivePage(pSubAccount));
 }
 
 
@@ -1674,12 +1674,12 @@ qmimap4::Imap4ReceiveSessionFactory::~Imap4ReceiveSessionFactory()
 
 std::auto_ptr<ReceiveSession> qmimap4::Imap4ReceiveSessionFactory::createSession()
 {
-	return new Imap4ReceiveSession();
+	return std::auto_ptr<ReceiveSession>(new Imap4ReceiveSession());
 }
 
 std::auto_ptr<ReceiveSessionUI> qmimap4::Imap4ReceiveSessionFactory::createUI()
 {
-	return new Imap4ReceiveSessionUI();
+	return std::auto_ptr<ReceiveSessionUI>(new Imap4ReceiveSessionUI());
 }
 
 
@@ -1736,8 +1736,9 @@ std::auto_ptr<MacroContext> qmimap4::Imap4SyncFilterCallback::getMacroContext()
 		pmh_.reset(new Imap4MessageHolder(this, pFolder_,
 			pMessage_, nUid_, nSize_, nTextSize_));
 	
-	return new MacroContext(pmh_.get(), pMessage_, MessageHolderList(), pAccount_,
-		pDocument_, hwnd_, pProfile_, false, false, 0, pGlobalVariable_);
+	return std::auto_ptr<MacroContext>(new MacroContext(pmh_.get(),
+		pMessage_, MessageHolderList(), pAccount_, pDocument_,
+		hwnd_, pProfile_, false, false, 0, pGlobalVariable_));
 }
 
 

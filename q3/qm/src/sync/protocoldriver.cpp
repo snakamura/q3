@@ -86,7 +86,7 @@ std::auto_ptr<ProtocolDriver> qm::ProtocolFactory::getDriver(Account* pAccount,
 	ProtocolFactoryImpl::FactoryList::iterator it =
 		ProtocolFactoryImpl::getIterator(pwszName);
 	if (it == ProtocolFactoryImpl::listFactory__.end())
-		return 0;
+		return std::auto_ptr<ProtocolDriver>(0);
 	
 	return (*it).second->createDriver(pAccount, pSecurity);
 }

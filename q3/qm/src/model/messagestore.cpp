@@ -304,23 +304,23 @@ malloc_ptr<unsigned char> qm::SingleMessageStore::readCache(MessageCacheKey key)
 	const size_t nDefaultSize = 1024;
 	malloc_ptr<unsigned char> p(static_cast<unsigned char*>(malloc(nDefaultSize)));
 	if (!p.get())
-		return 0;
+		return malloc_ptr<unsigned char>(0);
 	
 	unsigned int nLoad = pImpl_->pCacheStorage_->load(p.get(), key, nDefaultSize);
 	if (nLoad == -1 || nLoad < sizeof(size_t))
-		return 0;
+		return malloc_ptr<unsigned char>(0);
 	
 	size_t nSize = *reinterpret_cast<size_t*>(p.get());
 	if (nSize + sizeof(nSize) > nDefaultSize) {
 		unsigned char* p2 = static_cast<unsigned char*>(
 			realloc(p.get(), nSize + sizeof(nSize)));
 		if (!p2)
-			return 0;
+			return malloc_ptr<unsigned char>(0);
 		p.release();
 		p.reset(p2);
 		
 		if (pImpl_->pCacheStorage_->load(p.get(), key, nSize + sizeof(nSize)) == -1)
-			return 0;
+			return malloc_ptr<unsigned char>(0);
 	}
 	
 	return p;
@@ -746,22 +746,22 @@ malloc_ptr<unsigned char> qm::MultiMessageStore::readCache(MessageCacheKey key)
 	malloc_ptr<unsigned char> p(
 		static_cast<unsigned char*>(malloc(nDefaultSize)));
 	if (!p.get())
-		return 0;
+		return malloc_ptr<unsigned char>(0);
 	unsigned int nLoad = pImpl_->pCacheStorage_->load(p.get(), key, nDefaultSize);
 	if (nLoad == -1 || nLoad < sizeof(size_t))
-		return 0;
+		return malloc_ptr<unsigned char>(0);
 	
 	size_t nSize = *reinterpret_cast<size_t*>(p.get());
 	if (nSize + sizeof(nSize) > nDefaultSize) {
 		unsigned char* p2 = static_cast<unsigned char*>(
 			realloc(p.get(), nSize + sizeof(nSize)));
 		if (!p2)
-			return 0;
+			return malloc_ptr<unsigned char>(0);
 		p.release();
 		p.reset(p2);
 		
 		if (pImpl_->pCacheStorage_->load(p.get(), key, nSize + sizeof(nSize)) == -1)
-			return 0;
+			return malloc_ptr<unsigned char>(0);
 	}
 	
 	return p;
@@ -821,7 +821,7 @@ std::auto_ptr<ClusterStorage> qm::MessageStoreUtil::checkCache(ClusterStorage* p
 	assert(pCallback);
 	
 	if (!pStorage->close())
-		return 0;
+		return std::auto_ptr<ClusterStorage>(0);
 	
 	std::auto_ptr<ClusterStorage> pCacheStorage(new ClusterStorage(
 		pwszPath, L"check", FileNames::BOX_EXT, FileNames::MAP_EXT, nBlockSize));
@@ -832,7 +832,7 @@ std::auto_ptr<ClusterStorage> qm::MessageStoreUtil::checkCache(ClusterStorage* p
 		if (pCallback->getHeader(n, &header)) {
 			malloc_size_ptr<unsigned char> pData(MessageCache::createData(header));
 			if (!pData.get())
-				return 0;
+				return std::auto_ptr<ClusterStorage>(0);
 			
 			size_t nDataLen = pData.size();
 			const unsigned char* pCache[] = {
@@ -846,7 +846,7 @@ std::auto_ptr<ClusterStorage> qm::MessageStoreUtil::checkCache(ClusterStorage* p
 			
 			MessageCacheKey key = pCacheStorage->save(pCache, nCacheLen, countof(pCache));
 			if (key == -1)
-				return 0;
+				return std::auto_ptr<ClusterStorage>(0);
 			
 			pCallback->setKey(n, key);
 		}
@@ -854,12 +854,12 @@ std::auto_ptr<ClusterStorage> qm::MessageStoreUtil::checkCache(ClusterStorage* p
 			if (pCallback->isIgnoreError(n))
 				pCallback->setKey(n, -1);
 			else
-				return 0;
+				return std::auto_ptr<ClusterStorage>(0);
 		}
 	}
 	
 	if (!pCacheStorage->rename(pwszPath, L"cache"))
-		return 0;
+		return std::auto_ptr<ClusterStorage>(0);
 	
 	return pCacheStorage;
 }

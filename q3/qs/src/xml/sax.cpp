@@ -407,7 +407,7 @@ bool qs::DefaultHandler::unparsedEntityDecl(const WCHAR* pwszName,
 std::auto_ptr<InputSource> qs::DefaultHandler::resolveEntity(const WCHAR* pwszPublicId,
 															 const WCHAR* pwszSystemId)
 {
-	return 0;
+	return std::auto_ptr<InputSource>(0);
 }
 
 
@@ -495,13 +495,13 @@ bool qs::DefaultHandler2::comment(const WCHAR* pwsz,
 std::auto_ptr<InputSource> qs::DefaultHandler2::resolveEntity(const WCHAR* pwszPublicId,
 															  const WCHAR* pwszSystemId)
 {
-	return 0;
+	return std::auto_ptr<InputSource>(0);
 }
 
 std::auto_ptr<InputSource> qs::DefaultHandler2::getExternalSubset(const WCHAR* pwszName,
 																  const WCHAR* pwzzBaseURI)
 {
-	return 0;
+	return std::auto_ptr<InputSource>(0);
 }
 
 std::auto_ptr<InputSource> qs::DefaultHandler2::resolveEntity(const WCHAR* pwszName,
@@ -509,7 +509,7 @@ std::auto_ptr<InputSource> qs::DefaultHandler2::resolveEntity(const WCHAR* pwszN
 															  const WCHAR* pwszBaseURI,
 															  const WCHAR* pwszSystemId)
 {
-	return 0;
+	return std::auto_ptr<InputSource>(0);
 }
 
 

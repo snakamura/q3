@@ -1057,7 +1057,7 @@ template<class String>
 class FieldParserUtil
 {
 public:
-	typedef StringTraits<String>::char_type Char;
+	typedef typename StringTraits<String>::char_type Char;
 
 public:
 	static basic_string_ptr<String> getQString(const Char* psz,

@@ -360,7 +360,7 @@ std::auto_ptr<Converter> qs::ConverterFactory::getInstance(const WCHAR* pwszName
 		++it;
 	}
 	if (it == pMap->end())
-		return 0;
+		return std::auto_ptr<Converter>(0);
 	
 	return (*it)->createInstance(pwszName);
 }
@@ -663,7 +663,7 @@ bool qs::UTF7ConverterFactory::isSupported(const WCHAR* pwszName)
 
 std::auto_ptr<Converter> qs::UTF7ConverterFactory::createInstance(const WCHAR* pwszName)
 {
-	return new UTF7Converter(false);
+	return std::auto_ptr<Converter>(new UTF7Converter(false));
 }
 
 
@@ -815,7 +815,7 @@ bool qs::UTF8ConverterFactory::isSupported(const WCHAR* pwszName)
 
 std::auto_ptr<Converter> qs::UTF8ConverterFactory::createInstance(const WCHAR* pwszName)
 {
-	return new UTF8Converter();
+	return std::auto_ptr<Converter>(new UTF8Converter());
 }
 
 
@@ -1582,6 +1582,6 @@ std::auto_ptr<Converter> qs::MLangConverterFactory::createInstance(const WCHAR* 
 {
 	DWORD dwEncoding = pImpl_->getEncoding(pwszName);
 	if (dwEncoding == 0)
-		return 0;
-	return new MLangConverter(pImpl_->pMultiLanguage_, dwEncoding);
+		return std::auto_ptr<Converter>(0);
+	return std::auto_ptr<Converter>(new MLangConverter(pImpl_->pMultiLanguage_, dwEncoding));
 }

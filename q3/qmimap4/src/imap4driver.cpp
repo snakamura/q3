@@ -95,12 +95,12 @@ std::auto_ptr<NormalFolder> qmimap4::Imap4Driver::createFolder(SubAccount* pSubA
 	wstring_ptr wstrRootFolder(pAccount_->getProperty(L"Imap4", L"RootFolder", L""));
 	
 	if (!prepareSessionCache(pSubAccount))
-		return 0;
+		return std::auto_ptr<NormalFolder>(0);
 	
 	SessionCacher cacher(pSessionCache_.get(), 0);
 	Imap4* pImap4 = cacher.get();
 	if (!pImap4)
-		return 0;
+		return std::auto_ptr<NormalFolder>(0);
 	
 	WCHAR cSeparator = L'/';
 	wstring_ptr wstrFullName;
@@ -131,7 +131,7 @@ std::auto_ptr<NormalFolder> qmimap4::Imap4Driver::createFolder(SubAccount* pSubA
 	}
 	
 	if (!pImap4->create(wstrFullName.get()))
-		return 0;
+		return std::auto_ptr<NormalFolder>(0);
 	
 	wstring_ptr wstrName;
 	size_t nFullNameLen = wcslen(wstrFullName.get());
@@ -177,14 +177,15 @@ std::auto_ptr<NormalFolder> qmimap4::Imap4Driver::createFolder(SubAccount* pSubA
 	
 	Hook h(pCallback_.get(), &hook);
 	if (!pImap4->list(false, L"", wstrFullName.get()))
-		return 0;
+		return std::auto_ptr<NormalFolder>(0);
 	if (!hook.bFound_)
-		return 0;
+		return std::auto_ptr<NormalFolder>(0);
 	
 	cacher.release();
 	
-	return new NormalFolder(pAccount_->generateFolderId(), pwszName,
-		hook.cSeparator_, hook.nFlags_, 0, 0, 0, 0, 0, pParent, pAccount_);
+	return std::auto_ptr<NormalFolder>(new NormalFolder(
+		pAccount_->generateFolderId(), pwszName, hook.cSeparator_,
+		hook.nFlags_, 0, 0, 0, 0, 0, pParent, pAccount_));
 }
 
 bool qmimap4::Imap4Driver::removeFolder(SubAccount* pSubAccount,
@@ -1183,7 +1184,7 @@ std::auto_ptr<ProtocolDriver> qmimap4::Imap4Factory::createDriver(Account* pAcco
 	assert(pAccount);
 	assert(pSecurity);
 	
-	return new Imap4Driver(pAccount, pSecurity);
+	return std::auto_ptr<ProtocolDriver>(new Imap4Driver(pAccount, pSecurity));
 }
 
 

@@ -240,7 +240,7 @@ std::auto_ptr<List> qmimap4::Parser::parseList(Buffer* pBuffer,
 	CHAR c = '\0';
 	while ((c = pBuffer->get(nIndex)) != ')') {
 		if (c == '\0') {
-			return 0;
+			return std::auto_ptr<List>(0);
 		}
 		else if (c == '(') {
 			std::auto_ptr<List> pChildList(parseList(pBuffer, pnIndex, pCallback));
@@ -252,7 +252,7 @@ std::auto_ptr<List> qmimap4::Parser::parseList(Buffer* pBuffer,
 			string_ptr strToken;
 			Token token = getNextToken(pBuffer, pnIndex, " ()", pCallback, &strToken);
 			if (token == TOKEN_ERROR)
-				return 0;
+				return std::auto_ptr<List>(0);
 			
 			std::auto_ptr<ListItem> pItem;
 			if (token == TOKEN_NIL)
@@ -272,7 +272,7 @@ std::auto_ptr<List> qmimap4::Parser::parseList(Buffer* pBuffer,
 	while (pBuffer->get(nIndex) == ' ')
 		++nIndex;
 	if (pBuffer->getError() != Imap4::IMAP4_ERROR_SUCCESS)
-		return 0;
+		return std::auto_ptr<List>(0);
 	
 	return pList;
 }
@@ -284,7 +284,7 @@ std::auto_ptr<Response> qmimap4::Parser::parseResponse()
 	string_ptr strToken;
 	Token token = getNextToken(" \r", &strToken);
 	if (token != TOKEN_ATOM)
-		return 0;
+		return std::auto_ptr<Response>(0);
 	
 	ResponseState::Flag flag = ResponseState::FLAG_UNKNOWN;
 	if (strcmp(strToken.get(), "OK") == 0) {
@@ -327,20 +327,20 @@ std::auto_ptr<Response> qmimap4::Parser::parseResponse()
 		CHAR* pEnd = 0;
 		long nNumber = strtol(strToken.get(), &pEnd, 10);
 		if (*pEnd)
-			return 0;
+			return std::auto_ptr<Response>(0);
 		
 		strToken.reset(0);
 		token = getNextToken(" \r", &strToken);
 		if (token != TOKEN_ATOM)
-			return 0;
+			return std::auto_ptr<Response>(0);
 		
 		CHAR c = pBuffer_->get(nIndex_);
 		if (c == '\0') {
-			return 0;
+			return std::auto_ptr<Response>(0);
 		}
 		else if (c == '\r') {
 			if (pBuffer_->get(nIndex_ + 1) != '\n')
-				return 0;
+				return std::auto_ptr<Response>(0);
 			else
 				nIndex_ += 2;
 		}
@@ -354,7 +354,7 @@ std::auto_ptr<Response> qmimap4::Parser::parseResponse()
 		else if (strcmp(strToken.get(), "FETCH") == 0)
 			pResponse = parseFetchResponse(nNumber);
 		else
-			return 0;
+			return std::auto_ptr<Response>(0);
 	}
 	
 	if (flag != ResponseState::FLAG_UNKNOWN) {
@@ -375,16 +375,16 @@ std::auto_ptr<ResponseCapability> qmimap4::Parser::parseCapabilityResponse()
 		string_ptr strToken;
 		Token token = getNextToken(" \r", &strToken);
 		if (token != TOKEN_ATOM)
-			return 0;
+			return std::auto_ptr<ResponseCapability>(0);
 		
 		pCapability->add(strToken.get());
 		
 		CHAR c1 = pBuffer_->get(nIndex_);
 		if (c1 == '\0')
-			return 0;
+			return std::auto_ptr<ResponseCapability>(0);
 		CHAR c2 = pBuffer_->get(nIndex_ + 1);
 		if (c2 == '\0')
-			return 0;
+			return std::auto_ptr<ResponseCapability>(0);
 		if (c1 == '\r' && c2 == '\n') {
 			nIndex_ += 2;
 			break;
@@ -400,7 +400,7 @@ std::auto_ptr<ResponseContinue> qmimap4::Parser::parseContinueResponse()
 	
 	CHAR c = pBuffer_->get(nIndex_);
 	if (c == '\0') {
-		return 0;
+		return std::auto_ptr<ResponseContinue>(0);
 	}
 	else if (pBuffer_->get(nIndex_ - 1) == ' ') {
 		pState = parseStatus();
@@ -408,11 +408,11 @@ std::auto_ptr<ResponseContinue> qmimap4::Parser::parseContinueResponse()
 	else {
 		nIndex_ = pBuffer_->find("\r\n", nIndex_);
 		if (nIndex_ == static_cast<size_t>(-1))
-			return 0;
+			return std::auto_ptr<ResponseContinue>(0);
 		nIndex_ += 2;
 	}
 	
-	return new ResponseContinue(pState);
+	return std::auto_ptr<ResponseContinue>(new ResponseContinue(pState));
 }
 
 std::auto_ptr<ResponseFetch> qmimap4::Parser::parseFetchResponse(unsigned long nNumber)
@@ -421,7 +421,7 @@ std::auto_ptr<ResponseFetch> qmimap4::Parser::parseFetchResponse(unsigned long n
 	
 	nIndex_ = pBuffer_->find("\r\n", nIndex_);
 	if (nIndex_ == -1)
-		return 0;
+		return std::auto_ptr<ResponseFetch>(0);
 	nIndex_ += 2;
 	
 	return ResponseFetch::create(nNumber, pList.get());
@@ -433,7 +433,7 @@ std::auto_ptr<ResponseFlags> qmimap4::Parser::parseFlagsResponse()
 	
 	nIndex_ = pBuffer_->find("\r\n", nIndex_);
 	if (nIndex_ == -1)
-		return 0;
+		return std::auto_ptr<ResponseFlags>(0);
 	nIndex_ += 2;
 	
 	return ResponseFlags::create(pList.get());
@@ -446,21 +446,21 @@ std::auto_ptr<ResponseList> qmimap4::Parser::parseListResponse(bool bList)
 	string_ptr strToken;
 	Token token = getNextToken(&strToken);
 	if (token == TOKEN_ERROR)
-		return 0;
+		return std::auto_ptr<ResponseList>(0);
 	
 	CHAR cSeparator = '\0';
 	if (token != TOKEN_NIL) {
 		if (strlen(strToken.get()) != 1)
-			return 0;
+			return std::auto_ptr<ResponseList>(0);
 		cSeparator = *strToken.get();
 	}
 	
 	string_ptr strMailbox;
 	token = getNextToken("\r", &strMailbox);
 	if (token == TOKEN_ERROR || token == TOKEN_NIL)
-		return 0;
+		return std::auto_ptr<ResponseList>(0);
 	if (pBuffer_->get(nIndex_) != '\r' || pBuffer_->get(nIndex_ + 1) != '\n')
-		return 0;
+		return std::auto_ptr<ResponseList>(0);
 	nIndex_ += 2;
 	
 	return ResponseList::create(bList, pList.get(), cSeparator, strMailbox.get());
@@ -477,14 +477,14 @@ std::auto_ptr<ResponseNamespace> qmimap4::Parser::parseNamespaceResponse()
 			string_ptr strToken;
 			Token token = getNextToken(&strToken);
 			if (token != TOKEN_NIL)
-				return 0;
+				return std::auto_ptr<ResponseNamespace>(0);
 //			++nIndex_;
 		}
 	}
 	
 	nIndex_ = pBuffer_->find("\r\n", nIndex_);
 	if (nIndex_ == -1)
-		return 0;
+		return std::auto_ptr<ResponseNamespace>(0);
 	nIndex_ += 2;
 	
 	return ResponseNamespace::create(pLists[0].get(), pLists[1].get(), pLists[2].get());
@@ -498,14 +498,14 @@ std::auto_ptr<ResponseSearch> qmimap4::Parser::parseSearchResponse()
 		string_ptr strToken;
 		Token token = getNextToken(" \r", &strToken);
 		if (token != TOKEN_ATOM)
-			return 0;
+			return std::auto_ptr<ResponseSearch>(0);
 		if (!*strToken.get())
 			break;
 		
 		CHAR* pEnd = 0;
 		long n = strtol(strToken.get(), &pEnd, 10);
 		if (*pEnd)
-			return 0;
+			return std::auto_ptr<ResponseSearch>(0);
 		pSearch->add(n);
 	}
 	
@@ -519,13 +519,13 @@ std::auto_ptr<ResponseStatus> qmimap4::Parser::parseStatusResponse()
 	string_ptr strMailbox;
 	Token token = getNextToken(&strMailbox);
 	if (token == TOKEN_ERROR || token == TOKEN_NIL)
-		return 0;
+		return std::auto_ptr<ResponseStatus>(0);
 	
 	std::auto_ptr<List> pList(parseList());
 	
 	nIndex_ = pBuffer_->find("\r\n", nIndex_);
 	if (nIndex_ == -1)
-		return 0;
+		return std::auto_ptr<ResponseStatus>(0);
 	nIndex_ += 2;
 	
 	return ResponseStatus::create(strMailbox.get(), pList.get());
@@ -535,7 +535,7 @@ std::auto_ptr<State> qmimap4::Parser::parseStatus()
 {
 	CHAR c = pBuffer_->get(nIndex_);
 	if (c == '\0')
-		return 0;
+		return std::auto_ptr<State>(0);
 	
 	std::auto_ptr<State> pState;
 	if (c == '[') {
@@ -544,7 +544,7 @@ std::auto_ptr<State> qmimap4::Parser::parseStatus()
 		string_ptr strToken;
 		Token token = getNextToken(" ]", &strToken);
 		if (token != TOKEN_ATOM)
-			return 0;
+			return std::auto_ptr<State>(0);
 		
 		struct S {
 			enum Arg {
@@ -585,24 +585,24 @@ std::auto_ptr<State> qmimap4::Parser::parseStatus()
 			pState->setArg(pList);
 			
 			if (pBuffer_->get(nIndex_) != ']')
-				return 0;
+				return std::auto_ptr<State>(0);
 		}
 		else if (arg == S::ARG_NUMBER) {
 			string_ptr strArg;
 			token = getNextToken("]", &strArg);
 			if (token != TOKEN_ATOM)
-				return 0;
+				return std::auto_ptr<State>(0);
 			
 			CHAR* pEnd = 0;
 			long nArg = strtol(strArg.get(), &pEnd, 10);
 			if (*pEnd)
-				return 0;
+				return std::auto_ptr<State>(0);
 			pState->setArg(nArg);
 		}
 		else {
 			nIndex_ = pBuffer_->find(']', nIndex_);
 			if (nIndex_ == -1)
-				return 0;
+				return std::auto_ptr<State>(0);
 		}
 		
 		// Because of BUG of Exchange, I allow CRLF.
@@ -612,7 +612,7 @@ std::auto_ptr<State> qmimap4::Parser::parseStatus()
 		else if (cNext == '\r')
 			nIndex_ += 1;
 		else
-			return 0;
+			return std::auto_ptr<State>(0);
 	}
 	else {
 		pState.reset(new State(State::CODE_NONE));
@@ -620,7 +620,7 @@ std::auto_ptr<State> qmimap4::Parser::parseStatus()
 	
 	size_t nIndex = pBuffer_->find("\r\n", nIndex_);
 	if (nIndex == -1)
-		return 0;
+		return std::auto_ptr<State>(0);
 	
 	string_ptr strMessage(pBuffer_->substr(nIndex_, nIndex - nIndex_));
 	pState->setMessage(strMessage);

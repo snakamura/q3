@@ -189,13 +189,13 @@ std::auto_ptr<Template> qm::TemplateParser::parse(Reader* pReader) const
 			p_(&l)
 		{
 		}
-
+		
 		~Deleter()
 		{
 			if (p_) {
 				std::for_each(p_->begin(), p_->end(),
 					unary_compose_fx_gx(
-						string_free<WSTRING>(), deleter<Macro>()));
+						string_free<WSTRING>(), qs::deleter<Macro>()));
 				p_->clear();
 			}
 		}
@@ -223,7 +223,7 @@ std::auto_ptr<Template> qm::TemplateParser::parse(Reader* pReader) const
 		else {
 			size_t nRead = pReader->read(&c, 1);
 			if (nRead == -1)
-				return 0;
+				return std::auto_ptr<Template>(0);
 			else if (nRead != 1)
 				break;
 		}
@@ -232,7 +232,7 @@ std::auto_ptr<Template> qm::TemplateParser::parse(Reader* pReader) const
 			if (c == L'{') {
 				size_t nRead = pReader->read(&c, 1);
 				if (nRead == -1) {
-					return 0;
+					return std::auto_ptr<Template>(0);
 				}
 				else if (nRead == 1 && c == L'{') {
 					bufText.append(L'{');
@@ -247,7 +247,7 @@ std::auto_ptr<Template> qm::TemplateParser::parse(Reader* pReader) const
 				bufText.append(L'}');
 				size_t nRead = pReader->read(&c, 1);
 				if (nRead == -1)
-					return 0;
+					return std::auto_ptr<Template>(0);
 				else if (nRead == 1 && c != L'}')
 					cNext = c;
 			}
@@ -260,14 +260,14 @@ std::auto_ptr<Template> qm::TemplateParser::parse(Reader* pReader) const
 				bufMacro.append(L'{');
 				size_t nRead = pReader->read(&c, 1);
 				if (nRead == -1)
-					return 0;
+					return std::auto_ptr<Template>(0);
 				else if (nRead == 1 && c != L'{')
 					cNext = c;
 			}
 			else if (c == L'}') {
 				size_t nRead = pReader->read(&c, 1);
 				if (nRead == -1) {
-					return 0;
+					return std::auto_ptr<Template>(0);
 				}
 				else if (nRead == 1 && c == L'}') {
 					bufMacro.append(L'}');
@@ -275,7 +275,7 @@ std::auto_ptr<Template> qm::TemplateParser::parse(Reader* pReader) const
 				else {
 					std::auto_ptr<Macro> pMacro(parser.parse(bufMacro.getCharArray()));
 					if (!pMacro.get())
-						return 0;
+						return std::auto_ptr<Template>(0);
 					wstring_ptr wstrText(bufText.getString());
 					listValue.push_back(std::make_pair(wstrText.get(), pMacro.get()));
 					wstrText.release();

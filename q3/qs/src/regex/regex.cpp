@@ -171,10 +171,10 @@ std::auto_ptr<RegexPattern> qs::RegexCompiler::compile(const WCHAR* pwszPattern,
 	RegexParser parser(pwszPattern, nMode);
 	std::auto_ptr<RegexRegexNode> pNode(parser.parse());
 	if (!pNode.get())
-		return 0;
+		return std::auto_ptr<RegexPattern>(0);
 	
 	RegexNfaCompiler compiler;
 	std::auto_ptr<RegexNfa> pNfa(compiler.compile(pNode));
 	
-	return new RegexPattern(pNfa);
+	return std::auto_ptr<RegexPattern>(new RegexPattern(pNfa));
 }

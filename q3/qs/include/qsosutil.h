@@ -164,7 +164,7 @@ private:
  */
 
 template<class Interface>
-class QSEXPORTCLASS ComPtr
+class ComPtr
 {
 public:
 	ComPtr();

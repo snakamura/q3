@@ -31,7 +31,7 @@ using namespace qs;
 	do { \
 		size_t nRead = pStream->read(reinterpret_cast<unsigned char*>(p), size); \
 		if (nRead != size) \
-			return 0; \
+			return std::auto_ptr<OfflineJob>(0); \
 	} while (false)
 
 #define READ_STRING(type, name) \
@@ -386,21 +386,21 @@ bool qmimap4::AppendOfflineJob::merge(OfflineJob* pOfflineJob)
 	return false;
 }
 
-std::auto_ptr<AppendOfflineJob> qmimap4::AppendOfflineJob::create(InputStream* pStream)
+std::auto_ptr<OfflineJob> qmimap4::AppendOfflineJob::create(InputStream* pStream)
 {
 	wstring_ptr wstrSelectFolder;
 	READ_STRING(WSTRING, wstrSelectFolder);
 	if (wstrSelectFolder.get())
-		return 0;
+		return std::auto_ptr<OfflineJob>(0);
 	
 	wstring_ptr wstrFolder;
 	READ_STRING(WSTRING, wstrFolder);
 	if (!wstrFolder.get())
-		return 0;
+		return std::auto_ptr<OfflineJob>(0);
 	unsigned int nId = 0;
 	READ(&nId, sizeof(nId));
 	
-	return new AppendOfflineJob(wstrFolder.get(), nId);
+	return std::auto_ptr<OfflineJob>(new AppendOfflineJob(wstrFolder.get(), nId));
 }
 
 
@@ -561,22 +561,22 @@ bool qmimap4::CopyOfflineJob::merge(OfflineJob* pOfflineJob)
 	return false;
 }
 
-std::auto_ptr<CopyOfflineJob> qmimap4::CopyOfflineJob::create(qs::InputStream* pStream)
+std::auto_ptr<OfflineJob> qmimap4::CopyOfflineJob::create(qs::InputStream* pStream)
 {
 	wstring_ptr wstrFolderFrom;
 	READ_STRING(WSTRING, wstrFolderFrom);
 	if (!wstrFolderFrom.get())
-		return 0;
+		return std::auto_ptr<OfflineJob>(0);
 	
 	wstring_ptr wstrFolderTo;
 	READ_STRING(WSTRING, wstrFolderTo);
 	if (!wstrFolderTo.get())
-		return 0;
+		return std::auto_ptr<OfflineJob>(0);
 	
 	size_t nSize = 0;
 	READ(&nSize, sizeof(nSize));
 	if (nSize == 0)
-		return 0;
+		return std::auto_ptr<OfflineJob>(0);
 	UidList listUidFrom;
 	listUidFrom.resize(nSize);
 	ItemList listItemTo;
@@ -587,8 +587,8 @@ std::auto_ptr<CopyOfflineJob> qmimap4::CopyOfflineJob::create(qs::InputStream* p
 	bool bMove = false;
 	READ(&bMove, sizeof(bMove));
 	
-	return new CopyOfflineJob(wstrFolderFrom.get(),
-		wstrFolderTo.get(), listUidFrom, listItemTo, bMove);
+	return std::auto_ptr<OfflineJob>(new CopyOfflineJob(wstrFolderFrom.get(),
+		wstrFolderTo.get(), listUidFrom, listItemTo, bMove));
 }
 
 
@@ -644,14 +644,14 @@ bool qmimap4::ExpungeOfflineJob::merge(OfflineJob* pOfflineJob)
 	return true;
 }
 
-std::auto_ptr<ExpungeOfflineJob> qmimap4::ExpungeOfflineJob::create(InputStream* pStream)
+std::auto_ptr<OfflineJob> qmimap4::ExpungeOfflineJob::create(InputStream* pStream)
 {
 	wstring_ptr wstrFolder;
 	READ_STRING(WSTRING, wstrFolder);
 	if (!wstrFolder.get())
-		return 0;
+		return std::auto_ptr<OfflineJob>(0);
 	
-	return new ExpungeOfflineJob(wstrFolder.get());
+	return std::auto_ptr<OfflineJob>(new ExpungeOfflineJob(wstrFolder.get()));
 }
 
 
@@ -740,17 +740,17 @@ bool qmimap4::SetFlagsOfflineJob::merge(OfflineJob* pOfflineJob)
 	return false;
 }
 
-std::auto_ptr<SetFlagsOfflineJob> qmimap4::SetFlagsOfflineJob::create(qs::InputStream* pStream)
+std::auto_ptr<OfflineJob> qmimap4::SetFlagsOfflineJob::create(qs::InputStream* pStream)
 {
 	wstring_ptr wstrFolder;
 	READ_STRING(WSTRING, wstrFolder);
 	if (!wstrFolder.get())
-		return 0;
+		return std::auto_ptr<OfflineJob>(0);
 	
 	size_t nSize = 0;
 	READ(&nSize, sizeof(nSize));
 	if (nSize == 0)
-		return 0;
+		return std::auto_ptr<OfflineJob>(0);
 	UidList listUid;
 	listUid.resize(nSize);
 	READ(&listUid[0], nSize*sizeof(unsigned long));
@@ -761,7 +761,8 @@ std::auto_ptr<SetFlagsOfflineJob> qmimap4::SetFlagsOfflineJob::create(qs::InputS
 	unsigned int nMask = 0;
 	READ(&nMask, sizeof(nMask));
 	
-	return new SetFlagsOfflineJob(wstrFolder.get(), listUid, nFlags, nMask);
+	return std::auto_ptr<OfflineJob>(new SetFlagsOfflineJob(
+		wstrFolder.get(), listUid, nFlags, nMask));
 }
 
 
@@ -787,9 +788,9 @@ std::auto_ptr<OfflineJob> qmimap4::OfflineJobFactory::getInstance(InputStream* p
 	OfflineJob::Type type;
 	nRead = pStream->read(reinterpret_cast<unsigned char*>(&type), sizeof(type));
 	if (nRead == -1)
-		return 0;
+		return std::auto_ptr<OfflineJob>(0);
 	else if (nRead != sizeof(type))
-		return 0;	// TODO Handle EOF
+		return std::auto_ptr<OfflineJob>(0);	// TODO Handle EOF
 	
 #define BEGIN_OFFLINEJOB() \
 	switch (type) { \
@@ -800,7 +801,7 @@ std::auto_ptr<OfflineJob> qmimap4::OfflineJobFactory::getInstance(InputStream* p
 
 #define END_OFFLINEJOB() \
 	default: \
-		return 0; \
+		return std::auto_ptr<OfflineJob>(0); \
 	} \
 	
 	BEGIN_OFFLINEJOB()
@@ -810,7 +811,7 @@ std::auto_ptr<OfflineJob> qmimap4::OfflineJobFactory::getInstance(InputStream* p
 		DECLARE_OFFLINEJOB(TYPE_SETFLAGS, SetFlagsOfflineJob)
 	END_OFFLINEJOB()
 	
-	return 0;
+	return std::auto_ptr<OfflineJob>(0);
 }
 
 bool qmimap4::OfflineJobFactory::writeInstance(OutputStream* pStream,

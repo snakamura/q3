@@ -117,7 +117,7 @@ wstring_ptr qm::MacroSearchUI::getDisplayName()
 
 std::auto_ptr<SearchPropertyPage> qm::MacroSearchUI::createPropertyPage(bool bAllFolder)
 {
-	return new MacroSearchPage(pProfile_, bAllFolder);
+	return std::auto_ptr<SearchPropertyPage>(new MacroSearchPage(pProfile_, bAllFolder));
 }
 
 
@@ -346,13 +346,14 @@ std::auto_ptr<SearchDriver> qm::MacroSearchDriverFactory::createDriver(Document*
 																	   HWND hwnd,
 																	   Profile* pProfile)
 {
-	return new MacroSearchDriver(pDocument, pAccount, hwnd, pProfile);
+	return std::auto_ptr<SearchDriver>(new MacroSearchDriver(
+		pDocument, pAccount, hwnd, pProfile));
 }
 
 std::auto_ptr<SearchUI> qm::MacroSearchDriverFactory::createUI(Account* pAccount,
 															   Profile* pProfile)
 {
-	return new MacroSearchUI(pProfile);
+	return std::auto_ptr<SearchUI>(new MacroSearchUI(pProfile));
 }
 
 qm::MacroSearchDriverFactory::InitializerImpl::InitializerImpl()

@@ -252,6 +252,6 @@ std::auto_ptr<SSLSocket> qscrypto::SSLSocketFactoryImpl::createSSLSocket(Socket*
 	std::auto_ptr<SSLSocketImpl> pSSLSocket(new SSLSocketImpl(
 		pSocket, bDeleteSocket, pCallback, pLogger));
 	if (!*pSSLSocket.get())
-		return 0;
+		return std::auto_ptr<SSLSocket>(0);
 	return pSSLSocket;
 }

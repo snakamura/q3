@@ -90,7 +90,7 @@ std::auto_ptr<Certificate> qm::Security::getCertificate(const WCHAR* pwszName) c
 	
 	std::auto_ptr<Certificate> pCertificate(Certificate::getInstance());
 	if (!pCertificate->load(wstrPath.get(), Certificate::FILETYPE_PEM, 0))
-		return 0;
+		return std::auto_ptr<Certificate>(0);
 	
 	return pCertificate;
 }

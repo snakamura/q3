@@ -226,7 +226,7 @@ private:
 private:
 	Traits traits_;
 	List list_;
-	List::size_type n_;
+	typename List::size_type n_;
 };
 
 

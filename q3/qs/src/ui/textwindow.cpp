@@ -1774,26 +1774,17 @@ qs::TextWindow::TextWindow(TextModel* pTextModel,
 	
 	struct InitString
 	{
-		InitString(const WCHAR* pwszKey,
-				   const WCHAR* pwszDefault) :
-			pwszKey_(pwszKey),
-			pwszDefault_(pwszDefault)
-		{
-		}
-		~InitString()
-		{
-		}
 		const WCHAR* pwszKey_;
 		const WCHAR* pwszDefault_;
-		wstring_ptr wstrValue_;
+		WSTRING wstrValue_;
 	} initStrings[] = {
-		{ InitString(L"Quote1",			L">")	},
-		{ InitString(L"Quote2",			L"#")	},
-		{ InitString(L"ReformQuote",	L">|#")	}
+		{ L"Quote1",		L">"	},
+		{ L"Quote2",		L"#"	},
+		{ L"ReformQuote",	L">|#"	}
 	};
 	for (n = 0; n < countof(initStrings); ++n)
 		initStrings[n].wstrValue_ = pProfile->getString(pwszSection,
-			initStrings[n].pwszKey_, initStrings[n].pwszDefault_);
+			initStrings[n].pwszKey_, initStrings[n].pwszDefault_).release();
 	
 	HFONT hfont = UIUtil::createFontFromProfile(pProfile, pwszSection, true);
 	GdiObject<HFONT> font(hfont);
@@ -1840,11 +1831,11 @@ qs::TextWindow::TextWindow(TextModel* pTextModel,
 	pImpl_->bShowCaret_ = initNumbers[11].nValue_ != 0;
 	pImpl_->bShowRuler_ = initNumbers[12].nValue_ != 0;
 	for (n = 0; n < countof(pImpl_->wstrQuote_); ++n) {
-		pImpl_->wstrQuote_[n] = initStrings[n].wstrValue_;
+		pImpl_->wstrQuote_[n].reset(initStrings[n].wstrValue_);
 		pImpl_->crQuote_[n] = initColors[n + 2].cr_;
 	}
 	pImpl_->nReformLineLength_ = initNumbers[13].nValue_;
-	pImpl_->wstrReformQuote_ = initStrings[2].wstrValue_;
+	pImpl_->wstrReformQuote_.reset(initStrings[2].wstrValue_);
 	pImpl_->listURLSchema_.swap(listURLSchema);
 	pImpl_->crLink_ = initColors[4].cr_;
 	pImpl_->hfont_ = font.release();

@@ -516,7 +516,8 @@ std::auto_ptr<MultipleRange> qmimap4::Util::createRange(const MessageHolderList&
 {
 	UidList listUid;
 	createUidList(l, &listUid);
-	return new MultipleRange(&listUid[0], listUid.size(), true);
+	return std::auto_ptr<MultipleRange>(new MultipleRange(
+		&listUid[0], listUid.size(), true));
 }
 
 bool qmimap4::Util::isEqualFolderName(const WCHAR* pwszLhs,

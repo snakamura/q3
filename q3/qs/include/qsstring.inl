@@ -21,32 +21,27 @@
  *
  */
 
-template<>
 inline size_t qs::CharTraits<CHAR>::getLength(const CHAR* psz)
 {
 	return strlen(psz);
 }
 
-template<>
 inline const CHAR* qs::CharTraits<CHAR>::getEmptyBuffer()
 {
 	return "";
 }
 
-template<>
 inline CHAR qs::CharTraits<CHAR>::toLower(CHAR c)
 {
 	return ::tolower(c);
 }
 
-template<>
 inline int qs::CharTraits<CHAR>::compare(const CHAR* lhs,
 										 const CHAR* rhs)
 {
 	return strcmp(lhs, rhs);
 }
 
-template<>
 inline int qs::CharTraits<CHAR>::compare(const CHAR* lhs,
 										 const CHAR* rhs,
 										 size_t nLen)
@@ -54,14 +49,12 @@ inline int qs::CharTraits<CHAR>::compare(const CHAR* lhs,
 	return strncmp(lhs, rhs, nLen);
 }
 
-template<>
 inline int qs::CharTraits<CHAR>::compareIgnoreCase(const CHAR* lhs,
 												   const CHAR* rhs)
 {
 	return _stricmp(lhs, rhs);
 }
 
-template<>
 inline int qs::CharTraits<CHAR>::compareIgnoreCase(const CHAR* lhs,
 												   const CHAR* rhs,
 												   size_t nLen)
@@ -76,32 +69,27 @@ inline int qs::CharTraits<CHAR>::compareIgnoreCase(const CHAR* lhs,
  *
  */
 
-template<>
 inline size_t qs::CharTraits<WCHAR>::getLength(const WCHAR* pwsz)
 {
 	return wcslen(pwsz);
 }
 
-template<>
 inline const WCHAR* qs::CharTraits<WCHAR>::getEmptyBuffer()
 {
 	return L"";
 }
 
-template<>
 inline WCHAR qs::CharTraits<WCHAR>::toLower(WCHAR c)
 {
 	return ::towlower(c);
 }
 
-template<>
 inline int qs::CharTraits<WCHAR>::compare(const WCHAR* lhs,
 										  const WCHAR* rhs)
 {
 	return wcscmp(lhs, rhs);
 }
 
-template<>
 inline int qs::CharTraits<WCHAR>::compare(const WCHAR* lhs,
 										  const WCHAR* rhs,
 										  size_t nLen)
@@ -109,14 +97,12 @@ inline int qs::CharTraits<WCHAR>::compare(const WCHAR* lhs,
 	return wcsncmp(lhs, rhs, nLen);
 }
 
-template<>
 inline int qs::CharTraits<WCHAR>::compareIgnoreCase(const WCHAR* lhs,
 													const WCHAR* rhs)
 {
 	return _wcsicmp(lhs, rhs);
 }
 
-template<>
 inline int qs::CharTraits<WCHAR>::compareIgnoreCase(const WCHAR* lhs,
 													const WCHAR* rhs,
 													size_t nLen)
@@ -131,27 +117,23 @@ inline int qs::CharTraits<WCHAR>::compareIgnoreCase(const WCHAR* lhs,
  *
  */
 
-template<>
 inline qs::string_ptr qs::StringTraits<qs::STRING>::allocString(size_t nLen)
 {
 	return qs::allocString(nLen);
 }
 
-template<>
 inline qs::string_ptr qs::StringTraits<qs::STRING>::allocString(const CHAR* psz,
 																size_t nLen)
 {
 	return qs::allocString(psz, nLen);
 }
 
-template<>
 inline qs::string_ptr qs::StringTraits<qs::STRING>::reallocString(string_ptr str,
 																  size_t nLen)
 {
 	return qs::reallocString(str, nLen);
 }
 
-template<>
 inline void qs::StringTraits<qs::STRING>::freeString(STRING str)
 {
 	qs::freeString(str);
@@ -164,27 +146,23 @@ inline void qs::StringTraits<qs::STRING>::freeString(STRING str)
  *
  */
 
-template<>
 inline qs::wstring_ptr qs::StringTraits<qs::WSTRING>::allocString(size_t nLen)
 {
 	return qs::allocWString(nLen);
 }
 
-template<>
 inline qs::wstring_ptr qs::StringTraits<qs::WSTRING>::allocString(const WCHAR* psz,
 																  size_t nLen)
 {
 	return qs::allocWString(psz, nLen);
 }
 
-template<>
 inline qs::wstring_ptr qs::StringTraits<qs::WSTRING>::reallocString(wstring_ptr str,
 																	size_t nLen)
 {
 	return qs::reallocWString(str, nLen);
 }
 
-template<>
 inline void qs::StringTraits<qs::WSTRING>::freeString(WSTRING str)
 {
 	qs::freeWString(str);
@@ -197,13 +175,11 @@ inline void qs::StringTraits<qs::WSTRING>::freeString(WSTRING str)
  *
  */
 
-template<>
 inline qs::xstring_ptr qs::XStringTraits<qs::XSTRING>::allocXString(size_t nLen) QNOTHROW()
 {
 	return qs::allocXString(nLen);
 }
 
-template<>
 inline qs::xstring_ptr qs::XStringTraits<qs::XSTRING>::allocXString(const CHAR* psz,
 																	size_t nLen)
 																	QNOTHROW()
@@ -211,7 +187,6 @@ inline qs::xstring_ptr qs::XStringTraits<qs::XSTRING>::allocXString(const CHAR* 
 	return qs::allocXString(psz, nLen);
 }
 
-template<>
 inline qs::xstring_ptr qs::XStringTraits<qs::XSTRING>::reallocXString(xstring_ptr str,
 																	  size_t nLen)
 																	  QNOTHROW()
@@ -219,7 +194,6 @@ inline qs::xstring_ptr qs::XStringTraits<qs::XSTRING>::reallocXString(xstring_pt
 	return qs::reallocXString(str, nLen);
 }
 
-template<>
 inline void qs::XStringTraits<qs::XSTRING>::freeXString(XSTRING str)
 {
 	qs::freeXString(str);
@@ -232,13 +206,11 @@ inline void qs::XStringTraits<qs::XSTRING>::freeXString(XSTRING str)
  *
  */
 
-template<>
 inline qs::wxstring_ptr qs::XStringTraits<qs::WXSTRING>::allocXString(size_t nLen) QNOTHROW()
 {
 	return qs::allocWXString(nLen);
 }
 
-template<>
 inline qs::wxstring_ptr qs::XStringTraits<qs::WXSTRING>::allocXString(const WCHAR* psz,
 																	  size_t nLen)
 																	  QNOTHROW()
@@ -246,7 +218,6 @@ inline qs::wxstring_ptr qs::XStringTraits<qs::WXSTRING>::allocXString(const WCHA
 	return qs::allocWXString(psz, nLen);
 }
 
-template<>
 inline qs::wxstring_ptr qs::XStringTraits<qs::WXSTRING>::reallocXString(wxstring_ptr str,
 																		size_t nLen)
 																		QNOTHROW()
@@ -254,7 +225,6 @@ inline qs::wxstring_ptr qs::XStringTraits<qs::WXSTRING>::reallocXString(wxstring
 	return qs::reallocWXString(str, nLen);
 }
 
-template<>
 inline void qs::XStringTraits<qs::WXSTRING>::freeXString(WXSTRING str)
 {
 	qs::freeWXString(str);
@@ -300,13 +270,13 @@ qs::basic_string_ptr<String>& qs::basic_string_ptr<String>::operator=(basic_stri
 }
 
 template<class String>
-qs::basic_string_ptr<String>::Char qs::basic_string_ptr<String>::operator[](size_t n) const
+typename qs::basic_string_ptr<String>::Char qs::basic_string_ptr<String>::operator[](size_t n) const
 {
 	return str_[n];
 }
 
 template<class String>
-qs::basic_string_ptr<String>::Char& qs::basic_string_ptr<String>::operator[](size_t n)
+typename qs::basic_string_ptr<String>::Char& qs::basic_string_ptr<String>::operator[](size_t n)
 {
 	return str_[n];
 }
@@ -378,13 +348,13 @@ qs::basic_xstring_ptr<XString>& qs::basic_xstring_ptr<XString>::operator=(basic_
 }
 
 template<class XString>
-qs::basic_xstring_ptr<XString>::Char qs::basic_xstring_ptr<XString>::operator[](size_t n) const
+typename qs::basic_xstring_ptr<XString>::Char qs::basic_xstring_ptr<XString>::operator[](size_t n) const
 {
 	return str_[n];
 }
 
 template<class XString>
-qs::basic_xstring_ptr<XString>::Char& qs::basic_xstring_ptr<XString>::operator[](size_t n)
+typename qs::basic_xstring_ptr<XString>::Char& qs::basic_xstring_ptr<XString>::operator[](size_t n)
 {
 	return str_[n];
 }
@@ -468,13 +438,13 @@ qs::basic_xstring_size_ptr<XString>& qs::basic_xstring_size_ptr<XString>::operat
 }
 
 template<class XString>
-qs::basic_xstring_size_ptr<XString>::Char qs::basic_xstring_size_ptr<XString>::operator[](size_t n) const
+typename qs::basic_xstring_size_ptr<XString>::Char qs::basic_xstring_size_ptr<XString>::operator[](size_t n) const
 {
 	return str_[n];
 }
 
 template<class XString>
-qs::basic_xstring_size_ptr<XString>::Char& qs::basic_xstring_size_ptr<XString>::operator[](size_t n)
+typename qs::basic_xstring_size_ptr<XString>::Char& qs::basic_xstring_size_ptr<XString>::operator[](size_t n)
 {
 	return str_[n];
 }
@@ -645,7 +615,7 @@ qs::basic_string_ptr<String> qs::StringBuffer<String>::getString()
 }
 
 template<class String>
-const qs::StringBuffer<String>::Char* qs::StringBuffer<String>::getCharArray() const QNOTHROW()
+const typename qs::StringBuffer<String>::Char* qs::StringBuffer<String>::getCharArray() const QNOTHROW()
 {
 	return str_.get() ? str_.get() : CharTraits<Char>::getEmptyBuffer();
 }
@@ -657,7 +627,7 @@ size_t qs::StringBuffer<String>::getLength() const QNOTHROW()
 }
 
 template<class String>
-qs::StringBuffer<String>::Char qs::StringBuffer<String>::get(size_t n) const QNOTHROW()
+typename qs::StringBuffer<String>::Char qs::StringBuffer<String>::get(size_t n) const QNOTHROW()
 {
 	assert(n < getLength());
 	return str_.get()[n];
@@ -850,7 +820,7 @@ qs::basic_xstring_size_ptr<XString> qs::XStringBuffer<XString>::getXStringSize()
 }
 
 template<class XString>
-const qs::XStringBuffer<XString>::Char* qs::XStringBuffer<XString>::getCharArray() const
+const typename qs::XStringBuffer<XString>::Char* qs::XStringBuffer<XString>::getCharArray() const
 {
 	return str_.get() ? str_.get() : CharTraits<Char>::getEmptyBuffer();
 }
@@ -862,7 +832,7 @@ size_t qs::XStringBuffer<XString>::getLength() const
 }
 
 template<class XString>
-qs::XStringBuffer<XString>::Char qs::XStringBuffer<XString>::get(size_t n) const
+typename qs::XStringBuffer<XString>::Char qs::XStringBuffer<XString>::get(size_t n) const
 {
 	assert(n < getLength());
 	return str_.get()[n];
@@ -980,7 +950,7 @@ bool qs::XStringBuffer<XString>::reserve(size_t nSize)
 }
 
 template<class XString>
-qs::XStringBuffer<XString>::Char* qs::XStringBuffer<XString>::lockBuffer(size_t nSize)
+typename qs::XStringBuffer<XString>::Char* qs::XStringBuffer<XString>::lockBuffer(size_t nSize)
 {
 	size_t nNewSize = (pEnd_ - str_.get()) + nSize;
 	if (nNewSize > nLen_) {
@@ -1079,7 +1049,7 @@ qs::XStringBufferLock<XString>::~XStringBufferLock()
 }
 
 template<class XString>
-qs::XStringBuffer<XString>::Char* qs::XStringBufferLock<XString>::get() const
+typename qs::XStringBuffer<XString>::Char* qs::XStringBufferLock<XString>::get() const
 {
 	return p_;
 }
@@ -1128,14 +1098,14 @@ qs::BMFindString<String>::~BMFindString()
 }
 
 template<class String>
-const qs::BMFindString<String>::Char* qs::BMFindString<String>::find(const Char* psz) const
+const typename qs::BMFindString<String>::Char* qs::BMFindString<String>::find(const Char* psz) const
 {
 	return find(psz, -1);
 }
 
 template<class String>
-const qs::BMFindString<String>::Char* qs::BMFindString<String>::find(const Char* psz,
-																	 size_t nLen) const
+const typename qs::BMFindString<String>::Char* qs::BMFindString<String>::find(const Char* psz,
+																			  size_t nLen) const
 {
 	assert(psz);
 	
@@ -1230,9 +1200,9 @@ bool qs::BMFindString<String>::isEqual(Char lhs, Char rhs) const
 }
 
 template<class String>
-qs::BMFindString<String>::Char qs::BMFindString<String>::getChar(const Char* psz,
-																 size_t nLen,
-																 size_t n) const
+typename qs::BMFindString<String>::Char qs::BMFindString<String>::getChar(const Char* psz,
+																		  size_t nLen,
+																		  size_t n) const
 {
 	Char c = nFlags_ & FLAG_REVERSE ? *(psz + nLen - n - 1) : *(psz + n);
 	return nFlags_ & FLAG_IGNORECASE ? CharTraits<Char>::toLower(c) : c;

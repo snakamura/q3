@@ -397,7 +397,7 @@ void qs::EditableTextModel::update(unsigned int nStartLine,
 			{
 				if (p_)
 					std::for_each(p_->begin(), p_->end(),
-						deleter<EditableTextModelImpl::EditLine>());
+						qs::deleter<EditableTextModelImpl::EditLine>());
 			}
 			
 			void release() { p_ = 0; }

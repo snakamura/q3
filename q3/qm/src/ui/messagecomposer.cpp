@@ -215,7 +215,7 @@ std::auto_ptr<Certificate> qm::SMIMECallbackImpl::getCertificate(const WCHAR* pw
 	
 	const AddressBookEntry* pEntry = pAddressBook_->getEntry(pwszAddress);
 	if (!pEntry)
-		return 0;
+		return std::auto_ptr<Certificate>(0);
 	
 	const AddressBookEntry::AddressList& l = pEntry->getAddresses();
 	for (AddressBookEntry::AddressList::const_iterator itA = l.begin(); itA != l.end(); ++itA) {
@@ -223,7 +223,7 @@ std::auto_ptr<Certificate> qm::SMIMECallbackImpl::getCertificate(const WCHAR* pw
 		if (_wcsicmp(pAddress->getAddress(), pwszAddress) == 0)
 			return pSecurity_->getCertificate(pAddress->getCertificate());
 	}
-	return 0;
+	return std::auto_ptr<Certificate>(0);
 }
 
 const Certificate* qm::SMIMECallbackImpl::getSelfCertificate()

@@ -570,7 +570,7 @@ std::auto_ptr<UIDList> qmpop3::Pop3ReceiveSession::loadUIDList() const
 	
 	std::auto_ptr<UIDList> pUIDList(new UIDList());
 	if (!pUIDList->load(wstrPath.get()))
-		return 0;
+		return std::auto_ptr<UIDList>(0);
 	
 	return pUIDList;
 }
@@ -743,7 +743,7 @@ short qmpop3::Pop3ReceiveSessionUI::getDefaultPort()
 
 std::auto_ptr<PropertyPage> qmpop3::Pop3ReceiveSessionUI::createPropertyPage(SubAccount* pSubAccount)
 {
-	return new ReceivePage(pSubAccount);
+	return std::auto_ptr<PropertyPage>(new ReceivePage(pSubAccount));
 }
 
 
@@ -767,12 +767,12 @@ qmpop3::Pop3ReceiveSessionFactory::~Pop3ReceiveSessionFactory()
 
 std::auto_ptr<ReceiveSession> qmpop3::Pop3ReceiveSessionFactory::createSession()
 {
-	return new Pop3ReceiveSession();
+	return std::auto_ptr<ReceiveSession>(new Pop3ReceiveSession());
 }
 
 std::auto_ptr<ReceiveSessionUI> qmpop3::Pop3ReceiveSessionFactory::createUI()
 {
-	return new Pop3ReceiveSessionUI();
+	return std::auto_ptr<ReceiveSessionUI>(new Pop3ReceiveSessionUI());
 }
 
 
@@ -865,8 +865,9 @@ std::auto_ptr<MacroContext> qmpop3::Pop3SyncFilterCallback::getMacroContext()
 	if (!pmh_.get())
 		pmh_.reset(new Pop3MessageHolder(this, pFolder_, pMessage_, nSize_));
 	
-	return new MacroContext(pmh_.get(), pMessage_, MessageHolderList(), pAccount_,
-		pDocument_, hwnd_, pProfile_, false, false, 0, pGlobalVariable_);
+	return std::auto_ptr<MacroContext>(new MacroContext(pmh_.get(),
+		pMessage_, MessageHolderList(), pAccount_, pDocument_,
+		hwnd_, pProfile_, false, false, 0, pGlobalVariable_));
 }
 
 

@@ -147,7 +147,7 @@ std::auto_ptr<Message> qm::MessageCreator::createMessage(Document* pDocument,
 {
 	std::auto_ptr<Part> pPart(createPart(pDocument, pwszMessage, nLen, 0, true));
 	if (!pPart.get())
-		return 0;
+		return std::auto_ptr<Message>(0);
 	
 	std::auto_ptr<Message> pMessage(static_cast<Message*>(pPart.release()));
 	pMessage->setFlag(Message::FLAG_NONE);
@@ -181,7 +181,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 		pBody = bmfs.find(pwszMessage, nLen);
 		if (pBody) {
 			if (!createHeader(pPart.get(), pwszMessage, pBody - pwszMessage + 1))
-				return 0;
+				return std::auto_ptr<Part>(0);
 			pBody += 2;
 			nBodyLen = nLen - (pBody - pwszMessage);
 		}
@@ -190,7 +190,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 			if (*(buf.getCharArray() + buf.getLength() - 1) != L'\n')
 				buf.append(L'\n');
 			if (!createHeader(pPart.get(), buf.getCharArray(), buf.getLength()))
-				return 0;
+				return std::auto_ptr<Part>(0);
 		}
 	}
 	
@@ -216,7 +216,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 		if (bMultipart) {
 			wstring_ptr wstrBoundary(pContentType->getParameter(L"boundary"));
 			if (!wstrBoundary.get())
-				return 0;
+				return std::auto_ptr<Part>(0);
 			
 			BoundaryFinder<WCHAR, WSTRING> finder(pBody - 1,
 				nBodyLen + 1, wstrBoundary.get(), L"\n", false);
@@ -226,7 +226,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 				const WCHAR* pEnd = 0;
 				bool bEnd = false;
 				if (!finder.getNext(&pBegin, &pEnd, &bEnd))
-					return 0;
+					return std::auto_ptr<Part>(0);
 				if (pBegin) {
 					std::auto_ptr<Part> pChild(MessageCreator().createPart(
 						pDocument, pBegin, pEnd - pBegin, pPart.get(), false));
@@ -262,7 +262,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 					ContentTypeParser contentType(L"text", L"plain");
 					contentType.setParameter(L"charset", pwszCharset);
 					if (!pPart->replaceField(L"Content-Type", contentType))
-						return 0;
+						return std::auto_ptr<Part>(0);
 					pContentType = pPart->getContentType();
 				}
 			}
@@ -270,7 +270,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 			
 			xstring_size_ptr strBody(convertBody(pConverter.get(), pBody, nBodyLen));
 			if (!strBody.get())
-				return 0;
+				return std::auto_ptr<Part>(0);
 			
 			std::auto_ptr<Encoder> pEncoder;
 			ContentTransferEncodingParser contentTransferEncoding;
@@ -294,7 +294,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 				if (nFlags_ & FLAG_ADDCONTENTTYPE) {
 					ContentTransferEncodingParser contentTransferEncoding(pwszEncoding);
 					if (!pPart->replaceField(L"Content-Transfer-Encoding", contentTransferEncoding))
-						return 0;
+						return std::auto_ptr<Part>(0);
 				}
 			}
 			
@@ -302,10 +302,10 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 				malloc_size_ptr<unsigned char> pBody(pEncoder->encode(
 					reinterpret_cast<unsigned char*>(strBody.get()), strBody.size()));
 				if (!pBody.get())
-					return 0;
+					return std::auto_ptr<Part>(0);
 				
 				if (!pPart->setBody(reinterpret_cast<CHAR*>(pBody.get()), pBody.size()))
-					return 0;
+					return std::auto_ptr<Part>(0);
 			}
 			else {
 				pPart->setBody(xstring_ptr(strBody.release()));
@@ -314,7 +314,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 		else {
 			xstring_ptr strBody(PartUtil::w2a(pBody, nBodyLen));
 			if (!strBody.get())
-				return 0;
+				return std::auto_ptr<Part>(0);
 			pPart->setBody(strBody);
 		}
 	}
@@ -322,7 +322,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 	if (nFlags_ & FLAG_ADDCONTENTTYPE) {
 		SimpleParser mimeVersion(L"1.0", 0);
 		if (!pPart->replaceField(L"MIME-Version", mimeVersion))
-			return 0;
+			return std::auto_ptr<Part>(0);
 	}
 	
 	if (bMessage && nFlags_ & FLAG_EXTRACTATTACHMENT) {
@@ -335,13 +335,13 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 				wcsicmp(pContentType->getSubType(), L"mixed") != 0) {
 				std::auto_ptr<Message> pParent(new Message());
 				if (!makeMultipart(pParent.get(), pPart))
-					return 0;
+					return std::auto_ptr<Part>(0);
 				pPart = pParent;
 			}
 			
 			const XQMAILAttachmentParser::AttachmentList& l = attachment.getAttachments();
 			if (!attachFileOrURI(pPart.get(), l, pDocument, (nFlags_ & FLAG_DECRYPTVERIFY) != 0))
-				return false;
+				return std::auto_ptr<Part>(0);
 		}
 		pPart->removeField(L"X-QMAIL-Attachment");
 	}
@@ -745,42 +745,42 @@ std::auto_ptr<Part> qm::MessageCreator::createPartFromFile(const WCHAR* pwszPath
 	
 	DummyParser dummyContentType(pwszContentType, 0);
 	if (!pPart->setField(L"Content-Type", dummyContentType))
-		return 0;
+		return std::auto_ptr<Part>(0);
 	ContentTypeParser contentType;
 	if (pPart->getField(L"Content-Type", &contentType) != Part::FIELD_EXIST)
-		return 0;
+		return std::auto_ptr<Part>(0);
 	contentType.setParameter(L"name", pFileName);
 	if (!pPart->replaceField(L"Content-Type", contentType))
-		return 0;
+		return std::auto_ptr<Part>(0);
 	
 	ContentTransferEncodingParser contentTransferEncoding(L"base64");
 	if (!pPart->setField(L"Content-Transfer-Encoding", contentTransferEncoding))
-		return 0;
+		return std::auto_ptr<Part>(0);
 	
 	ContentDispositionParser contentDisposition(L"attachment");
 	contentDisposition.setParameter(L"filename", pFileName);
 	if (!pPart->setField(L"Content-Disposition", contentDisposition))
-		return 0;
+		return std::auto_ptr<Part>(0);
 	
 	W2T(pwszPath, ptszPath);
 	WIN32_FIND_DATA fd;
 	AutoFindHandle hFind(::FindFirstFile(ptszPath, &fd));
 	if (!hFind.get())
-		return 0;
+		return std::auto_ptr<Part>(0);
 	size_t nSize = fd.nFileSizeLow;
 	hFind.close();
 	
 	FileInputStream stream(pwszPath);
 	if (!stream)
-		return 0;
+		return std::auto_ptr<Part>(0);
 	BufferedInputStream bufferedStream(&stream, false);
 	
 	Base64Encoder encoder(true);
 	XStringOutputStream outputStream;
 	if (!outputStream.reserve((nSize/3 + 1)*4 + nSize/45*2))
-		return 0;
+		return std::auto_ptr<Part>(0);
 	if (!encoder.encode(&bufferedStream, &outputStream))
-		return 0;
+		return std::auto_ptr<Part>(0);
 	
 	pPart->setBody(outputStream.getXString());
 	
@@ -793,11 +793,11 @@ std::auto_ptr<Part> qm::MessageCreator::createRfc822Part(const Message& msg)
 	
 	ContentTypeParser contentType(L"message", L"rfc822");
 	if (!pPart->setField(L"Content-Type", contentType))
-		return 0;
+		return std::auto_ptr<Part>(0);
 	
 	xstring_ptr strContent(msg.getContent());
 	if (!strContent.get())
-		return 0;
+		return std::auto_ptr<Part>(0);
 	pPart->setBody(strContent);
 	
 	return pPart;
@@ -1236,7 +1236,7 @@ bool qm::PartUtil::getDigest(MessageList* pList) const
 		~Deleter()
 		{
 			if (p_) {
-				std::for_each(p_->begin(), p_->end(), deleter<Message>());
+				std::for_each(p_->begin(), p_->end(), qs::deleter<Message>());
 				p_->clear();
 			}
 		}
