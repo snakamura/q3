@@ -332,7 +332,7 @@ class ConfigColorsAction : public qs::AbstractAction
 public:
 	ConfigColorsAction(ColorManager* pColorManager,
 					   ViewModelManager* pViewModelManager,
-					   Document* pDocument,
+					   AccountManager* pAccountManager,
 					   HWND hwnd);
 	virtual ~ConfigColorsAction();
 
@@ -346,7 +346,7 @@ private:
 private:
 	ColorManager* pColorManager_;
 	ViewModelManager* pViewModelManager_;
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	HWND hwnd_;
 };
 
@@ -387,7 +387,7 @@ class ConfigGoRoundAction : public qs::AbstractAction
 {
 public:
 	ConfigGoRoundAction(GoRound* pGoRound,
-						Document* pDocument,
+						AccountManager* pAccountManager,
 						SyncFilterManager* pSyncFilterManager,
 						HWND hwnd);
 	virtual ~ConfigGoRoundAction();
@@ -401,7 +401,7 @@ private:
 
 private:
 	GoRound* pGoRound_;
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	SyncFilterManager* pSyncFilterManager_;
 	HWND hwnd_;
 };
@@ -417,7 +417,7 @@ class ConfigRulesAction : public qs::AbstractAction
 {
 public:
 	ConfigRulesAction(RuleManager* pRuleManager,
-					  Document* pDocument,
+					  AccountManager* pAccountManager,
 					  HWND hwnd);
 	virtual ~ConfigRulesAction();
 
@@ -430,7 +430,7 @@ private:
 
 private:
 	RuleManager* pRuleManager_;
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	HWND hwnd_;
 };
 
@@ -445,7 +445,7 @@ class ConfigSignaturesAction : public qs::AbstractAction
 {
 public:
 	ConfigSignaturesAction(SignatureManager* pSignatureManager,
-						   Document* pDocument,
+						   AccountManager* pAccountManager,
 						   HWND hwnd);
 	virtual ~ConfigSignaturesAction();
 
@@ -458,7 +458,7 @@ private:
 
 private:
 	SignatureManager* pSignatureManager_;
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	HWND hwnd_;
 };
 
@@ -661,7 +661,7 @@ private:
 class EditCopyMessageAction : public qs::AbstractAction
 {
 public:
-	EditCopyMessageAction(Document* pDocument,
+	EditCopyMessageAction(AccountManager* pAccountManager,
 						  FolderModel* pFolderModel,
 						  MessageSelectionModel* pMessageSelectionModel,
 						  HWND hwnd);
@@ -676,7 +676,7 @@ private:
 	EditCopyMessageAction& operator=(const EditCopyMessageAction&);
 
 private:
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	FolderModel* pFolderModel_;
 	MessageSelectionModel* pMessageSelectionModel_;
 	HWND hwnd_;
@@ -692,7 +692,7 @@ private:
 class EditCutMessageAction : public qs::AbstractAction
 {
 public:
-	EditCutMessageAction(Document* pDocument,
+	EditCutMessageAction(AccountManager* pAccountManager,
 						 FolderModel* pFolderModel,
 						 MessageSelectionModel* pMessageSelectionModel,
 						 HWND hwnd);
@@ -707,7 +707,7 @@ private:
 	EditCutMessageAction& operator=(const EditCutMessageAction&);
 
 private:
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	FolderModel* pFolderModel_;
 	MessageSelectionModel* pMessageSelectionModel_;
 	HWND hwnd_;
@@ -2155,7 +2155,7 @@ private:
 class MessageMoveOtherAction : public qs::AbstractAction
 {
 public:
-	MessageMoveOtherAction(Document* pDocument,
+	MessageMoveOtherAction(AccountManager* pAccountManager,
 						   MessageSelectionModel* pMessageSelectionModel,
 						   MessageModel* pMessageModel,
 						   ViewModelHolder* pViewModelHolder,
@@ -2174,7 +2174,7 @@ private:
 	MessageMoveOtherAction& operator=(const MessageMoveOtherAction&);
 
 private:
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	MessageSelectionModel* pMessageSelectionModel_;
 	MessageModel* pMessageModel_;
 	ViewModelHolder* pViewModelHolder_;
@@ -2251,8 +2251,9 @@ private:
 class MessageOpenRecentAction : public qs::AbstractAction
 {
 public:
-	MessageOpenRecentAction(RecentsMenu* pRecentsMenu,
-							Document* pDocument,
+	MessageOpenRecentAction(Recents* pRecents,
+							AccountManager* pAccountManager,
+							RecentsMenu* pRecentsMenu,
 							ViewModelManager* pViewModelManager,
 							MessageFrameWindowManager* pMessageFrameWindowManager);
 	virtual ~MessageOpenRecentAction();
@@ -2265,8 +2266,9 @@ private:
 	MessageOpenRecentAction& operator=(const MessageOpenRecentAction&);
 
 private:
+	Recents* pRecents_;
+	AccountManager* pAccountManager_;
 	RecentsMenu* pRecentsMenu_;
-	Document* pDocument_;
 	ViewModelManager* pViewModelManager_;
 	MessageFrameWindowManager* pMessageFrameWindowManager_;
 };
@@ -2818,7 +2820,7 @@ private:
 class ToolSubAccountAction : public qs::AbstractAction
 {
 public:
-	ToolSubAccountAction(Document* pDocument,
+	ToolSubAccountAction(AccountManager* pAccountManager,
 						 FolderModel* pFolderModel,
 						 SubAccountMenu* pSubAccountMenu,
 						 SyncManager* pSyncManager,
@@ -2835,7 +2837,7 @@ private:
 	ToolSubAccountAction& operator=(const ToolSubAccountAction&);
 
 private:
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	FolderModel* pFolderModel_;
 	SubAccountMenu* pSubAccountMenu_;
 	SyncManager* pSyncManager_;
@@ -3119,7 +3121,7 @@ public:
 	};
 
 public:
-	ViewNavigateFolderAction(Document* pDocument,
+	ViewNavigateFolderAction(AccountManager* pAccountManager,
 							 FolderModel* pFolderModel,
 							 Type type);
 	virtual ~ViewNavigateFolderAction();
@@ -3133,7 +3135,7 @@ private:
 	ViewNavigateFolderAction& operator=(const ViewNavigateFolderAction&);
 
 private:
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	FolderModel* pFolderModel_;
 	Type type_;
 };

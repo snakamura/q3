@@ -245,11 +245,11 @@ void qm::ConfigAutoPilotAction::invoke(const ActionEvent& event)
 
 qm::ConfigColorsAction::ConfigColorsAction(ColorManager* pColorManager,
 										   ViewModelManager* pViewModelManager,
-										   Document* pDocument,
+										   AccountManager* pAccountManager,
 										   HWND hwnd) :
 	pColorManager_(pColorManager),
 	pViewModelManager_(pViewModelManager),
-	pDocument_(pDocument),
+	pAccountManager_(pAccountManager),
 	hwnd_(hwnd)
 {
 }
@@ -260,7 +260,7 @@ qm::ConfigColorsAction::~ConfigColorsAction()
 
 void qm::ConfigColorsAction::invoke(const ActionEvent& event)
 {
-	ColorSetsDialog dialog(pColorManager_, pDocument_);
+	ColorSetsDialog dialog(pColorManager_, pAccountManager_);
 	if (dialog.doModal(hwnd_) == IDOK)
 		pViewModelManager_->invalidateColors();
 }
@@ -297,11 +297,11 @@ void qm::ConfigFiltersAction::invoke(const ActionEvent& event)
  */
 
 qm::ConfigGoRoundAction::ConfigGoRoundAction(GoRound* pGoRound,
-											 Document* pDocument,
+											 AccountManager* pAccountManager,
 											 SyncFilterManager* pSyncFilterManager,
 											 HWND hwnd) :
 	pGoRound_(pGoRound),
-	pDocument_(pDocument),
+	pAccountManager_(pAccountManager),
 	pSyncFilterManager_(pSyncFilterManager),
 	hwnd_(hwnd)
 {
@@ -313,7 +313,7 @@ qm::ConfigGoRoundAction::~ConfigGoRoundAction()
 
 void qm::ConfigGoRoundAction::invoke(const ActionEvent& event)
 {
-	GoRoundDialog dialog(pGoRound_, pDocument_, pSyncFilterManager_);
+	GoRoundDialog dialog(pGoRound_, pAccountManager_, pSyncFilterManager_);
 	dialog.doModal(hwnd_);
 }
 
@@ -325,10 +325,10 @@ void qm::ConfigGoRoundAction::invoke(const ActionEvent& event)
  */
 
 qm::ConfigRulesAction::ConfigRulesAction(RuleManager* pRuleManager,
-										 Document* pDocument,
+										 AccountManager* pAccountManager,
 										 HWND hwnd) :
 	pRuleManager_(pRuleManager),
-	pDocument_(pDocument),
+	pAccountManager_(pAccountManager),
 	hwnd_(hwnd)
 {
 }
@@ -339,7 +339,7 @@ qm::ConfigRulesAction::~ConfigRulesAction()
 
 void qm::ConfigRulesAction::invoke(const ActionEvent& event)
 {
-	RuleSetsDialog dialog(pRuleManager_, pDocument_);
+	RuleSetsDialog dialog(pRuleManager_, pAccountManager_);
 	dialog.doModal(hwnd_);
 }
 
@@ -351,10 +351,10 @@ void qm::ConfigRulesAction::invoke(const ActionEvent& event)
  */
 
 qm::ConfigSignaturesAction::ConfigSignaturesAction(SignatureManager* pSignatureManager,
-												   Document* pDocument,
+												   AccountManager* pAccountManager,
 												   HWND hwnd) :
 	pSignatureManager_(pSignatureManager),
-	pDocument_(pDocument),
+	pAccountManager_(pAccountManager),
 	hwnd_(hwnd)
 {
 }
@@ -365,7 +365,7 @@ qm::ConfigSignaturesAction::~ConfigSignaturesAction()
 
 void qm::ConfigSignaturesAction::invoke(const ActionEvent& event)
 {
-	SignaturesDialog dialog(pSignatureManager_, pDocument_);
+	SignaturesDialog dialog(pSignatureManager_, pAccountManager_);
 	dialog.doModal(hwnd_);
 }
 
@@ -639,11 +639,11 @@ bool qm::EditCommandAction::isEnabled(const ActionEvent& event)
  *
  */
 
-qm::EditCopyMessageAction::EditCopyMessageAction(Document* pDocument,
+qm::EditCopyMessageAction::EditCopyMessageAction(AccountManager* pAccountManager,
 												 FolderModel* pFolderModel,
 												 MessageSelectionModel* pMessageSelectionModel,
 												 HWND hwnd) :
-	pDocument_(pDocument),
+	pAccountManager_(pAccountManager),
 	pFolderModel_(pFolderModel),
 	pMessageSelectionModel_(pMessageSelectionModel),
 	hwnd_(hwnd)
@@ -662,7 +662,7 @@ void qm::EditCopyMessageAction::invoke(const ActionEvent& event)
 	pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
 	
 	if (!l.empty()) {
-		MessageDataObject* p = new MessageDataObject(pDocument_,
+		MessageDataObject* p = new MessageDataObject(pAccountManager_,
 			pFolder, l, MessageDataObject::FLAG_COPY);
 		p->AddRef();
 		ComPtr<IDataObject> pDataObject(p);
@@ -685,11 +685,11 @@ bool qm::EditCopyMessageAction::isEnabled(const ActionEvent& event)
  *
  */
 
-qm::EditCutMessageAction::EditCutMessageAction(Document* pDocument,
+qm::EditCutMessageAction::EditCutMessageAction(AccountManager* pAccountManager,
 											   FolderModel* pFolderModel,
 											   MessageSelectionModel* pMessageSelectionModel,
 											   HWND hwnd) :
-	pDocument_(pDocument),
+	pAccountManager_(pAccountManager),
 	pFolderModel_(pFolderModel),
 	pMessageSelectionModel_(pMessageSelectionModel),
 	hwnd_(hwnd)
@@ -708,7 +708,7 @@ void qm::EditCutMessageAction::invoke(const ActionEvent& event)
 	pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
 	
 	if (!l.empty()) {
-		MessageDataObject* p = new MessageDataObject(pDocument_,
+		MessageDataObject* p = new MessageDataObject(pAccountManager_,
 			pFolder, l, MessageDataObject::FLAG_MOVE);
 		p->AddRef();
 		ComPtr<IDataObject> pDataObject(p);
@@ -3613,21 +3613,22 @@ qm::MessageCreateFromClipboardAction::~MessageCreateFromClipboardAction()
 void qm::MessageCreateFromClipboardAction::invoke(const ActionEvent& event)
 {
 	wstring_ptr wstrMessage(Clipboard::getText());
-	if (wstrMessage.get()) {
-		MessageCreator creator(MessageCreator::FLAG_ADDCONTENTTYPE |
-			MessageCreator::FLAG_EXPANDALIAS |
-			MessageCreator::FLAG_EXTRACTATTACHMENT |
-			MessageCreator::FLAG_ENCODETEXT,
-			pSecurityModel_->getSecurityMode());
-		std::auto_ptr<Message> pMessage(creator.createMessage(pDocument_, wstrMessage.get(), -1));
-		
-		unsigned int nFlags = 0;
-		// TODO
-		// Set flags
-		if (!composer_.compose(0, 0, pMessage.get(), nFlags, 0)) {
-			ActionUtil::error(hwnd_, IDS_ERROR_CREATEMESSAGE);
-			return;
-		}
+	if (!wstrMessage.get())
+		return;
+	
+	MessageCreator creator(MessageCreator::FLAG_ADDCONTENTTYPE |
+		MessageCreator::FLAG_EXPANDALIAS |
+		MessageCreator::FLAG_EXTRACTATTACHMENT |
+		MessageCreator::FLAG_ENCODETEXT,
+		pSecurityModel_->getSecurityMode());
+	std::auto_ptr<Message> pMessage(creator.createMessage(pDocument_, wstrMessage.get(), -1));
+	
+	unsigned int nFlags = 0;
+	// TODO
+	// Set flags
+	if (!composer_.compose(0, 0, pMessage.get(), nFlags, 0)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_CREATEMESSAGE);
+		return;
 	}
 }
 
@@ -4075,7 +4076,7 @@ bool qm::MessageMoveAction::isEnabled(const ActionEvent& event)
  *
  */
 
-qm::MessageMoveOtherAction::MessageMoveOtherAction(Document* pDocument,
+qm::MessageMoveOtherAction::MessageMoveOtherAction(AccountManager* pAccountManager,
 												   MessageSelectionModel* pMessageSelectionModel,
 												   MessageModel* pMessageModel,
 												   ViewModelHolder* pViewModelHolder,
@@ -4083,7 +4084,7 @@ qm::MessageMoveOtherAction::MessageMoveOtherAction(Document* pDocument,
 												   UndoManager* pUndoManager,
 												   Profile* pProfile,
 												   HWND hwnd) :
-	pDocument_(pDocument),
+	pAccountManager_(pAccountManager),
 	pMessageSelectionModel_(pMessageSelectionModel),
 	pMessageModel_(pMessageModel),
 	pViewModelHolder_(pViewModelHolder),
@@ -4114,7 +4115,7 @@ void qm::MessageMoveOtherAction::invoke(const ActionEvent& event)
 	
 	Account* pAccount = lock.get();
 	
-	MoveMessageDialog dialog(pDocument_, pAccount, pProfile_);
+	MoveMessageDialog dialog(pAccountManager_, pAccount, pProfile_);
 	if (dialog.doModal(hwnd_) != IDOK)
 		return;
 	
@@ -4240,12 +4241,14 @@ bool qm::MessageOpenLinkAction::isEnabled(const qs::ActionEvent& event)
  *
  */
 
-qm::MessageOpenRecentAction::MessageOpenRecentAction(RecentsMenu* pRecentsMenu,
-													 Document* pDocument,
+qm::MessageOpenRecentAction::MessageOpenRecentAction(Recents* pRecents,
+													 AccountManager* pAccountManager,
+													 RecentsMenu* pRecentsMenu,
 													 ViewModelManager* pViewModelManager,
 													 MessageFrameWindowManager* pMessageFrameWindowManager) :
+	pRecents_(pRecents),
+	pAccountManager_(pAccountManager),
 	pRecentsMenu_(pRecentsMenu),
-	pDocument_(pDocument),
 	pViewModelManager_(pViewModelManager),
 	pMessageFrameWindowManager_(pMessageFrameWindowManager)
 {
@@ -4258,19 +4261,20 @@ qm::MessageOpenRecentAction::~MessageOpenRecentAction()
 void qm::MessageOpenRecentAction::invoke(const ActionEvent& event)
 {
 	const WCHAR* pwszURI = pRecentsMenu_->getURI(event.getId());
-	if (pwszURI) {
-		std::auto_ptr<URI> pURI(URI::parse(pwszURI));
-		if (pURI.get()) {
-			MessagePtrLock mpl(pDocument_->getMessage(*pURI.get()));
-			if (mpl) {
-				ViewModel* pViewModel = pViewModelManager_->getViewModel(mpl->getFolder());
-				if (!pMessageFrameWindowManager_->open(pViewModel, mpl)) {
-					// TODO MSG
-				}
+	if (!pwszURI)
+		return;
+	
+	std::auto_ptr<URI> pURI(URI::parse(pwszURI));
+	if (pURI.get()) {
+		MessagePtrLock mpl(pAccountManager_->getMessage(*pURI.get()));
+		if (mpl) {
+			ViewModel* pViewModel = pViewModelManager_->getViewModel(mpl->getFolder());
+			if (!pMessageFrameWindowManager_->open(pViewModel, mpl)) {
+				// TODO MSG
 			}
 		}
-		pDocument_->getRecents()->remove(pwszURI);
 	}
+	pRecents_->remove(pwszURI);
 }
 
 
@@ -5219,12 +5223,12 @@ bool qm::ToolScriptAction::isEnabled(const ActionEvent& event)
  *
  */
 
-qm::ToolSubAccountAction::ToolSubAccountAction(Document* pDocument,
+qm::ToolSubAccountAction::ToolSubAccountAction(AccountManager* pAccountManager,
 											   FolderModel* pFolderModel,
 											   SubAccountMenu* pSubAccountMenu,
 											   SyncManager* pSyncManager,
 											   HWND hwnd) :
-	pDocument_(pDocument),
+	pAccountManager_(pAccountManager),
 	pFolderModel_(pFolderModel),
 	pSubAccountMenu_(pSubAccountMenu),
 	pSyncManager_(pSyncManager),
@@ -5247,8 +5251,8 @@ void qm::ToolSubAccountAction::invoke(const ActionEvent& event)
 	if (!pwszName)
 		return;
 	
-	const Document::AccountList& listAccount = pDocument_->getAccounts();
-	for (Document::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
+	const AccountManager::AccountList& listAccount = pAccountManager_->getAccounts();
+	for (AccountManager::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
 		Account* pAccount = *it;
 		SubAccount* pSubAccount = pAccount->getSubAccount(pwszName);
 		if (pSubAccount)
@@ -5666,10 +5670,10 @@ bool qm::ViewMessageModeAction::isChecked(const ActionEvent& event)
  *
  */
 
-qm::ViewNavigateFolderAction::ViewNavigateFolderAction(Document* pDocument,
+qm::ViewNavigateFolderAction::ViewNavigateFolderAction(AccountManager* pAccountManager,
 													   FolderModel* pFolderModel,
 													   Type type) :
-	pDocument_(pDocument),
+	pAccountManager_(pAccountManager),
 	pFolderModel_(pFolderModel),
 	type_(type)
 {
@@ -5710,9 +5714,9 @@ void qm::ViewNavigateFolderAction::invoke(const ActionEvent& event)
 			pFolder = it != l.end() ? *it : 0;
 		}
 		if (!pFolder) {
-			const Document::AccountList& l = pDocument_->getAccounts();
-			Document::AccountList::const_iterator it = std::find(
-				l.begin(), l.end(), pAccount);
+			const AccountManager::AccountList& l = pAccountManager_->getAccounts();
+			AccountManager::AccountList::const_iterator it =
+				std::find(l.begin(), l.end(), pAccount);
 			assert(it != l.end());
 			switch (type_) {
 			case TYPE_NEXTFOLDER:
@@ -5746,9 +5750,9 @@ void qm::ViewNavigateFolderAction::invoke(const ActionEvent& event)
 	case TYPE_NEXTACCOUNT:
 	case TYPE_PREVACCOUNT:
 		{
-			const Document::AccountList& l = pDocument_->getAccounts();
-			Document::AccountList::const_iterator it = std::find(
-				l.begin(), l.end(), pAccount);
+			const AccountManager::AccountList& l = pAccountManager_->getAccounts();
+			AccountManager::AccountList::const_iterator it =
+				std::find(l.begin(), l.end(), pAccount);
 			assert(it != l.end());
 			switch (type_) {
 			case TYPE_NEXTACCOUNT:
