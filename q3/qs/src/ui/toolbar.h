@@ -235,8 +235,10 @@ public:
 private:
 	LRESULT onDropDown(NMHDR* pnmhdr,
 					   bool* pbHandled);
+#ifndef _WIN32_WCE
 	LRESULT onGetDispInfo(NMHDR* pnmhdr,
 						  bool* pbHandled);
+#endif
 
 private:
 	ToolbarNotifyHandler(const ToolbarNotifyHandler&);

@@ -632,7 +632,9 @@ LRESULT qs::ToolbarNotifyHandler::onNotify(NMHDR* pnmhdr,
 {
 	BEGIN_NOTIFY_HANDLER()
 		HANDLE_NOTIFY_CODE(TBN_DROPDOWN, onDropDown)
+#ifndef _WIN32_WCE
 		HANDLE_NOTIFY_CODE(TTN_GETDISPINFO, onGetDispInfo)
+#endif
 	END_NOTIFY_HANDLER()
 	return 1;
 }
@@ -677,6 +679,7 @@ LRESULT qs::ToolbarNotifyHandler::onDropDown(NMHDR* pnmhdr,
 	return 0;
 }
 
+#ifndef _WIN32_WCE
 LRESULT qs::ToolbarNotifyHandler::onGetDispInfo(NMHDR* pnmhdr,
 												bool* pbHandled)
 {
@@ -695,3 +698,4 @@ LRESULT qs::ToolbarNotifyHandler::onGetDispInfo(NMHDR* pnmhdr,
 	
 	return 0;
 }
+#endif
