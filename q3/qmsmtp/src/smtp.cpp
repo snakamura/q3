@@ -234,11 +234,8 @@ bool qmsmtp::Smtp::connect(const WCHAR* pwszHost,
 void qmsmtp::Smtp::disconnect()
 {
 	if (pSocket_.get()) {
-		pSocket_->setTimeout(1);
-		
 		unsigned int nCode = 0;
 		sendCommand("QUIT\r\n", &nCode);
-		
 		pSocket_.reset(0);
 	}
 }
