@@ -1,5 +1,5 @@
 /*
- * $Id: qmfolder.h,v 1.3 2003/05/18 02:52:35 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -67,7 +67,9 @@ public:
 		FLAG_SYNCABLE		= 0x00010000,
 		FLAG_SYNCWHENOPEN	= 0x00020000,
 		FLAG_CACHEWHENREAD	= 0x00040000,
-		FLAG_SYNC_MASK		= 0x00ff0000
+		FLAG_SYNC_MASK		= 0x00ff0000,
+		
+		FLAG_USER_MASK		= 0x00060020
 	};
 
 public:

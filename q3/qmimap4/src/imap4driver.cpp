@@ -1,5 +1,5 @@
 /*
- * $Id: imap4driver.cpp,v 1.2 2003/05/18 02:52:36 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -1422,7 +1422,7 @@ QSTATUS qmimap4::FolderListGetter::getFolder(const WCHAR* pwszName,
 			// TODO
 			// What happen if this folder is local folder or
 			// this folder is query folder
-			pFolder->setFlags(nFlags, 0xffffffff);
+			pFolder->setFlags(nFlags, ~Folder::FLAG_USER_MASK);
 		}
 		else {
 			NormalFolder* pNormalFolder = 0;
