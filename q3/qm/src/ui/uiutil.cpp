@@ -482,11 +482,9 @@ bool qm::UIUtil::hasFilesOrURIs(IDataObject* pDataObject)
 			}
 		}
 	}
+#endif
 	
 	return MessageDataObject::canPasteMessage(pDataObject);
-#else
-	return false;
-#endif
 }
 
 void qm::UIUtil::getFilesOrURIs(IDataObject* pDataObject,
@@ -516,6 +514,7 @@ void qm::UIUtil::getFilesOrURIs(IDataObject* pDataObject,
 			}
 		}
 	}
+#endif
 	
 	MessageDataObject::URIList listURI;
 	struct Deleter
@@ -531,7 +530,6 @@ void qm::UIUtil::getFilesOrURIs(IDataObject* pDataObject,
 			wstrURI.release();
 		}
 	}
-#endif
 }
 
 
