@@ -2892,12 +2892,21 @@ void qm::MailFolderDialog::updateState()
  *
  */
 
-qm::MoveMessageDialog::MoveMessageDialog(Document* pDocument, QSTATUS* pstatus) :
+qm::MoveMessageDialog::MoveMessageDialog(
+	Document* pDocument, Profile* pProfile, QSTATUS* pstatus) :
 	DefaultDialog(IDD_MOVEMESSAGE, pstatus),
 	pDocument_(pDocument),
+	pProfile_(pProfile),
 	pFolder_(0),
-	bCopy_(false)
+	bCopy_(false),
+	bShowHidden_(false)
 {
+	DECLARE_QSTATUS();
+	
+	int nShowHidden = 0;
+	status = pProfile->getInt(L"MoveMessageDialog", L"ShowHidden", 0, &nShowHidden);
+	CHECK_QSTATUS_SET(pstatus);
+	bShowHidden_ = nShowHidden != 0;
 }
 
 qm::MoveMessageDialog::~MoveMessageDialog()
@@ -2914,14 +2923,20 @@ bool qm::MoveMessageDialog::isCopy() const
 	return bCopy_;
 }
 
-LRESULT qm::MoveMessageDialog::onDestroy()
+LRESULT qm::MoveMessageDialog::onCommand(WORD nCode, WORD nId)
 {
-	HIMAGELIST hImageList = TreeView_SetImageList(getHandle(), 0, TVSIL_NORMAL);
-	ImageList_Destroy(hImageList);
-	
-	removeNotifyHandler(this);
-	
-	return DefaultDialog::onDestroy();
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_SHOWHIDDEN, onShowHidden)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::MoveMessageDialog::onNotify(NMHDR* pnmhdr, bool* pbHandled)
+{
+	BEGIN_NOTIFY_HANDLER()
+		HANDLE_NOTIFY(TVN_SELCHANGED, IDC_FOLDER, onFolderSelChanged);
+	END_NOTIFY_HANDLER()
+	return 1;
 }
 
 LRESULT qm::MoveMessageDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
@@ -2935,18 +2950,27 @@ LRESULT qm::MoveMessageDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 		MAKEINTRESOURCE(IDB_FOLDER), 16, 0, CLR_DEFAULT, IMAGE_BITMAP, 0);
 	TreeView_SetImageList(getDlgItem(IDC_FOLDER), hImageList, TVSIL_NORMAL);
 	
-	const Document::AccountList& listAccount = pDocument_->getAccounts();
-	Document::AccountList::const_iterator it = listAccount.begin();
-	while (it != listAccount.end()) {
-		status = insertAccount(*it);
-		CHECK_QSTATUS();
-		++it;
-	}
+	if (bShowHidden_)
+		sendDlgItemMessage(IDC_SHOWHIDDEN, BM_SETCHECK, BST_CHECKED);
 	
+	status = update();
+	CHECK_QSTATUS_VALUE(TRUE);
 	updateState();
 	addNotifyHandler(this);
 	
 	return TRUE;
+}
+
+LRESULT qm::MoveMessageDialog::onDestroy()
+{
+	pProfile_->setInt(L"MoveMessageDialog", L"ShowHidden", bShowHidden_);
+	
+	HIMAGELIST hImageList = TreeView_SetImageList(getHandle(), 0, TVSIL_NORMAL);
+	ImageList_Destroy(hImageList);
+	
+	removeNotifyHandler(this);
+	
+	return DefaultDialog::onDestroy();
 }
 
 LRESULT qm::MoveMessageDialog::onOk()
@@ -2972,12 +2996,14 @@ LRESULT qm::MoveMessageDialog::onOk()
 	return DefaultDialog::onOk();
 }
 
-LRESULT qm::MoveMessageDialog::onNotify(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qm::MoveMessageDialog::onShowHidden()
 {
-	BEGIN_NOTIFY_HANDLER()
-		HANDLE_NOTIFY(TVN_SELCHANGED, IDC_FOLDER, onFolderSelChanged);
-	END_NOTIFY_HANDLER()
-	return 1;
+	bool bShowHidden = sendDlgItemMessage(IDC_SHOWHIDDEN, BM_GETCHECK) == BST_CHECKED;
+	if (bShowHidden != bShowHidden_) {
+		bShowHidden_ = bShowHidden;
+		update();
+	}
+	return 0;
 }
 
 LRESULT qm::MoveMessageDialog::onFolderSelChanged(NMHDR* pnmhdr, bool* pbHandled)
@@ -2985,6 +3011,26 @@ LRESULT qm::MoveMessageDialog::onFolderSelChanged(NMHDR* pnmhdr, bool* pbHandled
 	updateState();
 	*pbHandled = true;
 	return 0;
+}
+
+QSTATUS qm::MoveMessageDialog::update()
+{
+	DECLARE_QSTATUS();
+	
+	HWND hwnd = getDlgItem(IDC_FOLDER);
+	DisableRedraw disable(hwnd);
+	
+	TreeView_DeleteAllItems(hwnd);
+	
+	const Document::AccountList& listAccount = pDocument_->getAccounts();
+	Document::AccountList::const_iterator it = listAccount.begin();
+	while (it != listAccount.end()) {
+		status = insertAccount(*it);
+		CHECK_QSTATUS();
+		++it;
+	}
+	
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::MoveMessageDialog::insertAccount(Account* pAccount)
@@ -3033,8 +3079,11 @@ QSTATUS qm::MoveMessageDialog::insertFolders(HTREEITEM hItem, Account* pAccount)
 	Account::FolderList listFolder;
 	status = STLWrapper<Account::FolderList>(listFolder).reserve(l.size());
 	CHECK_QSTATUS();
-	std::remove_copy_if(l.begin(), l.end(),
-		std::back_inserter(listFolder), std::mem_fun(&Folder::isHidden));
+	if (bShowHidden_)
+		std::copy(l.begin(), l.end(), std::back_inserter(listFolder));
+	else
+		std::remove_copy_if(l.begin(), l.end(),
+			std::back_inserter(listFolder), std::mem_fun(&Folder::isHidden));
 	std::sort(listFolder.begin(), listFolder.end(), FolderLess());
 	
 	typedef std::vector<std::pair<Folder*, HTREEITEM> > Stack;

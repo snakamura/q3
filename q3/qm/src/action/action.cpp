@@ -2255,10 +2255,12 @@ QSTATUS qm::MessageMoveAction::isEnabled(const ActionEvent& event, bool* pbEnabl
  *
  */
 
-qm::MessageMoveOtherAction::MessageMoveOtherAction(Document* pDocument,
-	MessageSelectionModel* pModel, HWND hwndFrame, QSTATUS* pstatus) :
+qm::MessageMoveOtherAction::MessageMoveOtherAction(
+	Document* pDocument, MessageSelectionModel* pModel,
+	Profile* pProfile, HWND hwndFrame, QSTATUS* pstatus) :
 	pDocument_(pDocument),
 	pModel_(pModel),
+	pProfile_(pProfile),
 	hwndFrame_(hwndFrame)
 {
 }
@@ -2271,7 +2273,7 @@ QSTATUS qm::MessageMoveOtherAction::invoke(const ActionEvent& event)
 {
 	DECLARE_QSTATUS();
 	
-	MoveMessageDialog dialog(pDocument_, &status);
+	MoveMessageDialog dialog(pDocument_, pProfile_, &status);
 	CHECK_QSTATUS();
 	int nRet = 0;
 	status = dialog.doModal(hwndFrame_, 0, &nRet);

@@ -265,10 +265,10 @@ QSTATUS qm::MessageFrameWindowImpl::initActions()
 		pActionMap_, IDM_MESSAGE_MOVE, IDM_MESSAGE_MOVE + MoveMenu::MAX_FOLDER,
 		this, pMoveMenu_, pThis_->getHandle());
 	CHECK_QSTATUS();
-	status = InitAction3<MessageMoveOtherAction,
-		Document*, MessageSelectionModel*, HWND>(
+	status = InitAction4<MessageMoveOtherAction, Document*,
+		MessageSelectionModel*, Profile*, HWND>(
 		pActionMap_, IDM_MESSAGE_MOVEOTHER,
-		pDocument_, this, pThis_->getHandle());
+		pDocument_, this, pProfile_, pThis_->getHandle());
 	CHECK_QSTATUS();
 	status = InitAction2<MessagePropertyAction, MessageSelectionModel*, HWND>(
 		pActionMap_, IDM_MESSAGE_PROPERTY, this, pThis_->getHandle());
@@ -953,8 +953,8 @@ LRESULT qm::MessageFrameWindow::onInitMenuPopup(HMENU hmenu, UINT nIndex, bool b
 		Account* pAccount = pModel->getCurrentAccount();
 		assert(pAccount);
 		if (nIdLast == IDM_MESSAGE_MOVEOTHER) {
-			status = pImpl_->pMoveMenu_->createMenu(
-				hmenu, pAccount, *pImpl_->pActionMap_);
+			status = pImpl_->pMoveMenu_->createMenu(hmenu, pAccount,
+				::GetKeyState(VK_SHIFT) < 0, *pImpl_->pActionMap_);
 			// TODO
 		}
 		else if (nIdFirst == IDM_MESSAGE_DETACH) {

@@ -513,10 +513,10 @@ QSTATUS qm::MainWindowImpl::initActions()
 		pActionMap_, IDM_MESSAGE_MOVE, IDM_MESSAGE_MOVE + MoveMenu::MAX_FOLDER,
 		pMessageSelectionModel_, pMoveMenu_, pThis_->getHandle());
 	CHECK_QSTATUS();
-	status = InitAction3<MessageMoveOtherAction,
-		Document*, MessageSelectionModel*, HWND>(
+	status = InitAction4<MessageMoveOtherAction, Document*,
+		MessageSelectionModel*, Profile*, HWND>(
 		pActionMap_, IDM_MESSAGE_MOVEOTHER, pDocument_,
-		pMessageSelectionModel_, pThis_->getHandle());
+		pMessageSelectionModel_, pProfile_, pThis_->getHandle());
 	CHECK_QSTATUS();
 	status = InitAction8<MessageOpenURLAction, Document*,
 		FolderModelBase*, MessageSelectionModel*, EditFrameWindowManager*,
@@ -2157,8 +2157,8 @@ LRESULT qm::MainWindow::onInitMenuPopup(HMENU hmenu, UINT nIndex, bool bSysMenu)
 		}
 		if (nIdLast == IDM_MESSAGE_MOVEOTHER) {
 			if (pAccount) {
-				status = pImpl_->pMoveMenu_->createMenu(
-					hmenu, pAccount, *pImpl_->pActionMap_);
+				status = pImpl_->pMoveMenu_->createMenu(hmenu, pAccount,
+					::GetKeyState(VK_SHIFT) < 0, *pImpl_->pActionMap_);
 				// TODO
 			}
 			else {

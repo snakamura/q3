@@ -1114,7 +1114,7 @@ class MessageMoveOtherAction : public qs::AbstractAction
 {
 public:
 	MessageMoveOtherAction(Document* pDocument, MessageSelectionModel* pModel,
-		HWND hwndFrame, qs::QSTATUS* pstatus);
+		qs::Profile* pProfile, HWND hwndFrame, qs::QSTATUS* pstatus);
 	virtual ~MessageMoveOtherAction();
 
 public:
@@ -1128,6 +1128,7 @@ private:
 private:
 	Document* pDocument_;
 	MessageSelectionModel* pModel_;
+	qs::Profile* pProfile_;
 	HWND hwndFrame_;
 };
 

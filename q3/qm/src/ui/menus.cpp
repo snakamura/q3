@@ -382,8 +382,8 @@ NormalFolder* qm::MoveMenu::getFolder(unsigned int nId) const
 		return mapMenu_[nId - IDM_MESSAGE_MOVE];
 }
 
-QSTATUS qm::MoveMenu::createMenu(HMENU hmenu,
-	Account* pAccount, const ActionMap& actionMap)
+QSTATUS qm::MoveMenu::createMenu(HMENU hmenu, Account* pAccount,
+	bool bShowHidden, const ActionMap& actionMap)
 {
 	assert(hmenu);
 	assert(pAccount);
@@ -408,8 +408,11 @@ QSTATUS qm::MoveMenu::createMenu(HMENU hmenu,
 	Account::FolderList listFolder;
 	status = STLWrapper<Account::FolderList>(listFolder).reserve(l.size());
 	CHECK_QSTATUS();
-	std::remove_copy_if(l.begin(), l.end(),
-		std::back_inserter(listFolder), std::mem_fun(&Folder::isHidden));
+	if (bShowHidden)
+		std::copy(l.begin(), l.end(), std::back_inserter(listFolder));
+	else
+		std::remove_copy_if(l.begin(), l.end(),
+			std::back_inserter(listFolder), std::mem_fun(&Folder::isHidden));
 	std::sort(listFolder.begin(), listFolder.end(), FolderLess());
 	
 	typedef std::vector<MenuInserter> FolderStack;
@@ -483,7 +486,7 @@ QSTATUS qm::MoveMenu::createMenu(HMENU hmenu,
 		
 		++it;
 		if (!bHasChild) {
-			while (it != listFolder.end() && isDescendant(pFolder, *it))
+			while (it != listFolder.end() && pFolder->isAncestorOf(*it))
 				++it;
 		}
 	}
@@ -504,25 +507,10 @@ bool qm::MoveMenu::hasSelectableChildNormalFolder(
 	assert(first != last);
 	
 	const Folder* pFolder = *first;
-	for (++first; first != last && isDescendant(pFolder, *first); ++first) {
+	for (++first; first != last && pFolder->isAncestorOf(*first); ++first) {
 		if ((*first)->getType() == Folder::TYPE_NORMAL &&
 			!(*first)->isFlag(Folder::FLAG_NOSELECT))
 			return true;
-	}
-	
-	return false;
-}
-
-bool qm::MoveMenu::isDescendant(const Folder* pParent, const Folder* pChild)
-{
-	assert(pParent);
-	assert(pChild);
-	assert(pParent != pChild);
-	
-	while (pChild) {
-		if (pParent == pChild)
-			return true;
-		pChild = pChild->getParentFolder();
 	}
 	
 	return false;

@@ -200,15 +200,14 @@ public:
 
 public:
 	NormalFolder* getFolder(unsigned int nId) const;
-	qs::QSTATUS createMenu(HMENU hmenu,
-		Account* pAccount, const qs::ActionMap& actionMap);
+	qs::QSTATUS createMenu(HMENU hmenu, Account* pAccount,
+		bool bShowHidden, const qs::ActionMap& actionMap);
 
 private:
 	static bool isMovableFolder(const Folder* pFolder);
 	static bool hasSelectableChildNormalFolder(
 		Account::FolderList::const_iterator first,
 		Account::FolderList::const_iterator last);
-	static bool isDescendant(const Folder* pParent, const Folder* pChild);
 	static qs::QSTATUS formatName(const Folder* pFolder,
 		unsigned int n, qs::WSTRING* pwstrName);
 

@@ -698,6 +698,8 @@ BEGIN
                     WS_TABSTOP,5,5,130,135
     CONTROL         "&Copy",IDC_COPY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
                     145,31,10
+    CONTROL         "&Show hidden folders",IDC_SHOWHIDDEN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,50,145,85,10
     DEFPUSHBUTTON   "OK",IDOK,30,161,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,85,161,50,14
 END

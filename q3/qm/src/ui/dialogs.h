@@ -811,27 +811,33 @@ private:
 class MoveMessageDialog : public DefaultDialog, public qs::NotifyHandler
 {
 public:
-	MoveMessageDialog(Document* pDocument, qs::QSTATUS* pstatus);
+	MoveMessageDialog(Document* pDocument,
+		qs::Profile* pProfile, qs::QSTATUS* pstatus);
 	virtual ~MoveMessageDialog();
 
 public:
 	NormalFolder* getFolder() const;
 	bool isCopy() const;
 
+public:
+	virtual LRESULT onCommand(WORD nCode, WORD nId);
+
+public:
+	virtual LRESULT onNotify(NMHDR* pnmhdr, bool* pbHandled);
+
 protected:
 	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onDestroy();
 
 protected:
 	virtual LRESULT onOk();
 
-public:
-	virtual LRESULT onDestroy();
-	virtual LRESULT onNotify(NMHDR* pnmhdr, bool* pbHandled);
-
 private:
+	LRESULT onShowHidden();
 	LRESULT onFolderSelChanged(NMHDR* pnmhdr, bool* pbHandled);
 
 private:
+	qs::QSTATUS update();
 	qs::QSTATUS insertAccount(Account* pAccount);
 	qs::QSTATUS insertFolders(HTREEITEM hItem, Account* pAccount);
 	void updateState();
@@ -842,8 +848,10 @@ private:
 
 private:
 	Document* pDocument_;
+	qs::Profile* pProfile_;
 	NormalFolder* pFolder_;
 	bool bCopy_;
+	bool bShowHidden_;
 };
 
 
