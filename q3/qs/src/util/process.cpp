@@ -173,8 +173,10 @@ int qs::Process::exec(const WCHAR* pwszCommand,
 	::WaitForMultipleObjects(hThread ? 2 : 1, hWaits, TRUE, INFINITE);
 	
 	DWORD dwExitCode = 0;
-	if (!::GetExitCodeThread(hThread, &dwExitCode) || dwExitCode != 0)
-		return -1;
+	if (hThread) {
+		if (!::GetExitCodeThread(hThread, &dwExitCode) || dwExitCode != 0)
+			return -1;
+	}
 	if (!::GetExitCodeProcess(hProcess.get(), &dwExitCode))
 		return -1;
 	
