@@ -50,12 +50,20 @@ class qm::FolderComboBoxImpl :
 	public FolderModelHandler
 {
 public:
+	enum {
+		WM_FOLDERCOMBOBOX_MESSAGEADDED		= WM_APP + 1101,
+		WM_FOLDERCOMBOBOX_MESSAGEREMOVED	= WM_APP + 1102,
+		WM_FOLDERCOMBOBOX_MESSAGECHANGED	= WM_APP + 1103
+	};
+
+public:
 	Account* getAccount(int nIndex) const;
 	Account* getSelectedAccount() const;
 	Folder* getFolder(int nIndex) const;
 	Folder* getSelectedFolder() const;
 	int getIndexFromAccount(Account* pAccount) const;
 	int getIndexFromFolder(Folder* pFolder) const;
+	QSTATUS update(Folder* pFolder);
 
 public:
 	virtual LRESULT onCommand(WORD nCode, WORD nId);
@@ -83,6 +91,7 @@ private:
 	QSTATUS refreshFolderList(Account* pAccount, bool bDropDown);
 	QSTATUS addAccount(Account* pAccount, bool bDropDown);
 	QSTATUS insertFolders(int nIndex, Account* pAccount, bool bDropDown);
+	QSTATUS insertFolder(int nIndex, Folder* pFolder, bool bDropDown);
 
 private:
 	LRESULT onCloseUp();
@@ -100,6 +109,8 @@ public:
 	
 	UINT nId_;
 	HFONT hfont_;
+	bool bShowAllCount_;
+	bool bShowUnseenCount_;
 };
 
 Account* qm::FolderComboBoxImpl::getAccount(int nIndex) const
@@ -154,6 +165,29 @@ int qm::FolderComboBoxImpl::getIndexFromFolder(Folder* pFolder) const
 			return n;
 	}
 	return -1;
+}
+
+QSTATUS qm::FolderComboBoxImpl::update(Folder* pFolder)
+{
+	assert(pFolder);
+	
+	DECLARE_QSTATUS();
+	
+	bool bDropDown = ComboBox_GetDroppedState(pThis_->getHandle()) != 0;
+	
+	int nSelectedItem = ComboBox_GetCurSel(pThis_->getHandle());
+	
+	status = pFolder->removeFolderHandler(this);
+	CHECK_QSTATUS();
+	
+	int nIndex = getIndexFromFolder(pFolder);
+	ComboBox_DeleteString(pThis_->getHandle(), nIndex);
+	status = insertFolder(nIndex, pFolder, bDropDown);
+	CHECK_QSTATUS();
+	
+	ComboBox_SetCurSel(pThis_->getHandle(), nSelectedItem);
+	
+	return QSTATUS_SUCCESS;
 }
 
 LRESULT qm::FolderComboBoxImpl::onCommand(WORD nCode, WORD nId)
@@ -235,19 +269,24 @@ QSTATUS qm::FolderComboBoxImpl::folderListChanged(const FolderListChangedEvent& 
 
 QSTATUS qm::FolderComboBoxImpl::messageAdded(const FolderEvent& event)
 {
-	// TODO
+	pThis_->postMessage(WM_FOLDERCOMBOBOX_MESSAGEADDED,
+		0, reinterpret_cast<LPARAM>(event.getFolder()));
 	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::FolderComboBoxImpl::messageRemoved(const FolderEvent& event)
 {
-	// TODO
+	pThis_->postMessage(WM_FOLDERCOMBOBOX_MESSAGEREMOVED,
+		0, reinterpret_cast<LPARAM>(event.getFolder()));
 	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::FolderComboBoxImpl::messageChanged(const MessageEvent& event)
 {
-	// TODO
+	if ((event.getOldFlags() & MessageHolder::FLAG_SEEN) !=
+		(event.getNewFlags() & MessageHolder::FLAG_SEEN))
+		pThis_->postMessage(WM_FOLDERCOMBOBOX_MESSAGECHANGED,
+			0, reinterpret_cast<LPARAM>(event.getFolder()));
 	return QSTATUS_SUCCESS;
 }
 
@@ -276,6 +315,12 @@ QSTATUS qm::FolderComboBoxImpl::clearAccountList()
 		Account* pAccount = getAccount(n);
 		if (pAccount) {
 			status = pAccount->removeAccountHandler(this);
+			CHECK_QSTATUS();
+		}
+		else {
+			Folder* pFolder = getFolder(n);
+			assert(pFolder);
+			status = pFolder->removeFolderHandler(this);
 			CHECK_QSTATUS();
 		}
 	}
@@ -314,6 +359,8 @@ QSTATUS qm::FolderComboBoxImpl::refreshFolderList(Account* pAccount, bool bDropD
 		Folder* pFolder = getFolder(nIndex);
 		if (!pFolder)
 			break;
+		status = pFolder->removeFolderHandler(this);
+		CHECK_QSTATUS();
 		ComboBox_DeleteString(pThis_->getHandle(), nIndex);
 	}
 	
@@ -379,42 +426,72 @@ QSTATUS qm::FolderComboBoxImpl::insertFolders(
 		Folder* pFolder = *it;
 		
 		if (UIUtil::isShowFolder(pFolder)) {
-			StringBuffer<WSTRING> buf(&status);
+			++nIndex;
+			status = insertFolder(nIndex, pFolder, bDropDown);
 			CHECK_QSTATUS();
-			if (bDropDown) {
-				for (unsigned int n = 0; n <= pFolder->getLevel(); ++n) {
-					status = buf.append(L" ");
-					CHECK_QSTATUS();
-				}
-				status = buf.append(pFolder->getName());
-				CHECK_QSTATUS();
-				
-			}
-			else {
-				status = buf.append(L"[");
-				CHECK_QSTATUS();
-				status = buf.append(pAccount->getName());
-				CHECK_QSTATUS();
-				status = buf.append(L"] ");
-				CHECK_QSTATUS();
-				
-				string_ptr<WSTRING> wstrFullName;
-				status = pFolder->getFullName(&wstrFullName);
-				CHECK_QSTATUS();
-				status = buf.append(wstrFullName.get());
-				CHECK_QSTATUS();
-			}
-			W2T(buf.getCharArray(), ptszName);
-			int nFolderIndex = ComboBox_InsertString(
-				pThis_->getHandle(), ++nIndex, ptszName);
-			if (nFolderIndex == CB_ERR)
-				return QSTATUS_FAIL;
-			ComboBox_SetItemData(pThis_->getHandle(), nFolderIndex,
-				reinterpret_cast<LPARAM>(pFolder) | 0x01);
 		}
 		
 		++it;
 	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::FolderComboBoxImpl::insertFolder(
+	int nIndex, Folder* pFolder, bool bDropDown)
+{
+	assert(pFolder);
+	
+	DECLARE_QSTATUS();
+	
+	StringBuffer<WSTRING> buf(&status);
+	CHECK_QSTATUS();
+	if (bDropDown) {
+		for (unsigned int n = 0; n <= pFolder->getLevel(); ++n) {
+			status = buf.append(L" ");
+			CHECK_QSTATUS();
+		}
+		status = buf.append(pFolder->getName());
+		CHECK_QSTATUS();
+		
+	}
+	else {
+		status = buf.append(L"[");
+		CHECK_QSTATUS();
+		status = buf.append(pFolder->getAccount()->getName());
+		CHECK_QSTATUS();
+		status = buf.append(L"] ");
+		CHECK_QSTATUS();
+		
+		string_ptr<WSTRING> wstrFullName;
+		status = pFolder->getFullName(&wstrFullName);
+		CHECK_QSTATUS();
+		status = buf.append(wstrFullName.get());
+		CHECK_QSTATUS();
+	}
+	
+	WCHAR wsz[64] = L"";
+	if (bShowAllCount_ && bShowUnseenCount_)
+		swprintf(wsz, L" (%d/%d)",
+			pFolder->getUnseenCount(), pFolder->getCount());
+	else if (bShowAllCount_)
+		swprintf(wsz, L" (%d)", pFolder->getCount());
+	else if (bShowUnseenCount_)
+		swprintf(wsz, L" (%d)", pFolder->getUnseenCount());
+	
+	status = buf.append(wsz);
+	CHECK_QSTATUS();
+	
+	W2T(buf.getCharArray(), ptszName);
+	int nFolderIndex = ComboBox_InsertString(
+		pThis_->getHandle(), nIndex, ptszName);
+	if (nFolderIndex == CB_ERR)
+		return QSTATUS_FAIL;
+	ComboBox_SetItemData(pThis_->getHandle(), nFolderIndex,
+		reinterpret_cast<LPARAM>(pFolder) | 0x01);
+	
+	status = pFolder->addFolderHandler(this);
+	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
 }
@@ -466,6 +543,15 @@ qm::FolderComboBox::FolderComboBox(WindowBase* pParentWindow,
 	
 	DECLARE_QSTATUS();
 	
+	int nShowAllCount = 0;
+	status = pProfile->getInt(L"FolderComboBox",
+		L"ShowAllCount", 1, &nShowAllCount);
+	CHECK_QSTATUS_SET(pstatus);
+	int nShowUnseenCount = 0;
+	status = pProfile->getInt(L"FolderComboBox",
+		L"ShowUnseenCount", 1, &nShowUnseenCount);
+	CHECK_QSTATUS_SET(pstatus);
+	
 	status = newObject(&pImpl_);
 	CHECK_QSTATUS_SET(pstatus);
 	pImpl_->pThis_ = this;
@@ -477,6 +563,8 @@ qm::FolderComboBox::FolderComboBox(WindowBase* pParentWindow,
 	pImpl_->pDocument_ = 0;
 	pImpl_->nId_ = 0;
 	pImpl_->hfont_ = 0;
+	pImpl_->bShowAllCount_ = nShowAllCount != 0;
+	pImpl_->bShowUnseenCount_ = nShowUnseenCount != 0;
 	
 	setWindowHandler(this, false);
 	
@@ -526,6 +614,9 @@ LRESULT qm::FolderComboBox::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		HANDLE_CREATE()
 		HANDLE_DESTROY()
 		HANDLE_LBUTTONDOWN()
+		HANDLE_MESSAGE(FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEADDED, onMessageAdded)
+		HANDLE_MESSAGE(FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEREMOVED, onMessageRemoved)
+		HANDLE_MESSAGE(FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGECHANGED, onMessageChanged)
 	END_MESSAGE_HANDLER()
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
@@ -595,6 +686,24 @@ LRESULT qm::FolderComboBox::onLButtonDown(UINT nFlags, const POINT& pt)
 		return 0;
 #endif
 	return DefaultWindowHandler::onLButtonDown(nFlags, pt);
+}
+
+LRESULT qm::FolderComboBox::onMessageAdded(WPARAM wParam, LPARAM lParam)
+{
+	pImpl_->update(reinterpret_cast<Folder*>(lParam));
+	return 0;
+}
+
+LRESULT qm::FolderComboBox::onMessageRemoved(WPARAM wParam, LPARAM lParam)
+{
+	pImpl_->update(reinterpret_cast<Folder*>(lParam));
+	return 0;
+}
+
+LRESULT qm::FolderComboBox::onMessageChanged(WPARAM wParam, LPARAM lParam)
+{
+	pImpl_->update(reinterpret_cast<NormalFolder*>(lParam));
+	return 0;
 }
 
 bool qm::FolderComboBox::isShow() const

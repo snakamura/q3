@@ -1,5 +1,5 @@
 /*
- * $Id: qmfolderwindow.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -52,9 +52,9 @@ protected:
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
 	LRESULT onDestroy();
 	LRESULT onLButtonDown(UINT nFlags, const POINT& pt);
-	LRESULT onFolderMessageAdded(WPARAM wParam, LPARAM lParam);
-	LRESULT onFolderMessageRemoved(WPARAM wParam, LPARAM lParam);
-	LRESULT onFolderMessageChanged(WPARAM wParam, LPARAM lParam);
+	LRESULT onMessageAdded(WPARAM wParam, LPARAM lParam);
+	LRESULT onMessageRemoved(WPARAM wParam, LPARAM lParam);
+	LRESULT onMessageChanged(WPARAM wParam, LPARAM lParam);
 
 public:
 	virtual bool isShow() const;

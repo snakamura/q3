@@ -1,5 +1,5 @@
 /*
- * $Id: folderwindow.cpp,v 1.3 2003/05/18 04:43:45 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -58,9 +58,9 @@ class qm::FolderWindowImpl :
 {
 public:
 	enum {
-		WM_FOLDER_MESSAGEADDED		= WM_APP + 1101,
-		WM_FOLDER_MESSAGEREMOVED	= WM_APP + 1102,
-		WM_FOLDER_MESSAGECHANGED	= WM_APP + 1103
+		WM_FOLDERWINDOW_MESSAGEADDED	= WM_APP + 1101,
+		WM_FOLDERWINDOW_MESSAGEREMOVED	= WM_APP + 1102,
+		WM_FOLDERWINDOW_MESSAGECHANGED	= WM_APP + 1103
 	};
 
 public:
@@ -353,14 +353,14 @@ QSTATUS qm::FolderWindowImpl::folderListChanged(
 
 QSTATUS qm::FolderWindowImpl::messageAdded(const FolderEvent& event)
 {
-	pThis_->postMessage(WM_FOLDER_MESSAGEADDED,
+	pThis_->postMessage(WM_FOLDERWINDOW_MESSAGEADDED,
 		0, reinterpret_cast<LPARAM>(event.getFolder()));
 	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::FolderWindowImpl::messageRemoved(const FolderEvent& event)
 {
-	pThis_->postMessage(WM_FOLDER_MESSAGEREMOVED,
+	pThis_->postMessage(WM_FOLDERWINDOW_MESSAGEREMOVED,
 		0, reinterpret_cast<LPARAM>(event.getFolder()));
 	return QSTATUS_SUCCESS;
 }
@@ -369,7 +369,7 @@ QSTATUS qm::FolderWindowImpl::messageChanged(const MessageEvent& event)
 {
 	if ((event.getOldFlags() & MessageHolder::FLAG_SEEN) !=
 		(event.getNewFlags() & MessageHolder::FLAG_SEEN))
-		pThis_->postMessage(WM_FOLDER_MESSAGECHANGED,
+		pThis_->postMessage(WM_FOLDERWINDOW_MESSAGECHANGED,
 			0, reinterpret_cast<LPARAM>(event.getFolder()));
 	return QSTATUS_SUCCESS;
 }
@@ -794,9 +794,9 @@ LRESULT qm::FolderWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		HANDLE_CREATE()
 		HANDLE_DESTROY()
 		HANDLE_LBUTTONDOWN()
-		HANDLE_MESSAGE(FolderWindowImpl::WM_FOLDER_MESSAGEADDED, onFolderMessageAdded)
-		HANDLE_MESSAGE(FolderWindowImpl::WM_FOLDER_MESSAGEREMOVED, onFolderMessageRemoved)
-		HANDLE_MESSAGE(FolderWindowImpl::WM_FOLDER_MESSAGECHANGED, onFolderMessageChanged)
+		HANDLE_MESSAGE(FolderWindowImpl::WM_FOLDERWINDOW_MESSAGEADDED, onMessageAdded)
+		HANDLE_MESSAGE(FolderWindowImpl::WM_FOLDERWINDOW_MESSAGEREMOVED, onMessageRemoved)
+		HANDLE_MESSAGE(FolderWindowImpl::WM_FOLDERWINDOW_MESSAGECHANGED, onMessageChanged)
 	END_MESSAGE_HANDLER()
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
@@ -882,19 +882,19 @@ LRESULT qm::FolderWindow::onLButtonDown(UINT nFlags, const POINT& pt)
 	return DefaultWindowHandler::onLButtonDown(nFlags, pt);
 }
 
-LRESULT qm::FolderWindow::onFolderMessageAdded(WPARAM wParam, LPARAM lParam)
+LRESULT qm::FolderWindow::onMessageAdded(WPARAM wParam, LPARAM lParam)
 {
 	pImpl_->update(reinterpret_cast<Folder*>(lParam));
 	return 0;
 }
 
-LRESULT qm::FolderWindow::onFolderMessageRemoved(WPARAM wParam, LPARAM lParam)
+LRESULT qm::FolderWindow::onMessageRemoved(WPARAM wParam, LPARAM lParam)
 {
 	pImpl_->update(reinterpret_cast<Folder*>(lParam));
 	return 0;
 }
 
-LRESULT qm::FolderWindow::onFolderMessageChanged(WPARAM wParam, LPARAM lParam)
+LRESULT qm::FolderWindow::onMessageChanged(WPARAM wParam, LPARAM lParam)
 {
 	pImpl_->update(reinterpret_cast<NormalFolder*>(lParam));
 	return 0;
