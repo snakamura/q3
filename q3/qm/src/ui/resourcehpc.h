@@ -111,9 +111,8 @@
 #define IDC_REPLIED                     1032
 #define IDS_FOLDERLISTUNSEENCOUNT       1032
 #define IDC_FORWARDED                   1033
-#define IDS_FOLDERLISTINDEXSIZE         1033
+#define IDS_FOLDERLISTSIZE              1033
 #define IDC_DELETED                     1034
-#define IDS_FOLDERLISTBOXSIZE           1034
 #define IDC_SENT                        1035
 #define IDS_FINDNOTFOUND                1035
 #define IDC_DRAFT                       1036

@@ -1362,6 +1362,8 @@ QSTATUS qm::MainWindow::save() const
 	CHECK_QSTATUS();
 	status = pImpl_->pMessageWindow_->save();
 	CHECK_QSTATUS();
+	status = pImpl_->pFolderListWindow_->save();
+	CHECK_QSTATUS();
 	
 	Profile* pProfile = pImpl_->pProfile_;
 	

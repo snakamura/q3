@@ -131,6 +131,7 @@ public:
 	virtual unsigned int getCount() const = 0;
 	virtual unsigned int getUnseenCount() const = 0;
 	virtual qs::QSTATUS getSize(unsigned int* pnSize) = 0;
+	virtual qs::QSTATUS getBoxSize(unsigned int* pnSize) = 0;
 	virtual MessageHolder* getMessage(unsigned int n) const = 0;
 	virtual MessageHolder* getMessageById(unsigned int nId) const = 0;
 	virtual qs::QSTATUS setMessagesFlags(const MessageHolderList& l,
@@ -189,6 +190,7 @@ public:
 	virtual unsigned int getCount() const;
 	virtual unsigned int getUnseenCount() const;
 	virtual qs::QSTATUS getSize(unsigned int* pnSize);
+	virtual qs::QSTATUS getBoxSize(unsigned int* pnSize);
 	virtual MessageHolder* getMessage(unsigned int n) const;
 	virtual MessageHolder* getMessageById(unsigned int nId) const;
 	virtual qs::QSTATUS setMessagesFlags(const MessageHolderList& l,
@@ -254,6 +256,7 @@ public:
 	virtual unsigned int getCount() const;
 	virtual unsigned int getUnseenCount() const;
 	virtual qs::QSTATUS getSize(unsigned int* pnSize);
+	virtual qs::QSTATUS getBoxSize(unsigned int* pnSize);
 	virtual MessageHolder* getMessage(unsigned int n) const;
 	virtual MessageHolder* getMessageById(unsigned int nId) const;
 	virtual qs::QSTATUS setMessagesFlags(const MessageHolderList& l,

@@ -634,6 +634,28 @@ QSTATUS qm::NormalFolder::getSize(unsigned int* pnSize)
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qm::NormalFolder::getBoxSize(unsigned int* pnSize)
+{
+	assert(pnSize);
+	
+	DECLARE_QSTATUS();
+	
+	*pnSize = 0;
+	
+	Lock<Folder> lock(*this);
+	
+	status = loadMessageHolders();
+	CHECK_QSTATUS();
+	
+	MessageHolderList::const_iterator it = pImpl_->listMessageHolder_.begin();
+	while (it != pImpl_->listMessageHolder_.end()) {
+		*pnSize += (*it)->getMessageBoxKey().nLength_;
+		++it;
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
 MessageHolder* qm::NormalFolder::getMessage(unsigned int n) const
 {
 	assert(pImpl_->bLoad_);
@@ -1072,6 +1094,13 @@ unsigned int qm::QueryFolder::getUnseenCount() const
 }
 
 QSTATUS qm::QueryFolder::getSize(unsigned int* pnSize)
+{
+	*pnSize = 0;
+	// TODO
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::QueryFolder::getBoxSize(unsigned int* pnSize)
 {
 	*pnSize = 0;
 	// TODO

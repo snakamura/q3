@@ -43,6 +43,9 @@ public:
 	virtual ~FolderListWindow();
 
 public:
+	qs::QSTATUS save();
+
+public:
 	virtual qs::QSTATUS getSuperClass(qs::WSTRING* pwstrSuperClass);
 	virtual qs::QSTATUS preCreateWindow(CREATESTRUCT* pCreateStruct);
 	virtual qs::QSTATUS getAccelerator(qs::Accelerator** ppAccelerator);
