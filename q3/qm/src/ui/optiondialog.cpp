@@ -7,8 +7,10 @@
  */
 
 #include <qmdocument.h>
+#include <qmfolderwindow.h>
 
 #include <qsras.h>
+#include <qsuiutil.h>
 
 #include <commdlg.h>
 #include <tchar.h>
@@ -36,6 +38,7 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 							   ColorManager* pColorManager,
 							   SyncFilterManager* pSyncFilterManager,
 							   AutoPilotManager* pAutoPilotManager,
+							   FolderWindow* pFolderWindow,
 							   Profile* pProfile,
 							   Panel panel) :
 	DefaultDialog(IDD_OPTION),
@@ -45,6 +48,7 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 	pColorManager_(pColorManager),
 	pSyncFilterManager_(pSyncFilterManager),
 	pAutoPilotManager_(pAutoPilotManager),
+	pFolderWindow_(pFolderWindow),
 	pProfile_(pProfile),
 	panel_(panel),
 	pCurrentPanel_(0),
@@ -135,6 +139,7 @@ LRESULT qm::OptionDialog::onInitDialog(HWND hwndFocus,
 		Panel panel_;
 		UINT nId_;
 	} items[] = {
+		{ PANEL_FOLDERWINDOW,	IDS_PANEL_FOLDERWINDOW		},
 		{ PANEL_RULES,			IDS_PANEL_RULES				},
 		{ PANEL_COLORS,			IDS_PANEL_COLORS			},
 		{ PANEL_GOROUND,		IDS_PANEL_GOROUND			},
@@ -365,6 +370,7 @@ void qm::OptionDialog::setCurrentPanel(Panel panel)
 	
 	if (!listPanel_[panel]) {
 		BEGIN_PANEL()
+			PANEL2(PANEL_FOLDERWINDOW, OptionFolderWindow, pFolderWindow_, pProfile_);
 			PANEL3(PANEL_RULES, RuleSets, pDocument_->getRuleManager(), pDocument_, pProfile_);
 			PANEL3(PANEL_COLORS, ColorSets, pColorManager_, pDocument_, pProfile_);
 			PANEL4(PANEL_GOROUND, GoRound, pGoRound_, pDocument_, pSyncFilterManager_, pProfile_);
@@ -424,7 +430,7 @@ bool qm::OptionDialog::processDialogMessage(const MSG& msg)
 			int nDefId = 0;
 			if (pCurrentPanel_)
 				nDefId = Window(pCurrentPanel_->getWindow()).sendMessage(DM_GETDEFID);
-			if (HIWORD(nDefId) == DC_HASDEFID)
+			if (HIWORD(nDefId) == DC_HASDEFID && LOWORD(nDefId) != IDOK && LOWORD(nDefId) != IDCANCEL)
 				Window(pCurrentPanel_->getWindow()).postMessage(WM_COMMAND, MAKEWPARAM(LOWORD(nDefId), 0), 0);
 			else
 				postMessage(WM_COMMAND, MAKEWPARAM(IDOK, 0), 0);
@@ -548,29 +554,17 @@ void qm::OptionDialog::processMnemonic(char c)
 		if (Window(hwnd).sendMessage(WM_GETDLGCODE) & DLGC_STATIC)
 			hwnd = Window(hwnd).getWindow(GW_HWNDNEXT);
 		if (hwnd) {
-			if (Window(hwnd).sendMessage(WM_GETDLGCODE) & DLGC_BUTTON)
+			int nCode = Window(hwnd).sendMessage(WM_GETDLGCODE);
+			if (nCode & DLGC_DEFPUSHBUTTON || nCode & DLGC_UNDEFPUSHBUTTON)
 				Window(pCurrentPanel_->getWindow()).postMessage(WM_COMMAND,
 					MAKEWPARAM(Window(hwnd).getWindowLong(GWL_ID), BN_CLICKED),
 					reinterpret_cast<LPARAM>(hwnd));
+			else if (nCode & DLGC_BUTTON)
+				Window(hwnd).sendMessage(BM_CLICK);
 			else
 				setFocus(hwnd);
 		}
 	}
-}
-
-WCHAR qm::OptionDialog::getMnemonic(HWND hwnd)
-{
-	wstring_ptr wstrText(Window(hwnd).getWindowText());
-	const WCHAR* p = wstrText.get();
-	while (true) {
-		p = wcschr(p, L'&');
-		if (!p)
-			return L'\0';
-		if (*(p + 1) != L'&')
-			return *(p + 1);
-		++p;
-	}
-	return L'\0';
 }
 
 void qm::OptionDialog::setFocus(HWND hwnd)
@@ -593,6 +587,26 @@ void qm::OptionDialog::setFocus(HWND hwnd)
 	}
 	
 	wnd.setFocus();
+}
+
+WCHAR qm::OptionDialog::getMnemonic(HWND hwnd)
+{
+	wstring_ptr wstrText(Window(hwnd).getWindowText());
+	const WCHAR* p = wstrText.get();
+	while (true) {
+		p = wcschr(p, L'&');
+		if (!p)
+			return L'\0';
+		if (*(p + 1) != L'&')
+			return getMnemonic(*(p + 1));
+		++p;
+	}
+	return L'\0';
+}
+
+WCHAR qm::OptionDialog::getMnemonic(WCHAR c)
+{
+	return (L'a' <= c && c <= L'z') ? c - L'a' + L'A' : c;
 }
 
 void qm::OptionDialog::clearDefaultButton(HWND hwnd)
@@ -627,6 +641,7 @@ qm::OptionDialogManager::OptionDialogManager(Document* pDocument,
 											 ColorManager* pColorManager,
 											 SyncManager* pSyncManager,
 											 AutoPilotManager* pAutoPilotManager,
+											 FolderWindow* pFolderWindow,
 											 Profile* pProfile) :
 	pDocument_(pDocument),
 	pGoRound_(pGoRound),
@@ -634,6 +649,7 @@ qm::OptionDialogManager::OptionDialogManager(Document* pDocument,
 	pColorManager_(pColorManager),
 	pSyncManager_(pSyncManager),
 	pAutoPilotManager_(pAutoPilotManager),
+	pFolderWindow_(pFolderWindow),
 	pProfile_(pProfile)
 {
 }
@@ -647,13 +663,84 @@ int qm::OptionDialogManager::showDialog(HWND hwndParent,
 {
 	OptionDialog dialog(pDocument_, pGoRound_, pFilterManager_,
 		pColorManager_, pSyncManager_->getSyncFilterManager(),
-		pAutoPilotManager_, pProfile_, panel);
+		pAutoPilotManager_, pFolderWindow_, pProfile_, panel);
 	return dialog.doModal(hwndParent);
 }
 
 bool qm::OptionDialogManager::canShowDialog() const
 {
 	return !pSyncManager_->isSyncing();
+}
+
+
+/****************************************************************************
+ *
+ * OptionFolderWindowDialog
+ *
+ */
+
+namespace {
+struct {
+	const WCHAR* pwszKey_;
+	UINT nId_;
+} folderFlags[] = {
+	{ L"FolderShowAllCount",		IDC_FOLDERSHOWALL		},
+	{ L"FolderShowUnseenCount",		IDC_FOLDERSHOWUNSEEN	},
+	{ L"AccountShowAllCount",		IDC_ACCOUNTSHOWALL		},
+	{ L"AccountShowUnseenCount",	IDC_ACCOUNTSHOWUNSEEN	}
+};
+}
+
+qm::OptionFolderWindowDialog::OptionFolderWindowDialog(FolderWindow* pFolderWindow,
+													   Profile* pProfile) :
+	DefaultDialog(IDD_OPTIONFOLDERWINDOW),
+	pFolderWindow_(pFolderWindow),
+	pProfile_(pProfile)
+{
+	UIUtil::getLogFontFromProfile(pProfile_, L"FolderWindow", false, &lf_);
+}
+
+qm::OptionFolderWindowDialog::~OptionFolderWindowDialog()
+{
+}
+
+LRESULT qm::OptionFolderWindowDialog::onCommand(WORD nCode,
+												WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_FONT, onFont)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::OptionFolderWindowDialog::onInitDialog(HWND hwndFocus,
+												   LPARAM lParam)
+{
+	for (int n = 0; n < countof(folderFlags); ++n) {
+		bool bShow = pProfile_->getInt(L"FolderWindow", folderFlags[n].pwszKey_, 1) != 0;
+		sendDlgItemMessage(folderFlags[n].nId_, BM_SETCHECK, bShow ? BST_CHECKED : BST_UNCHECKED);
+	}
+	
+	return FALSE;
+}
+
+bool qm::OptionFolderWindowDialog::save()
+{
+	for (int n = 0; n < countof(folderFlags); ++n) {
+		bool bShow = sendDlgItemMessage(folderFlags[n].nId_, BM_GETCHECK) == BST_CHECKED;
+		pProfile_->setInt(L"FolderWindow", folderFlags[n].pwszKey_, bShow);
+	}
+	UIUtil::setLogFontToProfile(pProfile_, L"FolderWindow", lf_);
+	
+	pFolderWindow_->reloadProfiles();
+	
+	return true;
+}
+
+LRESULT qm::OptionFolderWindowDialog::onFont()
+{
+	UIUtil::browseFont(getParentPopup(), &lf_);
+	return 0;
 }
 
 
@@ -1554,7 +1641,7 @@ std::auto_ptr<AutoPilotEntry> qm::AutoPilotDialog::create() const
 {
 	std::auto_ptr<AutoPilotEntry> pEntry(new AutoPilotEntry());
 	AutoPilotEntryDialog dialog(pEntry.get(), pGoRound_);
-	if (dialog.doModal(getHandle()) != IDOK)
+	if (dialog.doModal(getParentPopup()) != IDOK)
 		return std::auto_ptr<AutoPilotEntry>();
 	return pEntry;
 }
@@ -1562,7 +1649,7 @@ std::auto_ptr<AutoPilotEntry> qm::AutoPilotDialog::create() const
 bool qm::AutoPilotDialog::edit(AutoPilotEntry* p) const
 {
 	AutoPilotEntryDialog dialog(p, pGoRound_);
-	return dialog.doModal(getHandle()) == IDOK;
+	return dialog.doModal(getParentPopup()) == IDOK;
 }
 
 bool qm::AutoPilotDialog::save()
@@ -1716,7 +1803,7 @@ std::auto_ptr<Filter> qm::FiltersDialog::create() const
 {
 	std::auto_ptr<Filter> pFilter(new Filter());
 	FilterDialog dialog(pFilter.get());
-	if (dialog.doModal(getHandle()) != IDOK)
+	if (dialog.doModal(getParentPopup()) != IDOK)
 		return std::auto_ptr<Filter>();
 	return pFilter;
 }
@@ -1724,7 +1811,7 @@ std::auto_ptr<Filter> qm::FiltersDialog::create() const
 bool qm::FiltersDialog::edit(Filter* p) const
 {
 	FilterDialog dialog(p);
-	return dialog.doModal(getHandle()) == IDOK;
+	return dialog.doModal(getParentPopup()) == IDOK;
 }
 
 bool qm::FiltersDialog::save()
@@ -1877,7 +1964,7 @@ std::auto_ptr<FixedFormText> qm::FixedFormTextsDialog::create() const
 {
 	std::auto_ptr<FixedFormText> pText(new FixedFormText());
 	FixedFormTextDialog dialog(pText.get(), pProfile_);
-	if (dialog.doModal(getHandle()) != IDOK)
+	if (dialog.doModal(getParentPopup()) != IDOK)
 		return std::auto_ptr<FixedFormText>();
 	return pText;
 }
@@ -1885,7 +1972,7 @@ std::auto_ptr<FixedFormText> qm::FixedFormTextsDialog::create() const
 bool qm::FixedFormTextsDialog::edit(FixedFormText* p) const
 {
 	FixedFormTextDialog dialog(p, pProfile_);
-	return dialog.doModal(getHandle()) == IDOK;
+	return dialog.doModal(getParentPopup()) == IDOK;
 }
 
 bool qm::FixedFormTextsDialog::save()
@@ -2111,7 +2198,7 @@ std::auto_ptr<GoRoundCourse> qm::GoRoundDialog::create() const
 {
 	std::auto_ptr<GoRoundCourse> pCourse(new GoRoundCourse());
 	GoRoundCourseDialog dialog(pCourse.get(), pAccountManager_, pSyncFilterManager_, pProfile_);
-	if (dialog.doModal(getHandle()) != IDOK)
+	if (dialog.doModal(getParentPopup()) != IDOK)
 		return std::auto_ptr<GoRoundCourse>();
 	return pCourse;
 }
@@ -2119,7 +2206,7 @@ std::auto_ptr<GoRoundCourse> qm::GoRoundDialog::create() const
 bool qm::GoRoundDialog::edit(GoRoundCourse* p) const
 {
 	GoRoundCourseDialog dialog(p, pAccountManager_, pSyncFilterManager_, pProfile_);
-	return dialog.doModal(getHandle()) == IDOK;
+	return dialog.doModal(getParentPopup()) == IDOK;
 }
 
 bool qm::GoRoundDialog::save()
@@ -2844,7 +2931,7 @@ std::auto_ptr<Signature> qm::SignaturesDialog::create() const
 {
 	std::auto_ptr<Signature> pSignature(new Signature());
 	SignatureDialog dialog(pSignature.get(), pAccountManager_, pProfile_);
-	if (dialog.doModal(getHandle()) != IDOK)
+	if (dialog.doModal(getParentPopup()) != IDOK)
 		return std::auto_ptr<Signature>();
 	return pSignature;
 }
@@ -2852,7 +2939,7 @@ std::auto_ptr<Signature> qm::SignaturesDialog::create() const
 bool qm::SignaturesDialog::edit(Signature* p) const
 {
 	SignatureDialog dialog(p, pAccountManager_, pProfile_);
-	return dialog.doModal(getHandle()) == IDOK;
+	return dialog.doModal(getParentPopup()) == IDOK;
 }
 
 bool qm::SignaturesDialog::save()
@@ -3107,7 +3194,7 @@ std::auto_ptr<SyncFilterSet> qm::SyncFilterSetsDialog::create() const
 {
 	std::auto_ptr<SyncFilterSet> pFilterSet(new SyncFilterSet());
 	SyncFiltersDialog dialog(pFilterSet.get(), pProfile_);
-	if (dialog.doModal(getHandle()) != IDOK)
+	if (dialog.doModal(getParentPopup()) != IDOK)
 		return std::auto_ptr<SyncFilterSet>();
 	return pFilterSet;
 }
@@ -3115,7 +3202,7 @@ std::auto_ptr<SyncFilterSet> qm::SyncFilterSetsDialog::create() const
 bool qm::SyncFilterSetsDialog::edit(SyncFilterSet* p) const
 {
 	SyncFiltersDialog dialog(p, pProfile_);
-	return dialog.doModal(getHandle()) == IDOK;
+	return dialog.doModal(getParentPopup()) == IDOK;
 }
 
 bool qm::SyncFilterSetsDialog::save()

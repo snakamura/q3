@@ -43,6 +43,7 @@ public:
 	virtual ~FolderWindow();
 
 public:
+	void reloadProfiles();
 	bool save();
 	void expand(bool bExpand);
 

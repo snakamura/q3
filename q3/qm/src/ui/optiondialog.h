@@ -31,6 +31,7 @@ namespace qm {
 class OptionDialog;
 class OptionDialogPanel;
 class OptionDialogManager;
+class OptionFolderWindowDialog;
 template<class T, class List, class Manager, class EditDialog> class RuleColorSetsDialog;
 template<class T, class List, class Container, class EditDialog> class RulesColorsDialog;
 class ColorSetsDialog;
@@ -59,6 +60,7 @@ class SyncFilterDialog;
 class LayoutUtil;
 
 class Document;
+class FolderWindow;
 
 
 /****************************************************************************
@@ -75,6 +77,7 @@ public:
 	enum Panel {
 		PANEL_NONE			= -1,
 		
+		PANEL_FOLDERWINDOW,
 		PANEL_RULES,
 		PANEL_COLORS,
 		PANEL_GOROUND,
@@ -94,6 +97,7 @@ public:
 				 ColorManager* pColorManager,
 				 SyncFilterManager* pSyncFilterManager,
 				 AutoPilotManager* pAutoPilotManager,
+				 FolderWindow* pFolderWindow,
 				 qs::Profile* pProfile,
 				 Panel panel);
 	~OptionDialog();
@@ -145,9 +149,12 @@ private:
 	void processTab(bool bShift);
 	bool isTabStop(HWND hwnd) const;
 	void processMnemonic(char c);
-	WCHAR getMnemonic(HWND hwnd);
 	void setFocus(HWND hwnd);
-	void clearDefaultButton(HWND hwnd);
+
+private:
+	static WCHAR getMnemonic(HWND hwnd);
+	static WCHAR getMnemonic(WCHAR c);
+	static void clearDefaultButton(HWND hwnd);
 
 private:
 	OptionDialog(const OptionDialog&);
@@ -163,6 +170,7 @@ private:
 	ColorManager* pColorManager_;
 	SyncFilterManager* pSyncFilterManager_;
 	AutoPilotManager* pAutoPilotManager_;
+	FolderWindow* pFolderWindow_;
 	qs::Profile* pProfile_;
 	Panel panel_;
 	PanelList listPanel_;
@@ -221,6 +229,7 @@ public:
 						ColorManager* pColorManager,
 						SyncManager* pSyncManager,
 						AutoPilotManager* pAutoPilotManager,
+						FolderWindow* pFolderWindow,
 						qs::Profile* pProfile);
 	~OptionDialogManager();
 
@@ -240,7 +249,48 @@ private:
 	ColorManager* pColorManager_;
 	SyncManager* pSyncManager_;
 	AutoPilotManager* pAutoPilotManager_;
+	FolderWindow* pFolderWindow_;
 	qs::Profile* pProfile_;
+};
+
+
+/****************************************************************************
+ *
+ * OptionFolderWindowDialog
+ *
+ */
+
+class OptionFolderWindowDialog :
+	public DefaultDialog,
+	public AbstractOptionDialogPanel<OptionFolderWindowDialog>
+{
+public:
+	OptionFolderWindowDialog(FolderWindow* pFolderWindow,
+							 qs::Profile* pProfile);
+	virtual ~OptionFolderWindowDialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+public:
+	virtual bool save();
+
+private:
+	LRESULT onFont();
+
+private:
+	OptionFolderWindowDialog(const OptionFolderWindowDialog&);
+	OptionFolderWindowDialog& operator=(const OptionFolderWindowDialog&);
+
+private:
+	FolderWindow* pFolderWindow_;
+	qs::Profile* pProfile_;
+	LOGFONT lf_;
 };
 
 

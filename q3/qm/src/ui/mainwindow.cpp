@@ -2160,25 +2160,6 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pProfile_, getHandle(), pImpl_->pSecurityModel_.get()));
 	pImpl_->pPreviewModel_.reset(new PreviewMessageModel(
 		pImpl_->pViewModelManager_.get(), pImpl_->bShowPreviewWindow_));
-	pImpl_->pOptionDialogManager_.reset(new OptionDialogManager(pImpl_->pDocument_,
-		pImpl_->pGoRound_, pImpl_->pViewModelManager_->getFilterManager(),
-		pImpl_->pViewModelManager_->getColorManager(), pImpl_->pSyncManager_,
-		pImpl_->pAutoPilot_->getAutoPilotManager(), pImpl_->pProfile_));
-	pImpl_->pEditFrameWindowManager_.reset(new EditFrameWindowManager(
-		pImpl_->pDocument_, pImpl_->pUIManager_, pImpl_->pPasswordManager_,
-		pImpl_->pSyncManager_, pImpl_->pSyncDialogManager_,
-		pImpl_->pOptionDialogManager_.get(), pImpl_->pProfile_,
-		pImpl_->pSecurityModel_.get()));
-	pImpl_->pAddressBookFrameWindowManager_.reset(new AddressBookFrameWindowManager(
-		pImpl_->pDocument_->getAddressBook(), pImpl_->pUIManager_, pImpl_->pProfile_));
-	pImpl_->pExternalEditorManager_.reset(new ExternalEditorManager(
-		pImpl_->pDocument_, pImpl_->pPasswordManager_,
-		pImpl_->pProfile_, getHandle(), pImpl_->pTempFileCleaner_,
-		pImpl_->pFolderModel_.get(), pImpl_->pSecurityModel_.get()));
-	pImpl_->pMessageFrameWindowManager_.reset(new MessageFrameWindowManager(
-		pImpl_->pDocument_, pImpl_->pUIManager_, pImpl_->pTempFileCleaner_,
-		pImpl_->pProfile_, pImpl_->pViewModelManager_.get(),
-		pImpl_->pEditFrameWindowManager_.get(), pImpl_->pExternalEditorManager_.get()));
 	
 	pImpl_->pMoveMenu_.reset(new MoveMenu());
 	pImpl_->pFilterMenu_.reset(new FilterMenu(
@@ -2376,6 +2357,27 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	pImpl_->pListSplitterWindow_->setRowHeight(
 		0, pImpl_->nListWindowHeight_);
+	
+	pImpl_->pOptionDialogManager_.reset(new OptionDialogManager(pImpl_->pDocument_,
+		pImpl_->pGoRound_, pImpl_->pViewModelManager_->getFilterManager(),
+		pImpl_->pViewModelManager_->getColorManager(), pImpl_->pSyncManager_,
+		pImpl_->pAutoPilot_->getAutoPilotManager(), pImpl_->pFolderWindow_,
+		pImpl_->pProfile_));
+	pImpl_->pEditFrameWindowManager_.reset(new EditFrameWindowManager(
+		pImpl_->pDocument_, pImpl_->pUIManager_, pImpl_->pPasswordManager_,
+		pImpl_->pSyncManager_, pImpl_->pSyncDialogManager_,
+		pImpl_->pOptionDialogManager_.get(), pImpl_->pProfile_,
+		pImpl_->pSecurityModel_.get()));
+	pImpl_->pAddressBookFrameWindowManager_.reset(new AddressBookFrameWindowManager(
+		pImpl_->pDocument_->getAddressBook(), pImpl_->pUIManager_, pImpl_->pProfile_));
+	pImpl_->pExternalEditorManager_.reset(new ExternalEditorManager(
+		pImpl_->pDocument_, pImpl_->pPasswordManager_,
+		pImpl_->pProfile_, getHandle(), pImpl_->pTempFileCleaner_,
+		pImpl_->pFolderModel_.get(), pImpl_->pSecurityModel_.get()));
+	pImpl_->pMessageFrameWindowManager_.reset(new MessageFrameWindowManager(
+		pImpl_->pDocument_, pImpl_->pUIManager_, pImpl_->pTempFileCleaner_,
+		pImpl_->pProfile_, pImpl_->pViewModelManager_.get(),
+		pImpl_->pEditFrameWindowManager_.get(), pImpl_->pExternalEditorManager_.get()));
 	
 	pImpl_->pMessageSelectionModel_.reset(
 		new MainWindowImpl::MessageSelectionModelImpl(pImpl_, false));

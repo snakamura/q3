@@ -111,7 +111,7 @@ std::auto_ptr<T> qm::RuleColorSetsDialog<T, List, Manager, EditDialog>::create()
 {
 	std::auto_ptr<T> p(new T());
 	EditDialog dialog(p.get(), pAccountManager_, pProfile_);
-	if (dialog.doModal(getHandle()) != IDOK)
+	if (dialog.doModal(getParentPopup()) != IDOK)
 		return std::auto_ptr<T>();
 	return p;
 }
@@ -120,7 +120,7 @@ template<class T, class List, class Manager, class EditDialog>
 bool qm::RuleColorSetsDialog<T, List, Manager, EditDialog>::edit(T* p) const
 {
 	EditDialog dialog(p, pAccountManager_, pProfile_);
-	return dialog.doModal(getHandle()) == IDOK;
+	return dialog.doModal(getParentPopup()) == IDOK;
 }
 
 template<class T, class List, class Manager, class EditDialog>

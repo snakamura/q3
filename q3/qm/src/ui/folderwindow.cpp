@@ -98,6 +98,7 @@ public:
 	void expand(HTREEITEM hItem,
 				bool bExpand);
 	void handleUpdateMessage(LPARAM lParam);
+	void reloadProfiles(bool bInitialize);
 
 public:
 	virtual LRESULT onNotify(NMHDR* pnmhdr,
@@ -385,6 +386,38 @@ void qm::FolderWindowImpl::handleUpdateMessage(LPARAM lParam)
 	}
 	
 	update(reinterpret_cast<Folder*>(lParam));
+}
+
+void qm::FolderWindowImpl::reloadProfiles(bool bInitialize)
+{
+	unsigned int nFlags = 0;
+	struct {
+		const WCHAR* pwszKey_;
+		Flag flag_;
+	} flags[] = {
+		{ L"FolderShowAllCount",		FLAG_FOLDERSHOWALLCOUNT		},
+		{ L"FolderShowUnseenCount",		FLAG_FOLDERSHOWUNSEENCOUNT	},
+		{ L"AccountShowAllCount",		FLAG_ACCOUNTSHOWALLCOUNT	},
+		{ L"AccountShowUnseenCount",	FLAG_ACCOUNTSHOWUNSEENCOUNT	}
+	};
+	for (int n = 0; n < countof(flags); ++n) {
+		if (pProfile_->getInt(L"FolderWindow", flags[n].pwszKey_, 1))
+			nFlags |= flags[n].flag_;
+	}
+	nFlags_ = nFlags;
+	
+	nDragOpenWait_ = pProfile_->getInt(L"FolderWindow", L"DragOpenWait", 500);
+	
+	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_, L"FolderWindow", false);
+	if (!bInitialize) {
+		assert(hfont_);
+		pThis_->setFont(hfont);
+		::DeleteObject(hfont_);
+	}
+	hfont_ = hfont;
+	
+	if (!bInitialize)
+		pThis_->invalidate();
 }
 
 LRESULT qm::FolderWindowImpl::onNotify(NMHDR* pnmhdr,
@@ -1141,21 +1174,6 @@ qm::FolderWindow::FolderWindow(WindowBase* pParentWindow,
 	WindowBase(true),
 	pImpl_(0)
 {
-	unsigned int nFlags = 0;
-	struct {
-		const WCHAR* pwszKey_;
-		FolderWindowImpl::Flag flag_;
-	} flags[] = {
-		{ L"FolderShowAllCount",		FolderWindowImpl::FLAG_FOLDERSHOWALLCOUNT		},
-		{ L"FolderShowUnseenCount",		FolderWindowImpl::FLAG_FOLDERSHOWUNSEENCOUNT	},
-		{ L"AccountShowAllCount",		FolderWindowImpl::FLAG_ACCOUNTSHOWALLCOUNT		},
-		{ L"AccountShowUnseenCount",	FolderWindowImpl::FLAG_ACCOUNTSHOWUNSEENCOUNT	}
-	};
-	for (int n = 0; n < countof(flags); ++n) {
-		if (pProfile->getInt(L"FolderWindow", flags[n].pwszKey_, 1))
-			nFlags |= flags[n].flag_;
-	}
-	
 	pImpl_ = new FolderWindowImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->pParentWindow_ = pParentWindow;
@@ -1165,11 +1183,16 @@ qm::FolderWindow::FolderWindow(WindowBase* pParentWindow,
 	pImpl_->pDocument_ = 0;
 	pImpl_->nId_ = 0;
 	pImpl_->hfont_ = 0;
-	pImpl_->nFlags_ = nFlags;
-	pImpl_->nDragOpenWait_ = pProfile->getInt(L"FolderWindow", L"DragOpenWait", 500);
+	pImpl_->nFlags_ = FolderWindowImpl::FLAG_FOLDERSHOWALLCOUNT |
+		FolderWindowImpl::FLAG_FOLDERSHOWUNSEENCOUNT |
+		FolderWindowImpl::FLAG_ACCOUNTSHOWALLCOUNT |
+		FolderWindowImpl::FLAG_ACCOUNTSHOWUNSEENCOUNT;
+	pImpl_->nDragOpenWait_ = 500;
 	pImpl_->hItemDragTarget_ = 0;
 	pImpl_->hItemDragOver_ = 0;
 	pImpl_->dwDragOverLastChangedTime_ = -1;
+	
+	pImpl_->reloadProfiles(true);
 	
 	setWindowHandler(this, false);
 	
@@ -1180,6 +1203,11 @@ qm::FolderWindow::FolderWindow(WindowBase* pParentWindow,
 qm::FolderWindow::~FolderWindow()
 {
 	delete pImpl_;
+}
+
+void qm::FolderWindow::reloadProfiles()
+{
+	pImpl_->reloadProfiles(false);
 }
 
 bool qm::FolderWindow::save()
@@ -1313,8 +1341,6 @@ LRESULT qm::FolderWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	pImpl_->nId_ = getWindowLong(GWL_ID);
 	
-	pImpl_->hfont_ = qs::UIUtil::createFontFromProfile(
-		pImpl_->pProfile_, L"FolderWindow", false);
 	setFont(pImpl_->hfont_);
 	
 	HIMAGELIST hImageList = ImageList_LoadImage(

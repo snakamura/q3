@@ -94,6 +94,7 @@
 #define IDI_OFFLINE                     195
 #define IDI_ONLINE                      196
 #define IDD_OPTION                      197
+#define IDD_OPTIONFOLDERWINDOW          198
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -407,6 +408,11 @@
 #define IDC_JUNKBOX                     1306
 #define IDC_JUNKFILTER                  1307
 #define IDC_SELECTOR                    1308
+#define IDC_ACCOUNTSHOWALL              1309
+#define IDC_ACCOUNTSHOWUNSEEN           1310
+#define IDC_FOLDERSHOWALL               1311
+#define IDC_FOLDERSHOWUNSEEN            1312
+#define IDC_FONT                        1314
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -424,9 +430,10 @@
 #define IDS_PANEL_FILTERS               2503
 #define IDS_PANEL_FIXEDFORMTEXTS        2504
 #define IDS_PANEL_GOROUND               2505
-#define IDS_PANEL_RULES                 2506
-#define IDS_PANEL_SIGNATURES            2507
-#define IDS_PANEL_SYNCFILTERS           2508
+#define IDS_PANEL_FOLDERWINDOW          2506
+#define IDS_PANEL_RULES                 2507
+#define IDS_PANEL_SIGNATURES            2508
+#define IDS_PANEL_SYNCFILTERS           2509
 #define IDS_ERROR_CREATEFOLDER          10000
 #define IDS_ERROR_EXECUTEATTACHMENT     10001
 #define IDS_ERROR_DIALUP                10002
@@ -484,9 +491,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        198
+#define _APS_NEXT_RESOURCE_VALUE        199
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1309
+#define _APS_NEXT_CONTROL_VALUE         1315
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
