@@ -913,6 +913,8 @@ QSTATUS qm::NormalFolder::deleteMessages(const MessageHolderList& l,
 		CHECK_QSTATUS();
 		
 		if (pCallback) {
+			if (pCallback->isCanceled())
+				break;
 			status = pCallback->step(1);
 			CHECK_QSTATUS();
 		}

@@ -434,6 +434,9 @@ QSTATUS qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
 			CHECK_QSTATUS();
 			
 			l.clear();
+			
+			if (pCallback && pCallback->isCanceled())
+				break;
 		}
 	}
 	
