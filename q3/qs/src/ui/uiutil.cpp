@@ -86,6 +86,9 @@ void qs::UIUtil::setLogFontToProfile(Profile* pProfile,
 	double dPointSize = -lf.lfHeight*72.0/dc.getDeviceCaps(LOGPIXELSY);
 	WCHAR wszSize[64];
 	swprintf(wszSize, L"%.1lf", dPointSize);
+	size_t nLen = wcslen(wszSize);
+	if (nLen > 2 && wcscmp(wszSize + nLen - 2, L".0") == 0)
+		wszSize[nLen - 2] = L'\0';
 	pProfile->setString(pwszSection, L"FontSize", wszSize);
 	
 	int nFontStyle = 0;
