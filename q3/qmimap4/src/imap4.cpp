@@ -2159,8 +2159,9 @@ std::auto_ptr<ResponseNamespace> qmimap4::ResponseNamespace::create(List* pListP
 				pszSeparator = static_cast<ListItemText*>(nss.back())->getText();
 			WCHAR cSep = *pszSeparator;
 			
-			listNamespace.push_back(std::make_pair(wstrName.get(), cSep));
-			wstrName.release();
+			wstring_ptr wstr(allocWString(wstrName.get()));
+			listNamespace.push_back(std::make_pair(wstr.get(), cSep));
+			wstr.release();
 		}
 	}
 	
