@@ -111,6 +111,9 @@ public:
 	};
 
 public:
+	typedef std::vector<qs::WSTRING> AttachmentList;
+
+public:
 	MessageCreator();
 	MessageCreator(unsigned int nFlags);
 	~MessageCreator();
@@ -143,6 +146,10 @@ public:
 						 FieldType type);
 	static bool makeMultipart(qs::Part* pParentPart,
 							  std::auto_ptr<qs::Part> pPart);
+	static bool attachFileOrURI(qs::Part* pPart,
+								const AttachmentList& l,
+								Document* pDocument,
+								bool bDecryptVerify);
 	static std::auto_ptr<qs::Part> createPartFromFile(const WCHAR* pwszPath);
 	static std::auto_ptr<qs::Part> createRfc822Part(const Message& msg);
 	static qs::wstring_ptr getContentTypeFromExtension(const WCHAR* pwszExtension);

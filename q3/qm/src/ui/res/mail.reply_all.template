@@ -19,14 +19,14 @@
 }Subject: Re: {@Subject(@True(), @True())}
 {
 	@If(
+		@Equal(
+			@Profile('', 'Global', 'Bcc', '0'),
+			'0'
+		),
+		'',
 		@Or(
 			@Exist('X-ML-Name'),
 			@BeginWith(Subject, '[')
-		),
-		'',
-		@Equal(
-			@Profile('', 'Global', 'Bcc', '1'),
-			'0'
 		),
 		'',
 		@Concat(

@@ -126,8 +126,8 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 		if (!pMessage.get())
 			return false;
 		
-		std::auto_ptr<EditMessage> pEditMessage(
-			new EditMessage(pProfile_, pDocument_, pAccount));
+		std::auto_ptr<EditMessage> pEditMessage(new EditMessage(pProfile_,
+			pDocument_, pAccount, pSecurityModel_->isDecryptVerify()));
 		if (!pEditMessage->setMessage(pMessage))
 			return false;
 		

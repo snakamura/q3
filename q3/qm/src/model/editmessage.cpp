@@ -19,6 +19,7 @@
 #include "editmessage.h"
 #include "message.h"
 #include "signature.h"
+#include "uri.h"
 
 #pragma warning(disable:4786)
 
@@ -34,11 +35,13 @@ using namespace qs;
 
 qm::EditMessage::EditMessage(Profile* pProfile,
 							 Document* pDocument,
-							 Account* pAccount) :
+							 Account* pAccount,
+							 bool bDecryptVerify) :
 	pProfile_(pProfile),
 	pDocument_(pDocument),
 	pAccount_(pAccount),
 	pSubAccount_(pAccount->getCurrentSubAccount()),
+	bDecryptVerify_(bDecryptVerify),
 	pMessage_(0),
 	pBodyPart_(0),
 	wstrBody_(0),
@@ -90,12 +93,6 @@ bool qm::EditMessage::setMessage(std::auto_ptr<Message> pMessage)
 		if (pSubAccount)
 			pSubAccount_ = pSubAccount;
 	}
-	const WCHAR* pwszFields[] = {
-		L"X-QMAIL-Account",
-		L"X-QMAIL-SubAccount"
-	};
-	for (int n = 0; n < countof(pwszFields); ++n)
-		pMessage->removeField(pwszFields[n]);
 	
 	SignatureManager* pSignatureManager = pDocument_->getSignatureManager();
 	const Signature* pSignature = 0;
@@ -111,8 +108,26 @@ bool qm::EditMessage::setMessage(std::auto_ptr<Message> pMessage)
 	if (pSignature)
 		wstrSignature_ = allocWString(pSignature->getName());
 	
-	AttachmentParser attachment(*pMessage.get());
-	attachment.getAttachments(true, &listAttachment_);
+	AttachmentParser parser(*pMessage.get());
+	parser.getAttachments(true, &listAttachment_);
+	
+	XQMAILAttachmentParser attachment;
+	if (pMessage->getField(L"X-QMAIL-Attachment", &attachment) == Part::FIELD_EXIST) {
+		const XQMAILAttachmentParser::AttachmentList& l = attachment.getAttachments();
+		for (XQMAILAttachmentParser::AttachmentList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			wstring_ptr wstrURI(allocWString(*it));
+			listAttachmentPath_.push_back(wstrURI.get());
+			wstrURI.release();
+		}
+	}
+	
+	const WCHAR* pwszFields[] = {
+		L"X-QMAIL-Account",
+		L"X-QMAIL-SubAccount",
+		L"X-QMAIL-Attachment"
+	};
+	for (int n = 0; n < countof(pwszFields); ++n)
+		pMessage->removeField(pwszFields[n]);
 	
 	pMessage_ = pMessage;
 	
@@ -538,13 +553,9 @@ bool qm::EditMessage::fixup()
 	if (!listAttachmentPath_.empty()) {
 		if (!makeMultipartMixed())
 			return false;
-		
-		for (AttachmentPathList::iterator itA = listAttachmentPath_.begin(); itA != listAttachmentPath_.end(); ++itA) {
-			std::auto_ptr<Part> pPart(MessageCreator::createPartFromFile(*itA));
-			if (!pPart.get())
-				return false;
-			pMessage_->addPart(pPart);
-		}
+		if (!MessageCreator::attachFileOrURI(pMessage_.get(),
+			listAttachmentPath_, pDocument_, bDecryptVerify_))
+			return false;
 	}
 	
 	if (!normalize(pBodyPart_))

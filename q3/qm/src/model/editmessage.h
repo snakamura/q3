@@ -92,7 +92,8 @@ public:
 public:
 	EditMessage(qs::Profile* pProfile,
 				Document* pDocument,
-				Account* pAccount);
+				Account* pAccount,
+				bool bDecryptVerify);
 	~EditMessage();
 
 public:
@@ -176,6 +177,7 @@ private:
 	Document* pDocument_;
 	Account* pAccount_;
 	SubAccount* pSubAccount_;
+	bool bDecryptVerify_;
 	std::auto_ptr<Message> pMessage_;
 	qs::Part* pBodyPart_;
 	FieldList listField_;

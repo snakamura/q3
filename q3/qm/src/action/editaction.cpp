@@ -637,6 +637,10 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
 {
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
 	Message* pMessage = pEditMessage->getMessage();
+	if (!pMessage) {
+		ActionUtil::error(pEditFrameWindow_->getHandle(), IDS_ERROR_SEND);
+		return;
+	}
 	
 	Account* pAccount = pEditMessage->getAccount();
 	SubAccount* pSubAccount = pEditMessage->getSubAccount();

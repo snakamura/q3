@@ -7,7 +7,7 @@
 				'',
 				@If(
 					@Equal(
-						@Profile('', 'Global', 'Bcc', '1'),
+						@Profile('', 'Global', 'Bcc', '0'),
 						'0'
 					),
 					'',

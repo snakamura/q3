@@ -338,36 +338,9 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 				pPart = pParent;
 			}
 			
-			wstring_ptr wstrSchemePrefix(concat(URI::getScheme(), L"://"));
-			size_t nSchemePrefixLen = wcslen(wstrSchemePrefix.get());
-			const XQMAILAttachmentParser::AttachmentList& l =
-				attachment.getAttachments();
-			for (XQMAILAttachmentParser::AttachmentList::const_iterator it = l.begin(); it != l.end(); ++it) {
-				const WCHAR* pwszAttachment = *it;
-				
-				std::auto_ptr<Part> pChildPart;
-				if (wcsncmp(pwszAttachment, wstrSchemePrefix.get(), nSchemePrefixLen) == 0) {
-					MessagePtr ptr;
-					if (!URI::getMessageHolder(pwszAttachment, pDocument, &ptr))
-						return 0;
-					MessagePtrLock mpl(ptr);
-					if (!mpl)
-						return 0;
-					Message msg;
-					unsigned int nFlags = Account::GETMESSAGEFLAG_ALL;
-					if ((nFlags_ & FLAG_DECRYPTVERIFY) == 0)
-						nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
-					if (!mpl->getMessage(nFlags, 0, &msg))
-						return 0;
-					pChildPart = createRfc822Part(msg);
-				}
-				else {
-					pChildPart = createPartFromFile(pwszAttachment);
-				}
-				if (!pChildPart.get())
-					return 0;
-				pPart->addPart(pChildPart);
-			}
+			const XQMAILAttachmentParser::AttachmentList& l = attachment.getAttachments();
+			if (!attachFileOrURI(pPart.get(), l, pDocument, (nFlags_ & FLAG_DECRYPTVERIFY) != 0))
+				return false;
 		}
 		pPart->removeField(L"X-QMAIL-Attachment");
 	}
@@ -713,6 +686,43 @@ bool qm::MessageCreator::makeMultipart(Part* pParentPart,
 	
 	pParentPart->addPart(pPart);
 	
+	return true;
+}
+
+bool qm::MessageCreator::attachFileOrURI(qs::Part* pPart,
+										 const AttachmentList& l,
+										 Document* pDocument,
+										 bool bDecryptVerify)
+{
+	assert(pPart->isMultipart());
+	
+	wstring_ptr wstrSchemePrefix(concat(URI::getScheme(), L"://"));
+	size_t nSchemePrefixLen = wcslen(wstrSchemePrefix.get());
+	for (AttachmentList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		const WCHAR* pwszAttachment = *it;
+		std::auto_ptr<Part> pChildPart;
+		if (wcsncmp(pwszAttachment, wstrSchemePrefix.get(), nSchemePrefixLen) == 0) {
+			MessagePtr ptr;
+			if (!URI::getMessageHolder(pwszAttachment, pDocument, &ptr))
+				return false;
+			MessagePtrLock mpl(ptr);
+			if (!mpl)
+				return false;
+			Message msg;
+			unsigned int nFlags = Account::GETMESSAGEFLAG_ALL;
+			if (!bDecryptVerify)
+				nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
+			if (!mpl->getMessage(nFlags, 0, &msg))
+				return false;
+			pChildPart = createRfc822Part(msg);
+		}
+		else {
+			pChildPart = createPartFromFile(pwszAttachment);
+		}
+		if (!pChildPart.get())
+			return 0;
+		pPart->addPart(pChildPart);
+	}
 	return true;
 }
 
