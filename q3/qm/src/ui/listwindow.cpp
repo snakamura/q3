@@ -238,7 +238,7 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 		
 		ViewColumn::Type type = pColumn->getType();
 		if (!pColumn->isFlag(ViewColumn::FLAG_ICON)) {
-			wstring_ptr wstrText(pColumn->getText(pViewModel, pmh));
+			wstring_ptr wstrText(pColumn->getText(pViewModel, pItem));
 			size_t nLen = wcslen(wstrText.get());
 			POINT pt = { r.left + HORIZONTAL_BORDER, r.top + LINE_SPACING/2 };
 			if (pColumn->isFlag(ViewColumn::FLAG_RIGHTALIGN)) {
@@ -258,7 +258,7 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 			rectFocus.right = r.right;
 		}
 		else {
-			unsigned int nValue = pColumn->getNumber(pViewModel, pmh);
+			unsigned int nValue = pColumn->getNumber(pViewModel, pItem);
 			
 			UINT nBkColorId = COLOR_WINDOW;
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC

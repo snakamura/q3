@@ -53,6 +53,8 @@
 			<popupmenu text="Template" action="ViewTemplate"/>
 			<popupmenu text="Encoding" action="ViewEncoding"/>
 			<separator/>
+			<separator/>
+			<menuitem text="Customize Columns..." action="ConfigViews"/>
 			<popupmenu text="Show Controls">
 				<menuitem text="Show Toolbar" action="ViewShowToolbar"/>
 				<menuitem text="Show Status Bar" action="ViewShowStatusBar"/>
@@ -114,7 +116,6 @@
 			<separator/>
 			<popupmenu text="Config">
 				<menuitem text="Signature..." action="ConfigSignature"/>
-				<menuitem text="Views..." action="ConfigViews"/>
 			</popupmenu>
 		</popupmenu>
 	</menubar>

@@ -32,6 +32,7 @@ class ViewColumn;
 class ViewModel;
 class ViewModelHandler;
 class ViewModelEvent;
+class ViewModelItem;
 class ViewModelFolderComp;
 class ViewModelHolder;
 class ViewModelManager;
@@ -82,6 +83,7 @@ public:
 		FLAG_LINE			= 0x0002,
 		FLAG_RIGHTALIGN		= 0x0004,
 		FLAG_ICON			= 0x0008,
+		FLAG_CACHE			= 0x0010,
 		
 		FLAG_SORT_TEXT		= 0x0100,
 		FLAG_SORT_NUMBER	= 0x0200,
@@ -111,14 +113,15 @@ public:
 			 unsigned int nFlags,
 			 unsigned int nWidth);
 	std::auto_ptr<ViewColumn> clone() const;
+	void setCacheIndex(unsigned int n);
 
 public:
 	qs::wstring_ptr getText(const ViewModel* pViewModel,
-							MessageHolder* pmh) const;
+							const ViewModelItem* pItem) const;
 	unsigned int getNumber(const ViewModel* pViewModel,
-						   MessageHolder* pmh) const;
+						   const ViewModelItem* pItem) const;
 	void getTime(const ViewModel* pViewModel,
-				 MessageHolder* pmh,
+				 const ViewModelItem* pItem,
 				 qs::Time* pTime) const;
 
 public:
@@ -131,6 +134,7 @@ private:
 	std::auto_ptr<Macro> pMacro_;
 	unsigned int nFlags_;
 	unsigned int nWidth_;
+	unsigned int nCacheIndex_;
 };
 
 typedef std::vector<ViewColumn*> ViewColumnList;
@@ -175,13 +179,9 @@ public:
 	};
 
 public:
-	ViewModelItem(MessageHolder* pmh);
-	ViewModelItem(unsigned int nMessageIdHash);
+	explicit ViewModelItem(MessageHolder* pmh);
+	explicit ViewModelItem(unsigned int nMessageIdHash);
 	~ViewModelItem();
-
-public:
-	void* operator new(size_t n);
-	void operator delete(void* p);
 
 public:
 	MessageHolder* getMessageHolder() const;
@@ -197,6 +197,15 @@ public:
 	void setMessageFlags(unsigned int nFlags);
 	unsigned int getLevel() const;
 	unsigned int getMessageIdHash() const;
+	const MacroValue* getCache(unsigned int n) const;
+	void setCache(unsigned int n,
+				  MacroValue* pValue) const;
+
+public:
+	static ViewModelItem* newItem(MessageHolder* pmh,
+								  unsigned int nCacheSize);
+	static void deleteItem(ViewModelItem* pItem,
+						   unsigned int nCacheSize);
 
 private:
 	ViewModelItem(const ViewModelItem&);
@@ -208,6 +217,36 @@ private:
 	unsigned int nFlags_;
 	COLORREF cr_;
 	unsigned int nMessageFlags_;
+};
+
+
+/****************************************************************************
+ *
+ * ViewModelItemPtr
+ *
+ */
+
+class ViewModelItemPtr
+{
+public:
+	ViewModelItemPtr(MessageHolder* pmh,
+					 unsigned int nCacheCount);
+	~ViewModelItemPtr();
+
+public:
+	ViewModelItem* operator->() const;
+
+public:
+	ViewModelItem* get() const;
+	ViewModelItem* release();
+
+private:
+	ViewModelItemPtr(const ViewModelItemPtr& ptr);
+	ViewModelItemPtr& operator=(const ViewModelItemPtr& ptr);
+
+private:
+	ViewModelItem* pItem_;
+	unsigned int nCacheCount_;
 };
 
 
@@ -326,7 +365,8 @@ public:
 	virtual void messageHolderDestroyed(const MessageHolderEvent& event);
 
 private:
-	void update(bool bRestoreSelection);
+	void update(bool bRestoreSelection,
+				unsigned int nOldCacheCount);
 	void sort(unsigned int nSort,
 			  bool bRestoreSelection,
 			  bool bUpdateParentLink);
@@ -334,6 +374,7 @@ private:
 	void makeParentLink(const ItemList& listItemSortedByMessageIdHash,
 						const ItemList& listItemSortedByPointer,
 						ViewModelItem* pItem);
+	void updateCacheCount();
 
 private:
 	void fireItemAdded() const;
@@ -396,6 +437,7 @@ private:
 	unsigned int nFocused_;
 	unsigned int nScroll_;
 	unsigned int nMode_;
+	unsigned int nCacheCount_;
 	ViewModelHandlerList listHandler_;
 #ifndef NDEBUG
 	mutable unsigned int nLock_;

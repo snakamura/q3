@@ -40,17 +40,6 @@ inline qm::ViewModelItem::~ViewModelItem()
 {
 }
 
-inline void* qm::ViewModelItem::operator new(size_t n)
-{
-	assert(n == sizeof(ViewModelItem));
-	return std::__sgi_alloc::allocate(n);
-}
-
-inline void qm::ViewModelItem::operator delete(void* p)
-{
-	std::__sgi_alloc::deallocate(p, sizeof(ViewModelItem));
-}
-
 inline qm::MessageHolder* qm::ViewModelItem::getMessageHolder() const
 {
 	assert(pmh_);
@@ -131,6 +120,87 @@ inline unsigned int qm::ViewModelItem::getLevel() const
 inline unsigned int qm::ViewModelItem::getMessageIdHash() const
 {
 	return pmh_ ? pmh_->getMessageIdHash() : nMessageFlags_;
+}
+
+inline const qm::MacroValue* qm::ViewModelItem::getCache(unsigned int n) const
+{
+	return *(reinterpret_cast<const MacroValue**>(reinterpret_cast<char*>(
+		const_cast<ViewModelItem*>(this)) + sizeof(ViewModelItem)) + n);
+}
+
+inline void qm::ViewModelItem::setCache(unsigned int n,
+										MacroValue* pValue) const
+{
+	*(reinterpret_cast<MacroValue**>(reinterpret_cast<char*>(
+		const_cast<ViewModelItem*>(this)) + sizeof(ViewModelItem)) + n) = pValue;
+}
+
+inline qm::ViewModelItem* qm::ViewModelItem::newItem(MessageHolder* pmh,
+													 unsigned int nCacheSize)
+{
+	size_t n = sizeof(ViewModelItem) + nCacheSize*sizeof(MacroValue*);
+#ifdef NDEBUG
+	void* p = std::__sgi_alloc::allocate(n);
+#else
+	void* p = malloc(n);
+#endif
+	memset(static_cast<char*>(p) + sizeof(ViewModelItem), 0, nCacheSize*sizeof(MacroValue*));
+	
+	return new (p) ViewModelItem(pmh);
+}
+
+inline void qm::ViewModelItem::deleteItem(ViewModelItem* pItem,
+										  unsigned int nCacheSize)
+{
+	MacroValue** p = reinterpret_cast<MacroValue**>(reinterpret_cast<char*>(pItem) + sizeof(ViewModelItem));
+	for (unsigned int n = 0; n < nCacheSize; ++n, ++p)
+		MacroValuePtr pValue(*p);
+	
+	pItem->~ViewModelItem();
+	
+	size_t n = sizeof(ViewModelItem) + nCacheSize*sizeof(MacroValue*);
+#ifdef NDEBUG
+	std::__sgi_alloc::deallocate(pItem, n);
+#else
+	free(pItem);
+#endif
+}
+
+
+/****************************************************************************
+ *
+ * ViewModelItemPtr
+ *
+ */
+
+inline qm::ViewModelItemPtr::ViewModelItemPtr(MessageHolder* pmh,
+											  unsigned int nCacheCount) :
+	pItem_(ViewModelItem::newItem(pmh, nCacheCount)),
+	nCacheCount_(nCacheCount)
+{
+}
+
+inline qm::ViewModelItemPtr::~ViewModelItemPtr()
+{
+	if (pItem_)
+		ViewModelItem::deleteItem(pItem_, nCacheCount_);
+}
+
+inline qm::ViewModelItem* qm::ViewModelItemPtr::operator->() const
+{
+	return pItem_;
+}
+
+inline qm::ViewModelItem* qm::ViewModelItemPtr::get() const
+{
+	return pItem_;
+}
+
+inline qm::ViewModelItem* qm::ViewModelItemPtr::release()
+{
+	ViewModelItem* pItem = pItem_;
+	pItem_ = 0;
+	return pItem;
 }
 
 

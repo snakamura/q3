@@ -47,9 +47,13 @@ qm::ViewColumn::ViewColumn(const WCHAR* pwszTitle,
 	type_(type),
 	pMacro_(pMacro),
 	nFlags_(nFlags),
-	nWidth_(nWidth)
+	nWidth_(nWidth),
+	nCacheIndex_(-1)
 {
 	wstrTitle_ = allocWString(pwszTitle);
+	
+	if (type_ != TYPE_OTHER && nFlags_ & FLAG_CACHE)
+		nFlags_ &= ~FLAG_CACHE;
 }
 
 qm::ViewColumn::~ViewColumn()
@@ -117,10 +121,17 @@ std::auto_ptr<ViewColumn> qm::ViewColumn::clone() const
 		wstrTitle_.get(), type_, pMacro, nFlags_, nWidth_));
 }
 
-wstring_ptr qm::ViewColumn::getText(const ViewModel* pViewModel,
-									MessageHolder* pmh) const
+void qm::ViewColumn::setCacheIndex(unsigned int n)
 {
-	assert(pmh);
+	nCacheIndex_ = n;
+}
+
+wstring_ptr qm::ViewColumn::getText(const ViewModel* pViewModel,
+									const ViewModelItem* pItem) const
+{
+	assert(pItem);
+	
+	MessageHolder* pmh = pItem->getMessageHolder();
 	
 	wstring_ptr wstrText;
 	WCHAR wsz[32] = L"";
@@ -157,10 +168,22 @@ wstring_ptr qm::ViewColumn::getText(const ViewModel* pViewModel,
 		swprintf(wsz, L"%u", pmh->getFlags());
 		break;
 	case ViewColumn::TYPE_OTHER:
-		{
+		if (nFlags_ & FLAG_CACHE) {
+			assert(nCacheIndex_ != -1);
+			const MacroValue* pCache = pItem->getCache(nCacheIndex_);
+			if (pCache)
+				wstrText = pCache->string();
+		}
+		if (!wstrText.get()) {
 			MacroValuePtr pValue(pViewModel->getValue(pMacro_.get(), pmh));
-			if (pValue.get())
+			if (pValue.get()) {
 				wstrText = pValue->string();
+				if (nFlags_ & FLAG_CACHE) {
+					if (pValue->getType() != MacroValue::TYPE_STRING)
+						pValue = MacroValueFactory::getFactory().newString(wstrText.get());
+					pItem->setCache(nCacheIndex_, pValue.release());
+				}
+			}
 		}
 		break;
 	default:
@@ -174,9 +197,11 @@ wstring_ptr qm::ViewColumn::getText(const ViewModel* pViewModel,
 }
 
 unsigned int qm::ViewColumn::getNumber(const ViewModel* pViewModel,
-									   MessageHolder* pmh) const
+									   const ViewModelItem* pItem) const
 {
-	assert(pmh);
+	assert(pItem);
+	
+	MessageHolder* pmh = pItem->getMessageHolder();
 	
 	unsigned int nValue = 0;
 	switch (type_) {
@@ -200,9 +225,26 @@ unsigned int qm::ViewColumn::getNumber(const ViewModel* pViewModel,
 		break;
 	case ViewColumn::TYPE_OTHER:
 		{
-			MacroValuePtr pValue(pViewModel->getValue(pMacro_.get(), pmh));
-			if (pValue.get())
-				nValue = pValue->number();
+			bool bCached = false;
+			if (nFlags_ & FLAG_CACHE) {
+				assert(nCacheIndex_ != -1);
+				const MacroValue* pCache = pItem->getCache(nCacheIndex_);
+				if (pCache) {
+					nValue = pCache->number();
+					bCached = true;
+				}
+			}
+			if (!bCached) {
+				MacroValuePtr pValue(pViewModel->getValue(pMacro_.get(), pmh));
+				if (pValue.get()) {
+					nValue = pValue->number();
+					if (nFlags_ & FLAG_CACHE) {
+						if (pValue->getType() != MacroValue::TYPE_NUMBER)
+							pValue = MacroValueFactory::getFactory().newNumber(nValue);
+						pItem->setCache(nCacheIndex_, pValue.release());
+					}
+				}
+			}
 		}
 		break;
 	default:
@@ -213,11 +255,13 @@ unsigned int qm::ViewColumn::getNumber(const ViewModel* pViewModel,
 }
 
 void qm::ViewColumn::getTime(const ViewModel* pViewModel,
-							 MessageHolder* pmh,
+							 const ViewModelItem* pItem,
 							 Time* pTime) const
 {
-	assert(pmh);
+	assert(pItem);
 	assert(pTime);
+	
+	MessageHolder* pmh = pItem->getMessageHolder();
 	
 	bool bCurrent = false;
 	switch (type_) {
@@ -240,11 +284,25 @@ void qm::ViewColumn::getTime(const ViewModel* pViewModel,
 		break;
 	case ViewColumn::TYPE_OTHER:
 		{
-			MacroValuePtr pValue(pViewModel->getValue(pMacro_.get(), pmh));
-			if (pValue.get() && pValue->getType() == MacroValue::TYPE_TIME)
-				*pTime = static_cast<MacroValueTime*>(pValue.get())->getTime();
-			else
-				bCurrent = true;
+			bool bCache = false;
+			if (nFlags_ & FLAG_CACHE) {
+				assert(nCacheIndex_ != -1);
+				const MacroValue* pCache = pItem->getCache(nCacheIndex_);
+				if (pCache) {
+					*pTime = static_cast<const MacroValueTime*>(pCache)->getTime();
+					bCache = true;
+				}
+			}
+			if (!bCache) {
+				MacroValuePtr pValue(pViewModel->getValue(pMacro_.get(), pmh));
+				if (pValue.get() && pValue->getType() == MacroValue::TYPE_TIME) {
+					*pTime = static_cast<MacroValueTime*>(pValue.get())->getTime();
+					pItem->setCache(nCacheIndex_, pValue.release());
+				}
+				else {
+					bCurrent = true;
+				}
+			}
 		}
 		break;
 	default:
@@ -307,26 +365,16 @@ void qm::ViewModel::SelectionRestorer::restore()
 	ViewModel::ItemList& l = pViewModel_->listItem_;
 	
 	if (pmhFocused_) {
-		ViewModelItem item(pmhFocused_);
-		ViewModel::ItemList::iterator it = std::find_if(
-			l.begin(), l.end(), std::bind2nd(ViewModelItemEqual(), &item));
-		if (it != l.end())
-			pViewModel_->nFocused_ = it - l.begin();
-		else
-			pViewModel_->nFocused_ = 0;
+		unsigned int n = pViewModel_->getIndex(pmhFocused_);
+		pViewModel_->nFocused_ = n != -1 ? n : 0;
 	}
 	else {
 		pViewModel_->nFocused_ = 0;
 	}
 	
 	if (pmhLastSelection_) {
-		ViewModelItem item(pmhLastSelection_);
-		ItemList::iterator it = std::find_if(
-			l.begin(), l.end(), std::bind2nd(ViewModelItemEqual(), &item));
-		if (it != l.end())
-			pViewModel_->nLastSelection_ = it - l.begin();
-		else
-			pViewModel_->nLastSelection_ = 0;
+		unsigned int n = pViewModel_->getIndex(pmhLastSelection_);
+		pViewModel_->nLastSelection_ = n != -1 ? n : 0;
 	}
 	else {
 		pViewModel_->nLastSelection_ = 0;
@@ -373,7 +421,8 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 	nLastSelection_(0),
 	nFocused_(0),
 	nScroll_(-1),
-	nMode_(0)
+	nMode_(0),
+	nCacheCount_(0)
 {
 	assert(pFolder);
 	assert(pDataItem);
@@ -394,10 +443,11 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 		pFilter_.reset(new Filter(*pFilter));
 	
 	nMode_ = pDataItem_->getMode();
+	updateCacheCount();
 	
 	Lock<ViewModel> lock(*this);
 	
-	update(false);
+	update(false, -1);
 	
 	if (nFocused_ >= listItem_.size())
 		nFocused_ = listItem_.empty() ? 0 : listItem_.size() - 1;
@@ -416,7 +466,8 @@ qm::ViewModel::~ViewModel()
 {
 	pFolder_->getAccount()->removeMessageHolderHandler(this);
 	pFolder_->removeFolderHandler(this);
-	std::for_each(listItem_.begin(), listItem_.end(), deleter<ViewModelItem>());
+	for (ItemList::iterator it = listItem_.begin(); it != listItem_.end(); ++it)
+		ViewModelItem::deleteItem(*it, nCacheCount_);
 }
 
 Folder* qm::ViewModel::getFolder() const
@@ -432,6 +483,14 @@ const ViewColumnList& qm::ViewModel::getColumns() const
 void qm::ViewModel::setColumns(const ViewColumnList& listColumn)
 {
 	pDataItem_->setColumns(listColumn);
+	
+	if ((nSort_ & SORT_INDEX_MASK) >= listColumn.size())
+		nSort_ = SORT_ASCENDING | SORT_NOTHREAD | 1;
+	
+	unsigned int nCacheCount = nCacheCount_;
+	updateCacheCount();
+	update(true, nCacheCount);
+	
 	fireColumnChanged();
 }
 
@@ -500,9 +559,9 @@ unsigned int qm::ViewModel::getIndex(MessageHolder* pmh) const
 	assert(isLocked());
 	assert(pmh);
 	
-	ViewModelItem item(pmh);
+	ViewModelItemPtr pItem(pmh, nCacheCount_);
 	ItemList::const_iterator it = std::lower_bound(
-		listItem_.begin(), listItem_.end(), &item,
+		listItem_.begin(), listItem_.end(), pItem.get(),
 		ViewModelItemComp(this, getColumn(nSort_ & SORT_INDEX_MASK),
 			(nSort_ & SORT_DIRECTION_MASK) == SORT_ASCENDING,
 			(nSort_ & SORT_THREAD_MASK) == SORT_THREAD));
@@ -556,7 +615,7 @@ void qm::ViewModel::setFilter(const Filter* pFilter)
 		pFilter_.reset(new Filter(*pFilter));
 	else
 		pFilter_.reset(0);
-	update(true);
+	update(true, -1);
 }
 
 const Filter* qm::ViewModel::getFilter() const
@@ -849,7 +908,7 @@ void qm::ViewModel::messageAdded(const FolderMessageEvent& event)
 		}
 		
 		if (bAdd) {
-			std::auto_ptr<ViewModelItem> pItem(new ViewModelItem(pmh));
+			ViewModelItemPtr pItem(pmh, nCacheCount_);
 			
 			if ((getSort() & SORT_THREAD_MASK) == SORT_THREAD) {
 				unsigned int nReferenceHash = pmh->getReferenceHash();
@@ -948,7 +1007,7 @@ void qm::ViewModel::messageRemoved(const FolderMessageEvent& event)
 						pItem)) == listItem_.end());
 			}
 			
-			delete *it;
+			ViewModelItem::deleteItem(*it, nCacheCount_);
 			it = listItem_.erase(it);
 			
 			if (bHasFocus) {
@@ -1015,7 +1074,7 @@ void qm::ViewModel::messageRemoved(const FolderMessageEvent& event)
 
 void qm::ViewModel::messageRefreshed(const FolderEvent& event)
 {
-	update(true);
+	update(true, -1);
 }
 
 void qm::ViewModel::unseenCountChanged(const FolderEvent& event)
@@ -1032,11 +1091,8 @@ void qm::ViewModel::messageHolderChanged(const MessageHolderEvent& event)
 {
 	Lock<ViewModel> lock(*this);
 	
-	ViewModelItem item(event.getMessageHolder());
-	ItemList::iterator it = std::find_if(
-		listItem_.begin(), listItem_.end(),
-		std::bind2nd(ViewModelItemEqual(), &item));
-	if (it != listItem_.end()) {
+	unsigned int n = getIndex(event.getMessageHolder());
+	if (n != -1) {
 		unsigned int nOldFlags = event.getOldFlags();
 		unsigned int nNewFlags = event.getNewFlags();
 		if (nOldFlags & MessageHolder::FLAG_SEEN &&
@@ -1046,7 +1102,7 @@ void qm::ViewModel::messageHolderChanged(const MessageHolderEvent& event)
 			nNewFlags & MessageHolder::FLAG_SEEN)
 			--nUnseenCount_;
 		
-		fireItemChanged(it - listItem_.begin());
+		fireItemChanged(n);
 	}
 }
 
@@ -1054,8 +1110,12 @@ void qm::ViewModel::messageHolderDestroyed(const MessageHolderEvent& event)
 {
 }
 
-void qm::ViewModel::update(bool bRestoreSelection)
+void qm::ViewModel::update(bool bRestoreSelection,
+						   unsigned int nOldCacheCount)
 {
+	if (nOldCacheCount == -1)
+		nOldCacheCount = nCacheCount_;
+	
 	Lock<ViewModel> lock(*this);
 	
 	// TODO
@@ -1065,7 +1125,8 @@ void qm::ViewModel::update(bool bRestoreSelection)
 	
 	SelectionRestorer restorer(this, true, !bRestoreSelection);
 	
-	std::for_each(listItem_.begin(), listItem_.end(), deleter<ViewModelItem>());
+	for (ItemList::iterator it = listItem_.begin(); it != listItem_.end(); ++it)
+		ViewModelItem::deleteItem(*it, nOldCacheCount);
 	listItem_.clear();
 	
 	unsigned int nCount = pFolder_->getCount();
@@ -1085,7 +1146,7 @@ void qm::ViewModel::update(bool bRestoreSelection)
 			bAdd = pFilter_->match(&context);
 		}
 		if (bAdd) {
-			std::auto_ptr<ViewModelItem> pItem(new ViewModelItem(pmh));
+			ViewModelItemPtr pItem(pmh, nCacheCount_);
 			listItem_.push_back(pItem.release());
 			
 			if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
@@ -1193,6 +1254,19 @@ void qm::ViewModel::makeParentLink(const ItemList& listItemSortedByMessageIdHash
 			listItemSortedByPointer.end(), pParentItem);
 		if (it == listItemSortedByPointer.end() || *it != pParentItem)
 			pItem->setParentItem(0);
+	}
+}
+
+void qm::ViewModel::updateCacheCount()
+{
+	nCacheCount_ = 0;
+	const ViewColumnList& listColumn = getColumns();
+	for (ViewColumnList::const_iterator it = listColumn.begin(); it != listColumn.end(); ++it) {
+		ViewColumn* pColumn = *it;
+		if (pColumn->isFlag(ViewColumn::FLAG_CACHE)) {
+			pColumn->setCacheIndex(nCacheCount_);
+			++nCacheCount_;
+		}
 	}
 }
 
@@ -1702,20 +1776,20 @@ bool qm::ViewModelItemComp::operator()(const ViewModelItem* pLhs,
 		int nComp = 0;
 		unsigned int nFlags = column_.getFlags();
 		if ((nFlags & ViewColumn::FLAG_SORT_MASK) == ViewColumn::FLAG_SORT_NUMBER) {
-			unsigned int nLhs = column_.getNumber(pViewModel_, pmhLhs);
-			unsigned int nRhs = column_.getNumber(pViewModel_, pmhRhs);
+			unsigned int nLhs = column_.getNumber(pViewModel_, pLhs);
+			unsigned int nRhs = column_.getNumber(pViewModel_, pRhs);
 			nComp = nLhs < nRhs ? -1 : nLhs > nRhs ? 1 : 0;
 		}
 		else if ((nFlags & ViewColumn::FLAG_SORT_MASK) == ViewColumn::FLAG_SORT_DATE) {
 			Time timeLhs;
-			column_.getTime(pViewModel_, pmhLhs, &timeLhs);
+			column_.getTime(pViewModel_, pLhs, &timeLhs);
 			Time timeRhs;
-			column_.getTime(pViewModel_, pmhRhs, &timeRhs);
+			column_.getTime(pViewModel_, pRhs, &timeRhs);
 			nComp = timeLhs < timeRhs ? -1 : timeLhs > timeRhs ? 1 : 0;
 		}
 		else {
-			wstring_ptr wstrTextLhs(column_.getText(pViewModel_, pmhLhs));
-			wstring_ptr wstrTextRhs(column_.getText(pViewModel_, pmhRhs));
+			wstring_ptr wstrTextLhs(column_.getText(pViewModel_, pLhs));
+			wstring_ptr wstrTextRhs(column_.getText(pViewModel_, pRhs));
 			nComp = _wcsicmp(wstrTextLhs.get(), wstrTextRhs.get());
 		}
 		if (bThread_ && nComp == 0)
@@ -2199,6 +2273,9 @@ bool qm::ViewDataContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			else if (wcscmp(pwszAttrLocalName, L"icon") == 0)
 				nFlags |= wcscmp(attributes.getValue(n), L"true") == 0 ?
 					ViewColumn::FLAG_ICON : 0;
+			else if (wcscmp(pwszAttrLocalName, L"cache") == 0)
+				nFlags |= wcscmp(attributes.getValue(n), L"true") == 0 ?
+					ViewColumn::FLAG_CACHE : 0;
 			else if (wcscmp(pwszAttrLocalName, L"sort") == 0)
 				pwszSort = attributes.getValue(n);
 			else
@@ -2573,11 +2650,12 @@ bool qm::ViewDataWriter::write(const ViewDataItem* pItem,
 			break;
 		}
 		const SimpleAttributes::Item items[] = {
-			{ L"indent",	nFlags & ViewColumn::FLAG_INDENT ? L"true" : L"false"		},
-			{ L"line",		nFlags & ViewColumn::FLAG_LINE ? L"true" : L"false"			},
-			{ L"icon",		nFlags & ViewColumn::FLAG_ICON ? L"true" : L"false"			},
-			{ L"align",		nFlags & ViewColumn::FLAG_RIGHTALIGN ? L"right" : L"left"	},
-			{ L"sort",		pwszSort													}
+			{ L"indent",	nFlags & ViewColumn::FLAG_INDENT ? L"true" : L"false",		(nFlags & ViewColumn::FLAG_INDENT) == 0		},
+			{ L"line",		nFlags & ViewColumn::FLAG_LINE ? L"true" : L"false",		(nFlags & ViewColumn::FLAG_LINE) == 0		},
+			{ L"icon",		nFlags & ViewColumn::FLAG_ICON ? L"true" : L"false",		(nFlags & ViewColumn::FLAG_ICON) == 0		},
+			{ L"cache",		nFlags & ViewColumn::FLAG_CACHE ? L"true" : L"false",		(nFlags & ViewColumn::FLAG_CACHE) == 0		},
+			{ L"align",		nFlags & ViewColumn::FLAG_RIGHTALIGN ? L"right" : L"left",	(nFlags & ViewColumn::FLAG_RIGHTALIGN) == 0	},
+			{ L"sort",		pwszSort																								}
 		};
 		SimpleAttributes columnAttrs(items, countof(items));
 		if (!handler_.startElement(0, 0, L"column", columnAttrs))

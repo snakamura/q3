@@ -5307,6 +5307,8 @@ LRESULT qm::ViewsColumnDialog::onInitDialog(HWND hwndFocus,
 		sendDlgItemMessage(IDC_LINE, BM_SETCHECK, BST_CHECKED);
 	if (nFlags & ViewColumn::FLAG_ICON)
 		sendDlgItemMessage(IDC_ASICON, BM_SETCHECK, BST_CHECKED);
+	if (nFlags & ViewColumn::FLAG_CACHE)
+		sendDlgItemMessage(IDC_CACHE, BM_SETCHECK, BST_CHECKED);
 	
 	if (nFlags & ViewColumn::FLAG_RIGHTALIGN)
 		sendDlgItemMessage(IDC_RIGHTALIGN, BM_SETCHECK, BST_CHECKED);
@@ -5358,6 +5360,8 @@ LRESULT qm::ViewsColumnDialog::onOk()
 		nFlags |= ViewColumn::FLAG_LINE;
 	if (sendDlgItemMessage(IDC_ASICON, BM_GETCHECK) == BST_CHECKED)
 		nFlags |= ViewColumn::FLAG_ICON;
+	if (sendDlgItemMessage(IDC_CACHE, BM_GETCHECK) == BST_CHECKED)
+		nFlags |= ViewColumn::FLAG_CACHE;
 	if (sendDlgItemMessage(IDC_RIGHTALIGN, BM_GETCHECK) == BST_CHECKED)
 		nFlags |= ViewColumn::FLAG_RIGHTALIGN;
 	if (sendDlgItemMessage(IDC_SORTNUMBER, BM_GETCHECK) == BST_CHECKED)
@@ -5380,9 +5384,10 @@ LRESULT qm::ViewsColumnDialog::onTypeSelChange()
 
 void qm::ViewsColumnDialog::updateState()
 {
-	bool bEnableMacro = sendDlgItemMessage(IDC_TYPE, CB_GETCURSEL) ==
+	bool bEnable = sendDlgItemMessage(IDC_TYPE, CB_GETCURSEL) ==
 		sendDlgItemMessage(IDC_TYPE, CB_GETCOUNT) - 1;
-	Window(getDlgItem(IDC_MACRO)).enableWindow(bEnableMacro);
+	Window(getDlgItem(IDC_MACRO)).enableWindow(bEnable);
+	Window(getDlgItem(IDC_CACHE)).enableWindow(bEnable);
 }
 
 
