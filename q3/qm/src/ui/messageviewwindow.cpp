@@ -988,21 +988,15 @@ wstring_ptr qm::HtmlMessageViewWindow::ContentManager::prepareRelatedContent(Htm
 {
 	clearRelatedContent(pHtmlMessageViewWindow);
 	
-	const WCHAR* pwszId = L"uniqueid@qmail";
-	// TODO
-	// Need to use Message-Id?
-	// Message-Id is not intended to use as a URL like Content-Id,
-	// it may be an invalid URL. And in that case it causes error.
-//	MessageIdParser messageId(&status);
-//	CHECK_QSTATUS();
-//	Part::Field field;
-//	status = msg.getField(L"Message-Id", &messageId, &field);
-//	CHECK_QSTATUS();
-//	if (field == Part::FIELD_EXIST)
-//		pwszId = messageId.getMessageId();
-	prepareRelatedContent(pHtmlMessageViewWindow, partHtml, pwszId, pwszEncoding);
+	Time time(Time::getCurrentTime());
+	WCHAR wszId[256];
+	swprintf(wszId, L"%u%04d%02d%02d%02d%02d%02d%03d@local",
+		::GetCurrentProcessId(), time.wYear, time.wMonth, time.wDay,
+		time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
 	
-	wstring_ptr wstrId(allocWString(pwszId));
+	prepareRelatedContent(pHtmlMessageViewWindow, partHtml, wszId, pwszEncoding);
+	
+	wstring_ptr wstrId(allocWString(wszId));
 	
 	prepareRelatedContent(pHtmlMessageViewWindow, msg, 0, 0);
 	
