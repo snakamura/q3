@@ -120,13 +120,16 @@ ToolbarCookie* qs::ToolbarManager::createButtons(const WCHAR* pwszName,
 	
 	const Toolbar* pToolbar = pImpl_->getToolbar(pwszName);
 	if (!pToolbar)
-		return 0;
+		return &ToolbarCookie::none__;
 	return pToolbar->create(hwnd, pParent, pImpl_->pMenuManager_, pImpl_->hImageList_);
 }
 
 void qs::ToolbarManager::destroy(ToolbarCookie* pCookie) const
 {
 	assert(pCookie);
+	
+	if (pCookie == &ToolbarCookie::none__)
+		return;
 	
 	const Toolbar* pToolbar = pImpl_->getToolbar(pCookie->getName());
 	if (pToolbar)
@@ -139,6 +142,12 @@ void qs::ToolbarManager::destroy(ToolbarCookie* pCookie) const
  * ToolbarCookie
  *
  */
+
+ToolbarCookie qs::ToolbarCookie::none__;
+
+qs::ToolbarCookie::ToolbarCookie()
+{
+}
 
 #ifndef _WIN32_WCE
 qs::ToolbarCookie::ToolbarCookie(const WCHAR* pwszName,

@@ -85,6 +85,9 @@ public:
 	typedef std::vector<const WCHAR*> ToolTipList;
 #endif
 
+private:
+	ToolbarCookie();
+
 public:
 #ifndef _WIN32_WCE
 	ToolbarCookie(const WCHAR* pwszName,
@@ -114,6 +117,9 @@ private:
 #ifdef _WIN32_WCE
 	ToolTipList listToolTip_;
 #endif
+
+public:
+	static ToolbarCookie none__;
 };
 
 }
