@@ -6,7 +6,6 @@
  *
  */
 
-
 #include <qmeditwindow.h>
 #include <qmmessage.h>
 
