@@ -573,7 +573,9 @@ void qm::EditFileSaveAction::invoke(const ActionEvent& event)
 bool qm::EditFileSaveAction::save(const WCHAR* pwszPath)
 {
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
-	Message* pMessage = pEditMessage->getMessage();
+	std::auto_ptr<Message> pMessage(pEditMessage->getMessage());
+	if (!pMessage.get())
+		return false;
 	
 	xstring_ptr strMessage(pMessage->getContent());
 	if (!strMessage.get())
@@ -588,6 +590,7 @@ bool qm::EditFileSaveAction::save(const WCHAR* pwszPath)
 		return false;
 	if (!bufferedStream.close())
 		return false;
+	
 	return true;
 }
 
@@ -636,8 +639,8 @@ qm::EditFileSendAction::~EditFileSendAction()
 void qm::EditFileSendAction::invoke(const ActionEvent& event)
 {
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
-	Message* pMessage = pEditMessage->getMessage();
-	if (!pMessage) {
+	std::auto_ptr<Message> pMessage(pEditMessage->getMessage());
+	if (!pMessage.get()) {
 		ActionUtil::error(pEditFrameWindow_->getHandle(), IDS_ERROR_SEND);
 		return;
 	}
@@ -648,7 +651,7 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
 	unsigned int nFlags = (pEditMessage->isSign() ? MessageComposer::FLAG_SIGN : 0) |
 		(pEditMessage->isEncrypt() ? MessageComposer::FLAG_ENCRYPT : 0);
 	if (!composer_.compose(pEditMessage->getAccount(),
-		pEditMessage->getSubAccount(), pMessage, nFlags)) {
+		pEditMessage->getSubAccount(), pMessage.get(), nFlags)) {
 		ActionUtil::error(pEditFrameWindow_->getHandle(), IDS_ERROR_SEND);
 		return;
 	}

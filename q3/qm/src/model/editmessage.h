@@ -97,7 +97,7 @@ public:
 	~EditMessage();
 
 public:
-	Message* getMessage();
+	std::auto_ptr<Message> getMessage();
 	bool setMessage(std::auto_ptr<Message> pMessage);
 	void update();
 
@@ -112,9 +112,11 @@ public:
 	void setField(const WCHAR* pwszName,
 				  const WCHAR* pwszValue,
 				  FieldType type);
+#if 0
 	qs::wxstring_ptr getMessageText();
 	bool setMessageText(const WCHAR* pwszMessage,
 						size_t nLen);
+#endif
 	qs::wxstring_ptr getBodyPartHeader();
 	bool setBodyPartHeader(const WCHAR* pwszHeader,
 						   size_t nLen);
@@ -142,14 +144,10 @@ public:
 	qs::wstring_ptr getSignatureText() const;
 
 private:
-	bool fixup();
 	void clear();
 	bool applyFields();
 	void clearFields();
-	qs::Part* getBodyPart(qs::Part* pPart) const;
 	void removePart(qs::Part* pPart);
-	bool normalize(qs::Part* pPart);
-	bool makeMultipartMixed();
 	void fireMessageSet();
 	void fireMessageUpdate();
 	void fireAccountChanged();
@@ -159,6 +157,12 @@ private:
 	void fireSignatureChanged();
 	void fireEvent(const EditMessageEvent& event,
 				   void (EditMessageHandler::*pfn)(const EditMessageEvent&));
+
+private:
+	static qs::Part* getBodyPart(qs::Part* pPart);
+	static bool normalize(qs::Part* pPart);
+	static std::auto_ptr<Message> makeMultipartMixed(std::auto_ptr<Message> pMessage);
+
 
 private:
 	EditMessage(const EditMessage&);
@@ -194,9 +198,6 @@ private:
 	bool bEncrypt_;
 	bool bSign_;
 	HandlerList listHandler_;
-#ifndef NDEBUG
-	bool bFixedUp_;
-#endif
 };
 
 

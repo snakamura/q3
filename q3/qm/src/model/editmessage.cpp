@@ -50,10 +50,6 @@ qm::EditMessage::EditMessage(Profile* pProfile,
 	bEncrypt_(false),
 	bSign_(false)
 {
-#ifndef NDEBUG
-	bFixedUp_ = false;
-#endif
-	
 	bAutoReform_ = pProfile_->getInt(L"EditWindow", L"AutoReform", 1) != 0;
 }
 
@@ -62,11 +58,107 @@ qm::EditMessage::~EditMessage()
 	clear();
 }
 
-Message* qm::EditMessage::getMessage()
+std::auto_ptr<Message> qm::EditMessage::getMessage()
 {
-	if (!fixup())
-		return 0;
-	return pMessage_.get();
+	fireMessageUpdate();
+	
+	if (!applyFields())
+		return std::auto_ptr<Message>();
+	
+	xstring_ptr strContent(pMessage_->getContent());
+	if (!strContent.get())
+		return std::auto_ptr<Message>();
+	std::auto_ptr<Message> pMessage(new Message());
+	if (!pMessage->create(strContent.get(), -1, Message::FLAG_NONE))
+		return std::auto_ptr<Message>();
+	
+	wxstring_ptr wstrHeader(PartUtil::a2w(pBodyPart_->getHeader()));
+	if (!wstrHeader.get())
+		return std::auto_ptr<Message>();
+	
+	const WCHAR* pwszBody = wstrBody_.get();
+	wxstring_ptr wstrBody;
+	if (bAutoReform_) {
+		int nLineLen = pProfile_->getInt(L"EditWindow", L"ReformLineLength", 74);
+		int nTabWidth = pProfile_->getInt(L"EditWindow", L"TabWidth", 4);
+		
+		wstrBody = TextUtil::fold(wstrBody_.get(),
+			wcslen(wstrBody_.get()), nLineLen, 0, 0, nTabWidth);
+		if (!wstrBody.get())
+			return std::auto_ptr<Message>();
+		
+		pwszBody = wstrBody.get();
+	}
+	
+	XStringBuffer<WSTRING> buf;
+	if (!buf.append(wstrHeader.get()) ||
+		!buf.append(L"\n") ||
+		!buf.append(pwszBody))
+		return std::auto_ptr<Message>();
+	
+	wstring_ptr wstrSignature(getSignatureText());
+	if (wstrSignature.get()) {
+		if (!buf.append(wstrSignature.get()))
+			return std::auto_ptr<Message>();
+	}
+	
+	MessageCreator creator(MessageCreator::FLAG_ADDCONTENTTYPE |
+		MessageCreator::FLAG_EXPANDALIAS | MessageCreator::FLAG_ENCODETEXT);
+	std::auto_ptr<Message> pBodyMessage(creator.createMessage(
+		pDocument_, buf.getCharArray(), buf.getLength()));
+	if (!pBodyMessage.get())
+		return std::auto_ptr<Message>();
+	
+	Part* pBodyPart = getBodyPart(pMessage.get());
+	assert(pBodyPart);
+	
+	PrefixFieldFilter filter("content-");
+	if (!pBodyPart->copyFields(*pBodyMessage.get(), &filter))
+		return std::auto_ptr<Message>();
+	
+	if (pBodyMessage->isMultipart()) {
+		pBodyPart->setBody(0);
+		
+		const Part::PartList& l = pBodyMessage->getPartList();
+		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			std::auto_ptr<Part> pPartClone((*it)->clone());
+			if (!pPartClone.get())
+				return std::auto_ptr<Message>();
+			pBodyPart->addPart(pPartClone);
+		}
+	}
+	else {
+		if (!pBodyPart->setBody(pBodyMessage->getBody(), -1))
+			return std::auto_ptr<Message>();
+	}
+	
+	if (!listAttachmentPath_.empty()) {
+		pMessage = makeMultipartMixed(pMessage);
+		if (!pMessage.get())
+			return std::auto_ptr<Message>();
+		if (!MessageCreator::attachFileOrURI(pMessage.get(),
+			listAttachmentPath_, pDocument_, bDecryptVerify_))
+			return std::auto_ptr<Message>();
+	}
+	
+	if (!normalize(pBodyPart))
+		return std::auto_ptr<Message>();
+	
+	if (*pSubAccount_->getIdentity()) {
+		UnstructuredParser subaccount(pSubAccount_->getName(), L"utf-8");
+		if (!pMessage->setField(L"X-QMAIL-SubAccount", subaccount))
+			return std::auto_ptr<Message>();
+	}
+	
+	UnstructuredParser signature(L"", L"utf-8");
+	if (!pMessage->replaceField(L"X-QMAIL-Signature", signature))
+		return std::auto_ptr<Message>();
+	
+	SimpleParser mimeVersion(L"1.0", 0);
+	if (!pMessage->replaceField(L"MIME-Version", mimeVersion))
+		return std::auto_ptr<Message>();
+	
+	return pMessage;
 }
 
 bool qm::EditMessage::setMessage(std::auto_ptr<Message> pMessage)
@@ -79,7 +171,8 @@ bool qm::EditMessage::setMessage(std::auto_ptr<Message> pMessage)
 	
 	pBodyPart_ = getBodyPart(pMessage_.get());
 	if (!pBodyPart_) {
-		if (!makeMultipartMixed())
+		pMessage_ = makeMultipartMixed(pMessage_);
+		if (!pMessage_.get())
 			return false;
 		
 		std::auto_ptr<Part> pBodyPart(new Part());
@@ -270,6 +363,7 @@ void qm::EditMessage::setField(const WCHAR* pwszName,
 		fireFieldChanged(pwszName, pwszValue);
 }
 
+#if 0
 wxstring_ptr qm::EditMessage::getMessageText()
 {
 	// TODO
@@ -282,6 +376,7 @@ bool qm::EditMessage::setMessageText(const WCHAR* pwszMessage,
 	// TODO
 	return true;
 }
+#endif
 
 wxstring_ptr qm::EditMessage::getBodyPartHeader()
 {
@@ -519,104 +614,6 @@ wstring_ptr qm::EditMessage::getSignatureText() const
 	return 0;
 }
 
-bool qm::EditMessage::fixup()
-{
-	assert(!bFixedUp_);
-	
-	fireMessageUpdate();
-	
-	// TODO
-	// Handle error cases so that a client can call this method again to fixup.
-	
-	if (bAutoReform_) {
-		int nLineLen = pProfile_->getInt(L"EditWindow", L"ReformLineLength", 74);
-		int nTabWidth = pProfile_->getInt(L"EditWindow", L"TabWidth", 4);
-		
-		wxstring_ptr wstrBody(TextUtil::fold(wstrBody_.get(),
-			wcslen(wstrBody_.get()), nLineLen, 0, 0, nTabWidth));
-		if (!wstrBody.get())
-			return false;
-		wstrBody_ = wstrBody;
-	}
-	
-	if (!applyFields())
-		return false;
-	
-	wxstring_ptr wstrHeader(PartUtil::a2w(pBodyPart_->getHeader()));
-	
-	XStringBuffer<WSTRING> buf;
-	if (!buf.append(wstrHeader.get()) ||
-		!buf.append(L"\n") ||
-		!buf.append(wstrBody_.get()))
-		return false;
-	
-	wstring_ptr wstrSignature(getSignatureText());
-	if (wstrSignature.get()) {
-		if (!buf.append(wstrSignature.get()))
-			return false;
-	}
-	
-	MessageCreator creator(MessageCreator::FLAG_ADDCONTENTTYPE |
-		MessageCreator::FLAG_EXPANDALIAS | MessageCreator::FLAG_ENCODETEXT);
-	std::auto_ptr<Message> pBodyMessage(creator.createMessage(
-		pDocument_, buf.getCharArray(), buf.getLength()));
-	if (!pBodyMessage.get())
-		return false;
-	
-	assert(pBodyPart_);
-	
-	PrefixFieldFilter filter("content-");
-	if (!pBodyPart_->copyFields(*pBodyMessage.get(), &filter))
-		return false;
-	
-	if (pBodyMessage->isMultipart()) {
-		pBodyPart_->setBody(0);
-		
-		const Part::PartList& l = pBodyMessage->getPartList();
-		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it) {
-			std::auto_ptr<Part> pPartClone((*it)->clone());
-			if (!pPartClone.get())
-				return false;
-			pBodyPart_->addPart(pPartClone);
-		}
-	}
-	else {
-		if (!pBodyPart_->setBody(pBodyMessage->getBody(), -1))
-			return false;
-	}
-	
-	if (!listAttachmentPath_.empty()) {
-		if (!makeMultipartMixed())
-			return false;
-		if (!MessageCreator::attachFileOrURI(pMessage_.get(),
-			listAttachmentPath_, pDocument_, bDecryptVerify_))
-			return false;
-	}
-	
-	if (!normalize(pBodyPart_))
-		return false;
-	
-	if (*pSubAccount_->getIdentity()) {
-		UnstructuredParser subaccount(pSubAccount_->getName(), L"utf-8");
-		if (!pMessage_->setField(L"X-QMAIL-SubAccount", subaccount))
-			return false;
-	}
-	
-	UnstructuredParser signature(L"", L"utf-8");
-	if (!pMessage_->replaceField(L"X-QMAIL-Signature", signature))
-		return false;
-	
-	SimpleParser mimeVersion(L"1.0", 0);
-	if (!pMessage_->replaceField(L"MIME-Version", mimeVersion))
-		return false;
-	
-#ifndef NDEBUG
-	bFixedUp_ = true;
-#endif
-	
-	return true;
-}
-
 void qm::EditMessage::clear()
 {
 	pMessage_.reset(0);
@@ -698,25 +695,6 @@ void qm::EditMessage::clearFields()
 	listField_.clear();
 }
 
-Part* qm::EditMessage::getBodyPart(Part* pPart) const
-{
-	assert(pPart);
-	
-	if (pPart->isMultipart()) {
-		const Part::PartList& l = pPart->getPartList();
-		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it) {
-			Part* pBodyPart = getBodyPart(*it);
-			if (pBodyPart)
-				return pBodyPart;
-		}
-	}
-	else if (pPart->isText() && !pPart->isAttachment()) {
-		return pPart;
-	}
-	
-	return 0;
-}
-
 void qm::EditMessage::removePart(qs::Part* pPart)
 {
 	assert(pPart);
@@ -746,45 +724,6 @@ void qm::EditMessage::removePart(qs::Part* pPart)
 		pMessage_->setBody("", 0);
 		pBodyPart_ = pMessage_.get();
 	}
-}
-
-bool qm::EditMessage::normalize(Part* pPart)
-{
-	assert(pPart);
-	
-	Part* pParent = pPart;
-	while (true) {
-		Part* pNextParent = pParent->getParentPart();
-		if (!pNextParent || pNextParent->getPartList().size() != 1)
-			break;
-		pParent = pNextParent;
-	}
-	if (pParent != pPart) {
-		assert(pParent->getPartList().size() == 1);
-		if (!PartUtil(*pPart).copyContentFields(pParent))
-			return false;
-		std::auto_ptr<Part> pChild(pParent->getPart(0));
-		pParent->removePart(pChild.get());
-		if (!pParent->setBody(pPart->getBody(), -1))
-			return false;
-	}
-	
-	return true;
-}
-
-bool qm::EditMessage::makeMultipartMixed()
-{
-	const ContentTypeParser* pContentType = pMessage_->getContentType();
-	if (!pContentType ||
-		wcsicmp(pContentType->getMediaType(), L"multipart") != 0 ||
-		wcsicmp(pContentType->getSubType(), L"mixed") != 0) {
-		std::auto_ptr<Message> pMessage(new Message());
-		if (!MessageCreator::makeMultipart(pMessage.get(), pMessage_))
-			return false;
-		pMessage->setFlag(Message::FLAG_NONE);
-		pMessage_ = pMessage;
-	}
-	return true;
 }
 
 void qm::EditMessage::fireMessageSet()
@@ -825,6 +764,64 @@ void qm::EditMessage::fireEvent(const EditMessageEvent& event,
 {
 	for (HandlerList::iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
 		((*it)->*pfn)(event);
+}
+
+Part* qm::EditMessage::getBodyPart(Part* pPart)
+{
+	assert(pPart);
+	
+	if (pPart->isMultipart()) {
+		const Part::PartList& l = pPart->getPartList();
+		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			Part* pBodyPart = getBodyPart(*it);
+			if (pBodyPart)
+				return pBodyPart;
+		}
+	}
+	else if (pPart->isText() && !pPart->isAttachment()) {
+		return pPart;
+	}
+	
+	return 0;
+}
+
+bool qm::EditMessage::normalize(Part* pPart)
+{
+	assert(pPart);
+	
+	Part* pParent = pPart;
+	while (true) {
+		Part* pNextParent = pParent->getParentPart();
+		if (!pNextParent || pNextParent->getPartList().size() != 1)
+			break;
+		pParent = pNextParent;
+	}
+	if (pParent != pPart) {
+		assert(pParent->getPartList().size() == 1);
+		if (!PartUtil(*pPart).copyContentFields(pParent))
+			return false;
+		std::auto_ptr<Part> pChild(pParent->getPart(0));
+		pParent->removePart(pChild.get());
+		if (!pParent->setBody(pPart->getBody(), -1))
+			return false;
+	}
+	
+	return true;
+}
+
+std::auto_ptr<Message> qm::EditMessage::makeMultipartMixed(std::auto_ptr<Message> pMessage)
+{
+	const ContentTypeParser* pContentType = pMessage->getContentType();
+	if (!pContentType ||
+		wcsicmp(pContentType->getMediaType(), L"multipart") != 0 ||
+		wcsicmp(pContentType->getSubType(), L"mixed") != 0) {
+		std::auto_ptr<Message> pNewMessage(new Message());
+		if (!MessageCreator::makeMultipart(pNewMessage.get(), pMessage))
+			return std::auto_ptr<Message>();
+		pNewMessage->setFlag(Message::FLAG_NONE);
+		pMessage = pNewMessage;
+	}
+	return pMessage;
 }
 
 
