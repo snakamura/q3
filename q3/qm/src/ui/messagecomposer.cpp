@@ -136,7 +136,11 @@ bool qm::MessageComposer::compose(Account* pAccount,
 	const Security* pSecurity = pDocument_->getSecurity();
 	const SMIMEUtility* pSMIMEUtility = pSecurity->getSMIMEUtility();
 	if (pSMIMEUtility && nFlags != 0) {
-		SMIMECallbackImpl callback(pSecurity, pDocument_->getAddressBook());
+		const Certificate* pSelfCertificate = 0;
+		if (pProfile_->getInt(L"Security", L"EncryptForSelf", 0))
+			pSelfCertificate = pSubAccount->getCertificate();
+		SMIMECallbackImpl callback(pSecurity,
+			pDocument_->getAddressBook(), pSelfCertificate);
 		
 		if (nFlags & FLAG_SIGN) {
 			// TODO
@@ -192,9 +196,11 @@ bool qm::MessageComposer::compose(Account* pAccount,
  */
 
 qm::SMIMECallbackImpl::SMIMECallbackImpl(const Security* pSecurity,
-										 AddressBook* pAddressBook) :
+										 AddressBook* pAddressBook,
+										 const Certificate* pSelfCertificate) :
 	pSecurity_(pSecurity),
-	pAddressBook_(pAddressBook)
+	pAddressBook_(pAddressBook),
+	pSelfCertificate_(pSelfCertificate)
 {
 }
 
@@ -217,4 +223,9 @@ std::auto_ptr<Certificate> qm::SMIMECallbackImpl::getCertificate(const WCHAR* pw
 			return pSecurity_->getCertificate(pAddress->getCertificate());
 	}
 	return 0;
+}
+
+const Certificate* qm::SMIMECallbackImpl::getSelfCertificate()
+{
+	return pSelfCertificate_;
 }

@@ -447,6 +447,13 @@ public:
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	virtual std::auto_ptr<Certificate> getCertificate(const WCHAR* pwszAddress) = 0;
+	
+	/**
+	 * Get the certificate of the account itself.
+	 *
+	 * @return Certificate. null if not found or don't encrypt message for itself.
+	 */
+	virtual const Certificate* getSelfCertificate() = 0;
 };
 
 

@@ -83,11 +83,13 @@ class SMIMECallbackImpl : public qs::SMIMECallback
 {
 public:
 	SMIMECallbackImpl(const Security* pSecurity,
-					  AddressBook* pAddressBook);
+					  AddressBook* pAddressBook,
+					  const qs::Certificate* pSelfCertificate);
 	~SMIMECallbackImpl();
 
 public:
 	virtual std::auto_ptr<qs::Certificate> getCertificate(const WCHAR* pwszAddress);
+	virtual const qs::Certificate* getSelfCertificate();
 
 private:
 	SMIMECallbackImpl(const SMIMECallbackImpl&);
@@ -96,6 +98,7 @@ private:
 private:
 	const Security* pSecurity_;
 	AddressBook* pAddressBook_;
+	const qs::Certificate* pSelfCertificate_;
 };
 
 }

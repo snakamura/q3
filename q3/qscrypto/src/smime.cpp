@@ -198,6 +198,14 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::encrypt(Part* pPart,
 		}
 	}
 	
+	const Certificate* pCertificate = pCallback->getSelfCertificate();
+	if (pCertificate) {
+		X509* pX509 = X509_dup(static_cast<const CertificateImpl*>(pCertificate)->getX509());
+		if (!pX509)
+			return 0;
+		sk_X509_push(pCertificates.get(), pX509);
+	}
+	
 	xstring_ptr strHeader(allocXString(pPart->getHeader()));
 	if (!strHeader.get())
 		return 0;
