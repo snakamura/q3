@@ -23,8 +23,9 @@
 namespace qm {
 
 class MessageModel;
-	class MessageMessageModel;
-		class PreviewMessageModel;
+	class AbstractMessageModel
+		class MessageMessageModel;
+			class PreviewMessageModel;
 class MessageModelHandler;
 class MessageModelEvent;
 
