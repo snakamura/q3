@@ -461,16 +461,11 @@ bool qm::AccountImpl::removeMessages(NormalFolder* pFolder,
 			if (pCallback && l.size() > 1)
 				pCallback->show();
 			
-			for (MessageHolderList::size_type n = 0; n < l.size(); ++n) {
-				if (!pThis_->unstoreMessage(l[n]))
-					return false;
-				
-				if (pCallback) {
-					if (n % 10 == 0 && pCallback->isCanceled())
-						break;
-					pCallback->step(1);
-				}
-			}
+			if (!pThis_->unstoreMessages(l))
+				return false;
+			
+			if (pCallback)
+				pCallback->step(l.size());
 		}
 		else {
 			if (!pProtocolDriver_->removeMessages(
@@ -1519,7 +1514,7 @@ bool qm::Account::check(AccountCheckCallback* pCallback)
 				}
 				else {
 					pMessageCache_->removeData(cacheKey);
-					pmh->getFolder()->removeMessage(pmh);
+					pmh->getFolder()->removeMessages(MessageHolderList(1, pmh));
 				}
 			}
 		}
@@ -2123,22 +2118,28 @@ MessageHolder* qm::Account::storeMessage(NormalFolder* pFolder,
 	return p;
 }
 
-bool qm::Account::unstoreMessage(MessageHolder* pmh)
+bool qm::Account::unstoreMessages(const MessageHolderList& l)
 {
-	assert(pmh);
+	if (l.empty())
+		return true;
 	
-	NormalFolder* pFolder = pmh->getFolder();
+	NormalFolder* pFolder = l.front()->getFolder();
 	
 	Lock<Account> lock(*this);
 	
-	MessageHolder::MessageBoxKey key = pmh->getMessageBoxKey();
-	MessageCacheKey cacheKey = pmh->getMessageCacheKey();
+	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		MessageHolder* pmh = *it;
+		assert(pmh->getFolder() == pFolder);
+		
+		MessageHolder::MessageBoxKey key = pmh->getMessageBoxKey();
+		MessageCacheKey cacheKey = pmh->getMessageCacheKey();
+		if (!pImpl_->pMessageStore_->free(key.nOffset_, key.nLength_, cacheKey)) {
+			// TODO LOG
+		}
+		pImpl_->pMessageCache_->removeData(cacheKey);
+	}
 	
-	pFolder->removeMessage(pmh);
-	
-	if (!pImpl_->pMessageStore_->free(key.nOffset_, key.nLength_, cacheKey))
-		return false;
-	pImpl_->pMessageCache_->removeData(cacheKey);
+	pFolder->removeMessages(l);
 	
 	return true;
 }

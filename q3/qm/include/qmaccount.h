@@ -221,7 +221,7 @@ public:
 								unsigned int nFlags,
 								unsigned int nSize,
 								bool bIndexOnly);
-	bool unstoreMessage(MessageHolder* pmh);
+	bool unstoreMessages(const MessageHolderList& l);
 	MessageHolder* cloneMessage(MessageHolder* pmh,
 								NormalFolder* pFolderTo);
 	bool updateMessage(MessageHolder* pmh,

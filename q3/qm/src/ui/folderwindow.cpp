@@ -90,8 +90,8 @@ public:
 	virtual void folderListChanged(const FolderListChangedEvent& event);
 
 public:
-	virtual void messageAdded(const FolderEvent& event);
-	virtual void messageRemoved(const FolderEvent& event);
+	virtual void messageAdded(const FolderMessageEvent& event);
+	virtual void messageRemoved(const FolderMessageEvent& event);
 	virtual void messageRefreshed(const FolderEvent& event);
 	virtual void unseenCountChanged(const FolderEvent& event);
 	virtual void folderDestroyed(const FolderEvent& event);
@@ -370,13 +370,13 @@ void qm::FolderWindowImpl::folderListChanged(const FolderListChangedEvent& event
 	}
 }
 
-void qm::FolderWindowImpl::messageAdded(const FolderEvent& event)
+void qm::FolderWindowImpl::messageAdded(const FolderMessageEvent& event)
 {
 	pThis_->postMessage(WM_FOLDERWINDOW_MESSAGEADDED,
 		0, reinterpret_cast<LPARAM>(event.getFolder()));
 }
 
-void qm::FolderWindowImpl::messageRemoved(const FolderEvent& event)
+void qm::FolderWindowImpl::messageRemoved(const FolderMessageEvent& event)
 {
 	pThis_->postMessage(WM_FOLDERWINDOW_MESSAGEREMOVED,
 		0, reinterpret_cast<LPARAM>(event.getFolder()));

@@ -77,8 +77,8 @@ public:
 	virtual void folderListChanged(const FolderListChangedEvent& event);
 
 public:
-	virtual void messageAdded(const FolderEvent& event);
-	virtual void messageRemoved(const FolderEvent& event);
+	virtual void messageAdded(const FolderMessageEvent& event);
+	virtual void messageRemoved(const FolderMessageEvent& event);
 	virtual void messageRefreshed(const FolderEvent& event);
 	virtual void unseenCountChanged(const FolderEvent& event);
 	virtual void folderDestroyed(const FolderEvent& event);
@@ -274,13 +274,13 @@ void qm::FolderComboBoxImpl::folderListChanged(const FolderListChangedEvent& eve
 	}
 }
 
-void qm::FolderComboBoxImpl::messageAdded(const FolderEvent& event)
+void qm::FolderComboBoxImpl::messageAdded(const FolderMessageEvent& event)
 {
 	pThis_->postMessage(WM_FOLDERCOMBOBOX_MESSAGEADDED,
 		0, reinterpret_cast<LPARAM>(event.getFolder()));
 }
 
-void qm::FolderComboBoxImpl::messageRemoved(const FolderEvent& event)
+void qm::FolderComboBoxImpl::messageRemoved(const FolderMessageEvent& event)
 {
 	pThis_->postMessage(WM_FOLDERCOMBOBOX_MESSAGEREMOVED,
 		0, reinterpret_cast<LPARAM>(event.getFolder()));

@@ -44,8 +44,8 @@ public:
 					MessageHolderList* pList) const;
 
 public:
-	void fireMessageAdded(MessageHolder* pmh);
-	void fireMessageRemoved(MessageHolder* pmh);
+	void fireMessageAdded(const MessageHolderList& l);
+	void fireMessageRemoved(const MessageHolderList& l);
 	void fireMessageRefreshed();
 	void fireUnseenCountChanged();
 	void fireFolderDestroyed();
@@ -84,25 +84,23 @@ void qm::FolderImpl::getMessages(const MessagePtrList& l,
 	}
 }
 
-void qm::FolderImpl::fireMessageAdded(MessageHolder* pmh)
+void qm::FolderImpl::fireMessageAdded(const MessageHolderList& l)
 {
-	assert(pmh);
 	assert(pAccount_->isLocked());
 	
-	FolderEvent event(pThis_, pmh);
+	FolderMessageEvent event(pThis_, l);
 	for (FolderHandlerList::const_iterator it = listFolderHandler_.begin(); it != listFolderHandler_.end(); ++it)
 		(*it)->messageAdded(event);
 }
 
-void qm::FolderImpl::fireMessageRemoved(MessageHolder* pmh)
+void qm::FolderImpl::fireMessageRemoved(const MessageHolderList& l)
 {
-	assert(pmh);
 	assert(pAccount_->isLocked());
 	
 	if (bDestroyed_)
 		return;
 	
-	FolderEvent event(pThis_, pmh);
+	FolderMessageEvent event(pThis_, l);
 	for (FolderHandlerList::const_iterator it = listFolderHandler_.begin(); it != listFolderHandler_.end(); ++it)
 		(*it)->messageRemoved(event);
 }
@@ -111,7 +109,7 @@ void qm::FolderImpl::fireMessageRefreshed()
 {
 	assert(pAccount_->isLocked());
 	
-	FolderEvent event(pThis_, 0);
+	FolderEvent event(pThis_);
 	for (FolderHandlerList::const_iterator it = listFolderHandler_.begin(); it != listFolderHandler_.end(); ++it)
 		(*it)->messageRefreshed(event);
 }
@@ -120,14 +118,14 @@ void qm::FolderImpl::fireUnseenCountChanged()
 {
 	assert(pAccount_->isLocked());
 	
-	FolderEvent event(pThis_, 0);
+	FolderEvent event(pThis_);
 	for (FolderHandlerList::const_iterator it = listFolderHandler_.begin(); it != listFolderHandler_.end(); ++it)
 		(*it)->unseenCountChanged(event);
 }
 
 void qm::FolderImpl::fireFolderDestroyed()
 {
-	FolderEvent event(pThis_, 0);
+	FolderEvent event(pThis_);
 	
 	FolderHandlerList l(listFolderHandler_);
 	for (FolderHandlerList::const_iterator it = l.begin(); it != l.end(); ++it)
@@ -428,11 +426,7 @@ wstring_ptr qm::NormalFolderImpl::getPath() const
 
 bool qm::NormalFolderImpl::unstoreMessages(const MessageHolderList& l)
 {
-	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-		if (!pThis_->getAccount()->unstoreMessage(*it))
-			return false;
-	}
-	return true;
+	return l.empty() ? true : pThis_->getAccount()->unstoreMessages(l);
 }
 
 bool qm::NormalFolderImpl::unstoreAllMessages()
@@ -845,40 +839,54 @@ bool qm::NormalFolder::appendMessage(std::auto_ptr<MessageHolder> pmh)
 	if (p->isFlag(MessageHolder::FLAG_DELETED))
 		++pImpl_->nDeletedCount_;
 	
-	getImpl()->fireMessageAdded(p);
+	getImpl()->fireMessageAdded(MessageHolderList(1, p));
 	
 	return true;
 }
 
-void qm::NormalFolder::removeMessage(MessageHolder* pmh)
+void qm::NormalFolder::removeMessages(const MessageHolderList& l)
 {
-	assert(pmh);
-	assert(pmh->getFolder() == this);
 	assert(pImpl_->bLoad_);
 	assert(getAccount()->isLocked());
 	
 	pImpl_->bModified_ = true;
 	
-	MessageHolderList::iterator it = std::lower_bound(
-		pImpl_->listMessageHolder_.begin(), pImpl_->listMessageHolder_.end(), pmh,
-		binary_compose_f_gx_hy(
-			std::less<unsigned int>(),
-			std::mem_fun(&MessageHolder::getId),
-			std::mem_fun(&MessageHolder::getId)));
-	assert(it != pImpl_->listMessageHolder_.end() && *it == pmh);
-	pImpl_->listMessageHolder_.erase(it);
+	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		MessageHolder* pmh = *it;
+		assert(pmh);
+		assert(pmh->getFolder() == this);
+		
+		MessageHolderList::iterator it = std::lower_bound(
+			pImpl_->listMessageHolder_.begin(), pImpl_->listMessageHolder_.end(), pmh,
+			binary_compose_f_gx_hy(
+				std::less<unsigned int>(),
+				std::mem_fun(&MessageHolder::getId),
+				std::mem_fun(&MessageHolder::getId)));
+		assert(it != pImpl_->listMessageHolder_.end() && *it == pmh);
+		pImpl_->listMessageHolder_.erase(it);
+		
+		if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
+			--pImpl_->nUnseenCount_;
+		if (pmh->isFlag(MessageHolder::FLAG_DOWNLOAD) ||
+			pmh->isFlag(MessageHolder::FLAG_DOWNLOADTEXT))
+			--pImpl_->nDownloadCount_;
+		if (pmh->isFlag(MessageHolder::FLAG_DELETED))
+			--pImpl_->nDeletedCount_;
+	}
 	
-	if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
-		--pImpl_->nUnseenCount_;
-	if (pmh->isFlag(MessageHolder::FLAG_DOWNLOAD) ||
-		pmh->isFlag(MessageHolder::FLAG_DOWNLOADTEXT))
-		--pImpl_->nDownloadCount_;
-	if (pmh->isFlag(MessageHolder::FLAG_DELETED))
-		--pImpl_->nDeletedCount_;
-	
-	std::auto_ptr<MessageHolder> p(pmh);
-	getImpl()->fireMessageRemoved(pmh);
-	pmh->destroy();
+	struct Deleter
+	{
+		Deleter(const MessageHolderList& l) : l_(l) {}
+		~Deleter()
+		{
+			for (MessageHolderList::const_iterator it = l_.begin(); it != l_.end(); ++it) {
+				std::auto_ptr<MessageHolder> pmh(*it);
+				pmh->destroy();
+			}
+		}
+		const MessageHolderList& l_;
+	} deleter(l);
+	getImpl()->fireMessageRemoved(l);
 }
 
 bool qm::NormalFolder::moveMessages(const MessageHolderList& l,
@@ -933,10 +941,10 @@ bool qm::NormalFolder::moveMessages(const MessageHolderList& l,
 			--pImpl_->nDeletedCount_;
 			++pFolder->pImpl_->nDeletedCount_;
 		}
-		
-		getImpl()->fireMessageRemoved(pmh);
-		pFolder->getImpl()->fireMessageAdded(pmh);
 	}
+	
+	getImpl()->fireMessageRemoved(l);
+	pFolder->getImpl()->fireMessageAdded(l);
 	
 	return true;
 }
@@ -993,7 +1001,7 @@ void qm::QueryFolderImpl::messageHolderDestroyed(const MessageHolderEvent& event
 		listMessageHolder_.begin(), listMessageHolder_.end(), pmh);
 	if (it != listMessageHolder_.end() && *it == pmh) {
 		listMessageHolder_.erase(it);
-		pThis_->getImpl()->fireMessageRemoved(pmh);
+		pThis_->getImpl()->fireMessageRemoved(MessageHolderList(1, pmh));
 	}
 }
 
@@ -1282,10 +1290,8 @@ qm::FolderHandler::~FolderHandler()
  *
  */
 
-qm::FolderEvent::FolderEvent(Folder* pFolder,
-							 MessageHolder* pmh) :
-	pFolder_(pFolder),
-	pmh_(pmh)
+qm::FolderEvent::FolderEvent(Folder* pFolder) :
+	pFolder_(pFolder)
 {
 }
 
@@ -1298,7 +1304,25 @@ Folder* qm::FolderEvent::getFolder() const
 	return pFolder_;
 }
 
-MessageHolder* qm::FolderEvent::getMessageHolder() const
+
+/****************************************************************************
+ *
+ * FolderMessageEvent
+ *
+ */
+
+qm::FolderMessageEvent::FolderMessageEvent(Folder* pFolder,
+										   const MessageHolderList& l) :
+	FolderEvent(pFolder),
+	l_(l)
 {
-	return pmh_;
+}
+
+qm::FolderMessageEvent::~FolderMessageEvent()
+{
+}
+
+const MessageHolderList& qm::FolderMessageEvent::getMessageHolders() const
+{
+	return l_;
 }

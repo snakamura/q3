@@ -797,7 +797,7 @@ MacroValuePtr qm::ViewModel::getValue(const Macro* pMacro,
 	return pMacro->value(&context);
 }
 
-void qm::ViewModel::messageAdded(const FolderEvent& event)
+void qm::ViewModel::messageAdded(const FolderMessageEvent& event)
 {
 	assert(event.getFolder() == pFolder_);
 	
@@ -806,167 +806,182 @@ void qm::ViewModel::messageAdded(const FolderEvent& event)
 	// TODO
 	// Resort if this view model is sorted by flags
 	
-	MessageHolder* pmh = event.getMessageHolder();
-	
-	bool bAdd = true;
-	if (pFilter_) {
-		Message msg;
-		MacroContext context(pmh, &msg, MessageHolderList(),
-			pFolder_->getAccount(), pDocument_, hwnd_, pProfile_, false,
-			/*pSecurityModel_->isDecryptVerify()*/false, 0, 0);
-		bAdd = pFilter_->match(&context);
-	}
-	
-	if (bAdd) {
-		std::auto_ptr<ViewModelItem> pItem(new ViewModelItem(pmh));
+	bool bAdded = false;
+	const MessageHolderList& l = event.getMessageHolders();
+	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		MessageHolder* pmh = *it;
 		
-		if ((getSort() & SORT_THREAD_MASK) == SORT_THREAD) {
-			unsigned int nReferenceHash = pmh->getReferenceHash();
-			if (nReferenceHash != 0) {
-				wstring_ptr wstrReference(pmh->getReference());
-				
-				for (ItemList::const_iterator it = listItem_.begin(); it != listItem_.end(); ++it) {
-					MessageHolder* pmhParent = (*it)->getMessageHolder();
-					if (pmhParent->getMessageIdHash() == nReferenceHash) {
-						wstring_ptr wstrMessageId(pmhParent->getMessageId());
-						if (wcscmp(wstrReference.get(), wstrMessageId.get()) == 0) {
-							pItem->setParentItem(*it);
-							break;
+		bool bAdd = true;
+		if (pFilter_) {
+			Message msg;
+			MacroContext context(pmh, &msg, MessageHolderList(),
+				pFolder_->getAccount(), pDocument_, hwnd_, pProfile_, false,
+				/*pSecurityModel_->isDecryptVerify()*/false, 0, 0);
+			bAdd = pFilter_->match(&context);
+		}
+		
+		if (bAdd) {
+			std::auto_ptr<ViewModelItem> pItem(new ViewModelItem(pmh));
+			
+			if ((getSort() & SORT_THREAD_MASK) == SORT_THREAD) {
+				unsigned int nReferenceHash = pmh->getReferenceHash();
+				if (nReferenceHash != 0) {
+					wstring_ptr wstrReference(pmh->getReference());
+					
+					for (ItemList::const_iterator it = listItem_.begin(); it != listItem_.end(); ++it) {
+						MessageHolder* pmhParent = (*it)->getMessageHolder();
+						if (pmhParent->getMessageIdHash() == nReferenceHash) {
+							wstring_ptr wstrMessageId(pmhParent->getMessageId());
+							if (wcscmp(wstrReference.get(), wstrMessageId.get()) == 0) {
+								pItem->setParentItem(*it);
+								break;
+							}
 						}
 					}
 				}
 			}
+			
+			ItemList::iterator it = std::lower_bound(
+				listItem_.begin(), listItem_.end(), pItem.get(),
+				ViewModelItemComp(this, getColumn(nSort_ & SORT_INDEX_MASK),
+					(nSort_ & SORT_DIRECTION_MASK) == SORT_ASCENDING,
+					(nSort_ & SORT_THREAD_MASK) == SORT_THREAD));
+			
+			ItemList::iterator itInsert = listItem_.insert(it, pItem.get());
+			pItem.release();
+			
+			unsigned int nPos = itInsert - listItem_.begin();
+			if (nLastSelection_ >= nPos && nLastSelection_ < listItem_.size() - 1)
+				++nLastSelection_;
+			if (nFocused_ >= nPos && nFocused_ < listItem_.size() - 1)
+				++nFocused_;
+			if (listItem_.size() == 1) {
+				assert(nFocused_ == 0);
+				assert(nLastSelection_ == 0);
+				listItem_[0]->setFlags(
+					ViewModelItem::FLAG_FOCUSED | ViewModelItem::FLAG_SELECTED,
+					ViewModelItem::FLAG_FOCUSED | ViewModelItem::FLAG_SELECTED);
+			}
+			assert(listItem_.empty() ||
+				(listItem_[nFocused_]->getFlags() & ViewModelItem::FLAG_FOCUSED));
+			
+			if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
+				++nUnseenCount_;
+			
+			bAdded = true;
 		}
-		
-		ItemList::iterator it = std::lower_bound(
-			listItem_.begin(), listItem_.end(), pItem.get(),
-			ViewModelItemComp(this, getColumn(nSort_ & SORT_INDEX_MASK),
-				(nSort_ & SORT_DIRECTION_MASK) == SORT_ASCENDING,
-				(nSort_ & SORT_THREAD_MASK) == SORT_THREAD));
-		
-		ItemList::iterator itInsert = listItem_.insert(it, pItem.get());
-		pItem.release();
-		
-		unsigned int nPos = itInsert - listItem_.begin();
-		if (nLastSelection_ >= nPos && nLastSelection_ < listItem_.size() - 1)
-			++nLastSelection_;
-		if (nFocused_ >= nPos && nFocused_ < listItem_.size() - 1)
-			++nFocused_;
-		if (listItem_.size() == 1) {
-			assert(nFocused_ == 0);
-			assert(nLastSelection_ == 0);
-			listItem_[0]->setFlags(
-				ViewModelItem::FLAG_FOCUSED | ViewModelItem::FLAG_SELECTED,
-				ViewModelItem::FLAG_FOCUSED | ViewModelItem::FLAG_SELECTED);
-		}
-		assert(listItem_.empty() ||
-			(listItem_[nFocused_]->getFlags() & ViewModelItem::FLAG_FOCUSED));
-		
-		if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
-			++nUnseenCount_;
-		
-		fireItemAdded(nPos);
 	}
+	
+	if (bAdded)
+		fireItemAdded();
 }
 
-void qm::ViewModel::messageRemoved(const FolderEvent& event)
+void qm::ViewModel::messageRemoved(const FolderMessageEvent& event)
 {
 	assert(event.getFolder() == pFolder_);
 	
 	Lock<ViewModel> lock(*this);
 	
-	MessageHolder* pmh = event.getMessageHolder();
-	
-	unsigned int nIndex = getIndex(pmh);
-	if (nIndex != -1) {
-		ItemList::iterator it = listItem_.begin() + nIndex;
+	bool bRemoved = false;
+	bool bSort = false;
+	const MessageHolderList& l = event.getMessageHolders();
+	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		MessageHolder* pmh = *it;
 		
-		bool bHasFocus = ((*it)->getFlags() & ViewModelItem::FLAG_FOCUSED) != 0;
-		bool bSelected = ((*it)->getFlags() & ViewModelItem::FLAG_SELECTED) != 0;
-		
-		bool bSort = false;
-		if ((getSort() & SORT_THREAD_MASK) == SORT_THREAD) {
-			ViewModelItem* pItem = *it;
-			unsigned int nLevel = pItem->getLevel();
+		unsigned int nIndex = getIndex(pmh);
+		if (nIndex != -1) {
+			ItemList::iterator it = listItem_.begin() + nIndex;
 			
-			ItemList::const_iterator itEnd = it + 1;
-			while (itEnd != listItem_.end() && (*itEnd)->getLevel() > nLevel)
-				++itEnd;
+			bool bHasFocus = ((*it)->getFlags() & ViewModelItem::FLAG_FOCUSED) != 0;
+			bool bSelected = ((*it)->getFlags() & ViewModelItem::FLAG_SELECTED) != 0;
 			
-			ItemList::const_iterator itC = it + 1;
-			while (itC != itEnd) {
-				if ((*itC)->getParentItem() == pItem) {
-					(*itC)->setParentItem(0);
-					bSort = true;
+			if ((getSort() & SORT_THREAD_MASK) == SORT_THREAD) {
+				ViewModelItem* pItem = *it;
+				unsigned int nLevel = pItem->getLevel();
+				
+				ItemList::const_iterator itEnd = it + 1;
+				while (itEnd != listItem_.end() && (*itEnd)->getLevel() > nLevel)
+					++itEnd;
+				
+				ItemList::const_iterator itC = it + 1;
+				while (itC != itEnd) {
+					if ((*itC)->getParentItem() == pItem) {
+						(*itC)->setParentItem(0);
+						bSort = true;
+					}
+					++itC;
 				}
-				++itC;
+				assert(std::find_if(listItem_.begin(), listItem_.end(),
+					std::bind2nd(
+						binary_compose_f_gx_hy(
+							std::equal_to<ViewModelItem*>(),
+							std::mem_fun(&ViewModelItem::getParentItem),
+							std::identity<ViewModelItem*>()),
+						pItem)) == listItem_.end());
 			}
-			assert(std::find_if(listItem_.begin(), listItem_.end(),
-				std::bind2nd(
-					binary_compose_f_gx_hy(
-						std::equal_to<ViewModelItem*>(),
-						std::mem_fun(&ViewModelItem::getParentItem),
-						std::identity<ViewModelItem*>()),
-					pItem)) == listItem_.end());
-		}
-		
-		fireItemRemoved(nIndex);
-		
-		delete *it;
-		it = listItem_.erase(it);
-		
-		if (bHasFocus) {
-			assert(nFocused_ == nIndex);
-			if (it == listItem_.end()) {
-				if (listItem_.empty())
-					nFocused_ = 0;
-				else
-					--nFocused_;
-			}
-			if (!listItem_.empty())
-				listItem_[nFocused_]->setFlags(ViewModelItem::FLAG_FOCUSED,
-					ViewModelItem::FLAG_FOCUSED);
-		}
-		else if (nFocused_ > nIndex) {
-			--nFocused_;
-			assert(!listItem_.empty());
-			assert(listItem_[nFocused_]->getFlags() & ViewModelItem::FLAG_FOCUSED);
-		}
-		
-		if (bSelected) {
-			if (it == listItem_.end()) {
+			
+			delete *it;
+			it = listItem_.erase(it);
+			
+			if (bHasFocus) {
+				assert(nFocused_ == nIndex);
+				if (it == listItem_.end()) {
+					if (listItem_.empty())
+						nFocused_ = 0;
+					else
+						--nFocused_;
+				}
 				if (!listItem_.empty())
-					listItem_.back()->setFlags(ViewModelItem::FLAG_SELECTED,
-						ViewModelItem::FLAG_SELECTED);
+					listItem_[nFocused_]->setFlags(ViewModelItem::FLAG_FOCUSED,
+						ViewModelItem::FLAG_FOCUSED);
 			}
-			else {
-				(*it)->setFlags(ViewModelItem::FLAG_SELECTED,
-					ViewModelItem::FLAG_SELECTED);
+			else if (nFocused_ > nIndex) {
+				--nFocused_;
+				assert(!listItem_.empty());
+				assert(listItem_[nFocused_]->getFlags() & ViewModelItem::FLAG_FOCUSED);
 			}
-		}
-		if (nLastSelection_ == nIndex) {
-			if (it == listItem_.end()) {
-				if (listItem_.empty()) {
-					nLastSelection_ = 0;
+			
+			if (bSelected) {
+				if (it == listItem_.end()) {
+					if (!listItem_.empty())
+						listItem_.back()->setFlags(ViewModelItem::FLAG_SELECTED,
+							ViewModelItem::FLAG_SELECTED);
 				}
 				else {
-					nLastSelection_ = listItem_.size() - 1;
-					listItem_[nLastSelection_]->setFlags(
-						ViewModelItem::FLAG_SELECTED,
+					(*it)->setFlags(ViewModelItem::FLAG_SELECTED,
 						ViewModelItem::FLAG_SELECTED);
 				}
 			}
+			if (nLastSelection_ == nIndex) {
+				if (it == listItem_.end()) {
+					if (listItem_.empty()) {
+						nLastSelection_ = 0;
+					}
+					else {
+						nLastSelection_ = listItem_.size() - 1;
+						listItem_[nLastSelection_]->setFlags(
+							ViewModelItem::FLAG_SELECTED,
+							ViewModelItem::FLAG_SELECTED);
+					}
+				}
+			}
+			else if (nLastSelection_ > nIndex) {
+				--nLastSelection_;
+				assert(!listItem_.empty());
+			}
+			
+			if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
+				--nUnseenCount_;
+			
+			bRemoved = true;
 		}
-		else if (nLastSelection_ > nIndex) {
-			--nLastSelection_;
-			assert(!listItem_.empty());
-		}
-		
+	}
+	
+	if (bRemoved) {
 		if (bSort)
 			sort(nSort_, true, false);
 		
-		if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
-			--nUnseenCount_;
+		fireItemRemoved();
 	}
 }
 
@@ -1153,14 +1168,14 @@ void qm::ViewModel::makeParentLink(const ItemList& listItemSortedByMessageIdHash
 	}
 }
 
-void qm::ViewModel::fireItemAdded(unsigned int nItem) const
+void qm::ViewModel::fireItemAdded() const
 {
-	fireEvent(ViewModelEvent(this, nItem), &ViewModelHandler::itemAdded);
+	fireEvent(ViewModelEvent(this), &ViewModelHandler::itemAdded);
 }
 
-void qm::ViewModel::fireItemRemoved(unsigned int nItem) const
+void qm::ViewModel::fireItemRemoved() const
 {
-	fireEvent(ViewModelEvent(this, nItem), &ViewModelHandler::itemRemoved);
+	fireEvent(ViewModelEvent(this), &ViewModelHandler::itemRemoved);
 }
 
 void qm::ViewModel::fireItemChanged(unsigned int nItem) const

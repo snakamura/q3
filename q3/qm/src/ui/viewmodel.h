@@ -307,8 +307,8 @@ public:
 						   MessageHolder* pmh) const;
 
 public:
-	virtual void messageAdded(const FolderEvent& event);
-	virtual void messageRemoved(const FolderEvent& event);
+	virtual void messageAdded(const FolderMessageEvent& event);
+	virtual void messageRemoved(const FolderMessageEvent& event);
 	virtual void messageRefreshed(const FolderEvent& event);
 	virtual void unseenCountChanged(const FolderEvent& event);
 	virtual void folderDestroyed(const FolderEvent& event);
@@ -328,8 +328,8 @@ private:
 						ViewModelItem* pItem);
 
 private:
-	void fireItemAdded(unsigned int nItem) const;
-	void fireItemRemoved(unsigned int nItem) const;
+	void fireItemAdded() const;
+	void fireItemRemoved() const;
 	void fireItemChanged(unsigned int nItem) const;
 	void fireItemStateChanged(unsigned int nItem) const;
 	void fireItemAttentionPaid(unsigned int nItem) const;

@@ -28,7 +28,7 @@ class Folder;
 class FolderLess;
 class FolderHandler;
 class FolderEvent;
-class MessageEvent;
+	class FolderMessageEvent;
 
 class Account;
 class Document;
@@ -196,7 +196,7 @@ public:
 public:
 	unsigned int generateId();
 	bool appendMessage(std::auto_ptr<MessageHolder> pmh);
-	void removeMessage(MessageHolder* pmh);
+	void removeMessages(const MessageHolderList& l);
 	bool moveMessages(const MessageHolderList& l,
 					  NormalFolder* pFolder);
 
@@ -306,8 +306,8 @@ public:
 	virtual ~FolderHandler();
 
 public:
-	virtual void messageAdded(const FolderEvent& event) = 0;
-	virtual void messageRemoved(const FolderEvent& event) = 0;
+	virtual void messageAdded(const FolderMessageEvent& event) = 0;
+	virtual void messageRemoved(const FolderMessageEvent& event) = 0;
 	virtual void messageRefreshed(const FolderEvent& event) = 0;
 	virtual void unseenCountChanged(const FolderEvent& event) = 0;
 	virtual void folderDestroyed(const FolderEvent& event) = 0;
@@ -323,13 +323,11 @@ public:
 class FolderEvent
 {
 public:
-	FolderEvent(Folder* pFolder,
-				MessageHolder* pmh);
+	explicit FolderEvent(Folder* pFolder);
 	~FolderEvent();
 
 public:
 	Folder* getFolder() const;
-	MessageHolder* getMessageHolder() const;
 
 private:
 	FolderEvent(const FolderEvent&);
@@ -337,7 +335,31 @@ private:
 
 private:
 	Folder* pFolder_;
-	MessageHolder* pmh_;
+};
+
+
+/****************************************************************************
+ *
+ * FolderMessageEvent
+ *
+ */
+
+class FolderMessageEvent : public FolderEvent
+{
+public:
+	FolderMessageEvent(Folder* pFolder,
+					   const MessageHolderList& l);
+	~FolderMessageEvent();
+
+public:
+	const MessageHolderList& getMessageHolders() const;
+
+private:
+	FolderMessageEvent(const FolderMessageEvent&);
+	FolderMessageEvent& operator=(const FolderMessageEvent&);
+
+private:
+	const MessageHolderList& l_;
 };
 
 }

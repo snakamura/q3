@@ -114,9 +114,8 @@ void qm::AbstractMessageModel::itemRemoved(const ViewModelEvent& event)
 {
 	Lock<ViewModel> lock(*pViewModel_);
 	
-	const ViewModelItem* pItem = pViewModel_->getItem(event.getItem());
 	MessagePtrLock mpl(ptr_);
-	if (!mpl || mpl == pItem->getMessageHolder())
+	if (!mpl)
 		setMessage(0);
 }
 

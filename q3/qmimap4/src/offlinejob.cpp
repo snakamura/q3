@@ -355,7 +355,7 @@ bool qmimap4::AppendOfflineJob::apply(Account* pAccount,
 			if (!pImap4->append(wstrName.get(), strContent.get(), flags))
 				return false;
 			
-			if (!pAccount->unstoreMessage(mpl))
+			if (!pAccount->unstoreMessages(MessageHolderList(1, mpl)))
 				return false;
 		}
 	}
@@ -466,13 +466,15 @@ bool qmimap4::CopyOfflineJob::apply(Account* pAccount,
 		
 		Lock<Account> lock(*pAccount);
 		
+		MessageHolderList l;
+		l.reserve(listItemTo_.size());
 		for (ItemList::const_iterator it = listItemTo_.begin(); it != listItemTo_.end(); ++it) {
 			MessageHolder* pmh = pNormalFolder->getMessageHolderById((*it).nId_);
-			if (pmh && pmh->isFlag(MessageHolder::FLAG_LOCAL)) {
-				if (!pAccount->unstoreMessage(pmh))
-					return false;
-			}
+			if (pmh && pmh->isFlag(MessageHolder::FLAG_LOCAL))
+				l.push_back(pmh);
 		}
+		if (!pAccount->unstoreMessages(l))
+			return false;
 	}
 	
 	return true;
