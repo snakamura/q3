@@ -1029,10 +1029,10 @@ bool qm::MAPIAddressBook::load(AddressBook* pAddressBook)
 	ULONG props[] = {
 		PR_ENTRYID,
 		PR_OBJECT_TYPE,
-		PR_DISPLAY_NAME,
-		PR_EMAIL_ADDRESS,
-		PR_ADDRTYPE,
-		PR_CONTACT_EMAIL_ADDRESSES
+		PR_DISPLAY_NAME_W,
+		PR_EMAIL_ADDRESS_W,
+		PR_ADDRTYPE_W,
+		PR_CONTACT_EMAIL_ADDRESSES_W
 	};
 	SizedSPropTagArray(countof(props), columns) = {
 		countof(props)
@@ -1198,9 +1198,9 @@ wstring_ptr qm::MAPIAddressBook::expandDistList(IDistList* pDistList) const
 	StringBuffer<WSTRING> buf;
 	
 	ULONG props[] = {
-		PR_DISPLAY_NAME,
-		PR_EMAIL_ADDRESS,
-		PR_ADDRTYPE
+		PR_DISPLAY_NAME_W,
+		PR_EMAIL_ADDRESS_W,
+		PR_ADDRTYPE_W
 	};
 	SizedSPropTagArray(countof(props), columns) = {
 		countof(props)
