@@ -26,6 +26,9 @@ struct ActionNameMap
 	const WCHAR* pwszName_;
 	unsigned int nId_;
 } actionNameMap[] = {
+	{ L"AttachmentOpen",				IDM_ATTACHMENT_OPEN						},
+	{ L"AttachmentSave",				IDM_ATTACHMENT_SAVE						},
+	{ L"AttachmentSaveAll",				IDM_ATTACHMENT_SAVEALL					},
 	{ L"EditClearDeleted",				IDM_EDIT_CLEARDELETED					},
 	{ L"EditCopy",						IDM_EDIT_COPY							},
 	{ L"EditCut",						IDM_EDIT_CUT							},
@@ -68,6 +71,7 @@ struct ActionNameMap
 	{ L"FolderCreate",					IDM_FOLDER_CREATE						},
 	{ L"FolderDelete",					IDM_FOLDER_DELETE						},
 	{ L"FolderEmpty",					IDM_FOLDER_EMPTY						},
+	{ L"FolderProperty",				IDM_FOLDER_PROPERTY						},
 	{ L"FolderUpdate",					IDM_FOLDER_UPDATE						},
 	{ L"HeaderEditItem0",				IDM_FOCUS_HEADEREDITITEM				},
 	{ L"HeaderEditItem1",				IDM_FOCUS_HEADEREDITITEM + 1			},
@@ -204,6 +208,7 @@ struct ActionNameMap
 	{ L"ViewNextMessage",				IDM_VIEW_NEXTMESSAGE					},
 	{ L"ViewNextMessagePage",			IDM_VIEW_NEXTMESSAGEPAGE				},
 	{ L"ViewNextUnseenMessage",			IDM_VIEW_NEXTUNSEENMESSAGE				},
+	{ L"ViewOpenLink",					IDM_VIEW_OPENLINK						},
 	{ L"ViewPrevAccount",				IDM_VIEW_PREVACCOUNT					},
 	{ L"ViewPrevFolder",				IDM_VIEW_PREVFOLDER						},
 	{ L"ViewPrevMessage",				IDM_VIEW_PREVMESSAGE					},
@@ -223,6 +228,7 @@ struct ActionNameMap
 	{ L"ViewShowHeaderColumn",			IDM_VIEW_SHOWHEADERCOLUMN				},
 	{ L"ViewShowPreview",				IDM_VIEW_SHOWPREVIEW					},
 	{ L"ViewShowStatusBar",				IDM_VIEW_SHOWSTATUSBAR					},
+	{ L"ViewShowSyncDialog",			IDM_VIEW_SHOWSYNCDIALOG					},
 	{ L"ViewShowToolbar",				IDM_VIEW_SHOWTOOLBAR					},
 	{ L"ViewSort0",						IDM_VIEW_SORT							},
 	{ L"ViewSort1",						IDM_VIEW_SORT + 1						},
