@@ -34,48 +34,52 @@ qscrypto::SMIMEUtilityImpl::~SMIMEUtilityImpl()
 {
 }
 
-SMIMEUtilityImpl::Type qscrypto::SMIMEUtilityImpl::getType(const Part& part) const
+SMIMEUtility::Type qscrypto::SMIMEUtilityImpl::getType(const Part& part) const
 {
-	const ContentTypeParser* pContentType = part.getContentType();
+	return getType(part.getContentType());
+}
+
+SMIMEUtility::Type qscrypto::SMIMEUtilityImpl::getType(const ContentTypeParser* pContentType) const
+{
 	if (!pContentType)
 		return TYPE_NONE;
 	
 	const WCHAR* pwszMediaType = pContentType->getMediaType();
 	const WCHAR* pwszSubType = pContentType->getSubType();
-	if (wcscmp(pwszMediaType, L"multipart") == 0 &&
-		wcscmp(pwszSubType, L"signed") == 0) {
+	if (_wcsicmp(pwszMediaType, L"multipart") == 0 &&
+		_wcsicmp(pwszSubType, L"signed") == 0) {
 		wstring_ptr wstrProtocol(pContentType->getParameter(L"protocol"));
 		if (!wstrProtocol.get())
 			return TYPE_NONE;
-		if (wcscmp(wstrProtocol.get(), L"pkcs7-signature") == 0 ||
-			wcscmp(wstrProtocol.get(), L"x-pkcs7-signature") == 0) {
-			if (part.getPartCount() == 2) {
-				Part* pChild = part.getPart(1);
-				const ContentTypeParser* pChildType = pChild->getContentType();
-				if (wcscmp(pChildType->getMediaType(), L"application") == 0 &&
-					(wcscmp(pChildType->getSubType(), L"pkcs7-signature") == 0 ||
-					wcscmp(pChildType->getSubType(), L"x-pkcs7-signature") == 0))
+		if (_wcsicmp(wstrProtocol.get(), L"pkcs7-signature") == 0 ||
+			_wcsicmp(wstrProtocol.get(), L"x-pkcs7-signature") == 0) {
+//			if (part.getPartCount() == 2) {
+//				Part* pChild = part.getPart(1);
+//				const ContentTypeParser* pChildType = pChild->getContentType();
+//				if (_wcsicmp(pChildType->getMediaType(), L"application") == 0 &&
+//					(_wcsicmp(pChildType->getSubType(), L"pkcs7-signature") == 0 ||
+//					_wcsicmp(pChildType->getSubType(), L"x-pkcs7-signature") == 0))
 					return TYPE_MULTIPARTSIGNED;
-			}
+//			}
 		}
 	}
-	else if (wcscmp(pwszMediaType, L"application") == 0 &&
-		(wcscmp(pwszSubType, L"pkcs7-mime") == 0 ||
-		wcscmp(pwszSubType, L"x-pkcs7-mime") == 0)) {
+	else if (_wcsicmp(pwszMediaType, L"application") == 0 &&
+		(_wcsicmp(pwszSubType, L"pkcs7-mime") == 0 ||
+		_wcsicmp(pwszSubType, L"x-pkcs7-mime") == 0)) {
 		wstring_ptr wstrType(pContentType->getParameter(L"smime-type"));
 		if (!wstrType.get())
 			;
-		else if (wcscmp(wstrType.get(), L"signed-data") == 0)
+		else if (_wcsicmp(wstrType.get(), L"signed-data") == 0)
 			return TYPE_SIGNED;
-		else if (wcscmp(wstrType.get(), L"enveloped-data") == 0)
+		else if (_wcsicmp(wstrType.get(), L"enveloped-data") == 0)
 			return TYPE_ENVELOPED;
 		
 		wstring_ptr wstrName(pContentType->getParameter(L"name"));
 		if (!wstrName.get())
 			return TYPE_NONE;
-//		else if (wcscmp(wstrName.get(), L"smime.p7s") == 0)
+//		else if (_wcsicmp(wstrName.get(), L"smime.p7s") == 0)
 //			return TYPE_SIGNED;
-		else if (wcscmp(wstrName.get(), L"smime.p7m") == 0)
+		else if (_wcsicmp(wstrName.get(), L"smime.p7m") == 0)
 			return TYPE_ENVELOPED;
 	}
 	
@@ -136,7 +140,7 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
 	assert(getType(part) == TYPE_SIGNED || getType(part) == TYPE_MULTIPARTSIGNED);
 	
 	const ContentTypeParser* pContentType = part.getContentType();
-	if (wcscmp(pContentType->getMediaType(), L"multipart") == 0) {
+	if (_wcsicmp(pContentType->getMediaType(), L"multipart") == 0) {
 		// TODO
 	}
 	else {

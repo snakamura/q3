@@ -12,6 +12,7 @@
 #include <qmmessageholder.h>
 #include <qmmessageoperation.h>
 #include <qmprotocoldriver.h>
+#include <qmsecurity.h>
 
 #include <qsconv.h>
 #include <qsfile.h>
@@ -59,6 +60,9 @@ public:
 	bool loadSubAccounts();
 	bool saveSubAccounts() const;
 	
+	bool getMessage(MessageHolder* pmh,
+					unsigned int nFlags,
+					Message* pMessage);
 	bool appendMessage(NormalFolder* pFolder,
 					   const CHAR* pszMessage,
 					   const Message& msgHeader,
@@ -100,6 +104,7 @@ public:
 	wstring_ptr wstrMessageStorePath_;
 	bool bMultiMessageStore_;
 	Profile* pProfile_;
+	const Security* pSecurity_;
 	Account::SubAccountList listSubAccount_;
 	SubAccount* pCurrentSubAccount_;
 	Account::FolderList listFolder_;
@@ -267,6 +272,155 @@ bool qm::AccountImpl::saveSubAccounts() const
 		if (!(*it)->save())
 			return false;
 	}
+	return true;
+}
+
+bool qm::AccountImpl::getMessage(MessageHolder* pmh,
+								 unsigned int nFlags,
+								 Message* pMessage)
+{
+	assert(pmh);
+	assert(pMessage);
+	assert((nFlags & Account::GETMESSAGEFLAG_METHOD_MASK) != 0);
+	
+#ifndef NDEBUG
+	Message::Flag flag = pMessage->getFlag();
+	switch (nFlags & Account::GETMESSAGEFLAG_METHOD_MASK) {
+	case Account::GETMESSAGEFLAG_ALL:
+		assert(flag != Message::FLAG_NONE);
+		break;
+	case Account::GETMESSAGEFLAG_HEADER:
+		assert(flag != Message::FLAG_NONE &&
+			flag != Message::FLAG_HEADERONLY &&
+			flag != Message::FLAG_TEXTONLY &&
+			flag != Message::FLAG_HTMLONLY);
+		break;
+	case Account::GETMESSAGEFLAG_TEXT:
+		assert(flag != Message::FLAG_NONE &&
+			flag != Message::FLAG_TEXTONLY &&
+			flag != Message::FLAG_HTMLONLY);
+		break;
+	case Account::GETMESSAGEFLAG_HTML:
+		assert(flag != Message::FLAG_NONE &&
+			flag != Message::FLAG_HTMLONLY);
+		break;
+	case Account::GETMESSAGEFLAG_POSSIBLE:
+		break;
+	default:
+		assert(false);
+		break;
+	}
+#endif
+	
+	bool bLoadFromStore = false;
+	Message::Flag msgFlag = Message::FLAG_NONE;
+	unsigned int nPartialMask = pmh->getFlags() & MessageHolder::FLAG_PARTIAL_MASK;
+	switch (nFlags & Account::GETMESSAGEFLAG_METHOD_MASK) {
+	case Account::GETMESSAGEFLAG_ALL:
+		bLoadFromStore = nPartialMask == 0;
+		msgFlag = Message::FLAG_NONE;
+		break;
+	case Account::GETMESSAGEFLAG_HEADER:
+		bLoadFromStore = nPartialMask == 0 ||
+			nPartialMask == MessageHolder::FLAG_HTMLONLY ||
+			nPartialMask == MessageHolder::FLAG_TEXTONLY ||
+			nPartialMask == MessageHolder::FLAG_HEADERONLY;
+		msgFlag = Message::FLAG_HEADERONLY;
+		break;
+	case Account::GETMESSAGEFLAG_TEXT:
+		bLoadFromStore = nPartialMask == 0 ||
+			nPartialMask == MessageHolder::FLAG_HTMLONLY ||
+			nPartialMask == MessageHolder::FLAG_TEXTONLY;
+		msgFlag = nPartialMask == 0 ? Message::FLAG_NONE :
+			nPartialMask == MessageHolder::FLAG_HTMLONLY ?
+			Message::FLAG_HTMLONLY : Message::FLAG_TEXTONLY;
+		break;
+	case Account::GETMESSAGEFLAG_HTML:
+		bLoadFromStore = nPartialMask == 0 ||
+			nPartialMask == MessageHolder::FLAG_HTMLONLY;
+		msgFlag = nPartialMask == 0 ? Message::FLAG_NONE : Message::FLAG_HTMLONLY;
+		break;
+	case Account::GETMESSAGEFLAG_POSSIBLE:
+		bLoadFromStore = true;
+		msgFlag = nPartialMask == 0 ? Message::FLAG_NONE :
+			nPartialMask == MessageHolder::FLAG_INDEXONLY ? Message::FLAG_TEMPORARY :
+			nPartialMask == MessageHolder::FLAG_HEADERONLY ? Message::FLAG_HEADERONLY :
+			nPartialMask == MessageHolder::FLAG_TEXTONLY ? Message::FLAG_TEXTONLY :
+			/*nPartialMask == MessageHolder::FLAG_HTMLONLY ?*/ Message::FLAG_HTMLONLY/* : 0*/;
+		break;
+	default:
+		assert(false);
+		break;
+	}
+	if (pmh->getFolder()->isFlag(Folder::FLAG_LOCAL) ||
+		pmh->isFlag(MessageHolder::FLAG_LOCAL))
+		bLoadFromStore = true;
+	
+	bool bGet = false;
+	bool bMadeSeen = false;
+	if (!bLoadFromStore) {
+		xstring_ptr strMessage;
+		Message::Flag remoteFlag = Message::FLAG_EMPTY;
+		if (!pProtocolDriver_->getMessage(pThis_->getCurrentSubAccount(),
+			pmh, nFlags, &strMessage, &remoteFlag, &bMadeSeen))
+			return false;
+		bGet = remoteFlag != Message::FLAG_EMPTY;
+		if (bGet) {
+			if (!pMessage->create(strMessage.get(), -1, remoteFlag))
+				return false;
+			
+			if (pmh->getFolder()->isFlag(Folder::FLAG_CACHEWHENREAD)) {
+				if (!pThis_->updateMessage(pmh, strMessage.get()))
+					return false;
+				
+				unsigned int nMessageFlag = 0;
+				switch (remoteFlag) {
+				case Message::FLAG_HEADERONLY:
+					nMessageFlag = MessageHolder::FLAG_HEADERONLY;
+					break;
+				case Message::FLAG_TEXTONLY:
+					nMessageFlag = MessageHolder::FLAG_TEXTONLY;
+					break;
+				case Message::FLAG_HTMLONLY:
+					nMessageFlag = MessageHolder::FLAG_HTMLONLY;
+					break;
+				}
+				pmh->setFlags(nMessageFlag, MessageHolder::FLAG_PARTIAL_MASK);
+			}
+		}
+		else {
+			if (nFlags & Account::GETMESSAGEFLAG_NOFALLBACK)
+				return false;
+		}
+	}
+	
+	if (!bGet) {
+		const MessageHolder::MessageBoxKey& key = pmh->getMessageBoxKey();
+		if (key.nOffset_ != -1) {
+			unsigned int nLength =
+				(nFlags & Account::GETMESSAGEFLAG_METHOD_MASK) == Account::GETMESSAGEFLAG_HEADER ?
+				key.nHeaderLength_ : key.nLength_;
+			if (!pMessageStore_->load(key.nOffset_, nLength, pMessage))
+				return false;
+			pMessage->setFlag(msgFlag);
+		}
+		else {
+			if (pMessage->getFlag() == Message::FLAG_EMPTY) {
+				if (!createTemporaryMessage(pmh, pMessage))
+					return false;
+			}
+		}
+	}
+	
+	if ((nFlags & Account::GETMESSAGEFLAG_MAKESEEN) &&
+		!bMadeSeen &&
+		!pmh->isFlag(MessageHolder::FLAG_SEEN)) {
+		MessageHolderList l(1, pmh);
+		if (!setMessagesFlags(pmh->getFolder(), l,
+			MessageHolder::FLAG_SEEN, MessageHolder::FLAG_SEEN))
+			return false;
+	}
+	
 	return true;
 }
 
@@ -622,6 +776,7 @@ qm::Account::Account(const WCHAR* pwszPath,
 	pImpl_->wstrName_ = wstrName;
 	pImpl_->wstrPath_ = wstrPath;
 	pImpl_->pProfile_ = 0;
+	pImpl_->pSecurity_ = pSecurity;
 	pImpl_->pCurrentSubAccount_ = 0;
 #ifndef NDEBUG
 	pImpl_->nLock_ = 0;
@@ -1581,146 +1736,65 @@ bool qm::Account::getMessage(MessageHolder* pmh,
 							 unsigned int nFlags,
 							 Message* pMessage)
 {
-	assert(pmh);
-	assert(pMessage);
-	assert((nFlags & GETMESSAGEFLAG_METHOD_MASK) != 0);
+	bool bSecurity = Security::isEnabled() && (nFlags & GETMESSAGEFLAG_NOSECURITY) == 0;
 	
-#ifndef NDEBUG
-	Message::Flag flag = pMessage->getFlag();
-	switch (nFlags & GETMESSAGEFLAG_METHOD_MASK) {
-	case GETMESSAGEFLAG_ALL:
-		assert(flag != Message::FLAG_NONE);
-		break;
-	case GETMESSAGEFLAG_HEADER:
-		assert(flag != Message::FLAG_NONE &&
-			flag != Message::FLAG_HEADERONLY &&
-			flag != Message::FLAG_TEXTONLY &&
-			flag != Message::FLAG_HTMLONLY);
-		break;
-	case GETMESSAGEFLAG_TEXT:
-		assert(flag != Message::FLAG_NONE &&
-			flag != Message::FLAG_TEXTONLY &&
-			flag != Message::FLAG_HTMLONLY);
-		break;
-	case GETMESSAGEFLAG_HTML:
-		assert(flag != Message::FLAG_NONE &&
-			flag != Message::FLAG_HTMLONLY);
-		break;
-	case GETMESSAGEFLAG_POSSIBLE:
-		break;
-	default:
-		assert(false);
-		break;
+	if (bSecurity && pmh->isFlag(MessageHolder::FLAG_ENVELOPED)) {
+		nFlags &= ~GETMESSAGEFLAG_METHOD_MASK;
+		nFlags |= GETMESSAGEFLAG_ALL;
 	}
-#endif
 	
-	bool bLoadFromStore = false;
-	Message::Flag msgFlag = Message::FLAG_NONE;
-	unsigned int nPartialMask = pmh->getFlags() & MessageHolder::FLAG_PARTIAL_MASK;
-	switch (nFlags & GETMESSAGEFLAG_METHOD_MASK) {
-	case GETMESSAGEFLAG_ALL:
-		bLoadFromStore = nPartialMask == 0;
-		msgFlag = Message::FLAG_NONE;
-		break;
-	case GETMESSAGEFLAG_HEADER:
-		bLoadFromStore = nPartialMask == 0 ||
-			nPartialMask == MessageHolder::FLAG_HTMLONLY ||
-			nPartialMask == MessageHolder::FLAG_TEXTONLY ||
-			nPartialMask == MessageHolder::FLAG_HEADERONLY;
-		msgFlag = Message::FLAG_HEADERONLY;
-		break;
-	case GETMESSAGEFLAG_TEXT:
-		bLoadFromStore = nPartialMask == 0 ||
-			nPartialMask == MessageHolder::FLAG_HTMLONLY ||
-			nPartialMask == MessageHolder::FLAG_TEXTONLY;
-		msgFlag = nPartialMask == 0 ? Message::FLAG_NONE :
-			nPartialMask == MessageHolder::FLAG_HTMLONLY ?
-			Message::FLAG_HTMLONLY : Message::FLAG_TEXTONLY;
-		break;
-	case GETMESSAGEFLAG_HTML:
-		bLoadFromStore = nPartialMask == 0 ||
-			nPartialMask == MessageHolder::FLAG_HTMLONLY;
-		msgFlag = nPartialMask == 0 ? Message::FLAG_NONE : Message::FLAG_HTMLONLY;
-		break;
-	case GETMESSAGEFLAG_POSSIBLE:
-		bLoadFromStore = true;
-		msgFlag = nPartialMask == 0 ? Message::FLAG_NONE :
-			nPartialMask == MessageHolder::FLAG_INDEXONLY ? Message::FLAG_TEMPORARY :
-			nPartialMask == MessageHolder::FLAG_HEADERONLY ? Message::FLAG_HEADERONLY :
-			nPartialMask == MessageHolder::FLAG_TEXTONLY ? Message::FLAG_TEXTONLY :
-			/*nPartialMask == MessageHolder::FLAG_HTMLONLY ?*/ Message::FLAG_HTMLONLY/* : 0*/;
-		break;
-	default:
-		assert(false);
-		break;
-	}
-	if (pmh->getFolder()->isFlag(Folder::FLAG_LOCAL) ||
-		pmh->isFlag(MessageHolder::FLAG_LOCAL))
-		bLoadFromStore = true;
+	if (!pImpl_->getMessage(pmh, nFlags, pMessage))
+		return false;
 	
-	bool bGet = false;
-	bool bMadeSeen = false;
-	if (!bLoadFromStore) {
-		xstring_ptr strMessage;
-		Message::Flag remoteFlag = Message::FLAG_EMPTY;
-		if (!pImpl_->pProtocolDriver_->getMessage(getCurrentSubAccount(),
-			pmh, nFlags, &strMessage, &remoteFlag, &bMadeSeen))
-			return false;
-		bGet = remoteFlag != Message::FLAG_EMPTY;
-		if (bGet) {
-			if (!pMessage->create(strMessage.get(), -1, remoteFlag))
-				return false;
-			
-			if (pmh->getFolder()->isFlag(Folder::FLAG_CACHEWHENREAD)) {
-				if (!updateMessage(pmh, strMessage.get()))
+	if (bSecurity) {
+		unsigned int nSecurity = Message::SECURITY_NONE;
+		const SMIMEUtility* pSMIMEUtility = pImpl_->pSecurity_->getSMIMEUtility();
+		SMIMEUtility::Type type = pSMIMEUtility->getType(*pMessage);
+		if  (type != SMIMEUtility::TYPE_NONE) {
+			if (pMessage->getFlag() != Message::FLAG_NONE) {
+				pMessage->clear();
+				if (!pImpl_->getMessage(pmh, GETMESSAGEFLAG_ALL, pMessage))
 					return false;
-				
-				unsigned int nMessageFlag = 0;
-				switch (remoteFlag) {
-				case Message::FLAG_HEADERONLY:
-					nMessageFlag = MessageHolder::FLAG_HEADERONLY;
-					break;
-				case Message::FLAG_TEXTONLY:
-					nMessageFlag = MessageHolder::FLAG_TEXTONLY;
-					break;
-				case Message::FLAG_HTMLONLY:
-					nMessageFlag = MessageHolder::FLAG_HTMLONLY;
-					break;
+			}
+		}
+		
+		while  (type != SMIMEUtility::TYPE_NONE) {
+			xstring_ptr strMessage;
+			switch (type) {
+			case SMIMEUtility::TYPE_SIGNED:
+			case SMIMEUtility::TYPE_MULTIPARTSIGNED:
+				strMessage = pSMIMEUtility->verify(*pMessage, pImpl_->pSecurity_->getCA());
+				if (!strMessage.get())
+					return false;
+				nSecurity |= Message::SECURITY_VERIFIED;
+				break;
+			case SMIMEUtility::TYPE_ENVELOPED:
+				{
+					SubAccount* pSubAccount = getCurrentSubAccount();
+					PrivateKey* pPrivateKey = pSubAccount->getPrivateKey();
+					Certificate* pCertificate = pSubAccount->getCertificate();
+					if (pPrivateKey && pCertificate) {
+						strMessage = pSMIMEUtility->decrypt(*pMessage, pPrivateKey, pCertificate);
+						if (!strMessage.get())
+							return false;
+						nSecurity |= Message::SECURITY_DECRYPTED;
+					}
 				}
-				pmh->setFlags(nMessageFlag, MessageHolder::FLAG_PARTIAL_MASK);
+				break;
+			case SMIMEUtility::TYPE_ENVELOPEDORSIGNED:
+				// TODO
+				break;
+			default:
+				break;
 			}
-		}
-		else {
-			if (nFlags & GETMESSAGEFLAG_NOFALLBACK)
+			
+			if (!strMessage.get())
+				break;
+			
+			if (!pMessage->create(strMessage.get(), -1, Message::FLAG_NONE, nSecurity))
 				return false;
+			type = pSMIMEUtility->getType(*pMessage);
 		}
-	}
-	
-	if (!bGet) {
-		const MessageHolder::MessageBoxKey& key = pmh->getMessageBoxKey();
-		if (key.nOffset_ != -1) {
-			unsigned int nLength =
-				(nFlags & GETMESSAGEFLAG_METHOD_MASK) == GETMESSAGEFLAG_HEADER ?
-				key.nHeaderLength_ : key.nLength_;
-			if (!pImpl_->pMessageStore_->load(key.nOffset_, nLength, pMessage))
-				return false;
-			pMessage->setFlag(msgFlag);
-		}
-		else {
-			if (pMessage->getFlag() == Message::FLAG_EMPTY) {
-				if (!AccountImpl::createTemporaryMessage(pmh, pMessage))
-					return false;
-			}
-		}
-	}
-	
-	if ((nFlags & GETMESSAGEFLAG_MAKESEEN) &&
-		!bMadeSeen &&
-		!pmh->isFlag(MessageHolder::FLAG_SEEN)) {
-		MessageHolderList l(1, pmh);
-		if (!pImpl_->setMessagesFlags(pmh->getFolder(), l,
-			MessageHolder::FLAG_SEEN, MessageHolder::FLAG_SEEN))
-			return false;
 	}
 	
 	return true;
@@ -1784,6 +1858,13 @@ MessageHolder* qm::Account::storeMessage(NormalFolder* pFolder,
 	
 	if (pHeader->isMultipart())
 		nFlags |= MessageHolder::FLAG_MULTIPART;
+	
+	if (Security::isEnabled()) {
+		const SMIMEUtility* pSMIMEUtility = pImpl_->pSecurity_->getSMIMEUtility();
+		SMIMEUtility::Type type = pSMIMEUtility->getType(pHeader->getContentType());
+		if (type != SMIMEUtility::TYPE_NONE)
+			nFlags |= MessageHolder::FLAG_ENVELOPED;
+	}
 	
 	unsigned int nOffset = -1;
 	unsigned int nLength = 0;

@@ -704,7 +704,9 @@ bool qm::SyncManager::send(Document* pDocument,
 			if (!pmh->isFlag(MessageHolder::FLAG_DRAFT) &&
 				!pmh->isFlag(MessageHolder::FLAG_DELETED)) {
 				Message msg;
-				if (!pmh->getMessage(Account::GETMESSAGEFLAG_HEADER, L"X-QMAIL-SubAccount", &msg))
+				unsigned int nFlags = Account::GETMESSAGEFLAG_HEADER |
+					Account::GETMESSAGEFLAG_NOSECURITY;
+				if (!pmh->getMessage(nFlags, L"X-QMAIL-SubAccount", &msg))
 					return false;
 				
 				bool bSend = false;
@@ -756,7 +758,9 @@ bool qm::SyncManager::send(Document* pDocument,
 		MessagePtrLock mpl(listMessagePtr[m]);
 		if (mpl) {
 			Message msg;
-			if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg))
+			unsigned int nFlags = Account::GETMESSAGEFLAG_ALL |
+				Account::GETMESSAGEFLAG_NOSECURITY;
+			if (!mpl->getMessage(nFlags, 0, &msg))
 				return false;
 			const WCHAR* pwszRemoveFields[] = {
 				L"X-QMAIL-Account",

@@ -28,6 +28,7 @@ class SMIMEUtility;
 class SMIMECallback;
 class CryptoFactory;
 
+class ContentTypeParser;
 class InputStream;
 class Part;
 
@@ -336,7 +337,8 @@ public:
 		TYPE_NONE,
 		TYPE_SIGNED,
 		TYPE_MULTIPARTSIGNED,
-		TYPE_ENVELOPED
+		TYPE_ENVELOPED,
+		TYPE_ENVELOPEDORSIGNED
 	};
 
 public:
@@ -351,6 +353,14 @@ public:
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	virtual Type getType(const Part& part) const = 0;
+	
+	/**
+	 * Get type from Content-Type.
+	 *
+	 * @param pContentType [in] Content-Type.
+	 * @return Type.
+	 */
+	virtual Type getType(const ContentTypeParser* pContentType) const = 0;
 	
 	/**
 	 * Sign the specified part.

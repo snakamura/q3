@@ -135,62 +135,17 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	
 	Message msg;
 	if (pmh) {
-		unsigned int nFlags = Account::GETMESSAGEFLAG_MAKESEEN |
-			(bRawMode_ ? Account::GETMESSAGEFLAG_ALL :
-				bHtmlMode_ ? Account::GETMESSAGEFLAG_HTML :
-				Account::GETMESSAGEFLAG_TEXT);
+		unsigned int nFlags = Account::GETMESSAGEFLAG_MAKESEEN;
+		if (bRawMode_)
+			nFlags |= Account::GETMESSAGEFLAG_ALL;
+		else if (bHtmlMode_)
+			nFlags |= Account::GETMESSAGEFLAG_HTML;
+		else
+			nFlags |= Account::GETMESSAGEFLAG_TEXT;
+		if (!bDecryptVerifyMode_)
+			nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
 		if (!pmh->getMessage(nFlags, 0, &msg))
 			return false;
-		
-		unsigned int nSecurity = Message::SECURITY_NONE;
-		const Security* pSecurity = pDocument_->getSecurity();
-		if (Security::isEnabled() && bDecryptVerifyMode_) {
-			const SMIMEUtility* pSMIMEUtility = pSecurity->getSMIMEUtility();
-			SMIMEUtility::Type type = pSMIMEUtility->getType(msg);
-			if  (type != SMIMEUtility::TYPE_NONE) {
-				if ((nFlags & Account::GETMESSAGEFLAG_METHOD_MASK) !=
-					Account::GETMESSAGEFLAG_ALL) {
-					msg.clear();
-					if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg))
-						return false;
-				}
-			}
-			
-			while  (type != SMIMEUtility::TYPE_NONE) {
-				xstring_ptr strMessage;
-				switch (type) {
-				case SMIMEUtility::TYPE_SIGNED:
-				case SMIMEUtility::TYPE_MULTIPARTSIGNED:
-					strMessage = pSMIMEUtility->verify(msg, pSecurity->getCA());
-					if (!strMessage.get())
-						return false;
-					nSecurity |= Message::SECURITY_VERIFIED;
-					break;
-				case SMIMEUtility::TYPE_ENVELOPED:
-					{
-						SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
-						PrivateKey* pPrivateKey = pSubAccount->getPrivateKey();
-						Certificate* pCertificate = pSubAccount->getCertificate();
-						if (pPrivateKey && pCertificate) {
-							strMessage = pSMIMEUtility->decrypt(msg, pPrivateKey, pCertificate);
-							if (!strMessage.get())
-								return false;
-							nSecurity |= Message::SECURITY_DECRYPTED;
-						}
-					}
-					break;
-				default:
-					break;
-				}
-				
-				if (!strMessage.get())
-					break;
-				
-				if (!msg.create(strMessage.get(), -1, Message::FLAG_NONE, nSecurity))
-					return false;
-				type = pSMIMEUtility->getType(msg);
-			}
-		}
 	}
 	
 	const ContentTypeParser* pContentType = 0;

@@ -30,6 +30,7 @@ public:
 
 public:
 	virtual Type getType(const qs::Part& part) const;
+	virtual Type getType(const qs::ContentTypeParser* pContentType) const;
 	virtual qs::xstring_ptr sign(qs::Part* pPart,
 								 bool bMultipart,
 								 const qs::PrivateKey* pPrivateKey,
