@@ -738,7 +738,7 @@ template<class String>
 qs::BMFindString<String>::Char qs::BMFindString<String>::getChar(
 	const Char* psz, size_t nLen, size_t n) const
 {
-	char c = nFlags_ & FLAG_REVERSE ? *(psz + nLen - n - 1) : *(psz + n);
+	Char c = nFlags_ & FLAG_REVERSE ? *(psz + nLen - n - 1) : *(psz + n);
 	return nFlags_ & FLAG_IGNORECASE ? CharTraits<Char>::toLower(c) : c;
 }
 
