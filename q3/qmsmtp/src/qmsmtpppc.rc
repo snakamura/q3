@@ -63,8 +63,8 @@ BEGIN
                     7,30,10
     LTEXT           "Local &Host",IDC_STATIC,5,23,40,8
     EDITTEXT        IDC_LOCALHOST,50,20,85,14,ES_AUTOHSCROLL
-    CONTROL         "START&TLS",IDC_STARTTLS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,40,55,10
+    CONTROL         "Use START&TLS",IDC_STARTTLS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,40,65,10
     CONTROL         "&Log",IDC_LOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
                     50,35,10
 END

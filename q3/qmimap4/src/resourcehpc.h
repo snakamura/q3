@@ -26,6 +26,8 @@
 #define IDS_DOWNLOADMESSAGES            1010
 #define IDC_MAXSESSION                  1010
 #define IDS_APPLYOFFLINEJOBS            1011
+#define IDC_STARTTLS                    1011
+#define IDC_NAMESPACE                   1012
 #define IDS_ERROR_MESSAGE               10000
 #define IDS_ERROR_GREETING              11000
 #define IDS_ERROR_LOGIN                 11001
@@ -49,6 +51,7 @@
 #define IDS_ERROR_SEARCH                11019
 #define IDS_ERROR_NAMESPACE             11020
 #define IDS_ERROR_LOGOUT                11021
+#define IDS_ERROR_STARTTLS              11022
 #define IDS_ERROR_INITIALIZE            12000
 #define IDS_ERROR_CONNECT               12001
 #define IDS_ERROR_SELECTSOCKET          12002
@@ -79,7 +82,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        102
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1010
+#define _APS_NEXT_CONTROL_VALUE         1013
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

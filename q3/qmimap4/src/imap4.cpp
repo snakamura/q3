@@ -213,7 +213,7 @@ qmimap4::Imap4::~Imap4()
 	delete pUTF7Converter_;
 }
 
-QSTATUS qmimap4::Imap4::connect(const WCHAR* pwszHost, short nPort, bool bSsl)
+QSTATUS qmimap4::Imap4::connect(const WCHAR* pwszHost, short nPort, Ssl ssl)
 {
 	assert(pwszHost);
 	
@@ -231,7 +231,7 @@ QSTATUS qmimap4::Imap4::connect(const WCHAR* pwszHost, short nPort, bool bSsl)
 	status = pSocket->connect(pwszHost, nPort);
 	CHECK_QSTATUS_ERROR(IMAP4_ERROR_CONNECT | pSocket->getLastError());
 	
-	if (bSsl) {
+	if (ssl == SSL_SSL) {
 		SSLSocketFactory* pFactory = SSLSocketFactory::getFactory();
 		CHECK_ERROR(!pFactory, QSTATUS_FAIL, IMAP4_ERROR_SSL);
 		SSLSocket* pSSLSocket = 0;
@@ -250,6 +250,31 @@ QSTATUS qmimap4::Imap4::connect(const WCHAR* pwszHost, short nPort, bool bSsl)
 	
 	status = processCapability();
 	CHECK_QSTATUS();
+	
+	if (ssl == SSL_STARTTLS) {
+		CHECK_ERROR(!(nCapability_ & CAPABILITY_STARTTLS),
+			QSTATUS_FAIL, IMAP4_ERROR_STARTTLS);
+		ListParserCallback callback;
+		status = sendCommand("STARTTLS\r\n", &callback);
+		CHECK_QSTATUS_ERROR_OR(IMAP4_ERROR_STARTTLS);
+		const ListParserCallback::ResponseList& l = callback.getResponseList();
+		CHECK_ERROR(l.size() != 1, QSTATUS_FAIL,
+			IMAP4_ERROR_STARTTLS | IMAP4_ERROR_PARSE);
+		ResponseState::Flag flag = callback.getResponse();
+		CHECK_ERROR(flag != ResponseState::FLAG_OK,
+			QSTATUS_FAIL, IMAP4_ERROR_STARTTLS | IMAP4_ERROR_PARSE);
+		
+		SSLSocketFactory* pFactory = SSLSocketFactory::getFactory();
+		CHECK_ERROR(!pFactory, QSTATUS_FAIL, IMAP4_ERROR_SSL);
+		SSLSocket* pSSLSocket = 0;
+		status = pFactory->createSSLSocket(static_cast<Socket*>(pSocket_),
+			true, pSSLSocketCallback_, pLogger_, &pSSLSocket);
+		CHECK_QSTATUS_ERROR(IMAP4_ERROR_SSL);
+		pSocket_ = pSSLSocket;
+		
+		status = processCapability();
+		CHECK_QSTATUS();
+	}
 	
 	status = processLogin();
 	CHECK_QSTATUS();
@@ -829,9 +854,11 @@ QSTATUS qmimap4::Imap4::processGreeting()
 	CHECK_QSTATUS_ERROR_OR(IMAP4_ERROR_GREETING);
 	
 	const ListParserCallback::ResponseList& l = callback.getResponseList();
-	CHECK_ERROR(l.size() != 1, QSTATUS_FAIL, IMAP4_ERROR_GREETING | IMAP4_ERROR_PARSE);
+	CHECK_ERROR(l.size() != 1, QSTATUS_FAIL,
+		IMAP4_ERROR_GREETING | IMAP4_ERROR_PARSE);
 	ResponseState::Flag flag = callback.getResponse();
-	CHECK_ERROR(flag != ResponseState::FLAG_OK && flag != ResponseState::FLAG_PREAUTH,
+	CHECK_ERROR(flag != ResponseState::FLAG_OK &&
+		flag != ResponseState::FLAG_PREAUTH,
 		QSTATUS_FAIL, IMAP4_ERROR_GREETING | IMAP4_ERROR_PARSE);
 	
 	return QSTATUS_SUCCESS;
@@ -840,6 +867,8 @@ QSTATUS qmimap4::Imap4::processGreeting()
 QSTATUS qmimap4::Imap4::processCapability()
 {
 	DECLARE_QSTATUS();
+	
+	nCapability_ = 0;
 	
 	ListParserCallback callback;
 	status = sendCommand("CAPABILITY\r\n", &callback);
@@ -861,6 +890,8 @@ QSTATUS qmimap4::Imap4::processCapability()
 		IMAP4_ERROR_CAPABILITY | IMAP4_ERROR_PARSE);
 	if (pCapability->isSupport("NAMESPACE"))
 		nCapability_ |= CAPABILITY_NAMESPACE;
+	if (pCapability->isSupport("STARTTLS"))
+		nCapability_ |= CAPABILITY_STARTTLS;
 	if (pCapability->isSupportAuth("CRAM-MD5"))
 		nAuth_ |= AUTH_CRAMMD5;
 	

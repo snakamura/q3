@@ -1440,9 +1440,11 @@ QSTATUS qmimap4::FolderListGetter::connect()
 	status = newQsObject(option, &pImap4_);
 	CHECK_QSTATUS();
 	
+	Imap4::Ssl ssl = Imap4::SSL_NONE;
+	status = Util::getSsl(pSubAccount_, &ssl);
+	CHECK_QSTATUS();
 	status = pImap4_->connect(pSubAccount_->getHost(Account::HOST_RECEIVE),
-		pSubAccount_->getPort(Account::HOST_RECEIVE),
-		pSubAccount_->isSsl(Account::HOST_RECEIVE));
+		pSubAccount_->getPort(Account::HOST_RECEIVE), ssl);
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
@@ -1903,10 +1905,11 @@ QSTATUS qmimap4::SessionCache::getSession(
 		};
 		status = newQsObject(option, &pImap4);
 		CHECK_QSTATUS();
-		status = pImap4->connect(
-			pSubAccount_->getHost(Account::HOST_RECEIVE),
-			pSubAccount_->getPort(Account::HOST_RECEIVE),
-			pSubAccount_->isSsl(Account::HOST_RECEIVE));
+		Imap4::Ssl ssl = Imap4::SSL_NONE;
+		status = Util::getSsl(pSubAccount_, &ssl);
+		CHECK_QSTATUS();
+		status = pImap4->connect(pSubAccount_->getHost(Account::HOST_RECEIVE),
+			pSubAccount_->getPort(Account::HOST_RECEIVE), ssl);
 		CHECK_QSTATUS();
 		
 		bSelect = true;

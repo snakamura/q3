@@ -228,9 +228,11 @@ QSTATUS qmimap4::Imap4ReceiveSession::connect()
 	status = newQsObject(option, &pImap4_);
 	CHECK_QSTATUS();
 	
+	Imap4::Ssl ssl = Imap4::SSL_NONE;
+	status = Util::getSsl(pSubAccount_, &ssl);
+	CHECK_QSTATUS();
 	status = pImap4_->connect(pSubAccount_->getHost(Account::HOST_RECEIVE),
-		pSubAccount_->getPort(Account::HOST_RECEIVE),
-		pSubAccount_->isSsl(Account::HOST_RECEIVE));
+		pSubAccount_->getPort(Account::HOST_RECEIVE), ssl);
 	CHECK_QSTATUS_ERROR();
 	
 	status = log.debug(L"Connected to the server.");
@@ -1542,7 +1544,7 @@ QSTATUS qmimap4::Imap4ReceiveSession::reportError()
 	{
 		unsigned int nError_;
 		UINT nId_;
-	} maps[][22] = {
+	} maps[][23] = {
 		{
 			{ Imap4::IMAP4_ERROR_GREETING,		IDS_ERROR_GREETING		},
 			{ Imap4::IMAP4_ERROR_LOGIN,			IDS_ERROR_LOGIN			},
@@ -1565,7 +1567,8 @@ QSTATUS qmimap4::Imap4ReceiveSession::reportError()
 			{ Imap4::IMAP4_ERROR_AUTHENTICATE,	IDS_ERROR_AUTHENTICATE	},
 			{ Imap4::IMAP4_ERROR_SEARCH,		IDS_ERROR_SEARCH		},
 			{ Imap4::IMAP4_ERROR_NAMESPACE,		IDS_ERROR_NAMESPACE		},
-			{ Imap4::IMAP4_ERROR_LOGOUT,		IDS_ERROR_LOGOUT		}
+			{ Imap4::IMAP4_ERROR_LOGOUT,		IDS_ERROR_LOGOUT		},
+			{ Imap4::IMAP4_ERROR_STARTTLS,		IDS_ERROR_STARTTLS		}
 		},
 		{
 			{ Imap4::IMAP4_ERROR_INITIALIZE,	IDS_ERROR_INITIALIZE	},

@@ -113,6 +113,7 @@ public:
 		IMAP4_ERROR_SEARCH			= 0x00001400,
 		IMAP4_ERROR_NAMESPACE		= 0x00001500,
 		IMAP4_ERROR_LOGOUT			= 0x00001600,
+		IMAP4_ERROR_STARTTLS		= 0x00001700,
 		IMAP4_ERROR_MASK_HIGHLEVEL	= 0x0000ff00
 	};
 	
@@ -127,11 +128,18 @@ public:
 	
 	enum Capability {
 		CAPABILITY_NAMESPACE	= 0x0001,
+		CAPABILITY_STARTTLS		= 0x0002
 	};
 	
 	enum Auth {
 		AUTH_LOGIN		= 0x01,
 		AUTH_CRAMMD5	= 0x02
+	};
+	
+	enum Ssl {
+		SSL_NONE		= 0x00,
+		SSL_SSL			= 0x01,
+		SSL_STARTTLS	= 0x02
 	};
 
 public:
@@ -149,7 +157,7 @@ public:
 	~Imap4();
 
 public:
-	qs::QSTATUS connect(const WCHAR* pwszHost, short nPort, bool bSsl);
+	qs::QSTATUS connect(const WCHAR* pwszHost, short nPort, Ssl ssl);
 	qs::QSTATUS disconnect();
 	qs::QSTATUS checkConnection();
 	

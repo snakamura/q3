@@ -676,6 +676,30 @@ bool qmimap4::Util::isEqualFolderName(const WCHAR* pwszLhs,
 	}
 }
 
+QSTATUS qmimap4::Util::getSsl(SubAccount* pSubAccount, Imap4::Ssl* pSsl)
+{
+	assert(pSubAccount);
+	assert(pSsl);
+	
+	DECLARE_QSTATUS();
+	
+	Imap4::Ssl ssl = Imap4::SSL_NONE;
+	if (pSubAccount->isSsl(Account::HOST_RECEIVE)) {
+		ssl = Imap4::SSL_SSL;
+	}
+	else {
+		int nStartTls = 0;
+		status = pSubAccount->getProperty(L"Imap4", L"STARTTLS", 0, &nStartTls);
+		CHECK_QSTATUS();
+		if (nStartTls)
+			ssl = Imap4::SSL_STARTTLS;
+	}
+	
+	*pSsl = ssl;
+	
+	return QSTATUS_SUCCESS;
+}
+
 std::pair<FetchDataBody*, FetchDataBody*> qmimap4::Util::getBodyFromBodyList(
 	const BodyList& listBody, const unsigned int* pPath)
 {

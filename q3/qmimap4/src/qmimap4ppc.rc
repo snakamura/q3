@@ -73,10 +73,14 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,80,115,10
     CONTROL         "&Trust BODYSTRUCTURE",IDC_TRUSTBODYSTRUCTURE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,90,105,10
+    CONTROL         "Use &NAMESPACE",IDC_NAMESPACE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,100,75,10
     CONTROL         "&Close folder",IDC_CLOSEFOLDER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,100,60,10
+                    WS_TABSTOP,5,110,60,10
+    CONTROL         "Use ST&ARTTLS",IDC_STARTTLS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,120,65,10
     CONTROL         "&Log",IDC_LOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
-                    110,35,10
+                    130,35,10
 END
 
 
@@ -143,11 +147,11 @@ BEGIN
     IDS_ERROR_SOCKET_CONNECTTIMEOUT "connect timeout"
     IDS_ERROR_SOCKET_RECV   "recv"
     IDS_ERROR_SOCKET_RECVTIMEOUT "recv timeout"
+    IDS_ERROR_SOCKET_SEND   "send"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_ERROR_SOCKET_SEND   "send"
     IDS_ERROR_SOCKET_SENDTIMEOUT "send timeout"
     IDS_ERROR_SOCKET_CANCEL "cancel"
     IDS_ERROR_SOCKET_UNKNOWN "unknown"
@@ -181,6 +185,7 @@ BEGIN
     IDS_ERROR_SEARCH        "Error occured while SEARCH command."
     IDS_ERROR_NAMESPACE     "Error occured while NAMESPACE command."
     IDS_ERROR_LOGOUT        "Error occured while LOGOUT command."
+    IDS_ERROR_STARTTLS      "Error occured while STARTTLS command."
 END
 
 STRINGTABLE DISCARDABLE 

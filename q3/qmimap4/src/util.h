@@ -91,6 +91,7 @@ public:
 		std::auto_ptr<MultipleRange>* apRange);
 	static bool isEqualFolderName(const WCHAR* pwszLhs,
 		const WCHAR* pwszRhs, WCHAR cSeparator);
+	static qs::QSTATUS getSsl(qm::SubAccount* pSubAccount, Imap4::Ssl* pSsl);
 
 private:
 	static std::pair<FetchDataBody*, FetchDataBody*> getBodyFromBodyList(
