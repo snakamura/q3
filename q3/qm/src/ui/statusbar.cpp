@@ -34,18 +34,20 @@ bool qm::StatusBar::setParts(int* pnWidth,
 	return sendMessage(SB_SETPARTS, nCount, reinterpret_cast<LPARAM>(pnWidth)) != 0;
 }
 
-bool qm::StatusBar::setText(int n,
+bool qm::StatusBar::setText(int nPart,
 							const WCHAR* pwszText)
 {
 	W2T(pwszText, ptszText);
-	return sendMessage(SB_SETTEXT, n, reinterpret_cast<LPARAM>(ptszText)) != 0;
+	return sendMessage(SB_SETTEXT, nPart, reinterpret_cast<LPARAM>(ptszText)) != 0;
 }
 
-bool qm::StatusBar::setIcon(int n,
+#ifndef _WIN32_WCE
+bool qm::StatusBar::setIcon(int nPart,
 							HICON hIcon)
 {
-	return sendMessage(SB_SETICON, n, reinterpret_cast<LPARAM>(hIcon)) != 0;
+	return sendMessage(SB_SETICON, nPart, reinterpret_cast<LPARAM>(hIcon)) != 0;
 }
+#endif
 
 void qm::StatusBar::setSimple(bool bSimple)
 {

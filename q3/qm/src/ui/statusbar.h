@@ -33,10 +33,12 @@ public:
 public:
 	bool setParts(int* pnWidth,
 				 size_t nCount);
-	bool setText(int n,
+	bool setText(int nPart,
 				 const WCHAR* pwszText);
-	bool setIcon(int n,
+#ifndef _WIN32_WCE
+	bool setIcon(int nPart,
 				 HICON hIcon);
+#endif
 	void setSimple(bool bSimple);
 
 public:

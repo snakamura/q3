@@ -76,9 +76,15 @@ public:
 								MessageHolder* pmh,
 								Message& msg,
 								const qs::ContentTypeParser* pContentType);
+	static void setStatusBarIconOrText(StatusBar* pStatusBar,
+									   int nPart,
+									   UINT nIcon,
+									   const WCHAR* pwszText);
+#ifndef _WIN32_WCE
 	static void setStatusBarIcon(StatusBar* pStatusBar,
 								 int nPart,
 								 UINT nIcon);
+#endif
 	
 	static qs::wstring_ptr writeTemporaryFile(const WCHAR* pwszValue,
 											  const WCHAR* pwszPrefix,
