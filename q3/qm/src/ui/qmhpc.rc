@@ -960,6 +960,20 @@ BEGIN
     GROUPBOX        "Outgoing mail",IDC_STATIC,5,61,215,54
 END
 
+IDD_RESOURCE DIALOGEX 0, 0, 243, 110
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE 0x80000000L
+CAPTION "Resources"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    LTEXT           "&These files are older than the defaults. Are you sure to overwrite?",
+                    IDC_STATIC,5,5,235,8
+    CONTROL         "List1",IDC_RESOURCE,"SysListView32",LVS_REPORT | 
+                    LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,5,15,235,75
+    CONTROL         "&Backup",IDC_BACKUP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,95,45,10
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1439,6 +1453,7 @@ BEGIN
     IDS_CLEARRECENTS        "&Clear"
     IDS_UNSPECIFIED         "(Unspecified)"
     IDS_EDIT                "&Edit..."
+    IDS_RESOURCEPATH        "Path"
 END
 
 STRINGTABLE DISCARDABLE 

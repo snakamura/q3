@@ -17,6 +17,7 @@
 
 #include <qsconv.h>
 #include <qsdialog.h>
+#include <qsfile.h>
 #include <qsinit.h>
 #include <qsmime.h>
 #include <qsosutil.h>
@@ -57,6 +58,28 @@ using namespace qs;
 struct qm::ApplicationImpl : public NewMailCheckerCallback
 {
 public:
+	enum ResourceState {
+		RS_EXIST,
+		RS_EXISTPROFILE,
+		RS_NOTEXIST,
+		RS_SAMEREVISION,
+		RS_OVERWRITE,
+		RS_OVERWRITEPROFILE
+	};
+	
+	struct Resource
+	{
+		const WCHAR* pwszDir_;
+		const WCHAR* pwszSubDir_;
+		const WCHAR* pwszProfile_;
+		const WCHAR* pwszFileName_;
+		const WCHAR* pwszResourceType_;
+		const WCHAR* pwszResourceName_;
+		unsigned int nRevision_;
+		ResourceState state_;
+	};
+
+public:
 	bool ensureDirectory(const WCHAR* pwszPath,
 						 const WCHAR* pwszName);
 	bool ensureFile(const WCHAR* pwszPath,
@@ -65,8 +88,10 @@ public:
 					const WCHAR* pwszExtension,
 					const WCHAR* pwszType,
 					const WCHAR* pwszName);
-	bool ensureTemplate(const WCHAR* pwszPath,
-						const WCHAR* pwszClass,
+	bool ensureResources(Resource* pResource,
+						 size_t nCount);
+	bool detachResource(const WCHAR* pwszPath,
+						const WCHAR* pwszType,
 						const WCHAR* pwszName);
 	void restoreCurrentFolder();
 	void saveCurrentFolder();
@@ -105,6 +130,7 @@ bool qm::ApplicationImpl::ensureDirectory(const WCHAR* pwszPath,
 										  const WCHAR* pwszName)
 {
 	assert(pwszPath);
+	assert(!pwszName || *pwszName);
 	
 	wstring_ptr wstrPath;
 	if (pwszName) {
@@ -112,16 +138,7 @@ bool qm::ApplicationImpl::ensureDirectory(const WCHAR* pwszPath,
 		pwszPath = wstrPath.get();
 	}
 	
-	W2T(pwszPath, ptszPath);
-	DWORD dwAttributes = ::GetFileAttributes(ptszPath);
-	if (dwAttributes == 0xffffffff) {
-		if (!::CreateDirectory(ptszPath, 0))
-			return false;
-	}
-	else if (!(dwAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-		return false;
-	}
-	return true;
+	return File::createDirectory(pwszPath);
 }
 
 bool qm::ApplicationImpl::ensureFile(const WCHAR* pwszPath,
@@ -135,6 +152,9 @@ bool qm::ApplicationImpl::ensureFile(const WCHAR* pwszPath,
 	assert(pwszFileName);
 	assert(pwszType);
 	assert(pwszName);
+	
+	if (!ensureDirectory(pwszPath, pwszDir))
+		return false;
 	
 	StringBuffer<WSTRING> buf;
 	buf.append(pwszPath);
@@ -151,42 +171,182 @@ bool qm::ApplicationImpl::ensureFile(const WCHAR* pwszPath,
 	
 	W2T(buf.getCharArray(), ptszPath);
 	if (::GetFileAttributes(ptszPath) == 0xffffffff) {
-		W2T(pwszName, ptszName);
-		W2T(pwszType, ptszType);
-		HRSRC hrsrc = ::FindResource(hInstResource_, ptszName, ptszType);
-		if (!hrsrc)
-			return false;
-		HGLOBAL hResource = ::LoadResource(hInstResource_, hrsrc);
-		if (!hResource)
-			return false;
-		void* pResource = ::LockResource(hResource);
-		if (!pResource)
-			return false;
-		int nLen = ::SizeofResource(hInstResource_, hrsrc);
-		
-		FileOutputStream stream(buf.getCharArray());
-		if (!stream)
-			return false;
-		if (stream.write(static_cast<unsigned char*>(pResource), nLen) == -1)
-			return false;
-		if (!stream.close())
+		if (!detachResource(buf.getCharArray(), pwszType, pwszName))
 			return false;
 	}
 	
 	return true;
 }
 
-bool qm::ApplicationImpl::ensureTemplate(const WCHAR* pwszPath,
-										 const WCHAR* pwszClass,
+bool qm::ApplicationImpl::ensureResources(Resource* pResource,
+										  size_t nCount)
+{
+	ResourceDialog::ResourceList listResource;
+	struct Deleter
+	{
+		Deleter(ResourceDialog::ResourceList& l) :
+			l_(l)
+		{
+		}
+		
+		~Deleter()
+		{
+			std::for_each(l_.begin(), l_.end(),
+				unary_compose_f_gx(
+					string_free<WSTRING>(),
+					std::select1st<ResourceDialog::ResourceList::value_type>()));
+		}
+		ResourceDialog::ResourceList& l_;
+	} deleter(listResource);
+	
+	size_t nMailFolderLen = wcslen(wstrMailFolder_.get()) + 1;
+	
+	for (size_t n = 0; n < nCount; ++n) {
+		Resource* p = pResource + n;
+		
+		StringBuffer<WSTRING> baseDir;
+		baseDir.append(p->pwszDir_);
+		baseDir.append(L'\\');
+		if (p->pwszSubDir_) {
+			baseDir.append(p->pwszSubDir_);
+			baseDir.append(L'\\');
+		}
+		
+		p->state_ = RS_NOTEXIST;
+		unsigned int nRevision = pProfile_->getInt(
+			L"Resource", p->pwszResourceName_, 0);
+		if (nRevision != p->nRevision_) {
+			if (p->pwszProfile_) {
+				ConcatW c[] = {
+					{ baseDir.getCharArray(),		baseDir.getLength()	},
+					{ p->pwszProfile_,				-1					},
+					{ L"\\",						1					},
+					{ p->pwszFileName_,				-1					}
+				};
+				wstring_ptr wstrPath(concat(c, countof(c)));
+				W2T(wstrPath.get(), ptszPath);
+				if (::GetFileAttributes(ptszPath) != 0xffffffff) {
+					p->state_ = RS_EXISTPROFILE;
+					
+					wstring_ptr wstr(allocWString(wstrPath.get() + nMailFolderLen));
+					listResource.push_back(std::make_pair(wstr.get(), true));
+					wstr.release();
+				}
+			}
+			if (p->state_ == RS_NOTEXIST) {
+				ConcatW c[] = {
+					{ baseDir.getCharArray(),		baseDir.getLength()	},
+					{ p->pwszFileName_,				-1					}
+				};
+				wstring_ptr wstrPath(concat(c, countof(c)));
+				W2T(wstrPath.get(), ptszPath);
+				if (::GetFileAttributes(ptszPath) != 0xffffffff) {
+					p->state_ = RS_EXIST;
+					
+					wstring_ptr wstr(allocWString(wstrPath.get() + nMailFolderLen));
+					listResource.push_back(std::make_pair(wstr.get(), true));
+					wstr.release();
+				}
+			}
+		}
+		else {
+			p->state_ = RS_SAMEREVISION;
+		}
+	}
+	
+	bool bBackup = true;
+	if (!listResource.empty()) {
+		ResourceDialog dialog(listResource);
+		if (dialog.doModal(0) != IDOK)
+			return false;
+		
+		int nResource = 0;
+		for (size_t n = 0; n < nCount; ++n) {
+			Resource* p = pResource + n;
+			
+			if (p->state_ == RS_EXIST ||
+				p->state_ == RS_EXISTPROFILE) {
+				if (listResource[nResource].second)
+					p->state_ = p->state_ == RS_EXIST ?
+						RS_OVERWRITE : RS_OVERWRITEPROFILE;
+				++nResource;
+			}
+		}
+		
+		bBackup = dialog.isBackup();
+	}
+	
+	for (size_t n = 0; n < nCount; ++n) {
+		const Resource* p = pResource + n;
+		
+		if (p->state_ == RS_NOTEXIST ||
+			p->state_ == RS_OVERWRITE ||
+			p->state_ == RS_OVERWRITEPROFILE) {
+			StringBuffer<WSTRING> buf;
+			buf.append(p->pwszDir_);
+			if (p->pwszSubDir_) {
+				buf.append(L'\\');
+				buf.append(p->pwszSubDir_);
+			}
+			
+			if (!ensureDirectory(buf.getCharArray(), 0))
+				return false;
+			
+			buf.append(L'\\');
+			if (p->state_ == RS_OVERWRITEPROFILE) {
+				buf.append(p->pwszProfile_);
+				buf.append(L'\\');
+			}
+			buf.append(p->pwszFileName_);
+			
+			if (bBackup && (p->state_ == RS_OVERWRITE || p->state_ == RS_OVERWRITEPROFILE)) {
+				wstring_ptr wstrBackupPath(concat(buf.getCharArray(), L".bak"));
+				W2T(buf.getCharArray(), ptszOld);
+				W2T(wstrBackupPath.get(), ptszNew);
+				if (::GetFileAttributes(ptszNew) != 0xffffffff) {
+					if (!::DeleteFile(ptszNew))
+						return false;
+				}
+				if (!::MoveFile(ptszOld, ptszNew))
+					return false;
+			}
+			
+			if (!detachResource(buf.getCharArray(),
+				p->pwszResourceType_, p->pwszResourceName_))
+				return false;
+		}
+		
+		pProfile_->setInt(L"Resource", p->pwszResourceName_, p->nRevision_);
+	}
+	
+	return true;
+}
+
+bool qm::ApplicationImpl::detachResource(const WCHAR* pwszPath,
+										 const WCHAR* pwszType,
 										 const WCHAR* pwszName)
 {
-	wstring_ptr wstrDir(concat(L"templates\\", pwszClass));
-	if (!ensureDirectory(pwszPath, wstrDir.get()))
-		return false;
+	assert(pwszPath);
+	assert(pwszType);
+	assert(pwszName);
 	
-	wstring_ptr wstrName(concat(pwszClass, L".", pwszName));
-	if (!ensureFile(pwszPath, wstrDir.get(), pwszName,
-		L"template", L"TEMPLATE", wstrName.get()))
+	W2T(pwszName, ptszName);
+	W2T(pwszType, ptszType);
+	HRSRC hrsrc = ::FindResource(hInstResource_, ptszName, ptszType);
+	if (!hrsrc)
+		return false;
+	HGLOBAL hResource = ::LoadResource(hInstResource_, hrsrc);
+	if (!hResource)
+		return false;
+	void* pResource = ::LockResource(hResource);
+	if (!pResource)
+		return false;
+	int nLen = ::SizeofResource(hInstResource_, hrsrc);
+	
+	FileOutputStream stream(pwszPath);
+	if (!stream ||
+		stream.write(static_cast<unsigned char*>(pResource), nLen) == -1 ||
+		!stream.close())
 		return false;
 	
 	return true;
@@ -334,49 +494,67 @@ bool qm::Application::initialize()
 			return false;
 	}
 	
-	const WCHAR* pwszClasses[] = {
-		L"mail",
-		L"news"
-	};
-	const WCHAR* pwszTemplates[] = {
-		L"new",
-		L"reply",
-		L"reply_all",
-		L"forward",
-		L"edit",
-		L"url",
-		L"print"
-	};
-	for (int n = 0; n < countof(pwszClasses); ++n) {
-		for (int m = 0; m < countof(pwszTemplates); ++m) {
-			if (!pImpl_->ensureTemplate(pImpl_->wstrMailFolder_.get(),
-				pwszClasses[n], pwszTemplates[m]))
-				return false;
-		}
-	}
-	
-	wstring_ptr wstrProfileDir(concat(
-		pImpl_->wstrMailFolder_.get(), L"\\profiles"));
-	const WCHAR* pwszProfiles[] = {
-		FileNames::COLORS_XML,
-		FileNames::HEADER_XML,
-		FileNames::HEADEREDIT_XML,
-		FileNames::KEYMAP_XML,
-		FileNames::MENUS_XML,
-		FileNames::QMAIL_XML,
-		FileNames::TOOLBAR_BMP,
-		FileNames::TOOLBARS_XML,
-		FileNames::VIEWS_XML
-	};
-	for (int n = 0; n < countof(pwszProfiles); ++n) {
-		if (!pImpl_->ensureFile(wstrProfileDir.get(), 0,
-			pwszProfiles[n], 0, L"PROFILE", pwszProfiles[n]))
-			return false;
-	}
+	wstring_ptr wstrProfileDir(concat(pImpl_->wstrMailFolder_.get(), L"\\profiles"));
+	if (!pImpl_->ensureFile(wstrProfileDir.get(),
+		*pImpl_->wstrProfileName_.get() ? pImpl_->wstrProfileName_.get() : 0,
+		FileNames::QMAIL_XML, 0, L"PROFILE", FileNames::QMAIL_XML))
+		return false;
 	
 	wstring_ptr wstrProfilePath(getProfilePath(FileNames::QMAIL_XML));
 	pImpl_->pProfile_.reset(new XMLProfile(wstrProfilePath.get()));
 	if (!pImpl_->pProfile_->load())
+		return false;
+	
+	wstring_ptr wstrTemplateDir(concat(
+		pImpl_->wstrMailFolder_.get(), L"\\templates"));
+	
+#define DECLARE_PROFILE(name, revision) \
+	{ \
+		wstrProfileDir.get(), \
+		0, \
+		pImpl_->wstrProfileName_.get(), \
+		name, \
+		L"PROFILE", \
+		name, \
+		revision, \
+	} \
+
+#define DECLARE_TEMPLATE(classname, name, revision) \
+	{ \
+		wstrTemplateDir.get(), \
+		classname, \
+		0, \
+		name L".template", \
+		L"TEMPLATE", \
+		classname L"." name, \
+		revision, \
+	} \
+
+	ApplicationImpl::Resource resources[] = {
+		DECLARE_PROFILE(FileNames::COLORS_XML,		1000),
+		DECLARE_PROFILE(FileNames::HEADER_XML,		1000),
+		DECLARE_PROFILE(FileNames::HEADEREDIT_XML,	1000),
+		DECLARE_PROFILE(FileNames::KEYMAP_XML,		1000),
+		DECLARE_PROFILE(FileNames::MENUS_XML,		1000),
+		DECLARE_PROFILE(FileNames::TOOLBAR_BMP,		1000),
+		DECLARE_PROFILE(FileNames::TOOLBARS_XML,	1000),
+		DECLARE_PROFILE(FileNames::VIEWS_XML,		1000),
+		DECLARE_TEMPLATE(L"mail",	L"new",			1000),
+		DECLARE_TEMPLATE(L"mail",	L"reply",		1000),
+		DECLARE_TEMPLATE(L"mail",	L"reply_all",	1000),
+		DECLARE_TEMPLATE(L"mail",	L"forward",		1000),
+		DECLARE_TEMPLATE(L"mail",	L"edit",		1000),
+		DECLARE_TEMPLATE(L"mail",	L"url",			1000),
+		DECLARE_TEMPLATE(L"mail",	L"print",		1000),
+		DECLARE_TEMPLATE(L"news",	L"new",			1000),
+		DECLARE_TEMPLATE(L"news",	L"reply",		1000),
+		DECLARE_TEMPLATE(L"news",	L"reply_all",	1000),
+		DECLARE_TEMPLATE(L"news",	L"forward",		1000),
+		DECLARE_TEMPLATE(L"news",	L"edit",		1000),
+		DECLARE_TEMPLATE(L"news",	L"url",			1000),
+		DECLARE_TEMPLATE(L"news",	L"print",		1000),
+	};
+	if (!pImpl_->ensureResources(resources, countof(resources)))
 		return false;
 	
 	int nLog = pImpl_->pProfile_->getInt(L"Global", L"Log", -1);

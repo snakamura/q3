@@ -4391,6 +4391,85 @@ void qm::ReplaceDialog::updateState()
 
 /****************************************************************************
  *
+ * ResourceDialog
+ *
+ */
+
+qm::ResourceDialog::ResourceDialog(ResourceList& listResource) :
+	DefaultDialog(IDD_RESOURCE),
+	listResource_(listResource),
+	bBackup_(false)
+{
+}
+
+qm::ResourceDialog::~ResourceDialog()
+{
+}
+
+bool qm::ResourceDialog::isBackup() const
+{
+	return bBackup_;
+}
+
+LRESULT qm::ResourceDialog::onInitDialog(HWND hwndFocus,
+										 LPARAM lParam)
+{
+	init(false);
+	
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	HWND hwnd = getDlgItem(IDC_RESOURCE);
+	
+	ListView_SetExtendedListViewStyle(hwnd, LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT);
+	
+	RECT rect;
+	Window(hwnd).getClientRect(&rect);
+	int nWidth = rect.right - rect.left - ::GetSystemMetrics(SM_CXVSCROLL);
+	wstring_ptr wstrPath(loadString(hInst, IDS_RESOURCEPATH));
+	W2T(wstrPath.get(), ptszPath);
+	LVCOLUMN column = {
+		LVCF_FMT | LVCF_TEXT | LVCF_WIDTH,
+		LVCFMT_LEFT,
+		nWidth,
+		const_cast<LPTSTR>(ptszPath),
+		0,
+	};
+	ListView_InsertColumn(hwnd, 0, &column);
+	
+	for (ResourceList::size_type n = 0; n < listResource_.size(); ++n) {
+		W2T(listResource_[n].first, ptszName);
+		
+		LVITEM item = {
+			LVIF_TEXT,
+			n,
+			0,
+			0,
+			0,
+			const_cast<LPTSTR>(ptszName),
+		};
+		ListView_InsertItem(hwnd, &item);
+		ListView_SetCheckState(hwnd, n, TRUE);
+	}
+	
+	sendDlgItemMessage(IDC_BACKUP, BM_SETCHECK, BST_CHECKED);
+	
+	return TRUE;
+}
+
+LRESULT qm::ResourceDialog::onOk()
+{
+	HWND hwnd = getDlgItem(IDC_RESOURCE);
+	
+	for (ResourceList::size_type n = 0; n < listResource_.size(); ++n)
+		listResource_[n].second = ListView_GetCheckState(hwnd, n) != 0;
+	
+	bBackup_ = sendDlgItemMessage(IDC_BACKUP, BM_GETCHECK) == BST_CHECKED;
+	
+	return DefaultDialog::onOk();
+}
+
+
+/****************************************************************************
+ *
  * SelectDialupEntryDialog
  *
  */

@@ -50,6 +50,7 @@ class DefaultDialog;
 	class ProgressDialog;
 	class RenameDialog;
 	class ReplaceDialog;
+	class ResourceDialog;
 	class SelectDialupEntryDialog;
 	class SelectSyncFilterDialog;
 	class ViewsColumnDialog;
@@ -1384,6 +1385,41 @@ private:
 	bool bMatchCase_;
 	bool bRegex_;
 	Type type_;
+};
+
+
+/****************************************************************************
+ *
+ * ResourceDialog
+ *
+ */
+
+class ResourceDialog : public DefaultDialog
+{
+public:
+	typedef std::vector<std::pair<qs::WSTRING, bool> > ResourceList;
+
+public:
+	explicit ResourceDialog(ResourceList& listResource);
+	virtual ~ResourceDialog();
+
+public:
+	bool isBackup() const;
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	ResourceDialog(const ResourceDialog&);
+	ResourceDialog& operator=(const ResourceDialog&);
+
+private:
+	ResourceList& listResource_;
+	bool bBackup_;
 };
 
 

@@ -983,6 +983,21 @@ BEGIN
     GROUPBOX        "Outgoing mail",IDC_STATIC,5,75,127,65
 END
 
+IDD_RESOURCE DIALOGEX 0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Resources"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&These files are older than the defaults. Are you sure to overwrite?",
+                    IDC_STATIC,5,5,125,17
+    CONTROL         "List1",IDC_RESOURCE,"SysListView32",LVS_REPORT | 
+                    LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,5,25,127,80
+    CONTROL         "&Backup",IDC_BACKUP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,110,45,10
+    PUSHBUTTON      "Cancel",IDCANCEL,82,125,50,12
+    PUSHBUTTON      "OK",IDOK,27,125,50,12
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1229,6 +1244,11 @@ BEGIN
     IDD_GOROUNDDIALUP, DIALOG
     BEGIN
         BOTTOMMARGIN, 85
+    END
+
+    IDD_RESOURCE, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 110
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -1477,6 +1497,7 @@ BEGIN
     IDS_CLEARRECENTS        "&Clear"
     IDS_UNSPECIFIED         "(Unspecified)"
     IDS_EDIT                "&Edit..."
+    IDS_RESOURCEPATH        "Path"
 END
 
 STRINGTABLE DISCARDABLE 

@@ -61,6 +61,7 @@
 #define IDD_GOROUNDENTRY                163
 #define IDD_GOROUNDDIALUP               164
 #define IDD_ACCOUNTDETAIL               165
+#define IDD_RESOURCE                    166
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -202,6 +203,7 @@
 #define IDC_CONNECTRECEIVEHOSTBEFORESEND 1075
 #define IDS_EDIT                        1076
 #define IDC_INCOMINGPROTOCOL            1077
+#define IDS_RESOURCEPATH                1077
 #define IDC_OUTGOINGPROTOCOL            1078
 #define IDC_SINGLEFILE                  1079
 #define IDC_MULTIPLEFILE                1080
@@ -312,6 +314,8 @@
 #define IDC_SENDSTARTTLS                1209
 #define IDC_RECEIVELOG                  1210
 #define IDC_SENDLOG                     1211
+#define IDC_RESOURCE                    1212
+#define IDC_BACKUP                      1213
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -550,9 +554,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        166
+#define _APS_NEXT_RESOURCE_VALUE        167
 #define _APS_NEXT_COMMAND_VALUE         48000
-#define _APS_NEXT_CONTROL_VALUE         1211
+#define _APS_NEXT_CONTROL_VALUE         1214
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
