@@ -123,6 +123,7 @@ public:
 	void getRect(RECT* pRect);
 	void paintMessage(const PaintInfo& pi);
 	void invalidateLine(unsigned int nLine);
+	void invalidateSelected();
 	void ensureVisible(unsigned int nLine);
 	void scrollVertical(int nPos);
 	void scrollHorizontal(int nPos);
@@ -427,6 +428,34 @@ void qm::ListWindowImpl::invalidateLine(unsigned int nLine)
 	rect.bottom = rect.top + nLineHeight_;
 	
 	pThis_->invalidateRect(rect);
+}
+
+void qm::ListWindowImpl::invalidateSelected()
+{
+	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
+	if (pViewModel) {
+		Lock<ViewModel> lock(*pViewModel);
+		
+		RECT rect;
+		getRect(&rect);
+		int nTop = rect.top;
+		
+		SCROLLINFO si = {
+			sizeof(si),
+			SIF_PAGE | SIF_POS
+		};
+		pThis_->getScrollInfo(SB_VERT, &si);
+		
+		unsigned int nCount = pViewModel->getCount();
+		unsigned int nFocused = pViewModel->getFocused();
+		for (unsigned int n = si.nPos; n < nCount && n <= si.nPos + si.nPage; ++n) {
+			if (pViewModel->isSelected(n) || n == nFocused) {
+				rect.top = nTop + (n - si.nPos)*nLineHeight_;
+				rect.bottom = rect.top + nLineHeight_;
+				pThis_->invalidateRect(rect);
+			}
+		}
+	}
 }
 
 void qm::ListWindowImpl::ensureVisible(unsigned int nLine)
@@ -1245,7 +1274,7 @@ LRESULT qm::ListWindow::onKeyDown(UINT nKey, UINT nRepeat, UINT nFlags)
 
 LRESULT qm::ListWindow::onKillFocus(HWND hwnd)
 {
-	invalidate();
+	pImpl_->invalidateSelected();
 	return 0;
 }
 
@@ -1447,7 +1476,7 @@ LRESULT qm::ListWindow::onPaint()
 
 LRESULT qm::ListWindow::onSetFocus(HWND hwnd)
 {
-	invalidate();
+	pImpl_->invalidateSelected();
 	return 0;
 }
 
