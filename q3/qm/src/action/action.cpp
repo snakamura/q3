@@ -2299,7 +2299,8 @@ QSTATUS qm::ToolDialupAction::invoke(const ActionEvent& event)
 	CHECK_QSTATUS();
 	if (!bConnected) {
 		std::auto_ptr<SyncData> pData;
-		status = newQsObject(pSyncManager_, pDocument_, hwnd_, &pData);
+		status = newQsObject(pSyncManager_, pDocument_,
+			hwnd_, SyncDialog::FLAG_SHOWDIALOG, &pData);
 		CHECK_QSTATUS();
 		
 		std::auto_ptr<SyncDialup> pDialup;
@@ -2389,7 +2390,8 @@ QSTATUS qm::ToolGoRoundAction::invoke(const ActionEvent& event)
 	DECLARE_QSTATUS();
 	
 	std::auto_ptr<SyncData> pData;
-	status = newQsObject(pSyncManager_, pDocument_, hwnd_, &pData);
+	status = newQsObject(pSyncManager_, pDocument_,
+		hwnd_, SyncDialog::FLAG_SHOWDIALOG, &pData);
 	
 	GoRoundCourseList* pCourseList = 0;
 	status = pGoRound_->getCourseList(&pCourseList);
@@ -2734,7 +2736,8 @@ QSTATUS qm::ToolSyncAction::invoke(const ActionEvent& event)
 	SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
 	
 	std::auto_ptr<SyncData> pData;
-	status = newQsObject(pSyncManager_, pDocument_, hwnd_, &pData);
+	status = newQsObject(pSyncManager_, pDocument_,
+		hwnd_, SyncDialog::FLAG_SHOWDIALOG, &pData);
 	CHECK_QSTATUS();
 	
 	if (pSubAccount->getDialupType() != SubAccount::DIALUPTYPE_NEVER) {
@@ -3509,9 +3512,9 @@ QSTATUS qm::ViewRefreshAction::invoke(const ActionEvent& event)
 	if (pFolder) {
 		if (pFolder->getType() == Folder::TYPE_NORMAL) {
 			if (pFolder->isFlag(Folder::FLAG_SYNCABLE)) {
-				status = SyncUtil::syncFolder(pSyncManager_,
-					pDocument_, pSyncDialogManager_, hwnd_,
-					static_cast<NormalFolder*>(pFolder));
+				status = SyncUtil::syncFolder(pSyncManager_, pDocument_,
+				pSyncDialogManager_, hwnd_, SyncDialog::FLAG_NONE,
+				static_cast<NormalFolder*>(pFolder));
 				CHECK_QSTATUS();
 			}
 		}

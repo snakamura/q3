@@ -165,10 +165,11 @@ unsigned int qm::SyncDialup::getDisconnectWait() const
  */
 
 qm::SyncData::SyncData(SyncManager* pManager, Document* pDocument,
-	HWND hwnd, QSTATUS* pstatus) :
+	HWND hwnd, unsigned int nCallbackParam, QSTATUS* pstatus) :
 	pManager_(pManager),
 	pDocument_(pDocument),
 	hwnd_(hwnd),
+	nCallbackParam_(nCallbackParam),
 	pCallback_(0),
 	pDialup_(0),
 	nSlot_(0)
@@ -195,6 +196,11 @@ HWND qm::SyncData::getWindow() const
 bool qm::SyncData::isEmpty() const
 {
 	return listItem_.empty();
+}
+
+unsigned int qm::SyncData::getCallbackParam() const
+{
+	return nCallbackParam_;
 }
 
 const SyncDialup* qm::SyncData::getDialup() const
@@ -396,10 +402,11 @@ QSTATUS qm::SyncManager::syncData(const SyncData* pData)
 	
 	struct CallbackCaller
 	{
-		CallbackCaller(SyncManagerCallback* pCallback, QSTATUS* pstatus) :
+		CallbackCaller(SyncManagerCallback* pCallback,
+			const SyncData* pData, QSTATUS* pstatus) :
 			pCallback_(pCallback)
 		{
-			*pstatus = pCallback_->start();
+			*pstatus = pCallback_->start(pData->getCallbackParam());
 		}
 		
 		~CallbackCaller()
@@ -408,7 +415,7 @@ QSTATUS qm::SyncManager::syncData(const SyncData* pData)
 		}
 		
 		SyncManagerCallback* pCallback_;
-	} caller(pCallback, &status);
+	} caller(pCallback, pData, &status);
 	CHECK_QSTATUS();
 	
 	const SyncDialup* pDialup = pData->getDialup();

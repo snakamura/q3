@@ -120,13 +120,14 @@ public:
 
 public:
 	SyncData(SyncManager* pManager, Document* pDocument,
-		HWND hwnd, qs::QSTATUS* pstatus);
+		HWND hwnd, unsigned int nCallbackParam, qs::QSTATUS* pstatus);
 	~SyncData();
 
 public:
 	Document* getDocument() const;
 	HWND getWindow() const;
 	bool isEmpty() const;
+	unsigned int getCallbackParam() const;
 	const SyncDialup* getDialup() const;
 	const ItemList& getItems() const;
 	unsigned int getSlotCount() const;
@@ -148,6 +149,7 @@ private:
 	SyncManager* pManager_;
 	Document* pDocument_;
 	HWND hwnd_;
+	unsigned int nCallbackParam_;
 	SyncManagerCallback* pCallback_;
 	SyncDialup* pDialup_;
 	ItemList listItem_;
@@ -355,7 +357,7 @@ public:
 	virtual ~SyncManagerCallback();
 
 public:
-	virtual qs::QSTATUS start() = 0;
+	virtual qs::QSTATUS start(unsigned int nParam) = 0;
 	virtual void end() = 0;
 	virtual qs::QSTATUS startThread(unsigned int nId) = 0;
 	virtual void endThread(unsigned int nId) = 0;

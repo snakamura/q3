@@ -925,9 +925,9 @@ QSTATUS qm::MainWindowImpl::folderSelected(const FolderModelEvent& event)
 		if (pFolder->getType() == Folder::TYPE_NORMAL &&
 			pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
 			pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
-			status = SyncUtil::syncFolder(pSyncManager_, pDocument_,
-				pSyncDialogManager_, pThis_->getHandle(),
-				static_cast<NormalFolder*>(pFolder));
+			status = SyncUtil::syncFolder(pSyncManager_,
+				pDocument_, pSyncDialogManager_, pThis_->getHandle(),
+				SyncDialog::FLAG_NONE, static_cast<NormalFolder*>(pFolder));
 			CHECK_QSTATUS();
 		}
 	}

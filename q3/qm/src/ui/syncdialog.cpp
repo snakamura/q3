@@ -509,7 +509,7 @@ LRESULT qm::SyncStatusWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
 
-QSTATUS qm::SyncStatusWindow::start()
+QSTATUS qm::SyncStatusWindow::start(unsigned int nParam)
 {
 	pSyncDialog_->resetCanceledTime();
 	pSyncDialog_->setMessage(L"");
@@ -532,7 +532,9 @@ QSTATUS qm::SyncStatusWindow::start()
 	} runnable(pSyncDialog_);
 	pSyncDialog_->getInitThread()->getSynchronizer()->syncExec(&runnable);
 	
-	pSyncDialog_->show();
+	if (nParam & SyncDialog::FLAG_SHOWDIALOG)
+		pSyncDialog_->show();
+	
 	return QSTATUS_SUCCESS;
 }
 
@@ -572,8 +574,6 @@ QSTATUS qm::SyncStatusWindow::startThread(unsigned int nId)
 {
 	DECLARE_QSTATUS();
 	
-//	pSyncDialog_->show();
-	
 	std::auto_ptr<Item> pItem;
 	status = newQsObject(nId, &pItem);
 	CHECK_QSTATUS();
@@ -593,17 +593,12 @@ QSTATUS qm::SyncStatusWindow::startThread(unsigned int nId)
 
 void qm::SyncStatusWindow::endThread(unsigned int nId)
 {
-//	bool bEmpty = false;
 	{
 		Lock<CriticalSection> lock(cs_);
 		ItemList::iterator it = getItem(nId);
 		delete *it;
 		listItem_.erase(it);
-//		bEmpty = listItem_.empty();
 	}
-	
-//	if (bEmpty && !pSyncDialog_->hasError())
-//		pSyncDialog_->hide();
 	
 	invalidate(false);
 	updateScrollBar();
@@ -1275,8 +1270,10 @@ unsigned int qm::SyncDialogThread::run()
 		
 		status = newQsObject(pProfile_, &pDialog);
 		CHECK_QSTATUS_VALUE(-1);
+		Window wnd(Window::getForegroundWindow());
 		status = pDialog->create(0);
 		CHECK_QSTATUS_VALUE(-1);
+		wnd.setForegroundWindow();
 		pDialog_ = pDialog.get();
 	}
 	

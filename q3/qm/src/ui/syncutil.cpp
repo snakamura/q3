@@ -27,8 +27,9 @@ using namespace qs;
  *
  */
 
-QSTATUS qm::SyncUtil::syncFolder(SyncManager* pSyncManager, Document* pDocument,
-	SyncDialogManager* pSyncDialogManager, HWND hwnd, NormalFolder* pFolder)
+QSTATUS qm::SyncUtil::syncFolder(SyncManager* pSyncManager,
+	Document* pDocument, SyncDialogManager* pSyncDialogManager,
+	HWND hwnd, unsigned int nCallbackParam, NormalFolder* pFolder)
 {
 	assert(pSyncManager);
 	assert(pDocument);
@@ -40,7 +41,7 @@ QSTATUS qm::SyncUtil::syncFolder(SyncManager* pSyncManager, Document* pDocument,
 	DECLARE_QSTATUS();
 	
 	std::auto_ptr<SyncData> pData;
-	status = newQsObject(pSyncManager, pDocument, hwnd, &pData);
+	status = newQsObject(pSyncManager, pDocument, hwnd, nCallbackParam, &pData);
 	CHECK_QSTATUS();
 	Account* pAccount = pFolder->getAccount();
 	SubAccount* pSubAccount = pAccount->getCurrentSubAccount();

@@ -66,6 +66,12 @@ class SyncDialog :
 	public qs::DefaultCommandHandler
 {
 public:
+	enum Flag {
+		FLAG_NONE		= 0x00,
+		FLAG_SHOWDIALOG	= 0x01
+	};
+
+public:
 	SyncDialog(qs::Profile* pProfile, qs::QSTATUS* pstatus);
 	virtual ~SyncDialog();
 
@@ -183,7 +189,7 @@ public:
 	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 public:
-	virtual qs::QSTATUS start();
+	virtual qs::QSTATUS start(unsigned int nParam);
 	virtual void end();
 	virtual qs::QSTATUS startThread(unsigned int nId);
 	virtual void endThread(unsigned int nId);

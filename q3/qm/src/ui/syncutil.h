@@ -35,7 +35,7 @@ class SyncUtil
 public:
 	static qs::QSTATUS syncFolder(SyncManager* pSyncManager,
 		Document* pDocument, SyncDialogManager* pSyncDialogManager,
-		HWND hwnd, NormalFolder* pFolder);
+		HWND hwnd, unsigned int nCallbackParam, NormalFolder* pFolder);
 };
 
 }
