@@ -1,7 +1,7 @@
 {
 	@Header(
 		@Concat(
-			'Message-Id,Subject,To,Cc,Bcc,From,X-QMAIL-Account,X-QMAIL-Macro',
+			'Message-Id,Subject,To,Cc,Bcc,From,Date,X-QMAIL-Account,X-QMAIL-Macro',
 			@If(
 				@Equal(
 					@FieldParameter('Content-Type', 'charset'),
