@@ -1193,7 +1193,7 @@ void qm::MacroVariableHolder::setVariable(const WCHAR* pwszName,
 				std::identity<const WCHAR*>()),
 			pwszName));
 	if (it != pImpl_->mapVariable_.end()) {
-		MacroValuePtr pValue((*it).second);
+		MacroValuePtr pValueOld((*it).second);
 		(*it).second = pValue.release();
 	}
 	else {
