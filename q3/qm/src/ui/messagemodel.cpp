@@ -1,5 +1,5 @@
 /*
- * $Id: messagemodel.cpp,v 1.2 2003/05/25 07:24:24 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -198,6 +198,8 @@ QSTATUS qm::MessageModel::viewModelSelected(const ViewModelManagerEvent& event)
 		status = pViewModel_->removeViewModelHandler(this);
 		CHECK_QSTATUS();
 	}
+	
+	pAccount_ = pViewModelManager_->getCurrentAccount();
 	pViewModel_ = event.getNewViewModel();
 	
 	if (bPreview_ && pViewModel_) {
@@ -231,20 +233,6 @@ QSTATUS qm::MessageModel::itemStateChanged(const ViewModelEvent& event)
 		CHECK_QSTATUS();
 	}
 	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::MessageModel::accountSelected(const FolderModelEvent& event)
-{
-	pAccount_ = event.getAccount();
-	assert(pAccount_);
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::MessageModel::folderSelected(const FolderModelEvent& event)
-{
-	pAccount_ = event.getFolder()->getAccount();
-	assert(pAccount_);
 	return QSTATUS_SUCCESS;
 }
 

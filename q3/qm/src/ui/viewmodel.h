@@ -432,6 +432,7 @@ public:
 public:
 	FilterManager* getFilterManager() const;
 	
+	Account* getCurrentAccount() const;
 	ViewModel* getCurrentViewModel() const;
 	qs::QSTATUS getViewModel(Folder* pFolder, ViewModel** ppViewModel);
 	
@@ -445,7 +446,7 @@ public:
 	virtual qs::QSTATUS folderSelected(const FolderModelEvent& event);
 
 private:
-	qs::QSTATUS setCurrentFolder(Folder* pFolder);
+	qs::QSTATUS setCurrentFolder(Account* pAccount, Folder* pFolder);
 	qs::QSTATUS setCurrentViewModel(ViewModel* pViewModel);
 	qs::QSTATUS getProfile(Folder* pFolder, qs::Profile** ppProfile);
 
@@ -464,6 +465,7 @@ private:
 	qs::Profile* pProfile_;
 	Document* pDocument_;
 	HWND hwnd_;
+	Account* pCurrentAccount_;
 	ViewModelList listViewModel_;
 	ViewModel* pCurrentViewModel_;
 	ProfileMap mapProfile_;

@@ -1847,10 +1847,6 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	CHECK_QSTATUS_VALUE(-1);
 	pImpl_->pMessageWindow_ = pMessageWindow.release();
 	
-	status = pImpl_->pFolderModel_->addFolderModelHandler(
-		pImpl_->pMessageWindow_->getMessageModel());
-	CHECK_QSTATUS_VALUE(-1);
-	
 	status = pImpl_->pListSplitterWindow_->add(
 		0, 0, pImpl_->pListContainerWindow_);
 	CHECK_QSTATUS_VALUE(-1);

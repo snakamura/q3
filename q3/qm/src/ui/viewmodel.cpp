@@ -1597,6 +1597,7 @@ qm::ViewModelManager::ViewModelManager(Profile* pProfile, Document* pDocument,
 	pProfile_(pProfile),
 	pDocument_(pDocument),
 	hwnd_(hwnd),
+	pCurrentAccount_(0),
 	pCurrentViewModel_(0),
 	pFilterManager_(0),
 	pColorManager_(0),
@@ -1637,6 +1638,11 @@ qm::ViewModelManager::~ViewModelManager()
 FilterManager* qm::ViewModelManager::getFilterManager() const
 {
 	return pFilterManager_;
+}
+
+Account* qm::ViewModelManager::getCurrentAccount() const
+{
+	return pCurrentAccount_;
 }
 
 ViewModel* qm::ViewModelManager::getCurrentViewModel() const
@@ -1713,17 +1719,22 @@ QSTATUS qm::ViewModelManager::removeViewModelManagerHandler(
 
 QSTATUS qm::ViewModelManager::accountSelected(const FolderModelEvent& event)
 {
-	return setCurrentFolder(0);
+	return setCurrentFolder(event.getAccount(), 0);
 }
 
 QSTATUS qm::ViewModelManager::folderSelected(const FolderModelEvent& event)
 {
-	return setCurrentFolder(event.getFolder());
+	return setCurrentFolder(0, event.getFolder());
 }
 
-QSTATUS qm::ViewModelManager::setCurrentFolder(Folder* pFolder)
+QSTATUS qm::ViewModelManager::setCurrentFolder(Account* pAccount, Folder* pFolder)
 {
+	assert(pAccount || pFolder);
+	assert(!pAccount || !pFolder);
+	
 	DECLARE_QSTATUS();
+	
+	pCurrentAccount_ = pAccount ? pAccount : pFolder->getAccount();
 	
 	ViewModel* pViewModel = 0;
 	if (pFolder) {

@@ -1,5 +1,5 @@
 /*
- * $Id: messagemodel.h,v 1.2 2003/05/25 07:24:24 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -39,7 +39,6 @@ class Message;
 class MessageModel :
 	public ViewModelManagerHandler,
 	public DefaultViewModelHandler,
-	public FolderModelHandler,
 	public qs::TimerHandler
 {
 public:
@@ -68,10 +67,6 @@ public:
 public:
 	virtual qs::QSTATUS itemRemoved(const ViewModelEvent& event);
 	virtual qs::QSTATUS itemStateChanged(const ViewModelEvent& event);
-
-public:
-	virtual qs::QSTATUS accountSelected(const FolderModelEvent& event);
-	virtual qs::QSTATUS folderSelected(const FolderModelEvent& event);
 
 public:
 	virtual qs::QSTATUS timerTimeout(unsigned int nId);
