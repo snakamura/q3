@@ -39,7 +39,7 @@ svn checkout $SVNURI
 cd q3
 
 make all NODEPEND=1
-make zip
+make zip ziptool
 
 
 (cd $ZIPDIR; ftp -i -s:$WEBFTPSCRIPT)
