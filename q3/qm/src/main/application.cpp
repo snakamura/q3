@@ -511,7 +511,8 @@ bool qm::Application::initialize()
 		Part::O_ALLOW_RAW_FIELD |
 		Part::O_ALLOW_SPECIALS_IN_REFERENCES |
 		Part::O_ALLOW_INVALID_PERIOD_IN_LOCALPART |
-		Part::O_ALLOW_SINGLE_DIGIT_TIME);
+		Part::O_ALLOW_SINGLE_DIGIT_TIME |
+		Part::O_ALLOW_DATE_WITH_RUBBISH);
 	
 	if (!pImpl_->ensureDirectory(pImpl_->wstrMailFolder_.get(), 0))
 		return false;

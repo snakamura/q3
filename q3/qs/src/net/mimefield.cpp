@@ -1297,7 +1297,8 @@ Part::Field qs::DateParser::parse(const Part& part,
 		return Part::FIELD_NOTEXIST;
 	
 	if (!parse(strValue.get(), -1,
-		part.isOption(Part::O_ALLOW_SINGLE_DIGIT_TIME), &date_))
+		part.isOption(Part::O_ALLOW_SINGLE_DIGIT_TIME),
+		part.isOption(Part::O_ALLOW_DATE_WITH_RUBBISH), &date_))
 		return Part::FIELD_ERROR;
 	
 	return Part::FIELD_EXIST;
@@ -1313,6 +1314,7 @@ string_ptr qs::DateParser::unparse(const Part& part) const
 bool qs::DateParser::parse(const CHAR* psz,
 						   size_t nLen,
 						   bool bAllowSingleDigitTime,
+						   bool bAllowRubbish,
 						   Time* pTime)
 {
 	assert(psz);
@@ -1438,8 +1440,10 @@ bool qs::DateParser::parse(const CHAR* psz,
 			state = S_TIMEZONE;
 			break;
 		case S_TIMEZONE:
-			if (token.type_ != Tokenizer::T_END)
-				return false;
+			if (!bAllowRubbish) {
+				if (token.type_ != Tokenizer::T_END)
+					return false;
+			}
 			state = S_END;
 			break;
 		case S_END:

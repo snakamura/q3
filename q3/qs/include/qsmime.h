@@ -70,7 +70,8 @@ public:
 		O_ALLOW_RAW_FIELD						= 0x00002000,
 		O_ALLOW_SPECIALS_IN_REFERENCES			= 0x00004000,
 		O_ALLOW_INVALID_PERIOD_IN_LOCALPART		= 0x00008000,
-		O_ALLOW_SINGLE_DIGIT_TIME				= 0x00010000
+		O_ALLOW_SINGLE_DIGIT_TIME				= 0x00010000,
+		O_ALLOW_DATE_WITH_RUBBISH				= 0x00020000
 	};
 	
 	enum Field {
@@ -587,6 +588,7 @@ public:
 	static bool parse(const CHAR* psz,
 					  size_t nLen,
 					  bool bAllowSingleDigitTime,
+					  bool bAllowRubbish,
 					  Time* pTime);
 	static wstring_ptr unparse(const Time& time);
 

@@ -257,7 +257,8 @@ bool qmrss::FeedContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		string_ptr strLastModified(wcs2mbs(pwszLastModified));
 		Time timeLastModified;
-		if (!DateParser::parse(strLastModified.get(), -1, false, &timeLastModified))
+		if (!DateParser::parse(strLastModified.get(),
+			-1, false, false, &timeLastModified))
 			return false;
 		
 		assert(!pCurrentFeed_);
