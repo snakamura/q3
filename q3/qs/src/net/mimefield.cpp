@@ -735,6 +735,11 @@ qs::UnstructuredParser::UnstructuredParser()
 {
 }
 
+qs::UnstructuredParser::UnstructuredParser(const WCHAR* pwszValue)
+{
+	wstrValue_ = allocWString(pwszValue);
+}
+
 qs::UnstructuredParser::UnstructuredParser(const WCHAR* pwszValue,
 										   const WCHAR* pwszCharset)
 {

@@ -343,6 +343,7 @@ class QSEXPORTCLASS UnstructuredParser : public FieldParser
 {
 public:
 	UnstructuredParser();
+	UnstructuredParser(const WCHAR* pwszValue);
 	UnstructuredParser(const WCHAR* pwszValue,
 					   const WCHAR* pwszCharset);
 	virtual ~UnstructuredParser();
