@@ -4280,7 +4280,9 @@ void qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 			type = TYPE_SELF;
 	}
 	
-	if (bPreview && !pMainWindow_->isShowPreviewWindow() &&
+	if (bPreview &&
+		(!pMainWindow_->isShowPreviewWindow() ||
+		 !static_cast<PreviewMessageModel*>(pMessageModel)->isConnectedToViewModel()) &&
 		(type == TYPE_NEXTPAGE || type == TYPE_NEXTPAGE || type == TYPE_SELF))
 		return;
 	
