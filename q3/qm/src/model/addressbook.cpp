@@ -37,7 +37,7 @@ using namespace qs;
  */
 
 qm::AddressBook::AddressBook(Profile* pProfile, QSTATUS* pstatus) :
-	bContactChanged_(true),
+	bContactChanged_(false),
 #ifndef _WIN32_WCE
 	hInstWAB_(0),
 	pAddrBook_(0),
@@ -61,6 +61,7 @@ qm::AddressBook::AddressBook(Profile* pProfile, QSTATUS* pstatus) :
 	if (nWAB) {
 		status = initWAB();
 //		CHECK_QSTATUS_SET(pstatus);
+		bContactChanged_ = true;
 	}
 }
 
