@@ -1902,7 +1902,6 @@ LRESULT qm::ColorDialog::onOk()
 		// TODO MSG
 		return 0;
 	}
-	pColor_->setCondition(pCondition);
 	
 	wstring_ptr wstrColor(getDlgItemText(IDC_COLOR));
 	Color color(wstrColor.get());
@@ -1910,6 +1909,8 @@ LRESULT qm::ColorDialog::onOk()
 		// TODO MSG
 		return 0;
 	}
+	
+	pColor_->setCondition(pCondition);
 	pColor_->setColor(color.getColor());
 	
 	return DefaultDialog::onOk();
@@ -3924,7 +3925,6 @@ LRESULT qm::GoRoundEntryDialog::onInitDialog(HWND hwndFocus,
 		sendDlgItemMessage(IDC_ACCOUNT, CB_ADDSTRING,
 			0, reinterpret_cast<LPARAM>(ptszName));
 	}
-	W2T(pEntry_->getAccount(), ptszAccount);
 	setDlgItemText(IDC_ACCOUNT, pEntry_->getAccount());
 	
 	const WCHAR* pwszSubAccount = pEntry_->getSubAccount();
@@ -6028,6 +6028,464 @@ std::auto_ptr<Signature> qm::SignaturesDialog::create() const
 bool qm::SignaturesDialog::edit(Signature* p) const
 {
 	SignatureDialog dialog(p, pDocument_);
+	return dialog.doModal(getHandle()) == IDOK;
+}
+
+
+/****************************************************************************
+ *
+ * SyncFilterDialog
+ *
+ */
+
+qm::SyncFilterDialog::SyncFilterDialog(SyncFilter* pSyncFilter,
+									   Account* pAccount) :
+	DefaultDialog(IDD_SYNCFILTER),
+	pSyncFilter_(pSyncFilter),
+	pAccount_(pAccount)
+{
+}
+
+qm::SyncFilterDialog::~SyncFilterDialog()
+{
+}
+
+LRESULT qm::SyncFilterDialog::onCommand(WORD nCode,
+										WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_EDIT, onEdit)
+		HANDLE_COMMAND_ID_CODE(IDC_ACTION, CBN_SELCHANGE, onActionSelChange)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::SyncFilterDialog::onInitDialog(HWND hwndFocus,
+										   LPARAM lParam)
+{
+	init(false);
+	
+	wstring_ptr wstrCondition(pSyncFilter_->getCondition()->getString());
+	setDlgItemText(IDC_CONDITION, wstrCondition.get());
+	
+	if (pAccount_) {
+		Account::FolderList l(pAccount_->getFolders());
+		std::sort(l.begin(), l.end(), FolderLess());
+		for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			Folder* pFolder = *it;
+			
+			wstring_ptr wstrName(pFolder->getFullName());
+			W2T(wstrName.get(), ptszName);
+			sendDlgItemMessage(IDC_FOLDER, CB_ADDSTRING,
+				0, reinterpret_cast<LPARAM>(ptszName));
+		}
+	}
+	setDlgItemText(IDC_FOLDER, pSyncFilter_->getFolder());
+	
+	const TCHAR* ptszActions[] = {
+		_T("Download (POP3)"),
+		_T("Download (IMAP4)"),
+		_T("Download (NNTP)"),
+		_T("Delete (POP3, IMAP4)"),
+		_T("Ignore (POP3, NNTP)")
+	};
+	for (int n = 0; n < countof(ptszActions); ++n)
+		sendDlgItemMessage(IDC_ACTION, CB_ADDSTRING,
+			0, reinterpret_cast<LPARAM>(ptszActions[n]));
+	
+	const TCHAR* ptszTypes[] = {
+		_T("All"),
+		_T("Text"),
+		_T("Html"),
+		_T("Header")
+	};
+	for (int n = 0; n < countof(ptszTypes); ++n)
+		sendDlgItemMessage(IDC_TYPE, CB_ADDSTRING,
+			0, reinterpret_cast<LPARAM>(ptszTypes[n]));
+	
+	int nAction = 0;
+	int nMaxLine = 0;
+	int nType = 0;
+	
+	const SyncFilter::ActionList& listAction = pSyncFilter_->getActions();
+	if (listAction.empty()) {
+		const WCHAR* pwszProtocol = L"pop3";
+		if (pAccount_)
+			pwszProtocol = pAccount_->getType(Account::HOST_RECEIVE);
+		
+		if (wcscmp(pwszProtocol, L"imap4") == 0)
+			nAction = 1;
+		else if (wcscmp(pwszProtocol, L"nntp") == 0)
+			nAction = 2;
+	}
+	else {
+		const SyncFilterAction* pAction = listAction.front();
+		const WCHAR* pwszAction = pAction->getName();
+		if (wcscmp(pwszAction, L"download") == 0) {
+			const WCHAR* pwszProtocol = L"pop3";
+			if (pAccount_) {
+				pwszProtocol = pAccount_->getType(Account::HOST_RECEIVE);
+			}
+			else {
+				if (pAction->getParam(L"line"))
+					pwszProtocol = L"pop3";
+				else if (pAction->getParam(L"type"))
+					pwszProtocol = L"imap4";
+				else
+					pwszProtocol = L"nntp";
+			}
+			
+			if (wcscmp(pwszProtocol, L"imap4") == 0) {
+				nAction = 1;
+				const WCHAR* pwszType = pAction->getParam(L"type");
+				if (pwszType) {
+					const WCHAR* pwszTypes[] = {
+						L"all",
+						L"text",
+						L"html",
+						L"header"
+					};
+					for (int n = 0; n < countof(pwszTypes); ++n) {
+						if (wcscmp(pwszType, pwszTypes[n]) == 0) {
+							nType = n;
+							break;
+						}
+					}
+				}
+			}
+			else if (wcscmp(pwszProtocol, L"nntp") == 0) {
+				nAction = 2;
+			}
+			else {
+				const WCHAR* pwszLine = pAction->getParam(L"line");
+				if (pwszLine) {
+					WCHAR* pEnd = 0;
+					long nLine = wcstol(pwszLine, &pEnd, 10);
+					if (!*pEnd)
+						nMaxLine = nLine;
+				}
+			}
+		}
+		else if (wcscmp(pwszAction, L"delete") == 0) {
+			nAction = 3;
+		}
+		else if (wcscmp(pwszAction, L"ignore") == 0) {
+			nAction = 4;
+		}
+	}
+	
+	sendDlgItemMessage(IDC_ACTION, CB_SETCURSEL, nAction);
+	setDlgItemInt(IDC_MAXLINE, nMaxLine);
+	sendDlgItemMessage(IDC_TYPE, CB_SETCURSEL, nType);
+	
+	updateState();
+	
+	return TRUE;
+}
+
+LRESULT qm::SyncFilterDialog::onOk()
+{
+	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
+	std::auto_ptr<Macro> pCondition(MacroParser(MacroParser::TYPE_SYNCFILTER).parse(wstrCondition.get()));
+	if (!pCondition.get()) {
+		// TODO MSG
+		return 0;
+	}
+	
+	wstring_ptr wstrFolder(getDlgItemText(IDC_FOLDER));
+	const WCHAR* pwszFolder = 0;
+	std::auto_ptr<RegexPattern> pFolder;
+	if (*wstrFolder.get()) {
+		pFolder = RegexCompiler().compile(wstrFolder.get());
+		if (!pFolder.get()) {
+			// TODO MSG
+			return 0;
+		}
+		pwszFolder = wstrFolder.get();
+	}
+	
+	int nAction = sendDlgItemMessage(IDC_ACTION, CB_GETCURSEL);
+	if (nAction == CB_ERR) {
+		// TODO MSG
+		return 0;
+	}
+	
+	const WCHAR* pwszName = 0;
+	switch (nAction) {
+	case 0:
+	case 1:
+	case 2:
+		pwszName = L"download";
+		break;
+	case 3:
+		pwszName = L"delete";
+		break;
+	case 4:
+		pwszName = L"ignore";
+		break;
+	default:
+		assert(false);
+		return 0;
+	}
+	
+	std::auto_ptr<SyncFilterAction> pAction(new SyncFilterAction(pwszName));
+	
+	switch (nAction) {
+	case 0:
+		{
+			int nLine = getDlgItemInt(IDC_MAXLINE);
+			wstring_ptr wstrLine(allocWString(32));
+			swprintf(wstrLine.get(), L"%d", nLine);
+			pAction->addParam(allocWString(L"line"), wstrLine);
+		}
+		break;
+	case 1:
+		{
+			int nType = sendDlgItemMessage(IDC_TYPE, CB_GETCURSEL);
+			if (nType == CB_ERR) {
+				// TODO MSG
+				return 0;
+			}
+			const WCHAR* pwszTypes[] = {
+				L"all",
+				L"text",
+				L"html",
+				L"header"
+			};
+			pAction->addParam(allocWString(L"type"), allocWString(pwszTypes[nType]));
+		}
+		break;
+	default:
+		break;
+	}
+	
+	SyncFilter::ActionList listAction(1, pAction.get());
+	pAction.release();
+	
+	const SyncFilter::ActionList& l = pSyncFilter_->getActions();
+	listAction.reserve(l.size());
+	for (SyncFilter::ActionList::size_type n = 1; n < l.size(); ++n)
+		listAction.push_back(new SyncFilterAction(*l[n]));
+	
+	pSyncFilter_->setFolder(pwszFolder, pFolder);
+	pSyncFilter_->setCondition(pCondition);
+	pSyncFilter_->setActions(listAction);
+	
+	return DefaultDialog::onOk();
+}
+
+LRESULT qm::SyncFilterDialog::onEdit()
+{
+	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
+	ConditionDialog dialog(wstrCondition.get());
+	if (dialog.doModal(getHandle()) == IDOK)
+		setDlgItemText(IDC_CONDITION, dialog.getCondition());
+	return 0;
+}
+
+LRESULT qm::SyncFilterDialog::onActionSelChange()
+{
+	updateState();
+	return 0;
+}
+
+void qm::SyncFilterDialog::updateState()
+{
+	int nItem = sendDlgItemMessage(IDC_ACTION, CB_GETCURSEL);
+	Window(getDlgItem(IDC_MAXLINELABEL)).showWindow(nItem == 0 ? SW_SHOW : SW_HIDE);
+	Window(getDlgItem(IDC_MAXLINE)).showWindow(nItem == 0 ? SW_SHOW : SW_HIDE);
+	Window(getDlgItem(IDC_TYPELABEL)).showWindow(nItem == 1 ? SW_SHOW : SW_HIDE);
+	Window(getDlgItem(IDC_TYPE)).showWindow(nItem == 1 ? SW_SHOW : SW_HIDE);
+}
+
+
+/****************************************************************************
+*
+* SyncFiltersDialog
+*
+*/
+
+qm::SyncFiltersDialog::SyncFiltersDialog(SyncFilterSet* pSyncFilterSet,
+										 Document* pDocument) :
+	AbstractListDialog<SyncFilter, SyncFilterSet::FilterList>(IDD_SYNCFILTERS, IDC_FILTERS),
+	pSyncFilterSet_(pSyncFilterSet),
+	pDocument_(pDocument)
+{
+	const SyncFilterSet::FilterList& l = pSyncFilterSet->getFilters();
+	SyncFilterSet::FilterList& list = getList();
+	list.reserve(l.size());
+	for (SyncFilterSet::FilterList::const_iterator it = l.begin(); it != l.end(); ++it)
+		list.push_back(new SyncFilter(**it));
+}
+
+qm::SyncFiltersDialog::~SyncFiltersDialog()
+{
+}
+
+LRESULT qm::SyncFiltersDialog::onCommand(WORD nCode,
+										 WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID_CODE(IDC_NAME, EN_CHANGE, onNameChange)
+	END_COMMAND_HANDLER()
+	return AbstractListDialog<SyncFilter, SyncFilterSet::FilterList>::onCommand(nCode, nId);
+}
+
+LRESULT qm::SyncFiltersDialog::onInitDialog(HWND hwndFocus,
+											LPARAM lParam)
+{
+	setDlgItemText(IDC_NAME, pSyncFilterSet_->getName());
+	
+	const Document::AccountList& listAccount = pDocument_->getAccounts();
+	for (Document::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
+		Account* pAccount = *it;
+		W2T(pAccount->getName(), ptszName);
+		sendDlgItemMessage(IDC_ACCOUNT, CB_ADDSTRING,
+			0, reinterpret_cast<LPARAM>(ptszName));
+	}
+	
+	const WCHAR* pwszAccount = pSyncFilterSet_->getAccount();
+	if (pwszAccount)
+		setDlgItemText(IDC_ACCOUNT, pwszAccount);
+	
+	return AbstractListDialog<SyncFilter, SyncFilterSet::FilterList>::onInitDialog(hwndFocus, lParam);
+}
+
+LRESULT qm::SyncFiltersDialog::onOk()
+{
+	wstring_ptr wstrName(getDlgItemText(IDC_NAME));
+	
+	wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
+	const WCHAR* pwszAccount = 0;
+	std::auto_ptr<RegexPattern> pAccount;
+	if (*wstrAccount.get()) {
+		pAccount = RegexCompiler().compile(wstrAccount.get());
+		if (!pAccount.get()) {
+			// TODO MSG
+			return 0;
+		}
+		pwszAccount = wstrAccount.get();
+	}
+	
+	pSyncFilterSet_->setName(wstrName.get());
+	pSyncFilterSet_->setAccount(pwszAccount, pAccount);
+	pSyncFilterSet_->setFilters(getList());
+	
+	return AbstractListDialog<SyncFilter, SyncFilterSet::FilterList>::onOk();
+}
+
+wstring_ptr qm::SyncFiltersDialog::getLabel(const SyncFilter* p) const
+{
+	StringBuffer<WSTRING> buf;
+	
+	const WCHAR* pwszFolder = p->getFolder();
+	if (pwszFolder) {
+		buf.append(L'[');
+		buf.append(pwszFolder);
+		buf.append(L"] ");
+	}
+	
+	wstring_ptr wstrCondition(p->getCondition()->getString());
+	buf.append(wstrCondition.get());
+	
+	return buf.getString();
+}
+
+std::auto_ptr<SyncFilter> qm::SyncFiltersDialog::create() const
+{
+	std::auto_ptr<SyncFilter> pFilter(new SyncFilter());
+	SyncFilterDialog dialog(pFilter.get(), getAccount());
+	if (dialog.doModal(getHandle()) != IDOK)
+		return std::auto_ptr<SyncFilter>();
+	return pFilter;
+}
+
+bool qm::SyncFiltersDialog::edit(SyncFilter* p) const
+{
+	SyncFilterDialog dialog(p, getAccount());
+	return dialog.doModal(getHandle()) == IDOK;
+}
+
+void qm::SyncFiltersDialog::updateState()
+{
+	AbstractListDialog<SyncFilter, SyncFilterSet::FilterList>::updateState();
+	
+	Window(getDlgItem(IDOK)).enableWindow(
+		Window(getDlgItem(IDC_NAME)).getWindowTextLength() != 0);
+}
+
+
+LRESULT qm::SyncFiltersDialog::onNameChange()
+{
+	updateState();
+	return 0;
+}
+Account* qm::SyncFiltersDialog::getAccount() const
+{
+	wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
+	return pDocument_->getAccount(wstrAccount.get());
+}
+
+
+/****************************************************************************
+*
+* SyncFilterSetsDialog
+*
+*/
+
+qm::SyncFilterSetsDialog::SyncFilterSetsDialog(SyncFilterManager* pSyncFilterManager,
+											   Document* pDocument) :
+	AbstractListDialog<SyncFilterSet, SyncFilterManager::FilterSetList>(IDD_SYNCFILTERSETS, IDC_FILTERSETS),
+	pSyncFilterManager_(pSyncFilterManager),
+	pDocument_(pDocument)
+{
+	const SyncFilterManager::FilterSetList& l = pSyncFilterManager->getFilterSets();
+	SyncFilterManager::FilterSetList& list = getList();
+	list.reserve(l.size());
+	for (SyncFilterManager::FilterSetList::const_iterator it = l.begin(); it != l.end(); ++it)
+		list.push_back(new SyncFilterSet(**it));
+}
+
+qm::SyncFilterSetsDialog::~SyncFilterSetsDialog()
+{
+}
+
+LRESULT qm::SyncFilterSetsDialog::onOk()
+{
+	pSyncFilterManager_->setFilterSets(getList());
+	if (!pSyncFilterManager_->save()) {
+		// TODO
+	}
+	return AbstractListDialog<SyncFilterSet, SyncFilterManager::FilterSetList>::onOk();
+}
+
+wstring_ptr qm::SyncFilterSetsDialog::getLabel(const SyncFilterSet* p) const
+{
+	StringBuffer<WSTRING> buf;
+	
+	const WCHAR* pwszAccount = p->getAccount();
+	if (pwszAccount) {
+		buf.append(L'[');
+		buf.append(pwszAccount);
+		buf.append(L"] ");
+	}
+	buf.append(p->getName());
+	
+	return buf.getString();
+}
+
+std::auto_ptr<SyncFilterSet> qm::SyncFilterSetsDialog::create() const
+{
+	std::auto_ptr<SyncFilterSet> pFilterSet(new SyncFilterSet());
+	SyncFiltersDialog dialog(pFilterSet.get(), pDocument_);
+	if (dialog.doModal(getHandle()) != IDOK)
+		return std::auto_ptr<SyncFilterSet>();
+	return pFilterSet;
+}
+
+bool qm::SyncFilterSetsDialog::edit(SyncFilterSet* p) const
+{
+	SyncFiltersDialog dialog(p, pDocument_);
 	return dialog.doModal(getHandle()) == IDOK;
 }
 

@@ -66,6 +66,7 @@ class DefaultDialog;
 	class SelectDialupEntryDialog;
 	class SelectSyncFilterDialog;
 	class SignatureDialog;
+	class SyncFilterDialog;
 	class ViewsColumnDialog;
 	class ViewsDialog;
 	template<class T, class List> class AbstractListDialog;
@@ -80,6 +81,8 @@ class DefaultDialog;
 			class ColorsDialog;
 			class RulesDialog;
 		class SignaturesDialog;
+		class SyncFiltersDialog;
+		class SyncFilterSetsDialog;
 
 class Account;
 class Document;
@@ -2223,6 +2226,124 @@ private:
 
 private:
 	SignatureManager* pSignatureManager_;
+	Document* pDocument_;
+};
+
+
+/****************************************************************************
+ *
+ * SyncFilterDialog
+ *
+ */
+
+class SyncFilterDialog : public DefaultDialog
+{
+public:
+	SyncFilterDialog(SyncFilter* pSyncFilter,
+					 Account* pAccount);
+	virtual ~SyncFilterDialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	LRESULT onEdit();
+	LRESULT onActionSelChange();
+
+private:
+	void updateState();
+
+private:
+	SyncFilterDialog(const SyncFilterDialog&);
+	SyncFilterDialog& operator=(const SyncFilterDialog&);
+
+private:
+	SyncFilter* pSyncFilter_;
+	Account* pAccount_;
+};
+
+
+/****************************************************************************
+ *
+ * SyncFiltersDialog
+ *
+ */
+
+class SyncFiltersDialog : public AbstractListDialog<SyncFilter, SyncFilterSet::FilterList>
+{
+public:
+	SyncFiltersDialog(SyncFilterSet* pSyncFilterSet,
+					  Document* pDocument);
+	virtual ~SyncFiltersDialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+protected:
+	virtual qs::wstring_ptr getLabel(const SyncFilter* p) const;
+	virtual std::auto_ptr<SyncFilter> create() const;
+	virtual bool edit(SyncFilter* p) const;
+	virtual void updateState();
+
+private:
+	LRESULT onNameChange();
+
+private:
+	Account* getAccount() const;
+
+private:
+	SyncFiltersDialog(const SyncFiltersDialog&);
+	SyncFiltersDialog& operator=(const SyncFiltersDialog&);
+
+private:
+	SyncFilterSet* pSyncFilterSet_;
+	Document* pDocument_;
+};
+
+
+/****************************************************************************
+ *
+ * SyncFilterSetsDialog
+ *
+ */
+
+class SyncFilterSetsDialog : public AbstractListDialog<SyncFilterSet, SyncFilterManager::FilterSetList>
+{
+public:
+	SyncFilterSetsDialog(SyncFilterManager* pSyncFilterManager,
+						 Document* pDocument);
+	virtual ~SyncFilterSetsDialog();
+
+protected:
+	virtual LRESULT onOk();
+
+protected:
+	virtual qs::wstring_ptr getLabel(const SyncFilterSet* p) const;
+	virtual std::auto_ptr<SyncFilterSet> create() const;
+	virtual bool edit(SyncFilterSet* p) const;
+
+private:
+	SyncFilterSetsDialog(const SyncFilterSetsDialog&);
+	SyncFilterSetsDialog& operator=(const SyncFilterSetsDialog&);
+
+private:
+	SyncFilterManager* pSyncFilterManager_;
 	Document* pDocument_;
 };
 

@@ -135,6 +135,7 @@
 				<menuitem text="&amp;Rules..." action="ConfigRules"/>
 				<menuitem text="&amp;Colors..." action="ConfigColors"/>
 				<menuitem text="&amp;Signatures..." action="ConfigSignatures"/>
+				<menuitem text="Sync&amp;Filters..." action="ConfigSyncFilters"/>
 			</popupmenu>
 		</popupmenu>
 	</menubar>

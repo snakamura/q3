@@ -77,6 +77,9 @@
 #define IDR_ADDRESSBOOK                 180
 #define IDD_FILTERS                     180
 #define IDD_FILTER                      181
+#define IDD_SYNCFILTERSETS              182
+#define IDD_SYNCFILTERS                 183
+#define IDD_SYNCFILTER                  184
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -365,6 +368,10 @@
 #define IDC_CHOOSE                      1255
 #define IDC_ARGUMENT                    1263
 #define IDC_FILTERS                     1264
+#define IDC_FILTERSETS                  1270
+#define IDC_MAXLINE                     1272
+#define IDC_MAXLINELABEL                1274
+#define IDC_TYPELABEL                   1275
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -616,16 +623,17 @@
 #define IDM_CONFIG_GOROUND              51003
 #define IDM_CONFIG_RULES                51004
 #define IDM_CONFIG_SIGNATURES           51005
-#define IDM_CONFIG_TEXTS                51006
-#define IDM_CONFIG_VIEWS                51007
+#define IDM_CONFIG_SYNCFILTERS          51006
+#define IDM_CONFIG_TEXTS                51007
+#define IDM_CONFIG_VIEWS                51008
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        181
+#define _APS_NEXT_RESOURCE_VALUE        185
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1267
+#define _APS_NEXT_CONTROL_VALUE         1276
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -28,6 +28,7 @@ const qs::KeyNameToId mapKeyNameToId[] = {
 	{ L"ConfigGoRound",					IDM_CONFIG_GOROUND,						0 },
 	{ L"ConfigRules",					IDM_CONFIG_RULES,						0 },
 	{ L"ConfigSignatures",				IDM_CONFIG_SIGNATURES,					0 },
+	{ L"ConfigSyncFilters",				IDM_CONFIG_SYNCFILTERS,					0 },
 	{ L"ConfigTexts",					IDM_CONFIG_TEXTS,						0 },
 	{ L"ConfigViews",					IDM_CONFIG_VIEWS,						0 },
 	{ L"EditClearDeleted",				IDM_EDIT_CLEARDELETED,					0 },

@@ -47,10 +47,15 @@ public:
 	~SyncFilterManager();
 
 public:
+	const FilterSetList& getFilterSets();
+	const FilterSetList& getFilterSets(bool bReload);
 	const SyncFilterSet* getFilterSet(const Account* pAccount,
 									  const WCHAR* pwszName) const;
 	void getFilterSets(const Account* pAccount,
 					   FilterSetList* pList) const;
+	void setFilterSets(FilterSetList& listFilterSet);
+	bool save() const;
+	void clear();
 
 public:
 	void addFilterSet(std::auto_ptr<SyncFilterSet> pFilterSet);
@@ -73,13 +78,25 @@ private:
 class QMEXPORTCLASS SyncFilterSet
 {
 public:
-	SyncFilterSet(std::auto_ptr<qs::RegexPattern> pAccountName,
+	typedef std::vector<SyncFilter*> FilterList;
+
+public:
+	SyncFilterSet();
+	SyncFilterSet(const WCHAR* pwszAccount,
+				  std::auto_ptr<qs::RegexPattern> pAccount,
 				  const WCHAR* pwszName);
+	SyncFilterSet(const SyncFilterSet& filterSet);
 	~SyncFilterSet();
 
 public:
+	const WCHAR* getAccount() const;
+	void setAccount(const WCHAR* pwszAccount,
+					std::auto_ptr<qs::RegexPattern> pAccount);
 	const WCHAR* getName() const;
+	void setName(const WCHAR* pwszAccount);
+	const FilterList& getFilters() const;
 	const SyncFilter* getFilter(SyncFilterCallback* pCallback) const;
+	void setFilters(FilterList& listFilter);
 	bool match(const Account* pAccount,
 			   const WCHAR* pwszName) const;
 
@@ -87,7 +104,6 @@ public:
 	void addFilter(std::auto_ptr<SyncFilter> pFilter);
 
 private:
-	SyncFilterSet(const SyncFilterSet&);
 	SyncFilterSet& operator=(const SyncFilterSet&);
 
 private:
@@ -107,19 +123,27 @@ public:
 	typedef std::vector<SyncFilterAction*> ActionList;
 
 public:
-	SyncFilter(std::auto_ptr<qs::RegexPattern> pFolderName,
-			   std::auto_ptr<Macro> pMacro);
+	SyncFilter();
+	SyncFilter(const WCHAR* pwszFolder,
+			   std::auto_ptr<qs::RegexPattern> pFolder,
+			   std::auto_ptr<Macro> pCondition);
+	SyncFilter(const SyncFilter& filter);
 	~SyncFilter();
 
 public:
-	bool match(SyncFilterCallback* pCallback) const;
+	const WCHAR* getFolder() const;
+	void setFolder(const WCHAR* pwszFolder,
+				   std::auto_ptr<qs::RegexPattern> pFolder);
+	const Macro* getCondition() const;
+	void setCondition(std::auto_ptr<Macro> pCondition);
 	const ActionList& getActions() const;
+	void setActions(ActionList& listAction);
+	bool match(SyncFilterCallback* pCallback) const;
 
 public:
 	void addAction(std::auto_ptr<SyncFilterAction> pAction);
 
 private:
-	SyncFilter(const SyncFilter&);
 	SyncFilter& operator=(const SyncFilter&);
 
 private:
@@ -153,19 +177,23 @@ public:
 class QMEXPORTCLASS SyncFilterAction
 {
 public:
+	typedef std::vector<std::pair<qs::WSTRING, qs::WSTRING> > ParamList;
+
+public:
 	explicit SyncFilterAction(const WCHAR* pwszName);
+	SyncFilterAction(const SyncFilterAction& action);
 	~SyncFilterAction();
 
 public:
 	const WCHAR* getName() const;
 	const WCHAR* getParam(const WCHAR* pwszName) const;
+	const ParamList& getParams() const;
 
 public:
 	void addParam(qs::wstring_ptr wstrName,
 				  qs::wstring_ptr wstrValue);
 
 private:
-	SyncFilterAction(const SyncFilterAction&);
 	SyncFilterAction& operator=(const SyncFilterAction&);
 
 private:

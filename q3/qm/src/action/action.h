@@ -34,6 +34,7 @@ class ConfigFiltersAction;
 class ConfigGoRoundAction;
 class ConfigRulesAction;
 class ConfigSignaturesAction;
+class ConfigSyncFiltersAction;
 class ConfigTextsAction;
 class ConfigViewsAction;
 class DispatchAction;
@@ -397,6 +398,34 @@ private:
 
 private:
 	SignatureManager* pSignatureManager_;
+	Document* pDocument_;
+	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * ConfigSyncFiltersAction
+ *
+ */
+
+class ConfigSyncFiltersAction : public qs::AbstractAction
+{
+public:
+	ConfigSyncFiltersAction(SyncFilterManager* pManager,
+							Document* pDocument,
+							HWND hwnd);
+	virtual ~ConfigSyncFiltersAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	ConfigSyncFiltersAction(const ConfigSyncFiltersAction&);
+	ConfigSyncFiltersAction& operator=(const ConfigSyncFiltersAction&);
+
+private:
+	SyncFilterManager* pManager_;
 	Document* pDocument_;
 	HWND hwnd_;
 };

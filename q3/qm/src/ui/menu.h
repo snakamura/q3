@@ -26,6 +26,7 @@ const qs::ActionItem menuItems[] = {
 	{ L"ConfigGoRound",				IDM_CONFIG_GOROUND				},
 	{ L"ConfigRules",				IDM_CONFIG_RULES				},
 	{ L"ConfigSignatures",			IDM_CONFIG_SIGNATURES			},
+	{ L"ConfigSyncFilters",			IDM_CONFIG_SYNCFILTERS			},
 	{ L"ConfigTexts",				IDM_CONFIG_TEXTS				},
 	{ L"ConfigViews",				IDM_CONFIG_VIEWS				},
 	{ L"EditClearDeleted",			IDM_EDIT_CLEARDELETED			},

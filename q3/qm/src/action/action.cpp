@@ -337,6 +337,32 @@ void qm::ConfigSignaturesAction::invoke(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * ConfigSyncFiltersAction
+ *
+ */
+
+qm::ConfigSyncFiltersAction::ConfigSyncFiltersAction(SyncFilterManager* pManager,
+													 Document* pDocument,
+													 HWND hwnd) :
+	pManager_(pManager),
+	pDocument_(pDocument),
+	hwnd_(hwnd)
+{
+}
+
+qm::ConfigSyncFiltersAction::~ConfigSyncFiltersAction()
+{
+}
+
+void qm::ConfigSyncFiltersAction::invoke(const ActionEvent& event)
+{
+	SyncFilterSetsDialog dialog(pManager_, pDocument_);
+	dialog.doModal(hwnd_);
+}
+
+
+/****************************************************************************
+ *
  * ConfigTextsAction
  *
  */

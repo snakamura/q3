@@ -18,6 +18,7 @@
 namespace qm {
 
 class SyncFilterContentHandler;
+class SyncFilterWriter;
 
 
 /****************************************************************************
@@ -70,6 +71,35 @@ private:
 	qs::wstring_ptr wstrCurrentParamName_;
 	qs::StringBuffer<qs::WSTRING> buffer_;
 	std::auto_ptr<MacroParser> pParser_;
+};
+
+
+/****************************************************************************
+ *
+ * SyncFilterWriter
+ *
+ */
+
+class SyncFilterWriter
+{
+public:
+	explicit SyncFilterWriter(qs::Writer* pWriter);
+	~SyncFilterWriter();
+
+public:
+	bool write(const SyncFilterManager* pManager);
+
+private:
+	bool write(const SyncFilterSet* pFilterSet);
+	bool write(const SyncFilter* pFilter);
+	bool write(const SyncFilterAction* pAction);
+
+private:
+	SyncFilterWriter(const SyncFilterWriter&);
+	SyncFilterWriter& operator=(const SyncFilterWriter&);
+
+private:
+	qs::OutputHandler handler_;
 };
 
 }
