@@ -92,6 +92,7 @@ public:
 		size_t nPosition_;
 		size_t nLength_;
 		COLORREF cr_;
+		size_t nQuoteDepth_;
 		LinkItems items_;
 	};
 	
@@ -203,6 +204,8 @@ public:
 				   DeviceContext* pdcTab,
 				   const SIZE& sizeTab) const;
 	COLORREF getLineColor(const TextModel::Line& line) const;
+	size_t getLineQuoteDepth(const TextModel::Line& line) const;
+	unsigned int getQuoteWidth() const;
 	
 	void scrollHorizontal(int nPos);
 	void scrollVertical(int nLine);
@@ -243,6 +246,7 @@ public:
 								   size_t nPosition,
 								   size_t nLength,
 								   COLORREF cr,
+								   size_t nQuoteDepth,
 								   LinkItem* pLinkItems,
 								   size_t nLinkCount);
 	static void freeLine(PhysicalLine* pLine);
@@ -274,7 +278,8 @@ private:
 	void fillPhysicalLinks(LinkItemList* pList,
 						   const DeviceContext& dc,
 						   const WCHAR* pwsz,
-						   size_t nLength) const;
+						   size_t nLength,
+						   size_t nQuoteDepth) const;
 
 public:
 	TextWindow* pThis_;
@@ -301,6 +306,7 @@ public:
 	bool bShowRuler_;
 	wstring_ptr wstrQuote_[2];
 	COLORREF crQuote_[2];
+	bool bLineQuote_;
 	unsigned int nReformLineLength_;
 	wstring_ptr wstrReformQuote_;
 	URLSchemaList listURLSchema_;
@@ -315,6 +321,7 @@ public:
 	Selection selection_;
 	unsigned int nTimerDragScroll_;
 	POINT ptLastButtonDown_;
+	mutable int nLastWindowWidth_;
 	HIMC hImc_;
 	bool bAtok_;
 	HCURSOR hCursorLink_;
@@ -471,7 +478,10 @@ unsigned int qs::TextWindowImpl::getCharFromPos(unsigned int nLine,
 {
 	unsigned int nChar = 0;
 	
-	if (nPos != 0) {
+	unsigned int nQuoteWidth = listLine_[nLine]->nQuoteDepth_*getQuoteWidth();
+	if (nPos > nQuoteWidth) {
+		nPos -= nQuoteWidth;
+		
 		if (nLine != nExtentLine_) {
 			getLineExtent(nLine, &extent_, &bExtentNewLine_);
 			nExtentLine_ = nLine;
@@ -492,7 +502,7 @@ unsigned int qs::TextWindowImpl::getCharFromPos(unsigned int nLine,
 int qs::TextWindowImpl::getPosFromChar(unsigned int nLine,
 									   unsigned int nChar) const
 {
-	int nPos = 0;
+	int nPos = listLine_[nLine]->nQuoteDepth_*getQuoteWidth();
 	
 	if (nChar != 0) {
 		if (nLine != nExtentLine_) {
@@ -500,7 +510,7 @@ int qs::TextWindowImpl::getPosFromChar(unsigned int nLine,
 			nExtentLine_ = nLine;
 		}
 		if (!extent_.empty())
-			nPos = extent_[nChar - 1];
+			nPos += extent_[nChar - 1];
 	}
 	
 	return nPos;
@@ -542,7 +552,7 @@ std::pair<unsigned int, unsigned int> qs::TextWindowImpl::getPhysicalLine(unsign
 	PhysicalLine line = { nLogicalLine, nChar, 0 };
 	LineList::const_iterator it = std::lower_bound(
 		listLine_.begin(), listLine_.end(), &line, PhysicalLineComp());
-	if (it == listLine_.end() || nChar != (*it)->nPosition_)
+	if (it == listLine_.end() || nChar != (*it)->nPosition_ - (*it)->nQuoteDepth_)
 		--it;
 	
 #ifndef NDEBUG
@@ -552,7 +562,7 @@ std::pair<unsigned int, unsigned int> qs::TextWindowImpl::getPhysicalLine(unsign
 			break;
 		}
 		else if ((*itD)->nLogicalLine_ == nLogicalLine) {
-			if ((*itD)->nPosition_ > nChar)
+			if ((*itD)->nPosition_ - (*itD)->nQuoteDepth_ > nChar)
 				break;
 		}
 		++itD;
@@ -710,8 +720,7 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 	LineList listLine;
 	LineList* pListLine = &listLine;
 	if (nStartLine == -1) {
-		std::for_each(listLine_.begin(), listLine_.end(),
-			&TextWindowImpl::freeLine);
+		std::for_each(listLine_.begin(), listLine_.end(), &TextWindowImpl::freeLine);
 		listLine_.clear();
 		pListLine = &listLine_;
 	}
@@ -727,18 +736,20 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 		TextModel::Line line = pTextModel_->getLine(n);
 		
 		COLORREF cr = getLineColor(line);
+		size_t nQuoteDepth = pThis_->isLineQuote() ? getLineQuoteDepth(line) : 0;
 		
-		if (line.getLength() == 0) {
-			PhysicalLinePtr ptr(allocLine(n, 0, 0, cr, 0, 0));
+		if (line.getLength() - nQuoteDepth == 0) {
+			PhysicalLinePtr ptr(allocLine(n, 0, 0, cr, nQuoteDepth, 0, 0));
 			pListLine->push_back(ptr.get());
 			ptr.release();
 		}
 		else {
 			getLinks(line.getText(), line.getLength(), &listLogicalLinkItem);
 			
-			const WCHAR* pBegin = line.getText();
-			const WCHAR* pEnd = pBegin + line.getLength();
-			unsigned int nLineWidth = 0;
+			const WCHAR* pBegin = line.getText() + nQuoteDepth;
+			const WCHAR* pEnd = line.getText() + line.getLength();
+			unsigned int nQuoteMargin = nQuoteDepth*getQuoteWidth();
+			unsigned int nLineWidth = nQuoteMargin;
 			const WCHAR* p = pBegin;
 			const WCHAR* pLine = pBegin;
 			while (p != pEnd) {
@@ -757,10 +768,10 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 						size_t nLength = pBegin + nFit - pLine;
 						convertLogicalLinksToPhysicalLinks(listLogicalLinkItem,
 							nOffset, nLength, &listPhysicalLinkItem);
-						fillPhysicalLinks(&listPhysicalLinkItem,
-							dc, line.getText() + nOffset, nLength);
-						PhysicalLinePtr ptr(allocLine(n, nOffset,
-							nLength, cr, &listPhysicalLinkItem[0],
+						fillPhysicalLinks(&listPhysicalLinkItem, dc,
+							line.getText() + nOffset, nLength, nQuoteDepth);
+						PhysicalLinePtr ptr(allocLine(n, nOffset, nLength,
+							cr, nQuoteDepth, &listPhysicalLinkItem[0],
 							listPhysicalLinkItem.size()));
 						pListLine->push_back(ptr.get());
 						ptr.release();
@@ -768,7 +779,7 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 						bFull = static_cast<unsigned int>(size.cx) == nWidth - nLineWidth;
 						pBegin += nFit;
 						pLine = pBegin;
-						nLineWidth = 0;
+						nLineWidth = nQuoteMargin;
 					}
 					else {
 						nLineWidth += size.cx;
@@ -782,9 +793,9 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 					size_t nLength = p - pLine;
 					convertLogicalLinksToPhysicalLinks(listLogicalLinkItem,
 						nOffset, nLength, &listPhysicalLinkItem);
-					fillPhysicalLinks(&listPhysicalLinkItem,
-						dc, line.getText() + nOffset, nLength);
-					PhysicalLinePtr ptr(allocLine(n, nOffset, nLength, cr,
+					fillPhysicalLinks(&listPhysicalLinkItem, dc,
+						line.getText() + nOffset, nLength, nQuoteDepth);
+					PhysicalLinePtr ptr(allocLine(n, nOffset, nLength, cr, nQuoteDepth,
 						&listPhysicalLinkItem[0], listPhysicalLinkItem.size()));
 					if (!bWrap)
 						++ptr->nLength_;
@@ -795,9 +806,9 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 						size_t nLength = 1;
 						convertLogicalLinksToPhysicalLinks(listLogicalLinkItem,
 							nOffset, nLength, &listPhysicalLinkItem);
-						fillPhysicalLinks(&listPhysicalLinkItem,
-							dc, line.getText() + nOffset, nLength);
-						PhysicalLinePtr ptr(allocLine(n, nOffset, nLength, cr,
+						fillPhysicalLinks(&listPhysicalLinkItem, dc,
+							line.getText() + nOffset, nLength, nQuoteDepth);
+						PhysicalLinePtr ptr(allocLine(n, nOffset, nLength, cr, nQuoteDepth,
 							&listPhysicalLinkItem[0], listPhysicalLinkItem.size()));
 						pListLine->push_back(ptr.get());
 						ptr.release();
@@ -806,7 +817,7 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 					++p;
 					pLine = p;
 					pBegin = p;
-					nLineWidth = 0;
+					nLineWidth = nQuoteMargin;
 				}
 				else if (*p == L'\t') {
 					++p;
@@ -816,16 +827,16 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 						size_t nLength = p - pLine;
 						convertLogicalLinksToPhysicalLinks(listLogicalLinkItem,
 							nOffset, nLength, &listPhysicalLinkItem);
-						fillPhysicalLinks(&listPhysicalLinkItem,
-							dc, line.getText() + nOffset, nLength);
-						PhysicalLinePtr ptr(allocLine(n, nOffset, nLength, cr,
+						fillPhysicalLinks(&listPhysicalLinkItem, dc,
+							line.getText() + nOffset, nLength, nQuoteDepth);
+						PhysicalLinePtr ptr(allocLine(n, nOffset, nLength, cr, nQuoteDepth,
 							&listPhysicalLinkItem[0], listPhysicalLinkItem.size()));
 						pListLine->push_back(ptr.get());
 						ptr.release();
 						
 						bFull = true;
 						pLine = p;
-						nLineWidth = 0;
+						nLineWidth = nQuoteMargin;
 					}
 					else {
 						nLineWidth = nNextTabStop;
@@ -835,9 +846,9 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 							size_t nLength = p - pLine;
 							convertLogicalLinksToPhysicalLinks(listLogicalLinkItem,
 								nOffset, nLength, &listPhysicalLinkItem);
-							fillPhysicalLinks(&listPhysicalLinkItem,
-								dc, line.getText() + nOffset, nLength);
-							PhysicalLinePtr ptr(allocLine(n, nOffset, nLength, cr,
+							fillPhysicalLinks(&listPhysicalLinkItem, dc,
+								line.getText() + nOffset, nLength, nQuoteDepth);
+							PhysicalLinePtr ptr(allocLine(n, nOffset, nLength, cr, nQuoteDepth,
 								&listPhysicalLinkItem[0], listPhysicalLinkItem.size()));
 							pListLine->push_back(ptr.get());
 							ptr.release();
@@ -849,7 +860,7 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 				if (p == pEnd && bFull &&
 					n == pTextModel_->getLineCount() - 1) {
 					PhysicalLinePtr ptr(allocLine(n,
-						p - line.getText(), 0, cr, 0, 0));
+						p - line.getText(), 0, cr, nQuoteDepth, 0, 0));
 					pListLine->push_back(ptr.get());
 					ptr.release();
 				}
@@ -858,12 +869,9 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 	}
 	
 	if (nStartLine != -1) {
-		std::pair<unsigned int, unsigned int> start =
-			getPhysicalLine(nStartLine, 0);
-		assert(start.first == 0 ||
-			listLine_[start.first - 1]->nLogicalLine_ != nStartLine);
-		std::pair<unsigned int, unsigned int> end =
-			getPhysicalLine(nOldEndLine, 0);
+		std::pair<unsigned int, unsigned int> start = getPhysicalLine(nStartLine, 0);
+		assert(start.first == 0 || listLine_[start.first - 1]->nLogicalLine_ != nStartLine);
+		std::pair<unsigned int, unsigned int> end = getPhysicalLine(nOldEndLine, 0);
 		while (end.first + 1 < listLine_.size() &&
 			listLine_[end.first]->nLogicalLine_ == listLine_[end.first + 1]->nLogicalLine_)
 			++end.first;
@@ -984,6 +992,21 @@ COLORREF qs::TextWindowImpl::getLineColor(const TextModel::Line& line) const
 			return crQuote_[m];
 	}
 	return crForeground_;
+}
+
+size_t qs::TextWindowImpl::getLineQuoteDepth(const TextModel::Line& line) const
+{
+	const WCHAR* p = line.getText();
+	for (size_t n = 0; n < line.getLength(); ++n, ++p) {
+		if (*p != L'>')
+			break;
+	}
+	return p - line.getText();
+}
+
+unsigned int qs::TextWindowImpl::getQuoteWidth() const
+{
+	return getAverageCharWidth()*2;
 }
 
 void qs::TextWindowImpl::scrollHorizontal(int nPos)
@@ -1396,6 +1419,7 @@ TextWindowImpl::PhysicalLine* qs::TextWindowImpl::allocLine(size_t nLogicalLine,
 															size_t nPosition,
 															size_t nLength,
 															COLORREF cr,
+															size_t nQuoteDepth,
 															LinkItem* pLinkItems,
 															size_t nLinkCount)
 {
@@ -1408,9 +1432,10 @@ TextWindowImpl::PhysicalLine* qs::TextWindowImpl::allocLine(size_t nLogicalLine,
 	pLine->nPosition_ = nPosition;
 	pLine->nLength_ = nLength;
 	pLine->cr_ = cr;
+	pLine->nQuoteDepth_ = nQuoteDepth;
 	pLine->items_.nCount_ = nLinkCount;
-	for (size_t n = 0; n < nLinkCount; ++n)
-		pLine->items_.items_[n] = *(pLinkItems + n);
+	if (nLinkCount != 0)
+		memcpy(pLine->items_.items_, pLinkItems, nLinkCount*sizeof(LinkItem));
 	return pLine;
 }
 
@@ -1628,7 +1653,8 @@ void qs::TextWindowImpl::convertLogicalLinksToPhysicalLinks(const LogicalLinkIte
 void qs::TextWindowImpl::fillPhysicalLinks(LinkItemList* pList,
 										   const DeviceContext& dc,
 										   const WCHAR* pwsz,
-										   size_t nLength) const
+										   size_t nLength,
+										   size_t nQuoteDepth) const
 {
 	assert(pList);
 	assert(pwsz);
@@ -1639,10 +1665,12 @@ void qs::TextWindowImpl::fillPhysicalLinks(LinkItemList* pList,
 	getLineExtent(dc, pwsz, nLength, &extent_, &bExtentNewLine_);
 	nExtentLine_ = -1;
 	
+	unsigned int nQuoteWidth = nQuoteDepth*getQuoteWidth();
+	
 	for (LinkItemList::iterator it = pList->begin(); it != pList->end(); ++it) {
 		assert((*it).nOffset_ + (*it).nLength_ <= extent_.size());
-		(*it).nLeft_ = (*it).nOffset_ != 0 ? extent_[(*it).nOffset_ - 1] : 0;
-		(*it).nRight_ = extent_[(*it).nOffset_ + (*it).nLength_ - 1];
+		(*it).nLeft_ = ((*it).nOffset_ != 0 ? extent_[(*it).nOffset_ - 1] : 0) + nQuoteWidth;
+		(*it).nRight_ = extent_[(*it).nOffset_ + (*it).nLength_ - 1] + nQuoteWidth;
 	}
 }
 
@@ -1767,6 +1795,7 @@ qs::TextWindow::TextWindow(TextModel* pTextModel,
 		{ L"ShowRuler",					0,	0 },
 		{ L"ReformLineLength",			74,	0 },
 		{ L"AdjustExtent",				0,	0 },
+		{ L"LineQuote",					1,	0 }
 	};
 	for (n = 0; n < countof(initNumbers); ++n)
 		initNumbers[n].nValue_ = pProfile->getInt(pwszSection,
@@ -1834,6 +1863,7 @@ qs::TextWindow::TextWindow(TextModel* pTextModel,
 		pImpl_->wstrQuote_[n].reset(initStrings[n].wstrValue_);
 		pImpl_->crQuote_[n] = initColors[n + 2].cr_;
 	}
+	pImpl_->bLineQuote_ = initNumbers[15].nValue_ != 0;
 	pImpl_->nReformLineLength_ = initNumbers[13].nValue_;
 	pImpl_->wstrReformQuote_.reset(initStrings[2].wstrValue_);
 	pImpl_->listURLSchema_.swap(listURLSchema);
@@ -1855,6 +1885,7 @@ qs::TextWindow::TextWindow(TextModel* pTextModel,
 	pImpl_->nTimerDragScroll_ = 0;
 	pImpl_->ptLastButtonDown_.x = -1;
 	pImpl_->ptLastButtonDown_.y = -1;
+	pImpl_->nLastWindowWidth_ = 0;
 	pImpl_->hImc_ = 0;
 	pImpl_->bAtok_ = false;
 	pImpl_->hCursorLink_ = ::LoadCursor(getDllInstanceHandle(),
@@ -1925,6 +1956,10 @@ wstring_ptr qs::TextWindow::getSelectedText() const
 		TextModel::Line l = pImpl_->pTextModel_->getLine(pLine->nLogicalLine_);
 		unsigned int nStart = n == nStartLine ? nStartChar : 0;
 		unsigned int nEnd = n == nEndLine ? nEndChar : pLine->nLength_;
+		if (nStart == 0) {
+			for (size_t n = 0; n < pLine->nQuoteDepth_; ++n)
+				buf.append(L'>');
+		}
 		buf.append(l.getText() + pLine->nPosition_ + nStart, nEnd - nStart);
 	}
 	
@@ -2893,17 +2928,19 @@ void qs::TextWindow::setShowCaret(bool bShowCaret)
 {
 	if (pImpl_->bShowCaret_ != bShowCaret) {
 		pImpl_->bShowCaret_ = bShowCaret;
-		if (bShowCaret) {
-			pImpl_->caret_.nLine_ = pImpl_->scrollPos_.nLine_;
-			pImpl_->caret_.nChar_ = 0;
-			pImpl_->caret_.nPos_ = 0;
-			pImpl_->caret_.nOldPos_ = 0;
-			
-			pImpl_->showCaret();
-			pImpl_->updateCaret(false);
-		}
-		else {
-			pImpl_->hideCaret();
+		if (hasFocus()) {
+			if (bShowCaret) {
+				pImpl_->caret_.nLine_ = pImpl_->scrollPos_.nLine_;
+				pImpl_->caret_.nChar_ = 0;
+				pImpl_->caret_.nPos_ = 0;
+				pImpl_->caret_.nOldPos_ = 0;
+				
+				pImpl_->showCaret();
+				pImpl_->updateCaret(false);
+			}
+			else {
+				pImpl_->hideCaret();
+			}
 		}
 	}
 }
@@ -2935,6 +2972,16 @@ void qs::TextWindow::setQuoteColor(unsigned int n,
 	assert(n < 2);
 	pImpl_->crQuote_[n] = cr;
 	invalidate();
+}
+
+bool qs::TextWindow::isLineQuote() const
+{
+	return pImpl_->bLineQuote_ && !pImpl_->pTextModel_->isEditable();
+}
+
+void qs::TextWindow::setLineQuote(bool bLineQuote)
+{
+	pImpl_->bLineQuote_ = bLineQuote;
 }
 
 unsigned int qs::TextWindow::getReformLineLength() const
@@ -3408,6 +3455,7 @@ LRESULT qs::TextWindow::onPaint()
 	
 	GdiObject<HPEN> hpenLink(::CreatePen(PS_SOLID, 1, pImpl_->crLink_));
 	ObjectSelector<HPEN> penSelector(dc, hpenLink.get());
+	GdiObject<HPEN> hpenQuote(::CreatePen(PS_SOLID, 2, pImpl_->crQuote_[0]));
 	
 	ObjectSelector<HFONT> fontSelector(dc, pImpl_->hfont_);
 	ObjectSelector<HBRUSH> brushSelector(dc,
@@ -3438,6 +3486,7 @@ LRESULT qs::TextWindow::onPaint()
 	
 	SIZE sizeTab = { nAverageCharWidth, nLineHeight };
 	POINT ptLink[2];
+	unsigned int nQuoteWidth = pImpl_->getQuoteWidth();
 	
 	rect.bottom = pImpl_->nMarginTop_;
 	dc.fillSolidRect(rect, pImpl_->crBackground_);
@@ -3469,9 +3518,35 @@ LRESULT qs::TextWindow::onPaint()
 			if (bNewLine)
 				--pEnd;
 			
-			unsigned int x = 0;
+			unsigned int nAllQuoteWidth = pPhysicalLine->nQuoteDepth_*nQuoteWidth;
+			if (nAllQuoteWidth != 0) {
+				RECT r = {
+					pt.x,
+					rect.top,
+					pt.x + nAllQuoteWidth,
+					rect.bottom
+				};
+				dc.fillSolidRect(r, pImpl_->crBackground_);
+				
+				ObjectSelector<HPEN> penSelector(dc, hpenQuote.get());
+				for (size_t n = 0; n < pPhysicalLine->nQuoteDepth_; ++n) {
+					POINT ptQuote[] = {
+						{ pt.x + nQuoteWidth*n + nQuoteWidth/2,	rect.top },
+						{ pt.x + nQuoteWidth*n + nQuoteWidth/2,	rect.bottom }
+					};
+					dc.polyline(ptQuote, countof(ptQuote));
+				}
+			}
+			
+			unsigned int x = nAllQuoteWidth;
 			if (pBegin == pEnd) {
-				dc.fillSolidRect(rect, pImpl_->crBackground_);
+				RECT r = {
+					pt.x + x,
+					rect.top,
+					rect.right,
+					rect.bottom
+				};
+				dc.fillSolidRect(r, pImpl_->crBackground_);
 			}
 			else {
 				size_t nLinkCount = pPhysicalLine->items_.nCount_;
@@ -3608,9 +3683,10 @@ LRESULT qs::TextWindow::onSize(UINT nFlags,
 	
 	pImpl_->nLineInWindow_ = 0;
 	
-	if (pImpl_->nCharInLine_ == 0) {
+	if (pImpl_->nCharInLine_ == 0 && cx != pImpl_->nLastWindowWidth_)
 		pImpl_->recalcLines();
-	}
+	pImpl_->nLastWindowWidth_ = cx;
+	
 	pImpl_->updateScrollBar();
 	invalidate();
 	

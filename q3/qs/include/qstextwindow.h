@@ -381,6 +381,8 @@ public:
 	COLORREF getQuoteColor(unsigned int n) const;
 	void setQuoteColor(unsigned int n,
 					   COLORREF cr);
+	bool isLineQuote() const;
+	void setLineQuote(bool bLineQuote);
 	unsigned int getReformLineLength() const;
 	void setReformLineLength(unsigned int nReformLineLength);
 	const WCHAR* getReformQuote() const;
