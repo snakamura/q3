@@ -664,7 +664,7 @@ wstring_ptr qm::MacroValueMessageList::string() const
 		if (mpl) {
 			if (buf.getLength() != 0)
 				buf.append(L", ");
-			wstring_ptr wstrURI(URI::getURI(mpl));
+			wstring_ptr wstrURI(URI(mpl).toString());
 			buf.append(wstrURI.get());
 		}
 	}

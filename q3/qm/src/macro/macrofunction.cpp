@@ -4275,7 +4275,7 @@ MacroValuePtr qm::MacroFunctionURI::value(MacroContext* pContext) const
 	if (!pmh || !pmh->getMessageHolder())
 		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
 	
-	wstring_ptr wstrURI(URI::getURI(pmh->getMessageHolder()));
+	wstring_ptr wstrURI(URI(pmh->getMessageHolder()).toString());
 	return MacroValueFactory::getFactory().newString(wstrURI.get());
 }
 

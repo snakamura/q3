@@ -513,9 +513,9 @@ bool qm::RecentsMenu::createMenu(HMENU hmenu)
 		wstring_ptr wstrURI(*it);
 		*it = 0;
 		
-		MessagePtr ptr;
-		if (URI::getMessageHolder(wstrURI.get(), pDocument_, &ptr)) {
-			MessagePtrLock mpl(ptr);
+		std::auto_ptr<URI> pURI(URI::parse(wstrURI.get()));
+		if (pURI.get()) {
+			MessagePtrLock mpl(pDocument_->getMessage(*pURI.get()));
 			if (mpl) {
 				if (pAccount != mpl->getFolder()->getAccount()) {
 					if (pAccount != 0)

@@ -167,7 +167,7 @@ STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
 		for (MessagePtrList::const_iterator it = listMessagePtr_.begin(); it != listMessagePtr_.end(); ++it) {
 			MessagePtrLock mpl(*it);
 			if (mpl) {
-				wstring_ptr wstrURI(URI::getURI(mpl));
+				wstring_ptr wstrURI(URI(mpl).toString());
 				size_t nLen = wcslen(wstrURI.get());
 				Buffer::size_type n = buf.size();
 				buf.resize(buf.size() + nLen + 1);
@@ -328,10 +328,10 @@ STDMETHODIMP qm::MessageDataObject::SetData(FORMATETC* pFormat,
 	else if (pFormat->cfFormat == nFormats__[FORMAT_MESSAGEHOLDERLIST]) {
 		const WCHAR* p = static_cast<const WCHAR*>(pData);
 		while (*p) {
-			MessagePtr ptr;
-			if (!URI::getMessageHolder(p, pDocument_, &ptr))
+			std::auto_ptr<URI> pURI(URI::parse(p));
+			if (!pURI.get())
 				return E_FAIL;
-			listMessagePtr_.push_back(ptr);
+			listMessagePtr_.push_back(pDocument_->getMessage(*pURI.get()));
 			p += wcslen(p) + 1;
 		}
 	}
@@ -485,10 +485,10 @@ bool qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
 		const WCHAR* p = reinterpret_cast<const WCHAR*>(GlobalLock(stm.hGlobal));
 		MessagePtrList listMessagePtr;
 		while (*p) {
-			MessagePtr ptr;
-			if (!URI::getMessageHolder(p, pDocument, &ptr))
+			std::auto_ptr<URI> pURI(URI::parse(p));
+			if (!pURI.get())
 				return false;
-			listMessagePtr.push_back(ptr);
+			listMessagePtr.push_back(pDocument->getMessage(*pURI.get()));
 			p += wcslen(p) + 1;
 		}
 		

@@ -3464,9 +3464,9 @@ void qm::MessageOpenRecentAction::invoke(const ActionEvent& event)
 {
 	const WCHAR* pwszURI = pRecentsMenu_->getURI(event.getId());
 	if (pwszURI) {
-		MessagePtr ptr;
-		if (URI::getMessageHolder(pwszURI, pDocument_, &ptr)) {
-			MessagePtrLock mpl(ptr);
+		std::auto_ptr<URI> pURI(URI::parse(pwszURI));
+		if (pURI.get()) {
+			MessagePtrLock mpl(pDocument_->getMessage(*pURI.get()));
 			if (mpl) {
 				ViewModel* pViewModel = pViewModelManager_->getViewModel(mpl->getFolder());
 				if (!pMessageFrameWindowManager_->open(pViewModel, mpl)) {

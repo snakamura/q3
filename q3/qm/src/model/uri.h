@@ -33,11 +33,33 @@ class MessagePtr;
 class URI
 {
 public:
-	static bool getMessageHolder(const WCHAR* pwszURI,
-								 Document* pDocument,
-								 MessagePtr* pptr);
-	static qs::wstring_ptr getURI(MessageHolder* pmh);
+	URI(const WCHAR* pwszAccount,
+		const WCHAR* pwszFolder,
+		unsigned int nValidity,
+		unsigned int nId);
+	URI(MessageHolder* pmh);
+	~URI();
+
+public:
+	const WCHAR* getAccount() const;
+	const WCHAR* getFolder() const;
+	unsigned int getValidity() const;
+	unsigned int getId() const;
+	qs::wstring_ptr toString() const;
+
+public:
 	static const WCHAR* getScheme();
+	static std::auto_ptr<URI> parse(const WCHAR* pwszURI);
+
+private:
+	URI(const URI&);
+	URI& operator=(const URI&);
+
+private:
+	qs::wstring_ptr wstrAccount_;
+	qs::wstring_ptr wstrFolder_;
+	unsigned int nValidity_;
+	unsigned int nId_;
 };
 
 }

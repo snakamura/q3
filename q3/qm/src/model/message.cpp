@@ -7,6 +7,7 @@
  */
 
 #include <qmaccount.h>
+#include <qmdocument.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
 
@@ -709,10 +710,10 @@ bool qm::MessageCreator::attachFileOrURI(qs::Part* pPart,
 		const WCHAR* pwszAttachment = *it;
 		std::auto_ptr<Part> pChildPart;
 		if (wcsncmp(pwszAttachment, wstrSchemePrefix.get(), nSchemePrefixLen) == 0) {
-			MessagePtr ptr;
-			if (!URI::getMessageHolder(pwszAttachment, pDocument, &ptr))
+			std::auto_ptr<URI> pURI(URI::parse(pwszAttachment));
+			if (!pURI.get())
 				return false;
-			MessagePtrLock mpl(ptr);
+			MessagePtrLock mpl(pDocument->getMessage(*pURI.get()));
 			if (!mpl)
 				return false;
 			Message msg;

@@ -29,6 +29,7 @@
 #include "rule.h"
 #include "signature.h"
 #include "templatemanager.h"
+#include "uri.h"
 #include "../script/scriptmanager.h"
 
 using namespace qm;
@@ -356,7 +357,7 @@ bool qm::Document::loadAccounts(const WCHAR* pwszPath)
 }
 
 qm::Folder* qm::Document::getFolder(Account* pAccount,
-								const WCHAR* pwszName) const
+									const WCHAR* pwszName) const
 {
 	assert(pAccount);
 	assert(pwszName);
@@ -373,6 +374,20 @@ qm::Folder* qm::Document::getFolder(Account* pAccount,
 	}
 	
 	return pAccount->getFolder(pwszName);
+}
+
+MessagePtr qm::Document::getMessage(const URI& uri) const
+{
+	Account* pAccount = getAccount(uri.getAccount());
+	if (!pAccount)
+		return MessagePtr();
+	
+	Folder* pFolder = pAccount->getFolder(uri.getFolder());
+	if (!pFolder ||
+		pFolder->getType() != Folder::TYPE_NORMAL ||
+		static_cast<NormalFolder*>(pFolder)->getValidity() != uri.getValidity())
+		return MessagePtr();
+	return MessagePtr(static_cast<NormalFolder*>(pFolder)->getMessageById(uri.getId()));
 }
 
 RuleManager* qm::Document::getRuleManager() const

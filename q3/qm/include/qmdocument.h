@@ -29,12 +29,14 @@ class Account;
 class AddressBook;
 class Folder;
 class MessageHolder;
+class MessagePtr;
 class Recents;
 class RuleManager;
 class ScriptManager;
 class Security;
 class SignatureManager;
 class TemplateManager;
+class URI;
 
 
 /****************************************************************************
@@ -63,6 +65,7 @@ public:
 	bool loadAccounts(const WCHAR* pwszPath);
 	Folder* getFolder(Account* pAccount,
 					  const WCHAR* pwszName) const;
+	MessagePtr getMessage(const URI& uri) const;
 	
 	RuleManager* getRuleManager() const;
 	const TemplateManager* getTemplateManager() const;

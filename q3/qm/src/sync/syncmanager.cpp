@@ -1105,7 +1105,7 @@ void qm::SyncManager::ReceiveSessionCallbackImpl::notifyNewMessage(MessageHolder
 {
 	pCallback_->notifyNewMessage(nId_);
 	
-	wstring_ptr wstrURI(URI::getURI(pmh));
+	wstring_ptr wstrURI(URI(pmh).toString());
 	pRecents_->add(wstrURI.get(), bAuto_);
 }
 
