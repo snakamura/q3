@@ -24,6 +24,8 @@
 #include <memory>
 #include <algorithm>
 
+#pragma warning(disable:4786)
+
 using namespace qm;
 using namespace qs;
 
@@ -1105,11 +1107,11 @@ bool qm::QueryFolder::search(Document* pDocument,
 		return false;
 	std::sort(pImpl_->listMessageHolder_.begin(), pImpl_->listMessageHolder_.end());
 	
+	bool (MessageHolder::*pfn)() const = &MessageHolder::isSeen;
 	pImpl_->nUnseenCount_ = std::count_if(
 		pImpl_->listMessageHolder_.begin(),
 		pImpl_->listMessageHolder_.end(),
-		std::not1(
-			std::mem_fun(&MessageHolder::isSeen)));
+		std::not1(std::mem_fun(pfn)));
 	
 	getImpl()->fireMessageRefreshed();
 	
