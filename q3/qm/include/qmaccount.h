@@ -150,6 +150,8 @@ public:
 	bool removeFolder(Folder* pFolder);
 	bool renameFolder(Folder* pFolder,
 					  const WCHAR* pwszName);
+	bool moveFolder(Folder* pFolder,
+					Folder* pParent);
 	void setFolderFlags(Folder* pFolder,
 						unsigned int nFlags,
 						unsigned int nMask);

@@ -624,6 +624,195 @@ wstring_ptr qm::MessageDataObject::getFileName(const WCHAR* pwszName)
 }
 
 
+/****************************************************************************
+ *
+ * FolderDataObject
+ *
+ */
+
+UINT qm::FolderDataObject::nFormats__[] = {
+	::RegisterClipboardFormat(_T("QmFolderData"))
+};
+
+FORMATETC qm::FolderDataObject::formats__[] = {
+	{
+		FolderDataObject::nFormats__[FORMAT_FOLDER],
+		0,
+		DVASPECT_CONTENT,
+		-1,
+		TYMED_HGLOBAL
+	}
+};
+
+qm::FolderDataObject::FolderDataObject(Folder* pFolder) :
+	nRef_(0),
+	pFolder_(pFolder)
+{
+}
+
+qm::FolderDataObject::~FolderDataObject()
+{
+}
+
+STDMETHODIMP_(ULONG) qm::FolderDataObject::AddRef()
+{
+	return ::InterlockedIncrement(reinterpret_cast<LONG*>(&nRef_));
+}
+
+STDMETHODIMP_(ULONG) qm::FolderDataObject::Release()
+{
+	ULONG nRef = ::InterlockedDecrement(reinterpret_cast<LONG*>(&nRef_));
+	if (nRef == 0)
+		delete this;
+	return nRef;
+}
+
+STDMETHODIMP qm::FolderDataObject::QueryInterface(REFIID riid,
+												  void** ppv)
+{
+	*ppv = 0;
+	
+	if (riid == IID_IUnknown || riid == IID_IDataObject) {
+		AddRef();
+		*ppv = static_cast<IDataObject*>(this);
+	}
+	
+	return *ppv ? S_OK : E_NOINTERFACE;
+}
+
+STDMETHODIMP qm::FolderDataObject::GetData(FORMATETC* pFormat,
+										   STGMEDIUM* pMedium)
+{
+	HRESULT hr = QueryGetData(pFormat);
+	if (hr != S_OK)
+		return hr;
+	
+	HGLOBAL hGlobal = 0;
+	if (pFormat->cfFormat == nFormats__[FORMAT_FOLDER]) {
+		wstring_ptr wstrFolderName(pFolder_->getFullName());
+		ConcatW c[] = {
+			{ L"//",								2	},
+			{ pFolder_->getAccount()->getName(),	-1	},
+			{ L"/",									1	},
+			{ wstrFolderName.get(),					-1	}
+		};
+		wstring_ptr wstrName(concat(c, countof(c)));
+		hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT,
+			(wcslen(wstrName.get()) + 1)*sizeof(WCHAR));
+		if (!hGlobal)
+			return E_OUTOFMEMORY;
+		
+		WCHAR* p = reinterpret_cast<WCHAR*>(GlobalLock(hGlobal));
+		wcscpy(p, wstrName.get());
+		GlobalUnlock(hGlobal);
+	}
+	
+	pMedium->tymed = TYMED_HGLOBAL;
+	pMedium->hGlobal = hGlobal;
+	pMedium->pUnkForRelease = 0;
+	
+	return S_OK;
+}
+
+STDMETHODIMP qm::FolderDataObject::GetDataHere(FORMATETC* pFormat,
+											   STGMEDIUM* pMedium)
+{
+	return E_NOTIMPL;
+}
+
+STDMETHODIMP qm::FolderDataObject::QueryGetData(FORMATETC* pFormat)
+{
+	int n = 0;
+	while (n < countof(nFormats__)) {
+		if (pFormat->cfFormat == nFormats__[n])
+			break;
+		++n;
+	}
+	if (n == countof(nFormats__) || pFormat->ptd)
+		return DV_E_FORMATETC;
+	else if (pFormat->lindex != -1)
+		return DV_E_LINDEX;
+	else if (!(pFormat->tymed & TYMED_HGLOBAL))
+		return DV_E_TYMED;
+	else if (pFormat->dwAspect != DVASPECT_CONTENT)
+		return DV_E_DVASPECT;
+	else
+		return S_OK;
+}
+
+STDMETHODIMP qm::FolderDataObject::GetCanonicalFormatEtc(FORMATETC* pFormatIn,
+														 FORMATETC* pFormatOut)
+{
+	return E_NOTIMPL;
+}
+
+STDMETHODIMP qm::FolderDataObject::SetData(FORMATETC* pFormat,
+										   STGMEDIUM* pMedium,
+										   BOOL bRelease)
+{
+	return E_NOTIMPL;
+}
+
+STDMETHODIMP qm::FolderDataObject::EnumFormatEtc(DWORD dwDirection,
+												 IEnumFORMATETC** ppEnum)
+{
+	if (dwDirection != DATADIR_GET)
+		return E_NOTIMPL;
+	
+	IEnumFORMATETCImpl* pEnum = new IEnumFORMATETCImpl(formats__, countof(formats__));
+	pEnum->AddRef();
+	
+	*ppEnum = pEnum;
+	
+	return S_OK;
+}
+
+STDMETHODIMP qm::FolderDataObject::DAdvise(FORMATETC* pFormat,
+										   DWORD advf,
+										   IAdviseSink* pSink,
+										   DWORD* pdwConnection)
+{
+	return E_NOTIMPL;
+}
+
+STDMETHODIMP qm::FolderDataObject::DUnadvise(DWORD dwConnection)
+{
+	return E_NOTIMPL;
+}
+
+STDMETHODIMP qm::FolderDataObject::EnumDAdvise(IEnumSTATDATA** ppEnum)
+{
+	return E_NOTIMPL;
+}
+
+bool qm::FolderDataObject::canPasteFolder(IDataObject* pDataObject)
+{
+	assert(pDataObject);
+	
+	FORMATETC fe = formats__[FORMAT_FOLDER];
+	return pDataObject->QueryGetData(&fe) == S_OK;
+}
+
+qm::Folder* qm::FolderDataObject::getFolder(IDataObject* pDataObject,
+											Document* pDocument)
+{
+	assert(pDataObject);
+	
+	FORMATETC fe = formats__[FORMAT_FOLDER];
+	STGMEDIUM stm;
+	HRESULT hr = pDataObject->GetData(&fe, &stm);
+	if (hr != S_OK)
+		return 0;
+	
+	void* pData = GlobalLock(stm.hGlobal);
+	Folder* pFolder = pDocument->getFolder(0, static_cast<WCHAR*>(pData));
+	GlobalUnlock(stm.hGlobal);
+	::ReleaseStgMedium(&stm);
+	
+	return pFolder;
+}
+
+
 #ifndef _WIN32_WCE
 
 /****************************************************************************

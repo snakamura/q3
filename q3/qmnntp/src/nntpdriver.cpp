@@ -102,6 +102,13 @@ bool qmnntp::NntpDriver::renameFolder(NormalFolder* pFolder,
 	return false;
 }
 
+bool qmnntp::NntpDriver::moveFolder(NormalFolder* pFolder,
+									NormalFolder* pParent)
+{
+	assert(false);
+	return false;
+}
+
 bool qmnntp::NntpDriver::createDefaultFolders(Account::FolderList* pList)
 {
 	assert(pList);

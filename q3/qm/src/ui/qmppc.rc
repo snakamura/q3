@@ -1578,6 +1578,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ERROR_CREATEACCOUNT "Error occured while creating an account."
+    IDS_ERROR_MOVEFOLDER    "Error occured while moving folder."
 END
 
 STRINGTABLE DISCARDABLE 

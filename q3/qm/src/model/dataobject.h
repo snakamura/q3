@@ -22,6 +22,7 @@
 namespace qm {
 
 class MessageDataObject;
+class FolderDataObject;
 #ifndef _WIN32_WCE
 class URIDataObject;
 #endif
@@ -121,6 +122,68 @@ private:
 	Folder* pFolder_;
 	MessagePtrList listMessagePtr_;
 	Flag flag_;
+
+public:
+	static UINT nFormats__[];
+	static FORMATETC formats__[];
+};
+
+
+/****************************************************************************
+ *
+ * FolderDataObject
+ *
+ */
+
+class FolderDataObject : public IDataObject
+{
+public:
+	enum Format {
+		FORMAT_FOLDER
+	};
+
+public:
+	explicit FolderDataObject(Folder* pFolder);
+	~FolderDataObject();
+
+public:
+	STDMETHOD_(ULONG, AddRef)();
+	STDMETHOD_(ULONG, Release)();
+	STDMETHOD(QueryInterface)(REFIID riid,
+							  void** ppv);
+
+public:
+	STDMETHOD(GetData)(FORMATETC* pFormat,
+					   STGMEDIUM* pMedium);
+	STDMETHOD(GetDataHere)(FORMATETC* pFormat,
+						   STGMEDIUM* pMedium);
+	STDMETHOD(QueryGetData)(FORMATETC* pFormat);
+	STDMETHOD(GetCanonicalFormatEtc)(FORMATETC* pFormatIn,
+									 FORMATETC* pFormatOut);
+	STDMETHOD(SetData)(FORMATETC* pFormat,
+					   STGMEDIUM* pMedium,
+					   BOOL bRelease);
+	STDMETHOD(EnumFormatEtc)(DWORD dwDirection,
+							 IEnumFORMATETC** ppEnum);
+	STDMETHOD(DAdvise)(FORMATETC* pFormat,
+					   DWORD advf,
+					   IAdviseSink* pSink,
+					   DWORD* pdwConnection);
+	STDMETHOD(DUnadvise)(DWORD dwConnection);
+	STDMETHOD(EnumDAdvise)(IEnumSTATDATA** ppEnum);
+
+public:
+	static bool canPasteFolder(IDataObject* pDataObject);
+	static Folder* getFolder(IDataObject* pDataObject,
+							 Document* pDocument);
+
+private:
+	FolderDataObject(const FolderDataObject&);
+	FolderDataObject& operator=(const FolderDataObject&);
+
+private:
+	ULONG nRef_;
+	Folder* pFolder_;
 
 public:
 	static UINT nFormats__[];

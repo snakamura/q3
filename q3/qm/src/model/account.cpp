@@ -1238,7 +1238,8 @@ bool qm::Account::renameFolder(Folder* pFolder,
 	assert(pFolder);
 	assert(pwszName);
 	
-	if (wcschr(pwszName, pFolder->getSeparator()))
+	if (wcschr(pwszName, pFolder->getSeparator()) ||
+		getFolder(pFolder->getParentFolder(), pwszName))
 		return false;
 	
 	if (pFolder->getType() == Folder::TYPE_NORMAL &&
@@ -1251,6 +1252,47 @@ bool qm::Account::renameFolder(Folder* pFolder,
 	pFolder->setName(pwszName);
 	
 	FolderListChangedEvent event(this, FolderListChangedEvent::TYPE_RENAME, pFolder);
+	pImpl_->fireFolderListChanged(event);
+	
+	return true;
+}
+
+bool qm::Account::moveFolder(Folder* pFolder,
+							 Folder* pParent)
+{
+	assert(pFolder);
+	
+	if (pFolder->getParentFolder() == pParent)
+		return true;
+	else if (pParent && pParent->getAccount() != pFolder->getAccount())
+		return false;
+	else if (pParent == pFolder || (pParent && pFolder->isAncestorOf(pParent)))
+		return false;
+	else if (getFolder(pParent, pFolder->getName()))
+		return false;
+	
+	if (pFolder->isFlag(Folder::FLAG_LOCAL)) {
+		for (FolderList::const_iterator it = pImpl_->listFolder_.begin(); it != pImpl_->listFolder_.end(); ++it) {
+			if (pFolder->isAncestorOf(*it) && !(*it)->isFlag(Folder::FLAG_LOCAL))
+				return false;
+		}
+	}
+	else {
+		if (pParent && pParent->isFlag(Folder::FLAG_LOCAL))
+			return false;
+		
+		assert(pFolder->getType() == Folder::TYPE_NORMAL);
+		assert(!pParent || pParent->getType() == Folder::TYPE_NORMAL);
+		
+		if (!pImpl_->pProtocolDriver_->moveFolder(
+			static_cast<NormalFolder*>(pFolder),
+			static_cast<NormalFolder*>(pParent)))
+			return false;
+	}
+	
+	pFolder->setParentFolder(pParent);
+	
+	FolderListChangedEvent event(this, FolderListChangedEvent::TYPE_ALL, 0);
 	pImpl_->fireFolderListChanged(event);
 	
 	return true;

@@ -79,6 +79,13 @@ bool qmpop3::Pop3Driver::renameFolder(NormalFolder* pFolder,
 	return false;
 }
 
+bool qmpop3::Pop3Driver::moveFolder(NormalFolder* pFolder,
+									NormalFolder* pParent)
+{
+	assert(false);
+	return false;
+}
+
 bool qmpop3::Pop3Driver::createDefaultFolders(Account::FolderList* pList)
 {
 	assert(pList);

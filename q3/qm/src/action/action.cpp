@@ -2519,14 +2519,32 @@ void qm::FolderRenameAction::invoke(const ActionEvent& event)
 	Folder* pFolder = pFolderSelectionModel_->getFocusedFolder();
 	if (pFolder) {
 		RenameDialog dialog(pFolder->getName());
-		if (dialog.doModal(hwnd_) == IDOK) {
-			const WCHAR* pwszName = dialog.getName();
-			if (wcscmp(pFolder->getName(), pwszName) != 0) {
-				Account* pAccount = pFolder->getAccount();
-				if (!pAccount->renameFolder(pFolder, pwszName)) {
-					ActionUtil::error(hwnd_, IDS_ERROR_RENAMEFOLDER);
+		if (dialog.doModal(hwnd_) != IDOK)
+			return;
+		
+		const WCHAR* pwszName = dialog.getName();
+		if (wcscmp(pFolder->getName(), pwszName) == 0)
+			return;
+		
+		Account* pAccount = pFolder->getAccount();
+		if (*pwszName == pFolder->getSeparator()) {
+			Folder* pParent = 0;
+			if (*(pwszName + 1) != L'\0') {
+				pParent = pAccount->getFolder(pwszName + 1);
+				if (!pParent) {
+					ActionUtil::error(hwnd_, IDS_ERROR_MOVEFOLDER);
 					return;
 				}
+			}
+			if (!pAccount->moveFolder(pFolder, pParent)) {
+				ActionUtil::error(hwnd_, IDS_ERROR_MOVEFOLDER);
+				return;
+			}
+		}
+		else {
+			if (!pAccount->renameFolder(pFolder, pwszName)) {
+				ActionUtil::error(hwnd_, IDS_ERROR_RENAMEFOLDER);
+				return;
 			}
 		}
 	}

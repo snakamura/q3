@@ -245,6 +245,48 @@ bool qmimap4::Imap4Driver::renameFolder(NormalFolder* pFolder,
 	return true;
 }
 
+bool qmimap4::Imap4Driver::moveFolder(NormalFolder* pFolder,
+									  NormalFolder* pParent)
+{
+	assert(pFolder);
+	
+	Lock<CriticalSection> lock(cs_);
+	
+	if (!prepareSessionCache())
+		return false;
+	
+	SessionCacher cacher(pSessionCache_.get(), 0);
+	Imap4* pImap4 = cacher.get();
+	if (!pImap4)
+		return 0;
+	
+	wstring_ptr wstrOldName(Util::getFolderName(pFolder));
+	
+	wstring_ptr wstrNewName;
+	if (pParent) {
+		wstring_ptr wstrParentName(Util::getFolderName(pParent));
+		WCHAR wsz[] = { pParent->getSeparator(), L'\0' };
+		wstrNewName = concat(wstrParentName.get(), wsz, pFolder->getName());
+	}
+	else {
+		wstring_ptr wstrRootFolder(pAccount_->getProperty(L"Imap4", L"RootFolder", L""));
+		if (*wstrRootFolder.get()) {
+			WCHAR wsz[] = { pFolder->getSeparator(), L'\0' };
+			wstrNewName = concat(wstrRootFolder.get(), wsz, pFolder->getName());
+		}
+		else {
+			wstrNewName = allocWString(pFolder->getName());
+		}
+	}
+	
+	if (!pImap4->rename(wstrOldName.get(), wstrNewName.get()))
+		return false;
+	
+	cacher.release();
+	
+	return true;
+}
+
 bool qmimap4::Imap4Driver::createDefaultFolders(Account::FolderList* pList)
 {
 	assert(pList);

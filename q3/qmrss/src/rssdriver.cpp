@@ -80,6 +80,13 @@ bool qmrss::RssDriver::renameFolder(NormalFolder* pFolder,
 	return false;
 }
 
+bool qmrss::RssDriver::moveFolder(NormalFolder* pFolder,
+								  NormalFolder* pParent)
+{
+	assert(false);
+	return false;
+}
+
 bool qmrss::RssDriver::createDefaultFolders(Account::FolderList* pList)
 {
 	assert(pList);

@@ -381,6 +381,11 @@ void qm::Folder::setFlags(unsigned int nFlags,
 	pImpl_->nFlags_ |= nFlags & nMask;
 }
 
+void qm::Folder::setParentFolder(Folder* pParentFolder)
+{
+	pImpl_->pParentFolder_ = pParentFolder;
+}
+
 FolderImpl* qm::Folder::getImpl() const
 {
 	return pImpl_;

@@ -55,6 +55,8 @@ public:
 	virtual bool removeFolder(NormalFolder* pFolder) = 0;
 	virtual bool renameFolder(NormalFolder* pFolder,
 							  const WCHAR* pwszName) = 0;
+	virtual bool moveFolder(NormalFolder* pFolder,
+							NormalFolder* pParent) = 0;
 	virtual bool createDefaultFolders(Account::FolderList* pList) = 0;
 	virtual bool getRemoteFolders(RemoteFolderList* pList) = 0;
 	virtual std::pair<const WCHAR**, size_t> getFolderParamNames() = 0;

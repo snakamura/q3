@@ -116,6 +116,7 @@ public:
 	void setName(const WCHAR* pwszName);
 	void setFlags(unsigned int nFlags,
 				  unsigned int nMask);
+	void setParentFolder(Folder* pParentFolder);
 
 // These methods are intended to be called from impl classes.
 public:
