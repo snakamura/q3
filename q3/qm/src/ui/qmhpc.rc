@@ -62,8 +62,9 @@ BEGIN
         MENUITEM "&Ascending",                  IDM_VIEW_SORTASCENDING
         MENUITEM "D&escending",                 IDM_VIEW_SORTDESCENDING
         MENUITEM SEPARATOR
+        MENUITEM "F&lat",                       IDM_VIEW_SORTFLAT
         MENUITEM "&Thread",                     IDM_VIEW_SORTTHREAD
-        MENUITEM "F&loat Thread",               IDM_VIEW_SORTFLOATTHREAD
+        MENUITEM "Fl&oat Thread",               IDM_VIEW_SORTFLOATTHREAD
     END
 END
 

@@ -155,7 +155,7 @@
 		<action name="ViewScrollTop">
 			<key key="P" ctrl="true" alt="true"/>
 		</action>
-		<action name="ViewSortThread">
+		<action name="ViewSortToggleThread">
 			<key key="K"/>
 		</action>
 	</keymap>

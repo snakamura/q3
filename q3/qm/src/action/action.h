@@ -132,7 +132,6 @@ template<class WindowX> class ViewShowControlAction;
 class ViewShowSyncDialogAction;
 class ViewSortAction;
 class ViewSortDirectionAction;
-class ViewSortFloatThreadAction;
 class ViewSortThreadAction;
 class ViewTemplateAction;
 class ActionUtil;
@@ -3397,32 +3396,6 @@ private:
 
 /****************************************************************************
  *
- * ViewSortFloatThreadAction
- *
- */
-
-class ViewSortFloatThreadAction : public qs::AbstractAction
-{
-public:
-	explicit ViewSortFloatThreadAction(ViewModelManager* pViewModelManager);
-	virtual ~ViewSortFloatThreadAction();
-
-public:
-	virtual void invoke(const qs::ActionEvent& event);
-	virtual bool isEnabled(const qs::ActionEvent& event);
-	virtual bool isChecked(const qs::ActionEvent& event);
-
-private:
-	ViewSortFloatThreadAction(const ViewSortFloatThreadAction&);
-	ViewSortFloatThreadAction& operator=(const ViewSortFloatThreadAction&);
-
-private:
-	ViewModelManager* pViewModelManager_;
-};
-
-
-/****************************************************************************
- *
  * ViewSortThreadAction
  *
  */
@@ -3430,7 +3403,17 @@ private:
 class ViewSortThreadAction : public qs::AbstractAction
 {
 public:
-	explicit ViewSortThreadAction(ViewModelManager* pViewModelManager);
+	enum Type {
+		TYPE_FLAT,
+		TYPE_THREAD,
+		TYPE_FLOATTHREAD,
+		
+		TYPE_TOGGLETHREAD
+	};
+
+public:
+	ViewSortThreadAction(ViewModelManager* pViewModelManager,
+						 Type type);
 	virtual ~ViewSortThreadAction();
 
 public:
@@ -3444,6 +3427,7 @@ private:
 
 private:
 	ViewModelManager* pViewModelManager_;
+	Type type_;
 };
 
 

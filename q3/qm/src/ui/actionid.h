@@ -199,10 +199,12 @@
 #define IDM_VIEW_SORTADDRESS            46043
 #define IDM_VIEW_SORTCOMMENT            46044
 #define IDM_VIEW_SORTDESCENDING         46045
-#define IDM_VIEW_SORTFLOATTHREAD        46046
-#define IDM_VIEW_SORTNAME               46047
-#define IDM_VIEW_SORTTHREAD             46048
-#define IDM_VIEW_TEMPLATENONE           46049
+#define IDM_VIEW_SORTFLAT               46046
+#define IDM_VIEW_SORTFLOATTHREAD        46047
+#define IDM_VIEW_SORTNAME               46048
+#define IDM_VIEW_SORTTHREAD             46049
+#define IDM_VIEW_SORTTOGGLETHREAD       46050
+#define IDM_VIEW_TEMPLATENONE           46051
 #define IDM_VIEW_ENCODING               46100
 #define IDM_VIEW_FILTER                 46200
 #define IDM_VIEW_SORT                   46300

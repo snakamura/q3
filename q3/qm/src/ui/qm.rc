@@ -62,8 +62,9 @@ BEGIN
         MENUITEM "&Ascending",                  IDM_VIEW_SORTASCENDING
         MENUITEM "D&escending",                 IDM_VIEW_SORTDESCENDING
         MENUITEM SEPARATOR
+        MENUITEM "F&lat",                       IDM_VIEW_SORTFLAT
         MENUITEM "&Thread",                     IDM_VIEW_SORTTHREAD
-        MENUITEM "F&loat Thread",               IDM_VIEW_SORTFLOATTHREAD
+        MENUITEM "Fl&oat Thread",               IDM_VIEW_SORTFLOATTHREAD
     END
 END
 
@@ -1530,7 +1531,7 @@ IDD_OPTIONTAB$(QMTABWINDOW) DIALOGEX 0, 0, 231, 170
 IDD_OPTIONTAB DIALOGEX 0, 0, 231, 170
 #endif
 STYLE WS_CHILD
-FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN", 0, 0, 0x1
 BEGIN
     CONTROL         "&Multiline",IDC_MULTILINE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,5,5,50,10
@@ -1548,7 +1549,7 @@ END
 
 IDD_OPTIONPREVIEW DIALOGEX 0, 0, 231, 170
 STYLE WS_CHILD
-FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN", 0, 0, 0x1
 BEGIN
     GROUPBOX        "Wrap",IDC_STATIC,5,5,121,65
     CONTROL         "Wrap at &window width",IDC_WRAPWINDOWWIDTH,"Button",

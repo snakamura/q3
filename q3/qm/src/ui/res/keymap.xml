@@ -219,7 +219,7 @@
 		<action name="ViewShowPreview">
 			<key key="J"/>
 		</action>
-		<action name="ViewSortThread">
+		<action name="ViewSortToggleThread">
 			<key key="K"/>
 		</action>
 	</keymap>

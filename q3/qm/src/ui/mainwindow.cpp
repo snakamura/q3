@@ -1233,12 +1233,22 @@ void qm::MainWindowImpl::initActions()
 		IDM_VIEW_SORTDESCENDING,
 		pViewModelManager_.get(),
 		false);
-	ADD_ACTION1(ViewSortFloatThreadAction,
+	ADD_ACTION2(ViewSortThreadAction,
+		IDM_VIEW_SORTFLAT,
+		pViewModelManager_.get(),
+		ViewSortThreadAction::TYPE_FLAT);
+	ADD_ACTION2(ViewSortThreadAction,
 		IDM_VIEW_SORTFLOATTHREAD,
-		pViewModelManager_.get());
-	ADD_ACTION1(ViewSortThreadAction,
+		pViewModelManager_.get(),
+		ViewSortThreadAction::TYPE_FLOATTHREAD);
+	ADD_ACTION2(ViewSortThreadAction,
 		IDM_VIEW_SORTTHREAD,
-		pViewModelManager_.get());
+		pViewModelManager_.get(),
+		ViewSortThreadAction::TYPE_THREAD);
+	ADD_ACTION2(ViewSortThreadAction,
+		IDM_VIEW_SORTTOGGLETHREAD,
+		pViewModelManager_.get(),
+		ViewSortThreadAction::TYPE_TOGGLETHREAD);
 	ADD_ACTION1(ViewTemplateAction,
 		IDM_VIEW_TEMPLATENONE,
 		pMessageWindow_);
