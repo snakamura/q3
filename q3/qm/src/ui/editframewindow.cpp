@@ -26,6 +26,7 @@
 #include "menus.h"
 #include "resourceinc.h"
 #include "statusbar.h"
+#include "uimanager.h"
 #include "uiutil.h"
 #include "../action/action.h"
 #include "../action/actionmacro.h"
@@ -472,7 +473,8 @@ bool qm::EditFrameWindow::createToolbarButtons(void* pCreateParam,
 {
 	EditFrameWindowCreateContext* pContext =
 		static_cast<EditFrameWindowCreateContext*>(pCreateParam);
-	return pContext->pToolbarManager_->createToolbar(L"editframe", hwndToolbar);
+	UIManager* pUIManager = pContext->pUIManager_;
+	return pUIManager->getToolbarManager()->createToolbar(L"editframe", hwndToolbar);
 }
 
 #if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
@@ -514,7 +516,8 @@ HMENU qm::EditFrameWindow::getMenuHandle(void* pCreateParam)
 {
 	EditFrameWindowCreateContext* pContext =
 		static_cast<EditFrameWindowCreateContext*>(pCreateParam);
-	return pContext->pMenuManager_->getMenu(L"editframe", true, true);
+	UIManager* pUIManager = pContext->pUIManager_;
+	return pUIManager->getMenuManager()->getMenu(L"editframe", true, true);
 }
 
 UINT qm::EditFrameWindow::getIconId()
@@ -613,17 +616,15 @@ LRESULT qm::EditFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pSecurityModel_ = pContext->pSecurityModel_;
 	
 	CustomAcceleratorFactory acceleratorFactory;
-	pImpl_->pAccelerator_ = pContext->pKeyMap_->createAccelerator(
-		&acceleratorFactory, L"EditFrameWindow",
-		mapKeyNameToId, countof(mapKeyNameToId));
+	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
+		&acceleratorFactory, L"EditFrameWindow", mapKeyNameToId, countof(mapKeyNameToId));
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
 	
 	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 	std::auto_ptr<EditWindow> pEditWindow(new EditWindow(pImpl_->pProfile_));
 	EditWindowCreateContext context = {
-		pContext->pMenuManager_,
-		pContext->pKeyMap_
+		pContext->pUIManager_
 	};
 	if (!pEditWindow->create(L"QmEditWindow", 0, dwStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
@@ -706,20 +707,16 @@ LRESULT qm::EditFrameWindow::onSize(UINT nFlags,
  */
 
 qm::EditFrameWindowManager::EditFrameWindowManager(Document* pDocument,
+												   UIManager* pUIManager,
 												   SyncManager* pSyncManager,
 												   SyncDialogManager* pSyncDialogManager,
-												   KeyMap* pKeyMap,
 												   Profile* pProfile,
-												   MenuManager* pMenuManager,
-												   ToolbarManager* pToolbarManager,
 												   SecurityModel* pSecurityModel) :
 	pDocument_(pDocument),
+	pUIManager_(pUIManager),
 	pSyncManager_(pSyncManager),
 	pSyncDialogManager_(pSyncDialogManager),
-	pKeyMap_(pKeyMap),
 	pProfile_(pProfile),
-	pMenuManager_(pMenuManager),
-	pToolbarManager_(pToolbarManager),
 	pSecurityModel_(pSecurityModel)
 {
 }
@@ -748,11 +745,9 @@ bool qm::EditFrameWindowManager::open(std::auto_ptr<EditMessage> pEditMessage)
 #endif
 	EditFrameWindowCreateContext context = {
 		pDocument_,
+		pUIManager_,
 		pSyncManager_,
 		pSyncDialogManager_,
-		pMenuManager_,
-		pToolbarManager_,
-		pKeyMap_,
 		pSecurityModel_
 	};
 	if (!pFrame->create(L"QmEditFrameWindow", L"QMAIL", dwStyle,

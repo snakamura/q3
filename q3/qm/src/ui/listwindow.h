@@ -12,13 +12,18 @@
 #include <qmlistwindow.h>
 
 #include <qsdevicecontext.h>
-#include <qskeymap.h>
-#include <qsmenu.h>
 
 #include "viewmodel.h"
 
 
 namespace qm {
+
+class PaintInfo;
+struct ListWindowCreateContext;
+
+class Document;
+class UIManager;
+
 
 /****************************************************************************
  *
@@ -64,8 +69,7 @@ private:
 struct ListWindowCreateContext
 {
 	Document* pDocument_;
-	qs::MenuManager* pMenuManager_;
-	qs::KeyMap* pKeyMap_;
+	UIManager* pUIManager_;
 };
 
 }

@@ -25,6 +25,7 @@
 #include "messagewindow.h"
 #include "resourceinc.h"
 #include "securitymodel.h"
+#include "uimanager.h"
 #include "viewmodel.h"
 #include "../model/templatemanager.h"
 
@@ -498,7 +499,7 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pSecurityModel_->addSecurityModelHandler(pImpl_);
 	
 	CustomAcceleratorFactory acceleratorFactory;
-	pImpl_->pAccelerator_ = pContext->pKeyMap_->createAccelerator(
+	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
 		&acceleratorFactory, pImpl_->pwszSection_, mapKeyNameToId, countof(mapKeyNameToId));
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
@@ -506,7 +507,7 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	std::auto_ptr<HeaderWindow> pHeaderWindow(new HeaderWindow(pImpl_->pProfile_));
 	HeaderWindowCreateContext context = {
 		pContext->pDocument_,
-		pContext->pMenuManager_,
+		pContext->pUIManager_->getMenuManager(),
 	};
 	if (!pHeaderWindow->create(L"QmHeaderWindow", 0, WS_VISIBLE | WS_CHILD,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
@@ -516,7 +517,7 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	std::auto_ptr<MessageViewWindowFactory> pFactory(
 		new MessageViewWindowFactory(pImpl_->pDocument_, pImpl_->pProfile_,
-		pImpl_->pwszSection_, pContext->pMenuManager_, false));
+		pImpl_->pwszSection_, pContext->pUIManager_->getMenuManager(), false));
 	pImpl_->pFactory_ = pFactory;
 	
 	if (!pImpl_->pFactory_->create(getHandle()))

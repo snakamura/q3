@@ -53,6 +53,7 @@
 #include "statusbar.h"
 #include "syncdialog.h"
 #include "syncutil.h"
+#include "uimanager.h"
 #include "uiutil.h"
 #include "viewmodel.h"
 #include "../action/action.h"
@@ -1518,7 +1519,8 @@ bool qm::MainWindow::createToolbarButtons(void* pCreateParam,
 {
 	MainWindowCreateContext* pContext =
 		static_cast<MainWindowCreateContext*>(pCreateParam);
-	return pContext->pToolbarManager_->createToolbar(L"mainframe", hwndToolbar);
+	UIManager* pUIManager = pContext->pUIManager_;
+	return pUIManager->getToolbarManager()->createToolbar(L"mainframe", hwndToolbar);
 }
 
 #if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
@@ -1560,7 +1562,8 @@ HMENU qm::MainWindow::getMenuHandle(void* pCreateParam)
 {
 	MainWindowCreateContext* pContext =
 		static_cast<MainWindowCreateContext*>(pCreateParam);
-	return pContext->pMenuManager_->getMenu(L"mainframe", true, true);
+	UIManager* pUIManager = pContext->pUIManager_;
+	return pUIManager->getMenuManager()->getMenu(L"mainframe", true, true);
 }
 
 UINT qm::MainWindow::getIconId()
@@ -1689,7 +1692,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pTempFileCleaner_ = pContext->pTempFileCleaner_;
 	
 	CustomAcceleratorFactory acceleratorFactory;
-	pImpl_->pAccelerator_ = pContext->pKeyMap_->createAccelerator(
+	pImpl_->pAccelerator_ = pImpl_->pUIManager_->getKeyMap()->createAccelerator(
 		&acceleratorFactory, L"MainWindow", mapKeyNameToId, countof(mapKeyNameToId));
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
@@ -1703,18 +1706,16 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pPreviewModel_.reset(new PreviewMessageModel(
 		pImpl_->pViewModelManager_.get(), pImpl_->bShowPreviewWindow_));
 	pImpl_->pEditFrameWindowManager_.reset(new EditFrameWindowManager(
-		pImpl_->pDocument_, pImpl_->pSyncManager_, pImpl_->pSyncDialogManager_,
-		pContext->pKeyMap_, pImpl_->pProfile_, pContext->pMenuManager_,
-		pContext->pToolbarManager_, pImpl_->pSecurityModel_.get()));
+		pImpl_->pDocument_, pImpl_->pUIManager_, pImpl_->pSyncManager_,
+		pImpl_->pSyncDialogManager_, pImpl_->pProfile_, pImpl_->pSecurityModel_.get()));
 	pImpl_->pExternalEditorManager_.reset(new ExternalEditorManager(
 		pImpl_->pDocument_, pImpl_->pProfile_, getHandle(),
 		pImpl_->pTempFileCleaner_, pImpl_->pFolderModel_.get(),
 		pImpl_->pSecurityModel_.get()));
 	pImpl_->pMessageFrameWindowManager_.reset(new MessageFrameWindowManager(
-		pImpl_->pDocument_, pImpl_->pTempFileCleaner_, pContext->pMenuManager_,
-		pContext->pToolbarManager_, pContext->pKeyMap_, pImpl_->pProfile_,
-		pImpl_->pViewModelManager_.get(), pImpl_->pEditFrameWindowManager_.get(),
-		pImpl_->pExternalEditorManager_.get()));
+		pImpl_->pDocument_, pImpl_->pUIManager_, pImpl_->pTempFileCleaner_,
+		pImpl_->pProfile_, pImpl_->pViewModelManager_.get(),
+		pImpl_->pEditFrameWindowManager_.get(), pImpl_->pExternalEditorManager_.get()));
 	
 	bool bVirticalFolderWindow = pImpl_->bVirticalFolderWindow_;
 	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
@@ -1737,8 +1738,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pFolderSplitterWindow_, pImpl_->pFolderModel_.get(), pImpl_->pProfile_));
 	FolderWindowCreateContext folderWindowContext = {
 		pContext->pDocument_,
-		pContext->pMenuManager_,
-		pContext->pKeyMap_
+		pContext->pUIManager_
 	};
 	if (!pFolderWindow->create(L"QmFolderWindow",
 		0, dwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
@@ -1751,8 +1751,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		this, pImpl_->pFolderModel_.get(), pImpl_->pProfile_));
 	FolderComboBoxCreateContext folderComboBoxContext = {
 		pContext->pDocument_,
-		pContext->pMenuManager_,
-		pContext->pKeyMap_
+		pContext->pUIManager_
 	};
 	if (!pFolderComboBox->create(L"QmFolderComboBox",
 		0, dwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
@@ -1784,8 +1783,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pFolderModel_.get(), pImpl_->pProfile_));
 	FolderListWindowCreateContext folderListContext = {
 		pContext->pDocument_,
-		pContext->pMenuManager_,
-		pContext->pKeyMap_
+		pContext->pUIManager_
 	};
 	if (!pFolderListWindow->create(L"QmFolderListWindow",
 		0, dwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
@@ -1800,8 +1798,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pMessageFrameWindowManager_.get()));
 	ListWindowCreateContext listContext = {
 		pContext->pDocument_,
-		pContext->pMenuManager_,
-		pContext->pKeyMap_
+		pContext->pUIManager_
 	};
 	if (!pListWindow->create(L"QmListWindow",
 		0, dwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
@@ -1815,8 +1812,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pPreviewModel_.get(), pImpl_->pProfile_, L"PreviewWindow"));
 	MessageWindowCreateContext messageContext = {
 		pContext->pDocument_,
-		pContext->pMenuManager_,
-		pContext->pKeyMap_,
+		pContext->pUIManager_,
 		pImpl_->pSecurityModel_.get(),
 	};
 	if (!pMessageWindow->create(L"QmMessageWindow",

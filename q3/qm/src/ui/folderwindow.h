@@ -9,12 +9,13 @@
 #ifndef __FOLDERWINDOW_H__
 #define __FOLDERWINDOW_H__
 
-#include <qskeymap.h>
-#include <qsmenu.h>
 
 namespace qm {
 
+struct FolderWindowCreateContext;
+
 class Document;
+class UIManager;
 
 
 /****************************************************************************
@@ -26,8 +27,7 @@ class Document;
 struct FolderWindowCreateContext
 {
 	Document* pDocument_;
-	qs::MenuManager* pMenuManager_;
-	qs::KeyMap* pKeyMap_;
+	UIManager* pUIManager_;
 };
 
 }

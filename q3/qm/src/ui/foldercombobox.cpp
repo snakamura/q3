@@ -28,6 +28,7 @@
 #include "foldermodel.h"
 #include "keymap.h"
 #include "resourceinc.h"
+#include "uimanager.h"
 #include "uiutil.h"
 
 using namespace qm;
@@ -601,11 +602,11 @@ LRESULT qm::FolderComboBox::onCreate(CREATESTRUCT* pCreateStruct)
 	FolderComboBoxCreateContext* pContext =
 		static_cast<FolderComboBoxCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pDocument_ = pContext->pDocument_;
-	pImpl_->pMenuManager_ = pContext->pMenuManager_;
+	pImpl_->pMenuManager_ = pContext->pUIManager_->getMenuManager();
 	pImpl_->pDocument_->addDocumentHandler(pImpl_);
 	
 	CustomAcceleratorFactory acceleratorFactory;
-	pImpl_->pAccelerator_ = pContext->pKeyMap_->createAccelerator(
+	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
 		&acceleratorFactory, L"FolderComboBox", mapKeyNameToId, countof(mapKeyNameToId));
 	if (!pImpl_->pAccelerator_.get())
 		return -1;

@@ -20,6 +20,7 @@
 #include "headereditwindow.h"
 #include "keymap.h"
 #include "resourceinc.h"
+#include "uimanager.h"
 #include "uiutil.h"
 #include "../model/editmessage.h"
 
@@ -532,7 +533,7 @@ LRESULT qm::EditWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		static_cast<EditWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	
 	CustomAcceleratorFactory acceleratorFactory;
-	pImpl_->pAccelerator_ = pContext->pKeyMap_->createAccelerator(
+	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
 		&acceleratorFactory, L"EditWindow", mapKeyNameToId, countof(mapKeyNameToId));
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
@@ -541,7 +542,7 @@ LRESULT qm::EditWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		new HeaderEditWindow(pImpl_->pProfile_));
 	HeaderEditWindowCreateContext headerEditContext = {
 		pImpl_,
-		pContext->pMenuManager_,
+		pContext->pUIManager_->getMenuManager(),
 		pImpl_,
 		pImpl_
 	};
@@ -553,7 +554,7 @@ LRESULT qm::EditWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pHeaderEditWindow_ = pHeaderEditWindow.release();
 	
 	EditTextWindowCreateContext editTextContext = {
-		pContext->pMenuManager_,
+		pContext->pUIManager_->getMenuManager(),
 		pImpl_
 	};
 	std::auto_ptr<EditTextWindow> pTextWindow(

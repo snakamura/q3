@@ -9,10 +9,7 @@
 #ifndef __EDITFRAMEWINDOW_H__
 #define __EDITFRAMEWINDOW_H__
 
-#include <qskeymap.h>
-#include <qsmenu.h>
 #include <qsprofile.h>
-#include <qstoolbar.h>
 
 
 namespace qm {
@@ -25,6 +22,7 @@ class EditMessage;
 class SecurityModel;
 class SyncDialogManager;
 class SyncManager;
+class UIManager;
 
 
 /****************************************************************************
@@ -37,12 +35,10 @@ class EditFrameWindowManager
 {
 public:
 	EditFrameWindowManager(Document* pDocument,
+						   UIManager* pUIManager,
 						   SyncManager* pSyncManager,
 						   SyncDialogManager* pSyncDialogManager,
-						   qs::KeyMap* pKeyMap,
 						   qs::Profile* pProfile,
-						   qs::MenuManager* pMenuManager,
-						   qs::ToolbarManager* pToolbarManager,
 						   SecurityModel* pSecurityModel);
 	~EditFrameWindowManager();
 
@@ -62,12 +58,10 @@ private:
 
 private:
 	Document* pDocument_;
+	UIManager* pUIManager_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
-	qs::KeyMap* pKeyMap_;
 	qs::Profile* pProfile_;
-	qs::MenuManager* pMenuManager_;
-	qs::ToolbarManager* pToolbarManager_;
 	SecurityModel* pSecurityModel_;
 	FrameList listFrame_;
 };
@@ -82,11 +76,9 @@ private:
 struct EditFrameWindowCreateContext
 {
 	Document* pDocument_;
+	UIManager* pUIManager_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
-	qs::MenuManager* pMenuManager_;
-	qs::ToolbarManager* pToolbarManager_;
-	qs::KeyMap* pKeyMap_;
 	SecurityModel* pSecurityModel_;
 };
 

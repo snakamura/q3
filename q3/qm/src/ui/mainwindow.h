@@ -144,9 +144,6 @@ struct MainWindowCreateContext
 	SyncDialogManager* pSyncDialogManager_;
 	GoRound* pGoRound_;
 	TempFileCleaner* pTempFileCleaner_;
-	qs::MenuManager* pMenuManager_;
-	qs::ToolbarManager* pToolbarManager_;
-	qs::KeyMap* pKeyMap_;
 };
 
 

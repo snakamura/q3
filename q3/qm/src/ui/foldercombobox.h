@@ -9,11 +9,13 @@
 #ifndef __FOLDERCOMBOBOX_H__
 #define __FOLDERCOMBOBOX_H__
 
-#include <qskeymap.h>
 
 namespace qm {
 
+struct FolderComboBoxCreateContext;
+
 class Document;
+class UIManager;
 
 
 /****************************************************************************
@@ -25,8 +27,7 @@ class Document;
 struct FolderComboBoxCreateContext
 {
 	Document* pDocument_;
-	qs::MenuManager* pMenuManager_;
-	qs::KeyMap* pKeyMap_;
+	UIManager* pUIManager_;
 };
 
 }

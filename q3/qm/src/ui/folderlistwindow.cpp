@@ -14,6 +14,7 @@
 
 #include <qsaccelerator.h>
 #include <qsconv.h>
+#include <qsmenu.h>
 #include <qsuiutil.h>
 
 #include <algorithm>
@@ -24,6 +25,7 @@
 #include "folderlistwindow.h"
 #include "foldermodel.h"
 #include "keymap.h"
+#include "uimanager.h"
 #include "uiutil.h"
 
 
@@ -438,10 +440,10 @@ LRESULT qm::FolderListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	FolderListWindowCreateContext* pContext =
 		static_cast<FolderListWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pDocument_ = pContext->pDocument_;
-	pImpl_->pMenuManager_ = pContext->pMenuManager_;
+	pImpl_->pMenuManager_ = pContext->pUIManager_->getMenuManager();
 	
 	CustomAcceleratorFactory acceleratorFactory;
-	pImpl_->pAccelerator_ = pContext->pKeyMap_->createAccelerator(
+	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
 		&acceleratorFactory, L"FolderListWindow", mapKeyNameToId, countof(mapKeyNameToId));
 	if (!pImpl_->pAccelerator_.get())
 		return -1;

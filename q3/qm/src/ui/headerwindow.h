@@ -11,6 +11,7 @@
 
 #include <qm.h>
 
+#include <qsmenu.h>
 #include <qsregex.h>
 #include <qssax.h>
 

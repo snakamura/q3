@@ -19,6 +19,7 @@
 #include <qsdragdrop.h>
 #include <qsinit.h>
 #include <qskeymap.h>
+#include <qsmenu.h>
 #include <qsprofile.h>
 #include <qsstl.h>
 #include <qsuiutil.h>
@@ -32,6 +33,7 @@
 #include "folderwindow.h"
 #include "keymap.h"
 #include "resourceinc.h"
+#include "uimanager.h"
 #include "uiutil.h"
 #include "../model/dataobject.h"
 
@@ -872,11 +874,11 @@ LRESULT qm::FolderWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	FolderWindowCreateContext* pContext =
 		static_cast<FolderWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pDocument_ = pContext->pDocument_;
-	pImpl_->pMenuManager_ = pContext->pMenuManager_;
+	pImpl_->pMenuManager_ = pContext->pUIManager_->getMenuManager();
 	pImpl_->pDocument_->addDocumentHandler(pImpl_);
 	
 	CustomAcceleratorFactory acceleratorFactory;
-	pImpl_->pAccelerator_ = pContext->pKeyMap_->createAccelerator(
+	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
 		&acceleratorFactory, L"FolderWindow", mapKeyNameToId, countof(mapKeyNameToId));
 	if (!pImpl_->pAccelerator_.get())
 		return -1;

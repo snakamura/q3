@@ -9,6 +9,10 @@
 #include <qmapplication.h>
 #include <qmfilenames.h>
 
+#include <qsconv.h>
+
+#include "menu.h"
+#include "toolbar.h"
 #include "uimanager.h"
 #include "viewmodel.h"
 
@@ -24,20 +28,64 @@ using namespace qs;
 
 qm::UIManager::UIManager()
 {
-	wstring_ptr wstrPath = Application::getApplication().getProfilePath(FileNames::VIEWS_XML);
-	pViewData_.reset(new ViewData(this, wstrPath.get()));
+	Application& app = Application::getApplication();
+	
+	wstring_ptr wstrMenuPath(app.getProfilePath(FileNames::MENUS_XML));
+	PopupMenuManager popupMenuManager;
+	std::auto_ptr<LoadMenuPopupMenu> pPopupMenus[countof(popupMenuItems)];
+	for (int n = 0; n < countof(popupMenuItems); ++n) {
+		pPopupMenus[n].reset(new LoadMenuPopupMenu(
+			app.getResourceHandle(), popupMenuItems[n].nId_));
+		popupMenuManager.addPopupMenu(
+			popupMenuItems[n].pwszName_, pPopupMenus[n].get());
+	}
+	pMenuManager_.reset(new MenuManager(wstrMenuPath.get(),
+		menuItems, countof(menuItems), popupMenuManager));
+	
+	wstring_ptr wstrBitmapPath(app.getProfilePath(FileNames::TOOLBAR_BMP));
+	W2T(wstrBitmapPath.get(), ptszBitmapPath);
+#ifdef _WIN32_WCE
+	HBITMAP hBitmap = ::SHLoadDIBitmap(ptszBitmapPath);
+#else
+	HBITMAP hBitmap = reinterpret_cast<HBITMAP>(::LoadImage(0,
+		ptszBitmapPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
+#endif
+	wstring_ptr wstrToolbarPath(app.getProfilePath(FileNames::TOOLBARS_XML));
+	pToolbarManager_.reset(new ToolbarManager(wstrToolbarPath.get(),
+		hBitmap, toolbarItems, countof(toolbarItems)));
+	
+	wstring_ptr wstrKeyMapPath(app.getProfilePath(FileNames::KEYMAP_XML));
+	pKeyMap_.reset(new KeyMap(wstrKeyMapPath.get()));
+	
+	wstring_ptr wstrViewsPath = app.getProfilePath(FileNames::VIEWS_XML);
+	pViewData_.reset(new ViewData(this, wstrViewsPath.get()));
 }
 
 qm::UIManager::~UIManager()
 {
 }
 
-bool qm::UIManager::save() const
+MenuManager* qm::UIManager::getMenuManager() const
 {
-	return pViewData_->save();
+	return pMenuManager_.get();
+}
+
+ToolbarManager* qm::UIManager::getToolbarManager() const
+{
+	return pToolbarManager_.get();
+}
+
+KeyMap* qm::UIManager::getKeyMap() const
+{
+	return pKeyMap_.get();
 }
 
 ViewDataItem* qm::UIManager::getDefaultViewDataItem() const
 {
 	return pViewData_->getItem(0);
+}
+
+bool qm::UIManager::save() const
+{
+	return pViewData_->save();
 }

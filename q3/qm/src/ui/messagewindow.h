@@ -9,14 +9,15 @@
 #ifndef __MESSAGEWINDOW_H__
 #define __MESSAGEWINDOW_H__
 
-#include <qskeymap.h>
-#include <qsmenu.h>
-
 
 namespace qm {
 
+class MessageWindowItem;
+struct MessageWindowCreateContext;
+
 class Document;
 class SecurityModel;
+class UIManager;
 
 
 /****************************************************************************
@@ -47,8 +48,7 @@ public:
 struct MessageWindowCreateContext
 {
 	Document* pDocument_;
-	qs::MenuManager* pMenuManager_;
-	qs::KeyMap* pKeyMap_;
+	UIManager* pUIManager_;
 	SecurityModel* pSecurityModel_;
 };
 

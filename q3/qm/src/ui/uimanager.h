@@ -11,6 +11,10 @@
 
 #include <qm.h>
 
+#include <qskeymap.h>
+#include <qsmenu.h>
+#include <qstoolbar.h>
+
 
 namespace qm {
 
@@ -33,14 +37,21 @@ public:
 	~UIManager();
 
 public:
-	bool save() const;
+	qs::MenuManager* getMenuManager() const;
+	qs::ToolbarManager* getToolbarManager() const;
+	qs::KeyMap* getKeyMap() const;
 	ViewDataItem* getDefaultViewDataItem() const;
+	
+	bool save() const;
 
 private:
 	UIManager(const UIManager&);
 	UIManager& operator=(const UIManager&);
 
 private:
+	std::auto_ptr<qs::MenuManager> pMenuManager_;
+	std::auto_ptr<qs::ToolbarManager> pToolbarManager_;
+	std::auto_ptr<qs::KeyMap> pKeyMap_;
 	std::auto_ptr<ViewData> pViewData_;
 };
 

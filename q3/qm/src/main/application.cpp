@@ -18,13 +18,11 @@
 #include <qsconv.h>
 #include <qsdialog.h>
 #include <qsinit.h>
-#include <qskeymap.h>
 #include <qsmime.h>
 #include <qsosutil.h>
 #include <qsprofile.h>
 #include <qssocket.h>
 #include <qsstream.h>
-#include <qstoolbar.h>
 #include <qswindow.h>
 
 #include <algorithm>
@@ -42,10 +40,8 @@
 #include "../ui/dialogs.h"
 #include "../ui/foldermodel.h"
 #include "../ui/mainwindow.h"
-#include "../ui/menu.h"
 #include "../ui/newmailchecker.h"
 #include "../ui/syncdialog.h"
-#include "../ui/toolbar.h"
 #include "../ui/uimanager.h"
 
 using namespace qm;
@@ -88,13 +84,10 @@ public:
 	wstring_ptr wstrProfileName_;
 	std::auto_ptr<XMLProfile> pProfile_;
 	std::auto_ptr<Document> pDocument_;
-	std::auto_ptr<KeyMap> pKeyMap_;
 	std::auto_ptr<SyncManager> pSyncManager_;
 	std::auto_ptr<SyncDialogManager> pSyncDialogManager_;
 	std::auto_ptr<GoRound> pGoRound_;
 	std::auto_ptr<TempFileCleaner> pTempFileCleaner_;
-	std::auto_ptr<MenuManager> pMenuManager_;
-	std::auto_ptr<ToolbarManager> pToolbarManager_;
 	std::auto_ptr<UIManager> pUIManager_;
 	MainWindow* pMainWindow_;
 	std::auto_ptr<NewMailChecker> pNewMailChecker_;
@@ -382,35 +375,6 @@ bool qm::Application::initialize()
 	
 	pImpl_->pUIManager_.reset(new UIManager());
 	
-	wstring_ptr wstrMenuPath(getProfilePath(FileNames::MENUS_XML));
-	PopupMenuManager popupMenuManager;
-	std::auto_ptr<LoadMenuPopupMenu> pPopupMenus[countof(popupMenuItems)];
-	for (int n = 0; n < countof(popupMenuItems); ++n) {
-		pPopupMenus[n].reset(new LoadMenuPopupMenu(
-			getResourceHandle(), popupMenuItems[n].nId_));
-		popupMenuManager.addPopupMenu(
-			popupMenuItems[n].pwszName_, pPopupMenus[n].get());
-	}
-	pImpl_->pMenuManager_.reset(new MenuManager(wstrMenuPath.get(),
-		menuItems, countof(menuItems), popupMenuManager));
-	
-	wstring_ptr wstrBitmapPath(getProfilePath(FileNames::TOOLBAR_BMP));
-	W2T(wstrBitmapPath.get(), ptszBitmapPath);
-#ifdef _WIN32_WCE
-	HBITMAP hBitmap = ::SHLoadDIBitmap(ptszBitmapPath);
-#else
-	HBITMAP hBitmap = reinterpret_cast<HBITMAP>(::LoadImage(0,
-		ptszBitmapPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
-#endif
-	if (!hBitmap)
-		return false;
-	wstring_ptr wstrToolbarPath(getProfilePath(FileNames::TOOLBARS_XML));
-	pImpl_->pToolbarManager_.reset(new ToolbarManager(wstrToolbarPath.get(),
-		hBitmap, toolbarItems, countof(toolbarItems)));
-	
-	wstring_ptr wstrKeyMapPath(getProfilePath(FileNames::KEYMAP_XML));
-	pImpl_->pKeyMap_.reset(new KeyMap(wstrKeyMapPath.get()));
-	
 	wstring_ptr wstrLibraries(pImpl_->pProfile_->getString(
 		L"Global", L"Libraries", L"smtp,pop3,imap4,nntp"));
 	WCHAR* p = wcstok(wstrLibraries.get(), L" ,");
@@ -457,9 +421,6 @@ bool qm::Application::initialize()
 		pImpl_->pSyncDialogManager_.get(),
 		pImpl_->pGoRound_.get(),
 		pImpl_->pTempFileCleaner_.get(),
-		pImpl_->pMenuManager_.get(),
-		pImpl_->pToolbarManager_.get(),
-		pImpl_->pKeyMap_.get()
 	};
 	wstring_ptr wstrTitle(getVersion(false));
 	if (!pMainWindow->create(L"QmMainWindow", wstrTitle.get(), dwStyle,
@@ -510,15 +471,12 @@ void qm::Application::uninitialize()
 	}
 #endif
 	
-	pImpl_->pMenuManager_.reset(0);
-	pImpl_->pToolbarManager_.reset(0);
 	pImpl_->pUIManager_.reset(0);
 	pImpl_->pTempFileCleaner_.reset(0);
 	pImpl_->pGoRound_.reset(0);
 	pImpl_->pSyncDialogManager_.reset(0);
 	pImpl_->pSyncManager_.reset(0);
 	pImpl_->pDocument_.reset(0);
-	pImpl_->pKeyMap_.reset(0);
 	pImpl_->pProfile_.reset(0);
 	
 	Part::setDefaultCharset(0);

@@ -30,6 +30,7 @@
 #include "resourceinc.h"
 #include "securitymodel.h"
 #include "statusbar.h"
+#include "uimanager.h"
 #include "uiutil.h"
 #include "../action/action.h"
 #include "../action/actionmacro.h"
@@ -633,7 +634,8 @@ bool qm::MessageFrameWindow::createToolbarButtons(void* pCreateParam,
 {
 	MessageFrameWindowCreateContext* pContext =
 		static_cast<MessageFrameWindowCreateContext*>(pCreateParam);
-	return pContext->pToolbarManager_->createToolbar(L"messageframe", hwndToolbar);
+	UIManager* pUIManager = pContext->pUIManager_;
+	return pUIManager->getToolbarManager()->createToolbar(L"messageframe", hwndToolbar);
 }
 
 #if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
@@ -675,7 +677,8 @@ HMENU qm::MessageFrameWindow::getMenuHandle(void* pCreateParam)
 {
 	MessageFrameWindowCreateContext* pContext =
 		static_cast<MessageFrameWindowCreateContext*>(pCreateParam);
-	return pContext->pMenuManager_->getMenu(L"messageframe", true, true);
+	UIManager* pUIManager = pContext->pUIManager_;
+	return pUIManager->getMenuManager()->getMenu(L"messageframe", true, true);
 }
 
 UINT qm::MessageFrameWindow::getIconId()
@@ -774,7 +777,7 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pProfile_->getInt(L"MessageWindow", L"DecryptVerify", 0) != 0));
 	
 	CustomAcceleratorFactory acceleratorFactory;
-	pImpl_->pAccelerator_ = pContext->pKeyMap_->createAccelerator(
+	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
 		&acceleratorFactory, L"MessageFrameWindow", mapKeyNameToId, countof(mapKeyNameToId));
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
@@ -784,8 +787,7 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pMessageModel_.get(), pImpl_->pProfile_, L"MessageWindow"));
 	MessageWindowCreateContext context = {
 		pContext->pDocument_,
-		pContext->pMenuManager_,
-		pContext->pKeyMap_,
+		pContext->pUIManager_,
 		pImpl_->pSecurityModel_.get()
 	};
 	if (!pMessageWindow->create(L"QmMessageWindow", 0, dwStyle, CW_USEDEFAULT,
@@ -903,19 +905,15 @@ LRESULT qm::MessageFrameWindow::onSize(UINT nFlags,
  */
 
 qm::MessageFrameWindowManager::MessageFrameWindowManager(Document* pDocument,
+														 UIManager* pUIManager,
 														 TempFileCleaner* pTempFileCleaner,
-														 MenuManager* pMenuManager,
-														 ToolbarManager* pToolbarManager,
-														 KeyMap* pKeyMap,
 														 Profile* pProfile,
 														 ViewModelManager* pViewModelManager,
 														 EditFrameWindowManager* pEditFrameWindowManager,
 														 ExternalEditorManager* pExternalEditorManager) :
 	pDocument_(pDocument),
+	pUIManager_(pUIManager),
 	pTempFileCleaner_(pTempFileCleaner),
-	pMenuManager_(pMenuManager),
-	pToolbarManager_(pToolbarManager),
-	pKeyMap_(pKeyMap),
 	pProfile_(pProfile),
 	pViewModelManager_(pViewModelManager),
 	pEditFrameWindowManager_(pEditFrameWindowManager), 
@@ -923,7 +921,7 @@ qm::MessageFrameWindowManager::MessageFrameWindowManager(Document* pDocument,
 	pCachedFrame_(0)
 {
 	assert(pDocument);
-	assert(pKeyMap);
+	assert(pUIManager);
 	assert(pProfile);
 	assert(pViewModelManager);
 	assert(pEditFrameWindowManager);
@@ -1049,12 +1047,10 @@ MessageFrameWindow* qm::MessageFrameWindowManager::create()
 #endif
 	MessageFrameWindowCreateContext context = {
 		pDocument_,
+		pUIManager_,
 		pEditFrameWindowManager_,
 		pExternalEditorManager_,
-		pTempFileCleaner_,
-		pMenuManager_,
-		pToolbarManager_,
-		pKeyMap_
+		pTempFileCleaner_
 	};
 	if (!pFrame->create(L"QmMessageFrameWindow", L"QMAIL", dwStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,

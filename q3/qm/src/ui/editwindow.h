@@ -10,10 +10,8 @@
 #define __EDITWINDOW_H__
 
 #include <qs.h>
-#include <qskeymap.h>
 #include <qsmenu.h>
 #include <qsprofile.h>
-#include <qstextwindow.h>
 
 
 namespace qm {
@@ -25,6 +23,8 @@ struct EditWindowCreateContext;
 class EditTextWindow;
 struct EditTextWindowCreateContext;
 class EditTextWindowCallback;
+
+class UIManager;
 
 
 /****************************************************************************
@@ -127,8 +127,7 @@ public:
 
 struct EditWindowCreateContext
 {
-	qs::MenuManager* pMenuManager_;
-	qs::KeyMap* pKeyMap_;
+	UIManager* pUIManager_;
 };
 
 

@@ -19,6 +19,7 @@
 #include <qsdevicecontext.h>
 #include <qsdragdrop.h>
 #include <qskeymap.h>
+#include <qsmenu.h>
 #include <qsprofile.h>
 #include <qsstl.h>
 #include <qsstream.h>
@@ -31,6 +32,7 @@
 #include "listwindow.h"
 #include "messageframewindow.h"
 #include "resourceinc.h"
+#include "uimanager.h"
 #include "viewmodel.h"
 #include "../action/action.h"
 #include "../model/dataobject.h"
@@ -961,10 +963,10 @@ LRESULT qm::ListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	ListWindowCreateContext* pContext =
 		static_cast<ListWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pDocument_ = pContext->pDocument_;
-	pImpl_->pMenuManager_ = pContext->pMenuManager_;
+	pImpl_->pMenuManager_ = pContext->pUIManager_->getMenuManager();
 	
 	CustomAcceleratorFactory acceleratorFactory;
-	pImpl_->pAccelerator_ = pContext->pKeyMap_->createAccelerator(
+	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
 		&acceleratorFactory, L"ListWindow", mapKeyNameToId, countof(mapKeyNameToId));
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
