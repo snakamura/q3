@@ -2306,7 +2306,9 @@ class ToolSubAccountAction : public qs::AbstractAction
 public:
 	ToolSubAccountAction(Document* pDocument,
 						 FolderModel* pFolderModel,
-						 SubAccountMenu* pSubAccountMenu);
+						 SubAccountMenu* pSubAccountMenu,
+						 SyncManager* pSyncManager,
+						 HWND hwnd);
 	virtual ~ToolSubAccountAction();
 
 public:
@@ -2322,6 +2324,8 @@ private:
 	Document* pDocument_;
 	FolderModel* pFolderModel_;
 	SubAccountMenu* pSubAccountMenu_;
+	SyncManager* pSyncManager_;
+	HWND hwnd_;
 };
 
 

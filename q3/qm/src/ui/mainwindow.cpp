@@ -843,12 +843,14 @@ void qm::MainWindowImpl::initActions()
 		pDocument_,
 		pProfile_,
 		pThis_);
-	ADD_ACTION_RANGE3(ToolSubAccountAction,
+	ADD_ACTION_RANGE5(ToolSubAccountAction,
 		IDM_TOOL_SUBACCOUNT,
 		IDM_TOOL_SUBACCOUNT + SubAccountMenu::MAX_SUBACCOUNT,
 		pDocument_,
 		pFolderModel_.get(),
-		pSubAccountMenu_.get());
+		pSubAccountMenu_.get(),
+		pSyncManager_,
+		pThis_->getHandle());
 	
 	struct {
 		UINT nId_;

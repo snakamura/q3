@@ -4398,10 +4398,14 @@ bool qm::ToolScriptAction::isEnabled(const ActionEvent& event)
 
 qm::ToolSubAccountAction::ToolSubAccountAction(Document* pDocument,
 											   FolderModel* pFolderModel,
-											   SubAccountMenu* pSubAccountMenu) :
+											   SubAccountMenu* pSubAccountMenu,
+											   SyncManager* pSyncManager,
+											   HWND hwnd) :
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
-	pSubAccountMenu_(pSubAccountMenu)
+	pSubAccountMenu_(pSubAccountMenu),
+	pSyncManager_(pSyncManager),
+	hwnd_(hwnd)
 {
 }
 
@@ -4411,6 +4415,11 @@ qm::ToolSubAccountAction::~ToolSubAccountAction()
 
 void qm::ToolSubAccountAction::invoke(const ActionEvent& event)
 {
+	if (pSyncManager_->isSyncing()) {
+		ActionUtil::error(hwnd_, IDS_SYNCHRONIZING);
+		return;
+	}
+	
 	const WCHAR* pwszName = pSubAccountMenu_->getName(event.getId());
 	if (!pwszName)
 		return;
@@ -4426,8 +4435,8 @@ void qm::ToolSubAccountAction::invoke(const ActionEvent& event)
 
 bool qm::ToolSubAccountAction::isEnabled(const ActionEvent& event)
 {
-	return pFolderModel_->getCurrentAccount() ||
-		pFolderModel_->getCurrentFolder();
+	return !pSyncManager_->isSyncing() &&
+		(pFolderModel_->getCurrentAccount() || pFolderModel_->getCurrentFolder());
 }
 
 bool qm::ToolSubAccountAction::isChecked(const ActionEvent& event)
