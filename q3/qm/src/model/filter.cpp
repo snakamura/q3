@@ -113,11 +113,14 @@ void qm::FilterManager::clear()
  *
  */
 
-qm::Filter::Filter(const WCHAR* pwszName, QSTATUS* pstatus) :
+qm::Filter::Filter(const WCHAR* pwszName,
+	const WCHAR* pwszMacro, QSTATUS* pstatus) :
 	wstrName_(0),
 	pMacro_(0)
 {
 	assert(pstatus);
+	
+	DECLARE_QSTATUS();
 	
 	*pstatus = QSTATUS_SUCCESS;
 	
@@ -126,6 +129,11 @@ qm::Filter::Filter(const WCHAR* pwszName, QSTATUS* pstatus) :
 		*pstatus = QSTATUS_OUTOFMEMORY;
 		return;
 	}
+	
+	MacroParser parser(MacroParser::TYPE_FILTER, &status);
+	CHECK_QSTATUS_SET(pstatus);
+	status = parser.parse(pwszMacro, &pMacro_);
+	CHECK_QSTATUS_SET(pstatus);
 }
 
 qm::Filter::~Filter()
@@ -137,6 +145,11 @@ qm::Filter::~Filter()
 const WCHAR* qm::Filter::getName() const
 {
 	return wstrName_;
+}
+
+const Macro* qm::Filter::getMacro() const
+{
+	return pMacro_;
 }
 
 QSTATUS qm::Filter::match(MacroContext* pContext, bool* pbMatch) const
@@ -156,13 +169,6 @@ QSTATUS qm::Filter::match(MacroContext* pContext, bool* pbMatch) const
 	return QSTATUS_SUCCESS;
 }
 
-void qm::Filter::setMacro(Macro* pMacro)
-{
-	assert(!pMacro_);
-	assert(pMacro);
-	pMacro_ = pMacro;
-}
-
 
 /****************************************************************************
  *
@@ -175,9 +181,8 @@ qm::FilterContentHandler::FilterContentHandler(
 	DefaultHandler(pstatus),
 	pListFilter_(pListFilter),
 	state_(STATE_ROOT),
-	pFilter_(0),
-	pBuffer_(0),
-	pParser_(0)
+	wstrName_(0),
+	pBuffer_(0)
 {
 	assert(pstatus);
 	
@@ -187,15 +192,12 @@ qm::FilterContentHandler::FilterContentHandler(
 	
 	status = newQsObject(&pBuffer_);
 	CHECK_QSTATUS_SET(pstatus);
-	
-	status = newQsObject(MacroParser::TYPE_FILTER, &pParser_);
-	CHECK_QSTATUS_SET(pstatus);
 }
 
 qm::FilterContentHandler::~FilterContentHandler()
 {
+	freeWString(wstrName_);
 	delete pBuffer_;
-	delete pParser_;
 }
 
 QSTATUS qm::FilterContentHandler::startElement(const WCHAR* pwszNamespaceURI,
@@ -224,13 +226,10 @@ QSTATUS qm::FilterContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (!pwszName)
 			return QSTATUS_FAIL;
 		
-		assert(!pFilter_);
-		std::auto_ptr<Filter> pFilter;
-		status = newQsObject(pwszName, &pFilter);
-		CHECK_QSTATUS();
-		status = STLWrapper<FilterList>(*pListFilter_).push_back(pFilter.get());
-		CHECK_QSTATUS();
-		pFilter_ = pFilter.release();
+		assert(!wstrName_);
+		wstrName_ = allocWString(pwszName);
+		if (!wstrName_)
+			return QSTATUS_OUTOFMEMORY;
 		
 		state_ = STATE_FILTER;
 	}
@@ -253,12 +252,16 @@ QSTATUS qm::FilterContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 	else if (wcscmp(pwszLocalName, L"filter") == 0) {
 		assert(state_ == STATE_FILTER);
 		
-		Macro* pMacro = 0;
-		status = pParser_->parse(pBuffer_->getCharArray(), &pMacro);
+		const WCHAR* pwszMacro = pBuffer_->getCharArray();
+		std::auto_ptr<Filter> pFilter;
+		status = newQsObject(wstrName_, pwszMacro, &pFilter);
 		CHECK_QSTATUS();
-		assert(pFilter_);
-		pFilter_->setMacro(pMacro);
-		pFilter_ = 0;
+		status = STLWrapper<FilterList>(*pListFilter_).push_back(pFilter.get());
+		CHECK_QSTATUS();
+		pFilter.release();
+		
+		freeWString(wstrName_);
+		wstrName_ = 0;
 		pBuffer_->remove();
 		
 		state_ = STATE_FILTERS;

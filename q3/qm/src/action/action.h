@@ -99,6 +99,7 @@ class EditFrameWindow;
 class EditFrameWindowManager;
 class EncodingMenu;
 class ExternalEditorManager;
+class Filter;
 class FilterManager;
 class FindReplaceManager;
 class FolderModel;
@@ -1443,8 +1444,7 @@ private:
 class ViewFilterCustomAction : public qs::AbstractAction
 {
 public:
-	ViewFilterCustomAction(ViewModelManager* pViewModelManager,
-		const FilterManager* pFilterManager, qs::QSTATUS* pstatus);
+	ViewFilterCustomAction(ViewModelManager* pViewModelManager, qs::QSTATUS* pstatus);
 	virtual ~ViewFilterCustomAction();
 
 public:
@@ -1458,7 +1458,7 @@ private:
 
 private:
 	ViewModelManager* pViewModelManager_;
-	const FilterManager* pFilterManager_;
+	Filter* pFilter_;
 };
 
 

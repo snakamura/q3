@@ -675,6 +675,17 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,85,85,50,14
 END
 
+IDD_CUSTOMFILTER DIALOG DISCARDABLE  0, 0, 139, 189
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Custom Filter"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    LTEXT           "&Macro",IDC_STATIC,5,5,25,8
+    EDITTEXT        IDC_MACRO,5,15,130,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,30,35,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,85,35,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -845,6 +856,14 @@ BEGIN
     END
 
     IDD_SELECTDIALUPENTRY, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 132
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 182
+    END
+
+    IDD_CUSTOMFILTER, DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 132

@@ -30,6 +30,7 @@ class DefaultDialog;
 	class CreateAccountDialog;
 	class CreateFolderDialog;
 	class CreateSubAccountDialog;
+	class CustomFilterDialog;
 	class DetachDialog;
 	class DialupDialog;
 	class ExportDialog;
@@ -419,6 +420,36 @@ private:
 private:
 	Document* pDocument_;
 	qs::WSTRING wstrName_;
+};
+
+
+/****************************************************************************
+ *
+ * CustomFilterDialog
+ *
+ */
+
+class CustomFilterDialog : public DefaultDialog
+{
+public:
+	CustomFilterDialog(const WCHAR* pwszMacro, qs::QSTATUS* pstatus);
+	virtual ~CustomFilterDialog();
+
+public:
+	const WCHAR* getMacro() const;
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	CustomFilterDialog(const CustomFilterDialog&);
+	CustomFilterDialog& operator=(const CustomFilterDialog&);
+
+private:
+	qs::WSTRING wstrMacro_;
 };
 
 

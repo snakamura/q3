@@ -552,10 +552,8 @@ QSTATUS qm::MainWindowImpl::initActions()
 		pActionMap_, IDM_VIEW_FILTER, pViewModelManager_,
 		pViewModelManager_->getFilterManager());
 	CHECK_QSTATUS();
-	status = InitAction2<ViewFilterCustomAction,
-		ViewModelManager*, const FilterManager*>(
-		pActionMap_, IDM_VIEW_FILTERCUSTOM, pViewModelManager_,
-		pViewModelManager_->getFilterManager());
+	status = InitAction1<ViewFilterCustomAction, ViewModelManager*>(
+		pActionMap_, IDM_VIEW_FILTERCUSTOM, pViewModelManager_);
 	CHECK_QSTATUS();
 	status = InitAction1<ViewFilterNoneAction, ViewModelManager*>(
 		pActionMap_, IDM_VIEW_FILTERNONE, pViewModelManager_);

@@ -1846,6 +1846,56 @@ void qm::CreateSubAccountDialog::updateState()
 
 /****************************************************************************
  *
+ * CustomFilterDialog
+ *
+ */
+
+qm::CustomFilterDialog::CustomFilterDialog(
+	const WCHAR* pwszMacro, QSTATUS* pstatus) :
+	DefaultDialog(IDD_CUSTOMFILTER, pstatus),
+	wstrMacro_(0)
+{
+	if (pwszMacro) {
+		wstrMacro_ = allocWString(pwszMacro);
+		if (!wstrMacro_) {
+			*pstatus = QSTATUS_OUTOFMEMORY;
+			return;
+		}
+	}
+}
+
+qm::CustomFilterDialog::~CustomFilterDialog()
+{
+	freeWString(wstrMacro_);
+}
+
+const WCHAR* qm::CustomFilterDialog::getMacro() const
+{
+	return wstrMacro_;
+}
+
+LRESULT qm::CustomFilterDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+{
+	init(false);
+	
+	if (wstrMacro_) {
+		setDlgItemText(IDC_MACRO, wstrMacro_);
+		freeWString(wstrMacro_);
+		wstrMacro_ = 0;
+	}
+	
+	return TRUE;
+}
+
+LRESULT qm::CustomFilterDialog::onOk()
+{
+	wstrMacro_ = getDlgItemText(IDC_MACRO);
+	return DefaultDialog::onOk();
+}
+
+
+/****************************************************************************
+ *
  * DetachDialog
  *
  */

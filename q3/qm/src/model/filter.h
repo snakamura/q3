@@ -68,15 +68,13 @@ private:
 class Filter
 {
 public:
-	Filter(const WCHAR* pwszName, qs::QSTATUS* pstatus);
+	Filter(const WCHAR* pwszName, const WCHAR* pwszMacro, qs::QSTATUS* pstatus);
 	~Filter();
 
 public:
 	const WCHAR* getName() const;
+	const Macro* getMacro() const;
 	qs::QSTATUS match(MacroContext* pContext, bool* pbMatch) const;
-
-public:
-	void setMacro(Macro* pMacro);
 
 private:
 	Filter(const Filter&);
@@ -126,9 +124,8 @@ private:
 private:
 	FilterList* pListFilter_;
 	State state_;
-	Filter* pFilter_;
+	qs::WSTRING wstrName_;
 	qs::StringBuffer<qs::WSTRING>* pBuffer_;
-	MacroParser* pParser_;
 };
 
 }

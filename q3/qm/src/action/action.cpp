@@ -3012,20 +3012,44 @@ QSTATUS qm::ViewFilterAction::isChecked(
  */
 
 qm::ViewFilterCustomAction::ViewFilterCustomAction(
-	ViewModelManager* pViewModelManager,
-	const FilterManager* pFilterManager, QSTATUS* pstatus) :
+	ViewModelManager* pViewModelManager, QSTATUS* pstatus) :
 	pViewModelManager_(pViewModelManager),
-	pFilterManager_(pFilterManager)
+	pFilter_(0)
 {
 }
 
 qm::ViewFilterCustomAction::~ViewFilterCustomAction()
 {
+	delete pFilter_;
 }
 
 QSTATUS qm::ViewFilterCustomAction::invoke(const ActionEvent& event)
 {
-	// TODO
+	DECLARE_QSTATUS();
+	
+	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
+	if (pViewModel) {
+		string_ptr<WSTRING> wstrMacro;
+		if (pFilter_) {
+			status = pFilter_->getMacro()->getString(&wstrMacro);
+			CHECK_QSTATUS();
+		}
+		CustomFilterDialog dialog(wstrMacro.get(), &status);
+		CHECK_QSTATUS();
+		int nRet = 0;
+		status = dialog.doModal(getMainWindow()->getHandle(), 0, &nRet);
+		CHECK_QSTATUS();
+		if (nRet == IDOK) {
+			std::auto_ptr<Filter> pFilter;
+			status = newQsObject(L"", dialog.getMacro(), &pFilter);
+			CHECK_QSTATUS();
+			delete pFilter_;
+			pFilter_ = pFilter.release();
+			status = pViewModel->setFilter(pFilter_);
+			CHECK_QSTATUS();
+		}
+	}
+	
 	return QSTATUS_SUCCESS;
 }
 
@@ -3043,7 +3067,14 @@ QSTATUS qm::ViewFilterCustomAction::isEnabled(
 QSTATUS qm::ViewFilterCustomAction::isChecked(
 	const ActionEvent& event, bool* pbChecked)
 {
-	// TODO
+	assert(pbChecked);
+	
+	*pbChecked = false;
+	
+	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
+	if (pViewModel && pFilter_)
+		*pbChecked = pViewModel->getFilter() == pFilter_;
+	
 	return QSTATUS_SUCCESS;
 }
 
