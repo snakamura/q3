@@ -302,7 +302,7 @@ public:
 	 *
 	 * @return Buffer.
 	 */
-	const unsigned char* getBuffer() const;
+	const unsigned char* getBuffer();
 	
 	/**
 	 * Release buffer.

@@ -183,13 +183,23 @@ qs::ByteOutputStream::~ByteOutputStream()
 	}
 }
 
-const unsigned char* qs::ByteOutputStream::getBuffer() const
+const unsigned char* qs::ByteOutputStream::getBuffer()
 {
+	if (!pImpl_->pBuf_) {
+		if (!pImpl_->allocBuffer(1))
+			return 0;
+	}
+	
 	return pImpl_->pBuf_;
 }
 
 malloc_ptr<unsigned char> qs::ByteOutputStream::releaseBuffer()
 {
+	if (!pImpl_->pBuf_) {
+		if (!pImpl_->allocBuffer(1))
+			return malloc_ptr<unsigned char>(0);
+	}
+	
 	unsigned char* p = pImpl_->pBuf_;
 	pImpl_->pBuf_ = 0;
 	pImpl_->pBufEnd_ = 0;
@@ -199,6 +209,11 @@ malloc_ptr<unsigned char> qs::ByteOutputStream::releaseBuffer()
 
 malloc_size_ptr<unsigned char> qs::ByteOutputStream::releaseSizeBuffer()
 {
+	if (!pImpl_->pBuf_) {
+		if (!pImpl_->allocBuffer(1))
+			return malloc_size_ptr<unsigned char>();
+	}
+	
 	unsigned char* p = pImpl_->pBuf_;
 	size_t nLen = pImpl_->p_ - pImpl_->pBuf_;
 	pImpl_->pBuf_ = 0;
