@@ -42,6 +42,7 @@
 #include "../ui/foldermodel.h"
 #include "../ui/mainwindow.h"
 #include "../ui/menu.h"
+#include "../ui/newmailchecker.h"
 #include "../ui/syncdialog.h"
 
 using namespace qm;
@@ -77,6 +78,7 @@ struct qm::ApplicationImpl
 	TempFileCleaner* pTempFileCleaner_;
 	MainWindow* pMainWindow_;
 	MenuManager* pMenuManager_;
+	NewMailChecker* pNewMailChecker_;
 	HINSTANCE hInstAtl_;
 	
 	static Application* pApplication__;
@@ -271,6 +273,7 @@ qm::Application::Application(HINSTANCE hInst, QSTATUS* pstatus)
 	pImpl_->pTempFileCleaner_ = 0;
 	pImpl_->pMainWindow_ = 0;
 	pImpl_->pMenuManager_ = 0;
+	pImpl_->pNewMailChecker_ = 0;
 	pImpl_->hInstAtl_ = 0;
 	
 	assert(!ApplicationImpl::pApplication__);
@@ -531,6 +534,11 @@ QSTATUS qm::Application::initialize()
 	status = pImpl_->restoreCurrentFolder();
 	CHECK_QSTATUS();
 	
+	status = newQsObject(pImpl_->pProfile_, pImpl_->pDocument_,
+		pImpl_->pGoRound_, pImpl_->pSyncManager_, pImpl_->pSyncDialogManager_,
+		pImpl_->pMainWindow_->getHandle(), &pImpl_->pNewMailChecker_);
+	CHECK_QSTATUS();
+	
 	return QSTATUS_SUCCESS;
 }
 
@@ -539,6 +547,9 @@ QSTATUS qm::Application::uninitialize()
 	assert(pImpl_);
 	
 	DECLARE_QSTATUS();
+	
+	delete pImpl_->pNewMailChecker_;
+	pImpl_->pNewMailChecker_ = 0;
 	
 #ifndef _WIN32_WCE
 	ComPtr<IDataObject> pDataObject;

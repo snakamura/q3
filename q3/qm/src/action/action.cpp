@@ -2393,74 +2393,17 @@ QSTATUS qm::ToolGoRoundAction::invoke(const ActionEvent& event)
 	status = newQsObject(pSyncManager_, pDocument_,
 		hwnd_, SyncDialog::FLAG_SHOWDIALOG, &pData);
 	
+	const GoRoundCourse* pCourse = 0;
 	GoRoundCourseList* pCourseList = 0;
 	status = pGoRound_->getCourseList(&pCourseList);
 	CHECK_QSTATUS();
 	if (pCourseList && pCourseList->getCount() > 0) {
-		GoRoundCourse* pCourse = pCourseList->getCourse(event.getId() - IDM_TOOL_GOROUND);
+		pCourse = pCourseList->getCourse(event.getId() - IDM_TOOL_GOROUND);
 		assert(pCourse);
-		
-		const GoRoundDialup* pDialup = pCourse->getDialup();
-		if (pDialup) {
-			std::auto_ptr<SyncDialup> pSyncDialup;
-			status = newQsObject(pDialup->getName(),
-				pDialup->getFlags(), pDialup->getDialFrom(),
-				pDialup->getDisconnectWait(), &pSyncDialup);
-			CHECK_QSTATUS();
-			pData->setDialup(pSyncDialup.release());
-		}
-		
-		bool bParallel = pCourse->getType() == GoRoundCourse::TYPE_PARALLEL;
-		const GoRoundCourse::EntryList& l = pCourse->getEntries();
-		GoRoundCourse::EntryList::const_iterator it = l.begin();
-		while (it != l.end()) {
-			GoRoundEntry* pEntry = *it;
-			Account* pAccount = pDocument_->getAccount(pEntry->getAccount());
-			if (pAccount) {
-				SubAccount* pSubAccount = 0;
-				if (pEntry->getSubAccount())
-					pSubAccount = pAccount->getSubAccount(pEntry->getSubAccount());
-				if (!pSubAccount)
-					pSubAccount = pAccount->getCurrentSubAccount();
-				
-				const WCHAR* pwszFilterName = pEntry->getFilterName();
-				if (!pwszFilterName)
-					pwszFilterName = pSubAccount->getSyncFilterName();
-				
-				if (pEntry->isFlag(GoRoundEntry::FLAG_SEND)) {
-					status = pData->addSend(pAccount, pSubAccount);
-					CHECK_QSTATUS();
-				}
-				if (pEntry->isFlag(GoRoundEntry::FLAG_RECEIVE)) {
-					if (pEntry->isFlag(GoRoundEntry::FLAG_SELECTFOLDER)) {
-						// TODO
-					}
-					else {
-						status = pData->addFolders(pAccount, pSubAccount,
-							pEntry->getFolderNamePattern(), pwszFilterName);
-						CHECK_QSTATUS();
-					}
-				}
-			}
-			if (bParallel)
-				pData->newSlot();
-			++it;
-		}
 	}
-	else {
-		const Document::AccountList& listAccount = pDocument_->getAccounts();
-		Document::AccountList::const_iterator it = listAccount.begin();
-		while (it != listAccount.end()) {
-			Account* pAccount = *it;
-			SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
-			status = pData->addSend(pAccount, pSubAccount);
-			CHECK_QSTATUS();
-			status = pData->addFolders(pAccount, pSubAccount, 0,
-				pSubAccount->getSyncFilterName());
-			CHECK_QSTATUS();
-			++it;
-		}
-	}
+	
+	status = SyncUtil::createGoRoundData(pCourse, pDocument_, pData.get());
+	CHECK_QSTATUS();
 	
 	if (!pData->isEmpty()) {
 		SyncDialog* pSyncDialog = 0;

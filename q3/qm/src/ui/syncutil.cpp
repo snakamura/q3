@@ -7,6 +7,8 @@
  */
 
 #include <qmaccount.h>
+#include <qmdocument.h>
+#include <qmgoround.h>
 
 #include <qserror.h>
 #include <qsnew.h>
@@ -15,6 +17,7 @@
 
 #include "syncdialog.h"
 #include "syncutil.h"
+#include "../model/goround.h"
 #include "../sync/syncmanager.h"
 
 using namespace qm;
@@ -57,6 +60,79 @@ QSTATUS qm::SyncUtil::syncFolder(SyncManager* pSyncManager,
 	status = pSyncManager->sync(pData.get());
 	CHECK_QSTATUS();
 	pData.release();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::SyncUtil::createGoRoundData(const GoRoundCourse* pCourse,
+	Document* pDocument, SyncData* pData)
+{
+	assert(pData);
+	
+	DECLARE_QSTATUS();
+	
+	if (pCourse) {
+		const GoRoundDialup* pDialup = pCourse->getDialup();
+		if (pDialup) {
+			std::auto_ptr<SyncDialup> pSyncDialup;
+			status = newQsObject(pDialup->getName(),
+				pDialup->getFlags(), pDialup->getDialFrom(),
+				pDialup->getDisconnectWait(), &pSyncDialup);
+			CHECK_QSTATUS();
+			pData->setDialup(pSyncDialup.release());
+		}
+		
+		bool bParallel = pCourse->getType() == GoRoundCourse::TYPE_PARALLEL;
+		const GoRoundCourse::EntryList& l = pCourse->getEntries();
+		GoRoundCourse::EntryList::const_iterator it = l.begin();
+		while (it != l.end()) {
+			GoRoundEntry* pEntry = *it;
+			Account* pAccount = pDocument->getAccount(pEntry->getAccount());
+			if (pAccount) {
+				SubAccount* pSubAccount = 0;
+				if (pEntry->getSubAccount())
+					pSubAccount = pAccount->getSubAccount(pEntry->getSubAccount());
+				if (!pSubAccount)
+					pSubAccount = pAccount->getCurrentSubAccount();
+				
+				const WCHAR* pwszFilterName = pEntry->getFilterName();
+				if (!pwszFilterName)
+					pwszFilterName = pSubAccount->getSyncFilterName();
+				
+				if (pEntry->isFlag(GoRoundEntry::FLAG_SEND)) {
+					status = pData->addSend(pAccount, pSubAccount);
+					CHECK_QSTATUS();
+				}
+				if (pEntry->isFlag(GoRoundEntry::FLAG_RECEIVE)) {
+					if (pEntry->isFlag(GoRoundEntry::FLAG_SELECTFOLDER)) {
+						// TODO
+					}
+					else {
+						status = pData->addFolders(pAccount, pSubAccount,
+							pEntry->getFolderNamePattern(), pwszFilterName);
+						CHECK_QSTATUS();
+					}
+				}
+			}
+			if (bParallel)
+				pData->newSlot();
+			++it;
+		}
+	}
+	else {
+		const Document::AccountList& listAccount = pDocument->getAccounts();
+		Document::AccountList::const_iterator it = listAccount.begin();
+		while (it != listAccount.end()) {
+			Account* pAccount = *it;
+			SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
+			status = pData->addSend(pAccount, pSubAccount);
+			CHECK_QSTATUS();
+			status = pData->addFolders(pAccount, pSubAccount, 0,
+				pSubAccount->getSyncFilterName());
+			CHECK_QSTATUS();
+			++it;
+		}
+	}
 	
 	return QSTATUS_SUCCESS;
 }

@@ -19,7 +19,9 @@ namespace qm {
 class SyncUtil;
 
 class Document;
+class GoRoundCourse;
 class NormalFolder;
+class SyncData;
 class SyncDialogManager;
 class SyncManager;
 
@@ -36,6 +38,8 @@ public:
 	static qs::QSTATUS syncFolder(SyncManager* pSyncManager,
 		Document* pDocument, SyncDialogManager* pSyncDialogManager,
 		HWND hwnd, unsigned int nCallbackParam, NormalFolder* pFolder);
+	static qs::QSTATUS createGoRoundData(const GoRoundCourse* pCourse,
+		Document* pDocument, SyncData* pData);
 };
 
 }
