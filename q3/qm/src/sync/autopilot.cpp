@@ -109,7 +109,7 @@ void qm::AutoPilot::timerTimeout(unsigned int nId)
 		}
 		
 		++nCount_;
-		if (nCount_ = 100000)
+		if (nCount_ == 100000)
 			nCount_ = 0;
 	}
 }
