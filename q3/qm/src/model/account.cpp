@@ -67,7 +67,8 @@ public:
 					   const CHAR* pszMessage,
 					   const Message& msgHeader,
 					   unsigned int nFlags,
-					   unsigned int nSize);
+					   unsigned int nSize,
+					   MessagePtr* pptr);
 	bool removeMessages(NormalFolder* pFolder,
 						const MessageHolderList& l,
 						bool bDirect,
@@ -400,7 +401,8 @@ bool qm::AccountImpl::appendMessage(NormalFolder* pFolder,
 									const CHAR* pszMessage,
 									const Message& msgHeader,
 									unsigned int nFlags,
-									unsigned int nSize)
+									unsigned int nSize,
+									MessagePtr* pptr)
 {
 	assert(pFolder);
 	assert(pszMessage);
@@ -413,6 +415,8 @@ bool qm::AccountImpl::appendMessage(NormalFolder* pFolder,
 			&msgHeader, static_cast<unsigned int>(-1), nFlags, nSize, false);
 		if (!pmh)
 			return false;
+		if (pptr)
+			*pptr = MessagePtr(pmh);
 	}
 	else {
 		if (!pProtocolDriver_->appendMessage(pFolder, pszMessage, nFlags))
@@ -524,7 +528,7 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 			if (!pmh->getMessage(nFlags, 0, &msg))
 				return false;
 			if (!pAccountTo->appendMessage(pFolderTo, msg,
-				pmh->getFlags() & MessageHolder::FLAG_USER_MASK))
+				pmh->getFlags() & MessageHolder::FLAG_USER_MASK, 0))
 				return false;
 			
 			if (pCallback) {
@@ -1449,7 +1453,7 @@ bool qm::Account::salvage(NormalFolder* pFolder,
 		virtual bool salvage(const Message& msg)
 		{
 			Account* pAccount = pFolder_->getAccount();
-			return pAccount->appendMessage(pFolder_, msg, 0);
+			return pAccount->appendMessage(pFolder_, msg, 0, 0);
 		}
 	
 	private:
@@ -1678,13 +1682,13 @@ bool qm::Account::importMessage(NormalFolder* pFolder,
 	if (field != Part::FIELD_NOTEXIST)
 		msgHeader.removeField(L"X-QMAIL-Flags");
 	
-	return pImpl_->appendMessage(pFolder,
-		pszMessage, msgHeader, nMessageFlags, -1);
+	return pImpl_->appendMessage(pFolder, pszMessage, msgHeader, nMessageFlags, -1, 0);
 }
 
 bool qm::Account::appendMessage(NormalFolder* pFolder,
 								const Message& msg,
-								unsigned int nFlags)
+								unsigned int nFlags,
+								MessagePtr* pptr)
 {
 	assert(pFolder);
 	assert(msg.getFlag() != Message::FLAG_EMPTY);
@@ -1692,7 +1696,7 @@ bool qm::Account::appendMessage(NormalFolder* pFolder,
 	xstring_ptr strMessage(msg.getContent());
 	if (!strMessage.get())
 		return false;
-	return pImpl_->appendMessage(pFolder, strMessage.get(), msg, nFlags, -1);
+	return pImpl_->appendMessage(pFolder, strMessage.get(), msg, nFlags, -1, pptr);
 }
 
 bool qm::Account::removeMessages(const MessageHolderList& l,

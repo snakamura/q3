@@ -100,6 +100,8 @@ public:
 	std::auto_ptr<Message> getMessage(bool bFixup);
 	bool setMessage(std::auto_ptr<Message> pMessage);
 	void update();
+	const WCHAR* getPreviousURI() const;
+	void setPreviousURI(const WCHAR* pwszURI);
 
 public:
 	Document* getDocument() const;
@@ -112,6 +114,7 @@ public:
 	void setField(const WCHAR* pwszName,
 				  const WCHAR* pwszValue,
 				  FieldType type);
+	void removeField(const WCHAR* pwszName);
 #if 0
 	qs::wxstring_ptr getMessageText();
 	bool setMessageText(const WCHAR* pwszMessage,
@@ -197,6 +200,7 @@ private:
 	bool bAutoReform_;
 	bool bEncrypt_;
 	bool bSign_;
+	qs::wstring_ptr wstrPreviousURI_;
 	HandlerList listHandler_;
 };
 

@@ -53,7 +53,8 @@ qm::MessageComposer::~MessageComposer()
 bool qm::MessageComposer::compose(Account* pAccount,
 								  SubAccount* pSubAccount,
 								  Message* pMessage,
-								  unsigned int nFlags) const
+								  unsigned int nFlags,
+								  MessagePtr* pptr) const
 {
 	assert(pAccount || pFolderModel_);
 	assert((!pAccount && !pSubAccount) ||
@@ -118,12 +119,17 @@ bool qm::MessageComposer::compose(Account* pAccount,
 			return false;
 	}
 	
-	const WCHAR* pwszMacro = 0;
+	const WCHAR* pwszMacro[] = { 0, 0 };
+	UnstructuredParser draftMacro;
+	if (pMessage->getField(L"X-QMAIL-DraftMacro", &draftMacro) == Part::FIELD_EXIST)
+		pwszMacro[0] = draftMacro.getValue();
+	pMessage->removeField(L"X-QMAIL-DraftMacro");
 	UnstructuredParser macro;
-	Part::Field f = pMessage->getField(L"X-QMAIL-Macro", &macro);
-	if (f == Part::FIELD_EXIST)
-		pwszMacro = macro.getValue();
-	pMessage->removeField(L"X-QMAIL-Macro");
+	if (!bDraft_) {
+		if (pMessage->getField(L"X-QMAIL-Macro", &macro) == Part::FIELD_EXIST)
+			pwszMacro[1] = macro.getValue();
+		pMessage->removeField(L"X-QMAIL-Macro");
+	}
 	
 	bool bWithOSVersion = pProfile_->getInt(L"Global", L"XMailerWithOSVersion", 1) != 0;
 	wstring_ptr wstrVersion(Application::getApplication().getVersion(L' ', bWithOSVersion));
@@ -169,20 +175,22 @@ bool qm::MessageComposer::compose(Account* pAccount,
 	}
 	
 	if (!pAccount->appendMessage(static_cast<NormalFolder*>(pFolder), *pMessage,
-		MessageHolder::FLAG_SEEN | (bDraft_ ? MessageHolder::FLAG_DRAFT : 0)))
+		MessageHolder::FLAG_SEEN | (bDraft_ ? MessageHolder::FLAG_DRAFT : 0), pptr))
 		return false;
 	if (!pFolder->saveMessageHolders())
 		return false;
 	
-	if (pwszMacro) {
-		MacroParser parser(MacroParser::TYPE_MESSAGE);
-		std::auto_ptr<Macro> pMacro(parser.parse(pwszMacro));
-		if (!pMacro.get())
-			return false;
-		
-		MacroContext context(0, 0, MessageHolderList(), pAccount, pDocument_,
-			hwnd_, pProfile_, false, pSecurityModel_->isDecryptVerify(), 0, 0);
-		MacroValuePtr pValue(pMacro->value(&context));
+	for (int n = 0; n < countof(pwszMacro); ++n) {
+		if (pwszMacro[n]) {
+			MacroParser parser(MacroParser::TYPE_MESSAGE);
+			std::auto_ptr<Macro> pMacro(parser.parse(pwszMacro[n]));
+			if (!pMacro.get())
+				return false;
+			
+			MacroContext context(0, 0, MessageHolderList(), pAccount, pDocument_,
+				hwnd_, pProfile_, false, pSecurityModel_->isDecryptVerify(), 0, 0);
+			MacroValuePtr pValue(pMacro->value(&context));
+		}
 	}
 	
 	return true;
@@ -229,7 +237,7 @@ bool qm::MessageComposer::compose(Account* pAccount,
 		if (!pMessage.get())
 			return false;
 		
-		if (!compose(0, 0, pMessage.get(), nFlags))
+		if (!compose(0, 0, pMessage.get(), nFlags, 0))
 			return false;
 	}
 	

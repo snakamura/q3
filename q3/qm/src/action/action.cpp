@@ -2883,7 +2883,7 @@ void qm::MessageCombineAction::invoke(const ActionEvent& event)
 		// TODO
 		NormalFolder* pFolder = l.front()->getFolder();
 		unsigned int nFlags = 0;
-		if (!pAccount->appendMessage(pFolder, msg, nFlags)) {
+		if (!pAccount->appendMessage(pFolder, msg, nFlags, 0)) {
 			ActionUtil::error(hwnd_, IDS_ERROR_COMBINE);
 			return;
 		}
@@ -3083,7 +3083,7 @@ void qm::MessageCreateFromClipboardAction::invoke(const ActionEvent& event)
 		unsigned int nFlags = 0;
 		// TODO
 		// Set flags
-		if (!composer_.compose(0, 0, pMessage.get(), nFlags)) {
+		if (!composer_.compose(0, 0, pMessage.get(), nFlags, 0)) {
 			ActionUtil::error(hwnd_, IDS_ERROR_CREATEMESSAGE);
 			return;
 		}
@@ -3207,7 +3207,7 @@ bool qm::MessageDeleteAttachmentAction::deleteAttachment(Account* pAccount,
 	
 	NormalFolder* pNormalFolder = pmh->getFolder();
 	if (!pAccount->appendMessage(pNormalFolder, msg,
-		pmh->getFlags() & MessageHolder::FLAG_USER_MASK))
+		pmh->getFlags() & MessageHolder::FLAG_USER_MASK, 0))
 		return false;
 	
 	if (!pAccount->removeMessages(MessageHolderList(1, pmh), pFolder, false, 0))
@@ -3333,7 +3333,7 @@ bool qm::MessageExpandDigestAction::expandDigest(Account* pAccount,
 		// TODO
 		// Set flags?
 		unsigned int nFlags = 0;
-		if (!pAccount->appendMessage(pmh->getFolder(), **it, nFlags))
+		if (!pAccount->appendMessage(pmh->getFolder(), **it, nFlags, 0))
 			return false;
 	}
 	

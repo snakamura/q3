@@ -2112,15 +2112,15 @@ MacroValuePtr qm::MacroFunctionHeader::value(MacroContext* pContext) const
 		
 		const WCHAR* p = wstrRemoveField.get();
 		const WCHAR* pEnd = wcschr(p, L',');
-		do {
+		while (true) {
 			wstring_ptr wstrField(trim(
 				p, pEnd ? pEnd - p : static_cast<size_t>(-1)));
 			partTemp.removeField(wstrField.get(), 0xffffffff);
-			if (pEnd) {
-				p = pEnd + 1;
-				pEnd = wcschr(p, L',');
-			}
-		} while (pEnd);
+			if (!pEnd)
+				break;
+			p = pEnd + 1;
+			pEnd = wcschr(p, L',');
+		}
 		
 		pszHeader = partTemp.getHeader();
 	}

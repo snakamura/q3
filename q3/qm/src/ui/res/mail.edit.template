@@ -1,5 +1,5 @@
 {
-  @Header('Message-Id,Subject,To,Cc,Bcc,From,Date,MIME-Version,Content-Type,Content-Transfer-Encoding,Content-Disposition,X-Mailer,X-QMAIL-Account,X-QMAIL-Macro')
+  @Header(@Concat('Message-Id,Subject,To,Cc,Bcc,From,Date,MIME-Version,Content-Type,Content-Transfer-Encoding,Content-Disposition,X-Mailer,X-QMAIL-Account,X-QMAIL-DraftMacro', @If(@Draft(), '', ',X-QMAIL-Macro')))
 }To: {@Decode(@Field('To'))}
 Cc: {@Decode(@Field('Cc'))}
 Bcc: {@Decode(@Field('Bcc'))}
@@ -11,7 +11,7 @@ X-QMAIL-Account: {@Account()}{
       '')}{
   @If(@Or(@Equal(@Folder(), @SpecialFolder('Outbox')),
           @Equal(@Folder(), @SpecialFolder('Draftbox'))),
-      @Concat('\nX-QMAIL-Macro: @ForEach(@Messages(\'//',
+      @Concat('\nX-QMAIL-DraftMacro: @ForEach(@Messages(\'//',
               @Account(),
               '/',
               @Folder(),

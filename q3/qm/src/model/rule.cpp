@@ -450,7 +450,7 @@ bool qm::CopyRule::apply(const RuleContext& context) const
 			std::auto_ptr<Message> pMessage(MessageCreator().createMessage(
 				context.getDocument(), wstrValue.get(), wcslen(wstrValue.get())));
 			if (!pAccountTo->appendMessage(static_cast<NormalFolder*>(pFolderTo),
-				*pMessage, pmh->getFlags() & MessageHolder::FLAG_USER_MASK))
+				*pMessage, pmh->getFlags() & MessageHolder::FLAG_USER_MASK, 0))
 				return false;
 			
 			if (bMove_) {

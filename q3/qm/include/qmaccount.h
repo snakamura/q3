@@ -169,7 +169,8 @@ public:
 	
 	bool appendMessage(NormalFolder* pFolder,
 					   const Message& msg,
-					   unsigned int nFlags);
+					   unsigned int nFlags,
+					   MessagePtr* pptr);
 	bool removeMessages(const MessageHolderList& l,
 						Folder* pFolder,
 						bool bDirect,

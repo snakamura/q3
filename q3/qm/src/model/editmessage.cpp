@@ -249,6 +249,16 @@ void qm::EditMessage::update()
 	fireMessageUpdate();
 }
 
+const WCHAR* qm::EditMessage::getPreviousURI() const
+{
+	return wstrPreviousURI_.get();
+}
+
+void qm::EditMessage::setPreviousURI(const WCHAR* pwszURI)
+{
+	wstrPreviousURI_ = allocWString(pwszURI);
+}
+
 Document* qm::EditMessage::getDocument() const
 {
 	return pDocument_;
@@ -366,6 +376,30 @@ void qm::EditMessage::setField(const WCHAR* pwszName,
 	
 	if (bChange)
 		fireFieldChanged(pwszName, pwszValue);
+}
+
+void qm::EditMessage::removeField(const WCHAR* pwszName)
+{
+	assert(pwszName);
+	
+	FieldList::iterator it = std::find_if(
+		listField_.begin(), listField_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				string_equal<WCHAR>(),
+				mem_data_ref(&Field::wstrName_),
+				std::identity<const WCHAR*>()),
+			pwszName));
+	if (it != listField_.end()) {
+		freeWString((*it).wstrName_);
+		freeWString((*it).wstrValue_);
+		listField_.erase(it);
+	}
+	else {
+		pMessage_->removeField(pwszName);
+	}
+	
+	fireFieldChanged(pwszName, 0);
 }
 
 #if 0

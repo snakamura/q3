@@ -28,6 +28,7 @@
 #include "findreplace.h"
 #include "../model/editmessage.h"
 #include "../model/fixedformtext.h"
+#include "../model/uri.h"
 #include "../ui/attachmentselectionmodel.h"
 #include "../ui/dialogs.h"
 #include "../ui/editwindow.h"
@@ -612,7 +613,7 @@ qm::EditFileSendAction::EditFileSendAction(bool bDraft,
 	bDraft_(bDraft),
 	pEditMessageHolder_(pEditMessageHolder),
 	pEditFrameWindow_(pEditFrameWindow),
-	pDocument_(0),
+	pDocument_(pDocument),
 	pSyncManager_(0),
 	pSyncDialogManager_(0)
 {
@@ -653,8 +654,9 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
 	
 	unsigned int nFlags = (pEditMessage->isSign() ? MessageComposer::FLAG_SIGN : 0) |
 		(pEditMessage->isEncrypt() ? MessageComposer::FLAG_ENCRYPT : 0);
+	MessagePtr ptr;
 	if (!composer_.compose(pEditMessage->getAccount(),
-		pEditMessage->getSubAccount(), pMessage.get(), nFlags)) {
+		pEditMessage->getSubAccount(), pMessage.get(), nFlags, &ptr)) {
 		ActionUtil::error(pEditFrameWindow_->getHandle(), IDS_ERROR_SEND);
 		return;
 	}
@@ -671,7 +673,31 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
 		}
 	}
 	
-	pEditFrameWindow_->close();
+	const WCHAR* pwszURI = pEditMessage->getPreviousURI();
+	if (pwszURI) {
+		std::auto_ptr<URI> pURI(URI::parse(pwszURI));
+		if (pURI.get()) {
+			MessagePtrLock mpl(pDocument_->getMessage(*pURI));
+			if (mpl) {
+				Account* p = mpl->getFolder()->getAccount();
+				if (!p->removeMessages(MessageHolderList(1, mpl), 0, false, 0)) {
+					// TODO
+				}
+			}
+		}
+	}
+	
+	if (bDraft_) {
+		MessagePtrLock mpl(ptr);
+		if (mpl) {
+			wstring_ptr wstrURI(URI(mpl).toString());
+			pEditMessage->setPreviousURI(wstrURI.get());
+		}
+		pEditMessage->removeField(L"X-QMAIL-DraftMacro");
+	}
+	else {
+		pEditFrameWindow_->close();
+	}
 }
 
 

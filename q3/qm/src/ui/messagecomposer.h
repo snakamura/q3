@@ -25,6 +25,7 @@ class AddressBook;
 class Document;
 class FolderModel;
 class Message;
+class MessagePtr;
 class Security;
 class SecurityModel;
 class SubAccount;
@@ -57,7 +58,8 @@ public:
 	bool compose(Account* pAccount,
 				 SubAccount* pSubAccount,
 				 Message* pMessage,
-				 unsigned int nFlags) const;
+				 unsigned int nFlags,
+				 MessagePtr* pptr) const;
 	bool compose(Account* pAccount,
 				 SubAccount* pSubAccount,
 				 const WCHAR* pwszPath,

@@ -188,7 +188,7 @@
 		<popupmenu text="File">
 			<menuitem text="Send" action="FileSend"/>
 			<menuitem text="Send Now" action="FileSendNow"/>
-			<menuitem text="Draft" action="FileDraft"/>
+			<menuitem text="Save as Draft" action="FileDraft"/>
 			<separator/>
 			<menuitem text="Open..." action="FileOpen"/>
 			<menuitem text="Save..." action="FileSave"/>
