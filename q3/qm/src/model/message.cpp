@@ -891,9 +891,12 @@ std::auto_ptr<Part> qm::MessageCreator::createPartFromFile(const WCHAR* pwszPath
 	if (!pPart->replaceField(L"Content-Type", contentType))
 		return std::auto_ptr<Part>(0);
 	
-	ContentTransferEncodingParser contentTransferEncoding(L"base64");
-	if (!pPart->setField(L"Content-Transfer-Encoding", contentTransferEncoding))
-		return std::auto_ptr<Part>(0);
+	bool bBase64 = !PartUtil::isContentType(&contentType, L"message", L"rfc822");
+	if (bBase64) {
+		ContentTransferEncodingParser contentTransferEncoding(L"base64");
+		if (!pPart->setField(L"Content-Transfer-Encoding", contentTransferEncoding))
+			return std::auto_ptr<Part>(0);
+	}
 	
 	ContentDispositionParser contentDisposition(L"attachment");
 	contentDisposition.setParameter(L"filename", pFileName);
@@ -913,14 +916,23 @@ std::auto_ptr<Part> qm::MessageCreator::createPartFromFile(const WCHAR* pwszPath
 		return std::auto_ptr<Part>(0);
 	BufferedInputStream bufferedStream(&stream, false);
 	
-	Base64Encoder encoder(true);
-	XStringOutputStream outputStream;
-	if (!outputStream.reserve((nSize/3 + 1)*4 + nSize/45*2))
-		return std::auto_ptr<Part>(0);
-	if (!encoder.encode(&bufferedStream, &outputStream))
-		return std::auto_ptr<Part>(0);
-	
-	pPart->setBody(outputStream.getXString());
+	if (bBase64) {
+		Base64Encoder encoder(true);
+		XStringOutputStream outputStream;
+		if (!outputStream.reserve((nSize/3 + 1)*4 + nSize/45*2))
+			return std::auto_ptr<Part>(0);
+		if (!encoder.encode(&bufferedStream, &outputStream))
+			return std::auto_ptr<Part>(0);
+		pPart->setBody(outputStream.getXString());
+	}
+	else {
+		xstring_ptr strBody(allocXString(nSize));
+		if (!strBody.get())
+			return std::auto_ptr<Part>(0);
+		if (bufferedStream.read(reinterpret_cast<unsigned char*>(strBody.get()), nSize) != nSize)
+			return std::auto_ptr<Part>(0);
+		pPart->setBody(strBody);
+	}
 	
 	return pPart;
 }
