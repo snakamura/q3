@@ -269,7 +269,7 @@ QSTATUS qs::ToolbarButton::create(HWND hwnd, bool bShowText)
 	button.iBitmap = nImage_;
 	button.idCommand = nAction_;
 	button.fsState = TBSTATE_ENABLED;
-	button.fsStyle = TBSTYLE_BUTTON;
+	button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE;
 	button.iString = nTextIndex;
 	::SendMessage(hwnd, TB_ADDBUTTONS, 1, reinterpret_cast<LPARAM>(&button));
 	
