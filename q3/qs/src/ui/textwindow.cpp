@@ -987,7 +987,8 @@ COLORREF qs::TextWindowImpl::getLineColor(const TextModel::Line& line) const
 {
 	const WCHAR* p = line.getText();
 	size_t n = 0;
-	while (n < line.getLength() && (*p == L' ' || *p == L'\t')) {
+	while (n < line.getLength() &&
+		(*p == L' ' || *p == L'\t' || *p == 0x3000)) {
 		++p;
 		++n;
 	}
