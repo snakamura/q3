@@ -195,6 +195,14 @@ void qm::MessageFrameWindowImpl::initActions()
 	ADD_ACTION1(FileCloseAction,
 		IDM_FILE_CLOSE,
 		pThis_->getHandle());
+	ADD_ACTION6(FilePrintAction,
+		IDM_FILE_PRINT,
+		pDocument_,
+		this,
+		pSecurityModel_.get(),
+		pThis_->getHandle(),
+		pProfile_,
+		pTempFileCleaner_);
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	ADD_ACTION1(FileCloseAction,
 		IDOK,
