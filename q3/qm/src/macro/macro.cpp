@@ -321,12 +321,6 @@ bool qm::MacroGlobalContext::setRegexResult(const WCHAR* pwszAll,
 	
 	clearRegexResult();
 	
-	MacroValuePtr pValueAll(MacroValueFactory::getFactory().newString(pwszAll, nLen));
-	if (!pValueAll.get())
-		return false;
-	if (!setVariable(L"_0", pValueAll.get(), false))
-		return false;
-	
 	for (RegexRangeList::List::size_type n = 0; n < listRange.list_.size(); ++n) {
 		const RegexRange& range = listRange.list_[n];
 		
@@ -340,7 +334,7 @@ bool qm::MacroGlobalContext::setRegexResult(const WCHAR* pwszAll,
 			return false;
 	}
 	
-	nRegexResultCount_ = listRange.list_.size() + 1;
+	nRegexResultCount_ = listRange.list_.size();
 	
 	return true;
 }
