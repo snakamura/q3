@@ -276,6 +276,7 @@ qs::ComPtr<Interface>& qs::ComPtr<Interface>::operator=(const ComPtr<Interface>&
 	if (p_)
 		p_->Release();
 	p_ = ptr.p_;
+	return *this;
 }
 
 template<class Interface>
