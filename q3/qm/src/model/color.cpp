@@ -13,6 +13,8 @@
 #include <qmmacro.h>
 
 #include <qsconv.h>
+#include <qsfile.h>
+#include <qsstream.h>
 #include <qsutil.h>
 
 #include <algorithm>
@@ -35,8 +37,18 @@ qm::ColorManager::ColorManager()
 
 qm::ColorManager::~ColorManager()
 {
-	std::for_each(listColorSet_.begin(),
-		listColorSet_.end(), deleter<ColorSet>());
+	clear();
+}
+
+const ColorManager::ColorSetList& qm::ColorManager::getColorSets()
+{
+	return listColorSet_;
+}
+
+void qm::ColorManager::setColorSets(ColorSetList& listColorSet)
+{
+	clear();
+	listColorSet_.swap(listColorSet);
 }
 
 const ColorSet* qm::ColorManager::getColorSet(Folder* pFolder) const
@@ -52,6 +64,33 @@ const ColorSet* qm::ColorManager::getColorSet(Folder* pFolder) const
 	return 0;
 }
 
+bool qm::ColorManager::save() const
+{
+	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::COLORS_XML));
+	
+	TemporaryFileRenamer renamer(wstrPath.get());
+	
+	FileOutputStream os(renamer.getPath());
+	if (!os)
+		return false;
+	OutputStreamWriter writer(&os, false, L"utf-8");
+	if (!writer)
+		return false;
+	BufferedWriter bufferedWriter(&writer, false);
+	
+	ColorWriter colorWriter(&bufferedWriter);
+	if (!colorWriter.write(this))
+		return false;
+	
+	if (!bufferedWriter.close())
+		return false;
+	
+	if (!renamer.rename())
+		return false;
+	
+	return true;
+}
+
 void qm::ColorManager::addColorSet(std::auto_ptr<ColorSet> pSet)
 {
 	listColorSet_.push_back(pSet.get());
@@ -60,6 +99,8 @@ void qm::ColorManager::addColorSet(std::auto_ptr<ColorSet> pSet)
 
 bool qm::ColorManager::load()
 {
+	clear();
+	
 	wstring_ptr wstrPath(
 		Application::getApplication().getProfilePath(FileNames::COLORS_XML));
 	
@@ -75,6 +116,12 @@ bool qm::ColorManager::load()
 	return true;
 }
 
+void qm::ColorManager::clear()
+{
+	std::for_each(listColorSet_.begin(), listColorSet_.end(), deleter<ColorSet>());
+	listColorSet_.clear();
+}
+
 
 /****************************************************************************
  *
@@ -82,30 +129,99 @@ bool qm::ColorManager::load()
  *
  */
 
-qm::ColorSet::ColorSet(std::auto_ptr<RegexPattern> pAccountName,
-					   std::auto_ptr<RegexPattern> pFolderName) :
-	pAccountName_(pAccountName),
-	pFolderName_(pFolderName)
+qm::ColorSet::ColorSet()
 {
+}
+
+qm::ColorSet::ColorSet(const WCHAR* pwszAccount,
+					   std::auto_ptr<RegexPattern> pAccount,
+					   const WCHAR* pwszFolder,
+					   std::auto_ptr<RegexPattern> pFolder) :
+	pAccount_(pAccount),
+	pFolder_(pFolder)
+{
+	if (pwszAccount)
+		wstrAccount_ = allocWString(pwszAccount);
+	if (pwszFolder)
+		wstrFolder_ = allocWString(pwszFolder);
+}
+
+qm::ColorSet::ColorSet(const ColorSet& colorset)
+{
+	RegexCompiler compiler;
+	if (colorset.wstrAccount_.get()) {
+		wstrAccount_ = allocWString(colorset.wstrAccount_.get());
+		pAccount_ = compiler.compile(wstrAccount_.get());
+		assert(pAccount_.get());
+	}
+	if (colorset.wstrFolder_.get()) {
+		wstrFolder_ = allocWString(colorset.wstrFolder_.get());
+		pFolder_ = compiler.compile(wstrFolder_.get());
+		assert(pFolder_.get());
+	}
+	
+	for (ColorList::const_iterator it = colorset.listColor_.begin(); it != colorset.listColor_.end(); ++it)
+		listColor_.push_back(new ColorEntry(**it));
 }
 
 qm::ColorSet::~ColorSet()
 {
-	std::for_each(listEntry_.begin(),
-		listEntry_.end(), deleter<ColorEntry>());
+	clear();
+}
+
+const WCHAR* qm::ColorSet::getAccount() const
+{
+	return wstrAccount_.get();
+}
+
+void qm::ColorSet::setAccount(const WCHAR* pwszAccount,
+							  std::auto_ptr<RegexPattern> pAccount)
+{
+	assert((pwszAccount && pAccount.get()) || (!pwszAccount && !pAccount.get()));
+	if (pwszAccount)
+		wstrAccount_ = allocWString(pwszAccount);
+	else
+		wstrAccount_.reset(0);
+	pAccount_ = pAccount;
+}
+
+const WCHAR* qm::ColorSet::getFolder() const
+{
+	return wstrFolder_.get();
+}
+
+void qm::ColorSet::setFolder(const WCHAR* pwszFolder,
+							 std::auto_ptr<RegexPattern> pFolder)
+{
+	assert((pwszFolder && pFolder.get()) || (!pwszFolder && !pFolder.get()));
+	if (pwszFolder)
+		wstrFolder_ = allocWString(pwszFolder);
+	else
+		wstrFolder_.reset(0);
+	pFolder_ = pFolder;
+}
+
+const ColorSet::ColorList& qm::ColorSet::getColors() const
+{
+	return listColor_;
+}
+
+void qm::ColorSet::setColors(ColorList& listColor)
+{
+	clear();
+	listColor_.swap(listColor);
 }
 
 bool qm::ColorSet::match(Folder* pFolder) const
 {
 	assert(pFolder);
 	
-	if (pAccountName_.get() &&
-		!pAccountName_->match(pFolder->getAccount()->getName()))
+	if (pAccount_.get() && !pAccount_->match(pFolder->getAccount()->getName()))
 		return false;
 	
-	if (pFolderName_.get()) {
+	if (pFolder_.get()) {
 		wstring_ptr wstrFullName(pFolder->getFullName());
-		if (!pFolderName_->match(wstrFullName.get()))
+		if (!pFolder_->match(wstrFullName.get()))
 			return false;
 	}
 	
@@ -116,7 +232,7 @@ COLORREF qm::ColorSet::getColor(MacroContext* pContext) const
 {
 	assert(pContext);
 	
-	for (EntryList::const_iterator it = listEntry_.begin(); it != listEntry_.end(); ++it) {
+	for (ColorList::const_iterator it = listColor_.begin(); it != listColor_.end(); ++it) {
 		const ColorEntry* pEntry = *it;
 		if (pEntry->match(pContext))
 			return pEntry->getColor();
@@ -127,8 +243,14 @@ COLORREF qm::ColorSet::getColor(MacroContext* pContext) const
 
 void qm::ColorSet::addEntry(std::auto_ptr<ColorEntry> pEntry)
 {
-	listEntry_.push_back(pEntry.get());
+	listColor_.push_back(pEntry.get());
 	pEntry.release();
+}
+
+void qm::ColorSet::clear()
+{
+	std::for_each(listColor_.begin(), listColor_.end(), deleter<ColorEntry>());
+	listColor_.clear();
 }
 
 
@@ -138,15 +260,37 @@ void qm::ColorSet::addEntry(std::auto_ptr<ColorEntry> pEntry)
  *
  */
 
-qm::ColorEntry::ColorEntry(std::auto_ptr<Macro> pMacro,
+qm::ColorEntry::ColorEntry() :
+	cr_(RGB(0, 0, 0))
+{
+}
+
+qm::ColorEntry::ColorEntry(std::auto_ptr<Macro> pCondition,
 						   COLORREF cr) :
-	pMacro_(pMacro),
+	pCondition_(pCondition),
 	cr_(cr)
 {
 }
 
+qm::ColorEntry::ColorEntry(const ColorEntry& color)
+{
+	wstring_ptr wstrCondition(color.pCondition_->getString());
+	pCondition_ = MacroParser(MacroParser::TYPE_COLOR).parse(wstrCondition.get());
+	cr_ = color.cr_;
+}
+
 qm::ColorEntry::~ColorEntry()
 {
+}
+
+const Macro* qm::ColorEntry::getCondition() const
+{
+	return pCondition_.get();
+}
+
+void qm::ColorEntry::setCondition(std::auto_ptr<Macro> pCondition)
+{
+	pCondition_ = pCondition;
 }
 
 bool qm::ColorEntry::match(MacroContext* pContext) const
@@ -154,13 +298,18 @@ bool qm::ColorEntry::match(MacroContext* pContext) const
 	assert(pContext);
 	assert(pContext->getMessageHolder());
 	
-	MacroValuePtr pValue(pMacro_->value(pContext));
+	MacroValuePtr pValue(pCondition_->value(pContext));
 	return pValue.get() && pValue->boolean();
 }
 
 COLORREF qm::ColorEntry::getColor() const
 {
 	return cr_;
+}
+
+void qm::ColorEntry::setColor(COLORREF cr)
+{
+	cr_ = cr;
 }
 
 
@@ -214,21 +363,22 @@ bool qm::ColorContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		RegexCompiler compiler;
 		
-		std::auto_ptr<RegexPattern> pAccountName;
+		std::auto_ptr<RegexPattern> pAccount;
 		if (pwszAccount) {
-			pAccountName = compiler.compile(pwszAccount);
-			if (!pAccountName.get())
+			pAccount = compiler.compile(pwszAccount);
+			if (!pAccount.get())
 				return false;
 		}
 		
-		std::auto_ptr<RegexPattern> pFolderName;
+		std::auto_ptr<RegexPattern> pFolder;
 		if (pwszFolder) {
-			pFolderName = compiler.compile(pwszFolder);
-			if (!pFolderName.get())
+			pFolder = compiler.compile(pwszFolder);
+			if (!pFolder.get())
 				return false;
 		}
 		
-		std::auto_ptr<ColorSet> pColorSet(new ColorSet(pAccountName, pFolderName));
+		std::auto_ptr<ColorSet> pColorSet(new ColorSet(
+			pwszAccount, pAccount, pwszFolder, pFolder));
 		pColorSet_ = pColorSet.get();
 		pManager_->addColorSet(pColorSet);
 		
@@ -249,9 +399,9 @@ bool qm::ColorContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (!pwszMatch)
 			return false;
 		
-		assert(!pMacro_.get());
-		pMacro_ = parser_.parse(pwszMatch);
-		if (!pMacro_.get())
+		assert(!pCondition_.get());
+		pCondition_ = parser_.parse(pwszMatch);
+		if (!pCondition_.get())
 			return false;
 		
 		state_ = STATE_COLOR;
@@ -282,8 +432,8 @@ bool qm::ColorContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		Color color(buffer_.getCharArray());
 		if (color.getColor() == 0xffffffff)
 			return false;
-		std::auto_ptr<ColorEntry> pEntry(new ColorEntry(pMacro_, color.getColor()));
-		pMacro_.reset(0);
+		std::auto_ptr<ColorEntry> pEntry(new ColorEntry(pCondition_, color.getColor()));
+		pCondition_.reset(0);
 		buffer_.remove();
 		
 		assert(pColorSet_);
@@ -312,6 +462,87 @@ bool qm::ColorContentHandler::characters(const WCHAR* pwsz,
 				return false;
 		}
 	}
+	
+	return true;
+}
+
+
+/****************************************************************************
+ *
+ * ColorWriter
+ *
+ */
+
+qm::ColorWriter::ColorWriter(Writer* pWriter) :
+	handler_(pWriter)
+{
+}
+
+qm::ColorWriter::~ColorWriter()
+{
+}
+
+bool qm::ColorWriter::write(const ColorManager* pManager)
+{
+	if (!handler_.startDocument())
+		return false;
+	if (!handler_.startElement(0, 0, L"colors", DefaultAttributes()))
+		return false;
+	
+	const ColorManager::ColorSetList& listColorSet =
+		const_cast<ColorManager*>(pManager)->getColorSets();
+	for (ColorManager::ColorSetList::const_iterator it = listColorSet.begin(); it != listColorSet.end(); ++it) {
+		const ColorSet* pColorSet = *it;
+		if (!write(pColorSet))
+			return false;
+	}
+	
+	if (!handler_.endElement(0, 0, L"colors"))
+		return false;
+	if (!handler_.endDocument())
+		return false;
+	
+	return true;
+}
+
+bool qm::ColorWriter::write(const ColorSet* pColorSet)
+{
+	const WCHAR* pwszAccount = pColorSet->getAccount();
+	const WCHAR* pwszFolder = pColorSet->getFolder();
+	const SimpleAttributes::Item items[] = {
+		{ L"account",	pwszAccount,	pwszAccount == 0	},
+		{ L"folder",	pwszFolder,		pwszFolder == 0		}
+	};
+	SimpleAttributes attrs(items, countof(items));
+	if (!handler_.startElement(0, 0, L"colorSet", attrs))
+		return false;
+	
+	const ColorSet::ColorList& listColor = pColorSet->getColors();
+	for (ColorSet::ColorList::const_iterator it = listColor.begin(); it != listColor.end(); ++it) {
+		const ColorEntry* pColor = *it;
+		if (!write(pColor))
+			return false;
+	}
+	
+	if (!handler_.endElement(0, 0, L"colorSet"))
+		return false;
+	
+	return true;
+}
+
+bool qm::ColorWriter::write(const ColorEntry* pColor)
+{
+	wstring_ptr wstrCondition(pColor->getCondition()->getString());
+	SimpleAttributes attrs(L"match", wstrCondition.get());
+	if (!handler_.startElement(0, 0, L"color", attrs))
+		return false;
+	
+	wstring_ptr wstrColor(Color(pColor->getColor()).getString());
+	if (!handler_.characters(wstrColor.get(), 0, wcslen(wstrColor.get())))
+		return false;
+	
+	if (!handler_.endElement(0, 0, L"color"))
+		return false;
 	
 	return true;
 }

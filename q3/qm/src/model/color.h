@@ -40,24 +40,28 @@ class MacroParser;
 class ColorManager
 {
 public:
+	typedef std::vector<ColorSet*> ColorSetList;
+
+public:
 	ColorManager();
 	~ColorManager();
 
 public:
+	const ColorSetList& getColorSets();
+	void setColorSets(ColorSetList& listColorSet);
 	const ColorSet* getColorSet(Folder* pFolder) const;
+	bool save() const;
 
 public:
 	void addColorSet(std::auto_ptr<ColorSet> pSet);
 
 private:
 	bool load();
+	void clear();
 
 private:
 	ColorManager(const ColorManager&);
 	ColorManager& operator=(const ColorManager&);
-
-private:
-	typedef std::vector<ColorSet*> ColorSetList;
 
 private:
 	ColorSetList listColorSet_;
@@ -73,11 +77,26 @@ private:
 class ColorSet
 {
 public:
-	ColorSet(std::auto_ptr<qs::RegexPattern> pAccountName,
-			 std::auto_ptr<qs::RegexPattern> pFolderName);
+	typedef std::vector<ColorEntry*> ColorList;
+
+public:
+	ColorSet();
+	ColorSet(const WCHAR* pwszAccount,
+			 std::auto_ptr<qs::RegexPattern> pAccount,
+			 const WCHAR* pwszFolder,
+			 std::auto_ptr<qs::RegexPattern> pFolder);
+	ColorSet(const ColorSet& colorset);
 	~ColorSet();
 
 public:
+	const WCHAR* getAccount() const;
+	void setAccount(const WCHAR* pwszAccount,
+					std::auto_ptr<qs::RegexPattern> pAccount);
+	const WCHAR* getFolder() const;
+	void setFolder(const WCHAR* pwszFolder,
+				   std::auto_ptr<qs::RegexPattern> pFolder);
+	const ColorList& getColors() const;
+	void setColors(ColorList& listColor);
 	bool match(Folder* pFolder) const;
 	COLORREF getColor(MacroContext* pContext) const;
 
@@ -85,16 +104,17 @@ public:
 	void addEntry(std::auto_ptr<ColorEntry> pEntry);
 
 private:
-	ColorSet(const ColorSet&);
+	void clear();
+
+private:
 	ColorSet& operator=(const ColorSet&);
 
 private:
-	typedef std::vector<ColorEntry*> EntryList;
-
-private:
-	std::auto_ptr<qs::RegexPattern> pAccountName_;
-	std::auto_ptr<qs::RegexPattern> pFolderName_;
-	EntryList listEntry_;
+	qs::wstring_ptr wstrAccount_;
+	std::auto_ptr<qs::RegexPattern> pAccount_;
+	qs::wstring_ptr wstrFolder_;
+	std::auto_ptr<qs::RegexPattern> pFolder_;
+	ColorList listColor_;
 };
 
 
@@ -107,20 +127,24 @@ private:
 class ColorEntry
 {
 public:
-	ColorEntry(std::auto_ptr<Macro> pMacro,
+	ColorEntry();
+	ColorEntry(std::auto_ptr<Macro> pCondition,
 			   COLORREF cr);
+	ColorEntry(const ColorEntry& color);
 	~ColorEntry();
 
 public:
+	const Macro* getCondition() const;
+	void setCondition(std::auto_ptr<Macro> pCondition);
 	bool match(MacroContext* pContext) const;
 	COLORREF getColor() const;
+	void setColor(COLORREF cr);
 
 private:
-	ColorEntry(const ColorEntry&);
 	ColorEntry& operator=(const ColorEntry&);
 
 private:
-	std::auto_ptr<Macro> pMacro_;
+	std::auto_ptr<Macro> pCondition_;
 	COLORREF cr_;
 };
 
@@ -165,9 +189,37 @@ private:
 	ColorManager* pManager_;
 	State state_;
 	ColorSet* pColorSet_;
-	std::auto_ptr<Macro> pMacro_;
+	std::auto_ptr<Macro> pCondition_;
 	qs::StringBuffer<qs::WSTRING> buffer_;
 	MacroParser parser_;
+};
+
+
+/****************************************************************************
+ *
+ * ColorWriter
+ *
+ */
+
+class ColorWriter
+{
+public:
+	explicit ColorWriter(qs::Writer* pWriter);
+	~ColorWriter();
+
+public:
+	bool write(const ColorManager* pManager);
+
+private:
+	bool write(const ColorSet* pColorSet);
+	bool write(const ColorEntry* pColor);
+
+private:
+	ColorWriter(const ColorWriter&);
+	ColorWriter& operator=(const ColorWriter&);
+
+private:
+	qs::OutputHandler handler_;
 };
 
 }

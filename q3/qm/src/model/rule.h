@@ -28,10 +28,11 @@ class RuleManager;
 class RuleCallback;
 class RuleSet;
 class Rule;
-	class NullRule;
-	class CopyRule;
-	class DeleteRule;
-	class ApplyRule;
+class RuleAction;
+	class NullRuleAction;
+	class CopyRuleAction;
+	class DeleteRuleAction;
+	class ApplyRuleAction;
 class RuleContext;
 class RuleContentHandler;
 
@@ -52,10 +53,16 @@ class NormalFolder;
 class RuleManager
 {
 public:
+	typedef std::vector<RuleSet*> RuleSetList;
+
+public:
 	RuleManager();
 	~RuleManager();
 
 public:
+	const RuleSetList& getRuleSets();
+	const RuleSetList& getRuleSets(bool bReload);
+	void setRuleSets(RuleSetList& listRuleSet);
 	bool apply(Folder* pFolder,
 			   const MessageHolderList* pList,
 			   Document* pDocument,
@@ -63,6 +70,7 @@ public:
 			   qs::Profile* pProfile,
 			   unsigned int nSecurityMode,
 			   RuleCallback* pCallback);
+	bool save() const;
 
 public:
 	void addRuleSet(std::auto_ptr<RuleSet> pRuleSet);
@@ -75,9 +83,6 @@ private:
 private:
 	RuleManager(const RuleManager&);
 	RuleManager& operator=(const RuleManager&);
-
-private:
-	typedef std::vector<RuleSet*> RuleSetList;
 
 private:
 	FILETIME ft_;
@@ -115,12 +120,27 @@ public:
 class RuleSet
 {
 public:
-	RuleSet(std::auto_ptr<qs::RegexPattern> pAccountName,
-			std::auto_ptr<qs::RegexPattern> pFolderName);
+	typedef std::vector<Rule*> RuleList;
+
+public:
+	RuleSet();
+	RuleSet(const WCHAR* pwszAccount,
+			std::auto_ptr<qs::RegexPattern> pAccount,
+			const WCHAR* pwszFolder,
+			std::auto_ptr<qs::RegexPattern> pFolder);
+	RuleSet(const RuleSet& ruleset);
 	~RuleSet();
 
 public:
+	const WCHAR* getAccount() const;
+	void setAccount(const WCHAR* pwszAccount,
+					std::auto_ptr<qs::RegexPattern> pAccount);
+	const WCHAR* getFolder() const;
+	void setFolder(const WCHAR* pwszFolder,
+				   std::auto_ptr<qs::RegexPattern> pFolder);
 	bool matchName(const Folder* pFolder) const;
+	const RuleList& getRules() const;
+	void setRules(RuleList& listRule);
 	size_t getCount() const;
 	const Rule* getRule(size_t nIndex) const;
 
@@ -128,15 +148,16 @@ public:
 	void addRule(std::auto_ptr<Rule> pRule);
 
 private:
-	RuleSet(const RuleSet&);
+	void clear();
+
+private:
 	RuleSet& operator=(const RuleSet&);
 
 private:
-	typedef std::vector<Rule*> RuleList;
-
-private:
-	std::auto_ptr<qs::RegexPattern> pAccountName_;
-	std::auto_ptr<qs::RegexPattern> pFolderName_;
+	qs::wstring_ptr wstrAccount_;
+	std::auto_ptr<qs::RegexPattern> pAccount_;
+	qs::wstring_ptr wstrFolder_;
+	std::auto_ptr<qs::RegexPattern> pFolder_;
 	RuleList listRule_;
 };
 
@@ -150,74 +171,99 @@ private:
 class Rule
 {
 public:
-	explicit Rule(std::auto_ptr<Macro> pMacro);
+	Rule();
+	Rule(std::auto_ptr<Macro> pCondition,
+		 std::auto_ptr<RuleAction> pAction);
+	Rule(const Rule& rule);
 	virtual ~Rule();
 
 public:
+	const Macro* getCondition() const;
+	void setCondition(std::auto_ptr<Macro> pCondition);
+	RuleAction* getAction() const;
+	void setAction(std::auto_ptr<RuleAction> pAction);
 	bool match(MacroContext* pContext) const;
-
-public:
-	virtual bool apply(const RuleContext& context) const = 0;
+	bool apply(const RuleContext& context) const;
 
 private:
-	Rule(const Rule&);
 	Rule& operator=(const Rule&);
 
 private:
-	std::auto_ptr<Macro> pMacro_;
+	std::auto_ptr<Macro> pCondition_;
+	std::auto_ptr<RuleAction> pAction_;
 };
 
 
 /****************************************************************************
  *
- * NullRule
+ * RuleAction
  *
  */
 
-class NullRule : public Rule
+class RuleAction
 {
 public:
-	explicit NullRule(std::auto_ptr<Macro> pMacro);
-	virtual ~NullRule();
+	enum Type {
+		TYPE_MOVE,
+		TYPE_COPY,
+		TYPE_DELETE,
+		TYPE_APPLY
+	};
 
 public:
-	virtual bool apply(const RuleContext& context) const;
+	virtual ~RuleAction();
+
+public:
+	virtual Type getType() const = 0;
+	virtual bool apply(const RuleContext& context) const = 0;
+	virtual std::auto_ptr<RuleAction> clone() const = 0;
+};
+
+
+/****************************************************************************
+ *
+ * CopyRuleAction
+ *
+ */
+
+class CopyRuleAction : public RuleAction
+{
+public:
+	typedef std::vector<std::pair<qs::WSTRING, qs::WSTRING> > ArgumentList;
+
+public:
+	CopyRuleAction(const WCHAR* pwszAccount,
+				   const WCHAR* pwszFolder,
+				   bool bMove);
 
 private:
-	NullRule(const NullRule&);
-	NullRule& operator=(const NullRule&);
-};
-
-
-/****************************************************************************
- *
- * CopyRule
- *
- */
-
-class CopyRule : public Rule
-{
-public:
-	CopyRule(std::auto_ptr<Macro> pMacro,
-			 const WCHAR* pwszAccount,
-			 const WCHAR* pwszFolder,
-			 bool bMove);
-	virtual ~CopyRule();
+	CopyRuleAction(const CopyRuleAction& action);
 
 public:
+	virtual ~CopyRuleAction();
+
+public:
+	const WCHAR* getAccount() const;
+	const WCHAR* getFolder() const;
+	const WCHAR* getTemplate() const;
+	const ArgumentList& getArguments() const;
+
+public:
+	virtual Type getType() const;
 	virtual bool apply(const RuleContext& context) const;
+	virtual std::auto_ptr<RuleAction> clone() const;
 
 public:
 	void setTemplate(const WCHAR* pwszName);
+	void setTemplateArguments(ArgumentList& listArgument);
 	void addTemplateArgument(qs::wstring_ptr wstrName,
 							 qs::wstring_ptr wstrValue);
 
 private:
-	CopyRule(const CopyRule&);
-	CopyRule& operator=(const CopyRule&);
+	void clearTemplateArguments();
 
 private:
-	typedef std::vector<std::pair<qs::WSTRING, qs::WSTRING> > ArgumentList;
+	CopyRuleAction& operator=(const CopyRuleAction&);
 
 private:
 	qs::wstring_ptr wstrAccount_;
@@ -230,23 +276,31 @@ private:
 
 /****************************************************************************
  *
- * DeleteRule
+ * DeleteRuleAction
  *
  */
 
-class DeleteRule : public Rule
+class DeleteRuleAction : public RuleAction
 {
 public:
-	DeleteRule(std::auto_ptr<Macro> pMacro,
-			   bool bDirect);
-	virtual ~DeleteRule();
-
-public:
-	virtual bool apply(const RuleContext& context) const;
+	explicit DeleteRuleAction(bool bDirect);
 
 private:
-	DeleteRule(const DeleteRule&);
-	DeleteRule& operator=(const DeleteRule&);
+	DeleteRuleAction(const DeleteRuleAction& action);
+
+public:
+	virtual ~DeleteRuleAction();
+
+public:
+	bool isDirect() const;
+
+public:
+	virtual Type getType() const;
+	virtual bool apply(const RuleContext& context) const;
+	virtual std::auto_ptr<RuleAction> clone() const;
+
+private:
+	DeleteRuleAction& operator=(const DeleteRuleAction&);
 
 private:
 	bool bDirect_;
@@ -255,26 +309,34 @@ private:
 
 /****************************************************************************
  *
- * ApplyRule
+ * ApplyRuleAction
  *
  */
 
-class ApplyRule : public Rule
+class ApplyRuleAction : public RuleAction
 {
 public:
-	ApplyRule(std::auto_ptr<Macro> pMacro,
-			  std::auto_ptr<Macro> pMacroApply);
-	virtual ~ApplyRule();
+	explicit ApplyRuleAction(std::auto_ptr<Macro> pMacro);
+
+private:
+	ApplyRuleAction(const ApplyRuleAction& action);
 
 public:
+	virtual ~ApplyRuleAction();
+
+public:
+	const Macro* getMacro() const;
+
+public:
+	virtual Type getType() const;
 	virtual bool apply(const RuleContext& context) const;
+	virtual std::auto_ptr<RuleAction> clone() const;
 
 private:
-	ApplyRule(const ApplyRule&);
-	ApplyRule& operator=(const ApplyRule&);
+	ApplyRuleAction& operator=(const ApplyRuleAction&);
 
 private:
-	std::auto_ptr<Macro> pMacroApply_;
+	std::auto_ptr<Macro> pMacro_;
 };
 
 
@@ -368,11 +430,42 @@ private:
 	RuleManager* pManager_;
 	State state_;
 	RuleSet* pCurrentRuleSet_;
-	CopyRule* pCurrentCopyRule_;
+	CopyRuleAction* pCurrentCopyRuleAction_;
 	qs::wstring_ptr wstrTemplateArgumentName_;
-	std::auto_ptr<Macro> pMacro_;
+	std::auto_ptr<Macro> pCondition_;
 	MacroParser parser_;
 	qs::StringBuffer<qs::WSTRING> buffer_;
+};
+
+
+/****************************************************************************
+ *
+ * RuleWriter
+ *
+ */
+
+class RuleWriter
+{
+public:
+	explicit RuleWriter(qs::Writer* pWriter);
+	~RuleWriter();
+
+public:
+	bool write(const RuleManager* pManager);
+
+private:
+	bool write(const RuleSet* pRuleSet);
+	bool write(const Rule* pRule);
+	bool write(const CopyRuleAction* pAction);
+	bool write(const DeleteRuleAction* pAction);
+	bool write(const ApplyRuleAction* pAction);
+
+private:
+	RuleWriter(const RuleWriter&);
+	RuleWriter& operator=(const RuleWriter&);
+
+private:
+	qs::OutputHandler handler_;
 };
 
 }

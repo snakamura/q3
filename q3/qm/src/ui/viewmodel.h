@@ -159,6 +159,7 @@ public:
 	virtual void itemAttentionPaid(const ViewModelEvent& event) = 0;
 	virtual void updated(const ViewModelEvent& event) = 0;
 	virtual void sorted(const ViewModelEvent& event) = 0;
+	virtual void colorChanged(const ViewModelEvent& event) = 0;
 	virtual void columnChanged(const ViewModelEvent& event) = 0;
 	virtual void destroyed(const ViewModelEvent& event) = 0;
 };
@@ -193,6 +194,7 @@ public:
 				  unsigned int nMask);
 	COLORREF getColor() const;
 	void setColor(COLORREF cr);
+	void invalidateColor();
 	unsigned int getMessageFlags() const;
 	void setMessageFlags(unsigned int nFlags);
 	unsigned int getLevel() const;
@@ -332,6 +334,7 @@ public:
 	
 	void payAttention(unsigned int n);
 	
+	void invalidateColors(const ColorManager* pColorManager);
 	bool save() const;
 	
 	void addViewModelHandler(ViewModelHandler* pHandler);
@@ -384,6 +387,7 @@ private:
 	void fireItemAttentionPaid(unsigned int nItem) const;
 	void fireUpdated() const;
 	void fireSorted() const;
+	void fireColorChanged() const;
 	void fireColumnChanged() const;
 	void fireDestroyed() const;
 	void fireEvent(const ViewModelEvent& event,
@@ -465,6 +469,7 @@ public:
 	virtual void itemAttentionPaid(const ViewModelEvent& event);
 	virtual void updated(const ViewModelEvent& event);
 	virtual void sorted(const ViewModelEvent& event);
+	virtual void colorChanged(const ViewModelEvent& event);
 	virtual void columnChanged(const ViewModelEvent& event);
 	virtual void destroyed(const ViewModelEvent& event);
 };
@@ -555,6 +560,7 @@ public:
 	~ViewModelManager();
 
 public:
+	ColorManager* getColorManager() const;
 	FilterManager* getFilterManager() const;
 	
 	Account* getCurrentAccount() const;
@@ -562,6 +568,7 @@ public:
 	void setCurrentFolder(Folder* pFolder);
 	ViewModel* getCurrentViewModel() const;
 	ViewModel* getViewModel(Folder* pFolder);
+	void invalidateColors();
 	
 	bool save() const;
 	

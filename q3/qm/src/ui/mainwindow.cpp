@@ -319,14 +319,25 @@ void qm::MainWindowImpl::initActions()
 		true,
 		pProfile_,
 		pThis_->getHandle());
+	ADD_ACTION4(ConfigColorsAction,
+		IDM_CONFIG_COLORS,
+		pViewModelManager_->getColorManager(),
+		pViewModelManager_.get(),
+		pDocument_,
+		pThis_->getHandle());
 	ADD_ACTION4(ConfigGoRoundAction,
 		IDM_CONFIG_GOROUND,
 		pGoRound_,
 		pDocument_,
 		pSyncManager_->getSyncFilterManager(),
 		pThis_->getHandle());
-	ADD_ACTION3(ConfigSignatureAction,
-		IDM_CONFIG_SIGNATURE,
+	ADD_ACTION3(ConfigRulesAction,
+		IDM_CONFIG_RULES,
+		pDocument_->getRuleManager(),
+		pDocument_,
+		pThis_->getHandle());
+	ADD_ACTION3(ConfigSignaturesAction,
+		IDM_CONFIG_SIGNATURES,
 		pDocument_->getSignatureManager(),
 		pDocument_,
 		pThis_->getHandle());

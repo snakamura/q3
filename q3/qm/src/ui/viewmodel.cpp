@@ -811,6 +811,18 @@ void qm::ViewModel::payAttention(unsigned int n)
 	fireItemAttentionPaid(n);
 }
 
+void qm::ViewModel::invalidateColors(const ColorManager* pColorManager)
+{
+	Lock<ViewModel> lock(*this);
+	
+	pColorSet_ = pColorManager->getColorSet(pFolder_);
+	
+	std::for_each(listItem_.begin(), listItem_.end(),
+		std::mem_fun(&ViewModelItem::invalidateColor));
+	
+	fireColorChanged();
+}
+
 bool qm::ViewModel::save() const
 {
 	pDataItem_->setSort(nSort_);
@@ -1305,6 +1317,11 @@ void qm::ViewModel::fireSorted() const
 	fireEvent(ViewModelEvent(this), &ViewModelHandler::sorted);
 }
 
+void qm::ViewModel::fireColorChanged() const
+{
+	fireEvent(ViewModelEvent(this), &ViewModelHandler::colorChanged);
+}
+
 void qm::ViewModel::fireColumnChanged() const
 {
 	fireEvent(ViewModelEvent(this), &ViewModelHandler::columnChanged);
@@ -1365,6 +1382,10 @@ void qm::DefaultViewModelHandler::updated(const ViewModelEvent& event)
 }
 
 void qm::DefaultViewModelHandler::sorted(const ViewModelEvent& event)
+{
+}
+
+void qm::DefaultViewModelHandler::colorChanged(const ViewModelEvent& event)
 {
 }
 
@@ -1455,6 +1476,11 @@ qm::ViewModelManager::~ViewModelManager()
 			std::select2nd<ViewDataMap::value_type>()));
 }
 
+ColorManager* qm::ViewModelManager::getColorManager() const
+{
+	return pColorManager_.get();
+}
+
 FilterManager* qm::ViewModelManager::getFilterManager() const
 {
 	return pFilterManager_.get();
@@ -1501,6 +1527,16 @@ ViewModel* qm::ViewModelManager::getViewModel(Folder* pFolder)
 	listViewModel_.push_back(pViewModel.get());
 	
 	return pViewModel.release();
+}
+
+void qm::ViewModelManager::invalidateColors()
+{
+//	std::for_each(listViewModel_.begin(), listViewModel_.end(),
+//		std::bind2nd(
+//			std::mem_fun(&ViewModel::invalidateColors),
+//			pColorManager_.get()));
+	for (ViewModelList::const_iterator it = listViewModel_.begin(); it != listViewModel_.end(); ++it)
+		(*it)->invalidateColors(pColorManager_.get());
 }
 
 bool qm::ViewModelManager::save() const

@@ -130,7 +130,9 @@
 			<menuitem text="&amp;Options..." action="ToolOptions"/>
 			<separator/>
 			<popupmenu text="Conf&amp;ig">
-				<menuitem text="&amp;Signature..." action="ConfigSignature"/>
+				<menuitem text="&amp;Rules..." action="ConfigRules"/>
+				<menuitem text="&amp;Colors..." action="ConfigColors"/>
+				<menuitem text="&amp;Signatures..." action="ConfigSignatures"/>
 			</popupmenu>
 		</popupmenu>
 	</menubar>

@@ -29,8 +29,10 @@ namespace qm {
 struct ActionParam;
 class AttachmentOpenAction;
 class AttachmentSaveAction;
+class ConfigColorsAction;
 class ConfigGoRoundAction;
-class ConfigSignatureAction;
+class ConfigRulesAction;
+class ConfigSignaturesAction;
 class ConfigTextsAction;
 class ConfigViewsAction;
 class DispatchAction;
@@ -121,6 +123,7 @@ class ActionUtil;
 
 class AttachmentMenu;
 class AttachmentSelectionModel;
+class ColorManager;
 class Document;
 class EditFrameWindow;
 class EditFrameWindowManager;
@@ -252,6 +255,36 @@ private:
 
 /****************************************************************************
  *
+ * ConfigColorsAction
+ *
+ */
+
+class ConfigColorsAction : public qs::AbstractAction
+{
+public:
+	ConfigColorsAction(ColorManager* pColorManager,
+					   ViewModelManager* pViewModelManager,
+					   Document* pDocument,
+					   HWND hwnd);
+	virtual ~ConfigColorsAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	ConfigColorsAction(const ConfigColorsAction&);
+	ConfigColorsAction& operator=(const ConfigColorsAction&);
+
+private:
+	ColorManager* pColorManager_;
+	ViewModelManager* pViewModelManager_;
+	Document* pDocument_;
+	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
  * ConfigGoRoundAction
  *
  */
@@ -282,24 +315,52 @@ private:
 
 /****************************************************************************
  *
- * ConfigSignatureAction
+ * ConfigRulesAction
  *
  */
 
-class ConfigSignatureAction : public qs::AbstractAction
+class ConfigRulesAction : public qs::AbstractAction
 {
 public:
-	ConfigSignatureAction(SignatureManager* pSignatureManager,
-						  Document* pDocument,
-						  HWND hwnd);
-	virtual ~ConfigSignatureAction();
+	ConfigRulesAction(RuleManager* pRuleManager,
+					  Document* pDocument,
+					  HWND hwnd);
+	virtual ~ConfigRulesAction();
 
 public:
 	virtual void invoke(const qs::ActionEvent& event);
 
 private:
-	ConfigSignatureAction(const ConfigSignatureAction&);
-	ConfigSignatureAction& operator=(const ConfigSignatureAction&);
+	ConfigRulesAction(const ConfigRulesAction&);
+	ConfigRulesAction& operator=(const ConfigRulesAction&);
+
+private:
+	RuleManager* pRuleManager_;
+	Document* pDocument_;
+	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * ConfigSignaturesAction
+ *
+ */
+
+class ConfigSignaturesAction : public qs::AbstractAction
+{
+public:
+	ConfigSignaturesAction(SignatureManager* pSignatureManager,
+						   Document* pDocument,
+						   HWND hwnd);
+	virtual ~ConfigSignaturesAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	ConfigSignaturesAction(const ConfigSignaturesAction&);
+	ConfigSignaturesAction& operator=(const ConfigSignaturesAction&);
 
 private:
 	SignatureManager* pSignatureManager_;

@@ -26,11 +26,12 @@
 
 #include "dialogs.h"
 #include "propertypages.h"
-#include "resourceinc.h"
 #include "uimanager.h"
 #include "uiutil.h"
 #include "../model/addressbook.h"
 #include "../model/templatemanager.h"
+
+#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;
@@ -1429,6 +1430,81 @@ bool qm::AddressBookDialog::CategoryLess::operator()(const AddressBookCategory* 
 
 /****************************************************************************
  *
+ * ArgumentDialog
+ *
+ */
+
+qm::ArgumentDialog::ArgumentDialog(const WCHAR* pwszName,
+								   const WCHAR* pwszValue) :
+	DefaultDialog(IDD_ARGUMENT)
+{
+	if (pwszName)
+		wstrName_ = allocWString(pwszName);
+	if (pwszValue)
+		wstrValue_ = allocWString(pwszValue);
+}
+
+qm::ArgumentDialog::~ArgumentDialog()
+{
+}
+
+const WCHAR* qm::ArgumentDialog::getName() const
+{
+	return wstrName_.get();
+}
+
+const WCHAR* qm::ArgumentDialog::getValue() const
+{
+	return wstrValue_.get();
+}
+
+LRESULT qm::ArgumentDialog::onCommand(WORD nCode,
+									  WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID_CODE(IDC_NAME, EN_CHANGE, onNameChange)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::ArgumentDialog::onInitDialog(HWND hwndFocus,
+										 LPARAM lParam)
+{
+	init(false);
+	
+	if (wstrName_.get())
+		setDlgItemText(IDC_NAME, wstrName_.get());
+	if (wstrValue_.get())
+		setDlgItemText(IDC_VALUE, wstrValue_.get());
+	
+	updateState();
+	
+	return TRUE;
+}
+
+LRESULT qm::ArgumentDialog::onOk()
+{
+	wstrName_ = getDlgItemText(IDC_NAME);
+	wstrValue_ = getDlgItemText(IDC_VALUE);
+	
+	return DefaultDialog::onOk();
+}
+
+LRESULT qm::ArgumentDialog::onNameChange()
+{
+	updateState();
+	return 0;
+}
+
+void qm::ArgumentDialog::updateState()
+{
+	Window(getDlgItem(IDOK)).enableWindow(
+		Window(getDlgItem(IDC_NAME)).getWindowTextLength() != 0);
+}
+
+
+/****************************************************************************
+ *
  * AttachmentDialog
  *
  */
@@ -1586,6 +1662,408 @@ void qm::AttachmentDialog::updateState()
 {
 	Window(getDlgItem(IDC_REMOVE)).enableWindow(
 		ListView_GetSelectedCount(getDlgItem(IDC_ATTACHMENT)) != 0);
+}
+
+
+/****************************************************************************
+ *
+ * ColorDialog
+ *
+ */
+
+qm::ColorDialog::ColorDialog(ColorEntry* pColor,
+							 Document* pDocument) :
+	DefaultDialog(IDD_COLOR),
+	pColor_(pColor)
+{
+}
+
+qm::ColorDialog::~ColorDialog()
+{
+}
+
+LRESULT qm::ColorDialog::onCommand(WORD nCode,
+								   WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_EDIT, onEdit)
+		HANDLE_COMMAND_ID(IDC_CHOOSE, onChoose)
+		HANDLE_COMMAND_ID_CODE(IDC_COLOR, EN_CHANGE, onColorChange)
+		HANDLE_COMMAND_ID_CODE(IDC_CONDITION, EN_CHANGE, onConditionChange)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::ColorDialog::onInitDialog(HWND hwndFocus,
+									  LPARAM lParam)
+{
+	init(false);
+	
+	const Macro* pCondition = pColor_->getCondition();
+	if (pCondition) {
+		wstring_ptr wstrCondition(pCondition->getString());
+		setDlgItemText(IDC_CONDITION, wstrCondition.get());
+	}
+	
+	Color color(pColor_->getColor());
+	wstring_ptr wstrColor(color.getString());
+	setDlgItemText(IDC_COLOR, wstrColor.get());
+	
+	updateState();
+	
+	return TRUE;
+}
+
+LRESULT qm::ColorDialog::onOk()
+{
+	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
+	std::auto_ptr<Macro> pCondition(MacroParser(MacroParser::TYPE_COLOR).parse(wstrCondition.get()));
+	if (!pCondition.get()) {
+		// TODO MSG
+		return 0;
+	}
+	pColor_->setCondition(pCondition);
+	
+	wstring_ptr wstrColor(getDlgItemText(IDC_COLOR));
+	Color color(wstrColor.get());
+	if (color.getColor() == 0xffffffff) {
+		// TODO MSG
+		return 0;
+	}
+	pColor_->setColor(color.getColor());
+	
+	return DefaultDialog::onOk();
+}
+
+LRESULT qm::ColorDialog::onEdit()
+{
+	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
+	ConditionDialog dialog(wstrCondition.get());
+	if (dialog.doModal(getHandle()) == IDOK)
+		setDlgItemText(IDC_CONDITION, dialog.getCondition());
+	return 0;
+}
+
+LRESULT qm::ColorDialog::onChoose()
+{
+	wstring_ptr wstrColor(getDlgItemText(IDC_COLOR));
+	Color color(wstrColor.get());
+	COLORREF cr = color.getColor();
+	if (cr == 0xffffffff)
+		cr = RGB(0, 0, 0);
+	
+	COLORREF crCustom[16];
+	CHOOSECOLOR cc = {
+		sizeof(cc),
+		getHandle(),
+		0,
+		cr,
+		crCustom,
+		CC_ANYCOLOR | CC_RGBINIT,
+		0,
+		0,
+		0
+	};
+	if (::ChooseColor(&cc)) {
+		Color color(cc.rgbResult);
+		wstring_ptr wstrColor(color.getString());
+		setDlgItemText(IDC_COLOR, wstrColor.get());
+	}
+	return 0;
+}
+
+LRESULT qm::ColorDialog::onConditionChange()
+{
+	updateState();
+	return 0;
+}
+
+LRESULT qm::ColorDialog::onColorChange()
+{
+	updateState();
+	return 0;
+}
+
+void qm::ColorDialog::updateState()
+{
+	Window(getDlgItem(IDOK)).enableWindow(
+		Window(getDlgItem(IDC_CONDITION)).getWindowTextLength() != 0 &&
+		Window(getDlgItem(IDC_COLOR)).getWindowTextLength() != 0);
+}
+
+
+/****************************************************************************
+ *
+ * ConditionDialog
+ *
+ */
+
+qm::ConditionDialog::ConditionDialog(const WCHAR* pwszCondition) :
+	DefaultDialog(IDD_CONDITION)
+{
+	wstrCondition_ = allocWString(pwszCondition);
+}
+
+qm::ConditionDialog::~ConditionDialog()
+{
+}
+
+const WCHAR* qm::ConditionDialog::getCondition() const
+{
+	return wstrCondition_.get();
+}
+
+LRESULT qm::ConditionDialog::onCommand(WORD nCode,
+									   WORD nId)
+{
+	// TODO
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::ConditionDialog::onInitDialog(HWND hwndFocus,
+										  LPARAM lParam)
+{
+	init(false);
+	
+	// TODO
+	
+	return TRUE;
+}
+
+LRESULT qm::ConditionDialog::onOk()
+{
+	// TODO
+	return DefaultDialog::onOk();
+}
+
+
+/****************************************************************************
+ *
+ * CopyRuleTemplateDialog
+ *
+ */
+
+qm::CopyRuleTemplateDialog::CopyRuleTemplateDialog(const WCHAR* pwszName,
+												   CopyRuleAction::ArgumentList* pListArgument) :
+	DefaultDialog(IDD_COPYRULETEMPLATE),
+	pListArgument_(pListArgument)
+{
+	if (pwszName)
+		wstrName_ = allocWString(pwszName);
+}
+
+qm::CopyRuleTemplateDialog::~CopyRuleTemplateDialog()
+{
+}
+
+const WCHAR* qm::CopyRuleTemplateDialog::getName() const
+{
+	return wstrName_.get();
+}
+
+LRESULT qm::CopyRuleTemplateDialog::onCommand(WORD nCode,
+											  WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_ADD, onAdd)
+		HANDLE_COMMAND_ID(IDC_EDIT, onEdit)
+		HANDLE_COMMAND_ID(IDC_REMOVE, onRemove)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::CopyRuleTemplateDialog::onDestroy()
+{
+	removeNotifyHandler(this);
+	return DefaultDialog::onDestroy();
+}
+
+LRESULT qm::CopyRuleTemplateDialog::onInitDialog(HWND hwndFocus,
+												 LPARAM lParam)
+{
+	init(false);
+	
+	if (wstrName_.get())
+		setDlgItemText(IDC_NAME, wstrName_.get());
+	
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	HWND hwndList = getDlgItem(IDC_ARGUMENT);
+	
+	ListView_SetExtendedListViewStyle(hwndList, LVS_EX_FULLROWSELECT);
+	
+	struct {
+		UINT nId_;
+		int nWidth_;
+	} columns[] = {
+		{ IDS_NAME,		100	},
+		{ IDS_VALUE,	100	},
+	};
+	for (int n = 0; n < countof(columns); ++n) {
+		wstring_ptr wstrColumn(loadString(hInst, columns[n].nId_));
+		W2T(wstrColumn.get(), ptszColumn);
+		
+		LVCOLUMN column = {
+			LVCF_FMT | LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM,
+			LVCFMT_LEFT,
+			columns[n].nWidth_,
+			const_cast<LPTSTR>(ptszColumn),
+			0,
+			n,
+		};
+		ListView_InsertColumn(hwndList, n, &column);
+	}
+	
+	for (CopyRuleAction::ArgumentList::size_type n = 0; n < pListArgument_->size(); ++n) {
+		W2T((*pListArgument_)[n].first, ptszName);
+		
+		LVITEM item = {
+			LVIF_TEXT,
+			n,
+			0,
+			0,
+			0,
+			const_cast<LPTSTR>(ptszName),
+			0,
+			0,
+			0
+		};
+		int nItem = ListView_InsertItem(hwndList, &item);
+		
+		W2T((*pListArgument_)[n].second, ptszValue);
+		ListView_SetItemText(hwndList, nItem, 1, const_cast<LPTSTR>(ptszValue));
+	}
+	
+	updateState();
+	
+	addNotifyHandler(this);
+	
+	return TRUE;
+}
+
+LRESULT qm::CopyRuleTemplateDialog::onOk()
+{
+	wstring_ptr wstrName(getDlgItemText(IDC_NAME));
+	if (*wstrName.get())
+		wstrName_ = wstrName;
+	else
+		wstrName_.reset(0);
+	
+	HWND hwndList = getDlgItem(IDC_ARGUMENT);
+	CopyRuleAction::ArgumentList listArgument;
+	int nCount = ListView_GetItemCount(hwndList);
+	listArgument.reserve(nCount);
+	for (int n = 0; n < nCount; ++n) {
+		TCHAR tsz[256];
+		ListView_GetItemText(hwndList, n, 0, tsz, countof(tsz) - 1);
+		wstring_ptr wstrName(tcs2wcs(tsz));
+		ListView_GetItemText(hwndList, n, 1, tsz, countof(tsz) - 1);
+		wstring_ptr wstrValue(tcs2wcs(tsz));
+		listArgument.push_back(CopyRuleAction::ArgumentList::value_type(
+			wstrName.release(), wstrValue.release()));
+	}
+	pListArgument_->swap(listArgument);
+	for (CopyRuleAction::ArgumentList::iterator it = listArgument.begin(); it != listArgument.end(); ++it) {
+		freeWString((*it).first);
+		freeWString((*it).second);
+	}
+	
+	return DefaultDialog::onOk();
+}
+
+LRESULT qm::CopyRuleTemplateDialog::onNotify(NMHDR* pnmhdr,
+											 bool* pbHandled)
+{
+	BEGIN_NOTIFY_HANDLER()
+		HANDLE_NOTIFY(LVN_ITEMCHANGED, IDC_ARGUMENT, onArgumentItemChanged);
+	END_NOTIFY_HANDLER()
+	return 1;
+}
+
+LRESULT qm::CopyRuleTemplateDialog::onAdd()
+{
+	ArgumentDialog dialog(0, 0);
+	if (dialog.doModal(getHandle()) == IDOK) {
+		HWND hwndList = getDlgItem(IDC_ARGUMENT);
+		int nCount = ListView_GetItemCount(hwndList);
+		
+		W2T(dialog.getName(), ptszName);
+		LVITEM item = {
+			LVIF_TEXT | LVIF_STATE,
+			nCount,
+			0,
+			LVIS_SELECTED | LVIS_FOCUSED,
+			LVIS_SELECTED | LVIS_FOCUSED,
+			const_cast<LPTSTR>(ptszName),
+			0,
+			0,
+			0
+		};
+		int nItem = ListView_InsertItem(hwndList, &item);
+		
+		W2T(dialog.getValue(), ptszValue);
+		ListView_SetItemText(hwndList, nItem, 1, const_cast<LPTSTR>(ptszValue));
+	}
+	return 0;
+}
+
+LRESULT qm::CopyRuleTemplateDialog::onRemove()
+{
+	HWND hwndList = getDlgItem(IDC_ARGUMENT);
+	int nItem = ListView_GetNextItem(hwndList, -1, LVNI_SELECTED);
+	if (nItem != -1) {
+		ListView_DeleteItem(hwndList, nItem);
+		
+		int nCount = ListView_GetItemCount(hwndList);
+		if (nCount != 0) {
+			if (nItem < nCount) {
+				ListView_SetItemState(hwndList, nItem,
+					LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+			}
+			else {
+				ListView_SetItemState(hwndList, nCount - 1,
+					LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+			}
+		}
+	}
+	return 0;
+}
+
+LRESULT qm::CopyRuleTemplateDialog::onEdit()
+{
+	HWND hwndList = getDlgItem(IDC_ARGUMENT);
+	int nItem = ListView_GetNextItem(hwndList, -1, LVNI_SELECTED);
+	if (nItem != -1) {
+		TCHAR tsz[256];
+		ListView_GetItemText(hwndList, nItem, 0, tsz, countof(tsz) - 1);
+		wstring_ptr wstrName(tcs2wcs(tsz));
+		ListView_GetItemText(hwndList, nItem, 1, tsz, countof(tsz) - 1);
+		wstring_ptr wstrValue(tcs2wcs(tsz));
+		
+		ArgumentDialog dialog(wstrName.get(), wstrValue.get());
+		if (dialog.doModal(getHandle()) == IDOK) {
+			W2T(dialog.getName(), ptszName);
+			ListView_SetItemText(hwndList, nItem, 0, const_cast<LPTSTR>(ptszName));
+			W2T(dialog.getValue(), ptszValue);
+			ListView_SetItemText(hwndList, nItem, 1, const_cast<LPTSTR>(ptszValue));
+		}
+	}
+	return 0;
+}
+
+LRESULT qm::CopyRuleTemplateDialog::onArgumentItemChanged(NMHDR* pnmhdr,
+														  bool* pbHandled)
+{
+	updateState();
+	*pbHandled = true;
+	return 0;
+}
+
+void qm::CopyRuleTemplateDialog::updateState()
+{
+	HWND hwndList = getDlgItem(IDC_ARGUMENT);
+	int nItem = ListView_GetNextItem(hwndList, -1, LVNI_SELECTED);
+	Window(getDlgItem(IDC_EDIT)).enableWindow(nItem != -1);
+	Window(getDlgItem(IDC_REMOVE)).enableWindow(nItem != -1);
 }
 
 
@@ -2715,170 +3193,47 @@ void qm::FixedFormTextDialog::updateState()
 */
 
 qm::FixedFormTextsDialog::FixedFormTextsDialog(FixedFormTextManager* pManager) :
-	DefaultDialog(IDD_FIXEDFORMTEXTS),
+	AbstractListDialog<FixedFormText, FixedFormTextManager::TextList>(IDD_FIXEDFORMTEXTS, IDC_TEXTS),
 	pManager_(pManager)
 {
 	const FixedFormTextManager::TextList& l = pManager->getTexts();
-	listText_.reserve(l.size());
+	FixedFormTextManager::TextList& list = getList();
+	list.reserve(l.size());
 	for (FixedFormTextManager::TextList::const_iterator it = l.begin(); it != l.end(); ++it)
-		listText_.push_back(new FixedFormText(**it));
+		list.push_back(new FixedFormText(**it));
 }
 
 qm::FixedFormTextsDialog::~FixedFormTextsDialog()
 {
-	std::for_each(listText_.begin(), listText_.end(), qs::deleter<FixedFormText>());
-}
-
-LRESULT qm::FixedFormTextsDialog::onCommand(WORD nCode,
-											WORD nId)
-{
-	BEGIN_COMMAND_HANDLER()
-		HANDLE_COMMAND_ID(IDC_ADD, onAdd)
-		HANDLE_COMMAND_ID(IDC_DOWN, onDown)
-		HANDLE_COMMAND_ID(IDC_EDIT, onEdit)
-		HANDLE_COMMAND_ID(IDC_REMOVE, onRemove)
-		HANDLE_COMMAND_ID(IDC_UP, onUp)
-		HANDLE_COMMAND_ID_CODE(IDC_TEXTS, LBN_SELCHANGE, onTextsSelChange)
-	END_COMMAND_HANDLER()
-	return DefaultDialog::onCommand(nCode, nId);
-}
-
-LRESULT qm::FixedFormTextsDialog::onInitDialog(HWND hwndFocus,
-											   LPARAM lParam)
-{
-	init(false);
-	
-	for (FixedFormTextManager::TextList::const_iterator it = listText_.begin(); it != listText_.end(); ++it) {
-		const FixedFormText* pText = *it;
-		W2T(pText->getName(), ptszName);
-		sendDlgItemMessage(IDC_TEXTS, LB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszName));
-	}
-	sendDlgItemMessage(IDC_TEXTS, LB_SETCURSEL, 0);
-	
-	updateState();
-	
-	return TRUE;
 }
 
 LRESULT qm::FixedFormTextsDialog::onOk()
 {
-	pManager_->setTexts(listText_);
+	pManager_->setTexts(getList());
 	if (!pManager_->save()) {
 		// TODO
 	}
-	return DefaultDialog::onOk();
+	return AbstractListDialog<FixedFormText, FixedFormTextManager::TextList>::onOk();
 }
 
-LRESULT qm::FixedFormTextsDialog::onAdd()
+wstring_ptr qm::FixedFormTextsDialog::getLabel(const FixedFormText* p) const
+{
+	return allocWString(p->getName());
+}
+
+std::auto_ptr<FixedFormText> qm::FixedFormTextsDialog::create() const
 {
 	std::auto_ptr<FixedFormText> pText(new FixedFormText());
 	FixedFormTextDialog dialog(pText.get());
-	if (dialog.doModal(getHandle()) == IDOK) {
-		listText_.push_back(pText.get());
-		FixedFormText* p = pText.release();
-		
-		W2T(p->getName(), ptszName);
-		sendDlgItemMessage(IDC_TEXTS, LB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszName));
-	}
-	
-	updateState();
-	
-	return 0;
+	if (dialog.doModal(getHandle()) != IDOK)
+		return std::auto_ptr<FixedFormText>();
+	return pText;
 }
 
-LRESULT qm::FixedFormTextsDialog::onRemove()
+bool qm::FixedFormTextsDialog::edit(FixedFormText* p) const
 {
-	int n = sendDlgItemMessage(IDC_TEXTS, LB_GETCURSEL);
-	if (n == LB_ERR)
-		return 0;
-	
-	delete listText_[n];
-	listText_.erase(listText_.begin() + n);
-	
-	sendDlgItemMessage(IDC_TEXTS, LB_DELETESTRING, n);
-	
-	updateState();
-	
-	return 0;
-}
-
-LRESULT qm::FixedFormTextsDialog::onEdit()
-{
-	int n = sendDlgItemMessage(IDC_TEXTS, LB_GETCURSEL);
-	if (n == LB_ERR)
-		return 0;
-	
-	FixedFormText* pText = listText_[n];
-	FixedFormTextDialog dialog(pText);
-	if (dialog.doModal(getHandle()) == IDOK) {
-		sendDlgItemMessage(IDC_TEXTS, LB_DELETESTRING, n);
-		W2T(pText->getName(), ptszName);
-		sendDlgItemMessage(IDC_TEXTS, LB_INSERTSTRING,
-			n, reinterpret_cast<LPARAM>(ptszName));
-		sendDlgItemMessage(IDC_TEXTS, LB_SETCURSEL, n);
-	}
-	
-	updateState();
-	
-	return 0;
-}
-
-LRESULT qm::FixedFormTextsDialog::onUp()
-{
-	int n = sendDlgItemMessage(IDC_TEXTS, LB_GETCURSEL);
-	if (n == LB_ERR || n == 0)
-		return 0;
-	
-	FixedFormText* pText = listText_[n];
-	std::swap(listText_[n], listText_[n - 1]);
-	
-	sendDlgItemMessage(IDC_TEXTS, LB_DELETESTRING, n);
-	W2T(pText->getName(), ptszName);
-	sendDlgItemMessage(IDC_TEXTS, LB_INSERTSTRING,
-		n - 1, reinterpret_cast<LPARAM>(ptszName));
-	sendDlgItemMessage(IDC_TEXTS, LB_SETCURSEL, n - 1);
-	
-	updateState();
-	
-	return 0;
-}
-
-LRESULT qm::FixedFormTextsDialog::onDown()
-{
-	int n = sendDlgItemMessage(IDC_TEXTS, LB_GETCURSEL);
-	if (n == LB_ERR || n == sendDlgItemMessage(IDC_TEXTS, LB_GETCOUNT) - 1)
-		return 0;
-	
-	FixedFormText* pText = listText_[n];
-	std::swap(listText_[n], listText_[n + 1]);
-	
-	sendDlgItemMessage(IDC_TEXTS, LB_DELETESTRING, n);
-	W2T(pText->getName(), ptszName);
-	sendDlgItemMessage(IDC_TEXTS, LB_INSERTSTRING,
-		n + 1, reinterpret_cast<LPARAM>(ptszName));
-	sendDlgItemMessage(IDC_TEXTS, LB_SETCURSEL, n + 1);
-	
-	updateState();
-	
-	return 0;
-}
-
-LRESULT qm::FixedFormTextsDialog::onTextsSelChange()
-{
-	updateState();
-	return 0;
-}
-
-void qm::FixedFormTextsDialog::updateState()
-{
-	int n = sendDlgItemMessage(IDC_TEXTS, LB_GETCURSEL);
-	Window(getDlgItem(IDC_REMOVE)).enableWindow(n != LB_ERR);
-	Window(getDlgItem(IDC_EDIT)).enableWindow(n != LB_ERR);
-	Window(getDlgItem(IDC_UP)).enableWindow(n != LB_ERR && n != 0);
-	Window(getDlgItem(IDC_DOWN)).enableWindow(n != LB_ERR &&
-		n != sendDlgItemMessage(IDC_TEXTS, LB_GETCOUNT) - 1);
+	FixedFormTextDialog dialog(p);
+	return dialog.doModal(getHandle()) == IDOK;
 }
 
 
@@ -2891,174 +3246,49 @@ void qm::FixedFormTextsDialog::updateState()
 qm::GoRoundDialog::GoRoundDialog(GoRound* pGoRound,
 								 Document* pDocument,
 								 SyncFilterManager* pSyncFilterManager) :
-	DefaultDialog(IDD_GOROUND),
+	AbstractListDialog<GoRoundCourse, GoRound::CourseList>(IDD_GOROUND, IDC_COURSE),
 	pGoRound_(pGoRound),
 	pDocument_(pDocument),
 	pSyncFilterManager_(pSyncFilterManager)
 {
 	const GoRound::CourseList& listCourse = pGoRound_->getCourses();
-	listCourse_.reserve(listCourse.size());
+	GoRound::CourseList& list = getList();
+	list.reserve(listCourse.size());
 	for (GoRound::CourseList::const_iterator it = listCourse.begin(); it != listCourse.end(); ++it)
-		listCourse_.push_back(new GoRoundCourse(**it));
+		list.push_back(new GoRoundCourse(**it));
 }
 
 qm::GoRoundDialog::~GoRoundDialog()
 {
-	std::for_each(listCourse_.begin(), listCourse_.end(), qs::deleter<GoRoundCourse>());
-}
-
-LRESULT qm::GoRoundDialog::onCommand(WORD nCode,
-									 WORD nId)
-{
-	BEGIN_COMMAND_HANDLER()
-		HANDLE_COMMAND_ID(IDC_ADD, onAdd)
-		HANDLE_COMMAND_ID(IDC_DOWN, onDown)
-		HANDLE_COMMAND_ID(IDC_EDIT, onEdit)
-		HANDLE_COMMAND_ID(IDC_REMOVE, onRemove)
-		HANDLE_COMMAND_ID(IDC_UP, onUp)
-		HANDLE_COMMAND_ID_CODE(IDC_COURSE, LBN_SELCHANGE, onCourseSelChange)
-	END_COMMAND_HANDLER()
-	return DefaultDialog::onCommand(nCode, nId);
-}
-
-LRESULT qm::GoRoundDialog::onInitDialog(HWND hwndFocus,
-										LPARAM lParam)
-{
-	init(false);
-	
-	for (GoRound::CourseList::const_iterator it = listCourse_.begin(); it != listCourse_.end(); ++it) {
-		GoRoundCourse* pCourse = *it;
-		
-		W2T(pCourse->getName(), ptszName);
-		sendDlgItemMessage(IDC_COURSE, LB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszName));
-	}
-	sendDlgItemMessage(IDC_COURSE, LB_SETCURSEL, 0);
-	
-	updateState();
-	
-	return TRUE;
 }
 
 LRESULT qm::GoRoundDialog::onOk()
 {
-	pGoRound_->setCourses(listCourse_);
+	pGoRound_->setCourses(getList());
 	if (!pGoRound_->save()) {
 		// TODO MSG
 	}
-	
-	return DefaultDialog::onOk();
+	return AbstractListDialog<GoRoundCourse, GoRound::CourseList>::onOk();
 }
 
-LRESULT qm::GoRoundDialog::onAdd()
+wstring_ptr qm::GoRoundDialog::getLabel(const GoRoundCourse* p) const
+{
+	return allocWString(p->getName());
+}
+
+std::auto_ptr<GoRoundCourse> qm::GoRoundDialog::create() const
 {
 	std::auto_ptr<GoRoundCourse> pCourse(new GoRoundCourse());
 	GoRoundCourseDialog dialog(pCourse.get(), pDocument_, pSyncFilterManager_);
-	if (dialog.doModal(getHandle()) == IDOK) {
-		listCourse_.push_back(pCourse.get());
-		GoRoundCourse* p = pCourse.release();
-		
-		W2T(p->getName(), ptszName);
-		sendDlgItemMessage(IDC_COURSE, LB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszName));
-	}
-	
-	updateState();
-	
-	return 0;
+	if (dialog.doModal(getHandle()) != IDOK)
+		return std::auto_ptr<GoRoundCourse>();
+	return pCourse;
 }
 
-LRESULT qm::GoRoundDialog::onRemove()
+bool qm::GoRoundDialog::edit(GoRoundCourse* p) const
 {
-	int n = sendDlgItemMessage(IDC_COURSE, LB_GETCURSEL);
-	if (n == LB_ERR)
-		return 0;
-	
-	delete listCourse_[n];
-	listCourse_.erase(listCourse_.begin() + n);
-	
-	sendDlgItemMessage(IDC_COURSE, LB_DELETESTRING, n);
-	
-	updateState();
-	
-	return 0;
-}
-
-LRESULT qm::GoRoundDialog::onEdit()
-{
-	int n = sendDlgItemMessage(IDC_COURSE, LB_GETCURSEL);
-	if (n == LB_ERR)
-		return 0;
-	
-	GoRoundCourse* pCourse = listCourse_[n];
-	GoRoundCourseDialog dialog(pCourse, pDocument_, pSyncFilterManager_);
-	if (dialog.doModal(getHandle()) == IDOK) {
-		sendDlgItemMessage(IDC_COURSE, LB_DELETESTRING, n);
-		W2T(pCourse->getName(), ptszName);
-		sendDlgItemMessage(IDC_COURSE, LB_INSERTSTRING,
-			n, reinterpret_cast<LPARAM>(ptszName));
-		sendDlgItemMessage(IDC_COURSE, LB_SETCURSEL, n);
-	}
-	
-	updateState();
-	
-	return 0;
-}
-
-LRESULT qm::GoRoundDialog::onUp()
-{
-	int n = sendDlgItemMessage(IDC_COURSE, LB_GETCURSEL);
-	if (n == LB_ERR || n == 0)
-		return 0;
-	
-	GoRoundCourse* pCourse = listCourse_[n];
-	std::swap(listCourse_[n], listCourse_[n - 1]);
-	
-	sendDlgItemMessage(IDC_COURSE, LB_DELETESTRING, n);
-	W2T(pCourse->getName(), ptszName);
-	sendDlgItemMessage(IDC_COURSE, LB_INSERTSTRING,
-		n - 1, reinterpret_cast<LPARAM>(ptszName));
-	sendDlgItemMessage(IDC_COURSE, LB_SETCURSEL, n - 1);
-	
-	updateState();
-	
-	return 0;
-}
-
-LRESULT qm::GoRoundDialog::onDown()
-{
-	int n = sendDlgItemMessage(IDC_COURSE, LB_GETCURSEL);
-	if (n == LB_ERR || n == sendDlgItemMessage(IDC_COURSE, LB_GETCOUNT) - 1)
-		return 0;
-	
-	GoRoundCourse* pCourse = listCourse_[n];
-	std::swap(listCourse_[n], listCourse_[n + 1]);
-	
-	sendDlgItemMessage(IDC_COURSE, LB_DELETESTRING, n);
-	W2T(pCourse->getName(), ptszName);
-	sendDlgItemMessage(IDC_COURSE, LB_INSERTSTRING,
-		n + 1, reinterpret_cast<LPARAM>(ptszName));
-	sendDlgItemMessage(IDC_COURSE, LB_SETCURSEL, n + 1);
-	
-	updateState();
-	
-	return 0;
-}
-
-LRESULT qm::GoRoundDialog::onCourseSelChange()
-{
-	updateState();
-	return 0;
-}
-
-void qm::GoRoundDialog::updateState()
-{
-	int n = sendDlgItemMessage(IDC_COURSE, LB_GETCURSEL);
-	Window(getDlgItem(IDC_REMOVE)).enableWindow(n != LB_ERR);
-	Window(getDlgItem(IDC_EDIT)).enableWindow(n != LB_ERR);
-	Window(getDlgItem(IDC_UP)).enableWindow(n != LB_ERR && n != 0);
-	Window(getDlgItem(IDC_DOWN)).enableWindow(n != LB_ERR &&
-		n != sendDlgItemMessage(IDC_COURSE, LB_GETCOUNT) - 1);
+	GoRoundCourseDialog dialog(p, pDocument_, pSyncFilterManager_);
+	return dialog.doModal(getHandle()) == IDOK;
 }
 
 
@@ -3071,53 +3301,36 @@ void qm::GoRoundDialog::updateState()
 qm::GoRoundCourseDialog::GoRoundCourseDialog(GoRoundCourse* pCourse,
 											 Document* pDocument,
 											 SyncFilterManager* pSyncFilterManager) :
-	DefaultDialog(IDD_GOROUNDCOURSE),
+	AbstractListDialog<GoRoundEntry, GoRoundCourse::EntryList>(IDD_GOROUNDCOURSE, IDC_ENTRY),
 	pCourse_(pCourse),
 	pDocument_(pDocument),
 	pSyncFilterManager_(pSyncFilterManager)
 {
 	const GoRoundCourse::EntryList& listEntry = pCourse_->getEntries();
-	listEntry_.reserve(listEntry.size());
+	GoRoundCourse::EntryList& list = getList();
+	list.reserve(listEntry.size());
 	for (GoRoundCourse::EntryList::const_iterator it = listEntry.begin(); it != listEntry.end(); ++it)
-		listEntry_.push_back(new GoRoundEntry(**it));
+		list.push_back(new GoRoundEntry(**it));
 }
 
 qm::GoRoundCourseDialog::~GoRoundCourseDialog()
 {
-	std::for_each(listEntry_.begin(), listEntry_.end(), qs::deleter<GoRoundEntry>());
 }
 
 LRESULT qm::GoRoundCourseDialog::onCommand(WORD nCode,
 										   WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
-		HANDLE_COMMAND_ID(IDC_ADD, onAdd)
 		HANDLE_COMMAND_ID(IDC_DIALUP, onDialup)
-		HANDLE_COMMAND_ID(IDC_DOWN, onDown)
-		HANDLE_COMMAND_ID(IDC_EDIT, onEdit)
-		HANDLE_COMMAND_ID(IDC_REMOVE, onRemove)
-		HANDLE_COMMAND_ID(IDC_UP, onUp)
-		HANDLE_COMMAND_ID_CODE(IDC_ENTRY, LBN_SELCHANGE, onEntrySelChange)
 		HANDLE_COMMAND_ID_CODE(IDC_NAME, EN_CHANGE, onNameChange)
 	END_COMMAND_HANDLER()
-	return DefaultDialog::onCommand(nCode, nId);
+	return AbstractListDialog<GoRoundEntry, GoRoundCourse::EntryList>::onCommand(nCode, nId);
 }
 
 LRESULT qm::GoRoundCourseDialog::onInitDialog(HWND hwndFocus,
 											  LPARAM lParam)
 {
-	init(false);
-	
 	setDlgItemText(IDC_NAME, pCourse_->getName());
-	
-	for (GoRoundCourse::EntryList::const_iterator it = listEntry_.begin(); it != listEntry_.end(); ++it) {
-		GoRoundEntry* pEntry = *it;
-		wstring_ptr wstrName(getEntryName(pEntry));
-		W2T(wstrName.get(), ptszName);
-		sendDlgItemMessage(IDC_ENTRY, LB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszName));
-	}
-	sendDlgItemMessage(IDC_ENTRY, LB_SETCURSEL);
 	
 	switch (pCourse_->getType()) {
 	case GoRoundCourse::TYPE_SEQUENTIAL:
@@ -3134,9 +3347,7 @@ LRESULT qm::GoRoundCourseDialog::onInitDialog(HWND hwndFocus,
 	sendDlgItemMessage(IDC_CONFIRM, BM_SETCHECK,
 		pCourse_->isFlag(GoRoundCourse::FLAG_CONFIRM) ? BST_CHECKED : BST_UNCHECKED);
 	
-	updateState();
-	
-	return TRUE;
+	return AbstractListDialog<GoRoundEntry, GoRoundCourse::EntryList>::onInitDialog(hwndFocus, lParam);
 }
 
 LRESULT qm::GoRoundCourseDialog::onOk()
@@ -3146,113 +3357,52 @@ LRESULT qm::GoRoundCourseDialog::onOk()
 		return 0;
 	pCourse_->setName(wstrName.get());
 	
-	pCourse_->setEntries(listEntry_);
+	pCourse_->setEntries(getList());
 	
 	pCourse_->setType(sendDlgItemMessage(IDC_SEQUENTIAL, BM_GETCHECK) == BST_CHECKED ?
 		GoRoundCourse::TYPE_SEQUENTIAL : GoRoundCourse::TYPE_PARALLEL);
 	pCourse_->setFlags(sendDlgItemMessage(IDC_CONFIRM, BM_GETCHECK) == BST_CHECKED ?
 		GoRoundCourse::FLAG_CONFIRM : 0);
 	
-	return DefaultDialog::onOk();
+	return AbstractListDialog<GoRoundEntry, GoRoundCourse::EntryList>::onOk();
 }
 
-LRESULT qm::GoRoundCourseDialog::onAdd()
+wstring_ptr qm::GoRoundCourseDialog::getLabel(const GoRoundEntry* p) const
+{
+	StringBuffer<WSTRING> buf(p->getAccount());
+	if (p->getSubAccount()) {
+		buf.append(L'/');
+		buf.append(p->getSubAccount());
+	}
+	if (p->getFolder()) {
+		buf.append(L" [");
+		buf.append(p->getFolder());
+		buf.append(L']');
+	}
+	return buf.getString();
+}
+
+std::auto_ptr<GoRoundEntry> qm::GoRoundCourseDialog::create() const
 {
 	std::auto_ptr<GoRoundEntry> pEntry(new GoRoundEntry());
 	GoRoundEntryDialog dialog(pEntry.get(), pDocument_, pSyncFilterManager_);
-	if (dialog.doModal(getHandle()) == IDOK) {
-		listEntry_.push_back(pEntry.get());
-		GoRoundEntry* p = pEntry.release();
-		
-		wstring_ptr wstrName(getEntryName(p));
-		W2T(wstrName.get(), ptszName);
-		sendDlgItemMessage(IDC_ENTRY, LB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszName));
-	}
-	
-	updateState();
-	
-	return 0;
+	if (dialog.doModal(getHandle()) != IDOK)
+		return std::auto_ptr<GoRoundEntry>();
+	return pEntry;
 }
 
-LRESULT qm::GoRoundCourseDialog::onRemove()
+bool qm::GoRoundCourseDialog::edit(GoRoundEntry* p) const
 {
-	int n = sendDlgItemMessage(IDC_ENTRY, LB_GETCURSEL);
-	if (n == LB_ERR)
-		return 0;
-	
-	delete listEntry_[n];
-	listEntry_.erase(listEntry_.begin() + n);
-	
-	sendDlgItemMessage(IDC_ENTRY, LB_DELETESTRING, n);
-	
-	updateState();
-	
-	return 0;
+	GoRoundEntryDialog dialog(p, pDocument_, pSyncFilterManager_);
+	return dialog.doModal(getHandle()) == IDOK;
 }
 
-LRESULT qm::GoRoundCourseDialog::onEdit()
+void qm::GoRoundCourseDialog::updateState()
 {
-	int n = sendDlgItemMessage(IDC_ENTRY, LB_GETCURSEL);
-	if (n == LB_ERR)
-		return 0;
+	AbstractListDialog<GoRoundEntry, GoRoundCourse::EntryList>::updateState();
 	
-	GoRoundEntry* pEntry = listEntry_[n];
-	GoRoundEntryDialog dialog(pEntry, pDocument_, pSyncFilterManager_);
-	if (dialog.doModal(getHandle()) == IDOK) {
-		sendDlgItemMessage(IDC_ENTRY, LB_DELETESTRING, n);
-		wstring_ptr wstrName(getEntryName(pEntry));
-		W2T(wstrName.get(), ptszName);
-		sendDlgItemMessage(IDC_ENTRY, LB_INSERTSTRING,
-			n, reinterpret_cast<LPARAM>(ptszName));
-		sendDlgItemMessage(IDC_ENTRY, LB_SETCURSEL, n);
-	}
-	
-	updateState();
-	
-	return 0;
-}
-
-LRESULT qm::GoRoundCourseDialog::onUp()
-{
-	int n = sendDlgItemMessage(IDC_ENTRY, LB_GETCURSEL);
-	if (n == LB_ERR || n == 0)
-		return 0;
-	
-	GoRoundEntry* pEntry = listEntry_[n];
-	std::swap(listEntry_[n], listEntry_[n - 1]);
-	
-	sendDlgItemMessage(IDC_ENTRY, LB_DELETESTRING, n);
-	wstring_ptr wstrName(getEntryName(pEntry));
-	W2T(wstrName.get(), ptszName);
-	sendDlgItemMessage(IDC_ENTRY, LB_INSERTSTRING,
-		n - 1, reinterpret_cast<LPARAM>(ptszName));
-	sendDlgItemMessage(IDC_ENTRY, LB_SETCURSEL, n - 1);
-	
-	updateState();
-	
-	return 0;
-}
-
-LRESULT qm::GoRoundCourseDialog::onDown()
-{
-	int n = sendDlgItemMessage(IDC_ENTRY, LB_GETCURSEL);
-	if (n == LB_ERR || n == sendDlgItemMessage(IDC_ENTRY, LB_GETCOUNT) - 1)
-		return 0;
-	
-	GoRoundEntry* pEntry = listEntry_[n];
-	std::swap(listEntry_[n], listEntry_[n + 1]);
-	
-	sendDlgItemMessage(IDC_ENTRY, LB_DELETESTRING, n);
-	wstring_ptr wstrName(getEntryName(pEntry));
-	W2T(wstrName.get(), ptszName);
-	sendDlgItemMessage(IDC_ENTRY, LB_INSERTSTRING,
-		n + 1, reinterpret_cast<LPARAM>(ptszName));
-	sendDlgItemMessage(IDC_ENTRY, LB_SETCURSEL, n + 1);
-	
-	updateState();
-	
-	return 0;
+	wstring_ptr wstrName(getDlgItemText(IDC_NAME));
+	Window(getDlgItem(IDOK)).enableWindow(*wstrName.get() != L'\0');
 }
 
 LRESULT qm::GoRoundCourseDialog::onDialup()
@@ -3282,40 +3432,6 @@ LRESULT qm::GoRoundCourseDialog::onNameChange()
 {
 	updateState();
 	return 0;
-}
-
-LRESULT qm::GoRoundCourseDialog::onEntrySelChange()
-{
-	updateState();
-	return 0;
-}
-
-void qm::GoRoundCourseDialog::updateState()
-{
-	int n = sendDlgItemMessage(IDC_ENTRY, LB_GETCURSEL);
-	Window(getDlgItem(IDC_REMOVE)).enableWindow(n != LB_ERR);
-	Window(getDlgItem(IDC_EDIT)).enableWindow(n != LB_ERR);
-	Window(getDlgItem(IDC_UP)).enableWindow(n != LB_ERR && n != 0);
-	Window(getDlgItem(IDC_DOWN)).enableWindow(n != LB_ERR &&
-		n != sendDlgItemMessage(IDC_ENTRY, LB_GETCOUNT) - 1);
-	
-	wstring_ptr wstrName(getDlgItemText(IDC_NAME));
-	Window(getDlgItem(IDOK)).enableWindow(*wstrName.get() != L'\0');
-}
-
-wstring_ptr qm::GoRoundCourseDialog::getEntryName(const GoRoundEntry* pEntry)
-{
-	StringBuffer<WSTRING> buf(pEntry->getAccount());
-	if (pEntry->getSubAccount()) {
-		buf.append(L'/');
-		buf.append(pEntry->getSubAccount());
-	}
-	if (pEntry->getFolder()) {
-		buf.append(L" [");
-		buf.append(pEntry->getFolder());
-		buf.append(L']');
-	}
-	return buf.getString();
 }
 
 
@@ -4807,6 +4923,407 @@ LRESULT qm::ResourceDialog::onClearAll()
 
 /****************************************************************************
  *
+ * RuleDialog
+ *
+ */
+
+qm::RuleDialog::RuleDialog(Rule* pRule,
+						   Document* pDocument) :
+	DefaultDialog(IDD_RULE),
+	pRule_(pRule),
+	pDocument_(pDocument),
+	bInit_(false)
+{
+	RuleAction* pAction = pRule_->getAction();
+	if (pAction &&
+		(pAction->getType() == RuleAction::TYPE_MOVE ||
+		pAction->getType() == RuleAction::TYPE_COPY)) {
+		CopyRuleAction* pCopyAction = static_cast<CopyRuleAction*>(pAction);
+		
+		if (pCopyAction->getTemplate())
+			wstrTemplate_ = allocWString(pCopyAction->getTemplate());
+		
+		const CopyRuleAction::ArgumentList& l = pCopyAction->getArguments();
+		listArgument_.reserve(l.size());
+		for (CopyRuleAction::ArgumentList::const_iterator it = l.begin(); it != l.end(); ++it)
+			listArgument_.push_back(CopyRuleAction::ArgumentList::value_type(
+				allocWString((*it).first).release(), allocWString((*it).second).release()));
+	}
+}
+
+qm::RuleDialog::~RuleDialog()
+{
+	for (CopyRuleAction::ArgumentList::iterator it = listArgument_.begin(); it != listArgument_.end(); ++it) {
+		freeWString((*it).first);
+		freeWString((*it).second);
+	}
+}
+
+LRESULT qm::RuleDialog::onCommand(WORD nCode,
+								  WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_EDIT, onEdit)
+		HANDLE_COMMAND_ID(IDC_TEMPLATE, onTemplate)
+		HANDLE_COMMAND_ID_CODE(IDC_ACCOUNT, CBN_EDITCHANGE, onAccountEditChange)
+		HANDLE_COMMAND_ID_CODE(IDC_ACCOUNT, CBN_SELCHANGE, onAccountSelChange)
+		HANDLE_COMMAND_ID_CODE(IDC_ACTION, CBN_SELCHANGE, onActionSelChange)
+		HANDLE_COMMAND_ID_CODE(IDC_CONDITION, EN_CHANGE, onConditionChange)
+		HANDLE_COMMAND_ID_CODE(IDC_FOLDER, CBN_EDITCHANGE, onFolderEditChange)
+		HANDLE_COMMAND_ID_CODE(IDC_FOLDER, CBN_SELCHANGE, onFolderSelChange)
+		HANDLE_COMMAND_ID_CODE(IDC_MACRO, EN_CHANGE, onMacroChange)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
+									 LPARAM lParam)
+{
+	init(false);
+	
+	const Macro* pCondition = pRule_->getCondition();
+	if (pCondition) {
+		wstring_ptr wstrCondition(pCondition->getString());
+		setDlgItemText(IDC_CONDITION, wstrCondition.get());
+	}
+	
+	const WCHAR* pwszTypes[] = {
+		L"None",
+		L"Move",
+		L"Copy",
+		L"Delete",
+		L"Apply"
+	};
+	for (int n = 0; n < countof(pwszTypes); ++n) {
+		W2T(pwszTypes[n], ptszType);
+		sendDlgItemMessage(IDC_ACTION, CB_ADDSTRING,
+			0, reinterpret_cast<LPARAM>(ptszType));
+	}
+	
+	const Document::AccountList& listAccount = pDocument_->getAccounts();
+	for (Document::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
+		Account* pAccount = *it;
+		W2T(pAccount->getName(), ptszName);
+		sendDlgItemMessage(IDC_ACCOUNT, CB_ADDSTRING,
+			0, reinterpret_cast<LPARAM>(ptszName));
+	}
+	
+	int nItem = 0;
+	RuleAction* pAction = pRule_->getAction();
+	if (pAction) {
+		RuleAction::Type type = pAction->getType();
+		switch (type) {
+		case RuleAction::TYPE_MOVE:
+		case RuleAction::TYPE_COPY:
+			{
+				nItem = type == RuleAction::TYPE_MOVE ? 1 : 2;
+				
+				CopyRuleAction* pCopy = static_cast<CopyRuleAction*>(pAction);
+				const WCHAR* pwszAccount = pCopy->getAccount();
+				if (pwszAccount)
+					setDlgItemText(IDC_ACCOUNT, pwszAccount);
+				setDlgItemText(IDC_FOLDER, pCopy->getFolder());
+			}
+			break;
+		case RuleAction::TYPE_DELETE:
+			{
+				nItem = 3;
+				
+				bool bDirect = static_cast<DeleteRuleAction*>(pAction)->isDirect();
+				sendDlgItemMessage(IDC_DIRECT, BM_SETCHECK,
+					bDirect ? BST_CHECKED : BST_UNCHECKED);
+			}
+			break;
+		case RuleAction::TYPE_APPLY:
+			{
+				nItem = 4;
+				
+				wstring_ptr wstrMacro(static_cast<ApplyRuleAction*>(pAction)->getMacro()->getString());
+				setDlgItemText(IDC_MACRO, wstrMacro.get());
+			}
+			break;
+		default:
+			assert(false);
+			break;
+		}
+	}
+	sendDlgItemMessage(IDC_ACTION, CB_SETCURSEL, nItem);
+	
+	bInit_ = true;
+	
+	updateState(true);
+	
+	return TRUE;
+}
+
+LRESULT qm::RuleDialog::onOk()
+{
+	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
+	std::auto_ptr<Macro> pCondition(MacroParser(MacroParser::TYPE_RULE).parse(wstrCondition.get()));
+	if (!pCondition.get()) {
+		// TODO MSG
+		return 0;
+	}
+	pRule_->setCondition(pCondition);
+	
+	std::auto_ptr<RuleAction> pAction;
+	int nItem = sendDlgItemMessage(IDC_ACTION, CB_GETCURSEL);
+	switch (nItem) {
+	case 0:
+		break;
+	case 1:
+	case 2:
+		{
+			wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
+			if (!*wstrAccount.get())
+				wstrAccount.reset(0);
+			wstring_ptr wstrFolder(getDlgItemText(IDC_FOLDER));
+			if (!*wstrFolder.get())
+				return 0;
+			
+			std::auto_ptr<CopyRuleAction> pCopyAction(new CopyRuleAction(
+				wstrAccount.get(), wstrFolder.get(), nItem == 1));
+			if (wstrTemplate_.get()) {
+				pCopyAction->setTemplate(wstrTemplate_.get());
+				pCopyAction->setTemplateArguments(listArgument_);
+			}
+			
+			pAction.reset(pCopyAction.release());
+		}
+		break;
+	case 3:
+		{
+			bool bDirect = sendDlgItemMessage(IDC_DIRECT, BM_GETCHECK) == BST_CHECKED;
+			pAction.reset(new DeleteRuleAction(bDirect));
+		}
+		break;
+	case 4:
+		{
+			wstring_ptr wstrMacro(getDlgItemText(IDC_MACRO));
+			std::auto_ptr<Macro> pMacro(MacroParser(MacroParser::TYPE_RULE).parse(wstrMacro.get()));
+			if (!pMacro.get()) {
+				// TODO MSG
+				return 0;
+			}
+			pAction.reset(new ApplyRuleAction(pMacro));
+		}
+		break;
+	default:
+		assert(false);
+		break;
+	}
+	pRule_->setAction(pAction);
+	
+	return DefaultDialog::onOk();
+}
+
+LRESULT qm::RuleDialog::onEdit()
+{
+	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
+	ConditionDialog dialog(wstrCondition.get());
+	if (dialog.doModal(getHandle()) == IDOK)
+		setDlgItemText(IDC_CONDITION, dialog.getCondition());
+	return 0;
+}
+
+LRESULT qm::RuleDialog::onTemplate()
+{
+	CopyRuleTemplateDialog dialog(wstrTemplate_.get(), &listArgument_);
+	if (dialog.doModal(getHandle()) == IDOK) {
+		const WCHAR* pwszTemplate = dialog.getName();
+		if (pwszTemplate)
+			wstrTemplate_ = allocWString(pwszTemplate);
+		else
+			wstrTemplate_.reset(0);
+	}
+	return 0;
+}
+
+LRESULT qm::RuleDialog::onActionSelChange()
+{
+	updateState(true);
+	return 0;
+}
+
+LRESULT qm::RuleDialog::onAccountEditChange()
+{
+	updateState(true);
+	return 0;
+}
+
+LRESULT qm::RuleDialog::onAccountSelChange()
+{
+	postMessage(WM_COMMAND, MAKEWPARAM(IDC_ACCOUNT, CBN_EDITCHANGE));
+	return 0;
+}
+
+LRESULT qm::RuleDialog::onConditionChange()
+{
+	updateState(false);
+	return 0;
+}
+
+LRESULT qm::RuleDialog::onFolderEditChange()
+{
+	updateState(false);
+	return 0;
+}
+
+LRESULT qm::RuleDialog::onFolderSelChange()
+{
+	postMessage(WM_COMMAND, MAKEWPARAM(IDC_FOLDER, CBN_EDITCHANGE));
+	return 0;
+}
+
+LRESULT qm::RuleDialog::onMacroChange()
+{
+	updateState(false);
+	return 0;
+}
+
+void qm::RuleDialog::updateState(bool bUpdateFolder)
+{
+	if (!bInit_)
+		return;
+	
+	struct {
+		UINT nId_;
+		bool b_;
+	} items[] = {
+		{ IDC_ACCOUNTLABEL,	false	},
+		{ IDC_ACCOUNT,		false	},
+		{ IDC_FOLDERLABEL,	false	},
+		{ IDC_FOLDER,		false	},
+		{ IDC_TEMPLATE,		false	},
+		{ IDC_DIRECT,		false	},
+		{ IDC_MACROLABEL,	false	},
+		{ IDC_MACRO,		false	}
+	};
+	
+	int nStart = 0;
+	int nEnd = 0;
+	bool bEnable = true;
+	switch (sendDlgItemMessage(IDC_ACTION, CB_GETCURSEL)) {
+	case 0:
+		break;
+	case 1:
+	case 2:
+		nStart = 0;
+		nEnd = 5;
+		bEnable = Window(getDlgItem(IDC_FOLDER)).getWindowTextLength() != 0;
+		break;
+	case 3:
+		nStart = 5;
+		nEnd = 6;
+		break;
+	case 4:
+		nStart = 6;
+		nEnd = 8;
+		bEnable = Window(getDlgItem(IDC_MACRO)).getWindowTextLength() != 0;
+		break;
+	default:
+		assert(false);
+		break;
+	}
+	for (int n = nStart; n < nEnd; ++n)
+		items[n].b_ = true;
+	for (int n = 0; n < countof(items); ++n)
+		Window(getDlgItem(items[n].nId_)).showWindow(items[n].b_ ? SW_SHOW : SW_HIDE);
+	
+	Window(getDlgItem(IDOK)).enableWindow(
+		bEnable && Window(getDlgItem(IDC_CONDITION)).getWindowTextLength() != 0);
+		
+	
+	if (bUpdateFolder) {
+		Account* pAccount = 0;
+		wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
+		if (wstrAccount.get())
+			pAccount = pDocument_->getAccount(wstrAccount.get());
+		updateFolder(pAccount);
+	}
+}
+
+void qm::RuleDialog::updateFolder(Account* pAccount)
+{
+	wstring_ptr wstrFolder(getDlgItemText(IDC_FOLDER));
+	
+	sendDlgItemMessage(IDC_FOLDER, CB_RESETCONTENT);
+	
+	if (pAccount) {
+		Account::FolderList l(pAccount->getFolders());
+		std::sort(l.begin(), l.end(), FolderLess());
+		for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			Folder* pFolder = *it;
+			
+			wstring_ptr wstrName(pFolder->getFullName());
+			W2T(wstrName.get(), ptszName);
+			sendDlgItemMessage(IDC_FOLDER, CB_ADDSTRING,
+				0, reinterpret_cast<LPARAM>(ptszName));
+		}
+	}
+	
+	setDlgItemText(IDC_FOLDER, wstrFolder.get());
+}
+
+
+/****************************************************************************
+ *
+ * ColorSetsDialog
+ *
+ */
+
+qm::ColorSetsDialog::ColorSetsDialog(ColorManager* pColorManager,
+									 Document* pDocument) :
+	RuleColorSetsDialog<ColorSet, ColorManager::ColorSetList, ColorManager, ColorsDialog>(
+		pColorManager, pDocument, IDS_COLORSETS, &ColorManager::getColorSets, &ColorManager::setColorSets)
+{
+}
+
+
+/****************************************************************************
+ *
+ * RuleSetsDialog
+ *
+ */
+
+qm::RuleSetsDialog::RuleSetsDialog(RuleManager* pRuleManager,
+								   Document* pDocument) :
+	RuleColorSetsDialog<RuleSet, RuleManager::RuleSetList, RuleManager, RulesDialog>(
+		pRuleManager, pDocument, IDS_RULESETS, &RuleManager::getRuleSets, &RuleManager::setRuleSets)
+{
+}
+
+
+/****************************************************************************
+ *
+ * ColorsDialog
+ *
+ */
+
+qm::ColorsDialog::ColorsDialog(ColorSet* pColorSet,
+							   Document* pDocument) :
+	RulesColorsDialog<ColorEntry, ColorSet::ColorList, ColorSet, ColorDialog>(
+		pColorSet, pDocument, IDS_COLORS, &ColorSet::getColors, &ColorSet::setColors)
+{
+}
+
+
+/****************************************************************************
+ *
+ * RulesDialog
+ *
+ */
+
+qm::RulesDialog::RulesDialog(RuleSet* pRuleSet,
+							 Document* pDocument) :
+	RulesColorsDialog<Rule, RuleSet::RuleList, RuleSet, RuleDialog>(
+		pRuleSet, pDocument, IDS_RULES, &RuleSet::getRules, &RuleSet::setRules)
+{
+}
+
+
+/****************************************************************************
+ *
  * SelectDialupEntryDialog
  *
  */
@@ -5056,57 +5573,24 @@ void qm::SignatureDialog::updateState()
 
 qm::SignaturesDialog::SignaturesDialog(SignatureManager* pSignatureManager,
 									   Document* pDocument) :
-	DefaultDialog(IDD_SIGNATURES),
+	AbstractListDialog<Signature, SignatureManager::SignatureList>(IDD_SIGNATURES, IDC_SIGNATURES),
 	pSignatureManager_(pSignatureManager),
 	pDocument_(pDocument)
 {
 	const SignatureManager::SignatureList& l = pSignatureManager_->getSignatures();
-	listSignature_.reserve(l.size());
+	SignatureManager::SignatureList& list = getList();
+	list.reserve(l.size());
 	for (SignatureManager::SignatureList::const_iterator it = l.begin(); it != l.end(); ++it)
-		listSignature_.push_back(new Signature(**it));
+		list.push_back(new Signature(**it));
 }
 
 qm::SignaturesDialog::~SignaturesDialog()
 {
-	std::for_each(listSignature_.begin(), listSignature_.end(), qs::deleter<Signature>());
-}
-
-LRESULT qm::SignaturesDialog::onCommand(WORD nCode,
-										WORD nId)
-{
-	BEGIN_COMMAND_HANDLER()
-		HANDLE_COMMAND_ID(IDC_ADD, onAdd)
-		HANDLE_COMMAND_ID(IDC_DOWN, onDown)
-		HANDLE_COMMAND_ID(IDC_EDIT, onEdit)
-		HANDLE_COMMAND_ID(IDC_REMOVE, onRemove)
-		HANDLE_COMMAND_ID(IDC_UP, onUp)
-		HANDLE_COMMAND_ID_CODE(IDC_SIGNATURES, LBN_SELCHANGE, onSignaturesSelChange)
-	END_COMMAND_HANDLER()
-	return DefaultDialog::onCommand(nCode, nId);
-}
-
-LRESULT qm::SignaturesDialog::onInitDialog(HWND hwndFocus,
-										   LPARAM lParam)
-{
-	init(false);
-	
-	for (SignatureManager::SignatureList::const_iterator it = listSignature_.begin(); it != listSignature_.end(); ++it) {
-		const Signature* pSignature = *it;
-		wstring_ptr wstrName(getName(pSignature));
-		W2T(wstrName.get(), ptszName);
-		sendDlgItemMessage(IDC_SIGNATURES, LB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszName));
-	}
-	sendDlgItemMessage(IDC_SIGNATURES, LB_SETCURSEL, 0);
-	
-	updateState();
-	
-	return TRUE;
 }
 
 LRESULT qm::SignaturesDialog::onOk()
 {
-	pSignatureManager_->setSignatures(listSignature_);
+	pSignatureManager_->setSignatures(getList());
 	if (!pSignatureManager_->save()) {
 		// TODO
 	}
@@ -5114,132 +5598,32 @@ LRESULT qm::SignaturesDialog::onOk()
 	return DefaultDialog::onOk();
 }
 
-LRESULT qm::SignaturesDialog::onAdd()
+wstring_ptr qm::SignaturesDialog::getLabel(const Signature* p) const
+{
+	StringBuffer<WSTRING> buf(p->getName());
+	if (p->getAccount()) {
+		buf.append(L" [");
+		buf.append(p->getAccount());
+		buf.append(L"]");
+	}
+	if (p->isDefault())
+		buf.append(L" *");
+	return buf.getString();
+}
+
+std::auto_ptr<Signature> qm::SignaturesDialog::create() const
 {
 	std::auto_ptr<Signature> pSignature(new Signature());
 	SignatureDialog dialog(pSignature.get(), pDocument_);
-	if (dialog.doModal(getHandle()) == IDOK) {
-		listSignature_.push_back(pSignature.get());
-		Signature* p = pSignature.release();
-		
-		wstring_ptr wstrName(getName(p));
-		W2T(wstrName.get(), ptszName);
-		sendDlgItemMessage(IDC_SIGNATURES, LB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszName));
-	}
-	
-	updateState();
-	
-	return 0;
+	if (dialog.doModal(getHandle()) != IDOK)
+		return std::auto_ptr<Signature>();
+	return pSignature;
 }
 
-LRESULT qm::SignaturesDialog::onRemove()
+bool qm::SignaturesDialog::edit(Signature* p) const
 {
-	int n = sendDlgItemMessage(IDC_SIGNATURES, LB_GETCURSEL);
-	if (n == LB_ERR)
-		return 0;
-	
-	delete listSignature_[n];
-	listSignature_.erase(listSignature_.begin() + n);
-	
-	sendDlgItemMessage(IDC_SIGNATURES, LB_DELETESTRING, n);
-	
-	updateState();
-	
-	return 0;
-}
-
-LRESULT qm::SignaturesDialog::onEdit()
-{
-	int n = sendDlgItemMessage(IDC_SIGNATURES, LB_GETCURSEL);
-	if (n == LB_ERR)
-		return 0;
-	
-	Signature* pSignature = listSignature_[n];
-	SignatureDialog dialog(pSignature, pDocument_);
-	if (dialog.doModal(getHandle()) == IDOK) {
-		sendDlgItemMessage(IDC_SIGNATURES, LB_DELETESTRING, n);
-		wstring_ptr wstrName(getName(pSignature));
-		W2T(wstrName.get(), ptszName);
-		sendDlgItemMessage(IDC_SIGNATURES, LB_INSERTSTRING,
-			n, reinterpret_cast<LPARAM>(ptszName));
-		sendDlgItemMessage(IDC_SIGNATURES, LB_SETCURSEL, n);
-	}
-	
-	updateState();
-	
-	return 0;
-}
-
-LRESULT qm::SignaturesDialog::onUp()
-{
-	int n = sendDlgItemMessage(IDC_SIGNATURES, LB_GETCURSEL);
-	if (n == LB_ERR || n == 0)
-		return 0;
-	
-	Signature* pSignature = listSignature_[n];
-	std::swap(listSignature_[n], listSignature_[n - 1]);
-	
-	sendDlgItemMessage(IDC_SIGNATURES, LB_DELETESTRING, n);
-	wstring_ptr wstrName(getName(pSignature));
-	W2T(wstrName.get(), ptszName);
-	sendDlgItemMessage(IDC_SIGNATURES, LB_INSERTSTRING,
-		n - 1, reinterpret_cast<LPARAM>(ptszName));
-	sendDlgItemMessage(IDC_SIGNATURES, LB_SETCURSEL, n - 1);
-	
-	updateState();
-	
-	return 0;
-}
-
-LRESULT qm::SignaturesDialog::onDown()
-{
-	int n = sendDlgItemMessage(IDC_SIGNATURES, LB_GETCURSEL);
-	if (n == LB_ERR || n == sendDlgItemMessage(IDC_SIGNATURES, LB_GETCOUNT) - 1)
-		return 0;
-	
-	Signature* pSignature = listSignature_[n];
-	std::swap(listSignature_[n], listSignature_[n + 1]);
-	
-	sendDlgItemMessage(IDC_SIGNATURES, LB_DELETESTRING, n);
-	wstring_ptr wstrName(getName(pSignature));
-	W2T(wstrName.get(), ptszName);
-	sendDlgItemMessage(IDC_SIGNATURES, LB_INSERTSTRING,
-		n + 1, reinterpret_cast<LPARAM>(ptszName));
-	sendDlgItemMessage(IDC_SIGNATURES, LB_SETCURSEL, n + 1);
-	
-	updateState();
-	
-	return 0;
-}
-
-LRESULT qm::SignaturesDialog::onSignaturesSelChange()
-{
-	updateState();
-	return 0;
-}
-
-void qm::SignaturesDialog::updateState()
-{
-	int n = sendDlgItemMessage(IDC_SIGNATURES, LB_GETCURSEL);
-	Window(getDlgItem(IDC_REMOVE)).enableWindow(n != LB_ERR);
-	Window(getDlgItem(IDC_EDIT)).enableWindow(n != LB_ERR);
-	Window(getDlgItem(IDC_UP)).enableWindow(n != LB_ERR && n != 0);
-	Window(getDlgItem(IDC_DOWN)).enableWindow(n != LB_ERR &&
-		n != sendDlgItemMessage(IDC_SIGNATURES, LB_GETCOUNT) - 1);
-}
-
-wstring_ptr qm::SignaturesDialog::getName(const Signature* pSignature)
-{
-	StringBuffer<WSTRING> buf(pSignature->getName());
-	if (pSignature->getAccount()) {
-		buf.append(L" [");
-		buf.append(pSignature->getAccount());
-		buf.append(L"]");
-	}
-	if (pSignature->isDefault())
-		buf.append(L" *");
-	return buf.getString();
+	SignatureDialog dialog(p, pDocument_);
+	return dialog.doModal(getHandle()) == IDOK;
 }
 
 

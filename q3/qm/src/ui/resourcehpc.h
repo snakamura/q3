@@ -67,6 +67,13 @@
 #define IDD_FIXEDFORMTEXTS              170
 #define IDD_FIXEDFORMTEXT               171
 #define IDD_PASSWORD                    172
+#define IDD_RULECOLORSETS               173
+#define IDD_RULESCOLORS                 174
+#define IDD_RULE                        175
+#define IDD_COLOR                       176
+#define IDD_COPYRULETEMPLATE            177
+#define IDD_ARGUMENT                    178
+#define IDD_CONDITION                   179
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -209,11 +216,17 @@
 #define IDC_INCOMINGPROTOCOL            1077
 #define IDS_RESOURCEPATH                1077
 #define IDC_OUTGOINGPROTOCOL            1078
+#define IDS_RULESETS                    1078
 #define IDC_SINGLEFILE                  1079
+#define IDS_RULES                       1079
 #define IDC_MULTIPLEFILE                1080
+#define IDS_COLORSETS                   1080
 #define IDC_BLOCKSIZE                   1081
+#define IDS_COLORS                      1081
 #define IDC_INDEXBLOCKSIZE              1082
+#define IDS_NAME                        1082
 #define IDC_MAILFOLDER                  1083
+#define IDS_VALUE                       1083
 #define IDC_ERROR                       1085
 #define IDC_MATCHCASE                   1087
 #define IDC_FINDNEXT                    1088
@@ -332,6 +345,19 @@
 #define IDC_SAVE                        1223
 #define IDC_HINT                        1224
 #define IDC_CACHE                       1225
+#define IDC_RULECOLORSETS               1226
+#define IDC_RULESCOLORS                 1232
+#define IDC_MOVE                        1241
+#define IDC_DELETE                      1245
+#define IDC_APPLY                       1246
+#define IDC_DIRECT                      1247
+#define IDC_ACTION                      1250
+#define IDC_ACCOUNTLABEL                1251
+#define IDC_FOLDERLABEL                 1252
+#define IDC_MACROLABEL                  1253
+#define IDC_COLOR                       1254
+#define IDC_CHOOSE                      1255
+#define IDC_ARGUMENT                    1263
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -572,18 +598,20 @@
 #define IDM_ATTACHMENT_SAVEALL          48003
 #define IDM_ATTACHMENTEDIT_ADD          49001
 #define IDM_ATTACHMENTEDIT_DELETE       49002
-#define IDM_CONFIG_GOROUND              50001
-#define IDM_CONFIG_SIGNATURE            50002
-#define IDM_CONFIG_TEXTS                50003
-#define IDM_CONFIG_VIEWS                50004
+#define IDM_CONFIG_COLORS               50001
+#define IDM_CONFIG_GOROUND              50002
+#define IDM_CONFIG_RULES                50003
+#define IDM_CONFIG_SIGNATURES           50004
+#define IDM_CONFIG_TEXTS                50005
+#define IDM_CONFIG_VIEWS                50006
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        173
+#define _APS_NEXT_RESOURCE_VALUE        180
 #define _APS_NEXT_COMMAND_VALUE         48000
-#define _APS_NEXT_CONTROL_VALUE         1226
+#define _APS_NEXT_CONTROL_VALUE         1264
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -90,6 +90,12 @@ inline void qm::ViewModelItem::setColor(COLORREF cr)
 	cr_ = cr;
 }
 
+inline void qm::ViewModelItem::invalidateColor()
+{
+	assert(pmh_);
+	cr_ = 0xffffffff;
+}
+
 inline unsigned int qm::ViewModelItem::getMessageFlags() const
 {
 	assert(pmh_);

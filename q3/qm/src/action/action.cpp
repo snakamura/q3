@@ -229,24 +229,79 @@ void qm::ConfigGoRoundAction::invoke(const ActionEvent& event)
 
 /****************************************************************************
  *
- * ConfigSignatureAction
+ * ConfigColorsAction
  *
  */
 
-qm::ConfigSignatureAction::ConfigSignatureAction(SignatureManager* pSignatureManager,
-												 Document* pDocument,
-												 HWND hwnd) :
+qm::ConfigColorsAction::ConfigColorsAction(ColorManager* pColorManager,
+										   ViewModelManager* pViewModelManager,
+										   Document* pDocument,
+										   HWND hwnd) :
+	pColorManager_(pColorManager),
+	pViewModelManager_(pViewModelManager),
+	pDocument_(pDocument),
+	hwnd_(hwnd)
+{
+}
+
+qm::ConfigColorsAction::~ConfigColorsAction()
+{
+}
+
+void qm::ConfigColorsAction::invoke(const ActionEvent& event)
+{
+	ColorSetsDialog dialog(pColorManager_, pDocument_);
+	if (dialog.doModal(hwnd_) == IDOK)
+		pViewModelManager_->invalidateColors();
+}
+
+
+/****************************************************************************
+ *
+ * ConfigRulesAction
+ *
+ */
+
+qm::ConfigRulesAction::ConfigRulesAction(RuleManager* pRuleManager,
+										 Document* pDocument,
+										 HWND hwnd) :
+	pRuleManager_(pRuleManager),
+	pDocument_(pDocument),
+	hwnd_(hwnd)
+{
+}
+
+qm::ConfigRulesAction::~ConfigRulesAction()
+{
+}
+
+void qm::ConfigRulesAction::invoke(const ActionEvent& event)
+{
+	RuleSetsDialog dialog(pRuleManager_, pDocument_);
+	dialog.doModal(hwnd_);
+}
+
+
+/****************************************************************************
+ *
+ * ConfigSignaturesAction
+ *
+ */
+
+qm::ConfigSignaturesAction::ConfigSignaturesAction(SignatureManager* pSignatureManager,
+												   Document* pDocument,
+												   HWND hwnd) :
 	pSignatureManager_(pSignatureManager),
 	pDocument_(pDocument),
 	hwnd_(hwnd)
 {
 }
 
-qm::ConfigSignatureAction::~ConfigSignatureAction()
+qm::ConfigSignaturesAction::~ConfigSignaturesAction()
 {
 }
 
-void qm::ConfigSignatureAction::invoke(const ActionEvent& event)
+void qm::ConfigSignaturesAction::invoke(const ActionEvent& event)
 {
 	SignaturesDialog dialog(pSignatureManager_, pDocument_);
 	dialog.doModal(hwnd_);

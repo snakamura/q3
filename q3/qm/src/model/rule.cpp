@@ -17,8 +17,10 @@
 #include <qmtemplate.h>
 
 #include <qsconv.h>
+#include <qsfile.h>
 #include <qsinit.h>
 #include <qsosutil.h>
+#include <qsstream.h>
 
 #include <algorithm>
 
@@ -47,6 +49,24 @@ qm::RuleManager::RuleManager()
 qm::RuleManager::~RuleManager()
 {
 	clear();
+}
+
+const RuleManager::RuleSetList& qm::RuleManager::getRuleSets()
+{
+	return getRuleSets(true);
+}
+
+const RuleManager::RuleSetList& qm::RuleManager::getRuleSets(bool bReload)
+{
+	if (bReload)
+		load();
+	return listRuleSet_;
+}
+
+void qm::RuleManager::setRuleSets(RuleSetList& listRuleSet)
+{
+	clear();
+	listRuleSet_.swap(listRuleSet);
 }
 
 bool qm::RuleManager::apply(Folder* pFolder,
@@ -196,6 +216,33 @@ bool qm::RuleManager::apply(Folder* pFolder,
 	return true;
 }
 
+bool qm::RuleManager::save() const
+{
+	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::RULES_XML));
+	
+	TemporaryFileRenamer renamer(wstrPath.get());
+	
+	FileOutputStream os(renamer.getPath());
+	if (!os)
+		return false;
+	OutputStreamWriter writer(&os, false, L"utf-8");
+	if (!writer)
+		return false;
+	BufferedWriter bufferedWriter(&writer, false);
+	
+	RuleWriter ruleWriter(&bufferedWriter);
+	if (!ruleWriter.write(this))
+		return false;
+	
+	if (!bufferedWriter.close())
+		return false;
+	
+	if (!renamer.rename())
+		return false;
+	
+	return true;
+}
+
 void qm::RuleManager::addRuleSet(std::auto_ptr<RuleSet> pRuleSet)
 {
 	listRuleSet_.push_back(pRuleSet.get());
@@ -275,35 +322,106 @@ qm::RuleCallback::~RuleCallback()
  *
  */
 
-qm::RuleSet::RuleSet(std::auto_ptr<RegexPattern> pAccountName,
-					 std::auto_ptr<RegexPattern> pFolderName) :
-	pAccountName_(pAccountName),
-	pFolderName_(pFolderName)
+qm::RuleSet::RuleSet()
 {
+}
+
+qm::RuleSet::RuleSet(const WCHAR* pwszAccount,
+					 std::auto_ptr<RegexPattern> pAccount,
+					 const WCHAR* pwszFolder,
+					 std::auto_ptr<RegexPattern> pFolder) :
+	pAccount_(pAccount),
+	pFolder_(pFolder)
+{
+	if (pwszAccount)
+		wstrAccount_ = allocWString(pwszAccount);
+	if (pwszFolder)
+		wstrFolder_ = allocWString(pwszFolder);
+}
+
+qm::RuleSet::RuleSet(const RuleSet& ruleset)
+{
+	RegexCompiler compiler;
+	if (ruleset.wstrAccount_.get()) {
+		wstrAccount_ = allocWString(ruleset.wstrAccount_.get());
+		pAccount_ = compiler.compile(wstrAccount_.get());
+		assert(pAccount_.get());
+	}
+	if (ruleset.wstrFolder_.get()) {
+		wstrFolder_ = allocWString(ruleset.wstrFolder_.get());
+		pFolder_ = compiler.compile(wstrFolder_.get());
+		assert(pFolder_.get());
+	}
+	
+	for (RuleList::const_iterator it = ruleset.listRule_.begin(); it != ruleset.listRule_.end(); ++it)
+		listRule_.push_back(new Rule(**it));
 }
 
 qm::RuleSet::~RuleSet()
 {
-	std::for_each(listRule_.begin(), listRule_.end(), deleter<Rule>());
+	clear();
+}
+
+const WCHAR* qm::RuleSet::getAccount() const
+{
+	return wstrAccount_.get();
+}
+
+void qm::RuleSet::setAccount(const WCHAR* pwszAccount,
+							 std::auto_ptr<RegexPattern> pAccount)
+{
+	assert((pwszAccount && pAccount.get()) || (!pwszAccount && !pAccount.get()));
+	if (pwszAccount)
+		wstrAccount_ = allocWString(pwszAccount);
+	else
+		wstrAccount_.reset(0);
+	pAccount_ = pAccount;
+}
+
+const WCHAR* qm::RuleSet::getFolder() const
+{
+	return wstrFolder_.get();
+}
+
+void qm::RuleSet::setFolder(const WCHAR* pwszFolder,
+							std::auto_ptr<RegexPattern> pFolder)
+{
+	assert((pwszFolder && pFolder.get()) || (!pwszFolder && !pFolder.get()));
+	if (pwszFolder)
+		wstrFolder_ = allocWString(pwszFolder);
+	else
+		wstrFolder_.reset(0);
+	pFolder_ = pFolder;
 }
 
 bool qm::RuleSet::matchName(const Folder* pFolder) const
 {
 	assert(pFolder);
 	
-	if (pAccountName_.get()) {
+	if (pAccount_.get()) {
 		const WCHAR* pwszName = pFolder->getAccount()->getName();
-		if (!pAccountName_->match(pwszName))
+		if (!pAccount_->match(pwszName))
 			return false;
 	}
 	
-	if (pFolderName_.get()) {
+	if (pFolder_.get()) {
 		wstring_ptr wstrName(pFolder->getFullName());
-		if (!pFolderName_->match(wstrName.get()))
+		if (!pFolder_->match(wstrName.get()))
 			return false;
 	}
 	
 	return true;
+}
+
+const RuleSet::RuleList& qm::RuleSet::getRules() const
+{
+	return listRule_;
+}
+
+void qm::RuleSet::setRules(RuleList& listRule)
+{
+	clear();
+	listRule_.swap(listRule);
 }
 
 size_t qm::RuleSet::getCount() const
@@ -323,6 +441,12 @@ void qm::RuleSet::addRule(std::auto_ptr<Rule> pRule)
 	pRule.release();
 }
 
+void qm::RuleSet::clear()
+{
+	std::for_each(listRule_.begin(), listRule_.end(), deleter<Rule>());
+	listRule_.clear();
+}
+
 
 /****************************************************************************
  *
@@ -330,54 +454,81 @@ void qm::RuleSet::addRule(std::auto_ptr<Rule> pRule)
  *
  */
 
-qm::Rule::Rule(std::auto_ptr<Macro> pMacro) :
-	pMacro_(pMacro)
+qm::Rule::Rule()
 {
+}
+
+qm::Rule::Rule(std::auto_ptr<Macro> pCondition,
+			   std::auto_ptr<RuleAction> pAction) :
+	pCondition_(pCondition),
+	pAction_(pAction)
+{
+}
+
+qm::Rule::Rule(const Rule& rule)
+{
+	wstring_ptr wstrCondition(rule.pCondition_->getString());
+	pCondition_ = MacroParser(MacroParser::TYPE_RULE).parse(wstrCondition.get());
+	if (rule.pAction_.get())
+		pAction_ = rule.pAction_->clone();
 }
 
 qm::Rule::~Rule()
 {
 }
 
+const Macro* qm::Rule::getCondition() const
+{
+	return pCondition_.get();
+}
+
+void qm::Rule::setCondition(std::auto_ptr<Macro> pCondition)
+{
+	pCondition_ = pCondition;
+}
+
+RuleAction* qm::Rule::getAction() const
+{
+	return pAction_.get();
+}
+
+void qm::Rule::setAction(std::auto_ptr<RuleAction> pAction)
+{
+	pAction_ = pAction;
+}
+
 bool qm::Rule::match(MacroContext* pContext) const
 {
-	MacroValuePtr pValue(pMacro_->value(pContext));
+	MacroValuePtr pValue(pCondition_->value(pContext));
 	return pValue->boolean();
 }
 
-
-/****************************************************************************
- *
- * NullRule
- *
- */
-
-qm::NullRule::NullRule(std::auto_ptr<Macro> pMacro) :
-	Rule(pMacro)
+bool qm::Rule::apply(const RuleContext& context) const
 {
-}
-
-qm::NullRule::~NullRule()
-{
-}
-
-bool qm::NullRule::apply(const RuleContext& context) const
-{
-	return true;
+	return pAction_.get() ? pAction_->apply(context) : true;
 }
 
 
 /****************************************************************************
  *
- * CopyRule
+ * RuleAction
  *
  */
 
-qm::CopyRule::CopyRule(std::auto_ptr<Macro> pMacro,
-					   const WCHAR* pwszAccount,
-					   const WCHAR* pwszFolder,
-					   bool bMove) :
-	Rule(pMacro),
+qm::RuleAction::~RuleAction()
+{
+}
+
+
+/****************************************************************************
+ *
+ * CopyRuleAction
+ *
+ */
+
+qm::CopyRuleAction::CopyRuleAction(const WCHAR* pwszAccount,
+								   const WCHAR* pwszFolder,
+								   bool bMove) :
 	wstrAccount_(0),
 	wstrFolder_(0),
 	bMove_(bMove)
@@ -387,17 +538,55 @@ qm::CopyRule::CopyRule(std::auto_ptr<Macro> pMacro,
 	wstrFolder_ = allocWString(pwszFolder);
 }
 
-qm::CopyRule::~CopyRule()
+qm::CopyRuleAction::CopyRuleAction(const CopyRuleAction& action) :
+	bMove_(action.bMove_)
 {
-	for (ArgumentList::iterator it = listArgument_.begin(); it != listArgument_.end(); ++it) {
-		freeWString((*it).first);
-		freeWString((*it).second);
-	}
+	if (action.wstrAccount_.get())
+		wstrAccount_ = allocWString(action.wstrAccount_.get());
+	wstrFolder_ = allocWString(action.wstrFolder_.get());
+	
+	if (action.wstrTemplate_.get())
+		wstrTemplate_ = allocWString(action.wstrTemplate_.get());
+	
+	listArgument_.reserve(action.listArgument_.size());
+	for (ArgumentList::const_iterator it = action.listArgument_.begin(); it != action.listArgument_.end(); ++it)
+		listArgument_.push_back(std::make_pair(
+			allocWString((*it).first).release(), allocWString((*it).second).release()));
 }
 
-bool qm::CopyRule::apply(const RuleContext& context) const
+qm::CopyRuleAction::~CopyRuleAction()
 {
-	Log log(InitThread::getInitThread().getLogger(), L"qm::CopyRule");
+	clearTemplateArguments();
+}
+
+const WCHAR* qm::CopyRuleAction::getAccount() const
+{
+	return wstrAccount_.get();
+}
+
+const WCHAR* qm::CopyRuleAction::getFolder() const
+{
+	return wstrFolder_.get();
+}
+
+const WCHAR* qm::CopyRuleAction::getTemplate() const
+{
+	return wstrTemplate_.get();
+}
+
+const CopyRuleAction::ArgumentList& qm::CopyRuleAction::getArguments() const
+{
+	return listArgument_;
+}
+
+RuleAction::Type qm::CopyRuleAction::getType() const
+{
+	return bMove_ ? TYPE_MOVE : TYPE_COPY;
+}
+
+bool qm::CopyRuleAction::apply(const RuleContext& context) const
+{
+	Log log(InitThread::getInitThread().getLogger(), L"qm::CopyRuleAction");
 	
 	Account* pAccountTo = context.getAccount();
 	if (wstrAccount_.get()) {
@@ -468,63 +657,115 @@ bool qm::CopyRule::apply(const RuleContext& context) const
 	}
 }
 
-void qm::CopyRule::setTemplate(const WCHAR* pwszName)
+std::auto_ptr<RuleAction> qm::CopyRuleAction::clone() const
+{
+	return std::auto_ptr<RuleAction>(new CopyRuleAction(*this));
+}
+
+void qm::CopyRuleAction::setTemplate(const WCHAR* pwszName)
 {
 	assert(!wstrTemplate_.get());
 	wstrTemplate_ = allocWString(pwszName);
 }
 
-void qm::CopyRule::addTemplateArgument(wstring_ptr wstrName,
-									   wstring_ptr wstrValue)
+void qm::CopyRuleAction::setTemplateArguments(ArgumentList& listArgument)
+{
+	clearTemplateArguments();
+	listArgument_.swap(listArgument);
+}
+
+void qm::CopyRuleAction::addTemplateArgument(wstring_ptr wstrName,
+											 wstring_ptr wstrValue)
 {
 	listArgument_.push_back(std::make_pair(wstrName.get(), wstrValue.get()));
 	wstrName.release();
 	wstrValue.release();
 }
 
+void qm::CopyRuleAction::clearTemplateArguments()
+{
+	for (ArgumentList::iterator it = listArgument_.begin(); it != listArgument_.end(); ++it) {
+		freeWString((*it).first);
+		freeWString((*it).second);
+	}
+	listArgument_.clear();
+}
+
 
 /****************************************************************************
  *
- * DeleteRule
+ * DeleteRuleAction
  *
  */
 
-qm::DeleteRule::DeleteRule(std::auto_ptr<Macro> pMacro,
-						   bool bDirect) :
-	Rule(pMacro),
+qm::DeleteRuleAction::DeleteRuleAction(bool bDirect) :
 	bDirect_(bDirect)
 {
 }
 
-qm::DeleteRule::~DeleteRule()
+qm::DeleteRuleAction::DeleteRuleAction(const DeleteRuleAction& action) :
+	bDirect_(action.bDirect_)
 {
 }
 
-bool qm::DeleteRule::apply(const RuleContext& context) const
+qm::DeleteRuleAction::~DeleteRuleAction()
+{
+}
+
+bool qm::DeleteRuleAction::isDirect() const
+{
+	return bDirect_;
+}
+
+RuleAction::Type qm::DeleteRuleAction::getType() const
+{
+	return TYPE_DELETE;
+}
+
+bool qm::DeleteRuleAction::apply(const RuleContext& context) const
 {
 	return context.getAccount()->removeMessages(
 		context.getMessageHolderList(), context.getFolder(), bDirect_, 0);
 }
 
+std::auto_ptr<RuleAction> qm::DeleteRuleAction::clone() const
+{
+	return std::auto_ptr<RuleAction>(new DeleteRuleAction(*this));
+}
+
 
 /****************************************************************************
  *
- * ApplyRule
+ * ApplyRuleAction
  *
  */
 
-qm::ApplyRule::ApplyRule(std::auto_ptr<Macro> pMacro,
-						 std::auto_ptr<Macro> pMacroApply) :
-	Rule(pMacro),
-	pMacroApply_(pMacroApply)
+qm::ApplyRuleAction::ApplyRuleAction(std::auto_ptr<Macro> pMacro) :
+	pMacro_(pMacro)
 {
 }
 
-qm::ApplyRule::~ApplyRule()
+qm::ApplyRuleAction::ApplyRuleAction(const ApplyRuleAction& action)
+{
+	wstring_ptr wstrMacro(action.pMacro_->getString());
+	pMacro_ = MacroParser(MacroParser::TYPE_RULE).parse(wstrMacro.get());
+}
+
+qm::ApplyRuleAction::~ApplyRuleAction()
 {
 }
 
-bool qm::ApplyRule::apply(const RuleContext& context) const
+const Macro* qm::ApplyRuleAction::getMacro() const
+{
+	return pMacro_.get();
+}
+
+RuleAction::Type qm::ApplyRuleAction::getType() const
+{
+	return TYPE_APPLY;
+}
+
+bool qm::ApplyRuleAction::apply(const RuleContext& context) const
 {
 	const MessageHolderList& l = context.getMessageHolderList();
 	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
@@ -532,11 +773,16 @@ bool qm::ApplyRule::apply(const RuleContext& context) const
 		MacroContext c(*it, &msg, MessageHolderList(), context.getAccount(),
 			context.getDocument(), context.getWindow(), context.getProfile(),
 			false, context.getSecurityMode(), 0, context.getGlobalVariable());
-		MacroValuePtr pValue(pMacroApply_->value(&c));
+		MacroValuePtr pValue(pMacro_->value(&c));
 		if (!pValue.get())
 			return false;
 	}
 	return true;
+}
+
+std::auto_ptr<RuleAction> qm::ApplyRuleAction::clone() const
+{
+	return std::auto_ptr<RuleAction>(new ApplyRuleAction(*this));
 }
 
 
@@ -628,7 +874,7 @@ qm::RuleContentHandler::RuleContentHandler(RuleManager* pManager) :
 	pManager_(pManager),
 	state_(STATE_ROOT),
 	pCurrentRuleSet_(0),
-	pCurrentCopyRule_(0),
+	pCurrentCopyRuleAction_(0),
 	parser_(MacroParser::TYPE_RULE)
 {
 }
@@ -666,20 +912,21 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		}
 		
 		RegexCompiler compiler;
-		std::auto_ptr<RegexPattern> pAccountName;
+		std::auto_ptr<RegexPattern> pAccount;
 		if (pwszAccount) {
-			pAccountName = compiler.compile(pwszAccount);
-			if (!pAccountName.get())
+			pAccount = compiler.compile(pwszAccount);
+			if (!pAccount.get())
 				return false;
 		}
-		std::auto_ptr<RegexPattern> pFolderName;
+		std::auto_ptr<RegexPattern> pFolder;
 		if (pwszFolder) {
-			pFolderName = compiler.compile(pwszFolder);
-			if (!pFolderName.get())
+			pFolder = compiler.compile(pwszFolder);
+			if (!pFolder.get())
 				return false;
 		}
 		
-		std::auto_ptr<RuleSet> pSet(new RuleSet(pAccountName, pFolderName));
+		std::auto_ptr<RuleSet> pSet(new RuleSet(
+			pwszAccount, pAccount, pwszFolder, pFolder));
 		assert(!pCurrentRuleSet_);
 		pCurrentRuleSet_ = pSet.get();
 		pManager_->addRuleSet(pSet);
@@ -701,9 +948,9 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (!pwszMatch)
 			return false;
 		
-		assert(!pMacro_.get());
-		pMacro_ = parser_.parse(pwszMatch);
-		if (!pMacro_.get())
+		assert(!pCondition_.get());
+		pCondition_ = parser_.parse(pwszMatch);
+		if (!pCondition_.get())
 			return false;
 		
 		state_ = STATE_RULE;
@@ -712,7 +959,7 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		wcscmp(pwszLocalName, L"move") == 0) {
 		if (state_ != STATE_RULE)
 			return false;
-		assert(pMacro_.get());
+		assert(pCondition_.get());
 		
 		bool bMove = wcscmp(pwszLocalName, L"move") == 0;
 		const WCHAR* pwszAccount = 0;
@@ -729,10 +976,11 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (!pwszFolder)
 			return false;
 		
-		std::auto_ptr<Rule> pRule(new CopyRule(
-			pMacro_, pwszAccount, pwszFolder, bMove));
-		assert(!pCurrentCopyRule_);
-		pCurrentCopyRule_ = static_cast<CopyRule*>(pRule.get());
+		std::auto_ptr<RuleAction> pAction(new CopyRuleAction(
+			pwszAccount, pwszFolder, bMove));
+		assert(!pCurrentCopyRuleAction_);
+		pCurrentCopyRuleAction_ = static_cast<CopyRuleAction*>(pAction.get());
+		std::auto_ptr<Rule> pRule(new Rule(pCondition_, pAction));
 		pCurrentRuleSet_->addRule(pRule);
 		
 		state_ = STATE_MOVE;
@@ -752,8 +1000,8 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (!pwszName)
 			return false;
 		
-		assert(pCurrentCopyRule_);
-		pCurrentCopyRule_->setTemplate(pwszName);
+		assert(pCurrentCopyRuleAction_);
+		pCurrentCopyRuleAction_->setTemplate(pwszName);
 		
 		state_ = STATE_TEMPLATE;
 	}
@@ -780,7 +1028,7 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 	else if (wcscmp(pwszLocalName, L"delete") == 0) {
 		if (state_ != STATE_RULE)
 			return false;
-		assert(pMacro_.get());
+		assert(pCondition_.get());
 		
 		bool bDirect = false;
 		for (int n = 0; n < attributes.getLength(); ++n) {
@@ -791,7 +1039,8 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 				return false;
 		}
 		
-		std::auto_ptr<Rule> pRule(new DeleteRule(pMacro_, bDirect));
+		std::auto_ptr<RuleAction> pAction(new DeleteRuleAction(bDirect));
+		std::auto_ptr<Rule> pRule(new Rule(pCondition_, pAction));
 		pCurrentRuleSet_->addRule(pRule);
 		
 		state_ = STATE_DELETE;
@@ -799,7 +1048,7 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 	else if (wcscmp(pwszLocalName, L"apply") == 0) {
 		if (state_ != STATE_RULE)
 			return false;
-		assert(pMacro_.get());
+		assert(pCondition_.get());
 		
 		const WCHAR* pwszMacro = 0;
 		for (int n = 0; n < attributes.getLength(); ++n) {
@@ -816,7 +1065,8 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (!pMacroApply.get())
 			return false;
 		
-		std::auto_ptr<Rule> pRule(new ApplyRule(pMacro_, pMacroApply));
+		std::auto_ptr<RuleAction> pAction(new ApplyRuleAction(pMacroApply));
+		std::auto_ptr<Rule> pRule(new Rule(pCondition_, pAction));
 		pCurrentRuleSet_->addRule(pRule);
 		
 		state_ = STATE_APPLY;
@@ -845,8 +1095,8 @@ bool qm::RuleContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 	else if (wcscmp(pwszLocalName, L"rule") == 0) {
 		assert(state_ == STATE_RULE);
 		
-		if (pMacro_.get()) {
-			std::auto_ptr<Rule> pRule(new NullRule(pMacro_));
+		if (pCondition_.get()) {
+			std::auto_ptr<Rule> pRule(new Rule(pCondition_, std::auto_ptr<RuleAction>()));
 			pCurrentRuleSet_->addRule(pRule);
 		}
 		
@@ -855,8 +1105,8 @@ bool qm::RuleContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 	else if (wcscmp(pwszLocalName, L"copy") == 0 ||
 		wcscmp(pwszLocalName, L"move") == 0) {
 		assert(state_ == STATE_MOVE);
-		assert(pCurrentCopyRule_);
-		pCurrentCopyRule_ = 0;
+		assert(pCurrentCopyRuleAction_);
+		pCurrentCopyRuleAction_ = 0;
 		state_ = STATE_RULE;
 	}
 	else if (wcscmp(pwszLocalName, L"template") == 0) {
@@ -865,10 +1115,10 @@ bool qm::RuleContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 	}
 	else if (wcscmp(pwszLocalName, L"argument") == 0) {
 		assert(state_ == STATE_ARGUMENT);
-		assert(pCurrentCopyRule_);
+		assert(pCurrentCopyRuleAction_);
 		assert(wstrTemplateArgumentName_.get());
 		
-		pCurrentCopyRule_->addTemplateArgument(
+		pCurrentCopyRuleAction_->addTemplateArgument(
 			wstrTemplateArgumentName_, buffer_.getString());
 		
 		state_ = STATE_TEMPLATE;
@@ -904,4 +1154,157 @@ bool qm::RuleContentHandler::characters(const WCHAR* pwsz,
 	}
 	
 	return true;
+}
+
+
+/****************************************************************************
+ *
+ * RuleWriter
+ *
+ */
+
+qm::RuleWriter::RuleWriter(Writer* pWriter) :
+	handler_(pWriter)
+{
+}
+
+qm::RuleWriter::~RuleWriter()
+{
+}
+
+bool qm::RuleWriter::write(const RuleManager* pManager)
+{
+	if (!handler_.startDocument())
+		return false;
+	if (!handler_.startElement(0, 0, L"rules", DefaultAttributes()))
+		return false;
+	
+	const RuleManager::RuleSetList& listRuleSet =
+		const_cast<RuleManager*>(pManager)->getRuleSets(false);
+	for (RuleManager::RuleSetList::const_iterator it = listRuleSet.begin(); it != listRuleSet.end(); ++it) {
+		const RuleSet* pRuleSet = *it;
+		if (!write(pRuleSet))
+			return false;
+	}
+	
+	if (!handler_.endElement(0, 0, L"rules"))
+		return false;
+	if (!handler_.endDocument())
+		return false;
+	
+	return true;
+}
+
+bool qm::RuleWriter::write(const RuleSet* pRuleSet)
+{
+	const WCHAR* pwszAccount = pRuleSet->getAccount();
+	const WCHAR* pwszFolder = pRuleSet->getFolder();
+	const SimpleAttributes::Item items[] = {
+		{ L"account",	pwszAccount,	pwszAccount == 0	},
+		{ L"folder",	pwszFolder,		pwszFolder == 0		}
+	};
+	SimpleAttributes attrs(items, countof(items));
+	if (!handler_.startElement(0, 0, L"ruleSet", attrs))
+		return false;
+	
+	const RuleSet::RuleList& listRule = pRuleSet->getRules();
+	for (RuleSet::RuleList::const_iterator it = listRule.begin(); it != listRule.end(); ++it) {
+		const Rule* pRule = *it;
+		if (!write(pRule))
+			return false;
+	}
+	
+	if (!handler_.endElement(0, 0, L"ruleSet"))
+		return false;
+	
+	return true;
+}
+
+bool qm::RuleWriter::write(const Rule* pRule)
+{
+	wstring_ptr wstrCondition(pRule->getCondition()->getString());
+	SimpleAttributes attrs(L"match", wstrCondition.get());
+	if (!handler_.startElement(0, 0, L"rule", attrs))
+		return false;
+	
+	const RuleAction* pAction = pRule->getAction();
+	if (pAction) {
+		switch (pAction->getType()) {
+		case RuleAction::TYPE_MOVE:
+		case RuleAction::TYPE_COPY:
+			if (!write(static_cast<const CopyRuleAction*>(pAction)))
+				return false;
+			break;
+		case RuleAction::TYPE_DELETE:
+			if (!write(static_cast<const DeleteRuleAction*>(pAction)))
+				return false;
+			break;
+		case RuleAction::TYPE_APPLY:
+			if (!write(static_cast<const ApplyRuleAction*>(pAction)))
+				return false;
+			break;
+		default:
+			assert(false);
+			break;
+		}
+	}
+	
+	if (!handler_.endElement(0, 0, L"rule"))
+		return false;
+	
+	return true;
+}
+
+bool qm::RuleWriter::write(const CopyRuleAction* pAction)
+{
+	const WCHAR* pwszName = pAction->getType() == RuleAction::TYPE_MOVE ? L"move" : L"copy";
+	
+	const WCHAR* pwszAccount = pAction->getAccount();
+	const WCHAR* pwszFolder = pAction->getFolder();
+	const SimpleAttributes::Item items[] = {
+		{ L"account",	pwszAccount,	pwszAccount == 0	},
+		{ L"folder",	pwszFolder,		pwszFolder == 0		}
+	};
+	SimpleAttributes attrs(items, countof(items));
+	if (!handler_.startElement(0, 0, pwszName, attrs))
+		return false;
+	
+	const WCHAR* pwszTemplate = pAction->getTemplate();
+	if (pwszTemplate) {
+		SimpleAttributes attrs(L"name", pwszTemplate);
+		if (!handler_.startElement(0, 0, L"template", attrs))
+			return false;
+		
+		const CopyRuleAction::ArgumentList& l = pAction->getArguments();
+		for (CopyRuleAction::ArgumentList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			SimpleAttributes attrs(L"name", (*it).first);
+			if (!handler_.startElement(0, 0, L"argument", attrs) ||
+				!handler_.characters((*it).second, 0, wcslen((*it).second)) ||
+				!handler_.endElement(0, 0, L"argument"))
+				return false;
+		}
+		
+		if (!handler_.endElement(0, 0, L"template"))
+			return false;
+	}
+	
+	if (!handler_.endElement(0, 0, pwszName))
+		return false;
+	
+	return true;
+}
+
+bool qm::RuleWriter::write(const DeleteRuleAction* pAction)
+{
+	SimpleAttributes attrs(L"direct", pAction->isDirect() ? L"true" : L"false");
+	return handler_.startElement(0, 0, L"delete", attrs) &&
+		handler_.endElement(0, 0, L"delete");
+}
+
+bool qm::RuleWriter::write(const ApplyRuleAction* pAction)
+{
+	wstring_ptr wstrMacro(pAction->getMacro()->getString());
+	SimpleAttributes attrs(L"macro", wstrMacro.get());
+	return handler_.startElement(0, 0, L"apply", attrs) &&
+		handler_.endElement(0, 0, L"apply");
 }

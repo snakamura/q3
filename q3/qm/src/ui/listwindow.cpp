@@ -97,6 +97,7 @@ public:
 	virtual void itemAttentionPaid(const ViewModelEvent& event);
 	virtual void updated(const ViewModelEvent& event);
 	virtual void sorted(const ViewModelEvent& event);
+	virtual void colorChanged(const ViewModelEvent& event);
 	virtual void columnChanged(const ViewModelEvent& event);
 	virtual void destroyed(const ViewModelEvent& event);
 
@@ -592,6 +593,12 @@ void qm::ListWindowImpl::sorted(const ViewModelEvent& event)
 {
 	assert(event.getViewModel() == pViewModelManager_->getCurrentViewModel());
 	ensureVisible(event.getViewModel()->getFocused());
+	pThis_->invalidate();
+}
+
+void qm::ListWindowImpl::colorChanged(const ViewModelEvent& event)
+{
+	assert(event.getViewModel() == pViewModelManager_->getCurrentViewModel());
 	pThis_->invalidate();
 }
 
