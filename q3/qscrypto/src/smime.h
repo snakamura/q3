@@ -50,9 +50,13 @@ private:
 	static qs::xstring_ptr createMessage(const CHAR* pszHeader,
 										 PKCS7* pPKCS7,
 										 bool bEnveloped);
+	static qs::xstring_ptr createMultipartMessage(const CHAR* pszHeader,
+												  const qs::Part& part,
+												  PKCS7* pPKCS7);
 	static qs::xstring_ptr createMessage(const CHAR* pszContent,
 										 size_t nLen,
 										 const qs::Part& part);
+	static qs::malloc_size_ptr<unsigned char> encodePKCS7(PKCS7* pPKCS7);
 	static bool contains(const qs::AddressListParser& addressList,
 						 const WCHAR* pwszAddress);
 	static bool contains(const qs::AddressParser& address,

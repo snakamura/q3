@@ -80,8 +80,8 @@ SMIMEUtility::Type qscrypto::SMIMEUtilityImpl::getType(const ContentTypeParser* 
 		wstring_ptr wstrProtocol(pContentType->getParameter(L"protocol"));
 		if (!wstrProtocol.get())
 			return TYPE_NONE;
-		if (_wcsicmp(wstrProtocol.get(), L"pkcs7-signature") == 0 ||
-			_wcsicmp(wstrProtocol.get(), L"x-pkcs7-signature") == 0)
+		if (_wcsicmp(wstrProtocol.get(), L"application/pkcs7-signature") == 0 ||
+			_wcsicmp(wstrProtocol.get(), L"application/x-pkcs7-signature") == 0)
 			return TYPE_MULTIPARTSIGNED;
 	}
 	else if (_wcsicmp(pwszMediaType, L"application") == 0 &&
@@ -117,30 +117,27 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::sign(Part* pPart,
 	X509* pX509 = static_cast<const CertificateImpl*>(pCertificate)->getX509();
 	EVP_PKEY* pKey = static_cast<const PrivateKeyImpl*>(pPrivateKey)->getKey();
 	
-	if (bMultipart) {
-		// TODO
+	xstring_ptr strHeader(allocXString(pPart->getHeader()));
+	if (!strHeader.get())
 		return 0;
-	}
-	else {
-		xstring_ptr strHeader(allocXString(pPart->getHeader()));
-		if (!strHeader.get())
-			return 0;
-		
-		PrefixFieldFilter filter("content-", true);
-		if (!pPart->removeFields(&filter))
-			return 0;
-		
-		xstring_ptr strContent(pPart->getContent());
-		if (!strContent.get())
-			return 0;
-		
-		BIOPtr pIn(BIO_new_mem_buf(strContent.get(), strlen(strContent.get())));
-		PKCS7Ptr pPKCS7(PKCS7_sign(pX509, pKey, 0, pIn.get(), 0));
-		if (!pPKCS7.get())
-			return 0;
-		
+	
+	PrefixFieldFilter filter("content-", true);
+	if (!pPart->removeFields(&filter))
+		return 0;
+	
+	xstring_ptr strContent(pPart->getContent());
+	if (!strContent.get())
+		return 0;
+	
+	BIOPtr pIn(BIO_new_mem_buf(strContent.get(), strlen(strContent.get())));
+	PKCS7Ptr pPKCS7(PKCS7_sign(pX509, pKey, 0, pIn.get(), bMultipart ? PKCS7_DETACHED : 0));
+	if (!pPKCS7.get())
+		return 0;
+	
+	if (bMultipart)
+		return createMultipartMessage(strHeader.get(), *pPart, pPKCS7.get());
+	else
 		return createMessage(strHeader.get(), pPKCS7.get(), false);
-	}
 }
 
 xstring_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
@@ -149,58 +146,66 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
 {
 	assert(pStoreCA);
 	assert(pnVerify);
+	assert(getType(part) == TYPE_SIGNED || getType(part) == TYPE_MULTIPARTSIGNED);
+	assert(part.getContentType());
 	
 	*pnVerify = VERIFY_OK;
 	
-	X509_STORE* pStore = static_cast<const StoreImpl*>(pStoreCA)->getStore();
+	bool bMultipart = _wcsicmp(part.getContentType()->getMediaType(), L"multipart") == 0;
 	
-	BIOPtr pOut(BIO_new(BIO_s_mem()));
-	
-	assert(getType(part) == TYPE_SIGNED || getType(part) == TYPE_MULTIPARTSIGNED);
-	
-	const ContentTypeParser* pContentType = part.getContentType();
-	if (_wcsicmp(pContentType->getMediaType(), L"multipart") == 0) {
-		// TODO
+	malloc_size_ptr<unsigned char> pBody;
+	if (bMultipart) {
+		Part* pChild = part.getPart(1);
+		assert(pChild);
+		pBody = pChild->getBodyData();
 	}
 	else {
-		malloc_size_ptr<unsigned char> buf(part.getBodyData());
-		if (!buf.get())
+		pBody = part.getBodyData();
+	}
+	if (!pBody.get())
+		return 0;
+	
+	BIOPtr pIn(BIO_new_mem_buf(pBody.get(), pBody.size()));
+	PKCS7Ptr pPKCS7(d2i_PKCS7_bio(pIn.get(), 0));
+	if (!pPKCS7.get())
+		return 0;
+	
+	X509_STORE* pStore = static_cast<const StoreImpl*>(pStoreCA)->getStore();
+	BIOPtr pOut(BIO_new(BIO_s_mem()));
+	
+	xstring_ptr strContent;
+	if (bMultipart)
+		strContent = part.getPart(0)->getContent();
+	BIOPtr pContent(bMultipart ? BIO_new_mem_buf(strContent.get(), strlen(strContent.get())) : 0);
+	
+	if (PKCS7_verify(pPKCS7.get(), 0, pStore, pContent.get(), pOut.get(), 0) != 1) {
+		*pnVerify |= VERIFY_FAILED;
+		if (PKCS7_verify(pPKCS7.get(), 0, pStore, 0, pOut.get(),
+			PKCS7_NOVERIFY | PKCS7_NOSIGS) != 1)
 			return 0;
+	}
+	
+	bool bMatch = false;
+	X509StackPtr certs(PKCS7_get0_signers(pPKCS7.get(), 0, 0), false);
+	if (certs.get()) {
+		AddressListParser from(AddressListParser::FLAG_DISALLOWGROUP);
+		Part::Field fieldFrom = part.getField(L"From", &from);
+		AddressListParser sender(AddressListParser::FLAG_DISALLOWGROUP);
+		Part::Field fieldSender = part.getField(L"Sender", &from);
 		
-		BIOPtr pIn(BIO_new_mem_buf(buf.get(), buf.size()));
-		PKCS7Ptr pPKCS7(d2i_PKCS7_bio(pIn.get(), 0));
-		if (!pPKCS7.get())
-			return 0;
-		
-		if (PKCS7_verify(pPKCS7.get(), 0, pStore, 0, pOut.get(), 0) != 1) {
-			*pnVerify |= VERIFY_FAILED;
-			if (PKCS7_verify(pPKCS7.get(), 0, pStore, 0, pOut.get(),
-				PKCS7_NOVERIFY | PKCS7_NOSIGS) != 1)
-				return 0;
-		}
-		
-		bool bMatch = false;
-		X509StackPtr certs(PKCS7_get0_signers(pPKCS7.get(), 0, 0), false);
-		if (certs.get()) {
-			AddressListParser from(AddressListParser::FLAG_DISALLOWGROUP);
-			Part::Field fieldFrom = part.getField(L"From", &from);
-			AddressListParser sender(AddressListParser::FLAG_DISALLOWGROUP);
-			Part::Field fieldSender = part.getField(L"Sender", &from);
-			
-			for (int n = 0; n < sk_X509_num(certs.get()) && !bMatch; ++n) {
-				CertificateImpl cert(sk_X509_value(certs.get(), n));
-				std::auto_ptr<Name> pName(cert.getSubject());
-				if (pName.get()) {
-					wstring_ptr wstrAddress = pName->getEmailAddress();
-					if (wstrAddress.get())
-						bMatch = contains(from, wstrAddress.get()) ||
-							contains(sender, wstrAddress.get());
-				}
+		for (int n = 0; n < sk_X509_num(certs.get()) && !bMatch; ++n) {
+			CertificateImpl cert(sk_X509_value(certs.get(), n));
+			std::auto_ptr<Name> pName(cert.getSubject());
+			if (pName.get()) {
+				wstring_ptr wstrAddress = pName->getEmailAddress();
+				if (wstrAddress.get())
+					bMatch = contains(from, wstrAddress.get()) ||
+						contains(sender, wstrAddress.get());
 			}
 		}
-		if (!bMatch)
-			*pnVerify |= VERIFY_ADDRESSNOTMATCH;
 	}
+	if (!bMatch)
+		*pnVerify |= VERIFY_ADDRESSNOTMATCH;
 	
 	char* pBuf = 0;
 	int nBufLen = BIO_get_mem_data(pOut.get(), &pBuf);
@@ -315,16 +320,7 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::createMessage(const CHAR* pszHeader,
 {
 	assert(pPKCS7);
 	
-	BIOPtr pOut(BIO_new(BIO_s_mem()));
-	if (!pOut.get())
-		return 0;
-	if (i2d_PKCS7_bio(pOut.get(), pPKCS7) != 1)
-		return 0;
-	
-	unsigned char* pBuf = 0;
-	int nBufLen = BIO_get_mem_data(pOut.get(), &pBuf);
-	Base64Encoder encoder(true);
-	malloc_size_ptr<unsigned char> buf(encoder.encode(pBuf, nBufLen));
+	malloc_size_ptr<unsigned char> buf(encodePKCS7(pPKCS7));
 	if (!buf.get())
 		return 0;
 	
@@ -359,6 +355,71 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::createMessage(const CHAR* pszHeader,
 		return false;
 	
 	return part.getContent();
+}
+
+xstring_ptr qscrypto::SMIMEUtilityImpl::createMultipartMessage(const CHAR* pszHeader,
+															   const Part& part,
+															   PKCS7* pPKCS7)
+{
+	assert(pPKCS7);
+	
+	malloc_size_ptr<unsigned char> buf(encodePKCS7(pPKCS7));
+	if (!buf.get())
+		return 0;
+	
+	Part msg;
+	{
+		if (!msg.create(0, pszHeader, -1))
+			return 0;
+		
+		PrefixFieldFilter filter("content-");
+		if (!msg.removeFields(&filter))
+			return 0;
+		msg.setBody(0);
+		
+		ContentTypeParser contentType(L"multipart", L"signed");
+		WCHAR wszBoundary[128];
+		Time time(Time::getCurrentTime());
+		swprintf(wszBoundary, L"__boundary-%04d%02d%02d%02d%02d%02d%03d%04d__",
+			time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute,
+			time.wSecond, time.wMilliseconds, ::GetCurrentThreadId());
+		contentType.setParameter(L"boundary", wszBoundary);
+		contentType.setParameter(L"protocol", L"application/pkcs7-signature");
+		contentType.setParameter(L"micalg", L"SHA1");
+		if (!msg.setField(L"Content-Type", contentType))
+			return false;
+	}
+	
+	std::auto_ptr<Part> pPartContent(part.clone());
+	if (!pPartContent.get())
+		return false;
+	msg.addPart(pPartContent);
+	
+	std::auto_ptr<Part> pPartSignature(new Part());
+	{
+		ContentTypeParser contentType(L"application", L"pkcs7-signature");
+		contentType.setParameter(L"name", L"smime.p7s");
+		if (!pPartSignature->setField(L"Content-Type", contentType))
+			return false;
+		
+		ContentDispositionParser contentDisposition(L"attachment");
+		contentDisposition.setParameter(L"filename", L"smime.p7s");
+		if (!pPartSignature->setField(L"Content-Disposition", contentDisposition))
+			return false;
+		
+		ContentTransferEncodingParser contentTransferEncoding(L"base64");
+		if (!pPartSignature->setField(L"Content-Transfer-Encoding", contentTransferEncoding))
+			return 0;
+		
+		if (!pPartSignature->setBody(reinterpret_cast<CHAR*>(buf.get()), buf.size()))
+			return false;
+	}
+	msg.addPart(pPartSignature);
+	
+	if (!msg.sortHeader())
+		return 0;
+	
+	return msg.getContent();
 }
 
 xstring_ptr qscrypto::SMIMEUtilityImpl::createMessage(const CHAR* pszContent,
@@ -396,6 +457,21 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::createMessage(const CHAR* pszContent,
 	*(p + nBodyLen) = '\0';
 	
 	return strMessage;
+}
+
+malloc_size_ptr<unsigned char> qscrypto::SMIMEUtilityImpl::encodePKCS7(PKCS7* pPKCS7)
+{
+	assert(pPKCS7);
+	
+	BIOPtr pOut(BIO_new(BIO_s_mem()));
+	if (!pOut.get())
+		return malloc_size_ptr<unsigned char>();
+	if (i2d_PKCS7_bio(pOut.get(), pPKCS7) != 1)
+		return malloc_size_ptr<unsigned char>();
+	
+	unsigned char* pBuf = 0;
+	int nBufLen = BIO_get_mem_data(pOut.get(), &pBuf);
+	return Base64Encoder(true).encode(pBuf, nBufLen);
 }
 
 bool qscrypto::SMIMEUtilityImpl::contains(const AddressListParser& addressList,
