@@ -754,10 +754,13 @@ public:
 		lResult = onActivate(LOWORD(wParam), reinterpret_cast<HWND>(lParam), HIWORD(wParam) != 0); \
 		break; \
 
+#ifndef _WIN32_WCE
 #define HANDLE_ACTIVATEAPP() \
 	case WM_ACTIVATEAPP: \
 		lResult = onActivateApp(wParam != 0, lParam); \
 		break; \
+
+#endif
 
 #define HANDLE_CHAR() \
 	case WM_CHAR: \
