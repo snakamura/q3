@@ -485,6 +485,30 @@ void qm::CopyRule::addTemplateArgument(wstring_ptr wstrName,
 
 /****************************************************************************
  *
+ * DeleteRule
+ *
+ */
+
+qm::DeleteRule::DeleteRule(std::auto_ptr<Macro> pMacro,
+						   bool bDirect) :
+	Rule(pMacro),
+	bDirect_(bDirect)
+{
+}
+
+qm::DeleteRule::~DeleteRule()
+{
+}
+
+bool qm::DeleteRule::apply(const RuleContext& context) const
+{
+	return context.getAccount()->removeMessages(
+		context.getMessageHolderList(), context.getFolder(), bDirect_, 0);
+}
+
+
+/****************************************************************************
+ *
  * ApplyRule
  *
  */
@@ -745,6 +769,25 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		state_ = STATE_ARGUMENT;
 	}
+	else if (wcscmp(pwszLocalName, L"delete") == 0) {
+		if (state_ != STATE_RULE)
+			return false;
+		assert(pMacro_.get());
+		
+		bool bDirect = false;
+		for (int n = 0; n < attributes.getLength(); ++n) {
+			const WCHAR* pwszAttrName = attributes.getLocalName(n);
+			if (wcscmp(pwszAttrName, L"direct") == 0)
+				bDirect = wcscmp(attributes.getValue(n), L"true") == 0;
+			else
+				return false;
+		}
+		
+		std::auto_ptr<Rule> pRule(new DeleteRule(pMacro_, bDirect));
+		pCurrentRuleSet_->addRule(pRule);
+		
+		state_ = STATE_DELETE;
+	}
 	else if (wcscmp(pwszLocalName, L"apply") == 0) {
 		if (state_ != STATE_RULE)
 			return false;
@@ -821,6 +864,10 @@ bool qm::RuleContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 			wstrTemplateArgumentName_, buffer_.getString());
 		
 		state_ = STATE_TEMPLATE;
+	}
+	else if (wcscmp(pwszLocalName, L"delete") == 0) {
+		assert(state_ == STATE_DELETE);
+		state_ = STATE_RULE;
 	}
 	else if (wcscmp(pwszLocalName, L"apply") == 0) {
 		assert(state_ == STATE_APPLY);

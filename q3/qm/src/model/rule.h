@@ -30,6 +30,7 @@ class RuleSet;
 class Rule;
 	class NullRule;
 	class CopyRule;
+	class DeleteRule;
 	class ApplyRule;
 class RuleContext;
 class RuleContentHandler;
@@ -229,6 +230,31 @@ private:
 
 /****************************************************************************
  *
+ * DeleteRule
+ *
+ */
+
+class DeleteRule : public Rule
+{
+public:
+	DeleteRule(std::auto_ptr<Macro> pMacro,
+			   bool bDirect);
+	virtual ~DeleteRule();
+
+public:
+	virtual bool apply(const RuleContext& context) const;
+
+private:
+	DeleteRule(const DeleteRule&);
+	DeleteRule& operator=(const DeleteRule&);
+
+private:
+	bool bDirect_;
+};
+
+
+/****************************************************************************
+ *
  * ApplyRule
  *
  */
@@ -331,6 +357,7 @@ private:
 		STATE_MOVE,
 		STATE_TEMPLATE,
 		STATE_ARGUMENT,
+		STATE_DELETE,
 		STATE_APPLY
 	};
 
