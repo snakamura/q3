@@ -196,6 +196,8 @@ IDI_MAINFRAME           ICON    DISCARDABLE     "res\\qmail.ico"
 IDI_DECRYPTED           ICON    DISCARDABLE     "res\\decrypted.ico"
 IDI_VERIFIED            ICON    DISCARDABLE     "res\\verified.ico"
 IDI_UNVERIFIED          ICON    DISCARDABLE     "res\\unverified.ico"
+IDI_OFFLINE             ICON    DISCARDABLE     "res\\offline.ico"
+IDI_ONLINE              ICON    DISCARDABLE     "res\\online.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

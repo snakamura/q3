@@ -91,6 +91,8 @@
 #define IDI_DECRYPTED                   192
 #define IDI_VERIFIED                    193
 #define IDI_UNVERIFIED                  194
+#define IDI_OFFLINE                     195
+#define IDI_ONLINE                      196
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -472,7 +474,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        195
+#define _APS_NEXT_RESOURCE_VALUE        197
 #define _APS_NEXT_COMMAND_VALUE         49000
 #define _APS_NEXT_CONTROL_VALUE         1308
 #define _APS_NEXT_SYMED_VALUE           101

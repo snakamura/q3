@@ -1322,7 +1322,7 @@ void qm::MainWindowImpl::layoutChildren(int cx,
 			};
 #else
 			int nWidth[] = {
-				cx - 350,
+				cx - 334,
 				cx - 310,
 				cx - 230,
 				cx - 150,
@@ -2786,9 +2786,8 @@ void qm::MainWindowStatusBar::updateListParts(const WCHAR* pwszText)
 	bool bOffline = bOffline_;
 	bOffline_ = pDocument_->isOffline();
 	if (bOffline != bOffline_) {
-		UINT nOnlineId = bOffline_ ? IDS_OFFLINE : IDS_ONLINE;
-		wstring_ptr wstrOnline(loadString(hInst, nOnlineId));
-		setText(1, wstrOnline.get());
+		wstring_ptr wstrOnline(loadString(hInst, bOffline_ ? IDS_OFFLINE : IDS_ONLINE));
+		setIconOrText(1, bOffline_ ? IDI_OFFLINE : IDI_ONLINE, wstrOnline.get());
 	}
 }
 

@@ -95,11 +95,6 @@ protected:
 
 protected:
 	int getPart(const POINT& pt) const;
-
-private:
-	virtual Account* getAccount() = 0;
-
-private:
 	void setIconOrText(int nPart,
 					   UINT nIcon,
 					   const WCHAR* pwszText);
@@ -107,6 +102,9 @@ private:
 	void setIconId(int nPart,
 				   UINT nIcon);
 #endif
+
+private:
+	virtual Account* getAccount() = 0;
 
 private:
 	MessageStatusBar(const MessageStatusBar&);
