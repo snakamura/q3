@@ -311,6 +311,9 @@ QSTATUS qm::MainWindowImpl::initActions()
 		pActionMap_, IDM_EDIT_CUT, pViews, pEditCutActions, countof(pViews));
 	CHECK_QSTATUS();
 	pCutMessageAction.release();
+	status = InitAction1<EditDeleteCacheAction, MessageSelectionModel*>(
+		pActionMap_, IDM_EDIT_DELETECACHE, pMessageSelectionModel_);
+	CHECK_QSTATUS();
 	status = InitAction3<EditDeleteMessageAction, MessageSelectionModel*, bool, HWND>(
 		pActionMap_, IDM_EDIT_DELETE, pMessageSelectionModel_, false, pThis_->getHandle());
 	CHECK_QSTATUS();

@@ -572,15 +572,40 @@ QSTATUS qm::AccountImpl::createTemporaryMessage(
 	status = buf.append(wstrDate.get());
 	CHECK_QSTATUS();
 	
-	status = buf.append(L"Subject: ");
-	CHECK_QSTATUS();
-	string_ptr<WSTRING> wstrSubject;
-	status = pmh->getSubject(&wstrSubject);
-	CHECK_QSTATUS();
-	status = buf.append(wstrSubject.get());
-	CHECK_QSTATUS();
-	status = buf.append(L"\n");
-	CHECK_QSTATUS();
+	struct {
+		const WCHAR* pwszName_;
+		QSTATUS (MessageHolder::*pfn_)(WSTRING*) const;
+		WCHAR cPrefix_;
+		WCHAR cSuffix_;
+	} fields[] = {
+		{ L"From",			&MessageHolder::getFrom,		L'\0',	L'\0'	},
+		{ L"To",			&MessageHolder::getTo,			L'\0',	L'\0'	},
+		{ L"Subject",		&MessageHolder::getSubject,		L'\0',	L'\0'	},
+		{ L"Message-Id",	&MessageHolder::getMessageId,	L'<',	L'>'	}
+	};
+	for (int n = 0; n < countof(fields); ++n) {
+		string_ptr<WSTRING> wstrValue;
+		status = (pmh->*fields[n].pfn_)(&wstrValue);
+		CHECK_QSTATUS();
+		if (*wstrValue.get()) {
+			status = buf.append(fields[n].pwszName_);
+			CHECK_QSTATUS();
+			status = buf.append(L": ");
+			CHECK_QSTATUS();
+			if (fields[n].cPrefix_) {
+				status = buf.append(fields[n].cPrefix_);
+				CHECK_QSTATUS();
+			}
+			status = buf.append(wstrValue.get());
+			CHECK_QSTATUS();
+			if (fields[n].cSuffix_) {
+				status = buf.append(fields[n].cSuffix_);
+				CHECK_QSTATUS();
+			}
+			status = buf.append(L"\n");
+			CHECK_QSTATUS();
+		}
+	}
 	
 	MessageCreator creator;
 	status = creator.createHeader(pMessage,
@@ -1458,6 +1483,7 @@ QSTATUS qm::Account::removeMessages(const MessageHolderList& l,
 	bool bDirect, MessageOperationCallback* pCallback)
 {
 	assert(!l.empty());
+	assert(isLocked());
 	
 	DECLARE_QSTATUS();
 	
@@ -1474,6 +1500,7 @@ QSTATUS qm::Account::copyMessages(const MessageHolderList& l,
 {
 	assert(!l.empty());
 	assert(pFolderTo);
+	assert(isLocked());
 	
 	DECLARE_QSTATUS();
 	
@@ -1490,6 +1517,7 @@ QSTATUS qm::Account::setMessagesFlags(const MessageHolderList& l,
 	unsigned int nFlags, unsigned int nMask)
 {
 	assert(!l.empty());
+	assert(isLocked());
 	
 	DECLARE_QSTATUS();
 	
@@ -1497,6 +1525,38 @@ QSTATUS qm::Account::setMessagesFlags(const MessageHolderList& l,
 	// Handle l contains messages from multiple folders
 	status = pImpl_->setMessagesFlags(l.front()->getFolder(), l, nFlags, nMask);
 	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::Account::deleteMessagesCache(const MessageHolderList& l)
+{
+	assert(isLocked());
+	
+	DECLARE_QSTATUS();
+	
+	MessageHolderList::const_iterator it = l.begin();
+	while (it != l.end()) {
+		MessageHolder* pmh = *it;
+		
+		if (!pmh->getFolder()->isFlag(Folder::FLAG_LOCAL)) {
+			MessageHolder::MessageBoxKey key = pmh->getMessageBoxKey();
+			if (key.nOffset_ != -1) {
+				status = pImpl_->pMessageStore_->free(
+					key.nOffset_, key.nLength_, -1);
+				CHECK_QSTATUS();
+				
+				key.nOffset_ = -1;
+				key.nLength_ = -1;
+				key.nHeaderLength_ = -1;
+				pmh->setKeys(-1, key);
+				pmh->setFlags(MessageHolder::FLAG_INDEXONLY,
+					MessageHolder::FLAG_PARTIAL_MASK);
+			}
+		}
+		
+		++it;
+	}
 	
 	return QSTATUS_SUCCESS;
 }
@@ -1708,12 +1768,14 @@ QSTATUS qm::Account::getMessage(MessageHolder* pmh,
 				key.nHeaderLength_ : key.nLength_;
 			status = pImpl_->pMessageStore_->load(key.nOffset_, nLength, pMessage);
 			CHECK_QSTATUS();
+			pMessage->setFlag(msgFlag);
 		}
 		else {
-			status = AccountImpl::createTemporaryMessage(pmh, pMessage);
-			CHECK_QSTATUS();
+			if (pMessage->getFlag() == Message::FLAG_EMPTY) {
+				status = AccountImpl::createTemporaryMessage(pmh, pMessage);
+				CHECK_QSTATUS();
+			}
 		}
-		pMessage->setFlag(msgFlag);
 	}
 	
 	if ((nFlags & GETMESSAGEFLAG_MAKESEEN) &&

@@ -344,11 +344,13 @@ void qm::MessageHolder::setKeys(MessageCacheKey messageCacheKey,
 {
 	Lock<Account> lock(*getAccount());
 	
-	messageCacheKey_ = messageCacheKey;
+	if (messageCacheKey != -1) {
+		messageCacheKey_ = messageCacheKey;
+		
+		nMessageIdHash_ = static_cast<unsigned int>(-1);
+		nReferenceHash_ = static_cast<unsigned int>(-1);
+	}
 	messageBoxKey_ = messageBoxKey;
-	
-	nMessageIdHash_ = static_cast<unsigned int>(-1);
-	nReferenceHash_ = static_cast<unsigned int>(-1);
 }
 
 

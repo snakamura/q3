@@ -494,6 +494,50 @@ QSTATUS qm::EditCutMessageAction::isEnabled(
 
 /****************************************************************************
  *
+ * EditDeleteCacheAction
+ *
+ */
+
+qm::EditDeleteCacheAction::EditDeleteCacheAction(
+	MessageSelectionModel* pModel, QSTATUS* pstatus) :
+	pModel_(pModel)
+{
+	assert(pstatus);
+	*pstatus = QSTATUS_SUCCESS;
+}
+
+qm::EditDeleteCacheAction::~EditDeleteCacheAction()
+{
+}
+
+QSTATUS qm::EditDeleteCacheAction::invoke(const ActionEvent& event)
+{
+	DECLARE_QSTATUS();
+	
+	AccountLock lock;
+	MessageHolderList l;
+	status = pModel_->getSelectedMessages(&lock, &l);
+	CHECK_QSTATUS();
+	
+	if (!l.empty()) {
+		Account* pAccount = lock.get();
+		status = pAccount->deleteMessagesCache(l);
+		CHECK_QSTATUS();
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::EditDeleteCacheAction::isEnabled(
+	const ActionEvent& event, bool* pbEnabled)
+{
+	assert(pbEnabled);
+	return pModel_->hasSelectedMessage(pbEnabled);
+}
+
+
+/****************************************************************************
+ *
  * EditDeleteMessageAction
  *
  */

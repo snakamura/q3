@@ -139,6 +139,7 @@ public:
 		MessageOperationCallback* pCallback);
 	qs::QSTATUS setMessagesFlags(const MessageHolderList& l,
 		unsigned int nFlags, unsigned int nMask);
+	qs::QSTATUS deleteMessagesCache(const MessageHolderList& l);
 	qs::QSTATUS clearDeletedMessages(NormalFolder* pFolder);
 	
 	qs::QSTATUS addAccountHandler(AccountHandler* pHandler);

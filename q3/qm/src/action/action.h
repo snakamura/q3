@@ -30,6 +30,7 @@ class EditClearDeletedAction;
 class EditCommandAction;
 class EditCopyMessageAction;
 class EditCutMessageAction;
+class EditDeleteCacheAction;
 class EditDeleteMessageAction;
 class EditFindAction;
 class EditPasteMessageAction;
@@ -364,6 +365,31 @@ private:
 private:
 	FolderModel* pFolderModel_;
 	MessageSelectionModel* pMessageSelectionModel_;
+};
+
+
+/****************************************************************************
+ *
+ * EditDeleteCacheAction
+ *
+ */
+
+class EditDeleteCacheAction : public qs::AbstractAction
+{
+public:
+	EditDeleteCacheAction(MessageSelectionModel* pModel, qs::QSTATUS* pstatus);
+	virtual ~EditDeleteCacheAction();
+
+public:
+	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+
+private:
+	EditDeleteCacheAction(const EditDeleteCacheAction&);
+	EditDeleteCacheAction& operator=(const EditDeleteCacheAction&);
+
+private:
+	MessageSelectionModel* pModel_;
 };
 
 

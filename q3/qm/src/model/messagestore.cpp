@@ -246,15 +246,17 @@ QSTATUS qm::SingleMessageStore::free(unsigned int nOffset,
 	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
-	size_t nDataLen = 0;
-	unsigned int nLoad = sizeof(nDataLen);
-	status = pImpl_->pCacheStorage_->load(
-		reinterpret_cast<unsigned char*>(&nDataLen), key, &nLoad);
-	CHECK_QSTATUS();
-	if (nLoad != sizeof(nDataLen))
-		return QSTATUS_FAIL;
-	status = pImpl_->pCacheStorage_->free(key, nDataLen + sizeof(nDataLen));
-	CHECK_QSTATUS();
+	if (key != -1) {
+		size_t nDataLen = 0;
+		unsigned int nLoad = sizeof(nDataLen);
+		status = pImpl_->pCacheStorage_->load(
+			reinterpret_cast<unsigned char*>(&nDataLen), key, &nLoad);
+		CHECK_QSTATUS();
+		if (nLoad != sizeof(nDataLen))
+			return QSTATUS_FAIL;
+		status = pImpl_->pCacheStorage_->free(key, nDataLen + sizeof(nDataLen));
+		CHECK_QSTATUS();
+	}
 	
 	if (nOffset != -1) {
 		status = pImpl_->pStorage_->free(nOffset,
@@ -716,15 +718,17 @@ QSTATUS qm::MultiMessageStore::free(unsigned int nOffset,
 	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
-	size_t nDataLen = 0;
-	unsigned int nLoad = sizeof(nDataLen);
-	status = pImpl_->pCacheStorage_->load(
-		reinterpret_cast<unsigned char*>(&nDataLen), key, &nLoad);
-	CHECK_QSTATUS();
-	if (nLoad != sizeof(nDataLen))
-		return QSTATUS_FAIL;
-	status = pImpl_->pCacheStorage_->free(key, nDataLen + sizeof(nDataLen));
-	CHECK_QSTATUS();
+	if (key != -1) {
+		size_t nDataLen = 0;
+		unsigned int nLoad = sizeof(nDataLen);
+		status = pImpl_->pCacheStorage_->load(
+			reinterpret_cast<unsigned char*>(&nDataLen), key, &nLoad);
+		CHECK_QSTATUS();
+		if (nLoad != sizeof(nDataLen))
+			return QSTATUS_FAIL;
+		status = pImpl_->pCacheStorage_->free(key, nDataLen + sizeof(nDataLen));
+		CHECK_QSTATUS();
+	}
 	
 	if (nOffset != -1) {
 		string_ptr<WSTRING> wstrPath;
