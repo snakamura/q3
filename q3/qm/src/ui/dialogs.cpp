@@ -758,6 +758,8 @@ LRESULT qm::AddressBookDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	HWND hwndList = getDlgItem(IDC_ADDRESS);
 	
+	ListView_SetExtendedListViewStyle(hwndList, LVS_EX_FULLROWSELECT);
+	
 	struct {
 		UINT nId_;
 		const WCHAR* pwszKey_;
