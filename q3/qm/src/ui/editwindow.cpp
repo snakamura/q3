@@ -77,7 +77,7 @@ public:
 	virtual bool isHidden() const;
 
 public:
-	QSTATUS layout();
+	virtual QSTATUS layout();
 
 public:
 	virtual EditMessage* getEditMessage();
@@ -800,7 +800,8 @@ LRESULT qm::EditTextWindow::onCreate(CREATESTRUCT* pCreateStruct)
 
 LRESULT qm::EditTextWindow::onKillFocus(HWND hwnd)
 {
-	pCallback_->layout();
+	if (Window(hwnd).getParentPopup() == getParentFrame())
+		pCallback_->layout();
 	return TextWindow::onKillFocus(hwnd);
 }
 
@@ -815,7 +816,8 @@ LRESULT qm::EditTextWindow::onLButtonDown(UINT nFlags, const POINT& pt)
 
 LRESULT qm::EditTextWindow::onSetFocus(HWND hwnd)
 {
-	pCallback_->layout();
+	if (Window(hwnd).getParentPopup() == getParentFrame())
+		pCallback_->layout();
 	return TextWindow::onSetFocus(hwnd);
 }
 
