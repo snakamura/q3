@@ -751,11 +751,14 @@ wstring_ptr qs::BrowseFolderDialogImpl::getPath(HWND hwnd,
 	assert(hwnd);
 	assert(hItem);
 	
-	wstring_ptr wstrPath;
+	wstring_ptr wstrPath(allocWString(L""));
 	
-	while (hItem) {
-		TCHAR tszPath[MAX_PATH + 1];
-		*tszPath = _T('\\');
+	while (true) {
+		HTREEITEM hParent = TreeView_GetParent(hwnd, hItem);
+		if (!hParent)
+			break;
+		
+		TCHAR tszPath[MAX_PATH + 1] = _T("\\");
 		TVITEM ti = {
 			TVIF_HANDLE | TVIF_TEXT,
 			hItem,
@@ -765,13 +768,11 @@ wstring_ptr qs::BrowseFolderDialogImpl::getPath(HWND hwnd,
 			countof(tszPath) - 1
 		};
 		TreeView_GetItem(hwnd, &ti);
-		hItem = TreeView_GetParent(hwnd, hItem);
-		if (hItem) {
-			if (wstrPath.get())
-				wstrPath = concat(tszPath, wstrPath.get());
-			else
-				wstrPath = allocWString(tszPath);
-		}
+		
+		T2W(tszPath, pwszPath);
+		wstrPath = concat(pwszPath, wstrPath.get());
+		
+		hItem = hParent;
 	}
 	
 	return wstrPath;
