@@ -205,7 +205,9 @@ STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
 			return E_FAIL;
 		
 		Message msg;
-		if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg))
+		unsigned int nFlags = Account::GETMESSAGEFLAG_ALL |
+			Account::GETMESSAGEFLAG_NOSECURITY;
+		if (!mpl->getMessage(nFlags, 0, &msg))
 			return E_FAIL;
 		xstring_ptr strContent(msg.getContent());
 		if (!strContent.get())

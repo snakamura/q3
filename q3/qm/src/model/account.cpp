@@ -560,7 +560,8 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 			MessageHolder* pmh = l[n];
 			Message msg;
 			unsigned int nFlags = Account::GETMESSAGEFLAG_ALL |
-				Account::GETMESSAGEFLAG_NOFALLBACK;
+				Account::GETMESSAGEFLAG_NOFALLBACK |
+				Account::GETMESSAGEFLAG_NOSECURITY;
 			if (!pmh->getMessage(nFlags, 0, &msg))
 				return false;
 			if (!pAccountTo->appendMessage(pFolderTo, msg,
@@ -1972,7 +1973,7 @@ MessageHolder* qm::Account::cloneMessage(MessageHolder* pmh,
 	}
 	else {
 		Message msg;
-		if (!pmh->getMessage(GETMESSAGEFLAG_POSSIBLE, 0, &msg))
+		if (!pmh->getMessage(GETMESSAGEFLAG_POSSIBLE | GETMESSAGEFLAG_NOSECURITY, 0, &msg))
 			return 0;
 		xstring_ptr strContent(msg.getContent());
 		if (!strContent.get())

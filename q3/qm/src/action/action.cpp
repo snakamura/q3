@@ -974,7 +974,9 @@ bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 	MessagePtrLock mpl(ptr);
 	if (mpl) {
 		Message msg;
-		if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg))
+		unsigned int nFlags = Account::GETMESSAGEFLAG_ALL |
+			Account::GETMESSAGEFLAG_NOSECURITY;
+		if (!mpl->getMessage(nFlags, 0, &msg))
 			return false;
 		
 		if (bAddFlags) {
