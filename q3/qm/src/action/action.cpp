@@ -2995,15 +2995,16 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 				
 				pSearch->set(pPage->getDriver(), pwszCondition,
 					wstrFolder.get(), pPage->isRecursive());
-				if (pFolder == pSearch) {
+				
+				if (pFolder != pSearch)
+					pFolderModel_->setCurrent(0, pSearch, false);
+				
+				if (pFolder == pSearch || !pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
 					if (!pSearch->search(pDocument_, hwnd_,
 						pProfile_, pSecurityModel_->isDecryptVerify())) {
 						ActionUtil::error(hwnd_, IDS_ERROR_SEARCH);
 						return;
 					}
-				}
-				else {
-					pFolderModel_->setCurrent(0, pSearch, false);
 				}
 			}
 			pProfile_->setString(L"Search", L"Page", pPage->getDriver());
