@@ -2013,9 +2013,7 @@ QSTATUS qm::FolderContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 	else if (wcscmp(pwszLocalName, L"normalFolder") == 0) {
 		assert(state_ == STATE_NORMALFOLDER);
 		
-		// TODO
-		// Don't allow nItem_ == 9 in the future.
-		if (nItem_ != 9 && nItem_ != 10)
+		if (nItem_ != 10)
 			return QSTATUS_FAIL;
 		
 		NormalFolder::Init init;
