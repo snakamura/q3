@@ -490,11 +490,11 @@ std::auto_ptr<ResponseNamespace> qmimap4::Parser::parseNamespaceResponse()
 			pLists[n] = parseList();
 		}
 		else {
+			const CHAR* pszSep = n != countof(pLists) - 1 ? " " : " \r";
 			string_ptr strToken;
-			Token token = getNextToken(&strToken);
+			Token token = getNextToken(pszSep, &strToken);
 			if (token != TOKEN_NIL)
 				return std::auto_ptr<ResponseNamespace>(0);
-//			++nIndex_;
 		}
 	}
 	
