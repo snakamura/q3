@@ -996,10 +996,10 @@ const TCHAR* qm::EditHeaderEditItem::getWindowClassName() const
 
 UINT qm::EditHeaderEditItem::getWindowStyle() const
 {
-#if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
-	return ES_AUTOHSCROLL;
-#else
+#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	return WS_BORDER | ES_AUTOHSCROLL;
+#else
+	return ES_AUTOHSCROLL;
 #endif
 }
 
@@ -1200,7 +1200,7 @@ QSTATUS qm::AttachmentHeaderEditItem::create(WindowBase* pParent,
 	DECLARE_QSTATUS();
 	
 	DWORD dwStyle = WS_CHILD | WS_VISIBLE | LVS_SMALLICON | LVS_SHAREIMAGELISTS;
-#if !defined _WIN32_WCE || (defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC)
+#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	dwStyle |= WS_BORDER;
 #endif
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
@@ -1482,9 +1482,6 @@ QSTATUS qm::ComboBoxHeaderEditItem::create(WindowBase* pParent,
 	DECLARE_QSTATUS();
 	
 	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_VSCROLL | CBS_DROPDOWNLIST;
-#ifndef _WIN32_WCE
-	dwStyle |= WS_BORDER;
-#endif
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	DWORD dwExStyle = 0;
 #else
