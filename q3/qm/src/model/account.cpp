@@ -2139,21 +2139,28 @@ bool qm::Account::unstoreMessages(const MessageHolderList& l)
 	
 	NormalFolder* pFolder = l.front()->getFolder();
 	
+	typedef std::vector<std::pair<MessageHolder::MessageBoxKey, MessageCacheKey> > KeyList;
+	KeyList listKey;
+	listKey.reserve(l.size());
+	
 	Lock<Account> lock(*this);
 	
 	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		MessageHolder* pmh = *it;
 		assert(pmh->getFolder() == pFolder);
-		
-		MessageHolder::MessageBoxKey key = pmh->getMessageBoxKey();
-		MessageCacheKey cacheKey = pmh->getMessageCacheKey();
-		if (!pImpl_->pMessageStore_->free(key.nOffset_, key.nLength_, cacheKey)) {
+		listKey.push_back(std::make_pair(pmh->getMessageBoxKey(), pmh->getMessageCacheKey()));
+	}
+	
+	pFolder->removeMessages(l);
+	
+	for (KeyList::const_iterator it = listKey.begin(); it != listKey.end(); ++it) {
+		const MessageHolder::MessageBoxKey& boxKey = (*it).first;
+		MessageCacheKey cacheKey = (*it).second;
+		if (!pImpl_->pMessageStore_->free(boxKey.nOffset_, boxKey.nLength_, cacheKey)) {
 			// TODO LOG
 		}
 		pImpl_->pMessageCache_->removeData(cacheKey);
 	}
-	
-	pFolder->removeMessages(l);
 	
 	return true;
 }
