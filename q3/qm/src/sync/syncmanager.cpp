@@ -339,7 +339,7 @@ void qm::SyncData::addFolders(Account* pAccount,
 	
 	NormalFolder* pTrash = static_cast<NormalFolder*>(
 		pAccount->getFolderByBoxFlag(Folder::FLAG_TRASHBOX));
-	if (pTrash->isFlag(Folder::FLAG_SYNCABLE))
+	if (pTrash && pTrash->isFlag(Folder::FLAG_SYNCABLE))
 		pTrash = 0;
 	
 	const Account::FolderList& l = pAccount->getFolders();
