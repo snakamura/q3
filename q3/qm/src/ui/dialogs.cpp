@@ -2465,17 +2465,17 @@ void qm::DetachDialog::updateState()
  *
  */
 
-qm::DialupDialog::DialupDialog(const WCHAR* pwszEntry, const WCHAR* pwszUsername,
+qm::DialupDialog::DialupDialog(const WCHAR* pwszEntry, const WCHAR* pwszUserName,
 	const WCHAR* pwszPassword, const WCHAR* pwszDomain,QSTATUS* pstatus) :
 	DefaultDialog(IDD_DIALUP, pstatus),
 	wstrEntry_(0),
-	wstrUsername_(0),
+	wstrUserName_(0),
 	wstrPassword_(0),
 	wstrDomain_(0)
 {
 	const WCHAR* pwsz[] = {
 		pwszEntry,
-		pwszUsername,
+		pwszUserName,
 		pwszPassword,
 		pwszDomain
 	};
@@ -2489,7 +2489,7 @@ qm::DialupDialog::DialupDialog(const WCHAR* pwszEntry, const WCHAR* pwszUsername
 	}
 	
 	wstrEntry_ = wstr[0].release();
-	wstrUsername_ = wstr[1].release();
+	wstrUserName_ = wstr[1].release();
 	wstrPassword_ = wstr[2].release();
 	wstrDomain_ = wstr[3].release();
 }
@@ -2497,14 +2497,14 @@ qm::DialupDialog::DialupDialog(const WCHAR* pwszEntry, const WCHAR* pwszUsername
 qm::DialupDialog::~DialupDialog()
 {
 	freeWString(wstrEntry_);
-	freeWString(wstrUsername_);
+	freeWString(wstrUserName_);
 	freeWString(wstrPassword_);
 	freeWString(wstrDomain_);
 }
 
-const WCHAR* qm::DialupDialog::getUsername() const
+const WCHAR* qm::DialupDialog::getUserName() const
 {
-	return wstrUsername_;
+	return wstrUserName_;
 }
 
 const WCHAR* qm::DialupDialog::getPassword() const
@@ -2534,7 +2534,7 @@ LRESULT qm::DialupDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 		const WCHAR* pwsz_;
 	} items[] = {
 		{ IDC_ENTRY,	wstrEntry_		},
-		{ IDC_USERNAME,	wstrUsername_	},
+		{ IDC_USERNAME,	wstrUserName_	},
 		{ IDC_PASSWORD,	wstrPassword_	},
 		{ IDC_DOMAIN,	wstrDomain_		}
 	};
@@ -2558,7 +2558,7 @@ LRESULT qm::DialupDialog::onOk()
 		WSTRING* pwstr_;
 	} items[] = {
 		{ IDC_ENTRY,	&wstrEntry_		},
-		{ IDC_USERNAME,	&wstrUsername_	},
+		{ IDC_USERNAME,	&wstrUserName_	},
 		{ IDC_PASSWORD,	&wstrPassword_	},
 		{ IDC_DOMAIN,	&wstrDomain_	}
 	};

@@ -244,13 +244,17 @@ QSTATUS qm::SyncDialog::showDialupDialog(RASDIALPARAMS* prdp, bool* pbCancel) co
 			
 			DialupDialog dialog(pwszEntryName, pwszUserName,
 				pwszPassword, pwszDomain, &status);
-			CHECK_QSTATUS_VALUE(0);
+			CHECK_QSTATUS();
 			int nRet = 0;
 			status = dialog.doModal(hwnd_, 0, &nRet);
-			CHECK_QSTATUS_VALUE(0);
+			CHECK_QSTATUS();
 			if (nRet == IDOK) {
-				// TODO
-				
+				W2T(dialog.getUserName(), ptszUserName);
+				_tcsncpy(prdp_->szUserName, ptszUserName, UNLEN);
+				W2T(dialog.getPassword(), ptszPassword);
+				_tcsncpy(prdp_->szPassword, ptszPassword, PWLEN);
+				W2T(dialog.getDomain(), ptszDomain);
+				_tcsncpy(prdp_->szDomain, ptszDomain, DNLEN);
 			}
 			else {
 				*pbCancel_ = true;

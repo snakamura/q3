@@ -567,12 +567,12 @@ private:
 class DialupDialog : public DefaultDialog
 {
 public:
-	DialupDialog(const WCHAR* pwszEntry, const WCHAR* pwszUsername,
+	DialupDialog(const WCHAR* pwszEntry, const WCHAR* pwszUserName,
 		const WCHAR* pwszPassword, const WCHAR* pwszDomain, qs::QSTATUS* pstatus);
 	virtual ~DialupDialog();
 
 public:
-	const WCHAR* getUsername() const;
+	const WCHAR* getUserName() const;
 	const WCHAR* getPassword() const;
 	const WCHAR* getDomain() const;
 
@@ -597,7 +597,7 @@ private:
 
 private:
 	qs::WSTRING wstrEntry_;
-	qs::WSTRING wstrUsername_;
+	qs::WSTRING wstrUserName_;
 	qs::WSTRING wstrPassword_;
 	qs::WSTRING wstrDomain_;
 };
