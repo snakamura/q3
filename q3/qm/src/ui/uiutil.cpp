@@ -20,6 +20,7 @@
 #include <tchar.h>
 
 #include "dialogs.h"
+#include "encodingmodel.h"
 #include "resourceinc.h"
 #include "statusbar.h"
 #include "uiutil.h"
@@ -207,6 +208,7 @@ int qm::UIUtil::getFolderImage(Folder* pFolder,
 }
 
 void qm::UIUtil::updateStatusBar(MessageWindow* pMessageWindow,
+								 EncodingModel* pEncodingModel,
 								 StatusBar* pStatusBar,
 								 int nOffset,
 								 MessageHolder* pmh,
@@ -214,7 +216,7 @@ void qm::UIUtil::updateStatusBar(MessageWindow* pMessageWindow,
 								 const ContentTypeParser* pContentType)
 {
 	if (pmh) {
-		const WCHAR* pwszEncoding = pMessageWindow->getEncoding();
+		const WCHAR* pwszEncoding = pEncodingModel->getEncoding();
 		wstring_ptr wstrCharset;
 		if (!pwszEncoding) {
 			if (!pContentType) {

@@ -61,7 +61,8 @@ Template::Result qm::Template::getValue(const TemplateContext& context,
 			MacroContext c(context.getMessageHolder(), context.getMessage(),
 				context.getSelectedMessageHolders(), context.getAccount(),
 				context.getDocument(), context.getWindow(), context.getProfile(),
-				false, context.getSecurityMode(), context.getErrorHandler(), &globalVariable);
+				false, context.getBodyCharset(), context.getSecurityMode(),
+				context.getErrorHandler(), &globalVariable);
 			MacroValuePtr pValue((*itV).second->value(&c));
 			if (!pValue.get()) {
 				if (c.getReturnType() == MacroContext::RETURNTYPE_NONE)
@@ -92,6 +93,7 @@ qm::TemplateContext::TemplateContext(MessageHolderBase* pmh,
 									 Account* pAccount,
 									 Document* pDocument,
 									 HWND hwnd,
+									 const WCHAR* pwszBodyCharset,
 									 unsigned int nSecurityMode,
 									 Profile* pProfile,
 									 MacroErrorHandler* pErrorHandler,
@@ -107,6 +109,8 @@ qm::TemplateContext::TemplateContext(MessageHolderBase* pmh,
 	pErrorHandler_(pErrorHandler),
 	listArgument_(listArgument)
 {
+	if (pwszBodyCharset)
+		wstrBodyCharset_ = allocWString(pwszBodyCharset);
 }
 
 qm::TemplateContext::~TemplateContext()
@@ -141,6 +145,11 @@ Document* qm::TemplateContext::getDocument() const
 HWND qm::TemplateContext::getWindow() const
 {
 	return hwnd_;
+}
+
+const WCHAR* qm::TemplateContext::getBodyCharset() const
+{
+	return wstrBodyCharset_.get();
 }
 
 unsigned int qm::TemplateContext::getSecurityMode() const

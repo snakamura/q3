@@ -92,6 +92,7 @@ public:
 					Account* pAccount,
 					Document* pDocument,
 					HWND hwnd,
+					const WCHAR* pwszBodyCharset,
 					unsigned int nSecurityMode,
 					qs::Profile* pProfile,
 					MacroErrorHandler* pErrorHandler,
@@ -105,6 +106,7 @@ public:
 	Account* getAccount() const;
 	Document* getDocument() const;
 	HWND getWindow() const;
+	const WCHAR* getBodyCharset() const;
 	unsigned int getSecurityMode() const;
 	qs::Profile* getProfile() const;
 	MacroErrorHandler* getErrorHandler() const;
@@ -121,6 +123,7 @@ private:
 	Account* pAccount_;
 	Document* pDocument_;
 	HWND hwnd_;
+	qs::wstring_ptr wstrBodyCharset_;
 	unsigned int nSecurityMode_;
 	qs::Profile* pProfile_;
 	MacroErrorHandler* pErrorHandler_;

@@ -21,6 +21,7 @@
 #include "../model/editmessage.h"
 #include "../model/templatemanager.h"
 #include "../ui/editframewindow.h"
+#include "../ui/encodingmodel.h"
 #include "../ui/externaleditor.h"
 #include "../ui/foldermodel.h"
 #include "../ui/messageselectionmodel.h"
@@ -39,6 +40,7 @@ using namespace qs;
 qm::TemplateProcessor::TemplateProcessor(Document* pDocument,
 										 FolderModelBase* pFolderModel,
 										 MessageSelectionModel* pMessageSelectionModel,
+										 EncodingModel* pEncodingModel,
 										 SecurityModel* pSecurityModel,
 										 EditFrameWindowManager* pEditFrameWindowManager,
 										 ExternalEditorManager* pExternalEditorManager,
@@ -48,6 +50,7 @@ qm::TemplateProcessor::TemplateProcessor(Document* pDocument,
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
 	pMessageSelectionModel_(pMessageSelectionModel),
+	pEncodingModel_(pEncodingModel),
 	pSecurityModel_(pSecurityModel),
 	pEditFrameWindowManager_(pEditFrameWindowManager),
 	pExternalEditorManager_(pExternalEditorManager),
@@ -109,10 +112,15 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 	if (!pAccountForced)
 		pMessageSelectionModel_->getSelectedMessages(&lock, 0, &listSelected);
 	
+	const WCHAR* pwszBodyCharset = 0;
+	if (pEncodingModel_)
+		pwszBodyCharset = pEncodingModel_->getEncoding();
+	
 	MacroErrorHandlerImpl handler;
 	Message msg;
-	TemplateContext context(pmh, pmh ? &msg : 0, listSelected, pAccount, pDocument_,
-		hwnd_, pSecurityModel_->getSecurityMode(), pProfile_, &handler, listArgument);
+	TemplateContext context(pmh, pmh ? &msg : 0, listSelected, pAccount,
+		pDocument_, hwnd_, pwszBodyCharset, pSecurityModel_->getSecurityMode(),
+		pProfile_, &handler, listArgument);
 	
 	wstring_ptr wstrValue;
 	switch (pTemplate->getValue(context, &wstrValue)) {

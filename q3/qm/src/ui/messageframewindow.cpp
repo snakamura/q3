@@ -21,6 +21,7 @@
 #	include <aygshell.h>
 #endif
 
+#include "encodingmodel.h"
 #include "keymap.h"
 #include "menus.h"
 #include "messageframewindow.h"
@@ -107,6 +108,7 @@ public:
 	std::auto_ptr<FindReplaceManager> pFindReplaceManager_;
 	ExternalEditorManager* pExternalEditorManager_;
 	EditFrameWindowManager* pEditFrameWindowManager_;
+	std::auto_ptr<DefaultEncodingModel> pEncodingModel_;
 	std::auto_ptr<DefaultSecurityModel> pSecurityModel_;
 	MessageViewModeHolder* pMessageViewModeHolder_;
 	std::auto_ptr<MoveMenu> pMoveMenu_;
@@ -195,10 +197,11 @@ void qm::MessageFrameWindowImpl::initActions()
 	ADD_ACTION1(FileCloseAction,
 		IDM_FILE_CLOSE,
 		pThis_->getHandle());
-	ADD_ACTION6(FilePrintAction,
+	ADD_ACTION7(FilePrintAction,
 		IDM_FILE_PRINT,
 		pDocument_,
 		this,
+		pEncodingModel_.get(),
 		pSecurityModel_.get(),
 		pThis_->getHandle(),
 		pProfile_,
@@ -208,26 +211,28 @@ void qm::MessageFrameWindowImpl::initActions()
 		IDOK,
 		pThis_->getHandle());
 #endif
-	ADD_ACTION_RANGE10(MessageApplyTemplateAction,
+	ADD_ACTION_RANGE11(MessageApplyTemplateAction,
 		IDM_MESSAGE_APPLYTEMPLATE,
 		IDM_MESSAGE_APPLYTEMPLATE + TemplateMenu::MAX_TEMPLATE,
 		pCreateTemplateMenu_.get(),
 		pDocument_,
 		this,
 		this,
+		pEncodingModel_.get(),
 		pSecurityModel_.get(),
 		pEditFrameWindowManager_,
 		pExternalEditorManager_,
 		pThis_->getHandle(),
 		pProfile_,
 		false);
-	ADD_ACTION_RANGE10(MessageApplyTemplateAction,
+	ADD_ACTION_RANGE11(MessageApplyTemplateAction,
 		IDM_MESSAGE_APPLYTEMPLATEEXTERNAL,
 		IDM_MESSAGE_APPLYTEMPLATEEXTERNAL + TemplateMenu::MAX_TEMPLATE,
 		pCreateTemplateExternalMenu_.get(),
 		pDocument_,
 		this,
 		this,
+		pEncodingModel_.get(),
 		pSecurityModel_.get(),
 		pEditFrameWindowManager_,
 		pExternalEditorManager_,
@@ -247,11 +252,12 @@ void qm::MessageFrameWindowImpl::initActions()
 		{ IDM_MESSAGE_REPLYALL,	IDM_MESSAGE_REPLYALLEXTERNAL,	L"reply_all"	},
 	};
 	for (int n = 0; n < countof(creates); ++n) {
-		ADD_ACTION10(MessageCreateAction,
+		ADD_ACTION11(MessageCreateAction,
 			creates[n].nId_,
 			pDocument_,
 			this,
 			this,
+			pEncodingModel_.get(),
 			pSecurityModel_.get(),
 			creates[n].pwszName_,
 			pEditFrameWindowManager_,
@@ -259,11 +265,12 @@ void qm::MessageFrameWindowImpl::initActions()
 			pThis_->getHandle(),
 			pProfile_,
 			false);
-		ADD_ACTION10(MessageCreateAction,
+		ADD_ACTION11(MessageCreateAction,
 			creates[n].nIdExternal_,
 			pDocument_,
 			this,
 			this,
+			pEncodingModel_.get(),
 			pSecurityModel_.get(),
 			creates[n].pwszName_,
 			pEditFrameWindowManager_,
@@ -346,11 +353,11 @@ void qm::MessageFrameWindowImpl::initActions()
 		pThis_);
 	ADD_ACTION1(ViewEncodingAction,
 		IDM_VIEW_ENCODINGAUTODETECT,
-		pMessageWindow_);
+		pEncodingModel_.get());
 	ADD_ACTION_RANGE2(ViewEncodingAction,
 		IDM_VIEW_ENCODING,
 		IDM_VIEW_ENCODING + EncodingMenu::MAX_ENCODING,
-		pMessageWindow_,
+		pEncodingModel_.get(),
 		pEncodingMenu_.get());
 	ADD_ACTION3(ViewSecurityAction,
 		IDM_VIEW_SMIMEMODE,
@@ -493,8 +500,8 @@ void qm::MessageFrameWindowImpl::messageChanged(const MessageWindowEvent& event)
 		
 		if (bShowStatusBar_) {
 			pStatusBar_->setText(0, L"");
-			UIUtil::updateStatusBar(pMessageWindow_, pStatusBar_,
-				0, pmh, event.getMessage(), event.getContentType());
+			UIUtil::updateStatusBar(pMessageWindow_, pEncodingModel_.get(),
+				pStatusBar_, 0, pmh, event.getMessage(), event.getContentType());
 		}
 	}
 	else {
@@ -812,6 +819,7 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pTempFileCleaner_ = pContext->pTempFileCleaner_;
 	
 	pImpl_->pMessageModel_.reset(new MessageMessageModel());
+	pImpl_->pEncodingModel_.reset(new DefaultEncodingModel());
 	pImpl_->pSecurityModel_.reset(new DefaultSecurityModel(
 		pImpl_->pProfile_->getInt(L"MessageWindow", L"SecurityMode", 0)));
 	
@@ -830,6 +838,7 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pContext->pDocument_,
 		pContext->pUIManager_,
 		pImpl_->pMessageViewModeHolder_,
+		pImpl_->pEncodingModel_.get(),
 		pImpl_->pSecurityModel_.get()
 	};
 	if (!pMessageWindow->create(L"QmMessageWindow", 0, dwStyle, CW_USEDEFAULT,

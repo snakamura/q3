@@ -27,7 +27,6 @@
 
 #include "headerwindow.h"
 #include "resourceinc.h"
-#include "securitymodel.h"
 #include "../model/dataobject.h"
 #include "../model/uri.h"
 
@@ -52,10 +51,8 @@ public:
 	};
 
 public:
-	bool load(SecurityModel* pSecurityModel,
-			  MenuManager* pMenuManager);
-	bool create(SecurityModel* pSecurityModel,
-				MenuManager* pMenuManager);
+	bool load(MenuManager* pMenuManager);
+	bool create(MenuManager* pMenuManager);
 
 public:
 	HeaderWindow* pThis_;
@@ -69,16 +66,14 @@ public:
 	AttachmentSelectionModel* pAttachmentSelectionModel_;
 };
 
-bool qm::HeaderWindowImpl::load(SecurityModel* pSecurityModel,
-								MenuManager* pMenuManager)
+bool qm::HeaderWindowImpl::load(MenuManager* pMenuManager)
 {
 	pLayout_.reset(new LineLayout());
 	
 	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::HEADER_XML));
 	
 	XMLReader reader;
-	HeaderWindowContentHandler contentHandler(
-		pLayout_.get(), pSecurityModel, pMenuManager);
+	HeaderWindowContentHandler contentHandler(pLayout_.get(), pMenuManager);
 	reader.setContentHandler(&contentHandler);
 	if (!reader.parse(wstrPath.get()))
 		return false;
@@ -87,10 +82,9 @@ bool qm::HeaderWindowImpl::load(SecurityModel* pSecurityModel,
 	return true;
 }
 
-bool qm::HeaderWindowImpl::create(SecurityModel* pSecurityModel,
-								  MenuManager* pMenuManager)
+bool qm::HeaderWindowImpl::create(MenuManager* pMenuManager)
 {
-	if (!load(pSecurityModel, pMenuManager))
+	if (!load(pMenuManager))
 		return false;
 	
 	std::pair<HFONT, HFONT> fonts(hfont_, hfontBold_);
@@ -226,7 +220,7 @@ LRESULT qm::HeaderWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	::GetClassInfo(getInstanceHandle(), ptszClassName, &wc);
 	pImpl_->hbrBackground_ = wc.hbrBackground;
 	
-	if (!pImpl_->create(pContext->pSecurityModel_, pContext->pMenuManager_))
+	if (!pImpl_->create(pContext->pMenuManager_))
 		return false;
 	
 	return 0;
@@ -607,13 +601,12 @@ bool qm::EditHeaderItem::canSelectAll()
  *
  */
 
-qm::AttachmentHeaderItem::AttachmentHeaderItem(SecurityModel* pSecurityModel,
-											   MenuManager* pMenuManager) :
+qm::AttachmentHeaderItem::AttachmentHeaderItem(MenuManager* pMenuManager) :
 	wnd_(this),
-	pSecurityModel_(pSecurityModel),
 	pMenuManager_(pMenuManager),
+	pParent_(0),
 	pDocument_(0),
-	pParent_(0)
+	nSecurityMode_(SECURITYMODE_NONE)
 {
 }
 
@@ -689,12 +682,13 @@ void qm::AttachmentHeaderItem::setMessage(const TemplateContext* pContext)
 	
 	if (pContext) {
 		pDocument_ = pContext->getDocument();
+		nSecurityMode_ = pContext->getSecurityMode();
 		
 		MessageHolderBase* pmh = pContext->getMessageHolder();
 		if (pmh) {
 			Message* pMessage = pContext->getMessage();
 			if (pmh->getMessage(Account::GETMESSAGEFLAG_TEXT,
-				0, pSecurityModel_->getSecurityMode(), pMessage)) {
+				0, nSecurityMode_, pMessage)) {
 				AttachmentParser parser(*pMessage);
 				AttachmentParser::AttachmentList list;
 				AttachmentParser::AttachmentListFree free(list);
@@ -725,9 +719,6 @@ void qm::AttachmentHeaderItem::setMessage(const TemplateContext* pContext)
 				wnd_.enableWindow(!parser.isAttachmentDeleted());
 			}
 		}
-	}
-	else {
-		pDocument_ = 0;
 	}
 }
 
@@ -781,6 +772,8 @@ LRESULT qm::AttachmentHeaderItem::onNotify(NMHDR* pnmhdr,
 LRESULT qm::AttachmentHeaderItem::onBeginDrag(NMHDR* pnmhdr,
 											  bool* pbHandled)
 {
+	assert(pDocument_);
+	
 	URIDataObject::URIList listURI;
 	
 	HWND hwnd = wnd_.getHandle();
@@ -792,8 +785,8 @@ LRESULT qm::AttachmentHeaderItem::onBeginDrag(NMHDR* pnmhdr,
 		nItem = ListView_GetNextItem(hwnd, nItem, LVNI_ALL | LVNI_SELECTED);
 	}
 	
-	std::auto_ptr<URIDataObject> p(new URIDataObject(pDocument_,
-		pSecurityModel_->getSecurityMode(), listURI));
+	std::auto_ptr<URIDataObject> p(new URIDataObject(
+		pDocument_, nSecurityMode_, listURI));
 	p->AddRef();
 	ComPtr<IDataObject> pDataObject(p.release());
 	
@@ -821,6 +814,9 @@ void qm::AttachmentHeaderItem::clear()
 		nItem = ListView_GetNextItem(hwnd, nItem, LVNI_ALL);
 	}
 	ListView_DeleteAllItems(hwnd);
+	
+	pDocument_ = 0;
+	nSecurityMode_ = SECURITYMODE_NONE;
 }
 
 
@@ -893,10 +889,8 @@ LRESULT qm::AttachmentHeaderItem::AttachmentWindow::onLButtonDblClk(UINT nFlags,
  */
 
 qm::HeaderWindowContentHandler::HeaderWindowContentHandler(LineLayout* pLayout,
-														   SecurityModel* pSecurityModel,
 														   MenuManager* pMenuManager) :
 	pLayout_(pLayout),
-	pSecurityModel_(pSecurityModel),
 	pMenuManager_(pMenuManager),
 	pCurrentLine_(0),
 	pCurrentItem_(0),
@@ -999,8 +993,8 @@ bool qm::HeaderWindowContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		assert(pCurrentLine_);
 		
-		std::auto_ptr<AttachmentHeaderItem> pItem(new AttachmentHeaderItem(
-			pSecurityModel_, pMenuManager_));
+		std::auto_ptr<AttachmentHeaderItem> pItem(
+			new AttachmentHeaderItem(pMenuManager_));
 		
 		for (int n = 0; n < attributes.getLength(); ++n) {
 			const WCHAR* pwszAttrLocalName = attributes.getLocalName(n);

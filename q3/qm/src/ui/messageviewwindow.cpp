@@ -280,7 +280,7 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 			// Get selected messages
 			TemplateContext context(pmh, pMessage, MessageHolderList(),
 				pmh->getFolder()->getAccount(), pDocument_, getHandle(),
-				nSecurityMode, pProfile_, 0, TemplateContext::ArgumentList());
+				pwszEncoding, nSecurityMode, pProfile_, 0, TemplateContext::ArgumentList());
 			wstring_ptr wstr;
 			if (pTemplate->getValue(context, &wstr) != Template::RESULT_SUCCESS)
 				return false;

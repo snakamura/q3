@@ -178,7 +178,7 @@ bool qm::RuleManager::apply(Folder* pFolder,
 		for (RuleList::size_type m = 0; m < listRule.size(); ++m) {
 			const Rule* pRule = listRule[m];
 			MacroContext context(pmh, &msg, MessageHolderList(), pAccount, pDocument,
-				hwnd, pProfile, false, nSecurityMode, 0, &globalVariable);
+				hwnd, pProfile, false, 0, nSecurityMode, 0, &globalVariable);
 			bool bMatch = pRule->match(&context);
 			if (bMatch) {
 				ll[m].push_back(pmh);
@@ -622,7 +622,7 @@ bool qm::CopyRuleAction::apply(const RuleContext& context) const
 			Message msg;
 			TemplateContext templateContext(pmh, &msg, MessageHolderList(),
 				context.getAccount(), context.getDocument(), context.getWindow(),
-				context.getSecurityMode(), context.getProfile(), 0, listArgument);
+				0, context.getSecurityMode(), context.getProfile(), 0, listArgument);
 			wstring_ptr wstrValue;
 			if (pTemplate->getValue(templateContext, &wstrValue) != Template::RESULT_SUCCESS) {
 				log.errorf(L"Error occured while processing template.");
@@ -800,7 +800,7 @@ bool qm::ApplyRuleAction::apply(const RuleContext& context) const
 		Message msg;
 		MacroContext c(*it, &msg, MessageHolderList(), context.getAccount(),
 			context.getDocument(), context.getWindow(), context.getProfile(),
-			false, context.getSecurityMode(), 0, context.getGlobalVariable());
+			false, 0, context.getSecurityMode(), 0, context.getGlobalVariable());
 		MacroValuePtr pValue(pMacro_->value(&c));
 		if (!pValue.get())
 			return false;

@@ -12,6 +12,7 @@
 #include <qm.h>
 #include <qmaccount.h>
 #include <qmmessagewindow.h>
+#include <qmsecurity.h>
 
 #include <qsaction.h>
 #include <qsstream.h>
@@ -21,7 +22,6 @@
 #include "../ui/messagecomposer.h"
 #include "../ui/messageviewmode.h"
 #include "../ui/messagewindow.h"
-#include "../ui/securitymodel.h"
 
 
 namespace qm {
@@ -128,6 +128,7 @@ class Document;
 class EditFrameWindow;
 class EditFrameWindowManager;
 class EncodingMenu;
+class EncodingModel;
 class ExternalEditorManager;
 class Filter;
 class FilterMenu;
@@ -156,6 +157,7 @@ class Recents;
 class RecentsMenu;
 class RuleManager;
 class ScriptMenu;
+class SecurityModel;
 class SignatureManager;
 class SortMenu;
 class SubAccountMenu;
@@ -930,6 +932,7 @@ public:
 
 public:
 	FileExportAction(MessageSelectionModel* pMessageSelectionModel,
+					 EncodingModel* pEncodingModel,
 					 SecurityModel* pSecurityModel,
 					 Document* pDocument,
 					 qs::Profile* pProfile,
@@ -961,6 +964,7 @@ private:
 
 private:
 	MessageSelectionModel* pMessageSelectionModel_;
+	EncodingModel* pEncodingModel_;
 	SecurityModel* pSecurityModel_;
 	Document* pDocument_;
 	qs::Profile* pProfile_;
@@ -1114,6 +1118,7 @@ class FilePrintAction : public qs::AbstractAction
 public:
 	FilePrintAction(Document* pDocument,
 					MessageSelectionModel* pMessageSelectionModel,
+					EncodingModel* pEncodingModel,
 					SecurityModel* pSecurityModel,
 					HWND hwnd,
 					qs::Profile* pProfile,
@@ -1137,6 +1142,7 @@ private:
 private:
 	Document* pDocument_;
 	MessageSelectionModel* pMessageSelectionModel_;
+	EncodingModel* pEncodingModel_;
 	SecurityModel* pSecurityModel_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
@@ -1528,6 +1534,7 @@ public:
 							   Document* pDocument,
 							   FolderModelBase* pFolderModel,
 							   MessageSelectionModel* pMessageSelectionModel,
+							   EncodingModel* pEncodingModel,
 							   SecurityModel* pSecurityModel,
 							   EditFrameWindowManager* pEditFrameWindowManager,
 							   ExternalEditorManager* pExternalEditorManager,
@@ -1623,6 +1630,7 @@ public:
 	MessageCreateAction(Document* pDocument,
 						FolderModelBase* pFolderModel,
 						MessageSelectionModel* pMessageSelectionModel,
+						EncodingModel* pEncodingModel,
 						SecurityModel* pSecurityModel,
 						const WCHAR* pwszTemplateName,
 						EditFrameWindowManager* pEditFrameWindowManager,
@@ -2367,8 +2375,8 @@ private:
 class ViewEncodingAction : public qs::AbstractAction
 {
 public:
-	explicit ViewEncodingAction(MessageWindow* pMessageWindow);
-	ViewEncodingAction(MessageWindow* pMessageWindow,
+	explicit ViewEncodingAction(EncodingModel* pEncodingModel);
+	ViewEncodingAction(EncodingModel* pEncodingModel,
 					   EncodingMenu* pEncodingMenu);
 	virtual ~ViewEncodingAction();
 
@@ -2381,7 +2389,7 @@ private:
 	ViewEncodingAction& operator=(const ViewEncodingAction&);
 
 private:
-	MessageWindow* pMessageWindow_;
+	EncodingModel* pEncodingModel_;
 	EncodingMenu* pEncodingMenu_;
 };
 

@@ -71,7 +71,7 @@ bool qm::MacroSearchDriver::search(const SearchContext& context,
 			
 			Message msg;
 			MacroContext context(pmh, &msg, MessageHolderList(), pAccount_, pDocument_,
-				hwnd_, pProfile_, false, context.getSecurityMode(), 0, &globalVariable);
+				hwnd_, pProfile_, false, 0, context.getSecurityMode(), 0, &globalVariable);
 			MacroValuePtr pValue(pMacro->value(&context));
 			/// TODO
 			if (!pValue.get())

@@ -16,6 +16,7 @@ class MessageWindowItem;
 struct MessageWindowCreateContext;
 
 class Document;
+class EncodingModel;
 class MessageViewModeHolder;
 class SecurityModel;
 class UIManager;
@@ -51,6 +52,7 @@ struct MessageWindowCreateContext
 	Document* pDocument_;
 	UIManager* pUIManager_;
 	MessageViewModeHolder* pMessageViewModeHolder_;
+	EncodingModel* pEncodingModel_;
 	SecurityModel* pSecurityModel_;
 };
 

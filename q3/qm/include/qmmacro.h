@@ -226,6 +226,7 @@ public:
 				 HWND hwnd,
 				 qs::Profile* pProfile,
 				 bool bGetMessageAsPossible,
+				 const WCHAR* pwszBodyCharset,
 				 unsigned int nSecurityMode,
 				 MacroErrorHandler* pErrorHandler,
 				 MacroVariableHolder* pGlobalVariable);
@@ -245,6 +246,7 @@ public:
 	HWND getWindow() const;
 	qs::Profile* getProfile() const;
 	bool isGetMessageAsPossible() const;
+	const WCHAR* getBodyCharset() const;
 	unsigned int getSecurityMode() const;
 	MacroErrorHandler* getErrorHandler() const;
 	ReturnType getReturnType() const;

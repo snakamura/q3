@@ -648,9 +648,10 @@ MacroValuePtr qm::MacroFunctionBody::value(MacroContext* pContext) const
 	wxstring_ptr wstrBody;
 	PartUtil util(*pPart);
 	if (nView == VIEW_NONE)
-		wstrBody = util.getAllText(wstrQuote.get(), 0, true);
+		wstrBody = util.getAllText(wstrQuote.get(), pContext->getBodyCharset(), true);
 	else
-		wstrBody = util.getBodyText(wstrQuote.get(), 0, nView == VIEW_FORCERFC822INLINE);
+		wstrBody = util.getBodyText(wstrQuote.get(),
+			pContext->getBodyCharset(), nView == VIEW_FORCERFC822INLINE);
 	if (!wstrBody.get())
 		return MacroValuePtr();
 	
@@ -2583,7 +2584,7 @@ MacroValuePtr qm::MacroFunctionLoad::value(MacroContext* pContext) const
 		TemplateContext context(pContext->getMessageHolder(),
 			pContext->getMessage(), pContext->getSelectedMessageHolders(),
 			pContext->getAccount(), pContext->getDocument(), pContext->getWindow(),
-			pContext->getSecurityMode(), pContext->getProfile(),
+			pContext->getBodyCharset(), pContext->getSecurityMode(), pContext->getProfile(),
 			pContext->getErrorHandler(), TemplateContext::ArgumentList());
 		switch (pTemplate->getValue(context, &wstr)) {
 		case Template::RESULT_SUCCESS:

@@ -36,6 +36,7 @@
 #include "../ui/editwindow.h"
 #include "../ui/menus.h"
 #include "../ui/resourceinc.h"
+#include "../ui/securitymodel.h"
 #include "../ui/syncutil.h"
 #include "../ui/uiutil.h"
 
@@ -344,8 +345,8 @@ void qm::EditEditPasteWithQuoteAction::invoke(const ActionEvent& event)
 		const TemplateManager* pManager = pDocument_->getTemplateManager();
 		const Template* pTemplate = pManager->getTemplate(pAccount, pFolder, L"quote");
 		if (pTemplate) {
-			TemplateContext context(mpl, &msg, MessageHolderList(),
-				pAccount, pDocument_, hwnd_, pSecurityModel_->getSecurityMode(),
+			TemplateContext context(mpl, &msg, MessageHolderList(), pAccount,
+				pDocument_, hwnd_, 0, pSecurityModel_->getSecurityMode(),
 				pProfile_, 0, TemplateContext::ArgumentList());
 			switch (pTemplate->getValue(context, &wstrMessage)) {
 			case Template::RESULT_SUCCESS:

@@ -49,6 +49,7 @@
 #include "../ui/attachmentselectionmodel.h"
 #include "../ui/dialogs.h"
 #include "../ui/editframewindow.h"
+#include "../ui/encodingmodel.h"
 #include "../ui/foldermodel.h"
 #include "../ui/folderselectionmodel.h"
 #include "../ui/menus.h"
@@ -57,6 +58,7 @@
 #include "../ui/messageselectionmodel.h"
 #include "../ui/propertypages.h"
 #include "../ui/resourceinc.h"
+#include "../ui/securitymodel.h"
 #include "../ui/syncdialog.h"
 #include "../ui/syncutil.h"
 #include "../ui/uiutil.h"
@@ -1293,11 +1295,13 @@ void qm::FileExitAction::invoke(const ActionEvent& event)
  */
 
 qm::FileExportAction::FileExportAction(MessageSelectionModel* pMessageSelectionModel,
+									   EncodingModel* pEncodingModel,
 									   SecurityModel* pSecurityModel,
 									   Document* pDocument,
 									   Profile* pProfile,
 									   HWND hwnd) :
 	pMessageSelectionModel_(pMessageSelectionModel),
+	pEncodingModel_(pEncodingModel),
 	pSecurityModel_(pSecurityModel),
 	pDocument_(pDocument),
 	pProfile_(pProfile),
@@ -1443,7 +1447,7 @@ bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 	Message msg;
 	TemplateContext context(pmh, &msg, MessageHolderList(),
 		pmh->getFolder()->getAccount(), pDocument_, hwnd_,
-		pSecurityModel_->getSecurityMode(),
+		pEncodingModel_->getEncoding(), pSecurityModel_->getSecurityMode(),
 		pProfile_, 0, TemplateContext::ArgumentList());
 	
 	wstring_ptr wstrValue;
@@ -2085,12 +2089,14 @@ bool qm::FileOfflineAction::isChecked(const ActionEvent& event)
 
 qm::FilePrintAction::FilePrintAction(Document* pDocument,
 									 MessageSelectionModel* pMessageSelectionModel,
+									 EncodingModel* pEncodingModel,
 									 SecurityModel* pSecurityModel,
 									 HWND hwnd,
 									 Profile* pProfile,
 									 TempFileCleaner* pTempFileCleaner) :
 	pDocument_(pDocument),
 	pMessageSelectionModel_(pMessageSelectionModel),
+	pEncodingModel_(pEncodingModel),
 	pSecurityModel_(pSecurityModel),
 	hwnd_(hwnd),
 	pProfile_(pProfile),
@@ -2136,8 +2142,8 @@ bool qm::FilePrintAction::print(Account* pAccount,
 		return false;
 	
 	Message msg;
-	TemplateContext context(pmh, &msg, listSelected, pAccount,
-		pDocument_, hwnd_, pSecurityModel_->getSecurityMode(),
+	TemplateContext context(pmh, &msg, listSelected, pAccount, pDocument_, hwnd_,
+		pEncodingModel_->getEncoding(), pSecurityModel_->getSecurityMode(),
 		pProfile_, 0, TemplateContext::ArgumentList());
 	
 	wstring_ptr wstrValue;
@@ -2978,14 +2984,16 @@ qm::MessageApplyTemplateAction::MessageApplyTemplateAction(TemplateMenu* pTempla
 														   Document* pDocument,
 														   FolderModelBase* pFolderModel,
 														   MessageSelectionModel* pMessageSelectionModel,
+														   EncodingModel* pEncodingModel,
 														   SecurityModel* pSecurityModel,
 														   EditFrameWindowManager* pEditFrameWindowManager,
 														   ExternalEditorManager* pExternalEditorManager,
 														   HWND hwnd,
 														   Profile* pProfile,
 														   bool bExternalEditor) :
-	processor_(pDocument, pFolderModel, pMessageSelectionModel, pSecurityModel,
-		pEditFrameWindowManager, pExternalEditorManager, hwnd, pProfile, bExternalEditor),
+	processor_(pDocument, pFolderModel, pMessageSelectionModel,
+		pEncodingModel, pSecurityModel, pEditFrameWindowManager,
+		pExternalEditorManager, hwnd, pProfile, bExternalEditor),
 	pTemplateMenu_(pTemplateMenu),
 	hwnd_(hwnd)
 {
@@ -3199,6 +3207,7 @@ bool qm::MessageCombineAction::isSpecialField(const CHAR* pszField)
 qm::MessageCreateAction::MessageCreateAction(Document* pDocument,
 											 FolderModelBase* pFolderModel,
 											 MessageSelectionModel* pMessageSelectionModel,
+											 EncodingModel* pEncodingModel,
 											 SecurityModel* pSecurityModel,
 											 const WCHAR* pwszTemplateName,
 											 EditFrameWindowManager* pEditFrameWindowManager,
@@ -3206,8 +3215,9 @@ qm::MessageCreateAction::MessageCreateAction(Document* pDocument,
 											 HWND hwnd,
 											 Profile* pProfile,
 											 bool bExternalEditor) :
-	processor_(pDocument, pFolderModel, pMessageSelectionModel, pSecurityModel,
-		pEditFrameWindowManager, pExternalEditorManager, hwnd, pProfile, bExternalEditor),
+	processor_(pDocument, pFolderModel, pMessageSelectionModel,
+		pEncodingModel, pSecurityModel, pEditFrameWindowManager,
+		pExternalEditorManager, hwnd, pProfile, bExternalEditor),
 	pFolderModel_(pFolderModel),
 	hwnd_(hwnd)
 {
@@ -3813,8 +3823,9 @@ qm::MessageOpenURLAction::MessageOpenURLAction(Document* pDocument,
 											   HWND hwnd,
 											   Profile* pProfile,
 											   bool bExternalEditor) :
-	processor_(pDocument, pFolderModel, pMessageSelectionModel, pSecurityModel,
-		pEditFrameWindowManager, pExternalEditorManager, hwnd, pProfile, bExternalEditor),
+	processor_(pDocument, pFolderModel, pMessageSelectionModel,
+		0, pSecurityModel, pEditFrameWindowManager,
+		pExternalEditorManager, hwnd, pProfile, bExternalEditor),
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
 	pProfile_(pProfile),
@@ -4496,15 +4507,15 @@ bool qm::ToolSyncAction::isEnabled(const ActionEvent& event)
  *
  */
 
-qm::ViewEncodingAction::ViewEncodingAction(MessageWindow* pMessageWindow) :
-	pMessageWindow_(pMessageWindow),
+qm::ViewEncodingAction::ViewEncodingAction(EncodingModel* pEncodingModel) :
+	pEncodingModel_(pEncodingModel),
 	pEncodingMenu_(0)
 {
 }
 
-qm::ViewEncodingAction::ViewEncodingAction(MessageWindow* pMessageWindow,
+qm::ViewEncodingAction::ViewEncodingAction(EncodingModel* pEncodingModel,
 										   EncodingMenu* pEncodingMenu) :
-	pMessageWindow_(pMessageWindow),
+	pEncodingModel_(pEncodingModel),
 	pEncodingMenu_(pEncodingMenu)
 {
 }
@@ -4518,18 +4529,18 @@ void qm::ViewEncodingAction::invoke(const ActionEvent& event)
 	const WCHAR* pwszEncoding = 0;
 	if (pEncodingMenu_)
 		pwszEncoding = pEncodingMenu_->getEncoding(event.getId());
-	pMessageWindow_->setEncoding(pwszEncoding);
+	pEncodingModel_->setEncoding(pwszEncoding);
 }
 
 bool qm::ViewEncodingAction::isChecked(const ActionEvent& event)
 {
 	if (pEncodingMenu_) {
-		const WCHAR* pwszEncoding = pMessageWindow_->getEncoding();
+		const WCHAR* pwszEncoding = pEncodingModel_->getEncoding();
 		return pwszEncoding &&
 			wcscmp(pwszEncoding, pEncodingMenu_->getEncoding(event.getId())) == 0;
 	}
 	else {
-		return !pMessageWindow_->getEncoding();
+		return !pEncodingModel_->getEncoding();
 	}
 }
 

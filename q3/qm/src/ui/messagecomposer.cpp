@@ -237,7 +237,7 @@ bool qm::MessageComposer::compose(Account* pAccount,
 				return false;
 			
 			MacroContext context(0, 0, MessageHolderList(), pAccount, pDocument_,
-				hwnd_, pProfile_, false, pSecurityModel_->getSecurityMode(), 0, 0);
+				hwnd_, pProfile_, false, 0, pSecurityModel_->getSecurityMode(), 0, 0);
 			MacroValuePtr pValue(pMacro->value(&context));
 		}
 	}

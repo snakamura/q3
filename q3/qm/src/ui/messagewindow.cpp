@@ -18,6 +18,7 @@
 #include <qskeymap.h>
 #include <qsprofile.h>
 
+#include "encodingmodel.h"
 #include "headerwindow.h"
 #include "keymap.h"
 #include "messagemodel.h"
@@ -48,6 +49,7 @@ class qm::MessageWindowImpl :
 	public MessageModelHandler,
 	public MessageViewModeHandler,
 	public MessageViewModeHolderHandler,
+	public EncodingModelHandler,
 	public SecurityModelHandler,
 	public MessageViewWindowCallback
 {
@@ -92,6 +94,9 @@ public:
 	virtual void messageViewModeChanged(const MessageViewModeHolderEvent& event);
 
 public:
+	virtual void encodingChanged(const EncodingModelEvent& event);
+
+public:
 	virtual void securityModeChanged(const SecurityModelEvent& event);
 
 public:
@@ -113,6 +118,7 @@ public:
 	std::auto_ptr<Accelerator> pAccelerator_;
 	Document* pDocument_;
 	MessageViewModeHolder* pMessageViewModeHolder_;
+	EncodingModel* pEncodingModel_;
 	SecurityModel* pSecurityModel_;
 	HeaderWindow* pHeaderWindow_;
 	MessageViewWindow* pMessageViewWindow_;
@@ -124,7 +130,6 @@ public:
 	std::auto_ptr<MessageViewWindowFactory> pFactory_;
 	
 	unsigned int nMode_;
-	wstring_ptr wstrEncoding_;
 	wstring_ptr wstrTemplate_;
 	unsigned int nSeenWait_;
 	
@@ -168,7 +173,7 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	bool bActive = pThis_->isActive();
 	
 	if (bResetEncoding)
-		wstrEncoding_.reset(0);
+		pEncodingModel_->setEncoding(0);
 	
 	Account* pAccount = pMessageModel_->getCurrentAccount();
 	assert(!pmh || pmh->getFolder()->getAccount() == pAccount);
@@ -241,7 +246,8 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 			// TODO
 			// Get selected
 			TemplateContext context(pmh, &msg, MessageHolderList(), pAccount,
-				pDocument_, pThis_->getHandle(), pSecurityModel_->getSecurityMode(),
+				pDocument_, pThis_->getHandle(), pEncodingModel_->getEncoding(),
+				pSecurityModel_->getSecurityMode(),
 				pProfile_, 0, TemplateContext::ArgumentList());
 			pHeaderWindow_->setMessage(&context);
 		}
@@ -263,7 +269,7 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 		(!bShowHeaderWindow_ ? MessageViewWindow::FLAG_INCLUDEHEADER : 0) |
 		(pMode && pMode->isMode(MessageViewMode::MODE_HTMLONLINE) ? MessageViewWindow::FLAG_ONLINEMODE : 0);
 	if (!pMessageViewWindow->setMessage(pmh, pmh ? &msg : 0,
-		pTemplate, wstrEncoding_.get(), nFlags, pSecurityModel_->getSecurityMode()))
+		pTemplate, pEncodingModel_->getEncoding(), nFlags, pSecurityModel_->getSecurityMode()))
 		return false;
 	if (bActive)
 		pThis_->setActive();
@@ -352,6 +358,12 @@ void qm::MessageWindowImpl::messageViewModeChanged(const MessageViewModeHolderEv
 	pMessageViewWindow_->setQuoteMode(pNew && pNew->isMode(MessageViewMode::MODE_QUOTE));
 }
 
+void qm::MessageWindowImpl::encodingChanged(const EncodingModelEvent& event)
+{
+	MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
+	setMessage(mpl, false);
+}
+
 void qm::MessageWindowImpl::securityModeChanged(const SecurityModelEvent& event)
 {
 	MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
@@ -430,26 +442,6 @@ void qm::MessageWindow::setShowHeaderWindow(bool bShow)
 	if (bShow != pImpl_->bShowHeaderWindow_) {
 		pImpl_->bShowHeaderWindow_ = bShow;
 		pImpl_->layoutChildren();
-	}
-}
-
-const WCHAR* qm::MessageWindow::getEncoding() const
-{
-	return pImpl_->wstrEncoding_.get();
-}
-
-void qm::MessageWindow::setEncoding(const WCHAR* pwszEncoding)
-{
-	if (!((pwszEncoding && pImpl_->wstrEncoding_.get() &&
-		wcscmp(pwszEncoding, pImpl_->wstrEncoding_.get()) == 0) ||
-		(!pwszEncoding && !pImpl_->wstrEncoding_.get()))) {
-		if (pwszEncoding)
-			pImpl_->wstrEncoding_ = allocWString(pwszEncoding);
-		else
-			pImpl_->wstrEncoding_.reset(0);
-		
-		MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
-		pImpl_->setMessage(mpl, false);
 	}
 }
 
@@ -572,6 +564,8 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pDocument_ = pContext->pDocument_;
 	pImpl_->pMessageViewModeHolder_ = pContext->pMessageViewModeHolder_;
 	pImpl_->pMessageViewModeHolder_->addMessageViewModeHolderHandler(pImpl_);
+	pImpl_->pEncodingModel_ = pContext->pEncodingModel_;
+	pImpl_->pEncodingModel_->addEncodingModelHandler(pImpl_);
 	pImpl_->pSecurityModel_ = pContext->pSecurityModel_;
 	pImpl_->pSecurityModel_->addSecurityModelHandler(pImpl_);
 	
@@ -584,8 +578,7 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	std::auto_ptr<HeaderWindow> pHeaderWindow(new HeaderWindow(pImpl_->pProfile_));
 	HeaderWindowCreateContext context = {
 		pContext->pDocument_,
-		pContext->pUIManager_->getMenuManager(),
-		pContext->pSecurityModel_
+		pContext->pUIManager_->getMenuManager()
 	};
 	if (!pHeaderWindow->create(L"QmHeaderWindow", 0, WS_VISIBLE | WS_CHILD,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
@@ -622,6 +615,7 @@ LRESULT qm::MessageWindow::onDestroy()
 		pMode->removeMessageViewModeHandler(pImpl_);
 	
 	pImpl_->pMessageViewModeHolder_->removeMessageViewModeHolderHandler(pImpl_);
+	pImpl_->pEncodingModel_->removeEncodingModelHandler(pImpl_);
 	pImpl_->pSecurityModel_->removeSecurityModelHandler(pImpl_);
 	pImpl_->pMessageModel_->removeMessageModelHandler(pImpl_);
 	

@@ -982,8 +982,8 @@ STDMETHODIMP qmscript::MacroImpl::evaluate(IMessageHolder* pMessageHolder,
 	// TODO
 	// Get selected?
 	MacroContext context(pmh, pmh ? &msg : 0, MessageHolderList(),
-		static_cast<AccountObj*>(pAccount)->getAccount(),
-		pDocument_, hwnd_, pProfile_, false, true, 0, &variable);
+		static_cast<AccountObj*>(pAccount)->getAccount(), pDocument_, hwnd_,
+		pProfile_, false, 0, SECURITYMODE_NONE, 0, &variable);
 	MacroValuePtr pValue(pMacro_->value(&context));
 	if (!pValue.get())
 		return E_FAIL;

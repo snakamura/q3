@@ -10,6 +10,7 @@
 #define __HEADERWINDOW_H__
 
 #include <qm.h>
+#include <qmsecurity.h>
 
 #include <qsdragdrop.h>
 #include <qsmenu.h>
@@ -253,8 +254,7 @@ class AttachmentHeaderItem :
 #endif
 {
 public:
-	AttachmentHeaderItem(SecurityModel* pSecurityModel,
-						 qs::MenuManager* pMenuManager);
+	explicit AttachmentHeaderItem(qs::MenuManager* pMenuManager);
 	virtual ~AttachmentHeaderItem();
 
 public:
@@ -331,10 +331,10 @@ private:
 
 private:
 	AttachmentWindow wnd_;
-	SecurityModel* pSecurityModel_;
 	qs::MenuManager* pMenuManager_;
-	Document* pDocument_;
 	qs::WindowBase* pParent_;
+	Document* pDocument_;
+	unsigned int nSecurityMode_;
 };
 
 
@@ -348,7 +348,6 @@ class HeaderWindowContentHandler : public qs::DefaultHandler
 {
 public:
 	HeaderWindowContentHandler(LineLayout* pLayout,
-							   SecurityModel* pSecurityModel,
 							   qs::MenuManager* pMenuManager);
 	virtual ~HeaderWindowContentHandler();
 
@@ -385,7 +384,6 @@ private:
 
 private:
 	LineLayout* pLayout_;
-	SecurityModel* pSecurityModel_;
 	qs::MenuManager* pMenuManager_;
 	HeaderLine* pCurrentLine_;
 	HeaderItem* pCurrentItem_;
@@ -405,7 +403,6 @@ struct HeaderWindowCreateContext
 {
 	Document* pDocument_;
 	qs::MenuManager* pMenuManager_;
-	SecurityModel* pSecurityModel_;
 };
 
 }

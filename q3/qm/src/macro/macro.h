@@ -168,6 +168,7 @@ public:
 					   HWND hwnd,
 					   qs::Profile* pProfile,
 					   bool bGetMessageAsPossible,
+					   const WCHAR* pwszBodyCharset,
 					   unsigned int nSecurityMode,
 					   MacroErrorHandler* pErrorHandler,
 					   MacroVariableHolder* pGlobalVariable);
@@ -179,6 +180,7 @@ public:
 	HWND getWindow() const;
 	qs::Profile* getProfile() const;
 	bool isGetMessageAsPossible() const;
+	const WCHAR* getBodyCharset() const;
 	unsigned int getSecurityMode() const;
 	MacroErrorHandler* getErrorHandler() const;
 	MacroContext::ReturnType getReturnType() const;
@@ -209,6 +211,7 @@ private:
 	HWND hwnd_;
 	qs::Profile* pProfile_;
 	bool bGetMessageAsPossible_;
+	qs::wstring_ptr wstrBodyCharset_;
 	unsigned int nSecurityMode_;
 	MacroErrorHandler* pErrorHandler_;
 	MacroVariableHolder* pGlobalVariable_;

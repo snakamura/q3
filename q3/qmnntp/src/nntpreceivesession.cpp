@@ -8,6 +8,7 @@
 
 #include <qmdocument.h>
 #include <qmmessage.h>
+#include <qmsecurity.h>
 
 #include <qsthread.h>
 
@@ -661,7 +662,7 @@ std::auto_ptr<MacroContext> qmnntp::NntpSyncFilterCallback::getMacroContext()
 	
 	return std::auto_ptr<MacroContext>(new MacroContext(pmh_.get(),
 		pMessage_, MessageHolderList(), pAccount_, pDocument_,
-		hwnd_, pProfile_, false, false, 0, pGlobalVariable_));
+		hwnd_, pProfile_, false, 0, SECURITYMODE_NONE, 0, pGlobalVariable_));
 }
 
 

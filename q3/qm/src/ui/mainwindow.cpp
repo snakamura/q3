@@ -40,6 +40,7 @@
 
 #include "attachmentselectionmodel.h"
 #include "editframewindow.h"
+#include "encodingmodel.h"
 #include "externaleditor.h"
 #include "foldercombobox.h"
 #include "folderlistmodel.h"
@@ -247,6 +248,7 @@ public:
 	std::auto_ptr<PreviewMessageModel> pPreviewModel_;
 	std::auto_ptr<MessageSelectionModelImpl> pMessageSelectionModel_;
 	std::auto_ptr<MessageSelectionModelImpl> pListOnlyMessageSelectionModel_;
+	std::auto_ptr<EncodingModel> pEncodingModel_;
 	std::auto_ptr<DefaultSecurityModel> pSecurityModel_;
 	MessageViewModeHolder* pMessageViewModeHolder_;
 	std::auto_ptr<MessageFrameWindowManager> pMessageFrameWindowManager_;
@@ -481,9 +483,10 @@ void qm::MainWindowImpl::initActions()
 		pSyncManager_,
 		pTempFileCleaner_,
 		pEditFrameWindowManager_.get());
-	ADD_ACTION5(FileExportAction,
+	ADD_ACTION6(FileExportAction,
 		IDM_FILE_EXPORT,
 		pMessageSelectionModel_.get(),
+		pEncodingModel_.get(),
 		pSecurityModel_.get(),
 		pDocument_,
 		pProfile_,
@@ -504,10 +507,11 @@ void qm::MainWindowImpl::initActions()
 		IDM_FILE_OFFLINE,
 		pDocument_,
 		pSyncManager_);
-	ADD_ACTION6(FilePrintAction,
+	ADD_ACTION7(FilePrintAction,
 		IDM_FILE_PRINT,
 		pDocument_,
 		pMessageSelectionModel_.get(),
+		pEncodingModel_.get(),
 		pSecurityModel_.get(),
 		pThis_->getHandle(),
 		pProfile_,
@@ -594,26 +598,28 @@ void qm::MainWindowImpl::initActions()
 		pDocument_,
 		pThis_->getHandle(),
 		pProfile_);
-	ADD_ACTION_RANGE10(MessageApplyTemplateAction,
+	ADD_ACTION_RANGE11(MessageApplyTemplateAction,
 		IDM_MESSAGE_APPLYTEMPLATE,
 		IDM_MESSAGE_APPLYTEMPLATE + TemplateMenu::MAX_TEMPLATE,
 		pCreateTemplateMenu_.get(),
 		pDocument_,
 		pFolderModel_.get(),
 		pMessageSelectionModel_.get(),
+		pEncodingModel_.get(),
 		pSecurityModel_.get(),
 		pEditFrameWindowManager_.get(),
 		pExternalEditorManager_.get(),
 		pThis_->getHandle(),
 		pProfile_,
 		false);
-	ADD_ACTION_RANGE10(MessageApplyTemplateAction,
+	ADD_ACTION_RANGE11(MessageApplyTemplateAction,
 		IDM_MESSAGE_APPLYTEMPLATEEXTERNAL,
 		IDM_MESSAGE_APPLYTEMPLATEEXTERNAL + TemplateMenu::MAX_TEMPLATE,
 		pCreateTemplateExternalMenu_.get(),
 		pDocument_,
 		pFolderModel_.get(),
 		pMessageSelectionModel_.get(),
+		pEncodingModel_.get(),
 		pSecurityModel_.get(),
 		pEditFrameWindowManager_.get(),
 		pExternalEditorManager_.get(),
@@ -646,11 +652,12 @@ void qm::MainWindowImpl::initActions()
 		{ IDM_MESSAGE_REPLYALL,	IDM_MESSAGE_REPLYALLEXTERNAL,	L"reply_all"	},
 	};
 	for (int n = 0; n < countof(creates); ++n) {
-		ADD_ACTION10(MessageCreateAction,
+		ADD_ACTION11(MessageCreateAction,
 			creates[n].nId_,
 			pDocument_,
 			pFolderModel_.get(),
 			pMessageSelectionModel_.get(),
+			pEncodingModel_.get(),
 			pSecurityModel_.get(),
 			creates[n].pwszName_,
 			pEditFrameWindowManager_.get(),
@@ -658,11 +665,12 @@ void qm::MainWindowImpl::initActions()
 			pThis_->getHandle(),
 			pProfile_,
 			false);
-		ADD_ACTION10(MessageCreateAction,
+		ADD_ACTION11(MessageCreateAction,
 			creates[n].nIdExternal_,
 			pDocument_,
 			pFolderModel_.get(),
 			pMessageSelectionModel_.get(),
+			pEncodingModel_.get(),
 			pSecurityModel_.get(),
 			creates[n].pwszName_,
 			pEditFrameWindowManager_.get(),
@@ -876,11 +884,11 @@ void qm::MainWindowImpl::initActions()
 		Security::isPGPEnabled());
 	ADD_ACTION1(ViewEncodingAction,
 		IDM_VIEW_ENCODINGAUTODETECT,
-		pMessageWindow_);
+		pEncodingModel_.get());
 	ADD_ACTION_RANGE2(ViewEncodingAction,
 		IDM_VIEW_ENCODING,
 		IDM_VIEW_ENCODING + EncodingMenu::MAX_ENCODING,
-		pMessageWindow_,
+		pEncodingModel_.get(),
 		pEncodingMenu_.get());
 	ADD_ACTION_RANGE2(ViewFilterAction,
 		IDM_VIEW_FILTER,
@@ -1284,7 +1292,7 @@ void qm::MainWindowImpl::messageChanged(const MessageWindowEvent& event)
 	if (bShowStatusBar_) {
 		ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 		statusBarInfo_.update(pDocument_, pViewModel, L"", pStatusBar_);
-		UIUtil::updateStatusBar(pMessageWindow_, pStatusBar_, 2,
+		UIUtil::updateStatusBar(pMessageWindow_, pEncodingModel_.get(), pStatusBar_, 2,
 			event.getMessageHolder(), event.getMessage(), event.getContentType());
 	}
 }
@@ -1931,6 +1939,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	pImpl_->pFolderModel_.reset(new DefaultFolderModel());
 	pImpl_->pFolderListModel_.reset(new FolderListModel());
+	pImpl_->pEncodingModel_.reset(new DefaultEncodingModel());
 	pImpl_->pSecurityModel_.reset(new DefaultSecurityModel(
 		pImpl_->pProfile_->getInt(L"MainWindow", L"SecurityMode", 0)));
 	pImpl_->pViewModelManager_.reset(new ViewModelManager(pImpl_->pUIManager_,
@@ -2051,6 +2060,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pContext->pDocument_,
 		pContext->pUIManager_,
 		pImpl_->pMessageViewModeHolder_,
+		pImpl_->pEncodingModel_.get(),
 		pImpl_->pSecurityModel_.get(),
 	};
 	if (!pMessageWindow->create(L"QmMessageWindow",

@@ -29,6 +29,7 @@ class DefaultPasswordManagerCallback;
 class DefaultPasswordCallback;
 
 class Account;
+class EncodingModel;
 class Folder;
 class Message;
 class MessageHolder;
@@ -70,6 +71,7 @@ public:
 							  bool bSelected);
 	
 	static void updateStatusBar(MessageWindow* pMessageWindow,
+								EncodingModel* pEncodingModel,
 								StatusBar* pStatusBar,
 								int nOffset,
 								MessageHolder* pmh,
