@@ -46,7 +46,7 @@
 				<menuitem text="Quote Mode" action="ViewQuoteMode"/>
 				<menuitem text="Select Mode" action="ViewSelectMode"/>
 				<separator/>
-				<menuitem text="SMIME Mode" action="ViewDecryptVerifyMode"/>
+				<menuitem text="S/MIME Mode" action="ViewSMIMEMode"/>
 			</popupmenu>
 			<popupmenu text="Sort" action="ViewSort"/>
 			<popupmenu text="Filter" action="ViewFilter"/>
@@ -146,7 +146,7 @@
 				<menuitem text="Quote Mode" action="ViewQuoteMode"/>
 				<menuitem text="Select Mode" action="ViewSelectMode"/>
 				<separator/>
-				<menuitem text="SMIME Mode" action="ViewDecryptVerifyMode"/>
+				<menuitem text="S/MIME Mode" action="ViewSMIMEMode"/>
 			</popupmenu>
 			<popupmenu text="Template" action="ViewTemplate"/>
 			<popupmenu text="Encoding" action="ViewEncoding"/>

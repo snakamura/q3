@@ -61,7 +61,7 @@
 				<menuitem text="&amp;HTML Mode" action="ViewHtmlMode"/>
 				<menuitem text="HTML &amp;Online Mode" action="ViewHtmlOnlineMode"/>
 				<separator/>
-				<menuitem text="S&amp;MIME Mode" action="ViewDecryptVerifyMode"/>
+				<menuitem text="S/&amp;MIME Mode" action="ViewSMIMEMode"/>
 			</popupmenu>
 			<popupmenu text="&amp;Sort" action="ViewSort"/>
 			<popupmenu text="&amp;Filter" action="ViewFilter"/>
@@ -163,7 +163,7 @@
 				<menuitem text="&amp;HTML Mode" action="ViewHtmlMode"/>
 				<menuitem text="HTML &amp;Online Mode" action="ViewHtmlOnlineMode"/>
 				<separator/>
-				<menuitem text="S&amp;MIME Mode" action="ViewDecryptVerifyMode"/>
+				<menuitem text="S/&amp;MIME Mode" action="ViewSMIMEMode"/>
 			</popupmenu>
 			<popupmenu text="&amp;Template" action="ViewTemplate"/>
 			<popupmenu text="&amp;Encoding" action="ViewEncoding"/>
