@@ -474,8 +474,8 @@ int CALLBACK itemComp(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 	const WCHAR* p2 = 0;
 	switch (lParamSort & AddressBookDialog::SORT_TYPE_MASK) {
 	case AddressBookDialog::SORT_NAME:
-		p1 = pAddress1->getEntry()->getName();
-		p2 = pAddress2->getEntry()->getName();
+		p1 = pAddress1->getEntry()->getSortKey();
+		p2 = pAddress2->getEntry()->getSortKey();
 		break;
 	case AddressBookDialog::SORT_ADDRESS:
 		p1 = pAddress1->getAddress();

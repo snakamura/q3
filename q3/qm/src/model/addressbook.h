@@ -188,10 +188,12 @@ public:
 public:
 	bool isWAB() const;
 	const WCHAR* getName() const;
+	const WCHAR* getSortKey() const;
 	const AddressList& getAddresses() const;
 
 public:
 	void setName(qs::WSTRING wstrName);
+	void setSortKey(qs::WSTRING wstrSortKey);
 	qs::QSTATUS addAddress(AddressBookAddress* pAddress);
 
 private:
@@ -201,6 +203,7 @@ private:
 private:
 	bool bWAB_;
 	qs::WSTRING wstrName_;
+	qs::WSTRING wstrSortKey_;
 	AddressList listAddress_;
 };
 
@@ -274,6 +277,7 @@ private:
 		STATE_ADDRESSBOOK,
 		STATE_ENTRY,
 		STATE_NAME,
+		STATE_SORTKEY,
 		STATE_ADDRESSES,
 		STATE_ADDRESS
 	};
