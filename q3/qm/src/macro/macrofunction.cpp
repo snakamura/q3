@@ -969,23 +969,8 @@ QSTATUS qm::MacroFunctionContain::value(
 			bResult = _wcsnicmp(wstrLhs.get(), wstrRhs.get(), nRhsLen) == 0;
 		}
 		else {
-			if (!bCase) {
-				string_ptr<WSTRING> wstrRhsLower(tolower(wstrRhs.get()));
-				if (!wstrRhsLower.get())
-					return QSTATUS_OUTOFMEMORY;
-				string_ptr<WSTRING> wstrRhsUpper(toupper(wstrRhs.get()));
-				if (!wstrRhsUpper.get())
-					return QSTATUS_OUTOFMEMORY;
-				if (wcscmp(wstrRhsLower.get(), wstrRhsUpper.get()) != 0) {
-					string_ptr<WSTRING> wstrLhsLower(tolower(wstrLhs.get()));
-					if (!wstrLhsLower.get())
-						return QSTATUS_OUTOFMEMORY;
-					wstrLhs.reset(wstrLhsLower.release());
-				}
-				wstrRhs.reset(wstrRhsLower.release());
-			}
-			
-			BMFindString<WSTRING> bmfs(wstrRhs.get(), &status);
+			BMFindString<WSTRING> bmfs(wstrRhs.get(), wcslen(wstrRhs.get()),
+				bCase ? 0 : BMFindString<WSTRING>::FLAG_IGNORECASE, &status);
 			CHECK_QSTATUS();
 			bResult = bmfs.find(wstrLhs.get()) != 0;
 		}
@@ -4828,25 +4813,9 @@ QSTATUS qm::MacroFunctionSubstringSep::value(
 	
 	string_ptr<WSTRING> wstrLower;
 	const WCHAR* pwsz = wstr.get();
-	if (!bCase) {
-		string_ptr<WSTRING> wstrSepLower(tolower(wstrSep.get()));
-		if (!wstrSepLower.get())
-			return QSTATUS_OUTOFMEMORY;
-		
-		string_ptr<WSTRING> wstrSepUpper(toupper(wstrSep.get()));
-		if (!wstrSepUpper.get())
-			return QSTATUS_OUTOFMEMORY;
-		
-		if (wcscmp(wstrSepLower.get(), wstrSepUpper.get()) == 0) {
-			wstrLower.reset(tolower(wstr.get()));
-			if (!wstrLower.get())
-				return QSTATUS_OUTOFMEMORY;
-			wstrSep.reset(wstrSepLower.release());
-			pwsz = wstrLower.get();
-		}
-	}
 	
-	BMFindString<WSTRING> bmfs(wstrSep.get(), &status);
+	BMFindString<WSTRING> bmfs(wstrSep.get(), wcslen(wstrSep.get()),
+		bCase ? 0 : BMFindString<WSTRING>::FLAG_IGNORECASE, &status);
 	CHECK_QSTATUS();
 	const WCHAR* p = bmfs.find(pwsz);
 	if (!p) {
