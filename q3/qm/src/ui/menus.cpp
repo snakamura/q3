@@ -496,11 +496,12 @@ bool qm::RecentsMenu::createMenu(HMENU hmenu)
 	Lock<Recents> lock(*pRecents);
 	
 	unsigned int nCount = pRecents->getCount();
+	unsigned int nOffset = nCount > MAX_RECENTS ? nCount - MAX_RECENTS : 0;
 	
 	typedef std::vector<const WCHAR*> List;
 	List l;
 	l.resize(nCount);
-	for (unsigned int n = 0; n < nCount; ++n)
+	for (unsigned int n = nOffset; n < nCount; ++n)
 		l[n] = pRecents->get(n);
 	std::sort(l.begin(), l.end(), URIComp());
 	
