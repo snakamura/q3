@@ -34,7 +34,9 @@ public:
 	static void reportError(Pop3* pPop3,
 							qm::SessionCallback* pSessionCallback,
 							qm::Account* pAccount,
-							qm::SubAccount* pSubAccount);
+							qm::SubAccount* pSubAccount,
+							qm::NormalFolder* pFolder,
+							unsigned int nPop3Error);
 	static Pop3::Secure getSecure(qm::SubAccount* pSubAccount);
 	static qm::PasswordState getUserInfo(qm::SubAccount* pSubAccount,
 										 qm::Account::Host host,

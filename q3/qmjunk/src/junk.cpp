@@ -70,7 +70,7 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 		Lock<CriticalSection> lock(cs_);
 		
 		if (!init()) {
-			return 0.0F;
+			return -1.0F;
 		}
 		else if (nCleanCount_ < 100 || nJunkCount_ == 0) {
 			log.debug(L"Filter a message as clean because it has not learned enough clean messages.");
@@ -194,7 +194,7 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 		const unsigned int nMax_;
 	} callback(pDepotToken_, nCleanCount_, nJunkCount_, cs_);
 	if (!Tokenizer(nMaxTextLen_).getTokens(msg, &callback))
-		return 0.0F;
+		return -1.0F;
 	
 	typedef TokenizerCallbackImpl::TokenRateList List;
 	List& l = callback.listTokenRate_;

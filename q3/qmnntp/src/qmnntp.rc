@@ -179,6 +179,12 @@ BEGIN
     IDS_ERROR_POST          "Error occured while POST command."
 END
 
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_FILTERJUNK    "Error occuered while filtering junks."
+    IDS_ERROR_MANAGEJUNK    "Error occuered while managing junks."
+END
+
 #endif    // “ú–{Œê resources
 /////////////////////////////////////////////////////////////////////////////
 

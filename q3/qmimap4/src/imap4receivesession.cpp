@@ -20,6 +20,7 @@
 
 #include "imap4.h"
 #include "imap4driver.h"
+#include "imap4error.h"
 #include "imap4receivesession.h"
 #include "main.h"
 #include "offlinejob.h"
@@ -36,7 +37,7 @@ using namespace qs;
 
 #define HANDLE_ERROR() \
 	do { \
-		reportError(); \
+		reportError(pImap4_.get(), 0); \
 		return false; \
 	} while (false) \
 
@@ -1083,7 +1084,11 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 					MessagePtrLock mpl(listMessageData[n].getMessagePtr());
 					if (mpl && !mpl->isFlag(MessageHolder::FLAG_DELETED) &&
 						mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg)) {
-						if (pJunkFilter->getScore(msg) > pJunkFilter->getThresholdScore()) {
+						float fScore = pJunkFilter->getScore(msg);
+						if (fScore < 0) {
+							reportError(0, IMAP4ERROR_FILTERJUNK);
+						}
+						else if (fScore > pJunkFilter->getThresholdScore()) {
 							listJunk.push_back(mpl->getId());
 							mpl->setFlags(MessageHolder::FLAG_DELETED, MessageHolder::FLAG_DELETED);
 							nOperation = JunkFilter::OPERATION_ADDJUNK;
@@ -1095,8 +1100,10 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 						}
 					}
 				}
-				if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN && nOperation != 0)
-					pJunkFilter->manage(msg, nOperation);
+				if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN && nOperation != 0) {
+					if (!pJunkFilter->manage(msg, nOperation))
+						reportError(0, IMAP4ERROR_MANAGEJUNK);
+				}
 				
 				pSessionCallback_->setPos(n);
 			}
@@ -1532,15 +1539,18 @@ bool qmimap4::Imap4ReceiveSession::processStatusResponse(ResponseStatus* pStatus
 	return true;
 }
 
-void qmimap4::Imap4ReceiveSession::reportError()
+void qmimap4::Imap4ReceiveSession::reportError(Imap4* pImap4,
+											   unsigned int nImap4Error)
 {
-	assert(pImap4_.get());
-	
 	struct
 	{
 		unsigned int nError_;
 		UINT nId_;
 	} maps[][23] = {
+		{
+			{ IMAP4ERROR_FILTERJUNK,	IDS_ERROR_FILTERJUNK	},
+			{ IMAP4ERROR_MANAGEJUNK,	IDS_ERROR_MANAGEJUNK	}
+		},
 		{
 			{ Imap4::IMAP4_ERROR_GREETING,		IDS_ERROR_GREETING		},
 			{ Imap4::IMAP4_ERROR_LOGIN,			IDS_ERROR_LOGIN			},
@@ -1595,8 +1605,9 @@ void qmimap4::Imap4ReceiveSession::reportError()
 		}
 	};
 	
-	unsigned int nError = pImap4_->getLastError();
+	unsigned int nError = (pImap4 ? pImap4->getLastError() : 0) | nImap4Error;
 	unsigned int nMasks[] = {
+		IMAP4ERROR_MASK,
 		Imap4::IMAP4_ERROR_MASK_HIGHLEVEL,
 		Imap4::IMAP4_ERROR_MASK_LOWLEVEL,
 		Socket::SOCKET_ERROR_MASK_SOCKET
@@ -1615,9 +1626,10 @@ void qmimap4::Imap4ReceiveSession::reportError()
 		wstrDescriptions[0].get(),
 		wstrDescriptions[1].get(),
 		wstrDescriptions[2].get(),
-		pImap4_->getLastErrorResponse()
+		wstrDescriptions[3].get(),
+		pImap4 ? pImap4->getLastErrorResponse() : 0
 	};
-	SessionErrorInfo info(pAccount_, pSubAccount_, 0, wstrMessage.get(),
+	SessionErrorInfo info(pAccount_, pSubAccount_, pFolder_, wstrMessage.get(),
 		nError, pwszDescription, countof(pwszDescription));
 	pSessionCallback_->addError(info);
 }

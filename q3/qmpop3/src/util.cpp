@@ -8,6 +8,7 @@
 
 #include "main.h"
 #include "pop3.h"
+#include "pop3error.h"
 #include "resourceinc.h"
 #include "util.h"
 
@@ -25,9 +26,10 @@ using namespace qs;
 void qmpop3::Util::reportError(Pop3* pPop3,
 							   SessionCallback* pSessionCallback,
 							   Account* pAccount,
-							   SubAccount* pSubAccount)
+							   SubAccount* pSubAccount,
+							   NormalFolder* pFolder,
+							   unsigned int nPop3Error)
 {
-	assert(pPop3);
 	assert(pSessionCallback);
 	assert(pAccount);
 	assert(pSubAccount);
@@ -37,6 +39,10 @@ void qmpop3::Util::reportError(Pop3* pPop3,
 		unsigned int nError_;
 		UINT nId_;
 	} maps[][13] = {
+		{
+			{ POP3ERROR_FILTERJUNK,	IDS_ERROR_FILTERJUNK	},
+			{ POP3ERROR_MANAGEJUNK,	IDS_ERROR_MANAGEJUNK	}
+		},
 		{
 			{ Pop3::POP3_ERROR_GREETING,	IDS_ERROR_GREETING	},
 			{ Pop3::POP3_ERROR_APOP,		IDS_ERROR_APOP		},
@@ -82,8 +88,9 @@ void qmpop3::Util::reportError(Pop3* pPop3,
 		}
 	};
 	
-	unsigned int nError = pPop3->getLastError();
+	unsigned int nError = (pPop3 ? pPop3->getLastError() : 0) | nPop3Error;
 	unsigned int nMasks[] = {
+		POP3ERROR_MASK,
 		Pop3::POP3_ERROR_MASK_HIGHLEVEL,
 		Pop3::POP3_ERROR_MASK_LOWLEVEL,
 		Socket::SOCKET_ERROR_MASK_SOCKET
@@ -103,9 +110,10 @@ void qmpop3::Util::reportError(Pop3* pPop3,
 		wstrDescriptions[0].get(),
 		wstrDescriptions[1].get(),
 		wstrDescriptions[2].get(),
-		pPop3->getLastErrorResponse()
+		wstrDescriptions[3].get(),
+		pPop3 ? pPop3->getLastErrorResponse() : 0
 	};
-	SessionErrorInfo info(pAccount, pSubAccount, 0, wstrMessage.get(),
+	SessionErrorInfo info(pAccount, pSubAccount, pFolder, wstrMessage.get(),
 		nError, pwszDescription, countof(pwszDescription));
 	pSessionCallback->addError(info);
 }

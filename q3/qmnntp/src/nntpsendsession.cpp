@@ -23,7 +23,8 @@ using namespace qs;
 
 #define HANDLE_ERROR() \
 	do { \
-		Util::reportError(pNntp_.get(), pSessionCallback_, pAccount_, pSubAccount_); \
+		Util::reportError(pNntp_.get(), pSessionCallback_, \
+			pAccount_, pSubAccount_, 0, 0); \
 		return false; \
 	} while (false) \
 

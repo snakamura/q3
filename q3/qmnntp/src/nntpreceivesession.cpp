@@ -14,6 +14,7 @@
 
 #include "lastid.h"
 #include "main.h"
+#include "nntperror.h"
 #include "nntpreceivesession.h"
 #include "resourceinc.h"
 #include "ui.h"
@@ -26,7 +27,8 @@ using namespace qs;
 
 #define HANDLE_ERROR() \
 	do { \
-		Util::reportError(pNntp_.get(), pSessionCallback_, pAccount_, pSubAccount_); \
+		Util::reportError(pNntp_.get(), pSessionCallback_, \
+			pAccount_, pSubAccount_, pFolder_, 0); \
 		return false; \
 	} while (false) \
 
@@ -455,8 +457,14 @@ bool qmnntp::NntpReceiveSession::storeMessage(const CHAR* pszMessage,
 	bool bJunk = false;
 	Message msgJunk;
 	if (pJunkFilter) {
-		if (msgJunk.create(pszMessage, nLen, Message::FLAG_NONE))
-			bJunk = pJunkFilter->getScore(msgJunk) > pJunkFilter->getThresholdScore();
+		if (msgJunk.create(pszMessage, nLen, Message::FLAG_NONE)) {
+			float fScore = pJunkFilter->getScore(msgJunk);
+			if (fScore < 0)
+				Util::reportError(0, pSessionCallback_, pAccount_,
+					pSubAccount_, pFolder_, NNTPERROR_FILTERJUNK);
+			else
+				bJunk =  fScore > pJunkFilter->getThresholdScore();
+		}
 	}
 	
 	{
@@ -476,7 +484,9 @@ bool qmnntp::NntpReceiveSession::storeMessage(const CHAR* pszMessage,
 	if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN) {
 		unsigned int nJunkOperation = bJunk ?
 			JunkFilter::OPERATION_ADDJUNK : JunkFilter::OPERATION_ADDCLEAN;
-		pJunkFilter->manage(msgJunk, nJunkOperation);
+		if (!pJunkFilter->manage(msgJunk, nJunkOperation))
+			Util::reportError(0, pSessionCallback_, pAccount_,
+				pSubAccount_, pFolder_, NNTPERROR_MANAGEJUNK);
 	}
 	
 	return true;

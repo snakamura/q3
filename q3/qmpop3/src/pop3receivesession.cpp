@@ -20,6 +20,7 @@
 
 #include "main.h"
 #include "pop3.h"
+#include "pop3error.h"
 #include "pop3receivesession.h"
 #include "resourceinc.h"
 #include "ui.h"
@@ -35,7 +36,8 @@ using namespace qs;
 
 #define HANDLE_ERROR() \
 	do { \
-		Util::reportError(pPop3_.get(), pSessionCallback_, pAccount_, pSubAccount_); \
+		Util::reportError(pPop3_.get(), pSessionCallback_, \
+			pAccount_, pSubAccount_, pFolder_, 0); \
 		return false; \
 	} while (false) \
 
@@ -306,8 +308,14 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 			bool bJunk = false;
 			Message msgJunk;
 			if (pJunkFilter) {
-				if (msgJunk.create(strMessage.get(), -1, Message::FLAG_NONE))
-					bJunk = pJunkFilter->getScore(msgJunk) > pJunkFilter->getThresholdScore();
+				if (msgJunk.create(strMessage.get(), -1, Message::FLAG_NONE)) {
+					float fScore = pJunkFilter->getScore(msgJunk);
+					if (fScore < 0)
+						Util::reportError(0, pSessionCallback_, pAccount_,
+							pSubAccount_, pFolder_, POP3ERROR_FILTERJUNK);
+					else
+						bJunk =  fScore > pJunkFilter->getThresholdScore();
+				}
 			}
 			
 			{
@@ -326,7 +334,9 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 			if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN) {
 				unsigned int nJunkOperation = bJunk ?
 					JunkFilter::OPERATION_ADDJUNK : JunkFilter::OPERATION_ADDCLEAN;
-				pJunkFilter->manage(msgJunk, nJunkOperation);
+				if (!pJunkFilter->manage(msgJunk, nJunkOperation))
+					Util::reportError(0, pSessionCallback_, pAccount_,
+						pSubAccount_, pFolder_, POP3ERROR_MANAGEJUNK);
 			}
 		}
 		

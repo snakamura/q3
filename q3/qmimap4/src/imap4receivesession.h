@@ -83,7 +83,8 @@ private:
 	bool processStatusResponse(ResponseStatus* pStatus);
 
 private:
-	void reportError();
+	void reportError(Imap4* pImap4,
+					 unsigned int nImap4Error);
 
 private:
 	Imap4ReceiveSession(const Imap4ReceiveSession&);

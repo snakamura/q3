@@ -63,6 +63,8 @@
 #define IDS_ERROR_SOCKET_SENDTIMEOUT    13008
 #define IDS_ERROR_SOCKET_CANCEL         13009
 #define IDS_ERROR_SOCKET_UNKNOWN        13010
+#define IDS_ERROR_FILTERJUNK            14000
+#define IDS_ERROR_MANAGEJUNK            14001
 
 // Next default values for new objects
 // 

@@ -36,7 +36,9 @@ public:
 	static void reportError(Nntp* pNntp,
 							qm::SessionCallback* pSessionCallback,
 							qm::Account* pAccount,
-							qm::SubAccount* pSubAccount);
+							qm::SubAccount* pSubAccount,
+							qm::NormalFolder* pFolder,
+							unsigned int nNntpError);
 	static qm::PasswordState getUserInfo(qm::SubAccount* pSubAccount,
 										 qm::Account::Host host,
 										 qm::PasswordCallback* pPasswordCallback,

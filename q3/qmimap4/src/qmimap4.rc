@@ -234,6 +234,12 @@ BEGIN
     IDS_ERROR_SSL           "Failed to initialize SSL."
 END
 
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_FILTERJUNK    "Erroro occuered while filtering junks."
+    IDS_ERROR_MANAGEJUNK    "Error occuered while managing junks."
+END
+
 #endif    // “ú–{Œê resources
 /////////////////////////////////////////////////////////////////////////////
 

@@ -10,6 +10,7 @@
 
 #include "main.h"
 #include "nntp.h"
+#include "nntperror.h"
 #include "resourceinc.h"
 #include "util.h"
 
@@ -27,9 +28,10 @@ using namespace qs;
 void qmnntp::Util::reportError(Nntp* pNntp,
 							   SessionCallback* pSessionCallback,
 							   Account* pAccount,
-							   SubAccount* pSubAccount)
+							   SubAccount* pSubAccount,
+							   NormalFolder* pFolder,
+							   unsigned int nNntpError)
 {
-	assert(pNntp);
 	assert(pSessionCallback);
 	assert(pAccount);
 	assert(pSubAccount);
@@ -39,6 +41,10 @@ void qmnntp::Util::reportError(Nntp* pNntp,
 		unsigned int nError_;
 		UINT nId_;
 	} maps[][12] = {
+		{
+			{ NNTPERROR_FILTERJUNK,	IDS_ERROR_FILTERJUNK	},
+			{ NNTPERROR_MANAGEJUNK,	IDS_ERROR_MANAGEJUNK	}
+		},
 		{
 			{ Nntp::NNTP_ERROR_GREETING,	IDS_ERROR_GREETING		},
 			{ Nntp::NNTP_ERROR_GROUP,		IDS_ERROR_GROUP			},
@@ -78,8 +84,9 @@ void qmnntp::Util::reportError(Nntp* pNntp,
 		}
 	};
 	
-	unsigned int nError = pNntp->getLastError();
+	unsigned int nError = (pNntp ? pNntp->getLastError() : 0) | nNntpError;
 	unsigned int nMasks[] = {
+		NNTPERROR_MASK,
 		Nntp::NNTP_ERROR_MASK_HIGHLEVEL,
 		Nntp::NNTP_ERROR_MASK_LOWLEVEL,
 		Socket::SOCKET_ERROR_MASK_SOCKET
@@ -99,9 +106,10 @@ void qmnntp::Util::reportError(Nntp* pNntp,
 		wstrDescriptions[0].get(),
 		wstrDescriptions[1].get(),
 		wstrDescriptions[2].get(),
-		pNntp->getLastErrorResponse()
+		wstrDescriptions[3].get(),
+		pNntp ? pNntp->getLastErrorResponse() : 0
 	};
-	SessionErrorInfo info(pAccount, pSubAccount, 0, wstrMessage.get(),
+	SessionErrorInfo info(pAccount, pSubAccount, pFolder, wstrMessage.get(),
 		nError, pwszDescription, countof(pwszDescription));
 	pSessionCallback->addError(info);
 }
