@@ -32,7 +32,9 @@ using namespace qs;
 
 qs::Tokenizer::Tokenizer(const CHAR* psz, size_t nLen,
 	unsigned int nFlags, QSTATUS* pstatus) :
-	str_(0), p_(0), nFlags_(nFlags)
+	str_(0),
+	p_(0),
+	nFlags_(nFlags)
 {
 	assert((nFlags_ & 0x0f00) == F_SPECIAL ||
 		(nFlags_ & 0x0f00) == F_TSPECIAL ||
@@ -1652,7 +1654,8 @@ QSTATUS qs::DateParser::parse(const Part& part,
 		return QSTATUS_SUCCESS;
 	}
 	
-	status = parse(strValue.get(), static_cast<size_t>(-1), &date_);
+	status = parse(strValue.get(), static_cast<size_t>(-1),
+		part.isOption(Part::O_ALLOW_SINGLE_DIGIT_TIME), &date_);
 	if (status == QSTATUS_FAIL) {
 		*pField = Part::FIELD_ERROR;
 	}
@@ -1678,7 +1681,8 @@ QSTATUS qs::DateParser::unparse(const Part& part, STRING* pstrValue) const
 	return *pstrValue ? QSTATUS_SUCCESS : QSTATUS_OUTOFMEMORY;
 }
 
-QSTATUS qs::DateParser::parse(const CHAR* psz, size_t nLen, Time* pTime)
+QSTATUS qs::DateParser::parse(const CHAR* psz, size_t nLen,
+	bool bAllowSingleDigitTime, Time* pTime)
 {
 	assert(psz);
 	assert(pTime);
@@ -1755,7 +1759,7 @@ QSTATUS qs::DateParser::parse(const CHAR* psz, size_t nLen, Time* pTime)
 		case S_YEAR:
 			if (token != Tokenizer::T_ATOM)
 				return QSTATUS_FAIL;
-			status = getHour(strToken.get(), &nHour);
+			status = getHour(strToken.get(), bAllowSingleDigitTime, &nHour);
 			CHECK_QSTATUS();
 			state = S_HOUR;
 			break;
@@ -1767,7 +1771,7 @@ QSTATUS qs::DateParser::parse(const CHAR* psz, size_t nLen, Time* pTime)
 		case S_HOURSEP:
 			if (token != Tokenizer::T_ATOM)
 				return QSTATUS_FAIL;
-			status = getMinute(strToken.get(), &nMinute);
+			status = getMinute(strToken.get(), bAllowSingleDigitTime, &nMinute);
 			CHECK_QSTATUS();
 			state = S_MINUTE;
 			break;
@@ -1787,7 +1791,7 @@ QSTATUS qs::DateParser::parse(const CHAR* psz, size_t nLen, Time* pTime)
 		case S_MINUTESEP:
 			if (token != Tokenizer::T_ATOM)
 				return QSTATUS_FAIL;
-			status = getSecond(strToken.get(), &nSecond);
+			status = getSecond(strToken.get(), bAllowSingleDigitTime, &nSecond);
 			CHECK_QSTATUS();
 			state = S_SECOND;
 			break;
@@ -1929,14 +1933,16 @@ QSTATUS qs::DateParser::getYear(const CHAR* psz, int* pnYear)
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::DateParser::getHour(const CHAR* psz, int* pnHour)
+QSTATUS qs::DateParser::getHour(const CHAR* psz,
+	bool bAllowSingleDigit, int* pnHour)
 {
 	assert(psz);
 	assert(pnHour);
 	
 	*pnHour = 0;
 	
-	if (strlen(psz) != 2 || !isDigit(psz))
+	size_t nLen = strlen(psz);
+	if ((nLen != 2 && (!bAllowSingleDigit || nLen != 1)) || !isDigit(psz))
 		return QSTATUS_FAIL;
 	
 	CHAR* pEnd = 0;
@@ -1947,14 +1953,16 @@ QSTATUS qs::DateParser::getHour(const CHAR* psz, int* pnHour)
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::DateParser::getMinute(const CHAR* psz, int* pnMinute)
+QSTATUS qs::DateParser::getMinute(const CHAR* psz,
+	bool bAllowSingleDigit, int* pnMinute)
 {
 	assert(psz);
 	assert(pnMinute);
 	
 	*pnMinute = 0;
 	
-	if (strlen(psz) != 2 || !isDigit(psz))
+	size_t nLen = strlen(psz);
+	if ((nLen != 2 && (!bAllowSingleDigit || nLen != 1)) || !isDigit(psz))
 		return QSTATUS_FAIL;
 	
 	CHAR* pEnd = 0;
@@ -1965,14 +1973,16 @@ QSTATUS qs::DateParser::getMinute(const CHAR* psz, int* pnMinute)
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::DateParser::getSecond(const CHAR* psz, int* pnSecond)
+QSTATUS qs::DateParser::getSecond(const CHAR* psz,
+	bool bAllowSingleDigit, int* pnSecond)
 {
 	assert(psz);
 	assert(pnSecond);
 	
 	*pnSecond = 0;
 	
-	if (strlen(psz) != 2 || !isDigit(psz))
+	size_t nLen = strlen(psz);
+	if ((nLen != 2 && (!bAllowSingleDigit || nLen != 1)) || !isDigit(psz))
 		return QSTATUS_FAIL;
 	
 	CHAR* pEnd = 0;

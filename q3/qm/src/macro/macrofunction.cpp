@@ -1118,7 +1118,8 @@ QSTATUS qm::MacroFunctionDate::value(
 		string_ptr<STRING> str(wcs2mbs(wstr.get()));
 		if (!str.get())
 			return QSTATUS_OUTOFMEMORY;
-		status = DateParser::parse(str.get(), static_cast<size_t>(-1), &time);
+		status = DateParser::parse(str.get(), static_cast<size_t>(-1),
+			Part::isGlobalOption(Part::O_ALLOW_SINGLE_DIGIT_TIME), &time);
 		if (status == QSTATUS_FAIL)
 			time = Time::getCurrentTime();
 		else

@@ -65,7 +65,8 @@ public:
 		O_ALLOW_INCOMPLETE_MULTIPART			= 0x00001000,
 		O_ALLOW_RAW_FIELD						= 0x00002000,
 		O_ALLOW_SPECIALS_IN_REFERENCES			= 0x00004000,
-		O_ALLOW_INVALID_PERIOD_IN_LOCALPART		= 0x00008000
+		O_ALLOW_INVALID_PERIOD_IN_LOCALPART		= 0x00008000,
+		O_ALLOW_SINGLE_DIGIT_TIME				= 0x00010000
 	};
 	
 	enum Field {
@@ -474,16 +475,17 @@ public:
 	virtual QSTATUS unparse(const Part& part, STRING* pstrValue) const;
 
 public:
-	static QSTATUS parse(const CHAR* psz, size_t nLen, Time* pTime);
+	static QSTATUS parse(const CHAR* psz, size_t nLen,
+		bool bAllowSingleDigitTime, Time* pTime);
 
 private:
 	static QSTATUS getWeek(const CHAR* psz, int* pnWeek);
 	static QSTATUS getDay(const CHAR* psz, int* pnDay);
 	static QSTATUS getMonth(const CHAR* psz, int* pnMonth);
 	static QSTATUS getYear(const CHAR* psz, int* pnYear);
-	static QSTATUS getHour(const CHAR* psz, int* pnHour);
-	static QSTATUS getMinute(const CHAR* psz, int* pnMinute);
-	static QSTATUS getSecond(const CHAR* psz, int* pnSecond);
+	static QSTATUS getHour(const CHAR* psz, bool bAllowSingleDigit, int* pnHour);
+	static QSTATUS getMinute(const CHAR* psz, bool bAllowSingleDigit, int* pnMinute);
+	static QSTATUS getSecond(const CHAR* psz, bool bAllowSingleDigit, int* pnSecond);
 	static QSTATUS getTimeZone(const CHAR* psz, int* pnTimezone);
 	static bool isDigit(const CHAR* psz);
 
