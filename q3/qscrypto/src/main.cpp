@@ -8,6 +8,8 @@
 
 #include <qs.h>
 
+#include <openssl/conf.h>
+#include <openssl/engine.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/ssl.h>
@@ -84,6 +86,11 @@ BOOL WINAPI DllMain(HANDLE hInst,
 		break;
 	case DLL_PROCESS_DETACH:
 		CRYPTO_set_locking_callback(0);
+		ENGINE_cleanup();
+		CONF_modules_unload(1);
+		EVP_cleanup();
+		CRYPTO_cleanup_all_ex_data();
+		ERR_free_strings();
 		break;
 	case DLL_THREAD_ATTACH:
 		break;
