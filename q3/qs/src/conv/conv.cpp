@@ -1,5 +1,5 @@
 /*
- * $Id: conv.cpp,v 1.1.1.1 2003/04/29 08:07:35 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -85,8 +85,6 @@ QSEXPORTPROC STRING qs::wcs2mbs(const WCHAR* pwszSrc, size_t nLen, size_t* pnLen
 	return str.release();
 #else
 	int nSize = ::WideCharToMultiByte(CP_ACP, 0, pwszSrc, nLen, 0, 0, 0, 0);
-	if (nSize == 0)
-		return 0;
 	string_ptr<STRING> str(allocString(nSize + 1));
 	if (!str.get())
 		return 0;
@@ -153,8 +151,6 @@ QSEXPORTPROC WSTRING qs::mbs2wcs(const CHAR* pszSrc, size_t nLen, size_t* pnLen)
 	return wstr.release();
 #else
 	int nSize = ::MultiByteToWideChar(CP_ACP, 0, pszSrc, nLen, 0, 0);
-	if (nSize == 0)
-		return 0;
 	string_ptr<WSTRING> wstr(allocWString(nSize + 1));
 	if (!wstr.get())
 		return 0;

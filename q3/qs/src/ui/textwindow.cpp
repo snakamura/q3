@@ -1046,7 +1046,7 @@ void qs::TextWindowImpl::updateScrollBar()
 		nWidth = rect.right - rect.left;
 	if (bShowHorizontalScrollBar_) {
 		unsigned int nPage = rect.right - rect.left;
-		if (nPage > nWidth)
+		if (nPage > static_cast<unsigned int>(nWidth))
 			nPage = nWidth;
 		SCROLLINFO si = {
 			sizeof(si),
@@ -1420,6 +1420,14 @@ bool qs::TextWindowImpl::getTextExtent(const DeviceContext& dc,
 	const WCHAR* pwszString, int nCount, int nMaxExtent,
 	int* pnFit, int* pnDx, SIZE* pSize) const
 {
+	if (nCount == 0) {
+		if (pnFit)
+			*pnFit = 0;
+		pSize->cx = 0;
+		pSize->cy = 0;
+		return true;
+	}
+	
 	if (!pnDx && bAdjustExtent_)
 		pnDx = nDx_;
 	

@@ -6,9 +6,12 @@
  *
  */
 
-#include <qsdevicecontext.h>
 #include <qsconv.h>
+#include <qsdevicecontext.h>
+#include <qsstl.h>
 #include <qsstring.h>
+
+#include <vector>
 
 #include <tchar.h>
 
@@ -20,6 +23,51 @@ using namespace qs;
  * DeviceContext
  *
  */
+
+#ifndef UNICODE
+bool qs::DeviceContext::getTextExtentEx(const WCHAR* pwszString,
+	int nCount, int nMaxExtent, int* pnFit, int* pnDx, SIZE* pSize) const
+{
+	assert(hdc_);
+	
+	DECLARE_QSTATUS();
+	
+	string_ptr<STRING> str(wcs2mbs(pwszString, nCount));
+	if (!str.get())
+		return false;
+	
+	int nLen = strlen(str.get());
+	
+	std::vector<int> dx;
+	if (pnDx) {
+		status = STLWrapper<std::vector<int> >(dx).resize(nLen);
+		CHECK_QSTATUS_VALUE(false);
+	}
+	
+	if (!::GetTextExtentExPoint(hdc_, str.get(), nLen,
+		nMaxExtent, pnFit, pnDx ? &dx[0] : 0, pSize))
+		return false;
+	
+	if (pnDx) {
+		int nDx = pnFit ? *pnFit : nLen;
+		int* p = pnDx;
+		for (int n = 0; n < nDx; ++n) {
+			if (n == 0 || dx[n] != dx[n - 1])
+				*p++ = dx[n];
+		}
+		if (pnFit)
+			*pnFit = p - pnDx;
+	}
+	else if (pnFit) {
+		if (*pnFit == nLen)
+			*pnFit = nCount;
+		else
+			*pnFit = ::MultiByteToWideChar(CP_ACP, 0, str.get(), *pnFit, 0, 0);
+	}
+	
+	return true;
+}
+#endif
 
 int qs::DeviceContext::enumFontFamilies(const WCHAR* pwszFamily,
 	FONTENUMPROC pProc, LPARAM lParam) const

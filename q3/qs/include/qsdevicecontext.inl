@@ -163,6 +163,7 @@ inline bool qs::DeviceContext::getTextExtent(
 	return ::GetTextExtentPoint32W(hdc_, pwszString, nCount, pSize) != 0;
 }
 
+#ifdef UNICODE
 inline bool qs::DeviceContext::getTextExtentEx(const WCHAR* pwszString,
 	int nCount, int nMaxExtent, int* pnFit, int* pnDx, SIZE* pSize) const
 {
@@ -170,6 +171,7 @@ inline bool qs::DeviceContext::getTextExtentEx(const WCHAR* pwszString,
 	return ::GetTextExtentExPointW(hdc_, pwszString,
 		nCount, nMaxExtent, pnFit, pnDx, pSize) != 0;
 }
+#endif
 
 inline bool qs::DeviceContext::fillSolidRect(const RECT& rect, COLORREF cr)
 {
