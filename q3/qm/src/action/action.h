@@ -1702,7 +1702,7 @@ class MessageApplyRuleAction : public qs::AbstractAction
 {
 public:
 	MessageApplyRuleAction(RuleManager* pRuleManager,
-						   FolderModel* pFolderModel,
+						   ViewModelManager* pViewModelManager,
 						   bool bAll,
 						   SecurityModel* pSecurityModel,
 						   Document* pDocument,
@@ -1726,7 +1726,7 @@ private:
 
 private:
 	RuleManager* pRuleManager_;
-	FolderModel* pFolderModel_;
+	ViewModelManager* pViewModelManager_;
 	MessageSelectionModel* pMessageSelectionModel_;
 	bool bAll_;
 	SecurityModel* pSecurityModel_;

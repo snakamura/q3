@@ -3158,14 +3158,14 @@ bool qm::FolderUpdateAction::isEnabled(const ActionEvent& event)
  */
 
 qm::MessageApplyRuleAction::MessageApplyRuleAction(RuleManager* pRuleManager,
-												   FolderModel* pFolderModel,
+												   ViewModelManager* pViewModelManager,
 												   bool bAll,
 												   SecurityModel* pSecurityModel,
 												   Document* pDocument,
 												   HWND hwnd,
 												   Profile* pProfile) :
 	pRuleManager_(pRuleManager),
-	pFolderModel_(pFolderModel),
+	pViewModelManager_(pViewModelManager),
 	pMessageSelectionModel_(0),
 	bAll_(bAll),
 	pSecurityModel_(pSecurityModel),
@@ -3182,7 +3182,7 @@ qm::MessageApplyRuleAction::MessageApplyRuleAction(RuleManager* pRuleManager,
 												   HWND hwnd,
 												   Profile* pProfile) :
 	pRuleManager_(pRuleManager),
-	pFolderModel_(0),
+	pViewModelManager_(0),
 	pMessageSelectionModel_(pMessageSelectionModel),
 	bAll_(false),
 	pSecurityModel_(pSecurityModel),
@@ -3251,9 +3251,9 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 	ProgressDialog dialog(IDS_APPLYMESSAGERULES);
 	RuleCallbackImpl callback(&dialog);
 	
-	if (pFolderModel_) {
+	if (pViewModelManager_) {
 		if (bAll_) {
-			Account* pAccount = FolderActionUtil::getAccount(pFolderModel_);
+			Account* pAccount = pViewModelManager_->getCurrentAccount();
 			if (!pAccount)
 				return;
 			Account::FolderList l(pAccount->getFolders());
@@ -3274,10 +3274,20 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 			}
 		}
 		else {
-			Folder* pFolder = FolderActionUtil::getFolder(pFolderModel_);
-			if (pFolder) {
+			ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
+			if (pViewModel) {
+				Lock<ViewModel> lock(*pViewModel);
+				
+				Folder* pFolder = pViewModel->getFolder();
+				
+				unsigned int nCount = pViewModel->getCount();
+				MessageHolderList l;
+				l.resize(nCount);
+				for (unsigned int n = 0; n < pViewModel->getCount(); ++n)
+					l[n] = pViewModel->getMessageHolder(n);
+				
 				ProgressDialogInit init(&dialog, hwnd_);
-				if (!pRuleManager_->apply(pFolder, 0, pDocument_, hwnd_, pProfile_,
+				if (!pRuleManager_->apply(pFolder, &l, pDocument_, hwnd_, pProfile_,
 					pSecurityModel_->getSecurityMode(), &callback)) {
 					ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
 					return;
@@ -3303,10 +3313,15 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 
 bool qm::MessageApplyRuleAction::isEnabled(const ActionEvent& event)
 {
-	if (pFolderModel_)
-		return FolderActionUtil::getAccount(pFolderModel_) != 0;
-	else
+	if (pViewModelManager_) {
+		if (bAll_)
+			return pViewModelManager_->getCurrentAccount() != 0;
+		else
+			return pViewModelManager_->getCurrentViewModel() != 0;
+	}
+	else {
 		return pMessageSelectionModel_->hasSelectedMessage();
+	}
 }
 
 
