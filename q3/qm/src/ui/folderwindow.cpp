@@ -495,9 +495,9 @@ void qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
 			ProgressDialogMessageOperationCallback callback(
 				pThis_->getParentFrame(), nId, nId);
 			if (!MessageDataObject::pasteMessages(pDataObject,
-				pDocument_, pNormalFolder, flag, &callback)) {
-				// TODO MSG
-			}
+				pDocument_, pNormalFolder, flag, &callback))
+				messageBox(Application::getApplication().getResourceHandle(),
+					IDS_ERROR_COPYMESSAGES, MB_OK | MB_ICONERROR, pThis_->getParentFrame());
 			
 			event.setEffect(bMove ? DROPEFFECT_MOVE : DROPEFFECT_COPY);
 		}

@@ -127,35 +127,33 @@ bool qmnntp::NntpDriver::getMessage(SubAccount* pSubAccount,
 									unsigned int nFlags,
 									xstring_ptr* pstrMessage,
 									Message::Flag* pFlag,
-									bool* pbGet,
 									bool* pbMadeSeen)
 {
 	assert(pSubAccount);
 	assert(pmh);
 	assert(pstrMessage);
 	assert(pFlag);
-	assert(pbGet);
 	assert(pbMadeSeen);
 	
 	pstrMessage->reset(0);
 	*pFlag = Message::FLAG_EMPTY;
-	*pbGet = false;
 	*pbMadeSeen = false;
 	
-	if (!bOffline_) {
-		if (!prepareSession(pSubAccount, pmh->getFolder()))
-			return false;
-		
-		xstring_ptr strMessage;
-		if (!pNntp_->getMessage(pmh->getId(),
-			Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage))
-			return false;
-		if (strMessage.get()) {
-			*pstrMessage = strMessage;
-			*pFlag = Message::FLAG_NONE;
-			*pbGet = true;
-		}
-	}
+	if (bOffline_)
+		return true;
+	
+	if (!prepareSession(pSubAccount, pmh->getFolder()))
+		return false;
+	
+	xstring_ptr strMessage;
+	if (!pNntp_->getMessage(pmh->getId(),
+		Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage))
+		return false;
+	if (!strMessage.get())
+		return false;
+	
+	*pstrMessage = strMessage;
+	*pFlag = Message::FLAG_NONE;
 	
 	return true;
 }

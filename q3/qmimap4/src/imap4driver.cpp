@@ -269,21 +269,18 @@ bool qmimap4::Imap4Driver::getMessage(SubAccount* pSubAccount,
 									  unsigned int nFlags,
 									  xstring_ptr* pstrMessage,
 									  Message::Flag* pFlag,
-									  bool* pbGet,
 									  bool* pbMadeSeen)
 {
 	assert(pSubAccount);
 	assert(pmh);
 	assert(pstrMessage);
 	assert(pFlag);
-	assert(pbGet);
 	assert(pbMadeSeen);
 	assert(!pmh->getFolder()->isFlag(Folder::FLAG_LOCAL));
 	assert(!pmh->isFlag(MessageHolder::FLAG_LOCAL));
 	
 	pstrMessage->reset(0);
 	*pFlag = Message::FLAG_EMPTY;
-	*pbGet = false;
 	*pbMadeSeen = false;
 	
 	if (bOffline_)
@@ -299,7 +296,7 @@ bool qmimap4::Imap4Driver::getMessage(SubAccount* pSubAccount,
 	SessionCacher cacher(pSessionCache_.get(), pmh->getFolder());
 	Imap4* pImap4 = cacher.get();
 	if (!pImap4)
-		return 0;
+		return false;
 	
 	struct BodyProcessHook : public ProcessHook
 	{
@@ -566,8 +563,7 @@ bool qmimap4::Imap4Driver::getMessage(SubAccount* pSubAccount,
 	
 	cacher.release();
 	
-	*pbGet = *pFlag != Message::FLAG_EMPTY;
-	*pbMadeSeen = *pbGet;
+	*pbMadeSeen = *pFlag != Message::FLAG_EMPTY;
 	
 	return true;
 }

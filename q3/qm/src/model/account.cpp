@@ -405,7 +405,9 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 		for (MessageHolderList::size_type n = 0; n < l.size(); ++n) {
 			MessageHolder* pmh = l[n];
 			Message msg;
-			if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg))
+			unsigned int nFlags = Account::GETMESSAGEFLAG_ALL |
+				Account::GETMESSAGEFLAG_NOFALLBACK;
+			if (!pmh->getMessage(nFlags, 0, &msg))
 				return false;
 			if (!pAccountTo->appendMessage(pFolderTo, msg,
 				pmh->getFlags() & MessageHolder::FLAG_USER_MASK))
@@ -1657,11 +1659,13 @@ bool qm::Account::getMessage(MessageHolder* pmh,
 	bool bMadeSeen = false;
 	if (!bLoadFromStore) {
 		xstring_ptr strMessage;
+		Message::Flag remoteFlag = Message::FLAG_EMPTY;
 		if (!pImpl_->pProtocolDriver_->getMessage(getCurrentSubAccount(),
-			pmh, nFlags, &strMessage, &msgFlag, &bGet, &bMadeSeen))
+			pmh, nFlags, &strMessage, &remoteFlag, &bMadeSeen))
 			return false;
+		bGet = remoteFlag != Message::FLAG_EMPTY;
 		if (bGet) {
-			if (!pMessage->create(strMessage.get(), -1, msgFlag))
+			if (!pMessage->create(strMessage.get(), -1, remoteFlag))
 				return false;
 			
 			if (pmh->getFolder()->isFlag(Folder::FLAG_CACHEWHENREAD)) {
@@ -1669,7 +1673,7 @@ bool qm::Account::getMessage(MessageHolder* pmh,
 					return false;
 				
 				unsigned int nMessageFlag = 0;
-				switch (msgFlag) {
+				switch (remoteFlag) {
 				case Message::FLAG_HEADERONLY:
 					nMessageFlag = MessageHolder::FLAG_HEADERONLY;
 					break;
@@ -1682,6 +1686,10 @@ bool qm::Account::getMessage(MessageHolder* pmh,
 				}
 				pmh->setFlags(nMessageFlag, MessageHolder::FLAG_PARTIAL_MASK);
 			}
+		}
+		else {
+			if (nFlags & GETMESSAGEFLAG_NOFALLBACK)
+				return false;
 		}
 	}
 	

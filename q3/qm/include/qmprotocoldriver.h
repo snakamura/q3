@@ -64,7 +64,6 @@ public:
 							unsigned int nFlags,
 							qs::xstring_ptr* pstrMessage,
 							Message::Flag* pFlag,
-							bool* pbGet,
 							bool* pbMadeSeen) = 0;
 	virtual bool setMessagesFlags(SubAccount* pSubAccount,
 								  NormalFolder* pFolder,

@@ -117,19 +117,16 @@ bool qmpop3::Pop3Driver::getMessage(SubAccount* pSubAccount,
 									unsigned int nFlags,
 									xstring_ptr* pstrMessage,
 									Message::Flag* pFlag,
-									bool* pbGet,
 									bool* pbMadeSeen)
 {
 	assert(pSubAccount);
 	assert(pmh);
 	assert(pstrMessage);
 	assert(pFlag);
-	assert(pbGet);
 	assert(pbMadeSeen);
 	
 	pstrMessage->reset(0);
 	*pFlag = Message::FLAG_EMPTY;
-	*pbGet = false;
 	*pbMadeSeen = false;
 	
 	return true;
