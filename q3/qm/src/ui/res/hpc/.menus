@@ -46,6 +46,7 @@
 			<menuitem text="&amp;Refresh" action="ViewRefresh"/>
 			<separator/>
 			<menuitem text="Ra&amp;w Mode" action="ViewRawMode"/>
+			<menuitem text="&amp;HTML Mode" action="ViewHtmlMode"/>
 			<menuitem text="S&amp;MIME Mode" action="ViewDecryptVerifyMode"/>
 			<separator/>
 			<popupmenu text="&amp;Sort" action="ViewSort"/>
@@ -133,6 +134,7 @@
 			<menuitem text="&amp;Select Message" action="ViewSelectMessage"/>
 			<separator/>
 			<menuitem text="Ra&amp;w Mode" action="ViewRawMode"/>
+			<menuitem text="&amp;HTML Mode" action="ViewHtmlMode"/>
 			<menuitem text="S&amp;MIME Mode" action="ViewDecryptVerifyMode"/>
 			<separator/>
 			<popupmenu text="&amp;Template" action="ViewTemplate"/>

@@ -189,6 +189,9 @@
 		<action name="MessageUnmark">
 			<key key="M" shift="true" ctrl="true"/>
 		</action>
+		<action name="ViewHtmlMode">
+			<key key="H" shift="true"/>
+		</action>
 		<action name="ViewNextMessage">
 			<key key="N"/>
 			<key code="d"/>
@@ -280,6 +283,9 @@
 		</action>
 		<action name="MessageUnmark">
 			<key key="M" shift="true" ctrl="true"/>
+		</action>
+		<action name="ViewHtmlMode">
+			<key key="H" shift="true"/>
 		</action>
 		<action name="ViewNextMessage">
 			<key key="N"/>

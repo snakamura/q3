@@ -97,7 +97,9 @@ const qs::MenuItem menuItems[] = {
 	{ L"ToolSign",					IDM_TOOL_SIGN					},
 	{ L"ToolSync",					IDM_TOOL_SYNC					},
 	{ L"ViewDecryptVerifyMode",		IDM_VIEW_DECRYPTVERIFYMODE		},
+#ifdef QMHTMLVIEW
 	{ L"ViewHtmlMode",				IDM_VIEW_HTMLMODE				},
+#endif
 	{ L"ViewLockPreview",			IDM_VIEW_LOCKPREVIEW			},
 	{ L"ViewNextMessage",			IDM_VIEW_NEXTMESSAGE			},
 	{ L"ViewNextMessagePage",		IDM_VIEW_NEXTMESSAGEPAGE		},
