@@ -268,6 +268,8 @@
 #define IDC_ASDEFAULT                   1157
 #define IDC_APPLYDEFAULT                1158
 #define IDC_INHERIT                     1159
+#define IDC_APPLYTOALL                  1160
+#define IDC_APPLYTOCHILDREN             1161
 #define IDS_COLUMNTYPE_ID               1200
 #define IDS_COLUMNTYPE_DATE             1201
 #define IDS_COLUMNTYPE_FROM             1202
@@ -506,7 +508,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        159
 #define _APS_NEXT_COMMAND_VALUE         48000
-#define _APS_NEXT_CONTROL_VALUE         1160
+#define _APS_NEXT_CONTROL_VALUE         1162
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -3762,6 +3762,8 @@ LRESULT qm::ViewsDialog::onCommand(WORD nCode,
 		HANDLE_COMMAND_ID(IDC_ASDEFAULT, onAsDefault)
 		HANDLE_COMMAND_ID(IDC_APPLYDEFAULT, onApplyDefault)
 		HANDLE_COMMAND_ID(IDC_INHERIT, onInherit)
+		HANDLE_COMMAND_ID(IDC_APPLYTOALL, onApplyToAll)
+		HANDLE_COMMAND_ID(IDC_APPLYTOCHILDREN, onApplyToChildren)
 	END_COMMAND_HANDLER()
 	return DefaultDialog::onCommand(nCode, nId);
 }
@@ -3943,6 +3945,40 @@ LRESULT qm::ViewsDialog::onInherit()
 		ViewModel* pViewModel = pViewModelManager_->getViewModel(pFolder);
 		setColumns(pViewModel->getColumns());
 		update();
+	}
+	return 0;
+}
+
+LRESULT qm::ViewsDialog::onApplyToAll()
+{
+	Account* pAccount = pViewModel_->getFolder()->getAccount();
+	const Account::FolderList& listFolder = pAccount->getFolders();
+	for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
+		Folder* pFolder = *it;
+		ViewModel* pViewModel = pViewModelManager_->getViewModel(pFolder);
+		ViewColumnList listColumn;
+		cloneColumns(listColumn_, &listColumn);
+		pViewModel->setColumns(listColumn);
+	}
+	
+	Window(getDlgItem(IDCANCEL)).enableWindow(false);
+	
+	return 0;
+}
+
+LRESULT qm::ViewsDialog::onApplyToChildren()
+{
+	Folder* pCurrentFolder = pViewModel_->getFolder();
+	Account* pAccount = pCurrentFolder->getAccount();
+	const Account::FolderList& listFolder = pAccount->getFolders();
+	for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
+		Folder* pFolder = *it;
+		if (pCurrentFolder->isAncestorOf(pFolder)) {
+			ViewModel* pViewModel = pViewModelManager_->getViewModel(pFolder);
+			ViewColumnList listColumn;
+			cloneColumns(listColumn_, &listColumn);
+			pViewModel->setColumns(listColumn);
+		}
 	}
 	return 0;
 }

@@ -1282,6 +1282,8 @@ private:
 	LRESULT onAsDefault();
 	LRESULT onApplyDefault();
 	LRESULT onInherit();
+	LRESULT onApplyToAll();
+	LRESULT onApplyToChildren();
 	LRESULT onColumnsDblClk(NMHDR* pnmhdr,
 							bool* pbHandled);
 	LRESULT onColumnsItemChanged(NMHDR* pnmhdr,
