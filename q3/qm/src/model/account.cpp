@@ -1441,9 +1441,8 @@ QSTATUS qm::Account::copyMessages(const Folder::MessageHolderList& l,
 			CHECK_QSTATUS();
 		}
 		
-		Folder::MessageHolderList::const_iterator it = l.begin();
-		while (it != l.end()) {
-			MessageHolder* pmh = *it;
+		for (Folder::MessageHolderList::size_type n = 0; n < l.size(); ++n) {
+			MessageHolder* pmh = l[n];
 			Message msg(&status);
 			CHECK_QSTATUS();
 			status = pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg);
@@ -1457,13 +1456,11 @@ QSTATUS qm::Account::copyMessages(const Folder::MessageHolderList& l,
 			}
 			
 			if (pCallback) {
-				if (pCallback->isCanceled())
+				if (n % 10 == 0 && pCallback->isCanceled())
 					break;
 				status = pCallback->step(1);
 				CHECK_QSTATUS();
 			}
-			
-			++it;
 		}
 	}
 	else {

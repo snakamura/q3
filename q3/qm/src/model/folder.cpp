@@ -988,19 +988,16 @@ QSTATUS qm::NormalFolder::deleteMessages(const MessageHolderList& l,
 	
 	Lock<Folder> lock(*this);
 	
-	MessageHolderList::const_iterator it = l.begin();
-	while (it != l.end()) {
-		status = getAccount()->unstoreMessage(*it);
+	for (MessageHolderList::size_type n = 0; n < l.size(); ++n) {
+		status = getAccount()->unstoreMessage(l[n]);
 		CHECK_QSTATUS();
 		
 		if (pCallback) {
-			if (pCallback->isCanceled())
+			if (n % 10 == 0 && pCallback->isCanceled())
 				break;
 			status = pCallback->step(1);
 			CHECK_QSTATUS();
 		}
-		
-		++it;
 	}
 	
 	return QSTATUS_SUCCESS;

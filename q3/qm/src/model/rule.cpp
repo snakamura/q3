@@ -134,7 +134,7 @@ QSTATUS qm::RuleManager::apply(NormalFolder* pFolder,
 	MacroVariableHolder globalVariable(&status);
 	CHECK_QSTATUS();
 	for (unsigned int n = 0; n < accessor.getCount(); ++n) {
-		if (pCallback->isCanceled())
+		if (n % 10 == 0 && pCallback->isCanceled())
 			return QSTATUS_SUCCESS;
 		
 		status = pCallback->setPos(n);
