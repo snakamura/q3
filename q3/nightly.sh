@@ -1,10 +1,13 @@
 #!/bin/sh
 #
-# $Id: $
+# $Id$
 
 
+SVNDIR=d:/home/svn
 CGIFTPUSER=d:/home/wince/q3/cgiftpuser
 FTPSCRIPT=d:/home/wince/q3/ftpscript
+
+svnadmin dump $SVNDIR/q3 | gzip -c > $SVNDIR/q3-`date +%Y%m%d`.gz
 
 if [ "$1" = "-norebuild" ]; then
 	REBUILD=0
