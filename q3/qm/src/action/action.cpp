@@ -1098,9 +1098,7 @@ bool qm::FileImportAction::readMessage(NormalFolder* pFolder,
 		(!pDialog && !pnPos && !pbCanceled));
 	
 	if (bMultiple) {
-		// TODO
-		// Change to use malloc based buffer.
-		StringBuffer<STRING> buf;
+		XStringBuffer<XSTRING> buf;
 		
 		CHAR cPrev = '\0';
 		bool bNewLine = true;
@@ -1112,6 +1110,10 @@ bool qm::FileImportAction::readMessage(NormalFolder* pFolder,
 			cPrev = cNext;
 			
 			if (!bNewLine || strncmp(strLine.get(), "From ", 5) == 0) {
+				if (!bNewLine) {
+					if (!buf.append(strLine.get()))
+						return false;
+				}
 				if (buf.getLength() != 0) {
 					if (pDialog) {
 						if (pDialog->isCanceled()) {
@@ -1138,15 +1140,14 @@ bool qm::FileImportAction::readMessage(NormalFolder* pFolder,
 						p = strLine.get();
 				}
 				
-				buf.append(p);
-				buf.append("\r\n");
+				if (!buf.append(p) ||
+					!buf.append("\r\n"))
+					return false;
 			}
 		}
 	}
 	else {
-		// TODO
-		// Change to use malloc based buffer.
-		StringBuffer<STRING> buf;
+		XStringBuffer<XSTRING> buf;
 		
 		unsigned char c = 0;
 		bool bCR = false;
@@ -1158,7 +1159,8 @@ bool qm::FileImportAction::readMessage(NormalFolder* pFolder,
 				break;
 			
 			if (bCR) {
-				buf.append("\r\n");
+				if (!buf.append("\r\n"))
+					return false;
 				switch (c) {
 				case '\r':
 					break;
@@ -1166,7 +1168,8 @@ bool qm::FileImportAction::readMessage(NormalFolder* pFolder,
 					bCR = false;
 					break;
 				default:
-					buf.append(static_cast<CHAR>(c));
+					if (!buf.append(static_cast<CHAR>(c)))
+						return false;
 					bCR = false;
 					break;
 				}
@@ -1177,16 +1180,20 @@ bool qm::FileImportAction::readMessage(NormalFolder* pFolder,
 					bCR = true;
 					break;
 				case '\n':
-					buf.append("\r\n");
+					if (!buf.append("\r\n"))
+						return false;
 					break;
 				default:
-					buf.append(static_cast<CHAR>(c));
+					if (!buf.append(static_cast<CHAR>(c)))
+						return false;
 					break;
 				}
 			}
 		}
-		if (bCR)
-			buf.append("\r\n");
+		if (bCR) {
+			if (!buf.append("\r\n"))
+				return false;
+		}
 		
 		if (pDialog) {
 			if (pDialog->isCanceled()) {
