@@ -2826,7 +2826,7 @@ qm::MainWindowStatusBar::MainWindowStatusBar(Document* pDocument,
 	nCount_(-1),
 	nUnseenCount_(-1),
 	nSelectedCount_(-1),
-	bOffline_(true)
+	offline_(OFFLINE_NONE)
 {
 }
 
@@ -2901,11 +2901,12 @@ void qm::MainWindowStatusBar::updateListParts(const WCHAR* pwszText)
 		setText(2, L"");
 	}
 	
-	bool bOffline = bOffline_;
-	bOffline_ = pDocument_->isOffline();
-	if (bOffline != bOffline_) {
-		wstring_ptr wstrOnline(loadString(hInst, bOffline_ ? IDS_OFFLINE : IDS_ONLINE));
-		setIconOrText(1, bOffline_ ? IDI_OFFLINE : IDI_ONLINE, wstrOnline.get());
+	Offline offline = pDocument_->isOffline() ? OFFLINE_OFFLINE : OFFLINE_ONLINE;
+	if (offline != offline_) {
+		bool bOffline = offline == OFFLINE_OFFLINE;
+		wstring_ptr wstrOnline(loadString(hInst, bOffline ? IDS_OFFLINE : IDS_ONLINE));
+		setIconOrText(1, bOffline ? IDI_OFFLINE : IDI_ONLINE, wstrOnline.get());
+		offline_ = offline;
 	}
 }
 

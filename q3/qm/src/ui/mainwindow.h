@@ -194,6 +194,13 @@ private:
 	MainWindowStatusBar& operator=(const MainWindowStatusBar&);
 
 private:
+	enum Offline {
+		OFFLINE_NONE,
+		OFFLINE_OFFLINE,
+		OFFLINE_ONLINE
+	};
+
+private:
 	Document* pDocument_;
 	ViewModelManager* pViewModelManager_;
 	FolderModel* pFolderModel_;
@@ -202,7 +209,7 @@ private:
 	unsigned int nCount_;
 	unsigned int nUnseenCount_;
 	unsigned int nSelectedCount_;
-	bool bOffline_;
+	Offline offline_;
 	qs::wstring_ptr wstrFilter_;
 	qs::wstring_ptr wstrText_;
 };
