@@ -162,6 +162,8 @@ qs::ActionMap::~ActionMap()
 
 Action* qs::ActionMap::getAction(unsigned int nId) const
 {
+	assert(ID_MIN <= nId && nId < ID_MAX);
+	
 	ActionMapImpl::ActionItem item = { nId, nId + 1, 0 };
 	const ActionMapImpl::ItemList& l = pImpl_->listItem_;
 	ActionMapImpl::ItemList::const_iterator it = std::lower_bound(
@@ -184,6 +186,9 @@ void qs::ActionMap::addAction(unsigned int nIdFrom,
 							  unsigned int nIdTo,
 							  std::auto_ptr<Action> pAction)
 {
+	assert(ID_MIN <= nIdFrom && nIdFrom < ID_MAX);
+	assert(ID_MIN < nIdTo && nIdTo <= ID_MAX);
+	
 	ActionMapImpl::ActionItem item = {
 		nIdFrom,
 		nIdTo,

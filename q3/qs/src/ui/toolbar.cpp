@@ -343,7 +343,7 @@ bool qs::ToolbarButton::create(HWND hwnd,
 	if (wstrDropDown_.get()) {
 		button.fsStyle |= TBSTYLE_DROPDOWN;
 #ifndef _WIN32_WCE
-		if (nAction_ == -1)
+		if (nAction_ > ActionMap.ID_MAX)
 			button.fsStyle |= BTNS_WHOLEDROPDOWN;
 #endif
 	}
@@ -436,7 +436,7 @@ qs::ToolbarContentHandler::ToolbarContentHandler(ToolbarList* pListToolbar,
 	nActionItemCount_(nItemCount),
 	state_(STATE_ROOT),
 	pToolbar_(0),
-	nDummyId_(60000)
+	nDummyId_(ActionMap::ID_MAX)
 {
 }
 
@@ -519,7 +519,7 @@ bool qs::ToolbarContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (nImage == -1 || (!pwszAction && !pwszDropDown))
 			return false;
 		
-		UINT nAction = pwszAction ? getActionId(pwszAction) : nDummyId_++;
+		UINT nAction = pwszAction ? getActionId(pwszAction) : ++nDummyId_;
 		if (nAction != -1) {
 			std::auto_ptr<ToolbarButton> pButton(new ToolbarButton(
 				nImage, pwszText, pwszToolTip, nAction, pwszDropDown));
@@ -648,6 +648,14 @@ LRESULT qs::ToolbarNotifyHandler::onDropDown(NMHDR* pnmhdr,
 		if (pwszDropDown) {
 			HMENU hmenu = pMenuManager_->getMenu(pwszDropDown, false, false);
 			if (hmenu) {
+				MENUITEMINFO mii = {
+					sizeof(mii),
+					MIIM_SUBMENU
+				};
+				::GetMenuItemInfo(hmenu, 0, TRUE, &mii);
+				if (mii.hSubMenu)
+					hmenu = mii.hSubMenu;
+				
 				UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
 #ifndef _WIN32_WCE
 				nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;

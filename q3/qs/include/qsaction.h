@@ -113,6 +113,12 @@ private:
 class QSEXPORTCLASS ActionMap
 {
 public:
+	enum {
+		ID_MIN = 40000,
+		ID_MAX = 60000
+	};
+
+public:
 	ActionMap();
 	~ActionMap();
 

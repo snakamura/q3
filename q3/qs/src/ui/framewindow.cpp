@@ -43,25 +43,27 @@ void qs::FrameWindowImpl::updateCommand(CommandUpdate* pcu,
 {
 	UINT nId = pcu->getId();
 	
-	Action* pAction = pThis_->getAction(nId);
-	if (pAction) {
-		ActionEvent event(nId, 0);
-		
-		pcu->setEnable(pAction->isEnabled(event));
-		pcu->setCheck(pAction->isChecked(event));
-		if (bText) {
-			wstring_ptr wstrText(pAction->getText(event));
-			if (wstrText.get())
-				pcu->setText(wstrText.get(), true);
+	if (ActionMap::ID_MIN <= nId && nId < ActionMap::ID_MAX) {
+		Action* pAction = pThis_->getAction(nId);
+		if (pAction) {
+			ActionEvent event(nId, 0);
 			
-			Accelerator* pAccelerator = pThis_->WindowBase::getAccelerator();
-			if (pAccelerator)
-				pcu->updateText();
+			pcu->setEnable(pAction->isEnabled(event));
+			pcu->setCheck(pAction->isChecked(event));
+			if (bText) {
+				wstring_ptr wstrText(pAction->getText(event));
+				if (wstrText.get())
+					pcu->setText(wstrText.get(), true);
+				
+				Accelerator* pAccelerator = pThis_->WindowBase::getAccelerator();
+				if (pAccelerator)
+					pcu->updateText();
+			}
 		}
-	}
-	else {
-		pcu->setEnable(false);
-		pcu->setCheck(false);
+		else {
+			pcu->setEnable(false);
+			pcu->setCheck(false);
+		}
 	}
 }
 

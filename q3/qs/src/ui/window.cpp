@@ -479,7 +479,10 @@ LRESULT qs::WindowBaseImpl::windowProc(UINT uMsg,
 	switch (uMsg) {
 	case WM_COMMAND:
 		{
-			Action* pAction = pWindowHandler_->getAction(LOWORD(wParam));
+			UINT nId = LOWORD(wParam);
+			Action* pAction = 0;
+			if (ActionMap::ID_MIN <= nId && nId < ActionMap::ID_MAX)
+				pAction = pWindowHandler_->getAction(nId);
 			if (pAction) {
 				unsigned int nModifier = 0;
 				
