@@ -423,12 +423,10 @@ WindowBaseImpl::InitializerImpl qs::WindowBaseImpl::init__;
 LRESULT qs::WindowBaseImpl::notifyCommandHandlers(WORD wCode,
 												  WORD wId) const
 {
-	CommandHandlerList::const_iterator it = listCommandHandler_.begin();
-	while (it != listCommandHandler_.end()) {
+	for (CommandHandlerList::const_iterator it = listCommandHandler_.begin(); it != listCommandHandler_.end(); ++it) {
 		LRESULT lResult = (*it)->onCommand(wCode, wId);
 		if (lResult == 0)
 			return lResult;
-		++it;
 	}
 	if (pOrgWindowBase_) {
 		LRESULT lResult = pOrgWindowBase_->pImpl_->notifyCommandHandlers(wCode, wId);
@@ -443,12 +441,10 @@ LRESULT qs::WindowBaseImpl::notifyNotifyHandlers(NMHDR* pnmhdr,
 {
 	assert(pbHandled);
 	
-	NotifyHandlerList::const_iterator it = listNotifyHandler_.begin();
-	while (it != listNotifyHandler_.end()) {
+	for (NotifyHandlerList::const_iterator it = listNotifyHandler_.begin(); it != listNotifyHandler_.end(); ++it) {
 		LRESULT lResult = (*it)->onNotify(pnmhdr, pbHandled);
 		if (*pbHandled)
 			return lResult;
-		++it;
 	}
 	if (pOrgWindowBase_) {
 		LRESULT lResult = pOrgWindowBase_->pImpl_->notifyNotifyHandlers(
@@ -461,22 +457,16 @@ LRESULT qs::WindowBaseImpl::notifyNotifyHandlers(NMHDR* pnmhdr,
 
 void qs::WindowBaseImpl::notifyOwnerDrawHandlers(DRAWITEMSTRUCT* pDrawItem) const
 {
-	OwnerDrawHandlerList::const_iterator it = listOwnerDrawHandler_.begin();
-	while (it != listOwnerDrawHandler_.end()) {
+	for (OwnerDrawHandlerList::const_iterator it = listOwnerDrawHandler_.begin(); it != listOwnerDrawHandler_.end(); ++it)
 		(*it)->onDrawItem(pDrawItem);
-		++it;
-	}
 	if (pOrgWindowBase_)
 		pOrgWindowBase_->pImpl_->notifyOwnerDrawHandlers(pDrawItem);
 }
 
 void qs::WindowBaseImpl::measureOwnerDrawHandlers(MEASUREITEMSTRUCT* pMeasureItem) const
 {
-	OwnerDrawHandlerList::const_iterator it = listOwnerDrawHandler_.begin();
-	while (it != listOwnerDrawHandler_.end()) {
+	for (OwnerDrawHandlerList::const_iterator it = listOwnerDrawHandler_.begin(); it != listOwnerDrawHandler_.end(); ++it)
 		(*it)->onMeasureItem(pMeasureItem);
-		++it;
-	}
 	if (pOrgWindowBase_)
 		pOrgWindowBase_->pImpl_->measureOwnerDrawHandlers(pMeasureItem);
 }
@@ -1088,21 +1078,16 @@ void qs::WindowDestroy::process(HWND hwnd)
 	if (bMapped) {
 		listWindow[0] = 0;
 		
-		WindowList::iterator it = listWindow.begin() + 1;
-		while (it != listWindow.end()) {
+		for (WindowList::iterator it = listWindow.begin() + 1; it != listWindow.end(); ++it) {
 			if (!isMapped(*it))
 				*it = 0;
-			++it;
 		}
 		
 		listDestroy_.push_back(std::make_pair(hwnd, listWindow));
 	}
 	else {
-		WindowList::const_iterator itW = listWindow.begin();
-		while (itW != listWindow.end()) {
+		for (WindowList::const_iterator itW = listWindow.begin(); itW != listWindow.end(); ++itW)
 			remove(*itW);
-			++itW;
-		}
 		
 		HWND hwndParent = ::GetParent(hwnd);
 		while (hwndParent) {
@@ -1112,8 +1097,7 @@ void qs::WindowDestroy::process(HWND hwnd)
 		
 		WindowList listDestroy;
 		
-		DestroyList::iterator itD = listDestroy_.begin();
-		while (itD != listDestroy_.end()) {
+		for (DestroyList::iterator itD = listDestroy_.begin(); itD != listDestroy_.end(); ) {
 			WindowList& l = (*itD).second;
 			
 			WindowList::const_iterator it = std::find_if(
@@ -1136,11 +1120,8 @@ void qs::WindowDestroy::process(HWND hwnd)
 		
 		destroy(hwnd);
 		
-		WindowList::reverse_iterator it = listDestroy.rbegin();
-		while (it != listDestroy.rend()) {
+		for (WindowList::reverse_iterator it = listDestroy.rbegin(); it != listDestroy.rend(); ++it)
 			destroy(*it);
-			++it;
-		}
 	}
 }
 
@@ -1183,16 +1164,12 @@ void qs::WindowDestroy::destroy(HWND hwnd)
 
 void qs::WindowDestroy::remove(HWND hwnd)
 {
-	DestroyList::iterator itD = listDestroy_.begin();
-	while (itD != listDestroy_.end()) {
+	for (DestroyList::iterator itD = listDestroy_.begin(); itD != listDestroy_.end(); ++itD) {
 		WindowList& l = (*itD).second;
-		WindowList::iterator itW = l.begin();
-		while (itW != l.end()) {
+		for (WindowList::iterator itW = l.begin(); itW != l.end(); ++itW) {
 			if (*itW == hwnd)
 				*itW = 0;
-			++itW;
 		}
-		++itD;
 	}
 }
 

@@ -46,12 +46,10 @@ DialogBaseImpl::InitializerImpl qs::DialogBaseImpl::init__;
 LRESULT qs::DialogBaseImpl::notifyCommandHandlers(WORD wCode,
 												  WORD wId) const
 {
-	CommandHandlerList::const_iterator it = listCommandHandler_.begin();
-	while (it != listCommandHandler_.end()) {
+	for (CommandHandlerList::const_iterator it = listCommandHandler_.begin(); it != listCommandHandler_.end(); ++it) {
 		LRESULT lResult = (*it)->onCommand(wCode, wId);
 		if (lResult == 0)
 			return lResult;
-		++it;
 	}
 	return 1;
 }
@@ -61,32 +59,24 @@ LRESULT qs::DialogBaseImpl::notifyNotifyHandlers(NMHDR* pnmhdr,
 {
 	assert(pbHandled);
 	
-	NotifyHandlerList::const_iterator it = listNotifyHandler_.begin();
-	while (it != listNotifyHandler_.end()) {
+	for (NotifyHandlerList::const_iterator it = listNotifyHandler_.begin(); it != listNotifyHandler_.end(); ++it) {
 		LRESULT lResult = (*it)->onNotify(pnmhdr, pbHandled);
 		if (*pbHandled)
 			return lResult;
-		++it;
 	}
 	return 1;
 }
 
 void qs::DialogBaseImpl::notifyOwnerDrawHandlers(DRAWITEMSTRUCT* pDrawItem) const
 {
-	OwnerDrawHandlerList::const_iterator it = listOwnerDrawHandler_.begin();
-	while (it != listOwnerDrawHandler_.end()) {
+	for (OwnerDrawHandlerList::const_iterator it = listOwnerDrawHandler_.begin(); it != listOwnerDrawHandler_.end(); ++it)
 		(*it)->onDrawItem(pDrawItem);
-		++it;
-	}
 }
 
 void qs::DialogBaseImpl::measureOwnerDrawHandlers(MEASUREITEMSTRUCT* pMeasureItem) const
 {
-	OwnerDrawHandlerList::const_iterator it = listOwnerDrawHandler_.begin();
-	while (it != listOwnerDrawHandler_.end()) {
+	for (OwnerDrawHandlerList::const_iterator it = listOwnerDrawHandler_.begin(); it != listOwnerDrawHandler_.end(); ++it)
 		(*it)->onMeasureItem(pMeasureItem);
-		++it;
-	}
 }
 
 INT_PTR qs::DialogBaseImpl::dialogProc(UINT uMsg,
@@ -106,7 +96,7 @@ INT_PTR qs::DialogBaseImpl::dialogProc(UINT uMsg,
 			bool bHandled = false;
 			nResult = notifyNotifyHandlers(reinterpret_cast<NMHDR*>(lParam), &bHandled);
 			if (bHandled)
-				return TRUE;
+				return nResult;
 		}
 		break;
 	
@@ -539,8 +529,8 @@ LRESULT qs::DefaultDialog::onCommand(WORD nCode,
 									 WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
-		HANDLE_COMMAND_ID(IDCANCEL, onCancel)
-		HANDLE_COMMAND_ID(IDOK, onOk)
+		HANDLE_COMMAND_ID_CODE(IDCANCEL, BN_CLICKED, onCancel)
+		HANDLE_COMMAND_ID_CODE(IDOK, BN_CLICKED, onOk)
 	END_COMMAND_HANDLER()
 	return 1;
 }
