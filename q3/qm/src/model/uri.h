@@ -52,6 +52,7 @@ public:
 	URIFragment(const Section& section,
 				Type type,
 				const WCHAR* pwszName);
+	URIFragment(MessageHolder* pmh);
 	URIFragment(Message* pMessage,
 				const qs::Part* pPart,
 				Type type);

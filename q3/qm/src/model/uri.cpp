@@ -41,6 +41,13 @@ qm::URIFragment::URIFragment(const Section& section,
 		wstrName_ = allocWString(pwszName);
 }
 
+qm::URIFragment::URIFragment(MessageHolder* pmh) :
+	type_(TYPE_NONE)
+{
+	wstring_ptr wstrSubject(pmh->getSubject());
+	wstrName_ = concat(wstrSubject.get(), L".msg");
+}
+
 qm::URIFragment::URIFragment(Message* pMessage,
 							 const Part* pPart,
 							 Type type) :
@@ -84,7 +91,12 @@ qm::URIFragment::URIFragment(Message* pMessage,
 	}
 	std::reverse(section_.begin(), section_.end());
 	
-	if (type == TYPE_BODY) {
+	if (type == TYPE_NONE) {
+		UnstructuredParser subject;
+		if (pPartOrg->getField(L"Subject", &subject) == Part::FIELD_EXIST)
+			wstrName_ = concat(subject.getValue(), L".msg");
+	}
+	else if (type == TYPE_BODY) {
 		ContentDispositionParser contentDisposition;
 		if (pPartOrg->getField(L"Content-Disposition", &contentDisposition) == Part::FIELD_EXIST) {
 			wstring_ptr wstrFileName(contentDisposition.getParameter(L"filename"));
@@ -123,7 +135,7 @@ const WCHAR* qm::URIFragment::getName() const
 
 wstring_ptr qm::URIFragment::toString() const
 {
-	if (section_.empty() && type_ == TYPE_NONE)
+	if (section_.empty() && type_ == TYPE_NONE && !wstrName_.get())
 		return 0;
 	
 	StringBuffer<WSTRING> buf;
@@ -207,7 +219,7 @@ const Part* qm::URIFragment::getPart(const Message* pMessage) const
 
 wstring_ptr qm::URIFragment::escape(const WCHAR* pwsz)
 {
-	const WCHAR* pwszEscape = L"%#";
+	const WCHAR* pwszEscape = L"%# ";
 	
 	StringBuffer<WSTRING> buf;
 	
@@ -277,7 +289,8 @@ qm::URI::URI(const WCHAR* pwszAccount,
 
 qm::URI::URI(MessageHolder* pmh) :
 	nValidity_(-1),
-	nId_(-1)
+	nId_(-1),
+	fragment_(pmh)
 {
 	assert(pmh);
 	
@@ -443,7 +456,9 @@ std::auto_ptr<URI> qm::URI::parse(const WCHAR* pwszURI)
 					++pName;
 				}
 				
-				if (wcscmp(pwszFragment, L"MIME") == 0)
+				if (wcscmp(pwszFragment, L"") == 0)
+					type = URIFragment::TYPE_NONE;
+				else if (wcscmp(pwszFragment, L"MIME") == 0)
 					type = URIFragment::TYPE_MIME;
 				else if (wcscmp(pwszFragment, L"BODY") == 0)
 					type = URIFragment::TYPE_BODY;
@@ -454,12 +469,8 @@ std::auto_ptr<URI> qm::URI::parse(const WCHAR* pwszURI)
 				else
 					return std::auto_ptr<URI>();
 				
-				if (pName) {
-					if (type == URIFragment::TYPE_BODY)
-						wstrName = URIFragment::unescape(pName);
-					else
-						return std::auto_ptr<URI>();
-				}
+				if (pName)
+					wstrName = URIFragment::unescape(pName);
 				
 				break;
 			}
