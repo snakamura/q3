@@ -1200,8 +1200,10 @@ void qs::BMFindString<String>::createSkipTable(const Char* pszPattern,
 {
 	for (int n = 0; n < 256; ++n)
 		*(pSkip + n) = nLen;
-	for (size_t m = 0; m < nLen - 1; ++m)
-		*(pSkip + (pszPattern[m] & 0xff)) = nLen - m - 1;
+	if (nLen != 0) {
+		for (size_t m = 0; m < nLen - 1; ++m)
+			*(pSkip + (pszPattern[m] & 0xff)) = nLen - m - 1;
+	}
 }
 
 template<class String>

@@ -807,7 +807,10 @@ MacroValuePtr qm::MacroFunctionContain::value(MacroContext* pContext) const
 	size_t nRhsLen = wcslen(wstrRhs.get());
 	
 	bool bResult = false;
-	if (nLhsLen >= nRhsLen) {
+	if (nRhsLen == 0) {
+		bResult = true;
+	}
+	else if (nLhsLen >= nRhsLen) {
 		if (bBeginWith_) {
 			bResult = _wcsnicmp(wstrLhs.get(), wstrRhs.get(), nRhsLen) == 0;
 		}
