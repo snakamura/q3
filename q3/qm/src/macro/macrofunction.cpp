@@ -2913,10 +2913,11 @@ MacroValuePtr qm::MacroFunctionParseURL::value(MacroContext* pContext) const
 			assert(*p == L'?');
 			
 			const WCHAR* pwszFields[] = {
-				L"to",
-				L"cc",
-				L"bcc",
-				L"subject"
+				L"To",
+				L"Cc",
+				L"Subject",
+				L"In-Reply-To",
+				L"References"
 			};
 			
 			const WCHAR* pName = p + 1;
