@@ -65,6 +65,11 @@ long qscrypto::SSLSocketImpl::getTimeout() const
 	return pSocket_->getTimeout();
 }
 
+void qscrypto::SSLSocketImpl::setTimeout(long nTimeout)
+{
+	pSocket_->setTimeout(nTimeout);
+}
+
 unsigned int qscrypto::SSLSocketImpl::getLastError() const
 {
 	// TODO

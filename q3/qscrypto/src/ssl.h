@@ -36,6 +36,7 @@ public:
 
 public:
 	virtual long getTimeout() const;
+	virtual void setTimeout(long nTimeout);
 	virtual unsigned int getLastError() const;
 	virtual void setLastError(unsigned int nError);
 	virtual bool close();

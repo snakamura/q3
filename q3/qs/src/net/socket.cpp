@@ -291,6 +291,11 @@ long qs::Socket::getTimeout() const
 	return pImpl_->nTimeout_;
 }
 
+void qs::Socket::setTimeout(long nTimeout)
+{
+	pImpl_->nTimeout_ = nTimeout;
+}
+
 unsigned int qs::Socket::getLastError() const
 {
 	return pImpl_ ? pImpl_->nError_ : SOCKET_ERROR_UNKNOWN;

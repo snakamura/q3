@@ -80,6 +80,7 @@ public:
 
 public:
 	virtual long getTimeout() const = 0;
+	virtual void setTimeout(long nTimeout) = 0;
 	virtual unsigned int getLastError() const = 0;
 	virtual void setLastError(unsigned int nError) = 0;
 	virtual bool close() = 0;
@@ -130,6 +131,7 @@ public:
 
 public:
 	virtual long getTimeout() const;
+	virtual void setTimeout(long nTimeout);
 	virtual unsigned int getLastError() const;
 	virtual void setLastError(unsigned int nError);
 	virtual bool close();
