@@ -504,20 +504,16 @@ void qm::FolderWindowImpl::accountSelected(const FolderModelEvent& event)
 	Account* pAccount = event.getAccount();
 	if (pAccount) {
 		HTREEITEM hItem = getHandleFromAccount(pAccount);
-		if (hItem != TreeView_GetSelection(pThis_->getHandle())) {
+		if (hItem != TreeView_GetSelection(pThis_->getHandle()))
 			TreeView_SelectItem(pThis_->getHandle(), hItem);
-			TreeView_EnsureVisible(pThis_->getHandle(), hItem);
-		}
 	}
 }
 
 void qm::FolderWindowImpl::folderSelected(const FolderModelEvent& event)
 {
 	HTREEITEM hItem = getHandleFromFolder(event.getFolder());
-	if (hItem != TreeView_GetSelection(pThis_->getHandle())) {
+	if (hItem != TreeView_GetSelection(pThis_->getHandle()))
 		TreeView_SelectItem(pThis_->getHandle(), hItem);
-		TreeView_EnsureVisible(pThis_->getHandle(), hItem);
-	}
 }
 
 void qm::FolderWindowImpl::dragDropEnd(const DragSourceDropEvent& event)
@@ -1147,13 +1143,7 @@ bool qm::FolderWindow::save()
 
 void qm::FolderWindow::expand(bool bExpand)
 {
-	HWND hwnd = getHandle();
-	
-	pImpl_->expand(TreeView_GetRoot(hwnd), bExpand);
-	
-	HTREEITEM hItem = TreeView_GetSelection(hwnd);
-	if (hItem)
-		TreeView_EnsureVisible(hwnd, hItem);
+	pImpl_->expand(TreeView_GetRoot(getHandle()), bExpand);
 }
 
 wstring_ptr qm::FolderWindow::getSuperClass()
