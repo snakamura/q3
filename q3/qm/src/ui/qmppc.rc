@@ -1006,14 +1006,6 @@ QMAIL.XML               PROFILE DISCARDABLE     "res\\ppc\\qmail.xml"
 TOOLBAR.BMP             PROFILE DISCARDABLE     "res\\toolbar.bmp"
 TOOLBARS.XML            PROFILE DISCARDABLE     "res\\toolbars.xml"
 
-.KEYMAP                 PROFILE DISCARDABLE     "res\\ppc\\.keymap"
-.MENUS                  PROFILE DISCARDABLE     "res\\ppc\\.menus"
-.TOOLBARS               PROFILE DISCARDABLE     "res\\.toolbars"
-.HEADER                 PROFILE DISCARDABLE     "res\\ppc\\.header"
-.HEADEREDIT             PROFILE DISCARDABLE     "res\\ppc\\.headeredit"
-.QMAIL                  PROFILE DISCARDABLE     "res\\ppc\\.qmail"
-TOOLBAR.BMP             PROFILE DISCARDABLE     "res\\toolbar.bmp"
-
 /////////////////////////////////////////////////////////////////////////////
 //
 // String Table
