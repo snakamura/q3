@@ -393,14 +393,12 @@ Action* qm::DispatchAction::getAction() const
 qm::EditClearDeletedAction::EditClearDeletedAction(SyncManager* pSyncManager,
 												   Document* pDocument,
 												   FolderModel* pFolderModel,
-												   SecurityModel* pSecurityModel,
 												   SyncDialogManager* pSyncDialogManager,
 												   HWND hwnd,
 												   Profile* pProfile) :
 	pSyncManager_(pSyncManager),
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
-	pSecurityModel_(pSecurityModel),
 	pSyncDialogManager_(pSyncDialogManager),
 	hwnd_(hwnd),
 	pProfile_(pProfile)
@@ -2354,14 +2352,12 @@ bool qm::FolderEmptyAction::isEnabled(const ActionEvent& event)
 qm::FolderEmptyTrashAction::FolderEmptyTrashAction(SyncManager* pSyncManager,
 												   Document* pDocument,
 												   FolderModel* pFolderModel,
-												   SecurityModel* pSecurityModel,
 												   SyncDialogManager* pSyncDialogManager,
 												   HWND hwnd,
 												   qs::Profile* pProfile) :
 	pSyncManager_(pSyncManager),
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
-	pSecurityModel_(pSecurityModel),
 	pSyncDialogManager_(pSyncDialogManager),
 	hwnd_(hwnd),
 	pProfile_(pProfile)

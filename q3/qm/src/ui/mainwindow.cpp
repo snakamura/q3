@@ -338,12 +338,11 @@ void qm::MainWindowImpl::initActions()
 		pUIManager_,
 		pViewModelManager_.get(),
 		pThis_->getHandle());
-	ADD_ACTION7(EditClearDeletedAction,
+	ADD_ACTION6(EditClearDeletedAction,
 		IDM_EDIT_CLEARDELETED,
 		pSyncManager_,
 		pDocument_,
 		pFolderModel_.get(),
-		pSecurityModel_.get(),
 		pSyncDialogManager_,
 		pThis_->getHandle(),
 		pProfile_);
@@ -519,12 +518,11 @@ void qm::MainWindowImpl::initActions()
 		IDM_FOLDER_EMPTY,
 		this,
 		pThis_->getHandle());
-	ADD_ACTION7(FolderEmptyTrashAction,
+	ADD_ACTION6(FolderEmptyTrashAction,
 		IDM_FOLDER_EMPTYTRASH,
 		pSyncManager_,
 		pDocument_,
 		pFolderModel_.get(),
-		pSecurityModel_.get(),
 		pSyncDialogManager_,
 		pThis_->getHandle(),
 		pProfile_);

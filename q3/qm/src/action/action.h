@@ -414,7 +414,6 @@ public:
 	EditClearDeletedAction(SyncManager* pSyncManager,
 						   Document* pDocument,
 						   FolderModel* pFolderModel,
-						   SecurityModel* pSecurityModel,
 						   SyncDialogManager* pSyncDialogManager,
 						   HWND hwnd,
 						   qs::Profile* pProfile);
@@ -432,7 +431,6 @@ private:
 	SyncManager* pSyncManager_;
 	Document* pDocument_;
 	FolderModel* pFolderModel_;
-	SecurityModel* pSecurityModel_;
 	SyncDialogManager* pSyncDialogManager_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
@@ -1209,7 +1207,6 @@ public:
 	FolderEmptyTrashAction(SyncManager* pSyncManager,
 						   Document* pDocument,
 						   FolderModel* pFolderModel,
-						   SecurityModel* pSecurityModel,
 						   SyncDialogManager* pSyncDialogManager,
 						   HWND hwnd,
 						   qs::Profile* pProfile);
@@ -1230,7 +1227,6 @@ private:
 	SyncManager* pSyncManager_;
 	Document* pDocument_;
 	FolderModel* pFolderModel_;
-	SecurityModel* pSecurityModel_;
 	SyncDialogManager* pSyncDialogManager_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
