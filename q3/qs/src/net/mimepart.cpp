@@ -735,6 +735,11 @@ bool qs::Part::setBody(const CHAR* pszBody,
 	return true;
 }
 
+void qs::Part::setBody(xstring_ptr strBody)
+{
+	strBody_ = strBody;
+}
+
 wxstring_ptr qs::Part::getBodyText() const
 {
 	return getBodyText(0);

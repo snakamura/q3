@@ -172,6 +172,7 @@ public:
 	const CHAR* getBody() const;
 	bool setBody(const CHAR* pszBody,
 				 size_t nLen);
+	void setBody(xstring_ptr strBody);
 	wxstring_ptr getBodyText() const;
 	wxstring_ptr getBodyText(const WCHAR* pwszCharset) const;
 	bool getBodyText(const WCHAR* pwszCharset,
