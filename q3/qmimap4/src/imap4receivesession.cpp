@@ -1082,22 +1082,31 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 				unsigned int nOperation = 0;
 				{
 					MessagePtrLock mpl(listMessageData[n].getMessagePtr());
-					if (mpl && !mpl->isFlag(MessageHolder::FLAG_DELETED) &&
-						mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg)) {
-						float fScore = pJunkFilter->getScore(msg);
-						if (fScore < 0) {
-							reportError(0, IMAP4ERROR_FILTERJUNK);
+					if (mpl && !mpl->isFlag(MessageHolder::FLAG_DELETED)) {
+						bool bSeen = pAccount_->isSeen(mpl);
+						bool bNotify = !bSeen;
+						if (mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg)) {
+							if (bSeen) {
+								nOperation = JunkFilter::OPERATION_ADDCLEAN;
+							}
+							else {
+								float fScore = pJunkFilter->getScore(msg);
+								if (fScore < 0) {
+									reportError(0, IMAP4ERROR_FILTERJUNK);
+								}
+								else if (fScore > pJunkFilter->getThresholdScore()) {
+									listJunk.push_back(mpl->getId());
+									mpl->setFlags(MessageHolder::FLAG_DELETED, MessageHolder::FLAG_DELETED);
+									nOperation = JunkFilter::OPERATION_ADDJUNK;
+									bNotify = false;
+								}
+								else {
+									nOperation = JunkFilter::OPERATION_ADDCLEAN;
+								}
+							}
 						}
-						else if (fScore > pJunkFilter->getThresholdScore()) {
-							listJunk.push_back(mpl->getId());
-							mpl->setFlags(MessageHolder::FLAG_DELETED, MessageHolder::FLAG_DELETED);
-							nOperation = JunkFilter::OPERATION_ADDJUNK;
-						}
-						else {
-							if (!pAccount_->isSeen(mpl))
-								pSessionCallback_->notifyNewMessage(mpl);
-							nOperation = JunkFilter::OPERATION_ADDCLEAN;
-						}
+						if (bNotify)
+							pSessionCallback_->notifyNewMessage(mpl);
 					}
 				}
 				if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN && nOperation != 0) {
