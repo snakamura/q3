@@ -550,6 +550,8 @@ bool qm::RecentsMenu::createMenu(HMENU hmenu)
 	StringListFree<URIList> free(listURI);
 	{
 		Recents* pRecents = pDocument_->getRecents();
+		pRecents->removeSeens();
+		
 		Lock<Recents> lock(*pRecents);
 		
 		unsigned int nCount = pRecents->getCount();
