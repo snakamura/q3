@@ -143,10 +143,18 @@ int qm::main(const WCHAR* pwszCommandLine)
 				// Use resource handle
 #ifndef _WIN32_WCE
 				if (!wstrMailFolder.get() || !*wstrMailFolder.get()) {
-					TCHAR tszAppDir[MAX_PATH];
-					if (::SHGetSpecialFolderPath(0, tszAppDir, CSIDL_APPDATA, TRUE)) {
-						T2W(tszAppDir, pwszAppDir);
-						wstrMailFolder = concat(pwszAppDir, L"\\mail");
+					typedef BOOL (STDAPICALLTYPE* PFN)(HWND, LPWSTR, int, BOOL);
+					PFN pfn = 0;
+					Library lib(L"shell32.dll");
+					if (lib)
+						pfn = reinterpret_cast<PFN>(::GetProcAddress(
+							lib, "SHGetSpecialFolderPathW"));
+					if (pfn) {
+						TCHAR tszAppDir[MAX_PATH];
+						if ((*pfn)(0, tszAppDir, CSIDL_APPDATA, TRUE)) {
+							T2W(tszAppDir, pwszAppDir);
+							wstrMailFolder = concat(pwszAppDir, L"\\mail");
+						}
 					}
 				}
 #endif
