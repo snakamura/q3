@@ -29,6 +29,7 @@ struct qm::PasswordManagerImpl
 {
 	bool load();
 	
+	PasswordManagerCallback* pCallback_;
 	PasswordManager::PasswordList listPassword_;
 	qs::CriticalSection cs_;
 };
@@ -50,10 +51,11 @@ bool qm::PasswordManagerImpl::load()
  *
  */
 
-qm::PasswordManager::PasswordManager() :
+qm::PasswordManager::PasswordManager(PasswordManagerCallback* pCallback) :
 	pImpl_(0)
 {
 	pImpl_ = new PasswordManagerImpl();
+	pImpl_->pCallback_ = pCallback;
 	pImpl_->load();
 }
 
@@ -67,18 +69,32 @@ qm::PasswordManager::~PasswordManager()
 }
 
 wstring_ptr qm::PasswordManager::getPassword(const PasswordCondition& condition,
-											 bool bPermanentOnly) const
+											 bool bPermanentOnly,
+											 PasswordState* pState) const
 {
 	Lock<CriticalSection> lock(pImpl_->cs_);
+	
+	wstring_ptr wstrPassword;
+	PasswordState state = PASSWORDSTATE_ONETIME;
 	
 	PasswordList::const_iterator it = pImpl_->listPassword_.begin();
 	while (it != pImpl_->listPassword_.end() && !(*it)->visit(condition))
 		++it;
-	if (it == pImpl_->listPassword_.end())
-		return 0;
-	if (bPermanentOnly && !(*it)->isPermanent())
-		return 0;
-	return allocWString((*it)->getPassword());
+	if (bPermanentOnly) {
+		if (it != pImpl_->listPassword_.end() && (*it)->isPermanent())
+			wstrPassword = allocWString((*it)->getPassword());
+	}
+	else {
+		if (it != pImpl_->listPassword_.end())
+			wstrPassword = allocWString((*it)->getPassword());
+		else if (pState)
+			state = pImpl_->pCallback_->getPassword(condition, &wstrPassword);
+	}
+	
+	if (pState)
+		*pState = wstrPassword.get() ? state : PASSWORDSTATE_NONE;
+	
+	return wstrPassword;
 }
 
 void qm::PasswordManager::setPassword(const PasswordCondition& condition,
@@ -149,6 +165,17 @@ const PasswordManager::PasswordList& qm::PasswordManager::getPasswords() const
 
 /****************************************************************************
  *
+ * PasswordManagerCallback
+ *
+ */
+
+qm::PasswordManagerCallback::~PasswordManagerCallback()
+{
+}
+
+
+/****************************************************************************
+ *
  * Password
  *
  */
@@ -203,6 +230,16 @@ qm::PasswordCondition::~PasswordCondition()
 {
 }
 
+bool qm::PasswordCondition::visit(const AccountPassword& password) const
+{
+	return false;
+}
+
+bool qm::PasswordCondition::visit(const PGPPassword& password) const
+{
+	return false;
+}
+
 
 /****************************************************************************
  *
@@ -253,11 +290,11 @@ bool qm::AccountPassword::visit(const PasswordVisitor& visitor) const
  *
  */
 
-qm::AccountPasswordCondition::AccountPasswordCondition(const WCHAR* pwszAccount,
-													   const WCHAR* pwszSubAccount,
+qm::AccountPasswordCondition::AccountPasswordCondition(Account* pAccount,
+													   SubAccount* pSubAccount,
 													   Account::Host host) :
-	pwszAccount_(pwszAccount),
-	pwszSubAccount_(pwszSubAccount),
+	pAccount_(pAccount),
+	pSubAccount_(pSubAccount),
 	host_(host)
 {
 }
@@ -269,15 +306,92 @@ qm::AccountPasswordCondition::~AccountPasswordCondition()
 std::auto_ptr<Password> qm::AccountPasswordCondition::createPassword(const WCHAR* pwszPassword,
 																	 bool bPermanent) const
 {
-	return std::auto_ptr<Password>(new AccountPassword(pwszAccount_,
-		pwszSubAccount_, host_, pwszPassword, bPermanent));
+	return std::auto_ptr<Password>(new AccountPassword(pAccount_->getName(),
+		pSubAccount_->getName(), host_, pwszPassword, bPermanent));
+}
+
+wstring_ptr qm::AccountPasswordCondition::getHint() const
+{
+	StringBuffer<WSTRING> buf;
+	
+	buf.append(L'[');
+	buf.append(pAccount_->getName());
+	if (*pSubAccount_->getName()) {
+		buf.append(L'/');
+		buf.append(pSubAccount_->getName());
+	}
+	buf.append(L"] ");
+	buf.append(pSubAccount_->getUserName(host_));
+	
+	return buf.getString();
 }
 
 bool qm::AccountPasswordCondition::visit(const AccountPassword& password) const
 {
 	return password.getHost() == host_ &&
-		wcscmp(password.getAccount(), pwszAccount_) == 0 &&
-		string_equal<WCHAR>().operator()(password.getSubAccount(), pwszSubAccount_);
+		wcscmp(password.getAccount(), pAccount_->getName()) == 0 &&
+		wcscmp(password.getSubAccount(), pSubAccount_->getName()) == 0;
+}
+
+
+/****************************************************************************
+ *
+ * PGPPassword
+ *
+ */
+
+qm::PGPPassword::PGPPassword(const WCHAR* pwszUserId,
+							 const WCHAR* pwszPassword,
+							 bool bPermanent) :
+	Password(pwszPassword, bPermanent)
+{
+	wstrUserId_ = allocWString(pwszUserId);
+}
+
+qm::PGPPassword::~PGPPassword()
+{
+}
+
+const WCHAR* qm::PGPPassword::getUserId() const
+{
+	return wstrUserId_.get();
+}
+
+bool qm::PGPPassword::visit(const PasswordVisitor& visitor) const
+{
+	return visitor.visit(*this);
+}
+
+
+/****************************************************************************
+ *
+ * PGPPasswordCondition
+ *
+ */
+
+qm::PGPPasswordCondition::PGPPasswordCondition(const WCHAR* pwszUserId) :
+	pwszUserId_(pwszUserId)
+{
+}
+
+qm::PGPPasswordCondition::~PGPPasswordCondition()
+{
+}
+
+std::auto_ptr<Password> qm::PGPPasswordCondition::createPassword(const WCHAR* pwszPassword,
+																 bool bPermanent) const
+{
+	return std::auto_ptr<Password>(new PGPPassword(pwszUserId_, pwszPassword, bPermanent));
+}
+
+wstring_ptr qm::PGPPasswordCondition::getHint() const
+{
+	return allocWString(pwszUserId_);
+}
+
+bool qm::PGPPasswordCondition::visit(const PGPPassword& password) const
+{
+	return wcscmp(password.getUserId(), pwszUserId_) == 0;
 }
 
 
@@ -335,10 +449,30 @@ bool qm::PasswordContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		assert(!pPassword_.get());
 		pPassword_.reset(new AccountPassword(pwszAccount, pwszSubAccount, host, L"", true));
 		
-		state_ = STATE_ACCOUNTPASSWORD;
+		state_ = STATE_CONDITION;
+	}
+	else if (wcscmp(pwszLocalName, L"pgpPassword") == 0) {
+		if (state_ != STATE_PASSWORDS)
+			return false;
+		
+		const WCHAR* pwszUserId = 0;
+		for (int n = 0; n < attributes.getLength(); ++n) {
+			const WCHAR* pwszAttrName = attributes.getLocalName(n);
+			if (wcscmp(pwszAttrName, L"userid") == 0)
+				pwszUserId = attributes.getValue(n);
+			else
+				return false;
+		}
+		if (!pwszUserId)
+			return false;
+		
+		assert(!pPassword_.get());
+		pPassword_.reset(new PGPPassword(pwszUserId, L"", true));
+		
+		state_ = STATE_CONDITION;
 	}
 	else if (wcscmp(pwszLocalName, L"password") == 0) {
-		if (state_ != STATE_ACCOUNTPASSWORD)
+		if (state_ != STATE_CONDITION)
 			return false;
 		if (attributes.getLength() != 0)
 			return false;
@@ -358,8 +492,9 @@ bool qm::PasswordContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		assert(state_ == STATE_PASSWORDS);
 		state_ = STATE_ROOT;
 	}
-	else if (wcscmp(pwszLocalName, L"accountPassword") == 0) {
-		assert(state_ == STATE_ACCOUNTPASSWORD);
+	else if (wcscmp(pwszLocalName, L"accountPassword") == 0 ||
+		wcscmp(pwszLocalName, L"pgpPassword") == 0) {
+		assert(state_ == STATE_CONDITION);
 		assert(pPassword_.get());
 		pList_->push_back(pPassword_.get());
 		pPassword_.release();
@@ -371,7 +506,7 @@ bool qm::PasswordContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		wstring_ptr wstrPassword(TextUtil::decodePassword(buffer_.getCharArray()));
 		pPassword_->set(wstrPassword.get(), true);
 		buffer_.remove();
-		state_ = STATE_ACCOUNTPASSWORD;
+		state_ = STATE_CONDITION;
 	}
 	else {
 		return false;
@@ -439,6 +574,12 @@ bool qm::PasswordWriter::write(const PasswordManager* pManager)
 					};
 					SimpleAttributes attrs(item, countof(item));
 					return pWriter_->write(password, L"accountPassword", attrs);
+				}
+				
+				virtual bool visit(const PGPPassword& password) const
+				{
+					SimpleAttributes attrs(L"userid", password.getUserId());
+					return pWriter_->write(password, L"pgpPassword", attrs);
 				}
 				
 				PasswordWriter* pWriter_;

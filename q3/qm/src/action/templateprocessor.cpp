@@ -104,7 +104,7 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 	MacroErrorHandlerImpl handler;
 	Message msg;
 	TemplateContext context(mpl, mpl ? &msg : 0, listSelected, pAccount, pDocument_,
-		hwnd_, pSecurityModel_->isDecryptVerify(), pProfile_, &handler, listArgument);
+		hwnd_, pSecurityModel_->getSecurityMode(), pProfile_, &handler, listArgument);
 	
 	wstring_ptr wstrValue;
 	switch (pTemplate->getValue(context, &wstrValue)) {
@@ -136,7 +136,7 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 			return false;
 		
 		std::auto_ptr<EditMessage> pEditMessage(new EditMessage(pProfile_,
-			pDocument_, pAccount, pSecurityModel_->isDecryptVerify()));
+			pDocument_, pAccount, pSecurityModel_->getSecurityMode()));
 		if (!pEditMessage->setMessage(pMessage))
 			return false;
 		

@@ -201,7 +201,7 @@ LRESULT qm::AccountDetailPage::onInitDialog(HWND hwndFocus,
 	if (!pSendUI_->isSupported(SendSessionUI::SUPPORT_STARTTLS))
 		Window(getDlgItem(IDC_SENDSTARTTLS)).enableWindow(false);
 	
-	if (!Security::isEnabled()) {
+	if (!Security::isSSLEnabled()) {
 		UINT nIds[] = {
 			IDC_RECEIVENOSECURE,
 			IDC_RECEIVESSL,
@@ -547,10 +547,9 @@ LRESULT qm::AccountUserPage::onSendAuthenticate()
 void qm::AccountUserPage::setPassword(UINT nId,
 									  Account::Host host)
 {
-	AccountPasswordCondition condition(
-		pSubAccount_->getAccount()->getName(),
-		pSubAccount_->getName(), host);
-	wstring_ptr wstrPassword(pPasswordManager_->getPassword(condition, true));
+	Account* pAccount = pSubAccount_->getAccount();
+	AccountPasswordCondition condition(pAccount, pSubAccount_, host);
+	wstring_ptr wstrPassword(pPasswordManager_->getPassword(condition, true, 0));
 	if (wstrPassword.get())
 		setDlgItemText(nId, wstrPassword.get());
 }
@@ -559,9 +558,8 @@ void qm::AccountUserPage::getPassword(UINT nId,
 									  Account::Host host,
 									  bool bForceRemove)
 {
-	AccountPasswordCondition condition(
-		pSubAccount_->getAccount()->getName(),
-		pSubAccount_->getName(), host);
+	Account* pAccount = pSubAccount_->getAccount();
+	AccountPasswordCondition condition(pAccount, pSubAccount_, host);
 	
 	wstring_ptr wstrPassword;
 	if (!bForceRemove)

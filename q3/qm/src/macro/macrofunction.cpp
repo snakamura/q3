@@ -2583,7 +2583,7 @@ MacroValuePtr qm::MacroFunctionLoad::value(MacroContext* pContext) const
 		TemplateContext context(pContext->getMessageHolder(),
 			pContext->getMessage(), pContext->getSelectedMessageHolders(),
 			pContext->getAccount(), pContext->getDocument(), pContext->getWindow(),
-			pContext->isDecryptVerify(), pContext->getProfile(),
+			pContext->getSecurityMode(), pContext->getProfile(),
 			pContext->getErrorHandler(), TemplateContext::ArgumentList());
 		switch (pTemplate->getValue(context, &wstr)) {
 		case Template::RESULT_SUCCESS:

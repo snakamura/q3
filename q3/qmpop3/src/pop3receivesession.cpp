@@ -318,7 +318,8 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 					MessageHolder* pmh = pFolder->getMessage(n);
 					if (pmh->isFlag(MessageHolder::FLAG_DELETED)) {
 						Message msg;
-						if (!pmh->getMessage(Account::GETMESSAGEFLAG_HEADER, L"X-UIDL", &msg))
+						if (!pmh->getMessage(Account::GETMESSAGEFLAG_HEADER,
+							L"X-UIDL", SECURITYMODE_NONE, &msg))
 							return false;
 						
 						bool bSkip = false;
@@ -570,7 +571,8 @@ bool qmpop3::Pop3ReceiveSession::downloadReservedMessages(NormalFolder* pFolder,
 			pSessionCallback_->setPos(++(*pnPos));
 			
 			Message msg;
-			if (!mpl->getMessage(Account::GETMESSAGEFLAG_HEADER, 0, &msg))
+			if (!mpl->getMessage(Account::GETMESSAGEFLAG_HEADER,
+				0, SECURITYMODE_NONE, &msg))
 				return false;
 			UnstructuredParser uidl;
 			if (msg.getField(L"X-UIDL", &uidl) == Part::FIELD_EXIST) {
@@ -649,7 +651,7 @@ qmpop3::Pop3ReceiveSession::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
 	DefaultSSLSocketCallback(pSubAccount, Account::HOST_RECEIVE, pSecurity),
 	pSubAccount_(pSubAccount),
 	pSessionCallback_(pSessionCallback),
-	result_(PasswordCallback::RESULT_ONETIME)
+	state_(PASSWORDSTATE_ONETIME)
 {
 }
 
@@ -691,15 +693,15 @@ void qmpop3::Pop3ReceiveSession::CallbackImpl::connected()
 bool qmpop3::Pop3ReceiveSession::CallbackImpl::getUserInfo(wstring_ptr* pwstrUserName,
 														   wstring_ptr* pwstrPassword)
 {
-	result_ = Util::getUserInfo(pSubAccount_, Account::HOST_RECEIVE,
+	state_ = Util::getUserInfo(pSubAccount_, Account::HOST_RECEIVE,
 		pSessionCallback_, pwstrUserName, pwstrPassword);
-	return result_ != PasswordCallback::RESULT_ERROR;
+	return state_ != PASSWORDSTATE_NONE;
 }
 
 void qmpop3::Pop3ReceiveSession::CallbackImpl::setPassword(const WCHAR* pwszPassword)
 {
 	Util::setPassword(pSubAccount_, Account::HOST_RECEIVE,
-		result_, pSessionCallback_, pwszPassword);
+		state_, pSessionCallback_, pwszPassword);
 }
 
 void qmpop3::Pop3ReceiveSession::CallbackImpl::authenticating()
@@ -963,6 +965,7 @@ void qmpop3::Pop3MessageHolder::getDate(Time* pTime) const
 
 bool qmpop3::Pop3MessageHolder::getMessage(unsigned int nFlags,
 										   const WCHAR* pwszField,
+										   unsigned int nSecurityMode,
 										   Message* pMessage)
 {
 	assert(pMessage == AbstractMessageHolder::getMessage());

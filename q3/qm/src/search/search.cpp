@@ -168,9 +168,9 @@ void qm::SearchDriverFactory::unregisterFactory(const WCHAR* pwszName)
 qm::SearchContext::SearchContext(const WCHAR* pwszCondition,
 								 const WCHAR* pwszTargetFolder,
 								 bool bRecursive,
-								 bool bDecryptVerify) :
+								 unsigned int nSecurityMode) :
 	bRecursive_(bRecursive),
-	bDecryptVerify_(bDecryptVerify)
+	nSecurityMode_(nSecurityMode)
 {
 	wstrCondition_ = (allocWString(pwszCondition));
 	if (pwszTargetFolder)
@@ -196,9 +196,9 @@ bool qm::SearchContext::isRecursive() const
 	return bRecursive_;
 }
 
-bool qm::SearchContext::isDecryptVerify() const
+unsigned int qm::SearchContext::getSecurityMode() const
 {
-	return bDecryptVerify_;
+	return nSecurityMode_;
 }
 
 void qm::SearchContext::getTargetFolders(Account* pAccount,

@@ -93,6 +93,7 @@ public:
 	virtual Account* getAccount() const = 0;
 	virtual bool getMessage(unsigned int nFlags,
 							const WCHAR* pwszField,
+							unsigned int nSecurityMode,
 							Message* pMessage) = 0;
 	virtual MessageHolder* getMessageHolder() = 0;
 };
@@ -157,6 +158,7 @@ public:
 	virtual Account* getAccount() const;
 	virtual bool getMessage(unsigned int nFlags,
 							const WCHAR* pwszField,
+							unsigned int nSecurityMode,
 							Message* pMessage);
 	virtual MessageHolder* getMessageHolder();
 	

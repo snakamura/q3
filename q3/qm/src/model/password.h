@@ -19,6 +19,7 @@ namespace qm {
 
 class Password;
 	class AccountPassword;
+	class PGPPassword;
 class PasswordContentHandler;
 class PasswordWriter;
 
@@ -94,6 +95,35 @@ private:
 
 /****************************************************************************
  *
+ * PGPPassword
+ *
+ */
+
+class PGPPassword : public Password
+{
+public:
+	PGPPassword(const WCHAR* pwszUserId,
+				const WCHAR* pwszPassword,
+				bool bPermanent);
+	virtual ~PGPPassword();
+
+public:
+	const WCHAR* getUserId() const;
+
+public:
+	virtual bool visit(const PasswordVisitor& visitor) const;
+
+private:
+	PGPPassword(const PGPPassword&);
+	PGPPassword& operator=(const PGPPassword&);
+
+private:
+	qs::wstring_ptr wstrUserId_;
+};
+
+
+/****************************************************************************
+ *
  * PasswordContentHandler
  *
  */
@@ -124,7 +154,7 @@ private:
 	enum State {
 		STATE_ROOT,
 		STATE_PASSWORDS,
-		STATE_ACCOUNTPASSWORD,
+		STATE_CONDITION,
 		STATE_PASSWORD
 	};
 

@@ -125,6 +125,7 @@ public:
 	std::auto_ptr<XMLProfile> pProfile_;
 	std::auto_ptr<Document> pDocument_;
 	std::auto_ptr<PasswordManager> pPasswordManager_;
+	std::auto_ptr<PasswordManagerCallback> pPasswordManagerCallback_;
 	std::auto_ptr<SyncManager> pSyncManager_;
 	std::auto_ptr<SyncDialogManager> pSyncDialogManager_;
 	std::auto_ptr<GoRound> pGoRound_;
@@ -635,13 +636,15 @@ bool qm::Application::initialize()
 	
 	Security::init();
 	
-	pImpl_->pPasswordManager_.reset(new PasswordManager());
+	pImpl_->pPasswordManagerCallback_.reset(new DefaultPasswordManagerCallback());
+	pImpl_->pPasswordManager_.reset(new PasswordManager(pImpl_->pPasswordManagerCallback_.get()));
 	
 	std::auto_ptr<PasswordCallback> pPasswordCallback(
 		new DefaultPasswordCallback(pImpl_->pPasswordManager_.get()));
 	ProtocolFactory::setPasswordCallback(pPasswordCallback);
 	
-	pImpl_->pDocument_.reset(new Document(pImpl_->pProfile_.get()));
+	pImpl_->pDocument_.reset(new Document(pImpl_->pProfile_.get(),
+		pImpl_->pPasswordManager_.get()));
 	pImpl_->pSyncManager_.reset(new SyncManager(pImpl_->pProfile_.get()));
 	pImpl_->pSyncDialogManager_.reset(new SyncDialogManager(
 		pImpl_->pProfile_.get(), pImpl_->pPasswordManager_.get()));
@@ -700,9 +703,9 @@ bool qm::Application::initialize()
 				SubAccount* pSubAccount = *it;
 				
 				for (int n = 0; n < countof(items); ++n) {
-					AccountPasswordCondition condition(pAccount->getName(),
-						pSubAccount->getName(), items[n].host_);
-					wstring_ptr wstrPassword = pImpl_->pPasswordManager_->getPassword(condition, true);
+					AccountPasswordCondition condition(pAccount,
+						pSubAccount, items[n].host_);
+					wstring_ptr wstrPassword = pImpl_->pPasswordManager_->getPassword(condition, true, 0);
 					if (!wstrPassword.get()) {
 						wstrPassword = pSubAccount->getProperty(items[n].pwszSection_, L"EncodedPassword", L"");
 						if (*wstrPassword.get()) {

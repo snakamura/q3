@@ -106,18 +106,18 @@ void qmnntp::Util::reportError(Nntp* pNntp,
 	pSessionCallback->addError(info);
 }
 
-PasswordCallback::Result qmnntp::Util::getUserInfo(SubAccount* pSubAccount,
-												   Account::Host host,
-												   PasswordCallback* pPasswordCallback,
-												   wstring_ptr* pwstrUserName,
-												   wstring_ptr* pwstrPassword)
+PasswordState qmnntp::Util::getUserInfo(SubAccount* pSubAccount,
+										Account::Host host,
+										PasswordCallback* pPasswordCallback,
+										wstring_ptr* pwstrUserName,
+										wstring_ptr* pwstrPassword)
 {
 	assert(pwstrUserName);
 	assert(pwstrPassword);
 	
 	const WCHAR* pwszUserName = pSubAccount->getUserName(host);
 	if (!pwszUserName || !*pwszUserName)
-		return PasswordCallback::RESULT_ONETIME;
+		return PASSWORDSTATE_ONETIME;
 	*pwstrUserName = allocWString(pwszUserName);
 	
 	return pPasswordCallback->getPassword(pSubAccount, host, pwstrPassword);
@@ -125,14 +125,13 @@ PasswordCallback::Result qmnntp::Util::getUserInfo(SubAccount* pSubAccount,
 
 void qmnntp::Util::setPassword(SubAccount* pSubAccount,
 							   Account::Host host,
-							   PasswordCallback::Result result,
+							   PasswordState state,
 							   PasswordCallback* pPasswordCallback,
 							   const WCHAR* pwszPassword)
 {
-	if (result == PasswordCallback::RESULT_SESSION ||
-		result == PasswordCallback::RESULT_SAVE)
+	if (state == PASSWORDSTATE_SESSION || state == PASSWORDSTATE_SAVE)
 		pPasswordCallback->setPassword(pSubAccount, host,
-			pwszPassword, result == PasswordCallback::RESULT_SAVE);
+			pwszPassword, state == PASSWORDSTATE_SAVE);
 }
 
 
@@ -148,7 +147,7 @@ qmnntp::AbstractCallback::AbstractCallback(SubAccount* pSubAccount,
 	DefaultSSLSocketCallback(pSubAccount, Account::HOST_RECEIVE, pSecurity),
 	pSubAccount_(pSubAccount),
 	pPasswordCallback_(pPasswordCallback),
-	result_(PasswordCallback::RESULT_ONETIME)
+	state_(PASSWORDSTATE_ONETIME)
 {
 }
 
@@ -159,13 +158,13 @@ qmnntp::AbstractCallback::~AbstractCallback()
 bool qmnntp::AbstractCallback::getUserInfo(wstring_ptr* pwstrUserName,
 										   wstring_ptr* pwstrPassword)
 {
-	result_ = Util::getUserInfo(pSubAccount_, Account::HOST_RECEIVE,
+	state_ = Util::getUserInfo(pSubAccount_, Account::HOST_RECEIVE,
 		pPasswordCallback_, pwstrUserName, pwstrPassword);
-	return result_ != PasswordCallback::RESULT_ERROR;
+	return state_ != PASSWORDSTATE_NONE;
 }
 
 void qmnntp::AbstractCallback::setPassword(const WCHAR* pwszPassword)
 {
 	Util::setPassword(pSubAccount_, Account::HOST_RECEIVE,
-		result_, pPasswordCallback_, pwszPassword);
+		state_, pPasswordCallback_, pwszPassword);
 }

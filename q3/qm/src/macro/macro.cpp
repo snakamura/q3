@@ -11,6 +11,7 @@
 #include <qmmacro.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
+#include <qmsecurity.h>
 
 #include <qsconv.h>
 #include <qsinit.h>
@@ -180,7 +181,7 @@ qm::MacroGlobalContext::MacroGlobalContext(const MessageHolderList& listSelected
 										   HWND hwnd,
 										   Profile* pProfile,
 										   bool bGetMessageAsPossible,
-										   bool bDecryptVerify,
+										   unsigned int nSecurityMode,
 										   MacroErrorHandler* pErrorHandler,
 										   MacroVariableHolder* pGlobalVariable) :
 	listSelected_(listSelected),
@@ -188,7 +189,7 @@ qm::MacroGlobalContext::MacroGlobalContext(const MessageHolderList& listSelected
 	hwnd_(hwnd),
 	pProfile_(pProfile),
 	bGetMessageAsPossible_(bGetMessageAsPossible),
-	bDecryptVerify_(bDecryptVerify),
+	nSecurityMode_(nSecurityMode),
 	pErrorHandler_(pErrorHandler),
 	pGlobalVariable_(pGlobalVariable),
 	returnType_(MacroContext::RETURNTYPE_NONE),
@@ -231,9 +232,9 @@ bool qm::MacroGlobalContext::isGetMessageAsPossible() const
 	return bGetMessageAsPossible_;
 }
 
-bool qm::MacroGlobalContext::isDecryptVerify() const
+unsigned int qm::MacroGlobalContext::getSecurityMode() const
 {
-	return bDecryptVerify_;
+	return nSecurityMode_;
 }
 
 MacroErrorHandler* qm::MacroGlobalContext::getErrorHandler() const
@@ -1267,7 +1268,7 @@ qm::MacroContext::MacroContext(MessageHolderBase* pmh,
 							   HWND hwnd,
 							   Profile* pProfile,
 							   bool bGetMessageAsPossible,
-							   bool bDecryptVerify,
+							   unsigned int nSecurityMode,
 							   MacroErrorHandler* pErrorHandler,
 							   MacroVariableHolder* pGlobalVariable) :
 	pmh_(pmh),
@@ -1284,8 +1285,9 @@ qm::MacroContext::MacroContext(MessageHolderBase* pmh,
 	assert(hwnd);
 	assert(pProfile);
 	
-	pGlobalContext_ = new MacroGlobalContext(listSelected, pDocument, hwnd, pProfile,
-		bGetMessageAsPossible, bDecryptVerify, pErrorHandler, pGlobalVariable);
+	pGlobalContext_ = new MacroGlobalContext(listSelected,
+		pDocument, hwnd, pProfile, bGetMessageAsPossible,
+		nSecurityMode, pErrorHandler, pGlobalVariable);
 }
 
 qm::MacroContext::MacroContext(MessageHolderBase* pmh,
@@ -1350,9 +1352,8 @@ Message* qm::MacroContext::getMessage(MessageType type,
 	if (nFlags) {
 		if (isGetMessageAsPossible())
 			nFlags = Account::GETMESSAGEFLAG_POSSIBLE;
-		if (!isDecryptVerify())
-			nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
-		if (!pmh_->getMessage(nFlags, pwszField, pMessage_))
+		
+		if (!pmh_->getMessage(nFlags, pwszField, getSecurityMode(), pMessage_))
 			return 0;
 	}
 	
@@ -1389,9 +1390,9 @@ bool qm::MacroContext::isGetMessageAsPossible() const
 	return pGlobalContext_->isGetMessageAsPossible();
 }
 
-bool qm::MacroContext::isDecryptVerify() const
+unsigned int qm::MacroContext::getSecurityMode() const
 {
-	return pGlobalContext_->isDecryptVerify();
+	return pGlobalContext_->getSecurityMode();
 }
 
 MacroErrorHandler* qm::MacroContext::getErrorHandler() const

@@ -7,6 +7,7 @@
  */
 
 #include <qsosutil.h>
+#include <qsstream.h>
 
 using namespace qs;
 
@@ -22,15 +23,26 @@ using namespace qs;
 namespace {
 DWORD WINAPI writeProc(void* pParam)
 {
-	std::pair<const CHAR*, HANDLE> p =
-		*static_cast<std::pair<const CHAR*, HANDLE>*>(pParam);
-	const CHAR* psz = p.first;
-	HANDLE hInput = p.second;
-	size_t nLen = strlen(psz);
-	DWORD dwWrite = 0;
-	BOOL b = ::WriteFile(hInput, psz, nLen, &dwWrite, 0);
+	std::auto_ptr<std::pair<InputStream*, HANDLE> > p(
+		static_cast<std::pair<InputStream*, HANDLE>*>(pParam));
+	InputStream* pInputStream = p->first;
+	HANDLE hInput = p->second;
+	
+	unsigned char buf[1024];
+	while (true) {
+		size_t nLen = pInputStream->read(buf, sizeof(buf));
+		if (nLen == 0)
+			break;
+		else if (nLen == -1)
+			return 1;
+		
+		DWORD dwWritten = 0;
+		if (!::WriteFile(hInput, buf, nLen, &dwWritten, 0) || dwWritten != nLen)
+			return 1;
+	}
 	::CloseHandle(hInput);
-	return (b && dwWrite == nLen) ? 0 : 1;
+	
+	return 0;
 }
 }
 
@@ -39,69 +51,134 @@ wstring_ptr qs::Process::exec(const WCHAR* pwszCommand,
 {
 	assert(pwszCommand);
 	
-	SECURITY_ATTRIBUTES sa = { sizeof(sa), 0, TRUE };
-	AutoHandle hInputRead;
-	AutoHandle hInputWrite;
-	if (!::CreatePipe(&hInputRead, &hInputWrite, &sa, 0))
-		return 0;
-	AutoHandle hInput;
-	if (!::DuplicateHandle(::GetCurrentProcess(), hInputWrite.get(),
-		::GetCurrentProcess(), &hInput, 0, FALSE, DUPLICATE_SAME_ACCESS))
-		return 0;
-	hInputWrite.close();
+	const WCHAR* p = pwszInput ? pwszInput : L"";
+	string_ptr strInput(wcs2mbs(p));
+	ByteInputStream is(reinterpret_cast<unsigned char*>(strInput.get()), strlen(strInput.get()), false);
+	ByteOutputStream os;
 	
-	AutoHandle hOutputRead;
-	AutoHandle hOutputWrite;
-	if (!::CreatePipe(&hOutputRead, &hOutputWrite, &sa, 0))
+	if (exec(pwszCommand, pwszInput ? &is : 0, &os, 0) != 0)
 		return 0;
-	AutoHandle hOutput;
-	if (!::DuplicateHandle(::GetCurrentProcess(), hOutputRead.get(),
-		::GetCurrentProcess(), &hOutput, 0, FALSE, DUPLICATE_SAME_ACCESS))
-		return 0;
-	hOutputRead.close();
+	
+	return mbs2wcs(reinterpret_cast<const CHAR*>(os.getBuffer()), os.getLength());
+}
+
+int qs::Process::exec(const WCHAR* pwszCommand,
+					  InputStream* pStdInput,
+					  OutputStream* pStdOutput,
+					  OutputStream* pStdError)
+{
+	assert(pwszCommand);
+	
+	SECURITY_ATTRIBUTES sa = { sizeof(sa), 0, TRUE };
+	
+	AutoHandle hStdinRead;
+	AutoHandle hStdin;
+	if (pStdInput) {
+		AutoHandle hStdinWrite;
+		if (!::CreatePipe(&hStdinRead, &hStdinWrite, &sa, 0))
+			return -1;
+		if (!::DuplicateHandle(::GetCurrentProcess(), hStdinWrite.get(),
+			::GetCurrentProcess(), &hStdin, 0, FALSE, DUPLICATE_SAME_ACCESS))
+			return -1;
+	}
+	
+	AutoHandle hStdoutWrite;
+	AutoHandle hStdout;
+	if (pStdOutput) {
+		AutoHandle hStdoutRead;
+		if (!::CreatePipe(&hStdoutRead, &hStdoutWrite, &sa, 0))
+			return -1;
+		if (!::DuplicateHandle(::GetCurrentProcess(), hStdoutRead.get(),
+			::GetCurrentProcess(), &hStdout, 0, FALSE, DUPLICATE_SAME_ACCESS))
+			return -1;
+	}
+	
+	AutoHandle hStderrWrite;
+	AutoHandle hStderr;
+	if (pStdError) {
+		AutoHandle hStderrRead;
+		if (!::CreatePipe(&hStderrRead, &hStderrWrite, &sa, 0))
+			return -1;
+		if (!::DuplicateHandle(::GetCurrentProcess(), hStderrRead.get(),
+			::GetCurrentProcess(), &hStderr, 0, FALSE, DUPLICATE_SAME_ACCESS))
+			return -1;
+	}
 	
 	STARTUPINFO si = { sizeof(si) };
 	si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
-	si.hStdInput = hInputRead.get();
-	si.hStdOutput = hOutputWrite.get();
+	si.hStdInput = hStdinRead.get();
+	si.hStdOutput = hStdoutWrite.get();
+	si.hStdError = hStderrWrite.get();
 	si.wShowWindow = SW_HIDE;
 	PROCESS_INFORMATION pi;
-	W2T(pwszCommand, ptszCommand);
-	if (!::CreateProcess(0, const_cast<LPTSTR>(ptszCommand),
-		0, 0, TRUE, 0, 0, 0, &si, &pi))
-		return 0;
+	tstring_ptr tstrCommand(wcs2tcs(pwszCommand));
+	if (!::CreateProcess(0, tstrCommand.get(), 0, 0, TRUE, 0, 0, 0, &si, &pi))
+		return -1;
 	AutoHandle hProcess(pi.hProcess);
 	::CloseHandle(pi.hThread);
-	hInputRead.close();
-	hOutputWrite.close();
+	hStdinRead.close();
+	hStdoutWrite.close();
+	hStderrWrite.close();
 	
 	HANDLE hThread = 0;
-	if (pwszInput) {
-		string_ptr strInput(wcs2mbs(pwszInput));
-		std::pair<const CHAR*, HANDLE> p(strInput.get(), hInput.get());
+	if (pStdInput) {
+		std::auto_ptr<std::pair<InputStream*, HANDLE> > p(
+			new std::pair<InputStream*, HANDLE>(pStdInput, hStdin.get()));
 		DWORD dwThreadId = 0;
-		hThread = ::CreateThread(0, 0, writeProc, &p, 0, &dwThreadId);
+		hThread = ::CreateThread(0, 0, writeProc, p.get(), 0, &dwThreadId);
 		if (!hThread)
-			return 0;
-		hInput.release();
+			return -1;
+		p.release();
+		hStdin.release();
 	}
 	AutoHandle ahThread(hThread);
 	
-	StringBuffer<STRING> bufRead;
-	char buf[1024];
-	DWORD dwRead = 0;
-	while (::ReadFile(hOutput.get(), buf, sizeof(buf), &dwRead, 0) && dwRead != 0)
-		bufRead.append(buf, dwRead);
-	wstring_ptr wstrOutput(mbs2wcs(bufRead.getCharArray()));
+	if (hStdout.get() || hStderr.get()) {
+		HANDLE hPipes[2];
+		int nPipeCount = 0;
+		if (hStdout.get())
+			hPipes[nPipeCount++] = hStdout.get();
+		if (hStderr.get())
+			hPipes[nPipeCount++] = hStderr.get();
+		
+		unsigned char buf[1024];
+		DWORD dwRead = 0;
+		while (nPipeCount != 0) {
+			HANDLE* p = hPipes;
+			if (!*p)
+				++p;
+			assert(*p);
+			
+			DWORD dwWait = ::WaitForMultipleObjects(nPipeCount, p, FALSE, INFINITE);
+			if (dwWait < WAIT_OBJECT_0 || WAIT_OBJECT_0 + nPipeCount <= dwWait)
+				return -1;
+			
+			int nPipe = dwWait - WAIT_OBJECT_0;
+			HANDLE hPipe = p[nPipe];
+			BOOL b = ::ReadFile(hPipe, buf, sizeof(buf), &dwRead, 0);
+			if (!b && ::GetLastError() != ERROR_BROKEN_PIPE) {
+				return -1;
+			}
+			else if (!b || dwRead == 0) {
+				p[nPipe] = 0;
+				--nPipeCount;
+			}
+			OutputStream* pOutputStream = hPipe == hStdout.get() ? pStdOutput : pStdError;
+			if (pOutputStream->write(buf, dwRead) == -1)
+				return -1;
+		}
+	}
 	
 	HANDLE hWaits[] = { hProcess.get(), hThread };
 	::WaitForMultipleObjects(hThread ? 2 : 1, hWaits, TRUE, INFINITE);
 	
 	DWORD dwExitCode = 0;
-	if (!::GetExitCodeProcess(hProcess.get(), &dwExitCode) || dwExitCode != 0)
-		return 0;
+	if (!::GetExitCodeThread(hThread, &dwExitCode) || dwExitCode != 0)
+		return -1;
+	if (!::GetExitCodeProcess(hProcess.get(), &dwExitCode))
+		return -1;
 	
-	return wstrOutput;
+	return dwExitCode;
 }
 
 #endif

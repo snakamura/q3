@@ -41,6 +41,7 @@ class EditToolInsertTextAction;
 class EditToolHeaderEditAction;
 class EditToolReformAction;
 class EditToolReformAllAction;
+class EditToolSecureAction;
 
 class AddressBook;
 class AttachmentSelectionModel;
@@ -400,11 +401,13 @@ public:
 public:
 	EditFileSendAction(Type type,
 					   Document* pDocument,
+					   PasswordManager* pPasswordManager,
 					   EditMessageHolder* pEditMessageHolder,
 					   EditFrameWindow* pEditFrameWindow,
 					   qs::Profile* pProfile,
 					   SecurityModel* pSecurityModel);
 	EditFileSendAction(Document* pDocument,
+					   PasswordManager* pPasswordManager,
 					   EditMessageHolder* pEditMessageHolder,
 					   EditFrameWindow* pEditFrameWindow,
 					   qs::Profile* pProfile,
@@ -678,6 +681,38 @@ private:
 	qs::TextWindow* pTextWindow_;
 	qs::Profile* pProfile_;
 };
+
+
+/****************************************************************************
+ *
+ * EditToolSecureAction
+ *
+ */
+
+class EditToolSecureAction : public qs::AbstractAction
+{
+public:
+	EditToolSecureAction(EditMessageHolder* pEditMessageHolder,
+						 EditMessage::Secure secure,
+						 bool bEnabled);
+	virtual ~EditToolSecureAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
+
+private:
+	EditToolSecureAction(const EditToolFlagAction&);
+	EditToolSecureAction& operator=(const EditToolFlagAction&);
+
+private:
+	EditMessageHolder* pEditMessageHolder_;
+	EditMessage::Secure secure_;
+	bool bEnabled_;
+};
+
+
 
 }
 

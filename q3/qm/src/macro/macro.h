@@ -168,7 +168,7 @@ public:
 					   HWND hwnd,
 					   qs::Profile* pProfile,
 					   bool bGetMessageAsPossible,
-					   bool bDecryptVerify,
+					   unsigned int nSecurityMode,
 					   MacroErrorHandler* pErrorHandler,
 					   MacroVariableHolder* pGlobalVariable);
 	~MacroGlobalContext();
@@ -179,7 +179,7 @@ public:
 	HWND getWindow() const;
 	qs::Profile* getProfile() const;
 	bool isGetMessageAsPossible() const;
-	bool isDecryptVerify() const;
+	unsigned int getSecurityMode() const;
 	MacroErrorHandler* getErrorHandler() const;
 	MacroContext::ReturnType getReturnType() const;
 	void setReturnType(MacroContext::ReturnType type);
@@ -209,7 +209,7 @@ private:
 	HWND hwnd_;
 	qs::Profile* pProfile_;
 	bool bGetMessageAsPossible_;
-	bool bDecryptVerify_;
+	unsigned int nSecurityMode_;
 	MacroErrorHandler* pErrorHandler_;
 	MacroVariableHolder* pGlobalVariable_;
 	MacroContext::ReturnType returnType_;

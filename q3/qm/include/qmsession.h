@@ -12,6 +12,7 @@
 #include <qm.h>
 #include <qmaccount.h>
 #include <qmfolder.h>
+#include <qmpassword.h>
 
 #include <qs.h>
 #include <qsdialog.h>
@@ -54,20 +55,12 @@ class SyncFilterSet;
 class QMEXPORTCLASS PasswordCallback
 {
 public:
-	enum Result {
-		RESULT_ERROR,
-		RESULT_ONETIME,
-		RESULT_SESSION,
-		RESULT_SAVE
-	};
-
-public:
 	virtual ~PasswordCallback();
 
 public:
-	virtual Result getPassword(SubAccount* pSubAccount,
-							   Account::Host host,
-							   qs::wstring_ptr* pwstrPassword) = 0;
+	virtual PasswordState getPassword(SubAccount* pSubAccount,
+									  Account::Host host,
+									  qs::wstring_ptr* pwstrPassword) = 0;
 	virtual void setPassword(SubAccount* pSubAccount,
 							 Account::Host host,
 							 const WCHAR* pwszPassword,

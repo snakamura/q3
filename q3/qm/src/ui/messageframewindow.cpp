@@ -342,12 +342,16 @@ void qm::MessageFrameWindowImpl::initActions()
 		IDM_VIEW_ENCODING + EncodingMenu::MAX_ENCODING,
 		pMessageWindow_,
 		pEncodingMenu_.get());
-	ADD_ACTION4(ViewSecurityAction,
-		IDM_VIEW_DECRYPTVERIFYMODE,
+	ADD_ACTION3(ViewSecurityAction,
+		IDM_VIEW_SMIMEMODE,
 		pSecurityModel_.get(),
-		&SecurityModel::isDecryptVerify,
-		&SecurityModel::setDecryptVerify,
-		Security::isEnabled());
+		SECURITYMODE_SMIME,
+		Security::isSMIMEEnabled());
+	ADD_ACTION3(ViewSecurityAction,
+		IDM_VIEW_PGPMODE,
+		pSecurityModel_.get(),
+		SECURITYMODE_PGP,
+		Security::isPGPEnabled());
 	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_HTMLMODE,
 		pMessageViewModeHolder_,
@@ -611,7 +615,7 @@ bool qm::MessageFrameWindow::save()
 	
 	UIUtil::saveWindowPlacement(getHandle(), pProfile, L"MessageFrameWindow");
 	
-	pProfile->setInt(L"MainWindow", L"DecryptVerify", pImpl_->pSecurityModel_->isDecryptVerify());
+	pProfile->setInt(L"MainWindow", L"SecurityMode", pImpl_->pSecurityModel_->getSecurityMode());
 	
 	if (!FrameWindow::save())
 		return false;
@@ -799,7 +803,7 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	pImpl_->pMessageModel_.reset(new MessageMessageModel());
 	pImpl_->pSecurityModel_.reset(new DefaultSecurityModel(
-		pImpl_->pProfile_->getInt(L"MessageWindow", L"DecryptVerify", 0) != 0));
+		pImpl_->pProfile_->getInt(L"MessageWindow", L"SecurityMode", 0)));
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(

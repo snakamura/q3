@@ -243,7 +243,7 @@ public:
 	bool search(Document* pDocument,
 				HWND hwnd,
 				qs::Profile* pProfile,
-				bool bDecryptVerify);
+				unsigned int nSecurityMode);
 
 public:
 	virtual Type getType() const;

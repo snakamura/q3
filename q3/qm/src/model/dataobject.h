@@ -212,7 +212,7 @@ public:
 
 public:
 	URIDataObject(Document* pDocument,
-				  bool bDecryptVerify,
+				  unsigned int nSecurityMode,
 				  URIList& listURI);
 	~URIDataObject();
 
@@ -254,7 +254,7 @@ private:
 private:
 	ULONG nRef_;
 	Document* pDocument_;
-	bool bDecryptVerify_;
+	unsigned int nSecurityMode_;
 	URIList listURI_;
 
 public:

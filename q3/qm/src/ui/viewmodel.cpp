@@ -13,6 +13,7 @@
 #include <qmmacro.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
+#include <qmsecurity.h>
 
 #include <qsconv.h>
 #include <qsfile.h>
@@ -478,7 +479,7 @@ const ViewModelItem* qm::ViewModel::getItem(unsigned int n)
 			Message msg;
 			MacroContext context(pmh, &msg, MessageHolderList(),
 				pFolder_->getAccount(), pDocument_, hwnd_, pProfile_, true,
-				/*pSecurityModel_->isDecryptVerify()*/false, 0, 0);
+				/*pSecurityModel_->getSecurityMode()*/SECURITYMODE_NONE, 0, 0);
 			cr = pColorSet_->getColor(&context);
 		}
 		pItem->setColor(cr);
@@ -802,7 +803,7 @@ MacroValuePtr qm::ViewModel::getValue(const Macro* pMacro,
 	Message msg;
 	MacroContext context(pmh, &msg, MessageHolderList(),
 		pFolder_->getAccount(), pDocument_, hwnd_, pProfile_, true,
-		/*pSecurityModel_->isDecryptVerify()*/false, 0, 0);
+		/*pSecurityModel_->getSecurityMode()*/SECURITYMODE_NONE, 0, 0);
 	return pMacro->value(&context);
 }
 
@@ -843,7 +844,7 @@ void qm::ViewModel::messageAdded(const FolderMessageEvent& event)
 			Message msg;
 			MacroContext context(pmh, &msg, MessageHolderList(),
 				pFolder_->getAccount(), pDocument_, hwnd_, pProfile_, false,
-				/*pSecurityModel_->isDecryptVerify()*/false, 0, 0);
+				/*pSecurityModel_->getSecurityMode()*/SECURITYMODE_NONE, 0, 0);
 			bAdd = pFilter_->match(&context);
 		}
 		
@@ -1080,7 +1081,7 @@ void qm::ViewModel::update(bool bRestoreSelection)
 			Message msg;
 			MacroContext context(pmh, &msg, MessageHolderList(),
 				pFolder_->getAccount(), pDocument_, hwnd_, pProfile_, false,
-				/*pSecurityModel_->isDecryptVerify()*/false, 0, &globalVariable);
+				/*pSecurityModel_->getSecurityMode()*/SECURITYMODE_NONE, 0, &globalVariable);
 			bAdd = pFilter_->match(&context);
 		}
 		if (bAdd) {

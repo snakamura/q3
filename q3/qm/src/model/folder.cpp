@@ -1090,7 +1090,7 @@ void qm::QueryFolder::set(const WCHAR* pwszDriver,
 bool qm::QueryFolder::search(Document* pDocument,
 							 HWND hwnd,
 							 Profile* pProfile,
-							 bool bDecryptVerify)
+							 unsigned int nSecurityMode)
 {
 	Lock<Account> lock(*getAccount());
 	
@@ -1102,7 +1102,7 @@ bool qm::QueryFolder::search(Document* pDocument,
 		return true;
 	
 	SearchContext context(pImpl_->wstrCondition_.get(),
-		pImpl_->wstrTargetFolder_.get(), pImpl_->bRecursive_, bDecryptVerify);
+		pImpl_->wstrTargetFolder_.get(), pImpl_->bRecursive_, nSecurityMode);
 	if (!pDriver->search(context, &pImpl_->listMessageHolder_))
 		return false;
 	std::sort(pImpl_->listMessageHolder_.begin(), pImpl_->listMessageHolder_.end());

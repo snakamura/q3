@@ -13,9 +13,15 @@
 
 #include <qs.h>
 #include <qscrypto.h>
+#include <qsprofile.h>
 
 
 namespace qm {
+
+class Security;
+
+class PGPUtility;
+
 
 /****************************************************************************
  *
@@ -26,7 +32,8 @@ namespace qm {
 class QMEXPORTCLASS Security
 {
 public:
-	explicit Security(const WCHAR* pwszPath);
+	Security(const WCHAR* pwszPath,
+			 qs::Profile* pProfile);
 	~Security();
 
 public:
@@ -35,9 +42,14 @@ public:
 	std::auto_ptr<qs::Certificate> getCertificate(const WCHAR* pwszName) const;
 
 public:
+	const PGPUtility* getPGPUtility() const;
+
+public:
 	static void init();
 	static void term();
-	static bool isEnabled();
+	static bool isSSLEnabled();
+	static bool isSMIMEEnabled();
+	static bool isPGPEnabled();
 
 private:
 	Security(const Security&);
@@ -45,6 +57,19 @@ private:
 
 private:
 	struct SecurityImpl* pImpl_;
+};
+
+
+/****************************************************************************
+ *
+ * SecurityMode
+ *
+ */
+
+enum SecurityMode {
+	SECURITYMODE_NONE	= 0x00,
+	SECURITYMODE_SMIME	= 0x01,
+	SECURITYMODE_PGP	= 0x02
 };
 
 }

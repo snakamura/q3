@@ -92,7 +92,7 @@ public:
 	virtual void messageViewModeChanged(const MessageViewModeHolderEvent& event);
 
 public:
-	virtual void decryptVerifyChanged(const SecurityModelEvent& event);
+	virtual void securityModeChanged(const SecurityModelEvent& event);
 
 public:
 	virtual void statusTextChanged(const WCHAR* pwszText);
@@ -191,9 +191,7 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 			nFlags |= Account::GETMESSAGEFLAG_HTML;
 		else
 			nFlags |= Account::GETMESSAGEFLAG_TEXT;
-		if (!pSecurityModel_->isDecryptVerify())
-			nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
-		if (!pmh->getMessage(nFlags, 0, &msg))
+		if (!pmh->getMessage(nFlags, 0, pSecurityModel_->getSecurityMode(), &msg))
 			return false;
 		
 		if (nSeenWait_ != 0 && nSeenWait_ != -1)
@@ -243,7 +241,7 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 			// TODO
 			// Get selected
 			TemplateContext context(pmh, &msg, MessageHolderList(), pAccount,
-				pDocument_, pThis_->getHandle(), pSecurityModel_->isDecryptVerify(),
+				pDocument_, pThis_->getHandle(), pSecurityModel_->getSecurityMode(),
 				pProfile_, 0, TemplateContext::ArgumentList());
 			pHeaderWindow_->setMessage(&context);
 		}
@@ -263,10 +261,9 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	
 	unsigned int nFlags = (bRawMode ? MessageViewWindow::FLAG_RAWMODE : 0) |
 		(!bShowHeaderWindow_ ? MessageViewWindow::FLAG_INCLUDEHEADER : 0) |
-		(pMode && pMode->isMode(MessageViewMode::MODE_HTMLONLINE) ? MessageViewWindow::FLAG_ONLINEMODE : 0) |
-		(pSecurityModel_->isDecryptVerify() ? MessageViewWindow::FLAG_DECRYPTVERIFY : 0);
+		(pMode && pMode->isMode(MessageViewMode::MODE_HTMLONLINE) ? MessageViewWindow::FLAG_ONLINEMODE : 0);
 	if (!pMessageViewWindow->setMessage(pmh, pmh ? &msg : 0,
-		pTemplate, wstrEncoding_.get(), nFlags))
+		pTemplate, wstrEncoding_.get(), nFlags, pSecurityModel_->getSecurityMode()))
 		return false;
 	if (bActive)
 		pThis_->setActive();
@@ -355,7 +352,7 @@ void qm::MessageWindowImpl::messageViewModeChanged(const MessageViewModeHolderEv
 	pMessageViewWindow_->setQuoteMode(pNew && pNew->isMode(MessageViewMode::MODE_QUOTE));
 }
 
-void qm::MessageWindowImpl::decryptVerifyChanged(const SecurityModelEvent& event)
+void qm::MessageWindowImpl::securityModeChanged(const SecurityModelEvent& event)
 {
 	MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
 	setMessage(mpl, false);

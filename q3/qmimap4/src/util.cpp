@@ -739,7 +739,7 @@ qmimap4::AbstractCallback::AbstractCallback(SubAccount* pSubAccount,
 	DefaultSSLSocketCallback(pSubAccount, Account::HOST_RECEIVE, pSecurity),
 	pSubAccount_(pSubAccount),
 	pPasswordCallback_(pPasswordCallback),
-	result_(PasswordCallback::RESULT_ONETIME)
+	state_(PASSWORDSTATE_ONETIME)
 {
 }
 
@@ -754,16 +754,15 @@ bool qmimap4::AbstractCallback::getUserInfo(wstring_ptr* pwstrUserName,
 	assert(pwstrPassword);
 	
 	*pwstrUserName = allocWString(pSubAccount_->getUserName(Account::HOST_RECEIVE));
-	result_ = pPasswordCallback_->getPassword(pSubAccount_, Account::HOST_RECEIVE, pwstrPassword);
-	return result_ != PasswordCallback::RESULT_ERROR;
+	state_ = pPasswordCallback_->getPassword(pSubAccount_, Account::HOST_RECEIVE, pwstrPassword);
+	return state_ != PASSWORDSTATE_NONE;
 }
 
 void qmimap4::AbstractCallback::setPassword(const WCHAR* pwszPassword)
 {
-	if (result_ == PasswordCallback::RESULT_SESSION ||
-		result_ == PasswordCallback::RESULT_SAVE)
+	if (state_ == PASSWORDSTATE_SESSION || state_ == PASSWORDSTATE_SAVE)
 		pPasswordCallback_->setPassword(pSubAccount_, Account::HOST_RECEIVE,
-			pwszPassword, result_ == PasswordCallback::RESULT_SAVE);
+			pwszPassword, state_ == PASSWORDSTATE_SAVE);
 }
 
 wstring_ptr qmimap4::AbstractCallback::getAuthMethods()

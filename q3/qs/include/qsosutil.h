@@ -30,6 +30,10 @@ class StgMedium;
 class Library;
 class Registry;
 class Clipboard;
+class Process;
+
+class InputStream;
+class OutputStream;
 
 
 /****************************************************************************
@@ -593,6 +597,11 @@ public:
 	 */
 	static wstring_ptr exec(const WCHAR* pwszCommand,
 							const WCHAR* pwszInput);
+	
+	static int exec(const WCHAR* pwszCommand,
+					InputStream* pStdInput,
+					OutputStream* pStdOutput,
+					OutputStream* pStdError);
 #endif
 };
 

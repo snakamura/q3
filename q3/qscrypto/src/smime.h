@@ -55,7 +55,8 @@ private:
 												  PKCS7* pPKCS7);
 	static qs::xstring_ptr createMessage(const CHAR* pszContent,
 										 size_t nLen,
-										 const qs::Part& part);
+										 const qs::Part& part,
+										 const WCHAR* pwszSignedBy);
 	static qs::malloc_size_ptr<unsigned char> encodePKCS7(PKCS7* pPKCS7);
 	static bool contains(const qs::AddressListParser& addressList,
 						 const WCHAR* pwszAddress);

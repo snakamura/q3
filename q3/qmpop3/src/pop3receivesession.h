@@ -126,7 +126,7 @@ private:
 	private:
 		qm::SubAccount* pSubAccount_;
 		qm::ReceiveSessionCallback* pSessionCallback_;
-		qm::PasswordCallback::Result result_;
+		qm::PasswordState state_;
 	};
 	
 	class UIDSaver
@@ -292,6 +292,7 @@ public:
 	virtual void getDate(qs::Time* pTime) const;
 	virtual bool getMessage(unsigned int nFlags,
 							const WCHAR* pwszField,
+							unsigned int nSecurityMode,
 							qm::Message* pMessage);
 
 private:

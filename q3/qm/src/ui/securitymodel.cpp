@@ -30,8 +30,8 @@ qm::SecurityModel::~SecurityModel()
  *
  */
 
-qm::DefaultSecurityModel::DefaultSecurityModel(bool bDecryptVerify) :
-	bDecryptVerify_(bDecryptVerify)
+qm::DefaultSecurityModel::DefaultSecurityModel(unsigned int nMode) :
+	nMode_(nMode)
 {
 }
 
@@ -39,16 +39,23 @@ qm::DefaultSecurityModel::~DefaultSecurityModel()
 {
 }
 
-bool qm::DefaultSecurityModel::isDecryptVerify()
+unsigned int qm::DefaultSecurityModel::getSecurityMode() const
 {
-	return bDecryptVerify_;
+	return nMode_;
 }
 
-void qm::DefaultSecurityModel::setDecryptVerify(bool bDecryptVerify)
+void qm::DefaultSecurityModel::setSecurityMode(SecurityMode mode,
+											   bool b)
 {
-	if (bDecryptVerify != bDecryptVerify_) {
-		bDecryptVerify_ = bDecryptVerify;
-		fireDecryptVerifyChanged();
+	unsigned int nMode = nMode_;
+	if (b)
+		nMode |= mode;
+	else
+		nMode &= ~mode;
+	
+	if (nMode != nMode_) {
+		nMode_ = nMode;
+		fireSecurityModeChanged();
 	}
 }
 
@@ -64,11 +71,11 @@ void qm::DefaultSecurityModel::removeSecurityModelHandler(SecurityModelHandler* 
 	listHandler_.erase(it, listHandler_.end());
 }
 
-void qm::DefaultSecurityModel::fireDecryptVerifyChanged()
+void qm::DefaultSecurityModel::fireSecurityModeChanged()
 {
 	SecurityModelEvent event(this);
 	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
-		(*it)->decryptVerifyChanged(event);
+		(*it)->securityModeChanged(event);
 }
 
 

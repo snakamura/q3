@@ -13,6 +13,7 @@
 #include <qmmessage.h>
 #include <qmmessageholder.h>
 #include <qmrecents.h>
+#include <qmsecurity.h>
 #include <qmsession.h>
 #include <qmsyncfilter.h>
 
@@ -823,9 +824,8 @@ bool qm::SyncManager::send(Document* pDocument,
 				
 				if (bSend) {
 					Message msg;
-					unsigned int nFlags = Account::GETMESSAGEFLAG_HEADER |
-						Account::GETMESSAGEFLAG_NOSECURITY;
-					if (!pmh->getMessage(nFlags, L"X-QMAIL-SubAccount", &msg))
+					if (!pmh->getMessage(Account::GETMESSAGEFLAG_HEADER,
+						L"X-QMAIL-SubAccount", SECURITYMODE_NONE, &msg))
 						return false;
 					
 					if (*pwszIdentity) {
@@ -891,9 +891,7 @@ bool qm::SyncManager::send(Document* pDocument,
 		MessagePtrLock mpl(listMessagePtr[m]);
 		if (mpl) {
 			Message msg;
-			unsigned int nFlags = Account::GETMESSAGEFLAG_ALL |
-				Account::GETMESSAGEFLAG_NOSECURITY;
-			if (!mpl->getMessage(nFlags, 0, &msg))
+			if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, SECURITYMODE_NONE, &msg))
 				return false;
 			const WCHAR* pwszRemoveFields[] = {
 				L"X-QMAIL-Account",
@@ -1070,9 +1068,9 @@ qm::SyncManager::ReceiveSessionCallbackImpl::~ReceiveSessionCallbackImpl()
 {
 }
 
-PasswordCallback::Result qm::SyncManager::ReceiveSessionCallbackImpl::getPassword(SubAccount* pSubAccount,
-																				  Account::Host host,
-																				  wstring_ptr* pwstrPassword)
+PasswordState qm::SyncManager::ReceiveSessionCallbackImpl::getPassword(SubAccount* pSubAccount,
+																	   Account::Host host,
+																	   wstring_ptr* pwstrPassword)
 {
 	return pCallback_->getPassword(pSubAccount, host, pwstrPassword);
 }
@@ -1147,9 +1145,9 @@ qm::SyncManager::SendSessionCallbackImpl::~SendSessionCallbackImpl()
 {
 }
 
-PasswordCallback::Result qm::SyncManager::SendSessionCallbackImpl::getPassword(SubAccount* pSubAccount,
-																			   Account::Host host,
-																			   wstring_ptr* pwstrPassword)
+PasswordState qm::SyncManager::SendSessionCallbackImpl::getPassword(SubAccount* pSubAccount,
+																	Account::Host host,
+																	wstring_ptr* pwstrPassword)
 {
 	return pCallback_->getPassword(pSubAccount, host, pwstrPassword);
 }

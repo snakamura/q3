@@ -11,6 +11,8 @@
 #include <qmfolder.h>
 #include <qmmessageholder.h>
 #include <qmmessageoperation.h>
+#include <qmpassword.h>
+#include <qmpgp.h>
 #include <qmprotocoldriver.h>
 #include <qmsecurity.h>
 
@@ -85,6 +87,13 @@ public:
 	
 	bool getDataList(MessageStore::DataList* pList) const;
 	
+	bool processSMIME(const SMIMEUtility* pSMIMEUtility,
+					  SMIMEUtility::Type type,
+					  Message* pMessage);
+	bool processPGP(const PGPUtility* pPGPUtility,
+					PGPUtility::Type type,
+					Message* pMessage);
+	
 	void fireCurrentSubAccountChanged();
 	void fireSubAccountListChanged();
 	void fireFolderListChanged(const FolderListChangedEvent& event);
@@ -109,6 +118,7 @@ public:
 	bool bMultiMessageStore_;
 	Profile* pProfile_;
 	const Security* pSecurity_;
+	PasswordManager* pPasswordManager_;
 	Account::SubAccountList listSubAccount_;
 	SubAccount* pCurrentSubAccount_;
 	Account::FolderList listFolder_;
@@ -527,10 +537,8 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 		for (MessageHolderList::size_type n = 0; n < l.size(); ++n) {
 			MessageHolder* pmh = l[n];
 			Message msg;
-			unsigned int nFlags = Account::GETMESSAGEFLAG_ALL |
-				Account::GETMESSAGEFLAG_NOFALLBACK |
-				Account::GETMESSAGEFLAG_NOSECURITY;
-			if (!pmh->getMessage(nFlags, 0, &msg))
+			if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL | Account::GETMESSAGEFLAG_NOFALLBACK,
+				0, SECURITYMODE_NONE, &msg))
 				return false;
 			if (!pAccountTo->appendMessage(pFolderTo, msg,
 				pmh->getFlags() & MessageHolder::FLAG_USER_MASK, 0))
@@ -620,6 +628,121 @@ bool qm::AccountImpl::getDataList(MessageStore::DataList* pList) const
 			}
 		}
 	}
+	return true;
+}
+
+bool qm::AccountImpl::processSMIME(const SMIMEUtility* pSMIMEUtility,
+								   SMIMEUtility::Type type,
+								   Message* pMessage)
+{
+	xstring_ptr strMessage;
+	unsigned int nSecurity = Message::SECURITY_NONE;
+	switch (type) {
+	case SMIMEUtility::TYPE_SIGNED:
+	case SMIMEUtility::TYPE_MULTIPARTSIGNED:
+		{
+			unsigned int nVerify = 0;
+			strMessage = pSMIMEUtility->verify(*pMessage,
+				pSecurity_->getCA(), &nVerify);
+			if (!strMessage.get())
+				return false;
+			
+			if (nVerify == SMIMEUtility::VERIFY_OK)
+				nSecurity |= Message::SECURITY_VERIFIED;
+			if (nVerify & SMIMEUtility::VERIFY_FAILED)
+				nSecurity |= Message::SECURITY_VERIFICATIONFAILED;
+			if (nVerify & SMIMEUtility::VERIFY_ADDRESSNOTMATCH)
+				nSecurity |= Message::SECURITY_ADDRESSNOTMATCH;
+		}
+		break;
+	case SMIMEUtility::TYPE_ENVELOPED:
+		{
+			SubAccount* pSubAccount = pThis_->getCurrentSubAccount();
+			PrivateKey* pPrivateKey = pSubAccount->getPrivateKey();
+			Certificate* pCertificate = pSubAccount->getCertificate();
+			if (pPrivateKey && pCertificate) {
+				strMessage = pSMIMEUtility->decrypt(*pMessage, pPrivateKey, pCertificate);
+				if (!strMessage.get())
+					return false;
+				nSecurity |= Message::SECURITY_DECRYPTED;
+			}
+		}
+		break;
+	case SMIMEUtility::TYPE_ENVELOPEDORSIGNED:
+		assert(false);
+		break;
+	default:
+		break;
+	}
+	if (!strMessage.get())
+		return false;
+	
+	if (!pMessage->create(strMessage.get(), -1, Message::FLAG_NONE, nSecurity))
+		return false;
+	
+	return true;
+}
+
+bool qm::AccountImpl::processPGP(const PGPUtility* pPGPUtility,
+								 PGPUtility::Type type,
+								 Message* pMessage)
+{
+	PasswordState state = PASSWORDSTATE_ONETIME;
+	wstring_ptr wstrPassword;
+	if (type == PGPUtility::TYPE_MIMEENCRYPTED ||
+		type == PGPUtility::TYPE_INLINEENCRYPTED) {
+		PGPPasswordCondition condition(pThis_->getCurrentSubAccount()->getSenderAddress());
+		wstrPassword = pPasswordManager_->getPassword(condition, false, &state);
+		if (!wstrPassword.get())
+			return false;
+	}
+	
+	xstring_ptr strMessage;
+	unsigned int nVerify = 0;
+	unsigned int nSecurity = Message::SECURITY_NONE;
+	switch (type) {
+	case PGPUtility::TYPE_MIMEENCRYPTED:
+		strMessage = pPGPUtility->decryptAndVerify(
+			*pMessage, true, wstrPassword.get(), &nVerify);
+		if (!strMessage.get())
+			return false;
+		nSecurity |= Message::SECURITY_DECRYPTED;
+		break;
+	case PGPUtility::TYPE_MIMESIGNED:
+		strMessage = pPGPUtility->verify(*pMessage, true, &nVerify);
+		if (!strMessage.get())
+			return false;
+		break;
+	case PGPUtility::TYPE_INLINEENCRYPTED:
+		strMessage = pPGPUtility->decryptAndVerify(
+			*pMessage, false, wstrPassword.get(), &nVerify);
+		if (!strMessage.get())
+			return false;
+		nSecurity |= Message::SECURITY_DECRYPTED;
+		break;
+	case PGPUtility::TYPE_INLINESIGNED:
+		strMessage = pPGPUtility->verify(*pMessage, false, &nVerify);
+		if (!strMessage.get())
+			return false;
+		break;
+	}
+	
+	if (state == PASSWORDSTATE_SESSION || state == PASSWORDSTATE_SAVE) {
+		PGPPasswordCondition condition(pThis_->getCurrentSubAccount()->getSenderAddress());
+		pPasswordManager_->setPassword(condition,
+			wstrPassword.get(), state == PASSWORDSTATE_SAVE);
+	}
+	
+	if (nVerify == PGPUtility::VERIFY_OK)
+		nSecurity |= Message::SECURITY_VERIFIED;
+	if (nVerify & PGPUtility::VERIFY_FAILED)
+		nSecurity |= Message::SECURITY_VERIFICATIONFAILED;
+	if (nVerify & PGPUtility::VERIFY_ADDRESSNOTMATCH)
+		nSecurity |= Message::SECURITY_ADDRESSNOTMATCH;
+	
+	if (!pMessage->create(strMessage.get(), -1, Message::FLAG_NONE, nSecurity))
+		return false;
+	
 	return true;
 }
 
@@ -756,7 +879,8 @@ bool qm::AccountImpl::createDefaultFolders()
  */
 
 qm::Account::Account(const WCHAR* pwszPath,
-					 const Security* pSecurity) :
+					 const Security* pSecurity,
+					 PasswordManager* pPasswordManager) :
 	pImpl_(0)
 {
 	assert(pwszPath);
@@ -776,6 +900,7 @@ qm::Account::Account(const WCHAR* pwszPath,
 	pImpl_->wstrPath_ = wstrPath;
 	pImpl_->pProfile_ = 0;
 	pImpl_->pSecurity_ = pSecurity;
+	pImpl_->pPasswordManager_ = pPasswordManager;
 	pImpl_->pCurrentSubAccount_ = 0;
 #ifndef NDEBUG
 	pImpl_->nLock_ = 0;
@@ -1601,9 +1726,9 @@ bool qm::Account::check(AccountCheckCallback* pCallback)
 		virtual bool getHeader(unsigned int n,
 							   Message* pMessage)
 		{
-			unsigned int nFlags = Account::GETMESSAGEFLAG_HEADER |
-				Account::GETMESSAGEFLAG_NOFALLBACK | Account::GETMESSAGEFLAG_NOSECURITY;
-			return listMessageHolder_[n]->getMessage(nFlags, 0, pMessage);
+			return listMessageHolder_[n]->getMessage(
+				Account::GETMESSAGEFLAG_HEADER | Account::GETMESSAGEFLAG_NOFALLBACK,
+				0, SECURITYMODE_NONE, pMessage);
 		}
 		
 		virtual void setKey(unsigned int n,
@@ -2002,11 +2127,13 @@ wstring_ptr qm::Account::getIndex(unsigned int nKey,
 
 bool qm::Account::getMessage(MessageHolder* pmh,
 							 unsigned int nFlags,
+							 unsigned int nSecurityMode,
 							 Message* pMessage)
 {
-	bool bSecurity = Security::isEnabled() && (nFlags & GETMESSAGEFLAG_NOSECURITY) == 0;
+	bool bSMIME = Security::isSMIMEEnabled() && nSecurityMode & SECURITYMODE_SMIME;
+	bool bPGP = Security::isPGPEnabled() && nSecurityMode & SECURITYMODE_PGP;
 	
-	if (bSecurity && pmh->isFlag(MessageHolder::FLAG_ENVELOPED)) {
+	if ((bSMIME || bPGP) && pmh->isFlag(MessageHolder::FLAG_ENVELOPED)) {
 		nFlags &= ~GETMESSAGEFLAG_METHOD_MASK;
 		nFlags |= GETMESSAGEFLAG_ALL;
 	}
@@ -2014,64 +2141,50 @@ bool qm::Account::getMessage(MessageHolder* pmh,
 	if (!pImpl_->getMessage(pmh, nFlags, pMessage))
 		return false;
 	
-	if (bSecurity) {
-		unsigned int nSecurity = Message::SECURITY_NONE;
+	if (bSMIME) {
 		const SMIMEUtility* pSMIMEUtility = pImpl_->pSecurity_->getSMIMEUtility();
-		SMIMEUtility::Type type = pSMIMEUtility->getType(*pMessage);
+		SMIMEUtility::Type type = pSMIMEUtility->getType(pMessage->getContentType());
 		if  (type != SMIMEUtility::TYPE_NONE) {
 			if (pMessage->getFlag() != Message::FLAG_NONE) {
 				pMessage->clear();
 				if (!pImpl_->getMessage(pmh, GETMESSAGEFLAG_ALL, pMessage))
 					return false;
 			}
+			type = pSMIMEUtility->getType(*pMessage);
 		}
 		
 		while  (type != SMIMEUtility::TYPE_NONE) {
-			xstring_ptr strMessage;
-			switch (type) {
-			case SMIMEUtility::TYPE_SIGNED:
-			case SMIMEUtility::TYPE_MULTIPARTSIGNED:
-				{
-					unsigned int nVerify = 0;
-					strMessage = pSMIMEUtility->verify(*pMessage,
-						pImpl_->pSecurity_->getCA(), &nVerify);
-					if (!strMessage.get())
-						return false;
-					
-					if (nVerify == SMIMEUtility::VERIFY_OK)
-						nSecurity |= Message::SECURITY_VERIFIED;
-					if (nVerify & SMIMEUtility::VERIFY_FAILED)
-						nSecurity |= Message::SECURITY_VERIFICATIONFAILED;
-					if (nVerify & SMIMEUtility::VERIFY_ADDRESSNOTMATCH)
-						nSecurity |= Message::SECURITY_ADDRESSNOTMATCH;
-				}
+			if (!pImpl_->processSMIME(pSMIMEUtility, type, pMessage))
 				break;
-			case SMIMEUtility::TYPE_ENVELOPED:
-				{
-					SubAccount* pSubAccount = getCurrentSubAccount();
-					PrivateKey* pPrivateKey = pSubAccount->getPrivateKey();
-					Certificate* pCertificate = pSubAccount->getCertificate();
-					if (pPrivateKey && pCertificate) {
-						strMessage = pSMIMEUtility->decrypt(*pMessage, pPrivateKey, pCertificate);
-						if (!strMessage.get())
-							return false;
-						nSecurity |= Message::SECURITY_DECRYPTED;
-					}
-				}
-				break;
-			case SMIMEUtility::TYPE_ENVELOPEDORSIGNED:
-				assert(false);
-				break;
-			default:
-				break;
-			}
-			
-			if (!strMessage.get())
-				break;
-			
-			if (!pMessage->create(strMessage.get(), -1, Message::FLAG_NONE, nSecurity))
-				return false;
 			type = pSMIMEUtility->getType(*pMessage);
+		}
+	}
+	if (bPGP) {
+		const PGPUtility* pPGPUtility = pImpl_->pSecurity_->getPGPUtility();
+		PGPUtility::Type type = pPGPUtility->getType(pMessage->getContentType());
+		if  (type == PGPUtility::TYPE_MIMEENCRYPTED ||
+			 type == PGPUtility::TYPE_MIMESIGNED) {
+			if (pMessage->getFlag() != Message::FLAG_NONE) {
+				pMessage->clear();
+				if (!pImpl_->getMessage(pmh, GETMESSAGEFLAG_ALL, pMessage))
+					return false;
+			}
+			type = pPGPUtility->getType(*pMessage, false);
+		}
+		else {
+			type = pPGPUtility->getType(*pMessage, true);
+		}
+		
+		if (type == PGPUtility::TYPE_INLINEENCRYPTED ||
+			type == PGPUtility::TYPE_INLINESIGNED) {
+			pImpl_->processPGP(pPGPUtility, type, pMessage);
+		}
+		else {
+			while  (type != PGPUtility::TYPE_NONE) {
+				if (!pImpl_->processPGP(pPGPUtility, type, pMessage))
+					break;
+				type = pPGPUtility->getType(*pMessage, false);
+			}
 		}
 	}
 	
@@ -2137,10 +2250,16 @@ MessageHolder* qm::Account::storeMessage(NormalFolder* pFolder,
 	if (pHeader->isMultipart())
 		nFlags |= MessageHolder::FLAG_MULTIPART;
 	
-	if (Security::isEnabled()) {
+	if (Security::isSMIMEEnabled()) {
 		const SMIMEUtility* pSMIMEUtility = pImpl_->pSecurity_->getSMIMEUtility();
 		SMIMEUtility::Type type = pSMIMEUtility->getType(pHeader->getContentType());
 		if (type != SMIMEUtility::TYPE_NONE)
+			nFlags |= MessageHolder::FLAG_ENVELOPED;
+	}
+	if (Security::isPGPEnabled()) {
+		const PGPUtility* pPGPUtility = pImpl_->pSecurity_->getPGPUtility();
+		PGPUtility::Type type = pPGPUtility->getType(pHeader->getContentType());
+		if (type != PGPUtility::TYPE_NONE)
 			nFlags |= MessageHolder::FLAG_ENVELOPED;
 	}
 	
@@ -2265,7 +2384,7 @@ MessageHolder* qm::Account::cloneMessage(MessageHolder* pmh,
 	}
 	else {
 		Message msg;
-		if (!pmh->getMessage(GETMESSAGEFLAG_POSSIBLE | GETMESSAGEFLAG_NOSECURITY, 0, &msg))
+		if (!pmh->getMessage(GETMESSAGEFLAG_POSSIBLE, 0, SECURITYMODE_NONE, &msg))
 			return 0;
 		xstring_ptr strContent(msg.getContent());
 		if (!strContent.get())

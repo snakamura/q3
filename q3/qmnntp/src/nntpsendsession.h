@@ -85,7 +85,7 @@ private:
 	private:
 		qm::SubAccount* pSubAccount_;
 		qm::SendSessionCallback* pSessionCallback_;
-		qm::PasswordCallback::Result result_;
+		qm::PasswordState state_;
 	};
 
 private:

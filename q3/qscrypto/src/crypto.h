@@ -29,6 +29,7 @@ public:
 	virtual ~NameImpl();
 
 public:
+	virtual qs::wstring_ptr getText() const;
 	virtual qs::wstring_ptr getCommonName() const;
 	virtual qs::wstring_ptr getEmailAddress() const;
 

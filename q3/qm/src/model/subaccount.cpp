@@ -106,7 +106,7 @@ void qm::SubAccountImpl::load()
 	wstring_ptr wstrMyAddress(pProfile_->getString(L"Global", L"MyAddress", 0));
 	pThis_->setMyAddress(wstrMyAddress.get());
 	
-	if (Security::isEnabled()) {
+	if (Security::isSMIMEEnabled()) {
 		{
 			std::auto_ptr<PrivateKey> pPrivateKey(PrivateKey::getInstance());
 			ConcatW c[] = {

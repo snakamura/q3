@@ -366,9 +366,9 @@ private:
 		virtual ~ReceiveSessionCallbackImpl();
 	
 	public:
-		virtual Result getPassword(SubAccount* pSubAccount,
-								   Account::Host host,
-								   qs::wstring_ptr* pwstrPassword);
+		virtual PasswordState getPassword(SubAccount* pSubAccount,
+										  Account::Host host,
+										  qs::wstring_ptr* pwstrPassword);
 		virtual void setPassword(SubAccount* pSubAccount,
 								 Account::Host host,
 								 const WCHAR* pwszPassword,
@@ -406,9 +406,9 @@ private:
 		virtual ~SendSessionCallbackImpl();
 	
 	public:
-		virtual Result getPassword(SubAccount* pSubAccount,
-								   Account::Host host,
-								   qs::wstring_ptr* pwstrPassword);
+		virtual PasswordState getPassword(SubAccount* pSubAccount,
+										  Account::Host host,
+										  qs::wstring_ptr* pwstrPassword);
 		virtual void setPassword(SubAccount* pSubAccount,
 								 Account::Host host,
 								 const WCHAR* pwszPassword,
@@ -525,9 +525,9 @@ public:
 						  const SessionErrorInfo& info) = 0;
 	virtual bool isCanceled(unsigned int nId,
 							bool bForce) = 0;
-	virtual PasswordCallback::Result getPassword(SubAccount* pSubAccount,
-												 Account::Host host,
-												 qs::wstring_ptr* pwstrPassword) = 0;
+	virtual PasswordState getPassword(SubAccount* pSubAccount,
+									  Account::Host host,
+									  qs::wstring_ptr* pwstrPassword) = 0;
 	virtual void setPassword(SubAccount* pSubAccount,
 							 Account::Host host,
 							 const WCHAR* pwszPassword,

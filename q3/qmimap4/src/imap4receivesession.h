@@ -287,6 +287,7 @@ public:
 public:
 	virtual bool getMessage(unsigned int nFlags,
 							const WCHAR* pwszField,
+							unsigned int nSecurityMode,
 							qm::Message* pMessage);
 
 private:

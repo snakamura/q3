@@ -858,8 +858,7 @@ class FileExportAction : public qs::AbstractAction
 public:
 	enum Flag {
 		FLAG_ADDFLAGS		= 0x01,
-		FLAG_WRITESEPARATOR	= 0x02,
-		FLAG_DECRYPTVERIFY	= 0x04
+		FLAG_WRITESEPARATOR	= 0x02
 	};
 
 public:
@@ -886,7 +885,8 @@ private:
 public:
 	static bool writeMessage(qs::OutputStream* pStream,
 							 MessageHolder* pmh,
-							 unsigned int nFlags);
+							 unsigned int nFlags,
+							 unsigned int nSecurityMode);
 
 private:
 	FileExportAction(const FileExportAction&);
@@ -1507,6 +1507,7 @@ class MessageCombineAction : public qs::AbstractAction
 {
 public:
 	MessageCombineAction(MessageSelectionModel* pMessageSelectionModel,
+						 SecurityModel* pSecurityModel,
 						 HWND hwnd);
 	virtual ~MessageCombineAction();
 
@@ -1515,8 +1516,10 @@ public:
 	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
-	static bool combine(const MessageHolderList& l,
-						Message* pMessage);
+	bool combine(const MessageHolderList& l,
+				 Message* pMessage);
+
+private:
 	static bool isSpecialField(const CHAR* pszField);
 
 private:
@@ -1525,6 +1528,7 @@ private:
 
 private:
 	MessageSelectionModel* pMessageSelectionModel_;
+	SecurityModel* pSecurityModel_;
 	HWND hwnd_;
 };
 
@@ -1577,6 +1581,7 @@ class MessageCreateFromClipboardAction : public qs::AbstractAction
 public:
 	MessageCreateFromClipboardAction(bool bDraft,
 									 Document* pDocument,
+									 PasswordManager* pPasswordManager,
 									 qs::Profile* pProfile,
 									 HWND hwnd,
 									 FolderModel* pFolderModel,
@@ -1610,6 +1615,7 @@ class MessageCreateFromFileAction : public qs::AbstractAction
 public:
 	MessageCreateFromFileAction(bool bDraft,
 								Document* pDocument,
+								PasswordManager* pPasswordManager,
 								qs::Profile* pProfile,
 								HWND hwnd,
 								FolderModel* pFolderModel,
@@ -1708,6 +1714,7 @@ class MessageExpandDigestAction : public qs::AbstractAction
 {
 public:
 	MessageExpandDigestAction(MessageSelectionModel* pMessageSelectionModel,
+							  SecurityModel* pSecurityModel,
 							  HWND hwnd);
 	virtual ~MessageExpandDigestAction();
 
@@ -1727,6 +1734,7 @@ private:
 
 private:
 	MessageSelectionModel* pMessageSelectionModel_;
+	SecurityModel* pSecurityModel_;
 	HWND hwnd_;
 };
 
@@ -2623,13 +2631,8 @@ private:
 class ViewSecurityAction : public qs::AbstractAction
 {
 public:
-	typedef bool (SecurityModel::*PFN_IS)();
-	typedef void (SecurityModel::*PFN_SET)(bool);
-
-public:
 	ViewSecurityAction(SecurityModel* pSecurityModel,
-					   PFN_IS pfnIs,
-					   PFN_SET pfnSet,
+					   SecurityMode mode,
 					   bool bEnabled);
 	virtual ~ViewSecurityAction();
 
@@ -2644,8 +2647,7 @@ private:
 
 private:
 	SecurityModel* pSecurityModel_;
-	PFN_IS pfnIs_;
-	PFN_SET pfnSet_;
+	SecurityMode mode_;
 	bool bEnabled_;
 };
 

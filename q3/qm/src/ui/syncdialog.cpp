@@ -195,58 +195,56 @@ void qm::SyncDialog::enableCancel(bool bEnable)
 	sendDlgItemMessage(nNewId, BM_SETSTYLE, BS_DEFPUSHBUTTON, TRUE);
 }
 
-PasswordCallback::Result qm::SyncDialog::getPassword(SubAccount* pSubAccount,
-													 Account::Host host,
-													 wstring_ptr* pwstrPassword)
+PasswordState qm::SyncDialog::getPassword(SubAccount* pSubAccount,
+										  Account::Host host,
+										  wstring_ptr* pwstrPassword)
 {
-	Account* pAccount = pSubAccount->getAccount();
-	AccountPasswordCondition condition(pAccount->getName(), pSubAccount->getName(), host);
-	wstring_ptr wstrPassword(pPasswordManager_->getPassword(condition, false));
-	if (wstrPassword.get()) {
-		*pwstrPassword = wstrPassword;
-		return PasswordCallback::RESULT_ONETIME;
-	}
-	
 	struct RunnableImpl : public Runnable
 	{
 		RunnableImpl(SyncDialog* pSyncDialog,
+					 PasswordManager* pPasswordManager,
 					 SubAccount* pSubAccount,
 					 Account::Host host) :
 			pSyncDialog_(pSyncDialog),
+			pPasswordManager_(pPasswordManager),
 			pSubAccount_(pSubAccount),
 			host_(host),
-			result_(PasswordCallback::RESULT_ERROR)
+			state_(PASSWORDSTATE_NONE)
 		{
 		}
 		
 		virtual void run()
 		{
-			pSyncDialog_->show();
-			
-			PasswordDialog dialog(pSubAccount_, host_);
-			if (dialog.doModal(pSyncDialog_->getHandle()) == IDOK) {
-				wstrPassword_ = allocWString(dialog.getPassword());
-				result_ = dialog.getResult();
+			Account* pAccount = pSubAccount_->getAccount();
+			AccountPasswordCondition condition(pAccount, pSubAccount_, host_);
+			wstrPassword_ = pPasswordManager_->getPassword(condition, false, 0);
+			if (wstrPassword_.get()) {
+				state_ = PASSWORDSTATE_ONETIME;
+			}
+			else {
+				pSyncDialog_->show();
+				wstrPassword_ = pPasswordManager_->getPassword(condition, false, &state_);
 			}
 		}
 		
 		SyncDialog* pSyncDialog_;
+		PasswordManager* pPasswordManager_;
 		SubAccount* pSubAccount_;
 		Account::Host host_;
 		wstring_ptr wstrPassword_;
-		PasswordCallback::Result result_;
-	} runnable(this, pSubAccount, host);
+		PasswordState state_;
+	} runnable(this, pPasswordManager_, pSubAccount, host);
 	
 	Lock<CriticalSection> lock(csPassword_);
 	
 	getInitThread()->getSynchronizer()->syncExec(&runnable);
 	
 	if (!runnable.wstrPassword_.get())
-		return PasswordCallback::RESULT_ERROR;
+		return PASSWORDSTATE_NONE;
 	
 	*pwstrPassword = runnable.wstrPassword_;
 	
-	return runnable.result_;
+	return runnable.state_;
 }
 
 void qm::SyncDialog::setPassword(SubAccount* pSubAccount,
@@ -255,7 +253,7 @@ void qm::SyncDialog::setPassword(SubAccount* pSubAccount,
 								 bool bPermanent)
 {
 	Account* pAccount = pSubAccount->getAccount();
-	AccountPasswordCondition condition(pAccount->getName(), pSubAccount->getName(), host);
+	AccountPasswordCondition condition(pAccount, pSubAccount, host);
 	pPasswordManager_->setPassword(condition, pwszPassword, bPermanent);
 }
 
@@ -782,9 +780,9 @@ bool qm::SyncStatusWindow::isCanceled(unsigned int nId,
 		return ::GetTickCount() - nCanceledTime > 10*1000;
 }
 
-PasswordCallback::Result qm::SyncStatusWindow::getPassword(SubAccount* pSubAccount,
-														   Account::Host host,
-														   wstring_ptr* pwstrPassword)
+PasswordState qm::SyncStatusWindow::getPassword(SubAccount* pSubAccount,
+												Account::Host host,
+												wstring_ptr* pwstrPassword)
 {
 	return pSyncDialog_->getPassword(pSubAccount, host, pwstrPassword);
 }

@@ -693,7 +693,8 @@ void qm::AttachmentHeaderItem::setMessage(const TemplateContext* pContext)
 		MessageHolderBase* pmh = pContext->getMessageHolder();
 		if (pmh) {
 			Message* pMessage = pContext->getMessage();
-			if (pmh->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, pMessage)) {
+			if (pmh->getMessage(Account::GETMESSAGEFLAG_TEXT,
+				0, pSecurityModel_->getSecurityMode(), pMessage)) {
 				AttachmentParser parser(*pMessage);
 				AttachmentParser::AttachmentList list;
 				AttachmentParser::AttachmentListFree free(list);
@@ -792,7 +793,7 @@ LRESULT qm::AttachmentHeaderItem::onBeginDrag(NMHDR* pnmhdr,
 	}
 	
 	std::auto_ptr<URIDataObject> p(new URIDataObject(pDocument_,
-		pSecurityModel_->isDecryptVerify(), listURI));
+		pSecurityModel_->getSecurityMode(), listURI));
 	p->AddRef();
 	ComPtr<IDataObject> pDataObject(p.release());
 	

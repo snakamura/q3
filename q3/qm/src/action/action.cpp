@@ -100,10 +100,8 @@ void qm::AttachmentOpenAction::invoke(const ActionEvent& event)
 		return;
 	
 	Message msg;
-	unsigned int nFlags = Account::GETMESSAGEFLAG_ALL;
-	if (!pSecurityModel_->isDecryptVerify())
-		nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
-	if (!mpl->getMessage(nFlags, 0, &msg)) {
+	if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL,
+		0, pSecurityModel_->getSecurityMode(), &msg)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_EXECUTEATTACHMENT);
 		return;
 	}
@@ -1102,7 +1100,8 @@ bool qm::FileDumpAction::dumpFolder(const WCHAR* pwszPath,
 		if (!fileStream)
 			return false;
 		BufferedOutputStream stream(&fileStream, false);
-		if (!FileExportAction::writeMessage(&stream, pmh, FileExportAction::FLAG_ADDFLAGS))
+		if (!FileExportAction::writeMessage(&stream, pmh,
+			FileExportAction::FLAG_ADDFLAGS, SECURITYMODE_NONE))
 			return false;
 		
 		if (pDialog->isCanceled())
@@ -1273,8 +1272,7 @@ bool qm::FileExportAction::export(Account* pAccount,
 		unsigned int nFlags = 0;
 		if (dialog.isExportFlags())
 			nFlags |= FLAG_ADDFLAGS;
-		if (pSecurityModel_->isDecryptVerify())
-			nFlags |= FLAG_DECRYPTVERIFY;
+		unsigned int nSecurityMode = pSecurityModel_->getSecurityMode();
 		
 		ProgressDialog progressDialog(IDS_EXPORT);
 		ProgressDialogInit init(&progressDialog, hwnd_,
@@ -1312,7 +1310,7 @@ bool qm::FileExportAction::export(Account* pAccount,
 						return false;
 				}
 				else {
-					if (!writeMessage(&stream, l[n], nFlags))
+					if (!writeMessage(&stream, l[n], nFlags, nSecurityMode))
 						return false;
 				}
 				if (!stream.close())
@@ -1330,7 +1328,7 @@ bool qm::FileExportAction::export(Account* pAccount,
 			
 			int nPos = 0;
 			if (l.size() == 1 && !pTemplate) {
-				if (!writeMessage(&stream, l.front(), nFlags))
+				if (!writeMessage(&stream, l.front(), nFlags, nSecurityMode))
 					return false;
 				++nPos;
 			}
@@ -1345,7 +1343,7 @@ bool qm::FileExportAction::export(Account* pAccount,
 							return false;
 					}
 					else {
-						if (!writeMessage(&stream, *it, nFlags | FLAG_WRITESEPARATOR))
+						if (!writeMessage(&stream, *it, nFlags | FLAG_WRITESEPARATOR, nSecurityMode))
 							return false;
 					}
 				}
@@ -1367,7 +1365,7 @@ bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 	Message msg;
 	TemplateContext context(pmh, &msg, MessageHolderList(),
 		pmh->getFolder()->getAccount(), pDocument_, hwnd_,
-		pSecurityModel_->isDecryptVerify(),
+		pSecurityModel_->getSecurityMode(),
 		pProfile_, 0, TemplateContext::ArgumentList());
 	
 	wstring_ptr wstrValue;
@@ -1389,16 +1387,15 @@ bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 
 bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 										MessageHolder* pmh,
-										unsigned int nFlags)
+										unsigned int nFlags,
+										unsigned int nSecurityMode)
 {
 	assert(pStream);
 	assert(pmh);
 	
 	Message msg;
-	unsigned int nGetFlags = Account::GETMESSAGEFLAG_ALL | Account::GETMESSAGEFLAG_NOFALLBACK;
-	if ((nFlags & FLAG_DECRYPTVERIFY) == 0)
-		nGetFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
-	if (!pmh->getMessage(nGetFlags, 0, &msg))
+	if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL | Account::GETMESSAGEFLAG_NOFALLBACK,
+		0, nSecurityMode, &msg))
 		return false;
 	
 	if (nFlags & FLAG_ADDFLAGS) {
@@ -2035,7 +2032,7 @@ bool qm::FilePrintAction::print(Account* pAccount,
 	
 	Message msg;
 	TemplateContext context(pmh, &msg, listSelected, pAccount,
-		pDocument_, hwnd_, pSecurityModel_->isDecryptVerify(),
+		pDocument_, hwnd_, pSecurityModel_->getSecurityMode(),
 		pProfile_, 0, TemplateContext::ArgumentList());
 	
 	wstring_ptr wstrValue;
@@ -2802,8 +2799,8 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 				if (pFolder->getType() == Folder::TYPE_NORMAL &&
 					!pFolder->isFlag(Folder::FLAG_TRASHBOX) &&
 					!pFolder->isHidden()) {
-					if (!pRuleManager_->apply(pFolder, 0, pDocument_, hwnd_,
-						pProfile_, pSecurityModel_->isDecryptVerify(), &callback)) {
+					if (!pRuleManager_->apply(pFolder, 0, pDocument_, hwnd_, pProfile_,
+						pSecurityModel_->getSecurityMode(), &callback)) {
 						ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
 						return;
 					}
@@ -2814,8 +2811,8 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 			Folder* pFolder = pFolderModel_->getCurrentFolder();
 			if (pFolder) {
 				ProgressDialogInit init(&dialog, hwnd_);
-				if (!pRuleManager_->apply(pFolder, 0, pDocument_, hwnd_,
-					pProfile_, pSecurityModel_->isDecryptVerify(), &callback)) {
+				if (!pRuleManager_->apply(pFolder, 0, pDocument_, hwnd_, pProfile_,
+					pSecurityModel_->getSecurityMode(), &callback)) {
 					ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
 					return;
 				}
@@ -2829,8 +2826,8 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 		pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
 		if (!l.empty()) {
 			ProgressDialogInit init(&dialog, hwnd_);
-			if (!pRuleManager_->apply(pFolder, &l, pDocument_, hwnd_,
-				pProfile_, pSecurityModel_->isDecryptVerify(), &callback)) {
+			if (!pRuleManager_->apply(pFolder, &l, pDocument_, hwnd_, pProfile_,
+				pSecurityModel_->getSecurityMode(), &callback)) {
 				ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
 				return;
 			}
@@ -2921,8 +2918,10 @@ void qm::MessageClearRecentsAction::invoke(const ActionEvent& event)
  */
 
 qm::MessageCombineAction::MessageCombineAction(MessageSelectionModel* pMessageSelectionModel,
+											   SecurityModel* pSecurityModel,
 											   HWND hwnd) :
 	pMessageSelectionModel_(pMessageSelectionModel),
+	pSecurityModel_(pSecurityModel),
 	hwnd_(hwnd)
 {
 }
@@ -2974,7 +2973,8 @@ bool qm::MessageCombineAction::combine(const MessageHolderList& l,
 		MessageHolder* pmh = *it;
 		
 		Message msg;
-		if (!pmh->getMessage(Account::GETMESSAGEFLAG_HEADER, L"Content-Type", &msg))
+		if (!pmh->getMessage(Account::GETMESSAGEFLAG_HEADER,
+			L"Content-Type", pSecurityModel_->getSecurityMode(), &msg))
 			return false;
 		
 		const ContentTypeParser* pContentType = msg.getContentType();
@@ -3011,9 +3011,7 @@ bool qm::MessageCombineAction::combine(const MessageHolderList& l,
 	if (nTotal == 0)
 		return false;
 	
-	// TODO
-	// Use malloc based buffer.
-	StringBuffer<STRING> buf;
+	XStringBuffer<XSTRING> buf;
 	
 	Part::FieldList listField;
 	Part::FieldListFree free(listField);
@@ -3022,13 +3020,15 @@ bool qm::MessageCombineAction::combine(const MessageHolderList& l,
 		MessageHolder* pmh = *it;
 		
 		Message msg;
-		if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg))
+		if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL,
+			0, pSecurityModel_->getSecurityMode(), &msg))
 			return false;
 		
 		if (it == listMessageHolder.begin())
 			msg.getFields(&listField);
 		
-		buf.append(msg.getBody());
+		if (!buf.append(msg.getBody()))
+			return false;
 	}
 	
 	if (!pMessage->create(buf.getCharArray(), buf.getLength(), Message::FLAG_NONE))
@@ -3037,8 +3037,8 @@ bool qm::MessageCombineAction::combine(const MessageHolderList& l,
 	
 	for (Part::FieldList::const_iterator itF = listField.begin(); itF != listField.end(); ++itF) {
 		if (!isSpecialField((*itF).first)) {
-			buf.append((*itF).second);
-			buf.append("\r\n");
+			if (!buf.append((*itF).second) || !buf.append("\r\n"))
+				return false;
 		}
 	}
 	
@@ -3046,8 +3046,8 @@ bool qm::MessageCombineAction::combine(const MessageHolderList& l,
 	pMessage->getFields(&listField);
 	for (Part::FieldList::const_iterator itF = listField.begin(); itF != listField.end(); ++itF) {
 		if (isSpecialField((*itF).first)) {
-			buf.append((*itF).second);
-			buf.append("\r\n");
+			if (!buf.append((*itF).second) || !buf.append("\r\n"))
+				return false;
 		}
 	}
 	
@@ -3119,11 +3119,12 @@ bool qm::MessageCreateAction::isEnabled(const ActionEvent& event)
 
 qm::MessageCreateFromClipboardAction::MessageCreateFromClipboardAction(bool bDraft,
 																	   Document* pDocument,
+																	   PasswordManager* pPasswordManager,
 																	   Profile* pProfile,
 																	   HWND hwnd,
 																	   FolderModel* pFolderModel,
 																	   SecurityModel* pSecurityModel) :
-	composer_(bDraft, pDocument, pProfile, hwnd, pFolderModel, pSecurityModel),
+	composer_(bDraft, pDocument, pPasswordManager, pProfile, hwnd, pFolderModel, pSecurityModel),
 	pDocument_(pDocument),
 	pSecurityModel_(pSecurityModel),
 	hwnd_(hwnd)
@@ -3141,8 +3142,8 @@ void qm::MessageCreateFromClipboardAction::invoke(const ActionEvent& event)
 		MessageCreator creator(MessageCreator::FLAG_ADDCONTENTTYPE |
 			MessageCreator::FLAG_EXPANDALIAS |
 			MessageCreator::FLAG_EXTRACTATTACHMENT |
-			(pSecurityModel_->isDecryptVerify() ? MessageCreator::FLAG_DECRYPTVERIFY : 0) |
-			MessageCreator::FLAG_ENCODETEXT);
+			MessageCreator::FLAG_ENCODETEXT,
+			pSecurityModel_->getSecurityMode());
 		std::auto_ptr<Message> pMessage(creator.createMessage(pDocument_, wstrMessage.get(), -1));
 		
 		unsigned int nFlags = 0;
@@ -3169,11 +3170,12 @@ bool qm::MessageCreateFromClipboardAction::isEnabled(const ActionEvent& event)
 
 qm::MessageCreateFromFileAction::MessageCreateFromFileAction(bool bDraft,
 															 Document* pDocument,
+															 PasswordManager* pPasswordManager,
 															 Profile* pProfile,
 															 HWND hwnd,
 															 FolderModel* pFolderModel,
 															 SecurityModel* pSecurityModel) :
-	composer_(bDraft, pDocument, pProfile, hwnd, pFolderModel, pSecurityModel),
+	composer_(bDraft, pDocument, pPasswordManager, pProfile, hwnd, pFolderModel, pSecurityModel),
 	pDocument_(pDocument),
 	pSecurityModel_(pSecurityModel),
 	hwnd_(hwnd)
@@ -3261,10 +3263,8 @@ bool qm::MessageDeleteAttachmentAction::deleteAttachment(Account* pAccount,
 														 MessageHolder* pmh) const
 {
 	Message msg;
-	unsigned int nFlags = Account::GETMESSAGEFLAG_ALL;
-	if (!pSecurityModel_->isDecryptVerify())
-		nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
-	if (!pmh->getMessage(nFlags, 0, &msg))
+	if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL,
+		0, pSecurityModel_->getSecurityMode(), &msg))
 		return false;
 	
 	AttachmentParser::removeAttachments(&msg);
@@ -3329,8 +3329,10 @@ bool qm::MessageDetachAction::isEnabled(const ActionEvent& event)
  */
 
 qm::MessageExpandDigestAction::MessageExpandDigestAction(MessageSelectionModel* pMessageSelectionModel,
+														 SecurityModel* pSecurityModel,
 														 HWND hwnd) :
 	pMessageSelectionModel_(pMessageSelectionModel),
+	pSecurityModel_(pSecurityModel),
 	hwnd_(hwnd)
 {
 }
@@ -3373,7 +3375,8 @@ bool qm::MessageExpandDigestAction::expandDigest(Account* pAccount,
 												 MessageHolder* pmh)
 {
 	Message msg;
-	if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg))
+	if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL,
+		0, pSecurityModel_->getSecurityMode(), &msg))
 		return false;
 	
 	PartUtil::MessageList l;
@@ -3613,7 +3616,8 @@ void qm::MessageOpenLinkAction::invoke(const ActionEvent& event)
 			return;
 		
 		Message msg;
-		if (!mpl->getMessage(Account::GETMESSAGEFLAG_HEADER, L"X-QMAIL-Link", &msg))
+		if (!mpl->getMessage(Account::GETMESSAGEFLAG_HEADER,
+			L"X-QMAIL-Link", SECURITYMODE_NONE, &msg))
 			return;
 		
 		UnstructuredParser link;
@@ -3884,7 +3888,7 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 				
 				if (pFolder == pSearch || !pSearch->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
 					if (!pSearch->search(pDocument_, hwnd_,
-						pProfile_, pSecurityModel_->isDecryptVerify())) {
+						pProfile_, pSecurityModel_->getSecurityMode())) {
 						ActionUtil::error(hwnd_, IDS_ERROR_SEARCH);
 						return;
 					}
@@ -5071,7 +5075,7 @@ void qm::ViewRefreshAction::invoke(const ActionEvent& event)
 		break;
 	case Folder::TYPE_QUERY:
 		if (!static_cast<QueryFolder*>(pFolder)->search(pDocument_,
-			hwnd_, pProfile_, pSecurityModel_->isDecryptVerify())) {
+			hwnd_, pProfile_, pSecurityModel_->getSecurityMode())) {
 			ActionUtil::error(hwnd_, IDS_ERROR_REFRESH);
 			return;
 		}
@@ -5098,12 +5102,10 @@ bool qm::ViewRefreshAction::isEnabled(const ActionEvent& event)
  */
 
 qm::ViewSecurityAction::ViewSecurityAction(SecurityModel* pSecurityModel,
-										   PFN_IS pfnIs,
-										   PFN_SET pfnSet,
+										   SecurityMode mode,
 										   bool bEnabled) :
 	pSecurityModel_(pSecurityModel),
-	pfnIs_(pfnIs),
-	pfnSet_(pfnSet),
+	mode_(mode),
 	bEnabled_(bEnabled)
 {
 }
@@ -5114,7 +5116,8 @@ qm::ViewSecurityAction::~ViewSecurityAction()
 
 void qm::ViewSecurityAction::invoke(const ActionEvent& event)
 {
-	(pSecurityModel_->*pfnSet_)(!(pSecurityModel_->*pfnIs_)());
+	pSecurityModel_->setSecurityMode(mode_,
+		(pSecurityModel_->getSecurityMode() & mode_) == 0);
 }
 
 bool qm::ViewSecurityAction::isEnabled(const ActionEvent& event)
@@ -5124,7 +5127,7 @@ bool qm::ViewSecurityAction::isEnabled(const ActionEvent& event)
 
 bool qm::ViewSecurityAction::isChecked(const ActionEvent& event)
 {
-	return (pSecurityModel_->*pfnIs_)();
+	return (pSecurityModel_->getSecurityMode() & mode_) != 0;
 }
 
 

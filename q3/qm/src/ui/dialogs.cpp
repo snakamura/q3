@@ -11,7 +11,6 @@
 #include <qmdocument.h>
 #include <qmfilenames.h>
 #include <qmgoround.h>
-#include <qmpassword.h>
 #include <qmsession.h>
 #include <qmuiutil.h>
 
@@ -159,7 +158,8 @@ LRESULT qm::AccountDialog::onAddAccount()
 			return 0;
 		}
 		
-		std::auto_ptr<Account> pAccount(new Account(wstrDir.get(), pDocument_->getSecurity()));
+		std::auto_ptr<Account> pAccount(new Account(wstrDir.get(),
+			pDocument_->getSecurity(), pPasswordManager_));
 		Account* p = pAccount.get();
 		pDocument_->addAccount(pAccount);
 		pSubAccount_ = p->getCurrentSubAccount();
@@ -270,8 +270,7 @@ LRESULT qm::AccountDialog::onRemove()
 				Account* pAccount = pSubAccount->getAccount();
 				
 				for (int n = 0; n < countof(hosts); ++n) {
-					AccountPasswordCondition condition(pAccount->getName(),
-						pSubAccount->getName(), hosts[n]);
+					AccountPasswordCondition condition(pAccount, pSubAccount, hosts[n]);
 					pPasswordManager_->removePassword(condition);
 				}
 				
@@ -288,8 +287,7 @@ LRESULT qm::AccountDialog::onRemove()
 			for (Account::SubAccountList::const_iterator it = l.begin(); it != l.end(); ++it) {
 				SubAccount* pSubAccount = *it;
 				for (int n = 0; n < countof(hosts); ++n) {
-					AccountPasswordCondition condition(pAccount->getName(),
-						pSubAccount->getName(), hosts[n]);
+					AccountPasswordCondition condition(pAccount, pSubAccount, hosts[n]);
 					pPasswordManager_->removePassword(condition);
 				}
 			}
@@ -4260,27 +4258,9 @@ void qm::MoveMessageDialog::updateState()
 
 qm::PasswordDialog::PasswordDialog(const WCHAR* pwszHint) :
 	DefaultDialog(IDD_PASSWORD),
-	result_(PasswordCallback::RESULT_ONETIME)
+	state_(PASSWORDSTATE_ONETIME)
 {
 	wstrHint_ = allocWString(pwszHint);
-}
-
-qm::PasswordDialog::PasswordDialog(SubAccount* pSubAccount,
-								   Account::Host host) :
-	DefaultDialog(IDD_PASSWORD),
-	result_(PasswordCallback::RESULT_ONETIME)
-{
-	StringBuffer<WSTRING> buf;
-	buf.append(L'[');
-	buf.append(pSubAccount->getAccount()->getName());
-	if (*pSubAccount->getName()) {
-		buf.append(L'/');
-		buf.append(pSubAccount->getName());
-	}
-	buf.append(L"] ");
-	buf.append(pSubAccount->getUserName(host));
-	
-	wstrHint_ = buf.getString();
 }
 
 qm::PasswordDialog::~PasswordDialog()
@@ -4292,9 +4272,9 @@ const WCHAR* qm::PasswordDialog::getPassword() const
 	return wstrPassword_.get();
 }
 
-PasswordCallback::Result qm::PasswordDialog::getResult() const
+PasswordState qm::PasswordDialog::getState() const
 {
-	return result_;
+	return state_;
 }
 
 LRESULT qm::PasswordDialog::onCommand(WORD nCode,
@@ -4322,11 +4302,11 @@ LRESULT qm::PasswordDialog::onOk()
 	wstrPassword_ = getDlgItemText(IDC_PASSWORD);
 	
 	if (sendDlgItemMessage(IDC_DONTSAVE, BM_GETCHECK) == BST_CHECKED)
-		result_ = PasswordCallback::RESULT_ONETIME;
+		state_ = PASSWORDSTATE_ONETIME;
 	else if (sendDlgItemMessage(IDC_SESSION, BM_GETCHECK) == BST_CHECKED)
-		result_ = PasswordCallback::RESULT_SESSION;
+		state_ = PASSWORDSTATE_SESSION;
 	else if (sendDlgItemMessage(IDC_SAVE, BM_GETCHECK) == BST_CHECKED)
-		result_ = PasswordCallback::RESULT_SAVE;
+		state_ = PASSWORDSTATE_SAVE;
 	
 	return DefaultDialog::onOk();
 }

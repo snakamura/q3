@@ -10,6 +10,7 @@
 #define __SECURITYMODEL_H__
 
 #include <qm.h>
+#include <qmsecurity.h>
 
 #include <vector>
 
@@ -33,8 +34,9 @@ public:
 	virtual ~SecurityModel();
 
 public:
-	virtual bool isDecryptVerify() = 0;
-	virtual void setDecryptVerify(bool bDecryptVerify) = 0;
+	virtual unsigned int getSecurityMode() const = 0;
+	virtual void setSecurityMode(SecurityMode mode,
+								 bool b) = 0;
 	virtual void addSecurityModelHandler(SecurityModelHandler* pHandler) = 0;
 	virtual void removeSecurityModelHandler(SecurityModelHandler* pHandler) = 0;
 };
@@ -49,17 +51,18 @@ public:
 class DefaultSecurityModel : public SecurityModel
 {
 public:
-	DefaultSecurityModel(bool bDecryptVerify);
+	explicit DefaultSecurityModel(unsigned int nMode);
 	virtual ~DefaultSecurityModel();
 
 public:
-	virtual bool isDecryptVerify();
-	virtual void setDecryptVerify(bool bDecryptVerify);
+	virtual unsigned int getSecurityMode() const;
+	virtual void setSecurityMode(SecurityMode mode,
+								 bool b);
 	virtual void addSecurityModelHandler(SecurityModelHandler* pHandler);
 	virtual void removeSecurityModelHandler(SecurityModelHandler* pHandler);
 
 private:
-	void fireDecryptVerifyChanged();
+	void fireSecurityModeChanged();
 
 private:
 	DefaultSecurityModel(const DefaultSecurityModel&);
@@ -69,7 +72,7 @@ private:
 	typedef std::vector<SecurityModelHandler*> HandlerList;
 
 private:
-	bool bDecryptVerify_;
+	unsigned int nMode_;
 	HandlerList listHandler_;
 };
 
@@ -86,7 +89,7 @@ public:
 	virtual ~SecurityModelHandler();
 
 public:
-	virtual void decryptVerifyChanged(const SecurityModelEvent& event) = 0;
+	virtual void securityModeChanged(const SecurityModelEvent& event) = 0;
 };
 
 
@@ -99,7 +102,7 @@ public:
 class SecurityModelEvent
 {
 public:
-	SecurityModelEvent(SecurityModel* pSecurityModel);
+	explicit SecurityModelEvent(SecurityModel* pSecurityModel);
 	~SecurityModelEvent();
 
 public:

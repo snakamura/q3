@@ -20,12 +20,29 @@
 namespace qm {
 
 class PasswordManager;
+class PasswordManagerCallback;
 class PasswordVisitor;
 	class PasswordCondition;
 		class AccountPasswordCondition;
+		class PGPPasswordCondition;
 
 class Password;
 class AccountPassword;
+class PGPPassword;
+
+
+/****************************************************************************
+ *
+ * PasswordState
+ *
+ */
+
+enum PasswordState {
+	PASSWORDSTATE_NONE,
+	PASSWORDSTATE_ONETIME,
+	PASSWORDSTATE_SESSION,
+	PASSWORDSTATE_SAVE
+};
 
 
 /****************************************************************************
@@ -40,12 +57,13 @@ public:
 	typedef std::vector<Password*> PasswordList;
 
 public:
-	PasswordManager();
+	explicit PasswordManager(PasswordManagerCallback* pCallback);
 	~PasswordManager();
 
 public:
 	qs::wstring_ptr getPassword(const PasswordCondition& condition,
-								bool bPermanentOnly) const;
+								bool bPermanentOnly,
+								PasswordState* pState) const;
 	void setPassword(const PasswordCondition& condition,
 					 const WCHAR* pwszPassword,
 					 bool bPermanent);
@@ -66,6 +84,23 @@ private:
 
 /****************************************************************************
  *
+ * PasswordManagerCallback
+ *
+ */
+
+class PasswordManagerCallback
+{
+public:
+	virtual ~PasswordManagerCallback();
+
+public:
+	virtual PasswordState getPassword(const PasswordCondition& condition,
+									  qs::wstring_ptr* pwstrPassword) = 0;
+};
+
+
+/****************************************************************************
+ *
  * PasswordVisitor
  *
  */
@@ -77,6 +112,7 @@ public:
 
 public:
 	virtual bool visit(const AccountPassword& password) const = 0;
+	virtual bool visit(const PGPPassword& password) const = 0;
 };
 
 
@@ -94,6 +130,11 @@ public:
 public:
 	virtual std::auto_ptr<Password> createPassword(const WCHAR* pwszPassword,
 												   bool bPermanent) const = 0;
+	virtual qs::wstring_ptr getHint() const = 0;
+
+public:
+	virtual bool visit(const AccountPassword& password) const;
+	virtual bool visit(const PGPPassword& password) const;
 };
 
 
@@ -106,14 +147,16 @@ public:
 class QMEXPORTCLASS AccountPasswordCondition : public PasswordCondition
 {
 public:
-	AccountPasswordCondition(const WCHAR* pwszAccount,
-							 const WCHAR* pwszSubAccount,
+	AccountPasswordCondition(Account* pAccount,
+							 SubAccount* pSubAccount,
 							 Account::Host host);
 	virtual ~AccountPasswordCondition();
 
 public:
 	virtual std::auto_ptr<Password> createPassword(const WCHAR* pwszPassword,
 												   bool bPermanent) const;
+	virtual qs::wstring_ptr getHint() const;
+
 public:
 	virtual bool visit(const AccountPassword& password) const;
 
@@ -122,9 +165,38 @@ private:
 	AccountPasswordCondition& operator=(const AccountPasswordCondition&);
 
 private:
-	const WCHAR* pwszAccount_;
-	const WCHAR* pwszSubAccount_;
+	Account* pAccount_;
+	SubAccount* pSubAccount_;
 	Account::Host host_;
+};
+
+
+/****************************************************************************
+ *
+ * PGPPasswordCondition
+ *
+ */
+
+class QMEXPORTCLASS PGPPasswordCondition : public PasswordCondition
+{
+public:
+	explicit PGPPasswordCondition(const WCHAR* pwszUserId);
+	virtual ~PGPPasswordCondition();
+
+public:
+	virtual std::auto_ptr<Password> createPassword(const WCHAR* pwszPassword,
+												   bool bPermanent) const;
+	virtual qs::wstring_ptr getHint() const;
+
+public:
+	virtual bool visit(const PGPPassword& password) const;
+
+private:
+	PGPPasswordCondition(const PGPPasswordCondition&);
+	PGPPasswordCondition& operator=(const PGPPasswordCondition&);
+
+private:
+	const WCHAR* pwszUserId_;
 };
 
 }

@@ -550,6 +550,38 @@ qm::ProgressDialogInit::~ProgressDialogInit()
 
 /****************************************************************************
  *
+ * DefaultPasswordManagerCallback
+ *
+ */
+
+qm::DefaultPasswordManagerCallback::DefaultPasswordManagerCallback()
+{
+}
+
+qm::DefaultPasswordManagerCallback::~DefaultPasswordManagerCallback()
+{
+}
+
+PasswordState qm::DefaultPasswordManagerCallback::getPassword(const PasswordCondition& condition,
+															  wstring_ptr* pwstrPassword)
+{
+	HWND hwnd = Window::getForegroundWindow();
+	if (::GetWindowThreadProcessId(hwnd, 0) != ::GetCurrentThreadId())
+		hwnd = getMainWindow()->getHandle();
+	
+	wstring_ptr wstrHint(condition.getHint());
+	PasswordDialog dialog(wstrHint.get());
+	if (dialog.doModal(hwnd) != IDOK)
+		return PASSWORDSTATE_NONE;
+	
+	*pwstrPassword = allocWString(dialog.getPassword());
+	
+	return dialog.getState();
+}
+
+
+/****************************************************************************
+ *
  * DefaultPasswordCallback
  *
  */
@@ -563,29 +595,15 @@ qm::DefaultPasswordCallback::~DefaultPasswordCallback()
 {
 }
 
-PasswordCallback::Result qm::DefaultPasswordCallback::getPassword(SubAccount* pSubAccount,
-																  Account::Host host,
-																  wstring_ptr* pwstrPassword)
+PasswordState qm::DefaultPasswordCallback::getPassword(SubAccount* pSubAccount,
+													   Account::Host host,
+													   wstring_ptr* pwstrPassword)
 {
 	Account* pAccount = pSubAccount->getAccount();
-	AccountPasswordCondition condition(pAccount->getName(), pSubAccount->getName(), host);
-	wstring_ptr wstrPassword(pPasswordManager_->getPassword(condition, false));
-	if (wstrPassword.get()) {
-		*pwstrPassword = wstrPassword;
-		return PasswordCallback::RESULT_ONETIME;
-	}
-	
-	HWND hwnd = Window::getForegroundWindow();
-	if (::GetWindowThreadProcessId(hwnd, 0) != ::GetCurrentThreadId())
-		hwnd = getMainWindow()->getHandle();
-	
-	PasswordDialog dialog(pSubAccount, host);
-	if (dialog.doModal(hwnd) != IDOK)
-		return RESULT_ERROR;
-	
-	*pwstrPassword = allocWString(dialog.getPassword());
-	
-	return dialog.getResult();
+	AccountPasswordCondition condition(pAccount, pSubAccount, host);
+	PasswordState state = PASSWORDSTATE_ONETIME;
+	*pwstrPassword = pPasswordManager_->getPassword(condition, false, &state);
+	return state;
 }
 
 void qm::DefaultPasswordCallback::setPassword(SubAccount* pSubAccount,
@@ -594,6 +612,6 @@ void qm::DefaultPasswordCallback::setPassword(SubAccount* pSubAccount,
 											  bool bPermanent)
 {
 	Account* pAccount = pSubAccount->getAccount();
-	AccountPasswordCondition condition(pAccount->getName(), pSubAccount->getName(), host);
+	AccountPasswordCondition condition(pAccount, pSubAccount, host);
 	pPasswordManager_->setPassword(condition, pwszPassword, bPermanent);
 }

@@ -11,7 +11,7 @@
 
 #include <qm.h>
 #include <qmfolder.h>
-#include <qmsession.h>
+#include <qmpassword.h>
 #include <qmsyncfilter.h>
 
 #include <qs.h>
@@ -1278,13 +1278,11 @@ class PasswordDialog : public DefaultDialog
 {
 public:
 	explicit PasswordDialog(const WCHAR* pwszHint);
-	PasswordDialog(SubAccount* pSubAccount,
-				   Account::Host host);
 	virtual ~PasswordDialog();
 
 public:
 	const WCHAR* getPassword() const;
-	PasswordCallback::Result getResult() const;
+	PasswordState getState() const;
 
 public:
 	virtual LRESULT onCommand(WORD nCode,
@@ -1310,7 +1308,7 @@ private:
 private:
 	qs::wstring_ptr wstrHint_;
 	qs::wstring_ptr wstrPassword_;
-	PasswordCallback::Result result_;
+	PasswordState state_;
 };
 
 

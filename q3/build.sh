@@ -7,7 +7,7 @@ MAKE=${MAKE:=make}
 MSDEV=${MSDEV:=d:/dev/msvs/common/msdev98/bin/msdev.exe}
 PURIFY=${PURIFY:=d:/dev/rational/purify/purify.exe}
 
-PROJECTS="qs qscrypto qm qmpop3 qmimap4 qmsmtp qmnntp qmrss qmscript q3"
+PROJECTS="qs qscrypto qm qmpop3 qmimap4 qmsmtp qmnntp qmrss qmscript qmpgp q3"
 DESKTOPTARGETS="desktop.ansi.release desktop.unicode.release"
 CETARGETS="ppc2003.armv4.ja ppc2002.arm.ja hpc2000.arm.ja hpc2000.mips.ja ppc.arm.ja ppc.sh3.ja ppc.mips.ja hpcpro.arm.ja hpcpro.mips.ja hpcpro.sh3.ja hpcpro.sh4.ja sig3.armv4i.ja"
 TARGETS="$DESKTOPTARGETS $CETARGETS"
@@ -156,9 +156,11 @@ zip)
 	fi
 	for p in $PROJECTS; do
 		cd $p
-		$MAKE $COMMAND
-		if [ $? -ne 0 ]; then
-			exit 1
+		if [ ! -f platforms ] || grep $COMMAND platforms; then
+			$MAKE $COMMAND
+			if [ $? -ne 0 ]; then
+				exit 1
+			fi
 		fi
 		cd ..
 	done

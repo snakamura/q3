@@ -94,8 +94,7 @@ public:
 		FLAG_ADDCONTENTTYPE		= 0x01,
 		FLAG_EXPANDALIAS		= 0x02,
 		FLAG_EXTRACTATTACHMENT	= 0x04,
-		FLAG_DECRYPTVERIFY		= 0x08,
-		FLAG_ENCODETEXT			= 0x10
+		FLAG_ENCODETEXT			= 0x08
 	};
 
 public:
@@ -116,7 +115,8 @@ public:
 
 public:
 	MessageCreator();
-	MessageCreator(unsigned int nFlags);
+	MessageCreator(unsigned int nFlags,
+				   unsigned int nSecurityMode);
 	~MessageCreator();
 
 public:
@@ -150,7 +150,7 @@ public:
 	static bool attachFileOrURI(qs::Part* pPart,
 								const AttachmentList& l,
 								Document* pDocument,
-								bool bDecryptVerify);
+								unsigned int nSecurityMode);
 	static std::auto_ptr<qs::Part> createPartFromFile(const WCHAR* pwszPath);
 	static std::auto_ptr<qs::Part> createRfc822Part(const qs::Part& part,
 													bool bHeaderOnly);
@@ -163,6 +163,7 @@ private:
 
 private:
 	unsigned int nFlags_;
+	unsigned int nSecurityMode_;
 };
 
 

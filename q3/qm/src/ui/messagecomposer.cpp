@@ -12,10 +12,13 @@
 #include <qmfolder.h>
 #include <qmmacro.h>
 #include <qmmessage.h>
+#include <qmpassword.h>
+#include <qmpgp.h>
 #include <qmsecurity.h>
 
 #include <qscrypto.h>
 
+#include "dialogs.h"
 #include "messagecomposer.h"
 #include "../model/addressbook.h"
 #include "../ui/foldermodel.h"
@@ -33,12 +36,14 @@ using namespace qs;
 
 qm::MessageComposer::MessageComposer(bool bDraft,
 									 Document* pDocument,
+									 PasswordManager* pPasswordManager,
 									 Profile* pProfile,
 									 HWND hwnd,
 									 FolderModel* pFolderModel,
 									 SecurityModel* pSecurityModel) :
 	bDraft_(bDraft),
 	pDocument_(pDocument),
+	pPasswordManager_(pPasswordManager),
 	pProfile_(pProfile),
 	hwnd_(hwnd),
 	pFolderModel_(pFolderModel),
@@ -142,15 +147,15 @@ bool qm::MessageComposer::compose(Account* pAccount,
 	
 	const Security* pSecurity = pDocument_->getSecurity();
 	const SMIMEUtility* pSMIMEUtility = pSecurity->getSMIMEUtility();
-	if (pSMIMEUtility && nFlags != 0) {
+	if (pSMIMEUtility && (nFlags & FLAG_SMIMESIGN || nFlags & FLAG_SMIMEENCRYPT)) {
 		const Certificate* pSelfCertificate = 0;
 		if (pProfile_->getInt(L"Security", L"EncryptForSelf", 0))
 			pSelfCertificate = pSubAccount->getCertificate();
 		SMIMECallbackImpl callback(pSecurity,
 			pDocument_->getAddressBook(), pSelfCertificate);
 		
-		if (nFlags & FLAG_SIGN) {
-			bool bMultipart = (nFlags & FLAG_ENCRYPT) == 0 &&
+		if (nFlags & FLAG_SMIMESIGN) {
+			bool bMultipart = (nFlags & FLAG_SMIMEENCRYPT) == 0 &&
 				pProfile_->getInt(L"Security", L"MultipartSigned", 1) != 0;
 			Certificate* pCertificate = pSubAccount->getCertificate();
 			PrivateKey* pPrivateKey = pSubAccount->getPrivateKey();
@@ -163,7 +168,7 @@ bool qm::MessageComposer::compose(Account* pAccount,
 					return false;
 			}
 		}
-		if (nFlags & FLAG_ENCRYPT) {
+		if (nFlags & FLAG_SMIMEENCRYPT) {
 			std::auto_ptr<Cipher> pCipher(Cipher::getInstance(L"des3"));
 			xstring_ptr strMessage(pSMIMEUtility->encrypt(
 				pMessage, pCipher.get(), &callback));
@@ -171,6 +176,51 @@ bool qm::MessageComposer::compose(Account* pAccount,
 				return false;
 			if (!pMessage->create(strMessage.get(), -1, Message::FLAG_NONE))
 				return false;
+		}
+	}
+	const PGPUtility* pPGPUtility = pSecurity->getPGPUtility();
+	if (pPGPUtility && (nFlags & FLAG_PGPSIGN || nFlags & FLAG_PGPENCRYPT)) {
+		const WCHAR* pwszUserId = pSubAccount->getSenderAddress();
+		wstring_ptr wstrPassword;
+		PasswordState state = PASSWORDSTATE_ONETIME;
+		if (nFlags & FLAG_PGPSIGN) {
+			PGPPasswordCondition condition(pwszUserId);
+			wstrPassword = pPasswordManager_->getPassword(condition, false, &state);
+			if (!wstrPassword.get())
+				return false;
+		}
+		
+		bool bMime = (nFlags & FLAG_PGPMIME) != 0;
+		if (nFlags & FLAG_PGPSIGN && nFlags & FLAG_PGPENCRYPT) {
+			const WCHAR* pwszUserId = pSubAccount->getSenderAddress();
+			xstring_ptr strMessage(pPGPUtility->signAndEncrypt(
+				pMessage, bMime, pwszUserId, wstrPassword.get()));
+			if (!strMessage.get())
+				return false;
+			if (!pMessage->create(strMessage.get(), -1, Message::FLAG_NONE))
+				return false;
+		}
+		else if (nFlags & FLAG_PGPSIGN) {
+			const WCHAR* pwszUserId = pSubAccount->getSenderAddress();
+			xstring_ptr strMessage(pPGPUtility->sign(pMessage,
+				bMime, pwszUserId, wstrPassword.get()));
+			if (!strMessage.get())
+				return false;
+			if (!pMessage->create(strMessage.get(), -1, Message::FLAG_NONE))
+				return false;
+		}
+		else if (nFlags & FLAG_PGPENCRYPT) {
+			xstring_ptr strMessage(pPGPUtility->encrypt(pMessage, bMime));
+			if (!strMessage.get())
+				return false;
+			if (!pMessage->create(strMessage.get(), -1, Message::FLAG_NONE))
+				return false;
+		}
+		
+		if (state == PASSWORDSTATE_SESSION || state == PASSWORDSTATE_SAVE) {
+			PGPPasswordCondition condition(pwszUserId);
+			pPasswordManager_->setPassword(condition,
+				wstrPassword.get(), state == PASSWORDSTATE_SAVE);
 		}
 	}
 	
@@ -188,7 +238,7 @@ bool qm::MessageComposer::compose(Account* pAccount,
 				return false;
 			
 			MacroContext context(0, 0, MessageHolderList(), pAccount, pDocument_,
-				hwnd_, pProfile_, false, pSecurityModel_->isDecryptVerify(), 0, 0);
+				hwnd_, pProfile_, false, pSecurityModel_->getSecurityMode(), 0, 0);
 			MacroValuePtr pValue(pMacro->value(&context));
 		}
 	}
@@ -230,8 +280,8 @@ bool qm::MessageComposer::compose(Account* pAccount,
 		MessageCreator creator(MessageCreator::FLAG_ADDCONTENTTYPE |
 			MessageCreator::FLAG_EXPANDALIAS |
 			MessageCreator::FLAG_EXTRACTATTACHMENT |
-			(pSecurityModel_->isDecryptVerify() ? MessageCreator::FLAG_DECRYPTVERIFY : 0) |
-			MessageCreator::FLAG_ENCODETEXT);
+			MessageCreator::FLAG_ENCODETEXT,
+			pSecurityModel_->getSecurityMode());
 		std::auto_ptr<Message> pMessage(creator.createMessage(
 			pDocument_, buf.getCharArray(), buf.getLength()));
 		if (!pMessage.get())

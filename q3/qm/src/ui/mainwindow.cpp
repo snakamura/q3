@@ -609,13 +609,15 @@ void qm::MainWindowImpl::initActions()
 	ADD_ACTION1(MessageClearRecentsAction,
 		IDM_MESSAGE_CLEARRECENTS,
 		pDocument_->getRecents());
-	ADD_ACTION2(MessageCombineAction,
+	ADD_ACTION3(MessageCombineAction,
 		IDM_MESSAGE_COMBINE,
 		pMessageSelectionModel_.get(),
+		pSecurityModel_.get(),
 		pThis_->getHandle());
-	ADD_ACTION2(MessageExpandDigestAction,
+	ADD_ACTION3(MessageExpandDigestAction,
 		IDM_MESSAGE_EXPANDDIGEST,
 		pMessageSelectionModel_.get(),
+		pSecurityModel_.get(),
 		pThis_->getHandle());
 	
 	struct {
@@ -656,18 +658,20 @@ void qm::MainWindowImpl::initActions()
 			true);
 	}
 	
-	ADD_ACTION6(MessageCreateFromClipboardAction,
+	ADD_ACTION7(MessageCreateFromClipboardAction,
 		IDM_MESSAGE_CREATEFROMCLIPBOARD,
 		false,
 		pDocument_,
+		pPasswordManager_,
 		pProfile_,
 		pThis_->getHandle(),
 		pFolderModel_.get(),
 		pSecurityModel_.get());
-	ADD_ACTION6(MessageCreateFromFileAction,
+	ADD_ACTION7(MessageCreateFromFileAction,
 		IDM_MESSAGE_CREATEFROMFILE,
 		false,
 		pDocument_,
+		pPasswordManager_,
 		pProfile_,
 		pThis_->getHandle(),
 		pFolderModel_.get(),
@@ -683,18 +687,20 @@ void qm::MainWindowImpl::initActions()
 		pMessageSelectionModel_.get(),
 		pSecurityModel_.get(),
 		pThis_->getHandle());
-	ADD_ACTION6(MessageCreateFromClipboardAction,
+	ADD_ACTION7(MessageCreateFromClipboardAction,
 		IDM_MESSAGE_DRAFTFROMCLIPBOARD,
 		true,
 		pDocument_,
+		pPasswordManager_,
 		pProfile_,
 		pThis_->getHandle(),
 		pFolderModel_.get(),
 		pSecurityModel_.get());
-	ADD_ACTION6(MessageCreateFromFileAction,
+	ADD_ACTION7(MessageCreateFromFileAction,
 		IDM_MESSAGE_DRAFTFROMFILE,
 		true,
 		pDocument_,
+		pPasswordManager_,
 		pProfile_,
 		pThis_->getHandle(),
 		pFolderModel_.get(),
@@ -844,12 +850,16 @@ void qm::MainWindowImpl::initActions()
 	ADD_ACTION1(ViewLockPreviewAction,
 		IDM_VIEW_LOCKPREVIEW,
 		pPreviewModel_.get());
-	ADD_ACTION4(ViewSecurityAction,
-		IDM_VIEW_DECRYPTVERIFYMODE,
+	ADD_ACTION3(ViewSecurityAction,
+		IDM_VIEW_SMIMEMODE,
 		pSecurityModel_.get(),
-		&SecurityModel::isDecryptVerify,
-		&SecurityModel::setDecryptVerify,
-		Security::isEnabled());
+		SECURITYMODE_SMIME,
+		Security::isSMIMEEnabled());
+	ADD_ACTION3(ViewSecurityAction,
+		IDM_VIEW_PGPMODE,
+		pSecurityModel_.get(),
+		SECURITYMODE_PGP,
+		Security::isPGPEnabled());
 	ADD_ACTION1(ViewEncodingAction,
 		IDM_VIEW_ENCODINGAUTODETECT,
 		pMessageWindow_);
@@ -1213,7 +1223,7 @@ void qm::MainWindowImpl::folderSelected(const FolderModelEvent& event)
 	if (pFolder->getType() == Folder::TYPE_QUERY &&
 		pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN))
 		static_cast<QueryFolder*>(pFolder)->search(pDocument_,
-			pThis_->getHandle(), pProfile_, pSecurityModel_->isDecryptVerify());
+			pThis_->getHandle(), pProfile_, pSecurityModel_->getSecurityMode());
 }
 
 Account* qm::MainWindowImpl::getAccount()
@@ -1618,7 +1628,7 @@ bool qm::MainWindow::save()
 	
 	UIUtil::saveWindowPlacement(getHandle(), pProfile, L"MainWindow");
 	
-	pProfile->setInt(L"MainWindow", L"DecryptVerify", pImpl_->pSecurityModel_->isDecryptVerify());
+	pProfile->setInt(L"MainWindow", L"SecurityMode", pImpl_->pSecurityModel_->getSecurityMode());
 	
 	if (!FrameWindow::save())
 		return false;
@@ -1908,18 +1918,19 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pFolderModel_.reset(new DefaultFolderModel());
 	pImpl_->pFolderListModel_.reset(new FolderListModel());
 	pImpl_->pSecurityModel_.reset(new DefaultSecurityModel(
-		pImpl_->pProfile_->getInt(L"MainWindow", L"DecryptVerify", 0) != 0));
+		pImpl_->pProfile_->getInt(L"MainWindow", L"SecurityMode", 0)));
 	pImpl_->pViewModelManager_.reset(new ViewModelManager(pImpl_->pUIManager_,
 		pImpl_->pDocument_, pImpl_->pProfile_, getHandle(), pImpl_->pSecurityModel_.get()));
 	pImpl_->pPreviewModel_.reset(new PreviewMessageModel(
 		pImpl_->pViewModelManager_.get(), pImpl_->bShowPreviewWindow_));
 	pImpl_->pEditFrameWindowManager_.reset(new EditFrameWindowManager(
-		pImpl_->pDocument_, pImpl_->pUIManager_, pImpl_->pSyncManager_,
-		pImpl_->pSyncDialogManager_, pImpl_->pProfile_, pImpl_->pSecurityModel_.get()));
+		pImpl_->pDocument_, pImpl_->pUIManager_, pImpl_->pPasswordManager_,
+		pImpl_->pSyncManager_, pImpl_->pSyncDialogManager_,
+		pImpl_->pProfile_, pImpl_->pSecurityModel_.get()));
 	pImpl_->pExternalEditorManager_.reset(new ExternalEditorManager(
-		pImpl_->pDocument_, pImpl_->pProfile_, getHandle(),
-		pImpl_->pTempFileCleaner_, pImpl_->pFolderModel_.get(),
-		pImpl_->pSecurityModel_.get()));
+		pImpl_->pDocument_, pImpl_->pPasswordManager_,
+		pImpl_->pProfile_, getHandle(), pImpl_->pTempFileCleaner_,
+		pImpl_->pFolderModel_.get(), pImpl_->pSecurityModel_.get()));
 	pImpl_->pMessageFrameWindowManager_.reset(new MessageFrameWindowManager(
 		pImpl_->pDocument_, pImpl_->pUIManager_, pImpl_->pTempFileCleaner_,
 		pImpl_->pProfile_, pImpl_->pViewModelManager_.get(),

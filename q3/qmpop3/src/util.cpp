@@ -125,11 +125,11 @@ Pop3::Secure qmpop3::Util::getSecure(SubAccount* pSubAccount)
 	}
 }
 
-PasswordCallback::Result qmpop3::Util::getUserInfo(SubAccount* pSubAccount,
-												   Account::Host host,
-												   PasswordCallback* pPasswordCallback,
-												   wstring_ptr* pwstrUserName,
-												   wstring_ptr* pwstrPassword)
+PasswordState qmpop3::Util::getUserInfo(SubAccount* pSubAccount,
+										Account::Host host,
+										PasswordCallback* pPasswordCallback,
+										wstring_ptr* pwstrUserName,
+										wstring_ptr* pwstrPassword)
 {
 	assert(pwstrUserName);
 	assert(pwstrPassword);
@@ -140,12 +140,11 @@ PasswordCallback::Result qmpop3::Util::getUserInfo(SubAccount* pSubAccount,
 
 void qmpop3::Util::setPassword(SubAccount* pSubAccount,
 							   Account::Host host,
-							   PasswordCallback::Result result,
+							   PasswordState state,
 							   PasswordCallback* pPasswordCallback,
 							   const WCHAR* pwszPassword)
 {
-	if (result == PasswordCallback::RESULT_SESSION ||
-		result == PasswordCallback::RESULT_SAVE)
+	if (state == PASSWORDSTATE_SESSION || state == PASSWORDSTATE_SAVE)
 		pPasswordCallback->setPassword(pSubAccount, host,
-			pwszPassword, result == PasswordCallback::RESULT_SAVE);
+			pwszPassword, state == PASSWORDSTATE_SAVE);
 }

@@ -25,6 +25,7 @@ namespace qm {
 class UIUtil;
 class ProgressDialogInit;
 template<class Callback> class ProgressDialogMessageOperationCallbackBase;
+class DefaultPasswordManagerCallback;
 class DefaultPasswordCallback;
 
 class Account;
@@ -34,6 +35,7 @@ class MessageHolder;
 class MessageWindow;
 class PasswordManager;
 class ProgressDialog;
+class SecurityModel;
 class StatusBar;
 class TempFileCleaner;
 
@@ -168,6 +170,28 @@ typedef ProgressDialogMessageOperationCallbackBase<MessageOperationCallback> Pro
 
 /****************************************************************************
  *
+ * DefaultPasswordManagerCallback
+ *
+ */
+
+class DefaultPasswordManagerCallback : public PasswordManagerCallback
+{
+public:
+	DefaultPasswordManagerCallback();
+	virtual ~DefaultPasswordManagerCallback();
+
+public:
+	virtual PasswordState getPassword(const PasswordCondition& condition,
+									  qs::wstring_ptr* pwstrPassword);
+
+private:
+	DefaultPasswordManagerCallback(const DefaultPasswordManagerCallback&);
+	DefaultPasswordManagerCallback& operator=(const DefaultPasswordManagerCallback&);
+};
+
+
+/****************************************************************************
+ *
  * DefaultPasswordCallback
  *
  */
@@ -179,9 +203,9 @@ public:
 	virtual ~DefaultPasswordCallback();
 
 public:
-	virtual Result getPassword(SubAccount* pSubAccount,
-							   Account::Host host,
-							   qs::wstring_ptr* pwstrPassword);
+	virtual PasswordState getPassword(SubAccount* pSubAccount,
+									  Account::Host host,
+									  qs::wstring_ptr* pwstrPassword);
 	virtual void setPassword(SubAccount* pSubAccount,
 							 Account::Host host,
 							 const WCHAR* pwszPassword,

@@ -50,6 +50,14 @@ qscrypto::NameImpl::~NameImpl()
 {
 }
 
+wstring_ptr qscrypto::NameImpl::getText() const
+{
+	char buf[1024];
+	X509_NAME_oneline(pName_, buf, sizeof(buf) - 1);
+	buf[sizeof(buf) - 1] = '\0';
+	return mbs2wcs(buf);
+}
+
 wstring_ptr qscrypto::NameImpl::getCommonName() const
 {
 	return getText(NID_commonName);

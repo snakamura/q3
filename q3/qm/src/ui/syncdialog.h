@@ -93,9 +93,9 @@ public:
 	void addError(const WCHAR* pwszError);
 	bool hasError() const;
 	void enableCancel(bool bEnable);
-	PasswordCallback::Result getPassword(SubAccount* pSubAccount,
-										 Account::Host host,
-										 qs::wstring_ptr* pwstrPassword);
+	PasswordState getPassword(SubAccount* pSubAccount,
+							  Account::Host host,
+							  qs::wstring_ptr* pwstrPassword);
 	void setPassword(SubAccount* pSubAccount,
 					 Account::Host host,
 					 const WCHAR* pwszPassword,
@@ -243,9 +243,9 @@ public:
 	virtual void addError(unsigned int nId,
 						  const SessionErrorInfo& info);
 	virtual bool isCanceled(unsigned int nId, bool bForce);
-	virtual PasswordCallback::Result getPassword(SubAccount* pSubAccount,
-												 Account::Host host,
-												 qs::wstring_ptr* pwstrPassword);
+	virtual PasswordState getPassword(SubAccount* pSubAccount,
+									  Account::Host host,
+									  qs::wstring_ptr* pwstrPassword);
 	virtual void setPassword(SubAccount* pSubAccount,
 							 Account::Host host,
 							 const WCHAR* pwszPassword,

@@ -1777,6 +1777,7 @@ qmimap4::Imap4MessageHolder::~Imap4MessageHolder()
 
 bool qmimap4::Imap4MessageHolder::getMessage(unsigned int nFlags,
 											 const WCHAR* pwszField,
+											 unsigned int nSecurityMode,
 											 Message* pMessage)
 {
 	assert(pMessage == AbstractMessageHolder::getMessage());

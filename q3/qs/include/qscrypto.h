@@ -45,6 +45,8 @@ public:
 	virtual ~Name();
 
 public:
+	virtual wstring_ptr getText() const = 0;
+	
 	/**
 	 * Get common name.
 	 *

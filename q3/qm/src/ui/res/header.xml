@@ -49,4 +49,8 @@
 		<static width="4em" style="bold" showAlways="true">Subject:</static>
 		<edit name="subject">{X-RSS-Subject}</edit>
 	</line>
+	<line hideIfEmpty="sign">
+		<static width="4em" style="bold" showAlways="true">Signed by:</static>
+		<edit name="sign">{X-QMAIL-SignedBy}</edit>
+	</line>
 </header>

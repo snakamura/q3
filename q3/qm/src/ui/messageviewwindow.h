@@ -62,8 +62,7 @@ public:
 	enum Flag {
 		FLAG_RAWMODE		= 0x01,
 		FLAG_INCLUDEHEADER	= 0x02,
-		FLAG_ONLINEMODE		= 0x04,
-		FLAG_DECRYPTVERIFY	= 0x08
+		FLAG_ONLINEMODE		= 0x04
 	};
 
 public:
@@ -77,7 +76,8 @@ public:
 							Message* pMessage,
 							const Template* pTemplate,
 							const WCHAR* pwszEncoding,
-							unsigned int nFlags) = 0;
+							unsigned int nFlags,
+							unsigned int nSecurityMode) = 0;
 	virtual bool scrollPage(bool bPrev) = 0;
 	virtual void setSelectMode(bool bSelectMode) = 0;
 	virtual void setQuoteMode(bool bQuoteMode) = 0;
@@ -192,7 +192,8 @@ public:
 							Message* pMessage,
 							const Template* pTemplate,
 							const WCHAR* pwszEncoding,
-							unsigned int nFlags);
+							unsigned int nFlags,
+							unsigned int nSecurityMode);
 	virtual bool scrollPage(bool bPrev);
 	virtual void setSelectMode(bool bSelectMode);
 	virtual void setQuoteMode(bool bQuoteMode);
@@ -259,7 +260,8 @@ public:
 							Message* pMessage,
 							const Template* pTemplate,
 							const WCHAR* pwszEncoding,
-							unsigned int nFlags);
+							unsigned int nFlags,
+							unsigned int nSecurityMode);
 	virtual bool scrollPage(bool bPrev);
 	virtual void setSelectMode(bool bSelectMode);
 	virtual void setQuoteMode(bool bQuoteMode);

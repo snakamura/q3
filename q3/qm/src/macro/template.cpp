@@ -61,7 +61,7 @@ Template::Result qm::Template::getValue(const TemplateContext& context,
 			MacroContext c(context.getMessageHolder(), context.getMessage(),
 				context.getSelectedMessageHolders(), context.getAccount(),
 				context.getDocument(), context.getWindow(), context.getProfile(),
-				false, context.isDecryptVerify(), context.getErrorHandler(), &globalVariable);
+				false, context.getSecurityMode(), context.getErrorHandler(), &globalVariable);
 			MacroValuePtr pValue((*itV).second->value(&c));
 			if (!pValue.get()) {
 				if (c.getReturnType() == MacroContext::RETURNTYPE_NONE)
@@ -92,7 +92,7 @@ qm::TemplateContext::TemplateContext(MessageHolderBase* pmh,
 									 Account* pAccount,
 									 Document* pDocument,
 									 HWND hwnd,
-									 bool bDecryptVerify,
+									 unsigned int nSecurityMode,
 									 Profile* pProfile,
 									 MacroErrorHandler* pErrorHandler,
 									 const ArgumentList& listArgument) :
@@ -102,7 +102,7 @@ qm::TemplateContext::TemplateContext(MessageHolderBase* pmh,
 	pAccount_(pAccount),
 	pDocument_(pDocument),
 	hwnd_(hwnd),
-	bDecryptVerify_(bDecryptVerify),
+	nSecurityMode_(nSecurityMode),
 	pProfile_(pProfile),
 	pErrorHandler_(pErrorHandler),
 	listArgument_(listArgument)
@@ -143,9 +143,9 @@ HWND qm::TemplateContext::getWindow() const
 	return hwnd_;
 }
 
-bool qm::TemplateContext::isDecryptVerify() const
+unsigned int qm::TemplateContext::getSecurityMode() const
 {
-	return bDecryptVerify_;
+	return nSecurityMode_;
 }
 
 Profile* qm::TemplateContext::getProfile() const

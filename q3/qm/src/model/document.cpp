@@ -55,6 +55,7 @@ struct qm::DocumentImpl
 	
 	Document* pThis_;
 	Profile* pProfile_;
+	PasswordManager* pPasswordManager_;
 	Document::AccountList listAccount_;
 	DocumentHandlerList listDocumentHandler_;
 	std::auto_ptr<RuleManager> pRuleManager_;
@@ -106,7 +107,8 @@ void qm::DocumentImpl::fireDocumentInitialized()
  *
  */
 
-qm::Document::Document(Profile* pProfile) :
+qm::Document::Document(Profile* pProfile,
+					   PasswordManager* pPasswordManager) :
 	pImpl_(0)
 {
 	const WCHAR* pwszMailFolder = Application::getApplication().getMailFolder();
@@ -114,13 +116,14 @@ qm::Document::Document(Profile* pProfile) :
 	pImpl_ = new DocumentImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->pProfile_ = pProfile;
+	pImpl_->pPasswordManager_ = pPasswordManager;
 	pImpl_->pRuleManager_.reset(new RuleManager());
 	pImpl_->pTemplateManager_.reset(new TemplateManager(pwszMailFolder));
 	pImpl_->pScriptManager_.reset(new ScriptManager(pwszMailFolder));
 	pImpl_->pSignatureManager_.reset(new SignatureManager());
 	pImpl_->pFixedFormTextManager_.reset(new FixedFormTextManager());
 	pImpl_->pAddressBook_.reset(new AddressBook(pProfile));
-	pImpl_->pSecurity_.reset(new Security(pwszMailFolder));
+	pImpl_->pSecurity_.reset(new Security(pwszMailFolder, pProfile));
 	pImpl_->pRecents_.reset(new Recents(pProfile));
 	pImpl_->nOnline_ = 0;
 	pImpl_->bCheckNewMail_ = pProfile->getInt(L"NewMailCheck", L"Enable", 0) != 0;
@@ -225,8 +228,8 @@ bool qm::Document::renameAccount(Account* pAccount,
 	if (!::MoveFile(ptszOldPath, ptszNewPath))
 		return false;
 	
-	std::auto_ptr<Account> pNewAccount(new Account(
-		wstrNewPath.get(), pImpl_->pSecurity_.get()));
+	std::auto_ptr<Account> pNewAccount(new Account(wstrNewPath.get(),
+		pImpl_->pSecurity_.get(), pImpl_->pPasswordManager_));
 	it = std::lower_bound(l.begin(), l.end(), pNewAccount.get(), AccountLess());
 	l.insert(it, pNewAccount.get());
 	pAccount = pNewAccount.release();
@@ -340,8 +343,8 @@ bool qm::Document::loadAccounts(const WCHAR* pwszPath)
 				WCHAR* p = wcsrchr(wstrPath.get(), L'\\');
 				assert(p);
 				*p = L'\0';
-				std::auto_ptr<Account> pAccount(new Account(
-					wstrPath.get(), pImpl_->pSecurity_.get()));
+				std::auto_ptr<Account> pAccount(new Account(wstrPath.get(),
+					pImpl_->pSecurity_.get(), pImpl_->pPasswordManager_));
 				// TODO ERROR CHECK
 				l.push_back(pAccount.get());
 				pAccount.release();

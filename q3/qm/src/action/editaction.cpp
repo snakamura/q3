@@ -345,7 +345,7 @@ void qm::EditEditPasteWithQuoteAction::invoke(const ActionEvent& event)
 		const Template* pTemplate = pManager->getTemplate(pAccount, pFolder, L"quote");
 		if (pTemplate) {
 			TemplateContext context(mpl, &msg, MessageHolderList(),
-				pAccount, pDocument_, hwnd_, pSecurityModel_->isDecryptVerify(),
+				pAccount, pDocument_, hwnd_, pSecurityModel_->getSecurityMode(),
 				pProfile_, 0, TemplateContext::ArgumentList());
 			switch (pTemplate->getValue(context, &wstrMessage)) {
 			case Template::RESULT_SUCCESS:
@@ -360,7 +360,8 @@ void qm::EditEditPasteWithQuoteAction::invoke(const ActionEvent& event)
 		
 		if (msg.getFlag() == Message::FLAG_EMPTY ||
 			msg.getFlag() == Message::FLAG_TEMPORARY) {
-			if (!mpl->getMessage(Account::GETMESSAGEFLAG_HEADER, L"Message-Id", &msg)) {
+			if (!mpl->getMessage(Account::GETMESSAGEFLAG_HEADER,
+				L"Message-Id", pSecurityModel_->getSecurityMode(), &msg)) {
 				ActionUtil::error(pTextWindow_->getParentFrame(), IDS_ERROR_PASTE);
 				return;
 			}
@@ -701,11 +702,13 @@ bool qm::EditFileSaveAction::save(const WCHAR* pwszPath)
 
 qm::EditFileSendAction::EditFileSendAction(Type type,
 										   Document* pDocument,
+										   PasswordManager* pPasswordManager,
 										   EditMessageHolder* pEditMessageHolder,
 										   EditFrameWindow* pEditFrameWindow,
 										   Profile* pProfile,
 										   SecurityModel* pSecurityModel) :
-	composer_(type != TYPE_SEND, pDocument, pProfile, pEditFrameWindow->getHandle(), 0, pSecurityModel),
+	composer_(type != TYPE_SEND, pDocument, pPasswordManager,
+		pProfile, pEditFrameWindow->getHandle(), 0, pSecurityModel),
 	type_(type),
 	pEditMessageHolder_(pEditMessageHolder),
 	pEditFrameWindow_(pEditFrameWindow),
@@ -716,13 +719,15 @@ qm::EditFileSendAction::EditFileSendAction(Type type,
 }
 
 qm::EditFileSendAction::EditFileSendAction(Document* pDocument,
+										   PasswordManager* pPasswordManager,
 										   EditMessageHolder* pEditMessageHolder,
 										   EditFrameWindow* pEditFrameWindow,
 										   Profile* pProfile,
 										   SyncManager* pSyncManager,
 										   SyncDialogManager* pSyncDialogManager,
 										   SecurityModel* pSecurityModel) :
-	composer_(false, pDocument, pProfile, pEditFrameWindow->getHandle(), 0, pSecurityModel),
+	composer_(false, pDocument, pPasswordManager, pProfile,
+		pEditFrameWindow->getHandle(), 0, pSecurityModel),
 	type_(TYPE_SEND),
 	pEditMessageHolder_(pEditMessageHolder),
 	pEditFrameWindow_(pEditFrameWindow),
@@ -748,8 +753,7 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
 	Account* pAccount = pEditMessage->getAccount();
 	SubAccount* pSubAccount = pEditMessage->getSubAccount();
 	
-	unsigned int nFlags = (pEditMessage->isSign() ? MessageComposer::FLAG_SIGN : 0) |
-		(pEditMessage->isEncrypt() ? MessageComposer::FLAG_ENCRYPT : 0);
+	unsigned int nFlags = pEditMessage->getSecure();
 	MessagePtr ptr;
 	if (!composer_.compose(pEditMessage->getAccount(),
 		pEditMessage->getSubAccount(), pMessage.get(), nFlags, &ptr)) {
@@ -1121,4 +1125,42 @@ void qm::EditToolReformAllAction::invoke(const ActionEvent& event)
 bool qm::EditToolReformAllAction::isEnabled(const ActionEvent& event)
 {
 	return pTextWindow_->hasFocus();
+}
+
+
+/****************************************************************************
+ *
+ * EditToolSecureAction
+ *
+ */
+
+qm::EditToolSecureAction::EditToolSecureAction(EditMessageHolder* pEditMessageHolder,
+											   EditMessage::Secure secure,
+											   bool bEnabled) :
+	pEditMessageHolder_(pEditMessageHolder),
+	secure_(secure),
+	bEnabled_(bEnabled)
+{
+}
+
+qm::EditToolSecureAction::~EditToolSecureAction()
+{
+}
+
+void qm::EditToolSecureAction::invoke(const ActionEvent& event)
+{
+	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
+	pEditMessage->setSecure(secure_,
+		(pEditMessage->getSecure() & secure_) == 0);
+}
+
+bool qm::EditToolSecureAction::isEnabled(const ActionEvent& event)
+{
+	return bEnabled_;
+}
+
+bool qm::EditToolSecureAction::isChecked(const ActionEvent& event)
+{
+	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
+	return (pEditMessage->getSecure() & secure_) != 0;
 }

@@ -7,6 +7,7 @@
  */
 
 #include <qmfilenames.h>
+#include <qmpgp.h>
 #include <qmsecurity.h>
 
 #include <qsconv.h>
@@ -28,11 +29,14 @@ struct qm::SecurityImpl
 	wstring_ptr wstrPath_;
 	std::auto_ptr<Store> pStoreCA_;
 	std::auto_ptr<SMIMEUtility> pSMIMEUtility_;
+	std::auto_ptr<PGPUtility> pPGPUtility_;
 	
-	static HINSTANCE hInst__;
+	static HINSTANCE hInstCrypto__;
+	static HINSTANCE hInstPGP__;
 };
 
-HINSTANCE qm::SecurityImpl::hInst__ = 0;
+HINSTANCE qm::SecurityImpl::hInstCrypto__ = 0;
+HINSTANCE qm::SecurityImpl::hInstPGP__ = 0;
 
 
 /****************************************************************************
@@ -41,11 +45,13 @@ HINSTANCE qm::SecurityImpl::hInst__ = 0;
  *
  */
 
-qm::Security::Security(const WCHAR* pwszPath) :
+qm::Security::Security(const WCHAR* pwszPath,
+					   Profile* pProfile) :
 	pImpl_(0)
 {
-	if (SecurityImpl::hInst__) {
-		pImpl_ = new SecurityImpl();
+	pImpl_ = new SecurityImpl();
+	
+	if (SecurityImpl::hInstCrypto__) {
 		pImpl_->wstrPath_ = concat(pwszPath, L"\\security");
 		
 		pImpl_->pStoreCA_ = Store::getInstance();
@@ -59,6 +65,9 @@ qm::Security::Security(const WCHAR* pwszPath) :
 		
 		pImpl_->pSMIMEUtility_ = SMIMEUtility::getInstance();
 	}
+	
+	if (SecurityImpl::hInstPGP__)
+		pImpl_->pPGPUtility_ = PGPUtility::getInstance(pProfile);
 }
 
 qm::Security::~Security()
@@ -68,12 +77,12 @@ qm::Security::~Security()
 
 const Store* qm::Security::getCA() const
 {
-	return pImpl_ ? pImpl_->pStoreCA_.get() : 0;
+	return pImpl_->pStoreCA_.get();
 }
 
 const SMIMEUtility* qm::Security::getSMIMEUtility() const
 {
-	return pImpl_ ? pImpl_->pSMIMEUtility_.get() : 0;
+	return pImpl_->pSMIMEUtility_.get();
 }
 
 std::auto_ptr<Certificate> qm::Security::getCertificate(const WCHAR* pwszName) const
@@ -95,6 +104,11 @@ std::auto_ptr<Certificate> qm::Security::getCertificate(const WCHAR* pwszName) c
 	return pCertificate;
 }
 
+const PGPUtility* qm::Security::getPGPUtility() const
+{
+	return pImpl_->pPGPUtility_.get();
+}
+
 void qm::Security::init()
 {
 #ifdef NDEBUG
@@ -110,18 +124,33 @@ void qm::Security::init()
 #		define SUFFIX _T("d")
 #	endif
 #endif
-	SecurityImpl::hInst__ = ::LoadLibrary(_T("qscrypto") SUFFIX _T(".dll"));
+	SecurityImpl::hInstCrypto__ = ::LoadLibrary(_T("qscrypto") SUFFIX _T(".dll"));
+	SecurityImpl::hInstPGP__ = ::LoadLibrary(_T("qmpgp") SUFFIX _T(".dll"));
 }
 
 void qm::Security::term()
 {
-	if (SecurityImpl::hInst__) {
-		::FreeLibrary(SecurityImpl::hInst__);
-		SecurityImpl::hInst__ = 0;
+	if (SecurityImpl::hInstCrypto__) {
+		::FreeLibrary(SecurityImpl::hInstCrypto__);
+		SecurityImpl::hInstCrypto__ = 0;
+	}
+	if (SecurityImpl::hInstPGP__) {
+		::FreeLibrary(SecurityImpl::hInstPGP__);
+		SecurityImpl::hInstPGP__ = 0;
 	}
 }
 
-bool qm::Security::isEnabled()
+bool qm::Security::isSSLEnabled()
 {
-	return SecurityImpl::hInst__ != 0;
+	return SecurityImpl::hInstCrypto__ != 0;
+}
+
+bool qm::Security::isSMIMEEnabled()
+{
+	return SecurityImpl::hInstCrypto__ != 0;
+}
+
+bool qm::Security::isPGPEnabled()
+{
+	return SecurityImpl::hInstPGP__ != 0;
 }

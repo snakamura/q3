@@ -334,7 +334,7 @@ qmsmtp::SmtpSendSession::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
 	DefaultSSLSocketCallback(pSubAccount, Account::HOST_SEND, pSecurity),
 	pSubAccount_(pSubAccount),
 	pSessionCallback_(pSessionCallback),
-	result_(PasswordCallback::RESULT_ONETIME)
+	state_(PASSWORDSTATE_ONETIME)
 {
 }
 
@@ -384,18 +384,17 @@ bool qmsmtp::SmtpSendSession::CallbackImpl::getUserInfo(wstring_ptr* pwstrUserNa
 		return true;
 	*pwstrUserName = allocWString(pwszUserName);
 	
-	result_ = pSessionCallback_->getPassword(
+	state_ = pSessionCallback_->getPassword(
 		pSubAccount_, Account::HOST_SEND, pwstrPassword);
 	
-	return result_ != PasswordCallback::RESULT_ERROR;
+	return state_ != PASSWORDSTATE_NONE;
 }
 
 void qmsmtp::SmtpSendSession::CallbackImpl::setPassword(const WCHAR* pwszPassword)
 {
-	if (result_ == PasswordCallback::RESULT_SESSION ||
-		result_ == PasswordCallback::RESULT_SAVE)
+	if (state_ == PASSWORDSTATE_SESSION || state_ == PASSWORDSTATE_SAVE)
 		pSessionCallback_->setPassword(pSubAccount_, Account::HOST_SEND,
-			pwszPassword, result_ == PasswordCallback::RESULT_SAVE);
+			pwszPassword, state_ == PASSWORDSTATE_SAVE);
 }
 
 wstring_ptr qmsmtp::SmtpSendSession::CallbackImpl::getLocalHost()

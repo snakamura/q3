@@ -181,6 +181,7 @@ Account* qm::MessageHolder::getAccount() const
 
 bool qm::MessageHolder::getMessage(unsigned int nFlags,
 								   const WCHAR* pwszField,
+								   unsigned int nSecurityMode,
 								   Message* pMessage)
 {
 	int nMethod = nFlags & Account::GETMESSAGEFLAG_METHOD_MASK;
@@ -211,7 +212,7 @@ bool qm::MessageHolder::getMessage(unsigned int nFlags,
 		return false;
 	}
 	
-	return getAccount()->getMessage(this, nFlags, pMessage);
+	return getAccount()->getMessage(this, nFlags, nSecurityMode, pMessage);
 }
 
 MessageHolder* qm::MessageHolder::getMessageHolder()

@@ -235,6 +235,11 @@
 			<separator/>
 			<menuitem text="Header Edit" action="ToolHeaderEdit"/>
 			<separator/>
+			<popupmenu text="&amp;S/MIME">
+				<menuitem text="&amp;Encrypt" action="ToolSMIMEEncrypt"/>
+				<menuitem text="&amp;Sign" action="ToolSMIMESign"/>
+			</popupmenu>
+			<separator/>
 			<popupmenu text="Script" action="ToolScript"/>
 		</popupmenu>
 	</menubar>

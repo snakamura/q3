@@ -10,6 +10,7 @@
 #include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmmessage.h>
+#include <qmsecurity.h>
 
 #include <qsstl.h>
 #include <qstextutil.h>
@@ -36,21 +37,21 @@ using namespace qs;
 qm::EditMessage::EditMessage(Profile* pProfile,
 							 Document* pDocument,
 							 Account* pAccount,
-							 bool bDecryptVerify) :
+							 unsigned int nSecurityMode) :
 	pProfile_(pProfile),
 	pDocument_(pDocument),
 	pAccount_(pAccount),
 	pSubAccount_(pAccount->getCurrentSubAccount()),
-	bDecryptVerify_(bDecryptVerify),
+	nSecurityMode_(nSecurityMode),
 	pMessage_(0),
 	pBodyPart_(0),
 	wstrBody_(0),
 	wstrSignature_(0),
 	bAutoReform_(true),
-	bEncrypt_(false),
-	bSign_(false)
+	nSecure_(0)
 {
 	bAutoReform_ = pProfile_->getInt(L"EditWindow", L"AutoReform", 1) != 0;
+	nSecure_ = pProfile_->getInt(L"EditWindow", L"Secure", SECURE_PGPMIME);
 }
 
 qm::EditMessage::~EditMessage()
@@ -105,7 +106,8 @@ std::auto_ptr<Message> qm::EditMessage::getMessage(bool bFixup)
 	}
 	
 	MessageCreator creator(MessageCreator::FLAG_ADDCONTENTTYPE |
-		MessageCreator::FLAG_EXPANDALIAS | MessageCreator::FLAG_ENCODETEXT);
+		MessageCreator::FLAG_EXPANDALIAS | MessageCreator::FLAG_ENCODETEXT,
+		SECURITYMODE_NONE);
 	std::auto_ptr<Message> pBodyMessage(creator.createMessage(
 		pDocument_, buf.getCharArray(), buf.getLength()));
 	if (!pBodyMessage.get())
@@ -139,7 +141,7 @@ std::auto_ptr<Message> qm::EditMessage::getMessage(bool bFixup)
 		if (!pMessage.get())
 			return std::auto_ptr<Message>();
 		if (!MessageCreator::attachFileOrURI(pMessage.get(),
-			listAttachmentPath_, pDocument_, bDecryptVerify_))
+			listAttachmentPath_, pDocument_, nSecurityMode_))
 			return std::auto_ptr<Message>();
 	}
 	
@@ -616,24 +618,18 @@ void qm::EditMessage::setAutoReform(bool bAutoReform)
 	bAutoReform_ = bAutoReform;
 }
 
-bool qm::EditMessage::isEncrypt() const
+unsigned int qm::EditMessage::getSecure() const
 {
-	return bEncrypt_;
+	return nSecure_;
 }
 
-void qm::EditMessage::setEncrypt(bool bEncrypt)
+void qm::EditMessage::setSecure(Secure secure,
+								bool b)
 {
-	bEncrypt_ = bEncrypt;
-}
-
-bool qm::EditMessage::isSign() const
-{
-	return bSign_;
-}
-
-void qm::EditMessage::setSign(bool bSign)
-{
-	bSign_ = bSign;
+	if (b)
+		nSecure_ |= secure;
+	else
+		nSecure_ &= ~secure;
 }
 
 void qm::EditMessage::addEditMessageHandler(EditMessageHandler* pHandler)

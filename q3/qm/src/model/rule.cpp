@@ -54,7 +54,7 @@ bool qm::RuleManager::apply(Folder* pFolder,
 							Document* pDocument,
 							HWND hwnd,
 							Profile* pProfile,
-							bool bDecryptVerify,
+							unsigned int nSecurityMode,
 							RuleCallback* pCallback)
 {
 	assert(pFolder);
@@ -157,7 +157,7 @@ bool qm::RuleManager::apply(Folder* pFolder,
 		for (size_t m = 0; m < pRuleSet->getCount(); ++m) {
 			const Rule* pRule = pRuleSet->getRule(m);
 			MacroContext context(pmh, &msg, MessageHolderList(), pAccount, pDocument,
-				hwnd, pProfile, false, bDecryptVerify, 0, &globalVariable);
+				hwnd, pProfile, false, nSecurityMode, 0, &globalVariable);
 			bool bMatch = pRule->match(&context);
 			if (bMatch) {
 				ll[m].push_back(pmh);
@@ -184,7 +184,7 @@ bool qm::RuleManager::apply(Folder* pFolder,
 		if (!l.empty()) {
 			const Rule* pRule = pRuleSet->getRule(m);
 			RuleContext context(l, pDocument, pAccount,
-				pFolder, hwnd, pProfile, bDecryptVerify);
+				pFolder, hwnd, pProfile, nSecurityMode);
 			if (!pRule->apply(context))
 				return false;
 			
@@ -440,7 +440,7 @@ bool qm::CopyRule::apply(const RuleContext& context) const
 			Message msg;
 			TemplateContext templateContext(pmh, &msg, MessageHolderList(),
 				context.getAccount(), context.getDocument(), context.getWindow(),
-				context.isDecryptVerify(), context.getProfile(), 0, listArgument);
+				context.getSecurityMode(), context.getProfile(), 0, listArgument);
 			wstring_ptr wstrValue;
 			if (pTemplate->getValue(templateContext, &wstrValue) != Template::RESULT_SUCCESS) {
 				log.errorf(L"Error occured while processing template.");
@@ -531,7 +531,7 @@ bool qm::ApplyRule::apply(const RuleContext& context) const
 		Message msg;
 		MacroContext c(*it, &msg, MessageHolderList(), context.getAccount(),
 			context.getDocument(), context.getWindow(), context.getProfile(),
-			false, context.isDecryptVerify(), 0, 0);
+			false, context.getSecurityMode(), 0, 0);
 		MacroValuePtr pValue(pMacroApply_->value(&c));
 		if (!pValue.get())
 			return false;
@@ -551,15 +551,15 @@ qm::RuleContext::RuleContext(const MessageHolderList& l,
 							 Account* pAccount,
 							 Folder* pFolder,
 							 HWND hwnd,
-							 qs::Profile* pProfile,
-							 bool bDecryptVerify) :
+							 Profile* pProfile,
+							 unsigned int nSecurityMode) :
 	listMessageHolder_(l),
 	pDocument_(pDocument),
 	pAccount_(pAccount),
 	pFolder_(pFolder),
 	hwnd_(hwnd),
 	pProfile_(pProfile),
-	bDecryptVerify_(bDecryptVerify)
+	nSecurityMode_(nSecurityMode)
 {
 	assert(!l.empty());
 	assert(pDocument);
@@ -604,9 +604,9 @@ Profile* qm::RuleContext::getProfile() const
 	return pProfile_;
 }
 
-bool qm::RuleContext::isDecryptVerify() const
+unsigned int qm::RuleContext::getSecurityMode() const
 {
-	return bDecryptVerify_;
+	return nSecurityMode_;
 }
 
 

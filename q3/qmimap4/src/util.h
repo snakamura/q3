@@ -169,7 +169,7 @@ private:
 private:
 	qm::SubAccount* pSubAccount_;
 	qm::PasswordCallback* pPasswordCallback_;
-	qm::PasswordCallback::Result result_;
+	qm::PasswordState state_;
 };
 
 }

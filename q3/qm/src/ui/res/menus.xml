@@ -62,7 +62,8 @@
 				<menuitem text="&amp;HTML Mode" action="ViewHtmlMode"/>
 				<menuitem text="HTML &amp;Online Mode" action="ViewHtmlOnlineMode"/>
 				<separator/>
-				<menuitem text="S&amp;MIME Mode" action="ViewDecryptVerifyMode"/>
+				<menuitem text="S/&amp;MIME Mode" action="ViewSMIMEMode"/>
+				<menuitem text="&amp;PGP Mode" action="ViewPGPMode"/>
 			</popupmenu>
 			<popupmenu text="&amp;Sort" action="ViewSort"/>
 			<popupmenu text="&amp;Filter" action="ViewFilter"/>
@@ -164,7 +165,8 @@
 				<menuitem text="&amp;HTML Mode" action="ViewHtmlMode"/>
 				<menuitem text="HTML &amp;Online Mode" action="ViewHtmlOnlineMode"/>
 				<separator/>
-				<menuitem text="S&amp;MIME Mode" action="ViewDecryptVerifyMode"/>
+				<menuitem text="S/&amp;MIME Mode" action="ViewSMIMEMode"/>
+				<menuitem text="&amp;PGP Mode" action="ViewPGPMode"/>
 			</popupmenu>
 			<popupmenu text="&amp;Template" action="ViewTemplate"/>
 			<popupmenu text="&amp;Encoding" action="ViewEncoding"/>
@@ -253,8 +255,16 @@
 			<separator/>
 			<menuitem text="&amp;Header Edit" action="ToolHeaderEdit"/>
 			<separator/>
-			<menuitem text="&amp;Encrypt" action="ToolEncrypt"/>
-			<menuitem text="&amp;Sign" action="ToolSign"/>
+			<popupmenu text="&amp;S/MIME">
+				<menuitem text="&amp;Encrypt" action="ToolSMIMEEncrypt"/>
+				<menuitem text="&amp;Sign" action="ToolSMIMESign"/>
+			</popupmenu>
+			<popupmenu text="&amp;PGP">
+				<menuitem text="&amp;Encrypt" action="ToolPGPEncrypt"/>
+				<menuitem text="&amp;Sign" action="ToolPGPSign"/>
+				<separator/>
+				<menuitem text="&amp;MIME" action="ToolPGPMime"/>
+			</popupmenu>
 			<separator/>
 			<popupmenu text="S&amp;cript" action="ToolScript"/>
 		</popupmenu>

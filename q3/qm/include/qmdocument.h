@@ -31,6 +31,7 @@ class FixedFormTextManager;
 class Folder;
 class MessageHolder;
 class MessagePtr;
+class PasswordManager;
 class Recents;
 class RuleManager;
 class ScriptManager;
@@ -52,7 +53,8 @@ public:
 	typedef std::vector<Account*> AccountList;
 
 public:
-	explicit Document(qs::Profile* pProfile);
+	Document(qs::Profile* pProfile,
+			 PasswordManager* pPasswordManager);
 	~Document();
 
 public:

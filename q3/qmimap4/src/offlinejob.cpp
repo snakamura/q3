@@ -8,6 +8,7 @@
 
 #include <qmmessage.h>
 #include <qmmessageholder.h>
+#include <qmsecurity.h>
 
 #include <qsassert.h>
 #include <qsconv.h>
@@ -344,7 +345,8 @@ bool qmimap4::AppendOfflineJob::apply(Account* pAccount,
 			wstring_ptr wstrName(Util::getFolderName(pNormalFolder));
 			
 			Message msg;
-			if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg))
+			if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL,
+				0, SECURITYMODE_NONE, &msg))
 				return false;
 			
 			xstring_ptr strContent(msg.getContent());

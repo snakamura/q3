@@ -19,6 +19,7 @@ class EditFrameWindowManager;
 
 class Document;
 class EditMessage;
+class PasswordManager;
 class SecurityModel;
 class SyncDialogManager;
 class SyncManager;
@@ -36,6 +37,7 @@ class EditFrameWindowManager
 public:
 	EditFrameWindowManager(Document* pDocument,
 						   UIManager* pUIManager,
+						   PasswordManager* pPasswordManager,
 						   SyncManager* pSyncManager,
 						   SyncDialogManager* pSyncDialogManager,
 						   qs::Profile* pProfile,
@@ -59,6 +61,7 @@ private:
 private:
 	Document* pDocument_;
 	UIManager* pUIManager_;
+	PasswordManager* pPasswordManager_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
 	qs::Profile* pProfile_;
@@ -77,6 +80,7 @@ struct EditFrameWindowCreateContext
 {
 	Document* pDocument_;
 	UIManager* pUIManager_;
+	PasswordManager* pPasswordManager_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
 	SecurityModel* pSecurityModel_;

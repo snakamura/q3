@@ -26,6 +26,7 @@ class Document;
 class FolderModel;
 class Message;
 class MessagePtr;
+class PasswordManager;
 class Security;
 class SecurityModel;
 class SubAccount;
@@ -41,13 +42,17 @@ class MessageComposer
 {
 public:
 	enum Flag {
-		FLAG_SIGN		= 0x01,
-		FLAG_ENCRYPT	= 0x02
+		FLAG_SMIMESIGN		= 0x01,
+		FLAG_SMIMEENCRYPT	= 0x02,
+		FLAG_PGPSIGN		= 0x10,
+		FLAG_PGPENCRYPT		= 0x20,
+		FLAG_PGPMIME		= 0x40
 	};
 
 public:
 	MessageComposer(bool bDraft,
 					Document* pDocument,
+					PasswordManager* pPasswordManager,
 					qs::Profile* pProfile,
 					HWND hwnd,
 					FolderModel* pFolderModel,
@@ -72,6 +77,7 @@ private:
 private:
 	bool bDraft_;
 	Document* pDocument_;
+	PasswordManager* pPasswordManager_;
 	qs::Profile* pProfile_;
 	HWND hwnd_;
 	FolderModel* pFolderModel_;

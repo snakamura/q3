@@ -65,6 +65,14 @@ public:
 		FIELDTYPE_REFERENCES
 	};
 	
+	enum Secure {
+		SECURE_SMIMESIGN	= 0x01,
+		SECURE_SMIMEENCRYPT	= 0x02,
+		SECURE_PGPSIGN		= 0x10,
+		SECURE_PGPENCRYPT	= 0x20,
+		SECURE_PGPMIME		= 0x40
+	};
+	
 public:
 	struct Attachment
 	{
@@ -94,7 +102,7 @@ public:
 	EditMessage(qs::Profile* pProfile,
 				Document* pDocument,
 				Account* pAccount,
-				bool bDecryptVerify);
+				unsigned int nSecurityMode);
 	~EditMessage();
 
 public:
@@ -135,10 +143,9 @@ public:
 	void setSignature(const WCHAR* pwszSignature);
 	bool isAutoReform() const;
 	void setAutoReform(bool bAutoReform);
-	bool isEncrypt() const;
-	void setEncrypt(bool bEncrypt);
-	bool isSign() const;
-	void setSign(bool bSign);
+	unsigned int getSecure() const;
+	void setSecure(Secure secure,
+				   bool b);
 
 public:
 	void addEditMessageHandler(EditMessageHandler* pHandler);
@@ -190,7 +197,7 @@ private:
 	Document* pDocument_;
 	Account* pAccount_;
 	SubAccount* pSubAccount_;
-	bool bDecryptVerify_;
+	unsigned int nSecurityMode_;
 	std::auto_ptr<Message> pMessage_;
 	qs::Part* pBodyPart_;
 	FieldList listField_;
@@ -199,8 +206,7 @@ private:
 	AttachmentPathList listAttachmentPath_;
 	qs::wstring_ptr wstrSignature_;
 	bool bAutoReform_;
-	bool bEncrypt_;
-	bool bSign_;
+	unsigned int nSecure_;
 	qs::wstring_ptr wstrPreviousURI_;
 	HandlerList listHandler_;
 };

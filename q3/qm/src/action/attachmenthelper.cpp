@@ -153,10 +153,8 @@ AttachmentParser::Result qm::AttachmentHelper::detach(const MessageHolderList& l
 		MessageHolder* pmh = *itM;
 		
 		Message msg;
-		unsigned int nFlags = Account::GETMESSAGEFLAG_TEXT;
-		if (!pSecurityModel_->isDecryptVerify())
-			nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
-		if (!pmh->getMessage(nFlags, 0, &msg))
+		if (!pmh->getMessage(Account::GETMESSAGEFLAG_TEXT,
+			0, pSecurityModel_->getSecurityMode(), &msg))
 			return AttachmentParser::RESULT_FAIL;
 		
 		AttachmentParser parser(msg);
@@ -207,10 +205,8 @@ AttachmentParser::Result qm::AttachmentHelper::detach(const MessageHolderList& l
 				}
 				if ((*it).wstrName_) {
 					if (msg.getFlag() == Message::FLAG_EMPTY) {
-						unsigned int nFlags = Account::GETMESSAGEFLAG_ALL;
-						if (!pSecurityModel_->isDecryptVerify())
-							nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
-						if (!(*it).pmh_->getMessage(nFlags, 0, &msg))
+						if (!(*it).pmh_->getMessage(Account::GETMESSAGEFLAG_ALL,
+							0, pSecurityModel_->getSecurityMode(), &msg))
 							return AttachmentParser::RESULT_FAIL;
 					}
 					if (l.empty())

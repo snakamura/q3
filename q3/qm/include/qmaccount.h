@@ -38,6 +38,7 @@ class AccountCheckCallback;
 class Message;
 class MessageHolder;
 class MessageOperationCallback;
+class PasswordManager;
 class ProtocolDriver;
 class Security;
 
@@ -72,8 +73,7 @@ public:
 		GETMESSAGEFLAG_METHOD_MASK	= 0x0f,
 		
 		GETMESSAGEFLAG_MAKESEEN		= 0x10,
-		GETMESSAGEFLAG_NOFALLBACK	= 0x20,
-		GETMESSAGEFLAG_NOSECURITY	= 0x40
+		GETMESSAGEFLAG_NOFALLBACK	= 0x20
 	};
 	
 	enum Support {
@@ -91,7 +91,8 @@ public:
 
 public:
 	Account(const WCHAR* pwszPath,
-			const Security* pSecurity);
+			const Security* pSecurity,
+			PasswordManager* pPasswordManager);
 	~Account();
 
 public:
@@ -211,6 +212,7 @@ public:
 							 MessageIndexName name) const;
 	bool getMessage(MessageHolder* pmh,
 					unsigned int nFlags,
+					unsigned int nSecurityMode,
 					Message* pMessage);
 	void fireMessageHolderChanged(MessageHolder* pmh,
 								  unsigned int nOldFlags,

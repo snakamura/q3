@@ -73,6 +73,7 @@ public:
 	Profile* pProfile_;
 	Document* pDocument_;
 	UIManager* pUIManager_;
+	PasswordManager* pPasswordManager_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
 	EditWindow* pEditWindow_;
@@ -221,18 +222,20 @@ void qm::EditFrameWindowImpl::initActions()
 		IDOK,
 		pThis_->getHandle());
 #endif
-	ADD_ACTION6(EditFileSendAction,
+	ADD_ACTION7(EditFileSendAction,
 		IDM_FILE_DRAFT,
 		EditFileSendAction::TYPE_DRAFT,
 		pDocument_,
+		pPasswordManager_,
 		pEditWindow_->getEditMessageHolder(),
 		pThis_,
 		pProfile_,
 		pSecurityModel_);
-	ADD_ACTION6(EditFileSendAction,
+	ADD_ACTION7(EditFileSendAction,
 		IDM_FILE_DRAFTCLOSE,
 		EditFileSendAction::TYPE_DRAFTCLOSE,
 		pDocument_,
+		pPasswordManager_,
 		pEditWindow_->getEditMessageHolder(),
 		pThis_,
 		pProfile_,
@@ -248,17 +251,19 @@ void qm::EditFrameWindowImpl::initActions()
 		IDM_FILE_SAVE,
 		pEditWindow_->getEditMessageHolder(),
 		pThis_->getHandle());
-	ADD_ACTION6(EditFileSendAction,
+	ADD_ACTION7(EditFileSendAction,
 		IDM_FILE_SEND,
 		EditFileSendAction::TYPE_SEND,
 		pDocument_,
+		pPasswordManager_,
 		pEditWindow_->getEditMessageHolder(),
 		pThis_,
 		pProfile_,
 		pSecurityModel_);
-	ADD_ACTION7(EditFileSendAction,
+	ADD_ACTION8(EditFileSendAction,
 		IDM_FILE_SENDNOW,
 		pDocument_,
+		pPasswordManager_,
 		pEditWindow_->getEditMessageHolder(),
 		pThis_,
 		pProfile_,
@@ -279,12 +284,6 @@ void qm::EditFrameWindowImpl::initActions()
 		IDM_TOOL_ATTACHMENT,
 		pEditWindow_->getEditMessageHolder(),
 		pThis_->getHandle());
-	ADD_ACTION4(EditToolFlagAction,
-		IDM_TOOL_ENCRYPT,
-		pEditWindow_->getEditMessageHolder(),
-		&EditMessage::isEncrypt,
-		&EditMessage::setEncrypt,
-		Security::isEnabled());
 	ADD_ACTION2(EditToolInsertSignatureAction,
 		IDM_TOOL_INSERTSIGNATURE,
 		pEditWindow_->getEditMessageHolder(),
@@ -297,6 +296,21 @@ void qm::EditFrameWindowImpl::initActions()
 	ADD_ACTION1(EditToolHeaderEditAction,
 		IDM_TOOL_HEADEREDIT,
 		pEditWindow_);
+	ADD_ACTION3(EditToolSecureAction,
+		IDM_TOOL_PGPENCRYPT,
+		pEditWindow_->getEditMessageHolder(),
+		EditMessage::SECURE_PGPENCRYPT,
+		Security::isPGPEnabled());
+	ADD_ACTION3(EditToolSecureAction,
+		IDM_TOOL_PGPMIME,
+		pEditWindow_->getEditMessageHolder(),
+		EditMessage::SECURE_PGPMIME,
+		Security::isPGPEnabled());
+	ADD_ACTION3(EditToolSecureAction,
+		IDM_TOOL_PGPSIGN,
+		pEditWindow_->getEditMessageHolder(),
+		EditMessage::SECURE_PGPSIGN,
+		Security::isPGPEnabled());
 	ADD_ACTION1(EditToolReformAction,
 		IDM_TOOL_REFORM,
 		pEditWindow_->getTextWindow());
@@ -310,12 +324,16 @@ void qm::EditFrameWindowImpl::initActions()
 		&EditMessage::isAutoReform,
 		&EditMessage::setAutoReform,
 		true);
-	ADD_ACTION4(EditToolFlagAction,
-		IDM_TOOL_SIGN,
+	ADD_ACTION3(EditToolSecureAction,
+		IDM_TOOL_SMIMEENCRYPT,
 		pEditWindow_->getEditMessageHolder(),
-		&EditMessage::isSign,
-		&EditMessage::setSign,
-		Security::isEnabled());
+		EditMessage::SECURE_SMIMEENCRYPT,
+		Security::isSMIMEEnabled());
+	ADD_ACTION3(EditToolSecureAction,
+		IDM_TOOL_SMIMESIGN,
+		pEditWindow_->getEditMessageHolder(),
+		EditMessage::SECURE_SMIMESIGN,
+		Security::isSMIMEEnabled());
 	ADD_ACTION_RANGE4(ToolScriptAction,
 		IDM_TOOL_SCRIPT,
 		IDM_TOOL_SCRIPT + 100,
@@ -637,6 +655,7 @@ LRESULT qm::EditFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		static_cast<EditFrameWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pDocument_ = pContext->pDocument_;
 	pImpl_->pUIManager_ = pContext->pUIManager_;
+	pImpl_->pPasswordManager_ = pContext->pPasswordManager_;
 	pImpl_->pSyncManager_ = pContext->pSyncManager_;
 	pImpl_->pSyncDialogManager_ = pContext->pSyncDialogManager_;
 	pImpl_->pSecurityModel_ = pContext->pSecurityModel_;
@@ -743,12 +762,14 @@ LRESULT qm::EditFrameWindow::onSize(UINT nFlags,
 
 qm::EditFrameWindowManager::EditFrameWindowManager(Document* pDocument,
 												   UIManager* pUIManager,
+												   PasswordManager* pPasswordManager,
 												   SyncManager* pSyncManager,
 												   SyncDialogManager* pSyncDialogManager,
 												   Profile* pProfile,
 												   SecurityModel* pSecurityModel) :
 	pDocument_(pDocument),
 	pUIManager_(pUIManager),
+	pPasswordManager_(pPasswordManager),
 	pSyncManager_(pSyncManager),
 	pSyncDialogManager_(pSyncDialogManager),
 	pProfile_(pProfile),
@@ -781,6 +802,7 @@ bool qm::EditFrameWindowManager::open(std::auto_ptr<EditMessage> pEditMessage)
 	EditFrameWindowCreateContext context = {
 		pDocument_,
 		pUIManager_,
+		pPasswordManager_,
 		pSyncManager_,
 		pSyncDialogManager_,
 		pSecurityModel_,

@@ -61,7 +61,7 @@ public:
 			   Document* pDocument,
 			   HWND hwnd,
 			   qs::Profile* pProfile,
-			   bool bDecryptVerify,
+			   unsigned int nSecurityMode,
 			   RuleCallback* pCallback);
 
 public:
@@ -293,7 +293,7 @@ public:
 				Folder* pFolder,
 				HWND hwnd,
 				qs::Profile* pProfile,
-				bool bDecryptVerify);
+				unsigned int nSecurityMode);
 	~RuleContext();
 
 public:
@@ -303,7 +303,7 @@ public:
 	Folder* getFolder() const;
 	HWND getWindow() const;
 	qs::Profile* getProfile() const;
-	bool isDecryptVerify() const;
+	unsigned int getSecurityMode() const;
 
 private:
 	RuleContext(const RuleContext&);
@@ -316,7 +316,7 @@ private:
 	Folder* pFolder_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
-	bool bDecryptVerify_;
+	unsigned int nSecurityMode_;
 };
 
 

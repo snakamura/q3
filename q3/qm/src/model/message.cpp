@@ -10,6 +10,7 @@
 #include <qmdocument.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
+#include <qmsecurity.h>
 
 #include <qsconv.h>
 #include <qsencoder.h>
@@ -117,12 +118,15 @@ struct Header
  */
 
 qm::MessageCreator::MessageCreator() :
-	nFlags_(0)
+	nFlags_(0),
+	nSecurityMode_(0)
 {
 }
 
-qm::MessageCreator::MessageCreator(unsigned int nFlags) :
-	nFlags_(nFlags)
+qm::MessageCreator::MessageCreator(unsigned int nFlags,
+								   unsigned int nSecurityMode) :
+	nFlags_(nFlags),
+	nSecurityMode_(nSecurityMode)
 {
 }
 
@@ -228,7 +232,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 				if (!finder.getNext(&pBegin, &pEnd, &bEnd))
 					return std::auto_ptr<Part>(0);
 				if (pBegin) {
-					MessageCreator creator(nFlags_ & FLAG_ENCODETEXT);
+					MessageCreator creator(nFlags_ & FLAG_ENCODETEXT, SECURITYMODE_NONE);
 					std::auto_ptr<Part> pChild(creator.createPart(
 						pDocument, pBegin, pEnd - pBegin, pPart.get(), false));
 					if (!pChild.get())
@@ -240,7 +244,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 			}
 		}
 		else if (bRFC822) {
-			MessageCreator creator(nFlags_ & FLAG_ENCODETEXT);
+			MessageCreator creator(nFlags_ & FLAG_ENCODETEXT, SECURITYMODE_NONE);
 			std::auto_ptr<Part> pEnclosed(creator.createPart(
 				pDocument, pBody, nBodyLen, 0, false));
 			if (!pEnclosed.get())
@@ -348,7 +352,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 			}
 			
 			const XQMAILAttachmentParser::AttachmentList& l = attachment.getAttachments();
-			if (!attachFileOrURI(pPart.get(), l, pDocument, (nFlags_ & FLAG_DECRYPTVERIFY) != 0))
+			if (!attachFileOrURI(pPart.get(), l, pDocument, nSecurityMode_))
 				return std::auto_ptr<Part>(0);
 		}
 		pPart->removeField(L"X-QMAIL-Attachment");
@@ -700,7 +704,7 @@ bool qm::MessageCreator::makeMultipart(Part* pParentPart,
 bool qm::MessageCreator::attachFileOrURI(qs::Part* pPart,
 										 const AttachmentList& l,
 										 Document* pDocument,
-										 bool bDecryptVerify)
+										 unsigned int nSecurityMode)
 {
 	assert(pPart->isMultipart());
 	
@@ -719,10 +723,7 @@ bool qm::MessageCreator::attachFileOrURI(qs::Part* pPart,
 				return false;
 			
 			Message msg;
-			unsigned int nFlags = Account::GETMESSAGEFLAG_ALL;
-			if (!bDecryptVerify)
-				nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
-			if (!mpl->getMessage(nFlags, 0, &msg))
+			if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode, &msg))
 				return false;
 			
 			const URIFragment& fragment = pURI->getFragment();

@@ -12,6 +12,7 @@
 #include <qmmessageholder.h>
 #include <qmmessageoperation.h>
 #include <qsosutil.h>
+#include <qmsecurity.h>
 
 #include <qsassert.h>
 #include <qsconv.h>
@@ -212,9 +213,7 @@ STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
 			return E_FAIL;
 		
 		Message msg;
-		unsigned int nFlags = Account::GETMESSAGEFLAG_ALL |
-			Account::GETMESSAGEFLAG_NOSECURITY;
-		if (!mpl->getMessage(nFlags, 0, &msg))
+		if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, SECURITYMODE_NONE, &msg))
 			return E_FAIL;
 		xstring_ptr strContent(msg.getContent());
 		if (!strContent.get())
@@ -844,11 +843,11 @@ FORMATETC qm::URIDataObject::formats__[] = {
 };
 
 qm::URIDataObject::URIDataObject(Document* pDocument,
-								 bool bDecryptVerify,
+								 unsigned int nSecurityMode,
 								 URIList& listURI) :
 	nRef_(0),
 	pDocument_(pDocument),
-	bDecryptVerify_(bDecryptVerify)
+	nSecurityMode_(nSecurityMode)
 {
 	listURI_.swap(listURI);
 }
@@ -1039,10 +1038,8 @@ const Part* qm::URIDataObject::getPart(URIList::size_type n,
 	if (!mpl)
 		return 0;
 	
-	unsigned int nFlags =
-		(bBody ? Account::GETMESSAGEFLAG_ALL : Account::GETMESSAGEFLAG_TEXT) |
-		(bDecryptVerify_ ? 0 : Account::GETMESSAGEFLAG_NOSECURITY);
-	if (!mpl->getMessage(nFlags, 0, pMessage))
+	unsigned int nFlags = (bBody ? Account::GETMESSAGEFLAG_ALL : Account::GETMESSAGEFLAG_TEXT);
+	if (!mpl->getMessage(nFlags, 0, nSecurityMode_, pMessage))
 		return 0;
 	
 	return pURI->getFragment().getPart(pMessage);

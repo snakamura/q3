@@ -262,7 +262,8 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 										   Message* pMessage,
 										   const Template* pTemplate,
 										   const WCHAR* pwszEncoding,
-										   unsigned int nFlags)
+										   unsigned int nFlags,
+										   unsigned int nSecurityMode)
 {
 	assert((pmh && pMessage) || (!pmh && !pMessage));
 	
@@ -278,9 +279,8 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 			// TODO
 			// Get selected messages
 			TemplateContext context(pmh, pMessage, MessageHolderList(),
-				pmh->getFolder()->getAccount(), pDocument_,
-				getHandle(), (nFlags & FLAG_DECRYPTVERIFY) != 0,
-				pProfile_, 0, TemplateContext::ArgumentList());
+				pmh->getFolder()->getAccount(), pDocument_, getHandle(),
+				nSecurityMode, pProfile_, 0, TemplateContext::ArgumentList());
 			wstring_ptr wstr;
 			if (pTemplate->getValue(context, &wstr) != Template::RESULT_SUCCESS)
 				return false;
@@ -629,7 +629,8 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 										   Message* pMessage,
 										   const Template* pTemplate,
 										   const WCHAR* pwszEncoding,
-										   unsigned int nFlags)
+										   unsigned int nFlags,
+										   unsigned int nSecurityMode)
 {
 	assert(pmh && pMessage);
 	

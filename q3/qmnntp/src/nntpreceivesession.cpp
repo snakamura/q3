@@ -677,6 +677,7 @@ qmnntp::NntpMessageHolder::~NntpMessageHolder()
 
 bool qmnntp::NntpMessageHolder::getMessage(unsigned int nFlags,
 										   const WCHAR* pwszField,
+										   unsigned int nSecurityMode,
 										   Message* pMessage)
 {
 	assert(pMessage == AbstractMessageHolder::getMessage());
