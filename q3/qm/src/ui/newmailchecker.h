@@ -18,6 +18,7 @@
 namespace qm {
 
 class NewMailChecker;
+class NewMailCheckerCallback;
 
 class Document;
 class GoRound;
@@ -41,7 +42,8 @@ public:
 public:
 	NewMailChecker(qs::Profile* pProfile, Document* pDocument,
 		GoRound* pGoRound, SyncManager* pSyncManager,
-		SyncDialogManager* pSyncDialogManager, HWND hwnd, qs::QSTATUS* pstatus);
+		SyncDialogManager* pSyncDialogManager, HWND hwnd,
+		NewMailCheckerCallback* pCallback, qs::QSTATUS* pstatus);
 	~NewMailChecker();
 
 public:
@@ -57,9 +59,26 @@ private:
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
 	HWND hwnd_;
+	NewMailCheckerCallback* pCallback_;
 	qs::WSTRING wstrCourse_;
 	qs::Timer* pTimer_;
 	unsigned int nId_;
+};
+
+
+/****************************************************************************
+ *
+ * NewMailCheckerCallback
+ *
+ */
+
+class NewMailCheckerCallback
+{
+public:
+	virtual ~NewMailCheckerCallback();
+
+public:
+	virtual bool canCheck() = 0;
 };
 
 }

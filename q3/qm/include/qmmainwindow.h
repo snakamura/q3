@@ -48,6 +48,7 @@ public:
 	
 	FolderModel* getFolderModel() const;
 	const ActionInvoker* getActionInvoker() const;
+	bool isShowingModalDialog() const;
 	
 	qs::QSTATUS save() const;
 

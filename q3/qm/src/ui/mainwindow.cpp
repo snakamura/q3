@@ -193,6 +193,7 @@ public:
 	bool bCreated_;
 	bool bMaximize_;
 	bool bLayouting_;
+	bool bShowingModalDialog_;
 	
 	HWND hwndLastFocused_;
 };
@@ -893,12 +894,16 @@ QSTATUS qm::MainWindowImpl::preModalDialog(HWND hwndParent)
 	status = pEditFrameWindowManager_->preModalDialog(hwndParent);
 	CHECK_QSTATUS();
 	
+	bShowingModalDialog_ = true;
+	
 	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::MainWindowImpl::postModalDialog(HWND hwndParent)
 {
 	DECLARE_QSTATUS();
+	
+	bShowingModalDialog_ = false;
 	
 	if (hwndParent != pThis_->getHandle())
 		pThis_->enableWindow(true);
@@ -1248,6 +1253,7 @@ qm::MainWindow::MainWindow(Profile* pProfile, QSTATUS* pstatus) :
 	pImpl_->bCreated_ = false;
 	pImpl_->bMaximize_ = false;
 	pImpl_->bLayouting_ = false;
+	pImpl_->bShowingModalDialog_ = false;
 	pImpl_->hwndLastFocused_ = 0;
 	
 	setModalHandler(pImpl_);
@@ -1377,6 +1383,11 @@ FolderModel* qm::MainWindow::getFolderModel() const
 const ActionInvoker* qm::MainWindow::getActionInvoker() const
 {
 	return pImpl_->pActionInvoker_;
+}
+
+bool qm::MainWindow::isShowingModalDialog() const
+{
+	return pImpl_->bShowingModalDialog_;
 }
 
 QSTATUS qm::MainWindow::save() const

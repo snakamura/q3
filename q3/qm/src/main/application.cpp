@@ -55,14 +55,19 @@ using namespace qs;
  *
  */
 
-struct qm::ApplicationImpl
+struct qm::ApplicationImpl : public NewMailCheckerCallback
 {
+public:
 	QSTATUS ensureDirectory(const WCHAR* pwszPath, const WCHAR* pwszName);
 	QSTATUS ensureFile(const WCHAR* pwszPath, const WCHAR* pwszDir,
 		const WCHAR* pwszType, const WCHAR* pwszName, const WCHAR* pwszExtension);
 	QSTATUS restoreCurrentFolder();
 	QSTATUS saveCurrentFolder();
-	
+
+public:
+	virtual bool canCheck();
+
+public:
 	HINSTANCE hInst_;
 	HINSTANCE hInstResource_;
 	Winsock* pWinSock_;
@@ -239,6 +244,11 @@ QSTATUS qm::ApplicationImpl::saveCurrentFolder()
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
+}
+
+bool qm::ApplicationImpl::canCheck()
+{
+	return !pMainWindow_->isShowingModalDialog();
 }
 
 
@@ -536,7 +546,7 @@ QSTATUS qm::Application::initialize()
 	
 	status = newQsObject(pImpl_->pProfile_, pImpl_->pDocument_,
 		pImpl_->pGoRound_, pImpl_->pSyncManager_, pImpl_->pSyncDialogManager_,
-		pImpl_->pMainWindow_->getHandle(), &pImpl_->pNewMailChecker_);
+		pImpl_->pMainWindow_->getHandle(), pImpl_, &pImpl_->pNewMailChecker_);
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;

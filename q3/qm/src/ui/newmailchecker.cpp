@@ -27,14 +27,15 @@ using namespace qs;
  *
  */
 
-qm::NewMailChecker::NewMailChecker(Profile* pProfile,
-	Document* pDocument, GoRound* pGoRound, SyncManager* pSyncManager,
-	SyncDialogManager* pSyncDialogManager, HWND hwnd, QSTATUS* pstatus) :
+qm::NewMailChecker::NewMailChecker(Profile* pProfile, Document* pDocument,
+	GoRound* pGoRound, SyncManager* pSyncManager, SyncDialogManager* pSyncDialogManager,
+	HWND hwnd, NewMailCheckerCallback* pCallback, QSTATUS* pstatus) :
 	pDocument_(pDocument),
 	pGoRound_(pGoRound),
 	pSyncManager_(pSyncManager),
 	pSyncDialogManager_(pSyncDialogManager),
 	hwnd_(hwnd),
+	pCallback_(pCallback),
 	wstrCourse_(0),
 	pTimer_(0),
 	nId_(0)
@@ -70,7 +71,7 @@ QSTATUS qm::NewMailChecker::timerTimeout(unsigned int nId)
 {
 	DECLARE_QSTATUS();
 	
-	if (nId == nId_ && !pDocument_->isOffline()) {
+	if (nId == nId_ && !pDocument_->isOffline() && pCallback_->canCheck()) {
 		std::auto_ptr<SyncData> pData;
 		status = newQsObject(pSyncManager_, pDocument_,
 			hwnd_, SyncDialog::FLAG_NOTIFYNEWMESSAGE, &pData);
@@ -98,4 +99,15 @@ QSTATUS qm::NewMailChecker::timerTimeout(unsigned int nId)
 	}
 	
 	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * NewMailCheckerCallback
+ *
+ */
+
+qm::NewMailCheckerCallback::~NewMailCheckerCallback()
+{
 }
