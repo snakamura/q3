@@ -21,6 +21,7 @@ namespace qmimap4 {
 
 class Imap4Driver;
 class Imap4Factory;
+class FolderUtil;
 class FolderListGetter;
 class SessionCache;
 class SessionCacher;
@@ -189,6 +190,35 @@ private:
 
 /****************************************************************************
  *
+ * FolderUtil
+ *
+ */
+
+class FolderUtil
+{
+public:
+	FolderUtil(qm::Account* pAccount, qs::QSTATUS* pstatus);
+	~FolderUtil();
+
+public:
+	bool isRootFolderSpecified() const;
+	const WCHAR* getRootFolder() const;
+	qs::QSTATUS getFolderData(const WCHAR* pwszName,
+		WCHAR cSeparator, unsigned int nAttributes,
+		qs::WSTRING* pwstrName, unsigned int* pnFlags) const;
+
+private:
+	FolderUtil(const FolderUtil&);
+	FolderUtil& operator=(const FolderUtil&);
+
+private:
+	qs::WSTRING wstrRootFolder_;
+	qs::WSTRING wstrSpecialFolders_[3];
+};
+
+
+/****************************************************************************
+ *
  * FolderListGetter
  *
  */
@@ -275,8 +305,7 @@ private:
 private:
 	qm::Account* pAccount_;
 	qm::SubAccount* pSubAccount_;
-	qs::WSTRING wstrRootFolder_;
-	qs::WSTRING wstrSpecialFolders_[3];
+	FolderUtil* pFolderUtil_;
 	Imap4* pImap4_;
 	CallbackImpl* pCallback_;
 	qs::Logger* pLogger_;

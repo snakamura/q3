@@ -181,10 +181,14 @@ QSTATUS qmimap4::Imap4Driver::createFolder(SubAccount* pSubAccount,
 		pwszName = wstrName.get();
 	}
 	
+	FolderUtil folderUtil(pAccount_, &status);
+	CHECK_QSTATUS();
+	
 	struct ListProcessHook : public ProcessHook
 	{
-		ListProcessHook(const WCHAR* pwszName) :
+		ListProcessHook(const WCHAR* pwszName, const FolderUtil& folderUtil) :
 			pwszName_(pwszName),
+			folderUtil_(folderUtil),
 			nFlags_(0),
 			cSeparator_(L'\0'),
 			bFound_(false)
@@ -193,22 +197,28 @@ QSTATUS qmimap4::Imap4Driver::createFolder(SubAccount* pSubAccount,
 		
 		virtual QSTATUS processListResponse(ResponseList* pList)
 		{
+			DECLARE_QSTATUS();
+			
 			if (wcscmp(pList->getMailbox(), pwszName_) == 0 ||
 				(_wcsnicmp(pList->getMailbox(), L"Inbox", 5) == 0 &&
 				_wcsnicmp(pwszName_, L"Inbox", 5) == 0 &&
 				wcscmp(pList->getMailbox() + 5, pwszName_ + 5) == 0)) {
 				bFound_ = true;
-				nFlags_ = Util::getFolderFlagsFromAttributes(pList->getAttributes());
+				string_ptr<WSTRING> wstrName;
+				status = folderUtil_.getFolderData(pList->getMailbox(),
+					pList->getSeparator(), pList->getAttributes(), &wstrName, &nFlags_);
 				cSeparator_ = pList->getSeparator();
 			}
+			
 			return QSTATUS_SUCCESS;
 		}
 		
 		const WCHAR* pwszName_;
+		const FolderUtil& folderUtil_;
 		unsigned int nFlags_;
 		WCHAR cSeparator_;
 		bool bFound_;
-	} hook(wstrFullName.get());
+	} hook(wstrFullName.get(), folderUtil);
 	
 	Hook h(pCallback_, &hook);
 	status = pImap4->list(false, L"", wstrFullName.get());
@@ -222,8 +232,7 @@ QSTATUS qmimap4::Imap4Driver::createFolder(SubAccount* pSubAccount,
 	init.nId_ = pAccount_->generateFolderId();
 	init.pwszName_ = pwszName;
 	init.cSeparator_ = hook.cSeparator_;
-	init.nFlags_ = hook.nFlags_ |
-		(hook.nFlags_ & Folder::FLAG_NOSELECT ? 0 : Folder::FLAG_SYNCABLE);
+	init.nFlags_ = hook.nFlags_;
 	init.nCount_ = 0;
 	init.nUnseenCount_ = 0;
 	init.pParentFolder_ = pParent;
@@ -1219,27 +1228,19 @@ QSTATUS qmimap4::Imap4Factory::createDriver(
 
 /****************************************************************************
  *
- * FolderListGetter
+ * FolderUtil
  *
  */
 
-qmimap4::FolderListGetter::FolderListGetter(Account* pAccount,
-	SubAccount* pSubAccount, QSTATUS* pstatus) :
-	pAccount_(pAccount),
-	pSubAccount_(pSubAccount),
-	wstrRootFolder_(0),
-	pImap4_(0),
-	pCallback_(0),
-	pLogger_(0)
+qmimap4::FolderUtil::FolderUtil(Account* pAccount, QSTATUS* pstatus) :
+	wstrRootFolder_(0)
 {
 	DECLARE_QSTATUS();
 	
-	int n = 0;
-	for (n = 0; n < countof(wstrSpecialFolders_); ++n)
+	for (int n = 0; n < countof(wstrSpecialFolders_); ++n)
 		wstrSpecialFolders_[n] = 0;
 	
-	status = pAccount_->getProperty(L"Imap4",
-		L"RootFolder", 0, &wstrRootFolder_);
+	status = pAccount->getProperty(L"Imap4", L"RootFolder", 0, &wstrRootFolder_);
 	CHECK_QSTATUS_SET(pstatus);
 	
 	struct {
@@ -1250,18 +1251,117 @@ qmimap4::FolderListGetter::FolderListGetter(Account* pAccount,
 		{ L"SentboxFolder",	L"Sentbox"	},
 		{ L"TrashFolder",	L"Trash"	}
 	};
-	for (n = 0; n < countof(wstrSpecialFolders_); ++n) {
-		status = pAccount_->getProperty(L"Imap4", folders[n].pwszKey_,
+	for (n = 0; n < countof(folders); ++n) {
+		status = pAccount->getProperty(L"Imap4", folders[n].pwszKey_,
 			folders[n].pwszDefault_, &wstrSpecialFolders_[n]);
 		CHECK_QSTATUS_SET(pstatus);
 	}
+}
+
+qmimap4::FolderUtil::~FolderUtil()
+{
+	freeWString(wstrRootFolder_);
+	for (int n = 0; n < countof(wstrSpecialFolders_); ++n)
+		freeWString(wstrSpecialFolders_[n]);
+}
+
+bool qmimap4::FolderUtil::isRootFolderSpecified() const
+{
+	return *wstrRootFolder_ != L'\0';
+}
+
+const WCHAR* qmimap4::FolderUtil::getRootFolder() const
+{
+	return wstrRootFolder_;
+}
+
+QSTATUS qmimap4::FolderUtil::getFolderData(const WCHAR* pwszName,
+	WCHAR cSeparator, unsigned int nAttributes,
+	WSTRING* pwstrName, unsigned int* pnFlags) const
+{
+	assert(pwszName);
+	assert(pwstrName);
+	assert(pnFlags);
 	
+	DECLARE_QSTATUS();
+	
+	*pwstrName = 0;
+	*pnFlags = 0;
+	
+	bool bChildOfRootFolder = false;
+	size_t nRootFolderLen = wcslen(wstrRootFolder_);
+	if (nRootFolderLen != 0) {
+		bChildOfRootFolder = wcsncmp(pwszName, wstrRootFolder_, nRootFolderLen) == 0 &&
+			*(pwszName + nRootFolderLen) == cSeparator;
+		if (bChildOfRootFolder)
+			pwszName += nRootFolderLen + 1;
+	}
+	if (!*pwszName)
+		return QSTATUS_SUCCESS;
+	
+	string_ptr<WSTRING> wstr(allocWString(pwszName));
+	if (!wstr.get())
+		return QSTATUS_OUTOFMEMORY;
+	size_t nLen = wcslen(wstr.get());
+	if (nLen != 1 && *(wstr.get() + nLen - 1) == cSeparator)
+		*(wstr.get() + nLen - 1) = L'\0';
+	
+	unsigned int nFlags = Util::getFolderFlagsFromAttributes(nAttributes);
+	if (!(nFlags & Folder::FLAG_NOSELECT))
+		nFlags |= Folder::FLAG_SYNCABLE;
+	if (bChildOfRootFolder)
+		nFlags |= Folder::FLAG_CHILDOFROOT;
+	
+	if (_wcsnicmp(wstr.get(), L"Inbox", 5) == 0 &&
+		(*(wstr.get() + 5) == L'\0' || *(wstr.get() + 5) == cSeparator))
+		wcsncpy(wstr.get(), L"Inbox", 5);
+	
+	struct {
+		const WCHAR* pwszName_;
+		unsigned int nFlags_;
+	} flags[] = {
+		{ L"Inbox",					Folder::FLAG_INBOX							},
+		{ wstrSpecialFolders_[0],	Folder::FLAG_OUTBOX | Folder::FLAG_DRAFTBOX	},
+		{ wstrSpecialFolders_[1],	Folder::FLAG_SENTBOX						},
+		{ wstrSpecialFolders_[2],	Folder::FLAG_TRASHBOX						}
+	};
+	for (int n = 0; n < countof(flags); ++n) {
+		if (wcscmp(wstr.get(), flags[n].pwszName_) == 0) {
+			nFlags |= flags[n].nFlags_;
+			break;
+		}
+	}
+	
+	*pwstrName = wstr.release();
+	*pnFlags = nFlags;
+	
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * FolderListGetter
+ *
+ */
+
+qmimap4::FolderListGetter::FolderListGetter(Account* pAccount,
+	SubAccount* pSubAccount, QSTATUS* pstatus) :
+	pAccount_(pAccount),
+	pSubAccount_(pSubAccount),
+	pFolderUtil_(0),
+	pImap4_(0),
+	pCallback_(0),
+	pLogger_(0)
+{
+	DECLARE_QSTATUS();
+	
+	status = newQsObject(pAccount_, &pFolderUtil_);
+	CHECK_QSTATUS_SET(pstatus);
 	status = connect();
 	CHECK_QSTATUS_SET(pstatus);
-	
 	status = listNamespaces();
 	CHECK_QSTATUS_SET(pstatus);
-	
 	status = listFolders();
 	CHECK_QSTATUS_SET(pstatus);
 }
@@ -1286,10 +1386,7 @@ qmimap4::FolderListGetter::~FolderListGetter()
 			deleter<Folder>(),
 			std::select1st<FolderList::value_type>()));
 	
-	freeWString(wstrRootFolder_);
-	for (int n = 0; n < countof(wstrSpecialFolders_); ++n)
-		freeWString(wstrSpecialFolders_[n]);
-	
+	delete pFolderUtil_;
 	delete pCallback_;
 	delete pLogger_;
 }
@@ -1364,7 +1461,7 @@ QSTATUS qmimap4::FolderListGetter::listNamespaces()
 		CHECK_QSTATUS();
 	}
 	
-	if (*wstrRootFolder_ && !listNamespace_.empty()) {
+	if (pFolderUtil_->isRootFolderSpecified() && !listNamespace_.empty()) {
 		string_ptr<WSTRING> wstrInbox(allocWString(L"Inbox"));
 		if (!wstrInbox.get())
 			return QSTATUS_OUTOFMEMORY;
@@ -1624,8 +1721,8 @@ QSTATUS qmimap4::FolderListGetter::CallbackImpl::processNamespace(
 {
 	DECLARE_QSTATUS();
 	
-	const WCHAR* pwszRootFolder = pGetter_->wstrRootFolder_;
 	if (pListNamespace_) {
+		const WCHAR* pwszRootFolder = pGetter_->pFolderUtil_->getRootFolder();
 		typedef ResponseNamespace::NamespaceList NSList;
 		const NSList* pLists[] = {
 			&pNamespace->getPersonal(),
@@ -1664,8 +1761,8 @@ QSTATUS qmimap4::FolderListGetter::CallbackImpl::processList(
 {
 	DECLARE_QSTATUS();
 	
-	const WCHAR* pwszRootFolder = pGetter_->wstrRootFolder_;
 	if (pListNamespace_) {
+		const WCHAR* pwszRootFolder = pGetter_->pFolderUtil_->getRootFolder();
 		WCHAR wszSeparator[] = { pList->getSeparator(), L'\0' };
 		string_ptr<WSTRING> wstr(concat(
 			pwszRootFolder, wszSeparator, pList->getMailbox()));
@@ -1677,62 +1774,22 @@ QSTATUS qmimap4::FolderListGetter::CallbackImpl::processList(
 		wstr.release();
 	}
 	else {
-		bool bChildOfRootFolder = false;
-		const WCHAR* pwszName = pList->getMailbox();
-		size_t nRootFolderLen = wcslen(pwszRootFolder);
-		if (nRootFolderLen != 0) {
-			bChildOfRootFolder =
-				wcsncmp(pwszName, pwszRootFolder, nRootFolderLen) == 0 &&
-				*(pwszName + nRootFolderLen) == pList->getSeparator();
-			if (bChildOfRootFolder)
-				pwszName = pList->getMailbox() + nRootFolderLen + 1;
-		}
-		if (!*pwszName)
-			return QSTATUS_SUCCESS;
-		
-		string_ptr<WSTRING> wstr(allocWString(pwszName));
-		if (!wstr.get())
-			return QSTATUS_OUTOFMEMORY;
-		size_t nLen = wcslen(wstr.get());
-		if (nLen != 1 && *(wstr.get() + nLen - 1) == pList->getSeparator())
-			*(wstr.get() + nLen - 1) = L'\0';
-		
-		unsigned int nFlags = Util::getFolderFlagsFromAttributes(
-			pList->getAttributes());
-		if (!(nFlags & Folder::FLAG_NOSELECT))
-			nFlags |= Folder::FLAG_SYNCABLE;
-		if (bChildOfRootFolder)
-			nFlags |= Folder::FLAG_CHILDOFROOT;
-		
-		if (_wcsnicmp(wstr.get(), L"Inbox", 5) == 0 &&
-			(*(wstr.get() + 5) == L'\0' ||
-				*(wstr.get() + 5) == pList->getSeparator()))
-			wcsncpy(wstr.get(), L"Inbox", 5);
-		
-		struct {
-			const WCHAR* pwszName_;
-			unsigned int nFlags_;
-		} flags[] = {
-			{ L"Inbox",							Folder::FLAG_INBOX		},
-			{ pGetter_->wstrSpecialFolders_[0],	Folder::FLAG_OUTBOX		},
-			{ pGetter_->wstrSpecialFolders_[1],	Folder::FLAG_SENTBOX	},
-			{ pGetter_->wstrSpecialFolders_[2],	Folder::FLAG_TRASHBOX	}
-		};
-		for (int n = 0; n < countof(flags); ++n) {
-			if (wcscmp(wstr.get(), flags[n].pwszName_) == 0) {
-				nFlags |= flags[n].nFlags_;
-				break;
-			}
-		}
-		
-		FolderData data = {
-			wstr.get(),
-			pList->getSeparator(),
-			nFlags
-		};
-		status = STLWrapper<FolderDataList>(*pListFolderData_).push_back(data);
+		string_ptr<WSTRING> wstrName;
+		unsigned int nFlags = 0;
+		status = pGetter_->pFolderUtil_->getFolderData(pList->getMailbox(),
+			pList->getSeparator(), pList->getAttributes(), &wstrName, &nFlags);
 		CHECK_QSTATUS();
-		wstr.release();
+		if (wstrName.get()) {
+			FolderData data = {
+				wstrName.get(),
+				pList->getSeparator(),
+				nFlags
+			};
+			status = STLWrapper<FolderDataList>(
+				*pListFolderData_).push_back(data);
+			CHECK_QSTATUS();
+			wstrName.release();
+		}
 	}
 	
 	return QSTATUS_SUCCESS;
