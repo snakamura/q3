@@ -79,6 +79,7 @@ private:
 	qm::Account* pAccount_;
 
 private:
+	static const unsigned int nSupport__;
 	static const WCHAR* pwszParams__[];
 };
 

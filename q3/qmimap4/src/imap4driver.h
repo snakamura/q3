@@ -191,6 +191,9 @@ private:
 	std::auto_ptr<OfflineJobManager> pOfflineJobManager_;
 	bool bOffline_;
 	qs::CriticalSection cs_;
+
+private:
+	static const unsigned int nSupport__;
 };
 
 

@@ -25,6 +25,8 @@ using namespace qs;
  *
  */
 
+const unsigned int qmpop3::Pop3Driver::nSupport__ = Account::SUPPORT_LOCALFOLDERDOWNLOAD;
+
 qmpop3::Pop3Driver::Pop3Driver(Account* pAccount) :
 	pAccount_(pAccount)
 {
@@ -46,19 +48,7 @@ bool qmpop3::Pop3Driver::save()
 
 bool qmpop3::Pop3Driver::isSupport(Account::Support support)
 {
-	switch (support) {
-	case Account::SUPPORT_REMOTEFOLDER:
-		return false;
-	case Account::SUPPORT_LOCALFOLDERDOWNLOAD:
-		return true;
-	case Account::SUPPORT_LOCALFOLDERGETMESSAGE:
-		return false;
-	case Account::SUPPORT_EXTERNALLINK:
-		return false;
-	default:
-		assert(false);
-		return false;
-	}
+	return (nSupport__ & support) != 0;
 }
 
 void qmpop3::Pop3Driver::setOffline(bool bOffline)

@@ -27,6 +27,10 @@ using namespace qs;
  *
  */
 
+const unsigned int qmnntp::NntpDriver::nSupport__ =
+	Account::SUPPORT_LOCALFOLDERSYNC |
+	Account::SUPPORT_LOCALFOLDERGETMESSAGE;
+
 qmnntp::NntpDriver::NntpDriver(Account* pAccount,
 							   const Security* pSecurity) :
 	pAccount_(pAccount),
@@ -68,19 +72,7 @@ bool qmnntp::NntpDriver::save()
 
 bool qmnntp::NntpDriver::isSupport(Account::Support support)
 {
-	switch (support) {
-	case Account::SUPPORT_REMOTEFOLDER:
-		return false;
-	case Account::SUPPORT_LOCALFOLDERDOWNLOAD:
-		return false;
-	case Account::SUPPORT_LOCALFOLDERGETMESSAGE:
-		return true;
-	case Account::SUPPORT_EXTERNALLINK:
-		return false;
-	default:
-		assert(false);
-		return false;
-	}
+	return (nSupport__ & support) != 0;
 }
 
 void qmnntp::NntpDriver::setOffline(bool bOffline)

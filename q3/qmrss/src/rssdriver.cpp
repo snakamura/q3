@@ -19,6 +19,11 @@ using namespace qs;
  *
  */
 
+const unsigned int qmrss::RssDriver::nSupport__ =
+	Account::SUPPORT_LOCALFOLDERSYNC |
+	Account::SUPPORT_LOCALFOLDERDOWNLOAD |
+	Account::SUPPORT_EXTERNALLINK;
+
 const WCHAR* qmrss::RssDriver::pwszParams__[] = {
 	L"URL"
 };
@@ -44,19 +49,7 @@ bool qmrss::RssDriver::save()
 
 bool qmrss::RssDriver::isSupport(Account::Support support)
 {
-	switch (support) {
-	case Account::SUPPORT_REMOTEFOLDER:
-		return false;
-	case Account::SUPPORT_LOCALFOLDERDOWNLOAD:
-		return true;
-	case Account::SUPPORT_LOCALFOLDERGETMESSAGE:
-		return false;
-	case Account::SUPPORT_EXTERNALLINK:
-		return true;
-	default:
-		assert(false);
-		return false;
-	}
+	return (nSupport__ & support) != 0;
 }
 
 void qmrss::RssDriver::setOffline(bool bOffline)

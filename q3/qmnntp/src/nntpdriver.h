@@ -126,6 +126,9 @@ private:
 	bool bOffline_;
 	unsigned int nForceDisconnect_;
 	unsigned int nLastUsedTime_;
+
+private:
+	static const unsigned int nSupport__;
 };
 
 

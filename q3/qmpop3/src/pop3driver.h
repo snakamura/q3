@@ -81,6 +81,9 @@ private:
 
 private:
 	qm::Account* pAccount_;
+
+private:
+	static const unsigned int nSupport__;
 };
 
 

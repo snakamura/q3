@@ -33,6 +33,8 @@ using namespace qs;
  *
  */
 
+const unsigned int qmimap4::Imap4Driver::nSupport__ = Account::SUPPORT_REMOTEFOLDER;
+
 qmimap4::Imap4Driver::Imap4Driver(Account* pAccount,
 								  const Security* pSecurity) :
 	pAccount_(pAccount),
@@ -60,19 +62,7 @@ bool qmimap4::Imap4Driver::save()
 
 bool qmimap4::Imap4Driver::isSupport(Account::Support support)
 {
-	switch (support) {
-	case Account::SUPPORT_REMOTEFOLDER:
-		return true;
-	case Account::SUPPORT_LOCALFOLDERDOWNLOAD:
-		return false;
-	case Account::SUPPORT_LOCALFOLDERGETMESSAGE:
-		return false;
-	case Account::SUPPORT_EXTERNALLINK:
-		return false;
-	default:
-		assert(false);
-		return false;
-	}
+	return (nSupport__ & support) != 0;
 }
 
 void qmimap4::Imap4Driver::setOffline(bool bOffline)

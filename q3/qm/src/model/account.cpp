@@ -1098,7 +1098,7 @@ NormalFolder* qm::Account::createNormalFolder(const WCHAR* pwszName,
 	}
 	else {
 		unsigned int nFlags = Folder::FLAG_LOCAL;
-		if (pImpl_->pProtocolDriver_->isSupport(SUPPORT_LOCALFOLDERGETMESSAGE))
+		if (pImpl_->pProtocolDriver_->isSupport(SUPPORT_LOCALFOLDERSYNC))
 			nFlags |= Folder::FLAG_SYNCABLE;
 		pNormalFolder.reset(new NormalFolder(generateFolderId(),
 			pwszName, pParent ? pParent->getSeparator() : L'/',
