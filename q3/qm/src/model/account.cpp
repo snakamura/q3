@@ -1865,6 +1865,8 @@ bool qm::Account::check(AccountCheckCallback* pCallback)
 
 bool qm::Account::save() const
 {
+	Lock<Account> lock(*this);
+	
 	pImpl_->pProfile_->setString(L"Global", L"SubAccount",
 		pImpl_->pCurrentSubAccount_->getName());
 	
@@ -1888,6 +1890,7 @@ bool qm::Account::save() const
 
 bool qm::Account::flushMessageStore() const
 {
+	Lock<Account> lock(*this);
 	return pImpl_->pMessageStore_->flush();
 }
 
