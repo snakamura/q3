@@ -15,6 +15,7 @@
 #include <qstheme.h>
 #include <qsuiutil.h>
 
+#include <commdlg.h>
 #ifndef _WIN32_WCE
 #	include <shlobj.h>
 #endif
@@ -105,15 +106,7 @@ void qs::UIUtil::setLogFontToProfile(Profile* pProfile,
 bool qs::UIUtil::browseFont(HWND hwnd,
 							LOGFONT* pLogFont)
 {
-#ifdef _WIN32_WCE
-	FontDialog dialog(*pLogFont);
-	if (dialog.doModal(hwnd) != IDOK)
-		return false;
-	
-	*pLogFont = dialog.getLogFont();
-	
-	return true;
-#else
+#if !defined _WIN32_WCE || (_WIN32_WCE >= 400 && !defined _WIN32_WCE_PSPC)
 	CHOOSEFONT cf = {
 		sizeof(cf),
 		hwnd,
@@ -123,6 +116,14 @@ bool qs::UIUtil::browseFont(HWND hwnd,
 		CF_INITTOLOGFONTSTRUCT | CF_SCREENFONTS,
 	};
 	return ::ChooseFont(&cf) != 0;
+#else
+	FontDialog dialog(*pLogFont);
+	if (dialog.doModal(hwnd) != IDOK)
+		return false;
+	
+	*pLogFont = dialog.getLogFont();
+	
+	return true;
 #endif
 }
 
