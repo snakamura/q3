@@ -29,6 +29,8 @@ namespace qm {
 class Account;
 class SubAccount;
 class AccountHandler;
+	class DefaultAccountHandler;
+class AccountEvent;
 class FolderListChangedEvent;
 
 class Message;
@@ -207,7 +209,6 @@ public:
 public:
 	Account* getAccount() const;
 	const WCHAR* getName() const;
-	qs::QSTATUS getDisplayName(qs::WSTRING* pwstrName) const;
 	
 	const WCHAR* getIdentity() const;
 	qs::QSTATUS setIdentity(const WCHAR* pwszIdentity);
@@ -272,6 +273,11 @@ public:
 	
 	qs::QSTATUS save() const;
 
+// These methods are intended to be call from Account class.
+public:
+	qs::QSTATUS setName(const WCHAR* pwszName);
+	qs::QSTATUS deletePermanent();
+
 private:
 	SubAccount(const SubAccount&);
 	SubAccount& operator=(const SubAccount&);
@@ -293,7 +299,50 @@ public:
 	virtual ~AccountHandler();
 
 public:
+	virtual qs::QSTATUS subAccountListChanged(const AccountEvent& event) = 0;
 	virtual qs::QSTATUS folderListChanged(const FolderListChangedEvent& event) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * DefaultAccountHandler
+ *
+ */
+
+class DefaultAccountHandler : public AccountHandler
+{
+public:
+	DefaultAccountHandler();
+	virtual ~DefaultAccountHandler();
+
+public:
+	virtual qs::QSTATUS subAccountListChanged(const AccountEvent& event);
+	virtual qs::QSTATUS folderListChanged(const FolderListChangedEvent& event);
+};
+
+
+/****************************************************************************
+ *
+ * AccountEvent
+ *
+ */
+
+class AccountEvent
+{
+public:
+	AccountEvent(Account* pAccount);
+	~AccountEvent();
+
+public:
+	Account* getAccount() const;
+
+private:
+	AccountEvent(const AccountEvent&);
+	AccountEvent& operator=(const AccountEvent&);
+
+private:
+	Account* pAccount_;
 };
 
 

@@ -51,6 +51,7 @@ public:
 	QSTATUS loadSubAccounts();
 	QSTATUS saveSubAccounts() const;
 	
+	QSTATUS fireSubAccountListChanged();
 	QSTATUS fireFolderListChanged(const FolderListChangedEvent& event);
 
 public:
@@ -263,6 +264,20 @@ QSTATUS qm::AccountImpl::saveSubAccounts() const
 		status = (*it)->save();
 		CHECK_QSTATUS();
 		++it;
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::AccountImpl::fireSubAccountListChanged()
+{
+	DECLARE_QSTATUS();
+	
+	AccountEvent event(pThis_);
+	AccountHandlerList::const_iterator it = listAccountHandler_.begin();
+	while (it != listAccountHandler_.end()) {
+		status = (*it++)->subAccountListChanged(event);
+		CHECK_QSTATUS();
 	}
 	
 	return QSTATUS_SUCCESS;
@@ -557,21 +572,58 @@ const Account::SubAccountList& qm::Account::getSubAccounts() const
 
 QSTATUS qm::Account::addSubAccount(SubAccount* pSubAccount)
 {
-	assert(!getSubAccount(pSubAccount->getName()));
-	return STLWrapper<SubAccountList>(
+	DECLARE_QSTATUS();
+	
+	if (getSubAccount(pSubAccount->getName()))
+		return QSTATUS_FAIL;
+	
+	status = STLWrapper<SubAccountList>(
 		pImpl_->listSubAccount_).push_back(pSubAccount);
+	CHECK_QSTATUS();
+	
+	status = pImpl_->fireSubAccountListChanged();
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::Account::removeSubAccount(SubAccount* pSubAccount)
 {
-	// TODO
+	assert(*pSubAccount->getName());
+	assert(std::find(pImpl_->listSubAccount_.begin(),
+		pImpl_->listSubAccount_.end(), pSubAccount) !=
+		pImpl_->listSubAccount_.end());
+	
+	DECLARE_QSTATUS();
+	
+	SubAccountList::iterator it = std::remove(pImpl_->listSubAccount_.begin(),
+		pImpl_->listSubAccount_.end(), pSubAccount);
+	assert(it != pImpl_->listSubAccount_.end());
+	pImpl_->listSubAccount_.erase(it, pImpl_->listSubAccount_.end());
+	
+	if (pImpl_->pCurrentSubAccount_ == pSubAccount)
+		pImpl_->pCurrentSubAccount_ = pImpl_->listSubAccount_.front();
+	
+	pSubAccount->deletePermanent();
+	delete pSubAccount;
+	
 	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::Account::renameSubAccount(
 	SubAccount* pSubAccount, const WCHAR* pwszName)
 {
-	// TODO
+	DECLARE_QSTATUS();
+	
+	if (getSubAccount(pwszName))
+		return QSTATUS_FAIL;
+	
+	status = pSubAccount->setName(pwszName);
+	CHECK_QSTATUS();
+	
+	status = pImpl_->fireSubAccountListChanged();
+	CHECK_QSTATUS();
+	
 	return QSTATUS_SUCCESS;
 }
 
@@ -1632,6 +1684,54 @@ QSTATUS qm::Account::openLogger(Host host, Logger** ppLogger) const
 
 qm::AccountHandler::~AccountHandler()
 {
+}
+
+
+/****************************************************************************
+ *
+ * DefaultAccountHandler
+ *
+ */
+
+qm::DefaultAccountHandler::DefaultAccountHandler()
+{
+}
+
+qm::DefaultAccountHandler::~DefaultAccountHandler()
+{
+}
+
+QSTATUS qm::DefaultAccountHandler::subAccountListChanged(
+	const AccountEvent& event)
+{
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::DefaultAccountHandler::folderListChanged(
+	const FolderListChangedEvent& event)
+{
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * AccountEvent
+ *
+ */
+
+qm::AccountEvent::AccountEvent(Account* pAccount) :
+	pAccount_(pAccount)
+{
+}
+
+qm::AccountEvent::~AccountEvent()
+{
+}
+
+Account* qm::AccountEvent::getAccount() const
+{
+	return pAccount_;
 }
 
 

@@ -119,10 +119,6 @@ public:
 public:
 	virtual qs::QSTATUS offlineStatusChanged(const DocumentEvent& event);
 	virtual qs::QSTATUS accountListChanged(const AccountListChangedEvent& event);
-
-private:
-	DefaultDocumentHandler(const DefaultDocumentHandler&);
-	DefaultDocumentHandler& operator=(const DefaultDocumentHandler&);
 };
 
 

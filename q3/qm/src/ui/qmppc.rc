@@ -702,6 +702,17 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,85,161,50,14
 END
 
+IDD_RENAME DIALOG DISCARDABLE  0, 0, 139, 189
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Rename"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    LTEXT           "&Name",IDC_STATIC,5,5,18,8
+    EDITTEXT        IDC_NAME,5,15,130,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,30,35,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,85,35,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -894,6 +905,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 182
     END
+
+    IDD_RENAME, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 132
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 182
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -1041,6 +1060,13 @@ BEGIN
     IDS_VIEWMODELSTATUSTEMPLATE "%u Message(s), %u Unseen, %u Selected"
     IDS_ONLINE              "Online"
     IDS_OFFLINE             "Offline"
+    IDS_CONFIRMREMOVEACCOUNT "Are you sure to remove this account?"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CONFIRMREMOVESUBACCOUNT "Are you sure to remove this subaccount?"
+    IDS_CONFIRMREMOVEFOLDER "Are you sure to remove this folder?"
 END
 
 #endif    // Japanese resources

@@ -45,7 +45,7 @@ using namespace qs;
 class qm::FolderComboBoxImpl :
 	public CommandHandler,
 	public DefaultDocumentHandler,
-	public AccountHandler,
+	public DefaultAccountHandler,
 	public FolderHandler,
 	public FolderModelHandler
 {

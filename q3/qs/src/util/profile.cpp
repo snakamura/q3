@@ -302,6 +302,12 @@ QSTATUS qs::RegistryProfile::deletePermanent()
 	return nRet == ERROR_SUCCESS ? QSTATUS_SUCCESS : QSTATUS_FAIL;
 }
 
+QSTATUS qs::RegistryProfile::rename(const WCHAR* pwszName)
+{
+	assert(false);
+	return QSTATUS_FAIL;
+}
+
 
 /****************************************************************************
  *
@@ -556,7 +562,25 @@ QSTATUS qs::AbstractProfile::save() const
 
 QSTATUS qs::AbstractProfile::deletePermanent()
 {
-	return deletePermanentImpl(pImpl_->wstrPath_);
+	W2T(pImpl_->wstrPath_, ptszPath);
+	return ::DeleteFile(ptszPath) ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+}
+
+QSTATUS qs::AbstractProfile::rename(const WCHAR* pwszName)
+{
+	string_ptr<WSTRING> wstrPath(allocWString(pwszName));
+	if (!wstrPath.get())
+		return QSTATUS_OUTOFMEMORY;
+	
+	W2T(pImpl_->wstrPath_, ptszOldPath);
+	W2T(wstrPath.get(), ptszNewPath);
+	if (!::MoveFile(ptszOldPath, ptszNewPath))
+		return QSTATUS_FAIL;
+	
+	freeWString(pImpl_->wstrPath_);
+	pImpl_->wstrPath_ = wstrPath.release();
+	
+	return QSTATUS_SUCCESS;
 }
 
 AbstractProfile::Map* qs::AbstractProfile::getMap() const
@@ -821,12 +845,6 @@ QSTATUS qs::TextProfile::saveImpl(const WCHAR* pwszPath) const
 	return status;
 }
 
-QSTATUS qs::TextProfile::deletePermanentImpl(const WCHAR* pwszPath)
-{
-	W2T(pwszPath, ptszPath);
-	return ::DeleteFile(ptszPath) ? QSTATUS_SUCCESS : QSTATUS_FAIL;
-}
-
 
 /****************************************************************************
  *
@@ -940,12 +958,6 @@ QSTATUS qs::XMLProfile::saveImpl(const WCHAR* pwszPath) const
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qs::XMLProfile::deletePermanentImpl(const WCHAR* pwszPath)
-{
-	W2T(pwszPath, ptszPath);
-	return ::DeleteFile(ptszPath) ? QSTATUS_SUCCESS : QSTATUS_FAIL;
 }
 
 

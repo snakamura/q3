@@ -49,6 +49,7 @@
 #define IDB_SYNCNOTIFICATION            149
 #define IDD_CUSTOMFILTER                150
 #define IDD_MOVEMESSAGE                 151
+#define IDD_RENAME                      152
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -149,6 +150,9 @@
 #define IDC_FILEPERMESSAGE              1053
 #define IDS_ONLINE                      1053
 #define IDS_OFFLINE                     1054
+#define IDS_CONFIRMREMOVEACCOUNT        1055
+#define IDS_CONFIRMREMOVESUBACCOUNT     1056
+#define IDS_CONFIRMREMOVEFOLDER         1057
 #define IDC_EXPORTFLAGS                 1058
 #define IDC_NORMAL                      1059
 #define IDC_QMAIL20COMPATIBLE           1060
@@ -385,9 +389,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        152
+#define _APS_NEXT_RESOURCE_VALUE        153
 #define _APS_NEXT_COMMAND_VALUE         48000
-#define _APS_NEXT_CONTROL_VALUE         1124
+#define _APS_NEXT_CONTROL_VALUE         1125
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -229,7 +229,7 @@ public:
 	bool bCreated_;
 	int nInitialShow_;
 	bool bLayouting_;
-	bool bShowingModalDialog_;
+	int nShowingModalDialog_;
 	
 	HWND hwndLastFocused_;
 };
@@ -909,15 +909,15 @@ QSTATUS qm::MainWindowImpl::preModalDialog(HWND hwndParent)
 {
 	DECLARE_QSTATUS();
 	
-	if (hwndParent != pThis_->getHandle())
-		pThis_->enableWindow(false);
-	
-	status = pMessageFrameWindowManager_->preModalDialog(hwndParent);
-	CHECK_QSTATUS();
-	status = pEditFrameWindowManager_->preModalDialog(hwndParent);
-	CHECK_QSTATUS();
-	
-	bShowingModalDialog_ = true;
+	if (nShowingModalDialog_++ == 0) {
+		if (hwndParent != pThis_->getHandle())
+			pThis_->enableWindow(false);
+		
+		status = pMessageFrameWindowManager_->preModalDialog(hwndParent);
+		CHECK_QSTATUS();
+		status = pEditFrameWindowManager_->preModalDialog(hwndParent);
+		CHECK_QSTATUS();
+	}
 	
 	return QSTATUS_SUCCESS;
 }
@@ -926,15 +926,15 @@ QSTATUS qm::MainWindowImpl::postModalDialog(HWND hwndParent)
 {
 	DECLARE_QSTATUS();
 	
-	bShowingModalDialog_ = false;
-	
-	if (hwndParent != pThis_->getHandle())
-		pThis_->enableWindow(true);
-	
-	status = pMessageFrameWindowManager_->postModalDialog(hwndParent);
-	CHECK_QSTATUS();
-	status = pEditFrameWindowManager_->postModalDialog(hwndParent);
-	CHECK_QSTATUS();
+	if (--nShowingModalDialog_ == 0) {
+		if (hwndParent != pThis_->getHandle())
+			pThis_->enableWindow(true);
+		
+		status = pMessageFrameWindowManager_->postModalDialog(hwndParent);
+		CHECK_QSTATUS();
+		status = pEditFrameWindowManager_->postModalDialog(hwndParent);
+		CHECK_QSTATUS();
+	}
 	
 	return QSTATUS_SUCCESS;
 }
@@ -1381,7 +1381,7 @@ qm::MainWindow::MainWindow(Profile* pProfile, QSTATUS* pstatus) :
 	pImpl_->bCreated_ = false;
 	pImpl_->nInitialShow_ = SW_SHOWNORMAL;
 	pImpl_->bLayouting_ = false;
-	pImpl_->bShowingModalDialog_ = false;
+	pImpl_->nShowingModalDialog_ = 0;
 	pImpl_->hwndLastFocused_ = 0;
 	
 	setModalHandler(pImpl_);
@@ -1431,7 +1431,7 @@ const ActionInvoker* qm::MainWindow::getActionInvoker() const
 
 bool qm::MainWindow::isShowingModalDialog() const
 {
-	return pImpl_->bShowingModalDialog_;
+	return pImpl_->nShowingModalDialog_ != 0;
 }
 
 void qm::MainWindow::initialShow()

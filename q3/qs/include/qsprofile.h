@@ -1,5 +1,5 @@
 /*
- * $Id: qsprofile.h,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -55,6 +55,7 @@ public:
 	virtual QSTATUS load() = 0;
 	virtual QSTATUS save() const = 0;
 	virtual QSTATUS deletePermanent() = 0;
+	virtual QSTATUS rename(const WCHAR* pwszName) = 0;
 };
 
 
@@ -91,6 +92,7 @@ public:
 	virtual QSTATUS load();
 	virtual QSTATUS save() const;
 	virtual QSTATUS deletePermanent();
+	virtual QSTATUS rename(const WCHAR* pwszName);
 
 private:
 	RegistryProfile(const RegistryProfile&);
@@ -138,11 +140,11 @@ public:
 	virtual QSTATUS load();
 	virtual QSTATUS save() const;
 	virtual QSTATUS deletePermanent();
+	virtual QSTATUS rename(const WCHAR* pwszName);
 
 protected:
 	virtual QSTATUS loadImpl(const WCHAR* pwszPath) = 0;
 	virtual QSTATUS saveImpl(const WCHAR* pwszPath) const = 0;
-	virtual QSTATUS deletePermanentImpl(const WCHAR* pwszPath) = 0;
 
 protected:
 	Map* getMap() const;
@@ -175,7 +177,6 @@ public:
 protected:
 	virtual QSTATUS loadImpl(const WCHAR* pwszPath);
 	virtual QSTATUS saveImpl(const WCHAR* pwszPath) const;
-	virtual QSTATUS deletePermanentImpl(const WCHAR* pwszPath);
 
 private:
 	TextProfile(const TextProfile&);
@@ -198,7 +199,6 @@ public:
 protected:
 	virtual QSTATUS loadImpl(const WCHAR* pwszPath);
 	virtual QSTATUS saveImpl(const WCHAR* pwszPath) const;
-	virtual QSTATUS deletePermanentImpl(const WCHAR* pwszPath);
 
 private:
 	XMLProfile(const XMLProfile&);

@@ -41,6 +41,7 @@ class DefaultDialog;
 	class MailFolderDialog;
 	class MoveMessageDialog;
 	class ProgressDialog;
+	class RenameDialog;
 	class ReplaceDialog;
 	class SelectDialupEntryDialog;
 	class SelectSyncFilterDialog;
@@ -881,6 +882,45 @@ private:
 private:
 	UINT nTitleId_;
 	bool bCanceled_;
+};
+
+
+/****************************************************************************
+ *
+ * RenameDialog
+ *
+ */
+
+class RenameDialog : public DefaultDialog
+{
+public:
+	RenameDialog(const WCHAR* pwszName, qs::QSTATUS* pstatus);
+	virtual ~RenameDialog();
+
+public:
+	const WCHAR* getName() const;
+
+public:
+	virtual LRESULT onCommand(WORD nCode, WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	void updateState();
+
+private:
+	LRESULT onNameChange();
+
+private:
+	RenameDialog(const RenameDialog&);
+	RenameDialog& operator=(const RenameDialog&);
+
+private:
+	qs::WSTRING wstrName_;
 };
 
 

@@ -289,12 +289,6 @@ const WCHAR* qm::SubAccount::getName() const
 	return pImpl_->wstrName_;
 }
 
-QSTATUS qm::SubAccount::getDisplayName(WSTRING* pwstrName) const
-{
-	// TODO
-	return QSTATUS_SUCCESS;
-}
-
 const WCHAR* qm::SubAccount::getIdentity() const
 {
 	return pImpl_->wstrIdentity_;
@@ -853,4 +847,36 @@ QSTATUS qm::SubAccount::save() const
 	CHECK_QSTATUS();
 	
 	return pImpl_->pProfile_->save();
+}
+
+QSTATUS qm::SubAccount::setName(const WCHAR* pwszName)
+{
+	DECLARE_QSTATUS();
+	
+	string_ptr<WSTRING> wstrName(allocWString(pwszName));
+	if (!wstrName.get())
+		return QSTATUS_OUTOFMEMORY;
+	
+	ConcatW c[] = {
+		{ pImpl_->pAccount_->getPath(),	-1	},
+		{ L"\\",						1	},
+		{ wstrName.get(),				-1	},
+		{ Extensions::ACCOUNT,			-1	}
+	};
+	string_ptr<WSTRING> wstrPath(concat(c, countof(c)));
+	if (!wstrPath.get())
+		return QSTATUS_OUTOFMEMORY;
+	
+	status = pImpl_->pProfile_->rename(wstrPath.get());
+	CHECK_QSTATUS();
+	
+	freeWString(pImpl_->wstrName_);
+	pImpl_->wstrName_ = wstrName.release();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::SubAccount::deletePermanent()
+{
+	return pImpl_->pProfile_->deletePermanent();
 }

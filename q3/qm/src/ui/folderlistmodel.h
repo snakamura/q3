@@ -32,7 +32,7 @@ class FolderListModelEvent;
 
 class FolderListModel :
 	public FolderModelHandler,
-	public AccountHandler
+	public DefaultAccountHandler
 {
 public:
 	FolderListModel(FolderModel* pFolderModel, qs::QSTATUS* pstatus);

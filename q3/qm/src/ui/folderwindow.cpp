@@ -52,7 +52,7 @@ using namespace qs;
 class qm::FolderWindowImpl :
 	public NotifyHandler,
 	public DefaultDocumentHandler,
-	public AccountHandler,
+	public DefaultAccountHandler,
 	public FolderHandler,
 	public FolderModelHandler,
 	public DropTargetHandler

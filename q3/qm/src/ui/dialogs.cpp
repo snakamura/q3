@@ -248,11 +248,49 @@ LRESULT qm::AccountDialog::onAddSubAccount()
 
 LRESULT qm::AccountDialog::onRemove()
 {
+	DECLARE_QSTATUS();
+	
 	HWND hwnd = getDlgItem(IDC_ACCOUNT);
 	
 	HTREEITEM hItem = TreeView_GetSelection(hwnd);
 	if (hItem) {
-		// TODO
+		TVITEM item = {
+			TVIF_HANDLE | TVIF_PARAM,
+			hItem
+		};
+		TreeView_GetItem(hwnd, &item);
+		
+		HINSTANCE hInst = Application::getApplication().getResourceHandle();
+		
+		if (TreeView_GetParent(hwnd, hItem)) {
+			SubAccount* pSubAccount = reinterpret_cast<SubAccount*>(item.lParam);
+			
+			int nRet = 0;
+			status = messageBox(hInst, IDS_CONFIRMREMOVESUBACCOUNT,
+				MB_YESNO | MB_DEFBUTTON2, getHandle(), 0, 0, &nRet);
+			CHECK_QSTATUS();
+			if (nRet == IDYES) {
+				Account* pAccount = pSubAccount->getAccount();
+				status = pAccount->removeSubAccount(pSubAccount);
+				CHECK_QSTATUS_VALUE(0);
+				status = update();
+				CHECK_QSTATUS_VALUE(0);
+			}
+		}
+		else {
+			Account* pAccount = reinterpret_cast<Account*>(item.lParam);
+			
+			int nRet = 0;
+			status = messageBox(hInst, IDS_CONFIRMREMOVEACCOUNT,
+				MB_YESNO | MB_DEFBUTTON2, getHandle(), 0, 0, &nRet);
+			CHECK_QSTATUS();
+			if (nRet == IDYES) {
+				status = pDocument_->removeAccount(pAccount);
+				CHECK_QSTATUS();
+				status = update();
+				CHECK_QSTATUS_VALUE(0);
+			}
+		}
 	}
 	
 	return 0;
@@ -260,11 +298,49 @@ LRESULT qm::AccountDialog::onRemove()
 
 LRESULT qm::AccountDialog::onRename()
 {
+	DECLARE_QSTATUS();
+	
 	HWND hwnd = getDlgItem(IDC_ACCOUNT);
 	
 	HTREEITEM hItem = TreeView_GetSelection(hwnd);
 	if (hItem) {
-		// TODO
+		TVITEM item = {
+			TVIF_HANDLE | TVIF_PARAM,
+			hItem
+		};
+		TreeView_GetItem(hwnd, &item);
+		
+		if (TreeView_GetParent(hwnd, hItem)) {
+			SubAccount* pSubAccount = reinterpret_cast<SubAccount*>(item.lParam);
+			
+			RenameDialog dialog(pSubAccount->getName(), &status);
+			CHECK_QSTATUS_VALUE(0);
+			int nRet = 0;
+			status = dialog.doModal(getHandle(), 0, &nRet);
+			CHECK_QSTATUS();
+			if (nRet == IDOK) {
+				Account* pAccount = pSubAccount->getAccount();
+				status = pAccount->renameSubAccount(pSubAccount, dialog.getName());
+				CHECK_QSTATUS_VALUE(0);
+				status = update();
+				CHECK_QSTATUS_VALUE(0);
+			}
+		}
+		else {
+			Account* pAccount = reinterpret_cast<Account*>(item.lParam);
+			
+			RenameDialog dialog(pAccount->getName(), &status);
+			CHECK_QSTATUS_VALUE(0);
+			int nRet = 0;
+			status = dialog.doModal(getHandle(), 0, &nRet);
+			CHECK_QSTATUS();
+			if (nRet == IDOK) {
+				status = pDocument_->renameAccount(pAccount, dialog.getName());
+				CHECK_QSTATUS();
+				status = update();
+				CHECK_QSTATUS_VALUE(0);
+			}
+		}
 	}
 	
 	return 0;
@@ -450,16 +526,36 @@ void qm::AccountDialog::updateState()
 {
 	HWND hwnd = getDlgItem(IDC_ACCOUNT);
 	
-	bool bEnable = TreeView_GetSelection(hwnd) != 0;
-	
 	UINT nIds[] = {
 		IDC_ADDSUBACCOUNT,
+		IDC_PROPERTY,
 		IDC_REMOVE,
-		IDC_RENAME,
-		IDC_PROPERTY
+		IDC_RENAME
 	};
-	for (int n = 0; n < countof(nIds); ++n)
-		Window(getDlgItem(nIds[n])).enableWindow(bEnable);
+	
+	int nEnable = 0;
+	
+	HTREEITEM hItem = TreeView_GetSelection(hwnd);
+	if (hItem) {
+		nEnable = countof(nIds);
+		if (TreeView_GetParent(hwnd, hItem)) {
+			TVITEM item = {
+				TVIF_HANDLE | TVIF_PARAM,
+				hItem
+			};
+			TreeView_GetItem(hwnd, &item);
+			
+			SubAccount* pSubAccount = reinterpret_cast<SubAccount*>(item.lParam);
+			if (!*pSubAccount->getName())
+				nEnable = 2;
+		}
+	}
+	
+	int n = 0;
+	for (n = 0; n < nEnable; ++n)
+		Window(getDlgItem(nIds[n])).enableWindow(true);
+	for (; n < countof(nIds); ++n)
+		Window(getDlgItem(nIds[n])).enableWindow(false);
 }
 
 
@@ -3109,6 +3205,70 @@ LRESULT qm::ProgressDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 LRESULT qm::ProgressDialog::onCancel()
 {
 	bCanceled_ = true;
+	return 0;
+}
+
+
+/****************************************************************************
+ *
+ * RenameDialog
+ *
+ */
+
+qm::RenameDialog::RenameDialog(const WCHAR* pwszName, QSTATUS* pstatus) :
+	DefaultDialog(IDD_RENAME, pstatus),
+	wstrName_(0)
+{
+	wstrName_ = allocWString(pwszName);
+	if (!wstrName_) {
+		*pstatus = QSTATUS_OUTOFMEMORY;
+		return;
+	}
+}
+
+qm::RenameDialog::~RenameDialog()
+{
+	freeWString(wstrName_);
+}
+
+const WCHAR* qm::RenameDialog::getName() const
+{
+	return wstrName_;
+}
+
+LRESULT qm::RenameDialog::onCommand(WORD nCode, WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID_CODE(IDC_NAME, EN_CHANGE, onNameChange)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::RenameDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+{
+	init(false);
+	
+	setDlgItemText(IDC_NAME, wstrName_);
+	
+	return TRUE;
+}
+
+LRESULT qm::RenameDialog::onOk()
+{
+	freeWString(wstrName_);
+	wstrName_ = getDlgItemText(IDC_NAME);
+	return DefaultDialog::onOk();
+}
+
+void qm::RenameDialog::updateState()
+{
+	bool bEnableOk = Window(getDlgItem(IDC_NAME)).getWindowTextLength() != 0;
+	Window(getDlgItem(IDOK)).enableWindow(bEnableOk);
+}
+
+LRESULT qm::RenameDialog::onNameChange()
+{
+	updateState();
 	return 0;
 }
 
