@@ -64,6 +64,8 @@
 #define IDD_SIGNATURES                  167
 #define IDD_SIGNATURE                   168
 #define IDR_TOOLINSERTTEXT              169
+#define IDD_FIXEDFORMTEXTS              170
+#define IDD_FIXEDFORMTEXT               171
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -322,6 +324,8 @@
 #define IDC_SIGNATURES                  1216
 #define IDC_DEFAULT                     1217
 #define IDC_SIGNATURE                   1218
+#define IDC_TEXTS                       1219
+#define IDC_TEXT                        1220
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -563,9 +567,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        170
+#define _APS_NEXT_RESOURCE_VALUE        172
 #define _APS_NEXT_COMMAND_VALUE         48000
-#define _APS_NEXT_CONTROL_VALUE         1219
+#define _APS_NEXT_CONTROL_VALUE         1221
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

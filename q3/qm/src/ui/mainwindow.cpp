@@ -328,6 +328,10 @@ void qm::MainWindowImpl::initActions()
 		pDocument_->getSignatureManager(),
 		pDocument_,
 		pThis_->getHandle());
+	ADD_ACTION2(ConfigTextsAction,
+		IDM_CONFIG_TEXTS,
+		pDocument_->getFixedFormTextManager(),
+		pThis_->getHandle());
 	ADD_ACTION3(ConfigViewsAction,
 		IDM_CONFIG_VIEWS,
 		pUIManager_,

@@ -320,7 +320,7 @@ qm::InsertTextMenu::~InsertTextMenu()
 
 const FixedFormText* qm::InsertTextMenu::getText(unsigned int nId) const
 {
-	const FixedFormTextManager::TextList& l = pManager_->getTextList();
+	const FixedFormTextManager::TextList& l = pManager_->getTexts();
 	if (IDM_TOOL_INSERTTEXT <= nId && nId < IDM_TOOL_INSERTTEXT + l.size())
 		return l[nId - IDM_TOOL_INSERTTEXT];
 	else
@@ -337,7 +337,7 @@ bool qm::InsertTextMenu::createMenu(HMENU hmenu)
 		::DeleteMenu(hmenu, 0, MF_BYPOSITION);
 	}
 	
-	const FixedFormTextManager::TextList& l = pManager_->getTextList();
+	const FixedFormTextManager::TextList& l = pManager_->getTexts();
 	if (!l.empty()) {
 		for (FixedFormTextManager::TextList::size_type n = 0; n < l.size(); ++n) {
 			const FixedFormText* pText = l[n];

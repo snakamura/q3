@@ -20,6 +20,7 @@
 #include "viewmodel.h"
 #include "../model/addressbook.h"
 #include "../model/editmessage.h"
+#include "../model/fixedformtext.h"
 #include "../model/goround.h"
 #include "../model/signature.h"
 
@@ -38,6 +39,8 @@ class DefaultDialog;
 	class DialupDialog;
 	class ExportDialog;
 	class FindDialog;
+	class FixedFormTextDialog;
+	class FixedFormTextsDialog;
 	class GoRoundDialog;
 	class GoRoundCourseDialog;
 	class GoRoundDialupDialog;
@@ -60,8 +63,6 @@ class DefaultDialog;
 
 class Account;
 class Document;
-class FixedFormText;
-class FixedFormTextManager;
 class GoRound;
 class GoRoundCourse;
 class GoRoundDialup;
@@ -802,6 +803,88 @@ private:
 
 /****************************************************************************
  *
+ * FixedFormTextDialog
+ *
+ */
+
+class FixedFormTextDialog : public DefaultDialog
+{
+public:
+	explicit FixedFormTextDialog(FixedFormText* pText);
+	virtual ~FixedFormTextDialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	LRESULT onNameChange();
+
+private:
+	void updateState();
+
+private:
+	FixedFormTextDialog(const FixedFormTextDialog&);
+	FixedFormTextDialog& operator=(const FixedFormTextDialog&);
+
+private:
+	FixedFormText* pText_;
+};
+
+
+/****************************************************************************
+ *
+ * FixedFormTextsDialog
+ *
+ */
+
+class FixedFormTextsDialog : public DefaultDialog
+{
+public:
+	explicit FixedFormTextsDialog(FixedFormTextManager* pManager);
+	virtual ~FixedFormTextsDialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	LRESULT onAdd();
+	LRESULT onRemove();
+	LRESULT onEdit();
+	LRESULT onUp();
+	LRESULT onDown();
+	LRESULT onTextsSelChange();
+
+private:
+	void updateState();
+
+private:
+	FixedFormTextsDialog(const FixedFormTextsDialog&);
+	FixedFormTextsDialog& operator=(const FixedFormTextsDialog&);
+
+private:
+	FixedFormTextManager* pManager_;
+	FixedFormTextManager::TextList listText_;
+};
+
+
+/****************************************************************************
+ *
  * GoRoundDialog
  *
  */
@@ -813,10 +896,6 @@ public:
 				  Document* pDocument,
 				  SyncFilterManager* pSyncFilterManager);
 	virtual ~GoRoundDialog();
-
-private:
-	GoRoundDialog(const GoRoundDialog&);
-	GoRoundDialog& operator=(const GoRoundDialog&);
 
 public:
 	virtual LRESULT onCommand(WORD nCode,
@@ -839,6 +918,10 @@ private:
 
 private:
 	void updateState();
+
+private:
+	GoRoundDialog(const GoRoundDialog&);
+	GoRoundDialog& operator=(const GoRoundDialog&);
 
 private:
 	GoRound* pGoRound_;
@@ -1507,10 +1590,6 @@ private:
 
 private:
 	void updateState();
-
-private:
-	static qs::wstring_ptr convertLFtoCRLF(const WCHAR* pwsz);
-	static qs::wstring_ptr convertCRLFtoLF(const WCHAR* pwsz);
 
 private:
 	SignatureDialog(const SignatureDialog&);

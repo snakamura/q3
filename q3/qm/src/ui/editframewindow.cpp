@@ -97,6 +97,10 @@ void qm::EditFrameWindowImpl::initActions()
 	pActionInvoker_.reset(new ActionInvoker(pActionMap_.get()));
 	pFindReplaceManager_.reset(new FindReplaceManager());
 	
+	ADD_ACTION2(ConfigTextsAction,
+		IDM_CONFIG_TEXTS,
+		pDocument_->getFixedFormTextManager(),
+		pThis_->getHandle());
 	ADD_ACTION2(EditAttachmentEditAddAction,
 		IDM_ATTACHMENTEDIT_ADD,
 		pEditWindow_->getEditMessageHolder(),

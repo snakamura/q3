@@ -30,7 +30,6 @@
 #include "uimanager.h"
 #include "uiutil.h"
 #include "../model/addressbook.h"
-#include "../model/fixedformtext.h"
 #include "../model/templatemanager.h"
 
 using namespace qm;
@@ -2624,6 +2623,244 @@ void qm::FindDialog::updateState()
 
 /****************************************************************************
  *
+ * FixedFormTextDialog
+ *
+ */
+
+qm::FixedFormTextDialog::FixedFormTextDialog(FixedFormText* pText) :
+	DefaultDialog(IDD_FIXEDFORMTEXT),
+	pText_(pText)
+{
+}
+
+qm::FixedFormTextDialog::~FixedFormTextDialog()
+{
+}
+
+LRESULT qm::FixedFormTextDialog::onCommand(WORD nCode,
+										   WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID_CODE(IDC_NAME, EN_CHANGE, onNameChange)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::FixedFormTextDialog::onInitDialog(HWND hwndFocus,
+											  LPARAM lParam)
+{
+	init(false);
+	
+	setDlgItemText(IDC_NAME, pText_->getName());
+	
+	wstring_ptr wstrText(UIUtil::convertLFtoCRLF(pText_->getText()));
+	setDlgItemText(IDC_TEXT, wstrText.get());
+	
+	return TRUE;
+}
+
+LRESULT qm::FixedFormTextDialog::onOk()
+{
+	wstring_ptr wstrName(getDlgItemText(IDC_NAME));
+	
+	wstring_ptr wstrText(getDlgItemText(IDC_TEXT));
+	wstrText = UIUtil::convertCRLFtoLF(wstrText.get());
+	
+	pText_->setName(wstrName.get());
+	pText_->setText(wstrText.get());
+	
+	return DefaultDialog::onOk();
+}
+
+LRESULT qm::FixedFormTextDialog::onNameChange()
+{
+	updateState();
+	return 0;
+}
+
+void qm::FixedFormTextDialog::updateState()
+{
+	Window(getDlgItem(IDOK)).enableWindow(
+		Window(getDlgItem(IDC_NAME)).getWindowTextLength() != 0);
+}
+
+
+/****************************************************************************
+*
+* FixedFormTextsDialog
+*
+*/
+
+qm::FixedFormTextsDialog::FixedFormTextsDialog(FixedFormTextManager* pManager) :
+	DefaultDialog(IDD_FIXEDFORMTEXTS),
+	pManager_(pManager)
+{
+	const FixedFormTextManager::TextList& l = pManager->getTexts();
+	listText_.reserve(l.size());
+	for (FixedFormTextManager::TextList::const_iterator it = l.begin(); it != l.end(); ++it)
+		listText_.push_back(new FixedFormText(**it));
+}
+
+qm::FixedFormTextsDialog::~FixedFormTextsDialog()
+{
+	std::for_each(listText_.begin(), listText_.end(), qs::deleter<FixedFormText>());
+}
+
+LRESULT qm::FixedFormTextsDialog::onCommand(WORD nCode,
+											WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_ADD, onAdd)
+		HANDLE_COMMAND_ID(IDC_DOWN, onDown)
+		HANDLE_COMMAND_ID(IDC_EDIT, onEdit)
+		HANDLE_COMMAND_ID(IDC_REMOVE, onRemove)
+		HANDLE_COMMAND_ID(IDC_UP, onUp)
+		HANDLE_COMMAND_ID_CODE(IDC_TEXTS, LBN_SELCHANGE, onTextsSelChange)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::FixedFormTextsDialog::onInitDialog(HWND hwndFocus,
+											   LPARAM lParam)
+{
+	init(false);
+	
+	for (FixedFormTextManager::TextList::const_iterator it = listText_.begin(); it != listText_.end(); ++it) {
+		const FixedFormText* pText = *it;
+		W2T(pText->getName(), ptszName);
+		sendDlgItemMessage(IDC_TEXTS, LB_ADDSTRING,
+			0, reinterpret_cast<LPARAM>(ptszName));
+	}
+	sendDlgItemMessage(IDC_TEXTS, LB_SETCURSEL, 0);
+	
+	updateState();
+	
+	return TRUE;
+}
+
+LRESULT qm::FixedFormTextsDialog::onOk()
+{
+	pManager_->setTexts(listText_);
+	if (!pManager_->save()) {
+		// TODO
+	}
+	return DefaultDialog::onOk();
+}
+
+LRESULT qm::FixedFormTextsDialog::onAdd()
+{
+	std::auto_ptr<FixedFormText> pText(new FixedFormText());
+	FixedFormTextDialog dialog(pText.get());
+	if (dialog.doModal(getHandle()) == IDOK) {
+		listText_.push_back(pText.get());
+		FixedFormText* p = pText.release();
+		
+		W2T(p->getName(), ptszName);
+		sendDlgItemMessage(IDC_TEXTS, LB_ADDSTRING,
+			0, reinterpret_cast<LPARAM>(ptszName));
+	}
+	
+	updateState();
+	
+	return 0;
+}
+
+LRESULT qm::FixedFormTextsDialog::onRemove()
+{
+	int n = sendDlgItemMessage(IDC_TEXTS, LB_GETCURSEL);
+	if (n == LB_ERR)
+		return 0;
+	
+	delete listText_[n];
+	listText_.erase(listText_.begin() + n);
+	
+	sendDlgItemMessage(IDC_TEXTS, LB_DELETESTRING, n);
+	
+	updateState();
+	
+	return 0;
+}
+
+LRESULT qm::FixedFormTextsDialog::onEdit()
+{
+	int n = sendDlgItemMessage(IDC_TEXTS, LB_GETCURSEL);
+	if (n == LB_ERR)
+		return 0;
+	
+	FixedFormText* pText = listText_[n];
+	FixedFormTextDialog dialog(pText);
+	if (dialog.doModal(getHandle()) == IDOK) {
+		sendDlgItemMessage(IDC_TEXTS, LB_DELETESTRING, n);
+		W2T(pText->getName(), ptszName);
+		sendDlgItemMessage(IDC_TEXTS, LB_INSERTSTRING,
+			n, reinterpret_cast<LPARAM>(ptszName));
+		sendDlgItemMessage(IDC_TEXTS, LB_SETCURSEL, n);
+	}
+	
+	updateState();
+	
+	return 0;
+}
+
+LRESULT qm::FixedFormTextsDialog::onUp()
+{
+	int n = sendDlgItemMessage(IDC_TEXTS, LB_GETCURSEL);
+	if (n == LB_ERR || n == 0)
+		return 0;
+	
+	FixedFormText* pText = listText_[n];
+	std::swap(listText_[n], listText_[n - 1]);
+	
+	sendDlgItemMessage(IDC_TEXTS, LB_DELETESTRING, n);
+	W2T(pText->getName(), ptszName);
+	sendDlgItemMessage(IDC_TEXTS, LB_INSERTSTRING,
+		n - 1, reinterpret_cast<LPARAM>(ptszName));
+	sendDlgItemMessage(IDC_TEXTS, LB_SETCURSEL, n - 1);
+	
+	updateState();
+	
+	return 0;
+}
+
+LRESULT qm::FixedFormTextsDialog::onDown()
+{
+	int n = sendDlgItemMessage(IDC_TEXTS, LB_GETCURSEL);
+	if (n == LB_ERR || n == sendDlgItemMessage(IDC_TEXTS, LB_GETCOUNT) - 1)
+		return 0;
+	
+	FixedFormText* pText = listText_[n];
+	std::swap(listText_[n], listText_[n + 1]);
+	
+	sendDlgItemMessage(IDC_TEXTS, LB_DELETESTRING, n);
+	W2T(pText->getName(), ptszName);
+	sendDlgItemMessage(IDC_TEXTS, LB_INSERTSTRING,
+		n + 1, reinterpret_cast<LPARAM>(ptszName));
+	sendDlgItemMessage(IDC_TEXTS, LB_SETCURSEL, n + 1);
+	
+	updateState();
+	
+	return 0;
+}
+
+LRESULT qm::FixedFormTextsDialog::onTextsSelChange()
+{
+	updateState();
+	return 0;
+}
+
+void qm::FixedFormTextsDialog::updateState()
+{
+	int n = sendDlgItemMessage(IDC_TEXTS, LB_GETCURSEL);
+	Window(getDlgItem(IDC_REMOVE)).enableWindow(n != LB_ERR);
+	Window(getDlgItem(IDC_EDIT)).enableWindow(n != LB_ERR);
+	Window(getDlgItem(IDC_UP)).enableWindow(n != LB_ERR && n != 0);
+	Window(getDlgItem(IDC_DOWN)).enableWindow(n != LB_ERR &&
+		n != sendDlgItemMessage(IDC_TEXTS, LB_GETCOUNT) - 1);
+}
+
+
+/****************************************************************************
+ *
  * GoRoundDialog
  *
  */
@@ -4182,8 +4419,8 @@ LRESULT qm::RenameDialog::onOk()
 
 void qm::RenameDialog::updateState()
 {
-	bool bEnableOk = Window(getDlgItem(IDC_NAME)).getWindowTextLength() != 0;
-	Window(getDlgItem(IDOK)).enableWindow(bEnableOk);
+	Window(getDlgItem(IDOK)).enableWindow(
+		Window(getDlgItem(IDC_NAME)).getWindowTextLength() != 0);
 }
 
 LRESULT qm::RenameDialog::onNameChange()
@@ -4666,7 +4903,7 @@ LRESULT qm::SignatureDialog::onInitDialog(HWND hwndFocus,
 	if (pSignature_->isDefault())
 		sendDlgItemMessage(IDC_DEFAULT, BM_SETCHECK, BST_CHECKED);
 	
-	wstring_ptr wstrSignature(convertLFtoCRLF(pSignature_->getSignature()));
+	wstring_ptr wstrSignature(UIUtil::convertLFtoCRLF(pSignature_->getSignature()));
 	setDlgItemText(IDC_SIGNATURE, wstrSignature.get());
 	
 	updateState();
@@ -4691,7 +4928,7 @@ LRESULT qm::SignatureDialog::onOk()
 	bool bDefault = sendDlgItemMessage(IDC_DEFAULT, BM_GETCHECK) == BST_CHECKED;
 	
 	wstring_ptr wstrSignature(getDlgItemText(IDC_SIGNATURE));
-	wstrSignature = convertCRLFtoLF(wstrSignature.get());
+	wstrSignature = UIUtil::convertCRLFtoLF(wstrSignature.get());
 	
 	pSignature_->setName(wstrName.get());
 	pSignature_->setAccount(pwszAccount, pAccount);
@@ -4709,31 +4946,8 @@ LRESULT qm::SignatureDialog::onNameChange()
 
 void qm::SignatureDialog::updateState()
 {
-	wstring_ptr wstrName(getDlgItemText(IDC_NAME));
-	Window(getDlgItem(IDOK)).enableWindow(*wstrName.get() != L'\0');
-}
-
-wstring_ptr qm::SignatureDialog::convertLFtoCRLF(const WCHAR* pwsz)
-{
-	StringBuffer<WSTRING> buf;
-	while (*pwsz) {
-		if (*pwsz == L'\n')
-			buf.append(L'\r');
-		buf.append(*pwsz);
-		++pwsz;
-	}
-	return buf.getString();
-}
-
-wstring_ptr qm::SignatureDialog::convertCRLFtoLF(const WCHAR* pwsz)
-{
-	StringBuffer<WSTRING> buf;
-	while (*pwsz) {
-		if (*pwsz != L'\r')
-			buf.append(*pwsz);
-		++pwsz;
-	}
-	return buf.getString();
+	Window(getDlgItem(IDOK)).enableWindow(
+		Window(getDlgItem(IDC_NAME)).getWindowTextLength() != 0);
 }
 
 

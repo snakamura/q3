@@ -23,6 +23,7 @@ namespace qm {
 class FixedFormTextManager;
 class FixedFormText;
 class FixedFormTextContentHandler;
+class FixedFormTextWriter;
 
 
 /****************************************************************************
@@ -41,13 +42,17 @@ public:
 	~FixedFormTextManager();
 
 public:
-	const TextList& getTextList() const;
+	const TextList& getTexts();
+	const TextList& getTexts(bool bReload);
+	void setTexts(TextList& listText);
+	bool save() const;
 
 public:
 	void addText(std::auto_ptr<FixedFormText> pText);
 
 private:
 	bool load();
+	void clear();
 
 private:
 	FixedFormTextManager(const FixedFormTextManager&);
@@ -55,6 +60,7 @@ private:
 
 private:
 	TextList listText_;
+	FILETIME ft_;
 };
 
 
@@ -67,18 +73,18 @@ private:
 class FixedFormText
 {
 public:
+	FixedFormText();
 	explicit FixedFormText(const WCHAR* pwszName);
+	FixedFormText(const FixedFormText& text);
 	~FixedFormText();
 
 public:
 	const WCHAR* getName() const;
+	void setName(const WCHAR* pwszName);
 	const WCHAR* getText() const;
-
-public:
-	void setText(qs::wstring_ptr wstrText);
+	void setText(const WCHAR* pwszText);
 
 private:
-	FixedFormText(const FixedFormText&);
 	FixedFormText& operator=(const FixedFormText&);
 
 private:
@@ -127,6 +133,33 @@ private:
 	State state_;
 	FixedFormText* pText_;
 	qs::StringBuffer<qs::WSTRING> buffer_;
+};
+
+
+/****************************************************************************
+ *
+ * FixedFormTextWriter
+ *
+ */
+
+class FixedFormTextWriter
+{
+public:
+	explicit FixedFormTextWriter(qs::Writer* pWriter);
+	~FixedFormTextWriter();
+
+public:
+	bool write(const FixedFormTextManager* pManager);
+
+private:
+	bool write(const FixedFormText* pText);
+
+private:
+	FixedFormTextWriter(const FixedFormTextWriter&);
+	FixedFormTextWriter& operator=(const FixedFormTextWriter&);
+
+private:
+	qs::OutputHandler handler_;
 };
 
 }

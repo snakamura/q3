@@ -77,7 +77,9 @@ public:
 	static void getAttachmentInfo(const EditMessage::Attachment& attachment,
 								  qs::wstring_ptr* pwstrName,
 								  int* pnSysIconIndex);
-
+	
+	static qs::wstring_ptr convertLFtoCRLF(const WCHAR* pwsz);
+	static qs::wstring_ptr convertCRLFtoLF(const WCHAR* pwsz);
 };
 
 

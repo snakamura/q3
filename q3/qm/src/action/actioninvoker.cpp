@@ -33,6 +33,7 @@ struct ActionNameMap
 	{ L"AttachmentSaveAll",				IDM_ATTACHMENT_SAVEALL					},
 	{ L"ConfigGoRound",					IDM_CONFIG_GOROUND						},
 	{ L"ConfigSignature",				IDM_CONFIG_SIGNATURE					},
+	{ L"ConfigTexts",					IDM_CONFIG_TEXTS						},
 	{ L"ConfigViews",					IDM_CONFIG_VIEWS						},
 	{ L"EditClearDeleted",				IDM_EDIT_CLEARDELETED					},
 	{ L"EditCopy",						IDM_EDIT_COPY							},

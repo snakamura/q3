@@ -30,6 +30,7 @@ class AttachmentOpenAction;
 class AttachmentSaveAction;
 class ConfigGoRoundAction;
 class ConfigSignatureAction;
+class ConfigTextsAction;
 class ConfigViewsAction;
 class DispatchAction;
 class EditClearDeletedAction;
@@ -126,6 +127,7 @@ class ExternalEditorManager;
 class Filter;
 class FilterMenu;
 class FindReplaceManager;
+class FixedFormTextManager;
 class FolderListWindow;
 class FolderModel;
 class FolderSelectionModel;
@@ -298,6 +300,32 @@ private:
 private:
 	SignatureManager* pSignatureManager_;
 	Document* pDocument_;
+	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * ConfigTextsAction
+ *
+ */
+
+class ConfigTextsAction : public qs::AbstractAction
+{
+public:
+	ConfigTextsAction(FixedFormTextManager* pManager,
+					  HWND hwnd);
+	virtual ~ConfigTextsAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	ConfigTextsAction(const ConfigTextsAction&);
+	ConfigTextsAction& operator=(const ConfigTextsAction&);
+
+private:
+	FixedFormTextManager* pManager_;
 	HWND hwnd_;
 };
 

@@ -256,6 +256,30 @@ void qm::ConfigSignatureAction::invoke(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * ConfigTextsAction
+ *
+ */
+
+qm::ConfigTextsAction::ConfigTextsAction(FixedFormTextManager* pManager,
+										 HWND hwnd) :
+	pManager_(pManager),
+	hwnd_(hwnd)
+{
+}
+
+qm::ConfigTextsAction::~ConfigTextsAction()
+{
+}
+
+void qm::ConfigTextsAction::invoke(const ActionEvent& event)
+{
+	FixedFormTextsDialog dialog(pManager_);
+	dialog.doModal(hwnd_);
+}
+
+
+/****************************************************************************
+ *
  * ConfigViewsAction
  *
  */

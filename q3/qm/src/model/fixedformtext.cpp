@@ -10,7 +10,10 @@
 #include <qmfilenames.h>
 
 #include <qsconv.h>
+#include <qsfile.h>
+#include <qsosutil.h>
 #include <qsstl.h>
+#include <qsstream.h>
 
 #include <algorithm>
 
@@ -28,18 +31,32 @@ using namespace qs;
 
 qm::FixedFormTextManager::FixedFormTextManager()
 {
-	load();
+	SYSTEMTIME st;
+	::GetSystemTime(&st);
+	::SystemTimeToFileTime(&st, &ft_);
 }
 
 qm::FixedFormTextManager::~FixedFormTextManager()
 {
-	std::for_each(listText_.begin(),
-		listText_.end(), deleter<FixedFormText>());
+	clear();
 }
 
-const FixedFormTextManager::TextList& qm::FixedFormTextManager::getTextList() const
+const FixedFormTextManager::TextList& qm::FixedFormTextManager::getTexts()
 {
+	return getTexts(true);
+}
+
+const FixedFormTextManager::TextList& qm::FixedFormTextManager::getTexts(bool bReload)
+{
+	if (bReload)
+		load();
 	return listText_;
+}
+
+void qm::FixedFormTextManager::setTexts(TextList& listText)
+{
+	clear();
+	listText_.swap(listText);
 }
 
 void qm::FixedFormTextManager::addText(std::auto_ptr<FixedFormText> pText)
@@ -48,20 +65,73 @@ void qm::FixedFormTextManager::addText(std::auto_ptr<FixedFormText> pText)
 	pText.release();
 }
 
+bool qm::FixedFormTextManager::save() const
+{
+	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::TEXTS_XML));
+	
+	TemporaryFileRenamer renamer(wstrPath.get());
+	
+	FileOutputStream os(renamer.getPath());
+	if (!os)
+		return false;
+	OutputStreamWriter writer(&os, false, L"utf-8");
+	if (!writer)
+		return false;
+	BufferedWriter bufferedWriter(&writer, false);
+	
+	FixedFormTextWriter textWriter(&bufferedWriter);
+	if (!textWriter.write(this))
+		return false;
+	
+	if (!bufferedWriter.close())
+		return false;
+	
+	if (!renamer.rename())
+		return false;
+	
+	return true;
+}
+
 bool qm::FixedFormTextManager::load()
 {
 	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::TEXTS_XML));
 	
 	W2T(wstrPath.get(), ptszPath);
-	if (::GetFileAttributes(ptszPath) != 0xffffffff) {
-		XMLReader reader;
-		FixedFormTextContentHandler handler(this);
-		reader.setContentHandler(&handler);
-		if (!reader.parse(wstrPath.get()))
-			return false;
+	AutoHandle hFile(::CreateFile(ptszPath, GENERIC_READ, 0, 0,
+		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
+	if (hFile.get()) {
+		FILETIME ft;
+		::GetFileTime(hFile.get(), 0, 0, &ft);
+		hFile.close();
+		
+		if (::CompareFileTime(&ft, &ft_) != 0) {
+			clear();
+			
+			XMLReader reader;
+			FixedFormTextContentHandler handler(this);
+			reader.setContentHandler(&handler);
+			if (!reader.parse(wstrPath.get()))
+				return false;
+			
+			ft_ = ft;
+		}
+	}
+	else {
+		clear();
+		
+		SYSTEMTIME st;
+		::GetSystemTime(&st);
+		::SystemTimeToFileTime(&st, &ft_);
 	}
 	
 	return true;
+}
+
+void qm::FixedFormTextManager::clear()
+{
+	std::for_each(listText_.begin(),
+		listText_.end(), deleter<FixedFormText>());
+	listText_.clear();
 }
 
 
@@ -71,9 +141,21 @@ bool qm::FixedFormTextManager::load()
  *
  */
 
+qm::FixedFormText::FixedFormText()
+{
+	wstrName_ = allocWString(L"");
+	wstrText_ = allocWString(L"");
+}
+
 qm::FixedFormText::FixedFormText(const WCHAR* pwszName)
 {
 	wstrName_ = allocWString(pwszName);
+}
+
+qm::FixedFormText::FixedFormText(const FixedFormText& text)
+{
+	wstrName_ = allocWString(text.wstrName_.get());
+	wstrText_ = allocWString(text.wstrText_.get());
 }
 
 qm::FixedFormText::~FixedFormText()
@@ -85,14 +167,19 @@ const WCHAR* qm::FixedFormText::getName() const
 	return wstrName_.get();
 }
 
+void qm::FixedFormText::setName(const WCHAR* pwszName)
+{
+	wstrName_ = allocWString(pwszName);
+}
+
 const WCHAR* qm::FixedFormText::getText() const
 {
 	return wstrText_.get();
 }
 
-void qm::FixedFormText::setText(wstring_ptr wstrText)
+void qm::FixedFormText::setText(const WCHAR* pwszText)
 {
-	wstrText_ = wstrText;
+	wstrText_ = allocWString(pwszText);
 }
 
 
@@ -166,7 +253,8 @@ bool qm::FixedFormTextContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		assert(state_ == STATE_TEXT);
 		
 		assert(pText_);
-		pText_->setText(buffer_.getString());
+		pText_->setText(buffer_.getCharArray());
+		buffer_.remove();
 		pText_ = 0;
 		
 		state_ = STATE_TEXTS;
@@ -192,6 +280,61 @@ bool qm::FixedFormTextContentHandler::characters(const WCHAR* pwsz,
 				return false;
 		}
 	}
+	
+	return true;
+}
+
+
+/****************************************************************************
+ *
+ * FixedFormTextWriter
+ *
+ */
+
+qm::FixedFormTextWriter::FixedFormTextWriter(Writer* pWriter) :
+	handler_(pWriter)
+{
+}
+
+qm::FixedFormTextWriter::~FixedFormTextWriter()
+{
+}
+
+bool qm::FixedFormTextWriter::write(const FixedFormTextManager* pManager)
+{
+	if (!handler_.startDocument())
+		return false;
+	if (!handler_.startElement(0, 0, L"texts", DefaultAttributes()))
+		return false;
+	
+	const FixedFormTextManager::TextList& l =
+		const_cast<FixedFormTextManager*>(pManager)->getTexts(false);
+	for (FixedFormTextManager::TextList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		const FixedFormText* pText = *it;
+		if (!write(pText))
+			return false;
+	}
+	
+	if (!handler_.endElement(0, 0, L"texts"))
+		return false;
+	if (!handler_.endDocument())
+		return false;
+	
+	return true;
+}
+
+bool qm::FixedFormTextWriter::write(const FixedFormText* pText)
+{
+	SimpleAttributes attrs(L"name", pText->getName());
+	if (!handler_.startElement(0, 0, L"text", attrs))
+		return false;
+	
+	const WCHAR* pwszText = pText->getText();
+	if (!handler_.characters(pwszText, 0, wcslen(pwszText)))
+		return false;
+	
+	if (!handler_.endElement(0, 0, L"text"))
+		return false;
 	
 	return true;
 }

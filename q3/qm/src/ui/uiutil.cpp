@@ -338,6 +338,29 @@ void qm::UIUtil::getAttachmentInfo(const EditMessage::Attachment& attachment,
 	*pnSysIconIndex = info.iIcon;
 }
 
+wstring_ptr qm::UIUtil::convertLFtoCRLF(const WCHAR* pwsz)
+{
+	StringBuffer<WSTRING> buf;
+	while (*pwsz) {
+		if (*pwsz == L'\n')
+			buf.append(L'\r');
+		buf.append(*pwsz);
+		++pwsz;
+	}
+	return buf.getString();
+}
+
+wstring_ptr qm::UIUtil::convertCRLFtoLF(const WCHAR* pwsz)
+{
+	StringBuffer<WSTRING> buf;
+	while (*pwsz) {
+		if (*pwsz != L'\r')
+			buf.append(*pwsz);
+		++pwsz;
+	}
+	return buf.getString();
+}
+
 
 /****************************************************************************
  *
