@@ -110,6 +110,10 @@ ToolbarCookie* qs::ToolbarManager::createButtons(const WCHAR* pwszName,
 												 HWND hwnd,
 												 WindowBase* pParent) const
 {
+	assert(pwszName);
+	assert(hwnd);
+	assert(pParent);
+	
 	const Toolbar* pToolbar = pImpl_->getToolbar(pwszName);
 	if (!pToolbar)
 		return 0;
@@ -118,6 +122,8 @@ ToolbarCookie* qs::ToolbarManager::createButtons(const WCHAR* pwszName,
 
 void qs::ToolbarManager::destroy(ToolbarCookie* pCookie) const
 {
+	assert(pCookie);
+	
 	const Toolbar* pToolbar = pImpl_->getToolbar(pCookie->getName());
 	if (pToolbar)
 		pToolbar->destroy(pCookie);

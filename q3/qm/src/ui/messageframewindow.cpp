@@ -847,7 +847,8 @@ LRESULT qm::MessageFrameWindow::onDestroy()
 {
 	pImpl_->pMessageWindow_->removeMessageWindowHandler(pImpl_);
 	
-	pImpl_->pUIManager_->getToolbarManager()->destroy(pImpl_->pToolbarCookie_);
+	if (pImpl_->pToolbarCookie_)
+		pImpl_->pUIManager_->getToolbarManager()->destroy(pImpl_->pToolbarCookie_);
 	
 	return FrameWindow::onDestroy();
 }

@@ -1945,7 +1945,8 @@ LRESULT qm::MainWindow::onDestroy()
 		pImpl_->pDelayedFolderModelHandler_.get());
 	pImpl_->pDocument_->removeDocumentHandler(pImpl_);
 	
-	pImpl_->pUIManager_->getToolbarManager()->destroy(pImpl_->pToolbarCookie_);
+	if (pImpl_->pToolbarCookie_)
+		pImpl_->pUIManager_->getToolbarManager()->destroy(pImpl_->pToolbarCookie_);
 	
 	::PostQuitMessage(0);
 	

@@ -664,7 +664,8 @@ LRESULT qm::EditFrameWindow::onDestroy()
 	pProfile->setInt(L"MessageFrameWindow",
 		L"ShowStatusBar", pImpl_->bShowStatusBar_);
 	
-	pImpl_->pUIManager_->getToolbarManager()->destroy(pImpl_->pToolbarCookie_);
+	if (pImpl_->pToolbarCookie_)
+		pImpl_->pUIManager_->getToolbarManager()->destroy(pImpl_->pToolbarCookie_);
 	
 	UIUtil::saveWindowPlacement(getHandle(), pProfile, L"EditFrameWindow");
 	
