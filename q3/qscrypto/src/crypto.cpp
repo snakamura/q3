@@ -370,8 +370,45 @@ QSTATUS qscrypto::StoreImpl::load(const WCHAR* pwszFile, FileType type)
 {
 	assert(pwszFile);
 	
+	DECLARE_QSTATUS();
+	
 	Log log(InitThread::getInitThread().getLogger(), L"qscrypto::StoreImpl");
 	
+#if 1
+	switch (type) {
+	case FILETYPE_PEM:
+		{
+			FileInputStream stream(pwszFile, &status);
+			CHECK_QSTATUS();
+			BufferedInputStream bufferedStream(&stream, false, &status);
+			CHECK_QSTATUS();
+			unsigned char* p = 0;
+			size_t nLen = 0;
+			status = Util::createBIOFromStream(&bufferedStream, &p, &nLen);
+			CHECK_QSTATUS();
+			malloc_ptr<unsigned char> pBuf(p);
+			
+			BIOPtr pIn(BIO_new_mem_buf(p, nLen));
+			
+			STACK_OF(X509_INFO)* pStackInfo =
+				PEM_X509_INFO_read_bio(pIn.get(), 0, 0, 0);
+			if (!pStackInfo)
+				return QSTATUS_FAIL;
+			for (int n = 0; n < sk_X509_INFO_num(pStackInfo); ++n) {
+				X509_INFO* pInfo = sk_X509_INFO_value(pStackInfo, n);
+				if (pInfo->x509)
+					X509_STORE_add_cert(pStore_, pInfo->x509);
+				if (pInfo->crl)
+					X509_STORE_add_crl(pStore_, pInfo->crl);
+			}
+			sk_X509_INFO_pop_free(pStackInfo, X509_INFO_free);
+		}
+		break;
+	default:
+		assert(false);
+		break;
+	}
+#else
 	string_ptr<STRING> strFile(wcs2mbs(pwszFile));
 	if (!strFile.get())
 		return QSTATUS_OUTOFMEMORY;
@@ -396,6 +433,7 @@ QSTATUS qscrypto::StoreImpl::load(const WCHAR* pwszFile, FileType type)
 		assert(false);
 		break;
 	}
+#endif
 	
 	return QSTATUS_SUCCESS;
 }
