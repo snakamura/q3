@@ -340,11 +340,12 @@
 #define IDM_VIEW_SHOWHEADERCOLUMN       45031
 #define IDM_VIEW_SHOWPREVIEW            45032
 #define IDM_VIEW_SHOWSTATUSBAR          45033
-#define IDM_VIEW_SHOWTOOLBAR            45034
-#define IDM_VIEW_SORTASCENDING          45035
-#define IDM_VIEW_SORTDESCENDING         45036
-#define IDM_VIEW_SORTTHREAD             45037
-#define IDM_VIEW_TEMPLATENONE           45038
+#define IDM_VIEW_SHOWSYNCDIALOG         45034
+#define IDM_VIEW_SHOWTOOLBAR            45035
+#define IDM_VIEW_SORTASCENDING          45036
+#define IDM_VIEW_SORTDESCENDING         45037
+#define IDM_VIEW_SORTTHREAD             45038
+#define IDM_VIEW_TEMPLATENONE           45039
 #define IDM_VIEW_ENCODING               45100
 #define IDM_VIEW_FILTER                 45200
 #define IDM_VIEW_SORT                   45300

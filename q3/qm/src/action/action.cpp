@@ -3715,6 +3715,35 @@ qm::ViewShowPreviewAction::~ViewShowPreviewAction()
 
 /****************************************************************************
  *
+ * ViewShowSyncDialogAction
+ *
+ */
+
+qm::ViewShowSyncDialogAction::ViewShowSyncDialogAction(
+	SyncDialogManager* pManager, QSTATUS* pstatus) :
+	pManager_(pManager)
+{
+}
+
+qm::ViewShowSyncDialogAction::~ViewShowSyncDialogAction()
+{
+}
+
+QSTATUS qm::ViewShowSyncDialogAction::invoke(const ActionEvent& event)
+{
+	DECLARE_QSTATUS();
+	
+	SyncDialog* pDialog = 0;
+	status = pManager_->open(&pDialog);
+	CHECK_QSTATUS();
+	pDialog->show();
+	
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
  * ViewSortAction
  *
  */

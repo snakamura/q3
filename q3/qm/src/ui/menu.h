@@ -107,6 +107,7 @@ const qs::MenuItem menuItems[] = {
 	{ L"ViewShowHeaderColumn",		IDM_VIEW_SHOWHEADERCOLUMN		},
 	{ L"ViewShowPreview",			IDM_VIEW_SHOWPREVIEW			},
 	{ L"ViewShowStatusBar",			IDM_VIEW_SHOWSTATUSBAR			},
+	{ L"ViewShowSyncDialog",		IDM_VIEW_SHOWSYNCDIALOG			},
 	{ L"ViewShowToolbar",			IDM_VIEW_SHOWTOOLBAR			},
 };
 

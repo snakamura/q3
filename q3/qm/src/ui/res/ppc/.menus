@@ -49,6 +49,7 @@
 				<menuitem text="Show Header Column" action="ViewShowHeaderColumn"/>
 				<menuitem text="Show Preview" action="ViewShowPreview"/>
 				<menuitem text="Show Header" action="ViewShowHeader"/>
+				<menuitem text="Show Sync" action="ViewShowSyncDialog"/>
 			</popupmenu>
 		</popupmenu>
 		<popupmenu text="Msg">

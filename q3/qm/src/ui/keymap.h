@@ -218,6 +218,7 @@ const qs::KeyNameToId mapKeyNameToId[] = {
 	{ L"ViewShowHeaderColumn",			IDM_VIEW_SHOWHEADERCOLUMN,				0 },
 	{ L"ViewShowPreview",				IDM_VIEW_SHOWPREVIEW,					0 },
 	{ L"ViewShowStatusBar",				IDM_VIEW_SHOWSTATUSBAR,					0 },
+	{ L"ViewShowSyncDialog",			IDM_VIEW_SHOWSYNCDIALOG,				0 },
 	{ L"ViewShowToolbar",				IDM_VIEW_SHOWTOOLBAR,					0 },
 	{ L"ViewSort0",						IDM_VIEW_SORT,							0 },
 	{ L"ViewSort1",						IDM_VIEW_SORT + 1,						0 },

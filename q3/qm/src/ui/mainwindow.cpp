@@ -623,6 +623,9 @@ QSTATUS qm::MainWindowImpl::initActions()
 	status = InitAction1<ViewShowStatusBarAction<MainWindow>, MainWindow*>(
 		pActionMap_, IDM_VIEW_SHOWSTATUSBAR, pThis_);
 	CHECK_QSTATUS();
+	status = InitAction1<ViewShowSyncDialogAction, SyncDialogManager*>(
+		pActionMap_, IDM_VIEW_SHOWSYNCDIALOG, pSyncDialogManager_);
+	CHECK_QSTATUS();
 	status = InitAction1<ViewShowToolbarAction<MainWindow>, MainWindow*>(
 		pActionMap_, IDM_VIEW_SHOWTOOLBAR, pThis_);
 	CHECK_QSTATUS();

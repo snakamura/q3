@@ -81,6 +81,7 @@ template<class WindowX> class ViewShowControlAction;
 	class ViewShowPreviewAction;
 	template<class WindowX> class ViewShowStatusBarAction;
 	template<class WindowX> class ViewShowToolbarAction;
+class ViewShowSyncDialogAction;
 class ViewSortAction;
 class ViewSortDirectionAction;
 class ViewSortThreadAction;
@@ -1786,6 +1787,30 @@ public:
 private:
 	ViewShowToolbarAction(const ViewShowToolbarAction&);
 	ViewShowToolbarAction& operator=(const ViewShowToolbarAction&);
+};
+
+
+/****************************************************************************
+ *
+ * ViewShowSyncDialogAction
+ *
+ */
+
+class ViewShowSyncDialogAction : public qs::AbstractAction
+{
+public:
+	ViewShowSyncDialogAction(SyncDialogManager* pManager, qs::QSTATUS* pstatus);
+	virtual ~ViewShowSyncDialogAction();
+
+public:
+	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+
+private:
+	ViewShowSyncDialogAction(const ViewShowSyncDialogAction&);
+	ViewShowSyncDialogAction& operator=(const ViewShowSyncDialogAction&);
+
+private:
+	SyncDialogManager* pManager_;
 };
 
 
