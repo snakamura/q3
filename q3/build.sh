@@ -163,6 +163,12 @@ doc)
 	$DOXYGEN
 	;;
 
+inst)
+    ./build.sh copy
+    makensis installer/q3.nsi
+    makensis /DANSI installer/q3.nsi
+    ;;
+
 *)
 	REVISION=`svn info | grep Revision | cut -d ' ' -f 2`
 	if [ -f revision ]; then
