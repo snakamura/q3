@@ -1397,21 +1397,23 @@ STYLE WS_CHILD
 FONT 9, "Tahoma"
 BEGIN
     CONTROL         "Show &all count on accounts",IDC_ACCOUNTSHOWALL,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,10,105,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,10,105,8
     CONTROL         "Show &unseen count on accounts",IDC_ACCOUNTSHOWUNSEEN,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,20,125,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,20,125,8
     CONTROL         "Show a&ll count on folders",IDC_FOLDERSHOWALL,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,30,105,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,30,105,8
     CONTROL         "Show un&seen count on folders",IDC_FOLDERSHOWUNSEEN,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,40,125,10
-    PUSHBUTTON      "&Font...",IDC_WINDOWFONT,145,38,50,12
-    GROUPBOX        "Window",IDC_STATIC,5,0,195,55
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,40,125,8
+    CONTROL         "&Vertical(*)",IDC_VERTICAL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,50,45,8
+    PUSHBUTTON      "&Font...",IDC_WINDOWFONT,145,48,50,12
+    GROUPBOX        "Window",IDC_STATIC,5,0,195,65
     CONTROL         "Show all &count",IDC_SHOWALL,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,10,65,65,10
+                    WS_TABSTOP,10,75,65,8
     CONTROL         "Show uns&een count",IDC_SHOWUNSEEN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,75,85,10
-    PUSHBUTTON      "F&ont...",IDC_COMBOBOXFONT,145,73,50,12
-    GROUPBOX        "Combo Box",IDC_STATIC,5,55,195,35
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,85,85,8
+    PUSHBUTTON      "F&ont...",IDC_COMBOBOXFONT,145,83,50,12
+    GROUPBOX        "Combo Box",IDC_STATIC,5,65,195,35
 END
 
 IDD_OPTIONLIST DIALOG DISCARDABLE  0, 0, 205, 100
@@ -1419,7 +1421,7 @@ STYLE WS_CHILD
 FONT 9, "Tahoma"
 BEGIN
     CONTROL         "&Single click to open message",IDC_SINGLECLICK,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,5,105,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,5,105,8
     PUSHBUTTON      "&Font...",IDC_FONT,5,20,50,12
 END
 
@@ -1428,9 +1430,9 @@ STYLE WS_CHILD
 FONT 9, "Tahoma"
 BEGIN
     CONTROL         "&Pocket Outlook",IDC_POCKETOUTLOOK,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,10,65,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,10,65,8
     CONTROL         "Load address &only",IDC_ADDRESSONLY,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,25,70,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,25,70,8
     GROUPBOX        "External Address Book",IDC_STATIC,5,0,135,40
     PUSHBUTTON      "&Font...",IDC_FONT,5,45,50,12
 END
@@ -1445,15 +1447,15 @@ STYLE WS_CHILD
 FONT 9, "Tahoma"
 BEGIN
     CONTROL         "&Multiline",IDC_MULTILINE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,5,41,10
+                    WS_TABSTOP,5,5,41,8
     CONTROL         "Reuse tab when &open",IDC_REUSEOPEN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,15,86,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,15,86,8
     CONTROL         "Reuse tab when &change",IDC_REUSECHANGE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,25,93,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,25,93,8
     CONTROL         "Show &all count",IDC_SHOWALL,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,35,65,10
+                    WS_TABSTOP,5,35,65,8
     CONTROL         "Show &unseen count",IDC_SHOWUNSEEN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,45,85,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,45,85,8
     PUSHBUTTON      "&Font...",IDC_FONT,5,60,50,12
 END
 #endif
@@ -1463,22 +1465,22 @@ STYLE WS_CHILD
 FONT 9, "Tahoma"
 BEGIN
     CONTROL         "Wrap at &window width",IDC_WRAPWINDOWWIDTH,"Button",
-                    BS_AUTORADIOBUTTON,10,10,84,10
+                    BS_AUTORADIOBUTTON,10,10,84,8
     CONTROL         "Wrap at the &specified column",IDC_WRAPCOLUMN,"Button",
-                    BS_AUTORADIOBUTTON,10,20,102,10
+                    BS_AUTORADIOBUTTON,10,20,102,8
     LTEXT           "&Column",IDC_STATIC,20,32,24,8
     EDITTEXT        IDC_CHARINLINE,50,30,36,12,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "W&ord Wrap",IDC_WORDWRAP,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,145,31,47,10
+                    WS_TABSTOP,145,32,47,8
     GROUPBOX        "Wrap",IDC_STATIC,5,0,195,45
     LTEXT           "&Tab Width",IDC_STATIC,5,52,35,8
     EDITTEXT        IDC_TABWIDTH,45,50,36,12,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "&Ruler",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,85,52,30,10
+                    WS_TABSTOP,85,52,30,8
     CONTROL         "&V Scroll Bar",IDC_SHOWVERTICALSCROLLBAR,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,50,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,50,8
     CONTROL         "&H Scroll Bar",IDC_SHOWHORIZONTALSCROLLBAR,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,85,65,50,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,85,65,50,8
     PUSHBUTTON      "&Font...",IDC_FONT,150,50,50,12
     PUSHBUTTON      "Co&lors...",IDC_COLORS,150,65,50,12
     LTEXT           "Wa&it",IDC_STATIC,5,82,14,8
@@ -1493,22 +1495,22 @@ STYLE WS_CHILD
 FONT 9, "Tahoma"
 BEGIN
     CONTROL         "Wrap at &window width",IDC_WRAPWINDOWWIDTH,"Button",
-                    BS_AUTORADIOBUTTON,10,10,84,10
+                    BS_AUTORADIOBUTTON,10,10,84,8
     CONTROL         "Wrap at the &specified column",IDC_WRAPCOLUMN,"Button",
-                    BS_AUTORADIOBUTTON,10,20,102,10
+                    BS_AUTORADIOBUTTON,10,20,102,8
     LTEXT           "&Column",IDC_STATIC,20,32,24,8
     EDITTEXT        IDC_CHARINLINE,50,30,36,12,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "W&ord Wrap",IDC_WORDWRAP,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,145,31,47,10
+                    WS_TABSTOP,145,32,47,9
     GROUPBOX        "Wrap",IDC_STATIC,5,0,195,45
     LTEXT           "&Tab Width",IDC_STATIC,5,52,35,8
     EDITTEXT        IDC_TABWIDTH,45,50,36,12,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "&Ruler",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,85,52,30,10
+                    WS_TABSTOP,85,52,30,8
     CONTROL         "&V Scroll Bar",IDC_SHOWVERTICALSCROLLBAR,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,50,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,50,8
     CONTROL         "&H Scroll Bar",IDC_SHOWHORIZONTALSCROLLBAR,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,85,65,50,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,85,65,50,8
     PUSHBUTTON      "&Font...",IDC_FONT,150,50,50,12
     PUSHBUTTON      "Co&lors...",IDC_COLORS,150,65,50,12
 END
@@ -1518,26 +1520,26 @@ STYLE WS_CHILD
 FONT 9, "Tahoma"
 BEGIN
     CONTROL         "Wrap at &window width",IDC_WRAPWINDOWWIDTH,"Button",
-                    BS_AUTORADIOBUTTON,10,10,84,10
+                    BS_AUTORADIOBUTTON,10,10,84,8
     CONTROL         "Wrap at the &specified column",IDC_WRAPCOLUMN,"Button",
-                    BS_AUTORADIOBUTTON,10,20,102,10
+                    BS_AUTORADIOBUTTON,10,20,102,8
     LTEXT           "&Column",IDC_STATIC,20,32,24,8
     EDITTEXT        IDC_CHARINLINE,50,30,36,12,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "W&ord Wrap",IDC_WORDWRAP,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,145,31,47,10
+                    WS_TABSTOP,145,32,47,8
     GROUPBOX        "Wrap",IDC_STATIC,5,0,195,45
     LTEXT           "&Tab Width",IDC_STATIC,5,52,35,8
     EDITTEXT        IDC_TABWIDTH,45,50,36,12,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "&Ruler",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,85,52,30,10
+                    WS_TABSTOP,85,52,30,8
     CONTROL         "&V Scroll Bar",IDC_SHOWVERTICALSCROLLBAR,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,50,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,50,8
     CONTROL         "&H Scroll Bar",IDC_SHOWHORIZONTALSCROLLBAR,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,85,65,50,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,85,65,50,8
     CONTROL         "Ta&b",IDC_SHOWTAB,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    5,75,30,10
+                    5,75,30,8
     CONTROL         "&New Line",IDC_SHOWNEWLINE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,85,75,45,10
+                    WS_TABSTOP,85,75,45,8
     PUSHBUTTON      "&Font...",IDC_FONT,150,50,50,12
     PUSHBUTTON      "Co&lors...",IDC_COLORS,150,65,50,12
     PUSHBUTTON      "H&eader Font...",IDC_HEADERFONT,150,80,50,12
@@ -1581,13 +1583,13 @@ STYLE WS_CHILD
 FONT 9, "Tahoma"
 BEGIN
     CONTROL         "&Load certificates from a system store",IDC_SYSTEMSTORE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,10,130,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,10,130,8
     GROUPBOX        "SSL && S/MIME",IDC_STATIC,5,0,195,25
     CONTROL         "Use &multipart/signed when sign a message",
                     IDC_MULTIPARTSIGNED,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,10,35,145,10
+                    WS_TABSTOP,10,35,145,8
     CONTROL         "&Encrypt a message for myself",IDC_ENCRYPTFORSELF,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,45,110,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,45,110,8
     GROUPBOX        "S/MIME",IDC_STATIC,5,25,195,35
     LTEXT           "Warn before opening &attachments with these extensions",
                     IDC_STATIC,5,65,170,8
@@ -1600,24 +1602,24 @@ FONT 9, "Tahoma"
 BEGIN
     CONTROL         "Confirm before deleting &messages",
                     IDC_CONFIRMDELETEMESSAGE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,5,120,10
+                    WS_TABSTOP,5,5,120,8
     CONTROL         "Confirm before emptying &folder",IDC_CONFIRMEMPTYFOLDER,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,15,110,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,15,110,8
     CONTROL         "Confirm before emptying &trash",IDC_CONFIRMEMPTYTRASH,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,25,115,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,25,115,8
     CONTROL         "&Empty trash on exit",IDC_EMPTYTRASHONEXIT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,35,75,10
-    CONTROL         "Sa&ve message mode per folder",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,35,75,8
+    CONTROL         "Sa&ve message mode per folder(*)",
                     IDC_SAVEMESSAGEVIEWMODEPERFOLDER,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,45,106,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,45,120,8
     CONTROL         "&Save when window is deactivated",IDC_SAVEONDEACTIVATE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,55,125,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,55,125,8
     LTEXT           "Tem&p folder",IDC_STATIC,5,72,40,8
     EDITTEXT        IDC_TEMPORARYFOLDER,50,70,95,12,ES_AUTOHSCROLL
     PUSHBUTTON      "&Browse...",IDC_BROWSE,150,70,50,12
-    LTEXT           "En&codings",IDC_STATIC,5,87,35,8
-    EDITTEXT        IDC_ENCODING,50,85,90,12,ES_AUTOHSCROLL
-    LTEXT           "&Log",IDC_STATIC,145,87,15,8
+    LTEXT           "En&codings(*)",IDC_STATIC,5,87,45,8
+    EDITTEXT        IDC_ENCODING,50,85,80,12,ES_AUTOHSCROLL
+    LTEXT           "&Log(*)",IDC_STATIC,135,87,25,8
     COMBOBOX        IDC_LOG,160,85,40,60,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
 END

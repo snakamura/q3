@@ -1483,7 +1483,7 @@ IDD_OPTIONFOLDER DIALOG DISCARDABLE  0, 0, 231, 170
 STYLE WS_CHILD
 FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
 BEGIN
-    GROUPBOX        "Window",IDC_STATIC,5,5,150,75
+    GROUPBOX        "Window",IDC_STATIC,5,5,150,85
     CONTROL         "Show &all count on accounts",IDC_ACCOUNTSHOWALL,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,15,105,10
     CONTROL         "Show &unseen count on accounts",IDC_ACCOUNTSHOWUNSEEN,
@@ -1492,13 +1492,15 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,35,105,10
     CONTROL         "Show un&seen count on folders",IDC_FOLDERSHOWUNSEEN,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,45,125,10
-    PUSHBUTTON      "&Font...",IDC_WINDOWFONT,10,60,50,14
-    GROUPBOX        "Combo Box",IDC_STATIC,5,85,150,55
+    CONTROL         "&Vertical(*)",IDC_VERTICAL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,55,47,10
+    PUSHBUTTON      "&Font...",IDC_WINDOWFONT,10,70,50,14
+    GROUPBOX        "Combo Box",IDC_STATIC,5,95,150,55
     CONTROL         "Show all &count",IDC_SHOWALL,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,10,95,60,10
+                    WS_TABSTOP,10,105,60,10
     CONTROL         "Show uns&een count",IDC_SHOWUNSEEN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,105,75,10
-    PUSHBUTTON      "F&ont...",IDC_COMBOBOXFONT,10,120,50,14
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,115,75,10
+    PUSHBUTTON      "F&ont...",IDC_COMBOBOXFONT,10,130,50,14
 END
 
 IDD_OPTIONLIST DIALOG DISCARDABLE  0, 0, 231, 170
@@ -1701,9 +1703,9 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,25,115,10
     CONTROL         "&Empty trash on exit",IDC_EMPTYTRASHONEXIT,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,35,75,10
-    CONTROL         "Sa&ve message mode per folder",
+    CONTROL         "Sa&ve message mode per folder(*)",
                     IDC_SAVEMESSAGEVIEWMODEPERFOLDER,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,45,106,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,45,114,10
     CONTROL         "&Save when window is deactivated",IDC_SAVEONDEACTIVATE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,55,125,10
     CONTROL         "Show unseen count on &welcome",
@@ -1712,10 +1714,10 @@ BEGIN
     LTEXT           "Tem&porary folder",IDC_STATIC,5,80,55,8
     EDITTEXT        IDC_TEMPORARYFOLDER,5,90,115,14,ES_AUTOHSCROLL
     PUSHBUTTON      "&Browse...",IDC_BROWSE,125,90,50,14
-    LTEXT           "En&codings",IDC_STATIC,5,110,35,8
+    LTEXT           "En&codings(*)",IDC_STATIC,5,110,40,8
     EDITTEXT        IDC_ENCODING,5,120,170,14,ES_AUTOHSCROLL
-    LTEXT           "&Log",IDC_STATIC,5,143,15,8
-    COMBOBOX        IDC_LOG,20,140,40,60,CBS_DROPDOWNLIST | WS_VSCROLL | 
+    LTEXT           "&Log(*)",IDC_STATIC,5,143,20,8
+    COMBOBOX        IDC_LOG,30,140,40,60,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
 END
 

@@ -471,6 +471,7 @@
 #define IDC_WARNEXTENSION               1368
 #define IDC_TEMPORARYFOLDER             1369
 #define IDC_SAVEMESSAGEVIEWMODEPERFOLDER 1372
+#define IDC_VERTICAL                    1373
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -560,7 +561,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        209
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1373
+#define _APS_NEXT_CONTROL_VALUE         1374
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -223,7 +223,7 @@ public:
 	bool bShowFolderWindow_;
 	int nFolderWindowSize_;
 	bool bShowFolderComboBox_;
-	bool bVirticalFolderWindow_;
+	bool bVerticalFolderWindow_;
 	bool bShowPreviewWindow_;
 	int nListWindowHeight_;
 	bool bSaveOnDeactivate_;
@@ -1321,7 +1321,7 @@ void qm::MainWindowImpl::layoutChildren(int cx,
 		cy - nStatusBarHeight - nTopBarHeight - nFolderComboBoxHeight - nBottomBarHeight,
 		SWP_NOZORDER);
 	pFolderSplitterWindow_->showPane(0, 0, bShowFolderWindow_);
-	if (bVirticalFolderWindow_)
+	if (bVerticalFolderWindow_)
 		pFolderSplitterWindow_->setRowHeight(0, nFolderWindowSize_);
 	else
 		pFolderSplitterWindow_->setColumnWidth(0, nFolderWindowSize_);
@@ -1459,7 +1459,7 @@ void qm::MainWindowImpl::sizeChanged(const SplitterWindowEvent& event)
 	if (bCreated_ && !bLayouting_) {
 		SplitterWindow* pSplitterWindow = event.getSplitterWindow();
 		if (pSplitterWindow == pFolderSplitterWindow_) {
-			if (bVirticalFolderWindow_)
+			if (bVerticalFolderWindow_)
 				nFolderWindowSize_ = pSplitterWindow->getRowHeight(0);
 			else
 				nFolderWindowSize_ = pSplitterWindow->getColumnWidth(0);
@@ -1759,7 +1759,7 @@ qm::MainWindow::MainWindow(Profile* pProfile) :
 	pImpl_->bShowFolderWindow_ = pProfile->getInt(L"MainWindow", L"ShowFolderWindow", 1) != 0;
 	pImpl_->nFolderWindowSize_ = pProfile->getInt(L"MainWindow", L"FolderWindowSize", 100);
 	pImpl_->bShowFolderComboBox_ = pProfile->getInt(L"MainWindow", L"ShowFolderComboBox", 0) != 0;
-	pImpl_->bVirticalFolderWindow_ = pProfile->getInt(L"MainWindow", L"VirticalFolderWindow", 0) != 0;
+	pImpl_->bVerticalFolderWindow_ = pProfile->getInt(L"FolderWindow", L"Vertical", 0) != 0;
 	pImpl_->bShowPreviewWindow_ = pProfile->getInt(L"MainWindow", L"ShowPreviewWindow", 1) != 0;
 	pImpl_->nListWindowHeight_ = pProfile->getInt(L"MainWindow", L"ListWindowHeight", 200);
 	pImpl_->bSaveOnDeactivate_ = pProfile->getInt(L"Global", L"SaveOnDeactivate", 0) != 0;
@@ -1850,7 +1850,7 @@ bool qm::MainWindow::save()
 	pProfile->setInt(L"MainWindow", L"ShowStatusBar", pImpl_->bShowStatusBar_);
 	
 	if (pImpl_->bShowFolderWindow_) {
-		if (pImpl_->bVirticalFolderWindow_)
+		if (pImpl_->bVerticalFolderWindow_)
 			pImpl_->nFolderWindowSize_ = pImpl_->pFolderSplitterWindow_->getRowHeight(0);
 		else
 			pImpl_->nFolderWindowSize_ = pImpl_->pFolderSplitterWindow_->getColumnWidth(0);
@@ -1909,7 +1909,7 @@ void qm::MainWindow::setShowFolderWindow(bool bShow)
 {
 	if (bShow != pImpl_->bShowFolderWindow_) {
 		if (!bShow) {
-			if (pImpl_->bVirticalFolderWindow_)
+			if (pImpl_->bVerticalFolderWindow_)
 				pImpl_->nFolderWindowSize_ =
 					pImpl_->pFolderSplitterWindow_->getRowHeight(0);
 			else
@@ -2219,7 +2219,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pRecentsMenu_.reset(new RecentsMenu(
 		pImpl_->pDocument_->getRecents(), pImpl_->pDocument_));
 	
-	bool bVirticalFolderWindow = pImpl_->bVirticalFolderWindow_;
+	bool bVerticalFolderWindow = pImpl_->bVerticalFolderWindow_;
 	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	DWORD dwExStyle = 0;
@@ -2228,7 +2228,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 #endif
 	
 	std::auto_ptr<SplitterWindow> pFolderSplitterWindow(new SplitterWindow(
-		bVirticalFolderWindow ? 1 : 2, bVirticalFolderWindow ? 2 : 1, true, pImpl_));
+		bVerticalFolderWindow ? 1 : 2, bVerticalFolderWindow ? 2 : 1, true, pImpl_));
 	if (!pFolderSplitterWindow->create(L"QmFolderSplitterWindow",
 		0, dwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 		CW_USEDEFAULT, getHandle(), 0, 0,
@@ -2358,8 +2358,8 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pListSplitterWindow_->add(0, 1, pImpl_->pMessageWindow_);
 	
 	pImpl_->pFolderSplitterWindow_->add(0, 0, pImpl_->pFolderWindow_);
-	pImpl_->pFolderSplitterWindow_->add(bVirticalFolderWindow ? 0 : 1,
-		bVirticalFolderWindow ? 1 : 0, pImpl_->pListSplitterWindow_);
+	pImpl_->pFolderSplitterWindow_->add(bVerticalFolderWindow ? 0 : 1,
+		bVerticalFolderWindow ? 1 : 0, pImpl_->pListSplitterWindow_);
 	
 	DWORD dwStatusBarStyle = dwStyle;
 #if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
@@ -2388,7 +2388,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	pImpl_->layoutChildren();
 	
-	if (bVirticalFolderWindow)
+	if (bVerticalFolderWindow)
 		pImpl_->pFolderSplitterWindow_->setRowHeight(
 			0, pImpl_->nFolderWindowSize_);
 	else
