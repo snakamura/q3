@@ -521,8 +521,10 @@ qm::MoveMenu::MenuInserter::MenuInserter(HMENU hmenu,
  *
  */
 
-qm::RecentsMenu::RecentsMenu(Document* pDocument) :
-	pDocument_(pDocument)
+qm::RecentsMenu::RecentsMenu(Recents* pRecents,
+							 AccountManager* pAccountManager) :
+	pRecents_(pRecents),
+	pAccountManager_(pAccountManager)
 {
 }
 
@@ -549,17 +551,16 @@ bool qm::RecentsMenu::createMenu(HMENU hmenu)
 	URIList listURI;
 	StringListFree<URIList> free(listURI);
 	{
-		Recents* pRecents = pDocument_->getRecents();
-		pRecents->removeSeens();
+		pRecents_->removeSeens();
 		
-		Lock<Recents> lock(*pRecents);
+		Lock<Recents> lock(*pRecents_);
 		
-		unsigned int nCount = pRecents->getCount();
+		unsigned int nCount = pRecents_->getCount();
 		unsigned int nOffset = nCount > MAX_RECENTS ? nCount - MAX_RECENTS : 0;
 		
 		listURI.reserve(nCount - nOffset);
 		for (unsigned int n = nOffset; n < nCount; ++n)
-			listURI.push_back(allocWString(pRecents->get(n)).release());
+			listURI.push_back(allocWString(pRecents_->get(n)).release());
 		std::sort(listURI.begin(), listURI.end(), URIComp());
 	}
 	
@@ -572,7 +573,7 @@ bool qm::RecentsMenu::createMenu(HMENU hmenu)
 		
 		std::auto_ptr<URI> pURI(URI::parse(wstrURI.get()));
 		if (pURI.get()) {
-			MessagePtrLock mpl(pDocument_->getMessage(*pURI.get()));
+			MessagePtrLock mpl(pAccountManager_->getMessage(*pURI.get()));
 			if (mpl) {
 				if (pAccount != mpl->getFolder()->getAccount()) {
 					if (pAccount != 0)

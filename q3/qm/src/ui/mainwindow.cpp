@@ -2470,7 +2470,8 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pSubAccountMenu_.reset(new SubAccountMenu(pImpl_->pFolderModel_.get()));
 	pImpl_->pGoRoundMenu_.reset(new GoRoundMenu(pImpl_->pGoRound_));
 	pImpl_->pScriptMenu_.reset(new ScriptMenu(pImpl_->pDocument_->getScriptManager()));
-	pImpl_->pRecentsMenu_.reset(new RecentsMenu(pImpl_->pDocument_));
+	pImpl_->pRecentsMenu_.reset(new RecentsMenu(
+		pImpl_->pDocument_->getRecents(), pImpl_->pDocument_));
 	
 	pImpl_->pDelayedFolderModelHandler_.reset(new DelayedFolderModelHandler(pImpl_));
 	pImpl_->pFolderModel_->addFolderModelHandler(pImpl_->pDelayedFolderModelHandler_.get());

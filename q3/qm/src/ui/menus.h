@@ -39,7 +39,7 @@ class TemplateMenu;
 	class CreateTemplateMenu;
 	class ViewTemplateMenu;
 
-class Document;
+class AccountManager;
 class Filter;
 class FilterManager;
 class FixedFormText;
@@ -49,6 +49,7 @@ class GoRound;
 class GoRoundCourse;
 class Message;
 class MessageHolder;
+class Recents;
 class ScriptManager;
 class SecurityModel;
 class TemplateManager;
@@ -283,7 +284,8 @@ public:
 	};
 
 public:
-	explicit RecentsMenu(Document* pDocument);
+	RecentsMenu(Recents* pRecents,
+				AccountManager* pAccountManager);
 	~RecentsMenu();
 
 public:
@@ -308,7 +310,8 @@ private:
 	typedef std::vector<qs::WSTRING> URIList;
 
 private:
-	Document* pDocument_;
+	Recents* pRecents_;
+	AccountManager* pAccountManager_;
 	URIList listURI_;
 };
 
