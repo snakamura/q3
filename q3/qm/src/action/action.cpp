@@ -1646,7 +1646,7 @@ bool qm::FileImportAction::readMessage(NormalFolder* pFolder,
 		CHAR cPrev = '\0';
 		bool bNewLine = true;
 		while (bNewLine) {
-			string_ptr strLine;
+			xstring_ptr strLine;
 			CHAR cNext = '\0';
 			if (!readLine(&stream, cPrev, &strLine, &cNext, &bNewLine))
 				return false;
@@ -1830,7 +1830,7 @@ bool qm::FileImportAction::import(NormalFolder* pFolder)
 
 bool qm::FileImportAction::readLine(InputStream* pStream,
 									CHAR cPrev,
-									string_ptr* pstrLine,
+									xstring_ptr* pstrLine,
 									CHAR* pcNext,
 									bool* pbNewLine)
 {
@@ -1843,9 +1843,7 @@ bool qm::FileImportAction::readLine(InputStream* pStream,
 	*pcNext = '\0';
 	*pbNewLine = false;
 	
-	// TODO
-	// Change to use malloc based buffer.
-	StringBuffer<STRING> buf;
+	XStringBuffer<XSTRING> buf;
 	
 	unsigned char c = 0;
 	bool bNewLine = false;
@@ -1874,11 +1872,12 @@ bool qm::FileImportAction::readLine(InputStream* pStream,
 			bNewLine = true;
 		}
 		else {
-			buf.append(static_cast<CHAR>(c));
+			if (!buf.append(static_cast<CHAR>(c)))
+				return false;
 		}
 	}
 	
-	*pstrLine = buf.getString();
+	*pstrLine = buf.getXString();
 	*pbNewLine = bNewLine;
 	
 	return true;

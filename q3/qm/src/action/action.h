@@ -1017,7 +1017,7 @@ private:
 private:
 	static bool readLine(qs::InputStream* pStream,
 						 CHAR cPrev,
-						 qs::string_ptr* pstrLine,
+						 qs::xstring_ptr* pstrLine,
 						 CHAR* pcNext,
 						 bool* pbNewLine);
 
