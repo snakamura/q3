@@ -11,6 +11,7 @@
 #include <qmextensions.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
+#include <qmmessageoperation.h>
 
 #include <qsassert.h>
 #include <qsconv.h>
@@ -297,8 +298,8 @@ QSTATUS qm::Folder::setMessagesFlags(const MessagePtrList& l,
 	return setMessagesFlags(listMessageHolder, nFlags, nMask);
 }
 
-QSTATUS qm::Folder::copyMessages(const MessagePtrList& l,
-	NormalFolder* pFolder, bool bMove)
+QSTATUS qm::Folder::copyMessages(const MessagePtrList& l, NormalFolder* pFolder,
+	bool bMove, MessageOperationCallback* pCallback)
 {
 	DECLARE_QSTATUS();
 	
@@ -308,10 +309,11 @@ QSTATUS qm::Folder::copyMessages(const MessagePtrList& l,
 	status = pImpl_->getMessages(l, &listMessageHolder);
 	CHECK_QSTATUS();
 	
-	return copyMessages(listMessageHolder, pFolder, bMove);
+	return copyMessages(listMessageHolder, pFolder, bMove, pCallback);
 }
 
-QSTATUS qm::Folder::removeMessages(const MessagePtrList& l, bool bDirect)
+QSTATUS qm::Folder::removeMessages(const MessagePtrList& l,
+	bool bDirect, MessageOperationCallback* pCallback)
 {
 	DECLARE_QSTATUS();
 	
@@ -321,7 +323,7 @@ QSTATUS qm::Folder::removeMessages(const MessagePtrList& l, bool bDirect)
 	status = pImpl_->getMessages(l, &listMessageHolder);
 	CHECK_QSTATUS();
 	
-	return removeMessages(listMessageHolder, bDirect);
+	return removeMessages(listMessageHolder, bDirect, pCallback);
 }
 
 QSTATUS qm::Folder::addFolderHandler(FolderHandler* pHandler)
@@ -541,7 +543,7 @@ QSTATUS qm::NormalFolder::updateMessageFlags(
 		*pbClear = true;
 	}
 	else {
-		status = deleteMessages(listRemove);
+		status = deleteMessages(listRemove, 0);
 		CHECK_QSTATUS();
 	}
 	
@@ -564,7 +566,7 @@ QSTATUS qm::NormalFolder::appendMessage(const Message& msg, unsigned int nFlags)
 		strMessage.get(), msg, nFlags, static_cast<unsigned int>(-1));
 }
 
-QSTATUS qm::NormalFolder::removeAllMessages()
+QSTATUS qm::NormalFolder::removeAllMessages(MessageOperationCallback* pCallback)
 {
 	DECLARE_QSTATUS();
 	
@@ -580,7 +582,7 @@ QSTATUS qm::NormalFolder::removeAllMessages()
 	std::copy(pImpl_->listMessageHolder_.begin(),
 		pImpl_->listMessageHolder_.end(), l.begin());
 	
-	status = getAccount()->removeMessages(this, l, false);
+	status = getAccount()->removeMessages(this, l, false, pCallback);
 	CHECK_QSTATUS();
 	
 	
@@ -693,17 +695,17 @@ QSTATUS qm::NormalFolder::setMessagesFlags(const MessageHolderList& l,
 }
 
 QSTATUS qm::NormalFolder::copyMessages(const MessageHolderList& l,
-	NormalFolder* pFolder, bool bMove)
+	NormalFolder* pFolder, bool bMove, MessageOperationCallback* pCallback)
 {
 	assert(isLocked());
-	return getAccount()->copyMessages(l, this, pFolder, bMove);
+	return getAccount()->copyMessages(l, this, pFolder, bMove, pCallback);
 }
 
-QSTATUS qm::NormalFolder::removeMessages(
-	const MessageHolderList& l, bool bDirect)
+QSTATUS qm::NormalFolder::removeMessages(const MessageHolderList& l,
+	bool bDirect, MessageOperationCallback* pCallback)
 {
 	assert(isLocked());
-	return getAccount()->removeMessages(this, l, bDirect);
+	return getAccount()->removeMessages(this, l, bDirect, pCallback);
 }
 
 QSTATUS qm::NormalFolder::loadMessageHolders()
@@ -896,7 +898,8 @@ QSTATUS qm::NormalFolder::removeMessage(MessageHolder* pmh)
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::NormalFolder::deleteMessages(const MessageHolderList& l)
+QSTATUS qm::NormalFolder::deleteMessages(const MessageHolderList& l,
+	MessageOperationCallback* pCallback)
 {
 	assert(&l != &pImpl_->listMessageHolder_);
 	
@@ -908,6 +911,12 @@ QSTATUS qm::NormalFolder::deleteMessages(const MessageHolderList& l)
 	while (it != l.end()) {
 		status = getAccount()->unstoreMessage(*it);
 		CHECK_QSTATUS();
+		
+		if (pCallback) {
+			status = pCallback->step(1);
+			CHECK_QSTATUS();
+		}
+		
 		++it;
 	}
 	
@@ -927,7 +936,7 @@ QSTATUS qm::NormalFolder::deleteAllMessages()
 	std::copy(pImpl_->listMessageHolder_.begin(),
 		pImpl_->listMessageHolder_.end(), l.begin());
 	
-	status = deleteMessages(l);
+	status = deleteMessages(l, 0);
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
@@ -1127,14 +1136,14 @@ QSTATUS qm::QueryFolder::setMessagesFlags(const MessageHolderList& l,
 }
 
 QSTATUS qm::QueryFolder::copyMessages(const MessageHolderList& l,
-	NormalFolder* pFolder, bool bMove)
+	NormalFolder* pFolder, bool bMove, MessageOperationCallback* pCallback)
 {
 	// TODO
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::QueryFolder::removeMessages(
-	const MessageHolderList& l, bool bDirect)
+QSTATUS qm::QueryFolder::removeMessages(const MessageHolderList& l,
+	bool bDirect, MessageOperationCallback* pCallback)
 {
 	// TODO
 	return QSTATUS_SUCCESS;

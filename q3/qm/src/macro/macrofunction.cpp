@@ -1061,7 +1061,7 @@ QSTATUS qm::MacroFunctionCopy::value(
 		l).push_back(pmh->getMessageHolder());
 	CHECK_QSTATUS();
 	status = pFolderFrom->copyMessages(l,
-		static_cast<NormalFolder*>(pFolderTo), bMove_);
+		static_cast<NormalFolder*>(pFolderTo), bMove_, 0);
 	CHECK_QSTATUS();
 	
 	return MacroValueFactory::getFactory().newBoolean(true,
@@ -1284,7 +1284,7 @@ QSTATUS qm::MacroFunctionDelete::value(
 	status = STLWrapper<Folder::MessageHolderList>(
 		l).push_back(pmh->getMessageHolder());
 	CHECK_QSTATUS();
-	status = pFolder->removeMessages(l, false);
+	status = pFolder->removeMessages(l, false, 0);
 	CHECK_QSTATUS();
 	
 	return MacroValueFactory::getFactory().newBoolean(true,

@@ -31,10 +31,9 @@ class SubAccount;
 class AccountHandler;
 class FolderListChangedEvent;
 
-class Folder;
-	class NormalFolder;
-class MessageHolder;
 class Message;
+class MessageHolder;
+class MessageOperationCallback;
 class ProtocolDriver;
 class Security;
 
@@ -150,9 +149,11 @@ public:
 	qs::QSTATUS appendMessage(NormalFolder* pFolder, const CHAR* pszMessage,
 		const Message& msgHeader, unsigned int nFlags, unsigned int nSize);
 	qs::QSTATUS removeMessages(NormalFolder* pFolder,
-		const Folder::MessageHolderList& l, bool bDirect) const;
+		const Folder::MessageHolderList& l, bool bDirect,
+		MessageOperationCallback* pCallback) const;
 	qs::QSTATUS copyMessages(const Folder::MessageHolderList& l,
-		NormalFolder* pFolderFrom, NormalFolder* pFolderTo, bool bMove) const;
+		NormalFolder* pFolderFrom, NormalFolder* pFolderTo,
+		bool bMove, MessageOperationCallback* pCallback) const;
 	qs::QSTATUS clearDeletedMessages(NormalFolder* pFolder) const;
 
 // These methods are intended to be called from ReceiveSession class

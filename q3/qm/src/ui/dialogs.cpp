@@ -3028,11 +3028,11 @@ qm::ProgressDialog::~ProgressDialog()
 {
 }
 
-QSTATUS qm::ProgressDialog::init()
+QSTATUS qm::ProgressDialog::init(HWND hwnd)
 {
 	DECLARE_QSTATUS();
 	
-	status = create(getMainWindow()->getHandle());
+	status = create(hwnd);
 	CHECK_QSTATUS();
 	showWindow(SW_SHOW);
 	getModalHandler()->preModalDialog(0);

@@ -30,8 +30,9 @@ class FolderEvent;
 class MessageEvent;
 
 class Account;
-class MessageHolder;
 class Message;
+class MessageHolder;
+class MessageOperationCallback;
 
 
 /****************************************************************************
@@ -109,9 +110,10 @@ public:
 	
 	qs::QSTATUS setMessagesFlags(const MessagePtrList& l,
 		unsigned int nFlags, unsigned int nMask);
-	qs::QSTATUS copyMessages(const MessagePtrList& l,
-		NormalFolder* pFolder, bool bMove);
-	qs::QSTATUS removeMessages(const MessagePtrList& l, bool bDirect);
+	qs::QSTATUS copyMessages(const MessagePtrList& l, NormalFolder* pFolder,
+		bool bMove, MessageOperationCallback* pCallback);
+	qs::QSTATUS removeMessages(const MessagePtrList& l, bool bDirect,
+		MessageOperationCallback* pCallback);
 	
 	qs::QSTATUS addFolderHandler(FolderHandler* pHandler);
 	qs::QSTATUS removeFolderHandler(FolderHandler* pHandler);
@@ -137,9 +139,10 @@ public:
 	virtual qs::QSTATUS setMessagesFlags(const MessageHolderList& l,
 		unsigned int nFlags, unsigned int nMask) = 0;
 	virtual qs::QSTATUS copyMessages(const MessageHolderList& l,
-		NormalFolder* pFolder, bool bMove) = 0;
-	virtual qs::QSTATUS removeMessages(
-		const MessageHolderList& l, bool bDirect) = 0;
+		NormalFolder* pFolder, bool bMove,
+		MessageOperationCallback* pCallback) = 0;
+	virtual qs::QSTATUS removeMessages(const MessageHolderList& l,
+		bool bDirect, MessageOperationCallback* pCallback) = 0;
 	virtual qs::QSTATUS loadMessageHolders() = 0;
 	virtual qs::QSTATUS saveMessageHolders() = 0;
 	virtual qs::QSTATUS deletePermanent() = 0;
@@ -182,7 +185,7 @@ public:
 	qs::QSTATUS getMessageById(unsigned int nId, MessageHolder** ppmh);
 	qs::QSTATUS updateMessageFlags(const FlagList& listFlag, bool* pbClear);
 	qs::QSTATUS appendMessage(const Message& msg, unsigned int nFlags);
-	qs::QSTATUS removeAllMessages();
+	qs::QSTATUS removeAllMessages(MessageOperationCallback* pCallback);
 	qs::QSTATUS clearDeletedMessages();
 
 public:
@@ -196,9 +199,9 @@ public:
 	virtual qs::QSTATUS setMessagesFlags(const MessageHolderList& l,
 		unsigned int nFlags, unsigned int nMask);
 	virtual qs::QSTATUS copyMessages(const MessageHolderList& l,
-		NormalFolder* pFolder, bool bMove);
-	virtual qs::QSTATUS removeMessages(
-		const MessageHolderList& l, bool bDirect);
+		NormalFolder* pFolder, bool bMove, MessageOperationCallback* pCallback);
+	virtual qs::QSTATUS removeMessages(const MessageHolderList& l,
+		bool bDirect, MessageOperationCallback* pCallback);
 	virtual qs::QSTATUS loadMessageHolders();
 	virtual qs::QSTATUS saveMessageHolders();
 	virtual qs::QSTATUS deletePermanent();
@@ -208,7 +211,8 @@ public:
 	qs::QSTATUS generateId(unsigned int* pnId);
 	qs::QSTATUS appendMessage(MessageHolder* pmh);
 	qs::QSTATUS removeMessage(MessageHolder* pmh);
-	qs::QSTATUS deleteMessages(const MessageHolderList& l);
+	qs::QSTATUS deleteMessages(const MessageHolderList& l,
+		MessageOperationCallback* pCallback);
 	qs::QSTATUS deleteAllMessages();
 	qs::QSTATUS moveMessages(const MessageHolderList& l, NormalFolder* pFolder);
 
@@ -262,9 +266,9 @@ public:
 	virtual qs::QSTATUS setMessagesFlags(const MessageHolderList& l,
 		unsigned int nFlags, unsigned int nMask);
 	virtual qs::QSTATUS copyMessages(const MessageHolderList& l,
-		NormalFolder* pFolder, bool bMove);
-	virtual qs::QSTATUS removeMessages(
-		const MessageHolderList& l, bool bDirect);
+		NormalFolder* pFolder, bool bMove, MessageOperationCallback* pCallback);
+	virtual qs::QSTATUS removeMessages(const MessageHolderList& l,
+		bool bDirect, MessageOperationCallback* pCallback);
 	virtual qs::QSTATUS loadMessageHolders();
 	virtual qs::QSTATUS saveMessageHolders();
 	virtual qs::QSTATUS deletePermanent();

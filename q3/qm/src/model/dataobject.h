@@ -1,5 +1,5 @@
 /*
- * $Id: dataobject.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -24,6 +24,7 @@ namespace qm {
 class MessageDataObject;
 
 class Account;
+class MessageOperationCallback;
 class Document;
 class MessageHolder;
 
@@ -77,7 +78,8 @@ public:
 
 public:
 	static qs::QSTATUS pasteMessages(IDataObject* pDataObject,
-		Document* pDocument, NormalFolder* pFolderTo, Flag flag, bool* pbMove);
+		Document* pDocument, NormalFolder* pFolderTo,
+		Flag flag, MessageOperationCallback* pCallback);
 	static bool canPasteMessage(IDataObject* pDataObject);
 	static Flag getPasteFlag(IDataObject* pDataObject,
 		Document* pDocument, NormalFolder* pFolder);

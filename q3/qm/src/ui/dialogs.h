@@ -859,7 +859,7 @@ public:
 	virtual ~ProgressDialog();
 
 public:
-	qs::QSTATUS init();
+	qs::QSTATUS init(HWND hwnd);
 	void term();
 	bool isCanceled() const;
 	qs::QSTATUS setTitle(UINT nId);

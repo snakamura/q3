@@ -1031,6 +1031,10 @@ BEGIN
     IDS_EXPORT              "Exporting..."
     IDS_IMPORT              "Importing..."
     IDS_CONFIRM_IGNORELOCK  "This mail folder is locked by '%s'.\nWould you like to continue?"
+    IDS_MOVEMESSAGE         "Moving messages..."
+    IDS_COPYMESSAGE         "Copying messages..."
+    IDS_EMPTYTRASH          "Emptying trash..."
+    IDS_DELETE              "Deleting messages..."
 END
 
 #endif    // Japanese resources

@@ -202,7 +202,7 @@ QSTATUS qmnntp::NntpDriver::removeMessages(SubAccount* pSubAccount,
 					std::identity<Folder*>()),
 				pFolder))) == l.end());
 	
-	return pFolder->deleteMessages(l);
+	return pFolder->deleteMessages(l, 0);
 }
 
 QSTATUS qmnntp::NntpDriver::copyMessages(SubAccount* pSubAccount,

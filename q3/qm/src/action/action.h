@@ -367,7 +367,7 @@ class EditDeleteMessageAction : public qs::AbstractAction
 {
 public:
 	EditDeleteMessageAction(MessageSelectionModel* pModel,
-		bool bDirect, qs::QSTATUS* pstatus);
+		bool bDirect, HWND hwndFrame, qs::QSTATUS* pstatus);
 	EditDeleteMessageAction(MessageModel* pModel,
 		bool bDirect, qs::QSTATUS* pstatus);
 	virtual ~EditDeleteMessageAction();
@@ -384,6 +384,7 @@ private:
 	MessageSelectionModel* pMessageSelectionModel_;
 	MessageModel* pMessageModel_;
 	bool bDirect_;
+	HWND hwndFrame_;
 };
 
 
@@ -435,7 +436,7 @@ class EditPasteMessageAction : public qs::AbstractAction
 {
 public:
 	EditPasteMessageAction(Document* pDocument,
-		FolderModel* pModel, qs::QSTATUS* pstatus);
+		FolderModel* pModel, HWND hwndFrame, qs::QSTATUS* pstatus);
 	virtual ~EditPasteMessageAction();
 
 public:
@@ -449,6 +450,7 @@ private:
 private:
 	Document* pDocument_;
 	FolderModel* pModel_;
+	HWND hwndFrame_;
 };
 
 
@@ -511,7 +513,8 @@ private:
 class FileEmptyTrashAction : public qs::AbstractAction
 {
 public:
-	FileEmptyTrashAction(FolderModel* pFolderModel, qs::QSTATUS* pstatus);
+	FileEmptyTrashAction(FolderModel* pFolderModel,
+		HWND hwndFrame, qs::QSTATUS* pstatus);
 	virtual ~FileEmptyTrashAction();
 
 public:
@@ -527,6 +530,7 @@ private:
 
 private:
 	FolderModel* pFolderModel_;
+	HWND hwndFrame_;
 };
 
 
@@ -1024,7 +1028,7 @@ class MessageMoveAction : public qs::AbstractAction
 {
 public:
 	MessageMoveAction(MessageSelectionModel* pModel,
-		MoveMenu* pMoveMenu, qs::QSTATUS* pstatus);
+		MoveMenu* pMoveMenu, HWND hwndFrame, qs::QSTATUS* pstatus);
 	virtual ~MessageMoveAction();
 
 public:
@@ -1038,6 +1042,7 @@ private:
 private:
 	MessageSelectionModel* pModel_;
 	MoveMenu* pMoveMenu_;
+	HWND hwndFrame_;
 };
 
 

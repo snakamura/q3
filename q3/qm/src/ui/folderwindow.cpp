@@ -29,6 +29,7 @@
 
 #include <tchar.h>
 
+#include "dialogs.h"
 #include "foldermodel.h"
 #include "folderwindow.h"
 #include "keymap.h"
@@ -441,16 +442,26 @@ QSTATUS qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
 		Folder* pFolder = getFolder(hItem);
 		if (pFolder->getType() == Folder::TYPE_NORMAL &&
 			!pFolder->isFlag(Folder::FLAG_NOSELECT)) {
+			NormalFolder* pNormalFolder = static_cast<NormalFolder*>(pFolder);
+			
 			IDataObject* pDataObject = event.getDataObject();
+			
 			MessageDataObject::Flag flag = MessageDataObject::FLAG_NONE;
 			DWORD dwKeyState = event.getKeyState();
 			if (dwKeyState & MK_CONTROL)
 				flag = MessageDataObject::FLAG_COPY;
 			else if (dwKeyState & MK_SHIFT)
 				flag = MessageDataObject::FLAG_MOVE;
-			bool bMove = false;
+			else
+				flag = MessageDataObject::getPasteFlag(
+					pDataObject, pDocument_, pNormalFolder);
+			bool bMove = flag == MessageDataObject::FLAG_MOVE;
+			
+			UINT nId = bMove ? IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
+			ProgressDialogMessageOperationCallback callback(
+				pThis_->getParentFrame(), nId, nId);
 			status = MessageDataObject::pasteMessages(pDataObject,
-				pDocument_, static_cast<NormalFolder*>(pFolder), flag, &bMove);
+				pDocument_, pNormalFolder, flag, &callback);
 			CHECK_QSTATUS();
 			
 			event.setEffect(bMove ? DROPEFFECT_MOVE : DROPEFFECT_COPY);

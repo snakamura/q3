@@ -138,6 +138,10 @@
 #define IDC_FROM                        1046
 #define IDS_CONFIRM_IGNORELOCK          1046
 #define IDC_PATH                        1047
+#define IDS_MOVEMESSAGE                 1047
+#define IDS_COPYMESSAGE                 1048
+#define IDS_EMPTYTRASH                  1049
+#define IDS_DELETE                      1050
 #define IDC_ENCODING                    1051
 #define IDC_TEMPLATE                    1052
 #define IDC_FILEPERMESSAGE              1053

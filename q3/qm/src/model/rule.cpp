@@ -488,7 +488,7 @@ QSTATUS qm::CopyRule::apply(const RuleContext& context) const
 		return QSTATUS_FAIL;
 	
 	status = context.getFolder()->copyMessages(context.getMessageHolderList(),
-		static_cast<NormalFolder*>(pFolderTo), bMove_);
+		static_cast<NormalFolder*>(pFolderTo), bMove_, 0);
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;

@@ -853,7 +853,7 @@ QSTATUS qm::SyncManager::send(Document* pDocument,
 			status = pOutbox->setMessagesFlags(l,
 				MessageHolder::FLAG_SENT, MessageHolder::FLAG_SENT);
 			CHECK_QSTATUS();
-			status = pOutbox->copyMessages(l, pSentbox, true);
+			status = pOutbox->copyMessages(l, pSentbox, true, 0);
 			CHECK_QSTATUS();
 			
 			status = pCallback->setPos(m + 1);

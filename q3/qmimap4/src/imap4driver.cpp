@@ -936,7 +936,7 @@ QSTATUS qmimap4::Imap4Driver::clearDeletedMessages(
 			l[n] = pFolder->getMessage(hook.listUid_[n].second);
 			++n;
 		}
-		status = pFolder->deleteMessages(l);
+		status = pFolder->deleteMessages(l, 0);
 		CHECK_QSTATUS();
 	}
 	

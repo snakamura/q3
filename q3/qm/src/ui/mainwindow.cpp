@@ -276,11 +276,11 @@ QSTATUS qm::MainWindowImpl::initActions()
 		pActionMap_, IDM_EDIT_CUT, pViews, pEditCutActions, countof(pViews));
 	CHECK_QSTATUS();
 	pCutMessageAction.release();
-	status = InitAction2<EditDeleteMessageAction, MessageSelectionModel*, bool>(
-		pActionMap_, IDM_EDIT_DELETE, pMessageSelectionModel_, false);
+	status = InitAction3<EditDeleteMessageAction, MessageSelectionModel*, bool, HWND>(
+		pActionMap_, IDM_EDIT_DELETE, pMessageSelectionModel_, false, pThis_->getHandle());
 	CHECK_QSTATUS();
-	status = InitAction2<EditDeleteMessageAction, MessageSelectionModel*, bool>(
-		pActionMap_, IDM_EDIT_DELETEDIRECT, pMessageSelectionModel_, true);
+	status = InitAction3<EditDeleteMessageAction, MessageSelectionModel*, bool, HWND>(
+		pActionMap_, IDM_EDIT_DELETEDIRECT, pMessageSelectionModel_, true, pThis_->getHandle());
 	CHECK_QSTATUS();
 	status = InitAction3<EditFindAction, MessageWindow*, Profile*, FindReplaceManager*>(
 		pActionMap_, IDM_EDIT_FIND, pMessageWindow_, pProfile_, pFindReplaceManager_);
@@ -292,7 +292,7 @@ QSTATUS qm::MainWindowImpl::initActions()
 		pActionMap_, IDM_EDIT_FINDPREV, pMessageWindow_, false, pFindReplaceManager_);
 	CHECK_QSTATUS();
 	std::auto_ptr<EditPasteMessageAction> pPasteMessageAction;
-	status = newQsObject(pDocument_, pFolderModel_, &pPasteMessageAction);
+	status = newQsObject(pDocument_, pFolderModel_, pThis_->getHandle(), &pPasteMessageAction);
 	CHECK_QSTATUS();
 	Action* pEditPasteActions[] = {
 		pPasteMessageAction.get(),
@@ -324,8 +324,8 @@ QSTATUS qm::MainWindowImpl::initActions()
 	CHECK_QSTATUS();
 	pSelectAllMessageAction.release();
 	pSelectAllAction.release();
-	status = InitAction1<FileEmptyTrashAction, FolderModel*>(
-		pActionMap_, IDM_FILE_EMPTYTRASH, pFolderModel_);
+	status = InitAction2<FileEmptyTrashAction, FolderModel*, HWND>(
+		pActionMap_, IDM_FILE_EMPTYTRASH, pFolderModel_, pThis_->getHandle());
 	CHECK_QSTATUS();
 	status = InitAction5<FileExitAction, HWND, Document*,
 		SyncManager*, TempFileCleaner*, EditFrameWindowManager*>(
@@ -467,9 +467,10 @@ QSTATUS qm::MainWindowImpl::initActions()
 		pActionMap_, IDM_MESSAGE_MARKUNSEEN, pMessageSelectionModel_,
 		0, MessageHolder::FLAG_SEEN);
 	CHECK_QSTATUS();
-	status = InitActionRange2<MessageMoveAction, MessageSelectionModel*, MoveMenu*>(
+	status = InitActionRange3<MessageMoveAction,
+		MessageSelectionModel*, MoveMenu*, HWND>(
 		pActionMap_, IDM_MESSAGE_MOVE, IDM_MESSAGE_MOVE + MoveMenu::MAX_FOLDER,
-		pMessageSelectionModel_, pMoveMenu_);
+		pMessageSelectionModel_, pMoveMenu_, pThis_->getHandle());
 	CHECK_QSTATUS();
 	status = InitAction3<MessageMoveOtherAction,
 		Document*, MessageSelectionModel*, HWND>(

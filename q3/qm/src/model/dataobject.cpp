@@ -1,5 +1,5 @@
 /*
- * $Id: dataobject.cpp,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -10,6 +10,7 @@
 #include <qmdocument.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
+#include <qmmessageoperation.h>
 
 #include <qsassert.h>
 #include <qsconv.h>
@@ -355,9 +356,12 @@ STDMETHODIMP qm::MessageDataObject::EnumDAdvise(IEnumSTATDATA** ppEnum)
 }
 
 QSTATUS qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
-	Document* pDocument, NormalFolder* pFolderTo, Flag flag, bool* pbMove)
+	Document* pDocument, NormalFolder* pFolderTo,
+	Flag flag, MessageOperationCallback* pCallback)
 {
 	assert(pDataObject);
+	assert(pDocument);
+	assert(pFolderTo);
 	
 	DECLARE_QSTATUS();
 	
@@ -365,7 +369,6 @@ QSTATUS qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
 	
 	if (flag == FLAG_NONE)
 		flag = getPasteFlag(pDataObject, pDocument, pFolderTo);
-	assert(flag != FLAG_NONE);
 	
 	FORMATETC fe = formats__[FORMAT_MESSAGEHOLDERLIST];
 	STGMEDIUM stm;
@@ -397,6 +400,11 @@ QSTATUS qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
 			p += wcslen(p) + 1;
 		}
 		
+		if (pCallback) {
+			status = pCallback->setCount(listMessageHolder.size());
+			CHECK_QSTATUS();
+		}
+		
 		while (true) {
 			Folder* pFolderFrom = 0;
 			MessagePtrList l;
@@ -421,15 +429,13 @@ QSTATUS qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
 			assert(!l.empty());
 			
 			Lock<Folder> lock(*pFolderFrom);
-			status = pFolderFrom->copyMessages(l, pFolderTo, flag == FLAG_MOVE);
+			status = pFolderFrom->copyMessages(l,
+				pFolderTo, flag == FLAG_MOVE, pCallback);
 			CHECK_QSTATUS();
 			
 			l.clear();
 		}
 	}
-	
-	if (pbMove)
-		*pbMove = flag == FLAG_MOVE;
 	
 	return QSTATUS_SUCCESS;
 }

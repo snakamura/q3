@@ -9,10 +9,12 @@
 #include <qmfolder.h>
 
 #include <qsconv.h>
+#include <qsnew.h>
 #include <qswindow.h>
 
 #include <tchar.h>
 
+#include "dialogs.h"
 #include "uiutil.h"
 
 using namespace qm;
@@ -185,4 +187,138 @@ int qm::UIUtil::getFolderImage(Folder* pFolder, bool bSelected)
 	else
 		nImage = 2;
 	return nImage;
+}
+
+
+/****************************************************************************
+ *
+ * ProgressDialogInit
+ *
+ */
+
+qm::ProgressDialogInit::ProgressDialogInit(
+	ProgressDialog* pDialog, HWND hwnd, QSTATUS* pstatus) :
+	pDialog_(0)
+{
+	DECLARE_QSTATUS();
+	
+	status = pDialog->init(hwnd);
+	CHECK_QSTATUS_SET(pstatus);
+	pDialog_ = pDialog;
+}
+
+qm::ProgressDialogInit::ProgressDialogInit(ProgressDialog* pDialog,
+	HWND hwnd, UINT nTitle, UINT nMessage, unsigned int nMin,
+	unsigned int nMax, unsigned int nPos, qs::QSTATUS* pstatus) :
+	pDialog_(0)
+{
+	DECLARE_QSTATUS();
+	
+	status = pDialog->init(hwnd);
+	CHECK_QSTATUS_SET(pstatus);
+	pDialog_ = pDialog;
+	
+	status = pDialog->setTitle(nTitle);
+	CHECK_QSTATUS_SET(pstatus);
+	status = pDialog->setMessage(nMessage);
+	CHECK_QSTATUS_SET(pstatus);
+	status = pDialog->setRange(nMin, nMax);
+	CHECK_QSTATUS_SET(pstatus);
+	status = pDialog->setPos(nPos);
+	CHECK_QSTATUS_SET(pstatus);
+}
+
+qm::ProgressDialogInit::~ProgressDialogInit()
+{
+	if (pDialog_)
+		pDialog_->term();
+}
+
+
+/****************************************************************************
+ *
+ * ProgressDialogMessageOperationCallback
+ *
+ */
+
+qm::ProgressDialogMessageOperationCallback::ProgressDialogMessageOperationCallback(
+	HWND hwnd, UINT nTitle, UINT nMessage) :
+	hwnd_(hwnd),
+	nTitle_(nTitle),
+	nMessage_(nMessage),
+	pDialog_(0),
+	nCount_(-1),
+	nPos_(0)
+{
+}
+
+qm::ProgressDialogMessageOperationCallback::~ProgressDialogMessageOperationCallback()
+{
+	if (pDialog_) {
+		pDialog_->term();
+		delete pDialog_;
+	}
+}
+
+bool qm::ProgressDialogMessageOperationCallback::isCanceled()
+{
+	if (pDialog_)
+		return pDialog_->isCanceled();
+	else
+		return false;
+}
+
+QSTATUS qm::ProgressDialogMessageOperationCallback::setCount(unsigned int nCount)
+{
+	DECLARE_QSTATUS();
+	
+	if (nCount_ == static_cast<unsigned int>(-1)) {
+		nCount_ = nCount;
+		
+		if (pDialog_) {
+			status = pDialog_->setRange(0, nCount);
+			CHECK_QSTATUS();
+		}
+	}
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::ProgressDialogMessageOperationCallback::step(unsigned int nStep)
+{
+	DECLARE_QSTATUS();
+	
+	nPos_ += nStep;
+	
+	if (pDialog_) {
+		status = pDialog_->setPos(nPos_);
+		CHECK_QSTATUS();
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::ProgressDialogMessageOperationCallback::show()
+{
+	assert(!pDialog_);
+	
+	DECLARE_QSTATUS();
+	
+	std::auto_ptr<ProgressDialog> pDialog;
+	status = newQsObject(nTitle_, &pDialog);
+	CHECK_QSTATUS();
+	status = pDialog->init(hwnd_);
+	CHECK_QSTATUS();
+	pDialog_ = pDialog.release();
+	
+	status = pDialog_->setMessage(nMessage_);
+	CHECK_QSTATUS();
+	
+	if (nCount_ != static_cast<unsigned int>(-1)) {
+		status = pDialog_->setRange(0, nCount_);
+		CHECK_QSTATUS();
+		status = pDialog_->setPos(nPos_);
+		CHECK_QSTATUS();
+	}
+	
+	return QSTATUS_SUCCESS;
 }

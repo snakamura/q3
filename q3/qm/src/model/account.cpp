@@ -10,6 +10,7 @@
 #include <qmextensions.h>
 #include <qmfolder.h>
 #include <qmmessageholder.h>
+#include <qmmessageoperation.h>
 #include <qmprotocoldriver.h>
 
 #include <qsconv.h>
@@ -1190,7 +1191,8 @@ QSTATUS qm::Account::appendMessage(NormalFolder* pFolder,
 }
 
 QSTATUS qm::Account::removeMessages(NormalFolder* pFolder,
-	const Folder::MessageHolderList& l, bool bDirect) const
+	const Folder::MessageHolderList& l, bool bDirect,
+	MessageOperationCallback* pCallback) const
 {
 	assert(pFolder);
 	assert(pFolder->isLocked());
@@ -1214,18 +1216,33 @@ QSTATUS qm::Account::removeMessages(NormalFolder* pFolder,
 			getFolderByFlag(Folder::FLAG_TRASHBOX));
 	
 	if (pTrash && pFolder != pTrash) {
-		status = copyMessages(l, pFolder, pTrash, true);
+		status = copyMessages(l, pFolder, pTrash, true, pCallback);
 		CHECK_QSTATUS();
 	}
 	else {
+		if (pCallback) {
+			status = pCallback->setCount(l.size());
+			CHECK_QSTATUS();
+		}
+		
 		if (pFolder->isFlag(Folder::FLAG_LOCAL)) {
-			status = pFolder->deleteMessages(l);
+			if (pCallback && l.size() > 1) {
+				status = pCallback->show();
+				CHECK_QSTATUS();
+			}
+			
+			status = pFolder->deleteMessages(l, pCallback);
 			CHECK_QSTATUS();
 		}
 		else {
 			status = pImpl_->pProtocolDriver_->removeMessages(
 				getCurrentSubAccount(), pFolder, l);
 			CHECK_QSTATUS();
+			
+			if (pCallback) {
+				status = pCallback->step(l.size());
+				CHECK_QSTATUS();
+			}
 		}
 	}
 	
@@ -1233,7 +1250,8 @@ QSTATUS qm::Account::removeMessages(NormalFolder* pFolder,
 }
 
 QSTATUS qm::Account::copyMessages(const Folder::MessageHolderList& l,
-	NormalFolder* pFolderFrom, NormalFolder* pFolderTo, bool bMove) const
+	NormalFolder* pFolderFrom, NormalFolder* pFolderTo,
+	bool bMove, MessageOperationCallback* pCallback) const
 {
 	assert(pFolderFrom);
 	assert(pFolderFrom->isLocked());
@@ -1256,6 +1274,11 @@ QSTATUS qm::Account::copyMessages(const Folder::MessageHolderList& l,
 	// TODO
 	// Take care of local messages in remote folder
 	
+	if (pCallback) {
+		status = pCallback->setCount(l.size());
+		CHECK_QSTATUS();
+	}
+	
 	bool bLocalCopy = true;
 	if (pFolderTo->getAccount() == this) {
 		bool bFromLocal = pFolderFrom->isFlag(Folder::FLAG_LOCAL);
@@ -1267,19 +1290,33 @@ QSTATUS qm::Account::copyMessages(const Folder::MessageHolderList& l,
 	}
 	
 	if (bLocalCopy) {
+		if (pCallback && l.size() > 1) {
+			status = pCallback->show();
+			CHECK_QSTATUS();
+		}
+		
 		Folder::MessageHolderList::const_iterator it = l.begin();
 		while (it != l.end()) {
+			MessageHolder* pmh = *it;
 			Message msg(&status);
 			CHECK_QSTATUS();
-			status = (*it)->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg);
+			status = pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg);
 			CHECK_QSTATUS();
 			status = pFolderTo->appendMessage(msg,
-				(*it)->getFlags() & MessageHolder::FLAG_USER_MASK);
+				pmh->getFlags() & MessageHolder::FLAG_USER_MASK);
 			CHECK_QSTATUS();
 			if (bMove) {
-				status = pFolderFrom->removeMessage(*it);
+				status = pFolderFrom->removeMessage(pmh);
 				CHECK_QSTATUS();
 			}
+			
+			if (pCallback) {
+				if (pCallback->isCanceled())
+					break;
+				status = pCallback->step(1);
+				CHECK_QSTATUS();
+			}
+			
 			++it;
 		}
 	}
@@ -1292,6 +1329,11 @@ QSTATUS qm::Account::copyMessages(const Folder::MessageHolderList& l,
 		else {
 			status = pImpl_->pProtocolDriver_->copyMessages(
 				getCurrentSubAccount(), l, pFolderFrom, pFolderTo, bMove);
+			CHECK_QSTATUS();
+		}
+		
+		if (pCallback) {
+			status = pCallback->step(l.size());
 			CHECK_QSTATUS();
 		}
 	}

@@ -30,7 +30,6 @@
 #include <tchar.h>
 
 #include "action.h"
-#include "actionutil.h"
 #include "findreplace.h"
 #include "../model/dataobject.h"
 #include "../model/filter.h"
@@ -51,6 +50,7 @@
 #include "../ui/resourceinc.h"
 #include "../ui/syncdialog.h"
 #include "../ui/syncutil.h"
+#include "../ui/uiutil.h"
 #include "../ui/viewmodel.h"
 
 #pragma warning(disable:4786)
@@ -495,10 +495,12 @@ QSTATUS qm::EditCutMessageAction::isEnabled(
  */
 
 qm::EditDeleteMessageAction::EditDeleteMessageAction(
-	MessageSelectionModel* pModel, bool bDirect, QSTATUS* pstatus) :
+	MessageSelectionModel* pModel, bool bDirect,
+	HWND hwndFrame, QSTATUS* pstatus) :
 	pMessageSelectionModel_(pModel),
 	pMessageModel_(0),
-	bDirect_(bDirect)
+	bDirect_(bDirect),
+	hwndFrame_(hwndFrame)
 {
 	assert(pstatus);
 	*pstatus = QSTATUS_SUCCESS;
@@ -508,7 +510,8 @@ qm::EditDeleteMessageAction::EditDeleteMessageAction(
 	MessageModel* pModel, bool bDirect, QSTATUS* pstatus) :
 	pMessageSelectionModel_(0),
 	pMessageModel_(pModel),
-	bDirect_(bDirect)
+	bDirect_(bDirect),
+	hwndFrame_(0)
 {
 	assert(pstatus);
 	*pstatus = QSTATUS_SUCCESS;
@@ -528,7 +531,9 @@ QSTATUS qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 		status = pMessageSelectionModel_->getSelectedMessages(&pFolder, &l);
 		CHECK_QSTATUS();
 		if (!l.empty()) {
-			status = pFolder->removeMessages(l, bDirect_);
+			ProgressDialogMessageOperationCallback callback(
+				hwndFrame_, IDS_DELETE, IDS_DELETE);
+			status = pFolder->removeMessages(l, bDirect_, &callback);
 			CHECK_QSTATUS();
 		}
 	}
@@ -548,7 +553,7 @@ QSTATUS qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 			Folder::MessageHolderList l;
 			status = STLWrapper<Folder::MessageHolderList>(l).push_back(mpl);
 			CHECK_QSTATUS();
-			status = mpl->getFolder()->removeMessages(l, bDirect_);
+			status = mpl->getFolder()->removeMessages(l, bDirect_, 0);
 			CHECK_QSTATUS();
 		}
 		
@@ -664,10 +669,11 @@ QSTATUS qm::EditFindAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
  *
  */
 
-qm::EditPasteMessageAction::EditPasteMessageAction(
-	Document* pDocument, FolderModel* pModel, QSTATUS* pstatus) :
+qm::EditPasteMessageAction::EditPasteMessageAction(Document* pDocument,
+	FolderModel* pModel, HWND hwndFrame, QSTATUS* pstatus) :
 	pDocument_(pDocument),
-	pModel_(pModel)
+	pModel_(pModel),
+	hwndFrame_(hwndFrame)
 {
 }
 
@@ -686,9 +692,14 @@ QSTATUS qm::EditPasteMessageAction::invoke(const ActionEvent& event)
 		ComPtr<IDataObject> pDataObject;
 		HRESULT hr = ::OleGetClipboard(&pDataObject);
 		if (hr == S_OK) {
+			NormalFolder* pNormalFolder = static_cast<NormalFolder*>(pFolder);
+			MessageDataObject::Flag flag = MessageDataObject::getPasteFlag(
+				pDataObject.get(), pDocument_, pNormalFolder);
+			UINT nId = flag == MessageDataObject::FLAG_MOVE ?
+				IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
+			ProgressDialogMessageOperationCallback callback(hwndFrame_, nId, nId);
 			status = MessageDataObject::pasteMessages(pDataObject.get(),
-				pDocument_, static_cast<NormalFolder*>(pFolder),
-				MessageDataObject::FLAG_NONE, 0);
+				pDocument_, pNormalFolder, flag, &callback);
 			CHECK_QSTATUS();
 			::OleSetClipboard(0);
 		}
@@ -780,8 +791,9 @@ QSTATUS qm::FileCloseAction::invoke(const ActionEvent& event)
  */
 
 qm::FileEmptyTrashAction::FileEmptyTrashAction(
-	FolderModel* pFolderModel, QSTATUS* pstatus) :
-	pFolderModel_(pFolderModel)
+	FolderModel* pFolderModel, HWND hwndFrame, QSTATUS* pstatus) :
+	pFolderModel_(pFolderModel),
+	hwndFrame_(hwndFrame)
 {
 }
 
@@ -798,7 +810,9 @@ QSTATUS qm::FileEmptyTrashAction::invoke(const ActionEvent& event)
 		// TODO
 		// Sync folder if online and trash is syncable
 		
-		status = pTrash->removeAllMessages();
+		ProgressDialogMessageOperationCallback callback(
+			hwndFrame_, IDS_EMPTYTRASH, IDS_EMPTYTRASH);
+		status = pTrash->removeAllMessages(&callback);
 		CHECK_QSTATUS();
 		
 		if (!pTrash->isFlag(Folder::FLAG_LOCAL)) {
@@ -969,8 +983,8 @@ QSTATUS qm::FileExportAction::invoke(const ActionEvent& event)
 			
 			ProgressDialog progressDialog(IDS_EXPORT, &status);
 			CHECK_QSTATUS();
-			ProgressDialogInit init(&progressDialog, IDS_EXPORT,
-				IDS_EXPORT, 0, l.size(), 0, &status);
+			ProgressDialogInit init(&progressDialog, hwndFrame_,
+				IDS_EXPORT, IDS_EXPORT, 0, l.size(), 0, &status);
 			CHECK_QSTATUS();
 			
 			if (dialog.isFilePerMessage()) {
@@ -1166,8 +1180,8 @@ QSTATUS qm::FileImportAction::invoke(const ActionEvent& event)
 		if (nRet == IDOK) {
 			ProgressDialog progressDialog(IDS_IMPORT, &status);
 			CHECK_QSTATUS();
-			ProgressDialogInit init(&progressDialog, IDS_IMPORT,
-				IDS_IMPORT, 0, 100, 0, &status);
+			ProgressDialogInit init(&progressDialog, hwndFrame_,
+				IDS_IMPORT, IDS_IMPORT, 0, 100, 0, &status);
 			CHECK_QSTATUS();
 			int nPos = 0;
 			
@@ -1836,7 +1850,7 @@ QSTATUS qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 		ProgressDialog dialog(IDS_APPLYMESSAGERULES, &status);
 		CHECK_QSTATUS();
 		RuleCallbackImpl callback(&dialog);
-		ProgressDialogInit init(&dialog, &status);
+		ProgressDialogInit init(&dialog, hwnd_, &status);
 		CHECK_QSTATUS();
 		
 		status = pRuleManager_->apply(static_cast<NormalFolder*>(pFolder),
@@ -2098,10 +2112,11 @@ QSTATUS qm::MessageMarkAction::isEnabled(const ActionEvent& event, bool* pbEnabl
  *
  */
 
-qm::MessageMoveAction::MessageMoveAction(
-	MessageSelectionModel* pModel, MoveMenu* pMoveMenu, QSTATUS* pstatus) :
+qm::MessageMoveAction::MessageMoveAction(MessageSelectionModel* pModel,
+	MoveMenu* pMoveMenu, HWND hwndFrame, QSTATUS* pstatus) :
 	pModel_(pModel),
-	pMoveMenu_(pMoveMenu)
+	pMoveMenu_(pMoveMenu),
+	hwndFrame_(hwndFrame)
 {
 }
 
@@ -2121,7 +2136,9 @@ QSTATUS qm::MessageMoveAction::invoke(const ActionEvent& event)
 		CHECK_QSTATUS();
 		if (!l.empty()) {
 			bool bMove = (event.getModifier() & ActionEvent::MODIFIER_CTRL) == 0;
-			status = pFolderFrom->copyMessages(l, pFolderTo, bMove);
+			UINT nId = bMove ? IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
+			ProgressDialogMessageOperationCallback callback(hwndFrame_, nId, nId);
+			status = pFolderFrom->copyMessages(l, pFolderTo, bMove, &callback);
 			CHECK_QSTATUS();
 		}
 	}
@@ -2171,8 +2188,12 @@ QSTATUS qm::MessageMoveOtherAction::invoke(const ActionEvent& event)
 			status = pModel_->getSelectedMessages(&pFolderFrom, &l);
 			CHECK_QSTATUS();
 			if (!l.empty()) {
-				status = pFolderFrom->copyMessages(
-					l, pFolderTo, !dialog.isCopy());
+				bool bMove = !dialog.isCopy();
+				
+				UINT nId = bMove ? IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
+				ProgressDialogMessageOperationCallback callback(
+					hwndFrame_, nId, nId);
+				status = pFolderFrom->copyMessages(l, pFolderTo, bMove, &callback);
 				CHECK_QSTATUS();
 			}
 		}
