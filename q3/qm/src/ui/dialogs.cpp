@@ -2831,6 +2831,8 @@ LRESULT qm::SelectDialupEntryDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 {
 	DECLARE_QSTATUS();
 	
+	init(false);
+	
 	typedef RasConnection::EntryList List;
 	List listEntry;
 	StringListFree<List> free(listEntry);
