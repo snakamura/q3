@@ -345,9 +345,6 @@ QSTATUS qm::MainWindowImpl::initActions()
 	status = InitAction1<FileCompactAction, FolderModel*>(
 		pActionMap_, IDM_FILE_COMPACT, pFolderModel_);
 	CHECK_QSTATUS();
-	status = InitAction2<FileEmptyTrashAction, FolderModel*, HWND>(
-		pActionMap_, IDM_FILE_EMPTYTRASH, pFolderModel_, pThis_->getHandle());
-	CHECK_QSTATUS();
 	status = InitAction5<FileExitAction, HWND, Document*,
 		SyncManager*, TempFileCleaner*, EditFrameWindowManager*>(
 		pActionMap_, IDM_FILE_EXIT, pThis_->getHandle(), pDocument_,
@@ -379,6 +376,9 @@ QSTATUS qm::MainWindowImpl::initActions()
 	CHECK_QSTATUS();
 	status = InitAction1<FolderEmptyAction, FolderSelectionModel*>(
 		pActionMap_, IDM_FOLDER_EMPTY, this);
+	CHECK_QSTATUS();
+	status = InitAction2<FolderEmptyTrashAction, FolderModel*, HWND>(
+		pActionMap_, IDM_FOLDER_EMPTYTRASH, pFolderModel_, pThis_->getHandle());
 	CHECK_QSTATUS();
 	status = InitAction3<FolderPropertyAction, FolderSelectionModel*, HWND, Profile*>(
 		pActionMap_, IDM_FOLDER_PROPERTY, this, pThis_->getHandle(), pProfile_);

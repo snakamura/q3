@@ -1,8 +1,6 @@
 <menus>
 	<menubar name="mainframe">
 		<popupmenu text="File">
-			<menuitem text="Empty Trash" action="FileEmptyTrash"/>
-			<separator/>
 			<menuitem text="Save" action="FileSave"/>
 			<menuitem text="Print" action="FilePrint"/>
 			<separator/>
@@ -242,6 +240,7 @@
 		<menuitem text="Update" action="FolderUpdate"/>
 		<separator/>
 		<menuitem text="Emptry" action="FolderEmpty"/>
+		<menuitem text="Empty &amp;Trash" action="FolderEmptyTrash"/>
 		<separator/>
 		<menuitem text="Show Size" action="FolderShowSize"/>
 		<separator/>

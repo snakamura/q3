@@ -878,87 +878,6 @@ QSTATUS qm::FileCompactAction::isEnabled(const ActionEvent& event, bool* pbEnabl
 
 /****************************************************************************
  *
- * FileEmptyTrashAction
- *
- */
-
-qm::FileEmptyTrashAction::FileEmptyTrashAction(
-	FolderModel* pFolderModel, HWND hwndFrame, QSTATUS* pstatus) :
-	pFolderModel_(pFolderModel),
-	hwndFrame_(hwndFrame)
-{
-}
-
-qm::FileEmptyTrashAction::~FileEmptyTrashAction()
-{
-}
-
-QSTATUS qm::FileEmptyTrashAction::invoke(const ActionEvent& event)
-{
-	DECLARE_QSTATUS();
-	
-	NormalFolder* pTrash = getTrash();
-	if (pTrash) {
-		Account* pAccount = pTrash->getAccount();
-		Lock<Account> lock(*pAccount);
-		
-		// TODO
-		// Sync folder if online and trash is syncable
-		
-		const MessageHolderList* pList = 0;
-		status = pTrash->getMessages(&pList);
-		CHECK_QSTATUS();
-		if (!pList->empty()) {
-			MessageHolderList l;
-			status = STLWrapper<MessageHolderList>(l).resize(pList->size());
-			CHECK_QSTATUS();
-			std::copy(pList->begin(), pList->end(), l.begin());
-			
-			ProgressDialogMessageOperationCallback callback(
-				hwndFrame_, IDS_EMPTYTRASH, IDS_EMPTYTRASH);
-			status = pAccount->removeMessages(l, false, &callback);
-			CHECK_QSTATUS();
-			
-			if (!pTrash->isFlag(Folder::FLAG_LOCAL)) {
-				status = pAccount->clearDeletedMessages(pTrash);
-				CHECK_QSTATUS();
-			}
-			
-			status = pAccount->save();
-			CHECK_QSTATUS();
-		}
-	}
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::FileEmptyTrashAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
-{
-	assert(pbEnabled);
-	*pbEnabled = getTrash() != 0;
-	return QSTATUS_SUCCESS;
-}
-
-NormalFolder* qm::FileEmptyTrashAction::getTrash() const
-{
-	Account* pAccount = pFolderModel_->getCurrentAccount();
-	if (!pAccount) {
-		Folder* pFolder = pFolderModel_->getCurrentFolder();
-		if (pFolder)
-			pAccount = pFolder->getAccount();
-	}
-	if (pAccount) {
-		Folder* pTrash = pAccount->getFolderByFlag(Folder::FLAG_TRASHBOX);
-		if (pTrash && pTrash->getType() == Folder::TYPE_NORMAL)
-			return static_cast<NormalFolder*>(pTrash);
-	}
-	return 0;
-}
-
-
-/****************************************************************************
- *
  * FileExitAction
  *
  */
@@ -1907,6 +1826,87 @@ QSTATUS qm::FolderEmptyAction::isEnabled(const ActionEvent& event, bool* pbEnabl
 		(l.size() == 1 && !l.front()->isFlag(Folder::FLAG_TRASHBOX));
 	
 	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * FolderEmptyTrashAction
+ *
+ */
+
+qm::FolderEmptyTrashAction::FolderEmptyTrashAction(
+	FolderModel* pFolderModel, HWND hwndFrame, QSTATUS* pstatus) :
+	pFolderModel_(pFolderModel),
+	hwndFrame_(hwndFrame)
+{
+}
+
+qm::FolderEmptyTrashAction::~FolderEmptyTrashAction()
+{
+}
+
+QSTATUS qm::FolderEmptyTrashAction::invoke(const ActionEvent& event)
+{
+	DECLARE_QSTATUS();
+	
+	NormalFolder* pTrash = getTrash();
+	if (pTrash) {
+		Account* pAccount = pTrash->getAccount();
+		Lock<Account> lock(*pAccount);
+		
+		// TODO
+		// Sync folder if online and trash is syncable
+		
+		const MessageHolderList* pList = 0;
+		status = pTrash->getMessages(&pList);
+		CHECK_QSTATUS();
+		if (!pList->empty()) {
+			MessageHolderList l;
+			status = STLWrapper<MessageHolderList>(l).resize(pList->size());
+			CHECK_QSTATUS();
+			std::copy(pList->begin(), pList->end(), l.begin());
+			
+			ProgressDialogMessageOperationCallback callback(
+				hwndFrame_, IDS_EMPTYTRASH, IDS_EMPTYTRASH);
+			status = pAccount->removeMessages(l, false, &callback);
+			CHECK_QSTATUS();
+			
+			if (!pTrash->isFlag(Folder::FLAG_LOCAL)) {
+				status = pAccount->clearDeletedMessages(pTrash);
+				CHECK_QSTATUS();
+			}
+			
+			status = pAccount->save();
+			CHECK_QSTATUS();
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::FolderEmptyTrashAction::isEnabled(
+	const ActionEvent& event, bool* pbEnabled)
+{
+	assert(pbEnabled);
+	*pbEnabled = getTrash() != 0;
+	return QSTATUS_SUCCESS;
+}
+
+NormalFolder* qm::FolderEmptyTrashAction::getTrash() const
+{
+	Account* pAccount = pFolderModel_->getCurrentAccount();
+	if (!pAccount) {
+		Folder* pFolder = pFolderModel_->getCurrentFolder();
+		if (pFolder)
+			pAccount = pFolder->getAccount();
+	}
+	if (pAccount) {
+		Folder* pTrash = pAccount->getFolderByFlag(Folder::FLAG_TRASHBOX);
+		if (pTrash && pTrash->getType() == Folder::TYPE_NORMAL)
+			return static_cast<NormalFolder*>(pTrash);
+	}
+	return 0;
 }
 
 

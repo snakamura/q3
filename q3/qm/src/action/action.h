@@ -38,7 +38,6 @@ class EditPasteMessageAction;
 class EditSelectAllMessageAction;
 class FileCloseAction;
 class FileCompactAction;
-class FileEmptyTrashAction;
 class FileExitAction;
 class FileExportAction;
 class FileImportAction;
@@ -49,6 +48,7 @@ class FileSaveAction;
 class FolderCreateAction;
 class FolderDeleteAction;
 class FolderEmptyAction;
+class FolderEmptyTrashAction;
 class FolderPropertyAction;
 class FolderRenameAction;
 class FolderShowSizeAction;
@@ -573,36 +573,6 @@ private:
 
 /****************************************************************************
  *
- * FileEmptyTrashAction
- *
- */
-
-class FileEmptyTrashAction : public qs::AbstractAction
-{
-public:
-	FileEmptyTrashAction(FolderModel* pFolderModel,
-		HWND hwndFrame, qs::QSTATUS* pstatus);
-	virtual ~FileEmptyTrashAction();
-
-public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
-
-private:
-	NormalFolder* getTrash() const;
-
-private:
-	FileEmptyTrashAction(const FileEmptyTrashAction&);
-	FileEmptyTrashAction& operator=(const FileEmptyTrashAction&);
-
-private:
-	FolderModel* pFolderModel_;
-	HWND hwndFrame_;
-};
-
-
-/****************************************************************************
- *
  * FileExitAction
  *
  */
@@ -883,6 +853,36 @@ private:
 
 private:
 	FolderSelectionModel* pModel_;
+};
+
+
+/****************************************************************************
+ *
+ * FolderEmptyTrashAction
+ *
+ */
+
+class FolderEmptyTrashAction : public qs::AbstractAction
+{
+public:
+	FolderEmptyTrashAction(FolderModel* pFolderModel,
+		HWND hwndFrame, qs::QSTATUS* pstatus);
+	virtual ~FolderEmptyTrashAction();
+
+public:
+	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+
+private:
+	NormalFolder* getTrash() const;
+
+private:
+	FolderEmptyTrashAction(const FolderEmptyTrashAction&);
+	FolderEmptyTrashAction& operator=(const FolderEmptyTrashAction&);
+
+private:
+	FolderModel* pFolderModel_;
+	HWND hwndFrame_;
 };
 
 
