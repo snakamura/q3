@@ -30,6 +30,7 @@
 #include "uiutil.h"
 #include "../model/addressbook.h"
 #include "../model/fixedformtext.h"
+#include "../model/templatemanager.h"
 
 using namespace qm;
 using namespace qs;
@@ -2294,8 +2295,14 @@ void qm::DialupDialog::updateLocation()
  *
  */
 
-qm::ExportDialog::ExportDialog(bool bSingleMessage) :
+qm::ExportDialog::ExportDialog(Account* pAccount,
+							   const TemplateManager* pTemplateManager,
+							   Profile* pProfile,
+							   bool bSingleMessage) :
 	DefaultDialog(IDD_EXPORT),
+	pAccount_(pAccount),
+	pTemplateManager_(pTemplateManager),
+	pProfile_(pProfile),
 	bSingleMessage_(bSingleMessage),
 	nFlags_(0)
 {
@@ -2322,14 +2329,12 @@ bool qm::ExportDialog::isExportFlags() const
 
 const WCHAR* qm::ExportDialog::getTemplate() const
 {
-	// TODO
-	return 0;
+	return wstrTemplate_.get();
 }
 
 const WCHAR* qm::ExportDialog::getEncoding() const
 {
-	// TODO
-	return 0;
+	return wstrEncoding_.get();
 }
 
 LRESULT qm::ExportDialog::onCommand(WORD nCode,
@@ -2338,6 +2343,9 @@ LRESULT qm::ExportDialog::onCommand(WORD nCode,
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_BROWSE, onBrowse)
 		HANDLE_COMMAND_ID_CODE(IDC_PATH, EN_CHANGE, onPathChange)
+		HANDLE_COMMAND_ID_CODE(IDC_TEMPLATE, CBN_SELCHANGE, onTemplateSelChange)
+		HANDLE_COMMAND_ID_CODE(IDC_ENCODING, CBN_EDITCHANGE, onEncodingEditChange)
+		HANDLE_COMMAND_ID_CODE(IDC_ENCODING, CBN_SELCHANGE, onEncodingSelChange)
 	END_COMMAND_HANDLER()
 	return DefaultDialog::onCommand(nCode, nId);
 }
@@ -2349,6 +2357,29 @@ LRESULT qm::ExportDialog::onInitDialog(HWND hwndFocus,
 	
 	if (bSingleMessage_)
 		Window(getDlgItem(IDC_FILEPERMESSAGE)).enableWindow(false);
+	
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	wstring_ptr wstrNone(loadString(hInst, IDS_NONE));
+	W2T(wstrNone.get(), ptszNone);
+	sendDlgItemMessage(IDC_TEMPLATE, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(ptszNone));
+	
+	TemplateManager::NameList listTemplate;
+	StringListFree<TemplateManager::NameList> freeTemplate(listTemplate);
+	pTemplateManager_->getTemplateNames(pAccount_, L"export", &listTemplate);
+	for (TemplateManager::NameList::const_iterator it = listTemplate.begin(); it != listTemplate.end(); ++it) {
+		W2T(*it + 7, ptszTemplate);
+		sendDlgItemMessage(IDC_TEMPLATE, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(ptszTemplate));
+	}
+	sendDlgItemMessage(IDC_TEMPLATE, CB_SETCURSEL, 0);
+	
+	UIUtil::EncodingList listEncoding;
+	StringListFree<UIUtil::EncodingList> freeEncoding(listEncoding);
+	UIUtil::loadEncodings(pProfile_, &listEncoding);
+	for (UIUtil::EncodingList::const_iterator it = listEncoding.begin(); it != listEncoding.end(); ++it) {
+		W2T(*it, ptszEncoding);
+		sendDlgItemMessage(IDC_ENCODING, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(ptszEncoding));
+	}
+	sendDlgItemMessage(IDC_ENCODING, CB_SETCURSEL, 0);
 	
 	updateState();
 	
@@ -2370,6 +2401,18 @@ LRESULT qm::ExportDialog::onOk()
 	for (int n = 0; n < countof(flags); ++n) {
 		if (sendDlgItemMessage(flags[n].nId_, BM_GETCHECK) == BST_CHECKED)
 			nFlags_ |= flags[n].flag_;
+	}
+	
+	int nIndex = sendDlgItemMessage(IDC_TEMPLATE, CB_GETCURSEL);
+	if (nIndex != CB_ERR && nIndex != 0) {
+		int nLen = sendDlgItemMessage(IDC_TEMPLATE, CB_GETLBTEXTLEN, nIndex);
+		tstring_ptr tstrTemplate(allocTString(nLen + 1));
+		sendDlgItemMessage(IDC_TEMPLATE, CB_GETLBTEXT,
+			nIndex, reinterpret_cast<LPARAM>(tstrTemplate.get()));
+		wstring_ptr wstrTemplate(tcs2wcs(tstrTemplate.get()));
+		wstrTemplate_ = concat(L"export_", wstrTemplate.get());
+		
+		wstrEncoding_ = getDlgItemText(IDC_ENCODING);
 	}
 	
 	return DefaultDialog::onOk();
@@ -2397,9 +2440,31 @@ LRESULT qm::ExportDialog::onPathChange()
 	return 0;
 }
 
+LRESULT qm::ExportDialog::onTemplateSelChange()
+{
+	updateState();
+	return 0;
+}
+
+LRESULT qm::ExportDialog::onEncodingEditChange()
+{
+	updateState();
+	return 0;
+}
+
+LRESULT qm::ExportDialog::onEncodingSelChange()
+{
+	postMessage(WM_COMMAND, MAKEWPARAM(IDC_ENCODING, CBN_EDITCHANGE));
+	return 0;
+}
+
 void qm::ExportDialog::updateState()
 {
-	bool bEnable = sendDlgItemMessage(IDC_PATH, WM_GETTEXTLENGTH) != 0;
+	int nIndex = sendDlgItemMessage(IDC_TEMPLATE, CB_GETCURSEL);
+	Window(getDlgItem(IDC_ENCODING)).enableWindow(nIndex != 0 && nIndex != CB_ERR);
+	
+	bool bEnable = sendDlgItemMessage(IDC_PATH, WM_GETTEXTLENGTH) != 0 &&
+		(nIndex == 0 || sendDlgItemMessage(IDC_ENCODING, WM_GETTEXTLENGTH) != 0);
 	Window(getDlgItem(IDOK)).enableWindow(bEnable);
 }
 

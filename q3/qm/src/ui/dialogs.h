@@ -49,8 +49,10 @@ class DefaultDialog;
 	class ViewsColumnDialog;
 	class ViewsDialog;
 
+class Account;
 class FixedFormText;
 class FixedFormTextManager;
+class TemplateManager;
 class UIManager;
 
 
@@ -667,7 +669,10 @@ private:
 class ExportDialog : public DefaultDialog
 {
 public:
-	explicit ExportDialog(bool bSingleMessage);
+	ExportDialog(Account* pAccount,
+				 const TemplateManager* pTemplateManager,
+				 qs::Profile* pProfile,
+				 bool bSingleMessage);
 	virtual ~ExportDialog();
 
 public:
@@ -691,6 +696,9 @@ protected:
 private:
 	LRESULT onBrowse();
 	LRESULT onPathChange();
+	LRESULT onTemplateSelChange();
+	LRESULT onEncodingEditChange();
+	LRESULT onEncodingSelChange();
 
 private:
 	void updateState();
@@ -706,9 +714,14 @@ private:
 	};
 
 private:
+	Account* pAccount_;
+	const TemplateManager* pTemplateManager_;
+	qs::Profile* pProfile_;
 	bool bSingleMessage_;
 	qs::wstring_ptr wstrPath_;
 	unsigned int nFlags_;
+	qs::wstring_ptr wstrTemplate_;
+	qs::wstring_ptr wstrEncoding_;
 };
 
 

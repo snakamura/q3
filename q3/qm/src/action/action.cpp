@@ -970,7 +970,7 @@ bool qm::FileDumpAction::dumpFolder(const WCHAR* pwszPath,
 		if (!fileStream)
 			return false;
 		BufferedOutputStream stream(&fileStream, false);
-		if (!FileExportAction::writeMessage(&stream, pmh, true, 0, 0, false, false))
+		if (!FileExportAction::writeMessage(&stream, pmh, FileExportAction::FLAG_ADDFLAGS))
 			return false;
 		
 		if (pDialog->isCanceled())
@@ -1085,9 +1085,13 @@ void qm::FileExitAction::invoke(const ActionEvent& event)
 
 qm::FileExportAction::FileExportAction(MessageSelectionModel* pMessageSelectionModel,
 									   SecurityModel* pSecurityModel,
+									   Document* pDocument,
+									   Profile* pProfile,
 									   HWND hwnd) :
 	pMessageSelectionModel_(pMessageSelectionModel),
 	pSecurityModel_(pSecurityModel),
+	pDocument_(pDocument),
+	pProfile_(pProfile),
 	hwnd_(hwnd)
 {
 }
@@ -1099,11 +1103,12 @@ qm::FileExportAction::~FileExportAction()
 void qm::FileExportAction::invoke(const ActionEvent& event)
 {
 	AccountLock lock;
+	Folder* pFolder = 0;
 	MessageHolderList l;
-	pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
+	pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
 	
 	if (!l.empty()) {
-		if (!export(l)) {
+		if (!export(lock.get(), pFolder, l)) {
 			ActionUtil::error(hwnd_, IDS_ERROR_EXPORT);
 			return;
 		}
@@ -1115,17 +1120,29 @@ bool qm::FileExportAction::isEnabled(const ActionEvent& event)
 	return pMessageSelectionModel_->hasSelectedMessage();
 }
 
-bool qm::FileExportAction::export(const MessageHolderList& l)
+bool qm::FileExportAction::export(Account* pAccount,
+								  Folder* pFolder,
+								  const MessageHolderList& l)
 {
-	ExportDialog dialog(l.size() == 1);
+	const TemplateManager* pTemplateManager = pDocument_->getTemplateManager();
+	
+	ExportDialog dialog(pAccount, pTemplateManager, pProfile_, l.size() == 1);
 	if (dialog.doModal(hwnd_) == IDOK) {
 		const Template* pTemplate = 0;
 		const WCHAR* pwszEncoding = 0;
 		const WCHAR* pwszTemplate = dialog.getTemplate();
 		if (pwszTemplate) {
-			// TODO
-			// Get template and encoding
+			pTemplate = pTemplateManager->getTemplate(pAccount, pFolder, pwszTemplate);
+			if (!pTemplate)
+				return false;
+			pwszEncoding = dialog.getEncoding();
 		}
+		
+		unsigned int nFlags = 0;
+		if (dialog.isExportFlags())
+			nFlags |= FLAG_ADDFLAGS;
+		if (pSecurityModel_->isDecryptVerify())
+			nFlags |= FLAG_DECRYPTVERIFY;
 		
 		ProgressDialog progressDialog(IDS_EXPORT);
 		ProgressDialogInit init(&progressDialog, hwnd_,
@@ -1158,9 +1175,14 @@ bool qm::FileExportAction::export(const MessageHolderList& l)
 				if (!fileStream)
 					return false;
 				BufferedOutputStream stream(&fileStream, false);
-				if (!writeMessage(&stream, l[n], dialog.isExportFlags(), pTemplate,
-					pwszEncoding, false, pSecurityModel_->isDecryptVerify()))
-					return false;
+				if (pTemplate) {
+					if (!writeMessage(&stream, pTemplate, l[n], pwszEncoding))
+						return false;
+				}
+				else {
+					if (!writeMessage(&stream, l[n], nFlags))
+						return false;
+				}
 				if (!stream.close())
 					return false;
 				
@@ -1175,9 +1197,8 @@ bool qm::FileExportAction::export(const MessageHolderList& l)
 			BufferedOutputStream stream(&fileStream, false);
 			
 			int nPos = 0;
-			if (l.size() == 1) {
-				if (!writeMessage(&stream, l.front(), dialog.isExportFlags(),
-					pTemplate, pwszEncoding, false, pSecurityModel_->isDecryptVerify()))
+			if (l.size() == 1 && !pTemplate) {
+				if (!writeMessage(&stream, l.front(), nFlags))
 					return false;
 				++nPos;
 			}
@@ -1187,9 +1208,14 @@ bool qm::FileExportAction::export(const MessageHolderList& l)
 						break;
 					progressDialog.setPos(nPos++);
 					
-					if (!writeMessage(&stream, *it, dialog.isExportFlags(),
-						pTemplate, pwszEncoding, true, pSecurityModel_->isDecryptVerify()))
-						return false;
+					if (pTemplate) {
+						if (!writeMessage(&stream, pTemplate, *it, pwszEncoding))
+							return false;
+					}
+					else {
+						if (!writeMessage(&stream, *it, nFlags | FLAG_WRITESEPARATOR))
+							return false;
+					}
 				}
 			}
 			progressDialog.setPos(nPos);
@@ -1201,44 +1227,57 @@ bool qm::FileExportAction::export(const MessageHolderList& l)
 	return true;
 }
 
+bool qm::FileExportAction::writeMessage(qs::OutputStream* pStream,
+										const Template* pTemplate,
+										MessageHolder* pmh,
+										const WCHAR* pwszEncoding)
+{
+	Message msg;
+	TemplateContext context(pmh, &msg, MessageHolderList(),
+		pmh->getFolder()->getAccount(), pDocument_, hwnd_,
+		pSecurityModel_->isDecryptVerify(),
+		pProfile_, 0, TemplateContext::ArgumentList());
+	
+	wstring_ptr wstrValue(pTemplate->getValue(context));
+	
+	std::auto_ptr<Converter> pConverter(ConverterFactory::getInstance(pwszEncoding));
+	if (!pConverter.get())
+		return false;
+	
+	size_t nLen = wcslen(wstrValue.get());
+	xstring_size_ptr strContent = pConverter->encode(wstrValue.get(), &nLen);
+	
+	if (pStream->write(reinterpret_cast<unsigned char*>(strContent.get()), strContent.size()) == -1)
+		return false;
+	
+	return true;
+}
+
 bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 										MessageHolder* pmh,
-										bool bAddFlags,
-										const Template* pTemplate,
-										const WCHAR* pwszEncoding,
-										bool bWriteSeparator,
-										bool bDecryptVerify)
+										unsigned int nFlags)
 {
 	assert(pStream);
 	assert(pmh);
-	assert((pTemplate && pwszEncoding) || (!pTemplate && !pwszEncoding));
 	
 	Message msg;
-	unsigned int nFlags = Account::GETMESSAGEFLAG_ALL | Account::GETMESSAGEFLAG_NOFALLBACK;
-	if (!bDecryptVerify)
-		nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
-	if (!pmh->getMessage(nFlags, 0, &msg))
+	unsigned int nGetFlags = Account::GETMESSAGEFLAG_ALL | Account::GETMESSAGEFLAG_NOFALLBACK;
+	if ((nFlags & FLAG_DECRYPTVERIFY) == 0)
+		nGetFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
+	if (!pmh->getMessage(nGetFlags, 0, &msg))
 		return false;
 	
-	if (bAddFlags) {
-		unsigned int nFlags = pmh->getFlags() & MessageHolder::FLAG_USER_MASK;
-		NumberParser flags(nFlags, NumberParser::FLAG_HEX);
+	if (nFlags & FLAG_ADDFLAGS) {
+		NumberParser flags(pmh->getFlags() & MessageHolder::FLAG_USER_MASK, NumberParser::FLAG_HEX);
 		if (!msg.replaceField(L"X-QMAIL-Flags", flags))
 			return false;
 	}
 	
-	xstring_ptr strContent;
-	if (pTemplate) {
-		// TODO
-		// Process template
-	}
-	else {
-		strContent = msg.getContent();
-		if (!strContent.get())
-			return false;
-	}
+	xstring_ptr strContent(msg.getContent());
+	if (!strContent.get())
+		return false;
 	
-	if (bWriteSeparator) {
+	if (nFlags & FLAG_WRITESEPARATOR) {
 		if (pStream->write(reinterpret_cast<const unsigned char*>("From \r\n"), 7) == -1)
 			return false;
 		

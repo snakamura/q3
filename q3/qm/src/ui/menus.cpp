@@ -184,17 +184,12 @@ bool qm::EncodingMenu::createMenu(HMENU hmenu)
 
 void qm::EncodingMenu::load(Profile* pProfile)
 {
-	assert(pProfile);
+	UIUtil::loadEncodings(pProfile, &listEncoding_);
 	
-	wstring_ptr wstrEncodings(pProfile->getString(L"Global",
-		L"Encodings", L"iso-8859-1 iso-2022-jp shift_jis euc-jp utf-8"));
-	
-	WCHAR* p = wcstok(wstrEncodings.get(), L" ");
-	while (p && listEncoding_.size() < MAX_ENCODING) {
-		wstring_ptr wstrEncoding(allocWString(p));
-		listEncoding_.push_back(wstrEncoding.get());
-		wstrEncoding.release();
-		p = wcstok(0, L" ");
+	if (listEncoding_.size() > MAX_ENCODING) {
+		for (EncodingList::size_type n = MAX_ENCODING; n < listEncoding_.size(); ++n)
+			freeWString(listEncoding_[n]);
+		listEncoding_.resize(MAX_ENCODING);
 	}
 }
 

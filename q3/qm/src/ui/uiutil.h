@@ -41,12 +41,17 @@ class TempFileCleaner;
 class UIUtil
 {
 public:
+	typedef std::vector<qs::WSTRING> EncodingList;
+
+public:
 	static int loadWindowPlacement(qs::Profile* pProfile,
 								   const WCHAR* pwszSection,
 								   CREATESTRUCT* pCreateStruct);
 	static void saveWindowPlacement(HWND hwnd,
 									qs::Profile* pProfile,
 									const WCHAR* pwszSection);
+	static void loadEncodings(qs::Profile* pProfile,
+							  EncodingList* pList);
 	
 	static qs::wstring_ptr formatMenu(const WCHAR* pwszText);
 	static bool openURL(HWND hwnd,

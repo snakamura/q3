@@ -115,6 +115,23 @@ void qm::UIUtil::saveWindowPlacement(HWND hwnd,
 #endif
 }
 
+void qm::UIUtil::loadEncodings(Profile* pProfile,
+							   EncodingList* pList)
+{
+	assert(pProfile);
+	
+	wstring_ptr wstrEncodings(pProfile->getString(L"Global",
+		L"Encodings", L"iso-8859-1 iso-2022-jp shift_jis euc-jp utf-8"));
+	
+	WCHAR* p = wcstok(wstrEncodings.get(), L" ");
+	while (p) {
+		wstring_ptr wstrEncoding(allocWString(p));
+		pList->push_back(wstrEncoding.get());
+		wstrEncoding.release();
+		p = wcstok(0, L" ");
+	}
+}
+
 wstring_ptr qm::UIUtil::formatMenu(const WCHAR* pwszText)
 {
 	assert(pwszText);

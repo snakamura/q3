@@ -743,8 +743,17 @@ private:
 class FileExportAction : public qs::AbstractAction
 {
 public:
+	enum Flag {
+		FLAG_ADDFLAGS		= 0x01,
+		FLAG_WRITESEPARATOR	= 0x02,
+		FLAG_DECRYPTVERIFY	= 0x04
+	};
+
+public:
 	FileExportAction(MessageSelectionModel* pMessageSelectionModel,
 					 SecurityModel* pSecurityModel,
+					 Document* pDocument,
+					 qs::Profile* pProfile,
 					 HWND hwnd);
 	virtual ~FileExportAction();
 
@@ -753,16 +762,18 @@ public:
 	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
-	bool export(const MessageHolderList& l);
+	bool export(Account* pAccount,
+				Folder* pFolder,
+				const MessageHolderList& l);
+	bool writeMessage(qs::OutputStream* pStream,
+					  const Template* pTemplate,
+					  MessageHolder* pmh,
+					  const WCHAR* pwszEncoding);
 
 public:
 	static bool writeMessage(qs::OutputStream* pStream,
 							 MessageHolder* pmh,
-							 bool bAddFlags,
-							 const Template* pTemplate,
-							 const WCHAR* pwszEncoding,
-							 bool bWriteSeparator,
-							 bool bDecryptVerify);
+							 unsigned int nFlags);
 
 private:
 	FileExportAction(const FileExportAction&);
@@ -771,6 +782,8 @@ private:
 private:
 	MessageSelectionModel* pMessageSelectionModel_;
 	SecurityModel* pSecurityModel_;
+	Document* pDocument_;
+	qs::Profile* pProfile_;
 	HWND hwnd_;
 };
 

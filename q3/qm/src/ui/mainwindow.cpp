@@ -420,10 +420,12 @@ void qm::MainWindowImpl::initActions()
 		pSyncManager_,
 		pTempFileCleaner_,
 		pEditFrameWindowManager_.get());
-	ADD_ACTION3(FileExportAction,
+	ADD_ACTION5(FileExportAction,
 		IDM_FILE_EXPORT,
 		pMessageSelectionModel_.get(),
 		pSecurityModel_.get(),
+		pDocument_,
+		pProfile_,
 		pThis_->getHandle());
 	ADD_ACTION2(FileImportAction,
 		IDM_FILE_IMPORT,
