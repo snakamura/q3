@@ -214,6 +214,14 @@ inline bool qs::DeviceContext::drawFocusRect(const RECT& rect)
 	return ::DrawFocusRect(hdc_, &rect) != 0;
 }
 
+inline bool qs::DeviceContext::drawFrameControl(RECT* pRect,
+												UINT nType,
+												UINT nState)
+{
+	assert(hdc_);
+	return ::DrawFrameControl(hdc_, pRect, nType, nState) != 0;
+}
+
 inline int qs::DeviceContext::getDeviceCaps(int nIndex) const
 {
 	assert(hdc_);

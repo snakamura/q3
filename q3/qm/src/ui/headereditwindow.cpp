@@ -840,6 +840,9 @@ bool qm::EditHeaderEditItem::create(qs::WindowBase* pParent,
 		return false;
 	pParent->addCommandHandler(this);
 	
+	if (getType() == TYPE_ADDRESSLIST)
+		pAutoComplete_.reset(new AutoComplete(getHandle(), pParent, this));
+	
 	pParent_ = pParent;
 	nId_ = nId;
 	
@@ -961,6 +964,78 @@ LRESULT qm::EditHeaderEditItem::onKillFocus()
 		updateEditMessage(pEditMessage_);
 	
 	return 0;
+}
+
+std::pair<size_t, size_t> qm::EditHeaderEditItem::getInput(const WCHAR* pwszText,
+														   size_t nCaret)
+{
+	const WCHAR* pBegin = pwszText + nCaret;
+	if (nCaret != 0) {
+		while (true) {
+			--pBegin;
+			if (pBegin == pwszText) {
+				break;
+			}
+			else if (*pBegin == L',') {
+				++pBegin;
+				while (*pBegin == L' ')
+					++pBegin;
+				break;
+			}
+		}
+	}
+	
+	const WCHAR* pEnd = pwszText + nCaret;
+	while (*pEnd) {
+		if (*pEnd == L',')
+			break;
+		++pEnd;
+	}
+	
+	return std::pair<size_t, size_t>(pBegin - pwszText, pEnd - pBegin);
+}
+
+void qm::EditHeaderEditItem::getCandidates(const WCHAR* pwszInput,
+										   CandidateList* pList)
+{
+	const AddressBook::EntryList& listEntry = pAddressBook_->getEntries();
+	for (AddressBook::EntryList::const_iterator it = listEntry.begin(); it != listEntry.end(); ++it)
+		getCandidates(pwszInput, *it, pList);
+	std::sort(pList->begin(), pList->end(), string_less_i<WCHAR>());
+}
+
+void qm::EditHeaderEditItem::getCandidates(const WCHAR* pwszInput,
+										   const AddressBookEntry* pEntry,
+										   CandidateList* pList)
+{
+	size_t nLen = wcslen(pwszInput);
+	bool bMatchName = isMatchName(pEntry->getName(), pwszInput, nLen);
+	
+	const AddressBookEntry::AddressList& listAddress = pEntry->getAddresses();
+	for (AddressBookEntry::AddressList::const_iterator it = listAddress.begin(); it != listAddress.end(); ++it) {
+		const AddressBookAddress* pAddress = *it;
+		if (bMatchName || _wcsnicmp(pAddress->getAddress(), pwszInput, nLen) == 0) {
+			wstring_ptr wstrValue(pAddress->getValue());
+			pList->push_back(wstrValue.get());
+			wstrValue.release();
+		}
+	}
+}
+
+bool qm::EditHeaderEditItem::isMatchName(const WCHAR* pwszName,
+										 const WCHAR* pwszInput,
+										 size_t nInputLen)
+{
+	if (_wcsnicmp(pwszName, pwszInput, nInputLen) == 0)
+		return true;
+	
+	const WCHAR* p = wcschr(pwszName, L' ');
+	while (p) {
+		if (_wcsnicmp(p + 1, pwszInput, nInputLen) == 0)
+			return true;
+		p = wcschr(p + 1, L' ');
+	}
+	return false;
 }
 
 

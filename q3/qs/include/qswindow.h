@@ -977,6 +977,12 @@ public:
 #endif
 
 #ifndef _WIN32_WCE
+#define HANDLE_NCHITTEST() \
+	case WM_NCHITTEST: \
+		lResult = onNcHitTest(Point(static_cast<short>(LOWORD(lParam)), \
+			static_cast<short>(HIWORD(lParam)))); \
+		break; \
+
 #define HANDLE_NCPAINT() \
 	case WM_NCPAINT: \
 		lResult = onNcPaint(reinterpret_cast<HRGN>(wParam)); \
@@ -1077,6 +1083,19 @@ public:
 		lResult = onVScroll(LOWORD(wParam), HIWORD(wParam), \
 			reinterpret_cast<HWND>(lParam)); \
 		break; \
+
+#define HANDLE_WINDOWPOSCHANGED() \
+	case WM_WINDOWPOSCHANGED: \
+		lResult = onWindowPosChanged(reinterpret_cast<WINDOWPOS*>(lParam)); \
+		break; \
+
+#ifndef _WIN32_WCE
+#define HANDLE_WINDOWPOSCHANGING() \
+	case WM_WINDOWPOSCHANGING: \
+		lResult = onWindowPosChanging(reinterpret_cast<WINDOWPOS*>(lParam)); \
+		break; \
+
+#endif
 
 #define HANDLE_MESSAGE(message, handler) \
 	case message: \
@@ -1202,6 +1221,7 @@ protected:
 						 const POINT& pt);
 #endif
 #ifndef _WIN32_WCE
+	LRESULT onNcHitTest(const POINT& pt);
 	LRESULT onNcPaint(HRGN hrgn);
 #endif
 	LRESULT onPaint();
@@ -1240,6 +1260,10 @@ protected:
 	LRESULT onVScroll(UINT nCode,
 					  UINT nPos,
 					  HWND hwnd);
+	LRESULT onWindowPosChanged(WINDOWPOS* pWindowPos);
+#ifndef _WIN32_WCE
+	LRESULT onWindowPosChanging(WINDOWPOS* pWindowPos);
+#endif
 };
 
 

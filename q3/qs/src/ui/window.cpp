@@ -872,10 +872,12 @@ Accelerator* qs::WindowBase::getAccelerator() const
 
 bool qs::WindowBase::preTranslateAccelerator(const MSG& msg)
 {
+	if (pImpl_->pWindowHandler_->preTranslateAccelerator(msg))
+		return true;
 	if (pImpl_->pOrgWindowBase_)
 		return pImpl_->pOrgWindowBase_->preTranslateAccelerator(msg);
 	else
-		return pImpl_->pWindowHandler_->preTranslateAccelerator(msg);
+		return false;
 }
 
 bool qs::WindowBase::isFrame() const

@@ -101,6 +101,9 @@ public:
 	bool fillSolidRect(const RECT& rect,
 					   COLORREF cr);
 	bool drawFocusRect(const RECT& rect);
+	bool drawFrameControl(RECT* pRect,
+						  UINT nType,
+						  UINT nState);
 	
 	int enumFontFamilies(const WCHAR* pwszFamily,
 						 FONTENUMPROC pProc,

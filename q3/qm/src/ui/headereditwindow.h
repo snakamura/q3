@@ -14,6 +14,7 @@
 
 #include <vector>
 
+#include "autocomplete.h"
 #include "editwindow.h"
 #include "layout.h"
 #include "../model/editmessage.h"
@@ -36,6 +37,7 @@ class HeaderEditItemCallback;
 class HeaderEditWindowContentHandler;
 
 class AddressBook;
+class AddressBookEntry;
 
 
 /****************************************************************************
@@ -288,7 +290,8 @@ private:
 
 class EditHeaderEditItem :
 	public TextHeaderEditItem,
-	public qs::DefaultCommandHandler
+	public qs::DefaultCommandHandler,
+	public AutoCompleteCallback
 {
 public:
 	EditHeaderEditItem(EditWindowFocusController* pController);
@@ -337,6 +340,20 @@ public:
 private:
 	LRESULT onKillFocus();
 
+public:
+	virtual std::pair<size_t, size_t> getInput(const WCHAR* pwszText,
+											   size_t nCaret);
+	virtual void getCandidates(const WCHAR* pwszInput,
+							   CandidateList* pList);
+
+private:
+	static void getCandidates(const WCHAR* pwszInput,
+							  const AddressBookEntry* pEntry,
+							  CandidateList* pList);
+	static bool isMatchName(const WCHAR* pwszName,
+							const WCHAR* pwszInput,
+							size_t nInputLen);
+
 private:
 	EditHeaderEditItem(const EditHeaderEditItem&);
 	EditHeaderEditItem& operator=(const EditHeaderEditItem&);
@@ -347,6 +364,7 @@ private:
 	AddressBook* pAddressBook_;
 	qs::WindowBase* pParent_;
 	unsigned int nId_;
+	std::auto_ptr<AutoComplete> pAutoComplete_;
 };
 
 

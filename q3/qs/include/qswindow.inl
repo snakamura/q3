@@ -847,6 +847,9 @@ IMPLEMENT_DEFAULTPROC3(MouseWheel, UINT, short, const POINT&,
 #endif
 
 #ifndef _WIN32_WCE
+IMPLEMENT_DEFAULTPROC1(NcHitTest, const POINT&,
+	WM_NCHITTEST, 0, MAKELPARAM(arg1.x, arg1.y))
+
 IMPLEMENT_DEFAULTPROC1(NcPaint, HRGN,
 	WM_NCPAINT, reinterpret_cast<WPARAM>(arg1), 0)
 #endif
@@ -903,5 +906,12 @@ IMPLEMENT_DEFAULTPROC1(Timer, UINT,
 IMPLEMENT_DEFAULTPROC3(VScroll, UINT, UINT, HWND,
 	WM_VSCROLL, MAKEWPARAM(arg1, arg2), reinterpret_cast<LPARAM>(arg3))
 
+IMPLEMENT_DEFAULTPROC1(WindowPosChanged, WINDOWPOS*,
+	WM_WINDOWPOSCHANGED, 0, reinterpret_cast<LPARAM>(arg1))
+
+#ifndef _WIN32_WCE
+IMPLEMENT_DEFAULTPROC1(WindowPosChanging, WINDOWPOS*,
+	WM_WINDOWPOSCHANGING, 0, reinterpret_cast<LPARAM>(arg1))
+#endif
 
 #endif // __QSWINDOW_INL__
