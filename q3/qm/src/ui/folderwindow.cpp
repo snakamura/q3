@@ -148,6 +148,7 @@ public:
 	HFONT hfont_;
 	bool bShowAllCount_;
 	bool bShowUnseenCount_;
+	unsigned int nDragOpenWait_;
 	std::auto_ptr<DropTarget> pDropTarget_;
 	
 	FolderMap mapFolder_;
@@ -483,7 +484,7 @@ void qm::FolderWindowImpl::dragOver(const DropTargetDragEvent& event)
 			dwDragOverLastChangedTime_ = ::GetTickCount();
 		}
 		else if (dwDragOverLastChangedTime_ != -1 &&
-			::GetTickCount() - dwDragOverLastChangedTime_ > 500) {
+			::GetTickCount() - dwDragOverLastChangedTime_ > nDragOpenWait_) {
 			TreeView_Expand(pThis_->getHandle(), hItem, TVE_EXPAND);
 			dwDragOverLastChangedTime_ = -1;
 		}
@@ -836,6 +837,7 @@ qm::FolderWindow::FolderWindow(WindowBase* pParentWindow,
 	pImpl_->hfont_ = 0;
 	pImpl_->bShowAllCount_ = pProfile->getInt(L"FolderWindow", L"ShowAllCount", 1) != 0;
 	pImpl_->bShowUnseenCount_ = pProfile->getInt(L"FolderWindow", L"ShowUnseenCount", 1) != 0;
+	pImpl_->nDragOpenWait_ = pProfile->getInt(L"FolderWindow", L"DragOpenWait", 500);
 	pImpl_->hItemDragOver_ = 0;
 	pImpl_->dwDragOverLastChangedTime_ = -1;
 	
