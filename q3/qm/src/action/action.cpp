@@ -2509,8 +2509,12 @@ void qm::FolderDeleteAction::invoke(const ActionEvent& event)
 	if (l.empty())
 		return;
 	
-	int nRet = messageBox(Application::getApplication().getResourceHandle(),
-		IDS_CONFIRMREMOVEFOLDER, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd_);
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	wstring_ptr wstrConfirm(loadString(hInst, IDS_CONFIRMREMOVEFOLDER));
+	wstring_ptr wstrName(UIUtil::formatFolders(l, L", "));
+	wstring_ptr wstrMessage(allocWString(wcslen(wstrConfirm.get()) + wcslen(wstrName.get()) + 64));
+	swprintf(wstrMessage.get(), wstrConfirm.get(), wstrName.get());
+	int nRet = messageBox(wstrMessage.get(), MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd_);
 	if (nRet != IDYES)
 		return;
 	
@@ -2603,8 +2607,12 @@ void qm::FolderEmptyAction::invoke(const ActionEvent& event)
 		return;
 	
 	if (bConfirm_) {
-		if (messageBox(Application::getApplication().getResourceHandle(),
-			IDS_CONFIRMEMPTYFOLDER, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd_) != IDYES)
+		HINSTANCE hInst = Application::getApplication().getResourceHandle();
+		wstring_ptr wstrConfirm(loadString(hInst, IDS_CONFIRMEMPTYFOLDER));
+		wstring_ptr wstrName(UIUtil::formatFolders(l, L", "));
+		wstring_ptr wstrMessage(allocWString(wcslen(wstrConfirm.get()) + wcslen(wstrName.get()) + 64));
+		swprintf(wstrMessage.get(), wstrConfirm.get(), wstrName.get());
+		if (messageBox(wstrMessage.get(), MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd_) != IDYES)
 			return;
 	}
 	

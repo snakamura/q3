@@ -392,6 +392,19 @@ wstring_ptr qm::UIUtil::formatFolder(Folder* pFolder)
 	return concat(c, countof(c));
 }
 
+wstring_ptr qm::UIUtil::formatFolders(const Account::FolderList& l,
+									  const WCHAR* pwszSeparator)
+{
+	StringBuffer<WSTRING> buf;
+	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		wstring_ptr wstr(formatFolder(*it));
+		if (buf.getLength() != 0)
+			buf.append(pwszSeparator);
+		buf.append(wstr.get());
+	}
+	return buf.getString();
+}
+
 std::pair<Account*, Folder*> qm::UIUtil::getAccountOrFolder(Document* pDocument,
 															const WCHAR* pwsz)
 {

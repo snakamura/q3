@@ -266,12 +266,14 @@ LRESULT qm::AccountDialog::onRemove()
 		
 		if (TreeView_GetParent(hwnd, hItem)) {
 			SubAccount* pSubAccount = reinterpret_cast<SubAccount*>(item.lParam);
+			Account* pAccount = pSubAccount->getAccount();
 			
-			int nRet = messageBox(hInst, IDS_CONFIRMREMOVESUBACCOUNT,
-				MB_YESNO | MB_DEFBUTTON2, getHandle());
+			wstring_ptr wstrConfirm(loadString(hInst, IDS_CONFIRMREMOVESUBACCOUNT));
+			wstring_ptr wstrName(concat(pAccount->getName(), L"/", pSubAccount->getName()));
+			wstring_ptr wstrMessage(allocWString(wcslen(wstrConfirm.get()) + wcslen(wstrName.get()) + 64));
+			swprintf(wstrMessage.get(), wstrConfirm.get(), wstrName.get());
+			int nRet = messageBox(wstrMessage.get(), MB_YESNO | MB_DEFBUTTON2, getHandle());
 			if (nRet == IDYES) {
-				Account* pAccount = pSubAccount->getAccount();
-				
 				for (int n = 0; n < countof(hosts); ++n) {
 					AccountPasswordCondition condition(pAccount, pSubAccount, hosts[n]);
 					pPasswordManager_->removePassword(condition);
@@ -295,8 +297,10 @@ LRESULT qm::AccountDialog::onRemove()
 				}
 			}
 			
-			int nRet = messageBox(hInst, IDS_CONFIRMREMOVEACCOUNT,
-				MB_YESNO | MB_DEFBUTTON2, getHandle());
+			wstring_ptr wstrConfirm(loadString(hInst, IDS_CONFIRMREMOVEACCOUNT));
+			wstring_ptr wstrMessage(allocWString(wcslen(wstrConfirm.get()) + wcslen(pAccount->getName()) + 64));
+			swprintf(wstrMessage.get(), wstrConfirm.get(), pAccount->getName());
+			int nRet = messageBox(wstrMessage.get(), MB_YESNO | MB_DEFBUTTON2, getHandle());
 			if (nRet == IDYES) {
 				pDocument_->removeAccount(pAccount);
 				update();

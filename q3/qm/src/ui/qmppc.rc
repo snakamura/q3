@@ -1762,13 +1762,13 @@ BEGIN
     IDS_VIEWMODELSTATUSTEMPLATE "%uM, %uU, %uS"
     IDS_ONLINE              "Online"
     IDS_OFFLINE             "Offline"
-    IDS_CONFIRMREMOVEACCOUNT "Are you sure to remove this account?"
+    IDS_CONFIRMREMOVEACCOUNT "Are you sure to remove this account?\n %s"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_CONFIRMREMOVESUBACCOUNT "Are you sure to remove this subaccount?"
-    IDS_CONFIRMREMOVEFOLDER "Are you sure to remove this folder?"
+    IDS_CONFIRMREMOVESUBACCOUNT "Are you sure to remove this subaccount?\n %s"
+    IDS_CONFIRMREMOVEFOLDER "Are you sure to remove these folders?\n %s"
     IDS_THISCATEGORY        "(&This Category)"
     IDS_SEARCH              "Search"
     IDS_MACROSEARCH         "Macro"
@@ -1849,7 +1849,7 @@ BEGIN
     IDS_COLORS              "Colors"
     IDS_NAME                "Name"
     IDS_VALUE               "Value"
-    IDS_CONFIRMEMPTYFOLDER  "Are you sure to delete all messages in these folders?"
+    IDS_CONFIRMEMPTYFOLDER  "Are you sure to delete all messages in these folders?\n %s"
     IDS_CONFIRMEMPTYTRASH   "Are you sure to delete all messages in Trash?"
     IDS_CONFIRMDELETEMESSAGE "Are you sure to delete selected messages?"
 END
