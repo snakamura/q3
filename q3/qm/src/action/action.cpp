@@ -3427,12 +3427,14 @@ QSTATUS qm::ViewNavigateMessageAction::getNextUnseen(
 		Account::FolderList::const_iterator it = itThis;
 		for (++it; it != listFolder.end() && !pUnseenFolder; ++it) {
 			if (!(*it)->isFlag(Folder::FLAG_TRASHBOX) &&
+				!(*it)->isFlag(Folder::FLAG_HIDE) &&
 				(*it)->getUnseenCount() != 0)
 				pUnseenFolder = *it;
 		}
 		if (!pUnseenFolder) {
 			for (it = listFolder.begin(); it != itThis && !pUnseenFolder; ++it) {
 				if (!(*it)->isFlag(Folder::FLAG_TRASHBOX) &&
+					!(*it)->isFlag(Folder::FLAG_HIDE) &&
 					(*it)->getUnseenCount() != 0)
 					pUnseenFolder = *it;
 			}
