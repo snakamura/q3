@@ -1006,6 +1006,10 @@ public:
 					   const WCHAR* pwszEncoding,
 					   unsigned int nFlags,
 					   HWND hwnd);
+	static bool importShowDialog(NormalFolder* pFolder,
+								 const PathList& listPath,
+								 qs::Profile* pProfile,
+								 HWND hwnd);
 	static bool readMessage(NormalFolder* pFolder,
 							const WCHAR* pwszPath,
 							bool bMultiple,

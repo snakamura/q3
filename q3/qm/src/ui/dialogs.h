@@ -1337,7 +1337,8 @@ private:
 class ImportDialog : public DefaultDialog
 {
 public:
-	explicit ImportDialog(qs::Profile* pProfile);
+	ImportDialog(const WCHAR* pwszPath,
+				 qs::Profile* pProfile);
 	virtual ~ImportDialog();
 
 public:
@@ -1360,6 +1361,7 @@ protected:
 private:
 	LRESULT onBrowse();
 	LRESULT onPathChange();
+	LRESULT onMultiMessages();
 	LRESULT onEncodingEditChange();
 	LRESULT onEncodingSelChange();
 

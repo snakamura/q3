@@ -4003,12 +4003,15 @@ void qm::GoRoundEntryDialog::updateFilter(Account* pAccount)
  *
  */
 
-qm::ImportDialog::ImportDialog(Profile* pProfile) :
+qm::ImportDialog::ImportDialog(const WCHAR* pwszPath,
+							   Profile* pProfile) :
 	DefaultDialog(IDD_IMPORT),
 	pProfile_(pProfile),
 	bMultiple_(false),
 	nFlags_(0)
 {
+	if (pwszPath)
+		wstrPath_ = allocWString(pwszPath);
 }
 
 qm::ImportDialog::~ImportDialog()
@@ -4040,6 +4043,7 @@ LRESULT qm::ImportDialog::onCommand(WORD nCode,
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_BROWSE, onBrowse)
+		HANDLE_COMMAND_ID(IDC_MULTIMESSAGES, onMultiMessages)
 		HANDLE_COMMAND_ID_CODE(IDC_PATH, EN_CHANGE, onPathChange)
 		HANDLE_COMMAND_ID_CODE(IDC_ENCODING, CBN_EDITCHANGE, onEncodingEditChange)
 		HANDLE_COMMAND_ID_CODE(IDC_ENCODING, CBN_SELCHANGE, onEncodingSelChange)
@@ -4051,6 +4055,9 @@ LRESULT qm::ImportDialog::onInitDialog(HWND hwndFocus,
 									   LPARAM lParam)
 {
 	init(false);
+	
+	if (wstrPath_.get())
+		setDlgItemText(IDC_PATH, wstrPath_.get());
 	
 	sendDlgItemMessage(IDC_ENCODING, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(_T("")));
 	UIUtil::EncodingList listEncoding;
@@ -4131,6 +4138,12 @@ LRESULT qm::ImportDialog::onPathChange()
 	return 0;
 }
 
+LRESULT qm::ImportDialog::onMultiMessages()
+{
+	updateState();
+	return 0;
+}
+
 LRESULT qm::ImportDialog::onEncodingEditChange()
 {
 	updateState();
@@ -4147,6 +4160,8 @@ void qm::ImportDialog::updateState()
 {
 	Window(getDlgItem(IDC_MULTIMESSAGES)).enableWindow(
 		sendDlgItemMessage(IDC_ENCODING, WM_GETTEXTLENGTH) == 0);
+	Window(getDlgItem(IDC_ENCODING)).enableWindow(
+		sendDlgItemMessage(IDC_MULTIMESSAGES, BM_GETCHECK) != BST_CHECKED);
 	Window(getDlgItem(IDOK)).enableWindow(
 		sendDlgItemMessage(IDC_PATH, WM_GETTEXTLENGTH) != 0);
 }

@@ -740,10 +740,19 @@ void qm::ListWindowImpl::drop(const DropTargetDropEvent& event)
 							listPath.push_back(tcs2wcs(tszPath).release());
 					}
 					
-					if (!FileImportAction::import(static_cast<NormalFolder*>(pFolder),
-						listPath, false, 0, Account::IMPORTFLAG_NORMALFLAGS,
-						pThis_->getParentFrame())) {
-						// TODO MSG
+					NormalFolder* pNormalFolder = static_cast<NormalFolder*>(pFolder);
+					if (event.getKeyState() & MK_ALT) {
+						if (!FileImportAction::importShowDialog(pNormalFolder,
+							listPath, pProfile_, pThis_->getParentFrame())) {
+							// TODO MSG
+						}
+					}
+					else {
+						if (!FileImportAction::import(pNormalFolder,
+							listPath, false, 0, Account::IMPORTFLAG_NORMALFLAGS,
+							pThis_->getParentFrame())) {
+							// TODO MSG
+						}
 					}
 					
 					if (!pDocument_->isOffline() &&
@@ -751,8 +760,7 @@ void qm::ListWindowImpl::drop(const DropTargetDropEvent& event)
 						pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
 						pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
 						SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
-							pThis_->getParentFrame(), SyncDialog::FLAG_NONE,
-							static_cast<NormalFolder*>(pFolder), 0);
+							pThis_->getParentFrame(), SyncDialog::FLAG_NONE, pNormalFolder, 0);
 					}
 				}
 			}

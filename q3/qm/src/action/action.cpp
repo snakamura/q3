@@ -1627,6 +1627,72 @@ bool qm::FileImportAction::import(NormalFolder* pFolder,
 	return true;
 }
 
+bool qm::FileImportAction::importShowDialog(NormalFolder* pFolder,
+											const PathList& listPath,
+											qs::Profile* pProfile,
+											HWND hwnd)
+{
+	StringBuffer<WSTRING> bufPath;
+	for (PathList::const_iterator it = listPath.begin(); it != listPath.end(); ++it) {
+		if (bufPath.getLength() != 0)
+			bufPath.append(L';');
+		bufPath.append(*it);
+	}
+	
+	ImportDialog dialog(bufPath.getCharArray(), pProfile);
+	if (dialog.doModal(hwnd) == IDOK) {
+		PathList listPath;
+		StringListFree<PathList> free(listPath);
+		
+		const WCHAR* pwszPath = dialog.getPath();
+		const WCHAR* pBegin = pwszPath;
+		while (true) {
+			const WCHAR* pEnd = wcschr(pBegin, L';');
+			wstring_ptr wstrPath(allocWString(pBegin, pEnd ? pEnd - pBegin : -1));
+			if (wcschr(wstrPath.get(), L'*') || wcschr(wstrPath.get(), L'?')) {
+				wstring_ptr wstrDir;
+				const WCHAR* pFileName = wcsrchr(wstrPath.get(), L'\\');
+				if (pFileName)
+					wstrDir = allocWString(wstrPath.get(), pFileName - wstrPath.get() + 1);
+				else
+					wstrDir = allocWString(L"");
+				
+				W2T(wstrPath.get(), ptszPath);
+				WIN32_FIND_DATA fd;
+				AutoFindHandle hFind(::FindFirstFile(ptszPath, &fd));
+				if (hFind.get()) {
+					do {
+						if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+							continue;
+						
+						T2W(fd.cFileName, ptszFileName);
+						wstring_ptr wstrFilePath(concat(wstrDir.get(), ptszFileName));
+						listPath.push_back(wstrFilePath.get());
+						wstrFilePath.release();
+						
+					} while (::FindNextFile(hFind.get(), &fd));
+				}
+			}
+			else {
+				listPath.push_back(wstrPath.get());
+				wstrPath.release();
+			}
+			
+			if (!pEnd)
+				break;
+			pBegin = pEnd + 1;
+			if (!*pBegin)
+				break;
+		}
+		
+		if (!import(pFolder, listPath, dialog.isMultiple(),
+			dialog.getEncoding(), dialog.getFlags(), hwnd))
+			return false;
+	}
+	
+	return true;
+}
+
 bool qm::FileImportAction::readMessage(NormalFolder* pFolder,
 									   const WCHAR* pwszPath,
 									   bool bMultiple,
@@ -1805,58 +1871,7 @@ bool qm::FileImportAction::readMessage(NormalFolder* pFolder,
 
 bool qm::FileImportAction::import(NormalFolder* pFolder)
 {
-	ImportDialog dialog(pProfile_);
-	if (dialog.doModal(hwnd_) == IDOK) {
-		PathList listPath;
-		StringListFree<PathList> free(listPath);
-		
-		const WCHAR* pwszPath = dialog.getPath();
-		const WCHAR* pBegin = pwszPath;
-		while (true) {
-			const WCHAR* pEnd = wcschr(pBegin, L';');
-			wstring_ptr wstrPath(allocWString(pBegin, pEnd ? pEnd - pBegin : -1));
-			if (wcschr(wstrPath.get(), L'*') || wcschr(wstrPath.get(), L'?')) {
-				wstring_ptr wstrDir;
-				const WCHAR* pFileName = wcsrchr(wstrPath.get(), L'\\');
-				if (pFileName)
-					wstrDir = allocWString(wstrPath.get(), pFileName - wstrPath.get() + 1);
-				else
-					wstrDir = allocWString(L"");
-				
-				W2T(wstrPath.get(), ptszPath);
-				WIN32_FIND_DATA fd;
-				AutoFindHandle hFind(::FindFirstFile(ptszPath, &fd));
-				if (hFind.get()) {
-					do {
-						if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-							continue;
-						
-						T2W(fd.cFileName, ptszFileName);
-						wstring_ptr wstrFilePath(concat(wstrDir.get(), ptszFileName));
-						listPath.push_back(wstrFilePath.get());
-						wstrFilePath.release();
-						
-					} while (::FindNextFile(hFind.get(), &fd));
-				}
-			}
-			else {
-				listPath.push_back(wstrPath.get());
-				wstrPath.release();
-			}
-			
-			if (!pEnd)
-				break;
-			pBegin = pEnd + 1;
-			if (!*pBegin)
-				break;
-		}
-		
-		if (!import(pFolder, listPath, dialog.isMultiple(),
-			dialog.getEncoding(), dialog.getFlags(), hwnd_))
-			return false;
-	}
-	
-	return true;
+	return importShowDialog(pFolder, PathList(), pProfile_, hwnd_);
 }
 
 bool qm::FileImportAction::readLine(InputStream* pStream,
