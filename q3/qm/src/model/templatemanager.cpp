@@ -1,5 +1,5 @@
 /*
- * $Id: templatemanager.cpp,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -68,7 +68,7 @@ QSTATUS qm::TemplateManager::getTemplate(Account* pAccount,
 		swprintf(wszFolder, L"_%d", pFolder->getId());
 		ConcatW c[] = {
 			{ pAccount->getPath(),	-1 },
-			{ L"\\",				-1 },
+			{ L"\\templates\\",		-1 },
 			{ pwszName,				-1 },
 			{ wszFolder,			-1 },
 			{ L".template",			-1 }
@@ -83,7 +83,7 @@ QSTATUS qm::TemplateManager::getTemplate(Account* pAccount,
 	if (!wstrPath.get()) {
 		ConcatW c[] = {
 			{ pAccount->getPath(),	-1 },
-			{ L"\\",				-1 },
+			{ L"\\templates\\",		-1 },
 			{ pwszName,				-1 },
 			{ L".template",			-1 }
 		};
