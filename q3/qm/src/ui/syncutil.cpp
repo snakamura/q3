@@ -63,7 +63,8 @@ bool qm::SyncUtil::send(SyncManager* pSyncManager,
 						HWND hwnd,
 						unsigned int nCallbackParam,
 						Account* pAccount,
-						SubAccount* pSubAccount)
+						SubAccount* pSubAccount,
+						const WCHAR* pwszMessageId)
 {
 	assert(pSyncManager);
 	assert(pDocument);
@@ -74,7 +75,7 @@ bool qm::SyncUtil::send(SyncManager* pSyncManager,
 	
 	std::auto_ptr<SyncData> pData(new SyncData(
 		pSyncManager, pDocument, hwnd, nCallbackParam));
-	pData->addSend(pAccount, pSubAccount, SyncItem::CRBS_NONE);
+	pData->addSend(pAccount, pSubAccount, SendSyncItem::CRBS_NONE, pwszMessageId);
 	
 	SyncDialog* pSyncDialog = pSyncDialogManager->open();
 	if (!pSyncDialog)
@@ -114,7 +115,7 @@ bool qm::SyncUtil::sync(SyncManager* pSyncManager,
 	}
 	
 	if (bSend)
-		pData->addSend(pAccount, pSubAccount, SyncItem::CRBS_NONE);
+		pData->addSend(pAccount, pSubAccount, SendSyncItem::CRBS_NONE, 0);
 	
 	if (bReceive) {
 		if (bSelectSyncFilter) {
@@ -184,8 +185,8 @@ bool qm::SyncUtil::goRound(SyncManager* pSyncManager,
 					Folder* pFolder = pAccount->getFolderByFlag(Folder::FLAG_OUTBOX);
 					if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL) {
 						pData->addSend(pAccount, pSubAccount,
-							static_cast<SyncItem::ConnectReceiveBeforeSend>(
-								pEntry->getConnectReceiveBeforeSend()));
+							static_cast<SendSyncItem::ConnectReceiveBeforeSend>(
+								pEntry->getConnectReceiveBeforeSend()), 0);
 					}
 				}
 				if (pEntry->isFlag(GoRoundEntry::FLAG_RECEIVE)) {
@@ -210,7 +211,7 @@ bool qm::SyncUtil::goRound(SyncManager* pSyncManager,
 			
 			Folder* pFolder = pAccount->getFolderByFlag(Folder::FLAG_OUTBOX);
 			if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL)
-				pData->addSend(pAccount, pSubAccount, SyncItem::CRBS_NONE);
+				pData->addSend(pAccount, pSubAccount, SendSyncItem::CRBS_NONE, 0);
 			
 			pData->addFolders(pAccount, pSubAccount, 0, pSubAccount->getSyncFilterName());
 		}

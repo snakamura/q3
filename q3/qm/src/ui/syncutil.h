@@ -56,7 +56,8 @@ public:
 					 HWND hwnd,
 					 unsigned int nCallbackParam,
 					 Account* pAccount,
-					 SubAccount* pSubAccount);
+					 SubAccount* pSubAccount,
+					 const WCHAR* pwszMessageId);
 	static bool goRound(SyncManager* pSyncManager,
 						Document* pDocument,
 						SyncDialogManager* pSyncDialogManager,

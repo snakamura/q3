@@ -36,33 +36,92 @@ using namespace qs;
  *
  */
 
-qm::SyncItem::SyncItem(Account* pAccount,
-					   SubAccount* pSubAccount,
-					   NormalFolder* pFolder,
-					   const SyncFilterSet* pFilterSet,
-					   unsigned int nSlot) :
+qm::SyncItem::SyncItem(unsigned int nSlot,
+					   Account* pAccount,
+					   SubAccount* pSubAccount) :
+	nSlot_(nSlot),
 	pAccount_(pAccount),
-	pSubAccount_(pSubAccount),
-	pFolder_(pFolder),
-	pFilterSet_(pFilterSet),
-	bSend_(false),
-	bConnectReceiveBeforeSend_(false),
-	nSlot_(nSlot)
+	pSubAccount_(pSubAccount)
 {
 }
 
-qm::SyncItem::SyncItem(Account* pAccount,
-					   SubAccount* pSubAccount,
-					   ConnectReceiveBeforeSend crbs,
-					   unsigned int nSlot) :
-	pAccount_(pAccount),
-	pSubAccount_(pSubAccount),
-	pFolder_(0),
-	pFilterSet_(0),
-	bSend_(true),
-	bConnectReceiveBeforeSend_(false),
-	nSlot_(nSlot)
+qm::SyncItem::~SyncItem()
 {
+}
+
+unsigned int qm::SyncItem::getSlot() const
+{
+	return nSlot_;
+}
+
+Account* qm::SyncItem::getAccount() const
+{
+	return pAccount_;
+}
+
+SubAccount* qm::SyncItem::getSubAccount() const
+{
+	return pSubAccount_;
+}
+
+
+/****************************************************************************
+ *
+ * ReceiveSyncItem
+ *
+ */
+
+qm::ReceiveSyncItem::ReceiveSyncItem(unsigned int nSlot,
+									 Account* pAccount,
+									 SubAccount* pSubAccount,
+									 NormalFolder* pFolder,
+									 const SyncFilterSet* pFilterSet) :
+	SyncItem(nSlot, pAccount, pSubAccount),
+	pFolder_(pFolder),
+	pFilterSet_(pFilterSet)
+{
+}
+
+qm::ReceiveSyncItem::~ReceiveSyncItem()
+{
+}
+
+const SyncFilterSet* qm::ReceiveSyncItem::getFilterSet() const
+{
+	return pFilterSet_;
+}
+
+bool qm::ReceiveSyncItem::isSend() const
+{
+	return false;
+}
+
+NormalFolder* qm::ReceiveSyncItem::getFolder() const
+{
+	return pFolder_;
+}
+
+
+/****************************************************************************
+ *
+ * SendSyncItem
+ *
+ */
+
+qm::SendSyncItem::SendSyncItem(unsigned int nSlot,
+							   Account* pAccount,
+							   SubAccount* pSubAccount,
+							   ConnectReceiveBeforeSend crbs,
+							   const WCHAR* pwszMessageId) :
+	SyncItem(nSlot, pAccount, pSubAccount),
+	pOutbox_(0),
+	bConnectReceiveBeforeSend_(false)
+{
+	Folder* pFolder = pAccount->getFolderByFlag(Folder::FLAG_OUTBOX);
+	if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL &&
+		pFolder->isFlag(Folder::FLAG_SYNCABLE))
+		pOutbox_ = static_cast<NormalFolder*>(pFolder);
+	
 	switch (crbs) {
 	case CRBS_NONE:
 		bConnectReceiveBeforeSend_ = pSubAccount->isConnectReceiveBeforeSend();
@@ -77,45 +136,33 @@ qm::SyncItem::SyncItem(Account* pAccount,
 		assert(false);
 		break;
 	}
+	
+	if (pwszMessageId)
+		wstrMessageId_ = allocWString(pwszMessageId);
 }
 
-qm::SyncItem::~SyncItem()
+qm::SendSyncItem::~SendSyncItem()
 {
 }
 
-Account* qm::SyncItem::getAccount() const
-{
-	return pAccount_;
-}
-
-SubAccount* qm::SyncItem::getSubAccount() const
-{
-	return pSubAccount_;
-}
-
-NormalFolder* qm::SyncItem::getFolder() const
-{
-	return pFolder_;
-}
-
-const SyncFilterSet* qm::SyncItem::getFilterSet() const
-{
-	return pFilterSet_;
-}
-
-bool qm::SyncItem::isSend() const
-{
-	return bSend_;
-}
-
-bool qm::SyncItem::isConnectReceiveBeforeSend() const
+bool qm::SendSyncItem::isConnectReceiveBeforeSend() const
 {
 	return bConnectReceiveBeforeSend_;
 }
 
-unsigned int qm::SyncItem::getSlot() const
+const WCHAR* qm::SendSyncItem::getMessageId() const
 {
-	return nSlot_;
+	return wstrMessageId_.get();
+}
+
+bool qm::SendSyncItem::isSend() const
+{
+	return true;
+}
+
+NormalFolder* qm::SendSyncItem::getFolder() const
+{
+	return pOutbox_;
 }
 
 
@@ -192,6 +239,7 @@ qm::SyncData::SyncData(SyncManager* pManager,
 
 qm::SyncData::~SyncData()
 {
+	std::for_each(listItem_.begin(), listItem_.end(), deleter<SyncItem>());
 }
 
 Document* qm::SyncData::getDocument() const
@@ -226,7 +274,7 @@ const SyncData::ItemList& qm::SyncData::getItems() const
 
 unsigned int qm::SyncData::getSlotCount() const
 {
-	return listItem_.empty() ? 0 : listItem_.back().getSlot();
+	return listItem_.empty() ? 0 : listItem_.back()->getSlot();
 }
 
 SyncManagerCallback* qm::SyncData::getCallback() const
@@ -246,7 +294,7 @@ void qm::SyncData::setDialup(std::auto_ptr<SyncDialup> pDialup)
 
 void qm::SyncData::newSlot()
 {
-	if (!listItem_.empty() && listItem_.back().getSlot() == nSlot_)
+	if (!listItem_.empty() && listItem_.back()->getSlot() == nSlot_)
 		++nSlot_;
 }
 
@@ -257,7 +305,10 @@ void qm::SyncData::addFolder(Account* pAccount,
 {
 	SyncFilterManager* pManager = pManager_->getSyncFilterManager();
 	const SyncFilterSet* pFilterSet = pManager->getFilterSet(pAccount, pwszFilterName);
-	listItem_.push_back(SyncItem(pAccount, pSubAccount, pFolder, pFilterSet, nSlot_));
+	std::auto_ptr<ReceiveSyncItem> pItem(new ReceiveSyncItem(
+		nSlot_, pAccount, pSubAccount, pFolder, pFilterSet));
+	listItem_.push_back(pItem.get());
+	pItem.release();
 }
 
 void qm::SyncData::addFolders(Account* pAccount,
@@ -291,9 +342,13 @@ void qm::SyncData::addFolders(Account* pAccount,
 
 void qm::SyncData::addSend(Account* pAccount,
 						   SubAccount* pSubAccount,
-						   SyncItem::ConnectReceiveBeforeSend crbs)
+						   SendSyncItem::ConnectReceiveBeforeSend crbs,
+						   const WCHAR* pwszMessageId)
 {
-	listItem_.push_back(SyncItem(pAccount, pSubAccount, crbs, nSlot_));
+	std::auto_ptr<SendSyncItem> pItem(new SendSyncItem(
+		nSlot_, pAccount, pSubAccount, crbs, pwszMessageId));
+	listItem_.push_back(pItem.get());
+	pItem.release();
 }
 
 
@@ -580,19 +635,14 @@ bool qm::SyncManager::syncSlotData(const SyncData* pData,
 	SubAccount* pSubAccount = 0;
 	const SyncData::ItemList& l = pData->getItems();
 	for (SyncData::ItemList::const_iterator it = l.begin(); it != l.end(); ++it) {
-		const SyncItem& item = *it;
-		if (item.getSlot() == nSlot) {
+		const SyncItem* pItem = *it;
+		if (pItem->getSlot() == nSlot) {
 			bool bSync = true;
-			if (item.isSend()) {
-				Account* pAccount = item.getAccount();
-				Folder* pFolder = pAccount->getFolderByFlag(Folder::FLAG_OUTBOX);
-				bSync = pFolder &&
-					pFolder->getType() == Folder::TYPE_NORMAL &&
-					pFolder->isFlag(Folder::FLAG_SYNCABLE);
-			}
+			if (pItem->isSend())
+				bSync = pItem->getFolder() != 0;
 			
-			if (bSync || item.isConnectReceiveBeforeSend()) {
-				if (pSubAccount != item.getSubAccount() ||
+			if (bSync || (pItem->isSend() && static_cast<const SendSyncItem*>(pItem)->isConnectReceiveBeforeSend())) {
+				if (pSubAccount != pItem->getSubAccount() ||
 					(pReceiveSession.get() && !pReceiveSession->isConnected())) {
 					pSubAccount = 0;
 					if (pReceiveSession.get())
@@ -602,18 +652,18 @@ bool qm::SyncManager::syncSlotData(const SyncData* pData,
 					pLogger.reset(0);
 					
 					if (!openReceiveSession(pData->getDocument(), pData->getWindow(),
-						pCallback, item, &pReceiveSession, &pReceiveCallback, &pLogger))
+						pCallback, pItem, &pReceiveSession, &pReceiveCallback, &pLogger))
 						continue;
-					pSubAccount = item.getSubAccount();
+					pSubAccount = pItem->getSubAccount();
 				}
 				if (bSync) {
-					if (!syncFolder(pCallback, item, pReceiveSession.get()))
+					if (!syncFolder(pCallback, pItem, pReceiveSession.get()))
 						continue;
 				}
 			}
 			
-			if (item.isSend()) {
-				if (!send(pData->getDocument(), pCallback, item))
+			if (pItem->isSend()) {
+				if (!send(pData->getDocument(), pCallback, static_cast<const SendSyncItem*>(pItem)))
 					continue;
 			}
 		}
@@ -625,21 +675,12 @@ bool qm::SyncManager::syncSlotData(const SyncData* pData,
 }
 
 bool qm::SyncManager::syncFolder(SyncManagerCallback* pSyncManagerCallback,
-								 const SyncItem& item,
+								 const SyncItem* pItem,
 								 ReceiveSession* pSession)
 {
 	assert(pSession);
 	
-	NormalFolder* pFolder = 0;
-	if (item.isSend()) {
-		Account* pAccount = item.getAccount();
-		Folder* pOutbox = pAccount->getFolderByFlag(Folder::FLAG_OUTBOX);
-		if (pOutbox && pOutbox->getType() == Folder::TYPE_NORMAL)
-			pFolder = static_cast<NormalFolder*>(pOutbox);
-	}
-	else {
-		pFolder = item.getFolder();
-	}
+	NormalFolder* pFolder = pItem->getFolder();
 	if (!pFolder || !pFolder->isFlag(Folder::FLAG_SYNCABLE))
 		return true;
 	
@@ -654,8 +695,10 @@ bool qm::SyncManager::syncFolder(SyncManagerCallback* pSyncManagerCallback,
 		return false;
 	pFolder->setLastSyncTime(::GetTickCount());
 	
-	if (!pSession->updateMessages() ||
-		!pSession->downloadMessages(item.getFilterSet()))
+	const SyncFilterSet* pFilterSet = 0;
+	if (!pItem->isSend())
+		pFilterSet = static_cast<const ReceiveSyncItem*>(pItem)->getFilterSet();
+	if (!pSession->updateMessages() || !pSession->downloadMessages(pFilterSet))
 		return false;
 	
 	if (!pFolder->getAccount()->flushMessageStore() ||
@@ -670,15 +713,13 @@ bool qm::SyncManager::syncFolder(SyncManagerCallback* pSyncManagerCallback,
 
 bool qm::SyncManager::send(Document* pDocument,
 						   SyncManagerCallback* pSyncManagerCallback,
-						   const SyncItem& item)
+						   const SendSyncItem* pItem)
 {
-	assert(item.isSend());
-	
 	unsigned int nId = ::GetCurrentThreadId();
-	pSyncManagerCallback->setAccount(nId, item.getAccount(), item.getSubAccount());
+	pSyncManagerCallback->setAccount(nId, pItem->getAccount(), pItem->getSubAccount());
 	
-	Account* pAccount = item.getAccount();
-	SubAccount* pSubAccount = item.getSubAccount();
+	Account* pAccount = pItem->getAccount();
+	SubAccount* pSubAccount = pItem->getSubAccount();
 	Folder* pFolder = pAccount->getFolderByFlag(Folder::FLAG_OUTBOX);
 	if (!pFolder || pFolder->getType() != Folder::TYPE_NORMAL)
 		return false;
@@ -702,27 +743,35 @@ bool qm::SyncManager::send(Document* pDocument,
 	{
 		Lock<Account> lock(*pOutbox->getAccount());
 		
+		const WCHAR* pwszMessageId = pItem->getMessageId();
 		for (unsigned int n = 0; n < pOutbox->getCount(); ++n) {
 			MessageHolder* pmh = pOutbox->getMessage(n);
 			if (!pmh->isFlag(MessageHolder::FLAG_DRAFT) &&
 				!pmh->isFlag(MessageHolder::FLAG_DELETED)) {
-				Message msg;
-				unsigned int nFlags = Account::GETMESSAGEFLAG_HEADER |
-					Account::GETMESSAGEFLAG_NOSECURITY;
-				if (!pmh->getMessage(nFlags, L"X-QMAIL-SubAccount", &msg))
-					return false;
+				bool bSend = true;
 				
-				bool bSend = false;
-				if (*pwszIdentity) {
-					UnstructuredParser subaccount;
-					if (msg.getField(L"X-QMAIL-SubAccount", &subaccount) == Part::FIELD_EXIST) {
-						SubAccount* p = pAccount->getSubAccount(subaccount.getValue());
-						if (p && wcscmp(p->getIdentity(), pwszIdentity) == 0)
-							bSend = true;
-					}
+				if (pwszMessageId) {
+					wstring_ptr wstrMessageId = pmh->getMessageId();
+					bSend = wstrMessageId.get() && wcscmp(pwszMessageId, wstrMessageId.get()) == 0;
 				}
-				else {
-					bSend = true;
+				
+				if (bSend) {
+					Message msg;
+					unsigned int nFlags = Account::GETMESSAGEFLAG_HEADER |
+						Account::GETMESSAGEFLAG_NOSECURITY;
+					if (!pmh->getMessage(nFlags, L"X-QMAIL-SubAccount", &msg))
+						return false;
+					
+					if (*pwszIdentity) {
+						UnstructuredParser subaccount;
+						if (msg.getField(L"X-QMAIL-SubAccount", &subaccount) == Part::FIELD_EXIST) {
+							SubAccount* p = pAccount->getSubAccount(subaccount.getValue());
+							bSend = p && wcscmp(p->getIdentity(), pwszIdentity) == 0;
+						}
+						else {
+							bSend = false;
+						}
+					}
 				}
 				
 				if (bSend)
@@ -738,7 +787,7 @@ bool qm::SyncManager::send(Document* pDocument,
 		pLogger = pAccount->openLogger(Account::HOST_SEND);
 	
 	std::auto_ptr<SendSession> pSession(SendSessionFactory::getSession(
-		item.getAccount()->getType(Account::HOST_SEND)));
+		pItem->getAccount()->getType(Account::HOST_SEND)));
 	
 	std::auto_ptr<SendSessionCallbackImpl> pCallback(
 		new SendSessionCallbackImpl(pSyncManagerCallback));
@@ -791,7 +840,7 @@ bool qm::SyncManager::send(Document* pDocument,
 bool qm::SyncManager::openReceiveSession(Document* pDocument,
 										 HWND hwnd,
 										 SyncManagerCallback* pSyncManagerCallback,
-										 const SyncItem& item,
+										 const SyncItem* pItem,
 										 std::auto_ptr<ReceiveSession>* ppSession,
 										 std::auto_ptr<ReceiveSessionCallback>* ppCallback,
 										 std::auto_ptr<Logger>* ppLogger)
@@ -802,8 +851,8 @@ bool qm::SyncManager::openReceiveSession(Document* pDocument,
 	
 	ppSession->reset(0);
 	
-	Account* pAccount = item.getAccount();
-	SubAccount* pSubAccount = item.getSubAccount();
+	Account* pAccount = pItem->getAccount();
+	SubAccount* pSubAccount = pItem->getSubAccount();
 	
 	pSyncManagerCallback->setAccount(::GetCurrentThreadId(), pAccount, pSubAccount);
 	

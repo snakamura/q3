@@ -654,8 +654,12 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
 	}
 	
 	if (pSyncManager_) {
+		const WCHAR* pwszMessageId = 0;
+		MessageIdParser messageId;
+		if (pMessage->getField(L"Message-Id", &messageId) == Part::FIELD_EXIST)
+			pwszMessageId = messageId.getMessageId();
 		if (!SyncUtil::send(pSyncManager_, pDocument_, pSyncDialogManager_,
-			pEditFrameWindow_->getHandle(), 0, pAccount, pSubAccount)) {
+			pEditFrameWindow_->getHandle(), 0, pAccount, pSubAccount, pwszMessageId)) {
 			ActionUtil::error(pEditFrameWindow_->getHandle(), IDS_ERROR_SEND);
 			return;
 		}

@@ -24,6 +24,8 @@
 namespace qm {
 
 class SyncItem;
+	class ReceiveSyncItem;
+	class SendSyncItem;
 class SyncData;
 class SyncManager;
 class SyncManagerCallback;
@@ -46,6 +48,75 @@ class SyncFilterSet;
 
 class SyncItem
 {
+protected:
+	SyncItem(unsigned int nSlot,
+			 Account* pAccount,
+			 SubAccount* pSubAccount);
+
+public:
+	virtual ~SyncItem();
+
+public:
+	unsigned int getSlot() const;
+	Account* getAccount() const;
+	SubAccount* getSubAccount() const;
+
+public:
+	virtual bool isSend() const = 0;
+	virtual NormalFolder* getFolder() const = 0;
+
+private:
+	SyncItem(const SyncItem&);
+	SyncItem& operator=(const SyncItem&);
+
+private:
+	unsigned int nSlot_;
+	Account* pAccount_;
+	SubAccount* pSubAccount_;
+};
+
+
+/****************************************************************************
+ *
+ * ReceiveSyncItem
+ *
+ */
+
+class ReceiveSyncItem : public SyncItem
+{
+public:
+	ReceiveSyncItem(unsigned int nSlot,
+					Account* pAccount,
+					SubAccount* pSubAccount,
+					NormalFolder* pFolder,
+					const SyncFilterSet* pFilterSet);
+	virtual ~ReceiveSyncItem();
+
+public:
+	const SyncFilterSet* getFilterSet() const;
+
+public:
+	virtual bool isSend() const;
+	virtual NormalFolder* getFolder() const;
+
+private:
+	ReceiveSyncItem(const ReceiveSyncItem&);
+	ReceiveSyncItem& operator=(const ReceiveSyncItem&);
+
+private:
+	NormalFolder* pFolder_;
+	const SyncFilterSet* pFilterSet_;
+};
+
+
+/****************************************************************************
+ *
+ * SendSyncItem
+ *
+ */
+
+class SendSyncItem : public SyncItem
+{
 public:
 	enum ConnectReceiveBeforeSend {
 		CRBS_NONE,
@@ -54,34 +125,29 @@ public:
 	};
 
 public:
-	SyncItem(Account* pAccount,
-			 SubAccount* pSubAccount,
-			 NormalFolder* pFolder,
-			 const SyncFilterSet* pFilterSet,
-			 unsigned int nSlot);
-	SyncItem(Account* pAccount,
-			 SubAccount* pSubAccount,
-			 ConnectReceiveBeforeSend crbs,
-			 unsigned int nSlot);
-	~SyncItem();
+	SendSyncItem(unsigned int nSlot,
+				 Account* pAccount,
+				 SubAccount* pSubAccount,
+				 ConnectReceiveBeforeSend crbs,
+				 const WCHAR* pwszMessageId);
+	virtual ~SendSyncItem();
 
 public:
-	Account* getAccount() const;
-	SubAccount* getSubAccount() const;
-	NormalFolder* getFolder() const;
-	const SyncFilterSet* getFilterSet() const;
-	bool isSend() const;
 	bool isConnectReceiveBeforeSend() const;
-	unsigned int getSlot() const;
+	const WCHAR* getMessageId() const;
+
+public:
+	virtual bool isSend() const;
+	virtual NormalFolder* getFolder() const;
 
 private:
-	Account* pAccount_;
-	SubAccount* pSubAccount_;
-	NormalFolder* pFolder_;
-	const SyncFilterSet* pFilterSet_;
-	bool bSend_;
+	SendSyncItem(const SendSyncItem&);
+	SendSyncItem& operator=(const SendSyncItem&);
+
+private:
+	NormalFolder* pOutbox_;
 	bool bConnectReceiveBeforeSend_;
-	unsigned int nSlot_;
+	qs::wstring_ptr wstrMessageId_;
 };
 
 
@@ -134,7 +200,7 @@ private:
 class SyncData
 {
 public:
-	typedef std::vector<SyncItem> ItemList;
+	typedef std::vector<SyncItem*> ItemList;
 
 public:
 	SyncData(SyncManager* pManager,
@@ -165,7 +231,8 @@ public:
 					const WCHAR* pwszFilterName);
 	void addSend(Account* pAccount,
 				 SubAccount* pSubAccount,
-				 SyncItem::ConnectReceiveBeforeSend crbs);
+				 SendSyncItem::ConnectReceiveBeforeSend crbs,
+				 const WCHAR* pwszMessageId);
 
 private:
 	SyncData(const SyncData&);
@@ -215,15 +282,15 @@ private:
 	bool syncSlotData(const SyncData* pData,
 					  unsigned int nSlot);
 	bool syncFolder(SyncManagerCallback* pSyncManagerCallback,
-					const SyncItem& item,
+					const SyncItem* pItem,
 					ReceiveSession* pSession);
 	bool send(Document* pDocument,
 			  SyncManagerCallback* pSyncManagerCallback,
-			  const SyncItem& item);
+			  const SendSyncItem* pItem);
 	bool openReceiveSession(Document* pDocument,
 							HWND hwnd,
 							SyncManagerCallback* pSyncManagerCallback,
-							const SyncItem& item,
+							const SyncItem* pItem,
 							std::auto_ptr<ReceiveSession>* ppSession,
 							std::auto_ptr<ReceiveSessionCallback>* ppCallback,
 							std::auto_ptr<qs::Logger>* ppLogger);
