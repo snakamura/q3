@@ -407,10 +407,7 @@ void qm::ApplicationImpl::saveCurrentFolder()
 			wstr = UIUtil::formatFolder(pFolder);
 	}
 	
-	if (wstr.get())
-		pProfile_->setString(L"Global", L"CurrentFolder", wstr.get());
-	else
-		pProfile_->setString(L"Global", L"CurrentFolder", L"");
+	pProfile_->setString(L"Global", L"CurrentFolder", wstr.get() ? wstr.get() : L"");
 }
 
 bool qm::ApplicationImpl::canCheck()
