@@ -1125,10 +1125,7 @@ LRESULT qs::FontDialog::onInitDialog(HWND hwndFocus,
 	}
 	double dPointSize = -lf_.lfHeight*72.0/dc.getDeviceCaps(LOGPIXELSY);
 	WCHAR wszSize[64];
-	if (dPointSize == static_cast<int>(dPointSize))
-		swprintf(wszSize, L"%d", static_cast<int>(dPointSize));
-	else
-		swprintf(wszSize, L"%lf", dPointSize);
+	swprintf(wszSize, L"%.1lf", dPointSize);
 	setDlgItemText(IDC_FONTSIZE, wszSize);
 	
 	return TRUE;
