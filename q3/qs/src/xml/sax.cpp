@@ -1115,3 +1115,31 @@ bool qs::DefaultAttributes::isSpecified(const WCHAR* pwszURI,
 	assert(false);
 	return false;
 }
+
+
+/****************************************************************************
+ *
+ * HandlerHelper
+ *
+ */
+
+bool qs::HandlerHelper::textElement(ContentHandler* pHandler,
+									const WCHAR* pwszQName,
+									const WCHAR* pwszValue,
+									size_t nLen)
+{
+	if (nLen == -1)
+		nLen = wcslen(pwszValue);
+	return pHandler->startElement(0, 0, pwszQName, DefaultAttributes()) &&
+		pHandler->characters(pwszValue, 0, nLen) &&
+		pHandler->endElement(0, 0, pwszQName);
+}
+
+bool qs::HandlerHelper::numberElement(ContentHandler* pHandler,
+									  const WCHAR* pwszQName,
+									  unsigned int nValue)
+{
+	WCHAR wsz[32];
+	swprintf(wsz, L"%u", nValue);
+	return textElement(pHandler, pwszQName, wsz, -1);
+}

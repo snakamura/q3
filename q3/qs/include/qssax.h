@@ -549,6 +549,25 @@ private:
 	DefaultAttributes& operator=(const DefaultAttributes&);
 };
 
+
+/****************************************************************************
+ *
+ * HandlerHelper
+ *
+ */
+
+class QSEXPORTCLASS HandlerHelper
+{
+public:
+	static bool textElement(ContentHandler* pHandler,
+							const WCHAR* pwszQName,
+							const WCHAR* pwszValue,
+							size_t nLen);
+	static bool numberElement(ContentHandler* pHandler,
+							  const WCHAR* pwszQName,
+							  unsigned int nValue);
+};
+
 }
 
 #endif // __QSSAX_H__
