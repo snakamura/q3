@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -61,54 +61,53 @@ public:
 	};
 
 public:
-	static qs::QSTATUS getFolderName(
-		qm::NormalFolder* pFolder, qs::WSTRING* pwstrName);
+	static qs::wstring_ptr getFolderName(qm::NormalFolder* pFolder);
 	static unsigned int getFolderFlagsFromAttributes(unsigned int nAttributes);
 	static unsigned int getMessageFlagsFromImap4Flags(unsigned int nSystemFlags,
-		const FetchDataFlags::FlagList& listCustomFlag);
+													  const FetchDataFlags::FlagList& listCustomFlag);
 	static unsigned int getImap4FlagsFromMessageFlags(unsigned int nFlags);
-	static qs::QSTATUS getMessageFromEnvelope(
-		const FetchDataEnvelope* pEnvelope, qs::STRING* pstrMessage);
-	static qs::QSTATUS getHeaderFromBodyStructure(
-		const FetchDataBodyStructure* pBodyStructure, qs::STRING* pstrHeader);
-	static unsigned long getTextSizeFromBodyStructure(
-		const FetchDataBodyStructure* pBodyStructure);
-	static qs::QSTATUS getPartsFromBodyStructure(
-		const FetchDataBodyStructure* pBodyStructure,
-		const unsigned int* pBasePath, PartList* pListPart);
-	static qs::QSTATUS getContentFromBodyStructureAndBodies(
-		const PartList& listPart, const BodyList& listBody, qs::STRING* pstrContent);
-	static qs::QSTATUS getFetchArgFromPartList(const PartList& listPart,
-		FetchArg arg, bool bPeek, bool bFetchAllMime, qs::STRING* pstrArg,
-		unsigned int* pnCount, bool* pbAll);
+	static qs::string_ptr getMessageFromEnvelope(const FetchDataEnvelope* pEnvelope);
+	static qs::string_ptr getHeaderFromBodyStructure(const FetchDataBodyStructure* pBodyStructure);
+	static unsigned long getTextSizeFromBodyStructure(const FetchDataBodyStructure* pBodyStructure);
+	static void getPartsFromBodyStructure(const FetchDataBodyStructure* pBodyStructure,
+										  const unsigned int* pBasePath,
+										  PartList* pListPart);
+	static qs::xstring_ptr getContentFromBodyStructureAndBodies(const PartList& listPart,
+																const BodyList& listBody);
+	static void getFetchArgFromPartList(const PartList& listPart,
+										FetchArg arg,
+										bool bPeek,
+										bool bFetchAllMime,
+										qs::string_ptr* pstrArg,
+										unsigned int* pnCount,
+										bool* pbAll);
 	static bool isInlineTextPart(const FetchDataBodyStructure* pBodyStructure);
 	static bool isInlineHtmlPart(const FetchDataBodyStructure* pBodyStructure);
 	static bool hasAttachmentPart(const FetchDataBodyStructure* pBodyStructure);
 	static size_t getPathLength(const unsigned int* pPath);
-	static qs::QSTATUS formatPath(const unsigned int* pPath, qs::STRING* pstrPath);
-	static qs::QSTATUS createUidList(
-		const qm::MessageHolderList& l, UidList* pList);
-	static qs::QSTATUS createRange(const qm::MessageHolderList& l,
-		std::auto_ptr<MultipleRange>* apRange);
+	static qs::string_ptr formatPath(const unsigned int* pPath);
+	static void createUidList(const qm::MessageHolderList& l,
+							  UidList* pList);
+	static std::auto_ptr<MultipleRange> createRange(const qm::MessageHolderList& l);
 	static bool isEqualFolderName(const WCHAR* pwszLhs,
-		const WCHAR* pwszRhs, WCHAR cSeparator);
-	static qs::QSTATUS getSsl(qm::SubAccount* pSubAccount, Imap4::Ssl* pSsl);
+								  const WCHAR* pwszRhs,
+								  WCHAR cSeparator);
+	static Imap4::Ssl getSsl(qm::SubAccount* pSubAccount);
 
 private:
-	static std::pair<FetchDataBody*, FetchDataBody*> getBodyFromBodyList(
-		const BodyList& listBody, const unsigned int* pPath);
-	static const CHAR* getBoundaryFromBodyStructure(
-		const FetchDataBodyStructure* pBodyStructure);
-	static qs::QSTATUS appendBoundaryToBuffer(
-		const FetchDataBodyStructure* pBodyStructure,
-		qs::StringBuffer<qs::STRING>* pBuf, bool bEnd);
-	static qs::QSTATUS qmimap4::Util::appendDataToBuffer(
-		const CHAR* pszName, const CHAR** ppsz, size_t nLen,
-		const FetchDataBodyStructure::ParamList* pListParam,
-		qs::StringBuffer<qs::STRING>* pBuf);
-	static qs::QSTATUS appendParamsToBuffer(
-		const FetchDataBodyStructure::ParamList& l,
-		qs::StringBuffer<qs::STRING>* pBuf);
+	static std::pair<FetchDataBody*, FetchDataBody*> getBodyFromBodyList(const BodyList& listBody,
+																		 const unsigned int* pPath);
+	static const CHAR* getBoundaryFromBodyStructure(const FetchDataBodyStructure* pBodyStructure);
+	static bool appendBoundaryToBuffer(const FetchDataBodyStructure* pBodyStructure,
+									   qs::XStringBuffer<qs::XSTRING>* pBuf,
+									   bool bEnd);
+	static void qmimap4::Util::appendDataToBuffer(const CHAR* pszName,
+												  const CHAR** ppsz,
+												  size_t nLen,
+												  const FetchDataBodyStructure::ParamList* pListParam,
+												  qs::StringBuffer<qs::STRING>* pBuf);
+	static void appendParamsToBuffer(const FetchDataBodyStructure::ParamList& l,
+									 qs::StringBuffer<qs::STRING>* pBuf);
 };
 
 
@@ -120,7 +119,8 @@ private:
 
 struct PathEqual : public std::unary_function<unsigned int*, bool>
 {
-	PathEqual(const unsigned int* pPath, size_t nLen);
+	PathEqual(const unsigned int* pPath,
+			  size_t nLen);
 	bool operator()(const unsigned int* pPath) const;
 	const unsigned int* pPath_;
 	size_t nLen_;
@@ -133,8 +133,7 @@ struct PathEqual : public std::unary_function<unsigned int*, bool>
  *
  */
 
-struct PathFree :
-	public std::unary_function<unsigned int*, void*>
+struct PathFree : public std::unary_function<unsigned int*, void*>
 {
 	void* operator()(unsigned int* path) const;
 };
@@ -153,14 +152,14 @@ class AbstractCallback :
 {
 public:
 	AbstractCallback(qm::SubAccount* pSubAccount,
-		const qm::Security* pSecurity, qs::QSTATUS* pstatus);
+					 const qm::Security* pSecurity);
 	virtual ~AbstractCallback();
 
 public:
-	virtual qs::QSTATUS getUserInfo(qs::WSTRING* pwstrUserName,
-		qs::WSTRING* pwstrPassword);
-	virtual qs::QSTATUS setPassword(const WCHAR* pwszPassword);
-	virtual qs::QSTATUS getAuthMethods(qs::WSTRING* pwstrAuthMethods);
+	virtual bool getUserInfo(qs::wstring_ptr* pwstrUserName,
+							 qs::wstring_ptr* pwstrPassword);
+	virtual void setPassword(const WCHAR* pwszPassword);
+	virtual qs::wstring_ptr getAuthMethods();
 
 private:
 	AbstractCallback(const AbstractCallback&);

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -105,6 +105,55 @@ public:
 
 private:
 	T* p_;
+};
+
+
+/****************************************************************************
+ *
+ * malloc_size_ptr
+ *
+ */
+
+template<class T>
+class malloc_size_ptr
+{
+public:
+	malloc_size_ptr() : p_(0), nSize_(-1) {}
+	malloc_size_ptr(T* p, size_t nSize) : p_(p), nSize_(nSize) {}
+	malloc_size_ptr(malloc_ptr<T>& a, size_t nSize) : p_(a.release()), nSize_(nSize) {}
+	malloc_size_ptr(malloc_size_ptr& a) : p_(a.release()), nSize_(a.nSize_) {}
+	~malloc_size_ptr() { free(p_); }
+	malloc_size_ptr& operator=(malloc_size_ptr& a)
+	{
+		if (&a != this) {
+			free(p_);
+			p_ = a.release();
+			nSize_ = a.nSize_;
+		}
+		return *this;
+	}
+	T& operator*() const { return *p_; }
+	T* operator->() const { return p_; }
+	T& operator[](size_t n) const { return p_[n]; }
+	T* get() const { return p_; }
+	T* release()
+	{
+		T* p = p_;
+		p_ = 0;
+		return p;
+	}
+	void reset(T* p = 0)
+	{
+		if (p != p_) {
+			free(p_);
+			p_ = p;
+		}
+	}
+	size_t size() const { return nSize_; }
+
+private:
+	T* p_;
+	size_t nSize_;
 };
 
 
@@ -472,108 +521,6 @@ std::pair<OutIt1, OutIt2> transform2(InIt first, InIt last,
 	}
 	return std::make_pair(it1, it2);
 }
-
-
-/****************************************************************************
- *
- * STLWrapper
- *
- */
-
-#ifdef _CPPUNWIND
-
-#define TRY_STL_NEW() \
-	try { \
-
-#define CATCH_STL_NEW() \
-	} \
-	catch (std::bad_alloc) { \
-		return QSTATUS_OUTOFMEMORY; \
-	} \
-
-#else
-
-#define TRY_STL_NEW() \
-	__try { \
-
-#define CATCH_STL_NEW() \
-	} \
-	__except (::GetExceptionCode() == QSTATUS_OUTOFMEMORY) { \
-		return QSTATUS_OUTOFMEMORY; \
-	} \
-
-#endif
-
-
-template<class Container>
-class STLWrapper
-{
-public:
-	explicit STLWrapper(Container& c) : c_(c) {}
-
-public:
-	QSTATUS insert(Container::const_reference value,
-		std::pair<Container::iterator, bool>* pRet)
-	{
-		assert(pRet);
-		
-		TRY_STL_NEW()
-		*pRet = c_.insert(value);
-		CATCH_STL_NEW()
-		
-		return QSTATUS_SUCCESS;
-	}
-	
-	QSTATUS insert(Container::iterator it,
-		Container::const_reference value, Container::iterator* pit)
-	{
-		assert(pit);
-		
-		TRY_STL_NEW()
-		*pit = c_.insert(it, value);
-		CATCH_STL_NEW()
-		
-		return QSTATUS_SUCCESS;
-	}
-	
-	QSTATUS insert(Container::iterator it,
-		Container::const_iterator first, Container::const_iterator last)
-	{
-		TRY_STL_NEW()
-		c_.insert(it, first, last);
-		CATCH_STL_NEW()
-		
-		return QSTATUS_SUCCESS;
-	}
-	
-	QSTATUS push_back(Container::const_reference value)
-	{
-		TRY_STL_NEW()
-		c_.push_back(value);
-		CATCH_STL_NEW()
-		
-		return QSTATUS_SUCCESS;
-	}
-	
-	QSTATUS resize(Container::size_type n)
-	{
-		TRY_STL_NEW()
-		c_.resize(n);
-		CATCH_STL_NEW()
-		return QSTATUS_SUCCESS;
-	}
-	
-	QSTATUS reserve(Container::size_type n)
-	{
-		TRY_STL_NEW()
-		c_.reserve(n);
-		CATCH_STL_NEW()
-		return QSTATUS_SUCCESS;
-	}
-
-private:
-	Container& c_;
-};
 
 }
 

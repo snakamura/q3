@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -70,15 +70,18 @@ public:
 public:
 	virtual qs::Window& getWindow() = 0;
 	virtual bool isActive() = 0;
-	virtual qs::QSTATUS setActive() = 0;
-	virtual qs::QSTATUS setMessage(MessageHolder* pmh, Message* pMessage,
-		const Template* pTemplate, const WCHAR* pwszEncoding, unsigned int nFlags) = 0;
-	virtual qs::QSTATUS scrollPage(bool bPrev, bool* pbScrolled) = 0;
-	virtual qs::QSTATUS setSelectMode(bool bSelectMode) = 0;
-	virtual qs::QSTATUS find(const WCHAR* pwszFind,
-		unsigned int nFlags, bool* pbFound) = 0;
+	virtual void setActive() = 0;
+	virtual bool setMessage(MessageHolder* pmh,
+							Message* pMessage,
+							const Template* pTemplate,
+							const WCHAR* pwszEncoding,
+							unsigned int nFlags) = 0;
+	virtual bool scrollPage(bool bPrev) = 0;
+	virtual void setSelectMode(bool bSelectMode) = 0;
+	virtual bool find(const WCHAR* pwszFind,
+					  unsigned int nFlags) = 0;
 	virtual unsigned int getSupportedFindFlags() const = 0;
-	virtual qs::QSTATUS openLink() = 0;
+	virtual bool openLink() = 0;
 };
 
 
@@ -91,15 +94,16 @@ public:
 class MessageViewWindowFactory
 {
 public:
-	MessageViewWindowFactory(Document* pDocument, qs::Profile* pProfile,
-		const WCHAR* pwszSection, qs::MenuManager* pMenuManager,
-		bool bTextOnly, qs::QSTATUS* pstatus);
+	MessageViewWindowFactory(Document* pDocument,
+							 qs::Profile* pProfile,
+							 const WCHAR* pwszSection,
+							 qs::MenuManager* pMenuManager,
+							 bool bTextOnly);
 	~MessageViewWindowFactory();
 
 public:
-	qs::QSTATUS create(HWND hwnd);
-	qs::QSTATUS getMessageViewWindow(const qs::ContentTypeParser* pContentType,
-		MessageViewWindow** ppMessageViewWindow);
+	bool create(HWND hwnd);
+	MessageViewWindow* getMessageViewWindow(const qs::ContentTypeParser* pContentType);
 	TextMessageViewWindow* getTextMessageViewWindow() const;
 	bool isSupported(const qs::ContentTypeParser* pContentType) const;
 
@@ -132,46 +136,52 @@ class TextMessageViewWindow :
 	public MessageViewWindow
 {
 public:
-	TextMessageViewWindow(Document* pDocument, qs::Profile* pProfile,
-		const WCHAR* pwszSection, qs::MenuManager* pMenuManager,
-		qs::QSTATUS* pstatus);
+	TextMessageViewWindow(Document* pDocument,
+						  qs::Profile* pProfile,
+						  const WCHAR* pwszSection,
+						  qs::MenuManager* pMenuManager);
 	virtual ~TextMessageViewWindow();
 
 public:
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
 	LRESULT onContextMenu(HWND hwnd, const POINT& pt);
 	LRESULT onLButtonDown(UINT nFlags, const POINT& pt);
 
 public:
-	qs::QSTATUS openLink(const WCHAR* pwszURL);
+	bool openLink(const WCHAR* pwszURL);
 
 public:
 	virtual qs::Window& getWindow();
 	virtual bool isActive();
-	virtual qs::QSTATUS setActive();
-	virtual qs::QSTATUS setMessage(MessageHolder* pmh, Message* pMessage,
-		const Template* pTemplate, const WCHAR* pwszEncoding, unsigned int nFlags);
-	virtual qs::QSTATUS scrollPage(bool bPrev, bool* pbScrolled);
-	virtual qs::QSTATUS setSelectMode(bool bSelectMode);
-	virtual qs::QSTATUS find(const WCHAR* pwszFind,
-		unsigned int nFlags, bool* pbFound);
+	virtual void setActive();
+	virtual bool setMessage(MessageHolder* pmh,
+							Message* pMessage,
+							const Template* pTemplate,
+							const WCHAR* pwszEncoding,
+							unsigned int nFlags);
+	virtual bool scrollPage(bool bPrev);
+	virtual void setSelectMode(bool bSelectMode);
+	virtual bool find(const WCHAR* pwszFind,
+					  unsigned int nFlags);
 	virtual unsigned int getSupportedFindFlags() const;
-	virtual qs::QSTATUS openLink();
+	virtual bool openLink();
 
 public:
-	virtual qs::QSTATUS copy();
-	virtual qs::QSTATUS canCopy(bool* pbCan);
-	virtual qs::QSTATUS selectAll();
-	virtual qs::QSTATUS canSelectAll(bool* pbCan);
+	virtual void copy();
+	virtual bool canCopy();
+	virtual void selectAll();
+	virtual bool canSelectAll();
 
 private:
 	TextMessageViewWindow(const TextMessageViewWindow&);
 	TextMessageViewWindow& operator=(const TextMessageViewWindow&);
 
 private:
-	qs::ReadOnlyTextModel* pTextModel_;
+	std::auto_ptr<qs::ReadOnlyTextModel> pTextModel_;
 	Document* pDocument_;
 	qs::Profile* pProfile_;
 	qs::MenuManager* pMenuManager_;
@@ -192,13 +202,16 @@ class HtmlMessageViewWindow :
 	public MessageViewWindow
 {
 public:
-	HtmlMessageViewWindow(qs::Profile* pProfile, const WCHAR* pwszSection,
-		qs::MenuManager* pMenuManager, qs::QSTATUS* pstatus);
+	HtmlMessageViewWindow(qs::Profile* pProfile,
+						  const WCHAR* pwszSection,
+						  qs::MenuManager* pMenuManager);
 	virtual ~HtmlMessageViewWindow();
 
 public:
-	virtual qs::QSTATUS getSuperClass(qs::WSTRING* pwstrSuperClass);
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual qs::wstring_ptr getSuperClass();
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 private:
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
@@ -207,29 +220,33 @@ private:
 public:
 	virtual qs::Window& getWindow();
 	virtual bool isActive();
-	virtual qs::QSTATUS setActive();
-	virtual qs::QSTATUS setMessage(MessageHolder* pmh, Message* pMessage,
-		const Template* pTemplate, const WCHAR* pwszEncoding, unsigned int nFlags);
-	virtual qs::QSTATUS scrollPage(bool bPrev, bool* pbScrolled);
-	virtual qs::QSTATUS setSelectMode(bool bSelectMode);
-	virtual qs::QSTATUS find(const WCHAR* pwszFind,
-		unsigned int nFlags, bool* pbFound);
+	virtual void setActive();
+	virtual bool setMessage(MessageHolder* pmh,
+							Message* pMessage,
+							const Template* pTemplate,
+							const WCHAR* pwszEncoding,
+							unsigned int nFlags);
+	virtual bool scrollPage(bool bPrev);
+	virtual void setSelectMode(bool bSelectMode);
+	virtual bool find(const WCHAR* pwszFind,
+					  unsigned int nFlags);
 	virtual unsigned int getSupportedFindFlags() const;
-	virtual qs::QSTATUS openLink();
+	virtual bool openLink();
 
 public:
-	virtual qs::QSTATUS copy();
-	virtual qs::QSTATUS canCopy(bool* pbCan);
-	virtual qs::QSTATUS selectAll();
-	virtual qs::QSTATUS canSelectAll(bool* pbCan);
+	virtual void copy();
+	virtual bool canCopy();
+	virtual void selectAll();
+	virtual bool canSelectAll();
 
 private:
-	qs::QSTATUS prepareRelatedContent(
-		const Message& msg, const qs::Part& partHtml,
-		const WCHAR* pwszEncoding, qs::WSTRING* pwstrId);
+	qs::wstring_ptr prepareRelatedContent(const Message& msg,
+										  const qs::Part& partHtml,
+										  const WCHAR* pwszEncoding);
 	void clearRelatedContent();
-	qs::QSTATUS prepareRelatedContent(const qs::Part& part,
-		const WCHAR* pwszId, const WCHAR* pwszEncoding);
+	void prepareRelatedContent(const qs::Part& part,
+							   const WCHAR* pwszId,
+							   const WCHAR* pwszEncoding);
 
 private:
 	HtmlMessageViewWindow(const HtmlMessageViewWindow&);
@@ -249,29 +266,46 @@ private:
 	class IInternetSecurityManagerImpl : public IInternetSecurityManager
 	{
 	public:
-		IInternetSecurityManagerImpl(bool bProhibitAll, qs::QSTATUS* pstatus);
+		explicit IInternetSecurityManagerImpl(bool bProhibitAll);
 		~IInternetSecurityManagerImpl();
 	
 	public:
 		STDMETHOD_(ULONG, AddRef)();
 		STDMETHOD_(ULONG, Release)();
-		STDMETHOD(QueryInterface)(REFIID riid, void** ppv);
+		STDMETHOD(QueryInterface)(REFIID riid,
+								  void** ppv);
 	
 	public:
 		STDMETHOD(SetSecuritySite)(IInternetSecurityMgrSite* pSite);
 		STDMETHOD(GetSecuritySite)(IInternetSecurityMgrSite** ppSite);
-		STDMETHOD(MapUrlToZone)(LPCWSTR pwszUrl, DWORD* pdwZone, DWORD dwFlags);
-		STDMETHOD(GetSecurityId)(LPCWSTR pwszUrl, BYTE* pbSecurityId,
-			DWORD* pcbSecurityId, DWORD_PTR dwReserved);
-		STDMETHOD(ProcessUrlAction)(LPCWSTR pwszUrl, DWORD dwAction,
-			BYTE* pPolicy, DWORD cbPolicy, BYTE* pContext, DWORD cbContext,
-			DWORD dwFlags, DWORD dwReserved);
-		STDMETHOD(QueryCustomPolicy)(LPCWSTR pwszUrl, REFGUID guidKey,
-			BYTE** ppPolicy, DWORD* pcbPolicy, BYTE* pContent,
-			DWORD cbContent, DWORD dwReserved);
-		STDMETHOD(SetZoneMapping)(DWORD dwZone, LPCWSTR pwszPattern, DWORD dwFlags);
+		STDMETHOD(MapUrlToZone)(LPCWSTR pwszUrl,
+								DWORD* pdwZone,
+								DWORD dwFlags);
+		STDMETHOD(GetSecurityId)(LPCWSTR pwszUrl,
+								 BYTE* pbSecurityId,
+								 DWORD* pcbSecurityId,
+								 DWORD_PTR dwReserved);
+		STDMETHOD(ProcessUrlAction)(LPCWSTR pwszUrl,
+									DWORD dwAction,
+									BYTE* pPolicy,
+									DWORD cbPolicy,
+									BYTE* pContext,
+									DWORD cbContext,
+									DWORD dwFlags,
+									DWORD dwReserved);
+		STDMETHOD(QueryCustomPolicy)(LPCWSTR pwszUrl,
+									 REFGUID guidKey,
+									 BYTE** ppPolicy,
+									 DWORD* pcbPolicy,
+									 BYTE* pContent,
+									 DWORD cbContent,
+									 DWORD dwReserved);
+		STDMETHOD(SetZoneMapping)(DWORD dwZone,
+								  LPCWSTR pwszPattern,
+								  DWORD dwFlags);
 		STDMETHOD(GetZoneMappings)(DWORD dwZone,
-			IEnumString** ppenumString, DWORD dwFlags);
+								   IEnumString** ppenumString,
+								   DWORD dwFlags);
 		
 	private:
 		IInternetSecurityManagerImpl(const IInternetSecurityManagerImpl&);
@@ -287,39 +321,63 @@ private:
 		public IInternetProtocolInfo
 	{
 	public:
-		InternetProtocol(HtmlMessageViewWindow* pHtmlMessageViewWindow,
-			qs::QSTATUS* pstatus);
+		explicit InternetProtocol(HtmlMessageViewWindow* pHtmlMessageViewWindow);
 		~InternetProtocol();
 	
 	public:
 		STDMETHOD_(ULONG, AddRef)();
 		STDMETHOD_(ULONG, Release)();
-		STDMETHOD(QueryInterface)(REFIID riid, void** ppv);
+		STDMETHOD(QueryInterface)(REFIID riid,
+								  void** ppv);
 	
 	public:
-		STDMETHOD(Abort)(HRESULT hrReason, DWORD dwOptions);
+		STDMETHOD(Abort)(HRESULT hrReason,
+						 DWORD dwOptions);
 		STDMETHOD(Continue)(PROTOCOLDATA* pProtocolData);
 		STDMETHOD(Resume)();
-		STDMETHOD(Start)(LPCWSTR pwszUrl, IInternetProtocolSink* pSink,
-			IInternetBindInfo* pBindInfo, DWORD dwFlags, HANDLE_PTR dwReserved);
+		STDMETHOD(Start)(LPCWSTR pwszUrl,
+						 IInternetProtocolSink* pSink,
+						 IInternetBindInfo* pBindInfo,
+						 DWORD dwFlags,
+						 HANDLE_PTR dwReserved);
 		STDMETHOD(Suspend)();
 		STDMETHOD(Terminate)(DWORD dwOptions);
 	
 	public:
 		STDMETHOD(LockRequest)(DWORD dwOptions);
-		STDMETHOD(Read)(void* pv, ULONG cb, ULONG* pcbRead);
-		STDMETHOD(Seek)(LARGE_INTEGER move, DWORD dwOrigin, ULARGE_INTEGER* pNewPos);
+		STDMETHOD(Read)(void* pv,
+						ULONG cb,
+						ULONG* pcbRead);
+		STDMETHOD(Seek)(LARGE_INTEGER move,
+						DWORD dwOrigin,
+						ULARGE_INTEGER* pNewPos);
 		STDMETHOD(UnlockRequest)();
 	
 	public:
-		STDMETHOD(CombineUrl)(LPCWSTR pwszBaseUrl, LPCWSTR pwszRelativeUrl,
-			DWORD dwCombineFlags, LPWSTR pwszResult, DWORD cchResult,
-			DWORD* pcchResult, DWORD dwReserved);
-		STDMETHOD(CompareUrl)(LPCWSTR pwszUrl1, LPCWSTR pwszUrl2, DWORD dwCompareFlags);
-		STDMETHOD(ParseUrl)(LPCWSTR pwszUrl, PARSEACTION action, DWORD dwParseFlags,
-			LPWSTR pwszResult, DWORD cchResult, DWORD* pcchResult, DWORD dwReserved);
-		STDMETHOD(QueryInfo)(LPCWSTR pwszUrl, QUERYOPTION option, DWORD dwQueryFlags,
-			LPVOID pBuffer, DWORD cbBuffer, DWORD* pcbBuffer, DWORD dwReserved);
+		STDMETHOD(CombineUrl)(LPCWSTR pwszBaseUrl,
+							  LPCWSTR pwszRelativeUrl,
+							  DWORD dwCombineFlags,
+							  LPWSTR pwszResult,
+							  DWORD cchResult,
+							  DWORD* pcchResult,
+							  DWORD dwReserved);
+		STDMETHOD(CompareUrl)(LPCWSTR pwszUrl1,
+							  LPCWSTR pwszUrl2,
+							  DWORD dwCompareFlags);
+		STDMETHOD(ParseUrl)(LPCWSTR pwszUrl,
+							PARSEACTION action,
+							DWORD dwParseFlags,
+							LPWSTR pwszResult,
+							DWORD cchResult,
+							DWORD* pcchResult,
+							DWORD dwReserved);
+		STDMETHOD(QueryInfo)(LPCWSTR pwszUrl,
+							 QUERYOPTION option,
+							 DWORD dwQueryFlags,
+							 LPVOID pBuffer,
+							 DWORD cbBuffer,
+							 DWORD* pcbBuffer,
+							 DWORD dwReserved);
 	
 	private:
 		InternetProtocol(const InternetProtocol&);
@@ -337,17 +395,19 @@ private:
 	class IServiceProviderImpl : public IServiceProvider
 	{
 	public:
-		IServiceProviderImpl(HtmlMessageViewWindow* pHtmlMessageViewWindow,
-			qs::QSTATUS* pstatus);
+		explicit IServiceProviderImpl(HtmlMessageViewWindow* pHtmlMessageViewWindow);
 		~IServiceProviderImpl();
 	
 	public:
 		STDMETHOD_(ULONG, AddRef)();
 		STDMETHOD_(ULONG, Release)();
-		STDMETHOD(QueryInterface)(REFIID riid, void** ppv);
+		STDMETHOD(QueryInterface)(REFIID riid,
+								  void** ppv);
 	
 	public:
-		STDMETHOD(QueryService)(REFGUID guidService, REFIID riid, void** ppv);
+		STDMETHOD(QueryService)(REFGUID guidService,
+								REFIID riid,
+								void** ppv);
 	
 	private:
 		IServiceProviderImpl(const IServiceProviderImpl&);
@@ -362,47 +422,77 @@ private:
 	class IDocHostUIHandlerDispatchImpl : public IDocHostUIHandlerDispatch
 	{
 	public:
-		IDocHostUIHandlerDispatchImpl(HtmlMessageViewWindow* pWindow,
-			qs::QSTATUS* pstatus);
+		explicit IDocHostUIHandlerDispatchImpl(HtmlMessageViewWindow* pWindow);
 		~IDocHostUIHandlerDispatchImpl();
 	
 	public:
 		STDMETHOD_(ULONG, AddRef)();
 		STDMETHOD_(ULONG, Release)();
-		STDMETHOD(QueryInterface)(REFIID riid, void** ppv);
+		STDMETHOD(QueryInterface)(REFIID riid,
+								  void** ppv);
 	
 	public:
-		STDMETHOD(GetIDsOfNames)(REFIID riid, OLECHAR** rgszNames,
-			unsigned int cNames, LCID lcid, DISPID* pDispId);
+		STDMETHOD(GetIDsOfNames)(REFIID riid,
+								 OLECHAR** rgszNames,
+								 unsigned int cNames,
+								 LCID lcid,
+								 DISPID* pDispId);
 		STDMETHOD(GetTypeInfo)(unsigned int nTypeInfo,
-			LCID lcid, ITypeInfo** ppTypeInfo);
+							   LCID lcid,
+							   ITypeInfo** ppTypeInfo);
 		STDMETHOD(GetTypeInfoCount)(unsigned int* pcTypeInfo);
-		STDMETHOD(Invoke)(DISPID dispId, REFIID riid, LCID lcid,
-			WORD wFlags, DISPPARAMS* pDispParams, VARIANT* pVarResult,
-			EXCEPINFO* pExcepInfo, unsigned int* pnArgErr);
+		STDMETHOD(Invoke)(DISPID dispId,
+						  REFIID riid,
+						  LCID lcid,
+						  WORD wFlags,
+						  DISPPARAMS* pDispParams,
+						  VARIANT* pVarResult,
+						  EXCEPINFO* pExcepInfo,
+						  unsigned int* pnArgErr);
 	
 	public:
-		STDMETHOD(ShowContextMenu)(DWORD dwId, DWORD x, DWORD y,
-			IUnknown* pUnk, IDispatch* pDisp, HRESULT* phrResult);
-		STDMETHOD(GetHostInfo)(DWORD* pdwFlags, DWORD* pdwDoubleClick);
-		STDMETHOD(ShowUI)(DWORD dwId, IUnknown* pActiveObject,
-			IUnknown* pCommandTarget, IUnknown* pFrame,
-			IUnknown* pUIWindow, HRESULT* phrResult);
+		STDMETHOD(ShowContextMenu)(DWORD dwId,
+								   DWORD x,
+								   DWORD y,
+								   IUnknown* pUnk,
+								   IDispatch* pDisp,
+								   HRESULT* phrResult);
+		STDMETHOD(GetHostInfo)(DWORD* pdwFlags,
+							   DWORD* pdwDoubleClick);
+		STDMETHOD(ShowUI)(DWORD dwId,
+						  IUnknown* pActiveObject,
+						  IUnknown* pCommandTarget,
+						  IUnknown* pFrame,
+						  IUnknown* pUIWindow,
+						  HRESULT* phrResult);
 		STDMETHOD(HideUI)();
 		STDMETHOD(UpdateUI)();
 		STDMETHOD(EnableModeless)(VARIANT_BOOL bEnable);
 		STDMETHOD(OnDocWindowActivate)(VARIANT_BOOL bActivate);
 		STDMETHOD(OnFrameWindowActivate)(VARIANT_BOOL bActivate);
-		STDMETHOD(ResizeBorder)(long left, long top, long right, long buttom,
-			IUnknown* pUIWindow, VARIANT_BOOL bFrameWindow);
-		STDMETHOD(TranslateAccelerator)(DWORD hwnd, DWORD nMessage,
-			DWORD wParam, DWORD lParam, BSTR bstrGuidCmdGroup,
-			DWORD nCmdId, HRESULT* phrResult);
-		STDMETHOD(GetOptionKeyPath)(BSTR* pbstrKey, DWORD dw);
-		STDMETHOD(GetDropTarget)(IUnknown* pDropTarget, IUnknown** ppDropTarget);
+		STDMETHOD(ResizeBorder)(long left,
+								long top,
+								long right,
+								long buttom,
+								IUnknown* pUIWindow,
+								VARIANT_BOOL bFrameWindow);
+		STDMETHOD(TranslateAccelerator)(DWORD hwnd,
+										DWORD nMessage,
+										DWORD wParam,
+										DWORD lParam,
+										BSTR bstrGuidCmdGroup,
+										DWORD nCmdId,
+										HRESULT* phrResult);
+		STDMETHOD(GetOptionKeyPath)(BSTR* pbstrKey,
+									DWORD dw);
+		STDMETHOD(GetDropTarget)(IUnknown* pDropTarget,
+								 IUnknown** ppDropTarget);
 		STDMETHOD(GetExternal)(IDispatch** ppDispatch);
-		STDMETHOD(TranslateUrl)(DWORD dwTranslate, BSTR bstrURLIn, BSTR* bstrURLOut);
-		STDMETHOD(FilterDataObject)(IUnknown* pInObject, IUnknown** ppOutObject);
+		STDMETHOD(TranslateUrl)(DWORD dwTranslate,
+								BSTR bstrURLIn,
+								BSTR* bstrURLOut);
+		STDMETHOD(FilterDataObject)(IUnknown* pInObject,
+									IUnknown** ppOutObject);
 	
 	private:
 		IDocHostUIHandlerDispatchImpl(const IDocHostUIHandlerDispatchImpl&);
@@ -418,23 +508,33 @@ private:
 	{
 	public:
 		DWebBrowserEvents2Impl(HtmlMessageViewWindow* pHtmlMessageViewWindow,
-			IWebBrowser2* pWebBrowser, qs::QSTATUS* pstatus);
+							   IWebBrowser2* pWebBrowser);
 		~DWebBrowserEvents2Impl();
 	
 	public:
 		STDMETHOD_(ULONG, AddRef)();
 		STDMETHOD_(ULONG, Release)();
-		STDMETHOD(QueryInterface)(REFIID riid, void** pv);
+		STDMETHOD(QueryInterface)(REFIID riid,
+								  void** pv);
 	
 	public:
-		STDMETHOD(GetIDsOfNames)(REFIID riid, OLECHAR** rgszNames,
-			unsigned int cNames, LCID lcid, DISPID* pDispId);
+		STDMETHOD(GetIDsOfNames)(REFIID riid,
+								 OLECHAR** rgszNames,
+								 unsigned int cNames,
+								 LCID lcid,
+								 DISPID* pDispId);
 		STDMETHOD(GetTypeInfo)(unsigned int nTypeInfo,
-			LCID lcid, ITypeInfo** ppTypeInfo);
+							   LCID lcid,
+							   ITypeInfo** ppTypeInfo);
 		STDMETHOD(GetTypeInfoCount)(unsigned int* pcTypeInfo);
-		STDMETHOD(Invoke)(DISPID dispId, REFIID riid, LCID lcid,
-			WORD wFlags, DISPPARAMS* pDispParams, VARIANT* pVarResult,
-			EXCEPINFO* pExcepInfo, unsigned int* pnArgErr);
+		STDMETHOD(Invoke)(DISPID dispId,
+						  REFIID riid,
+						  LCID lcid,
+						  WORD wFlags,
+						  DISPPARAMS* pDispParams,
+						  VARIANT* pVarResult,
+						  EXCEPINFO* pExcepInfo,
+						  unsigned int* pnArgErr);
 	
 	private:
 		DWebBrowserEvents2Impl(const DWebBrowserEvents2Impl&);
@@ -453,45 +553,88 @@ private:
 		struct IDispatchType;
 		struct IDispatchVtbl
 		{
-			HRESULT (STDMETHODCALLTYPE* QueryInterface)(
-				IDispatchType*, REFIID, void**);
+			HRESULT (STDMETHODCALLTYPE* QueryInterface)(IDispatchType*,
+														REFIID,
+														void**);
 			ULONG (STDMETHODCALLTYPE* AddRef)(IDispatchType*);
 			ULONG (STDMETHODCALLTYPE* Release)(IDispatchType*);
-			HRESULT (STDMETHODCALLTYPE* GetTypeInfoCount)(IDispatchType*, UINT*);
-			HRESULT (STDMETHODCALLTYPE* GetTypeInfo)(
-				IDispatchType*, UINT, LCID, ITypeInfo**);
+			HRESULT (STDMETHODCALLTYPE* GetTypeInfoCount)(IDispatchType*,
+														  UINT*);
+			HRESULT (STDMETHODCALLTYPE* GetTypeInfo)(IDispatchType*,
+													 UINT,
+													 LCID,
+													 ITypeInfo**);
 			HRESULT (STDMETHODCALLTYPE* GetIDsOfNames)(IDispatchType*,
-				REFIID, LPOLESTR*, UINT, LCID, DISPID*);
-			HRESULT (STDMETHODCALLTYPE* Invoke)(IDispatchType*, DISPID,
-				REFIID, LCID, WORD, DISPPARAMS*, VARIANT*, EXCEPINFO*, UINT*);
-			HRESULT (STDMETHODCALLTYPE* put_AllowWindowlessActivation)(IDispatchType*, VARIANT_BOOL);
-			HRESULT (STDMETHODCALLTYPE* get_AllowWindowlessActivation)(IDispatchType*, VARIANT_BOOL*);
-			HRESULT (STDMETHODCALLTYPE* put_BackColor)(IDispatchType*, OLE_COLOR);
-			HRESULT (STDMETHODCALLTYPE* get_BackColor)(IDispatchType*, OLE_COLOR*);
-			HRESULT (STDMETHODCALLTYPE* put_ForeColor)(IDispatchType*, OLE_COLOR);
-			HRESULT (STDMETHODCALLTYPE* get_ForeColor)(IDispatchType*, OLE_COLOR*);
-			HRESULT (STDMETHODCALLTYPE* put_LocaleID)(IDispatchType*, LCID);
-			HRESULT (STDMETHODCALLTYPE* get_LocaleID)(IDispatchType*, LCID*);
-			HRESULT (STDMETHODCALLTYPE* put_UserMode)(IDispatchType*, VARIANT_BOOL);
-			HRESULT (STDMETHODCALLTYPE* get_UserMode)(IDispatchType*, VARIANT_BOOL*);
-			HRESULT (STDMETHODCALLTYPE* put_DisplayAsDefault)(IDispatchType*, VARIANT_BOOL);
-			HRESULT (STDMETHODCALLTYPE* get_DisplayAsDefault)(IDispatchType*, VARIANT_BOOL*);
-			HRESULT (STDMETHODCALLTYPE* put_Font)(IDispatchType*, IFontDisp*);
-			HRESULT (STDMETHODCALLTYPE* get_Font)(IDispatchType*, IFontDisp**);
-			HRESULT (STDMETHODCALLTYPE* put_MessageReflect)(IDispatchType*, VARIANT_BOOL);
-			HRESULT (STDMETHODCALLTYPE* get_MessageReflect)(IDispatchType*, VARIANT_BOOL*);
-			HRESULT (STDMETHODCALLTYPE* get_ShowGrabHandles)(IDispatchType*, VARIANT_BOOL*);
-			HRESULT (STDMETHODCALLTYPE* get_ShowHatching)(IDispatchType*, VARIANT_BOOL*);
-			HRESULT (STDMETHODCALLTYPE* put_DocHostFlags)(IDispatchType*, DWORD);
-			HRESULT (STDMETHODCALLTYPE* get_DocHostFlags)(IDispatchType*, DWORD*);
-			HRESULT (STDMETHODCALLTYPE* put_DocHostDoubleClickFlags)(IDispatchType*, DWORD);
-			HRESULT (STDMETHODCALLTYPE* get_DocHostDoubleClickFlags)(IDispatchType*, DWORD*);
-			HRESULT (STDMETHODCALLTYPE* put_AllowContextMenu)(IDispatchType*, VARIANT_BOOL);
-			HRESULT (STDMETHODCALLTYPE* get_AllowContextMenu)(IDispatchType*, VARIANT_BOOL*);
-			HRESULT (STDMETHODCALLTYPE* put_AllowShowUI)(IDispatchType*, VARIANT_BOOL);
-			HRESULT (STDMETHODCALLTYPE* get_AllowShowUI)(IDispatchType*, VARIANT_BOOL*);
-			HRESULT (STDMETHODCALLTYPE* put_OptionKeyPath)(IDispatchType*, BSTR);
-			HRESULT (STDMETHODCALLTYPE* get_OptionKeyPath)(IDispatchType*, BSTR*);
+													   REFIID,
+													   LPOLESTR*,
+													   UINT,
+													   LCID,
+													   DISPID*);
+			HRESULT (STDMETHODCALLTYPE* Invoke)(IDispatchType*,
+												DISPID,
+												REFIID,
+												LCID,
+												WORD,
+												DISPPARAMS*,
+												VARIANT*,
+												EXCEPINFO*,
+												UINT*);
+			HRESULT (STDMETHODCALLTYPE* put_AllowWindowlessActivation)(IDispatchType*,
+																	   VARIANT_BOOL);
+			HRESULT (STDMETHODCALLTYPE* get_AllowWindowlessActivation)(IDispatchType*,
+																	   VARIANT_BOOL*);
+			HRESULT (STDMETHODCALLTYPE* put_BackColor)(IDispatchType*,
+													   OLE_COLOR);
+			HRESULT (STDMETHODCALLTYPE* get_BackColor)(IDispatchType*,
+													   OLE_COLOR*);
+			HRESULT (STDMETHODCALLTYPE* put_ForeColor)(IDispatchType*,
+													   OLE_COLOR);
+			HRESULT (STDMETHODCALLTYPE* get_ForeColor)(IDispatchType*,
+													   OLE_COLOR*);
+			HRESULT (STDMETHODCALLTYPE* put_LocaleID)(IDispatchType*,
+													  LCID);
+			HRESULT (STDMETHODCALLTYPE* get_LocaleID)(IDispatchType*,
+													  LCID*);
+			HRESULT (STDMETHODCALLTYPE* put_UserMode)(IDispatchType*,
+													  VARIANT_BOOL);
+			HRESULT (STDMETHODCALLTYPE* get_UserMode)(IDispatchType*,
+													  VARIANT_BOOL*);
+			HRESULT (STDMETHODCALLTYPE* put_DisplayAsDefault)(IDispatchType*,
+															  VARIANT_BOOL);
+			HRESULT (STDMETHODCALLTYPE* get_DisplayAsDefault)(IDispatchType*,
+															  VARIANT_BOOL*);
+			HRESULT (STDMETHODCALLTYPE* put_Font)(IDispatchType*,
+												  IFontDisp*);
+			HRESULT (STDMETHODCALLTYPE* get_Font)(IDispatchType*,
+												  IFontDisp**);
+			HRESULT (STDMETHODCALLTYPE* put_MessageReflect)(IDispatchType*,
+															VARIANT_BOOL);
+			HRESULT (STDMETHODCALLTYPE* get_MessageReflect)(IDispatchType*,
+															VARIANT_BOOL*);
+			HRESULT (STDMETHODCALLTYPE* get_ShowGrabHandles)(IDispatchType*,
+															 VARIANT_BOOL*);
+			HRESULT (STDMETHODCALLTYPE* get_ShowHatching)(IDispatchType*,
+														  VARIANT_BOOL*);
+			HRESULT (STDMETHODCALLTYPE* put_DocHostFlags)(IDispatchType*,
+														  DWORD);
+			HRESULT (STDMETHODCALLTYPE* get_DocHostFlags)(IDispatchType*,
+														  DWORD*);
+			HRESULT (STDMETHODCALLTYPE* put_DocHostDoubleClickFlags)(IDispatchType*,
+																	 DWORD);
+			HRESULT (STDMETHODCALLTYPE* get_DocHostDoubleClickFlags)(IDispatchType*,
+																	 DWORD*);
+			HRESULT (STDMETHODCALLTYPE* put_AllowContextMenu)(IDispatchType*,
+															  VARIANT_BOOL);
+			HRESULT (STDMETHODCALLTYPE* get_AllowContextMenu)(IDispatchType*,
+															  VARIANT_BOOL*);
+			HRESULT (STDMETHODCALLTYPE* put_AllowShowUI)(IDispatchType*,
+														 VARIANT_BOOL);
+			HRESULT (STDMETHODCALLTYPE* get_AllowShowUI)(IDispatchType*,
+														 VARIANT_BOOL*);
+			HRESULT (STDMETHODCALLTYPE* put_OptionKeyPath)(IDispatchType*,
+														   BSTR);
+			HRESULT (STDMETHODCALLTYPE* get_OptionKeyPath)(IDispatchType*,
+														   BSTR*);
 		};
 		
 		struct IDispatchType
@@ -504,23 +647,33 @@ private:
 	
 	public:
 		AmbientDispatchHook(HtmlMessageViewWindow* pHtmlMessageViewWindow,
-			IDispatch* pDispatch, qs::QSTATUS* pstatus);
+							IDispatch* pDispatch);
 		~AmbientDispatchHook();
 	
 	public:
 		STDMETHOD_(ULONG, AddRef)();
 		STDMETHOD_(ULONG, Release)();
-		STDMETHOD(QueryInterface)(REFIID riid, void** pv);
+		STDMETHOD(QueryInterface)(REFIID riid,
+								  void** pv);
 	
 	public:
-		STDMETHOD(GetIDsOfNames)(REFIID riid, OLECHAR** rgszNames,
-			unsigned int cNames, LCID lcid, DISPID* pDispId);
+		STDMETHOD(GetIDsOfNames)(REFIID riid,
+								 OLECHAR** rgszNames,
+								 unsigned int cNames,
+								 LCID lcid,
+								 DISPID* pDispId);
 		STDMETHOD(GetTypeInfo)(unsigned int nTypeInfo,
-			LCID lcid, ITypeInfo** ppTypeInfo);
+							   LCID lcid,
+							   ITypeInfo** ppTypeInfo);
 		STDMETHOD(GetTypeInfoCount)(unsigned int* pcTypeInfo);
-		STDMETHOD(Invoke)(DISPID dispId, REFIID riid, LCID lcid,
-			WORD wFlags, DISPPARAMS* pDispParams, VARIANT* pVarResult,
-			EXCEPINFO* pExcepInfo, unsigned int* pnArgErr);
+		STDMETHOD(Invoke)(DISPID dispId,
+						  REFIID riid,
+						  LCID lcid,
+						  WORD wFlags,
+						  DISPPARAMS* pDispParams,
+						  VARIANT* pVarResult,
+						  EXCEPINFO* pExcepInfo,
+						  unsigned int* pnArgErr);
 	
 	public:
 		STDMETHOD(put_AllowWindowlessActivation)(VARIANT_BOOL b);

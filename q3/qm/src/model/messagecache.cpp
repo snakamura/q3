@@ -1,14 +1,12 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qsconv.h>
-#include <qserror.h>
-#include <qsnew.h>
 #include <qsstream.h>
 
 #include <algorithm>
@@ -28,8 +26,7 @@ using namespace qs;
  *
  */
 
-qm::MessageCache::MessageCache(
-	MessageStore* pMessageStore, QSTATUS* pstatus) :
+qm::MessageCache::MessageCache(MessageStore* pMessageStore) :
 	pMessageStore_(pMessageStore),
 	nMaxSize_(-1),
 	nSize_(0),
@@ -37,13 +34,7 @@ qm::MessageCache::MessageCache(
 	pNewLast_(0),
 	pLastGotten_(0)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
-	
-	DECLARE_QSTATUS();
-	
-	status = newObject(-1, &pNewFirst_);
-	CHECK_QSTATUS_SET(pstatus);
+	pNewFirst_ = new CacheItem(-1);
 	pNewFirst_->pNewNext_ = pNewFirst_;
 	pNewFirst_->pNewPrev_ = pNewFirst_;
 	pNewLast_ = pNewFirst_;
@@ -52,11 +43,8 @@ qm::MessageCache::MessageCache(
 qm::MessageCache::~MessageCache()
 {
 #if defined _WIN32_WCE && _MSC_VER == 1202 && defined MIPS
-	ItemMap::const_iterator it = map_.begin();
-	while (it != map_.end()) {
+	for (ItemMap::const_iterator it = map_.begin(); it != map_.end(); ++it)
 		delete (*it).second;
-		++it;
-	}
 #else
 	std::for_each(map_.begin(), map_.end(),
 		unary_compose_f_gx(
@@ -66,14 +54,12 @@ qm::MessageCache::~MessageCache()
 	delete pNewLast_;
 }
 
-QSTATUS qm::MessageCache::getData(MessageCacheKey key,
-	MessageCacheItem item, WSTRING* pwstrData)
+wstring_ptr qm::MessageCache::getData(MessageCacheKey key,
+									  MessageCacheItem item)
 {
-	assert(pwstrData);
-	
-	DECLARE_QSTATUS();
-	
 	Lock<CriticalSection> lock(cs_);
+	
+	wstring_ptr wstrData;
 	
 	CacheItem* pItem = 0;
 	if (pLastGotten_ && pLastGotten_->getKey() == key)
@@ -84,10 +70,7 @@ QSTATUS qm::MessageCache::getData(MessageCacheKey key,
 			pItem = (*it).second;
 	}
 	if (pItem) {
-		*pwstrData = allocWString(pItem->getItem(item));
-		if (!*pwstrData)
-			return QSTATUS_OUTOFMEMORY;
-		
+		wstrData = allocWString(pItem->getItem(item));
 		if (pItem != pNewFirst_) {
 			CacheItem* pNext = pItem->pNewNext_;
 			CacheItem* pPrev = pItem->pNewPrev_;
@@ -102,35 +85,36 @@ QSTATUS qm::MessageCache::getData(MessageCacheKey key,
 		}
 	}
 	else {
-		unsigned char* p = 0;
-		status = pMessageStore_->readCache(key, &p);
-		CHECK_QSTATUS();
-		malloc_ptr<unsigned char> pFree(p);
+		malloc_ptr<unsigned char> pData(pMessageStore_->readCache(key));
+		if (!pData.get())
+			return 0;
+		unsigned char* p = pData.get();
 		
 		p += sizeof(size_t);
 		
-		UTF8Converter converter(&status);
-		CHECK_QSTATUS();
+		UTF8Converter converter;
 		if (nMaxSize_ != 0) {
-			int n = 0;
-			string_ptr<WSTRING> items[ITEM_MAX];
-			for (n = 0; n < ITEM_MAX; ++n) {
+			unsigned char* pOrg = p;
+			for (int n = 0; n < ITEM_MAX; ++n) {
 				size_t nLen = 0;
 				memcpy(&nLen, p, sizeof(nLen));
-				p += sizeof(size_t);
-				size_t nDecodedLen = 0;
-				status = converter.decode(reinterpret_cast<CHAR*>(p),
-					&nLen, &items[n], &nDecodedLen);
-				CHECK_QSTATUS();
+				for (int m = 0; m < sizeof(size_t); ++m)
+					*p++ = 0;
 				p += nLen;
 			}
-			WSTRING i[ITEM_MAX];
-			for (n = 0; n < ITEM_MAX; ++n)
-				i[n] = items[n].get();
-			status = newObject(key, i, &pItem);
-			CHECK_QSTATUS();
-			for (n = 0; n < ITEM_MAX; ++n)
-				items[n].release();
+			size_t nDecode = p - pOrg;
+			wxstring_size_ptr strDecoded(converter.decode(
+				reinterpret_cast<CHAR*>(pOrg), &nDecode));
+			const WCHAR* pw = strDecoded.get();
+			const WCHAR* pwszItem[ITEM_MAX];
+			for (int n = 0; n < ITEM_MAX; ++n) {
+				while (*pw != L'\0')
+					++pw;
+				for (int m = 0; m < sizeof(size_t); ++m)
+					++pw;
+				pwszItem[n] = pw;
+			}
+			pItem = new CacheItem(key, strDecoded.release(), pwszItem);
 			
 			insert(pItem);
 			
@@ -144,7 +128,7 @@ QSTATUS qm::MessageCache::getData(MessageCacheKey key,
 				++nSize_;
 			}
 			
-			*pwstrData = allocWString(pItem->getItem(item));
+			wstrData = allocWString(pItem->getItem(item));
 		}
 		else {
 			for (int n = 0; n < item; ++n) {
@@ -155,16 +139,17 @@ QSTATUS qm::MessageCache::getData(MessageCacheKey key,
 			size_t nLen = 0;
 			memcpy(&nLen, p, sizeof(nLen));
 			p += sizeof(size_t);
-			size_t nDecodedLen = 0;
-			status = converter.decode(reinterpret_cast<CHAR*>(p),
-				&nLen, pwstrData, &nDecodedLen);
-			CHECK_QSTATUS();
+			wxstring_size_ptr strDecoded(converter.decode(
+				reinterpret_cast<CHAR*>(p), &nLen));
+			if (!strDecoded.get())
+				return 0;
+			wstrData.reset(strDecoded.release());
 		}
 	}
 	if (pItem)
 		pLastGotten_ = pItem;
 	
-	return QSTATUS_SUCCESS;
+	return wstrData;
 }
 
 void qm::MessageCache::removeData(MessageCacheKey key)
@@ -176,86 +161,62 @@ void qm::MessageCache::removeData(MessageCacheKey key)
 		remove(it);
 }
 
-QSTATUS qm::MessageCache::createData(const Message& msg,
-	unsigned char** ppData, size_t* pnLen)
+malloc_size_ptr<unsigned char> qm::MessageCache::createData(const Message& msg)
 {
-	assert(ppData);
-	assert(pnLen);
-	
-	DECLARE_QSTATUS();
-	
-	ByteOutputStream stream(&status);
-	CHECK_QSTATUS();
-	
-	Part::Field field;
+	ByteOutputStream stream;
 	
 	const WCHAR* pwszFields[] = {
 		L"From",
 		L"To"
 	};
 	for (int n = 0; n < countof(pwszFields); ++n) {
-		AddressListParser address(0, &status);
-		CHECK_QSTATUS();
-		status = msg.getField(pwszFields[n], &address, &field);
-		CHECK_QSTATUS();
-		if (field == Part::FIELD_EXIST) {
-			string_ptr<WSTRING> wstrNames;
-			status = address.getNames(&wstrNames);
-			CHECK_QSTATUS();
-			status = writeToStream(&stream, wstrNames.get());
-			CHECK_QSTATUS();
+		AddressListParser address(0);
+		if (msg.getField(pwszFields[n], &address) == Part::FIELD_EXIST) {
+			wstring_ptr wstrNames(address.getNames());
+			if (!writeToStream(&stream, wstrNames.get()))
+				return malloc_size_ptr<unsigned char>();
 		}
 		else {
-			status = writeToStream(&stream, 0);
-			CHECK_QSTATUS();
+			if (!writeToStream(&stream, 0))
+				return malloc_size_ptr<unsigned char>();
 		}
 	}
 	
-	UnstructuredParser subject(&status);
-	CHECK_QSTATUS();
-	status = msg.getField(L"Subject", &subject, &field);
-	CHECK_QSTATUS();
-	if (field == Part::FIELD_EXIST) {
-		status = writeToStream(&stream, subject.getValue());
-		CHECK_QSTATUS();
+	UnstructuredParser subject;
+	if (msg.getField(L"Subject", &subject) == Part::FIELD_EXIST) {
+		if (!writeToStream(&stream, subject.getValue()))
+			return malloc_size_ptr<unsigned char>();
 	}
 	else {
-		status = writeToStream(&stream, 0);
-		CHECK_QSTATUS();
+		if (!writeToStream(&stream, 0))
+			return malloc_size_ptr<unsigned char>();
 	}
 	
-	MessageIdParser messageId(&status);
-	CHECK_QSTATUS();
-	status = msg.getField(L"Message-Id", &messageId, &field);
-	CHECK_QSTATUS();
-	if (field == Part::FIELD_EXIST) {
-		status = writeToStream(&stream, messageId.getMessageId());
-		CHECK_QSTATUS();
+	MessageIdParser messageId;
+	if (msg.getField(L"Message-Id", &messageId) == Part::FIELD_EXIST) {
+		if (!writeToStream(&stream, messageId.getMessageId()))
+			return malloc_size_ptr<unsigned char>();
 	}
 	else {
-		status = writeToStream(&stream, 0);
-		CHECK_QSTATUS();
+		if (!writeToStream(&stream, 0))
+			return malloc_size_ptr<unsigned char>();
 	}
 	
-	string_ptr<WSTRING> wstrReference;
-	status = PartUtil(msg).getReference(&wstrReference);
-	CHECK_QSTATUS();
-	if (field == Part::FIELD_EXIST) {
-		status = writeToStream(&stream, wstrReference.get());
-		CHECK_QSTATUS();
+	wstring_ptr wstrReference(PartUtil(msg).getReference());
+	if (wstrReference.get()) {
+		if (!writeToStream(&stream, wstrReference.get()))
+			return malloc_size_ptr<unsigned char>();
 	}
 	else {
-		status = writeToStream(&stream, 0);
-		CHECK_QSTATUS();
+		if (!writeToStream(&stream, 0))
+			return malloc_size_ptr<unsigned char>();
 	}
 	
-	status = stream.write(reinterpret_cast<const unsigned char*>("\r\n"), 2);
-	CHECK_QSTATUS();
+	if (stream.write(reinterpret_cast<const unsigned char*>("\r\n"), 2) == -1)
+		return malloc_size_ptr<unsigned char>();
 	
-	*pnLen = stream.getLength();
-	*ppData = stream.releaseBuffer();
-	
-	return QSTATUS_SUCCESS;
+	size_t nLen = stream.getLength();
+	return malloc_size_ptr<unsigned char>(stream.releaseBuffer(), nLen);
 }
 
 void qm::MessageCache::insert(CacheItem* pItem)
@@ -291,31 +252,26 @@ void qm::MessageCache::remove(ItemMap::iterator it)
 	delete pItem;
 }
 
-QSTATUS qm::MessageCache::writeToStream(
-	OutputStream* pStream, const WCHAR* pwsz)
+bool qm::MessageCache::writeToStream(OutputStream* pStream,
+									 const WCHAR* pwsz)
 {
 	assert(pStream);
-	
-	DECLARE_QSTATUS();
 	
 	if (!pwsz)
 		pwsz = L"";
 	
-	UTF8Converter converter(&status);
-	CHECK_QSTATUS();
+	UTF8Converter converter;
 	size_t nLen = wcslen(pwsz);
-	string_ptr<STRING> str;
-	size_t nEncodedLen = 0;
-	status = converter.encode(pwsz, &nLen, &str, &nEncodedLen);
-	CHECK_QSTATUS();
-	status = pStream->write(reinterpret_cast<unsigned char*>(&nEncodedLen),
-		sizeof(nEncodedLen));
-	CHECK_QSTATUS();
-	status = pStream->write(reinterpret_cast<unsigned char*>(str.get()),
-		nEncodedLen);
-	CHECK_QSTATUS();
+	xstring_size_ptr str(converter.encode(pwsz, &nLen));
+	if (!str.get())
+		return false;
+	size_t nEncodedLen = str.size();
+	if (pStream->write(reinterpret_cast<unsigned char*>(&nEncodedLen), sizeof(nEncodedLen)) == -1)
+		return false;
+	if (pStream->write(reinterpret_cast<unsigned char*>(str.get()), nEncodedLen) == -1)
+		return false;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -330,21 +286,22 @@ qm::CacheItem::CacheItem(MessageCacheKey key) :
 	pNewNext_(0),
 	pNewPrev_(0)
 {
-	memset(items_, 0, sizeof(items_));
+	memset(pwszItem_, 0, sizeof(pwszItem_));
 }
 
-qm::CacheItem::CacheItem(MessageCacheKey key, const WSTRING* pItems) :
+qm::CacheItem::CacheItem(MessageCacheKey key,
+						 wxstring_ptr wstr,
+						 const WCHAR* pwszItem[]) :
 	key_(key),
+	wstr_(wstr),
 	pNewNext_(0),
 	pNewPrev_(0)
 {
-	memcpy(items_, pItems, ITEM_MAX*sizeof(WSTRING));
+	memcpy(pwszItem_, pwszItem, sizeof(pwszItem_));
 }
 
 qm::CacheItem::~CacheItem()
 {
-	for (int n = 0; n < countof(items_); ++n)
-		freeWString(items_[n]);
 }
 
 MessageCacheKey qm::CacheItem::getKey() const
@@ -355,5 +312,5 @@ MessageCacheKey qm::CacheItem::getKey() const
 const WCHAR* qm::CacheItem::getItem(MessageCacheItem item) const
 {
 	assert(item < ITEM_MAX);
-	return items_[item];
+	return pwszItem_[item];
 }

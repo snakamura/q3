@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -30,8 +30,11 @@ using namespace qs;
  *
  */
 
-qm::MessageComposer::MessageComposer(bool bDraft, Document* pDocument,
-	Profile* pProfile, HWND hwnd, FolderModel* pFolderModel) :
+qm::MessageComposer::MessageComposer(bool bDraft,
+									 Document* pDocument,
+									 Profile* pProfile,
+									 HWND hwnd,
+									 FolderModel* pFolderModel) :
 	bDraft_(bDraft),
 	pDocument_(pDocument),
 	pProfile_(pProfile),
@@ -44,24 +47,21 @@ qm::MessageComposer::~MessageComposer()
 {
 }
 
-QSTATUS qm::MessageComposer::compose(Account* pAccount,
-	SubAccount* pSubAccount, Message* pMessage, unsigned int nFlags) const
+bool qm::MessageComposer::compose(Account* pAccount,
+								  SubAccount* pSubAccount,
+								  Message* pMessage,
+								  unsigned int nFlags) const
 {
 	assert(pAccount || pFolderModel_);
 	assert((!pAccount && !pSubAccount) ||
 		(pAccount && !pSubAccount) || (pAccount && pSubAccount));
 	assert(pMessage);
 	
-	DECLARE_QSTATUS();
-	
 	if (!pAccount) {
 		assert(pFolderModel_);
 		
-		UnstructuredParser account(&status);
-		CHECK_QSTATUS();
-		Part::Field f;
-		status = pMessage->getField(L"X-QMAIL-Account", &account, &f);
-		CHECK_QSTATUS();
+		UnstructuredParser account;
+		Part::Field f = pMessage->getField(L"X-QMAIL-Account", &account);
 		if (f == Part::FIELD_EXIST) {
 			pAccount = pDocument_->getAccount(account.getValue());
 		}
@@ -75,13 +75,10 @@ QSTATUS qm::MessageComposer::compose(Account* pAccount,
 		}
 	}
 	if (!pAccount)
-		return QSTATUS_FAIL;
+		return false;
 	if (!pSubAccount) {
-		UnstructuredParser subaccount(&status);
-		CHECK_QSTATUS();
-		Part::Field f;
-		status = pMessage->getField(L"X-QMAIL-SubAccount", &subaccount, &f);
-		CHECK_QSTATUS();
+		UnstructuredParser subaccount;
+		Part::Field f = pMessage->getField(L"X-QMAIL-SubAccount", &subaccount);
 		if (f == Part::FIELD_EXIST)
 			pSubAccount = pAccount->getSubAccount(subaccount.getValue());
 		else
@@ -91,23 +88,19 @@ QSTATUS qm::MessageComposer::compose(Account* pAccount,
 	Folder* pFolder = pAccount->getFolderByFlag(
 		bDraft_ ? Folder::FLAG_DRAFTBOX : Folder::FLAG_OUTBOX);
 	if (!pFolder || pFolder->getType() != Folder::TYPE_NORMAL)
-		return QSTATUS_FAIL;
+		return false;
 	
-	bool bResent = false;
-	status = PartUtil(*pMessage).isResent(&bResent);
-	CHECK_QSTATUS();
+	bool bResent = PartUtil(*pMessage).isResent();
 	
 	AddressParser from(pSubAccount->getSenderName(),
-		pSubAccount->getSenderAddress(), &status);
-	CHECK_QSTATUS();
-	status = pMessage->setField(bResent ? L"Resent-From" : L"From", from);
-	CHECK_QSTATUS();
+		pSubAccount->getSenderAddress());
+	if (!pMessage->setField(bResent ? L"Resent-From" : L"From", from))
+		return false;
 	
 	Time time(Time::getCurrentTime());
-	DateParser date(time, &status);
-	CHECK_QSTATUS();
-	status = pMessage->setField(bResent ? L"Resent-Date" : L"Date", date);
-	CHECK_QSTATUS();
+	DateParser date(time);
+	if (!pMessage->setField(bResent ? L"Resent-Date" : L"Date", date))
+		return false;
 	
 	if (pSubAccount->isAddMessageId()) {
 		WCHAR wsz[256];
@@ -115,45 +108,32 @@ QSTATUS qm::MessageComposer::compose(Account* pAccount,
 			::GetCurrentProcessId(), time.wYear, time.wMonth,
 			time.wDay, time.wHour, time.wMinute, time.wSecond);
 		
-		string_ptr<WSTRING> wstrMessageId(concat(
-			wsz, pSubAccount->getSenderAddress()));
-		if (!wstrMessageId.get())
-			return QSTATUS_OUTOFMEMORY;
+		wstring_ptr wstrMessageId(concat(wsz, pSubAccount->getSenderAddress()));
 		
-		MessageIdParser messageId(wstrMessageId.get(), &status);
-		CHECK_QSTATUS();
-		status = pMessage->setField(bResent ? L"Resent-Message-Id" : L"Message-Id", messageId);
-		CHECK_QSTATUS();
+		MessageIdParser messageId(wstrMessageId.get());
+		if (!pMessage->setField(bResent ? L"Resent-Message-Id" : L"Message-Id", messageId))
+			return false;
 	}
 	
 	const WCHAR* pwszMacro = 0;
-	UnstructuredParser macro(&status);
-	CHECK_QSTATUS();
-	Part::Field f;
-	status = pMessage->getField(L"X-QMAIL-Macro", &macro, &f);
-	CHECK_QSTATUS();
+	UnstructuredParser macro;
+	Part::Field f = pMessage->getField(L"X-QMAIL-Macro", &macro);
 	if (f == Part::FIELD_EXIST)
 		pwszMacro = macro.getValue();
-	status = pMessage->removeField(L"X-QMAIL-Macro");
-	CHECK_QSTATUS();
+	pMessage->removeField(L"X-QMAIL-Macro");
 	
-	string_ptr<WSTRING> wstrVersion;
-	status = Application::getApplication().getVersion(true, &wstrVersion);
-	CHECK_QSTATUS();
-	UnstructuredParser mailer(wstrVersion.get(), L"utf-8", &status);
-	CHECK_QSTATUS();
-	status = pMessage->replaceField(L"X-Mailer", mailer);
-	CHECK_QSTATUS();
+	wstring_ptr wstrVersion(Application::getApplication().getVersion(true));
+	UnstructuredParser mailer(wstrVersion.get(), L"utf-8");
+	if (!pMessage->replaceField(L"X-Mailer", mailer))
+		return false;
 	
-	status = pMessage->sortHeader();
-	CHECK_QSTATUS();
+	if (!pMessage->sortHeader())
+		return false;
 	
 	const Security* pSecurity = pDocument_->getSecurity();
 	const SMIMEUtility* pSMIMEUtility = pSecurity->getSMIMEUtility();
 	if (pSMIMEUtility && nFlags != 0) {
-		SMIMECallbackImpl callback(pSecurity,
-			pDocument_->getAddressBook(), &status);
-		CHECK_QSTATUS();
+		SMIMECallbackImpl callback(pSecurity, pDocument_->getAddressBook());
 		
 		if (nFlags & FLAG_SIGN) {
 			// TODO
@@ -162,63 +142,42 @@ QSTATUS qm::MessageComposer::compose(Account* pAccount,
 			Certificate* pCertificate = pSubAccount->getCertificate();
 			PrivateKey* pPrivateKey = pSubAccount->getPrivateKey();
 			if (pCertificate && pPrivateKey) {
-				string_ptr<STRING> strMessage;
-				status = pSMIMEUtility->sign(pMessage, bMultipart,
-					pPrivateKey, pCertificate, &callback, &strMessage);
-				CHECK_QSTATUS();
-				status = pMessage->create(strMessage.get(),
-					-1, Message::FLAG_NONE);
-				CHECK_QSTATUS();
+				xstring_ptr strMessage(pSMIMEUtility->sign(pMessage,
+					bMultipart, pPrivateKey, pCertificate, &callback));
+				if (!strMessage.get())
+					return false;
+				if (!pMessage->create(strMessage.get(), -1, Message::FLAG_NONE))
+					return false;
 			}
 		}
 		if (nFlags & FLAG_ENCRYPT) {
-			std::auto_ptr<Cipher> pCipher;
-			status = CryptoUtil<Cipher>::getInstance(L"des3", &pCipher);
-			CHECK_QSTATUS();
-			string_ptr<STRING> strMessage;
-			status = pSMIMEUtility->encrypt(pMessage,
-				pCipher.get(), &callback, &strMessage);
-			CHECK_QSTATUS();
-			status = pMessage->create(strMessage.get(),
-				-1, Message::FLAG_NONE);
-			CHECK_QSTATUS();
+			std::auto_ptr<Cipher> pCipher(Cipher::getInstance(L"des3"));
+			xstring_ptr strMessage(pSMIMEUtility->encrypt(
+				pMessage, pCipher.get(), &callback));
+			if (!strMessage.get())
+				return false;
+			if (!pMessage->create(strMessage.get(), -1, Message::FLAG_NONE))
+				return false;
 		}
 	}
 	
-	status = pAccount->appendMessage(static_cast<NormalFolder*>(pFolder), *pMessage,
-		MessageHolder::FLAG_SEEN | (bDraft_ ? MessageHolder::FLAG_DRAFT : 0));
-	CHECK_QSTATUS();
-	status = pFolder->saveMessageHolders();
-	CHECK_QSTATUS();
+	if (!pAccount->appendMessage(static_cast<NormalFolder*>(pFolder), *pMessage,
+		MessageHolder::FLAG_SEEN | (bDraft_ ? MessageHolder::FLAG_DRAFT : 0)))
+		return false;
+	if (!pFolder->saveMessageHolders())
+		return false;
 	
 	if (pwszMacro) {
-		MacroParser parser(MacroParser::TYPE_MESSAGE, &status);
-		CHECK_QSTATUS();
-		Macro* p = 0;
-		status = parser.parse(pwszMacro, &p);
-		CHECK_QSTATUS();
-		std::auto_ptr<Macro> pMacro(p);
+		MacroParser parser(MacroParser::TYPE_MESSAGE);
+		std::auto_ptr<Macro> pMacro(parser.parse(pwszMacro));
+		if (!pMacro.get())
+			return false;
 		
-		MacroContext::Init init = {
-			0,
-			0,
-			pAccount,
-			pDocument_,
-			hwnd_,
-			pProfile_,
-			false,
-			0,
-			0
-		};
-		MacroContext context(init, &status);
-		CHECK_QSTATUS();
-		
-		MacroValuePtr pValue;
-		status = pMacro->value(&context, &pValue);
-		CHECK_QSTATUS();
+		MacroContext context(0, 0, pAccount, pDocument_, hwnd_, pProfile_, false, 0, 0);
+		MacroValuePtr pValue(pMacro->value(&context));
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -229,7 +188,7 @@ QSTATUS qm::MessageComposer::compose(Account* pAccount,
  */
 
 qm::SMIMECallbackImpl::SMIMECallbackImpl(const Security* pSecurity,
-	AddressBook* pAddressBook, QSTATUS* pstatus) :
+										 AddressBook* pAddressBook) :
 	pSecurity_(pSecurity),
 	pAddressBook_(pAddressBook)
 {
@@ -239,61 +198,40 @@ qm::SMIMECallbackImpl::~SMIMECallbackImpl()
 {
 }
 
-QSTATUS qm::SMIMECallbackImpl::getContent(Part* pPart, STRING* pstrContent)
+xstring_ptr qm::SMIMECallbackImpl::getContent(Part* pPart)
 {
 	assert(pPart);
-	assert(pstrContent);
-	
-	DECLARE_QSTATUS();
 	
 	const WCHAR* pwszFields[] = {
 		L"X-QMAIL-Signature",
 		L"X-QMAIL-SubAccount",
 		L"X-QMAIL-EnvelopeFrom"
 	};
-	for (int n = 0; n < countof(pwszFields); ++n) {
-		status = pPart->removeField(pwszFields[n]);
-		CHECK_QSTATUS();
-	}
+	for (int n = 0; n < countof(pwszFields); ++n)
+		pPart->removeField(pwszFields[n]);
 	
-	status = pPart->getContent(pstrContent);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return pPart->getContent();
 }
 
-QSTATUS qm::SMIMECallbackImpl::getCertificate(
-	const WCHAR* pwszAddress, Certificate** ppCertificate)
+std::auto_ptr<Certificate> qm::SMIMECallbackImpl::getCertificate(const WCHAR* pwszAddress)
 {
 	assert(pwszAddress);
-	assert(ppCertificate);
 	
-	DECLARE_QSTATUS();
-	
-	*ppCertificate = 0;
-	
-	const AddressBookEntry* pEntry = 0;
-	status = pAddressBook_->getEntry(pwszAddress, &pEntry);
-	CHECK_QSTATUS();
+	const AddressBookEntry* pEntry = pAddressBook_->getEntry(pwszAddress);
 	
 	const WCHAR* pwszCertificate = 0;
 	
-	bool bEnd = false;
 	const AddressBookEntry::AddressList& l = pEntry->getAddresses();
-	AddressBookEntry::AddressList::const_iterator itA = l.begin();
-	while (itA != l.end() && !bEnd) {
+	for (AddressBookEntry::AddressList::const_iterator itA = l.begin(); itA != l.end(); ++itA) {
 		const AddressBookAddress* pAddress = *itA;
 		if (_wcsicmp(pAddress->getAddress(), pwszAddress) == 0) {
 			pwszCertificate = pAddress->getCertificate();
-			bEnd = true;
+			break;
 		}
-		++itA;
 	}
 	
-	if (pwszCertificate) {
-		status = pSecurity_->getCertificate(pwszCertificate, ppCertificate);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (pwszCertificate)
+		return pSecurity_->getCertificate(pwszCertificate);
+	else
+		return 0;
 }

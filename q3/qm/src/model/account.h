@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -29,7 +29,6 @@ struct AccountNameEqual : public std::unary_function<Account*, bool>
 {
 	AccountNameEqual(const WCHAR* pwszName);
 	bool operator()(const Account* pAccount) const;
-	
 	const WCHAR* pwszName_;
 };
 
@@ -42,7 +41,8 @@ struct AccountNameEqual : public std::unary_function<Account*, bool>
 
 struct AccountEqual : public std::binary_function<Account*, Account*, bool>
 {
-	bool operator()(const Account* pLhs, const Account* pRhs) const;
+	bool operator()(const Account* pLhs,
+					const Account* pRhs) const;
 };
 
 
@@ -54,7 +54,8 @@ struct AccountEqual : public std::binary_function<Account*, Account*, bool>
 
 struct AccountLess : public std::binary_function<Account*, Account*, bool>
 {
-	bool operator()(const Account* pLhs, const Account* pRhs) const;
+	bool operator()(const Account* pLhs,
+					const Account* pRhs) const;
 };
 
 
@@ -90,23 +91,27 @@ private:
 
 public:
 	FolderContentHandler(Account* pAccount,
-		Account::FolderList* pList, qs::QSTATUS* pstatus);
+						 Account::FolderList* pList);
 	virtual ~FolderContentHandler();
 
 public:
-	virtual qs::QSTATUS startElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName,
-		const qs::Attributes& attributes);
-	virtual qs::QSTATUS endElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName);
-	virtual qs::QSTATUS characters(const WCHAR* pwsz,
-		size_t nStart, size_t nLength);
+	virtual bool startElement(const WCHAR* pwszNamespaceURI,
+							  const WCHAR* pwszLocalName,
+							  const WCHAR* pwszQName,
+							  const qs::Attributes& attributes);
+	virtual bool endElement(const WCHAR* pwszNamespaceURI,
+							const WCHAR* pwszLocalName,
+							const WCHAR* pwszQName);
+	virtual bool characters(const WCHAR* pwsz,
+							size_t nStart,
+							size_t nLength);
 
 private:
-	qs::QSTATUS processItemStartElement(unsigned int nAcceptStates,
-		State state, const qs::Attributes& attributes);
+	bool processItemStartElement(unsigned int nAcceptStates,
+								 State state,
+								 const qs::Attributes& attributes);
 	Folder* getFolder(unsigned int nId) const;
-	qs::QSTATUS getNumber(unsigned int* pn);
+	bool getNumber(unsigned int* pn);
 
 private:
 	FolderContentHandler(const FolderContentHandler&);
@@ -124,15 +129,15 @@ private:
 	unsigned int nCount_;
 	unsigned int nUnseenCount_;
 	WCHAR cSeparator_;
-	qs::WSTRING wstrName_;
+	qs::wstring_ptr wstrName_;
 	unsigned int nValidity_;
 	unsigned int nDownloadCount_;
 	unsigned int nDeletedCount_;
-	qs::WSTRING wstrDriver_;
-	qs::WSTRING wstrCondition_;
-	qs::WSTRING wstrTargetFolder_;
+	qs::wstring_ptr wstrDriver_;
+	qs::wstring_ptr wstrCondition_;
+	qs::wstring_ptr wstrTargetFolder_;
 	bool bRecursive_;
-	qs::StringBuffer<qs::WSTRING>* pBuffer_;
+	qs::StringBuffer<qs::WSTRING> buffer_;
 };
 
 
@@ -145,16 +150,18 @@ private:
 class FolderWriter
 {
 public:
-	FolderWriter(qs::Writer* pWriter, qs::QSTATUS* pstatus);
+	explicit FolderWriter(qs::Writer* pWriter);
 	~FolderWriter();
 
 public:
-	qs::QSTATUS write(const Account::FolderList& l);
+	bool write(const Account::FolderList& l);
 
 private:
-	qs::QSTATUS writeString(const WCHAR* pwszQName,
-		const WCHAR* pwsz, size_t nLen);
-	qs::QSTATUS writeNumber(const WCHAR* pwszQName, unsigned int n);
+	bool writeString(const WCHAR* pwszQName,
+					 const WCHAR* pwsz,
+					 size_t nLen);
+	bool writeNumber(const WCHAR* pwszQName,
+					 unsigned int n);
 
 private:
 	FolderWriter(const FolderWriter&);

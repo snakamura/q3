@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -28,10 +28,12 @@ class Profile;
 class QSEXPORTCLASS UIUtil
 {
 public:
-	static QSTATUS createFontFromProfile(Profile* pProfile,
-		const WCHAR* pwszSection, bool bDefaultFixedWidth, HFONT* phfont);
-	static QSTATUS browseFolder(HWND hwnd, const WCHAR* pwszTitle,
-		const WCHAR* pwszInitialPath, WSTRING* pwstrPath);
+	static HFONT createFontFromProfile(Profile* pProfile,
+									   const WCHAR* pwszSection,
+									   bool bDefaultFixedWidth);
+	static wstring_ptr browseFolder(HWND hwnd,
+									const WCHAR* pwszTitle,
+									const WCHAR* pwszInitialPath);
 };
 
 }

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -25,18 +25,22 @@ class MenuContentHandler : public DefaultHandler
 {
 public:
 	MenuContentHandler(MenuManager* pMenuManager,
-		const ActionItem* pItem, size_t nItemCount,
-		const PopupMenuManager& popupMenuManager, QSTATUS* pstatus);
+					   const ActionItem* pItem,
+					   size_t nItemCount,
+					   const PopupMenuManager& popupMenuManager);
 	virtual ~MenuContentHandler();
 
 public:
-	virtual QSTATUS startElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName,
-		const Attributes& attributes);
-	virtual QSTATUS endElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName);
-	virtual QSTATUS characters(const WCHAR* pwsz,
-		size_t nStart, size_t nLength);
+	virtual bool startElement(const WCHAR* pwszNamespaceURI,
+							  const WCHAR* pwszLocalName,
+							  const WCHAR* pwszQName,
+							  const Attributes& attributes);
+	virtual bool endElement(const WCHAR* pwszNamespaceURI,
+							const WCHAR* pwszLocalName,
+							const WCHAR* pwszQName);
+	virtual bool characters(const WCHAR* pwsz,
+							size_t nStart,
+							size_t nLength);
 
 private:
 	UINT getActionId(const WCHAR* pwszAction);

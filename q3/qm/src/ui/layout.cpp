@@ -6,7 +6,6 @@
  *
  */
 
-#include <qserror.h>
 #include <qsstl.h>
 
 #include <algorithm>
@@ -23,18 +22,15 @@ using namespace qs;
  *
  */
 
-qm::LineLayout::LineLayout(QSTATUS* pstatus) :
+qm::LineLayout::LineLayout() :
 	nHeight_(0),
 	nLineSpacing_(3)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::LineLayout::~LineLayout()
 {
-	std::for_each(listLine_.begin(), listLine_.end(),
-		deleter<LineLayoutLine>());
+	std::for_each(listLine_.begin(), listLine_.end(), deleter<LineLayoutLine>());
 }
 
 unsigned int qm::LineLayout::getLineCount() const
@@ -53,64 +49,45 @@ int qm::LineLayout::getHeight() const
 	return nHeight_;
 }
 
-QSTATUS qm::LineLayout::create(WindowBase* pParent,
-	const std::pair<HFONT, HFONT>& fonts, UINT* pnId) const
+bool qm::LineLayout::create(WindowBase* pParent,
+							const std::pair<HFONT, HFONT>& fonts,
+							UINT* pnId) const
 {
-	DECLARE_QSTATUS();
-	
-	LineList::const_iterator it = listLine_.begin();
-	while (it != listLine_.end()) {
-		status = (*it)->create(pParent, fonts, pnId);
-		CHECK_QSTATUS();
-		++it;
+	for (LineList::const_iterator it = listLine_.begin(); it != listLine_.end(); ++it) {
+		if (!(*it)->create(pParent, fonts, pnId))
+			return false;
 	}
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::LineLayout::destroy() const
+void qm::LineLayout::destroy() const
 {
-	DECLARE_QSTATUS();
-	
-	LineList::const_iterator it = listLine_.begin();
-	while (it != listLine_.end()) {
-		status = (*it)->destroy();
-		CHECK_QSTATUS();
-		++it;
-	}
-	
-	return QSTATUS_SUCCESS;
+	for (LineList::const_iterator it = listLine_.begin(); it != listLine_.end(); ++it)
+		(*it)->destroy();
 }
 
-QSTATUS qm::LineLayout::layout(const RECT& rect, unsigned int nFontHeight)
+void qm::LineLayout::layout(const RECT& rect,
+							unsigned int nFontHeight)
 {
-	DECLARE_QSTATUS();
-	
 	RECT r = rect;
 	
 	int nTop = 0;
-	LineList::const_iterator it = listLine_.begin();
-	while (it != listLine_.end()) {
+	for (LineList::const_iterator it = listLine_.begin(); it != listLine_.end(); ++it) {
 		unsigned int nHeight = (*it)->getHeight(nFontHeight);
 		if (nHeight != 0) {
 			if (nTop == 0)
 				nTop = 5;
 			r.top = nTop;
 			r.bottom = nTop + nHeight;
-			status = (*it)->layout(r, nFontHeight);
-			CHECK_QSTATUS();
+			(*it)->layout(r, nFontHeight);
 			nTop = r.bottom + nLineSpacing_;
 		}
-		status = (*it)->show(nHeight != 0);
-		CHECK_QSTATUS();
-		++it;
+		(*it)->show(nHeight != 0);
 	}
 	if (nTop == 0)
 		nHeight_ = 0;
 	else
 		nHeight_ = r.bottom + 5;
-	
-	return QSTATUS_SUCCESS;
 }
 
 void qm::LineLayout::setLineSpacing(unsigned int nLineSpacing)
@@ -118,9 +95,10 @@ void qm::LineLayout::setLineSpacing(unsigned int nLineSpacing)
 	nLineSpacing_ = nLineSpacing;
 }
 
-QSTATUS qm::LineLayout::addLine(LineLayoutLine* pLine)
+void qm::LineLayout::addLine(std::auto_ptr<LineLayoutLine> pLine)
 {
-	return STLWrapper<LineList>(listLine_).push_back(pLine);
+	listLine_.push_back(pLine.get());
+	pLine.release();
 }
 
 
@@ -130,10 +108,8 @@ QSTATUS qm::LineLayout::addLine(LineLayoutLine* pLine)
  *
  */
 
-qm::LineLayoutLine::LineLayoutLine(QSTATUS* pstatus)
+qm::LineLayoutLine::LineLayoutLine()
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::LineLayoutLine::~LineLayoutLine()
@@ -158,55 +134,38 @@ unsigned int qm::LineLayoutLine::getHeight(unsigned int nFontHeight) const
 	unsigned int nHeight = 0;
 	
 	if (!isHidden()) {
-		ItemList::const_iterator itI = listItem_.begin();
-		while (itI != listItem_.end()) {
-			nHeight = QSMAX(nHeight, (*itI)->getHeight(nFontHeight));
-			++itI;
-		}
+		for (ItemList::const_iterator it = listItem_.begin(); it != listItem_.end(); ++it)
+			nHeight = QSMAX(nHeight, (*it)->getHeight(nFontHeight));
 	}
 	
 	return nHeight;
 }
 
-QSTATUS qm::LineLayoutLine::create(WindowBase* pParent,
-	const std::pair<HFONT, HFONT>& fonts, UINT* pnId) const
+bool qm::LineLayoutLine::create(WindowBase* pParent,
+								const std::pair<HFONT, HFONT>& fonts,
+								UINT* pnId) const
 {
-	DECLARE_QSTATUS();
-	
-	ItemList::const_iterator it = listItem_.begin();
-	while (it != listItem_.end()) {
-		status = (*it)->create(pParent, fonts, (*pnId)++);
-		CHECK_QSTATUS();
-		++it;
+	for (ItemList::const_iterator it = listItem_.begin(); it != listItem_.end(); ++it) {
+		if (!(*it)->create(pParent, fonts, (*pnId)++))
+			return false;
 	}
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::LineLayoutLine::destroy() const
+void qm::LineLayoutLine::destroy() const
 {
-	DECLARE_QSTATUS();
-	
-	ItemList::const_iterator it = listItem_.begin();
-	while (it != listItem_.end()) {
-		status = (*it)->destroy();
-		CHECK_QSTATUS();
-		++it;
-	}
-	
-	return QSTATUS_SUCCESS;
+	for (ItemList::const_iterator it = listItem_.begin(); it != listItem_.end(); ++it)
+		(*it)->destroy();
 }
 
-QSTATUS qm::LineLayoutLine::layout(const RECT& rect, unsigned int nFontHeight) const
+void qm::LineLayoutLine::layout(const RECT& rect,
+								unsigned int nFontHeight) const
 {
-	DECLARE_QSTATUS();
-	
 	int nWidth = rect.right - rect.left - (listItem_.size() - 1)*2 - 10;
 	
 	typedef std::vector<int> WidthList;
 	WidthList listWidth;
-	status = STLWrapper<WidthList>(listWidth).resize(listItem_.size());
-	CHECK_QSTATUS();
+	listWidth.resize(listItem_.size());
 	
 	int nFixedWidth = 0;
 	int nPercentWidth = 0;
@@ -238,52 +197,38 @@ QSTATUS qm::LineLayoutLine::layout(const RECT& rect, unsigned int nFontHeight) c
 	}
 	
 	if (nWidth > nFixedWidth) {
-		WidthList::iterator it = listWidth.begin();
-		while (it != listWidth.end()) {
+		for (WidthList::iterator it = listWidth.begin(); it != listWidth.end(); ++it) {
 			if (*it < 0)
 				*it = (nWidth - nFixedWidth)*(-*it)/100;
 			else if (*it == 0 && nPercentWidth < 100)
 				*it = (nWidth - nFixedWidth)*(100 - nPercentWidth)/100/nNoWidthCount;
-			++it;
 		}
 	}
 	else {
-		WidthList::iterator it = listWidth.begin();
-		while (it != listWidth.end()) {
+		for (WidthList::iterator it = listWidth.begin(); it != listWidth.end(); ++it) {
 			if (*it < 0)
 				*it = 0;
-			++it;
 		}
 	}
 	
 	RECT r = { 5, rect.top, 5, rect.bottom };
-	for (n = 0; n < listItem_.size(); ++n) {
+	for (ItemList::size_type n = 0; n < listItem_.size(); ++n) {
 		r.right = r.left + listWidth[n];
-		status = listItem_[n]->layout(r, nFontHeight);
-		CHECK_QSTATUS();
+		listItem_[n]->layout(r, nFontHeight);
 		r.left = r.right + 2;
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::LineLayoutLine::show(bool bShow) const
+void qm::LineLayoutLine::show(bool bShow) const
 {
-	DECLARE_QSTATUS();
-	
-	ItemList::const_iterator it = listItem_.begin();
-	while (it != listItem_.end()) {
-		status = (*it)->show(bShow);
-		CHECK_QSTATUS();
-		++it;
-	}
-	
-	return QSTATUS_SUCCESS;
+	for (ItemList::const_iterator it = listItem_.begin(); it != listItem_.end(); ++it)
+		(*it)->show(bShow);
 }
 
-QSTATUS qm::LineLayoutLine::addItem(LineLayoutItem* pItem)
+void qm::LineLayoutLine::addItem(std::auto_ptr<LineLayoutItem> pItem)
 {
-	return STLWrapper<ItemList>(listItem_).push_back(pItem);
+	listItem_.push_back(pItem.get());
+	pItem.release();
 }
 
 bool qm::LineLayoutLine::isHidden() const
@@ -298,12 +243,10 @@ bool qm::LineLayoutLine::isHidden() const
  *
  */
 
-qm::LineLayoutItem::LineLayoutItem(QSTATUS* pstatus) :
+qm::LineLayoutItem::LineLayoutItem() :
 	dWidth_(0),
 	unit_(UNIT_NONE)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::LineLayoutItem::~LineLayoutItem()
@@ -326,26 +269,36 @@ void qm::LineLayoutItem::setWidth(double dWidth, Unit unit)
 	unit_ = unit;
 }
 
-QSTATUS qm::LineLayoutItem::setWidth(const WCHAR* pwszWidth)
+bool qm::LineLayoutItem::parseWidth(const WCHAR* pwszWidth,
+									double* pdWidth,
+									Unit* pUnit)
 {
+	assert(pwszWidth);
+	assert(pdWidth);
+	assert(pUnit);
+	
 	WCHAR* pEnd = 0;
-	dWidth_ = wcstod(pwszWidth, &pEnd);
-	if (dWidth_ < 0)
-		return QSTATUS_FAIL;
+	double dWidth = wcstod(pwszWidth, &pEnd);
+	Unit unit = UNIT_NONE;
+	if (dWidth < 0)
+		return false;
 	if (*pEnd == L'%') {
 		if (*(pEnd + 1))
-			return QSTATUS_FAIL;
-		unit_ = UNIT_PERCENT;
+			return false;
+		unit = UNIT_PERCENT;
 	}
 	else if (wcscmp(pEnd, L"em") == 0) {
-		unit_ = UNIT_EM;
+		unit = UNIT_EM;
 	}
 	else if (!*pEnd || wcscmp(pEnd, L"px") == 0) {
-		unit_ = UNIT_PIXEL;
+		unit = UNIT_PIXEL;
 	}
 	else {
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	*pdWidth = dWidth;
+	*pUnit = unit;
+	
+	return true;
 }

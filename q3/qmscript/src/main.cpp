@@ -1,13 +1,12 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qs.h>
-#include <qsnew.h>
 
 #include "macro.h"
 #include "main.h"
@@ -56,7 +55,9 @@ ITypeLib* qmscript::getTypeLib()
  *
  */
 
-BOOL WINAPI DllMain(HANDLE hInst, DWORD dwReason, LPVOID lpReserved)
+BOOL WINAPI DllMain(HANDLE hInst,
+					DWORD dwReason,
+					LPVOID lpReserved)
 {
 	switch (dwReason) {
 	case DLL_PROCESS_ATTACH:

@@ -1,27 +1,25 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
-#include <qswindow.h>
-#include <qsconv.h>
-#include <qsstring.h>
-#include <qserror.h>
-#include <qsthread.h>
-#include <qsinit.h>
-#include <qsstl.h>
-#include <qsosutil.h>
-#include <qsnew.h>
 #include <qsaccelerator.h>
 #include <qsaction.h>
+#include <qsconv.h>
+#include <qsinit.h>
+#include <qsosutil.h>
+#include <qsstl.h>
+#include <qsstring.h>
+#include <qsthread.h>
+#include <qswindow.h>
 
 #include <algorithm>
+#include <hash_map>
 #include <memory>
 #include <vector>
-#include <hash_map>
 
 #include <tchar.h>
 #ifdef _WIN32_WCE_PSPC
@@ -42,68 +40,74 @@ using namespace qs;
  *
  */
 
-QSEXPORTPROC QSTATUS qs::messageBox(HINSTANCE hInstResource, UINT nId)
+QSEXPORTPROC int qs::messageBox(HINSTANCE hInstResource,
+								UINT nId)
 {
-	return messageBox(hInstResource, nId, MB_OK | MB_ICONINFORMATION, 0, 0, 0, 0);
+	return messageBox(hInstResource, nId, MB_OK | MB_ICONINFORMATION, 0, 0, 0);
 }
 
-QSEXPORTPROC QSTATUS qs::messageBox(HINSTANCE hInstResource, UINT nId, int* pnRet)
+QSEXPORTPROC int qs::messageBox(HINSTANCE hInstResource,
+								UINT nId,
+								UINT nType)
 {
-	return messageBox(hInstResource, nId, MB_OK | MB_ICONINFORMATION, 0, 0, 0, pnRet);
+	return messageBox(hInstResource, nId, nType, 0, 0, 0);
 }
 
-QSEXPORTPROC QSTATUS qs::messageBox(HINSTANCE hInstResource, UINT nId, UINT nType)
+QSEXPORTPROC int qs::messageBox(HINSTANCE hInstResource,
+								UINT nId,
+								HWND hwnd)
 {
-	return messageBox(hInstResource, nId, nType, 0, 0, 0, 0);
+	return messageBox(hInstResource, nId, MB_OK | MB_ICONINFORMATION, hwnd, 0, 0);
 }
 
-QSEXPORTPROC QSTATUS qs::messageBox(
-	HINSTANCE hInstResource, UINT nId, UINT nType, int* pnRet)
+QSEXPORTPROC int qs::messageBox(HINSTANCE hInstResource,
+								UINT nId,
+								UINT nType,
+								HWND hwnd)
 {
-	return messageBox(hInstResource, nId, nType, 0, 0, 0, pnRet);
+	return messageBox(hInstResource, nId, nType, hwnd, 0, 0);
 }
 
-QSEXPORTPROC QSTATUS qs::messageBox(HINSTANCE hInstResource, UINT nId, HWND hwnd)
+QSEXPORTPROC int qs::messageBox(HINSTANCE hInstResource,
+								UINT nId,
+								UINT nType,
+								HWND hwnd,
+								const WCHAR* pwszTitle,
+								ModalHandler* pModalHandler)
 {
-	return messageBox(hInstResource, nId, MB_OK | MB_ICONINFORMATION, hwnd, 0, 0, 0);
+	wstring_ptr wstrTitle(loadString(hInstResource, nId));
+	return messageBox(wstrTitle.get(), nType, hwnd, pwszTitle, pModalHandler);
 }
 
-QSEXPORTPROC QSTATUS qs::messageBox(
-	HINSTANCE hInstResource, UINT nId, HWND hwnd, int* pnRet)
+QSEXPORTPROC int qs::messageBox(const WCHAR* pwszMessage)
 {
-	return messageBox(hInstResource, nId, MB_OK | MB_ICONINFORMATION, hwnd, 0, 0, pnRet);
+	return messageBox(pwszMessage, MB_OK | MB_ICONINFORMATION, 0, 0, 0);
 }
 
-QSEXPORTPROC QSTATUS qs::messageBox(HINSTANCE hInstResource, UINT nId, UINT nType,
-	HWND hwnd, const WCHAR* pwszTitle, ModalHandler* pModalHandler, int* pnRet)
+QSEXPORTPROC int qs::messageBox(const WCHAR* pwszMessage, UINT nType)
 {
-	DECLARE_QSTATUS();
-	string_ptr<WSTRING> wstrTitle;
-	status = loadString(hInstResource, nId, &wstrTitle);
-	CHECK_QSTATUS();
-	return messageBox(wstrTitle.get(), nType, hwnd, pwszTitle, pModalHandler, pnRet);
+	return messageBox(pwszMessage, nType, 0, 0, 0);
 }
 
-QSEXPORTPROC QSTATUS qs::messageBox(const WCHAR* pwszMessage)
+QSEXPORTPROC int qs::messageBox(const WCHAR* pwszMessage,
+								HWND hwnd)
 {
-	return messageBox(pwszMessage, MB_OK | MB_ICONINFORMATION, 0, 0, 0, 0);
+	return messageBox(pwszMessage, MB_OK | MB_ICONINFORMATION, hwnd, 0, 0);
 }
 
-QSEXPORTPROC QSTATUS qs::messageBox(const WCHAR* pwszMessage, int* pnRet)
+QSEXPORTPROC int qs::messageBox(const WCHAR* pwszMessage,
+								UINT nType,
+								HWND hwnd)
 {
-	return messageBox(pwszMessage, MB_OK | MB_ICONINFORMATION, 0, 0, 0, pnRet);
+	return messageBox(pwszMessage, nType, hwnd, 0, 0);
 }
 
-QSEXPORTPROC QSTATUS qs::messageBox(const WCHAR* pwszMessage, UINT nType, int* pnRet)
+QSEXPORTPROC int qs::messageBox(const WCHAR* pwszMessage,
+								UINT nType,
+								HWND hwnd,
+								const WCHAR* pwszTitle,
+								ModalHandler* pModalHandler)
 {
-	return messageBox(pwszMessage, nType, 0, 0, 0, pnRet);
-}
-
-QSEXPORTPROC QSTATUS qs::messageBox(const WCHAR* pwszMessage, UINT nType,
-	HWND hwnd, const WCHAR* pwszTitle, ModalHandler* pModalHandler, int* pnRet)
-{
-	DECLARE_QSTATUS();
-	
 	if (!hwnd) {
 		Window* pMainWindow = getMainWindow();
 		if (pMainWindow)
@@ -120,13 +124,8 @@ QSEXPORTPROC QSTATUS qs::messageBox(const WCHAR* pwszMessage, UINT nType,
 	if (!pModalHandler)
 		pModalHandler = getModalHandler();
 	
-	ModalHandlerInvoker invoker(pModalHandler, hwnd, &status);
-	CHECK_QSTATUS();
-	int nRet = ::MessageBox(hwnd, ptszMessage, ptszTitle, nType);
-	if (pnRet)
-		*pnRet = nRet;
-	
-	return QSTATUS_SUCCESS;
+	ModalHandlerInvoker invoker(pModalHandler, hwnd);
+	return ::MessageBox(hwnd, ptszMessage, ptszTitle, nType);
 }
 
 
@@ -136,7 +135,8 @@ QSEXPORTPROC QSTATUS qs::messageBox(const WCHAR* pwszMessage, UINT nType,
  *
  */
 
-DWORD qs::Window::setStyle(DWORD dwStyle, DWORD dwMask)
+DWORD qs::Window::setStyle(DWORD dwStyle,
+						   DWORD dwMask)
 {
 	DWORD dw = getStyle();
 	dw &= ~dwMask;
@@ -162,6 +162,7 @@ bool qs::Window::screenToClient(RECT* pRect) const
 		return false;
 	pRect->right = pt.x;
 	pRect->bottom = pt.y;
+	
 	return true;
 }
 
@@ -183,12 +184,14 @@ bool qs::Window::clientToScreen(RECT* pRect) const
 		return false;
 	pRect->right = pt.x;
 	pRect->bottom = pt.y;
+	
 	return true;
 }
 
 bool qs::Window::centerWindow(HWND hwnd)
 {
 	assert(hwnd_);
+	
 	RECT rectParent;
 	RECT rectShift = { 0, 0, 0, 0 };
 	if (hwnd) {
@@ -208,8 +211,10 @@ bool qs::Window::centerWindow(HWND hwnd)
 			::SystemParametersInfo(SPI_GETWORKAREA, 0, &rectParent, 0);
 		}
 	}
+	
 	RECT rect;
 	getWindowRect(&rect);
+	
 	return setWindowPos(0,
 		QSMAX(0, (rectParent.left + rectParent.right - (rect.right - rect.left) - rectShift.left)/2),
 		QSMAX(0, (rectParent.top + rectParent.bottom - (rect.bottom - rect.top) - rectShift.top)/2),
@@ -253,9 +258,10 @@ HWND qs::Window::getActiveFrame()
 	return hwnd;
 }
 
-WSTRING qs::Window::getClassName() const
+wstring_ptr qs::Window::getClassName() const
 {
 	assert(hwnd_);
+	
 	TCHAR szClassName[256];
 	int nLen = ::GetClassName(hwnd_, szClassName, countof(szClassName));
 	if (nLen == 0)
@@ -263,13 +269,12 @@ WSTRING qs::Window::getClassName() const
 	return tcs2wcs(szClassName);
 }
 
-WSTRING qs::Window::getWindowText() const
+wstring_ptr qs::Window::getWindowText() const
 {
 	assert(hwnd_);
+	
 	int nLen = getWindowTextLength() + 1;
-	string_ptr<TSTRING> tstrText(allocTString(nLen));
-	if (!tstrText.get())
-		return 0;
+	tstring_ptr tstrText(allocTString(nLen));
 	::GetWindowText(hwnd_, tstrText.get(), nLen);
 	return tcs2wcs(tstrText.get());
 }
@@ -277,20 +282,17 @@ WSTRING qs::Window::getWindowText() const
 bool qs::Window::setWindowText(const WCHAR* pwszText)
 {
 	assert(hwnd_);
-#ifdef UNICODE
-	return ::SetWindowText(hwnd_, pwszText) != 0;
-#else
-	string_ptr<STRING> str(wcs2mbs(pwszText));
-	if (!str.get())
-		return false;
-	return ::SetWindowText(hwnd_, str.get()) != 0;
-#endif
+	
+	W2T(pwszText, ptszText);
+	return ::SetWindowText(hwnd_, ptszText) != 0;
 }
 
 int qs::Window::getDlgItemInt(int nDlgItem,
-	bool* pbTranslated, bool bSigned) const
+							  bool* pbTranslated,
+							  bool bSigned) const
 {
 	assert(hwnd_);
+	
 	BOOL b = FALSE;
 	int n = ::GetDlgItemInt(hwnd_, nDlgItem, &b, bSigned);
 	if (pbTranslated)
@@ -298,32 +300,27 @@ int qs::Window::getDlgItemInt(int nDlgItem,
 	return n;
 }
 
-WSTRING qs::Window::getDlgItemText(int nDlgItem) const
+wstring_ptr qs::Window::getDlgItemText(int nDlgItem) const
 {
 	assert(hwnd_);
+	
 	int nLen = ::SendDlgItemMessage(hwnd_, nDlgItem, WM_GETTEXTLENGTH, 0, 0);
-	string_ptr<TSTRING> tstr(allocTString(nLen + 1));
-	if (!tstr.get())
-		return 0;
+	tstring_ptr tstr(allocTString(nLen + 1));
 	::GetDlgItemText(hwnd_, nDlgItem, tstr.get(), nLen + 1);
 #ifdef UNICODE
-	return tstr.release();
+	return tstr;
 #else
 	return tcs2wcs(tstr.get());
 #endif
 }
 
-bool qs::Window::setDlgItemText(int nDlgItem, const WCHAR* pwszText)
+bool qs::Window::setDlgItemText(int nDlgItem,
+								const WCHAR* pwszText)
 {
 	assert(hwnd_);
-#ifdef UNICODE
-	return ::SetDlgItemText(hwnd_, nDlgItem, pwszText) != 0;
-#else
-	string_ptr<STRING> str(wcs2tcs(pwszText));
-	if (!str.get())
-		return false;
-	return ::SetDlgItemText(hwnd_, nDlgItem, str.get()) != 0;
-#endif
+	
+	W2T(pwszText, ptszText);
+	return ::SetDlgItemText(hwnd_, nDlgItem, ptszText) != 0;
 }
 
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
@@ -371,15 +368,19 @@ public:
 	typedef ControllerMap<WindowBase> WindowMap;
 
 public:
-	LRESULT notifyCommandHandlers(WORD wCode, WORD wId) const;
-	LRESULT notifyNotifyHandlers(NMHDR* pnmhdr, bool* pbHandled) const;
+	LRESULT notifyCommandHandlers(WORD wCode,
+								  WORD wId) const;
+	LRESULT notifyNotifyHandlers(NMHDR* pnmhdr,
+								 bool* pbHandled) const;
 	void notifyOwnerDrawHandlers(DRAWITEMSTRUCT* pDrawItem) const;
 	void measureOwnerDrawHandlers(MEASUREITEMSTRUCT* pMeasureItem) const;
-	LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
-	QSTATUS destroy();
+	LRESULT windowProc(UINT uMsg,
+					   WPARAM wParam,
+					   LPARAM lParam);
+	void destroy();
 
 public:
-	static QSTATUS getWindowMap(WindowMap** ppMap);
+	static WindowMap* getWindowMap();
 
 private:
 	WindowBase* pThis_;
@@ -402,22 +403,25 @@ private:
 		virtual ~InitializerImpl();
 	
 	public:
-		virtual QSTATUS init();
-		virtual QSTATUS term();
-		virtual QSTATUS initThread();
-		virtual QSTATUS termThread();
+		virtual bool init();
+		virtual void term();
+		virtual bool initThread();
+		virtual void termThread();
 	} init__;
 
 friend class InitializerImpl;
 friend class WindowBase;
-friend LRESULT CALLBACK windowProc(HWND, UINT, WPARAM, LPARAM);
+friend LRESULT CALLBACK windowProc(HWND,
+								   UINT,
+								   WPARAM,
+								   LPARAM);
 };
 
 WindowBaseImpl::WindowMap* qs::WindowBaseImpl::pMap__;
 WindowBaseImpl::InitializerImpl qs::WindowBaseImpl::init__;
 
-LRESULT qs::WindowBaseImpl::notifyCommandHandlers(
-	WORD wCode, WORD wId) const
+LRESULT qs::WindowBaseImpl::notifyCommandHandlers(WORD wCode,
+												  WORD wId) const
 {
 	CommandHandlerList::const_iterator it = listCommandHandler_.begin();
 	while (it != listCommandHandler_.end()) {
@@ -434,8 +438,8 @@ LRESULT qs::WindowBaseImpl::notifyCommandHandlers(
 	return 1;
 }
 
-LRESULT qs::WindowBaseImpl::notifyNotifyHandlers(
-	NMHDR* pnmhdr, bool* pbHandled) const
+LRESULT qs::WindowBaseImpl::notifyNotifyHandlers(NMHDR* pnmhdr,
+												 bool* pbHandled) const
 {
 	assert(pbHandled);
 	
@@ -455,8 +459,7 @@ LRESULT qs::WindowBaseImpl::notifyNotifyHandlers(
 	return 1;
 }
 
-void qs::WindowBaseImpl::notifyOwnerDrawHandlers(
-	DRAWITEMSTRUCT* pDrawItem) const
+void qs::WindowBaseImpl::notifyOwnerDrawHandlers(DRAWITEMSTRUCT* pDrawItem) const
 {
 	OwnerDrawHandlerList::const_iterator it = listOwnerDrawHandler_.begin();
 	while (it != listOwnerDrawHandler_.end()) {
@@ -467,8 +470,7 @@ void qs::WindowBaseImpl::notifyOwnerDrawHandlers(
 		pOrgWindowBase_->pImpl_->notifyOwnerDrawHandlers(pDrawItem);
 }
 
-void qs::WindowBaseImpl::measureOwnerDrawHandlers(
-	MEASUREITEMSTRUCT* pMeasureItem) const
+void qs::WindowBaseImpl::measureOwnerDrawHandlers(MEASUREITEMSTRUCT* pMeasureItem) const
 {
 	OwnerDrawHandlerList::const_iterator it = listOwnerDrawHandler_.begin();
 	while (it != listOwnerDrawHandler_.end()) {
@@ -479,17 +481,15 @@ void qs::WindowBaseImpl::measureOwnerDrawHandlers(
 		pOrgWindowBase_->pImpl_->measureOwnerDrawHandlers(pMeasureItem);
 }
 
-LRESULT qs::WindowBaseImpl::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qs::WindowBaseImpl::windowProc(UINT uMsg,
+									   WPARAM wParam,
+									   LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
 	LRESULT lResult = 0;
 	switch (uMsg) {
 	case WM_COMMAND:
 		{
-			Action* pAction = 0;
-			status = pWindowHandler_->getAction(LOWORD(wParam), &pAction);
-			CHECK_QSTATUS_VALUE(0);
+			Action* pAction = pWindowHandler_->getAction(LOWORD(wParam));
 			if (pAction) {
 				unsigned int nModifier = 0;
 				
@@ -509,13 +509,8 @@ LRESULT qs::WindowBaseImpl::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 				}
 				
 				ActionEvent event(LOWORD(wParam), nModifier);
-				bool bEnabled = false;
-				status = pAction->isEnabled(event, &bEnabled);
-				CHECK_QSTATUS();
-				if (bEnabled) {
-					status = pAction->invoke(event);
-					CHECK_QSTATUS_VALUE(0);
-				}
+				if (pAction->isEnabled(event))
+					pAction->invoke(event);
 				return 0;
 			}
 			else {
@@ -590,13 +585,9 @@ LRESULT qs::WindowBaseImpl::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return lResult;
 }
 
-QSTATUS qs::WindowBaseImpl::destroy()
+void qs::WindowBaseImpl::destroy()
 {
-	DECLARE_QSTATUS();
-	
-	WindowMap* pMap = 0;
-	status = getWindowMap(&pMap);
-	CHECK_QSTATUS();
+	WindowMap* pMap = getWindowMap();
 	
 	if (procSubclass_)
 		pThis_->setWindowLong(GWL_WNDPROC, reinterpret_cast<LONG>(procSubclass_));
@@ -606,15 +597,11 @@ QSTATUS qs::WindowBaseImpl::destroy()
 	assert(listOwnerDrawHandler_.size() == 0);
 	if (bDeleteThis_)
 		delete pThis_;
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::WindowBaseImpl::getWindowMap(WindowMap** ppMap)
+WindowBaseImpl::WindowMap* qs::WindowBaseImpl::getWindowMap()
 {
-	assert(ppMap);
-	*ppMap = pMap__;
-	return QSTATUS_SUCCESS;
+	return pMap__;
 }
 
 
@@ -632,27 +619,26 @@ qs::WindowBaseImpl::InitializerImpl::~InitializerImpl()
 {
 }
 
-QSTATUS qs::WindowBaseImpl::InitializerImpl::init()
+bool qs::WindowBaseImpl::InitializerImpl::init()
 {
-	return newQsObject(&WindowBaseImpl::pMap__);
+	WindowBaseImpl::pMap__ = new WindowMap();
+	return true;
 }
 
-QSTATUS qs::WindowBaseImpl::InitializerImpl::term()
+void qs::WindowBaseImpl::InitializerImpl::term()
 {
 	delete WindowBaseImpl::pMap__;
 	WindowBaseImpl::pMap__ = 0;
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::WindowBaseImpl::InitializerImpl::initThread()
+bool qs::WindowBaseImpl::InitializerImpl::initThread()
 {
 	return WindowBaseImpl::pMap__->initThread();
 }
 
-QSTATUS qs::WindowBaseImpl::InitializerImpl::termThread()
+void qs::WindowBaseImpl::InitializerImpl::termThread()
 {
-	return WindowBaseImpl::pMap__->termThread();
+	WindowBaseImpl::pMap__->termThread();
 }
 
 
@@ -662,18 +648,10 @@ QSTATUS qs::WindowBaseImpl::InitializerImpl::termThread()
  *
  */
 
-qs::WindowBase::WindowBase(bool bDeleteThis, QSTATUS* pstatus) :
+qs::WindowBase::WindowBase(bool bDeleteThis) :
 	Window(0)
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	assert(pImpl_);
+	pImpl_ = new WindowBaseImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->bDeleteThis_ = bDeleteThis;
 	pImpl_->pWindowHandler_ = 0;
@@ -691,47 +669,51 @@ qs::WindowBase::~WindowBase()
 	pImpl_ = 0;
 }
 
-QSTATUS qs::WindowBase::setWindowHandler(
-	WindowHandler* pWindowHandler, bool bDeleteHandler)
+void qs::WindowBase::setWindowHandler(WindowHandler* pWindowHandler,
+									  bool bDeleteHandler)
 {
-	DECLARE_QSTATUS();
-	
 	pImpl_->pWindowHandler_ = pWindowHandler;
 	pImpl_->bDeleteHandler_ = bDeleteHandler;
-	
-	status = pWindowHandler->setWindowBase(this);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	pWindowHandler->setWindowBase(this);
 }
 
-QSTATUS qs::WindowBase::create(const WCHAR* pwszClassName,
-	const WCHAR* pwszTitle, DWORD dwStyle, const RECT& rect, HWND hwndParent,
-	DWORD dwExStyle, const WCHAR* pwszSuperClass, UINT nId, void* pParam)
+bool qs::WindowBase::create(const WCHAR* pwszClassName,
+							const WCHAR* pwszTitle,
+							DWORD dwStyle,
+							const RECT& rect,
+							HWND hwndParent,
+							DWORD dwExStyle,
+							const WCHAR* pwszSuperClass,
+							UINT nId,
+							void* pParam)
 {
 	return create(pwszClassName, pwszTitle, dwStyle, rect.left, rect.top,
 		rect.right - rect.left, rect.bottom - rect.top, hwndParent,
 		dwExStyle, pwszSuperClass, nId, pParam);
 }
 
-QSTATUS qs::WindowBase::create(const WCHAR* pwszClassName,
-	const WCHAR* pwszTitle, DWORD dwStyle, int x, int y, int cx, int cy,
-	HWND hwndParent, DWORD dwExStyle, const WCHAR* pwszSuperClass,
-	UINT nId, void* pParam)
+bool qs::WindowBase::create(const WCHAR* pwszClassName,
+							const WCHAR* pwszTitle,
+							DWORD dwStyle,
+							int x,
+							int y,
+							int cx,
+							int cy,
+							HWND hwndParent,
+							DWORD dwExStyle,
+							const WCHAR* pwszSuperClass,
+							UINT nId,
+							void* pParam)
 {
 	assert(pwszClassName);
 	
-	DECLARE_QSTATUS();
-	
 	if (getHandle())
-		return QSTATUS_FAIL;
+		return false;
 	
 	W2T(pwszClassName, ptszClassName);
 	W2T(pwszTitle, ptszTitle);
 	
-	string_ptr<WSTRING> wstrSuperClass;
-	status = pImpl_->pWindowHandler_->getSuperClass(&wstrSuperClass);
-	CHECK_QSTATUS();
+	wstring_ptr wstrSuperClass(pImpl_->pWindowHandler_->getSuperClass());
 	assert(!wstrSuperClass.get() || !pwszSuperClass ||
 		wcscmp(wstrSuperClass.get(), pwszSuperClass) == 0);
 	if (wstrSuperClass.get())
@@ -751,8 +733,8 @@ QSTATUS qs::WindowBase::create(const WCHAR* pwszClassName,
 		ptszClassName,
 		dwExStyle
 	};
-	status = pImpl_->pWindowHandler_->preCreateWindow(&cs);
-	CHECK_QSTATUS();
+	if (!pImpl_->pWindowHandler_->preCreateWindow(&cs))
+		return false;
 	
 	dwStyle = cs.style;
 	dwExStyle = cs.dwExStyle;
@@ -767,160 +749,137 @@ QSTATUS qs::WindowBase::create(const WCHAR* pwszClassName,
 	
 	WNDCLASS wc;
 	if (!::GetClassInfo(getInstanceHandle(), ptszClassName, &wc)) {
-		QSTATUS status = pImpl_->pWindowHandler_->getWindowClass(
+		pImpl_->pWindowHandler_->getWindowClass(
 			pwszSuperClass, &wc, &pImpl_->procSubclass_);
-		CHECK_QSTATUS();
 		wc.lpszClassName = ptszClassName;
 		if (!::RegisterClass(&wc))
-			return QSTATUS_FAIL;
+			return false;
 	}
 	else if (pwszSuperClass) {
 		W2T(pwszSuperClass, ptszSuperClass);
 		if (!::GetClassInfo(getInstanceHandle(), ptszSuperClass, &wc))
-			return QSTATUS_FAIL;
+			return false;
 		pImpl_->pWindowHandler_->preSubclassWindow();
 		pImpl_->procSubclass_ = wc.lpfnWndProc;
 	}
 	
-	WindowBaseImpl::WindowMap* pMap = 0;
-	status = WindowBaseImpl::getWindowMap(&pMap);
-	CHECK_QSTATUS();
-	status = pMap->setThis(this);
-	CHECK_QSTATUS();
+	WindowBaseImpl::WindowMap* pMap = WindowBaseImpl::getWindowMap();
+	pMap->setThis(this);
 	HWND hwnd = ::CreateWindowEx(dwExStyle, ptszClassName, ptszTitle,
 		dwStyle, x, y, cx, cy, hwndParent, reinterpret_cast<HMENU>(nId),
 		getInstanceHandle(), pParam);
 	if (!hwnd) {
 		setHandle(0);
-		return QSTATUS_FAIL;
+		return false;
 	}
 	assert(getHandle() == hwnd);
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::WindowBase::subclassWindow(HWND hwnd)
+bool qs::WindowBase::subclassWindow(HWND hwnd)
 {
-	DECLARE_QSTATUS();
-	
 	pImpl_->procSubclass_ = reinterpret_cast<WNDPROC>(
 		::SetWindowLong(hwnd, GWL_WNDPROC,
 			reinterpret_cast<LONG>(&qs::windowProc)));
 	if (!pImpl_->procSubclass_)
-		return QSTATUS_FAIL;
+		return false;
 	
-	WindowBaseImpl::WindowMap* pMap = 0;
-	status = WindowBaseImpl::getWindowMap(&pMap);
-	CHECK_QSTATUS();
-	WindowBase* pOrg = 0;
-	status = pMap->getController(hwnd, &pOrg);
-	CHECK_QSTATUS();
+	WindowBaseImpl::WindowMap* pMap = WindowBaseImpl::getWindowMap();
+	WindowBase* pOrg = pMap->getController(hwnd);
 	if (pOrg) {
-		status = pMap->removeController(hwnd);
-		CHECK_QSTATUS();
+		pMap->removeController(hwnd);
 		pImpl_->pOrgWindowBase_ = pOrg;
 	}
 	pMap->setThis(this);
 	Window(hwnd).sendMessage(WM_NULL);
 	assert(getHandle() == hwnd);
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::WindowBase::unsubclassWindow()
+bool qs::WindowBase::unsubclassWindow()
 {
-	DECLARE_QSTATUS();
-	
 	if (!pImpl_->procSubclass_)
-		return QSTATUS_FAIL;
+		return false;
 	
 	if (::SetWindowLong(getHandle(), GWL_WNDPROC,
 		reinterpret_cast<LONG>(pImpl_->procSubclass_)) == 0)
-		return QSTATUS_FAIL;
+		return false;
 	
-	WindowBaseImpl::WindowMap* pMap = 0;
-	status = WindowBaseImpl::getWindowMap(&pMap);
-	CHECK_QSTATUS();
-	status = pMap->removeController(getHandle());
-	CHECK_QSTATUS();
+	WindowBaseImpl::WindowMap* pMap = WindowBaseImpl::getWindowMap();
+	pMap->removeController(getHandle());
 	if (pImpl_->pOrgWindowBase_) {
-		status = pMap->setController(getHandle(), pImpl_->pOrgWindowBase_);
-		CHECK_QSTATUS();
+		pMap->setController(getHandle(), pImpl_->pOrgWindowBase_);
 //		pImpl_->pOrgWindowBase_ = 0;
 	}
 	setHandle(0);
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::WindowBase::addCommandHandler(CommandHandler* pch)
+void qs::WindowBase::addCommandHandler(CommandHandler* pch)
 {
-	assert(pImpl_);
-	return STLWrapper<WindowBaseImpl::CommandHandlerList>
-		(pImpl_->listCommandHandler_).push_back(pch);
+	assert(pch);
+	pImpl_->listCommandHandler_.push_back(pch);
 }
 
-QSTATUS qs::WindowBase::removeCommandHandler(CommandHandler* pch)
+void qs::WindowBase::removeCommandHandler(CommandHandler* pch)
 {
-	assert(pImpl_);
+	assert(pch);
 	WindowBaseImpl::CommandHandlerList::iterator it =
 		std::remove(pImpl_->listCommandHandler_.begin(),
 			pImpl_->listCommandHandler_.end(), pch);
 	assert(it != pImpl_->listCommandHandler_.end());
 	pImpl_->listCommandHandler_.erase(it, pImpl_->listCommandHandler_.end());
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::WindowBase::addNotifyHandler(NotifyHandler* pnh)
+void qs::WindowBase::addNotifyHandler(NotifyHandler* pnh)
 {
-	assert(pImpl_);
-	return STLWrapper<WindowBaseImpl::NotifyHandlerList>
-		(pImpl_->listNotifyHandler_).push_back(pnh);
+	assert(pnh);
+	pImpl_->listNotifyHandler_.push_back(pnh);
 }
 
-QSTATUS qs::WindowBase::removeNotifyHandler(NotifyHandler* pnh)
+void qs::WindowBase::removeNotifyHandler(NotifyHandler* pnh)
 {
-	assert(pImpl_);
+	assert(pnh);
 	WindowBaseImpl::NotifyHandlerList::iterator it =
 		std::remove(pImpl_->listNotifyHandler_.begin(),
 			pImpl_->listNotifyHandler_.end(), pnh);
 	assert(it != pImpl_->listNotifyHandler_.end());
 	pImpl_->listNotifyHandler_.erase(it, pImpl_->listNotifyHandler_.end());
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::WindowBase::addOwnerDrawHandler(OwnerDrawHandler* podh)
+void qs::WindowBase::addOwnerDrawHandler(OwnerDrawHandler* podh)
 {
-	assert(pImpl_);
-	return STLWrapper<WindowBaseImpl::OwnerDrawHandlerList>
-		(pImpl_->listOwnerDrawHandler_).push_back(podh);
+	assert(podh);
+	pImpl_->listOwnerDrawHandler_.push_back(podh);
 }
 
-QSTATUS qs::WindowBase::removeOwnerDrawHandler(OwnerDrawHandler* podh)
+void qs::WindowBase::removeOwnerDrawHandler(OwnerDrawHandler* podh)
 {
-	assert(pImpl_);
+	assert(podh);
 	WindowBaseImpl::OwnerDrawHandlerList::iterator it =
 		std::remove(pImpl_->listOwnerDrawHandler_.begin(),
 			pImpl_->listOwnerDrawHandler_.end(), podh);
 	assert(it != pImpl_->listOwnerDrawHandler_.end());
 	pImpl_->listOwnerDrawHandler_.erase(it, pImpl_->listOwnerDrawHandler_.end());
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::WindowBase::getAccelerator(Accelerator** ppAccelerator)
+Accelerator* qs::WindowBase::getAccelerator() const
 {
 	if (pImpl_->pOrgWindowBase_)
-		return pImpl_->pOrgWindowBase_->getAccelerator(ppAccelerator);
+		return pImpl_->pOrgWindowBase_->getAccelerator();
 	else
-		return pImpl_->pWindowHandler_->getAccelerator(ppAccelerator);
+		return pImpl_->pWindowHandler_->getAccelerator();
 }
 
-QSTATUS qs::WindowBase::preTranslateAccelerator(const MSG& msg, bool* pbProcessed)
+bool qs::WindowBase::preTranslateAccelerator(const MSG& msg)
 {
 	if (pImpl_->pOrgWindowBase_)
-		return pImpl_->pOrgWindowBase_->preTranslateAccelerator(msg, pbProcessed);
+		return pImpl_->pOrgWindowBase_->preTranslateAccelerator(msg);
 	else
-		return pImpl_->pWindowHandler_->preTranslateAccelerator(msg, pbProcessed);
+		return pImpl_->pWindowHandler_->preTranslateAccelerator(msg);
 }
 
 bool qs::WindowBase::isFrame() const
@@ -936,7 +895,9 @@ InitThread* qs::WindowBase::getInitThread() const
 	return pImpl_->pInitThread_;
 }
 
-LRESULT qs::WindowBase::defWindowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qs::WindowBase::defWindowProc(UINT uMsg,
+									  WPARAM wParam,
+									  LPARAM lParam)
 {
 	if (pImpl_->pOrgWindowBase_)
 		return pImpl_->pOrgWindowBase_->pImpl_->pWindowHandler_->windowProc(uMsg, wParam, lParam);
@@ -946,46 +907,34 @@ LRESULT qs::WindowBase::defWindowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		return ::DefWindowProc(getHandle(), uMsg, wParam, lParam);
 }
 
-QSTATUS qs::WindowBase::translateAccelerator(const MSG& msg, bool* pbProcessed)
+bool qs::WindowBase::translateAccelerator(const MSG& msg)
 {
-	assert(pbProcessed);
-	
-	*pbProcessed = false;
 	if (msg.message != WM_KEYDOWN &&
 		msg.message != WM_KEYUP &&
 		msg.message != WM_SYSKEYDOWN &&
 		msg.message != WM_SYSKEYUP &&
 		msg.message != WM_CHAR &&
 		msg.message != WM_SYSCHAR)
-		return QSTATUS_SUCCESS;
+		return false;
 	
-	DECLARE_QSTATUS();
+	bool bProcessed = false;
 	
-	WindowBaseImpl::WindowMap* pMap = 0;
-	status = WindowBaseImpl::getWindowMap(&pMap);
-	CHECK_QSTATUS();
+	WindowBaseImpl::WindowMap* pMap = WindowBaseImpl::getWindowMap();
 	
 	HWND hwnd = msg.hwnd;
-	WindowBase* pWindowBase = 0;
-	status = pMap->getController(hwnd, &pWindowBase);
-	CHECK_QSTATUS();
+	WindowBase* pWindowBase = pMap->getController(hwnd);
 	if (pWindowBase) {
-		status = pWindowBase->preTranslateAccelerator(msg, pbProcessed);
-		CHECK_QSTATUS();
-		if (*pbProcessed)
-			return QSTATUS_SUCCESS;
+		if (pWindowBase->preTranslateAccelerator(msg))
+			return true;
 	}
 	while (hwnd) {
 		if (pWindowBase) {
-			Accelerator* pAccel = 0;
-			status = pWindowBase->getAccelerator(&pAccel);
-			CHECK_QSTATUS();
+			Accelerator* pAccel = pWindowBase->getAccelerator();
 			if (pAccel) {
 				HWND hwndFrame = hwnd;
 				HWND hwndParent = hwndFrame;
 				while (hwndParent) {
-					status = pMap->getController(hwndFrame, &pWindowBase);
-					CHECK_QSTATUS();
+					pWindowBase = pMap->getController(hwndFrame);
 					if (pWindowBase) {
 						if (pWindowBase->isFrame())
 							break;
@@ -994,32 +943,26 @@ QSTATUS qs::WindowBase::translateAccelerator(const MSG& msg, bool* pbProcessed)
 					hwndParent = ::GetParent(hwndFrame);
 				}
 				assert(hwndFrame);
-				status = pAccel->translateAccelerator(hwndFrame, msg, pbProcessed);
-				CHECK_QSTATUS();
-				if (*pbProcessed)
+				bProcessed = pAccel->translateAccelerator(hwndFrame, msg);
+				if (bProcessed)
 					break;
 			}
 		}
 		hwnd = ::GetParent(hwnd);
-		if (hwnd) {
-			status = pMap->getController(hwnd, &pWindowBase);
-			CHECK_QSTATUS();
-		}
+		if (hwnd)
+			pWindowBase = pMap->getController(hwnd);
 	}
-	return QSTATUS_SUCCESS;
+	
+	return bProcessed;
 }
 
-LRESULT CALLBACK qs::windowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK qs::windowProc(HWND hwnd,
+								UINT uMsg,
+								WPARAM wParam,
+								LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
-	WindowBaseImpl::WindowMap* pMap = 0;
-	status = WindowBaseImpl::getWindowMap(&pMap);
-	CHECK_QSTATUS_VALUE(0);
-	
-	WindowBase* pThis = 0;
-	status = pMap->findController(hwnd, &pThis);
-	CHECK_QSTATUS_VALUE(0);
+	WindowBaseImpl::WindowMap* pMap = WindowBaseImpl::getWindowMap();
+	WindowBase* pThis = pMap->findController(hwnd);
 	
 	LRESULT lResult = 0;
 	if (pThis)
@@ -1042,126 +985,71 @@ LRESULT CALLBACK qs::windowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
  *
  */
 
-qs::ControllerMapBase::ControllerMapBase(QSTATUS* pstatus) :
+qs::ControllerMapBase::ControllerMapBase() :
 	pThis_(0),
 	pMap_(0)
 {
-	assert(pstatus);
+	std::auto_ptr<ThreadLocal> pThis(new ThreadLocal());
+	std::auto_ptr<ThreadLocal> pMap(new ThreadLocal());
 	
-	DECLARE_QSTATUS();
-	
-	std::auto_ptr<ThreadLocal> pThis;
-	status = newQsObject(&pThis);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	std::auto_ptr<ThreadLocal> pMap;
-	status = newQsObject(&pMap);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	pThis_ = pThis.release();
-	pMap_ = pMap.release();
+	pThis_ = pThis;
+	pMap_ = pMap;
 }
 
 qs::ControllerMapBase::~ControllerMapBase()
 {
-	delete pMap_;
-	pMap_ = 0;
-	delete pThis_;
-	pThis_ = 0;
 }
 
-QSTATUS qs::ControllerMapBase::initThread()
+bool qs::ControllerMapBase::initThread()
 {
-	DECLARE_QSTATUS();
-	
-	std::auto_ptr<Map> pMap;
-	status = newObject(&pMap);
-	CHECK_QSTATUS();
-	status = pMap_->set(pMap.get());
-	CHECK_QSTATUS();
-	pMap.release();
-	
-	return QSTATUS_SUCCESS;
+	pMap_->set(new Map());
+	return true;
 }
 
-QSTATUS qs::ControllerMapBase::termThread()
+void qs::ControllerMapBase::termThread()
 {
-	void* pMap = 0;
-	pMap_->get(&pMap);
-	assert(static_cast<Map*>(pMap)->empty());
-	delete static_cast<Map*>(pMap);
-	
-	return QSTATUS_SUCCESS;
+	Map* pMap = static_cast<Map*>(pMap_->get());
+	assert(pMap->empty());
+	delete pMap;
 }
 
-QSTATUS qs::ControllerMapBase::getThis(void** ppThis)
+void* qs::ControllerMapBase::getThis()
 {
-	assert(ppThis);
-	return pThis_->get(ppThis);
+	return pThis_->get();
 }
 
-QSTATUS qs::ControllerMapBase::setThis(void* pThis)
+void qs::ControllerMapBase::setThis(void* pThis)
 {
-	return pThis_->set(pThis);
+	pThis_->set(pThis);
 }
 
-QSTATUS qs::ControllerMapBase::getController(HWND hwnd, void** ppController)
+void* qs::ControllerMapBase::getController(HWND hwnd)
 {
 	assert(hwnd);
-	assert(ppController);
 	
-	DECLARE_QSTATUS();
-	
-	*ppController = 0;
-	
-	void* pValue = 0;
-	status = pMap_->get(&pValue);
-	CHECK_QSTATUS();
-	
-	Map* pMap = static_cast<Map*>(pValue);
-	assert(pMap);
+	Map* pMap = static_cast<Map*>(pMap_->get());
 	Map::iterator it = pMap->find(hwnd);
 	if (it != pMap->end())
-		*ppController = (*it).second;
-	
-	return QSTATUS_SUCCESS;
+		return (*it).second;
+	else
+		return 0;
 }
 
-QSTATUS qs::ControllerMapBase::setController(HWND hwnd, void* pController)
+void qs::ControllerMapBase::setController(HWND hwnd,
+										  void* pController)
 {
 	assert(hwnd);
 	assert(pController);
 	
-	DECLARE_QSTATUS();
-	
-	void* pValue = 0;
-	status = pMap_->get(&pValue);
-	CHECK_QSTATUS();
-	
-	Map* pMap = static_cast<Map*>(pValue);
-	assert(pMap);
-	std::pair<Map::iterator, bool> ret;
-	status = STLWrapper<Map>(*pMap).insert(Map::value_type(hwnd, pController), &ret);
-	CHECK_QSTATUS();
-	
-	return ret.second ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+	Map* pMap = static_cast<Map*>(pMap_->get());
+	pMap->insert(Map::value_type(hwnd, pController));
 }
 
-QSTATUS qs::ControllerMapBase::removeController(HWND hwnd)
+void qs::ControllerMapBase::removeController(HWND hwnd)
 {
 	assert(hwnd);
-	
-	DECLARE_QSTATUS();
-	
-	void* pValue = 0;
-	status = pMap_->get(&pValue);
-	CHECK_QSTATUS();
-	
-	Map* pMap = static_cast<Map*>(pValue);
-	assert(pMap);
+	Map* pMap = static_cast<Map*>(pMap_->get());
 	pMap->erase(hwnd);
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -1175,7 +1063,7 @@ QSTATUS qs::ControllerMapBase::removeController(HWND hwnd)
 ThreadLocal* qs::WindowDestroy::pWindowDestroy__;
 WindowDestroy::InitializerImpl qs::WindowDestroy::init__;
 
-qs::WindowDestroy::WindowDestroy(QSTATUS* pstatus)
+qs::WindowDestroy::WindowDestroy()
 {
 }
 
@@ -1183,20 +1071,16 @@ qs::WindowDestroy::~WindowDestroy()
 {
 }
 
-QSTATUS qs::WindowDestroy::process(HWND hwnd)
+void qs::WindowDestroy::process(HWND hwnd)
 {
-	DECLARE_QSTATUS();
-	
 	WindowList listWindow;
 	bool bMapped = false;
 	listWindow.push_back(hwnd);
 	for (WindowList::size_type n = 0; n < listWindow.size(); ++n) {
 		HWND hwnd = ::GetWindow(listWindow[n], GW_CHILD);
 		while (hwnd) {
-			if (!bMapped) {
-				status = isMapped(hwnd, &bMapped);
-				CHECK_QSTATUS();
-			}
+			if (!bMapped)
+				bMapped = isMapped(hwnd);
 			listWindow.push_back(hwnd);
 			hwnd = ::GetWindow(hwnd, GW_HWNDNEXT);
 		}
@@ -1206,10 +1090,7 @@ QSTATUS qs::WindowDestroy::process(HWND hwnd)
 		
 		WindowList::iterator it = listWindow.begin() + 1;
 		while (it != listWindow.end()) {
-			bool bMapped = false;
-			status = isMapped(*it, &bMapped);
-			CHECK_QSTATUS();
-			if (!bMapped)
+			if (!isMapped(*it))
 				*it = 0;
 			++it;
 		}
@@ -1253,90 +1134,51 @@ QSTATUS qs::WindowDestroy::process(HWND hwnd)
 			}
 		}
 		
-		status = destroy(hwnd);
-		CHECK_QSTATUS();
+		destroy(hwnd);
 		
 		WindowList::reverse_iterator it = listDestroy.rbegin();
 		while (it != listDestroy.rend()) {
-			status = destroy(*it);
-			CHECK_QSTATUS();
+			destroy(*it);
 			++it;
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 WindowDestroy* qs::WindowDestroy::getWindowDestroy()
 {
-	void* pWindowDestroy = 0;
-	pWindowDestroy__->get(&pWindowDestroy);
-	return static_cast<WindowDestroy*>(pWindowDestroy);
+	return static_cast<WindowDestroy*>(pWindowDestroy__->get());
 }
 
-QSTATUS qs::WindowDestroy::isMapped(HWND hwnd, bool* pbMapped)
+bool qs::WindowDestroy::isMapped(HWND hwnd)
 {
-	assert(pbMapped);
-	
-	DECLARE_QSTATUS();
-	
-	*pbMapped = false;
-	
-	WindowBaseImpl::WindowMap* pWindowMap = 0;
-	status = WindowBaseImpl::getWindowMap(&pWindowMap);
-	CHECK_QSTATUS();
-	
-	WindowBase* pWindow = 0;
-	status = pWindowMap->getController(hwnd, &pWindow);
-	CHECK_QSTATUS();
+	WindowBaseImpl::WindowMap* pWindowMap = WindowBaseImpl::getWindowMap();
+	WindowBase* pWindow = pWindowMap->getController(hwnd);
 	if (pWindow) {
-		*pbMapped = true;
+		return true;
 	}
 	else {
-		DialogBaseImpl::DialogMap* pDialogMap = 0;
-		status = DialogBaseImpl::getDialogMap(&pDialogMap);
-		CHECK_QSTATUS();
-		
-		DialogBase* pDialog = 0;
-		status = pDialogMap->getController(hwnd, &pDialog);
-		CHECK_QSTATUS();
+		DialogBaseImpl::DialogMap* pDialogMap = DialogBaseImpl::getDialogMap();
+		DialogBase* pDialog = pDialogMap->getController(hwnd);
 		if (pDialog)
-			*pbMapped = true;
+			return true;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return false;
 }
 
-QSTATUS qs::WindowDestroy::destroy(HWND hwnd)
+void qs::WindowDestroy::destroy(HWND hwnd)
 {
-	DECLARE_QSTATUS();
-	
-	WindowBaseImpl::WindowMap* pWindowMap = 0;
-	status = WindowBaseImpl::getWindowMap(&pWindowMap);
-	CHECK_QSTATUS();
-	
-	WindowBase* pWindow = 0;
-	status = pWindowMap->getController(hwnd, &pWindow);
-	CHECK_QSTATUS();
+	WindowBaseImpl::WindowMap* pWindowMap = WindowBaseImpl::getWindowMap();
+	WindowBase* pWindow = pWindowMap->getController(hwnd);
 	if (pWindow) {
-		status = pWindow->pImpl_->destroy();
-		CHECK_QSTATUS();
+		pWindow->pImpl_->destroy();
 	}
 	else {
-		DialogBaseImpl::DialogMap* pDialogMap = 0;
-		status = DialogBaseImpl::getDialogMap(&pDialogMap);
-		CHECK_QSTATUS();
-		
-		DialogBase* pDialog = 0;
-		status = pDialogMap->getController(hwnd, &pDialog);
-		CHECK_QSTATUS();
-		if (pDialog) {
-			status = pDialog->pImpl_->destroy();
-			CHECK_QSTATUS();
-		}
+		DialogBaseImpl::DialogMap* pDialogMap = DialogBaseImpl::getDialogMap();
+		DialogBase* pDialog = pDialogMap->getController(hwnd);
+		if (pDialog)
+			pDialog->pImpl_->destroy();
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 void qs::WindowDestroy::remove(HWND hwnd)
@@ -1369,35 +1211,26 @@ qs::WindowDestroy::InitializerImpl::~InitializerImpl()
 {
 }
 
-QSTATUS qs::WindowDestroy::InitializerImpl::init()
+bool qs::WindowDestroy::InitializerImpl::init()
 {
-	return newQsObject(&WindowDestroy::pWindowDestroy__);
+	WindowDestroy::pWindowDestroy__ = new ThreadLocal();
+	return true;
 }
 
-QSTATUS qs::WindowDestroy::InitializerImpl::term()
+void qs::WindowDestroy::InitializerImpl::term()
 {
 	delete WindowDestroy::pWindowDestroy__;
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::WindowDestroy::InitializerImpl::initThread()
+bool qs::WindowDestroy::InitializerImpl::initThread()
 {
-	DECLARE_QSTATUS();
-	
-	std::auto_ptr<WindowDestroy> pWindowDestroy;
-	status = newQsObject(&pWindowDestroy);
-	CHECK_QSTATUS();
-	status = pWindowDestroy__->set(pWindowDestroy.get());
-	CHECK_QSTATUS();
-	pWindowDestroy.release();
-	
-	return QSTATUS_SUCCESS;
+	pWindowDestroy__->set(new WindowDestroy());
+	return true;
 }
 
-QSTATUS qs::WindowDestroy::InitializerImpl::termThread()
+void qs::WindowDestroy::InitializerImpl::termThread()
 {
 	delete WindowDestroy::getWindowDestroy();
-	return QSTATUS_SUCCESS;
 }
 #endif
 
@@ -1412,35 +1245,33 @@ qs::CommandUpdate::~CommandUpdate()
 {
 }
 
-QSTATUS qs::CommandUpdate::setEnable()
+void qs::CommandUpdate::setEnable()
 {
-	return setEnable(true);
+	setEnable(true);
 }
 
-QSTATUS qs::CommandUpdate::setCheck()
+void qs::CommandUpdate::setCheck()
 {
-	return setCheck(true);
+	setCheck(true);
 }
 
-QSTATUS qs::CommandUpdate::setText(const WCHAR* pwszText)
+void qs::CommandUpdate::setText(const WCHAR* pwszText)
 {
-	return setText(pwszText, true);
+	setText(pwszText, true);
 }
 
-QSTATUS qs::CommandUpdate::setText(HINSTANCE hInstResource, UINT nId)
+void qs::CommandUpdate::setText(HINSTANCE hInstResource,
+								UINT nId)
 {
-	return setText(hInstResource, nId, true);
+	setText(hInstResource, nId, true);
 }
 
-QSTATUS qs::CommandUpdate::setText(HINSTANCE hInstResource,
-	UINT nId, bool bWithoutAccel)
+void qs::CommandUpdate::setText(HINSTANCE hInstResource,
+								UINT nId,
+								bool bWithoutAccel)
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrText;
-	status = loadString(hInstResource, nId, &wstrText);
-	CHECK_QSTATUS();
-	return setText(wstrText.get(), bWithoutAccel);
+	wstring_ptr wstrText(loadString(hInstResource, nId));
+	setText(wstrText.get(), bWithoutAccel);
 }
 
 
@@ -1450,12 +1281,11 @@ QSTATUS qs::CommandUpdate::setText(HINSTANCE hInstResource,
  *
  */
 
-qs::CommandUpdateMenu::CommandUpdateMenu(HMENU hmenu, UINT nId, QSTATUS* pstatus) :
+qs::CommandUpdateMenu::CommandUpdateMenu(HMENU hmenu,
+										 UINT nId) :
 	hmenu_(hmenu),
 	nId_(nId)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qs::CommandUpdateMenu::~CommandUpdateMenu()
@@ -1472,41 +1302,30 @@ UINT qs::CommandUpdateMenu::getId() const
 	return nId_;
 }
 
-QSTATUS qs::CommandUpdateMenu::setEnable(bool bEnable)
+void qs::CommandUpdateMenu::setEnable(bool bEnable)
 {
 	::EnableMenuItem(hmenu_, nId_,
 		(bEnable ? MF_ENABLED : MF_GRAYED) | MF_BYCOMMAND);
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::CommandUpdateMenu::setCheck(bool bCheck)
+void qs::CommandUpdateMenu::setCheck(bool bCheck)
 {
 	::CheckMenuItem(hmenu_, nId_,
 		(bCheck ? MF_CHECKED : MF_UNCHECKED) | MF_BYCOMMAND);
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::CommandUpdateMenu::setText(const WCHAR* pwszText, bool bWithoutAccel)
+void qs::CommandUpdateMenu::setText(const WCHAR* pwszText,
+									bool bWithoutAccel)
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<TSTRING> tstrText(wcs2tcs(pwszText));
-	if (!tstrText.get())
-		return QSTATUS_OUTOFMEMORY;
+	tstring_ptr tstrText(wcs2tcs(pwszText));
 #ifndef _WIN32_WCE_PSPC
 	if (bWithoutAccel && !wcschr(pwszText, L'\t')) {
-		string_ptr<WSTRING> wstrOld;
-		status = getText(&wstrOld);
-		CHECK_QSTATUS();
+		wstring_ptr wstrOld(getText());
 		const WCHAR* p = wcsrchr(wstrOld.get(), L'\t');
 		if (p) {
-			string_ptr<TSTRING> tstrOld(wcs2tcs(p));
-			if (!tstrOld.get())
-				return QSTATUS_OUTOFMEMORY;
+			tstring_ptr tstrOld(wcs2tcs(p));
 			size_t nLen = _tcslen(tstrText.get()) + _tcslen(tstrOld.get()) + 1;
-			tstrText.reset(reallocTString(tstrText.release(), nLen));
-			if (!tstrText.get())
-				return QSTATUS_OUTOFMEMORY;
+			tstrText = reallocTString(tstrText, nLen);
 			_tcscat(tstrText.get(), tstrOld.get());
 		}
 	}
@@ -1525,14 +1344,10 @@ QSTATUS qs::CommandUpdateMenu::setText(const WCHAR* pwszText, bool bWithoutAccel
 		0
 	};
 	::SetMenuItemInfo(hmenu_, nId_, FALSE, &mii);
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::CommandUpdateMenu::getText(WSTRING* pwstrText) const
+wstring_ptr qs::CommandUpdateMenu::getText() const
 {
-	assert(pwstrText);
-	
 	TCHAR tszText[256];
 	MENUITEMINFO mii = {
 		sizeof(mii),
@@ -1548,50 +1363,29 @@ QSTATUS qs::CommandUpdateMenu::getText(WSTRING* pwstrText) const
 		countof(tszText) - 1
 	};
 	if (!::GetMenuItemInfo(hmenu_, nId_, false, &mii) || !mii.dwTypeData)
-		return QSTATUS_FAIL;
-	string_ptr<WSTRING> wstr(tcs2wcs(tszText));
-	if (!wstr.get())
-		return QSTATUS_OUTOFMEMORY;
-	*pwstrText = wstr.release();
-	return QSTATUS_SUCCESS;
+		return 0;
+	return tcs2wcs(tszText);
 }
 
-QSTATUS qs::CommandUpdateMenu::updateText()
+void qs::CommandUpdateMenu::updateText()
 {
-	DECLARE_QSTATUS();
-	
 	if (getId() != 0) {
-		string_ptr<WSTRING> wstrMenu;
-		QSTATUS status = getText(&wstrMenu);
-		CHECK_QSTATUS();
+		wstring_ptr wstrMenu(getText());
 		WCHAR* p = wcsrchr(wstrMenu.get(), L'\t');
 		if (p)
 			*p = L'\0';
 #ifndef _WIN32_WCE_PSPC
-		WindowBaseImpl::WindowMap* pMap = 0;
-		status = WindowBaseImpl::getWindowMap(&pMap);
-		CHECK_QSTATUS();
+		WindowBaseImpl::WindowMap* pMap = WindowBaseImpl::getWindowMap();
 		
 		HWND hwnd = Window::getFocus();
 		while (hwnd) {
-			WindowBase* pWindowBase = 0;
-			status = pMap->getController(hwnd, &pWindowBase);
-			CHECK_QSTATUS();
-			
+			WindowBase* pWindowBase = pMap->getController(hwnd);
 			if (pWindowBase) {
-				Accelerator* pAccel = 0;
-				status = pWindowBase->getAccelerator(&pAccel);
-				CHECK_QSTATUS();
-				
+				Accelerator* pAccel = pWindowBase->getAccelerator();
 				if (pAccel) {
-					string_ptr<WSTRING> wstrKey;
-					status = pAccel->getKeyFromId(getId(), &wstrKey);
-					CHECK_QSTATUS();
+					wstring_ptr wstrKey(pAccel->getKeyFromId(getId()));
 					if (wstrKey.get()) {
-						WSTRING wstr = concat(wstrMenu.get(), L"\t", wstrKey.get());
-						if (!wstr)
-							return QSTATUS_OUTOFMEMORY;
-						wstrMenu.reset(wstr);
+						wstrMenu = concat(wstrMenu.get(), L"\t", wstrKey.get());
 						break;
 					}
 				}
@@ -1599,10 +1393,8 @@ QSTATUS qs::CommandUpdateMenu::updateText()
 			hwnd = ::GetParent(hwnd);
 		}
 #endif
-		status = setText(wstrMenu.get(), false);
-		CHECK_QSTATUS();
+		setText(wstrMenu.get(), false);
 	}
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -1612,8 +1404,8 @@ QSTATUS qs::CommandUpdateMenu::updateText()
  *
  */
 
-qs::CommandUpdateToolbar::CommandUpdateToolbar(
-	HWND hwnd, UINT nId, QSTATUS* pstatus) :
+qs::CommandUpdateToolbar::CommandUpdateToolbar(HWND hwnd,
+											   UINT nId) :
 	hwnd_(hwnd),
 	nId_(nId)
 {
@@ -1628,7 +1420,7 @@ UINT qs::CommandUpdateToolbar::getId() const
 	return nId_;
 }
 
-QSTATUS qs::CommandUpdateToolbar::setEnable(bool bEnable)
+void qs::CommandUpdateToolbar::setEnable(bool bEnable)
 {
 	Window wnd(hwnd_);
 	int nState = wnd.sendMessage(TB_GETSTATE, nId_);
@@ -1637,10 +1429,9 @@ QSTATUS qs::CommandUpdateToolbar::setEnable(bool bEnable)
 	else
 		nState &= ~TBSTATE_ENABLED;
 	wnd.sendMessage(TB_SETSTATE, nId_, nState);
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::CommandUpdateToolbar::setCheck(bool bCheck)
+void qs::CommandUpdateToolbar::setCheck(bool bCheck)
 {
 	Window wnd(hwnd_);
 	int nState = wnd.sendMessage(TB_GETSTATE, nId_);
@@ -1649,22 +1440,20 @@ QSTATUS qs::CommandUpdateToolbar::setCheck(bool bCheck)
 	else
 		nState &= ~TBSTATE_CHECKED;
 	wnd.sendMessage(TB_SETSTATE, nId_, nState);
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::CommandUpdateToolbar::setText(const WCHAR* pwszText, bool bWithoutAccel)
+void qs::CommandUpdateToolbar::setText(const WCHAR* pwszText,
+									   bool bWithoutAccel)
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::CommandUpdateToolbar::getText(WSTRING* pwstrText) const
+wstring_ptr qs::CommandUpdateToolbar::getText() const
 {
-	return QSTATUS_SUCCESS;
+	return 0;
 }
 
-QSTATUS qs::CommandUpdateToolbar::updateText()
+void qs::CommandUpdateToolbar::updateText()
 {
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -1685,7 +1474,7 @@ qs::CommandHandler::~CommandHandler()
  *
  */
 
-qs::DefaultCommandHandler::DefaultCommandHandler(QSTATUS* pstatus)
+qs::DefaultCommandHandler::DefaultCommandHandler()
 {
 }
 
@@ -1693,7 +1482,8 @@ qs::DefaultCommandHandler::~DefaultCommandHandler()
 {
 }
 
-LRESULT qs::DefaultCommandHandler::onCommand(WORD nCode, WORD nId)
+LRESULT qs::DefaultCommandHandler::onCommand(WORD nCode,
+											 WORD nId)
 {
 	return 1;
 }
@@ -1738,14 +1528,13 @@ qs::ModalHandler::~ModalHandler()
  *
  */
 
-qs::ModalHandlerInvoker::ModalHandlerInvoker(
-	ModalHandler* pModalHandler, HWND hwnd, QSTATUS* pstatus) :
-	pModalHandler_(pModalHandler), hwnd_(hwnd)
+qs::ModalHandlerInvoker::ModalHandlerInvoker(ModalHandler* pModalHandler,
+											 HWND hwnd) :
+	pModalHandler_(pModalHandler),
+	hwnd_(hwnd)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 	if (pModalHandler_)
-		*pstatus = pModalHandler_->preModalDialog(hwnd_);
+		pModalHandler_->preModalDialog(hwnd_);
 }
 
 qs::ModalHandlerInvoker::~ModalHandlerInvoker()
@@ -1783,11 +1572,9 @@ qs::DefaultWindowHandlerBase::~DefaultWindowHandlerBase()
  *
  */
 
-qs::DefaultWindowHandler::DefaultWindowHandler(QSTATUS* pstatus) :
+qs::DefaultWindowHandler::DefaultWindowHandler() :
 	pWindowBase_(0)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qs::DefaultWindowHandler::~DefaultWindowHandler()
@@ -1800,22 +1587,19 @@ WindowBase* qs::DefaultWindowHandler::getWindowBase() const
 	return pWindowBase_;
 }
 
-QSTATUS qs::DefaultWindowHandler::setWindowBase(WindowBase* pWindowBase)
+void qs::DefaultWindowHandler::setWindowBase(WindowBase* pWindowBase)
 {
 	assert(!pWindowBase_);
 	assert(pWindowBase);
 	pWindowBase_ = pWindowBase;
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::DefaultWindowHandler::getSuperClass(WSTRING* pwstrSuperClass)
+wstring_ptr qs::DefaultWindowHandler::getSuperClass()
 {
-	assert(pwstrSuperClass);
-	*pwstrSuperClass = 0;
-	return QSTATUS_SUCCESS;
+	return 0;
 }
 
-QSTATUS qs::DefaultWindowHandler::getWindowClass(WNDCLASS* pwc)
+void qs::DefaultWindowHandler::getWindowClass(WNDCLASS* pwc)
 {
 	pwc->style = CS_DBLCLKS;
 	pwc->lpfnWndProc = qs::windowProc;
@@ -1831,59 +1615,50 @@ QSTATUS qs::DefaultWindowHandler::getWindowClass(WNDCLASS* pwc)
 	pwc->hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1);
 	pwc->lpszMenuName = 0;
 	pwc->lpszClassName = 0;
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::DefaultWindowHandler::getWindowClass(
-	const WCHAR* pwszSuperClass, WNDCLASS* pwc, WNDPROC* pproc)
+bool qs::DefaultWindowHandler::getWindowClass(const WCHAR* pwszSuperClass,
+											  WNDCLASS* pwc,
+											  WNDPROC* pproc)
 {
-	QSTATUS status = QSTATUS_SUCCESS;
 	if (pwszSuperClass) {
 		assert(pproc);
 		W2T(pwszSuperClass, ptszSuperClass);
 		if (!::GetClassInfo(getInstanceHandle(), ptszSuperClass, pwc))
-			return QSTATUS_FAIL;
+			return false;
 		preSubclassWindow();
 		*pproc = pwc->lpfnWndProc;
 		pwc->lpfnWndProc = qs::windowProc;
 	}
 	else {
-		status = getWindowClass(pwc);
+		getWindowClass(pwc);
 	}
-	return status;
+	return true;
 }
 
-QSTATUS qs::DefaultWindowHandler::preCreateWindow(CREATESTRUCT* pCreateStruct)
+bool qs::DefaultWindowHandler::preCreateWindow(CREATESTRUCT* pCreateStruct)
 {
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::DefaultWindowHandler::preSubclassWindow()
+bool qs::DefaultWindowHandler::preSubclassWindow()
 {
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::DefaultWindowHandler::getAction(UINT nId, Action** ppAction)
+Action* qs::DefaultWindowHandler::getAction(UINT nId)
 {
-	assert(ppAction);
-	*ppAction = 0;
-	return QSTATUS_SUCCESS;
+	return 0;
 }
 
-QSTATUS qs::DefaultWindowHandler::getAccelerator(Accelerator** ppAccelerator)
+Accelerator* qs::DefaultWindowHandler::getAccelerator()
 {
-	assert(ppAccelerator);
-	*ppAccelerator = 0;
-	return QSTATUS_SUCCESS;
+	return 0;
 }
 
-QSTATUS qs::DefaultWindowHandler::preTranslateAccelerator(
-	const MSG& msg, bool* pbProcessed)
+bool qs::DefaultWindowHandler::preTranslateAccelerator(const MSG& msg)
 {
-	assert(pbProcessed);
-	*pbProcessed = false;
-	return QSTATUS_SUCCESS;
+	return false;
 }
 
 bool qs::DefaultWindowHandler::isFrame() const
@@ -1891,7 +1666,9 @@ bool qs::DefaultWindowHandler::isFrame() const
 	return false;
 }
 
-LRESULT qs::DefaultWindowHandler::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qs::DefaultWindowHandler::windowProc(UINT uMsg,
+											 WPARAM wParam,
+											 LPARAM lParam)
 {
 	assert(pWindowBase_);
 	return pWindowBase_->defWindowProc(uMsg, wParam, lParam);
@@ -1912,17 +1689,9 @@ DefWindowProcHolder* qs::DefaultWindowHandler::getDefWindowProcHolder()
  *
  */
 
-qs::CommandBand::CommandBand(bool bDeleteThis, QSTATUS* pstatus) :
-	WindowBase(bDeleteThis, pstatus),
-	DefaultWindowHandler(pstatus)
+qs::CommandBand::CommandBand(bool bDeleteThis) :
+	WindowBase(bDeleteThis)
 {
-	assert(pstatus);
-	
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
 	setWindowHandler(this, false);
 }
 
@@ -1930,7 +1699,9 @@ qs::CommandBand::~CommandBand()
 {
 }
 
-LRESULT qs::CommandBand::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qs::CommandBand::windowProc(UINT uMsg,
+									WPARAM wParam,
+									LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_SIZE()
@@ -1938,7 +1709,9 @@ LRESULT qs::CommandBand::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
 
-LRESULT qs::CommandBand::onSize(UINT nFlags, int cx, int cy)
+LRESULT qs::CommandBand::onSize(UINT nFlags,
+								int cx,
+								int cy)
 {
 	HWND hwndParent = getWindowBase()->getParent();
 	if (hwndParent) {
@@ -1991,11 +1764,10 @@ qs::Cursor::~Cursor()
 		::SetCursor(hcursor_);
 }
 
-QSTATUS qs::Cursor::reset()
+void qs::Cursor::reset()
 {
 	::SetCursor(hcursor_);
 	bReset_ = true;
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -2014,7 +1786,7 @@ qs::WaitCursor::~WaitCursor()
 {
 }
 
-QSTATUS qs::WaitCursor::reset()
+void qs::WaitCursor::reset()
 {
-	return cursor_.reset();
+	cursor_.reset();
 }

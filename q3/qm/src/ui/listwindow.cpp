@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -18,9 +18,7 @@
 #include <qsconv.h>
 #include <qsdevicecontext.h>
 #include <qsdragdrop.h>
-#include <qserror.h>
 #include <qskeymap.h>
-#include <qsnew.h>
 #include <qsprofile.h>
 #include <qsstl.h>
 #include <qsstream.h>
@@ -41,52 +39,6 @@
 
 using namespace qm;
 using namespace qs;
-
-
-/****************************************************************************
- *
- * PaintInfo
- *
- */
-
-qm::PaintInfo::PaintInfo(DeviceContext* pdc, ViewModel* pViewModel,
-	unsigned int nIndex, const RECT& rect) :
-	pdc_(pdc),
-	pViewModel_(pViewModel),
-	nIndex_(nIndex),
-	pItem_(pViewModel->getItem(nIndex)),
-	rect_(rect)
-{
-}
-
-qm::PaintInfo::~PaintInfo()
-{
-}
-
-DeviceContext* qm::PaintInfo::getDeviceContext() const
-{
-	return pdc_;
-}
-
-ViewModel* qm::PaintInfo::getViewModel() const
-{
-	return pViewModel_;
-}
-
-unsigned int qm::PaintInfo::getIndex() const
-{
-	return nIndex_;
-}
-
-const ViewModelItem* qm::PaintInfo::getItem() const
-{
-	return pItem_;
-}
-
-const RECT& qm::PaintInfo::getRect() const
-{
-	return rect_;
-}
 
 
 /****************************************************************************
@@ -116,9 +68,9 @@ public:
 	};
 
 public:
-	QSTATUS createHeaderColumn();
-	QSTATUS layoutChildren();
-	QSTATUS layoutChildren(int cx, int cy);
+	bool createHeaderColumn();
+	void layoutChildren();
+	void layoutChildren(int cx, int cy);
 	
 	void getRect(RECT* pRect);
 	void paintMessage(const PaintInfo& pi);
@@ -131,32 +83,33 @@ public:
 	unsigned int getLineFromPoint(const POINT& pt) const;
 
 public:
-	virtual QSTATUS viewModelSelected(const ViewModelManagerEvent& event);
+	virtual void viewModelSelected(const ViewModelManagerEvent& event);
 
 public:
-	virtual QSTATUS itemAdded(const ViewModelEvent& event);
-	virtual QSTATUS itemRemoved(const ViewModelEvent& event);
-	virtual QSTATUS itemChanged(const ViewModelEvent& event);
-	virtual QSTATUS itemStateChanged(const ViewModelEvent& event);
-	virtual QSTATUS itemAttentionPaid(const ViewModelEvent& event);
-	virtual QSTATUS updated(const ViewModelEvent& event);
-	virtual QSTATUS sorted(const ViewModelEvent& event);
-	virtual QSTATUS destroyed(const ViewModelEvent& event);
+	virtual void itemAdded(const ViewModelEvent& event);
+	virtual void itemRemoved(const ViewModelEvent& event);
+	virtual void itemChanged(const ViewModelEvent& event);
+	virtual void itemStateChanged(const ViewModelEvent& event);
+	virtual void itemAttentionPaid(const ViewModelEvent& event);
+	virtual void updated(const ViewModelEvent& event);
+	virtual void sorted(const ViewModelEvent& event);
+	virtual void destroyed(const ViewModelEvent& event);
 
 public:
-	virtual QSTATUS dragGestureRecognized(const DragGestureEvent& event);
+	virtual void dragGestureRecognized(const DragGestureEvent& event);
 
 public:
-	virtual QSTATUS dragDropEnd(const DragSourceDropEvent& event);
+	virtual void dragDropEnd(const DragSourceDropEvent& event);
 
 public:
-	virtual QSTATUS dragEnter(const DropTargetDragEvent& event);
-	virtual QSTATUS dragOver(const DropTargetDragEvent& event);
-	virtual QSTATUS dragExit(const DropTargetEvent& event);
-	virtual QSTATUS drop(const DropTargetDropEvent& event);
+	virtual void dragEnter(const DropTargetDragEvent& event);
+	virtual void dragOver(const DropTargetDragEvent& event);
+	virtual void dragExit(const DropTargetEvent& event);
+	virtual void drop(const DropTargetDropEvent& event);
 
 private:
-	static int getMessageImage(MessageHolder* pmh, unsigned int nFlags);
+	static int getMessageImage(MessageHolder* pmh,
+							   unsigned int nFlags);
 
 public:
 	ListWindow* pThis_;
@@ -164,7 +117,7 @@ public:
 	Profile* pProfile_;
 	MessageFrameWindowManager* pMessageFrameWindowManager_;
 	MenuManager* pMenuManager_;
-	Accelerator* pAccelerator_;
+	std::auto_ptr<Accelerator> pAccelerator_;
 	Document* pDocument_;
 	ViewModelManager* pViewModelManager_;
 	
@@ -175,39 +128,37 @@ public:
 	HIMAGELIST hImageListData_;
 	HPEN hpenThreadLine_;
 	HPEN hpenFocusedThreadLine_;
-	DragGestureRecognizer* pDragGestureRecognizer_;
-	DropTarget* pDropTarget_;
+	std::auto_ptr<DragGestureRecognizer> pDragGestureRecognizer_;
+	std::auto_ptr<DropTarget> pDropTarget_;
 	bool bCanDrop_;
 };
 
-QSTATUS qm::ListWindowImpl::createHeaderColumn()
+bool qm::ListWindowImpl::createHeaderColumn()
 {
-	DECLARE_QSTATUS();
-	
-	std::auto_ptr<ListHeaderColumn> pHeaderColumn;
-	status = newQsObject(pThis_, pProfile_, &pHeaderColumn);
-	CHECK_QSTATUS();
+	std::auto_ptr<ListHeaderColumn> pHeaderColumn(
+		new ListHeaderColumn(pThis_, pProfile_));
 	
 	RECT rect;
 	pThis_->getClientRect(&rect);
-	status = pHeaderColumn->create(L"QmListHeaderColumn", 0,
+	if (!pHeaderColumn->create(L"QmListHeaderColumn", 0,
 		WS_CHILD, 0, 0, rect.right - rect.left, 0,
-		pThis_->getHandle(), 0, 0, ID_HEADERCOLUMN, 0);
-	CHECK_QSTATUS();
+		pThis_->getHandle(), 0, 0, ID_HEADERCOLUMN, 0))
+		return false;
 	
 	pHeaderColumn_ = pHeaderColumn.release();
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::ListWindowImpl::layoutChildren()
+void qm::ListWindowImpl::layoutChildren()
 {
 	RECT rect;
 	pThis_->getClientRect(&rect);
-	return layoutChildren(rect.right - rect.left, rect.bottom - rect.top);
+	layoutChildren(rect.right - rect.left, rect.bottom - rect.top);
 }
 
-QSTATUS qm::ListWindowImpl::layoutChildren(int cx, int cy)
+void qm::ListWindowImpl::layoutChildren(int cx,
+										int cy)
 {
 	if (pHeaderColumn_) {
 		RECT rect;
@@ -219,8 +170,6 @@ QSTATUS qm::ListWindowImpl::layoutChildren(int cx, int cy)
 	updateScrollBar(true);
 	updateScrollBar(false);
 	pThis_->invalidate();
-	
-	return QSTATUS_SUCCESS;
 }
 
 void qm::ListWindowImpl::getRect(RECT* pRect)
@@ -231,8 +180,6 @@ void qm::ListWindowImpl::getRect(RECT* pRect)
 
 void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 {
-	DECLARE_QSTATUS();
-	
 	DeviceContext* pdc = pi.getDeviceContext();
 	ViewModel* pViewModel = pi.getViewModel();
 	const ViewModelItem* pItem = pi.getItem();
@@ -240,7 +187,7 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 	const RECT& rect = pi.getRect();
 	
 	bool bHasFocus = pThis_->hasFocus();
-	bool bSelected = (pItem->getFlags() & ViewModel::FLAG_SELECTED) != 0;
+	bool bSelected = (pItem->getFlags() & ViewModelItem::FLAG_SELECTED) != 0;
 	if (bSelected) {
 		pdc->setTextColor(::GetSysColor(bHasFocus ? COLOR_HIGHLIGHTTEXT : COLOR_WINDOWTEXT));
 		pdc->setBkColor(::GetSysColor(bHasFocus ? COLOR_HIGHLIGHT : COLOR_INACTIVEBORDER));
@@ -285,11 +232,7 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 		
 		ViewColumn::Type type = pColumn->getType();
 		if (!pColumn->isFlag(ViewColumn::FLAG_ICON)) {
-			string_ptr<WSTRING> wstrText;
-			status = pColumn->getText(pmh, &wstrText);
-			// TODO
-			// Check error
-			
+			wstring_ptr wstrText(pColumn->getText(pmh));
 			size_t nLen = wcslen(wstrText.get());
 			POINT pt = { r.left + HORIZONTAL_BORDER, r.top + LINE_SPACING/2 };
 			if (pColumn->isFlag(ViewColumn::FLAG_RIGHTALIGN)) {
@@ -364,55 +307,52 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 		nThreadLeft != -1) {
 		if (nLevel > 0) {
 			typedef std::vector<int> Line;
-			Line line;
-			status = STLWrapper<Line>(line).resize(nLevel);
-			if (status == QSTATUS_SUCCESS) {
-				for (unsigned int n = pi.getIndex() + 1; n < pViewModel->getCount(); ++n) {
-					const ViewModelItem* pNextItem = pViewModel->getItem(n);
-					unsigned int nNextLevel = pNextItem->getLevel();
-					if (nNextLevel == 0) {
-						break;
-					}
-					else if (nNextLevel <= nLevel) {
-						line[nNextLevel - 1] = 1;
-						nLevel = nNextLevel;
-					}
+			Line line(nLevel, 0);
+			for (unsigned int n = pi.getIndex() + 1; n < pViewModel->getCount(); ++n) {
+				const ViewModelItem* pNextItem = pViewModel->getItem(n);
+				unsigned int nNextLevel = pNextItem->getLevel();
+				if (nNextLevel == 0) {
+					break;
 				}
-				
-				HPEN hpen = (bSelected && bHasFocus) ?
-					hpenFocusedThreadLine_ : hpenThreadLine_;
-				ObjectSelector<HPEN> selector(*pdc, hpen);
-				int nOffset = 7;
-				POINT points[4];
-				for (Line::iterator it = line.begin(); it != line.end(); ++it) {
-					int nPoint = 2;
-					if (*it || it + 1 == line.end()) {
-						points[0].x = nThreadLeft + nOffset;
-						points[0].y = rect.top;
-						points[1].x = points[0].x;
-						points[1].y = *it ? rect.bottom : (rect.top + rect.bottom)/2;
-						if (it + 1 == line.end()) {
-							if (*it) {
-								points[nPoint].x = points[1].x;
-								points[nPoint].y = (rect.top + rect.bottom)/2;
-								++nPoint;
-							}
-							points[nPoint].x = points[nPoint - 1].x + 5;
-							points[nPoint].y = points[nPoint - 1].y;
+				else if (nNextLevel <= nLevel) {
+					line[nNextLevel - 1] = 1;
+					nLevel = nNextLevel;
+				}
+			}
+			
+			HPEN hpen = (bSelected && bHasFocus) ?
+				hpenFocusedThreadLine_ : hpenThreadLine_;
+			ObjectSelector<HPEN> selector(*pdc, hpen);
+			int nOffset = 7;
+			POINT points[4];
+			for (Line::iterator it = line.begin(); it != line.end(); ++it) {
+				int nPoint = 2;
+				if (*it || it + 1 == line.end()) {
+					points[0].x = nThreadLeft + nOffset;
+					points[0].y = rect.top;
+					points[1].x = points[0].x;
+					points[1].y = *it ? rect.bottom : (rect.top + rect.bottom)/2;
+					if (it + 1 == line.end()) {
+						if (*it) {
+							points[nPoint].x = points[1].x;
+							points[nPoint].y = (rect.top + rect.bottom)/2;
 							++nPoint;
 						}
-						pdc->polyline(points, nPoint);
+						points[nPoint].x = points[nPoint - 1].x + 5;
+						points[nPoint].y = points[nPoint - 1].y;
+						++nPoint;
 					}
-					nOffset += 15;
-					if (nThreadLeft + nOffset > nThreadRight)
-						break;
+					pdc->polyline(points, nPoint);
 				}
+				nOffset += 15;
+				if (nThreadLeft + nOffset > nThreadRight)
+					break;
 			}
 		}
 	}
 	
 #if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
-	if ((pItem->getFlags() & ViewModel::FLAG_FOCUSED) && bHasFocus) {
+	if ((pItem->getFlags() & ViewModelItem::FLAG_FOCUSED) && bHasFocus) {
 		pdc->setTextColor(COLOR_WINDOWTEXT);
 		pdc->drawFocusRect(rectFocus);
 	}
@@ -575,128 +515,100 @@ unsigned int qm::ListWindowImpl::getLineFromPoint(const POINT& pt) const
 	return nLine < pViewModel->getCount() ? nLine : static_cast<unsigned int>(-1);
 }
 
-QSTATUS qm::ListWindowImpl::viewModelSelected(const ViewModelManagerEvent& event)
+void qm::ListWindowImpl::viewModelSelected(const ViewModelManagerEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	ViewModel* pOldViewModel = event.getOldViewModel();
-	if (pOldViewModel) {
-		status = pOldViewModel->removeViewModelHandler(this);
-		CHECK_QSTATUS();
-	}
+	if (pOldViewModel)
+		pOldViewModel->removeViewModelHandler(this);
 	
 	ViewModel* pNewViewModel = event.getNewViewModel();
-	if (pNewViewModel) {
-		status = pNewViewModel->addViewModelHandler(this);
-		CHECK_QSTATUS();
-	}
+	if (pNewViewModel)
+		pNewViewModel->addViewModelHandler(this);
 	
-	status = pHeaderColumn_->setViewModel(pNewViewModel);
-	CHECK_QSTATUS();
+	pHeaderColumn_->setViewModel(pNewViewModel);
 	
 	pThis_->refresh();
 	
 	if (pNewViewModel)
 		ensureVisible(pNewViewModel->getFocused());
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ListWindowImpl::itemAdded(const ViewModelEvent& event)
+void qm::ListWindowImpl::itemAdded(const ViewModelEvent& event)
 {
 	assert(event.getViewModel() == pViewModelManager_->getCurrentViewModel());
 	pThis_->postMessage(WM_VIEWMODEL_ITEMADDED, event.getItem(), 0);
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ListWindowImpl::itemRemoved(const ViewModelEvent& event)
+void qm::ListWindowImpl::itemRemoved(const ViewModelEvent& event)
 {
 	assert(event.getViewModel() == pViewModelManager_->getCurrentViewModel());
 	pThis_->postMessage(WM_VIEWMODEL_ITEMREMOVED, event.getItem(), 0);
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ListWindowImpl::itemChanged(const ViewModelEvent& event)
+void qm::ListWindowImpl::itemChanged(const ViewModelEvent& event)
 {
 	assert(event.getViewModel() == pViewModelManager_->getCurrentViewModel());
 	invalidateLine(event.getItem());
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ListWindowImpl::itemStateChanged(const ViewModelEvent& event)
+void qm::ListWindowImpl::itemStateChanged(const ViewModelEvent& event)
 {
 	assert(event.getViewModel() == pViewModelManager_->getCurrentViewModel());
 	invalidateLine(event.getItem());
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ListWindowImpl::itemAttentionPaid(const ViewModelEvent& event)
+void qm::ListWindowImpl::itemAttentionPaid(const ViewModelEvent& event)
 {
 	assert(event.getViewModel() == pViewModelManager_->getCurrentViewModel());
 	ensureVisible(event.getItem());
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ListWindowImpl::updated(const ViewModelEvent& event)
+void qm::ListWindowImpl::updated(const ViewModelEvent& event)
 {
 	assert(event.getViewModel() == pViewModelManager_->getCurrentViewModel());
 	pThis_->refresh();
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ListWindowImpl::sorted(const ViewModelEvent& event)
+void qm::ListWindowImpl::sorted(const ViewModelEvent& event)
 {
 	assert(event.getViewModel() == pViewModelManager_->getCurrentViewModel());
 	ensureVisible(event.getViewModel()->getFocused());
 	pThis_->invalidate();
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ListWindowImpl::destroyed(const ViewModelEvent& event)
+void qm::ListWindowImpl::destroyed(const ViewModelEvent& event)
 {
 	assert(false);
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ListWindowImpl::dragGestureRecognized(const DragGestureEvent& event)
+void qm::ListWindowImpl::dragGestureRecognized(const DragGestureEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (!pViewModel)
-		return QSTATUS_SUCCESS;
+		return;
 	
 	Lock<ViewModel> lock(*pViewModel);
 	
 	MessageHolderList l;
-	status = pViewModel->getSelection(&l);
-	CHECK_QSTATUS();
+	pViewModel->getSelection(&l);
 	if (l.empty())
-		return QSTATUS_SUCCESS;
+		return;
 	
-	MessageDataObject* p = 0;
-	status = newQsObject(pDocument_, pViewModel->getFolder()->getAccount(),
-		l, MessageDataObject::FLAG_NONE, &p);
-	CHECK_QSTATUS();
+	std::auto_ptr<MessageDataObject> p(new MessageDataObject(pDocument_,
+		pViewModel->getFolder()->getAccount(), l, MessageDataObject::FLAG_NONE));
 	p->AddRef();
-	ComPtr<IDataObject> pDataObject(p);
+	ComPtr<IDataObject> pDataObject(p.release());
 	
-	DragSource source(&status);
-	CHECK_QSTATUS();
+	DragSource source;
 	source.setDragSourceHandler(this);
-	status = source.startDrag(pDataObject.get(),
-		DROPEFFECT_COPY | DROPEFFECT_MOVE);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	source.startDrag(pDataObject.get(), DROPEFFECT_COPY | DROPEFFECT_MOVE);
 }
 
-QSTATUS qm::ListWindowImpl::dragDropEnd(const DragSourceDropEvent& event)
+void qm::ListWindowImpl::dragDropEnd(const DragSourceDropEvent& event)
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ListWindowImpl::dragEnter(const DropTargetDragEvent& event)
+void qm::ListWindowImpl::dragEnter(const DropTargetDragEvent& event)
 {
 	IDataObject* pDataObject = event.getDataObject();
 	
@@ -727,27 +639,21 @@ QSTATUS qm::ListWindowImpl::dragEnter(const DropTargetDragEvent& event)
 	
 	if (bCanDrop_)
 		event.setEffect(DROPEFFECT_COPY);
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ListWindowImpl::dragOver(const DropTargetDragEvent& event)
+void qm::ListWindowImpl::dragOver(const DropTargetDragEvent& event)
 {
 	if (bCanDrop_) 
 		event.setEffect(DROPEFFECT_COPY);
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ListWindowImpl::dragExit(const DropTargetEvent& event)
+void qm::ListWindowImpl::dragExit(const DropTargetEvent& event)
 {
 	bCanDrop_ = false;
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ListWindowImpl::drop(const DropTargetDropEvent& event)
+void qm::ListWindowImpl::drop(const DropTargetDropEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (pViewModel) {
 		Folder* pFolder = pViewModel->getFolder();
@@ -775,15 +681,18 @@ QSTATUS qm::ListWindowImpl::drop(const DropTargetDropEvent& event)
 							!(dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
 							T2W(tszPath, pwszPath);
 							
-							FileInputStream stream(pwszPath, &status);
-							CHECK_QSTATUS();
-							BufferedInputStream bufferedStream(&stream, false, &status);
-							CHECK_QSTATUS();
+							FileInputStream stream(pwszPath);
+							if (!stream) {
+								// TODO MSG
+								return;
+							}
+							BufferedInputStream bufferedStream(&stream, false);
 							
-							status = FileImportAction::readMessage(
+							if (!FileImportAction::readMessage(
 								static_cast<NormalFolder*>(pFolder), &bufferedStream,
-								false, Account::IMPORTFLAG_NORMALFLAGS, 0, 0, 0);
-							CHECK_QSTATUS();
+								false, Account::IMPORTFLAG_NORMALFLAGS, 0, 0, 0)) {
+								// TODO MSG
+							}
 						}
 					}
 				}
@@ -791,11 +700,10 @@ QSTATUS qm::ListWindowImpl::drop(const DropTargetDropEvent& event)
 #endif
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-int qm::ListWindowImpl::getMessageImage(MessageHolder* pmh, unsigned int nFlags)
+int qm::ListWindowImpl::getMessageImage(MessageHolder* pmh,
+										unsigned int nFlags)
 {
 	int nImage = 0;
 	
@@ -821,29 +729,17 @@ int qm::ListWindowImpl::getMessageImage(MessageHolder* pmh, unsigned int nFlags)
  *
  */
 
-qm::ListWindow::ListWindow(ViewModelManager* pViewModelManager, Profile* pProfile,
-	MessageFrameWindowManager* pMessageFrameWindowManager, QSTATUS* pstatus) :
-	WindowBase(true, pstatus),
-	DefaultWindowHandler(pstatus),
+qm::ListWindow::ListWindow(ViewModelManager* pViewModelManager,
+						   Profile* pProfile,
+						   MessageFrameWindowManager* pMessageFrameWindowManager) :
+	WindowBase(true),
 	pImpl_(0)
 {
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	DECLARE_QSTATUS();
-	
-	int nShowHeaderColumn = 1;
-	status = pProfile->getInt(L"ListWindow",
-		L"ShowHeaderColumn", 1, &nShowHeaderColumn);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new ListWindowImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pMessageFrameWindowManager_ = pMessageFrameWindowManager;
 	pImpl_->pMenuManager_ = 0;
-	pImpl_->pAccelerator_ = 0;
 	pImpl_->pDocument_ = 0;
 	pImpl_->pViewModelManager_ = pViewModelManager;
 	pImpl_->hfont_ = 0;
@@ -853,46 +749,38 @@ qm::ListWindow::ListWindow(ViewModelManager* pViewModelManager, Profile* pProfil
 	pImpl_->hImageListData_ = 0;
 	pImpl_->hpenThreadLine_ = 0;
 	pImpl_->hpenFocusedThreadLine_ = 0;
-	pImpl_->pDragGestureRecognizer_ = 0;
-	pImpl_->pDropTarget_ = 0;
 	pImpl_->bCanDrop_ = false;
 	
-	status = pImpl_->pViewModelManager_->addViewModelManagerHandler(pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_->pViewModelManager_->addViewModelManagerHandler(pImpl_);
 	
 	setWindowHandler(this, false);
 }
 
 qm::ListWindow::~ListWindow()
 {
-	if (pImpl_) {
-		delete pImpl_->pAccelerator_;
-		delete pImpl_;
-		pImpl_ = 0;
-	}
+	delete pImpl_;
 }
 
-QSTATUS qm::ListWindow::refresh()
+void qm::ListWindow::refresh()
 {
 	pImpl_->updateScrollBar(true);
 	pImpl_->updateScrollBar(false);
 	invalidate();
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ListWindow::moveSelection(MoveSelection m, bool bShift, bool bCtrl)
+void qm::ListWindow::moveSelection(MoveSelection m,
+								   bool bShift,
+								   bool bCtrl)
 {
-	DECLARE_QSTATUS();
-	
 	ViewModel* pViewModel = pImpl_->pViewModelManager_->getCurrentViewModel();
 	if (!pViewModel)
-		return QSTATUS_SUCCESS;
+		return;
 	
 	Lock<ViewModel> lock(*pViewModel);
 	
 	unsigned int nCount = pViewModel->getCount();
 	if (nCount == 0)
-		return QSTATUS_SUCCESS;
+		return;
 	
 	unsigned int nLine = pViewModel->getFocused();
 	unsigned int nNewLine = nLine;
@@ -937,20 +825,15 @@ QSTATUS qm::ListWindow::moveSelection(MoveSelection m, bool bShift, bool bCtrl)
 		break;
 	case MOVESELECTION_CURRENT:
 		if (bShift) {
-			status = pViewModel->setSelection(nNewLine,
-				pViewModel->getLastSelection());
-			CHECK_QSTATUS_VALUE(0);
+			pViewModel->setSelection(nNewLine, pViewModel->getLastSelection());
 		}
 		else {
 			if (pViewModel->isSelected(nNewLine)) {
-				if (bCtrl) {
-					status = pViewModel->removeSelection(nNewLine);
-					CHECK_QSTATUS();
-				}
+				if (bCtrl)
+					pViewModel->removeSelection(nNewLine);
 			}
 			else {
-				status = pViewModel->addSelection(nNewLine);
-				CHECK_QSTATUS();
+				pViewModel->addSelection(nNewLine);
 			}
 			if (bCtrl)
 				pViewModel->setLastSelection(nNewLine);
@@ -962,24 +845,18 @@ QSTATUS qm::ListWindow::moveSelection(MoveSelection m, bool bShift, bool bCtrl)
 	}
 	
 	if (nNewLine != nLine) {
-		status = pViewModel->setFocused(nNewLine);
-		CHECK_QSTATUS();
+		pViewModel->setFocused(nNewLine);
 		if (bShift) {
-			status = pViewModel->setSelection(nNewLine,
-				pViewModel->getLastSelection());
-			CHECK_QSTATUS();
+			pViewModel->setSelection(nNewLine, pViewModel->getLastSelection());
 		}
 		else {
 			if (!bCtrl) {
-				status = pViewModel->setSelection(nNewLine);
-				CHECK_QSTATUS();
+				pViewModel->setSelection(nNewLine);
 				pViewModel->setLastSelection(nNewLine);
 			}
 		}
 		pImpl_->ensureVisible(nNewLine);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 HFONT qm::ListWindow::getFont() const
@@ -992,40 +869,35 @@ bool qm::ListWindow::isShowHeaderColumn() const
 	return pImpl_->pHeaderColumn_->isShow();
 }
 
-QSTATUS qm::ListWindow::setShowHeaderColumn(bool bShow)
+void qm::ListWindow::setShowHeaderColumn(bool bShow)
 {
 	if (bShow != pImpl_->pHeaderColumn_->isShow()) {
 		pImpl_->pHeaderColumn_->setShow(bShow);
 		pImpl_->layoutChildren();
 	}
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ListWindow::save()
+bool qm::ListWindow::save()
 {
 	return pImpl_->pHeaderColumn_->save();
 }
 
-QSTATUS qm::ListWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
+bool qm::ListWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
 {
-	DECLARE_QSTATUS();
-	
-	status = DefaultWindowHandler::preCreateWindow(pCreateStruct);
-	CHECK_QSTATUS();
-	
+	if (!DefaultWindowHandler::preCreateWindow(pCreateStruct))
+		return false;
 	pCreateStruct->style |= WS_HSCROLL | WS_VSCROLL;
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::ListWindow::getAccelerator(Accelerator** ppAccelerator)
+Accelerator* qm::ListWindow::getAccelerator()
 {
-	assert(ppAccelerator);
-	*ppAccelerator = pImpl_->pAccelerator_;
-	return QSTATUS_SUCCESS;
+	return pImpl_->pAccelerator_.get();
 }
 
-LRESULT qm::ListWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qm::ListWindow::windowProc(UINT uMsg,
+								   WPARAM wParam,
+								   LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_CONTEXTMENU()
@@ -1051,15 +923,13 @@ LRESULT qm::ListWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
 
-LRESULT qm::ListWindow::onContextMenu(HWND hwnd, const POINT& pt)
+LRESULT qm::ListWindow::onContextMenu(HWND hwnd,
+									  const POINT& pt)
 {
-	DECLARE_QSTATUS();
-	
 	setFocus();
 	
-	HMENU hmenu = 0;
-	status = pImpl_->pMenuManager_->getMenu(L"list", false, false, &hmenu);
-	if (status == QSTATUS_SUCCESS) {
+	HMENU hmenu = pImpl_->pMenuManager_->getMenu(L"list", false, false);
+	if (hmenu) {
 		UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
 #ifndef _WIN32_WCE
 		nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
@@ -1075,32 +945,29 @@ LRESULT qm::ListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (DefaultWindowHandler::onCreate(pCreateStruct) == -1)
 		return -1;
 	
-	DECLARE_QSTATUS();
-	
 	ListWindowCreateContext* pContext =
 		static_cast<ListWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pDocument_ = pContext->pDocument_;
 	pImpl_->pMenuManager_ = pContext->pMenuManager_;
 	
-	status = pContext->pKeyMap_->createAccelerator(
-		CustomAcceleratorFactory(), L"ListWindow",
-		mapKeyNameToId, countof(mapKeyNameToId), &pImpl_->pAccelerator_);
-	CHECK_QSTATUS_VALUE(-1);
+	CustomAcceleratorFactory acceleratorFactory;
+	pImpl_->pAccelerator_ = pContext->pKeyMap_->createAccelerator(
+		&acceleratorFactory, L"ListWindow", mapKeyNameToId, countof(mapKeyNameToId));
+	if (!pImpl_->pAccelerator_.get())
+		return -1;
 	
-	status = UIUtil::createFontFromProfile(pImpl_->pProfile_,
-		L"ListWindow", false, &pImpl_->hfont_);
-	CHECK_QSTATUS_VALUE(-1);
+	pImpl_->hfont_ = UIUtil::createFontFromProfile(
+		pImpl_->pProfile_, L"ListWindow", false);
 	
-	ClientDeviceContext dc(getHandle(), &status);
-	CHECK_QSTATUS_VALUE(-1);
+	ClientDeviceContext dc(getHandle());
 	ObjectSelector<HFONT> selector(dc, pImpl_->hfont_);
 	TEXTMETRIC tm;
 	dc.getTextMetrics(&tm);
 	pImpl_->nLineHeight_ = tm.tmHeight +
 		tm.tmExternalLeading + ListWindowImpl::LINE_SPACING;
 	
-	status = pImpl_->createHeaderColumn();
-	CHECK_QSTATUS_VALUE(-1);
+	if (!pImpl_->createHeaderColumn())
+		return -1;
 	
 	pImpl_->hImageList_ = ImageList_LoadImage(
 		Application::getApplication().getResourceHandle(),
@@ -1117,12 +984,9 @@ LRESULT qm::ListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	refresh();
 	
-	status = newQsObject(getHandle(), &pImpl_->pDragGestureRecognizer_);
-	CHECK_QSTATUS();
+	pImpl_->pDragGestureRecognizer_.reset(new DragGestureRecognizer(getHandle()));
 	pImpl_->pDragGestureRecognizer_->setDragGestureHandler(pImpl_);
-	
-	status = newQsObject(getHandle(), &pImpl_->pDropTarget_);
-	CHECK_QSTATUS_VALUE(-1);
+	pImpl_->pDropTarget_.reset(new DropTarget(getHandle()));
 	pImpl_->pDropTarget_->setDropTargetHandler(pImpl_);
 	
 	return 0;
@@ -1153,8 +1017,8 @@ LRESULT qm::ListWindow::onDestroy()
 		pImpl_->hpenFocusedThreadLine_ = 0;
 	}
 	
-	delete pImpl_->pDragGestureRecognizer_;
-	delete pImpl_->pDropTarget_;
+	pImpl_->pDragGestureRecognizer_.reset(0);
+	pImpl_->pDropTarget_.reset(0);
 	
 	return DefaultWindowHandler::onDestroy();
 }
@@ -1164,7 +1028,9 @@ LRESULT qm::ListWindow::onEraseBkgnd(HDC hdc)
 	return 1;
 }
 
-LRESULT qm::ListWindow::onHScroll(UINT nCode, UINT nPos, HWND hwnd)
+LRESULT qm::ListWindow::onHScroll(UINT nCode,
+								  UINT nPos,
+								  HWND hwnd)
 {
 	SCROLLINFO si = {
 		sizeof(si),
@@ -1207,55 +1073,46 @@ LRESULT qm::ListWindow::onHScroll(UINT nCode, UINT nPos, HWND hwnd)
 	return 0;
 }
 
-LRESULT qm::ListWindow::onKeyDown(UINT nKey, UINT nRepeat, UINT nFlags)
+LRESULT qm::ListWindow::onKeyDown(UINT nKey,
+								  UINT nRepeat,
+								  UINT nFlags)
 {
-	DECLARE_QSTATUS();
-	
 	switch (nKey) {
 	case VK_UP:
-		status = moveSelection(MOVESELECTION_LINEUP,
+		moveSelection(MOVESELECTION_LINEUP,
 			::GetKeyState(VK_SHIFT) < 0, ::GetKeyState(VK_CONTROL) < 0);
-		CHECK_QSTATUS_VALUE(0);
 		break;
 	case VK_DOWN:
-		status = moveSelection(MOVESELECTION_LINEDOWN,
+		moveSelection(MOVESELECTION_LINEDOWN,
 			::GetKeyState(VK_SHIFT) < 0, ::GetKeyState(VK_CONTROL) < 0);
-		CHECK_QSTATUS_VALUE(0);
 		break;
 	case VK_LEFT:
-		status = moveSelection(MOVESELECTION_PAGEUP,
+		moveSelection(MOVESELECTION_PAGEUP,
 			::GetKeyState(VK_SHIFT) < 0, ::GetKeyState(VK_CONTROL) < 0);
-		CHECK_QSTATUS_VALUE(0);
 		break;
 	case VK_RIGHT:
-		status = moveSelection(MOVESELECTION_PAGEDOWN,
+		moveSelection(MOVESELECTION_PAGEDOWN,
 			::GetKeyState(VK_SHIFT) < 0, ::GetKeyState(VK_CONTROL) < 0);
-		CHECK_QSTATUS_VALUE(0);
 		break;
 	case VK_PRIOR:
-		status = moveSelection(MOVESELECTION_PAGEUP,
+		moveSelection(MOVESELECTION_PAGEUP,
 			::GetKeyState(VK_SHIFT) < 0, ::GetKeyState(VK_CONTROL) < 0);
-		CHECK_QSTATUS_VALUE(0);
 		break;
 	case VK_NEXT:
-		status = moveSelection(MOVESELECTION_PAGEDOWN,
+		moveSelection(MOVESELECTION_PAGEDOWN,
 			::GetKeyState(VK_SHIFT) < 0, ::GetKeyState(VK_CONTROL) < 0);
-		CHECK_QSTATUS_VALUE(0);
 		break;
 	case VK_HOME:
-		status = moveSelection(MOVESELECTION_TOP,
+		moveSelection(MOVESELECTION_TOP,
 			::GetKeyState(VK_SHIFT) < 0, ::GetKeyState(VK_CONTROL) < 0);
-		CHECK_QSTATUS_VALUE(0);
 		break;
 	case VK_END:
-		status = moveSelection(MOVESELECTION_BOTTOM,
+		moveSelection(MOVESELECTION_BOTTOM,
 			::GetKeyState(VK_SHIFT) < 0, ::GetKeyState(VK_CONTROL) < 0);
-		CHECK_QSTATUS_VALUE(0);
 		break;
 	case VK_SPACE:
-		status = moveSelection(MOVESELECTION_CURRENT,
+		moveSelection(MOVESELECTION_CURRENT,
 			::GetKeyState(VK_SHIFT) < 0, ::GetKeyState(VK_CONTROL) < 0);
-		CHECK_QSTATUS_VALUE(0);
 		break;
 	case VK_RETURN:
 		{
@@ -1264,9 +1121,10 @@ LRESULT qm::ListWindow::onKeyDown(UINT nKey, UINT nRepeat, UINT nFlags)
 				Lock<ViewModel> lock(*pViewModel);
 				unsigned int nItem = pViewModel->getFocused();
 				if (nItem < pViewModel->getCount()) {
-					status = pImpl_->pMessageFrameWindowManager_->open(
-						pViewModel, pViewModel->getMessageHolder(nItem));
-					CHECK_QSTATUS();
+					if (!pImpl_->pMessageFrameWindowManager_->open(
+						pViewModel, pViewModel->getMessageHolder(nItem))) {
+						// TODO MSG
+					}
 				}
 			}
 		}
@@ -1284,29 +1142,28 @@ LRESULT qm::ListWindow::onKillFocus(HWND hwnd)
 	return 0;
 }
 
-LRESULT qm::ListWindow::onLButtonDblClk(UINT nFlags, const POINT& pt)
+LRESULT qm::ListWindow::onLButtonDblClk(UINT nFlags,
+										const POINT& pt)
 {
-	DECLARE_QSTATUS();
-	
 	ViewModel* pViewModel = pImpl_->pViewModelManager_->getCurrentViewModel();
 	if (pViewModel) {
 		Lock<ViewModel> lock(*pViewModel);
 		
 		unsigned int nLine = pImpl_->getLineFromPoint(pt);
 		if (nLine != static_cast<unsigned int>(-1)) {
-			status = pImpl_->pMessageFrameWindowManager_->open(
-				pViewModel, pViewModel->getMessageHolder(nLine));
-			CHECK_QSTATUS();
+			if (!pImpl_->pMessageFrameWindowManager_->open(
+				pViewModel, pViewModel->getMessageHolder(nLine))) {
+				// TODO MSG
+			}
 		}
 	}
 	
 	return 0;
 }
 
-LRESULT qm::ListWindow::onLButtonDown(UINT nFlags, const POINT& pt)
+LRESULT qm::ListWindow::onLButtonDown(UINT nFlags,
+									  const POINT& pt)
 {
-	DECLARE_QSTATUS();
-	
 	setFocus();
 	
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && _WIN32_WCE_PSPC
@@ -1321,42 +1178,32 @@ LRESULT qm::ListWindow::onLButtonDown(UINT nFlags, const POINT& pt)
 		if (nLine != static_cast<unsigned int>(-1)) {
 			bool bSelected = pViewModel->isSelected(nLine);
 			
-			status = pViewModel->setFocused(nLine);
-			CHECK_QSTATUS_VALUE(0);
+			pViewModel->setFocused(nLine);
 			
-			if (!(nFlags & MK_CONTROL) && !bSelected) {
-				status = pViewModel->clearSelection();
-				CHECK_QSTATUS_VALUE(0);
-			}
+			if (!(nFlags & MK_CONTROL) && !bSelected)
+				pViewModel->clearSelection();
 			
 			if (nFlags & MK_SHIFT) {
 				unsigned int nLast = pViewModel->getLastSelection();
 				if (nLast < nLine) {
-					for (unsigned int n = nLast; n <= nLine; ++n) {
-						status = pViewModel->addSelection(n);
-						CHECK_QSTATUS_VALUE(0);
-					}
+					for (unsigned int n = nLast; n <= nLine; ++n)
+						pViewModel->addSelection(n);
 				}
 				else {
-					for (unsigned int n = nLine; n <= nLast; ++n) {
-						status = pViewModel->addSelection(n);
-						CHECK_QSTATUS_VALUE(0);
-					}
+					for (unsigned int n = nLine; n <= nLast; ++n)
+						pViewModel->addSelection(n);
 				}
 			}
 			else {
 				if (nFlags & MK_CONTROL) {
 					if (pViewModel->isSelected(nLine))
-						status = pViewModel->removeSelection(nLine);
+						pViewModel->removeSelection(nLine);
 					else
-						status = pViewModel->addSelection(nLine);
-					CHECK_QSTATUS_VALUE(0);
+						pViewModel->addSelection(nLine);
 				}
 				else {
-					if (!bSelected) {
-						status = pViewModel->addSelection(nLine);
-						CHECK_QSTATUS_VALUE(0);
-					}
+					if (!bSelected)
+						pViewModel->addSelection(nLine);
 				}
 				pViewModel->setLastSelection(nLine);
 			}
@@ -1368,9 +1215,10 @@ LRESULT qm::ListWindow::onLButtonDown(UINT nFlags, const POINT& pt)
 				return 0;
 			bTapAndHold = true;
 			
-			status = pImpl_->pMessageFrameWindowManager_->open(
-				pViewModel, pViewModel->getMessageHolder(nLine));
-			CHECK_QSTATUS();
+			if (!pImpl_->pMessageFrameWindowManager_->open(
+				pViewModel, pViewModel->getMessageHolder(nLine))) {
+				// TODO MSG
+			}
 #endif
 		}
 	}
@@ -1385,10 +1233,9 @@ LRESULT qm::ListWindow::onLButtonDown(UINT nFlags, const POINT& pt)
 	return 0;
 }
 
-LRESULT qm::ListWindow::onLButtonUp(UINT nFlags, const POINT& pt)
+LRESULT qm::ListWindow::onLButtonUp(UINT nFlags,
+									const POINT& pt)
 {
-	DECLARE_QSTATUS();
-	
 	ViewModel* pViewModel = pImpl_->pViewModelManager_->getCurrentViewModel();
 	if (pViewModel) {
 		Lock<ViewModel> lock(*pViewModel);
@@ -1397,10 +1244,8 @@ LRESULT qm::ListWindow::onLButtonUp(UINT nFlags, const POINT& pt)
 		if (nLine != static_cast<unsigned int>(-1)) {
 			bool bSelected = pViewModel->isSelected(nLine);
 			
-			if (bSelected && !(nFlags & MK_SHIFT) && !(nFlags & MK_CONTROL)) {
-				status = pViewModel->setSelection(nLine);
-				CHECK_QSTATUS();
-			}
+			if (bSelected && !(nFlags & MK_SHIFT) && !(nFlags & MK_CONTROL))
+				pViewModel->setSelection(nLine);
 		}
 	}
 	
@@ -1408,7 +1253,9 @@ LRESULT qm::ListWindow::onLButtonUp(UINT nFlags, const POINT& pt)
 }
 
 #if !defined _WIN32_WCE || _WIN32_WCE >= 211
-LRESULT qm::ListWindow::onMouseWheel(UINT nFlags, short nDelta, const POINT& pt)
+LRESULT qm::ListWindow::onMouseWheel(UINT nFlags,
+									 short nDelta,
+									 const POINT& pt)
 {
 #ifdef _WIN32_WCE
 #	define WHEEL_DELTA 120
@@ -1421,11 +1268,7 @@ LRESULT qm::ListWindow::onMouseWheel(UINT nFlags, short nDelta, const POINT& pt)
 
 LRESULT qm::ListWindow::onPaint()
 {
-	DECLARE_QSTATUS();
-	
-	PaintDeviceContext dc(getHandle(), &status);
-	// TODO
-	// Error handling
+	PaintDeviceContext dc(getHandle());
 	
 	ObjectSelector<HFONT> fontSelector(dc, pImpl_->hfont_);
 	
@@ -1484,7 +1327,9 @@ LRESULT qm::ListWindow::onSetFocus(HWND hwnd)
 	return 0;
 }
 
-LRESULT qm::ListWindow::onSize(UINT nFlags, int cx, int cy)
+LRESULT qm::ListWindow::onSize(UINT nFlags,
+							   int cx,
+							   int cy)
 {
 	if (pImpl_->pHeaderColumn_)
 		pImpl_->layoutChildren(cx, cy);
@@ -1492,7 +1337,9 @@ LRESULT qm::ListWindow::onSize(UINT nFlags, int cx, int cy)
 	return DefaultWindowHandler::onSize(nFlags, cx, cy);
 }
 
-LRESULT qm::ListWindow::onVScroll(UINT nCode, UINT nPos, HWND hwnd)
+LRESULT qm::ListWindow::onVScroll(UINT nCode,
+								  UINT nPos,
+								  HWND hwnd)
 {
 	SCROLLINFO si = {
 		sizeof(si),
@@ -1535,7 +1382,8 @@ LRESULT qm::ListWindow::onVScroll(UINT nCode, UINT nPos, HWND hwnd)
 	return 0;
 }
 
-LRESULT qm::ListWindow::onViewModelItemAdded(WPARAM wParam, LPARAM lParam)
+LRESULT qm::ListWindow::onViewModelItemAdded(WPARAM wParam,
+											 LPARAM lParam)
 {
 	// TODO
 	// Performance up
@@ -1543,7 +1391,8 @@ LRESULT qm::ListWindow::onViewModelItemAdded(WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-LRESULT qm::ListWindow::onViewModelItemRemoved(WPARAM wParam, LPARAM lParam)
+LRESULT qm::ListWindow::onViewModelItemRemoved(WPARAM wParam,
+											   LPARAM lParam)
 {
 	// TODO
 	// Performance up
@@ -1561,10 +1410,9 @@ bool qm::ListWindow::isActive() const
 	return hasFocus();
 }
 
-QSTATUS qm::ListWindow::setActive()
+void qm::ListWindow::setActive()
 {
 	setFocus();
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -1582,14 +1430,17 @@ public:
 	void updateSortIcon();
 
 public:
-	virtual LRESULT onNotify(NMHDR* pnmhdr, bool* pbHandled);
+	virtual LRESULT onNotify(NMHDR* pnmhdr,
+							 bool* pbHandled);
 
 private:
-	LRESULT onItemChanging(NMHDR* pnmhdr, bool* pbHandled);
-	LRESULT onItemClick(NMHDR* pnmhdr, bool* pbHandled);
+	LRESULT onItemChanging(NMHDR* pnmhdr,
+						   bool* pbHandled);
+	LRESULT onItemClick(NMHDR* pnmhdr,
+						bool* pbHandled);
 
 public:
-	virtual QSTATUS sorted(const ViewModelEvent& event);
+	virtual void sorted(const ViewModelEvent& event);
 
 public:
 	ListHeaderColumn* pThis_;
@@ -1614,7 +1465,8 @@ void qm::ListHeaderColumnImpl::updateSortIcon()
 	Header_SetItem(pThis_->getHandle(), nSort & ViewModel::SORT_INDEX_MASK, &item);
 }
 
-LRESULT qm::ListHeaderColumnImpl::onNotify(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qm::ListHeaderColumnImpl::onNotify(NMHDR* pnmhdr,
+										   bool* pbHandled)
 {
 	BEGIN_NOTIFY_HANDLER()
 		HANDLE_NOTIFY(HDN_ITEMCHANGING, nId_, onItemChanging)
@@ -1624,7 +1476,8 @@ LRESULT qm::ListHeaderColumnImpl::onNotify(NMHDR* pnmhdr, bool* pbHandled)
 	return 0;
 }
 
-LRESULT qm::ListHeaderColumnImpl::onItemChanging(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qm::ListHeaderColumnImpl::onItemChanging(NMHDR* pnmhdr,
+												 bool* pbHandled)
 {
 	NMHEADER* pHeader = reinterpret_cast<NMHEADER*>(pnmhdr);
 	if (pHeader->pitem->mask & HDI_WIDTH) {
@@ -1637,18 +1490,18 @@ LRESULT qm::ListHeaderColumnImpl::onItemChanging(NMHDR* pnmhdr, bool* pbHandled)
 	return 0;
 }
 
-LRESULT qm::ListHeaderColumnImpl::onItemClick(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qm::ListHeaderColumnImpl::onItemClick(NMHDR* pnmhdr,
+											  bool* pbHandled)
 {
 	NMHEADER* pHeader = reinterpret_cast<NMHEADER*>(pnmhdr);
 	pViewModel_->setSort(pHeader->iItem);
 	return 0;
 }
 
-QSTATUS qm::ListHeaderColumnImpl::sorted(const ViewModelEvent& event)
+void qm::ListHeaderColumnImpl::sorted(const ViewModelEvent& event)
 {
 	assert(event.getViewModel() == pViewModel_);
 	updateSortIcon();
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -1659,28 +1512,17 @@ QSTATUS qm::ListHeaderColumnImpl::sorted(const ViewModelEvent& event)
  */
 
 qm::ListHeaderColumn::ListHeaderColumn(ListWindow* pListWindow,
-	Profile* pProfile, QSTATUS* pstatus) :
-	WindowBase(true, pstatus),
-	DefaultWindowHandler(pstatus),
+									   Profile* pProfile) :
+	WindowBase(true),
 	pImpl_(0)
 {
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new ListHeaderColumnImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->pListWindow_ = pListWindow;
 	pImpl_->nId_ = 0;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pViewModel_ = 0;
-	
-	int nShow = 0;
-	status = pProfile->getInt(L"ListWindow", L"ShowHeaderColumn", 1, &nShow);
-	CHECK_QSTATUS_SET(pstatus);
-	pImpl_->bShow_ = nShow != 0;
+	pImpl_->bShow_ = pProfile->getInt(L"ListWindow", L"ShowHeaderColumn", 1) != 0;
 	
 	setWindowHandler(this, false);
 	
@@ -1689,10 +1531,7 @@ qm::ListHeaderColumn::ListHeaderColumn(ListWindow* pListWindow,
 
 qm::ListHeaderColumn::~ListHeaderColumn()
 {
-	if (pImpl_) {
-		delete pImpl_;
-		pImpl_ = 0;
-	}
+	delete pImpl_;
 }
 
 int qm::ListHeaderColumn::getWidth() const
@@ -1717,7 +1556,7 @@ int qm::ListHeaderColumn::getHeight() const
 	}
 }
 
-QSTATUS qm::ListHeaderColumn::setViewModel(ViewModel* pViewModel)
+void qm::ListHeaderColumn::setViewModel(ViewModel* pViewModel)
 {
 	for (int n = Header_GetItemCount(getHandle()) - 1; n >= 0; --n)
 		Header_DeleteItem(getHandle(), n);
@@ -1725,8 +1564,7 @@ QSTATUS qm::ListHeaderColumn::setViewModel(ViewModel* pViewModel)
 		pImpl_->pViewModel_->removeViewModelHandler(pImpl_);
 	
 	if (pViewModel) {
-		unsigned int nColumn = 0;
-		while (nColumn < pViewModel->getColumnCount()) {
+		for (unsigned int nColumn = 0; nColumn < pViewModel->getColumnCount(); ++nColumn) {
 			ViewColumn& column = pViewModel->getColumn(nColumn);
 			W2T(column.getTitle(), ptszTitle);
 			HDITEM item = {
@@ -1740,8 +1578,6 @@ QSTATUS qm::ListHeaderColumn::setViewModel(ViewModel* pViewModel)
 				0
 			};
 			Header_InsertItem(getHandle(), nColumn, &item);
-			
-			++nColumn;
 		}
 		if (pImpl_->bShow_)
 			showWindow(SW_SHOW);
@@ -1756,8 +1592,6 @@ QSTATUS qm::ListHeaderColumn::setViewModel(ViewModel* pViewModel)
 		pImpl_->pViewModel_->addViewModelHandler(pImpl_);
 		pImpl_->updateSortIcon();
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 bool qm::ListHeaderColumn::isShow() const
@@ -1765,7 +1599,7 @@ bool qm::ListHeaderColumn::isShow() const
 	return pImpl_->bShow_;
 }
 
-QSTATUS qm::ListHeaderColumn::setShow(bool bShow)
+void qm::ListHeaderColumn::setShow(bool bShow)
 {
 	if (bShow) {
 		if (pImpl_->pViewModel_)
@@ -1775,34 +1609,22 @@ QSTATUS qm::ListHeaderColumn::setShow(bool bShow)
 		showWindow(SW_HIDE);
 	}
 	pImpl_->bShow_ = bShow;
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ListHeaderColumn::save()
+bool qm::ListHeaderColumn::save()
 {
-	DECLARE_QSTATUS();
-	
-	status = pImpl_->pProfile_->setInt(L"ListWindow",
-		L"ShowHeaderColumn", pImpl_->bShow_ ? 1 : 0);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	pImpl_->pProfile_->setInt(L"ListWindow", L"ShowHeaderColumn", pImpl_->bShow_ ? 1 : 0);
+	return true;
 }
 
-QSTATUS qm::ListHeaderColumn::getSuperClass(WSTRING* pwstrSuperClass)
+wstring_ptr qm::ListHeaderColumn::getSuperClass()
 {
-	assert(pwstrSuperClass);
-	*pwstrSuperClass = allocWString(WC_HEADERW);
-	return *pwstrSuperClass ? QSTATUS_SUCCESS : QSTATUS_OUTOFMEMORY;
+	return allocWString(WC_HEADERW);
 }
 
-QSTATUS qm::ListHeaderColumn::preCreateWindow(CREATESTRUCT* pCreateStruct)
+bool qm::ListHeaderColumn::preCreateWindow(CREATESTRUCT* pCreateStruct)
 {
-	DECLARE_QSTATUS();
-	
-	ClientDeviceContext dc(0, &status);
-	CHECK_QSTATUS();
+	ClientDeviceContext dc(0);
 	ObjectSelector<HFONT> selector(dc, pImpl_->pListWindow_->getFont());
 	TEXTMETRIC tm;
 	dc.getTextMetrics(&tm);
@@ -1812,7 +1634,9 @@ QSTATUS qm::ListHeaderColumn::preCreateWindow(CREATESTRUCT* pCreateStruct)
 	return DefaultWindowHandler::preCreateWindow(pCreateStruct);
 }
 
-LRESULT qm::ListHeaderColumn::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qm::ListHeaderColumn::windowProc(UINT uMsg,
+										 WPARAM wParam,
+										 LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_CREATE()

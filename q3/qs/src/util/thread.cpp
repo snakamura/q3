@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -9,8 +9,6 @@
 #include <qs.h>
 #include <qsassert.h>
 #include <qsconv.h>
-#include <qserror.h>
-#include <qsnew.h>
 #include <qsstring.h>
 #include <qsthread.h>
 
@@ -70,21 +68,20 @@ unsigned int __stdcall qs::threadProc(void* pParam)
 {
 	assert(pParam);
 	Runnable* pRunnable = static_cast<Runnable*>(pParam);
-	return pRunnable->run();
+	pRunnable->run();
+	return 0;
 }
 
-qs::Thread::Thread(QSTATUS* pstatus) :
+qs::Thread::Thread() :
 	pImpl_(0)
 {
-	assert(pstatus);
-	*pstatus = init(this);
+	init(this);
 }
 
-qs::Thread::Thread(Runnable* pRunnable, QSTATUS* pstatus) :
+qs::Thread::Thread(Runnable* pRunnable) :
 	pImpl_(0)
 {
-	assert(pstatus);
-	*pstatus = init(pRunnable);
+	init(pRunnable);
 }
 
 qs::Thread::~Thread()
@@ -95,7 +92,7 @@ qs::Thread::~Thread()
 	pImpl_ = 0;
 }
 
-QSTATUS qs::Thread::start()
+bool qs::Thread::start()
 {
 	assert(pImpl_);
 	
@@ -108,28 +105,24 @@ QSTATUS qs::Thread::start()
 	pImpl_->hThread_ = reinterpret_cast<HANDLE>(_beginthreadex(
 		0, 0, threadProc, pImpl_->pRunnable_, 0, &nId));
 #endif
-	if (!pImpl_->hThread_)
-		return QSTATUS_FAIL;
-	return QSTATUS_SUCCESS;
+	return pImpl_->hThread_ != 0;
 }
 
-QSTATUS qs::Thread::join()
+bool qs::Thread::join()
 {
 	return join(0);
 }
 
-QSTATUS qs::Thread::join(DWORD dwWait)
+bool qs::Thread::join(DWORD dwWait)
 {
 	assert(pImpl_);
 	
 	if (!pImpl_->hThread_)
-		return QSTATUS_FAIL;
+		return false;
 	
 	if (dwWait == 0)
 		dwWait = INFINITE;
-	if (::WaitForSingleObject(pImpl_->hThread_, dwWait) == WAIT_FAILED)
-		return QSTATUS_FAIL;
-	return QSTATUS_SUCCESS;
+	return ::WaitForSingleObject(pImpl_->hThread_, dwWait) != WAIT_FAILED;
 }
 
 HANDLE qs::Thread::getHandle() const
@@ -138,28 +131,19 @@ HANDLE qs::Thread::getHandle() const
 	return pImpl_->hThread_;
 }
 
-unsigned int qs::Thread::run()
+void qs::Thread::run()
 {
 	if (pImpl_->pRunnable_)
-		return pImpl_->pRunnable_->run();
-	else
-		return 0;
+		pImpl_->pRunnable_->run();
 }
 
-QSTATUS qs::Thread::init(Runnable* pRunnable)
+void qs::Thread::init(Runnable* pRunnable)
 {
 	assert(!pImpl_);
 	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS();
-	assert(pImpl_);
-	
+	pImpl_ = new ThreadImpl();
 	pImpl_->hThread_ = 0;
 	pImpl_->pRunnable_ = pRunnable;
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -169,13 +153,10 @@ QSTATUS qs::Thread::init(Runnable* pRunnable)
  *
  */
 
-qs::ThreadLocal::ThreadLocal(QSTATUS* pstatus) :
+qs::ThreadLocal::ThreadLocal() :
 	dwTls_(0xffffffff)
 {
-	assert(pstatus);
-	
 	dwTls_ = ::TlsAlloc();
-	*pstatus = dwTls_ != 0xffffffff ? QSTATUS_SUCCESS : QSTATUS_FAIL;
 }
 
 qs::ThreadLocal::~ThreadLocal()
@@ -183,21 +164,14 @@ qs::ThreadLocal::~ThreadLocal()
 	::TlsFree(dwTls_);
 }
 
-QSTATUS qs::ThreadLocal::get(void** ppValue) const
+void* qs::ThreadLocal::get() const
 {
-	assert(ppValue);
-	
-	*ppValue = ::TlsGetValue(dwTls_);
-	if (!*ppValue && ::GetLastError() != NO_ERROR)
-		return QSTATUS_FAIL;
-	return QSTATUS_SUCCESS;
+	return ::TlsGetValue(dwTls_);
 }
 
-QSTATUS qs::ThreadLocal::set(void* pValue)
+void qs::ThreadLocal::set(void* pValue)
 {
-	if (!::TlsSetValue(dwTls_, pValue))
-		return QSTATUS_FAIL;
-	return QSTATUS_SUCCESS;
+	::TlsSetValue(dwTls_, pValue);
 }
 
 
@@ -251,35 +225,23 @@ void qs::SpinLock::lock() const
  *
  */
 
-qs::Event::Event(QSTATUS* pstatus) :
+qs::Event::Event() :
 	hEvent_(0)
 {
-	assert(pstatus);
-	
 	hEvent_ = ::CreateEvent(0, FALSE, FALSE, 0);
-	*pstatus = hEvent_ ? QSTATUS_SUCCESS : QSTATUS_FAIL;
 }
 
-qs::Event::Event(bool bManual, bool bInitial, QSTATUS* pstatus)
+qs::Event::Event(bool bManual, bool bInitial)
 {
-	assert(pstatus);
-	
 	hEvent_ = ::CreateEvent(0, bManual, bInitial, 0);
-	*pstatus = hEvent_ ? QSTATUS_SUCCESS : QSTATUS_FAIL;
 }
 
-qs::Event::Event(bool bManual, bool bInitial, const WCHAR* pwszName, QSTATUS* pstatus)
+qs::Event::Event(bool bManual,
+				 bool bInitial,
+				 const WCHAR* pwszName)
 {
-	assert(pstatus);
-	
-	string_ptr<TSTRING> tstrName(wcs2tcs(pwszName));
-	if (!tstrName.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
-	
+	tstring_ptr tstrName(wcs2tcs(pwszName));
 	hEvent_ = ::CreateEvent(0, bManual, bInitial, tstrName.get());
-	*pstatus = hEvent_ ? QSTATUS_SUCCESS : QSTATUS_FAIL;
 }
 
 qs::Event::~Event()
@@ -288,30 +250,29 @@ qs::Event::~Event()
 		::CloseHandle(hEvent_);
 }
 
-QSTATUS qs::Event::set()
+bool qs::Event::set()
 {
-	return ::SetEvent(hEvent_) ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+	return ::SetEvent(hEvent_) != 0;
 }
 
-QSTATUS qs::Event::reset()
+bool qs::Event::reset()
 {
-	return ::ResetEvent(hEvent_) ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+	return ::ResetEvent(hEvent_) != 0;
 }
 
-QSTATUS qs::Event::pulse()
+bool qs::Event::pulse()
 {
-	return ::PulseEvent(hEvent_) ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+	return ::PulseEvent(hEvent_) != 0;
 }
 
-QSTATUS qs::Event::wait()
+bool qs::Event::wait()
 {
 	return wait(INFINITE);
 }
 
-QSTATUS qs::Event::wait(unsigned int nMillisecond)
+bool qs::Event::wait(unsigned int nMillisecond)
 {
-	return ::WaitForSingleObject(hEvent_, nMillisecond) != WAIT_FAILED ?
-		QSTATUS_SUCCESS : QSTATUS_FAIL;
+	return ::WaitForSingleObject(hEvent_, nMillisecond) != WAIT_FAILED;
 }
 
 HANDLE qs::Event::getHandle() const
@@ -326,22 +287,23 @@ HANDLE qs::Event::getHandle() const
  *
  */
 
-qs::Mutex::Mutex(QSTATUS* pstatus) :
+qs::Mutex::Mutex() :
 	hMutex_(0)
 {
-	*pstatus = init(false, 0);
+	init(false, 0);
 }
 
-qs::Mutex::Mutex(bool bOwner, QSTATUS* pstatus) :
+qs::Mutex::Mutex(bool bOwner) :
 	hMutex_(0)
 {
-	*pstatus = init(bOwner, 0);
+	init(bOwner, 0);
 }
 
-qs::Mutex::Mutex(bool bOwner, const WCHAR* pwszName, QSTATUS* pstatus) :
+qs::Mutex::Mutex(bool bOwner,
+				 const WCHAR* pwszName) :
 	hMutex_(0)
 {
-	*pstatus = init(bOwner, pwszName);
+	init(bOwner, pwszName);
 }
 
 qs::Mutex::~Mutex()
@@ -350,23 +312,21 @@ qs::Mutex::~Mutex()
 		::CloseHandle(hMutex_);
 }
 
-QSTATUS qs::Mutex::acquire()
+bool qs::Mutex::acquire()
 {
 	assert(hMutex_);
-	return ::WaitForSingleObject(hMutex_, INFINITE) != WAIT_FAILED ?
-		QSTATUS_SUCCESS : QSTATUS_FAIL;
+	return ::WaitForSingleObject(hMutex_, INFINITE) != WAIT_FAILED;
 }
 
-QSTATUS qs::Mutex::release()
+bool qs::Mutex::release()
 {
 	assert(hMutex_);
-	return ::ReleaseMutex(hMutex_) ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+	return ::ReleaseMutex(hMutex_) != 0;
 }
 
-QSTATUS qs::Mutex::init(bool bOwner, const WCHAR* pwszName)
+void qs::Mutex::init(bool bOwner,
+					 const WCHAR* pwszName)
 {
-	DECLARE_QSTATUS();
-	
 	if (pwszName) {
 		W2T(pwszName, ptszName);
 		hMutex_ = ::CreateMutex(0, bOwner, ptszName);
@@ -374,8 +334,6 @@ QSTATUS qs::Mutex::init(bool bOwner, const WCHAR* pwszName)
 	else {
 		hMutex_ = ::CreateMutex(0, bOwner, 0);
 	}
-	
-	return hMutex_ ? QSTATUS_SUCCESS : QSTATUS_FAIL;
 }
 
 
@@ -385,16 +343,13 @@ QSTATUS qs::Mutex::init(bool bOwner, const WCHAR* pwszName)
  *
  */
 
-qs::Synchronizer::Synchronizer(QSTATUS* pstatus) :
+qs::Synchronizer::Synchronizer() :
 	pWindow_(0)
 {
-	DECLARE_QSTATUS();
-	
-	std::auto_ptr<SynchronizerWindow> pWindow;
-	status = newQsObject(&pWindow);
-	CHECK_QSTATUS_SET(pstatus);
-	status = pWindow->create(L"QsSynchronizerWindow", 0, WS_POPUP,
-		0, 0, 0, 0, 0, 0, 0, 0, 0);
+	std::auto_ptr<SynchronizerWindow> pWindow(new SynchronizerWindow());
+	if (!pWindow->create(L"QsSynchronizerWindow", 0, WS_POPUP,
+		0, 0, 0, 0, 0, 0, 0, 0, 0))
+		return;
 	pWindow_ = pWindow.release();
 }
 
@@ -403,15 +358,10 @@ qs::Synchronizer::~Synchronizer()
 	pWindow_->destroyWindow();
 }
 
-QSTATUS qs::Synchronizer::syncExec(Runnable* pRunnable)
+void qs::Synchronizer::syncExec(Runnable* pRunnable)
 {
-	DECLARE_QSTATUS();
-	
-	status = pWindow_->sendMessage(SynchronizerWindow::WM_SYNCEXEC,
+	pWindow_->sendMessage(SynchronizerWindow::WM_SYNCEXEC,
 		0, reinterpret_cast<LPARAM>(pRunnable));
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -421,9 +371,8 @@ QSTATUS qs::Synchronizer::syncExec(Runnable* pRunnable)
  *
  */
 
-qs::SynchronizerWindow::SynchronizerWindow(QSTATUS* pstatus) :
-	WindowBase(true, pstatus),
-	DefaultWindowHandler(pstatus)
+qs::SynchronizerWindow::SynchronizerWindow() :
+	WindowBase(true)
 {
 	setWindowHandler(this, false);
 }
@@ -432,7 +381,9 @@ qs::SynchronizerWindow::~SynchronizerWindow()
 {
 }
 
-LRESULT qs::SynchronizerWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qs::SynchronizerWindow::windowProc(UINT uMsg,
+										   WPARAM wParam,
+										   LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_MESSAGE(WM_SYNCEXEC, onSyncExec)
@@ -440,9 +391,15 @@ LRESULT qs::SynchronizerWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lPar
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
 
-LRESULT qs::SynchronizerWindow::onSyncExec(WPARAM wParam, LPARAM lParam)
+LRESULT qs::SynchronizerWindow::onSyncExec(WPARAM wParam,
+										   LPARAM lParam)
 {
 	Runnable* pRunnable = reinterpret_cast<Runnable*>(lParam);
-	pRunnable->run();
+	QTRY {
+		pRunnable->run();
+	}
+	QCATCH_ALL() {
+		;
+	}
 	return 0;
 }

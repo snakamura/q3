@@ -1,13 +1,11 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
-#include <qserror.h>
-#include <qsnew.h>
 #include <qsstream.h>
 #include <qstextwindow.h>
 #include <qstimer.h>
@@ -37,8 +35,10 @@ qs::TextModel::~TextModel()
  *
  */
 
-qs::TextModel::Line::Line(const WCHAR* pwszText, size_t nLen) :
-	pwszText_(pwszText), nLen_(nLen)
+qs::TextModel::Line::Line(const WCHAR* pwszText,
+						  size_t nLen) :
+	pwszText_(pwszText),
+	nLen_(nLen)
 {
 }
 
@@ -65,27 +65,21 @@ size_t qs::TextModel::Line::getLength() const
 
 struct qs::AbstractTextModelImpl
 {
-	QSTATUS fireEvent(QSTATUS (TextModelHandler::*pfn)(const TextModelEvent&),
-		const TextModelEvent& event) const;
+	void fireEvent(void (TextModelHandler::*pfn)(const TextModelEvent&),
+				   const TextModelEvent& event) const;
 	
 	typedef std::vector<TextModelHandler*> HandlerList;
 	HandlerList listHandler_;
 };
 
-QSTATUS qs::AbstractTextModelImpl::fireEvent(
-	QSTATUS (TextModelHandler::*pfn)(const TextModelEvent&),
-	const TextModelEvent& event) const
+void qs::AbstractTextModelImpl::fireEvent(void (TextModelHandler::*pfn)(const TextModelEvent&),
+										  const TextModelEvent& event) const
 {
-	DECLARE_QSTATUS();
-	
 	HandlerList::const_iterator it = listHandler_.begin();
 	while (it != listHandler_.end()) {
-		status = ((*it)->*pfn)(event);
-		CHECK_QSTATUS();
+		((*it)->*pfn)(event);
 		++it;
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -95,15 +89,10 @@ QSTATUS qs::AbstractTextModelImpl::fireEvent(
  *
  */
 
-qs::AbstractTextModel::AbstractTextModel(QSTATUS* pstatus) :
+qs::AbstractTextModel::AbstractTextModel() :
 	pImpl_(0)
 {
-	assert(pstatus);
-	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new AbstractTextModelImpl();
 }
 
 qs::AbstractTextModel::~AbstractTextModel()
@@ -111,31 +100,29 @@ qs::AbstractTextModel::~AbstractTextModel()
 	delete pImpl_;
 }
 
-QSTATUS qs::AbstractTextModel::addTextModelHandler(TextModelHandler* pHandler)
+void qs::AbstractTextModel::addTextModelHandler(TextModelHandler* pHandler)
 {
-	return STLWrapper<AbstractTextModelImpl::HandlerList>(
-		pImpl_->listHandler_).push_back(pHandler);
+	pImpl_->listHandler_.push_back(pHandler);
 }
 
-QSTATUS qs::AbstractTextModel::removeTextModelHandler(TextModelHandler* pHandler)
+void qs::AbstractTextModel::removeTextModelHandler(TextModelHandler* pHandler)
 {
 	AbstractTextModelImpl::HandlerList::iterator it = std::remove(
 		pImpl_->listHandler_.begin(), pImpl_->listHandler_.end(), pHandler);
 	pImpl_->listHandler_.erase(it, pImpl_->listHandler_.end());
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::AbstractTextModel::fireTextUpdated(unsigned int nStartLine,
-	unsigned int nOldEndLine, unsigned int nNewEndLine)
+void qs::AbstractTextModel::fireTextUpdated(unsigned int nStartLine,
+											unsigned int nOldEndLine,
+											unsigned int nNewEndLine)
 {
-	return pImpl_->fireEvent(&TextModelHandler::textUpdated,
+	pImpl_->fireEvent(&TextModelHandler::textUpdated,
 		TextModelEvent(this, nStartLine, nOldEndLine, nNewEndLine));
 }
 
-QSTATUS qs::AbstractTextModel::fireTextSet()
+void qs::AbstractTextModel::fireTextSet()
 {
-	return pImpl_->fireEvent(&TextModelHandler::textSet,
-		TextModelEvent(this, 0, 0, 0));
+	pImpl_->fireEvent(&TextModelHandler::textSet, TextModelEvent(this, 0, 0, 0));
 }
 
 
@@ -151,15 +138,18 @@ public:
 	class EditLine
 	{
 	public:
-		EditLine(const WCHAR* pwsz, size_t nLen, QSTATUS* pstatus);
+		EditLine(const WCHAR* pwsz,
+				 size_t nLen);
 		~EditLine();
 	
 	public:
 		const WCHAR* getText() const;
 		size_t getLength() const;
-		QSTATUS insertText(unsigned int nChar,
-			const WCHAR* pwsz, size_t nLen);
-		QSTATUS deleteText(unsigned int nChar, size_t nLen);
+		void insertText(unsigned int nChar,
+						const WCHAR* pwsz,
+						size_t nLen);
+		void deleteText(unsigned int nChar,
+						size_t nLen);
 	
 	private:
 		EditLine(const EditLine&);
@@ -171,7 +161,8 @@ public:
 
 public:
 	void clear();
-	void clearLines(unsigned int nStart, unsigned int nEnd);
+	void clearLines(unsigned int nStart,
+					unsigned int nEnd);
 
 public:
 	typedef std::vector<EditLine*> LineList;
@@ -188,7 +179,8 @@ void qs::EditableTextModelImpl::clear()
 	listLine_.clear();
 }
 
-void qs::EditableTextModelImpl::clearLines(unsigned int nStart, unsigned int nEnd)
+void qs::EditableTextModelImpl::clearLines(unsigned int nStart,
+										   unsigned int nEnd)
 {
 	LineList::iterator begin = listLine_.begin() + nStart;
 	LineList::iterator end = listLine_.begin() + nEnd;
@@ -204,9 +196,9 @@ void qs::EditableTextModelImpl::clearLines(unsigned int nStart, unsigned int nEn
  *
  */
 
-qs::EditableTextModelImpl::EditLine::EditLine(
-	const WCHAR* p, size_t nLen, QSTATUS* pstatus) :
-	buf_(p, nLen, pstatus)
+qs::EditableTextModelImpl::EditLine::EditLine(const WCHAR* p,
+											  size_t nLen) :
+	buf_(p, nLen)
 {
 }
 
@@ -224,25 +216,20 @@ size_t qs::EditableTextModelImpl::EditLine::getLength() const
 	return buf_.getLength();
 }
 
-QSTATUS qs::EditableTextModelImpl::EditLine::insertText(
-	unsigned int nChar, const WCHAR* pwsz, size_t nLen)
+void qs::EditableTextModelImpl::EditLine::insertText(unsigned int nChar,
+													 const WCHAR* pwsz,
+													 size_t nLen)
 {
 	assert((nChar < buf_.getLength()) ||
 		(nChar == buf_.getLength() &&
 			(buf_.getLength() == 0 || buf_.get(nChar - 1) != L'\n')));
-	
-	DECLARE_QSTATUS();
-	
-	status = buf_.insert(nChar, pwsz, nLen);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	buf_.insert(nChar, pwsz, nLen);
 }
 
-QSTATUS qs::EditableTextModelImpl::EditLine::deleteText(
-	unsigned int nChar, size_t nLen)
+void qs::EditableTextModelImpl::EditLine::deleteText(unsigned int nChar,
+													 size_t nLen)
 {
-	return buf_.remove(nChar, nLen == -1 ? -1 : nChar + nLen);
+	buf_.remove(nChar, nLen == -1 ? -1 : nChar + nLen);
 }
 
 
@@ -252,19 +239,10 @@ QSTATUS qs::EditableTextModelImpl::EditLine::deleteText(
  *
  */
 
-qs::EditableTextModel::EditableTextModel(QSTATUS* pstatus) :
-	AbstractTextModel(pstatus),
+qs::EditableTextModel::EditableTextModel() :
 	pImpl_(0)
 {
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	DECLARE_QSTATUS();
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new EditableTextModelImpl();
 	pImpl_->pThis_ = this;
 }
 
@@ -276,59 +254,47 @@ qs::EditableTextModel::~EditableTextModel()
 	}
 }
 
-QSTATUS qs::EditableTextModel::getText(WSTRING* pwstrText) const
+wxstring_ptr qs::EditableTextModel::getText() const
 {
-	assert(pwstrText);
+	XStringBuffer<WXSTRING> buf;
 	
-	DECLARE_QSTATUS();
-	
-	*pwstrText = 0;
-	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
-	
-	EditableTextModelImpl::LineList::const_iterator it = pImpl_->listLine_.begin();
-	while (it != pImpl_->listLine_.end()) {
-		status = buf.append((*it)->getText(), (*it)->getLength());
-		CHECK_QSTATUS();
-		++it;
+	for (EditableTextModelImpl::LineList::const_iterator it = pImpl_->listLine_.begin(); it != pImpl_->listLine_.end(); ++it) {
+		if (!buf.append((*it)->getText(), (*it)->getLength()))
+			return 0;
 	}
 	
-	*pwstrText = buf.getString();
-	
-	return QSTATUS_SUCCESS;
+	return buf.getXString();
 }
 
-QSTATUS qs::EditableTextModel::setText(const WCHAR* pwszText, size_t nLen)
+bool qs::EditableTextModel::setText(const WCHAR* pwszText,
+									size_t nLen)
 {
-	DECLARE_QSTATUS();
-	
-	pImpl_->clear();
-	
-	if (nLen == static_cast<size_t>(-1))
-		nLen = wcslen(pwszText);
-	
-	const WCHAR* p = pwszText;
-	for (size_t n = 0; n <= nLen; ++n) {
-		if (n == nLen || *pwszText == L'\n') {
-			std::auto_ptr<EditableTextModelImpl::EditLine> pLine;
-			size_t nLineLen = pwszText - p + (n == nLen ? 0 : 1);
-			status = newQsObject(p, nLineLen, &pLine);
-			CHECK_QSTATUS();
-			status = STLWrapper<EditableTextModelImpl::LineList>(
-				pImpl_->listLine_).push_back(pLine.get());
-			CHECK_QSTATUS();
-			pLine.release();
-			
-			p = pwszText + 1;
+	QTRY {
+		pImpl_->clear();
+		
+		if (nLen == static_cast<size_t>(-1))
+			nLen = wcslen(pwszText);
+		
+		const WCHAR* p = pwszText;
+		for (size_t n = 0; n <= nLen; ++n) {
+			if (n == nLen || *pwszText == L'\n') {
+				size_t nLineLen = pwszText - p + (n == nLen ? 0 : 1);
+				std::auto_ptr<EditableTextModelImpl::EditLine> pLine(
+					new EditableTextModelImpl::EditLine(p, nLineLen));
+				pImpl_->listLine_.push_back(pLine.get());
+				pLine.release();
+				p = pwszText + 1;
+			}
+			++pwszText;
 		}
-		++pwszText;
+		
+		fireTextSet();
+	}
+	QCATCH_ALL() {
+		return false;
 	}
 	
-	status = fireTextSet();
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 size_t qs::EditableTextModel::getLineCount() const
@@ -349,15 +315,18 @@ bool qs::EditableTextModel::isEditable() const
 	return true;
 }
 
-QSTATUS qs::EditableTextModel::update(unsigned int nStartLine,
-	unsigned int nStartChar, unsigned int nEndLine, unsigned int nEndChar,
-	const WCHAR* pwsz, size_t nLen, unsigned int* pnLine, unsigned int* pnChar)
+void qs::EditableTextModel::update(unsigned int nStartLine,
+								   unsigned int nStartChar,
+								   unsigned int nEndLine,
+								   unsigned int nEndChar,
+								   const WCHAR* pwsz,
+								   size_t nLen,
+								   unsigned int* pnLine,
+								   unsigned int* pnChar)
 {
 	assert(nStartLine < pImpl_->listLine_.size());
 	assert(pnLine);
 	assert(pnChar);
-	
-	DECLARE_QSTATUS();
 	
 	typedef EditableTextModelImpl::EditLine EditLine;
 	
@@ -368,25 +337,20 @@ QSTATUS qs::EditableTextModel::update(unsigned int nStartLine,
 	
 	EditLine* pLine = pImpl_->listLine_[nStartLine];
 	
-	string_ptr<WSTRING> wstrLast;
+	wstring_ptr wstrLast;
 	if (nEndLine == nStartLine) {
 		assert(nStartChar <= nEndChar);
-		if (nStartChar < nEndChar) {
-			status = pLine->deleteText(nStartChar, nEndChar - nStartChar);
-			CHECK_QSTATUS();
-		}
+		if (nStartChar < nEndChar)
+			pLine->deleteText(nStartChar, nEndChar - nStartChar);
 	}
 	else {
 		assert(nStartLine < nEndLine);
 		
-		status = pImpl_->listLine_[nStartLine]->deleteText(nStartChar, -1);
-		CHECK_QSTATUS();
+		pImpl_->listLine_[nStartLine]->deleteText(nStartChar, -1);
 		
 		EditLine* pEndLine = pImpl_->listLine_[nEndLine];
-		wstrLast.reset(allocWString(pEndLine->getText() + nEndChar,
-			pEndLine->getLength() - nEndChar));
-		if (!wstrLast.get())
-			return QSTATUS_OUTOFMEMORY;
+		wstrLast = allocWString(pEndLine->getText() + nEndChar,
+			pEndLine->getLength() - nEndChar);
 	}
 	
 	size_t n = 0;
@@ -397,17 +361,14 @@ QSTATUS qs::EditableTextModel::update(unsigned int nStartLine,
 		++p;
 	}
 	if (n == nLen) {
-		status = pLine->insertText(nStartChar, pwsz, nLen);
-		CHECK_QSTATUS();
+		pLine->insertText(nStartChar, pwsz, nLen);
 		*pnLine = nStartLine;
 		*pnChar = nStartChar + nLen;
 		
 		if (nStartLine != nEndLine) {
-			if (wstrLast.get()) {
-				status = pLine->insertText(nStartChar + nLen,
+			if (wstrLast.get())
+				pLine->insertText(nStartChar + nLen,
 					wstrLast.get(), wcslen(wstrLast.get()));
-				CHECK_QSTATUS();
-			}
 			pImpl_->clearLines(nStartLine + 1, nEndLine + 1);
 		}
 	}
@@ -417,57 +378,50 @@ QSTATUS qs::EditableTextModel::update(unsigned int nStartLine,
 		
 		if (pLine->getLength() != nStartChar) {
 			assert(!wstrLast.get());
-			wstrLast.reset(allocWString(pLine->getText() + nStartChar,
-				pLine->getLength() - nStartChar));
-			if (!wstrLast.get())
-				return QSTATUS_OUTOFMEMORY;
+			wstrLast = allocWString(pLine->getText() + nStartChar,
+				pLine->getLength() - nStartChar);
 		}
-		status = pLine->deleteText(nStartChar, -1);
-		CHECK_QSTATUS();
-		status = pLine->insertText(nStartChar, pwsz, n);
-		CHECK_QSTATUS();
+		pLine->deleteText(nStartChar, -1);
+		pLine->insertText(nStartChar, pwsz, n);
 		
 		typedef EditableTextModelImpl::LineList LineList;
 		LineList l;
 		struct Deleter
 		{
-			Deleter(LineList& l) : p_(&l) {}
+			Deleter(LineList& l) :
+				p_(&l)
+			{
+			}
+			
 			~Deleter()
 			{
 				if (p_)
 					std::for_each(p_->begin(), p_->end(),
 						deleter<EditableTextModelImpl::EditLine>());
 			}
+			
 			void release() { p_ = 0; }
+			
 			LineList* p_;
 		} deleter(l);
 		
 		const WCHAR* pBegin = p;
 		while (n < nLen) {
 			if (*p == L'\n') {
-				std::auto_ptr<EditLine> pNewLine;
-				status = newQsObject(pBegin, p - pBegin + 1, &pNewLine);
-				CHECK_QSTATUS();
-				status = STLWrapper<LineList>(l).push_back(pNewLine.get());
-				CHECK_QSTATUS();
+				std::auto_ptr<EditLine> pNewLine(new EditLine(pBegin, p - pBegin + 1));
+				l.push_back(pNewLine.get());
 				pNewLine.release();
-				
 				pBegin = p + 1;
 			}
 			++p;
 			++n;
 		}
 		
-		std::auto_ptr<EditLine> pLastLine;
-		status = newQsObject(pBegin, p - pBegin, &pLastLine);
-		CHECK_QSTATUS();
-		if (wstrLast.get()) {
-			status = pLastLine->insertText(pLastLine->getLength(),
+		std::auto_ptr<EditLine> pLastLine(new EditLine(pBegin, p - pBegin));
+		if (wstrLast.get())
+			pLastLine->insertText(pLastLine->getLength(),
 				wstrLast.get(), wcslen(wstrLast.get()));
-			CHECK_QSTATUS();
-		}
-		status = STLWrapper<LineList>(l).push_back(pLastLine.get());
-		CHECK_QSTATUS();
+		l.push_back(pLastLine.get());
 		pLastLine.release();
 		
 		LineList::const_iterator it = l.begin();
@@ -485,21 +439,16 @@ QSTATUS qs::EditableTextModel::update(unsigned int nStartLine,
 			}
 		}
 		
-		if (it != l.end()) {
-			status = STLWrapper<LineList>(pImpl_->listLine_).insert(
-				pImpl_->listLine_.begin() + n, it, l.end());
-			CHECK_QSTATUS();
-		}
+		if (it != l.end())
+			pImpl_->listLine_.insert(pImpl_->listLine_.begin() + n, it,
+				static_cast<LineList::const_iterator>(l.end()));
 		deleter.release();
 		
 		*pnLine = nStartLine + l.size();
 		*pnChar = p - pBegin;
 	}
 	
-	status = fireTextUpdated(nStartLine, nEndLine, *pnLine);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	fireTextUpdated(nStartLine, nEndLine, *pnLine);
 }
 
 
@@ -521,92 +470,84 @@ public:
 	};
 
 public:
-	QSTATUS appendText(const WCHAR* pwszText, size_t nLen, bool bFireEvent);
-	QSTATUS clearText(bool bFireEvent);
+	bool appendText(const WCHAR* pwszText,
+					size_t nLen,
+					bool bFireEvent);
+	void clearText(bool bFireEvent);
 
 public:
-	virtual QSTATUS timerTimeout(unsigned int nId);
+	virtual void timerTimeout(unsigned int nId);
 
 private:
-	QSTATUS updateLines(bool bClear, bool bFireEvent);
+	void updateLines(bool bClear,
+					 bool bFireEvent);
 
 public:
 	typedef std::vector<std::pair<size_t, size_t> > LineList;
 
 public:
 	ReadOnlyTextModel* pThis_;
-	StringBuffer<WSTRING>* pBuffer_;
+	std::auto_ptr<StringBuffer<WSTRING> > pBuffer_;
 	LineList listLine_;
 	
-	Timer* pTimer_;
-	Reader* pReader_;
+	std::auto_ptr<Timer> pTimer_;
+	std::auto_ptr<Reader> pReader_;
 	unsigned int nTimerLoad_;
 };
 
-QSTATUS qs::ReadOnlyTextModelImpl::appendText(
-	const WCHAR* pwszText, size_t nLen, bool bFireEvent)
+bool qs::ReadOnlyTextModelImpl::appendText(const WCHAR* pwszText,
+										   size_t nLen,
+										   bool bFireEvent)
 {
-	DECLARE_QSTATUS();
-	
 	if (nLen == static_cast<size_t>(-1))
 		nLen = wcslen(pwszText);
 	
 	size_t nOldLen = pBuffer_->getLength();
-	status = pBuffer_->append(pwszText, nLen);
-	CHECK_QSTATUS();
-	status = updateLines(false, bFireEvent);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	QTRY {
+		pBuffer_->append(pwszText, nLen);
+		updateLines(false, bFireEvent);
+	}
+	QCATCH_ALL() {
+		return false;
+	}
+	return true;
 }
 
-QSTATUS qs::ReadOnlyTextModelImpl::clearText(bool bFireEvent)
+void qs::ReadOnlyTextModelImpl::clearText(bool bFireEvent)
 {
-	DECLARE_QSTATUS();
-	
-	status = pBuffer_->remove();
-	CHECK_QSTATUS();
-	status = updateLines(true, bFireEvent);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	pBuffer_->remove();
+	updateLines(true, bFireEvent);
 }
 
-QSTATUS qs::ReadOnlyTextModelImpl::timerTimeout(unsigned int nId)
+void qs::ReadOnlyTextModelImpl::timerTimeout(unsigned int nId)
 {
 	if (nId == nTimerLoad_) {
-		assert(pReader_);
+		assert(pReader_.get());
 		
 		bool bError = false;
 		typedef std::vector<WCHAR> Buffer;
 		Buffer buf;
-		if (STLWrapper<Buffer>(buf).resize(10240) != QSTATUS_SUCCESS)
+		buf.resize(10240);
+		
+		size_t nRead = pReader_->read(&buf[0], buf.size());
+		if (nRead == -1)
 			bError = true;
-		size_t nRead = 0;
-		if (!bError) {
-			if (pReader_->read(&buf[0], buf.size(), &nRead) != QSTATUS_SUCCESS)
+		if (!bError && nRead != 0) {
+			if (!appendText(&buf[0], nRead, true))
 				bError = true;
-			if (!bError && nRead != static_cast<size_t>(-1)) {
-				if (appendText(&buf[0], nRead, true) != QSTATUS_SUCCESS)
-					bError = true;
-			}
 		}
 		
-		if (bError || nRead == static_cast<size_t>(-1)) {
-			delete pReader_;
-			pReader_ = 0;
+		if (bError || nRead == 0) {
+			pReader_.reset(0);
 			pTimer_->killTimer(nTimerLoad_);
 			nTimerLoad_ = 0;
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::ReadOnlyTextModelImpl::updateLines(bool bClear, bool bFireEvent)
+void qs::ReadOnlyTextModelImpl::updateLines(bool bClear,
+											bool bFireEvent)
 {
-	DECLARE_QSTATUS();
-	
 	unsigned int nStartLine = bClear ? 0 :
 		listLine_.empty() ? 0 : listLine_.size() - 1;
 	unsigned int nOldEndLine = bClear ?
@@ -627,9 +568,7 @@ QSTATUS qs::ReadOnlyTextModelImpl::updateLines(bool bClear, bool bFireEvent)
 		if (!*p || *p == '\n') {
 			size_t n = p - pBase;
 			assert(n >= nPos);
-			status = STLWrapper<LineList>(listLine_).push_back(
-				std::make_pair(nPos, n - nPos + (*p ? 1 : 0)));
-			CHECK_QSTATUS();
+			listLine_.push_back(std::make_pair(nPos, n - nPos + (*p ? 1 : 0)));
 			nPos = n + 1;
 		}
 		if (!*p)
@@ -638,18 +577,12 @@ QSTATUS qs::ReadOnlyTextModelImpl::updateLines(bool bClear, bool bFireEvent)
 	}
 	
 	if (bFireEvent) {
-		if (bClear) {
-			status = pThis_->fireTextSet();
-			CHECK_QSTATUS();
-		}
-		else {
-			status = pThis_->fireTextUpdated(nStartLine, nOldEndLine,
+		if (bClear)
+			pThis_->fireTextSet();
+		else
+			pThis_->fireTextUpdated(nStartLine, nOldEndLine,
 				listLine_.empty() ? 0 : listLine_.size() - 1);
-			CHECK_QSTATUS();
-		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -659,123 +592,81 @@ QSTATUS qs::ReadOnlyTextModelImpl::updateLines(bool bClear, bool bFireEvent)
  *
  */
 
-qs::ReadOnlyTextModel::ReadOnlyTextModel(QSTATUS* pstatus) :
-	AbstractTextModel(pstatus),
+qs::ReadOnlyTextModel::ReadOnlyTextModel() :
 	pImpl_(0)
 {
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
+	std::auto_ptr<StringBuffer<WSTRING> > pBuffer(new StringBuffer<WSTRING>());
+	std::auto_ptr<Timer> pTimer(new Timer());
 	
-	
-	DECLARE_QSTATUS();
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	std::auto_ptr<StringBuffer<WSTRING> > pBuffer;
-	status = newQsObject(&pBuffer);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	std::auto_ptr<Timer> pTimer;
-	status = newQsObject(&pTimer);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new ReadOnlyTextModelImpl();
 	pImpl_->pThis_ = this;
-	pImpl_->pBuffer_ = pBuffer.release();
-	pImpl_->pTimer_ = pTimer.release();
-	pImpl_->pReader_ = 0;
+	pImpl_->pBuffer_ = pBuffer;
+	pImpl_->pTimer_ = pTimer;
 	pImpl_->nTimerLoad_ = 0;
 }
 
 qs::ReadOnlyTextModel::~ReadOnlyTextModel()
 {
-	if (pImpl_) {
-		delete pImpl_->pTimer_;
-		delete pImpl_->pBuffer_;
-		delete pImpl_;
-	}
+	delete pImpl_;
 }
 
-QSTATUS qs::ReadOnlyTextModel::getText(const WCHAR** ppwszText, size_t* pnLen) const
+std::pair<const WCHAR*, size_t> qs::ReadOnlyTextModel::getText() const
 {
-	assert(ppwszText);
-	assert(pnLen);
-	
-	*ppwszText = pImpl_->pBuffer_->getCharArray();
-	*pnLen = pImpl_->pBuffer_->getLength();
-	
-	return QSTATUS_SUCCESS;
+	return std::make_pair(pImpl_->pBuffer_->getCharArray(),
+		pImpl_->pBuffer_->getLength());
 }
 
-QSTATUS qs::ReadOnlyTextModel::setText(const WCHAR* pwszText, size_t nLen)
+bool qs::ReadOnlyTextModel::setText(const WCHAR* pwszText,
+									size_t nLen)
 {
-	DECLARE_QSTATUS();
-	
-	status = pImpl_->clearText(false);
-	CHECK_QSTATUS();
-	status = pImpl_->appendText(pwszText, nLen, false);
-	CHECK_QSTATUS();
-	
-	status = fireTextSet();
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	pImpl_->clearText(false);
+	if (!pImpl_->appendText(pwszText, nLen, false))
+		return false;
+	fireTextSet();
+	return true;
 }
 
-QSTATUS qs::ReadOnlyTextModel::loadText(Reader* pReader, bool bAsync)
+bool qs::ReadOnlyTextModel::loadText(std::auto_ptr<Reader> pReader,
+									 bool bAsync)
 {
-	assert(pReader);
+	assert(pReader.get());
 	
-	DECLARE_QSTATUS();
+	cancelLoad();
 	
-	status = cancelLoad();
-	CHECK_QSTATUS();
+	assert(!pImpl_->pReader_.get());
 	
-	assert(!pImpl_->pReader_);
-	
-	status = pImpl_->clearText(false);
-	CHECK_QSTATUS();
+	pImpl_->clearText(false);
 	
 	WCHAR wsz[1024];
-	size_t nRead = 0;
-	while (nRead != static_cast<size_t>(-1) &&
-		(!bAsync ||
-		pImpl_->listLine_.size() < ReadOnlyTextModelImpl::INITIAL_LOAD_LINES)) {
-		status = pReader->read(wsz, countof(wsz), &nRead);
-		CHECK_QSTATUS();
-		if (nRead != static_cast<size_t>(-1)) {
-			status = pImpl_->appendText(wsz, nRead, false);
-			CHECK_QSTATUS();
-		}
+	size_t nRead = -1;
+	while ((!bAsync || pImpl_->listLine_.size() < ReadOnlyTextModelImpl::INITIAL_LOAD_LINES)) {
+		nRead = pReader->read(wsz, countof(wsz));
+		if (nRead == -1)
+			return false;
+		else if (nRead == 0)
+			break;
+		if (!pImpl_->appendText(wsz, nRead, false))
+			return false;
 	}
 	
-	status = fireTextSet();
-	CHECK_QSTATUS();
+	fireTextSet();
 	
-	if (nRead != static_cast<size_t>(-1)) {
+	if (nRead != 0) {
 		pImpl_->pReader_ = pReader;
-		pImpl_->nTimerLoad_ = ReadOnlyTextModelImpl::TIMER_LOAD;
-		status = pImpl_->pTimer_->setTimer(&pImpl_->nTimerLoad_,
+		pImpl_->nTimerLoad_ = pImpl_->pTimer_->setTimer(
+			ReadOnlyTextModelImpl::TIMER_LOAD,
 			ReadOnlyTextModelImpl::LOAD_INTERVAL, pImpl_);
-		CHECK_QSTATUS();
-	}
-	else {
-		delete pReader;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::ReadOnlyTextModel::cancelLoad()
+void qs::ReadOnlyTextModel::cancelLoad()
 {
-	if (pImpl_->pReader_) {
+	if (pImpl_->pReader_.get()) {
 		pImpl_->pTimer_->killTimer(pImpl_->nTimerLoad_);
-		delete pImpl_->pReader_;
-		pImpl_->pReader_ = 0;
+		pImpl_->pReader_.reset(0);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 size_t qs::ReadOnlyTextModel::getLineCount() const
@@ -798,12 +689,16 @@ bool qs::ReadOnlyTextModel::isEditable() const
 	return false;
 }
 
-QSTATUS qs::ReadOnlyTextModel::update(unsigned int nStartLine,
-	unsigned int nStartChar, unsigned int nEndLine, unsigned int nEndChar,
-	const WCHAR* pwsz, size_t nLen, unsigned int* pnLine, unsigned int* pnChar)
+void qs::ReadOnlyTextModel::update(unsigned int nStartLine,
+								   unsigned int nStartChar,
+								   unsigned int nEndLine,
+								   unsigned int nEndChar,
+								   const WCHAR* pwsz,
+								   size_t nLen,
+								   unsigned int* pnLine,
+								   unsigned int* pnChar)
 {
 	assert(false);
-	return QSTATUS_FAIL;
 }
 
 
@@ -825,8 +720,9 @@ qs::TextModelHandler::~TextModelHandler()
  */
 
 qs::TextModelEvent::TextModelEvent(TextModel* pTextModel,
-	unsigned int nStartLine, unsigned int nOldEndLine,
-	unsigned int nNewEndLine) :
+								   unsigned int nStartLine,
+								   unsigned int nOldEndLine,
+								   unsigned int nNewEndLine) :
 	pTextModel_(pTextModel),
 	nStartLine_(nStartLine),
 	nOldEndLine_(nOldEndLine),

@@ -1,12 +1,12 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
-#include <qsnew.h>
+#include <qs.h>
 
 #include <openssl/evp.h>
 #include <openssl/ssl.h>
@@ -51,7 +51,9 @@ HINSTANCE qscrypto::getResourceHandle()
  *
  */
 
-BOOL WINAPI DllMain(HANDLE hInst, DWORD dwReason, LPVOID lpReserved)
+BOOL WINAPI DllMain(HANDLE hInst,
+					DWORD dwReason,
+					LPVOID lpReserved)
 {
 	switch (dwReason) {
 	case DLL_PROCESS_ATTACH:
@@ -67,7 +69,8 @@ BOOL WINAPI DllMain(HANDLE hInst, DWORD dwReason, LPVOID lpReserved)
 		OpenSSL_add_all_algorithms();
 		SSL_library_init();
 #ifdef _WIN32_WCE
-//		RAND_load_file("\\.qmail", -1);
+		// TODO
+		// Seed correctly.
 		{
 			for (int n = 0; n < 1000; ++n) {
 				RAND_seed("abcdefg", 7);

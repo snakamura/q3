@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -30,7 +30,7 @@ public:
 public:
 	virtual bool isShow() const = 0;
 	virtual bool isActive() const = 0;
-	virtual qs::QSTATUS setActive() = 0;
+	virtual void setActive() = 0;
 };
 
 }

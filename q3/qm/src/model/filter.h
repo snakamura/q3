@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -39,14 +39,14 @@ public:
 	typedef std::vector<Filter*> FilterList;
 
 public:
-	explicit FilterManager(qs::QSTATUS* pstatus);
+	FilterManager();
 	~FilterManager();
 
 public:
-	qs::QSTATUS getFilters(const FilterList** ppList);
+	const FilterList& getFilters();
 
 private:
-	qs::QSTATUS load();
+	bool load();
 	void clear();
 
 private:
@@ -68,21 +68,22 @@ private:
 class Filter
 {
 public:
-	Filter(const WCHAR* pwszName, const WCHAR* pwszMacro, qs::QSTATUS* pstatus);
+	Filter(const WCHAR* pwszName,
+		   std::auto_ptr<Macro> pMacro);
 	~Filter();
 
 public:
 	const WCHAR* getName() const;
 	const Macro* getMacro() const;
-	qs::QSTATUS match(MacroContext* pContext, bool* pbMatch) const;
+	bool match(MacroContext* pContext) const;
 
 private:
 	Filter(const Filter&);
 	Filter& operator=(const Filter&);
 
 private:
-	qs::WSTRING wstrName_;
-	Macro* pMacro_;
+	qs::wstring_ptr wstrName_;
+	std::auto_ptr<Macro> pMacro_;
 };
 
 
@@ -98,17 +99,20 @@ public:
 	typedef FilterManager::FilterList FilterList;
 
 public:
-	FilterContentHandler(FilterList* pListFilter, qs::QSTATUS* pstatus);
+	explicit FilterContentHandler(FilterList* pListFilter);
 	virtual ~FilterContentHandler();
 
 public:
-	virtual qs::QSTATUS startElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName,
-		const qs::Attributes& attributes);
-	virtual qs::QSTATUS endElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName);
-	virtual qs::QSTATUS characters(const WCHAR* pwsz,
-		size_t nStart, size_t nLength);
+	virtual bool startElement(const WCHAR* pwszNamespaceURI,
+							  const WCHAR* pwszLocalName,
+							  const WCHAR* pwszQName,
+							  const qs::Attributes& attributes);
+	virtual bool endElement(const WCHAR* pwszNamespaceURI,
+						    const WCHAR* pwszLocalName,
+						    const WCHAR* pwszQName);
+	virtual bool characters(const WCHAR* pwsz,
+							size_t nStart,
+							size_t nLength);
 
 private:
 	FilterContentHandler(const FilterContentHandler&);
@@ -124,8 +128,8 @@ private:
 private:
 	FilterList* pListFilter_;
 	State state_;
-	qs::WSTRING wstrName_;
-	qs::StringBuffer<qs::WSTRING>* pBuffer_;
+	qs::wstring_ptr wstrName_;
+	qs::StringBuffer<qs::WSTRING> buffer_;
 };
 
 }

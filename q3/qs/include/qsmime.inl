@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -18,11 +18,12 @@
 
 template<class Char, class String>
 qs::BoundaryFinder<Char, String>::BoundaryFinder(const Char* pszMessage,
-	size_t nLen, const Char* pszBoundary, const Char* pszNewLine,
-	bool bAllowIncomplete, QSTATUS* pstatus) :
+												 size_t nLen,
+												 const Char* pszBoundary,
+												 const Char* pszNewLine,
+												 bool bAllowIncomplete) :
 	p_(pszMessage),
 	nLen_(nLen),
-	pFindString_(0),
 	nBoundaryLen_(0),
 	pszNewLine_(pszNewLine),
 	bAllowIncomplete_(bAllowIncomplete)
@@ -30,17 +31,11 @@ qs::BoundaryFinder<Char, String>::BoundaryFinder(const Char* pszMessage,
 	assert(CharTraits<Char>::compare(pszMessage, pszNewLine_,
 		CharTraits<Char>::getLength(pszNewLine_)) == 0);
 	
-	DECLARE_QSTATUS();
-	
 	size_t nNewLineLen = CharTraits<Char>::getLength(pszNewLine_);
 	size_t nBoundaryLen = CharTraits<Char>::getLength(pszBoundary);
 	nBoundaryLen_ = nBoundaryLen + nNewLineLen + 2;
-	string_ptr<String> strBoundary(
+	basic_string_ptr<String> strBoundary(
 		StringTraits<String>::allocString(nBoundaryLen_ + 1));
-	if (!strBoundary.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
 	Char* p = strBoundary.get();
 	memcpy(p, pszNewLine_, nNewLineLen*sizeof(Char));
 	p += nNewLineLen;
@@ -50,9 +45,7 @@ qs::BoundaryFinder<Char, String>::BoundaryFinder(const Char* pszMessage,
 	p += nBoundaryLen;
 	*p = 0;
 	
-	status = newQsObject(strBoundary.get(),
-		nBoundaryLen_, &pFindString_);
-	CHECK_QSTATUS_SET(pstatus);
+	pFindString_.reset(new BMFindString<String>(strBoundary.get(), nBoundaryLen_));
 	
 	const Char* pBegin = 0;
 	const Char* pEnd = 0;
@@ -64,12 +57,12 @@ qs::BoundaryFinder<Char, String>::BoundaryFinder(const Char* pszMessage,
 template<class Char, class String>
 qs::BoundaryFinder<Char, String>::~BoundaryFinder()
 {
-	delete pFindString_;
 }
 
 template<class Char, class String>
-qs::QSTATUS qs::BoundaryFinder<Char, String>::getNext(
-	const Char** ppBegin, const Char** ppEnd, bool* pbEnd)
+bool qs::BoundaryFinder<Char, String>::getNext(const Char** ppBegin,
+											   const Char** ppEnd,
+											   bool* pbEnd)
 {
 	assert(ppBegin);
 	assert(ppEnd);
@@ -108,7 +101,7 @@ qs::QSTATUS qs::BoundaryFinder<Char, String>::getNext(
 				p_ = 0;
 			}
 			else {
-				return QSTATUS_FAIL;
+				return false;
 			}
 		}
 	}
@@ -116,12 +109,14 @@ qs::QSTATUS qs::BoundaryFinder<Char, String>::getNext(
 		*pbEnd = true;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 template<class Char, class String>
-void qs::BoundaryFinder<Char, String>::getNextBoundary(
-	const Char* p, size_t nLen, const Char** ppBegin, const Char** ppEnd)
+void qs::BoundaryFinder<Char, String>::getNextBoundary(const Char* p,
+													   size_t nLen,
+													   const Char** ppBegin,
+													   const Char** ppEnd)
 {
 	assert(p);
 	assert(ppBegin);

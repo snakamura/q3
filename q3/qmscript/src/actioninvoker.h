@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -24,12 +24,14 @@ template<class T>
 class ActionInvokeHelper : public T
 {
 protected:
-	ActionInvokeHelper(qs::QSTATUS* pstatus);
+	ActionInvokeHelper();
 	~ActionInvokeHelper();
 
 public:
 	STDMETHOD(invokeAction)(BSTR bstrAction,
-		VARIANT arg1, VARIANT arg2, VARIANT arg3);
+							VARIANT arg1,
+							VARIANT arg2,
+							VARIANT arg3);
 
 private:
 	ActionInvokeHelper(const ActionInvokeHelper&);

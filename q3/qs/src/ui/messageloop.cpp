@@ -1,14 +1,13 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qsdialog.h>
 #include <qsinit.h>
-#include <qsnew.h>
 #include <qsthread.h>
 #include <qswindow.h>
 
@@ -27,7 +26,7 @@ public:
 	typedef std::vector<FrameWindow*> FrameList;
 
 public:
-	QSTATUS processIdle();
+	void processIdle();
 
 public:
 	static bool isIdleMessage(const MSG& msg);
@@ -45,28 +44,23 @@ public:
 		virtual ~InitializerImpl();
 	
 	public:
-		virtual QSTATUS init();
-		virtual QSTATUS term();
-		virtual QSTATUS initThread();
-		virtual QSTATUS termThread();
+		virtual bool init();
+		virtual void term();
+		virtual bool initThread();
+		virtual void termThread();
 	} init__;
 };
 
 ThreadLocal* qs::MessageLoopImpl::pMessageLoop__;
 MessageLoopImpl::InitializerImpl qs::MessageLoopImpl::init__;
 
-QSTATUS qs::MessageLoopImpl::processIdle()
+void qs::MessageLoopImpl::processIdle()
 {
-	DECLARE_QSTATUS();
-	
 	FrameList::const_iterator it = listFrame_.begin();
 	while (it != listFrame_.end()) {
-		status = (*it)->processIdle();
-		CHECK_QSTATUS();
+		(*it)->processIdle();
 		++it;
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 bool qs::MessageLoopImpl::isIdleMessage(const MSG& msg)
@@ -82,9 +76,7 @@ bool qs::MessageLoopImpl::isIdleMessage(const MSG& msg)
 
 MessageLoop* qs::MessageLoopImpl::getMessageLoop()
 {
-	void* pValue = 0;
-	pMessageLoop__->get(&pValue);
-	return static_cast<MessageLoop*>(pValue);
+	return static_cast<MessageLoop*>(pMessageLoop__->get());
 }
 
 
@@ -102,37 +94,26 @@ qs::MessageLoopImpl::InitializerImpl::~InitializerImpl()
 {
 }
 
-QSTATUS qs::MessageLoopImpl::InitializerImpl::init()
+bool qs::MessageLoopImpl::InitializerImpl::init()
 {
-	return newQsObject(&pMessageLoop__);
+	pMessageLoop__ = new ThreadLocal();
+	return true;
 }
 
-QSTATUS qs::MessageLoopImpl::InitializerImpl::term()
+void qs::MessageLoopImpl::InitializerImpl::term()
 {
 	delete pMessageLoop__;
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::MessageLoopImpl::InitializerImpl::initThread()
+bool qs::MessageLoopImpl::InitializerImpl::initThread()
 {
-	DECLARE_QSTATUS();
-	
-	std::auto_ptr<MessageLoop> pMessageLoop;
-	status = newQsObject(&pMessageLoop);
-	CHECK_QSTATUS();
-	status = pMessageLoop__->set(pMessageLoop.get());
-	CHECK_QSTATUS();
-	pMessageLoop.release();
-	
-	return QSTATUS_SUCCESS;
+	pMessageLoop__->set(new MessageLoop());
+	return true;
 }
 
-QSTATUS qs::MessageLoopImpl::InitializerImpl::termThread()
+void qs::MessageLoopImpl::InitializerImpl::termThread()
 {
-	void* p = 0;
-	pMessageLoop__->get(&p);
-	delete static_cast<MessageLoop*>(p);
-	return QSTATUS_SUCCESS;
+	delete static_cast<MessageLoop*>(pMessageLoop__->get());
 }
 
 
@@ -142,13 +123,10 @@ QSTATUS qs::MessageLoopImpl::InitializerImpl::termThread()
  *
  */
 
-qs::MessageLoop::MessageLoop(QSTATUS* pstatus) :
+qs::MessageLoop::MessageLoop() :
 	pImpl_(0)
 {
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new MessageLoopImpl();
 }
 
 qs::MessageLoop::~MessageLoop()
@@ -156,10 +134,8 @@ qs::MessageLoop::~MessageLoop()
 	delete pImpl_;
 }
 
-QSTATUS qs::MessageLoop::run()
+void qs::MessageLoop::run()
 {
-	DECLARE_QSTATUS();
-	
 	DWORD dwThreadId = ::GetCurrentThreadId();
 	
 	MSG msg;
@@ -172,7 +148,7 @@ QSTATUS qs::MessageLoop::run()
 		
 		do {
 			if (!::GetMessage(&msg, 0, 0, 0))
-				return QSTATUS_SUCCESS;
+				return;
 			
 			bool bProcess = true;
 #if !defined _WIN32_WCE || _WIN32_WCE >= 211
@@ -183,18 +159,11 @@ QSTATUS qs::MessageLoop::run()
 			}
 #endif
 			if (bProcess) {
-				bool bProcessed = false;
-				status = DialogBase::processDialogMessage(&msg, &bProcessed);
-				CHECK_QSTATUS();
-				if (bProcessed)
+				if (DialogBase::processDialogMessage(&msg))
 					continue;
-				status = PropertySheetBase::processDialogMessage(&msg, &bProcessed);
-				CHECK_QSTATUS();
-				if (bProcessed)
+				if (PropertySheetBase::processDialogMessage(&msg))
 					continue;
-				status = WindowBase::translateAccelerator(msg, &bProcessed);
-				CHECK_QSTATUS();
-				if (bProcessed)
+				if (WindowBase::translateAccelerator(msg))
 					continue;
 				
 				::TranslateMessage(&msg);
@@ -205,22 +174,18 @@ QSTATUS qs::MessageLoop::run()
 				bIdle = true;
 		} while (::PeekMessage(&msg, 0, 0, 0, PM_NOREMOVE));
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::MessageLoop::addFrame(FrameWindow* pFrameWindow)
+void qs::MessageLoop::addFrame(FrameWindow* pFrameWindow)
 {
-	return STLWrapper<MessageLoopImpl::FrameList>(
-		pImpl_->listFrame_).push_back(pFrameWindow);
+	pImpl_->listFrame_.push_back(pFrameWindow);
 }
 
-QSTATUS qs::MessageLoop::removeFrame(FrameWindow* pFrameWindow)
+void qs::MessageLoop::removeFrame(FrameWindow* pFrameWindow)
 {
 	MessageLoopImpl::FrameList::iterator it = std::remove(
 		pImpl_->listFrame_.begin(), pImpl_->listFrame_.end(), pFrameWindow);
 	pImpl_->listFrame_.erase(it, pImpl_->listFrame_.end());
-	return QSTATUS_SUCCESS;
 }
 
 MessageLoop& qs::MessageLoop::getMessageLoop()

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -15,7 +15,6 @@
 #include <qmtemplate.h>
 
 #include <qsconv.h>
-#include <qsnew.h>
 #include <qsosutil.h>
 
 #include "templateprocessor.h"
@@ -37,10 +36,13 @@ using namespace qs;
  */
 
 qm::TemplateProcessor::TemplateProcessor(Document* pDocument,
-	FolderModelBase* pFolderModel, MessageSelectionModel* pMessageSelectionModel,
-	EditFrameWindowManager* pEditFrameWindowManager,
-	ExternalEditorManager* pExternalEditorManager, HWND hwnd,
-	Profile* pProfile, bool bExternalEditor) :
+										 FolderModelBase* pFolderModel,
+										 MessageSelectionModel* pMessageSelectionModel,
+										 EditFrameWindowManager* pEditFrameWindowManager,
+										 ExternalEditorManager* pExternalEditorManager,
+										 HWND hwnd,
+										 Profile* pProfile,
+										 bool bExternalEditor) :
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
 	pMessageSelectionModel_(pMessageSelectionModel),
@@ -62,19 +64,18 @@ qm::TemplateProcessor::~TemplateProcessor()
 {
 }
 
-QSTATUS qm::TemplateProcessor::process(
-	const WCHAR* pwszTemplateName, bool bReverseExternalEditor) const
+bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
+									bool bReverseExternalEditor) const
 {
 	return process(pwszTemplateName,
 		TemplateContext::ArgumentList(), bReverseExternalEditor);
 }
 
-QSTATUS qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
-	const TemplateContext::ArgumentList& listArgument, bool bReverseExternalEditor) const
+bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
+									const TemplateContext::ArgumentList& listArgument,
+									bool bReverseExternalEditor) const
 {
 	assert(pwszTemplateName);
-	
-	DECLARE_QSTATUS();
 	
 	Account* pAccount = pFolderModel_->getCurrentAccount();
 	Folder* pFolder = 0;
@@ -84,64 +85,51 @@ QSTATUS qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 			pAccount = pFolder->getAccount();
 	}
 	if (!pAccount)
-		return QSTATUS_FAIL;
+		return false;
 	
-	const Template* pTemplate = 0;
-	status = pDocument_->getTemplateManager()->getTemplate(
-		pAccount, pFolder, pwszTemplateName, &pTemplate);
-	CHECK_QSTATUS();
+	const Template* pTemplate = pDocument_->getTemplateManager()->getTemplate(
+		pAccount, pFolder, pwszTemplateName);
+	if (!pTemplate)
+		return false;
 	
-	MessagePtr ptr;
-	status = pMessageSelectionModel_->getFocusedMessage(&ptr);
-	CHECK_QSTATUS();
-	MessagePtrLock mpl(ptr);
+	MessagePtrLock mpl(pMessageSelectionModel_->getFocusedMessage());
 	
 	Lock<Account> lock(*pAccount);
 	
 	MacroErrorHandlerImpl handler;
-	Message msg(&status);
-	CHECK_QSTATUS();
-	TemplateContext context(mpl, mpl ? &msg : 0, pAccount, pDocument_,
-		hwnd_, pProfile_, &handler, listArgument, &status);
-	CHECK_QSTATUS();
+	Message msg;
+	TemplateContext context(mpl, mpl ? &msg : 0, pAccount,
+		pDocument_, hwnd_, pProfile_, &handler, listArgument);
 	
-	string_ptr<WSTRING> wstrValue;
-	status = pTemplate->getValue(context, &wstrValue);
-	CHECK_QSTATUS();
+	wstring_ptr wstrValue(pTemplate->getValue(context));
+	if (!wstrValue.get())
+		return false;
 	
 	bool bExternalEditor = bExternalEditor_;
-	int nExternalEditor = 0;
-	status = pProfile_->getInt(L"Global", L"UseExternalEditor", 0, &nExternalEditor);
-	CHECK_QSTATUS();
-	if (nExternalEditor != 0)
+	if (pProfile_->getInt(L"Global", L"UseExternalEditor", 0) != 0)
 		bExternalEditor = !bExternalEditor;
 	if (bReverseExternalEditor)
 		bExternalEditor = !bExternalEditor;
 	
 	if (bExternalEditor) {
-		status = pExternalEditorManager_->open(wstrValue.get());
-		CHECK_QSTATUS();
+		return pExternalEditorManager_->open(wstrValue.get());
 	}
 	else {
 		MessageCreator creator;
-		Message* p = 0;
-		status = creator.createMessage(wstrValue.get(), -1, &p);
-		CHECK_QSTATUS();
-		std::auto_ptr<Message> pMessage(p);
+		std::auto_ptr<Message> pMessage(creator.createMessage(wstrValue.get(), -1));
+		if (!pMessage.get())
+			return false;
 		
-		std::auto_ptr<EditMessage> pEditMessage;
-		status = newQsObject(pProfile_, pDocument_, pAccount, &pEditMessage);
-		CHECK_QSTATUS();
-		status = pEditMessage->setMessage(pMessage.get());
-		CHECK_QSTATUS();
-		pMessage.release();
+		std::auto_ptr<EditMessage> pEditMessage(
+			new EditMessage(pProfile_, pDocument_, pAccount));
+		if (!pEditMessage->setMessage(pMessage))
+			return false;
 		
-		status = pEditFrameWindowManager_->open(pEditMessage.get());
-		CHECK_QSTATUS();
-		pEditMessage.release();
+		if (!pEditFrameWindowManager_->open(pEditMessage))
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -159,14 +147,14 @@ qm::TemplateProcessor::MacroErrorHandlerImpl::~MacroErrorHandlerImpl()
 {
 }
 
-void qm::TemplateProcessor::MacroErrorHandlerImpl::parseError(
-	Code code, const WCHAR* pwsz)
+void qm::TemplateProcessor::MacroErrorHandlerImpl::parseError(Code code,
+															  const WCHAR* pwsz)
 {
 	// TODO
 }
 
-void qm::TemplateProcessor::MacroErrorHandlerImpl::processError(
-	Code code, const WCHAR* pwsz)
+void qm::TemplateProcessor::MacroErrorHandlerImpl::processError(Code code,
+																const WCHAR* pwsz)
 {
 	// TODO
 }

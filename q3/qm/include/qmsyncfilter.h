@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -12,6 +12,7 @@
 #include <qm.h>
 
 #include <qs.h>
+#include <qsregex.h>
 
 #include <vector>
 
@@ -42,17 +43,17 @@ public:
 	typedef std::vector<SyncFilterSet*> FilterSetList;
 
 public:
-	explicit SyncFilterManager(qs::QSTATUS* pstatus);
+	SyncFilterManager();
 	~SyncFilterManager();
 
 public:
-	qs::QSTATUS getFilterSet(const Account* pAccount,
-		const WCHAR* pwszName, const SyncFilterSet** ppSyncFilterSet) const;
-	qs::QSTATUS getFilterSets(const Account* pAccount,
-		FilterSetList* pList) const;
+	const SyncFilterSet* getFilterSet(const Account* pAccount,
+									  const WCHAR* pwszName) const;
+	void getFilterSets(const Account* pAccount,
+					   FilterSetList* pList) const;
 
 public:
-	qs::QSTATUS addFilterSet(SyncFilterSet* pFilterSet);
+	void addFilterSet(std::auto_ptr<SyncFilterSet> pFilterSet);
 
 private:
 	SyncFilterManager(const SyncFilterManager&);
@@ -72,19 +73,18 @@ private:
 class QMEXPORTCLASS SyncFilterSet
 {
 public:
-	SyncFilterSet(const WCHAR* pwszAccount,
-		const WCHAR* pwszName, qs::QSTATUS* pstatus);
+	SyncFilterSet(std::auto_ptr<qs::RegexPattern> pAccountName,
+				  const WCHAR* pwszName);
 	~SyncFilterSet();
 
 public:
 	const WCHAR* getName() const;
-	qs::QSTATUS getFilter(SyncFilterCallback* pCallback,
-		const SyncFilter** ppFilter) const;
-	qs::QSTATUS match(const Account* pAccount,
-		const WCHAR* pwszName, bool* pbMatch) const;
+	const SyncFilter* getFilter(SyncFilterCallback* pCallback) const;
+	bool match(const Account* pAccount,
+			   const WCHAR* pwszName) const;
 
 public:
-	qs::QSTATUS addFilter(SyncFilter* pFilter);
+	void addFilter(std::auto_ptr<SyncFilter> pFilter);
 
 private:
 	SyncFilterSet(const SyncFilterSet&);
@@ -107,15 +107,16 @@ public:
 	typedef std::vector<SyncFilterAction*> ActionList;
 
 public:
-	SyncFilter(const WCHAR* pwszFolder, Macro* pMacro, qs::QSTATUS* pstatus);
+	SyncFilter(std::auto_ptr<qs::RegexPattern> pFolderName,
+			   std::auto_ptr<Macro> pMacro);
 	~SyncFilter();
 
 public:
-	qs::QSTATUS match(SyncFilterCallback* pCallback, bool* pbMatch) const;
+	bool match(SyncFilterCallback* pCallback) const;
 	const ActionList& getActions() const;
 
 public:
-	qs::QSTATUS addAction(SyncFilterAction* pAction);
+	void addAction(std::auto_ptr<SyncFilterAction> pAction);
 
 private:
 	SyncFilter(const SyncFilter&);
@@ -139,7 +140,7 @@ public:
 
 public:
 	virtual const NormalFolder* getFolder() = 0;
-	virtual qs::QSTATUS getMacroContext(MacroContext** ppContext) = 0;
+	virtual std::auto_ptr<MacroContext> getMacroContext() = 0;
 };
 
 
@@ -152,7 +153,7 @@ public:
 class QMEXPORTCLASS SyncFilterAction
 {
 public:
-	SyncFilterAction(const WCHAR* pwszName, qs::QSTATUS* pstatus);
+	explicit SyncFilterAction(const WCHAR* pwszName);
 	~SyncFilterAction();
 
 public:
@@ -160,7 +161,8 @@ public:
 	const WCHAR* getParam(const WCHAR* pwszName) const;
 
 public:
-	qs::QSTATUS addParam(const WCHAR* pwszName, const WCHAR* pwszValue);
+	void addParam(qs::wstring_ptr wstrName,
+				  qs::wstring_ptr wstrValue);
 
 private:
 	SyncFilterAction(const SyncFilterAction&);

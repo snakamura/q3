@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -33,27 +33,27 @@ class FolderListModelEvent;
 class FolderListModel : public DefaultAccountHandler
 {
 public:
-	explicit FolderListModel(qs::QSTATUS* pstatus);
+	FolderListModel();
 	~FolderListModel();
 
 public:
 	Account* getAccount() const;
-	qs::QSTATUS setAccount(Account* pAccount);
-	qs::QSTATUS getSelectedFolders(Account::FolderList* pList) const;
+	void setAccount(Account* pAccount);
+	void getSelectedFolders(Account::FolderList* pList) const;
 	bool hasSelectedFolder() const;
-	qs::QSTATUS setSelectedFolders(const Account::FolderList& l);
+	void setSelectedFolders(const Account::FolderList& l);
 	Folder* getFocusedFolder() const;
 	void setFocusedFolder(Folder* pFolder);
 	
-	qs::QSTATUS addFolderListModelHandler(FolderListModelHandler* pHandler);
-	qs::QSTATUS removeFolderListModelHandler(FolderListModelHandler* pHandler);
+	void addFolderListModelHandler(FolderListModelHandler* pHandler);
+	void removeFolderListModelHandler(FolderListModelHandler* pHandler);
 
 public:
-	virtual qs::QSTATUS folderListChanged(const FolderListChangedEvent& event);
+	virtual void folderListChanged(const FolderListChangedEvent& event);
 
 private:
-	qs::QSTATUS fireAccountChanged();
-	qs::QSTATUS fireFolderListChanged();
+	void fireAccountChanged();
+	void fireFolderListChanged();
 
 private:
 	FolderListModel(const FolderListModel&);
@@ -82,8 +82,8 @@ public:
 	virtual ~FolderListModelHandler();
 
 public:
-	virtual qs::QSTATUS accountChanged(const FolderListModelEvent& event) = 0;
-	virtual qs::QSTATUS folderListChanged(const FolderListModelEvent& event) = 0;
+	virtual void accountChanged(const FolderListModelEvent& event) = 0;
+	virtual void folderListChanged(const FolderListModelEvent& event) = 0;
 };
 
 
@@ -96,7 +96,7 @@ public:
 class FolderListModelEvent
 {
 public:
-	FolderListModelEvent(FolderListModel* pFolderListModel);
+	explicit FolderListModelEvent(FolderListModel* pFolderListModel);
 	~FolderListModelEvent();
 
 public:

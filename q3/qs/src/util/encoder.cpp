@@ -1,16 +1,14 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qsencoder.h>
 #include <qsstring.h>
-#include <qserror.h>
 #include <qsinit.h>
-#include <qsnew.h>
 #include <qsstl.h>
 
 #include <vector>
@@ -57,8 +55,8 @@ struct qs::EncoderFactoryImpl
 		virtual ~InitializerImpl();
 	
 	public:
-		virtual QSTATUS init();
-		virtual QSTATUS term();
+		virtual bool init();
+		virtual void term();
 	} init__;
 };
 
@@ -73,22 +71,16 @@ qs::EncoderFactoryImpl::InitializerImpl::~InitializerImpl()
 {
 }
 
-QSTATUS qs::EncoderFactoryImpl::InitializerImpl::init()
+bool qs::EncoderFactoryImpl::InitializerImpl::init()
 {
-	DECLARE_QSTATUS();
-	
-	status = newObject(&EncoderFactoryImpl::pMap__);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	EncoderFactoryImpl::pMap__ = new FactoryMap();
+	return true;
 }
 
-QSTATUS qs::EncoderFactoryImpl::InitializerImpl::term()
+void qs::EncoderFactoryImpl::InitializerImpl::term()
 {
 	delete EncoderFactoryImpl::pMap__;
 	EncoderFactoryImpl::pMap__ = 0;
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -98,24 +90,17 @@ QSTATUS qs::EncoderFactoryImpl::InitializerImpl::term()
  *
  */
 
-qs::EncoderFactory::EncoderFactory(QSTATUS* pstatus)
+qs::EncoderFactory::EncoderFactory()
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qs::EncoderFactory::~EncoderFactory()
 {
 }
 
-QSTATUS qs::EncoderFactory::getInstance(const WCHAR* pwszName, Encoder** ppEncoder)
+std::auto_ptr<Encoder> qs::EncoderFactory::getInstance(const WCHAR* pwszName)
 {
 	assert(pwszName);
-	assert(ppEncoder);
-	
-	DECLARE_QSTATUS();
-	
-	*ppEncoder = 0;
 	
 	typedef EncoderFactoryImpl::FactoryMap Map;
 	Map* pMap = EncoderFactoryImpl::pMap__;
@@ -127,33 +112,18 @@ QSTATUS qs::EncoderFactory::getInstance(const WCHAR* pwszName, Encoder** ppEncod
 		++it;
 	}
 	if (it == pMap->end())
-		return QSTATUS_SUCCESS;
-	return (*it)->createInstance(ppEncoder);
+		return 0;
+	
+	return (*it)->createInstance();
 }
 
-QSTATUS qs::EncoderFactory::getInstance(const WCHAR* pwszName,
-	std::auto_ptr<Encoder>* papEncoder)
-{
-	assert(papEncoder);
-	
-	DECLARE_QSTATUS();
-	
-	Encoder* pEncoder = 0;
-	status = getInstance(pwszName, &pEncoder);
-	CHECK_QSTATUS();
-	papEncoder->reset(pEncoder);
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qs::EncoderFactory::regist(EncoderFactory* pFactory)
+void qs::EncoderFactory::registerFactory(EncoderFactory* pFactory)
 {
 	assert(pFactory);
-	return STLWrapper<EncoderFactoryImpl::FactoryMap>
-		(*EncoderFactoryImpl::pMap__).push_back(pFactory);
+	EncoderFactoryImpl::pMap__->push_back(pFactory);
 }
 
-QSTATUS qs::EncoderFactory::unregist(EncoderFactory* pFactory)
+void qs::EncoderFactory::unregisterFactory(EncoderFactory* pFactory)
 {
 	assert(pFactory);
 	
@@ -163,8 +133,6 @@ QSTATUS qs::EncoderFactory::unregist(EncoderFactory* pFactory)
 	Map::iterator it = std::remove(pMap->begin(), pMap->end(), pFactory);
 	assert(it != pMap->end());
 	pMap->erase(it, pMap->end());
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -224,7 +192,7 @@ inline unsigned char qs::Base64EncoderImpl::decodeByte(unsigned char c)
  *
  */
 
-qs::Base64Encoder::Base64Encoder(bool bFold, QSTATUS* pstatus) :
+qs::Base64Encoder::Base64Encoder(bool bFold) :
 	bFold_(bFold)
 {
 }
@@ -233,43 +201,36 @@ qs::Base64Encoder::~Base64Encoder()
 {
 }
 
-QSTATUS qs::Base64Encoder::encode(const unsigned char* pSrc, size_t nSrcLen,
-	unsigned char** ppDst, size_t* pnDstLen)
+malloc_size_ptr<unsigned char> qs::Base64Encoder::encode(const unsigned char* pSrc,
+														 size_t nSrcLen)
 {
 	assert(pSrc);
-	assert(ppDst);
-	assert(pnDstLen);
 	
 	size_t nLen = (nSrcLen/3 + (nSrcLen % 3 ? 1 : 0))*4;
 	if (bFold_)
 		nLen += (nLen/FOLD_LENGTH)*2;
-	*ppDst = static_cast<unsigned char*>(malloc(nLen));
-	if (!*ppDst) {
-		*pnDstLen = 0;
-		return QSTATUS_OUTOFMEMORY;
-	}
-	encode(pSrc, nSrcLen, bFold_, *ppDst, pnDstLen);
-	assert(*pnDstLen == nLen);
+	malloc_ptr<unsigned char> pDst(static_cast<unsigned char*>(malloc(nLen)));
+	if (!pDst.get())
+		return malloc_size_ptr<unsigned char>();
+	size_t nDstLen = 0;
+	encode(pSrc, nSrcLen, bFold_, pDst.get(), &nDstLen);
+	assert(nDstLen == nLen);
 	
-	return QSTATUS_SUCCESS;
+	return malloc_size_ptr<unsigned char>(pDst, nDstLen);
 }
 
-QSTATUS qs::Base64Encoder::decode(const unsigned char* pSrc, size_t nSrcLen,
-	unsigned char** ppDst, size_t* pnDstLen)
+malloc_size_ptr<unsigned char> qs::Base64Encoder::decode(const unsigned char* pSrc,
+														 size_t nSrcLen)
 {
 	assert(pSrc);
-	assert(ppDst);
-	assert(pnDstLen);
-	
-	*pnDstLen = 0;
 	
 	size_t nLen = (nSrcLen/4 + (nSrcLen % 4 ? 1 : 0))*3;
-	*ppDst = static_cast<unsigned char*>(malloc(nLen));
-	if (!*ppDst)
-		return QSTATUS_OUTOFMEMORY;
+	malloc_ptr<unsigned char> pDst(static_cast<unsigned char*>(malloc(nLen)));
+	if (!pDst.get())
+		return malloc_size_ptr<unsigned char>();
 	
 	unsigned long nDecode = 0;
-	unsigned char* pDst = *ppDst;
+	unsigned char* p = pDst.get();
 	int nCounter = 0;
 	int nDelete = 0;
 	for (size_t n = 0; n < nSrcLen; ++n) {
@@ -286,27 +247,29 @@ QSTATUS qs::Base64Encoder::decode(const unsigned char* pSrc, size_t nSrcLen,
 		if (nCounter == 4) {
 			if (n != 0) {
 				if (nDelete < 3)
-					*pDst++ = static_cast<unsigned char>((nDecode >> 16) & 0xff);
+					*p++ = static_cast<unsigned char>((nDecode >> 16) & 0xff);
 				if (nDelete < 2)
-					*pDst++ = static_cast<unsigned char>((nDecode >> 8) & 0xff);
+					*p++ = static_cast<unsigned char>((nDecode >> 8) & 0xff);
 				if (nDelete < 1)
-					*pDst++ = static_cast<unsigned char>(nDecode & 0xff);
+					*p++ = static_cast<unsigned char>(nDecode & 0xff);
 			}
 			nDecode = 0;
 			nCounter = 0;
 		}
 	}
-	*pnDstLen = pDst - *ppDst;
 	
-	return QSTATUS_SUCCESS;
+	return malloc_size_ptr<unsigned char>(pDst, p - pDst.get());
 }
 
 void qs::Base64Encoder::encode(const unsigned char* pSrc,
-	size_t nSrcLen, bool bFold, unsigned char* pDst, size_t* pDstLen)
+							   size_t nSrcLen,
+							   bool bFold,
+							   unsigned char* pDst,
+							   size_t* pnDstLen)
 {
 	assert(pSrc);
 	assert(pDst);
-	assert(pDstLen);
+	assert(pnDstLen);
 	
 	unsigned char* pDstOrg = pDst;
 	
@@ -338,7 +301,7 @@ void qs::Base64Encoder::encode(const unsigned char* pSrc,
 			}
 		}
 	}
-	*pDstLen = pDst - pDstOrg;
+	*pnDstLen = pDst - pDstOrg;
 }
 
 
@@ -348,20 +311,14 @@ void qs::Base64Encoder::encode(const unsigned char* pSrc,
  *
  */
 
-qs::Base64EncoderFactory::Base64EncoderFactory(QSTATUS* pstatus) :
-	EncoderFactory(pstatus)
+qs::Base64EncoderFactory::Base64EncoderFactory()
 {
-	assert(pstatus);
-	
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	*pstatus = regist(this);
+	registerFactory(this);
 }
 
 qs::Base64EncoderFactory::~Base64EncoderFactory()
 {
-	unregist(this);
+	unregisterFactory(this);
 }
 
 const WCHAR* qs::Base64EncoderFactory::getName() const
@@ -369,15 +326,9 @@ const WCHAR* qs::Base64EncoderFactory::getName() const
 	return L"base64";
 }
 
-QSTATUS qs::Base64EncoderFactory::createInstance(Encoder** ppEncoder)
+std::auto_ptr<Encoder> qs::Base64EncoderFactory::createInstance()
 {
-	assert(ppEncoder);
-	
-	Base64Encoder* pEncoder = 0;
-	QSTATUS status = newQsObject(true, &pEncoder);
-	*ppEncoder = pEncoder;
-	
-	return status;
+	return new Base64Encoder(true);
 }
 
 
@@ -387,20 +338,14 @@ QSTATUS qs::Base64EncoderFactory::createInstance(Encoder** ppEncoder)
  *
  */
 
-qs::BEncoderFactory::BEncoderFactory(QSTATUS* pstatus) :
-	EncoderFactory(pstatus)
+qs::BEncoderFactory::BEncoderFactory()
 {
-	assert(pstatus);
-	
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	*pstatus = regist(this);
+	registerFactory(this);
 }
 
 qs::BEncoderFactory::~BEncoderFactory()
 {
-	unregist(this);
+	unregisterFactory(this);
 }
 
 const WCHAR* qs::BEncoderFactory::getName() const
@@ -408,15 +353,9 @@ const WCHAR* qs::BEncoderFactory::getName() const
 	return L"b";
 }
 
-QSTATUS qs::BEncoderFactory::createInstance(Encoder** ppEncoder)
+std::auto_ptr<Encoder> qs::BEncoderFactory::createInstance()
 {
-	assert(ppEncoder);
-	
-	Base64Encoder* pEncoder = 0;
-	QSTATUS status = newQsObject(false, &pEncoder);
-	*ppEncoder = pEncoder;
-	
-	return status;
+	return new Base64Encoder(false);
 }
 
 
@@ -426,7 +365,7 @@ QSTATUS qs::BEncoderFactory::createInstance(Encoder** ppEncoder)
  *
  */
 
-qs::QuotedPrintableEncoder::QuotedPrintableEncoder(bool bQ, QSTATUS* pstatus) :
+qs::QuotedPrintableEncoder::QuotedPrintableEncoder(bool bQ) :
 	bQ_(bQ)
 {
 }
@@ -435,19 +374,14 @@ qs::QuotedPrintableEncoder::~QuotedPrintableEncoder()
 {
 }
 
-QSTATUS qs::QuotedPrintableEncoder::encode(const unsigned char* pSrc,
-	size_t nSrcLen, unsigned char** ppDst, size_t* pnDstLen)
+malloc_size_ptr<unsigned char> qs::QuotedPrintableEncoder::encode(const unsigned char* pSrc,
+																  size_t nSrcLen)
 {
 	assert(pSrc);
-	assert(ppDst);
-	assert(pnDstLen);
-	
-	*ppDst = 0;
-	*pnDstLen = 0;
 	
 	malloc_ptr<unsigned char> pDst(static_cast<unsigned char*>(malloc(nSrcLen)));
 	if (!pDst.get())
-		return QSTATUS_OUTOFMEMORY;
+		return malloc_size_ptr<unsigned char>();
 	unsigned char* pDstEnd = pDst.get() + nSrcLen;
 	unsigned char* p = pDst.get();
 	malloc_ptr<unsigned char> pSpace;
@@ -457,14 +391,14 @@ QSTATUS qs::QuotedPrintableEncoder::encode(const unsigned char* pSrc,
 	for (size_t n = 0; n < nSrcLen; ++n) {
 		if (static_cast<size_t>(pDstEnd - p) < (1 + nSpaceLen)*3 + 10) {
 			size_t nNewSize = (pDstEnd - pDst.get())*2;
-			unsigned char* pNew = static_cast<unsigned char*>(
-				realloc(pDst.get(), nNewSize));
-			if (!pNew)
-				return QSTATUS_OUTOFMEMORY;
-			pDstEnd = pNew + nNewSize;
-			p = pNew + (p - pDst.get());
+			malloc_ptr<unsigned char> pNew(static_cast<unsigned char*>(
+				realloc(pDst.get(), nNewSize)));
+			if (!pNew.get())
+				return malloc_size_ptr<unsigned char>();
+			pDstEnd = pNew.get() + nNewSize;
+			p = pNew.get() + (p - pDst.get());
 			pDst.release();
-			pDst.reset(pNew);
+			pDst = pNew;
 		}
 		
 		if (nLine + nSpaceLen*3 >= 72) {
@@ -496,12 +430,12 @@ QSTATUS qs::QuotedPrintableEncoder::encode(const unsigned char* pSrc,
 			else {
 				if (nSpaceLen == nSpaceBufSize) {
 					nSpaceBufSize = nSpaceBufSize == 0 ? 10 : nSpaceBufSize*2;
-					unsigned char* pNew = static_cast<unsigned char*>(
-						realloc(pSpace.get(), nSpaceBufSize));
-					if (!pNew)
-						return QSTATUS_OUTOFMEMORY;
+					malloc_ptr<unsigned char> pNew(static_cast<unsigned char*>(
+						realloc(pSpace.get(), nSpaceBufSize)));
+					if (!pNew.get())
+						return malloc_size_ptr<unsigned char>();
 					pSpace.release();
-					pSpace.reset(pNew);
+					pSpace =  pNew;
 				}
 				*(pSpace.get() + nSpaceLen++) = c;
 			}
@@ -540,23 +474,18 @@ QSTATUS qs::QuotedPrintableEncoder::encode(const unsigned char* pSrc,
 		}
 	}
 	
-	*ppDst = pDst.release();
-	*pnDstLen = p - *ppDst;
-	
-	return QSTATUS_SUCCESS;
+	return malloc_size_ptr<unsigned char>(pDst, p - pDst.get());
 }
 
-QSTATUS qs::QuotedPrintableEncoder::decode(const unsigned char* pSrc,
-	size_t nSrcLen, unsigned char** ppDst, size_t* pnDstLen)
+malloc_size_ptr<unsigned char> qs::QuotedPrintableEncoder::decode(const unsigned char* pSrc,
+																  size_t nSrcLen)
 {
 	assert(pSrc);
-	assert(ppDst);
-	assert(pnDstLen);
 	
-	unsigned char* pDst = static_cast<unsigned char*>(malloc(nSrcLen));
-	if (!pDst)
-		return QSTATUS_OUTOFMEMORY;
-	unsigned char* p = pDst;
+	malloc_ptr<unsigned char> pDst(static_cast<unsigned char*>(malloc(nSrcLen)));
+	if (!pDst.get())
+		return malloc_size_ptr<unsigned char>();
+	unsigned char* p = pDst.get();
 	
 	for (size_t n = 0; n < nSrcLen; ++n) {
 		unsigned char c = pSrc[n];
@@ -597,10 +526,7 @@ QSTATUS qs::QuotedPrintableEncoder::decode(const unsigned char* pSrc,
 		}
 	}
 	
-	*ppDst = pDst;
-	*pnDstLen = p - *ppDst;
-	
-	return QSTATUS_SUCCESS;
+	return malloc_size_ptr<unsigned char>(pDst, p - pDst.get());
 }
 
 
@@ -610,21 +536,14 @@ QSTATUS qs::QuotedPrintableEncoder::decode(const unsigned char* pSrc,
  *
  */
 
-qs::QuotedPrintableEncoderFactory::QuotedPrintableEncoderFactory(
-	QSTATUS* pstatus) :
-	EncoderFactory(pstatus)
+qs::QuotedPrintableEncoderFactory::QuotedPrintableEncoderFactory()
 {
-	assert(pstatus);
-	
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	*pstatus = regist(this);
+	registerFactory(this);
 }
 
 qs::QuotedPrintableEncoderFactory::~QuotedPrintableEncoderFactory()
 {
-	unregist(this);
+	unregisterFactory(this);
 }
 
 const WCHAR* qs::QuotedPrintableEncoderFactory::getName() const
@@ -632,15 +551,9 @@ const WCHAR* qs::QuotedPrintableEncoderFactory::getName() const
 	return L"quoted-printable";
 }
 
-QSTATUS qs::QuotedPrintableEncoderFactory::createInstance(Encoder** ppEncoder)
+std::auto_ptr<Encoder> qs::QuotedPrintableEncoderFactory::createInstance()
 {
-	assert(ppEncoder);
-	
-	QuotedPrintableEncoder* pEncoder = 0;
-	QSTATUS status = newQsObject(false, &pEncoder);
-	*ppEncoder = pEncoder;
-	
-	return status;
+	return new QuotedPrintableEncoder(false);
 }
 
 
@@ -650,21 +563,14 @@ QSTATUS qs::QuotedPrintableEncoderFactory::createInstance(Encoder** ppEncoder)
  *
  */
 
-qs::QEncoderFactory::QEncoderFactory(
-	QSTATUS* pstatus) :
-	EncoderFactory(pstatus)
+qs::QEncoderFactory::QEncoderFactory()
 {
-	assert(pstatus);
-	
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	*pstatus = regist(this);
+	registerFactory(this);
 }
 
 qs::QEncoderFactory::~QEncoderFactory()
 {
-	unregist(this);
+	unregisterFactory(this);
 }
 
 const WCHAR* qs::QEncoderFactory::getName() const
@@ -672,15 +578,9 @@ const WCHAR* qs::QEncoderFactory::getName() const
 	return L"q";
 }
 
-QSTATUS qs::QEncoderFactory::createInstance(Encoder** ppEncoder)
+std::auto_ptr<Encoder> qs::QEncoderFactory::createInstance()
 {
-	assert(ppEncoder);
-	
-	QuotedPrintableEncoder* pEncoder = 0;
-	QSTATUS status = newQsObject(true, &pEncoder);
-	*ppEncoder = pEncoder;
-	
-	return status;
+	return new QuotedPrintableEncoder(true);
 }
 
 
@@ -695,9 +595,10 @@ struct qs::UuencodeEncoderImpl
 	static unsigned char decodeChar(unsigned char c);
 	static bool checkChar(unsigned char c);
 	static unsigned char getChar(const unsigned char* pBegin,
-		const unsigned char* pEnd, const unsigned char* p);
+								 const unsigned char* pEnd,
+								 const unsigned char* p);
 	static const unsigned char* find(const unsigned char* p,
-		const char* pFind);
+									 const char* pFind);
 };
 
 inline unsigned char qs::UuencodeEncoderImpl::decodeChar(unsigned char c)
@@ -712,14 +613,15 @@ inline bool qs::UuencodeEncoderImpl::checkChar(unsigned char c)
 }
 
 inline unsigned char qs::UuencodeEncoderImpl::getChar(const unsigned char* pBegin,
-	const unsigned char* pEnd, const unsigned char* p)
+													  const unsigned char* pEnd,
+													  const unsigned char* p)
 {
 	assert(pBegin <= p && p < pBegin + 4);
 	return p < pEnd ? *p : '`';
 }
 
-const unsigned char* qs::UuencodeEncoderImpl::find(
-	const unsigned char* p, const char* pFind)
+const unsigned char* qs::UuencodeEncoderImpl::find(const unsigned char* p,
+												   const char* pFind)
 {
 	return reinterpret_cast<const unsigned char*>(strstr(
 		reinterpret_cast<const char*>(p), pFind));
@@ -732,7 +634,7 @@ const unsigned char* qs::UuencodeEncoderImpl::find(
  *
  */
 
-qs::UuencodeEncoder::UuencodeEncoder(QSTATUS* pstatus)
+qs::UuencodeEncoder::UuencodeEncoder()
 {
 }
 
@@ -740,59 +642,52 @@ qs::UuencodeEncoder::~UuencodeEncoder()
 {
 }
 
-QSTATUS qs::UuencodeEncoder::encode(const unsigned char* pSrc, size_t nSrcLen,
-	unsigned char** ppDst, size_t* pnDstLen)
+malloc_size_ptr<unsigned char> qs::UuencodeEncoder::encode(const unsigned char* pSrc,
+														   size_t nSrcLen)
 {
 	assert(false);
-	*ppDst = 0;
-	*pnDstLen = 0;
-	return QSTATUS_NOTIMPL;
+	return malloc_size_ptr<unsigned char>();
 }
 
-QSTATUS qs::UuencodeEncoder::decode(const unsigned char* pSrc, size_t nSrcLen,
-	unsigned char** ppDst, size_t* pnDstLen)
+malloc_size_ptr<unsigned char> qs::UuencodeEncoder::decode(const unsigned char* pSrc,
+														   size_t nSrcLen)
 {
 	assert(pSrc);
-	assert(ppDst);
-	assert(pnDstLen);
-	
-	*ppDst = 0;
-	*pnDstLen = 0;
 	
 	const unsigned char* pBegin = pSrc;
 	const unsigned char* pEnd = UuencodeEncoderImpl::find(pBegin, "\r\n");
 	if (!pEnd)
-		return QSTATUS_FAIL;
+		return malloc_size_ptr<unsigned char>();
 	
 	while (pEnd && strncmp(reinterpret_cast<const char*>(pBegin), "begin ", 6) != 0) {
 		pBegin = pEnd + 2;
 		pEnd = UuencodeEncoderImpl::find(pBegin, "\r\n");
 	}
 	if (!pEnd)
-		return QSTATUS_FAIL;
+		return malloc_size_ptr<unsigned char>();
 	
 	pBegin = pEnd + 2;
 	pEnd = UuencodeEncoderImpl::find(pBegin, "\r\n");
 	if (!pEnd)
-		return QSTATUS_FAIL;
+		return malloc_size_ptr<unsigned char>();
 	
 	size_t nLen = (nSrcLen/4 + (nSrcLen % 4 ? 1 : 0))*3;
 	malloc_ptr<unsigned char> pDst(static_cast<unsigned char*>(malloc(nLen)));
 	if (!pDst.get())
-		return QSTATUS_OUTOFMEMORY;
+		return malloc_size_ptr<unsigned char>();
 	
 	unsigned char* p = pDst.get();
 	bool bEnd = false;
 	while (pEnd && !bEnd) {
 		if (!UuencodeEncoderImpl::checkChar(*pBegin))
-			return QSTATUS_FAIL;
+			return malloc_size_ptr<unsigned char>();
 		
 		int nLen = UuencodeEncoderImpl::decodeChar(*pBegin);
 		bEnd = nLen == 0;
 		if (nLen != 0) {
 			int nLineLen = (nLen/3 + (nLen % 3 ? 1 : 0))*4;
 			if (pEnd - pBegin - 1 <= nLineLen - 4 || nLineLen < pEnd - pBegin - 1)
-				return QSTATUS_FAIL;
+				return malloc_size_ptr<unsigned char>();
 			
 			for (++pBegin; pBegin < pEnd; pBegin += 4) {
 				char c[4] = {
@@ -805,7 +700,7 @@ QSTATUS qs::UuencodeEncoder::decode(const unsigned char* pSrc, size_t nSrcLen,
 					!UuencodeEncoderImpl::checkChar(c[1]) ||
 					!UuencodeEncoderImpl::checkChar(c[2]) ||
 					!UuencodeEncoderImpl::checkChar(c[3]))
-					return QSTATUS_FAIL;
+					return malloc_size_ptr<unsigned char>();
 				unsigned long nDecode =
 					static_cast<unsigned long>(UuencodeEncoderImpl::decodeChar(c[0]) << 18) +
 					static_cast<unsigned long>(UuencodeEncoderImpl::decodeChar(c[1]) << 12) +
@@ -825,17 +720,14 @@ QSTATUS qs::UuencodeEncoder::decode(const unsigned char* pSrc, size_t nSrcLen,
 	
 	while (pEnd && strncmp(reinterpret_cast<const char*>(pBegin), "end", 3) != 0) {
 		if (pBegin != pEnd)
-			return QSTATUS_FAIL;
+			return malloc_size_ptr<unsigned char>();
 		pBegin = pEnd + 2;
 		pEnd = UuencodeEncoderImpl::find(pBegin, "\r\n");
 	}
 	if (!pEnd)
-		return QSTATUS_FAIL;
+		return malloc_size_ptr<unsigned char>();
 	
-	*ppDst = pDst.release();
-	*pnDstLen = p - *ppDst;
-	
-	return QSTATUS_SUCCESS;
+	return malloc_size_ptr<unsigned char>(pDst, p - pDst.get());
 }
 
 
@@ -845,21 +737,14 @@ QSTATUS qs::UuencodeEncoder::decode(const unsigned char* pSrc, size_t nSrcLen,
  *
  */
 
-qs::UuencodeEncoderFactory::UuencodeEncoderFactory(
-	QSTATUS* pstatus) :
-	EncoderFactory(pstatus)
+qs::UuencodeEncoderFactory::UuencodeEncoderFactory()
 {
-	assert(pstatus);
-	
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	*pstatus = regist(this);
+	registerFactory(this);
 }
 
 qs::UuencodeEncoderFactory::~UuencodeEncoderFactory()
 {
-	unregist(this);
+	unregisterFactory(this);
 }
 
 const WCHAR* qs::UuencodeEncoderFactory::getName() const
@@ -867,15 +752,9 @@ const WCHAR* qs::UuencodeEncoderFactory::getName() const
 	return L"uuencode";
 }
 
-QSTATUS qs::UuencodeEncoderFactory::createInstance(Encoder** ppEncoder)
+std::auto_ptr<Encoder> qs::UuencodeEncoderFactory::createInstance()
 {
-	assert(ppEncoder);
-	
-	UuencodeEncoder* pEncoder = 0;
-	QSTATUS status = newQsObject(&pEncoder);
-	*ppEncoder = pEncoder;
-	
-	return status;
+	return new UuencodeEncoder();
 }
 
 
@@ -885,21 +764,14 @@ QSTATUS qs::UuencodeEncoderFactory::createInstance(Encoder** ppEncoder)
  *
  */
 
-qs::XUuencodeEncoderFactory::XUuencodeEncoderFactory(
-	QSTATUS* pstatus) :
-	EncoderFactory(pstatus)
+qs::XUuencodeEncoderFactory::XUuencodeEncoderFactory()
 {
-	assert(pstatus);
-	
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	*pstatus = regist(this);
+	registerFactory(this);
 }
 
 qs::XUuencodeEncoderFactory::~XUuencodeEncoderFactory()
 {
-	unregist(this);
+	unregisterFactory(this);
 }
 
 const WCHAR* qs::XUuencodeEncoderFactory::getName() const
@@ -907,13 +779,7 @@ const WCHAR* qs::XUuencodeEncoderFactory::getName() const
 	return L"x-uuencode";
 }
 
-QSTATUS qs::XUuencodeEncoderFactory::createInstance(Encoder** ppEncoder)
+std::auto_ptr<Encoder> qs::XUuencodeEncoderFactory::createInstance()
 {
-	assert(ppEncoder);
-	
-	UuencodeEncoder* pEncoder = 0;
-	QSTATUS status = newQsObject(&pEncoder);
-	*ppEncoder = pEncoder;
-	
-	return status;
+	return new UuencodeEncoder();
 }

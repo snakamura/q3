@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -16,6 +16,12 @@
 #ifdef _MT
 #	undef QS_MULTITHREAD
 #	define QS_MULTITHREAD
+#endif
+
+#ifdef _CPPUNWIND
+#	define QS_EXCEPTION
+#else
+#	undef QS_EXCEPTION
 #endif
 
 //#ifndef JAPAN

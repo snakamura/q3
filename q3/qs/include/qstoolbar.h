@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -28,12 +28,32 @@ struct ActionItem;
 class QSEXPORTCLASS ToolbarManager
 {
 public:
-	ToolbarManager(const WCHAR* pwszPath, HBITMAP hBitmap,
-		const ActionItem* pItem, size_t nItemCount, QSTATUS* pstatus);
+	/**
+	 * Create instance.
+	 *
+	 * @param pszPath [in] Path to the file which data will be loaded from.
+	 * @param hBitmap [in] Toolbar image.
+	 * @param pItem [in] Action items.
+	 * @param nItemCount [in] Count of action items.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	ToolbarManager(const WCHAR* pwszPath,
+				   HBITMAP hBitmap,
+				   const ActionItem* pItem,
+				   size_t nItemCount);
+	
 	~ToolbarManager();
 
 public:
-	QSTATUS createToolbar(const WCHAR* pwszName, HWND hwnd) const;
+	/**
+	 * Create toolbar.
+	 *
+	 * @param pwszName [in] Name of toolbar.
+	 * @param hwnd [in] Window handle of the parent window of toolbar.
+	 * @return true if success, false otherwise.
+	 */
+	bool createToolbar(const WCHAR* pwszName,
+					   HWND hwnd) const;
 
 private:
 	ToolbarManager(const ToolbarManager&);

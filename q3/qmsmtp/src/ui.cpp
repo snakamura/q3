@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -23,8 +23,8 @@ using namespace qs;
  *
  */
 
-qmsmtp::SendPage::SendPage(SubAccount* pSubAccount, QSTATUS* pstatus) :
-	DefaultPropertyPage(getResourceHandle(), IDD_SEND, pstatus),
+qmsmtp::SendPage::SendPage(SubAccount* pSubAccount) :
+	DefaultPropertyPage(getResourceHandle(), IDD_SEND),
 	pSubAccount_(pSubAccount)
 {
 }
@@ -33,24 +33,18 @@ qmsmtp::SendPage::~SendPage()
 {
 }
 
-LRESULT qmsmtp::SendPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qmsmtp::SendPage::onInitDialog(HWND hwndFocus,
+									   LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrLocalHost;
-	status = pSubAccount_->getProperty(L"Smtp",
-		L"LocalHost", L"", &wstrLocalHost);
-	CHECK_QSTATUS_VALUE(TRUE);
-	int nStartTls = 0;
-	status = pSubAccount_->getProperty(L"Smtp", L"STARTTLS", 0, &nStartTls);
-	CHECK_QSTATUS_VALUE(TRUE);
+	wstring_ptr wstrLocalHost(pSubAccount_->getProperty(L"Smtp", L"LocalHost", L""));
+	bool bStartTls = pSubAccount_->getProperty(L"Smtp", L"STARTTLS", 0) != 0;
 	
 	setDlgItemInt(IDC_PORT, pSubAccount_->getPort(Account::HOST_SEND));
 	sendDlgItemMessage(IDC_SSL, BM_SETCHECK,
 		pSubAccount_->isSsl(Account::HOST_SEND) ? BST_CHECKED : BST_UNCHECKED);
 	setDlgItemText(IDC_LOCALHOST, wstrLocalHost.get());
 	sendDlgItemMessage(IDC_STARTTLS, BM_SETCHECK,
-		nStartTls ? BST_CHECKED : BST_UNCHECKED);
+		bStartTls ? BST_CHECKED : BST_UNCHECKED);
 	sendDlgItemMessage(IDC_LOG, BM_SETCHECK,
 		pSubAccount_->isLog(Account::HOST_SEND) ? BST_CHECKED : BST_UNCHECKED);
 	
@@ -71,7 +65,7 @@ LRESULT qmsmtp::SendPage::onOk()
 	pSubAccount_->setPort(Account::HOST_SEND, getDlgItemInt(IDC_PORT));
 	pSubAccount_->setSsl(Account::HOST_SEND,
 		sendDlgItemMessage(IDC_SSL, BM_GETCHECK) == BST_CHECKED);
-	string_ptr<WSTRING> wstrLocalHost(getDlgItemText(IDC_LOCALHOST));
+	wstring_ptr wstrLocalHost(getDlgItemText(IDC_LOCALHOST));
 	if (wstrLocalHost.get())
 		pSubAccount_->setProperty(L"Smtp", L"LocalHost", wstrLocalHost.get());
 	pSubAccount_->setProperty(L"Smtp", L"STARTTLS",

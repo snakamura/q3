@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -33,9 +33,10 @@ class AbstractCallback;
 class Util
 {
 public:
-	static qs::QSTATUS reportError(Nntp* pNntp,
-		qm::SessionCallback* pSessionCallback,
-		qm::Account* pAccount, qm::SubAccount* pSubAccount);
+	static void reportError(Nntp* pNntp,
+							qm::SessionCallback* pSessionCallback,
+							qm::Account* pAccount,
+							qm::SubAccount* pSubAccount);
 };
 
 
@@ -52,13 +53,13 @@ class AbstractCallback :
 {
 public:
 	AbstractCallback(qm::SubAccount* pSubAccount,
-		const qm::Security* pSecurity, qs::QSTATUS* pstatus);
+					 const qm::Security* pSecurity);
 	virtual ~AbstractCallback();
 
 public:
-	virtual qs::QSTATUS getUserInfo(qs::WSTRING* pwstrUserName,
-		qs::WSTRING* pwstrPassword);
-	virtual qs::QSTATUS setPassword(const WCHAR* pwszPassword);
+	virtual bool getUserInfo(qs::wstring_ptr* pwstrUserName,
+							 qs::wstring_ptr* pwstrPassword);
+	virtual void setPassword(const WCHAR* pwszPassword);
 
 private:
 	AbstractCallback(const AbstractCallback&);

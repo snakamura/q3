@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -43,8 +43,8 @@ public:
 	virtual ~SearchDriver();
 
 public:
-	virtual qs::QSTATUS search(const SearchContext& context,
-		MessageHolderList* pList) = 0;
+	virtual bool search(const SearchContext& context,
+						MessageHolderList* pList) = 0;
 };
 
 
@@ -62,9 +62,8 @@ public:
 public:
 	virtual int getIndex() = 0;
 	virtual const WCHAR* getName() = 0;
-	virtual qs::QSTATUS getDisplayName(qs::WSTRING* pwstrName) = 0;
-	virtual qs::QSTATUS createPropertyPage(
-		bool bAllFolder, SearchPropertyPage** ppPage) = 0;
+	virtual qs::wstring_ptr getDisplayName() = 0;
+	virtual std::auto_ptr<SearchPropertyPage> createPropertyPage(bool bAllFolder) = 0;
 };
 
 
@@ -77,7 +76,8 @@ public:
 class QMEXPORTCLASS SearchPropertyPage : public qs::DefaultPropertyPage
 {
 protected:
-	SearchPropertyPage(HINSTANCE hInst, UINT nId, qs::QSTATUS* pstatus);
+	SearchPropertyPage(HINSTANCE hInst,
+					   UINT nId);
 
 public:
 	virtual ~SearchPropertyPage();
@@ -112,28 +112,28 @@ public:
 	virtual ~SearchDriverFactory();
 
 public:
-	static qs::QSTATUS getDriver(const WCHAR* pwszName,
-		Document* pDocument, Account* pAccount, HWND hwnd,
-		qs::Profile* pProfile, SearchDriver** ppDriver);
-	static qs::QSTATUS getDriver(const WCHAR* pwszName,
-		Document* pDocument, Account* pAccount, HWND hwnd,
-		qs::Profile* pProfile, std::auto_ptr<SearchDriver>* papDriver);
-	static qs::QSTATUS getUI(const WCHAR* pwszName,
-		Account* pAccount, qs::Profile* pProfile, SearchUI** ppUI);
-	static qs::QSTATUS getUI(const WCHAR* pwszName, Account* pAccount,
-		qs::Profile* pProfile, std::auto_ptr<SearchUI>* papUI);
-	static qs::QSTATUS getNames(NameList* pList);
+	static std::auto_ptr<SearchDriver> getDriver(const WCHAR* pwszName,
+												 Document* pDocument,
+												 Account* pAccount,
+												 HWND hwnd,
+												 qs::Profile* pProfile);
+	static std::auto_ptr<SearchUI> getUI(const WCHAR* pwszName,
+										 Account* pAccount,
+										 qs::Profile* pProfile);
+	static void getNames(NameList* pList);
 
 protected:
-	virtual qs::QSTATUS createDriver(Document* pDocument, Account* pAccount,
-		HWND hwnd, qs::Profile* pProfile, SearchDriver** ppDriver) = 0;
-	virtual qs::QSTATUS createUI(Account* pAccount,
-		qs::Profile* pProfile, SearchUI** ppUI) = 0;
+	virtual std::auto_ptr<SearchDriver> createDriver(Document* pDocument,
+													 Account* pAccount,
+													 HWND hwnd,
+													 qs::Profile* pProfile) = 0;
+	virtual std::auto_ptr<SearchUI> createUI(Account* pAccount,
+											 qs::Profile* pProfile) = 0;
 
 protected:
-	static qs::QSTATUS regist(const WCHAR* pwszName,
-		SearchDriverFactory* pFactory);
-	static qs::QSTATUS unregist(const WCHAR* pwszName);
+	static void registerFactory(const WCHAR* pwszName,
+								SearchDriverFactory* pFactory);
+	static void unregisterFactory(const WCHAR* pwszName);
 
 private:
 	SearchDriverFactory(const SearchDriverFactory&);
@@ -147,31 +147,38 @@ private:
  *
  */
 
+#pragma warning(push)
+#pragma warning(disable:4251)
+
 class QMEXPORTCLASS SearchContext
 {
 public:
 	typedef std::vector<NormalFolder*> FolderList;
 
 public:
-	SearchContext(const WCHAR* pwszCondition, const WCHAR* pwszTargetFolder,
-		bool bRecursive, qs::QSTATUS* pstatus);
+	SearchContext(const WCHAR* pwszCondition,
+				 const WCHAR* pwszTargetFolder,
+				 bool bRecursive);
 	~SearchContext();
 
 public:
 	const WCHAR* getCondition() const;
 	const WCHAR* getTargetFolder() const;
 	bool isRecursive() const;
-	qs::QSTATUS getTargetFolders(Account* pAccount, FolderList* pList) const;
+	void getTargetFolders(Account* pAccount,
+						  FolderList* pList) const;
 
 private:
 	SearchContext(const SearchContext&);
 	SearchContext& operator=(const SearchContext&);
 
 private:
-	qs::WSTRING wstrCondition_;
-	qs::WSTRING wstrTargetFolder_;
+	qs::wstring_ptr wstrCondition_;
+	qs::wstring_ptr wstrTargetFolder_;
 	bool bRecursive_;
 };
+
+#pragma warning(pop)
 
 }
 

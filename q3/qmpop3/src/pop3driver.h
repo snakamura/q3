@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -27,40 +27,52 @@ class Pop3Factory;
 class Pop3Driver : public qm::ProtocolDriver
 {
 public:
-	Pop3Driver(qm::Account* pAccount, qs::QSTATUS* pstatus);
+	explicit Pop3Driver(qm::Account* pAccount);
 	virtual ~Pop3Driver();
 
 public:
 	virtual bool isSupport(qm::Account::Support support);
-	virtual qs::QSTATUS setOffline(bool bOffline);
-	virtual qs::QSTATUS save();
+	virtual void setOffline(bool bOffline);
+	virtual bool save();
 	
-	virtual qs::QSTATUS createFolder(qm::SubAccount* pSubAccount,
-		const WCHAR* pwszName, qm::Folder* pParent,
-		qm::NormalFolder** ppFolder);
-	virtual qs::QSTATUS removeFolder(qm::SubAccount* pSubAccount,
-		qm::NormalFolder* pFolder);
-	virtual qs::QSTATUS renameFolder(qm::SubAccount* pSubAccount,
-		qm::NormalFolder* pFolder, const WCHAR* pwszName);
-	virtual qs::QSTATUS createDefaultFolders(qm::Account::FolderList* pList);
-	virtual qs::QSTATUS getRemoteFolders(
-		qm::SubAccount* pSubAccount, RemoteFolderList* pList);
+	virtual std::auto_ptr<qm::NormalFolder> createFolder(qm::SubAccount* pSubAccount,
+														 const WCHAR* pwszName,
+														 qm::Folder* pParent);
+	virtual bool removeFolder(qm::SubAccount* pSubAccount,
+							  qm::NormalFolder* pFolder);
+	virtual bool renameFolder(qm::SubAccount* pSubAccount,
+							  qm::NormalFolder* pFolder,
+							  const WCHAR* pwszName);
+	virtual bool createDefaultFolders(qm::Account::FolderList* pList);
+	virtual bool getRemoteFolders(qm::SubAccount* pSubAccount,
+								  RemoteFolderList* pList);
 	
-	virtual qs::QSTATUS getMessage(qm::SubAccount* pSubAccount,
-		qm::MessageHolder* pmh, unsigned int nFlags, qs::STRING* pstrMessage,
-		qm::Message::Flag* pFlag, bool* pbGet, bool* pbMadeSeen);
-	virtual qs::QSTATUS setMessagesFlags(qm::SubAccount* pSubAccount,
-		qm::NormalFolder* pFolder, const qm::MessageHolderList& l,
-		unsigned int nFlags, unsigned int nMask);
-	virtual qs::QSTATUS appendMessage(qm::SubAccount* pSubAccount,
-		qm::NormalFolder* pFolder, const CHAR* pszMessage, unsigned int nFlags);
-	virtual qs::QSTATUS removeMessages(qm::SubAccount* pSubAccount,
-		qm::NormalFolder* pFolder, const qm::MessageHolderList& l);
-	virtual qs::QSTATUS copyMessages(qm::SubAccount* pSubAccount,
-		const qm::MessageHolderList& l, qm::NormalFolder* pFolderFrom,
-		qm::NormalFolder* pFolderTo, bool bMove);
-	virtual qs::QSTATUS clearDeletedMessages(
-		qm::SubAccount* pSubAccount, qm::NormalFolder* pFolder);
+	virtual bool getMessage(qm::SubAccount* pSubAccount,
+							qm::MessageHolder* pmh,
+							unsigned int nFlags,
+							qs::xstring_ptr* pstrMessage,
+							qm::Message::Flag* pFlag,
+							bool* pbGet,
+							bool* pbMadeSeen);
+	virtual bool setMessagesFlags(qm::SubAccount* pSubAccount,
+								  qm::NormalFolder* pFolder,
+								  const qm::MessageHolderList& l,
+								  unsigned int nFlags,
+								  unsigned int nMask);
+	virtual bool appendMessage(qm::SubAccount* pSubAccount,
+							   qm::NormalFolder* pFolder,
+							   const CHAR* pszMessage,
+							   unsigned int nFlags);
+	virtual bool removeMessages(qm::SubAccount* pSubAccount,
+								qm::NormalFolder* pFolder,
+								const qm::MessageHolderList& l);
+	virtual bool copyMessages(qm::SubAccount* pSubAccount,
+							  const qm::MessageHolderList& l,
+							  qm::NormalFolder* pFolderFrom,
+							  qm::NormalFolder* pFolderTo,
+							  bool bMove);
+	virtual bool clearDeletedMessages(qm::SubAccount* pSubAccount,
+									  qm::NormalFolder* pFolder);
 
 private:
 	Pop3Driver(const Pop3Driver&);
@@ -86,8 +98,8 @@ public:
 	virtual ~Pop3Factory();
 
 protected:
-	virtual qs::QSTATUS createDriver(qm::Account* pAccount,
-		const qm::Security* pSecurity, qm::ProtocolDriver** ppProtocolDriver);
+	virtual std::auto_ptr<qm::ProtocolDriver> createDriver(qm::Account* pAccount,
+														   const qm::Security* pSecurity);
 
 private:
 	Pop3Factory(const Pop3Factory&);

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -23,7 +23,9 @@ extern "C" {
  *
  */
 
-void qs::MD5::md5(const unsigned char* p, size_t nLen, unsigned char* pDigest)
+void qs::MD5::md5(const unsigned char* p,
+				  size_t nLen,
+				  unsigned char* pDigest)
 {
 	MD5_CTX context;
 	MD5Init(&context);
@@ -31,7 +33,9 @@ void qs::MD5::md5(const unsigned char* p, size_t nLen, unsigned char* pDigest)
 	MD5Final(pDigest, &context);
 }
 
-void qs::MD5::md5ToString(const unsigned char* p, size_t nLen, CHAR* pszDigest)
+void qs::MD5::md5ToString(const unsigned char* p,
+						  size_t nLen,
+						  CHAR* pszDigest)
 {
 	unsigned char digest[16];
 	md5(p, nLen, digest);
@@ -41,15 +45,21 @@ void qs::MD5::md5ToString(const unsigned char* p, size_t nLen, CHAR* pszDigest)
 	*pDest = '\0';
 }
 
-void qs::MD5::hmac(const unsigned char* p, size_t nLen,
-	const unsigned char* pKey, size_t nKeyLen, unsigned char* pDigest)
+void qs::MD5::hmac(const unsigned char* p,
+				   size_t nLen,
+				   const unsigned char* pKey,
+				   size_t nKeyLen,
+				   unsigned char* pDigest)
 {
 	hmac_md5(const_cast<unsigned char*>(p), nLen,
 		const_cast<unsigned char*>(pKey), nKeyLen, pDigest);
 }
 
-void qs::MD5::hmacToString(const unsigned char* p, size_t nLen,
-	const unsigned char* pKey, size_t nKeyLen, CHAR* pszDigest)
+void qs::MD5::hmacToString(const unsigned char* p,
+						   size_t nLen,
+						   const unsigned char* pKey,
+						   size_t nKeyLen,
+						   CHAR* pszDigest)
 {
 	unsigned char digest[16];
 	hmac(p, nLen, pKey, nKeyLen, digest);

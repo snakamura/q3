@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -9,8 +9,6 @@
 #include <qmfolder.h>
 #include <qmmessageholder.h>
 
-#include <qserror.h>
-#include <qsnew.h>
 #include <qsstl.h>
 
 #include <algorithm>
@@ -31,42 +29,26 @@ using namespace qs;
  *
  */
 
-QSTATUS qmimap4::Util::getFolderName(NormalFolder* pFolder, WSTRING* pwstrName)
+wstring_ptr qmimap4::Util::getFolderName(NormalFolder* pFolder)
 {
 	assert(pFolder);
-	assert(pwstrName);
 	
-	DECLARE_QSTATUS();
-	
-	*pwstrName = 0;
-	
-	string_ptr<WSTRING> wstrName;
-	status = pFolder->getFullName(&wstrName);
-	CHECK_QSTATUS();
+	wstring_ptr wstrName(pFolder->getFullName());
 	
 	if (pFolder->isFlag(Folder::FLAG_CHILDOFROOT)) {
-		string_ptr<WSTRING> wstrRootFolder;
 		Account* pAccount = pFolder->getAccount();
-		status = pAccount->getProperty(
-			L"Imap4", L"RootFolder", 0, &wstrRootFolder);
-		CHECK_QSTATUS();
+		wstring_ptr wstrRootFolder(pAccount->getProperty(L"Imap4", L"RootFolder", L""));
 		
 		if (*wstrRootFolder.get()) {
 			WCHAR wsz[] = { pFolder->getSeparator(), L'\0' };
-			*pwstrName = concat(wstrRootFolder.get(), wsz, wstrName.get());
-			if (!*pwstrName)
-				return QSTATUS_OUTOFMEMORY;
+			wstrName = concat(wstrRootFolder.get(), wsz, wstrName.get());
 		}
 	}
 	
-	if (!*pwstrName)
-		*pwstrName = wstrName.release();
-	
-	return QSTATUS_SUCCESS;
+	return wstrName;
 }
 
-unsigned int qmimap4::Util::getFolderFlagsFromAttributes(
-	unsigned int nAttributes)
+unsigned int qmimap4::Util::getFolderFlagsFromAttributes(unsigned int nAttributes)
 {
 	struct {
 		ResponseList::Attribute attribute_;
@@ -86,8 +68,8 @@ unsigned int qmimap4::Util::getFolderFlagsFromAttributes(
 	return nFlags;
 }
 
-unsigned int qmimap4::Util::getMessageFlagsFromImap4Flags(
-	unsigned int nSystemFlags, const FetchDataFlags::FlagList& listCustomFlag)
+unsigned int qmimap4::Util::getMessageFlagsFromImap4Flags(unsigned int nSystemFlags,
+														  const FetchDataFlags::FlagList& listCustomFlag)
 {
 	struct {
 		Imap4::Flag imap4Flag_;
@@ -129,57 +111,38 @@ unsigned int qmimap4::Util::getImap4FlagsFromMessageFlags(unsigned int nFlags)
 	return nImap4Flags;
 }
 
-QSTATUS qmimap4::Util::getMessageFromEnvelope(
-	const FetchDataEnvelope* pEnvelope, STRING* pstrMessage)
+string_ptr qmimap4::Util::getMessageFromEnvelope(const FetchDataEnvelope* pEnvelope)
 {
 	assert(pEnvelope);
-	assert(pstrMessage);
 	
-	DECLARE_QSTATUS();
-	
-	*pstrMessage = 0;
-	
-	StringBuffer<STRING> buf(&status);
-	CHECK_QSTATUS();
+	StringBuffer<STRING> buf;
 	
 	const CHAR* pszMessageId = pEnvelope->getMessageId();
 	if (pszMessageId && *pszMessageId) {
-		status = buf.append("Message-Id: ");
-		CHECK_QSTATUS();
-		status = buf.append(pszMessageId);
-		CHECK_QSTATUS();
-		status = buf.append("\r\n");
-		CHECK_QSTATUS();
+		buf.append("Message-Id: ");
+		buf.append(pszMessageId);
+		buf.append("\r\n");
 	}
 	
 	const CHAR* pszInReplyTo = pEnvelope->getInReplyTo();
 	if (pszInReplyTo && *pszInReplyTo) {
-		status = buf.append("In-Reply-To: ");
-		CHECK_QSTATUS();
-		status = buf.append(pszInReplyTo);
-		CHECK_QSTATUS();
-		status = buf.append("\r\n");
-		CHECK_QSTATUS();
+		buf.append("In-Reply-To: ");
+		buf.append(pszInReplyTo);
+		buf.append("\r\n");
 	}
 	
 	const CHAR* pszSubject = pEnvelope->getSubject();
 	if (pszSubject) {
-		status = buf.append("Subject: ");
-		CHECK_QSTATUS();
-		status = buf.append(pszSubject);
-		CHECK_QSTATUS();
-		status = buf.append("\r\n");
-		CHECK_QSTATUS();
+		buf.append("Subject: ");
+		buf.append(pszSubject);
+		buf.append("\r\n");
 	}
 	
 	const CHAR* pszDate = pEnvelope->getDate();
 	if (pszDate) {
-		status = buf.append("Date: ");
-		CHECK_QSTATUS();
-		status = buf.append(pszDate);
-		CHECK_QSTATUS();
-		status = buf.append("\r\n");
-		CHECK_QSTATUS();
+		buf.append("Date: ");
+		buf.append(pszDate);
+		buf.append("\r\n");
 	}
 	
 	struct {
@@ -197,128 +160,92 @@ QSTATUS qmimap4::Util::getMessageFromEnvelope(
 		typedef FetchDataEnvelope::AddressList AddressList;
 		const AddressList& l = pEnvelope->getAddresses(addresses[n].address_);
 		if (!l.empty()) {
-			status = buf.append(addresses[n].pszField_);
-			CHECK_QSTATUS();
+			buf.append(addresses[n].pszField_);
 			
 			bool bGroup = false;
 			bool bSeparator = false;
-			AddressList::const_iterator it = l.begin();
-			while (it != l.end()) {
+			for (AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
 				EnvelopeAddress* pAddress = *it;
 				const CHAR* pszMailbox = pAddress->getMailbox();
 				const CHAR* pszHost = pAddress->getHost();
 				if (pszHost) {
-					if (bSeparator) {
-						status = buf.append(",\r\n\t");
-						CHECK_QSTATUS();
-					}
+					if (bSeparator)
+						buf.append(",\r\n\t");
 					bSeparator = true;
 					
 					const CHAR* pszName = pAddress->getName();
 					if (pszName) {
-						string_ptr<STRING> strName;
-						status = FieldParser::getAtomsOrQString(pszName,
-							static_cast<size_t>(-1), &strName);
-						CHECK_QSTATUS();
-						status = buf.append(strName.get());
-						CHECK_QSTATUS();
-						status = buf.append(" <");
-						CHECK_QSTATUS();
+						string_ptr strName(FieldParser::getAtomsOrQString(pszName, -1));
+						buf.append(strName.get());
+						buf.append(" <");
 					}
-					string_ptr<STRING> strAddrSpec;
-					status = AddressParser::getAddrSpec(pszMailbox,
-						pszHost, &strAddrSpec);
-					CHECK_QSTATUS();
-					status = buf.append(strAddrSpec.get());
-					CHECK_QSTATUS();
-					if (pszName) {
-						status = buf.append(">");
-						CHECK_QSTATUS();
-					}
+					string_ptr strAddrSpec(AddressParser::getAddrSpec(pszMailbox, pszHost));
+					buf.append(strAddrSpec.get());
+					if (pszName)
+						buf.append(">");
 				}
 				else {
 					if (bGroup) {
 						if (pszMailbox)
-							return QSTATUS_FAIL;
-						status = buf.append(";");
-						CHECK_QSTATUS();
+							return 0;
+						buf.append(";");
 						bSeparator = true;
 						bGroup = false;
 					}
 					else {
-						if (bSeparator) {
-							status = buf.append(",\r\n\t");
-							CHECK_QSTATUS();
-						}
+						if (bSeparator)
+							buf.append(",\r\n\t");
 						
 						if (!pszMailbox)
-							return QSTATUS_FAIL;
-						status = buf.append(pszMailbox);
-						CHECK_QSTATUS();
-						status = buf.append(": ");
-						CHECK_QSTATUS();
+							return 0;
+						buf.append(pszMailbox);
+						buf.append(": ");
 						bSeparator = false;
 						bGroup = true;
 					}
 				}
-				++it;
 			}
 			
-			if (bGroup) {
-				status = buf.append(";");
-				CHECK_QSTATUS();
-			}
+			if (bGroup)
+				buf.append(";");
 			
-			status = buf.append("\r\n");
-			CHECK_QSTATUS();
+			buf.append("\r\n");
 		}
 	}
 	
-	*pstrMessage = buf.getString();
-	
-	return QSTATUS_SUCCESS;
+	return buf.getString();
 }
 
-QSTATUS qmimap4::Util::getHeaderFromBodyStructure(
-	const FetchDataBodyStructure* pBodyStructure, STRING* pstrHeader)
+string_ptr qmimap4::Util::getHeaderFromBodyStructure(const FetchDataBodyStructure* pBodyStructure)
 {
 	assert(pBodyStructure);
-	assert(pstrHeader);
-	
-	DECLARE_QSTATUS();
 	
 	typedef FetchDataBodyStructure::ParamList ParamList;
 	
-	StringBuffer<STRING> buf(&status);
-	CHECK_QSTATUS();
+	StringBuffer<STRING> buf;
 	
 	const CHAR* pszContentType[] = {
 		pBodyStructure->getContentType(),
 		"/",
 		pBodyStructure->getContentSubType()
 	};
-	status = appendDataToBuffer("Content-Type", pszContentType,
+	appendDataToBuffer("Content-Type", pszContentType,
 		countof(pszContentType), &pBodyStructure->getContentParams(), &buf);
-	CHECK_QSTATUS();
 	
 	const CHAR* pszDisposition = pBodyStructure->getDisposition();
-	status = appendDataToBuffer("Content-Disposition",
-		&pszDisposition, 1, &pBodyStructure->getDispositionParams(), &buf);
-	CHECK_QSTATUS();
+	appendDataToBuffer("Content-Disposition", &pszDisposition,
+		1, &pBodyStructure->getDispositionParams(), &buf);
 	
 	const CHAR* pszEncoding = pBodyStructure->getEncoding();
-	status = appendDataToBuffer("Content-Transfer-Encoding", &pszEncoding, 1, 0, &buf);
+	appendDataToBuffer("Content-Transfer-Encoding", &pszEncoding, 1, 0, &buf);
 	
 	const CHAR* pszId = pBodyStructure->getId();
-	status = appendDataToBuffer("Content-Id", &pszId, 1, 0, &buf);
+	appendDataToBuffer("Content-Id", &pszId, 1, 0, &buf);
 	
-	*pstrHeader = buf.getString();
-	
-	return QSTATUS_SUCCESS;
+	return buf.getString();
 }
 
-unsigned long qmimap4::Util::getTextSizeFromBodyStructure(
-	const FetchDataBodyStructure* pBodyStructure)
+unsigned long qmimap4::Util::getTextSizeFromBodyStructure(const FetchDataBodyStructure* pBodyStructure)
 {
 	assert(pBodyStructure);
 	
@@ -326,9 +253,8 @@ unsigned long qmimap4::Util::getTextSizeFromBodyStructure(
 	
 	if (_stricmp(pBodyStructure->getContentType(), "multipart") == 0) {
 		const FetchDataBodyStructure::ChildList& l = pBodyStructure->getChildList();
-		FetchDataBodyStructure::ChildList::const_iterator it = l.begin();
-		while (it != l.end())
-			nSize += getTextSizeFromBodyStructure(*it++);
+		for (FetchDataBodyStructure::ChildList::const_iterator it = l.begin(); it != l.end(); ++it)
+			nSize += getTextSizeFromBodyStructure(*it);
 	}
 	else if (isInlineTextPart(pBodyStructure)) {
 		nSize = pBodyStructure->getSize();
@@ -337,156 +263,127 @@ unsigned long qmimap4::Util::getTextSizeFromBodyStructure(
 	return nSize;
 }
 
-QSTATUS qmimap4::Util::getPartsFromBodyStructure(
-	const FetchDataBodyStructure* pBodyStructure,
-	const unsigned int* pBasePath, PartList* pListPart)
+void qmimap4::Util::getPartsFromBodyStructure(const FetchDataBodyStructure* pBodyStructure,
+											  const unsigned int* pBasePath,
+											  PartList* pListPart)
 {
 	assert(pBodyStructure);
 	assert(pBasePath);
 	assert(pListPart);
 	
-	DECLARE_QSTATUS();
-	
 	size_t nBaseLen = getPathLength(pBasePath);
 	
-	malloc_ptr<unsigned int> pPath(static_cast<unsigned int*>(
-		malloc((nBaseLen + 1)*sizeof(unsigned int))));
-	if (!pPath.get())
-		return QSTATUS_OUTOFMEMORY;
+	auto_ptr_array<unsigned int> pPath(new unsigned int[nBaseLen + 1]);
 	std::copy(pBasePath, pBasePath + nBaseLen, pPath.get());
 	*(pPath.get() + nBaseLen) = 0;
-	status = STLWrapper<PartList>(*pListPart).push_back(
-		std::make_pair(pBodyStructure, pPath.get()));
-	CHECK_QSTATUS();
+	pListPart->push_back(std::make_pair(pBodyStructure, pPath.get()));
 	pPath.release();
 	
 	if (_stricmp(pBodyStructure->getContentType(), "multipart") == 0) {
 		const FetchDataBodyStructure::ChildList& l = pBodyStructure->getChildList();
-		FetchDataBodyStructure::ChildList::size_type n = 0;
-		while (n < l.size()) {
-			malloc_ptr<unsigned int> pPath(static_cast<unsigned int*>(
-				malloc((nBaseLen + 2)*sizeof(unsigned int))));
-			if (!pPath.get())
-				return QSTATUS_OUTOFMEMORY;
+		for (FetchDataBodyStructure::ChildList::size_type n = 0; n < l.size(); ++n) {
+			auto_ptr_array<unsigned int> pPath(new unsigned int[nBaseLen + 2]);
 			std::copy(pBasePath, pBasePath + nBaseLen, pPath.get());
 			*(pPath.get() + nBaseLen) = n + 1;
 			*(pPath.get() + nBaseLen + 1) = 0;
 			
 			if (_stricmp(l[n]->getContentType(), "multipart") == 0) {
-				status = getPartsFromBodyStructure(l[n], pPath.get(), pListPart);
-				CHECK_QSTATUS();
+				getPartsFromBodyStructure(l[n], pPath.get(), pListPart);
 			}
 			else {
-				status = STLWrapper<PartList>(*pListPart).push_back(
-					std::make_pair(l[n], pPath.get()));
-				CHECK_QSTATUS();
+				pListPart->push_back(std::make_pair(l[n], pPath.get()));
 				pPath.release();
 			}
-			++n;
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmimap4::Util::getContentFromBodyStructureAndBodies(
-	const PartList& listPart, const BodyList& listBody, qs::STRING* pstrContent)
+xstring_ptr qmimap4::Util::getContentFromBodyStructureAndBodies(const PartList& listPart,
+																const BodyList& listBody)
 {
-	assert(pstrContent);
-	
-	DECLARE_QSTATUS();
-	
 	BodyList::const_iterator it = std::find_if(
 		listBody.begin(), listBody.end(),
 		unary_compose_f_gx(
 			std::mem_fun_ref(FetchDataBody::PartPath::empty),
 			std::mem_fun(FetchDataBody::getPartPath)));
 	if (it == listBody.end())
-		return QSTATUS_FAIL;
+		return 0;
 	
-	StringBuffer<STRING> buf((*it)->getContent(), &status);
-	CHECK_QSTATUS();
+	XStringBuffer<XSTRING> buf;
+	if (!buf.append((*it)->getContent()))
+		return 0;
 	
 	size_t nDepth = 0;
-	PartList::const_iterator itP = listPart.begin();
-	while (itP != listPart.end()) {
+	for (PartList::const_iterator itP = listPart.begin(); itP != listPart.end(); ++itP) {
 		const unsigned int* pPath = (*itP).second;
 		size_t n = getPathLength(pPath);
 		if (n > nDepth)
 			nDepth = n;
-		++itP;
 	}
 	
 	typedef std::vector<const FetchDataBodyStructure*> BodyStructureStack;
 	BodyStructureStack stack;
-	status = STLWrapper<BodyStructureStack>(stack).reserve(nDepth);
-	CHECK_QSTATUS();
+	stack.reserve(nDepth);
 	
-	itP = listPart.begin();
-	++itP;
-	while (itP != listPart.end()) {
+	for (PartList::const_iterator itP = listPart.begin() + 1; itP != listPart.end(); ++itP) {
 		std::pair<FetchDataBody*, FetchDataBody*> body =
 			getBodyFromBodyList(listBody, (*itP).second);
 		size_t nPathLen = getPathLength((*itP).second);
 		assert(nPathLen != 0);
 		if (nPathLen > stack.size()) {
 			assert(nPathLen == stack.size() + 1);
-			status = appendBoundaryToBuffer((*(itP - 1)).first, &buf, false);
-			CHECK_QSTATUS();
+			if (!appendBoundaryToBuffer((*(itP - 1)).first, &buf, false))
+				return 0;
 			stack.push_back((*(itP - 1)).first);
 		}
 		else {
 			while (nPathLen < stack.size()) {
-				status = appendBoundaryToBuffer(stack.back(), &buf, true);
-				CHECK_QSTATUS();
+				if (!appendBoundaryToBuffer(stack.back(), &buf, true))
+					return 0;
 				stack.pop_back();
 			}
-			status = appendBoundaryToBuffer(stack.back(), &buf, false);
-			CHECK_QSTATUS();
+			if (!appendBoundaryToBuffer(stack.back(), &buf, false))
+				return 0;
 		}
 		
 		if (body.first) {
-			status = buf.append(body.first->getContent());
-			CHECK_QSTATUS();
+			if (!buf.append(body.first->getContent()))
+				return 0;
 		}
 		else {
-			string_ptr<STRING> strHeader;
-			status = getHeaderFromBodyStructure((*itP).first, &strHeader);
-			CHECK_QSTATUS();
-			status = buf.append(strHeader.get());
-			CHECK_QSTATUS();
+			string_ptr strHeader(getHeaderFromBodyStructure((*itP).first));
+			if (!buf.append(strHeader.get()))
+				return 0;
 		}
 		
 		if (body.second) {
-			status = buf.append(body.second->getContent());
-			CHECK_QSTATUS();
+			if (!buf.append(body.second->getContent()))
+				return 0;
 		}
-		
-		++itP;
 	}
 	while (stack.size() > 0) {
-		status = appendBoundaryToBuffer(stack.back(), &buf, true);
-		CHECK_QSTATUS();
+		if (!appendBoundaryToBuffer(stack.back(), &buf, true))
+			return 0;
 		stack.pop_back();
 	}
 	
-	*pstrContent = buf.getString();
-	
-	return QSTATUS_SUCCESS;
+	return buf.getXString();
 }
 
-QSTATUS qmimap4::Util::getFetchArgFromPartList(const PartList& listPart,
-	FetchArg arg, bool bPeek, bool bFetchAllMime, STRING* pstrArg,
-	unsigned int* pnCount, bool* pbAll)
+void qmimap4::Util::getFetchArgFromPartList(const PartList& listPart,
+											FetchArg arg,
+											bool bPeek,
+											bool bFetchAllMime,
+											string_ptr* pstrArg,
+											unsigned int* pnCount,
+											bool* pbAll)
 {
 	assert(!listPart.empty());
 	assert(pstrArg);
 	assert(pnCount);
 	assert(pbAll);
 	
-	DECLARE_QSTATUS();
-	
-	*pstrArg = 0;
+	pstrArg->reset(0);
 	*pnCount = 0;
 	*pbAll = false;
 	
@@ -494,63 +391,43 @@ QSTATUS qmimap4::Util::getFetchArgFromPartList(const PartList& listPart,
 	
 	unsigned int nPartCount = 1;
 	
-	StringBuffer<STRING> buf("(", &status);
-	CHECK_QSTATUS();
-	status = buf.append(pszBody);
-	CHECK_QSTATUS();
+	StringBuffer<STRING> buf("(");
+	buf.append(pszBody);
 	if (listPart.size() == 1 &&
 		Util::isInlineTextPart(listPart.front().first)) {
-		status = buf.append("[]");
-		CHECK_QSTATUS();
+		buf.append("[]");
 		*pbAll = true;
 	}
 	else {
-		status = buf.append("[HEADER]");
-		CHECK_QSTATUS();
+		buf.append("[HEADER]");
 		
-		PartList::const_iterator it = listPart.begin();
-		while (it != listPart.end()) {
+		for (PartList::const_iterator it = listPart.begin(); it != listPart.end(); ++it) {
 			bool bFetchBody = arg == FETCHARG_TEXT ?
 				Util::isInlineTextPart((*it).first) :
 				Util::isInlineHtmlPart((*it).first);
 			if (bFetchBody || (bFetchAllMime && it != listPart.begin())) {
-				string_ptr<STRING> strPath;
-				status = Util::formatPath((*it).second, &strPath);
-				CHECK_QSTATUS();
+				string_ptr strPath(Util::formatPath((*it).second));
 				
-				status = buf.append(" ");
-				CHECK_QSTATUS();
+				buf.append(" ");
 				if (bFetchBody) {
-					status = buf.append(pszBody);
-					CHECK_QSTATUS();
-					status = buf.append("[");
-					CHECK_QSTATUS();
-					status = buf.append(strPath.get());
-					CHECK_QSTATUS();
-					status = buf.append("] ");
-					CHECK_QSTATUS();
+					buf.append(pszBody);
+					buf.append("[");
+					buf.append(strPath.get());
+					buf.append("] ");
 					++nPartCount;
 				}
-				status = buf.append(pszBody);
-				CHECK_QSTATUS();
-				status = buf.append("[");
-				CHECK_QSTATUS();
-				status = buf.append(strPath.get());
-				CHECK_QSTATUS();
-				status = buf.append(".MIME]");
-				CHECK_QSTATUS();
+				buf.append(pszBody);
+				buf.append("[");
+				buf.append(strPath.get());
+				buf.append(".MIME]");
 				++nPartCount;
 			}
-			++it;
 		}
 	}
-	status = buf.append(")");
-	CHECK_QSTATUS();
+	buf.append(")");
 	
 	*pstrArg = buf.getString();
 	*pnCount = nPartCount;
-	
-	return QSTATUS_SUCCESS;
 }
 
 bool qmimap4::Util::isInlineTextPart(const FetchDataBodyStructure* pBodyStructure)
@@ -597,71 +474,54 @@ size_t qmimap4::Util::getPathLength(const unsigned int* pPath)
 	return nLen;
 }
 
-QSTATUS qmimap4::Util::formatPath(const unsigned int* pPath, qs::STRING* pstrPath)
+string_ptr qmimap4::Util::formatPath(const unsigned int* pPath)
 {
 	assert(pPath);
-	assert(pstrPath);
 	
-	DECLARE_QSTATUS();
-	
-	StringBuffer<STRING> buf(&status);
-	CHECK_QSTATUS();
+	StringBuffer<STRING> buf;
 	
 	if (*pPath) {
 		CHAR sz[32];
 		const unsigned int* p = pPath;
 		while (*p) {
 			sprintf(sz, "%u.", *p);
-			status = buf.append(sz);
-			CHECK_QSTATUS();
+			buf.append(sz);
 			++p;
 		}
 		size_t n = buf.getLength();
-		*pstrPath = buf.getString();
-		*(*pstrPath + n - 1) = '\0';
+		string_ptr strPath = buf.getString();
+		*(strPath.get() + n - 1) = '\0';
+		return strPath;
 	}
 	else {
-		*pstrPath = buf.getString();
+		return buf.getString();
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmimap4::Util::createUidList(const MessageHolderList& l, UidList* pList)
+void qmimap4::Util::createUidList(const MessageHolderList& l,
+								  UidList* pList)
 {
 	assert(std::find_if(l.begin(), l.end(),
 		std::bind2nd(
 			std::mem_fun(&MessageHolder::isFlag),
 			MessageHolder::FLAG_LOCAL)) == l.end());
 	
-	DECLARE_QSTATUS();
-	
-	status = STLWrapper<UidList>(*pList).resize(l.size());
-	CHECK_QSTATUS();
+	pList->resize(l.size());
 	std::transform(l.begin(), l.end(), pList->begin(),
 		std::mem_fun(&MessageHolder::getId));
 	std::sort(pList->begin(), pList->end());
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmimap4::Util::createRange(const MessageHolderList& l,
-	std::auto_ptr<MultipleRange>* apRange)
+std::auto_ptr<MultipleRange> qmimap4::Util::createRange(const MessageHolderList& l)
 {
-	DECLARE_QSTATUS();
-	
 	UidList listUid;
-	status = createUidList(l, &listUid);
-	CHECK_QSTATUS();
-	
-	status = newQsObject(&listUid[0], listUid.size(), true, apRange);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	createUidList(l, &listUid);
+	return new MultipleRange(&listUid[0], listUid.size(), true);
 }
 
 bool qmimap4::Util::isEqualFolderName(const WCHAR* pwszLhs,
-	const WCHAR* pwszRhs, WCHAR cSeparator)
+									  const WCHAR* pwszRhs,
+									  WCHAR cSeparator)
 {
 	if (wcscmp(pwszLhs, pwszRhs) == 0) {
 		return true;
@@ -680,37 +540,25 @@ bool qmimap4::Util::isEqualFolderName(const WCHAR* pwszLhs,
 	}
 }
 
-QSTATUS qmimap4::Util::getSsl(SubAccount* pSubAccount, Imap4::Ssl* pSsl)
+Imap4::Ssl qmimap4::Util::getSsl(SubAccount* pSubAccount)
 {
 	assert(pSubAccount);
-	assert(pSsl);
-	
-	DECLARE_QSTATUS();
 	
 	Imap4::Ssl ssl = Imap4::SSL_NONE;
-	if (pSubAccount->isSsl(Account::HOST_RECEIVE)) {
-		ssl = Imap4::SSL_SSL;
-	}
-	else {
-		int nStartTls = 0;
-		status = pSubAccount->getProperty(L"Imap4", L"STARTTLS", 0, &nStartTls);
-		CHECK_QSTATUS();
-		if (nStartTls)
-			ssl = Imap4::SSL_STARTTLS;
-	}
-	
-	*pSsl = ssl;
-	
-	return QSTATUS_SUCCESS;
+	if (pSubAccount->isSsl(Account::HOST_RECEIVE))
+		return Imap4::SSL_SSL;
+	else if (pSubAccount->getProperty(L"Imap4", L"STARTTLS", 0))
+		return Imap4::SSL_STARTTLS;
+	else
+		return Imap4::SSL_NONE;
 }
 
-std::pair<FetchDataBody*, FetchDataBody*> qmimap4::Util::getBodyFromBodyList(
-	const BodyList& listBody, const unsigned int* pPath)
+std::pair<FetchDataBody*, FetchDataBody*> qmimap4::Util::getBodyFromBodyList(const BodyList& listBody,
+																			 const unsigned int* pPath)
 {
 	std::pair<FetchDataBody*, FetchDataBody*> body(0, 0);
 	
-	BodyList::const_iterator it = listBody.begin();
-	while (it != listBody.end() && (!body.first || !body.second)) {
+	for (BodyList::const_iterator it = listBody.begin(); it != listBody.end() && (!body.first || !body.second); ++it) {
 		const FetchDataBody::PartPath& path = (*it)->getPartPath();
 		if (PathEqual(&path[0], path.size())(pPath)) {
 			switch ((*it)->getSection()) {
@@ -724,14 +572,12 @@ std::pair<FetchDataBody*, FetchDataBody*> qmimap4::Util::getBodyFromBodyList(
 				break;
 			}
 		}
-		++it;
 	}
 	
 	return body;
 }
 
-const CHAR* qmimap4::Util::getBoundaryFromBodyStructure(
-	const FetchDataBodyStructure* pBodyStructure)
+const CHAR* qmimap4::Util::getBoundaryFromBodyStructure(const FetchDataBodyStructure* pBodyStructure)
 {
 	typedef FetchDataBodyStructure::ParamList ParamList;
 	const ParamList& l = pBodyStructure->getContentParams();
@@ -749,9 +595,9 @@ const CHAR* qmimap4::Util::getBoundaryFromBodyStructure(
 		return "";
 }
 
-QSTATUS qmimap4::Util::appendBoundaryToBuffer(
-	const FetchDataBodyStructure* pBodyStructure,
-	StringBuffer<STRING>* pBuf, bool bEnd)
+bool qmimap4::Util::appendBoundaryToBuffer(const FetchDataBodyStructure* pBodyStructure,
+										   XStringBuffer<XSTRING>* pBuf,
+										   bool bEnd)
 {
 	// TODO
 	// If the result of BODYSTRUCTURE is not trusted
@@ -762,76 +608,53 @@ QSTATUS qmimap4::Util::appendBoundaryToBuffer(
 	assert(pBodyStructure);
 	assert(pBuf);
 	
-	DECLARE_QSTATUS();
-	
-	status = pBuf->append("\r\n--");
-	CHECK_QSTATUS();
-	status = pBuf->append(getBoundaryFromBodyStructure(pBodyStructure));
-	CHECK_QSTATUS();
+	if (!pBuf->append("\r\n--"))
+		return false;
+	if (!pBuf->append(getBoundaryFromBodyStructure(pBodyStructure)))
+		return false;
 	if (bEnd) {
-		status = pBuf->append("--");
-		CHECK_QSTATUS();
+		if (!pBuf->append("--"))
+			return false;
 	}
-	status = pBuf->append("\r\n");
-	CHECK_QSTATUS();
+	if (!pBuf->append("\r\n"))
+		return false;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmimap4::Util::appendDataToBuffer(const CHAR* pszName, const CHAR** ppsz, size_t nLen,
-	const FetchDataBodyStructure::ParamList* pListParam, StringBuffer<STRING>* pBuf)
+void qmimap4::Util::appendDataToBuffer(const CHAR* pszName,
+									   const CHAR** ppsz,
+									   size_t nLen,
+									   const FetchDataBodyStructure::ParamList* pListParam,
+									   StringBuffer<STRING>* pBuf)
 {
 	assert(pszName);
 	assert(ppsz);
 	assert(pBuf);
 	
-	DECLARE_QSTATUS();
-	
 	if (*ppsz && **ppsz) {
-		status = pBuf->append(pszName);
-		CHECK_QSTATUS();
-		status = pBuf->append(": ");
-		CHECK_QSTATUS();
-		for (size_t n = 0; n < nLen; ++n) {
-			status = pBuf->append(*(ppsz + n));
-			CHECK_QSTATUS();
-		}
-		if (pListParam) {
-			status = appendParamsToBuffer(*pListParam, pBuf);
-			CHECK_QSTATUS();
-		}
-		status = pBuf->append("\r\n");
-		CHECK_QSTATUS();
+		pBuf->append(pszName);
+		pBuf->append(": ");
+		for (size_t n = 0; n < nLen; ++n)
+			pBuf->append(*(ppsz + n));
+		if (pListParam)
+			appendParamsToBuffer(*pListParam, pBuf);
+		pBuf->append("\r\n");
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmimap4::Util::appendParamsToBuffer(
-	const FetchDataBodyStructure::ParamList& l, StringBuffer<STRING>* pBuf)
+void qmimap4::Util::appendParamsToBuffer(const FetchDataBodyStructure::ParamList& l,
+										 StringBuffer<STRING>* pBuf)
 {
 	assert(pBuf);
 	
-	DECLARE_QSTATUS();
-	
-	FetchDataBodyStructure::ParamList::const_iterator it = l.begin();
-	while (it != l.end()) {
-		status = pBuf->append(";\r\n\t");
-		CHECK_QSTATUS();
-		status = pBuf->append((*it).first);
-		CHECK_QSTATUS();
-		status = pBuf->append("=");
-		CHECK_QSTATUS();
-		string_ptr<STRING> strValue;
-		status = FieldParser::getAtomOrQString((*it).second,
-			static_cast<size_t>(-1), &strValue);
-		CHECK_QSTATUS();
-		status = pBuf->append(strValue.get());
-		CHECK_QSTATUS();
-		++it;
+	for (FetchDataBodyStructure::ParamList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		pBuf->append(";\r\n\t");
+		pBuf->append((*it).first);
+		pBuf->append("=");
+		string_ptr strValue(FieldParser::getAtomOrQString((*it).second, -1));
+		pBuf->append(strValue.get());
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -862,7 +685,8 @@ qmimap4::Util::PartListDeleter::~PartListDeleter()
  *
  */
 
-qmimap4::PathEqual::PathEqual(const unsigned int* pPath, size_t nLen) :
+qmimap4::PathEqual::PathEqual(const unsigned int* pPath,
+							  size_t nLen) :
 	pPath_(pPath),
 	nLen_(nLen)
 {
@@ -889,7 +713,7 @@ bool qmimap4::PathEqual::operator()(const unsigned int* pPath) const
 
 void* qmimap4::PathFree::operator()(unsigned int* path) const
 {
-	free(path);
+	delete[] path;
 	return 0;
 }
 
@@ -901,49 +725,34 @@ void* qmimap4::PathFree::operator()(unsigned int* path) const
  */
 
 qmimap4::AbstractCallback::AbstractCallback(SubAccount* pSubAccount,
-	const Security* pSecurity, QSTATUS* pstatus) :
+											const Security* pSecurity) :
 	DefaultSSLSocketCallback(pSubAccount, Account::HOST_RECEIVE, pSecurity),
 	pSubAccount_(pSubAccount)
 {
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qmimap4::AbstractCallback::~AbstractCallback()
 {
 }
 
-QSTATUS qmimap4::AbstractCallback::getUserInfo(
-	WSTRING* pwstrUserName, WSTRING* pwstrPassword)
+bool qmimap4::AbstractCallback::getUserInfo(wstring_ptr* pwstrUserName,
+											wstring_ptr* pwstrPassword)
 {
 	assert(pwstrUserName);
 	assert(pwstrPassword);
 	
-	DECLARE_QSTATUS();
+	*pwstrUserName = allocWString(pSubAccount_->getUserName(Account::HOST_RECEIVE));
+	*pwstrPassword = allocWString(pSubAccount_->getPassword(Account::HOST_RECEIVE));
 	
-	string_ptr<WSTRING> wstrUserName(
-		allocWString(pSubAccount_->getUserName(Account::HOST_RECEIVE)));
-	if (!wstrUserName.get())
-		return QSTATUS_OUTOFMEMORY;
-	string_ptr<WSTRING> wstrPassword(
-		allocWString(pSubAccount_->getPassword(Account::HOST_RECEIVE)));
-	if (!wstrPassword.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	*pwstrUserName = wstrUserName.release();
-	*pwstrPassword = wstrPassword.release();
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmimap4::AbstractCallback::setPassword(const WCHAR* pwszPassword)
+void qmimap4::AbstractCallback::setPassword(const WCHAR* pwszPassword)
 {
 	// TODO
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmimap4::AbstractCallback::getAuthMethods(qs::WSTRING* pwstrAuthMethods)
+wstring_ptr qmimap4::AbstractCallback::getAuthMethods()
 {
-	assert(pwstrAuthMethods);
-	return pSubAccount_->getProperty(L"Imap4",
-		L"AuthMethods", L"", pwstrAuthMethods);
+	return pSubAccount_->getProperty(L"Imap4", L"AuthMethods", L"");
 }

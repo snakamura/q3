@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -39,19 +39,19 @@ public:
 	virtual ~EditWindowItem();
 
 public:
-	virtual qs::QSTATUS copy() = 0;
-	virtual qs::QSTATUS canCopy(bool* pbCan) = 0;
-	virtual qs::QSTATUS cut() = 0;
-	virtual qs::QSTATUS canCut(bool* pbCan) = 0;
-	virtual qs::QSTATUS paste() = 0;
-	virtual qs::QSTATUS canPaste(bool* pbCan) = 0;
-	virtual qs::QSTATUS selectAll() = 0;
-	virtual qs::QSTATUS canSelectAll(bool* pbCan) = 0;
-	virtual qs::QSTATUS undo() = 0;
-	virtual qs::QSTATUS canUndo(bool* pbCan) = 0;
-	virtual qs::QSTATUS redo() = 0;
-	virtual qs::QSTATUS canRedo(bool* pbCan) = 0;
-	virtual qs::QSTATUS setFocus() = 0;
+	virtual void copy() = 0;
+	virtual bool canCopy() = 0;
+	virtual void cut() = 0;
+	virtual bool canCut() = 0;
+	virtual void paste() = 0;
+	virtual bool canPaste() = 0;
+	virtual void selectAll() = 0;
+	virtual bool canSelectAll() = 0;
+	virtual void undo() = 0;
+	virtual bool canUndo() = 0;
+	virtual void redo() = 0;
+	virtual bool canRedo() = 0;
+	virtual void setFocus() = 0;
 };
 
 
@@ -67,16 +67,23 @@ class EditWindowItemWindow :
 {
 public:
 	EditWindowItemWindow(EditWindowFocusController* pController,
-		EditWindowItem* pItem, HWND hwnd, qs::QSTATUS* pstatus);
+						 EditWindowItem* pItem,
+						 HWND hwnd);
 	EditWindowItemWindow(EditWindowFocusController* pController,
-		EditWindowItem* pItem, HWND hwnd, bool bPrevOnly, qs::QSTATUS* pstatus);
+						 EditWindowItem* pItem,
+						 HWND hwnd,
+						 bool bPrevOnly);
 	virtual ~EditWindowItemWindow();
 
 public:
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
-	LRESULT onChar(UINT nChar, UINT nRepeat, UINT nFlags);
+	LRESULT onChar(UINT nChar,
+				   UINT nRepeat,
+				   UINT nFlags);
 
 private:
 	EditWindowItemWindow(const EditWindowItemWindow&);
@@ -107,7 +114,8 @@ public:
 	virtual ~EditWindowFocusController();
 
 public:
-	virtual qs::QSTATUS setFocus(EditWindowItem* pItem, Focus focus) = 0;
+	virtual void setFocus(EditWindowItem* pItem,
+						  Focus focus) = 0;
 };
 
 
@@ -136,24 +144,28 @@ class EditTextWindow :
 {
 public:
 	EditTextWindow(qs::Profile* pProfile,
-		const WCHAR* pwszSection, qs::QSTATUS* pstatus);
+				   const WCHAR* pwszSection);
 	virtual ~EditTextWindow();
 
 public:
 	qs::EditableTextModel* getEditableTextModel() const;
 
 public:
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
-	LRESULT onContextMenu(HWND hwnd, const POINT& pt);
+	LRESULT onContextMenu(HWND hwnd,
+						  const POINT& pt);
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
 	LRESULT onKillFocus(HWND hwnd);
-	LRESULT onLButtonDown(UINT nFlags, const POINT& pt);
+	LRESULT onLButtonDown(UINT nFlags,
+						  const POINT& pt);
 	LRESULT onSetFocus(HWND hwnd);
 
 public:
-	virtual qs::QSTATUS openLink(const WCHAR* pwszURL);
+	virtual bool openLink(const WCHAR* pwszURL);
 
 private:
 	EditTextWindow(const EditTextWindow&);
@@ -190,7 +202,7 @@ public:
 	virtual ~EditTextWindowCallback();
 
 public:
-	virtual qs::QSTATUS layout() = 0;
+	virtual void layout() = 0;
 };
 
 }

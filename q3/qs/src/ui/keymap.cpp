@@ -1,15 +1,13 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qsaccelerator.h>
-#include <qserror.h>
 #include <qskeymap.h>
-#include <qsnew.h>
 #include <qsstl.h>
 #include <qsstream.h>
 
@@ -35,42 +33,36 @@ struct qs::KeyMapImpl
 {
 	typedef std::vector<ACCEL> AccelList;
 	
-	QSTATUS load(InputStream* pInputStream);
-	QSTATUS loadAccelerator(const WCHAR* pwszName,
-		const KeyNameToId* pKeyNameToId, int nMapSize,
-		AccelList* pListAccel) const;
-	QSTATUS getAccel(const WCHAR* pwszAccel,
-		unsigned int nCommand, AccelList* pListAccel) const;
+	bool load(InputStream* pInputStream);
+	void loadAccelerator(const WCHAR* pwszName,
+						 const KeyNameToId* pKeyNameToId,
+						 int nMapSize,
+						 AccelList* pListAccel) const;
+	void getAccel(const WCHAR* pwszAccel,
+				  unsigned int nCommand,
+				  AccelList* pListAccel) const;
 	
 	typedef std::vector<std::pair<std::pair<WSTRING, WSTRING>, ACCEL> > AccelMap;
 	AccelMap mapAccel_;
 };
 
-QSTATUS qs::KeyMapImpl::load(InputStream* pInputStream)
+bool qs::KeyMapImpl::load(InputStream* pInputStream)
 {
-	DECLARE_QSTATUS();
-	
-	XMLReader reader(&status);
-	CHECK_QSTATUS();
-	KeyMapContentHandler handler(&mapAccel_, &status);
-	CHECK_QSTATUS();
+	XMLReader reader;
+	KeyMapContentHandler handler(&mapAccel_);
 	reader.setContentHandler(&handler);
-	InputSource source(pInputStream, &status);
-	CHECK_QSTATUS();
-	status = reader.parse(&source);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	InputSource source(pInputStream);
+	return reader.parse(&source);
 }
 
-QSTATUS qs::KeyMapImpl::loadAccelerator(const WCHAR* pwszName,
-	const KeyNameToId* pKeyNameToId, int nMapSize, AccelList* pListAccel) const
+void qs::KeyMapImpl::loadAccelerator(const WCHAR* pwszName,
+									 const KeyNameToId* pKeyNameToId,
+									 int nMapSize,
+									 AccelList* pListAccel) const
 {
 	assert(pwszName);
 	assert(pKeyNameToId);
 	assert(pListAccel);
-	
-	DECLARE_QSTATUS();
 	
 	for (int n = 0; n < nMapSize; ++n, ++pKeyNameToId) {
 		bool bAdd = false;
@@ -90,30 +82,23 @@ QSTATUS qs::KeyMapImpl::loadAccelerator(const WCHAR* pwszName,
 			wcscmp((*it).first.second, value.first.second) == 0) {
 			ACCEL accel = (*it).second;
 			accel.cmd = pKeyNameToId->nId_;
-			status = STLWrapper<AccelList>(*pListAccel).push_back(accel);
-			CHECK_QSTATUS();
+			pListAccel->push_back(accel);
 			bAdd = true;
 			++it;
 		}
-		if (!bAdd && pKeyNameToId->pwszDefault_) {
-			status = getAccel(pKeyNameToId->pwszDefault_,
+		if (!bAdd && pKeyNameToId->pwszDefault_)
+			getAccel(pKeyNameToId->pwszDefault_,
 				pKeyNameToId->nId_, pListAccel);
-			CHECK_QSTATUS();
-		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::KeyMapImpl::getAccel(const WCHAR* pwszAccel,
-	unsigned int nCommand, AccelList* pListAccel) const
+void qs::KeyMapImpl::getAccel(const WCHAR* pwszAccel,
+							  unsigned int nCommand,
+							  AccelList* pListAccel) const
 {
 	assert(pwszAccel);
 	assert(pListAccel);
 	
-	DECLARE_QSTATUS();
-	
-	STLWrapper<AccelList> wrapper(*pListAccel);
 	bool bEscape = false;
 	ACCEL accel = { FNOINVERT | FVIRTKEY, 0, nCommand };
 	const WCHAR* p = pwszAccel;
@@ -125,10 +110,8 @@ QSTATUS qs::KeyMapImpl::getAccel(const WCHAR* pwszAccel,
 		}
 		else {
 			if (c == L',' || c == L'\0') {
-				if (accel.key) {
-					status = wrapper.push_back(accel);
-					CHECK_QSTATUS();
-				}
+				if (accel.key)
+					pListAccel->push_back(accel);
 				accel.fVirt = FNOINVERT | FVIRTKEY;
 				accel.key = 0;
 			}
@@ -157,8 +140,6 @@ QSTATUS qs::KeyMapImpl::getAccel(const WCHAR* pwszAccel,
 			}
 		}
 	} while (*p++ != L'\0');
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -168,43 +149,33 @@ QSTATUS qs::KeyMapImpl::getAccel(const WCHAR* pwszAccel,
  *
  */
 
-qs::KeyMap::KeyMap(const WCHAR* pwszPath, QSTATUS* pstatus) :
+qs::KeyMap::KeyMap(const WCHAR* pwszPath) :
 	pImpl_(0)
 {
 	assert(pwszPath);
-	assert(pstatus);
 	
-	DECLARE_QSTATUS();
+	FileInputStream fileStream(pwszPath);
+	if (!fileStream)
+		return;
+	BufferedInputStream stream(&fileStream, false);
 	
-	*pstatus = QSTATUS_SUCCESS;
+	std::auto_ptr<KeyMapImpl> pImpl(new KeyMapImpl());
+	if (!pImpl->load(&stream))
+		return;
 	
-	FileInputStream fileStream(pwszPath, &status);
-	CHECK_QSTATUS_SET(pstatus);
-	BufferedInputStream stream(&fileStream, false, &status);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	status = pImpl_->load(&stream);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = pImpl.release();
 }
 
-qs::KeyMap::KeyMap(InputStream* pInputStream, QSTATUS* pstatus) :
+qs::KeyMap::KeyMap(InputStream* pInputStream) :
 	pImpl_(0)
 {
 	assert(pInputStream);
-	assert(pstatus);
 	
-	DECLARE_QSTATUS();
+	std::auto_ptr<KeyMapImpl> pImpl(new KeyMapImpl());
+	if (!pImpl->load(pInputStream))
+		return;
 	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	status = pImpl_->load(pInputStream);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = pImpl.release();
 }
 
 qs::KeyMap::~KeyMap()
@@ -222,19 +193,23 @@ qs::KeyMap::~KeyMap()
 	}
 }
 
-QSTATUS qs::KeyMap::createAccelerator(AcceleratorFactory& factory,
-	const WCHAR* pwszName, const KeyNameToId* pKeyNameToId, int nMapSize,
-	Accelerator** ppAccelerator) const
+bool qs::KeyMap::operator!() const
 {
-	DECLARE_QSTATUS();
+	return pImpl_ == 0;
+}
+
+std::auto_ptr<Accelerator> qs::KeyMap::createAccelerator(AcceleratorFactory* pFactory,
+														 const WCHAR* pwszName,
+														 const KeyNameToId* pKeyNameToId,
+														 int nMapSize) const
+{
+	assert(pFactory);
+	assert(pwszName);
+	assert(pKeyNameToId);
 	
 	KeyMapImpl::AccelList listAccel;
-	status = pImpl_->loadAccelerator(pwszName,
-		pKeyNameToId, nMapSize, &listAccel);
-	CHECK_QSTATUS();
-	
-	return factory.createAccelerator(
-		listAccel.begin(), listAccel.size(), ppAccelerator);
+	pImpl_->loadAccelerator(pwszName, pKeyNameToId, nMapSize, &listAccel);
+	return pFactory->createAccelerator(listAccel.begin(), listAccel.size());
 }
 
 
@@ -244,82 +219,69 @@ QSTATUS qs::KeyMap::createAccelerator(AcceleratorFactory& factory,
  *
  */
 
-qs::KeyMapContentHandler::KeyMapContentHandler(
-	AccelMap* pMapAccel, QSTATUS* pstatus) :
-	DefaultHandler(pstatus),
+qs::KeyMapContentHandler::KeyMapContentHandler(AccelMap* pMapAccel) :
 	pMapAccel_(pMapAccel),
-	state_(STATE_ROOT),
-	wstrCurrentName_(0),
-	wstrCurrentAction_(0)
+	state_(STATE_ROOT)
 {
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
 }
 
 qs::KeyMapContentHandler::~KeyMapContentHandler()
 {
-	freeWString(wstrCurrentName_);
-	freeWString(wstrCurrentAction_);
 }
 
-QSTATUS qs::KeyMapContentHandler::startElement(
-	const WCHAR* pwszNamespaceURI, const WCHAR* pwszLocalName,
-	const WCHAR* pwszQName, const Attributes& attributes)
+bool qs::KeyMapContentHandler::startElement(const WCHAR* pwszNamespaceURI,
+											const WCHAR* pwszLocalName,
+											const WCHAR* pwszQName,
+											const Attributes& attributes)
 {
-	DECLARE_QSTATUS();
-	
 	if (wcscmp(pwszLocalName, L"keymaps") == 0) {
 		if (state_ != STATE_ROOT)
-			return QSTATUS_FAIL;
+			return false;
 		if (attributes.getLength() != 0)
-			return QSTATUS_FAIL;
+			return false;
 		state_ = STATE_KEYMAPS;
 	}
 	else if (wcscmp(pwszLocalName, L"keymap") == 0) {
 		if (state_ != STATE_KEYMAPS)
-			return QSTATUS_FAIL;
+			return false;
 		
 		const WCHAR* pwszName = 0;
 		for (int n = 0; n < attributes.getLength(); ++n) {
 			if (wcscmp(attributes.getLocalName(n), L"name") == 0)
 				pwszName = attributes.getValue(n);
 			else
-				return QSTATUS_FAIL;
+				return false;
 		}
 		if (!pwszName)
-			return QSTATUS_FAIL;
+			return false;
 		
-		assert(!wstrCurrentName_);
+		assert(!wstrCurrentName_.get());
 		wstrCurrentName_ = allocWString(pwszName);
-		if (!wstrCurrentName_)
-			return QSTATUS_OUTOFMEMORY;
 		
 		state_ = STATE_KEYMAP;
 	}
 	else if (wcscmp(pwszLocalName, L"action") == 0) {
 		if (state_ != STATE_KEYMAP)
-			return QSTATUS_FAIL;
+			return false;
 		
 		const WCHAR* pwszAction = 0;
 		for (int n = 0; n < attributes.getLength(); ++n) {
 			if (wcscmp(attributes.getLocalName(n), L"name") == 0)
 				pwszAction = attributes.getValue(n);
 			else
-				return QSTATUS_FAIL;
+				return false;
 		}
 		if (!pwszAction)
-			return QSTATUS_FAIL;
+			return false;
 		
-		assert(!wstrCurrentAction_);
+		assert(!wstrCurrentAction_.get());
 		wstrCurrentAction_ = allocWString(pwszAction);
-		if (!wstrCurrentAction_)
-			return QSTATUS_OUTOFMEMORY;
 		
 		state_ = STATE_ACTION;
 	}
 	else if (wcscmp(pwszLocalName, L"key") == 0) {
 		if (state_ != STATE_ACTION)
-			return QSTATUS_FAIL;
+			return false;
 		
 		ACCEL accel = { FVIRTKEY | FNOINVERT, 0, 0 };
 		for (int n = 0; n < attributes.getLength(); ++n) {
@@ -327,18 +289,18 @@ QSTATUS qs::KeyMapContentHandler::startElement(
 			const WCHAR* pwszValue = attributes.getValue(n);
 			if (wcscmp(pwszAttrName, L"key") == 0) {
 				if (accel.key != 0)
-					return QSTATUS_FAIL;
+					return false;
 				if (wcslen(pwszValue) != 1)
-					return QSTATUS_FAIL;
+					return false;
 				accel.key = *pwszValue;
 			}
 			else if (wcscmp(pwszAttrName, L"code") == 0) {
 				if (accel.key != 0)
-					return QSTATUS_FAIL;
+					return false;
 				WCHAR* pEnd = 0;
 				accel.key = static_cast<WORD>(wcstol(pwszValue, &pEnd, 16));
 				if (*pEnd)
-					return QSTATUS_FAIL;
+					return false;
 			}
 			else if (wcscmp(pwszAttrName, L"shift") == 0) {
 				if (wcscmp(pwszValue, L"true") == 0)
@@ -357,20 +319,16 @@ QSTATUS qs::KeyMapContentHandler::startElement(
 					accel.fVirt &= ~FVIRTKEY;
 			}
 			else {
-				return QSTATUS_FAIL;
+				return false;
 			}
 		}
 		if (accel.key == 0)
-			return QSTATUS_FAIL;
+			return false;
 		
-		assert(wstrCurrentName_);
-		string_ptr<WSTRING> wstrName(allocWString(wstrCurrentName_));
-		if (!wstrName.get())
-			return QSTATUS_FAIL;
-		assert(wstrCurrentAction_);
-		string_ptr<WSTRING> wstrAction(allocWString(wstrCurrentAction_));
-		if (!wstrAction.get())
-			return QSTATUS_FAIL;
+		assert(wstrCurrentName_.get());
+		wstring_ptr wstrName(allocWString(wstrCurrentName_.get()));
+		assert(wstrCurrentAction_.get());
+		wstring_ptr wstrAction(allocWString(wstrCurrentAction_.get()));
 		
 		AccelMap::value_type value(std::make_pair(
 			std::make_pair(wstrName.get(), wstrAction.get()), accel));
@@ -380,42 +338,37 @@ QSTATUS qs::KeyMapContentHandler::startElement(
 				pair_less(string_less<WCHAR>(), string_less<WCHAR>()),
 				std::select1st<AccelMap::value_type>(),
 				std::select1st<AccelMap::value_type>()));
-		AccelMap::iterator p;
-		status = STLWrapper<AccelMap>(*pMapAccel_).insert(it, value, &p);
-		CHECK_QSTATUS();
+		pMapAccel_->insert(it, value);
 		wstrName.release();
 		wstrAction.release();
 		
 		state_ = STATE_KEY;
 	}
 	else {
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::KeyMapContentHandler::endElement(const WCHAR* pwszNamespaceURI,
-	const WCHAR* pwszLocalName, const WCHAR* pwszQName)
+bool qs::KeyMapContentHandler::endElement(const WCHAR* pwszNamespaceURI,
+										  const WCHAR* pwszLocalName,
+										  const WCHAR* pwszQName)
 {
-	DECLARE_QSTATUS();
-	
 	if (wcscmp(pwszLocalName, L"keymaps") == 0) {
 		assert(state_ == STATE_KEYMAPS);
 		state_ = STATE_ROOT;
 	}
 	else if (wcscmp(pwszLocalName, L"keymap") == 0) {
 		assert(state_ == STATE_KEYMAP);
-		assert(wstrCurrentName_);
-		freeWString(wstrCurrentName_);
-		wstrCurrentName_ = 0;
+		assert(wstrCurrentName_.get());
+		wstrCurrentName_.reset(0);
 		state_ = STATE_KEYMAPS;
 	}
 	else if (wcscmp(pwszLocalName, L"action") == 0) {
 		assert(state_ == STATE_ACTION);
-		assert(wstrCurrentAction_);
-		freeWString(wstrCurrentAction_);
-		wstrCurrentAction_ = 0;
+		assert(wstrCurrentAction_.get());
+		wstrCurrentAction_.reset(0);
 		state_ = STATE_KEYMAP;
 	}
 	else if (wcscmp(pwszLocalName, L"key") == 0) {
@@ -423,19 +376,20 @@ QSTATUS qs::KeyMapContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		state_ = STATE_ACTION;
 	}
 	else {
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::KeyMapContentHandler::characters(
-	const WCHAR* pwsz, size_t nStart, size_t nLength)
+bool qs::KeyMapContentHandler::characters(const WCHAR* pwsz,
+										  size_t nStart,
+										  size_t nLength)
 {
 	const WCHAR* p = pwsz + nStart;
 	for (size_t n = 0; n < nLength; ++n, ++p) {
 		if (*p != L' ' && *p != L'\t' && *p != '\n')
-			return QSTATUS_FAIL;
+			return false;
 	}
-	return QSTATUS_SUCCESS;
+	return true;
 }

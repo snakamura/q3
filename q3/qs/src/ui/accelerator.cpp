@@ -1,19 +1,17 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qsaccelerator.h>
-#include <qserror.h>
 #include <qsstl.h>
-#include <qsnew.h>
 
-#include <vector>
-#include <utility>
 #include <algorithm>
+#include <utility>
+#include <vector>
 
 #pragma warning(disable:4786)
 
@@ -61,26 +59,16 @@ struct qs::AbstractAcceleratorImpl
  *
  */
 
-qs::AbstractAccelerator::AbstractAccelerator(
-	const ACCEL* pAccel, int nSize, QSTATUS* pstatus) :
+qs::AbstractAccelerator::AbstractAccelerator(const ACCEL* pAccel,
+											 int nSize) :
 	pImpl_(0)
 {
-	assert(pstatus);
+	pImpl_ = new AbstractAcceleratorImpl();
 	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	STLWrapper<AbstractAcceleratorImpl::IdKeyMap> wrapper(pImpl_->mapIdToKey_);
-	for (int n = 0; n < nSize; ++n, ++pAccel) {
-		status = wrapper.push_back(
+	for (int n = 0; n < nSize; ++n, ++pAccel)
+		pImpl_->mapIdToKey_.push_back(
 			AbstractAcceleratorImpl::IdKeyMap::value_type(
 				pAccel->cmd, MAKELONG(pAccel->key, pAccel->fVirt)));
-		CHECK_QSTATUS_SET(pstatus);
-	}
 	std::sort(pImpl_->mapIdToKey_.begin(), pImpl_->mapIdToKey_.end(),
 		binary_compose_f_gx_hy(
 			std::less<AbstractAcceleratorImpl::IdKeyMap::value_type::first_type>(),
@@ -94,14 +82,8 @@ qs::AbstractAccelerator::~AbstractAccelerator()
 	pImpl_ = 0;
 }
 
-QSTATUS qs::AbstractAccelerator::getKeyFromId(UINT nId, WSTRING* pwstr)
+wstring_ptr qs::AbstractAccelerator::getKeyFromId(UINT nId)
 {
-	assert(pwstr);
-	
-	DECLARE_QSTATUS();
-	
-	*pwstr = 0;
-	
 	AbstractAcceleratorImpl::IdKeyMap::const_iterator it = std::lower_bound(
 		pImpl_->mapIdToKey_.begin(), pImpl_->mapIdToKey_.end(),
 		AbstractAcceleratorImpl::IdKeyMap::value_type(nId, 0),
@@ -110,10 +92,9 @@ QSTATUS qs::AbstractAccelerator::getKeyFromId(UINT nId, WSTRING* pwstr)
 			std::select1st<AbstractAcceleratorImpl::IdKeyMap::value_type>(),
 			std::select1st<AbstractAcceleratorImpl::IdKeyMap::value_type>()));
 	if (it == pImpl_->mapIdToKey_.end() || (*it).first != nId)
-		return QSTATUS_SUCCESS;
+		return 0;
 	
-	StringBuffer<WSTRING> buffer(10, &status);
-	CHECK_QSTATUS();
+	StringBuffer<WSTRING> buffer(10);
 	
 	static const struct
 	{
@@ -126,10 +107,8 @@ QSTATUS qs::AbstractAccelerator::getKeyFromId(UINT nId, WSTRING* pwstr)
 	};
 	unsigned int nVirt = HIWORD((*it).second);
 	for (int n = 0; n < countof(modifiers); ++n) {
-		if (nVirt & modifiers[n].nKey_) {
-			status = buffer.append(modifiers[n].pwsz_);
-			CHECK_QSTATUS();
-		}
+		if (nVirt & modifiers[n].nKey_)
+			buffer.append(modifiers[n].pwsz_);
 	}
 	
 	static const struct
@@ -156,32 +135,26 @@ QSTATUS qs::AbstractAccelerator::getKeyFromId(UINT nId, WSTRING* pwstr)
 	
 	unsigned int nKey = LOWORD((*it).second);
 	if (!(nVirt & FVIRTKEY)) {
-		status = buffer.append(static_cast<WCHAR>(nKey));
-		CHECK_QSTATUS();
+		buffer.append(static_cast<WCHAR>(nKey));
 	}
 	else if (('A' <= nKey && nKey <= 'Z') || ('0' <= nKey && nKey <= '9')) {
-		status = buffer.append(static_cast<WCHAR>(nKey));
-		CHECK_QSTATUS();
+		buffer.append(static_cast<WCHAR>(nKey));
 	}
 	else if (VK_F1 <= nKey && nKey <= VK_F12) {
 		WCHAR wsz[8];
 		swprintf(wsz, L"F%d", nKey - VK_F1);
-		status = buffer.append(wsz);
-		CHECK_QSTATUS();
+		buffer.append(wsz);
 	}
 	else {
 		for (int n = 0; n < countof(keys); ++n) {
 			if (nKey == keys[n].nKey_) {
-				status = buffer.append(keys[n].pwsz_);
-				CHECK_QSTATUS();
+				buffer.append(keys[n].pwsz_);
 				break;
 			}
 		}
 	}
 	
-	*pwstr = buffer.getString();
-	
-	return QSTATUS_SUCCESS;
+	return buffer.getString();
 }
 
 
@@ -191,16 +164,12 @@ QSTATUS qs::AbstractAccelerator::getKeyFromId(UINT nId, WSTRING* pwstr)
  *
  */
 
-qs::SystemAccelerator::SystemAccelerator(
-	const ACCEL* pAccel, int nSize, QSTATUS* pstatus) :
-	AbstractAccelerator(pAccel, nSize, pstatus),
+qs::SystemAccelerator::SystemAccelerator(const ACCEL* pAccel,
+										 int nSize) :
+	AbstractAccelerator(pAccel, nSize),
 	haccel_(0)
 {
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
 	haccel_ = ::CreateAcceleratorTable(const_cast<ACCEL*>(pAccel), nSize);
-	*pstatus = haccel_ ? QSTATUS_SUCCESS : QSTATUS_FAIL;
 }
 
 qs::SystemAccelerator::~SystemAccelerator()
@@ -208,13 +177,11 @@ qs::SystemAccelerator::~SystemAccelerator()
 	::DestroyAcceleratorTable(haccel_);
 }
 
-QSTATUS qs::SystemAccelerator::translateAccelerator(HWND hwnd,
-	const MSG& msg, bool* pbProcessed)
+bool qs::SystemAccelerator::translateAccelerator(HWND hwnd,
+												 const MSG& msg)
 {
-	assert(pbProcessed);
-	*pbProcessed = ::TranslateAccelerator(hwnd,
+	return ::TranslateAccelerator(hwnd,
 		haccel_, const_cast<MSG*>(&msg)) != 0;
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -232,18 +199,10 @@ qs::SystemAcceleratorFactory::~SystemAcceleratorFactory()
 {
 }
 
-QSTATUS qs::SystemAcceleratorFactory::createAccelerator(
-	const ACCEL* pAccel, int nSize, Accelerator** ppAccelerator)
+std::auto_ptr<Accelerator> qs::SystemAcceleratorFactory::createAccelerator(const ACCEL* pAccel,
+																		   int nSize)
 {
-	assert(ppAccelerator);
-	
-	DECLARE_QSTATUS();
-	
-	SystemAccelerator* p = 0;
-	status = newQsObject(pAccel, nSize, &p);
-	*ppAccelerator = p;
-	
-	return status;
+	return new SystemAccelerator(pAccel, nSize);
 }
 
 
@@ -273,20 +232,13 @@ struct qs::CustomAcceleratorImpl
  *
  */
 
-qs::CustomAccelerator::CustomAccelerator(
-	const ACCEL* pAccel, int nSize, QSTATUS* pstatus) :
-	AbstractAccelerator(pAccel, nSize, pstatus),
+qs::CustomAccelerator::CustomAccelerator(const ACCEL* pAccel,
+										 int nSize) :
+	AbstractAccelerator(pAccel, nSize),
 	pImpl_(0)
 {
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
+	pImpl_ = new CustomAcceleratorImpl();
 	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus)
-	
-	STLWrapper<CustomAcceleratorImpl::AccelMap> wrapper(pImpl_->mapAccel_);
 	for (int n = 0; n < nSize; ++n, ++pAccel) {
 		unsigned int nKey = pAccel->key;
 		BYTE b = pAccel->fVirt;
@@ -298,9 +250,8 @@ qs::CustomAccelerator::CustomAccelerator(
 			nKey |= CustomAcceleratorImpl::SHIFT;
 		if (b & FVIRTKEY)
 			nKey |= CustomAcceleratorImpl::VIRTUAL;
-		status = wrapper.push_back(
+		pImpl_->mapAccel_.push_back(
 			CustomAcceleratorImpl::AccelMap::value_type(nKey, pAccel->cmd));
-		CHECK_QSTATUS_SET(pstatus);
 	}
 	std::sort(pImpl_->mapAccel_.begin(), pImpl_->mapAccel_.end(),
 		binary_compose_f_gx_hy(
@@ -315,18 +266,14 @@ qs::CustomAccelerator::~CustomAccelerator()
 	pImpl_ = 0;
 }
 
-QSTATUS qs::CustomAccelerator::translateAccelerator(HWND hwnd,
-	const MSG& msg, bool* pbProcessed)
+bool qs::CustomAccelerator::translateAccelerator(HWND hwnd,
+												 const MSG& msg)
 {
-	assert(pbProcessed);
-	
-	*pbProcessed = false;
-	
 	if (msg.message != WM_KEYDOWN &&
 		msg.message != WM_SYSKEYDOWN &&
 		msg.message != WM_CHAR &&
 		msg.message != WM_SYSCHAR)
-		return QSTATUS_SUCCESS;
+		return false;
 	
 	unsigned int nKey = msg.wParam;
 	if (::GetKeyState(VK_MENU) < 0)
@@ -348,11 +295,10 @@ QSTATUS qs::CustomAccelerator::translateAccelerator(HWND hwnd,
 			std::select1st<CustomAcceleratorImpl::AccelMap::value_type>(),
 			std::select1st<CustomAcceleratorImpl::AccelMap::value_type>()));
 	if (it == pImpl_->mapAccel_.end() || (*it).first != nKey)
-		return QSTATUS_SUCCESS;
+		return false;
 	::SendMessage(hwnd, WM_COMMAND, MAKEWPARAM((*it).second, 1), 0);
-	*pbProcessed = true;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -370,16 +316,8 @@ qs::CustomAcceleratorFactory::~CustomAcceleratorFactory()
 {
 }
 
-QSTATUS qs::CustomAcceleratorFactory::createAccelerator(
-	const ACCEL* pAccel, int nSize, Accelerator** ppAccelerator)
+std::auto_ptr<Accelerator> qs::CustomAcceleratorFactory::createAccelerator(const ACCEL* pAccel,
+																		   int nSize)
 {
-	assert(ppAccelerator);
-	
-	DECLARE_QSTATUS();
-	
-	CustomAccelerator* p = 0;
-	status = newQsObject(pAccel, nSize, &p);
-	*ppAccelerator = p;
-	
-	return status;
+	return new CustomAccelerator(pAccel, nSize);
 }

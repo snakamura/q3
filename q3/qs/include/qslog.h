@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -37,14 +37,20 @@ public:
 	};
 
 public:
-	Logger(OutputStream* pStream, bool bDeleteStream,
-		Level level, QSTATUS* pstatus);
+	Logger(OutputStream* pStream,
+		   bool bDeleteStream,
+		   Level level);
 	~Logger();
 
 public:
-	QSTATUS log(Level level, const WCHAR* pwszModule, const WCHAR* pwszMessage);
-	QSTATUS log(Level level, const WCHAR* pwszModule, const WCHAR* pwszMessage,
-		const unsigned char* pData, size_t nDataLen);
+	void log(Level level,
+			 const WCHAR* pwszModule,
+			 const WCHAR* pwszMessage);
+	void log(Level level,
+			 const WCHAR* pwszModule,
+			 const WCHAR* pwszMessage,
+			 const unsigned char* pData,
+			 size_t nDataLen);
 	bool isEnabled(Level level) const;
 
 private:
@@ -65,29 +71,39 @@ private:
 class Log
 {
 public:
-	Log(Logger* pLogger, const WCHAR* pwszModule);
+	Log(Logger* pLogger,
+		const WCHAR* pwszModule);
 	~Log();
 
 public:
-	QSTATUS fatal(const WCHAR* pwszMessage);
-	QSTATUS fatal(const WCHAR* pwszMessage,
-		const unsigned char* pData, size_t nDataLen);
+	void fatal(const WCHAR* pwszMessage);
+	void fatal(const WCHAR* pwszMessage,
+			   const unsigned char* pData,
+			   size_t nDataLen);
 	bool isFatalEnabled() const;
-	QSTATUS error(const WCHAR* pwszMessage);
-	QSTATUS error(const WCHAR* pwszMessage,
-		const unsigned char* pData, size_t nDataLen);
+	
+	void error(const WCHAR* pwszMessage);
+	void error(const WCHAR* pwszMessage,
+			   const unsigned char* pData,
+			   size_t nDataLen);
 	bool isErrorEnabled() const;
-	QSTATUS warn(const WCHAR* pwszMessage);
-	QSTATUS warn(const WCHAR* pwszMessage,
-		const unsigned char* pData, size_t nDataLen);
+	
+	void warn(const WCHAR* pwszMessage);
+	void warn(const WCHAR* pwszMessage,
+			  const unsigned char* pData,
+			  size_t nDataLen);
 	bool isWarnEnabled() const;
-	QSTATUS info(const WCHAR* pwszMessage);
-	QSTATUS info(const WCHAR* pwszMessage,
-		const unsigned char* pData, size_t nDataLen);
+	
+	void info(const WCHAR* pwszMessage);
+	void info(const WCHAR* pwszMessage,
+			  const unsigned char* pData,
+			  size_t nDataLen);
 	bool isInfoEnabled() const;
-	QSTATUS debug(const WCHAR* pwszMessage);
-	QSTATUS debug(const WCHAR* pwszMessage,
-		const unsigned char* pData, size_t nDataLen);
+	
+	void debug(const WCHAR* pwszMessage);
+	void debug(const WCHAR* pwszMessage,
+			   const unsigned char* pData,
+			   size_t nDataLen);
 	bool isDebugEnabled() const;
 
 private:

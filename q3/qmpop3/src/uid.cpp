@@ -1,15 +1,13 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qsconv.h>
-#include <qserror.h>
 #include <qsfile.h>
-#include <qsnew.h>
 #include <qsstream.h>
 
 #include <algorithm>
@@ -26,28 +24,22 @@ using namespace qs;
  *
  */
 
-qmpop3::UID::UID(const WCHAR* pwszUID, unsigned int nFlags,
-	const Date& date, QSTATUS* pstatus) :
-	wstrUID_(0),
+qmpop3::UID::UID(const WCHAR* pwszUID,
+				 unsigned int nFlags,
+				 const Date& date) :
 	nFlags_(nFlags),
 	date_(date)
 {
-	string_ptr<WSTRING> wstrUID(allocWString(pwszUID));
-	if (!wstrUID.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
-	wstrUID_ = wstrUID.release();
+	wstrUID_ = allocWString(pwszUID);
 }
 
 qmpop3::UID::~UID()
 {
-	freeWString(wstrUID_);
 }
 
 const WCHAR* qmpop3::UID::getUID() const
 {
-	return wstrUID_;
+	return wstrUID_.get();
 }
 
 unsigned int qmpop3::UID::getFlags() const
@@ -61,7 +53,9 @@ const UID::Date& qmpop3::UID::getDate() const
 }
 
 void qmpop3::UID::update(unsigned int nFlags,
-	short nYear, short nMonth, short nDay)
+						 short nYear,
+						 short nMonth,
+						 short nDay)
 {
 	nFlags_ = nFlags;
 	date_.nYear_ = nYear;
@@ -76,7 +70,7 @@ void qmpop3::UID::update(unsigned int nFlags,
  *
  */
 
-qmpop3::UIDList::UIDList(QSTATUS* pstatus) :
+qmpop3::UIDList::UIDList() :
 	bModified_(false)
 {
 }
@@ -112,7 +106,8 @@ size_t qmpop3::UIDList::getIndex(const WCHAR* pwszUID) const
 	return it != list_.end() ? it - list_.begin() : -1;
 }
 
-size_t qmpop3::UIDList::getIndex(const WCHAR* pwszUID, size_t nStart) const
+size_t qmpop3::UIDList::getIndex(const WCHAR* pwszUID,
+								 size_t nStart) const
 {
 	assert(pwszUID);
 	assert(nStart != -1);
@@ -139,74 +134,66 @@ size_t qmpop3::UIDList::getIndex(const WCHAR* pwszUID, size_t nStart) const
 	return -1;
 }
 
-QSTATUS qmpop3::UIDList::load(const WCHAR* pwszPath)
+bool qmpop3::UIDList::load(const WCHAR* pwszPath)
 {
 	assert(pwszPath);
 	
-	DECLARE_QSTATUS();
-	
 	W2T(pwszPath, ptszPath);
 	if (::GetFileAttributes(ptszPath) != 0xffffffff) {
-		XMLReader reader(&status);
-		CHECK_QSTATUS();
-		UIDListContentHandler handler(this, &status);
-		CHECK_QSTATUS();
+		XMLReader reader;
+		UIDListContentHandler handler(this);
 		reader.setContentHandler(&handler);
-		status = reader.parse(pwszPath);
-		CHECK_QSTATUS();
+		if (!reader.parse(pwszPath))
+			return false;
 	}
 	
 	bModified_ = false;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::UIDList::save(const WCHAR* pwszPath) const
+bool qmpop3::UIDList::save(const WCHAR* pwszPath) const
 {
 	assert(pwszPath);
 	
-	DECLARE_QSTATUS();
+	TemporaryFileRenamer renamer(pwszPath);
 	
-	TemporaryFileRenamer renamer(pwszPath, &status);
-	CHECK_QSTATUS();
+	FileOutputStream stream(renamer.getPath());
+	if (!stream)
+		return false;
+	OutputStreamWriter writer(&stream, false, L"utf-8");
+	if (!writer)
+		return false;
+	BufferedWriter bufferedWriter(&writer, false);
 	
-	FileOutputStream stream(renamer.getPath(), &status);
-	CHECK_QSTATUS();
-	OutputStreamWriter writer(&stream, false, L"utf-8", &status);
-	CHECK_QSTATUS();
-	BufferedWriter bufferedWriter(&writer, false, &status);
-	CHECK_QSTATUS();
+	UIDListWriter w(&bufferedWriter);
+	if (!w.write(*this))
+		return false;
 	
-	UIDListWriter w(&bufferedWriter, &status);
-	CHECK_QSTATUS();
-	status = w.write(*this);
-	CHECK_QSTATUS();
+	if (!bufferedWriter.close())
+		return false;
 	
-	status = bufferedWriter.close();
-	CHECK_QSTATUS();
-	
-	status = renamer.rename();
-	CHECK_QSTATUS();
+	if (!renamer.rename())
+		return false;
 	
 	bModified_ = false;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::UIDList::add(UID* pUID)
+void qmpop3::UIDList::add(std::auto_ptr<UID> pUID)
 {
 	bModified_ = true;
-	return STLWrapper<List>(list_).push_back(pUID);
+	list_.push_back(pUID.get());
+	pUID.release();
 }
 
 void qmpop3::UIDList::remove(const IndexList& l)
 {
-	IndexList::const_iterator it = l.begin();
-	while (it != l.end()) {
+	for (IndexList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		assert(*it < list_.size());
 		delete list_[*it];
 		list_[*it] = 0;
-		++it;
 	}
 	
 	list_.erase(std::remove(list_.begin(), list_.end(),
@@ -244,43 +231,32 @@ bool qmpop3::UIDList::isModified() const
  *
  */
 
-qmpop3::UIDListContentHandler::UIDListContentHandler(
-	UIDList* pList, QSTATUS* pstatus) :
-	DefaultHandler(pstatus),
+qmpop3::UIDListContentHandler::UIDListContentHandler(UIDList* pList) :
 	pList_(pList),
 	state_(STATE_ROOT),
-	nFlags_(0),
-	pBuffer_(0)
+	nFlags_(0)
 {
-	DECLARE_QSTATUS();
-	
-	status = newQsObject(&pBuffer_);
-	CHECK_QSTATUS_SET(pstatus);
 }
 
 qmpop3::UIDListContentHandler::~UIDListContentHandler()
 {
-	delete pBuffer_;
 }
 
-QSTATUS qmpop3::UIDListContentHandler::startElement(
-	const WCHAR* pwszNamespaceURI, const WCHAR* pwszLocalName,
-	const WCHAR* pwszQName, const Attributes& attributes)
+bool qmpop3::UIDListContentHandler::startElement(const WCHAR* pwszNamespaceURI,
+												 const WCHAR* pwszLocalName,
+												 const WCHAR* pwszQName,
+												 const Attributes& attributes)
 {
-	DECLARE_QSTATUS();
-	
 	if (wcscmp(pwszLocalName, L"uidl") == 0) {
 		if (state_ != STATE_ROOT)
-			return QSTATUS_FAIL;
-		
+			return false;
 		if (attributes.getLength() != 0)
-			return QSTATUS_FAIL;
-		
+			return false;
 		state_ = STATE_UIDL;
 	}
 	else if (wcscmp(pwszLocalName, L"uid") == 0) {
 		if (state_ != STATE_UIDL)
-			return QSTATUS_FAIL;
+			return false;
 		
 		const WCHAR* pwszFlags = 0;
 		const WCHAR* pwszDate = 0;
@@ -291,23 +267,23 @@ QSTATUS qmpop3::UIDListContentHandler::startElement(
 			else if (wcscmp(pwszAttrName, L"date") == 0)
 				pwszDate = attributes.getValue(n);
 			else
-				return QSTATUS_FAIL;
+				return false;
 		}
 		if (!pwszDate)
-			return QSTATUS_FAIL;
+			return false;
 		
 		if (pwszFlags) {
 			WCHAR* p = 0;
 			nFlags_ = wcstol(pwszFlags, &p, 10);
 			if (*p)
-				return QSTATUS_FAIL;
+				return false;
 		}
 		
 		int nYear = 0;
 		int nMonth = 0;
 		int nDay = 0;
 		if (swscanf(pwszDate, L"%04d-%02d-%02d", &nYear, &nMonth, &nDay) != 3)
-			return QSTATUS_FAIL;
+			return false;
 		date_.nYear_ = nYear;
 		date_.nMonth_ = nMonth;
 		date_.nDay_ = nDay;
@@ -315,18 +291,16 @@ QSTATUS qmpop3::UIDListContentHandler::startElement(
 		state_ = STATE_UID;
 	}
 	else {
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::UIDListContentHandler::endElement(
-	const WCHAR* pwszNamespaceURI, const WCHAR* pwszLocalName,
-	const WCHAR* pwszQName)
+bool qmpop3::UIDListContentHandler::endElement(const WCHAR* pwszNamespaceURI,
+											   const WCHAR* pwszLocalName,
+											   const WCHAR* pwszQName)
 {
-	DECLARE_QSTATUS();
-	
 	if (wcscmp(pwszLocalName, L"uidl") == 0) {
 		assert(state_ == STATE_UIDL);
 		state_ = STATE_ROOT;
@@ -334,41 +308,35 @@ QSTATUS qmpop3::UIDListContentHandler::endElement(
 	else if (wcscmp(pwszLocalName, L"uid") == 0) {
 		assert(state_ == STATE_UID);
 		
-		std::auto_ptr<UID> pUID;
-		status = newQsObject(pBuffer_->getCharArray(), nFlags_, date_, &pUID);
-		CHECK_QSTATUS();
-		pBuffer_->remove();
-		status = pList_->add(pUID.get());
-		CHECK_QSTATUS();
-		pUID.release();
+		std::auto_ptr<UID> pUID(new UID(buffer_.getCharArray(), nFlags_, date_));
+		buffer_.remove();
+		pList_->add(pUID);
 		
 		state_ = STATE_UIDL;
 	}
 	else {
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::UIDListContentHandler::characters(
-	const WCHAR* pwsz, size_t nStart, size_t nLength)
+bool qmpop3::UIDListContentHandler::characters(const WCHAR* pwsz,
+											   size_t nStart,
+											   size_t nLength)
 {
-	DECLARE_QSTATUS();
-	
 	if (state_ == STATE_UID) {
-		status = pBuffer_->append(pwsz + nStart, nLength);
-		CHECK_QSTATUS();
+		buffer_.append(pwsz + nStart, nLength);
 	}
 	else {
 		const WCHAR* p = pwsz + nStart;
 		for (size_t n = 0; n < nLength; ++n, ++p) {
 			if (*p != L' ' && *p != L'\t' && *p != '\n')
-				return QSTATUS_FAIL;
+				return false;
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -378,8 +346,8 @@ QSTATUS qmpop3::UIDListContentHandler::characters(
  *
  */
 
-qmpop3::UIDListWriter::UIDListWriter(Writer* pWriter, QSTATUS* pstatus) :
-	handler_(pWriter, pstatus)
+qmpop3::UIDListWriter::UIDListWriter(Writer* pWriter) :
+	handler_(pWriter)
 {
 }
 
@@ -387,15 +355,13 @@ qmpop3::UIDListWriter::~UIDListWriter()
 {
 }
 
-QSTATUS qmpop3::UIDListWriter::write(const UIDList& l)
+bool qmpop3::UIDListWriter::write(const UIDList& l)
 {
-	DECLARE_QSTATUS();
+	if (!handler_.startDocument())
+		return false;
 	
-	status = handler_.startDocument();
-	CHECK_QSTATUS();
-	
-	status = handler_.startElement(0, 0, L"uidl", DefaultAttributes());
-	CHECK_QSTATUS();
+	if (!handler_.startElement(0, 0, L"uidl", DefaultAttributes()))
+		return false;
 	
 	for (size_t n = 0; n < l.getCount(); ++n) {
 		UID* pUID = l.getUID(n);
@@ -411,11 +377,13 @@ QSTATUS qmpop3::UIDListWriter::write(const UIDList& l)
 		class Attrs : public DefaultAttributes
 		{
 		public:
-			Attrs(const WCHAR* pwszFlags, const WCHAR* pwszDate) :
+			Attrs(const WCHAR* pwszFlags,
+				  const WCHAR* pwszDate) :
 				pwszFlags_(pwszFlags),
 				pwszDate_(pwszDate)
 			{
 			}
+			
 			virtual ~Attrs()
 			{
 			}
@@ -425,11 +393,13 @@ QSTATUS qmpop3::UIDListWriter::write(const UIDList& l)
 			{
 				return 2;
 			}
+			
 			virtual const WCHAR* getQName(int nIndex) const
 			{
 				assert(nIndex == 0 || nIndex == 1);
 				return nIndex == 0 ? L"flags" : L"date";
 			}
+			
 			virtual const WCHAR* getValue(int nIndex) const
 			{
 				assert(nIndex == 0 || nIndex == 1);
@@ -441,19 +411,18 @@ QSTATUS qmpop3::UIDListWriter::write(const UIDList& l)
 			const WCHAR* pwszDate_;
 		} attrs(wszFlags, wszDate);
 		
-		status = handler_.startElement(0, 0, L"uid", attrs);
-		CHECK_QSTATUS();
 		const WCHAR* pwszUID = pUID->getUID();
-		status = handler_.characters(pwszUID, 0, wcslen(pwszUID));
-		status = handler_.endElement(0, 0, L"uid");
-		CHECK_QSTATUS();
+		if (!handler_.startElement(0, 0, L"uid", attrs) ||
+			!handler_.characters(pwszUID, 0, wcslen(pwszUID)) ||
+			!handler_.endElement(0, 0, L"uid"))
+			return false;
 	}
 	
-	status = handler_.endElement(0, 0, L"uidl");
-	CHECK_QSTATUS();
+	if (!handler_.endElement(0, 0, L"uidl"))
+		return false;
 	
-	status = handler_.endDocument();
-	CHECK_QSTATUS();
+	if (!handler_.endDocument())
+		return false;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -31,10 +31,11 @@ class Pop3;
 class Util
 {
 public:
-	static qs::QSTATUS reportError(Pop3* pPop3,
-		qm::SessionCallback* pSessionCallback,
-		qm::Account* pAccount, qm::SubAccount* pSubAccount);
-	static qs::QSTATUS getSsl(qm::SubAccount* pSubAccount, Pop3::Ssl* pSsl);
+	static void reportError(Pop3* pPop3,
+							qm::SessionCallback* pSessionCallback,
+							qm::Account* pAccount,
+							qm::SubAccount* pSubAccount);
+	static Pop3::Ssl getSsl(qm::SubAccount* pSubAccount);
 };
 
 }

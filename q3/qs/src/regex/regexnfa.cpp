@@ -1,14 +1,12 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qsassert.h>
-#include <qserror.h>
-#include <qsnew.h>
 #include <qsstl.h>
 
 #include <algorithm>
@@ -26,23 +24,14 @@ using namespace qs;
  *
  */
 
-qs::RegexNfa::RegexNfa(RegexRegexNode* pNode, QSTATUS* pstatus) :
-	pNode_(0)
+qs::RegexNfa::RegexNfa(std::auto_ptr<RegexRegexNode> pNode)
 {
-	assert(pstatus);
-	
-	DECLARE_QSTATUS();
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	status = STLWrapper<StateList>(listState_).resize(2);
-	CHECK_QSTATUS_SET(pstatus);
+	listState_.resize(2);
 	pNode_ = pNode;
 }
 
 qs::RegexNfa::~RegexNfa()
 {
-	delete pNode_;
 	std::for_each(listState_.begin(), listState_.end(),
 		unary_compose_f_gx(
 			deleter<RegexNfaState>(),
@@ -60,43 +49,32 @@ const RegexNfaState* qs::RegexNfa::getState(unsigned int n) const
 	return listState_[n].first;
 }
 
-QSTATUS qs::RegexNfa::createState(unsigned int* pn)
+unsigned int qs::RegexNfa::createState()
 {
-	assert(pn);
-	
-	DECLARE_QSTATUS();
-	
-	*pn = listState_.size();
-	status = STLWrapper<StateList>(listState_).push_back(
-		StateList::value_type(0, 0));
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	unsigned int n = listState_.size();
+	listState_.push_back(StateList::value_type(0, 0));
+	return n;
 }
 
-QSTATUS qs::RegexNfa::setTransition(unsigned int nFrom,
-	unsigned int nTo, const RegexAtom* pAtom)
+void qs::RegexNfa::setTransition(unsigned int nFrom,
+								 unsigned int nTo,
+								 const RegexAtom* pAtom)
 {
 	assert(listState_.size() > nFrom);
 	assert(listState_.size() > nTo);
 	
-	DECLARE_QSTATUS();
-	
 	StateList::value_type& v = listState_[nFrom];
 	
-	std::auto_ptr<RegexNfaState> pState;
-	status = newQsObject(pAtom, nTo, stackGroup_, v.second, &pState);
-	CHECK_QSTATUS();
+	std::auto_ptr<RegexNfaState> pState(new RegexNfaState(
+		pAtom, nTo, stackGroup_, v.second));
 	v.second = pState.release();
 	if (!v.first)
 		v.first = v.second;
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::RegexNfa::pushGroup(unsigned int nGroup)
+void qs::RegexNfa::pushGroup(unsigned int nGroup)
 {
-	return STLWrapper<GroupStack>(stackGroup_).push_back(nGroup);
+	stackGroup_.push_back(nGroup);
 }
 
 void qs::RegexNfa::popGroup()
@@ -111,27 +89,24 @@ void qs::RegexNfa::popGroup()
  *
  */
 
-qs::RegexNfaState::	RegexNfaState(const RegexAtom* pAtom, unsigned int nTo,
-	const GroupList& listGroup, RegexNfaState* pPrev, QSTATUS* pstatus) :
+qs::RegexNfaState::	RegexNfaState(const RegexAtom* pAtom,
+								  unsigned int nTo,
+								  const GroupList& listGroup,
+								  RegexNfaState* pPrev) :
 	pAtom_(pAtom),
-	nTo_(nTo),
-	pNext_(0)
+	nTo_(nTo)
 {
-	DECLARE_QSTATUS();
-	
-	status = STLWrapper<GroupList>(listGroup_).resize(listGroup.size());
-	CHECK_QSTATUS_SET(pstatus);
+	listGroup_.resize(listGroup.size());
 	std::copy(listGroup.begin(), listGroup.end(), listGroup_.begin());
 	
 	if (pPrev) {
-		assert(!pPrev->pNext_);
-		pPrev->pNext_ = this;
+		assert(!pPrev->pNext_.get());
+		pPrev->pNext_.reset(this);
 	}
 }
 
 qs::RegexNfaState::~RegexNfaState()
 {
-	delete pNext_;
 }
 
 bool qs::RegexNfaState::match(WCHAR c) const
@@ -156,7 +131,7 @@ const RegexNfaState::GroupList& qs::RegexNfaState::getGroupList() const
 
 RegexNfaState* qs::RegexNfaState::getNext() const
 {
-	return pNext_;
+	return pNext_.get();
 }
 
 
@@ -166,134 +141,98 @@ RegexNfaState* qs::RegexNfaState::getNext() const
  *
  */
 
-qs::RegexNfaCompiler::RegexNfaCompiler(QSTATUS* pstatus)
+qs::RegexNfaCompiler::RegexNfaCompiler()
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qs::RegexNfaCompiler::~RegexNfaCompiler()
 {
 }
 
-QSTATUS qs::RegexNfaCompiler::compile(
-	RegexRegexNode* pNode, RegexNfa** ppNfa) const
+std::auto_ptr<RegexNfa> qs::RegexNfaCompiler::compile(std::auto_ptr<RegexRegexNode> pNode) const
 {
-	assert(pNode);
-	assert(ppNfa);
+	assert(pNode.get());
 	
-	DECLARE_QSTATUS();
-	
-	*ppNfa = 0;
-	
-	std::auto_ptr<RegexNfa> pNfa;
-	status = newQsObject(pNode, &pNfa);
-	CHECK_QSTATUS();
-	
-	status = compileRegexNode(pNode, pNfa.get(), 0, 1);
-	CHECK_QSTATUS();
-	
-	*ppNfa = pNfa.release();
-	
-	return QSTATUS_SUCCESS;
+	RegexRegexNode* p = pNode.get();
+	std::auto_ptr<RegexNfa> pNfa(new RegexNfa(pNode));
+	compileRegexNode(p, pNfa.get(), 0, 1);
+	return pNfa;
 }
 
-QSTATUS qs::RegexNfaCompiler::compileNode(const RegexNode* pNode,
-	RegexNfa* pNfa, unsigned int nFrom, unsigned int nTo) const
+void qs::RegexNfaCompiler::compileNode(const RegexNode* pNode,
+									   RegexNfa* pNfa,
+									   unsigned int nFrom,
+									   unsigned int nTo) const
 {
 	assert(pNode);
 	assert(pNfa);
 	
-	DECLARE_QSTATUS();
-	
 	switch (pNode->getType()) {
 	case RegexNode::TYPE_REGEX:
-		status = compileRegexNode(static_cast<const RegexRegexNode*>(pNode),
-			pNfa, nFrom, nTo);
-		CHECK_QSTATUS();
+		compileRegexNode(static_cast<const RegexRegexNode*>(pNode), pNfa, nFrom, nTo);
 		break;
 	case RegexNode::TYPE_BRUNCH:
-		status = compileBrunchNode(static_cast<const RegexBrunchNode*>(pNode),
-			pNfa, nFrom, nTo);
-		CHECK_QSTATUS();
+		compileBrunchNode(static_cast<const RegexBrunchNode*>(pNode), pNfa, nFrom, nTo);
 		break;
 	case RegexNode::TYPE_PIECE:
-		status = compilePieceNode(static_cast<const RegexPieceNode*>(pNode),
-			pNfa, nFrom, nTo);
-		CHECK_QSTATUS();
+		compilePieceNode(static_cast<const RegexPieceNode*>(pNode), pNfa, nFrom, nTo);
 		break;
 	case RegexNode::TYPE_EMPTY:
-		status = pNfa->setTransition(nFrom, nTo, 0);
-		CHECK_QSTATUS();
+		pNfa->setTransition(nFrom, nTo, 0);
 		break;
 	default:
 		assert(false);
-		return QSTATUS_FAIL;
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::RegexNfaCompiler::compileRegexNode(
-	const RegexRegexNode* pRegexNode, RegexNfa* pNfa,
-	unsigned int nFrom, unsigned int nTo) const
+void qs::RegexNfaCompiler::compileRegexNode(const RegexRegexNode* pRegexNode,
+											RegexNfa* pNfa,
+											unsigned int nFrom,
+											unsigned int nTo) const
 {
 	assert(pRegexNode);
 	assert(pNfa);
 	
-	DECLARE_QSTATUS();
-	
-	status = pNfa->pushGroup(pRegexNode->getGroup());
-	CHECK_QSTATUS();
+	pNfa->pushGroup(pRegexNode->getGroup());
 	
 	const RegexRegexNode::NodeList& l = pRegexNode->getNodeList();
 	RegexRegexNode::NodeList::const_iterator it = l.begin();
 	while (it != l.end()) {
-		status = compileNode(*it, pNfa, nFrom, nTo);
-		CHECK_QSTATUS();
+		compileNode(*it, pNfa, nFrom, nTo);
 		++it;
 	}
 	
 	pNfa->popGroup();
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::RegexNfaCompiler::compileBrunchNode(
-	const RegexBrunchNode* pBrunchNode, RegexNfa* pNfa,
-	unsigned int nFrom, unsigned int nTo) const
+void qs::RegexNfaCompiler::compileBrunchNode(const RegexBrunchNode* pBrunchNode,
+											 RegexNfa* pNfa,
+											 unsigned int nFrom,
+											 unsigned int nTo) const
 {
 	assert(pBrunchNode);
 	assert(pNfa);
-	
-	DECLARE_QSTATUS();
 	
 	unsigned int nNodeFrom = nFrom;
 	const RegexBrunchNode::NodeList& l = pBrunchNode->getNodeList();
 	RegexBrunchNode::NodeList::const_iterator it = l.begin();
 	while (it != l.end()) {
 		unsigned int nNodeTo = nTo;
-		if (it + 1 != l.end()) {
-			status = pNfa->createState(&nNodeTo);
-			CHECK_QSTATUS();
-		}
-		status = compileNode(*it, pNfa, nNodeFrom, nNodeTo);
-		CHECK_QSTATUS();
+		if (it + 1 != l.end())
+			nNodeTo = pNfa->createState();
+		compileNode(*it, pNfa, nNodeFrom, nNodeTo);
 		nNodeFrom = nNodeTo;
 		++it;
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::RegexNfaCompiler::compilePieceNode(
-	const RegexPieceNode* pPieceNode, RegexNfa* pNfa,
-	unsigned int nFrom, unsigned int nTo) const
+void qs::RegexNfaCompiler::compilePieceNode(const RegexPieceNode* pPieceNode,
+											RegexNfa* pNfa,
+											unsigned int nFrom,
+											unsigned int nTo) const
 {
 	assert(pPieceNode);
 	assert(pNfa);
-	
-	DECLARE_QSTATUS();
 	
 	const RegexAtom* pAtom = pPieceNode->getAtom();
 	const RegexQuantifier* pQuantifier = pPieceNode->getQuantifier();
@@ -306,84 +245,62 @@ QSTATUS qs::RegexNfaCompiler::compilePieceNode(
 				if (nMin != 0)
 					--nMin;
 				while (n > nMin) {
-					status = compileAtom(pAtom, n, pNfa, nFrom, nTo);
-					CHECK_QSTATUS();
+					compileAtom(pAtom, n, pNfa, nFrom, nTo);
 					--n;
 				}
-				if (pQuantifier->getMin() == 0) {
-					status = pNfa->setTransition(nFrom, nTo, 0);
-					CHECK_QSTATUS();
-				}
+				if (pQuantifier->getMin() == 0)
+					pNfa->setTransition(nFrom, nTo, 0);
 			}
 			break;
 		case RegexQuantifier::TYPE_MIN:
 			{
 				unsigned int nEpsilonFrom = 0;
 				if (pQuantifier->getMin() != 0) {
-					status = pNfa->createState(&nEpsilonFrom);
-					CHECK_QSTATUS();
-					status = compileAtom(pAtom, pQuantifier->getMin(),
+					nEpsilonFrom = pNfa->createState();
+					compileAtom(pAtom, pQuantifier->getMin(),
 						pNfa, nFrom, nEpsilonFrom);
-					CHECK_QSTATUS();
 				}
 				else {
 					nEpsilonFrom = nFrom;
 				}
 				
-				unsigned int n = 0;
-				status = pNfa->createState(&n);
-				CHECK_QSTATUS();
-				status = compileAtom(pAtom, 1, pNfa, nEpsilonFrom, n);
-				CHECK_QSTATUS();
-				status = pNfa->setTransition(n, nEpsilonFrom, 0);
-				CHECK_QSTATUS();
-				status = pNfa->setTransition(nEpsilonFrom, nTo, 0);
-				CHECK_QSTATUS();
+				unsigned int n = pNfa->createState();
+				compileAtom(pAtom, 1, pNfa, nEpsilonFrom, n);
+				pNfa->setTransition(n, nEpsilonFrom, 0);
+				pNfa->setTransition(nEpsilonFrom, nTo, 0);
 			}
 			break;
 		default:
 			assert(false);
-			return QSTATUS_FAIL;
 		}
 	}
 	else {
-		status = compileAtom(pAtom, 1, pNfa, nFrom, nTo);
-		CHECK_QSTATUS();
+		compileAtom(pAtom, 1, pNfa, nFrom, nTo);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::RegexNfaCompiler::compileAtom(const RegexAtom* pAtom,
-	unsigned int nCount, RegexNfa* pNfa,
-	unsigned int nFrom, unsigned int nTo) const
+void qs::RegexNfaCompiler::compileAtom(const RegexAtom* pAtom,
+									   unsigned int nCount,
+									   RegexNfa* pNfa,
+									   unsigned int nFrom,
+									   unsigned int nTo) const
 {
 	assert(pAtom);
 	assert(nCount != 0);
 	assert(pNfa);
 	
-	DECLARE_QSTATUS();
-	
 	const RegexRegexNode* pNode = pAtom->getNode();
 	unsigned int nAtomFrom = nFrom;
 	for (unsigned int n = 0; n < nCount; ++n) {
 		unsigned int nAtomTo = nTo;
-		if (n != nCount - 1) {
-			status = pNfa->createState(&nAtomTo);
-			CHECK_QSTATUS();
-		}
-		if (pNode) {
-			status = compileRegexNode(pNode, pNfa, nAtomFrom, nAtomTo);
-			CHECK_QSTATUS();
-		}
-		else {
-			status = pNfa->setTransition(nAtomFrom, nAtomTo, pAtom);
-			CHECK_QSTATUS();
-		}
+		if (n != nCount - 1)
+			nAtomTo = pNfa->createState();
+		if (pNode)
+			compileRegexNode(pNode, pNfa, nAtomFrom, nAtomTo);
+		else
+			pNfa->setTransition(nAtomFrom, nAtomTo, pAtom);
 		nAtomFrom = nAtomTo;
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -402,36 +319,31 @@ qs::RegexNfaMatcher::~RegexNfaMatcher()
 {
 }
 
-QSTATUS qs::RegexNfaMatcher::match(const WCHAR* pwsz, size_t nLen,
-	bool* pbMatch, RegexRangeList* pList) const
+bool qs::RegexNfaMatcher::match(const WCHAR* pwsz,
+								size_t nLen,
+								RegexRangeList* pList) const
 {
 	assert(pwsz);
-	assert(pbMatch);
-	
-	DECLARE_QSTATUS();
-	
-	*pbMatch = false;
 	
 	const WCHAR* pEnd = 0;
-	status = match(pwsz, pwsz + nLen, true, &pEnd, pList);
-	CHECK_QSTATUS();
+	match(pwsz, pwsz + nLen, true, &pEnd, pList);
 	assert(!pEnd || pEnd == pwsz + nLen);
-	*pbMatch = pEnd != 0;
-	
-	return QSTATUS_SUCCESS;
+	return pEnd != 0;
 }
 
-QSTATUS qs::RegexNfaMatcher::search(const WCHAR* pwsz, size_t nLen,
-	const WCHAR* p, bool bReverse, const WCHAR** ppStart,
-	const WCHAR** ppEnd, RegexRangeList* pList) const
+void qs::RegexNfaMatcher::search(const WCHAR* pwsz,
+								 size_t nLen,
+								 const WCHAR* p,
+								 bool bReverse,
+								 const WCHAR** ppStart,
+								 const WCHAR** ppEnd,
+								 RegexRangeList* pList) const
 {
 	assert(pwsz);
 	assert(p);
 	assert(pwsz <= p && p <= pwsz + nLen);
 	assert(ppStart);
 	assert(ppEnd);
-	
-	DECLARE_QSTATUS();
 	
 	*ppStart = 0;
 	*ppEnd = 0;
@@ -441,8 +353,7 @@ QSTATUS qs::RegexNfaMatcher::search(const WCHAR* pwsz, size_t nLen,
 	if (bReverse)
 		--p;
 	while (bReverse ? p >= pStart : p < pEnd) {
-		status = match(p, pEnd, false, ppEnd, pList);
-		CHECK_QSTATUS();
+		match(p, pEnd, false, ppEnd, pList);
 		if (*ppEnd) {
 			assert(*ppEnd != p);
 			*ppStart = p;
@@ -450,18 +361,17 @@ QSTATUS qs::RegexNfaMatcher::search(const WCHAR* pwsz, size_t nLen,
 		}
 		bReverse ? --p : ++p;
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::RegexNfaMatcher::match(const WCHAR* pStart, const WCHAR* pEnd,
-	bool bMatch, const WCHAR** ppEnd, RegexRangeList* pList) const
+void qs::RegexNfaMatcher::match(const WCHAR* pStart,
+								const WCHAR* pEnd,
+								bool bMatch,
+								const WCHAR** ppEnd,
+								RegexRangeList* pList) const
 {
 	assert(pStart);
 	assert(pEnd);
 	assert(ppEnd);
-	
-	DECLARE_QSTATUS();
 	
 	*ppEnd = 0;
 	
@@ -485,14 +395,9 @@ QSTATUS qs::RegexNfaMatcher::match(const WCHAR* pStart, const WCHAR* pEnd,
 			}
 		}
 		if (pState) {
-			if (pState->getNext()) {
-				status = STLWrapper<Stack>(stackBackTrack).push_back(
-					std::make_pair(pState->getNext(), p));
-				CHECK_QSTATUS();
-			}
-			status = STLWrapper<Stack>(stackMatch).push_back(
-				std::make_pair(pState, pMatch));
-			CHECK_QSTATUS();
+			if (pState->getNext())
+				stackBackTrack.push_back(std::make_pair(pState->getNext(), p));
+			stackMatch.push_back(std::make_pair(pState, pMatch));
 			pState = pNfa_->getState(pState->getTo());
 			if (pMatch)
 				++p;
@@ -510,11 +415,8 @@ QSTATUS qs::RegexNfaMatcher::match(const WCHAR* pStart, const WCHAR* pEnd,
 				stackMatch.pop_back();
 			stackMatch.pop_back();
 			
-			if (pState->getNext()) {
-				status = STLWrapper<Stack>(stackBackTrack).push_back(
-					std::make_pair(pState->getNext(), p));
-				CHECK_QSTATUS();
-			}
+			if (pState->getNext())
+				stackBackTrack.push_back(std::make_pair(pState->getNext(), p));
 		}
 		else {
 			break;
@@ -530,11 +432,8 @@ QSTATUS qs::RegexNfaMatcher::match(const WCHAR* pStart, const WCHAR* pEnd,
 				RegexNfaState::GroupList::const_iterator itG = l.begin();
 				while (itG != l.end()) {
 					unsigned int nGroup = *itG;
-					if (pList->list_.size() <= nGroup) {
-						status = STLWrapper<RegexRangeList::List>(
-							pList->list_).resize(nGroup + 1);
-						CHECK_QSTATUS();
-					}
+					if (pList->list_.size() <= nGroup)
+						pList->list_.resize(nGroup + 1);
 					RegexRange& range = pList->list_[nGroup];
 					if (!range.pStart_)
 						range.pStart_ = (*itM).second;
@@ -545,6 +444,4 @@ QSTATUS qs::RegexNfaMatcher::match(const WCHAR* pStart, const WCHAR* pEnd,
 			++itM;
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }

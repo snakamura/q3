@@ -1,13 +1,12 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qsconv.h>
-#include <qsnew.h>
 #include <qsstream.h>
 
 #include <algorithm>
@@ -27,23 +26,19 @@ using namespace qs;
  */
 
 qs::XMLParser::XMLParser(ContentHandler* pContentHandler,
-	unsigned int nFlags, QSTATUS* pstatus) :
+						 unsigned int nFlags) :
 	pContentHandler_(pContentHandler),
 	nFlags_(nFlags)
 {
 	assert(pContentHandler);
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qs::XMLParser::~XMLParser()
 {
 }
 
-QSTATUS qs::XMLParser::parse(const InputSource& source)
+bool qs::XMLParser::parse(const InputSource& source)
 {
-	DECLARE_QSTATUS();
-	
 	InputStream* pInputStream = source.getByteStream();
 	Reader* pReader = 0;
 	if (!pInputStream)
@@ -52,12 +47,11 @@ QSTATUS qs::XMLParser::parse(const InputSource& source)
 	if (!pInputStream && !pReader) {
 		const WCHAR* pwszSystemId = source.getSystemId();
 		if (!pwszSystemId)
-			return QSTATUS_FAIL;
-		std::auto_ptr<FileInputStream> pStream;
-		status = newQsObject(pwszSystemId, &pStream);
-		CHECK_QSTATUS();
-		status = newQsObject(pStream.get(), true, &pBufferedInputStream);
-		CHECK_QSTATUS();
+			return false;
+		std::auto_ptr<FileInputStream> pStream(new FileInputStream(pwszSystemId));
+		if (!*pStream.get())
+			return false;
+		pBufferedInputStream.reset(new BufferedInputStream(pStream.get(), true));
 		pStream.release();
 		pInputStream = pBufferedInputStream.get();
 	}
@@ -65,19 +59,19 @@ QSTATUS qs::XMLParser::parse(const InputSource& source)
 	
 	std::auto_ptr<Reader> apReader;
 	if (pInputStream) {
-		status = parseXmlDecl(pInputStream, &pReader);
-		CHECK_QSTATUS();
-		apReader.reset(pReader);
+		if (!parseXmlDecl(pInputStream, &apReader))
+			return false;
+		pReader = apReader.get();
 	}
 	else {
-		status = parseXmlDecl(pReader);
-		CHECK_QSTATUS();
+		if (!parseXmlDecl(pReader))
+			return false;
 	}
 	assert(pReader);
 	
 	if (pContentHandler_) {
-		status = pContentHandler_->startDocument();
-		CHECK_QSTATUS();
+		if (!pContentHandler_->startDocument())
+			return false;
 	}
 	
 	XMLParserContext context(this, pReader,
@@ -85,31 +79,31 @@ QSTATUS qs::XMLParser::parse(const InputSource& source)
 		XMLParserContext::WAIT_PROCESSINGINSTRUCTION |
 		XMLParserContext::WAIT_COMMENT |
 		XMLParserContext::WAIT_WS);
-	status = parse(context);
-	CHECK_QSTATUS();
+	if (!parse(context))
+		return false;
 	
 	if (pContentHandler_) {
-		status = pContentHandler_->endDocument();
-		CHECK_QSTATUS();
+		if (!pContentHandler_->endDocument())
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::XMLParser::validateQName(const WCHAR* pwsz) const
+bool qs::XMLParser::validateQName(const WCHAR* pwsz) const
 {
 	if (nFlags_ & FLAG_NAMESPACES)
-		return isQName(pwsz) ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+		return isQName(pwsz);
 	else
-		return isName(pwsz) ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+		return isName(pwsz);
 }
 
-QSTATUS qs::XMLParser::validateNCName(const WCHAR* pwsz) const
+bool qs::XMLParser::validateNCName(const WCHAR* pwsz) const
 {
 	if (nFlags_ & FLAG_NAMESPACES)
-		return isNCName(pwsz) ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+		return isNCName(pwsz);
 	else
-		return isName(pwsz) ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+		return isName(pwsz);
 }
 
 bool qs::XMLParser::isWhitespace(WCHAR c)
@@ -148,190 +142,171 @@ bool qs::XMLParser::isNCName(const WCHAR* pwsz)
 	return *pwsz != L'\0';
 }
 
-QSTATUS qs::XMLParser::parseXmlDecl(InputStream* pInputStream, Reader** ppReader)
+bool qs::XMLParser::parseXmlDecl(InputStream* pInputStream,
+								 std::auto_ptr<Reader>* ppReader)
 {
 	assert(pInputStream);
 	assert(ppReader);
 	
-	DECLARE_QSTATUS();
+	std::auto_ptr<ResettableInputStream> pStream(
+		new ResettableInputStream(10, pInputStream));
+	if (!*pStream.get())
+		return false;
 	
-	*ppReader = 0;
-	
-	std::auto_ptr<ResettableInputStream> pStream;
-	status = newQsObject(10, pInputStream, &pStream);
-	CHECK_QSTATUS();
-	
-	string_ptr<WSTRING> wstrEncoding;
+	wstring_ptr wstrEncoding;
 	
 	unsigned char buf[16];
-	size_t nRead = 0;
-	status = pStream->read(buf, 6, &nRead);
-	CHECK_QSTATUS();
+	size_t nRead = pStream->read(buf, 6);
 	if (nRead != 6)
-		return QSTATUS_FAIL;
+		return false;
 	if (strncmp(reinterpret_cast<char*>(buf), "<?xml", 5) == 0 && isWhitespace(buf[5])) {
 		char c = 0;
-		status = skipWhitespace(pStream.get(), &c);
-		CHECK_QSTATUS();
+		if (!skipWhitespace(pStream.get(), &c))
+			return false;
 		buf[0] = c;
-		status = pStream->read(buf + 1, 6, &nRead);
-		CHECK_QSTATUS();
+		nRead = pStream->read(buf + 1, 6);
 		if (nRead != 6 || strncmp(reinterpret_cast<char*>(buf), "version", 7) != 0)
-			return QSTATUS_FAIL;
-		status = skipWhitespace(pStream.get(), &c);
-		CHECK_QSTATUS();
+			return false;
+		if (!skipWhitespace(pStream.get(), &c))
+			return false;
 		if (c != '=')
-			return QSTATUS_FAIL;
-		status = skipWhitespace(pStream.get(), &c);
-		CHECK_QSTATUS();
+			return false;
+		if (!skipWhitespace(pStream.get(), &c))
+			return false;
 		if (c != '\"' && c != '\'')
-			return QSTATUS_FAIL;
-		status = pStream->read(buf, 4, &nRead);
-		CHECK_QSTATUS();
+			return false;
+		nRead = pStream->read(buf, 4);
 		if (nRead != 4 || strncmp(reinterpret_cast<char*>(buf), "1.0", 3) != 0 || buf[3] != c)
-			return QSTATUS_FAIL;
-		status = skipWhitespace(pStream.get(), &c);
-		CHECK_QSTATUS();
+			return false;
+		if (!skipWhitespace(pStream.get(), &c))
+			return false;
 		if (c != '?') {
 			if (c == 'e') {
 				buf[0] = c;
-				status = pStream->read(buf + 1, 7, &nRead);
-				CHECK_QSTATUS();
+				nRead = pStream->read(buf + 1, 7);
 				if (nRead != 7 || strncmp(reinterpret_cast<char*>(buf), "encoding", 8) != 0)
-					return QSTATUS_FAIL;
-				status = skipWhitespace(pStream.get(), &c);
-				CHECK_QSTATUS();
+					return false;
+				if (!skipWhitespace(pStream.get(), &c))
+					return false;
 				if (c != '=')
-					return QSTATUS_FAIL;
-				status = skipWhitespace(pStream.get(), &c);
-				CHECK_QSTATUS();
+					return false;
+				if (!skipWhitespace(pStream.get(), &c))
+					return false;
 				if (c != '\"' && c != '\'')
-					return QSTATUS_FAIL;
+					return false;
 				char cEnd = c;
-				StringBuffer<STRING> encoding(&status);
-				CHECK_QSTATUS();
+				StringBuffer<STRING> encoding;
 				while (true) {
-					status = getChar(pStream.get(), reinterpret_cast<unsigned char*>(&c));
-					CHECK_QSTATUS();
+					if (!getChar(pStream.get(), reinterpret_cast<unsigned char*>(&c)))
+						return false;
 					if (c == '\0')
-						return QSTATUS_FAIL;
+						return false;
 					else if (c == cEnd)
 						break;
-					status = encoding.append(c);
-					CHECK_QSTATUS();
+					encoding.append(c);
 				}
-				wstrEncoding.reset(mbs2wcs(encoding.getCharArray()));
-				if (!wstrEncoding.get())
-					return QSTATUS_OUTOFMEMORY;
-				status = skipWhitespace(pStream.get(), &c);
-				CHECK_QSTATUS();
+				wstrEncoding = mbs2wcs(encoding.getCharArray());
+				if (!skipWhitespace(pStream.get(), &c))
+					return false;
 			}
 			if (c == 's') {
 				buf[0] = c;
-				status = pStream->read(buf + 1, 9, &nRead);
-				CHECK_QSTATUS();
+				nRead = pStream->read(buf + 1, 9);
 				if (nRead != 9 || strncmp(reinterpret_cast<char*>(buf), "standalone", 10) != 0)
-					return QSTATUS_FAIL;
-				status = skipWhitespace(pStream.get(), &c);
-				CHECK_QSTATUS();
+					return false;
+				if (!skipWhitespace(pStream.get(), &c))
+					return false;
 				if (c != '=')
-					return QSTATUS_FAIL;
-				status = skipWhitespace(pStream.get(), &c);
-				CHECK_QSTATUS();
+					return false;
+				if (!skipWhitespace(pStream.get(), &c))
+					return false;
 				if (c != '\"' && c != '\'')
-					return QSTATUS_FAIL;
-				status = pStream->read(buf, 4, &nRead);
-				CHECK_QSTATUS();
+					return false;
+				nRead = pStream->read(buf, 4);
 				if (nRead != 4 ||
 					(strncmp(reinterpret_cast<char*>(buf), "yes", 3) != 0 || buf[3] != c) &&
 					(strncmp(reinterpret_cast<char*>(buf), "no", 2) != 0 || buf[2] != c))
-					return QSTATUS_FAIL;
+					return false;
 				if (buf[0] == 'y' || isWhitespace(buf[3])) {
-					status = skipWhitespace(pStream.get(), &c);
-					CHECK_QSTATUS();
+					if (!skipWhitespace(pStream.get(), &c))
+						return false;
 				}
 				else {
 					c = buf[3];
 				}
 			}
 			if (c != '?')
-				return QSTATUS_FAIL;
+				return false;
 		}
 		assert(c == '?');
-		status = getChar(pStream.get(), reinterpret_cast<unsigned char*>(&c));
-		CHECK_QSTATUS();
+		if (!getChar(pStream.get(), reinterpret_cast<unsigned char*>(&c)))
+			return false;
 		if (c != L'>')
-			return QSTATUS_FAIL;
+			return false;
 	}
 	else {
-		status = pStream->reset();
-		CHECK_QSTATUS();
+		if (!pStream->reset())
+			return false;
 	}
 	
 	const WCHAR* pwszEncoding = wstrEncoding.get();
 	if (!pwszEncoding)
 		pwszEncoding = L"utf-8";
 	
-	std::auto_ptr<InputStreamReader> pReader;
-	status = newQsObject(pStream.get(), true, pwszEncoding, &pReader);
-	CHECK_QSTATUS();
+	ppReader->reset(new InputStreamReader(pStream.get(), true, pwszEncoding));
 	pStream.release();
 	
-	*ppReader = pReader.release();
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::XMLParser::parseXmlDecl(Reader* pReader)
+bool qs::XMLParser::parseXmlDecl(Reader* pReader)
 {
 	// TODO
 	
-	return QSTATUS_SUCCESS;
+	return false;
 }
 
-QSTATUS qs::XMLParser::parse(XMLParserContext& context)
+bool qs::XMLParser::parse(XMLParserContext& context)
 {
-	DECLARE_QSTATUS();
-	
 	WCHAR c = L'\0';
-	status = context.getChar(&c);
-	CHECK_QSTATUS();
+	if (!context.getChar(&c))
+		return false;
 	while (c != L'\0') {
 		WCHAR cNext = L'\0';
 		if (c == L'<') {
-			status = context.getChar(&c);
-			CHECK_QSTATUS();
+			if (!context.getChar(&c))
+				return false;
 			if (c == L'\0')
-				return QSTATUS_FAIL;
+				return false;
 			if (c == '?') {
-				status = parsePI(context);
-				CHECK_QSTATUS();
+				if (!parsePI(context))
+					return false;
 			}
 			else if (c == '!') {
-				status = context.getChar(&c);
-				CHECK_QSTATUS();
+				if (!context.getChar(&c))
+					return false;
 				if (c == '-') {
-					status = parseComment(context);
-					CHECK_QSTATUS();
+					if (!parseComment(context))
+						return false;
 				}
 				else if (c == '[') {
-					status = parseCDATASection(context);
-					CHECK_QSTATUS();
+					if (!parseCDATASection(context))
+						return false;
 				}
 				else {
-					return QSTATUS_FAIL;
+					return false;
 				}
 			}
 			else if (c == '/') {
 				if (context.isWait(XMLParserContext::WAIT_ENDELEMENT))
 					return parseEndElement(context);
 				else
-					return QSTATUS_FAIL;
+					return false;
 			}
 			else {
 				if (context.isWait(XMLParserContext::WAIT_STARTELEMENT)) {
-					status = parseStartElement(context, c);
-					CHECK_QSTATUS();
+					if (!parseStartElement(context, c))
+						return false;
 					if (!context.getParentContext())
 						context.setWait(XMLParserContext::WAIT_WS,
 							XMLParserContext::WAIT_WS |
@@ -339,21 +314,21 @@ QSTATUS qs::XMLParser::parse(XMLParserContext& context)
 							XMLParserContext::WAIT_STARTELEMENT);
 				}
 				else {
-					return QSTATUS_FAIL;
+					return false;
 				}
 			}
 		}
 		else {
 			if (context.isWait(XMLParserContext::WAIT_CHARACTER)) {
-				status = parseCharacter(context, c, &cNext);
-				CHECK_QSTATUS();
+				if (!parseCharacter(context, c, &cNext))
+					return false;
 			}
 			else if (context.isWait(XMLParserContext::WAIT_WS)) {
 				if (!isWhitespace(c))
-					return QSTATUS_FAIL;
+					return false;
 			}
 			else {
-				return QSTATUS_FAIL;
+				return false;
 			}
 		}
 		
@@ -361,34 +336,32 @@ QSTATUS qs::XMLParser::parse(XMLParserContext& context)
 			c = cNext;
 		}
 		else {
-			status = context.getChar(&c);
-			CHECK_QSTATUS();
+			if (!context.getChar(&c))
+				return false;
 		}
 	}
 	
-	return context.isWait(XMLParserContext::WAIT_STARTELEMENT) ?
-		QSTATUS_FAIL : QSTATUS_SUCCESS;
+	return !context.isWait(XMLParserContext::WAIT_STARTELEMENT);
 }
 
-QSTATUS qs::XMLParser::parseStartElement(XMLParserContext& context, WCHAR c)
+bool qs::XMLParser::parseStartElement(XMLParserContext& context,
+									  WCHAR c)
 {
 	assert(c != L'\0');
 	
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrQName;
+	wstring_ptr wstrQName;
 	WCHAR cNext = L'\0';
-	status = context.getString(c, L" \t\n\r>/", &wstrQName, &cNext);
-	CHECK_QSTATUS();
-	status = validateQName(wstrQName.get());
-	CHECK_QSTATUS();
+	if (!context.getString(c, L" \t\n\r>/", &wstrQName, &cNext))
+		return false;
+	if (!validateQName(wstrQName.get()))
+		return false;
 	
 	c = cNext;
 	while (isWhitespace(c)) {
-		status = context.getChar(&c);
-		CHECK_QSTATUS();
+		if (!context.getChar(&c))
+			return false;
 		if (c == L'\0')
-			return QSTATUS_FAIL;
+			return false;
 	}
 	
 	XMLParserContext childContext(&context, wstrQName.get(),
@@ -402,197 +375,188 @@ QSTATUS qs::XMLParser::parseStartElement(XMLParserContext& context, WCHAR c)
 	AttributeListDeleter deleter(&listAttribute);
 	bool bEmptyTag = false;
 	if (c != L'>' && c != L'/') {
-		status = parseAttributes(childContext, c, &listAttribute, &cNext);
-		CHECK_QSTATUS();
+		if (!parseAttributes(childContext, c, &listAttribute, &cNext))
+			return false;
 		c = cNext;
 	}
 	assert(c == L'/' || c == L'>');
 	
 	if (c == L'/') {
-		status = context.getChar(&c);
-		CHECK_QSTATUS();
+		if (!context.getChar(&c))
+			return false;
 		if (c != L'>')
-			return QSTATUS_FAIL;
+			return false;
 		bEmptyTag = true;
 	}
 	
 	if (nFlags_ & FLAG_NAMESPACES) {
-		status = childContext.fireStartPrefixMappings(pContentHandler_);
-		CHECK_QSTATUS();
+		if (!childContext.fireStartPrefixMappings(pContentHandler_))
+			return false;
 	}
 	
 	const WCHAR* pwszNamespaceURI = 0;
 	const WCHAR* pwszLocalName = 0;
 	if (nFlags_ & FLAG_NAMESPACES) {
-		status = childContext.expandQName(wstrQName.get(),
-			true, &pwszNamespaceURI, &pwszLocalName);
-		CHECK_QSTATUS();
+		if (!childContext.expandQName(wstrQName.get(),
+			true, &pwszNamespaceURI, &pwszLocalName))
+			return false;
 	}
 	
 	if (pContentHandler_) {
 		AttributesImpl attrs(listAttribute);
-		status = pContentHandler_->startElement(pwszNamespaceURI,
-			pwszLocalName, wstrQName.get(), attrs);
-		CHECK_QSTATUS();
+		if (!pContentHandler_->startElement(pwszNamespaceURI,
+			pwszLocalName, wstrQName.get(), attrs))
+			return false;
 	}
 	if (bEmptyTag) {
 		if (pContentHandler_) {
-			status = pContentHandler_->endElement(pwszNamespaceURI,
-				pwszLocalName, wstrQName.get());
-			CHECK_QSTATUS();
+			if (!pContentHandler_->endElement(pwszNamespaceURI,
+				pwszLocalName, wstrQName.get()))
+				return false;
 		}
 	}
 	else {
-		status = parse(childContext);
-		CHECK_QSTATUS();
+		if (!parse(childContext))
+			return false;
 	}
 	
 	if (nFlags_ & FLAG_NAMESPACES) {
-		status = childContext.fireEndPrefixMappings(pContentHandler_);
-		CHECK_QSTATUS();
+		if (!childContext.fireEndPrefixMappings(pContentHandler_))
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::XMLParser::parseEndElement(XMLParserContext& context)
+bool qs::XMLParser::parseEndElement(XMLParserContext& context)
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrQName;
+	wstring_ptr wstrQName;
 	WCHAR c = L'\0';
-	status = context.getString(L'\0', L" \t\n\r>", &wstrQName, &c);
-	CHECK_QSTATUS();
-	status = validateQName(wstrQName.get());
-	CHECK_QSTATUS();
+	if (!context.getString(L'\0', L" \t\n\r>", &wstrQName, &c))
+		return false;
+	if (!validateQName(wstrQName.get()))
+		return false;
 	
 	const WCHAR* pwszNamespaceURI = 0;
 	const WCHAR* pwszLocalName = 0;
 	if (nFlags_ & FLAG_NAMESPACES) {
-		status = context.expandQName(wstrQName.get(),
-			true, &pwszNamespaceURI, &pwszLocalName);
-		CHECK_QSTATUS();
+		if (!context.expandQName(wstrQName.get(),
+			true, &pwszNamespaceURI, &pwszLocalName))
+			return false;
 	}
 	
 	while (isWhitespace(c)) {
-		status = context.getChar(&c);
-		CHECK_QSTATUS();
+		if (!context.getChar(&c))
+			return false;
 		if (c == L'\0')
-			return QSTATUS_FAIL;
+			return false;
 	}
 	
 	if (c != L'>')
-		return QSTATUS_FAIL;
+		return false;
 	
 	if (wcscmp(wstrQName.get(), context.getQName()) != 0)
-		return QSTATUS_FAIL;
+		return false;
 	
 	if (pContentHandler_) {
-		status = pContentHandler_->endElement(
-			pwszNamespaceURI, pwszLocalName, wstrQName.get());
-		CHECK_QSTATUS();
+		if (!pContentHandler_->endElement(
+			pwszNamespaceURI, pwszLocalName, wstrQName.get()))
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::XMLParser::parseAttributes(XMLParserContext& context,
-	WCHAR c, AttributeList* pListAttribute, WCHAR* pNext)
+bool qs::XMLParser::parseAttributes(XMLParserContext& context,
+									WCHAR c,
+									AttributeList* pListAttribute,
+									WCHAR* pNext)
 {
 	assert(pListAttribute);
 	assert(pNext);
 	
-	DECLARE_QSTATUS();
-	
 	AttributeListDeleter deleter(pListAttribute);
 	do {
-		string_ptr<WSTRING> wstrQName;
+		wstring_ptr wstrQName;
 		WCHAR cNext = L'\0';
-		status = context.getString(c, L" \t\n\r=", &wstrQName, &cNext);
-		CHECK_QSTATUS();
-		status = validateQName(wstrQName.get());
-		CHECK_QSTATUS();
+		if (!context.getString(c, L" \t\n\r=", &wstrQName, &cNext))
+			return false;
+		if (!validateQName(wstrQName.get()))
+			return false;
 		
 		c = cNext;
 		while (isWhitespace(c)) {
-			status = context.getChar(&c);
-			CHECK_QSTATUS();
+			if (!context.getChar(&c))
+				return false;
 			if (c == L'\0')
-				return QSTATUS_FAIL;
+				return false;
 		}
 		if (c != L'=')
-			return QSTATUS_FAIL;
+			return false;
 		
 		do {
-			status = context.getChar(&c);
-			CHECK_QSTATUS();
+			if (!context.getChar(&c))
+				return false;
 			if (c == L'\0')
-				return QSTATUS_FAIL;
+				return false;
 		} while (isWhitespace(c));
 		if (c != L'\'' && c != L'\"')
-			return QSTATUS_FAIL;
+			return false;
 		
-		StringBuffer<WSTRING> buf(&status);
-		CHECK_QSTATUS();
+		StringBuffer<WSTRING> buf;
 		WCHAR cEnd = c;
 		while (true) {
-			status = context.getChar(&c);
-			CHECK_QSTATUS();
+			if (!context.getChar(&c))
+				return false;
 			
 			if (c == L'\0') {
-				return QSTATUS_FAIL;
+				return false;
 			}
 			else if (c == cEnd) {
 				break;
 			}
 			else if (c == L'&') {
-				string_ptr<WSTRING> wstrValue;
-				status = context.expandReference(&wstrValue);
-				CHECK_QSTATUS();
+				wstring_ptr wstrValue;
+				if (!context.expandReference(&wstrValue))
+					return false;
 				for (const WCHAR* p = wstrValue.get(); *p; ++p) {
 					// TODO
 					// Expand entity
-					if (isWhitespace(*p)) {
-						status = buf.append(L' ');
-						CHECK_QSTATUS();
-					}
-					else {
-						status = buf.append(*p);
-						CHECK_QSTATUS();
-					}
+					if (isWhitespace(*p))
+						buf.append(L' ');
+					else
+						buf.append(*p);
 				}
 			}
 			else if (c == '<') {
-				return QSTATUS_FAIL;
+				return false;
 			}
 			else if (isWhitespace(c)) {
-				status = buf.append(L' ');
-				CHECK_QSTATUS();
+				buf.append(L' ');
 			}
 			else {
-				status = buf.append(c);
-				CHECK_QSTATUS();
+				buf.append(c);
 			}
 		}
 		
-		status = context.getChar(&c);
-		CHECK_QSTATUS();
+		if (!context.getChar(&c))
+			return false;
 		if (!isWhitespace(c) && c != L'>' && c != L'/')
-			return QSTATUS_FAIL;
+			return false;
 		while (isWhitespace(c)) {
-			status = context.getChar(&c);
-			CHECK_QSTATUS();
+			if (!context.getChar(&c))
+				return false;
 			if (c == L'\0')
-				return QSTATUS_FAIL;
+				return false;
 		}
 		
-		string_ptr<WSTRING> wstrValue(buf.getString());
+		wstring_ptr wstrValue(buf.getString());
 		
 		bool bNamespaceDecl = wcscmp(wstrQName.get(), L"xmlns") == 0 ||
 			wcsncmp(wstrQName.get(), L"xmlns:", 6) == 0;
 		if (bNamespaceDecl) {
-			status = context.addNamespace(wstrQName.get(), wstrValue.get());
-			CHECK_QSTATUS();
+			if (!context.addNamespace(wstrQName.get(), wstrValue.get()))
+				return false;
 		}
 		if (!bNamespaceDecl || (nFlags_ & FLAG_NAMESPACEPREFIXES)) {
 			Attribute attr = {
@@ -602,8 +566,7 @@ QSTATUS qs::XMLParser::parseAttributes(XMLParserContext& context,
 				wstrValue.get(),
 				bNamespaceDecl
 			};
-			status = STLWrapper<AttributeList>(*pListAttribute).push_back(attr);
-			CHECK_QSTATUS();
+			pListAttribute->push_back(attr);
 			wstrQName.release();
 			wstrValue.release();
 		}
@@ -619,16 +582,16 @@ QSTATUS qs::XMLParser::parseAttributes(XMLParserContext& context,
 					(*it).pwszLocalName_ = (*it).wstrQName_;
 			}
 			else {
-				status = context.expandQName((*it).wstrQName_,
-					false, &(*it).pwszNamespaceURI_, &(*it).pwszLocalName_);
-				CHECK_QSTATUS();
+				if (!context.expandQName((*it).wstrQName_,
+					false, &(*it).pwszNamespaceURI_, &(*it).pwszLocalName_))
+					return false;
 			}
 		}
 		
 		AttributeList::iterator itP = pListAttribute->begin();
 		while (itP != it) {
 			if (isEqualAttribute(*it, *itP, nFlags_ & FLAG_NAMESPACES))
-				return QSTATUS_FAIL;
+				return false;
 			++itP;
 		}
 		
@@ -638,102 +601,93 @@ QSTATUS qs::XMLParser::parseAttributes(XMLParserContext& context,
 	deleter.release();
 	*pNext = c;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::XMLParser::parseCharacter(
-	XMLParserContext& context, WCHAR c, WCHAR* pNext)
+bool qs::XMLParser::parseCharacter(XMLParserContext& context,
+								   WCHAR c,
+								   WCHAR* pNext)
 {
 	assert(pNext);
 	
-	DECLARE_QSTATUS();
-	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
+	StringBuffer<WSTRING> buf;
 	
 	while (c != L'<') {
 		if (c == L'&') {
-			string_ptr<WSTRING> wstrValue;
-			status = context.expandReference(&wstrValue);
-			CHECK_QSTATUS();
-			status = buf.append(wstrValue.get());
-			CHECK_QSTATUS();
+			wstring_ptr wstrValue;
+			if (!context.expandReference(&wstrValue))
+				return false;
+			buf.append(wstrValue.get());
 		}
 		else {
 			if (c == '>') {
 				size_t nLen = buf.getLength();
 				if (nLen >= 2 && buf.get(nLen - 1) == ']' && buf.get(nLen - 2) == ']')
-					return QSTATUS_FAIL;
+					return false;
 			}
-			status = buf.append(c);
-			CHECK_QSTATUS();
+			buf.append(c);
 		}
 		
-		status = context.getChar(&c);
-		CHECK_QSTATUS();
+		if (!context.getChar(&c))
+			return false;
 		if (c == L'\0')
-			return QSTATUS_FAIL;
+			return false;
 	}
 	
 	if (pContentHandler_) {
-		status = pContentHandler_->characters(
-			buf.getCharArray(), 0, buf.getLength());
-		CHECK_QSTATUS();
+		if (!pContentHandler_->characters(
+			buf.getCharArray(), 0, buf.getLength()))
+			return false;
 	}
 	
 	*pNext = c;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::XMLParser::parseComment(XMLParserContext& context)
+bool qs::XMLParser::parseComment(XMLParserContext& context)
 {
-	DECLARE_QSTATUS();
-	
 	WCHAR c = L'\0';
-	status = context.getChar(&c);
-	CHECK_QSTATUS();
+	if (!context.getChar(&c))
+		return false;
 	if (c != L'-')
-		return QSTATUS_FAIL;
+		return false;
 	
 	WCHAR cPrev = L'\0';
 	while (true) {
-		status = context.getChar(&c);
-		CHECK_QSTATUS();
+		if (!context.getChar(&c))
+			return false;
 		if (c == L'\0')
-			return QSTATUS_FAIL;
+			return false;
 		else if (c == '-' && cPrev == '-')
 			break;
 		else
 			cPrev = c;
 	}
 	
-	status = context.getChar(&c);
-	CHECK_QSTATUS();
+	if (!context.getChar(&c))
+		return false;
 	if (c == L'-') {
-		status = context.getChar(&c);
-		CHECK_QSTATUS();
+		if (!context.getChar(&c))
+			return false;
 	}
 	if (c != L'>')
-		return QSTATUS_FAIL;
+		return false;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::XMLParser::parseCDATASection(XMLParserContext& context)
+bool qs::XMLParser::parseCDATASection(XMLParserContext& context)
 {
-	DECLARE_QSTATUS();
-	
 	WCHAR c = L'\0';
 	
-	string_ptr<WSTRING> wstrName;
-	status = context.getString(L'\0', L"[", &wstrName, &c);
-	CHECK_QSTATUS();
+	wstring_ptr wstrName;
+	if (!context.getString(L'\0', L"[", &wstrName, &c))
+		return false;
 	if (wcscmp(wstrName.get(), L"CDATA") != 0 || c != L'[')
-		return QSTATUS_FAIL;
+		return false;
 	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
+	StringBuffer<WSTRING> buf;
 	
 	enum State {
 		STATE_NONE,
@@ -742,10 +696,10 @@ QSTATUS qs::XMLParser::parseCDATASection(XMLParserContext& context)
 	} state = STATE_NONE;
 	
 	while (true) {
-		status = context.getChar(&c);
-		CHECK_QSTATUS();
+		if (!context.getChar(&c))
+			return false;
 		if (c == L'\0')
-			return QSTATUS_FAIL;
+			return false;
 		
 		if (c == ']') {
 			switch (state) {
@@ -760,7 +714,7 @@ QSTATUS qs::XMLParser::parseCDATASection(XMLParserContext& context)
 				break;
 			default:
 				assert(false);
-				return QSTATUS_FAIL;
+				return false;
 			}
 		}
 		else if (c == L'>') {
@@ -773,118 +727,112 @@ QSTATUS qs::XMLParser::parseCDATASection(XMLParserContext& context)
 			state = STATE_NONE;
 		}
 		
-		status = buf.append(c);
-		CHECK_QSTATUS();
+		buf.append(c);
 	}
 	
 	size_t nLen = buf.getLength();
 	assert(nLen >= 2 && buf.get(nLen - 1) == ']' && buf.get(nLen - 2) == ']');
 	
 	if (pContentHandler_) {
-		status = pContentHandler_->characters(buf.getCharArray(), 0, nLen - 2);
-		CHECK_QSTATUS();
+		if (!pContentHandler_->characters(buf.getCharArray(), 0, nLen - 2))
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::XMLParser::parsePI(XMLParserContext& context)
+bool qs::XMLParser::parsePI(XMLParserContext& context)
 {
-	DECLARE_QSTATUS();
-	
 	WCHAR c = L'\0';
 	
-	string_ptr<WSTRING> wstrTarget;
-	status = context.getString(L'\0', L" \t\r\n?", &wstrTarget, &c);
-	CHECK_QSTATUS();
-	status = validateNCName(wstrTarget.get());
-	CHECK_QSTATUS();
+	wstring_ptr wstrTarget;
+	if (!context.getString(L'\0', L" \t\r\n?", &wstrTarget, &c))
+		return false;
+	if (!validateNCName(wstrTarget.get()))
+		return false;
 	if (_wcsicmp(wstrTarget.get(), L"xml") == 0)
-		return QSTATUS_FAIL;
+		return false;
 	
 	bool bEnd = false;
 	if (c == L'?') {
-		status = context.getChar(&c);
-		CHECK_QSTATUS();
+		if (!context.getChar(&c))
+			return false;
 		if (c != L'>')
-			return QSTATUS_FAIL;
+			return false;
 		bEnd = true;
 	}
 	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
+	StringBuffer<WSTRING> buf;
 	
 	if (!bEnd) {
 		while (isWhitespace(c)) {
-			status = context.getChar(&c);
-			CHECK_QSTATUS();
+			if (!context.getChar(&c))
+				return false;
 			if (c == L'\0')
-				return QSTATUS_FAIL;
+				return false;
 		}
 		
 		while (true) {
 			WCHAR cNext = L'\0';
-			status = context.getChar(&cNext);
-			CHECK_QSTATUS();
+			if (!context.getChar(&cNext))
+				return false;
 			if (cNext == L'\0')
-				return QSTATUS_FAIL;
+				return false;
 			if (c == L'?' && cNext == '>')
 				break;
 			
-			status = buf.append(c);
-			CHECK_QSTATUS();
+			buf.append(c);
 			
 			c = cNext;
 		}
 	}
 	
 	if (pContentHandler_) {
-		status = pContentHandler_->processingInstruction(
-			wstrTarget.get(), buf.getCharArray());
-		CHECK_QSTATUS();
+		if (!pContentHandler_->processingInstruction(
+			wstrTarget.get(), buf.getCharArray()))
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::XMLParser::getChar(InputStream* pInputStream, unsigned char* pChar)
+bool qs::XMLParser::getChar(InputStream* pInputStream,
+							unsigned char* pChar)
 {
 	assert(pInputStream);
 	assert(pChar);
 	
-	DECLARE_QSTATUS();
-	
-	size_t nRead = 0;
-	status = pInputStream->read(pChar, 1, &nRead);
-	CHECK_QSTATUS();
+	size_t nRead = pInputStream->read(pChar, 1);
+	if (nRead == -1)
+		return false;
 	if (nRead == 0)
 		*pChar = 0;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::XMLParser::skipWhitespace(InputStream* pInputStream, char* pNext)
+bool qs::XMLParser::skipWhitespace(InputStream* pInputStream,
+								   char* pNext)
 {
 	assert(pInputStream);
 	assert(pNext);
 	
-	DECLARE_QSTATUS();
-	
 	unsigned char c = 0;
 	do {
-		status = getChar(pInputStream, &c);
-		CHECK_QSTATUS();
+		if (!getChar(pInputStream, &c))
+			return false;
 		if (c == 0)
-			return QSTATUS_FAIL;
+			return false;
 	} while (isWhitespace(c));
 	
 	*pNext = c;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 bool qs::XMLParser::isEqualAttribute(const Attribute& lhs,
-	const Attribute& rhs, bool bNamespace)
+									 const Attribute& rhs,
+									 bool bNamespace)
 {
 	if (bNamespace) {
 		if (lhs.bNamespaceDecl_ != rhs.bNamespaceDecl_) {
@@ -950,7 +898,8 @@ void qs::XMLParser::AttributeListDeleter::release()
  */
 
 qs::XMLParserContext::XMLParserContext(XMLParser* pParser,
-	Reader* pReader, unsigned int nWait) :
+									   Reader* pReader,
+									   unsigned int nWait) :
 	pParser_(pParser),
 	pReader_(pReader),
 	pParentContext_(0),
@@ -960,7 +909,8 @@ qs::XMLParserContext::XMLParserContext(XMLParser* pParser,
 }
 
 qs::XMLParserContext::XMLParserContext(const XMLParserContext* pParentContext,
-	const WCHAR* pwszQName, unsigned int nWait) :
+									   const WCHAR* pwszQName,
+									   unsigned int nWait) :
 	pParser_(pParentContext->pParser_),
 	pReader_(pParentContext->pReader_),
 	pParentContext_(pParentContext),
@@ -980,8 +930,10 @@ qs::XMLParserContext::~XMLParserContext()
 	}
 }
 
-QSTATUS qs::XMLParserContext::expandQName(const WCHAR* pwszQName, bool bUseDefault,
-	const WCHAR** ppwszNamespaceURI, const WCHAR** ppwszLocalName) const
+bool qs::XMLParserContext::expandQName(const WCHAR* pwszQName,
+									   bool bUseDefault,
+									   const WCHAR** ppwszNamespaceURI,
+									   const WCHAR** ppwszLocalName) const
 {
 	assert(pwszQName);
 	assert(ppwszNamespaceURI);
@@ -995,10 +947,10 @@ QSTATUS qs::XMLParserContext::expandQName(const WCHAR* pwszQName, bool bUseDefau
 	if (pwszLocalName) {
 		size_t nLen = pwszLocalName - pwszQName;
 		if (nLen == 5 && wcsncmp(pwszQName, L"xmlns", nLen) == 0)
-			return QSTATUS_FAIL;
+			return false;
 		pwszNamespaceURI = getNamespaceURI(pwszQName, nLen);
 		if (!pwszNamespaceURI)
-			return QSTATUS_FAIL;
+			return false;
 		++pwszLocalName;
 	}
 	else {
@@ -1010,11 +962,11 @@ QSTATUS qs::XMLParserContext::expandQName(const WCHAR* pwszQName, bool bUseDefau
 	*ppwszNamespaceURI = pwszNamespaceURI;
 	*ppwszLocalName = pwszLocalName;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-const WCHAR* qs::XMLParserContext::getNamespaceURI(
-	const WCHAR* pwszPrefix, size_t nLen) const
+const WCHAR* qs::XMLParserContext::getNamespaceURI(const WCHAR* pwszPrefix,
+												   size_t nLen) const
 {
 	if (pwszPrefix && nLen == 3 && wcsncmp(pwszPrefix, L"xml", nLen) == 0)
 		return L"http://www.w3.org/XML/1998/namespace";
@@ -1046,27 +998,21 @@ const WCHAR* qs::XMLParserContext::getNamespaceURI(
 	}
 }
 
-QSTATUS qs::XMLParserContext::addNamespace(const WCHAR* pwszQName, const WCHAR* pwszURI)
+bool qs::XMLParserContext::addNamespace(const WCHAR* pwszQName,
+										const WCHAR* pwszURI)
 {
 	assert(pwszQName);
 	assert(wcscmp(pwszQName, L"xmlns") == 0 || wcsncmp(pwszQName, L"xmlns:", 6) == 0);
 	
-	DECLARE_QSTATUS();
+	wstring_ptr wstrURI(allocWString(pwszURI));
 	
-	string_ptr<WSTRING> wstrURI(allocWString(pwszURI));
-	if (!wstrURI.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	string_ptr<WSTRING> wstrPrefix;
+	wstring_ptr wstrPrefix;
 	const WCHAR* pwszPrefix = wcschr(pwszQName, L':');
-	if (pwszPrefix) {
-		wstrPrefix.reset(allocWString(pwszPrefix + 1));
-		if (!wstrPrefix.get())
-			return QSTATUS_OUTOFMEMORY;
-	}
+	if (pwszPrefix)
+		wstrPrefix = allocWString(pwszPrefix + 1);
 	
 	if (wstrPrefix.get() && !*wstrURI.get())
-		return QSTATUS_FAIL;
+		return false;
 	
 	NamespaceMap::iterator it = std::find_if(
 		mapNamespace_.begin(), mapNamespace_.end(),
@@ -1077,114 +1023,98 @@ QSTATUS qs::XMLParserContext::addNamespace(const WCHAR* pwszQName, const WCHAR* 
 				std::identity<const WCHAR*>()),
 			wstrPrefix.get()));
 	if (it != mapNamespace_.end())
-		return QSTATUS_FAIL;
+		return false;
 	
-	status = STLWrapper<NamespaceMap>(mapNamespace_).push_back(
-		std::make_pair(wstrPrefix.get(), wstrURI.get()));
-	CHECK_QSTATUS();
+	mapNamespace_.push_back(std::make_pair(wstrPrefix.get(), wstrURI.get()));
 	wstrPrefix.release();
 	wstrURI.release();
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::XMLParserContext::fireStartPrefixMappings(
-	ContentHandler* pContentHandler) const
+bool qs::XMLParserContext::fireStartPrefixMappings(ContentHandler* pContentHandler) const
 {
-	DECLARE_QSTATUS();
-	
 	if (pContentHandler) {
 		NamespaceMap::const_iterator it = mapNamespace_.begin();
 		while (it != mapNamespace_.end()) {
-			status = pContentHandler->startPrefixMapping(
-				(*it).first ? (*it).first : L"", (*it).second);
-			CHECK_QSTATUS();
+			if (!pContentHandler->startPrefixMapping(
+				(*it).first ? (*it).first : L"", (*it).second))
+				return false;
 			++it;
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::XMLParserContext::fireEndPrefixMappings(
-	ContentHandler* pContentHandler) const
+bool qs::XMLParserContext::fireEndPrefixMappings(ContentHandler* pContentHandler) const
 {
-	DECLARE_QSTATUS();
-	
 	if (pContentHandler) {
 		NamespaceMap::const_iterator it = mapNamespace_.begin();
 		while (it != mapNamespace_.end()) {
-			status = pContentHandler->endPrefixMapping(
-				(*it).first ? (*it).first : L"");
-			CHECK_QSTATUS();
+			if (!pContentHandler->endPrefixMapping(
+				(*it).first ? (*it).first : L""))
+				return false;
 			++it;
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::XMLParserContext::getChar(WCHAR* pChar)
+bool qs::XMLParserContext::getChar(WCHAR* pChar)
 {
 	assert(pChar);
 	
-	DECLARE_QSTATUS();
-	
-	size_t nRead = 0;
-	status = pReader_->read(pChar, 1, &nRead);
-	CHECK_QSTATUS();
-	if (nRead != 1)
+	size_t nRead = pReader_->read(pChar, 1);
+	if (nRead == -1)
+		return false;
+	else if (nRead == 0)
 		*pChar = L'\0';
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::XMLParserContext::getString(WCHAR cFirst,
-	WCHAR* pwszSeparator, WSTRING* pwstr, WCHAR* pNext)
+bool qs::XMLParserContext::getString(WCHAR cFirst,
+									 WCHAR* pwszSeparator,
+									 wstring_ptr* pwstr,
+									 WCHAR* pNext)
 {
 	assert(pwszSeparator);
 	assert(pwstr);
 	
-	DECLARE_QSTATUS();
+	pwstr->reset(0);
 	
-	*pwstr = 0;
+	StringBuffer<WSTRING> buf(10);
 	
-	StringBuffer<WSTRING> buf(10, &status);
-	CHECK_QSTATUS();
-	
-	if (cFirst != L'\0') {
-		status = buf.append(cFirst);
-		CHECK_QSTATUS();
-	}
+	if (cFirst != L'\0')
+		buf.append(cFirst);
 	
 	WCHAR c = L'\0';
-	status = getChar(&c);
-	CHECK_QSTATUS();
+	if (!getChar(&c))
+		return false;
 	while (c != L'\0' && !wcschr(pwszSeparator, c)) {
-		status = buf.append(c);
-		CHECK_QSTATUS();
-		status = getChar(&c);
-		CHECK_QSTATUS();
+		buf.append(c);
+		if (!getChar(&c))
+			return false;
 	}
 	if (c == L'\0')
-		return QSTATUS_FAIL;
+		return false;
 	
 	*pwstr = buf.getString();
 	*pNext = c;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::XMLParserContext::expandReference(WSTRING* pwstrValue)
+bool qs::XMLParserContext::expandReference(wstring_ptr* pwstrValue)
 {
 	assert(pwstrValue);
 	
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrName;
+	wstring_ptr wstrName;
 	WCHAR cNext = L'\0';
-	status = getString(L'\0', L";", &wstrName, &cNext);
-	CHECK_QSTATUS();
+	if (!getString(L'\0', L";", &wstrName, &cNext))
+		return false;
 	assert(cNext == L';');
 	
 	if (*wstrName.get() == L'#') {
@@ -1197,18 +1127,14 @@ QSTATUS qs::XMLParserContext::expandReference(WSTRING* pwstrValue)
 		WCHAR* pEnd = 0;
 		long nValue = wcstol(p, &pEnd, nBase);
 		if (nValue == 0 || *pEnd || nValue > 0xffff)
-			return QSTATUS_FAIL;
+			return false;
 		
 		WCHAR c = static_cast<WCHAR>(nValue);
-		string_ptr<WSTRING> wstrValue(allocWString(&c, 1));
-		if (!wstrValue.get())
-			return QSTATUS_FAIL;
-		
-		*pwstrValue = wstrValue.release();
+		*pwstrValue = allocWString(&c, 1);
 	}
 	else {
-		status = pParser_->validateNCName(wstrName.get());
-		CHECK_QSTATUS();
+		if (!pParser_->validateNCName(wstrName.get()))
+			return false;
 		
 		struct {
 			const WCHAR* pwszName_;
@@ -1228,17 +1154,13 @@ QSTATUS qs::XMLParserContext::expandReference(WSTRING* pwstrValue)
 		if (c == L'\0') {
 			// TODO
 			// Handle entity
-			return QSTATUS_FAIL;
+			return false;
 		}
 		
-		string_ptr<WSTRING> wstrValue(allocWString(&c, 1));
-		if (!wstrValue.get())
-			return QSTATUS_FAIL;
-		
-		*pwstrValue = wstrValue.release();
+		*pwstrValue = allocWString(&c, 1);
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 const XMLParserContext* qs::XMLParserContext::getParentContext() const
@@ -1256,7 +1178,8 @@ bool qs::XMLParserContext::isWait(Wait wait) const
 	return (nWait_ & wait) != 0;
 }
 
-void qs::XMLParserContext::setWait(unsigned int nWait, unsigned int nMask)
+void qs::XMLParserContext::setWait(unsigned int nWait,
+								   unsigned int nMask)
 {
 	nWait_ &= ~nMask;
 	nWait_ |= nWait;
@@ -1270,68 +1193,65 @@ void qs::XMLParserContext::setWait(unsigned int nWait, unsigned int nMask)
  */
 
 qs::ResettableInputStream::ResettableInputStream(size_t nResettableSize,
-	InputStream* pInputStream, QSTATUS* pstatus) :
+												 InputStream* pInputStream) :
 	pInputStream_(pInputStream),
 	pBuf_(0),
 	nRead_(0),
 	p_(0)
 {
 	assert(pInputStream);
-	assert(pstatus);
 	
-	DECLARE_QSTATUS();
-	
-	pBuf_ = static_cast<unsigned char*>(malloc(nResettableSize));
-	if (!pBuf_) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
-	status = pInputStream_->read(pBuf_, nResettableSize, &nRead_);
-	CHECK_QSTATUS_SET(pstatus);
-	p_ = pBuf_;
+	pBuf_.reset(new unsigned char[nResettableSize]);
+	nRead_ = pInputStream_->read(pBuf_.get(), nResettableSize);
+	p_ = pBuf_.get();
 }
 
 qs::ResettableInputStream::~ResettableInputStream()
 {
-	free(pBuf_);
 }
 
-QSTATUS qs::ResettableInputStream::reset()
+bool qs::ResettableInputStream::operator!() const
+{
+	return nRead_ == -1;
+}
+
+bool qs::ResettableInputStream::reset()
 {
 	if (!p_)
-		return QSTATUS_FAIL;
-	p_ = pBuf_;
-	return QSTATUS_SUCCESS;
+		return false;
+	p_ = pBuf_.get();
+	return true;
 }
 
-QSTATUS qs::ResettableInputStream::close()
+bool qs::ResettableInputStream::close()
 {
 	return pInputStream_->close();
 }
 
-QSTATUS qs::ResettableInputStream::read(unsigned char* p, size_t nRead, size_t* pnRead)
+size_t qs::ResettableInputStream::read(unsigned char* p,
+									   size_t nRead)
 {
-	DECLARE_QSTATUS();
+	size_t nSize = 0;
 	
 	if (p_) {
-		size_t nInBuf = nRead_ - (p_ - pBuf_);
+		size_t nInBuf = nRead_ - (p_ - pBuf_.get());
 		if (nRead > nInBuf) {
 			memcpy(p, p_, nInBuf);
 			p_ = 0;
-			status = pInputStream_->read(p + nInBuf, nRead - nInBuf, pnRead);
-			CHECK_QSTATUS();
-			*pnRead = *pnRead == -1 ? nInBuf : *pnRead + nInBuf;
+			nSize = pInputStream_->read(p + nInBuf, nRead - nInBuf);
+			if (nSize == -1)
+				return -1;
+			nSize += nInBuf;
 		}
 		else {
 			memcpy(p, p_, nRead);
 			p_ += nRead;
-			*pnRead = nRead;
+			nSize = nRead;
 		}
 	}
 	else {
-		status = pInputStream_->read(p, nRead, pnRead);
-		CHECK_QSTATUS();
+		nSize = pInputStream_->read(p, nRead);
 	}
 	
-	return QSTATUS_SUCCESS;
+	return nSize;
 }

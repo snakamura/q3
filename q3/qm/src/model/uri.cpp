@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -25,79 +25,69 @@ using namespace qs;
  *
  */
 
-QSTATUS qm::URI::getMessageHolder(const WCHAR* pwszURI,
-	Document* pDocument, MessagePtr* pptr)
+bool qm::URI::getMessageHolder(const WCHAR* pwszURI,
+							   Document* pDocument,
+							   MessagePtr* pptr)
 {
 	assert(pwszURI);
 	assert(pDocument);
 	assert(pptr);
 	
-	DECLARE_QSTATUS();
+	wstring_ptr wstrURI(allocWString(pwszURI));
+	if (wcsncmp(wstrURI.get(), L"urn:qmail://", 12) != 0)
+		return false;
 	
-	string_ptr<WSTRING> wstrURI(allocWString(pwszURI));
-	if (!wstrURI.get())
-		return QSTATUS_OUTOFMEMORY;
+	const WCHAR* pwszAccount = wstrURI.get() + 12;
+	WCHAR* pwszFolder = wcschr(pwszAccount, L'/');
+	if (!pwszFolder)
+		return false;
+	*pwszFolder = L'\0';
+	++pwszFolder;
 	
-	if (wcsncmp(wstrURI.get(), L"urn:qmail://", 12) == 0) {
-		const WCHAR* pwszAccount = wstrURI.get() + 12;
-		WCHAR* pwszFolder = wcschr(pwszAccount, L'/');
-		if (pwszFolder) {
-			*pwszFolder = L'\0';
-			++pwszFolder;
-			
-			WCHAR* pwszId = wcsrchr(pwszFolder, L'/');
-			if (pwszId) {
-				*pwszId = L'\0';
-				++pwszId;
-				
-				WCHAR* pEnd = 0;
-				unsigned int nId = wcstol(pwszId, &pEnd, 10);
-				if (*pEnd == L'\0') {
-					WCHAR* pwszValidity = wcsrchr(pwszFolder, L'/');
-					if (pwszValidity) {
-						*pwszValidity = L'\0';
-						++pwszValidity;
-						
-						WCHAR* pEnd = 0;
-						unsigned int nValidity = wcstol(pwszValidity, &pEnd, 10);
-						if (*pEnd == L'\0') {
-							Account* pAccount = pDocument->getAccount(pwszAccount);
-							if (pAccount) {
-								Folder* pFolder = 0;
-								status = pAccount->getFolder(pwszFolder, &pFolder);
-								CHECK_QSTATUS();
-								if (pFolder->getType() == Folder::TYPE_NORMAL &&
-									static_cast<NormalFolder*>(pFolder)->getValidity() == nValidity) {
-									status = static_cast<NormalFolder*>(
-										pFolder)->getMessageById(nId, pptr);
-									CHECK_QSTATUS();
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+	WCHAR* pwszId = wcsrchr(pwszFolder, L'/');
+	if (!pwszId)
+		return false;
+	*pwszId = L'\0';
+	++pwszId;
 	
-	return QSTATUS_SUCCESS;
+	WCHAR* pEndId = 0;
+	unsigned int nId = wcstol(pwszId, &pEndId, 10);
+	if (*pEndId != L'\0')
+		return false;
+	
+	WCHAR* pwszValidity = wcsrchr(pwszFolder, L'/');
+	if (!pwszValidity)
+		return false;
+	*pwszValidity = L'\0';
+	++pwszValidity;
+	
+	WCHAR* pEndValidity = 0;
+	unsigned int nValidity = wcstol(pwszValidity, &pEndValidity, 10);
+	if (*pEndValidity != L'\0')
+		return false;
+	
+	Account* pAccount = pDocument->getAccount(pwszAccount);
+	if (!pAccount)
+		return false;
+	
+	Folder* pFolder = pAccount->getFolder(pwszFolder);
+	if (!pFolder ||
+		pFolder->getType() != Folder::TYPE_NORMAL ||
+		static_cast<NormalFolder*>(pFolder)->getValidity() != nValidity)
+		return false;
+	*pptr = static_cast<NormalFolder*>(pFolder)->getMessageById(nId);
+	
+	return true;
 }
 
-QSTATUS qm::URI::getURI(MessageHolder* pmh, WSTRING* pwstrURI)
+wstring_ptr qm::URI::getURI(MessageHolder* pmh)
 {
 	assert(pmh);
-	assert(pwstrURI);
-	
-	DECLARE_QSTATUS();
-	
-	*pwstrURI = 0;
 	
 	NormalFolder* pFolder = pmh->getFolder();
 	Account* pAccount = pFolder->getAccount();
 	
-	string_ptr<WSTRING> wstrFolderName;
-	status = pFolder->getFullName(&wstrFolderName);
-	CHECK_QSTATUS();
+	wstring_ptr wstrFolderName(pFolder->getFullName());
 	
 	WCHAR wszUidValidity[32];
 	swprintf(wszUidValidity, L"%u", pFolder->getValidity());
@@ -115,9 +105,5 @@ QSTATUS qm::URI::getURI(MessageHolder* pmh, WSTRING* pwstrURI)
 		{ L"/",					1	},
 		{ wszId,				-1	}
 	};
-	*pwstrURI = concat(c, countof(c));
-	if (!*pwstrURI)
-		return QSTATUS_OUTOFMEMORY;
-	
-	return QSTATUS_SUCCESS;
+	return concat(c, countof(c));
 }

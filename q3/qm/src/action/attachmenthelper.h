@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -10,6 +10,7 @@
 #define __ATTACHMENTHELPER_H__
 
 #include <qm.h>
+#include <qmmessage.h>
 #include <qmmessageholder.h>
 
 #include <qsmime.h>
@@ -36,14 +37,16 @@ public:
 
 public:
 	AttachmentHelper(qs::Profile* pProfile,
-		TempFileCleaner* pTempFileCleaner, HWND hwnd);
+					 TempFileCleaner* pTempFileCleaner,
+					 HWND hwnd);
 	~AttachmentHelper();
 
 public:
-	qs::QSTATUS detach(const MessageHolderList& listMessageHolder,
-		const NameList* pListName);
-	qs::QSTATUS open(const qs::Part* pPart,
-		const WCHAR* pwszName, bool bOpenWithEditor);
+	AttachmentParser::Result detach(const MessageHolderList& listMessageHolder,
+									const NameList* pListName);
+	AttachmentParser::Result open(const qs::Part* pPart,
+								  const WCHAR* pwszName,
+								  bool bOpenWithEditor);
 
 private:
 	AttachmentHelper(const AttachmentHelper&);

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -33,8 +33,8 @@ inline bool qm::AccountNameEqual::operator()(const Account* pAccount) const
  *
  */
 
-inline bool qm::AccountEqual::operator()(
-	const Account* pLhs, const Account* pRhs) const
+inline bool qm::AccountEqual::operator()(const Account* pLhs,
+										 const Account* pRhs) const
 {
 	return wcscmp(pLhs->getName(), pRhs->getName()) == 0;
 }
@@ -46,8 +46,8 @@ inline bool qm::AccountEqual::operator()(
  *
  */
 
-inline bool qm::AccountLess::operator()(
-	const Account* pLhs, const Account* pRhs) const
+inline bool qm::AccountLess::operator()(const Account* pLhs,
+										const Account* pRhs) const
 {
 	return wcscmp(pLhs->getName(), pRhs->getName()) < 0;
 }

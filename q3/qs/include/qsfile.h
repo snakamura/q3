@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -38,18 +38,91 @@ public:
 	virtual ~File();
 
 public:
-	virtual QSTATUS close() = 0;
-	virtual QSTATUS read(unsigned char* p, size_t nRead, size_t* pnRead) = 0;
-	virtual QSTATUS write(const unsigned char* p, size_t nWrite) = 0;
-	virtual QSTATUS flush() = 0;
-	virtual QSTATUS getPosition(int* pnPosition) = 0;
-	virtual QSTATUS setPosition(int nPosition, SeekOrigin seekOrigin) = 0;
-	virtual QSTATUS setEndOfFile() = 0;
-	virtual QSTATUS getSize(size_t* pnSize) = 0;
+	/**
+	 * Close file.
+	 *
+	 * @return true if success, false otherwise.
+	 */
+	virtual bool close() = 0;
+	
+	/**
+	 * Read.
+	 *
+	 * @param p [in] Buffer.
+	 * @param nRead [in] Size to read.
+	 * @return Read size. 0 if it reaches the end of file. -1 if fail.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	virtual size_t read(unsigned char* p,
+						size_t nRead) = 0;
+	/**
+	 * Write.
+	 *
+	 * @param p [in] Buffer.
+	 * @param nWrite [in] Size to write.
+	 * @return Written size. -1 if fail.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	virtual size_t write(const unsigned char* p,
+						 size_t nWrite) = 0;
+	
+	/**
+	 * Flush.
+	 *
+	 * @return true if success, false otherwise.
+	 */
+	virtual bool flush() = 0;
+	
+	/**
+	 * Get current seek position.
+	 *
+	 * @return Current seek position.
+	 */
+	virtual int getPosition() = 0;
+	
+	/**
+	 * Set current seek position.
+	 *
+	 * @param nPosition [in] New position relative to seekOrigin.
+	 * @param seekOrigin [in] Seek origin.
+	 * @return New seek position. -1 if fail.
+	 */
+	virtual int setPosition(int nPosition,
+							SeekOrigin seekOrigin) = 0;
+	
+	/**
+	 * Set end of file at the current seek position.
+	 *
+	 * @return true if success, false otherwise.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	virtual bool setEndOfFile() = 0;
+	
+	/**
+	 * Get file size.
+	 *
+	 * @return File size. -1 if failed.
+	 */
+	virtual size_t getSize() = 0;
 
 public:
-	static QSTATUS getTempFileName(const WCHAR* pwszDir, WSTRING* pwstrPath);
-	static QSTATUS removeDirectory(const WCHAR* pwszDir);
+	/**
+	 * Get temporary file name.
+	 *
+	 * @param pwszDir [in] Directory where a temporary file is created.
+	 * @return Path of a temporary file.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	static wstring_ptr getTempFileName(const WCHAR* pwszDir);
+	
+	/**
+	 * Remove directory recursively.
+	 *
+	 * @param pwszDir [in] Directory which is removed.
+	 * @return true if success, false otherwise.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	static bool removeDirectory(const WCHAR* pwszDir);
 };
 
 
@@ -69,19 +142,42 @@ public:
 	};
 
 public:
-	BinaryFile(const WCHAR* pwszPath, unsigned int nMode,
-		size_t nBufferSize, QSTATUS* pstatus);
+	/**
+	 * Create instance.
+	 * Call operator! to check if file is opened or not.
+	 *
+	 * @param pwszPath [in] Path of the file.
+	 * @param nMode [in] Mode.
+	 * @param nBufferSize [in] Buffer size.
+	 *                         If 0, the default buffer size is used.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	BinaryFile(const WCHAR* pwszPath,
+			   unsigned int nMode,
+			   size_t nBufferSize);
+	
 	virtual ~BinaryFile();
 
 public:
-	virtual QSTATUS close();
-	virtual QSTATUS read(unsigned char* p, size_t nRead, size_t* pnRead);
-	virtual QSTATUS write(const unsigned char* p, size_t nWrite);
-	virtual QSTATUS flush();
-	virtual QSTATUS getPosition(int* pnPosition);
-	virtual QSTATUS setPosition(int nPosition, SeekOrigin seekOrigin);
-	virtual QSTATUS setEndOfFile();
-	virtual QSTATUS getSize(size_t* pnSize);
+	/**
+	 * Check if file is open or not.
+	 *
+	 * @return true if failed, false otherwise.
+	 */
+	bool operator!() const;
+
+public:
+	virtual bool close();
+	virtual size_t read(unsigned char* p,
+						size_t nRead);
+	virtual size_t write(const unsigned char* p,
+						 size_t nWrite);
+	virtual bool flush();
+	virtual int getPosition();
+	virtual int setPosition(int nPosition,
+							SeekOrigin seekOrigin);
+	virtual bool setEndOfFile();
+	virtual size_t getSize();
 
 private:
 	BinaryFile(const BinaryFile&);
@@ -101,19 +197,35 @@ private:
 class QSEXPORTCLASS DividedFile : public File
 {
 public:
-	DividedFile(const WCHAR* pwszPath, size_t nBlockSize,
-		unsigned int nMode, size_t nBufferSize, QSTATUS* pstatus);
+	/**
+	 * Create instance.
+	 *
+	 * @param pwszPath [in] Path.
+	 * @param nBlockSize [in] Block size in bytes.
+	 * @param nMode [in] Mode.
+	 * @param nBufferSize [in] Buffer size.
+	 *                         If 0, the default buffer size is used.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	DividedFile(const WCHAR* pwszPath,
+				size_t nBlockSize,
+				unsigned int nMode,
+				size_t nBufferSize);
+	
 	virtual ~DividedFile();
 
 public:
-	virtual QSTATUS close();
-	virtual QSTATUS read(unsigned char* p, size_t nRead, size_t* pnRead);
-	virtual QSTATUS write(const unsigned char* p, size_t nWrite);
-	virtual QSTATUS flush();
-	virtual QSTATUS getPosition(int* pnPosition);
-	virtual QSTATUS setPosition(int nPosition, SeekOrigin seekOrigin);
-	virtual QSTATUS setEndOfFile();
-	virtual QSTATUS getSize(size_t* pnSize);
+	virtual bool close();
+	virtual size_t read(unsigned char* p,
+						size_t nRead);
+	virtual size_t write(const unsigned char* p,
+						 size_t nWrite);
+	virtual bool flush();
+	virtual int getPosition();
+	virtual int setPosition(int nPosition,
+							SeekOrigin seekOrigin);
+	virtual bool setEndOfFile();
+	virtual size_t getSize();
 
 private:
 	DividedFile(const DividedFile&);
@@ -133,25 +245,37 @@ private:
 class QSEXPORTCLASS TemporaryFileRenamer
 {
 public:
-	TemporaryFileRenamer(const WCHAR* pwszPath, QSTATUS* pstatus);
+	/**
+	 * Create instance.
+	 *
+	 * @param pwszPath [in] Original path.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	TemporaryFileRenamer(const WCHAR* pwszPath);
+	
 	~TemporaryFileRenamer();
 
 public:
+	/**
+	 * Get the path to the temporary file.
+	 *
+	 * @return Temporary path.
+	 */
 	const WCHAR* getPath() const;
-	QSTATUS rename();
+	
+	/**
+	 * Rename temporary file to original file.
+	 *
+	 * @return true if success, false otherwise.
+	 */
+	bool rename();
 
 private:
 	TemporaryFileRenamer(const TemporaryFileRenamer&);
 	TemporaryFileRenamer& operator=(const TemporaryFileRenamer&);
 
 private:
-	WSTRING wstrOriginalPath_;
-	WSTRING wstrTemporaryPath_;
-#ifndef UNICODE
-	TSTRING tstrOriginalPath_;
-	TSTRING tstrTemporaryPath_;
-#endif
-	bool bRenamed_;
+	struct TemporaryFileRenamerImpl* pImpl_;
 };
 
 }

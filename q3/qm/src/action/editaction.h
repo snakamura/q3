@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -59,11 +59,11 @@ class EditAttachmentEditAddAction : public qs::AbstractAction
 {
 public:
 	EditAttachmentEditAddAction(EditMessageHolder* pEditMessageHolder,
-		HWND hwndFrame, qs::QSTATUS* pstatus);
+								HWND hwnd);
 	virtual ~EditAttachmentEditAddAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual void invoke(const qs::ActionEvent& event);
 
 private:
 	EditAttachmentEditAddAction(const EditAttachmentEditAddAction&);
@@ -71,7 +71,7 @@ private:
 
 private:
 	EditMessageHolder* pEditMessageHolder_;
-	HWND hwndFrame_;
+	HWND hwnd_;
 };
 
 
@@ -85,12 +85,12 @@ class EditAttachmentEditDeleteAction : public qs::AbstractAction
 {
 public:
 	EditAttachmentEditDeleteAction(EditMessageHolder* pEditMessageHolder,
-		AttachmentSelectionModel* pAttachmentSelectionModel, qs::QSTATUS* pstatus);
+								   AttachmentSelectionModel* pAttachmentSelectionModel);
 	virtual ~EditAttachmentEditDeleteAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	EditAttachmentEditDeleteAction(const EditAttachmentEditDeleteAction&);
@@ -111,17 +111,18 @@ private:
 class EditEditCommandAction : public qs::AbstractAction
 {
 public:
-	typedef qs::QSTATUS (EditWindowItem::*PFN_DO)();
-	typedef qs::QSTATUS (EditWindowItem::*PFN_CANDO)(bool*);
+	typedef void (EditWindowItem::*PFN_DO)();
+	typedef bool (EditWindowItem::*PFN_CANDO)();
 
 public:
 	EditEditCommandAction(EditWindow* pEditWindow,
-		PFN_DO pfnDo, PFN_CANDO pfnCanDo, qs::QSTATUS* pstatus);
+						  PFN_DO pfnDo,
+						  PFN_CANDO pfnCanDo);
 	virtual ~EditEditCommandAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	EditEditCommandAction(const EditEditCommandAction&);
@@ -150,15 +151,17 @@ public:
 	};
 
 public:
-	EditEditFindAction(qs::TextWindow* pTextWindow, qs::Profile* pProfile,
-		FindReplaceManager* pFindReplaceManager, qs::QSTATUS* pstatus);
-	EditEditFindAction(qs::TextWindow* pTextWindow, bool bNext,
-		FindReplaceManager* pFindReplaceManager, qs::QSTATUS* pstatus);
+	EditEditFindAction(qs::TextWindow* pTextWindow,
+					   qs::Profile* pProfile,
+					   FindReplaceManager* pFindReplaceManager);
+	EditEditFindAction(qs::TextWindow* pTextWindow,
+					   bool bNext,
+					   FindReplaceManager* pFindReplaceManager);
 	virtual ~EditEditFindAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	EditEditFindAction(const EditEditFindAction&);
@@ -182,12 +185,12 @@ class EditEditMoveCaretAction : public qs::AbstractAction
 {
 public:
 	EditEditMoveCaretAction(qs::TextWindow* pTextWindow,
-		qs::TextWindow::MoveCaret moveCaret, qs::QSTATUS* pstatus);
+							qs::TextWindow::MoveCaret moveCaret);
 	virtual ~EditEditMoveCaretAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	EditEditMoveCaretAction(const EditEditMoveCaretAction&);
@@ -209,12 +212,12 @@ class EditEditPasteWithQuoteAction : public qs::AbstractAction
 {
 public:
 	EditEditPasteWithQuoteAction(qs::TextWindow* pTextWindow,
-		qs::Profile* pProfile, qs::QSTATUS* pstatus);
+								 qs::Profile* pProfile);
 	virtual ~EditEditPasteWithQuoteAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	EditEditPasteWithQuoteAction(const EditEditPasteWithQuoteAction&);
@@ -235,13 +238,14 @@ private:
 class EditEditReplaceAction : public qs::AbstractAction
 {
 public:
-	EditEditReplaceAction(qs::TextWindow* pTextWindow, qs::Profile* pProfile,
-		FindReplaceManager* pFindReplaceManager, qs::QSTATUS* pstatus);
+	EditEditReplaceAction(qs::TextWindow* pTextWindow,
+						  qs::Profile* pProfile,
+						  FindReplaceManager* pFindReplaceManager);
 	virtual ~EditEditReplaceAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	EditEditReplaceAction(const EditEditReplaceAction&);
@@ -263,12 +267,15 @@ private:
 class EditFileInsertAction : public qs::AbstractAction
 {
 public:
-	EditFileInsertAction(qs::TextWindow* pTextWindow, qs::QSTATUS* pstatus);
+	explicit EditFileInsertAction(qs::TextWindow* pTextWindow);
 	virtual ~EditFileInsertAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	bool insertText(const WCHAR* pwszPath);
 
 private:
 	EditFileInsertAction(const EditFileInsertAction&);
@@ -289,11 +296,14 @@ class EditFileOpenAction : public qs::AbstractAction
 {
 public:
 	EditFileOpenAction(EditMessageHolder* pEditMessageHolder,
-		HWND hwndFrame, qs::QSTATUS* pstatus);
+					   HWND hwnd);
 	virtual ~EditFileOpenAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	bool open(const WCHAR* pwszPath);
 
 private:
 	EditFileOpenAction(const EditFileOpenAction&);
@@ -301,7 +311,7 @@ private:
 
 private:
 	EditMessageHolder* pEditMessageHolder_;
-	HWND hwndFrame_;
+	HWND hwnd_;
 };
 
 
@@ -315,11 +325,14 @@ class EditFileSaveAction : public qs::AbstractAction
 {
 public:
 	EditFileSaveAction(EditMessageHolder* pEditMessageHolder,
-		HWND hwndFrame, qs::QSTATUS* pstatus);
+					   HWND hwnd);
 	virtual ~EditFileSaveAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	bool save(const WCHAR* pwszPath);
 
 private:
 	EditFileSaveAction(const EditFileSaveAction&);
@@ -327,7 +340,7 @@ private:
 
 private:
 	EditMessageHolder* pEditMessageHolder_;
-	HWND hwndFrame_;
+	HWND hwnd_;
 };
 
 
@@ -340,17 +353,21 @@ private:
 class EditFileSendAction : public qs::AbstractAction
 {
 public:
-	EditFileSendAction(bool bDraft, Document* pDocument,
-		EditMessageHolder* pEditMessageHolder, EditFrameWindow* pEditFrameWindow,
-		qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	EditFileSendAction(bool bDraft,
+					   Document* pDocument,
+					   EditMessageHolder* pEditMessageHolder,
+					   EditFrameWindow* pEditFrameWindow,
+					   qs::Profile* pProfile);
 	EditFileSendAction(Document* pDocument,
-		EditMessageHolder* pEditMessageHolder, EditFrameWindow* pEditFrameWindow,
-		qs::Profile* pProfile, SyncManager* pSyncManager,
-		SyncDialogManager* pSyncDialogManager, qs::QSTATUS* pstatus);
+					   EditMessageHolder* pEditMessageHolder,
+					   EditFrameWindow* pEditFrameWindow,
+					   qs::Profile* pProfile,
+					   SyncManager* pSyncManager,
+					   SyncDialogManager* pSyncDialogManager);
 	virtual ~EditFileSendAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual void invoke(const qs::ActionEvent& event);
 
 private:
 	EditFileSendAction(const EditFileSendAction&);
@@ -375,11 +392,11 @@ private:
 class EditFocusItemAction : public qs::AbstractAction
 {
 public:
-	EditFocusItemAction(EditWindow* pEditWindow, qs::QSTATUS* pstatus);
+	EditFocusItemAction(EditWindow* pEditWindow);
 	virtual ~EditFocusItemAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual void invoke(const qs::ActionEvent& event);
 
 private:
 	EditFocusItemAction(const EditFocusItemAction&);
@@ -400,13 +417,14 @@ class EditToolAddressBookAction : public qs::AbstractAction
 {
 public:
 	EditToolAddressBookAction(EditMessageHolder* pEditMessageHolder,
-		EditWindow* pEditWindow, AddressBook* pAddressBook,
-		qs::Profile* pProfile, qs::QSTATUS* pstatus);
+							  EditWindow* pEditWindow,
+							  AddressBook* pAddressBook,
+							  qs::Profile* pProfile);
 	virtual ~EditToolAddressBookAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	EditToolAddressBookAction(const EditToolAddressBookAction&);
@@ -430,11 +448,11 @@ class EditToolAttachmentAction : public qs::AbstractAction
 {
 public:
 	EditToolAttachmentAction(EditMessageHolder* pEditMessageHolder,
-		HWND hwndFrame, qs::QSTATUS* pstatus);
+							 HWND hwnd);
 	virtual ~EditToolAttachmentAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual void invoke(const qs::ActionEvent& event);
 
 private:
 	EditToolAttachmentAction(const EditToolAttachmentAction&);
@@ -442,7 +460,7 @@ private:
 
 private:
 	EditMessageHolder* pEditMessageHolder_;
-	HWND hwndFrame_;
+	HWND hwnd_;
 };
 
 
@@ -460,13 +478,15 @@ public:
 
 public:
 	EditToolFlagAction(EditMessageHolder* pEditMessageHolder,
-		PFN_IS pfnIs, PFN_SET pfnSet, bool bEnabled, qs::QSTATUS* pstatus);
+					   PFN_IS pfnIs,
+					   PFN_SET pfnSet,
+					   bool bEnabled);
 	virtual ~EditToolFlagAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
-	virtual qs::QSTATUS isChecked(const qs::ActionEvent& event, bool* pbChecked);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
 
 private:
 	EditToolFlagAction(const EditToolFlagAction&);
@@ -490,12 +510,12 @@ class EditToolInsertSignatureAction : public qs::AbstractAction
 {
 public:
 	EditToolInsertSignatureAction(EditMessageHolder* pEditMessageHolder,
-		qs::TextWindow* pTextWindow, qs::QSTATUS* pstatus);
+								  qs::TextWindow* pTextWindow);
 	virtual ~EditToolInsertSignatureAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	EditToolInsertSignatureAction(const EditToolInsertSignatureAction&);
@@ -516,12 +536,12 @@ private:
 class EditToolInsertTextAction : public qs::AbstractAction
 {
 public:
-	EditToolInsertTextAction(qs::TextWindow* pTextWindow, qs::QSTATUS* pstatus);
+	explicit EditToolInsertTextAction(qs::TextWindow* pTextWindow);
 	virtual ~EditToolInsertTextAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	EditToolInsertTextAction(const EditToolInsertTextAction&);
@@ -541,12 +561,12 @@ private:
 class EditToolHeaderEditAction : public qs::AbstractAction
 {
 public:
-	EditToolHeaderEditAction(EditWindow* pEditWindow, qs::QSTATUS* pstatus);
+	explicit EditToolHeaderEditAction(EditWindow* pEditWindow);
 	virtual ~EditToolHeaderEditAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isChecked(const qs::ActionEvent& event, bool* pbChecked);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
 
 private:
 	EditToolHeaderEditAction(const EditToolHeaderEditAction&);
@@ -566,12 +586,12 @@ private:
 class EditToolReformAction : public qs::AbstractAction
 {
 public:
-	EditToolReformAction(qs::TextWindow* pTextWindow, qs::QSTATUS* pstatus);
+	explicit EditToolReformAction(qs::TextWindow* pTextWindow);
 	virtual ~EditToolReformAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	EditToolReformAction(const EditToolReformAction&);
@@ -592,12 +612,12 @@ class EditToolReformAllAction : public qs::AbstractAction
 {
 public:
 	EditToolReformAllAction(qs::TextWindow* pTextWindow,
-		qs::Profile* pProfile, qs::QSTATUS* pstatus);
+							qs::Profile* pProfile);
 	virtual ~EditToolReformAllAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	EditToolReformAllAction(const EditToolReformAllAction&);

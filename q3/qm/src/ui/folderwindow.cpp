@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -17,10 +17,8 @@
 #include <qsconv.h>
 #include <qsdevicecontext.h>
 #include <qsdragdrop.h>
-#include <qserror.h>
 #include <qsinit.h>
 #include <qskeymap.h>
-#include <qsnew.h>
 #include <qsprofile.h>
 #include <qsstl.h>
 #include <qsuiutil.h>
@@ -75,54 +73,65 @@ public:
 	Folder* getSelectedFolder() const;
 	HTREEITEM getHandleFromAccount(Account* pAccount) const;
 	HTREEITEM getHandleFromFolder(Folder* pFolder) const;
-	QSTATUS update(Folder* pFolder);
-	QSTATUS handleUpdateMessage(LPARAM lParam);
+	void update(Folder* pFolder);
+	void handleUpdateMessage(LPARAM lParam);
 
 public:
-	virtual LRESULT onNotify(NMHDR* pnmhdr, bool* pbHandled);
+	virtual LRESULT onNotify(NMHDR* pnmhdr,
+							 bool* pbHandled);
 
 public:
-	virtual qs::QSTATUS offlineStatusChanged(const DocumentEvent& event);
-	virtual QSTATUS accountListChanged(const AccountListChangedEvent& event);
+	virtual void offlineStatusChanged(const DocumentEvent& event);
+	virtual void accountListChanged(const AccountListChangedEvent& event);
 
 public:
-	virtual QSTATUS folderListChanged(const FolderListChangedEvent& event);
+	virtual void folderListChanged(const FolderListChangedEvent& event);
 
 public:
-	virtual QSTATUS messageAdded(const FolderEvent& event);
-	virtual QSTATUS messageRemoved(const FolderEvent& event);
-	virtual QSTATUS messageRefreshed(const FolderEvent& event);
-	virtual QSTATUS unseenCountChanged(const FolderEvent& event);
-	virtual QSTATUS folderDestroyed(const FolderEvent& event);
+	virtual void messageAdded(const FolderEvent& event);
+	virtual void messageRemoved(const FolderEvent& event);
+	virtual void messageRefreshed(const FolderEvent& event);
+	virtual void unseenCountChanged(const FolderEvent& event);
+	virtual void folderDestroyed(const FolderEvent& event);
 
 public:
-	virtual QSTATUS accountSelected(const FolderModelEvent& event);
-	virtual QSTATUS folderSelected(const FolderModelEvent& event);
+	virtual void accountSelected(const FolderModelEvent& event);
+	virtual void folderSelected(const FolderModelEvent& event);
 
 public:
-	virtual QSTATUS dragEnter(const DropTargetDragEvent& event);
-	virtual QSTATUS dragOver(const DropTargetDragEvent& event);
-	virtual QSTATUS dragExit(const DropTargetEvent& event);
-	virtual QSTATUS drop(const DropTargetDropEvent& event);
+	virtual void dragEnter(const DropTargetDragEvent& event);
+	virtual void dragOver(const DropTargetDragEvent& event);
+	virtual void dragExit(const DropTargetEvent& event);
+	virtual void drop(const DropTargetDropEvent& event);
 
 private:
-	LRESULT onRClick(NMHDR* pnmhdr, bool* pbHandled);
+	LRESULT onRClick(NMHDR* pnmhdr,
+					 bool* pbHandled);
 #if defined _WIN32_WCE && _WIN32_WCE >= 400 && defined _WIN32_WCE_PSPC
-	LRESULT onRecognizeGesture(NMHDR* pnmhdr, bool* pbHandled);
+	LRESULT onRecognizeGesture(NMHDR* pnmhdr,
+							   bool* pbHandled);
 #endif
-	LRESULT onGetDispInfo(NMHDR* pnmhdr, bool* pbHandled);
-	LRESULT onItemExpanded(NMHDR* pnmhdr, bool* pbHandled);
-	LRESULT onSelChanged(NMHDR* pnmhdr, bool* pbHandled);
+	LRESULT onGetDispInfo(NMHDR* pnmhdr,
+						  bool* pbHandled);
+	LRESULT onItemExpanded(NMHDR* pnmhdr,
+						   bool* pbHandled);
+	LRESULT onSelChanged(NMHDR* pnmhdr,
+						 bool* pbHandled);
 
 private:
-	QSTATUS clearAccountList();
-	QSTATUS updateAccountList();
-	QSTATUS refreshFolderList(Account* pAccount);
-	QSTATUS addAccount(Account* pAccount);
-	QSTATUS removeAccount(Account* pAccount);
-	QSTATUS insertFolders(HTREEITEM hItem, Account* pAccount);
-	int getFolderImage(Folder* pFolder, bool bSelected, bool bExpanded) const;
-	int getAccountImage(Account* pAccount, bool bSelected, bool bExpanded) const;
+	void clearAccountList();
+	void updateAccountList();
+	void refreshFolderList(Account* pAccount);
+	void addAccount(Account* pAccount);
+	void removeAccount(Account* pAccount);
+	void insertFolders(HTREEITEM hItem,
+					   Account* pAccount);
+	int getFolderImage(Folder* pFolder,
+					   bool bSelected,
+					   bool bExpanded) const;
+	int getAccountImage(Account* pAccount,
+						bool bSelected,
+						bool bExpanded) const;
 	
 public:
 	FolderWindow* pThis_;
@@ -130,14 +139,14 @@ public:
 	FolderModel* pFolderModel_;
 	MenuManager* pMenuManager_;
 	Profile* pProfile_;
-	Accelerator* pAccelerator_;
+	std::auto_ptr<Accelerator> pAccelerator_;
 	Document* pDocument_;
 	
 	UINT nId_;
 	HFONT hfont_;
 	bool bShowAllCount_;
 	bool bShowUnseenCount_;
-	DropTarget* pDropTarget_;
+	std::auto_ptr<DropTarget> pDropTarget_;
 	
 	FolderMap mapFolder_;
 };
@@ -221,7 +230,7 @@ HTREEITEM qm::FolderWindowImpl::getHandleFromFolder(Folder* pFolder) const
 	return it != mapFolder_.end() ? (*it).second : 0;
 }
 
-QSTATUS qm::FolderWindowImpl::update(Folder* pFolder)
+void qm::FolderWindowImpl::update(Folder* pFolder)
 {
 	assert(pFolder);
 	
@@ -253,11 +262,9 @@ QSTATUS qm::FolderWindowImpl::update(Folder* pFolder)
 		if (TreeView_GetItemRect(hwnd, hItems[n], &rect, FALSE))
 			pThis_->invalidateRect(rect);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderWindowImpl::handleUpdateMessage(LPARAM lParam)
+void qm::FolderWindowImpl::handleUpdateMessage(LPARAM lParam)
 {
 	MSG msg;
 	while (true) {
@@ -272,10 +279,11 @@ QSTATUS qm::FolderWindowImpl::handleUpdateMessage(LPARAM lParam)
 			FolderWindowImpl::WM_FOLDERWINDOW_MESSAGECHANGED, PM_REMOVE);
 	}
 	
-	return update(reinterpret_cast<Folder*>(lParam));
+	update(reinterpret_cast<Folder*>(lParam));
 }
 
-LRESULT qm::FolderWindowImpl::onNotify(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qm::FolderWindowImpl::onNotify(NMHDR* pnmhdr,
+									   bool* pbHandled)
 {
 	BEGIN_NOTIFY_HANDLER()
 		HANDLE_NOTIFY(NM_RCLICK, nId_, onRClick)
@@ -289,10 +297,8 @@ LRESULT qm::FolderWindowImpl::onNotify(NMHDR* pnmhdr, bool* pbHandled)
 	return 1;
 }
 
-QSTATUS qm::FolderWindowImpl::offlineStatusChanged(const DocumentEvent& event)
+void qm::FolderWindowImpl::offlineStatusChanged(const DocumentEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	UINT nState = pDocument_->isOffline() ? 0 : TVIS_BOLD;
 	
 	HWND hwnd = pThis_->getHandle();
@@ -307,111 +313,85 @@ QSTATUS qm::FolderWindowImpl::offlineStatusChanged(const DocumentEvent& event)
 		TreeView_SetItem(hwnd, &item);
 		hItem = TreeView_GetNextSibling(hwnd, hItem);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderWindowImpl::accountListChanged(
-	const AccountListChangedEvent& event)
+void qm::FolderWindowImpl::accountListChanged(const AccountListChangedEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	switch (event.getType()) {
 	case AccountListChangedEvent::TYPE_ALL:
-		status = clearAccountList();
-		CHECK_QSTATUS();
-		status = updateAccountList();
-		CHECK_QSTATUS();
+		clearAccountList();
+		updateAccountList();
 		break;
 	case AccountListChangedEvent::TYPE_ADD:
-		status = addAccount(event.getAccount());
-		CHECK_QSTATUS();
+		addAccount(event.getAccount());
 		break;
 	case AccountListChangedEvent::TYPE_REMOVE:
-		status = removeAccount(event.getAccount());
-		CHECK_QSTATUS();
+		removeAccount(event.getAccount());
 		break;
 	default:
 		assert(false);
-		return QSTATUS_FAIL;
+		break;
 	}
-	
-	return status;
 }
 
-QSTATUS qm::FolderWindowImpl::folderListChanged(
-	const FolderListChangedEvent& event)
+void qm::FolderWindowImpl::folderListChanged(const FolderListChangedEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	switch (event.getType()) {
 	case FolderListChangedEvent::TYPE_ALL:
-		status = refreshFolderList(event.getAccount());
-		CHECK_QSTATUS();
+		refreshFolderList(event.getAccount());
 		break;
 	case FolderListChangedEvent::TYPE_ADD:
 		// TODO
-		status = refreshFolderList(event.getAccount());
-		CHECK_QSTATUS();
+		refreshFolderList(event.getAccount());
 		break;
 	case FolderListChangedEvent::TYPE_REMOVE:
 		// TODO
-		status = refreshFolderList(event.getAccount());
-		CHECK_QSTATUS();
+		refreshFolderList(event.getAccount());
 		break;
 	case FolderListChangedEvent::TYPE_RENAME:
 		// TODO
-		status = refreshFolderList(event.getAccount());
-		CHECK_QSTATUS();
+		refreshFolderList(event.getAccount());
 		break;
 	case FolderListChangedEvent::TYPE_SHOW:
 	case FolderListChangedEvent::TYPE_HIDE:
 		// TODO
-		status = refreshFolderList(event.getAccount());
-		CHECK_QSTATUS();
+		refreshFolderList(event.getAccount());
 		break;
 	default:
 		assert(false);
-		return QSTATUS_FAIL;
+		break;
 	}
-	
-	return status;
 }
 
-QSTATUS qm::FolderWindowImpl::messageAdded(const FolderEvent& event)
+void qm::FolderWindowImpl::messageAdded(const FolderEvent& event)
 {
 	pThis_->postMessage(WM_FOLDERWINDOW_MESSAGEADDED,
 		0, reinterpret_cast<LPARAM>(event.getFolder()));
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderWindowImpl::messageRemoved(const FolderEvent& event)
+void qm::FolderWindowImpl::messageRemoved(const FolderEvent& event)
 {
 	pThis_->postMessage(WM_FOLDERWINDOW_MESSAGEREMOVED,
 		0, reinterpret_cast<LPARAM>(event.getFolder()));
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderWindowImpl::messageRefreshed(const FolderEvent& event)
+void qm::FolderWindowImpl::messageRefreshed(const FolderEvent& event)
 {
 	pThis_->postMessage(WM_FOLDERWINDOW_MESSAGEREFRESHED,
 		0, reinterpret_cast<LPARAM>(event.getFolder()));
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderWindowImpl::unseenCountChanged(const FolderEvent& event)
+void qm::FolderWindowImpl::unseenCountChanged(const FolderEvent& event)
 {
 	pThis_->postMessage(WM_FOLDERWINDOW_MESSAGECHANGED,
 		0, reinterpret_cast<LPARAM>(event.getFolder()));
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderWindowImpl::folderDestroyed(const FolderEvent& event)
+void qm::FolderWindowImpl::folderDestroyed(const FolderEvent& event)
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderWindowImpl::accountSelected(const FolderModelEvent& event)
+void qm::FolderWindowImpl::accountSelected(const FolderModelEvent& event)
 {
 	Account* pAccount = event.getAccount();
 	if (pAccount) {
@@ -421,25 +401,23 @@ QSTATUS qm::FolderWindowImpl::accountSelected(const FolderModelEvent& event)
 			TreeView_EnsureVisible(pThis_->getHandle(), hItem);
 		}
 	}
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderWindowImpl::folderSelected(const FolderModelEvent& event)
+void qm::FolderWindowImpl::folderSelected(const FolderModelEvent& event)
 {
 	HTREEITEM hItem = getHandleFromFolder(event.getFolder());
 	if (hItem != TreeView_GetSelection(pThis_->getHandle())) {
 		TreeView_SelectItem(pThis_->getHandle(), hItem);
 		TreeView_EnsureVisible(pThis_->getHandle(), hItem);
 	}
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderWindowImpl::dragEnter(const DropTargetDragEvent& event)
+void qm::FolderWindowImpl::dragEnter(const DropTargetDragEvent& event)
 {
-	return dragOver(event);
+	dragOver(event);
 }
 
-QSTATUS qm::FolderWindowImpl::dragOver(const DropTargetDragEvent& event)
+void qm::FolderWindowImpl::dragOver(const DropTargetDragEvent& event)
 {
 	POINT pt = event.getPoint();
 	pThis_->screenToClient(&pt);
@@ -477,21 +455,15 @@ QSTATUS qm::FolderWindowImpl::dragOver(const DropTargetDragEvent& event)
 	}
 	
 	TreeView_SelectDropTarget(pThis_->getHandle(), hSelectItem);
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderWindowImpl::dragExit(const DropTargetEvent& event)
+void qm::FolderWindowImpl::dragExit(const DropTargetEvent& event)
 {
 	TreeView_SelectDropTarget(pThis_->getHandle(), 0);
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
+void qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	TreeView_SelectDropTarget(pThis_->getHandle(), 0);
 	
 	POINT pt = event.getPoint();
@@ -522,34 +494,35 @@ QSTATUS qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
 			UINT nId = bMove ? IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
 			ProgressDialogMessageOperationCallback callback(
 				pThis_->getParentFrame(), nId, nId);
-			status = MessageDataObject::pasteMessages(pDataObject,
-				pDocument_, pNormalFolder, flag, &callback);
-			CHECK_QSTATUS();
+			if (!MessageDataObject::pasteMessages(pDataObject,
+				pDocument_, pNormalFolder, flag, &callback)) {
+				// TODO MSG
+			}
 			
 			event.setEffect(bMove ? DROPEFFECT_MOVE : DROPEFFECT_COPY);
 		}
 	}
-	return QSTATUS_SUCCESS;
 }
 
-LRESULT qm::FolderWindowImpl::onRClick(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qm::FolderWindowImpl::onRClick(NMHDR* pnmhdr,
+									   bool* pbHandled)
 {
 	return pThis_->sendMessage(WM_CONTEXTMENU,
 		reinterpret_cast<WPARAM>(pnmhdr->hwndFrom), ::GetMessagePos());
 }
 
 #if defined _WIN32_WCE && _WIN32_WCE >= 400 && defined _WIN32_WCE_PSPC
-LRESULT qm::FolderWindowImpl::onRecognizeGesture(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qm::FolderWindowImpl::onRecognizeGesture(NMHDR* pnmhdr,
+												 bool* pbHandled)
 {
 	*pbHandled = true;
 	return TRUE;
 }
 #endif
 
-LRESULT qm::FolderWindowImpl::onGetDispInfo(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qm::FolderWindowImpl::onGetDispInfo(NMHDR* pnmhdr,
+											bool* pbHandled)
 {
-	DECLARE_QSTATUS();
-	
 	NMTVDISPINFO* pnmtvDispInfo = reinterpret_cast<NMTVDISPINFO*>(pnmhdr);
 	TVITEM& item = pnmtvDispInfo->item;
 	if (TreeView_GetParent(pThis_->getHandle(), item.hItem)) {
@@ -570,14 +543,9 @@ LRESULT qm::FolderWindowImpl::onGetDispInfo(NMHDR* pnmhdr, bool* pbHandled)
 			else if (bShowUnseenCount_)
 				swprintf(wsz, L" (%d)", pFolder->getUnseenCount());
 			
-			string_ptr<WSTRING> wstrText(concat(pFolder->getName(), wsz));
-			if (!wstrText.get())
-				return 1;
-			
-			W2T_STATUS(wstrText.get(), ptszText);
-			CHECK_QSTATUS_VALUE(1);
-			_tcsncpy(item.pszText,
-				ptszText, item.cchTextMax);
+			wstring_ptr wstrText(concat(pFolder->getName(), wsz));
+			W2T(wstrText.get(), ptszText);
+			_tcsncpy(item.pszText, ptszText, item.cchTextMax);
 		}
 	}
 	else {
@@ -594,7 +562,8 @@ LRESULT qm::FolderWindowImpl::onGetDispInfo(NMHDR* pnmhdr, bool* pbHandled)
 	return 0;
 }
 
-LRESULT qm::FolderWindowImpl::onItemExpanded(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qm::FolderWindowImpl::onItemExpanded(NMHDR* pnmhdr,
+											 bool* pbHandled)
 {
 	NMTREEVIEW* pnmtv = reinterpret_cast<NMTREEVIEW*>(pnmhdr);
 	
@@ -606,73 +575,51 @@ LRESULT qm::FolderWindowImpl::onItemExpanded(NMHDR* pnmhdr, bool* pbHandled)
 	return 0;
 }
 
-LRESULT qm::FolderWindowImpl::onSelChanged(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qm::FolderWindowImpl::onSelChanged(NMHDR* pnmhdr,
+										   bool* pbHandled)
 {
-	DECLARE_QSTATUS();
-	
 	NMTREEVIEW* pnmtv = reinterpret_cast<NMTREEVIEW*>(pnmhdr);
 	bool bDelay = (pnmtv->action & TVC_BYKEYBOARD) != 0;
 	
 	Folder* pFolder = getSelectedFolder();
 	if (pFolder)
-		status = pFolderModel_->setCurrent(0, pFolder, bDelay);
+		pFolderModel_->setCurrent(0, pFolder, bDelay);
 	else
-		status = pFolderModel_->setCurrent(getSelectedAccount(), 0, bDelay);
+		pFolderModel_->setCurrent(getSelectedAccount(), 0, bDelay);
 	
 	return 0;
 }
 
-QSTATUS qm::FolderWindowImpl::clearAccountList()
+void qm::FolderWindowImpl::clearAccountList()
 {
-	DECLARE_QSTATUS();
-	
-	FolderMap::iterator it = mapFolder_.begin();
-	while (it != mapFolder_.end()) {
-		status = (*it).first->removeFolderHandler(this);
-		CHECK_QSTATUS();
-		++it;
-	}
+	for (FolderMap::iterator it = mapFolder_.begin(); it != mapFolder_.end(); ++it)
+		(*it).first->removeFolderHandler(this);
 	
 	HTREEITEM hItem = TreeView_GetRoot(pThis_->getHandle());
 	while (hItem) {
 		Account* pAccount = getAccount(hItem);
-		if (!pAccount)
-			return QSTATUS_FAIL;
-		status = pAccount->removeAccountHandler(this);
-		CHECK_QSTATUS();
+		if (pAccount)
+			pAccount->removeAccountHandler(this);
 		
 		hItem = TreeView_GetNextSibling(pThis_->getHandle(), hItem);
 	}
 	
 	mapFolder_.clear();
 	TreeView_DeleteAllItems(pThis_->getHandle());
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderWindowImpl::updateAccountList()
+void qm::FolderWindowImpl::updateAccountList()
 {
-	DECLARE_QSTATUS();
-	
 	const Document::AccountList& l = pDocument_->getAccounts();
-	Document::AccountList::const_iterator it = l.begin();
-	while (it != l.end()) {
-		status = addAccount(*it++);
-		CHECK_QSTATUS();
-	}
-	
-	return status;
+	for (Document::AccountList::const_iterator it = l.begin(); it != l.end(); ++it)
+		addAccount(*it);
 }
 
-QSTATUS qm::FolderWindowImpl::refreshFolderList(Account* pAccount)
+void qm::FolderWindowImpl::refreshFolderList(Account* pAccount)
 {
-	DECLARE_QSTATUS();
-	
-	FolderMap::iterator it = mapFolder_.begin();
-	while (it != mapFolder_.end()) {
+	for (FolderMap::iterator it = mapFolder_.begin(); it != mapFolder_.end(); ) {
 		if ((*it).first->getAccount() == pAccount) {
-			status = (*it).first->removeFolderHandler(this);
-			CHECK_QSTATUS();
+			(*it).first->removeFolderHandler(this);
 			it = mapFolder_.erase(it);
 		}
 		else {
@@ -683,11 +630,9 @@ QSTATUS qm::FolderWindowImpl::refreshFolderList(Account* pAccount)
 	HTREEITEM hItem = getHandleFromAccount(pAccount);
 	assert(hItem);
 	
-	TreeView_Expand(pThis_->getHandle(), hItem,
-		TVE_COLLAPSE | TVE_COLLAPSERESET);
+	TreeView_Expand(pThis_->getHandle(), hItem, TVE_COLLAPSE | TVE_COLLAPSERESET);
 	
-	status = insertFolders(hItem, pAccount);
-	CHECK_QSTATUS();
+	insertFolders(hItem, pAccount);
 	
 	TreeView_Expand(pThis_->getHandle(), hItem, TVE_EXPAND);
 	
@@ -702,14 +647,10 @@ QSTATUS qm::FolderWindowImpl::refreshFolderList(Account* pAccount)
 			TreeView_SelectItem(pThis_->getHandle(),
 				getHandleFromFolder(pCurrentFolder));
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderWindowImpl::addAccount(Account* pAccount)
+void qm::FolderWindowImpl::addAccount(Account* pAccount)
 {
-	DECLARE_QSTATUS();
-	
 	W2T(pAccount->getName(), ptszName);
 	
 	TVINSERTSTRUCT tvisAccount = {
@@ -731,47 +672,37 @@ QSTATUS qm::FolderWindowImpl::addAccount(Account* pAccount)
 	HTREEITEM hItemAccount = TreeView_InsertItem(
 		pThis_->getHandle(), &tvisAccount);
 	if (!hItemAccount)
-		return QSTATUS_FAIL;
+		return;
 	
-	status = insertFolders(hItemAccount, pAccount);
-	CHECK_QSTATUS();
+	insertFolders(hItemAccount, pAccount);
 	
-	status = pAccount->addAccountHandler(this);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	pAccount->addAccountHandler(this);
 }
 
-QSTATUS qm::FolderWindowImpl::removeAccount(Account* pAccount)
+void qm::FolderWindowImpl::removeAccount(Account* pAccount)
 {
 	HTREEITEM hItem = getHandleFromAccount(pAccount);
 	assert(hItem);
 	TreeView_DeleteItem(pThis_->getHandle(), hItem);
 	TreeView_SelectItem(pThis_->getHandle(), 0);
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderWindowImpl::insertFolders(HTREEITEM hItem, Account* pAccount)
+void qm::FolderWindowImpl::insertFolders(HTREEITEM hItem,
+										 Account* pAccount)
 {
 	assert(hItem);
 	assert(pAccount);
 	
-	DECLARE_QSTATUS();
-	
 	DisableRedraw disable(pThis_->getHandle());
-	
-	STLWrapper<FolderMap> wrapper(mapFolder_);
 	
 	const Account::FolderList& l = pAccount->getFolders();
 	Account::FolderList listFolder;
-	status = STLWrapper<Account::FolderList>(listFolder).reserve(l.size());
-	CHECK_QSTATUS();
+	listFolder.reserve(l.size());
 	std::remove_copy_if(l.begin(), l.end(),
 		std::back_inserter(listFolder), std::mem_fun(&Folder::isHidden));
 	std::sort(listFolder.begin(), listFolder.end(), FolderLess());
 	
-	Account::FolderList::const_iterator it = listFolder.begin();
-	while (it != listFolder.end()) {
+	for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
 		Folder* pFolder = *it;
 		
 		TVINSERTSTRUCT tvisFolder = {
@@ -799,21 +730,15 @@ QSTATUS qm::FolderWindowImpl::insertFolders(HTREEITEM hItem, Account* pAccount)
 		HTREEITEM hItemFolder = TreeView_InsertItem(
 			pThis_->getHandle(), &tvisFolder);
 		if (!hItemFolder)
-			return QSTATUS_FAIL;
-		status = wrapper.push_back(std::make_pair(pFolder, hItemFolder));
-		CHECK_QSTATUS();
-		
-		status = pFolder->addFolderHandler(this);
-		CHECK_QSTATUS();
-		
-		++it;
+			return;
+		mapFolder_.push_back(std::make_pair(pFolder, hItemFolder));
+		pFolder->addFolderHandler(this);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 int qm::FolderWindowImpl::getFolderImage(Folder* pFolder,
-	bool bSelected, bool bExpanded) const
+										 bool bSelected,
+										 bool bExpanded) const
 {
 	int nImage = UIUtil::getFolderImage(pFolder, bSelected);
 	bool bUnseen = false;
@@ -822,11 +747,9 @@ int qm::FolderWindowImpl::getFolderImage(Folder* pFolder,
 	}
 	else {
 		const Account::FolderList& l = pFolder->getAccount()->getFolders();
-		Account::FolderList::const_iterator it = l.begin();
-		while (it != l.end() && !bUnseen) {
+		for (Account::FolderList::const_iterator it = l.begin(); it != l.end() && !bUnseen; ++it) {
 			if (pFolder == *it || pFolder->isAncestorOf(*it))
 				bUnseen = (*it)->getUnseenCount() != 0;
-			++it;
 		}
 	}
 	
@@ -834,7 +757,8 @@ int qm::FolderWindowImpl::getFolderImage(Folder* pFolder,
 }
 
 int qm::FolderWindowImpl::getAccountImage(Account* pAccount,
-	bool bSelected, bool bExpanded) const
+										  bool bSelected,
+										  bool bExpanded) const
 {
 	bool bUnseen = false;
 	
@@ -843,12 +767,10 @@ int qm::FolderWindowImpl::getAccountImage(Account* pAccount,
 		Folder::FLAG_IGNOREUNSEEN;
 	
 	const Account::FolderList& l = pAccount->getFolders();
-	Account::FolderList::const_iterator it = l.begin();
-	while (it != l.end() && !bUnseen) {
+	for (Account::FolderList::const_iterator it = l.begin(); it != l.end() && !bUnseen; ++it) {
 		Folder* pFolder = *it;
 		if (!(pFolder->getFlags() & nIgnore))
 			bUnseen = pFolder->getUnseenCount() != 0;
-		++it;
 	}
 	
 	return bUnseen ? 1 : 0;
@@ -862,88 +784,55 @@ int qm::FolderWindowImpl::getAccountImage(Account* pAccount,
  */
 
 qm::FolderWindow::FolderWindow(WindowBase* pParentWindow,
-	FolderModel* pFolderModel, Profile* pProfile, QSTATUS* pstatus) :
-	WindowBase(true, pstatus),
-	DefaultWindowHandler(pstatus),
+							   FolderModel* pFolderModel,
+							   Profile* pProfile) :
+	WindowBase(true),
 	pImpl_(0)
 {
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	DECLARE_QSTATUS();
-	
-	int nShowAllCount = 0;
-	status = pProfile->getInt(L"FolderWindow",
-		L"ShowAllCount", 1, &nShowAllCount);
-	CHECK_QSTATUS_SET(pstatus);
-	int nShowUnseenCount = 0;
-	status = pProfile->getInt(L"FolderWindow",
-		L"ShowUnseenCount", 1, &nShowUnseenCount);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new FolderWindowImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->pParentWindow_ = pParentWindow;
 	pImpl_->pFolderModel_ = pFolderModel;
 	pImpl_->pMenuManager_ = 0;
 	pImpl_->pProfile_ = pProfile;
-	pImpl_->pAccelerator_ = 0;
 	pImpl_->pDocument_ = 0;
 	pImpl_->nId_ = 0;
 	pImpl_->hfont_ = 0;
-	pImpl_->bShowAllCount_ = nShowAllCount != 0;
-	pImpl_->bShowUnseenCount_ = nShowUnseenCount != 0;
-	pImpl_->pDropTarget_ = 0;
+	pImpl_->bShowAllCount_ = pProfile->getInt(L"FolderWindow", L"ShowAllCount", 1) != 0;
+	pImpl_->bShowUnseenCount_ = pProfile->getInt(L"FolderWindow", L"ShowUnseenCount", 1) != 0;
 	
 	setWindowHandler(this, false);
 	
-	status = pParentWindow->addNotifyHandler(pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	status = pFolderModel->addFolderModelHandler(pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pParentWindow->addNotifyHandler(pImpl_);
+	pFolderModel->addFolderModelHandler(pImpl_);
 }
 
 qm::FolderWindow::~FolderWindow()
 {
-	if (pImpl_) {
-		delete pImpl_->pAccelerator_;
-		delete pImpl_;
-		pImpl_ = 0;
-	}
+	delete pImpl_;
 }
 
-QSTATUS qm::FolderWindow::getSuperClass(WSTRING* pwstrSuperClass)
+wstring_ptr qm::FolderWindow::getSuperClass()
 {
-	assert(pwstrSuperClass);
-	
-	*pwstrSuperClass = allocWString(WC_TREEVIEWW);
-	if (!*pwstrSuperClass)
-		return QSTATUS_OUTOFMEMORY;
-	
-	return QSTATUS_SUCCESS;
+	return allocWString(WC_TREEVIEWW);
 }
 
-QSTATUS qm::FolderWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
+bool qm::FolderWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
 {
-	DECLARE_QSTATUS();
-	
-	status = DefaultWindowHandler::preCreateWindow(pCreateStruct);
-	CHECK_QSTATUS();
-	
+	if (!DefaultWindowHandler::preCreateWindow(pCreateStruct))
+		return false;
 	pCreateStruct->style |= TVS_HASBUTTONS | TVS_HASLINES | TVS_SHOWSELALWAYS;
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::FolderWindow::getAccelerator(Accelerator** ppAccelerator)
+Accelerator* qm::FolderWindow::getAccelerator()
 {
-	assert(ppAccelerator);
-	*ppAccelerator = pImpl_->pAccelerator_;
-	return QSTATUS_SUCCESS;
+	return pImpl_->pAccelerator_.get();
 }
 
-LRESULT qm::FolderWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qm::FolderWindow::windowProc(UINT uMsg,
+									 WPARAM wParam,
+									 LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_CONTEXTMENU()
@@ -958,13 +847,11 @@ LRESULT qm::FolderWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
 
-LRESULT qm::FolderWindow::onContextMenu(HWND hwnd, const POINT& pt)
+LRESULT qm::FolderWindow::onContextMenu(HWND hwnd,
+										const POINT& pt)
 {
-	DECLARE_QSTATUS();
-	
-	HMENU hmenu = 0;
-	status = pImpl_->pMenuManager_->getMenu(L"folder", false, false, &hmenu);
-	if (status == QSTATUS_SUCCESS) {
+	HMENU hmenu = pImpl_->pMenuManager_->getMenu(L"folder", false, false);
+	if (hmenu) {
 		UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
 #ifndef _WIN32_WCE
 		nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
@@ -980,24 +867,22 @@ LRESULT qm::FolderWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (DefaultWindowHandler::onCreate(pCreateStruct) == -1)
 		return -1;
 	
-	DECLARE_QSTATUS();
-	
 	FolderWindowCreateContext* pContext =
 		static_cast<FolderWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pDocument_ = pContext->pDocument_;
 	pImpl_->pMenuManager_ = pContext->pMenuManager_;
 	pImpl_->pDocument_->addDocumentHandler(pImpl_);
 	
-	status = pContext->pKeyMap_->createAccelerator(
-		CustomAcceleratorFactory(), L"FolderWindow",
-		mapKeyNameToId, countof(mapKeyNameToId), &pImpl_->pAccelerator_);
-	CHECK_QSTATUS_VALUE(-1);
+	CustomAcceleratorFactory acceleratorFactory;
+	pImpl_->pAccelerator_ = pContext->pKeyMap_->createAccelerator(
+		&acceleratorFactory, L"FolderWindow", mapKeyNameToId, countof(mapKeyNameToId));
+	if (!pImpl_->pAccelerator_.get())
+		return -1;
 	
 	pImpl_->nId_ = getWindowLong(GWL_ID);
 	
-	status = qs::UIUtil::createFontFromProfile(pImpl_->pProfile_,
-		L"FolderWindow", false, &pImpl_->hfont_);
-	CHECK_QSTATUS_VALUE(-1);
+	pImpl_->hfont_ = qs::UIUtil::createFontFromProfile(
+		pImpl_->pProfile_, L"FolderWindow", false);
 	setFont(pImpl_->hfont_);
 	
 	HIMAGELIST hImageList = ImageList_LoadImage(
@@ -1005,8 +890,7 @@ LRESULT qm::FolderWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		MAKEINTRESOURCE(IDB_FOLDER), 16, 0, CLR_DEFAULT, IMAGE_BITMAP, 0);
 	TreeView_SetImageList(getHandle(), hImageList, TVSIL_NORMAL);
 	
-	status = newQsObject(getHandle(), &pImpl_->pDropTarget_);
-	CHECK_QSTATUS_VALUE(-1);
+	pImpl_->pDropTarget_.reset(new DropTarget(getHandle()));
 	pImpl_->pDropTarget_->setDropTargetHandler(pImpl_);
 	
 	return 0;
@@ -1025,12 +909,13 @@ LRESULT qm::FolderWindow::onDestroy()
 	pImpl_->pParentWindow_->removeNotifyHandler(pImpl_);
 	pImpl_->pFolderModel_->removeFolderModelHandler(pImpl_);
 	
-	delete pImpl_->pDropTarget_;
+	pImpl_->pDropTarget_.reset(0);
 	
 	return DefaultWindowHandler::onDestroy();
 }
 
-LRESULT qm::FolderWindow::onLButtonDown(UINT nFlags, const POINT& pt)
+LRESULT qm::FolderWindow::onLButtonDown(UINT nFlags,
+										const POINT& pt)
 {
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && _WIN32_WCE_PSPC
 	if (tapAndHold(pt))
@@ -1039,25 +924,29 @@ LRESULT qm::FolderWindow::onLButtonDown(UINT nFlags, const POINT& pt)
 	return DefaultWindowHandler::onLButtonDown(nFlags, pt);
 }
 
-LRESULT qm::FolderWindow::onMessageAdded(WPARAM wParam, LPARAM lParam)
+LRESULT qm::FolderWindow::onMessageAdded(WPARAM wParam,
+										 LPARAM lParam)
 {
 	pImpl_->handleUpdateMessage(lParam);
 	return 0;
 }
 
-LRESULT qm::FolderWindow::onMessageRemoved(WPARAM wParam, LPARAM lParam)
+LRESULT qm::FolderWindow::onMessageRemoved(WPARAM wParam,
+										   LPARAM lParam)
 {
 	pImpl_->handleUpdateMessage(lParam);
 	return 0;
 }
 
-LRESULT qm::FolderWindow::onMessageRefreshed(WPARAM wParam, LPARAM lParam)
+LRESULT qm::FolderWindow::onMessageRefreshed(WPARAM wParam,
+											 LPARAM lParam)
 {
 	pImpl_->handleUpdateMessage(lParam);
 	return 0;
 }
 
-LRESULT qm::FolderWindow::onMessageChanged(WPARAM wParam, LPARAM lParam)
+LRESULT qm::FolderWindow::onMessageChanged(WPARAM wParam,
+										   LPARAM lParam)
 {
 	pImpl_->handleUpdateMessage(lParam);
 	return 0;
@@ -1073,8 +962,7 @@ bool qm::FolderWindow::isActive() const
 	return hasFocus();
 }
 
-QSTATUS qm::FolderWindow::setActive()
+void qm::FolderWindow::setActive()
 {
 	setFocus();
-	return QSTATUS_SUCCESS;
 }

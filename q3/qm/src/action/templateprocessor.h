@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -38,19 +38,22 @@ class TemplateManager;
 class TemplateProcessor
 {
 public:
-	TemplateProcessor(Document* pDocument, FolderModelBase* pFolderModel,
-		MessageSelectionModel* pMessageSelectionModel,
-		EditFrameWindowManager* pEditFrameWindowManager,
-		ExternalEditorManager* pExternalEditorManager,
-		HWND hwnd, qs::Profile* pProfile, bool bExternalEditor);
+	TemplateProcessor(Document* pDocument,
+					  FolderModelBase* pFolderModel,
+					  MessageSelectionModel* pMessageSelectionModel,
+					  EditFrameWindowManager* pEditFrameWindowManager,
+					  ExternalEditorManager* pExternalEditorManager,
+					  HWND hwnd,
+					  qs::Profile* pProfile,
+					  bool bExternalEditor);
 	~TemplateProcessor();
 
 public:
-	qs::QSTATUS process(const WCHAR* pwszTemplateName,
-		bool bReverseExternalEditor) const;
-	qs::QSTATUS process(const WCHAR* pwszTemplateName,
-		const TemplateContext::ArgumentList& listArgument,
-		bool bReverseExternalEditor) const;
+	bool process(const WCHAR* pwszTemplateName,
+				 bool bReverseExternalEditor) const;
+	bool process(const WCHAR* pwszTemplateName,
+				 const TemplateContext::ArgumentList& listArgument,
+				 bool bReverseExternalEditor) const;
 
 private:
 	class MacroErrorHandlerImpl : public MacroErrorHandler
@@ -60,8 +63,10 @@ private:
 		virtual ~MacroErrorHandlerImpl();
 	
 	public:
-		virtual void parseError(Code code, const WCHAR* pwsz);
-		virtual void processError(Code code, const WCHAR* pwsz);
+		virtual void parseError(Code code,
+							    const WCHAR* pwsz);
+		virtual void processError(Code code,
+								  const WCHAR* pwsz);
 	
 	private:
 		MacroErrorHandlerImpl(const MacroErrorHandlerImpl&);

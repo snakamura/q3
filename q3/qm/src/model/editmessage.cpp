@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -11,7 +11,6 @@
 #include <qmdocument.h>
 #include <qmmessage.h>
 
-#include <qsnew.h>
 #include <qsstl.h>
 #include <qstextutil.h>
 
@@ -34,7 +33,8 @@ using namespace qs;
  */
 
 qm::EditMessage::EditMessage(Profile* pProfile,
-	Document* pDocument, Account* pAccount, QSTATUS* pstatus) :
+							 Document* pDocument,
+							 Account* pAccount) :
 	pProfile_(pProfile),
 	pDocument_(pDocument),
 	pAccount_(pAccount),
@@ -47,12 +47,7 @@ qm::EditMessage::EditMessage(Profile* pProfile,
 	bEncrypt_(false),
 	bSign_(false)
 {
-	DECLARE_QSTATUS();
-	
-	int nAutoReform = 1;
-	status = pProfile_->getInt(L"EditWindow", L"AutoReform", 1, &nAutoReform);
-	CHECK_QSTATUS_SET(pstatus);
-	bAutoReform_ = nAutoReform != 0;
+	bAutoReform_ = pProfile_->getInt(L"EditWindow", L"AutoReform", 1) != 0;
 }
 
 qm::EditMessage::~EditMessage()
@@ -60,57 +55,37 @@ qm::EditMessage::~EditMessage()
 	clear();
 }
 
-QSTATUS qm::EditMessage::getMessage(Message** ppMessage)
+Message* qm::EditMessage::getMessage()
 {
-	assert(ppMessage);
-	
-	DECLARE_QSTATUS();
-	
-	status = fixup();
-	CHECK_QSTATUS();
-	
-	*ppMessage = pMessage_;
-	
-	return QSTATUS_SUCCESS;
+	if (!fixup())
+		return 0;
+	return pMessage_.get();
 }
 
-QSTATUS qm::EditMessage::setMessage(Message* pMessage)
+bool qm::EditMessage::setMessage(std::auto_ptr<Message> pMessage)
 {
-	assert(pMessage);
-	
-	DECLARE_QSTATUS();
+	assert(pMessage.get());
 	
 	clear();
 	
-	status = getBodyPart(pMessage, &pBodyPart_);
-	CHECK_QSTATUS();
-	if (pBodyPart_) {
-		status = pBodyPart_->getBodyText(&wstrBody_);
-		CHECK_QSTATUS();
-	}
-	else {
-		wstrBody_ = allocWString(L"");
-		if (!wstrBody_)
-			return QSTATUS_OUTOFMEMORY;
-	}
+	pBodyPart_ = getBodyPart(pMessage.get());
+	if (pBodyPart_)
+		wstrBody_ = pBodyPart_->getBodyText();
+	else
+		wstrBody_ = allocWXString(L"");
+	if (!wstrBody_.get())
+		return false;
 	
-	Part::Field f;
-	UnstructuredParser account(&status);
-	CHECK_QSTATUS();
-	status = pMessage->getField(L"X-QMAIL-Account", &account, &f);
-	CHECK_QSTATUS();
-	if (f == Part::FIELD_EXIST) {
+	UnstructuredParser account;
+	if (pMessage->getField(L"X-QMAIL-Account", &account) == Part::FIELD_EXIST) {
 		Account* pAccount = pDocument_->getAccount(account.getValue());
 		if (pAccount && pAccount != pAccount_) {
 			pAccount_ = pAccount;
 			pSubAccount_ = pAccount->getCurrentSubAccount();
 		}
 	}
-	UnstructuredParser subaccount(&status);
-	CHECK_QSTATUS();
-	status = pMessage->getField(L"X-QMAIL-SubAccount", &subaccount, &f);
-	CHECK_QSTATUS();
-	if (f == Part::FIELD_EXIST) {
+	UnstructuredParser subaccount;
+	if (pMessage->getField(L"X-QMAIL-SubAccount", &subaccount) == Part::FIELD_EXIST) {
 		SubAccount* pSubAccount = pAccount_->getSubAccount(subaccount.getValue());
 		if (pSubAccount)
 			pSubAccount_ = pSubAccount;
@@ -119,50 +94,36 @@ QSTATUS qm::EditMessage::setMessage(Message* pMessage)
 		L"X-QMAIL-Account",
 		L"X-QMAIL-SubAccount"
 	};
-	for (int n = 0; n < countof(pwszFields); ++n) {
-		status = pMessage->removeField(pwszFields[n]);
-		CHECK_QSTATUS();
-	}
+	for (int n = 0; n < countof(pwszFields); ++n)
+		pMessage->removeField(pwszFields[n]);
 	
 	SignatureManager* pSignatureManager = pDocument_->getSignatureManager();
 	const Signature* pSignature = 0;
-	UnstructuredParser signature(&status);
-	CHECK_QSTATUS();
-	status = pMessage->getField(L"X-QMAIL-Signature", &signature, &f);
-	CHECK_QSTATUS();
-	if (f == Part::FIELD_EXIST) {
-		if (*signature.getValue()) {
-			status = pSignatureManager->getSignature(
-				pAccount_, signature.getValue(), &pSignature);
-			CHECK_QSTATUS();
-		}
+	UnstructuredParser signature;
+	if (pMessage->getField(L"X-QMAIL-Signature", &signature) == Part::FIELD_EXIST) {
+		if (*signature.getValue())
+			pSignature = pSignatureManager->getSignature(
+				pAccount_, signature.getValue());
 	}
 	else {
-		status = pSignatureManager->getDefaultSignature(
-			pAccount_, &pSignature);
-		CHECK_QSTATUS();
+		pSignature = pSignatureManager->getDefaultSignature(pAccount_);
 	}
-	if (pSignature) {
+	if (pSignature)
 		wstrSignature_ = allocWString(pSignature->getName());
-		if (!wstrSignature_)
-			return QSTATUS_OUTOFMEMORY;
-	}
 	
-	AttachmentParser attachment(*pMessage);
-	status = attachment.getAttachments(true, &listAttachment_);
-	CHECK_QSTATUS();
+	AttachmentParser attachment(*pMessage.get());
+	attachment.getAttachments(true, &listAttachment_);
 	
 	pMessage_ = pMessage;
 	
-	status = fireMessageSet();
-	CHECK_QSTATUS();
+	fireMessageSet();
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::EditMessage::update()
+void qm::EditMessage::update()
 {
-	return fireMessageUpdate();
+	fireMessageUpdate();
 }
 
 Document* qm::EditMessage::getDocument() const
@@ -180,33 +141,26 @@ SubAccount* qm::EditMessage::getSubAccount() const
 	return pSubAccount_;
 }
 
-QSTATUS qm::EditMessage::setAccount(Account* pAccount, SubAccount* pSubAccount)
+void qm::EditMessage::setAccount(Account* pAccount,
+								 SubAccount* pSubAccount)
 {
 	assert(pAccount);
 	assert(pSubAccount);
-	
-	DECLARE_QSTATUS();
 	
 	if (pAccount != pAccount_ || pSubAccount != pSubAccount_) {
 		pAccount_ = pAccount;
 		pSubAccount_ = pSubAccount;
 		
-		status = fireAccountChanged();
-		CHECK_QSTATUS();
+		fireAccountChanged();
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditMessage::getField(const WCHAR* pwszName,
-	FieldType type, WSTRING* pwstrValue)
+wstring_ptr qm::EditMessage::getField(const WCHAR* pwszName,
+									  FieldType type)
 {
 	assert(pwszName);
-	assert(pwstrValue);
 	
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrValue;
+	wstring_ptr wstrValue;
 	
 	FieldList::iterator it = std::find_if(
 		listField_.begin(), listField_.end(),
@@ -217,37 +171,22 @@ QSTATUS qm::EditMessage::getField(const WCHAR* pwszName,
 				std::identity<const WCHAR*>()),
 			pwszName));
 	if (it != listField_.end()) {
-		wstrValue.reset(allocWString((*it).wstrValue_));
-		if (!wstrValue.get())
-			return QSTATUS_OUTOFMEMORY;
+		wstrValue = allocWString((*it).wstrValue_);
 	}
 	else {
 		switch (type) {
 		case FIELDTYPE_UNSTRUCTURED:
 			{
-				UnstructuredParser field(&status);
-				CHECK_QSTATUS();
-				Part::Field f;
-				status = pMessage_->getField(pwszName, &field, &f);
-				CHECK_QSTATUS();
-				if (f == Part::FIELD_EXIST) {
-					wstrValue.reset(allocWString(field.getValue()));
-					if (!wstrValue.get())
-						return QSTATUS_OUTOFMEMORY;
-				}
+				UnstructuredParser field;
+				if (pMessage_->getField(pwszName, &field) == Part::FIELD_EXIST)
+					wstrValue = allocWString(field.getValue());
 			}
 			break;
 		case FIELDTYPE_ADDRESSLIST:
 			{
-				AddressListParser field(0, &status);
-				CHECK_QSTATUS();
-				Part::Field f;
-				status = pMessage_->getField(pwszName, &field, &f);
-				CHECK_QSTATUS();
-				if (f == Part::FIELD_EXIST) {
-					status = field.getValue(&wstrValue);
-					CHECK_QSTATUS();
-				}
+				AddressListParser field(0);
+				if (pMessage_->getField(pwszName, &field) == Part::FIELD_EXIST)
+					wstrValue = field.getValue();
 			}
 			break;
 		default:
@@ -256,24 +195,19 @@ QSTATUS qm::EditMessage::getField(const WCHAR* pwszName,
 		}
 	}
 	
-	*pwstrValue = wstrValue.release();
-	
-	return QSTATUS_SUCCESS;
+	return wstrValue;
 }
 
-QSTATUS qm::EditMessage::setField(const WCHAR* pwszName,
-	const WCHAR* pwszValue, FieldType type)
+void qm::EditMessage::setField(const WCHAR* pwszName,
+							   const WCHAR* pwszValue,
+							   FieldType type)
 {
 	assert(pwszName);
 	assert(pwszValue);
 	
-	DECLARE_QSTATUS();
-	
 	bool bChange = true;
 	
-	string_ptr<WSTRING> wstrValue(allocWString(pwszValue));
-	if (!wstrValue.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrValue(allocWString(pwszValue));
 	
 	FieldList::iterator it = std::find_if(
 		listField_.begin(), listField_.end(),
@@ -294,140 +228,97 @@ QSTATUS qm::EditMessage::setField(const WCHAR* pwszName,
 		}
 	}
 	else {
-		string_ptr<WSTRING> wstrName(allocWString(pwszName));
-		if (!wstrName.get())
-			return QSTATUS_OUTOFMEMORY;
-		Field field = { wstrName.get(), wstrValue.get(), type };
-		status = STLWrapper<FieldList>(listField_).push_back(field);
-		CHECK_QSTATUS();
+		wstring_ptr wstrName(allocWString(pwszName));
+		Field field = {
+			wstrName.get(),
+			wstrValue.get(),
+			type
+		};
+		listField_.push_back(field);
 		wstrName.release();
 		wstrValue.release();
 		
-		status = pMessage_->removeField(pwszName);
-		CHECK_QSTATUS();
+		pMessage_->removeField(pwszName);
 	}
 	
-	if (bChange) {
-		status = fireFieldChanged(pwszName, pwszValue);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (bChange)
+		fireFieldChanged(pwszName, pwszValue);
 }
 
-QSTATUS qm::EditMessage::getHeader(WSTRING* pwstrHeader)
+wxstring_ptr qm::EditMessage::getHeader()
 {
-	assert(pwstrHeader);
-	
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrHeader;
-	status = PartUtil::a2w(pMessage_->getHeader(), &wstrHeader);
-	CHECK_QSTATUS();
-	
-	*pwstrHeader = wstrHeader.release();
-	
-	return QSTATUS_SUCCESS;
+	return PartUtil::a2w(pMessage_->getHeader());
 }
 
-QSTATUS qm::EditMessage::setHeader(const WCHAR* pwszHeader, size_t nLen)
+bool qm::EditMessage::setHeader(const WCHAR* pwszHeader,
+								size_t nLen)
 {
 	assert(pwszHeader);
 	
-	DECLARE_QSTATUS();
+	Message msg;
+	if (!MessageCreator().createHeader(&msg, pwszHeader, nLen))
+		return false;
 	
-	Message msg(&status);
-	CHECK_QSTATUS();
-	MessageCreator creator;
-	status = creator.createHeader(&msg, pwszHeader, nLen);
-	CHECK_QSTATUS();
-	
-	status = pMessage_->setHeader(msg.getHeader());
-	CHECK_QSTATUS();
+	if (!pMessage_->setHeader(msg.getHeader()))
+		return false;
 	
 	clearFields();
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 const WCHAR* qm::EditMessage::getBody() const
 {
-	return wstrBody_;
+	return wstrBody_.get();
 }
 
-QSTATUS qm::EditMessage::setBody(const WCHAR* pwszBody)
+bool qm::EditMessage::setBody(const WCHAR* pwszBody)
 {
-	string_ptr<WSTRING> wstrBody(allocWString(pwszBody));
-	if (!wstrBody.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	freeWString(wstrBody_);
-	wstrBody_ = wstrBody.release();
-	
-	return QSTATUS_SUCCESS;
+	wstrBody_ = allocWXString(pwszBody);
+	return wstrBody_.get() != 0;
 }
 
-QSTATUS qm::EditMessage::getAttachments(AttachmentList* pList) const
+void qm::EditMessage::getAttachments(AttachmentList* pList) const
 {
 	assert(pList);
 	
-	DECLARE_QSTATUS();
+	pList->reserve(pList->size() + listAttachment_.size() + listAttachmentPath_.size());
 	
-	status = STLWrapper<AttachmentList>(*pList).reserve(
-		pList->size() + listAttachment_.size() + listAttachmentPath_.size());
-	CHECK_QSTATUS();
-	
-	AttachmentPathList::const_iterator itP = listAttachmentPath_.begin();
-	while (itP != listAttachmentPath_.end()) {
-		string_ptr<WSTRING> wstrName(allocWString(*itP));
-		if (!wstrName.get())
-			return QSTATUS_OUTOFMEMORY;
-		
-		Attachment attachment = { wstrName.release(), true };
+	for (AttachmentPathList::const_iterator itP = listAttachmentPath_.begin(); itP != listAttachmentPath_.end(); ++itP) {
+		wstring_ptr wstrName(allocWString(*itP));
+		Attachment attachment = {
+			wstrName.release(),
+			true
+		};
 		pList->push_back(attachment);
-		
-		++itP;
 	}
 	
-	AttachmentParser::AttachmentList::const_iterator itA = listAttachment_.begin();
-	while (itA != listAttachment_.end()) {
-		string_ptr<WSTRING> wstrName(allocWString((*itA).first));
-		if (!wstrName.get())
-			return QSTATUS_OUTOFMEMORY;
-		
-		Attachment attachment = { wstrName.release(), false };
+	for (AttachmentParser::AttachmentList::const_iterator itA = listAttachment_.begin(); itA != listAttachment_.end(); ++itA) {
+		wstring_ptr wstrName(allocWString((*itA).first));
+		Attachment attachment = {
+			wstrName.release(),
+			false
+		};
 		pList->push_back(attachment);
-		
-		++itA;
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditMessage::setAttachments(const AttachmentList& listAttachment)
+void qm::EditMessage::setAttachments(const AttachmentList& listAttachment)
 {
-	DECLARE_QSTATUS();
-	
 	std::for_each(listAttachmentPath_.begin(),
 		listAttachmentPath_.end(), string_free<WSTRING>());
 	listAttachmentPath_.clear();
 	
-	status = STLWrapper<AttachmentPathList>(
-		listAttachmentPath_).reserve(listAttachment_.size());
+	listAttachmentPath_.reserve(listAttachment_.size());
 	
-	AttachmentList::const_iterator itA = listAttachment.begin();
-	while (itA != listAttachment.end()) {
+	for (AttachmentList::const_iterator itA = listAttachment.begin(); itA != listAttachment.end(); ++itA) {
 		if ((*itA).bNew_) {
-			string_ptr<WSTRING> wstrPath(allocWString((*itA).wstrName_));
-			if (!wstrPath.get())
-				return QSTATUS_SUCCESS;
+			wstring_ptr wstrPath(allocWString((*itA).wstrName_));
 			listAttachmentPath_.push_back(wstrPath.release());
 		}
-		++itA;
 	}
 	
-	AttachmentParser::AttachmentList::iterator itO = listAttachment_.begin();
-	while (itO != listAttachment_.end()) {
+	for (AttachmentParser::AttachmentList::iterator itO = listAttachment_.begin(); itO != listAttachment_.end(); ) {
 		AttachmentList::const_iterator it = listAttachment.begin();
 		while (it != listAttachment.end()) {
 			if (!(*it).bNew_ && wcscmp((*it).wstrName_, (*itO).first) == 0)
@@ -436,8 +327,7 @@ QSTATUS qm::EditMessage::setAttachments(const AttachmentList& listAttachment)
 		}
 		
 		if (it == listAttachment.end()) {
-			status = removePart((*itO).second);
-			CHECK_QSTATUS();
+			removePart((*itO).second);
 			freeWString((*itO).first);
 			itO = listAttachment_.erase(itO);
 		}
@@ -446,35 +336,20 @@ QSTATUS qm::EditMessage::setAttachments(const AttachmentList& listAttachment)
 		}
 	}
 	
-	status = fireAttachmentsChanged();
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	fireAttachmentsChanged();
 }
 
-QSTATUS qm::EditMessage::addAttachment(const WCHAR* pwszPath)
+void qm::EditMessage::addAttachment(const WCHAR* pwszPath)
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrPath(allocWString(pwszPath));
-	if (!wstrPath.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	status = STLWrapper<AttachmentPathList>(
-		listAttachmentPath_).push_back(wstrPath.get());
-	CHECK_QSTATUS();
+	wstring_ptr wstrPath(allocWString(pwszPath));
+	listAttachmentPath_.push_back(wstrPath.get());
 	wstrPath.release();
 	
-	status = fireAttachmentsChanged();
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	fireAttachmentsChanged();
 }
 
-QSTATUS qm::EditMessage::removeAttachment(const WCHAR* pwszPath)
+void qm::EditMessage::removeAttachment(const WCHAR* pwszPath)
 {
-	DECLARE_QSTATUS();
-	
 	AttachmentPathList::iterator itP = std::find_if(
 		listAttachmentPath_.begin(), listAttachmentPath_.end(),
 		std::bind2nd(string_equal<WCHAR>(), pwszPath));
@@ -492,46 +367,32 @@ QSTATUS qm::EditMessage::removeAttachment(const WCHAR* pwszPath)
 					std::identity<const WCHAR*>()),
 				pwszPath));
 		if (itO != listAttachment_.end()) {
-			status = removePart((*itO).second);
-			CHECK_QSTATUS();
+			removePart((*itO).second);
 			freeWString((*itO).first);
 			listAttachment_.erase(itO);
 		}
 	}
 	
-	status = fireAttachmentsChanged();
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	fireAttachmentsChanged();
 }
 
 const WCHAR* qm::EditMessage::getSignature() const
 {
-	return wstrSignature_;
+	return wstrSignature_.get();
 }
 
-QSTATUS qm::EditMessage::setSignature(const WCHAR* pwszSignature)
+void qm::EditMessage::setSignature(const WCHAR* pwszSignature)
 {
-	DECLARE_QSTATUS();
-	
-	if (!((!wstrSignature_ && !pwszSignature) ||
-		(wstrSignature_ && pwszSignature &&
-		wcscmp(wstrSignature_, pwszSignature) == 0))) {
-		string_ptr<WSTRING> wstrSignature;
-		if (pwszSignature) {
-			wstrSignature.reset(allocWString(pwszSignature));
-			if (!wstrSignature.get())
-				return QSTATUS_OUTOFMEMORY;
-		}
+	if (!((!wstrSignature_.get() && !pwszSignature) ||
+		(wstrSignature_.get() && pwszSignature &&
+		wcscmp(wstrSignature_.get(), pwszSignature) == 0))) {
+		wstring_ptr wstrSignature;
+		if (pwszSignature)
+			wstrSignature = allocWString(pwszSignature);
+		wstrSignature_ = wstrSignature;
 		
-		freeWString(wstrSignature_);
-		wstrSignature_ = wstrSignature.release();
-		
-		status = fireSignatureChanged();
-		CHECK_QSTATUS();
+		fireSignatureChanged();
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 bool qm::EditMessage::isAutoReform() const
@@ -564,90 +425,60 @@ void qm::EditMessage::setSign(bool bSign)
 	bSign_ = bSign;
 }
 
-QSTATUS qm::EditMessage::addEditMessageHandler(EditMessageHandler* pHandler)
+void qm::EditMessage::addEditMessageHandler(EditMessageHandler* pHandler)
 {
-	return STLWrapper<HandlerList>(listHandler_).push_back(pHandler);
+	listHandler_.push_back(pHandler);
 }
 
-QSTATUS qm::EditMessage::removeEditMessageHandler(EditMessageHandler* pHandler)
+void qm::EditMessage::removeEditMessageHandler(EditMessageHandler* pHandler)
 {
 	HandlerList::iterator it = std::remove(
 		listHandler_.begin(), listHandler_.end(), pHandler);
 	listHandler_.erase(it, listHandler_.end());
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditMessage::getSignatureText(qs::WSTRING* pwstrText) const
+wstring_ptr qm::EditMessage::getSignatureText() const
 {
-	assert(pwstrText);
-	
-	DECLARE_QSTATUS();
-	
-	*pwstrText = 0;
-	
-	if (wstrSignature_) {
+	if (wstrSignature_.get()) {
 		SignatureManager* pSignatureManager = pDocument_->getSignatureManager();
-		const Signature* pSignature = 0;
-		status = pSignatureManager->getSignature(
-			pAccount_, wstrSignature_, &pSignature);
-		CHECK_QSTATUS();
-		if (pSignature) {
-			*pwstrText = allocWString(pSignature->getSignature());
-			if (!*pwstrText)
-				return QSTATUS_OUTOFMEMORY;
-		}
+		const Signature* pSignature = pSignatureManager->getSignature(
+			pAccount_, wstrSignature_.get());
+		if (pSignature)
+			return allocWString(pSignature->getSignature());
 	}
-	
-	return QSTATUS_SUCCESS;
+	return 0;
 }
 
-QSTATUS qm::EditMessage::fixup()
+bool qm::EditMessage::fixup()
 {
-	DECLARE_QSTATUS();
-	
-	status = fireMessageUpdate();
-	CHECK_QSTATUS();
+	fireMessageUpdate();
 	
 	if (bAutoReform_) {
-		int nLineLen = 74;
-		status = pProfile_->getInt(L"EditWindow",
-			L"ReformLineLength", 74, &nLineLen);
-		CHECK_QSTATUS();
-		int nTabWidth = 4;
-		status = pProfile_->getInt(L"EditWindow",
-			L"TabWidth", 4, &nTabWidth);
-		CHECK_QSTATUS();
+		int nLineLen = pProfile_->getInt(L"EditWindow", L"ReformLineLength", 74);
+		int nTabWidth = pProfile_->getInt(L"EditWindow", L"TabWidth", 4);
 		
-		string_ptr<WSTRING> wstrBody;
-		status = TextUtil::fold(wstrBody_, wcslen(wstrBody_),
-			nLineLen, 0, 0, nTabWidth, &wstrBody);
-		CHECK_QSTATUS();
-		freeWString(wstrBody_);
-		wstrBody_ = wstrBody.release();
+		wxstring_ptr wstrBody(TextUtil::fold(wstrBody_.get(),
+			wcslen(wstrBody_.get()), nLineLen, 0, 0, nTabWidth));
+		if (!wstrBody.get())
+			return false;
+		wstrBody_ = wstrBody;
 	}
 	
-	StringBuffer<WSTRING> buf(L"\n", &status);
-	CHECK_QSTATUS();
-	status = buf.append(wstrBody_);
-	CHECK_QSTATUS();
+	StringBuffer<WSTRING> buf(L"\n");
+	buf.append(wstrBody_.get());
 	
-	string_ptr<WSTRING> wstrSignature;
-	status = getSignatureText(&wstrSignature);
-	CHECK_QSTATUS();
-	if (wstrSignature.get()) {
-		status = buf.append(wstrSignature.get());
-		CHECK_QSTATUS();
-	}
+	wstring_ptr wstrSignature(getSignatureText());
+	if (wstrSignature.get())
+		buf.append(wstrSignature.get());
 	
-	Message* p = 0;
 	MessageCreator creator(MessageCreator::FLAG_ADDCONTENTTYPE |
 		MessageCreator::FLAG_EXPANDALIAS);
-	status = creator.createMessage(buf.getCharArray(), buf.getLength(), &p);
-	CHECK_QSTATUS();
-	std::auto_ptr<Message> pBodyMessage(p);
+	std::auto_ptr<Message> pBodyMessage(creator.createMessage(
+		buf.getCharArray(), buf.getLength()));
+	if (!pBodyMessage.get())
+		return false;
 	
-	FieldList::iterator itF = listField_.begin();
-	while (itF != listField_.end()) {
+	for (FieldList::iterator itF = listField_.begin(); itF != listField_.end(); ++itF) {
 		const Field& field = *itF;
 		if (field.wstrValue_ && *field.wstrValue_) {
 			struct Type
@@ -660,113 +491,88 @@ QSTATUS qm::EditMessage::fixup()
 			};
 			
 			MessageCreator::FieldType type;
-			for (int n = 0; n < countof(types); ++n) {
+			int n = 0;
+			while (n < countof(types)) {
 				if (types[n].fieldType_ == field.type_) {
 					type = types[n].type_;
 					break;
 				}
+				++n;
 			}
 			assert(n != countof(types));
-			status = MessageCreator::setField(pMessage_,
-				field.wstrName_, field.wstrValue_, type);
-			CHECK_QSTATUS();
+			if (!MessageCreator::setField(pMessage_.get(),
+				field.wstrName_, field.wstrValue_, type))
+				return false;
 		}
-		++itF;
 	}
 	
 	Part* pBodyPart = pBodyPart_;
 	std::auto_ptr<Part> pTempPart;
 	if (!pBodyPart) {
-		status = newQsObject(&pTempPart);
-		CHECK_QSTATUS();
+		pTempPart.reset(new Part());
 		pBodyPart = pTempPart.get();
 	}
-	Part::Field f;
-	ContentTypeParser contentType(&status);
-	CHECK_QSTATUS();
-	status = pBodyMessage->getField(L"Content-Type", &contentType, &f);
-	CHECK_QSTATUS();
-	if (f != Part::FIELD_EXIST)
-		return QSTATUS_FAIL;
-	status = pBodyPart->replaceField(L"Content-Type", contentType);
-	CHECK_QSTATUS();
-	SimpleParser contentTransferEncoding(
-		SimpleParser::FLAG_RECOGNIZECOMMENT | SimpleParser::FLAG_TSPECIAL,
-		&status);
-	CHECK_QSTATUS();
-	status = pBodyMessage->getField(L"Content-Transfer-Encoding",
-		&contentTransferEncoding, &f);
-	CHECK_QSTATUS();
-	if (f != Part::FIELD_EXIST)
-		return QSTATUS_FAIL;
-	status = pBodyPart->replaceField(L"Content-Transfer-Encoding",
-		contentTransferEncoding);
-	CHECK_QSTATUS();
-	status = pBodyPart->setBody(pBodyMessage->getBody(), -1);
-	CHECK_QSTATUS();
+	
+	ContentTypeParser contentType;
+	if (pBodyMessage->getField(L"Content-Type", &contentType) != Part::FIELD_EXIST)
+		return false;
+	if (!pBodyPart->replaceField(L"Content-Type", contentType))
+		return false;
+	ContentTransferEncodingParser contentTransferEncoding;
+	if (pBodyMessage->getField(L"Content-Transfer-Encoding", &contentTransferEncoding) != Part::FIELD_EXIST)
+		return false;
+	if (!pBodyPart->replaceField(L"Content-Transfer-Encoding", contentTransferEncoding))
+		return false;
+	if (!pBodyPart->setBody(pBodyMessage->getBody(), -1))
+		return false;
 	
 	if (!pBodyPart_) {
 		assert(pBodyPart == pTempPart.get());
 		
-		status = makeMultipartMixed();
-		CHECK_QSTATUS();
-		status = pMessage_->insertPart(0, pBodyPart);
-		CHECK_QSTATUS();
-		pTempPart.release();
+		if (!makeMultipartMixed())
+			return false;
+		pMessage_->insertPart(0, pTempPart);
 		pBodyPart_ = pBodyPart;
 	}
 	
 	if (!listAttachmentPath_.empty()) {
-		status = makeMultipartMixed();
-		CHECK_QSTATUS();
+		if (!makeMultipartMixed())
+			return false;
 		
-		AttachmentPathList::iterator itA = listAttachmentPath_.begin();
-		while (itA != listAttachmentPath_.end()) {
-			Part* p = 0;
-			status = MessageCreator::createPartFromFile(*itA, &p);
-			CHECK_QSTATUS();
-			std::auto_ptr<Part> pPart(p);
-			status = pMessage_->addPart(pPart.get());
-			CHECK_QSTATUS();
-			pPart.release();
-			++itA;
+		for (AttachmentPathList::iterator itA = listAttachmentPath_.begin(); itA != listAttachmentPath_.end(); ++itA) {
+			std::auto_ptr<Part> pPart(MessageCreator::createPartFromFile(*itA));
+			if (!pPart.get())
+				return false;
+			pMessage_->addPart(pPart);
 		}
 	}
 	
-	status = normalize(pBodyPart_);
-	CHECK_QSTATUS();
+	if (!normalize(pBodyPart_))
+		return false;
 	
 	if (*pSubAccount_->getIdentity()) {
-		UnstructuredParser subaccount(pSubAccount_->getName(), L"utf-8", &status);
-		CHECK_QSTATUS();
-		status = pMessage_->setField(L"X-QMAIL-SubAccount", subaccount);
-		CHECK_QSTATUS();
+		UnstructuredParser subaccount(pSubAccount_->getName(), L"utf-8");
+		if (!pMessage_->setField(L"X-QMAIL-SubAccount", subaccount))
+			return false;
 	}
 	
-	UnstructuredParser signature(L"", L"utf-8", &status);
-	CHECK_QSTATUS();
-	status = pMessage_->replaceField(L"X-QMAIL-Signature", signature);
-	CHECK_QSTATUS();
+	UnstructuredParser signature(L"", L"utf-8");
+	if (!pMessage_->replaceField(L"X-QMAIL-Signature", signature))
+		return false;
 	
-	SimpleParser mimeVersion(L"1.0", 0, &status);
-	CHECK_QSTATUS();
-	status = pMessage_->replaceField(L"MIME-Version", mimeVersion);
-	CHECK_QSTATUS();
+	SimpleParser mimeVersion(L"1.0", 0);
+	if (!pMessage_->replaceField(L"MIME-Version", mimeVersion))
+		return false;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 void qm::EditMessage::clear()
 {
-	delete pMessage_;
-	pMessage_ = 0;
-	
+	pMessage_.reset(0);
 	pBodyPart_ = 0;
-	
 	clearFields();
-	
-	freeWString(wstrBody_);
-	wstrBody_ = 0;
+	wstrBody_.reset(0);
 	
 	AttachmentParser::AttachmentListFree free(listAttachment_);
 	
@@ -774,78 +580,62 @@ void qm::EditMessage::clear()
 		listAttachmentPath_.end(), string_free<WSTRING>());
 	listAttachmentPath_.clear();
 	
-	freeWString(wstrSignature_);
-	wstrSignature_ = 0;
+	wstrSignature_.reset(0);
 }
 
 void qm::EditMessage::clearFields()
 {
-	FieldList::const_iterator it = listField_.begin();
-	while (it != listField_.end()) {
+	for (FieldList::const_iterator it = listField_.begin(); it != listField_.end(); ++it) {
 		freeWString((*it).wstrName_);
 		freeWString((*it).wstrValue_);
-		++it;
 	}
 	listField_.clear();
 }
 
-QSTATUS qm::EditMessage::getBodyPart(Part* pPart, Part** ppPart) const
+Part* qm::EditMessage::getBodyPart(Part* pPart) const
 {
 	assert(pPart);
-	assert(ppPart);
-	
-	DECLARE_QSTATUS();
-	
-	*ppPart = 0;
 	
 	if (pPart->isMultipart()) {
 		const Part::PartList& l = pPart->getPartList();
-		Part::PartList::const_iterator it = l.begin();
-		while (it != l.end() && !*ppPart) {
-			status = getBodyPart(*it, ppPart);
-			CHECK_QSTATUS();
-			++it;
+		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			Part* pBodyPart = getBodyPart(*it);
+			if (pBodyPart)
+				return pBodyPart;
 		}
 	}
 	else {
 		PartUtil util(*pPart);
 		if (util.isText()) {
-			bool bAttachment = false;
-			status = util.isAttachment(&bAttachment);
-			CHECK_QSTATUS();
-			if (!bAttachment)
-				*ppPart = pPart;
+			if (!util.isAttachment())
+				return pPart;
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return 0;
 }
 
-QSTATUS qm::EditMessage::removePart(qs::Part* pPart)
+void qm::EditMessage::removePart(qs::Part* pPart)
 {
 	assert(pPart);
 	
-	DECLARE_QSTATUS();
-	
 	Part* pParent = pPart->getParentPart();
 	
-	if (!pParent && pPart != pMessage_) {
-		pPart = PartUtil(*pPart).getEnclosingPart(pMessage_);
+	if (!pParent && pPart != pMessage_.get()) {
+		pPart = PartUtil(*pPart).getEnclosingPart(pMessage_.get());
 		assert(pPart);
-		if (pPart == pMessage_)
-			pPart->setEnclosedPart(0);
+		if (pPart == pMessage_.get())
+			pPart->setEnclosedPart(std::auto_ptr<Part>(0));
 		pParent = pPart->getParentPart();
 	}
-	assert(pParent || pPart == pMessage_);
+	assert(pParent || pPart == pMessage_.get());
 	
 	if (pParent) {
 		pParent->removePart(pPart);
 		delete pPart;
 		
-		if (pParent->getPartList().empty()) {
-			status = removePart(pParent);
-			CHECK_QSTATUS();
-		}
+		if (pParent->getPartList().empty())
+			removePart(pParent);
 	}
 	else {
 		assert(!pBodyPart_);
@@ -856,23 +646,16 @@ QSTATUS qm::EditMessage::removePart(qs::Part* pPart)
 			L"Content-Disposition",
 			L"Content-Description"
 		};
-		for (int n = 0; n < countof(pwszFields); ++n) {
-			status = pMessage_->removeField(pwszFields[n]);
-			CHECK_QSTATUS();
-		}
-		status = pMessage_->setBody("", 0);
-		CHECK_QSTATUS();
-		pBodyPart_ = pMessage_;
+		for (int n = 0; n < countof(pwszFields); ++n)
+			pMessage_->removeField(pwszFields[n]);
+		pMessage_->setBody("", 0);
+		pBodyPart_ = pMessage_.get();
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditMessage::normalize(Part* pPart)
+bool qm::EditMessage::normalize(Part* pPart)
 {
 	assert(pPart);
-	
-	DECLARE_QSTATUS();
 	
 	Part* pParent = pPart;
 	while (true) {
@@ -883,96 +666,69 @@ QSTATUS qm::EditMessage::normalize(Part* pPart)
 	}
 	if (pParent != pPart) {
 		assert(pParent->getPartList().size() == 1);
-		status = PartUtil(*pPart).copyContentFields(pParent);
-		CHECK_QSTATUS();
+		if (!PartUtil(*pPart).copyContentFields(pParent))
+			return false;
 		std::auto_ptr<Part> pChild(pParent->getPart(0));
 		pParent->removePart(pChild.get());
-		status = pParent->setBody(pPart->getBody(), -1);
-		CHECK_QSTATUS();
+		if (!pParent->setBody(pPart->getBody(), -1))
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::EditMessage::makeMultipartMixed()
+bool qm::EditMessage::makeMultipartMixed()
 {
-	DECLARE_QSTATUS();
-	
 	const ContentTypeParser* pContentType = pMessage_->getContentType();
 	if (wcsicmp(pContentType->getMediaType(), L"multipart") != 0 ||
 		wcsicmp(pContentType->getSubType(), L"mixed") != 0) {
-		std::auto_ptr<Message> pMessage;
-		status = newQsObject(&pMessage);
-		CHECK_QSTATUS();
-		status = MessageCreator::makeMultipart(pMessage.get(), pMessage_);
-		CHECK_QSTATUS();
+		std::auto_ptr<Message> pMessage(new Message());
+		if (!MessageCreator::makeMultipart(pMessage.get(), pMessage_))
+			return false;
 		pMessage->setFlag(Message::FLAG_NONE);
-		pMessage_ = pMessage.release();
+		pMessage_ = pMessage;
 	}
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::EditMessage::fireMessageSet()
+void qm::EditMessage::fireMessageSet()
 {
-	return fireEvent(EditMessageEvent(this),
-		&EditMessageHandler::messageSet);
+	fireEvent(EditMessageEvent(this), &EditMessageHandler::messageSet);
 }
 
-QSTATUS qm::EditMessage::fireMessageUpdate()
+void qm::EditMessage::fireMessageUpdate()
 {
-	return fireEvent(EditMessageEvent(this),
-		&EditMessageHandler::messageUpdate);
+	fireEvent(EditMessageEvent(this), &EditMessageHandler::messageUpdate);
 }
 
-QSTATUS qm::EditMessage::fireAccountChanged()
+void qm::EditMessage::fireAccountChanged()
 {
-	return fireEvent(EditMessageEvent(this),
-		&EditMessageHandler::accountChanged);
+	fireEvent(EditMessageEvent(this), &EditMessageHandler::accountChanged);
 }
 
-QSTATUS qm::EditMessage::fireFieldChanged(
-	const WCHAR* pwszName, const WCHAR* pwszValue)
+void qm::EditMessage::fireFieldChanged(const WCHAR* pwszName,
+									   const WCHAR* pwszValue)
 {
-	DECLARE_QSTATUS();
-	
 	EditMessageFieldEvent event(this, pwszName, pwszValue);
-	
-	HandlerList::iterator it = listHandler_.begin();
-	while (it != listHandler_.end()) {
-		status = (*it)->fieldChanged(event);
-		CHECK_QSTATUS();
-		++it;
-	}
-	
-	return QSTATUS_SUCCESS;
+	for (HandlerList::iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
+		(*it)->fieldChanged(event);
 }
 
-QSTATUS qm::EditMessage::fireAttachmentsChanged()
+void qm::EditMessage::fireAttachmentsChanged()
 {
-	return fireEvent(EditMessageEvent(this),
-		&EditMessageHandler::attachmentsChanged);
+	fireEvent(EditMessageEvent(this), &EditMessageHandler::attachmentsChanged);
 }
 
-QSTATUS qm::EditMessage::fireSignatureChanged()
+void qm::EditMessage::fireSignatureChanged()
 {
-	return fireEvent(EditMessageEvent(this),
-		&EditMessageHandler::signatureChanged);
+	fireEvent(EditMessageEvent(this), &EditMessageHandler::signatureChanged);
 }
 
-QSTATUS qm::EditMessage::fireEvent(const EditMessageEvent& event,
-	qs::QSTATUS (EditMessageHandler::*pfn)(const EditMessageEvent&))
+void qm::EditMessage::fireEvent(const EditMessageEvent& event,
+								void (EditMessageHandler::*pfn)(const EditMessageEvent&))
 {
-	DECLARE_QSTATUS();
-	
-	HandlerList::iterator it = listHandler_.begin();
-	while (it != listHandler_.end()) {
-		status = ((*it)->*pfn)(event);
-		CHECK_QSTATUS();
-		++it;
-	}
-	
-	return QSTATUS_SUCCESS;
+	for (HandlerList::iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
+		((*it)->*pfn)(event);
 }
 
 
@@ -982,8 +738,8 @@ QSTATUS qm::EditMessage::fireEvent(const EditMessageEvent& event,
  *
  */
 
-bool qm::EditMessage::AttachmentComp::operator()(
-	const Attachment& lhs, const Attachment& rhs) const
+bool qm::EditMessage::AttachmentComp::operator()(const Attachment& lhs,
+												 const Attachment& rhs) const
 {
 	if (!lhs.bNew_ && rhs.bNew_) {
 		return true;
@@ -1046,40 +802,28 @@ qm::DefaultEditMessageHandler::~DefaultEditMessageHandler()
 {
 }
 
-QSTATUS qm::DefaultEditMessageHandler::messageSet(
-	const EditMessageEvent& event)
+void qm::DefaultEditMessageHandler::messageSet(const EditMessageEvent& event)
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::DefaultEditMessageHandler::messageUpdate(
-	const EditMessageEvent& event)
+void qm::DefaultEditMessageHandler::messageUpdate(const EditMessageEvent& event)
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::DefaultEditMessageHandler::accountChanged(
-	const EditMessageEvent& event)
+void qm::DefaultEditMessageHandler::accountChanged(const EditMessageEvent& event)
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::DefaultEditMessageHandler::fieldChanged(
-	const EditMessageFieldEvent& event)
+void qm::DefaultEditMessageHandler::fieldChanged(const EditMessageFieldEvent& event)
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::DefaultEditMessageHandler::attachmentsChanged(
-	const EditMessageEvent& event)
+void qm::DefaultEditMessageHandler::attachmentsChanged(const EditMessageEvent& event)
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::DefaultEditMessageHandler::signatureChanged(
-	const EditMessageEvent& event)
+void qm::DefaultEditMessageHandler::signatureChanged(const EditMessageEvent& event)
 {
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -1111,7 +855,8 @@ EditMessage* qm::EditMessageEvent::getEditMessage() const
  */
 
 qm::EditMessageFieldEvent::EditMessageFieldEvent(EditMessage* pEditMessage,
-	const WCHAR* pwszName, const WCHAR* pwszValue) :
+												 const WCHAR* pwszName,
+												 const WCHAR* pwszValue) :
 	EditMessageEvent(pEditMessage),
 	pwszName_(pwszName),
 	pwszValue_(pwszValue)

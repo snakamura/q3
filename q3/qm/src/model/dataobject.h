@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -55,42 +55,55 @@ public:
 	};
 
 public:
-	MessageDataObject(Document* pDocument, qs::QSTATUS* pstatus);
-	MessageDataObject(Document* pDocument, Account* pAccount,
-		const MessageHolderList& l, Flag flag, qs::QSTATUS* pstatus);
+	MessageDataObject(Document* pDocument);
+	MessageDataObject(Document* pDocument,
+					  Account* pAccount,
+					  const MessageHolderList& l,
+					  Flag flag);
 	~MessageDataObject();
 
 public:
 	STDMETHOD_(ULONG, AddRef)();
 	STDMETHOD_(ULONG, Release)();
-	STDMETHOD(QueryInterface)(REFIID riid, void** ppv);
+	STDMETHOD(QueryInterface)(REFIID riid,
+							  void** ppv);
 
 public:
-	STDMETHOD(GetData)(FORMATETC* pFormat, STGMEDIUM* pMedium);
-	STDMETHOD(GetDataHere)(FORMATETC* pFormat, STGMEDIUM* pMedium);
+	STDMETHOD(GetData)(FORMATETC* pFormat,
+					   STGMEDIUM* pMedium);
+	STDMETHOD(GetDataHere)(FORMATETC* pFormat,
+						   STGMEDIUM* pMedium);
 	STDMETHOD(QueryGetData)(FORMATETC* pFormat);
-	STDMETHOD(GetCanonicalFormatEtc)(FORMATETC* pFormatIn, FORMATETC* pFormatOut);
-	STDMETHOD(SetData)(FORMATETC* pFormat, STGMEDIUM* pMedium, BOOL bRelease);
-	STDMETHOD(EnumFormatEtc)(DWORD dwDirection, IEnumFORMATETC** ppEnum);
-	STDMETHOD(DAdvise)(FORMATETC* pFormat, DWORD advf,
-		IAdviseSink* pSink, DWORD* pdwConnection);
+	STDMETHOD(GetCanonicalFormatEtc)(FORMATETC* pFormatIn,
+									 FORMATETC* pFormatOut);
+	STDMETHOD(SetData)(FORMATETC* pFormat,
+					   STGMEDIUM* pMedium,
+					   BOOL bRelease);
+	STDMETHOD(EnumFormatEtc)(DWORD dwDirection,
+							 IEnumFORMATETC** ppEnum);
+	STDMETHOD(DAdvise)(FORMATETC* pFormat,
+					   DWORD advf,
+					   IAdviseSink* pSink,
+					   DWORD* pdwConnection);
 	STDMETHOD(DUnadvise)(DWORD dwConnection);
 	STDMETHOD(EnumDAdvise)(IEnumSTATDATA** ppEnum);
 
 public:
-	static qs::QSTATUS setClipboard(IDataObject* pDataObject);
-	static qs::QSTATUS getClipboard(Document* pDocument, IDataObject** ppDataObject);
-	static qs::QSTATUS queryClipboard(bool* pbData);
-	static qs::QSTATUS pasteMessages(IDataObject* pDataObject,
-		Document* pDocument, NormalFolder* pFolderTo,
-		Flag flag, MessageOperationCallback* pCallback);
+	static bool setClipboard(IDataObject* pDataObject);
+	static IDataObject* getClipboard(Document* pDocument);
+	static bool queryClipboard();
+	static bool pasteMessages(IDataObject* pDataObject,
+							  Document* pDocument,
+							  NormalFolder* pFolderTo,
+							  Flag flag,
+							  MessageOperationCallback* pCallback);
 	static bool canPasteMessage(IDataObject* pDataObject);
 	static Flag getPasteFlag(IDataObject* pDataObject,
-		Document* pDocument, NormalFolder* pFolder);
+							 Document* pDocument,
+							 NormalFolder* pFolder);
 
 private:
-	static qs::QSTATUS getFileName(
-		const WCHAR* pwszName, qs::WSTRING* pwstrName);
+	static qs::wstring_ptr getFileName(const WCHAR* pwszName);
 
 private:
 	MessageDataObject(const MessageDataObject&);
@@ -100,16 +113,19 @@ private:
 	class IEnumFORMATETCImpl : public IEnumFORMATETC
 	{
 	public:
-		IEnumFORMATETCImpl(qs::QSTATUS* pstatus);
+		IEnumFORMATETCImpl();
 		~IEnumFORMATETCImpl();
 	
 	public:
 		STDMETHOD_(ULONG, AddRef)();
 		STDMETHOD_(ULONG, Release)();
-		STDMETHOD(QueryInterface)(REFIID riid, void** ppv);
+		STDMETHOD(QueryInterface)(REFIID riid,
+								  void** ppv);
 	
 	public:
-		STDMETHOD(Next)(ULONG celt, FORMATETC* rgelt, ULONG* pceltFetched);
+		STDMETHOD(Next)(ULONG celt,
+						FORMATETC* rgelt,
+						ULONG* pceltFetched);
 		STDMETHOD(Skip)(ULONG celt);
 		STDMETHOD(Reset)();
 		STDMETHOD(Clone)(IEnumFORMATETC** ppEnum);

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -19,8 +19,7 @@
  */
 
 template<class T>
-qmscript::ActionInvokeHelper<T>::ActionInvokeHelper(qs::QSTATUS* pstatus) :
-	T(pstatus)
+qmscript::ActionInvokeHelper<T>::ActionInvokeHelper()
 {
 }
 
@@ -30,12 +29,12 @@ qmscript::ActionInvokeHelper<T>::~ActionInvokeHelper()
 }
 
 template<class T>
-STDMETHODIMP qmscript::ActionInvokeHelper<T>::invokeAction(
-	BSTR bstrAction, VARIANT arg1, VARIANT arg2, VARIANT arg3)
+STDMETHODIMP qmscript::ActionInvokeHelper<T>::invokeAction(BSTR bstrAction,
+														   VARIANT arg1,
+														   VARIANT arg2,
+														   VARIANT arg3)
 {
-	DECLARE_QSTATUS();
-	
-	VARIANT* pvarArgs[3] = { &arg1, &arg2, &arg3 };
+	VARIANT* pvarArgs[] = { &arg1, &arg2, &arg3 };
 	size_t nArg = 0;
 	for (nArg = 0; nArg < countof(pvarArgs); ++nArg) {
 		if (pvarArgs[nArg]->vt == VT_ERROR)
@@ -43,8 +42,7 @@ STDMETHODIMP qmscript::ActionInvokeHelper<T>::invokeAction(
 	}
 	
 	const qm::ActionInvoker* pInvoker = getActionInvoker();
-	status = pInvoker->invoke(bstrAction, pvarArgs, nArg);
-	CHECK_QSTATUS_HRESULT();
+	pInvoker->invoke(bstrAction, pvarArgs, nArg);
 	
 	return S_OK;
 }

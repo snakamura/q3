@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -9,8 +9,6 @@
 #include <qswindow.h>
 #include <qsconv.h>
 #include <qsstring.h>
-#include <qserror.h>
-#include <qsnew.h>
 
 #include <tchar.h>
 
@@ -34,14 +32,16 @@ struct qs::KanjiinWindowImpl
 		ID_IME_ACTIVEHWND	= 41264,
 	};
 	
-	bool imeChar(HWND hwnd, WCHAR c);
+	bool imeChar(HWND hwnd,
+				 WCHAR c);
 	void imeExecute(HWND hwnd);
 	
 	KanjiinWindow* pHandler_;
-	TSTRING tstrCommand_;
+	tstring_ptr tstrCommand_;
 };
 
-bool qs::KanjiinWindowImpl::imeChar(HWND hwnd, WCHAR c)
+bool qs::KanjiinWindowImpl::imeChar(HWND hwnd,
+									WCHAR c)
 {
 	if (c <= L' ')
 		return false;
@@ -70,7 +70,7 @@ void qs::KanjiinWindowImpl::imeExecute(HWND hwnd)
 		PROCESS_INFORMATION pi;
 		TCHAR szParam[20];
 		wsprintf(szParam, _T("%d"), reinterpret_cast<int>(hwnd));
-		if (::CreateProcess(tstrCommand_, szParam, 0, 0, FALSE, 0, 0, 0, 0, &pi)) {
+		if (::CreateProcess(tstrCommand_.get(), szParam, 0, 0, FALSE, 0, 0, 0, 0, &pi)) {
 			::CloseHandle(pi.hThread);
 			::CloseHandle(pi.hProcess);
 		}
@@ -84,31 +84,21 @@ void qs::KanjiinWindowImpl::imeExecute(HWND hwnd)
  *
  */
 
-qs::KanjiinWindow::KanjiinWindow(bool bDeleteThis, QSTATUS* pstatus) :
-	WindowBase(bDeleteThis, pstatus),
-	DefaultWindowHandler(pstatus),
+qs::KanjiinWindow::KanjiinWindow(bool bDeleteThis) :
+	WindowBase(bDeleteThis),
 	pImpl_(0)
 {
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new KanjiinWindowImpl();
 	pImpl_->pHandler_ = this;
 	
-	string_ptr<WSTRING> wstrCommand;
-	Registry reg(HKEY_CURRENT_USER, L"Software\\Gawaro", &status);
-	CHECK_QSTATUS_SET(pstatus);
-	if (reg) {
-		status = reg.getValue(L"FepProgram", &wstrCommand);
-		CHECK_QSTATUS_SET(pstatus);
-	}
+	wstring_ptr wstrCommand;
+	Registry reg(HKEY_CURRENT_USER, L"Software\\Gawaro");
+	if (reg)
+		reg.getValue(L"FepProgram", &wstrCommand);
 	if (!wstrCommand.get())
-		wstrCommand.reset(allocWString(L"KANJIIN.EXE"));
+		wstrCommand = allocWString(L"KANJIIN.EXE");
 #ifdef UNICODE
-	pImpl_->tstrCommand_ = wstrCommand.release();
+	pImpl_->tstrCommand_ = wstrCommand;
 #else
 	pImpl_->tstrCommand_ = wcs2tcs(wstrCommand.get());
 #endif
@@ -118,12 +108,13 @@ qs::KanjiinWindow::KanjiinWindow(bool bDeleteThis, QSTATUS* pstatus) :
 
 qs::KanjiinWindow::~KanjiinWindow()
 {
-	freeTString(pImpl_->tstrCommand_);
 	delete pImpl_;
 	pImpl_ = 0;
 }
 
-LRESULT qs::KanjiinWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qs::KanjiinWindow::windowProc(UINT uMsg,
+									  WPARAM wParam,
+									  LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_CHAR()
@@ -134,14 +125,18 @@ LRESULT qs::KanjiinWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
 
-LRESULT qs::KanjiinWindow::onChar(UINT nChar, UINT nRepeat, UINT nFlags)
+LRESULT qs::KanjiinWindow::onChar(UINT nChar,
+								  UINT nRepeat,
+								  UINT nFlags)
 {
 	if (pImpl_->imeChar(getHandle(), static_cast<WCHAR>(nChar)))
 		return 1;
 	return DefaultWindowHandler::onChar(nChar, nRepeat, nFlags);
 }
 
-LRESULT qs::KanjiinWindow::onCommand(UINT nCode, UINT nId, HWND hwnd)
+LRESULT qs::KanjiinWindow::onCommand(UINT nCode,
+									 UINT nId,
+									 HWND hwnd)
 {
 	switch (nId) {
 	case KanjiinWindowImpl::ID_IME_OK:
@@ -155,14 +150,18 @@ LRESULT qs::KanjiinWindow::onCommand(UINT nCode, UINT nId, HWND hwnd)
 	return DefaultWindowHandler::onCommand(nCode, nId, hwnd);
 }
 
-LRESULT qs::KanjiinWindow::onSysChar(UINT nKey, UINT nRepeat, UINT nFlags)
+LRESULT qs::KanjiinWindow::onSysChar(UINT nKey,
+									 UINT nRepeat,
+									 UINT nFlags)
 {
 	if (static_cast<WCHAR>(nKey) == L' ' && nFlags & 0x20000000)
 		return 0;
 	return DefaultWindowHandler::onSysChar(nKey, nRepeat, nFlags);
 }
 
-LRESULT qs::KanjiinWindow::onSysKeyDown(UINT nKey, UINT nRepeat, UINT nFlags)
+LRESULT qs::KanjiinWindow::onSysKeyDown(UINT nKey,
+										UINT nRepeat,
+										UINT nFlags)
 {
 	if (static_cast<WCHAR>(nKey) == L' ' && nFlags & 0x20000000) {
 		pImpl_->imeExecute(getHandle());

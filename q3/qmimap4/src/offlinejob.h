@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -44,21 +44,24 @@ public:
 	typedef std::vector<unsigned long> UidList;
 
 public:
-	OfflineJobManager(const WCHAR* pwszPath, qs::QSTATUS* pstatus);
+	OfflineJobManager(const WCHAR* pwszPath);
 	~OfflineJobManager();
 
 public:
-	qs::QSTATUS add(OfflineJob* pJob);
-	qs::QSTATUS apply(qm::Account* pAccount, Imap4* pImap4,
-		qm::ReceiveSessionCallback* pCallback);
-	qs::QSTATUS save(const WCHAR* pwszPath) const;
-	qs::QSTATUS copyJobs(qm::NormalFolder* pFolderFrom,
-		qm::NormalFolder* pFolderTo, const UidList& listUid, bool bMove);
+	void add(std::auto_ptr<OfflineJob> pJob);
+	bool apply(qm::Account* pAccount,
+			   Imap4* pImap4,
+			   qm::ReceiveSessionCallback* pCallback);
+	bool save(const WCHAR* pwszPath) const;
+	bool copyJobs(qm::NormalFolder* pFolderFrom,
+				  qm::NormalFolder* pFolderTo,
+				  const UidList& listUid,
+				  bool bMove);
 
 private:
-	qs::QSTATUS load(const WCHAR* pwszPath);
+	bool load(const WCHAR* pwszPath);
 	OfflineJob* getCreateMessage(const WCHAR* pwszFolder,
-		unsigned long nId) const;
+								 unsigned long nId) const;
 
 private:
 	OfflineJobManager(const OfflineJobManager&);
@@ -93,25 +96,27 @@ public:
 	};
 
 protected:
-	OfflineJob(const WCHAR* pwszFolder, qs::QSTATUS* pstatus);
-	OfflineJob(qs::InputStream* pStream, qs::QSTATUS* pstatus);
+	OfflineJob(const WCHAR* pwszFolder);
+//	OfflineJob(qs::InputStream* pStream);
 
 public:
 	virtual ~OfflineJob();
 
 public:
 	virtual Type getType() const = 0;
-	virtual qs::QSTATUS apply(qm::Account* pAccount,
-		Imap4* pImap4, bool* pbClosed) const = 0;
-	virtual qs::QSTATUS write(qs::OutputStream* pStream) const = 0;
-	virtual bool isCreateMessage(const WCHAR* pwszFolder, unsigned long nId) = 0;
-	virtual qs::QSTATUS merge(OfflineJob* pOfflineJob, bool* pbMerged) = 0;
+	virtual bool apply(qm::Account* pAccount,
+					   Imap4* pImap4,
+					   bool* pbClosed) const = 0;
+	virtual bool write(qs::OutputStream* pStream) const = 0;
+	virtual bool isCreateMessage(const WCHAR* pwszFolder,
+								 unsigned long nId) = 0;
+	virtual bool merge(OfflineJob* pOfflineJob) = 0;
 
 public:
 	const WCHAR* getFolder() const;
 
 private:
-	qs::WSTRING wstrFolder_;
+	qs::wstring_ptr wstrFolder_;
 };
 
 
@@ -125,24 +130,28 @@ class AppendOfflineJob : public OfflineJob
 {
 public:
 	AppendOfflineJob(const WCHAR* pwszFolder,
-		unsigned int nId, qs::QSTATUS* pstatus);
-	AppendOfflineJob(qs::InputStream* pStream, qs::QSTATUS* pstatus);
+					 unsigned int nId);
 	virtual ~AppendOfflineJob();
 
 public:
 	virtual Type getType() const;
-	virtual qs::QSTATUS apply(qm::Account* pAccount,
-		Imap4* pImap4, bool* pbClosed) const;
-	virtual qs::QSTATUS write(qs::OutputStream* pStream) const;
-	virtual bool isCreateMessage(const WCHAR* pwszFolder, unsigned long nId);
-	virtual qs::QSTATUS merge(OfflineJob* pOfflineJob, bool* pbMerged);
+	virtual bool  apply(qm::Account* pAccount,
+						Imap4* pImap4,
+						bool* pbClosed) const;
+	virtual bool write(qs::OutputStream* pStream) const;
+	virtual bool isCreateMessage(const WCHAR* pwszFolder,
+								 unsigned long nId);
+	virtual bool merge(OfflineJob* pOfflineJob);
+
+public:
+	static std::auto_ptr<AppendOfflineJob> create(qs::InputStream* pStream);
 
 private:
 	AppendOfflineJob(const AppendOfflineJob&);
 	AppendOfflineJob& operator=(const AppendOfflineJob&);
 
 private:
-	qs::WSTRING wstrFolder_;
+	qs::wstring_ptr wstrFolder_;
 	unsigned int nId_;
 };
 
@@ -167,26 +176,32 @@ public:
 	typedef std::vector<Item> ItemList;
 
 public:
-	CopyOfflineJob(const WCHAR* pwszFolderFrom, const WCHAR* pwszFolderTo,
-		const UidList& listUidFrom, const ItemList& listItemTo,
-		bool bMove, qs::QSTATUS* pstatus);
-	CopyOfflineJob(qs::InputStream* pStream, qs::QSTATUS* pstatus);
+	CopyOfflineJob(const WCHAR* pwszFolderFrom,
+				   const WCHAR* pwszFolderTo,
+				   const UidList& listUidFrom,
+				   const ItemList& listItemTo,
+				   bool bMove);
 	virtual ~CopyOfflineJob();
 
 public:
 	virtual Type getType() const;
-	virtual qs::QSTATUS apply(qm::Account* pAccount,
-		Imap4* pImap4, bool* pbClosed) const;
-	virtual qs::QSTATUS write(qs::OutputStream* pStream) const;
-	virtual bool isCreateMessage(const WCHAR* pwszFolder, unsigned long nId);
-	virtual qs::QSTATUS merge(OfflineJob* pOfflineJob, bool* pbMerged);
+	virtual bool apply(qm::Account* pAccount,
+					   Imap4* pImap4,
+					   bool* pbClosed) const;
+	virtual bool write(qs::OutputStream* pStream) const;
+	virtual bool isCreateMessage(const WCHAR* pwszFolder,
+								 unsigned long nId);
+	virtual bool merge(OfflineJob* pOfflineJob);
+
+public:
+	static std::auto_ptr<CopyOfflineJob> create(qs::InputStream* pStream);
 
 private:
 	CopyOfflineJob(const CopyOfflineJob&);
 	CopyOfflineJob& operator=(const CopyOfflineJob&);
 
 private:
-	qs::WSTRING wstrFolderTo_;
+	qs::wstring_ptr wstrFolderTo_;
 	UidList listUidFrom_;
 	ItemList listItemTo_;
 	bool bMove_;
@@ -202,17 +217,21 @@ private:
 class ExpungeOfflineJob : public OfflineJob
 {
 public:
-	ExpungeOfflineJob(const WCHAR* pwszFolder, qs::QSTATUS* pstatus);
-	ExpungeOfflineJob(qs::InputStream* pStream, qs::QSTATUS* pstatus);
+	explicit ExpungeOfflineJob(const WCHAR* pwszFolder);
 	virtual ~ExpungeOfflineJob();
 
 public:
 	virtual Type getType() const;
-	virtual qs::QSTATUS apply(qm::Account* pAccount,
-		Imap4* pImap4, bool* pbClosed) const;
-	virtual qs::QSTATUS write(qs::OutputStream* pStream) const;
-	virtual bool isCreateMessage(const WCHAR* pwszFolder, unsigned long nId);
-	virtual qs::QSTATUS merge(OfflineJob* pOfflineJob, bool* pbMerged);
+	virtual bool apply(qm::Account* pAccount,
+					   Imap4* pImap4,
+					   bool* pbClosed) const;
+	virtual bool write(qs::OutputStream* pStream) const;
+	virtual bool isCreateMessage(const WCHAR* pwszFolder,
+								 unsigned long nId);
+	virtual bool merge(OfflineJob* pOfflineJob);
+
+public:
+	static std::auto_ptr<ExpungeOfflineJob> create(qs::InputStream* pStream);
 
 private:
 	ExpungeOfflineJob(const ExpungeOfflineJob&);
@@ -232,18 +251,24 @@ public:
 	typedef std::vector<unsigned long> UidList;
 
 public:
-	SetFlagsOfflineJob(const WCHAR* pwszFolder, const UidList& listUid,
-		unsigned int nFlags, unsigned int nMask, qs::QSTATUS* pstatus);
-	SetFlagsOfflineJob(qs::InputStream* pStream, qs::QSTATUS* pstatus);
+	SetFlagsOfflineJob(const WCHAR* pwszFolder,
+					   const UidList& listUid,
+					   unsigned int nFlags,
+					   unsigned int nMask);
 	virtual ~SetFlagsOfflineJob();
 
 public:
 	virtual Type getType() const;
-	virtual qs::QSTATUS apply(qm::Account* pAccount,
-		Imap4* pImap4, bool* pbClosed) const;
-	virtual qs::QSTATUS write(qs::OutputStream* pStream) const;
-	virtual bool isCreateMessage(const WCHAR* pwszFolder, unsigned long nId);
-	virtual qs::QSTATUS merge(OfflineJob* pOfflineJob, bool* pbMerged);
+	virtual bool apply(qm::Account* pAccount,
+					   Imap4* pImap4,
+					   bool* pbClosed) const;
+	virtual bool write(qs::OutputStream* pStream) const;
+	virtual bool isCreateMessage(const WCHAR* pwszFolder,
+								 unsigned long nId);
+	virtual bool merge(OfflineJob* pOfflineJob);
+
+public:
+	static std::auto_ptr<SetFlagsOfflineJob> create(qs::InputStream* pStream);
 
 private:
 	SetFlagsOfflineJob(const SetFlagsOfflineJob&);
@@ -269,8 +294,9 @@ public:
 	~OfflineJobFactory();
 
 public:
-	qs::QSTATUS getInstance(qs::InputStream* pStream, OfflineJob** ppJob) const;
-	qs::QSTATUS writeInstance(qs::OutputStream* pStream, OfflineJob* pJob) const;
+	std::auto_ptr<OfflineJob> getInstance(qs::InputStream* pStream) const;
+	bool writeInstance(qs::OutputStream* pStream,
+					   OfflineJob* pJob) const;
 
 private:
 	OfflineJobFactory(const OfflineJobFactory&);

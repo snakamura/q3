@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -11,6 +11,7 @@
 
 #include <qm.h>
 #include <qmfolder.h>
+#include <qmmacro.h>
 
 #include <qs.h>
 #include <qsprofile.h>
@@ -20,7 +21,6 @@
 #include <qsstring.h>
 
 #include <vector>
-
 
 namespace qm {
 
@@ -50,20 +50,24 @@ class NormalFolder;
 class RuleManager
 {
 public:
-	explicit RuleManager(qs::QSTATUS* pstatus);
+	RuleManager();
 	~RuleManager();
 
 public:
-	qs::QSTATUS apply(const Folder* pFolder, const MessageHolderList* pList,
-		Document* pDocument, HWND hwnd, qs::Profile* pProfile, RuleCallback* pCallback);
+	bool apply(const Folder* pFolder,
+			   const MessageHolderList* pList,
+			   Document* pDocument,
+			   HWND hwnd,
+			   qs::Profile* pProfile,
+			   RuleCallback* pCallback);
 
 public:
-	qs::QSTATUS addRuleSet(RuleSet* pRuleSet);
+	void addRuleSet(std::auto_ptr<RuleSet> pRuleSet);
 
 private:
-	qs::QSTATUS load();
+	bool load();
 	void clear();
-	qs::QSTATUS getRuleSet(const Folder* pFolder, const RuleSet** ppRuleSet) const;
+	const RuleSet* getRuleSet(const Folder* pFolder) const;
 
 private:
 	RuleManager(const RuleManager&);
@@ -91,10 +95,11 @@ public:
 
 public:
 	virtual bool isCanceled() = 0;
-	virtual qs::QSTATUS checkingMessages() = 0;
-	virtual qs::QSTATUS applyingRule() = 0;
-	virtual qs::QSTATUS setRange(unsigned int nMin, unsigned int nMax) = 0;
-	virtual qs::QSTATUS setPos(unsigned int nPos) = 0;
+	virtual void checkingMessages() = 0;
+	virtual void applyingRule() = 0;
+	virtual void setRange(unsigned int nMin,
+						  unsigned int nMax) = 0;
+	virtual void setPos(unsigned int nPos) = 0;
 };
 
 
@@ -107,17 +112,17 @@ public:
 class RuleSet
 {
 public:
-	RuleSet(const WCHAR* pwszAccount,
-		const WCHAR* pwszFolder, qs::QSTATUS* pstatus);
+	RuleSet(std::auto_ptr<qs::RegexPattern> pAccountName,
+			std::auto_ptr<qs::RegexPattern> pFolderName);
 	~RuleSet();
 
 public:
-	qs::QSTATUS matchName(const Folder* pFolder, bool* pbMatch) const;
+	bool matchName(const Folder* pFolder) const;
 	size_t getCount() const;
 	const Rule* getRule(size_t nIndex) const;
 
 public:
-	qs::QSTATUS addRule(Rule* pRule);
+	void addRule(std::auto_ptr<Rule> pRule);
 
 private:
 	RuleSet(const RuleSet&);
@@ -127,8 +132,8 @@ private:
 	typedef std::vector<Rule*> RuleList;
 
 private:
-	qs::RegexPattern* pAccountName_;
-	qs::RegexPattern* pFolderName_;
+	std::auto_ptr<qs::RegexPattern> pAccountName_;
+	std::auto_ptr<qs::RegexPattern> pFolderName_;
 	RuleList listRule_;
 };
 
@@ -142,21 +147,21 @@ private:
 class Rule
 {
 public:
-	Rule(Macro* pMacro, qs::QSTATUS* pstatus);
+	explicit Rule(std::auto_ptr<Macro> pMacro);
 	virtual ~Rule();
 
 public:
-	qs::QSTATUS match(MacroContext* pContext, bool* pbMatch) const;
+	bool match(MacroContext* pContext) const;
 
 public:
-	virtual qs::QSTATUS apply(const RuleContext& context) const = 0;
+	virtual bool apply(const RuleContext& context) const = 0;
 
 private:
 	Rule(const Rule&);
 	Rule& operator=(const Rule&);
 
 private:
-	Macro* pMacro_;
+	std::auto_ptr<Macro> pMacro_;
 };
 
 
@@ -169,11 +174,11 @@ private:
 class NullRule : public Rule
 {
 public:
-	NullRule(Macro* pMacro, qs::QSTATUS* pstatus);
+	explicit NullRule(std::auto_ptr<Macro> pMacro);
 	virtual ~NullRule();
 
 public:
-	virtual qs::QSTATUS apply(const RuleContext& context) const;
+	virtual bool apply(const RuleContext& context) const;
 
 private:
 	NullRule(const NullRule&);
@@ -190,20 +195,22 @@ private:
 class CopyRule : public Rule
 {
 public:
-	CopyRule(Macro* pMacro, const WCHAR* pwszAccount,
-		const WCHAR* pwszFolder, bool bMove, qs::QSTATUS* pstatus);
+	CopyRule(std::auto_ptr<Macro> pMacro,
+			 const WCHAR* pwszAccount,
+			 const WCHAR* pwszFolder,
+			 bool bMove);
 	virtual ~CopyRule();
 
 public:
-	virtual qs::QSTATUS apply(const RuleContext& context) const;
+	virtual bool apply(const RuleContext& context) const;
 
 private:
 	CopyRule(const CopyRule&);
 	CopyRule& operator=(const CopyRule&);
 
 private:
-	qs::WSTRING wstrAccount_;
-	qs::WSTRING wstrFolder_;
+	qs::wstring_ptr wstrAccount_;
+	qs::wstring_ptr wstrFolder_;
 	bool bMove_;
 };
 
@@ -218,7 +225,8 @@ class RuleContext
 {
 public:
 	RuleContext(const MessageHolderList& l,
-		Document* pDocument, Account* pAccount);
+				Document* pDocument,
+				Account* pAccount);
 	~RuleContext();
 
 public:
@@ -246,17 +254,20 @@ private:
 class RuleContentHandler : public qs::DefaultHandler
 {
 public:
-	RuleContentHandler(RuleManager* pManager, qs::QSTATUS* pstatus);
+	explicit RuleContentHandler(RuleManager* pManager);
 	virtual ~RuleContentHandler();
 
 public:
-	virtual qs::QSTATUS startElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName,
-		const qs::Attributes& attributes);
-	virtual qs::QSTATUS endElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName);
-	virtual qs::QSTATUS characters(const WCHAR* pwsz,
-		size_t nStart, size_t nLength);
+	virtual bool startElement(const WCHAR* pwszNamespaceURI,
+							  const WCHAR* pwszLocalName,
+							  const WCHAR* pwszQName,
+							  const qs::Attributes& attributes);
+	virtual bool endElement(const WCHAR* pwszNamespaceURI,
+							const WCHAR* pwszLocalName,
+							const WCHAR* pwszQName);
+	virtual bool characters(const WCHAR* pwsz,
+							size_t nStart,
+							size_t nLength);
 
 private:
 	RuleContentHandler(const RuleContentHandler&);
@@ -275,8 +286,8 @@ private:
 	RuleManager* pManager_;
 	State state_;
 	RuleSet* pCurrentRuleSet_;
-	Macro* pMacro_;
-	MacroParser* pParser_;
+	std::auto_ptr<Macro> pMacro_;
+	MacroParser parser_;
 };
 
 }

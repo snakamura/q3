@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -23,11 +23,22 @@ namespace qs {
 
 /****************************************************************************
  *
- * Error Status
+ * Exceptions
  *
  */
 
-typedef unsigned int QSTATUS;
+#ifdef QS_EXCEPTION
+//#	define QNOTHROW() throw()
+#	define QNOTHROW()
+#	define QTRY try
+#	define QCATCH_ALL() catch(...)
+#	define QTHROW_BADALLOC() throw(std::bad_alloc())
+#else
+#	define QNOTHROW()
+#	define QTRY if (true)
+#	define QCATCH_ALL() else
+#	define QTHROW_BADALLOC() ::TerminateProcess(::GetCurrentProcess(), -1)
+#endif
 
 
 /****************************************************************************
@@ -36,7 +47,18 @@ typedef unsigned int QSTATUS;
  *
  */
 
+/**
+ * Get instance handle of exe.
+ *
+ * @return Instance handle of exe.
+ */
 QSEXPORTPROC HINSTANCE getInstanceHandle();
+
+/**
+ * Get instance handle of dll.
+ *
+ * @return Instance handle of dll.
+ */
 QSEXPORTPROC HINSTANCE getDllInstanceHandle();
 
 
@@ -49,12 +71,37 @@ QSEXPORTPROC HINSTANCE getDllInstanceHandle();
 class Window;
 class ModalHandler;
 
+/**
+ * Get main window.
+ *
+ * @return Main window.
+ */
 QSEXPORTPROC Window* getMainWindow();
+
+/**
+ * Set main window.
+ */
 QSEXPORTPROC void setMainWindow(Window* pWindow);
 
+/**
+ * Get title.
+ *
+ * @return Title.
+ */
 QSEXPORTPROC const WCHAR* getTitle();
 
+/**
+ * Get modal handler.
+ *
+ * @return Modal handler.
+ */
 QSEXPORTPROC ModalHandler* getModalHandler();
+
+/**
+ * Set modal handler.
+ *
+ * @param pModalHandler [in] Modal handler.
+ */
 QSEXPORTPROC void setModalHandler(ModalHandler* pModalHandler);
 
 
@@ -70,11 +117,21 @@ QSEXPORTPROC void setModalHandler(ModalHandler* pModalHandler);
 #	define WCE_T(x) x
 #endif
 
+#if _MSC_VER < 1300
+#	define for if (false); else for
+#endif
+
+
+/**
+ * Get system encoding.
+ *
+ * @return System encoding.
+ */
 QSEXPORTPROC const WCHAR* getSystemEncoding();
 
 #define countof(x) sizeof(x)/sizeof(x[0])
 
-#if _STLPORT_VERSION >= 0x450
+#if _STLPORT_VERSION >= 0x450 && (!defined _WIN32_WCE || _STLPORT_VERSION < 0x460)
 #	define QSMIN min
 #	define QSMAX max
 #else

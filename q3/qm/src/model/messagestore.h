@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -50,24 +50,33 @@ public:
 	virtual ~MessageStore();
 
 public:
-	virtual qs::QSTATUS close() = 0;
-	virtual qs::QSTATUS flush() = 0;
-	virtual qs::QSTATUS load(unsigned int nOffset,
-		unsigned int nLength, Message* pMessage) = 0;
-	virtual qs::QSTATUS save(const CHAR* pszMessage,
-		const Message& header, MessageCache* pMessageCache,
-		bool bIndexOnly, unsigned int* pnOffset, unsigned int* pnLength,
-		unsigned int* pnHeaderLength, MessageCacheKey* pKey) = 0;
-	virtual qs::QSTATUS free(unsigned int nOffset,
-		unsigned int nLength, MessageCacheKey key) = 0;
-	virtual qs::QSTATUS compact(unsigned int nOffset, unsigned int nLength,
-		MessageCacheKey key, MessageStore* pmsOld,
-		unsigned int* pnOffset, MessageCacheKey* pKey) = 0;
-	virtual qs::QSTATUS freeUnused() = 0;
-	virtual qs::QSTATUS freeUnrefered(const ReferList& listRefer) = 0;
-	virtual qs::QSTATUS salvage(const ReferList& listRefer,
-		MessageStoreSalvageCallback* pCallback) = 0;
-	virtual qs::QSTATUS readCache(MessageCacheKey key, unsigned char** ppBuf) = 0;
+	virtual bool close() = 0;
+	virtual bool flush() = 0;
+	virtual bool load(unsigned int nOffset,
+					  unsigned int nLength,
+					  Message* pMessage) = 0;
+	virtual bool save(const CHAR* pszMessage,
+					  const Message& header,
+					  MessageCache* pMessageCache,
+					  bool bIndexOnly,
+					  unsigned int* pnOffset,
+					  unsigned int* pnLength,
+					  unsigned int* pnHeaderLength,
+					  MessageCacheKey* pKey) = 0;
+	virtual bool free(unsigned int nOffset,
+					  unsigned int nLength,
+					  MessageCacheKey key) = 0;
+	virtual bool compact(unsigned int nOffset,
+						 unsigned int nLength,
+						 MessageCacheKey key,
+						 MessageStore* pmsOld,
+						 unsigned int* pnOffset,
+						 MessageCacheKey* pKey) = 0;
+	virtual bool freeUnused() = 0;
+	virtual bool freeUnrefered(const ReferList& listRefer) = 0;
+	virtual bool salvage(const ReferList& listRefer,
+						 MessageStoreSalvageCallback* pCallback) = 0;
+	virtual qs::malloc_ptr<unsigned char> readCache(MessageCacheKey key) = 0;
 };
 
 
@@ -80,29 +89,40 @@ public:
 class SingleMessageStore : public MessageStore
 {
 public:
-	SingleMessageStore(const WCHAR* pwszPath, unsigned int nBlockSize,
-		const WCHAR* pwszCachePath, unsigned int nCacheBlockSize, qs::QSTATUS* pstatus);
+	SingleMessageStore(const WCHAR* pwszPath,
+					   unsigned int nBlockSize,
+					   const WCHAR* pwszCachePath,
+					   unsigned int nCacheBlockSize);
 	virtual ~SingleMessageStore();
 
 public:
-	virtual qs::QSTATUS close();
-	virtual qs::QSTATUS flush();
-	virtual qs::QSTATUS load(unsigned int nOffset,
-		unsigned int nLength, Message* pMessage);
-	virtual qs::QSTATUS save(const CHAR* pszMessage,
-		const Message& header, MessageCache* pMessageCache,
-		bool bIndexOnly, unsigned int* pnOffset, unsigned int* pnLength,
-		unsigned int* pnHeaderLength, MessageCacheKey* pKey);
-	virtual qs::QSTATUS free(unsigned int nOffset,
-		unsigned int nLength, MessageCacheKey key);
-	virtual qs::QSTATUS compact(unsigned int nOffset, unsigned int nLength,
-		MessageCacheKey key, MessageStore* pmsOld,
-		unsigned int* pnOffset, MessageCacheKey* pKey);
-	virtual qs::QSTATUS freeUnused();
-	virtual qs::QSTATUS freeUnrefered(const ReferList& listRefer);
-	virtual qs::QSTATUS salvage(const ReferList& listRefer,
-		MessageStoreSalvageCallback* pCallback);
-	virtual qs::QSTATUS readCache(MessageCacheKey key, unsigned char** ppBuf);
+	virtual bool close();
+	virtual bool flush();
+	virtual bool load(unsigned int nOffset,
+					  unsigned int nLength,
+					  Message* pMessage);
+	virtual bool save(const CHAR* pszMessage,
+					  const Message& header,
+					  MessageCache* pMessageCache,
+					  bool bIndexOnly,
+					  unsigned int* pnOffset,
+					  unsigned int* pnLength,
+					  unsigned int* pnHeaderLength,
+					  MessageCacheKey* pKey);
+	virtual bool free(unsigned int nOffset,
+					  unsigned int nLength,
+					  MessageCacheKey key);
+	virtual bool compact(unsigned int nOffset,
+						 unsigned int nLength,
+						 MessageCacheKey key,
+						 MessageStore* pmsOld,
+						 unsigned int* pnOffset,
+						 MessageCacheKey* pKey);
+	virtual bool freeUnused();
+	virtual bool freeUnrefered(const ReferList& listRefer);
+	virtual bool salvage(const ReferList& listRefer,
+						 MessageStoreSalvageCallback* pCallback);
+	virtual qs::malloc_ptr<unsigned char> readCache(MessageCacheKey key);
 
 private:
 	SingleMessageStore(const SingleMessageStore&);
@@ -122,29 +142,39 @@ private:
 class MultiMessageStore : public MessageStore
 {
 public:
-	MultiMessageStore(const WCHAR* pwszPath, const WCHAR* pwszCachePath,
-		unsigned int nCacheBlockSize, qs::QSTATUS* pstatus);
+	MultiMessageStore(const WCHAR* pwszPath,
+					  const WCHAR* pwszCachePath,
+					  unsigned int nCacheBlockSize);
 	virtual ~MultiMessageStore();
 
 public:
-	virtual qs::QSTATUS close();
-	virtual qs::QSTATUS flush();
-	virtual qs::QSTATUS load(unsigned int nOffset,
-		unsigned int nLength, Message* pMessage);
-	virtual qs::QSTATUS save(const CHAR* pszMessage,
-		const Message& header, MessageCache* pMessageCache,
-		bool bIndexOnly, unsigned int* pnOffset, unsigned int* pnLength,
-		unsigned int* pnHeaderLength, MessageCacheKey* pKey);
-	virtual qs::QSTATUS free(unsigned int nOffset,
-		unsigned int nLength, MessageCacheKey key);
-	virtual qs::QSTATUS compact(unsigned int nOffset, unsigned int nLength,
-		MessageCacheKey key, MessageStore* pmsOld,
-		unsigned int* pnOffset, MessageCacheKey* pKey);
-	virtual qs::QSTATUS freeUnused();
-	virtual qs::QSTATUS freeUnrefered(const ReferList& listRefer);
-	virtual qs::QSTATUS salvage(const ReferList& listRefer,
-		MessageStoreSalvageCallback* pCallback);
-	virtual qs::QSTATUS readCache(MessageCacheKey key, unsigned char** ppBuf);
+	virtual bool close();
+	virtual bool flush();
+	virtual bool load(unsigned int nOffset,
+					  unsigned int nLength,
+					  Message* pMessage);
+	virtual bool save(const CHAR* pszMessage,
+					  const Message& header,
+					  MessageCache* pMessageCache,
+					  bool bIndexOnly,
+					  unsigned int* pnOffset,
+					  unsigned int* pnLength,
+					  unsigned int* pnHeaderLength,
+					  MessageCacheKey* pKey);
+	virtual bool free(unsigned int nOffset,
+					  unsigned int nLength,
+					  MessageCacheKey key);
+	virtual bool compact(unsigned int nOffset,
+						 unsigned int nLength,
+						 MessageCacheKey key,
+						 MessageStore* pmsOld,
+						 unsigned int* pnOffset,
+						 MessageCacheKey* pKey);
+	virtual bool freeUnused();
+	virtual bool freeUnrefered(const ReferList& listRefer);
+	virtual bool salvage(const ReferList& listRefer,
+						 MessageStoreSalvageCallback* pCallback);
+	virtual qs::malloc_ptr<unsigned char> readCache(MessageCacheKey key);
 
 private:
 	MultiMessageStore(const MultiMessageStore&);
@@ -167,7 +197,7 @@ public:
 	virtual ~MessageStoreSalvageCallback();
 
 public:
-	virtual qs::QSTATUS salvage(const Message& msg) = 0;
+	virtual bool salvage(const Message& msg) = 0;
 };
 
 
@@ -180,10 +210,11 @@ public:
 class MessageStoreUtil
 {
 public:
-	static qs::QSTATUS freeUnrefered(qs::ClusterStorage* pStorage,
-		const MessageStore::ReferList& listRefer, unsigned int nSeparatorSize);
-	static qs::QSTATUS freeUnreferedCache(qs::ClusterStorage* pCacheStorage,
-		const MessageStore::ReferList& listRefer);
+	static bool freeUnrefered(qs::ClusterStorage* pStorage,
+							  const MessageStore::ReferList& listRefer,
+							  unsigned int nSeparatorSize);
+	static bool freeUnreferedCache(qs::ClusterStorage* pCacheStorage,
+								   const MessageStore::ReferList& listRefer);
 };
 
 }

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -17,11 +17,9 @@
 
 #include <qsconv.h>
 #include <qsdialog.h>
-#include <qserror.h>
 #include <qsinit.h>
 #include <qskeymap.h>
 #include <qsmime.h>
-#include <qsnew.h>
 #include <qsosutil.h>
 #include <qsprofile.h>
 #include <qssocket.h>
@@ -62,14 +60,19 @@ using namespace qs;
 struct qm::ApplicationImpl : public NewMailCheckerCallback
 {
 public:
-	QSTATUS ensureDirectory(const WCHAR* pwszPath, const WCHAR* pwszName);
-	QSTATUS ensureFile(const WCHAR* pwszPath, const WCHAR* pwszDir,
-		const WCHAR* pwszFileName, const WCHAR* pwszExtension,
-		const WCHAR* pwszType, const WCHAR* pwszName);
-	QSTATUS ensureTemplate(const WCHAR* pwszPath,
-		const WCHAR* pwszClass, const WCHAR* pwszName);
-	QSTATUS restoreCurrentFolder();
-	QSTATUS saveCurrentFolder();
+	bool ensureDirectory(const WCHAR* pwszPath,
+						 const WCHAR* pwszName);
+	bool ensureFile(const WCHAR* pwszPath,
+					const WCHAR* pwszDir,
+					const WCHAR* pwszFileName,
+					const WCHAR* pwszExtension,
+					const WCHAR* pwszType,
+					const WCHAR* pwszName);
+	bool ensureTemplate(const WCHAR* pwszPath,
+						const WCHAR* pwszClass,
+						const WCHAR* pwszName);
+	void restoreCurrentFolder();
+	void saveCurrentFolder();
 
 public:
 	virtual bool canCheck();
@@ -77,22 +80,22 @@ public:
 public:
 	HINSTANCE hInst_;
 	HINSTANCE hInstResource_;
-	MailFolderLock* pLock_;
-	Winsock* pWinSock_;
-	WSTRING wstrMailFolder_;
-	WSTRING wstrTemporaryFolder_;
-	WSTRING wstrProfileName_;
-	XMLProfile* pProfile_;
-	Document* pDocument_;
-	KeyMap* pKeyMap_;
-	SyncManager* pSyncManager_;
-	SyncDialogManager* pSyncDialogManager_;
-	GoRound* pGoRound_;
-	TempFileCleaner* pTempFileCleaner_;
+	std::auto_ptr<MailFolderLock> pLock_;
+	std::auto_ptr<Winsock> pWinSock_;
+	wstring_ptr wstrMailFolder_;
+	wstring_ptr wstrTemporaryFolder_;
+	wstring_ptr wstrProfileName_;
+	std::auto_ptr<XMLProfile> pProfile_;
+	std::auto_ptr<Document> pDocument_;
+	std::auto_ptr<KeyMap> pKeyMap_;
+	std::auto_ptr<SyncManager> pSyncManager_;
+	std::auto_ptr<SyncDialogManager> pSyncDialogManager_;
+	std::auto_ptr<GoRound> pGoRound_;
+	std::auto_ptr<TempFileCleaner> pTempFileCleaner_;
+	std::auto_ptr<MenuManager> pMenuManager_;
+	std::auto_ptr<ToolbarManager> pToolbarManager_;
 	MainWindow* pMainWindow_;
-	MenuManager* pMenuManager_;
-	ToolbarManager* pToolbarManager_;
-	NewMailChecker* pNewMailChecker_;
+	std::auto_ptr<NewMailChecker> pNewMailChecker_;
 	HINSTANCE hInstAtl_;
 	
 	static Application* pApplication__;
@@ -100,16 +103,14 @@ public:
 
 Application* qm::ApplicationImpl::pApplication__ = 0;
 
-QSTATUS qm::ApplicationImpl::ensureDirectory(
-	const WCHAR* pwszPath, const WCHAR* pwszName)
+bool qm::ApplicationImpl::ensureDirectory(const WCHAR* pwszPath,
+										  const WCHAR* pwszName)
 {
 	assert(pwszPath);
 	
-	string_ptr<WSTRING> wstrPath;
+	wstring_ptr wstrPath;
 	if (pwszName) {
-		wstrPath.reset(concat(pwszPath, L"\\", pwszName));
-		if (!wstrPath.get())
-			return QSTATUS_OUTOFMEMORY;
+		wstrPath = concat(pwszPath, L"\\", pwszName);
 		pwszPath = wstrPath.get();
 	}
 	
@@ -117,45 +118,37 @@ QSTATUS qm::ApplicationImpl::ensureDirectory(
 	DWORD dwAttributes = ::GetFileAttributes(ptszPath);
 	if (dwAttributes == 0xffffffff) {
 		if (!::CreateDirectory(ptszPath, 0))
-			return QSTATUS_FAIL;
+			return false;
 	}
 	else if (!(dwAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-		return QSTATUS_FAIL;
+		return false;
 	}
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::ApplicationImpl::ensureFile(const WCHAR* pwszPath,
-	const WCHAR* pwszDir, const WCHAR* pwszFileName,
-	const WCHAR* pwszExtension, const WCHAR* pwszType, const WCHAR* pwszName)
+bool qm::ApplicationImpl::ensureFile(const WCHAR* pwszPath,
+									 const WCHAR* pwszDir,
+									 const WCHAR* pwszFileName,
+									 const WCHAR* pwszExtension,
+									 const WCHAR* pwszType,
+									 const WCHAR* pwszName)
 {
 	assert(pwszPath);
 	assert(pwszFileName);
 	assert(pwszType);
 	assert(pwszName);
 	
-	DECLARE_QSTATUS();
-	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
-	status = buf.append(pwszPath);
-	CHECK_QSTATUS();
+	StringBuffer<WSTRING> buf;
+	buf.append(pwszPath);
 	if (pwszDir) {
-		status = buf.append(L'\\');
-		CHECK_QSTATUS();
-		status = buf.append(pwszDir);
-		CHECK_QSTATUS();
+		buf.append(L'\\');
+		buf.append(pwszDir);
 	}
-	status = buf.append(L'\\');
-	CHECK_QSTATUS();
-	status = buf.append(pwszFileName);
-	CHECK_QSTATUS();
+	buf.append(L'\\');
+	buf.append(pwszFileName);
 	if (pwszExtension) {
-		status = buf.append(L'.');
-		CHECK_QSTATUS();
-		status = buf.append(pwszExtension);
-		CHECK_QSTATUS();
+		buf.append(L'.');
+		buf.append(pwszExtension);
 	}
 	
 	W2T(buf.getCharArray(), ptszPath);
@@ -164,57 +157,47 @@ QSTATUS qm::ApplicationImpl::ensureFile(const WCHAR* pwszPath,
 		W2T(pwszType, ptszType);
 		HRSRC hrsrc = ::FindResource(hInstResource_, ptszName, ptszType);
 		if (!hrsrc)
-			return QSTATUS_FAIL;
+			return false;
 		HGLOBAL hResource = ::LoadResource(hInstResource_, hrsrc);
 		if (!hResource)
-			return QSTATUS_FAIL;
+			return false;
 		void* pResource = ::LockResource(hResource);
 		if (!pResource)
-			return QSTATUS_FAIL;
+			return false;
 		int nLen = ::SizeofResource(hInstResource_, hrsrc);
 		
-		FileOutputStream stream(buf.getCharArray(), &status);
-		CHECK_QSTATUS();
-		status = stream.write(static_cast<unsigned char*>(pResource), nLen);
-		CHECK_QSTATUS();
-		status = stream.close();
-		CHECK_QSTATUS();
+		FileOutputStream stream(buf.getCharArray());
+		if (!stream)
+			return false;
+		if (stream.write(static_cast<unsigned char*>(pResource), nLen) == -1)
+			return false;
+		if (!stream.close())
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::ApplicationImpl::ensureTemplate(const WCHAR* pwszPath,
-	const WCHAR* pwszClass, const WCHAR* pwszName)
+bool qm::ApplicationImpl::ensureTemplate(const WCHAR* pwszPath,
+										 const WCHAR* pwszClass,
+										 const WCHAR* pwszName)
 {
-	DECLARE_QSTATUS();
+	wstring_ptr wstrDir(concat(L"templates\\", pwszClass));
+	if (!ensureDirectory(pwszPath, wstrDir.get()))
+		return false;
 	
-	string_ptr<WSTRING> wstrDir(concat(L"templates\\", pwszClass));
-	if (!wstrDir.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrName(concat(pwszClass, L".", pwszName));
+	if (!ensureFile(pwszPath, wstrDir.get(), pwszName,
+		L"template", L"TEMPLATE", wstrName.get()))
+		return false;
 	
-	status = ensureDirectory(pwszPath, wstrDir.get());
-	CHECK_QSTATUS();
-	
-	string_ptr<WSTRING> wstrName(concat(pwszClass, L".", pwszName));
-	if (!wstrName.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	status = ensureFile(pwszPath, wstrDir.get(), pwszName,
-		L"template", L"TEMPLATE", wstrName.get());
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::ApplicationImpl::restoreCurrentFolder()
+void qm::ApplicationImpl::restoreCurrentFolder()
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrFolder;
-	status = pProfile_->getString(L"Global",
-		L"CurrentFolder", L"", &wstrFolder);
-	CHECK_QSTATUS();
+	wstring_ptr wstrFolder(pProfile_->getString(
+		L"Global", L"CurrentFolder", L""));
 	
 	if (wcsncmp(wstrFolder.get(), L"//", 2) == 0) {
 		WCHAR* pwszFolder = wcschr(wstrFolder.get() + 2, L'/');
@@ -227,30 +210,20 @@ QSTATUS qm::ApplicationImpl::restoreCurrentFolder()
 		if (pAccount) {
 			FolderModel* pFolderModel = pMainWindow_->getFolderModel();
 			if (pwszFolder) {
-				Folder* pFolder = 0;
-				status = pAccount->getFolder(pwszFolder, &pFolder);
-				CHECK_QSTATUS();
-				if (pFolder) {
-					status = pFolderModel->setCurrent(0, pFolder, false);
-					CHECK_QSTATUS();
-				}
+				Folder* pFolder = pAccount->getFolder(pwszFolder);
+				if (pFolder)
+					pFolderModel->setCurrent(0, pFolder, false);
 			}
 			else {
-				status = pFolderModel->setCurrent(pAccount, 0, false);
-				CHECK_QSTATUS();
+				pFolderModel->setCurrent(pAccount, 0, false);
 			}
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ApplicationImpl::saveCurrentFolder()
+void qm::ApplicationImpl::saveCurrentFolder()
 {
-	DECLARE_QSTATUS();
-	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
+	StringBuffer<WSTRING> buf;
 	
 	FolderModel* pFolderModel = pMainWindow_->getFolderModel();
 	Account* pAccount = pFolderModel->getCurrentAccount();
@@ -258,26 +231,16 @@ QSTATUS qm::ApplicationImpl::saveCurrentFolder()
 	if (!pAccount && pFolder)
 		pAccount = pFolder->getAccount();
 	if (pAccount) {
-		status = buf.append(L"//");
-		CHECK_QSTATUS();
-		status = buf.append(pAccount->getName());
-		CHECK_QSTATUS();
+		buf.append(L"//");
+		buf.append(pAccount->getName());
 		if (pFolder) {
-			status = buf.append(L'/');
-			CHECK_QSTATUS();
-			string_ptr<WSTRING> wstrFolder;
-			status = pFolder->getFullName(&wstrFolder);
-			CHECK_QSTATUS();
-			status = buf.append(wstrFolder.get());
-			CHECK_QSTATUS();
+			buf.append(L'/');
+			wstring_ptr wstrFolder(pFolder->getFullName());
+			buf.append(wstrFolder.get());
 		}
 	}
 	
-	status = pProfile_->setString(L"Global",
-		L"CurrentFolder", buf.getCharArray());
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	pProfile_->setString(L"Global", L"CurrentFolder", buf.getCharArray());
 }
 
 bool qm::ApplicationImpl::canCheck()
@@ -293,38 +256,22 @@ bool qm::ApplicationImpl::canCheck()
  *
  */
 
-qm::Application::Application(HINSTANCE hInst, WSTRING wstrMailFolder,
-	WSTRING wstrProfile, MailFolderLock* pLock, QSTATUS* pstatus)
+qm::Application::Application(HINSTANCE hInst,
+							 wstring_ptr wstrMailFolder,
+							 wstring_ptr wstrProfile,
+							 std::auto_ptr<MailFolderLock> pLock)
 {
-	assert(wstrMailFolder);
-	assert(wstrProfile);
-	assert(pLock);
-	assert(pstatus);
+	assert(wstrMailFolder.get());
+	assert(wstrProfile.get());
+	assert(pLock.get());
 	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new ApplicationImpl();
 	pImpl_->hInst_ = hInst;
 	pImpl_->hInstResource_ = hInst;
 	pImpl_->pLock_ = pLock;
-	pImpl_->pWinSock_ = 0;
 	pImpl_->wstrMailFolder_ = wstrMailFolder;
-	pImpl_->wstrTemporaryFolder_ = 0;
 	pImpl_->wstrProfileName_ = wstrProfile;
-	pImpl_->pProfile_ = 0;
-	pImpl_->pDocument_ = 0;
-	pImpl_->pKeyMap_ = 0;
-	pImpl_->pSyncManager_ = 0;
-	pImpl_->pSyncDialogManager_ = 0;
-	pImpl_->pGoRound_ = 0;
-	pImpl_->pTempFileCleaner_ = 0;
 	pImpl_->pMainWindow_ = 0;
-	pImpl_->pMenuManager_ = 0;
-	pImpl_->pToolbarManager_ = 0;
-	pImpl_->pNewMailChecker_ = 0;
 	pImpl_->hInstAtl_ = 0;
 	
 	assert(!ApplicationImpl::pApplication__);
@@ -335,19 +282,12 @@ qm::Application::~Application()
 {
 	assert(ApplicationImpl::pApplication__ == this);
 	ApplicationImpl::pApplication__ = 0;
-	
-	if (pImpl_) {
-		delete pImpl_;
-		pImpl_ = 0;
-	}
+	delete pImpl_;
 }
 
-QSTATUS qm::Application::initialize()
+bool qm::Application::initialize()
 {
-	DECLARE_QSTATUS();
-	
-	status = newQsObject(&pImpl_->pWinSock_);
-	CHECK_QSTATUS();
+	pImpl_->pWinSock_.reset(new Winsock());
 	
 	Part::setDefaultCharset(L"iso-2022-jp");
 	Part::setGlobalOptions(Part::O_USE_COMMENT_AS_PHRASE |
@@ -361,8 +301,8 @@ QSTATUS qm::Application::initialize()
 		Part::O_ALLOW_INVALID_PERIOD_IN_LOCALPART |
 		Part::O_ALLOW_SINGLE_DIGIT_TIME);
 	
-	status = pImpl_->ensureDirectory(pImpl_->wstrMailFolder_, 0);
-	CHECK_QSTATUS();
+	if (!pImpl_->ensureDirectory(pImpl_->wstrMailFolder_.get(), 0))
+		return false;
 	const WCHAR* pwszDirs[] = {
 		L"accounts",
 		L"templates",
@@ -372,9 +312,8 @@ QSTATUS qm::Application::initialize()
 		L"logs"
 	};
 	for (int n = 0; n < countof(pwszDirs); ++n) {
-		status = pImpl_->ensureDirectory(
-			pImpl_->wstrMailFolder_, pwszDirs[n]);
-		CHECK_QSTATUS();
+		if (!pImpl_->ensureDirectory(pImpl_->wstrMailFolder_.get(), pwszDirs[n]))
+			return false;
 	}
 	
 	const WCHAR* pwszClasses[] = {
@@ -390,19 +329,16 @@ QSTATUS qm::Application::initialize()
 		L"url",
 		L"print"
 	};
-	for (n = 0; n < countof(pwszClasses); ++n) {
+	for (int n = 0; n < countof(pwszClasses); ++n) {
 		for (int m = 0; m < countof(pwszTemplates); ++m) {
-			status = pImpl_->ensureTemplate(pImpl_->wstrMailFolder_,
-				pwszClasses[n], pwszTemplates[m]);
-			CHECK_QSTATUS();
+			if (!pImpl_->ensureTemplate(pImpl_->wstrMailFolder_.get(),
+				pwszClasses[n], pwszTemplates[m]))
+				return false;
 		}
 	}
 	
-	string_ptr<WSTRING> wstrProfileDir(
-		concat(pImpl_->wstrMailFolder_, L"\\profiles"));
-	if (!wstrProfileDir.get())
-		return QSTATUS_OUTOFMEMORY;
-	
+	wstring_ptr wstrProfileDir(concat(
+		pImpl_->wstrMailFolder_.get(), L"\\profiles"));
 	const WCHAR* pwszProfiles[] = {
 		FileNames.HEADER_XML,
 		FileNames.HEADEREDIT_XML,
@@ -412,70 +348,49 @@ QSTATUS qm::Application::initialize()
 		FileNames.TOOLBAR_BMP,
 		FileNames.TOOLBARS_XML
 	};
-	for (n = 0; n < countof(pwszProfiles); ++n) {
-		status = pImpl_->ensureFile(wstrProfileDir.get(), 0,
-			pwszProfiles[n], 0, L"PROFILE", pwszProfiles[n]);
-		CHECK_QSTATUS();
+	for (int n = 0; n < countof(pwszProfiles); ++n) {
+		if (!pImpl_->ensureFile(wstrProfileDir.get(), 0,
+			pwszProfiles[n], 0, L"PROFILE", pwszProfiles[n]))
+			return false;
 	}
 	
-	string_ptr<WSTRING> wstrProfilePath;
-	status = getProfilePath(FileNames::QMAIL_XML, &wstrProfilePath);
-	CHECK_QSTATUS();
-	status = newQsObject(wstrProfilePath.get(), &pImpl_->pProfile_);
-	CHECK_QSTATUS();
-	status = pImpl_->pProfile_->load();
-	CHECK_QSTATUS();
+	wstring_ptr wstrProfilePath(getProfilePath(FileNames::QMAIL_XML));
+	pImpl_->pProfile_.reset(new XMLProfile(wstrProfilePath.get()));
+	if (!pImpl_->pProfile_->load())
+		return false;
 	
-	int nLog = -1;
-	status = pImpl_->pProfile_->getInt(L"Global", L"Log", -1, &nLog);
-	CHECK_QSTATUS();
+	int nLog = pImpl_->pProfile_->getInt(L"Global", L"Log", -1);
 	if (nLog >= 0) {
-		string_ptr<WSTRING> wstrLogDir(concat(pImpl_->wstrMailFolder_, L"\\logs"));
-		if (!wstrLogDir.get())
-			return QSTATUS_OUTOFMEMORY;
+		wstring_ptr wstrLogDir(concat(
+			pImpl_->wstrMailFolder_.get(), L"\\logs"));
 		if (nLog > Logger::LEVEL_DEBUG)
 			nLog = Logger::LEVEL_DEBUG;
-		status = Init::getInit().setLogInfo(true,
-			wstrLogDir.get(), static_cast<Logger::Level>(nLog));
-		CHECK_QSTATUS();
+		Init::getInit().setLogInfo(true, wstrLogDir.get(),
+			static_cast<Logger::Level>(nLog));
 	}
 	
-	string_ptr<WSTRING> wstrTempFolder;
-	status = pImpl_->pProfile_->getString(L"Global",
-		L"TemporaryFolder", L"", &wstrTempFolder);
-	CHECK_QSTATUS();
+	wstring_ptr wstrTempFolder(
+		pImpl_->pProfile_->getString(L"Global", L"TemporaryFolder", L""));
 	if (!*wstrTempFolder.get()) {
 		TCHAR tszPath[MAX_PATH];
 		::GetTempPath(countof(tszPath), tszPath);
-		wstrTempFolder.reset(tcs2wcs(tszPath));
-		if (!wstrTempFolder.get())
-			return QSTATUS_OUTOFMEMORY;
+		wstrTempFolder = tcs2wcs(tszPath);
 	}
-	pImpl_->wstrTemporaryFolder_ = wstrTempFolder.release();
+	pImpl_->wstrTemporaryFolder_ = wstrTempFolder;
 	
-	string_ptr<WSTRING> wstrMenuPath;
-	status = getProfilePath(FileNames::MENUS_XML, &wstrMenuPath);
-	CHECK_QSTATUS();
-	PopupMenuManager popupMenuManager(&status);
-	CHECK_QSTATUS();
-	LoadMenuPopupMenu* pPopupMenus[countof(popupMenuItems)];
-	for (n = 0; n < countof(popupMenuItems); ++n) {
-		status = newQsObject(getResourceHandle(),
-			popupMenuItems[n].nId_, &pPopupMenus[n]);
-		CHECK_QSTATUS();
-		status = popupMenuManager.addPopupMenu(
-			popupMenuItems[n].pwszName_, pPopupMenus[n]);
-		CHECK_QSTATUS();
+	wstring_ptr wstrMenuPath(getProfilePath(FileNames::MENUS_XML));
+	PopupMenuManager popupMenuManager;
+	std::auto_ptr<LoadMenuPopupMenu> pPopupMenus[countof(popupMenuItems)];
+	for (int n = 0; n < countof(popupMenuItems); ++n) {
+		pPopupMenus[n].reset(new LoadMenuPopupMenu(
+			getResourceHandle(), popupMenuItems[n].nId_));
+		popupMenuManager.addPopupMenu(
+			popupMenuItems[n].pwszName_, pPopupMenus[n].get());
 	}
-	status = newQsObject(wstrMenuPath.get(), menuItems,
-		countof(menuItems), popupMenuManager, &pImpl_->pMenuManager_);
-	CHECK_QSTATUS();
-	std::for_each(pPopupMenus, pPopupMenus + countof(pPopupMenus),
-		deleter<LoadMenuPopupMenu>());
+	pImpl_->pMenuManager_.reset(new MenuManager(wstrMenuPath.get(),
+		menuItems, countof(menuItems), popupMenuManager));
 	
-	string_ptr<WSTRING> wstrBitmapPath;
-	status = getProfilePath(FileNames::TOOLBAR_BMP, &wstrBitmapPath);
-	CHECK_QSTATUS();
+	wstring_ptr wstrBitmapPath(getProfilePath(FileNames::TOOLBAR_BMP));
 	W2T(wstrBitmapPath.get(), ptszBitmapPath);
 #ifdef _WIN32_WCE
 	HBITMAP hBitmap = ::SHLoadDIBitmap(ptszBitmapPath);
@@ -484,24 +399,16 @@ QSTATUS qm::Application::initialize()
 		ptszBitmapPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
 #endif
 	if (!hBitmap)
-		return QSTATUS_FAIL;
-	string_ptr<WSTRING> wstrToolbarPath;
-	status = getProfilePath(FileNames::TOOLBARS_XML, &wstrToolbarPath);
-	CHECK_QSTATUS();
-	status = newQsObject(wstrToolbarPath.get(), hBitmap, toolbarItems,
-		countof(toolbarItems), &pImpl_->pToolbarManager_);
-	CHECK_QSTATUS();
+		return false;
+	wstring_ptr wstrToolbarPath(getProfilePath(FileNames::TOOLBARS_XML));
+	pImpl_->pToolbarManager_.reset(new ToolbarManager(wstrToolbarPath.get(),
+		hBitmap, toolbarItems, countof(toolbarItems)));
 	
-	string_ptr<WSTRING> wstrKeyMapPath;
-	status = getProfilePath(FileNames::KEYMAP_XML, &wstrKeyMapPath);
-	CHECK_QSTATUS();
-	status = newQsObject(wstrKeyMapPath.get(), &pImpl_->pKeyMap_);
-	CHECK_QSTATUS();
+	wstring_ptr wstrKeyMapPath(getProfilePath(FileNames::KEYMAP_XML));
+	pImpl_->pKeyMap_.reset(new KeyMap(wstrKeyMapPath.get()));
 	
-	string_ptr<WSTRING> wstrLibraries;
-	status = pImpl_->pProfile_->getString(L"Global", L"Libraries",
-		L"smtp,pop3,imap4,nntp", &wstrLibraries);
-	CHECK_QSTATUS();
+	wstring_ptr wstrLibraries(pImpl_->pProfile_->getString(
+		L"Global", L"Libraries", L"smtp,pop3,imap4,nntp"));
 	WCHAR* p = wcstok(wstrLibraries.get(), L" ,");
 	while (p) {
 #ifdef NDEBUG
@@ -517,9 +424,7 @@ QSTATUS qm::Application::initialize()
 #		define SUFFIX L"d"
 #	endif
 #endif
-		string_ptr<WSTRING> wstrLib(concat(L"qm", p, SUFFIX L".dll"));
-		if (!wstrLib.get())
-			return QSTATUS_OUTOFMEMORY;
+		wstring_ptr wstrLib(concat(L"qm", p, SUFFIX L".dll"));
 		W2T(wstrLib.get(), ptszLib);
 		HINSTANCE hInst = ::LoadLibrary(ptszLib);
 		p = wcstok(0, L" ,");
@@ -527,20 +432,13 @@ QSTATUS qm::Application::initialize()
 	
 	Security::init();
 	
-	status = newQsObject(pImpl_->pProfile_, &pImpl_->pDocument_);
-	CHECK_QSTATUS();
-	status = newQsObject(pImpl_->pProfile_, &pImpl_->pSyncManager_);
-	CHECK_QSTATUS();
-	status = newQsObject(pImpl_->pProfile_, &pImpl_->pSyncDialogManager_);
-	CHECK_QSTATUS();
-	status = newQsObject(&pImpl_->pGoRound_);
-	CHECK_QSTATUS();
-	status = newQsObject(&pImpl_->pTempFileCleaner_);
-	CHECK_QSTATUS();
+	pImpl_->pDocument_.reset(new Document(pImpl_->pProfile_.get()));
+	pImpl_->pSyncManager_.reset(new SyncManager(pImpl_->pProfile_.get()));
+	pImpl_->pSyncDialogManager_.reset(new SyncDialogManager(pImpl_->pProfile_.get()));
+	pImpl_->pGoRound_.reset(new GoRound());
+	pImpl_->pTempFileCleaner_.reset(new TempFileCleaner());
 	
-	std::auto_ptr<MainWindow> pMainWindow;
-	status = newQsObject(pImpl_->pProfile_, &pMainWindow);
-	CHECK_QSTATUS();
+	std::auto_ptr<MainWindow> pMainWindow(new MainWindow(pImpl_->pProfile_.get()));
 #ifdef _WIN32_WCE
 	DWORD dwStyle = WS_CLIPCHILDREN;
 	DWORD dwExStyle = 0;
@@ -549,62 +447,51 @@ QSTATUS qm::Application::initialize()
 	DWORD dwExStyle = WS_EX_WINDOWEDGE;
 #endif
 	MainWindowCreateContext context = {
-		pImpl_->pDocument_,
-		pImpl_->pSyncManager_,
-		pImpl_->pSyncDialogManager_,
-		pImpl_->pGoRound_,
-		pImpl_->pTempFileCleaner_,
-		pImpl_->pMenuManager_,
-		pImpl_->pToolbarManager_,
-		pImpl_->pKeyMap_
+		pImpl_->pDocument_.get(),
+		pImpl_->pSyncManager_.get(),
+		pImpl_->pSyncDialogManager_.get(),
+		pImpl_->pGoRound_.get(),
+		pImpl_->pTempFileCleaner_.get(),
+		pImpl_->pMenuManager_.get(),
+		pImpl_->pToolbarManager_.get(),
+		pImpl_->pKeyMap_.get()
 	};
-	status = pMainWindow->create(L"QmMainWindow", L"QMAIL", dwStyle,
+	if (!pMainWindow->create(L"QmMainWindow", L"QMAIL", dwStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-		0, dwExStyle, 0, 0, &context);
-	CHECK_QSTATUS();
+		0, dwExStyle, 0, 0, &context))
+		return false;
 	pImpl_->pMainWindow_ = pMainWindow.release();
 	setMainWindow(pImpl_->pMainWindow_);
 	pImpl_->pMainWindow_->initialShow();
 	
-	string_ptr<WSTRING> wstrAccountFolder(
-		concat(pImpl_->wstrMailFolder_, L"\\accounts"));
-	if (!wstrAccountFolder.get())
-		return QSTATUS_OUTOFMEMORY;
-	status = pImpl_->pDocument_->loadAccounts(wstrAccountFolder.get());
-	CHECK_QSTATUS();
+	wstring_ptr wstrAccountFolder(concat(
+		pImpl_->wstrMailFolder_.get(), L"\\accounts"));
+	if (!pImpl_->pDocument_->loadAccounts(wstrAccountFolder.get()))
+		return false;
 	
 	pImpl_->pMainWindow_->updateWindow();
 	pImpl_->pMainWindow_->setForegroundWindow();
 	
-	int nOffline = 0;
-	status = pImpl_->pProfile_->getInt(L"Global", L"Offline", 1, &nOffline);
-	CHECK_QSTATUS();
-	if (!nOffline) {
-		status = pImpl_->pDocument_->setOffline(false);
-		CHECK_QSTATUS();
-	}
+	if (!pImpl_->pProfile_->getInt(L"Global", L"Offline", 1))
+		pImpl_->pDocument_->setOffline(false);
 	
-	status = pImpl_->restoreCurrentFolder();
-	CHECK_QSTATUS();
+	pImpl_->restoreCurrentFolder();
 	
-	status = newQsObject(pImpl_->pProfile_, pImpl_->pDocument_,
-		pImpl_->pGoRound_, pImpl_->pSyncManager_, pImpl_->pSyncDialogManager_,
-		pImpl_->pMainWindow_->getHandle(), pImpl_, &pImpl_->pNewMailChecker_);
-	CHECK_QSTATUS();
+	pImpl_->pNewMailChecker_.reset(new NewMailChecker(pImpl_->pProfile_.get(),
+		pImpl_->pDocument_.get(), pImpl_->pGoRound_.get(),
+		pImpl_->pSyncManager_.get(), pImpl_->pSyncDialogManager_.get(),
+		pImpl_->pMainWindow_->getHandle(), pImpl_));
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::Application::uninitialize()
+void qm::Application::uninitialize()
 {
 	assert(pImpl_);
 	
-	DECLARE_QSTATUS();
-	
 	pImpl_->pLock_->unsetWindow();
 	
-	delete pImpl_->pNewMailChecker_;
-	pImpl_->pNewMailChecker_ = 0;
+	pImpl_->pNewMailChecker_.reset(0);
 	
 #ifndef _WIN32_WCE
 	ComPtr<IDataObject> pDataObject;
@@ -617,32 +504,15 @@ QSTATUS qm::Application::uninitialize()
 	}
 #endif
 	
-	delete pImpl_->pMenuManager_;
-	pImpl_->pMenuManager_ = 0;
-	
-	delete pImpl_->pToolbarManager_;
-	pImpl_->pToolbarManager_ = 0;
-	
-	delete pImpl_->pTempFileCleaner_;
-	pImpl_->pTempFileCleaner_ = 0;
-	
-	delete pImpl_->pGoRound_;
-	pImpl_->pGoRound_ = 0;
-	
-	delete pImpl_->pSyncDialogManager_;
-	pImpl_->pSyncDialogManager_ = 0;
-	
-	delete pImpl_->pSyncManager_;
-	pImpl_->pSyncManager_ = 0;
-	
-	delete pImpl_->pDocument_;
-	pImpl_->pDocument_ = 0;
-	
-	delete pImpl_->pKeyMap_;
-	pImpl_->pKeyMap_ = 0;
-	
-	delete pImpl_->pProfile_;
-	pImpl_->pProfile_ = 0;
+	pImpl_->pMenuManager_.reset(0);
+	pImpl_->pToolbarManager_.reset(0);
+	pImpl_->pTempFileCleaner_.reset(0);
+	pImpl_->pGoRound_.reset(0);
+	pImpl_->pSyncDialogManager_.reset(0);
+	pImpl_->pSyncManager_.reset(0);
+	pImpl_->pDocument_.reset(0);
+	pImpl_->pKeyMap_.reset(0);
+	pImpl_->pProfile_.reset(0);
 	
 	Part::setDefaultCharset(0);
 	
@@ -653,40 +523,27 @@ QSTATUS qm::Application::uninitialize()
 		pImpl_->hInstAtl_ = 0;
 	}
 	
-	freeWString(pImpl_->wstrMailFolder_);
-	freeWString(pImpl_->wstrTemporaryFolder_);
-	freeWString(pImpl_->wstrProfileName_);
-	
-	delete pImpl_->pWinSock_;
-	pImpl_->pWinSock_ = 0;
-	
-	delete pImpl_->pLock_;
-	pImpl_->pLock_ = 0;
-	
-	return QSTATUS_SUCCESS;
+	pImpl_->pWinSock_.reset(0);
+	pImpl_->pLock_.reset(0);
 }
 
-QSTATUS qm::Application::run()
+void qm::Application::run()
 {
-	return MessageLoop::getMessageLoop().run();
+	MessageLoop::getMessageLoop().run();
 }
 
-QSTATUS qm::Application::save()
+bool qm::Application::save()
 {
-	DECLARE_QSTATUS();
-	
-	status = pImpl_->pDocument_->save();
-	CHECK_QSTATUS();
-	status = pImpl_->pMainWindow_->save();
-	CHECK_QSTATUS();
-	status = pImpl_->pSyncDialogManager_->save();
-	CHECK_QSTATUS();
-	status = pImpl_->saveCurrentFolder();
-	CHECK_QSTATUS();
-	status = pImpl_->pProfile_->save();
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	if (!pImpl_->pDocument_->save())
+		return false;
+	if (!pImpl_->pMainWindow_->save())
+		return false;
+	if (!pImpl_->pSyncDialogManager_->save())
+		return false;
+	pImpl_->saveCurrentFolder();
+	if (!pImpl_->pProfile_->save())
+		return false;
+	return true;
 }
 
 HINSTANCE qm::Application::getResourceHandle() const
@@ -715,72 +572,52 @@ HINSTANCE qm::Application::getAtlHandle() const
 
 const WCHAR* qm::Application::getMailFolder() const
 {
-	return pImpl_->wstrMailFolder_;
+	return pImpl_->wstrMailFolder_.get();
 }
 
 const WCHAR* qm::Application::getTemporaryFolder() const
 {
-	return pImpl_->wstrTemporaryFolder_;
+	return pImpl_->wstrTemporaryFolder_.get();
 }
 
 const WCHAR* qm::Application::getProfileName() const
 {
-	return pImpl_->wstrProfileName_;
+	return pImpl_->wstrProfileName_.get();
 }
 
-QSTATUS qm::Application::getProfilePath(
-	const WCHAR* pwszName, WSTRING* pwstrPath) const
+wstring_ptr qm::Application::getProfilePath(const WCHAR* pwszName) const
 {
 	assert(pwszName);
-	assert(pwstrPath);
 	
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrPath;
-	if (*pImpl_->wstrProfileName_) {
+	wstring_ptr wstrPath;
+	if (*pImpl_->wstrProfileName_.get()) {
 		ConcatW c[] = {
-			{ pImpl_->wstrMailFolder_,	-1	},
-			{ L"\\profiles\\",			-1	},
-			{ pImpl_->wstrProfileName_,	-1	},
-			{ L"\\",					1	},
-			{ pwszName,					-1	}
+			{ pImpl_->wstrMailFolder_.get(),	-1	},
+			{ L"\\profiles\\",					-1	},
+			{ pImpl_->wstrProfileName_.get(),	-1	},
+			{ L"\\",							1	},
+			{ pwszName,							-1	}
 		};
-		wstrPath.reset(concat(c, countof(c)));
-		if (!wstrPath.get())
-			return QSTATUS_OUTOFMEMORY;
+		wstrPath = concat(c, countof(c));
 		
 		W2T(wstrPath.get(), ptszPath);
 		if (::GetFileAttributes(ptszPath) == 0xffffffff)
 			wstrPath.reset(0);
 	}
 	
-	if (!wstrPath.get()) {
-		wstrPath.reset(concat(pImpl_->wstrMailFolder_,
-			L"\\profiles\\", pwszName));
-		if (!wstrPath.get())
-			return QSTATUS_OUTOFMEMORY;
-	}
-	
-	*pwstrPath = wstrPath.release();
-	
-	return QSTATUS_SUCCESS;
+	if (!wstrPath.get())
+		wstrPath = concat(pImpl_->wstrMailFolder_.get(),
+			L"\\profiles\\", pwszName);
+
+	return wstrPath;
 }
 
-QSTATUS qm::Application::getVersion(
-	bool bWithOSVersion, WSTRING* pwstrVersion) const
+wstring_ptr qm::Application::getVersion(bool bWithOSVersion) const
 {
-	assert(pwstrVersion);
-	
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrVersion(allocWString(256));
-	if (!wstrVersion.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrVersion(allocWString(256));
 	
 	if (bWithOSVersion) {
-		string_ptr<WSTRING> wstrOSVersion;
-		status = getOSVersion(&wstrOSVersion);
-		CHECK_QSTATUS();
+		wstring_ptr wstrOSVersion(getOSVersion());
 #if defined SH3
 		const WCHAR* pwszCPU = L"SH3";
 #elif defined SH4
@@ -801,17 +638,11 @@ QSTATUS qm::Application::getVersion(
 			(QMAIL_VERSION%100000)/1000, QMAIL_VERSION%1000);
 	}
 	
-	*pwstrVersion = wstrVersion.release();
-	
-	return QSTATUS_SUCCESS;
+	return wstrVersion;
 }
 
-QSTATUS qm::Application::getOSVersion(WSTRING* pwstrOSVersion) const
+wstring_ptr qm::Application::getOSVersion() const
 {
-	assert(pwstrOSVersion);
-	
-	DECLARE_QSTATUS();
-	
 	bool bAddVersion = true;
 	const WCHAR* pwszPlatform = 0;
 	OSVERSIONINFO ovi = { sizeof(ovi) };
@@ -851,9 +682,7 @@ QSTATUS qm::Application::getOSVersion(WSTRING* pwstrOSVersion) const
 #endif
 	}
 	
-	string_ptr<WSTRING> wstrOSVersion(allocWString(256));
-	if (!wstrOSVersion.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrOSVersion(allocWString(256));
 	T2W(ovi.szCSDVersion, pwszAdditional);
 	if (bAddVersion)
 		swprintf(wstrOSVersion.get(), L"%s %u.%02u%s%s",
@@ -863,9 +692,7 @@ QSTATUS qm::Application::getOSVersion(WSTRING* pwstrOSVersion) const
 		swprintf(wstrOSVersion.get(), L"%s%s%s",
 			pwszPlatform, *pwszAdditional ? L" " : L"", pwszAdditional);
 	
-	*pwstrOSVersion = wstrOSVersion.release();
-	
-	return QSTATUS_SUCCESS;
+	return wstrOSVersion;
 }
 
 Application& qm::Application::getApplication()

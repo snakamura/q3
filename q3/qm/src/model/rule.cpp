@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -16,7 +16,6 @@
 #include <qmmessageholder.h>
 
 #include <qsconv.h>
-#include <qsnew.h>
 #include <qsosutil.h>
 
 #include <algorithm>
@@ -35,12 +34,8 @@ using namespace qs;
  *
  */
 
-qm::RuleManager::RuleManager(QSTATUS* pstatus)
+qm::RuleManager::RuleManager()
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
 	SYSTEMTIME st;
 	::GetSystemTime(&st);
 	::SystemTimeToFileTime(&st, &ft_);
@@ -51,33 +46,30 @@ qm::RuleManager::~RuleManager()
 	clear();
 }
 
-QSTATUS qm::RuleManager::apply(const Folder* pFolder,
-	const MessageHolderList* pList, Document* pDocument,
-	HWND hwnd, Profile* pProfile, RuleCallback* pCallback)
+bool qm::RuleManager::apply(const Folder* pFolder,
+							const MessageHolderList* pList,
+							Document* pDocument,
+							HWND hwnd,
+							Profile* pProfile,
+							RuleCallback* pCallback)
 {
 	assert(pFolder);
 	assert(pDocument);
 	assert(hwnd);
 	
-	DECLARE_QSTATUS();
-	
-	status = load();
-	CHECK_QSTATUS();
+	if (!load())
+		return false;
 	
 	Account* pAccount = pFolder->getAccount();
 	
 	Lock<Account> lock(*pAccount);
 	
-	const RuleSet* pRuleSet = 0;
-	status = getRuleSet(pFolder, &pRuleSet);
-	CHECK_QSTATUS();
+	const RuleSet* pRuleSet = getRuleSet(pFolder);
 	if (!pRuleSet)
-		return QSTATUS_SUCCESS;
+		return true;
 	
 	typedef std::vector<MessageHolderList> ListList;
-	ListList ll;
-	status = STLWrapper<ListList>(ll).resize(pRuleSet->getCount());
-	CHECK_QSTATUS();
+	ListList ll(pRuleSet->getCount());
 	
 	struct Accessor
 	{
@@ -131,92 +123,65 @@ QSTATUS qm::RuleManager::apply(const Folder* pFolder,
 		static_cast<const Accessor&>(listAccessor) :
 		static_cast<const Accessor&>(folderAccessor);
 	
-	status = pCallback->checkingMessages();
-	CHECK_QSTATUS();
-	status = pCallback->setRange(0, accessor.getCount());
-	CHECK_QSTATUS();
+	pCallback->checkingMessages();
+	pCallback->setRange(0, accessor.getCount());
 	
 	int nMatch = 0;
-	MacroVariableHolder globalVariable(&status);
-	CHECK_QSTATUS();
+	MacroVariableHolder globalVariable;
 	for (unsigned int n = 0; n < accessor.getCount(); ++n) {
 		if (n % 10 == 0 && pCallback->isCanceled())
-			return QSTATUS_SUCCESS;
+			return true;
 		
-		status = pCallback->setPos(n);
-		CHECK_QSTATUS();
+		pCallback->setPos(n);
 		
 		MessageHolder* pmh = accessor.getMessage(n);
-		Message msg(&status);
-		CHECK_QSTATUS();
+		Message msg;
 		for (size_t m = 0; m < pRuleSet->getCount(); ++m) {
 			const Rule* pRule = pRuleSet->getRule(m);
-			MacroContext::Init init = {
-				pmh,
-				&msg,
-				pAccount,
-				pDocument,
-				hwnd,
-				pProfile,
-				false,
-				0,
-				&globalVariable
-			};
-			MacroContext context(init, &status);
-			CHECK_QSTATUS();
-			bool bMatch = false;
-			status = pRule->match(&context, &bMatch);
-			CHECK_QSTATUS();
+			MacroContext context(pmh, &msg, pAccount, pDocument,
+				hwnd, pProfile, false, 0, &globalVariable);
+			bool bMatch = pRule->match(&context);
 			if (bMatch) {
-				status = STLWrapper<MessageHolderList>(ll[m]).push_back(pmh);
-				CHECK_QSTATUS();
+				ll[m].push_back(pmh);
 				++nMatch;
 				break;
 			}
 		}
 	}
 	
-	status = pCallback->applyingRule();
-	CHECK_QSTATUS();
-	status = pCallback->setRange(0, nMatch);
-	CHECK_QSTATUS();
-	status = pCallback->setPos(0);
-	CHECK_QSTATUS();
+	pCallback->applyingRule();
+	pCallback->setRange(0, nMatch);
+	pCallback->setPos(0);
 	
 	int nMessage = 0;
 	for (size_t m = 0; m < pRuleSet->getCount(); ++m) {
 		if (pCallback->isCanceled())
-			return QSTATUS_SUCCESS;
+			return true;
 		
 		const MessageHolderList& l = ll[m];
 		if (!l.empty()) {
 			const Rule* pRule = pRuleSet->getRule(m);
 			RuleContext context(l, pDocument, pAccount);
-			status = pRule->apply(context);
-			CHECK_QSTATUS();
+			if (!pRule->apply(context))
+				return false;
 			
 			nMessage += l.size();
-			status = pCallback->setPos(nMessage);
-			CHECK_QSTATUS();
+			pCallback->setPos(nMessage);
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::RuleManager::addRuleSet(RuleSet* pRuleSet)
+void qm::RuleManager::addRuleSet(std::auto_ptr<RuleSet> pRuleSet)
 {
-	return STLWrapper<RuleSetList>(listRuleSet_).push_back(pRuleSet);
+	listRuleSet_.push_back(pRuleSet.get());
+	pRuleSet.release();
 }
 
-QSTATUS qm::RuleManager::load()
+bool qm::RuleManager::load()
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrPath;
-	status = Application::getApplication().getProfilePath(
-		FileNames::RULES_XML, &wstrPath);
-	CHECK_QSTATUS();
+	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::RULES_XML));
 	
 	W2T(wstrPath.get(), ptszPath);
 	AutoHandle hFile(::CreateFile(ptszPath, GENERIC_READ, 0, 0,
@@ -229,13 +194,11 @@ QSTATUS qm::RuleManager::load()
 		if (::CompareFileTime(&ft, &ft_) != 0) {
 			clear();
 			
-			XMLReader reader(&status);
-			CHECK_QSTATUS();
-			RuleContentHandler handler(this, &status);
-			CHECK_QSTATUS();
+			XMLReader reader;
+			RuleContentHandler handler(this);
 			reader.setContentHandler(&handler);
-			status = reader.parse(wstrPath.get());
-			CHECK_QSTATUS();
+			if (!reader.parse(wstrPath.get()))
+				return false;
 			
 			ft_ = ft;
 		}
@@ -244,7 +207,7 @@ QSTATUS qm::RuleManager::load()
 		clear();
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 void qm::RuleManager::clear()
@@ -254,27 +217,17 @@ void qm::RuleManager::clear()
 	listRuleSet_.clear();
 }
 
-QSTATUS qm::RuleManager::getRuleSet(
-	const Folder* pFolder, const RuleSet** ppRuleSet) const
+const RuleSet* qm::RuleManager::getRuleSet(const Folder* pFolder) const
 {
 	assert(pFolder);
-	assert(ppRuleSet);
 	
-	DECLARE_QSTATUS();
-	
-	*ppRuleSet = 0;
-	
-	RuleSetList::const_iterator it = listRuleSet_.begin();
-	while (it != listRuleSet_.end() && !*ppRuleSet) {
-		bool bMatch = false;
-		status = (*it)->matchName(pFolder, &bMatch);
-		CHECK_QSTATUS();
-		if (bMatch)
-			*ppRuleSet = *it;
-		++it;
+	for (RuleSetList::const_iterator it = listRuleSet_.begin(); it != listRuleSet_.end(); ++it) {
+		const RuleSet* pRuleSet = *it;
+		if (pRuleSet->matchName(pFolder))
+			return pRuleSet;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return 0;
 }
 
 
@@ -295,73 +248,35 @@ qm::RuleCallback::~RuleCallback()
  *
  */
 
-qm::RuleSet::RuleSet(const WCHAR* pwszAccount,
-	const WCHAR* pwszFolder, QSTATUS* pstatus) :
-	pAccountName_(0),
-	pFolderName_(0)
+qm::RuleSet::RuleSet(std::auto_ptr<RegexPattern> pAccountName,
+					 std::auto_ptr<RegexPattern> pFolderName) :
+	pAccountName_(pAccountName),
+	pFolderName_(pFolderName)
 {
-	assert(pstatus);
-	
-	DECLARE_QSTATUS();
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	RegexCompiler compiler;
-	std::auto_ptr<RegexPattern> pAccountName;
-	if (pwszAccount) {
-		RegexPattern* p = 0;
-		status = compiler.compile(pwszAccount, &p);
-		CHECK_QSTATUS_SET(pstatus);
-		pAccountName.reset(p);
-	}
-	std::auto_ptr<RegexPattern> pFolderName;
-	if (pwszFolder) {
-		RegexPattern* p = 0;
-		status = compiler.compile(pwszFolder, &p);
-		CHECK_QSTATUS_SET(pstatus);
-		pFolderName.reset(p);
-	}
-	
-	pAccountName_ = pAccountName.release();
-	pFolderName_ = pFolderName.release();
 }
 
 qm::RuleSet::~RuleSet()
 {
-	delete pAccountName_;
-	delete pFolderName_;
 	std::for_each(listRule_.begin(), listRule_.end(), deleter<Rule>());
 }
 
-QSTATUS qm::RuleSet::matchName(const Folder* pFolder, bool* pbMatch) const
+bool qm::RuleSet::matchName(const Folder* pFolder) const
 {
 	assert(pFolder);
-	assert(pbMatch);
 	
-	DECLARE_QSTATUS();
-	
-	*pbMatch = false;
-	
-	if (pAccountName_) {
+	if (pAccountName_.get()) {
 		const WCHAR* pwszName = pFolder->getAccount()->getName();
-		status = pAccountName_->match(pwszName, pbMatch);
-		CHECK_QSTATUS();
-		if (!*pbMatch)
-			return QSTATUS_SUCCESS;
+		if (!pAccountName_->match(pwszName))
+			return false;
 	}
 	
-	if (pFolderName_) {
-		string_ptr<WSTRING> wstrName;
-		status = pFolder->getFullName(&wstrName);
-		CHECK_QSTATUS();
-		status = pFolderName_->match(wstrName.get(), pbMatch);
-		CHECK_QSTATUS();
-	}
-	else {
-		*pbMatch = true;
+	if (pFolderName_.get()) {
+		wstring_ptr wstrName(pFolder->getFullName());
+		if (!pFolderName_->match(wstrName.get()))
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 size_t qm::RuleSet::getCount() const
@@ -375,9 +290,10 @@ const Rule* qm::RuleSet::getRule(size_t nIndex) const
 	return listRule_[nIndex];
 }
 
-QSTATUS qm::RuleSet::addRule(Rule* pRule)
+void qm::RuleSet::addRule(std::auto_ptr<Rule> pRule)
 {
-	return STLWrapper<RuleList>(listRule_).push_back(pRule);
+	listRule_.push_back(pRule.get());
+	pRule.release();
 }
 
 
@@ -387,30 +303,19 @@ QSTATUS qm::RuleSet::addRule(Rule* pRule)
  *
  */
 
-qm::Rule::Rule(Macro* pMacro, QSTATUS* pstatus) :
+qm::Rule::Rule(std::auto_ptr<Macro> pMacro) :
 	pMacro_(pMacro)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::Rule::~Rule()
 {
-	delete pMacro_;
 }
 
-QSTATUS qm::Rule::match(MacroContext* pContext, bool* pbMatch) const
+bool qm::Rule::match(MacroContext* pContext) const
 {
-	assert(pbMatch);
-	
-	DECLARE_QSTATUS();
-	
-	MacroValuePtr pValue;
-	status = pMacro_->value(pContext, &pValue);
-	CHECK_QSTATUS();
-	*pbMatch = pValue->boolean();
-	
-	return QSTATUS_SUCCESS;
+	MacroValuePtr pValue(pMacro_->value(pContext));
+	return pValue->boolean();
 }
 
 
@@ -420,8 +325,8 @@ QSTATUS qm::Rule::match(MacroContext* pContext, bool* pbMatch) const
  *
  */
 
-qm::NullRule::NullRule(Macro* pMacro, QSTATUS* pstatus) :
-	Rule(pMacro, pstatus)
+qm::NullRule::NullRule(std::auto_ptr<Macro> pMacro) :
+	Rule(pMacro)
 {
 }
 
@@ -429,9 +334,9 @@ qm::NullRule::~NullRule()
 {
 }
 
-QSTATUS qm::NullRule::apply(const RuleContext& context) const
+bool qm::NullRule::apply(const RuleContext& context) const
 {
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -441,62 +346,39 @@ QSTATUS qm::NullRule::apply(const RuleContext& context) const
  *
  */
 
-qm::CopyRule::CopyRule(Macro* pMacro, const WCHAR* pwszAccount,
-	const WCHAR* pwszFolder, bool bMove, QSTATUS* pstatus) :
-	Rule(pMacro, pstatus),
+qm::CopyRule::CopyRule(std::auto_ptr<Macro> pMacro,
+					   const WCHAR* pwszAccount,
+					   const WCHAR* pwszFolder,
+					   bool bMove) :
+	Rule(pMacro),
 	wstrAccount_(0),
 	wstrFolder_(0),
 	bMove_(bMove)
 {
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	string_ptr<WSTRING> wstrAccount;
-	if (pwszAccount) {
-		wstrAccount.reset(allocWString(pwszAccount));
-		if (!wstrAccount.get()) {
-			*pstatus = QSTATUS_OUTOFMEMORY;
-			return;
-		}
-	}
-	string_ptr<WSTRING> wstrFolder(allocWString(pwszFolder));
-	if (!wstrFolder.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
-	
-	wstrAccount_ = wstrAccount.release();
-	wstrFolder_ = wstrFolder.release();
+	if (pwszAccount)
+		wstrAccount_ = allocWString(pwszAccount);
+	wstrFolder_ = allocWString(pwszFolder);
 }
 
 qm::CopyRule::~CopyRule()
 {
-	freeWString(wstrAccount_);
-	freeWString(wstrFolder_);
 }
 
-QSTATUS qm::CopyRule::apply(const RuleContext& context) const
+bool qm::CopyRule::apply(const RuleContext& context) const
 {
-	DECLARE_QSTATUS();
-	
 	Account* pAccount = context.getAccount();
-	if (wstrAccount_) {
-		pAccount = context.getDocument()->getAccount(wstrAccount_);
+	if (wstrAccount_.get()) {
+		pAccount = context.getDocument()->getAccount(wstrAccount_.get());
 		if (!pAccount)
-			return QSTATUS_FAIL;
+			return false;
 	}
 	
-	Folder* pFolderTo = 0;
-	status = pAccount->getFolder(wstrFolder_, &pFolderTo);
-	CHECK_QSTATUS();
+	Folder* pFolderTo = pAccount->getFolder(wstrFolder_.get());
 	if (!pFolderTo || pFolderTo->getType() != Folder::TYPE_NORMAL)
-		return QSTATUS_FAIL;
+		return false;
 	
-	status = context.getAccount()->copyMessages(context.getMessageHolderList(),
+	return context.getAccount()->copyMessages(context.getMessageHolderList(),
 		static_cast<NormalFolder*>(pFolderTo), bMove_, 0);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -507,7 +389,8 @@ QSTATUS qm::CopyRule::apply(const RuleContext& context) const
  */
 
 qm::RuleContext::RuleContext(const MessageHolderList& l,
-	Document* pDocument, Account* pAccount) :
+							 Document* pDocument,
+							 Account* pAccount) :
 	listMessageHolder_(l),
 	pDocument_(pDocument),
 	pAccount_(pAccount)
@@ -544,46 +427,33 @@ Account* qm::RuleContext::getAccount() const
  *
  */
 
-qm::RuleContentHandler::RuleContentHandler(
-	RuleManager* pManager, QSTATUS* pstatus) :
-	DefaultHandler(pstatus),
+qm::RuleContentHandler::RuleContentHandler(RuleManager* pManager) :
 	pManager_(pManager),
 	state_(STATE_ROOT),
 	pCurrentRuleSet_(0),
-	pMacro_(0),
-	pParser_(0)
+	parser_(MacroParser::TYPE_RULE)
 {
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	DECLARE_QSTATUS();
-	
-	status = newQsObject(MacroParser::TYPE_RULE, &pParser_);
-	CHECK_QSTATUS_SET(pstatus);
 }
 
 qm::RuleContentHandler::~RuleContentHandler()
 {
-	delete pMacro_;
-	delete pParser_;
 }
 
-QSTATUS qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
-	const WCHAR* pwszLocalName, const WCHAR* pwszQName,
-	const Attributes& attributes)
+bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
+										  const WCHAR* pwszLocalName,
+										  const WCHAR* pwszQName,
+										  const Attributes& attributes)
 {
-	DECLARE_QSTATUS();
-	
 	if (wcscmp(pwszLocalName, L"rules") == 0) {
 		if (state_ != STATE_ROOT)
-			return QSTATUS_FAIL;
+			return false;
 		if (attributes.getLength() != 0)
-			return QSTATUS_FAIL;
+			return false;
 		state_ = STATE_RULES;
 	}
 	else if (wcscmp(pwszLocalName, L"ruleSet") == 0) {
 		if (state_ != STATE_RULES)
-			return QSTATUS_FAIL;
+			return false;
 		
 		const WCHAR* pwszAccount = 0;
 		const WCHAR* pwszFolder = 0;
@@ -594,23 +464,33 @@ QSTATUS qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			else if (wcscmp(pwszAttrName, L"folder") == 0)
 				pwszFolder = attributes.getValue(n);
 			else
-				return QSTATUS_FAIL;
+				return false;
 		}
 		
-		std::auto_ptr<RuleSet> pSet;
-		status = newQsObject(pwszAccount, pwszFolder, &pSet);
-		CHECK_QSTATUS();
+		RegexCompiler compiler;
+		std::auto_ptr<RegexPattern> pAccountName;
+		if (pwszAccount) {
+			pAccountName = compiler.compile(pwszAccount);
+			if (!pAccountName.get())
+				return false;
+		}
+		std::auto_ptr<RegexPattern> pFolderName;
+		if (pwszFolder) {
+			pFolderName = compiler.compile(pwszFolder);
+			if (!pFolderName.get())
+				return false;
+		}
 		
+		std::auto_ptr<RuleSet> pSet(new RuleSet(pAccountName, pFolderName));
 		assert(!pCurrentRuleSet_);
-		status = pManager_->addRuleSet(pSet.get());
-		CHECK_QSTATUS();
-		pCurrentRuleSet_ = pSet.release();
+		pCurrentRuleSet_ = pSet.get();
+		pManager_->addRuleSet(pSet);
 		
 		state_ = STATE_RULESET;
 	}
 	else if (wcscmp(pwszLocalName, L"rule") == 0) {
 		if (state_ != STATE_RULESET)
-			return QSTATUS_FAIL;
+			return false;
 		
 		const WCHAR* pwszMatch = 0;
 		for (int n = 0; n < attributes.getLength(); ++n) {
@@ -618,23 +498,24 @@ QSTATUS qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			if (wcscmp(pwszAttrName, L"match") == 0)
 				pwszMatch = attributes.getValue(n);
 			else
-				return QSTATUS_FAIL;
+				return false;
 		}
 		if (!pwszMatch)
-			return QSTATUS_FAIL;
+			return false;
 		
-		assert(!pMacro_);
-		status = pParser_->parse(pwszMatch, &pMacro_);
-		CHECK_QSTATUS();
+		assert(!pMacro_.get());
+		pMacro_ = parser_.parse(pwszMatch);
+		if (!pMacro_.get())
+			return false;
 		
 		state_ = STATE_RULE;
 	}
 	else if (wcscmp(pwszLocalName, L"copy") == 0 ||
 		wcscmp(pwszLocalName, L"move") == 0) {
 		if (state_ != STATE_RULE)
-			return QSTATUS_FAIL;
-		if (!pMacro_)
-			return QSTATUS_FAIL;
+			return false;
+		if (!pMacro_.get())
+			return false;
 		
 		bool bMove = wcscmp(pwszLocalName, L"move") == 0;
 		const WCHAR* pwszAccount = 0;
@@ -646,34 +527,28 @@ QSTATUS qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			else if (wcscmp(pwszAttrName, L"folder") == 0)
 				pwszFolder = attributes.getValue(n);
 			else
-				return QSTATUS_FAIL;
+				return false;
 		}
 		if (!pwszFolder)
-			return QSTATUS_FAIL;
+			return false;
 		
-		std::auto_ptr<CopyRule> pRule;
-		status = newQsObject(pMacro_, pwszAccount, pwszFolder, bMove, &pRule);
-		CHECK_QSTATUS();
-		pMacro_ = 0;
-		
-		status = pCurrentRuleSet_->addRule(pRule.get());
-		CHECK_QSTATUS();
-		pRule.release();
+		std::auto_ptr<Rule> pRule(new CopyRule(
+			pMacro_, pwszAccount, pwszFolder, bMove));
+		pCurrentRuleSet_->addRule(pRule);
 		
 		state_ = STATE_MOVE;
 	}
 	else {
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::RuleContentHandler::endElement(const WCHAR* pwszNamespaceURI,
-	const WCHAR* pwszLocalName, const WCHAR* pwszQName)
+bool qm::RuleContentHandler::endElement(const WCHAR* pwszNamespaceURI,
+										const WCHAR* pwszLocalName,
+										const WCHAR* pwszQName)
 {
-	DECLARE_QSTATUS();
-	
 	if (wcscmp(pwszLocalName, L"rules") == 0) {
 		assert(state_ == STATE_RULES);
 		state_ = STATE_ROOT;
@@ -687,15 +562,9 @@ QSTATUS qm::RuleContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 	else if (wcscmp(pwszLocalName, L"rule") == 0) {
 		assert(state_ == STATE_RULE);
 		
-		if (pMacro_) {
-			std::auto_ptr<NullRule> pRule;
-			status = newQsObject(pMacro_, &pRule);
-			CHECK_QSTATUS();
-			pMacro_ = 0;
-			
-			status = pCurrentRuleSet_->addRule(pRule.get());
-			CHECK_QSTATUS();
-			pRule.release();
+		if (pMacro_.get()) {
+			std::auto_ptr<Rule> pRule(new NullRule(pMacro_));
+			pCurrentRuleSet_->addRule(pRule);
 		}
 		
 		state_ = STATE_RULESET;
@@ -706,22 +575,21 @@ QSTATUS qm::RuleContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		state_ = STATE_RULE;
 	}
 	else {
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::RuleContentHandler::characters(
-	const WCHAR* pwsz, size_t nStart, size_t nLength)
+bool qm::RuleContentHandler::characters(const WCHAR* pwsz,
+										size_t nStart,
+										size_t nLength)
 {
-	DECLARE_QSTATUS();
-	
 	const WCHAR* p = pwsz + nStart;
 	for (size_t n = 0; n < nLength; ++n, ++p) {
 		if (*p != L' ' && *p != L'\t' && *p != '\n')
-			return QSTATUS_FAIL;
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }

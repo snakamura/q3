@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -46,14 +46,16 @@ class Writer;
 class QSEXPORTCLASS XMLReader
 {
 public:
-	XMLReader(QSTATUS* pstatus);
+	XMLReader();
 	~XMLReader();
 
 public:
-	QSTATUS getFeature(const WCHAR* pwszName, bool* pbValue) const;
-	QSTATUS setFeature(const WCHAR* pwszName, bool bValue);
-	QSTATUS getProperty(const WCHAR* pwszName, void** ppValue) const;
-	QSTATUS setProperty(const WCHAR* pwszName, void* pValue);
+	bool getFeature(const WCHAR* pwszName) const;
+	void setFeature(const WCHAR* pwszName,
+					bool bValue);
+	void* getProperty(const WCHAR* pwszName) const;
+	void setProperty(const WCHAR* pwszName,
+					 void* pValue);
 	EntityResolver* getEntityResolver() const;
 	void setEntityResolver(EntityResolver* pEntityResolver);
 	DTDHandler* getDTDHandler() const;
@@ -62,8 +64,8 @@ public:
 	void setContentHandler(ContentHandler* pContentHandler);
 	ErrorHandler* getErrorHandler() const;
 	void setErrorHandler(ErrorHandler* pErrorHandler);
-	QSTATUS parse(InputSource* pInputSource);
-	QSTATUS parse(const WCHAR* pwszSystemId);
+	bool parse(InputSource* pInputSource);
+	bool parse(const WCHAR* pwszSystemId);
 
 private:
 	XMLReader(const XMLReader&);
@@ -86,24 +88,28 @@ public:
 	virtual ~ContentHandler();
 
 public:
-	virtual QSTATUS setDocumentLocator(const Locator& locator) = 0;
-	virtual QSTATUS startDocument() = 0;
-	virtual QSTATUS endDocument() = 0;
-	virtual QSTATUS startPrefixMapping(
-		const WCHAR* pwszPrefix, const WCHAR* pwszURI) = 0;
-	virtual QSTATUS endPrefixMapping(const WCHAR* pwszPrefix) = 0;
-	virtual QSTATUS startElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName,
-		const Attributes& attributes) = 0;
-	virtual QSTATUS endElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName) = 0;
-	virtual QSTATUS characters(const WCHAR* pwsz,
-		size_t nStart, size_t nLength) = 0;
-	virtual QSTATUS ignorableWhitespace(const WCHAR* pwsz,
-		size_t nStart, size_t nLength) = 0;
-	virtual QSTATUS processingInstruction(
-		const WCHAR* pwszTarget, const WCHAR* pwszData) = 0;
-	virtual QSTATUS skippedEntity(const WCHAR* pwszName) = 0;
+	virtual bool setDocumentLocator(const Locator& locator) = 0;
+	virtual bool startDocument() = 0;
+	virtual bool endDocument() = 0;
+	virtual bool startPrefixMapping(const WCHAR* pwszPrefix,
+									const WCHAR* pwszURI) = 0;
+	virtual bool endPrefixMapping(const WCHAR* pwszPrefix) = 0;
+	virtual bool startElement(const WCHAR* pwszNamespaceURI,
+							  const WCHAR* pwszLocalName,
+							  const WCHAR* pwszQName,
+							  const Attributes& attributes) = 0;
+	virtual bool endElement(const WCHAR* pwszNamespaceURI,
+							const WCHAR* pwszLocalName,
+							const WCHAR* pwszQName) = 0;
+	virtual bool characters(const WCHAR* pwsz,
+							size_t nStart,
+							size_t nLength) = 0;
+	virtual bool ignorableWhitespace(const WCHAR* pwsz,
+									 size_t nStart,
+									 size_t nLength) = 0;
+	virtual bool processingInstruction(const WCHAR* pwszTarget,
+									   const WCHAR* pwszData) = 0;
+	virtual bool skippedEntity(const WCHAR* pwszName) = 0;
 };
 
 
@@ -119,11 +125,13 @@ public:
 	virtual ~DTDHandler();
 
 public:
-	virtual QSTATUS notationDecl(const WCHAR* pwszName,
-		const WCHAR* pwszPublicId, const WCHAR* pwszSystemId) = 0;
-	virtual QSTATUS unparsedEntityDecl(const WCHAR* pwszName,
-		const WCHAR* pwszPublicId, const WCHAR* pwszSystemId,
-		const WCHAR* pwszNotationName) = 0;
+	virtual bool notationDecl(const WCHAR* pwszName,
+							  const WCHAR* pwszPublicId,
+							  const WCHAR* pwszSystemId) = 0;
+	virtual bool unparsedEntityDecl(const WCHAR* pwszName,
+									const WCHAR* pwszPublicId,
+									const WCHAR* pwszSystemId,
+									const WCHAR* pwszNotationName) = 0;
 };
 
 
@@ -139,15 +147,18 @@ public:
 	virtual ~DeclHandler();
 
 public:
-	virtual QSTATUS elementDecl(const WCHAR* pwszName,
-		const WCHAR* pwszModel) = 0;
-	virtual QSTATUS attributeDecl(const WCHAR* pwszElementName,
-		const WCHAR* pwszAttributeName, const WCHAR* pwszType,
-		const WCHAR* pwszMode, const WCHAR* pwszValue) = 0;
-	virtual QSTATUS internalEntityDecl(const WCHAR* pwszName,
-		const WCHAR* pwszValue) = 0;
-	virtual QSTATUS externalEntityDecl(const WCHAR* pwszName,
-		const WCHAR* pwszPublicId, const WCHAR* pwszSystemId) = 0;
+	virtual bool elementDecl(const WCHAR* pwszName,
+							 const WCHAR* pwszModel) = 0;
+	virtual bool attributeDecl(const WCHAR* pwszElementName,
+							   const WCHAR* pwszAttributeName,
+							   const WCHAR* pwszType,
+							   const WCHAR* pwszMode,
+							   const WCHAR* pwszValue) = 0;
+	virtual bool internalEntityDecl(const WCHAR* pwszName,
+									const WCHAR* pwszValue) = 0;
+	virtual bool externalEntityDecl(const WCHAR* pwszName,
+									const WCHAR* pwszPublicId,
+									const WCHAR* pwszSystemId) = 0;
 };
 
 
@@ -163,15 +174,17 @@ public:
 	virtual ~LexicalHandler();
 
 public:
-	virtual QSTATUS startDTD(const WCHAR* pwszName,
-		const WCHAR* pwszPublicId, const WCHAR* pwszSystemId) = 0;
-	virtual QSTATUS endDTD() = 0;
-	virtual QSTATUS startEntity(const WCHAR* pwszName) = 0;
-	virtual QSTATUS endEntity(const WCHAR* pwszName) = 0;
-	virtual QSTATUS startCDATA() = 0;
-	virtual QSTATUS endCDATA() = 0;
-	virtual QSTATUS comment(const WCHAR* pwsz,
-		size_t nStart, size_t nLength) = 0;
+	virtual bool startDTD(const WCHAR* pwszName,
+						  const WCHAR* pwszPublicId,
+						  const WCHAR* pwszSystemId) = 0;
+	virtual bool endDTD() = 0;
+	virtual bool startEntity(const WCHAR* pwszName) = 0;
+	virtual bool endEntity(const WCHAR* pwszName) = 0;
+	virtual bool startCDATA() = 0;
+	virtual bool endCDATA() = 0;
+	virtual bool comment(const WCHAR* pwsz,
+						 size_t nStart,
+						 size_t nLength) = 0;
 };
 
 
@@ -200,8 +213,8 @@ public:
 	virtual ~EntityResolver();
 
 public:
-	virtual QSTATUS resolveEntity(const WCHAR* pwszPublicId,
-		const WCHAR* pwszSystemId, InputSource** ppInputSource) = 0;
+	virtual std::auto_ptr<InputSource> resolveEntity(const WCHAR* pwszPublicId,
+													const WCHAR* pwszSystemId) = 0;
 };
 
 
@@ -217,11 +230,12 @@ public:
 	virtual ~EntityResolver2();
 
 public:
-	virtual QSTATUS getExternalSubset(const WCHAR* pwszName,
-		const WCHAR* pwzzBaseURI, InputSource** ppInputSource) = 0;
-	virtual QSTATUS resolveEntity(const WCHAR* pwszName,
-		const WCHAR* pwszPublicId, const WCHAR* pwszBaseURI,
-		const WCHAR* pwszSystemId, InputSource** ppSource) = 0;
+	virtual std::auto_ptr<InputSource> getExternalSubset(const WCHAR* pwszName,
+														 const WCHAR* pwzzBaseURI) = 0;
+	virtual std::auto_ptr<InputSource> resolveEntity(const WCHAR* pwszName,
+													 const WCHAR* pwszPublicId,
+													 const WCHAR* pwszBaseURI,
+													 const WCHAR* pwszSystemId) = 0;
 };
 
 
@@ -238,39 +252,45 @@ class QSEXPORTCLASS DefaultHandler :
 	public EntityResolver
 {
 public:
-	DefaultHandler(QSTATUS* pstatus);
+	DefaultHandler();
 	virtual ~DefaultHandler();
 
 public:
-	virtual QSTATUS setDocumentLocator(const Locator& locator);
-	virtual QSTATUS startDocument();
-	virtual QSTATUS endDocument();
-	virtual QSTATUS startPrefixMapping(
-		const WCHAR* pwszPrefix, const WCHAR* pwszURI);
-	virtual QSTATUS endPrefixMapping(const WCHAR* pwszPrefix);
-	virtual QSTATUS startElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName,
-		const Attributes& attributes);
-	virtual QSTATUS endElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName);
-	virtual QSTATUS characters(const WCHAR* pwsz,
-		size_t nStart, size_t nLength);
-	virtual QSTATUS ignorableWhitespace(const WCHAR* pwsz,
-		size_t nStart, size_t nLength);
-	virtual QSTATUS processingInstruction(
-		const WCHAR* pwszTarget, const WCHAR* pwszData);
-	virtual QSTATUS skippedEntity(const WCHAR* pwszName);
+	virtual bool setDocumentLocator(const Locator& locator);
+	virtual bool startDocument();
+	virtual bool endDocument();
+	virtual bool startPrefixMapping(const WCHAR* pwszPrefix,
+									const WCHAR* pwszURI);
+	virtual bool endPrefixMapping(const WCHAR* pwszPrefix);
+	virtual bool startElement(const WCHAR* pwszNamespaceURI,
+							  const WCHAR* pwszLocalName,
+							  const WCHAR* pwszQName,
+							  const Attributes& attributes);
+	virtual bool endElement(const WCHAR* pwszNamespaceURI,
+							const WCHAR* pwszLocalName,
+							const WCHAR* pwszQName);
+	virtual bool characters(const WCHAR* pwsz,
+							size_t nStart,
+							size_t nLength);
+	virtual bool ignorableWhitespace(const WCHAR* pwsz,
+									 size_t nStart,
+									 size_t nLength);
+	virtual bool processingInstruction(const WCHAR* pwszTarget,
+									   const WCHAR* pwszData);
+	virtual bool skippedEntity(const WCHAR* pwszName);
 
 public:
-	virtual QSTATUS notationDecl(const WCHAR* pwszName,
-		const WCHAR* pwszPublicId, const WCHAR* pwszSystemId);
-	virtual QSTATUS unparsedEntityDecl(const WCHAR* pwszName,
-		const WCHAR* pwszPublicId, const WCHAR* pwszSystemId,
-		const WCHAR* pwszNotationName);
+	virtual bool notationDecl(const WCHAR* pwszName,
+							  const WCHAR* pwszPublicId,
+							  const WCHAR* pwszSystemId);
+	virtual bool unparsedEntityDecl(const WCHAR* pwszName,
+									const WCHAR* pwszPublicId,
+									const WCHAR* pwszSystemId,
+									const WCHAR* pwszNotationName);
 
 public:
-	virtual QSTATUS resolveEntity(const WCHAR* pwszPublicId,
-		const WCHAR* pwszSystemId, InputSource** ppInputSource);
+	virtual std::auto_ptr<InputSource> resolveEntity(const WCHAR* pwszPublicId,
+													 const WCHAR* pwszSystemId);
 };
 
 
@@ -287,41 +307,47 @@ class QSEXPORTCLASS DefaultHandler2 :
 	public EntityResolver2
 {
 public:
-	DefaultHandler2(QSTATUS* pstatus);
+	DefaultHandler2();
 	virtual ~DefaultHandler2();
 
 public:
-	virtual QSTATUS elementDecl(const WCHAR* pwszName,
-		const WCHAR* pwszModel);
-	virtual QSTATUS attributeDecl(const WCHAR* pwszElementName,
-		const WCHAR* pwszAttributeName, const WCHAR* pwszType,
-		const WCHAR* pwszMode, const WCHAR* pwszValue);
-	virtual QSTATUS internalEntityDecl(const WCHAR* pwszName,
-		const WCHAR* pwszValue);
-	virtual QSTATUS externalEntityDecl(const WCHAR* pwszName,
-		const WCHAR* pwszPublicId, const WCHAR* pwszSystemId);
+	virtual bool elementDecl(const WCHAR* pwszName,
+							 const WCHAR* pwszModel);
+	virtual bool attributeDecl(const WCHAR* pwszElementName,
+							   const WCHAR* pwszAttributeName,
+							   const WCHAR* pwszType,
+							   const WCHAR* pwszMode,
+							   const WCHAR* pwszValue);
+	virtual bool internalEntityDecl(const WCHAR* pwszName,
+									const WCHAR* pwszValue);
+	virtual bool externalEntityDecl(const WCHAR* pwszName,
+									const WCHAR* pwszPublicId,
+									const WCHAR* pwszSystemId);
 
 public:
-	virtual QSTATUS startDTD(const WCHAR* pwszName,
-		const WCHAR* pwszPublicId, const WCHAR* pwszSystemId);
-	virtual QSTATUS endDTD();
-	virtual QSTATUS startEntity(const WCHAR* pwszName);
-	virtual QSTATUS endEntity(const WCHAR* pwszName);
-	virtual QSTATUS startCDATA();
-	virtual QSTATUS endCDATA();
-	virtual QSTATUS comment(const WCHAR* pwsz,
-		size_t nStart, size_t nLength);
+	virtual bool startDTD(const WCHAR* pwszName,
+						  const WCHAR* pwszPublicId,
+						  const WCHAR* pwszSystemId);
+	virtual bool endDTD();
+	virtual bool startEntity(const WCHAR* pwszName);
+	virtual bool endEntity(const WCHAR* pwszName);
+	virtual bool startCDATA();
+	virtual bool endCDATA();
+	virtual bool comment(const WCHAR* pwsz,
+						 size_t nStart,
+						 size_t nLength);
 
 public:
-	virtual QSTATUS resolveEntity(const WCHAR* pwszPublicId,
-		const WCHAR* pwszSystemId, InputSource** ppInputSource);
+	virtual std::auto_ptr<InputSource> resolveEntity(const WCHAR* pwszPublicId,
+													 const WCHAR* pwszSystemId);
 
 public:
-	virtual QSTATUS getExternalSubset(const WCHAR* pwszName,
-		const WCHAR* pwzzBaseURI, InputSource** ppInputSource);
-	virtual QSTATUS resolveEntity(const WCHAR* pwszName,
-		const WCHAR* pwszPublicId, const WCHAR* pwszBaseURI,
-		const WCHAR* pwszSystemId, InputSource** ppSource);
+	virtual std::auto_ptr<InputSource> getExternalSubset(const WCHAR* pwszName,
+														 const WCHAR* pwzzBaseURI);
+	virtual std::auto_ptr<InputSource> resolveEntity(const WCHAR* pwszName,
+													 const WCHAR* pwszPublicId,
+													 const WCHAR* pwszBaseURI,
+													 const WCHAR* pwszSystemId);
 };
 
 
@@ -344,13 +370,13 @@ public:
 	virtual const WCHAR* getType(int nIndex) const = 0;
 	virtual const WCHAR* getValue(int nIndex) const = 0;
 	virtual int getIndex(const WCHAR* pwszURI,
-		const WCHAR* pwszLocalName) const = 0;
+						 const WCHAR* pwszLocalName) const = 0;
 	virtual int getIndex(const WCHAR* pwszQName) const = 0;
 	virtual const WCHAR* getType(const WCHAR* pwszURI,
-		const WCHAR* pwszLocalName) const = 0;
+								 const WCHAR* pwszLocalName) const = 0;
 	virtual const WCHAR* getType(const WCHAR* pwszQName) const = 0;
 	virtual const WCHAR* getValue(const WCHAR* pwszURI,
-		const WCHAR* pwszLocalName) const = 0;
+								  const WCHAR* pwszLocalName) const = 0;
 	virtual const WCHAR* getValue(const WCHAR* pwszQName) const = 0;
 };
 
@@ -370,11 +396,11 @@ public:
 	virtual bool isDeclared(int index) const = 0;
 	virtual bool isDeclared(const WCHAR* pwszQName) const = 0;
 	virtual bool isDeclared(const WCHAR* pwszURI,
-		const WCHAR* pwszLocalName) const = 0;
+							const WCHAR* pwszLocalName) const = 0;
 	virtual bool isSpecified(int index) const = 0;
 	virtual bool isSpecified(const WCHAR* pwszQName) const = 0;
 	virtual bool isSpecified(const WCHAR* pwszURI,
-		const WCHAR* pwszLocalName) const = 0;
+							 const WCHAR* pwszLocalName) const = 0;
 };
 
 
@@ -423,20 +449,20 @@ public:
 class QSEXPORTCLASS InputSource
 {
 public:
-	InputSource(QSTATUS* pstatus);
-	InputSource(const WCHAR* pwszSystemId, QSTATUS* pstatus);
-	InputSource(InputStream* pInputStream, QSTATUS* pstatus);
-	InputSource(Reader* pReader, QSTATUS* pstatus);
+	InputSource();
+	explicit InputSource(const WCHAR* pwszSystemId);
+	explicit InputSource(InputStream* pInputStream);
+	explicit InputSource(Reader* pReader);
 	~InputSource();
 
 public:
-	QSTATUS setPublicId(const WCHAR* pwszPublicId);
+	void setPublicId(const WCHAR* pwszPublicId);
 	const WCHAR* getPublicId() const;
-	QSTATUS setSystemId(const WCHAR* pwszSystemId);
+	void setSystemId(const WCHAR* pwszSystemId);
 	const WCHAR* getSystemId() const;
 	void setByteStream(InputStream* pInputStream);
 	InputStream* getByteStream() const;
-	QSTATUS setEncoding(const WCHAR* pwszEncoding);
+	void setEncoding(const WCHAR* pwszEncoding);
 	const WCHAR* getEncoding() const;
 	void setCharacterStream(Reader* pReader);
 	Reader* getCharacterStream() const;
@@ -455,17 +481,20 @@ private:
 class QSEXPORTCLASS OutputHandler : public DefaultHandler2
 {
 public:
-	OutputHandler(Writer* pWriter, qs::QSTATUS* pstatus);
+	explicit OutputHandler(Writer* pWriter);
 	virtual ~OutputHandler();
 
 public:
-	virtual QSTATUS startElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName,
-		const Attributes& attributes);
-	virtual QSTATUS endElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName);
-	virtual QSTATUS characters(const WCHAR* pwsz,
-		size_t nStart, size_t nLength);
+	virtual bool startElement(const WCHAR* pwszNamespaceURI,
+							  const WCHAR* pwszLocalName,
+							  const WCHAR* pwszQName,
+							  const Attributes& attributes);
+	virtual bool endElement(const WCHAR* pwszNamespaceURI,
+							const WCHAR* pwszLocalName,
+							const WCHAR* pwszQName);
+	virtual bool characters(const WCHAR* pwsz,
+							size_t nStart,
+							size_t nLength);
 
 private:
 	OutputHandler(const OutputHandler&);
@@ -496,24 +525,24 @@ public:
 	virtual const WCHAR* getType(int nIndex) const;
 	virtual const WCHAR* getValue(int nIndex) const;
 	virtual int getIndex(const WCHAR* pwszURI,
-		const WCHAR* pwszLocalName) const;
+						 const WCHAR* pwszLocalName) const;
 	virtual int getIndex(const WCHAR* pwszQName) const;
 	virtual const WCHAR* getType(const WCHAR* pwszURI,
-		const WCHAR* pwszLocalName) const;
+								 const WCHAR* pwszLocalName) const;
 	virtual const WCHAR* getType(const WCHAR* pwszQName) const;
 	virtual const WCHAR* getValue(const WCHAR* pwszURI,
-		const WCHAR* pwszLocalName) const;
+								  const WCHAR* pwszLocalName) const;
 	virtual const WCHAR* getValue(const WCHAR* pwszQName) const;
 
 public:
 	virtual bool isDeclared(int index) const;
 	virtual bool isDeclared(const WCHAR* pwszQName) const;
 	virtual bool isDeclared(const WCHAR* pwszURI,
-		const WCHAR* pwszLocalName) const;
+							const WCHAR* pwszLocalName) const;
 	virtual bool isSpecified(int index) const;
 	virtual bool isSpecified(const WCHAR* pwszQName) const;
 	virtual bool isSpecified(const WCHAR* pwszURI,
-		const WCHAR* pwszLocalName) const;
+							 const WCHAR* pwszLocalName) const;
 
 private:
 	DefaultAttributes(const DefaultAttributes&);

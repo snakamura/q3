@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -32,45 +32,57 @@ class NntpDriver : public qm::ProtocolDriver
 {
 public:
 	NntpDriver(qm::Account* pAccount,
-		const qm::Security* pSecurity, qs::QSTATUS* pstatus);
+			   const qm::Security* pSecurity);
 	virtual ~NntpDriver();
 
 public:
 	virtual bool isSupport(qm::Account::Support support);
-	virtual qs::QSTATUS setOffline(bool bOffline);
-	virtual qs::QSTATUS save();
+	virtual void setOffline(bool bOffline);
+	virtual bool save();
 	
-	virtual qs::QSTATUS createFolder(qm::SubAccount* pSubAccount,
-		const WCHAR* pwszName, qm::Folder* pParent,
-		qm::NormalFolder** ppFolder);
-	virtual qs::QSTATUS removeFolder(qm::SubAccount* pSubAccount,
-		qm::NormalFolder* pFolder);
-	virtual qs::QSTATUS renameFolder(qm::SubAccount* pSubAccount,
-		qm::NormalFolder* pFolder, const WCHAR* pwszName);
-	virtual qs::QSTATUS createDefaultFolders(qm::Account::FolderList* pList);
-	virtual qs::QSTATUS getRemoteFolders(
-		qm::SubAccount* pSubAccount, RemoteFolderList* pList);
+	virtual std::auto_ptr<qm::NormalFolder> createFolder(qm::SubAccount* pSubAccount,
+														 const WCHAR* pwszName,
+														 qm::Folder* pParent);
+	virtual bool removeFolder(qm::SubAccount* pSubAccount,
+							  qm::NormalFolder* pFolder);
+	virtual bool renameFolder(qm::SubAccount* pSubAccount,
+							  qm::NormalFolder* pFolder,
+							  const WCHAR* pwszName);
+	virtual bool createDefaultFolders(qm::Account::FolderList* pList);
+	virtual bool getRemoteFolders(qm::SubAccount* pSubAccount,
+								  RemoteFolderList* pList);
 	
-	virtual qs::QSTATUS getMessage(qm::SubAccount* pSubAccount,
-		qm::MessageHolder* pmh, unsigned int nFlags, qs::STRING* pstrMessage,
-		qm::Message::Flag* pFlag, bool* pbGet, bool* pbMadeSeen);
-	virtual qs::QSTATUS setMessagesFlags(qm::SubAccount* pSubAccount,
-		qm::NormalFolder* pFolder, const qm::MessageHolderList& l,
-		unsigned int nFlags, unsigned int nMask);
-	virtual qs::QSTATUS appendMessage(qm::SubAccount* pSubAccount,
-		qm::NormalFolder* pFolder, const CHAR* pszMessage, unsigned int nFlags);
-	virtual qs::QSTATUS removeMessages(qm::SubAccount* pSubAccount,
-		qm::NormalFolder* pFolder, const qm::MessageHolderList& l);
-	virtual qs::QSTATUS copyMessages(qm::SubAccount* pSubAccount,
-		const qm::MessageHolderList& l, qm::NormalFolder* pFolderFrom,
-		qm::NormalFolder* pFolderTo, bool bMove);
-	virtual qs::QSTATUS clearDeletedMessages(
-		qm::SubAccount* pSubAccount, qm::NormalFolder* pFolder);
+	virtual bool getMessage(qm::SubAccount* pSubAccount,
+							qm::MessageHolder* pmh,
+							unsigned int nFlags,
+							qs::xstring_ptr* pstrMessage,
+							qm::Message::Flag* pFlag,
+							bool* pbGet,
+							bool* pbMadeSeen);
+	virtual bool setMessagesFlags(qm::SubAccount* pSubAccount,
+								  qm::NormalFolder* pFolder,
+								  const qm::MessageHolderList& l,
+								  unsigned int nFlags,
+								  unsigned int nMask);
+	virtual bool appendMessage(qm::SubAccount* pSubAccount,
+							   qm::NormalFolder* pFolder,
+							   const CHAR* pszMessage,
+							   unsigned int nFlags);
+	virtual bool removeMessages(qm::SubAccount* pSubAccount,
+								qm::NormalFolder* pFolder,
+								const qm::MessageHolderList& l);
+	virtual bool copyMessages(qm::SubAccount* pSubAccount,
+							  const qm::MessageHolderList& l,
+							  qm::NormalFolder* pFolderFrom,
+							  qm::NormalFolder* pFolderTo,
+							  bool bMove);
+	virtual bool clearDeletedMessages(qm::SubAccount* pSubAccount,
+									  qm::NormalFolder* pFolder);
 
 private:
-	qs::QSTATUS prepareSession(qm::SubAccount* pSubAccount,
-		qm::NormalFolder* pFolder);
-	qs::QSTATUS clearSession();
+	bool prepareSession(qm::SubAccount* pSubAccount,
+						qm::NormalFolder* pFolder);
+	void clearSession();
 
 private:
 	NntpDriver(const NntpDriver&);
@@ -81,20 +93,21 @@ private:
 	{
 	public:
 		CallbackImpl(qm::SubAccount* pSubAccount,
-			const qm::Security* pSecurity, qs::QSTATUS* pstatus);
+					 const qm::Security* pSecurity);
 		virtual ~CallbackImpl();
 	
 	public:
 		virtual bool isCanceled(bool bForce) const;
-		virtual qs::QSTATUS initialize();
-		virtual qs::QSTATUS lookup();
-		virtual qs::QSTATUS connecting();
-		virtual qs::QSTATUS connected();
+		virtual void initialize();
+		virtual void lookup();
+		virtual void connecting();
+		virtual void connected();
 	
 	public:
-		virtual qs::QSTATUS authenticating();
-		virtual qs::QSTATUS setRange(unsigned int nMin, unsigned int nMax);
-		virtual qs::QSTATUS setPos(unsigned int nPos);
+		virtual void authenticating();
+		virtual void setRange(unsigned int nMin,
+							  unsigned int nMax);
+		virtual void setPos(unsigned int nPos);
 	
 	private:
 		CallbackImpl(const CallbackImpl&);
@@ -105,9 +118,9 @@ private:
 	qm::Account* pAccount_;
 	const qm::Security* pSecurity_;
 	qm::SubAccount* pSubAccount_;
-	Nntp* pNntp_;
-	CallbackImpl* pCallback_;
-	qs::Logger* pLogger_;
+	std::auto_ptr<Nntp> pNntp_;
+	std::auto_ptr<CallbackImpl> pCallback_;
+	std::auto_ptr<qs::Logger> pLogger_;
 	bool bOffline_;
 };
 
@@ -127,8 +140,8 @@ public:
 	virtual ~NntpFactory();
 
 protected:
-	virtual qs::QSTATUS createDriver(qm::Account* pAccount,
-		const qm::Security* pSecurity, qm::ProtocolDriver** ppProtocolDriver);
+	virtual std::auto_ptr<qm::ProtocolDriver> createDriver(qm::Account* pAccount,
+														   const qm::Security* pSecurity);
 
 private:
 	NntpFactory(const NntpFactory&);

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -22,10 +22,10 @@ qs::TemplateObserver<ObservableImpl, Param>::~TemplateObserver()
 }
 
 template<class ObservableImpl, class Param>
-qs::QSTATUS qs::TemplateObserver<ObservableImpl, Param>::onUpdate(
-	Observable* pObservable, void* pParam)
+void qs::TemplateObserver<ObservableImpl, Param>::onUpdate(Observable* pObservable,
+														   void* pParam)
 {
-	return onUpdate(static_cast<ObservableImpl*>(pObservable),
+	onUpdate(static_cast<ObservableImpl*>(pObservable),
 		static_cast<Param*>(pParam));
 }
 

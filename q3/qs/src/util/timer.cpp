@@ -1,12 +1,11 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
-#include <qsnew.h>
 #include <qstimer.h>
 #include <qswindow.h>
 
@@ -24,18 +23,12 @@ using namespace qs;
 class qs::TimerImpl : public DefaultWindowHandler
 {
 public:
-	TimerImpl(QSTATUS* pstatus);
-	virtual ~TimerImpl();
-
-public:
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
 	LRESULT onTimer(UINT nId);
-
-private:
-	TimerImpl(const TimerImpl&);
-	TimerImpl& operator=(const TimerImpl&);
 
 public:
 	typedef std::vector<std::pair<unsigned int, TimerHandler*> > HandlerMap;
@@ -45,18 +38,9 @@ public:
 	HandlerMap mapHandler_;
 };
 
-qs::TimerImpl::TimerImpl(QSTATUS* pstatus) :
-	DefaultWindowHandler(pstatus)
-{
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-}
-
-qs::TimerImpl::~TimerImpl()
-{
-}
-
-LRESULT qs::TimerImpl::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qs::TimerImpl::windowProc(UINT uMsg,
+								  WPARAM wParam,
+								  LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_TIMER()
@@ -87,27 +71,17 @@ LRESULT qs::TimerImpl::onTimer(UINT nId)
  *
  */
 
-qs::Timer::Timer(QSTATUS* pstatus) :
+qs::Timer::Timer() :
 	pImpl_(0)
 {
-	assert(pstatus);
-	
-	DECLARE_QSTATUS();
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	status = newQsObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new TimerImpl();
 	pImpl_->pWindow_ = 0;
 	
-	std::auto_ptr<WindowBase> pWindow;
-	status = newQsObject(true, &pWindow);
-	CHECK_QSTATUS_SET(pstatus);
-	status = pWindow->setWindowHandler(pImpl_, false);
-	CHECK_QSTATUS_SET(pstatus);
-	status = pWindow->create(L"QsTimerWindow", 0, WS_POPUP,
-		0, 0, 0, 0, 0, 0, 0, 0, 0);
-	CHECK_QSTATUS_SET(pstatus);
+	std::auto_ptr<WindowBase> pWindow(new WindowBase(true));
+	pWindow->setWindowHandler(pImpl_, false);
+	if (!pWindow->create(L"QsTimerWindow", 0,
+		WS_POPUP, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+		return;
 	pImpl_->pWindow_ = pWindow.release();
 }
 
@@ -120,28 +94,24 @@ qs::Timer::~Timer()
 	}
 }
 
-QSTATUS qs::Timer::setTimer(unsigned int* pnId,
-	unsigned int nTimeout, TimerHandler* pHandler)
+unsigned int qs::Timer::setTimer(unsigned int nId,
+								 unsigned int nTimeout,
+								 TimerHandler* pHandler)
 {
-	assert(pnId);
 	assert(pHandler);
 	
-	DECLARE_QSTATUS();
-	
 	TimerImpl::HandlerMap& m = pImpl_->mapHandler_;
-	status = STLWrapper<TimerImpl::HandlerMap>(m).reserve(m.size() + 1);
-	CHECK_QSTATUS();
 	
-	*pnId = pImpl_->pWindow_->setTimer(*pnId, nTimeout);
-	if (*pnId == 0)
-		return QSTATUS_FAIL;
+	unsigned int nTimerId = pImpl_->pWindow_->setTimer(nId, nTimeout);
+	if (nTimerId == 0)
+		return 0;
 	
-	m.push_back(std::make_pair(*pnId, pHandler));
+	pImpl_->mapHandler_.push_back(std::make_pair(nTimerId, pHandler));
 	
-	return QSTATUS_SUCCESS;
+	return nTimerId;
 }
 
-QSTATUS qs::Timer::killTimer(unsigned int nId)
+void qs::Timer::killTimer(unsigned int nId)
 {
 	TimerImpl::HandlerMap& m = pImpl_->mapHandler_;
 	TimerImpl::HandlerMap::iterator it = std::find_if(
@@ -152,13 +122,10 @@ QSTATUS qs::Timer::killTimer(unsigned int nId)
 				std::select1st<TimerImpl::HandlerMap::value_type>(),
 				std::identity<unsigned int>()),
 			nId));
-	if (it == m.end())
-		return QSTATUS_FAIL;
+	assert(it != m.end());
 	m.erase(it);
 	
 	pImpl_->pWindow_->killTimer(nId);
-	
-	return QSTATUS_SUCCESS;
 }
 
 

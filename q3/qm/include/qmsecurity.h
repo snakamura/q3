@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -26,14 +26,13 @@ namespace qm {
 class QMEXPORTCLASS Security
 {
 public:
-	Security(const WCHAR* pwszPath, qs::QSTATUS* pstatus);
+	explicit Security(const WCHAR* pwszPath);
 	~Security();
 
 public:
 	const qs::Store* getCA() const;
 	const qs::SMIMEUtility* getSMIMEUtility() const;
-	qs::QSTATUS getCertificate(const WCHAR* pwszName,
-		qs::Certificate** ppCertificate) const;
+	std::auto_ptr<qs::Certificate> getCertificate(const WCHAR* pwszName) const;
 
 public:
 	static void init();

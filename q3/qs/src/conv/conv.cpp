@@ -1,16 +1,14 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qsconv.h>
 #include <qsencoder.h>
-#include <qserror.h>
 #include <qsinit.h>
-#include <qsnew.h>
 #include <qsosutil.h>
 #include <qsstl.h>
 
@@ -53,25 +51,26 @@ inline bool isLeadByte(unsigned char c)
 }
 #endif
 
-QSEXPORTPROC STRING qs::wcs2mbs(const WCHAR* pwszSrc)
+QSEXPORTPROC string_ptr qs::wcs2mbs(const WCHAR* pwszSrc)
 {
 	return wcs2mbs(pwszSrc, static_cast<size_t>(-1), 0);
 }
 
-QSEXPORTPROC STRING qs::wcs2mbs(const WCHAR* pwszSrc, size_t nLen)
+QSEXPORTPROC string_ptr qs::wcs2mbs(const WCHAR* pwszSrc,
+									size_t nLen)
 {
 	return wcs2mbs(pwszSrc, nLen, 0);
 }
 
-QSEXPORTPROC STRING qs::wcs2mbs(const WCHAR* pwszSrc, size_t nLen, size_t* pnLen)
+QSEXPORTPROC string_ptr qs::wcs2mbs(const WCHAR* pwszSrc,
+									size_t nLen,
+									size_t* pnLen)
 {
 #ifdef QS_KCONVERT
 	if (nLen == static_cast<size_t>(-1))
 		nLen = wcslen(pwszSrc);
 	const WCHAR* pwszSrcEnd = pwszSrc + nLen;
-	string_ptr<STRING> str(allocString(nLen*2 + 1));
-	if (!str.get())
-		return 0;
+	string_ptr str(allocString(nLen*2 + 1));
 	CHAR* p = str.get();
 	while (pwszSrc < pwszSrcEnd) {
 		WORD sjis = unicode2sjis_char(*pwszSrc++);
@@ -82,31 +81,33 @@ QSEXPORTPROC STRING qs::wcs2mbs(const WCHAR* pwszSrc, size_t nLen, size_t* pnLen
 	*p = '\0';
 	if (pnLen)
 		*pnLen = p - str.get();
-	return str.release();
+	return str;
 #else
 	int nSize = ::WideCharToMultiByte(CP_ACP, 0, pwszSrc, nLen, 0, 0, 0, 0);
-	string_ptr<STRING> str(allocString(nSize + 1));
-	if (!str.get())
-		return 0;
-	nSize = ::WideCharToMultiByte(CP_ACP, 0, pwszSrc, nLen, str.get(), nSize, 0, 0);
+	string_ptr str(allocString(nSize + 1));
+	nSize = ::WideCharToMultiByte(CP_ACP, 0,
+		pwszSrc, nLen, str.get(), nSize, 0, 0);
 	str[nSize] = '\0';
 	if (pnLen)
 		*pnLen = nSize;
-	return str.release();
+	return str;
 #endif
 }
 
-QSEXPORTPROC TSTRING qs::wcs2tcs(const WCHAR* pwszSrc)
+QSEXPORTPROC tstring_ptr qs::wcs2tcs(const WCHAR* pwszSrc)
 {
 	return wcs2tcs(pwszSrc, static_cast<size_t>(-1), 0);
 }
 
-QSEXPORTPROC TSTRING qs::wcs2tcs(const WCHAR* pwszSrc, size_t nLen)
+QSEXPORTPROC tstring_ptr qs::wcs2tcs(const WCHAR* pwszSrc,
+									 size_t nLen)
 {
 	return wcs2tcs(pwszSrc, nLen, 0);
 }
 
-QSEXPORTPROC TSTRING qs::wcs2tcs(const WCHAR* pwszSrc, size_t nLen, size_t* pnLen)
+QSEXPORTPROC tstring_ptr qs::wcs2tcs(const WCHAR* pwszSrc,
+									 size_t nLen,
+									 size_t* pnLen)
 {
 #ifdef UNICODE
 	if (pnLen)
@@ -117,25 +118,26 @@ QSEXPORTPROC TSTRING qs::wcs2tcs(const WCHAR* pwszSrc, size_t nLen, size_t* pnLe
 #endif
 }
 
-QSEXPORTPROC WSTRING qs::mbs2wcs(const CHAR* pszSrc)
+QSEXPORTPROC wstring_ptr qs::mbs2wcs(const CHAR* pszSrc)
 {
 	return mbs2wcs(pszSrc, static_cast<size_t>(-1), 0);
 }
 
-QSEXPORTPROC WSTRING qs::mbs2wcs(const CHAR* pszSrc, size_t nLen)
+QSEXPORTPROC wstring_ptr qs::mbs2wcs(const CHAR* pszSrc,
+									 size_t nLen)
 {
 	return mbs2wcs(pszSrc, nLen, 0);
 }
 
-QSEXPORTPROC WSTRING qs::mbs2wcs(const CHAR* pszSrc, size_t nLen, size_t* pnLen)
+QSEXPORTPROC wstring_ptr qs::mbs2wcs(const CHAR* pszSrc,
+									 size_t nLen,
+									 size_t* pnLen)
 {
 #ifdef QS_KCONVERT
 	if (nLen == static_cast<size_t>(-1))
 		nLen = strlen(pszSrc);
 	const CHAR* pszSrcEnd = pszSrc + nLen;
-	string_ptr<WSTRING> wstr(allocWString(nLen + 1));
-	if (!wstr.get())
-		return 0;
+	wstring_ptr wstr(allocWString(nLen + 1));
 	WCHAR* p = wstr.get();
 	while (pszSrc < pszSrcEnd) {
 		WORD sjis = static_cast<unsigned char>(*pszSrc++);
@@ -148,31 +150,32 @@ QSEXPORTPROC WSTRING qs::mbs2wcs(const CHAR* pszSrc, size_t nLen, size_t* pnLen)
 	*p = L'\0';
 	if (pnLen)
 		*pnLen = p - wstr.get();
-	return wstr.release();
+	return wstr;
 #else
 	int nSize = ::MultiByteToWideChar(CP_ACP, 0, pszSrc, nLen, 0, 0);
-	string_ptr<WSTRING> wstr(allocWString(nSize + 1));
-	if (!wstr.get())
-		return 0;
+	wstring_ptr wstr(allocWString(nSize + 1));
 	nSize = ::MultiByteToWideChar(CP_ACP, 0, pszSrc, nLen, wstr.get(), nSize);
 	wstr[nSize] = L'\0';
 	if (pnLen)
 		*pnLen = nSize;
-	return wstr.release();
+	return wstr;
 #endif
 }
 
-QSEXPORTPROC TSTRING qs::mbs2tcs(const CHAR* pszSrc)
+QSEXPORTPROC tstring_ptr qs::mbs2tcs(const CHAR* pszSrc)
 {
 	return mbs2tcs(pszSrc, static_cast<size_t>(-1), 0);
 }
 
-QSEXPORTPROC TSTRING qs::mbs2tcs(const CHAR* pszSrc, size_t nLen)
+QSEXPORTPROC tstring_ptr qs::mbs2tcs(const CHAR* pszSrc,
+									 size_t nLen)
 {
 	return mbs2tcs(pszSrc, nLen, 0);
 }
 
-QSEXPORTPROC TSTRING qs::mbs2tcs(const CHAR* pszSrc, size_t nLen, size_t* pnLen)
+QSEXPORTPROC tstring_ptr qs::mbs2tcs(const CHAR* pszSrc,
+									 size_t nLen,
+									 size_t* pnLen)
 {
 #ifdef UNICODE
 	return mbs2wcs(pszSrc, nLen, pnLen);
@@ -183,17 +186,20 @@ QSEXPORTPROC TSTRING qs::mbs2tcs(const CHAR* pszSrc, size_t nLen, size_t* pnLen)
 #endif
 }
 
-QSEXPORTPROC WSTRING qs::tcs2wcs(const TCHAR* ptszSrc)
+QSEXPORTPROC wstring_ptr qs::tcs2wcs(const TCHAR* ptszSrc)
 {
 	return tcs2wcs(ptszSrc, static_cast<size_t>(-1), 0);
 }
 
-QSEXPORTPROC WSTRING qs::tcs2wcs(const TCHAR* ptszSrc, size_t nLen)
+QSEXPORTPROC wstring_ptr qs::tcs2wcs(const TCHAR* ptszSrc,
+									 size_t nLen)
 {
 	return tcs2wcs(ptszSrc, nLen, 0);
 }
 
-QSEXPORTPROC WSTRING qs::tcs2wcs(const TCHAR* ptszSrc, size_t nLen, size_t* pnLen)
+QSEXPORTPROC wstring_ptr qs::tcs2wcs(const TCHAR* ptszSrc,
+									 size_t nLen,
+									 size_t* pnLen)
 {
 #ifdef UNICODE
 	if (pnLen)
@@ -204,17 +210,20 @@ QSEXPORTPROC WSTRING qs::tcs2wcs(const TCHAR* ptszSrc, size_t nLen, size_t* pnLe
 #endif
 }
 
-QSEXPORTPROC STRING qs::tcs2mbs(const TCHAR* ptszSrc)
+QSEXPORTPROC string_ptr qs::tcs2mbs(const TCHAR* ptszSrc)
 {
 	return tcs2mbs(ptszSrc, static_cast<size_t>(-1), 0);
 }
 
-QSEXPORTPROC STRING qs::tcs2mbs(const TCHAR* ptszSrc, size_t nLen)
+QSEXPORTPROC string_ptr qs::tcs2mbs(const TCHAR* ptszSrc,
+									size_t nLen)
 {
 	return tcs2mbs(ptszSrc, nLen, 0);
 }
 
-QSEXPORTPROC STRING qs::tcs2mbs(const TCHAR* ptszSrc, size_t nLen, size_t* pnLen)
+QSEXPORTPROC string_ptr qs::tcs2mbs(const TCHAR* ptszSrc,
+									size_t nLen,
+									size_t* pnLen)
 {
 #ifdef UNICODE
 	return wcs2mbs(ptszSrc, nLen, pnLen);
@@ -236,6 +245,44 @@ qs::Converter::~Converter()
 {
 }
 
+xstring_size_ptr qs::Converter::encode(const WCHAR* pwsz,
+									   size_t* pnLen)
+									   QNOTHROW()
+{
+	XStringBuffer<XSTRING> buf;
+	*pnLen = encode(pwsz, *pnLen, &buf);
+	if (*pnLen == -1)
+		return xstring_size_ptr();
+	return buf.getXStringSize();
+}
+
+wxstring_size_ptr qs::Converter::decode(const CHAR* psz,
+										size_t* pnLen)
+										QNOTHROW()
+{
+	XStringBuffer<WXSTRING> buf;
+	*pnLen = decode(psz, *pnLen, &buf);
+	if (*pnLen == -1)
+		return wxstring_size_ptr();
+	return buf.getXStringSize();
+}
+
+size_t qs::Converter::encode(const WCHAR* pwsz,
+							 size_t nLen,
+							 XStringBuffer<XSTRING>* pBuf)
+							 QNOTHROW()
+{
+	return encodeImpl(pwsz, nLen, pBuf);
+}
+
+size_t qs::Converter::decode(const CHAR* psz,
+							 size_t nLen,
+							 XStringBuffer<WXSTRING>* pBuf)
+							 QNOTHROW()
+{
+	return decodeImpl(psz, nLen, pBuf);
+}
+
 
 /****************************************************************************
  *
@@ -254,8 +301,8 @@ struct qs::ConverterFactoryImpl
 		virtual ~InitializerImpl();
 	
 	public:
-		virtual QSTATUS init();
-		virtual QSTATUS term();
+		virtual bool init();
+		virtual void term();
 	} init__;
 };
 
@@ -270,22 +317,16 @@ qs::ConverterFactoryImpl::InitializerImpl::~InitializerImpl()
 {
 }
 
-QSTATUS qs::ConverterFactoryImpl::InitializerImpl::init()
+bool qs::ConverterFactoryImpl::InitializerImpl::init()
 {
-	DECLARE_QSTATUS();
-	
-	status = newObject(&ConverterFactoryImpl::pMap__);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	ConverterFactoryImpl::pMap__ = new FactoryMap();
+	return true;
 }
 
-QSTATUS qs::ConverterFactoryImpl::InitializerImpl::term()
+void qs::ConverterFactoryImpl::InitializerImpl::term()
 {
 	delete ConverterFactoryImpl::pMap__;
 	ConverterFactoryImpl::pMap__ = 0;
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -295,71 +336,42 @@ QSTATUS qs::ConverterFactoryImpl::InitializerImpl::term()
  *
  */
 
-qs::ConverterFactory::ConverterFactory(QSTATUS* pstatus)
+qs::ConverterFactory::ConverterFactory()
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qs::ConverterFactory::~ConverterFactory()
 {
 }
 
-QSTATUS qs::ConverterFactory::getInstance(
-	const WCHAR* pwszName, Converter** ppConverter)
+std::auto_ptr<Converter> qs::ConverterFactory::getInstance(const WCHAR* pwszName)
 {
 	assert(pwszName);
-	assert(ppConverter);
 	
-	DECLARE_QSTATUS();
-	
-	*ppConverter = 0;
-	
-	string_ptr<WSTRING> wstrLowerName(tolower(pwszName));
-	if (!wstrLowerName.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrLowerName(tolower(pwszName));
 	
 	typedef ConverterFactoryImpl::FactoryMap Map;
 	Map* pMap = ConverterFactoryImpl::pMap__;
 	
 	Map::iterator it = pMap->begin();
 	while (it != pMap->end()) {
-		bool bSupported = false;
-		status = (*it)->isSupported(wstrLowerName.get(), &bSupported);
-		CHECK_QSTATUS();
-		if (bSupported)
+		if ((*it)->isSupported(wstrLowerName.get()))
 			break;
 		++it;
 	}
 	if (it == pMap->end())
-		return QSTATUS_SUCCESS;
-	return (*it)->createInstance(pwszName, ppConverter);
+		return 0;
+	
+	return (*it)->createInstance(pwszName);
 }
 
-QSTATUS qs::ConverterFactory::getInstance(const WCHAR* pwszName,
-	std::auto_ptr<Converter>* papConverter)
-{
-	assert(papConverter);
-	
-	DECLARE_QSTATUS();
-	
-	Converter* pConverter = 0;
-	status = getInstance(pwszName, &pConverter);
-	CHECK_QSTATUS();
-	
-	papConverter->reset(pConverter);
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qs::ConverterFactory::regist(ConverterFactory* pFactory)
+void qs::ConverterFactory::registerFactory(ConverterFactory* pFactory)
 {
 	assert(pFactory);
-	return STLWrapper<ConverterFactoryImpl::FactoryMap>
-		(*ConverterFactoryImpl::pMap__).push_back(pFactory);
+	ConverterFactoryImpl::pMap__->push_back(pFactory);
 }
 
-QSTATUS qs::ConverterFactory::unregist(ConverterFactory* pFactory)
+void qs::ConverterFactory::unregisterFactory(ConverterFactory* pFactory)
 {
 	assert(pFactory);
 	
@@ -369,8 +381,6 @@ QSTATUS qs::ConverterFactory::unregist(ConverterFactory* pFactory)
 	Map::iterator it = std::remove(pMap->begin(), pMap->end(), pFactory);
 	assert(it != pMap->end());
 	pMap->erase(it, pMap->end());
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -382,26 +392,26 @@ QSTATUS qs::ConverterFactory::unregist(ConverterFactory* pFactory)
 
 struct qs::UTF7ConverterImpl
 {
-	QSTATUS decode(const CHAR* p, const CHAR* pEnd, WCHAR** ppDst);
+	bool decode(const CHAR* p,
+				const CHAR* pEnd,
+				WCHAR** ppDst);
 	
 	bool bModified_;
 	bool bEncoded_;
 };
 
-QSTATUS qs::UTF7ConverterImpl::decode(
-	const CHAR* p, const CHAR* pEnd, WCHAR** ppDst)
+bool qs::UTF7ConverterImpl::decode(const CHAR* p,
+								   const CHAR* pEnd,
+								   WCHAR** ppDst)
 {
-	DECLARE_QSTATUS();
-	
-	Base64Encoder encoder(false, &status);
-	CHECK_QSTATUS();
+	Base64Encoder encoder(false);
 	
 	size_t n = 0;
 	size_t nEncodeLen = pEnd - p;
 	malloc_ptr<unsigned char> pBuf(
 		static_cast<unsigned char*>(malloc(nEncodeLen + 4)));
 	if (!pBuf.get())
-		return QSTATUS_OUTOFMEMORY;
+		return false;
 	for (n = 0; n < nEncodeLen; ++n) {
 		if (bModified_ && p[n] == ',')
 			*(pBuf.get() + n) = '/';
@@ -410,17 +420,16 @@ QSTATUS qs::UTF7ConverterImpl::decode(
 	}
 	for (; nEncodeLen % 4; ++nEncodeLen)
 		*(pBuf.get() + nEncodeLen) = '=';
-	unsigned char* pDecode = 0;
-	size_t nDecodeLen = 0;
-	status = encoder.decode(pBuf.get(), nEncodeLen, &pDecode, &nDecodeLen);
-	CHECK_QSTATUS();
-	WCHAR* pDst = *ppDst;
-	for (n = 0; n < nDecodeLen; n += 2)
-		*pDst++ = ntohs(*reinterpret_cast<const short*>(pDecode + n));
-	*ppDst = pDst;
-	free(pDecode);
 	
-	return QSTATUS_SUCCESS;
+	malloc_size_ptr<unsigned char> decode(encoder.decode(pBuf.get(), nEncodeLen));
+	if (!decode.get())
+		return false;
+	WCHAR* pDst = *ppDst;
+	for (n = 0; n < decode.size(); n += 2)
+		*pDst++ = ntohs(*reinterpret_cast<const short*>(decode.get() + n));
+	*ppDst = pDst;
+	
+	return true;
 }
 
 
@@ -430,17 +439,10 @@ QSTATUS qs::UTF7ConverterImpl::decode(
  *
  */
 
-qs::UTF7Converter::UTF7Converter(bool bModified, QSTATUS* pstatus) :
+qs::UTF7Converter::UTF7Converter(bool bModified) :
 	pImpl_(0)
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new UTF7ConverterImpl();
 	pImpl_->bModified_ = bModified;
 	pImpl_->bEncoded_ = false;
 }
@@ -451,28 +453,26 @@ qs::UTF7Converter::~UTF7Converter()
 	pImpl_ = 0;
 }
 
-QSTATUS qs::UTF7Converter::encode(const WCHAR* pwsz, size_t* pnLen,
-	STRING* pstr, size_t* pnResultLen)
+size_t qs::UTF7Converter::encodeImpl(const WCHAR* pwsz,
+									 size_t nLen,
+									 XStringBuffer<XSTRING>* pBuf)
 {
 	assert(pwsz);
-	assert(pnLen);
-	assert(pstr);
-	
-	DECLARE_QSTATUS();
+	assert(pBuf);
 	
 	const CHAR cIn = pImpl_->bModified_ ? '&' : '+';
 	const CHAR cOut = '-';
 	
-	string_ptr<STRING> str(allocString(*pnLen*4 + 10));
-	if (!str.get())
-		return QSTATUS_OUTOFMEMORY;
+	XStringBufferLock<XSTRING> lock(pBuf, nLen*4 + 10);
+	CHAR* pLock = lock.get();
+	if (!pLock)
+		return -1;
+	CHAR* p = pLock;
 	
-	Base64Encoder encoder(false, &status);
-	CHECK_QSTATUS();
+	Base64Encoder encoder(false);
 	
 	const WCHAR* pSrc = pwsz;
-	const WCHAR* pSrcEnd = pwsz + *pnLen;
-	CHAR* p = str.get();
+	const WCHAR* pSrcEnd = pwsz + nLen;
 	const WCHAR* pEncodeBegin = 0;
 	do {
 		if (pEncodeBegin) {
@@ -480,25 +480,23 @@ QSTATUS qs::UTF7Converter::encode(const WCHAR* pwsz, size_t* pnLen,
 				size_t n = 0;
 				*p++ = cIn;
 				size_t nEncodeLen = pSrc - pEncodeBegin;
-				malloc_ptr<unsigned char> pBuf(
+				malloc_ptr<unsigned char> pEncode(
 					static_cast<unsigned char*>(malloc(nEncodeLen*sizeof(WCHAR) + 1)));
-				if (!pBuf.get())
-					return QSTATUS_OUTOFMEMORY;
+				if (!pEncode.get())
+					return -1;
 				for (n = 0; n < nEncodeLen; ++n, ++pEncodeBegin)
-					*reinterpret_cast<WCHAR*>(pBuf.get() + n*2) = htons(*pEncodeBegin);
-				*(pBuf.get() + nEncodeLen*2) = 0;
-				unsigned char* pEncoded = 0;
-				size_t nEncodedLen = 0;
-				status = encoder.encode(pBuf.get(), nEncodeLen*sizeof(WCHAR),
-					&pEncoded, &nEncodedLen);
-				CHECK_QSTATUS();
-				for (n = 0; n < nEncodedLen && pEncoded[n] != '='; ++n) {
-					if (pImpl_->bModified_ && pEncoded[n] == '/')
+					*reinterpret_cast<WCHAR*>(pEncode.get() + n*2) = htons(*pEncodeBegin);
+				*(pEncode.get() + nEncodeLen*2) = 0;
+				malloc_size_ptr<unsigned char> encoded(encoder.encode(
+					pEncode.get(), nEncodeLen*sizeof(WCHAR)));
+				if (!encoded.get())
+					return -1;
+				for (n = 0; n < encoded.size() && encoded[n] != '='; ++n) {
+					if (pImpl_->bModified_ && encoded[n] == '/')
 						*p++ = ',';
 					else
-						*p++ = pEncoded[n];
+						*p++ = encoded[n];
 				}
-				free(pEncoded);
 				*p++ = cOut;
 				pEncodeBegin = 0;
 			}
@@ -519,32 +517,29 @@ QSTATUS qs::UTF7Converter::encode(const WCHAR* pwsz, size_t* pnLen,
 	} while (pSrc <= pSrcEnd);
 	*p = '\0';
 	
-	if (pnResultLen)
-		*pnResultLen = p - str.get();
-	*pstr = str.release();
+	lock.unlock(p - pLock);
 	
-	return QSTATUS_SUCCESS;
+	return nLen;
 }
 
-QSTATUS qs::UTF7Converter::decode(const CHAR* psz, size_t* pnLen,
-	WSTRING* pwstr, size_t* pnResultLen)
+size_t qs::UTF7Converter::decodeImpl(const CHAR* psz,
+									 size_t nLen,
+									 XStringBuffer<WXSTRING>* pBuf)
 {
 	assert(psz);
-	assert(pnLen);
-	assert(pwstr);
-	
-	DECLARE_QSTATUS();
+	assert(pBuf);
 	
 	const CHAR cIn = pImpl_->bModified_ ? '&' : '+';
 	const CHAR cOut = '-';
 	
-	string_ptr<WSTRING> wstr(allocWString(*pnLen + 1));
-	if (!wstr.get())
-		return QSTATUS_OUTOFMEMORY;
+	XStringBufferLock<WXSTRING> lock(pBuf, nLen + 1);
+	WCHAR* pLock = lock.get();
+	if (!pLock)
+		return -1;
+	WCHAR* pDst = pLock;
 	
 	const CHAR* pSrc = psz;
-	const CHAR* pSrcEnd = psz + *pnLen;
-	WCHAR* pDst = wstr.get();
+	const CHAR* pSrcEnd = psz + nLen;
 	const CHAR* pEncodeBegin = 0;
 	if (pImpl_->bEncoded_)
 		pEncodeBegin = psz;
@@ -552,8 +547,8 @@ QSTATUS qs::UTF7Converter::decode(const CHAR* psz, size_t* pnLen,
 	while (pSrc != pSrcEnd) {
 		if (pEncodeBegin) {
 			if (*pSrc == cOut) {
-				status = pImpl_->decode(pEncodeBegin, pSrc, &pDst);
-				CHECK_QSTATUS();
+				if (!pImpl_->decode(pEncodeBegin, pSrc, &pDst))
+					return -1;
 				pEncodeBegin = 0;
 			}
 		}
@@ -576,28 +571,28 @@ QSTATUS qs::UTF7Converter::decode(const CHAR* psz, size_t* pnLen,
 		}
 		++pSrc;
 	}
+	
+	size_t nEaten = 0;
 	if (pEncodeBegin) {
 		const CHAR* pEncodeEnd = pEncodeBegin;
 		while (pEncodeEnd + 8 < pSrc)
 			pEncodeEnd += 8;
 		if (pEncodeEnd != pEncodeBegin) {
-			status = pImpl_->decode(pEncodeBegin, pEncodeEnd, &pDst);
-			CHECK_QSTATUS();
+			if (!pImpl_->decode(pEncodeBegin, pEncodeEnd, &pDst))
+				return -1;
 		}
 		pImpl_->bEncoded_ = true;
-		*pnLen = pEncodeEnd - psz;
+		nEaten = pEncodeEnd - psz;
 	}
 	else {
 		pImpl_->bEncoded_ = false;
-		*pnLen = pSrc - psz;
+		nEaten = pSrc - psz;
 	}
 	*pDst = L'\0';
 	
-	if (pnResultLen)
-		*pnResultLen = pDst - wstr.get();
-	*pwstr = wstr.release();
+	lock.unlock(pDst - pLock);
 	
-	return QSTATUS_SUCCESS;
+	return nEaten;
 }
 
 
@@ -607,43 +602,25 @@ QSTATUS qs::UTF7Converter::decode(const CHAR* psz, size_t* pnLen,
  *
  */
 
-qs::UTF7ConverterFactory::UTF7ConverterFactory(QSTATUS* pstatus) :
-	ConverterFactory(pstatus)
+qs::UTF7ConverterFactory::UTF7ConverterFactory()
 {
-	assert(pstatus);
-	
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	*pstatus = regist(this);
+	registerFactory(this);
 }
 
 qs::UTF7ConverterFactory::~UTF7ConverterFactory()
 {
-	unregist(this);
+	unregisterFactory(this);
 }
 
-QSTATUS qs::UTF7ConverterFactory::isSupported(
-	const WCHAR* pwszName, bool* pbSupported)
+bool qs::UTF7ConverterFactory::isSupported(const WCHAR* pwszName)
 {
 	assert(pwszName);
-	assert(pbSupported);
-	
-	*pbSupported = wcsicmp(pwszName, L"utf-7") == 0;
-	
-	return QSTATUS_SUCCESS;
+	return wcsicmp(pwszName, L"utf-7") == 0;
 }
 
-QSTATUS qs::UTF7ConverterFactory::createInstance(
-	const WCHAR* pwszName, Converter** ppConverter)
+std::auto_ptr<Converter> qs::UTF7ConverterFactory::createInstance(const WCHAR* pwszName)
 {
-	assert(ppConverter);
-	
-	UTF7Converter* pConverter = 0;
-	QSTATUS status = newQsObject(false, &pConverter);
-	*ppConverter = pConverter;
-	
-	return status;
+	return new UTF7Converter(false);
 }
 
 
@@ -653,28 +630,28 @@ QSTATUS qs::UTF7ConverterFactory::createInstance(
  *
  */
 
-qs::UTF8Converter::UTF8Converter(QSTATUS* pstatus)
+qs::UTF8Converter::UTF8Converter()
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qs::UTF8Converter::~UTF8Converter()
 {
 }
 
-QSTATUS qs::UTF8Converter::encode(const WCHAR* pwsz, size_t* pnLen,
-	STRING* pstr, size_t* pnResultLen)
+size_t qs::UTF8Converter::encodeImpl(const WCHAR* pwsz,
+									 size_t nLen,
+									 XStringBuffer<XSTRING>* pBuf)
 {
 	assert(pwsz);
-	assert(pstr);
+	assert(pBuf);
 	
-	string_ptr<STRING> str(allocString(*pnLen*3 + 10));
-	if (!str.get())
-		return QSTATUS_OUTOFMEMORY;
+	XStringBufferLock<XSTRING> lock(pBuf, nLen*3 + 10);
+	CHAR* pLock = lock.get();
+	if (!pLock)
+		return -1;
+	CHAR* p = pLock;
 	
-	const WCHAR* pEnd = pwsz + *pnLen;
-	CHAR* p = str.get();
+	const WCHAR* pEnd = pwsz + nLen;
 	while (pwsz != pEnd) {
 		if (*pwsz < 0x80) {
 			*p++ = *pwsz & 0x7f;
@@ -692,26 +669,26 @@ QSTATUS qs::UTF8Converter::encode(const WCHAR* pwsz, size_t* pnLen,
 	}
 	*p = '\0';
 	
-	if (pnResultLen)
-		*pnResultLen = p - str.get();
-	*pstr = str.release();
+	lock.unlock(p - pLock);
 	
-	return QSTATUS_SUCCESS;
+	return nLen;
 }
 
-QSTATUS qs::UTF8Converter::decode(const CHAR* psz, size_t* pnLen,
-	WSTRING* pwstr, size_t* pnResultLen)
+size_t qs::UTF8Converter::decodeImpl(const CHAR* psz,
+									 size_t nLen,
+									 XStringBuffer<WXSTRING>* pBuf)
 {
 	assert(psz);
-	assert(pwstr);
+	assert(pBuf);
 	
-	string_ptr<WSTRING> wstr(allocWString(*pnLen + 10));
-	if (!wstr.get())
-		return QSTATUS_OUTOFMEMORY;
+	XStringBufferLock<WXSTRING> lock(pBuf, nLen + 10);
+	WCHAR* pLock = lock.get();
+	if (!pLock)
+		return -1;
+	WCHAR* pDst = pLock;
 	
 	const CHAR* pSrc = psz;
-	const CHAR* pSrcEnd = psz + *pnLen;
-	WCHAR* pDst = wstr.get();
+	const CHAR* pSrcEnd = psz + nLen;
 	while (pSrc != pSrcEnd) {
 		if ((*pSrc & 0x80) == 0) {
 			*pDst++ = static_cast<WCHAR>(*pSrc);
@@ -765,12 +742,9 @@ QSTATUS qs::UTF8Converter::decode(const CHAR* psz, size_t* pnLen,
 	}
 	*pDst = L'\0';
 	
-	*pnLen = pSrc - psz;
-	if (pnResultLen)
-		*pnResultLen = pDst - wstr.get();
-	*pwstr = wstr.release();
+	lock.unlock(pDst - pLock);
 	
-	return QSTATUS_SUCCESS;
+	return pSrc - psz;
 }
 
 
@@ -780,43 +754,25 @@ QSTATUS qs::UTF8Converter::decode(const CHAR* psz, size_t* pnLen,
  *
  */
 
-qs::UTF8ConverterFactory::UTF8ConverterFactory(QSTATUS* pstatus) :
-	ConverterFactory(pstatus)
+qs::UTF8ConverterFactory::UTF8ConverterFactory()
 {
-	assert(pstatus);
-	
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	*pstatus = regist(this);
+	registerFactory(this);
 }
 
 qs::UTF8ConverterFactory::~UTF8ConverterFactory()
 {
-	unregist(this);
+	unregisterFactory(this);
 }
 
-QSTATUS qs::UTF8ConverterFactory::isSupported(
-	const WCHAR* pwszName, bool* pbSupported)
+bool qs::UTF8ConverterFactory::isSupported(const WCHAR* pwszName)
 {
 	assert(pwszName);
-	assert(pbSupported);
-	
-	*pbSupported = wcsicmp(pwszName, L"utf-8") == 0;
-	
-	return QSTATUS_SUCCESS;
+	return wcsicmp(pwszName, L"utf-8") == 0;
 }
 
-QSTATUS qs::UTF8ConverterFactory::createInstance(
-	const WCHAR* pwszName, Converter** ppConverter)
+std::auto_ptr<Converter> qs::UTF8ConverterFactory::createInstance(const WCHAR* pwszName)
 {
-	assert(ppConverter);
-	
-	UTF8Converter* pConverter = 0;
-	QSTATUS status = newQsObject(&pConverter);
-	*ppConverter = pConverter;
-	
-	return status;
+	return new UTF8Converter();
 }
 
 
@@ -828,40 +784,39 @@ QSTATUS qs::UTF8ConverterFactory::createInstance(
  *
  */
 
-qs::ShiftJISConverter::ShiftJISConverter(QSTATUS* pstatus)
+qs::ShiftJISConverter::ShiftJISConverter()
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qs::ShiftJISConverter::~ShiftJISConverter()
 {
 }
 
-QSTATUS qs::ShiftJISConverter::encode(const WCHAR* pwsz, size_t* pnLen,
-	STRING* pstr, size_t* pnResultLen)
+Converter::Encoded qs::ShiftJISConverter::encode(const WCHAR* pwsz,
+												 size_t* pnLen)
 {
 	assert(pwsz);
 	assert(pnLen);
-	assert(pstr);
 	
-	string_ptr<STRING> str(wcs2mbs(pwsz, *pnLen, pnResultLen));
-	if (!str.get())
-		return QSTATUS_OUTOFMEMORY;
-	*pstr = str.release();
-	return QSTATUS_SUCCESS;
+	QTRY {
+		size_t nLen = 0;
+		string_ptr<STRING> str(wcs2mbs(pwsz, *pnLen, &nLen));
+		return Encoded(str, nLen);
+	}
+	QCATCH_ALL() {
+		return Encoded();
+	}
 }
 
-QSTATUS qs::ShiftJISConverter::decode(const CHAR* psz, size_t* pnLen,
-	WSTRING* pwstr, size_t* pnResultLen)
+Converter::Decoded qs::ShiftJISConverter::decode(const CHAR* psz,
+												 size_t* pnLen)
 {
 	assert(psz);
 	assert(pnLen);
-	assert(pwstr);
 	
-	string_ptr<WSTRING> wstr(allocWString(*pnLen + 1));
+	string_ptr<WSTRING> wstr(allocWStringNT(*pnLen + 1));
 	if (!wstr.get())
-		return QSTATUS_OUTOFMEMORY;
+		return Decoded();
 	
 	const CHAR* pSrc = psz;
 	const CHAR* pSrcEnd = psz + *pnLen;
@@ -879,11 +834,8 @@ QSTATUS qs::ShiftJISConverter::decode(const CHAR* psz, size_t* pnLen,
 	*pDst = L'\0';
 	
 	*pnLen = pSrc - psz;
-	if (pnResultLen)
-		*pnResultLen = pDst - wstr.get();
-	*pwstr = wstr.release();
 	
-	return QSTATUS_SUCCESS;
+	return Decoded(wstr, pDst - wstr.get());
 }
 
 
@@ -893,44 +845,27 @@ QSTATUS qs::ShiftJISConverter::decode(const CHAR* psz, size_t* pnLen,
  *
  */
 
-qs::ShiftJISConverterFactory::ShiftJISConverterFactory(QSTATUS* pstatus) :
-	ConverterFactory(pstatus)
+qs::ShiftJISConverterFactory::ShiftJISConverterFactory() QTHROW1(std::bad_alloc)
 {
-	assert(pstatus);
-	
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	*pstatus = regist(this);
+	registerFactory(this);
 }
 
 qs::ShiftJISConverterFactory::~ShiftJISConverterFactory()
 {
-	unregist(this);
+	unregisterFactory(this);
 }
 
-QSTATUS qs::ShiftJISConverterFactory::isSupported(
-	const WCHAR* pwszName, bool* pbSupported)
+bool qs::ShiftJISConverterFactory::isSupported(const WCHAR* pwszName)
 {
 	assert(pwszName);
-	assert(pbSupported);
-	
-	*pbSupported = wcsicmp(pwszName, L"shift_jis") == 0 ||
+	return wcsicmp(pwszName, L"shift_jis") == 0 ||
 		wcsicmp(pwszName, L"x-sjis") == 0;
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::ShiftJISConverterFactory::createInstance(
-	const WCHAR* pwszName, Converter** ppConverter)
+std::auto_ptr<Converter> qs::ShiftJISConverterFactory::createInstance(const WCHAR* pwszName)
+																	  QTHROW1(std::bad_alloc)
 {
-	assert(ppConverter);
-	
-	ShiftJISConverter* pConverter = 0;
-	QSTATUS status = newQsObject(&pConverter);
-	*ppConverter = pConverter;
-	
-	return status;
+	return new ShiftJISConverter();
 }
 
 
@@ -1070,16 +1005,9 @@ bool qs::ISO2022JPConverterImpl::isHankakuKana(unsigned char b)
  *
  */
 
-qs::ISO2022JPConverter::ISO2022JPConverter(QSTATUS* pstatus)
+qs::ISO2022JPConverter::ISO2022JPConverter() QTHROW1(std::bad_alloc)
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new ISO2022JPConverterImpl();
 	pImpl_->mode_ = ISO2022JPConverterImpl::MODE_ASCII;
 }
 
@@ -1089,22 +1017,28 @@ qs::ISO2022JPConverter::~ISO2022JPConverter()
 	pImpl_ = 0;
 }
 
-QSTATUS qs::ISO2022JPConverter::encode(const WCHAR* pwsz, size_t* pnLen,
-	STRING* pstr, size_t* pnResultLen)
+Converter::Encoded qs::ISO2022JPConverter::encode(const WCHAR* pwsz,
+												  size_t* pnLen)
 {
 	assert(pwsz);
-	assert(pstr);
+	assert(pnLen);
 	
-	string_ptr<STRING> strSJIS(wcs2mbs(pwsz, *pnLen));
-	if (!strSJIS.get())
-		return QSTATUS_OUTOFMEMORY;
+	string_ptr<STRING> strSJIS;
+	QTRY {
+		strSJIS = wcs2mbs(pwsz, *pnLen);
+	}
+	QCATCH_ALL() {
+		return Encoded();
+	}
 	
 	const CHAR szKanji[] = { 0x1b, '$', 'B', '\0' };
 	const CHAR szAscii[] = { 0x1b, '(', 'B', '\0' };
 	ISO2022JPConverterImpl::Mode mode = ISO2022JPConverterImpl::MODE_ASCII;
 	
 	size_t nJISLen = *pnLen;
-	string_ptr<STRING> strJIS(allocString(nJISLen));
+	string_ptr<STRING> strJIS(allocStringNT(nJISLen));
+	if (!strJIS.get())
+		return Encoded();
 	
 	CHAR* pSJIS = strSJIS.get();
 	CHAR* pSJISEnd = pSJIS + strlen(pSJIS);
@@ -1112,9 +1046,9 @@ QSTATUS qs::ISO2022JPConverter::encode(const WCHAR* pwsz, size_t* pnLen,
 	while (pSJIS != pSJISEnd) {
 		if (static_cast<size_t>(p - strJIS.get() + 10) > nJISLen) {
 			int n = p - strJIS.get();
-			strJIS.reset(reallocString(strJIS.release(), nJISLen*2));
+			strJIS.reset(reallocStringNT(strJIS, nJISLen*2));
 			if (!strJIS.get())
-				return QSTATUS_OUTOFMEMORY;
+				return Encoded();
 			p = strJIS.get() + n;
 		}
 		unsigned char c = *pSJIS;
@@ -1162,18 +1096,14 @@ QSTATUS qs::ISO2022JPConverter::encode(const WCHAR* pwsz, size_t* pnLen,
 	}
 	*p = '\0';
 	
-	if (pnResultLen)
-		*pnResultLen = p - strJIS.get();
-	*pstr = strJIS.release();
-	
-	return QSTATUS_SUCCESS;
+	return Encoded(strJIS, p - strJIS.get());
 }
 
-QSTATUS qs::ISO2022JPConverter::decode(const CHAR* psz, size_t* pnLen,
-	WSTRING* pwstr, size_t* pnResultLen)
+Converter::Decoded qs::ISO2022JPConverter::decode(const CHAR* psz,
+												  size_t* pnLen)
 {
 	assert(psz);
-	assert(pwstr);
+	assert(pnLen);
 	
 	const CHAR szKanji1[] = { 0x1b, '$', 'B', '\0' };
 	const CHAR szKanji2[] = { 0x1b, '$', '@', '\0' };
@@ -1181,9 +1111,9 @@ QSTATUS qs::ISO2022JPConverter::decode(const CHAR* psz, size_t* pnLen,
 	const CHAR szAscii2[] = { 0x1b, '(', 'J', '\0' };
 	const CHAR szKana[] = { 0x1b, L'(', 'I', '\0' };
 	
-	string_ptr<STRING> strSJIS(allocString(*pnLen + 1));
+	string_ptr<STRING> strSJIS(allocStringNT(*pnLen + 1));
 	if (!strSJIS.get())
-		return QSTATUS_OUTOFMEMORY;
+		return Decoded();
 	
 	const CHAR* pSrc = psz;
 	const CHAR* pSrcEnd = psz + *pnLen;
@@ -1234,12 +1164,14 @@ QSTATUS qs::ISO2022JPConverter::decode(const CHAR* psz, size_t* pnLen,
 	
 	*pnLen = pSrc - psz;
 	
-	string_ptr<WSTRING> wstr(mbs2wcs(strSJIS.get(), pSJIS - strSJIS.get(), pnResultLen));
-	if (!wstr.get())
-		return QSTATUS_OUTOFMEMORY;
-	*pwstr = wstr.release();
-	
-	return QSTATUS_SUCCESS;
+	QTRY {
+		size_t nLen = 0;
+		string_ptr<WSTRING> wstr(mbs2wcs(strSJIS.get(), pSJIS - strSJIS.get(), &nLen);
+		return Decoded(wstr, nLen);
+	}
+	QCATCH_ALL() {
+		return Decoded();
+	}
 }
 
 
@@ -1249,43 +1181,25 @@ QSTATUS qs::ISO2022JPConverter::decode(const CHAR* psz, size_t* pnLen,
  *
  */
 
-qs::ISO2022JPConverterFactory::ISO2022JPConverterFactory(QSTATUS* pstatus) :
-	ConverterFactory(pstatus)
+qs::ISO2022JPConverterFactory::ISO2022JPConverterFactory() QTHROW1(std::bad_alloc)
 {
-	assert(pstatus);
-	
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	*pstatus = regist(this);
+	registerFactory(this);
 }
 
 qs::ISO2022JPConverterFactory::~ISO2022JPConverterFactory()
 {
-	unregist(this);
+	unregisterFactory(this);
 }
 
-QSTATUS qs::ISO2022JPConverterFactory::isSupported(
-	const WCHAR* pwszName, bool* pbSupported)
+bool qs::ISO2022JPConverterFactory::isSupported(const WCHAR* pwszName)
 {
-	assert(pwszName);
-	assert(pbSupported);
-	
-	*pbSupported = wcsnicmp(pwszName, L"iso-2022-jp", 11) == 0;
-	
-	return QSTATUS_SUCCESS;
+	return wcsnicmp(pwszName, L"iso-2022-jp", 11) == 0;
 }
 
-QSTATUS qs::ISO2022JPConverterFactory::createInstance(
-	const WCHAR* pwszName, Converter** ppConverter)
+std::auto_ptr<Converter> qs::ISO2022JPConverterFactory::createInstance(const WCHAR* pwszName)
+																	   QTHROW1(std::bad_alloc)
 {
-	assert(ppConverter);
-	
-	ISO2022JPConverter* pConverter = 0;
-	QSTATUS status = newQsObject(&pConverter);
-	*ppConverter = pConverter;
-	
-	return status;
+	return new ISO2022JPConverter();
 }
 
 
@@ -1295,30 +1209,32 @@ QSTATUS qs::ISO2022JPConverterFactory::createInstance(
  *
  */
 
-qs::EUCJPConverter::EUCJPConverter(QSTATUS* pstatus)
+qs::EUCJPConverter::EUCJPConverter()
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qs::EUCJPConverter::~EUCJPConverter()
 {
 }
 
-QSTATUS qs::EUCJPConverter::encode(const WCHAR* pwsz, size_t* pnLen,
-	STRING* pstr, size_t* pnResultLen)
+Converter::Encoded qs::EUCJPConverter::encode(const WCHAR* pwsz,
+											  size_t* pnLen)
 {
 	assert(pwsz);
-	assert(pstr);
+	assert(pnLen);
 	
-	string_ptr<STRING> strSJIS(wcs2mbs(pwsz, *pnLen));
-	if (!strSJIS.get())
-		return QSTATUS_OUTOFMEMORY;
+	string_ptr<STRING> strSJIS;
+	QTRY {
+		strSJIS = wcs2mbs(pwsz, *pnLen);
+	}
+	QCATCH_ALL() {
+		return Encoded();
+	}
 	size_t nSJISLen = strlen(strSJIS.get());
 	
-	string_ptr<STRING> strEUC(allocString(nSJISLen*2 + 1));
+	string_ptr<STRING> strEUC(allocStringNT(nSJISLen*2 + 1));
 	if (!strEUC.get())
-		return QSTATUS_OUTOFMEMORY;
+		return Encoded();
 	
 	const CHAR* pSJIS = strSJIS.get();
 	const CHAR* pSJISEnd = pSJIS + nSJISLen;
@@ -1347,22 +1263,18 @@ QSTATUS qs::EUCJPConverter::encode(const WCHAR* pwsz, size_t* pnLen,
 	}
 	*pEUC = '\0';
 	
-	if (pnResultLen)
-		*pnResultLen = pEUC - strEUC.get();
-	*pstr = strEUC.release();
-	
-	return QSTATUS_SUCCESS;
+	return Encoded(strEUC, pEUC - strEUC.get());
 }
 
-QSTATUS qs::EUCJPConverter::decode(const CHAR* psz, size_t* pnLen,
-	WSTRING* pwstr, size_t* pnResultLen)
+Converter::Decoded qs::EUCJPConverter::decode(const CHAR* psz,
+											  size_t* pnLen)
 {
 	assert(psz);
-	assert(pwstr);
+	assert(pnLen);
 	
-	string_ptr<STRING> strSJIS(allocString(*pnLen + 1));
+	string_ptr<STRING> strSJIS(allocStringNT(*pnLen + 1));
 	if (!strSJIS.get())
-		return QSTATUS_OUTOFMEMORY;
+		return Decoded();
 	
 	const CHAR* pSrc = psz;
 	const CHAR* pSrcEnd = psz + *pnLen;
@@ -1394,12 +1306,14 @@ QSTATUS qs::EUCJPConverter::decode(const CHAR* psz, size_t* pnLen,
 	
 	*pnLen = pSrc - psz;
 	
-	string_ptr<WSTRING> wstr(mbs2wcs(strSJIS.get(), pSJIS - strSJIS.get(), pnResultLen));
-	if (!wstr.get())
-		return QSTATUS_OUTOFMEMORY;
-	*pwstr = wstr.release();
-	
-	return QSTATUS_SUCCESS;
+	QTRY {
+		size_t nLen = 0;
+		string_ptr<WSTRING> wstr(mbs2wcs(strSJIS.get(), pSJIS - strSJIS.get(), &nLen));
+		return Decoded(wstr, nLen);
+	}
+	QCATCH_ALL() {
+		return Decoded();
+	}
 }
 
 
@@ -1409,43 +1323,25 @@ QSTATUS qs::EUCJPConverter::decode(const CHAR* psz, size_t* pnLen,
  *
  */
 
-qs::EUCJPConverterFactory::EUCJPConverterFactory(QSTATUS* pstatus) :
-	ConverterFactory(pstatus)
+qs::EUCJPConverterFactory::EUCJPConverterFactory() QTHROW1(std::bad_alloc)
 {
-	assert(pstatus);
-	
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	*pstatus = regist(this);
+	registerFactory(this);
 }
 
 qs::EUCJPConverterFactory::~EUCJPConverterFactory()
 {
-	unregist(this);
+	unregisterFactory(this);
 }
 
-QSTATUS qs::EUCJPConverterFactory::isSupported(
-	const WCHAR* pwszName, bool* pbSupported)
+bool qs::EUCJPConverterFactory::isSupported(const WCHAR* pwszName)
 {
-	assert(pwszName);
-	assert(pbSupported);
-	
-	*pbSupported = wcsicmp(pwszName, L"euc-jp") == 0;
-	
-	return QSTATUS_SUCCESS;
+	return wcsicmp(pwszName, L"euc-jp") == 0;
 }
 
-QSTATUS qs::EUCJPConverterFactory::createInstance(
-	const WCHAR* pwszName, Converter** ppConverter)
+std::auto_ptr<Converter> qs::EUCJPConverterFactory::createInstance(const WCHAR* pwszName)
+																   QTHROW1(std::bad_alloc)
 {
-	assert(ppConverter);
-	
-	EUCJPConverter* pConverter = 0;
-	QSTATUS status = newQsObject(&pConverter);
-	*ppConverter = pConverter;
-	
-	return status;
+	return new EUCJPConverter();
 }
 
 #endif // QS_KCONVERT
@@ -1471,18 +1367,12 @@ struct qs::MLangConverterImpl
  */
 
 qs::MLangConverter::MLangConverter(IMultiLanguage* pMultiLanguage,
-	DWORD dwEncoding, QSTATUS* pstatus)
+								   DWORD dwEncoding)
 {
 	assert(pMultiLanguage);
 	assert(dwEncoding != 0);
-	assert(pstatus);
 	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new MLangConverterImpl();
 	pImpl_->pMultiLanguage_ = pMultiLanguage;
 	pImpl_->dwEncoding_ = dwEncoding;
 	pImpl_->pMultiLanguage_->AddRef();
@@ -1493,104 +1383,88 @@ qs::MLangConverter::~MLangConverter()
 	if (pImpl_) {
 		pImpl_->pMultiLanguage_->Release();
 		delete pImpl_;
+		pImpl_ = 0;
 	}
 }
 
-QSTATUS qs::MLangConverter::encode(const WCHAR* pwsz, size_t* pnLen,
-	STRING* pstr, size_t* pnResultLen)
+size_t qs::MLangConverter::encodeImpl(const WCHAR* pwsz,
+									  size_t nLen,
+									  XStringBuffer<XSTRING>* pBuf)
 {
 	assert(pwsz);
-	assert(pnLen);
-	assert(pstr);
+	assert(pBuf);
 	
-	UINT nLen = 0;
-	string_ptr<STRING> str;
-	if (*pnLen == 0) {
-		str.reset(allocString(""));
-		if (!str.get())
-			return QSTATUS_OUTOFMEMORY;
-	}
-	else {
-		HRESULT hr = S_OK;
-		
-		DWORD dwMode = 0;
-		UINT nSrcLen = *pnLen;
-		hr = pImpl_->pMultiLanguage_->ConvertStringFromUnicode(
-			&dwMode, pImpl_->dwEncoding_,
-			const_cast<WCHAR*>(pwsz), &nSrcLen, 0, &nLen);
-		if (FAILED(hr))
-			return QSTATUS_FAIL;
-		else if (hr == S_FALSE)
-			nLen = 0;
-		
-		str.reset(allocString(nLen + 1));
-		if (!str.get())
-			return QSTATUS_OUTOFMEMORY;
-		
-		if (hr == S_OK) {
-			dwMode = 0;
-			hr = pImpl_->pMultiLanguage_->ConvertStringFromUnicode(
-				&dwMode, pImpl_->dwEncoding_,
-				const_cast<WCHAR*>(pwsz), pnLen, str.get(), &nLen);
-			if (hr != S_OK)
-				return QSTATUS_FAIL;
-		}
-		
-		*(str.get() + nLen) = '\0';
-	}
-	*pstr = str.release();
-	if (pnResultLen)
-		*pnResultLen = nLen;
+	xstring_ptr str;
+	if (nLen == 0)
+		return 0;
 	
-	return QSTATUS_SUCCESS;
+	HRESULT hr = S_OK;
+	
+	DWORD dwMode = 0;
+	UINT nSrcLen = nLen;
+	UINT nDstLen = 0;
+	hr = pImpl_->pMultiLanguage_->ConvertStringFromUnicode(&dwMode,
+		pImpl_->dwEncoding_, const_cast<WCHAR*>(pwsz), &nSrcLen, 0, &nDstLen);
+	if (FAILED(hr))
+		return -1;
+	else if (hr == S_FALSE)
+		return 0;
+	
+	XStringBufferLock<XSTRING> lock(pBuf, nDstLen + 1);
+	CHAR* pLock = lock.get();
+	if (!pLock)
+		return -1;
+	
+	dwMode = 0;
+	hr = pImpl_->pMultiLanguage_->ConvertStringFromUnicode(&dwMode,
+		pImpl_->dwEncoding_, const_cast<WCHAR*>(pwsz), &nSrcLen, pLock, &nDstLen);
+	if (hr != S_OK)
+		return -1;
+	
+	lock.unlock(nDstLen);
+	
+	return nSrcLen;
 }
 
-QSTATUS qs::MLangConverter::decode(const CHAR* psz, size_t* pnLen,
-	WSTRING* pwstr, size_t* pnResultLen)
+size_t qs::MLangConverter::decodeImpl(const CHAR* psz,
+									  size_t nLen,
+									  XStringBuffer<WXSTRING>* pBuf)
 {
 	assert(psz);
-	assert(pnLen);
-	assert(pwstr);
+	assert(pBuf);
 	
-	UINT nLen = 0;
-	string_ptr<WSTRING> wstr;
-	if (*pnLen == 0) {
-		wstr.reset(allocWString(L""));
-		if (!wstr.get())
-			return QSTATUS_OUTOFMEMORY;
-	}
-	else {
-		HRESULT hr = S_OK;
-		
-		DWORD dwMode = 0;
-		UINT nSrcLen = *pnLen;
-		hr = pImpl_->pMultiLanguage_->ConvertStringToUnicode(
-			&dwMode, pImpl_->dwEncoding_,
-			const_cast<CHAR*>(psz), &nSrcLen, 0, &nLen);
-		if (FAILED(hr))
-			return QSTATUS_FAIL;
-		else if (hr == S_FALSE)
-			nLen = 0;
-		
-		wstr.reset(allocWString(nLen + 1));
-		if (!wstr.get())
-			return QSTATUS_OUTOFMEMORY;
-		
-		if (hr == S_OK) {
-			dwMode = 0;
-			hr = pImpl_->pMultiLanguage_->ConvertStringToUnicode(
-				&dwMode, pImpl_->dwEncoding_,
-				const_cast<CHAR*>(psz), pnLen, wstr.get(), &nLen);
-			if (hr != S_OK)
-				return QSTATUS_FAIL;
-		}
-		*(wstr.get() + nLen) = L'\0';
-	}
-	*pwstr = wstr.release();
-	if (pnResultLen)
-		*pnResultLen = nLen;
+	wxstring_ptr wstr;
+	if (nLen == 0)
+		return 0;
 	
-	return QSTATUS_SUCCESS;
+	HRESULT hr = S_OK;
+	
+	DWORD dwMode = 0;
+	UINT nSrcLen = nLen;
+	UINT nDstLen = 0;
+	hr = pImpl_->pMultiLanguage_->ConvertStringToUnicode(&dwMode,
+		pImpl_->dwEncoding_, const_cast<CHAR*>(psz), &nSrcLen, 0, &nDstLen);
+	if (FAILED(hr))
+		return -1;
+	else if (hr == S_FALSE)
+		return 0;
+	
+	XStringBufferLock<WXSTRING> lock(pBuf, nDstLen + 1);
+	WCHAR* pLock = lock.get();
+	if (!pLock)
+		return -1;
+	
+	if (hr == S_OK) {
+		dwMode = 0;
+		hr = pImpl_->pMultiLanguage_->ConvertStringToUnicode(&dwMode,
+			pImpl_->dwEncoding_, const_cast<CHAR*>(psz), &nSrcLen, pLock, &nDstLen);
+		if (hr != S_OK)
+			return -1;
+	}
+	
+	lock.unlock(nDstLen);
+	
+	return nSrcLen;
 }
 
 
@@ -1622,78 +1496,49 @@ DWORD qs::MLangConverterFactoryImpl::getEncoding(const WCHAR* pwszName)
  *
  */
 
-qs::MLangConverterFactory::MLangConverterFactory(QSTATUS* pstatus) :
-	ConverterFactory(pstatus)
+qs::MLangConverterFactory::MLangConverterFactory()
 {
-	assert(pstatus);
-	
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	DECLARE_QSTATUS();
-	
-	status = regist(this);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new MLangConverterFactoryImpl();
 	pImpl_->pMultiLanguage_ = 0;
 	
 	HRESULT hr = ::CoCreateInstance(CLSID_CMultiLanguage, 0, CLSCTX_ALL,
 		IID_IMultiLanguage, reinterpret_cast<void**>(&pImpl_->pMultiLanguage_));
-	if (FAILED(hr)) {
-		*pstatus = QSTATUS_FAIL;
+	if (FAILED(hr))
 		return;
-	}
+	
+	registerFactory(this);
 }
 
 qs::MLangConverterFactory::~MLangConverterFactory()
 {
-	unregist(this);
+	unregisterFactory(this);
 	
 	if (pImpl_) {
 		if (pImpl_->pMultiLanguage_)
 			pImpl_->pMultiLanguage_->Release();
 		delete pImpl_;
+		pImpl_ = 0;
 	}
 }
 
-QSTATUS qs::MLangConverterFactory::isSupported(
-	const WCHAR* pwszName, bool* pbSupported)
+bool qs::MLangConverterFactory::isSupported(const WCHAR* pwszName)
 {
 	assert(pwszName);
-	assert(pbSupported);
 	
-	*pbSupported = false;
-	
-	if (pImpl_->pMultiLanguage_) {
-		DWORD dwEncoding = pImpl_->getEncoding(pwszName);
-		if (dwEncoding != 0) {
-			HRESULT hr = pImpl_->pMultiLanguage_->IsConvertible(dwEncoding, 1200);
-			if (FAILED(hr))
-				return QSTATUS_FAIL;
-			*pbSupported = hr == S_OK;
-		}
-	}
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qs::MLangConverterFactory::createInstance(
-	const WCHAR* pwszName, Converter** ppConverter)
-{
-	assert(ppConverter);
-	
-	DECLARE_QSTATUS();
+	if (!pImpl_->pMultiLanguage_)
+		return false;
 	
 	DWORD dwEncoding = pImpl_->getEncoding(pwszName);
 	if (dwEncoding == 0)
-		return QSTATUS_FAIL;
+		return false;
 	
-	std::auto_ptr<MLangConverter> pConverter;
-	status = newQsObject(pImpl_->pMultiLanguage_, dwEncoding, &pConverter);
-	CHECK_QSTATUS();
-	*ppConverter = pConverter.release();
-	
-	return QSTATUS_SUCCESS;
+	return pImpl_->pMultiLanguage_->IsConvertible(dwEncoding, 1200) == S_OK;
+}
+
+std::auto_ptr<Converter> qs::MLangConverterFactory::createInstance(const WCHAR* pwszName)
+{
+	DWORD dwEncoding = pImpl_->getEncoding(pwszName);
+	if (dwEncoding == 0)
+		return 0;
+	return new MLangConverter(pImpl_->pMultiLanguage_, dwEncoding);
 }

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -43,42 +43,45 @@ class ProcessHook;
 class Imap4ReceiveSession : public qm::ReceiveSession
 {
 public:
-	Imap4ReceiveSession(qs::QSTATUS* pstatus);
+	Imap4ReceiveSession();
 	virtual ~Imap4ReceiveSession();
 
 public:
-	virtual qs::QSTATUS init(qm::Document* pDocument, qm::Account* pAccount,
-		qm::SubAccount* pSubAccount, HWND hwnd, qs::Profile* pProfile,
-		qs::Logger* pLogger, qm::ReceiveSessionCallback* pCallback);
-	virtual qs::QSTATUS connect();
-	virtual qs::QSTATUS disconnect();
-	virtual qs::QSTATUS selectFolder(qm::NormalFolder* pFolder);
-	virtual qs::QSTATUS closeFolder();
-	virtual qs::QSTATUS updateMessages();
-	virtual qs::QSTATUS downloadMessages(
-		const qm::SyncFilterSet* pSyncFilterSet);
-	virtual qs::QSTATUS applyOfflineJobs();
+	virtual bool init(qm::Document* pDocument,
+					  qm::Account* pAccount,
+					  qm::SubAccount* pSubAccount,
+					  HWND hwnd,
+					  qs::Profile* pProfile,
+					  qs::Logger* pLogger,
+					  qm::ReceiveSessionCallback* pCallback);
+	virtual bool connect();
+	virtual bool disconnect();
+	virtual bool selectFolder(qm::NormalFolder* pFolder);
+	virtual bool closeFolder();
+	virtual bool updateMessages();
+	virtual bool downloadMessages(const qm::SyncFilterSet* pSyncFilterSet);
+	virtual bool applyOfflineJobs();
 
 private:
-	qs::QSTATUS downloadReservedMessages();
-	qs::QSTATUS downloadReservedMessages(qm::NormalFolder* pFolder);
+	bool downloadReservedMessages();
+	bool downloadReservedMessages(qm::NormalFolder* pFolder);
 
 private:
-	qs::QSTATUS processCapabilityResponse(ResponseCapability* pCapability);
-	qs::QSTATUS processContinueResponse(ResponseContinue* pContinue);
-	qs::QSTATUS processExistsResponse(ResponseExists* pExists);
-	qs::QSTATUS processExpungeResponse(ResponseExpunge* pExpunge);
-	qs::QSTATUS processFetchResponse(ResponseFetch* pFetch);
-	qs::QSTATUS processFlagsResponse(ResponseFlags* pFlags);
-	qs::QSTATUS processListResponse(ResponseList* pList);
-	qs::QSTATUS processNamespaceResponse(ResponseNamespace* pNamespace);
-	qs::QSTATUS processRecentResponse(ResponseRecent* pRecent);
-	qs::QSTATUS processSearchResponse(ResponseSearch* pSearch);
-	qs::QSTATUS processStateResponse(ResponseState* pState);
-	qs::QSTATUS processStatusResponse(ResponseStatus* pStatus);
+	bool processCapabilityResponse(ResponseCapability* pCapability);
+	bool processContinueResponse(ResponseContinue* pContinue);
+	bool processExistsResponse(ResponseExists* pExists);
+	bool processExpungeResponse(ResponseExpunge* pExpunge);
+	bool processFetchResponse(ResponseFetch* pFetch);
+	bool processFlagsResponse(ResponseFlags* pFlags);
+	bool processListResponse(ResponseList* pList);
+	bool processNamespaceResponse(ResponseNamespace* pNamespace);
+	bool processRecentResponse(ResponseRecent* pRecent);
+	bool processSearchResponse(ResponseSearch* pSearch);
+	bool processStateResponse(ResponseState* pState);
+	bool processStatusResponse(ResponseStatus* pStatus);
 
 private:
-	qs::QSTATUS reportError();
+	void reportError();
 
 private:
 	Imap4ReceiveSession(const Imap4ReceiveSession&);
@@ -89,25 +92,27 @@ private:
 	{
 	public:
 		CallbackImpl(Imap4ReceiveSession* pSession,
-			qm::SubAccount* pSubAccount, const qm::Security* pSecurity,
-			qm::ReceiveSessionCallback* pSessionCallback, qs::QSTATUS* pstatus);
+					 qm::SubAccount* pSubAccount,
+					 const qm::Security* pSecurity,
+					 qm::ReceiveSessionCallback* pSessionCallback);
 		virtual ~CallbackImpl();
 	
 	public:
-		qs::QSTATUS setMessage(UINT nId);
+		void setMessage(UINT nId);
 	
 	public:
 		virtual bool isCanceled(bool bForce) const;
-		virtual qs::QSTATUS initialize();
-		virtual qs::QSTATUS lookup();
-		virtual qs::QSTATUS connecting();
-		virtual qs::QSTATUS connected();
+		virtual void initialize();
+		virtual void lookup();
+		virtual void connecting();
+		virtual void connected();
 	
 	public:
-		virtual qs::QSTATUS authenticating();
-		virtual qs::QSTATUS setRange(unsigned int nMin, unsigned int nMax);
-		virtual qs::QSTATUS setPos(unsigned int nPos);
-		virtual qs::QSTATUS response(Response* pResponse);
+		virtual void authenticating();
+		virtual void setRange(unsigned int nMin,
+							  unsigned int nMax);
+		virtual void setPos(unsigned int nPos);
+		virtual bool response(Response* pResponse);
 	
 	private:
 		CallbackImpl(const CallbackImpl&);
@@ -121,7 +126,8 @@ private:
 	class Hook
 	{
 	public:
-		Hook(Imap4ReceiveSession* pSession, ProcessHook* pHook);
+		Hook(Imap4ReceiveSession* pSession,
+			 ProcessHook* pHook);
 		~Hook();
 	
 	public:
@@ -136,8 +142,8 @@ private:
 	};
 
 private:
-	Imap4* pImap4_;
-	CallbackImpl* pCallback_;
+	std::auto_ptr<Imap4> pImap4_;
+	std::auto_ptr<CallbackImpl> pCallback_;
 	qm::Document* pDocument_;
 	qm::Account* pAccount_;
 	qm::SubAccount* pSubAccount_;
@@ -167,15 +173,14 @@ friend class Hook;
 class Imap4ReceiveSessionUI : public qm::ReceiveSessionUI
 {
 public:
-	Imap4ReceiveSessionUI(qs::QSTATUS* pstatus);
+	Imap4ReceiveSessionUI();
 	virtual ~Imap4ReceiveSessionUI();
 
 public:
 	virtual const WCHAR* getClass();
-	virtual qs::QSTATUS getDisplayName(qs::WSTRING* pwstrName);
+	virtual qs::wstring_ptr getDisplayName();
 	virtual short getDefaultPort();
-	virtual qs::QSTATUS createPropertyPage(
-		qm::SubAccount* pSubAccount, qs::PropertyPage** ppPage);
+	virtual std::auto_ptr<qs::PropertyPage> createPropertyPage(qm::SubAccount* pSubAccount);
 
 private:
 	Imap4ReceiveSessionUI(const Imap4ReceiveSessionUI&);
@@ -198,8 +203,8 @@ public:
 	virtual ~Imap4ReceiveSessionFactory();
 
 protected:
-	virtual qs::QSTATUS createSession(qm::ReceiveSession** ppReceiveSession);
-	virtual qs::QSTATUS createUI(qm::ReceiveSessionUI** ppUI);
+	virtual std::auto_ptr<qm::ReceiveSession> createSession();
+	virtual std::auto_ptr<qm::ReceiveSessionUI> createUI();
 
 private:
 	Imap4ReceiveSessionFactory(const Imap4ReceiveSessionFactory&);
@@ -219,19 +224,25 @@ private:
 class Imap4SyncFilterCallback : public qm::SyncFilterCallback
 {
 public:
-	Imap4SyncFilterCallback(qm::Document* pDocument, qm::Account* pAccount,
-		qm::NormalFolder* pFolder, qm::Message* pMessage, unsigned int nUid,
-		unsigned int nSize, unsigned int nTextSize, HWND hwnd,
-		qs::Profile* pProfile, qm::MacroVariableHolder* pGlobalVariable,
-		Imap4ReceiveSession* pSession);
+	Imap4SyncFilterCallback(qm::Document* pDocument,
+							qm::Account* pAccount,
+							qm::NormalFolder* pFolder,
+							qm::Message* pMessage,
+							unsigned int nUid,
+							unsigned int nSize,
+							unsigned int nTextSize,
+							HWND hwnd,
+							qs::Profile* pProfile,
+							qm::MacroVariableHolder* pGlobalVariable,
+							Imap4ReceiveSession* pSession);
 	virtual ~Imap4SyncFilterCallback();
 
 public:
-	qs::QSTATUS getMessage(unsigned int nFlags);
+	bool getMessage(unsigned int nFlags);
 
 public:
 	virtual const qm::NormalFolder* getFolder();
-	virtual qs::QSTATUS getMacroContext(qm::MacroContext** ppContext);
+	virtual std::auto_ptr<qm::MacroContext> getMacroContext();
 
 private:
 	Imap4SyncFilterCallback(const Imap4SyncFilterCallback&);
@@ -249,7 +260,7 @@ private:
 	qs::Profile* pProfile_;
 	qm::MacroVariableHolder* pGlobalVariable_;
 	Imap4ReceiveSession* pSession_;
-	Imap4MessageHolder* pmh_;
+	std::auto_ptr<Imap4MessageHolder> pmh_;
 };
 
 
@@ -263,14 +274,17 @@ class Imap4MessageHolder : public qm::AbstractMessageHolder
 {
 public:
 	Imap4MessageHolder(Imap4SyncFilterCallback* pCallback,
-		qm::NormalFolder* pFolder, qm::Message* pMessage,
-		unsigned int nId, unsigned int nSize,
-		unsigned int nTextSize, qs::QSTATUS* pstatus);
+					   qm::NormalFolder* pFolder,
+					   qm::Message* pMessage,
+					   unsigned int nId,
+					   unsigned int nSize,
+					   unsigned int nTextSize);
 	virtual ~Imap4MessageHolder();
 
 public:
-	virtual qs::QSTATUS getMessage(unsigned int nFlags,
-		const WCHAR* pwszField, qm::Message* pMessage);
+	virtual bool getMessage(unsigned int nFlags,
+							const WCHAR* pwszField,
+							qm::Message* pMessage);
 
 private:
 	Imap4MessageHolder(const Imap4MessageHolder&);

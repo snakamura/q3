@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -50,48 +50,57 @@ class QMEXPORTCLASS MessageFrameWindow : public qs::FrameWindow
 {
 public:
 	MessageFrameWindow(MessageFrameWindowManager* pMessageFrameWindowManager,
-		ViewModelManager* pViewModelManager,
-		qs::Profile* pProfile, qs::QSTATUS* pstatus);
+					   ViewModelManager* pViewModelManager,
+					   qs::Profile* pProfile);
 	virtual ~MessageFrameWindow();
 
 public:
 	MessageMessageModel* getMessageModel() const;
 	const ActionInvoker* getActionInvoker() const;
 	void initialShow();
-	qs::QSTATUS save();
+	bool save();
 	
 	bool isShowToolbar() const;
-	qs::QSTATUS setShowToolbar(bool bShow);
+	void setShowToolbar(bool bShow);
 	bool isShowStatusBar() const;
-	qs::QSTATUS setShowStatusBar(bool bShow);
+	void setShowStatusBar(bool bShow);
 
 protected:
-	virtual qs::QSTATUS getToolbarButtons(Toolbar* pToolbar, bool* pbToolbar);
-	virtual qs::QSTATUS createToolbarButtons(void* pCreateParam, HWND hwndToolbar);
+	virtual bool getToolbarButtons(Toolbar* pToolbar);
+	virtual bool createToolbarButtons(void* pCreateParam,
+									  HWND hwndToolbar);
 #if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
-	virtual qs::QSTATUS getBarId(int n, UINT* pnId) const;
-	virtual qs::QSTATUS getCommandBandsRestoreInfo(int n,
-		COMMANDBANDSRESTOREINFO* pcbri) const;
-	virtual qs::QSTATUS setCommandBandsRestoreInfo(int n,
-		const COMMANDBANDSRESTOREINFO& cbri);
+	virtual UINT getBarId(int n) const;
+	virtual bool getCommandBandsRestoreInfo(int n,
+											COMMANDBANDSRESTOREINFO* pcbri) const;
+	virtual bool setCommandBandsRestoreInfo(int n,
+											const COMMANDBANDSRESTOREINFO& cbri);
 #endif
-	virtual qs::QSTATUS getMenuHandle(void* pCreateParam, HMENU* phmenu);
-	virtual qs::QSTATUS getIconId(UINT* pnId);
+	virtual HMENU getMenuHandle(void* pCreateParam);
+	virtual UINT getIconId();
 
 public:
-	virtual qs::QSTATUS getWindowClass(WNDCLASS* pwc);
-	virtual qs::QSTATUS preCreateWindow(CREATESTRUCT* pCreateStruct);
-	virtual qs::QSTATUS getAction(UINT nId, qs::Action** ppAction);
-	virtual qs::QSTATUS getAccelerator(qs::Accelerator** ppAccelerator);
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual void getWindowClass(WNDCLASS* pwc);
+	virtual bool preCreateWindow(CREATESTRUCT* pCreateStruct);
+	virtual qs::Action* getAction(UINT nId);
+	virtual qs::Accelerator* getAccelerator();
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
-	LRESULT onActivate(UINT nFlags, HWND hwnd, bool bMinimized);
+	LRESULT onActivate(UINT nFlags,
+					   HWND hwnd,
+					   bool bMinimized);
 	LRESULT onClose();
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
 	LRESULT onDestroy();
-	LRESULT onInitMenuPopup(HMENU hmenu, UINT nIndex, bool bSysMenu);
-	LRESULT onSize(UINT nFlags, int cx, int cy);
+	LRESULT onInitMenuPopup(HMENU hmenu,
+							UINT nIndex,
+							bool bSysMenu);
+	LRESULT onSize(UINT nFlags,
+				   int cx,
+				   int cy);
 
 private:
 	MessageFrameWindow(const MessageFrameWindow&);
@@ -121,57 +130,65 @@ public:
 	};
 
 public:
-	MessageWindow(MessageModel* pMessageModel, qs::Profile* pProfile,
-		const WCHAR* pwszSection, qs::QSTATUS* pstatus);
+	MessageWindow(MessageModel* pMessageModel,
+				  qs::Profile* pProfile,
+				  const WCHAR* pwszSection);
 	virtual ~MessageWindow();
 
 public:
 	bool isShowHeaderWindow() const;
-	qs::QSTATUS setShowHeaderWindow(bool bShow);
+	void setShowHeaderWindow(bool bShow);
 	bool isRawMode() const;
-	qs::QSTATUS setRawMode(bool bRawMode);
+	void setRawMode(bool bRawMode);
 	bool isHtmlMode() const;
-	qs::QSTATUS setHtmlMode(bool bHtmlMode);
+	void setHtmlMode(bool bHtmlMode);
 	bool isHtmlOnlineMode() const;
-	qs::QSTATUS setHtmlOnlineMode(bool bHtmlOnlineMode);
+	void setHtmlOnlineMode(bool bHtmlOnlineMode);
 	bool isDecryptVerifyMode() const;
-	qs::QSTATUS setDecryptVerifyMode(bool bDecryptVerifyMode);
+	void setDecryptVerifyMode(bool bDecryptVerifyMode);
 	const WCHAR* getEncoding() const;
-	qs::QSTATUS setEncoding(const WCHAR* pwszEncoding);
+	void setEncoding(const WCHAR* pwszEncoding);
 	const WCHAR* getTemplate() const;
-	qs::QSTATUS setTemplate(const WCHAR* pwszTemplate);
-	qs::QSTATUS scrollPage(bool bPrev, bool* pbScrolled);
+	void setTemplate(const WCHAR* pwszTemplate);
+	bool scrollPage(bool bPrev);
 	bool isSelectMode() const;
-	qs::QSTATUS setSelectMode(bool bSelectMode);
-	qs::QSTATUS find(const WCHAR* pwszFind, unsigned int nFlags, bool* pbFound);
+	void setSelectMode(bool bSelectMode);
+	bool find(const WCHAR* pwszFind,
+			  unsigned int nFlags);
 	unsigned int getSupportedFindFlags() const;
-	qs::QSTATUS openLink();
+	bool openLink();
 	MessageWindowItem* getFocusedItem() const;
 	
 	MessageModel* getMessageModel() const;
 	AttachmentSelectionModel* getAttachmentSelectionModel() const;
 	
-	qs::QSTATUS save();
+	bool save();
 	
-	qs::QSTATUS addMessageWindowHandler(MessageWindowHandler* pHandler);
-	qs::QSTATUS removeMessageWindowHandler(MessageWindowHandler* pHandler);
+	void addMessageWindowHandler(MessageWindowHandler* pHandler);
+	void removeMessageWindowHandler(MessageWindowHandler* pHandler);
 
 public:
-	virtual qs::QSTATUS getAccelerator(qs::Accelerator** ppAccelerator);
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual qs::Accelerator* getAccelerator();
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
 	LRESULT onDestroy();
-	LRESULT onLButtonDown(UINT nFlags, const POINT& pt);
-	LRESULT onSize(UINT nFlags, int cx, int cy);
+	LRESULT onLButtonDown(UINT nFlags,
+						  const POINT& pt);
+	LRESULT onSize(UINT nFlags,
+				   int cx,
+				   int cy);
 	
-	LRESULT onMessageModelMessageChanged(WPARAM wParam, LPARAM lParam);
+	LRESULT onMessageModelMessageChanged(WPARAM wParam,
+										 LPARAM lParam);
 
 public:
 	virtual bool isShow() const;
 	virtual bool isActive() const;
-	virtual qs::QSTATUS setActive();
+	virtual void setActive();
 
 private:
 	MessageWindow(const MessageWindow&);
@@ -194,7 +211,7 @@ public:
 	virtual ~MessageWindowHandler();
 
 public:
-	virtual qs::QSTATUS messageChanged(const MessageWindowEvent& event) = 0;
+	virtual void messageChanged(const MessageWindowEvent& event) = 0;
 };
 
 
@@ -207,8 +224,9 @@ public:
 class MessageWindowEvent
 {
 public:
-	MessageWindowEvent(MessageHolder* pmh, Message& msg,
-		const qs::ContentTypeParser* pContentType);
+	MessageWindowEvent(MessageHolder* pmh,
+					   Message& msg,
+					   const qs::ContentTypeParser* pContentType);
 	~MessageWindowEvent();
 
 public:
@@ -238,26 +256,31 @@ class HeaderWindow :
 	public qs::DefaultWindowHandler
 {
 public:
-	HeaderWindow(qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	explicit HeaderWindow(qs::Profile* pProfile);
 	virtual ~HeaderWindow();
 
 public:
 	int getHeight() const;
-	qs::QSTATUS setMessage(const TemplateContext* pContext);
-	qs::QSTATUS layout();
+	void setMessage(const TemplateContext* pContext);
+	void layout();
 	bool isActive() const;
 	MessageWindowItem* getFocusedItem() const;
 	AttachmentSelectionModel* getAttachmentSelectionModel() const;
 
 public:
-	virtual qs::QSTATUS getWindowClass(WNDCLASS* pwc);
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual void getWindowClass(WNDCLASS* pwc);
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
-	LRESULT onCtlColorStatic(HDC hdc, HWND hwnd);
+	LRESULT onCtlColorStatic(HDC hdc,
+							 HWND hwnd);
 	LRESULT onDestroy();
-	LRESULT onSize(UINT nFlags, int cx, int cy);
+	LRESULT onSize(UINT nFlags,
+				   int cx,
+				   int cy);
 
 private:
 	HeaderWindow(const HeaderWindow&);

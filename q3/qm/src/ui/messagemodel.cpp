@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -10,8 +10,6 @@
 #include <qmmessageholder.h>
 #include <qmaccount.h>
 
-#include <qserror.h>
-#include <qsnew.h>
 #include <qsstl.h>
 
 #include <algorithm>
@@ -41,7 +39,7 @@ qm::MessageModel::~MessageModel()
  *
  */
 
-qm::AbstractMessageModel::AbstractMessageModel(qs::QSTATUS* pstatus) :
+qm::AbstractMessageModel::AbstractMessageModel() :
 	pAccount_(0),
 	pViewModel_(0)
 {
@@ -59,25 +57,15 @@ Account* qm::AbstractMessageModel::getCurrentAccount() const
 	return pAccount_;
 }
 
-QSTATUS qm::AbstractMessageModel::setCurrentAccount(Account* pAccount)
+void qm::AbstractMessageModel::setCurrentAccount(Account* pAccount)
 {
-	DECLARE_QSTATUS();
-	
 	if (pAccount != pAccount_) {
-		if (pAccount_) {
-			status = pAccount_->removeAccountHandler(this);
-			CHECK_QSTATUS();
-		}
-		
+		if (pAccount_)
+			pAccount_->removeAccountHandler(this);
 		pAccount_ = pAccount;
-		
-		if (pAccount_) {
-			status = pAccount_->addAccountHandler(this);
-			CHECK_QSTATUS();
-		}
+		if (pAccount_)
+			pAccount_->addAccountHandler(this);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 MessagePtr qm::AbstractMessageModel::getCurrentMessage() const
@@ -85,38 +73,27 @@ MessagePtr qm::AbstractMessageModel::getCurrentMessage() const
 	return ptr_;
 }
 
-QSTATUS qm::AbstractMessageModel::setMessage(MessageHolder* pmh)
+void qm::AbstractMessageModel::setMessage(MessageHolder* pmh)
 {
-	DECLARE_QSTATUS();
-	
-	Message msg(&status);
-	CHECK_QSTATUS();
-	if (pmh) {
-		status = setCurrentAccount(pmh->getFolder()->getAccount());
-		CHECK_QSTATUS();
-	}
+	Message msg;
+	if (pmh)
+		setCurrentAccount(pmh->getFolder()->getAccount());
 	
 	ptr_.reset(pmh);
 	
-	status = fireMessageChanged(pmh);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	fireMessageChanged(pmh);
 }
 
-QSTATUS qm::AbstractMessageModel::addMessageModelHandler(
-	MessageModelHandler* pHandler)
+void qm::AbstractMessageModel::addMessageModelHandler(MessageModelHandler* pHandler)
 {
-	return STLWrapper<HandlerList>(listHandler_).push_back(pHandler);
+	listHandler_.push_back(pHandler);
 }
 
-QSTATUS qm::AbstractMessageModel::removeMessageModelHandler(
-	MessageModelHandler* pHandler)
+void qm::AbstractMessageModel::removeMessageModelHandler(MessageModelHandler* pHandler)
 {
 	HandlerList::iterator it = std::remove(
 		listHandler_.begin(), listHandler_.end(), pHandler);
 	listHandler_.erase(it, listHandler_.end());
-	return QSTATUS_SUCCESS;
 }
 
 ViewModel* qm::AbstractMessageModel::getViewModel() const
@@ -124,81 +101,45 @@ ViewModel* qm::AbstractMessageModel::getViewModel() const
 	return pViewModel_;
 }
 
-QSTATUS qm::AbstractMessageModel::setViewModel(ViewModel* pViewModel)
+void qm::AbstractMessageModel::setViewModel(ViewModel* pViewModel)
 {
-	DECLARE_QSTATUS();
-	
-	if (pViewModel_) {
-		status = pViewModel_->removeViewModelHandler(this);
-		CHECK_QSTATUS();
-	}
-	
+	if (pViewModel_)
+		pViewModel_->removeViewModelHandler(this);
 	pViewModel_ = pViewModel;
-	
-	if (pViewModel_) {
-		status = pViewModel_->addViewModelHandler(this);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (pViewModel_)
+		pViewModel_->addViewModelHandler(this);
 }
 
-QSTATUS qm::AbstractMessageModel::itemRemoved(const ViewModelEvent& event)
+void qm::AbstractMessageModel::itemRemoved(const ViewModelEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	Lock<ViewModel> lock(*pViewModel_);
 	
 	const ViewModelItem* pItem = pViewModel_->getItem(event.getItem());
 	MessagePtrLock mpl(ptr_);
-	if (!mpl || mpl == pItem->getMessageHolder()) {
-		status = setMessage(0);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (!mpl || mpl == pItem->getMessageHolder())
+		setMessage(0);
 }
 
-QSTATUS qm::AbstractMessageModel::destroyed(const ViewModelEvent& event)
+void qm::AbstractMessageModel::destroyed(const ViewModelEvent& event)
 {
 	assert(pViewModel_);
 	
-	DECLARE_QSTATUS();
-	
-	status = setViewModel(0);
-	CHECK_QSTATUS();
-	status = setMessage(0);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	setViewModel(0);
+	setMessage(0);
 }
 
-QSTATUS qm::AbstractMessageModel::accountDestroyed(const AccountEvent& event)
+void qm::AbstractMessageModel::accountDestroyed(const AccountEvent& event)
 {
-	DECLARE_QSTATUS();
-	
-	status = setMessage(0);
-	CHECK_QSTATUS();
-	status = setCurrentAccount(0);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	setMessage(0);
+	setCurrentAccount(0);
 }
 
-QSTATUS qm::AbstractMessageModel::fireMessageChanged(MessageHolder* pmh) const
+void qm::AbstractMessageModel::fireMessageChanged(MessageHolder* pmh) const
 {
-	DECLARE_QSTATUS();
-	
 	MessageModelEvent event(this, pmh);
 	
-	HandlerList::const_iterator it = listHandler_.begin();
-	while (it != listHandler_.end()) {
-		status = (*it)->messageChanged(event);
-		CHECK_QSTATUS();
-		++it;
-	}
-	
-	return QSTATUS_SUCCESS;
+	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
+		(*it)->messageChanged(event);
 }
 
 
@@ -208,8 +149,7 @@ QSTATUS qm::AbstractMessageModel::fireMessageChanged(MessageHolder* pmh) const
  *
  */
 
-qm::MessageMessageModel::MessageMessageModel(qs::QSTATUS* pstatus) :
-	AbstractMessageModel(pstatus)
+qm::MessageMessageModel::MessageMessageModel()
 {
 }
 
@@ -225,37 +165,23 @@ qm::MessageMessageModel::~MessageMessageModel()
  */
 
 qm::PreviewMessageModel::PreviewMessageModel(ViewModelManager* pViewModelManager,
-	bool bConnectToViewModel, QSTATUS* pstatus) :
-	AbstractMessageModel(pstatus),
+											 bool bConnectToViewModel) :
 	pViewModelManager_(pViewModelManager),
-	pTimer_(0),
 	nTimerId_(0),
 	bConnectedToViewModel_(false)
 {
-	assert(pstatus);
+	if (bConnectToViewModel)
+		connectToViewModel();
 	
-	DECLARE_QSTATUS();
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	if (bConnectToViewModel) {
-		status = connectToViewModel();
-		CHECK_QSTATUS_SET(pstatus);
-	}
-	
-	status = newQsObject(&pTimer_);
-	CHECK_QSTATUS_SET(pstatus);
+	pTimer_.reset(new Timer());
 }
 
 qm::PreviewMessageModel::~PreviewMessageModel()
 {
-	delete pTimer_;
 }
 
-QSTATUS qm::PreviewMessageModel::updateToViewModel()
+void qm::PreviewMessageModel::updateToViewModel()
 {
-	DECLARE_QSTATUS();
-	
 	ViewModel* pViewModel = getViewModel();
 	assert(pViewModel);
 	
@@ -267,44 +193,26 @@ QSTATUS qm::PreviewMessageModel::updateToViewModel()
 		pmh = pViewModel->getMessageHolder(nFocused);
 	
 	MessagePtrLock mpl(getCurrentMessage());
-	if (pmh != mpl) {
-		status = setMessage(pmh);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (pmh != mpl)
+		setMessage(pmh);
 }
 
-QSTATUS qm::PreviewMessageModel::connectToViewModel()
+void qm::PreviewMessageModel::connectToViewModel()
 {
 	assert(!bConnectedToViewModel_);
 	
-	DECLARE_QSTATUS();
-	
-	status = pViewModelManager_->addViewModelManagerHandler(this);
-	CHECK_QSTATUS();
-	status = setViewModel(pViewModelManager_->getCurrentViewModel());
-	CHECK_QSTATUS();
-	
+	pViewModelManager_->addViewModelManagerHandler(this);
+	setViewModel(pViewModelManager_->getCurrentViewModel());
 	bConnectedToViewModel_ = true;
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::PreviewMessageModel::disconnectFromViewModel()
+void qm::PreviewMessageModel::disconnectFromViewModel()
 {
 	assert(bConnectedToViewModel_);
 	
-	DECLARE_QSTATUS();
-	
-	status = pViewModelManager_->removeViewModelManagerHandler(this);
-	CHECK_QSTATUS();
-	status = setViewModel(0);
-	CHECK_QSTATUS();
-	
+	pViewModelManager_->removeViewModelManagerHandler(this);
+	setViewModel(0);
 	bConnectedToViewModel_ = false;
-	
-	return QSTATUS_SUCCESS;
 }
 
 bool qm::PreviewMessageModel::isConnectedToViewModel() const
@@ -312,49 +220,34 @@ bool qm::PreviewMessageModel::isConnectedToViewModel() const
 	return bConnectedToViewModel_;
 }
 
-QSTATUS qm::PreviewMessageModel::itemStateChanged(const ViewModelEvent& event)
+void qm::PreviewMessageModel::itemStateChanged(const ViewModelEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	ViewModel* pViewModel = getViewModel();
 	assert(pViewModel == event.getViewModel());
 	
 	if (event.getItem() == pViewModel->getFocused()) {
-		assert(pTimer_);
 		if (nTimerId_ != 0)
 			pTimer_->killTimer(nTimerId_);
-		nTimerId_ = TIMER_ITEMSTATECHANGED;
-		status = pTimer_->setTimer(&nTimerId_, TIMEOUT, this);
-		CHECK_QSTATUS();
+		nTimerId_ = pTimer_->setTimer(TIMER_ITEMSTATECHANGED, TIMEOUT, this);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::PreviewMessageModel::viewModelSelected(const ViewModelManagerEvent& event)
+void qm::PreviewMessageModel::viewModelSelected(const ViewModelManagerEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	ViewModel* pViewModel = getViewModel();
 	assert(pViewModel == event.getOldViewModel());
 	
-	status = setViewModel(event.getNewViewModel());
-	CHECK_QSTATUS();
-	
+	setViewModel(event.getNewViewModel());
 	setCurrentAccount(pViewModelManager_->getCurrentAccount());
-	
-	status = setMessage(0);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	setMessage(0);
 }
 
-QSTATUS qm::PreviewMessageModel::timerTimeout(unsigned int nId)
+void qm::PreviewMessageModel::timerTimeout(unsigned int nId)
 {
 	assert(nId == nTimerId_);
 	pTimer_->killTimer(nTimerId_);
+	nTimerId_ = 0;
 	updateToViewModel();
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -375,8 +268,8 @@ qm::MessageModelHandler::~MessageModelHandler()
  *
  */
 
-qm::MessageModelEvent::MessageModelEvent(
-	const MessageModel* pModel, MessageHolder* pmh) :
+qm::MessageModelEvent::MessageModelEvent(const MessageModel* pModel,
+										 MessageHolder* pmh) :
 	pModel_(pModel),
 	pmh_(pmh)
 {

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -10,6 +10,7 @@
 #define __UTIL_H__
 
 #include <qslog.h>
+#include <qsstl.h>
 #include <qsstream.h>
 
 #include <openssl/bio.h>
@@ -149,9 +150,9 @@ private:
 class Util
 {
 public:
-	static qs::QSTATUS createBIOFromStream(qs::InputStream* pStream,
-		unsigned char** pp, size_t* pnLen);
-	static void logError(qs::Log& log, const WCHAR* pwszMessage);
+	static qs::malloc_size_ptr<unsigned char> createBIOFromStream(qs::InputStream* pStream);
+	static void logError(qs::Log& log,
+						 const WCHAR* pwszMessage);
 };
 
 }

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -12,8 +12,6 @@
 
 #include <qsassert.h>
 #include <qsconv.h>
-#include <qserror.h>
-#include <qsnew.h>
 #include <qsosutil.h>
 
 #include <algorithm>
@@ -30,7 +28,7 @@ using namespace qs;
  *
  */
 
-qm::SignatureManager::SignatureManager(QSTATUS* pstatus)
+qm::SignatureManager::SignatureManager()
 {
 	SYSTEMTIME st;
 	::GetSystemTime(&st);
@@ -42,102 +40,69 @@ qm::SignatureManager::~SignatureManager()
 	clear();
 }
 
-QSTATUS qm::SignatureManager::getSignatures(
-	Account* pAccount, SignatureList* pList)
+void qm::SignatureManager::getSignatures(Account* pAccount,
+										 SignatureList* pList)
 {
 	assert(pAccount);
 	assert(pList);
 	
-	DECLARE_QSTATUS();
+	if (!load())
+		return;
 	
-	status = load();
-	CHECK_QSTATUS();
-	
-	SignatureList::const_iterator it = listSignature_.begin();
-	while (it != listSignature_.end()) {
-		bool bMatch = false;
-		status = (*it)->match(pAccount, &bMatch);
-		CHECK_QSTATUS();
-		if (bMatch) {
-			status = STLWrapper<SignatureList>(*pList).push_back(*it);
-			CHECK_QSTATUS();
-		}
-		++it;
+	for (SignatureList::const_iterator it = listSignature_.begin(); it != listSignature_.end(); ++it) {
+		Signature* pSignature = *it;
+		if (pSignature->match(pAccount))
+			pList->push_back(pSignature);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::SignatureManager::getSignature(Account* pAccount,
-	const WCHAR* pwszName, const Signature** ppSignature)
+const Signature* qm::SignatureManager::getSignature(Account* pAccount,
+													const WCHAR* pwszName)
 {
 	assert(pAccount);
-	assert(ppSignature);
 	
-	DECLARE_QSTATUS();
+	if (!load())
+		return 0;
 	
-	*ppSignature = 0;
-	
-	status = load();
-	CHECK_QSTATUS();
-	
-	SignatureList::const_iterator it = listSignature_.begin();
-	while (it != listSignature_.end() && !*ppSignature) {
-		bool bMatch = false;
-		status = (*it)->match(pAccount, &bMatch);
-		CHECK_QSTATUS();
-		if (bMatch) {
-			if ((!(*it)->getName() && !pwszName) ||
+	for (SignatureList::const_iterator it = listSignature_.begin(); it != listSignature_.end(); ++it) {
+		Signature* pSignature = *it;
+		if (pSignature->match(pAccount)) {
+			if ((!pSignature->getName() && !pwszName) ||
 				wcscmp((*it)->getName(), pwszName) == 0)
-				*ppSignature = *it;
+				return pSignature;
 		}
-		++it;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return 0;
 }
 
-QSTATUS qm::SignatureManager::getDefaultSignature(
-	Account* pAccount, const Signature** ppSignature)
+const Signature* qm::SignatureManager::getDefaultSignature(Account* pAccount)
 {
 	assert(pAccount);
-	assert(ppSignature);
 	
-	DECLARE_QSTATUS();
+	if (!load())
+		return 0;
 	
-	*ppSignature = 0;
-	
-	status = load();
-	CHECK_QSTATUS();
-	
-	SignatureList::const_iterator it = listSignature_.begin();
-	while (it != listSignature_.end() && !*ppSignature) {
-		bool bMatch = false;
-		status = (*it)->match(pAccount, &bMatch);
-		CHECK_QSTATUS();
-		if (bMatch) {
+	for (SignatureList::const_iterator it = listSignature_.begin(); it != listSignature_.end(); ++it) {
+		Signature* pSignature = *it;
+		if (pSignature->match(pAccount)) {
 			if ((*it)->isDefault())
-				*ppSignature = *it;
+				return pSignature;
 		}
-		++it;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return 0;
 }
 
-QSTATUS qm::SignatureManager::addSignature(Signature* pSignature)
+void qm::SignatureManager::addSignature(std::auto_ptr<Signature> pSignature)
 {
-	return STLWrapper<SignatureList>(listSignature_).push_back(pSignature);
+	listSignature_.push_back(pSignature.get());
+	pSignature.release();
 }
 
-QSTATUS qm::SignatureManager::load()
+bool qm::SignatureManager::load()
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrPath;
-	status = Application::getApplication().getProfilePath(
-		FileNames::SIGNATURES_XML, &wstrPath);
-	CHECK_QSTATUS();
+	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::SIGNATURES_XML));
 	
 	W2T(wstrPath.get(), ptszPath);
 	AutoHandle hFile(::CreateFile(ptszPath, GENERIC_READ, 0, 0,
@@ -150,13 +115,11 @@ QSTATUS qm::SignatureManager::load()
 		if (::CompareFileTime(&ft, &ft_) != 0) {
 			clear();
 			
-			XMLReader reader(&status);
-			CHECK_QSTATUS();
-			SignatureContentHandler handler(this, &status);
-			CHECK_QSTATUS();
+			XMLReader reader;
+			SignatureContentHandler handler(this);
 			reader.setContentHandler(&handler);
-			status = reader.parse(wstrPath.get());
-			CHECK_QSTATUS();
+			if (!reader.parse(wstrPath.get()))
+				return false;
 			
 			ft_ = ft;
 		}
@@ -165,7 +128,7 @@ QSTATUS qm::SignatureManager::load()
 		clear();
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 void qm::SignatureManager::clear()
@@ -182,45 +145,36 @@ void qm::SignatureManager::clear()
  *
  */
 
-qm::Signature::Signature(RegexPattern* pAccountName, WSTRING wstrName,
-	bool bDefault, WSTRING wstrSignature, QSTATUS* pstatus) :
+qm::Signature::Signature(std::auto_ptr<RegexPattern> pAccountName,
+						 wstring_ptr wstrName,
+						 bool bDefault,
+						 wstring_ptr wstrSignature) :
 	pAccountName_(pAccountName),
 	wstrName_(wstrName),
 	bDefault_(bDefault),
 	wstrSignature_(wstrSignature)
 {
-	assert(wstrName);
-	assert(wstrSignature);
+	assert(wstrName_.get());
+	assert(wstrSignature_.get());
 }
 
 qm::Signature::~Signature()
 {
-	delete pAccountName_;
-	freeWString(wstrName_);
-	freeWString(wstrSignature_);
 }
 
-QSTATUS qm::Signature::match(Account* pAccount, bool* pbMatch) const
+bool qm::Signature::match(Account* pAccount) const
 {
 	assert(pAccount);
-	assert(pbMatch);
 	
-	DECLARE_QSTATUS();
-	
-	if (pAccountName_) {
-		status = pAccountName_->match(pAccount->getName(), pbMatch);
-		CHECK_QSTATUS();
-	}
-	else {
-		*pbMatch = true;
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (pAccountName_.get())
+		return pAccountName_->match(pAccount->getName());
+	else
+		return true;
 }
 
 const WCHAR* qm::Signature::getName() const
 {
-	return wstrName_;
+	return wstrName_.get();
 }
 
 bool qm::Signature::isDefault() const
@@ -230,7 +184,7 @@ bool qm::Signature::isDefault() const
 
 const WCHAR* qm::Signature::getSignature() const
 {
-	return wstrSignature_;
+	return wstrSignature_.get();
 }
 
 
@@ -240,47 +194,32 @@ const WCHAR* qm::Signature::getSignature() const
  *
  */
 
-qm::SignatureContentHandler::SignatureContentHandler(
-	SignatureManager* pManager, QSTATUS* pstatus) :
-	DefaultHandler(pstatus),
+qm::SignatureContentHandler::SignatureContentHandler(SignatureManager* pManager) :
 	pManager_(pManager),
 	state_(STATE_ROOT),
-	pAccountName_(0),
-	wstrName_(0),
-	bDefault_(false),
-	pBuffer_(0)
+	bDefault_(false)
 {
-	DECLARE_QSTATUS();
-	
-	status = newQsObject(&pBuffer_);
-	CHECK_QSTATUS_SET(pstatus);
 }
 
 qm::SignatureContentHandler::~SignatureContentHandler()
 {
-	freeWString(wstrName_);
-	delete pAccountName_;
-	delete pBuffer_;
 }
 
-QSTATUS qm::SignatureContentHandler::startElement(
-	const WCHAR* pwszNamespaceURI, const WCHAR* pwszLocalName,
-	const WCHAR* pwszQName, const Attributes& attributes)
+bool qm::SignatureContentHandler::startElement(const WCHAR* pwszNamespaceURI,
+											   const WCHAR* pwszLocalName,
+											   const WCHAR* pwszQName,
+											   const Attributes& attributes)
 {
-	DECLARE_QSTATUS();
-	
 	if (wcscmp(pwszLocalName, L"signatures") == 0) {
 		if (state_ != STATE_ROOT)
-			return QSTATUS_FAIL;
-		
+			return false;
 		if (attributes.getLength() != 0)
-			return QSTATUS_FAIL;
-		
+			return false;
 		state_ = STATE_SIGNATURES;
 	}
 	else if (wcscmp(pwszLocalName, L"signature") == 0) {
 		if (state_ != STATE_SIGNATURES)
-			return QSTATUS_FAIL;
+			return false;
 		
 		bDefault_ = false;
 		const WCHAR* pwszName = 0;
@@ -294,38 +233,32 @@ QSTATUS qm::SignatureContentHandler::startElement(
 			else if (wcscmp(pwszAttrName, L"default") == 0)
 				bDefault_ = wcscmp(attributes.getValue(n), L"true") == 0;
 			else
-				return QSTATUS_FAIL;
+				return false;
 		}
 		
-		assert(!wstrName_);
+		assert(!wstrName_.get());
 		wstrName_ = allocWString(pwszName);
-		if (!wstrName_)
-			return QSTATUS_OUTOFMEMORY;
 		
-		assert(!pAccountName_);
+		assert(!pAccountName_.get());
 		if (pwszAccount) {
-			RegexCompiler compiler;
-			RegexPattern* p = 0;
-			status = compiler.compile(pwszAccount, &p);
-			CHECK_QSTATUS();
-			pAccountName_ = p;
+			pAccountName_ = RegexCompiler().compile(pwszAccount);
+			if (!pAccountName_.get())
+				return false;
 		}
 		
 		state_ = STATE_SIGNATURE;
 	}
 	else {
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::SignatureContentHandler::endElement(
-	const WCHAR* pwszNamespaceURI, const WCHAR* pwszLocalName,
-	const WCHAR* pwszQName)
+bool qm::SignatureContentHandler::endElement(const WCHAR* pwszNamespaceURI,
+											 const WCHAR* pwszLocalName,
+											 const WCHAR* pwszQName)
 {
-	DECLARE_QSTATUS();
-	
 	if (wcscmp(pwszLocalName, L"signatures") == 0) {
 		assert(state_ == STATE_SIGNATURES);
 		state_ = STATE_ROOT;
@@ -333,44 +266,35 @@ QSTATUS qm::SignatureContentHandler::endElement(
 	else if (wcscmp(pwszLocalName, L"signature") == 0) {
 		assert(state_ == STATE_SIGNATURE);
 		
-		string_ptr<WSTRING> wstrSignature(pBuffer_->getString());
-		std::auto_ptr<Signature> pSignature;
-		status = newQsObject(pAccountName_, wstrName_,
-			bDefault_, wstrSignature.get(), &pSignature);
-		CHECK_QSTATUS();
-		wstrName_ = 0;
-		wstrSignature.release();
-		pAccountName_ = 0;
+		wstring_ptr wstrSignature(buffer_.getString());
+		std::auto_ptr<Signature> pSignature(new Signature(
+			pAccountName_, wstrName_, bDefault_, wstrSignature));
 		
-		status = pManager_->addSignature(pSignature.get());
-		CHECK_QSTATUS();
-		pSignature.release();
+		pManager_->addSignature(pSignature);
 		
 		state_ = STATE_SIGNATURES;
 	}
 	else {
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::SignatureContentHandler::characters(
-	const WCHAR* pwsz, size_t nStart, size_t nLength)
+bool qm::SignatureContentHandler::characters(const WCHAR* pwsz,
+											 size_t nStart,
+											 size_t nLength)
 {
-	DECLARE_QSTATUS();
-	
 	if (state_ == STATE_SIGNATURE) {
-		status = pBuffer_->append(pwsz + nStart, nLength);
-		CHECK_QSTATUS();
+		buffer_.append(pwsz + nStart, nLength);
 	}
 	else {
 		const WCHAR* p = pwsz + nStart;
 		for (size_t n = 0; n < nLength; ++n, ++p) {
 			if (*p != L' ' && *p != L'\t' && *p != '\n')
-				return QSTATUS_FAIL;
+				return false;
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -25,25 +25,29 @@ namespace qscrypto {
 class SMIMEUtilityImpl : public qs::SMIMEUtility
 {
 public:
-	SMIMEUtilityImpl(qs::QSTATUS* pstatus);
+	SMIMEUtilityImpl();
 	virtual ~SMIMEUtilityImpl();
 
 public:
 	virtual Type getType(const qs::Part& part) const;
-	virtual qs::QSTATUS sign(qs::Part* pPart, bool bMultipart,
-		const qs::PrivateKey* pPrivateKey, const qs::Certificate* pCertificate,
-		qs::SMIMECallback* pCallback, qs::STRING* pstrMessage) const;
-	virtual qs::QSTATUS verify(const qs::Part& part,
-		const qs::Store* pStoreCA, qs::STRING* pstrMessage) const;
-	virtual qs::QSTATUS encrypt(qs::Part* pPart, const qs::Cipher* pCipher,
-		qs::SMIMECallback* pCallback, qs::STRING* pstrMessage) const;
-	virtual qs::QSTATUS decrypt(const qs::Part& part,
-		const qs::PrivateKey* pPrivateKey, const qs::Certificate* pCertificate,
-		qs::STRING* pstrMessage) const;
+	virtual qs::xstring_ptr sign(qs::Part* pPart,
+								 bool bMultipart,
+								 const qs::PrivateKey* pPrivateKey,
+								 const qs::Certificate* pCertificate,
+								 qs::SMIMECallback* pCallback) const;
+	virtual qs::xstring_ptr verify(const qs::Part& part,
+								   const qs::Store* pStoreCA) const;
+	virtual qs::xstring_ptr encrypt(qs::Part* pPart,
+									const qs::Cipher* pCipher,
+									qs::SMIMECallback* pCallback) const;
+	virtual qs::xstring_ptr decrypt(const qs::Part& part,
+									const qs::PrivateKey* pPrivateKey,
+									const qs::Certificate* pCertificate) const;
 
 private:
-	static qs::QSTATUS createMessage(const CHAR* pszHeader,
-		PKCS7* pPKCS7, bool bEnveloped, qs::STRING* pstrMessage);
+	static qs::xstring_ptr createMessage(const CHAR* pszHeader,
+										 PKCS7* pPKCS7,
+										 bool bEnveloped);
 
 private:
 	SMIMEUtilityImpl(const SMIMEUtilityImpl&);

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -10,6 +10,7 @@
 #define __QSMIME_H__
 
 #include <qs.h>
+#include <qsstl.h>
 #include <qsstring.h>
 #include <qsutil.h>
 
@@ -80,85 +81,93 @@ public:
 	typedef std::vector<std::pair<STRING, STRING> > FieldList;
 
 public:
-	explicit Part(QSTATUS* pstatus);
-	Part(unsigned int nOptions, QSTATUS* pstatus);
-	Part(const Part* pParent, const CHAR* pszContent,
-		size_t nLen, QSTATUS* pstatus);
-	Part(const Part* pParent, const CHAR* pszContent,
-		size_t nLen, unsigned int nOptions, QSTATUS* pstatus);
+	Part();
+	explicit Part(unsigned int nOptions);
 	virtual ~Part();
 
 public:
-	QSTATUS create(const Part* pParent, const CHAR* pszContent, size_t nLen);
-	QSTATUS clear();
-	QSTATUS clone(Part** ppPart) const;
-	QSTATUS getContent(STRING* pstrContent) const;
+	bool create(const Part* pParent,
+				const CHAR* pszContent,
+				size_t nLen);
+	void clear();
+	std::auto_ptr<Part> clone() const;
+	xstring_ptr getContent() const;
+	bool getContent(XStringBuffer<XSTRING>* pBuf) const;
 
 public:
 	const CHAR* getHeader() const;
-	QSTATUS setHeader(const CHAR* pszHeader);
-	QSTATUS getField(const WCHAR* pwszName,
-		FieldParser* pParser, Field* pField) const;
-	QSTATUS hasField(const WCHAR* pwszName, bool* pbHas) const;
+	bool setHeader(const CHAR* pszHeader);
+	Field getField(const WCHAR* pwszName,
+				   FieldParser* pParser) const;
+	bool hasField(const WCHAR* pwszName) const;
 	
 	// Set field value.
 	// If bAllowMultiple is true, add the specified value,
 	// Otherwise if there are fields whose name is strName,
 	// Do nothing and return false
-	QSTATUS setField(const WCHAR* pwszName, const FieldParser& parser);
-	QSTATUS setField(const WCHAR* pwszName,
-		const FieldParser& parser, bool* pbSet);
-	QSTATUS setField(const WCHAR* pwszName,
-		const FieldParser& parser, bool bAllowMultiple);
-	QSTATUS setField(const WCHAR* pwszName, const FieldParser& parser,
-		bool bAllowMultiple, bool* pbSet);
+	bool setField(const WCHAR* pwszName,
+				  const FieldParser& parser);
+	bool setField(const WCHAR* pwszName,
+				  const FieldParser& parser,
+				  bool* pbSet);
+	bool setField(const WCHAR* pwszName,
+				  const FieldParser& parser,
+				  bool bAllowMultiple);
+	bool setField(const WCHAR* pwszName,
+				  const FieldParser& parser,
+				  bool bAllowMultiple,
+				  bool* pbSet);
 	
 	// Replace the specified field by the specified value provided by parser
 	// If nIndex equals to 0xffffffff, remove all fields whose name is strName
 	// and set the value. If there is no field which is speicifed by strName
 	// and nIndex, replaceField behave like setField with 3rd argument be set to ture.
-	QSTATUS replaceField(const WCHAR* pwszName, const FieldParser& parser);
-	QSTATUS replaceField(const WCHAR* pwszName,
-		const FieldParser& parser, unsigned int nIndex);
+	bool replaceField(const WCHAR* pwszName,
+					  const FieldParser& parser);
+	bool replaceField(const WCHAR* pwszName,
+					  const FieldParser& parser,
+					  unsigned int nIndex);
 	
 	// Remove the specified field
 	// If nIndex equals to 0xffffffff, remove all fields whose name is strName
-	QSTATUS removeField(const WCHAR* pwszName);
-	QSTATUS removeField(const WCHAR* pwszName, bool* pbRemove);
-	QSTATUS removeField(const WCHAR* pwszName, unsigned int nIndex);
-	QSTATUS removeField(const WCHAR* pwszName,
-		unsigned int nIndex, bool* pbRemove);
+	bool removeField(const WCHAR* pwszName);
+	bool removeField(const WCHAR* pwszName,
+					 unsigned int nIndex);
 	
-	QSTATUS getFields(FieldList* pListField) const;
-	QSTATUS sortHeader();
+	void getFields(FieldList* pListField) const;
+	bool sortHeader();
 	
 	const ContentTypeParser* getContentType() const;
-	QSTATUS getCharset(WSTRING* pwstrCharset) const;
+	wstring_ptr getCharset() const;
 	bool isMultipart() const;
 	
-	QSTATUS getRawField(const WCHAR* pwszName,
-		unsigned int nIndex, STRING* pstrValue, bool* pbExist) const;
-	QSTATUS getHeaderCharset(WSTRING* pwstrCharset) const;
+	string_ptr getRawField(const WCHAR* pwszName,
+						   unsigned int nIndex) const;
+	wstring_ptr getHeaderCharset() const;
 
 public:
 	const CHAR* getBody() const;
-	QSTATUS setBody(const CHAR* pszBody, size_t nLen);
-	QSTATUS getBodyText(WSTRING* pwstrBodyText) const;
-	QSTATUS getBodyText(const WCHAR* pwszCharset, WSTRING* pwstrBodyText) const;
-	QSTATUS getBodyData(unsigned char** ppData, size_t* pnLen) const;
+	bool setBody(const CHAR* pszBody,
+				 size_t nLen);
+	wxstring_ptr getBodyText() const;
+	wxstring_ptr getBodyText(const WCHAR* pwszCharset) const;
+	bool getBodyText(const WCHAR* pwszCharset,
+					 XStringBuffer<WXSTRING>* pBuf) const;
+	malloc_size_ptr<unsigned char> getBodyData() const;
 
 public:
 	const PartList& getPartList() const;
 	size_t getPartCount() const;
 	Part* getPart(unsigned int n) const;
-	QSTATUS addPart(Part* pPart);
-	QSTATUS insertPart(unsigned int n, Part* pPart);
+	void addPart(std::auto_ptr<Part> pPart);
+	void insertPart(unsigned int n,
+					std::auto_ptr<Part> pPart);
 	void removePart(Part* pPart);
 	Part* getParentPart() const;
 
 public:
 	const Part* getEnclosedPart() const;
-	void setEnclosedPart(Part* pPart);
+	void setEnclosedPart(std::auto_ptr<Part> pPart);
 
 public:
 	bool isOption(Option option) const;
@@ -166,16 +175,16 @@ public:
 
 public:
 	static const WCHAR* getDefaultCharset();
-	static QSTATUS setDefaultCharset(const WCHAR* pwszCharset);
+	static void setDefaultCharset(const WCHAR* pwszCharset);
 	static bool isGlobalOption(Option option);
 	static void setGlobalOptions(unsigned int nOptions);
 
 private:
-	QSTATUS getHeaderLower(const CHAR** ppHeader) const;
+	const CHAR* getHeaderLower() const;
 	void clearHeaderLower() const;
-	QSTATUS updateContentType();
-	QSTATUS getFieldPos(const CHAR* pszName,
-		unsigned int nIndex, CHAR** ppBegin) const;
+	void updateContentType();
+	CHAR* getFieldPos(const CHAR* pszName,
+					  unsigned int nIndex) const;
 	CHAR* getFieldEndPos(const CHAR* pBegin) const;
 
 private:
@@ -183,17 +192,17 @@ private:
 	Part& operator=(const Part&);
 
 private:
-	STRING strHeader_;
-	STRING strBody_;
+	xstring_ptr strHeader_;
+	xstring_ptr strBody_;
 	PartList listPart_;
-	Part* pPartEnclosed_;
+	std::auto_ptr<Part> pPartEnclosed_;
 	Part* pParent_;
 	unsigned int nOptions_;
-	ContentTypeParser* pContentType_;
-	mutable STRING strHeaderLower_;
+	std::auto_ptr<ContentTypeParser> pContentType_;
+	mutable xstring_ptr strHeaderLower_;
 
 private:
-	static WSTRING wstrDefaultCharset__;
+	static wstring_ptr wstrDefaultCharset__;
 	static unsigned int nGlobalOptions__;
 };
 
@@ -217,33 +226,41 @@ public:
 	virtual ~FieldParser();
 	
 public:
-	virtual QSTATUS parse(const Part& part,
-		const WCHAR* pwszName, Part::Field* pField) = 0;
-	virtual QSTATUS unparse(const Part& part, STRING* pstrValue) const = 0;
+	virtual Part::Field parse(const Part& part,
+							  const WCHAR* pwszName) = 0;
+	virtual string_ptr unparse(const Part& part) const = 0;
 
 public:
-	static QSTATUS decode(const CHAR* psz, size_t nLen,
-		WSTRING* pwstrDecoded, bool* pbDecode);
-	static QSTATUS encode(const WCHAR* pwsz, size_t nLen,
-		const WCHAR* pwszCharset, const WCHAR* pwszEncoding,
-		bool bOneBlock, STRING* pstrEncoded);
-	static QSTATUS getQString(const CHAR* psz,
-		size_t nLen, STRING* pstrValue);
-	static QSTATUS getAtomOrQString(const CHAR* psz,
-		size_t nLen, STRING* pstrValue);
-	static QSTATUS getAtomsOrQString(const CHAR* psz,
-		size_t nLen, STRING* pstrValue);
+	static wstring_ptr decode(const CHAR* psz,
+							  size_t nLen,
+							  bool* pbDecoded);
+	static string_ptr encode(const WCHAR* pwsz,
+							 size_t nLen,
+							 const WCHAR* pwszCharset,
+							 const WCHAR* pwszEncoding,
+							 bool bOneBlock);
+	static string_ptr getQString(const CHAR* psz,
+								 size_t nLen);
+	static string_ptr getAtomOrQString(const CHAR* psz,
+									   size_t nLen);
+	static string_ptr getAtomsOrQString(const CHAR* psz,
+										size_t nLen);
 	static bool isAscii(const WCHAR* pwsz);
-	static bool isAscii(const WCHAR* pwsz, size_t nLen);
+	static bool isAscii(const WCHAR* pwsz,
+						size_t nLen);
 	static bool isNeedQuote(const CHAR* psz,
-		size_t nLen, bool bQuoteWhitespace);
-	static QSTATUS parseError();
+							size_t nLen,
+							bool bQuoteWhitespace);
+	static Part::Field parseError();
 
 private:
-	static QSTATUS encodeLine(const WCHAR* pwsz, size_t nLen,
-		const WCHAR* pwszCharset, Converter* pConverter,
-		const WCHAR* pwszEncoding, Encoder* pEncoder,
-		bool bOneBlock, STRING* pstrEncoded);
+	static string_ptr encodeLine(const WCHAR* pwsz,
+								 size_t nLen,
+								 const WCHAR* pwszCharset,
+								 Converter* pConverter,
+								 const WCHAR* pwszEncoding,
+								 Encoder* pEncoder,
+								 bool bOneBlock);
 };
 
 
@@ -256,33 +273,35 @@ private:
 class QSEXPORTCLASS UnstructuredParser : public FieldParser
 {
 public:
-	UnstructuredParser(QSTATUS* pstatus);
+	UnstructuredParser();
 	UnstructuredParser(const WCHAR* pwszValue,
-		const WCHAR* pwszCharset, QSTATUS* pstatus);
+					   const WCHAR* pwszCharset);
 	virtual ~UnstructuredParser();
 
 public:
 	const WCHAR* getValue() const;
 
 public:
-	virtual QSTATUS parse(const Part& part,
-		const WCHAR* pwszName, Part::Field* pField);
-	virtual QSTATUS unparse(const Part& part, STRING* pstrValue) const;
+	virtual Part::Field parse(const Part& part,
+							  const WCHAR* pwszName);
+	virtual string_ptr unparse(const Part& part) const;
 
 private:
-	QSTATUS foldValue(const WCHAR* pwszValue, WSTRING* pwstrFolded) const;
+	wstring_ptr foldValue(const WCHAR* pwszValue) const;
 
 private:
-	static bool isFirstTokenEncode(const WCHAR* pwsz, size_t nLen);
-	static bool isLastTokenEncode(const WCHAR* pwsz, size_t nLen);
+	static bool isFirstTokenEncode(const WCHAR* pwsz,
+								   size_t nLen);
+	static bool isLastTokenEncode(const WCHAR* pwsz,
+								  size_t nLen);
 
 private:
 	UnstructuredParser(const UnstructuredParser&);
 	UnstructuredParser& operator=(const UnstructuredParser&);
 
 private:
-	WSTRING wstrValue_;
-	WSTRING wstrCharset_;
+	wstring_ptr wstrValue_;
+	wstring_ptr wstrCharset_;
 };
 
 
@@ -301,16 +320,17 @@ public:
 	};
 
 public:
-	DummyParser(const WCHAR* pwszValue, unsigned int nFlags, QSTATUS* pstatus);
+	DummyParser(const WCHAR* pwszValue,
+				unsigned int nFlags);
 	virtual ~DummyParser();
 
 public:
 	const WCHAR* getValue() const;
 
 public:
-	virtual QSTATUS parse(const Part& part,
-		const WCHAR* pwszName, Part::Field* pField);
-	virtual QSTATUS unparse(const Part& part, STRING* pstrValue) const;
+	virtual Part::Field parse(const Part& part,
+							  const WCHAR* pwszName);
+	virtual string_ptr unparse(const Part& part) const;
 
 private:
 	bool isSpecial(WCHAR c) const;
@@ -321,7 +341,7 @@ private:
 
 private:
 	unsigned int nFlags_;
-	WSTRING wstrValue_;
+	wstring_ptr wstrValue_;
 };
 
 
@@ -340,16 +360,16 @@ public:
 
 public:
 	NoParseParser(const WCHAR* pwszSeparator,
-		unsigned int nFlags, QSTATUS* pstatus);
+				  unsigned int nFlags);
 	virtual ~NoParseParser();
 
 public:
 	const WCHAR* getValue() const;
 
 public:
-	virtual QSTATUS parse(const Part& part,
-		const WCHAR* pwszName, Part::Field* pField);
-	virtual QSTATUS unparse(const Part& part, STRING* pstrValue) const;
+	virtual Part::Field parse(const Part& part,
+							  const WCHAR* pwszName);
+	virtual string_ptr unparse(const Part& part) const;
 
 private:
 	NoParseParser(const NoParseParser&);
@@ -357,8 +377,8 @@ private:
 
 private:
 	unsigned int nFlags_;
-	STRING strSeparator_;
-	WSTRING wstrValue_;
+	string_ptr strSeparator_;
+	wstring_ptr wstrValue_;
 };
 
 
@@ -380,17 +400,18 @@ public:
 	};
 
 public:
-	SimpleParser(unsigned int nFlags, QSTATUS* pstatus);
-	SimpleParser(const WCHAR* pwszValue, unsigned int nFlags, QSTATUS* pstatus);
+	explicit SimpleParser(unsigned int nFlags);
+	SimpleParser(const WCHAR* pwszValue,
+				 unsigned int nFlags);
 	virtual ~SimpleParser();
 
 public:
 	const WCHAR* getValue() const;
 
 public:
-	virtual QSTATUS parse(const Part& part,
-		const WCHAR* pwszName, Part::Field* pField);
-	virtual QSTATUS unparse(const Part& part, STRING* pstrValue) const;
+	virtual Part::Field parse(const Part& part,
+							  const WCHAR* pwszName);
+	virtual string_ptr unparse(const Part& part) const;
 
 private:
 	SimpleParser(const SimpleParser&);
@@ -405,7 +426,7 @@ private:
 
 private:
 	unsigned int nFlags_;
-	WSTRING wstrValue_;
+	wstring_ptr wstrValue_;
 };
 
 
@@ -424,17 +445,18 @@ public:
 	};
 
 public:
-	NumberParser(unsigned int nFlags, QSTATUS* pstatus);
-	NumberParser(unsigned int n, unsigned int nFlags, QSTATUS* pstatus);
+	explicit NumberParser(unsigned int nFlags);
+	NumberParser(unsigned int n,
+				 unsigned int nFlags);
 	virtual ~NumberParser();
 
 public:
 	unsigned int getValue() const;
 
 public:
-	virtual QSTATUS parse(const Part& part,
-		const WCHAR* pwszName, Part::Field* pField);
-	virtual QSTATUS unparse(const Part& part, STRING* pstrValue) const;
+	virtual Part::Field parse(const Part& part,
+							  const WCHAR* pwszName);
+	virtual string_ptr unparse(const Part& part) const;
 
 private:
 	NumberParser(const NumberParser&);
@@ -462,31 +484,36 @@ private:
 class QSEXPORTCLASS DateParser : public FieldParser
 {
 public:
-	explicit DateParser(QSTATUS* pstatus);
-	DateParser(const Time& date, QSTATUS* pstatus);
+	DateParser();
+	DateParser(const Time& date);
 	virtual ~DateParser();
 
 public:
 	const Time& getTime() const;
 
 public:
-	virtual QSTATUS parse(const Part& part,
-		const WCHAR* pwszName, Part::Field* pField);
-	virtual QSTATUS unparse(const Part& part, STRING* pstrValue) const;
+	virtual Part::Field parse(const Part& part,
+							  const WCHAR* pwszName);
+	virtual string_ptr unparse(const Part& part) const;
 
 public:
-	static QSTATUS parse(const CHAR* psz, size_t nLen,
-		bool bAllowSingleDigitTime, Time* pTime);
+	static bool parse(const CHAR* psz,
+					  size_t nLen,
+					  bool bAllowSingleDigitTime,
+					  Time* pTime);
 
 private:
-	static QSTATUS getWeek(const CHAR* psz, int* pnWeek);
-	static QSTATUS getDay(const CHAR* psz, int* pnDay);
-	static QSTATUS getMonth(const CHAR* psz, int* pnMonth);
-	static QSTATUS getYear(const CHAR* psz, int* pnYear);
-	static QSTATUS getHour(const CHAR* psz, bool bAllowSingleDigit, int* pnHour);
-	static QSTATUS getMinute(const CHAR* psz, bool bAllowSingleDigit, int* pnMinute);
-	static QSTATUS getSecond(const CHAR* psz, bool bAllowSingleDigit, int* pnSecond);
-	static QSTATUS getTimeZone(const CHAR* psz, int* pnTimezone);
+	static int getWeek(const CHAR* psz);
+	static int getDay(const CHAR* psz);
+	static int getMonth(const CHAR* psz);
+	static int getYear(const CHAR* psz);
+	static int getHour(const CHAR* psz,
+					   bool bAllowSingleDigit);
+	static int getMinute(const CHAR* psz,
+						 bool bAllowSingleDigit);
+	static int getSecond(const CHAR* psz,
+						 bool bAllowSingleDigit);
+	static int getTimeZone(const CHAR* psz);
 	static bool isDigit(const CHAR* psz);
 
 private:
@@ -533,11 +560,12 @@ private:
 	typedef std::vector<std::pair<STRING, bool> > Phrases;
 
 public:
-	AddressParser(unsigned int nFlags, QSTATUS* pstatus);
+	explicit AddressParser(unsigned int nFlags);
 	AddressParser(const WCHAR* pwszPhrase,
-		const WCHAR* pwszAddress, QSTATUS* pstatus);
-	AddressParser(const WCHAR* pwszPhrase, const WCHAR* pwszMailbox,
-		const WCHAR* pwszHost, QSTATUS* pstatus);
+				  const WCHAR* pwszAddress);
+	AddressParser(const WCHAR* pwszPhrase,
+				  const WCHAR* pwszMailbox,
+				  const WCHAR* pwszHost);
 	virtual ~AddressParser();
 
 public:
@@ -545,31 +573,34 @@ public:
 	const WCHAR* getMailbox() const;
 	const WCHAR* getHost() const;
 	AddressListParser* getGroup() const;
-	QSTATUS getAddress(WSTRING* pwstrAddress) const;
-	QSTATUS getValue(WSTRING* pwstrValue) const;
-	QSTATUS setPhrase(const WCHAR* pwszPhrase);
+	wstring_ptr getAddress() const;
+	wstring_ptr getValue() const;
+	void setPhrase(const WCHAR* pwszPhrase);
 
 public:
-	virtual QSTATUS parse(const Part& part,
-		const WCHAR* pwszName, Part::Field* pField);
-	virtual QSTATUS unparse(const Part& part, STRING* pstrValue) const;
+	virtual Part::Field parse(const Part& part,
+							  const WCHAR* pwszName);
+	virtual string_ptr unparse(const Part& part) const;
 
 public:
-	static QSTATUS isNeedQuoteMailbox(const CHAR* pszMailbox, bool* pbNeed);
-	static QSTATUS getAddrSpec(const CHAR* pszMailbox,
-		const CHAR* pszHost, STRING* pstrAddrSpec);
-	static QSTATUS getAddrSpec(const WCHAR* pwszMailbox,
-		const WCHAR* pwszHost, STRING* pstrAddrSpec);
+	static bool isNeedQuoteMailbox(const CHAR* pszMailbox);
+	static string_ptr getAddrSpec(const CHAR* pszMailbox,
+								  const CHAR* pszHost);
+	static string_ptr getAddrSpec(const WCHAR* pwszMailbox,
+								  const WCHAR* pwszHost);
 
 private:
-	QSTATUS parseAddress(const Part& part, Tokenizer& t,
-		Part::Field* pField, bool* pbEnd);
+	Part::Field parseAddress(const Part& part,
+							 Tokenizer& t,
+							 bool* pbEnd);
 
 private:
-	static QSTATUS decodePhrase(const CHAR* psz, bool bAtom,
-		bool bAllowEncodedQString, WSTRING* pwstrDecoded, bool* pbDecode);
-	static QSTATUS getMailboxFromPhrases(const Phrases& phrases,
-		bool bAllowInvalidPeriod, STRING* pstrMailbox);
+	static wstring_ptr decodePhrase(const CHAR* psz,
+									bool bAtom,
+									bool bAllowEncodedQString,
+									bool* pbDecoded);
+	static string_ptr getMailboxFromPhrases(const Phrases& phrases,
+											bool bAllowInvalidPeriod);
 
 private:
 	AddressParser(const AddressParser&);
@@ -591,10 +622,10 @@ private:
 
 private:
 	unsigned int nFlags_;
-	WSTRING wstrPhrase_;
-	WSTRING wstrMailbox_;
-	WSTRING wstrHost_;
-	AddressListParser* pGroup_;
+	wstring_ptr wstrPhrase_;
+	wstring_ptr wstrMailbox_;
+	wstring_ptr wstrHost_;
+	std::auto_ptr<AddressListParser> pGroup_;
 
 friend class AddressListParser;
 };
@@ -619,30 +650,30 @@ public:
 	typedef std::vector<AddressParser*> AddressList;
 
 public:
-	AddressListParser(unsigned int nFlags, QSTATUS* pstatus);
+	explicit AddressListParser(unsigned int nFlags);
 	virtual ~AddressListParser();
 
 public:
-	QSTATUS getValue(WSTRING* pwstrValue) const;
-	QSTATUS getNames(WSTRING* pwstrNames) const;
-	QSTATUS getAddresses(WSTRING* pwstrAddresses) const;
+	wstring_ptr getValue() const;
+	wstring_ptr getNames() const;
+	wstring_ptr getAddresses() const;
 	const AddressList& getAddressList() const;
-	QSTATUS appendAddress(AddressParser* pAddress);
-	QSTATUS insertAddress(AddressParser* pAddressRef,
-		AddressParser* pAddress);
-	QSTATUS removeAddress(AddressParser* pAddress);
+	void appendAddress(std::auto_ptr<AddressParser> pAddress);
+	void insertAddress(AddressParser* pAddressRef,
+					   std::auto_ptr<AddressParser> pAddress);
+	void removeAddress(AddressParser* pAddress);
 	void removeAllAddresses();
-	QSTATUS replaceAddress(AddressParser* pAddressOld,
-		AddressParser* pAddressNew);
+	void replaceAddress(AddressParser* pAddressOld,
+						std::auto_ptr<AddressParser> pAddressNew);
 
 public:
-	virtual QSTATUS parse(const Part& part,
-		const WCHAR* pwszName, Part::Field* pField);
-	virtual QSTATUS unparse(const Part& part, STRING* pstrValue) const;
+	virtual Part::Field parse(const Part& part,
+							  const WCHAR* pwszName);
+	virtual string_ptr unparse(const Part& part) const;
 
 private:
-	QSTATUS parseAddressList(const Part& part,
-		Tokenizer& t, Part::Field* pField);
+	Part::Field parseAddressList(const Part& part,
+								 Tokenizer& t);
 
 private:
 	AddressListParser(const AddressListParser&);
@@ -665,17 +696,17 @@ friend class AddressParser;
 class QSEXPORTCLASS MessageIdParser : public FieldParser
 {
 public:
-	explicit MessageIdParser(QSTATUS* pstatus);
-	MessageIdParser(const WCHAR* pwszMessageId, QSTATUS* pstatus);
+	MessageIdParser();
+	explicit MessageIdParser(const WCHAR* pwszMessageId);
 	virtual ~MessageIdParser();
 
 public:
 	const WCHAR* getMessageId() const;
 
 public:
-	virtual QSTATUS parse(const Part& part,
-		const WCHAR* pwszName, Part::Field* pField);
-	virtual QSTATUS unparse(const Part& part, STRING* pstrValue) const;
+	virtual Part::Field parse(const Part& part,
+							  const WCHAR* pwszName);
+	virtual string_ptr unparse(const Part& part) const;
 
 private:
 	MessageIdParser(const MessageIdParser&);
@@ -689,7 +720,7 @@ private:
 	};
 
 private:
-	WSTRING wstrMessageId_;
+	wstring_ptr wstrMessageId_;
 };
 
 
@@ -711,16 +742,16 @@ public:
 	typedef std::vector<std::pair<WSTRING, Type> > ReferenceList;
 
 public:
-	explicit ReferencesParser(QSTATUS* pstatus);
+	ReferencesParser();
 	virtual ~ReferencesParser();
 
 public:
 	const ReferenceList& getReferences() const;
 
 public:
-	virtual QSTATUS parse(const Part& part,
-		const WCHAR* pwszName, Part::Field* pField);
-	virtual QSTATUS unparse(const Part& part, STRING* pstrValue) const;
+	virtual Part::Field parse(const Part& part,
+							  const WCHAR* pwszName);
+	virtual string_ptr unparse(const Part& part) const;
 
 private:
 	ReferencesParser(const ReferencesParser&);
@@ -757,31 +788,34 @@ protected:
 	};
 
 public:
-	explicit ParameterFieldParser(QSTATUS* pstatus);
+	ParameterFieldParser();
 	virtual ~ParameterFieldParser();
 
 public:
-	QSTATUS getParameter(const WCHAR* pwszName, WSTRING* pwstrValue) const;
-	QSTATUS setParameter(const WCHAR* pwszName, const WCHAR* pwszValue);
+	wstring_ptr getParameter(const WCHAR* pwszName) const;
+	void setParameter(const WCHAR* pwszName,
+					  const WCHAR* pwszValue);
 
 protected:
-	QSTATUS parseParameter(const Part& part,
-		Tokenizer& t, State state, Part::Field* pField);
-	QSTATUS unparseParameter(const Part& part, STRING* pstrValue) const;
+	Part::Field parseParameter(const Part& part,
+							   Tokenizer& t,
+							   State state);
+	string_ptr unparseParameter(const Part& part) const;
 
 private:
 	const WCHAR* getRawParameter(const WCHAR* pwszName) const;
-	QSTATUS setRawParameter(const WCHAR* pwszName, const WCHAR* pwszValue);
+	void setRawParameter(const WCHAR* pwszName,
+						 const WCHAR* pwszValue);
 
 public:
-	static QSTATUS decode2231FirstValue(const WCHAR* pwszValue,
-		STRING* pstrDecode, Converter** ppConverter);
-	static QSTATUS decode2231Value(const WCHAR* pwszValue, STRING* pstrDecoded);
-	static QSTATUS encode2231Value(const CHAR* pszValue,
-		size_t nLen, STRING* pstrEncoded);
+	static string_ptr decode2231FirstValue(const WCHAR* pwszValue,
+										   std::auto_ptr<Converter>* ppConverter);
+	static string_ptr decode2231Value(const WCHAR* pwszValue);
+	static string_ptr encode2231Value(const CHAR* pszValue,
+									  size_t nLen);
 	static bool isHex(WCHAR c);
 	static unsigned char decodeHex(const WCHAR* pwszValue);
-	static QSTATUS encodeHex(unsigned char c, CHAR* pszEncoded);
+	static void encodeHex(unsigned char c, CHAR* pszEncoded);
 
 private:
 	ParameterFieldParser(const ParameterFieldParser&);
@@ -804,23 +838,23 @@ private:
 class QSEXPORTCLASS SimpleParameterParser : public ParameterFieldParser
 {
 public:
-	explicit SimpleParameterParser(QSTATUS* pstatus);
+	SimpleParameterParser();
 	virtual ~SimpleParameterParser();
 
 public:
 	const WCHAR* getValue() const;
 
 public:
-	virtual QSTATUS parse(const Part& part,
-		const WCHAR* pwszName, Part::Field* pField);
-	virtual QSTATUS unparse(const Part& part, STRING* pstrValue) const;
+	virtual Part::Field parse(const Part& part,
+							  const WCHAR* pwszName);
+	virtual string_ptr unparse(const Part& part) const;
 
 private:
 	SimpleParameterParser(const SimpleParameterParser&);
 	SimpleParameterParser& operator=(const SimpleParameterParser&);
 
 private:
-	WSTRING wstrValue_;
+	wstring_ptr wstrValue_;
 };
 
 
@@ -833,9 +867,9 @@ private:
 class QSEXPORTCLASS ContentTypeParser : public ParameterFieldParser
 {
 public:
-	explicit ContentTypeParser(QSTATUS* pstatus);
+	ContentTypeParser();
 	ContentTypeParser(const WCHAR* pwszMediaType,
-		const WCHAR* pwszSubType, QSTATUS* pstatus);
+					  const WCHAR* pwszSubType);
 	virtual ~ContentTypeParser();
 
 public:
@@ -843,9 +877,9 @@ public:
 	const WCHAR* getSubType() const;
 
 public:
-	virtual QSTATUS parse(const Part& part,
-		const WCHAR* pwszName, Part::Field* pField);
-	virtual QSTATUS unparse(const Part& part, STRING* pstrValue) const;
+	virtual Part::Field parse(const Part& part,
+							  const WCHAR* pwszName);
+	virtual string_ptr unparse(const Part& part) const;
 
 private:
 	ContentTypeParser(const ContentTypeParser&);
@@ -860,8 +894,8 @@ private:
 	};
 
 private:
-	WSTRING wstrMediaType_;
-	WSTRING wstrSubType_;
+	wstring_ptr wstrMediaType_;
+	wstring_ptr wstrSubType_;
 };
 
 
@@ -874,24 +908,24 @@ private:
 class QSEXPORTCLASS ContentDispositionParser : public ParameterFieldParser
 {
 public:
-	explicit ContentDispositionParser(QSTATUS* pstatus);
-	ContentDispositionParser(const WCHAR* pwszDispositionType, QSTATUS* pstatus);
+	ContentDispositionParser();
+	explicit ContentDispositionParser(const WCHAR* pwszDispositionType);
 	virtual ~ContentDispositionParser();
 
 public:
 	const WCHAR* getDispositionType() const;
 
 public:
-	virtual QSTATUS parse(const Part& part,
-		const WCHAR* pwszName, Part::Field* pField);
-	virtual QSTATUS unparse(const Part& part, STRING* pstrValue) const;
+	virtual Part::Field parse(const Part& part,
+							  const WCHAR* pwszName);
+	virtual string_ptr unparse(const Part& part) const;
 
 private:
 	ContentDispositionParser(const ContentDispositionParser&);
 	ContentDispositionParser& operator=(const ContentDispositionParser&);
 
 private:
-	WSTRING wstrDispositionType_;
+	wstring_ptr wstrDispositionType_;
 };
 
 
@@ -904,17 +938,17 @@ private:
 class QSEXPORTCLASS ContentTransferEncodingParser : public FieldParser
 {
 public:
-	explicit ContentTransferEncodingParser(QSTATUS* pstatus);
-	ContentTransferEncodingParser(const WCHAR* pwszEncoding, QSTATUS* pstatus);
+	ContentTransferEncodingParser();
+	explicit ContentTransferEncodingParser(const WCHAR* pwszEncoding);
 	virtual ~ContentTransferEncodingParser();
 
 public:
 	const WCHAR* getEncoding() const;
 
 public:
-	virtual QSTATUS parse(const Part& part,
-		const WCHAR* pwszName, Part::Field* pField);
-	virtual QSTATUS unparse(const Part& part, STRING* pstrValue) const;
+	virtual Part::Field parse(const Part& part,
+							  const WCHAR* pwszName);
+	virtual string_ptr unparse(const Part& part) const;
 
 private:
 	ContentTransferEncodingParser(const ContentTransferEncodingParser&);
@@ -935,17 +969,23 @@ template<class Char, class String>
 class BoundaryFinder
 {
 public:
-	BoundaryFinder(const Char* pszMessage, size_t nLen,
-		const Char* pszBoundary, const Char* pszNewLine,
-		bool bAllowIncomplete, QSTATUS* pstatus);
+	BoundaryFinder(const Char* pszMessage,
+				   size_t nLen,
+				   const Char* pszBoundary,
+				   const Char* pszNewLine,
+				   bool bAllowIncomplete);
 	~BoundaryFinder();
 
 public:
-	QSTATUS getNext(const Char** ppBegin, const Char** ppEnd, bool* pbEnd);
+	bool getNext(const Char** ppBegin,
+				 const Char** ppEnd,
+				 bool* pbEnd);
 
 private:
-	void getNextBoundary(const Char* p, size_t nLen,
-		const Char** ppBegin, const Char** ppEnd);
+	void getNextBoundary(const Char* p,
+						 size_t nLen,
+						 const Char** ppBegin,
+						 const Char** ppEnd);
 
 private:
 	BoundaryFinder(const BoundaryFinder&);
@@ -954,7 +994,7 @@ private:
 private:
 	const Char* p_;
 	size_t nLen_;
-	BMFindString<String>* pFindString_;
+	std::auto_ptr<BMFindString<String> > pFindString_;
 	size_t nBoundaryLen_;
 	const Char* pszNewLine_;
 	bool bAllowIncomplete_;

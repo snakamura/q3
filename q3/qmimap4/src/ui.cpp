@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -24,8 +24,8 @@ using namespace qs;
  *
  */
 
-qmimap4::ReceivePage::ReceivePage(SubAccount* pSubAccount, QSTATUS* pstatus) :
-	DefaultPropertyPage(getResourceHandle(), IDD_RECEIVE, pstatus),
+qmimap4::ReceivePage::ReceivePage(SubAccount* pSubAccount) :
+	DefaultPropertyPage(getResourceHandle(), IDD_RECEIVE),
 	pSubAccount_(pSubAccount)
 {
 }
@@ -34,35 +34,17 @@ qmimap4::ReceivePage::~ReceivePage()
 {
 }
 
-LRESULT qmimap4::ReceivePage::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qmimap4::ReceivePage::onInitDialog(HWND hwndFocus,
+										   LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrRootFolder;
 	Account* pAccount = pSubAccount_->getAccount();
-	status = pAccount->getProperty(
-		L"Imap4", L"RootFolder", 0, &wstrRootFolder);
-	CHECK_QSTATUS_VALUE(TRUE);
-	int nFetchCount = 0;
-	status = pSubAccount_->getProperty(L"Imap4",
-		L"FetchCount", 100, &nFetchCount);
-	CHECK_QSTATUS_VALUE(TRUE);
-	int nMaxSession = 0;
-	status = pSubAccount_->getProperty(L"Imap4",
-		L"MaxSession", 5, &nMaxSession);
-	CHECK_QSTATUS_VALUE(TRUE);
-	int nOption = 0;
-	status = pSubAccount_->getProperty(L"Imap4", L"Option", 0xff, &nOption);
-	CHECK_QSTATUS_VALUE(TRUE);
-	int nUseNamespace = 0;
-	status = pSubAccount_->getProperty(L"Imap4", L"UseNamespace", 0, &nUseNamespace);
-	CHECK_QSTATUS_VALUE(TRUE);
-	int nCloseFolder = 0;
-	status = pSubAccount_->getProperty(L"Imap4", L"CloseFolder", 0, &nCloseFolder);
-	CHECK_QSTATUS_VALUE(TRUE);
-	int nStartTls = 0;
-	status = pSubAccount_->getProperty(L"Imap4", L"STARTTLS", 0, &nStartTls);
-	CHECK_QSTATUS_VALUE(TRUE);
+	wstring_ptr wstrRootFolder(pAccount->getProperty(L"Imap4", L"RootFolder", L""));
+	int nFetchCount = pSubAccount_->getProperty(L"Imap4", L"FetchCount", 100);
+	int nMaxSession = pSubAccount_->getProperty(L"Imap4", L"MaxSession", 5);
+	int nOption = pSubAccount_->getProperty(L"Imap4", L"Option", 0xff);
+	int nUseNamespace = pSubAccount_->getProperty(L"Imap4", L"UseNamespace", 0);
+	int nCloseFolder = pSubAccount_->getProperty(L"Imap4", L"CloseFolder", 0);
+	int nStartTls = pSubAccount_->getProperty(L"Imap4", L"STARTTLS", 0);
 	
 	setDlgItemInt(IDC_PORT, pSubAccount_->getPort(Account::HOST_RECEIVE));
 	sendDlgItemMessage(IDC_SSL, BM_SETCHECK,
@@ -102,7 +84,7 @@ LRESULT qmimap4::ReceivePage::onOk()
 	pSubAccount_->setPort(Account::HOST_RECEIVE, getDlgItemInt(IDC_PORT));
 	pSubAccount_->setSsl(Account::HOST_RECEIVE,
 		sendDlgItemMessage(IDC_SSL, BM_GETCHECK) == BST_CHECKED);
-	string_ptr<WSTRING> wstrRootFolder(getDlgItemText(IDC_ROOTFOLDER));
+	wstring_ptr wstrRootFolder(getDlgItemText(IDC_ROOTFOLDER));
 	if (wstrRootFolder.get())
 		pSubAccount_->setProperty(L"Imap4", L"RootFolder", wstrRootFolder.get());
 	pSubAccount_->setProperty(L"Imap4", L"FetchCount",

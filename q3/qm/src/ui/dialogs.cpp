@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -14,7 +14,6 @@
 
 #include <qsconv.h>
 #include <qsmime.h>
-#include <qsnew.h>
 #include <qsras.h>
 #include <qsuiutil.h>
 
@@ -40,8 +39,8 @@ using namespace qs;
  *
  */
 
-qm::DefaultDialog::DefaultDialog(UINT nId, QSTATUS* pstatus) :
-	qs::DefaultDialog(Application::getApplication().getResourceHandle(), nId, pstatus)
+qm::DefaultDialog::DefaultDialog(UINT nId) :
+	qs::DefaultDialog(Application::getApplication().getResourceHandle(), nId)
 {
 }
 
@@ -56,9 +55,11 @@ qm::DefaultDialog::~DefaultDialog()
  *
  */
 
-qm::AccountDialog::AccountDialog(Document* pDocument, Account* pAccount,
-	SyncFilterManager* pSyncFilterManager, Profile* pProfile, QSTATUS* pstatus) :
-	DefaultDialog(IDD_ACCOUNT, pstatus),
+qm::AccountDialog::AccountDialog(Document* pDocument,
+								 Account* pAccount,
+								 SyncFilterManager* pSyncFilterManager,
+								 Profile* pProfile) :
+	DefaultDialog(IDD_ACCOUNT),
 	pDocument_(pDocument),
 	pSubAccount_(pAccount ? pAccount->getCurrentSubAccount() : 0),
 	pSyncFilterManager_(pSyncFilterManager),
@@ -70,7 +71,8 @@ qm::AccountDialog::~AccountDialog()
 {
 }
 
-LRESULT qm::AccountDialog::onCommand(WORD nCode, WORD nId)
+LRESULT qm::AccountDialog::onCommand(WORD nCode,
+									 WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_ADDACCOUNT, onAddAccount)
@@ -92,7 +94,8 @@ LRESULT qm::AccountDialog::onDestroy()
 	return DefaultDialog::onDestroy();
 }
 
-LRESULT qm::AccountDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::AccountDialog::onInitDialog(HWND hwndFocus,
+										LPARAM lParam)
 {
 	HIMAGELIST hImageList = ImageList_LoadImage(
 		Application::getApplication().getResourceHandle(),
@@ -107,7 +110,8 @@ LRESULT qm::AccountDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	return TRUE;
 }
 
-LRESULT qm::AccountDialog::onNotify(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qm::AccountDialog::onNotify(NMHDR* pnmhdr,
+									bool* pbHandled)
 {
 	BEGIN_NOTIFY_HANDLER()
 		HANDLE_NOTIFY(TVN_SELCHANGED, IDC_ACCOUNT, onAccountSelChanged);
@@ -117,56 +121,35 @@ LRESULT qm::AccountDialog::onNotify(NMHDR* pnmhdr, bool* pbHandled)
 
 LRESULT qm::AccountDialog::onAddAccount()
 {
-	DECLARE_QSTATUS();
-	
-	CreateAccountDialog dialog(pProfile_, &status);
-	CHECK_QSTATUS_VALUE(0);
-	int nRet = 0;
-	status = dialog.doModal(getHandle(), 0, &nRet);
-	CHECK_QSTATUS_VALUE(0);
-	if (nRet == IDOK) {
-		string_ptr<WSTRING> wstrDir(concat(
-			Application::getApplication().getMailFolder(),
+	CreateAccountDialog dialog(pProfile_);
+	if (dialog.doModal(getHandle()) == IDOK) {
+		wstring_ptr wstrDir(concat(Application::getApplication().getMailFolder(),
 			L"\\accounts\\", dialog.getName()));
-		if (!wstrDir.get())
-			return 0;
 		W2T(wstrDir.get(), ptszDir);
-		if (!::CreateDirectory(ptszDir, 0))
-			return 0;
+		if (!::CreateDirectory(ptszDir, 0)) {
+			// TODO MSG
+		}
 		
-		string_ptr<WSTRING> wstrPath(concat(
-			wstrDir.get(), L"\\", FileNames::ACCOUNT_XML));
-		if (!wstrPath.get())
-			return 0;
-		XMLProfile profile(wstrPath.get(), &status);
-		CHECK_QSTATUS_VALUE(0);
-		status = profile.setString(L"Global", L"Class", dialog.getClass());
-		CHECK_QSTATUS_VALUE(0);
-		status = profile.setInt(L"Global", L"BlockSize", dialog.getBlockSize());
-		CHECK_QSTATUS_VALUE(0);
-		status = profile.setInt(L"Global", L"CacheBlockSize", dialog.getCacheBlockSize());
-		CHECK_QSTATUS_VALUE(0);
-		status = profile.setString(L"Receive", L"Type", dialog.getReceiveProtocol());
-		CHECK_QSTATUS_VALUE(0);
-		status = profile.setInt(L"Receive", L"Port", dialog.getReceivePort());
-		CHECK_QSTATUS_VALUE(0);
-		status = profile.setString(L"Send", L"Type", dialog.getSendProtocol());
-		CHECK_QSTATUS_VALUE(0);
-		status = profile.setInt(L"Send", L"Port", dialog.getSendPort());
-		CHECK_QSTATUS_VALUE(0);
-		status = profile.save();
-		CHECK_QSTATUS_VALUE(0);
+		wstring_ptr wstrPath(concat(wstrDir.get(), L"\\", FileNames::ACCOUNT_XML));
+		XMLProfile profile(wstrPath.get());
+		profile.setString(L"Global", L"Class", dialog.getClass());
+		profile.setInt(L"Global", L"BlockSize", dialog.getBlockSize());
+		profile.setInt(L"Global", L"CacheBlockSize", dialog.getCacheBlockSize());
+		profile.setString(L"Receive", L"Type", dialog.getReceiveProtocol());
+		profile.setInt(L"Receive", L"Port", dialog.getReceivePort());
+		profile.setString(L"Send", L"Type", dialog.getSendProtocol());
+		profile.setInt(L"Send", L"Port", dialog.getSendPort());
+		if (!profile.save()) {
+			// TODO MSG
+		}
 		
-		std::auto_ptr<Account> pAccount;
-		status = newQsObject(wstrDir.get(), pDocument_->getSecurity(), &pAccount);
-		CHECK_QSTATUS_VALUE(0);
-		status = pDocument_->addAccount(pAccount.get());
-		CHECK_QSTATUS_VALUE(0);
-		pSubAccount_ = pAccount->getCurrentSubAccount();
-		pAccount.release();
+		std::auto_ptr<Account> pAccount(new Account(
+			wstrDir.get(), pDocument_->getSecurity()));
+		Account* p = pAccount.get();
+		pDocument_->addAccount(pAccount);
+		pSubAccount_ = p->getCurrentSubAccount();
 		
-		status = update();
-		CHECK_QSTATUS_VALUE(0);
+		update();
 		
 		postMessage(WM_COMMAND, MAKEWPARAM(IDC_PROPERTY, BN_CLICKED),
 			reinterpret_cast<LPARAM>(getDlgItem(IDC_PROPERTY)));
@@ -177,8 +160,6 @@ LRESULT qm::AccountDialog::onAddAccount()
 
 LRESULT qm::AccountDialog::onAddSubAccount()
 {
-	DECLARE_QSTATUS();
-	
 	HWND hwnd = getDlgItem(IDC_ACCOUNT);
 	
 	HTREEITEM hItem = TreeView_GetSelection(hwnd);
@@ -193,27 +174,22 @@ LRESULT qm::AccountDialog::onAddSubAccount()
 		Account* pAccount = reinterpret_cast<Account*>(item.lParam);
 		assert(pAccount);
 		
-		CreateSubAccountDialog dialog(pDocument_, &status);
-		CHECK_QSTATUS_VALUE(0);
-		int nRet = 0;
-		status = dialog.doModal(getHandle(), 0, &nRet);
-		CHECK_QSTATUS_VALUE(0);
-		if (nRet == IDOK) {
+		CreateSubAccountDialog dialog(pDocument_);
+		if (dialog.doModal(getHandle()) == IDOK) {
 			const WCHAR* pwszName = dialog.getName();
 			
 			if (pAccount->getSubAccount(pwszName)) {
-				// TODO
-				// Message box
+				// TODO MSG
 				return 0;
 			}
 			
-			status = pAccount->save();
-			CHECK_QSTATUS();
-			
-			string_ptr<WSTRING> wstrAccountPath(concat(
-				pAccount->getPath(), L"\\", FileNames::ACCOUNT_XML));
-			if (!wstrAccountPath.get())
+			if (!pAccount->save()) {
+				// TODO MSG
 				return 0;
+			}
+			
+			wstring_ptr wstrAccountPath(concat(
+				pAccount->getPath(), L"\\", FileNames::ACCOUNT_XML));
 			
 			ConcatW c[] = {
 				{ pAccount->getPath(),		-1	},
@@ -223,34 +199,26 @@ LRESULT qm::AccountDialog::onAddSubAccount()
 				{ pwszName,					-1	},
 				{ FileNames::XML_EXT,		-1	}
 			};
-			string_ptr<WSTRING> wstrPath(concat(c, countof(c)));
-			if (!wstrPath.get())
+			wstring_ptr wstrPath(concat(c, countof(c)));
+			
+			W2T(wstrAccountPath.get(), ptszAccountPath);
+			W2T(wstrPath.get(), ptszPath);
+			if (!::CopyFile(ptszAccountPath, ptszPath, FALSE)) {
+				// TODO MSG
 				return 0;
+			}
 			
-			W2T_STATUS(wstrAccountPath.get(), ptszAccountPath);
-			CHECK_QSTATUS_VALUE(0);
-			W2T_STATUS(wstrPath.get(), ptszPath);
-			CHECK_QSTATUS_VALUE(0);
-			if (!::CopyFile(ptszAccountPath, ptszPath, FALSE))
+			std::auto_ptr<XMLProfile> pProfile(new XMLProfile(wstrPath.get()));
+			if (!pProfile->load()) {
+				// TODO MSG
 				return 0;
+			}
 			
-			std::auto_ptr<XMLProfile> pProfile;
-			status = newQsObject(wstrPath.get(), &pProfile);
-			CHECK_QSTATUS_VALUE(0);
-			status = pProfile->load();
-			CHECK_QSTATUS();
+			std::auto_ptr<SubAccount> pSubAccount(
+				new SubAccount(pAccount, pProfile, pwszName));
+			pAccount->addSubAccount(pSubAccount);
 			
-			std::auto_ptr<SubAccount> pSubAccount;
-			status = newQsObject(pAccount, pProfile.get(),
-				pwszName, &pSubAccount);
-			CHECK_QSTATUS();
-			pProfile.release();
-			status = pAccount->addSubAccount(pSubAccount.get());
-			CHECK_QSTATUS_VALUE(0);
-			pSubAccount_ = pSubAccount.release();
-			
-			status = update();
-			CHECK_QSTATUS_VALUE(0);
+			update();
 			
 			postMessage(WM_COMMAND, MAKEWPARAM(IDC_PROPERTY, BN_CLICKED),
 				reinterpret_cast<LPARAM>(getDlgItem(IDC_PROPERTY)));
@@ -262,8 +230,6 @@ LRESULT qm::AccountDialog::onAddSubAccount()
 
 LRESULT qm::AccountDialog::onRemove()
 {
-	DECLARE_QSTATUS();
-	
 	HWND hwnd = getDlgItem(IDC_ACCOUNT);
 	
 	HTREEITEM hItem = TreeView_GetSelection(hwnd);
@@ -279,31 +245,24 @@ LRESULT qm::AccountDialog::onRemove()
 		if (TreeView_GetParent(hwnd, hItem)) {
 			SubAccount* pSubAccount = reinterpret_cast<SubAccount*>(item.lParam);
 			
-			int nRet = 0;
-			status = messageBox(hInst, IDS_CONFIRMREMOVESUBACCOUNT,
-				MB_YESNO | MB_DEFBUTTON2, getHandle(), 0, 0, &nRet);
-			CHECK_QSTATUS();
+			int nRet = messageBox(hInst, IDS_CONFIRMREMOVESUBACCOUNT,
+				MB_YESNO | MB_DEFBUTTON2, getHandle());
 			if (nRet == IDYES) {
 				Account* pAccount = pSubAccount->getAccount();
-				status = pAccount->removeSubAccount(pSubAccount);
-				CHECK_QSTATUS_VALUE(0);
+				pAccount->removeSubAccount(pSubAccount);
 				pSubAccount_ = pAccount->getCurrentSubAccount();
-				status = update();
-				CHECK_QSTATUS_VALUE(0);
+				
+				update();
 			}
 		}
 		else {
 			Account* pAccount = reinterpret_cast<Account*>(item.lParam);
 			
-			int nRet = 0;
-			status = messageBox(hInst, IDS_CONFIRMREMOVEACCOUNT,
-				MB_YESNO | MB_DEFBUTTON2, getHandle(), 0, 0, &nRet);
-			CHECK_QSTATUS();
+			int nRet = messageBox(hInst, IDS_CONFIRMREMOVEACCOUNT,
+				MB_YESNO | MB_DEFBUTTON2, getHandle());
 			if (nRet == IDYES) {
-				status = pDocument_->removeAccount(pAccount);
-				CHECK_QSTATUS();
-				status = update();
-				CHECK_QSTATUS_VALUE(0);
+				pDocument_->removeAccount(pAccount);
+				update();
 			}
 		}
 	}
@@ -315,8 +274,6 @@ LRESULT qm::AccountDialog::onRemove()
 
 LRESULT qm::AccountDialog::onRename()
 {
-	DECLARE_QSTATUS();
-	
 	HWND hwnd = getDlgItem(IDC_ACCOUNT);
 	
 	HTREEITEM hItem = TreeView_GetSelection(hwnd);
@@ -330,32 +287,26 @@ LRESULT qm::AccountDialog::onRename()
 		if (TreeView_GetParent(hwnd, hItem)) {
 			SubAccount* pSubAccount = reinterpret_cast<SubAccount*>(item.lParam);
 			
-			RenameDialog dialog(pSubAccount->getName(), &status);
-			CHECK_QSTATUS_VALUE(0);
-			int nRet = 0;
-			status = dialog.doModal(getHandle(), 0, &nRet);
-			CHECK_QSTATUS();
-			if (nRet == IDOK) {
+			RenameDialog dialog(pSubAccount->getName());
+			if (dialog.doModal(getHandle()) == IDOK) {
 				Account* pAccount = pSubAccount->getAccount();
-				status = pAccount->renameSubAccount(pSubAccount, dialog.getName());
-				CHECK_QSTATUS_VALUE(0);
-				status = update();
-				CHECK_QSTATUS_VALUE(0);
+				if (!pAccount->renameSubAccount(pSubAccount, dialog.getName())) {
+					// TODO MSG
+					return 0;
+				}
+				update();
 			}
 		}
 		else {
 			Account* pAccount = reinterpret_cast<Account*>(item.lParam);
 			
-			RenameDialog dialog(pAccount->getName(), &status);
-			CHECK_QSTATUS_VALUE(0);
-			int nRet = 0;
-			status = dialog.doModal(getHandle(), 0, &nRet);
-			CHECK_QSTATUS();
-			if (nRet == IDOK) {
-				status = pDocument_->renameAccount(pAccount, dialog.getName());
-				CHECK_QSTATUS();
-				status = update();
-				CHECK_QSTATUS_VALUE(0);
+			RenameDialog dialog(pAccount->getName());
+			if (dialog.doModal(getHandle()) == IDOK) {
+				if (!pDocument_->renameAccount(pAccount, dialog.getName())) {
+					// TODO MSG
+					return 0;
+				}
+				update();
 			}
 		}
 	}
@@ -365,8 +316,6 @@ LRESULT qm::AccountDialog::onRename()
 
 LRESULT qm::AccountDialog::onProperty()
 {
-	DECLARE_QSTATUS();
-	
 	HWND hwnd = getDlgItem(IDC_ACCOUNT);
 	
 	HTREEITEM hItem = TreeView_GetSelection(hwnd);
@@ -388,72 +337,47 @@ LRESULT qm::AccountDialog::onProperty()
 		assert(pSubAccount);
 		
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		string_ptr<WSTRING> wstrTitle;
-		status = loadString(hInst, IDS_ACCOUNT, &wstrTitle);
-		CHECK_QSTATUS();
+		wstring_ptr wstrTitle(loadString(hInst, IDS_ACCOUNT));
 		
 		Account* pAccount = pSubAccount->getAccount();
 		PropertyPage* pPage = 0;
 		
-		std::auto_ptr<ReceiveSessionUI> pReceiveUI;
-		status = ReceiveSessionFactory::getUI(
-			pAccount->getType(Account::HOST_RECEIVE), &pReceiveUI);
-		CHECK_QSTATUS_VALUE(0);
-		status = pReceiveUI->createPropertyPage(pSubAccount, &pPage);
-		CHECK_QSTATUS_VALUE(0);
-		std::auto_ptr<PropertyPage> pReceivePage(pPage);
+		std::auto_ptr<ReceiveSessionUI> pReceiveUI(
+			ReceiveSessionFactory::getUI(pAccount->getType(Account::HOST_RECEIVE)));
+		std::auto_ptr<PropertyPage> pReceivePage(pReceiveUI->createPropertyPage(pSubAccount));
 		
-		std::auto_ptr<SendSessionUI> pSendUI;
-		status = SendSessionFactory::getUI(
-			pAccount->getType(Account::HOST_SEND), &pSendUI);
-		CHECK_QSTATUS_VALUE(0);
-		status = pSendUI->createPropertyPage(pSubAccount, &pPage);
-		CHECK_QSTATUS_VALUE(0);
-		std::auto_ptr<PropertyPage> pSendPage(pPage);
+		std::auto_ptr<SendSessionUI> pSendUI(
+			SendSessionFactory::getUI(pAccount->getType(Account::HOST_SEND)));
+		std::auto_ptr<PropertyPage> pSendPage(pSendUI->createPropertyPage(pSubAccount));
 		
-		AccountGeneralPage generalPage(pSubAccount, &status);
-		CHECK_QSTATUS_VALUE(0);
-		AccountUserPage userPage(pSubAccount, &status);
-		CHECK_QSTATUS_VALUE(0);
-		AccountDialupPage dialupPage(pSubAccount, &status);
-		CHECK_QSTATUS_VALUE(0);
-		AccountAdvancedPage advancedPage(pSubAccount,
-			pSyncFilterManager_, &status);
-		CHECK_QSTATUS_VALUE(0);
-		PropertySheetBase sheet(hInst, wstrTitle.get(), false, &status);
-		CHECK_QSTATUS_VALUE(0);
-		status = sheet.add(&generalPage);
-		CHECK_QSTATUS_VALUE(0);
-		status = sheet.add(&userPage);
-		CHECK_QSTATUS_VALUE(0);
-		status = sheet.add(pReceivePage.get());
-		CHECK_QSTATUS_VALUE(0);
-		status = sheet.add(pSendPage.get());
-		CHECK_QSTATUS_VALUE(0);
-		status = sheet.add(&dialupPage);
-		CHECK_QSTATUS_VALUE(0);
-		status = sheet.add(&advancedPage);
-		CHECK_QSTATUS_VALUE(0);
+		AccountGeneralPage generalPage(pSubAccount);
+		AccountUserPage userPage(pSubAccount);
+		AccountDialupPage dialupPage(pSubAccount);
+		AccountAdvancedPage advancedPage(pSubAccount, pSyncFilterManager_);
+		PropertySheetBase sheet(hInst, wstrTitle.get(), false);
+		sheet.add(&generalPage);
+		sheet.add(&userPage);
+		sheet.add(pReceivePage.get());
+		sheet.add(pSendPage.get());
+		sheet.add(&dialupPage);
+		sheet.add(&advancedPage);
 		
-		int nRet = 0;
-		status = sheet.doModal(getHandle(), 0, &nRet);
-		CHECK_QSTATUS_VALUE(0);
+		sheet.doModal(getHandle());
 	}
 	
 	return 0;
 }
 
-LRESULT qm::AccountDialog::onAccountSelChanged(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qm::AccountDialog::onAccountSelChanged(NMHDR* pnmhdr,
+											   bool* pbHandled)
 {
 	updateState();
 	*pbHandled = true;
 	return 0;
 }
 
-QSTATUS qm::AccountDialog::update()
+void qm::AccountDialog::update()
 {
-	DECLARE_QSTATUS();
-	
 	SubAccount* pCurrentSubAccount = pSubAccount_;
 	
 	HWND hwnd = getDlgItem(IDC_ACCOUNT);
@@ -462,16 +386,13 @@ QSTATUS qm::AccountDialog::update()
 	
 	TreeView_DeleteAllItems(hwnd);
 	
-	string_ptr<WSTRING> wstrDefault;
-	status = loadString(Application::getApplication().getResourceHandle(),
-		IDS_DEFAULTSUBACCOUNT, &wstrDefault);
-	CHECK_QSTATUS();
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	wstring_ptr wstrDefault(loadString(hInst, IDS_DEFAULTSUBACCOUNT));
 	
 	HTREEITEM hItemSelect = 0;
 	
 	const Document::AccountList& listAccount = pDocument_->getAccounts();
-	Document::AccountList::const_iterator itA = listAccount.begin();
-	while (itA != listAccount.end()) {
+	for (Document::AccountList::const_iterator itA = listAccount.begin(); itA != listAccount.end(); ++itA) {
 		Account* pAccount = *itA;
 		
 		W2T(pAccount->getName(), ptszName);
@@ -494,8 +415,7 @@ QSTATUS qm::AccountDialog::update()
 		HTREEITEM hItem = TreeView_InsertItem(hwnd, &tis);
 		
 		const Account::SubAccountList& listSubAccount = pAccount->getSubAccounts();
-		Account::SubAccountList::const_iterator itS = listSubAccount.begin();
-		while (itS != listSubAccount.end()) {
+		for (Account::SubAccountList::const_iterator itS = listSubAccount.begin(); itS != listSubAccount.end(); ++itS) {
 			SubAccount* pSubAccount = *itS;
 			
 			const WCHAR* pwszName = pSubAccount->getName();
@@ -525,18 +445,13 @@ QSTATUS qm::AccountDialog::update()
 				else
 					hItemSelect = hItem;
 			}
-			
-			++itS;
 		}
-		++itA;
 	}
 	
 	if (hItemSelect) {
 		TreeView_SelectItem(hwnd, hItemSelect);
 		TreeView_EnsureVisible(hwnd, hItemSelect);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 void qm::AccountDialog::updateState()
@@ -596,7 +511,9 @@ void qm::AccountDialog::updateState()
  */
 
 namespace {
-int CALLBACK itemComp(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
+int CALLBACK itemComp(LPARAM lParam1,
+					  LPARAM lParam2,
+					  LPARAM lParamSort)
 {
 	AddressBookAddress* pAddress1 = reinterpret_cast<AddressBookAddress*>(lParam1);
 	AddressBookAddress* pAddress2 = reinterpret_cast<AddressBookAddress*>(lParam2);
@@ -626,7 +543,9 @@ int CALLBACK itemComp(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 		== AddressBookDialog::SORT_ASCENDING ? nComp : -nComp;
 }
 
-int CALLBACK selectedItemComp(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
+int CALLBACK selectedItemComp(LPARAM lParam1,
+							  LPARAM lParam2,
+							  LPARAM lParamSort)
 {
 	AddressBookDialog::Item* pItem1 = reinterpret_cast<AddressBookDialog::Item*>(lParam1);
 	AddressBookDialog::Item* pItem2 = reinterpret_cast<AddressBookDialog::Item*>(lParam2);
@@ -643,46 +562,31 @@ int CALLBACK selectedItemComp(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 #pragma warning(disable:4355)
 
 qm::AddressBookDialog::AddressBookDialog(AddressBook* pAddressBook,
-	Profile* pProfile, const WCHAR* pwszAddress[], QSTATUS* pstatus) :
-	DefaultDialog(IDD_ADDRESSBOOK, pstatus),
+										 Profile* pProfile,
+										 const WCHAR* pwszAddress[]) :
+	DefaultDialog(IDD_ADDRESSBOOK),
 	pAddressBook_(pAddressBook),
 	pProfile_(pProfile),
 	nSort_(SORT_NAME | SORT_ASCENDING),
-	wstrCategory_(0),
-	wstrFilter_(0),
-	wndAddressList_(this, pstatus)
+	wndAddressList_(this)
 {
-	DECLARE_QSTATUS();
-	
 	Type types[] = {
 		TYPE_TO,
 		TYPE_CC,
 		TYPE_BCC
 	};
 	for (int n = 0; n < countof(listAddress_); ++n) {
-		DummyParser field(pwszAddress[n], 0, &status);
-		CHECK_QSTATUS_SET(pstatus);
-		Part part(&status);
-		CHECK_QSTATUS_SET(pstatus);
-		status = part.setField(L"Dummy", field);
-		CHECK_QSTATUS_SET(pstatus);
-		AddressListParser addressList(0, &status);
-		CHECK_QSTATUS_SET(pstatus);
-		Part::Field f;
-		status = part.getField(L"Dummy", &addressList, &f);
-		CHECK_QSTATUS_SET(pstatus);
-		if (f == Part::FIELD_EXIST) {
-			const AddressListParser::AddressList& l = addressList.getAddressList();
-			AddressListParser::AddressList::const_iterator it = l.begin();
-			while (it != l.end()) {
-				string_ptr<WSTRING> wstrValue;
-				status = (*it)->getValue(&wstrValue);
-				CHECK_QSTATUS_SET(pstatus);
-				status = STLWrapper<AddressList>(
-					listAddress_[n]).push_back(wstrValue.get());
-				CHECK_QSTATUS_SET(pstatus);
-				wstrValue.release();
-				++it;
+		DummyParser field(pwszAddress[n], 0);
+		Part part;
+		if (part.setField(L"Dummy", field)) {
+			AddressListParser addressList(0);
+			if (part.getField(L"Dummy", &addressList) == Part::FIELD_EXIST) {
+				const AddressListParser::AddressList& l = addressList.getAddressList();
+				for (AddressListParser::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
+					wstring_ptr wstrValue((*it)->getValue());
+					listAddress_[n].push_back(wstrValue.get());
+					wstrValue.release();
+				}
 			}
 		}
 	}
@@ -692,8 +596,6 @@ qm::AddressBookDialog::AddressBookDialog(AddressBook* pAddressBook,
 
 qm::AddressBookDialog::~AddressBookDialog()
 {
-	freeWString(wstrCategory_);
-	freeWString(wstrFilter_);
 	for (int n = 0; n < countof(listAddress_); ++n)
 		std::for_each(listAddress_[n].begin(),
 			listAddress_[n].end(), string_free<WSTRING>());
@@ -704,7 +606,9 @@ const AddressBookDialog::AddressList& qm::AddressBookDialog::getAddresses(Type t
 	return listAddress_[type];
 }
 
-INT_PTR qm::AddressBookDialog::dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR qm::AddressBookDialog::dialogProc(UINT uMsg,
+										  WPARAM wParam,
+										  LPARAM lParam)
 {
 	BEGIN_DIALOG_HANDLER()
 		HANDLE_SIZE()
@@ -712,7 +616,8 @@ INT_PTR qm::AddressBookDialog::dialogProc(UINT uMsg, WPARAM wParam, LPARAM lPara
 	return DefaultDialog::dialogProc(uMsg, wParam, lParam);
 }
 
-LRESULT qm::AddressBookDialog::onCommand(WORD nCode, WORD nId)
+LRESULT qm::AddressBookDialog::onCommand(WORD nCode,
+										 WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_CATEGORY, onCategory)
@@ -762,8 +667,8 @@ LRESULT qm::AddressBookDialog::onDestroy()
 #endif
 	
 	const WCHAR* pwszCategory = L"";
-	if (wstrCategory_)
-		pwszCategory = wstrCategory_;
+	if (wstrCategory_.get())
+		pwszCategory = wstrCategory_.get();
 	pProfile_->setString(L"AddressBook", L"Category", pwszCategory);
 	
 	removeNotifyHandler(this);
@@ -773,10 +678,9 @@ LRESULT qm::AddressBookDialog::onDestroy()
 	return DefaultDialog::onDestroy();
 }
 
-LRESULT qm::AddressBookDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::AddressBookDialog::onInitDialog(HWND hwndFocus,
+											LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
 	int n = 0;
 	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
@@ -794,16 +698,11 @@ LRESULT qm::AddressBookDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 		{ IDS_ADDRESSBOOK_COMMENT,	L"CommentWidth",	60	}
 	};
 	for (n = 0; n < countof(columns); ++n) {
-		string_ptr<WSTRING> wstrName;
-		status = loadString(hInst, columns[n].nId_, &wstrName);
-		CHECK_QSTATUS_VALUE(TRUE);
+		wstring_ptr wstrName(loadString(hInst, columns[n].nId_));
 		W2T(wstrName.get(), ptszName);
 		
-		int nWidth = 100;
-		status = pProfile_->getInt(L"AddressBook",
-			columns[n].pwszKey_, columns[n].nWidth_, &nWidth);
-		CHECK_QSTATUS_VALUE(TRUE);
-		
+		int nWidth = pProfile_->getInt(L"AddressBook",
+			columns[n].pwszKey_, columns[n].nWidth_);
 		LVCOLUMN column = {
 			LVCF_FMT | LVCF_SUBITEM | LVCF_TEXT | LVCF_WIDTH,
 			LVCFMT_LEFT,
@@ -821,11 +720,7 @@ LRESULT qm::AddressBookDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 		MAKEINTRESOURCE(IDB_ADDRESSBOOK), 16, 0, RGB(255, 255, 255));
 	ListView_SetImageList(hwndSelected, hImageList, LVSIL_SMALL);
 	
-	int nColumnWidth = 100;
-	status = pProfile_->getInt(L"AddressBook",
-		L"SelectedAddressWidth", 150, &nColumnWidth);
-	CHECK_QSTATUS_VALUE(TRUE);
-	
+	int nColumnWidth = pProfile_->getInt(L"AddressBook", L"SelectedAddressWidth", 150);
 	LVCOLUMN column = {
 		LVCF_FMT | LVCF_SUBITEM | LVCF_TEXT | LVCF_WIDTH,
 		LVCFMT_LEFT,
@@ -842,16 +737,12 @@ LRESULT qm::AddressBookDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 		TYPE_BCC
 	};
 	for (n = 0; n < countof(listAddress_); ++n) {
-		AddressList::iterator it = listAddress_[n].begin();
-		while (it != listAddress_[n].end()) {
-			string_ptr<WSTRING> wstrValue(*it);
+		for (AddressList::iterator it = listAddress_[n].begin(); it != listAddress_[n].end(); ++it) {
+			wstring_ptr wstrValue(*it);
 			W2T(wstrValue.get(), ptszValue);
 			*it = 0;
 			
-			Item* pItem = 0;
-			status = newQsObject(wstrValue.get(), types[n], &pItem);
-			CHECK_QSTATUS_VALUE(TRUE);
-			
+			std::auto_ptr<Item> pItem(new Item(wstrValue, types[n]));
 			LVITEM newItem = {
 				LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM,
 				ListView_GetItemCount(hwndSelected),
@@ -861,23 +752,17 @@ LRESULT qm::AddressBookDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 				const_cast<LPTSTR>(ptszValue),
 				0,
 				types[n],
-				reinterpret_cast<LPARAM>(pItem)
+				reinterpret_cast<LPARAM>(pItem.get())
 			};
 			ListView_InsertItem(hwndSelected, &newItem);
-			
-			wstrValue.release();
-			
-			++it;
+			pItem.release();
 		}
 		listAddress_[n].clear();
 	}
 	ListView_SortItems(hwndSelected, &selectedItemComp, 0);
 	
-	string_ptr<WSTRING> wstrCategory;
-	status = pProfile_->getString(L"AddressBook", L"Category", L"", &wstrCategory);
-	CHECK_QSTATUS_VALUE(TRUE);
-	status = setCurrentCategory(*wstrCategory.get() ? wstrCategory.get() : 0);
-	CHECK_QSTATUS_VALUE(TRUE);
+	wstring_ptr wstrCategory(pProfile_->getString(L"AddressBook", L"Category", L""));
+	setCurrentCategory(*wstrCategory.get() ? wstrCategory.get() : 0);
 	
 #ifdef _WIN32_WCE
 	RECT rectWorkArea;
@@ -886,12 +771,8 @@ LRESULT qm::AddressBookDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	int nHeight = rectWorkArea.bottom - rectWorkArea.top;
 	setWindowPos(0, 0, 0, nWidth, nHeight, SWP_NOZORDER | SWP_NOACTIVATE);
 #else
-	int nWidth = 0;
-	status = pProfile_->getInt(L"AddressBook", L"Width", 620, &nWidth);
-	CHECK_QSTATUS_VALUE(TRUE);
-	int nHeight = 0;
-	status = pProfile_->getInt(L"AddressBook", L"Height", 450, &nHeight);
-	CHECK_QSTATUS_VALUE(TRUE);
+	int nWidth = pProfile_->getInt(L"AddressBook", L"Width", 620);
+	int nHeight = pProfile_->getInt(L"AddressBook", L"Height", 450);
 	setWindowPos(0, 0, 0, nWidth, nHeight,
 		SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
 #endif
@@ -908,8 +789,6 @@ LRESULT qm::AddressBookDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 
 LRESULT qm::AddressBookDialog::onOk()
 {
-	DECLARE_QSTATUS();
-	
 	HWND hwndSelected = getDlgItem(IDC_SELECTEDADDRESS);
 	
 	int nCount = ListView_GetItemCount(hwndSelected);
@@ -922,18 +801,16 @@ LRESULT qm::AddressBookDialog::onOk()
 		
 		Item* pItem = reinterpret_cast<Item*>(item.lParam);
 		
-		string_ptr<WSTRING> wstrValue(pItem->releaseValue());
-		status = STLWrapper<AddressList>(
-			listAddress_[pItem->getType()]).push_back(wstrValue.get());
-		if (status != QSTATUS_SUCCESS)
-			break;
+		wstring_ptr wstrValue(pItem->releaseValue());
+		listAddress_[pItem->getType()].push_back(wstrValue.get());
 		wstrValue.release();
 	}
 	
 	return DefaultDialog::onOk();
 }
 
-LRESULT qm::AddressBookDialog::onNotify(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qm::AddressBookDialog::onNotify(NMHDR* pnmhdr,
+										bool* pbHandled)
 {
 	BEGIN_NOTIFY_HANDLER()
 		HANDLE_NOTIFY(LVN_COLUMNCLICK, IDC_ADDRESS, onAddressColumnClick)
@@ -942,7 +819,9 @@ LRESULT qm::AddressBookDialog::onNotify(NMHDR* pnmhdr, bool* pbHandled)
 	return 1;
 }
 
-LRESULT qm::AddressBookDialog::onSize(UINT nFlags, int cx, int cy)
+LRESULT qm::AddressBookDialog::onSize(UINT nFlags,
+									  int cx,
+									  int cy)
 {
 	layout();
 	return 0;
@@ -950,35 +829,30 @@ LRESULT qm::AddressBookDialog::onSize(UINT nFlags, int cx, int cy)
 
 LRESULT qm::AddressBookDialog::onCategory()
 {
-	DECLARE_QSTATUS();
-	
 	RECT rect;
 	Window(getDlgItem(IDC_CATEGORY)).getWindowRect(&rect);
 	
 	AddressBook::CategoryList listCategory;
-	status = pAddressBook_->getCategories(&listCategory);
-	if (status == QSTATUS_SUCCESS) {
-		std::sort(listCategory.begin(), listCategory.end(), CategoryLess());
-		
-		AutoMenuHandle hmenu;
-		CategoryNameList listName;
-		StringListFree<CategoryNameList> free(listName);
-		status = createCategoryMenu(listCategory, &hmenu, &listName);
-		if (status == QSTATUS_SUCCESS) {
-			unsigned int nFlags = TPM_LEFTALIGN |
-				TPM_TOPALIGN | TPM_NONOTIFY | TPM_RETURNCMD;
+	pAddressBook_->getCategories(&listCategory);
+	std::sort(listCategory.begin(), listCategory.end(), CategoryLess());
+	
+	CategoryNameList listName;
+	StringListFree<CategoryNameList> free(listName);
+	AutoMenuHandle hmenu(createCategoryMenu(listCategory, &listName));
+	if (hmenu.get()) {
+		unsigned int nFlags = TPM_LEFTALIGN |
+			TPM_TOPALIGN | TPM_NONOTIFY | TPM_RETURNCMD;
 #ifndef _WIN32_WCE
-			nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
+		nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
 #endif
-			UINT nCommand = ::TrackPopupMenu(hmenu.get(), nFlags,
-				rect.left, rect.bottom, 0, getHandle(), 0);
-			if (nCommand == 0)
-				;
-			else if (nCommand == IDM_ADDRESSBOOK_ALLCATEGORY)
-				setCurrentCategory(0);
-			else if (nCommand - IDM_ADDRESSBOOK_CATEGORY < listName.size())
-				setCurrentCategory(listName[nCommand - IDM_ADDRESSBOOK_CATEGORY]);
-		}
+		UINT nCommand = ::TrackPopupMenu(hmenu.get(), nFlags,
+			rect.left, rect.bottom, 0, getHandle(), 0);
+		if (nCommand == 0)
+			;
+		else if (nCommand == IDM_ADDRESSBOOK_ALLCATEGORY)
+			setCurrentCategory(0);
+		else if (nCommand - IDM_ADDRESSBOOK_CATEGORY < listName.size())
+			setCurrentCategory(listName[nCommand - IDM_ADDRESSBOOK_CATEGORY]);
 	}
 	
 	return 0;
@@ -1000,15 +874,15 @@ LRESULT qm::AddressBookDialog::onRemove()
 #if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
 LRESULT qm::AddressBookDialog::onFilterChange()
 {
-	freeWString(wstrFilter_);
-	string_ptr<WSTRING> wstrFilter(getDlgItemText(IDC_FILTER));
+	wstring_ptr wstrFilter(getDlgItemText(IDC_FILTER));
 	wstrFilter_ = tolower(wstrFilter.get());
 	update();
 	return 0;
 }
 #endif
 
-LRESULT qm::AddressBookDialog::onAddressColumnClick(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qm::AddressBookDialog::onAddressColumnClick(NMHDR* pnmhdr,
+													bool* pbHandled)
 {
 	NMLISTVIEW* pnm = reinterpret_cast<NMLISTVIEW*>(pnmhdr);
 	
@@ -1029,37 +903,32 @@ LRESULT qm::AddressBookDialog::onAddressColumnClick(NMHDR* pnmhdr, bool* pbHandl
 	return 0;
 }
 
-LRESULT qm::AddressBookDialog::onAddressDblClk(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qm::AddressBookDialog::onAddressDblClk(NMHDR* pnmhdr,
+											   bool* pbHandled)
 {
 	select(TYPE_TO);
 	return 0;
 }
 
-QSTATUS qm::AddressBookDialog::update()
+void qm::AddressBookDialog::update()
 {
-	DECLARE_QSTATUS();
-	
 	HWND hwndList = getDlgItem(IDC_ADDRESS);
 	
 	ListView_DeleteAllItems(hwndList);
 	
-	const AddressBook::EntryList* pList = 0;
-	status = pAddressBook_->getEntries(&pList);
-	CHECK_QSTATUS();
+	const AddressBook::EntryList& listEntry = pAddressBook_->getEntries();
 	
 	size_t nCategoryLen = 0;
-	if (wstrCategory_)
-		nCategoryLen = wcslen(wstrCategory_);
+	if (wstrCategory_.get())
+		nCategoryLen = wcslen(wstrCategory_.get());
 	
 	int n = 0;
-	AddressBook::EntryList::const_iterator itE = pList->begin();
-	while (itE != pList->end()) {
+	for (AddressBook::EntryList::const_iterator itE = listEntry.begin(); itE != listEntry.end(); ++itE) {
 		AddressBookEntry* pEntry = *itE;
 		bool bMatchEntry = isMatchFilter(pEntry);
 		W2T(pEntry->getName(), ptszName);
 		const AddressBookEntry::AddressList& l = pEntry->getAddresses();
-		AddressBookEntry::AddressList::const_iterator itA = l.begin();
-		while (itA != l.end()) {
+		for (AddressBookEntry::AddressList::const_iterator itA = l.begin(); itA != l.end(); ++itA) {
 			AddressBookAddress* pAddress = *itA;
 			
 			if (isCategory(pAddress->getCategories()) &&
@@ -1085,20 +954,14 @@ QSTATUS qm::AddressBookDialog::update()
 				}
 				++n;
 			}
-			++itA;
 		}
-		++itE;
 	}
 	
 	ListView_SortItems(hwndList, &itemComp, nSort_);
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::AddressBookDialog::select(Type type)
+void qm::AddressBookDialog::select(Type type)
 {
-	DECLARE_QSTATUS();
-	
 	HWND hwndList = getDlgItem(IDC_ADDRESS);
 	HWND hwndSelected = getDlgItem(IDC_SELECTEDADDRESS);
 	
@@ -1120,15 +983,10 @@ QSTATUS qm::AddressBookDialog::select(Type type)
 		if (item.state & LVIS_SELECTED) {
 			AddressBookAddress* pAddress =
 				reinterpret_cast<AddressBookAddress*>(item.lParam);
-			string_ptr<WSTRING> wstrValue;
-			status = pAddress->getValue(&wstrValue);
-			CHECK_QSTATUS();
+			wstring_ptr wstrValue(pAddress->getValue());
 			W2T(wstrValue.get(), ptszValue);
 			
-			Item* pItem = 0;
-			status = newQsObject(wstrValue.get(), type, &pItem);
-			CHECK_QSTATUS();
-			
+			std::auto_ptr<Item> pItem(new Item(wstrValue, type));
 			LVITEM newItem = {
 				LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM,
 				ListView_GetItemCount(hwndSelected),
@@ -1138,23 +996,18 @@ QSTATUS qm::AddressBookDialog::select(Type type)
 				const_cast<LPTSTR>(ptszValue),
 				0,
 				type,
-				reinterpret_cast<LPARAM>(pItem)
+				reinterpret_cast<LPARAM>(pItem.get())
 			};
 			ListView_InsertItem(hwndSelected, &newItem);
-			
-			wstrValue.release();
+			pItem.release();
 		}
 	}
 	
 	ListView_SortItems(hwndSelected, &selectedItemComp, 0);
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::AddressBookDialog::remove()
+void qm::AddressBookDialog::remove()
 {
-	DECLARE_QSTATUS();
-	
 	HWND hwndSelected = getDlgItem(IDC_SELECTEDADDRESS);
 	
 	for (int n = ListView_GetItemCount(hwndSelected) - 1; n >= 0; --n) {
@@ -1171,11 +1024,9 @@ QSTATUS qm::AddressBookDialog::remove()
 			ListView_DeleteItem(hwndSelected, n);
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::AddressBookDialog::layout()
+void qm::AddressBookDialog::layout()
 {
 #if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
 	RECT rect;
@@ -1226,26 +1077,19 @@ QSTATUS qm::AddressBookDialog::layout()
 		rect.right - rect.left - 13, rect.bottom - rect.top - 12,
 		0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 #endif
-	
 #endif
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::AddressBookDialog::createCategoryMenu(
-	const AddressBook::CategoryList& l, HMENU* phmenu, CategoryNameList* pList)
+HMENU qm::AddressBookDialog::createCategoryMenu(const AddressBook::CategoryList& l,
+												CategoryNameList* pList)
 {
-	assert(phmenu);
 	assert(pList);
-	
-	DECLARE_QSTATUS();
 	
 	AutoMenuHandle hmenu(::CreatePopupMenu());
 	
 	typedef std::vector<std::pair<HMENU, WSTRING> > MenuStack;
 	MenuStack stackMenu;
-	status = STLWrapper<MenuStack>(stackMenu).push_back(
-		MenuStack::value_type(hmenu.get(), 0));
-	CHECK_QSTATUS();
+	stackMenu.push_back(MenuStack::value_type(hmenu.get(), 0));
 	
 	struct Deleter
 	{
@@ -1258,25 +1102,21 @@ QSTATUS qm::AddressBookDialog::createCategoryMenu(
 		
 		~Deleter()
 		{
-			MenuStack::iterator it = s_.begin();
-			while (it != s_.end()) {
-				freeWString((*it).second);
-				++it;
-			}
+			std::for_each(s_.begin(), s_.end(),
+				unary_compose_f_gx(
+					string_free<WSTRING>(),
+					std::select2nd<MenuStack::value_type>()));
 		}
 		
 		MenuStack& s_;
 	} deleter(stackMenu);
 	
-	string_ptr<WSTRING> wstrThisCategory;
-	status = loadString(Application::getApplication().getResourceHandle(),
-		IDS_THISCATEGORY, &wstrThisCategory);
-	CHECK_QSTATUS();
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	wstring_ptr wstrThisCategory(loadString(hInst, IDS_THISCATEGORY));
 	W2T(wstrThisCategory.get(), ptszThisCategory);
 	
 	UINT nId = IDM_ADDRESSBOOK_CATEGORY;
-	AddressBook::CategoryList::const_iterator it = l.begin();
-	while (it != l.end()) {
+	for (AddressBook::CategoryList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		const AddressBookCategory* pCategory = *it;
 		
 		size_t nLevel = getCategoryLevel(pCategory->getName());
@@ -1287,10 +1127,8 @@ QSTATUS qm::AddressBookDialog::createCategoryMenu(
 				bPop = true;
 			}
 			else if (stackMenu.size() > 1) {
-				string_ptr<WSTRING> wstrName;
-				status = getCategoryName(pCategory->getName(),
-					stackMenu.size() - 2, false, &wstrName);
-				CHECK_QSTATUS();
+				wstring_ptr wstrName(getCategoryName(
+					pCategory->getName(), stackMenu.size() - 2, false));
 				if (wcscmp(wstrName.get(), stackMenu.back().second) != 0)
 					bPop = true;
 			}
@@ -1301,14 +1139,10 @@ QSTATUS qm::AddressBookDialog::createCategoryMenu(
 		}
 		
 		while (nLevel >= stackMenu.size()) {
-			string_ptr<WSTRING> wstrName;
-			status = getCategoryName(pCategory->getName(),
-				stackMenu.size() - 1, false, &wstrName);
-			CHECK_QSTATUS();
+			wstring_ptr wstrName(getCategoryName(
+				pCategory->getName(), stackMenu.size() - 1, false));
 			
-			string_ptr<WSTRING> wstrText;
-			status = UIUtil::formatMenu(wstrName.get(), &wstrText);
-			CHECK_QSTATUS();
+			wstring_ptr wstrText(UIUtil::formatMenu(wstrName.get()));
 			W2T(wstrText.get(), ptszText);
 			
 			bool bSubMenu = false;
@@ -1324,26 +1158,20 @@ QSTATUS qm::AddressBookDialog::createCategoryMenu(
 				}
 			}
 			
-			string_ptr<WSTRING> wstrFullName;
-			status = getCategoryName(pCategory->getName(),
-				stackMenu.size() - 1, true, &wstrFullName);
-			CHECK_QSTATUS();
-			bool bCheck = wstrCategory_ && wcscmp(wstrFullName.get(), wstrCategory_) == 0;
-			status = STLWrapper<CategoryNameList>(*pList).push_back(wstrFullName.get());
-			CHECK_QSTATUS();
+			wstring_ptr wstrFullName(getCategoryName(
+				pCategory->getName(), stackMenu.size() - 1, true));
+			bool bCheck = wstrCategory_.get() &&
+				wcscmp(wstrFullName.get(), wstrCategory_.get()) == 0;
+			pList->push_back(wstrFullName.get());
 			wstrFullName.release();
 			
 			unsigned int nFlags = MF_STRING | (bCheck ? MF_CHECKED : 0);
-			
 			if (bSubMenu) {
 				HMENU hSubMenu = ::CreatePopupMenu();
 				::AppendMenu(stackMenu.back().first, MF_POPUP,
 					reinterpret_cast<UINT_PTR>(hSubMenu), ptszText);
-				status = STLWrapper<MenuStack>(stackMenu).push_back(
-					std::make_pair(hSubMenu, wstrName.get()));
-				CHECK_QSTATUS();
+				stackMenu.push_back(std::make_pair(hSubMenu, wstrName.get()));
 				wstrName.release();
-				
 				::AppendMenu(hSubMenu, nFlags, nId++, ptszThisCategory);
 			}
 			else {
@@ -1351,85 +1179,58 @@ QSTATUS qm::AddressBookDialog::createCategoryMenu(
 				break;
 			}
 		}
-		
-		++it;
 	}
 	
 	::AppendMenu(hmenu.get(), MF_SEPARATOR, -1, 0);
 	
-	string_ptr<WSTRING> wstrAll;
-	status = loadString(Application::getApplication().getResourceHandle(),
-		IDS_ALLCATEGORY, &wstrAll);
-	CHECK_QSTATUS();
+	wstring_ptr wstrAll(loadString(hInst, IDS_ALLCATEGORY));
 	W2T(wstrAll.get(), ptszAll);
-	::AppendMenu(hmenu.get(), MF_STRING | (!wstrCategory_ ? MF_CHECKED : 0),
+	::AppendMenu(hmenu.get(), MF_STRING | (!wstrCategory_.get() ? MF_CHECKED : 0),
 		IDM_ADDRESSBOOK_ALLCATEGORY, ptszAll);
 	
-	*phmenu = hmenu.release();
-	
-	return QSTATUS_SUCCESS;
+	return hmenu.release();
 }
 
-QSTATUS qm::AddressBookDialog::setCurrentCategory(const WCHAR* pwszCategory)
+void qm::AddressBookDialog::setCurrentCategory(const WCHAR* pwszCategory)
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrCategory;
-	if (pwszCategory) {
-		wstrCategory.reset(allocWString(pwszCategory));
-		if (!wstrCategory.get())
-			return QSTATUS_OUTOFMEMORY;
-	}
-	
-	freeWString(wstrCategory_);
-	wstrCategory_ = wstrCategory.release();
+	if (pwszCategory)
+		wstrCategory_ = allocWString(pwszCategory);
+	else
+		wstrCategory_.reset(0);
 	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	string_ptr<WSTRING> wstrTitle;
-	status = loadString(hInst, IDS_CATEGORY, &wstrTitle);
-	CHECK_QSTATUS();
-	string_ptr<WSTRING> wstrAll;
-	status = loadString(hInst, IDS_CATEGORYALL, &wstrAll);
-	CHECK_QSTATUS();
+	wstring_ptr wstrTitle(loadString(hInst, IDS_CATEGORY));
+	wstring_ptr wstrAll(loadString(hInst, IDS_CATEGORYALL));
 	
 	ConcatW c[] = {
-		{ wstrTitle.get(),									-1	},
-		{ L" (",											2	},
-		{ wstrCategory_ ? wstrCategory_ : wstrAll.get(),	-1	},
-		{ L")",												1	}
+		{ wstrTitle.get(),												-1	},
+		{ L" (",														2	},
+		{ wstrCategory_.get() ? wstrCategory_.get() : wstrAll.get(),	-1	},
+		{ L")",															1	}
 	};
-	string_ptr<WSTRING> wstrButton(concat(c, countof(c)));
-	if (!wstrButton.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrButton(concat(c, countof(c)));
 	setDlgItemText(IDC_CATEGORY, wstrButton.get());
 	
-	status = update();
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	update();
 }
 
-bool qm::AddressBookDialog::isCategory(
-	const AddressBookAddress::CategoryList& listCategory) const
+bool qm::AddressBookDialog::isCategory(const AddressBookAddress::CategoryList& listCategory) const
 {
-	if (!wstrCategory_)
+	if (!wstrCategory_.get())
 		return true;
 	
-	size_t nLen = wcslen(wstrCategory_);
+	size_t nLen = wcslen(wstrCategory_.get());
 	
-	AddressBookAddress::CategoryList::const_iterator it = listCategory.begin();
-	while (it != listCategory.end()) {
+	for (AddressBookAddress::CategoryList::const_iterator it = listCategory.begin(); it != listCategory.end(); ++it) {
 		const AddressBookCategory* pCategory = *it;
 		const WCHAR* pwszCategory = pCategory->getName();
 		
-		if (wcscmp(pwszCategory, wstrCategory_) == 0)
+		if (wcscmp(pwszCategory, wstrCategory_.get()) == 0)
 			return true;
 		else if (wcslen(pwszCategory) > nLen &&
-			wcsncmp(pwszCategory, wstrCategory_, nLen) == 0 &&
+			wcsncmp(pwszCategory, wstrCategory_.get(), nLen) == 0 &&
 			*(pwszCategory + nLen) == L'/')
 			return true;
-		
-		++it;
 	}
 	
 	return false;
@@ -1437,18 +1238,18 @@ bool qm::AddressBookDialog::isCategory(
 
 bool qm::AddressBookDialog::isMatchFilter(const AddressBookEntry* pEntry) const
 {
-	if (!wstrFilter_)
+	if (!wstrFilter_.get())
 		return true;
 	
-	string_ptr<WSTRING> wstrName(tolower(pEntry->getName()));
-	return wcsstr(wstrName.get(), wstrFilter_) != 0;
+	wstring_ptr wstrName(tolower(pEntry->getName()));
+	return wcsstr(wstrName.get(), wstrFilter_.get()) != 0;
 }
 
 bool qm::AddressBookDialog::isMatchFilter(const AddressBookAddress* pAddress) const
 {
-	if (!wstrFilter_)
+	if (!wstrFilter_.get())
 		return true;
-	return wcsstr(pAddress->getAddress(), wstrFilter_) != 0;
+	return wcsstr(pAddress->getAddress(), wstrFilter_.get()) != 0;
 }
 
 size_t qm::AddressBookDialog::getCategoryLevel(const WCHAR* pwszCategory)
@@ -1457,13 +1258,11 @@ size_t qm::AddressBookDialog::getCategoryLevel(const WCHAR* pwszCategory)
 	return std::count(pwszCategory, pwszCategory + wcslen(pwszCategory), L'/') + 1;
 }
 
-QSTATUS qm::AddressBookDialog::getCategoryName(const WCHAR* pwszCategory,
-	size_t nLevel, bool bFull, WSTRING* pwstrName)
+wstring_ptr qm::AddressBookDialog::getCategoryName(const WCHAR* pwszCategory,
+												   size_t nLevel,
+												   bool bFull)
 {
 	assert(pwszCategory);
-	assert(pwstrName);
-	
-	DECLARE_QSTATUS();
 	
 	const WCHAR* p = pwszCategory;
 	while (nLevel != 0) {
@@ -1474,21 +1273,16 @@ QSTATUS qm::AddressBookDialog::getCategoryName(const WCHAR* pwszCategory,
 	
 	const WCHAR* pEnd = wcschr(p, L'/');
 	
-	string_ptr<WSTRING> wstrName;
+	wstring_ptr wstrName;
 	if (bFull) {
 		size_t nLen = pEnd ? pEnd - pwszCategory : wcslen(pwszCategory);
-		wstrName.reset(allocWString(pwszCategory, nLen));
+		wstrName = allocWString(pwszCategory, nLen);
 	}
 	else {
 		size_t nLen = pEnd ? pEnd - p : wcslen(p);
-		wstrName.reset(allocWString(p, nLen));
+		wstrName = allocWString(p, nLen);
 	}
-	if (!wstrName.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	*pwstrName = wstrName.release();
-	
-	return QSTATUS_SUCCESS;
+	return wstrName;
 }
 
 
@@ -1498,8 +1292,8 @@ QSTATUS qm::AddressBookDialog::getCategoryName(const WCHAR* pwszCategory,
  *
  */
 
-qm::AddressBookDialog::Item::Item(qs::WSTRING wstrValue,
-	Type type, QSTATUS* pstatus) :
+qm::AddressBookDialog::Item::Item(wstring_ptr wstrValue,
+								  Type type) :
 	wstrValue_(wstrValue),
 	type_(type)
 {
@@ -1507,19 +1301,16 @@ qm::AddressBookDialog::Item::Item(qs::WSTRING wstrValue,
 
 qm::AddressBookDialog::Item::~Item()
 {
-	freeWString(wstrValue_);
 }
 
 const WCHAR* qm::AddressBookDialog::Item::getValue() const
 {
-	return wstrValue_;
+	return wstrValue_.get();
 }
 
-WSTRING qm::AddressBookDialog::Item::releaseValue()
+wstring_ptr qm::AddressBookDialog::Item::releaseValue()
 {
-	WSTRING wstr = wstrValue_;
-	wstrValue_ = 0;
-	return wstr;
+	return wstrValue_;
 }
 
 AddressBookDialog::Type qm::AddressBookDialog::Item::getType() const
@@ -1534,10 +1325,8 @@ AddressBookDialog::Type qm::AddressBookDialog::Item::getType() const
  *
  */
 
-qm::AddressBookDialog::AddressListWindow::AddressListWindow(
-	AddressBookDialog* pDialog, QSTATUS* pstatus) :
-	WindowBase(false, pstatus),
-	DefaultWindowHandler(pstatus),
+qm::AddressBookDialog::AddressListWindow::AddressListWindow(AddressBookDialog* pDialog) :
+	WindowBase(false),
 	pDialog_(pDialog)
 {
 	setWindowHandler(this, false);
@@ -1547,8 +1336,9 @@ qm::AddressBookDialog::AddressListWindow::~AddressListWindow()
 {
 }
 
-LRESULT qm::AddressBookDialog::AddressListWindow::windowProc(
-	UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qm::AddressBookDialog::AddressListWindow::windowProc(UINT uMsg,
+															 WPARAM wParam,
+															 LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_CHAR()
@@ -1556,8 +1346,9 @@ LRESULT qm::AddressBookDialog::AddressListWindow::windowProc(
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
 
-LRESULT qm::AddressBookDialog::AddressListWindow::onChar(
-	UINT nChar, UINT nRepeat, UINT nFlags)
+LRESULT qm::AddressBookDialog::AddressListWindow::onChar(UINT nChar,
+														 UINT nRepeat,
+														 UINT nFlags)
 {
 	if (nChar == L' ') {
 		pDialog_->select(AddressBookDialog::TYPE_TO);
@@ -1573,8 +1364,8 @@ LRESULT qm::AddressBookDialog::AddressListWindow::onChar(
  *
  */
 
-bool qm::AddressBookDialog::CategoryLess::operator()(
-	const AddressBookCategory* pLhs, const AddressBookCategory* pRhs)
+bool qm::AddressBookDialog::CategoryLess::operator()(const AddressBookCategory* pLhs,
+													 const AddressBookCategory* pRhs)
 {
 	const WCHAR* pwszLhs = pLhs->getName();
 	const WCHAR* pwszRhs = pRhs->getName();
@@ -1605,9 +1396,8 @@ bool qm::AddressBookDialog::CategoryLess::operator()(
  *
  */
 
-qm::AttachmentDialog::AttachmentDialog(
-	EditMessage::AttachmentList& listAttachment, QSTATUS* pstatus) :
-	DefaultDialog(IDD_ATTACHMENT, pstatus),
+qm::AttachmentDialog::AttachmentDialog(EditMessage::AttachmentList& listAttachment) :
+	DefaultDialog(IDD_ATTACHMENT),
 	listAttachment_(listAttachment)
 {
 	std::sort(listAttachment_.begin(), listAttachment_.end(),
@@ -1618,7 +1408,8 @@ qm::AttachmentDialog::~AttachmentDialog()
 {
 }
 
-LRESULT qm::AttachmentDialog::onCommand(WORD nCode, WORD nId)
+LRESULT qm::AttachmentDialog::onCommand(WORD nCode,
+										WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_ADD, onAdd)
@@ -1633,10 +1424,9 @@ LRESULT qm::AttachmentDialog::onDestroy()
 	return DefaultDialog::onDestroy();
 }
 
-LRESULT qm::AttachmentDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::AttachmentDialog::onInitDialog(HWND hwndFocus,
+										   LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
 	init(false);
 	
 	HWND hwndList = getDlgItem(IDC_ATTACHMENT);
@@ -1647,9 +1437,7 @@ LRESULT qm::AttachmentDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 		SHGFI_USEFILEATTRIBUTES | SHGFI_SYSICONINDEX | SHGFI_SMALLICON));
 	ListView_SetImageList(hwndList, hImageList, LVSIL_SMALL);
 	
-	status = update();
-	CHECK_QSTATUS_VALUE(TRUE);
-	
+	update();
 	updateState();
 	
 	addNotifyHandler(this);
@@ -1657,7 +1445,8 @@ LRESULT qm::AttachmentDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	return TRUE;
 }
 
-LRESULT qm::AttachmentDialog::onNotify(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qm::AttachmentDialog::onNotify(NMHDR* pnmhdr,
+									   bool* pbHandled)
 {
 	BEGIN_NOTIFY_HANDLER()
 		HANDLE_NOTIFY(LVN_ITEMCHANGED, IDC_ATTACHMENT, onAttachmentItemChanged);
@@ -1667,35 +1456,21 @@ LRESULT qm::AttachmentDialog::onNotify(NMHDR* pnmhdr, bool* pbHandled)
 
 LRESULT qm::AttachmentDialog::onAdd()
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrFilter;
-	status = loadString(Application::getApplication().getResourceHandle(),
-		IDS_FILTER_ATTACHMENT, &wstrFilter);
-	CHECK_QSTATUS();
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	wstring_ptr wstrFilter(loadString(hInst, IDS_FILTER_ATTACHMENT));
 	
 	FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
-		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_ALLOWMULTISELECT,
-		&status);
-	CHECK_QSTATUS_VALUE(0);
-	
-	int nRet = IDCANCEL;
-	status = dialog.doModal(getHandle(), 0, &nRet);
-	CHECK_QSTATUS_VALUE(0);
-	if (nRet == IDOK) {
+		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_ALLOWMULTISELECT);
+	if (dialog.doModal(getHandle()) == IDOK) {
 		const WCHAR* pwszPath = dialog.getPath();
 		const WCHAR* p = pwszPath;
 		while (*p) {
-			string_ptr<WSTRING> wstrName(allocWString(p));
-			if (!wstrName.get())
-				return 0;
+			wstring_ptr wstrName(allocWString(p));
 			EditMessage::Attachment attachment = {
 				wstrName.get(),
 				true
 			};
-			status = STLWrapper<EditMessage::AttachmentList>(
-				listAttachment_).push_back(attachment);
-			CHECK_QSTATUS_VALUE(0);
+			listAttachment_.push_back(attachment);
 			wstrName.release();
 			
 			p += wcslen(p) + 1;
@@ -1704,8 +1479,7 @@ LRESULT qm::AttachmentDialog::onAdd()
 		std::sort(listAttachment_.begin(), listAttachment_.end(),
 			EditMessage::AttachmentComp());
 		
-		status = update();
-		CHECK_QSTATUS_VALUE(0);
+		update();
 	}
 	
 	updateState();
@@ -1715,8 +1489,6 @@ LRESULT qm::AttachmentDialog::onAdd()
 
 LRESULT qm::AttachmentDialog::onRemove()
 {
-	DECLARE_QSTATUS();
-	
 	HWND hwndList = getDlgItem(IDC_ATTACHMENT);
 	
 	int nDeleted = 0;
@@ -1725,38 +1497,33 @@ LRESULT qm::AttachmentDialog::onRemove()
 		nItem = ListView_GetNextItem(hwndList, nItem, LVNI_SELECTED);
 		if (nItem == -1)
 			break;
-		EditMessage::AttachmentList::iterator it =
-			listAttachment_.begin() + nItem - nDeleted;
+		EditMessage::AttachmentList::iterator it = listAttachment_.begin() + nItem - nDeleted;
 		freeWString((*it).wstrName_);
 		listAttachment_.erase(it);
 		++nDeleted;
 	}
 	
-	status = update();
-	CHECK_QSTATUS_VALUE(0);
-	
+	update();
 	updateState();
 	
 	return 0;
 }
 
-LRESULT qm::AttachmentDialog::onAttachmentItemChanged(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qm::AttachmentDialog::onAttachmentItemChanged(NMHDR* pnmhdr,
+													  bool* pbHandled)
 {
 	updateState();
 	*pbHandled = true;
 	return 0;
 }
 
-QSTATUS qm::AttachmentDialog::update()
+void qm::AttachmentDialog::update()
 {
-	DECLARE_QSTATUS();
-	
 	HWND hwndList = getDlgItem(IDC_ATTACHMENT);
 	
 	ListView_DeleteAllItems(hwndList);
 	
-	EditMessage::AttachmentList::size_type n = 0;
-	while (n < listAttachment_.size()) {
+	for (EditMessage::AttachmentList::size_type n = 0; n < listAttachment_.size(); ++n) {
 		EditMessage::Attachment& attachment = listAttachment_[n];
 		const WCHAR* pwszName = wcsrchr(attachment.wstrName_, L'\\');
 		pwszName = pwszName ? pwszName + 1 : attachment.wstrName_;
@@ -1766,11 +1533,9 @@ QSTATUS qm::AttachmentDialog::update()
 		::SHGetFileInfo(ptszName, FILE_ATTRIBUTE_NORMAL, &info, sizeof(info),
 			SHGFI_USEFILEATTRIBUTES | SHGFI_SYSICONINDEX | SHGFI_SMALLICON);
 		
-		string_ptr<TSTRING> tstrName;
+		tstring_ptr tstrName;
 		if (!attachment.bNew_) {
-			tstrName.reset(concat(_T("<"), ptszName, _T(">")));
-			if (!tstrName.get())
-				return QSTATUS_OUTOFMEMORY;
+			tstrName = concat(_T("<"), ptszName, _T(">"));
 			ptszName = tstrName.get();
 		}
 		
@@ -1785,11 +1550,7 @@ QSTATUS qm::AttachmentDialog::update()
 			info.iIcon
 		};
 		ListView_InsertItem(hwndList, &item);
-		
-		++n;
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 void qm::AttachmentDialog::updateState()
@@ -1805,39 +1566,30 @@ void qm::AttachmentDialog::updateState()
  *
  */
 
-qm::CreateAccountDialog::CreateAccountDialog(
-	Profile* pProfile, QSTATUS* pstatus) :
-	DefaultDialog(IDD_CREATEACCOUNT, pstatus),
+qm::CreateAccountDialog::CreateAccountDialog(Profile* pProfile) :
+	DefaultDialog(IDD_CREATEACCOUNT),
 	pProfile_(pProfile),
-	wstrName_(0),
-	wstrClass_(0),
 	nReceiveProtocol_(0),
 	nSendProtocol_(0),
 	nBlockSize_(-1),
 	nCacheBlockSize_(-1)
 {
 	wstrClass_ = allocWString(L"mail");
-	if (!wstrClass_) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
 }
 
 qm::CreateAccountDialog::~CreateAccountDialog()
 {
-	freeWString(wstrName_);
-	freeWString(wstrClass_);
 	clearProtocols();
 }
 
 const WCHAR* qm::CreateAccountDialog::getName() const
 {
-	return wstrName_;
+	return wstrName_.get();
 }
 
 const WCHAR* qm::CreateAccountDialog::getClass() const
 {
-	return wstrClass_;
+	return wstrClass_.get();
 }
 
 const WCHAR* qm::CreateAccountDialog::getReceiveProtocol() const
@@ -1870,7 +1622,8 @@ unsigned int qm::CreateAccountDialog::getCacheBlockSize() const
 	return nCacheBlockSize_;
 }
 
-LRESULT qm::CreateAccountDialog::onCommand(WORD nCode, WORD nId)
+LRESULT qm::CreateAccountDialog::onCommand(WORD nCode,
+										   WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID_CODE(IDC_NAME, EN_CHANGE, onNameChange)
@@ -1883,15 +1636,12 @@ LRESULT qm::CreateAccountDialog::onCommand(WORD nCode, WORD nId)
 	return DefaultDialog::onCommand(nCode, nId);
 }
 
-LRESULT qm::CreateAccountDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::CreateAccountDialog::onInitDialog(HWND hwndFocus,
+											  LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
 	init(false);
 	
-	string_ptr<WSTRING> wstrClasses;
-	status = pProfile_->getString(L"Global", L"Classes", L"mail news", &wstrClasses);
-	CHECK_QSTATUS_VALUE(TRUE);
+	wstring_ptr wstrClasses(pProfile_->getString(L"Global", L"Classes", L"mail news"));
 	const WCHAR* p = wcstok(wstrClasses.get(), L" ");
 	while (p) {
 		W2T(p, ptsz);
@@ -1914,8 +1664,6 @@ LRESULT qm::CreateAccountDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 
 LRESULT qm::CreateAccountDialog::onOk()
 {
-	DECLARE_QSTATUS();
-	
 	wstrName_ = getDlgItemText(IDC_NAME);
 	nReceiveProtocol_ = sendDlgItemMessage(IDC_INCOMINGPROTOCOL, CB_GETCURSEL);
 	nSendProtocol_ = sendDlgItemMessage(IDC_OUTGOINGPROTOCOL, CB_GETCURSEL);
@@ -1946,18 +1694,13 @@ LRESULT qm::CreateAccountDialog::onClassChange()
 {
 	int nItem = sendDlgItemMessage(IDC_CLASS, CB_GETCURSEL);
 	int nLen = sendDlgItemMessage(IDC_CLASS, CB_GETLBTEXTLEN, nItem);
-	string_ptr<TSTRING> tstrClass(allocTString(nLen + 1));
-	if (!tstrClass.get())
-		return 0;
+	tstring_ptr tstrClass(allocTString(nLen + 1));
 	sendDlgItemMessage(IDC_CLASS, CB_GETLBTEXT,
 		nItem, reinterpret_cast<LPARAM>(tstrClass.get()));
 	
-	string_ptr<WSTRING> wstrClass(tcs2wcs(tstrClass.get()));
-	if (!wstrClass.get())
-		return 0;
-	if (wcscmp(wstrClass_, wstrClass.get()) != 0) {
-		freeWString(wstrClass_);
-		wstrClass_ = wstrClass.release();
+	wstring_ptr wstrClass(tcs2wcs(tstrClass.get()));
+	if (wcscmp(wstrClass_.get(), wstrClass.get()) != 0) {
+		wstrClass_ = wstrClass;
 		updateProtocols();
 	}
 	
@@ -1976,28 +1719,21 @@ LRESULT qm::CreateAccountDialog::onTypeChange()
 	return 0;
 }
 
-QSTATUS qm::CreateAccountDialog::updateProtocols()
+void qm::CreateAccountDialog::updateProtocols()
 {
-	DECLARE_QSTATUS();
-	
 	clearProtocols();
 	sendDlgItemMessage(IDC_INCOMINGPROTOCOL, CB_RESETCONTENT);
 	sendDlgItemMessage(IDC_OUTGOINGPROTOCOL, CB_RESETCONTENT);
 	
 	ReceiveSessionFactory::NameList listReceiveName;
 	StringListFree<ReceiveSessionFactory::NameList> freeReceive(listReceiveName);
-	status = ReceiveSessionFactory::getNames(&listReceiveName);
-	CHECK_QSTATUS();
-	status = STLWrapper<ProtocolList>(listReceiveProtocol_).reserve(listReceiveName.size());
-	CHECK_QSTATUS();
-	ReceiveSessionFactory::NameList::iterator itR = listReceiveName.begin();
-	while (itR != listReceiveName.end()) {
-		string_ptr<WSTRING> wstrName(*itR);
+	ReceiveSessionFactory::getNames(&listReceiveName);
+	listReceiveProtocol_.reserve(listReceiveName.size());
+	for (ReceiveSessionFactory::NameList::iterator itR = listReceiveName.begin(); itR != listReceiveName.end(); ++itR) {
+		wstring_ptr wstrName(*itR);
 		*itR = 0;
-		std::auto_ptr<ReceiveSessionUI> pUI;
-		status = ReceiveSessionFactory::getUI(wstrName.get(), &pUI);
-		CHECK_QSTATUS();
-		if (wcscmp(pUI->getClass(), wstrClass_) == 0) {
+		std::auto_ptr<ReceiveSessionUI> pUI(ReceiveSessionFactory::getUI(wstrName.get()));
+		if (wcscmp(pUI->getClass(), wstrClass_.get()) == 0) {
 			Protocol p = {
 				wstrName.get(),
 				pUI->getDefaultPort()
@@ -2005,31 +1741,23 @@ QSTATUS qm::CreateAccountDialog::updateProtocols()
 			listReceiveProtocol_.push_back(p);
 			wstrName.release();
 			
-			string_ptr<WSTRING> wstrDisplayName;
-			status = pUI->getDisplayName(&wstrDisplayName);
-			CHECK_QSTATUS();
+			wstring_ptr wstrDisplayName(pUI->getDisplayName());
 			W2T(wstrDisplayName.get(), ptszDisplayName);
 			sendDlgItemMessage(IDC_INCOMINGPROTOCOL, CB_ADDSTRING,
 				0, reinterpret_cast<LPARAM>(ptszDisplayName));
 		}
-		++itR;
 	}
 	sendDlgItemMessage(IDC_INCOMINGPROTOCOL, CB_SETCURSEL, 0);
 	
 	SendSessionFactory::NameList listSendName;
 	StringListFree<SendSessionFactory::NameList> freeSend(listSendName);
-	status = SendSessionFactory::getNames(&listSendName);
-	CHECK_QSTATUS();
-	status = STLWrapper<ProtocolList>(listSendProtocol_).reserve(listSendName.size());
-	CHECK_QSTATUS();
-	SendSessionFactory::NameList::iterator itS = listSendName.begin();
-	while (itS != listSendName.end()) {
-		string_ptr<WSTRING> wstrName(*itS);
+	SendSessionFactory::getNames(&listSendName);
+	listSendProtocol_.reserve(listSendName.size());
+	for (SendSessionFactory::NameList::iterator itS = listSendName.begin(); itS != listSendName.end(); ++itS) {
+		wstring_ptr wstrName(*itS);
 		*itS = 0;
-		std::auto_ptr<SendSessionUI> pUI;
-		status = SendSessionFactory::getUI(wstrName.get(), &pUI);
-		CHECK_QSTATUS();
-		if (wcscmp(pUI->getClass(), wstrClass_) == 0) {
+		std::auto_ptr<SendSessionUI> pUI(SendSessionFactory::getUI(wstrName.get()));
+		if (wcscmp(pUI->getClass(), wstrClass_.get()) == 0) {
 			Protocol p = {
 				wstrName.get(),
 				pUI->getDefaultPort()
@@ -2037,20 +1765,15 @@ QSTATUS qm::CreateAccountDialog::updateProtocols()
 			listSendProtocol_.push_back(p);
 			wstrName.release();
 			
-			string_ptr<WSTRING> wstrDisplayName;
-			status = pUI->getDisplayName(&wstrDisplayName);
-			CHECK_QSTATUS();
+			wstring_ptr wstrDisplayName(pUI->getDisplayName());
 			W2T(wstrDisplayName.get(), ptszDisplayName);
 			sendDlgItemMessage(IDC_OUTGOINGPROTOCOL, CB_ADDSTRING,
 				0, reinterpret_cast<LPARAM>(ptszDisplayName));
 		}
-		++itS;
 	}
 	sendDlgItemMessage(IDC_OUTGOINGPROTOCOL, CB_SETCURSEL, 0);
 	
 	updateState();
-	
-	return QSTATUS_SUCCESS;
 }
 
 void qm::CreateAccountDialog::clearProtocols()
@@ -2086,18 +1809,16 @@ void qm::CreateAccountDialog::updateState()
  *
  */
 
-qm::CreateFolderDialog::CreateFolderDialog(
-	Type type, bool bAllowRemote, QSTATUS* pstatus) :
-	DefaultDialog(IDD_CREATEFOLDER, pstatus),
+qm::CreateFolderDialog::CreateFolderDialog(Type type,
+										   bool bAllowRemote) :
+	DefaultDialog(IDD_CREATEFOLDER),
 	type_(type),
-	bAllowRemote_(bAllowRemote),
-	wstrName_(0)
+	bAllowRemote_(bAllowRemote)
 {
 }
 
 qm::CreateFolderDialog::~CreateFolderDialog()
 {
-	freeWString(wstrName_);
 }
 
 CreateFolderDialog::Type qm::CreateFolderDialog::getType() const
@@ -2107,10 +1828,11 @@ CreateFolderDialog::Type qm::CreateFolderDialog::getType() const
 
 const WCHAR* qm::CreateFolderDialog::getName() const
 {
-	return wstrName_;
+	return wstrName_.get();
 }
 
-LRESULT qm::CreateFolderDialog::onCommand(WORD nCode, WORD nId)
+LRESULT qm::CreateFolderDialog::onCommand(WORD nCode,
+										  WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID_CODE(IDC_NAME, EN_CHANGE, onNameChange)
@@ -2120,7 +1842,8 @@ LRESULT qm::CreateFolderDialog::onCommand(WORD nCode, WORD nId)
 	return DefaultDialog::onCommand(nCode, nId);
 }
 
-LRESULT qm::CreateFolderDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::CreateFolderDialog::onInitDialog(HWND hwndFocus,
+											 LPARAM lParam)
 {
 	init(false);
 	
@@ -2182,25 +1905,23 @@ void qm::CreateFolderDialog::updateState()
  *
  */
 
-qm::CreateSubAccountDialog::CreateSubAccountDialog(
-	Document* pDocument, QSTATUS* pstatus) :
-	DefaultDialog(IDD_CREATESUBACCOUNT, pstatus),
-	pDocument_(pDocument),
-	wstrName_(0)
+qm::CreateSubAccountDialog::CreateSubAccountDialog(Document* pDocument) :
+	DefaultDialog(IDD_CREATESUBACCOUNT),
+	pDocument_(pDocument)
 {
 }
 
 qm::CreateSubAccountDialog::~CreateSubAccountDialog()
 {
-	freeWString(wstrName_);
 }
 
 const WCHAR* qm::CreateSubAccountDialog::getName() const
 {
-	return wstrName_;
+	return wstrName_.get();
 }
 
-LRESULT qm::CreateSubAccountDialog::onCommand(WORD nCode, WORD nId)
+LRESULT qm::CreateSubAccountDialog::onCommand(WORD nCode,
+											  WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID_CODE(IDC_NAME, CBN_EDITCHANGE, onNameChanged)
@@ -2208,34 +1929,26 @@ LRESULT qm::CreateSubAccountDialog::onCommand(WORD nCode, WORD nId)
 	return DefaultDialog::onCommand(nCode, nId);
 }
 
-LRESULT qm::CreateSubAccountDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::CreateSubAccountDialog::onInitDialog(HWND hwndFocus,
+												 LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
 	init(false);
 	
 	const Document::AccountList& listAccount = pDocument_->getAccounts();
-	Document::AccountList::const_iterator itA = listAccount.begin();
-	while (itA != listAccount.end()) {
+	for (Document::AccountList::const_iterator itA = listAccount.begin(); itA != listAccount.end(); ++itA) {
 		Account* pAccount = *itA;
 		
 		const Account::SubAccountList& listSubAccount = pAccount->getSubAccounts();
-		Account::SubAccountList::const_iterator itS = listSubAccount.begin();
-		while (itS != listSubAccount.end()) {
+		for (Account::SubAccountList::const_iterator itS = listSubAccount.begin(); itS != listSubAccount.end(); ++itS) {
 			SubAccount* pSubAccount = *itS;
 			
 			const WCHAR* pwszName = pSubAccount->getName();
 			if (*pwszName) {
-				W2T_STATUS(pwszName, ptszName);
-				CHECK_QSTATUS_VALUE(0);
+				W2T(pwszName, ptszName);
 				sendDlgItemMessage(IDC_NAME, CB_ADDSTRING, 0,
 					reinterpret_cast<LPARAM>(ptszName));
 			}
-			
-			++itS;
 		}
-		
-		++itA;
 	}
 	
 	updateState();
@@ -2246,8 +1959,6 @@ LRESULT qm::CreateSubAccountDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 LRESULT qm::CreateSubAccountDialog::onOk()
 {
 	wstrName_ = Window(getDlgItem(IDC_NAME)).getWindowText();
-	if (!wstrName_)
-		return 0;
 	return DefaultDialog::onOk();
 }
 
@@ -2270,39 +1981,29 @@ void qm::CreateSubAccountDialog::updateState()
  *
  */
 
-qm::CustomFilterDialog::CustomFilterDialog(
-	const WCHAR* pwszMacro, QSTATUS* pstatus) :
-	DefaultDialog(IDD_CUSTOMFILTER, pstatus),
-	wstrMacro_(0)
+qm::CustomFilterDialog::CustomFilterDialog(const WCHAR* pwszMacro) :
+	DefaultDialog(IDD_CUSTOMFILTER)
 {
-	if (pwszMacro) {
+	if (pwszMacro)
 		wstrMacro_ = allocWString(pwszMacro);
-		if (!wstrMacro_) {
-			*pstatus = QSTATUS_OUTOFMEMORY;
-			return;
-		}
-	}
 }
 
 qm::CustomFilterDialog::~CustomFilterDialog()
 {
-	freeWString(wstrMacro_);
 }
 
 const WCHAR* qm::CustomFilterDialog::getMacro() const
 {
-	return wstrMacro_;
+	return wstrMacro_.get();
 }
 
-LRESULT qm::CustomFilterDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::CustomFilterDialog::onInitDialog(HWND hwndFocus,
+											 LPARAM lParam)
 {
 	init(false);
 	
-	if (wstrMacro_) {
-		setDlgItemText(IDC_MACRO, wstrMacro_);
-		freeWString(wstrMacro_);
-		wstrMacro_ = 0;
-	}
+	if (wstrMacro_.get())
+		setDlgItemText(IDC_MACRO, wstrMacro_.get());
 	
 	return TRUE;
 }
@@ -2321,30 +2022,25 @@ LRESULT qm::CustomFilterDialog::onOk()
  */
 
 qm::DetachDialog::DetachDialog(Profile* pProfile,
-	List& list, QSTATUS* pstatus) :
-	DefaultDialog(IDD_DETACH, pstatus),
+							   List& list) :
+	DefaultDialog(IDD_DETACH),
 	pProfile_(pProfile),
-	list_(list),
-	wstrFolder_(0)
+	list_(list)
 {
-	DECLARE_QSTATUS();
-	
-	status = pProfile_->getString(L"Global",
-		L"DetachFolder", L"", &wstrFolder_);
-	CHECK_QSTATUS_SET(pstatus);
+	wstrFolder_ = pProfile_->getString(L"Global", L"DetachFolder", L"");
 }
 
 qm::DetachDialog::~DetachDialog()
 {
-	freeWString(wstrFolder_);
 }
 
 const WCHAR* qm::DetachDialog::getFolder() const
 {
-	return wstrFolder_;
+	return wstrFolder_.get();
 }
 
-LRESULT qm::DetachDialog::onCommand(WORD nCode, WORD nId)
+LRESULT qm::DetachDialog::onCommand(WORD nCode,
+									WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_BROWSE, onBrowse)
@@ -2359,10 +2055,9 @@ LRESULT qm::DetachDialog::onDestroy()
 	return DefaultDialog::onDestroy();
 }
 
-LRESULT qm::DetachDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::DetachDialog::onInitDialog(HWND hwndFocus,
+									   LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
 	init(false);
 	
 	HWND hwndList = getDlgItem(IDC_ATTACHMENT);
@@ -2383,7 +2078,7 @@ LRESULT qm::DetachDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 			ListView_SetCheckState(hwndList, n, TRUE);
 	}
 	
-	setDlgItemText(IDC_FOLDER, wstrFolder_);
+	setDlgItemText(IDC_FOLDER, wstrFolder_.get());
 	updateState();
 	
 	addNotifyHandler(this);
@@ -2393,14 +2088,12 @@ LRESULT qm::DetachDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 
 LRESULT qm::DetachDialog::onOk()
 {
-	DECLARE_QSTATUS();
-	
 	HWND hwndList = getDlgItem(IDC_ATTACHMENT);
 	for (List::size_type n = 0; n < list_.size(); ++n) {
 		if (ListView_GetCheckState(hwndList, n)) {
 			TCHAR tszName[MAX_PATH];
 			ListView_GetItemText(hwndList, n, 0, tszName, countof(tszName));
-			string_ptr<WSTRING> wstrName(tcs2wcs(tszName));
+			wstring_ptr wstrName(tcs2wcs(tszName));
 			if (wstrName.get() && wcscmp(wstrName.get(), list_[n].wstrName_) != 0) {
 				freeWString(list_[n].wstrName_);
 				list_[n].wstrName_ = wstrName.release();
@@ -2412,17 +2105,14 @@ LRESULT qm::DetachDialog::onOk()
 		}
 	}
 	
-	string_ptr<WSTRING> wstrFolder(getDlgItemText(IDC_FOLDER));
-	if (wstrFolder.get()) {
-		pProfile_->setString(L"Global", L"DetachFolder", wstrFolder.get());
-		freeWString(wstrFolder_);
-		wstrFolder_ = wstrFolder.release();
-	}
+	wstring_ptr wstrFolder(getDlgItemText(IDC_FOLDER));
+	pProfile_->setString(L"Global", L"DetachFolder", wstrFolder.get());
 	
 	return DefaultDialog::onOk();
 }
 
-LRESULT qm::DetachDialog::onNotify(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qm::DetachDialog::onNotify(NMHDR* pnmhdr,
+								   bool* pbHandled)
 {
 	BEGIN_NOTIFY_HANDLER()
 		HANDLE_NOTIFY(LVN_ITEMCHANGED, IDC_ATTACHMENT, onAttachmentItemChanged)
@@ -2432,14 +2122,9 @@ LRESULT qm::DetachDialog::onNotify(NMHDR* pnmhdr, bool* pbHandled)
 
 LRESULT qm::DetachDialog::onBrowse()
 {
-	DECLARE_QSTATUS();
+	wstring_ptr wstrFolder(getDlgItemText(IDC_FOLDER));
 	
-	string_ptr<WSTRING> wstrFolder(getDlgItemText(IDC_FOLDER));
-	
-	string_ptr<WSTRING> wstrPath;
-	status = qs::UIUtil::browseFolder(getHandle(),
-		0, wstrFolder.get(), &wstrPath);
-	CHECK_QSTATUS_VALUE(0);
+	wstring_ptr wstrPath(qs::UIUtil::browseFolder(getHandle(), 0, wstrFolder.get()));
 	if (wstrPath.get())
 		setDlgItemText(IDC_FOLDER, wstrPath.get());
 	
@@ -2460,7 +2145,8 @@ LRESULT qm::DetachDialog::onRename()
 	return 0;
 }
 
-LRESULT qm::DetachDialog::onAttachmentItemChanged(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qm::DetachDialog::onAttachmentItemChanged(NMHDR* pnmhdr,
+												  bool* pbHandled)
 {
 	updateState();
 	*pbHandled = true;
@@ -2481,59 +2167,39 @@ void qm::DetachDialog::updateState()
  *
  */
 
-qm::DialupDialog::DialupDialog(const WCHAR* pwszEntry, const WCHAR* pwszUserName,
-	const WCHAR* pwszPassword, const WCHAR* pwszDomain,QSTATUS* pstatus) :
-	DefaultDialog(IDD_DIALUP, pstatus),
-	wstrEntry_(0),
-	wstrUserName_(0),
-	wstrPassword_(0),
-	wstrDomain_(0)
+qm::DialupDialog::DialupDialog(const WCHAR* pwszEntry,
+							   const WCHAR* pwszUserName,
+							   const WCHAR* pwszPassword,
+							   const WCHAR* pwszDomain) :
+	DefaultDialog(IDD_DIALUP)
 {
-	const WCHAR* pwsz[] = {
-		pwszEntry,
-		pwszUserName,
-		pwszPassword,
-		pwszDomain
-	};
-	string_ptr<WSTRING> wstr[4];
-	for (int n = 0; n < countof(pwsz); ++n) {
-		wstr[n].reset(allocWString(pwsz[n]));
-		if (!wstr[n].get()) {
-			*pstatus = QSTATUS_OUTOFMEMORY;
-			return;
-		}
-	}
-	
-	wstrEntry_ = wstr[0].release();
-	wstrUserName_ = wstr[1].release();
-	wstrPassword_ = wstr[2].release();
-	wstrDomain_ = wstr[3].release();
+	wstrEntry_ = allocWString(pwszEntry);
+	wstrUserName_ = allocWString(pwszUserName);
+	wstrPassword_ = allocWString(pwszPassword);
+	wstrDomain_ = allocWString(pwszDomain);
 }
 
 qm::DialupDialog::~DialupDialog()
 {
-	freeWString(wstrEntry_);
-	freeWString(wstrUserName_);
-	freeWString(wstrPassword_);
-	freeWString(wstrDomain_);
 }
 
 const WCHAR* qm::DialupDialog::getUserName() const
 {
-	return wstrUserName_;
+	return wstrUserName_.get();
 }
 
 const WCHAR* qm::DialupDialog::getPassword() const
 {
-	return wstrPassword_;
+	return wstrPassword_.get();
 }
 
 const WCHAR* qm::DialupDialog::getDomain() const
 {
-	return wstrDomain_;
+	return wstrDomain_.get();
 }
 
-LRESULT qm::DialupDialog::onCommand(WORD nCode, WORD nId)
+LRESULT qm::DialupDialog::onCommand(WORD nCode,
+									WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_DIALPROPERTY, onDialProperty)
@@ -2541,7 +2207,8 @@ LRESULT qm::DialupDialog::onCommand(WORD nCode, WORD nId)
 	return DefaultDialog::onCommand(nCode, nId);
 }
 
-LRESULT qm::DialupDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::DialupDialog::onInitDialog(HWND hwndFocus,
+									   LPARAM lParam)
 {
 	init(false);
 	
@@ -2549,17 +2216,17 @@ LRESULT qm::DialupDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 		UINT nId_;
 		const WCHAR* pwsz_;
 	} items[] = {
-		{ IDC_ENTRY,	wstrEntry_		},
-		{ IDC_USERNAME,	wstrUserName_	},
-		{ IDC_PASSWORD,	wstrPassword_	},
-		{ IDC_DOMAIN,	wstrDomain_		}
+		{ IDC_ENTRY,	wstrEntry_.get()	},
+		{ IDC_USERNAME,	wstrUserName_.get()	},
+		{ IDC_PASSWORD,	wstrPassword_.get()	},
+		{ IDC_DOMAIN,	wstrDomain_.get()	}
 	};
 	for (int n = 0; n < countof(items); ++n)
 		setDlgItemText(items[n].nId_, items[n].pwsz_);
 	
 	updateLocation();
 	
-	if (!*wstrPassword_) {
+	if (!*wstrPassword_.get()) {
 		Window(getDlgItem(IDC_PASSWORD)).setFocus();
 		return FALSE;
 	}
@@ -2571,7 +2238,7 @@ LRESULT qm::DialupDialog::onOk()
 {
 	struct {
 		UINT nId_;
-		WSTRING* pwstr_;
+		wstring_ptr* pwstr_;
 	} items[] = {
 		{ IDC_ENTRY,	&wstrEntry_		},
 		{ IDC_USERNAME,	&wstrUserName_	},
@@ -2579,11 +2246,9 @@ LRESULT qm::DialupDialog::onOk()
 		{ IDC_DOMAIN,	&wstrDomain_	}
 	};
 	for (int n = 0; n < countof(items); ++n) {
-		string_ptr<WSTRING> wstr(getDlgItemText(items[n].nId_));
-		if (wstr.get()) {
-			freeWString(*items[n].pwstr_);
-			*items[n].pwstr_ = wstr.release();
-		}
+		wstring_ptr wstr(getDlgItemText(items[n].nId_));
+		if (wstr.get())
+			*items[n].pwstr_ = wstr;
 	}
 	
 	return DefaultDialog::onOk();
@@ -2598,11 +2263,8 @@ LRESULT qm::DialupDialog::onDialProperty()
 
 void qm::DialupDialog::updateLocation()
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrLocation;
-	status = RasConnection::getLocation(&wstrLocation);
-	if (status == QSTATUS_SUCCESS)
+	wstring_ptr wstrLocation(RasConnection::getLocation());
+	if (wstrLocation.get())
 		setDlgItemText(IDC_DIALFROM, wstrLocation.get());
 }
 
@@ -2613,22 +2275,20 @@ void qm::DialupDialog::updateLocation()
  *
  */
 
-qm::ExportDialog::ExportDialog(bool bSingleMessage, QSTATUS* pstatus) :
-	DefaultDialog(IDD_EXPORT, pstatus),
+qm::ExportDialog::ExportDialog(bool bSingleMessage) :
+	DefaultDialog(IDD_EXPORT),
 	bSingleMessage_(bSingleMessage),
-	wstrPath_(0),
 	nFlags_(0)
 {
 }
 
 qm::ExportDialog::~ExportDialog()
 {
-	freeWString(wstrPath_);
 }
 
 const WCHAR* qm::ExportDialog::getPath() const
 {
-	return wstrPath_;
+	return wstrPath_.get();
 }
 
 bool qm::ExportDialog::isFilePerMessage() const
@@ -2653,7 +2313,8 @@ const WCHAR* qm::ExportDialog::getEncoding() const
 	return 0;
 }
 
-LRESULT qm::ExportDialog::onCommand(WORD nCode, WORD nId)
+LRESULT qm::ExportDialog::onCommand(WORD nCode,
+									WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_BROWSE, onBrowse)
@@ -2662,7 +2323,8 @@ LRESULT qm::ExportDialog::onCommand(WORD nCode, WORD nId)
 	return DefaultDialog::onCommand(nCode, nId);
 }
 
-LRESULT qm::ExportDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::ExportDialog::onInitDialog(HWND hwndFocus,
+									   LPARAM lParam)
 {
 	init(false);
 	
@@ -2676,12 +2338,7 @@ LRESULT qm::ExportDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 
 LRESULT qm::ExportDialog::onOk()
 {
-	string_ptr<WSTRING> wstrPath(getDlgItemText(IDC_PATH));
-	if (!wstrPath.get())
-		return 0;
-	
-	freeWString(wstrPath_);
-	wstrPath_ = wstrPath.release();
+	wstrPath_ = getDlgItemText(IDC_PATH);
 	
 	nFlags_ = 0;
 	struct {
@@ -2701,22 +2358,13 @@ LRESULT qm::ExportDialog::onOk()
 
 LRESULT qm::ExportDialog::onBrowse()
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrFilter;
-	status = loadString(Application::getApplication().getResourceHandle(),
-		IDS_FILTER_EXPORT, &wstrFilter);
-	CHECK_QSTATUS_VALUE(0);
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	wstring_ptr wstrFilter(loadString(hInst, IDS_FILTER_EXPORT));
 	
 	FileDialog dialog(false, wstrFilter.get(), 0, 0, 0,
-		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_OVERWRITEPROMPT,
-		&status);
-	CHECK_QSTATUS_VALUE(0);
+		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_OVERWRITEPROMPT);
 	
-	int nRet = IDCANCEL;
-	status = dialog.doModal(getHandle(), 0, &nRet);
-	CHECK_QSTATUS_VALUE(0);
-	if (nRet == IDOK) {
+	if (dialog.doModal(getHandle()) == IDOK) {
 		setDlgItemText(IDC_PATH, dialog.getPath());
 		updateState();
 	}
@@ -2743,11 +2391,11 @@ void qm::ExportDialog::updateState()
  *
  */
 
-qm::FindDialog::FindDialog(Profile* pProfile, bool bSupportRegex, QSTATUS* pstatus) :
-	DefaultDialog(IDD_FIND, pstatus),
+qm::FindDialog::FindDialog(Profile* pProfile,
+						   bool bSupportRegex) :
+	DefaultDialog(IDD_FIND),
 	pProfile_(pProfile),
 	bSupportRegex_(bSupportRegex),
-	wstrFind_(0),
 	bMatchCase_(false),
 	bRegex_(false),
 	bPrev_(false)
@@ -2756,12 +2404,11 @@ qm::FindDialog::FindDialog(Profile* pProfile, bool bSupportRegex, QSTATUS* pstat
 
 qm::FindDialog::~FindDialog()
 {
-	freeWString(wstrFind_);
 }
 
 const WCHAR* qm::FindDialog::getFind() const
 {
-	return wstrFind_;
+	return wstrFind_.get();
 }
 
 bool qm::FindDialog::isMatchCase() const
@@ -2779,7 +2426,8 @@ bool qm::FindDialog::isPrev() const
 	return bPrev_;
 }
 
-LRESULT qm::FindDialog::onCommand(WORD nCode, WORD nId)
+LRESULT qm::FindDialog::onCommand(WORD nCode,
+								  WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID_RANGE(IDC_FINDNEXT, IDC_FINDPREV, onFind)
@@ -2788,35 +2436,28 @@ LRESULT qm::FindDialog::onCommand(WORD nCode, WORD nId)
 	return DefaultDialog::onCommand(nCode, nId);
 }
 
-LRESULT qm::FindDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::FindDialog::onInitDialog(HWND hwndFocus,
+									 LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
 	init(false);
 	
 	for (int n = 0; n < HISTORY_SIZE; ++n) {
 		WCHAR wszKey[32];
 		swprintf(wszKey, L"History%d", n);
-		string_ptr<WSTRING> wstr;
-		status = pProfile_->getString(L"Find", wszKey, L"", &wstr);
-		CHECK_QSTATUS();
+		wstring_ptr wstr(pProfile_->getString(L"Find", wszKey, L""));
 		if (*wstr.get()) {
 			W2T(wstr.get(), ptsz);
-			sendDlgItemMessage(IDC_FIND, CB_ADDSTRING, 0,
-				reinterpret_cast<LPARAM>(ptsz));
+			sendDlgItemMessage(IDC_FIND, CB_ADDSTRING,
+				0, reinterpret_cast<LPARAM>(ptsz));
 		}
 	}
 	
-	int nMatchCase = 0;
-	status = pProfile_->getInt(L"Find", L"MatchCase", 0, &nMatchCase);
-	CHECK_QSTATUS();
+	int nMatchCase = pProfile_->getInt(L"Find", L"MatchCase", 0);
 	sendDlgItemMessage(IDC_MATCHCASE, BM_SETCHECK,
 		nMatchCase ? BST_CHECKED : BST_UNCHECKED);
 	
 	if (bSupportRegex_) {
-		int nRegex = 0;
-		status = pProfile_->getInt(L"Find", L"Regex", 0, &nRegex);
-		CHECK_QSTATUS();
+		int nRegex = pProfile_->getInt(L"Find", L"Regex", 0);
 		sendDlgItemMessage(IDC_REGEX, BM_SETCHECK,
 			nRegex ? BST_CHECKED : BST_UNCHECKED);
 	}
@@ -2828,36 +2469,27 @@ LRESULT qm::FindDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 
 LRESULT qm::FindDialog::onFind(UINT nId)
 {
-	DECLARE_QSTATUS();
-	
 	Window edit(Window(getDlgItem(IDC_FIND)).getWindow(GW_CHILD));
 	wstrFind_ = edit.getWindowText();
-	if (wstrFind_) {
+	if (wstrFind_.get()) {
 		for (int n = HISTORY_SIZE - 1; n > 0; --n) {
 			WCHAR wszFromKey[32];
 			swprintf(wszFromKey, L"History%d", n - 1);
-			string_ptr<WSTRING> wstr;
-			status = pProfile_->getString(L"Find", wszFromKey, L"", &wstr);
-			CHECK_QSTATUS();
+			wstring_ptr wstr(pProfile_->getString(L"Find", wszFromKey, L""));
 			
 			WCHAR wszToKey[32];
 			swprintf(wszToKey, L"History%d", n);
-			status = pProfile_->setString(L"Find", wszToKey, wstr.get());
-			CHECK_QSTATUS();
+			pProfile_->setString(L"Find", wszToKey, wstr.get());
 		}
 		
-		status = pProfile_->setString(L"Find", L"History0", wstrFind_);
-		CHECK_QSTATUS();
+		pProfile_->setString(L"Find", L"History0", wstrFind_.get());
 	}
 	
-	
 	bMatchCase_ = sendDlgItemMessage(IDC_MATCHCASE, BM_GETCHECK) == BST_CHECKED;
-	status = pProfile_->setInt(L"Find", L"MatchCase", bMatchCase_ ? 1 : 0);
-	CHECK_QSTATUS();
+	pProfile_->setInt(L"Find", L"MatchCase", bMatchCase_ ? 1 : 0);
 	
 	bRegex_ = sendDlgItemMessage(IDC_REGEX, BM_GETCHECK) == BST_CHECKED;
-	status = pProfile_->setInt(L"Find", L"Regex", bRegex_ ? 1 : 0);
-	CHECK_QSTATUS();
+	pProfile_->setInt(L"Find", L"Regex", bRegex_ ? 1 : 0);
 	
 	bPrev_ = nId == IDC_FINDPREV;
 	
@@ -2887,9 +2519,8 @@ void qm::FindDialog::updateState()
  *
  */
 
-qm::ImportDialog::ImportDialog(QSTATUS* pstatus) :
-	DefaultDialog(IDD_IMPORT, pstatus),
-	wstrPath_(0),
+qm::ImportDialog::ImportDialog() :
+	DefaultDialog(IDD_IMPORT),
 	bMultiple_(false),
 	nFlags_(0)
 {
@@ -2897,12 +2528,11 @@ qm::ImportDialog::ImportDialog(QSTATUS* pstatus) :
 
 qm::ImportDialog::~ImportDialog()
 {
-	freeWString(wstrPath_);
 }
 
 const WCHAR* qm::ImportDialog::getPath() const
 {
-	return wstrPath_;
+	return wstrPath_.get();
 }
 
 bool qm::ImportDialog::isMultiple() const
@@ -2915,7 +2545,8 @@ unsigned int qm::ImportDialog::getFlags() const
 	return nFlags_;
 }
 
-LRESULT qm::ImportDialog::onCommand(WORD nCode, WORD nId)
+LRESULT qm::ImportDialog::onCommand(WORD nCode,
+									WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_BROWSE, onBrowse)
@@ -2924,7 +2555,8 @@ LRESULT qm::ImportDialog::onCommand(WORD nCode, WORD nId)
 	return DefaultDialog::onCommand(nCode, nId);
 }
 
-LRESULT qm::ImportDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::ImportDialog::onInitDialog(HWND hwndFocus,
+									   LPARAM lParam)
 {
 	init(false);
 	sendDlgItemMessage(IDC_NORMAL, BM_SETCHECK, BST_CHECKED);
@@ -2935,12 +2567,7 @@ LRESULT qm::ImportDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 
 LRESULT qm::ImportDialog::onOk()
 {
-	string_ptr<WSTRING> wstrPath(getDlgItemText(IDC_PATH));
-	if (!wstrPath.get())
-		return 0;
-	
-	freeWString(wstrPath_);
-	wstrPath_ = wstrPath.release();
+	wstrPath_ = getDlgItemText(IDC_PATH);
 	
 	bMultiple_ = sendDlgItemMessage(IDC_MULTIMESSAGES, BM_GETCHECK) == BST_CHECKED;
 	
@@ -2963,35 +2590,23 @@ LRESULT qm::ImportDialog::onOk()
 
 LRESULT qm::ImportDialog::onBrowse()
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrFilter;
-	status = loadString(Application::getApplication().getResourceHandle(),
-		IDS_FILTER_IMPORT, &wstrFilter);
-	CHECK_QSTATUS_VALUE(0);
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	wstring_ptr wstrFilter(loadString(hInst, IDS_FILTER_IMPORT));
 	
 	FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
-		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_ALLOWMULTISELECT,
-		&status);
-	CHECK_QSTATUS_VALUE(0);
+		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_ALLOWMULTISELECT);
 	
-	int nRet = IDCANCEL;
-	status = dialog.doModal(getHandle(), 0, &nRet);
-	CHECK_QSTATUS_VALUE(0);
-	if (nRet == IDOK) {
+	if (dialog.doModal(getHandle()) == IDOK) {
 		const WCHAR* pwszPath = dialog.getPath();
 		if (*(pwszPath + wcslen(pwszPath) + 1)) {
-			StringBuffer<WSTRING> buf(&status);
-			CHECK_QSTATUS();
+			StringBuffer<WSTRING> buf;
 			const WCHAR* p = pwszPath;
 			while (true) {
-				status = buf.append(p);
-				CHECK_QSTATUS();
+				buf.append(p);
 				p += wcslen(p) + 1;
 				if (!*p)
 					break;
-				status = buf.append(L';');
-				CHECK_QSTATUS();
+				buf.append(L';');
 			}
 			setDlgItemText(IDC_PATH, buf.getCharArray());
 		}
@@ -3024,78 +2639,55 @@ void qm::ImportDialog::updateState()
  */
 
 qm::InputBoxDialog::InputBoxDialog(bool bMultiLine,
-	const WCHAR* pwszMessage, const WCHAR* pwszValue, QSTATUS* pstatus) :
-	DefaultDialog(bMultiLine ? IDD_MULTIINPUTBOX : IDD_SINGLEINPUTBOX, pstatus),
-	bMultiLine_(bMultiLine),
-	wstrMessage_(0),
-	wstrValue_(0)
+								   const WCHAR* pwszMessage,
+								   const WCHAR* pwszValue) :
+	DefaultDialog(bMultiLine ? IDD_MULTIINPUTBOX : IDD_SINGLEINPUTBOX),
+	bMultiLine_(bMultiLine)
 {
-	string_ptr<WSTRING> wstrMessage;
-	if (pwszMessage) {
-		wstrMessage.reset(allocWString(pwszMessage));
-		if (!wstrMessage.get()) {
-			*pstatus = QSTATUS_OUTOFMEMORY;
-			return;
-		}
-	}
-	string_ptr<WSTRING> wstrValue;
-	if (pwszValue) {
-		wstrValue.reset(allocWString(pwszValue));
-		if (!wstrValue.get()) {
-			*pstatus = QSTATUS_OUTOFMEMORY;
-			return;
-		}
-	}
-	
-	wstrMessage_ = wstrMessage.release();
-	wstrValue_ = wstrValue.release();
+	if (pwszMessage)
+		wstrMessage_ = allocWString(pwszMessage);
+	if (pwszValue)
+		wstrValue_ = allocWString(pwszValue);
 }
 
 qm::InputBoxDialog::~InputBoxDialog()
 {
-	freeWString(wstrMessage_);
-	freeWString(wstrValue_);
 }
 
 const WCHAR* qm::InputBoxDialog::getMessage() const
 {
-	return wstrMessage_;
+	return wstrMessage_.get();
 }
 
 const WCHAR* qm::InputBoxDialog::getValue() const
 {
-	return wstrValue_;
+	return wstrValue_.get();
 }
 
-LRESULT qm::InputBoxDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::InputBoxDialog::onInitDialog(HWND hwndFocus,
+										 LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
 	init(false);
 	
-	if (wstrMessage_)
-		setDlgItemText(IDC_MESSAGE, wstrMessage_);
+	if (wstrMessage_.get())
+		setDlgItemText(IDC_MESSAGE, wstrMessage_.get());
 	
-	if (wstrValue_) {
-		if (bMultiLine_ && wcschr(wstrValue_, L'\n')) {
-			StringBuffer<WSTRING> buf(&status);
-			CHECK_QSTATUS();
+	if (wstrValue_.get()) {
+		if (bMultiLine_ && wcschr(wstrValue_.get(), L'\n')) {
+			StringBuffer<WSTRING> buf;
 			
-			const WCHAR* p = wstrValue_;
+			const WCHAR* p = wstrValue_.get();
 			while (*p) {
-				if (*p == L'\n') {
-					status = buf.append(L'\r');
-					CHECK_QSTATUS_VALUE(TRUE);
-				}
-				status = buf.append(*p);
-				CHECK_QSTATUS();
+				if (*p == L'\n')
+					buf.append(L'\r');
+				buf.append(*p);
 				++p;
 			}
 			
 			setDlgItemText(IDC_VALUE, buf.getCharArray());
 		}
 		else {
-			setDlgItemText(IDC_VALUE, wstrValue_);
+			setDlgItemText(IDC_VALUE, wstrValue_.get());
 		}
 	}
 	
@@ -3104,11 +2696,10 @@ LRESULT qm::InputBoxDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 
 LRESULT qm::InputBoxDialog::onOk()
 {
-	freeWString(wstrValue_);
 	wstrValue_ = getDlgItemText(IDC_VALUE);
-	if (bMultiLine_ && wstrValue_) {
-		WCHAR* pSrc = wstrValue_;
-		WCHAR* pDst = wstrValue_;
+	if (bMultiLine_ && wstrValue_.get()) {
+		WCHAR* pSrc = wstrValue_.get();
+		WCHAR* pDst = wstrValue_.get();
 		while (*pSrc) {
 			if (*pSrc != L'\r')
 				*pDst++ = *pSrc;
@@ -3126,20 +2717,15 @@ LRESULT qm::InputBoxDialog::onOk()
  *
  */
 
-qm::InsertTextDialog::InsertTextDialog(QSTATUS* pstatus) :
-	DefaultDialog(IDD_INSERTTEXT, pstatus),
-	pManager_(0),
+qm::InsertTextDialog::InsertTextDialog() :
+	DefaultDialog(IDD_INSERTTEXT),
 	pText_(0)
 {
-	DECLARE_QSTATUS();
-	
-	status = newQsObject(&pManager_);
-	CHECK_QSTATUS_SET(pstatus);
+	pManager_.reset(new FixedFormTextManager());
 }
 
 qm::InsertTextDialog::~InsertTextDialog()
 {
-	delete pManager_;
 }
 
 const FixedFormText* qm::InsertTextDialog::getText() const
@@ -3147,18 +2733,16 @@ const FixedFormText* qm::InsertTextDialog::getText() const
 	return pText_;
 }
 
-LRESULT qm::InsertTextDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::InsertTextDialog::onInitDialog(HWND hwndFocus,
+										   LPARAM lParam)
 {
 	init(false);
 	
 	const FixedFormTextManager::TextList& l = pManager_->getTextList();
-	FixedFormTextManager::TextList::const_iterator it = l.begin();
-	while (it != l.end()) {
-		string_ptr<TSTRING> tstrName(wcs2tcs((*it)->getName()));
-		if (tstrName.get())
-			sendDlgItemMessage(IDC_LIST, LB_ADDSTRING, 0,
-				reinterpret_cast<LPARAM>(tstrName.get()));
-		++it;
+	for (FixedFormTextManager::TextList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		tstring_ptr tstrName(wcs2tcs((*it)->getName()));
+		sendDlgItemMessage(IDC_LIST, LB_ADDSTRING, 0,
+			reinterpret_cast<LPARAM>(tstrName.get()));
 	}
 	
 	sendDlgItemMessage(IDC_LIST, LB_SETCURSEL);
@@ -3182,23 +2766,22 @@ LRESULT qm::InsertTextDialog::onOk()
  *
  */
 
-qm::MailFolderDialog::MailFolderDialog(HINSTANCE hInstResource, QSTATUS* pstatus) :
-	DefaultDialog(hInstResource, IDD_MAILFOLDER, pstatus),
-	wstrMailFolder_(0)
+qm::MailFolderDialog::MailFolderDialog(HINSTANCE hInstResource) :
+	DefaultDialog(hInstResource, IDD_MAILFOLDER)
 {
 }
 
 qm::MailFolderDialog::~MailFolderDialog()
 {
-	freeWString(wstrMailFolder_);
 }
 
 const WCHAR* qm::MailFolderDialog::getMailFolder() const
 {
-	return wstrMailFolder_;
+	return wstrMailFolder_.get();
 }
 
-LRESULT qm::MailFolderDialog::onCommand(WORD nCode, WORD nId)
+LRESULT qm::MailFolderDialog::onCommand(WORD nCode,
+										WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_BROWSE, onBrowse)
@@ -3207,7 +2790,8 @@ LRESULT qm::MailFolderDialog::onCommand(WORD nCode, WORD nId)
 	return DefaultDialog::onCommand(nCode, nId);
 }
 
-LRESULT qm::MailFolderDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::MailFolderDialog::onInitDialog(HWND hwndFocus,
+										   LPARAM lParam)
 {
 	init(false);
 	updateState();
@@ -3228,11 +2812,7 @@ LRESULT qm::MailFolderDialog::onMailFolderChange()
 
 LRESULT qm::MailFolderDialog::onBrowse()
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrPath;
-	status = qs::UIUtil::browseFolder(getHandle(), 0, 0, &wstrPath);
-	CHECK_QSTATUS_VALUE(0);
+	wstring_ptr wstrPath(qs::UIUtil::browseFolder(getHandle(), 0, 0));
 	if (wstrPath.get())
 		setDlgItemText(IDC_MAILFOLDER, wstrPath.get());
 	
@@ -3252,21 +2832,16 @@ void qm::MailFolderDialog::updateState()
  *
  */
 
-qm::MoveMessageDialog::MoveMessageDialog(
-	Document* pDocument, Profile* pProfile, QSTATUS* pstatus) :
-	DefaultDialog(IDD_MOVEMESSAGE, pstatus),
+qm::MoveMessageDialog::MoveMessageDialog(Document* pDocument,
+										 Profile* pProfile) :
+	DefaultDialog(IDD_MOVEMESSAGE),
 	pDocument_(pDocument),
 	pProfile_(pProfile),
 	pFolder_(0),
 	bCopy_(false),
 	bShowHidden_(false)
 {
-	DECLARE_QSTATUS();
-	
-	int nShowHidden = 0;
-	status = pProfile->getInt(L"MoveMessageDialog", L"ShowHidden", 0, &nShowHidden);
-	CHECK_QSTATUS_SET(pstatus);
-	bShowHidden_ = nShowHidden != 0;
+	bShowHidden_ = pProfile->getInt(L"MoveMessageDialog", L"ShowHidden", 0) != 0;
 }
 
 qm::MoveMessageDialog::~MoveMessageDialog()
@@ -3283,7 +2858,8 @@ bool qm::MoveMessageDialog::isCopy() const
 	return bCopy_;
 }
 
-LRESULT qm::MoveMessageDialog::onCommand(WORD nCode, WORD nId)
+LRESULT qm::MoveMessageDialog::onCommand(WORD nCode,
+										 WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_SHOWHIDDEN, onShowHidden)
@@ -3291,7 +2867,8 @@ LRESULT qm::MoveMessageDialog::onCommand(WORD nCode, WORD nId)
 	return DefaultDialog::onCommand(nCode, nId);
 }
 
-LRESULT qm::MoveMessageDialog::onNotify(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qm::MoveMessageDialog::onNotify(NMHDR* pnmhdr,
+										bool* pbHandled)
 {
 	BEGIN_NOTIFY_HANDLER()
 		HANDLE_NOTIFY(TVN_SELCHANGED, IDC_FOLDER, onFolderSelChanged);
@@ -3299,10 +2876,9 @@ LRESULT qm::MoveMessageDialog::onNotify(NMHDR* pnmhdr, bool* pbHandled)
 	return 1;
 }
 
-LRESULT qm::MoveMessageDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::MoveMessageDialog::onInitDialog(HWND hwndFocus,
+											LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
 	init(false);
 	
 	HIMAGELIST hImageList = ImageList_LoadImage(
@@ -3313,8 +2889,7 @@ LRESULT qm::MoveMessageDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	if (bShowHidden_)
 		sendDlgItemMessage(IDC_SHOWHIDDEN, BM_SETCHECK, BST_CHECKED);
 	
-	status = update();
-	CHECK_QSTATUS_VALUE(TRUE);
+	update();
 	updateState();
 	addNotifyHandler(this);
 	
@@ -3373,31 +2948,25 @@ LRESULT qm::MoveMessageDialog::onFolderSelChanged(NMHDR* pnmhdr, bool* pbHandled
 	return 0;
 }
 
-QSTATUS qm::MoveMessageDialog::update()
+bool qm::MoveMessageDialog::update()
 {
-	DECLARE_QSTATUS();
-	
 	HWND hwnd = getDlgItem(IDC_FOLDER);
 	DisableRedraw disable(hwnd);
 	
 	TreeView_DeleteAllItems(hwnd);
 	
 	const Document::AccountList& listAccount = pDocument_->getAccounts();
-	Document::AccountList::const_iterator it = listAccount.begin();
-	while (it != listAccount.end()) {
-		status = insertAccount(*it);
-		CHECK_QSTATUS();
-		++it;
+	for (Document::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
+		if (!insertAccount(*it))
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::MoveMessageDialog::insertAccount(Account* pAccount)
+bool qm::MoveMessageDialog::insertAccount(Account* pAccount)
 {
 	assert(pAccount);
-	
-	DECLARE_QSTATUS();
 	
 	W2T(pAccount->getName(), ptszName);
 	
@@ -3420,25 +2989,23 @@ QSTATUS qm::MoveMessageDialog::insertAccount(Account* pAccount)
 	HTREEITEM hItemAccount = TreeView_InsertItem(
 		getDlgItem(IDC_FOLDER), &tvisAccount);
 	if (!hItemAccount)
-		return QSTATUS_FAIL;
+		return false;
 	
-	status = insertFolders(hItemAccount, pAccount);
-	CHECK_QSTATUS();
+	if (!insertFolders(hItemAccount, pAccount))
+		return false;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::MoveMessageDialog::insertFolders(HTREEITEM hItem, Account* pAccount)
+bool qm::MoveMessageDialog::insertFolders(HTREEITEM hItem,
+										  Account* pAccount)
 {
 	assert(hItem);
 	assert(pAccount);
 	
-	DECLARE_QSTATUS();
-	
 	const Account::FolderList& l = pAccount->getFolders();
 	Account::FolderList listFolder;
-	status = STLWrapper<Account::FolderList>(listFolder).reserve(l.size());
-	CHECK_QSTATUS();
+	listFolder.reserve(l.size());
 	if (bShowHidden_)
 		std::copy(l.begin(), l.end(), std::back_inserter(listFolder));
 	else
@@ -3448,11 +3015,9 @@ QSTATUS qm::MoveMessageDialog::insertFolders(HTREEITEM hItem, Account* pAccount)
 	
 	typedef std::vector<std::pair<Folder*, HTREEITEM> > Stack;
 	Stack stack;
-	status = STLWrapper<Stack>(stack).push_back(Stack::value_type(0, hItem));
-	CHECK_QSTATUS();
+	stack.push_back(Stack::value_type(0, hItem));
 	
-	Account::FolderList::const_iterator it = listFolder.begin();
-	while (it != listFolder.end()) {
+	for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
 		Folder* pFolder = *it;
 		
 		W2T(pFolder->getName(), ptszName);
@@ -3482,16 +3047,12 @@ QSTATUS qm::MoveMessageDialog::insertFolders(HTREEITEM hItem, Account* pAccount)
 		HTREEITEM hItemFolder = TreeView_InsertItem(
 			getDlgItem(IDC_FOLDER), &tvisFolder);
 		if (!hItemFolder)
-			return QSTATUS_FAIL;
+			return false;
 		
-		status = STLWrapper<Stack>(stack).push_back(
-			Stack::value_type(pFolder, hItemFolder));
-		CHECK_QSTATUS();
-		
-		++it;
+		stack.push_back(Stack::value_type(pFolder, hItemFolder));
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 void qm::MoveMessageDialog::updateState()
@@ -3522,8 +3083,8 @@ void qm::MoveMessageDialog::updateState()
  *
  */
 
-qm::ProgressDialog::ProgressDialog(UINT nTitleId, QSTATUS* pstatus) :
-	DefaultDialog(IDD_PROGRESS, pstatus),
+qm::ProgressDialog::ProgressDialog(UINT nTitleId) :
+	DefaultDialog(IDD_PROGRESS),
 	nTitleId_(nTitleId),
 	bCanceled_(false)
 {
@@ -3533,16 +3094,14 @@ qm::ProgressDialog::~ProgressDialog()
 {
 }
 
-QSTATUS qm::ProgressDialog::init(HWND hwnd)
+bool qm::ProgressDialog::init(HWND hwnd)
 {
-	DECLARE_QSTATUS();
-	
-	status = create(hwnd);
-	CHECK_QSTATUS();
+	if (!create(hwnd))
+		return false;
 	showWindow(SW_SHOW);
 	getModalHandler()->preModalDialog(0);
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 void qm::ProgressDialog::term()
@@ -3561,42 +3120,29 @@ bool qm::ProgressDialog::isCanceled() const
 	return bCanceled_;
 }
 
-QSTATUS qm::ProgressDialog::setTitle(UINT nId)
+void qm::ProgressDialog::setTitle(UINT nId)
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrMessage;
-	status = loadString(Application::getApplication().getResourceHandle(),
-		nId, &wstrMessage);
-	CHECK_QSTATUS();
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	wstring_ptr wstrMessage(loadString(hInst, nId));
 	setWindowText(wstrMessage.get());
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ProgressDialog::setMessage(UINT nId)
+void qm::ProgressDialog::setMessage(UINT nId)
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrMessage;
-	status = loadString(Application::getApplication().getResourceHandle(),
-		nId, &wstrMessage);
-	CHECK_QSTATUS();
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	wstring_ptr wstrMessage(loadString(hInst, nId));
 	setDlgItemText(IDC_MESSAGE, wstrMessage.get());
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ProgressDialog::setRange(unsigned int nMin, unsigned int nMax)
+void qm::ProgressDialog::setRange(unsigned int nMin,
+								  unsigned int nMax)
 {
 	sendDlgItemMessage(IDC_PROGRESS, PBM_SETRANGE32, nMin, nMax);
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ProgressDialog::setPos(unsigned int n)
+void qm::ProgressDialog::setPos(unsigned int n)
 {
 	sendDlgItemMessage(IDC_PROGRESS, PBM_SETPOS, n);
-	return QSTATUS_SUCCESS;
 }
 
 LRESULT qm::ProgressDialog::onDestroy()
@@ -3604,7 +3150,8 @@ LRESULT qm::ProgressDialog::onDestroy()
 	return DefaultDialog::onDestroy();
 }
 
-LRESULT qm::ProgressDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::ProgressDialog::onInitDialog(HWND hwndFocus,
+										 LPARAM lParam)
 {
 	DefaultDialog::init(false);
 	setTitle(nTitleId_);
@@ -3624,28 +3171,23 @@ LRESULT qm::ProgressDialog::onCancel()
  *
  */
 
-qm::RenameDialog::RenameDialog(const WCHAR* pwszName, QSTATUS* pstatus) :
-	DefaultDialog(IDD_RENAME, pstatus),
-	wstrName_(0)
+qm::RenameDialog::RenameDialog(const WCHAR* pwszName) :
+	DefaultDialog(IDD_RENAME)
 {
 	wstrName_ = allocWString(pwszName);
-	if (!wstrName_) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
 }
 
 qm::RenameDialog::~RenameDialog()
 {
-	freeWString(wstrName_);
 }
 
 const WCHAR* qm::RenameDialog::getName() const
 {
-	return wstrName_;
+	return wstrName_.get();
 }
 
-LRESULT qm::RenameDialog::onCommand(WORD nCode, WORD nId)
+LRESULT qm::RenameDialog::onCommand(WORD nCode,
+									WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID_CODE(IDC_NAME, EN_CHANGE, onNameChange)
@@ -3653,18 +3195,16 @@ LRESULT qm::RenameDialog::onCommand(WORD nCode, WORD nId)
 	return DefaultDialog::onCommand(nCode, nId);
 }
 
-LRESULT qm::RenameDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::RenameDialog::onInitDialog(HWND hwndFocus,
+									   LPARAM lParam)
 {
 	init(false);
-	
-	setDlgItemText(IDC_NAME, wstrName_);
-	
+	setDlgItemText(IDC_NAME, wstrName_.get());
 	return TRUE;
 }
 
 LRESULT qm::RenameDialog::onOk()
 {
-	freeWString(wstrName_);
 	wstrName_ = getDlgItemText(IDC_NAME);
 	return DefaultDialog::onOk();
 }
@@ -3688,11 +3228,9 @@ LRESULT qm::RenameDialog::onNameChange()
  *
  */
 
-qm::ReplaceDialog::ReplaceDialog(Profile* pProfile, QSTATUS* pstatus) :
-	DefaultDialog(IDD_REPLACE, pstatus),
+qm::ReplaceDialog::ReplaceDialog(Profile* pProfile) :
+	DefaultDialog(IDD_REPLACE),
 	pProfile_(pProfile),
-	wstrFind_(0),
-	wstrReplace_(0),
 	bMatchCase_(false),
 	bRegex_(false),
 	type_(TYPE_NEXT)
@@ -3701,18 +3239,16 @@ qm::ReplaceDialog::ReplaceDialog(Profile* pProfile, QSTATUS* pstatus) :
 
 qm::ReplaceDialog::~ReplaceDialog()
 {
-	freeWString(wstrFind_);
-	freeWString(wstrReplace_);
 }
 
 const WCHAR* qm::ReplaceDialog::getFind() const
 {
-	return wstrFind_;
+	return wstrFind_.get();
 }
 
 const WCHAR* qm::ReplaceDialog::getReplace() const
 {
-	return wstrReplace_;
+	return wstrReplace_.get();
 }
 
 bool qm::ReplaceDialog::isMatchCase() const
@@ -3730,7 +3266,8 @@ ReplaceDialog::Type qm::ReplaceDialog::getType() const
 	return type_;
 }
 
-LRESULT qm::ReplaceDialog::onCommand(WORD nCode, WORD nId)
+LRESULT qm::ReplaceDialog::onCommand(WORD nCode,
+									 WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID_RANGE(IDC_REPLACENEXT, IDC_REPLACEALL, onReplace)
@@ -3739,10 +3276,9 @@ LRESULT qm::ReplaceDialog::onCommand(WORD nCode, WORD nId)
 	return DefaultDialog::onCommand(nCode, nId);
 }
 
-LRESULT qm::ReplaceDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::ReplaceDialog::onInitDialog(HWND hwndFocus,
+										LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
 	init(false);
 	
 	for (int n = 0; n < HISTORY_SIZE; ++n) {
@@ -3757,10 +3293,7 @@ LRESULT qm::ReplaceDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 			{ L"Replace",	IDC_REPLACE	}
 		};
 		for (int m = 0; m < countof(items); ++m) {
-			string_ptr<WSTRING> wstr;
-			status = pProfile_->getString(
-				items[m].pwszSection_, wszKey, L"", &wstr);
-			CHECK_QSTATUS();
+			wstring_ptr wstr(pProfile_->getString(items[m].pwszSection_, wszKey, L""));
 			if (*wstr.get()) {
 				W2T(wstr.get(), ptsz);
 				sendDlgItemMessage(items[m].nId_, CB_ADDSTRING, 0,
@@ -3769,15 +3302,11 @@ LRESULT qm::ReplaceDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 		}
 	}
 	
-	int nMatchCase = 0;
-	status = pProfile_->getInt(L"Find", L"MatchCase", 0, &nMatchCase);
-	CHECK_QSTATUS();
+	int nMatchCase = pProfile_->getInt(L"Find", L"MatchCase", 0);
 	sendDlgItemMessage(IDC_MATCHCASE, BM_SETCHECK,
 		nMatchCase ? BST_CHECKED : BST_UNCHECKED);
 	
-	int nRegex = 0;
-	status = pProfile_->getInt(L"Find", L"Regex", 0, &nRegex);
-	CHECK_QSTATUS();
+	int nRegex = pProfile_->getInt(L"Find", L"Regex", 0);
 	sendDlgItemMessage(IDC_REGEX, BM_SETCHECK,
 		nRegex ? BST_CHECKED : BST_UNCHECKED);
 	
@@ -3788,11 +3317,9 @@ LRESULT qm::ReplaceDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 
 LRESULT qm::ReplaceDialog::onReplace(UINT nId)
 {
-	DECLARE_QSTATUS();
-	
 	struct {
 		UINT nId_;
-		WSTRING* pwstr_;
+		wstring_ptr* pwstr_;
 		const WCHAR* pwszSection_;
 	} items[] = {
 		{ IDC_FIND,		&wstrFind_,		L"Find"		},
@@ -3800,37 +3327,28 @@ LRESULT qm::ReplaceDialog::onReplace(UINT nId)
 	};
 	for (int m = 0; m < countof(items); ++m) {
 		Window edit(Window(getDlgItem(items[m].nId_)).getWindow(GW_CHILD));
-		string_ptr<WSTRING> wstrText(edit.getWindowText());
+		wstring_ptr wstrText(edit.getWindowText());
 		if (wstrText.get()) {
 			for (int n = HISTORY_SIZE - 1; n > 0; --n) {
 				WCHAR wszFromKey[32];
 				swprintf(wszFromKey, L"History%d", n - 1);
-				string_ptr<WSTRING> wstr;
-				status = pProfile_->getString(
-					items[m].pwszSection_, wszFromKey, L"", &wstr);
-				CHECK_QSTATUS();
+				wstring_ptr wstr(pProfile_->getString(items[m].pwszSection_, wszFromKey, L""));
 				
 				WCHAR wszToKey[32];
 				swprintf(wszToKey, L"History%d", n);
-				status = pProfile_->setString(
-					items[m].pwszSection_, wszToKey, wstr.get());
-				CHECK_QSTATUS();
+				pProfile_->setString(items[m].pwszSection_, wszToKey, wstr.get());
 			}
 			
-			status = pProfile_->setString(
-				items[m].pwszSection_, L"History0", wstrText.get());
-			CHECK_QSTATUS();
+			pProfile_->setString(items[m].pwszSection_, L"History0", wstrText.get());
 		}
-		*items[m].pwstr_ = wstrText.release();
+		*items[m].pwstr_ = wstrText;
 	}
 	
 	bMatchCase_ = sendDlgItemMessage(IDC_MATCHCASE, BM_GETCHECK) == BST_CHECKED;
-	status = pProfile_->setInt(L"Find", L"MatchCase", bMatchCase_ ? 1 : 0);
-	CHECK_QSTATUS();
+	pProfile_->setInt(L"Find", L"MatchCase", bMatchCase_ ? 1 : 0);
 	
 	bRegex_ = sendDlgItemMessage(IDC_REGEX, BM_GETCHECK) == BST_CHECKED;
-	status = pProfile_->setInt(L"Find", L"Regex", bRegex_ ? 1 : 0);
-	CHECK_QSTATUS();
+	pProfile_->setInt(L"Find", L"Regex", bRegex_ ? 1 : 0);
 	
 	type_ = nId == IDC_REPLACEPREV ? TYPE_PREV :
 		nId == IDC_REPLACEALL ? TYPE_ALL : TYPE_NEXT;
@@ -3859,25 +3377,23 @@ void qm::ReplaceDialog::updateState()
  *
  */
 
-qm::SelectDialupEntryDialog::SelectDialupEntryDialog(
-	Profile* pProfile, QSTATUS* pstatus) :
-	DefaultDialog(IDD_SELECTDIALUPENTRY, pstatus),
-	pProfile_(pProfile),
-	wstrEntry_(0)
+qm::SelectDialupEntryDialog::SelectDialupEntryDialog(Profile* pProfile) :
+	DefaultDialog(IDD_SELECTDIALUPENTRY),
+	pProfile_(pProfile)
 {
 }
 
 qm::SelectDialupEntryDialog::~SelectDialupEntryDialog()
 {
-	freeWString(wstrEntry_);
 }
 
 const WCHAR* qm::SelectDialupEntryDialog::getEntry() const
 {
-	return wstrEntry_;
+	return wstrEntry_.get();
 }
 
-LRESULT qm::SelectDialupEntryDialog::onCommand(WORD nCode, WORD nId)
+LRESULT qm::SelectDialupEntryDialog::onCommand(WORD nCode,
+											   WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID_CODE(IDC_ENTRY, LBN_SELCHANGE, onSelChange)
@@ -3885,32 +3401,24 @@ LRESULT qm::SelectDialupEntryDialog::onCommand(WORD nCode, WORD nId)
 	return DefaultDialog::onCommand(nCode, nId);
 }
 
-LRESULT qm::SelectDialupEntryDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::SelectDialupEntryDialog::onInitDialog(HWND hwndFocus,
+												  LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
 	init(false);
 	
 	typedef RasConnection::EntryList List;
 	List listEntry;
 	StringListFree<List> free(listEntry);
-	status = RasConnection::getEntries(&listEntry);
-	CHECK_QSTATUS_VALUE(TRUE);
+	RasConnection::getEntries(&listEntry);
 	
-	List::const_iterator it = listEntry.begin();
-	while (it != listEntry.end()) {
-		W2T_STATUS(*it, ptszEntry);
-		CHECK_QSTATUS_VALUE(TRUE);
+	for (List::const_iterator it = listEntry.begin(); it != listEntry.end(); ++it) {
+		W2T(*it, ptszEntry);
 		sendDlgItemMessage(IDC_ENTRY, LB_ADDSTRING, 0,
 			reinterpret_cast<LPARAM>(ptszEntry));
-		++it;
 	}
 	
-	string_ptr<WSTRING> wstrEntry;
-	status = pProfile_->getString(L"Dialup", L"Entry", 0, &wstrEntry);
-	CHECK_QSTATUS_VALUE(TRUE);
-	W2T_STATUS(wstrEntry.get(), ptszEntry);
-	CHECK_QSTATUS_VALUE(TRUE);
+	wstring_ptr wstrEntry(pProfile_->getString(L"Dialup", L"Entry", 0));
+	W2T(wstrEntry.get(), ptszEntry);
 	sendDlgItemMessage(IDC_ENTRY, LB_SELECTSTRING, -1,
 		reinterpret_cast<LPARAM>(ptszEntry));
 	
@@ -3929,18 +3437,12 @@ LRESULT qm::SelectDialupEntryDialog::onOk()
 	if (nLen == LB_ERR)
 		return 0;
 	
-	string_ptr<TSTRING> tstrEntry(allocTString(nLen + 1));
-	if (!tstrEntry.get())
-		return 0;
-	
+	tstring_ptr tstrEntry(allocTString(nLen + 1));
 	sendDlgItemMessage(IDC_ENTRY, LB_GETTEXT, nIndex,
 		reinterpret_cast<LPARAM>(tstrEntry.get()));
 	
 	wstrEntry_ = tcs2wcs(tstrEntry.get());
-	if (!wstrEntry_)
-		return 0;
-	
-	pProfile_->setString(L"Dialup", L"Entry", wstrEntry_);
+	pProfile_->setString(L"Dialup", L"Entry", wstrEntry_.get());
 	
 	return DefaultDialog::onOk();
 }
@@ -3965,14 +3467,12 @@ void qm::SelectDialupEntryDialog::updateState()
  */
 
 qm::SelectSyncFilterDialog::SelectSyncFilterDialog(SyncFilterManager* pManager,
-	Account* pAccount, const WCHAR* pwszDefaultName, QSTATUS* pstatus) :
-	DefaultDialog(IDD_SELECTSYNCFILTER, pstatus),
+												   Account* pAccount,
+												   const WCHAR* pwszDefaultName) :
+	DefaultDialog(IDD_SELECTSYNCFILTER),
 	pwszName_(pwszDefaultName)
 {
-	DECLARE_QSTATUS();
-	
-	status = pManager->getFilterSets(pAccount, &list_);
-	CHECK_QSTATUS_SET(pstatus);
+	pManager->getFilterSets(pAccount, &list_);
 }
 
 qm::SelectSyncFilterDialog::~SelectSyncFilterDialog()
@@ -3984,23 +3484,20 @@ const WCHAR* qm::SelectSyncFilterDialog::getName() const
 	return pwszName_;
 }
 
-LRESULT qm::SelectSyncFilterDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::SelectSyncFilterDialog::onInitDialog(HWND hwndFocus,
+												 LPARAM lParam)
 {
-	// TODO
-	// Error handling while W2T
-	
 	init(false);
 	
 	if (list_.empty()) {
 		endDialog(IDOK);
 	}
 	else {
-		SyncFilterManager::FilterSetList::const_iterator it = list_.begin();
-		while (it != list_.end()) {
+		typedef SyncFilterManager::FilterSetList List;
+		for (List::const_iterator it = list_.begin(); it != list_.end(); ++it) {
 			W2T((*it)->getName(), ptszName);
 			sendDlgItemMessage(IDC_FILTERSETLIST, LB_ADDSTRING,
 				0, reinterpret_cast<LPARAM>(ptszName));
-			++it;
 		}
 		W2T(pwszName_, ptszName);
 		sendDlgItemMessage(IDC_FILTERSETLIST, LB_SELECTSTRING,
@@ -4012,8 +3509,6 @@ LRESULT qm::SelectSyncFilterDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 
 LRESULT qm::SelectSyncFilterDialog::onOk()
 {
-	DECLARE_QSTATUS();
-	
 	unsigned int nItem = sendDlgItemMessage(IDC_FILTERSETLIST, LB_GETCURSEL);
 	if (nItem == LB_ERR)
 		return onCancel();

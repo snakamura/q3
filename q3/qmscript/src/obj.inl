@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -20,8 +20,7 @@
  */
 
 template<class T>
-qmscript::Object<T>::Object(qs::QSTATUS* pstatus) :
-	T(pstatus),
+qmscript::Object<T>::Object() :
 	nRef_(0)
 {
 }
@@ -32,7 +31,8 @@ qmscript::Object<T>::~Object()
 }
 
 template<class T>
-STDMETHODIMP qmscript::Object<T>::QueryInterface(REFIID riid, void** ppv)
+STDMETHODIMP qmscript::Object<T>::QueryInterface(REFIID riid,
+												 void** ppv)
 {
 	if (riid == IID_IUnknown)
 		*ppv = static_cast<IUnknown*>(this);
@@ -67,14 +67,12 @@ STDMETHODIMP_(ULONG) qmscript::Object<T>::Release()
  */
 
 template<class T, class I, const IID* piid>
-qmscript::DispObject<T, I, piid>::DispObject(qs::QSTATUS* pstatus) :
-	Object<T>(pstatus),
+qmscript::DispObject<T, I, piid>::DispObject() :
 	pTypeInfo_(0)
 {
 	HRESULT hr = getTypeLib()->GetTypeInfoOfGuid(*piid, &pTypeInfo_);
 	if (FAILED(hr)) {
-		*pstatus = qs::QSTATUS_FAIL;
-		return;
+		// TODO
 	}
 }
 
@@ -86,7 +84,8 @@ qmscript::DispObject<T, I, piid>::~DispObject()
 }
 
 template<class T, class I, const IID* piid>
-STDMETHODIMP qmscript::DispObject<T, I, piid>::QueryInterface(REFIID riid, void** ppv)
+STDMETHODIMP qmscript::DispObject<T, I, piid>::QueryInterface(REFIID riid,
+															  void** ppv)
 {
 	if (riid == IID_IDispatch)
 		*ppv = static_cast<IDispatch*>(this);
@@ -100,14 +99,18 @@ STDMETHODIMP qmscript::DispObject<T, I, piid>::QueryInterface(REFIID riid, void*
 
 template<class T, class I, const IID* piid>
 STDMETHODIMP qmscript::DispObject<T, I, piid>::GetIDsOfNames(REFIID riid,
-	LPOLESTR* ppwszNames, unsigned int nNames, LCID lcid, DISPID* pDispId)
+															 LPOLESTR* ppwszNames,
+															 unsigned int nNames,
+															 LCID lcid,
+															 DISPID* pDispId)
 {
 	return ::DispGetIDsOfNames(pTypeInfo_, ppwszNames, nNames, pDispId);
 }
 
 template<class T, class I, const IID* piid>
-STDMETHODIMP qmscript::DispObject<T, I, piid>::GetTypeInfo(
-	unsigned int nTypeInfo, LCID lcid, ITypeInfo** ppTypeInfo)
+STDMETHODIMP qmscript::DispObject<T, I, piid>::GetTypeInfo(unsigned int nTypeInfo,
+														   LCID lcid,
+														   ITypeInfo** ppTypeInfo)
 {
 	if (nTypeInfo != 0)
 		return DISP_E_BADINDEX;
@@ -126,9 +129,14 @@ STDMETHODIMP qmscript::DispObject<T, I, piid>::GetTypeInfoCount(unsigned int* pn
 }
 
 template<class T, class I, const IID* piid>
-STDMETHODIMP qmscript::DispObject<T, I, piid>::Invoke(DISPID dispId, REFIID riid,
-	LCID lcid, WORD wFlags, DISPPARAMS* pDispParams, VARIANT* pvarResult,
-	EXCEPINFO* pExcepInfo, unsigned int* pnArgErr)
+STDMETHODIMP qmscript::DispObject<T, I, piid>::Invoke(DISPID dispId,
+													  REFIID riid,
+													  LCID lcid,
+													  WORD wFlags,
+													  DISPPARAMS* pDispParams,
+													  VARIANT* pvarResult,
+													  EXCEPINFO* pExcepInfo,
+													  unsigned int* pnArgErr)
 {
 	return ::DispInvoke(static_cast<I*>(this), pTypeInfo_, dispId,
 		wFlags, pDispParams, pvarResult, pExcepInfo, pnArgErr);
@@ -142,7 +150,7 @@ STDMETHODIMP qmscript::DispObject<T, I, piid>::Invoke(DISPID dispId, REFIID riid
  */
 
 template<class T>
-qmscript::ClassFactoryImpl<T>::ClassFactoryImpl(qs::QSTATUS* pstatus)
+qmscript::ClassFactoryImpl<T>::ClassFactoryImpl()
 {
 }
 
@@ -152,8 +160,8 @@ qmscript::ClassFactoryImpl<T>::~ClassFactoryImpl()
 }
 
 template<class T>
-HRESULT qmscript::ClassFactoryImpl<T>::internalQueryInterface(
-	REFIID riid, void** ppv)
+HRESULT qmscript::ClassFactoryImpl<T>::internalQueryInterface(REFIID riid,
+															  void** ppv)
 {
 	BEGIN_INTERFACE_MAP()
 		INTERFACE_ENTRY(IID_IClassFactory, IClassFactory)
@@ -161,17 +169,14 @@ HRESULT qmscript::ClassFactoryImpl<T>::internalQueryInterface(
 }
 
 template<class T>
-STDMETHODIMP qmscript::ClassFactoryImpl<T>::CreateInstance(
-	IUnknown* pUnkOuter, REFIID riid, void** ppv)
+STDMETHODIMP qmscript::ClassFactoryImpl<T>::CreateInstance(IUnknown* pUnkOuter,
+														   REFIID riid,
+														   void** ppv)
 {
-	DECLARE_QSTATUS();
-	
 	if (pUnkOuter)
 		return CLASS_E_NOAGGREGATION;
 	
-	std::auto_ptr<T> pObj;
-	status = newQsObject(&pObj);
-	CHECK_QSTATUS_HRESULT();
+	std::auto_ptr<T> pObj(new T());
 	
 	HRESULT hr = pObj->QueryInterface(riid, ppv);
 	if (FAILED(hr))
@@ -195,7 +200,7 @@ STDMETHODIMP qmscript::ClassFactoryImpl<T>::LockServer(BOOL bLock)
  */
 
 template<class I, const IID* piid, class T, class Traits>
-qmscript::EnumBase<I, piid, T, Traits>::EnumBase(qs::QSTATUS* pstatus) :
+qmscript::EnumBase<I, piid, T, Traits>::EnumBase() :
 	n_(0)
 {
 }
@@ -203,41 +208,37 @@ qmscript::EnumBase<I, piid, T, Traits>::EnumBase(qs::QSTATUS* pstatus) :
 template<class I, const IID* piid, class T, class Traits>
 qmscript::EnumBase<I, piid, T, Traits>::~EnumBase()
 {
-	List::iterator it = list_.begin();
-	while (it != list_.end()) {
+	for (List::iterator it = list_.begin(); it != list_.end(); ++it)
 		traits_.destroy(&(*it));
-		++it;
-	}
 }
 
 template<class I, const IID* piid, class T, class Traits>
-qs::QSTATUS qmscript::EnumBase<I, piid, T, Traits>::init(T* p, size_t nCount)
+bool qmscript::EnumBase<I, piid, T, Traits>::init(T* p,
+												  size_t nCount)
 {
 	return init(p, nCount, Traits());
 }
 
 template<class I, const IID* piid, class T, class Traits>
-qs::QSTATUS qmscript::EnumBase<I, piid, T, Traits>::init(
-	T* p, size_t nCount, const Traits& traits)
+bool qmscript::EnumBase<I, piid, T, Traits>::init(T* p,
+												  size_t nCount,
+												  const Traits& traits)
 {
-	DECLARE_QSTATUS();
-	
-	status = STLWrapper<List>(list_).resize(nCount);
-	CHECK_QSTATUS();
+	list_.resize(nCount);
 	Variant v;
 	std::fill(list_.begin(), list_.end(), v);
 	
 	for (size_t n = 0; n < nCount; ++n) {
-		status = traits_.copy(&list_[n], &p[n]);
-		CHECK_QSTATUS();
+		if (!traits_.copy(&list_[n], &p[n]))
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 template<class I, const IID* piid, class T, class Traits>
-HRESULT qmscript::EnumBase<I, piid, T, Traits>::internalQueryInterface(
-	REFIID riid, void** ppv)
+HRESULT qmscript::EnumBase<I, piid, T, Traits>::internalQueryInterface(REFIID riid,
+																	   void** ppv)
 {
 	BEGIN_INTERFACE_MAP()
 		INTERFACE_ENTRY(*piid, I)
@@ -245,11 +246,10 @@ HRESULT qmscript::EnumBase<I, piid, T, Traits>::internalQueryInterface(
 }
 
 template<class I, const IID* piid, class T, class Traits>
-STDMETHODIMP qmscript::EnumBase<I, piid, T, Traits>::Next(
-	ULONG nElem, T* p, ULONG* pnFetched)
+STDMETHODIMP qmscript::EnumBase<I, piid, T, Traits>::Next(ULONG nElem,
+														  T* p,
+														  ULONG* pnFetched)
 {
-	DECLARE_QSTATUS();
-	
 	HRESULT hrReturn = S_OK;
 	if (n_ + nElem > list_.size()) {
 		nElem = list_.size() - n_;
@@ -257,8 +257,8 @@ STDMETHODIMP qmscript::EnumBase<I, piid, T, Traits>::Next(
 	}
 	
 	for (ULONG n = 0; n < nElem; ++n, ++n_) {
-		status = traits_.copy(&p[n], &list_[n_]);
-		CHECK_QSTATUS_HRESULT();
+		if (!traits_.copy(&p[n], &list_[n_]))
+			return E_FAIL;
 	}
 	
 	if (pnFetched)
@@ -287,13 +287,10 @@ STDMETHODIMP qmscript::EnumBase<I, piid, T, Traits>::Reset()
 template<class I, const IID* piid, class T, class Traits>
 STDMETHODIMP qmscript::EnumBase<I, piid, T, Traits>::Clone(I** ppEnum)
 {
-	DECLARE_QSTATUS();
-	
-	std::auto_ptr<Object<EnumBase<I, piid, T, Traits> > > pEnum;
-	status = newQsObject(&pEnum);
-	CHECK_QSTATUS_HRESULT();
-	status = pEnum->init(&list_[0], list_.size());
-	CHECK_QSTATUS_HRESULT();
+	std::auto_ptr<Object<EnumBase<I, piid, T, Traits> > > pEnum(
+		new Object<EnumBase<I, piid, T, Traits> >());
+	if (!pEnum->init(&list_[0], list_.size()))
+		return E_FAIL;
 	
 	*ppEnum = pEnum.release();
 	(*ppEnum)->AddRef();
@@ -309,10 +306,10 @@ STDMETHODIMP qmscript::EnumBase<I, piid, T, Traits>::Clone(I** ppEnum)
  */
 
 template<>
-inline qs::QSTATUS qmscript::EnumTraits<VARIANT>::init(VARIANT* p) const
+inline bool qmscript::EnumTraits<VARIANT>::init(VARIANT* p) const
 {
 	::VariantInit(p);
-	return qs::QSTATUS_SUCCESS;
+	return true;
 }
 
 template<>
@@ -322,11 +319,11 @@ inline void qmscript::EnumTraits<VARIANT>::destroy(VARIANT* p) const
 }
 
 template<>
-inline qs::QSTATUS qmscript::EnumTraits<VARIANT>::copy(VARIANT* pTo, VARIANT* pFrom) const
+inline bool qmscript::EnumTraits<VARIANT>::copy(VARIANT* pTo,
+												VARIANT* pFrom) const
 {
 	HRESULT hr = ::VariantCopy(pTo, pFrom);
-	CHECK_HRESULT();
-	return qs::QSTATUS_SUCCESS;
+	return SUCCEEDED(hr);
 }
 
 #endif // __OBJ_INL__

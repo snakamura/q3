@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -31,18 +31,21 @@ public:
 
 public:
 	RasWindow(RasConnection* pConnection,
-		RasConnectionCallback* pCallback, QSTATUS* pstatus);
+			  RasConnectionCallback* pCallback);
 	virtual ~RasWindow();
 
 public:
 	bool isEnd() const;
 
 public:
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
 	LRESULT onTimer(UINT nId);
-	LRESULT onRasDialEvent(WPARAM wParam, LPARAM lParam);
+	LRESULT onRasDialEvent(WPARAM wParam,
+						   LPARAM lParam);
 
 private:
 	void end(bool bDisconnect);

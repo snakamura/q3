@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -41,7 +41,7 @@ class SyncFilterManager;
 class DefaultPropertyPage : public qs::DefaultPropertyPage
 {
 protected:
-	DefaultPropertyPage(UINT nId, qs::QSTATUS* pstatus);
+	explicit DefaultPropertyPage(UINT nId);
 
 public:
 	virtual ~DefaultPropertyPage();
@@ -62,11 +62,12 @@ class AccountAdvancedPage : public DefaultPropertyPage
 {
 public:
 	AccountAdvancedPage(SubAccount* pSubAccount,
-		SyncFilterManager* pSyncFilterManager, qs::QSTATUS* pstatus);
+						SyncFilterManager* pSyncFilterManager);
 	virtual ~AccountAdvancedPage();
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
@@ -90,14 +91,16 @@ private:
 class AccountDialupPage : public DefaultPropertyPage
 {
 public:
-	AccountDialupPage(SubAccount* pSubAccount, qs::QSTATUS* pstatus);
+	explicit AccountDialupPage(SubAccount* pSubAccount);
 	virtual ~AccountDialupPage();
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
@@ -127,11 +130,12 @@ private:
 class AccountGeneralPage : public DefaultPropertyPage
 {
 public:
-	AccountGeneralPage(SubAccount* pSubAccount, qs::QSTATUS* pstatus);
+	explicit AccountGeneralPage(SubAccount* pSubAccount);
 	virtual ~AccountGeneralPage();
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
@@ -154,14 +158,16 @@ private:
 class AccountUserPage : public DefaultPropertyPage
 {
 public:
-	AccountUserPage(SubAccount* pSubAccount, qs::QSTATUS* pstatus);
+	explicit AccountUserPage(SubAccount* pSubAccount);
 	virtual ~AccountUserPage();
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
@@ -191,7 +197,7 @@ class FolderConditionPage : public DefaultPropertyPage
 {
 public:
 	FolderConditionPage(QueryFolder* pFolder,
-		qs::Profile* pProfile, qs::QSTATUS* pstatus);
+						qs::Profile* pProfile);
 	virtual ~FolderConditionPage();
 
 public:
@@ -201,14 +207,15 @@ public:
 	bool isRecursive() const;
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
 
 private:
-	qs::QSTATUS initDriver();
-	qs::QSTATUS initFolder();
+	void initDriver();
+	void initFolder();
 
 private:
 	FolderConditionPage(const FolderConditionPage&);
@@ -223,8 +230,8 @@ private:
 	UIList listUI_;
 	Account::FolderList listFolder_;
 	int nDriver_;
-	qs::WSTRING wstrCondition_;
-	qs::WSTRING wstrTargetFolder_;
+	qs::wstring_ptr wstrCondition_;
+	qs::wstring_ptr wstrTargetFolder_;
 	bool bRecursive_;
 };
 
@@ -238,7 +245,7 @@ private:
 class FolderPropertyPage : public DefaultPropertyPage
 {
 public:
-	FolderPropertyPage(const Account::FolderList& l, qs::QSTATUS* pstatus);
+	FolderPropertyPage(const Account::FolderList& l);
 	virtual ~FolderPropertyPage();
 
 public:
@@ -246,7 +253,8 @@ public:
 	unsigned int getMask() const;
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
@@ -271,7 +279,7 @@ private:
 class MessagePropertyPage : public DefaultPropertyPage
 {
 public:
-	MessagePropertyPage(const MessageHolderList& l, qs::QSTATUS* pstatus);
+	MessagePropertyPage(const MessageHolderList& l);
 	virtual ~MessagePropertyPage();
 
 public:
@@ -279,7 +287,8 @@ public:
 	unsigned int getMask() const;
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -140,18 +140,30 @@ inline bool qs::Window::getWindowRect(RECT* pRect) const
 	return ::GetWindowRect(hwnd_, pRect) != 0;
 }
 
-inline bool qs::Window::setWindowPos(HWND hwnd, int x, int y, int cx, int cy, UINT nFlags)
+inline bool qs::Window::setWindowPos(HWND hwnd,
+									 int x,
+									 int y,
+									 int cx,
+									 int cy,
+									 UINT nFlags)
 {
 	assert(hwnd_);
 	return ::SetWindowPos(hwnd_, hwnd, x, y, cx, cy, nFlags) != 0;
 }
 
-inline bool qs::Window::moveWindow(int x, int y, int cx, int cy)
+inline bool qs::Window::moveWindow(int x,
+								   int y,
+								   int cx,
+								   int cy)
 {
 	return moveWindow(x, y, cx, cy, true);
 }
 
-inline bool qs::Window::moveWindow(int x, int y, int cx, int cy, bool bRepaint)
+inline bool qs::Window::moveWindow(int x,
+								   int y,
+								   int cx,
+								   int cy,
+								   bool bRepaint)
 {
 	assert(hwnd_);
 	return ::MoveWindow(hwnd_, x, y, cx, cy, bRepaint) != 0;
@@ -205,7 +217,9 @@ inline bool qs::Window::setWindowPlacement(const WINDOWPLACEMENT& wp)
 	return ::SetWindowPlacement(hwnd_, &wp) != 0;
 }
 
-inline bool qs::Window::redrawWindow(const RECT* pRect, HRGN hrgn, UINT nFlags)
+inline bool qs::Window::redrawWindow(const RECT* pRect,
+									 HRGN hrgn,
+									 UINT nFlags)
 {
 	assert(hwnd_);
 	return ::RedrawWindow(hwnd_, pRect, hrgn, nFlags) != 0;
@@ -273,7 +287,8 @@ inline bool qs::Window::invalidateRect(const RECT& rect)
 	return invalidateRect(rect, true);
 }
 
-inline bool qs::Window::invalidateRect(const RECT& rect, bool bErase)
+inline bool qs::Window::invalidateRect(const RECT& rect,
+									   bool bErase)
 {
 	assert(hwnd_);
 	return ::InvalidateRect(hwnd_, &rect, bErase) != 0;
@@ -329,12 +344,15 @@ inline void qs::Window::setFont(HFONT hfont)
 	sendMessage(WM_SETFONT, reinterpret_cast<WPARAM>(hfont));
 }
 
-inline bool qs::Window::createCaret(int nWidth, int nHeight)
+inline bool qs::Window::createCaret(int nWidth,
+									int nHeight)
 {
 	return createCaret(nWidth, nHeight, 0);
 }
 
-inline bool qs::Window::createCaret(int nWidth, int nHeight, HBITMAP hBitmap)
+inline bool qs::Window::createCaret(int nWidth,
+									int nHeight,
+									HBITMAP hBitmap)
 {
 	assert(hwnd_);
 	return ::CreateCaret(hwnd_, hBitmap, nWidth, nHeight) != 0;
@@ -367,18 +385,22 @@ inline bool qs::Window::getCaretPos(POINT* pPoint)
 	return ::GetCaretPos(pPoint) != 0;
 }
 
-inline bool qs::Window::getScrollInfo(int nBar, SCROLLINFO* psi) const
+inline bool qs::Window::getScrollInfo(int nBar,
+									  SCROLLINFO* psi) const
 {
 	assert(hwnd_);
 	return ::GetScrollInfo(hwnd_, nBar, psi) != 0;
 }
 
-inline bool qs::Window::setScrollInfo(int nBar, const SCROLLINFO& si)
+inline bool qs::Window::setScrollInfo(int nBar,
+									  const SCROLLINFO& si)
 {
 	return setScrollInfo(nBar, si, true);
 }
 
-inline bool qs::Window::setScrollInfo(int nBar, const SCROLLINFO& si, bool bRedraw)
+inline bool qs::Window::setScrollInfo(int nBar,
+									  const SCROLLINFO& si,
+									  bool bRedraw)
 {
 	assert(hwnd_);
 	return ::SetScrollInfo(hwnd_, nBar, &si, bRedraw) != 0;
@@ -392,18 +414,23 @@ inline int qs::Window::getScrollPos(int nBar) const
 	return si.nPos;
 }
 
-inline bool qs::Window::setScrollPos(int nBar, int nPos)
+inline bool qs::Window::setScrollPos(int nBar,
+									 int nPos)
 {
 	return setScrollPos(nBar, nPos, true);
 }
 
-inline bool qs::Window::setScrollPos(int nBar, int nPos, bool bRedraw)
+inline bool qs::Window::setScrollPos(int nBar,
+									 int nPos,
+									 bool bRedraw)
 {
 	assert(hwnd_);
 	return ::SetScrollPos(hwnd_, nBar, nPos, bRedraw) != 0;
 }
 
-inline bool qs::Window::getScrollRange(int nBar, int* pnMinPos, int* pnMaxPos) const
+inline bool qs::Window::getScrollRange(int nBar,
+									   int* pnMinPos,
+									   int* pnMaxPos) const
 {
 	assert(pnMinPos);
 	assert(pnMaxPos);
@@ -416,24 +443,35 @@ inline bool qs::Window::getScrollRange(int nBar, int* pnMinPos, int* pnMaxPos) c
 	return true;
 }
 
-inline bool qs::Window::setScrollRange(int nBar, int nMinPos, int nMaxPos)
+inline bool qs::Window::setScrollRange(int nBar,
+									   int nMinPos,
+									   int nMaxPos)
 {
 	return setScrollRange(nBar, nMinPos, nMaxPos, true);
 }
 
-inline bool qs::Window::setScrollRange(int nBar, int nMinPos, int nMaxPos, bool bRedraw)
+inline bool qs::Window::setScrollRange(int nBar,
+									   int nMinPos,
+									   int nMaxPos,
+									   bool bRedraw)
 {
 	assert(hwnd_);
 	return ::SetScrollRange(hwnd_, nBar, nMinPos, nMaxPos, bRedraw) != 0;
 }
 
-inline int qs::Window::scrollWindow(int x, int y)
+inline int qs::Window::scrollWindow(int x,
+									int y)
 {
 	return scrollWindow(x, y, 0, 0, 0, 0, SW_INVALIDATE);
 }
 
-inline int qs::Window::scrollWindow(int x, int y, const RECT* prcScroll,
-	const RECT* prcClip, HRGN hrgnUpdate, RECT* prcUpdate, UINT nFlags)
+inline int qs::Window::scrollWindow(int x,
+									int y,
+									const RECT* prcScroll,
+									const RECT* prcClip,
+									HRGN hrgnUpdate,
+									RECT* prcUpdate,
+									UINT nFlags)
 {
 	assert(hwnd_);
 	return ::ScrollWindowEx(hwnd_, x, y, prcScroll, prcClip,
@@ -474,18 +512,22 @@ inline long qs::Window::getWindowLong(int n) const
 	return ::GetWindowLong(hwnd_, n);
 }
 
-inline long qs::Window::setWindowLong(int n, long l)
+inline long qs::Window::setWindowLong(int n,
+									  long l)
 {
 	assert(hwnd_);
 	return ::SetWindowLong(hwnd_, n, l);
 }
 
-inline UINT qs::Window::setTimer(UINT nId, UINT nTimeout)
+inline UINT qs::Window::setTimer(UINT nId,
+								 UINT nTimeout)
 {
 	return setTimer(nId, nTimeout, 0);
 }
 
-inline UINT qs::Window::setTimer(UINT nId, UINT nTimeout, TIMERPROC proc)
+inline UINT qs::Window::setTimer(UINT nId,
+								 UINT nTimeout,
+								 TIMERPROC proc)
 {
 	assert(hwnd_);
 	return ::SetTimer(hwnd_, nId, nTimeout, proc);
@@ -522,12 +564,15 @@ inline bool qs::Window::postMessage(UINT uMsg)
 	return postMessage(uMsg, 0, 0);
 }
 
-inline bool qs::Window::postMessage(UINT uMsg, WPARAM wParam)
+inline bool qs::Window::postMessage(UINT uMsg,
+									WPARAM wParam)
 {
 	return postMessage(uMsg, wParam, 0);
 }
 
-inline bool qs::Window::postMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
+inline bool qs::Window::postMessage(UINT uMsg,
+									WPARAM wParam,
+									LPARAM lParam)
 {
 	assert(hwnd_);
 	return ::PostMessage(hwnd_, uMsg, wParam, lParam) != 0;
@@ -538,12 +583,15 @@ inline LRESULT qs::Window::sendMessage(UINT uMsg)
 	return sendMessage(uMsg, 0, 0);
 }
 
-inline LRESULT qs::Window::sendMessage(UINT uMsg, WPARAM wParam)
+inline LRESULT qs::Window::sendMessage(UINT uMsg,
+									   WPARAM wParam)
 {
 	return sendMessage(uMsg, wParam, 0);
 }
 
-inline LRESULT qs::Window::sendMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
+inline LRESULT qs::Window::sendMessage(UINT uMsg,
+									   WPARAM wParam,
+									   LPARAM lParam)
 {
 	assert(hwnd_);
 	return ::SendMessage(hwnd_, uMsg, wParam, lParam);
@@ -555,7 +603,9 @@ inline bool qs::Window::peekMessage(MSG* pMsg)
 }
 
 inline bool qs::Window::peekMessage(MSG* pMsg,
-	 UINT uMsgFilterMin, UINT uMsgFilterMax, UINT nRemoveMsg)
+									UINT uMsgFilterMin,
+									UINT uMsgFilterMax,
+									UINT nRemoveMsg)
 {
 	assert(hwnd_);
 	return ::PeekMessage(pMsg, hwnd_,
@@ -573,30 +623,37 @@ inline int qs::Window::getDlgItemInt(int nDlgItem) const
 	return getDlgItemInt(nDlgItem, 0, true);
 }
 
-inline bool qs::Window::setDlgItemInt(int nDlgItem, int nValue)
+inline bool qs::Window::setDlgItemInt(int nDlgItem,
+									  int nValue)
 {
 	return setDlgItemInt(nDlgItem, nValue, true);
 }
 
-inline bool qs::Window::setDlgItemInt(int nDlgItem, int nValue, bool bSigned)
+inline bool qs::Window::setDlgItemInt(int nDlgItem,
+									  int nValue,
+									  bool bSigned)
 {
 	assert(hwnd_);
 	return ::SetDlgItemInt(hwnd_, nDlgItem, nValue, bSigned) != 0;
 }
 
-inline LRESULT qs::Window::sendDlgItemMessage(int nDlgItem, UINT uMsg)
+inline LRESULT qs::Window::sendDlgItemMessage(int nDlgItem,
+											  UINT uMsg)
 {
 	return sendDlgItemMessage(nDlgItem, uMsg, 0, 0);
 }
 
-inline LRESULT qs::Window::sendDlgItemMessage(
-	int nDlgItem, UINT uMsg, WPARAM wParam)
+inline LRESULT qs::Window::sendDlgItemMessage(int nDlgItem,
+											  UINT uMsg,
+											  WPARAM wParam)
 {
 	return sendDlgItemMessage(nDlgItem, uMsg, wParam, 0);
 }
 
 inline LRESULT qs::Window::sendDlgItemMessage(int nDlgItem,
-	UINT uMsg, WPARAM wParam, LPARAM lParam)
+											  UINT uMsg,
+											  WPARAM wParam,
+											  LPARAM lParam)
 {
 	assert(hwnd_);
 	return ::SendDlgItemMessage(hwnd_, nDlgItem, uMsg, wParam, lParam);

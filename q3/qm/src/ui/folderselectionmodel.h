@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -30,8 +30,8 @@ public:
 
 public:
 	virtual Account* getAccount() = 0;
-	virtual qs::QSTATUS getSelectedFolders(Account::FolderList* pList) = 0;
-	virtual qs::QSTATUS hasSelectedFolder(bool* pbHas) = 0;
+	virtual void getSelectedFolders(Account::FolderList* pList) = 0;
+	virtual bool hasSelectedFolder() = 0;
 	virtual Folder* getFocusedFolder() = 0;
 };
 

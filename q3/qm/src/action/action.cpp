@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -23,7 +23,6 @@
 #include <qmscript.h>
 
 #include <qsconv.h>
-#include <qsnew.h>
 #include <qsstl.h>
 #include <qsstream.h>
 #include <qswindow.h>
@@ -71,10 +70,13 @@ using namespace qs;
  */
 
 qm::AttachmentOpenAction::AttachmentOpenAction(MessageModel* pMessageModel,
-	AttachmentSelectionModel* pAttachmentSelectionModel, Profile* pProfile,
-	TempFileCleaner* pTempFileCleaner, HWND hwnd,  QSTATUS* pstatus) :
+											   AttachmentSelectionModel* pAttachmentSelectionModel,
+											   Profile* pProfile,
+											   TempFileCleaner* pTempFileCleaner,
+											   HWND hwnd) :
 	pMessageModel_(pMessageModel),
 	pAttachmentSelectionModel_(pAttachmentSelectionModel),
+	hwnd_(hwnd),
 	helper_(pProfile, pTempFileCleaner, hwnd)
 {
 }
@@ -83,55 +85,50 @@ qm::AttachmentOpenAction::~AttachmentOpenAction()
 {
 }
 
-QSTATUS qm::AttachmentOpenAction::invoke(const ActionEvent& event)
+void qm::AttachmentOpenAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
-	if (mpl) {
-		Message msg(&status);
-		CHECK_QSTATUS();
-		status = mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg);
-		CHECK_QSTATUS();
-		
-		AttachmentParser parser(msg);
-		AttachmentParser::AttachmentList listAttachment;
-		AttachmentParser::AttachmentListFree freeAttachment(listAttachment);
-		status = parser.getAttachments(false, &listAttachment);
-		CHECK_QSTATUS();
-		if (listAttachment.empty())
-			return QSTATUS_SUCCESS;
-		
-		AttachmentSelectionModel::NameList listName;
-		StringListFree<AttachmentSelectionModel::NameList> freeName(listName);
-		status = pAttachmentSelectionModel_->getSelectedAttachment(&listName);
-		CHECK_QSTATUS();
-		AttachmentSelectionModel::NameList::const_iterator itN = listName.begin();
-		while (itN != listName.end()) {
-			AttachmentParser::AttachmentList::const_iterator itA = std::find_if(
-				listAttachment.begin(), listAttachment.end(),
-				std::bind2nd(
-					binary_compose_f_gx_hy(
-						string_equal<WCHAR>(),
-						std::select1st<AttachmentParser::AttachmentList::value_type>(),
-						std::identity<const WCHAR*>()),
-					*itN));
-			if (itA != listAttachment.end()) {
-				status = helper_.open((*itA).second, *itN,
-					(event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0);
-				CHECK_QSTATUS();
-			}
-			++itN;
-		}
+	if (!mpl)
+		return;
+	
+	Message msg;
+	if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_EXECUTEATTACHMENT);
+		return;
 	}
 	
-	return QSTATUS_SUCCESS;
+	AttachmentParser parser(msg);
+	AttachmentParser::AttachmentList listAttachment;
+	AttachmentParser::AttachmentListFree freeAttachment(listAttachment);
+	parser.getAttachments(false, &listAttachment);
+	if (listAttachment.empty())
+		return;
+	
+	AttachmentSelectionModel::NameList listName;
+	StringListFree<AttachmentSelectionModel::NameList> freeName(listName);
+	pAttachmentSelectionModel_->getSelectedAttachment(&listName);
+	for (AttachmentSelectionModel::NameList::const_iterator itN = listName.begin(); itN != listName.end(); ++itN) {
+		AttachmentParser::AttachmentList::const_iterator itA = std::find_if(
+			listAttachment.begin(), listAttachment.end(),
+			std::bind2nd(
+				binary_compose_f_gx_hy(
+					string_equal<WCHAR>(),
+					std::select1st<AttachmentParser::AttachmentList::value_type>(),
+					std::identity<const WCHAR*>()),
+				*itN));
+		if (itA != listAttachment.end()) {
+			bool bExternalEditor = (event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0;
+			if (helper_.open((*itA).second, *itN, bExternalEditor) == AttachmentParser::RESULT_FAIL) {
+				ActionUtil::error(hwnd_, IDS_ERROR_EXECUTEATTACHMENT);
+				return;
+			}
+		}
+	}
 }
 
-QSTATUS qm::AttachmentOpenAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::AttachmentOpenAction::isEnabled(const ActionEvent& event)
 {
-	return pAttachmentSelectionModel_->hasSelectedAttachment(pbEnabled);
+	return pAttachmentSelectionModel_->hasSelectedAttachment();
 }
 
 
@@ -142,12 +139,15 @@ QSTATUS qm::AttachmentOpenAction::isEnabled(
  */
 
 qm::AttachmentSaveAction::AttachmentSaveAction(MessageModel* pMessageModel,
-	AttachmentSelectionModel* pAttachmentSelectionModel,
-	bool bAll, Profile* pProfile, HWND hwnd, QSTATUS* pstatus) :
+											   AttachmentSelectionModel* pAttachmentSelectionModel,
+											   bool bAll,
+											   Profile* pProfile,
+											   HWND hwnd) :
 	pMessageModel_(pMessageModel),
 	pAttachmentSelectionModel_(pAttachmentSelectionModel),
 	bAll_(bAll),
-	helper_(pProfile, 0, hwnd)
+	helper_(pProfile, 0, hwnd),
+	hwnd_(hwnd)
 {
 }
 
@@ -155,45 +155,37 @@ qm::AttachmentSaveAction::~AttachmentSaveAction()
 {
 }
 
-QSTATUS qm::AttachmentSaveAction::invoke(const ActionEvent& event)
+void qm::AttachmentSaveAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
 	if (!mpl)
-		return QSTATUS_SUCCESS;
+		return;
 	
-	MessageHolderList listMessageHolder;
-	status = STLWrapper<MessageHolderList>(listMessageHolder).push_back(mpl);
-	CHECK_QSTATUS();
+	MessageHolderList listMessageHolder(1, mpl);
 	
 	if (bAll_) {
-		status = helper_.detach(listMessageHolder, 0);
-		CHECK_QSTATUS();
+		if (!helper_.detach(listMessageHolder, 0)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_DETACHATTACHMENT);
+			return;
+		}
 	}
 	else {
 		AttachmentSelectionModel::NameList listName;
 		StringListFree<AttachmentSelectionModel::NameList> freeName(listName);
-		status = pAttachmentSelectionModel_->getSelectedAttachment(&listName);
-		CHECK_QSTATUS();
+		pAttachmentSelectionModel_->getSelectedAttachment(&listName);
 		
-		AttachmentHelper::NameList l;
-		status = STLWrapper<AttachmentHelper::NameList>(l).resize(listName.size());
-		CHECK_QSTATUS();
-		std::copy(listName.begin(), listName.end(), l.begin());
-		
-		status = helper_.detach(listMessageHolder, &l);
-		CHECK_QSTATUS();
+		AttachmentHelper::NameList l(listName.begin(), listName.end());
+		if (helper_.detach(listMessageHolder, &l) == AttachmentParser::RESULT_FAIL) {
+			ActionUtil::error(hwnd_, IDS_ERROR_DETACHATTACHMENT);
+			return;
+		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::AttachmentSaveAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::AttachmentSaveAction::isEnabled(const ActionEvent& event)
 {
-	return bAll_ ? pAttachmentSelectionModel_->hasAttachment(pbEnabled) :
-		pAttachmentSelectionModel_->hasSelectedAttachment(pbEnabled);
+	return bAll_ ? pAttachmentSelectionModel_->hasAttachment() :
+		pAttachmentSelectionModel_->hasSelectedAttachment();
 }
 
 
@@ -204,15 +196,13 @@ QSTATUS qm::AttachmentSaveAction::isEnabled(
  */
 
 qm::DispatchAction::DispatchAction(View* pViews[],
-	Action* pActions[], size_t nCount, QSTATUS* pstatus)
+								   std::auto_ptr<Action> pActions[],
+								   size_t nCount)
 {
-	DECLARE_QSTATUS();
-	
-	status = STLWrapper<ItemList>(listItem_).resize(nCount);
-	CHECK_QSTATUS_SET(pstatus);
+	listItem_.resize(nCount);
 	for (size_t n = 0; n < nCount; ++n) {
 		listItem_[n].pView_ = *(pViews + n);
-		listItem_[n].pAction_ = *(pActions + n);
+		listItem_[n].pAction_ = (pActions + n)->release();
 	}
 }
 
@@ -235,55 +225,36 @@ qm::DispatchAction::~DispatchAction()
 			mem_data_ref(&Item::pAction_)));
 }
 
-QSTATUS qm::DispatchAction::invoke(const ActionEvent& event)
+void qm::DispatchAction::invoke(const ActionEvent& event)
 {
 	Action* pAction = getAction();
-	return pAction ? pAction->invoke(event) : QSTATUS_SUCCESS;
+	if (pAction)
+		pAction->invoke(event);
 }
 
-QSTATUS qm::DispatchAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+bool qm::DispatchAction::isEnabled(const ActionEvent& event)
 {
 	Action* pAction = getAction();
-	if (pAction) {
-		return pAction->isEnabled(event, pbEnabled);
-	}
-	else {
-		*pbEnabled = false;
-		return QSTATUS_SUCCESS;
-	}
+	return pAction ? pAction->isEnabled(event) : false;
 }
 
-QSTATUS qm::DispatchAction::isChecked(const ActionEvent& event, bool* pbChecked)
+bool qm::DispatchAction::isChecked(const ActionEvent& event)
 {
 	Action* pAction = getAction();
-	if (pAction) {
-		return pAction->isChecked(event, pbChecked);
-	}
-	else {
-		*pbChecked = false;
-		return QSTATUS_SUCCESS;
-	}
+	return pAction ? pAction->isChecked(event) : false;
 }
 
-QSTATUS qm::DispatchAction::getText(const ActionEvent& event, WSTRING* pwstrText)
+wstring_ptr qm::DispatchAction::getText(const ActionEvent& event)
 {
 	Action* pAction = getAction();
-	if (pAction) {
-		return pAction->getText(event, pwstrText);
-	}
-	else {
-		*pwstrText = 0;
-		return QSTATUS_SUCCESS;
-	}
+	return pAction ? pAction->getText(event) : 0;
 }
 
 Action* qm::DispatchAction::getAction() const
 {
-	ItemList::const_iterator it = listItem_.begin();
-	while (it != listItem_.end()) {
+	for (ItemList::const_iterator it = listItem_.begin(); it != listItem_.end(); ++it) {
 		if ((*it).pView_->isActive())
 			return (*it).pAction_;
-		++it;
 	}
 	return 0;
 }
@@ -295,9 +266,10 @@ Action* qm::DispatchAction::getAction() const
  *
  */
 
-qm::EditClearDeletedAction::EditClearDeletedAction(
-	FolderModel* pFolderModel, QSTATUS* pstatus) :
-	pFolderModel_(pFolderModel)
+qm::EditClearDeletedAction::EditClearDeletedAction(FolderModel* pFolderModel,
+												   HWND hwnd) :
+	pFolderModel_(pFolderModel),
+	hwnd_(hwnd)
 {
 }
 
@@ -305,37 +277,29 @@ qm::EditClearDeletedAction::~EditClearDeletedAction()
 {
 }
 
-QSTATUS qm::EditClearDeletedAction::invoke(const ActionEvent& event)
+void qm::EditClearDeletedAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	Folder* pFolder = pFolderModel_->getCurrentFolder();
 	if (!pFolder ||
 		pFolder->getType() != Folder::TYPE_NORMAL ||
 		pFolder->isFlag(Folder::FLAG_NOSELECT) ||
 		pFolder->isFlag(Folder::FLAG_LOCAL))
-		return QSTATUS_FAIL;
+		return;
 	
 	Account* pAccount = pFolder->getAccount();
-	status = pAccount->clearDeletedMessages(
-		static_cast<NormalFolder*>(pFolder));
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	if (!pAccount->clearDeletedMessages(static_cast<NormalFolder*>(pFolder))) {
+		ActionUtil::error(hwnd_, IDS_ERROR_CLEARDELETED);
+		return;
+	}
 }
 
-QSTATUS qm::EditClearDeletedAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::EditClearDeletedAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	
 	Folder* pFolder = pFolderModel_->getCurrentFolder();
-	*pbEnabled = pFolder &&
+	return pFolder &&
 		pFolder->getType() == Folder::TYPE_NORMAL &&
 		!pFolder->isFlag(Folder::FLAG_NOSELECT) &&
 		!pFolder->isFlag(Folder::FLAG_LOCAL);
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -346,7 +310,8 @@ QSTATUS qm::EditClearDeletedAction::isEnabled(
  */
 
 qm::EditCommandAction::EditCommandAction(MessageWindow* pMessageWindow,
-	PFN_DO pfnDo, PFN_CANDO pfnCanDo, QSTATUS* pstatus) :
+										 PFN_DO pfnDo,
+										 PFN_CANDO pfnCanDo) :
 	pMessageWindow_(pMessageWindow),
 	pfnDo_(pfnDo),
 	pfnCanDo_(pfnCanDo)
@@ -357,35 +322,17 @@ qm::EditCommandAction::~EditCommandAction()
 {
 }
 
-QSTATUS qm::EditCommandAction::invoke(const ActionEvent& event)
+void qm::EditCommandAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	MessageWindowItem* pItem = pMessageWindow_->getFocusedItem();
-	if (pItem) {
-		status = (pItem->*pfnDo_)();
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (pItem)
+		(pItem->*pfnDo_)();
 }
 
-QSTATUS qm::EditCommandAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+bool qm::EditCommandAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	
-	DECLARE_QSTATUS();
-	
 	MessageWindowItem* pItem = pMessageWindow_->getFocusedItem();
-	if (pItem) {
-		status = (pItem->*pfnCanDo_)(pbEnabled);
-		CHECK_QSTATUS();
-	}
-	else {
-		*pbEnabled = false;
-	}
-	
-	return QSTATUS_SUCCESS;
+	return pItem ? (pItem->*pfnCanDo_)() : false;
 }
 
 
@@ -395,12 +342,14 @@ QSTATUS qm::EditCommandAction::isEnabled(const ActionEvent& event, bool* pbEnabl
  *
  */
 
-qm::EditCopyMessageAction::EditCopyMessageAction(
-	Document* pDocument, FolderModel* pFolderModel,
-	MessageSelectionModel* pMessageSelectionModel, QSTATUS* pstatus) :
+qm::EditCopyMessageAction::EditCopyMessageAction(Document* pDocument,
+												 FolderModel* pFolderModel,
+												 MessageSelectionModel* pMessageSelectionModel,
+												 HWND hwnd) :
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
-	pMessageSelectionModel_(pMessageSelectionModel)
+	pMessageSelectionModel_(pMessageSelectionModel),
+	hwnd_(hwnd)
 {
 }
 
@@ -408,35 +357,28 @@ qm::EditCopyMessageAction::~EditCopyMessageAction()
 {
 }
 
-QSTATUS qm::EditCopyMessageAction::invoke(const ActionEvent& event)
+void qm::EditCopyMessageAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	AccountLock lock;
 	MessageHolderList l;
-	status = pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
-	CHECK_QSTATUS();
+	pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
 	
 	Account* pAccount = lock.get();
 	if (!l.empty()) {
-		MessageDataObject* p = 0;
-		status = newQsObject(pDocument_, pAccount,
-			l, MessageDataObject::FLAG_COPY, &p);
-		CHECK_QSTATUS();
+		MessageDataObject* p = new MessageDataObject(pDocument_,
+			pAccount, l, MessageDataObject::FLAG_COPY);
 		p->AddRef();
 		ComPtr<IDataObject> pDataObject(p);
-		status = MessageDataObject::setClipboard(pDataObject.get());
-		CHECK_QSTATUS();
+		if (!MessageDataObject::setClipboard(pDataObject.get())) {
+			ActionUtil::error(hwnd_, IDS_ERROR_COPYMESSAGES);
+			return;
+		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditCopyMessageAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::EditCopyMessageAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	return pMessageSelectionModel_->hasSelectedMessage(pbEnabled);
+	return pMessageSelectionModel_->hasSelectedMessage();
 }
 
 
@@ -446,12 +388,14 @@ QSTATUS qm::EditCopyMessageAction::isEnabled(
  *
  */
 
-qm::EditCutMessageAction::EditCutMessageAction(
-	Document* pDocument, FolderModel* pFolderModel,
-	MessageSelectionModel* pMessageSelectionModel, QSTATUS* pstatus) :
+qm::EditCutMessageAction::EditCutMessageAction(Document* pDocument,
+											   FolderModel* pFolderModel,
+											   MessageSelectionModel* pMessageSelectionModel,
+											   HWND hwnd) :
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
-	pMessageSelectionModel_(pMessageSelectionModel)
+	pMessageSelectionModel_(pMessageSelectionModel),
+	hwnd_(hwnd)
 {
 }
 
@@ -459,34 +403,28 @@ qm::EditCutMessageAction::~EditCutMessageAction()
 {
 }
 
-QSTATUS qm::EditCutMessageAction::invoke(const ActionEvent& event)
+void qm::EditCutMessageAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	AccountLock lock;
 	MessageHolderList l;
-	status = pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
-	CHECK_QSTATUS();
+	pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
 	
 	Account* pAccount = lock.get();
 	if (!l.empty()) {
-		MessageDataObject* p = 0;
-		status = newQsObject(pDocument_, pAccount, l, MessageDataObject::FLAG_MOVE, &p);
-		CHECK_QSTATUS();
+		MessageDataObject* p = new MessageDataObject(pDocument_,
+			pAccount, l, MessageDataObject::FLAG_MOVE);
 		p->AddRef();
 		ComPtr<IDataObject> pDataObject(p);
-		status = MessageDataObject::setClipboard(pDataObject.get());
-		CHECK_QSTATUS();
+		if (!MessageDataObject::setClipboard(pDataObject.get())) {
+			ActionUtil::error(hwnd_, IDS_ERROR_CUTMESSAGES);
+			return;
+		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditCutMessageAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::EditCutMessageAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	return pMessageSelectionModel_->hasSelectedMessage(pbEnabled);
+	return pMessageSelectionModel_->hasSelectedMessage();
 }
 
 
@@ -496,41 +434,35 @@ QSTATUS qm::EditCutMessageAction::isEnabled(
  *
  */
 
-qm::EditDeleteCacheAction::EditDeleteCacheAction(
-	MessageSelectionModel* pModel, QSTATUS* pstatus) :
-	pModel_(pModel)
+qm::EditDeleteCacheAction::EditDeleteCacheAction(MessageSelectionModel* pMessageSelectionModel,
+												 HWND hwnd) :
+	pMessageSelectionModel_(pMessageSelectionModel),
+	hwnd_(hwnd)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::EditDeleteCacheAction::~EditDeleteCacheAction()
 {
 }
 
-QSTATUS qm::EditDeleteCacheAction::invoke(const ActionEvent& event)
+void qm::EditDeleteCacheAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	AccountLock lock;
 	MessageHolderList l;
-	status = pModel_->getSelectedMessages(&lock, 0, &l);
-	CHECK_QSTATUS();
+	pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
 	
+	Account* pAccount = lock.get();
 	if (!l.empty()) {
-		Account* pAccount = lock.get();
-		status = pAccount->deleteMessagesCache(l);
-		CHECK_QSTATUS();
+		if (!pAccount->deleteMessagesCache(l)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_DELETECACHE);
+			return;
+		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditDeleteCacheAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::EditDeleteCacheAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	return pModel_->hasSelectedMessage(pbEnabled);
+	return pMessageSelectionModel_->hasSelectedMessage();
 }
 
 
@@ -540,51 +472,47 @@ QSTATUS qm::EditDeleteCacheAction::isEnabled(
  *
  */
 
-qm::EditDeleteMessageAction::EditDeleteMessageAction(
-	MessageSelectionModel* pModel, bool bDirect,
-	HWND hwndFrame, QSTATUS* pstatus) :
-	pMessageSelectionModel_(pModel),
+qm::EditDeleteMessageAction::EditDeleteMessageAction(MessageSelectionModel* pMessageSelectionModel,
+													 bool bDirect,
+													 HWND hwnd) :
+	pMessageSelectionModel_(pMessageSelectionModel),
 	pMessageModel_(0),
 	bDirect_(bDirect),
-	hwndFrame_(hwndFrame)
+	hwnd_(hwnd)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
-qm::EditDeleteMessageAction::EditDeleteMessageAction(
-	MessageModel* pModel, ViewModelHolder* pViewModelHolder,
-	bool bDirect, QSTATUS* pstatus) :
+qm::EditDeleteMessageAction::EditDeleteMessageAction(MessageModel* pMessageModel,
+													 ViewModelHolder* pViewModelHolder,
+													 bool bDirect,
+													 HWND hwnd) :
 	pMessageSelectionModel_(0),
-	pMessageModel_(pModel),
+	pMessageModel_(pMessageModel),
 	pViewModelHolder_(pViewModelHolder),
 	bDirect_(bDirect),
-	hwndFrame_(0)
+	hwnd_(hwnd)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::EditDeleteMessageAction::~EditDeleteMessageAction()
 {
 }
 
-QSTATUS qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
+void qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	if (pMessageSelectionModel_) {
 		AccountLock lock;
 		MessageHolderList l;
-		status = pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
-		CHECK_QSTATUS();
+		pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
 		
 		Account* pAccount = lock.get();
 		if (!l.empty()) {
 			ProgressDialogMessageOperationCallback callback(
-				hwndFrame_, IDS_DELETE, IDS_DELETE);
-			status = pAccount->removeMessages(l, bDirect_, &callback);
-			CHECK_QSTATUS();
+				hwnd_, IDS_DELETE, IDS_DELETE);
+			if (!pAccount->removeMessages(l, bDirect_, &callback)) {
+				ActionUtil::error(hwnd_, IDS_ERROR_DELETEMESSAGES);
+				return;
+			}
 		}
 	}
 	else {
@@ -597,38 +525,28 @@ QSTATUS qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 			unsigned int nIndex = pViewModel->getIndex(mpl);
 			if (nIndex < pViewModel->getCount() - 1) {
 				MessageHolder* pmh = pViewModel->getMessageHolder(nIndex + 1);
-				status = pMessageModel_->setMessage(pmh);
-				CHECK_QSTATUS();
+				pMessageModel_->setMessage(pmh);
 			}
 			
 			Account* pAccount = mpl->getFolder()->getAccount();
-			MessageHolderList l;
-			status = STLWrapper<MessageHolderList>(l).push_back(mpl);
-			CHECK_QSTATUS();
-			status = pAccount->removeMessages(l, bDirect_, 0);
+			MessageHolderList l(1, mpl);
+			if (!pAccount->removeMessages(l, bDirect_, 0)) {
+				ActionUtil::error(hwnd_, IDS_ERROR_DELETEMESSAGES);
+				return;
+			}
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditDeleteMessageAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::EditDeleteMessageAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	
-	DECLARE_QSTATUS();
-	
 	if (pMessageSelectionModel_) {
-		status = pMessageSelectionModel_->hasSelectedMessage(pbEnabled);
-		CHECK_QSTATUS();
+		return pMessageSelectionModel_->hasSelectedMessage();
 	}
 	else {
 		MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
-		*pbEnabled = mpl != 0;
+		return mpl != 0;
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -639,7 +557,8 @@ QSTATUS qm::EditDeleteMessageAction::isEnabled(
  */
 
 qm::EditFindAction::EditFindAction(MessageWindow* pMessageWindow,
-	Profile* pProfile, FindReplaceManager* pFindReplaceManager, QSTATUS* pstatus) :
+								   Profile* pProfile,
+								   FindReplaceManager* pFindReplaceManager) :
 	pMessageWindow_(pMessageWindow),
 	pProfile_(pProfile),
 	pFindReplaceManager_(pFindReplaceManager),
@@ -647,8 +566,9 @@ qm::EditFindAction::EditFindAction(MessageWindow* pMessageWindow,
 {
 }
 
-qm::EditFindAction::EditFindAction(MessageWindow* pMessageWindow, bool bNext,
-	FindReplaceManager* pFindReplaceManager, QSTATUS* pstatus) :
+qm::EditFindAction::EditFindAction(MessageWindow* pMessageWindow,
+								   bool bNext,
+								   FindReplaceManager* pFindReplaceManager) :
 	pMessageWindow_(pMessageWindow),
 	pProfile_(0),
 	pFindReplaceManager_(pFindReplaceManager),
@@ -660,34 +580,26 @@ qm::EditFindAction::~EditFindAction()
 {
 }
 
-QSTATUS qm::EditFindAction::invoke(const ActionEvent& event)
+void qm::EditFindAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	HWND hwndFrame = pMessageWindow_->getParentFrame();
 	
 	bool bFound = false;
 	if (type_ == TYPE_NORMAL) {
 		bool bSupportRegex = (pMessageWindow_->getSupportedFindFlags() & MessageWindow::FIND_REGEX) != 0;
-		FindDialog dialog(pProfile_, bSupportRegex, &status);
-		CHECK_QSTATUS();
-		int nRet = 0;
-		status = dialog.doModal(hwndFrame, 0, &nRet);
-		CHECK_QSTATUS();
-		if (nRet != IDOK)
-			return QSTATUS_SUCCESS;
+		FindDialog dialog(pProfile_, bSupportRegex);
+		if (dialog.doModal(hwndFrame) != IDOK)
+			return;
 		
-		status = pFindReplaceManager_->setData(dialog.getFind(),
+		pFindReplaceManager_->setData(dialog.getFind(),
 			(dialog.isMatchCase() ? FindReplaceData::FLAG_MATCHCASE : 0) |
 			(dialog.isRegex() ? FindReplaceData::FLAG_REGEX : 0));
-		CHECK_QSTATUS();
 		
 		unsigned int nFlags =
 			(dialog.isMatchCase() ? MessageWindow::FIND_MATCHCASE : 0) |
 			(dialog.isRegex() ? MessageWindow::FIND_REGEX : 0) |
 			(dialog.isPrev() ? MessageWindow::FIND_PREVIOUS : 0);
-		status = pMessageWindow_->find(dialog.getFind(), nFlags, &bFound);
-		CHECK_QSTATUS();
+		bFound = pMessageWindow_->find(dialog.getFind(), nFlags);
 	}
 	else {
 		const FindReplaceData* pData = pFindReplaceManager_->getData();
@@ -696,26 +608,21 @@ QSTATUS qm::EditFindAction::invoke(const ActionEvent& event)
 			(pData->getFlags() & FindReplaceData::FLAG_MATCHCASE ? MessageWindow::FIND_MATCHCASE : 0) |
 			(pData->getFlags() & FindReplaceData::FLAG_REGEX ? MessageWindow::FIND_REGEX : 0) |
 			(type_ == TYPE_PREV ? MessageWindow::FIND_PREVIOUS : 0);
-		status = pMessageWindow_->find(pData->getFind(), nFlags, &bFound);
-		CHECK_QSTATUS();
+		bFound = pMessageWindow_->find(pData->getFind(), nFlags);
 	}
 	
 	if (!bFound)
-		messageBox(Application::getApplication().getResourceHandle(),
-			IDS_FINDNOTFOUND, hwndFrame);
-	
-	return QSTATUS_SUCCESS;
+		ActionUtil::info(hwndFrame, IDS_FINDNOTFOUND);
 }
 
-QSTATUS qm::EditFindAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+bool qm::EditFindAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	if (type_ == TYPE_NORMAL)
-		*pbEnabled = pMessageWindow_->isActive();
+	if (!pMessageWindow_->isActive())
+		return false;
+	else if (type_ != TYPE_NORMAL && !pFindReplaceManager_->getData())
+		return false;
 	else
-		*pbEnabled = pMessageWindow_->isActive() &&
-			pFindReplaceManager_->getData();
-	return QSTATUS_SUCCESS;
+		return true;
 }
 
 
@@ -726,10 +633,11 @@ QSTATUS qm::EditFindAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
  */
 
 qm::EditPasteMessageAction::EditPasteMessageAction(Document* pDocument,
-	FolderModel* pModel, HWND hwndFrame, QSTATUS* pstatus) :
+												   FolderModel* pFolderModel,
+												   HWND hwnd) :
 	pDocument_(pDocument),
-	pModel_(pModel),
-	hwndFrame_(hwndFrame)
+	pFolderModel_(pFolderModel),
+	hwnd_(hwnd)
 {
 }
 
@@ -737,56 +645,40 @@ qm::EditPasteMessageAction::~EditPasteMessageAction()
 {
 }
 
-QSTATUS qm::EditPasteMessageAction::invoke(const ActionEvent& event)
+void qm::EditPasteMessageAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
-	Folder* pFolder = pModel_->getCurrentFolder();
+	Folder* pFolder = pFolderModel_->getCurrentFolder();
 	if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL &&
 		!pFolder->isFlag(Folder::FLAG_NOSELECT)) {
-		ComPtr<IDataObject> pDataObject;
-		status = MessageDataObject::getClipboard(pDocument_, &pDataObject);
-		CHECK_QSTATUS();
+		ComPtr<IDataObject> pDataObject(MessageDataObject::getClipboard(pDocument_));
 		
 		NormalFolder* pNormalFolder = static_cast<NormalFolder*>(pFolder);
 		MessageDataObject::Flag flag = MessageDataObject::getPasteFlag(
 			pDataObject.get(), pDocument_, pNormalFolder);
 		UINT nId = flag == MessageDataObject::FLAG_MOVE ?
 			IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
-		ProgressDialogMessageOperationCallback callback(hwndFrame_, nId, nId);
-		status = MessageDataObject::pasteMessages(pDataObject.get(),
-			pDocument_, pNormalFolder, flag, &callback);
-		CHECK_QSTATUS();
+		ProgressDialogMessageOperationCallback callback(hwnd_, nId, nId);
+		if (!MessageDataObject::pasteMessages(pDataObject.get(),
+			pDocument_, pNormalFolder, flag, &callback)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_PASTEMESSAGES);
+			return;
+		}
 #ifdef _WIN32_WCE
-		Clipboard clipboard(0, &status);
-		CHECK_QSTATUS();
-		status = clipboard.empty();
-		CHECK_QSTATUS();
+		Clipboard clipboard(0);
+		clipboard.empty();
 #else
 		::OleSetClipboard(0);
 #endif
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditPasteMessageAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::EditPasteMessageAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	
-	DECLARE_QSTATUS();
-	
-	*pbEnabled = false;
-	
-	Folder* pFolder = pModel_->getCurrentFolder();
-	if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL &&
-		!pFolder->isFlag(Folder::FLAG_NOSELECT)) {
-		status = MessageDataObject::queryClipboard(pbEnabled);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	Folder* pFolder = pFolderModel_->getCurrentFolder();
+	if (!pFolder || pFolder->getType() != Folder::TYPE_NORMAL ||
+		pFolder->isFlag(Folder::FLAG_NOSELECT))
+		return false;
+	return MessageDataObject::queryClipboard();
 }
 
 
@@ -796,8 +688,7 @@ QSTATUS qm::EditPasteMessageAction::isEnabled(
  *
  */
 
-qm::EditSelectAllMessageAction::EditSelectAllMessageAction(
-	MessageSelectionModel* pMessageSelectionModel, QSTATUS* pstatus) :
+qm::EditSelectAllMessageAction::EditSelectAllMessageAction(MessageSelectionModel* pMessageSelectionModel) :
 	pMessageSelectionModel_(pMessageSelectionModel)
 {
 }
@@ -806,16 +697,14 @@ qm::EditSelectAllMessageAction::~EditSelectAllMessageAction()
 {
 }
 
-QSTATUS qm::EditSelectAllMessageAction::invoke(const ActionEvent& event)
+void qm::EditSelectAllMessageAction::invoke(const ActionEvent& event)
 {
-	return pMessageSelectionModel_->selectAll();
+	pMessageSelectionModel_->selectAll();
 }
 
-QSTATUS qm::EditSelectAllMessageAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::EditSelectAllMessageAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	return pMessageSelectionModel_->canSelect(pbEnabled);
+	return pMessageSelectionModel_->canSelect();
 }
 
 
@@ -825,21 +714,18 @@ QSTATUS qm::EditSelectAllMessageAction::isEnabled(
  *
  */
 
-qm::FileCloseAction::FileCloseAction(HWND hwnd, QSTATUS* pstatus) :
+qm::FileCloseAction::FileCloseAction(HWND hwnd) :
 	hwnd_(hwnd)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::FileCloseAction::~FileCloseAction()
 {
 }
 
-QSTATUS qm::FileCloseAction::invoke(const ActionEvent& event)
+void qm::FileCloseAction::invoke(const ActionEvent& event)
 {
 	Window(hwnd_).postMessage(WM_CLOSE);
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -849,9 +735,10 @@ QSTATUS qm::FileCloseAction::invoke(const ActionEvent& event)
  *
  */
 
-qm::FileCompactAction::FileCompactAction(
-	FolderModel* pFolderModel, QSTATUS* pstatus) :
-	pFolderModel_(pFolderModel)
+qm::FileCompactAction::FileCompactAction(FolderModel* pFolderModel,
+										 HWND hwnd) :
+	pFolderModel_(pFolderModel),
+	hwnd_(hwnd)
 {
 }
 
@@ -859,10 +746,8 @@ qm::FileCompactAction::~FileCompactAction()
 {
 }
 
-QSTATUS qm::FileCompactAction::invoke(const ActionEvent& event)
+void qm::FileCompactAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	Account* pAccount = pFolderModel_->getCurrentAccount();
 	if (!pAccount) {
 		Folder* pFolder = pFolderModel_->getCurrentFolder();
@@ -870,19 +755,16 @@ QSTATUS qm::FileCompactAction::invoke(const ActionEvent& event)
 			pAccount = pFolder->getAccount();
 	}
 	if (pAccount) {
-		status = pAccount->compact();
-		CHECK_QSTATUS();
+		if (!pAccount->compact()) {
+			ActionUtil::error(hwnd_, IDS_ERROR_COMPACT);
+			return;
+		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FileCompactAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+bool qm::FileCompactAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	*pbEnabled = pFolderModel_->getCurrentAccount() ||
-		pFolderModel_->getCurrentFolder();
-	return QSTATUS_SUCCESS;
+	return pFolderModel_->getCurrentAccount() || pFolderModel_->getCurrentFolder();
 }
 
 
@@ -892,46 +774,39 @@ QSTATUS qm::FileCompactAction::isEnabled(const ActionEvent& event, bool* pbEnabl
  *
  */
 
-qm::FileExitAction::FileExitAction(HWND hwnd, Document* pDocument,
-	SyncManager* pSyncManager, TempFileCleaner* pTempFileCleaner,
-	EditFrameWindowManager* pEditFrameWindowManager, QSTATUS* pstatus) :
+qm::FileExitAction::FileExitAction(HWND hwnd,
+								   Document* pDocument,
+								   SyncManager* pSyncManager,
+								   TempFileCleaner* pTempFileCleaner,
+								   EditFrameWindowManager* pEditFrameWindowManager) :
 	hwnd_(hwnd),
 	pDocument_(pDocument),
 	pSyncManager_(pSyncManager),
 	pTempFileCleaner_(pTempFileCleaner),
 	pEditFrameWindowManager_(pEditFrameWindowManager)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::FileExitAction::~FileExitAction()
 {
 }
 
-QSTATUS qm::FileExitAction::exit(bool bDestroy, bool* pbCanceled)
+bool qm::FileExitAction::exit(bool bDestroy)
 {
-	DECLARE_QSTATUS();
-	
-	if (pbCanceled)
-		*pbCanceled = true;
-	
 	if (pSyncManager_->isSyncing()) {
-		// TODO
-		// Show message
-		return QSTATUS_SUCCESS;
+		ActionUtil::error(hwnd_, IDS_SYNCHRONIZING);
+		return false;
 	}
 	
-	bool bClosed = false;
-	status = pEditFrameWindowManager_->closeAll(&bClosed);
-	CHECK_QSTATUS();
-	if (!bClosed)
-		return QSTATUS_SUCCESS;
+	if (!pEditFrameWindowManager_->closeAll())
+		return false;
 	
 	{
 		WaitCursor cursor;
-		status = Application::getApplication().save();
-		CHECK_QSTATUS();
+		if (!Application::getApplication().save()) {
+			ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
+			return false;
+		}
 		pDocument_->setOffline(true);
 		pSyncManager_->dispose();
 	}
@@ -940,21 +815,13 @@ QSTATUS qm::FileExitAction::exit(bool bDestroy, bool* pbCanceled)
 	{
 		virtual bool confirmDelete(const WCHAR* pwszPath)
 		{
-			DECLARE_QSTATUS();
-			
 			HINSTANCE hInst = Application::getApplication().getResourceHandle();
 			
-			string_ptr<WSTRING> wstr;
-			status = loadString(hInst, IDS_CONFIRMDELETETEMPFILE, &wstr);
-			CHECK_QSTATUS_VALUE(false);
-			string_ptr<WSTRING> wstrMessage(concat(wstr.get(), pwszPath));
-			if (!wstrMessage.get())
-				return false;
+			wstring_ptr wstr(loadString(hInst, IDS_CONFIRMDELETETEMPFILE));
+			wstring_ptr wstrMessage(concat(wstr.get(), pwszPath));
 			
-			int nMsg = 0;
-			status = messageBox(wstrMessage.get(),
-				MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, &nMsg);
-			CHECK_QSTATUS_VALUE(false);
+			int nMsg = messageBox(wstrMessage.get(),
+				MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION);
 			return nMsg == IDYES;
 		}
 	} callback;
@@ -963,15 +830,12 @@ QSTATUS qm::FileExitAction::exit(bool bDestroy, bool* pbCanceled)
 	if (bDestroy)
 		Window(hwnd_).destroyWindow();
 	
-	if (pbCanceled)
-		*pbCanceled = false;
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::FileExitAction::invoke(const ActionEvent& event)
+void qm::FileExitAction::invoke(const ActionEvent& event)
 {
-	return exit(true, 0);
+	exit(true);
 }
 
 
@@ -981,10 +845,10 @@ QSTATUS qm::FileExitAction::invoke(const ActionEvent& event)
  *
  */
 
-qm::FileExportAction::FileExportAction(MessageSelectionModel* pModel,
-	HWND hwndFrame, QSTATUS* pstatus) :
-	pModel_(pModel),
-	hwndFrame_(hwndFrame)
+qm::FileExportAction::FileExportAction(MessageSelectionModel* pMessageSelectionModel,
+									   HWND hwnd) :
+	pMessageSelectionModel_(pMessageSelectionModel),
+	hwnd_(hwnd)
 {
 }
 
@@ -992,163 +856,148 @@ qm::FileExportAction::~FileExportAction()
 {
 }
 
-QSTATUS qm::FileExportAction::invoke(const ActionEvent& event)
+void qm::FileExportAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	AccountLock lock;
 	MessageHolderList l;
-	status = pModel_->getSelectedMessages(&lock, 0, &l);
-	CHECK_QSTATUS();
+	pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
 	
-	Account* pAccount = lock.get();
 	if (!l.empty()) {
-		ExportDialog dialog(l.size() == 1, &status);
-		CHECK_QSTATUS();
-		int nRet = 0;
-		status = dialog.doModal(hwndFrame_, 0, &nRet);
-		CHECK_QSTATUS();
-		if (nRet == IDOK) {
-			const Template* pTemplate = 0;
-			const WCHAR* pwszEncoding = 0;
-			const WCHAR* pwszTemplate = dialog.getTemplate();
-			if (pwszTemplate) {
-				// TODO
-				// Get template and encoding
-			}
-			
-			ProgressDialog progressDialog(IDS_EXPORT, &status);
-			CHECK_QSTATUS();
-			ProgressDialogInit init(&progressDialog, hwndFrame_,
-				IDS_EXPORT, IDS_EXPORT, 0, l.size(), 0, &status);
-			CHECK_QSTATUS();
-			
-			if (dialog.isFilePerMessage()) {
-				const WCHAR* pwszPath = dialog.getPath();
-				const WCHAR* pFileName = wcsrchr(pwszPath, L'\\');
-				pFileName = pFileName ? pFileName + 1 : pwszPath;
-				const WCHAR* pExt = wcsrchr(pFileName, L'.');
-				if (!pExt)
-					pExt = pFileName + wcslen(pFileName);
-				
-				MessageHolderList::size_type n = 0;
-				while (n < l.size()) {
-					if (progressDialog.isCanceled())
-						break;
-					status = progressDialog.setPos(n);
-					CHECK_QSTATUS();
-					
-					WCHAR wszNumber[32];
-					swprintf(wszNumber, L"%d", n);
-					ConcatW c[] = {
-						{ pwszPath,		pExt - pwszPath	},
-						{ wszNumber,	-1				},
-						{ pExt,			-1				}
-					};
-					string_ptr<WSTRING> wstrPath(concat(c, countof(c)));
-					if (!wstrPath.get())
-						return QSTATUS_OUTOFMEMORY;
-					
-					FileOutputStream fileStream(wstrPath.get(), &status);
-					CHECK_QSTATUS();
-					BufferedOutputStream stream(&fileStream, false, &status);
-					CHECK_QSTATUS();
-					status = writeMessage(&stream, l[n],
-						dialog.isExportFlags(), pTemplate, pwszEncoding, false);
-					CHECK_QSTATUS();
-					status = stream.close();
-					CHECK_QSTATUS();
-					
-					++n;
-				}
-				status = progressDialog.setPos(n);
-				CHECK_QSTATUS();
-			}
-			else {
-				FileOutputStream fileStream(dialog.getPath(), &status);
-				CHECK_QSTATUS();
-				BufferedOutputStream stream(&fileStream, false, &status);
-				CHECK_QSTATUS();
-				
-				int nPos = 0;
-				if (l.size() == 1) {
-					status = writeMessage(&stream, l.front(),
-						dialog.isExportFlags(), pTemplate, pwszEncoding, false);
-					CHECK_QSTATUS();
-					++nPos;
-				}
-				else {
-					MessageHolderList::iterator it = l.begin();
-					while (it != l.end()) {
-						if (progressDialog.isCanceled())
-							break;
-						status = progressDialog.setPos(nPos++);
-						CHECK_QSTATUS();
-						
-						status = writeMessage(&stream, *it,
-							dialog.isExportFlags(), pTemplate, pwszEncoding, true);
-						CHECK_QSTATUS();
-						++it;
-					}
-				}
-				status = progressDialog.setPos(nPos);
-				CHECK_QSTATUS();
-				
-				status = stream.close();
-				CHECK_QSTATUS();
-			}
+		if (!export(l)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_EXPORT);
+			return;
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FileExportAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::FileExportAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	return pModel_->hasSelectedMessage(pbEnabled);
+	return pMessageSelectionModel_->hasSelectedMessage();
 }
 
-QSTATUS qm::FileExportAction::writeMessage(OutputStream* pStream,
-	const MessagePtr& ptr, bool bAddFlags, const Template* pTemplate,
-	const WCHAR* pwszEncoding, bool bWriteSeparator)
+bool qm::FileExportAction::export(const MessageHolderList& l)
+{
+	ExportDialog dialog(l.size() == 1);
+	if (dialog.doModal(hwnd_) == IDOK) {
+		const Template* pTemplate = 0;
+		const WCHAR* pwszEncoding = 0;
+		const WCHAR* pwszTemplate = dialog.getTemplate();
+		if (pwszTemplate) {
+			// TODO
+			// Get template and encoding
+		}
+		
+		ProgressDialog progressDialog(IDS_EXPORT);
+		ProgressDialogInit init(&progressDialog, hwnd_,
+			IDS_EXPORT, IDS_EXPORT, 0, l.size(), 0);
+		
+		if (dialog.isFilePerMessage()) {
+			const WCHAR* pwszPath = dialog.getPath();
+			const WCHAR* pFileName = wcsrchr(pwszPath, L'\\');
+			pFileName = pFileName ? pFileName + 1 : pwszPath;
+			const WCHAR* pExt = wcsrchr(pFileName, L'.');
+			if (!pExt)
+				pExt = pFileName + wcslen(pFileName);
+			
+			MessageHolderList::size_type n = 0;
+			while (n < l.size()) {
+				if (progressDialog.isCanceled())
+					break;
+				progressDialog.setPos(n);
+				
+				WCHAR wszNumber[32];
+				swprintf(wszNumber, L"%d", n);
+				ConcatW c[] = {
+					{ pwszPath,		pExt - pwszPath	},
+					{ wszNumber,	-1				},
+					{ pExt,			-1				}
+				};
+				wstring_ptr wstrPath(concat(c, countof(c)));
+				
+				FileOutputStream fileStream(wstrPath.get());
+				if (!fileStream)
+					return false;
+				BufferedOutputStream stream(&fileStream, false);
+				if (!writeMessage(&stream, l[n], dialog.isExportFlags(),
+					pTemplate, pwszEncoding, false))
+					return false;
+				if (!stream.close())
+					return false;
+				
+				++n;
+			}
+			progressDialog.setPos(n);
+		}
+		else {
+			FileOutputStream fileStream(dialog.getPath());
+			if (!fileStream)
+				return false;
+			BufferedOutputStream stream(&fileStream, false);
+			
+			int nPos = 0;
+			if (l.size() == 1) {
+				if (!writeMessage(&stream, l.front(), dialog.isExportFlags(),
+					pTemplate, pwszEncoding, false))
+					return false;
+				++nPos;
+			}
+			else {
+				for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+					if (progressDialog.isCanceled())
+						break;
+					progressDialog.setPos(nPos++);
+					
+					if (!writeMessage(&stream, *it, dialog.isExportFlags(),
+						pTemplate, pwszEncoding, true))
+						return false;
+				}
+			}
+			progressDialog.setPos(nPos);
+			
+			if (!stream.close())
+				return false;
+		}
+	}
+	return true;
+}
+
+bool qm::FileExportAction::writeMessage(OutputStream* pStream,
+										const MessagePtr& ptr,
+										bool bAddFlags,
+										const Template* pTemplate,
+										const WCHAR* pwszEncoding,
+										bool bWriteSeparator)
 {
 	assert(pStream);
 	assert((pTemplate && pwszEncoding) || (!pTemplate && !pwszEncoding));
 	
-	DECLARE_QSTATUS();
-	
 	MessagePtrLock mpl(ptr);
 	if (mpl) {
-		Message msg(&status);
-		CHECK_QSTATUS();
-		status = mpl->getMessage(
-			Account::GETMESSAGEFLAG_ALL, 0, &msg);
-		CHECK_QSTATUS();
+		Message msg;
+		if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg))
+			return false;
 		
 		if (bAddFlags) {
-			NumberParser flags(
-				mpl->getFlags() & MessageHolder::FLAG_USER_MASK,
-				NumberParser::FLAG_HEX, &status);
-			status = msg.replaceField(L"X-QMAIL-Flags", flags);
-			CHECK_QSTATUS();
+			unsigned int nFlags = mpl->getFlags() & MessageHolder::FLAG_USER_MASK;
+			NumberParser flags(nFlags, NumberParser::FLAG_HEX);
+			if (!msg.replaceField(L"X-QMAIL-Flags", flags))
+				return false;
 		}
 		
-		string_ptr<STRING> strContent;
+		xstring_ptr strContent;
 		if (pTemplate) {
 			// TODO
 			// Process template
 		}
 		else {
-			status = msg.getContent(&strContent);
-			CHECK_QSTATUS();
+			strContent = msg.getContent();
+			if (!strContent.get())
+				return false;
 		}
 		
 		if (bWriteSeparator) {
-			status = pStream->write(
-				reinterpret_cast<const unsigned char*>("From \r\n"), 7);
-			CHECK_QSTATUS();
+			if (pStream->write(reinterpret_cast<const unsigned char*>("From \r\n"), 7) == -1)
+				return false;
 			
 			const CHAR* p = strContent.get();
 			while (*p) {
@@ -1156,35 +1005,32 @@ QSTATUS qm::FileExportAction::writeMessage(OutputStream* pStream,
 				while (*pCheck == '>')
 					++pCheck;
 				if (strncmp(pCheck, "From ", 5) == 0) {
-					status = pStream->write(
-						reinterpret_cast<unsigned char*>(">"), 1);
-					CHECK_QSTATUS();
+					if (pStream->write(reinterpret_cast<unsigned char*>(">"), 1) == -1)
+						return false;
 				}
 				
 				const CHAR* pEnd = strstr(p, "\r\n");
 				size_t nLen = pEnd ? pEnd - p + 2 : strlen(p);
 				
-				status = pStream->write(
-					reinterpret_cast<const unsigned char*>(p), nLen);
-				CHECK_QSTATUS();
+				if (pStream->write(reinterpret_cast<const unsigned char*>(p), nLen) == -1)
+					return false;
 				
 				p += nLen;
 			}
 			
 			if (p - strContent.get() < 2 || *(p - 1) != '\n' || *(p - 2) != '\r') {
-				status = pStream->write(reinterpret_cast<const unsigned char*>("\r\n"), 2);
-				CHECK_QSTATUS();
+				if (pStream->write(reinterpret_cast<const unsigned char*>("\r\n"), 2) == -1)
+					return false;
 			}
 		}
 		else {
-			status = pStream->write(
-				reinterpret_cast<unsigned char*>(strContent.get()),
-				strlen(strContent.get()));
-			CHECK_QSTATUS();
+			if (pStream->write(reinterpret_cast<unsigned char*>(strContent.get()),
+				strlen(strContent.get())) == -1)
+				return false;
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -1195,104 +1041,62 @@ QSTATUS qm::FileExportAction::writeMessage(OutputStream* pStream,
  */
 
 qm::FileImportAction::FileImportAction(FolderModel* pFolderModel,
-	HWND hwndFrame, QSTATUS* pstatus) :
+									   HWND hwnd) :
 	pFolderModel_(pFolderModel),
-	hwndFrame_(hwndFrame)
+	hwnd_(hwnd)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::FileImportAction::~FileImportAction()
 {
 }
 
-QSTATUS qm::FileImportAction::invoke(const ActionEvent& event)
+void qm::FileImportAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	Folder* pFolder = pFolderModel_->getCurrentFolder();
 	if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL) {
-		ImportDialog dialog(&status);
-		CHECK_QSTATUS();
-		int nRet = 0;
-		status = dialog.doModal(hwndFrame_, 0, &nRet);
-		CHECK_QSTATUS();
-		if (nRet == IDOK) {
-			ProgressDialog progressDialog(IDS_IMPORT, &status);
-			CHECK_QSTATUS();
-			ProgressDialogInit init(&progressDialog, hwndFrame_,
-				IDS_IMPORT, IDS_IMPORT, 0, 100, 0, &status);
-			CHECK_QSTATUS();
-			int nPos = 0;
-			
-			const WCHAR* pwszPath = dialog.getPath();
-			const WCHAR* pBegin = pwszPath;
-			while (true) {
-				const WCHAR* pEnd = wcschr(pBegin, L';');
-				string_ptr<WSTRING> wstrPath(allocWString(
-					pBegin, pEnd ? pEnd - pBegin : -1));
-				if (!wstrPath.get())
-					return QSTATUS_OUTOFMEMORY;
-				
-				FileInputStream fileStream(wstrPath.get(), &status);
-				CHECK_QSTATUS();
-				BufferedInputStream stream(&fileStream, false, &status);
-				CHECK_QSTATUS();
-				
-				bool bCanceled = false;
-				status = readMessage(static_cast<NormalFolder*>(pFolder),
-					&stream, dialog.isMultiple(), dialog.getFlags(),
-					&progressDialog, &nPos, &bCanceled);
-				CHECK_QSTATUS();
-				if (bCanceled)
-					break;
-				
-				if (!pEnd)
-					break;
-				pBegin = pEnd + 1;
-				if (!*pBegin)
-					break;
-			}
+		if (!import(static_cast<NormalFolder*>(pFolder))) {
+			ActionUtil::error(hwnd_, IDS_ERROR_IMPORT);
+			return;
 		}
-		
-		status = pFolder->getAccount()->save();
-		CHECK_QSTATUS();
+		if (!pFolder->getAccount()->save()) {
+			ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
+			return;
+		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FileImportAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+bool qm::FileImportAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
 	Folder* pFolder = pFolderModel_->getCurrentFolder();
-	*pbEnabled = pFolder && pFolder->getType() == Folder::TYPE_NORMAL;
-	return QSTATUS_SUCCESS;
+	return pFolder && pFolder->getType() == Folder::TYPE_NORMAL;
 }
 
-QSTATUS qm::FileImportAction::readMessage(NormalFolder* pFolder,
-	InputStream* pStream, bool bMultiple, unsigned int nFlags,
-	ProgressDialog* pDialog, int* pnPos, bool* pbCanceled)
+bool qm::FileImportAction::readMessage(NormalFolder* pFolder,
+									   InputStream* pStream,
+									   bool bMultiple,
+									   unsigned int nFlags,
+									   ProgressDialog* pDialog,
+									   int* pnPos,
+									   bool* pbCanceled)
 {
 	assert(pFolder);
 	assert(pStream);
 	assert((pDialog && pnPos && pbCanceled) ||
 		(!pDialog && !pnPos && !pbCanceled));
 	
-	DECLARE_QSTATUS();
-	
 	if (bMultiple) {
-		StringBuffer<STRING> buf(&status);
-		CHECK_QSTATUS();
+		// TODO
+		// Change to use malloc based buffer.
+		StringBuffer<STRING> buf;
 		
 		CHAR cPrev = '\0';
 		bool bNewLine = true;
 		while (bNewLine) {
-			string_ptr<STRING> strLine;
+			string_ptr strLine;
 			CHAR cNext = '\0';
-			status = readLine(pStream, cPrev, &strLine, &cNext, &bNewLine);
-			CHECK_QSTATUS();
+			if (!readLine(pStream, cPrev, &strLine, &cNext, &bNewLine))
+				return false;
 			cPrev = cNext;
 			
 			if (!bNewLine || strncmp(strLine.get(), "From ", 5) == 0) {
@@ -1300,15 +1104,14 @@ QSTATUS qm::FileImportAction::readMessage(NormalFolder* pFolder,
 					if (pDialog) {
 						if (pDialog->isCanceled()) {
 							*pbCanceled = true;
-							return QSTATUS_SUCCESS;
+							return true;
 						}
-						status = pDialog->setPos((*pnPos)++ % 100);
-						CHECK_QSTATUS();
+						pDialog->setPos((*pnPos)++ % 100);
 					}
 					
-					status = pFolder->getAccount()->importMessage(pFolder,
-						buf.getCharArray(), nFlags);
-					CHECK_QSTATUS();
+					if (!pFolder->getAccount()->importMessage(pFolder,
+						buf.getCharArray(), nFlags))
+						return false;
 					buf.remove();
 				}
 			}
@@ -1323,29 +1126,27 @@ QSTATUS qm::FileImportAction::readMessage(NormalFolder* pFolder,
 						p = strLine.get();
 				}
 				
-				status = buf.append(p);
-				CHECK_QSTATUS();
-				status = buf.append("\r\n");
-				CHECK_QSTATUS();
+				buf.append(p);
+				buf.append("\r\n");
 			}
 		}
 	}
 	else {
-		StringBuffer<STRING> buf(&status);
-		CHECK_QSTATUS();
+		// TODO
+		// Change to use malloc based buffer.
+		StringBuffer<STRING> buf;
 		
 		unsigned char c = 0;
-		size_t nRead = 0;
 		bool bCR = false;
 		while (true) {
-			status = pStream->read(&c, 1, &nRead);
-			CHECK_QSTATUS();
-			if (nRead == static_cast<size_t>(-1))
+			size_t nRead = pStream->read(&c, 1);
+			if (nRead == -1)
+				return false;
+			else if (nRead == 0)
 				break;
 			
 			if (bCR) {
-				status = buf.append("\r\n");
-				CHECK_QSTATUS();
+				buf.append("\r\n");
 				switch (c) {
 				case '\r':
 					break;
@@ -1353,8 +1154,7 @@ QSTATUS qm::FileImportAction::readMessage(NormalFolder* pFolder,
 					bCR = false;
 					break;
 				default:
-					status = buf.append(static_cast<CHAR>(c));
-					CHECK_QSTATUS();
+					buf.append(static_cast<CHAR>(c));
 					bCR = false;
 					break;
 				}
@@ -1365,57 +1165,92 @@ QSTATUS qm::FileImportAction::readMessage(NormalFolder* pFolder,
 					bCR = true;
 					break;
 				case '\n':
-					status = buf.append("\r\n");
-					CHECK_QSTATUS();
+					buf.append("\r\n");
 					break;
 				default:
-					status = buf.append(static_cast<CHAR>(c));
-					CHECK_QSTATUS();
+					buf.append(static_cast<CHAR>(c));
 					break;
 				}
 			}
 		}
-		if (bCR) {
-			status = buf.append("\r\n");
-			CHECK_QSTATUS();
-		}
+		if (bCR)
+			buf.append("\r\n");
 		
 		if (pDialog) {
 			if (pDialog->isCanceled()) {
 				*pbCanceled = true;
-				return QSTATUS_SUCCESS;
+				return true;
 			}
-			status = pDialog->setPos((*pnPos)++ % 100);
-			CHECK_QSTATUS();
+			pDialog->setPos((*pnPos)++ % 100);
 		}
 		
-		status = pFolder->getAccount()->importMessage(
-			pFolder, buf.getCharArray(), nFlags);
-		CHECK_QSTATUS();
+		if (!pFolder->getAccount()->importMessage(
+			pFolder, buf.getCharArray(), nFlags))
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::FileImportAction::readLine(InputStream* pStream,
-	CHAR cPrev, STRING* pstrLine, CHAR* pcNext, bool* pbNewLine)
+bool qm::FileImportAction::import(NormalFolder* pFolder)
+{
+	ImportDialog dialog;
+	if (dialog.doModal(hwnd_) == IDOK) {
+		ProgressDialog progressDialog(IDS_IMPORT);
+		ProgressDialogInit init(&progressDialog, hwnd_,
+			IDS_IMPORT, IDS_IMPORT, 0, 100, 0);
+		int nPos = 0;
+		
+		const WCHAR* pwszPath = dialog.getPath();
+		const WCHAR* pBegin = pwszPath;
+		while (true) {
+			const WCHAR* pEnd = wcschr(pBegin, L';');
+			wstring_ptr wstrPath(allocWString(pBegin, pEnd ? pEnd - pBegin : -1));
+			
+			FileInputStream fileStream(wstrPath.get());
+			if (!fileStream)
+				return false;
+			BufferedInputStream stream(&fileStream, false);
+			
+			bool bCanceled = false;
+			if (!readMessage(static_cast<NormalFolder*>(pFolder),
+				&stream, dialog.isMultiple(), dialog.getFlags(),
+				&progressDialog, &nPos, &bCanceled))
+				return false;
+			if (bCanceled)
+				break;
+			
+			if (!pEnd)
+				break;
+			pBegin = pEnd + 1;
+			if (!*pBegin)
+				break;
+		}
+	}
+	
+	return true;
+}
+
+bool qm::FileImportAction::readLine(InputStream* pStream,
+									CHAR cPrev,
+									string_ptr* pstrLine,
+									CHAR* pcNext,
+									bool* pbNewLine)
 {
 	assert(pStream);
 	assert(pstrLine);
 	assert(pcNext);
 	assert(pbNewLine);
 	
-	DECLARE_QSTATUS();
-	
-	*pstrLine = 0;
+	pstrLine->reset(0);
 	*pcNext = '\0';
 	*pbNewLine = false;
 	
-	StringBuffer<STRING> buf(&status);
-	CHECK_QSTATUS();
+	// TODO
+	// Change to use malloc based buffer.
+	StringBuffer<STRING> buf;
 	
 	unsigned char c = 0;
-	size_t nRead = 0;
 	bool bNewLine = false;
 	while (!bNewLine) {
 		if (cPrev != '\0') {
@@ -1423,32 +1258,33 @@ QSTATUS qm::FileImportAction::readLine(InputStream* pStream,
 			cPrev = '\0';
 		}
 		else {
-			status = pStream->read(&c, 1, &nRead);
-			CHECK_QSTATUS();
-			if (nRead == static_cast<size_t>(-1))
+			size_t nRead = pStream->read(&c, 1);
+			if (nRead == -1)
+				return false;
+			else if (nRead == 0)
 				break;
 		}
 		
 		if (c == '\r') {
 			bNewLine = true;
-			status = pStream->read(&c, 1, &nRead);
-			CHECK_QSTATUS();
-			if (nRead != static_cast<size_t>(-1) && c != '\n')
+			size_t nRead = pStream->read(&c, 1);
+			if (nRead == -1)
+				return false;
+			else if (nRead != 0 && c != '\n')
 				*pcNext = c;
 		}
 		else if (c == '\n') {
 			bNewLine = true;
 		}
 		else {
-			status = buf.append(static_cast<CHAR>(c));
-			CHECK_QSTATUS();
+			buf.append(static_cast<CHAR>(c));
 		}
 	}
 	
 	*pstrLine = buf.getString();
 	*pbNewLine = bNewLine;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -1459,7 +1295,7 @@ QSTATUS qm::FileImportAction::readLine(InputStream* pStream,
  */
 
 qm::FileOfflineAction::FileOfflineAction(Document* pDocument,
-	SyncManager* pSyncManager, QSTATUS* pstatus) :
+										 SyncManager* pSyncManager) :
 	pDocument_(pDocument),
 	pSyncManager_(pSyncManager)
 {
@@ -1469,23 +1305,19 @@ qm::FileOfflineAction::~FileOfflineAction()
 {
 }
 
-QSTATUS qm::FileOfflineAction::invoke(const ActionEvent& event)
+void qm::FileOfflineAction::invoke(const ActionEvent& event)
 {
-	return pDocument_->setOffline(!pDocument_->isOffline());
+	pDocument_->setOffline(!pDocument_->isOffline());
 }
 
-QSTATUS qm::FileOfflineAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+bool qm::FileOfflineAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	*pbEnabled = !pSyncManager_->isSyncing();
-	return QSTATUS_SUCCESS;
+	return !pSyncManager_->isSyncing();
 }
 
-QSTATUS qm::FileOfflineAction::isChecked(const ActionEvent& event, bool* pbChecked)
+bool qm::FileOfflineAction::isChecked(const ActionEvent& event)
 {
-	assert(pbChecked);
-	*pbChecked = pDocument_->isOffline();
-	return QSTATUS_SUCCESS;
+	return pDocument_->isOffline();
 }
 
 
@@ -1496,8 +1328,10 @@ QSTATUS qm::FileOfflineAction::isChecked(const ActionEvent& event, bool* pbCheck
  */
 
 qm::FilePrintAction::FilePrintAction(Document* pDocument,
-	MessageSelectionModel* pModel, HWND hwnd, Profile* pProfile,
-	TempFileCleaner* pTempFileCleaner, QSTATUS* pstatus) :
+									 MessageSelectionModel* pModel,
+									 HWND hwnd,
+									 Profile* pProfile,
+									 TempFileCleaner* pTempFileCleaner) :
 	pDocument_(pDocument),
 	pModel_(pModel),
 	hwnd_(hwnd),
@@ -1510,76 +1344,73 @@ qm::FilePrintAction::~FilePrintAction()
 {
 }
 
-QSTATUS qm::FilePrintAction::invoke(const ActionEvent& event)
+void qm::FilePrintAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	AccountLock lock;
 	Folder* pFolder = 0;
 	MessageHolderList l;
-	status = pModel_->getSelectedMessages(&lock, &pFolder, &l);
-	CHECK_QSTATUS();
+	pModel_->getSelectedMessages(&lock, &pFolder, &l);
 	
 	Account* pAccount = lock.get();
 	if (!l.empty()) {
-		MessageHolderList::const_iterator it = l.begin();
-		while (it != l.end()) {
-			MessageHolder* pmh = *it;
-			const Template* pTemplate = 0;
-			status = pDocument_->getTemplateManager()->getTemplate(
-				pAccount, pFolder, L"print", &pTemplate);
-			CHECK_QSTATUS();
-			
-			Message msg(&status);
-			CHECK_QSTATUS();
-			TemplateContext context(pmh, &msg, pAccount, pDocument_,
-				hwnd_, pProfile_, 0, TemplateContext::ArgumentList(), &status);
-			CHECK_QSTATUS();
-			
-			string_ptr<WSTRING> wstrValue;
-			status = pTemplate->getValue(context, &wstrValue);
-			CHECK_QSTATUS();
-			
-			string_ptr<WSTRING> wstrExtension;
-			status = pProfile_->getString(L"Global",
-				L"PrintExtension", L"html", &wstrExtension);
-			CHECK_QSTATUS();
-			
-			string_ptr<WSTRING> wstrPath;
-			status = UIUtil::writeTemporaryFile(wstrValue.get(), L"q3print",
-				wstrExtension.get(), pTempFileCleaner_, &wstrPath);
-			CHECK_QSTATUS();
-			
-			W2T(wstrPath.get(), ptszPath);
-			SHELLEXECUTEINFO sei = {
-				sizeof(sei),
-				0,
-				hwnd_,
-				_T("print"),
-				ptszPath,
-				0,
-				0,
-#ifdef _WIN32_WCE
-				SW_SHOWNORMAL,
-#else
-				SW_SHOWDEFAULT,
-#endif
-			};
-			if (!::ShellExecuteEx(&sei)) {
-				// TODO
+		for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			if (!print(pAccount, pFolder, *it)) {
+				ActionUtil::error(hwnd_, IDS_ERROR_PRINT);
+				return;
 			}
-			
-			++it;
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FilePrintAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+bool qm::FilePrintAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	return pModel_->hasSelectedMessage(pbEnabled);
+	return pModel_->hasSelectedMessage();
+}
+
+bool qm::FilePrintAction::print(Account* pAccount,
+								Folder* pFolder,
+								MessageHolder* pmh)
+{
+	const Template* pTemplate = pDocument_->getTemplateManager()->getTemplate(
+		pAccount, pFolder, L"print");
+	if (!pTemplate)
+		return false;
+	
+	Message msg;
+	TemplateContext context(pmh, &msg, pAccount, pDocument_,
+		hwnd_, pProfile_, 0, TemplateContext::ArgumentList());
+	
+	wstring_ptr wstrValue(pTemplate->getValue(context));
+	if (!wstrValue.get())
+		return false;
+	
+	wstring_ptr wstrExtension(pProfile_->getString(
+		L"Global", L"PrintExtension", L"html"));
+	
+	wstring_ptr wstrPath(UIUtil::writeTemporaryFile(wstrValue.get(),
+		L"q3print", wstrExtension.get(), pTempFileCleaner_));
+	if (!wstrPath.get())
+		return false;
+	
+	W2T(wstrPath.get(), ptszPath);
+	SHELLEXECUTEINFO sei = {
+		sizeof(sei),
+		0,
+		hwnd_,
+		_T("print"),
+		ptszPath,
+		0,
+		0,
+#ifdef _WIN32_WCE
+		SW_SHOWNORMAL,
+#else
+		SW_SHOWDEFAULT,
+#endif
+	};
+	if (!::ShellExecuteEx(&sei))
+		return false;
+	
+	return true;
 }
 
 
@@ -1589,9 +1420,10 @@ QSTATUS qm::FilePrintAction::isEnabled(const ActionEvent& event, bool* pbEnabled
  *
  */
 
-qm::FileSalvageAction::FileSalvageAction(
-	FolderModel* pFolderModel, QSTATUS* pstatus) :
-	pFolderModel_(pFolderModel)
+qm::FileSalvageAction::FileSalvageAction(FolderModel* pFolderModel,
+										 HWND hwnd) :
+	pFolderModel_(pFolderModel),
+	hwnd_(hwnd)
 {
 }
 
@@ -1599,27 +1431,23 @@ qm::FileSalvageAction::~FileSalvageAction()
 {
 }
 
-QSTATUS qm::FileSalvageAction::invoke(const qs::ActionEvent& event)
+void qm::FileSalvageAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	Folder* pFolder = pFolderModel_->getCurrentFolder();
 	if (!pFolder || pFolder->getType() != Folder::TYPE_NORMAL)
-		return QSTATUS_SUCCESS;
+		return;
 	
 	Account* pAccount = pFolder->getAccount();
-	status = pAccount->salvage(static_cast<NormalFolder*>(pFolder));
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	if (!pAccount->salvage(static_cast<NormalFolder*>(pFolder))) {
+		ActionUtil::error(hwnd_, IDS_ERROR_SALVAGE);
+		return;
+	}
 }
 
-QSTATUS qm::FileSalvageAction::isEnabled(const qs::ActionEvent& event, bool* pbEnabled)
+bool qm::FileSalvageAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
 	Folder* pFolder = pFolderModel_->getCurrentFolder();
-	*pbEnabled = pFolder && pFolder->getType() == Folder::TYPE_NORMAL;
-	return QSTATUS_SUCCESS;
+	return pFolder && pFolder->getType() == Folder::TYPE_NORMAL;
 }
 
 
@@ -1630,9 +1458,11 @@ QSTATUS qm::FileSalvageAction::isEnabled(const qs::ActionEvent& event, bool* pbE
  */
 
 qm::FileSaveAction::FileSaveAction(Document* pDocument,
-	ViewModelManager* pViewModelManager, QSTATUS* pstatus) :
+								   ViewModelManager* pViewModelManager,
+								   HWND hwnd) :
 	pDocument_(pDocument),
-	pViewModelManager_(pViewModelManager)
+	pViewModelManager_(pViewModelManager),
+	hwnd_(hwnd)
 {
 }
 
@@ -1640,16 +1470,13 @@ qm::FileSaveAction::~FileSaveAction()
 {
 }
 
-QSTATUS qm::FileSaveAction::invoke(const ActionEvent& event)
+void qm::FileSaveAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	WaitCursor cursor;
-	
-	status = Application::getApplication().save();
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	if (!Application::getApplication().save()) {
+		ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
+		return;
+	}
 }
 
 
@@ -1659,25 +1486,21 @@ QSTATUS qm::FileSaveAction::invoke(const ActionEvent& event)
  *
  */
 
-qm::FolderCreateAction::FolderCreateAction(
-	FolderSelectionModel* pFolderSelectionModel,
-	HWND hwndFrame, Profile* pProfile, QSTATUS* pstatus) :
+qm::FolderCreateAction::FolderCreateAction(FolderSelectionModel* pFolderSelectionModel,
+										   HWND hwnd,
+										   Profile* pProfile) :
 	pFolderSelectionModel_(pFolderSelectionModel),
-	hwndFrame_(hwndFrame),
+	hwnd_(hwnd),
 	pProfile_(pProfile)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::FolderCreateAction::~FolderCreateAction()
 {
 }
 
-QSTATUS qm::FolderCreateAction::invoke(const ActionEvent& event)
+void qm::FolderCreateAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	Folder* pFolder = pFolderSelectionModel_->getFocusedFolder();
 	Account* pAccount = pFolder ? pFolder->getAccount() :
 		pFolderSelectionModel_->getAccount();
@@ -1711,56 +1534,43 @@ QSTATUS qm::FolderCreateAction::invoke(const ActionEvent& event)
 			CreateFolderDialog::TYPE_LOCALFOLDER;
 	}
 	
-	CreateFolderDialog dialog(type, bAllowRemote, &status);
-	CHECK_QSTATUS();
-	int nRet = 0;
-	status = dialog.doModal(hwndFrame_, 0, &nRet);
-	CHECK_QSTATUS();
-	if (nRet == IDOK) {
+	CreateFolderDialog dialog(type, bAllowRemote);
+	if (dialog.doModal(hwnd_) == IDOK) {
 		NormalFolder* pNormalFolder = 0;
 		QueryFolder* pQueryFolder = 0;
 		switch (dialog.getType()) {
 		case CreateFolderDialog::TYPE_LOCALFOLDER:
-			status = pAccount->createNormalFolder(dialog.getName(),
-				pFolder, false, &pNormalFolder);
+			pNormalFolder = pAccount->createNormalFolder(
+				dialog.getName(), pFolder, false);
 			break;
 		case CreateFolderDialog::TYPE_REMOTEFOLDER:
-			status = pAccount->createNormalFolder(dialog.getName(),
-				pFolder, true, &pNormalFolder);
+			pNormalFolder = pAccount->createNormalFolder(
+				dialog.getName(), pFolder, true);
 			break;
 		case CreateFolderDialog::TYPE_QUERYFOLDER:
-			status = pAccount->createQueryFolder(dialog.getName(),
-				pFolder, L"macro", L"@False()", 0, false, &pQueryFolder);
+			pQueryFolder = pAccount->createQueryFolder(dialog.getName(),
+				pFolder, L"macro", L"@False()", 0, false);
 			break;
 		default:
 			assert(false);
 			break;
 		}
-		if (status == QSTATUS_SUCCESS) {
-			if (pQueryFolder) {
-				Account::FolderList l;
-				status = STLWrapper<Account::FolderList>(l).push_back(pQueryFolder);
-				CHECK_QSTATUS();
-				status = FolderPropertyAction::openProperty(
-					l, true, hwndFrame_, pProfile_);
-				CHECK_QSTATUS();
-			}
+		if (!pNormalFolder && !pQueryFolder) {
+			ActionUtil::error(hwnd_, IDS_ERROR_CREATEFOLDER);
+			return;
 		}
-		else {
-			messageBox(Application::getApplication().getResourceHandle(),
-				IDS_ERROR_CREATEFOLDER, MB_OK | MB_ICONERROR);
+		
+		if (pQueryFolder) {
+			Account::FolderList l(1, pQueryFolder);
+			FolderPropertyAction::openProperty(l, true, hwnd_, pProfile_);
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderCreateAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+bool qm::FolderCreateAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	*pbEnabled = pFolderSelectionModel_->getAccount() ||
+	return pFolderSelectionModel_->getAccount() ||
 		pFolderSelectionModel_->getFocusedFolder();
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -1771,71 +1581,61 @@ QSTATUS qm::FolderCreateAction::isEnabled(const ActionEvent& event, bool* pbEnab
  */
 
 qm::FolderDeleteAction::FolderDeleteAction(FolderModel* pFolderModel,
-	FolderSelectionModel* pFolderSelectionModel, QSTATUS* pstatus) :
+										   FolderSelectionModel* pFolderSelectionModel,
+										   HWND hwnd) :
 	pFolderModel_(pFolderModel),
-	pFolderSelectionModel_(pFolderSelectionModel)
+	pFolderSelectionModel_(pFolderSelectionModel),
+	hwnd_(hwnd)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::FolderDeleteAction::~FolderDeleteAction()
 {
 }
 
-QSTATUS qm::FolderDeleteAction::invoke(const ActionEvent& event)
+void qm::FolderDeleteAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	Account::FolderList l;
-	status = pFolderSelectionModel_->getSelectedFolders(&l);
-	CHECK_QSTATUS();
+	pFolderSelectionModel_->getSelectedFolders(&l);
 	
-	int nRet = 0;
-	status = messageBox(Application::getApplication().getResourceHandle(),
-		IDS_CONFIRMREMOVEFOLDER, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, &nRet);
-	CHECK_QSTATUS();
+	int nRet = messageBox(Application::getApplication().getResourceHandle(),
+		IDS_CONFIRMREMOVEFOLDER, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd_);
 	if (nRet != IDYES)
-		return QSTATUS_SUCCESS;
+		return;
 	
 	if (l.size() == 1) {
 		Folder* pFolder = l[0];
 		Account* pAccount = pFolder->getAccount();
 		if (pFolderModel_->getCurrentFolder() == pFolder) {
 			Folder* pParent = pFolder->getParentFolder();
-			if (pParent) {
-				status = pFolderModel_->setCurrent(0, pParent, false);
-				CHECK_QSTATUS();
-			}
-			else {
-				status = pFolderModel_->setCurrent(pAccount, 0, false);
-				CHECK_QSTATUS();
-			}
+			if (pParent)
+				pFolderModel_->setCurrent(0, pParent, false);
+			else
+				pFolderModel_->setCurrent(pAccount, 0, false);
 		}
-		status = pAccount->removeFolder(pFolder);
-		CHECK_QSTATUS();
+		if (!pAccount->removeFolder(pFolder)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_DELETEFOLDER);
+			return;
+		}
 	}
 	else {
 		std::sort(l.begin(), l.end(), std::not2(FolderLess()));
 		
-		Account::FolderList::const_iterator it = l.begin();
-		while (it != l.end()) {
+		for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 			Folder* pFolder = *it;
 			Account* pAccount = pFolder->getAccount();
 			assert(pFolderModel_->getCurrentAccount() == pAccount);
-			status = pAccount->removeFolder(pFolder);
-			CHECK_QSTATUS();
-			++it;
+			if (!pAccount->removeFolder(pFolder)) {
+				ActionUtil::error(hwnd_, IDS_ERROR_DELETEFOLDER);
+				return;
+			}
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderDeleteAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+bool qm::FolderDeleteAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	return pFolderSelectionModel_->hasSelectedFolder(pbEnabled);
+	return pFolderSelectionModel_->hasSelectedFolder();
 }
 
 
@@ -1845,66 +1645,45 @@ QSTATUS qm::FolderDeleteAction::isEnabled(const ActionEvent& event, bool* pbEnab
  *
  */
 
-qm::FolderEmptyAction::FolderEmptyAction(FolderSelectionModel* pModel, QSTATUS* pstatus) :
-	pModel_(pModel)
+qm::FolderEmptyAction::FolderEmptyAction(FolderSelectionModel* pFolderSelectionModel,
+										 HWND hwnd) :
+	pFolderSelectionModel_(pFolderSelectionModel),
+	hwnd_(hwnd)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::FolderEmptyAction::~FolderEmptyAction()
 {
 }
 
-QSTATUS qm::FolderEmptyAction::invoke(const ActionEvent& event)
+void qm::FolderEmptyAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	Account::FolderList l;
-	status = pModel_->getSelectedFolders(&l);
-	CHECK_QSTATUS();
+	pFolderSelectionModel_->getSelectedFolders(&l);
 	
-	Account::FolderList::const_iterator it = l.begin();
-	while (it != l.end()) {
+	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		Folder* pFolder = *it;
 		
 		if (!pFolder->isFlag(Folder::FLAG_TRASHBOX)) {
 			Account* pAccount = pFolder->getAccount();
 			Lock<Account> lock(*pAccount);
 			
-			const MessageHolderList* pList = 0;
-			status = pFolder->getMessages(&pList);
-			CHECK_QSTATUS();
-			if (!pList->empty()) {
-				MessageHolderList l;
-				status = STLWrapper<MessageHolderList>(l).resize(pList->size());
-				CHECK_QSTATUS();
-				std::copy(pList->begin(), pList->end(), l.begin());
-				status = pAccount->removeMessages(l, false, 0);
-				CHECK_QSTATUS();
+			MessageHolderList l(pFolder->getMessages());
+			if (!l.empty()) {
+				if (!pAccount->removeMessages(l, false, 0)) {
+					ActionUtil::error(hwnd_, IDS_ERROR_EMPTYFOLDER);
+					return;
+				}
 			}
 		}
-		
-		++it;
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderEmptyAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+bool qm::FolderEmptyAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	
-	DECLARE_QSTATUS();
-	
 	Account::FolderList l;
-	status = pModel_->getSelectedFolders(&l);
-	CHECK_QSTATUS();
-	
-	*pbEnabled = l.size() > 1 ||
-		(l.size() == 1 && !l.front()->isFlag(Folder::FLAG_TRASHBOX));
-	
-	return QSTATUS_SUCCESS;
+	pFolderSelectionModel_->getSelectedFolders(&l);
+	return l.size() > 1 || (l.size() == 1 && !l.front()->isFlag(Folder::FLAG_TRASHBOX));
 }
 
 
@@ -1914,10 +1693,10 @@ QSTATUS qm::FolderEmptyAction::isEnabled(const ActionEvent& event, bool* pbEnabl
  *
  */
 
-qm::FolderEmptyTrashAction::FolderEmptyTrashAction(
-	FolderModel* pFolderModel, HWND hwndFrame, QSTATUS* pstatus) :
+qm::FolderEmptyTrashAction::FolderEmptyTrashAction(FolderModel* pFolderModel,
+												   HWND hwnd) :
 	pFolderModel_(pFolderModel),
-	hwndFrame_(hwndFrame)
+	hwnd_(hwnd)
 {
 }
 
@@ -1925,10 +1704,8 @@ qm::FolderEmptyTrashAction::~FolderEmptyTrashAction()
 {
 }
 
-QSTATUS qm::FolderEmptyTrashAction::invoke(const ActionEvent& event)
+void qm::FolderEmptyTrashAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	NormalFolder* pTrash = getTrash();
 	if (pTrash) {
 		Account* pAccount = pTrash->getAccount();
@@ -1937,39 +1714,33 @@ QSTATUS qm::FolderEmptyTrashAction::invoke(const ActionEvent& event)
 		// TODO
 		// Sync folder if online and trash is syncable
 		
-		const MessageHolderList* pList = 0;
-		status = pTrash->getMessages(&pList);
-		CHECK_QSTATUS();
-		if (!pList->empty()) {
-			MessageHolderList l;
-			status = STLWrapper<MessageHolderList>(l).resize(pList->size());
-			CHECK_QSTATUS();
-			std::copy(pList->begin(), pList->end(), l.begin());
-			
+		MessageHolderList l(pTrash->getMessages());
+		if (!l.empty()) {
 			ProgressDialogMessageOperationCallback callback(
-				hwndFrame_, IDS_EMPTYTRASH, IDS_EMPTYTRASH);
-			status = pAccount->removeMessages(l, false, &callback);
-			CHECK_QSTATUS();
-			
-			if (!pTrash->isFlag(Folder::FLAG_LOCAL)) {
-				status = pAccount->clearDeletedMessages(pTrash);
-				CHECK_QSTATUS();
+				hwnd_, IDS_EMPTYTRASH, IDS_EMPTYTRASH);
+			if (!pAccount->removeMessages(l, false, &callback)) {
+				ActionUtil::error(hwnd_, IDS_ERROR_EMPTYTRASH);
+				return;
 			}
 			
-			status = pAccount->save();
-			CHECK_QSTATUS();
+			if (!pTrash->isFlag(Folder::FLAG_LOCAL)) {
+				if (!pAccount->clearDeletedMessages(pTrash)) {
+					ActionUtil::error(hwnd_, IDS_ERROR_EMPTYTRASH);
+					return;
+				}
+			}
+			
+			if (!pAccount->save()) {
+				ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
+				return;
+			}
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderEmptyTrashAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::FolderEmptyTrashAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	*pbEnabled = getTrash() != 0;
-	return QSTATUS_SUCCESS;
+	return getTrash() != 0;
 }
 
 NormalFolder* qm::FolderEmptyTrashAction::getTrash() const
@@ -1995,9 +1766,10 @@ NormalFolder* qm::FolderEmptyTrashAction::getTrash() const
  *
  */
 
-qm::FolderPropertyAction::FolderPropertyAction(FolderSelectionModel* pModel,
-	HWND hwnd, Profile* pProfile, QSTATUS* pstatus) :
-	pModel_(pModel),
+qm::FolderPropertyAction::FolderPropertyAction(FolderSelectionModel* pFolderSelectionModel,
+											   HWND hwnd,
+											   Profile* pProfile) :
+	pFolderSelectionModel_(pFolderSelectionModel),
 	hwnd_(hwnd),
 	pProfile_(pProfile)
 {
@@ -2007,62 +1779,43 @@ qm::FolderPropertyAction::~FolderPropertyAction()
 {
 }
 
-QSTATUS qm::FolderPropertyAction::invoke(const ActionEvent& event)
+void qm::FolderPropertyAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	Account::FolderList listFolder;
-	status = pModel_->getSelectedFolders(&listFolder);
-	CHECK_QSTATUS();
-	status = openProperty(listFolder, false, hwnd_, pProfile_);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	pFolderSelectionModel_->getSelectedFolders(&listFolder);
+	openProperty(listFolder, false, hwnd_, pProfile_);
 }
 
-QSTATUS qm::FolderPropertyAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+bool qm::FolderPropertyAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	return pModel_->hasSelectedFolder(pbEnabled);
+	return pFolderSelectionModel_->hasSelectedFolder();
 }
 
-QSTATUS qm::FolderPropertyAction::openProperty(
-	const Account::FolderList& listFolder,
-	bool bOpenCondition, HWND hwnd, Profile* pProfile)
+void qm::FolderPropertyAction::openProperty(const Account::FolderList& listFolder,
+											bool bOpenCondition,
+											HWND hwnd,
+											Profile* pProfile)
 {
-	DECLARE_QSTATUS();
-	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	string_ptr<WSTRING> wstrTitle;
-	status = loadString(hInst, IDS_PROPERTY, &wstrTitle);
-	CHECK_QSTATUS();
+	wstring_ptr wstrTitle(loadString(hInst, IDS_PROPERTY));
 	
-	PropertySheetBase sheet(hInst, wstrTitle.get(), false, &status);
-	CHECK_QSTATUS();
-	FolderPropertyPage pageProperty(listFolder, &status);
-	CHECK_QSTATUS();
-	status = sheet.add(&pageProperty);
-	CHECK_QSTATUS();
+	PropertySheetBase sheet(hInst, wstrTitle.get(), false);
+	FolderPropertyPage pageProperty(listFolder);
+	sheet.add(&pageProperty);
 	
 	QueryFolder* pQueryFolder = 0;
 	std::auto_ptr<FolderConditionPage> pConditionPage;
 	if (listFolder.size() == 1 &&
 		listFolder.front()->getType() == Folder::TYPE_QUERY) {
 		pQueryFolder = static_cast<QueryFolder*>(listFolder.front());
-		status = newQsObject(pQueryFolder, pProfile, &pConditionPage);
-		CHECK_QSTATUS();
-		status = sheet.add(pConditionPage.get());
-		CHECK_QSTATUS();
+		pConditionPage.reset(new FolderConditionPage(pQueryFolder, pProfile));
+		sheet.add(pConditionPage.get());
 		if (bOpenCondition)
 			sheet.setStartPage(1);
 	}
 	
-	int nRet = 0;
-	status = sheet.doModal(hwnd, 0, &nRet);
-	CHECK_QSTATUS();
-	if (nRet == IDOK) {
-		Account::FolderList::const_iterator it = listFolder.begin();
-		while (it != listFolder.end()) {
+	if (sheet.doModal(hwnd) == IDOK) {
+		for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
 			Folder* pFolder = *it;
 			
 			unsigned int nFlags = pageProperty.getFlags();
@@ -2074,20 +1827,14 @@ QSTATUS qm::FolderPropertyAction::openProperty(
 					Folder::FLAG_SENTBOX | Folder::FLAG_DRAFTBOX | Folder::FLAG_TRASHBOX);
 			
 			pFolder->setFlags(nFlags, nMask);
-			
-			++it;
 		}
 		
-		if (pQueryFolder) {
-			status = pQueryFolder->set(pConditionPage->getDriver(),
+		if (pQueryFolder)
+			pQueryFolder->set(pConditionPage->getDriver(),
 				pConditionPage->getCondition(),
 				pConditionPage->getTargetFolder(),
 				pConditionPage->isRecursive());
-			CHECK_QSTATUS();
-		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -2097,9 +1844,8 @@ QSTATUS qm::FolderPropertyAction::openProperty(
  *
  */
 
-qm::FolderRenameAction::FolderRenameAction(
-	FolderSelectionModel* pFolderSelectionModel,
-	HWND hwnd, qs::QSTATUS* pstatus) :
+qm::FolderRenameAction::FolderRenameAction(FolderSelectionModel* pFolderSelectionModel,
+										   HWND hwnd) :
 	pFolderSelectionModel_(pFolderSelectionModel),
 	hwnd_(hwnd)
 {
@@ -2109,35 +1855,27 @@ qm::FolderRenameAction::~FolderRenameAction()
 {
 }
 
-QSTATUS qm::FolderRenameAction::invoke(const ActionEvent& event)
+void qm::FolderRenameAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	Folder* pFolder = pFolderSelectionModel_->getFocusedFolder();
 	if (pFolder) {
-		RenameDialog dialog(pFolder->getName(), &status);
-		CHECK_QSTATUS();
-		int nRet = 0;
-		status = dialog.doModal(hwnd_, 0, &nRet);
-		CHECK_QSTATUS();
-		if (nRet == IDOK) {
+		RenameDialog dialog(pFolder->getName());
+		if (dialog.doModal(hwnd_) == IDOK) {
 			const WCHAR* pwszName = dialog.getName();
 			if (wcscmp(pFolder->getName(), pwszName) != 0) {
 				Account* pAccount = pFolder->getAccount();
-				status = pAccount->renameFolder(pFolder, pwszName);
-				CHECK_QSTATUS();
+				if (!pAccount->renameFolder(pFolder, pwszName)) {
+					ActionUtil::error(hwnd_, IDS_ERROR_RENAMEFOLDER);
+					return;
+				}
 			}
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderRenameAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+bool qm::FolderRenameAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	*pbEnabled = pFolderSelectionModel_->getFocusedFolder() != 0;
-	return QSTATUS_SUCCESS;
+	return pFolderSelectionModel_->getFocusedFolder() != 0;
 }
 
 
@@ -2147,8 +1885,7 @@ QSTATUS qm::FolderRenameAction::isEnabled(const ActionEvent& event, bool* pbEnab
  *
  */
 
-qm::FolderShowSizeAction::FolderShowSizeAction(
-	FolderListWindow* pFolderListWindow, QSTATUS* pstatus) :
+qm::FolderShowSizeAction::FolderShowSizeAction(FolderListWindow* pFolderListWindow) :
 	pFolderListWindow_(pFolderListWindow)
 {
 }
@@ -2157,17 +1894,15 @@ qm::FolderShowSizeAction::~FolderShowSizeAction()
 {
 }
 
-QSTATUS qm::FolderShowSizeAction::invoke(const ActionEvent& event)
+void qm::FolderShowSizeAction::invoke(const ActionEvent& event)
 {
-	return pFolderListWindow_->showSize();
+	pFolderListWindow_->showSize();
 }
 
-QSTATUS qm::FolderShowSizeAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::FolderShowSizeAction::isEnabled(const ActionEvent& event)
 {
-	*pbEnabled = pFolderListWindow_->isShow() &&
+	return pFolderListWindow_->isShow() &&
 		!pFolderListWindow_->isSizeShown();
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -2177,22 +1912,19 @@ QSTATUS qm::FolderShowSizeAction::isEnabled(
  *
  */
 
-qm::FolderUpdateAction::FolderUpdateAction(
-	FolderModel* pFolderModel, QSTATUS* pstatus) :
-	pFolderModel_(pFolderModel)
+qm::FolderUpdateAction::FolderUpdateAction(FolderModel* pFolderModel,
+										   HWND hwnd) :
+	pFolderModel_(pFolderModel),
+	hwnd_(hwnd)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::FolderUpdateAction::~FolderUpdateAction()
 {
 }
 
-QSTATUS qm::FolderUpdateAction::invoke(const ActionEvent& event)
+void qm::FolderUpdateAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	Account* pAccount = pFolderModel_->getCurrentAccount();
 	if (!pAccount) {
 		Folder* pFolder = pFolderModel_->getCurrentFolder();
@@ -2200,35 +1932,27 @@ QSTATUS qm::FolderUpdateAction::invoke(const ActionEvent& event)
 			pAccount = pFolder->getAccount();
 	}
 	if (!pAccount)
-		return QSTATUS_FAIL;
+		return;
 	
-	status = pFolderModel_->setCurrent(pAccount, 0, false);
-	CHECK_QSTATUS();
+	pFolderModel_->setCurrent(pAccount, 0, false);
 	
 	// TODO
 	// Show progress dialog box?
-	status = pAccount->updateFolders();
-	CHECK_QSTATUS();
-	
-	// TODO
-	// Error handling
-	
-	return QSTATUS_SUCCESS;
+	if (!pAccount->updateFolders()) {
+		ActionUtil::error(hwnd_, IDS_ERROR_UPDATEFOLDER);
+		return;
+	}
 }
 
-QSTATUS qm::FolderUpdateAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+bool qm::FolderUpdateAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	
 	Account* pAccount = pFolderModel_->getCurrentAccount();
 	if (!pAccount) {
 		Folder* pFolder = pFolderModel_->getCurrentFolder();
 		if (pFolder)
 			pAccount = pFolder->getAccount();
 	}
-	*pbEnabled = pAccount && pAccount->isSupport(Account::SUPPORT_REMOTEFOLDER);
-	
-	return QSTATUS_SUCCESS;
+	return pAccount && pAccount->isSupport(Account::SUPPORT_REMOTEFOLDER);
 }
 
 
@@ -2239,8 +1963,10 @@ QSTATUS qm::FolderUpdateAction::isEnabled(const ActionEvent& event, bool* pbEnab
  */
 
 qm::MessageApplyRuleAction::MessageApplyRuleAction(RuleManager* pRuleManager,
-	FolderModel* pFolderModel, Document* pDocument, HWND hwnd,
-	Profile* pProfile, QSTATUS* pstatus) :
+												   FolderModel* pFolderModel,
+												   Document* pDocument,
+												   HWND hwnd,
+												   Profile* pProfile) :
 	pRuleManager_(pRuleManager),
 	pFolderModel_(pFolderModel),
 	pMessageSelectionModel_(0),
@@ -2251,8 +1977,10 @@ qm::MessageApplyRuleAction::MessageApplyRuleAction(RuleManager* pRuleManager,
 }
 
 qm::MessageApplyRuleAction::MessageApplyRuleAction(RuleManager* pRuleManager,
-	MessageSelectionModel* pMessageSelectionModel,
-	Document* pDocument, HWND hwnd, Profile* pProfile, QSTATUS* pstatus) :
+												   MessageSelectionModel* pMessageSelectionModel,
+												   Document* pDocument,
+												   HWND hwnd,
+												   Profile* pProfile) :
 	pRuleManager_(pRuleManager),
 	pFolderModel_(0),
 	pMessageSelectionModel_(pMessageSelectionModel),
@@ -2266,78 +1994,84 @@ qm::MessageApplyRuleAction::~MessageApplyRuleAction()
 {
 }
 
-QSTATUS qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
+void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	struct RuleCallbackImpl : public RuleCallback
 	{
 		RuleCallbackImpl(ProgressDialog* pProgressDialog) :
-			pDialog_(pProgressDialog) {}
-		virtual ~RuleCallbackImpl() {}
+			pDialog_(pProgressDialog)
+		{
+		}
+		
+		virtual ~RuleCallbackImpl()
+		{
+		}
 		
 		virtual bool isCanceled()
-			{ return pDialog_->isCanceled(); }
-		virtual QSTATUS checkingMessages()
-			{ return pDialog_->setMessage(IDS_APPLYRULE_CHECKINGMESSAGES); }
-		virtual QSTATUS applyingRule()
-			{ return pDialog_->setMessage(IDS_APPLYRULE_APPLYINGRULE); }
-		virtual QSTATUS setRange(unsigned int nMin, unsigned int nMax)
-			{ return pDialog_->setRange(nMin, nMax); }
-		virtual QSTATUS setPos(unsigned int nPos)
-			{ return pDialog_->setPos(nPos); }
+		{
+			return pDialog_->isCanceled();
+		}
+		
+		virtual void checkingMessages()
+		{
+			pDialog_->setMessage(IDS_APPLYRULE_CHECKINGMESSAGES);
+		}
+		
+		virtual void applyingRule()
+		{
+			pDialog_->setMessage(IDS_APPLYRULE_APPLYINGRULE);
+		}
+		
+		virtual void setRange(unsigned int nMin,
+							  unsigned int nMax)
+		{
+			pDialog_->setRange(nMin, nMax);
+		}
+		
+		virtual void setPos(unsigned int nPos)
+		{
+			pDialog_->setPos(nPos);
+		}
 		
 		ProgressDialog* pDialog_;
 	};
 	
-	ProgressDialog dialog(IDS_APPLYMESSAGERULES, &status);
-	CHECK_QSTATUS();
+	ProgressDialog dialog(IDS_APPLYMESSAGERULES);
 	RuleCallbackImpl callback(&dialog);
 	
 	if (pFolderModel_) {
 		Folder* pFolder = pFolderModel_->getCurrentFolder();
 		if (pFolder) {
-			ProgressDialogInit init(&dialog, hwnd_, &status);
-			CHECK_QSTATUS();
-			status = pRuleManager_->apply(pFolder,
-				0, pDocument_, hwnd_, pProfile_, &callback);
-			CHECK_QSTATUS();
+			ProgressDialogInit init(&dialog, hwnd_);
+			if (!pRuleManager_->apply(pFolder,
+				0, pDocument_, hwnd_, pProfile_, &callback)) {
+				ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
+				return;
+			}
 		}
 	}
 	else {
 		AccountLock lock;
 		Folder* pFolder = 0;
 		MessageHolderList l;
-		status = pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
-		CHECK_QSTATUS();
+		pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
 		if (!l.empty()) {
-			ProgressDialogInit init(&dialog, hwnd_, &status);
-			CHECK_QSTATUS();
-			status = pRuleManager_->apply(pFolder, &l,
-				pDocument_, hwnd_, pProfile_, &callback);
-			CHECK_QSTATUS();
+			ProgressDialogInit init(&dialog, hwnd_);
+			if (!pRuleManager_->apply(pFolder, &l,
+				pDocument_, hwnd_, pProfile_, &callback)) {
+				ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
+				return;
+			}
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::MessageApplyRuleAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::MessageApplyRuleAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	
-	DECLARE_QSTATUS();
-	
-	if (pFolderModel_) {
-		*pbEnabled = pFolderModel_->getCurrentFolder() != 0;
-	}
-	else {
-		status = pMessageSelectionModel_->hasSelectedMessage(pbEnabled);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (pFolderModel_)
+		return pFolderModel_->getCurrentFolder() != 0;
+	else
+		return pMessageSelectionModel_->hasSelectedMessage();
 }
 
 
@@ -2347,16 +2081,19 @@ QSTATUS qm::MessageApplyRuleAction::isEnabled(
  *
  */
 
-qm::MessageApplyTemplateAction::MessageApplyTemplateAction(
-	TemplateMenu* pTemplateMenu, Document* pDocument,
-	FolderModelBase* pFolderModel, MessageSelectionModel* pMessageSelectionModel,
-	EditFrameWindowManager* pEditFrameWindowManager,
-	ExternalEditorManager* pExternalEditorManager,
-	HWND hwnd, Profile* pProfile, bool bExternalEditor, QSTATUS* pstatus) :
-	processor_(pDocument, pFolderModel, pMessageSelectionModel,
-		pEditFrameWindowManager, pExternalEditorManager, hwnd,
-		pProfile, bExternalEditor),
-	pTemplateMenu_(pTemplateMenu)
+qm::MessageApplyTemplateAction::MessageApplyTemplateAction(TemplateMenu* pTemplateMenu,
+														   Document* pDocument,
+														   FolderModelBase* pFolderModel,
+														   MessageSelectionModel* pMessageSelectionModel,
+														   EditFrameWindowManager* pEditFrameWindowManager,
+														   ExternalEditorManager* pExternalEditorManager,
+														   HWND hwnd,
+														   Profile* pProfile,
+														   bool bExternalEditor) :
+	processor_(pDocument, pFolderModel, pMessageSelectionModel, pEditFrameWindowManager,
+		pExternalEditorManager, hwnd, pProfile, bExternalEditor),
+	pTemplateMenu_(pTemplateMenu),
+	hwnd_(hwnd)
 {
 }
 
@@ -2364,26 +2101,21 @@ qm::MessageApplyTemplateAction::~MessageApplyTemplateAction()
 {
 }
 
-QSTATUS qm::MessageApplyTemplateAction::invoke(const ActionEvent& event)
+void qm::MessageApplyTemplateAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	const WCHAR* pwszTemplate = pTemplateMenu_->getTemplate(event.getId());
 	assert(pwszTemplate);
-	status = processor_.process(pwszTemplate,
-		(event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	bool bExternalEditor = (event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0;
+	if (!processor_.process(pwszTemplate, bExternalEditor)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_APPLYTEMPLATE);
+		return;
+	}
 }
 
-QSTATUS qm::MessageApplyTemplateAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::MessageApplyTemplateAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
 	// TODO
-	*pbEnabled = true;
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -2393,8 +2125,8 @@ QSTATUS qm::MessageApplyTemplateAction::isEnabled(
  *
  */
 
-qm::MessageCombineAction::MessageCombineAction(
-	MessageSelectionModel* pMessageSelectionModel, HWND hwnd, QSTATUS* pstatus) :
+qm::MessageCombineAction::MessageCombineAction(MessageSelectionModel* pMessageSelectionModel,
+											   HWND hwnd) :
 	pMessageSelectionModel_(pMessageSelectionModel),
 	hwnd_(hwnd)
 {
@@ -2404,104 +2136,89 @@ qm::MessageCombineAction::~MessageCombineAction()
 {
 }
 
-QSTATUS qm::MessageCombineAction::invoke(const ActionEvent& event)
+void qm::MessageCombineAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	AccountLock lock;
 	MessageHolderList l;
-	status = pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
-	CHECK_QSTATUS();
+	pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
 	
 	Account* pAccount = lock.get();
 	if (!l.empty()) {
-		Message msg(&status);
-		CHECK_QSTATUS();
-		status = combine(l, &msg);
-		CHECK_QSTATUS();
+		Message msg;
+		if (!combine(l, &msg)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_COMBINE);
+			return;
+		}
 		
 		// TODO
 		NormalFolder* pFolder = l.front()->getFolder();
 		unsigned int nFlags = 0;
-		status = pAccount->appendMessage(pFolder, msg, nFlags);
-		CHECK_QSTATUS();
+		if (!pAccount->appendMessage(pFolder, msg, nFlags)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_COMBINE);
+			return;
+		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::MessageCombineAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+bool qm::MessageCombineAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	return pMessageSelectionModel_->hasSelectedMessage(pbEnabled);
+	return pMessageSelectionModel_->hasSelectedMessage();
 }
 
-QSTATUS qm::MessageCombineAction::combine(
-	const MessageHolderList& l, Message* pMessage)
+bool qm::MessageCombineAction::combine(const MessageHolderList& l,
+									   Message* pMessage)
 {
 	assert(pMessage);
 	
-	DECLARE_QSTATUS();
-	
 	MessageHolderList listMessageHolder;
-	status = STLWrapper<MessageHolderList>(listMessageHolder).resize(l.size());
-	CHECK_QSTATUS();
+	listMessageHolder.resize(l.size());
 	
-	string_ptr<WSTRING> wstrIdAll;
+	wstring_ptr wstrIdAll;
 	unsigned int nTotal = 0;
-	MessageHolderList::const_iterator it = l.begin();
-	while (it != l.end()) {
+	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		MessageHolder* pmh = *it;
 		
-		Message msg(&status);
-		CHECK_QSTATUS();
-		status = pmh->getMessage(Account::GETMESSAGEFLAG_HEADER, L"Content-Type", &msg);
-		CHECK_QSTATUS();
+		Message msg;
+		if (!pmh->getMessage(Account::GETMESSAGEFLAG_HEADER, L"Content-Type", &msg))
+			return false;
 		
 		const ContentTypeParser* pContentType = msg.getContentType();
 		if (!PartUtil::isContentType(pContentType, L"message", L"partial"))
-			return QSTATUS_FAIL;
+			return false;
 		
-		string_ptr<WSTRING> wstrId;
-		status = pContentType->getParameter(L"id", &wstrId);
-		CHECK_QSTATUS();
+		wstring_ptr wstrId(pContentType->getParameter(L"id"));
 		if (!wstrId.get())
-			return QSTATUS_FAIL;
+			return false;
 		else if (!wstrIdAll.get())
-			wstrIdAll.reset(wstrId.release());
+			wstrIdAll = wstrId;
 		else if (wcscmp(wstrId.get(), wstrIdAll.get()) != 0)
-			return QSTATUS_FAIL;
+			return false;
 		
 		if (nTotal == 0) {
-			string_ptr<WSTRING> wstrTotal;
-			status = pContentType->getParameter(L"total", &wstrTotal);
-			CHECK_QSTATUS();
+			wstring_ptr wstrTotal(pContentType->getParameter(L"total"));
 			if (wstrTotal.get()) {
 				WCHAR* pEnd = 0;
 				nTotal = wcstol(wstrTotal.get(), &pEnd, 10);
 				if (*pEnd || nTotal != l.size())
-					return QSTATUS_FAIL;
+					return false;
 			}
 		}
 		
-		string_ptr<WSTRING> wstrNumber;
-		status = pContentType->getParameter(L"number", &wstrNumber);
-		CHECK_QSTATUS();
+		wstring_ptr wstrNumber(pContentType->getParameter(L"number"));
 		WCHAR* pEnd = 0;
 		unsigned int nNumber = wcstol(wstrNumber.get(), &pEnd, 10);
 		if (*pEnd || nNumber == 0 || nNumber > l.size())
-			return QSTATUS_FAIL;
+			return false;
+		if (listMessageHolder[nNumber - 1])
+			return false;
 		listMessageHolder[nNumber - 1] = *it;
-		// TODO
-		// Check duplicated number
-		
-		++it;
 	}
 	if (nTotal == 0)
-		return QSTATUS_FAIL;
+		return false;
 	
-	StringBuffer<STRING> buf(&status);
-	CHECK_QSTATUS();
+	// TODO
+	// Use malloc based buffer.
+	StringBuffer<STRING> buf;
 	
 	Part::FieldList listField;
 	struct Deleter
@@ -2518,11 +2235,9 @@ QSTATUS qm::MessageCombineAction::combine(
 		
 		void clear()
 		{
-			Part::FieldList::iterator it = l_.begin();
-			while (it != l_.end()) {
+			for (Part::FieldList::iterator it = l_.begin(); it != l_.end(); ++it) {
 				freeString((*it).first);
 				freeString((*it).second);
-				++it;
 			}
 			l_.clear();
 		}
@@ -2530,63 +2245,43 @@ QSTATUS qm::MessageCombineAction::combine(
 		Part::FieldList& l_;
 	} deleter(listField);
 	
-	it = listMessageHolder.begin();
-	while (it != listMessageHolder.end()) {
-//		MessagePtrLock mpl(*it);
-//		if (!mpl)
-//			return QSTATUS_FAIL;
+	for (MessageHolderList::const_iterator it = listMessageHolder.begin(); it != listMessageHolder.end(); ++it) {
 		MessageHolder* pmh = *it;
 		
-		Message msg(&status);
-		CHECK_QSTATUS();
-		status = pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg);
-		CHECK_QSTATUS();
+		Message msg;
+		if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg))
+			return false;
 		
-		if (it == listMessageHolder.begin()) {
-			status = msg.getFields(&listField);
-			CHECK_QSTATUS();
-		}
+		if (it == listMessageHolder.begin())
+			msg.getFields(&listField);
 		
-		status = buf.append(msg.getBody());
-		CHECK_QSTATUS();
-		
-		++it;
+		buf.append(msg.getBody());
 	}
 	
-	status = pMessage->create(buf.getCharArray(),
-		buf.getLength(), Message::FLAG_NONE);
-	CHECK_QSTATUS();
+	if (!pMessage->create(buf.getCharArray(), buf.getLength(), Message::FLAG_NONE))
+		return false;
 	buf.remove();
 	
-	Part::FieldList::const_iterator itF = listField.begin();
-	while (itF != listField.end()) {
+	for (Part::FieldList::const_iterator itF = listField.begin(); itF != listField.end(); ++itF) {
 		if (!isSpecialField((*itF).first)) {
-			status = buf.append((*itF).second);
-			CHECK_QSTATUS();
-			status = buf.append("\r\n");
-			CHECK_QSTATUS();
+			buf.append((*itF).second);
+			buf.append("\r\n");
 		}
-		++itF;
 	}
 	
 	deleter.clear();
-	status = pMessage->getFields(&listField);
-	CHECK_QSTATUS();
-	itF = listField.begin();
-	while (itF != listField.end()) {
+	pMessage->getFields(&listField);
+	for (Part::FieldList::const_iterator itF = listField.begin(); itF != listField.end(); ++itF) {
 		if (isSpecialField((*itF).first)) {
-			status = buf.append((*itF).second);
-			CHECK_QSTATUS();
-			status = buf.append("\r\n");
-			CHECK_QSTATUS();
+			buf.append((*itF).second);
+			buf.append("\r\n");
 		}
-		++itF;
 	}
 	
-	status = pMessage->setHeader(buf.getCharArray());
-	CHECK_QSTATUS();
+	if (!pMessage->setHeader(buf.getCharArray()))
+		return false;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 bool qm::MessageCombineAction::isSpecialField(const CHAR* pszField)
@@ -2606,46 +2301,39 @@ bool qm::MessageCombineAction::isSpecialField(const CHAR* pszField)
  */
 
 qm::MessageCreateAction::MessageCreateAction(Document* pDocument,
-	FolderModelBase* pFolderModel, MessageSelectionModel* pMessageSelectionModel,
-	const WCHAR* pwszTemplateName, EditFrameWindowManager* pEditFrameWindowManager,
-	ExternalEditorManager* pExternalEditorManager, HWND hwnd,
-	Profile* pProfile, bool bExternalEditor, QSTATUS* pstatus) :
-	processor_(pDocument, pFolderModel, pMessageSelectionModel,
-		pEditFrameWindowManager, pExternalEditorManager,
-		hwnd, pProfile, bExternalEditor),
+											 FolderModelBase* pFolderModel,
+											 MessageSelectionModel* pMessageSelectionModel,
+											 const WCHAR* pwszTemplateName,
+											 EditFrameWindowManager* pEditFrameWindowManager,
+											 ExternalEditorManager* pExternalEditorManager,
+											 HWND hwnd,
+											 Profile* pProfile,
+											 bool bExternalEditor) :
+	processor_(pDocument, pFolderModel, pMessageSelectionModel, pEditFrameWindowManager,
+		pExternalEditorManager, hwnd, pProfile, bExternalEditor),
 	pFolderModel_(pFolderModel),
-	wstrTemplateName_(0)
+	hwnd_(hwnd)
 {
 	wstrTemplateName_ = allocWString(pwszTemplateName);
-	if (!wstrTemplateName_) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
 }
 
 qm::MessageCreateAction::~MessageCreateAction()
 {
-	freeWString(wstrTemplateName_);
 }
 
-QSTATUS qm::MessageCreateAction::invoke(const ActionEvent& event)
+void qm::MessageCreateAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
-	status = processor_.process(wstrTemplateName_,
-		(event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	if (!processor_.process(wstrTemplateName_.get(),
+		(event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_CREATEMESSAGE);
+		return;
+	}
 }
 
-QSTATUS qm::MessageCreateAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::MessageCreateAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	*pbEnabled = pFolderModel_->getCurrentAccount() ||
+	return pFolderModel_->getCurrentAccount() ||
 		pFolderModel_->getCurrentFolder();
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -2655,10 +2343,13 @@ QSTATUS qm::MessageCreateAction::isEnabled(
  *
  */
 
-qm::MessageCreateFromClipboardAction::MessageCreateFromClipboardAction(
-	bool bDraft, Document* pDocument, Profile* pProfile,
-	HWND hwnd, FolderModel* pFolderModel, QSTATUS* pstatus) :
-	composer_(bDraft, pDocument, pProfile, hwnd, pFolderModel)
+qm::MessageCreateFromClipboardAction::MessageCreateFromClipboardAction(bool bDraft,
+																	   Document* pDocument,
+																	   Profile* pProfile,
+																	   HWND hwnd,
+																	   FolderModel* pFolderModel) :
+	composer_(bDraft, pDocument, pProfile, hwnd, pFolderModel),
+	hwnd_(hwnd)
 {
 }
 
@@ -2666,33 +2357,26 @@ qm::MessageCreateFromClipboardAction::~MessageCreateFromClipboardAction()
 {
 }
 
-QSTATUS qm::MessageCreateFromClipboardAction::invoke(const ActionEvent& event)
+void qm::MessageCreateFromClipboardAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrMessage;
-	status = Clipboard::getText(&wstrMessage);
-	CHECK_QSTATUS();
-	
-	Message* p = 0;
-	MessageCreator creator;
-	status = creator.createMessage(wstrMessage.get(), -1, &p);
-	CHECK_QSTATUS();
-	std::auto_ptr<Message> pMessage(p);
-	
-	unsigned int nFlags = 0;
-	// TODO
-	// Set flags
-	status = composer_.compose(0, 0, pMessage.get(), nFlags);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	wstring_ptr wstrMessage(Clipboard::getText());
+	if (wstrMessage.get()) {
+		MessageCreator creator;
+		std::auto_ptr<Message> pMessage(creator.createMessage(wstrMessage.get(), -1));
+		
+		unsigned int nFlags = 0;
+		// TODO
+		// Set flags
+		if (!composer_.compose(0, 0, pMessage.get(), nFlags)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_CREATEMESSAGE);
+			return;
+		}
+	}
 }
 
-QSTATUS qm::MessageCreateFromClipboardAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::MessageCreateFromClipboardAction::isEnabled(const ActionEvent& event)
 {
-	return Clipboard::isFormatAvailable(Clipboard::CF_QSTEXT, pbEnabled);
+	return Clipboard::isFormatAvailable(Clipboard::CF_QSTEXT);
 }
 
 
@@ -2702,9 +2386,10 @@ QSTATUS qm::MessageCreateFromClipboardAction::isEnabled(
  *
  */
 
-qm::MessageDeleteAttachmentAction::MessageDeleteAttachmentAction(
-	MessageSelectionModel* pMessageSelectionModel, qs::QSTATUS* pstatus) :
-	pMessageSelectionModel_(pMessageSelectionModel)
+qm::MessageDeleteAttachmentAction::MessageDeleteAttachmentAction(MessageSelectionModel* pMessageSelectionModel,
+																 HWND hwnd) :
+	pMessageSelectionModel_(pMessageSelectionModel),
+	hwnd_(hwnd)
 {
 }
 
@@ -2712,51 +2397,55 @@ qm::MessageDeleteAttachmentAction::~MessageDeleteAttachmentAction()
 {
 }
 
-QSTATUS qm::MessageDeleteAttachmentAction::invoke(const ActionEvent& event)
+void qm::MessageDeleteAttachmentAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	AccountLock lock;
 	MessageHolderList l;
-	status = pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
-	CHECK_QSTATUS();
+	pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
 	
-	Account* pAccount = lock.get();
-	MessageHolderList::const_iterator it = l.begin();
-	while (it != l.end()) {
-		MessageHolder* pmh = *it;
-		
-		Message msg(&status);
-		CHECK_QSTATUS();
-		status = pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg);
-		CHECK_QSTATUS();
-		status = AttachmentParser::removeAttachments(&msg);
-		CHECK_QSTATUS();
-		status = AttachmentParser::setAttachmentDeleted(&msg);
-		CHECK_QSTATUS();
-		
-		NormalFolder* pFolder = pmh->getFolder();
-		status = pAccount->appendMessage(pFolder, msg,
-			pmh->getFlags() & MessageHolder::FLAG_USER_MASK);
-		CHECK_QSTATUS();
-		
-		MessageHolderList listRemove;
-		status = STLWrapper<MessageHolderList>(listRemove).push_back(pmh);
-		CHECK_QSTATUS();
-		status = pAccount->removeMessages(listRemove, false, 0);
-		CHECK_QSTATUS();
-		
-		++it;
+	if (!l.empty()) {
+		Account* pAccount = lock.get();
+		if (!deleteAttachment(pAccount, l)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_DELETEATTACHMENT);
+			return;
+		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::MessageDeleteAttachmentAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::MessageDeleteAttachmentAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	return pMessageSelectionModel_->hasSelectedMessage(pbEnabled);
+	return pMessageSelectionModel_->hasSelectedMessage();
+}
+
+bool qm::MessageDeleteAttachmentAction::deleteAttachment(Account* pAccount,
+														 const MessageHolderList& l) const
+{
+	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		if (!deleteAttachment(pAccount, *it))
+			return false;
+	}
+	return true;
+}
+
+bool qm::MessageDeleteAttachmentAction::deleteAttachment(Account* pAccount,
+														 MessageHolder* pmh) const
+{
+	Message msg;
+	if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg))
+		return false;
+	
+	AttachmentParser::removeAttachments(&msg);
+	AttachmentParser::setAttachmentDeleted(&msg);
+	
+	NormalFolder* pFolder = pmh->getFolder();
+	if (!pAccount->appendMessage(pFolder, msg,
+		pmh->getFlags() & MessageHolder::FLAG_USER_MASK))
+		return false;
+	
+	if (!pAccount->removeMessages(MessageHolderList(1, pmh), false, 0))
+		return false;
+	
+	return true;
 }
 
 
@@ -2767,9 +2456,11 @@ QSTATUS qm::MessageDeleteAttachmentAction::isEnabled(
  */
 
 qm::MessageDetachAction::MessageDetachAction(Profile* pProfile,
-	MessageSelectionModel* pMessageSelectionModel, HWND hwnd, QSTATUS* pstatus) :
+											 MessageSelectionModel* pMessageSelectionModel,
+											 HWND hwnd) :
 	pMessageSelectionModel_(pMessageSelectionModel),
-	helper_(pProfile, 0, hwnd)
+	helper_(pProfile, 0, hwnd),
+	hwnd_(hwnd)
 {
 }
 
@@ -2777,25 +2468,23 @@ qm::MessageDetachAction::~MessageDetachAction()
 {
 }
 
-QSTATUS qm::MessageDetachAction::invoke(const ActionEvent& event)
+void qm::MessageDetachAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	AccountLock lock;
 	MessageHolderList l;
-	status = pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
-	CHECK_QSTATUS();
+	pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
 	
-	status = helper_.detach(l, 0);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	if (!l.empty()) {
+		if (helper_.detach(l, 0) == AttachmentParser::RESULT_FAIL) {
+			ActionUtil::error(hwnd_, IDS_ERROR_DETACHATTACHMENT);
+			return;
+		}
+	}
 }
 
-QSTATUS qm::MessageDetachAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+bool qm::MessageDetachAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	return pMessageSelectionModel_->hasSelectedMessage(pbEnabled);
+	return pMessageSelectionModel_->hasSelectedMessage();
 }
 
 
@@ -2805,9 +2494,10 @@ QSTATUS qm::MessageDetachAction::isEnabled(const ActionEvent& event, bool* pbEna
  *
  */
 
-qm::MessageExpandDigestAction::MessageExpandDigestAction(
-	MessageSelectionModel* pMessageSelectionModel, QSTATUS* pstatus) :
-	pMessageSelectionModel_(pMessageSelectionModel)
+qm::MessageExpandDigestAction::MessageExpandDigestAction(MessageSelectionModel* pMessageSelectionModel,
+														 HWND hwnd) :
+	pMessageSelectionModel_(pMessageSelectionModel),
+	hwnd_(hwnd)
 {
 }
 
@@ -2815,62 +2505,70 @@ qm::MessageExpandDigestAction::~MessageExpandDigestAction()
 {
 }
 
-QSTATUS qm::MessageExpandDigestAction::invoke(const ActionEvent& event)
+void qm::MessageExpandDigestAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	AccountLock lock;
 	MessageHolderList l;
-	status = pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
-	CHECK_QSTATUS();
+	pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
 	
-	Account* pAccount = lock.get();
-	MessageHolderList::const_iterator itM = l.begin();
-	while (itM != l.end()) {
-		MessageHolder* pmh = *itM;
-		
-		Message msg(&status);
-		CHECK_QSTATUS();
-		status = pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg);
-		CHECK_QSTATUS();
-		
-		PartUtil::MessageList listMessage;
-		struct Deleter
-		{
-			Deleter(PartUtil::MessageList& l) :
-				l_(l)
-			{
-			}
-			
-			~Deleter()
-			{
-				std::for_each(l_.begin(), l_.end(), deleter<Message>());
-			}
-			
-			PartUtil::MessageList& l_;
-		} deleter(listMessage);
-		status = PartUtil(msg).getDigest(&listMessage);
-		CHECK_QSTATUS();
-		PartUtil::MessageList::const_iterator itE = listMessage.begin();
-		while (itE != listMessage.end()) {
-			// TODO
-			// Set flags?
-			unsigned int nFlags = 0;
-			status = pAccount->appendMessage(pmh->getFolder(), **itE, nFlags);
-			CHECK_QSTATUS();
-			++itE;
+	if (!l.empty()) {
+		Account* pAccount = lock.get();
+		if (!expandDigest(pAccount, l)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_EXPANDDIGEST);
+			return;
 		}
-		
-		++itM;
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::MessageExpandDigestAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+bool qm::MessageExpandDigestAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	return pMessageSelectionModel_->hasSelectedMessage(pbEnabled);
+	return pMessageSelectionModel_->hasSelectedMessage();
+}
+
+bool qm::MessageExpandDigestAction::expandDigest(Account* pAccount,
+												 const MessageHolderList& l)
+{
+	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		if (!expandDigest(pAccount, *it))
+			return false;
+	}
+	return true;
+}
+
+bool qm::MessageExpandDigestAction::expandDigest(Account* pAccount,
+												 MessageHolder* pmh)
+{
+	Message msg;
+	if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg))
+		return false;
+	
+	PartUtil::MessageList l;
+	struct Deleter
+	{
+		Deleter(PartUtil::MessageList& l) :
+			l_(l)
+		{
+		}
+		
+		~Deleter()
+		{
+			std::for_each(l_.begin(), l_.end(), deleter<Message>());
+		}
+		
+		PartUtil::MessageList& l_;
+	} deleter(l);
+	if (!PartUtil(msg).getDigest(&l))
+		return false;
+	
+	for (PartUtil::MessageList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		// TODO
+		// Set flags?
+		unsigned int nFlags = 0;
+		if (!pAccount->appendMessage(pmh->getFolder(), **it, nFlags))
+			return false;
+	}
+	
+	return true;
 }
 
 
@@ -2881,10 +2579,13 @@ QSTATUS qm::MessageExpandDigestAction::isEnabled(const ActionEvent& event, bool*
  */
 
 qm::MessageMarkAction::MessageMarkAction(MessageSelectionModel* pModel,
-	unsigned int nFlags, unsigned int nMask, QSTATUS* pstatus) :
+										 unsigned int nFlags,
+										 unsigned int nMask,
+										 HWND hwnd) :
 	pModel_(pModel),
 	nFlags_(nFlags),
-	nMask_(nMask)
+	nMask_(nMask),
+	hwnd_(hwnd)
 {
 }
 
@@ -2892,28 +2593,24 @@ qm::MessageMarkAction::~MessageMarkAction()
 {
 }
 
-QSTATUS qm::MessageMarkAction::invoke(const ActionEvent& event)
+void qm::MessageMarkAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	AccountLock lock;
 	MessageHolderList l;
-	status = pModel_->getSelectedMessages(&lock, 0, &l);
-	CHECK_QSTATUS();
+	pModel_->getSelectedMessages(&lock, 0, &l);
 	
-	Account* pAccount = lock.get();
 	if (!l.empty()) {
-		status = pAccount->setMessagesFlags(l, nFlags_, nMask_);
-		CHECK_QSTATUS();
+		Account* pAccount = lock.get();
+		if (!pAccount->setMessagesFlags(l, nFlags_, nMask_)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_MARKMESSAGE);
+			return;
+		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::MessageMarkAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+bool qm::MessageMarkAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	return pModel_->hasSelectedMessage(pbEnabled);
+	return pModel_->hasSelectedMessage();
 }
 
 
@@ -2923,11 +2620,12 @@ QSTATUS qm::MessageMarkAction::isEnabled(const ActionEvent& event, bool* pbEnabl
  *
  */
 
-qm::MessageMoveAction::MessageMoveAction(MessageSelectionModel* pModel,
-	MoveMenu* pMoveMenu, HWND hwndFrame, QSTATUS* pstatus) :
-	pModel_(pModel),
+qm::MessageMoveAction::MessageMoveAction(MessageSelectionModel* pMessageSelectionModel,
+										 MoveMenu* pMoveMenu,
+										 HWND hwnd) :
+	pMessageSelectionModel_(pMessageSelectionModel),
 	pMoveMenu_(pMoveMenu),
-	hwndFrame_(hwndFrame)
+	hwnd_(hwnd)
 {
 }
 
@@ -2935,34 +2633,30 @@ qm::MessageMoveAction::~MessageMoveAction()
 {
 }
 
-QSTATUS qm::MessageMoveAction::invoke(const ActionEvent& event)
+void qm::MessageMoveAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	NormalFolder* pFolderTo = pMoveMenu_->getFolder(event.getId());
 	if (pFolderTo) {
 		AccountLock lock;
 		MessageHolderList l;
-		status = pModel_->getSelectedMessages(&lock, 0, &l);
-		CHECK_QSTATUS();
+		pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
 		
-		Account* pAccount = lock.get();
 		if (!l.empty()) {
+			Account* pAccount = lock.get();
 			bool bMove = (event.getModifier() & ActionEvent::MODIFIER_CTRL) == 0;
 			UINT nId = bMove ? IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
-			ProgressDialogMessageOperationCallback callback(hwndFrame_, nId, nId);
-			status = pAccount->copyMessages(l, pFolderTo, bMove, &callback);
-			CHECK_QSTATUS();
+			ProgressDialogMessageOperationCallback callback(hwnd_, nId, nId);
+			if (!pAccount->copyMessages(l, pFolderTo, bMove, &callback)) {
+				ActionUtil::error(hwnd_, bMove ? IDS_ERROR_MOVEMESSAGE : IDS_ERROR_COPYMESSAGE);
+				return;
+			}
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::MessageMoveAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+bool qm::MessageMoveAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	return pModel_->hasSelectedMessage(pbEnabled);
+	return pMessageSelectionModel_->hasSelectedMessage();
 }
 
 
@@ -2972,13 +2666,14 @@ QSTATUS qm::MessageMoveAction::isEnabled(const ActionEvent& event, bool* pbEnabl
  *
  */
 
-qm::MessageMoveOtherAction::MessageMoveOtherAction(
-	Document* pDocument, MessageSelectionModel* pModel,
-	Profile* pProfile, HWND hwndFrame, QSTATUS* pstatus) :
+qm::MessageMoveOtherAction::MessageMoveOtherAction(Document* pDocument,
+												   MessageSelectionModel* pMessageSelectionModel,
+												   Profile* pProfile,
+												   HWND hwnd) :
 	pDocument_(pDocument),
-	pModel_(pModel),
+	pMessageSelectionModel_(pMessageSelectionModel),
 	pProfile_(pProfile),
-	hwndFrame_(hwndFrame)
+	hwnd_(hwnd)
 {
 }
 
@@ -2986,44 +2681,34 @@ qm::MessageMoveOtherAction::~MessageMoveOtherAction()
 {
 }
 
-QSTATUS qm::MessageMoveOtherAction::invoke(const ActionEvent& event)
+void qm::MessageMoveOtherAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
-	MoveMessageDialog dialog(pDocument_, pProfile_, &status);
-	CHECK_QSTATUS();
-	int nRet = 0;
-	status = dialog.doModal(hwndFrame_, 0, &nRet);
-	CHECK_QSTATUS();
-	if (nRet == IDOK) {
+	MoveMessageDialog dialog(pDocument_, pProfile_);
+	if (dialog.doModal(hwnd_) == IDOK) {
 		NormalFolder* pFolderTo = dialog.getFolder();
 		if (pFolderTo) {
 			AccountLock lock;
 			MessageHolderList l;
-			status = pModel_->getSelectedMessages(&lock, 0, &l);
-			CHECK_QSTATUS();
+			pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
 			
-			Account* pAccount = lock.get();
 			if (!l.empty()) {
+				Account* pAccount = lock.get();
 				bool bMove = !dialog.isCopy();
 				
 				UINT nId = bMove ? IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
-				ProgressDialogMessageOperationCallback callback(
-					hwndFrame_, nId, nId);
-				status = pAccount->copyMessages(l, pFolderTo, bMove, &callback);
-				CHECK_QSTATUS();
+				ProgressDialogMessageOperationCallback callback(hwnd_, nId, nId);
+				if (!pAccount->copyMessages(l, pFolderTo, bMove, &callback)) {
+					ActionUtil::error(hwnd_, bMove ? IDS_ERROR_MOVEMESSAGE : IDS_ERROR_COPYMESSAGE);
+					return;
+				}
 			}
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::MessageMoveOtherAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::MessageMoveOtherAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	return pModel_->hasSelectedMessage(pbEnabled);
+	return pMessageSelectionModel_->hasSelectedMessage();
 }
 
 
@@ -3033,11 +2718,13 @@ QSTATUS qm::MessageMoveOtherAction::isEnabled(
  *
  */
 
-qm::MessageOpenAttachmentAction::MessageOpenAttachmentAction(
-	Profile* pProfile, AttachmentMenu* pAttachmentMenu,
-	TempFileCleaner* pTempFileCleaner, HWND hwnd, QSTATUS* pstatus) :
+qm::MessageOpenAttachmentAction::MessageOpenAttachmentAction(Profile* pProfile,
+															 AttachmentMenu* pAttachmentMenu,
+															 TempFileCleaner* pTempFileCleaner,
+															 HWND hwnd) :
 	pAttachmentMenu_(pAttachmentMenu),
-	helper_(pProfile, pTempFileCleaner, hwnd)
+	helper_(pProfile, pTempFileCleaner, hwnd),
+	hwnd_(hwnd)
 {
 }
 
@@ -3045,22 +2732,21 @@ qm::MessageOpenAttachmentAction::~MessageOpenAttachmentAction()
 {
 }
 
-QSTATUS qm::MessageOpenAttachmentAction::invoke(const ActionEvent& event)
+void qm::MessageOpenAttachmentAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
-	Message msg(&status);
-	CHECK_QSTATUS();
-	string_ptr<WSTRING> wstrName;
+	Message msg;
+	wstring_ptr wstrName;
 	const Part* pPart = 0;
-	status = pAttachmentMenu_->getPart(event.getId(), &msg, &wstrName, &pPart);
-	CHECK_QSTATUS();
+	if (!pAttachmentMenu_->getPart(event.getId(), &msg, &wstrName, &pPart)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_EXECUTEATTACHMENT);
+		return;
+	}
 	
-	status = helper_.open(pPart, wstrName.get(),
-		(event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	bool bExternalEditor = (event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0;
+	if (helper_.open(pPart, wstrName.get(), bExternalEditor) == AttachmentParser::RESULT_FAIL) {
+		ActionUtil::error(hwnd_, IDS_ERROR_EXECUTEATTACHMENT);
+		return;
+	}
 }
 
 
@@ -3071,13 +2757,16 @@ QSTATUS qm::MessageOpenAttachmentAction::invoke(const ActionEvent& event)
  */
 
 qm::MessageOpenURLAction::MessageOpenURLAction(Document* pDocument,
-	FolderModelBase* pFolderModel, MessageSelectionModel* pMessageSelectionModel,
-	EditFrameWindowManager* pEditFrameWindowManager,
-	ExternalEditorManager* pExternalEditorManager,
-	HWND hwnd, Profile* pProfile, bool bExternalEditor, QSTATUS* pstatus) :
-	processor_(pDocument, pFolderModel, pMessageSelectionModel,
-		pEditFrameWindowManager, pExternalEditorManager, hwnd,
-		pProfile, bExternalEditor)
+											   FolderModelBase* pFolderModel,
+											   MessageSelectionModel* pMessageSelectionModel,
+											   EditFrameWindowManager* pEditFrameWindowManager,
+											   ExternalEditorManager* pExternalEditorManager,
+											   HWND hwnd,
+											   Profile* pProfile,
+											   bool bExternalEditor) :
+	processor_(pDocument, pFolderModel, pMessageSelectionModel, pEditFrameWindowManager,
+		pExternalEditorManager, hwnd, pProfile, bExternalEditor),
+	hwnd_(hwnd)
 {
 }
 
@@ -3085,39 +2774,32 @@ qm::MessageOpenURLAction::~MessageOpenURLAction()
 {
 }
 
-QSTATUS qm::MessageOpenURLAction::invoke(const ActionEvent& event)
+void qm::MessageOpenURLAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	if (event.getParam()) {
 		ActionParam* pParam = static_cast<ActionParam*>(event.getParam());
 		if (pParam->nArgs_ > 0) {
 			Variant v;
 			if (::VariantChangeType(&v, pParam->ppvarArgs_[0], 0, VT_BSTR) == S_OK) {
-				TemplateContext::ArgumentList listArgument;
 				TemplateContext::Argument arg = {
 					L"url",
 					v.bstrVal
 				};
-				status = STLWrapper<TemplateContext::ArgumentList>(
-					listArgument).push_back(arg);
-				CHECK_QSTATUS();
-				status = processor_.process(L"url", listArgument,
-					(event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0);
-				CHECK_QSTATUS();
+				TemplateContext::ArgumentList listArgument(1, arg);
+				bool bExternalEditor = (event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0;
+				if (!processor_.process(L"url", listArgument, bExternalEditor)) {
+					ActionUtil::error(hwnd_, IDS_ERROR_OPENURL);
+					return;
+				}
 			}
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::MessageOpenURLAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+bool qm::MessageOpenURLAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
 	// TODO
-	*pbEnabled = true;
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -3127,9 +2809,9 @@ QSTATUS qm::MessageOpenURLAction::isEnabled(const ActionEvent& event, bool* pbEn
  *
  */
 
-qm::MessagePropertyAction::MessagePropertyAction(
-	MessageSelectionModel* pModel, HWND hwnd, QSTATUS* pstatus) :
-	pModel_(pModel),
+qm::MessagePropertyAction::MessagePropertyAction(MessageSelectionModel* pMessageSelectionModel,
+												 HWND hwnd) :
+	pMessageSelectionModel_(pMessageSelectionModel),
 	hwnd_(hwnd)
 {
 }
@@ -3138,45 +2820,32 @@ qm::MessagePropertyAction::~MessagePropertyAction()
 {
 }
 
-QSTATUS qm::MessagePropertyAction::invoke(const ActionEvent& event)
+void qm::MessagePropertyAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	AccountLock lock;
 	MessageHolderList l;
-	status = pModel_->getSelectedMessages(&lock, 0, &l);
-	CHECK_QSTATUS();
+	pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
 	
 	Account* pAccount = lock.get();
 	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	string_ptr<WSTRING> wstrTitle;
-	status = loadString(hInst, IDS_PROPERTY, &wstrTitle);
-	CHECK_QSTATUS();
+	wstring_ptr wstrTitle(loadString(hInst, IDS_PROPERTY));
 	
-	MessagePropertyPage page(l, &status);
-	CHECK_QSTATUS();
-	PropertySheetBase sheet(hInst, wstrTitle.get(), false, &status);
-	CHECK_QSTATUS();
-	status = sheet.add(&page);
-	CHECK_QSTATUS();
+	MessagePropertyPage page(l);
+	PropertySheetBase sheet(hInst, wstrTitle.get(), false);
+	sheet.add(&page);
 	
-	int nRet = 0;
-	status = sheet.doModal(hwnd_, 0, &nRet);
-	CHECK_QSTATUS();
-	if (nRet == IDOK) {
-		status = pAccount->setMessagesFlags(l, page.getFlags(), page.getMask());
-		CHECK_QSTATUS();
+	if (sheet.doModal(hwnd_) == IDOK) {
+		if (!pAccount->setMessagesFlags(l, page.getFlags(), page.getMask())) {
+			ActionUtil::error(hwnd_, IDS_ERROR_SETFLAGS);
+			return;
+		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::MessagePropertyAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::MessagePropertyAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	return pModel_->hasSelectedMessage(pbEnabled);
+	return pMessageSelectionModel_->hasSelectedMessage();
 }
 
 
@@ -3187,7 +2856,9 @@ QSTATUS qm::MessagePropertyAction::isEnabled(
  */
 
 qm::MessageSearchAction::MessageSearchAction(FolderModel* pFolderModel,
-	Document* pDocument, HWND hwnd, Profile* pProfile, QSTATUS* pstatus) :
+											 Document* pDocument,
+											 HWND hwnd,
+											 Profile* pProfile) :
 	pFolderModel_(pFolderModel),
 	pDocument_(pDocument),
 	hwnd_(hwnd),
@@ -3199,23 +2870,19 @@ qm::MessageSearchAction::~MessageSearchAction()
 {
 }
 
-QSTATUS qm::MessageSearchAction::invoke(const ActionEvent& event)
+void qm::MessageSearchAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	Folder* pFolder = pFolderModel_->getCurrentFolder();
 	Account* pAccount = pFolder ? pFolder->getAccount() :
 		pFolderModel_->getCurrentAccount();
 	
 	Folder* pSearchFolder = pAccount->getFolderByFlag(Folder::FLAG_SEARCHBOX);
 	if (!pSearchFolder || pSearchFolder->getType() != Folder::TYPE_QUERY)
-		return QSTATUS_SUCCESS;
+		return;
 	QueryFolder* pSearch = static_cast<QueryFolder*>(pSearchFolder);
 	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	string_ptr<WSTRING> wstrTitle;
-	status = loadString(hInst, IDS_SEARCH, &wstrTitle);
-	CHECK_QSTATUS();
+	wstring_ptr wstrTitle(loadString(hInst, IDS_SEARCH));
 	
 	typedef std::vector<std::pair<SearchUI*, SearchPropertyPage*> > UIList;
 	UIList listUI;
@@ -3230,11 +2897,9 @@ QSTATUS qm::MessageSearchAction::invoke(const ActionEvent& event)
 		
 		~Deleter()
 		{
-			UIList::iterator it = l_.begin();
-			while (it != l_.end()) {
+			for (UIList::iterator it = l_.begin(); it != l_.end(); ++it) {
 				delete (*it).first;
 				delete (*it).second;
-				++it;
 			}
 		}
 		
@@ -3242,18 +2907,12 @@ QSTATUS qm::MessageSearchAction::invoke(const ActionEvent& event)
 	} deleter(listUI);
 	
 	SearchDriverFactory::NameList listName;
-	status = SearchDriverFactory::getNames(&listName);
-	CHECK_QSTATUS();
-	status = STLWrapper<UIList>(listUI).reserve(listName.size());
-	CHECK_QSTATUS();
-	SearchDriverFactory::NameList::iterator itN = listName.begin();
-	while (itN != listName.end()) {
-		SearchUI* pUI = 0;
-		status = SearchDriverFactory::getUI(*itN, pAccount, pProfile_, &pUI);
-		CHECK_QSTATUS();
-		if (pUI)
-			listUI.push_back(UIList::value_type(pUI, 0));
-		++itN;
+	SearchDriverFactory::getNames(&listName);
+	listUI.reserve(listName.size());
+	for (SearchDriverFactory::NameList::iterator itN = listName.begin(); itN != listName.end(); ++itN) {
+		std::auto_ptr<SearchUI> pUI(SearchDriverFactory::getUI(*itN, pAccount, pProfile_));
+		if (pUI.get())
+			listUI.push_back(UIList::value_type(pUI.release(), 0));
 	}
 	std::sort(listUI.begin(), listUI.end(),
 		binary_compose_f_gx_hy(
@@ -3265,75 +2924,58 @@ QSTATUS qm::MessageSearchAction::invoke(const ActionEvent& event)
 				std::mem_fun(&SearchUI::getIndex),
 				std::select1st<UIList::value_type>())));
 	
-	string_ptr<WSTRING> wstrStartName;
-	status = pProfile_->getString(L"Search", L"Page", 0, &wstrStartName);
-	CHECK_QSTATUS();
+	wstring_ptr wstrStartName(pProfile_->getString(L"Search", L"Page", 0));
 	
 	int nStartPage = 0;
-	PropertySheetBase sheet(hInst, wstrTitle.get(), false, &status);
-	CHECK_QSTATUS_VALUE(0);
+	PropertySheetBase sheet(hInst, wstrTitle.get(), false);
 	for (UIList::size_type n = 0; n < listUI.size(); ++n) {
-		SearchPropertyPage* pPage = 0;
-		status = listUI[n].first->createPropertyPage(pFolder == 0, &pPage);
-		CHECK_QSTATUS();
-		listUI[n].second = pPage;
-		status = sheet.add(pPage);
-		CHECK_QSTATUS();
-		if (wcscmp(pPage->getDriver(), wstrStartName.get()) == 0)
+		std::auto_ptr<SearchPropertyPage> pPage(
+			listUI[n].first->createPropertyPage(pFolder == 0));
+		listUI[n].second = pPage.release();
+		sheet.add(listUI[n].second);
+		if (wcscmp(listUI[n].second->getDriver(), wstrStartName.get()) == 0)
 			nStartPage = n;
 	}
-	status = sheet.setStartPage(nStartPage);
-	CHECK_QSTATUS();
+	sheet.setStartPage(nStartPage);
 	
-	int nRet = 0;
-	status = sheet.doModal(hwnd_, 0, &nRet);
-	CHECK_QSTATUS_VALUE(0);
-	if (nRet == IDOK) {
+	if (sheet.doModal(hwnd_) == IDOK) {
 		UIList::size_type nPage = 0;
 		while (nPage < listUI.size()) {
 			if (listUI[nPage].second->getCondition())
 				break;
 			++nPage;
 		}
-		
 		if (nPage != listUI.size()) {
 			SearchPropertyPage* pPage = listUI[nPage].second;
 			const WCHAR* pwszCondition = pPage->getCondition();
 			if (*pwszCondition) {
 				WaitCursor cursor;
 				
-				string_ptr<WSTRING> wstrFolder;
-				if (!pPage->isAllFolder()) {
-					status = pFolder->getFullName(&wstrFolder);
-					CHECK_QSTATUS();
-				}
+				wstring_ptr wstrFolder;
+				if (!pPage->isAllFolder())
+					wstrFolder = pFolder->getFullName();
 				
-				status = pSearch->set(pPage->getDriver(), pwszCondition,
+				pSearch->set(pPage->getDriver(), pwszCondition,
 					wstrFolder.get(), pPage->isRecursive());
-				CHECK_QSTATUS();
 				if (pFolder == pSearch) {
-					status = pSearch->search(pDocument_, hwnd_, pProfile_);
-					CHECK_QSTATUS();
+					if (!pSearch->search(pDocument_, hwnd_, pProfile_)) {
+						ActionUtil::error(hwnd_, IDS_ERROR_SEARCH);
+						return;
+					}
 				}
 				else {
-					status = pFolderModel_->setCurrent(0, pSearch, false);
-					CHECK_QSTATUS();
+					pFolderModel_->setCurrent(0, pSearch, false);
 				}
 			}
-			status = pProfile_->setString(L"Search", L"Page", pPage->getDriver());
-			CHECK_QSTATUS();
+			pProfile_->setString(L"Search", L"Page", pPage->getDriver());
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::MessageSearchAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+bool qm::MessageSearchAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	*pbEnabled = pFolderModel_->getCurrentFolder() ||
+	return pFolderModel_->getCurrentFolder() ||
 		pFolderModel_->getCurrentAccount();
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -3344,13 +2986,15 @@ QSTATUS qm::MessageSearchAction::isEnabled(const ActionEvent& event, bool* pbEna
  */
 
 qm::ToolAccountAction::ToolAccountAction(Document* pDocument,
-	FolderModel* pFolderModel, SyncFilterManager* pSyncFilterManager,
-	Profile* pProfile, HWND hwndFrame, QSTATUS* pstatus) :
+										 FolderModel* pFolderModel,
+										 SyncFilterManager* pSyncFilterManager,
+										 Profile* pProfile,
+										 HWND hwnd) :
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
 	pSyncFilterManager_(pSyncFilterManager),
 	pProfile_(pProfile),
-	hwndFrame_(hwndFrame)
+	hwnd_(hwnd)
 {
 }
 
@@ -3358,12 +3002,11 @@ qm::ToolAccountAction::~ToolAccountAction()
 {
 }
 
-QSTATUS qm::ToolAccountAction::invoke(const ActionEvent& event)
+void qm::ToolAccountAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
-	// TODO
-	// Make offline if it's online now
+	bool bOffline = pDocument_->isOffline();
+	if (!bOffline)
+		pDocument_->setOffline(true);
 	
 	Account* pAccount = pFolderModel_->getCurrentAccount();
 	if (!pAccount) {
@@ -3372,24 +3015,18 @@ QSTATUS qm::ToolAccountAction::invoke(const ActionEvent& event)
 			pAccount = pFolder->getAccount();
 	}
 	
-	AccountDialog dialog(pDocument_, pAccount,
-		pSyncFilterManager_, pProfile_, &status);
-	CHECK_QSTATUS();
-	int nRet = 0;
-	status = dialog.doModal(hwndFrame_, 0, &nRet);
-	CHECK_QSTATUS();
+	AccountDialog dialog(pDocument_, pAccount, pSyncFilterManager_, pProfile_);
+	dialog.doModal(hwnd_, 0);
 	
-	return QSTATUS_SUCCESS;
+	if (!bOffline)
+		pDocument_->setOffline(false);
 }
 
-QSTATUS qm::ToolAccountAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::ToolAccountAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
 	// TODO
 	// Check if syncing or not
-	*pbEnabled = true;
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -3399,8 +3036,7 @@ QSTATUS qm::ToolAccountAction::isEnabled(
  *
  */
 
-qm::ToolCheckNewMailAction::ToolCheckNewMailAction(
-	Document* pDocument, QSTATUS* pstatus) :
+qm::ToolCheckNewMailAction::ToolCheckNewMailAction(Document* pDocument) :
 	pDocument_(pDocument)
 {
 }
@@ -3409,18 +3045,14 @@ qm::ToolCheckNewMailAction::~ToolCheckNewMailAction()
 {
 }
 
-QSTATUS qm::ToolCheckNewMailAction::invoke(const ActionEvent& event)
+void qm::ToolCheckNewMailAction::invoke(const ActionEvent& event)
 {
 	pDocument_->setCheckNewMail(!pDocument_->isCheckNewMail());
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ToolCheckNewMailAction::isChecked(
-	const ActionEvent& event, bool* pbChecked)
+bool qm::ToolCheckNewMailAction::isChecked(const ActionEvent& event)
 {
-	assert(pbChecked);
-	*pbChecked = pDocument_->isCheckNewMail();
-	return QSTATUS_SUCCESS;
+	return pDocument_->isCheckNewMail();
 }
 
 
@@ -3431,8 +3063,9 @@ QSTATUS qm::ToolCheckNewMailAction::isChecked(
  */
 
 qm::ToolDialupAction::ToolDialupAction(SyncManager* pSyncManager,
-	Document* pDocument, SyncDialogManager* pSyncDialogManager,
-	HWND hwnd, QSTATUS* pstatus) :
+									   Document* pDocument,
+									   SyncDialogManager* pSyncDialogManager,
+									   HWND hwnd) :
 	pSyncManager_(pSyncManager),
 	pDocument_(pDocument),
 	pSyncDialogManager_(pSyncDialogManager),
@@ -3444,78 +3077,53 @@ qm::ToolDialupAction::~ToolDialupAction()
 {
 }
 
-QSTATUS qm::ToolDialupAction::invoke(const ActionEvent& event)
+void qm::ToolDialupAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
-	bool bConnected = false;
-	status = isConnected(&bConnected);
-	CHECK_QSTATUS();
-	if (!bConnected) {
-		std::auto_ptr<SyncData> pData;
-		status = newQsObject(pSyncManager_, pDocument_,
-			hwnd_, SyncDialog::FLAG_SHOWDIALOG, &pData);
-		CHECK_QSTATUS();
+	if (!isConnected()) {
+		std::auto_ptr<SyncData> pData(new SyncData(pSyncManager_,
+			pDocument_, hwnd_, SyncDialog::FLAG_SHOWDIALOG));
 		
-		std::auto_ptr<SyncDialup> pDialup;
-		status = newQsObject(static_cast<const WCHAR*>(0),
+		std::auto_ptr<SyncDialup> pDialup(new SyncDialup(
+			static_cast<const WCHAR*>(0),
 			SyncDialup::FLAG_SHOWDIALOG | SyncDialup::FLAG_NOTDISCONNECT,
-			static_cast<const WCHAR*>(0), 0, &pDialup);
-		CHECK_QSTATUS();
-		pData->setDialup(pDialup.release());
+			static_cast<const WCHAR*>(0), 0));
+		pData->setDialup(pDialup);
 		
-		SyncDialog* pSyncDialog = 0;
-		status = pSyncDialogManager_->open(&pSyncDialog);
-		CHECK_QSTATUS();
+		SyncDialog* pSyncDialog = pSyncDialogManager_->open();
+		if (!pSyncDialog) {
+			ActionUtil::error(hwnd_, IDS_ERROR_DIALUPCONNECT);
+			return;
+		}
 		pData->setCallback(pSyncDialog->getSyncManagerCallback());
 		
-		status = pSyncManager_->sync(pData.get());
-		CHECK_QSTATUS();
-		pData.release();
+		if (!pSyncManager_->sync(pData)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_DIALUPCONNECT);
+			return;
+		}
 	}
 	else {
-		RasConnection* p = 0;
-		status = RasConnection::getActiveConnection(0, &p);
-		CHECK_QSTATUS();
-		std::auto_ptr<RasConnection> pRasConnection(p);
-		RasConnection::Result result;
-		status = pRasConnection->disconnect(false, &result);
-		CHECK_QSTATUS();
+		std::auto_ptr<RasConnection> pRasConnection(
+			RasConnection::getActiveConnection(0));
+		if (pRasConnection.get()) {
+			RasConnection::Result result = pRasConnection->disconnect(false);
+			if (result == RasConnection::RAS_FAIL) {
+				ActionUtil::error(hwnd_, IDS_ERROR_DIALUPDISCONNECT);
+				return;
+			}
+		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ToolDialupAction::getText(
-	const ActionEvent& event, WSTRING* pwstrText)
+wstring_ptr qm::ToolDialupAction::getText(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
-	bool bConnected = false;
-	status = isConnected(&bConnected);
-	CHECK_QSTATUS();
-	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	UINT nId = bConnected ? IDS_DIALUPDISCONNECT : IDS_DIALUPCONNECT;
-	status = loadString(hInst, nId, pwstrText);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	UINT nId = isConnected() ? IDS_DIALUPDISCONNECT : IDS_DIALUPCONNECT;
+	return loadString(hInst, nId);
 }
 
-QSTATUS qm::ToolDialupAction::isConnected(bool* pbConnected) const
+bool qm::ToolDialupAction::isConnected() const
 {
-	assert(pbConnected);
-	
-	DECLARE_QSTATUS();
-	
-	int nCount = 0;
-	status = RasConnection::getActiveConnectionCount(&nCount);
-	CHECK_QSTATUS();
-	
-	*pbConnected = nCount != 0;
-	
-	return QSTATUS_SUCCESS;
+	return RasConnection::getActiveConnectionCount() != 0;
 }
 
 
@@ -3526,8 +3134,11 @@ QSTATUS qm::ToolDialupAction::isConnected(bool* pbConnected) const
  */
 
 qm::ToolGoRoundAction::ToolGoRoundAction(SyncManager* pSyncManager,
-	Document* pDocument, GoRound* pGoRound, SyncDialogManager* pSyncDialogManager,
-	HWND hwnd, GoRoundMenu* pGoRoundMenu, QSTATUS* pstatus) :
+										 Document* pDocument,
+										 GoRound* pGoRound,
+										 SyncDialogManager* pSyncDialogManager,
+										 HWND hwnd,
+										 GoRoundMenu* pGoRoundMenu) :
 	pSyncManager_(pSyncManager),
 	pDocument_(pDocument),
 	pGoRound_(pGoRound),
@@ -3541,56 +3152,29 @@ qm::ToolGoRoundAction::~ToolGoRoundAction()
 {
 }
 
-QSTATUS qm::ToolGoRoundAction::invoke(const ActionEvent& event)
+void qm::ToolGoRoundAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	const GoRoundCourse* pCourse = 0;
 	if (event.getParam()) {
 		ActionParam* pParam = static_cast<ActionParam*>(event.getParam());
 		if (pParam->nArgs_ > 0) {
 			Variant v;
 			if (::VariantChangeType(&v, pParam->ppvarArgs_[0], 0, VT_BSTR) != S_OK)
-				return QSTATUS_SUCCESS;
+				return;
 			
-			GoRoundCourseList* pCourseList = 0;
-			status = pGoRound_->getCourseList(&pCourseList);
-			CHECK_QSTATUS();
+			const GoRoundCourseList* pCourseList = pGoRound_->getCourseList();
 			pCourse = pCourseList->getCourse(v.bstrVal);
 		}
 	}
 	else {
-		status = pGoRoundMenu_->getCourse(event.getId(), &pCourse);
-		CHECK_QSTATUS();
+		pCourse = pGoRoundMenu_->getCourse(event.getId());
 	}
 	
-	std::auto_ptr<SyncData> pData;
-	status = newQsObject(pSyncManager_, pDocument_,
-		hwnd_, SyncDialog::FLAG_SHOWDIALOG, &pData);
-	CHECK_QSTATUS();
-	status = SyncUtil::createGoRoundData(pCourse, pDocument_, pData.get());
-	CHECK_QSTATUS();
-	
-	if (!pData->isEmpty()) {
-		SyncDialog* pSyncDialog = 0;
-		status = pSyncDialogManager_->open(&pSyncDialog);
-		CHECK_QSTATUS();
-		pData->setCallback(pSyncDialog->getSyncManagerCallback());
-		
-		status = pSyncManager_->sync(pData.get());
-		CHECK_QSTATUS();
-		pData.release();
+	if (!SyncUtil::goRound(pSyncManager_, pDocument_,
+		pSyncDialogManager_, hwnd_, SyncDialog::FLAG_SHOWDIALOG, pCourse)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_GOROUND);
+		return;
 	}
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::ToolGoRoundAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
-{
-	assert(pbEnabled);
-	*pbEnabled = true;
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -3600,8 +3184,10 @@ QSTATUS qm::ToolGoRoundAction::isEnabled(
  *
  */
 
-qm::ToolOptionsAction::ToolOptionsAction(Profile* pProfile, QSTATUS* pstatus) :
-	pProfile_(pProfile)
+qm::ToolOptionsAction::ToolOptionsAction(Profile* pProfile,
+										 HWND hwnd) :
+	pProfile_(pProfile),
+	hwnd_(hwnd)
 {
 }
 
@@ -3609,24 +3195,16 @@ qm::ToolOptionsAction::~ToolOptionsAction()
 {
 }
 
-QSTATUS qm::ToolOptionsAction::invoke(const ActionEvent& event)
+void qm::ToolOptionsAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	// TODO
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ToolOptionsAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::ToolOptionsAction::isEnabled(const ActionEvent& event)
 {
 	// TODO
 	// Check wether syncing or not
-	assert(pbEnabled);
-//	*pbEnabled = true;
-	*pbEnabled = false;
-	return QSTATUS_SUCCESS;
+	return false;
 }
 
 
@@ -3637,8 +3215,9 @@ QSTATUS qm::ToolOptionsAction::isEnabled(
  */
 
 qm::ToolScriptAction::ToolScriptAction(ScriptMenu* pScriptMenu,
-	Document* pDocument, Profile* pProfile,
-	MainWindow* pMainWindow, QSTATUS* pstatus) :
+									   Document* pDocument,
+									   Profile* pProfile,
+									   MainWindow* pMainWindow) :
 	pScriptMenu_(pScriptMenu),
 	pDocument_(pDocument),
 	pProfile_(pProfile),
@@ -3649,8 +3228,9 @@ qm::ToolScriptAction::ToolScriptAction(ScriptMenu* pScriptMenu,
 }
 
 qm::ToolScriptAction::ToolScriptAction(ScriptMenu* pScriptMenu,
-	Document* pDocument, Profile* pProfile,
-	EditFrameWindow* pEditFrameWindow, QSTATUS* pstatus) :
+									   Document* pDocument,
+									   Profile* pProfile,
+									   EditFrameWindow* pEditFrameWindow) :
 	pScriptMenu_(pScriptMenu),
 	pDocument_(pDocument),
 	pProfile_(pProfile),
@@ -3661,8 +3241,9 @@ qm::ToolScriptAction::ToolScriptAction(ScriptMenu* pScriptMenu,
 }
 
 qm::ToolScriptAction::ToolScriptAction(ScriptMenu* pScriptMenu,
-	Document* pDocument, Profile* pProfile,
-	MessageFrameWindow* pMessageFrameWindow, QSTATUS* pstatus) :
+									   Document* pDocument,
+									   Profile* pProfile,
+									   MessageFrameWindow* pMessageFrameWindow) :
 	pScriptMenu_(pScriptMenu),
 	pDocument_(pDocument),
 	pProfile_(pProfile),
@@ -3676,13 +3257,11 @@ qm::ToolScriptAction::~ToolScriptAction()
 {
 }
 
-QSTATUS qm::ToolScriptAction::invoke(const ActionEvent& event)
+void qm::ToolScriptAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	const WCHAR* pwszName = pScriptMenu_->getScript(event.getId());
 	if (!pwszName)
-		return QSTATUS_SUCCESS;
+		return;
 	
 	ScriptManager::WindowInfo info;
 	if (pMainWindow_) {
@@ -3702,27 +3281,17 @@ QSTATUS qm::ToolScriptAction::invoke(const ActionEvent& event)
 	}
 	
 	ScriptManager* pScriptManager = pScriptMenu_->getScriptManager();
-	Script* p = 0;
-	status = pScriptManager->getScript(pwszName, pDocument_,
-		pProfile_, getModalHandler(), info, &p);
-	CHECK_QSTATUS();
-	if (p) {
-		std::auto_ptr<Script> pScript(p);
-		status = pScript->run(0, 0, 0);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	std::auto_ptr<Script> pScript(pScriptManager->getScript(
+		pwszName, pDocument_, pProfile_, getModalHandler(), info));
+	if (pScript.get())
+		pScript->run(0, 0, 0);
 }
 
-QSTATUS qm::ToolScriptAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::ToolScriptAction::isEnabled(const ActionEvent& event)
 {
 	// TODO
 	// Check wether syncing or not
-	assert(pbEnabled);
-	*pbEnabled = true;
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -3733,7 +3302,8 @@ QSTATUS qm::ToolScriptAction::isEnabled(
  */
 
 qm::ToolSubAccountAction::ToolSubAccountAction(Document* pDocument,
-	FolderModel* pFolderModel, SubAccountMenu* pSubAccountMenu, QSTATUS* pstatus) :
+											   FolderModel* pFolderModel,
+											   SubAccountMenu* pSubAccountMenu) :
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
 	pSubAccountMenu_(pSubAccountMenu)
@@ -3744,40 +3314,29 @@ qm::ToolSubAccountAction::~ToolSubAccountAction()
 {
 }
 
-QSTATUS qm::ToolSubAccountAction::invoke(const ActionEvent& event)
+void qm::ToolSubAccountAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	const WCHAR* pwszName = pSubAccountMenu_->getName(event.getId());
-	if (pwszName) {
-		const Document::AccountList& listAccount = pDocument_->getAccounts();
-		Document::AccountList::const_iterator it = listAccount.begin();
-		while (it != listAccount.end()) {
-			Account* pAccount = *it;
-			SubAccount* pSubAccount = pAccount->getSubAccount(pwszName);
-			if (pSubAccount)
-				pAccount->setCurrentSubAccount(pSubAccount);
-			++it;
-		}
+	if (!pwszName)
+		return;
+	
+	const Document::AccountList& listAccount = pDocument_->getAccounts();
+	for (Document::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
+		Account* pAccount = *it;
+		SubAccount* pSubAccount = pAccount->getSubAccount(pwszName);
+		if (pSubAccount)
+			pAccount->setCurrentSubAccount(pSubAccount);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ToolSubAccountAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::ToolSubAccountAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	*pbEnabled = pFolderModel_->getCurrentAccount() ||
+	return pFolderModel_->getCurrentAccount() ||
 		pFolderModel_->getCurrentFolder();
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ToolSubAccountAction::isChecked(
-	const ActionEvent& event, bool* pbChecked)
+bool qm::ToolSubAccountAction::isChecked(const ActionEvent& event)
 {
-	assert(pbChecked);
-	
 	Account* pAccount = pFolderModel_->getCurrentAccount();
 	if (!pAccount) {
 		Folder* pFolder = pFolderModel_->getCurrentFolder();
@@ -3786,11 +3345,12 @@ QSTATUS qm::ToolSubAccountAction::isChecked(
 	}
 	if (pAccount) {
 		const WCHAR* pwszName = pSubAccountMenu_->getName(event.getId());
-		SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
-		*pbChecked = wcscmp(pSubAccount->getName(), pwszName) == 0;
+		if (pwszName) {
+			SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
+			return wcscmp(pSubAccount->getName(), pwszName) == 0;
+		}
 	}
-	
-	return QSTATUS_SUCCESS;
+	return false;
 }
 
 
@@ -3801,9 +3361,11 @@ QSTATUS qm::ToolSubAccountAction::isChecked(
  */
 
 qm::ToolSyncAction::ToolSyncAction(SyncManager* pSyncManager,
-	Document* pDocument, FolderModel* pFolderModel,
-	SyncDialogManager* pSyncDialogManager, unsigned int nSync,
-	HWND hwnd, QSTATUS* pstatus) :
+								   Document* pDocument,
+								   FolderModel* pFolderModel,
+								   SyncDialogManager* pSyncDialogManager,
+								   unsigned int nSync,
+								   HWND hwnd) :
 	pSyncManager_(pSyncManager),
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
@@ -3811,92 +3373,36 @@ qm::ToolSyncAction::ToolSyncAction(SyncManager* pSyncManager,
 	nSync_(nSync),
 	hwnd_(hwnd)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::ToolSyncAction::~ToolSyncAction()
 {
 }
 
-QSTATUS qm::ToolSyncAction::invoke(const ActionEvent& event)
+void qm::ToolSyncAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	Account* pAccount = pFolderModel_->getCurrentAccount();
 	if (!pAccount) {
 		Folder* pFolder = pFolderModel_->getCurrentFolder();
 		assert(pFolder);
 		pAccount = pFolder->getAccount();
 	}
-	assert(pAccount);
+	if (!pAccount)
+		return;
 	
-	SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
-	
-	std::auto_ptr<SyncData> pData;
-	status = newQsObject(pSyncManager_, pDocument_,
-		hwnd_, SyncDialog::FLAG_SHOWDIALOG, &pData);
-	CHECK_QSTATUS();
-	
-	if (pSubAccount->getDialupType() != SubAccount::DIALUPTYPE_NEVER) {
-		unsigned int nFlags = 0;
-		if (pSubAccount->isDialupShowDialog())
-			nFlags |= SyncDialup::FLAG_SHOWDIALOG;
-		if (pSubAccount->getDialupType() == SubAccount::DIALUPTYPE_WHENEVERNOTCONNECTED)
-			nFlags |= SyncDialup::FLAG_WHENEVERNOTCONNECTED;
-		
-		std::auto_ptr<SyncDialup> pDialup;
-		status = newQsObject(pSubAccount->getDialupEntry(),
-			nFlags, static_cast<const WCHAR*>(0),
-			pSubAccount->getDialupDisconnectWait(), &pDialup);
-		CHECK_QSTATUS();
-		pData->setDialup(pDialup.release());
+	if (!SyncUtil::sync(pSyncManager_, pDocument_, pSyncDialogManager_,
+		hwnd_, SyncDialog::FLAG_SHOWDIALOG, pAccount,
+		(nSync_ & SYNC_SEND) != 0, (nSync_ & SYNC_RECEIVE) != 0,
+		(event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_SYNC);
+		return;
 	}
-	
-	if (nSync_ & SYNC_SEND) {
-		status = pData->addSend(pAccount, pSubAccount, SyncItem::CRBS_NONE);
-		CHECK_QSTATUS();
-	}
-	if (nSync_ & SYNC_RECEIVE) {
-		if (event.getModifier() & ActionEvent::MODIFIER_SHIFT) {
-			SelectSyncFilterDialog dialog(pSyncManager_->getSyncFilterManager(),
-				pAccount, pSubAccount->getSyncFilterName(), &status);
-			CHECK_QSTATUS();
-			int nRet = 0;
-			status = dialog.doModal(hwnd_, 0, &nRet);
-			CHECK_QSTATUS();
-			if (nRet != IDOK)
-				return QSTATUS_SUCCESS;
-			status = pData->addFolders(pAccount, pSubAccount, 0, dialog.getName());
-			CHECK_QSTATUS();
-		}
-		else {
-			status = pData->addFolders(pAccount, pSubAccount,
-				0, pSubAccount->getSyncFilterName());
-			CHECK_QSTATUS();
-		}
-	}
-	
-	if (!pData->isEmpty()) {
-		SyncDialog* pSyncDialog = 0;
-		status = pSyncDialogManager_->open(&pSyncDialog);
-		CHECK_QSTATUS();
-		pData->setCallback(pSyncDialog->getSyncManagerCallback());
-		
-		status = pSyncManager_->sync(pData.get());
-		CHECK_QSTATUS();
-		pData.release();
-	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ToolSyncAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+bool qm::ToolSyncAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	*pbEnabled = pFolderModel_->getCurrentAccount() ||
+	return pFolderModel_->getCurrentAccount() ||
 		pFolderModel_->getCurrentFolder();
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -3906,15 +3412,14 @@ QSTATUS qm::ToolSyncAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
  *
  */
 
-qm::ViewEncodingAction::ViewEncodingAction(
-	MessageWindow* pMessageWindow, QSTATUS* pstatus) :
+qm::ViewEncodingAction::ViewEncodingAction(MessageWindow* pMessageWindow) :
 	pMessageWindow_(pMessageWindow),
 	pEncodingMenu_(0)
 {
 }
 
 qm::ViewEncodingAction::ViewEncodingAction(MessageWindow* pMessageWindow,
-	EncodingMenu* pEncodingMenu, QSTATUS* pstatus) :
+										   EncodingMenu* pEncodingMenu) :
 	pMessageWindow_(pMessageWindow),
 	pEncodingMenu_(pEncodingMenu)
 {
@@ -3924,28 +3429,24 @@ qm::ViewEncodingAction::~ViewEncodingAction()
 {
 }
 
-QSTATUS qm::ViewEncodingAction::invoke(const ActionEvent& event)
+void qm::ViewEncodingAction::invoke(const ActionEvent& event)
 {
 	const WCHAR* pwszEncoding = 0;
 	if (pEncodingMenu_)
 		pwszEncoding = pEncodingMenu_->getEncoding(event.getId());
-	return pMessageWindow_->setEncoding(pwszEncoding);
+	pMessageWindow_->setEncoding(pwszEncoding);
 }
 
-QSTATUS qm::ViewEncodingAction::isChecked(const ActionEvent& event, bool* pbChecked)
+bool qm::ViewEncodingAction::isChecked(const ActionEvent& event)
 {
-	assert(pbChecked);
-	
 	if (pEncodingMenu_) {
 		const WCHAR* pwszEncoding = pMessageWindow_->getEncoding();
-		*pbChecked = pwszEncoding &&
+		return pwszEncoding &&
 			wcscmp(pwszEncoding, pEncodingMenu_->getEncoding(event.getId())) == 0;
 	}
 	else {
-		*pbChecked = !pMessageWindow_->getEncoding();
+		return !pMessageWindow_->getEncoding();
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -3956,7 +3457,7 @@ QSTATUS qm::ViewEncodingAction::isChecked(const ActionEvent& event, bool* pbChec
  */
 
 qm::ViewFilterAction::ViewFilterAction(ViewModelManager* pViewModelManager,
-	FilterMenu* pFilterMenu, QSTATUS* pstatus) :
+									   FilterMenu* pFilterMenu) :
 	pViewModelManager_(pViewModelManager),
 	pFilterMenu_(pFilterMenu)
 {
@@ -3966,51 +3467,30 @@ qm::ViewFilterAction::~ViewFilterAction()
 {
 }
 
-QSTATUS qm::ViewFilterAction::invoke(const ActionEvent& event)
+void qm::ViewFilterAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (pViewModel) {
-		const Filter* pFilter = 0;
-		status = pFilterMenu_->getFilter(event.getId(), &pFilter);
-		CHECK_QSTATUS();
-		status = pViewModel->setFilter(pFilter);
-		CHECK_QSTATUS();
+		const Filter* pFilter = pFilterMenu_->getFilter(event.getId());
+		pViewModel->setFilter(pFilter);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ViewFilterAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::ViewFilterAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	
-	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
-	*pbEnabled = pViewModel != 0;
-	
-	return QSTATUS_SUCCESS;
+	return pViewModelManager_->getCurrentViewModel() != 0;
 }
 
-QSTATUS qm::ViewFilterAction::isChecked(
-	const ActionEvent& event, bool* pbChecked)
+bool qm::ViewFilterAction::isChecked(const ActionEvent& event)
 {
-	assert(pbChecked);
-	
-	DECLARE_QSTATUS();
-	
-	*pbChecked = false;
-	
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (pViewModel) {
-		const Filter* pFilter = 0;
-		status = pFilterMenu_->getFilter(event.getId(), &pFilter);
-		CHECK_QSTATUS();
-		*pbChecked = pViewModel->getFilter() == pFilter;
+		const Filter* pFilter = pFilterMenu_->getFilter(event.getId());
+		return pViewModel->getFilter() == pFilter;
 	}
-	
-	return QSTATUS_SUCCESS;
+	else {
+		return false;
+	}
 }
 
 
@@ -4020,72 +3500,50 @@ QSTATUS qm::ViewFilterAction::isChecked(
  *
  */
 
-qm::ViewFilterCustomAction::ViewFilterCustomAction(
-	ViewModelManager* pViewModelManager, HWND hwndFrame, QSTATUS* pstatus) :
+qm::ViewFilterCustomAction::ViewFilterCustomAction(ViewModelManager* pViewModelManager,
+												   HWND hwnd) :
 	pViewModelManager_(pViewModelManager),
-	hwndFrame_(hwndFrame),
-	pFilter_(0)
+	hwnd_(hwnd)
 {
 }
 
 qm::ViewFilterCustomAction::~ViewFilterCustomAction()
 {
-	delete pFilter_;
 }
 
-QSTATUS qm::ViewFilterCustomAction::invoke(const ActionEvent& event)
+void qm::ViewFilterCustomAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (pViewModel) {
-		string_ptr<WSTRING> wstrMacro;
-		if (pFilter_) {
-			status = pFilter_->getMacro()->getString(&wstrMacro);
-			CHECK_QSTATUS();
-		}
-		CustomFilterDialog dialog(wstrMacro.get(), &status);
-		CHECK_QSTATUS();
-		int nRet = 0;
-		status = dialog.doModal(hwndFrame_, 0, &nRet);
-		CHECK_QSTATUS();
-		if (nRet == IDOK) {
-			std::auto_ptr<Filter> pFilter;
-			status = newQsObject(L"", dialog.getMacro(), &pFilter);
-			CHECK_QSTATUS();
-			delete pFilter_;
-			pFilter_ = pFilter.release();
-			status = pViewModel->setFilter(pFilter_);
-			CHECK_QSTATUS();
+		wstring_ptr wstrMacro;
+		if (pFilter_.get())
+			wstrMacro = pFilter_->getMacro()->getString();
+		CustomFilterDialog dialog(wstrMacro.get());
+		if (dialog.doModal(hwnd_) == IDOK) {
+			MacroParser parser(MacroParser::TYPE_FILTER);
+			std::auto_ptr<Macro> pMacro(parser.parse(dialog.getMacro()));
+			if (!pMacro.get()) {
+				// TODO
+				return;
+			}
+			pFilter_.reset(new Filter(L"", pMacro));
+			pViewModel->setFilter(pFilter_.get());
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ViewFilterCustomAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::ViewFilterCustomAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	
-	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
-	*pbEnabled = pViewModel != 0;
-	
-	return QSTATUS_SUCCESS;
+	return pViewModelManager_->getCurrentViewModel() != 0;
 }
 
-QSTATUS qm::ViewFilterCustomAction::isChecked(
-	const ActionEvent& event, bool* pbChecked)
+bool qm::ViewFilterCustomAction::isChecked(const ActionEvent& event)
 {
-	assert(pbChecked);
-	
-	*pbChecked = false;
-	
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
-	if (pViewModel && pFilter_)
-		*pbChecked = pViewModel->getFilter() == pFilter_;
-	
-	return QSTATUS_SUCCESS;
+	if (pViewModel && pFilter_.get())
+		return pViewModel->getFilter() == pFilter_.get();
+	else
+		return false;
 }
 
 
@@ -4095,8 +3553,7 @@ QSTATUS qm::ViewFilterCustomAction::isChecked(
  *
  */
 
-qm::ViewFilterNoneAction::ViewFilterNoneAction(
-	ViewModelManager* pViewModelManager, QSTATUS* pstatus) :
+qm::ViewFilterNoneAction::ViewFilterNoneAction(ViewModelManager* pViewModelManager) :
 	pViewModelManager_(pViewModelManager)
 {
 }
@@ -4105,42 +3562,25 @@ qm::ViewFilterNoneAction::~ViewFilterNoneAction()
 {
 }
 
-QSTATUS qm::ViewFilterNoneAction::invoke(const ActionEvent& event)
+void qm::ViewFilterNoneAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
-	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
-	if (pViewModel) {
-		status = pViewModel->setFilter(0);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::ViewFilterNoneAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
-{
-	assert(pbEnabled);
-	
-	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
-	*pbEnabled = pViewModel != 0;
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::ViewFilterNoneAction::isChecked(
-	const ActionEvent& event, bool* pbChecked)
-{
-	assert(pbChecked);
-	
-	*pbChecked = false;
-	
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (pViewModel)
-		*pbChecked = !pViewModel->getFilter();
-	
-	return QSTATUS_SUCCESS;
+		pViewModel->setFilter(0);
+}
+
+bool qm::ViewFilterNoneAction::isEnabled(const ActionEvent& event)
+{
+	return pViewModelManager_->getCurrentViewModel() != 0;
+}
+
+bool qm::ViewFilterNoneAction::isChecked(const ActionEvent& event)
+{
+	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
+	if (pViewModel)
+		return !pViewModel->getFilter();
+	else
+		return false;
 }
 
 
@@ -4151,13 +3591,11 @@ QSTATUS qm::ViewFilterNoneAction::isChecked(
  */
 
 qm::ViewFocusAction::ViewFocusAction(View* pViews[],
-	size_t nViewCount, bool bNext, QSTATUS* pstatus) :
+									 size_t nViewCount,
+									 bool bNext) :
 	bNext_(bNext)
 {
-	DECLARE_QSTATUS();
-	
-	status = STLWrapper<ViewList>(listView_).resize(nViewCount);
-	CHECK_QSTATUS_SET(pstatus);
+	listView_.resize(nViewCount);
 	std::copy(pViews, pViews + nViewCount, listView_.begin());
 }
 
@@ -4165,10 +3603,8 @@ qm::ViewFocusAction::~ViewFocusAction()
 {
 }
 
-QSTATUS qm::ViewFocusAction::invoke(const ActionEvent& event)
+void qm::ViewFocusAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	int nViewCount = listView_.size();
 	
 	int nView = 0;
@@ -4177,7 +3613,7 @@ QSTATUS qm::ViewFocusAction::invoke(const ActionEvent& event)
 			break;
 	}
 	if (nView == nViewCount)
-		return QSTATUS_SUCCESS;
+		return;
 	
 	int n = 0;
 	View* pView = 0;
@@ -4201,12 +3637,8 @@ QSTATUS qm::ViewFocusAction::invoke(const ActionEvent& event)
 				pView = listView_[n];
 		}
 	}
-	if (pView) {
-		status = pView->setActive();
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (pView)
+		pView->setActive();
 }
 
 
@@ -4216,9 +3648,8 @@ QSTATUS qm::ViewFocusAction::invoke(const ActionEvent& event)
  *
  */
 
-qm::ViewLockPreviewAction::ViewLockPreviewAction(
-	PreviewMessageModel* pPreviewModel, QSTATUS* pstatus) :
-	pPreviewModel_(pPreviewModel)
+qm::ViewLockPreviewAction::ViewLockPreviewAction(PreviewMessageModel* pPreviewMessageModel) :
+	pPreviewMessageModel_(pPreviewMessageModel)
 {
 }
 
@@ -4226,24 +3657,16 @@ qm::ViewLockPreviewAction::~ViewLockPreviewAction()
 {
 }
 
-QSTATUS qm::ViewLockPreviewAction::invoke(const ActionEvent& event)
+void qm::ViewLockPreviewAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
-	if (pPreviewModel_->isConnectedToViewModel()) {
-		status = pPreviewModel_->disconnectFromViewModel();
-		CHECK_QSTATUS();
-		status = pPreviewModel_->setMessage(0);
-		CHECK_QSTATUS();
+	if (pPreviewMessageModel_->isConnectedToViewModel()) {
+		pPreviewMessageModel_->disconnectFromViewModel();
+		pPreviewMessageModel_->setMessage(0);
 	}
 	else {
-		status = pPreviewModel_->connectToViewModel();
-		CHECK_QSTATUS();
-		status = pPreviewModel_->updateToViewModel();
-		CHECK_QSTATUS();
+		pPreviewMessageModel_->connectToViewModel();
+		pPreviewMessageModel_->updateToViewModel();
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -4254,7 +3677,9 @@ QSTATUS qm::ViewLockPreviewAction::invoke(const ActionEvent& event)
  */
 
 qm::ViewMessageModeAction::ViewMessageModeAction(MessageWindow* pMessageWindow,
-	PFN_IS pfnIs, PFN_SET pfnSet, bool bEnabled, QSTATUS* pstatus) :
+												 PFN_IS pfnIs,
+												 PFN_SET pfnSet,
+												 bool bEnabled) :
 	pMessageWindow_(pMessageWindow),
 	pfnIs_(pfnIs),
 	pfnSet_(pfnSet),
@@ -4266,25 +3691,19 @@ qm::ViewMessageModeAction::~ViewMessageModeAction()
 {
 }
 
-QSTATUS qm::ViewMessageModeAction::invoke(const ActionEvent& event)
+void qm::ViewMessageModeAction::invoke(const ActionEvent& event)
 {
-	return (pMessageWindow_->*pfnSet_)(!(pMessageWindow_->*pfnIs_)());
+	(pMessageWindow_->*pfnSet_)(!(pMessageWindow_->*pfnIs_)());
 }
 
-QSTATUS qm::ViewMessageModeAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::ViewMessageModeAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	*pbEnabled = bEnabled_;
-	return QSTATUS_SUCCESS;
+	return bEnabled_;
 }
 
-QSTATUS qm::ViewMessageModeAction::isChecked(
-	const ActionEvent& event, bool* pbChecked)
+bool qm::ViewMessageModeAction::isChecked(const ActionEvent& event)
 {
-	assert(pbChecked);
-	*pbChecked = (pMessageWindow_->*pfnIs_)();
-	return QSTATUS_SUCCESS;
+	return (pMessageWindow_->*pfnIs_)();
 }
 
 
@@ -4295,7 +3714,8 @@ QSTATUS qm::ViewMessageModeAction::isChecked(
  */
 
 qm::ViewNavigateFolderAction::ViewNavigateFolderAction(Document* pDocument,
-	FolderModel* pFolderModel, Type type, QSTATUS* pstatus) :
+													   FolderModel* pFolderModel,
+													   Type type) :
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
 	type_(type)
@@ -4306,15 +3726,13 @@ qm::ViewNavigateFolderAction::~ViewNavigateFolderAction()
 {
 }
 
-QSTATUS qm::ViewNavigateFolderAction::invoke(const ActionEvent& event)
+void qm::ViewNavigateFolderAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	Account* pAccount = pFolderModel_->getCurrentAccount();
 	Folder* pFolder = pFolderModel_->getCurrentFolder();
 	if (!pAccount) {
 		if (!pFolder)
-			return QSTATUS_SUCCESS;
+			return;
 		pAccount = pFolder->getAccount();
 	}
 	bool bFolderSelected = pFolder != 0;
@@ -4371,10 +3789,8 @@ QSTATUS qm::ViewNavigateFolderAction::invoke(const ActionEvent& event)
 				break;
 			}
 		}
-		if (pFolder) {
-			status = pFolderModel_->setCurrent(0, pFolder, true);
-			CHECK_QSTATUS();
-		}
+		if (pFolder)
+			pFolderModel_->setCurrent(0, pFolder, true);
 		break;
 	case TYPE_NEXTACCOUNT:
 	case TYPE_PREVACCOUNT:
@@ -4395,26 +3811,19 @@ QSTATUS qm::ViewNavigateFolderAction::invoke(const ActionEvent& event)
 				assert(false);
 				break;
 			}
-			if (it != l.end()) {
-				status = pFolderModel_->setCurrent(*it, 0, true);
-				CHECK_QSTATUS();
-			}
+			if (it != l.end())
+				pFolderModel_->setCurrent(*it, 0, true);
 		}
 		break;
 	default:
 		break;
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ViewNavigateFolderAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::ViewNavigateFolderAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	*pbEnabled = pFolderModel_->getCurrentAccount() ||
+	return pFolderModel_->getCurrentAccount() ||
 		pFolderModel_->getCurrentFolder();
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -4424,10 +3833,11 @@ QSTATUS qm::ViewNavigateFolderAction::isEnabled(
  *
  */
 
-qm::ViewNavigateMessageAction::ViewNavigateMessageAction(
-	ViewModelManager* pViewModelManager, FolderModel* pFolderModel,
-	MainWindow* pMainWindow, MessageWindow* pMessageWindow,
-	Type type, QSTATUS* pstatus) :
+qm::ViewNavigateMessageAction::ViewNavigateMessageAction(ViewModelManager* pViewModelManager,
+														 FolderModel* pFolderModel,
+														 MainWindow* pMainWindow,
+														 MessageWindow* pMessageWindow,
+														 Type type) :
 	pViewModelManager_(pViewModelManager),
 	pFolderModel_(pFolderModel),
 	pViewModelHolder_(0),
@@ -4437,13 +3847,12 @@ qm::ViewNavigateMessageAction::ViewNavigateMessageAction(
 {
 	assert(pViewModelManager);
 	assert(pMessageWindow);
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
-qm::ViewNavigateMessageAction::ViewNavigateMessageAction(
-	ViewModelManager* pViewModelManager, ViewModelHolder* pViewModelHolder,
-	MessageWindow* pMessageWindow, Type type, QSTATUS* pstatus) :
+qm::ViewNavigateMessageAction::ViewNavigateMessageAction(ViewModelManager* pViewModelManager,
+														 ViewModelHolder* pViewModelHolder,
+														 MessageWindow* pMessageWindow,
+														 Type type) :
 	pViewModelManager_(pViewModelManager),
 	pFolderModel_(0),
 	pViewModelHolder_(pViewModelHolder),
@@ -4453,18 +3862,14 @@ qm::ViewNavigateMessageAction::ViewNavigateMessageAction(
 {
 	assert(pViewModelManager);
 	assert(pMessageWindow);
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::ViewNavigateMessageAction::~ViewNavigateMessageAction()
 {
 }
 
-QSTATUS qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
+void qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	Type type = type_;
 	bool bPreview = pFolderModel_ != 0;
 	assert((bPreview && pFolderModel_ && pMainWindow_) ||
@@ -4480,22 +3885,18 @@ QSTATUS qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 	
 	if (bPreview && !pMainWindow_->isShowPreviewWindow() &&
 		(type == TYPE_NEXTPAGE || type == TYPE_NEXTPAGE || type == TYPE_SELF))
-		return QSTATUS_SUCCESS;
+		return;
 	
 	bool bScrolled = true;
 	switch (type) {
 	case TYPE_NEXTPAGE:
-		status = pMessageWindow_->scrollPage(false, &bScrolled);
-		CHECK_QSTATUS();
-		if (bScrolled)
-			return QSTATUS_SUCCESS;
+		if (pMessageWindow_->scrollPage(false))
+			return;
 		type = TYPE_NEXT;
 		break;
 	case TYPE_PREVPAGE:
-		status = pMessageWindow_->scrollPage(true, &bScrolled);
-		CHECK_QSTATUS();
-		if (bScrolled)
-			return QSTATUS_SUCCESS;
+		if (pMessageWindow_->scrollPage(true))
+			return;
 		type = TYPE_PREV;
 		break;
 	default:
@@ -4506,7 +3907,7 @@ QSTATUS qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 	if (bPreview) {
 		pViewModel = pViewModelManager_->getCurrentViewModel();
 		if (!pViewModel)
-			return QSTATUS_SUCCESS;
+			return;
 	}
 	else {
 		pViewModel = pViewModelHolder_->getViewModel();
@@ -4544,9 +3945,12 @@ QSTATUS qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 				--nIndex;
 			break;
 		case TYPE_NEXTUNSEEN:
-			status = getNextUnseen(pViewModel, nIndex,
-				false, &pNewViewModel, &nIndex);
-			CHECK_QSTATUS();
+			{
+				std::pair<ViewModel*, unsigned int> unseen(
+					getNextUnseen(pViewModel, nIndex, false));
+				pViewModel = unseen.first;
+				nIndex = unseen.second;
+			}
 			break;
 		case TYPE_SELF:
 			break;
@@ -4558,15 +3962,11 @@ QSTATUS qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 		Lock<ViewModel> lockNew(*pNewViewModel);
 		
 		if (pNewViewModel != pViewModel) {
-			if (bPreview) {
-				status = pFolderModel_->setCurrent(0, 
+			if (bPreview)
+				pFolderModel_->setCurrent(0, 
 					pNewViewModel->getFolder(), false);
-				CHECK_QSTATUS();
-			}
-			else {
-				status = pViewModelHolder_->setViewModel(pNewViewModel);
-				CHECK_QSTATUS();
-			}
+			else
+				pViewModelHolder_->setViewModel(pNewViewModel);
 			pViewModel = pNewViewModel;
 		}
 		
@@ -4574,48 +3974,32 @@ QSTATUS qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 			MessageHolder* pmh = 0;
 			if (nIndex != static_cast<unsigned int>(-1))
 				pmh = pViewModel->getMessageHolder(nIndex);
-			status = pMessageModel->setMessage(pmh);
-			CHECK_QSTATUS();
+			pMessageModel->setMessage(pmh);
 		}
 		
 		if (nIndex != static_cast<unsigned int>(-1) && type != TYPE_SELF) {
-			status = pViewModel->setFocused(nIndex);
-			CHECK_QSTATUS();
-			status = pViewModel->setSelection(nIndex);
-			CHECK_QSTATUS();
+			pViewModel->setFocused(nIndex);
+			pViewModel->setSelection(nIndex);
 			pViewModel->setLastSelection(nIndex);
-			status = pViewModel->payAttention(nIndex);
-			CHECK_QSTATUS();
+			pViewModel->payAttention(nIndex);
 		}
 	}
 	else {
-		status = pMessageModel->setMessage(0);
-		CHECK_QSTATUS();
+		pMessageModel->setMessage(0);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ViewNavigateMessageAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::ViewNavigateMessageAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
 	// TODO
-	*pbEnabled = true;
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::ViewNavigateMessageAction::getNextUnseen(
-	ViewModel* pViewModel, unsigned int nIndex, bool bIncludeSelf,
-	ViewModel** ppViewModel, unsigned int* pnIndex) const
+std::pair<ViewModel*, unsigned int> qm::ViewNavigateMessageAction::getNextUnseen(ViewModel* pViewModel,
+																				unsigned int nIndex,
+																				bool bIncludeSelf) const
 {
-	assert(ppViewModel);
-	assert(pnIndex);
-	
-	DECLARE_QSTATUS();
-	
-	*ppViewModel = pViewModel;
-	*pnIndex = -1;
+	std::pair<ViewModel*, unsigned int> unseen(pViewModel, -1);
 	
 	Lock<ViewModel> lock(*pViewModel);
 	
@@ -4639,10 +4023,7 @@ QSTATUS qm::ViewNavigateMessageAction::getNextUnseen(
 		Folder* pFolder = pViewModel->getFolder();
 		Account* pAccount = pFolder->getAccount();
 		const Account::FolderList& l = pAccount->getFolders();
-		Account::FolderList listFolder;
-		status = STLWrapper<Account::FolderList>(listFolder).resize(l.size());
-		CHECK_QSTATUS();
-		std::copy(l.begin(), l.end(), listFolder.begin());
+		Account::FolderList listFolder(l);
 		std::sort(listFolder.begin(), listFolder.end(), FolderLess());
 		
 		Account::FolderList::const_iterator itThis = std::find(
@@ -4669,19 +4050,15 @@ QSTATUS qm::ViewNavigateMessageAction::getNextUnseen(
 		}
 		
 		if (pUnseenFolder) {
-			status = pViewModelManager_->getViewModel(
-				pUnseenFolder, &pViewModel);
-			CHECK_QSTATUS();
-			status = getNextUnseen(pViewModel, pViewModel->getFocused(),
-				true, ppViewModel, pnIndex);
-			CHECK_QSTATUS();
+			pViewModel = pViewModelManager_->getViewModel(pUnseenFolder);
+			unseen = getNextUnseen(pViewModel, pViewModel->getFocused(), true);
 		}
 	}
 	else {
-		*pnIndex = nIndex;
+		unseen.second = nIndex;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return unseen;
 }
 
 
@@ -4691,8 +4068,7 @@ QSTATUS qm::ViewNavigateMessageAction::getNextUnseen(
  *
  */
 
-qm::ViewOpenLinkAction::ViewOpenLinkAction(
-	MessageWindow* pMessageWindow, QSTATUS* pstatus) :
+qm::ViewOpenLinkAction::ViewOpenLinkAction(MessageWindow* pMessageWindow) :
 	pMessageWindow_(pMessageWindow)
 {
 }
@@ -4701,9 +4077,10 @@ qm::ViewOpenLinkAction::~ViewOpenLinkAction()
 {
 }
 
-QSTATUS qm::ViewOpenLinkAction::invoke(const ActionEvent& event)
+void qm::ViewOpenLinkAction::invoke(const ActionEvent& event)
 {
-	return pMessageWindow_->openLink();
+	if (!pMessageWindow_->openLink())
+		ActionUtil::error(pMessageWindow_->getParentFrame(), IDS_ERROR_OPENLINK);
 }
 
 
@@ -4714,9 +4091,11 @@ QSTATUS qm::ViewOpenLinkAction::invoke(const ActionEvent& event)
  */
 
 qm::ViewRefreshAction::ViewRefreshAction(SyncManager* pSyncManager,
-	Document* pDocument, FolderModel* pFolderModel,
-	SyncDialogManager* pSyncDialogManager, HWND hwnd,
-	Profile* pProfile, QSTATUS* pstatus) :
+										 Document* pDocument,
+										 FolderModel* pFolderModel,
+										 SyncDialogManager* pSyncDialogManager,
+										 HWND hwnd,
+										 Profile* pProfile) :
 	pSyncManager_(pSyncManager),
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
@@ -4724,51 +4103,47 @@ qm::ViewRefreshAction::ViewRefreshAction(SyncManager* pSyncManager,
 	hwnd_(hwnd),
 	pProfile_(pProfile)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::ViewRefreshAction::~ViewRefreshAction()
 {
 }
 
-QSTATUS qm::ViewRefreshAction::invoke(const ActionEvent& event)
+void qm::ViewRefreshAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	Folder* pFolder = pFolderModel_->getCurrentFolder();
 	if (pFolder) {
 		switch (pFolder->getType()) {
 		case Folder::TYPE_NORMAL:
 			if (pFolder->isFlag(Folder::FLAG_SYNCABLE)) {
-				status = SyncUtil::syncFolder(pSyncManager_, pDocument_,
-				pSyncDialogManager_, hwnd_, SyncDialog::FLAG_NONE,
-				static_cast<NormalFolder*>(pFolder));
-				CHECK_QSTATUS();
+				if (!SyncUtil::syncFolder(pSyncManager_, pDocument_,
+					pSyncDialogManager_, hwnd_, SyncDialog::FLAG_NONE,
+					static_cast<NormalFolder*>(pFolder))) {
+					ActionUtil::error(hwnd_, IDS_ERROR_REFRESH);
+					return;
+				}
 			}
 			break;
 		case Folder::TYPE_QUERY:
-			status = static_cast<QueryFolder*>(pFolder)->search(
-				pDocument_, hwnd_, pProfile_);
-			CHECK_QSTATUS();
+			if (!static_cast<QueryFolder*>(pFolder)->search(
+				pDocument_, hwnd_, pProfile_)) {
+				ActionUtil::error(hwnd_, IDS_ERROR_REFRESH);
+				return;
+			}
 			break;
 		default:
 			assert(false);
 			break;
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ViewRefreshAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+bool qm::ViewRefreshAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
 	Folder* pFolder = pFolderModel_->getCurrentFolder();
-	*pbEnabled = pFolder &&
+	return pFolder &&
 		(pFolder->getType() == Folder::TYPE_QUERY ||
 		pFolder->isFlag(Folder::FLAG_SYNCABLE));
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -4779,7 +4154,7 @@ QSTATUS qm::ViewRefreshAction::isEnabled(const ActionEvent& event, bool* pbEnabl
  */
 
 qm::ViewScrollAction::ViewScrollAction(HWND hwnd,
-	Scroll scroll, QSTATUS* pstatus) :
+									   Scroll scroll) :
 	hwnd_(hwnd),
 	nMsg_(scroll & SCROLL_VERTICAL_MASK ? WM_VSCROLL : WM_HSCROLL),
 	nRequest_(0)
@@ -4807,18 +4182,15 @@ qm::ViewScrollAction::ViewScrollAction(HWND hwnd,
 			break;
 		}
 	}
-	if (n == countof(requests))
-		*pstatus = QSTATUS_FAIL;
 }
 
 qm::ViewScrollAction::~ViewScrollAction()
 {
 }
 
-QSTATUS qm::ViewScrollAction::invoke(const ActionEvent& event)
+void qm::ViewScrollAction::invoke(const ActionEvent& event)
 {
 	Window(hwnd_).sendMessage(nMsg_, MAKEWPARAM(nRequest_, 0));
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -4828,8 +4200,7 @@ QSTATUS qm::ViewScrollAction::invoke(const ActionEvent& event)
  *
  */
 
-qm::ViewSelectModeAction::ViewSelectModeAction(
-	MessageWindow* pMessageWindow, QSTATUS* pstatus) :
+qm::ViewSelectModeAction::ViewSelectModeAction(MessageWindow* pMessageWindow) :
 	pMessageWindow_(pMessageWindow)
 {
 }
@@ -4838,17 +4209,14 @@ qm::ViewSelectModeAction::~ViewSelectModeAction()
 {
 }
 
-QSTATUS qm::ViewSelectModeAction::invoke(const ActionEvent& event)
+void qm::ViewSelectModeAction::invoke(const ActionEvent& event)
 {
-	return pMessageWindow_->setSelectMode(!pMessageWindow_->isSelectMode());
+	pMessageWindow_->setSelectMode(!pMessageWindow_->isSelectMode());
 }
 
-QSTATUS qm::ViewSelectModeAction::isChecked(
-	const ActionEvent& event, bool* pbChecked)
+bool qm::ViewSelectModeAction::isChecked(const ActionEvent& event)
 {
-	assert(pbChecked);
-	*pbChecked = pMessageWindow_->isSelectMode();
-	return QSTATUS_SUCCESS;
+	return pMessageWindow_->isSelectMode();
 }
 
 
@@ -4858,15 +4226,12 @@ QSTATUS qm::ViewSelectModeAction::isChecked(
  *
  */
 
-qm::ViewShowFolderAction::ViewShowFolderAction(
-	MainWindow* pMainWindow, QSTATUS* pstatus) :
+qm::ViewShowFolderAction::ViewShowFolderAction(MainWindow* pMainWindow) :
 	ViewShowControlAction<MainWindow>(pMainWindow,
 		&qm::MainWindow::setShowFolderWindow,
 		&qm::MainWindow::isShowFolderWindow,
-		IDS_SHOWFOLDER, IDS_HIDEFOLDER, pstatus)
+		IDS_SHOWFOLDER, IDS_HIDEFOLDER)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::ViewShowFolderAction::~ViewShowFolderAction()
@@ -4880,15 +4245,12 @@ qm::ViewShowFolderAction::~ViewShowFolderAction()
  *
  */
 
-qm::ViewShowHeaderAction::ViewShowHeaderAction(
-	MessageWindow* pMessageWindow, QSTATUS* pstatus) :
+qm::ViewShowHeaderAction::ViewShowHeaderAction(MessageWindow* pMessageWindow) :
 	ViewShowControlAction<MessageWindow>(pMessageWindow,
 		&qm::MessageWindow::setShowHeaderWindow,
 		&qm::MessageWindow::isShowHeaderWindow,
-		IDS_SHOWHEADER, IDS_HIDEHEADER, pstatus)
+		IDS_SHOWHEADER, IDS_HIDEHEADER)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::ViewShowHeaderAction::~ViewShowHeaderAction()
@@ -4902,15 +4264,12 @@ qm::ViewShowHeaderAction::~ViewShowHeaderAction()
  *
  */
 
-qm::ViewShowHeaderColumnAction::ViewShowHeaderColumnAction(
-	ListWindow* pListWindow, QSTATUS* pstatus) :
+qm::ViewShowHeaderColumnAction::ViewShowHeaderColumnAction(ListWindow* pListWindow) :
 	ViewShowControlAction<ListWindow>(pListWindow,
 		&qm::ListWindow::setShowHeaderColumn,
 		&qm::ListWindow::isShowHeaderColumn,
-		IDS_SHOWHEADERCOLUMN, IDS_HIDEHEADERCOLUMN, pstatus)
+		IDS_SHOWHEADERCOLUMN, IDS_HIDEHEADERCOLUMN)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::ViewShowHeaderColumnAction::~ViewShowHeaderColumnAction()
@@ -4924,15 +4283,12 @@ qm::ViewShowHeaderColumnAction::~ViewShowHeaderColumnAction()
  *
  */
 
-qm::ViewShowPreviewAction::ViewShowPreviewAction(
-	MainWindow* pMainWindow, QSTATUS* pstatus) :
+qm::ViewShowPreviewAction::ViewShowPreviewAction(MainWindow* pMainWindow) :
 	ViewShowControlAction<MainWindow>(pMainWindow,
 		&qm::MainWindow::setShowPreviewWindow,
 		&qm::MainWindow::isShowPreviewWindow,
-		IDS_SHOWPREVIEW, IDS_HIDEPREVIEW, pstatus)
+		IDS_SHOWPREVIEW, IDS_HIDEPREVIEW)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::ViewShowPreviewAction::~ViewShowPreviewAction()
@@ -4946,8 +4302,7 @@ qm::ViewShowPreviewAction::~ViewShowPreviewAction()
  *
  */
 
-qm::ViewShowSyncDialogAction::ViewShowSyncDialogAction(
-	SyncDialogManager* pManager, QSTATUS* pstatus) :
+qm::ViewShowSyncDialogAction::ViewShowSyncDialogAction(SyncDialogManager* pManager) :
 	pManager_(pManager)
 {
 }
@@ -4956,16 +4311,11 @@ qm::ViewShowSyncDialogAction::~ViewShowSyncDialogAction()
 {
 }
 
-QSTATUS qm::ViewShowSyncDialogAction::invoke(const ActionEvent& event)
+void qm::ViewShowSyncDialogAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
-	SyncDialog* pDialog = 0;
-	status = pManager_->open(&pDialog);
-	CHECK_QSTATUS();
-	pDialog->show();
-	
-	return QSTATUS_SUCCESS;
+	SyncDialog* pDialog = pManager_->open();
+	if (pDialog)
+		pDialog->show();
 }
 
 
@@ -4976,51 +4326,36 @@ QSTATUS qm::ViewShowSyncDialogAction::invoke(const ActionEvent& event)
  */
 
 qm::ViewSortAction::ViewSortAction(ViewModelManager* pViewModelManager,
-	SortMenu* pSortMenu, QSTATUS* pstatus) :
+								   SortMenu* pSortMenu) :
 	pViewModelManager_(pViewModelManager),
 	pSortMenu_(pSortMenu)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::ViewSortAction::~ViewSortAction()
 {
 }
 
-QSTATUS qm::ViewSortAction::invoke(const ActionEvent& event)
+void qm::ViewSortAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
-	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
-	if (pViewModel) {
-		status = pViewModel->setSort(pSortMenu_->getSort(event.getId()));
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::ViewSortAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
-{
-	assert(pbEnabled);
-	
-	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
-	*pbEnabled = pViewModel != 0;
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::ViewSortAction::isChecked(const ActionEvent& event, bool* pbChecked)
-{
-	assert(pbChecked);
-	
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (pViewModel)
-		*pbChecked = (pSortMenu_->getSort(event.getId()) & ViewModel::SORT_INDEX_MASK) ==
+		pViewModel->setSort(pSortMenu_->getSort(event.getId()));
+}
+
+bool qm::ViewSortAction::isEnabled(const ActionEvent& event)
+{
+	return pViewModelManager_->getCurrentViewModel() != 0;
+}
+
+bool qm::ViewSortAction::isChecked(const ActionEvent& event)
+{
+	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
+	if (pViewModel)
+		return (pSortMenu_->getSort(event.getId()) & ViewModel::SORT_INDEX_MASK) ==
 			(pViewModel->getSort() & ViewModel::SORT_INDEX_MASK);
-	
-	return QSTATUS_SUCCESS;
+	else
+		return false;
 }
 
 
@@ -5030,64 +4365,48 @@ QSTATUS qm::ViewSortAction::isChecked(const ActionEvent& event, bool* pbChecked)
  *
  */
 
-qm::ViewSortDirectionAction::ViewSortDirectionAction(
-	ViewModelManager* pViewModelManager, bool bAscending, QSTATUS* pstatus) :
+qm::ViewSortDirectionAction::ViewSortDirectionAction(ViewModelManager* pViewModelManager,
+													 bool bAscending) :
 	pViewModelManager_(pViewModelManager),
 	bAscending_(bAscending)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::ViewSortDirectionAction::~ViewSortDirectionAction()
 {
 }
 
-QSTATUS qm::ViewSortDirectionAction::invoke(const ActionEvent& event)
+void qm::ViewSortDirectionAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (pViewModel) {
 		unsigned int nSort = pViewModel->getSort();
 		nSort &= ~ViewModel::SORT_DIRECTION_MASK;
 		nSort |= bAscending_ ? ViewModel::SORT_ASCENDING : ViewModel::SORT_DESCENDING;
-		status = pViewModel->setSort(nSort);
-		CHECK_QSTATUS();
+		pViewModel->setSort(nSort);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ViewSortDirectionAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+bool qm::ViewSortDirectionAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	
-	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
-	*pbEnabled = pViewModel != 0;
-	
-	return QSTATUS_SUCCESS;
+	return pViewModelManager_->getCurrentViewModel() != 0;
 }
 
-QSTATUS qm::ViewSortDirectionAction::isChecked(const ActionEvent& event, bool* pbChecked)
+bool qm::ViewSortDirectionAction::isChecked(const ActionEvent& event)
 {
-	assert(pbChecked);
-	
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (pViewModel) {
 		unsigned int nSort = pViewModel->getSort();
-		*pbChecked =
-			(bAscending_ &&
-				(nSort & ViewModel::SORT_DIRECTION_MASK) ==
-					ViewModel::SORT_ASCENDING) ||
+		return (bAscending_ &&
+			(nSort & ViewModel::SORT_DIRECTION_MASK) ==
+				ViewModel::SORT_ASCENDING) ||
 			(!bAscending_ &&
 				(nSort & ViewModel::SORT_DIRECTION_MASK) ==
 					ViewModel::SORT_DESCENDING);
 	}
 	else {
-		*pbChecked = false;
+		return false;
 	}
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -5097,55 +4416,38 @@ QSTATUS qm::ViewSortDirectionAction::isChecked(const ActionEvent& event, bool* p
  *
  */
 
-qm::ViewSortThreadAction::ViewSortThreadAction(
-	ViewModelManager* pViewModelManager, QSTATUS* pstatus) :
+qm::ViewSortThreadAction::ViewSortThreadAction(ViewModelManager* pViewModelManager) :
 	pViewModelManager_(pViewModelManager)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::ViewSortThreadAction::~ViewSortThreadAction()
 {
 }
 
-QSTATUS qm::ViewSortThreadAction::invoke(const ActionEvent& event)
+void qm::ViewSortThreadAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (pViewModel) {
 		unsigned int nSort = pViewModel->getSort();
 		bool bThread = (nSort & ViewModel::SORT_THREAD_MASK) == ViewModel::SORT_THREAD;
 		nSort &= ~ViewModel::SORT_THREAD_MASK;
 		nSort |= bThread ? ViewModel::SORT_NOTHREAD : ViewModel::SORT_THREAD;
-		status = pViewModel->setSort(nSort);
-		CHECK_QSTATUS();
+		pViewModel->setSort(nSort);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ViewSortThreadAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+bool qm::ViewSortThreadAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	
-	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
-	*pbEnabled = pViewModel != 0;
-	
-	return QSTATUS_SUCCESS;
+	return pViewModelManager_->getCurrentViewModel() != 0;
 }
 
-QSTATUS qm::ViewSortThreadAction::isChecked(const ActionEvent& event, bool* pbChecked)
+bool qm::ViewSortThreadAction::isChecked(const ActionEvent& event)
 {
-	assert(pbChecked);
-	
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
-	*pbChecked = pViewModel &&
+	return pViewModel &&
 		(pViewModel->getSort() & ViewModel::SORT_THREAD_MASK) ==
 			ViewModel::SORT_THREAD;
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -5155,15 +4457,14 @@ QSTATUS qm::ViewSortThreadAction::isChecked(const ActionEvent& event, bool* pbCh
  *
  */
 
-qm::ViewTemplateAction::ViewTemplateAction(
-	MessageWindow* pMessageWindow, QSTATUS* pstatus) :
+qm::ViewTemplateAction::ViewTemplateAction(MessageWindow* pMessageWindow) :
 	pMessageWindow_(pMessageWindow),
 	pTemplateMenu_(0)
 {
 }
 
 qm::ViewTemplateAction::ViewTemplateAction(MessageWindow* pMessageWindow,
-	TemplateMenu* pTemplateMenu, QSTATUS* pstatus) :
+										   TemplateMenu* pTemplateMenu) :
 	pMessageWindow_(pMessageWindow),
 	pTemplateMenu_(pTemplateMenu)
 {
@@ -5173,26 +4474,43 @@ qm::ViewTemplateAction::~ViewTemplateAction()
 {
 }
 
-QSTATUS qm::ViewTemplateAction::invoke(const ActionEvent& event)
+void qm::ViewTemplateAction::invoke(const ActionEvent& event)
 {
 	const WCHAR* pwszTemplate = 0;
 	if (pTemplateMenu_)
 		pwszTemplate = pTemplateMenu_->getTemplate(event.getId());
-	return pMessageWindow_->setTemplate(pwszTemplate);
+	pMessageWindow_->setTemplate(pwszTemplate);
 }
 
-QSTATUS qm::ViewTemplateAction::isChecked(
-	const ActionEvent& event, bool* pbChecked)
+bool qm::ViewTemplateAction::isChecked(const ActionEvent& event)
 {
-	assert(pbChecked);
-	
 	if (pTemplateMenu_) {
 		const WCHAR* pwszTemplate = pMessageWindow_->getTemplate();
-		*pbChecked = pwszTemplate &&
+		return pwszTemplate &&
 			wcscmp(pwszTemplate, pTemplateMenu_->getTemplate(event.getId())) == 0;
 	}
 	else {
-		*pbChecked = !pMessageWindow_->getTemplate();
+		return !pMessageWindow_->getTemplate();
 	}
-	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * ActionUtil
+ *
+ */
+
+void qm::ActionUtil::info(HWND hwnd,
+						  UINT nMessage)
+{
+	messageBox(Application::getApplication().getResourceHandle(),
+		nMessage, MB_OK | MB_ICONINFORMATION, hwnd);
+}
+
+void qm::ActionUtil::error(HWND hwnd,
+						   UINT nMessage)
+{
+	messageBox(Application::getApplication().getResourceHandle(),
+		nMessage, MB_OK | MB_ICONERROR, hwnd);
 }

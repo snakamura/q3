@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -40,17 +40,17 @@ class MacroParser;
 class ColorManager
 {
 public:
-	explicit ColorManager(qs::QSTATUS* pstatus);
+	ColorManager();
 	~ColorManager();
 
 public:
-	qs::QSTATUS getColorSet(Folder* pFolder, const ColorSet** ppSet) const;
+	const ColorSet* getColorSet(Folder* pFolder) const;
 
 public:
-	qs::QSTATUS addColorSet(ColorSet* pSet);
+	void addColorSet(std::auto_ptr<ColorSet> pSet);
 
 private:
-	qs::QSTATUS load();
+	bool load();
 
 private:
 	ColorManager(const ColorManager&);
@@ -73,16 +73,16 @@ private:
 class ColorSet
 {
 public:
-	ColorSet(qs::RegexPattern* pAccountName,
-		qs::RegexPattern* pFolderName, qs::QSTATUS* pstatus);
+	ColorSet(std::auto_ptr<qs::RegexPattern> pAccountName,
+			 std::auto_ptr<qs::RegexPattern> pFolderName);
 	~ColorSet();
 
 public:
-	qs::QSTATUS match(Folder* pFolder, bool* pbMatch) const;
-	qs::QSTATUS getColor(MacroContext* pContext, COLORREF* pcr) const;
+	bool match(Folder* pFolder) const;
+	COLORREF getColor(MacroContext* pContext) const;
 
 public:
-	qs::QSTATUS addEntry(ColorEntry* pEntry);
+	void addEntry(std::auto_ptr<ColorEntry> pEntry);
 
 private:
 	ColorSet(const ColorSet&);
@@ -92,8 +92,8 @@ private:
 	typedef std::vector<ColorEntry*> EntryList;
 
 private:
-	qs::RegexPattern* pAccountName_;
-	qs::RegexPattern* pFolderName_;
+	std::auto_ptr<qs::RegexPattern> pAccountName_;
+	std::auto_ptr<qs::RegexPattern> pFolderName_;
 	EntryList listEntry_;
 };
 
@@ -107,11 +107,12 @@ private:
 class ColorEntry
 {
 public:
-	ColorEntry(Macro* pMacro, const WCHAR* pwszColor, qs::QSTATUS* pstatus);
+	ColorEntry(std::auto_ptr<Macro> pMacro,
+			   COLORREF cr);
 	~ColorEntry();
 
 public:
-	qs::QSTATUS match(MacroContext* pContext, bool* pbMatch) const;
+	bool match(MacroContext* pContext) const;
 	COLORREF getColor() const;
 
 private:
@@ -119,7 +120,7 @@ private:
 	ColorEntry& operator=(const ColorEntry&);
 
 private:
-	Macro* pMacro_;
+	std::auto_ptr<Macro> pMacro_;
 	COLORREF cr_;
 };
 
@@ -133,17 +134,20 @@ private:
 class ColorContentHandler : public qs::DefaultHandler
 {
 public:
-	ColorContentHandler(ColorManager* pManager, qs::QSTATUS* pstatus);
+	explicit ColorContentHandler(ColorManager* pManager);
 	virtual ~ColorContentHandler();
 
 public:
-	virtual qs::QSTATUS startElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName,
-		const qs::Attributes& attributes);
-	virtual qs::QSTATUS endElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName);
-	virtual qs::QSTATUS characters(const WCHAR* pwsz,
-		size_t nStart, size_t nLength);
+	virtual bool startElement(const WCHAR* pwszNamespaceURI,
+							  const WCHAR* pwszLocalName,
+							  const WCHAR* pwszQName,
+							  const qs::Attributes& attributes);
+	virtual bool endElement(const WCHAR* pwszNamespaceURI,
+							const WCHAR* pwszLocalName,
+							const WCHAR* pwszQName);
+	virtual bool characters(const WCHAR* pwsz,
+							size_t nStart,
+							size_t nLength);
 
 private:
 	ColorContentHandler(const ColorContentHandler&);
@@ -161,9 +165,9 @@ private:
 	ColorManager* pManager_;
 	State state_;
 	ColorSet* pColorSet_;
-	Macro* pMacro_;
-	qs::StringBuffer<qs::WSTRING>* pBuffer_;
-	MacroParser* pParser_;
+	std::auto_ptr<Macro> pMacro_;
+	qs::StringBuffer<qs::WSTRING> buffer_;
+	MacroParser parser_;
 };
 
 }

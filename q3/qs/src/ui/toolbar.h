@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -34,15 +34,17 @@ class ToolbarContentHandler;
 class Toolbar
 {
 public:
-	Toolbar(const WCHAR* pwszName, bool bShowText, QSTATUS* pstatus);
+	Toolbar(const WCHAR* pwszName,
+			bool bShowText);
 	~Toolbar();
 
 public:
 	const WCHAR* getName() const;
-	QSTATUS create(HWND hwnd, HIMAGELIST hImageList) const;
+	bool create(HWND hwnd,
+				HIMAGELIST hImageList) const;
 
 public:
-	QSTATUS add(ToolbarItem* pItem);
+	void add(std::auto_ptr<ToolbarItem> pItem);
 
 private:
 	Toolbar(const Toolbar&);
@@ -52,7 +54,7 @@ private:
 	typedef std::vector<ToolbarItem*> ItemList;
 
 private:
-	WSTRING wstrName_;
+	wstring_ptr wstrName_;
 	bool bShowText_;
 	ItemList listItem_;
 };
@@ -67,13 +69,14 @@ private:
 class ToolbarItem
 {
 protected:
-	explicit ToolbarItem(QSTATUS* pstatus);
+	ToolbarItem();
 
 public:
 	virtual ~ToolbarItem();
 
 public:
-	virtual QSTATUS create(HWND hwnd, bool bShowText) = 0;
+	virtual bool create(HWND hwnd,
+						bool bShowText) = 0;
 
 private:
 	ToolbarItem(const ToolbarItem&);
@@ -90,12 +93,16 @@ private:
 class ToolbarButton : public ToolbarItem
 {
 public:
-	ToolbarButton(int nImage, const WCHAR* pwszText, const WCHAR* pwszToolTip,
-		UINT nAction, const WCHAR* pwszDropDown, QSTATUS* pstatus);
+	ToolbarButton(int nImage,
+				  const WCHAR* pwszText,
+				  const WCHAR* pwszToolTip,
+				  UINT nAction,
+				  const WCHAR* pwszDropDown);
 	virtual ~ToolbarButton();
 
 public:
-	virtual QSTATUS create(HWND hwnd, bool bShowText);
+	virtual bool create(HWND hwnd,
+						bool bShowText);
 
 private:
 	ToolbarButton(const ToolbarButton&);
@@ -103,10 +110,10 @@ private:
 
 private:
 	int nImage_;
-	WSTRING wstrText_;
-	WSTRING wstrToolTip_;
+	wstring_ptr wstrText_;
+	wstring_ptr wstrToolTip_;
 	UINT nAction_;
-	WSTRING wstrDropDown_;
+	wstring_ptr wstrDropDown_;
 };
 
 
@@ -119,11 +126,12 @@ private:
 class ToolbarSeparator : public ToolbarItem
 {
 public:
-	explicit ToolbarSeparator(QSTATUS* pstatus);
+	ToolbarSeparator();
 	virtual ~ToolbarSeparator();
 
 public:
-	virtual QSTATUS create(HWND hwnd, bool bShowText);
+	virtual bool create(HWND hwnd,
+						bool bShowText);
 
 private:
 	ToolbarSeparator(const ToolbarSeparator&);
@@ -144,17 +152,21 @@ public:
 
 public:
 	ToolbarContentHandler(ToolbarList* pListToolbar,
-		const ActionItem* pItem, size_t nItemCount, QSTATUS* pstatus);
+						  const ActionItem* pItem,
+						  size_t nItemCount);
 	virtual ~ToolbarContentHandler();
 
 public:
-	virtual QSTATUS startElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName,
-		const Attributes& attributes);
-	virtual QSTATUS endElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName);
-	virtual QSTATUS characters(const WCHAR* pwsz,
-		size_t nStart, size_t nLength);
+	virtual bool startElement(const WCHAR* pwszNamespaceURI,
+							  const WCHAR* pwszLocalName,
+							  const WCHAR* pwszQName,
+							  const Attributes& attributes);
+	virtual bool endElement(const WCHAR* pwszNamespaceURI,
+							const WCHAR* pwszLocalName,
+							const WCHAR* pwszQName);
+	virtual bool characters(const WCHAR* pwsz,
+							size_t nStart,
+							size_t nLength);
 
 private:
 	UINT getActionId(const WCHAR* pwszAction);

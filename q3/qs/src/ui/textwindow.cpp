@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -9,7 +9,6 @@
 #include <qsconv.h>
 #include <qsdevicecontext.h>
 #include <qsinit.h>
-#include <qsnew.h>
 #include <qsprofile.h>
 #include <qsregex.h>
 #include <qstextutil.h>
@@ -163,37 +162,49 @@ public:
 	unsigned int getNextTabStop(unsigned int n) const;
 	unsigned int getAverageCharWidth() const;
 	
-	QSTATUS updateBitmaps();
+	bool updateBitmaps();
 	
 	void getClientRectWithoutMargin(RECT* pRect) const;
 	
-	QSTATUS getCharFromPos(unsigned int nLine,
-		unsigned int nPos, unsigned int* pnChar) const;
-	QSTATUS getPosFromChar(unsigned int nLine,
-		unsigned int nChar, int* pnPos) const;
-	QSTATUS getPositionFromPoint(const POINT& pt,
-		unsigned int* pnLine, unsigned int* pnChar) const;
+	unsigned int getCharFromPos(unsigned int nLine,
+								unsigned int nPos) const;
+	int getPosFromChar(unsigned int nLine,
+					   unsigned int nChar) const;
+	std::pair<unsigned int, unsigned int> getPositionFromPoint(const POINT& pt) const;
 	int getLineFromPos(int nY) const;
 	
-	std::pair<unsigned int, unsigned int> getPhysicalLine(
-		unsigned int nLogicalLine, unsigned int nChar) const;
+	std::pair<unsigned int, unsigned int> getPhysicalLine(unsigned int nLogicalLine,
+														  unsigned int nChar) const;
 	
-	void getSelection(unsigned int* pnStartLine, unsigned int* pnStartChar,
-		unsigned int* pnEndLine, unsigned int* pnEndChar, bool* pbReverse) const;
-	void expandSelection(unsigned int nStartLine, unsigned int nStartChar,
-		unsigned int nEndLine, unsigned int nEndChar);
-	QSTATUS startSelection(const POINT& pt, bool bScroll);
-	QSTATUS updateSelection(const POINT& pt, bool bScroll);
+	void getSelection(unsigned int* pnStartLine,
+					  unsigned int* pnStartChar,
+					  unsigned int* pnEndLine,
+					  unsigned int* pnEndChar,
+					  bool* pbReverse) const;
+	void expandSelection(unsigned int nStartLine,
+						 unsigned int nStartChar,
+						 unsigned int nEndLine,
+						 unsigned int nEndChar);
+	void startSelection(const POINT& pt,
+						bool bScroll);
+	void updateSelection(const POINT& pt,
+						 bool bScroll);
 	void clearSelection();
 	std::pair<unsigned int, unsigned int> getSelection(unsigned int nLine) const;
 	
-	QSTATUS calcLines(unsigned int nStartLine,
-		unsigned int nOldEndLine, unsigned int nNewEndLine);
-	QSTATUS recalcLines();
+	void calcLines(unsigned int nStartLine,
+				   unsigned int nOldEndLine,
+				   unsigned int nNewEndLine);
+	void recalcLines();
 	
-	int paintBlock(DeviceContext* pdc, const POINT& pt, const RECT& rect,
-		int x, const WCHAR* pBegin, const WCHAR* pEnd,
-		DeviceContext* pdcTab, const SIZE& sizeTab) const;
+	int paintBlock(DeviceContext* pdc,
+				   const POINT& pt,
+				   const RECT& rect,
+				   int x,
+				   const WCHAR* pBegin,
+				   const WCHAR* pEnd,
+				   DeviceContext* pdcTab,
+				   const SIZE& sizeTab) const;
 	COLORREF getLineColor(const TextModel::Line& line) const;
 	
 	void scrollHorizontal(int nPos);
@@ -203,49 +214,70 @@ public:
 	void showCaret();
 	void hideCaret();
 	void updateCaret(bool bScroll);
-	void updateCaret(bool bScroll, const RECT& rectMargin);
+	void updateCaret(bool bScroll,
+					 const RECT& rectMargin);
 	
-	void invalidate(unsigned int nStartLine, unsigned int nStartChar,
-		unsigned int nEndLine, unsigned int nEndChar);
+	void invalidate(unsigned int nStartLine,
+					unsigned int nStartChar,
+					unsigned int nEndLine,
+					unsigned int nEndChar);
 	
-	QSTATUS insertText(const WCHAR* pwsz, size_t nLen, InsertTextFlag flag);
-	QSTATUS deleteText(DeleteTextFlag flag);
+	bool insertText(const WCHAR* pwsz,
+					size_t nLen,
+					InsertTextFlag flag);
+	bool deleteText(DeleteTextFlag flag);
 	
-	size_t getReformQuoteLength(const WCHAR* pwszLine, size_t nLen) const;
+	size_t getReformQuoteLength(const WCHAR* pwszLine,
+								size_t nLen) const;
 	
-	const LinkItem* getLinkItem(unsigned int nLine, unsigned int nChar);
+	const LinkItem* getLinkItem(unsigned int nLine,
+								unsigned int nChar);
 	std::pair<int, const LinkItem*> getLinkItemFromPoint(const POINT& pt) const;
-	QSTATUS openLink(const POINT& pt);
-	QSTATUS getURL(int nLine, const LinkItem* pLinkItem, WSTRING* pwstrURL) const;
+	bool openLink(const POINT& pt);
+	wstring_ptr getURL(int nLine,
+					   const LinkItem* pLinkItem) const;
 
 public:
-	virtual QSTATUS textUpdated(const TextModelEvent& event);
-	virtual QSTATUS textSet(const TextModelEvent& event);
+	virtual void textUpdated(const TextModelEvent& event);
+	virtual void textSet(const TextModelEvent& event);
 
 public:
-	static PhysicalLine* allocLine(size_t nLogicalLine, size_t nPosition,
-		size_t nLength, COLORREF cr, LinkItem* pLinkItems, size_t nLinkCount);
+	static PhysicalLine* allocLine(size_t nLogicalLine,
+								   size_t nPosition,
+								   size_t nLength,
+								   COLORREF cr,
+								   LinkItem* pLinkItems,
+								   size_t nLinkCount);
 	static void freeLine(PhysicalLine* pLine);
 	static CharType getCharType(WCHAR c);
 
 private:
-	bool getTextExtent(const DeviceContext& dc, const WCHAR* pwszString,
-		int nCount, int nMaxExtent, int* pnFit, int* pnDx, SIZE* pSize) const;
-	QSTATUS getLineExtent(unsigned int nLine,
-		Extent* pExtent, bool* pbNewLine) const;
-	QSTATUS getLinks(const WCHAR* pwsz,
-		size_t nLen, LogicalLinkItemList* pList) const;
-	QSTATUS convertLogicalLinksToPhysicalLinks(
-		const LogicalLinkItemList& listLogicalLinkItem, size_t nOffset,
-		size_t nLength, LinkItemList* pListPhysicalLink) const;
+	bool getTextExtent(const DeviceContext& dc,
+					   const WCHAR* pwszString,
+					   int nCount,
+					   int nMaxExtent,
+					   int* pnFit,
+					   int* pnDx,
+					   SIZE* pSize) const;
+	void getLineExtent(unsigned int nLine,
+					   Extent* pExtent,
+					   bool* pbNewLine) const;
+	void getLinks(const WCHAR* pwsz,
+				  size_t nLen,
+				  LogicalLinkItemList* pList) const;
+	void convertLogicalLinksToPhysicalLinks(const LogicalLinkItemList& listLogicalLinkItem,
+											size_t nOffset,
+											size_t nLength,
+											LinkItemList* pListPhysicalLink) const;
 	void fillPhysicalLinks(LinkItemList* pList,
-		DeviceContext* pdc, const WCHAR* pwsz) const;
+						   DeviceContext* pdc,
+						   const WCHAR* pwsz) const;
 
 public:
 	TextWindow* pThis_;
 	TextModel* pTextModel_;
 	LineList listLine_;
-	TextWindowUndoManager* pUndoManager_;
+	std::auto_ptr<TextWindowUndoManager> pUndoManager_;
 	TextWindowLinkHandler* pLinkHandler_;
 	TextWindowRuler* pRuler_;
 	
@@ -264,10 +296,10 @@ public:
 	bool bShowHorizontalScrollBar_;
 	bool bShowCaret_;
 	bool bShowRuler_;
-	WSTRING wstrQuote_[2];
+	wstring_ptr wstrQuote_[2];
 	COLORREF crQuote_[2];
 	unsigned int nReformLineLength_;
-	WSTRING wstrReformQuote_;
+	wstring_ptr wstrReformQuote_;
 	URLSchemaList listURLSchema_;
 	COLORREF crLink_;
 	
@@ -297,8 +329,7 @@ public:
 unsigned int qs::TextWindowImpl::getLineHeight() const
 {
 	if (nLineHeight_ == 0) {
-		DECLARE_QSTATUS();
-		ClientDeviceContext dc(pThis_->getHandle(), &status);
+		ClientDeviceContext dc(pThis_->getHandle());
 		ObjectSelector<HFONT> fontSelector(dc, hfont_);
 		TEXTMETRIC tm;
 		dc.getTextMetrics(&tm);
@@ -310,8 +341,6 @@ unsigned int qs::TextWindowImpl::getLineHeight() const
 unsigned int qs::TextWindowImpl::getLineInWindow() const
 {
 	if (nLineInWindow_ == 0) {
-		DECLARE_QSTATUS();
-		
 		unsigned int nLineHeight = getLineHeight();
 		
 		RECT rect;
@@ -334,8 +363,7 @@ unsigned int qs::TextWindowImpl::getNextTabStop(unsigned int n) const
 unsigned int qs::TextWindowImpl::getAverageCharWidth() const
 {
 	if (nAverageCharWidth_ == 0) {
-		DECLARE_QSTATUS();
-		ClientDeviceContext dc(pThis_->getHandle(), &status);
+		ClientDeviceContext dc(pThis_->getHandle());
 		ObjectSelector<HFONT> fontSelector(dc, hfont_);
 		TEXTMETRIC tm;
 		dc.getTextMetrics(&tm);
@@ -344,10 +372,8 @@ unsigned int qs::TextWindowImpl::getAverageCharWidth() const
 	return nAverageCharWidth_;
 }
 
-QSTATUS qs::TextWindowImpl::updateBitmaps()
+bool qs::TextWindowImpl::updateBitmaps()
 {
-	DECLARE_QSTATUS();
-	
 	if (hbmNewLine_) {
 		::DeleteObject(hbmNewLine_);
 		hbmNewLine_ = 0;
@@ -357,12 +383,14 @@ QSTATUS qs::TextWindowImpl::updateBitmaps()
 		hbmTab_ = 0;
 	}
 	
-	ClientDeviceContext dc(pThis_->getHandle(), &status);
-	CHECK_QSTATUS();
+	ClientDeviceContext dc(pThis_->getHandle());
+	if (!dc)
+		return false;
 	ObjectSelector<HFONT> fontSelector(dc, hfont_);
 	
-	CompatibleDeviceContext dcMem(dc, &status);
-	CHECK_QSTATUS();
+	CompatibleDeviceContext dcMem(dc);
+	if (!dcMem)
+		return false;
 	
 	int nWidth = getAverageCharWidth();
 	int nHeight = getLineHeight();
@@ -371,13 +399,13 @@ QSTATUS qs::TextWindowImpl::updateBitmaps()
 	
 	GdiObject<HPEN> hpen(::CreatePen(PS_SOLID, 0, crForeground_));
 	if (!hpen.get())
-		return QSTATUS_FAIL;
+		return false;
 	ObjectSelector<HPEN> penSelector(dcMem, hpen.get());
 	
 	GdiObject<HBITMAP> hbmNewLine(
 		::CreateCompatibleBitmap(dc, nWidth, nHeight));
 	if (!hbmNewLine.get())
-		return QSTATUS_FAIL;
+		return false;
 	ObjectSelector<HBITMAP> selectorNewLine(dcMem, hbmNewLine.get());
 	
 	dcMem.fillSolidRect(rect, crBackground_);
@@ -397,7 +425,7 @@ QSTATUS qs::TextWindowImpl::updateBitmaps()
 	GdiObject<HBITMAP> hbmTab(
 		::CreateCompatibleBitmap(dc, nWidth, nHeight));
 	if (!hbmTab.get())
-		return QSTATUS_FAIL;
+		return false;
 	ObjectSelector<HBITMAP> selectorTab(dcMem, hbmTab.get());
 	
 	dcMem.fillSolidRect(rect, crBackground_);
@@ -413,7 +441,7 @@ QSTATUS qs::TextWindowImpl::updateBitmaps()
 	hbmNewLine_ = hbmNewLine.release();
 	hbmTab_ = hbmTab.release();
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 void qs::TextWindowImpl::getClientRectWithoutMargin(RECT* pRect) const
@@ -432,23 +460,17 @@ void qs::TextWindowImpl::getClientRectWithoutMargin(RECT* pRect) const
 		pRect->bottom = pRect->top;
 }
 
-QSTATUS qs::TextWindowImpl::getCharFromPos(unsigned int nLine,
-	unsigned int nPos, unsigned int* pnChar) const
+unsigned int qs::TextWindowImpl::getCharFromPos(unsigned int nLine,
+												unsigned int nPos) const
 {
-	assert(pnChar);
-	
-	DECLARE_QSTATUS();
-	
-	*pnChar = 0;
+	unsigned int nChar = 0;
 	
 	if (nPos != 0) {
 		if (nLine != nExtentLine_) {
-			status = getLineExtent(nLine, &extent_, &bExtentNewLine_);
-			CHECK_QSTATUS();
+			getLineExtent(nLine, &extent_, &bExtentNewLine_);
 			nExtentLine_ = nLine;
 		}
 		
-		unsigned int nChar = 0;
 		while (nChar < extent_.size() - (bExtentNewLine_ ? 1 : 0)) {
 			unsigned int nSep = extent_[nChar] -
 				(extent_[nChar] - (nChar == 0 ? 0 : extent_[nChar - 1]))/2;
@@ -456,45 +478,30 @@ QSTATUS qs::TextWindowImpl::getCharFromPos(unsigned int nLine,
 				break;
 			++nChar;
 		}
-		*pnChar = nChar;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return nChar;
 }
 
-QSTATUS qs::TextWindowImpl::getPosFromChar(
-	unsigned int nLine, unsigned int nChar, int* pnPos) const
+int qs::TextWindowImpl::getPosFromChar(unsigned int nLine,
+									   unsigned int nChar) const
 {
-	assert(pnPos);
-	
-	DECLARE_QSTATUS();
-	
-	*pnPos = 0;
+	int nPos = 0;
 	
 	if (nChar != 0) {
 		if (nLine != nExtentLine_) {
-			status = getLineExtent(nLine, &extent_, &bExtentNewLine_);
-			CHECK_QSTATUS();
+			getLineExtent(nLine, &extent_, &bExtentNewLine_);
 			nExtentLine_ = nLine;
 		}
 		if (!extent_.empty())
-			*pnPos = extent_[nChar - 1];
+			nPos = extent_[nChar - 1];
 	}
 	
-	return QSTATUS_SUCCESS;
+	return nPos;
 }
 
-QSTATUS qs::TextWindowImpl::getPositionFromPoint(const POINT& pt,
-	unsigned int* pnLine, unsigned int* pnChar) const
+std::pair<unsigned int, unsigned int> qs::TextWindowImpl::getPositionFromPoint(const POINT& pt) const
 {
-	assert(pnLine);
-	assert(pnChar);
-	
-	DECLARE_QSTATUS();
-	
-	*pnLine = 0;
-	*pnChar = 0;
-	
 	int nLine = getLineFromPos(pt.y);
 	unsigned int nChar = 0;
 	if (nLine < 0) {
@@ -503,23 +510,17 @@ QSTATUS qs::TextWindowImpl::getPositionFromPoint(const POINT& pt,
 	}
 	else if (static_cast<LineList::size_type>(nLine) < listLine_.size()) {
 		int nPos = scrollPos_.nPos_ + (pt.x - nMarginLeft_);
-		if (nPos < 0) {
+		if (nPos < 0)
 			nChar = 0;
-		}
-		else {
-			status = getCharFromPos(nLine, nPos, &nChar);
-			CHECK_QSTATUS();
-		}
+		else
+			nChar = getCharFromPos(nLine, nPos);
 	}
 	else {
 		nLine = listLine_.size() - 1;
 		nChar = listLine_.empty() ? 0 : listLine_.back()->nLength_;
 	}
 	
-	*pnLine = nLine;
-	*pnChar = nChar;
-	
-	return QSTATUS_SUCCESS;
+	return std::make_pair(nLine, nChar);
 }
 
 int qs::TextWindowImpl::getLineFromPos(int nY) const
@@ -527,8 +528,8 @@ int qs::TextWindowImpl::getLineFromPos(int nY) const
 	return scrollPos_.nLine_ + (nY < nMarginTop_ ? 0 : (nY - nMarginTop_)/getLineHeight());
 }
 
-std::pair<unsigned int, unsigned int> qs::TextWindowImpl::getPhysicalLine(
-	unsigned int nLogicalLine, unsigned int nChar) const
+std::pair<unsigned int, unsigned int> qs::TextWindowImpl::getPhysicalLine(unsigned int nLogicalLine,
+																		  unsigned int nChar) const
 {
 	assert(!listLine_.empty());
 	
@@ -558,8 +559,10 @@ std::pair<unsigned int, unsigned int> qs::TextWindowImpl::getPhysicalLine(
 }
 
 void qs::TextWindowImpl::getSelection(unsigned int* pnStartLine,
-	unsigned int* pnStartChar, unsigned int* pnEndLine,
-	unsigned int* pnEndChar, bool* pbReverse) const
+									  unsigned int* pnStartChar,
+									  unsigned int* pnEndLine,
+									  unsigned int* pnEndChar,
+									  bool* pbReverse) const
 {
 	assert((pnStartLine && pnStartChar) || (!pnStartLine && !pnStartChar));
 	assert((pnEndLine && pnEndChar) || (!pnEndLine && !pnEndChar));
@@ -593,7 +596,9 @@ void qs::TextWindowImpl::getSelection(unsigned int* pnStartLine,
 }
 
 void qs::TextWindowImpl::expandSelection(unsigned int nStartLine,
-	unsigned int nStartChar, unsigned int nEndLine, unsigned int nEndChar)
+										 unsigned int nStartChar,
+										 unsigned int nEndLine,
+										 unsigned int nEndChar)
 {
 	if (!pThis_->isSelected()) {
 		selection_.nStartLine_ = nStartLine;
@@ -605,44 +610,31 @@ void qs::TextWindowImpl::expandSelection(unsigned int nStartLine,
 	invalidate(nStartLine, nStartChar, nEndLine, nEndChar);
 }
 
-QSTATUS qs::TextWindowImpl::startSelection(const POINT& pt, bool bScroll)
+void qs::TextWindowImpl::startSelection(const POINT& pt,
+										bool bScroll)
 {
-	DECLARE_QSTATUS();
-	
 	clearSelection();
 	
-	unsigned int nLine = 0;
-	unsigned int nChar = 0;
-	status = getPositionFromPoint(pt, &nLine, &nChar);
-	CHECK_QSTATUS();
-	selection_.nStartLine_ = nLine;
-	selection_.nStartChar_ = nChar;
-	selection_.nEndLine_ = nLine;
-	selection_.nEndChar_ = nChar;
+	std::pair<unsigned int, unsigned int> pos(getPositionFromPoint(pt));
+	selection_.nStartLine_ = pos.first;
+	selection_.nStartChar_ = pos.second;
+	selection_.nEndLine_ = pos.first;
+	selection_.nEndChar_ = pos.second;
 	
-	status = pThis_->moveCaret(TextWindow::MOVECARET_POS,
-		nLine, nChar, false, TextWindow::SELECT_NONE, bScroll);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	pThis_->moveCaret(TextWindow::MOVECARET_POS, pos.first,
+		pos.second, false, TextWindow::SELECT_NONE, bScroll);
 }
 
-QSTATUS qs::TextWindowImpl::updateSelection(const POINT& pt, bool bScroll)
+void qs::TextWindowImpl::updateSelection(const POINT& pt,
+										 bool bScroll)
 {
-	DECLARE_QSTATUS();
+	std::pair<unsigned int, unsigned int> pos(getPositionFromPoint(pt));
+	invalidate(selection_.nEndLine_, selection_.nEndChar_, pos.first, pos.second);
+	selection_.nEndLine_ = pos.first;
+	selection_.nEndChar_ = pos.second;
 	
-	unsigned int nLine = 0;
-	unsigned int nChar = 0;
-	status = getPositionFromPoint(pt, &nLine, &nChar);
-	CHECK_QSTATUS();
-	invalidate(selection_.nEndLine_, selection_.nEndChar_, nLine, nChar);
-	selection_.nEndLine_ = nLine;
-	selection_.nEndChar_ = nChar;
-	
-	pThis_->moveCaret(TextWindow::MOVECARET_POS, nLine,
-		nChar, false, TextWindow::SELECT_NONE, bScroll);
-	
-	return QSTATUS_SUCCESS;
+	pThis_->moveCaret(TextWindow::MOVECARET_POS, pos.first,
+		pos.second, false, TextWindow::SELECT_NONE, bScroll);
 }
 
 void qs::TextWindowImpl::clearSelection()
@@ -658,8 +650,7 @@ void qs::TextWindowImpl::clearSelection()
 	}
 }
 
-std::pair<unsigned int, unsigned int> qs::TextWindowImpl::getSelection(
-	unsigned int nLine) const
+std::pair<unsigned int, unsigned int> qs::TextWindowImpl::getSelection(unsigned int nLine) const
 {
 	if (!pThis_->isSelected())
 		return std::pair<unsigned int, unsigned int>(0, 0);
@@ -689,13 +680,11 @@ std::pair<unsigned int, unsigned int> qs::TextWindowImpl::getSelection(
 			0, listLine_[nLine]->nLength_);
 }
 
-QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
-	unsigned int nOldEndLine, unsigned int nNewEndLine)
+void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
+								   unsigned int nOldEndLine,
+								   unsigned int nNewEndLine)
 {
-	DECLARE_QSTATUS();
-	
-	ClientDeviceContext dc(pThis_->getHandle(), &status);
-	CHECK_QSTATUS();
+	ClientDeviceContext dc(pThis_->getHandle());
 	ObjectSelector<HFONT> fontSelector(dc, hfont_);
 	
 	unsigned int nAverageCharWidth = getAverageCharWidth();
@@ -735,16 +724,11 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 		
 		if (line.getLength() == 0) {
 			PhysicalLinePtr ptr(allocLine(n, 0, 0, cr, 0, 0));
-			if (!ptr.get())
-				return QSTATUS_OUTOFMEMORY;
-			status = STLWrapper<LineList>(*pListLine).push_back(ptr.get());
-			CHECK_QSTATUS();
+			pListLine->push_back(ptr.get());
 			ptr.release();
 		}
 		else {
-			status = getLinks(line.getText(),
-				line.getLength(), &listLogicalLinkItem);
-			CHECK_QSTATUS();
+			getLinks(line.getText(), line.getLength(), &listLogicalLinkItem);
 			
 			const WCHAR* pBegin = line.getText();
 			const WCHAR* pEnd = pBegin + line.getLength();
@@ -765,19 +749,14 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 						static_cast<unsigned int>(size.cx) == nWidth - nLineWidth) {
 						size_t nOffset = pLine - line.getText();
 						size_t nLength = pBegin + nFit - pLine;
-						status = convertLogicalLinksToPhysicalLinks(
-							listLogicalLinkItem, nOffset,
-							nLength, &listPhysicalLinkItem);
-						CHECK_QSTATUS();
+						convertLogicalLinksToPhysicalLinks(listLogicalLinkItem,
+							nOffset, nLength, &listPhysicalLinkItem);
 						fillPhysicalLinks(&listPhysicalLinkItem,
 							&dc, line.getText() + nOffset);
 						PhysicalLinePtr ptr(allocLine(n, nOffset,
 							nLength, cr, &listPhysicalLinkItem[0],
 							listPhysicalLinkItem.size()));
-						if (!ptr.get())
-							return QSTATUS_OUTOFMEMORY;
-						status = STLWrapper<LineList>(*pListLine).push_back(ptr.get());
-						CHECK_QSTATUS();
+						pListLine->push_back(ptr.get());
 						ptr.release();
 						
 						bFull = static_cast<unsigned int>(size.cx) == nWidth - nLineWidth;
@@ -795,35 +774,26 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 					bool bWrap = nLineWidth + nAverageCharWidth > nWidth;
 					size_t nOffset = pLine - line.getText();
 					size_t nLength = p - pLine;
-					status = convertLogicalLinksToPhysicalLinks(
-						listLogicalLinkItem, nOffset, nLength, &listPhysicalLinkItem);
-					CHECK_QSTATUS();
+					convertLogicalLinksToPhysicalLinks(listLogicalLinkItem,
+						nOffset, nLength, &listPhysicalLinkItem);
 					fillPhysicalLinks(&listPhysicalLinkItem,
 						&dc, line.getText() + nOffset);
 					PhysicalLinePtr ptr(allocLine(n, nOffset, nLength, cr,
 						&listPhysicalLinkItem[0], listPhysicalLinkItem.size()));
-					if (!ptr.get())
-						return QSTATUS_OUTOFMEMORY;
 					if (!bWrap)
 						++ptr->nLength_;
-					status = STLWrapper<LineList>(*pListLine).push_back(ptr.get());
-					CHECK_QSTATUS();
+					pListLine->push_back(ptr.get());
 					ptr.release();
 					if (bWrap) {
 						size_t nOffset = p - line.getText();
 						size_t nLength = 1;
-						status = convertLogicalLinksToPhysicalLinks(
-							listLogicalLinkItem, nOffset,
-							nLength, &listPhysicalLinkItem);
-						CHECK_QSTATUS();
+						convertLogicalLinksToPhysicalLinks(listLogicalLinkItem,
+							nOffset, nLength, &listPhysicalLinkItem);
 						fillPhysicalLinks(&listPhysicalLinkItem,
 							&dc, line.getText() + nOffset);
 						PhysicalLinePtr ptr(allocLine(n, nOffset, nLength, cr,
 							&listPhysicalLinkItem[0], listPhysicalLinkItem.size()));
-						if (!ptr.get())
-							return QSTATUS_OUTOFMEMORY;
-						status = STLWrapper<LineList>(*pListLine).push_back(ptr.get());
-						CHECK_QSTATUS();
+						pListLine->push_back(ptr.get());
 						ptr.release();
 					}
 					
@@ -838,18 +808,13 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 					if (nNextTabStop >= nWidth) {
 						size_t nOffset = pLine - line.getText();
 						size_t nLength = p - pLine;
-						status = convertLogicalLinksToPhysicalLinks(
-							listLogicalLinkItem, nOffset,
-							nLength, &listPhysicalLinkItem);
-						CHECK_QSTATUS();
+						convertLogicalLinksToPhysicalLinks(listLogicalLinkItem,
+							nOffset, nLength, &listPhysicalLinkItem);
 						fillPhysicalLinks(&listPhysicalLinkItem,
 							&dc, line.getText() + nOffset);
 						PhysicalLinePtr ptr(allocLine(n, nOffset, nLength, cr,
 							&listPhysicalLinkItem[0], listPhysicalLinkItem.size()));
-						if (!ptr.get())
-							return QSTATUS_OUTOFMEMORY;
-						status = STLWrapper<LineList>(*pListLine).push_back(ptr.get());
-						CHECK_QSTATUS();
+						pListLine->push_back(ptr.get());
 						ptr.release();
 						
 						bFull = true;
@@ -862,18 +827,13 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 						if (p == pEnd) {
 							size_t nOffset = pLine - line.getText();
 							size_t nLength = p - pLine;
-							status = convertLogicalLinksToPhysicalLinks(
-								listLogicalLinkItem, nOffset,
-								nLength, &listPhysicalLinkItem);
-							CHECK_QSTATUS();
+							convertLogicalLinksToPhysicalLinks(listLogicalLinkItem,
+								nOffset, nLength, &listPhysicalLinkItem);
 							fillPhysicalLinks(&listPhysicalLinkItem,
 								&dc, line.getText() + nOffset);
 							PhysicalLinePtr ptr(allocLine(n, nOffset, nLength, cr,
 								&listPhysicalLinkItem[0], listPhysicalLinkItem.size()));
-							if (!ptr.get())
-								return QSTATUS_OUTOFMEMORY;
-							status = STLWrapper<LineList>(*pListLine).push_back(ptr.get());
-							CHECK_QSTATUS();
+							pListLine->push_back(ptr.get());
 							ptr.release();
 						}
 					}
@@ -884,10 +844,7 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 					n == pTextModel_->getLineCount() - 1) {
 					PhysicalLinePtr ptr(allocLine(n,
 						p - line.getText(), 0, cr, 0, 0));
-					if (!ptr.get())
-						return QSTATUS_OUTOFMEMORY;
-					status = STLWrapper<LineList>(*pListLine).push_back(ptr.get());
-					CHECK_QSTATUS();
+					pListLine->push_back(ptr.get());
 					ptr.release();
 				}
 			}
@@ -937,23 +894,21 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 	else {
 		pThis_->invalidate();
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::TextWindowImpl::recalcLines()
+void qs::TextWindowImpl::recalcLines()
 {
-	DECLARE_QSTATUS();
-	
-	status = calcLines(-1, -1, -1);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	calcLines(-1, -1, -1);
 }
 
-int qs::TextWindowImpl::paintBlock(DeviceContext* pdc, const POINT& pt,
-	const RECT& rect, int x, const WCHAR* pBegin, const WCHAR* pEnd,
-	DeviceContext* pdcTab, const SIZE& sizeTab) const
+int qs::TextWindowImpl::paintBlock(DeviceContext* pdc,
+								   const POINT& pt,
+								   const RECT& rect,
+								   int x,
+								   const WCHAR* pBegin,
+								   const WCHAR* pEnd,
+								   DeviceContext* pdcTab,
+								   const SIZE& sizeTab) const
 {
 	RECT r = rect;
 	const WCHAR* p = pBegin;
@@ -1020,7 +975,7 @@ COLORREF qs::TextWindowImpl::getLineColor(const TextModel::Line& line) const
 	}
 	if (n != line.getLength()) {
 		int m = 0;
-		while (m < countof(wstrQuote_) && !wcschr(wstrQuote_[m], *p))
+		while (m < countof(wstrQuote_) && !wcschr(wstrQuote_[m].get(), *p))
 			++m;
 		if (m != countof(wstrQuote_))
 			return crQuote_[m];
@@ -1135,7 +1090,8 @@ void qs::TextWindowImpl::updateCaret(bool bScroll)
 	updateCaret(bScroll, Rect(-1, -1, -1, -1));
 }
 
-void qs::TextWindowImpl::updateCaret(bool bScroll, const RECT& rectMargin)
+void qs::TextWindowImpl::updateCaret(bool bScroll,
+									 const RECT& rectMargin)
 {
 	int nMarginTop = rectMargin.top != -1 ? rectMargin.top : 3;
 	int nMarginBottom = rectMargin.bottom != -1 ? rectMargin.bottom : 3;
@@ -1187,7 +1143,9 @@ void qs::TextWindowImpl::updateCaret(bool bScroll, const RECT& rectMargin)
 }
 
 void qs::TextWindowImpl::invalidate(unsigned int nStartLine,
-	unsigned int nStartChar, unsigned int nEndLine, unsigned int nEndChar)
+									unsigned int nStartChar,
+									unsigned int nEndLine,
+									unsigned int nEndChar)
 {
 	if (nStartLine > nEndLine)
 		std::swap(nStartLine, nEndLine);
@@ -1202,11 +1160,10 @@ void qs::TextWindowImpl::invalidate(unsigned int nStartLine,
 	pThis_->invalidateRect(rect);
 }
 
-QSTATUS qs::TextWindowImpl::insertText(const WCHAR* pwsz,
-	size_t nLen, InsertTextFlag flag)
+bool qs::TextWindowImpl::insertText(const WCHAR* pwsz,
+									size_t nLen,
+									InsertTextFlag flag)
 {
-	DECLARE_QSTATUS();
-	
 	if (pTextModel_->isEditable()) {
 		if (nLen == static_cast<size_t>(-1))
 			nLen = wcslen(pwsz);
@@ -1217,16 +1174,14 @@ QSTATUS qs::TextWindowImpl::insertText(const WCHAR* pwsz,
 		unsigned int nEndChar = -1;
 		bool bReverse = true;
 		
-		string_ptr<WSTRING> wstrSelected;
+		wstring_ptr wstrSelected;
 		
 		bool bSelected = pThis_->isSelected();
 		if (bSelected) {
 			getSelection(&nStartLine, &nStartChar,
 				&nEndLine, &nEndChar, &bReverse);
-			if (flag != INSERTTEXTFLAG_REDO) {
-				status = pThis_->getSelectedText(&wstrSelected);
-				CHECK_QSTATUS();
-			}
+			if (flag != INSERTTEXTFLAG_REDO)
+				wstrSelected = pThis_->getSelectedText();
 			clearSelection();
 		}
 		else {
@@ -1239,58 +1194,48 @@ QSTATUS qs::TextWindowImpl::insertText(const WCHAR* pwsz,
 		const PhysicalLine* pStart = listLine_[nStartLine];
 		if (bSelected) {
 			const PhysicalLine* pEnd = listLine_[nEndLine];
-			status = pTextModel_->update(pStart->nLogicalLine_,
+			pTextModel_->update(pStart->nLogicalLine_,
 				pStart->nPosition_ + nStartChar, pEnd->nLogicalLine_,
 				pEnd->nPosition_ + nEndChar, pwsz, nLen, &nLine, &nChar);
-			CHECK_QSTATUS();
 		}
 		else {
-			status = pTextModel_->update(pStart->nLogicalLine_,
+			pTextModel_->update(pStart->nLogicalLine_,
 				pStart->nPosition_ + nStartChar, -1, -1,
 				pwsz, nLen, &nLine, &nChar);
-			CHECK_QSTATUS();
 		}
 		nExtentLine_ = -1;
 		
-		std::pair<unsigned int, unsigned int> line =
-			getPhysicalLine(nLine, nChar);
+		std::pair<unsigned int, unsigned int> line = getPhysicalLine(nLine, nChar);
 		caret_.nLine_ = line.first;
 		caret_.nChar_ = line.second;
-		status = getPosFromChar(caret_.nLine_,
-			caret_.nChar_, &caret_.nPos_);
-		CHECK_QSTATUS();
+		caret_.nPos_ = getPosFromChar(caret_.nLine_, caret_.nChar_);
 		caret_.nOldPos_ = caret_.nPos_;
 		updateCaret(true);
 		
 		switch (flag) {
 		case INSERTTEXTFLAG_NORMAL:
 		case INSERTTEXTFLAG_REDO:
-			status = pUndoManager_->pushUndoItem(nStartLine, nStartChar,
+			pUndoManager_->pushUndoItem(nStartLine, nStartChar,
 				line.first, line.second, bReverse ? nStartLine : nEndLine,
-				bReverse ? nStartChar : nEndChar, wstrSelected.get(),
+				bReverse ? nStartChar : nEndChar, wstrSelected,
 				flag == INSERTTEXTFLAG_NORMAL);
-			CHECK_QSTATUS();
-			wstrSelected.release();
 			break;
 		case INSERTTEXTFLAG_UNDO:
-			status = pUndoManager_->pushRedoItem(nStartLine, nStartChar,
+			pUndoManager_->pushRedoItem(nStartLine, nStartChar,
 				line.first, line.second, bReverse ? nStartLine : nEndLine,
-				bReverse ? nStartChar : nEndChar, wstrSelected.get());
-			CHECK_QSTATUS();
-			wstrSelected.release();
+				bReverse ? nStartChar : nEndChar, wstrSelected);
 			break;
 		default:
 			assert(false);
 			break;
 		}
 	}
-	return QSTATUS_SUCCESS;
+	
+	return true;
 }
 
-QSTATUS qs::TextWindowImpl::deleteText(DeleteTextFlag flag)
+bool qs::TextWindowImpl::deleteText(DeleteTextFlag flag)
 {
-	DECLARE_QSTATUS();
-	
 	if (pTextModel_->isEditable()) {
 		if (!pThis_->isSelected()) {
 			TextWindow::MoveCaret mc;
@@ -1312,35 +1257,33 @@ QSTATUS qs::TextWindowImpl::deleteText(DeleteTextFlag flag)
 				break;
 			}
 			
-			status = pThis_->moveCaret(mc, 0, 0, false,
-				TextWindow::SELECT_SELECT, true);
-			CHECK_QSTATUS();
+			pThis_->moveCaret(mc, 0, 0, false, TextWindow::SELECT_SELECT, true);
 			if (pThis_->isSelected()) {
 				std::swap(selection_.nStartLine_, selection_.nEndLine_);
 				std::swap(selection_.nStartChar_, selection_.nEndChar_);
 			}
 		}
 		
-		status = insertText(L"", 0, INSERTTEXTFLAG_NORMAL);
-		CHECK_QSTATUS();
+		if (!insertText(L"", 0, INSERTTEXTFLAG_NORMAL))
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-size_t qs::TextWindowImpl::getReformQuoteLength(
-	const WCHAR* pwszLine, size_t nLen) const
+size_t qs::TextWindowImpl::getReformQuoteLength(const WCHAR* pwszLine,
+												size_t nLen) const
 {
 	const WCHAR* p = pwszLine;
 	for (size_t n = 0; n < nLen; ++n, ++p) {
-		if (*p != L' ' && *p != L'\t' && !wcschr(wstrReformQuote_, *p))
+		if (*p != L' ' && *p != L'\t' && !wcschr(wstrReformQuote_.get(), *p))
 			break;
 	}
 	return p - pwszLine;
 }
 
-const TextWindowImpl::LinkItem* qs::TextWindowImpl::getLinkItem(
-	unsigned int nLine, unsigned int nChar)
+const TextWindowImpl::LinkItem* qs::TextWindowImpl::getLinkItem(unsigned int nLine,
+																unsigned int nChar)
 {
 	const PhysicalLine* pLine = listLine_[nLine];
 	if (pLine->items_.nCount_ != 0) {
@@ -1353,8 +1296,7 @@ const TextWindowImpl::LinkItem* qs::TextWindowImpl::getLinkItem(
 	return 0;
 }
 
-std::pair<int, const TextWindowImpl::LinkItem*> qs::TextWindowImpl::getLinkItemFromPoint(
-	const POINT& pt) const
+std::pair<int, const TextWindowImpl::LinkItem*> qs::TextWindowImpl::getLinkItemFromPoint(const POINT& pt) const
 {
 	std::pair<int, const LinkItem*> i(-1, 0);
 	
@@ -1375,32 +1317,25 @@ std::pair<int, const TextWindowImpl::LinkItem*> qs::TextWindowImpl::getLinkItemF
 	return i;
 }
 
-QSTATUS qs::TextWindowImpl::openLink(const POINT& pt)
+bool qs::TextWindowImpl::openLink(const POINT& pt)
 {
-	DECLARE_QSTATUS();
-	
 	if (pLinkHandler_) {
 		std::pair<int, const LinkItem*> item(getLinkItemFromPoint(pt));
 		if (item.second) {
-			string_ptr<WSTRING> wstrURL;
-			status = getURL(item.first, item.second, &wstrURL);
-			CHECK_QSTATUS();
-			status = pLinkHandler_->openLink(wstrURL.get());
-			CHECK_QSTATUS();
+			wstring_ptr wstrURL(getURL(item.first, item.second));
+			if (!pLinkHandler_->openLink(wstrURL.get()))
+				return false;
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::TextWindowImpl::getURL(int nLine,
-	const LinkItem* pLinkItem, WSTRING* pwstrURL) const
+wstring_ptr qs::TextWindowImpl::getURL(int nLine,
+									   const LinkItem* pLinkItem) const
 {
 	assert(0 <= nLine && nLine < static_cast<int>(listLine_.size()));
 	assert(pLinkItem);
-	assert(pwstrURL);
-	
-	DECLARE_QSTATUS();
 	
 	const PhysicalLine* pLine = listLine_[nLine];
 	
@@ -1419,9 +1354,7 @@ QSTATUS qs::TextWindowImpl::getURL(int nLine,
 			++pEnd;
 	}
 	
-	string_ptr<WSTRING> wstrURL(allocWString(pBegin, pEnd - pBegin));
-	if (!wstrURL.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrURL(allocWString(pBegin, pEnd - pBegin));
 	
 	URLSchemaList::const_iterator it = listURLSchema_.begin();
 	while (it != listURLSchema_.end()) {
@@ -1429,25 +1362,20 @@ QSTATUS qs::TextWindowImpl::getURL(int nLine,
 			break;
 		++it;
 	}
-	if (it == listURLSchema_.end()) {
-		wstrURL.reset(concat(L"mailto:", wstrURL.get()));
-		if (!wstrURL.get())
-			return QSTATUS_OUTOFMEMORY;
-	}
-	*pwstrURL = wstrURL.release();
+	if (it == listURLSchema_.end())
+		wstrURL = concat(L"mailto:", wstrURL.get());
 	
-	return QSTATUS_SUCCESS;
+	return wstrURL;
 }
 
-QSTATUS qs::TextWindowImpl::textUpdated(const TextModelEvent& event)
+void qs::TextWindowImpl::textUpdated(const TextModelEvent& event)
 {
 	calcLines(event.getStartLine(),
 		event.getOldEndLine(), event.getNewEndLine());
 	updateScrollBar();
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::TextWindowImpl::textSet(const TextModelEvent& event)
+void qs::TextWindowImpl::textSet(const TextModelEvent& event)
 {
 	recalcLines();
 	caret_.nLine_ = 0;
@@ -1460,27 +1388,27 @@ QSTATUS qs::TextWindowImpl::textSet(const TextModelEvent& event)
 	scrollVertical(0);
 	updateScrollBar();
 	updateCaret(true);
-	return QSTATUS_SUCCESS;
 }
 
-TextWindowImpl::PhysicalLine* qs::TextWindowImpl::allocLine(
-	size_t nLogicalLine, size_t nPosition, size_t nLength,
-	COLORREF cr, LinkItem* pLinkItems, size_t nLinkCount)
+TextWindowImpl::PhysicalLine* qs::TextWindowImpl::allocLine(size_t nLogicalLine,
+															size_t nPosition,
+															size_t nLength,
+															COLORREF cr,
+															LinkItem* pLinkItems,
+															size_t nLinkCount)
 {
 	size_t nSize = sizeof(PhysicalLine) -
 		sizeof(LinkItem) + sizeof(LinkItem)*nLinkCount;
 	
 	PhysicalLine* pLine = static_cast<PhysicalLine*>(
 		std::__sgi_alloc::allocate(nSize));
-	if (pLine) {
-		pLine->nLogicalLine_ = nLogicalLine;
-		pLine->nPosition_ = nPosition;
-		pLine->nLength_ = nLength;
-		pLine->cr_ = cr;
-		pLine->items_.nCount_ = nLinkCount;
-		for (size_t n = 0; n < nLinkCount; ++n)
-			pLine->items_.items_[n] = *(pLinkItems + n);
-	}
+	pLine->nLogicalLine_ = nLogicalLine;
+	pLine->nPosition_ = nPosition;
+	pLine->nLength_ = nLength;
+	pLine->cr_ = cr;
+	pLine->items_.nCount_ = nLinkCount;
+	for (size_t n = 0; n < nLinkCount; ++n)
+		pLine->items_.items_[n] = *(pLinkItems + n);
 	return pLine;
 }
 
@@ -1508,8 +1436,12 @@ TextWindowImpl::CharType qs::TextWindowImpl::getCharType(WCHAR c)
 }
 
 bool qs::TextWindowImpl::getTextExtent(const DeviceContext& dc,
-	const WCHAR* pwszString, int nCount, int nMaxExtent,
-	int* pnFit, int* pnDx, SIZE* pSize) const
+									   const WCHAR* pwszString,
+									   int nCount,
+									   int nMaxExtent,
+									   int* pnFit,
+									   int* pnDx,
+									   SIZE* pSize) const
 {
 	if (nCount == 0) {
 		if (pnFit)
@@ -1531,7 +1463,8 @@ bool qs::TextWindowImpl::getTextExtent(const DeviceContext& dc,
 		if (nLen != 0) {
 			int nCharWidth = getAverageCharWidth();
 			int nPrev = 0;
-			for (int n = 0; n < nLen; ++n) {
+			int n = 0;
+			while (n < nLen) {
 				int nNext = pnDx[n];
 				int nWidth = pnDx[n] - nPrev <= nCharWidth*3/2 ?
 					nCharWidth : nCharWidth*2;
@@ -1539,6 +1472,7 @@ bool qs::TextWindowImpl::getTextExtent(const DeviceContext& dc,
 				if (nMaxExtent != 0 && pnDx[n] > nMaxExtent)
 					break;
 				nPrev = nNext;
+				++n;
 			}
 			pSize->cx = pnDx[n - 1];
 			if (nMaxExtent != 0) {
@@ -1551,16 +1485,14 @@ bool qs::TextWindowImpl::getTextExtent(const DeviceContext& dc,
 	return true;
 }
 
-QSTATUS qs::TextWindowImpl::getLineExtent(unsigned int nLine,
-	Extent* pExtent, bool* pbNewLine) const
+void qs::TextWindowImpl::getLineExtent(unsigned int nLine,
+									   Extent* pExtent,
+									   bool* pbNewLine) const
 {
 	assert(pExtent);
 	assert(pbNewLine);
 	
-	DECLARE_QSTATUS();
-	
-	ClientDeviceContext dc(pThis_->getHandle(), &status);
-	CHECK_QSTATUS();
+	ClientDeviceContext dc(pThis_->getHandle());
 	ObjectSelector<HFONT> fontSelector(dc, hfont_);
 	
 	const PhysicalLine* pPhysicalLine = listLine_[nLine];
@@ -1568,8 +1500,7 @@ QSTATUS qs::TextWindowImpl::getLineExtent(unsigned int nLine,
 		pPhysicalLine->nLogicalLine_);
 	
 	unsigned int nLen = pPhysicalLine->nLength_;
-	status = STLWrapper<Extent>(*pExtent).resize(nLen);
-	CHECK_QSTATUS();
+	pExtent->resize(nLen);
 	
 	const WCHAR* pLine = logicalLine.getText() + pPhysicalLine->nPosition_;
 	bool bNewLine = nLen != 0 && *(pLine + nLen - 1) == L'\n';
@@ -1604,17 +1535,14 @@ QSTATUS qs::TextWindowImpl::getLineExtent(unsigned int nLine,
 		(*pExtent)[nLen - 1] = (nLen == 1 ? 0 : (*pExtent)[nLen - 2]) +
 			getAverageCharWidth();
 	*pbNewLine = bNewLine;
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::TextWindowImpl::getLinks(const WCHAR* pwsz,
-	size_t nLen, LogicalLinkItemList* pList) const
+void qs::TextWindowImpl::getLinks(const WCHAR* pwsz,
+								  size_t nLen,
+								  LogicalLinkItemList* pList) const
 {
 	assert(pwsz);
 	assert(pList);
-	
-	DECLARE_QSTATUS();
 	
 	pList->clear();
 	
@@ -1629,23 +1557,19 @@ QSTATUS qs::TextWindowImpl::getLinks(const WCHAR* pwsz,
 			p - pwsz + link.first,
 			link.second
 		};
-		status = STLWrapper<LogicalLinkItemList>(*pList).push_back(item);
-		CHECK_QSTATUS();
+		pList->push_back(item);
 		
 		p += link.first + link.second;
 		nLen -= link.first + link.second;
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::TextWindowImpl::convertLogicalLinksToPhysicalLinks(
-	const LogicalLinkItemList& listLogicalLinkItem, size_t nOffset,
-	size_t nLength, LinkItemList* pListPhysicalLink) const
+void qs::TextWindowImpl::convertLogicalLinksToPhysicalLinks(const LogicalLinkItemList& listLogicalLinkItem,
+															size_t nOffset,
+															size_t nLength,
+															LinkItemList* pListPhysicalLink) const
 {
 	assert(pListPhysicalLink);
-	
-	DECLARE_QSTATUS();
 	
 	pListPhysicalLink->clear();
 	
@@ -1691,20 +1615,16 @@ QSTATUS qs::TextWindowImpl::convertLogicalLinksToPhysicalLinks(
 			}
 		}
 		
-		if (item.nOffset_ != -1 && item.nLength_ != 0) {
-			status = STLWrapper<LinkItemList>(
-				*pListPhysicalLink).push_back(item);
-			CHECK_QSTATUS();
-		}
+		if (item.nOffset_ != -1 && item.nLength_ != 0)
+			pListPhysicalLink->push_back(item);
 		
 		++it;
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 void qs::TextWindowImpl::fillPhysicalLinks(LinkItemList* pList,
-	DeviceContext* pdc, const WCHAR* pwsz) const
+										   DeviceContext* pdc,
+										   const WCHAR* pwsz) const
 {
 	assert(pList);
 	assert(pdc);
@@ -1763,8 +1683,8 @@ TextWindowImpl::PhysicalLine* qs::TextWindowImpl::PhysicalLinePtr::release()
  *
  */
 
-bool qs::TextWindowImpl::PhysicalLineComp::operator()(
-	const PhysicalLine* pLhs, const PhysicalLine* pRhs) const
+bool qs::TextWindowImpl::PhysicalLineComp::operator()(const PhysicalLine* pLhs,
+													  const PhysicalLine* pRhs) const
 {
 	if (pLhs->nLogicalLine_ < pRhs->nLogicalLine_)
 		return true;
@@ -1785,20 +1705,14 @@ bool qs::TextWindowImpl::PhysicalLineComp::operator()(
  *
  */
 
-qs::TextWindow::TextWindow(TextModel* pTextModel, Profile* pProfile,
-	const WCHAR* pwszSection, bool bDeleteThis, QSTATUS* pstatus) :
-	WindowBase(bDeleteThis, pstatus),
-	DefaultWindowHandler(pstatus),
+qs::TextWindow::TextWindow(TextModel* pTextModel,
+						   Profile* pProfile,
+						   const WCHAR* pwszSection,
+						   bool bDeleteThis) :
+	WindowBase(bDeleteThis),
 	pImpl_(0)
 {
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	DECLARE_QSTATUS();
-	
-	std::auto_ptr<TextWindowUndoManager> pUndoManager;
-	status = newQsObject(&pUndoManager);
-	CHECK_QSTATUS_SET(pstatus);
+	std::auto_ptr<TextWindowUndoManager> pUndoManager(new TextWindowUndoManager());
 	
 	int n = 0;
 	struct InitColor
@@ -1814,18 +1728,14 @@ qs::TextWindow::TextWindow(TextModel* pTextModel, Profile* pProfile,
 		{ L"LinkColor",			L"0000ff",	0 }
 	};
 	for (n = 0; n < countof(initColors); ++n) {
-		string_ptr<WSTRING> wstr;
-		status = pProfile->getString(pwszSection,
-			initColors[n].pwszKey_, initColors[n].pwszDefault_, &wstr);
-		CHECK_QSTATUS_SET(pstatus);
-		Color color(wstr.get(), &status);
-		CHECK_QSTATUS_SET(pstatus);
-		initColors[n].cr_ = color.getColor();
+		wstring_ptr wstr(pProfile->getString(pwszSection,
+			initColors[n].pwszKey_, initColors[n].pwszDefault_));
+		Color color(wstr.get());
+		if (color.getColor() != 0xffffffff)
+			initColors[n].cr_ = color.getColor();
 	}
 	
-	int nUseSystemColor = 1;
-	status = pProfile->getInt(pwszSection, L"UseSystemColor", 1, &nUseSystemColor);
-	CHECK_QSTATUS_SET(pstatus);
+	int nUseSystemColor = pProfile->getInt(pwszSection, L"UseSystemColor", 1);
 	if (nUseSystemColor) {
 		initColors[0].cr_ = ::GetSysColor(COLOR_WINDOWTEXT);
 		initColors[1].cr_ = ::GetSysColor(COLOR_WINDOW);
@@ -1853,34 +1763,34 @@ qs::TextWindow::TextWindow(TextModel* pTextModel, Profile* pProfile,
 		{ L"ReformLineLength",			74,	0 },
 		{ L"AdjustExtent",				0,	0 },
 	};
-	for (n = 0; n < countof(initNumbers); ++n) {
-		status = pProfile->getInt(pwszSection, initNumbers[n].pwszKey_,
-			initNumbers[n].nDefault_, &initNumbers[n].nValue_);
-		CHECK_QSTATUS_SET(pstatus);
-	}
+	for (n = 0; n < countof(initNumbers); ++n)
+		initNumbers[n].nValue_ = pProfile->getInt(pwszSection,
+			initNumbers[n].pwszKey_, initNumbers[n].nDefault_);
 	
 	struct InitString
 	{
-		InitString(const WCHAR* pwszKey, const WCHAR* pwszDefault) :
-			pwszKey_(pwszKey), pwszDefault_(pwszDefault), wstrValue_(0) {}
-		~InitString() { freeWString(wstrValue_); }
+		InitString(const WCHAR* pwszKey,
+				   const WCHAR* pwszDefault) :
+			pwszKey_(pwszKey),
+			pwszDefault_(pwszDefault)
+		{
+		}
+		~InitString()
+		{
+		}
 		const WCHAR* pwszKey_;
 		const WCHAR* pwszDefault_;
-		WSTRING wstrValue_;
+		wstring_ptr wstrValue_;
 	} initStrings[] = {
 		{ InitString(L"Quote1",			L">")	},
 		{ InitString(L"Quote2",			L"#")	},
 		{ InitString(L"ReformQuote",	L">|#")	}
 	};
-	for (n = 0; n < countof(initStrings); ++n) {
-		status = pProfile->getString(pwszSection, initStrings[n].pwszKey_,
-			initStrings[n].pwszDefault_, &initStrings[n].wstrValue_);
-		CHECK_QSTATUS_SET(pstatus);
-	}
+	for (n = 0; n < countof(initStrings); ++n)
+		initStrings[n].wstrValue_ = pProfile->getString(pwszSection,
+			initStrings[n].pwszKey_, initStrings[n].pwszDefault_);
 	
-	HFONT hfont = 0;
-	status = UIUtil::createFontFromProfile(pProfile, pwszSection, true, &hfont);
-	CHECK_QSTATUS_SET(pstatus);
+	HFONT hfont = UIUtil::createFontFromProfile(pProfile, pwszSection, true);
 	GdiObject<HFONT> font(hfont);
 	
 	LOGFONT lf;
@@ -1889,36 +1799,24 @@ qs::TextWindow::TextWindow(TextModel* pTextModel, Profile* pProfile,
 		(initNumbers[14].nValue_ != 0 || lf.lfWeight != FW_NORMAL);
 	
 	TextWindowImpl::URLSchemaList listURLSchema;
-	int nClickableURL = 0;
-	status = pProfile->getInt(pwszSection, L"ClickableURL", 1, &nClickableURL);
-	CHECK_QSTATUS_SET(pstatus);
+	int nClickableURL = pProfile->getInt(pwszSection, L"ClickableURL", 1);
 	if (nClickableURL) {
-		string_ptr<WSTRING> wstrSchemas;
-		status = pProfile->getString(pwszSection, L"URLSchemas",
-			L"http https ftp file mailto", &wstrSchemas);
-		CHECK_QSTATUS_SET(pstatus);
+		wstring_ptr wstrSchemas(pProfile->getString(pwszSection,
+			L"URLSchemas", L"http https ftp file mailto"));
 		
 		WCHAR* p = wcstok(wstrSchemas.get(), L" ");
 		while (p) {
-			string_ptr<WSTRING> wstr(allocWString(p));
-			if (!wstr.get()) {
-				*pstatus = QSTATUS_OUTOFMEMORY;
-				return;
-			}
-			status = STLWrapper<TextWindowImpl::URLSchemaList>(
-				listURLSchema).push_back(wstr.get());
-			CHECK_QSTATUS_SET(pstatus);
+			wstring_ptr wstr(allocWString(p));
+			listURLSchema.push_back(wstr.get());
 			wstr.release();
-			
 			p = wcstok(0, L" ");
 		}
 	}
 	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new TextWindowImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->pTextModel_ = pTextModel;
-	pImpl_->pUndoManager_ = pUndoManager.release();
+	pImpl_->pUndoManager_ = pUndoManager;
 	pImpl_->pLinkHandler_ = 0;
 	pImpl_->pRuler_ = 0;
 	pImpl_->crForeground_ = initColors[0].cr_;
@@ -1938,12 +1836,10 @@ qs::TextWindow::TextWindow(TextModel* pTextModel, Profile* pProfile,
 	pImpl_->bShowRuler_ = initNumbers[12].nValue_ != 0;
 	for (n = 0; n < countof(pImpl_->wstrQuote_); ++n) {
 		pImpl_->wstrQuote_[n] = initStrings[n].wstrValue_;
-		initStrings[n].wstrValue_ = 0;
 		pImpl_->crQuote_[n] = initColors[n + 2].cr_;
 	}
 	pImpl_->nReformLineLength_ = initNumbers[13].nValue_;
 	pImpl_->wstrReformQuote_ = initStrings[2].wstrValue_;
-	initStrings[2].wstrValue_ = 0;
 	pImpl_->listURLSchema_.swap(listURLSchema);
 	pImpl_->crLink_ = initColors[4].cr_;
 	pImpl_->hfont_ = font.release();
@@ -1980,10 +1876,6 @@ qs::TextWindow::TextWindow(TextModel* pTextModel, Profile* pProfile,
 qs::TextWindow::~TextWindow()
 {
 	if (pImpl_) {
-		delete pImpl_->pUndoManager_;
-		for (int n = 0; n < countof(pImpl_->wstrQuote_); ++n)
-			freeWString(pImpl_->wstrQuote_[n]);
-		freeWString(pImpl_->wstrReformQuote_);
 		std::for_each(pImpl_->listURLSchema_.begin(),
 			pImpl_->listURLSchema_.end(), string_free<WSTRING>());
 		std::for_each(pImpl_->listLine_.begin(),
@@ -2001,11 +1893,11 @@ void qs::TextWindow::setTextModel(TextModel* pTextModel)
 {
 	assert(pTextModel);
 	assert(!pImpl_->pTextModel_);
-	
 	pImpl_->pTextModel_ = pTextModel;
 }
 
-QSTATUS qs::TextWindow::insertText(const WCHAR* pwszText, size_t nLen)
+bool qs::TextWindow::insertText(const WCHAR* pwszText,
+								size_t nLen)
 {
 	return pImpl_->insertText(pwszText, nLen,
 		TextWindowImpl::INSERTTEXTFLAG_NORMAL);
@@ -2017,214 +1909,164 @@ bool qs::TextWindow::isSelected() const
 		pImpl_->selection_.nStartChar_ != pImpl_->selection_.nEndChar_;
 }
 
-QSTATUS qs::TextWindow::getSelectedText(WSTRING* pwstrText) const
+wstring_ptr qs::TextWindow::getSelectedText() const
 {
-	assert(pwstrText);
-	
-	DECLARE_QSTATUS();
-	
 	unsigned int nStartLine = 0;
 	unsigned int nStartChar = 0;
 	unsigned int nEndLine = 0;
 	unsigned int nEndChar = 0;
 	pImpl_->getSelection(&nStartLine, &nStartChar, &nEndLine, &nEndChar, 0);
 	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
+	StringBuffer<WSTRING> buf;
 	
 	for (unsigned int n = nStartLine; n <= nEndLine; ++n) {
 		const TextWindowImpl::PhysicalLine* pLine = pImpl_->listLine_[n];
 		TextModel::Line l = pImpl_->pTextModel_->getLine(pLine->nLogicalLine_);
 		unsigned int nStart = n == nStartLine ? nStartChar : 0;
 		unsigned int nEnd = n == nEndLine ? nEndChar : pLine->nLength_;
-		status = buf.append(l.getText() + pLine->nPosition_ + nStart, nEnd - nStart);
-		CHECK_QSTATUS();
+		buf.append(l.getText() + pLine->nPosition_ + nStart, nEnd - nStart);
 	}
 	
-	*pwstrText = buf.getString();
-	
-	return QSTATUS_SUCCESS;
+	return buf.getString();
 }
 
-QSTATUS qs::TextWindow::selectAll()
+bool qs::TextWindow::selectAll()
 {
-	DECLARE_QSTATUS();
-	
-	status = moveCaret(MOVECARET_DOCSTART, 0, 0, false, SELECT_CLEAR, false);
-	CHECK_QSTATUS();
-	status = moveCaret(MOVECARET_DOCEND, 0, 0, false, SELECT_SELECT, true);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	moveCaret(MOVECARET_DOCSTART, 0, 0, false, SELECT_CLEAR, false);
+	moveCaret(MOVECARET_DOCEND, 0, 0, false, SELECT_SELECT, true);
+	return true;
 }
 
-QSTATUS qs::TextWindow::canSelectAll(bool* pbCan) const
+bool qs::TextWindow::canSelectAll() const
 {
-	assert(pbCan);
-	*pbCan = pImpl_->pTextModel_->getLineCount() != 0;
-	return QSTATUS_SUCCESS;
+	return pImpl_->pTextModel_->getLineCount() != 0;
 }
 
-QSTATUS qs::TextWindow::cut()
+bool qs::TextWindow::cut()
 {
-	DECLARE_QSTATUS();
+	if (!pImpl_->pTextModel_->isEditable())
+		return false;
 	
-	if (pImpl_->pTextModel_->isEditable()) {
-		status = copy();
-		CHECK_QSTATUS();
-		
-		status = pImpl_->insertText(L"", 0,
-			TextWindowImpl::INSERTTEXTFLAG_NORMAL);
-		CHECK_QSTATUS();
+	if (!copy())
+		return false;
+	if (!pImpl_->insertText(L"", 0, TextWindowImpl::INSERTTEXTFLAG_NORMAL))
+		return false;
+	
+	return true;
+}
+
+bool qs::TextWindow::canCut() const
+{
+	return pImpl_->pTextModel_->isEditable() && isSelected();
+}
+
+bool qs::TextWindow::copy()
+{
+	wstring_ptr wstrText(getSelectedText());
+	if (!wstrText.get())
+		return false;
+	return Clipboard::setText(getHandle(), wstrText.get());
+}
+
+bool qs::TextWindow::canCopy() const
+{
+	return isSelected();
+}
+
+bool qs::TextWindow::paste()
+{
+	if (!pImpl_->pTextModel_->isEditable())
+		return false;
+	
+	wstring_ptr wstrText(Clipboard::getText(getHandle()));
+	if (wstrText.get()) {
+		if (!pImpl_->insertText(wstrText.get(), -1,
+			TextWindowImpl::INSERTTEXTFLAG_NORMAL))
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::TextWindow::canCut(bool* pbCan) const
+bool qs::TextWindow::canPaste() const
 {
-	assert(pbCan);
-	*pbCan = pImpl_->pTextModel_->isEditable() && isSelected();
-	return QSTATUS_SUCCESS;
+	if (pImpl_->pTextModel_->isEditable())
+		return Clipboard::isFormatAvailable(Clipboard::CF_QSTEXT);
+	else
+		return false;
 }
 
-QSTATUS qs::TextWindow::copy()
+bool qs::TextWindow::undo()
 {
-	DECLARE_QSTATUS();
+	if (!pImpl_->pTextModel_->isEditable())
+		return false;
 	
-	string_ptr<WSTRING> wstrText;
-	status = getSelectedText(&wstrText);
-	CHECK_QSTATUS();
+	if (!pImpl_->pUndoManager_->hasUndoItem())
+		return false;
 	
-	status = Clipboard::setText(getHandle(), wstrText.get());
-	CHECK_QSTATUS();
+	std::auto_ptr<TextWindowUndoManager::Item> pItem(
+		pImpl_->pUndoManager_->popUndoItem());
+	pImpl_->clearSelection();
+	pImpl_->expandSelection(pItem->getStartLine(), pItem->getStartChar(),
+		pItem->getEndLine(), pItem->getEndChar());
+	moveCaret(TextWindow::MOVECARET_POS, pItem->getEndLine(),
+		pItem->getEndChar(), false, TextWindow::SELECT_NONE, false);
+	if (!pImpl_->insertText(pItem->getText(), -1,
+		TextWindowImpl::INSERTTEXTFLAG_UNDO))
+		return false;
 	
-	return QSTATUS_SUCCESS;
+	moveCaret(TextWindow::MOVECARET_POS, pItem->getCaretLine(),
+		 pItem->getCaretChar(), false, TextWindow::SELECT_NONE, true);
+	
+	return true;
 }
 
-QSTATUS qs::TextWindow::canCopy(bool* pbCan) const
+bool qs::TextWindow::canUndo() const
 {
-	assert(pbCan);
-	*pbCan = isSelected();
-	return QSTATUS_SUCCESS;
+	return pImpl_->pUndoManager_->hasUndoItem();
 }
 
-QSTATUS qs::TextWindow::paste()
+bool qs::TextWindow::redo()
 {
-	DECLARE_QSTATUS();
+	if (!pImpl_->pTextModel_->isEditable())
+		return false;
 	
-	if (pImpl_->pTextModel_->isEditable()) {
-		string_ptr<WSTRING> wstrText;
-		status = Clipboard::getText(getHandle(), &wstrText);
-		if (status == QSTATUS_SUCCESS) {
-			status = pImpl_->insertText(wstrText.get(), -1,
-				TextWindowImpl::INSERTTEXTFLAG_NORMAL);
-			CHECK_QSTATUS();
-		}
-	}
+	if (!pImpl_->pUndoManager_->hasRedoItem())
+		return false;
 	
-	return QSTATUS_SUCCESS;
+	std::auto_ptr<TextWindowUndoManager::Item> pItem(
+		pImpl_->pUndoManager_->popRedoItem());
+	pImpl_->clearSelection();
+	pImpl_->expandSelection(pItem->getStartLine(), pItem->getStartChar(),
+		pItem->getEndLine(), pItem->getEndChar());
+	if (!pImpl_->insertText(pItem->getText(), -1,
+		TextWindowImpl::INSERTTEXTFLAG_REDO))
+		return false;
+	
+	moveCaret(TextWindow::MOVECARET_POS,pItem->getCaretLine(),
+		 pItem->getCaretChar(), false, TextWindow::SELECT_NONE, true);
+	
+	return true;
 }
 
-QSTATUS qs::TextWindow::canPaste(bool* pbCan) const
+bool qs::TextWindow::canRedo() const
 {
-	assert(pbCan);
-	
-	DECLARE_QSTATUS();
-	
-	if (pImpl_->pTextModel_->isEditable()) {
-		status = Clipboard::isFormatAvailable(Clipboard::CF_QSTEXT, pbCan);
-		CHECK_QSTATUS();
-	}
-	else {
-		*pbCan = false;
-	}
-	
-	return QSTATUS_SUCCESS;
+	return pImpl_->pUndoManager_->hasRedoItem();
 }
 
-QSTATUS qs::TextWindow::undo()
+bool qs::TextWindow::find(const WCHAR* pwszFind,
+						  unsigned int nFlags)
 {
-	DECLARE_QSTATUS();
-	
-	if (pImpl_->pTextModel_->isEditable()) {
-		if (!pImpl_->pUndoManager_->hasUndoItem())
-			return QSTATUS_FAIL;
-		
-		std::auto_ptr<TextWindowUndoManager::Item> pItem(
-			pImpl_->pUndoManager_->popUndoItem());
-		pImpl_->clearSelection();
-		pImpl_->expandSelection(pItem->getStartLine(), pItem->getStartChar(),
-			pItem->getEndLine(), pItem->getEndChar());
-		status = moveCaret(TextWindow::MOVECARET_POS, pItem->getEndLine(),
-			pItem->getEndChar(), false, TextWindow::SELECT_NONE, false);
-		CHECK_QSTATUS();
-		status = pImpl_->insertText(pItem->getText(), -1,
-			TextWindowImpl::INSERTTEXTFLAG_UNDO);
-		CHECK_QSTATUS();
-		
-		status = moveCaret(TextWindow::MOVECARET_POS, pItem->getCaretLine(),
-			 pItem->getCaretChar(), false, TextWindow::SELECT_NONE, true);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	return replace(pwszFind, 0, nFlags);
 }
 
-QSTATUS qs::TextWindow::canUndo(bool* pbCan) const
-{
-	assert(pbCan);
-	*pbCan = pImpl_->pUndoManager_->hasUndoItem();
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qs::TextWindow::redo()
-{
-	DECLARE_QSTATUS();
-	
-	if (pImpl_->pTextModel_->isEditable()) {
-		if (!pImpl_->pUndoManager_->hasRedoItem())
-			return QSTATUS_FAIL;
-		
-		std::auto_ptr<TextWindowUndoManager::Item> pItem(
-			pImpl_->pUndoManager_->popRedoItem());
-		pImpl_->clearSelection();
-		pImpl_->expandSelection(pItem->getStartLine(), pItem->getStartChar(),
-			pItem->getEndLine(), pItem->getEndChar());
-		status = pImpl_->insertText(pItem->getText(), -1,
-			TextWindowImpl::INSERTTEXTFLAG_REDO);
-		CHECK_QSTATUS();
-		
-		status = moveCaret(TextWindow::MOVECARET_POS,pItem->getCaretLine(),
-			 pItem->getCaretChar(), false, TextWindow::SELECT_NONE, true);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qs::TextWindow::canRedo(bool* pbCan) const
-{
-	assert(pbCan);
-	*pbCan = pImpl_->pUndoManager_->hasRedoItem();
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qs::TextWindow::find(const WCHAR* pwszFind,
-	unsigned int nFlags, bool* pbFound)
-{
-	return replace(pwszFind, 0, nFlags, pbFound);
-}
-
-QSTATUS qs::TextWindow::replace(const WCHAR* pwszFind,
-	const WCHAR* pwszReplace, unsigned int nFlags, bool* pbFound)
+bool qs::TextWindow::replace(const WCHAR* pwszFind,
+							 const WCHAR* pwszReplace,
+							 unsigned int nFlags)
 {
 	assert(pwszFind);
-	assert(pbFound);
 	
-	DECLARE_QSTATUS();
-	
-	*pbFound = false;
+	bool bFound = false;
 	
 	// TODO
 	// Treat FLAG_REFORMED
@@ -2245,10 +2087,9 @@ QSTATUS qs::TextWindow::replace(const WCHAR* pwszFind,
 	bool bRegex = (nFlags & FIND_REGEX) != 0;
 	std::auto_ptr<RegexPattern> pPattern;
 	if (bRegex) {
-		RegexPattern* p = 0;
-		status = RegexCompiler().compile(pwszFind, &p);
-		CHECK_QSTATUS();
-		pPattern.reset(p);
+		pPattern = RegexCompiler().compile(pwszFind);
+		if (!pPattern.get())
+			return false;
 	}
 	RegexRangeList listRange;
 	
@@ -2269,10 +2110,9 @@ QSTATUS qs::TextWindow::replace(const WCHAR* pwszFind,
 				TextModel::Line line = pImpl_->pTextModel_->getLine(nLogicalLine);
 				const WCHAR* pStart = 0;
 				const WCHAR* pEnd = 0;
-				status = pPattern->search(line.getText(), line.getLength(),
+				pPattern->search(line.getText(), line.getLength(),
 					line.getText() + (nLogicalChar == -1 ? line.getLength() : nLogicalChar),
 					true, &pStart, &pEnd, &listRange);
-				CHECK_QSTATUS();
 				if (pStart) {
 					nLogicalChar = pStart - line.getText();
 					nLen = pEnd - pStart;
@@ -2286,8 +2126,7 @@ QSTATUS qs::TextWindow::replace(const WCHAR* pwszFind,
 			unsigned int nBMFlags = BMFindString<WSTRING>::FLAG_REVERSE |
 				((nFlags & FIND_MATCHCASE) == 0 ?
 					BMFindString<WSTRING>::FLAG_IGNORECASE : 0);
-			BMFindString<WSTRING> bmfs(pwszFind, nLen, nBMFlags, &status);
-			CHECK_QSTATUS();
+			BMFindString<WSTRING> bmfs(pwszFind, nLen, nBMFlags);
 			
 			while (nLogicalLine != -1) {
 				TextModel::Line line = pImpl_->pTextModel_->getLine(nLogicalLine);
@@ -2304,7 +2143,7 @@ QSTATUS qs::TextWindow::replace(const WCHAR* pwszFind,
 		if (nLogicalLine != -1) {
 			start = pImpl_->getPhysicalLine(nLogicalLine, nLogicalChar + nLen);
 			end = pImpl_->getPhysicalLine(nLogicalLine, nLogicalChar);
-			*pbFound = true;
+			bFound = true;
 		}
 	}
 	else {
@@ -2320,10 +2159,9 @@ QSTATUS qs::TextWindow::replace(const WCHAR* pwszFind,
 				TextModel::Line line = pImpl_->pTextModel_->getLine(nLogicalLine);
 				const WCHAR* pStart = 0;
 				const WCHAR* pEnd = 0;
-				status = pPattern->search(line.getText() + nLogicalChar,
+				pPattern->search(line.getText() + nLogicalChar,
 					line.getLength() - nLogicalChar, line.getText() + nLogicalChar,
 					false, &pStart, &pEnd, &listRange);
-				CHECK_QSTATUS();
 				if (pStart) {
 					nLogicalChar = pStart - line.getText();
 					nLen = pEnd - pStart;
@@ -2336,8 +2174,7 @@ QSTATUS qs::TextWindow::replace(const WCHAR* pwszFind,
 		else {
 			unsigned int nBMFlags = (nFlags & FIND_MATCHCASE) == 0 ?
 				BMFindString<WSTRING>::FLAG_IGNORECASE : 0;
-			BMFindString<WSTRING> bmfs(pwszFind, nLen, nBMFlags, &status);
-			CHECK_QSTATUS();
+			BMFindString<WSTRING> bmfs(pwszFind, nLen, nBMFlags);
 			
 			while (nLogicalLine < pImpl_->pTextModel_->getLineCount()) {
 				TextModel::Line line = pImpl_->pTextModel_->getLine(nLogicalLine);
@@ -2354,40 +2191,34 @@ QSTATUS qs::TextWindow::replace(const WCHAR* pwszFind,
 		if (nLogicalLine != pImpl_->pTextModel_->getLineCount()) {
 			start = pImpl_->getPhysicalLine(nLogicalLine, nLogicalChar);
 			end = pImpl_->getPhysicalLine(nLogicalLine, nLogicalChar + nLen);
-			*pbFound = true;
+			bFound = true;
 		}
 	}
 	
-	if (*pbFound) {
-		status = moveCaret(MOVECARET_POS, start.first,
+	if (bFound) {
+		moveCaret(MOVECARET_POS, start.first,
 			start.second, false, SELECT_CLEAR, false);
-		CHECK_QSTATUS();
-		status = moveCaret(MOVECARET_POS, end.first,
+		moveCaret(MOVECARET_POS, end.first,
 			end.second, false, SELECT_SELECT, true);
-		CHECK_QSTATUS();
 		
 		if (pwszReplace) {
 			if (bRegex) {
-				string_ptr<WSTRING> wstrReplace;
-				status = listRange.getReplace(pwszReplace, &wstrReplace);
-				CHECK_QSTATUS();
-				status = insertText(wstrReplace.get(), -1);
-				CHECK_QSTATUS();
+				wstring_ptr wstrReplace(listRange.getReplace(pwszReplace));
+				if (!insertText(wstrReplace.get(), -1))
+					return false;
 			}
 			else {
-				status = insertText(pwszReplace, -1);
-				CHECK_QSTATUS();
+				if (!insertText(pwszReplace, -1))
+					return false;
 			}
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return bFound;
 }
 
-QSTATUS qs::TextWindow::reform()
+void qs::TextWindow::reform()
 {
-	DECLARE_QSTATUS();
-	
 	size_t nStart = 0;
 	size_t nEnd = 0;
 	
@@ -2455,18 +2286,14 @@ QSTATUS qs::TextWindow::reform()
 			--nEnd;
 	}
 	
-	string_ptr<WSTRING> wstrQuote;
+	wstring_ptr wstrQuote;
 	TextModel::Line firstLine = pImpl_->pTextModel_->getLine(nStart);
 	size_t nQuoteLen = pImpl_->getReformQuoteLength(
 		firstLine.getText(), firstLine.getLength());
-	if (nQuoteLen != 0) {
-		wstrQuote.reset(allocWString(firstLine.getText(), nQuoteLen));
-		if (!wstrQuote.get())
-			return QSTATUS_OUTOFMEMORY;
-	}
+	if (nQuoteLen != 0)
+		wstrQuote = allocWString(firstLine.getText(), nQuoteLen);
 	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
+	StringBuffer<WSTRING> buf;
 	bool bAscii = false;
 	for (size_t n = nStart; n <= nEnd; ++n) {
 		TextModel::Line line = pImpl_->pTextModel_->getLine(n);
@@ -2475,18 +2302,12 @@ QSTATUS qs::TextWindow::reform()
 		size_t nLen = line.getLength() - nQuoteLen;
 		if (nLen != 0) {
 			p += nQuoteLen;
-			if (bAscii && *p < 0x80) {
-				status = buf.append(L' ');
-				CHECK_QSTATUS();
-			}
-			for (--nLen; nLen > 0; --nLen, ++p) {
-				status = buf.append(*p);
-				CHECK_QSTATUS();
-			}
-			if (*p != L'\n') {
-				status = buf.append(*p);
-				CHECK_QSTATUS();
-			}
+			if (bAscii && *p < 0x80)
+				buf.append(L' ');
+			for (--nLen; nLen > 0; --nLen, ++p)
+				buf.append(*p);
+			if (*p != L'\n')
+				buf.append(*p);
 			bAscii = *p < 0x80;
 		}
 		else {
@@ -2494,15 +2315,12 @@ QSTATUS qs::TextWindow::reform()
 		}
 	}
 	if (buf.getLength() == 0)
-		return QSTATUS_SUCCESS;
-	status = buf.append(L'\n');
-	CHECK_QSTATUS();
+		return;
+	buf.append(L'\n');
 	
-	string_ptr<WSTRING> wstrText;
-	status = TextUtil::fold(buf.getCharArray(), buf.getLength(),
-		pImpl_->nReformLineLength_, wstrQuote.get(), nQuoteLen,
-		pImpl_->nTabWidth_, &wstrText);
-	CHECK_QSTATUS();
+	wxstring_ptr wstrText(TextUtil::fold(buf.getCharArray(),
+		buf.getLength(), pImpl_->nReformLineLength_, wstrQuote.get(),
+		nQuoteLen, pImpl_->nTabWidth_));
 	
 	std::pair<unsigned int, unsigned int> l;
 	l = pImpl_->getPhysicalLine(nStart, 0);
@@ -2522,20 +2340,16 @@ QSTATUS qs::TextWindow::reform()
 		pImpl_->selection_.nEndChar_ = l.second;
 	}
 	
-	status = pImpl_->insertText(wstrText.get(), -1,
+	pImpl_->insertText(wstrText.get(), -1,
 		TextWindowImpl::INSERTTEXTFLAG_NORMAL);
-	CHECK_QSTATUS();
 	
-	status = moveCaret(MOVECARET_CHARLEFT, 0, 0, false, SELECT_NONE, true);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	moveCaret(MOVECARET_CHARLEFT, 0, 0, false, SELECT_NONE, true);
 }
 
-QSTATUS qs::TextWindow::scroll(Scroll scroll, int nPos, bool bRepeat)
+void qs::TextWindow::scroll(Scroll scroll,
+							int nPos,
+							bool bRepeat)
 {
-	DECLARE_QSTATUS();
-	
 	if (scroll & SCROLL_VERTICAL_MASK) {
 		unsigned int nLineInWindow = pImpl_->getLineInWindow();
 		
@@ -2621,15 +2435,15 @@ QSTATUS qs::TextWindow::scroll(Scroll scroll, int nPos, bool bRepeat)
 	}
 	
 	pImpl_->updateCaret(false);
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::TextWindow::moveCaret(MoveCaret moveCaret, unsigned int nLine,
-	unsigned int nChar, bool bRepeat, Select select, bool bScroll)
+void qs::TextWindow::moveCaret(MoveCaret moveCaret,
+							   unsigned int nLine,
+							   unsigned int nChar,
+							   bool bRepeat,
+							   Select select,
+							   bool bScroll)
 {
-	DECLARE_QSTATUS();
-	
 	if (!pImpl_->listLine_.empty()) {
 		TextWindowImpl::Caret caret = pImpl_->caret_;
 		
@@ -2655,9 +2469,8 @@ QSTATUS qs::TextWindow::moveCaret(MoveCaret moveCaret, unsigned int nLine,
 					rectMargin.top = 0;
 				}
 				rectMargin.bottom = 0;
-				status = pImpl_->getPosFromChar(pImpl_->caret_.nLine_,
-					pImpl_->caret_.nChar_, &pImpl_->caret_.nPos_);
-				CHECK_QSTATUS();
+				pImpl_->caret_.nPos_ = pImpl_->getPosFromChar(
+					pImpl_->caret_.nLine_, pImpl_->caret_.nChar_);
 				pImpl_->caret_.nOldPos_ = pImpl_->caret_.nPos_;
 			}
 			break;
@@ -2674,9 +2487,8 @@ QSTATUS qs::TextWindow::moveCaret(MoveCaret moveCaret, unsigned int nLine,
 					rectMargin.bottom = 0;
 				}
 				rectMargin.top = 0;
-				status = pImpl_->getPosFromChar(pImpl_->caret_.nLine_,
-					pImpl_->caret_.nChar_, &pImpl_->caret_.nPos_);
-				CHECK_QSTATUS();
+				pImpl_->caret_.nPos_ = pImpl_->getPosFromChar(
+					pImpl_->caret_.nLine_, pImpl_->caret_.nChar_);
 				pImpl_->caret_.nOldPos_ = pImpl_->caret_.nPos_;
 			}
 			break;
@@ -2742,9 +2554,8 @@ QSTATUS qs::TextWindow::moveCaret(MoveCaret moveCaret, unsigned int nLine,
 				}
 				pImpl_->caret_.nLine_ = nLine;
 				pImpl_->caret_.nChar_ = nChar;
-				status = pImpl_->getPosFromChar(pImpl_->caret_.nLine_,
-					pImpl_->caret_.nChar_, &pImpl_->caret_.nPos_);
-				CHECK_QSTATUS();
+				pImpl_->caret_.nPos_ = pImpl_->getPosFromChar(
+					pImpl_->caret_.nLine_, pImpl_->caret_.nChar_);
 				pImpl_->caret_.nOldPos_ = pImpl_->caret_.nPos_;
 			}
 			break;
@@ -2800,16 +2611,15 @@ QSTATUS qs::TextWindow::moveCaret(MoveCaret moveCaret, unsigned int nLine,
 					pImpl_->caret_.nLine_ = pImpl_->listLine_.size() - 1;
 					pImpl_->caret_.nChar_ = pImpl_->listLine_[pImpl_->caret_.nLine_]->nLength_;
 				}
-				status = pImpl_->getPosFromChar(pImpl_->caret_.nLine_,
-					pImpl_->caret_.nChar_, &pImpl_->caret_.nPos_);
-				CHECK_QSTATUS();
+				pImpl_->caret_.nPos_ = pImpl_->getPosFromChar(
+					pImpl_->caret_.nLine_, pImpl_->caret_.nChar_);
 				pImpl_->caret_.nOldPos_ = pImpl_->caret_.nPos_;
 			}
 			break;
 		case MOVECARET_LINESTART:
 			pImpl_->caret_.nChar_ = 0;
-			status = pImpl_->getPosFromChar(pImpl_->caret_.nLine_,
-				pImpl_->caret_.nChar_, &pImpl_->caret_.nPos_);
+			pImpl_->caret_.nPos_ = pImpl_->getPosFromChar(
+				pImpl_->caret_.nLine_, pImpl_->caret_.nChar_);
 			pImpl_->caret_.nOldPos_ = pImpl_->caret_.nPos_;
 			rectMargin.top = 0;
 			rectMargin.bottom = 0;
@@ -2817,9 +2627,8 @@ QSTATUS qs::TextWindow::moveCaret(MoveCaret moveCaret, unsigned int nLine,
 		case MOVECARET_LINEEND:
 			pImpl_->caret_.nChar_ = pLine->nLength_ -
 				(pImpl_->caret_.nLine_ == nLineCount - 1 ? 0 : 1);
-			status = pImpl_->getPosFromChar(pImpl_->caret_.nLine_,
-				pImpl_->caret_.nChar_, &pImpl_->caret_.nPos_);
-			CHECK_QSTATUS();
+			pImpl_->caret_.nPos_ = pImpl_->getPosFromChar(
+				pImpl_->caret_.nLine_, pImpl_->caret_.nChar_);
 			pImpl_->caret_.nOldPos_ = pImpl_->caret_.nPos_;
 			rectMargin.top = 0;
 			rectMargin.bottom = 0;
@@ -2829,12 +2638,10 @@ QSTATUS qs::TextWindow::moveCaret(MoveCaret moveCaret, unsigned int nLine,
 				--pImpl_->caret_.nLine_;
 				if (bRepeat && pImpl_->caret_.nLine_ != 0)
 					--pImpl_->caret_.nLine_;
-				status = pImpl_->getCharFromPos(pImpl_->caret_.nLine_,
-					pImpl_->caret_.nOldPos_, &pImpl_->caret_.nChar_);
-				CHECK_QSTATUS();
-				status = pImpl_->getPosFromChar(pImpl_->caret_.nLine_,
-					pImpl_->caret_.nChar_, &pImpl_->caret_.nPos_);
-				CHECK_QSTATUS();
+				pImpl_->caret_.nChar_ = pImpl_->getCharFromPos(
+					pImpl_->caret_.nLine_, pImpl_->caret_.nOldPos_);
+				pImpl_->caret_.nPos_ = pImpl_->getPosFromChar(
+					pImpl_->caret_.nLine_, pImpl_->caret_.nChar_);
 			}
 			rectMargin.bottom = 0;
 			break;
@@ -2843,12 +2650,10 @@ QSTATUS qs::TextWindow::moveCaret(MoveCaret moveCaret, unsigned int nLine,
 				++pImpl_->caret_.nLine_;
 				if (bRepeat && pImpl_->caret_.nLine_ != nLineCount - 1)
 					++pImpl_->caret_.nLine_;
-				status = pImpl_->getCharFromPos(pImpl_->caret_.nLine_,
-					pImpl_->caret_.nOldPos_, &pImpl_->caret_.nChar_);
-				CHECK_QSTATUS();
-				status = pImpl_->getPosFromChar(pImpl_->caret_.nLine_,
-					pImpl_->caret_.nChar_, &pImpl_->caret_.nPos_);
-				CHECK_QSTATUS();
+				pImpl_->caret_.nChar_ = pImpl_->getCharFromPos(
+					pImpl_->caret_.nLine_, pImpl_->caret_.nOldPos_);
+				pImpl_->caret_.nPos_ = pImpl_->getPosFromChar(
+					pImpl_->caret_.nLine_, pImpl_->caret_.nChar_);
 			}
 			rectMargin.top = 0;
 			break;
@@ -2857,12 +2662,10 @@ QSTATUS qs::TextWindow::moveCaret(MoveCaret moveCaret, unsigned int nLine,
 				pImpl_->caret_.nLine_ -= nLineInWindow - 1;
 				if (static_cast<int>(pImpl_->caret_.nLine_) < 0)
 					pImpl_->caret_.nLine_ = 0;
-				status = pImpl_->getCharFromPos(pImpl_->caret_.nLine_,
-					pImpl_->caret_.nOldPos_, &pImpl_->caret_.nChar_);
-				CHECK_QSTATUS();
-				status = pImpl_->getPosFromChar(pImpl_->caret_.nLine_,
-					pImpl_->caret_.nChar_, &pImpl_->caret_.nPos_);
-				CHECK_QSTATUS();
+				pImpl_->caret_.nChar_ = pImpl_->getCharFromPos(
+					pImpl_->caret_.nLine_, pImpl_->caret_.nOldPos_);
+				pImpl_->caret_.nPos_ = pImpl_->getPosFromChar(
+					pImpl_->caret_.nLine_, pImpl_->caret_.nChar_);
 			}
 			break;
 		case MOVECARET_PAGEDOWN:
@@ -2870,37 +2673,32 @@ QSTATUS qs::TextWindow::moveCaret(MoveCaret moveCaret, unsigned int nLine,
 				pImpl_->caret_.nLine_ += nLineInWindow - 1;
 				if (pImpl_->caret_.nLine_ > nLineCount - 1)
 					pImpl_->caret_.nLine_ = nLineCount - 1;
-				status = pImpl_->getCharFromPos(pImpl_->caret_.nLine_,
-					pImpl_->caret_.nOldPos_, &pImpl_->caret_.nChar_);
-				CHECK_QSTATUS();
-				status = pImpl_->getPosFromChar(pImpl_->caret_.nLine_,
-					pImpl_->caret_.nChar_, &pImpl_->caret_.nPos_);
-				CHECK_QSTATUS();
+				pImpl_->caret_.nChar_ = pImpl_->getCharFromPos(
+					pImpl_->caret_.nLine_, pImpl_->caret_.nOldPos_);
+				pImpl_->caret_.nPos_ = pImpl_->getPosFromChar(
+					pImpl_->caret_.nLine_, pImpl_->caret_.nChar_);
 			}
 			break;
 		case MOVECARET_DOCSTART:
 			pImpl_->caret_.nLine_ = 0;
 			pImpl_->caret_.nChar_ = 0;
-			status = pImpl_->getPosFromChar(pImpl_->caret_.nLine_,
-				pImpl_->caret_.nChar_, &pImpl_->caret_.nPos_);
-			CHECK_QSTATUS();
+			pImpl_->caret_.nPos_ = pImpl_->getPosFromChar(
+				pImpl_->caret_.nLine_, pImpl_->caret_.nChar_);
 			pImpl_->caret_.nOldPos_ = pImpl_->caret_.nPos_;
 			break;
 		case MOVECARET_DOCEND:
 			pImpl_->caret_.nLine_ = nLineCount - 1;
 			pImpl_->caret_.nChar_ =
 				pImpl_->listLine_[pImpl_->caret_.nLine_]->nLength_;
-			status = pImpl_->getPosFromChar(pImpl_->caret_.nLine_,
-				pImpl_->caret_.nChar_, &pImpl_->caret_.nPos_);
-			CHECK_QSTATUS();
+			pImpl_->caret_.nPos_ = pImpl_->getPosFromChar(
+				pImpl_->caret_.nLine_, pImpl_->caret_.nChar_);
 			pImpl_->caret_.nOldPos_ = pImpl_->caret_.nPos_;
 			break;
 		case MOVECARET_POS:
 			pImpl_->caret_.nLine_ = nLine;
 			pImpl_->caret_.nChar_ = nChar;
-			status = pImpl_->getPosFromChar(pImpl_->caret_.nLine_,
-				pImpl_->caret_.nChar_, &pImpl_->caret_.nPos_);
-			CHECK_QSTATUS();
+			pImpl_->caret_.nPos_ = pImpl_->getPosFromChar(
+				pImpl_->caret_.nLine_, pImpl_->caret_.nChar_);
 			pImpl_->caret_.nOldPos_ = pImpl_->caret_.nPos_;
 			break;
 		default:
@@ -2916,18 +2714,14 @@ QSTATUS qs::TextWindow::moveCaret(MoveCaret moveCaret, unsigned int nLine,
 		
 		pImpl_->updateCaret(bScroll, rectMargin);
 	}
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::TextWindow::openLink()
+bool qs::TextWindow::openLink()
 {
-	DECLARE_QSTATUS();
-	
 	if (pImpl_->pLinkHandler_) {
-		string_ptr<WSTRING> wstrURL;
+		wstring_ptr wstrURL;
 		if (isSelected()) {
-			status = getSelectedText(&wstrURL);
-			CHECK_QSTATUS();
+			wstrURL = getSelectedText();
 			
 			const WCHAR* pSrc = wstrURL.get();
 			WCHAR* pDst = wstrURL.get();
@@ -2938,22 +2732,21 @@ QSTATUS qs::TextWindow::openLink()
 			}
 			*pDst = L'\0';
 			
-			status = pImpl_->pLinkHandler_->openLink(wstrURL.get());
-			CHECK_QSTATUS();
+			if (!pImpl_->pLinkHandler_->openLink(wstrURL.get()))
+				return false;
 		}
 		else {
 			const TextWindowImpl::LinkItem* pLinkItem =
 				pImpl_->getLinkItem(pImpl_->caret_.nLine_, pImpl_->caret_.nChar_);
 			if (pLinkItem) {
-				status = pImpl_->getURL(pImpl_->caret_.nLine_, pLinkItem, &wstrURL);
-				CHECK_QSTATUS();
-				status = pImpl_->pLinkHandler_->openLink(wstrURL.get());
-				CHECK_QSTATUS();
+				wstrURL = pImpl_->getURL(pImpl_->caret_.nLine_, pLinkItem);
+				if (!pImpl_->pLinkHandler_->openLink(wstrURL.get()))
+					return false;
 			}
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 TextWindowLinkHandler* qs::TextWindow::getLinkHandler() const
@@ -3004,10 +2797,10 @@ unsigned int qs::TextWindow::getCharInLine() const
 	return pImpl_->nCharInLine_;
 }
 
-QSTATUS qs::TextWindow::setCharInLine(unsigned int nCharInLine)
+void qs::TextWindow::setCharInLine(unsigned int nCharInLine)
 {
 	pImpl_->nCharInLine_ = nCharInLine;
-	return pImpl_->recalcLines();
+	pImpl_->recalcLines();
 }
 
 unsigned int qs::TextWindow::getTabWidth() const
@@ -3015,14 +2808,16 @@ unsigned int qs::TextWindow::getTabWidth() const
 	return pImpl_->nTabWidth_;
 }
 
-QSTATUS qs::TextWindow::setTabWidth(unsigned int nTabWidth)
+void qs::TextWindow::setTabWidth(unsigned int nTabWidth)
 {
 	pImpl_->nTabWidth_ = nTabWidth;
-	return pImpl_->recalcLines();
+	pImpl_->recalcLines();
 }
 
-void qs::TextWindow::getMargin(unsigned int* pnTop, unsigned int* pnBottom,
-	unsigned int* pnLeft, unsigned int* pnRight) const
+void qs::TextWindow::getMargin(unsigned int* pnTop,
+							   unsigned int* pnBottom,
+							   unsigned int* pnLeft,
+							   unsigned int* pnRight) const
 {
 	*pnTop = pImpl_->nMarginTop_;
 	*pnBottom = pImpl_->nMarginBottom_;
@@ -3030,14 +2825,16 @@ void qs::TextWindow::getMargin(unsigned int* pnTop, unsigned int* pnBottom,
 	*pnRight = pImpl_->nMarginRight_;
 }
 
-QSTATUS qs::TextWindow::setMargin(unsigned int nTop,
-	unsigned int nBottom, unsigned int nLeft, unsigned int nRight)
+void qs::TextWindow::setMargin(unsigned int nTop,
+							   unsigned int nBottom,
+							   unsigned int nLeft,
+							   unsigned int nRight)
 {
 	pImpl_->nMarginTop_ = nTop;
 	pImpl_->nMarginBottom_ = nBottom;
 	pImpl_->nMarginLeft_ = nLeft;
 	pImpl_->nMarginRight_ = nRight;
-	return pImpl_->recalcLines();
+	pImpl_->recalcLines();
 }
 
 bool qs::TextWindow::isShowNewLine() const
@@ -3068,13 +2865,14 @@ bool qs::TextWindow::isShowScrollBar(bool bHorizontal) const
 		pImpl_->bShowVerticalScrollBar_;
 }
 
-QSTATUS qs::TextWindow::setShowScrollBar(bool bHorizontal, bool bShowScrollBar)
+void qs::TextWindow::setShowScrollBar(bool bHorizontal,
+									  bool bShowScrollBar)
 {
 	if (bHorizontal)
 		pImpl_->bShowHorizontalScrollBar_ = bShowScrollBar;
 	else
 		pImpl_->bShowVerticalScrollBar_ = bShowScrollBar;
-	return pImpl_->recalcLines();
+	pImpl_->recalcLines();
 }
 
 bool qs::TextWindow::isShowCaret() const
@@ -3104,20 +2902,16 @@ void qs::TextWindow::setShowCaret(bool bShowCaret)
 const WCHAR* qs::TextWindow::getQuote(unsigned int n) const
 {
 	assert(n < 2);
-	return pImpl_->wstrQuote_[n];
+	return pImpl_->wstrQuote_[n].get();
 }
 
-QSTATUS qs::TextWindow::setQuote(unsigned int n, const WCHAR* pwszQuote)
+void qs::TextWindow::setQuote(unsigned int n,
+							  const WCHAR* pwszQuote)
 {
 	assert(n < 2);
 	assert(pwszQuote);
-	string_ptr<WSTRING> wstrQuote(allocWString(pwszQuote));
-	if (!wstrQuote.get())
-		return QSTATUS_OUTOFMEMORY;
-	freeWString(pImpl_->wstrQuote_[n]);
-	pImpl_->wstrQuote_[n] = wstrQuote.release();
+	pImpl_->wstrQuote_[n] = allocWString(pwszQuote);
 	invalidate();
-	return QSTATUS_SUCCESS;
 }
 
 COLORREF qs::TextWindow::getQuoteColor(unsigned int n) const
@@ -3126,7 +2920,8 @@ COLORREF qs::TextWindow::getQuoteColor(unsigned int n) const
 	return pImpl_->crQuote_[n];
 }
 
-void qs::TextWindow::setQuoteColor(unsigned int n, COLORREF cr)
+void qs::TextWindow::setQuoteColor(unsigned int n,
+								   COLORREF cr)
 {
 	assert(n < 2);
 	pImpl_->crQuote_[n] = cr;
@@ -3145,50 +2940,40 @@ void qs::TextWindow::setReformLineLength(unsigned int nReformLineLength)
 
 const WCHAR* qs::TextWindow::getReformQuote() const
 {
-	return pImpl_->wstrReformQuote_;
+	return pImpl_->wstrReformQuote_.get();
 }
 
-QSTATUS qs::TextWindow::setReformQuote(const WCHAR* pwszReformQuote)
+void qs::TextWindow::setReformQuote(const WCHAR* pwszReformQuote)
 {
 	assert(pwszReformQuote);
-	string_ptr<WSTRING> wstrQuote(allocWString(pwszReformQuote));
-	if (!wstrQuote.get())
-		return QSTATUS_OUTOFMEMORY;
-	freeWString(pImpl_->wstrReformQuote_);
-	pImpl_->wstrReformQuote_ = wstrQuote.get();
-	return QSTATUS_SUCCESS;
+	pImpl_->wstrReformQuote_ = allocWString(pwszReformQuote);
 }
 
-QSTATUS qs::TextWindow::getWindowClass(WNDCLASS* pwc)
+void qs::TextWindow::getWindowClass(WNDCLASS* pwc)
 {
-	DECLARE_QSTATUS();
-	
-	status = DefaultWindowHandler::getWindowClass(pwc);
-	CHECK_QSTATUS();
+	DefaultWindowHandler::getWindowClass(pwc);
 	
 #if !defined _WIN32_WCE || _WIN32_WCE >= 211
 	pwc->hCursor = ::LoadCursor(0, IDC_IBEAM);
 #endif // _WIN32_WCE
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::TextWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
+bool qs::TextWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
 {
-	DECLARE_QSTATUS();
-	
-	status = DefaultWindowHandler::preCreateWindow(pCreateStruct);
-	CHECK_QSTATUS();
+	if (!DefaultWindowHandler::preCreateWindow(pCreateStruct))
+		return false;
 	
 	if (pImpl_->bShowVerticalScrollBar_)
 		pCreateStruct->style |= WS_VSCROLL;
 	if (pImpl_->bShowHorizontalScrollBar_)
 		pCreateStruct->style |= WS_HSCROLL;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-LRESULT qs::TextWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qs::TextWindow::windowProc(UINT uMsg,
+								   WPARAM wParam,
+								   LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_CHAR()
@@ -3220,15 +3005,15 @@ LRESULT qs::TextWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
 
-LRESULT qs::TextWindow::onChar(UINT nChar, UINT nRepeat, UINT nFlags)
+LRESULT qs::TextWindow::onChar(UINT nChar,
+							   UINT nRepeat,
+							   UINT nFlags)
 {
 	WCHAR c = nChar;
 	
 #ifndef UNICODE
 	if (c > 0x7f) {
-		string_ptr<WSTRING> wstr(mbs2wcs(reinterpret_cast<char*>(&nChar), 1));
-		if (!wstr.get())
-			return 0;
+		wstring_ptr wstr(mbs2wcs(reinterpret_cast<char*>(&nChar), 1));
 		c = *wstr.get();
 	}
 #endif
@@ -3237,8 +3022,7 @@ LRESULT qs::TextWindow::onChar(UINT nChar, UINT nRepeat, UINT nFlags)
 		c = L'\n';
 	
 	if (c == L'\t' || c == L'\n' || c == L' ' || (c >= 0x20 && c != 0x7f))
-		pImpl_->insertText(&c, 1,
-			TextWindowImpl::INSERTTEXTFLAG_NORMAL);
+		pImpl_->insertText(&c, 1, TextWindowImpl::INSERTTEXTFLAG_NORMAL);
 	
 	return 0;
 }
@@ -3256,36 +3040,29 @@ LRESULT qs::TextWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (DefaultWindowHandler::onCreate(pCreateStruct) == -1)
 		return -1;
 	
-	DECLARE_QSTATUS();
-	
-	status = newQsObject(pImpl_, &pImpl_->pRuler_);
-	CHECK_QSTATUS();
-	status = pImpl_->pRuler_->create(L"QsTextWindowRuler",
+	pImpl_->pRuler_ = new TextWindowRuler(pImpl_);
+	if (!pImpl_->pRuler_->create(L"QsTextWindowRuler",
 		0, WS_CHILD, 0, 0, 0, 0, getHandle(), 0, 0,
-		TextWindowImpl::ID_RULER, 0);
-	CHECK_QSTATUS();
+		TextWindowImpl::ID_RULER, 0))
+		return -1;
 	if (pImpl_->bShowRuler_)
 		pImpl_->pRuler_->showWindow(SW_SHOW);
 	
-	status = pImpl_->pTextModel_->addTextModelHandler(pImpl_);
-	CHECK_QSTATUS();
-	
+	pImpl_->pTextModel_->addTextModelHandler(pImpl_);
 	pImpl_->hImc_ = ::ImmGetContext(getHandle());
 	
 #ifdef _WIN32_WCE
 	Registry reg(HKEY_LOCAL_MACHINE,
-		L"System\\CurrentControlSet\\Control\\Layouts\\e0010411",
-		&status);
-	if (status == QSTATUS_SUCCESS) {
-		string_ptr<WSTRING> wstrIme;
-		status = reg.getValue(L"Ime File", &wstrIme);
-		pImpl_->bAtok_ = status == QSTATUS_SUCCESS &&
-			wstrIme.get() && wcsstr(wstrIme.get(), L"atok");
+		L"System\\CurrentControlSet\\Control\\Layouts\\e0010411");
+	if (reg) {
+		wstring_ptr wstrIme;
+		if (reg.getValue(L"Ime File", &wstrIme))
+			pImpl_->bAtok_ = wstrIme.get() && wcsstr(wstrIme.get(), L"atok");
 	}
 #endif
 	
-	status = pImpl_->updateBitmaps();
-	CHECK_QSTATUS_VALUE(-1);
+	if (!pImpl_->updateBitmaps())
+		return -1;
 	
 	pImpl_->updateCaret(false);
 	pImpl_->updateScrollBar();
@@ -3322,7 +3099,9 @@ LRESULT qs::TextWindow::onEraseBkgnd(HDC hdc)
 	return 1;
 }
 
-LRESULT qs::TextWindow::onHScroll(UINT nCode, UINT nPos, HWND hwnd)
+LRESULT qs::TextWindow::onHScroll(UINT nCode,
+								  UINT nPos,
+								  HWND hwnd)
 {
 	bool bScroll = true;
 	Scroll s;
@@ -3359,27 +3138,23 @@ LRESULT qs::TextWindow::onHScroll(UINT nCode, UINT nPos, HWND hwnd)
 	return DefaultWindowHandler::onHScroll(nCode, nPos, hwnd);
 }
 
-LRESULT qs::TextWindow::onImeChar(UINT nChar, UINT nRepeat, UINT nFlags)
+LRESULT qs::TextWindow::onImeChar(UINT nChar,
+								  UINT nRepeat,
+								  UINT nFlags)
 {
 	return 0;
 }
 
-LRESULT qs::TextWindow::onImeComposition(UINT nChar, UINT nFlags)
+LRESULT qs::TextWindow::onImeComposition(UINT nChar,
+										 UINT nFlags)
 {
-	DECLARE_QSTATUS();
-	
 	if (pImpl_->pTextModel_->isEditable() && nFlags & GCS_RESULTSTR) {
 		int nLen = ::ImmGetCompositionString(pImpl_->hImc_, GCS_RESULTSTR, 0, 0);
-		string_ptr<TSTRING> tstr(allocTString(nLen/sizeof(TCHAR) + 1));
-		if (!tstr.get())
-			return 0;
+		tstring_ptr tstr(allocTString(nLen/sizeof(TCHAR) + 1));
 		::ImmGetCompositionString(pImpl_->hImc_, GCS_RESULTSTR, tstr.get(), nLen);
 		*(tstr.get() + nLen/sizeof(TCHAR)) = _T('\0');
-		T2W_STATUS(tstr.get(), pwsz);
-		if (status != QSTATUS_SUCCESS)
-			return 0;
-		pImpl_->insertText(pwsz, -1,
-			TextWindowImpl::INSERTTEXTFLAG_NORMAL);
+		T2W(tstr.get(), pwsz);
+		pImpl_->insertText(pwsz, -1, TextWindowImpl::INSERTTEXTFLAG_NORMAL);
 		return 0;
 	}
 	
@@ -3401,7 +3176,9 @@ LRESULT qs::TextWindow::onImeStartComposition()
 	return DefaultWindowHandler::onImeStartComposition();
 }
 
-LRESULT qs::TextWindow::onKeyDown(UINT nKey, UINT nRepeat, UINT nFlags)
+LRESULT qs::TextWindow::onKeyDown(UINT nKey,
+								  UINT nRepeat,
+								  UINT nFlags)
 {
 	if (nKey == VK_BACK) {
 		TextWindowImpl::DeleteTextFlag flag =
@@ -3512,18 +3289,19 @@ LRESULT qs::TextWindow::onKillFocus(HWND hwnd)
 {
 	if (pImpl_->bShowCaret_)
 		pImpl_->hideCaret();
-	
 	return DefaultWindowHandler::onKillFocus(hwnd);
 }
 
-LRESULT qs::TextWindow::onLButtonDblClk(UINT nFlags, const POINT& pt)
+LRESULT qs::TextWindow::onLButtonDblClk(UINT nFlags,
+										const POINT& pt)
 {
 	if (pImpl_->pTextModel_->isEditable())
 		pImpl_->openLink(pt);
 	return DefaultWindowHandler::onLButtonDblClk(nFlags, pt);
 }
 
-LRESULT qs::TextWindow::onLButtonDown(UINT nFlags, const POINT& pt)
+LRESULT qs::TextWindow::onLButtonDown(UINT nFlags,
+									  const POINT& pt)
 {
 	setFocus();
 	
@@ -3537,10 +3315,9 @@ LRESULT qs::TextWindow::onLButtonDown(UINT nFlags, const POINT& pt)
 	return DefaultWindowHandler::onLButtonDown(nFlags, pt);
 }
 
-LRESULT qs::TextWindow::onLButtonUp(UINT nFlags, const POINT& pt)
+LRESULT qs::TextWindow::onLButtonUp(UINT nFlags,
+									const POINT& pt)
 {
-	DECLARE_QSTATUS();
-	
 	if (getCapture()) {
 		killTimer(pImpl_->nTimerDragScroll_);
 		pImpl_->nTimerDragScroll_ = 0;
@@ -3566,7 +3343,8 @@ LRESULT qs::TextWindow::onLButtonUp(UINT nFlags, const POINT& pt)
 	return DefaultWindowHandler::onLButtonUp(nFlags, pt);
 }
 
-LRESULT qs::TextWindow::onMouseMove(UINT nFlags, const POINT& pt)
+LRESULT qs::TextWindow::onMouseMove(UINT nFlags,
+									const POINT& pt)
 {
 	if (getCapture()) {
 		if (pt.x != pImpl_->ptLastButtonDown_.x ||
@@ -3578,7 +3356,9 @@ LRESULT qs::TextWindow::onMouseMove(UINT nFlags, const POINT& pt)
 }
 
 #if !defined _WIN32_WCE || _WIN32_WCE >= 211
-LRESULT qs::TextWindow::onMouseWheel(UINT nFlags, short nDelta, const POINT& pt)
+LRESULT qs::TextWindow::onMouseWheel(UINT nFlags,
+									 short nDelta,
+									 const POINT& pt)
 {
 #ifdef _WIN32_WCE
 #	define WHEEL_DELTA 120
@@ -3591,10 +3371,7 @@ LRESULT qs::TextWindow::onMouseWheel(UINT nFlags, short nDelta, const POINT& pt)
 
 LRESULT qs::TextWindow::onPaint()
 {
-	DECLARE_QSTATUS();
-	
-	PaintDeviceContext dc(getHandle(), &status);
-	CHECK_QSTATUS_VALUE(1);
+	PaintDeviceContext dc(getHandle());
 	
 	GdiObject<HPEN> hpenLink(::CreatePen(PS_SOLID, 1, pImpl_->crLink_));
 	ObjectSelector<HPEN> penSelector(dc, hpenLink.get());
@@ -3605,13 +3382,11 @@ LRESULT qs::TextWindow::onPaint()
 //	dc.setTextColor(pImpl_->crForeground_);
 	dc.setBkColor(pImpl_->crBackground_);
 	
-	CompatibleDeviceContext dcNewLine(dc, &status);
-	CHECK_QSTATUS_VALUE(1);
+	CompatibleDeviceContext dcNewLine(dc);
 	ObjectSelector<HBITMAP> bitmapSelectorNewLine(
 		dcNewLine, pImpl_->hbmNewLine_);
 	
-	CompatibleDeviceContext dcTab(dc, &status);
-	CHECK_QSTATUS_VALUE(1);
+	CompatibleDeviceContext dcTab(dc);
 	ObjectSelector<HBITMAP> bitmapSelectorTab(
 		dcTab, pImpl_->hbmTab_);
 	
@@ -3718,12 +3493,8 @@ LRESULT qs::TextWindow::onPaint()
 			std::pair<unsigned int, unsigned int> s = pImpl_->getSelection(n);
 			if (s.first != s.second) {
 				assert(s.first < s.second);
-				int nStartPos = 0;
-				status = pImpl_->getPosFromChar(n, s.first, &nStartPos);
-				CHECK_QSTATUS();
-				int nEndPos = 0;
-				status = pImpl_->getPosFromChar(n, s.second, &nEndPos);
-				CHECK_QSTATUS();
+				int nStartPos = pImpl_->getPosFromChar(n, s.first);
+				int nEndPos = pImpl_->getPosFromChar(n, s.second);
 				dc.patBlt(nStartPos + pImpl_->nMarginLeft_ - pImpl_->scrollPos_.nPos_,
 					rect.top, nEndPos - nStartPos, rect.bottom - rect.top, PATINVERT);
 			}
@@ -3757,7 +3528,9 @@ LRESULT qs::TextWindow::onPaste()
 	return 0;
 }
 
-LRESULT qs::TextWindow::onSetCursor(HWND hwnd, UINT nHitTest, UINT nMessage)
+LRESULT qs::TextWindow::onSetCursor(HWND hwnd,
+									UINT nHitTest,
+									UINT nMessage)
 {
 	if (nHitTest == HTCLIENT) {
 		POINT pt;
@@ -3784,7 +3557,9 @@ LRESULT qs::TextWindow::onSetFocus(HWND hwnd)
 	return DefaultWindowHandler::onSetFocus(hwnd);
 }
 
-LRESULT qs::TextWindow::onSize(UINT nFlags, int cx, int cy)
+LRESULT qs::TextWindow::onSize(UINT nFlags,
+							   int cx,
+							   int cy)
 {
 	if (pImpl_->bShowRuler_) {
 		unsigned int nCharInLine = getCharInLine();
@@ -3858,7 +3633,9 @@ LRESULT qs::TextWindow::onTimer(UINT nId)
 	return DefaultWindowHandler::onTimer(nId);
 }
 
-LRESULT qs::TextWindow::onVScroll(UINT nCode, UINT nPos, HWND hwnd)
+LRESULT qs::TextWindow::onVScroll(UINT nCode,
+								  UINT nPos,
+								  HWND hwnd)
 {
 	bool bScroll = true;
 	Scroll s;
@@ -3913,7 +3690,7 @@ qs::TextWindowLinkHandler::~TextWindowLinkHandler()
  *
  */
 
-qs::TextWindowUndoManager::TextWindowUndoManager(QSTATUS* pstatus)
+qs::TextWindowUndoManager::TextWindowUndoManager()
 {
 }
 
@@ -3922,25 +3699,22 @@ qs::TextWindowUndoManager::~TextWindowUndoManager()
 	clear();
 }
 
-QSTATUS qs::TextWindowUndoManager::pushUndoItem(unsigned int nStartLine,
-	unsigned int nStartChar, unsigned int nEndLine, unsigned int nEndChar,
-	unsigned int nCaretLine, unsigned int nCaretChar, WSTRING wstrText,
-	bool bClearUndo)
+void qs::TextWindowUndoManager::pushUndoItem(unsigned int nStartLine,
+											 unsigned int nStartChar,
+											 unsigned int nEndLine,
+											 unsigned int nEndChar,
+											 unsigned int nCaretLine,
+											 unsigned int nCaretChar,
+											 wstring_ptr wstrText,
+											 bool bClearUndo)
 {
-	DECLARE_QSTATUS();
-	
-	std::auto_ptr<Item> pItem;
-	status = newQsObject(nStartLine, nStartChar, nEndLine, nEndChar,
-		nCaretLine, nCaretChar, wstrText, &pItem);
-	CHECK_QSTATUS();
-	status = STLWrapper<ItemList>(listUndo_).push_back(pItem.get());
-	CHECK_QSTATUS();
+	std::auto_ptr<Item> pItem(new Item(nStartLine, nStartChar,
+		nEndLine, nEndChar, nCaretLine, nCaretChar, wstrText));
+	listUndo_.push_back(pItem.get());
 	pItem.release();
 	
 	if (bClearUndo)
 		clearRedoItems();
-	
-	return QSTATUS_SUCCESS;
 }
 
 TextWindowUndoManager::Item* qs::TextWindowUndoManager::popUndoItem()
@@ -3956,21 +3730,18 @@ bool qs::TextWindowUndoManager::hasUndoItem() const
 	return !listUndo_.empty();
 }
 
-QSTATUS qs::TextWindowUndoManager::pushRedoItem(unsigned int nStartLine,
-	unsigned int nStartChar, unsigned int nEndLine, unsigned int nEndChar,
-	unsigned int nCaretLine, unsigned int nCaretChar, WSTRING wstrText)
+void qs::TextWindowUndoManager::pushRedoItem(unsigned int nStartLine,
+											 unsigned int nStartChar,
+											 unsigned int nEndLine,
+											 unsigned int nEndChar,
+											 unsigned int nCaretLine,
+											 unsigned int nCaretChar,
+											 wstring_ptr wstrText)
 {
-	DECLARE_QSTATUS();
-	
-	std::auto_ptr<Item> pItem;
-	status = newQsObject(nStartLine, nStartChar, nEndLine, nEndChar,
-		nCaretLine, nCaretChar, wstrText, &pItem);
-	CHECK_QSTATUS();
-	status = STLWrapper<ItemList>(listRedo_).push_back(pItem.get());
-	CHECK_QSTATUS();
+	std::auto_ptr<Item> pItem(new Item(nStartLine, nStartChar,
+		nEndLine, nEndChar, nCaretLine, nCaretChar, wstrText));
+	listRedo_.push_back(pItem.get());
 	pItem.release();
-	
-	return QSTATUS_SUCCESS;
 }
 
 TextWindowUndoManager::Item* qs::TextWindowUndoManager::popRedoItem()
@@ -4012,9 +3783,12 @@ void qs::TextWindowUndoManager::clear()
  */
 
 qs::TextWindowUndoManager::Item::Item(unsigned int nStartLine,
-	unsigned int nStartChar, unsigned int nEndLine, unsigned int nEndChar,
-	unsigned int nCaretLine, unsigned int nCaretChar,
-	WSTRING wstrText, QSTATUS* pstatus) :
+									  unsigned int nStartChar,
+									  unsigned int nEndLine,
+									  unsigned int nEndChar,
+									  unsigned int nCaretLine,
+									  unsigned int nCaretChar,
+									  wstring_ptr wstrText) :
 	nStartLine_(nStartLine),
 	nStartChar_(nStartChar),
 	nEndLine_(nEndLine),
@@ -4027,7 +3801,6 @@ qs::TextWindowUndoManager::Item::Item(unsigned int nStartLine,
 
 qs::TextWindowUndoManager::Item::~Item()
 {
-	freeWString(wstrText_);
 }
 
 unsigned int qs::TextWindowUndoManager::Item::getStartLine() const
@@ -4062,7 +3835,7 @@ unsigned int qs::TextWindowUndoManager::Item::getCaretChar() const
 
 const WCHAR* qs::TextWindowUndoManager::Item::getText() const
 {
-	return wstrText_ ? wstrText_ : L"";
+	return wstrText_.get() ? wstrText_.get() : L"";
 }
 
 
@@ -4072,9 +3845,8 @@ const WCHAR* qs::TextWindowUndoManager::Item::getText() const
  *
  */
 
-qs::TextWindowRuler::TextWindowRuler(TextWindowImpl* pImpl, QSTATUS* pstatus) :
-	WindowBase(true, pstatus),
-	DefaultWindowHandler(pstatus),
+qs::TextWindowRuler::TextWindowRuler(TextWindowImpl* pImpl) :
+	WindowBase(true),
 	pImpl_(pImpl),
 	nPos_(-1)
 {
@@ -4114,7 +3886,9 @@ void qs::TextWindowRuler::update()
 	invalidateRect(r);
 }
 
-LRESULT qs::TextWindowRuler::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qs::TextWindowRuler::windowProc(UINT uMsg,
+										WPARAM wParam,
+										LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_PAINT()
@@ -4129,10 +3903,9 @@ LRESULT qs::TextWindowRuler::onEraseBkgnd(HDC hdc)
 
 LRESULT qs::TextWindowRuler::onPaint()
 {
-	DECLARE_QSTATUS();
-	
-	PaintDeviceContext dc(getHandle(), &status);
-	CHECK_QSTATUS_VALUE(1);
+	PaintDeviceContext dc(getHandle());
+	if (!dc)
+		return 1;
 	
 	RECT rect;
 	getClientRect(&rect);

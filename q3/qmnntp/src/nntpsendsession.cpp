@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -10,8 +10,6 @@
 #include <qmdocument.h>
 #include <qmmessage.h>
 #include <qmsecurity.h>
-
-#include <qsnew.h>
 
 #include "main.h"
 #include "nntpsendsession.h"
@@ -23,11 +21,11 @@ using namespace qmnntp;
 using namespace qm;
 using namespace qs;
 
-#define CHECK_QSTATUS_ERROR() \
-	if (status != QSTATUS_SUCCESS) { \
-		Util::reportError(pNntp_, pSessionCallback_, pAccount_, pSubAccount_); \
-		return status; \
-	} \
+#define HANDLE_ERROR() \
+	do { \
+		Util::reportError(pNntp_.get(), pSessionCallback_, pAccount_, pSubAccount_); \
+		return false; \
+	} while (false) \
 
 
 /****************************************************************************
@@ -36,9 +34,7 @@ using namespace qs;
  *
  */
 
-qmnntp::NntpSendSession::NntpSendSession(QSTATUS* pstatus) :
-	pNntp_(0),
-	pCallback_(0),
+qmnntp::NntpSendSession::NntpSendSession() :
 	pAccount_(0),
 	pSubAccount_(0),
 	pLogger_(0),
@@ -48,94 +44,74 @@ qmnntp::NntpSendSession::NntpSendSession(QSTATUS* pstatus) :
 
 qmnntp::NntpSendSession::~NntpSendSession()
 {
-	delete pNntp_;
-	delete pCallback_;
 }
 
-QSTATUS qmnntp::NntpSendSession::init(Document* pDocument,
-	Account* pAccount, SubAccount* pSubAccount, Profile* pProfile,
-	Logger* pLogger, SendSessionCallback* pCallback)
+bool qmnntp::NntpSendSession::init(Document* pDocument,
+								   Account* pAccount,
+								   SubAccount* pSubAccount,
+								   Profile* pProfile,
+								   Logger* pLogger,
+								   SendSessionCallback* pCallback)
 {
 	assert(pAccount);
 	assert(pSubAccount);
 	assert(pCallback);
-	
-	DECLARE_QSTATUS();
 	
 	pAccount_ = pAccount;
 	pSubAccount_ = pSubAccount;
 	pLogger_ = pLogger;
 	pSessionCallback_ = pCallback;
 	
-	status = newQsObject(pSubAccount_, pDocument->getSecurity(),
-		pSessionCallback_, &pCallback_);
-	CHECK_QSTATUS();
+	pCallback_.reset(new CallbackImpl(pSubAccount_,
+		pDocument->getSecurity(), pSessionCallback_));
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmnntp::NntpSendSession::connect()
+bool qmnntp::NntpSendSession::connect()
 {
-	assert(!pNntp_);
-	
-	DECLARE_QSTATUS();
+	assert(!pNntp_.get());
 	
 	Log log(pLogger_, L"qmnntp::NntpSendSession");
-	status = log.debug(L"Connecting to the server...");
-	CHECK_QSTATUS();
+	log.debug(L"Connecting to the server...");
 	
-	Nntp::Option option = {
-		pSubAccount_->getTimeout(),
-		pCallback_,
-		pCallback_,
-		pCallback_,
-		pLogger_
-	};
-	status = newQsObject(option, &pNntp_);
-	CHECK_QSTATUS();
+	pNntp_.reset(new Nntp(pSubAccount_->getTimeout(), pCallback_.get(),
+		pCallback_.get(), pCallback_.get(), pLogger_));
 	
-	status = pNntp_->connect(pSubAccount_->getHost(Account::HOST_SEND),
+	if (!pNntp_->connect(pSubAccount_->getHost(Account::HOST_SEND),
 		pSubAccount_->getPort(Account::HOST_SEND),
-		pSubAccount_->isSsl(Account::HOST_SEND));
-	CHECK_QSTATUS_ERROR();
+		pSubAccount_->isSsl(Account::HOST_SEND)))
+		HANDLE_ERROR();
 	
-	status = log.debug(L"Connected to the server.");
-	CHECK_QSTATUS();
+	log.debug(L"Connected to the server.");
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmnntp::NntpSendSession::disconnect()
+bool qmnntp::NntpSendSession::disconnect()
 {
-	assert(pNntp_);
-	
-	DECLARE_QSTATUS();
+	assert(pNntp_.get());
 	
 	Log log(pLogger_, L"qmnntp::NntpSendSession");
-	status = log.debug(L"Disconnecting from the server...");
-	CHECK_QSTATUS();
+	log.debug(L"Disconnecting from the server...");
 	
-	status = pNntp_->disconnect();
-	CHECK_QSTATUS_ERROR();
+	pNntp_->disconnect();
 	
-	status = log.debug(L"Disconnected from the server.");
-	CHECK_QSTATUS();
+	log.debug(L"Disconnected from the server.");
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmnntp::NntpSendSession::sendMessage(Message* pMessage)
+bool qmnntp::NntpSendSession::sendMessage(Message* pMessage)
 {
-	DECLARE_QSTATUS();
+	xstring_ptr strContent(pMessage->getContent());
+	if (!strContent.get())
+		return false;
 	
-	string_ptr<STRING> strContent;
-	status = pMessage->getContent(&strContent);
-	CHECK_QSTATUS();
+	if (!pNntp_->postMessage(strContent.get(), -1))
+		HANDLE_ERROR();
 	
-	status = pNntp_->postMessage(strContent.get(), -1);
-	CHECK_QSTATUS_ERROR();
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -145,9 +121,9 @@ QSTATUS qmnntp::NntpSendSession::sendMessage(Message* pMessage)
  *
  */
 
-qmnntp::NntpSendSession::CallbackImpl::CallbackImpl(
-	SubAccount* pSubAccount, const Security* pSecurity,
-	SendSessionCallback* pSessionCallback, QSTATUS* pstatus) :
+qmnntp::NntpSendSession::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
+													const Security* pSecurity,
+													SendSessionCallback* pSessionCallback) :
 	DefaultSSLSocketCallback(pSubAccount, Account::HOST_SEND, pSecurity),
 	pSubAccount_(pSubAccount),
 	pSessionCallback_(pSessionCallback)
@@ -158,15 +134,10 @@ qmnntp::NntpSendSession::CallbackImpl::~CallbackImpl()
 {
 }
 
-QSTATUS qmnntp::NntpSendSession::CallbackImpl::setMessage(UINT nId)
+void qmnntp::NntpSendSession::CallbackImpl::setMessage(UINT nId)
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrMessage;
-	status = loadString(getResourceHandle(), nId, &wstrMessage);
-	CHECK_QSTATUS();
-	
-	return pSessionCallback_->setMessage(wstrMessage.get());
+	wstring_ptr wstrMessage(loadString(getResourceHandle(), nId));
+	pSessionCallback_->setMessage(wstrMessage.get());
 }
 
 bool qmnntp::NntpSendSession::CallbackImpl::isCanceled(bool bForce) const
@@ -174,71 +145,58 @@ bool qmnntp::NntpSendSession::CallbackImpl::isCanceled(bool bForce) const
 	return pSessionCallback_->isCanceled(bForce);
 }
 
-QSTATUS qmnntp::NntpSendSession::CallbackImpl::initialize()
+void qmnntp::NntpSendSession::CallbackImpl::initialize()
 {
-	return setMessage(IDS_INITIALIZE);
+	setMessage(IDS_INITIALIZE);
 }
 
-QSTATUS qmnntp::NntpSendSession::CallbackImpl::lookup()
+void qmnntp::NntpSendSession::CallbackImpl::lookup()
 {
-	return setMessage(IDS_LOOKUP);
+	setMessage(IDS_LOOKUP);
 }
 
-QSTATUS qmnntp::NntpSendSession::CallbackImpl::connecting()
+void qmnntp::NntpSendSession::CallbackImpl::connecting()
 {
-	return setMessage(IDS_CONNECTING);
+	setMessage(IDS_CONNECTING);
 }
 
-QSTATUS qmnntp::NntpSendSession::CallbackImpl::connected()
+void qmnntp::NntpSendSession::CallbackImpl::connected()
 {
-	return setMessage(IDS_CONNECTED);
+	setMessage(IDS_CONNECTED);
 }
 
-QSTATUS qmnntp::NntpSendSession::CallbackImpl::getUserInfo(
-	WSTRING* pwstrUserName, WSTRING* pwstrPassword)
+bool qmnntp::NntpSendSession::CallbackImpl::getUserInfo(wstring_ptr* pwstrUserName,
+														wstring_ptr* pwstrPassword)
 {
 	assert(pwstrUserName);
 	assert(pwstrPassword);
 	
-	DECLARE_QSTATUS();
+	*pwstrUserName = allocWString(pSubAccount_->getUserName(Account::HOST_SEND));
+	*pwstrPassword = allocWString(pSubAccount_->getPassword(Account::HOST_SEND));
 	
-	string_ptr<WSTRING> wstrUserName(
-		allocWString(pSubAccount_->getUserName(Account::HOST_SEND)));
-	if (!wstrUserName.get())
-		return QSTATUS_OUTOFMEMORY;
-	string_ptr<WSTRING> wstrPassword(
-		allocWString(pSubAccount_->getPassword(Account::HOST_SEND)));
-	if (!wstrPassword.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	*pwstrUserName = wstrUserName.release();
-	*pwstrPassword = wstrPassword.release();
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmnntp::NntpSendSession::CallbackImpl::setPassword(
-	const WCHAR* pwszPassword)
+void qmnntp::NntpSendSession::CallbackImpl::setPassword(const WCHAR* pwszPassword)
 {
 	// TODO
-	return QSTATUS_SUCCESS;
 }
 
 
-QSTATUS qmnntp::NntpSendSession::CallbackImpl::authenticating()
+void qmnntp::NntpSendSession::CallbackImpl::authenticating()
 {
-	return setMessage(IDS_AUTHENTICATING);
+	setMessage(IDS_AUTHENTICATING);
 }
 
-QSTATUS qmnntp::NntpSendSession::CallbackImpl::setRange(
-	unsigned int nMin, unsigned int nMax)
+void qmnntp::NntpSendSession::CallbackImpl::setRange(unsigned int nMin,
+													 unsigned int nMax)
 {
-	return pSessionCallback_->setSubRange(nMin, nMax);
+	pSessionCallback_->setSubRange(nMin, nMax);
 }
 
-QSTATUS qmnntp::NntpSendSession::CallbackImpl::setPos(unsigned int nPos)
+void qmnntp::NntpSendSession::CallbackImpl::setPos(unsigned int nPos)
 {
-	return pSessionCallback_->setSubPos(nPos);
+	pSessionCallback_->setSubPos(nPos);
 }
 
 
@@ -248,7 +206,7 @@ QSTATUS qmnntp::NntpSendSession::CallbackImpl::setPos(unsigned int nPos)
  *
  */
 
-qmnntp::NntpSendSessionUI::NntpSendSessionUI(QSTATUS* pstatus)
+qmnntp::NntpSendSessionUI::NntpSendSessionUI()
 {
 }
 
@@ -261,10 +219,9 @@ const WCHAR* qmnntp::NntpSendSessionUI::getClass()
 	return L"news";
 }
 
-QSTATUS qmnntp::NntpSendSessionUI::getDisplayName(WSTRING* pwstrName)
+wstring_ptr qmnntp::NntpSendSessionUI::getDisplayName()
 {
-	assert(pwstrName);
-	return loadString(getResourceHandle(), IDS_NNTP, pwstrName);
+	return loadString(getResourceHandle(), IDS_NNTP);
 }
 
 short qmnntp::NntpSendSessionUI::getDefaultPort()
@@ -272,22 +229,9 @@ short qmnntp::NntpSendSessionUI::getDefaultPort()
 	return 119;
 }
 
-QSTATUS qmnntp::NntpSendSessionUI::createPropertyPage(
-	SubAccount* pSubAccount, PropertyPage** ppPage)
+std::auto_ptr<PropertyPage> qmnntp::NntpSendSessionUI::createPropertyPage(SubAccount* pSubAccount)
 {
-	assert(ppPage);
-	
-	DECLARE_QSTATUS();
-	
-	*ppPage = 0;
-	
-	std::auto_ptr<SendPage> pPage;
-	status = newQsObject(pSubAccount, &pPage);
-	CHECK_QSTATUS();
-	
-	*ppPage = pPage.release();
-	
-	return QSTATUS_SUCCESS;
+	return new SendPage(pSubAccount);
 }
 
 
@@ -301,40 +245,20 @@ NntpSendSessionFactory qmnntp::NntpSendSessionFactory::factory__;
 
 qmnntp::NntpSendSessionFactory::NntpSendSessionFactory()
 {
-	regist(L"nntp", this);
+	registerFactory(L"nntp", this);
 }
 
 qmnntp::NntpSendSessionFactory::~NntpSendSessionFactory()
 {
-	unregist(L"nntp");
+	unregisterFactory(L"nntp");
 }
 
-QSTATUS qmnntp::NntpSendSessionFactory::createSession(SendSession** ppSendSession)
+std::auto_ptr<SendSession> qmnntp::NntpSendSessionFactory::createSession()
 {
-	assert(ppSendSession);
-	
-	DECLARE_QSTATUS();
-	
-	NntpSendSession* pSession = 0;
-	status = newQsObject(&pSession);
-	CHECK_QSTATUS();
-	
-	*ppSendSession = pSession;
-	
-	return QSTATUS_SUCCESS;
+	return new NntpSendSession();
 }
 
-QSTATUS qmnntp::NntpSendSessionFactory::createUI(SendSessionUI** ppUI)
+std::auto_ptr<SendSessionUI> qmnntp::NntpSendSessionFactory::createUI()
 {
-	assert(ppUI);
-	
-	DECLARE_QSTATUS();
-	
-	NntpSendSessionUI* pUI = 0;
-	status = newQsObject(&pUI);
-	CHECK_QSTATUS();
-	
-	*ppUI = pUI;
-	
-	return QSTATUS_SUCCESS;
+	return new NntpSendSessionUI();
 }

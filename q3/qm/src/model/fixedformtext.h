@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -37,17 +37,17 @@ public:
 	typedef std::vector<FixedFormText*> TextList;
 
 public:
-	explicit FixedFormTextManager(qs::QSTATUS* pstatus);
+	FixedFormTextManager();
 	~FixedFormTextManager();
 
 public:
 	const TextList& getTextList() const;
 
 public:
-	qs::QSTATUS addText(FixedFormText* pText);
+	void addText(std::auto_ptr<FixedFormText> pText);
 
 private:
-	qs::QSTATUS load();
+	bool load();
 
 private:
 	FixedFormTextManager(const FixedFormTextManager&);
@@ -67,7 +67,7 @@ private:
 class FixedFormText
 {
 public:
-	FixedFormText(const WCHAR* pwszName, qs::QSTATUS* pstatus);
+	explicit FixedFormText(const WCHAR* pwszName);
 	~FixedFormText();
 
 public:
@@ -75,15 +75,15 @@ public:
 	const WCHAR* getText() const;
 
 public:
-	void setText(qs::WSTRING wstrText);
+	void setText(qs::wstring_ptr wstrText);
 
 private:
 	FixedFormText(const FixedFormText&);
 	FixedFormText& operator=(const FixedFormText&);
 
 private:
-	qs::WSTRING wstrName_;
-	qs::WSTRING wstrText_;
+	qs::wstring_ptr wstrName_;
+	qs::wstring_ptr wstrText_;
 };
 
 
@@ -96,18 +96,20 @@ private:
 class FixedFormTextContentHandler : public qs::DefaultHandler
 {
 public:
-	FixedFormTextContentHandler(FixedFormTextManager* pManager,
-		qs::QSTATUS* pstatus);
+	explicit FixedFormTextContentHandler(FixedFormTextManager* pManager);
 	virtual ~FixedFormTextContentHandler();
 
 public:
-	virtual qs::QSTATUS startElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName,
-		const qs::Attributes& attributes);
-	virtual qs::QSTATUS endElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName);
-	virtual qs::QSTATUS characters(const WCHAR* pwsz,
-		size_t nStart, size_t nLength);
+	virtual bool startElement(const WCHAR* pwszNamespaceURI,
+							  const WCHAR* pwszLocalName,
+							  const WCHAR* pwszQName,
+							  const qs::Attributes& attributes);
+	virtual bool endElement(const WCHAR* pwszNamespaceURI,
+							const WCHAR* pwszLocalName,
+							const WCHAR* pwszQName);
+	virtual bool characters(const WCHAR* pwsz,
+							size_t nStart,
+							size_t nLength);
 
 private:
 	FixedFormTextContentHandler(const FixedFormTextContentHandler&);
@@ -124,7 +126,7 @@ private:
 	FixedFormTextManager* pManager_;
 	State state_;
 	FixedFormText* pText_;
-	qs::StringBuffer<qs::WSTRING>* pBuffer_;
+	qs::StringBuffer<qs::WSTRING> buffer_;
 };
 
 }

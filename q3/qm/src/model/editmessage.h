@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -41,12 +41,12 @@ public:
 	virtual ~EditMessageHandler();
 
 public:
-	virtual qs::QSTATUS messageSet(const EditMessageEvent& event) = 0;
-	virtual qs::QSTATUS messageUpdate(const EditMessageEvent& event) = 0;
-	virtual qs::QSTATUS accountChanged(const EditMessageEvent& event) = 0;
-	virtual qs::QSTATUS fieldChanged(const EditMessageFieldEvent& event) = 0;
-	virtual qs::QSTATUS attachmentsChanged(const EditMessageEvent& event) = 0;
-	virtual qs::QSTATUS signatureChanged(const EditMessageEvent& event) = 0;
+	virtual void messageSet(const EditMessageEvent& event) = 0;
+	virtual void messageUpdate(const EditMessageEvent& event) = 0;
+	virtual void accountChanged(const EditMessageEvent& event) = 0;
+	virtual void fieldChanged(const EditMessageFieldEvent& event) = 0;
+	virtual void attachmentsChanged(const EditMessageEvent& event) = 0;
+	virtual void signatureChanged(const EditMessageEvent& event) = 0;
 };
 
 
@@ -74,7 +74,8 @@ public:
 	struct AttachmentComp :
 		public std::binary_function<Attachment, Attachment, bool>
 	{
-		bool operator()(const Attachment& lhs, const Attachment& rhs) const;
+		bool operator()(const Attachment& lhs,
+						const Attachment& rhs) const;
 	};
 
 public:
@@ -89,34 +90,38 @@ public:
 	};
 
 public:
-	EditMessage(qs::Profile* pProfile, Document* pDocument,
-		Account* pAccount, qs::QSTATUS* pstatus);
+	EditMessage(qs::Profile* pProfile,
+				Document* pDocument,
+				Account* pAccount);
 	~EditMessage();
 
 public:
-	qs::QSTATUS getMessage(Message** ppMessage);
-	qs::QSTATUS setMessage(Message* pMessage);
-	qs::QSTATUS update();
+	Message* getMessage();
+	bool setMessage(std::auto_ptr<Message> pMessage);
+	void update();
 
 public:
 	Document* getDocument() const;
 	Account* getAccount() const;
 	SubAccount* getSubAccount() const;
-	qs::QSTATUS setAccount(Account* pAccount, SubAccount* pSubAccount);
-	qs::QSTATUS getField(const WCHAR* pwszName,
-		FieldType type, qs::WSTRING* pwstrValue);
-	qs::QSTATUS setField(const WCHAR* pwszName,
-		const WCHAR* pwszValue, FieldType type);
-	qs::QSTATUS getHeader(qs::WSTRING* pwstrHeader);
-	qs::QSTATUS setHeader(const WCHAR* pwszHeader, size_t nLen);
+	void setAccount(Account* pAccount,
+					SubAccount* pSubAccount);
+	qs::wstring_ptr getField(const WCHAR* pwszName,
+							 FieldType type);
+	void setField(const WCHAR* pwszName,
+				  const WCHAR* pwszValue,
+				  FieldType type);
+	qs::wxstring_ptr getHeader();
+	bool setHeader(const WCHAR* pwszHeader,
+				   size_t nLen);
 	const WCHAR* getBody() const;
-	qs::QSTATUS setBody(const WCHAR* pwszBody);
-	qs::QSTATUS getAttachments(AttachmentList* pList) const;
-	qs::QSTATUS setAttachments(const AttachmentList& listAttachment);
-	qs::QSTATUS addAttachment(const WCHAR* pwszPath);
-	qs::QSTATUS removeAttachment(const WCHAR* pwszPath);
+	bool setBody(const WCHAR* pwszBody);
+	void getAttachments(AttachmentList* pList) const;
+	void setAttachments(const AttachmentList& listAttachment);
+	void addAttachment(const WCHAR* pwszPath);
+	void removeAttachment(const WCHAR* pwszPath);
 	const WCHAR* getSignature() const;
-	qs::QSTATUS setSignature(const WCHAR* pwszSignature);
+	void setSignature(const WCHAR* pwszSignature);
 	bool isAutoReform() const;
 	void setAutoReform(bool bAutoReform);
 	bool isEncrypt() const;
@@ -125,28 +130,29 @@ public:
 	void setSign(bool bSign);
 
 public:
-	qs::QSTATUS addEditMessageHandler(EditMessageHandler* pHandler);
-	qs::QSTATUS removeEditMessageHandler(EditMessageHandler* pHandler);
+	void addEditMessageHandler(EditMessageHandler* pHandler);
+	void removeEditMessageHandler(EditMessageHandler* pHandler);
 
 public:
-	qs::QSTATUS getSignatureText(qs::WSTRING* pwstrText) const;
+	qs::wstring_ptr getSignatureText() const;
 
 private:
-	qs::QSTATUS fixup();
+	bool fixup();
 	void clear();
 	void clearFields();
-	qs::QSTATUS getBodyPart(qs::Part* pPart, qs::Part** ppPart) const;
-	qs::QSTATUS removePart(qs::Part* pPart);
-	qs::QSTATUS normalize(qs::Part* pPart);
-	qs::QSTATUS makeMultipartMixed();
-	qs::QSTATUS fireMessageSet();
-	qs::QSTATUS fireMessageUpdate();
-	qs::QSTATUS fireAccountChanged();
-	qs::QSTATUS fireFieldChanged(const WCHAR* pwszName, const WCHAR* pwszValue);
-	qs::QSTATUS fireAttachmentsChanged();
-	qs::QSTATUS fireSignatureChanged();
-	qs::QSTATUS fireEvent(const EditMessageEvent& event,
-		qs::QSTATUS (EditMessageHandler::*pfn)(const EditMessageEvent&));
+	qs::Part* getBodyPart(qs::Part* pPart) const;
+	void removePart(qs::Part* pPart);
+	bool normalize(qs::Part* pPart);
+	bool makeMultipartMixed();
+	void fireMessageSet();
+	void fireMessageUpdate();
+	void fireAccountChanged();
+	void fireFieldChanged(const WCHAR* pwszName,
+						  const WCHAR* pwszValue);
+	void fireAttachmentsChanged();
+	void fireSignatureChanged();
+	void fireEvent(const EditMessageEvent& event,
+				   void (EditMessageHandler::*pfn)(const EditMessageEvent&));
 
 private:
 	EditMessage(const EditMessage&);
@@ -170,13 +176,13 @@ private:
 	Document* pDocument_;
 	Account* pAccount_;
 	SubAccount* pSubAccount_;
-	Message* pMessage_;
+	std::auto_ptr<Message> pMessage_;
 	qs::Part* pBodyPart_;
 	FieldList listField_;
-	qs::WSTRING wstrBody_;
+	qs::wxstring_ptr wstrBody_;
 	AttachmentParser::AttachmentList listAttachment_;
 	AttachmentPathList listAttachmentPath_;
-	qs::WSTRING wstrSignature_;
+	qs::wstring_ptr wstrSignature_;
 	bool bAutoReform_;
 	bool bEncrypt_;
 	bool bSign_;
@@ -197,12 +203,12 @@ public:
 	virtual ~DefaultEditMessageHandler();
 
 public:
-	virtual qs::QSTATUS messageSet(const EditMessageEvent& event);
-	virtual qs::QSTATUS messageUpdate(const EditMessageEvent& event);
-	virtual qs::QSTATUS accountChanged(const EditMessageEvent& event);
-	virtual qs::QSTATUS fieldChanged(const EditMessageFieldEvent& event);
-	virtual qs::QSTATUS attachmentsChanged(const EditMessageEvent& event);
-	virtual qs::QSTATUS signatureChanged(const EditMessageEvent& event);
+	virtual void messageSet(const EditMessageEvent& event);
+	virtual void messageUpdate(const EditMessageEvent& event);
+	virtual void accountChanged(const EditMessageEvent& event);
+	virtual void fieldChanged(const EditMessageFieldEvent& event);
+	virtual void attachmentsChanged(const EditMessageEvent& event);
+	virtual void signatureChanged(const EditMessageEvent& event);
 
 private:
 	DefaultEditMessageHandler(const DefaultEditMessageHandler&);
@@ -244,7 +250,8 @@ class EditMessageFieldEvent : public EditMessageEvent
 {
 public:
 	EditMessageFieldEvent(EditMessage* pEditMessage,
-		const WCHAR* pwszName, const WCHAR* pwszValue);
+						  const WCHAR* pwszName,
+						  const WCHAR* pwszValue);
 	~EditMessageFieldEvent();
 
 public:
@@ -274,7 +281,7 @@ public:
 
 public:
 	virtual EditMessage* getEditMessage() = 0;
-	virtual qs::QSTATUS setEditMessage(EditMessage* pEditMessage) = 0;
+	virtual bool setEditMessage(EditMessage* pEditMessage) = 0;
 	virtual void releaseEditMessage() = 0;
 };
 

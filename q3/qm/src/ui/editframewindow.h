@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -35,18 +35,21 @@ class SyncManager;
 class EditFrameWindowManager
 {
 public:
-	EditFrameWindowManager(Document* pDocument, SyncManager* pSyncManager,
-		SyncDialogManager* pSyncDialogManager, qs::KeyMap* pKeyMap,
-		qs::Profile* pProfile, qs::MenuManager* pMenuManager,
-		qs::ToolbarManager* pToolbarManager, qs::QSTATUS* pstatus);
+	EditFrameWindowManager(Document* pDocument,
+						   SyncManager* pSyncManager,
+						   SyncDialogManager* pSyncDialogManager,
+						   qs::KeyMap* pKeyMap,
+						   qs::Profile* pProfile,
+						   qs::MenuManager* pMenuManager,
+						   qs::ToolbarManager* pToolbarManager);
 	~EditFrameWindowManager();
 
 public:
-	qs::QSTATUS open(EditMessage* pEditMessage);
+	bool open(std::auto_ptr<EditMessage> pEditMessage);
 	void close(EditFrameWindow* pEditFrameWindow);
-	qs::QSTATUS closeAll(bool* pbClosed);
-	qs::QSTATUS preModalDialog(HWND hwndParent);
-	qs::QSTATUS postModalDialog(HWND hwndParent);
+	bool closeAll();
+	void preModalDialog(HWND hwndParent);
+	void postModalDialog(HWND hwndParent);
 
 private:
 	EditFrameWindowManager(const EditFrameWindowManager&);

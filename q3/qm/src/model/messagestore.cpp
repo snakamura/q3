@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -9,8 +9,6 @@
 #include <qmfilenames.h>
 
 #include <qsconv.h>
-#include <qserror.h>
-#include <qsnew.h>
 #include <qsosutil.h>
 #include <qsthread.h>
 
@@ -49,9 +47,9 @@ struct qm::SingleMessageStoreImpl
 		SEPARATOR_SIZE	= 9
 	};
 	
-	WSTRING wstrPath_;
-	ClusterStorage* pStorage_;
-	ClusterStorage* pCacheStorage_;
+	wstring_ptr wstrPath_;
+	std::auto_ptr<ClusterStorage> pStorage_;
+	std::auto_ptr<ClusterStorage> pCacheStorage_;
 	CriticalSection cs_;
 	
 	static const unsigned char szUsedSeparator__[];
@@ -69,20 +67,11 @@ const unsigned char qm::SingleMessageStoreImpl::szUnusedSeparator__[] = "\n\nFro
  */
 
 qm::SingleMessageStore::SingleMessageStore(const WCHAR* pwszPath,
-	unsigned int nBlockSize, const WCHAR* pwszCachePath,
-	unsigned int nCacheBlockSize, QSTATUS* pstatus)
+										   unsigned int nBlockSize,
+										   const WCHAR* pwszCachePath,
+										   unsigned int nCacheBlockSize)
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrPath(allocWString(pwszPath));
-	if (!wstrPath.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
+	wstring_ptr wstrPath(allocWString(pwszPath));
 	
 	ClusterStorage::Init initMsg = {
 		pwszPath,
@@ -91,9 +80,7 @@ qm::SingleMessageStore::SingleMessageStore(const WCHAR* pwszPath,
 		FileNames::MAP_EXT,
 		nBlockSize
 	};
-	std::auto_ptr<ClusterStorage> pStorage;
-	status = newQsObject(initMsg, &pStorage);
-	CHECK_QSTATUS_SET(pstatus);
+	std::auto_ptr<ClusterStorage> pStorage(new ClusterStorage(initMsg));
 	
 	ClusterStorage::Init initCache = {
 		pwszCachePath,
@@ -102,15 +89,12 @@ qm::SingleMessageStore::SingleMessageStore(const WCHAR* pwszPath,
 		FileNames::MAP_EXT,
 		nCacheBlockSize
 	};
-	std::auto_ptr<ClusterStorage> pCacheStorage;
-	status = newQsObject(initCache, &pCacheStorage);
-	CHECK_QSTATUS_SET(pstatus);
+	std::auto_ptr<ClusterStorage> pCacheStorage(new ClusterStorage(initCache));
 	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	pImpl_->wstrPath_ = wstrPath.release();
-	pImpl_->pStorage_ = pStorage.release();
-	pImpl_->pCacheStorage_ = pCacheStorage.release();
+	pImpl_ = new SingleMessageStoreImpl();
+	pImpl_->wstrPath_ = wstrPath;
+	pImpl_->pStorage_ = pStorage;
+	pImpl_->pCacheStorage_ = pCacheStorage;
 }
 
 qm::SingleMessageStore::~SingleMessageStore()
@@ -118,74 +102,55 @@ qm::SingleMessageStore::~SingleMessageStore()
 	if (pImpl_) {
 		close();
 		
-		freeWString(pImpl_->wstrPath_);
-		delete pImpl_->pStorage_;
-		delete pImpl_->pCacheStorage_;
 		delete pImpl_;
 		pImpl_ = 0;
 	}
 }
 
-QSTATUS qm::SingleMessageStore::close()
+bool qm::SingleMessageStore::close()
 {
 	Lock<CriticalSection> lock(pImpl_->cs_);
-	
-	QSTATUS status1 = pImpl_->pStorage_->close();
-	QSTATUS status2 = pImpl_->pCacheStorage_->close();
-	
-	return status1 != QSTATUS_SUCCESS ? status1 :
-		status2 != QSTATUS_SUCCESS ? status2 : QSTATUS_SUCCESS;
+	return pImpl_->pStorage_->close() && pImpl_->pCacheStorage_->close();
 }
 
-QSTATUS qm::SingleMessageStore::flush()
+bool qm::SingleMessageStore::flush()
 {
-	DECLARE_QSTATUS();
-	
 	Lock<CriticalSection> lock(pImpl_->cs_);
-	
-	status = pImpl_->pStorage_->close();
-	CHECK_QSTATUS();
-	status = pImpl_->pCacheStorage_->close();
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return pImpl_->pStorage_->close() && pImpl_->pCacheStorage_->close();
 }
 
-QSTATUS qm::SingleMessageStore::load(unsigned int nOffset,
-	unsigned int nLength, Message* pMessage)
+bool qm::SingleMessageStore::load(unsigned int nOffset,
+								  unsigned int nLength,
+								  Message* pMessage)
 {
 	assert(pMessage);
-	
-	DECLARE_QSTATUS();
 	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
 	unsigned int nLoad = nLength + SingleMessageStoreImpl::SEPARATOR_SIZE;
 	malloc_ptr<unsigned char> pBuf(static_cast<unsigned char*>(malloc(nLoad)));
 	if (!pBuf.get())
-		return QSTATUS_OUTOFMEMORY;
-	status = pImpl_->pStorage_->load(pBuf.get(), nOffset, &nLoad);
-	CHECK_QSTATUS();
+		return false;
+	if (pImpl_->pStorage_->load(pBuf.get(), nOffset, nLoad) == -1)
+		return false;
 	unsigned char* p = pBuf.get() + SingleMessageStoreImpl::SEPARATOR_SIZE;
 	
-	status = pMessage->create(reinterpret_cast<CHAR*>(p),
-		nLength, Message::FLAG_NONE);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return pMessage->create(reinterpret_cast<CHAR*>(p), nLength, Message::FLAG_NONE);
 }
 
-QSTATUS qm::SingleMessageStore::save(const CHAR* pszMessage,
-	const Message& header, MessageCache* pMessageCache, bool bIndexOnly,
-	unsigned int* pnOffset, unsigned int* pnLength,
-	unsigned int* pnHeaderLength, MessageCacheKey* pKey)
+bool qm::SingleMessageStore::save(const CHAR* pszMessage,
+								  const Message& header,
+								  MessageCache* pMessageCache,
+								  bool bIndexOnly,
+								  unsigned int* pnOffset,
+								  unsigned int* pnLength,
+								  unsigned int* pnHeaderLength,
+								  MessageCacheKey* pKey)
 {
 	assert(pnOffset);
 	assert(pnLength);
 	assert(pnHeaderLength);
 	assert(pKey);
-	
-	DECLARE_QSTATUS();
 	
 	const CHAR* pszHeader = header.getHeader();
 	size_t nHeaderLen = strlen(pszHeader);
@@ -198,11 +163,9 @@ QSTATUS qm::SingleMessageStore::save(const CHAR* pszMessage,
 		*pnLength = nHeaderLen + nBodyLen + 2;
 	}
 	
-	unsigned char* pData = 0;
-	size_t nDataLen = 0;
-	status = MessageCache::createData(header, &pData, &nDataLen);
-	CHECK_QSTATUS();
-	malloc_ptr<unsigned char> pDelete(pData);
+	malloc_size_ptr<unsigned char> pData(MessageCache::createData(header));
+	if (!pData.get())
+		return false;
 	
 	const unsigned char* pMsg[] = {
 		SingleMessageStoreImpl::szUsedSeparator__,
@@ -219,9 +182,10 @@ QSTATUS qm::SingleMessageStore::save(const CHAR* pszMessage,
 		SingleMessageStoreImpl::SEPARATOR_SIZE
 	};
 	
+	size_t nDataLen = pData.size();
 	const unsigned char* pCache[] = {
 		reinterpret_cast<const unsigned char*>(&nDataLen),
-		pData,
+		pData.get(),
 	};
 	size_t nCacheLen[] = {
 		sizeof(nDataLen),
@@ -230,156 +194,127 @@ QSTATUS qm::SingleMessageStore::save(const CHAR* pszMessage,
 	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	if (!bIndexOnly) {
-		status = pImpl_->pStorage_->save(pMsg, nMsgLen, countof(pMsg), pnOffset);
-		CHECK_QSTATUS();
+		*pnOffset = pImpl_->pStorage_->save(pMsg, nMsgLen, countof(pMsg));
+		if (*pnOffset == -1)
+			return false;
 	}
-	status = pImpl_->pCacheStorage_->save(pCache, nCacheLen, countof(pCache), pKey);
-	CHECK_QSTATUS();
+	*pKey = pImpl_->pCacheStorage_->save(pCache, nCacheLen, countof(pCache));
+	if (*pKey == -1)
+		return false;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::SingleMessageStore::free(unsigned int nOffset,
-	unsigned int nLength, MessageCacheKey key)
+bool qm::SingleMessageStore::free(unsigned int nOffset,
+								  unsigned int nLength,
+								  MessageCacheKey key)
 {
-	DECLARE_QSTATUS();
-	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
 	if (key != -1) {
 		size_t nDataLen = 0;
-		unsigned int nLoad = sizeof(nDataLen);
-		status = pImpl_->pCacheStorage_->load(
-			reinterpret_cast<unsigned char*>(&nDataLen), key, &nLoad);
-		CHECK_QSTATUS();
-		if (nLoad != sizeof(nDataLen))
-			return QSTATUS_FAIL;
-		status = pImpl_->pCacheStorage_->free(key, nDataLen + sizeof(nDataLen));
-		CHECK_QSTATUS();
+		if (pImpl_->pCacheStorage_->load(reinterpret_cast<unsigned char*>(&nDataLen),
+			key, sizeof(nDataLen)) != sizeof(nDataLen))
+			return false;
+		if (!pImpl_->pCacheStorage_->free(key, nDataLen + sizeof(nDataLen)))
+			return false;
 	}
 	
 	if (nOffset != -1) {
-		status = pImpl_->pStorage_->free(nOffset,
-			nLength + SingleMessageStoreImpl::SEPARATOR_SIZE*2);
-		CHECK_QSTATUS();
+		if (!pImpl_->pStorage_->free(nOffset,
+			nLength + SingleMessageStoreImpl::SEPARATOR_SIZE*2))
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::SingleMessageStore::compact(unsigned int nOffset,
-	unsigned int nLength, MessageCacheKey key, MessageStore* pmsOld,
-	unsigned int* pnOffset, MessageCacheKey* pKey)
+bool qm::SingleMessageStore::compact(unsigned int nOffset,
+									 unsigned int nLength,
+									 MessageCacheKey key,
+									 MessageStore* pmsOld,
+									 unsigned int* pnOffset,
+									 MessageCacheKey* pKey)
 {
 	assert(pnOffset);
 	assert(pKey);
 	
-	DECLARE_QSTATUS();
-	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
 	ClusterStorage* pCacheStorage = !pmsOld ? 0 :
-		static_cast<SingleMessageStore*>(pmsOld)->pImpl_->pCacheStorage_;
+		static_cast<SingleMessageStore*>(pmsOld)->pImpl_->pCacheStorage_.get();
 	size_t nDataLen = 0;
-	unsigned int nLoad = sizeof(nDataLen);
-	status = pImpl_->pCacheStorage_->load(
-		reinterpret_cast<unsigned char*>(&nDataLen), key, &nLoad);
-	CHECK_QSTATUS();
-	if (nLoad != sizeof(nDataLen))
-		return QSTATUS_FAIL;
-	status = pImpl_->pCacheStorage_->compact(key,
-		nDataLen + sizeof(nDataLen), pCacheStorage, pKey);
-	CHECK_QSTATUS();
+	if (pImpl_->pCacheStorage_->load(reinterpret_cast<unsigned char*>(&nDataLen),
+		key, sizeof(nDataLen)) != sizeof(nDataLen))
+		return false;
+	*pKey = pImpl_->pCacheStorage_->compact(key,
+		nDataLen + sizeof(nDataLen), pCacheStorage);
+	if (*pKey == -1)
+		return false;
 	
 	if (nOffset != -1) {
 		ClusterStorage* pStorage = !pmsOld ? 0 :
-			static_cast<SingleMessageStore*>(pmsOld)->pImpl_->pStorage_;
+			static_cast<SingleMessageStore*>(pmsOld)->pImpl_->pStorage_.get();
 		size_t nLen = nLength + SingleMessageStoreImpl::SEPARATOR_SIZE*2;
-		status = pImpl_->pStorage_->compact(nOffset, nLen, pStorage, pnOffset);
-		CHECK_QSTATUS();
+		*pnOffset = pImpl_->pStorage_->compact(nOffset, nLen, pStorage);
+		if (*pnOffset == -1)
+			return false;
 	}
 	else {
 		*pnOffset = nOffset;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::SingleMessageStore::freeUnused()
+bool qm::SingleMessageStore::freeUnused()
 {
-	DECLARE_QSTATUS();
-	
 	Lock<CriticalSection> lock(pImpl_->cs_);
-	
-	status = pImpl_->pCacheStorage_->freeUnused();
-	CHECK_QSTATUS();
-	
-	status = pImpl_->pStorage_->freeUnused();
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return pImpl_->pCacheStorage_->freeUnused() &&
+		pImpl_->pStorage_->freeUnused();
 }
 
-QSTATUS qm::SingleMessageStore::freeUnrefered(const ReferList& listRefer)
+bool qm::SingleMessageStore::freeUnrefered(const ReferList& listRefer)
 {
-	DECLARE_QSTATUS();
-	
-	status = MessageStoreUtil::freeUnrefered(pImpl_->pStorage_,
-		listRefer, SingleMessageStoreImpl::SEPARATOR_SIZE*2);
-	CHECK_QSTATUS();
-	status = MessageStoreUtil::freeUnreferedCache(
-		pImpl_->pCacheStorage_, listRefer);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return MessageStoreUtil::freeUnrefered(pImpl_->pStorage_.get(),
+		listRefer, SingleMessageStoreImpl::SEPARATOR_SIZE*2) &&
+		MessageStoreUtil::freeUnreferedCache(pImpl_->pCacheStorage_.get(), listRefer);
 }
 
-QSTATUS qm::SingleMessageStore::salvage(const ReferList& listRefer,
-	MessageStoreSalvageCallback* pCallback)
+bool qm::SingleMessageStore::salvage(const ReferList& listRefer,
+									 MessageStoreSalvageCallback* pCallback)
 {
 	// TODO
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::SingleMessageStore::readCache(
-	MessageCacheKey key, unsigned char** ppBuf)
+malloc_ptr<unsigned char> qm::SingleMessageStore::readCache(MessageCacheKey key)
 {
-	assert(ppBuf);
-	
-	DECLARE_QSTATUS();
-	
-	*ppBuf = 0;
-	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
 	const size_t nDefaultSize = 1024;
-	malloc_ptr<unsigned char> p(
-		static_cast<unsigned char*>(malloc(nDefaultSize)));
+	malloc_ptr<unsigned char> p(static_cast<unsigned char*>(malloc(nDefaultSize)));
 	if (!p.get())
-		return QSTATUS_OUTOFMEMORY;
-	unsigned int nLoad = nDefaultSize;
-	status = pImpl_->pCacheStorage_->load(p.get(), key, &nLoad);
-	CHECK_QSTATUS();
+		return 0;
+	
+	unsigned int nLoad = pImpl_->pCacheStorage_->load(p.get(), key, nDefaultSize);
 	if (nLoad == -1 || nLoad < sizeof(size_t))
-		return QSTATUS_FAIL;
+		return 0;
 	
 	size_t nSize = *reinterpret_cast<size_t*>(p.get());
 	if (nSize + sizeof(nSize) > nDefaultSize) {
 		unsigned char* p2 = static_cast<unsigned char*>(
 			realloc(p.get(), nSize + sizeof(nSize)));
 		if (!p2)
-			return QSTATUS_OUTOFMEMORY;
+			return 0;
 		p.release();
 		p.reset(p2);
 		
-		nLoad = nSize + sizeof(nSize);
-		status = pImpl_->pCacheStorage_->load(p.get(), key, &nLoad);
-		CHECK_QSTATUS();
+		if (pImpl_->pCacheStorage_->load(p.get(), key, nSize + sizeof(nSize)) == -1)
+			return 0;
 	}
 	
-	*ppBuf = p.release();
-	
-	return QSTATUS_SUCCESS;
+	return p;
 }
 
 
@@ -392,56 +327,46 @@ QSTATUS qm::SingleMessageStore::readCache(
 struct qm::MultiMessageStoreImpl
 {
 public:
-	QSTATUS init();
-	QSTATUS getOffset(bool bIncrement, unsigned int* pnOffset);
-	QSTATUS getPath(unsigned int nOffset, WSTRING* pwstrPath) const;
-	QSTATUS ensureDirectory(unsigned int nOffset) const;
+	bool init();
+	unsigned int getOffset(bool bIncrement);
+	wstring_ptr getPath(unsigned int nOffset) const;
+	bool ensureDirectory(unsigned int nOffset) const;
 
 public:
 	typedef std::vector<int> DirList;
 
 public:
-	WSTRING wstrPath_;
-	ClusterStorage* pCacheStorage_;
+	wstring_ptr wstrPath_;
+	std::auto_ptr<ClusterStorage> pCacheStorage_;
 	unsigned int nOffset_;
 	CriticalSection cs_;
 	mutable DirList listDir_;
 };
 
-QSTATUS qm::MultiMessageStoreImpl::init()
+bool qm::MultiMessageStoreImpl::init()
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrPath(concat(wstrPath_, L"\\msg"));
-	if (!wstrPath.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrPath(concat(wstrPath_.get(), L"\\msg"));
 	
 	W2T(wstrPath.get(), ptszPath);
 	
 	DWORD dwAttributes = ::GetFileAttributes(ptszPath);
 	if (dwAttributes == 0xffffffff) {
 		if (!::CreateDirectory(ptszPath, 0))
-			return QSTATUS_FAIL;
+			return false;
 	}
 	else if (!(dwAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::MultiMessageStoreImpl::getOffset(bool bIncrement, unsigned int *pnOffset)
+unsigned int qm::MultiMessageStoreImpl::getOffset(bool bIncrement)
 {
-	assert(pnOffset);
-	
-	DECLARE_QSTATUS();
-	
 	if (nOffset_ == -1) {
 		unsigned int nDir = 0;
 		
-		string_ptr<WSTRING> wstrDirFind(concat(wstrPath_, L"\\msg\\*"));
-		if (!wstrDirFind.get())
-			return QSTATUS_OUTOFMEMORY;
+		wstring_ptr wstrDirFind(concat(wstrPath_.get(), L"\\msg\\*"));
 		W2T(wstrDirFind.get(), ptszDirFind);
 		
 		WIN32_FIND_DATA fdDir;
@@ -463,9 +388,7 @@ QSTATUS qm::MultiMessageStoreImpl::getOffset(bool bIncrement, unsigned int *pnOf
 		
 		WCHAR wszFind[32];
 		swprintf(wszFind, L"\\msg\\%08d\\*.msg", nDir);
-		string_ptr<WSTRING> wstrFind(concat(wstrPath_, wszFind));
-		if (!wstrFind.get())
-			return QSTATUS_OUTOFMEMORY;
+		wstring_ptr wstrFind(concat(wstrPath_.get(), wszFind));
 		W2T(wstrFind.get(), ptszFind);
 		
 		WIN32_FIND_DATA fd;
@@ -484,48 +407,34 @@ QSTATUS qm::MultiMessageStoreImpl::getOffset(bool bIncrement, unsigned int *pnOf
 	
 	if (bIncrement)
 		++nOffset_;
-	*pnOffset = nOffset_;
-	
-	return QSTATUS_SUCCESS;
+	return nOffset_;
 }
 
-QSTATUS qm::MultiMessageStoreImpl::getPath(
-	unsigned int nOffset, WSTRING* pwstrPath) const
+wstring_ptr qm::MultiMessageStoreImpl::getPath(unsigned int nOffset) const
 {
-	assert(pwstrPath);
-	
 	WCHAR wsz[64];
 	swprintf(wsz, L"\\msg\\%08d\\%08d.msg", nOffset/1000, nOffset);
-	*pwstrPath = concat(wstrPath_, wsz);
-	
-	return *pwstrPath ? QSTATUS_SUCCESS : QSTATUS_OUTOFMEMORY;
+	return concat(wstrPath_.get(), wsz);
 }
 
-QSTATUS qm::MultiMessageStoreImpl::ensureDirectory(unsigned int nOffset) const
+bool qm::MultiMessageStoreImpl::ensureDirectory(unsigned int nOffset) const
 {
-	DECLARE_QSTATUS();
-	
 	unsigned int nIndex = nOffset/1000;
 	
 	if (nIndex >= listDir_.size() || !listDir_[nIndex]) {
 		WCHAR wsz[64];
 		swprintf(wsz, L"\\msg\\%08d", nIndex);
 		
-		string_ptr<WSTRING> wstrPath(concat(wstrPath_, wsz));
-		if (!wstrPath.get())
-			return QSTATUS_OUTOFMEMORY;
-		
+		wstring_ptr wstrPath(concat(wstrPath_.get(), wsz));
 		W2T(wstrPath.get(), ptszPath);
 		::CreateDirectory(ptszPath, 0);
 		
-		if (listDir_.size() <= nIndex) {
-			status = STLWrapper<DirList>(listDir_).resize(nIndex + 1);
-			CHECK_QSTATUS();
-		}
+		if (listDir_.size() <= nIndex)
+			listDir_.resize(nIndex + 1);
 		listDir_[nIndex] = 1;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -536,19 +445,10 @@ QSTATUS qm::MultiMessageStoreImpl::ensureDirectory(unsigned int nOffset) const
  */
 
 qm::MultiMessageStore::MultiMessageStore(const WCHAR* pwszPath,
-	const WCHAR* pwszCachePath, unsigned int nCacheBlockSize, QSTATUS* pstatus)
+										 const WCHAR* pwszCachePath,
+										 unsigned int nCacheBlockSize)
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrPath(allocWString(pwszPath));
-	if (!wstrPath.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
+	wstring_ptr wstrPath(allocWString(pwszPath));
 	
 	ClusterStorage::Init initCache = {
 		pwszCachePath,
@@ -557,18 +457,16 @@ qm::MultiMessageStore::MultiMessageStore(const WCHAR* pwszPath,
 		FileNames::MAP_EXT,
 		nCacheBlockSize
 	};
-	std::auto_ptr<ClusterStorage> pCacheStorage;
-	status = newQsObject(initCache, &pCacheStorage);
-	CHECK_QSTATUS_SET(pstatus);
+	std::auto_ptr<ClusterStorage> pCacheStorage(new ClusterStorage(initCache));
 	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	pImpl_->wstrPath_ = wstrPath.release();
-	pImpl_->pCacheStorage_ = pCacheStorage.release();
+	pImpl_ = new MultiMessageStoreImpl();
+	pImpl_->wstrPath_ = wstrPath;
+	pImpl_->pCacheStorage_ = pCacheStorage;
 	pImpl_->nOffset_ = -1;
 	
-	status = pImpl_->init();
-	CHECK_QSTATUS_SET(pstatus);
+	if (!pImpl_->init()) {
+		// TODO
+	}
 }
 
 qm::MultiMessageStore::~MultiMessageStore()
@@ -576,82 +474,61 @@ qm::MultiMessageStore::~MultiMessageStore()
 	if (pImpl_) {
 		close();
 		
-		freeWString(pImpl_->wstrPath_);
-		delete pImpl_->pCacheStorage_;
 		delete pImpl_;
 		pImpl_ = 0;
 	}
 }
 
-QSTATUS qm::MultiMessageStore::close()
+bool qm::MultiMessageStore::close()
 {
-	DECLARE_QSTATUS();
-	
 	Lock<CriticalSection> lock(pImpl_->cs_);
-	
-	status = pImpl_->pCacheStorage_->close();
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return pImpl_->pCacheStorage_->close();
 }
 
-QSTATUS qm::MultiMessageStore::flush()
+bool qm::MultiMessageStore::flush()
 {
-	DECLARE_QSTATUS();
-	
 	Lock<CriticalSection> lock(pImpl_->cs_);
-	
-	status = pImpl_->pCacheStorage_->close();
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return pImpl_->pCacheStorage_->close();
 }
 
-QSTATUS qm::MultiMessageStore::load(unsigned int nOffset,
-	unsigned int nLength, Message* pMessage)
+bool qm::MultiMessageStore::load(unsigned int nOffset,
+								 unsigned int nLength,
+								 Message* pMessage)
 {
 	assert(pMessage);
 	
-	DECLARE_QSTATUS();
-	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
-	string_ptr<WSTRING> wstrPath;
-	status = pImpl_->getPath(nOffset, &wstrPath);
-	CHECK_QSTATUS();
-	FileInputStream stream(wstrPath.get(), &status);
-	CHECK_QSTATUS();
-	BufferedInputStream bufferedStream(&stream, false, &status);
-	CHECK_QSTATUS();
+	wstring_ptr wstrPath(pImpl_->getPath(nOffset));
+	FileInputStream stream(wstrPath.get());
+	if (!stream)
+		return false;
+	BufferedInputStream bufferedStream(&stream, false);
 	
 	malloc_ptr<unsigned char> pBuf(static_cast<unsigned char*>(malloc(nLength)));
 	if (!pBuf.get())
-		return QSTATUS_OUTOFMEMORY;
+		return false;
 	
-	size_t nRead = 0;
-	status = bufferedStream.read(pBuf.get(), nLength, &nRead);
-	CHECK_QSTATUS();
+	size_t nRead = bufferedStream.read(pBuf.get(), nLength);
 	if (nRead != nLength)
-		return QSTATUS_FAIL;
+		return false;
 	
-	status = pMessage->create(reinterpret_cast<CHAR*>(pBuf.get()),
-		nRead, Message::FLAG_NONE);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return pMessage->create(reinterpret_cast<CHAR*>(pBuf.get()), nRead, Message::FLAG_NONE);
 }
 
-QSTATUS qm::MultiMessageStore::save(const CHAR* pszMessage,
-	const Message& header, MessageCache* pMessageCache, bool bIndexOnly,
-	unsigned int* pnOffset, unsigned int* pnLength,
-	unsigned int* pnHeaderLength, MessageCacheKey* pKey)
+bool qm::MultiMessageStore::save(const CHAR* pszMessage,
+								 const Message& header,
+								 MessageCache* pMessageCache,
+								 bool bIndexOnly,
+								 unsigned int* pnOffset,
+								 unsigned int* pnLength,
+								 unsigned int* pnHeaderLength,
+								 MessageCacheKey* pKey)
 {
 	assert(pnOffset);
 	assert(pnLength);
 	assert(pnHeaderLength);
 	assert(pKey);
-	
-	DECLARE_QSTATUS();
 	
 	const CHAR* pszHeader = header.getHeader();
 	size_t nHeaderLen = strlen(pszHeader);
@@ -664,15 +541,14 @@ QSTATUS qm::MultiMessageStore::save(const CHAR* pszMessage,
 		*pnLength = nHeaderLen + nBodyLen + 2;
 	}
 	
-	unsigned char* pData = 0;
-	size_t nDataLen = 0;
-	status = MessageCache::createData(header, &pData, &nDataLen);
-	CHECK_QSTATUS();
-	malloc_ptr<unsigned char> pDelete(pData);
+	malloc_size_ptr<unsigned char> pData(MessageCache::createData(header));
+	if (!pData.get())
+		return false;
 	
+	size_t nDataLen = pData.size();
 	const unsigned char* pCache[] = {
 		reinterpret_cast<const unsigned char*>(&nDataLen),
-		pData,
+		pData.get(),
 	};
 	size_t nCacheLen[] = {
 		sizeof(nDataLen),
@@ -682,170 +558,133 @@ QSTATUS qm::MultiMessageStore::save(const CHAR* pszMessage,
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
 	if (!bIndexOnly) {
-		status = pImpl_->getOffset(true, pnOffset);
-		CHECK_QSTATUS();
-		status = pImpl_->ensureDirectory(*pnOffset);
-		CHECK_QSTATUS();
-		string_ptr<WSTRING> wstrPath;
-		status = pImpl_->getPath(*pnOffset, &wstrPath);
-		CHECK_QSTATUS();
-		FileOutputStream stream(wstrPath.get(), &status);
-		CHECK_QSTATUS();
-		BufferedOutputStream bufferedStream(&stream, false, &status);
-		CHECK_QSTATUS();
-		status = bufferedStream.write(
-			reinterpret_cast<const unsigned char*>(pszHeader), nHeaderLen);
-		CHECK_QSTATUS();
-		status = bufferedStream.write(
-			reinterpret_cast<const unsigned char*>("\r\n"), 2);
-		CHECK_QSTATUS();
-		status = bufferedStream.write(
-			reinterpret_cast<const unsigned char*>(pszBody), nBodyLen);
-		CHECK_QSTATUS();
-		status = bufferedStream.close();
-		CHECK_QSTATUS();
+		*pnOffset = pImpl_->getOffset(true);
+		if (!pImpl_->ensureDirectory(*pnOffset))
+			return false;
+		wstring_ptr wstrPath(pImpl_->getPath(*pnOffset));
+		FileOutputStream stream(wstrPath.get());
+		if (!stream)
+			return false;
+		BufferedOutputStream bufferedStream(&stream, false);
+		if (bufferedStream.write(reinterpret_cast<const unsigned char*>(pszHeader), nHeaderLen) == -1 ||
+			bufferedStream.write(reinterpret_cast<const unsigned char*>("\r\n"), 2) == -1 ||
+			bufferedStream.write(reinterpret_cast<const unsigned char*>(pszBody), nBodyLen) == -1 ||
+			!bufferedStream.close())
+			return false;
 	}
-	status = pImpl_->pCacheStorage_->save(pCache, nCacheLen, countof(pCache), pKey);
-	CHECK_QSTATUS();
+	*pKey = pImpl_->pCacheStorage_->save(pCache, nCacheLen, countof(pCache));
+	if (*pKey == -1)
+		return false;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::MultiMessageStore::free(unsigned int nOffset,
-	unsigned int nLength, MessageCacheKey key)
+bool qm::MultiMessageStore::free(unsigned int nOffset,
+								 unsigned int nLength,
+								 MessageCacheKey key)
 {
-	DECLARE_QSTATUS();
-	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
 	if (key != -1) {
 		size_t nDataLen = 0;
-		unsigned int nLoad = sizeof(nDataLen);
-		status = pImpl_->pCacheStorage_->load(
-			reinterpret_cast<unsigned char*>(&nDataLen), key, &nLoad);
-		CHECK_QSTATUS();
+		unsigned int nLoad = pImpl_->pCacheStorage_->load(
+			reinterpret_cast<unsigned char*>(&nDataLen), key, sizeof(nDataLen));
 		if (nLoad != sizeof(nDataLen))
-			return QSTATUS_FAIL;
-		status = pImpl_->pCacheStorage_->free(key, nDataLen + sizeof(nDataLen));
-		CHECK_QSTATUS();
+			return false;
+		if (!pImpl_->pCacheStorage_->free(key, nDataLen + sizeof(nDataLen)))
+			return false;
 	}
 	
 	if (nOffset != -1) {
-		string_ptr<WSTRING> wstrPath;
-		status = pImpl_->getPath(nOffset, &wstrPath);
-		CHECK_QSTATUS();
+		wstring_ptr wstrPath(pImpl_->getPath(nOffset));
 		W2T(wstrPath.get(), ptszPath);
 		::DeleteFile(ptszPath);
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::MultiMessageStore::compact(unsigned int nOffset,
-	unsigned int nLength, MessageCacheKey key, MessageStore* pmsOld,
-	unsigned int* pnOffset, MessageCacheKey* pKey)
+bool qm::MultiMessageStore::compact(unsigned int nOffset,
+									unsigned int nLength,
+									MessageCacheKey key,
+									MessageStore* pmsOld,
+									unsigned int* pnOffset,
+									MessageCacheKey* pKey)
 {
 	assert(pnOffset);
 	assert(pKey);
 	
-	DECLARE_QSTATUS();
-	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
 	ClusterStorage* pCacheStorage = !pmsOld ? 0 :
-		static_cast<MultiMessageStore*>(pmsOld)->pImpl_->pCacheStorage_;
+		static_cast<MultiMessageStore*>(pmsOld)->pImpl_->pCacheStorage_.get();
 	size_t nDataLen = 0;
-	unsigned int nLoad = sizeof(nDataLen);
-	status = pImpl_->pCacheStorage_->load(
-		reinterpret_cast<unsigned char*>(&nDataLen), key, &nLoad);
-	CHECK_QSTATUS();
+	unsigned int nLoad = pImpl_->pCacheStorage_->load(
+		reinterpret_cast<unsigned char*>(&nDataLen), key, sizeof(nDataLen));
 	if (nLoad != sizeof(nDataLen))
-		return QSTATUS_FAIL;
-	status = pImpl_->pCacheStorage_->compact(key,
-		nDataLen + sizeof(nDataLen), pCacheStorage, pKey);
-	CHECK_QSTATUS();
+		return false;
+	*pKey = pImpl_->pCacheStorage_->compact(key,
+		nDataLen + sizeof(nDataLen), pCacheStorage);
+	if (*pKey == -1)
+		return false;
 	
 	*pnOffset = nOffset;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::MultiMessageStore::freeUnused()
+bool qm::MultiMessageStore::freeUnused()
 {
-	DECLARE_QSTATUS();
-	
 	Lock<CriticalSection> lock(pImpl_->cs_);
-	
-	status = pImpl_->pCacheStorage_->freeUnused();
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return pImpl_->pCacheStorage_->freeUnused();
 }
 
-QSTATUS qm::MultiMessageStore::freeUnrefered(const ReferList& listRefer)
+bool qm::MultiMessageStore::freeUnrefered(const ReferList& listRefer)
 {
-	DECLARE_QSTATUS();
-	
 	typedef std::vector<unsigned int> List;
 	List l;
-	status = STLWrapper<List>(l).resize(listRefer.size());
-	CHECK_QSTATUS();
+	l.resize(listRefer.size());
 	std::transform(listRefer.begin(), listRefer.end(),
 		l.begin(), mem_data_ref(&Refer::nOffset_));
 	std::sort(l.begin(), l.end());
 	
 	List::const_iterator it = l.begin();
 	
-	unsigned int nOffset = 0;
-	status = pImpl_->getOffset(false, &nOffset);
-	CHECK_QSTATUS();
+	unsigned int nOffset = pImpl_->getOffset(false);
 	for (unsigned int n = 0; n <= nOffset; ++n) {
 		if (it != l.end() && *it == n) {
 			++it;
 		}
 		else {
-			string_ptr<WSTRING> wstrPath;
-			status = pImpl_->getPath(n, &wstrPath);
-			CHECK_QSTATUS();
+			wstring_ptr wstrPath(pImpl_->getPath(n));
 			W2T(wstrPath.get(), ptszPath);
 			if (::GetFileAttributes(ptszPath) != 0xffffffff)
 				::DeleteFile(ptszPath);
 		}
 	}
 	
-	status = MessageStoreUtil::freeUnreferedCache(
-		pImpl_->pCacheStorage_, listRefer);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return MessageStoreUtil::freeUnreferedCache(pImpl_->pCacheStorage_.get(), listRefer);
 }
 
-QSTATUS qm::MultiMessageStore::salvage(const ReferList& listRefer,
-	MessageStoreSalvageCallback* pCallback)
+bool qm::MultiMessageStore::salvage(const ReferList& listRefer,
+									MessageStoreSalvageCallback* pCallback)
 {
-	DECLARE_QSTATUS();
-	
 	typedef std::vector<unsigned int> List;
 	List l;
-	status = STLWrapper<List>(l).resize(listRefer.size());
-	CHECK_QSTATUS();
+	l.resize(listRefer.size());
 	std::transform(listRefer.begin(), listRefer.end(),
 		l.begin(), mem_data_ref(&Refer::nOffset_));
 	std::sort(l.begin(), l.end());
 	
 	List::const_iterator it = l.begin();
 	
-	unsigned int nOffset = 0;
-	status = pImpl_->getOffset(false, &nOffset);
-	CHECK_QSTATUS();
+	unsigned int nOffset = pImpl_->getOffset(false);
 	for (unsigned int n = 0; n <= nOffset; ++n) {
 		if (it != l.end() && *it == n) {
 			++it;
 		}
 		else {
-			string_ptr<WSTRING> wstrPath;
-			status = pImpl_->getPath(n, &wstrPath);
-			CHECK_QSTATUS();
+			wstring_ptr wstrPath(pImpl_->getPath(n));
 			W2T(wstrPath.get(), ptszPath);
 			
 			WIN32_FIND_DATA fd;
@@ -853,59 +692,46 @@ QSTATUS qm::MultiMessageStore::salvage(const ReferList& listRefer,
 			bool bFind = hFind != INVALID_HANDLE_VALUE;
 			::FindClose(hFind);
 			if (bFind) {
-				Message msg(&status);
-				CHECK_QSTATUS();
-				status = load(n, fd.nFileSizeLow, &msg);
-				CHECK_QSTATUS();
-				status = pCallback->salvage(msg);
-				CHECK_QSTATUS();
+				Message msg;
+				if (!load(n, fd.nFileSizeLow, &msg))
+					return false;
+				if (!pCallback->salvage(msg))
+					return false;
 				::DeleteFile(ptszPath);
 			}
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::MultiMessageStore::readCache(
-	MessageCacheKey key, unsigned char** ppBuf)
+malloc_ptr<unsigned char> qm::MultiMessageStore::readCache(MessageCacheKey key)
 {
-	assert(ppBuf);
-	
-	DECLARE_QSTATUS();
-	
-	*ppBuf = 0;
-	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
 	const size_t nDefaultSize = 1024;
 	malloc_ptr<unsigned char> p(
 		static_cast<unsigned char*>(malloc(nDefaultSize)));
 	if (!p.get())
-		return QSTATUS_OUTOFMEMORY;
-	unsigned int nLoad = nDefaultSize;
-	status = pImpl_->pCacheStorage_->load(p.get(), key, &nLoad);
-	CHECK_QSTATUS();
+		return 0;
+	unsigned int nLoad = pImpl_->pCacheStorage_->load(p.get(), key, nDefaultSize);
 	if (nLoad == -1 || nLoad < sizeof(size_t))
-		return QSTATUS_FAIL;
+		return 0;
 	
 	size_t nSize = *reinterpret_cast<size_t*>(p.get());
 	if (nSize + sizeof(nSize) > nDefaultSize) {
 		unsigned char* p2 = static_cast<unsigned char*>(
 			realloc(p.get(), nSize + sizeof(nSize)));
 		if (!p2)
-			return QSTATUS_OUTOFMEMORY;
+			return 0;
 		p.release();
 		p.reset(p2);
 		
-		nLoad = nSize + sizeof(nSize);
-		status = pImpl_->pCacheStorage_->load(p.get(), key, &nLoad);
-		CHECK_QSTATUS();
+		if (pImpl_->pCacheStorage_->load(p.get(), key, nSize + sizeof(nSize)) == -1)
+			return 0;
 	}
 	
-	*ppBuf = p.release();
-	
-	return QSTATUS_SUCCESS;
+	return p;
 }
 
 
@@ -926,60 +752,43 @@ qm::MessageStoreSalvageCallback::~MessageStoreSalvageCallback()
  *
  */
 
-QSTATUS qm::MessageStoreUtil::freeUnrefered(qs::ClusterStorage* pStorage,
-	const MessageStore::ReferList& listRefer, unsigned int nSeparatorSize)
+bool qm::MessageStoreUtil::freeUnrefered(ClusterStorage* pStorage,
+										 const MessageStore::ReferList& listRefer,
+										 unsigned int nSeparatorSize)
 {
-	DECLARE_QSTATUS();
-	
 	ClusterStorage::ReferList l;
-	status = STLWrapper<ClusterStorage::ReferList>(l).reserve(listRefer.size());
-	CHECK_QSTATUS();
-	MessageStore::ReferList::const_iterator it = listRefer.begin();
-	while (it != listRefer.end()) {
+	l.reserve(listRefer.size());
+	for (MessageStore::ReferList::const_iterator it = listRefer.begin(); it != listRefer.end(); ++it) {
 		ClusterStorage::Refer refer = {
 			(*it).nOffset_,
 			(*it).nLength_ + nSeparatorSize
 		};
 		l.push_back(refer);
-		++it;
 	}
 	
-	status = pStorage->freeUnrefered(l);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return pStorage->freeUnrefered(l);
 }
 
-QSTATUS qm::MessageStoreUtil::freeUnreferedCache(
-	qs::ClusterStorage* pCacheStorage, const MessageStore::ReferList& listRefer)
+bool qm::MessageStoreUtil::freeUnreferedCache(ClusterStorage* pCacheStorage,
+											  const MessageStore::ReferList& listRefer)
 {
-	DECLARE_QSTATUS();
-	
 	ClusterStorage::ReferList l;
-	status = STLWrapper<ClusterStorage::ReferList>(l).reserve(listRefer.size());
-	CHECK_QSTATUS();
-	MessageStore::ReferList::const_iterator it = listRefer.begin();
-	while (it != listRefer.end()) {
+	l.reserve(listRefer.size());
+	for (MessageStore::ReferList::const_iterator it = listRefer.begin(); it != listRefer.end(); ++it) {
 		unsigned int nOffset = (*it).key_;
 		
 		size_t nSize = 0;
-		unsigned int nLoad = sizeof(size_t);
-		status = pCacheStorage->load(
-			reinterpret_cast<unsigned char*>(&nSize), nOffset, &nLoad);
-		CHECK_QSTATUS();
+		unsigned int nLoad = pCacheStorage->load(
+			reinterpret_cast<unsigned char*>(&nSize), nOffset, sizeof(size_t));
 		if (nLoad != sizeof(size_t))
-			return QSTATUS_FAIL;
+			return false;
 		
 		ClusterStorage::Refer refer = {
 			nOffset,
 			nSize + sizeof(nSize)
 		};
 		l.push_back(refer);
-		++it;
 	}
 	
-	status = pCacheStorage->freeUnrefered(l);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return pCacheStorage->freeUnrefered(l);
 }

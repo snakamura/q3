@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -32,26 +32,26 @@ class MailFolderLock;
 class QMEXPORTCLASS Application
 {
 public:
-	Application(HINSTANCE hInst, qs::WSTRING wstrMailFolder,
-		qs::WSTRING wstrProfile, MailFolderLock* pLock, qs::QSTATUS* pstatus);
+	Application(HINSTANCE hInst,
+				qs::wstring_ptr wstrMailFolder,
+				qs::wstring_ptr wstrProfile,
+				std::auto_ptr<MailFolderLock> pLock);
 	~Application();
 
 public:
-	qs::QSTATUS initialize();
-	qs::QSTATUS uninitialize();
-	qs::QSTATUS run();
-	qs::QSTATUS save();
+	bool initialize();
+	void uninitialize();
+	void run();
+	bool save();
 	
 	HINSTANCE getResourceHandle() const;
 	HINSTANCE getAtlHandle() const;
 	const WCHAR* getMailFolder() const;
 	const WCHAR* getTemporaryFolder() const;
 	const WCHAR* getProfileName() const;
-	qs::QSTATUS getProfilePath(const WCHAR* pwszName,
-		qs::WSTRING* pwstrPath) const;
-	qs::QSTATUS getVersion(bool bWithOSVersion,
-		qs::WSTRING* pwstrVersion) const;
-	qs::QSTATUS getOSVersion(qs::WSTRING* pwstrOSVersion) const;
+	qs::wstring_ptr getProfilePath(const WCHAR* pwszName) const;
+	qs::wstring_ptr getVersion(bool bWithOSVersion) const;
+	qs::wstring_ptr getOSVersion() const;
 
 public:
 	static Application& getApplication();

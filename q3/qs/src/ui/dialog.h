@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -31,19 +31,23 @@ public:
 	typedef std::vector<DialogBase*> ModelessList;
 
 public:
-	LRESULT notifyCommandHandlers(WORD wCode, WORD wId) const;
-	LRESULT notifyNotifyHandlers(NMHDR* pnmhdr, bool* pbHandled) const;
+	LRESULT notifyCommandHandlers(WORD wCode,
+								  WORD wId) const;
+	LRESULT notifyNotifyHandlers(NMHDR* pnmhdr,
+								 bool* pbHandled) const;
 	void notifyOwnerDrawHandlers(DRAWITEMSTRUCT* pDrawItem) const;
 	void measureOwnerDrawHandlers(MEASUREITEMSTRUCT* pMeasureItem) const;
-	INT_PTR dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
-	QSTATUS destroy();
+	INT_PTR dialogProc(UINT uMsg,
+					   WPARAM wParam,
+					   LPARAM lParam);
+	void destroy();
 
 public:
-	static QSTATUS getDialogMap(DialogMap** ppMap);
+	static DialogMap* getDialogMap();
 	
-	static QSTATUS getModelessList(const ModelessList** ppList);
-	static QSTATUS addModelessDialog(DialogBase* pDialogBase);
-	static QSTATUS removeModelessDialog(DialogBase* pDialogBase);
+	static const ModelessList* getModelessList();
+	static void addModelessDialog(DialogBase* pDialogBase);
+	static void removeModelessDialog(DialogBase* pDialogBase);
 
 private:
 	DialogBase* pThis_;
@@ -65,10 +69,10 @@ private:
 		virtual ~InitializerImpl();
 	
 	public:
-		virtual QSTATUS init();
-		virtual QSTATUS term();
-		virtual QSTATUS initThread();
-		virtual QSTATUS termThread();
+		virtual bool init();
+		virtual void term();
+		virtual bool initThread();
+		virtual void termThread();
 	} init__;
 
 friend class InitializerImpl;

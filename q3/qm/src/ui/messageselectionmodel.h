@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -35,13 +35,14 @@ public:
 	virtual ~MessageSelectionModel();
 
 public:
-	virtual qs::QSTATUS getSelectedMessages(AccountLock* pAccountLock,
-		Folder** ppFolder, MessageHolderList* pList) = 0;
-	virtual qs::QSTATUS hasSelectedMessage(bool* pbHas) = 0;
-	virtual qs::QSTATUS getFocusedMessage(MessagePtr* pptr) = 0;
-	virtual qs::QSTATUS hasFocusedMessage(bool* pbHas) = 0;
-	virtual qs::QSTATUS selectAll() = 0;
-	virtual qs::QSTATUS canSelect(bool* pbCan) = 0;
+	virtual void getSelectedMessages(AccountLock* pAccountLock,
+									 Folder** ppFolder,
+									 MessageHolderList* pList) = 0;
+	virtual bool hasSelectedMessage() = 0;
+	virtual MessagePtr getFocusedMessage() = 0;
+	virtual bool hasFocusedMessage() = 0;
+	virtual void selectAll() = 0;
+	virtual bool canSelect() = 0;
 };
 
 }

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -38,8 +38,9 @@ public:
 	};
 
 public:
-	UID(const WCHAR* pwszUID, unsigned int nFlags,
-		const Date& date, qs::QSTATUS* pstatus);
+	UID(const WCHAR* pwszUID,
+		unsigned int nFlags,
+		const Date& date);
 	~UID();
 
 public:
@@ -48,14 +49,17 @@ public:
 	const Date& getDate() const;
 
 public:
-	void update(unsigned int nFlags, short nYear, short nMonth, short nDay);
+	void update(unsigned int nFlags,
+				short nYear,
+				short nMonth,
+				short nDay);
 
 private:
 	UID(const UID&);
 	UID& operator=(const UID&);
 
 private:
-	qs::WSTRING wstrUID_;
+	qs::wstring_ptr wstrUID_;
 	unsigned int nFlags_;
 	Date date_;
 };
@@ -73,19 +77,20 @@ public:
 	typedef std::vector<size_t> IndexList;
 
 public:
-	UIDList(qs::QSTATUS* pstatus);
+	UIDList();
 	~UIDList();
 
 public:
 	size_t getCount() const;
 	UID* getUID(size_t n) const;
 	size_t getIndex(const WCHAR* pwszUID) const;
-	size_t getIndex(const WCHAR* pwszUID, size_t nStart) const;
+	size_t getIndex(const WCHAR* pwszUID,
+					size_t nStart) const;
 
 public:
-	qs::QSTATUS load(const WCHAR* pwszPath);
-	qs::QSTATUS save(const WCHAR* pwszPath) const;
-	qs::QSTATUS add(UID* pUID);
+	bool load(const WCHAR* pwszPath);
+	bool save(const WCHAR* pwszPath) const;
+	void add(std::auto_ptr<UID> pUID);
 	void remove(const IndexList& l);
 	UID* remove(size_t n);
 	void setModified(bool bModified);
@@ -113,17 +118,20 @@ private:
 class UIDListContentHandler : public qs::DefaultHandler
 {
 public:
-	UIDListContentHandler(UIDList* pList, qs::QSTATUS* pstatus);
+	explicit UIDListContentHandler(UIDList* pList);
 	virtual ~UIDListContentHandler();
 
 public:
-	virtual qs::QSTATUS startElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName,
-		const qs::Attributes& attributes);
-	virtual qs::QSTATUS endElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName);
-	virtual qs::QSTATUS characters(const WCHAR* pwsz,
-		size_t nStart, size_t nLength);
+	virtual bool startElement(const WCHAR* pwszNamespaceURI,
+							  const WCHAR* pwszLocalName,
+							  const WCHAR* pwszQName,
+							  const qs::Attributes& attributes);
+	virtual bool endElement(const WCHAR* pwszNamespaceURI,
+							const WCHAR* pwszLocalName,
+							const WCHAR* pwszQName);
+	virtual bool characters(const WCHAR* pwsz,
+							size_t nStart,
+							size_t nLength);
 
 private:
 	UIDListContentHandler(const UIDListContentHandler&);
@@ -141,7 +149,7 @@ private:
 	State state_;
 	unsigned int nFlags_;
 	UID::Date date_;
-	qs::StringBuffer<qs::WSTRING>* pBuffer_;
+	qs::StringBuffer<qs::WSTRING> buffer_;
 };
 
 
@@ -154,11 +162,11 @@ private:
 class UIDListWriter
 {
 public:
-	UIDListWriter(qs::Writer* pWriter, qs::QSTATUS* pstatus);
+	explicit UIDListWriter(qs::Writer* pWriter);
 	~UIDListWriter();
 
 public:
-	qs::QSTATUS write(const UIDList& l);
+	bool write(const UIDList& l);
 
 private:
 	UIDListWriter(const UIDListWriter&);

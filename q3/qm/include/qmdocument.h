@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -48,19 +48,20 @@ public:
 	typedef std::vector<Account*> AccountList;
 
 public:
-	Document(qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	explicit Document(qs::Profile* pProfile);
 	~Document();
 
 public:
 	Account* getAccount(const WCHAR* pwszName) const;
 	const AccountList& getAccounts() const;
 	bool hasAccount(const WCHAR* pwszName) const;
-	qs::QSTATUS addAccount(Account* pAccount);
-	qs::QSTATUS removeAccount(Account* pAccount);
-	qs::QSTATUS renameAccount(Account* pAccount, const WCHAR* pwszName);
-	qs::QSTATUS loadAccounts(const WCHAR* pwszPath);
-	qs::QSTATUS getFolder(Account* pAccount,
-		const WCHAR* pwszName, Folder** ppFolder) const;
+	void addAccount(std::auto_ptr<Account> pAccount);
+	void removeAccount(Account* pAccount);
+	bool renameAccount(Account* pAccount,
+					   const WCHAR* pwszName);
+	bool loadAccounts(const WCHAR* pwszPath);
+	Folder* getFolder(Account* pAccount,
+					  const WCHAR* pwszName) const;
 	
 	RuleManager* getRuleManager() const;
 	const TemplateManager* getTemplateManager() const;
@@ -70,15 +71,15 @@ public:
 	const Security* getSecurity() const;
 	
 	bool isOffline() const;
-	qs::QSTATUS setOffline(bool bOffline);
-	qs::QSTATUS incrementInternalOnline();
-	qs::QSTATUS decrementInternalOnline();
+	void setOffline(bool bOffline);
+	void incrementInternalOnline();
+	void decrementInternalOnline();
 	bool isCheckNewMail() const;
 	void setCheckNewMail(bool bCheckNewMail);
-	qs::QSTATUS save();
+	bool save();
 	
-	qs::QSTATUS addDocumentHandler(DocumentHandler* pHandler);
-	qs::QSTATUS removeDocumentHandler(DocumentHandler* pHandler);
+	void addDocumentHandler(DocumentHandler* pHandler);
+	void removeDocumentHandler(DocumentHandler* pHandler);
 
 private:
 	Document(const Document&);
@@ -101,8 +102,8 @@ public:
 	virtual ~DocumentHandler();
 
 public:
-	virtual qs::QSTATUS offlineStatusChanged(const DocumentEvent& event) = 0;
-	virtual qs::QSTATUS accountListChanged(const AccountListChangedEvent& event) = 0;
+	virtual void offlineStatusChanged(const DocumentEvent& event) = 0;
+	virtual void accountListChanged(const AccountListChangedEvent& event) = 0;
 };
 
 
@@ -119,8 +120,8 @@ public:
 	virtual ~DefaultDocumentHandler();
 
 public:
-	virtual qs::QSTATUS offlineStatusChanged(const DocumentEvent& event);
-	virtual qs::QSTATUS accountListChanged(const AccountListChangedEvent& event);
+	virtual void offlineStatusChanged(const DocumentEvent& event);
+	virtual void accountListChanged(const AccountListChangedEvent& event);
 };
 
 
@@ -133,7 +134,7 @@ public:
 class DocumentEvent
 {
 public:
-	DocumentEvent(Document* pDocument);
+	explicit DocumentEvent(Document* pDocument);
 	~DocumentEvent();
 
 public:
@@ -164,7 +165,9 @@ public:
 	};
 
 public:
-	AccountListChangedEvent(Document* pDocument, Type type, Account* pAccount);
+	AccountListChangedEvent(Document* pDocument,
+							Type type,
+							Account* pAccount);
 	~AccountListChangedEvent();
 
 public:

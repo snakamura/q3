@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -40,52 +40,70 @@ class Imap4Driver : public qm::ProtocolDriver
 {
 public:
 	Imap4Driver(qm::Account* pAccount,
-		const qm::Security* pSecurity, qs::QSTATUS* pstatus);
+				const qm::Security* pSecurity);
 	virtual ~Imap4Driver();
 
 public:
 	virtual bool isSupport(qm::Account::Support support);
-	virtual qs::QSTATUS setOffline(bool bOffline);
-	virtual qs::QSTATUS save();
+	virtual void setOffline(bool bOffline);
+	virtual bool save();
 	
-	virtual qs::QSTATUS createFolder(qm::SubAccount* pSubAccount,
-		const WCHAR* pwszName, qm::Folder* pParent,
-		qm::NormalFolder** ppFolder);
-	virtual qs::QSTATUS removeFolder(qm::SubAccount* pSubAccount,
-		qm::NormalFolder* pFolder);
-	virtual qs::QSTATUS renameFolder(qm::SubAccount* pSubAccount,
-		qm::NormalFolder* pFolder, const WCHAR* pwszName);
-	virtual qs::QSTATUS createDefaultFolders(qm::Account::FolderList* pList);
-	virtual qs::QSTATUS getRemoteFolders(
-		qm::SubAccount* pSubAccount, RemoteFolderList* pList);
+	virtual std::auto_ptr<qm::NormalFolder> createFolder(qm::SubAccount* pSubAccount,
+														 const WCHAR* pwszName,
+														 qm::Folder* pParent);
+	virtual bool removeFolder(qm::SubAccount* pSubAccount,
+							  qm::NormalFolder* pFolder);
+	virtual bool renameFolder(qm::SubAccount* pSubAccount,
+							  qm::NormalFolder* pFolder,
+							  const WCHAR* pwszName);
+	virtual bool createDefaultFolders(qm::Account::FolderList* pList);
+	virtual bool getRemoteFolders(qm::SubAccount* pSubAccount,
+								  RemoteFolderList* pList);
 	
-	virtual qs::QSTATUS getMessage(qm::SubAccount* pSubAccount,
-		qm::MessageHolder* pmh, unsigned int nFlags, qs::STRING* pstrMessage,
-		qm::Message::Flag* pFlag, bool* pbGet, bool* pbMadeSeen);
-	virtual qs::QSTATUS setMessagesFlags(qm::SubAccount* pSubAccount,
-		qm::NormalFolder* pFolder, const qm::MessageHolderList& l,
-		unsigned int nFlags, unsigned int nMask);
-	virtual qs::QSTATUS appendMessage(qm::SubAccount* pSubAccount,
-		qm::NormalFolder* pFolder, const CHAR* pszMessage, unsigned int nFlags);
-	virtual qs::QSTATUS removeMessages(qm::SubAccount* pSubAccount,
-		qm::NormalFolder* pFolder, const qm::MessageHolderList& l);
-	virtual qs::QSTATUS copyMessages(qm::SubAccount* pSubAccount,
-		const qm::MessageHolderList& l, qm::NormalFolder* pFolderFrom,
-		qm::NormalFolder* pFolderTo, bool bMove);
-	virtual qs::QSTATUS clearDeletedMessages(
-		qm::SubAccount* pSubAccount, qm::NormalFolder* pFolder);
+	virtual bool getMessage(qm::SubAccount* pSubAccount,
+							qm::MessageHolder* pmh,
+							unsigned int nFlags,
+							qs::xstring_ptr* pstrMessage,
+							qm::Message::Flag* pFlag,
+							bool* pbGet,
+							bool* pbMadeSeen);
+	virtual bool setMessagesFlags(qm::SubAccount* pSubAccount,
+								  qm::NormalFolder* pFolder,
+								  const qm::MessageHolderList& l,
+								  unsigned int nFlags,
+								  unsigned int nMask);
+	virtual bool appendMessage(qm::SubAccount* pSubAccount,
+							   qm::NormalFolder* pFolder,
+							   const CHAR* pszMessage,
+							   unsigned int nFlags);
+	virtual bool removeMessages(qm::SubAccount* pSubAccount,
+								qm::NormalFolder* pFolder,
+								const qm::MessageHolderList& l);
+	virtual bool copyMessages(qm::SubAccount* pSubAccount,
+							  const qm::MessageHolderList& l,
+							  qm::NormalFolder* pFolderFrom,
+							  qm::NormalFolder* pFolderTo,
+							  bool bMove);
+	virtual bool clearDeletedMessages(qm::SubAccount* pSubAccount,
+									  qm::NormalFolder* pFolder);
 
 public:
 	OfflineJobManager* getOfflineJobManager() const;
-	qs::QSTATUS search(qm::SubAccount* pSubAccount, qm::NormalFolder* pFolder,
-		const WCHAR* pwszCondition, const WCHAR* pwszCharset,
-		bool bUseCharset, qm::MessageHolderList* pList);
+	bool search(qm::SubAccount* pSubAccount,
+				qm::NormalFolder* pFolder,
+				const WCHAR* pwszCondition,
+				const WCHAR* pwszCharset,
+				bool bUseCharset,
+				qm::MessageHolderList* pList);
 
 private:
-	qs::QSTATUS prepareSessionCache(qm::SubAccount* pSubAccount);
-	qs::QSTATUS setFlags(Imap4* pImap4, const Range& range,
-		qm::NormalFolder* pFolder, const qm::MessageHolderList& l,
-		unsigned int nFlags, unsigned int nMask);
+	bool prepareSessionCache(qm::SubAccount* pSubAccount);
+	bool setFlags(Imap4* pImap4,
+				  const Range& range,
+				  qm::NormalFolder* pFolder,
+				  const qm::MessageHolderList& l,
+				  unsigned int nFlags,
+				  unsigned int nMask);
 
 private:
 	Imap4Driver(const Imap4Driver&);
@@ -98,17 +116,17 @@ private:
 		virtual ~ProcessHook();
 	
 	public:
-		virtual qs::QSTATUS processFetchResponse(ResponseFetch* pFetch);
-		virtual qs::QSTATUS processListResponse(ResponseList* pList);
-		virtual qs::QSTATUS processExpungeResponse(ResponseExpunge* pExpunge);
-		virtual qs::QSTATUS processSearchResponse(ResponseSearch* pSearch);
+		virtual bool processFetchResponse(ResponseFetch* pFetch);
+		virtual bool processListResponse(ResponseList* pList);
+		virtual bool processExpungeResponse(ResponseExpunge* pExpunge);
+		virtual bool processSearchResponse(ResponseSearch* pSearch);
 	};
 	
 	class CallbackImpl : public AbstractCallback
 	{
 	public:
 		CallbackImpl(qm::SubAccount* pSubAccount,
-			const qm::Security* pSecurity, qs::QSTATUS* pstatus);
+					 const qm::Security* pSecurity);
 		virtual ~CallbackImpl();
 	
 	public:
@@ -116,16 +134,17 @@ private:
 	
 	public:
 		virtual bool isCanceled(bool bForce) const;
-		virtual qs::QSTATUS initialize();
-		virtual qs::QSTATUS lookup();
-		virtual qs::QSTATUS connecting();
-		virtual qs::QSTATUS connected();
+		virtual void initialize();
+		virtual void lookup();
+		virtual void connecting();
+		virtual void connected();
 	
 	public:
-		virtual qs::QSTATUS authenticating();
-		virtual qs::QSTATUS setRange(unsigned int nMin, unsigned int nMax);
-		virtual qs::QSTATUS setPos(unsigned int nPos);
-		virtual qs::QSTATUS response(Response* pResponse);
+		virtual void authenticating();
+		virtual void setRange(unsigned int nMin,
+							  unsigned int nMax);
+		virtual void setPos(unsigned int nPos);
+		virtual bool response(Response* pResponse);
 	
 	private:
 		CallbackImpl(const CallbackImpl&);
@@ -139,7 +158,10 @@ private:
 	{
 	public:
 		FlagProcessHook(qm::NormalFolder* pFolder);
-		virtual qs::QSTATUS processFetchResponse(ResponseFetch* pFetch);
+		virtual ~FlagProcessHook();
+	
+	public:
+		virtual bool processFetchResponse(ResponseFetch* pFetch);
 	
 	private:
 		qm::NormalFolder* pFolder_;
@@ -148,7 +170,8 @@ private:
 	class Hook
 	{
 	public:
-		Hook(CallbackImpl* pCallback, ProcessHook* pProcessHook);
+		Hook(CallbackImpl* pCallback,
+			 ProcessHook* pProcessHook);
 		~Hook();
 	
 	private:
@@ -162,9 +185,9 @@ private:
 private:
 	qm::Account* pAccount_;
 	const qm::Security* pSecurity_;
-	SessionCache* pSessionCache_;
-	CallbackImpl* pCallback_;
-	OfflineJobManager* pOfflineJobManager_;
+	std::auto_ptr<SessionCache> pSessionCache_;
+	std::auto_ptr<CallbackImpl> pCallback_;
+	std::auto_ptr<OfflineJobManager> pOfflineJobManager_;
 	bool bOffline_;
 	qs::CriticalSection cs_;
 };
@@ -185,8 +208,8 @@ public:
 	virtual ~Imap4Factory();
 
 protected:
-	virtual qs::QSTATUS createDriver(qm::Account* pAccount,
-		const qm::Security* pSecurity, qm::ProtocolDriver** ppProtocolDriver);
+	virtual std::auto_ptr<qm::ProtocolDriver> createDriver(qm::Account* pAccount,
+														   const qm::Security* pSecurity);
 
 private:
 	Imap4Factory(const Imap4Factory&);
@@ -206,26 +229,28 @@ private:
 class FolderUtil
 {
 public:
-	FolderUtil(qm::Account* pAccount, qs::QSTATUS* pstatus);
+	FolderUtil(qm::Account* pAccount);
 	~FolderUtil();
 
 public:
 	bool isRootFolderSpecified() const;
 	const WCHAR* getRootFolder() const;
-	qs::QSTATUS getFolderData(const WCHAR* pwszName,
-		WCHAR cSeparator, unsigned int nAttributes,
-		qs::WSTRING* pwstrName, unsigned int* pnFlags) const;
+	void getFolderData(const WCHAR* pwszName,
+					   WCHAR cSeparator,
+					   unsigned int nAttributes,
+					   qs::wstring_ptr* pwstrName,
+					   unsigned int* pnFlags) const;
 
 public:
-	static qs::QSTATUS saveSpecialFolders(qm::Account* pAccount);
+	static void saveSpecialFolders(qm::Account* pAccount);
 
 private:
 	FolderUtil(const FolderUtil&);
 	FolderUtil& operator=(const FolderUtil&);
 
 private:
-	qs::WSTRING wstrRootFolder_;
-	qs::WSTRING wstrSpecialFolders_[4];
+	qs::wstring_ptr wstrRootFolder_;
+	qs::wstring_ptr wstrSpecialFolders_[4];
 };
 
 
@@ -238,19 +263,23 @@ private:
 class FolderListGetter
 {
 public:
-	FolderListGetter(qm::Account* pAccount, qm::SubAccount* pSubAccount,
-		const qm::Security* pSecurity, qs::QSTATUS* pstatus);
+	FolderListGetter(qm::Account* pAccount,
+					 qm::SubAccount* pSubAccount,
+					 const qm::Security* pSecurity);
 	~FolderListGetter();
 
 public:
-	qs::QSTATUS getFolders(Imap4Driver::RemoteFolderList* pList);
+	bool update();
+	void getFolders(Imap4Driver::RemoteFolderList* pList);
 
 private:
-	qs::QSTATUS connect();
-	qs::QSTATUS listNamespaces();
-	qs::QSTATUS listFolders();
-	qs::QSTATUS getFolder(const WCHAR* pwszName, WCHAR cSeparator,
-		unsigned int nFlags, unsigned int* pnId, qm::Folder** ppFolder);
+	bool connect();
+	bool listNamespaces();
+	bool listFolders();
+	qm::Folder* getFolder(const WCHAR* pwszName,
+						  WCHAR cSeparator,
+						  unsigned int nFlags,
+						  unsigned int* pnId);
 
 private:
 	FolderListGetter(const FolderListGetter&);
@@ -264,10 +293,10 @@ private:
 		unsigned int nFlags_;
 	};
 	
-	struct FolderDataLess :
-		public std::binary_function<FolderData, FolderData, bool>
+	struct FolderDataLess : public std::binary_function<FolderData, FolderData, bool>
 	{
-		bool operator()(const FolderData& lhs, const FolderData& rhs) const;
+		bool operator()(const FolderData& lhs,
+						const FolderData& rhs) const;
 	};
 
 private:
@@ -280,7 +309,7 @@ private:
 	{
 	public:
 		CallbackImpl(FolderListGetter* pGetter,
-			const qm::Security* pSecurity, qs::QSTATUS* pstatus);
+					 const qm::Security* pSecurity);
 		virtual ~CallbackImpl();
 	
 	public:
@@ -289,20 +318,21 @@ private:
 	
 	public:
 		virtual bool isCanceled(bool bForce) const;
-		virtual qs::QSTATUS initialize();
-		virtual qs::QSTATUS lookup();
-		virtual qs::QSTATUS connecting();
-		virtual qs::QSTATUS connected();
+		virtual void initialize();
+		virtual void lookup();
+		virtual void connecting();
+		virtual void connected();
 	
 	public:
-		virtual qs::QSTATUS authenticating();
-		virtual qs::QSTATUS setRange(unsigned int nMin, unsigned int nMax);
-		virtual qs::QSTATUS setPos(unsigned int nPos);
-		virtual qs::QSTATUS response(Response* pResponse);
+		virtual void authenticating();
+		virtual void setRange(unsigned int nMin,
+							  unsigned int nMax);
+		virtual void setPos(unsigned int nPos);
+		virtual bool response(Response* pResponse);
 	
 	private:
-		qs::QSTATUS processNamespace(ResponseNamespace* pNamespace);
-		qs::QSTATUS processList(ResponseList* pList);
+		bool processNamespace(ResponseNamespace* pNamespace);
+		bool processList(ResponseList* pList);
 	
 	private:
 		CallbackImpl(const CallbackImpl&);
@@ -319,10 +349,10 @@ private:
 	qm::Account* pAccount_;
 	qm::SubAccount* pSubAccount_;
 	const qm::Security* pSecurity_;
-	FolderUtil* pFolderUtil_;
-	Imap4* pImap4_;
-	CallbackImpl* pCallback_;
-	qs::Logger* pLogger_;
+	std::auto_ptr<FolderUtil> pFolderUtil_;
+	std::auto_ptr<Imap4> pImap4_;
+	std::auto_ptr<CallbackImpl> pCallback_;
+	std::auto_ptr<qs::Logger> pLogger_;
 	NamespaceList listNamespace_;
 	FolderDataList listFolderData_;
 	FolderList listFolder_;
@@ -353,18 +383,21 @@ struct Session
 class SessionCache
 {
 public:
-	SessionCache(qm::Account* pAccount, qm::SubAccount* pSubAccount,
-		AbstractCallback* pCallback, size_t nMaxSession, qs::QSTATUS* pstatus);
+	SessionCache(qm::Account* pAccount,
+				 qm::SubAccount* pSubAccount,
+				 AbstractCallback* pCallback,
+				 size_t nMaxSession);
 	~SessionCache();
 
 public:
 	qm::SubAccount* getSubAccount() const;
-	qs::QSTATUS getSession(qm::NormalFolder* pFolder, Session* pSession);
+	bool getSession(qm::NormalFolder* pFolder,
+					Session* pSession);
 	void releaseSession(const Session& session);
 
 private:
 	bool isNeedSelect(qm::NormalFolder* pFolder,
-		unsigned int nLastSelectedTime);
+					  unsigned int nLastSelectedTime);
 
 private:
 	SessionCache(const SessionCache&);
@@ -392,11 +425,12 @@ private:
 class SessionCacher
 {
 public:
-	SessionCacher(SessionCache* pCache, qm::NormalFolder* pFolder,
-		Imap4** ppImap4, qs::QSTATUS* pstatus);
+	SessionCacher(SessionCache* pCache,
+				  qm::NormalFolder* pFolder);
 	~SessionCacher();
 
 public:
+	Imap4* get() const;
 	void release();
 
 private:

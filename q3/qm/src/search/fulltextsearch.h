@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -27,16 +27,17 @@ class FullTextSearchDriver : public SearchDriver
 {
 public:
 	FullTextSearchDriver(Account* pAccount,
-		qs::Profile* pProfile, qs::QSTATUS* pstatus);
+						 qs::Profile* pProfile);
 	virtual ~FullTextSearchDriver();
 
 public:
-	virtual qs::QSTATUS search(const SearchContext& context,
-		MessageHolderList* pList);
+	virtual bool search(const SearchContext& context,
+						MessageHolderList* pList);
 
 private:
-	static qs::QSTATUS replace(const WCHAR* pwsz, const WCHAR* pwszFind,
-		const WCHAR* pwszReplace, qs::WSTRING* pwstr);
+	static qs::wstring_ptr replace(const WCHAR* pwsz,
+								   const WCHAR* pwszFind,
+								   const WCHAR* pwszReplace);
 
 private:
 	FullTextSearchDriver(const FullTextSearchDriver&);
@@ -58,15 +59,14 @@ class FullTextSearchUI : public SearchUI
 {
 public:
 	FullTextSearchUI(Account* pAccount,
-		qs::Profile* pProfile, qs::QSTATUS* pstatus);
+					 qs::Profile* pProfile);
 	virtual ~FullTextSearchUI();
 
 public:
 	virtual int getIndex();
 	virtual const WCHAR* getName();
-	virtual qs::QSTATUS getDisplayName(qs::WSTRING* pwstrName);
-	virtual qs::QSTATUS createPropertyPage(
-		bool bAllFolder, SearchPropertyPage** ppPage);
+	virtual qs::wstring_ptr getDisplayName();
+	virtual std::auto_ptr<SearchPropertyPage> createPropertyPage(bool bAllFolder);
 
 private:
 	FullTextSearchUI(const FullTextSearchUI&);
@@ -87,8 +87,9 @@ private:
 class FullTextSearchPage : public SearchPropertyPage
 {
 public:
-	FullTextSearchPage(Account* pAccount, qs::Profile* pProfile,
-		bool bAllFolder, qs::QSTATUS* pstatus);
+	FullTextSearchPage(Account* pAccount,
+					   qs::Profile* pProfile,
+					   bool bAllFolder);
 	virtual ~FullTextSearchPage();
 
 public:
@@ -98,10 +99,12 @@ public:
 	virtual bool isRecursive() const;
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
@@ -110,7 +113,7 @@ private:
 	LRESULT onUpdateIndex();
 
 private:
-	qs::QSTATUS updateIndex();
+	bool updateIndex();
 
 private:
 	FullTextSearchPage(const FullTextSearchPage&);
@@ -119,7 +122,7 @@ private:
 private:
 	Account* pAccount_;
 	qs::Profile* pProfile_;
-	qs::WSTRING wstrCondition_;
+	qs::wstring_ptr wstrCondition_;
 	bool bAllFolder_;
 	bool bRecursive_;
 };
@@ -138,10 +141,12 @@ public:
 	virtual ~FullTextSearchDriverFactory();
 
 protected:
-	virtual qs::QSTATUS createDriver(Document* pDocument, Account* pAccount,
-		HWND hwnd, qs::Profile* pProfile, SearchDriver** ppDriver);
-	virtual qs::QSTATUS createUI(Account* pAccount,
-		qs::Profile* pProfile, SearchUI** ppUI);
+	virtual std::auto_ptr<SearchDriver> createDriver(Document* pDocument,
+													 Account* pAccount,
+													 HWND hwnd,
+													 qs::Profile* pProfile);
+	virtual std::auto_ptr<SearchUI> createUI(Account* pAccount,
+											 qs::Profile* pProfile);
 
 private:
 	FullTextSearchDriverFactory(const FullTextSearchDriverFactory&);
@@ -156,8 +161,8 @@ private:
 		virtual ~InitializerImpl();
 	
 	public:
-		virtual qs::QSTATUS init();
-		virtual qs::QSTATUS term();
+		virtual bool init();
+		virtual void term();
 	} init__;
 	friend class InitializerImpl;
 };
@@ -172,8 +177,9 @@ private:
 class FullTextSearchUtil
 {
 public:
-	static qs::QSTATUS replace(const WCHAR* pwsz, const WCHAR* pwszFind,
-		const WCHAR* pwszReplace, qs::WSTRING* pwstr);
+	static qs::wstring_ptr replace(const WCHAR* pwsz,
+								   const WCHAR* pwszFind,
+								   const WCHAR* pwszReplace);
 };
 
 }

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -27,48 +27,36 @@ using namespace qs;
  *
  */
 
-QSTATUS qs::UIUtil::createFontFromProfile(Profile* pProfile,
-	const WCHAR* pwszSection, bool bDefaultFixedWidth, HFONT* phfont)
+HFONT qs::UIUtil::createFontFromProfile(Profile* pProfile,
+										const WCHAR* pwszSection,
+										bool bDefaultFixedWidth)
 {
 	assert(pProfile);
-	assert(phfont);
-	
-	DECLARE_QSTATUS();
 	
 	const WCHAR* pwszDefaultFace = 0;
 	if (bDefaultFixedWidth)
 		pwszDefaultFace = Init::getInit().getDefaultFixedWidthFont();
 	else
 		pwszDefaultFace = Init::getInit().getDefaultProportionalFont();
-	CHECK_QSTATUS();
-	string_ptr<WSTRING> wstrFontFace;
-	status = pProfile->getString(pwszSection,
-		L"FontFace", pwszDefaultFace, &wstrFontFace);
-	CHECK_QSTATUS();
-	int nFontSize = 0;
-	status = pProfile->getInt(pwszSection, L"FontSize", 9, &nFontSize);
-	CHECK_QSTATUS();
-	int nFontStyle = 0;
-	status = pProfile->getInt(pwszSection, L"FontStyle", 0, &nFontStyle);
-	CHECK_QSTATUS();
-	int nFontCharset = 0;
-	status = pProfile->getInt(pwszSection, L"FontCharset", 0, &nFontCharset);
-	CHECK_QSTATUS();
 	
-	ClientDeviceContext dc(0, &status);
-	CHECK_QSTATUS();
+	wstring_ptr wstrFontFace(pProfile->getString(
+		pwszSection, L"FontFace", pwszDefaultFace));
+	int nFontSize = pProfile->getInt(pwszSection, L"FontSize", 9);
+	int nFontStyle = pProfile->getInt(pwszSection, L"FontStyle", 0);
+	int nFontCharset = pProfile->getInt(pwszSection, L"FontCharset", 0);
+	
+	ClientDeviceContext dc(0);
 	LOGFONT lf;
-	status = FontHelper::createLogFont(dc, wstrFontFace.get(),
+	FontHelper::createLogFont(dc, wstrFontFace.get(),
 		nFontSize, nFontStyle, nFontCharset, &lf);
-	CHECK_QSTATUS();
-	*phfont = ::CreateFontIndirect(&lf);
-	
-	return *phfont ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+	return ::CreateFontIndirect(&lf);
 }
 
 #ifndef _WIN32_WCE
 static int CALLBACK browseCallbackProc(HWND hwnd,
-	UINT uMsg, LPARAM lParam, LPARAM lpData)
+									   UINT uMsg,
+									   LPARAM lParam,
+									   LPARAM lpData)
 {
 	switch (uMsg) {
 	case BFFM_INITIALIZED:
@@ -79,28 +67,17 @@ static int CALLBACK browseCallbackProc(HWND hwnd,
 }
 #endif
 
-QSTATUS qs::UIUtil::browseFolder(HWND hwnd, const WCHAR* pwszTitle,
-	const WCHAR* pwszInitialPath, WSTRING* pwstrPath)
+wstring_ptr qs::UIUtil::browseFolder(HWND hwnd,
+									 const WCHAR* pwszTitle,
+									 const WCHAR* pwszInitialPath)
 {
-	assert(pwstrPath);
-	
-	DECLARE_QSTATUS();
-	
-	*pwstrPath = 0;
-	
-	string_ptr<WSTRING> wstrPath;
+	wstring_ptr wstrPath;
 	
 #ifdef _WIN32_WCE
-	BrowseFolderDialog dialog(pwszTitle, pwszInitialPath, &status);
-	CHECK_QSTATUS();
-	int nRet = 0;
-	status = dialog.doModal(hwnd, 0, &nRet);
-	CHECK_QSTATUS();
-	if (nRet == IDOK) {
-		wstrPath.reset(allocWString(dialog.getPath()));
-		if (!wstrPath.get())
-			return QSTATUS_OUTOFMEMORY;
-	}
+	BrowseFolderDialog dialog(pwszTitle, pwszInitialPath);
+	int nRet = dialog.doModal(hwnd);
+	if (nRet == IDOK)
+		wstrPath = allocWString(dialog.getPath());
 #else
 	W2T(pwszTitle, ptszTitle);
 	W2T(pwszInitialPath, ptszInitialPath);
@@ -118,11 +95,8 @@ QSTATUS qs::UIUtil::browseFolder(HWND hwnd, const WCHAR* pwszTitle,
 	LPITEMIDLIST pList = ::SHBrowseForFolder(&info);
 	if (pList) {
 		TCHAR tszPath[MAX_PATH];
-		if (::SHGetPathFromIDList(pList, tszPath)) {
-			wstrPath.reset(tcs2wcs(tszPath));
-			if (!wstrPath.get())
-				return QSTATUS_OUTOFMEMORY;
-		}
+		if (::SHGetPathFromIDList(pList, tszPath))
+			wstrPath = tcs2wcs(tszPath);
 		
 		ComPtr<IMalloc> pMalloc;
 		::SHGetMalloc(&pMalloc);
@@ -130,7 +104,5 @@ QSTATUS qs::UIUtil::browseFolder(HWND hwnd, const WCHAR* pwszTitle,
 	}
 #endif
 	
-	*pwstrPath = wstrPath.release();
-	
-	return QSTATUS_SUCCESS;
+	return wstrPath;
 }

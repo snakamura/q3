@@ -1,12 +1,10 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
-
-#include <qsnew.h>
 
 #include "imap4.h"
 #include "parser.h"
@@ -23,139 +21,129 @@ using namespace qs;
  *
  */
 
-#define CHECK_QSTATUS_ERROR(e) \
-	if (status != QSTATUS_SUCCESS) { \
+#define IMAP4_ERROR(e) \
+	do { \
 		nError_ = e; \
-		return status; \
-	} \
+		return false; \
+	} while (false) \
 
-#define CHECK_QSTATUS_ERROR_OR(e) \
-	if (status != QSTATUS_SUCCESS) { \
+#define IMAP4_ERROR_SOCKET(e) \
+	do { \
+		nError_ = e | pSocket_->getLastError(); \
+		return false; \
+	} while (false)
+
+#define IMAP4_ERROR_OR(e) \
+	do { \
 		nError_ |= e; \
-		return status; \
-	} \
-
-#define CHECK_ERROR(c, q, e) \
-	if (c) { \
-		nError_ = e; \
-		return q; \
-	} \
+		return false; \
+	} while (false) \
 
 qmimap4::Parser::Parser(Buffer* pBuffer,
-	Imap4Callback* pCallback, qs::QSTATUS* pstatus) :
+						Imap4Callback* pCallback) :
 	pBuffer_(pBuffer),
 	nIndex_(0),
 	pCallback_(pCallback)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qmimap4::Parser::~Parser()
 {
 }
 
-QSTATUS qmimap4::Parser::parse(const CHAR* pszTag,
-	bool bAcceptContinue, ParserCallback* pCallback)
+bool qmimap4::Parser::parse(const CHAR* pszTag,
+							bool bAcceptContinue,
+							ParserCallback* pCallback)
 {
 	assert(pszTag);
 	
-	DECLARE_QSTATUS();
-	
 	while (true) {
-		Token token;
-		string_ptr<STRING> strToken;
-		status = getNextToken(&token, &strToken);
-		CHECK_QSTATUS();
+		string_ptr strToken;
+		Token token = getNextToken(&strToken);
 		if (token != TOKEN_ATOM)
-			return QSTATUS_FAIL;
+			return false;
 		
 		if (strcmp(strToken.get(), "*") == 0) {
-			Response* pResponse = 0;
-			status = parseResponse(&pResponse);
-			CHECK_QSTATUS();
-			status = pCallback->response(pResponse);
-			CHECK_QSTATUS();
+			std::auto_ptr<Response> pResponse(parseResponse());
+			if (!pResponse.get())
+				return false;
+			if (!pCallback->response(pResponse))
+				return false;
 			if (!*pszTag)
 				break;
 		}
 		else if (strcmp(strToken.get(), "+") == 0) {
-			ResponseContinue* pContinue = 0;
-			status = parseContinueResponse(&pContinue);
-			CHECK_QSTATUS();
-			status = pCallback->response(pContinue);
-			CHECK_QSTATUS();
+			std::auto_ptr<ResponseContinue> pContinue(parseContinueResponse());
+			if (!pContinue.get())
+				return false;
+			if (!pCallback->response(pContinue))
+				return false;
 			if (bAcceptContinue)
 				break;
 		}
 		else {
 			bool bEnd = strcmp(strToken.get(), pszTag) == 0;
-			Response* pResponse = 0;
-			status = parseResponse(&pResponse);
-			CHECK_QSTATUS();
-			status = pCallback->response(pResponse);
-			CHECK_QSTATUS();
+			std::auto_ptr<Response> pResponse(parseResponse());
+			if (!pResponse.get())
+				return false;
+			if (!pCallback->response(pResponse))
+				return false;
 			if (bEnd)
 				break;
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmimap4::Parser::getProcessedString(STRING* pstr) const
+string_ptr qmimap4::Parser::getProcessedString() const
 {
-	return pBuffer_->substr(0, nIndex_, pstr);
+	return pBuffer_->substr(0, nIndex_);
 }
 
-QSTATUS qmimap4::Parser::getUnprocessedString(STRING* pstr) const
+string_ptr qmimap4::Parser::getUnprocessedString() const
 {
-	return pBuffer_->substr(nIndex_, static_cast<size_t>(-1), pstr);
+	return pBuffer_->substr(nIndex_, -1);
 }
 
-QSTATUS qmimap4::Parser::getNextToken(Buffer* pBuffer, size_t* pnIndex,
-	const CHAR* pszSep, Imap4Callback* pCallback,
-	Token* pToken, STRING* pstrToken)
+Parser::Token qmimap4::Parser::getNextToken(Buffer* pBuffer,
+											size_t* pnIndex,
+											const CHAR* pszSep,
+											Imap4Callback* pCallback,
+											string_ptr* pstrToken)
 {
 	assert(pBuffer);
 	assert(pnIndex);
 	assert(pszSep);
-	assert(pToken);
 	assert(pstrToken);
 	
-	DECLARE_QSTATUS();
-	
-	*pToken = TOKEN_ERROR;
-	*pstrToken = 0;
-	
+	pstrToken->reset(0);
 	size_t& nIndex = *pnIndex;
+	Token token = TOKEN_ERROR;
 	
-	StringBuffer<STRING> token(&status);
-	CHECK_QSTATUS();
+	StringBuffer<STRING> buf;
 	
 	CHAR c = pBuffer->get(nIndex);
 	if (c == '\0') {
-		return QSTATUS_FAIL;
+		return TOKEN_ERROR;
 	}
 	else if (c == '\"') {
 		for (++nIndex; ; ++nIndex) {
 			c = pBuffer->get(nIndex);
 			if (c == '\0') {
-				return QSTATUS_FAIL;
+				return TOKEN_ERROR;
 			}
 			else if (c == '\\') {
 				CHAR cNext = pBuffer->get(nIndex + 1);
 				if (cNext == '\0') {
-					return QSTATUS_FAIL;
+					return TOKEN_ERROR;
 				}
 				else if (cNext == '\\' || cNext == '\"') {
-					status = token.append(cNext);
-					CHECK_QSTATUS();
+					buf.append(cNext);
 					++nIndex;
 				}
 				else {
-					status = token.append(c);
-					CHECK_QSTATUS();
+					buf.append(c);
 				}
 			}
 			else if (c == '\"') {
@@ -163,59 +151,53 @@ QSTATUS qmimap4::Parser::getNextToken(Buffer* pBuffer, size_t* pnIndex,
 				// I skip '"' followed by any character but the separaters.
 				CHAR cNext = pBuffer->get(nIndex + 1);
 				if (cNext == '\0')
-					return QSTATUS_FAIL;
+					return TOKEN_ERROR;
 				else if (strchr(pszSep, cNext) || cNext == ' ' || cNext == '\r')
 					break;
 			}
 			else {
-				status = token.append(c);
-				CHECK_QSTATUS();
+				buf.append(c);
 			}
 		}
 		++nIndex;
-		*pToken = TOKEN_QUOTED;
+		token = TOKEN_QUOTED;
 	}
 	else if (c == '{') {
 		size_t nIndexEnd = pBuffer->find("}\r\n", nIndex + 1);
-		if (nIndexEnd == static_cast<size_t>(-1))
-			return QSTATUS_FAIL;
+		if (nIndexEnd == -1)
+			return TOKEN_ERROR;
 		
 		CHAR* pEnd = 0;
 		long nLen = strtol(pBuffer->str() + nIndex + 1, &pEnd, 10);
 		if (*pEnd != '}')
-			return QSTATUS_FAIL;
+			return TOKEN_ERROR;
 		nIndex = nIndexEnd + 3;
 		
-		if (pCallback && nLen >= 1024) {
-			status = pCallback->setRange(0, nLen);
-			CHECK_QSTATUS();
-		}
+		if (pCallback && nLen >= 1024)
+			pCallback->setRange(0, nLen);
 		
 		if (pBuffer->get(nIndex + nLen, pCallback, nIndex) == '\0')
-			return QSTATUS_FAIL;
+			return TOKEN_ERROR;
 		
 		if (pCallback && nLen >= 1024) {
-			status = pCallback->setRange(0, 0);
-			CHECK_QSTATUS();
-			status = pCallback->setPos(0);
-			CHECK_QSTATUS();
+			pCallback->setRange(0, 0);
+			pCallback->setPos(0);
 		}
 		
-		status = token.append(pBuffer->str() + nIndex, nLen);
-		CHECK_QSTATUS();
+		buf.append(pBuffer->str() + nIndex, nLen);
 		nIndex += nLen;
-		*pToken = TOKEN_LITERAL;
+		token = TOKEN_LITERAL;
 	}
 	else {
 		size_t nIndexBegin = nIndex;
 		for (; ; ++nIndex) {
 			c = pBuffer->get(nIndex);
 			if (c == '\0')
-				return QSTATUS_FAIL;
+				return TOKEN_ERROR;
 			if (c == '[') {
 				nIndex = pBuffer->find(']', nIndex + 1);
-				if (nIndex == static_cast<size_t>(-1))
-					return QSTATUS_FAIL;
+				if (nIndex == -1)
+					return TOKEN_ERROR;
 			}
 			else if (strchr(pszSep, c)) {
 				break;
@@ -224,82 +206,60 @@ QSTATUS qmimap4::Parser::getNextToken(Buffer* pBuffer, size_t* pnIndex,
 		
 		if (nIndex - nIndexBegin == 3 &&
 			strncmp(pBuffer->str() + nIndexBegin, "NIL", 3) == 0) {
-			*pToken = TOKEN_NIL;
+			token = TOKEN_NIL;
 		}
 		else {
-			status = token.append(pBuffer->str() + nIndexBegin, nIndex - nIndexBegin);
-			CHECK_QSTATUS();
-			*pToken = TOKEN_ATOM;
+			buf.append(pBuffer->str() + nIndexBegin, nIndex - nIndexBegin);
+			token = TOKEN_ATOM;
 		}
 	}
 	
 	if (pBuffer->get(nIndex) == ' ')
 		++nIndex;
 	if (pBuffer->getError() != Imap4::IMAP4_ERROR_SUCCESS)
-		return QSTATUS_FAIL;
+		return TOKEN_ERROR;
 	
-	if (*pToken != TOKEN_NIL)
-		*pstrToken = token.getString();
+	if (token != TOKEN_NIL)
+		*pstrToken = buf.getString();
 	
-	return QSTATUS_SUCCESS;
+	return token;
 }
 
-QSTATUS qmimap4::Parser::parseList(Buffer* pBuffer,
-	size_t* pnIndex, Imap4Callback* pCallback, List** ppList)
+std::auto_ptr<List> qmimap4::Parser::parseList(Buffer* pBuffer,
+											   size_t* pnIndex,
+											   Imap4Callback* pCallback)
 {
 	assert(pBuffer);
 	assert(pnIndex);
-	assert(ppList);
 	assert(pBuffer->get(*pnIndex) == '(');
 	
-	DECLARE_QSTATUS();
-	
-	std::auto_ptr<List> pList;
-	status = newQsObject(&pList);
-	CHECK_QSTATUS();
+	std::auto_ptr<List> pList(new List());
 	
 	size_t& nIndex = *pnIndex;
 	++nIndex;
 	CHAR c = '\0';
 	while ((c = pBuffer->get(nIndex)) != ')') {
 		if (c == '\0') {
-			return QSTATUS_FAIL;
+			return 0;
 		}
 		else if (c == '(') {
-			List* p = 0;
-			status = parseList(pBuffer, pnIndex, pCallback, &p);
-			CHECK_QSTATUS();
-			std::auto_ptr<List> pChildList(p);
-			status = pList->add(pChildList.get());
-			CHECK_QSTATUS();
-			pChildList.release();
+			std::auto_ptr<List> pChildList(parseList(pBuffer, pnIndex, pCallback));
+			pList->add(pChildList);
 		}
 		else {
 			// Because of BUG of iMAIL,
 			// I add '(' to the separator.
-			Token token;
-			string_ptr<STRING> strToken;
-			status = getNextToken(pBuffer, pnIndex,
-				" ()", pCallback, &token, &strToken);
-			CHECK_QSTATUS();
+			string_ptr strToken;
+			Token token = getNextToken(pBuffer, pnIndex, " ()", pCallback, &strToken);
+			if (token == TOKEN_ERROR)
+				return 0;
 			
 			std::auto_ptr<ListItem> pItem;
-			if (token == TOKEN_NIL) {
-				std::auto_ptr<ListItemNil> pNil;
-				status = newQsObject(&pNil);
-				CHECK_QSTATUS();
-				pItem.reset(pNil.release());
-			}
-			else {
-				std::auto_ptr<ListItemText> pText;
-				status = newQsObject(strToken.get(), &pText);
-				CHECK_QSTATUS();
-				strToken.release();
-				pItem.reset(pText.release());
-			}
-			status = pList->add(pItem.get());
-			CHECK_QSTATUS();
-			pItem.release();
+			if (token == TOKEN_NIL)
+				pItem.reset(new ListItemNil());
+			else
+				pItem.reset(new ListItemText(strToken));
+			pList->add(pItem);
 			
 			// Because of BUG of iMAIL
 			// I skip space.
@@ -312,27 +272,19 @@ QSTATUS qmimap4::Parser::parseList(Buffer* pBuffer,
 	while (pBuffer->get(nIndex) == ' ')
 		++nIndex;
 	if (pBuffer->getError() != Imap4::IMAP4_ERROR_SUCCESS)
-		return QSTATUS_FAIL;
+		return 0;
 	
-	*ppList = pList.release();
-	
-	return QSTATUS_SUCCESS;
+	return pList;
 }
 
-QSTATUS qmimap4::Parser::parseResponse(Response** ppResponse)
+std::auto_ptr<Response> qmimap4::Parser::parseResponse()
 {
-	assert(ppResponse);
-	
-	DECLARE_QSTATUS();
-	
 	std::auto_ptr<Response> pResponse;
 	
-	string_ptr<STRING> strToken;
-	Token token;
-	status = getNextToken(&token, &strToken, " \r");
-	CHECK_QSTATUS();
+	string_ptr strToken;
+	Token token = getNextToken(" \r", &strToken);
 	if (token != TOKEN_ATOM)
-		return QSTATUS_FAIL;
+		return 0;
 	
 	ResponseState::Flag flag = ResponseState::FLAG_UNKNOWN;
 	if (strcmp(strToken.get(), "OK") == 0) {
@@ -351,412 +303,248 @@ QSTATUS qmimap4::Parser::parseResponse(Response** ppResponse)
 		flag = ResponseState::FLAG_BYE;
 	}
 	else if (strcmp(strToken.get(), "CAPABILITY") == 0) {
-		ResponseCapability* pCapability = 0;
-		status = parseCapabilityResponse(&pCapability);
-		CHECK_QSTATUS();
-		pResponse.reset(pCapability);
+		pResponse = parseCapabilityResponse();
 	}
 	else if (strcmp(strToken.get(), "LIST") == 0) {
-		ResponseList* pList = 0;
-		status = parseListResponse(true, &pList);
-		CHECK_QSTATUS();
-		pResponse.reset(pList);
+		pResponse = parseListResponse(true);
 	}
 	else if (strcmp(strToken.get(), "LSUB") == 0) {
-		ResponseList* pList = 0;
-		status = parseListResponse(false, &pList);
-		CHECK_QSTATUS();
-		pResponse.reset(pList);
+		pResponse = parseListResponse(false);
 	}
 	else if (strcmp(strToken.get(), "STATUS") == 0) {
-		ResponseStatus* pStatus = 0;
-		status = parseStatusResponse(&pStatus);
-		CHECK_QSTATUS();
-		pResponse.reset(pStatus);
+		pResponse = parseStatusResponse();
 	}
 	else if (strcmp(strToken.get(), "SEARCH") == 0) {
-		ResponseSearch* pSearch = 0;
-		status = parseSearchResponse(&pSearch);
-		CHECK_QSTATUS();
-		pResponse.reset(pSearch);
+		pResponse = parseSearchResponse();
 	}
 	else if (strcmp(strToken.get(), "FLAGS") == 0) {
-		ResponseFlags* pFlags = 0;
-		status = parseFlagsResponse(&pFlags);
-		CHECK_QSTATUS();
-		pResponse.reset(pFlags);
+		pResponse = parseFlagsResponse();
 	}
 	else if (strcmp(strToken.get(), "NAMESPACE") == 0) {
-		ResponseNamespace* pNamespace = 0;
-		status = parseNamespaceResponse(&pNamespace);
-		CHECK_QSTATUS();
-		pResponse.reset(pNamespace);
+		pResponse = parseNamespaceResponse();
 	}
 	else {
 		CHAR* pEnd = 0;
 		long nNumber = strtol(strToken.get(), &pEnd, 10);
 		if (*pEnd)
-			return QSTATUS_FAIL;
+			return 0;
 		
 		strToken.reset(0);
-		status = getNextToken(&token, &strToken, " \r");
-		CHECK_QSTATUS();
+		token = getNextToken(" \r", &strToken);
 		if (token != TOKEN_ATOM)
-			return QSTATUS_FAIL;
+			return 0;
 		
 		CHAR c = pBuffer_->get(nIndex_);
 		if (c == '\0') {
-			return QSTATUS_FAIL;
+			return 0;
 		}
 		else if (c == '\r') {
 			if (pBuffer_->get(nIndex_ + 1) != '\n')
-				return QSTATUS_FAIL;
+				return 0;
 			else
 				nIndex_ += 2;
 		}
 		
-		if (strcmp(strToken.get(), "EXISTS") == 0) {
-			ResponseExists* pExists = 0;
-			status = newQsObject(nNumber, &pExists);
-			CHECK_QSTATUS();
-			pResponse.reset(pExists);
-		}
-		else if (strcmp(strToken.get(), "RECENT") == 0) {
-			ResponseRecent* pRecent = 0;
-			status = newQsObject(nNumber, &pRecent);
-			CHECK_QSTATUS();
-			pResponse.reset(pRecent);
-		}
-		else if (strcmp(strToken.get(), "EXPUNGE") == 0) {
-			ResponseExpunge* pExpunge = 0;
-			status = newQsObject(nNumber, &pExpunge);
-			CHECK_QSTATUS();
-			pResponse.reset(pExpunge);
-		}
-		else if (strcmp(strToken.get(), "FETCH") == 0) {
-			ResponseFetch* pFetch = 0;
-			status = parseFetchResponse(nNumber, &pFetch);
-			CHECK_QSTATUS();
-			pResponse.reset(pFetch);
-		}
-		else {
-			return QSTATUS_FAIL;
-		}
+		if (strcmp(strToken.get(), "EXISTS") == 0)
+			pResponse.reset(new ResponseExists(nNumber));
+		else if (strcmp(strToken.get(), "RECENT") == 0)
+			pResponse.reset(new ResponseRecent(nNumber));
+		else if (strcmp(strToken.get(), "EXPUNGE") == 0)
+			pResponse.reset(new ResponseExpunge(nNumber));
+		else if (strcmp(strToken.get(), "FETCH") == 0)
+			pResponse = parseFetchResponse(nNumber);
+		else
+			return 0;
 	}
 	
 	if (flag != ResponseState::FLAG_UNKNOWN) {
-		std::auto_ptr<ResponseState> pResponseState;
-		status = newQsObject(flag, &pResponseState);
-		CHECK_QSTATUS();
-		State* pState = 0;
-		status = parseStatus(&pState);
-		CHECK_QSTATUS();
+		std::auto_ptr<ResponseState> pResponseState(new ResponseState(flag));
+		std::auto_ptr<State> pState(parseStatus());
 		pResponseState->setState(pState);
-		pResponse.reset(pResponseState.release());
+		pResponse = pResponseState;
 	}
 	
-	*ppResponse = pResponse.release();
-	
-	return QSTATUS_SUCCESS;
+	return pResponse;
 }
 
-QSTATUS qmimap4::Parser::parseCapabilityResponse(ResponseCapability** ppCapability)
+std::auto_ptr<ResponseCapability> qmimap4::Parser::parseCapabilityResponse()
 {
-	assert(ppCapability);
-	
-	DECLARE_QSTATUS();
-	
-	*ppCapability = 0;
-	
-	std::auto_ptr<ResponseCapability> pCapability;
-	status = newQsObject(&pCapability);
-	CHECK_QSTATUS();
+	std::auto_ptr<ResponseCapability> pCapability(new ResponseCapability());
 	
 	while (true) {
-		Token token;
-		string_ptr<STRING> strToken;
-		status = getNextToken(&token, &strToken, " \r");
-		CHECK_QSTATUS();
+		string_ptr strToken;
+		Token token = getNextToken(" \r", &strToken);
 		if (token != TOKEN_ATOM)
-			return QSTATUS_FAIL;
+			return 0;
 		
-		status = pCapability->add(strToken.get());
-		CHECK_QSTATUS();
+		pCapability->add(strToken.get());
 		
 		CHAR c1 = pBuffer_->get(nIndex_);
 		if (c1 == '\0')
-			return QSTATUS_FAIL;
+			return 0;
 		CHAR c2 = pBuffer_->get(nIndex_ + 1);
 		if (c2 == '\0')
-			return QSTATUS_FAIL;
+			return 0;
 		if (c1 == '\r' && c2 == '\n') {
 			nIndex_ += 2;
 			break;
 		}
 	}
 	
-	*ppCapability = pCapability.release();
-	
-	return QSTATUS_SUCCESS;
+	return pCapability;
 }
 
-QSTATUS qmimap4::Parser::parseContinueResponse(ResponseContinue** ppContinue)
+std::auto_ptr<ResponseContinue> qmimap4::Parser::parseContinueResponse()
 {
-	assert(ppContinue);
-	
-	DECLARE_QSTATUS();
-	
-	*ppContinue = 0;
-	
 	std::auto_ptr<State> pState;
 	
 	CHAR c = pBuffer_->get(nIndex_);
 	if (c == '\0') {
-		return QSTATUS_FAIL;
+		return 0;
 	}
 	else if (pBuffer_->get(nIndex_ - 1) == ' ') {
-		State* p = 0;
-		status = parseStatus(&p);
-		CHECK_QSTATUS();
-		pState.reset(p);
+		pState = parseStatus();
 	}
 	else {
 		nIndex_ = pBuffer_->find("\r\n", nIndex_);
 		if (nIndex_ == static_cast<size_t>(-1))
-			return QSTATUS_FAIL;
+			return 0;
 		nIndex_ += 2;
 	}
 	
-	status = newQsObject(pState.get(), ppContinue);
-	CHECK_QSTATUS();
-	pState.release();
-	
-	return QSTATUS_SUCCESS;
+	return new ResponseContinue(pState);
 }
 
-QSTATUS qmimap4::Parser::parseFetchResponse(
-	unsigned long nNumber, ResponseFetch** ppFetch)
+std::auto_ptr<ResponseFetch> qmimap4::Parser::parseFetchResponse(unsigned long nNumber)
 {
-	assert(ppFetch);
-	
-	DECLARE_QSTATUS();
-	
-	*ppFetch = 0;
-	
-	List* p = 0;
-	status = parseList(&p);
-	CHECK_QSTATUS();
-	std::auto_ptr<List> pList(p);
-	
-	std::auto_ptr<ResponseFetch> pFetch;
-	status = newQsObject(nNumber, pList.get(), &pFetch);
-	CHECK_QSTATUS();
+	std::auto_ptr<List> pList(parseList());
 	
 	nIndex_ = pBuffer_->find("\r\n", nIndex_);
-	if (nIndex_ == static_cast<size_t>(-1))
-		return QSTATUS_FAIL;
+	if (nIndex_ == -1)
+		return 0;
 	nIndex_ += 2;
 	
-	*ppFetch = pFetch.release();
-	
-	return QSTATUS_SUCCESS;
+	return ResponseFetch::create(nNumber, pList.get());
 }
 
-QSTATUS qmimap4::Parser::parseFlagsResponse(ResponseFlags** ppFlags)
+std::auto_ptr<ResponseFlags> qmimap4::Parser::parseFlagsResponse()
 {
-	assert(ppFlags);
-	
-	DECLARE_QSTATUS();
-	
-	*ppFlags = 0;
-	
-	List* p = 0;
-	status = parseList(&p);
-	CHECK_QSTATUS();
-	std::auto_ptr<List> pList(p);
-	
-	std::auto_ptr<ResponseFlags> pFlags;
-	status = newQsObject(pList.get(), &pFlags);
-	CHECK_QSTATUS();
+	std::auto_ptr<List> pList(parseList());
 	
 	nIndex_ = pBuffer_->find("\r\n", nIndex_);
-	if (nIndex_ == static_cast<size_t>(-1))
-		return QSTATUS_FAIL;
+	if (nIndex_ == -1)
+		return 0;
 	nIndex_ += 2;
 	
-	*ppFlags = pFlags.release();
-	
-	return QSTATUS_SUCCESS;
+	return ResponseFlags::create(pList.get());
 }
 
-QSTATUS qmimap4::Parser::parseListResponse(bool bList, ResponseList** ppList)
+std::auto_ptr<ResponseList> qmimap4::Parser::parseListResponse(bool bList)
 {
-	assert(ppList);
+	std::auto_ptr<List> pList(parseList());
 	
-	DECLARE_QSTATUS();
-	
-	*ppList = 0;
-	
-	List* p = 0;
-	status = parseList(&p);
-	CHECK_QSTATUS();
-	std::auto_ptr<List> pList(p);
-	
-	Token token;
-	string_ptr<STRING> strToken;
-	status = getNextToken(&token, &strToken);
-	CHECK_QSTATUS();
+	string_ptr strToken;
+	Token token = getNextToken(&strToken);
+	if (token == TOKEN_ERROR)
+		return 0;
 	
 	CHAR cSeparator = '\0';
 	if (token != TOKEN_NIL) {
 		if (strlen(strToken.get()) != 1)
-			return QSTATUS_FAIL;
+			return 0;
 		cSeparator = *strToken.get();
 	}
 	
-	string_ptr<STRING> strMailbox;
-	status = getNextToken(&token, &strMailbox, "\r");
-	CHECK_QSTATUS();
-	if (token == TOKEN_NIL)
-		return QSTATUS_FAIL;
+	string_ptr strMailbox;
+	token = getNextToken("\r", &strMailbox);
+	if (token == TOKEN_ERROR || token == TOKEN_NIL)
+		return 0;
 	if (pBuffer_->get(nIndex_) != '\r' || pBuffer_->get(nIndex_ + 1) != '\n')
-		return QSTATUS_FAIL;
+		return 0;
 	nIndex_ += 2;
 	
-	status = newQsObject(bList, pList.get(),
-		cSeparator, strMailbox.get(), ppList);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return ResponseList::create(bList, pList.get(), cSeparator, strMailbox.get());
 }
 
-QSTATUS qmimap4::Parser::parseNamespaceResponse(ResponseNamespace** ppNamespace)
+std::auto_ptr<ResponseNamespace> qmimap4::Parser::parseNamespaceResponse()
 {
-	assert(ppNamespace);
-	
-	DECLARE_QSTATUS();
-	
-	*ppNamespace = 0;
-	
 	std::auto_ptr<List> pLists[3];
 	for (int n = 0; n < countof(pLists); ++n) {
 		if (pBuffer_->get(nIndex_) == '(') {
-			List* p = 0;
-			status = parseList(&p);
-			CHECK_QSTATUS();
-			pLists[n].reset(p);
+			pLists[n] = parseList();
 		}
 		else {
-			Token token;
-			string_ptr<STRING> strToken;
-			status = getNextToken(&token, &strToken);
-			CHECK_QSTATUS();
+			string_ptr strToken;
+			Token token = getNextToken(&strToken);
 			if (token != TOKEN_NIL)
-				return QSTATUS_FAIL;
+				return 0;
 //			++nIndex_;
 		}
 	}
 	
-	status = newQsObject(pLists[0].get(),
-		pLists[1].get(), pLists[2].get(), ppNamespace);
-	CHECK_QSTATUS();
-	
 	nIndex_ = pBuffer_->find("\r\n", nIndex_);
-	if (nIndex_ == static_cast<size_t>(-1))
-		return QSTATUS_FAIL;
+	if (nIndex_ == -1)
+		return 0;
 	nIndex_ += 2;
 	
-	return QSTATUS_SUCCESS;
+	return ResponseNamespace::create(pLists[0].get(), pLists[1].get(), pLists[2].get());
 }
 
-QSTATUS qmimap4::Parser::parseSearchResponse(ResponseSearch** ppSearch)
+std::auto_ptr<ResponseSearch> qmimap4::Parser::parseSearchResponse()
 {
-	assert(ppSearch);
-	
-	DECLARE_QSTATUS();
-	
-	*ppSearch = 0;
-	
-	std::auto_ptr<ResponseSearch> pSearch;
-	status = newQsObject(&pSearch);
-	CHECK_QSTATUS();
+	std::auto_ptr<ResponseSearch> pSearch(new ResponseSearch());
 	
 	while (true) {
-		Token token;
-		string_ptr<STRING> strToken;
-		status = getNextToken(&token, &strToken, " \r");
-		CHECK_QSTATUS();
+		string_ptr strToken;
+		Token token = getNextToken(" \r", &strToken);
 		if (token != TOKEN_ATOM)
-			return QSTATUS_FAIL;
+			return 0;
 		if (!*strToken.get())
 			break;
 		
 		CHAR* pEnd = 0;
 		long n = strtol(strToken.get(), &pEnd, 10);
 		if (*pEnd)
-			return QSTATUS_FAIL;
-		status = pSearch->add(n);
-		CHECK_QSTATUS();
+			return 0;
+		pSearch->add(n);
 	}
 	
 	nIndex_ += 2;
 	
-	*ppSearch = pSearch.release();
-	
-	return QSTATUS_SUCCESS;
+	return pSearch;
 }
 
-QSTATUS qmimap4::Parser::parseStatusResponse(ResponseStatus** ppStatus)
+std::auto_ptr<ResponseStatus> qmimap4::Parser::parseStatusResponse()
 {
-	assert(ppStatus);
+	string_ptr strMailbox;
+	Token token = getNextToken(&strMailbox);
+	if (token == TOKEN_ERROR || token == TOKEN_NIL)
+		return 0;
 	
-	DECLARE_QSTATUS();
-	
-	*ppStatus = 0;
-	
-	Token token;
-	string_ptr<STRING> strMailbox;
-	status = getNextToken(&token, &strMailbox);
-	CHECK_QSTATUS();
-	if (token == TOKEN_NIL)
-		return QSTATUS_FAIL;
-	
-	List* p = 0;
-	status = parseList(&p);
-	CHECK_QSTATUS();
-	std::auto_ptr<List> pList(p);
-	
-	status = newQsObject(strMailbox.get(), pList.get(), ppStatus);
-	CHECK_QSTATUS();
+	std::auto_ptr<List> pList(parseList());
 	
 	nIndex_ = pBuffer_->find("\r\n", nIndex_);
-	if (nIndex_ == static_cast<size_t>(-1))
-		return QSTATUS_FAIL;
+	if (nIndex_ == -1)
+		return 0;
 	nIndex_ += 2;
 	
-	return QSTATUS_SUCCESS;
+	return ResponseStatus::create(strMailbox.get(), pList.get());
 }
 
-QSTATUS qmimap4::Parser::parseStatus(State** ppState)
+std::auto_ptr<State> qmimap4::Parser::parseStatus()
 {
-	assert(ppState);
-	
-	DECLARE_QSTATUS();
-	
 	CHAR c = pBuffer_->get(nIndex_);
 	if (c == '\0')
-		return QSTATUS_FAIL;
+		return 0;
 	
 	std::auto_ptr<State> pState;
 	if (c == '[') {
 		++nIndex_;
 		
-		Token token;
-		string_ptr<STRING> strToken;
-		status = getNextToken(&token, &strToken, " ]");
-		CHECK_QSTATUS();
+		string_ptr strToken;
+		Token token = getNextToken(" ]", &strToken);
 		if (token != TOKEN_ATOM)
-			return QSTATUS_FAIL;
+			return 0;
 		
 		struct S {
 			enum Arg {
@@ -780,7 +568,7 @@ QSTATUS qmimap4::Parser::parseStatus(State** ppState)
 			{ "UIDNEXT",		State::CODE_UIDNEXT,		S::ARG_NUMBER	}
 		};
 		
-		State::Code code = State::CODE_NONE;
+		State::Code code = State::CODE_OTHER;
 		S::Arg arg = S::ARG_NONE;
 		for (int n = 0; n < countof(states); ++n) {
 			if (strcmp(strToken.get(), states[n].pszCode_) == 0) {
@@ -790,35 +578,31 @@ QSTATUS qmimap4::Parser::parseStatus(State** ppState)
 			}
 		}
 		
-		status = newQsObject(code, &pState);
-		CHECK_QSTATUS();
+		pState.reset(new State(code));
 		
 		if (arg == S::ARG_LIST) {
-			List* pList = 0;
-			status = parseList(&pList);
-			CHECK_QSTATUS();
+			std::auto_ptr<List> pList(parseList());
 			pState->setArg(pList);
 			
 			if (pBuffer_->get(nIndex_) != ']')
-				return QSTATUS_FAIL;
+				return 0;
 		}
 		else if (arg == S::ARG_NUMBER) {
-			string_ptr<STRING> strArg;
-			status = getNextToken(&token, &strArg, "]");
-			CHECK_QSTATUS();
+			string_ptr strArg;
+			token = getNextToken("]", &strArg);
 			if (token != TOKEN_ATOM)
-				return QSTATUS_FAIL;
+				return 0;
 			
 			CHAR* pEnd = 0;
 			long nArg = strtol(strArg.get(), &pEnd, 10);
 			if (*pEnd)
-				return QSTATUS_FAIL;
+				return 0;
 			pState->setArg(nArg);
 		}
 		else {
 			nIndex_ = pBuffer_->find(']', nIndex_);
-			if (nIndex_ == static_cast<size_t>(-1))
-				return QSTATUS_FAIL;
+			if (nIndex_ == -1)
+				return 0;
 		}
 		
 		// Because of BUG of Exchange, I allow CRLF.
@@ -828,44 +612,38 @@ QSTATUS qmimap4::Parser::parseStatus(State** ppState)
 		else if (cNext == '\r')
 			nIndex_ += 1;
 		else
-			return QSTATUS_FAIL;
+			return 0;
 	}
 	else {
-		status = newQsObject(State::CODE_NONE, &pState);
-		CHECK_QSTATUS();
+		pState.reset(new State(State::CODE_NONE));
 	}
 	
 	size_t nIndex = pBuffer_->find("\r\n", nIndex_);
-	if (nIndex == static_cast<size_t>(-1))
-		return QSTATUS_FAIL;
+	if (nIndex == -1)
+		return 0;
 	
-	string_ptr<STRING> strMessage;
-	status = pBuffer_->substr(nIndex_, nIndex - nIndex_, &strMessage);
-	CHECK_QSTATUS();
-	pState->setMessage(strMessage.release());
+	string_ptr strMessage(pBuffer_->substr(nIndex_, nIndex - nIndex_));
+	pState->setMessage(strMessage);
 	
 	nIndex_ = nIndex + 2;
 	
-	*ppState = pState.release();
-	
-	return QSTATUS_SUCCESS;
+	return pState;
 }
 
-QSTATUS qmimap4::Parser::parseList(List** ppList)
+std::auto_ptr<List> qmimap4::Parser::parseList()
 {
-	return Parser::parseList(pBuffer_, &nIndex_, pCallback_, ppList);
+	return Parser::parseList(pBuffer_, &nIndex_, pCallback_);
 }
 
-QSTATUS qmimap4::Parser::getNextToken(Token* pToken, STRING* pstrToken)
+Parser::Token qmimap4::Parser::getNextToken(string_ptr* pstrToken)
 {
-	return getNextToken(pToken, pstrToken, " ");
+	return getNextToken(" ", pstrToken);
 }
 
-QSTATUS qmimap4::Parser::getNextToken(Token* pToken,
-	STRING* pstrToken, const CHAR* pszSep)
+Parser::Token qmimap4::Parser::getNextToken(const CHAR* pszSep,
+											string_ptr* pstrToken)
 {
-	return getNextToken(pBuffer_, &nIndex_,
-		pszSep, pCallback_, pToken, pstrToken);
+	return getNextToken(pBuffer_, &nIndex_, pszSep, pCallback_, pstrToken);
 }
 
 
@@ -886,39 +664,26 @@ qmimap4::ParserCallback::~ParserCallback()
  *
  */
 
-qmimap4::Buffer::Buffer(const CHAR* psz, QSTATUS* pstatus) :
-	str_(pstatus),
+qmimap4::Buffer::Buffer(const CHAR* psz) :
 	pSocket_(0),
 	nError_(Imap4::IMAP4_ERROR_SUCCESS)
 {
-	assert(pstatus);
-	
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	DECLARE_QSTATUS();
-	
 	if (psz) {
-		status = str_.append(psz);
-		CHECK_QSTATUS_SET(pstatus);
+		if (!buf_.append(psz)) {
+			// TODO
+		}
 	}
 }
 
-qmimap4::Buffer::Buffer(const CHAR* psz, SocketBase* pSocket, QSTATUS* pstatus) :
-	str_(pstatus),
+qmimap4::Buffer::Buffer(const CHAR* psz,
+						SocketBase* pSocket) :
 	pSocket_(pSocket),
 	nError_(Imap4::IMAP4_ERROR_SUCCESS)
 {
-	assert(pstatus);
-	
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	DECLARE_QSTATUS();
-	
 	if (psz) {
-		status = str_.append(psz);
-		CHECK_QSTATUS_SET(pstatus);
+		if (!buf_.append(psz)) {
+			// TODO
+		}
 	}
 }
 
@@ -931,68 +696,64 @@ CHAR qmimap4::Buffer::get(size_t n)
 	return get(n, 0, 0);
 }
 
-CHAR qmimap4::Buffer::get(size_t n, Imap4Callback* pCallback, size_t nStart)
+CHAR qmimap4::Buffer::get(size_t n,
+						  Imap4Callback* pCallback,
+						  size_t nStart)
 {
-	DECLARE_QSTATUS();
-	
-	if (n >= str_.getLength()) {
+	if (n >= buf_.getLength()) {
 		if (!pSocket_)
 			return '\0';
-		status = receive(n, pCallback, nStart);
-		CHECK_QSTATUS_VALUE('\0');
+		if (!receive(n, pCallback, nStart))
+			return '\0';
 	}
-	assert(str_.getLength() >= n);
+	assert(buf_.getLength() >= n);
 	
-	return str_.get(n);
+	return buf_.get(n);
 }
 
-size_t qmimap4::Buffer::find(CHAR c, size_t n)
+size_t qmimap4::Buffer::find(CHAR c,
+							 size_t n)
 {
-	DECLARE_QSTATUS();
-	
 	const CHAR* p = 0;
 	while (!p) {
-		p = strchr(str_.getCharArray() + n, c);
+		p = strchr(buf_.getCharArray() + n, c);
 		if (!p) {
-			status = receive(str_.getLength(), 0, 0);
-			CHECK_QSTATUS_VALUE(static_cast<size_t>(-1));
+			if (!receive(buf_.getLength(), 0, 0))
+				return -1;
 		}
 	}
-	return p - str_.getCharArray();
+	return p - buf_.getCharArray();
 }
 
-size_t qmimap4::Buffer::find(const CHAR* psz, size_t n)
+size_t qmimap4::Buffer::find(const CHAR* psz,
+							 size_t n)
 {
-	DECLARE_QSTATUS();
-	
 	const CHAR* p = 0;
 	while (!p) {
-		p = strstr(str_.getCharArray() + n, psz);
+		p = strstr(buf_.getCharArray() + n, psz);
 		if (!p) {
-			status = receive(str_.getLength(), 0, 0);
-			CHECK_QSTATUS_VALUE(static_cast<size_t>(-1));
+			if (!receive(buf_.getLength(), 0, 0))
+				return -1;
 		}
 	}
-	return p - str_.getCharArray();
+	return p - buf_.getCharArray();
 }
 
-QSTATUS qmimap4::Buffer::substr(size_t nPos, size_t nLen, STRING* pstr) const
+string_ptr qmimap4::Buffer::substr(size_t nPos,
+								   size_t nLen) const
 {
-	assert(pstr);
-	assert((nLen == static_cast<size_t>(-1) && str_.getLength() >= nPos) ||
-		str_.getLength() >= nPos + nLen);
+	assert((nLen == -1 && buf_.getLength() >= nPos) ||
+		buf_.getLength() >= nPos + nLen);
 	
-	const CHAR* p = str_.getCharArray() + nPos;
-	if (nLen == static_cast<size_t>(-1))
+	const CHAR* p = buf_.getCharArray() + nPos;
+	if (nLen == -1)
 		nLen = strlen(p);
-	*pstr = allocString(p, nLen);
-	
-	return *pstr ? QSTATUS_SUCCESS : QSTATUS_OUTOFMEMORY;
+	return allocString(p, nLen);
 }
 
 const CHAR* qmimap4::Buffer::str() const
 {
-	return str_.getCharArray();
+	return buf_.getCharArray();
 }
 
 unsigned int qmimap4::Buffer::getError() const
@@ -1000,36 +761,36 @@ unsigned int qmimap4::Buffer::getError() const
 	return nError_;
 }
 
-QSTATUS qmimap4::Buffer::receive(size_t n, Imap4Callback* pCallback, size_t nStart)
+bool qmimap4::Buffer::receive(size_t n,
+							  Imap4Callback* pCallback,
+							  size_t nStart)
 {
-	DECLARE_QSTATUS();
+	if (!pSocket_)
+		IMAP4_ERROR(Imap4::IMAP4_ERROR_PARSE);
 	
-	CHECK_ERROR(!pSocket_, QSTATUS_FAIL, Imap4::IMAP4_ERROR_PARSE);
-	
-	if (pCallback) {
-		status = pCallback->setPos(0);
-		CHECK_QSTATUS();
-	}
+	if (pCallback)
+		pCallback->setPos(0);
 	
 	char buf[1024];
 	do {
-		int nSelect = Socket::SELECT_READ;
-		status = pSocket_->select(&nSelect);
-		CHECK_QSTATUS_ERROR(Imap4::IMAP4_ERROR_SELECTSOCKET | pSocket_->getLastError());
-		CHECK_ERROR(nSelect == 0, QSTATUS_FAIL, Imap4::IMAP4_ERROR_TIMEOUT);
+		int nSelect = pSocket_->select(Socket::SELECT_READ);
+		if (nSelect == -1)
+			IMAP4_ERROR_SOCKET(Imap4::IMAP4_ERROR_SELECTSOCKET);
+		else if (nSelect == 0)
+			IMAP4_ERROR(Imap4::IMAP4_ERROR_TIMEOUT);
 		
-		int nLen = sizeof(buf);
-		status = pSocket_->recv(buf, &nLen, 0);
-		CHECK_QSTATUS_ERROR(Imap4::IMAP4_ERROR_RECEIVE | pSocket_->getLastError());
-		CHECK_ERROR(nLen == 0, QSTATUS_FAIL, Imap4::IMAP4_ERROR_DISCONNECT);
-		status = str_.append(buf, nLen);
-		CHECK_QSTATUS_ERROR(Imap4::IMAP4_ERROR_OTHER);
+		size_t nLen = pSocket_->recv(buf, sizeof(buf), 0);
+		if (nLen == -1)
+			IMAP4_ERROR_SOCKET(Imap4::IMAP4_ERROR_RECEIVE);
+		else if (nLen == 0)
+			IMAP4_ERROR(Imap4::IMAP4_ERROR_DISCONNECT);
 		
-		if (pCallback) {
-			status = pCallback->setPos(str_.getLength() - nStart);
-			CHECK_QSTATUS();
-		}
-	} while (str_.getLength() <= n);
+		if (!buf_.append(buf, nLen))
+			IMAP4_ERROR(Imap4::IMAP4_ERROR_OTHER);
+		
+		if (pCallback)
+			pCallback->setPos(buf_.getLength() - nStart);
+	} while (buf_.getLength() <= n);
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }

@@ -1,16 +1,14 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qsconv.h>
 #include <qsdialog.h>
-#include <qserror.h>
 #include <qsinit.h>
-#include <qsnew.h>
 #include <qsstl.h>
 #include <qsthread.h>
 
@@ -45,7 +43,8 @@ DialogBaseImpl::DialogMap* qs::DialogBaseImpl::pMap__;
 ThreadLocal* qs::DialogBaseImpl::pModelessList__;
 DialogBaseImpl::InitializerImpl qs::DialogBaseImpl::init__;
 
-LRESULT qs::DialogBaseImpl::notifyCommandHandlers(WORD wCode, WORD wId) const
+LRESULT qs::DialogBaseImpl::notifyCommandHandlers(WORD wCode,
+												  WORD wId) const
 {
 	CommandHandlerList::const_iterator it = listCommandHandler_.begin();
 	while (it != listCommandHandler_.end()) {
@@ -57,8 +56,8 @@ LRESULT qs::DialogBaseImpl::notifyCommandHandlers(WORD wCode, WORD wId) const
 	return 1;
 }
 
-LRESULT qs::DialogBaseImpl::notifyNotifyHandlers(
-	NMHDR* pnmhdr, bool* pbHandled) const
+LRESULT qs::DialogBaseImpl::notifyNotifyHandlers(NMHDR* pnmhdr,
+												 bool* pbHandled) const
 {
 	assert(pbHandled);
 	
@@ -72,8 +71,7 @@ LRESULT qs::DialogBaseImpl::notifyNotifyHandlers(
 	return 1;
 }
 
-void qs::DialogBaseImpl::notifyOwnerDrawHandlers(
-	DRAWITEMSTRUCT* pDrawItem) const
+void qs::DialogBaseImpl::notifyOwnerDrawHandlers(DRAWITEMSTRUCT* pDrawItem) const
 {
 	OwnerDrawHandlerList::const_iterator it = listOwnerDrawHandler_.begin();
 	while (it != listOwnerDrawHandler_.end()) {
@@ -82,8 +80,7 @@ void qs::DialogBaseImpl::notifyOwnerDrawHandlers(
 	}
 }
 
-void qs::DialogBaseImpl::measureOwnerDrawHandlers(
-	MEASUREITEMSTRUCT* pMeasureItem) const
+void qs::DialogBaseImpl::measureOwnerDrawHandlers(MEASUREITEMSTRUCT* pMeasureItem) const
 {
 	OwnerDrawHandlerList::const_iterator it = listOwnerDrawHandler_.begin();
 	while (it != listOwnerDrawHandler_.end()) {
@@ -92,10 +89,10 @@ void qs::DialogBaseImpl::measureOwnerDrawHandlers(
 	}
 }
 
-INT_PTR qs::DialogBaseImpl::dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR qs::DialogBaseImpl::dialogProc(UINT uMsg,
+									   WPARAM wParam,
+									   LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
 	INT_PTR nResult = 0;
 	switch (uMsg) {
 	case WM_COMMAND:
@@ -138,13 +135,9 @@ INT_PTR qs::DialogBaseImpl::dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return nResult;
 }
 
-QSTATUS qs::DialogBaseImpl::destroy()
+void qs::DialogBaseImpl::destroy()
 {
-	DECLARE_QSTATUS();
-	
-	DialogMap* pMap = 0;
-	status = DialogBaseImpl::getDialogMap(&pMap);
-	CHECK_QSTATUS();
+	DialogMap* pMap = getDialogMap();
 	pMap->removeController(pThis_->getHandle());
 	DialogBaseImpl::removeModelessDialog(pThis_);
 	assert(listCommandHandler_.size() == 0);
@@ -152,66 +145,38 @@ QSTATUS qs::DialogBaseImpl::destroy()
 	assert(listOwnerDrawHandler_.size() == 0);
 	if (bDeleteThis_)
 		delete pThis_;
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::DialogBaseImpl::getDialogMap(DialogMap** ppMap)
+DialogBaseImpl::DialogMap* qs::DialogBaseImpl::getDialogMap()
 {
-	assert(ppMap);
-	*ppMap = pMap__;
-	return QSTATUS_SUCCESS;
+	return pMap__;
 }
 
-QSTATUS qs::DialogBaseImpl::getModelessList(const ModelessList** ppList)
+const DialogBaseImpl::ModelessList* qs::DialogBaseImpl::getModelessList()
 {
-	assert(ppList);
-	
-	DECLARE_QSTATUS();
-	
-	*ppList = 0;
-	
-	void* pValue = 0;
-	status = pModelessList__->get(&pValue);
-	CHECK_QSTATUS();
-	
-	*ppList = static_cast<ModelessList*>(pValue);
-	assert(*ppList);
-	
-	return QSTATUS_SUCCESS;
+	return static_cast<ModelessList*>(pModelessList__->get());
 }
 
-QSTATUS qs::DialogBaseImpl::addModelessDialog(DialogBase* pDialogBase)
+void qs::DialogBaseImpl::addModelessDialog(DialogBase* pDialogBase)
 {
-	DECLARE_QSTATUS();
-	
-	void* pValue = 0;
-	status = pModelessList__->get(&pValue);
-	CHECK_QSTATUS();
-	
-	ModelessList* pList = static_cast<ModelessList*>(pValue);
-	assert(pList);
-	
-	return STLWrapper<ModelessList>(*pList).push_back(pDialogBase);
+	ModelessList* pList = static_cast<ModelessList*>(pModelessList__->get());
+	pList->push_back(pDialogBase);
 }
 
-QSTATUS qs::DialogBaseImpl::removeModelessDialog(DialogBase* pDialogBase)
+void qs::DialogBaseImpl::removeModelessDialog(DialogBase* pDialogBase)
 {
-	DECLARE_QSTATUS();
-	
-	void* pValue = 0;
-	status = pModelessList__->get(&pValue);
-	CHECK_QSTATUS();
-	
-	ModelessList* pList = static_cast<ModelessList*>(pValue);
-	assert(pList);
-	
+	ModelessList* pList = static_cast<ModelessList*>(pModelessList__->get());
 	ModelessList::iterator it = std::remove(
 		pList->begin(), pList->end(), pDialogBase);
 	pList->erase(it, pList->end());
-	
-	return QSTATUS_SUCCESS;
 }
+
+
+/****************************************************************************
+ *
+ * DialogBaseImpl::InitializerImpl
+ *
+ */
 
 qs::DialogBaseImpl::InitializerImpl::InitializerImpl()
 {
@@ -221,59 +186,36 @@ qs::DialogBaseImpl::InitializerImpl::~InitializerImpl()
 {
 }
 
-QSTATUS qs::DialogBaseImpl::InitializerImpl::init()
+bool qs::DialogBaseImpl::InitializerImpl::init()
 {
-	DECLARE_QSTATUS();
-	
-	status = newQsObject(&DialogBaseImpl::pMap__);
-	CHECK_QSTATUS();
-	
-	status = newQsObject(&DialogBaseImpl::pModelessList__);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	DialogBaseImpl::pMap__ = new DialogMap();
+	DialogBaseImpl::pModelessList__ = new ThreadLocal();
+	return true;
 }
 
-QSTATUS qs::DialogBaseImpl::InitializerImpl::term()
+void qs::DialogBaseImpl::InitializerImpl::term()
 {
 	delete DialogBaseImpl::pModelessList__;
 	DialogBaseImpl::pModelessList__ = 0;
 	
 	delete DialogBaseImpl::pMap__;
 	DialogBaseImpl::pMap__ = 0;
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::DialogBaseImpl::InitializerImpl::initThread()
+bool qs::DialogBaseImpl::InitializerImpl::initThread()
 {
-	DECLARE_QSTATUS();
+	if (!DialogBaseImpl::pMap__->initThread())
+		return false;
 	
-	status = DialogBaseImpl::pMap__->initThread();
-	CHECK_QSTATUS();
+	pModelessList__->set(new ModelessList());
 	
-	ModelessList* pList = 0;
-	status = newObject(&pList);
-	CHECK_QSTATUS();
-	assert(pList);
-	std::auto_ptr<ModelessList> apList(pList);
-	status = pModelessList__->set(pList);
-	CHECK_QSTATUS();
-	apList.release();
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::DialogBaseImpl::InitializerImpl::termThread()
+void qs::DialogBaseImpl::InitializerImpl::termThread()
 {
-	void* pValue = 0;
-	QSTATUS status = pModelessList__->get(&pValue);
-	if (status == QSTATUS_SUCCESS)
-		delete static_cast<ModelessList*>(pValue);
-	
+	delete static_cast<ModelessList*>(pModelessList__->get());
 	DialogBaseImpl::pMap__->termThread();
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -283,18 +225,10 @@ QSTATUS qs::DialogBaseImpl::InitializerImpl::termThread()
  *
  */
 
-qs::DialogBase::DialogBase(bool bDeleteThis, QSTATUS* pstatus) :
+qs::DialogBase::DialogBase(bool bDeleteThis) :
 	Window(0)
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	assert(pImpl_);
+	pImpl_ = new DialogBaseImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->bDeleteThis_ = bDeleteThis;
 	pImpl_->pDialogHandler_ = 0;
@@ -311,72 +245,60 @@ qs::DialogBase::~DialogBase()
 	}
 }
 
-QSTATUS qs::DialogBase::setDialogHandler(
-	DialogHandler* pDialogHandler, bool bDeleteHandler)
+void qs::DialogBase::setDialogHandler(DialogHandler* pDialogHandler,
+									  bool bDeleteHandler)
 {
-	DECLARE_QSTATUS();
-	
 	pImpl_->pDialogHandler_ = pDialogHandler;
 	pImpl_->bDeleteHandler_ = bDeleteHandler;
-	
-	status = pDialogHandler->setDialogBase(this);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	pDialogHandler->setDialogBase(this);
 }
 
-QSTATUS qs::DialogBase::addCommandHandler(CommandHandler* pch)
+void qs::DialogBase::addCommandHandler(CommandHandler* pch)
 {
-	assert(pImpl_);
-	return STLWrapper<DialogBaseImpl::CommandHandlerList>
-		(pImpl_->listCommandHandler_).push_back(pch);
+	assert(pch);
+	pImpl_->listCommandHandler_.push_back(pch);
 }
 
-QSTATUS qs::DialogBase::removeCommandHandler(CommandHandler* pch)
+void qs::DialogBase::removeCommandHandler(CommandHandler* pch)
 {
-	assert(pImpl_);
+	assert(pch);
 	DialogBaseImpl::CommandHandlerList::iterator it =
 		std::remove(pImpl_->listCommandHandler_.begin(),
 			pImpl_->listCommandHandler_.end(), pch);
 	assert(it != pImpl_->listCommandHandler_.end());
 	pImpl_->listCommandHandler_.erase(it, pImpl_->listCommandHandler_.end());
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::DialogBase::addNotifyHandler(NotifyHandler* pnh)
+void qs::DialogBase::addNotifyHandler(NotifyHandler* pnh)
 {
-	assert(pImpl_);
-	return STLWrapper<DialogBaseImpl::NotifyHandlerList>
-		(pImpl_->listNotifyHandler_).push_back(pnh);
+	assert(pnh);
+	pImpl_->listNotifyHandler_.push_back(pnh);
 }
 
-QSTATUS qs::DialogBase::removeNotifyHandler(NotifyHandler* pnh)
+void qs::DialogBase::removeNotifyHandler(NotifyHandler* pnh)
 {
-	assert(pImpl_);
+	assert(pnh);
 	DialogBaseImpl::NotifyHandlerList::iterator it =
 		std::remove(pImpl_->listNotifyHandler_.begin(),
 			pImpl_->listNotifyHandler_.end(), pnh);
 	assert(it != pImpl_->listNotifyHandler_.end());
 	pImpl_->listNotifyHandler_.erase(it, pImpl_->listNotifyHandler_.end());
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::DialogBase::addOwnerDrawHandler(OwnerDrawHandler* podh)
+void qs::DialogBase::addOwnerDrawHandler(OwnerDrawHandler* podh)
 {
-	assert(pImpl_);
-	return STLWrapper<DialogBaseImpl::OwnerDrawHandlerList>
-		(pImpl_->listOwnerDrawHandler_).push_back(podh);
+	assert(podh);
+	pImpl_->listOwnerDrawHandler_.push_back(podh);
 }
 
-QSTATUS qs::DialogBase::removeOwnerDrawHandler(OwnerDrawHandler* podh)
+void qs::DialogBase::removeOwnerDrawHandler(OwnerDrawHandler* podh)
 {
-	assert(pImpl_);
+	assert(podh);
 	DialogBaseImpl::OwnerDrawHandlerList::iterator it =
 		std::remove(pImpl_->listOwnerDrawHandler_.begin(),
 			pImpl_->listOwnerDrawHandler_.end(), podh);
 	assert(it != pImpl_->listOwnerDrawHandler_.end());
 	pImpl_->listOwnerDrawHandler_.erase(it, pImpl_->listOwnerDrawHandler_.end());
-	return QSTATUS_SUCCESS;
 }
 
 InitThread* qs::DialogBase::getInitThread() const
@@ -384,33 +306,25 @@ InitThread* qs::DialogBase::getInitThread() const
 	return pImpl_->pInitThread_;
 }
 
-LRESULT qs::DialogBase::defWindowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qs::DialogBase::defWindowProc(UINT uMsg,
+									  WPARAM wParam,
+									  LPARAM lParam)
 {
 	return ::DefWindowProc(getHandle(), uMsg, wParam, lParam);
 }
 
-QSTATUS qs::DialogBase::processDialogMessage(MSG* pMsg, bool* pbProcessed)
+bool qs::DialogBase::processDialogMessage(MSG* pMsg)
 {
-	assert(pbProcessed);
-	
-	*pbProcessed = false;
-	
 	if ((pMsg->message < WM_KEYFIRST || WM_KEYLAST < pMsg->message) &&
 		(pMsg->message < WM_MOUSEFIRST || WM_MOUSELAST < pMsg->message))
-		return QSTATUS_SUCCESS;
+		return false;
 	
-	DECLARE_QSTATUS();
-	
-	const DialogBaseImpl::ModelessList* pList = 0;
-	status = DialogBaseImpl::getModelessList(&pList);
-	CHECK_QSTATUS();
+	const DialogBaseImpl::ModelessList* pList = DialogBaseImpl::getModelessList();
 	
 	DialogBaseImpl::ModelessList::const_iterator it = pList->begin();
 	while (it != pList->end() && !(*it)->isDialogMessage(pMsg))
 		++it;
-	*pbProcessed = it != pList->end();
-	
-	return QSTATUS_SUCCESS;
+	return it != pList->end();
 }
 
 
@@ -433,21 +347,13 @@ struct qs::DialogImpl
  *
  */
 
-qs::Dialog::Dialog(HINSTANCE hInstResource, UINT nId,
-	bool bDeleteThis, QSTATUS* pstatus) :
-	DialogBase(bDeleteThis, pstatus),
+qs::Dialog::Dialog(HINSTANCE hInstResource,
+				   UINT nId,
+				   bool bDeleteThis) :
+	DialogBase(bDeleteThis),
 	pImpl_(0)
 {
-	assert(pstatus);
-	
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	assert(pImpl_);
+	pImpl_ = new DialogImpl();
 	pImpl_->hInstResource_ = hInstResource;
 	pImpl_->nId_ = nId;
 }
@@ -457,68 +363,53 @@ qs::Dialog::~Dialog()
 	delete pImpl_;
 }
 
-QSTATUS qs::Dialog::doModal(HWND hwndParent,
-	ModalHandler* pModalHandler, int* pnRet)
+int qs::Dialog::doModal(HWND hwndParent)
 {
-	assert(pnRet);
-	
-	DECLARE_QSTATUS();
-	
+	return doModal(hwndParent, 0);
+}
+
+int qs::Dialog::doModal(HWND hwndParent,
+						ModalHandler* pModalHandler)
+{
 	if (!pModalHandler)
 		pModalHandler = getModalHandler();
 	
-	ModalHandlerInvoker invoker(pModalHandler, hwndParent, &status);
-	CHECK_QSTATUS();
-	DialogBaseImpl::DialogMap* pMap = 0;
-	status = DialogBaseImpl::getDialogMap(&pMap);
-	CHECK_QSTATUS();
-	status = pMap->setThis(this);
-	CHECK_QSTATUS();
-	*pnRet = ::DialogBox(pImpl_->hInstResource_,
+	ModalHandlerInvoker invoker(pModalHandler, hwndParent);
+	DialogBaseImpl::DialogMap* pMap = DialogBaseImpl::getDialogMap();
+	pMap->setThis(this);
+	return ::DialogBox(pImpl_->hInstResource_,
 		MAKEINTRESOURCE(pImpl_->nId_), hwndParent, dialogProc);
-	if (*pnRet == 0 || *pnRet == -1)
-		return QSTATUS_FAIL;
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::Dialog::create(HWND hwndParent)
+bool qs::Dialog::create(HWND hwndParent)
 {
-	DECLARE_QSTATUS();
-	
-	DialogBaseImpl::DialogMap* pMap = 0;
-	status = DialogBaseImpl::getDialogMap(&pMap);
-	CHECK_QSTATUS();
-	status = pMap->setThis(this);
-	CHECK_QSTATUS();
+	DialogBaseImpl::DialogMap* pMap = DialogBaseImpl::getDialogMap();
+	pMap->setThis(this);
 	HWND hwnd = ::CreateDialog(pImpl_->hInstResource_,
 		MAKEINTRESOURCE(pImpl_->nId_), hwndParent, dialogProc);
 	if (!hwnd) {
 		setHandle(0);
-		return QSTATUS_FAIL;
+		return false;
 	}
 	assert(getHandle() == hwnd);
 	
 	DialogBaseImpl::addModelessDialog(this);
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::Dialog::endDialog(int nCode)
+bool qs::Dialog::endDialog(int nCode)
 {
-	return ::EndDialog(getHandle(), nCode) ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+	return ::EndDialog(getHandle(), nCode) != 0;
 }
 
-INT_PTR CALLBACK qs::dialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK qs::dialogProc(HWND hwnd,
+								UINT uMsg,
+								WPARAM wParam,
+								LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
-	DialogBaseImpl::DialogMap* pMap = 0;
-	status = DialogBaseImpl::getDialogMap(&pMap);
-	CHECK_QSTATUS();
-	DialogBase* pThis = 0;
-	status = pMap->findController(hwnd, &pThis);
-	CHECK_QSTATUS_VALUE(0);
+	DialogBaseImpl::DialogMap* pMap = DialogBaseImpl::getDialogMap();
+	DialogBase* pThis = pMap->findController(hwnd);
 	
 	INT_PTR nResult = 0;
 	if (pThis)
@@ -550,12 +441,10 @@ qs::DialogHandler::~DialogHandler()
  *
  */
 
-qs::DefaultDialogHandler::DefaultDialogHandler(QSTATUS* pstatus) :
+qs::DefaultDialogHandler::DefaultDialogHandler() :
 	pDialogBase_(0),
 	nResult_(TRUE)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qs::DefaultDialogHandler::~DefaultDialogHandler()
@@ -568,14 +457,15 @@ DialogBase* qs::DefaultDialogHandler::getDialogBase() const
 	return pDialogBase_;
 }
 
-QSTATUS qs::DefaultDialogHandler::setDialogBase(DialogBase* pDialogBase)
+void qs::DefaultDialogHandler::setDialogBase(DialogBase* pDialogBase)
 {
 	assert(!pDialogBase_);
 	pDialogBase_ = pDialogBase;
-	return QSTATUS_SUCCESS;
 }
 
-INT_PTR qs::DefaultDialogHandler::dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR qs::DefaultDialogHandler::dialogProc(UINT uMsg,
+											 WPARAM wParam,
+											 LPARAM lParam)
 {
 	return FALSE;
 }
@@ -608,16 +498,11 @@ void qs::DefaultDialogHandler::setProcResult(INT_PTR nResult)
  *
  */
 
-qs::DefaultDialog::DefaultDialog(HINSTANCE hInst, UINT nId, QSTATUS* pstatus) :
-	Dialog(hInst, nId, false, pstatus),
-	DefaultDialogHandler(pstatus),
-	DefaultCommandHandler(pstatus)
+qs::DefaultDialog::DefaultDialog(HINSTANCE hInst,
+								 UINT nId) :
+	Dialog(hInst, nId, false)
 {
-	DECLARE_QSTATUS();
-	
-	status = addCommandHandler(this);
-	CHECK_QSTATUS_SET(pstatus);
-	
+	addCommandHandler(this);
 	setDialogHandler(this, false);
 }
 
@@ -639,7 +524,9 @@ void qs::DefaultDialog::init(bool bDoneButton)
 #endif
 }
 
-INT_PTR qs::DefaultDialog::dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR qs::DefaultDialog::dialogProc(UINT uMsg,
+									  WPARAM wParam,
+									  LPARAM lParam)
 {
 	BEGIN_DIALOG_HANDLER()
 		HANDLE_DESTROY()
@@ -648,7 +535,8 @@ INT_PTR qs::DefaultDialog::dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefaultDialogHandler::dialogProc(uMsg, wParam, lParam);
 }
 
-LRESULT qs::DefaultDialog::onCommand(WORD nCode, WORD nId)
+LRESULT qs::DefaultDialog::onCommand(WORD nCode,
+									 WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDCANCEL, onCancel)
@@ -663,7 +551,8 @@ LRESULT qs::DefaultDialog::onDestroy()
 	return 0;
 }
 
-LRESULT qs::DefaultDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qs::DefaultDialog::onInitDialog(HWND hwndFocus,
+										LPARAM lParam)
 {
 	init(false);
 	return TRUE;
@@ -696,7 +585,7 @@ struct qs::FileDialogImpl
 	const WCHAR* pwszDefaultExt_;
 	const WCHAR* pwszFileName_;
 	DWORD dwFlags_;
-	WSTRING wstrPath_;
+	wstring_ptr wstrPath_;
 };
 
 
@@ -706,44 +595,41 @@ struct qs::FileDialogImpl
  *
  */
 
-qs::FileDialog::FileDialog(bool bOpen, const WCHAR* pwszFilter,
-	const WCHAR* pwszInitialDir, const WCHAR* pwszDefaultExt,
-	const WCHAR* pwszFileName, DWORD dwFlags, QSTATUS* pstatus) :
+qs::FileDialog::FileDialog(bool bOpen,
+						   const WCHAR* pwszFilter,
+						   const WCHAR* pwszInitialDir,
+						   const WCHAR* pwszDefaultExt,
+						   const WCHAR* pwszFileName,
+						   DWORD dwFlags) :
 	pImpl_(0)
 {
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new FileDialogImpl();
 	pImpl_->bOpen_ = bOpen;
 	pImpl_->pwszFilter_ = pwszFilter;
 	pImpl_->pwszInitialDir_ = pwszInitialDir ? pwszInitialDir : L"";
 	pImpl_->pwszDefaultExt_ = pwszDefaultExt ? pwszDefaultExt : L"";
 	pImpl_->pwszFileName_ = pwszFileName;
 	pImpl_->dwFlags_ = dwFlags;
-	pImpl_->wstrPath_ = 0;
 }
 
 qs::FileDialog::~FileDialog()
 {
-	if (pImpl_) {
-		freeWString(pImpl_->wstrPath_);
-		delete pImpl_;
-	}
+	delete pImpl_;
 }
 
 const WCHAR* qs::FileDialog::getPath() const
 {
-	return pImpl_->wstrPath_;
+	return pImpl_->wstrPath_.get();
 }
 
-QSTATUS qs::FileDialog::doModal(HWND hwndParent,
-	ModalHandler* pModalHandler, int* pnRet)
+int qs::FileDialog::doModal(HWND hwndParent)
 {
-	assert(pnRet);
-	
-	DECLARE_QSTATUS();
-	
+	return doModal(hwndParent, 0);
+}
+
+int qs::FileDialog::doModal(HWND hwndParent,
+							ModalHandler* pModalHandler)
+{
 #ifdef _WIN32_WCE
 	bool bMultiSelect = false;
 #else
@@ -759,9 +645,9 @@ QSTATUS qs::FileDialog::doModal(HWND hwndParent,
 		getInstanceHandle()
 	};
 	
-	string_ptr<TSTRING> ptstrFilter;
+	tstring_ptr ptstrFilter;
 	if (pImpl_->pwszFilter_) {
-		ptstrFilter.reset(wcs2tcs(pImpl_->pwszFilter_));
+		ptstrFilter = wcs2tcs(pImpl_->pwszFilter_);
 		for (TCHAR* p = ptstrFilter.get(); *p; ++p) {
 			if (*p == _T('|'))
 				*p = _T('\0');
@@ -772,9 +658,7 @@ QSTATUS qs::FileDialog::doModal(HWND hwndParent,
 	int nLen = MAX_PATH;
 	if (bMultiSelect)
 		nLen *= 10;
-	string_ptr<TSTRING> tstrPath(allocTString(nLen));
-	if (!tstrPath.get())
-		return QSTATUS_OUTOFMEMORY;
+	tstring_ptr tstrPath(allocTString(nLen));
 	ofn.lpstrFile = tstrPath.get(),
 	ofn.nMaxFile = nLen;
 	if (pImpl_->pwszFileName_) {
@@ -794,19 +678,11 @@ QSTATUS qs::FileDialog::doModal(HWND hwndParent,
 	if (*ptszDefaultExt)
 		ofn.lpstrDefExt = ptszDefaultExt;
 	
-	if (pModalHandler)
-		pModalHandler->preModalDialog(hwndParent);
-	
-	BOOL b = pImpl_->bOpen_ ? ::GetOpenFileName(&ofn) :
-		::GetSaveFileName(&ofn);
-	
-	if (pModalHandler)
-		pModalHandler->postModalDialog(hwndParent);
+	ModalHandlerInvoker invoker(pModalHandler, hwndParent);
+	BOOL b = pImpl_->bOpen_ ? ::GetOpenFileName(&ofn) : ::GetSaveFileName(&ofn);
 	
 	T2W(ofn.lpstrFile, pwszPath);
-	string_ptr<WSTRING> wstrPath(allocWString(pwszPath, wcslen(pwszPath) + 2));
-	if (!wstrPath.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrPath(allocWString(pwszPath, wcslen(pwszPath) + 2));
 	*(wstrPath.get() + wcslen(wstrPath.get()) + 1) = L'\0';
 	if (bMultiSelect) {
 		if (*(ofn.lpstrFile + _tcslen(ofn.lpstrFile) + 1) != _T('\0')) {
@@ -817,9 +693,7 @@ QSTATUS qs::FileDialog::doModal(HWND hwndParent,
 			while (*p) {
 				T2W(p, pwszFileName);
 				size_t nFileNameLen = wcslen(pwszFileName);
-				status = STLWrapper<Buffer>(buf).reserve(
-					nPathLen + nFileNameLen + 3);
-				CHECK_QSTATUS();
+				buf.reserve(nPathLen + nFileNameLen + 3);
 				std::copy(wstrPath.get(), wstrPath.get() + nPathLen,
 					std::back_inserter(buf));
 				buf.push_back(L'\\');
@@ -831,17 +705,13 @@ QSTATUS qs::FileDialog::doModal(HWND hwndParent,
 			}
 			buf.push_back(L'\0');
 			
-			wstrPath.reset(allocWString(buf.size()));
-			if (!wstrPath.get())
-				return QSTATUS_OUTOFMEMORY;
+			wstrPath = allocWString(buf.size());
 			memcpy(wstrPath.get(), &buf[0], buf.size()*sizeof(WCHAR));
 		}
 	}
-	pImpl_->wstrPath_ = wstrPath.release();
+	pImpl_->wstrPath_ = wstrPath;
 	
-	*pnRet = b ? IDOK : IDCANCEL;
-	
-	return QSTATUS_SUCCESS;
+	return b ? IDOK : IDCANCEL;
 }
 
 
@@ -856,32 +726,33 @@ QSTATUS qs::FileDialog::doModal(HWND hwndParent,
 struct qs::BrowseFolderDialogImpl : public qs::NotifyHandler
 {
 public:
-	QSTATUS getPath(HWND hwnd, HTREEITEM hItem, WSTRING* pwstrPath);
-	QSTATUS selectFolder(HWND hwnd, const WCHAR* pwszPath);
-	QSTATUS selectFolder(HWND hwnd, HTREEITEM hItem, const WCHAR* pwszPath);
+	wstring_ptr getPath(HWND hwnd,
+						HTREEITEM hItem);
+	void selectFolder(HWND hwnd,
+					  const WCHAR* pwszPath);
+	void selectFolder(HWND hwnd,
+					  HTREEITEM hItem,
+					  const WCHAR* pwszPath);
 
 public:
-	virtual LRESULT onNotify(NMHDR* pnmhdr, bool* pbHandled);
+	virtual LRESULT onNotify(NMHDR* pnmhdr,
+							 bool* pbHandled);
 
 private:
-	LRESULT onItemExpanding(NMHDR* pnmhdr, bool* pbHandled);
+	LRESULT onItemExpanding(NMHDR* pnmhdr,
+							bool* pbHandled);
 
 public:
-	WSTRING wstrPath_;
+	wstring_ptr wstrPath_;
 };
 
-QSTATUS qs::BrowseFolderDialogImpl::getPath(
-	HWND hwnd, HTREEITEM hItem, WSTRING* pwstrPath)
+wstring_ptr qs::BrowseFolderDialogImpl::getPath(HWND hwnd,
+												HTREEITEM hItem)
 {
 	assert(hwnd);
 	assert(hItem);
-	assert(pwstrPath);
 	
-	DECLARE_QSTATUS();
-	
-	*pwstrPath = 0;
-	
-	string_ptr<WSTRING> wstrPath;
+	wstring_ptr wstrPath;
 	
 	while (hItem) {
 		TCHAR tszPath[MAX_PATH + 1];
@@ -898,47 +769,40 @@ QSTATUS qs::BrowseFolderDialogImpl::getPath(
 		hItem = TreeView_GetParent(hwnd, hItem);
 		if (hItem) {
 			if (wstrPath.get())
-				wstrPath.reset(concat(tszPath, wstrPath.get()));
+				wstrPath = concat(tszPath, wstrPath.get());
 			else
-				wstrPath.reset(allocWString(tszPath));
-			if (!wstrPath.get())
-				return QSTATUS_OUTOFMEMORY;
+				wstrPath = allocWString(tszPath);
 		}
 	}
 	
-	*pwstrPath = wstrPath.release();
-	
-	return QSTATUS_SUCCESS;
+	return wstrPath;
 }
 
-QSTATUS qs::BrowseFolderDialogImpl::selectFolder(
-	HWND hwnd, const WCHAR* pwszPath)
+void qs::BrowseFolderDialogImpl::selectFolder(HWND hwnd,
+											  const WCHAR* pwszPath)
 {
 	assert(hwnd);
 	assert(pwszPath);
 	
 	if (pwszPath[0] != L'\\')
-		return QSTATUS_SUCCESS;
-	return selectFolder(hwnd, TreeView_GetRoot(hwnd), pwszPath + 1);
+		return;
+	selectFolder(hwnd, TreeView_GetRoot(hwnd), pwszPath + 1);
 }
 
-QSTATUS qs::BrowseFolderDialogImpl::selectFolder(
-	HWND hwnd, HTREEITEM hItem, const WCHAR* pwszPath)
+void qs::BrowseFolderDialogImpl::selectFolder(HWND hwnd,
+											  HTREEITEM hItem,
+											  const WCHAR* pwszPath)
 {
 	assert(hwnd);
 	assert(hItem);
 	assert(pwszPath);
 	
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrName;
+	wstring_ptr wstrName;
 	const WCHAR* p = wcsrchr(pwszPath, L'\\');
 	if (p)
-		wstrName.reset(allocWString(pwszPath, p - pwszPath));
+		wstrName = allocWString(pwszPath, p - pwszPath);
 	else
-		wstrName.reset(allocWString(pwszPath));
-	if (!wstrName.get())
-		return QSTATUS_OUTOFMEMORY;
+		wstrName = allocWString(pwszPath);
 	
 	hItem = TreeView_GetChild(hwnd, hItem);
 	while (hItem) {
@@ -957,19 +821,17 @@ QSTATUS qs::BrowseFolderDialogImpl::selectFolder(
 		hItem = TreeView_GetNextSibling(hwnd, hItem);
 	}
 	if (!hItem)
-		return QSTATUS_SUCCESS;
+		return;
 	
 	TreeView_SelectItem(hwnd, hItem);
 	if (p) {
 		TreeView_Expand(hwnd, hItem, TVE_EXPAND);
-		status = selectFolder(hwnd, hItem, p + 1);
-		CHECK_QSTATUS();
+		selectFolder(hwnd, hItem, p + 1);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-LRESULT qs::BrowseFolderDialogImpl::onNotify(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qs::BrowseFolderDialogImpl::onNotify(NMHDR* pnmhdr,
+											 bool* pbHandled)
 {
 	BEGIN_NOTIFY_HANDLER()
 		HANDLE_NOTIFY(TVN_ITEMEXPANDING, IDC_FOLDER, onItemExpanding);
@@ -977,10 +839,9 @@ LRESULT qs::BrowseFolderDialogImpl::onNotify(NMHDR* pnmhdr, bool* pbHandled)
 	return 1;
 }
 
-LRESULT qs::BrowseFolderDialogImpl::onItemExpanding(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qs::BrowseFolderDialogImpl::onItemExpanding(NMHDR* pnmhdr,
+													bool* pbHandled)
 {
-	DECLARE_QSTATUS();
-	
 	NMTREEVIEW* pnmtv = reinterpret_cast<NMTREEVIEW*>(pnmhdr);
 	
 	HWND hwnd = pnmtv->hdr.hwndFrom;
@@ -994,12 +855,8 @@ LRESULT qs::BrowseFolderDialogImpl::onItemExpanding(NMHDR* pnmhdr, bool* pbHandl
 	if ((item.state & TVIS_EXPANDEDONCE) == 0) {
 		hItem = TreeView_GetChild(hwnd, hItem);
 		while (hItem) {
-			string_ptr<WSTRING> wstrPath;
-			status = getPath(hwnd, hItem, &wstrPath);
-			CHECK_QSTATUS_VALUE(0);
-			wstrPath.reset(concat(wstrPath.get(), L"\\*.*"));
-			if (!wstrPath.get())
-				return 0;
+			wstring_ptr wstrPath(getPath(hwnd, hItem));
+			wstrPath = concat(wstrPath.get(), L"\\*.*");
 			
 			WIN32_FIND_DATA fd;
 			AutoFindHandle hFind(::FindFirstFile(wstrPath.get(), &fd));
@@ -1044,40 +901,28 @@ LRESULT qs::BrowseFolderDialogImpl::onItemExpanding(NMHDR* pnmhdr, bool* pbHandl
  */
 
 qs::BrowseFolderDialog::BrowseFolderDialog(const WCHAR* pwszTitle,
-	const WCHAR* pwszInitialPath, QSTATUS* pstatus) :
-	DefaultDialog(getDllInstanceHandle(), IDD_BROWSEFOLDER, pstatus),
+										   const WCHAR* pwszInitialPath) :
+	DefaultDialog(getDllInstanceHandle(), IDD_BROWSEFOLDER),
 	pImpl_(0)
 {
-	DECLARE_QSTATUS();
+	wstring_ptr wstrPath;
+	if (pwszInitialPath)
+		wstrPath = allocWString(pwszInitialPath);
 	
-	string_ptr<WSTRING> wstrPath;
-	if (pwszInitialPath) {
-		wstrPath.reset(allocWString(pwszInitialPath));
-		if (!wstrPath.get()) {
-			*pstatus = QSTATUS_OUTOFMEMORY;
-			return;
-		}
-	}
+	pImpl_ = new BrowseFolderDialogImpl();
+	pImpl_->wstrPath_ = wstrPath;
 	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	pImpl_->wstrPath_ = wstrPath.release();
-	
-	status = addNotifyHandler(pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	addNotifyHandler(pImpl_);
 }
 
 qs::BrowseFolderDialog::~BrowseFolderDialog()
 {
-	if (pImpl_) {
-		freeWString(pImpl_->wstrPath_);
-		delete pImpl_;
-	}
+	delete pImpl_;
 }
 
 const WCHAR* qs::BrowseFolderDialog::getPath() const
 {
-	return pImpl_->wstrPath_;
+	return pImpl_->wstrPath_.get();
 }
 
 LRESULT qs::BrowseFolderDialog::onDestroy()
@@ -1091,7 +936,8 @@ LRESULT qs::BrowseFolderDialog::onDestroy()
 	return DefaultDialog::onDestroy();
 }
 
-LRESULT qs::BrowseFolderDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qs::BrowseFolderDialog::onInitDialog(HWND hwndFocus,
+											 LPARAM lParam)
 {
 	init(false);
 	
@@ -1136,26 +982,18 @@ LRESULT qs::BrowseFolderDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	
 	TreeView_Expand(hwnd, TreeView_GetRoot(hwnd), TVE_EXPAND);
 	
-	if (pImpl_->wstrPath_)
-		pImpl_->selectFolder(hwnd, pImpl_->wstrPath_);
+	if (pImpl_->wstrPath_.get())
+		pImpl_->selectFolder(hwnd, pImpl_->wstrPath_.get());
 	
 	return TRUE;
 }
 
 LRESULT qs::BrowseFolderDialog::onOk()
 {
-	DECLARE_QSTATUS();
-	
 	HWND hwnd = getDlgItem(IDC_FOLDER);
 	HTREEITEM hItem = TreeView_GetSelection(hwnd);
-	if (hItem) {
-		string_ptr<WSTRING> wstrPath;
-		status = pImpl_->getPath(hwnd, hItem, &wstrPath);
-		if (status == QSTATUS_SUCCESS) {
-			freeWString(pImpl_->wstrPath_);
-			pImpl_->wstrPath_ = wstrPath.release();
-		}
-	}
+	if (hItem)
+		pImpl_->wstrPath_ = pImpl_->getPath(hwnd, hItem);
 	
 	return DefaultDialog::onOk();
 }

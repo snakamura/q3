@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -10,7 +10,6 @@
 #include <qmmessage.h>
 
 #include <qsstl.h>
-#include <qsnew.h>
 
 #include <algorithm>
 
@@ -24,11 +23,9 @@ using namespace qs;
  *
  */
 
-qm::MacroValue::MacroValue(Type type, QSTATUS* pstatus) :
+qm::MacroValue::MacroValue(Type type) :
 	type_(type)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::MacroValue::~MacroValue()
@@ -47,8 +44,8 @@ MacroValue::Type qm::MacroValue::getType() const
  *
  */
 
-qm::MacroValueBoolean::MacroValueBoolean(QSTATUS* pstatus) :
-	MacroValue(TYPE_BOOLEAN, pstatus),
+qm::MacroValueBoolean::MacroValueBoolean() :
+	MacroValue(TYPE_BOOLEAN),
 	b_(false)
 {
 }
@@ -57,10 +54,9 @@ qm::MacroValueBoolean::~MacroValueBoolean()
 {
 }
 
-QSTATUS qm::MacroValueBoolean::init(bool b)
+void qm::MacroValueBoolean::init(bool b)
 {
 	b_ = b;
-	return QSTATUS_SUCCESS;
 }
 
 void qm::MacroValueBoolean::term()
@@ -68,14 +64,9 @@ void qm::MacroValueBoolean::term()
 	b_ = false;
 }
 
-QSTATUS qm::MacroValueBoolean::string(WSTRING* pwstr) const
+wstring_ptr qm::MacroValueBoolean::string() const
 {
-	assert(pwstr);
-	if (b_)
-		*pwstr = allocWString(L"true");
-	else
-		*pwstr = allocWString(L"false");
-	return *pwstr ? QSTATUS_SUCCESS : QSTATUS_OUTOFMEMORY;
+	return allocWString(b_ ? L"true" : L"false");
 }
 
 bool qm::MacroValueBoolean::boolean() const
@@ -88,11 +79,9 @@ unsigned int qm::MacroValueBoolean::number() const
 	return b_ ? 1 : 0;
 }
 
-QSTATUS qm::MacroValueBoolean::clone(MacroValue** ppValue) const
+MacroValuePtr qm::MacroValueBoolean::clone() const
 {
-	assert(ppValue);
-	return MacroValueFactory::getFactory().newBoolean(
-		b_, reinterpret_cast<MacroValueBoolean**>(ppValue));
+	return MacroValueFactory::getFactory().newBoolean(b_);
 }
 
 
@@ -102,61 +91,55 @@ QSTATUS qm::MacroValueBoolean::clone(MacroValue** ppValue) const
  *
  */
 
-qm::MacroValueString::MacroValueString(QSTATUS* pstatus) :
-	MacroValue(TYPE_STRING, pstatus),
-	wstr_(0)
+qm::MacroValueString::MacroValueString() :
+	MacroValue(TYPE_STRING)
 {
 }
 
 qm::MacroValueString::~MacroValueString()
 {
-	assert(!wstr_);
+	assert(!wstr_.get());
 }
 
-QSTATUS qm::MacroValueString::init(const WCHAR* pwsz, size_t nLen)
+void qm::MacroValueString::init(const WCHAR* pwsz,
+								size_t nLen)
 {
 	assert(pwsz);
-	assert(!wstr_);
+	assert(!wstr_.get());
 	
 	wstr_ = allocWString(pwsz, nLen);
-	return wstr_ ? QSTATUS_SUCCESS : QSTATUS_OUTOFMEMORY;
 }
 
 void qm::MacroValueString::term()
 {
-	assert(wstr_);
-	freeWString(wstr_);
-	wstr_ = 0;
+	assert(wstr_.get());
+	wstr_.reset(0);
 }
 
-QSTATUS qm::MacroValueString::string(WSTRING* pwstr) const
+wstring_ptr qm::MacroValueString::string() const
 {
-	assert(pwstr);
-	*pwstr = allocWString(wstr_);
-	return *pwstr ? QSTATUS_SUCCESS : QSTATUS_OUTOFMEMORY;
+	return allocWString(wstr_.get());
 }
 
 bool qm::MacroValueString::boolean() const
 {
-	return *wstr_ != L'\0';
+	return *wstr_.get() != L'\0';
 }
 
 unsigned int qm::MacroValueString::number() const
 {
-	if (MacroParser::isNumber(wstr_)) {
+	if (MacroParser::isNumber(wstr_.get())) {
 		WCHAR* pEnd = 0;
-		return wcstol(wstr_, &pEnd, 10);
+		return wcstol(wstr_.get(), &pEnd, 10);
 	}
 	else {
 		return 0;
 	}
 }
 
-QSTATUS qm::MacroValueString::clone(MacroValue** ppValue) const
+MacroValuePtr qm::MacroValueString::clone() const
 {
-	assert(ppValue);
-	return MacroValueFactory::getFactory().newString(
-		wstr_, reinterpret_cast<MacroValueString**>(ppValue));
+	return MacroValueFactory::getFactory().newString(wstr_.get());
 }
 
 
@@ -166,8 +149,8 @@ QSTATUS qm::MacroValueString::clone(MacroValue** ppValue) const
  *
  */
 
-qm::MacroValueNumber::MacroValueNumber(QSTATUS* pstatus) :
-	MacroValue(TYPE_NUMBER, pstatus),
+qm::MacroValueNumber::MacroValueNumber() :
+	MacroValue(TYPE_NUMBER),
 	n_(0)
 {
 }
@@ -176,10 +159,9 @@ qm::MacroValueNumber::~MacroValueNumber()
 {
 }
 
-QSTATUS qm::MacroValueNumber::init(long n)
+void qm::MacroValueNumber::init(long n)
 {
 	n_ = n;
-	return QSTATUS_SUCCESS;
 }
 
 void qm::MacroValueNumber::term()
@@ -187,13 +169,11 @@ void qm::MacroValueNumber::term()
 	n_ = 0;
 }
 
-QSTATUS qm::MacroValueNumber::string(WSTRING* pwstr) const
+wstring_ptr qm::MacroValueNumber::string() const
 {
-	assert(pwstr);
 	WCHAR wsz[32];
 	swprintf(wsz, L"%lu", n_);
-	*pwstr = allocWString(wsz);
-	return *pwstr ? QSTATUS_SUCCESS : QSTATUS_OUTOFMEMORY;
+	return allocWString(wsz);
 }
 
 bool qm::MacroValueNumber::boolean() const
@@ -206,11 +186,9 @@ unsigned int qm::MacroValueNumber::number() const
 	return n_;
 }
 
-QSTATUS qm::MacroValueNumber::clone(MacroValue** ppValue) const
+MacroValuePtr qm::MacroValueNumber::clone() const
 {
-	assert(ppValue);
-	return MacroValueFactory::getFactory().newNumber(
-		n_, reinterpret_cast<MacroValueNumber**>(ppValue));
+	return MacroValueFactory::getFactory().newNumber(n_);
 }
 
 
@@ -220,8 +198,8 @@ QSTATUS qm::MacroValueNumber::clone(MacroValue** ppValue) const
  *
  */
 
-qm::MacroValueRegex::MacroValueRegex(QSTATUS* pstatus) :
-	MacroValue(TYPE_REGEX, pstatus),
+qm::MacroValueRegex::MacroValueRegex() :
+	MacroValue(TYPE_REGEX),
 	pwszPattern_(0),
 	pPattern_(0)
 {
@@ -231,12 +209,11 @@ qm::MacroValueRegex::~MacroValueRegex()
 {
 }
 
-QSTATUS qm::MacroValueRegex::init(const WCHAR* pwszPattern,
-	const RegexPattern* pPattern)
+void qm::MacroValueRegex::init(const WCHAR* pwszPattern,
+							   const RegexPattern* pPattern)
 {
 	pwszPattern_ = pwszPattern;
 	pPattern_ = pPattern;
-	return QSTATUS_SUCCESS;
 }
 
 void qm::MacroValueRegex::term()
@@ -250,11 +227,9 @@ const RegexPattern* qm::MacroValueRegex::getPattern() const
 	return pPattern_;
 }
 
-QSTATUS qm::MacroValueRegex::string(WSTRING* pwstr) const
+wstring_ptr qm::MacroValueRegex::string() const
 {
-	assert(pwstr);
-	*pwstr = allocWString(pwszPattern_);
-	return *pwstr ? QSTATUS_SUCCESS : QSTATUS_OUTOFMEMORY;
+	return allocWString(pwszPattern_);
 }
 
 bool qm::MacroValueRegex::boolean() const
@@ -273,11 +248,9 @@ unsigned int qm::MacroValueRegex::number() const
 	}
 }
 
-QSTATUS qm::MacroValueRegex::clone(MacroValue** ppValue) const
+MacroValuePtr qm::MacroValueRegex::clone() const
 {
-	assert(ppValue);
-	return MacroValueFactory::getFactory().newRegex(pwszPattern_,
-		pPattern_, reinterpret_cast<MacroValueRegex**>(ppValue));
+	return MacroValueFactory::getFactory().newRegex(pwszPattern_, pPattern_);
 }
 
 
@@ -287,219 +260,145 @@ QSTATUS qm::MacroValueRegex::clone(MacroValue** ppValue) const
  *
  */
 
-qm::MacroValueField::MacroValueField(QSTATUS* pstatus) :
-	MacroValue(TYPE_FIELD, pstatus),
-	wstrName_(0),
-	strField_(0)
+qm::MacroValueField::MacroValueField() :
+	MacroValue(TYPE_FIELD)
 {
 }
 
 qm::MacroValueField::~MacroValueField()
 {
-	assert(!wstrName_);
-	assert(!strField_);
+	assert(!wstrName_.get());
+	assert(!strField_.get());
 }
 
-QSTATUS qm::MacroValueField::init(const WCHAR* pwszName, const CHAR* pszField)
+void qm::MacroValueField::init(const WCHAR* pwszName,
+							   const CHAR* pszField)
 {
 	wstrName_ = allocWString(pwszName);
-	if (!wstrName_)
-		return QSTATUS_OUTOFMEMORY;
-	
-	if (pszField) {
+	if (pszField)
 		strField_ = allocString(pszField);
-		if (!strField_)
-			return QSTATUS_OUTOFMEMORY;
-	}
-	return QSTATUS_SUCCESS;
 }
 
 void qm::MacroValueField::term()
 {
-	freeWString(wstrName_);
-	wstrName_ = 0;
-	
-	freeString(strField_);
-	strField_ = 0;
+	wstrName_.reset(0);
+	strField_.reset(0);
 }
 
 const WCHAR* qm::MacroValueField::getName() const
 {
-	return wstrName_;
+	return wstrName_.get();
 }
 
 const CHAR* qm::MacroValueField::getField() const
 {
-	return strField_;
+	return strField_.get();
 }
 
-QSTATUS qm::MacroValueField::getAddresses(std::vector<WSTRING>* pAddresses) const
+bool qm::MacroValueField::getAddresses(std::vector<WSTRING>* pAddresses) const
 {
 	assert(pAddresses);
 	
-	DECLARE_QSTATUS();
-	
 	if (!isAddress())
-		return QSTATUS_FAIL;
-	else if (!strField_)
-		return QSTATUS_SUCCESS;
+		return false;
+	else if (!strField_.get())
+		return true;
 	
-	STLWrapper<std::vector<WSTRING> > wrapper(*pAddresses);
-	
-	Part part(0, strField_, static_cast<size_t>(-1), &status);
-	CHECK_QSTATUS();
-	AddressListParser address(0, &status);
-	CHECK_QSTATUS();
-	Part::Field field;
-	status = part.getField(wstrName_, &address, &field);
-	CHECK_QSTATUS();
+	Part part;
+	if (!part.create(0, strField_.get(), -1))
+		return false;
+	AddressListParser address(0);
+	Part::Field field = part.getField(wstrName_.get(), &address);
 	if (field == Part::FIELD_EXIST) {
 		typedef AddressListParser::AddressList List;
 		const List& l = address.getAddressList();
-		List::const_iterator it = l.begin();
-		while (it != l.end()) {
+		for (List::const_iterator it = l.begin(); it != l.end(); ++it) {
 			const AddressListParser* pGroup = (*it)->getGroup();
 			if (pGroup) {
 				const List& lg = pGroup->getAddressList();
-				List::const_iterator itg = lg.begin();
-				while (itg != lg.end()) {
-					string_ptr<WSTRING> wstr;
-					status = (*itg)->getAddress(&wstr);
-					CHECK_QSTATUS();
-					status = wrapper.push_back(wstr.get());
-					CHECK_QSTATUS();
+				for (List::const_iterator itg = lg.begin(); itg != lg.end(); ++itg) {
+					wstring_ptr wstr((*itg)->getAddress());
+					pAddresses->push_back(wstr.get());
 					wstr.release();
-					++itg;
 				}
 			}
 			else {
-				string_ptr<WSTRING> wstr;
-				status = (*it)->getAddress(&wstr);
-				CHECK_QSTATUS();
-				status = wrapper.push_back(wstr.get());
-				CHECK_QSTATUS();
+				wstring_ptr wstr((*it)->getAddress());
+				pAddresses->push_back(wstr.get());
 				wstr.release();
 			}
-			++it;
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::MacroValueField::getNames(std::vector<WSTRING>* pNames) const
+bool qm::MacroValueField::getNames(std::vector<WSTRING>* pNames) const
 {
 	assert(pNames);
 	
-	DECLARE_QSTATUS();
-	
 	if (!isAddress())
-		return QSTATUS_FAIL;
-	else if (!strField_)
-		return QSTATUS_SUCCESS;
+		return false;
+	else if (!strField_.get())
+		return true;
 	
-	STLWrapper<std::vector<WSTRING> > wrapper(*pNames);
-	
-	Part part(0, strField_, static_cast<size_t>(-1), &status);
-	CHECK_QSTATUS();
-	AddressListParser address(0, &status);
-	CHECK_QSTATUS();
-	Part::Field field;
-	status = part.getField(wstrName_, &address, &field);
-	CHECK_QSTATUS();
+	Part part;
+	if (!part.create(0, strField_.get(), -1))
+		return false;
+	AddressListParser address(0);
+	Part::Field field = part.getField(wstrName_.get(), &address);
 	if (field == Part::FIELD_EXIST) {
 		typedef AddressListParser::AddressList List;
 		const List& l = address.getAddressList();
-		List::const_iterator it = l.begin();
-		while (it != l.end()) {
-			string_ptr<WSTRING> wstr;
-			if ((*it)->getPhrase()) {
-				wstr.reset(allocWString((*it)->getPhrase()));
-				if (!wstr.get())
-					return QSTATUS_OUTOFMEMORY;
-			}
-			else {
-				status = (*it)->getAddress(&wstr);
-				CHECK_QSTATUS();
-			}
-			status = wrapper.push_back(wstr.get());
-			CHECK_QSTATUS();
+		for (List::const_iterator it = l.begin(); it != l.end(); ++it) {
+			wstring_ptr wstr;
+			if ((*it)->getPhrase())
+				wstr = allocWString((*it)->getPhrase());
+			else
+				wstr = (*it)->getAddress();
+			pNames->push_back(wstr.get());
 			wstr.release();
-			
-			++it;
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::MacroValueField::string(WSTRING* pwstr) const
+wstring_ptr qm::MacroValueField::string() const
 {
-	assert(pwstr);
-	
-	DECLARE_QSTATUS();
-	
-	*pwstr = 0;
-	
-	if (strField_) {
-		Part part(0, strField_, static_cast<size_t>(-1), &status);
-		CHECK_QSTATUS();
-		Part::Field field;
+	if (strField_.get()) {
+		Part part;
+		if (!part.create(0, strField_.get(), -1))
+			return 0;
 		if (isAddress()) {
-			AddressListParser address(0, &status);
-			CHECK_QSTATUS();
-			status = part.getField(wstrName_, &address, &field);
-			CHECK_QSTATUS();
-			if (field == Part::FIELD_EXIST) {
-				status = address.getValue(pwstr);
-				CHECK_QSTATUS();
-			}
+			AddressListParser address(0);
+			if (part.getField(wstrName_.get(), &address) == Part::FIELD_EXIST)
+				return address.getValue();
 		}
-		else if (_wcsicmp(wstrName_, L"Received") == 0) {
-			NoParseParser received(L": ", 0, &status);
-			CHECK_QSTATUS();
-			status = part.getField(wstrName_, &received, &field);
-			CHECK_QSTATUS();
-			if (field == Part::FIELD_EXIST) {
-				*pwstr = allocWString(received.getValue());
-				if (!*pwstr)
-					return QSTATUS_OUTOFMEMORY;
-			}
+		else if (_wcsicmp(wstrName_.get(), L"Received") == 0) {
+			NoParseParser received(L": ", 0);
+			if (part.getField(wstrName_.get(), &received) == Part::FIELD_EXIST)
+				return allocWString(received.getValue());
 		}
 		else {
-			UnstructuredParser unstructured(&status);
-			CHECK_QSTATUS();
-			status = part.getField(wstrName_, &unstructured, &field);
-			CHECK_QSTATUS();
-			if (field == Part::FIELD_EXIST) {
-				*pwstr = allocWString(unstructured.getValue());
-				if (!*pwstr)
-					return QSTATUS_OUTOFMEMORY;
-			}
+			UnstructuredParser unstructured;
+			if (part.getField(wstrName_.get(), &unstructured) == Part::FIELD_EXIST)
+				return allocWString(unstructured.getValue());
 		}
 	}
 	
-	if (!*pwstr) {
-		*pwstr = allocWString(L"");
-		if (!*pwstr)
-			return QSTATUS_OUTOFMEMORY;
-	}
-	
-	return QSTATUS_SUCCESS;
+	return allocWString(L"");
 }
 
 bool qm::MacroValueField::boolean() const
 {
-	return strField_ != 0;
+	return strField_.get() != 0;
 }
 
 unsigned int qm::MacroValueField::number() const
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrValue;
-	status = string(&wstrValue);
-	if (status != QSTATUS_SUCCESS)
+	wstring_ptr wstrValue(string());
+	if (!wstrValue.get())
 		return 0;
 	
 	if (MacroParser::isNumber(wstrValue.get())) {
@@ -511,10 +410,9 @@ unsigned int qm::MacroValueField::number() const
 	}
 }
 
-QSTATUS qm::MacroValueField::clone(MacroValue** ppValue) const
+MacroValuePtr qm::MacroValueField::clone() const
 {
-	return MacroValueFactory::getFactory().newField(
-		wstrName_, strField_, reinterpret_cast<MacroValueField**>(ppValue));
+	return MacroValueFactory::getFactory().newField(wstrName_.get(), strField_.get());
 }
 
 bool qm::MacroValueField::isAddress() const
@@ -536,7 +434,7 @@ bool qm::MacroValueField::isAddress() const
 		L"resent-sender"
 	};
 	for (int n = 0; n < countof(pwszFields); ++n) {
-		if (_wcsicmp(wstrName_, pwszFields[n]) == 0)
+		if (_wcsicmp(wstrName_.get(), pwszFields[n]) == 0)
 			return true;
 	}
 	return false;
@@ -549,8 +447,8 @@ bool qm::MacroValueField::isAddress() const
  *
  */
 
-qm::MacroValueAddress::MacroValueAddress(QSTATUS* pstatus) :
-	MacroValue(TYPE_ADDRESS, pstatus)
+qm::MacroValueAddress::MacroValueAddress() :
+	MacroValue(TYPE_ADDRESS)
 {
 }
 
@@ -558,33 +456,19 @@ qm::MacroValueAddress::~MacroValueAddress()
 {
 }
 
-QSTATUS qm::MacroValueAddress::init(const AddressList& l)
+void qm::MacroValueAddress::init(const AddressList& l)
 {
 	assert(listAddress_.empty());
 	
-	DECLARE_QSTATUS();
+	listAddress_.reserve(l.size());
 	
-	status = STLWrapper<AddressList>(listAddress_).reserve(l.size());
-	CHECK_QSTATUS();
-	
-	AddressList::const_iterator it = l.begin();
-	while (it != l.end()) {
-		WSTRING wstr = allocWString(*it);
-		if (!wstr) {
-			term();
-			return QSTATUS_OUTOFMEMORY;
-		}
-		listAddress_.push_back(wstr);
-		++it;
-	}
-	
-	return QSTATUS_SUCCESS;
+	for (AddressList::const_iterator it = l.begin(); it != l.end(); ++it)
+		listAddress_.push_back(allocWString(*it).release());
 }
 
 void qm::MacroValueAddress::term()
 {
-	std::for_each(listAddress_.begin(), listAddress_.end(),
-		string_free<WSTRING>());
+	std::for_each(listAddress_.begin(), listAddress_.end(), string_free<WSTRING>());
 	listAddress_.clear();
 }
 
@@ -595,8 +479,7 @@ const MacroValueAddress::AddressList& qm::MacroValueAddress::getAddress() const
 
 void qm::MacroValueAddress::remove(const WCHAR* pwszAddress)
 {
-	AddressList::iterator it = listAddress_.begin();
-	while (it != listAddress_.end()) {
+	for (AddressList::iterator it = listAddress_.begin(); it != listAddress_.end(); ) {
 		if (wcsicmp(*it, pwszAddress) == 0) {
 			freeWString(*it);
 			it = listAddress_.erase(it);
@@ -607,30 +490,17 @@ void qm::MacroValueAddress::remove(const WCHAR* pwszAddress)
 	}
 }
 
-QSTATUS qm::MacroValueAddress::string(WSTRING* pwstr) const
+wstring_ptr qm::MacroValueAddress::string() const
 {
-	assert(pwstr);
+	StringBuffer<WSTRING> buf;
 	
-	DECLARE_QSTATUS();
-	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
-	
-	AddressList::const_iterator it = listAddress_.begin();
-	while (it != listAddress_.end()) {
-		if (buf.getLength() != 0) {
-			status = buf.append(L", ");
-			CHECK_QSTATUS();
-		}
-		status = buf.append(*it);
-		CHECK_QSTATUS();
-		
-		++it;
+	for (AddressList::const_iterator it = listAddress_.begin(); it != listAddress_.end(); ++it) {
+		if (buf.getLength() != 0)
+			buf.append(L", ");
+		buf.append(*it);
 	}
 	
-	*pwstr = buf.getString();
-	
-	return QSTATUS_SUCCESS;
+	return buf.getString();
 }
 
 bool qm::MacroValueAddress::boolean() const
@@ -643,11 +513,9 @@ unsigned int qm::MacroValueAddress::number() const
 	return listAddress_.size();
 }
 
-QSTATUS qm::MacroValueAddress::clone(MacroValue** ppValue) const
+MacroValuePtr qm::MacroValueAddress::clone() const
 {
-	assert(ppValue);
-	return MacroValueFactory::getFactory().newAddress(
-		listAddress_, reinterpret_cast<MacroValueAddress**>(ppValue));
+	return MacroValueFactory::getFactory().newAddress(listAddress_);
 }
 
 
@@ -657,8 +525,8 @@ QSTATUS qm::MacroValueAddress::clone(MacroValue** ppValue) const
  *
  */
 
-qm::MacroValueTime::MacroValueTime(QSTATUS* pstatus) :
-	MacroValue(TYPE_TIME, pstatus)
+qm::MacroValueTime::MacroValueTime() :
+	MacroValue(TYPE_TIME)
 {
 }
 
@@ -666,10 +534,9 @@ qm::MacroValueTime::~MacroValueTime()
 {
 }
 
-QSTATUS qm::MacroValueTime::init(const Time& time)
+void qm::MacroValueTime::init(const Time& time)
 {
 	time_ = time;
-	return QSTATUS_SUCCESS;
 }
 
 void qm::MacroValueTime::term()
@@ -681,11 +548,9 @@ const Time& qm::MacroValueTime::getTime() const
 	return time_;
 }
 
-QSTATUS qm::MacroValueTime::string(WSTRING* pwstr) const
+wstring_ptr qm::MacroValueTime::string() const
 {
-	assert(pwstr);
-	return time_.format(L"%Y4/%M0/%D %h:%m:%s",
-		Time::FORMAT_ORIGINAL, pwstr);
+	return time_.format(L"%Y4/%M0/%D %h:%m:%s", Time::FORMAT_ORIGINAL);
 }
 
 bool qm::MacroValueTime::boolean() const
@@ -698,11 +563,9 @@ unsigned int qm::MacroValueTime::number() const
 	return 0;
 }
 
-QSTATUS qm::MacroValueTime::clone(MacroValue** ppValue) const
+MacroValuePtr qm::MacroValueTime::clone() const
 {
-	assert(ppValue);
-	return MacroValueFactory::getFactory().newTime(
-		time_, reinterpret_cast<MacroValueTime**>(ppValue));
+	return MacroValueFactory::getFactory().newTime(time_);
 }
 
 
@@ -712,8 +575,8 @@ QSTATUS qm::MacroValueTime::clone(MacroValue** ppValue) const
  *
  */
 
-qm::MacroValuePart::MacroValuePart(QSTATUS* pstatus) :
-	MacroValue(TYPE_PART, pstatus),
+qm::MacroValuePart::MacroValuePart() :
+	MacroValue(TYPE_PART),
 	pPart_(0)
 {
 }
@@ -722,10 +585,9 @@ qm::MacroValuePart::~MacroValuePart()
 {
 }
 
-QSTATUS qm::MacroValuePart::init(const Part* pPart)
+void qm::MacroValuePart::init(const Part* pPart)
 {
 	pPart_ = pPart;
-	return QSTATUS_SUCCESS;
 }
 
 void qm::MacroValuePart::term()
@@ -738,20 +600,12 @@ const Part* qm::MacroValuePart::getPart() const
 	return pPart_;
 }
 
-QSTATUS qm::MacroValuePart::string(WSTRING* pwstr) const
+wstring_ptr qm::MacroValuePart::string() const
 {
-	DECLARE_QSTATUS();
-	
-	if (pPart_) {
-		status = PartUtil(*pPart_).getAllText(0, 0, false, pwstr);
-		CHECK_QSTATUS();
-	}
-	else {
-		*pwstr = allocWString(L"");
-		if (!*pwstr)
-			return QSTATUS_OUTOFMEMORY;
-	}
-	return QSTATUS_SUCCESS;
+	if (pPart_)
+		return allocWString(PartUtil(*pPart_).getAllText(0, 0, false).get());
+	else
+		return allocWString(L"");
 }
 
 bool qm::MacroValuePart::boolean() const
@@ -764,11 +618,9 @@ unsigned int qm::MacroValuePart::number() const
 	return pPart_ ? 1 : 0;
 }
 
-QSTATUS qm::MacroValuePart::clone(MacroValue** ppValue) const
+MacroValuePtr qm::MacroValuePart::clone() const
 {
-	assert(ppValue);
-	return MacroValueFactory::getFactory().newPart(
-		pPart_, reinterpret_cast<MacroValuePart**>(ppValue));
+	return MacroValueFactory::getFactory().newPart(pPart_);
 }
 
 
@@ -778,8 +630,8 @@ QSTATUS qm::MacroValuePart::clone(MacroValue** ppValue) const
  *
  */
 
-qm::MacroValueMessageList::MacroValueMessageList(QSTATUS* pstatus) :
-	MacroValue(TYPE_MESSAGELIST, pstatus)
+qm::MacroValueMessageList::MacroValueMessageList() :
+	MacroValue(TYPE_MESSAGELIST)
 {
 }
 
@@ -787,15 +639,9 @@ qm::MacroValueMessageList::~MacroValueMessageList()
 {
 }
 
-QSTATUS qm::MacroValueMessageList::init(const MessageList& l)
+void qm::MacroValueMessageList::init(const MessageList& l)
 {
-	DECLARE_QSTATUS();
-	
-	status = STLWrapper<MessageList>(list_).resize(l.size());
-	CHECK_QSTATUS();
-	std::copy(l.begin(), l.end(), list_.begin());
-	
-	return QSTATUS_SUCCESS;
+	list_ = l;
 }
 
 void qm::MacroValueMessageList::term()
@@ -803,17 +649,14 @@ void qm::MacroValueMessageList::term()
 	list_.resize(0);
 }
 
-const MacroValueMessageList::MessageList&
-	qm::MacroValueMessageList::getMessageList() const
+const MacroValueMessageList::MessageList& qm::MacroValueMessageList::getMessageList() const
 {
 	return list_;
 }
 
-QSTATUS qm::MacroValueMessageList::string(WSTRING* pwstr) const
+wstring_ptr qm::MacroValueMessageList::string() const
 {
-	assert(pwstr);
-	*pwstr = allocWString(L"");
-	return *pwstr ? QSTATUS_SUCCESS : QSTATUS_OUTOFMEMORY;
+	return allocWString(L"");
 }
 
 bool qm::MacroValueMessageList::boolean() const
@@ -826,11 +669,9 @@ unsigned int qm::MacroValueMessageList::number() const
 	return list_.size();
 }
 
-QSTATUS qm::MacroValueMessageList::clone(MacroValue** ppValue) const
+MacroValuePtr qm::MacroValueMessageList::clone() const
 {
-	assert(ppValue);
-	return MacroValueFactory::getFactory().newMessageList(list_,
-		reinterpret_cast<MacroValueMessageList**>(ppValue));
+	return MacroValueFactory::getFactory().newMessageList(list_);
 }
 
 
@@ -850,6 +691,11 @@ qm::MacroValuePtr::MacroValuePtr(MacroValue* pValue) :
 {
 }
 
+qm::MacroValuePtr::MacroValuePtr(MacroValuePtr& pValue) :
+	pValue_(pValue.release())
+{
+}
+
 qm::MacroValuePtr::~MacroValuePtr()
 {
 	reset(0);
@@ -864,6 +710,13 @@ MacroValue** qm::MacroValuePtr::operator&()
 {
 	assert(!pValue_);
 	return &pValue_;
+}
+
+MacroValuePtr& qm::MacroValuePtr::operator=(MacroValuePtr& pValue)
+{
+	if (pValue.get() != pValue_)
+		reset(pValue.release());
+	return *this;
 }
 
 MacroValue* qm::MacroValuePtr::get() const
@@ -924,7 +777,7 @@ public:
 	unsigned int nPart_;
 	MessageListList listMessageList_;
 	unsigned int nMessageList_;
-	qs::SpinLock lock_;
+	SpinLock lock_;
 };
 
 
@@ -935,30 +788,28 @@ public:
  */
 
 template<class Value>
-QSTATUS newValue(SpinLock& l, std::vector<Value*>& v,
-	unsigned int& n, Value** ppValue)
+MacroValuePtr newValue(SpinLock& l,
+					   std::vector<Value*>& v,
+					   unsigned int& n)
 {
-	assert(ppValue);
-	
-	DECLARE_QSTATUS();
-	
 	Lock<SpinLock> lock(l);
-	
+
+	MacroValuePtr pValue;
 	if (v.empty()) {
-		status = newQsObject(ppValue);
-		CHECK_QSTATUS();
-		status = STLWrapper<std::vector<Value*> >(v).reserve(++n);
-		CHECK_QSTATUS();
+		pValue.reset(new Value());
+		v.reserve(++n);
 	}
 	else {
-		*ppValue = v.back();
+		pValue.reset(v.back());
 		v.pop_back();
 	}
-	return QSTATUS_SUCCESS;
+	return pValue;
 }
 
 template<class Value>
-void deleteValue(SpinLock& l, std::vector<Value*>& v, Value* pValue)
+void deleteValue(SpinLock& l,
+				 std::vector<Value*>& v,
+				 Value* pValue)
 {
 	assert(pValue);
 	
@@ -974,10 +825,7 @@ MacroValueFactory qm::MacroValueFactory::factory__;
 qm::MacroValueFactory::MacroValueFactory() :
 	pImpl_(0)
 {
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	
+	pImpl_ = new MacroValueFactoryImpl();
 	pImpl_->nBoolean_ = 0;
 	pImpl_->nString_ = 0;
 	pImpl_->nNumber_ = 0;
@@ -1014,15 +862,12 @@ qm::MacroValueFactory::~MacroValueFactory()
 	}
 }
 
-QSTATUS qm::MacroValueFactory::newBoolean(bool b, MacroValueBoolean** ppmvb)
+MacroValuePtr qm::MacroValueFactory::newBoolean(bool b)
 {
-	DECLARE_QSTATUS();
-	
-	status = newValue<MacroValueBoolean>(pImpl_->lock_,
-		pImpl_->listBoolean_, pImpl_->nBoolean_, ppmvb);
-	CHECK_QSTATUS();
-	
-	return (*ppmvb)->init(b);
+	MacroValuePtr pValue(newValue<MacroValueBoolean>(
+		pImpl_->lock_, pImpl_->listBoolean_, pImpl_->nBoolean_));
+	static_cast<MacroValueBoolean*>(pValue.get())->init(b);
+	return pValue;
 }
 
 void qm::MacroValueFactory::deleteBoolean(MacroValueBoolean* pmvb)
@@ -1030,20 +875,18 @@ void qm::MacroValueFactory::deleteBoolean(MacroValueBoolean* pmvb)
 	::deleteValue<MacroValueBoolean>(pImpl_->lock_, pImpl_->listBoolean_, pmvb);
 }
 
-QSTATUS qm::MacroValueFactory::newString(const WCHAR* pwsz, MacroValueString** ppmvs)
+MacroValuePtr qm::MacroValueFactory::newString(const WCHAR* pwsz)
 {
-	return newString(pwsz, static_cast<size_t>(-1), ppmvs);
+	return newString(pwsz, -1);
 }
 
-QSTATUS qm::MacroValueFactory::newString(const WCHAR* pwsz, size_t nLen, MacroValueString** ppmvs)
+MacroValuePtr qm::MacroValueFactory::newString(const WCHAR* pwsz,
+											   size_t nLen)
 {
-	DECLARE_QSTATUS();
-	
-	status = newValue<MacroValueString>(pImpl_->lock_,
-		pImpl_->listString_, pImpl_->nString_, ppmvs);
-	CHECK_QSTATUS();
-	
-	return (*ppmvs)->init(pwsz, nLen);
+	MacroValuePtr pValue(newValue<MacroValueString>(
+		pImpl_->lock_, pImpl_->listString_, pImpl_->nString_));
+	static_cast<MacroValueString*>(pValue.get())->init(pwsz, nLen);
+	return pValue;
 }
 
 void qm::MacroValueFactory::deleteString(MacroValueString* pmvs)
@@ -1051,15 +894,12 @@ void qm::MacroValueFactory::deleteString(MacroValueString* pmvs)
 	::deleteValue<MacroValueString>(pImpl_->lock_, pImpl_->listString_, pmvs);
 }
 
-QSTATUS qm::MacroValueFactory::newNumber(unsigned int n, MacroValueNumber** ppmvn)
+MacroValuePtr qm::MacroValueFactory::newNumber(unsigned int n)
 {
-	DECLARE_QSTATUS();
-	
-	status = newValue<MacroValueNumber>(pImpl_->lock_,
-		pImpl_->listNumber_, pImpl_->nNumber_, ppmvn);
-	CHECK_QSTATUS();
-	
-	return (*ppmvn)->init(n);
+	MacroValuePtr pValue(newValue<MacroValueNumber>(
+		pImpl_->lock_, pImpl_->listNumber_, pImpl_->nNumber_));
+	static_cast<MacroValueNumber*>(pValue.get())->init(n);
+	return pValue;
 }
 
 void qm::MacroValueFactory::deleteNumber(MacroValueNumber* pmvn)
@@ -1067,16 +907,13 @@ void qm::MacroValueFactory::deleteNumber(MacroValueNumber* pmvn)
 	::deleteValue<MacroValueNumber>(pImpl_->lock_, pImpl_->listNumber_, pmvn);
 }
 
-QSTATUS qm::MacroValueFactory::newRegex(const WCHAR* pwszPattern,
-	const qs::RegexPattern* pPattern, MacroValueRegex** ppmvr)
+MacroValuePtr qm::MacroValueFactory::newRegex(const WCHAR* pwszPattern,
+											  const RegexPattern* pPattern)
 {
-	DECLARE_QSTATUS();
-	
-	status = newValue<MacroValueRegex>(pImpl_->lock_,
-		pImpl_->listRegex_, pImpl_->nRegex_, ppmvr);
-	CHECK_QSTATUS();
-	
-	return (*ppmvr)->init(pwszPattern, pPattern);
+	MacroValuePtr pValue(newValue<MacroValueRegex>(
+		pImpl_->lock_, pImpl_->listRegex_, pImpl_->nRegex_));
+	static_cast<MacroValueRegex*>(pValue.get())->init(pwszPattern, pPattern);
+	return pValue;
 }
 
 void qm::MacroValueFactory::deleteRegex(MacroValueRegex* pmvr)
@@ -1084,16 +921,13 @@ void qm::MacroValueFactory::deleteRegex(MacroValueRegex* pmvr)
 	::deleteValue<MacroValueRegex>(pImpl_->lock_, pImpl_->listRegex_, pmvr);
 }
 
-QSTATUS qm::MacroValueFactory::newField(const WCHAR* pwszName,
-	const CHAR* pszField, MacroValueField** ppmvf)
+MacroValuePtr qm::MacroValueFactory::newField(const WCHAR* pwszName,
+											  const CHAR* pszField)
 {
-	DECLARE_QSTATUS();
-	
-	status = newValue<MacroValueField>(pImpl_->lock_,
-		pImpl_->listField_, pImpl_->nField_, ppmvf);
-	CHECK_QSTATUS();
-	
-	return (*ppmvf)->init(pwszName, pszField);
+	MacroValuePtr pValue(newValue<MacroValueField>(
+		pImpl_->lock_, pImpl_->listField_, pImpl_->nField_));
+	static_cast<MacroValueField*>(pValue.get())->init(pwszName, pszField);
+	return pValue;
 }
 
 void qm::MacroValueFactory::deleteField(MacroValueField* pmvf)
@@ -1101,16 +935,12 @@ void qm::MacroValueFactory::deleteField(MacroValueField* pmvf)
 	::deleteValue<MacroValueField>(pImpl_->lock_, pImpl_->listField_, pmvf);
 }
 
-QSTATUS qm::MacroValueFactory::newAddress(
-	const MacroValueAddress::AddressList& l, MacroValueAddress** ppmva)
+MacroValuePtr qm::MacroValueFactory::newAddress(const MacroValueAddress::AddressList& l)
 {
-	DECLARE_QSTATUS();
-	
-	status = newValue<MacroValueAddress>(pImpl_->lock_,
-		pImpl_->listAddress_, pImpl_->nAddress_, ppmva);
-	CHECK_QSTATUS();
-	
-	return (*ppmva)->init(l);
+	MacroValuePtr pValue(newValue<MacroValueAddress>(
+		pImpl_->lock_, pImpl_->listAddress_, pImpl_->nAddress_));
+	static_cast<MacroValueAddress*>(pValue.get())->init(l);
+	return pValue;
 }
 
 void qm::MacroValueFactory::deleteAddress(MacroValueAddress* pmva)
@@ -1118,15 +948,12 @@ void qm::MacroValueFactory::deleteAddress(MacroValueAddress* pmva)
 	::deleteValue<MacroValueAddress>(pImpl_->lock_, pImpl_->listAddress_, pmva);
 }
 
-QSTATUS qm::MacroValueFactory::newTime(const Time& time, MacroValueTime** ppmvt)
+MacroValuePtr qm::MacroValueFactory::newTime(const Time& time)
 {
-	DECLARE_QSTATUS();
-	
-	status = newValue<MacroValueTime>(pImpl_->lock_,
-		pImpl_->listTime_, pImpl_->nTime_, ppmvt);
-	CHECK_QSTATUS();
-	
-	return (*ppmvt)->init(time);
+	MacroValuePtr pValue(newValue<MacroValueTime>(
+		pImpl_->lock_, pImpl_->listTime_, pImpl_->nTime_));
+	static_cast<MacroValueTime*>(pValue.get())->init(time);
+	return pValue;
 }
 
 void qm::MacroValueFactory::deleteTime(MacroValueTime* pmvt)
@@ -1134,15 +961,12 @@ void qm::MacroValueFactory::deleteTime(MacroValueTime* pmvt)
 	::deleteValue<MacroValueTime>(pImpl_->lock_, pImpl_->listTime_, pmvt);
 }
 
-QSTATUS qm::MacroValueFactory::newPart(const Part* pPart, MacroValuePart** ppmvp)
+MacroValuePtr qm::MacroValueFactory::newPart(const Part* pPart)
 {
-	DECLARE_QSTATUS();
-	
-	status = newValue<MacroValuePart>(pImpl_->lock_,
-		pImpl_->listPart_, pImpl_->nPart_, ppmvp);
-	CHECK_QSTATUS();
-	
-	return (*ppmvp)->init(pPart);
+	MacroValuePtr pValue(newValue<MacroValuePart>(
+		pImpl_->lock_, pImpl_->listPart_, pImpl_->nPart_));
+	static_cast<MacroValuePart*>(pValue.get())->init(pPart);
+	return pValue;
 }
 
 void qm::MacroValueFactory::deletePart(MacroValuePart* pmvp)
@@ -1150,17 +974,12 @@ void qm::MacroValueFactory::deletePart(MacroValuePart* pmvp)
 	::deleteValue<MacroValuePart>(pImpl_->lock_, pImpl_->listPart_, pmvp);
 }
 
-QSTATUS qm::MacroValueFactory::newMessageList(
-	const MacroValueMessageList::MessageList& l,
-	MacroValueMessageList** ppmvml)
+MacroValuePtr qm::MacroValueFactory::newMessageList(const MacroValueMessageList::MessageList& l)
 {
-	DECLARE_QSTATUS();
-	
-	status = newValue<MacroValueMessageList>(pImpl_->lock_,
-		pImpl_->listMessageList_, pImpl_->nMessageList_, ppmvml);
-	CHECK_QSTATUS();
-	
-	return (*ppmvml)->init(l);
+	MacroValuePtr pValue(newValue<MacroValueMessageList>(
+		pImpl_->lock_, pImpl_->listMessageList_, pImpl_->nMessageList_));
+	static_cast<MacroValueMessageList*>(pValue.get())->init(l);
+	return pValue;
 }
 
 void qm::MacroValueFactory::deleteMessageList(MacroValueMessageList* pmvml)

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -27,13 +27,35 @@ class TimerHandler;
 class QSEXPORTCLASS Timer
 {
 public:
-	Timer(QSTATUS* pstatus);
+	/**
+	 * Create instance.
+	 *
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	Timer();
+	
 	~Timer();
 
 public:
-	QSTATUS setTimer(unsigned int* pnId,
-		unsigned int nTimeout, TimerHandler* pHandler);
-	QSTATUS killTimer(unsigned int nId);
+	/**
+	 * Set timer.
+	 *
+	 * @param nId [in] Timer ID.
+	 * @param nTimeout [in] Timeout in millisecond.
+	 * @param pHandler [in] Handler which is callbacked when timer timeouts.
+	 * @return Timer ID. -1 if fail.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	unsigned int setTimer(unsigned int nId,
+						  unsigned int nTimeout,
+						  TimerHandler* pHandler);
+	
+	/**
+	 * Kill timer.
+	 *
+	 * @param nId [in] Timer ID.
+	 */
+	void killTimer(unsigned int nId);
 
 private:
 	Timer(const Timer&);
@@ -56,7 +78,12 @@ public:
 	virtual ~TimerHandler();
 
 public:
-	virtual QSTATUS timerTimeout(unsigned int nId) = 0;
+	/**
+	 * This method is called when timer timeouts.
+	 *
+	 * @param nId [in] Timer ID.
+	 */
+	virtual void timerTimeout(unsigned int nId) = 0;
 };
 
 }

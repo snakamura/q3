@@ -1,12 +1,10 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
-
-#include <qsnew.h>
 
 #include "findreplace.h"
 
@@ -21,46 +19,30 @@ using namespace qs;
  */
 
 qm::FindReplaceData::FindReplaceData(const WCHAR* pwszFind,
-	const WCHAR* pwszReplace, unsigned int nFlags, qs::QSTATUS* pstatus) :
-	wstrFind_(0),
-	wstrReplace_(0),
+									 const WCHAR* pwszReplace,
+									 unsigned int nFlags) :
 	nFlags_(nFlags)
 {
 	assert(pwszFind);
 	
-	string_ptr<WSTRING> wstrFind(allocWString(pwszFind));
-	if (!wstrFind.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
+	wstrFind_ = allocWString(pwszFind);
 	
-	string_ptr<WSTRING> wstrReplace;
-	if (pwszReplace) {
-		wstrReplace.reset(allocWString(pwszReplace));
-		if (!wstrReplace.get()) {
-			*pstatus = QSTATUS_OUTOFMEMORY;
-			return;
-		}
-	}
-	
-	wstrFind_ = wstrFind.release();
-	wstrReplace_ = wstrReplace.release();
+	if (pwszReplace)
+		wstrReplace_ = allocWString(pwszReplace);
 }
 
 qm::FindReplaceData::~FindReplaceData()
 {
-	freeWString(wstrFind_);
-	freeWString(wstrReplace_);
 }
 
 const WCHAR* qm::FindReplaceData::getFind() const
 {
-	return wstrFind_;
+	return wstrFind_.get();
 }
 
 const WCHAR* qm::FindReplaceData::getReplace() const
 {
-	return wstrReplace_;
+	return wstrReplace_.get();
 }
 
 unsigned int qm::FindReplaceData::getFlags() const
@@ -75,38 +57,29 @@ unsigned int qm::FindReplaceData::getFlags() const
  *
  */
 
-qm::FindReplaceManager::FindReplaceManager(QSTATUS* pstatus) :
+qm::FindReplaceManager::FindReplaceManager() :
 	pData_(0)
 {
 }
 
 qm::FindReplaceManager::~FindReplaceManager()
 {
-	delete pData_;
 }
 
 const FindReplaceData* qm::FindReplaceManager::getData() const
 {
-	return pData_;
+	return pData_.get();
 }
 
-QSTATUS qm::FindReplaceManager::setData(
-	const WCHAR* pwszFind, unsigned int nFlags)
+void qm::FindReplaceManager::setData(const WCHAR* pwszFind,
+									 unsigned int nFlags)
 {
-	return setData(pwszFind, 0, nFlags);
+	setData(pwszFind, 0, nFlags);
 }
 
-QSTATUS qm::FindReplaceManager::setData(const WCHAR* pwszFind,
-	const WCHAR* pwszReplace, unsigned int nFlags)
+void qm::FindReplaceManager::setData(const WCHAR* pwszFind,
+									 const WCHAR* pwszReplace,
+									 unsigned int nFlags)
 {
-	DECLARE_QSTATUS();
-	
-	std::auto_ptr<FindReplaceData> pData;
-	status = newQsObject(pwszFind, pwszReplace, nFlags, &pData);
-	CHECK_QSTATUS();
-	
-	delete pData_;
-	pData_ = pData.release();
-	
-	return QSTATUS_SUCCESS;
+	pData_.reset(new FindReplaceData(pwszFind, pwszReplace, nFlags));
 }

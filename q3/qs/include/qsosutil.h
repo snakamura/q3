@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -41,7 +41,8 @@ class Clipboard;
 struct Point : public POINT
 {
 	Point();
-	Point(LONG x, LONG y);
+	Point(LONG x,
+		  LONG y);
 };
 
 
@@ -54,7 +55,8 @@ struct Point : public POINT
 struct Size : public SIZE
 {
 	Size();
-	Size(LONG cx, LONG cy);
+	Size(LONG cx,
+		 LONG cy);
 };
 
 
@@ -67,7 +69,10 @@ struct Size : public SIZE
 struct Rect : public RECT
 {
 	Rect();
-	Rect(LONG left, LONG top, LONG right, LONG bottom);
+	Rect(LONG left,
+		 LONG top,
+		 LONG right,
+		 LONG bottom);
 };
 
 
@@ -283,7 +288,7 @@ private:
 class QSEXPORTCLASS Library
 {
 public:
-	Library(const WCHAR* pwszPath, QSTATUS* pstatus);
+	explicit Library(const WCHAR* pwszPath);
 	~Library();
 
 public:
@@ -308,34 +313,132 @@ private:
 class QSEXPORTCLASS Registry
 {
 public:
-	Registry(HKEY hkey, const WCHAR* pwszSubKey, QSTATUS* pstatus);
-	Registry(HKEY hkey, const WCHAR* pwszSubKey,
-		const WCHAR* pwszClass, QSTATUS* pstatus);
+	/**
+	 * Create instance with the specified key and the specified
+	 * name of the sub key.
+	 * Call operator! to check if success or not.
+	 *
+	 * @param hkey [in] Key.
+	 * @param pwszSubKey [in] Sub key name.
+	 */
+	Registry(HKEY hkey,
+			 const WCHAR* pwszSubKey);
+	
+	/**
+	 * Create instance with the specified key and the specified
+	 * name of the sub key, the class.
+	 * Call operator! to check if success or not.
+	 *
+	 * @param hkey [in] Key.
+	 * @param pwszSubKey [in] Sub key name.
+	 * @param pwszClass [in] Sub key class.
+	 */
+	Registry(HKEY hkey,
+			 const WCHAR* pwszSubKey,
+			 const WCHAR* pwszClass);
 	~Registry();
 
 public:
+	/**
+	 * Check if key is opened or not.
+	 *
+	 * @return true if key is not opened, false otherwise.
+	 */
 	bool operator!() const;
+	
+	/**
+	 * Get the handle of the key.
+	 *
+	 * @return Handle.
+	 */
 	operator HKEY() const;
 
 public:
-	QSTATUS getValue(const WCHAR* pwszName, DWORD* pdwValue);
-	QSTATUS getValue(const WCHAR* pwszName, DWORD* pdwValue, LONG* pnRet);
-	QSTATUS getValue(const WCHAR* pwszName, WSTRING* pwstrValue);
-	QSTATUS getValue(const WCHAR* pwszName, WSTRING* pwstrValue, LONG* pnRet);
-	QSTATUS getValue(const WCHAR* pwszName, BYTE* pByte, int* pnSize);
-	QSTATUS getValue(const WCHAR* pwszName, BYTE* pByte, int* pnSize, LONG* pnRet);
-	QSTATUS setValue(const WCHAR* pwszName, DWORD dwValue);
-	QSTATUS setValue(const WCHAR* pwszName, DWORD dwValue, LONG* pnRet);
-	QSTATUS setValue(const WCHAR* pwszName, const WCHAR* pwszValue);
-	QSTATUS setValue(const WCHAR* pwszName, const WCHAR* pwszValue, LONG* pnRet);
-	QSTATUS setValue(const WCHAR* pwszName, const BYTE* pByte, int nSize);
-	QSTATUS setValue(const WCHAR* pwszName, const BYTE* pByte, int nSize, LONG* pnRet);
+	/**
+	 * Get number value.
+	 *
+	 * @param pwszName [in] Value name, null if getting default value.
+	 * @param pdwValue [out] Value.
+	 * @return true if success, false otherwise.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	bool getValue(const WCHAR* pwszName,
+				  DWORD* pdwValue);
+	
+	/**
+	 * Get string value.
+	 *
+	 * @param pwszName [in] Value name, null if getting default value.
+	 * @param pwstrValue [out] Value.
+	 * @return true if success, false otherwise.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	bool getValue(const WCHAR* pwszName,
+				  wstring_ptr* pwstrValue);
+	
+	/**
+	 * Get binary value. Buffer must be allocated.
+	 *
+	 * @param pwszName [in] Value name, null if getting default value.
+	 * @param pByte [in] Buffer.
+	 * @param pnSize [in] Buffer size.
+	 *               [out] Size written.
+	 * @return true if success, false otherwise.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	bool getValue(const WCHAR* pwszName,
+				  BYTE* pByte,
+				  size_t* pnSize);
+	
+	/**
+	 * Set number value.
+	 *
+	 * @param pwszName [in] Value name, null if getting default value.
+	 * @param dwValue [in] Value.
+	 * @return true if success, false otherwise.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	bool setValue(const WCHAR* pwszName,
+				  DWORD dwValue);
+	
+	/**
+	 * Set string value.
+	 *
+	 * @param pwszName [in] Value name, null if getting default value.
+	 * @param pwszValue [in] Value.
+	 * @return true if success, false otherwise.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	bool setValue(const WCHAR* pwszName,
+				  const WCHAR* pwszValue);
+	
+	/**
+	 * Set binary value.
+	 *
+	 * @param pwszName [in] Value name, null if getting default value.
+	 * @param pByte [in] Buffer.
+	 * @param nSize [in] Buffer size.
+	 * @return true if success, false otherwise.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	bool setValue(const WCHAR* pwszName,
+				  const BYTE* pByte,
+				  size_t nSize);
 
 public:
-	static QSTATUS deleteKey(HKEY hkey, const WCHAR* pwszSubKey, LONG* pnRet);
+	/**
+	 * Delete the specified key.
+	 *
+	 * @param hkey [in] Key.
+	 * @param pwszSubKey [in] Sub key name.
+	 */
+	static bool deleteKey(HKEY hkey,
+						  const WCHAR* pwszSubKey);
 
 private:
-	QSTATUS init(HKEY hkey, const WCHAR* pwszSubKey, const WCHAR* pwszClass);
+	void init(HKEY hkey,
+			  const WCHAR* pwszSubKey,
+			  const WCHAR* pwszClass);
 
 private:
 	Registry(const Registry&);
@@ -364,22 +467,102 @@ public:
 	};
 
 public:
-	Clipboard(HWND hwnd, QSTATUS* pstatus);
+	/**
+	 * Create instance.
+	 * Call operator! to check if success or not.
+	 *
+	 * @param hwnd [in] Window handle. Can be null.
+	 */
+	explicit Clipboard(HWND hwnd);
+	
 	~Clipboard();
 
 public:
-	QSTATUS close();
-	QSTATUS getData(UINT nFormat, HANDLE* phMem) const;
-	QSTATUS setData(UINT nFormat, HANDLE hMem);
-	QSTATUS setData(UINT nFormat, HANDLE hMem, HANDLE* phMem);
-	QSTATUS empty() const;
+	/**
+	 * Check if clipboard is opened or not.
+	 *
+	 * @return true if clipboard is not opened, false otherwise.
+	 */
+	bool operator!() const;
 
 public:
-	static QSTATUS isFormatAvailable(UINT nFormat, bool* pbAvailable);
-	static QSTATUS setText(const WCHAR* pwszText);
-	static QSTATUS setText(HWND hwnd, const WCHAR* pwszText);
-	static QSTATUS getText(WSTRING* pwstrText);
-	static QSTATUS getText(HWND hwnd, WSTRING* pwstrText);
+	/**
+	 * Close clipboard.
+	 *
+	 * @return true if success, false otherwise.
+	 */
+	bool close();
+	
+	/**
+	 * Get data from clipboard with the specified format.
+	 *
+	 * @param nFormat [in] Clipboard format.
+	 * @return HANDLE Data.
+	 */
+	HANDLE getData(UINT nFormat) const;
+	
+	/**
+	 * Set data to clipboard.
+	 *
+	 * @param nFormat [in] Clipboard format.
+	 * @param hMem [in] Data.
+	 * @return Privous data.
+	 */
+	HANDLE setData(UINT nFormat,
+				   HANDLE hMem);
+	
+	/**
+	 * Empty clipboard.
+	 *
+	 * @return true if success, false otherwise.
+	 */
+	bool empty() const;
+
+public:
+	/**
+	 * Check if the specified format is available or not.
+	 *
+	 * @param nFormat [in] Clipboard format.
+	 * @return true if available, false otherwise.
+	 */
+	static bool isFormatAvailable(UINT nFormat);
+	
+	/**
+	 * Set text to clipboard.
+	 *
+	 * @param pwszText [in] String.
+	 * @return true if success, false otherwise.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	static bool setText(const WCHAR* pwszText);
+	
+	/**
+	 * Set text to clipboard.
+	 *
+	 * @param hwnd [in] Window handle.
+	 * @param pwszText [in] String.
+	 * @return true if success, false otherwise.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	static bool setText(HWND hwnd,
+						const WCHAR* pwszText);
+	
+	/**
+	 * Get text from clipboard.
+	 *
+	 * @return String.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	static wstring_ptr getText();
+	
+	/**
+	 * Get text from clipboard.
+	 *
+	 * @param hwnd [in] Window handle.
+	 * @return String.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	static wstring_ptr getText(HWND hwnd);
 
 private:
 	Clipboard(const Clipboard&);
@@ -400,8 +583,16 @@ class QSEXPORTCLASS Process
 {
 public:
 #ifndef _WIN32_WCE
-	static QSTATUS exec(const WCHAR* pwszCommand,
-		const WCHAR* pwszInput, WSTRING* pwstrOutput);
+	/**
+	 * Execute the specified command.
+	 *
+	 * @param pwszCommand [in] Command.
+	 * @param pwszInput [in] String witch is written to stdin. Can be null.
+	 * @return String witch is written to stdout.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	static wstring_ptr exec(const WCHAR* pwszCommand,
+							const WCHAR* pwszInput);
 #endif
 };
 

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -16,9 +16,7 @@
 
 #include <qsassert.h>
 #include <qsconv.h>
-#include <qserror.h>
 #include <qsfile.h>
-#include <qsnew.h>
 #include <qsstl.h>
 #include <qsstream.h>
 #include <qsthread.h>
@@ -42,24 +40,24 @@ public:
 	typedef std::vector<FolderHandler*> FolderHandlerList;
 
 public:
-	QSTATUS getMessages(const MessagePtrList& l,
-		MessageHolderList* pList) const;
+	void getMessages(const MessagePtrList& l,
+					MessageHolderList* pList) const;
 
 public:
-	QSTATUS fireMessageAdded(MessageHolder* pmh);
-	QSTATUS fireMessageRemoved(MessageHolder* pmh);
-	QSTATUS fireMessageRefreshed();
-	QSTATUS fireUnseenCountChanged();
-	QSTATUS fireFolderDestroyed();
+	void fireMessageAdded(MessageHolder* pmh);
+	void fireMessageRemoved(MessageHolder* pmh);
+	void fireMessageRefreshed();
+	void fireUnseenCountChanged();
+	void fireFolderDestroyed();
 
 public:
-	static QSTATUS getSize(Folder* pFolder, unsigned int* pnSize);
-	static QSTATUS getBoxSize(Folder* pFolder, unsigned int* pnSize);
+	static unsigned int getSize(Folder* pFolder);
+	static unsigned int getBoxSize(Folder* pFolder);
 
 public:
 	Folder* pThis_;
 	unsigned int nId_;
-	WSTRING wstrName_;
+	wstring_ptr wstrName_;
 	WCHAR cSeparator_;
 	unsigned int nFlags_;
 	Folder* pParentFolder_;
@@ -70,166 +68,95 @@ public:
 	bool bDestroyed_;
 };
 
-QSTATUS qm::FolderImpl::getMessages(const MessagePtrList& l,
-	MessageHolderList* pList) const
+void qm::FolderImpl::getMessages(const MessagePtrList& l,
+								 MessageHolderList* pList) const
 {
 	assert(pList);
 	assert(pAccount_->isLocked());
 	
-	DECLARE_QSTATUS();
+	pList->reserve(l.size());
 	
-	status = STLWrapper<MessageHolderList>(*pList).reserve(l.size());
-	CHECK_QSTATUS();
-	
-	MessagePtrList::const_iterator it = l.begin();
-	while (it != l.end()) {
+	for (MessagePtrList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		MessagePtrLock mpl(*it);
 		if (mpl)
 			pList->push_back(mpl);
-		++it;
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderImpl::fireMessageAdded(MessageHolder* pmh)
+void qm::FolderImpl::fireMessageAdded(MessageHolder* pmh)
 {
 	assert(pmh);
 	assert(pAccount_->isLocked());
-	
-	DECLARE_QSTATUS();
 	
 	FolderEvent event(pThis_, pmh);
-	FolderHandlerList::const_iterator it = listFolderHandler_.begin();
-	while (it != listFolderHandler_.end()) {
-		status = (*it)->messageAdded(event);
-		CHECK_QSTATUS();
-		++it;
-	}
-	
-	return QSTATUS_SUCCESS;
+	for (FolderHandlerList::const_iterator it = listFolderHandler_.begin(); it != listFolderHandler_.end(); ++it)
+		(*it)->messageAdded(event);
 }
 
-QSTATUS qm::FolderImpl::fireMessageRemoved(MessageHolder* pmh)
+void qm::FolderImpl::fireMessageRemoved(MessageHolder* pmh)
 {
 	assert(pmh);
 	assert(pAccount_->isLocked());
-	
-	DECLARE_QSTATUS();
 	
 	if (bDestroyed_)
-		return QSTATUS_SUCCESS;
+		return;
 	
 	FolderEvent event(pThis_, pmh);
-	FolderHandlerList::const_iterator it = listFolderHandler_.begin();
-	while (it != listFolderHandler_.end()) {
-		status = (*it)->messageRemoved(event);
-		CHECK_QSTATUS();
-		++it;
-	}
-	
-	return QSTATUS_SUCCESS;
+	for (FolderHandlerList::const_iterator it = listFolderHandler_.begin(); it != listFolderHandler_.end(); ++it)
+		(*it)->messageRemoved(event);
 }
 
-QSTATUS qm::FolderImpl::fireMessageRefreshed()
+void qm::FolderImpl::fireMessageRefreshed()
 {
 	assert(pAccount_->isLocked());
 	
-	DECLARE_QSTATUS();
-	
 	FolderEvent event(pThis_, 0);
-	FolderHandlerList::const_iterator it = listFolderHandler_.begin();
-	while (it != listFolderHandler_.end()) {
-		status = (*it)->messageRefreshed(event);
-		CHECK_QSTATUS();
-		++it;
-	}
-	
-	return QSTATUS_SUCCESS;
+	for (FolderHandlerList::const_iterator it = listFolderHandler_.begin(); it != listFolderHandler_.end(); ++it)
+		(*it)->messageRefreshed(event);
 }
 
-QSTATUS qm::FolderImpl::fireUnseenCountChanged()
+void qm::FolderImpl::fireUnseenCountChanged()
 {
 	assert(pAccount_->isLocked());
 	
-	DECLARE_QSTATUS();
-	
 	FolderEvent event(pThis_, 0);
-	FolderHandlerList::const_iterator it = listFolderHandler_.begin();
-	while (it != listFolderHandler_.end()) {
-		status = (*it)->unseenCountChanged(event);
-		CHECK_QSTATUS();
-		++it;
-	}
-	
-	return QSTATUS_SUCCESS;
+	for (FolderHandlerList::const_iterator it = listFolderHandler_.begin(); it != listFolderHandler_.end(); ++it)
+		(*it)->unseenCountChanged(event);
 }
 
-QSTATUS qm::FolderImpl::fireFolderDestroyed()
+void qm::FolderImpl::fireFolderDestroyed()
 {
-	DECLARE_QSTATUS();
-	
 	FolderEvent event(pThis_, 0);
 	
-	FolderHandlerList l;
-	status = STLWrapper<FolderHandlerList>(l).resize(listFolderHandler_.size());
-	CHECK_QSTATUS();
-	std::copy(listFolderHandler_.begin(), listFolderHandler_.end(), l.begin());
-	
-	FolderHandlerList::const_iterator it = l.begin();
-	while (it != l.end()) {
-		status = (*it)->folderDestroyed(event);
-		CHECK_QSTATUS();
-		++it;
-	}
-	
-	return QSTATUS_SUCCESS;
+	FolderHandlerList l(listFolderHandler_);
+	for (FolderHandlerList::const_iterator it = l.begin(); it != l.end(); ++it)
+		(*it)->folderDestroyed(event);
 }
 
-QSTATUS qm::FolderImpl::getSize(Folder* pFolder, unsigned int* pnSize)
+unsigned int qm::FolderImpl::getSize(Folder* pFolder)
 {
-	assert(pnSize);
-	
-	DECLARE_QSTATUS();
-	
-	*pnSize = 0;
-	
 	Lock<Account> lock(*pFolder->getAccount());
 	
-	const MessageHolderList* p = 0;
-	status = pFolder->getMessages(&p);
-	CHECK_QSTATUS();
+	unsigned int nSize = 0;
 	
-	MessageHolderList::const_iterator it = p->begin();
-	while (it != p->end()) {
-		*pnSize += (*it)->getSize();
-		++it;
-	}
+	const MessageHolderList& l = pFolder->getMessages();
+	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it)
+		nSize += (*it)->getSize();
 	
-	return QSTATUS_SUCCESS;
+	return nSize;
 }
 
-QSTATUS qm::FolderImpl::getBoxSize(Folder* pFolder, unsigned int* pnSize)
+unsigned int qm::FolderImpl::getBoxSize(Folder* pFolder)
 {
-	assert(pnSize);
-	
-	DECLARE_QSTATUS();
-	
-	*pnSize = 0;
-	
 	Lock<Account> lock(*pFolder->getAccount());
 	
-	const MessageHolderList* p = 0;
-	status = pFolder->getMessages(&p);
-	CHECK_QSTATUS();
+	unsigned int nSize = 0;
 	
-	MessageHolderList::const_iterator it = p->begin();
-	while (it != p->end()) {
-		*pnSize += (*it)->getMessageBoxKey().nLength_;
-		++it;
-	}
+	const MessageHolderList& l = pFolder->getMessages();
+	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it)
+		nSize += (*it)->getMessageBoxKey().nLength_;
 	
-	return QSTATUS_SUCCESS;
+	return nSize;
 }
 
 
@@ -239,42 +166,29 @@ QSTATUS qm::FolderImpl::getBoxSize(Folder* pFolder, unsigned int* pnSize)
  *
  */
 
-qm::Folder::Folder(const Init& init, QSTATUS* pstatus)
+qm::Folder::Folder(unsigned int nId,
+				   const WCHAR* pwszName,
+				   WCHAR cSeparator,
+				   unsigned int nFlags,
+				   Folder* pParentFolder,
+				   Account* pAccount)
 {
-	assert(pstatus);
+	wstring_ptr wstrName(allocWString(pwszName));
 	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrName(allocWString(init.pwszName_));
-	if (!wstrName.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new FolderImpl();
 	pImpl_->pThis_ = this;
-	pImpl_->nId_ = init.nId_;
-	pImpl_->wstrName_ = wstrName.release();
-	pImpl_->cSeparator_ = init.cSeparator_;
-	pImpl_->nFlags_ = init.nFlags_;
-	pImpl_->pParentFolder_ = init.pParentFolder_;
-	pImpl_->pAccount_ = init.pAccount_;
-//#ifndef NDEBUG
-//	pImpl_->nLock_ = 0;
-//#endif
+	pImpl_->nId_ = nId;
+	pImpl_->wstrName_ = wstrName;
+	pImpl_->cSeparator_ = cSeparator;
+	pImpl_->nFlags_ = nFlags;
+	pImpl_->pParentFolder_ = pParentFolder;
+	pImpl_->pAccount_ = pAccount;
 	pImpl_->bDestroyed_ = false;
 }
 
 qm::Folder::~Folder()
 {
-	if (pImpl_) {
-		freeWString(pImpl_->wstrName_);
-		delete pImpl_;
-		pImpl_ = 0;
-	}
+	delete pImpl_;
 }
 
 unsigned int qm::Folder::getId() const
@@ -284,38 +198,24 @@ unsigned int qm::Folder::getId() const
 
 const WCHAR* qm::Folder::getName() const
 {
-	return pImpl_->wstrName_;
+	return pImpl_->wstrName_.get();
 }
 
-QSTATUS qm::Folder::getDisplayName(WSTRING* pwstrName) const
+wstring_ptr qm::Folder::getDisplayName() const
 {
-	assert(pwstrName);
-	
-	*pwstrName = allocWString(pImpl_->wstrName_);
-	if (!*pwstrName)
-		return QSTATUS_OUTOFMEMORY;
-	return QSTATUS_SUCCESS;
+	return allocWString(pImpl_->wstrName_.get());
 }
 
-QSTATUS qm::Folder::getFullName(WSTRING* pwstrName) const
+wstring_ptr qm::Folder::getFullName() const
 {
-	assert(pwstrName);
-	
-	DECLARE_QSTATUS();
-	
-	StringBuffer<WSTRING> fullName(pImpl_->wstrName_, &status);
-	CHECK_QSTATUS();
+	StringBuffer<WSTRING> fullName(pImpl_->wstrName_.get());
 	Folder* pParentFolder = pImpl_->pParentFolder_;
 	while (pParentFolder) {
-		status = fullName.insert(0, pParentFolder->pImpl_->cSeparator_);
-		CHECK_QSTATUS();
-		status = fullName.insert(0, pParentFolder->pImpl_->wstrName_);
-		CHECK_QSTATUS();
+		fullName.insert(0, pParentFolder->pImpl_->cSeparator_);
+		fullName.insert(0, pParentFolder->pImpl_->wstrName_.get());
 		pParentFolder = pParentFolder->pImpl_->pParentFolder_;
 	}
-	*pwstrName = fullName.getString();
-	
-	return QSTATUS_SUCCESS;
+	return fullName.getString();
 }
 
 WCHAR qm::Folder::getSeparator() const
@@ -333,7 +233,8 @@ bool qm::Folder::isFlag(Flag flag) const
 	return (pImpl_->nFlags_ & flag) != 0;
 }
 
-void qm::Folder::setFlags(unsigned int nFlags, unsigned int nMask)
+void qm::Folder::setFlags(unsigned int nFlags,
+						  unsigned int nMask)
 {
 	pImpl_->nFlags_ &= ~nMask;
 	pImpl_->nFlags_ |= nFlags & nMask;
@@ -384,18 +285,17 @@ Account* qm::Folder::getAccount() const
 	return pImpl_->pAccount_;
 }
 
-QSTATUS qm::Folder::addFolderHandler(FolderHandler* pHandler)
+void qm::Folder::addFolderHandler(FolderHandler* pHandler)
 {
 	Lock<Account> lock(*getAccount());
 	
 	assert(std::find(pImpl_->listFolderHandler_.begin(),
 		pImpl_->listFolderHandler_.end(), pHandler) ==
 		pImpl_->listFolderHandler_.end());
-	return STLWrapper<FolderImpl::FolderHandlerList>(
-		pImpl_->listFolderHandler_).push_back(pHandler);
+	pImpl_->listFolderHandler_.push_back(pHandler);
 }
 
-QSTATUS qm::Folder::removeFolderHandler(FolderHandler* pHandler)
+void qm::Folder::removeFolderHandler(FolderHandler* pHandler)
 {
 	Lock<Account> lock(*getAccount());
 	
@@ -404,17 +304,11 @@ QSTATUS qm::Folder::removeFolderHandler(FolderHandler* pHandler)
 		pImpl_->listFolderHandler_.end(), pHandler);
 	assert(it != pImpl_->listFolderHandler_.end());
 	pImpl_->listFolderHandler_.erase(it, pImpl_->listFolderHandler_.end());
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::Folder::setName(const WCHAR* pwszName)
+void qm::Folder::setName(const WCHAR* pwszName)
 {
-	string_ptr<WSTRING> wstrName(allocWString(pwszName));
-	if (!wstrName.get())
-		return QSTATUS_OUTOFMEMORY;
-	freeWString(pImpl_->wstrName_);
-	pImpl_->wstrName_ = wstrName.release();
-	return QSTATUS_SUCCESS;
+	pImpl_->wstrName_ = allocWString(pwszName);
 }
 
 FolderImpl* qm::Folder::getImpl() const
@@ -432,13 +326,13 @@ FolderImpl* qm::Folder::getImpl() const
 struct qm::NormalFolderImpl : public MessageHolderHandler
 {
 public:
-	QSTATUS getPath(WSTRING* pwstrPath) const;
-	QSTATUS unstoreMessages(const MessageHolderList& l);
-	QSTATUS unstoreAllMessages();
+	wstring_ptr getPath() const;
+	bool unstoreMessages(const MessageHolderList& l);
+	bool unstoreAllMessages();
 
 public:
-	virtual qs::QSTATUS messageHolderChanged(const MessageHolderEvent& event);
-	virtual qs::QSTATUS messageHolderDestroyed(const MessageHolderEvent& event);
+	virtual void messageHolderChanged(const MessageHolderEvent& event);
+	virtual void messageHolderDestroyed(const MessageHolderEvent& event);
 
 public:
 	NormalFolder* pThis_;
@@ -452,50 +346,30 @@ public:
 	bool bLoad_;
 };
 
-QSTATUS qm::NormalFolderImpl::getPath(WSTRING* pwstrPath) const
+wstring_ptr qm::NormalFolderImpl::getPath() const
 {
-	DECLARE_QSTATUS();
-	
 	WCHAR wsz[32];
 	swprintf(wsz, L"\\%03x%s", pThis_->getId(), FileNames::MSGLIST_EXT);
-	*pwstrPath = concat(pThis_->getAccount()->getPath(), wsz);
-	
-	return *pwstrPath ? QSTATUS_SUCCESS : QSTATUS_OUTOFMEMORY;
+	return concat(pThis_->getAccount()->getPath(), wsz);
 }
 
-QSTATUS qm::NormalFolderImpl::unstoreMessages(const MessageHolderList& l)
+bool qm::NormalFolderImpl::unstoreMessages(const MessageHolderList& l)
 {
-	DECLARE_QSTATUS();
-	
-	MessageHolderList::const_iterator it = l.begin();
-	while (it != l.end()) {
-		status = pThis_->getAccount()->unstoreMessage(*it);
-		CHECK_QSTATUS();
-		++it;
+	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		if (!pThis_->getAccount()->unstoreMessage(*it))
+			return false;
 	}
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::NormalFolderImpl::unstoreAllMessages()
+bool qm::NormalFolderImpl::unstoreAllMessages()
 {
-	DECLARE_QSTATUS();
-	
-	MessageHolderList l;
-	status = STLWrapper<MessageHolderList>(l).resize(listMessageHolder_.size());
-	CHECK_QSTATUS();
-	std::copy(listMessageHolder_.begin(), listMessageHolder_.end(), l.begin());
-	
-	status = unstoreMessages(l);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	MessageHolderList l(listMessageHolder_);
+	return unstoreMessages(l);
 }
 
-QSTATUS qm::NormalFolderImpl::messageHolderChanged(const MessageHolderEvent& event)
+void qm::NormalFolderImpl::messageHolderChanged(const MessageHolderEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	MessageHolder* pmh = event.getMessageHolder();
 	if (pmh->getFolder() == pThis_) {
 		unsigned int nOldFlags = event.getOldFlags();
@@ -525,18 +399,13 @@ QSTATUS qm::NormalFolderImpl::messageHolderChanged(const MessageHolderEvent& eve
 			!(nNewFlags & MessageHolder::FLAG_DELETED))
 			--nDeletedCount_;
 		
-		if (nUnseenCount != nUnseenCount_) {
-			status = pThis_->getImpl()->fireUnseenCountChanged();
-			CHECK_QSTATUS();
-		}
+		if (nUnseenCount != nUnseenCount_)
+			pThis_->getImpl()->fireUnseenCountChanged();
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::NormalFolderImpl::messageHolderDestroyed(const MessageHolderEvent& event)
+void qm::NormalFolderImpl::messageHolderDestroyed(const MessageHolderEvent& event)
 {
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -546,28 +415,31 @@ QSTATUS qm::NormalFolderImpl::messageHolderDestroyed(const MessageHolderEvent& e
  *
  */
 
-qm::NormalFolder::NormalFolder(const Init& init, QSTATUS* pstatus) :
-	Folder(init, pstatus),
+qm::NormalFolder::NormalFolder(unsigned int nId,
+							   const WCHAR* pwszName,
+							   WCHAR cSeparator,
+							   unsigned int nFlags,
+							   unsigned int nCount,
+							   unsigned int nUnseenCount,
+							   unsigned int nValidity,
+							   unsigned int nDownloadCount,
+							   unsigned int nDeletedCount,
+							   Folder* pParentFolder,
+							   Account* pAccount) :
+	Folder(nId, pwszName, cSeparator, nFlags, pParentFolder, pAccount),
 	pImpl_(0)
 {
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new NormalFolderImpl();
 	pImpl_->pThis_ = this;
-	pImpl_->nValidity_ = init.nValidity_;
-	pImpl_->nCount_ = init.nCount_;
-	pImpl_->nUnseenCount_ = init.nUnseenCount_;
-	pImpl_->nDownloadCount_ = init.nDownloadCount_;
-	pImpl_->nDeletedCount_ = init.nDeletedCount_;
+	pImpl_->nValidity_ = nValidity;
+	pImpl_->nCount_ = nCount;
+	pImpl_->nUnseenCount_ = nUnseenCount;
+	pImpl_->nDownloadCount_ = nDownloadCount;
+	pImpl_->nDeletedCount_ = nDeletedCount;
 	pImpl_->nLastSyncTime_ = 0;
 	pImpl_->bLoad_ = false;
 	
-	status = getAccount()->addMessageHolderHandler(pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	getAccount()->addMessageHolderHandler(pImpl_);
 }
 
 qm::NormalFolder::~NormalFolder()
@@ -587,18 +459,16 @@ unsigned int qm::NormalFolder::getValidity() const
 	return pImpl_->nValidity_;
 }
 
-QSTATUS qm::NormalFolder::setValidity(unsigned int nValidity)
+bool qm::NormalFolder::setValidity(unsigned int nValidity)
 {
-	DECLARE_QSTATUS();
-	
 	Lock<Account> lock(*getAccount());
 	
-	status = pImpl_->unstoreAllMessages();
-	CHECK_QSTATUS();
+	if (!pImpl_->unstoreAllMessages())
+		return false;
 	
 	pImpl_->nValidity_ = nValidity;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 unsigned int qm::NormalFolder::getDownloadCount() const
@@ -625,32 +495,24 @@ void qm::NormalFolder::setLastSyncTime(unsigned int nTime)
 	pImpl_->nLastSyncTime_ = nTime;
 }
 
-QSTATUS qm::NormalFolder::getMessageById(unsigned int nId, MessagePtr* pptr)
+MessagePtr qm::NormalFolder::getMessageById(unsigned int nId)
 {
-	assert(pptr);
-	
-	DECLARE_QSTATUS();
-	
 	Lock<Account> lock(*getAccount());
 	
-	status = loadMessageHolders();
-	CHECK_QSTATUS();
+	if (!loadMessageHolders()) {
+		// TODO
+	}
 	
-	*pptr = MessagePtr(getMessageById(nId));
-	
-	return QSTATUS_SUCCESS;
+	return MessagePtr(getMessageHolderById(nId));
 }
 
-MessageHolder* qm::NormalFolder::getMessageById(unsigned int nId) const
+MessageHolder* qm::NormalFolder::getMessageHolderById(unsigned int nId) const
 {
 	assert(pImpl_->bLoad_);
 	assert(getAccount()->isLocked());
 	
-	DECLARE_QSTATUS();
-	
 	MessageHolder::Init init = { nId };
-	MessageHolder mh(0, init, &status);
-	CHECK_QSTATUS_VALUE(0);
+	MessageHolder mh(0, init);
 	MessageHolderList::const_iterator it = std::lower_bound(
 		pImpl_->listMessageHolder_.begin(),
 		pImpl_->listMessageHolder_.end(),
@@ -662,26 +524,23 @@ MessageHolder* qm::NormalFolder::getMessageById(unsigned int nId) const
 	return it != pImpl_->listMessageHolder_.end() && (*it)->getId() == nId ? *it : 0;
 }
 
-QSTATUS qm::NormalFolder::updateMessageFlags(
-	const FlagList& listFlag, bool* pbClear)
+bool qm::NormalFolder::updateMessageFlags(const FlagList& listFlag,
+										  bool* pbClear)
 {
 	assert(pbClear);
-	
-	DECLARE_QSTATUS();
 	
 	*pbClear = false;
 	
 	Lock<Account> lock(*getAccount());
 	
-	status = loadMessageHolders();
-	CHECK_QSTATUS();
+	if (!loadMessageHolders())
+		return false;
 	
 	unsigned int nMask = MessageHolder::FLAG_SEEN |
 		MessageHolder::FLAG_REPLIED | MessageHolder::FLAG_DRAFT |
 		MessageHolder::FLAG_DELETED | MessageHolder::FLAG_MARKED;
 	
 	MessageHolderList listRemove;
-	STLWrapper<MessageHolderList> wrapper(listRemove);
 	
 	MessageHolderList& l = pImpl_->listMessageHolder_;
 	MessageHolderList::iterator itM = l.begin();
@@ -692,30 +551,28 @@ QSTATUS qm::NormalFolder::updateMessageFlags(
 			++itF;
 		}
 		else {
-			status = wrapper.push_back(*itM);
-			CHECK_QSTATUS();
+			listRemove.push_back(*itM);
 		}
 		++itM;
 	}
 	if (itM != l.end()) {
-		status = wrapper.reserve(listRemove.size() + (l.end() - itM));
-		CHECK_QSTATUS();
+		listRemove.reserve(listRemove.size() + (l.end() - itM));
 		std::copy(itM, l.end(), std::back_inserter(listRemove));
 	}
 	
 	if (itF != listFlag.end()) {
 		// Server may have a bug
 		// Clear all
-		status = pImpl_->unstoreAllMessages();
-		CHECK_QSTATUS();
+		if (!pImpl_->unstoreAllMessages())
+			return false;
 		*pbClear = true;
 	}
 	else {
-		status = pImpl_->unstoreMessages(listRemove);
-		CHECK_QSTATUS();
+		if (!pImpl_->unstoreMessages(listRemove))
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 Folder::Type qm::NormalFolder::getType() const
@@ -738,14 +595,14 @@ unsigned int qm::NormalFolder::getUnseenCount() const
 	return pImpl_->nUnseenCount_;
 }
 
-QSTATUS qm::NormalFolder::getSize(unsigned int* pnSize)
+unsigned int qm::NormalFolder::getSize()
 {
-	return FolderImpl::getSize(this, pnSize);
+	return FolderImpl::getSize(this);
 }
 
-QSTATUS qm::NormalFolder::getBoxSize(unsigned int* pnSize)
+unsigned int qm::NormalFolder::getBoxSize()
 {
-	return FolderImpl::getBoxSize(this, pnSize);
+	return FolderImpl::getBoxSize(this);
 }
 
 MessageHolder* qm::NormalFolder::getMessage(unsigned int n) const
@@ -756,207 +613,166 @@ MessageHolder* qm::NormalFolder::getMessage(unsigned int n) const
 	return pImpl_->listMessageHolder_[n];
 }
 
-QSTATUS qm::NormalFolder::getMessages(const MessageHolderList** ppList)
+const MessageHolderList& qm::NormalFolder::getMessages()
 {
-	assert(ppList);
 	assert(getAccount()->isLocked());
 	
-	DECLARE_QSTATUS();
+	if (!loadMessageHolders()) {
+		// TODO
+	}
 	
-	status = loadMessageHolders();
-	CHECK_QSTATUS();
-	
-	*ppList = &pImpl_->listMessageHolder_;
-	
-	return QSTATUS_SUCCESS;
+	return pImpl_->listMessageHolder_;
 }
 
-QSTATUS qm::NormalFolder::loadMessageHolders()
+bool qm::NormalFolder::loadMessageHolders()
 {
-	DECLARE_QSTATUS();
-	
 	Lock<Account> lock(*getAccount());
 	
 	if (pImpl_->bLoad_)
-		return QSTATUS_SUCCESS;
+		return true;
 	
 	pImpl_->nUnseenCount_ = 0;
 	pImpl_->nDownloadCount_ = 0;
 	pImpl_->nDeletedCount_ = 0;
 	
-	string_ptr<WSTRING> wstrPath;
-	status = pImpl_->getPath(&wstrPath);
-	CHECK_QSTATUS();
+	wstring_ptr wstrPath(pImpl_->getPath());
 	
 	W2T(wstrPath.get(), ptszPath);
 	if (::GetFileAttributes(ptszPath) != 0xffffffff) {
-		FileInputStream fileStream(wstrPath.get(), &status);
-		CHECK_QSTATUS();
-		BufferedInputStream stream(&fileStream, false, &status);
-		CHECK_QSTATUS();
+		FileInputStream fileStream(wstrPath.get());
+		if (!fileStream)
+			return false;
+		BufferedInputStream stream(&fileStream, false);
 		
-		STLWrapper<MessageHolderList> wrapper(pImpl_->listMessageHolder_);
 		MessageHolder::Init init;
 		size_t nRead = 0;
 		while (true) {
-			status = stream.read(reinterpret_cast<unsigned char*>(&init),
-				sizeof(init), &nRead);
-			if (nRead == static_cast<size_t>(-1))
+			size_t nRead = stream.read(reinterpret_cast<unsigned char*>(&init), sizeof(init));
+			if (nRead == 0)
 				break;
-			if (nRead != sizeof(init))
-				return QSTATUS_FAIL;
+			else if (nRead != sizeof(init))
+				return false;
 			
-			MessageHolder* pmh = 0;
-			status = newQsObject(this, init, &pmh);
-			CHECK_QSTATUS();
-			status = wrapper.push_back(pmh);
-			CHECK_QSTATUS();
+			std::auto_ptr<MessageHolder> pmh(new MessageHolder(this, init));
+			pImpl_->listMessageHolder_.push_back(pmh.get());
+			MessageHolder* p = pmh.release();
 			
-			if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
+			if (!p->isFlag(MessageHolder::FLAG_SEEN))
 				++pImpl_->nUnseenCount_;
-			if (pmh->isFlag(MessageHolder::FLAG_DOWNLOAD) ||
-				pmh->isFlag(MessageHolder::FLAG_DOWNLOADTEXT))
+			if (p->isFlag(MessageHolder::FLAG_DOWNLOAD) ||
+				p->isFlag(MessageHolder::FLAG_DOWNLOADTEXT))
 				++pImpl_->nDownloadCount_;
-			if (pmh->isFlag(MessageHolder::FLAG_DELETED))
+			if (p->isFlag(MessageHolder::FLAG_DELETED))
 				++pImpl_->nDeletedCount_;
 		}
 	}
 	
 	pImpl_->bLoad_ = true;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::NormalFolder::saveMessageHolders()
+bool qm::NormalFolder::saveMessageHolders()
 {
-	DECLARE_QSTATUS();
-	
 	Lock<Account> lock(*getAccount());
 	
 	if (!pImpl_->bLoad_)
-		return QSTATUS_SUCCESS;
+		return true;
 	
-	string_ptr<WSTRING> wstrPath;
-	status = pImpl_->getPath(&wstrPath);
-	CHECK_QSTATUS();
+	wstring_ptr wstrPath(pImpl_->getPath());
 	
-	TemporaryFileRenamer renamer(wstrPath.get(), &status);
-	CHECK_QSTATUS();
+	TemporaryFileRenamer renamer(wstrPath.get());
 	
-	FileOutputStream fileStream(renamer.getPath(), &status);
-	CHECK_QSTATUS();
-	BufferedOutputStream stream(&fileStream, false, &status);
-	CHECK_QSTATUS();
+	FileOutputStream fileStream(renamer.getPath());
+	if (!fileStream)
+		return false;
+	BufferedOutputStream stream(&fileStream, false);
 	
 	MessageHolder::Init init;
 	const MessageHolderList& l = pImpl_->listMessageHolder_;
-	MessageHolderList::const_iterator it = l.begin();
-	while (it != l.end()) {
+	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		(*it)->getInit(&init);
-		status = stream.write(reinterpret_cast<unsigned char*>(&init), sizeof(init));
-		CHECK_QSTATUS();
-		++it;
+		if (stream.write(reinterpret_cast<unsigned char*>(&init), sizeof(init)) == -1)
+			return false;
 	}
-	status = stream.close();
-	CHECK_QSTATUS();
+	if (!stream.close())
+		return false;
 	
-	status = renamer.rename();
-	CHECK_QSTATUS();
+	if (!renamer.rename())
+		return false;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::NormalFolder::deletePermanent()
+bool qm::NormalFolder::deletePermanent()
 {
-	DECLARE_QSTATUS();
-	
 	getImpl()->bDestroyed_ = true;
 	
-	status = pImpl_->unstoreAllMessages();
-	CHECK_QSTATUS();
+	if (!pImpl_->unstoreAllMessages())
+		return false;
 	
-	string_ptr<WSTRING> wstrPath;
-	status = pImpl_->getPath(&wstrPath);
-	CHECK_QSTATUS();
+	wstring_ptr wstrPath(pImpl_->getPath());
 	W2T(wstrPath.get(), ptszPath);
 	::DeleteFile(ptszPath);
 	
-	status = getImpl()->fireFolderDestroyed();
-	CHECK_QSTATUS();
+	getImpl()->fireFolderDestroyed();
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::NormalFolder::generateId(unsigned int* pnId)
+unsigned int qm::NormalFolder::generateId()
 {
-	assert(pnId);
-	
-	DECLARE_QSTATUS();
-	
 	Lock<Account> lock(*getAccount());
-	status = loadMessageHolders();
-	CHECK_QSTATUS();
+	if (!loadMessageHolders())
+		return -1;
 	
 	const MessageHolderList& l = pImpl_->listMessageHolder_;
 	
 #ifndef NDEBUG
 	unsigned int nMaxId = 0;
-	MessageHolderList::const_iterator it = l.begin();
-	while (it != l.end()) {
+	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		assert(nMaxId < (*it)->getId());
 		nMaxId = (*it)->getId();
-		++it;
 	}
 #endif
 	
-	if (l.empty())
-		*pnId = 1;
-	else
-		*pnId = l.back()->getId() + 1;
-	
-	return QSTATUS_SUCCESS;
+	return l.empty() ? 1 : l.back()->getId() + 1;
 }
 
-QSTATUS qm::NormalFolder::appendMessage(MessageHolder* pmh)
+bool qm::NormalFolder::appendMessage(std::auto_ptr<MessageHolder> pmh)
 {
-	assert(pmh);
+	assert(pmh.get());
 	assert(pmh->getFolder() == this);
 	assert(getAccount()->isLocked());
 	
-	DECLARE_QSTATUS();
-	
-	status = loadMessageHolders();
-	CHECK_QSTATUS();
+	if (!loadMessageHolders())
+		return false;
 	
 	assert(pImpl_->listMessageHolder_.empty() ||
 		pImpl_->listMessageHolder_.back()->getId() < pmh->getId());
 	
-	status = STLWrapper<MessageHolderList>(
-		pImpl_->listMessageHolder_).push_back(pmh);
-	CHECK_QSTATUS();
+	pImpl_->listMessageHolder_.push_back(pmh.get());
+	MessageHolder* p = pmh.release();
 	
-	if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
+	if (!p->isFlag(MessageHolder::FLAG_SEEN))
 		++pImpl_->nUnseenCount_;
-	if (pmh->isFlag(MessageHolder::FLAG_DOWNLOAD) ||
-		pmh->isFlag(MessageHolder::FLAG_DOWNLOADTEXT))
+	if (p->isFlag(MessageHolder::FLAG_DOWNLOAD) ||
+		p->isFlag(MessageHolder::FLAG_DOWNLOADTEXT))
 		++pImpl_->nDownloadCount_;
-	if (pmh->isFlag(MessageHolder::FLAG_DELETED))
+	if (p->isFlag(MessageHolder::FLAG_DELETED))
 		++pImpl_->nDeletedCount_;
 	
-	status = getImpl()->fireMessageAdded(pmh);
-	CHECK_QSTATUS();
+	getImpl()->fireMessageAdded(p);
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::NormalFolder::removeMessage(MessageHolder* pmh)
+void qm::NormalFolder::removeMessage(MessageHolder* pmh)
 {
 	assert(pmh);
 	assert(pmh->getFolder() == this);
 	assert(pImpl_->bLoad_);
 	assert(getAccount()->isLocked());
-	
-	DECLARE_QSTATUS();
 	
 	MessageHolderList::iterator it = std::lower_bound(
 		pImpl_->listMessageHolder_.begin(), pImpl_->listMessageHolder_.end(), pmh,
@@ -976,16 +792,12 @@ QSTATUS qm::NormalFolder::removeMessage(MessageHolder* pmh)
 		--pImpl_->nDeletedCount_;
 	
 	std::auto_ptr<MessageHolder> p(pmh);
-	status = getImpl()->fireMessageRemoved(pmh);
-	CHECK_QSTATUS();
-	status = pmh->destroy();
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	getImpl()->fireMessageRemoved(pmh);
+	pmh->destroy();
 }
 
-QSTATUS qm::NormalFolder::moveMessages(
-	const MessageHolderList& l, NormalFolder* pFolder)
+bool qm::NormalFolder::moveMessages(const MessageHolderList& l,
+									NormalFolder* pFolder)
 {
 	assert(!l.empty());
 	assert(pFolder);
@@ -993,24 +805,20 @@ QSTATUS qm::NormalFolder::moveMessages(
 	assert(pImpl_->bLoad_);
 	assert(getAccount()->isLocked());
 	
-	DECLARE_QSTATUS();
-	
-	status = pFolder->loadMessageHolders();
-	CHECK_QSTATUS();
+	if (!pFolder->loadMessageHolders())
+		return false;
 	
 	MessageHolderList& listFrom = pImpl_->listMessageHolder_;
 	MessageHolderList& listTo = pFolder->pImpl_->listMessageHolder_;
-	status = STLWrapper<MessageHolderList>(
-		listTo).reserve(listTo.size() + l.size());
-	CHECK_QSTATUS();
+	listTo.reserve(listTo.size() + l.size());
 	
-	MessageHolderList::const_iterator it = l.begin();
-	while (it != l.end()) {
+	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		MessageHolder* pmh = *it;
 		assert(pmh->getFolder() == this);
 		
-		unsigned int nId = 0;
-		status = pFolder->generateId(&nId);
+		unsigned int nId = pFolder->generateId();
+		if (nId == -1)
+			return false;
 		
 		MessageHolderList::iterator itM = std::lower_bound(
 			listFrom.begin(), listFrom.end(), pmh,
@@ -1038,15 +846,11 @@ QSTATUS qm::NormalFolder::moveMessages(
 			++pFolder->pImpl_->nDeletedCount_;
 		}
 		
-		status = getImpl()->fireMessageRemoved(pmh);
-		CHECK_QSTATUS();
-		status = pFolder->getImpl()->fireMessageAdded(pmh);
-		CHECK_QSTATUS();
-		
-		++it;
+		getImpl()->fireMessageRemoved(pmh);
+		 pFolder->getImpl()->fireMessageAdded(pmh);
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -1059,23 +863,21 @@ QSTATUS qm::NormalFolder::moveMessages(
 struct qm::QueryFolderImpl : public MessageHolderHandler
 {
 public:
-	virtual qs::QSTATUS messageHolderChanged(const MessageHolderEvent& event);
-	virtual qs::QSTATUS messageHolderDestroyed(const MessageHolderEvent& event);
+	virtual void messageHolderChanged(const MessageHolderEvent& event);
+	virtual void messageHolderDestroyed(const MessageHolderEvent& event);
 
 public:
 	QueryFolder* pThis_;
-	WSTRING wstrDriver_;
-	WSTRING wstrCondition_;
-	WSTRING wstrTargetFolder_;
+	wstring_ptr wstrDriver_;
+	wstring_ptr wstrCondition_;
+	wstring_ptr wstrTargetFolder_;
 	bool bRecursive_;
 	MessageHolderList listMessageHolder_;
 	unsigned int nUnseenCount_;
 };
 
-QSTATUS qm::QueryFolderImpl::messageHolderChanged(const MessageHolderEvent& event)
+void qm::QueryFolderImpl::messageHolderChanged(const MessageHolderEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	MessageHolder* pmh = event.getMessageHolder();
 	MessageHolderList::const_iterator it = std::lower_bound(
 		listMessageHolder_.begin(), listMessageHolder_.end(), pmh);
@@ -1091,29 +893,20 @@ QSTATUS qm::QueryFolderImpl::messageHolderChanged(const MessageHolderEvent& even
 			!(nNewFlags & MessageHolder::FLAG_SEEN))
 			++nUnseenCount_;
 		
-		if (nUnseenCount != nUnseenCount_) {
-			status = pThis_->getImpl()->fireUnseenCountChanged();
-			CHECK_QSTATUS();
-		}
+		if (nUnseenCount != nUnseenCount_)
+			pThis_->getImpl()->fireUnseenCountChanged();
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::QueryFolderImpl::messageHolderDestroyed(const MessageHolderEvent& event)
+void qm::QueryFolderImpl::messageHolderDestroyed(const MessageHolderEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	MessageHolder* pmh = event.getMessageHolder();
 	MessageHolderList::iterator it = std::lower_bound(
 		listMessageHolder_.begin(), listMessageHolder_.end(), pmh);
 	if (it != listMessageHolder_.end() && *it == pmh) {
 		listMessageHolder_.erase(it);
-		status = pThis_->getImpl()->fireMessageRemoved(pmh);
-		CHECK_QSTATUS();
+		pThis_->getImpl()->fireMessageRemoved(pmh);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -1123,56 +916,51 @@ QSTATUS qm::QueryFolderImpl::messageHolderDestroyed(const MessageHolderEvent& ev
  *
  */
 
-qm::QueryFolder::QueryFolder(const Init& init, QSTATUS* pstatus) :
-	Folder(init, pstatus),
+qm::QueryFolder::QueryFolder(unsigned int nId,
+							 const WCHAR* pwszName,
+							 WCHAR cSeparator,
+							 unsigned int nFlags,
+							 unsigned int nCount,
+							 unsigned int nUseenCount,
+							 const WCHAR* pwszDriver,
+							 const WCHAR* pwszCondition,
+							 const WCHAR* pwszTargetFolder,
+							 bool bRecursive,
+							 Folder* pParentFolder,
+							 Account* pAccount) :
+	Folder(nId, pwszName, cSeparator, nFlags, pParentFolder, pAccount),
 	pImpl_(0)
 {
-	DECLARE_QSTATUS();
-	
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new QueryFolderImpl();
 	pImpl_->pThis_ = this;
-	pImpl_->wstrDriver_ = 0;
-	pImpl_->wstrCondition_ = 0;
-	pImpl_->wstrTargetFolder_ = 0;
 	pImpl_->bRecursive_ = false;
 	pImpl_->nUnseenCount_ = 0;
 	
-	status = set(init.pwszDriver_, init.pwszCondition_,
-		init.pwszTargetFolder_, init.bRecursive_);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	status = getAccount()->addMessageHolderHandler(pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	set(pwszDriver, pwszCondition, pwszTargetFolder, bRecursive);
+	getAccount()->addMessageHolderHandler(pImpl_);
 }
 
 qm::QueryFolder::~QueryFolder()
 {
 	if (pImpl_) {
 		getAccount()->removeMessageHolderHandler(pImpl_);
-		freeWString(pImpl_->wstrDriver_);
-		freeWString(pImpl_->wstrCondition_);
-		freeWString(pImpl_->wstrTargetFolder_);
 		delete pImpl_;
 	}
 }
 
 const WCHAR* qm::QueryFolder::getDriver() const
 {
-	return pImpl_->wstrDriver_;
+	return pImpl_->wstrDriver_.get();
 }
 
 const WCHAR* qm::QueryFolder::getCondition() const
 {
-	return pImpl_->wstrCondition_;
+	return pImpl_->wstrCondition_.get();
 }
 
 const WCHAR* qm::QueryFolder::getTargetFolder() const
 {
-	return pImpl_->wstrTargetFolder_;
+	return pImpl_->wstrTargetFolder_.get();
 }
 
 bool qm::QueryFolder::isRecursive() const
@@ -1180,60 +968,39 @@ bool qm::QueryFolder::isRecursive() const
 	return pImpl_->bRecursive_;
 }
 
-QSTATUS qm::QueryFolder::set(const WCHAR* pwszDriver,
-	const WCHAR* pwszCondition, const WCHAR* pwszTargetFolder, bool bRecursive)
+void qm::QueryFolder::set(const WCHAR* pwszDriver,
+						  const WCHAR* pwszCondition,
+						  const WCHAR* pwszTargetFolder,
+						  bool bRecursive)
 {
 	assert(pwszDriver);
 	assert(pwszCondition);
 	assert(!pwszTargetFolder || *pwszTargetFolder);
 	
-	string_ptr<WSTRING> wstrDriver(allocWString(pwszDriver));
-	if (!wstrDriver.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	string_ptr<WSTRING> wstrCondition(allocWString(pwszCondition));
-	if (!wstrCondition.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	string_ptr<WSTRING> wstrTargetFolder;
-	if (pwszTargetFolder) {
-		wstrTargetFolder.reset(allocWString(pwszTargetFolder));
-		if (!wstrTargetFolder.get())
-			return QSTATUS_OUTOFMEMORY;
-	}
-	
-	freeWString(pImpl_->wstrDriver_);
-	pImpl_->wstrDriver_ = wstrDriver.release();
-	freeWString(pImpl_->wstrCondition_);
-	pImpl_->wstrCondition_ = wstrCondition.release();
-	freeWString(pImpl_->wstrTargetFolder_);
-	pImpl_->wstrTargetFolder_ = wstrTargetFolder.release();
+	pImpl_->wstrDriver_ = allocWString(pwszDriver);
+	pImpl_->wstrCondition_ = allocWString(pwszCondition);
+	if (pwszTargetFolder)
+		pImpl_->wstrTargetFolder_ = allocWString(pwszTargetFolder);
 	pImpl_->bRecursive_ = bRecursive;
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::QueryFolder::search(Document* pDocument,
-	HWND hwnd, qs::Profile* pProfile)
+bool qm::QueryFolder::search(Document* pDocument,
+							 HWND hwnd,
+							 Profile* pProfile)
 {
-	DECLARE_QSTATUS();
-	
 	Lock<Account> lock(*getAccount());
 	
 	pImpl_->listMessageHolder_.clear();
 	
-	std::auto_ptr<SearchDriver> pDriver;
-	status = SearchDriverFactory::getDriver(pImpl_->wstrDriver_,
-		pDocument, getAccount(), hwnd, pProfile, &pDriver);
-	CHECK_QSTATUS();
+	std::auto_ptr<SearchDriver> pDriver(SearchDriverFactory::getDriver(
+		pImpl_->wstrDriver_.get(), pDocument, getAccount(), hwnd, pProfile));
 	if (!pDriver.get())
-		return QSTATUS_SUCCESS;
+		return true;
 	
-	SearchContext context(pImpl_->wstrCondition_,
-		pImpl_->wstrTargetFolder_, pImpl_->bRecursive_, &status);
-	CHECK_QSTATUS();
-	status = pDriver->search(context, &pImpl_->listMessageHolder_);
-	CHECK_QSTATUS();
+	SearchContext context(pImpl_->wstrCondition_.get(),
+		pImpl_->wstrTargetFolder_.get(), pImpl_->bRecursive_);
+	if (!pDriver->search(context, &pImpl_->listMessageHolder_))
+		return false;
 	std::sort(pImpl_->listMessageHolder_.begin(), pImpl_->listMessageHolder_.end());
 	
 	pImpl_->nUnseenCount_ = std::count_if(
@@ -1244,10 +1011,9 @@ QSTATUS qm::QueryFolder::search(Document* pDocument,
 				std::mem_fun(&MessageHolder::isFlag),
 				MessageHolder::FLAG_SEEN)));
 	
-	status = getImpl()->fireMessageRefreshed();
-	CHECK_QSTATUS();
+	getImpl()->fireMessageRefreshed();
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 Folder::Type qm::QueryFolder::getType() const
@@ -1266,14 +1032,14 @@ unsigned int qm::QueryFolder::getUnseenCount() const
 	return pImpl_->nUnseenCount_;
 }
 
-QSTATUS qm::QueryFolder::getSize(unsigned int* pnSize)
+unsigned int qm::QueryFolder::getSize()
 {
-	return FolderImpl::getSize(this, pnSize);
+	return FolderImpl::getSize(this);
 }
 
-QSTATUS qm::QueryFolder::getBoxSize(unsigned int* pnSize)
+unsigned int qm::QueryFolder::getBoxSize()
 {
-	return FolderImpl::getBoxSize(this, pnSize);
+	return FolderImpl::getBoxSize(this);
 }
 
 MessageHolder* qm::QueryFolder::getMessage(unsigned int n) const
@@ -1283,39 +1049,31 @@ MessageHolder* qm::QueryFolder::getMessage(unsigned int n) const
 	return pImpl_->listMessageHolder_[n];
 }
 
-QSTATUS qm::QueryFolder::getMessages(const MessageHolderList** ppList)
+const MessageHolderList& qm::QueryFolder::getMessages()
 {
-	assert(ppList);
 	assert(getAccount()->isLocked());
 	
-	DECLARE_QSTATUS();
+	if (!loadMessageHolders()) {
+		// TODO
+	}
 	
-	status = loadMessageHolders();
-	CHECK_QSTATUS();
-	
-	*ppList = &pImpl_->listMessageHolder_;
-	
-	return QSTATUS_SUCCESS;
+	return pImpl_->listMessageHolder_;
 }
 
-QSTATUS qm::QueryFolder::loadMessageHolders()
+bool qm::QueryFolder::loadMessageHolders()
 {
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::QueryFolder::saveMessageHolders()
+bool qm::QueryFolder::saveMessageHolders()
 {
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::QueryFolder::deletePermanent()
+bool qm::QueryFolder::deletePermanent()
 {
-	DECLARE_QSTATUS();
-	
-	status = getImpl()->fireFolderDestroyed();
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	getImpl()->fireFolderDestroyed();
+	return true;
 }
 
 
@@ -1325,22 +1083,19 @@ QSTATUS qm::QueryFolder::deletePermanent()
  *
  */
 
-bool qm::FolderLess::operator()(
-	const Folder* pFolderLhs, const Folder* pFolderRhs) const
+bool qm::FolderLess::operator()(const Folder* pFolderLhs,
+								const Folder* pFolderRhs) const
 {
 	return compare(pFolderLhs, pFolderRhs) < 0;
 }
 
-int qm::FolderLess::compare(const Folder* pFolderLhs, const Folder* pFolderRhs)
+int qm::FolderLess::compare(const Folder* pFolderLhs,
+							const Folder* pFolderRhs)
 {
-	DECLARE_QSTATUS();
-	
 	FolderPath pathLhs;
-	status = getFolderPath(pFolderLhs, &pathLhs);
-	CHECK_QSTATUS_VALUE(false);
+	getFolderPath(pFolderLhs, &pathLhs);
 	FolderPath pathRhs;
-	status = getFolderPath(pFolderRhs, &pathRhs);
-	CHECK_QSTATUS_VALUE(false);
+	getFolderPath(pFolderRhs, &pathRhs);
 	
 	FolderPath::size_type nSize = QSMIN(pathLhs.size(), pathRhs.size());
 	for (FolderPath::size_type n = 0; n < nSize; ++n) {
@@ -1352,8 +1107,8 @@ int qm::FolderLess::compare(const Folder* pFolderLhs, const Folder* pFolderRhs)
 		pathLhs.size() < pathRhs.size() ? -1 : 1;
 }
 
-int qm::FolderLess::compareSingle(
-	const Folder* pFolderLhs, const Folder* pFolderRhs)
+int qm::FolderLess::compareSingle(const Folder* pFolderLhs,
+								  const Folder* pFolderRhs)
 {
 	assert(pFolderLhs);
 	assert(pFolderRhs);
@@ -1405,21 +1160,17 @@ int qm::FolderLess::compareSingle(
 	return _wcsicmp(pFolderLhs->getName(), pFolderRhs->getName());
 }
 
-QSTATUS qm::FolderLess::getFolderPath(const Folder* pFolder, FolderPath* pPath)
+void qm::FolderLess::getFolderPath(const Folder* pFolder,
+								   FolderPath* pPath)
 {
 	assert(pFolder);
 	assert(pPath);
 	
-	DECLARE_QSTATUS();
-	
 	while (pFolder) {
-		status = STLWrapper<FolderPath>(*pPath).push_back(pFolder);
-		CHECK_QSTATUS();
+		pPath->push_back(pFolder);
 		pFolder = pFolder->getParentFolder();
 	}
 	std::reverse(pPath->begin(), pPath->end());
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -1440,7 +1191,8 @@ qm::FolderHandler::~FolderHandler()
  *
  */
 
-qm::FolderEvent::FolderEvent(Folder* pFolder, MessageHolder* pmh) :
+qm::FolderEvent::FolderEvent(Folder* pFolder,
+							 MessageHolder* pmh) :
 	pFolder_(pFolder),
 	pmh_(pmh)
 {

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -15,9 +15,7 @@
 #include <qmsecurity.h>
 
 #include <qsconv.h>
-#include <qserror.h>
 #include <qsmime.h>
-#include <qsnew.h>
 #include <qsosutil.h>
 
 #include <algorithm>
@@ -41,7 +39,7 @@ using namespace qs;
  *
  */
 
-qm::AddressBook::AddressBook(Profile* pProfile, QSTATUS* pstatus) :
+qm::AddressBook::AddressBook(Profile* pProfile) :
 	bEnableReload_(true),
 	bContactChanged_(false),
 #ifndef _WIN32_WCE
@@ -55,19 +53,13 @@ qm::AddressBook::AddressBook(Profile* pProfile, QSTATUS* pstatus) :
 	pNotificationWindow_(0)
 #endif
 {
-	DECLARE_QSTATUS();
-	
 	SYSTEMTIME st;
 	::GetSystemTime(&st);
 	::SystemTimeToFileTime(&st, &ft_);
 	
-	int nWAB = 1;
-	status = pProfile->getInt(L"AddressBook", L"WAB", 1, &nWAB);
-	CHECK_QSTATUS_SET(pstatus);
-	if (nWAB) {
-		status = initWAB();
-//		CHECK_QSTATUS_SET(pstatus);
-		bContactChanged_ = true;
+	if (pProfile->getInt(L"AddressBook", L"WAB", 1)) {
+		if (initWAB())
+			bContactChanged_ = true;
 	}
 }
 
@@ -94,140 +86,79 @@ qm::AddressBook::~AddressBook()
 #endif
 }
 
-QSTATUS qm::AddressBook::getEntries(const EntryList** ppList)
+const AddressBook::EntryList& qm::AddressBook::getEntries()
 {
-	assert(ppList);
-	
-	DECLARE_QSTATUS();
-	
-	*ppList = 0;
-	
-	status = load();
-	CHECK_QSTATUS();
-	
-	*ppList = &listEntry_;
-	
-	return QSTATUS_SUCCESS;
+	load();
+	return listEntry_;
 }
 
-QSTATUS qm::AddressBook::getCategories(CategoryList* pList)
+void qm::AddressBook::getCategories(CategoryList* pList)
 {
 	assert(pList);
 	
-	DECLARE_QSTATUS();
-	
-	status = load();
-	CHECK_QSTATUS();
-	
-	status = STLWrapper<CategoryList>(*pList).resize(listCategory_.size());
-	CHECK_QSTATUS();
-	std::copy(listCategory_.begin(), listCategory_.end(), pList->begin());
-	
-	return QSTATUS_SUCCESS;
+	load();
+	pList->assign(listCategory_.begin(), listCategory_.end());
 }
 
-QSTATUS qm::AddressBook::getAddress(const WCHAR* pwszAlias,
-	const AddressBookAddress** ppAddress)
+const AddressBookAddress* qm::AddressBook::getAddress(const WCHAR* pwszAlias)
 {
 	assert(pwszAlias);
-	assert(ppAddress);
 	
-	DECLARE_QSTATUS();
+	if (!load())
+		return 0;
 	
-	*ppAddress = 0;
-	
-	status = load();
-	CHECK_QSTATUS();
-	
-	EntryList::iterator itE = listEntry_.begin();
-	while (itE != listEntry_.end() && !*ppAddress) {
+	for (EntryList::iterator itE = listEntry_.begin(); itE != listEntry_.end(); ++itE) {
 		const AddressBookEntry::AddressList& l = (*itE)->getAddresses();
-		AddressBookEntry::AddressList::const_iterator itA = l.begin();
-		while (itA != l.end() && !*ppAddress) {
-			if ((*itA)->getAlias() &&
-				wcscmp((*itA)->getAlias(), pwszAlias) == 0)
-				*ppAddress = *itA;
-			++itA;
+		for (AddressBookEntry::AddressList::const_iterator itA = l.begin(); itA != l.end(); ++itA) {
+			const AddressBookAddress* pAddress = *itA;
+			if (pAddress->getAlias() && wcscmp(pAddress->getAlias(), pwszAlias) == 0)
+				return pAddress;
 		}
-		++itE;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return 0;
 }
 
-QSTATUS qm::AddressBook::expandAlias(
-	const WCHAR* pwszAddresses, qs::WSTRING* pwstrAddresses)
+wstring_ptr qm::AddressBook::expandAlias(const WCHAR* pwszAddresses)
 {
 	assert(pwszAddresses);
-	assert(pwstrAddresses);
 	
-	DECLARE_QSTATUS();
+	if (!load())
+		return 0;
 	
-	*pwstrAddresses = 0;
-	
-	status = load();
-	CHECK_QSTATUS();
-	
-	DummyParser field(pwszAddresses, 0, &status);
-	CHECK_QSTATUS();
-	Part dummy(&status);
-	CHECK_QSTATUS();
-	status = dummy.setField(L"Dummy", field);
-	CHECK_QSTATUS();
-	AddressListParser addressList(0, &status);
-	CHECK_QSTATUS();
-	Part::Field f;
-	status = dummy.getField(L"Dummy", &addressList, &f);
-	CHECK_QSTATUS();
+	DummyParser field(pwszAddresses, 0);
+	Part dummy;
+	if (!dummy.setField(L"Dummy", field))
+		return 0;
+	AddressListParser addressList(0);
+	Part::Field f = dummy.getField(L"Dummy", &addressList);
 	if (f != Part::FIELD_EXIST)
-		return QSTATUS_FAIL;
+		return 0;
 	
-	StringBuffer<WSTRING> buf(&status);
+	StringBuffer<WSTRING> buf;
 	
 	const AddressListParser::AddressList& l = addressList.getAddressList();
-	AddressListParser::AddressList::const_iterator it = l.begin();
-	while (it != l.end()) {
-		string_ptr<WSTRING> wstrValue;
-		status = (*it)->getValue(&wstrValue);
-		CHECK_QSTATUS();
-		const AddressBookAddress* pAddress = 0;
-		status = getAddress(wstrValue.get(), &pAddress);
-		CHECK_QSTATUS();
+	for (AddressListParser::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		wstring_ptr wstrValue((*it)->getValue());
+		const AddressBookAddress* pAddress = getAddress(wstrValue.get());
 		
-		if (buf.getLength() != 0) {
-			status = buf.append(L", ");
-			CHECK_QSTATUS();
-		}
-		if (pAddress) {
-			wstrValue.reset(0);
-			status = pAddress->getValue(&wstrValue);
-			CHECK_QSTATUS();
-		}
-		status = buf.append(wstrValue.get());
-		CHECK_QSTATUS();
-		
-		++it;
+		if (buf.getLength() != 0)
+			buf.append(L", ");
+		if (pAddress)
+			wstrValue = pAddress->getValue();
+		buf.append(wstrValue.get());
 	}
-
-	*pwstrAddresses = buf.getString();
 	
-	return QSTATUS_SUCCESS;
+	return buf.getString();
 }
 
-QSTATUS qm::AddressBook::getEntry(const WCHAR* pwszAddress,
-	const AddressBookEntry** ppEntry)
+const AddressBookEntry* qm::AddressBook::getEntry(const WCHAR* pwszAddress)
 {
 	assert(pwszAddress);
-	assert(ppEntry);
 	
-	DECLARE_QSTATUS();
-	
-	*ppEntry = 0;
-	
-	status = load();
-	CHECK_QSTATUS();
-	status = prepareEntryMap();
-	CHECK_QSTATUS();
+	if (!load())
+		return 0;
+	prepareEntryMap();
 	
 	EntryMap::value_type v(pwszAddress, 0);
 	EntryMap::const_iterator it = std::lower_bound(
@@ -237,9 +168,9 @@ QSTATUS qm::AddressBook::getEntry(const WCHAR* pwszAddress,
 			std::select1st<EntryMap::value_type>(),
 			std::select1st<EntryMap::value_type>()));
 	if (it != mapEntry_.end() && _wcsicmp((*it).first, pwszAddress) == 0)
-		*ppEntry = (*it).second;
-	
-	return QSTATUS_SUCCESS;
+		return (*it).second;
+	else
+		return 0;
 }
 
 void qm::AddressBook::setEnableReload(bool bEnable)
@@ -247,20 +178,15 @@ void qm::AddressBook::setEnableReload(bool bEnable)
 	bEnableReload_ = bEnable;
 }
 
-QSTATUS qm::AddressBook::addEntry(AddressBookEntry* pEntry)
+void qm::AddressBook::addEntry(std::auto_ptr<AddressBookEntry> pEntry)
 {
-	return STLWrapper<EntryList>(listEntry_).push_back(pEntry);
+	listEntry_.push_back(pEntry.get());
+	pEntry.release();
 }
 
-QSTATUS qm::AddressBook::getCategory(const WCHAR* pwszCategory,
-	const AddressBookCategory** ppCategory)
+const AddressBookCategory* qm::AddressBook::getCategory(const WCHAR* pwszCategory)
 {
 	assert(pwszCategory);
-	assert(ppCategory);
-	
-	DECLARE_QSTATUS();
-	
-	*ppCategory = 0;
 	
 	CategoryList::iterator it = std::find_if(
 		listCategory_.begin(), listCategory_.end(),
@@ -271,73 +197,62 @@ QSTATUS qm::AddressBook::getCategory(const WCHAR* pwszCategory,
 				std::identity<const WCHAR*>()),
 			pwszCategory));
 	if (it != listCategory_.end()) {
-		*ppCategory = *it;
+		return *it;
 	}
 	else {
-		std::auto_ptr<AddressBookCategory> pCategory;
-		status = newQsObject(pwszCategory, &pCategory);
-		CHECK_QSTATUS();
-		status = STLWrapper<CategoryList>(listCategory_).push_back(pCategory.get());
-		CHECK_QSTATUS();
-		*ppCategory = pCategory.release();
+		std::auto_ptr<AddressBookCategory> pCategory(
+			new AddressBookCategory(pwszCategory));
+		listCategory_.push_back(pCategory.get());
+		return pCategory.release();
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::AddressBook::initWAB()
+bool qm::AddressBook::initWAB()
 {
-	DECLARE_QSTATUS();
-	
 #ifndef _WIN32_WCE
 	Registry reg(HKEY_LOCAL_MACHINE,
-		L"Software\\Microsoft\\WAB\\DLLPath", &status);
-	CHECK_QSTATUS();
+		L"Software\\Microsoft\\WAB\\DLLPath");
 	if (!reg)
-		return QSTATUS_FAIL;
+		return false;
 	
-	string_ptr<WSTRING> wstrPath;
-	status = reg.getValue(L"", &wstrPath);
-	CHECK_QSTATUS();
+	wstring_ptr wstrPath;
+	if (!reg.getValue(L"", &wstrPath))
+		return false;
 	
 	W2T(wstrPath.get(), ptszPath);
 	hInstWAB_ = ::LoadLibrary(ptszPath);
 	if (!hInstWAB_)
-		return QSTATUS_FAIL;
+		return false;
 	
 	LPWABOPEN pfnWABOpen = reinterpret_cast<LPWABOPEN>(
 		::GetProcAddress(hInstWAB_, "WABOpen"));
 	if (!pfnWABOpen)
-		return QSTATUS_FAIL;
+		return false;
 	
 	ComPtr<IAddrBook> pAddrBook;
 	ComPtr<IWABObject> pWABObject;
 	WAB_PARAM param = { sizeof(param) };
 	if ((*pfnWABOpen)(&pAddrBook, &pWABObject, &param, 0) != S_OK)
-		return QSTATUS_FAIL;
+		return false;
 	
 	ULONG nSize = 0;
 	ENTRYID* pEntryId = 0;
 	if (pAddrBook->GetPAB(&nSize, &pEntryId) != S_OK)
-		return QSTATUS_FAIL;
+		return false;
 	
-	std::auto_ptr<IMAPIAdviseSinkImpl> pAdviseSink;
-	status = newQsObject(this, &pAdviseSink);
-	CHECK_QSTATUS();
+	std::auto_ptr<IMAPIAdviseSinkImpl> pAdviseSink(new IMAPIAdviseSinkImpl(this));
 	if (pAddrBook->Advise(sizeof(ENTRYID), pEntryId,
 		0xffffffff, pAdviseSink.get(), &nConnection_) != S_OK)
-		return QSTATUS_FAIL;
+		return false;
 	pAdviseSink.release();
 	
 	pAddrBook_ = pAddrBook.release();
 	pWABObject_ = pWABObject.release();
 #else
-	std::auto_ptr<NotificationWindow> pWindow;
-	status = newQsObject(this, &pWindow);
-	CHECK_QSTATUS();
-	status = pWindow->create(L"QmAddressBookNotificationWindow",
-		0, WS_POPUP, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-	CHECK_QSTATUS();
+	std::auto_ptr<NotificationWindow> pWindow(new NotificationWindow(this));
+	if (!pWindow->create(L"QmAddressBookNotificationWindow",
+		0, WS_POPUP, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+		return false;
 	pNotificationWindow_ = pWindow.release();
 	
 	CEOID oidCategory = 0;
@@ -351,20 +266,15 @@ QSTATUS qm::AddressBook::initWAB()
 		pNotificationWindow_->getHandle());
 #endif
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::AddressBook::load()
+bool qm::AddressBook::load()
 {
-	DECLARE_QSTATUS();
-	
 	if (!bEnableReload_)
-		return QSTATUS_SUCCESS;
+		return true;
 	
-	string_ptr<WSTRING> wstrPath;
-	status = Application::getApplication().getProfilePath(
-		FileNames::ADDRESSBOOK_XML, &wstrPath);
-	CHECK_QSTATUS();
+	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::ADDRESSBOOK_XML));
 	
 	bool bReload = false;
 	bool bClear = false;
@@ -390,44 +300,39 @@ QSTATUS qm::AddressBook::load()
 		clear(TYPE_BOTH);
 		
 		if (!bClear) {
-			XMLReader reader(&status);
-			CHECK_QSTATUS();
-			AddressBookContentHandler handler(this, &status);
-			CHECK_QSTATUS();
+			XMLReader reader;
+			AddressBookContentHandler handler(this);
 			reader.setContentHandler(&handler);
-			status = reader.parse(wstrPath.get());
-			CHECK_QSTATUS();
+			if (!reader.parse(wstrPath.get()))
+				return false;
 		}
 		
-		status = loadWAB();
-//		CHECK_QSTATUS();
+		loadWAB();
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::AddressBook::loadWAB()
+bool qm::AddressBook::loadWAB()
 {
-	DECLARE_QSTATUS();
-	
 #ifndef _WIN32_WCE
 	if (!pAddrBook_)
-		return QSTATUS_SUCCESS;
+		return true;
 	
 	ULONG nSize = 0;
 	ENTRYID* pEntryId = 0;
 	if (pAddrBook_->GetPAB(&nSize, &pEntryId) != S_OK)
-		return QSTATUS_FAIL;
+		return false;
 	
 	ULONG nType = 0;
 	ComPtr<IABContainer> pABC;
 	if (pAddrBook_->OpenEntry(nSize, pEntryId,
 		0, 0, &nType, reinterpret_cast<IUnknown**>(&pABC)) != S_OK)
-		return QSTATUS_FAIL;
+		return false;
 	
 	ComPtr<IMAPITable> pTable;
 	if (pABC->GetContentsTable(0, &pTable) != S_OK)
-		return QSTATUS_FAIL;
+		return false;
 	
 	ULONG props[] = {
 		PR_ENTRYID,
@@ -470,9 +375,7 @@ QSTATUS qm::AddressBook::loadWAB()
 				for (ULONG nRow = 0; nRow < pSRowSet->cRows; ++nRow) {
 					SRow* pRow = pSRowSet->aRow + nRow;
 					
-					std::auto_ptr<AddressBookEntry> pEntry;
-					status = newQsObject(true, &pEntry);
-					CHECK_QSTATUS();
+					std::auto_ptr<AddressBookEntry> pEntry(new AddressBookEntry(true));
 					
 					for (ULONG nValue = 0; nValue < pRow->cValues; ++nValue) {
 						SPropValue* pValue = pRow->lpProps + nValue;
@@ -480,35 +383,31 @@ QSTATUS qm::AddressBook::loadWAB()
 						switch (PROP_ID(nTag)) {
 						case PROP_ID(PR_DISPLAY_NAME):
 							{
-								string_ptr<WSTRING> wstrName;
+								wstring_ptr wstrName;
 								if (PROP_TYPE(nTag) == PT_STRING8)
-									wstrName.reset(mbs2wcs(pValue->Value.lpszA));
+									wstrName = mbs2wcs(pValue->Value.lpszA);
 								else if (PROP_TYPE(nTag) == PT_UNICODE)
-									wstrName.reset(allocWString(pValue->Value.lpszW));
+									wstrName = allocWString(pValue->Value.lpszW);
 								if (wstrName.get())
-									pEntry->setName(wstrName.release());
+									pEntry->setName(wstrName);
 							}
 							break;
 						case PROP_ID(PR_EMAIL_ADDRESS):
 							{
-								string_ptr<WSTRING> wstrAddress;
+								wstring_ptr wstrAddress;
 								if (PROP_TYPE(nTag) == PT_STRING8)
-									wstrAddress.reset(mbs2wcs(pValue->Value.lpszA));
+									wstrAddress = mbs2wcs(pValue->Value.lpszA);
 								else if (PROP_TYPE(nTag) == PT_UNICODE)
-									wstrAddress.reset(allocWString(pValue->Value.lpszW));
+									wstrAddress = allocWString(pValue->Value.lpszW);
 								if (wstrAddress.get()) {
-									std::auto_ptr<AddressBookAddress> pAddress;
-									status = newQsObject(pEntry.get(),
-										static_cast<const WCHAR*>(0),
-										AddressBookAddress::CategoryList(),
-										static_cast<const WCHAR*>(0),
-										static_cast<const WCHAR*>(0),
-										false, &pAddress);
-									CHECK_QSTATUS();
-									pAddress->setAddress(wstrAddress.release());
-									status = pEntry->addAddress(pAddress.get());
-									CHECK_QSTATUS();
-									pAddress.release();
+									std::auto_ptr<AddressBookAddress> pAddress(
+										new AddressBookAddress(pEntry.get(),
+											static_cast<const WCHAR*>(0),
+											AddressBookAddress::CategoryList(),
+											static_cast<const WCHAR*>(0),
+											static_cast<const WCHAR*>(0), false));
+									pAddress->setAddress(wstrAddress);
+									pEntry->addAddress(pAddress);
 								}
 							}
 							break;
@@ -517,25 +416,25 @@ QSTATUS qm::AddressBook::loadWAB()
 						}
 					}
 					
-					if (pEntry->getName() && !pEntry->getAddresses().empty()) {
-						status = addEntry(pEntry.get());
-						CHECK_QSTATUS();
-						pEntry.release();
-					}
+					if (pEntry->getName() && !pEntry->getAddresses().empty())
+						addEntry(pEntry);
 				}
 			}
 		}
 	}
 #else
 	if (!hContactsDB_)
-		return QSTATUS_SUCCESS;
+		return true;
 	
 	typedef std::vector<std::pair<unsigned int, WSTRING> > CategoryMap;
 	CategoryMap mapCategory;
 	struct Deleter
 	{
 		typedef CategoryMap Map;
-		Deleter(Map& m) : m_(m) {}
+		Deleter(Map& m) :
+			m_(m)
+		{
+		}
 		~Deleter()
 		{
 			std::for_each(m_.begin(), m_.end(),
@@ -581,14 +480,8 @@ QSTATUS qm::AddressBook::loadWAB()
 				pVal[2].wFlags != CEDB_PROPNOTFOUND &&
 				pVal[2].val.iVal != 0) {
 				unsigned int nId = pVal[0].val.iVal;
-				string_ptr<WSTRING> wstrCategory(
-					allocWString(pVal[1].val.lpwstr));
-				if (!wstrCategory.get())
-					return QSTATUS_OUTOFMEMORY;
-				
-				status = STLWrapper<CategoryMap>(mapCategory).push_back(
-					CategoryMap::value_type(nId, wstrCategory.get()));
-				CHECK_QSTATUS();
+				wstring_ptr wstrCategory(allocWString(pVal[1].val.lpwstr));
+				mapCategory.push_back(CategoryMap::value_type(nId, wstrCategory.get()));
 				wstrCategory.release();
 			}
 		}
@@ -645,24 +538,16 @@ QSTATUS qm::AddressBook::loadWAB()
 		const WCHAR* pwszYomiFirstName = L"";
 		if (pVal[6].wFlags != CEDB_PROPNOTFOUND)
 			pwszYomiFirstName = pVal[6].val.lpwstr;
-		string_ptr<WSTRING> wstrSortKey(concat(
-			pwszYomiLastName, L" ", pwszYomiFirstName));
+		wstring_ptr wstrSortKey(concat(pwszYomiLastName, L" ", pwszYomiFirstName));
 #else
-		string_ptr<WSTRING> wstrSortKey(concat(
-			wstrSurName.get(), L", ", wstrGivenName()));
-		if (!wstrSortKey.get())
-			return QSTATUS_OUTOFMEMORY;
+		wstring_ptr wstrSortKey(concat(wstrSurName.get(), L", ", wstrGivenName()));
 #endif
 		
 #ifdef JAPAN
-		string_ptr<WSTRING> wstrName(concat(
-			pwszSurName, L" ", pwszGivenName));
+		wstring_ptr wstrName(concat(pwszSurName, L" ", pwszGivenName));
 #else
-		string_ptr<WSTRING> wstrName(concat(
-			pwszGivenName, L" ", pwszSurName));
+		wstring_ptr wstrName(concat(pwszGivenName, L" ", pwszSurName));
 #endif
-		if (!wstrName.get())
-			return QSTATUS_OUTOFMEMORY;
 		
 		AddressBookAddress::CategoryList listCategory;
 		if (pVal[5].wFlags != CEDB_PROPNOTFOUND) {
@@ -680,60 +565,43 @@ QSTATUS qm::AddressBook::loadWAB()
 									std::less<unsigned int>(),
 									std::select1st<CategoryMap::value_type>(),
 									std::select1st<CategoryMap::value_type>()));
-							if (it != mapCategory.end() && (*it).first == nId) {
-								const AddressBookCategory* pCategory = 0;
-								status = getCategory((*it).second, &pCategory);
-								CHECK_QSTATUS();
-								status = STLWrapper<AddressBookAddress::CategoryList>(
-									listCategory).push_back(pCategory);
-								CHECK_QSTATUS();
-							}
+							if (it != mapCategory.end() && (*it).first == nId)
+								listCategory.push_back(getCategory((*it).second));
 						}
 					}
 				}
 			}
 		}
 		
-		std::auto_ptr<AddressBookEntry> pEntry;
-		status = newQsObject(true, &pEntry);
-		CHECK_QSTATUS();
-		pEntry->setName(wstrName.release());
-		pEntry->setSortKey(wstrSortKey.release());
+		std::auto_ptr<AddressBookEntry> pEntry(new AddressBookEntry(true));
+		pEntry->setName(wstrName);
+		pEntry->setSortKey(wstrSortKey);
 		
 		for (int nAddress = 2; nAddress < 5; ++nAddress) {
 			if (pVal[nAddress].wFlags != CEDB_PROPNOTFOUND) {
-				std::auto_ptr<AddressBookAddress> pAddress;
-				status = newQsObject(pEntry.get(),
-					static_cast<const WCHAR*>(0), listCategory,
-					static_cast<const WCHAR*>(0),
-					static_cast<const WCHAR*>(0), false, &pAddress);
-				CHECK_QSTATUS();
-				string_ptr<WSTRING> wstrAddress(
-					allocWString(pVal[nAddress].val.lpwstr));
-				if (!wstrAddress.get())
-					return QSTATUS_OUTOFMEMORY;
-				pAddress->setAddress(wstrAddress.release());
-				status = pEntry->addAddress(pAddress.get());
-				CHECK_QSTATUS();
-				pAddress.release();
+				std::auto_ptr<AddressBookAddress> pAddress(
+					new AddressBookAddress(pEntry.get(),
+						static_cast<const WCHAR*>(0), listCategory,
+						static_cast<const WCHAR*>(0),
+						static_cast<const WCHAR*>(0), false));
+				wstring_ptr wstrAddress(allocWString(pVal[nAddress].val.lpwstr));
+				pAddress->setAddress(wstrAddress);
+				pEntry->addAddress(pAddress);
 			}
 		}
 		
-		status = addEntry(pEntry.get());
-		CHECK_QSTATUS();
-		pEntry.release();
+		addEntry(pEntry);
 	}
 #endif
 	
 	bContactChanged_ = false;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 void qm::AddressBook::clear(unsigned int nType)
 {
-	EntryList::iterator it = listEntry_.begin();
-	while (it != listEntry_.end()) {
+	for (EntryList::iterator it = listEntry_.begin(); it != listEntry_.end(); ) {
 		bool bWAB = (*it)->isWAB();
 		if ((nType & TYPE_ADDRESSBOOK && !bWAB) ||
 			(nType & TYPE_WAB && bWAB)) {
@@ -752,18 +620,14 @@ void qm::AddressBook::clear(unsigned int nType)
 	mapEntry_.clear();
 }
 
-QSTATUS qm::AddressBook::prepareEntryMap()
+void qm::AddressBook::prepareEntryMap()
 {
-	DECLARE_QSTATUS();
-	
 	if (mapEntry_.empty()) {
-		EntryList::const_iterator itE = listEntry_.begin();
-		while (itE != listEntry_.end()) {
+		for (EntryList::const_iterator itE = listEntry_.begin(); itE != listEntry_.end(); ++itE) {
 			AddressBookEntry* pEntry = *itE;
 			
 			const AddressBookEntry::AddressList& l = pEntry->getAddresses();
-			AddressBookEntry::AddressList::const_iterator itA = l.begin();
-			while (itA != l.end()) {
+			for (AddressBookEntry::AddressList::const_iterator itA = l.begin(); itA != l.end(); ++itA) {
 				AddressBookAddress* pAddress = *itA;
 				if (!pAddress->isRFC2822()) {
 					EntryMap::value_type v(pAddress->getAddress(), pEntry);
@@ -774,20 +638,12 @@ QSTATUS qm::AddressBook::prepareEntryMap()
 							string_less_i<WCHAR>(),
 							std::select1st<EntryMap::value_type>(),
 							std::select1st<EntryMap::value_type>()));
-					if (itM == mapEntry_.end() || _wcsicmp((*itM).first, v.first) != 0) {
-						EntryMap::iterator p;
-						status = STLWrapper<EntryMap>(mapEntry_).insert(itM, v, &p);
-						CHECK_QSTATUS();
-					}
+					if (itM == mapEntry_.end() || _wcsicmp((*itM).first, v.first) != 0)
+						mapEntry_.insert(itM, v);
 				}
-				++itA;
 			}
-			
-			++itE;
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -799,8 +655,7 @@ QSTATUS qm::AddressBook::prepareEntryMap()
  *
  */
 
-qm::AddressBook::IMAPIAdviseSinkImpl::IMAPIAdviseSinkImpl(
-	AddressBook* pAddressBook, qs::QSTATUS* pstatus) :
+qm::AddressBook::IMAPIAdviseSinkImpl::IMAPIAdviseSinkImpl(AddressBook* pAddressBook) :
 	nRef_(0),
 	pAddressBook_(pAddressBook)
 {
@@ -810,8 +665,8 @@ qm::AddressBook::IMAPIAdviseSinkImpl::~IMAPIAdviseSinkImpl()
 {
 }
 
-STDMETHODIMP qm::AddressBook::IMAPIAdviseSinkImpl::QueryInterface(
-	REFIID riid, void** ppv)
+STDMETHODIMP qm::AddressBook::IMAPIAdviseSinkImpl::QueryInterface(REFIID riid,
+																  void** ppv)
 {
 	if (riid == IID_IUnknown || riid == IID_IMAPIAdviseSink)
 		*ppv = static_cast<IMAPIAdviseSink*>(this);
@@ -837,8 +692,8 @@ STDMETHODIMP_(ULONG) qm::AddressBook::IMAPIAdviseSinkImpl::Release()
 	return nRef_;
 }
 
-STDMETHODIMP_(ULONG) qm::AddressBook::IMAPIAdviseSinkImpl::OnNotify(
-	ULONG cNotif, LPNOTIFICATION lpNotifications)
+STDMETHODIMP_(ULONG) qm::AddressBook::IMAPIAdviseSinkImpl::OnNotify(ULONG cNotif,
+																	LPNOTIFICATION lpNotifications)
 {
 	pAddressBook_->bContactChanged_ = true;
 	return S_OK;
@@ -852,10 +707,8 @@ STDMETHODIMP_(ULONG) qm::AddressBook::IMAPIAdviseSinkImpl::OnNotify(
  *
  */
 
-qm:: AddressBook::NotificationWindow::NotificationWindow(
-	AddressBook* pAddressBook, qs::QSTATUS* pstatus) :
-	WindowBase(true, pstatus),
-	DefaultWindowHandler(pstatus),
+qm:: AddressBook::NotificationWindow::NotificationWindow(AddressBook* pAddressBook) :
+	WindowBase(true),
 	pAddressBook_(pAddressBook)
 {
 	setWindowHandler(this, false);
@@ -865,8 +718,9 @@ qm:: AddressBook::NotificationWindow::~NotificationWindow()
 {
 }
 
-LRESULT qm:: AddressBook::NotificationWindow::windowProc(
-	UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qm:: AddressBook::NotificationWindow::windowProc(UINT uMsg,
+														 WPARAM wParam,
+														 LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_MESSAGE(DB_CEOID_CREATED, onDBNotification)
@@ -876,8 +730,8 @@ LRESULT qm:: AddressBook::NotificationWindow::windowProc(
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
 
-LRESULT qm:: AddressBook::NotificationWindow::onDBNotification(
-	WPARAM wParam, LPARAM lParam)
+LRESULT qm:: AddressBook::NotificationWindow::onDBNotification(WPARAM wParam,
+															   LPARAM lParam)
 {
 	pAddressBook_->bContactChanged_ = true;
 	return 0;
@@ -892,17 +746,13 @@ LRESULT qm:: AddressBook::NotificationWindow::onDBNotification(
  *
  */
 
-qm::AddressBookEntry::AddressBookEntry(bool bWAB, QSTATUS* pstatus) :
-	bWAB_(bWAB),
-	wstrName_(0),
-	wstrSortKey_(0)
+qm::AddressBookEntry::AddressBookEntry(bool bWAB) :
+	bWAB_(bWAB)
 {
 }
 
 qm::AddressBookEntry::~AddressBookEntry()
 {
-	freeWString(wstrName_);
-	freeWString(wstrSortKey_);
 	std::for_each(listAddress_.begin(), listAddress_.end(),
 		deleter<AddressBookAddress>());
 }
@@ -914,12 +764,12 @@ bool qm::AddressBookEntry::isWAB() const
 
 const WCHAR* qm::AddressBookEntry::getName() const
 {
-	return wstrName_;
+	return wstrName_.get();
 }
 
 const WCHAR* qm::AddressBookEntry::getSortKey() const
 {
-	return wstrSortKey_ ? wstrSortKey_ : wstrName_;
+	return wstrSortKey_.get() ? wstrSortKey_.get() : wstrName_.get();
 }
 
 const AddressBookEntry::AddressList& qm::AddressBookEntry::getAddresses() const
@@ -927,19 +777,20 @@ const AddressBookEntry::AddressList& qm::AddressBookEntry::getAddresses() const
 	return listAddress_;
 }
 
-void qm::AddressBookEntry::setName(qs::WSTRING wstrName)
+void qm::AddressBookEntry::setName(wstring_ptr wstrName)
 {
 	wstrName_ = wstrName;
 }
 
-void qm::AddressBookEntry::setSortKey(qs::WSTRING wstrSortKey)
+void qm::AddressBookEntry::setSortKey(wstring_ptr wstrSortKey)
 {
 	wstrSortKey_ = wstrSortKey;
 }
 
-QSTATUS qm::AddressBookEntry::addAddress(AddressBookAddress* pAddress)
+void qm::AddressBookEntry::addAddress(std::auto_ptr<AddressBookAddress> pAddress)
 {
-	return STLWrapper<AddressList>(listAddress_).push_back(pAddress);
+	listAddress_.push_back(pAddress.get());
+	pAddress.release();
 }
 
 
@@ -950,60 +801,25 @@ QSTATUS qm::AddressBookEntry::addAddress(AddressBookAddress* pAddress)
  */
 
 qm::AddressBookAddress::AddressBookAddress(const AddressBookEntry* pEntry,
-	const WCHAR* pwszAlias, const CategoryList& listCategory,
-	const WCHAR* pwszComment, const WCHAR* pwszCertificate,
-	bool bRFC2822, QSTATUS* pstatus) :
+										   const WCHAR* pwszAlias,
+										   const CategoryList& listCategory,
+										   const WCHAR* pwszComment,
+										   const WCHAR* pwszCertificate,
+										   bool bRFC2822) :
 	pEntry_(pEntry),
-	wstrAddress_(0),
-	wstrAlias_(0),
-	wstrComment_(0),
-	wstrCertificate_(0),
+	listCategory_(listCategory),
 	bRFC2822_(bRFC2822)
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrAlias;
-	if (pwszAlias) {
-		wstrAlias.reset(allocWString(pwszAlias));
-		if (!wstrAlias.get()) {
-			*pstatus = QSTATUS_OUTOFMEMORY;
-			return;
-		}
-	}
-	
-	status = STLWrapper<CategoryList>(listCategory_).resize(listCategory.size());
-	CHECK_QSTATUS_SET(pstatus);
-	std::copy(listCategory.begin(), listCategory.end(), listCategory_.begin());
-	
-	string_ptr<WSTRING> wstrComment;
-	if (pwszComment) {
-		wstrComment.reset(allocWString(pwszComment));
-		if (!wstrComment.get()) {
-			*pstatus = QSTATUS_OUTOFMEMORY;
-			return;
-		}
-	}
-	
-	string_ptr<WSTRING> wstrCertificate;
-	if (pwszCertificate) {
-		wstrCertificate.reset(allocWString(pwszCertificate));
-		if (!wstrCertificate.get()) {
-			*pstatus = QSTATUS_OUTOFMEMORY;
-			return;
-		}
-	}
-	
-	wstrAlias_ = wstrAlias.release();
-	wstrComment_ = wstrComment.release();
-	wstrCertificate_ = wstrCertificate.release();
+	if (pwszAlias)
+		wstrAlias_ = allocWString(pwszAlias);
+	if (pwszComment)
+		wstrComment_ = allocWString(pwszComment);
+	if (pwszCertificate)
+		wstrCertificate_ = allocWString(pwszCertificate);
 }
 
 qm::AddressBookAddress::~AddressBookAddress()
 {
-	freeWString(wstrAddress_);
-	freeWString(wstrAlias_);
-	freeWString(wstrComment_);
-	freeWString(wstrCertificate_);
 }
 
 const AddressBookEntry* qm::AddressBookAddress::getEntry() const
@@ -1013,12 +829,12 @@ const AddressBookEntry* qm::AddressBookAddress::getEntry() const
 
 const WCHAR* qm::AddressBookAddress::getAddress() const
 {
-	return wstrAddress_;
+	return wstrAddress_.get();
 }
 
 const WCHAR* qm::AddressBookAddress::getAlias() const
 {
-	return wstrAlias_;
+	return wstrAlias_.get();
 }
 
 const AddressBookAddress::CategoryList& qm::AddressBookAddress::getCategories() const
@@ -1028,12 +844,12 @@ const AddressBookAddress::CategoryList& qm::AddressBookAddress::getCategories() 
 
 const WCHAR* qm::AddressBookAddress::getComment() const
 {
-	return wstrComment_;
+	return wstrComment_.get();
 }
 
 const WCHAR* qm::AddressBookAddress::getCertificate() const
 {
-	return wstrCertificate_;
+	return wstrCertificate_.get();
 }
 
 bool qm::AddressBookAddress::isRFC2822() const
@@ -1041,37 +857,23 @@ bool qm::AddressBookAddress::isRFC2822() const
 	return bRFC2822_;
 }
 
-QSTATUS qm::AddressBookAddress::getValue(WSTRING* pwstrValue) const
+wstring_ptr qm::AddressBookAddress::getValue() const
 {
-	assert(pwstrValue);
+	StringBuffer<WSTRING> buf;
 	
-	DECLARE_QSTATUS();
-	
-	*pwstrValue = 0;
-	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
 	if (bRFC2822_) {
-		status = buf.append(wstrAddress_);
-		CHECK_QSTATUS();
+		buf.append(wstrAddress_.get());
 	}
 	else {
-		AddressParser address(pEntry_->getName(),
-			wstrAddress_, &status);
-		CHECK_QSTATUS();
-		string_ptr<WSTRING> wstrValue;
-		status = address.getValue(&wstrValue);
-		CHECK_QSTATUS();
-		status = buf.append(wstrValue.get());
-		CHECK_QSTATUS();
+		AddressParser address(pEntry_->getName(), wstrAddress_.get());
+		wstring_ptr wstrValue(address.getValue());
+		buf.append(wstrValue.get());
 	}
 	
-	*pwstrValue = buf.getString();
-	
-	return QSTATUS_SUCCESS;
+	return buf.getString();
 }
 
-void qm::AddressBookAddress::setAddress(qs::WSTRING wstrAddress)
+void qm::AddressBookAddress::setAddress(wstring_ptr wstrAddress)
 {
 	wstrAddress_ = wstrAddress;
 }
@@ -1083,26 +885,18 @@ void qm::AddressBookAddress::setAddress(qs::WSTRING wstrAddress)
  *
  */
 
-qm::AddressBookCategory::AddressBookCategory(
-	const WCHAR* pwszName, QSTATUS* pstatus) :
-	wstrName_(0)
+qm::AddressBookCategory::AddressBookCategory(const WCHAR* pwszName)
 {
-	string_ptr<WSTRING> wstrName(allocWString(pwszName));
-	if (!wstrName.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
-	wstrName_ = wstrName.release();
+	wstrName_ = allocWString(pwszName);
 }
 
 qm::AddressBookCategory::~AddressBookCategory()
 {
-	freeWString(wstrName_);
 }
 
 const WCHAR* qm::AddressBookCategory::getName() const
 {
-	return wstrName_;
+	return wstrName_.get();
 }
 
 
@@ -1112,86 +906,66 @@ const WCHAR* qm::AddressBookCategory::getName() const
  *
  */
 
-qm::AddressBookContentHandler::AddressBookContentHandler(
-	AddressBook* pAddressBook, QSTATUS* pstatus) :
-	DefaultHandler(pstatus),
+qm::AddressBookContentHandler::AddressBookContentHandler(AddressBook* pAddressBook) :
 	pAddressBook_(pAddressBook),
 	state_(STATE_ROOT),
 	pEntry_(0),
 	pAddress_(0)
 {
-	DECLARE_QSTATUS();
-	
-	status = newQsObject(&pBuffer_);
-	CHECK_QSTATUS_SET(pstatus);
 }
 
 qm::AddressBookContentHandler::~AddressBookContentHandler()
 {
-	delete pBuffer_;
 }
 
-QSTATUS qm::AddressBookContentHandler::startElement(
-	const WCHAR* pwszNamespaceURI, const WCHAR* pwszLocalName,
-	const WCHAR* pwszQName, const qs::Attributes& attributes)
+bool qm::AddressBookContentHandler::startElement(const WCHAR* pwszNamespaceURI,
+												 const WCHAR* pwszLocalName,
+												 const WCHAR* pwszQName,
+												 const Attributes& attributes)
 {
-	DECLARE_QSTATUS();
-	
 	if (wcscmp(pwszLocalName, L"addressBook") == 0) {
 		if (state_ != STATE_ROOT)
-			return QSTATUS_FAIL;
-		
+			return false;
 		if (attributes.getLength() != 0)
-			return QSTATUS_FAIL;
-		
+			return false;
 		state_ = STATE_ADDRESSBOOK;
 	}
 	else if (wcscmp(pwszLocalName, L"entry") == 0) {
 		if (state_ != STATE_ADDRESSBOOK)
-			return QSTATUS_FAIL;
-		
+			return false;
 		if (attributes.getLength() != 0)
-			return QSTATUS_FAIL;
+			return false;
 		
-		std::auto_ptr<AddressBookEntry> pEntry;
-		status = newQsObject(false, &pEntry);
-		CHECK_QSTATUS();
-		status = pAddressBook_->addEntry(pEntry.get());
-		CHECK_QSTATUS();
-		pEntry_ = pEntry.release();
+		std::auto_ptr<AddressBookEntry> pEntry(new AddressBookEntry(false));
+		pEntry_ = pEntry.get();
+		pAddressBook_->addEntry(pEntry);
 		
 		state_ = STATE_ENTRY;
 	}
 	else if (wcscmp(pwszLocalName, L"name") == 0) {
 		if (state_ != STATE_ENTRY)
-			return QSTATUS_FAIL;
-		
+			return false;
 		if (attributes.getLength() != 0)
-			return QSTATUS_FAIL;
-		
+			return false;
 		state_ = STATE_NAME;
 	}
 	else if (wcscmp(pwszLocalName, L"sortKey") == 0) {
 		if (state_ != STATE_ENTRY)
-			return QSTATUS_FAIL;
-		
+			return false;
 		if (attributes.getLength() != 0)
-			return QSTATUS_FAIL;
-		
+			return false;
 		state_ = STATE_SORTKEY;
 	}
 	else if (wcscmp(pwszLocalName, L"addresses") == 0) {
 		if (state_ != STATE_ENTRY)
-			return QSTATUS_FAIL;
-		
+			return false;
 		if (attributes.getLength() != 0)
-			return QSTATUS_FAIL;
-		
+			return false;
 		state_ = STATE_ADDRESSES;
 	}
 	else if (wcscmp(pwszLocalName, L"address") == 0) {
 		if (state_ != STATE_ADDRESSES)
-			return QSTATUS_FAIL;
+			return false;
 		
 		const WCHAR* pwszAlias = 0;
 		const WCHAR* pwszCategory = 0;
@@ -1211,50 +985,38 @@ QSTATUS qm::AddressBookContentHandler::startElement(
 			else if (wcscmp(pwszAttrName, L"rfc2822") == 0)
 				bRFC2822 = wcscmp(attributes.getValue(n), L"true") == 0;
 			else
-				return QSTATUS_FAIL;
+				return false;
 		}
 		
 		AddressBookAddress::CategoryList listCategory;
 		if (pwszCategory) {
-			string_ptr<WSTRING> wstrCategory(allocWString(pwszCategory));
-			if (!wstrCategory.get())
-				return QSTATUS_OUTOFMEMORY;
+			wstring_ptr wstrCategory(allocWString(pwszCategory));
 			const WCHAR* p = wcstok(wstrCategory.get(), L",");
 			while (p) {
-				const AddressBookCategory* pCategory = 0;
-				status = pAddressBook_->getCategory(p, &pCategory);
-				CHECK_QSTATUS();
-				status = STLWrapper<AddressBookAddress::CategoryList>(
-					listCategory).push_back(pCategory);
-				CHECK_QSTATUS();
+				listCategory.push_back(pAddressBook_->getCategory(p));
 				p = wcstok(0, L",");
 			}
 		}
 		
 		assert(pEntry_);
-		std::auto_ptr<AddressBookAddress> pAddress;
-		status = newQsObject(pEntry_, pwszAlias, listCategory,
-			pwszComment, pwszCertificate, bRFC2822, &pAddress);
-		CHECK_QSTATUS();
-		status = pEntry_->addAddress(pAddress.get());
-		CHECK_QSTATUS();
-		pAddress_ = pAddress.release();
+		std::auto_ptr<AddressBookAddress> pAddress(new AddressBookAddress(
+			pEntry_, pwszAlias, listCategory, pwszComment, pwszCertificate, bRFC2822));
+		pAddress_ = pAddress.get();
+		pEntry_->addAddress(pAddress);
 		
 		state_ = STATE_ADDRESS;
 	}
 	else {
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::AddressBookContentHandler::endElement(
-	const WCHAR* pwszNamespaceURI, const WCHAR* pwszLocalName,
-	const WCHAR* pwszQName)
+bool qm::AddressBookContentHandler::endElement(const WCHAR* pwszNamespaceURI,
+											   const WCHAR* pwszLocalName,
+											   const WCHAR* pwszQName)
 {
-	DECLARE_QSTATUS();
-	
 	if (wcscmp(pwszLocalName, L"addressBook") == 0) {
 		assert(state_ == STATE_ADDRESSBOOK);
 		state_ = STATE_ROOT;
@@ -1264,7 +1026,7 @@ QSTATUS qm::AddressBookContentHandler::endElement(
 		
 		assert(pEntry_);
 		if (!pEntry_->getName() || pEntry_->getAddresses().empty())
-			return QSTATUS_FAIL;
+			return false;
 		pEntry_ = 0;
 		
 		state_ = STATE_ADDRESSBOOK;
@@ -1273,7 +1035,7 @@ QSTATUS qm::AddressBookContentHandler::endElement(
 		assert(state_ == STATE_NAME);
 		
 		assert(pEntry_);
-		pEntry_->setName(pBuffer_->getString());
+		pEntry_->setName(buffer_.getString());
 		
 		state_ = STATE_ENTRY;
 	}
@@ -1281,7 +1043,7 @@ QSTATUS qm::AddressBookContentHandler::endElement(
 		assert(state_ == STATE_SORTKEY);
 		
 		assert(pEntry_);
-		pEntry_->setSortKey(pBuffer_->getString());
+		pEntry_->setSortKey(buffer_.getString());
 		
 		state_ = STATE_ENTRY;
 	}
@@ -1293,35 +1055,33 @@ QSTATUS qm::AddressBookContentHandler::endElement(
 		assert(state_ == STATE_ADDRESS);
 		
 		assert(pAddress_);
-		pAddress_->setAddress(pBuffer_->getString());
+		pAddress_->setAddress(buffer_.getString());
 		
 		state_ = STATE_ADDRESSES;
 	}
 	else {
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::AddressBookContentHandler::characters(
-	const WCHAR* pwsz, size_t nStart, size_t nLength)
+bool qm::AddressBookContentHandler::characters(const WCHAR* pwsz,
+											   size_t nStart,
+											   size_t nLength)
 {
-	DECLARE_QSTATUS();
-	
 	if (state_ == STATE_NAME ||
 		state_ == STATE_SORTKEY ||
 		state_ == STATE_ADDRESS) {
-		status = pBuffer_->append(pwsz + nStart, nLength);
-		CHECK_QSTATUS();
+		buffer_.append(pwsz + nStart, nLength);
 	}
 	else {
 		const WCHAR* p = pwsz + nStart;
 		for (size_t n = 0; n < nLength; ++n, ++p) {
 			if (*p != L' ' && *p != L'\t' && *p != '\n')
-				return QSTATUS_FAIL;
+				return false;
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }

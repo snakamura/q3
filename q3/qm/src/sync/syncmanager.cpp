@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -15,9 +15,7 @@
 #include <qmsession.h>
 #include <qmsyncfilter.h>
 
-#include <qserror.h>
 #include <qsinit.h>
-#include <qsnew.h>
 #include <qsstl.h>
 
 #include <algorithm>
@@ -38,8 +36,11 @@ using namespace qs;
  *
  */
 
-qm::SyncItem::SyncItem(Account* pAccount, SubAccount* pSubAccount,
-	NormalFolder* pFolder, const SyncFilterSet* pFilterSet, unsigned int nSlot) :
+qm::SyncItem::SyncItem(Account* pAccount,
+					   SubAccount* pSubAccount,
+					   NormalFolder* pFolder,
+					   const SyncFilterSet* pFilterSet,
+					   unsigned int nSlot) :
 	pAccount_(pAccount),
 	pSubAccount_(pSubAccount),
 	pFolder_(pFolder),
@@ -50,8 +51,10 @@ qm::SyncItem::SyncItem(Account* pAccount, SubAccount* pSubAccount,
 {
 }
 
-qm::SyncItem::SyncItem(Account* pAccount, SubAccount* pSubAccount,
-	ConnectReceiveBeforeSend crbs, unsigned int nSlot) :
+qm::SyncItem::SyncItem(Account* pAccount,
+					   SubAccount* pSubAccount,
+					   ConnectReceiveBeforeSend crbs,
+					   unsigned int nSlot) :
 	pAccount_(pAccount),
 	pSubAccount_(pSubAccount),
 	pFolder_(0),
@@ -122,46 +125,34 @@ unsigned int qm::SyncItem::getSlot() const
  *
  */
 
-qm::SyncDialup::SyncDialup(const WCHAR* pwszEntry, unsigned int nFlags,
-	const WCHAR* pwszDialFrom, unsigned int nDisconnectWait, QSTATUS* pstatus) :
+qm::SyncDialup::SyncDialup(const WCHAR* pwszEntry,
+						   unsigned int nFlags,
+						   const WCHAR* pwszDialFrom,
+						   unsigned int nDisconnectWait) :
 	wstrEntry_(0),
 	nFlags_(nFlags),
 	wstrDialFrom_(0),
 	nDisconnectWait_(nDisconnectWait)
 {
-	DECLARE_QSTATUS();
+	wstring_ptr wstrEntry;
+	if (pwszEntry)
+		wstrEntry = allocWString(pwszEntry);
 	
-	string_ptr<WSTRING> wstrEntry;
-	if (pwszEntry) {
-		wstrEntry.reset(allocWString(pwszEntry));
-		if (!wstrEntry.get()) {
-			*pstatus = QSTATUS_OUTOFMEMORY;
-			return;
-		}
-	}
+	wstring_ptr wstrDialFrom;
+	if (pwszDialFrom)
+		wstrDialFrom = allocWString(pwszDialFrom);
 	
-	string_ptr<WSTRING> wstrDialFrom;
-	if (pwszDialFrom) {
-		wstrDialFrom.reset(allocWString(pwszDialFrom));
-		if (!wstrDialFrom.get()) {
-			*pstatus = QSTATUS_OUTOFMEMORY;
-			return;
-		}
-	}
-	
-	wstrEntry_ = wstrEntry.release();
-	wstrDialFrom_ = wstrDialFrom.release();
+	wstrEntry_ = wstrEntry;
+	wstrDialFrom_ = wstrDialFrom;
 }
 
 qm::SyncDialup::~SyncDialup()
 {
-	freeWString(wstrEntry_);
-	freeWString(wstrDialFrom_);
 }
 
 const WCHAR* qm::SyncDialup::getEntry() const
 {
-	return wstrEntry_;
+	return wstrEntry_.get();
 }
 
 unsigned int qm::SyncDialup::getFlags() const
@@ -171,7 +162,7 @@ unsigned int qm::SyncDialup::getFlags() const
 
 const WCHAR* qm::SyncDialup::getDialFrom() const
 {
-	return wstrDialFrom_;
+	return wstrDialFrom_.get();
 }
 
 unsigned int qm::SyncDialup::getDisconnectWait() const
@@ -186,23 +177,21 @@ unsigned int qm::SyncDialup::getDisconnectWait() const
  *
  */
 
-qm::SyncData::SyncData(SyncManager* pManager, Document* pDocument,
-	HWND hwnd, unsigned int nCallbackParam, QSTATUS* pstatus) :
+qm::SyncData::SyncData(SyncManager* pManager,
+					   Document* pDocument,
+					   HWND hwnd,
+					   unsigned int nCallbackParam) :
 	pManager_(pManager),
 	pDocument_(pDocument),
 	hwnd_(hwnd),
 	nCallbackParam_(nCallbackParam),
 	pCallback_(0),
-	pDialup_(0),
 	nSlot_(0)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::SyncData::~SyncData()
 {
-	delete pDialup_;
 }
 
 Document* qm::SyncData::getDocument() const
@@ -227,7 +216,7 @@ unsigned int qm::SyncData::getCallbackParam() const
 
 const SyncDialup* qm::SyncData::getDialup() const
 {
-	return pDialup_;
+	return pDialup_.get();
 }
 
 const SyncData::ItemList& qm::SyncData::getItems() const
@@ -250,7 +239,7 @@ void qm::SyncData::setCallback(SyncManagerCallback* pCallback)
 	pCallback_ = pCallback;
 }
 
-void qm::SyncData::setDialup(SyncDialup* pDialup)
+void qm::SyncData::setDialup(std::auto_ptr<SyncDialup> pDialup)
 {
 	pDialup_ = pDialup;
 }
@@ -261,31 +250,25 @@ void qm::SyncData::newSlot()
 		++nSlot_;
 }
 
-QSTATUS qm::SyncData::addFolder(Account* pAccount, SubAccount* pSubAccount,
-	NormalFolder* pFolder, const WCHAR* pwszFilterName)
+void qm::SyncData::addFolder(Account* pAccount,
+							 SubAccount* pSubAccount,
+							 NormalFolder* pFolder,
+							 const WCHAR* pwszFilterName)
 {
-	DECLARE_QSTATUS();
-	
-	const SyncFilterSet* pFilterSet = 0;
-	status = pManager_->getSyncFilterManager()->getFilterSet(
-		pAccount, pwszFilterName, &pFilterSet);
-	status = STLWrapper<ItemList>(listItem_).push_back(
-		SyncItem(pAccount, pSubAccount, pFolder, pFilterSet, nSlot_));
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	SyncFilterManager* pManager = pManager_->getSyncFilterManager();
+	const SyncFilterSet* pFilterSet = pManager->getFilterSet(pAccount, pwszFilterName);
+	listItem_.push_back(SyncItem(pAccount, pSubAccount, pFolder, pFilterSet, nSlot_));
 }
 
-QSTATUS qm::SyncData::addFolders(Account* pAccount, SubAccount* pSubAccount,
-	const qs::RegexPattern* pFolderNamePattern, const WCHAR* pwszFilterName)
+void qm::SyncData::addFolders(Account* pAccount,
+							  SubAccount* pSubAccount,
+							  const RegexPattern* pFolderNamePattern,
+							  const WCHAR* pwszFilterName)
 {
-	DECLARE_QSTATUS();
-	
 	Account::FolderList listFolder;
 	
 	const Account::FolderList& l = pAccount->getFolders();
-	Account::FolderList::const_iterator it = l.begin();
-	while (it != l.end()) {
+	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		Folder* pFolder = *it;
 		if (pFolder->getType() == Folder::TYPE_NORMAL &&
 			!pFolder->isFlag(Folder::FLAG_NOSELECT) &&
@@ -293,38 +276,24 @@ QSTATUS qm::SyncData::addFolders(Account* pAccount, SubAccount* pSubAccount,
 			pFolder->isFlag(Folder::FLAG_SYNCABLE)) {
 			bool bAdd = true;
 			if (pFolderNamePattern) {
-				string_ptr<WSTRING> wstrFolderName;
-				status = pFolder->getFullName(&wstrFolderName);
-				CHECK_QSTATUS();
-				status = pFolderNamePattern->match(wstrFolderName.get(), &bAdd);
-				CHECK_QSTATUS();
+				wstring_ptr wstrFolderName(pFolder->getFullName());
+				bAdd = pFolderNamePattern->match(wstrFolderName.get());
 			}
-			if (bAdd) {
-				status = STLWrapper<Account::FolderList>(listFolder).push_back(pFolder);
-				CHECK_QSTATUS();
-			}
+			if (bAdd)
+				listFolder.push_back(pFolder);
 		}
-		++it;
 	}
 	
 	std::sort(listFolder.begin(), listFolder.end(), FolderLess());
-	it = listFolder.begin();
-	while (it != listFolder.end()) {
-		status = addFolder(pAccount, pSubAccount,
-			static_cast<NormalFolder*>(*it), pwszFilterName);
-		CHECK_QSTATUS();
-		++it;
-	}
-	
-	
-	return QSTATUS_SUCCESS;
+	for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it)
+		addFolder(pAccount, pSubAccount, static_cast<NormalFolder*>(*it), pwszFilterName);
 }
 
-QSTATUS qm::SyncData::addSend(Account* pAccount,
-	SubAccount* pSubAccount, SyncItem::ConnectReceiveBeforeSend crbs)
+void qm::SyncData::addSend(Account* pAccount,
+						   SubAccount* pSubAccount,
+						   SyncItem::ConnectReceiveBeforeSend crbs)
 {
-	return STLWrapper<ItemList>(listItem_).push_back(
-		SyncItem(pAccount, pSubAccount, crbs, nSlot_));
+	listItem_.push_back(SyncItem(pAccount, pSubAccount, crbs, nSlot_));
 }
 
 
@@ -334,50 +303,36 @@ QSTATUS qm::SyncData::addSend(Account* pAccount,
  *
  */
 
-qm::SyncManager::SyncManager(Profile* pProfile, QSTATUS* pstatus) :
+qm::SyncManager::SyncManager(Profile* pProfile) :
 	pProfile_(pProfile),
-	pSynchronizer_(InitThread::getInitThread().getSynchronizer()),
-	pSyncFilterManager_(0)
+	pSynchronizer_(InitThread::getInitThread().getSynchronizer())
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	DECLARE_QSTATUS();
-	
-	status = newQsObject(&pSyncFilterManager_);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	status = STLWrapper<ThreadList>(listThread_).reserve(THREAD_MAX);
-	CHECK_QSTATUS_SET(pstatus);
+	pSyncFilterManager_.reset(new SyncFilterManager());
 }
 
 qm::SyncManager::~SyncManager()
 {
-	if (pSyncFilterManager_)
+	if (pSyncFilterManager_.get())
 		dispose();
 }
 
-QSTATUS qm::SyncManager::dispose()
+void qm::SyncManager::dispose()
 {
-	DWORD dwCount = 0;
-	HANDLE handles[THREAD_MAX];
+	typedef std::vector<HANDLE> Handles;
+	Handles handles;
 	{
 		Lock<CriticalSection> lock(cs_);
-		dwCount = listThread_.size();
 		
 		for (ThreadList::size_type n = 0; n < listThread_.size(); ++n) {
 			SyncThread* pThread = listThread_[n];
-			handles[n] = pThread->getHandle();
+			handles.push_back(pThread->getHandle());
 			pThread->setWaitMode();
 		}
 	}
 	
-	if (dwCount != 0) {
-		::WaitForMultipleObjects(dwCount, handles, TRUE, INFINITE);
-		
-		std::for_each(listThread_.begin(),
-			listThread_.end(), deleter<SyncThread>());
+	if (!handles.empty()) {
+		::WaitForMultipleObjects(handles.size(), &handles[0], TRUE, INFINITE);
+		std::for_each(listThread_.begin(), listThread_.end(), deleter<SyncThread>());
 		listThread_.clear();
 	}
 	
@@ -386,33 +341,21 @@ QSTATUS qm::SyncManager::dispose()
 			deleter<Event>(),
 			std::select2nd<SyncingFolderList::value_type>()));
 	
-	delete pSyncFilterManager_;
-	
 	pProfile_ = 0;
-	pSyncFilterManager_ = 0;
-	
-	return QSTATUS_SUCCESS;
+	pSyncFilterManager_.reset(0);
 }
 
-QSTATUS qm::SyncManager::sync(SyncData* pData)
+bool qm::SyncManager::sync(std::auto_ptr<SyncData> pData)
 {
-	DECLARE_QSTATUS();
-	
 	Lock<CriticalSection> lock(cs_);
 	
-	if (listThread_.size() >= THREAD_MAX)
-		return QSTATUS_FAIL;
+	std::auto_ptr<SyncThread> pThread(new SyncThread(this, pData));
+	if (!pThread->start())
+		return false;
+	listThread_.push_back(pThread.get());
+	pThread.release();
 	
-	std::auto_ptr<SyncThread> pThread;
-	status = newQsObject(this, pData, &pThread);
-	CHECK_QSTATUS();
-	
-	status = pThread->start();
-	CHECK_QSTATUS();
-	
-	listThread_.push_back(pThread.release());
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 bool qm::SyncManager::isSyncing() const
@@ -423,52 +366,41 @@ bool qm::SyncManager::isSyncing() const
 
 SyncFilterManager* qm::SyncManager::getSyncFilterManager() const
 {
-	return pSyncFilterManager_;
+	return pSyncFilterManager_.get();
 }
 
-QSTATUS qm::SyncManager::addSyncManagerHandler(SyncManagerHandler* pHandler)
+void qm::SyncManager::addSyncManagerHandler(SyncManagerHandler* pHandler)
 {
-	return STLWrapper<SyncManagerHandlerList>(listHandler_).push_back(pHandler);
+	listHandler_.push_back(pHandler);
 }
 
-QSTATUS qm::SyncManager::removeSyncManagerHandler(SyncManagerHandler* pHandler)
+void qm::SyncManager::removeSyncManagerHandler(SyncManagerHandler* pHandler)
 {
 	SyncManagerHandlerList::iterator it = std::remove(
 		listHandler_.begin(), listHandler_.end(), pHandler);
 	assert(it != listHandler_.end());
 	listHandler_.erase(it, listHandler_.end());
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::SyncManager::fireStatusChanged() const
+void qm::SyncManager::fireStatusChanged() const
 {
-	DECLARE_QSTATUS();
-	
 	SyncManagerEvent event;
-	SyncManagerHandlerList::const_iterator it = listHandler_.begin();
-	while (it != listHandler_.end()) {
-		status = (*it)->statusChanged(event);
-		CHECK_QSTATUS();
-		++it;
-	}
-	
-	return QSTATUS_SUCCESS;
+	for (SyncManagerHandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
+		(*it)->statusChanged(event);
 }
 
-QSTATUS qm::SyncManager::syncData(const SyncData* pData)
+bool qm::SyncManager::syncData(const SyncData* pData)
 {
-	DECLARE_QSTATUS();
-	
 	SyncManagerCallback* pCallback = pData->getCallback();
 	assert(pCallback);
 	
 	struct CallbackCaller
 	{
 		CallbackCaller(SyncManagerCallback* pCallback,
-			const SyncData* pData, QSTATUS* pstatus) :
+					   const SyncData* pData) :
 			pCallback_(pCallback)
 		{
-			*pstatus = pCallback_->start(pData->getCallbackParam());
+			pCallback_->start(pData->getCallbackParam());
 		}
 		
 		~CallbackCaller()
@@ -477,8 +409,7 @@ QSTATUS qm::SyncManager::syncData(const SyncData* pData)
 		}
 		
 		SyncManagerCallback* pCallback_;
-	} caller(pCallback, pData, &status);
-	CHECK_QSTATUS();
+	} caller(pCallback, pData);
 	
 	const SyncDialup* pDialup = pData->getDialup();
 	if (pDialup && pDialup->getFlags() & SyncDialup::FLAG_WHENEVERNOTCONNECTED &&
@@ -492,28 +423,25 @@ QSTATUS qm::SyncManager::syncData(const SyncData* pData)
 		if (pwszDialFrom)
 			RasConnection::setLocation(pwszDialFrom);
 		
-		status = newQsObject(pDialup->getDisconnectWait(),
-			&rasCallback, &pRasConnection);
-		CHECK_QSTATUS();
+		pRasConnection.reset(new RasConnection(
+			pDialup->getDisconnectWait(), &rasCallback));
 		
 		const WCHAR* pwszEntry = pDialup->getEntry();
-		string_ptr<WSTRING> wstrEntry;
+		wstring_ptr wstrEntry;
 		if (!pwszEntry) {
-			status = pCallback->selectDialupEntry(&wstrEntry);
-			CHECK_QSTATUS();
+			wstrEntry = pCallback->selectDialupEntry();
 			if (!wstrEntry.get())
-				return QSTATUS_SUCCESS;
+				return true;
 			pwszEntry = wstrEntry.get();
 		}
 		assert(pwszEntry);
 		
-		RasConnection::Result result;
-		status = pRasConnection->connect(pwszEntry, &result);
-		CHECK_QSTATUS();
-		status = pCallback->setMessage(-1, L"");
-		CHECK_QSTATUS();
+		RasConnection::Result result = pRasConnection->connect(pwszEntry);
+		if (result == RasConnection::RAS_FAIL)
+			return false;
+		pCallback->setMessage(-1, L"");
 		if (result == RasConnection::RAS_CANCEL)
-			return QSTATUS_SUCCESS;
+			return true;
 	}
 	
 	struct DialupDisconnector
@@ -525,10 +453,8 @@ QSTATUS qm::SyncManager::syncData(const SyncData* pData)
 		
 		~DialupDisconnector()
 		{
-			if (pRasConnection_) {
-				RasConnection::Result result;
-				pRasConnection_->disconnect(true, &result);
-			}
+			if (pRasConnection_)
+				pRasConnection_->disconnect(true);
 		}
 		
 		RasConnection* pRasConnection_;
@@ -537,7 +463,8 @@ QSTATUS qm::SyncManager::syncData(const SyncData* pData)
 	
 	struct InternalOnline
 	{
-		InternalOnline(Document* pDocument, Synchronizer* pSynchronizer) :
+		InternalOnline(Document* pDocument,
+					   Synchronizer* pSynchronizer) :
 			pDocument_(pDocument),
 			pSynchronizer_(pSynchronizer)
 		{
@@ -553,19 +480,19 @@ QSTATUS qm::SyncManager::syncData(const SyncData* pData)
 		
 		struct RunnableImpl : public Runnable
 		{
-			RunnableImpl(Document* pDocument, bool bIncrement) :
+			RunnableImpl(Document* pDocument,
+						 bool bIncrement) :
 				pDocument_(pDocument),
 				bIncrement_(bIncrement)
 			{
 			}
 			
-			virtual unsigned int run()
+			virtual void run()
 			{
 				if (bIncrement_)
 					pDocument_->incrementInternalOnline();
 				else
 					pDocument_->decrementInternalOnline();
-				return 0;
 			}
 			
 			Document* pDocument_;
@@ -580,61 +507,61 @@ QSTATUS qm::SyncManager::syncData(const SyncData* pData)
 	if (nSlot > 0) {
 		typedef std::vector<Thread*> ThreadList;
 		ThreadList listThread;
-		status = STLWrapper<ThreadList>(listThread).resize(nSlot);
-		CHECK_QSTATUS();
+		listThread.resize(nSlot);
 		
 		struct Wait
 		{
 			typedef std::vector<Thread*> ThreadList;
-			Wait(const ThreadList& l) : l_(l) {}
+			
+			Wait(const ThreadList& l) :
+				l_(l)
+			{
+			}
+			
 			~Wait()
 			{
-				ThreadList::const_iterator it = l_.begin();
-				while (it != l_.end()) {
+				for (ThreadList::const_iterator it = l_.begin(); it != l_.end(); ++it) {
 					std::auto_ptr<Thread> pThread(*it);
 					pThread->join();
-					++it;
 				}
 			}
+			
 			const ThreadList& l_;
 		} wait(listThread);
 		
-		unsigned int n = 0;
-		for (n = 0; n < nSlot; ++n) {
-			std::auto_ptr<ParallelSyncThread> pThread;
-			status = newQsObject(this, pData, n, &pThread);
-			CHECK_QSTATUS();
-			status = pThread->start();
-			CHECK_QSTATUS();
+		for (unsigned int n = 0; n < nSlot; ++n) {
+			std::auto_ptr<ParallelSyncThread> pThread(new ParallelSyncThread(this, pData, n));
+			if (!pThread->start())
+				return false;
 			listThread[n] = pThread.release();
 		}
-		status = syncSlotData(pData, nSlot);
-		CHECK_QSTATUS();
+		if (!syncSlotData(pData, nSlot))
+			return false;
 	}
 	else {
-		status = syncSlotData(pData, 0);
-		CHECK_QSTATUS();
+		if (!syncSlotData(pData, 0))
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::SyncManager::syncSlotData(const SyncData* pData, unsigned int nSlot)
+bool qm::SyncManager::syncSlotData(const SyncData* pData,
+								   unsigned int nSlot)
 {
-	DECLARE_QSTATUS();
-	
 	SyncManagerCallback* pCallback = pData->getCallback();
 	assert(pCallback);
 	
 	struct CallbackCaller
 	{
 		CallbackCaller(SyncManagerCallback* pCallback,
-			unsigned int nId, unsigned int nParam, QSTATUS* pstatus) :
+					   unsigned int nId,
+					   unsigned int nParam) :
 			pCallback_(pCallback),
 			nId_(nId),
 			nParam_(nParam)
 		{
-			*pstatus = pCallback_->startThread(nId_, nParam_);
+			pCallback_->startThread(nId_, nParam_);
 		}
 		
 		~CallbackCaller()
@@ -645,16 +572,14 @@ QSTATUS qm::SyncManager::syncSlotData(const SyncData* pData, unsigned int nSlot)
 		SyncManagerCallback* pCallback_;
 		unsigned int nId_;
 		unsigned int nParam_;
-	} caller(pCallback, ::GetCurrentThreadId(), pData->getCallbackParam(), &status);
-	CHECK_QSTATUS();
+	} caller(pCallback, ::GetCurrentThreadId(), pData->getCallbackParam());
 	
 	std::auto_ptr<Logger> pLogger;
 	std::auto_ptr<ReceiveSession> pReceiveSession;
 	std::auto_ptr<ReceiveSessionCallback> pReceiveCallback;
 	SubAccount* pSubAccount = 0;
 	const SyncData::ItemList& l = pData->getItems();
-	SyncData::ItemList::const_iterator it = l.begin();
-	while (it != l.end()) {
+	for (SyncData::ItemList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		const SyncItem& item = *it;
 		if (item.getSlot() == nSlot) {
 			bool bSync = true;
@@ -669,47 +594,39 @@ QSTATUS qm::SyncManager::syncSlotData(const SyncData* pData, unsigned int nSlot)
 			if (bSync || item.isConnectReceiveBeforeSend()) {
 				if (pSubAccount != item.getSubAccount()) {
 					if (pReceiveSession.get()) {
-						status = pReceiveSession->disconnect();
-						CHECK_QSTATUS();
+						if (!pReceiveSession->disconnect())
+							return false;
 					}
-					ReceiveSession* p = 0;
-					ReceiveSessionCallback* pc = 0;
-					Logger* pl = 0;
-					status = openReceiveSession(pData->getDocument(),
-						pData->getWindow(), pCallback, item, &p, &pc, &pl);
-					CHECK_QSTATUS();
-					pReceiveSession.reset(p);
-					pReceiveCallback.reset(pc);
-					pLogger.reset(pl);
+					if (!openReceiveSession(pData->getDocument(), pData->getWindow(),
+						pCallback, item, &pReceiveSession, &pReceiveCallback, &pLogger))
+						return false;
 					pSubAccount = item.getSubAccount();
 				}
 				if (bSync) {
-					status = syncFolder(pCallback, item, pReceiveSession.get());
-					CHECK_QSTATUS();
+					if (!syncFolder(pCallback, item, pReceiveSession.get()))
+						return false;
 				}
 			}
 			
 			if (item.isSend()) {
-				status = send(pData->getDocument(), pCallback, item);
-				CHECK_QSTATUS();
+				if (!send(pData->getDocument(), pCallback, item))
+					return false;
 			}
 		}
-		++it;
 	}
 	if (pReceiveSession.get()) {
-		status = pReceiveSession->disconnect();
-		CHECK_QSTATUS();
+		if (!pReceiveSession->disconnect())
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::SyncManager::syncFolder(SyncManagerCallback* pSyncManagerCallback,
-	const SyncItem& item, ReceiveSession* pSession)
+bool qm::SyncManager::syncFolder(SyncManagerCallback* pSyncManagerCallback,
+								 const SyncItem& item,
+								 ReceiveSession* pSession)
 {
 	assert(pSession);
-	
-	DECLARE_QSTATUS();
 	
 	NormalFolder* pFolder = 0;
 	if (item.isSend()) {
@@ -722,74 +639,61 @@ QSTATUS qm::SyncManager::syncFolder(SyncManagerCallback* pSyncManagerCallback,
 		pFolder = item.getFolder();
 	}
 	if (!pFolder || !pFolder->isFlag(Folder::FLAG_SYNCABLE))
-		return QSTATUS_SUCCESS;
+		return true;
 	
-	status = pSyncManagerCallback->setFolder(
-		::GetCurrentThreadId(), pFolder);
-	CHECK_QSTATUS();
+	pSyncManagerCallback->setFolder(::GetCurrentThreadId(), pFolder);
 	
-	FolderWait wait(this, pFolder, &status);
-	CHECK_QSTATUS();
+	FolderWait wait(this, pFolder);
 	
-	status = pFolder->loadMessageHolders();
-	CHECK_QSTATUS();
+	if (!pFolder->loadMessageHolders())
+		return false;
 	
-	status = pSession->selectFolder(pFolder);
-	CHECK_QSTATUS();
+	if (!pSession->selectFolder(pFolder))
+		return false;
 	pFolder->setLastSyncTime(::GetTickCount());
 	
-	status = pSession->updateMessages();
-	CHECK_QSTATUS();
+	if (!pSession->updateMessages() ||
+		!pSession->downloadMessages(item.getFilterSet()))
+		return false;
 	
-	status = pSession->downloadMessages(item.getFilterSet());
-	CHECK_QSTATUS();
+	if (!pFolder->getAccount()->flushMessageStore() ||
+		!pFolder->saveMessageHolders())
+		return false;
 	
-	status = pFolder->getAccount()->flushMessageStore();
-	CHECK_QSTATUS();
+	if (!pSession->closeFolder())
+		return false;
 	
-	status = pFolder->saveMessageHolders();
-	CHECK_QSTATUS();
-	
-	status = pSession->closeFolder();
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::SyncManager::send(Document* pDocument,
-	SyncManagerCallback* pSyncManagerCallback, const SyncItem& item)
+bool qm::SyncManager::send(Document* pDocument,
+						   SyncManagerCallback* pSyncManagerCallback,
+						   const SyncItem& item)
 {
 	assert(item.isSend());
 	
-	DECLARE_QSTATUS();
-	
 	unsigned int nId = ::GetCurrentThreadId();
-	status = pSyncManagerCallback->setAccount(nId,
-		item.getAccount(), item.getSubAccount());
-	CHECK_QSTATUS();
+	pSyncManagerCallback->setAccount(nId, item.getAccount(), item.getSubAccount());
 	
 	Account* pAccount = item.getAccount();
 	SubAccount* pSubAccount = item.getSubAccount();
-	Folder* pFolder = 0;
-	pFolder = pAccount->getFolderByFlag(Folder::FLAG_OUTBOX);
+	Folder* pFolder = pAccount->getFolderByFlag(Folder::FLAG_OUTBOX);
 	if (!pFolder || pFolder->getType() != Folder::TYPE_NORMAL)
-		return QSTATUS_FAIL;
+		return false;
 	NormalFolder* pOutbox = static_cast<NormalFolder*>(pFolder);
-	status = pOutbox->loadMessageHolders();
-	CHECK_QSTATUS();
+	if (!pOutbox->loadMessageHolders())
+		return false;
 	
 	pFolder = pAccount->getFolderByFlag(Folder::FLAG_SENTBOX);
 	if (!pFolder || pFolder->getType() != Folder::TYPE_NORMAL)
-		return QSTATUS_FAIL;
+		return false;
 	NormalFolder* pSentbox = static_cast<NormalFolder*>(pFolder);
 	
 	const WCHAR* pwszIdentity = pSubAccount->getIdentity();
 	assert(pwszIdentity);
 	
 	MessagePtrList listMessagePtr;
-	status = STLWrapper<MessagePtrList>(
-		listMessagePtr).reserve(pOutbox->getCount());
-	CHECK_QSTATUS();
+	listMessagePtr.reserve(pOutbox->getCount());
 	
 	{
 		Lock<Account> lock(*pOutbox->getAccount());
@@ -798,21 +702,14 @@ QSTATUS qm::SyncManager::send(Document* pDocument,
 			MessageHolder* pmh = pOutbox->getMessage(n);
 			if (!pmh->isFlag(MessageHolder::FLAG_DRAFT) &&
 				!pmh->isFlag(MessageHolder::FLAG_DELETED)) {
-				Message msg(&status);
-				CHECK_QSTATUS();
-				status = pmh->getMessage(
-					Account::GETMESSAGEFLAG_HEADER,
-					L"X-QMAIL-SubAccount", &msg);
-				CHECK_QSTATUS();
+				Message msg;
+				if (!pmh->getMessage(Account::GETMESSAGEFLAG_HEADER, L"X-QMAIL-SubAccount", &msg))
+					return false;
 				
 				bool bSend = false;
 				if (*pwszIdentity) {
-					UnstructuredParser subaccount(&status);
-					CHECK_QSTATUS();
-					Part::Field field = Part::FIELD_ERROR;
-					status = msg.getField(L"X-QMAIL-SubAccount", &subaccount, &field);
-					CHECK_QSTATUS();
-					if (field == Part::FIELD_EXIST) {
+					UnstructuredParser subaccount;
+					if (msg.getField(L"X-QMAIL-SubAccount", &subaccount) == Part::FIELD_EXIST) {
 						SubAccount* p = pAccount->getSubAccount(subaccount.getValue());
 						if (p && wcscmp(p->getIdentity(), pwszIdentity) == 0)
 							bSend = true;
@@ -828,140 +725,105 @@ QSTATUS qm::SyncManager::send(Document* pDocument,
 		}
 	}
 	if (listMessagePtr.empty())
-		return QSTATUS_SUCCESS;
+		return true;
 	
-	FolderWait wait(this, item.getFolder(), &status);
-	CHECK_QSTATUS();
+	FolderWait wait(this, item.getFolder());
 	
 	std::auto_ptr<Logger> pLogger;
-	if (pSubAccount->isLog(Account::HOST_SEND)) {
-		Logger* p = 0;
-		status = pAccount->openLogger(Account::HOST_SEND, &p);
-		CHECK_QSTATUS();
-		pLogger.reset(p);
-	}
+	if (pSubAccount->isLog(Account::HOST_SEND))
+		pLogger = pAccount->openLogger(Account::HOST_SEND);
 	
-	std::auto_ptr<SendSession> pSession;
-	status = SendSessionFactory::getSession(
-		item.getAccount()->getType(Account::HOST_SEND), &pSession);
-	CHECK_QSTATUS();
+	std::auto_ptr<SendSession> pSession(SendSessionFactory::getSession(
+		item.getAccount()->getType(Account::HOST_SEND)));
 	
-	std::auto_ptr<SendSessionCallbackImpl> pCallback;
-	status = newObject(pSyncManagerCallback, &pCallback);
-	CHECK_QSTATUS();
-	status = pSession->init(pDocument, pAccount, pSubAccount,
-		pProfile_, pLogger.get(), pCallback.get());
-	CHECK_QSTATUS();
-	status = pSession->connect();
-	CHECK_QSTATUS();
+	std::auto_ptr<SendSessionCallbackImpl> pCallback(
+		new SendSessionCallbackImpl(pSyncManagerCallback));
+	if (!pSession->init(pDocument, pAccount, pSubAccount,
+		pProfile_, pLogger.get(), pCallback.get()) ||
+		!pSession->connect())
+		return false;
 	
-	status = pCallback->setRange(0, listMessagePtr.size());
-	CHECK_QSTATUS();
+	pCallback->setRange(0, listMessagePtr.size());
 	
 	MessageHolderList l;
-	status = STLWrapper<MessageHolderList>(l).resize(1);
-	CHECK_QSTATUS();
+	l.resize(1);
 	
-	MessagePtrList::size_type m = 0;
-	while (m < listMessagePtr.size()) {
+	for (MessagePtrList::size_type m = 0; m < listMessagePtr.size(); ++m) {
 		if (pCallback->isCanceled(false))
-			return QSTATUS_SUCCESS;
+			return true;
 		
 		MessagePtrLock mpl(listMessagePtr[m]);
 		if (mpl) {
-			Message msg(&status);
-			CHECK_QSTATUS();
-			status = mpl->getMessage(
-				Account::GETMESSAGEFLAG_ALL, 0, &msg);
-			CHECK_QSTATUS();
+			Message msg;
+			if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg))
+				return false;
 			const WCHAR* pwszRemoveFields[] = {
 				L"X-QMAIL-Account",
 				L"X-QMAIL-SubAccount",
 				L"X-QMAIL-Signature"
 			};
-			for (int n = 0; n < countof(pwszRemoveFields); ++n) {
-				status = msg.removeField(pwszRemoveFields[n]);
-				CHECK_QSTATUS();
-			}
-			status = pSession->sendMessage(&msg);
-			CHECK_QSTATUS();
+			for (int n = 0; n < countof(pwszRemoveFields); ++n)
+				msg.removeField(pwszRemoveFields[n]);
+			if (!pSession->sendMessage(&msg))
+				return false;
 			
 			l[0] = mpl;
-//			status = pOutbox->setMessagesFlags(l,
-//				MessageHolder::FLAG_SENT, MessageHolder::FLAG_SENT);
-//			CHECK_QSTATUS();
-//			status = pOutbox->copyMessages(l, pSentbox, true, 0);
-//			CHECK_QSTATUS();
-			status = pAccount->setMessagesFlags(l,
-				MessageHolder::FLAG_SENT, MessageHolder::FLAG_SENT);
-			CHECK_QSTATUS();
-			status = pAccount->copyMessages(l, pSentbox, true, 0);
-			CHECK_QSTATUS();
+			if (!pAccount->setMessagesFlags(l,
+				MessageHolder::FLAG_SENT, MessageHolder::FLAG_SENT) ||
+				!pAccount->copyMessages(l, pSentbox, true, 0))
+				return false;
 			
-			status = pCallback->setPos(m + 1);
-			CHECK_QSTATUS();
+			pCallback->setPos(m + 1);
 		}
-		
-		++m;
 	}
 	
-	status = pSession->disconnect();
-	CHECK_QSTATUS();
+	if (!pSession->disconnect())
+		return false;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::SyncManager::openReceiveSession(Document* pDocument,
-	HWND hwnd, SyncManagerCallback* pSyncManagerCallback,
-	const SyncItem& item, ReceiveSession** ppSession,
-	ReceiveSessionCallback** ppCallback, Logger** ppLogger)
+bool qm::SyncManager::openReceiveSession(Document* pDocument,
+										 HWND hwnd,
+										 SyncManagerCallback* pSyncManagerCallback,
+										 const SyncItem& item,
+										 std::auto_ptr<ReceiveSession>* ppSession,
+										 std::auto_ptr<ReceiveSessionCallback>* ppCallback,
+										 std::auto_ptr<Logger>* ppLogger)
 {
 	assert(ppSession);
 	assert(ppCallback);
 	assert(ppLogger);
 	
-	DECLARE_QSTATUS();
-	
-	*ppSession = 0;
+	ppSession->reset(0);
 	
 	Account* pAccount = item.getAccount();
 	SubAccount* pSubAccount = item.getSubAccount();
 	
-	status = pSyncManagerCallback->setAccount(
-		::GetCurrentThreadId(), pAccount, pSubAccount);
-	CHECK_QSTATUS();
+	pSyncManagerCallback->setAccount(::GetCurrentThreadId(), pAccount, pSubAccount);
 	
 	std::auto_ptr<Logger> pLogger;
-	if (pSubAccount->isLog(Account::HOST_RECEIVE)) {
-		Logger* p = 0;
-		status = pAccount->openLogger(Account::HOST_RECEIVE, &p);
-		CHECK_QSTATUS();
-		pLogger.reset(p);
-	}
+	if (pSubAccount->isLog(Account::HOST_RECEIVE))
+		pLogger = pAccount->openLogger(Account::HOST_RECEIVE);
 	
-	std::auto_ptr<ReceiveSession> pSession;
-	status = ReceiveSessionFactory::getSession(
-		pAccount->getType(Account::HOST_RECEIVE), &pSession);
-	CHECK_QSTATUS();
+	std::auto_ptr<ReceiveSession> pSession(ReceiveSessionFactory::getSession(
+		pAccount->getType(Account::HOST_RECEIVE)));
+	if (!pSession.get())
+		return false;
 	
-	std::auto_ptr<ReceiveSessionCallbackImpl> pCallback;
-	status = newObject(pSyncManagerCallback, &pCallback);
-	CHECK_QSTATUS();
-	status = pSession->init(pDocument, pAccount, pSubAccount,
-		hwnd, pProfile_, pLogger.get(), pCallback.get());
-	CHECK_QSTATUS();
+	std::auto_ptr<ReceiveSessionCallbackImpl> pCallback(
+		new ReceiveSessionCallbackImpl(pSyncManagerCallback));
+	if (!pSession->init(pDocument, pAccount, pSubAccount,
+		hwnd, pProfile_, pLogger.get(), pCallback.get()) ||
+		!pSession->connect() ||
+		!pSession->applyOfflineJobs())
+		return false;
 	
-	status = pSession->connect();
-	CHECK_QSTATUS();
+	*ppSession = pSession;
+	*ppCallback = pCallback;
+	*ppLogger = pLogger;
 	
-	status = pSession->applyOfflineJobs();
-	CHECK_QSTATUS();
-	
-	*ppSession = pSession.release();
-	*ppCallback = pCallback.release();
-	*ppLogger = pLogger.release();
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -972,19 +834,15 @@ QSTATUS qm::SyncManager::openReceiveSession(Document* pDocument,
  */
 
 qm::SyncManager::SyncThread::SyncThread(SyncManager* pSyncManager,
-	const SyncData* pData, QSTATUS* pstatus) :
-	Thread(pstatus),
+										std::auto_ptr<SyncData> pData) :
 	pSyncManager_(pSyncManager),
 	pSyncData_(pData),
 	bWaitMode_(false)
 {
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
 }
 
 qm::SyncManager::SyncThread::~SyncThread()
 {
-	delete pSyncData_;
 }
 
 void qm::SyncManager::SyncThread::setWaitMode()
@@ -992,12 +850,9 @@ void qm::SyncManager::SyncThread::setWaitMode()
 	bWaitMode_ = true;
 }
 
-unsigned int qm::SyncManager::SyncThread::run()
+void qm::SyncManager::SyncThread::run()
 {
-	DECLARE_QSTATUS();
-	
-	InitThread init(0, &status);
-	CHECK_QSTATUS_VALUE(-1);
+	InitThread init(0);
 	
 	struct StatusChange
 	{
@@ -1013,7 +868,7 @@ unsigned int qm::SyncManager::SyncThread::run()
 		SyncManager* pSyncManager_;
 	} statusChange(pSyncManager_);
 	
-	pSyncManager_->syncData(pSyncData_);
+	pSyncManager_->syncData(pSyncData_.get());
 	
 	Lock<CriticalSection> lock(pSyncManager_->cs_);
 	
@@ -1026,8 +881,6 @@ unsigned int qm::SyncManager::SyncThread::run()
 		pSyncManager_->listThread_.erase(it);
 		delete this;
 	}
-	
-	return 0;
 }
 
 
@@ -1037,32 +890,24 @@ unsigned int qm::SyncManager::SyncThread::run()
  *
  */
 
-qm::SyncManager::ParallelSyncThread::ParallelSyncThread(
-	SyncManager* pSyncManager, const SyncData* pData,
-	unsigned int nSlot, qs::QSTATUS* pstatus) :
-	Thread(pstatus),
+qm::SyncManager::ParallelSyncThread::ParallelSyncThread(SyncManager* pSyncManager,
+														const SyncData* pData,
+														unsigned int nSlot) :
 	pSyncManager_(pSyncManager),
 	pSyncData_(pData),
 	nSlot_(nSlot)
 {
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
 }
 
 qm::SyncManager::ParallelSyncThread::~ParallelSyncThread()
 {
 }
 
-unsigned int qm::SyncManager::ParallelSyncThread::run()
+void qm::SyncManager::ParallelSyncThread::run()
 {
-	DECLARE_QSTATUS();
-	
-	InitThread init(0, &status);
-	CHECK_QSTATUS_VALUE(-1);
+	InitThread init(0);
 	
 	pSyncManager_->syncSlotData(pSyncData_, nSlot_);
-	
-	return 0;
 }
 
 
@@ -1072,8 +917,7 @@ unsigned int qm::SyncManager::ParallelSyncThread::run()
  *
  */
 
-qm::SyncManager::ReceiveSessionCallbackImpl::ReceiveSessionCallbackImpl(
-	SyncManagerCallback* pCallback) :
+qm::SyncManager::ReceiveSessionCallbackImpl::ReceiveSessionCallbackImpl(SyncManagerCallback* pCallback) :
 	pCallback_(pCallback)
 {
 	nId_ = ::GetCurrentThreadId();
@@ -1088,43 +932,41 @@ bool qm::SyncManager::ReceiveSessionCallbackImpl::isCanceled(bool bForce)
 	return pCallback_->isCanceled(nId_, bForce);
 }
 
-QSTATUS qm::SyncManager::ReceiveSessionCallbackImpl::setPos(unsigned int n)
+void qm::SyncManager::ReceiveSessionCallbackImpl::setPos(unsigned int n)
 {
-	return pCallback_->setPos(nId_, false, n);
+	pCallback_->setPos(nId_, false, n);
 }
 
-QSTATUS qm::SyncManager::ReceiveSessionCallbackImpl::setRange(
-	unsigned int nMin, unsigned int nMax)
+void qm::SyncManager::ReceiveSessionCallbackImpl::setRange(unsigned int nMin,
+														   unsigned int nMax)
 {
-	return pCallback_->setRange(nId_, false, nMin, nMax);
+	pCallback_->setRange(nId_, false, nMin, nMax);
 }
 
-QSTATUS qm::SyncManager::ReceiveSessionCallbackImpl::setSubPos(unsigned int n)
+void qm::SyncManager::ReceiveSessionCallbackImpl::setSubPos(unsigned int n)
 {
-	return pCallback_->setPos(nId_, true, n);
+	pCallback_->setPos(nId_, true, n);
 }
 
-QSTATUS qm::SyncManager::ReceiveSessionCallbackImpl::setSubRange(
-	unsigned int nMin, unsigned int nMax)
+void qm::SyncManager::ReceiveSessionCallbackImpl::setSubRange(unsigned int nMin,
+															  unsigned int nMax)
 {
-	return pCallback_->setRange(nId_, true, nMin, nMax);
+	pCallback_->setRange(nId_, true, nMin, nMax);
 }
 
-QSTATUS qm::SyncManager::ReceiveSessionCallbackImpl::setMessage(
-	const WCHAR* pwszMessage)
+void qm::SyncManager::ReceiveSessionCallbackImpl::setMessage(const WCHAR* pwszMessage)
 {
-	return pCallback_->setMessage(nId_, pwszMessage);
+	pCallback_->setMessage(nId_, pwszMessage);
 }
 
-QSTATUS qm::SyncManager::ReceiveSessionCallbackImpl::addError(
-	const SessionErrorInfo& info)
+void qm::SyncManager::ReceiveSessionCallbackImpl::addError(const SessionErrorInfo& info)
 {
-	return pCallback_->addError(nId_, info);
+	pCallback_->addError(nId_, info);
 }
 
-QSTATUS qm::SyncManager::ReceiveSessionCallbackImpl::notifyNewMessage()
+void qm::SyncManager::ReceiveSessionCallbackImpl::notifyNewMessage()
 {
-	return pCallback_->notifyNewMessage(nId_);
+	pCallback_->notifyNewMessage(nId_);
 }
 
 
@@ -1134,8 +976,7 @@ QSTATUS qm::SyncManager::ReceiveSessionCallbackImpl::notifyNewMessage()
  *
  */
 
-qm::SyncManager::SendSessionCallbackImpl::SendSessionCallbackImpl(
-	SyncManagerCallback* pCallback) :
+qm::SyncManager::SendSessionCallbackImpl::SendSessionCallbackImpl(SyncManagerCallback* pCallback) :
 	pCallback_(pCallback)
 {
 	nId_ = ::GetCurrentThreadId();
@@ -1150,38 +991,36 @@ bool qm::SyncManager::SendSessionCallbackImpl::isCanceled(bool bForce)
 	return pCallback_->isCanceled(nId_, bForce);
 }
 
-QSTATUS qm::SyncManager::SendSessionCallbackImpl::setPos(unsigned int n)
+void qm::SyncManager::SendSessionCallbackImpl::setPos(unsigned int n)
 {
-	return pCallback_->setPos(nId_, false, n);
+	pCallback_->setPos(nId_, false, n);
 }
 
-QSTATUS qm::SyncManager::SendSessionCallbackImpl::setRange(
-	unsigned int nMin, unsigned int nMax)
+void qm::SyncManager::SendSessionCallbackImpl::setRange(unsigned int nMin,
+														unsigned int nMax)
 {
-	return pCallback_->setRange(nId_, false, nMin, nMax);
+	pCallback_->setRange(nId_, false, nMin, nMax);
 }
 
-QSTATUS qm::SyncManager::SendSessionCallbackImpl::setSubPos(unsigned int n)
+void qm::SyncManager::SendSessionCallbackImpl::setSubPos(unsigned int n)
 {
-	return pCallback_->setPos(nId_, true, n);
+	pCallback_->setPos(nId_, true, n);
 }
 
-QSTATUS qm::SyncManager::SendSessionCallbackImpl::setSubRange(
-	unsigned int nMin, unsigned int nMax)
+void qm::SyncManager::SendSessionCallbackImpl::setSubRange(unsigned int nMin,
+														   unsigned int nMax)
 {
-	return pCallback_->setRange(nId_, true, nMin, nMax);
+	pCallback_->setRange(nId_, true, nMin, nMax);
 }
 
-QSTATUS qm::SyncManager::SendSessionCallbackImpl::setMessage(
-	const WCHAR* pwszMessage)
+void qm::SyncManager::SendSessionCallbackImpl::setMessage(const WCHAR* pwszMessage)
 {
-	return pCallback_->setMessage(nId_, pwszMessage);
+	pCallback_->setMessage(nId_, pwszMessage);
 }
 
-QSTATUS qm::SyncManager::SendSessionCallbackImpl::addError(
-	const SessionErrorInfo& info)
+void qm::SyncManager::SendSessionCallbackImpl::addError(const SessionErrorInfo& info)
 {
-	return pCallback_->addError(nId_, info);
+	pCallback_->addError(nId_, info);
 }
 
 
@@ -1191,8 +1030,8 @@ QSTATUS qm::SyncManager::SendSessionCallbackImpl::addError(
  *
  */
 
-qm::SyncManager::RasConnectionCallbackImpl::RasConnectionCallbackImpl(
-	const SyncDialup* pDialup, SyncManagerCallback* pCallback) :
+qm::SyncManager::RasConnectionCallbackImpl::RasConnectionCallbackImpl(const SyncDialup* pDialup,
+																	  SyncManagerCallback* pCallback) :
 	pDialup_(pDialup),
 	pCallback_(pCallback)
 {
@@ -1207,36 +1046,25 @@ bool qm::SyncManager::RasConnectionCallbackImpl::isCanceled()
 	return pCallback_->isCanceled(-1, false);
 }
 
-QSTATUS qm::SyncManager::RasConnectionCallbackImpl::preConnect(
-	RASDIALPARAMS* prdp, bool* pbCancel)
+bool qm::SyncManager::RasConnectionCallbackImpl::preConnect(RASDIALPARAMS* prdp)
 {
-	DECLARE_QSTATUS();
-	
-	if (pDialup_->getFlags() & SyncDialup::FLAG_SHOWDIALOG) {
-		status = pCallback_->showDialupDialog(prdp, pbCancel);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (pDialup_->getFlags() & SyncDialup::FLAG_SHOWDIALOG)
+		return pCallback_->showDialupDialog(prdp);
+	else
+		return true;
 }
 
-QSTATUS qm::SyncManager::RasConnectionCallbackImpl::setMessage(
-	const WCHAR* pwszMessage)
+void qm::SyncManager::RasConnectionCallbackImpl::setMessage(const WCHAR* pwszMessage)
 {
-	return pCallback_->setMessage(-1, pwszMessage);
+	pCallback_->setMessage(-1, pwszMessage);
 }
 
-QSTATUS qm::SyncManager::RasConnectionCallbackImpl::error(const WCHAR* pwszMessage)
+void qm::SyncManager::RasConnectionCallbackImpl::error(const WCHAR* pwszMessage)
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrMessage;
-	status = loadString(Application::getApplication().getResourceHandle(),
-		IDS_ERROR_DIALUP, &wstrMessage);
-	CHECK_QSTATUS();
-	
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	wstring_ptr wstrMessage(loadString(hInst, IDS_ERROR_DIALUP));
 	SessionErrorInfo info(0, 0, 0, wstrMessage.get(), 0, &pwszMessage, 1);
-	return pCallback_->addError(-1, info);
+	pCallback_->addError(-1, info);
 }
 
 
@@ -1247,13 +1075,11 @@ QSTATUS qm::SyncManager::RasConnectionCallbackImpl::error(const WCHAR* pwszMessa
  */
 
 qm::SyncManager::FolderWait::FolderWait(SyncManager* pSyncManager,
-	NormalFolder* pFolder, QSTATUS* pstatus) :
+										NormalFolder* pFolder) :
 	pSyncManager_(pSyncManager),
 	pFolder_(pFolder),
 	pEvent_(0)
 {
-	DECLARE_QSTATUS();
-	
 	bool bWait = false;
 	{
 		typedef SyncManager::SyncingFolderList List;
@@ -1267,23 +1093,17 @@ qm::SyncManager::FolderWait::FolderWait(SyncManager* pSyncManager,
 			++it;
 		}
 		if (it == l.end()) {
-			std::auto_ptr<Event> p;
-			status = newQsObject(false, false, &p);
-			CHECK_QSTATUS_SET(pstatus);
-			status = STLWrapper<List>(l).push_back(
-				std::make_pair(pFolder, p.get()));
-			CHECK_QSTATUS_SET(pstatus);
-			pEvent_ = p.release();
+			std::auto_ptr<Event> pEvent(new Event(false, false));
+			l.push_back(std::make_pair(pFolder, pEvent.get()));
+			pEvent_ = pEvent.release();
 		}
 		else {
 			pEvent_ = (*it).second;
 			bWait = true;
 		}
 	}
-	if (bWait) {
-		status = pEvent_->wait();
-		CHECK_QSTATUS_SET(pstatus);
-	}
+	if (bWait)
+		pEvent_->wait();
 }
 
 qm::SyncManager::FolderWait::~FolderWait()

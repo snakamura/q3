@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -29,8 +29,10 @@ class Synchronizer;
 class QSEXPORTCLASS Init
 {
 public:
-	Init(HINSTANCE hInst, const WCHAR* pwszTitle,
-		unsigned int nFlags, unsigned int nThreadFlags, QSTATUS* pstatus);
+	Init(HINSTANCE hInst,
+		 const WCHAR* pwszTitle,
+		 unsigned int nFlags,
+		 unsigned int nThreadFlags);
 	~Init();
 
 public:
@@ -42,8 +44,9 @@ public:
 	bool isLogEnabled() const;
 	const WCHAR* getLogDirectory() const;
 	Logger::Level getLogLevel() const;
-	QSTATUS setLogInfo(bool bEnabled,
-		const WCHAR* pwszDir, Logger::Level level);
+	void setLogInfo(bool bEnabled,
+					const WCHAR* pwszDir,
+					Logger::Level level);
 
 public:
 	InitThread* getInitThread();
@@ -75,7 +78,7 @@ public:
 	};
 
 public:
-	InitThread(unsigned int nFlags, QSTATUS* pstatus);
+	InitThread(unsigned int nFlags);
 	~InitThread();
 
 public:
@@ -102,18 +105,20 @@ private:
 
 class QSEXPORTCLASS Initializer
 {
-public:
+protected:
 	Initializer();
+
+public:
 	virtual ~Initializer();
 
 public:
 	Initializer* getNext() const;
 
 public:
-	virtual QSTATUS init() = 0;
-	virtual QSTATUS term() = 0;
-	virtual QSTATUS initThread();
-	virtual QSTATUS termThread();
+	virtual bool init() = 0;
+	virtual void term() = 0;
+	virtual bool initThread();
+	virtual void termThread();
 
 private:
 	Initializer(const Initializer&);

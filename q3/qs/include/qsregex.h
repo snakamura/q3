@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -52,8 +52,24 @@ struct QSEXPORTCLASS RegexRangeList
 {
 	typedef std::vector<RegexRange> List;
 	
-	QSTATUS getReplace(const WCHAR* pwszReplace, WSTRING* pwstr) const;
-	QSTATUS getReplace(const WCHAR* pwszReplace, StringBuffer<WSTRING>* pBuf) const;
+	/**
+	 * Get replaced string.
+	 *
+	 * @param pwszReplace [in] Replace string.
+	 * @return Replaced string. Can not be null.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	wstring_ptr getReplace(const WCHAR* pwszReplace) const;
+	
+	/**
+	 * Get replaced string.
+	 *
+	 * @param pwszReplace [in] Replace string.
+	 * @param pBuf [in] StringBuffer which replaced string is written to.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	void getReplace(const WCHAR* pwszReplace,
+					StringBuffer<WSTRING>* pBuf) const;
 	
 	List list_;
 };
@@ -70,16 +86,51 @@ struct QSEXPORTCLASS RegexRangeList
 class QSEXPORTCLASS RegexPattern
 {
 public:
-	RegexPattern(RegexNfa* pNfa, QSTATUS* pstatus);
+	explicit RegexPattern(std::auto_ptr<RegexNfa> pNfa);
 	~RegexPattern();
 
 public:
-	QSTATUS match(const WCHAR* pwsz, bool* pbMatch) const;
-	QSTATUS match(const WCHAR* pwsz, size_t nLen,
-		bool* pbMatch, RegexRangeList* pList) const;
-	QSTATUS search(const WCHAR* pwsz, size_t nLen, const WCHAR* p,
-		bool bReverse, const WCHAR** ppStart, const WCHAR** ppEnd,
-		RegexRangeList* pList) const;
+	/**
+	 * Check if the specified string matches against the pattern.
+	 *
+	 * @param pwsz [in] String.
+	 * @return true if match, false otherwise.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	bool match(const WCHAR* pwsz) const;
+	
+	/**
+	 * Check if the specified string matches against the pattern.
+	 *
+	 * @param pwsz [in] String.
+	 * @param nLen [in] String length.
+	 * @param pList [in] Range list. Can be null.
+	 * @return true if match, false otherwise.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	bool match(const WCHAR* pwsz,
+			   size_t nLen,
+			   RegexRangeList* pList) const;
+	
+	/**
+	 * Search the pattern in the specified string.
+	 *
+	 * @param pwsz [in] String.
+	 * @param nLen [in] String length;
+	 * @param p [in] Pointer to string where search starts.
+	 * @param bReverse [in] true if search in reverse order.
+	 * @param ppStart [out] Start position. null if not found.
+	 * @param ppEnd [out] End position.
+	 * @param pList [in] Range list.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	void search(const WCHAR* pwsz,
+				size_t nLen,
+				const WCHAR* p,
+				bool bReverse,
+				const WCHAR** ppStart,
+				const WCHAR** ppEnd,
+				RegexRangeList* pList) const;
 
 private:
 	RegexPattern(const RegexPattern&);
@@ -99,11 +150,22 @@ private:
 class QSEXPORTCLASS RegexCompiler
 {
 public:
+	/**
+	 * Create instance.
+	 */
 	RegexCompiler();
+	
 	~RegexCompiler();
 
 public:
-	QSTATUS compile(const WCHAR* pwszPattern, RegexPattern** ppPattern) const;
+	/**
+	 * Compile regular expression.
+	 *
+	 * @param pwszPattern [in] Pattern.
+	 * @return Compiled instance. null if error occured.
+	 * @exception std::bad_alloc Out of memory;
+	 */
+	std::auto_ptr<RegexPattern> compile(const WCHAR* pwszPattern) const;
 
 private:
 	RegexCompiler(const RegexCompiler&);

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -38,33 +38,41 @@ class FolderListWindow :
 {
 public:
 	FolderListWindow(qs::WindowBase* pParentWindow,
-		FolderListModel* pFolderListModel, FolderModel* pFolderModel,
-		qs::Profile* pProfile, qs::QSTATUS* pstatus);
+					 FolderListModel* pFolderListModel,
+					 FolderModel* pFolderModel,
+					 qs::Profile* pProfile);
 	virtual ~FolderListWindow();
 
 public:
-	qs::QSTATUS save();
+	bool save();
 	bool isSizeShown() const;
-	qs::QSTATUS showSize();
+	void showSize();
 
 public:
-	virtual qs::QSTATUS getSuperClass(qs::WSTRING* pwstrSuperClass);
-	virtual qs::QSTATUS preCreateWindow(CREATESTRUCT* pCreateStruct);
-	virtual qs::QSTATUS getAccelerator(qs::Accelerator** ppAccelerator);
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual qs::wstring_ptr getSuperClass();
+	virtual bool preCreateWindow(CREATESTRUCT* pCreateStruct);
+	virtual qs::Accelerator* getAccelerator();
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
-	LRESULT onContextMenu(HWND hwnd, const POINT& pt);
+	LRESULT onContextMenu(HWND hwnd,
+						  const POINT& pt);
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
 	LRESULT onDestroy();
-	LRESULT onKeyDown(UINT nKey, UINT nRepeat, UINT nFlags);
-	LRESULT onLButtonDblClk(UINT nFlags, const POINT& pt);
-	LRESULT onLButtonDown(UINT nFlags, const POINT& pt);
+	LRESULT onKeyDown(UINT nKey,
+					  UINT nRepeat,
+					  UINT nFlags);
+	LRESULT onLButtonDblClk(UINT nFlags,
+							const POINT& pt);
+	LRESULT onLButtonDown(UINT nFlags,
+						  const POINT& pt);
 
 public:
 	virtual bool isShow() const;
 	virtual bool isActive() const;
-	virtual qs::QSTATUS setActive();
+	virtual void setActive();
 
 private:
 	FolderListWindow(const FolderListWindow&);

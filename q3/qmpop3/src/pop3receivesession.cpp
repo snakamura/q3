@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -13,8 +13,6 @@
 #include <qmsecurity.h>
 
 #include <qsconv.h>
-#include <qserror.h>
-#include <qsnew.h>
 #include <qsstream.h>
 
 #include <algorithm>
@@ -34,11 +32,11 @@ using namespace qm;
 using namespace qs;
 
 
-#define CHECK_QSTATUS_ERROR() \
-	if (status != QSTATUS_SUCCESS) { \
-		Util::reportError(pPop3_, pSessionCallback_, pAccount_, pSubAccount_); \
-		return status; \
-	} \
+#define HANDLE_ERROR() \
+	do { \
+		Util::reportError(pPop3_.get(), pSessionCallback_, pAccount_, pSubAccount_); \
+		return false; \
+	} while (false) \
 
 
 /****************************************************************************
@@ -47,9 +45,7 @@ using namespace qs;
  *
  */
 
-qmpop3::Pop3ReceiveSession::Pop3ReceiveSession(QSTATUS* pstatus) :
-	pPop3_(0),
-	pCallback_(0),
+qmpop3::Pop3ReceiveSession::Pop3ReceiveSession() :
 	pDocument_(0),
 	pAccount_(0),
 	pSubAccount_(0),
@@ -59,25 +55,22 @@ qmpop3::Pop3ReceiveSession::Pop3ReceiveSession(QSTATUS* pstatus) :
 	pSessionCallback_(0),
 	bReservedDownload_(false),
 	bCacheAll_(false),
-	nStart_(0),
-	pUIDList_(0)
+	nStart_(0)
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qmpop3::Pop3ReceiveSession::~Pop3ReceiveSession()
 {
-	delete pPop3_;
-	delete pCallback_;
-	delete pUIDList_;
 	std::for_each(listUID_.begin(), listUID_.end(), string_free<WSTRING>());
 }
 
-QSTATUS qmpop3::Pop3ReceiveSession::init(Document* pDocument,
-	Account* pAccount, SubAccount* pSubAccount, HWND hwnd,
-	Profile* pProfile, Logger* pLogger, ReceiveSessionCallback* pCallback)
+bool qmpop3::Pop3ReceiveSession::init(Document* pDocument,
+									  Account* pAccount,
+									  SubAccount* pSubAccount,
+									  HWND hwnd,
+									  Profile* pProfile,
+									  Logger* pLogger,
+									  ReceiveSessionCallback* pCallback)
 {
 	assert(pDocument);
 	assert(pAccount);
@@ -86,8 +79,6 @@ QSTATUS qmpop3::Pop3ReceiveSession::init(Document* pDocument,
 	assert(pProfile);
 	assert(pCallback);
 	
-	DECLARE_QSTATUS();
-	
 	pDocument_ = pDocument;
 	pAccount_ = pAccount;
 	pSubAccount_ = pSubAccount;
@@ -95,128 +86,91 @@ QSTATUS qmpop3::Pop3ReceiveSession::init(Document* pDocument,
 	pProfile_ = pProfile;
 	pLogger_ = pLogger;
 	pSessionCallback_ = pCallback;
+	pCallback_.reset(new CallbackImpl(pSubAccount_,
+		pDocument_->getSecurity(), pSessionCallback_));
 	
-	status = newQsObject(pSubAccount_, pDocument_->getSecurity(),
-		pSessionCallback_, &pCallback_);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::Pop3ReceiveSession::connect()
+bool qmpop3::Pop3ReceiveSession::connect()
 {
-	assert(!pPop3_);
-	
-	DECLARE_QSTATUS();
+	assert(!pPop3_.get());
 	
 	Log log(pLogger_, L"qmpop3::Pop3ReceiveSession");
-	status = log.debug(L"Connecting to the server...");
-	CHECK_QSTATUS();
+	log.debug(L"Connecting to the server...");
 	
-	Pop3::Option option = {
-		pSubAccount_->getTimeout(),
-		pCallback_,
-		pCallback_,
-		pCallback_,
-		pLogger_
-	};
-	status = newQsObject(option, &pPop3_);
-	CHECK_QSTATUS();
+	pPop3_.reset(new Pop3(pSubAccount_->getTimeout(), pCallback_.get(),
+		pCallback_.get(), pCallback_.get(), pLogger_));
 	
-	int nApop = 0;
-	status = pSubAccount_->getProperty(L"Pop3", L"Apop", 0, &nApop);
-	CHECK_QSTATUS();
-	Pop3::Ssl ssl = Pop3::SSL_NONE;
-	status = Util::getSsl(pSubAccount_, &ssl);
-	CHECK_QSTATUS();
-	status = pPop3_->connect(pSubAccount_->getHost(Account::HOST_RECEIVE),
-		pSubAccount_->getPort(Account::HOST_RECEIVE), nApop != 0, ssl);
-	CHECK_QSTATUS_ERROR();
+	bool bApop = pSubAccount_->getProperty(L"Pop3", L"Apop", 0) != 0;
+	Pop3::Ssl ssl = Util::getSsl(pSubAccount_);
+	if (!pPop3_->connect(pSubAccount_->getHost(Account::HOST_RECEIVE),
+		pSubAccount_->getPort(Account::HOST_RECEIVE), bApop, ssl))
+		HANDLE_ERROR();
 	
-	status = log.debug(L"Connected to the server.");
-	CHECK_QSTATUS();
+	log.debug(L"Connected to the server.");
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::Pop3ReceiveSession::disconnect()
+bool qmpop3::Pop3ReceiveSession::disconnect()
 {
-	assert(pPop3_);
-	
-	DECLARE_QSTATUS();
+	assert(pPop3_.get());
 	
 	Log log(pLogger_, L"qmpop3::Pop3ReceiveSession");
-	status = log.debug(L"Disconnecting from the server...");
-	CHECK_QSTATUS();
+	log.debug(L"Disconnecting from the server...");
 	
-	status = pPop3_->disconnect();
-	CHECK_QSTATUS_ERROR();
+	pPop3_->disconnect();
 	
-	status = log.debug(L"Disconnected from the server.");
-	CHECK_QSTATUS();
+	log.debug(L"Disconnected from the server.");
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::Pop3ReceiveSession::selectFolder(NormalFolder* pFolder)
+bool qmpop3::Pop3ReceiveSession::selectFolder(NormalFolder* pFolder)
 {
 	assert(pFolder);
 	
-	DECLARE_QSTATUS();
-	
-	status = prepare();
-	CHECK_QSTATUS();
-	
-	status = downloadReservedMessages();
-	CHECK_QSTATUS();
+	if (!prepare() ||
+		!downloadReservedMessages())
+		return false;
 	
 	pFolder_ = pFolder;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::Pop3ReceiveSession::closeFolder()
+bool qmpop3::Pop3ReceiveSession::closeFolder()
 {
 	assert(pFolder_);
 	
-	DECLARE_QSTATUS();
-	
 	pFolder_ = 0;
 	
-	if (pUIDList_) {
-		status = saveUIDList(pUIDList_);
-		CHECK_QSTATUS();
+	if (pUIDList_.get()) {
+		if (!saveUIDList(pUIDList_.get()))
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::Pop3ReceiveSession::updateMessages()
+bool qmpop3::Pop3ReceiveSession::updateMessages()
 {
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::Pop3ReceiveSession::downloadMessages(
-	const SyncFilterSet* pSyncFilterSet)
+bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilterSet)
 {
-	DECLARE_QSTATUS();
-	
 	unsigned int nCount = pPop3_->getMessageCount();
-	status = pCallback_->setMessage(IDS_DOWNLOADMESSAGES);
-	CHECK_QSTATUS();
-	status = pSessionCallback_->setRange(0, nCount);
-	CHECK_QSTATUS();
-	status = pSessionCallback_->setPos(nStart_);
-	CHECK_QSTATUS();
 	
-	int nHandleStatus = 0;
-	status = pSubAccount_->getProperty(
-		L"Pop3", L"HandleStatus", 0, &nHandleStatus);
-	CHECK_QSTATUS();
+	pCallback_->setMessage(IDS_DOWNLOADMESSAGES);
+	pSessionCallback_->setRange(0, nCount);
+	pSessionCallback_->setPos(nStart_);
+	
+	bool bHandleStatus = pSubAccount_->getProperty(L"Pop3", L"HandleStatus", 0) != 0;
 	
 	const WCHAR* pwszIdentity = pSubAccount_->getIdentity();
-	UnstructuredParser subaccount(pSubAccount_->getName(), L"utf-8", &status);
-	CHECK_QSTATUS();
+	UnstructuredParser subaccount(pSubAccount_->getName(), L"utf-8");
 	
 	Time time(Time::getCurrentTime());
 	UID::Date date = {
@@ -225,43 +179,37 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadMessages(
 		time.wDay
 	};
 	
-	MacroVariableHolder globalVariable(&status);
-	CHECK_QSTATUS();
+	MacroVariableHolder globalVariable;
 	
 	DeleteList listDelete;
 	
 	for (unsigned int n = nStart_; n < nCount; ++n) {
 		if (pSessionCallback_->isCanceled(false))
-			return QSTATUS_SUCCESS;
-		status = pSessionCallback_->setPos(n + 1);
-		CHECK_QSTATUS();
+			return true;
+		pSessionCallback_->setPos(n + 1);
 		
 		unsigned int nSize = 0;
 		if (bCacheAll_) {
 			nSize = listSize_[n];
 		}
 		else {
-			status = pPop3_->getMessageSize(n, &nSize);
-			CHECK_QSTATUS_ERROR();
+			if (!pPop3_->getMessageSize(n, &nSize))
+				HANDLE_ERROR();
 		}
 		
-		string_ptr<STRING> strMessage;
-		Message msg(&status);
-		CHECK_QSTATUS();
+		xstring_ptr strMessage;
+		Message msg;
 		State state = STATE_NONE;
 		unsigned int nGetSize = 0;
 		unsigned int nMaxLine = 0xffffffff;
 		if (pSyncFilterSet) {
-			const SyncFilter* pFilter = 0;
 			Pop3SyncFilterCallback callback(pDocument_, pAccount_,
 				pFolder_, &msg, nSize, hwnd_, pProfile_, &globalVariable,
-				pPop3_, n, strMessage.getThis(), &state, &nGetSize);
-			status = pSyncFilterSet->getFilter(&callback, &pFilter);
-			CHECK_QSTATUS();
+				pPop3_.get(), n, strMessage.getThis(), &state, &nGetSize);
+			const SyncFilter* pFilter = pSyncFilterSet->getFilter(&callback);
 			if (pFilter) {
 				const SyncFilter::ActionList& listAction = pFilter->getActions();
-				SyncFilter::ActionList::const_iterator it = listAction.begin();
-				while (it != listAction.end()) {
+				for (SyncFilter::ActionList::const_iterator it = listAction.begin(); it != listAction.end(); ++it) {
 					const SyncFilterAction* pAction = *it;
 					if (wcscmp(pAction->getName(), L"download") == 0) {
 						const WCHAR* pwszLine = pAction->getParam(L"line");
@@ -273,122 +221,97 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadMessages(
 						}
 					}
 					else if (wcscmp(pAction->getName(), L"delete") == 0) {
-						status = listDelete.add(n);
-						CHECK_QSTATUS();
+						listDelete.add(n);
 					}
-					++it;
 				}
 			}
 		}
 		if (state != STATE_ALL && (state != STATE_HEADER || nMaxLine != 0)) {
 			strMessage.reset(0);
 			nGetSize = nSize;
-			status = pPop3_->getMessage(n, nMaxLine, &strMessage, &nGetSize);
-			CHECK_QSTATUS_ERROR();
+			if (!pPop3_->getMessage(n, nMaxLine, &strMessage, &nGetSize))
+				HANDLE_ERROR();
 			
-			size_t nLen = static_cast<size_t>(-1);
+			size_t nLen = -1;
 			CHAR* p = strstr(strMessage.get(), "\r\n\r\n");
 			if (p)
 				nLen = p - strMessage.get() + 4;
-			status = msg.create(strMessage.get(), nLen,
-				Message::FLAG_HEADERONLY);
-			CHECK_QSTATUS();
+			if (!msg.create(strMessage.get(), nLen, Message::FLAG_HEADERONLY))
+				return false;
 		}
 		
 		bool bPartial = nMaxLine != 0xffffffff && nSize > nGetSize;
 		
 		const WCHAR* pwszUID = 0;
-		string_ptr<WSTRING> wstrUID;
+		wstring_ptr wstrUID;
 		if (bCacheAll_) {
 			pwszUID = listUID_[n];
 		}
 		else {
-			status = pPop3_->getUid(n, &wstrUID);
-			CHECK_QSTATUS_ERROR();
+			if (!pPop3_->getUid(n, &wstrUID))
+				HANDLE_ERROR();
 			pwszUID = wstrUID.get();
 		}
 		
-		UnstructuredParser uid(pwszUID, L"utf-8", &status);
-		CHECK_QSTATUS();
-		status = msg.replaceField(L"X-UIDL", uid);
-		CHECK_QSTATUS();
+		UnstructuredParser uid(pwszUID, L"utf-8");
+		if (!msg.replaceField(L"X-UIDL", uid))
+			return false;
 		
 		if (*pwszIdentity) {
-			status = msg.replaceField(L"X-QMAIL-SubAccount", subaccount);
-			CHECK_QSTATUS();
+			if (!msg.replaceField(L"X-QMAIL-SubAccount", subaccount))
+				return false;
 		}
 		else {
-			status = msg.removeField(L"X-QMAIL-SubAccount");
-			CHECK_QSTATUS();
+			msg.removeField(L"X-QMAIL-SubAccount");
 		}
 		
 		unsigned int nFlags = (bPartial ? MessageHolder::FLAG_HEADERONLY : 0);
 		
-		if (nHandleStatus) {
-			UnstructuredParser s(&status);
-			CHECK_QSTATUS();
-			Part::Field f;
-			status = msg.getField(L"Status", &s, &f);
-			CHECK_QSTATUS();
-			if (f == Part::FIELD_EXIST && wcscmp(s.getValue(), L"RO") == 0)
+		if (bHandleStatus) {
+			UnstructuredParser status;
+			if (msg.getField(L"Status", &status) == Part::FIELD_EXIST &&
+				wcscmp(status.getValue(), L"RO") == 0)
 				nFlags |= MessageHolder::FLAG_SEEN;
 		}
 		
-		bool bSelf = false;
-		status = pSubAccount_->isSelf(msg, &bSelf);
-		CHECK_QSTATUS();
-		if (bSelf)
+		if (pSubAccount_->isSelf(msg))
 			nFlags |= MessageHolder::FLAG_SEEN | MessageHolder::FLAG_SENT;
 		
 		Lock<Account> lock(*pAccount_);
 		
-		MessageHolder* pmh = 0;
-		status = pAccount_->storeMessage(pFolder_, strMessage.get(),
-			&msg, static_cast<unsigned int>(-1), nFlags, nSize, false, &pmh);
-		CHECK_QSTATUS();
+		MessageHolder* pmh = pAccount_->storeMessage(pFolder_,
+			strMessage.get(), &msg, -1, nFlags, nSize, false);
+		if (!pmh)
+			return false;
 		
 		unsigned int nUIDFlags = bPartial ? UID::FLAG_PARTIAL : UID::FLAG_NONE;
-		std::auto_ptr<UID> pUID;
-		status = newQsObject(pwszUID, nUIDFlags, date, &pUID);
-		CHECK_QSTATUS();
-		status = pUIDList_->add(pUID.get());
-		CHECK_QSTATUS();
-		pUID.release();
+		std::auto_ptr<UID> pUID(new UID(pwszUID, nUIDFlags, date));
+		pUIDList_->add(pUID);
 		
-		if ((nFlags & MessageHolder::FLAG_SEEN) == 0) {
-			status = pSessionCallback_->notifyNewMessage();
-			CHECK_QSTATUS();
-		}
+		if ((nFlags & MessageHolder::FLAG_SEEN) == 0)
+			pSessionCallback_->notifyNewMessage();
 	}
 	
 	const Account::FolderList& listFolder = pAccount_->getFolders();
-	Account::FolderList::const_iterator it = listFolder.begin();
-	while (it != listFolder.end()) {
+	for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
 		if ((*it)->getType() == Folder::TYPE_NORMAL) {
 			NormalFolder* pFolder = static_cast<NormalFolder*>(*it);
 			Lock<Account> lock(*pAccount_);
 			if (pFolder->getDeletedCount() != 0) {
-				status = pFolder->loadMessageHolders();
-				CHECK_QSTATUS();
+				if (!pFolder->loadMessageHolders())
+					return false;
 				
 				for (unsigned int n = 0; n < pFolder->getCount(); ++n) {
 					MessageHolder* pmh = pFolder->getMessage(n);
 					if (pmh->isFlag(MessageHolder::FLAG_DELETED)) {
-						Message msg(&status);
-						CHECK_QSTATUS();
-						status = pmh->getMessage(
-							Account::GETMESSAGEFLAG_HEADER, L"X-UIDL", &msg);
-						CHECK_QSTATUS();
-						
-						Part::Field f;
+						Message msg;
+						if (!pmh->getMessage(Account::GETMESSAGEFLAG_HEADER, L"X-UIDL", &msg))
+							return false;
 						
 						bool bSkip = false;
 						if (*pwszIdentity) {
-							UnstructuredParser subaccount(&status);
-							CHECK_QSTATUS();
-							status = msg.getField(L"X-QMAIL-SubAccount", &subaccount, &f);
-							CHECK_QSTATUS();
-							if (f == Part::FIELD_EXIST) {
+							UnstructuredParser subaccount;
+							if (msg.getField(L"X-QMAIL-SubAccount", &subaccount) == Part::FIELD_EXIST) {
 								SubAccount* pSubAccount = pAccount_->getSubAccount(subaccount.getValue());
 								bSkip = !pSubAccount || wcscmp(pSubAccount->getIdentity(), pwszIdentity) != 0;
 							}
@@ -398,18 +321,12 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadMessages(
 						}
 						
 						if (!bSkip) {
-							UnstructuredParser uid(&status);
-							CHECK_QSTATUS();
-							status = msg.getField(L"X-UIDL", &uid, &f);
-							CHECK_QSTATUS();
-							
 							size_t nIndex = -1;
-							if (f == Part::FIELD_EXIST) {
+							UnstructuredParser uid;
+							if (msg.getField(L"X-UIDL", &uid) == Part::FIELD_EXIST) {
 								nIndex = pUIDList_->getIndex(uid.getValue());
-								if (nIndex != -1) {
-									status = listDelete.add(nIndex, MessagePtr(pmh));
-									CHECK_QSTATUS();
-								}
+								if (nIndex != -1)
+									listDelete.add(nIndex, MessagePtr(pmh));
 							}
 							if (nIndex == -1)
 								pmh->setFlags(0, MessageHolder::FLAG_DELETED);
@@ -418,24 +335,17 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadMessages(
 				}
 			}
 		}
-		++it;
 	}
 	
-	int nDeleteOnServer = 0;
-	status = pSubAccount_->getProperty(
-		L"Pop3", L"DeleteOnServer", 0, &nDeleteOnServer);
-	CHECK_QSTATUS();
-	int nDeleteBefore = 0;
-	status = pSubAccount_->getProperty(
-		L"Pop3", L"DeleteBefore", 0, &nDeleteBefore);
-	CHECK_QSTATUS();
+	bool bDeleteOnServer = pSubAccount_->getProperty(L"Pop3", L"DeleteOnServer", 0) != 0;
+	int nDeleteBefore = pSubAccount_->getProperty(L"Pop3", L"DeleteBefore", 0);
 	
-	if (nDeleteOnServer || nDeleteBefore != 0) {
+	if (bDeleteOnServer || nDeleteBefore != 0) {
 		for (size_t n = 0; n < pUIDList_->getCount(); ++n) {
 			UID* pUID = pUIDList_->getUID(n);
 			
 			bool bDelete = false;
-			if (nDeleteOnServer) {
+			if (bDeleteOnServer) {
 				bDelete = !(pUID->getFlags() & UID::FLAG_PARTIAL);
 			}
 			else if (nDeleteBefore != 0) {
@@ -445,39 +355,32 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadMessages(
 				bDelete = t < time;
 			}
 			
-			if (bDelete) {
-				status = listDelete.add(n);
-				CHECK_QSTATUS();
-			}
+			if (bDelete)
+				listDelete.add(n);
 		}
 	}
 	
 	const DeleteList::List& l = listDelete.getList();
 	if (!l.empty()) {
 		UIDList::IndexList listIndex;
-		status = STLWrapper<UIDList::IndexList>(listIndex).reserve(l.size());
-		CHECK_QSTATUS();
+		listIndex.reserve(l.size());
 		for (DeleteList::List::size_type m = 0; m < l.size(); ++m) {
 			if (l[m].first)
 				listIndex.push_back(m);
 		}
 		
 		if (listIndex.size()) {
-			status = pCallback_->setMessage(IDS_DELETEMESSAGE);
-			CHECK_QSTATUS();
-			status = pSessionCallback_->setRange(0, listIndex.size());
-			CHECK_QSTATUS();
-			status = pSessionCallback_->setPos(0);
-			CHECK_QSTATUS();
+			pCallback_->setMessage(IDS_DELETEMESSAGE);
+			pSessionCallback_->setRange(0, listIndex.size());
+			pSessionCallback_->setPos(0);
 			
 			int nPos = 0;
 			for (DeleteList::List::size_type n = 0; n < l.size(); ++n) {
 				if (l[n].first) {
-					status = pSessionCallback_->setPos(++nPos);
-					CHECK_QSTATUS();
+					pSessionCallback_->setPos(++nPos);
 					
-					status = pPop3_->deleteMessage(n);
-					CHECK_QSTATUS_ERROR();
+					if (!pPop3_->deleteMessage(n))
+						HANDLE_ERROR();
 					
 					MessagePtrLock mpl(l[n].second);
 					if (mpl)
@@ -489,47 +392,39 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadMessages(
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::Pop3ReceiveSession::applyOfflineJobs()
+bool qmpop3::Pop3ReceiveSession::applyOfflineJobs()
 {
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::Pop3ReceiveSession::prepare()
+bool qmpop3::Pop3ReceiveSession::prepare()
 {
 	assert(!bReservedDownload_);
 	assert(!bCacheAll_);
 	assert(nStart_ == 0);
-	assert(!pUIDList_);
+	assert(!pUIDList_.get());
 	assert(listUID_.empty());
 	assert(listSize_.empty());
 	
-	DECLARE_QSTATUS();
+	std::auto_ptr<UIDList> pUIDList(loadUIDList());
+	if (!pUIDList.get())
+		return false;
 	
-	std::auto_ptr<UIDList> pUIDList;
-	status = loadUIDList(&pUIDList);
-	CHECK_QSTATUS();
-	
-	status = pCallback_->setMessage(IDS_CHECKNEWMESSAGE);
-	CHECK_QSTATUS();
+	pCallback_->setMessage(IDS_CHECKNEWMESSAGE);
 	
 	const Account::FolderList& listFolder = pAccount_->getFolders();
-	Account::FolderList::const_iterator it = listFolder.begin();
-	while (it != listFolder.end() && !bReservedDownload_) {
+	for (Account::FolderList::const_iterator it = listFolder.begin();
+		it != listFolder.end() && !bReservedDownload_; ++it) {
 		Folder* pFolder = *it;
 		if (pFolder->getType() == Folder::TYPE_NORMAL &&
 			static_cast<NormalFolder*>(pFolder)->getDownloadCount() != 0)
 			bReservedDownload_ = true;
-		++it;
 	}
 	
-	unsigned int nGetAll = 0;
-	status = pSubAccount_->getProperty(L"Pop3", L"GetAll",
-		20, reinterpret_cast<int*>(&nGetAll));
-	CHECK_QSTATUS();
-	
+	unsigned int nGetAll = pSubAccount_->getProperty(L"Pop3", L"GetAll", 20);
 	unsigned int nCount = pPop3_->getMessageCount();
 	unsigned int nUIDCount = pUIDList->getCount();
 	if (nUIDCount == 0 ||
@@ -539,9 +434,9 @@ QSTATUS qmpop3::Pop3ReceiveSession::prepare()
 		bCacheAll_ = true;
 	}
 	else {
-		string_ptr<WSTRING> wstrUID;
-		status = pPop3_->getUid(nUIDCount - 1, &wstrUID);
-		CHECK_QSTATUS_ERROR();
+		wstring_ptr wstrUID;
+		if (!pPop3_->getUid(nUIDCount - 1, &wstrUID))
+			HANDLE_ERROR();
 		UID* pUID = pUIDList->getUID(nUIDCount - 1);
 		if (wcscmp(pUID->getUID(), wstrUID.get()) == 0)
 			nStart_ = nUIDCount;
@@ -552,11 +447,10 @@ QSTATUS qmpop3::Pop3ReceiveSession::prepare()
 	std::auto_ptr<UIDList> pNewUIDList;
 	
 	if (bCacheAll_) {
-		status = pPop3_->getUids(&listUID_);
-		CHECK_QSTATUS_ERROR();
-		
-		status = pPop3_->getMessageSizes(&listSize_);
-		CHECK_QSTATUS_ERROR();
+		if (!pPop3_->getUids(&listUID_))
+			HANDLE_ERROR();
+		if (!pPop3_->getMessageSizes(&listSize_))
+			HANDLE_ERROR();
 		
 		if (nUIDCount != 0 && listUID_.size() >= nUIDCount &&
 			wcscmp(pUIDList->getUID(nUIDCount - 1)->getUID(),
@@ -564,8 +458,7 @@ QSTATUS qmpop3::Pop3ReceiveSession::prepare()
 			nStart_ = nUIDCount;
 		}
 		else {
-			status = newQsObject(&pNewUIDList);
-			CHECK_QSTATUS();
+			pNewUIDList.reset(new UIDList());
 			pNewUIDList->setModified(true);
 			
 			size_t nIndex = -1;
@@ -577,9 +470,7 @@ QSTATUS qmpop3::Pop3ReceiveSession::prepare()
 					break;
 				
 				std::auto_ptr<UID> pUID(pUIDList->remove(nIndex));
-				status = pNewUIDList->add(pUID.get());
-				CHECK_QSTATUS();
-				pUID.release();
+				pNewUIDList->add(pUID);
 				
 				++n;
 			}
@@ -588,44 +479,36 @@ QSTATUS qmpop3::Pop3ReceiveSession::prepare()
 	}
 	
 	if (pNewUIDList.get())
-		pUIDList_ = pNewUIDList.release();
+		pUIDList_ = pNewUIDList;
 	else
-		pUIDList_ = pUIDList.release();
+		pUIDList_ = pUIDList;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::Pop3ReceiveSession::downloadReservedMessages()
+bool qmpop3::Pop3ReceiveSession::downloadReservedMessages()
 {
-	DECLARE_QSTATUS();
-	
 	if (bReservedDownload_) {
 		assert(bCacheAll_);
 		
 		const Account::FolderList& l = pAccount_->getFolders();
-		Account::FolderList::const_iterator it = l.begin();
-		while (it != l.end()) {
+		for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 			Folder* pFolder = *it;
 			if (pFolder->getType() == Folder::TYPE_NORMAL) {
-				status = downloadReservedMessages(
-					static_cast<NormalFolder*>(pFolder));
-				CHECK_QSTATUS();
+				if (!downloadReservedMessages(static_cast<NormalFolder*>(pFolder)))
+					return false;
 			}
-			++it;
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::Pop3ReceiveSession::downloadReservedMessages(
-	NormalFolder* pFolder)
+bool qmpop3::Pop3ReceiveSession::downloadReservedMessages(NormalFolder* pFolder)
 {
 	assert(pFolder);
 	assert(pFolder->getAccount() == pAccount_);
 	assert(bCacheAll_);
-	
-	DECLARE_QSTATUS();
 	
 	Time time(Time::getCurrentTime());
 	
@@ -635,11 +518,10 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadReservedMessages(
 	{
 		Lock<Account> lock(*pAccount_);
 		
-		status = pFolder->loadMessageHolders();
-		CHECK_QSTATUS();
+		if (!pFolder->loadMessageHolders())
+			return false;
 		
-		status = STLWrapper<List>(l).reserve(pFolder->getDownloadCount());
-		CHECK_QSTATUS();
+		l.reserve(pFolder->getDownloadCount());
 		
 		for (unsigned int n = 0; n < pFolder->getCount(); ++n) {
 			MessageHolder* pmh = pFolder->getMessage(n);
@@ -649,29 +531,22 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadReservedMessages(
 		}
 	}
 	
-	List::const_iterator it = l.begin();
-	while (it != l.end()) {
+	for (List::const_iterator it = l.begin(); it != l.end(); ++it) {
 		MessagePtrLock mpl(*it);
 		if (mpl) {
-			Message msg(&status);
-			CHECK_QSTATUS();
-			status = mpl->getMessage(Account::GETMESSAGEFLAG_HEADER, 0, &msg);
-			CHECK_QSTATUS();
-			UnstructuredParser uidl(&status);
-			CHECK_QSTATUS();
-			Part::Field f;
-			status = msg.getField(L"X-UIDL", &uidl, &f);
-			CHECK_QSTATUS();
-			if (f == Part::FIELD_EXIST) {
+			Message msg;
+			if (!mpl->getMessage(Account::GETMESSAGEFLAG_HEADER, 0, &msg))
+				return false;
+			UnstructuredParser uidl;
+			if (msg.getField(L"X-UIDL", &uidl) == Part::FIELD_EXIST) {
 				size_t nIndex = pUIDList_->getIndex(uidl.getValue());
 				if (nIndex != -1) {
-					string_ptr<STRING> strMessage;
+					xstring_ptr strMessage;
 					unsigned int nSize = listSize_[nIndex];
-					status = pPop3_->getMessage(nIndex,
-						0xffffffff, &strMessage, &nSize);
-					CHECK_QSTATUS_ERROR();
-					status = pAccount_->updateMessage(mpl, strMessage.get());
-					CHECK_QSTATUS();
+					if (!pPop3_->getMessage(nIndex, 0xffffffff, &strMessage, &nSize))
+						HANDLE_ERROR();
+					if (!pAccount_->updateMessage(mpl, strMessage.get()))
+						return false;
 					
 					UID* pUID = pUIDList_->getUID(nIndex);
 					pUID->update(UID::FLAG_NONE,
@@ -684,50 +559,36 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadReservedMessages(
 				MessageHolder::FLAG_DOWNLOADTEXT |
 				MessageHolder::FLAG_PARTIAL_MASK);
 		}
-		++it;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::Pop3ReceiveSession::loadUIDList(
-	std::auto_ptr<UIDList>* papUIDList) const
+std::auto_ptr<UIDList> qmpop3::Pop3ReceiveSession::loadUIDList() const
 {
-	DECLARE_QSTATUS();
+	wstring_ptr wstrPath(getUIDListPath());
 	
-	string_ptr<WSTRING> wstrPath;
-	status = getUIDListPath(&wstrPath);
-	CHECK_QSTATUS();
+	std::auto_ptr<UIDList> pUIDList(new UIDList());
+	if (!pUIDList->load(wstrPath.get()))
+		return 0;
 	
-	std::auto_ptr<UIDList> pUIDList;
-	status = newQsObject(&pUIDList);
-	CHECK_QSTATUS();
-	status = pUIDList->load(wstrPath.get());
-	CHECK_QSTATUS();
-	
-	papUIDList->reset(pUIDList.release());
-	
-	return QSTATUS_SUCCESS;
+	return pUIDList;
 }
 
-QSTATUS qmpop3::Pop3ReceiveSession::saveUIDList(const UIDList* pUIDList) const
+bool qmpop3::Pop3ReceiveSession::saveUIDList(const UIDList* pUIDList) const
 {
 	assert(pUIDList);
 	
-	DECLARE_QSTATUS();
-	
 	if (pUIDList->isModified()) {
-		string_ptr<WSTRING> wstrPath;
-		status = getUIDListPath(&wstrPath);
-		CHECK_QSTATUS();
-		status = pUIDList->save(wstrPath.get());
-		CHECK_QSTATUS();
+		wstring_ptr wstrPath(getUIDListPath());
+		if (!pUIDList->save(wstrPath.get()))
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::Pop3ReceiveSession::getUIDListPath(WSTRING* pwstrPath) const
+wstring_ptr qmpop3::Pop3ReceiveSession::getUIDListPath() const
 {
 	const WCHAR* pwszIdentity = pSubAccount_->getIdentity();
 	const ConcatW c[] = {
@@ -737,13 +598,7 @@ QSTATUS qmpop3::Pop3ReceiveSession::getUIDListPath(WSTRING* pwstrPath) const
 		{ pwszIdentity,					-1	},
 		{ L".xml",						-1	}
 	};
-	string_ptr<WSTRING> wstrPath(concat(c, countof(c)));
-	if (!wstrPath.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	*pwstrPath = wstrPath.release();
-	
-	return QSTATUS_SUCCESS;
+	return concat(c, countof(c));
 }
 
 
@@ -753,30 +608,23 @@ QSTATUS qmpop3::Pop3ReceiveSession::getUIDListPath(WSTRING* pwstrPath) const
  *
  */
 
-qmpop3::Pop3ReceiveSession::CallbackImpl::CallbackImpl(
-	SubAccount* pSubAccount, const Security* pSecurity,
-	ReceiveSessionCallback* pSessionCallback, qs::QSTATUS* pstatus) :
+qmpop3::Pop3ReceiveSession::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
+													   const Security* pSecurity,
+													   ReceiveSessionCallback* pSessionCallback) :
 	DefaultSSLSocketCallback(pSubAccount, Account::HOST_RECEIVE, pSecurity),
 	pSubAccount_(pSubAccount),
 	pSessionCallback_(pSessionCallback)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qmpop3::Pop3ReceiveSession::CallbackImpl::~CallbackImpl()
 {
 }
 
-QSTATUS qmpop3::Pop3ReceiveSession::CallbackImpl::setMessage(UINT nId)
+void qmpop3::Pop3ReceiveSession::CallbackImpl::setMessage(UINT nId)
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrMessage;
-	status = loadString(getResourceHandle(), nId, &wstrMessage);
-	CHECK_QSTATUS();
-	
-	return pSessionCallback_->setMessage(wstrMessage.get());
+	wstring_ptr wstrMessage(loadString(getResourceHandle(), nId));
+	pSessionCallback_->setMessage(wstrMessage.get());
 }
 
 bool qmpop3::Pop3ReceiveSession::CallbackImpl::isCanceled(bool bForce) const
@@ -784,71 +632,57 @@ bool qmpop3::Pop3ReceiveSession::CallbackImpl::isCanceled(bool bForce) const
 	return pSessionCallback_->isCanceled(bForce);
 }
 
-QSTATUS qmpop3::Pop3ReceiveSession::CallbackImpl::initialize()
+void qmpop3::Pop3ReceiveSession::CallbackImpl::initialize()
 {
-	return setMessage(IDS_INITIALIZE);
+	setMessage(IDS_INITIALIZE);
 }
 
-QSTATUS qmpop3::Pop3ReceiveSession::CallbackImpl::lookup()
+void qmpop3::Pop3ReceiveSession::CallbackImpl::lookup()
 {
-	return setMessage(IDS_LOOKUP);
+	setMessage(IDS_LOOKUP);
 }
 
-QSTATUS qmpop3::Pop3ReceiveSession::CallbackImpl::connecting()
+void qmpop3::Pop3ReceiveSession::CallbackImpl::connecting()
 {
-	return setMessage(IDS_CONNECTING);
+	setMessage(IDS_CONNECTING);
 }
 
-QSTATUS qmpop3::Pop3ReceiveSession::CallbackImpl::connected()
+void qmpop3::Pop3ReceiveSession::CallbackImpl::connected()
 {
-	return setMessage(IDS_CONNECTED);
+	setMessage(IDS_CONNECTED);
 }
 
-QSTATUS qmpop3::Pop3ReceiveSession::CallbackImpl::getUserInfo(
-	WSTRING* pwstrUserName, WSTRING* pwstrPassword)
+bool qmpop3::Pop3ReceiveSession::CallbackImpl::getUserInfo(wstring_ptr* pwstrUserName,
+														   wstring_ptr* pwstrPassword)
 {
 	assert(pwstrUserName);
 	assert(pwstrPassword);
 	
-	DECLARE_QSTATUS();
+	*pwstrUserName = allocWString(pSubAccount_->getUserName(Account::HOST_RECEIVE));
+	*pwstrPassword = allocWString(pSubAccount_->getPassword(Account::HOST_RECEIVE));
 	
-	string_ptr<WSTRING> wstrUserName(
-		allocWString(pSubAccount_->getUserName(Account::HOST_RECEIVE)));
-	if (!wstrUserName.get())
-		return QSTATUS_OUTOFMEMORY;
-	string_ptr<WSTRING> wstrPassword(
-		allocWString(pSubAccount_->getPassword(Account::HOST_RECEIVE)));
-	if (!wstrPassword.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	*pwstrUserName = wstrUserName.release();
-	*pwstrPassword = wstrPassword.release();
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::Pop3ReceiveSession::CallbackImpl::setPassword(
-	const WCHAR* pwszPassword)
+void qmpop3::Pop3ReceiveSession::CallbackImpl::setPassword(const WCHAR* pwszPassword)
 {
 	// TODO
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmpop3::Pop3ReceiveSession::CallbackImpl::authenticating()
+void qmpop3::Pop3ReceiveSession::CallbackImpl::authenticating()
 {
-	return setMessage(IDS_AUTHENTICATING);
+	setMessage(IDS_AUTHENTICATING);
 }
 
-QSTATUS qmpop3::Pop3ReceiveSession::CallbackImpl::setRange(
-	unsigned int nMin, unsigned int nMax)
+void qmpop3::Pop3ReceiveSession::CallbackImpl::setRange(unsigned int nMin,
+														unsigned int nMax)
 {
-	return pSessionCallback_->setSubRange(nMin, nMax);
+	pSessionCallback_->setSubRange(nMin, nMax);
 }
 
-QSTATUS qmpop3::Pop3ReceiveSession::CallbackImpl::setPos(
-	unsigned int nPos)
+void qmpop3::Pop3ReceiveSession::CallbackImpl::setPos(unsigned int nPos)
 {
-	return pSessionCallback_->setSubPos(nPos);
+	pSessionCallback_->setSubPos(nPos);
 }
 
 
@@ -858,7 +692,7 @@ QSTATUS qmpop3::Pop3ReceiveSession::CallbackImpl::setPos(
  *
  */
 
-qmpop3::Pop3ReceiveSessionUI::Pop3ReceiveSessionUI(QSTATUS* pstatus)
+qmpop3::Pop3ReceiveSessionUI::Pop3ReceiveSessionUI()
 {
 }
 
@@ -871,10 +705,9 @@ const WCHAR* qmpop3::Pop3ReceiveSessionUI::getClass()
 	return L"mail";
 }
 
-QSTATUS qmpop3::Pop3ReceiveSessionUI::getDisplayName(WSTRING* pwstrName)
+wstring_ptr qmpop3::Pop3ReceiveSessionUI::getDisplayName()
 {
-	assert(pwstrName);
-	return loadString(getResourceHandle(), IDS_POP3, pwstrName);
+	return loadString(getResourceHandle(), IDS_POP3);
 }
 
 short qmpop3::Pop3ReceiveSessionUI::getDefaultPort()
@@ -882,22 +715,9 @@ short qmpop3::Pop3ReceiveSessionUI::getDefaultPort()
 	return 110;
 }
 
-QSTATUS qmpop3::Pop3ReceiveSessionUI::createPropertyPage(
-	SubAccount* pSubAccount, PropertyPage** ppPage)
+std::auto_ptr<PropertyPage> qmpop3::Pop3ReceiveSessionUI::createPropertyPage(SubAccount* pSubAccount)
 {
-	assert(ppPage);
-	
-	DECLARE_QSTATUS();
-	
-	*ppPage = 0;
-	
-	std::auto_ptr<ReceivePage> pPage;
-	status = newQsObject(pSubAccount, &pPage);
-	CHECK_QSTATUS();
-	
-	*ppPage = pPage.release();
-	
-	return QSTATUS_SUCCESS;
+	return new ReceivePage(pSubAccount);
 }
 
 
@@ -911,43 +731,22 @@ Pop3ReceiveSessionFactory qmpop3::Pop3ReceiveSessionFactory::factory__;
 
 qmpop3::Pop3ReceiveSessionFactory::Pop3ReceiveSessionFactory()
 {
-	regist(L"pop3", this);
+	registerFactory(L"pop3", this);
 }
 
 qmpop3::Pop3ReceiveSessionFactory::~Pop3ReceiveSessionFactory()
 {
-	unregist(L"pop3");
+	unregisterFactory(L"pop3");
 }
 
-QSTATUS qmpop3::Pop3ReceiveSessionFactory::createSession(
-	ReceiveSession** ppReceiveSession)
+std::auto_ptr<ReceiveSession> qmpop3::Pop3ReceiveSessionFactory::createSession()
 {
-	assert(ppReceiveSession);
-	
-	DECLARE_QSTATUS();
-	
-	Pop3ReceiveSession* pSession = 0;
-	status = newQsObject(&pSession);
-	CHECK_QSTATUS();
-	
-	*ppReceiveSession = pSession;
-	
-	return QSTATUS_SUCCESS;
+	return new Pop3ReceiveSession();
 }
 
-QSTATUS qmpop3::Pop3ReceiveSessionFactory::createUI(ReceiveSessionUI** ppUI)
+std::auto_ptr<ReceiveSessionUI> qmpop3::Pop3ReceiveSessionFactory::createUI()
 {
-	assert(ppUI);
-	
-	DECLARE_QSTATUS();
-	
-	Pop3ReceiveSessionUI* pUI = 0;
-	status = newQsObject(&pUI);
-	CHECK_QSTATUS();
-	
-	*ppUI = pUI;
-	
-	return QSTATUS_SUCCESS;
+	return new Pop3ReceiveSessionUI();
 }
 
 
@@ -957,12 +756,19 @@ QSTATUS qmpop3::Pop3ReceiveSessionFactory::createUI(ReceiveSessionUI** ppUI)
  *
  */
 
-qmpop3::Pop3SyncFilterCallback::Pop3SyncFilterCallback(
-	Document* pDocument, Account* pAccount, NormalFolder* pFolder,
-	Message* pMessage, unsigned int nSize, HWND hwnd, Profile* pProfile,
-	MacroVariableHolder* pGlobalVariable, Pop3* pPop3,
-	unsigned int nMessage, qs::string_ptr<qs::STRING>* pstrMessage,
-	Pop3ReceiveSession::State* pState, unsigned int* pnGetSize) :
+qmpop3::Pop3SyncFilterCallback::Pop3SyncFilterCallback(Document* pDocument,
+													   Account* pAccount,
+													   NormalFolder* pFolder,
+													   Message* pMessage,
+													   unsigned int nSize,
+													   HWND hwnd,
+													   Profile* pProfile,
+													   MacroVariableHolder* pGlobalVariable,
+													   Pop3* pPop3,
+													   unsigned int nMessage,
+													   xstring_ptr* pstrMessage,
+													   Pop3ReceiveSession::State* pState,
+													   unsigned int* pnGetSize) :
 	pDocument_(pDocument),
 	pAccount_(pAccount),
 	pFolder_(pFolder),
@@ -975,20 +781,16 @@ qmpop3::Pop3SyncFilterCallback::Pop3SyncFilterCallback(
 	nMessage_(nMessage),
 	pstrMessage_(pstrMessage),
 	pState_(pState),
-	pnGetSize_(pnGetSize),
-	pmh_(0)
+	pnGetSize_(pnGetSize)
 {
 }
 
 qmpop3::Pop3SyncFilterCallback::~Pop3SyncFilterCallback()
 {
-	delete pmh_;
 }
 
-QSTATUS qmpop3::Pop3SyncFilterCallback::getMessage(unsigned int nFlag)
+bool qmpop3::Pop3SyncFilterCallback::getMessage(unsigned int nFlag)
 {
-	DECLARE_QSTATUS();
-	
 	bool bDownload = false;
 	unsigned int nMaxLine = 0xffffffff;
 	switch (nFlag & Account::GETMESSAGEFLAG_METHOD_MASK) {
@@ -1005,26 +807,26 @@ QSTATUS qmpop3::Pop3SyncFilterCallback::getMessage(unsigned int nFlag)
 		break;
 	default:
 		assert(false);
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
 	if (bDownload) {
-		string_ptr<STRING>& str = *pstrMessage_;
+		xstring_ptr& str = *pstrMessage_;
 		
 		str.reset(0);
 		*pnGetSize_ = nSize_;
-		status = pPop3_->getMessage(nMessage_, nMaxLine, &str, pnGetSize_);
-		CHECK_QSTATUS();
+		if (!pPop3_->getMessage(nMessage_, nMaxLine, &str, pnGetSize_))
+			return false;
 		
-		size_t nLen = static_cast<size_t>(-1);
+		size_t nLen = -1;
 		CHAR* p = strstr(str.get(), "\r\n\r\n");
 		if (p)
 			nLen = p - str.get() + 4;
-		status = pMessage_->create(str.get(), nLen, Message::FLAG_HEADERONLY);
-		CHECK_QSTATUS();
+		if (!pMessage_->create(str.get(), nLen, Message::FLAG_HEADERONLY))
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 const NormalFolder* qmpop3::Pop3SyncFilterCallback::getFolder()
@@ -1032,35 +834,13 @@ const NormalFolder* qmpop3::Pop3SyncFilterCallback::getFolder()
 	return pFolder_;
 }
 
-QSTATUS qmpop3::Pop3SyncFilterCallback::getMacroContext(
-	MacroContext** ppContext)
+std::auto_ptr<MacroContext> qmpop3::Pop3SyncFilterCallback::getMacroContext()
 {
-	assert(ppContext);
+	if (!pmh_.get())
+		pmh_.reset(new Pop3MessageHolder(this, pFolder_, pMessage_, nSize_));
 	
-	DECLARE_QSTATUS();
-	
-	if (!pmh_) {
-		status = newQsObject(this, pFolder_, pMessage_, nSize_, &pmh_);
-		CHECK_QSTATUS();
-	}
-	MacroContext::Init init = {
-		pmh_,
-		pMessage_,
-		pAccount_,
-		pDocument_,
-		hwnd_,
-		pProfile_,
-		false,
-		0,
-		pGlobalVariable_
-	};
-	std::auto_ptr<MacroContext> pContext;
-	status = newQsObject(init, &pContext);
-	CHECK_QSTATUS();
-	
-	*ppContext = pContext.release();
-	
-	return QSTATUS_SUCCESS;
+	return new MacroContext(pmh_.get(), pMessage_, pAccount_,
+		pDocument_, hwnd_, pProfile_, false, 0, pGlobalVariable_);
 }
 
 
@@ -1070,73 +850,61 @@ QSTATUS qmpop3::Pop3SyncFilterCallback::getMacroContext(
  *
  */
 
-qmpop3::Pop3MessageHolder::Pop3MessageHolder(
-	Pop3SyncFilterCallback* pCallback, NormalFolder* pFolder,
-	Message* pMessage, unsigned int nSize, QSTATUS* pstatus) :
-	AbstractMessageHolder(pFolder, pMessage, -1, nSize, nSize, pstatus),
+qmpop3::Pop3MessageHolder::Pop3MessageHolder(Pop3SyncFilterCallback* pCallback,
+											 NormalFolder* pFolder,
+											 Message* pMessage,
+											 unsigned int nSize) :
+	AbstractMessageHolder(pFolder, pMessage, -1, nSize, nSize),
 	pCallback_(pCallback)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qmpop3::Pop3MessageHolder::~Pop3MessageHolder()
 {
 }
 
-QSTATUS qmpop3::Pop3MessageHolder::getFrom(WSTRING* pwstrFrom) const
+wstring_ptr qmpop3::Pop3MessageHolder::getFrom() const
 {
-	DECLARE_QSTATUS();
-	
-	status = getMessage(Account::GETMESSAGEFLAG_HEADER);
-	CHECK_QSTATUS();
-	
-	return AbstractMessageHolder::getFrom(pwstrFrom);
+	if (!getMessage(Account::GETMESSAGEFLAG_HEADER))
+		return allocWString(L"");
+	return AbstractMessageHolder::getFrom();
 }
 
-QSTATUS qmpop3::Pop3MessageHolder::getTo(WSTRING* pwstrTo) const
+wstring_ptr qmpop3::Pop3MessageHolder::getTo() const
 {
-	DECLARE_QSTATUS();
-	
-	status = getMessage(Account::GETMESSAGEFLAG_HEADER);
-	CHECK_QSTATUS();
-	
-	return AbstractMessageHolder::getTo(pwstrTo);
+	if (!getMessage(Account::GETMESSAGEFLAG_HEADER))
+		return allocWString(L"");
+	return AbstractMessageHolder::getTo();
 }
 
-QSTATUS qmpop3::Pop3MessageHolder::getFromTo(WSTRING* pwstrFromTo) const
+wstring_ptr qmpop3::Pop3MessageHolder::getFromTo() const
 {
-	return getFrom(pwstrFromTo);
+	return getFrom();
 }
 
-QSTATUS qmpop3::Pop3MessageHolder::getSubject(WSTRING* pwstrSubject) const
+wstring_ptr qmpop3::Pop3MessageHolder::getSubject() const
 {
-	DECLARE_QSTATUS();
-	
-	status = getMessage(Account::GETMESSAGEFLAG_HEADER);
-	CHECK_QSTATUS();
-	
-	return AbstractMessageHolder::getSubject(pwstrSubject);
+	if (!getMessage(Account::GETMESSAGEFLAG_HEADER))
+		return allocWString(L"");
+	return AbstractMessageHolder::getSubject();
 }
 
-QSTATUS qmpop3::Pop3MessageHolder::getDate(Time* pTime) const
+void qmpop3::Pop3MessageHolder::getDate(Time* pTime) const
 {
-	DECLARE_QSTATUS();
-	
-	status = getMessage(Account::GETMESSAGEFLAG_HEADER);
-	CHECK_QSTATUS();
-	
-	return AbstractMessageHolder::getDate(pTime);
+	if (!getMessage(Account::GETMESSAGEFLAG_HEADER))
+		*pTime = Time::getCurrentTime();
+	AbstractMessageHolder::getDate(pTime);
 }
 
-QSTATUS qmpop3::Pop3MessageHolder::getMessage(unsigned int nFlags,
-	const WCHAR* pwszField, Message* pMessage)
+bool qmpop3::Pop3MessageHolder::getMessage(unsigned int nFlags,
+										   const WCHAR* pwszField,
+										   Message* pMessage)
 {
 	assert(pMessage == AbstractMessageHolder::getMessage());
 	return getMessage(nFlags);
 }
 
-QSTATUS qmpop3::Pop3MessageHolder::getMessage(unsigned int nFlags) const
+bool qmpop3::Pop3MessageHolder::getMessage(unsigned int nFlags) const
 {
 	return pCallback_->getMessage(nFlags);
 }
@@ -1161,27 +929,21 @@ const DeleteList::List qmpop3::DeleteList::getList() const
 	return list_;
 }
 
-QSTATUS qmpop3::DeleteList::add(size_t n)
+void qmpop3::DeleteList::add(size_t n)
 {
-	return add(n, MessagePtr());
+	add(n, MessagePtr());
 }
 
-QSTATUS qmpop3::DeleteList::add(size_t n, const MessagePtr& ptr)
+void qmpop3::DeleteList::add(size_t n,
+							 const MessagePtr& ptr)
 {
-	DECLARE_QSTATUS();
-	
-	status = resize(n + 1);
-	CHECK_QSTATUS();
+	resize(n + 1);
 	list_[n].first = true;
 	list_[n].second = ptr;
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmpop3::DeleteList::resize(size_t n)
+void qmpop3::DeleteList::resize(size_t n)
 {
 	if (list_.size() < n)
-		return STLWrapper<List>(list_).resize(n);
-	else
-		return QSTATUS_SUCCESS;
+		list_.resize(n);
 }

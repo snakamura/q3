@@ -1,15 +1,13 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qswindow.h>
-#include <qserror.h>
 #include <qsstl.h>
-#include <qsnew.h>
 
 #pragma warning(disable:4786)
 
@@ -35,7 +33,8 @@ public:
 	typedef std::vector<std::vector<std::pair<Window*, bool> > > WindowList;
 
 public:
-	QSTATUS dragMouse(int x, int y);
+	void dragMouse(int x,
+				   int y);
 	
 public:
 	SplitterWindow* pThis_;
@@ -47,13 +46,14 @@ public:
 	bool bDragging_;
 };
 
-QSTATUS qs::SplitterWindowImpl::dragMouse(int x, int y)
+void qs::SplitterWindowImpl::dragMouse(int x,
+									   int y)
 {
 	assert((nColumn_ == 2 && nRow_ == 1) || (nColumn_ == 1 && nRow_ == 2));
 	if (nColumn_ == 2)
-		return pThis_->setColumnWidth(0, x);
+		pThis_->setColumnWidth(0, x);
 	else
-		return pThis_->setRowHeight(0, y);
+		pThis_->setRowHeight(0, y);
 }
 
 
@@ -63,21 +63,16 @@ QSTATUS qs::SplitterWindowImpl::dragMouse(int x, int y)
  *
  */
 
-qs::SplitterWindow::SplitterWindow(int nColumn, int nRow,
-	bool bDeleteThis, SplitterWindowHandler* pHandler, QSTATUS* pstatus) :
-	WindowBase(bDeleteThis, pstatus),
-	DefaultWindowHandler(pstatus),
+qs::SplitterWindow::SplitterWindow(int nColumn,
+								   int nRow,
+								   bool bDeleteThis,
+								   SplitterWindowHandler* pHandler) :
+	WindowBase(bDeleteThis),
 	pImpl_(0)
 {
 	assert((nColumn == 2 && nRow == 1) || (nColumn == 1 && nRow == 2));
 	
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new SplitterWindowImpl();
 	
 	pImpl_->pThis_ = this;
 	pImpl_->nColumn_ = nColumn;
@@ -86,14 +81,10 @@ qs::SplitterWindow::SplitterWindow(int nColumn, int nRow,
 	pImpl_->pHandler_ = pHandler;
 	pImpl_->bDragging_ = false;
 	
-	status = STLWrapper<SplitterWindowImpl::WindowList>
-		(pImpl_->listWindow_).resize(pImpl_->nColumn_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_->listWindow_.resize(pImpl_->nColumn_);
 	SplitterWindowImpl::WindowList::iterator it = pImpl_->listWindow_.begin();
 	while (it != pImpl_->listWindow_.end()) {
-		status = STLWrapper<SplitterWindowImpl::WindowList::value_type>
-			(*it).resize(pImpl_->nRow_);
-		CHECK_QSTATUS_SET(pstatus);
+		(*it).resize(pImpl_->nRow_);
 		++it;
 	}
 	
@@ -106,7 +97,9 @@ qs::SplitterWindow::~SplitterWindow()
 	pImpl_ = 0;
 }
 
-QSTATUS qs::SplitterWindow::add(int nColumn, int nRow, Window* pWindow)
+void qs::SplitterWindow::add(int nColumn,
+							 int nRow,
+							 Window* pWindow)
 {
 	assert(0 <= nColumn && nColumn < pImpl_->nColumn_ && 0 <= nRow && nRow < pImpl_->nRow_);
 	
@@ -120,11 +113,11 @@ QSTATUS qs::SplitterWindow::add(int nColumn, int nRow, Window* pWindow)
 	pWindow->setWindowPos(0, (nWidth + pImpl_->nBorderWidth_)*nColumn,
 		(nHeight + pImpl_->nBorderWidth_)*nRow, nWidth, nHeight,
 		SWP_NOZORDER | SWP_NOACTIVATE);
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::SplitterWindow::setPane(int nColumn, int nRow, Window* pWindow)
+void qs::SplitterWindow::setPane(int nColumn,
+								 int nRow,
+								 Window* pWindow)
 {
 	assert(0 <= nColumn && nColumn < pImpl_->nColumn_ && 0 <= nRow && nRow < pImpl_->nRow_);
 	
@@ -139,11 +132,11 @@ QSTATUS qs::SplitterWindow::setPane(int nColumn, int nRow, Window* pWindow)
 	pWindow->setWindowPos(0, rectOrg.left - rect.left, rectOrg.top - rect.top,
 		rectOrg.right - rectOrg.left, rectOrg.bottom - rectOrg.top,
 		SWP_NOZORDER | SWP_NOACTIVATE);
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::SplitterWindow::showPane(int nColumn, int nRow, bool bShow)
+void qs::SplitterWindow::showPane(int nColumn,
+								  int nRow,
+								  bool bShow)
 {
 	assert(0 <= nColumn && nColumn < pImpl_->nColumn_ && 0 <= nRow && nRow < pImpl_->nRow_);
 	
@@ -154,37 +147,29 @@ QSTATUS qs::SplitterWindow::showPane(int nColumn, int nRow, bool bShow)
 		getClientRect(&rect);
 		sendMessage(WM_SIZE, 0, MAKELPARAM(rect.right, rect.bottom));
 	}
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::SplitterWindow::isShowPane(int nColumn, int nRow, bool* pbShow)
+bool qs::SplitterWindow::isShowPane(int nColumn,
+									int nRow)
 {
 	assert(0 <= nColumn && nColumn < pImpl_->nColumn_ && 0 <= nRow && nRow < pImpl_->nRow_);
-	assert(pbShow);
-	
-	*pbShow = pImpl_->listWindow_[nColumn][nRow].second;
-	
-	return QSTATUS_SUCCESS;
+	return pImpl_->listWindow_[nColumn][nRow].second;
 }
 
-QSTATUS qs::SplitterWindow::getColumnWidth(int nColumn, int* pnWidth)
+int qs::SplitterWindow::getColumnWidth(int nColumn)
 {
 	assert(0 <= nColumn && nColumn < pImpl_->nColumn_);
-	assert(pnWidth);
 	
 	RECT rect;
 	pImpl_->listWindow_[nColumn][0].first->getWindowRect(&rect);
-	*pnWidth = rect.right - rect.left;
-	
-	return QSTATUS_SUCCESS;
+	return rect.right - rect.left;
 }
 
-QSTATUS qs::SplitterWindow::setColumnWidth(int nColumn, int nWidth)
+void qs::SplitterWindow::setColumnWidth(int nColumn,
+										int nWidth)
 {
 	assert(pImpl_->nColumn_);
 	assert(nColumn == 0);
-	
-	DECLARE_QSTATUS();
 	
 	SplitterWindowImpl::WindowList& l = pImpl_->listWindow_;
 	
@@ -223,32 +208,24 @@ QSTATUS qs::SplitterWindow::setColumnWidth(int nColumn, int nWidth)
 		}
 	}
 	
-	if (pImpl_->pHandler_) {
-		status = pImpl_->pHandler_->sizeChanged(SplitterWindowEvent(this));
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (pImpl_->pHandler_)
+		pImpl_->pHandler_->sizeChanged(SplitterWindowEvent(this));
 }
 
-QSTATUS qs::SplitterWindow::getRowHeight(int nRow, int* pnHeight)
+int qs::SplitterWindow::getRowHeight(int nRow)
 {
 	assert(0 <= nRow && nRow < pImpl_->nRow_);
-	assert(pnHeight);
 	
 	RECT rect;
 	pImpl_->listWindow_[0][nRow].first->getWindowRect(&rect);
-	*pnHeight = rect.bottom - rect.top;
-	
-	return QSTATUS_SUCCESS;
+	return rect.bottom - rect.top;
 }
 
-QSTATUS qs::SplitterWindow::setRowHeight(int nRow, int nHeight)
+void qs::SplitterWindow::setRowHeight(int nRow,
+									  int nHeight)
 {
 	assert(pImpl_->nRow_ == 2);
 	assert(nRow == 0);
-	
-	DECLARE_QSTATUS();
 	
 	SplitterWindowImpl::WindowList& l = pImpl_->listWindow_;
 	
@@ -288,31 +265,24 @@ QSTATUS qs::SplitterWindow::setRowHeight(int nRow, int nHeight)
 		}
 	}
 	
-	if (pImpl_->pHandler_) {
-		status = pImpl_->pHandler_->sizeChanged(SplitterWindowEvent(this));
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (pImpl_->pHandler_)
+		pImpl_->pHandler_->sizeChanged(SplitterWindowEvent(this));
 }
 
-QSTATUS qs::SplitterWindow::getWindowClass(WNDCLASS* pwc)
+void qs::SplitterWindow::getWindowClass(WNDCLASS* pwc)
 {
-	DECLARE_QSTATUS();
-	
-	status = DefaultWindowHandler::getWindowClass(pwc);
-	CHECK_QSTATUS();
+	DefaultWindowHandler::getWindowClass(pwc);
 	
 	pwc->hbrBackground = reinterpret_cast<HBRUSH>(COLOR_3DFACE + 1);
 #ifndef _WIN32_WCE
 	assert(pImpl_->nColumn_ == 2 || pImpl_->nRow_ == 2);
 	pwc->hCursor = ::LoadCursor(0, pImpl_->nColumn_ == 2 ? IDC_SIZEWE : IDC_SIZENS);
 #endif
-	
-	return QSTATUS_SUCCESS;
 }
 
-LRESULT qs::SplitterWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qs::SplitterWindow::windowProc(UINT uMsg,
+									   WPARAM wParam,
+									   LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_LBUTTONDOWN()
@@ -323,14 +293,16 @@ LRESULT qs::SplitterWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
 
-LRESULT qs::SplitterWindow::onLButtonDown(UINT nFlags, const POINT& pt)
+LRESULT qs::SplitterWindow::onLButtonDown(UINT nFlags,
+										  const POINT& pt)
 {
 	pImpl_->bDragging_ = true;
 	setCapture();
 	return DefaultWindowHandler::onLButtonDown(nFlags, pt);
 }
 
-LRESULT qs::SplitterWindow::onLButtonUp(UINT nFlags, const POINT& pt)
+LRESULT qs::SplitterWindow::onLButtonUp(UINT nFlags,
+										const POINT& pt)
 {
 	if (pImpl_->bDragging_) {
 		pImpl_->dragMouse(pt.x, pt.y);
@@ -340,14 +312,17 @@ LRESULT qs::SplitterWindow::onLButtonUp(UINT nFlags, const POINT& pt)
 	return DefaultWindowHandler::onLButtonUp(nFlags, pt);
 }
 
-LRESULT qs::SplitterWindow::onMouseMove(UINT nFlags, const POINT& pt)
+LRESULT qs::SplitterWindow::onMouseMove(UINT nFlags,
+										const POINT& pt)
 {
 	if (pImpl_->bDragging_)
 		pImpl_->dragMouse(pt.x, pt.y);
 	return DefaultWindowHandler::onMouseMove(nFlags, pt);
 }
 
-LRESULT qs::SplitterWindow::onSize(UINT nFlags, int cx, int cy)
+LRESULT qs::SplitterWindow::onSize(UINT nFlags,
+								   int cx,
+								   int cy)
 {
 	SplitterWindowImpl::WindowList& l = pImpl_->listWindow_;
 	if (l[0][0].first) {

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -37,7 +37,7 @@ class RegexNfaCompiler;
 class RegexNfa
 {
 public:
-	RegexNfa(RegexRegexNode* pNode, QSTATUS* pstatus);
+	RegexNfa(std::auto_ptr<RegexRegexNode> pNode);
 	~RegexNfa();
 
 public:
@@ -45,10 +45,11 @@ public:
 	const RegexNfaState* getState(unsigned int n) const;
 
 public:
-	QSTATUS createState(unsigned int* pn);
-	QSTATUS setTransition(unsigned int nFrom,
-		unsigned int nTo, const RegexAtom* pAtom);
-	QSTATUS pushGroup(unsigned int nGroup);
+	unsigned int createState();
+	void setTransition(unsigned int nFrom,
+					   unsigned int nTo,
+					   const RegexAtom* pAtom);
+	void pushGroup(unsigned int nGroup);
 	void popGroup();
 
 private:
@@ -60,7 +61,7 @@ private:
 	typedef std::vector<unsigned int> GroupStack;
 
 private:
-	RegexNode* pNode_;
+	std::auto_ptr<RegexNode> pNode_;
 	StateList listState_;
 	GroupStack stackGroup_;
 };
@@ -78,8 +79,10 @@ public:
 	typedef std::vector<unsigned int> GroupList;
 
 public:
-	RegexNfaState(const RegexAtom* pAtom, unsigned int nTo,
-		const GroupList& listGroup, RegexNfaState* pPrev, QSTATUS* pstatus);
+	RegexNfaState(const RegexAtom* pAtom,
+				  unsigned int nTo,
+				  const GroupList& listGroup,
+				  RegexNfaState* pPrev);
 	~RegexNfaState();
 
 public:
@@ -97,7 +100,7 @@ private:
 	const RegexAtom* pAtom_;
 	unsigned int nTo_;
 	GroupList listGroup_;
-	RegexNfaState* pNext_;
+	std::auto_ptr<RegexNfaState> pNext_;
 };
 
 
@@ -110,23 +113,34 @@ private:
 class RegexNfaCompiler
 {
 public:
-	RegexNfaCompiler(QSTATUS* pstatus);
+	RegexNfaCompiler();
 	~RegexNfaCompiler();
 
 public:
-	QSTATUS compile(RegexRegexNode* pNode, RegexNfa** ppNfa) const;
+	std::auto_ptr<RegexNfa> compile(std::auto_ptr<RegexRegexNode> pNode) const;
 
 private:
-	QSTATUS compileNode(const RegexNode* pNode,
-		RegexNfa* pNfa, unsigned int nFrom, unsigned int nTo) const;
-	QSTATUS compileRegexNode(const RegexRegexNode* pRegexNode,
-		RegexNfa* pNfa, unsigned int nFrom, unsigned int nTo) const;
-	QSTATUS compileBrunchNode(const RegexBrunchNode* pBrunchNode,
-		RegexNfa* pNfa, unsigned int nFrom, unsigned int nTo) const;
-	QSTATUS compilePieceNode(const RegexPieceNode* pPieceNode,
-		RegexNfa* pNfa, unsigned int nFrom, unsigned int nTo) const;
-	QSTATUS compileAtom(const RegexAtom* pAtom, unsigned int nCount,
-		RegexNfa* pNfa, unsigned int nFrom, unsigned int nTo) const;
+	void compileNode(const RegexNode* pNode,
+					 RegexNfa* pNfa,
+					 unsigned int nFrom,
+					 unsigned int nTo) const;
+	void compileRegexNode(const RegexRegexNode* pRegexNode,
+						  RegexNfa* pNfa,
+						  unsigned int nFrom,
+						  unsigned int nTo) const;
+	void compileBrunchNode(const RegexBrunchNode* pBrunchNode,
+						   RegexNfa* pNfa,
+						   unsigned int nFrom,
+						   unsigned int nTo) const;
+	void compilePieceNode(const RegexPieceNode* pPieceNode,
+						  RegexNfa* pNfa,
+						  unsigned int nFrom,
+						  unsigned int nTo) const;
+	void compileAtom(const RegexAtom* pAtom,
+					 unsigned int nCount,
+					 RegexNfa* pNfa,
+					 unsigned int nFrom,
+					 unsigned int nTo) const;
 
 private:
 	RegexNfaCompiler(const RegexNfaCompiler&);
@@ -143,19 +157,27 @@ private:
 class RegexNfaMatcher
 {
 public:
-	RegexNfaMatcher(const RegexNfa* pNfa);
+	explicit RegexNfaMatcher(const RegexNfa* pNfa);
 	~RegexNfaMatcher();
 
 public:
-	QSTATUS match(const WCHAR* pwsz, size_t nLen,
-		bool* pbMatch, RegexRangeList* pList) const;
-	QSTATUS search(const WCHAR* pwsz, size_t nLen, const WCHAR* p,
-		bool bReverse, const WCHAR** ppStart, const WCHAR** ppEnd,
-		RegexRangeList* pList) const;
+	bool match(const WCHAR* pwsz,
+			   size_t nLen,
+			   RegexRangeList* pList) const;
+	void search(const WCHAR* pwsz,
+				size_t nLen,
+				const WCHAR* p,
+				bool bReverse,
+				const WCHAR** ppStart,
+				const WCHAR** ppEnd,
+				RegexRangeList* pList) const;
 
 private:
-	QSTATUS match(const WCHAR* pStart, const WCHAR* pEnd, bool bMatch,
-		const WCHAR** ppEnd, RegexRangeList* pList) const;
+	void match(const WCHAR* pStart,
+			   const WCHAR* pEnd,
+			   bool bMatch,
+			   const WCHAR** ppEnd,
+			   RegexRangeList* pList) const;
 
 private:
 	RegexNfaMatcher(const RegexNfaMatcher&);

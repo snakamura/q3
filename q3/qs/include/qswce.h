@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -53,12 +53,19 @@ typedef short HALF_PTR, *PHALF_PTR;
 #	define LocalHandle(X)						((HLOCAL)(X))
 #	define LocalFlags(X)						(0)
 
-extern "C" QSEXPORTPROC int _stricmp(const char* lhs, const char* rhs);
-extern "C" QSEXPORTPROC int _strnicmp(const char* lhs, const char* rhs, size_t n);
-extern "C" QSEXPORTPROC long strtol(const char* p, char** ppEnd, int nBase);
+extern "C" QSEXPORTPROC int _stricmp(const char* lhs,
+									 const char* rhs);
+extern "C" QSEXPORTPROC int _strnicmp(const char* lhs,
+									  const char* rhs,
+									  size_t n);
+extern "C" QSEXPORTPROC long strtol(const char* p,
+									char** ppEnd,
+									int nBase);
+#if _STLPORT_VERSION < 0x460
 extern "C" QSEXPORTPROC int isdigit(int c);
-
 #endif
+
+#endif // _WIN32_WCE < 300
 
 #endif // _WIN32_WCE
 

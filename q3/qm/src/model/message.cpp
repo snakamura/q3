@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -10,7 +10,6 @@
 
 #include <qsconv.h>
 #include <qsencoder.h>
-#include <qsnew.h>
 #include <qsosutil.h>
 #include <qsstl.h>
 #include <qsstream.h>
@@ -32,50 +31,40 @@ using namespace qs;
  *
  */
 
-qm::Message::Message(QSTATUS* pstatus) :
-	Part(pstatus),
+qm::Message::Message() :
 	flag_(FLAG_EMPTY)
 {
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-}
-
-qm::Message::Message(const CHAR* pwszMessage, size_t nLen,
-	Flag flag, QSTATUS* pstatus) :
-	Part(0, pwszMessage, nLen, pstatus),
-	flag_(flag)
-{
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
 }
 
 qm::Message::~Message()
 {
 }
 
-QSTATUS qm::Message::create(const CHAR* pszMessage, size_t nLen, Flag flag)
+bool qm::Message::create(const CHAR* pszMessage,
+						 size_t nLen,
+						 Flag flag)
 {
 	return create(pszMessage, nLen, flag, SECURITY_NONE);
 }
 
-QSTATUS qm::Message::create(const CHAR* pszMessage,
-	size_t nLen, Flag flag, unsigned int nSecurity)
+bool qm::Message::create(const CHAR* pszMessage,
+						 size_t nLen,
+						 Flag flag,
+						 unsigned int nSecurity)
 {
-	DECLARE_QSTATUS();
-	
-	status = Part::create(0, pszMessage, nLen);
-	CHECK_QSTATUS();
+	if (!Part::create(0, pszMessage, nLen))
+		return false;
 	
 	flag_ = flag;
 	nSecurity_ = nSecurity;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::Message::clear()
+void qm::Message::clear()
 {
 	flag_ = FLAG_EMPTY;
-	return Part::clear();
+	Part::clear();
 }
 
 Message::Flag qm::Message::getFlag() const
@@ -141,46 +130,39 @@ unsigned int qm::MessageCreator::getFlags() const
 	return nFlags_;
 }
 
-void qm::MessageCreator::setFlags(unsigned int nFlags, unsigned int nMask)
+void qm::MessageCreator::setFlags(unsigned int nFlags,
+								  unsigned int nMask)
 {
 	nFlags_ &= ~nMask;
 	nFlags_ |= nFlags & nMask;
 }
 
-QSTATUS qm::MessageCreator::createMessage(const WCHAR* pwszMessage,
-	size_t nLen, Message** ppMessage) const
+std::auto_ptr<Message> qm::MessageCreator::createMessage(const WCHAR* pwszMessage,
+														 size_t nLen) const
 {
-	DECLARE_QSTATUS();
+	std::auto_ptr<Part> pPart(createPart(pwszMessage, nLen, 0, true));
+	if (!pPart.get())
+		return 0;
 	
-	Part* pPart = 0;
-	status = createPart(pwszMessage, nLen, 0, true, &pPart);
-	CHECK_QSTATUS();
+	std::auto_ptr<Message> pMessage(static_cast<Message*>(pPart.release()));
+	pMessage->setFlag(Message::FLAG_NONE);
 	
-	*ppMessage = static_cast<Message*>(pPart);
-	(*ppMessage)->setFlag(Message::FLAG_NONE);
-	
-	return QSTATUS_SUCCESS;
+	return pMessage;
 }
 
-QSTATUS qm::MessageCreator::createPart(const WCHAR* pwszMessage,
-	size_t nLen, Part* pParent, bool bMessage, Part** ppPart) const
+std::auto_ptr<Part> qm::MessageCreator::createPart(const WCHAR* pwszMessage,
+												   size_t nLen,
+												   Part* pParent,
+												   bool bMessage) const
 {
-	DECLARE_QSTATUS();
-	
 	if (nLen == static_cast<size_t>(-1))
 		nLen = wcslen(pwszMessage);
 	
 	std::auto_ptr<Part> pPart;
-	if (bMessage) {
-		Message* pMessage = 0;
-		status = newQsObject(&pMessage);
-		CHECK_QSTATUS();
-		pPart.reset(pMessage);
-	}
-	else {
-		status = newQsObject(&pPart);
-		CHECK_QSTATUS();
-	}
+	if (bMessage)
+		pPart.reset(new Message());
+	else
+		pPart.reset(new Part());
 	
 	const WCHAR* pBody = 0;
 	size_t nBodyLen = 0;
@@ -189,26 +171,20 @@ QSTATUS qm::MessageCreator::createPart(const WCHAR* pwszMessage,
 		nBodyLen = nLen - 1;
 	}
 	else {
-		BMFindString<WSTRING> bmfs(L"\n\n", &status);
-		CHECK_QSTATUS();
+		BMFindString<WSTRING> bmfs(L"\n\n");
 		pBody = bmfs.find(pwszMessage, nLen);
 		if (pBody) {
-			status = createHeader(pPart.get(), pwszMessage,
-				pBody - pwszMessage + 1);
-			CHECK_QSTATUS();
+			if (!createHeader(pPart.get(), pwszMessage, pBody - pwszMessage + 1))
+				return 0;
 			pBody += 2;
 			nBodyLen = nLen - (pBody - pwszMessage);
 		}
 		else {
-			StringBuffer<WSTRING> buf(pwszMessage, nLen, &status);
-			CHECK_QSTATUS();
-			if (*(buf.getCharArray() + buf.getLength() - 1) != L'\n') {
-				status = buf.append(L'\n');
-				CHECK_QSTATUS();
-			}
-			status = createHeader(pPart.get(),
-				buf.getCharArray(), buf.getLength());
-			CHECK_QSTATUS();
+			StringBuffer<WSTRING> buf(pwszMessage, nLen);
+			if (*(buf.getCharArray() + buf.getLength() - 1) != L'\n')
+				buf.append(L'\n');
+			if (!createHeader(pPart.get(), buf.getCharArray(), buf.getLength()))
+				return 0;
 		}
 	}
 	
@@ -216,9 +192,7 @@ QSTATUS qm::MessageCreator::createPart(const WCHAR* pwszMessage,
 	const WCHAR* pwszMediaType = pContentType ?
 		pContentType->getMediaType() : L"text";
 	bool bMultipart = wcsicmp(pwszMediaType, L"multipart") == 0;
-	bool bAttachment = false;
-	status = PartUtil(*pPart).isAttachment(&bAttachment);
-	CHECK_QSTATUS();
+	bool bAttachment = PartUtil(*pPart).isAttachment();
 	
 	if (pBody) {
 		bool bRFC822 = false;
@@ -234,208 +208,151 @@ QSTATUS qm::MessageCreator::createPart(const WCHAR* pwszMessage,
 			}
 		}
 		if (bMultipart) {
-			string_ptr<WSTRING> wstrBoundary;
-			status = pContentType->getParameter(L"boundary", &wstrBoundary);
-			CHECK_QSTATUS();
+			wstring_ptr wstrBoundary(pContentType->getParameter(L"boundary"));
 			if (!wstrBoundary.get())
-				return QSTATUS_FAIL;
+				return 0;
 			
 			BoundaryFinder<WCHAR, WSTRING> finder(pBody - 1,
-				nBodyLen + 1, wstrBoundary.get(), L"\n", false, &status);
-			CHECK_QSTATUS();
+				nBodyLen + 1, wstrBoundary.get(), L"\n", false);
 			
 			while (true) {
 				const WCHAR* pBegin = 0;
 				const WCHAR* pEnd = 0;
 				bool bEnd = false;
-				status = finder.getNext(&pBegin, &pEnd, &bEnd);
-				CHECK_QSTATUS();
+				if (!finder.getNext(&pBegin, &pEnd, &bEnd))
+					return 0;
 				if (pBegin) {
-					Part* pChild = 0;
-					MessageCreator creator;
-					status = creator.createPart(pBegin, pEnd - pBegin,
-						pPart.get(), false, &pChild);
-					CHECK_QSTATUS();
-					std::auto_ptr<Part> p(pChild);
-					status = pPart->addPart(pChild);
-					CHECK_QSTATUS();
-					p.release();
+					std::auto_ptr<Part> pChild(MessageCreator().createPart(
+						pBegin, pEnd - pBegin, pPart.get(), false));
+					pPart->addPart(pChild);
 				}
 				if (bEnd)
 					break;
 			}
 		}
 		else if (bRFC822) {
-			Part* pEnclosedPart = 0;
-			MessageCreator creator;
-			status = creator.createPart(pBody,
-				nLen - nBodyLen, 0, false, &pEnclosedPart);
-			CHECK_QSTATUS();
-			pPart->setEnclosedPart(pEnclosedPart);
+			std::auto_ptr<Part> pEnclosed(MessageCreator().createPart(
+				pBody, nLen - nBodyLen, 0, false));
+			pPart->setEnclosedPart(pEnclosed);
 		}
 		else if (wcsicmp(pwszMediaType, L"text") == 0 && !bAttachment) {
-			string_ptr<WSTRING> wstrCharset;
-			if (pContentType) {
-				status = pContentType->getParameter(L"charset", &wstrCharset);
-				CHECK_QSTATUS();
-			}
+			wstring_ptr wstrCharset;
+			if (pContentType)
+				wstrCharset = pContentType->getParameter(L"charset");
 			
 			std::auto_ptr<Converter> pConverter;
-			if (wstrCharset.get()) {
-				status = ConverterFactory::getInstance(
-					wstrCharset.get(), &pConverter);
-				CHECK_QSTATUS();
-			}
+			if (wstrCharset.get())
+				pConverter = ConverterFactory::getInstance(wstrCharset.get());
+			
 			if (!pConverter.get()) {
 				size_t n = 0;
 				while (n < nBodyLen && *(pBody + n) < 0x80)
 					++n;
 				const WCHAR* pwszCharset = n == nBodyLen ?
 					L"us-ascii" : Part::getDefaultCharset();
-				status = ConverterFactory::getInstance(
-					pwszCharset, &pConverter);
-				CHECK_QSTATUS();
+				pConverter = ConverterFactory::getInstance(pwszCharset);
 				
 				if (nFlags_ & FLAG_ADDCONTENTTYPE) {
-					ContentTypeParser contentType(L"text", L"plain", &status);
-					CHECK_QSTATUS();
-					status = contentType.setParameter(L"charset", pwszCharset);
-					CHECK_QSTATUS();
-					status = pPart->replaceField(L"Content-Type", contentType);
-					CHECK_QSTATUS();
+					ContentTypeParser contentType(L"text", L"plain");
+					contentType.setParameter(L"charset", pwszCharset);
+					if (!pPart->replaceField(L"Content-Type", contentType))
+						return 0;
 					pContentType = pPart->getContentType();
 				}
 			}
 			assert(pConverter.get());
 			
-			string_ptr<STRING> strBody;
-			size_t nEncodedBodyLen = 0;
-			status = convertBody(pConverter.get(), pBody,
-				nBodyLen, &strBody, &nEncodedBodyLen);
-			CHECK_QSTATUS();
+			xstring_size_ptr strBody(convertBody(pConverter.get(), pBody, nBodyLen));
+			if (!strBody.get())
+				return 0;
 			
 			std::auto_ptr<Encoder> pEncoder;
-			SimpleParser contentTransferEncoding(
-				SimpleParser::FLAG_RECOGNIZECOMMENT | SimpleParser::FLAG_TSPECIAL,
-				&status);
-			CHECK_QSTATUS();
-			Part::Field f;
-			status = pPart->getField(L"Content-Transfer-Encoding",
-				&contentTransferEncoding, &f);
-			CHECK_QSTATUS();
-			if (f == Part::FIELD_EXIST) {
-				const WCHAR* pwszEncoding = contentTransferEncoding.getValue();
-				status = EncoderFactory::getInstance(pwszEncoding, &pEncoder);
-				CHECK_QSTATUS();
+			ContentTransferEncodingParser contentTransferEncoding;
+			if (pPart->getField(L"Content-Transfer-Encoding", &contentTransferEncoding) == Part::FIELD_EXIST) {
+				const WCHAR* pwszEncoding = contentTransferEncoding.getEncoding();
+				pEncoder = EncoderFactory::getInstance(pwszEncoding);
 			}
 			if (!pEncoder.get()) {
 				size_t n = 0;
-				while (n < nEncodedBodyLen && *(strBody.get() + n) < 0x80)
+				while (n < strBody.size() && *(strBody.get() + n) < 0x80)
 					++n;
 				const WCHAR* pwszEncoding = 0;
-				if (n == nEncodedBodyLen) {
+				if (n == strBody.size()) {
 					pwszEncoding = L"7bit";
 				}
 				else {
 					pwszEncoding = L"base64";
-					status = EncoderFactory::getInstance(pwszEncoding, &pEncoder);
-					CHECK_QSTATUS();
+					pEncoder = EncoderFactory::getInstance(pwszEncoding);
 				}
 				
 				if (nFlags_ & FLAG_ADDCONTENTTYPE) {
-					SimpleParser contentTransferEncoding(pwszEncoding,
-						SimpleParser::FLAG_RECOGNIZECOMMENT | SimpleParser::FLAG_TSPECIAL,
-						&status);
-					CHECK_QSTATUS();
-					status = pPart->replaceField(L"Content-Transfer-Encoding",
-						contentTransferEncoding);
-					CHECK_QSTATUS();
+					ContentTransferEncodingParser contentTransferEncoding(pwszEncoding);
+					if (!pPart->replaceField(L"Content-Transfer-Encoding", contentTransferEncoding))
+						return 0;
 				}
 			}
 			
 			if (pEncoder.get()) {
-				unsigned char* p = 0;
-				size_t n = 0;
-				status = pEncoder->encode(
-					reinterpret_cast<unsigned char*>(strBody.get()),
-					nEncodedBodyLen, &p, &n);
-				CHECK_QSTATUS();
-				malloc_ptr<unsigned char> pBody(p);
+				malloc_size_ptr<unsigned char> pBody(pEncoder->encode(
+					reinterpret_cast<unsigned char*>(strBody.get()), strBody.size()));
+				if (!pBody.get())
+					return 0;
 				
-				status = pPart->setBody(reinterpret_cast<CHAR*>(pBody.get()), n);
-				CHECK_QSTATUS();
+				if (!pPart->setBody(reinterpret_cast<CHAR*>(pBody.get()), pBody.size()))
+					return 0;
 			}
 			else {
-				status = pPart->setBody(strBody.get(), nEncodedBodyLen);
-				CHECK_QSTATUS();
+				if (!pPart->setBody(strBody.get(), strBody.size()))
+					return 0;
 			}
 		}
 		else {
-			string_ptr<STRING> strBody;
-			status = PartUtil::w2a(pBody, nBodyLen, &strBody);
-			CHECK_QSTATUS();
-			status = pPart->setBody(strBody.get(), -1);
-			CHECK_QSTATUS();
+			xstring_ptr strBody(PartUtil::w2a(pBody, nBodyLen));
+			if (!pPart->setBody(strBody.get(), -1))
+				return 0;
 		}
 	}
 	
 	if (nFlags_ & FLAG_ADDCONTENTTYPE) {
-		SimpleParser mimeVersion(L"1.0", 0, &status);
-		CHECK_QSTATUS();
-		status = pPart->replaceField(L"MIME-Version", mimeVersion);
-		CHECK_QSTATUS();
+		SimpleParser mimeVersion(L"1.0", 0);
+		if (!pPart->replaceField(L"MIME-Version", mimeVersion))
+			return 0;
 	}
 	
 	if (bMessage && nFlags_ & FLAG_EXTRACTATTACHMENT) {
-		XQMAILAttachmentParser attachment(&status);
-		CHECK_QSTATUS();
-		Part::Field f;
-		status = pPart->getField(L"X-QMAIL-Attachment", &attachment, &f);
-		CHECK_QSTATUS();
-		if (f == Part::FIELD_EXIST) {
+		XQMAILAttachmentParser attachment;
+		if (pPart->getField(L"X-QMAIL-Attachment", &attachment) == Part::FIELD_EXIST) {
 			assert(pContentType);
 			if (wcsicmp(pContentType->getMediaType(), L"multipart") != 0 ||
 				wcsicmp(pContentType->getSubType(), L"mixed") != 0) {
-				std::auto_ptr<Message> pParent;
-				status = newQsObject(&pParent);
-				CHECK_QSTATUS();
-				status = makeMultipart(pParent.get(), pPart.get());
-				CHECK_QSTATUS();
-				pPart.release();
-				pPart.reset(pParent.release());
+				std::auto_ptr<Message> pParent(new Message());
+				if (!makeMultipart(pParent.get(), pPart))
+					return 0;
+				pPart = pParent;
 			}
 			
 			const XQMAILAttachmentParser::AttachmentList& l =
 				attachment.getAttachments();
-			XQMAILAttachmentParser::AttachmentList::const_iterator it = l.begin();
-			while (it != l.end()) {
-				Part* p = 0;
-				status = createPartFromFile(*it, &p);
-				CHECK_QSTATUS();
-				std::auto_ptr<Part> pChildPart(p);
-				status = pPart->addPart(pChildPart.get());
-				CHECK_QSTATUS();
-				pChildPart.release();
-				++it;
+			for (XQMAILAttachmentParser::AttachmentList::const_iterator it = l.begin(); it != l.end(); ++it) {
+				std::auto_ptr<Part> pChildPart(createPartFromFile(*it));
+				if (!pChildPart.get())
+					return 0;
+				pPart->addPart(pChildPart);
 			}
 		}
-		status = pPart->removeField(L"X-QMAIL-Attachment");
-		CHECK_QSTATUS();
+		pPart->removeField(L"X-QMAIL-Attachment");
 	}
 	
-	*ppPart = pPart.release();
-	
-	return QSTATUS_SUCCESS;
+	return pPart;
 }
 
-QSTATUS qm::MessageCreator::createHeader(Part* pPart,
-	const WCHAR* pwszMessage, size_t nLen) const
+bool qm::MessageCreator::createHeader(Part* pPart,
+									  const WCHAR* pwszMessage,
+									  size_t nLen) const
 {
 	assert(pPart);
 	assert(pwszMessage);
 	assert(*(pwszMessage + nLen - 1) == L'\n');
-	
-	DECLARE_QSTATUS();
 	
 	typedef std::vector<Header> HeaderList;
 	HeaderList headers;
@@ -450,8 +367,7 @@ QSTATUS qm::MessageCreator::createHeader(Part* pPart,
 		if (c == L'\n') {
 			if (n == nLen - 1 ||
 				(pwszMessage[n + 1] != L' ' && pwszMessage[n + 1] != '\t')) {
-				status = STLWrapper<Buffer>(buf).push_back(L'\0');
-				CHECK_QSTATUS();
+				buf.push_back(L'\0');
 				
 				const WCHAR* pLine = &buf[0] + nLine;
 				WCHAR* p = wcschr(pLine, L':');
@@ -470,17 +386,13 @@ QSTATUS qm::MessageCreator::createHeader(Part* pPart,
 					header.nValue_ = nLine + (pValue - pLine);
 					
 					size_t nNameLen = pNameEnd - pName;
-					string_ptr<WSTRING> wstrNameLower(tolower(pName, nNameLen));
-					if (!wstrNameLower.get())
-						return QSTATUS_OUTOFMEMORY;
+					wstring_ptr wstrNameLower(tolower(pName, nNameLen));
 					header.nLowerName_ = buf.size();
-					status = STLWrapper<Buffer>(buf).resize(buf.size() + nNameLen + 1);
-					CHECK_QSTATUS();
+					buf.resize(buf.size() + nNameLen + 1);
 					std::copy(wstrNameLower.get(), wstrNameLower.get() + nNameLen + 1,
 						buf.begin() + header.nLowerName_);
 					
-					status = STLWrapper<HeaderList>(headers).push_back(header);
-					CHECK_QSTATUS();
+					headers.push_back(header);
 				}
 				nLine = buf.size();
 			}
@@ -492,13 +404,11 @@ QSTATUS qm::MessageCreator::createHeader(Part* pPart,
 						break;
 					++n;
 				}
-				status = STLWrapper<Buffer>(buf).push_back(L' ');
-				CHECK_QSTATUS();
+				buf.push_back(L' ');
 			}
 		}
 		else {
-			status = STLWrapper<Buffer>(buf).push_back(c);
-			CHECK_QSTATUS();
+			buf.push_back(c);
 		}
 	}
 	
@@ -529,8 +439,7 @@ QSTATUS qm::MessageCreator::createHeader(Part* pPart,
 	};
 	
 	const WCHAR* pBuf = &buf[0];
-	HeaderList::iterator it = headers.begin();
-	while (it != headers.end()) {
+	for (HeaderList::iterator it = headers.begin(); it != headers.end(); ++it) {
 		const WCHAR* pwszName = pBuf + (*it).nName_;
 		const WCHAR* pwszNameLower = pBuf + (*it).nLowerName_;
 		const WCHAR* pwszValue = pBuf + (*it).nValue_;
@@ -542,67 +451,57 @@ QSTATUS qm::MessageCreator::createHeader(Part* pPart,
 				// Replace alias
 			}
 			
-			status = setField(pPart, pwszName, pwszValue, FIELDTYPE_ADDRESSLIST);
-			CHECK_QSTATUS();
+			if (!setField(pPart, pwszName, pwszValue, FIELDTYPE_ADDRESSLIST))
+				return false;
 		}
 		else if (wcscmp(pwszNameLower, L"content-type") == 0) {
-			status = setField(pPart, pwszName, pwszValue, FIELDTYPE_CONTENTTYPE);
-			CHECK_QSTATUS();
+			if (!setField(pPart, pwszName, pwszValue, FIELDTYPE_CONTENTTYPE))
+				return false;
 		}
 		else if (wcscmp(pwszNameLower, L"content-transfer-encoding") == 0) {
-			status = setField(pPart, pwszName, pwszValue, FIELDTYPE_CONTENTTRANSFERENCODING);
-			CHECK_QSTATUS();
+			if (!setField(pPart, pwszName, pwszValue, FIELDTYPE_CONTENTTRANSFERENCODING))
+				return false;
 		}
 		else if (wcscmp(pwszNameLower, L"content-disposition") == 0) {
-			status = setField(pPart, pwszName, pwszValue, FIELDTYPE_CONTENTDISPOSITION);
-			CHECK_QSTATUS();
+			if (!setField(pPart, pwszName, pwszValue, FIELDTYPE_CONTENTDISPOSITION))
+				return false;
 		}
 		else if (wcscmp(pwszNameLower, L"message-id") == 0) {
-			status = setField(pPart, pwszName, pwszValue, FIELDTYPE_MESSAGEID);
-			CHECK_QSTATUS();
+			if (!setField(pPart, pwszName, pwszValue, FIELDTYPE_MESSAGEID))
+				return false;
 		}
 		else if (wcscmp(pwszNameLower, L"references") == 0 ||
 			wcscmp(pwszNameLower, L"in-reply-to") == 0) {
-			status = setField(pPart, pwszName, pwszValue, FIELDTYPE_REFERENCES);
-			CHECK_QSTATUS();
+			if (!setField(pPart, pwszName, pwszValue, FIELDTYPE_REFERENCES))
+				return false;
 		}
 		else if (wcscmp(pwszNameLower, L"x-qmail-attachment") == 0) {
-			status = setField(pPart, pwszName, pwszValue, FIELDTYPE_XQMAILATTACHMENT);
-			CHECK_QSTATUS();
+			if (!setField(pPart, pwszName, pwszValue, FIELDTYPE_XQMAILATTACHMENT))
+				return false;
 		}
 		else {
 			bool bMulti = wcslen(pwszNameLower) < 9 ||
 				wcsncmp(pwszNameLower, L"x-qmail-", 8) != 0;
-			status = setField(pPart, pwszName, pwszValue,
-				bMulti ? FIELDTYPE_MULTIUNSTRUCTURED : FIELDTYPE_SINGLEUNSTRUCTURED);
-			CHECK_QSTATUS();
+			if (!setField(pPart, pwszName, pwszValue,
+				bMulti ? FIELDTYPE_MULTIUNSTRUCTURED : FIELDTYPE_SINGLEUNSTRUCTURED))
+				return false;
 		}
-		
-		++it;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::MessageCreator::convertBody(
-	qs::Converter* pConverter, const WCHAR* pwszBody,
-	size_t nBodyLen, qs::STRING* pstrBody, size_t* pnLen) const
+xstring_size_ptr qm::MessageCreator::convertBody(Converter* pConverter,
+												 const WCHAR* pwszBody,
+												 size_t nBodyLen) const
 {
 	assert(pConverter);
 	assert(pwszBody);
-	assert(pstrBody);
-	assert(pnLen);
-	
-	DECLARE_QSTATUS();
-	
-	*pstrBody = 0;
-	*pnLen = 0;
 	
 	if (nBodyLen == -1)
 		nBodyLen = wcslen(pwszBody);
 	
-	StringBuffer<STRING> buf(&status);
-	CHECK_QSTATUS();
+	XStringBuffer<XSTRING> buf;
 	
 	size_t n = 0;
 	const WCHAR* p = pwszBody;
@@ -613,169 +512,132 @@ QSTATUS qm::MessageCreator::convertBody(
 			++p;
 		size_t nLen = p - pBegin;
 		if (nLen > 0) {
-			string_ptr<STRING> str;
-			size_t nResultLen = 0;
-			status = pConverter->encode(pBegin, &nLen, &str, &nResultLen);
-			CHECK_QSTATUS();
-			status = buf.append(str.get(), nResultLen);
-			CHECK_QSTATUS();
+			xstring_size_ptr strEncoded(pConverter->encode(pBegin, &nLen));
+			if (!strEncoded.get())
+				return xstring_size_ptr();
+			if (!buf.append(strEncoded.get(), strEncoded.size()))
+				return xstring_size_ptr();
 		}
 		
 		if (p == pEnd)
 			break;
 		
 		assert(*p == L'\n');
-		status = buf.append("\r\n", 2);
-		CHECK_QSTATUS();
+		if (!buf.append("\r\n", 2))
+			return xstring_size_ptr();
 		
 		++p;
 		pBegin = p;
 	}
 	
-	*pnLen = buf.getLength();
-	*pstrBody = buf.getString();
-	
-	return QSTATUS_SUCCESS;
+	size_t nLen = buf.getLength();
+	return xstring_size_ptr(buf.getXString(), nLen);
 }
 
-QSTATUS qm::MessageCreator::setField(Part* pPart,
-	const WCHAR* pwszName, const WCHAR* pwszValue, FieldType type)
+bool qm::MessageCreator::setField(Part* pPart,
+								  const WCHAR* pwszName,
+								  const WCHAR* pwszValue,
+								  FieldType type)
 {
 	assert(pPart);
 	assert(pwszName);
 	assert(pwszValue);
 	
-	DECLARE_QSTATUS();
-	
 	switch (type) {
 	case FIELDTYPE_ADDRESSLIST:
 		{
-			DummyParser field(pwszValue, 0, &status);
-			CHECK_QSTATUS();
-			Part dummy(&status);
-			CHECK_QSTATUS();
-			status = dummy.setField(pwszName, field);
-			CHECK_QSTATUS();
-			AddressListParser addressList(0, &status);
-			CHECK_QSTATUS();
-			Part::Field f;
-			status = dummy.getField(pwszName, &addressList, &f);
-			CHECK_QSTATUS();
-			if (f != Part::FIELD_EXIST)
-				return QSTATUS_FAIL;
-			status = pPart->replaceField(pwszName, addressList);
-			CHECK_QSTATUS();
+			DummyParser field(pwszValue, 0);
+			Part dummy;
+			if (!dummy.setField(pwszName, field))
+				return false;
+			AddressListParser addressList(0);
+			if (dummy.getField(pwszName, &addressList) != Part::FIELD_EXIST)
+				return false;
+			if (!pPart->replaceField(pwszName, addressList))
+				return false;
 		}
 		break;
 	case FIELDTYPE_CONTENTTYPE:
 		{
-			DummyParser field(pwszValue, DummyParser::FLAG_TSPECIAL, &status);
-			CHECK_QSTATUS();
-			status = pPart->setField(pwszName, field);
-			CHECK_QSTATUS();
-			ContentTypeParser contentType(&status);
-			CHECK_QSTATUS();
-			Part::Field f;
-			status = pPart->getField(pwszName, &contentType, &f);
-			CHECK_QSTATUS();
-			if (f != Part::FIELD_EXIST)
-				return QSTATUS_FAIL;
-			status = pPart->replaceField(pwszName, contentType);
-			CHECK_QSTATUS();
+			DummyParser field(pwszValue, DummyParser::FLAG_TSPECIAL);
+			if (!pPart->setField(pwszName, field))
+				return false;
+			ContentTypeParser contentType;
+			if (pPart->getField(pwszName, &contentType) != Part::FIELD_EXIST)
+				return false;
+			if (!pPart->replaceField(pwszName, contentType))
+				return false;
 		}
 		break;
 	case FIELDTYPE_CONTENTTRANSFERENCODING:
 		{
-			SimpleParser contentTransferEncoding(pwszValue, false, &status);
-			CHECK_QSTATUS();
-			status = pPart->replaceField(pwszName, contentTransferEncoding);
-			CHECK_QSTATUS();
+			ContentTransferEncodingParser contentTransferEncoding(pwszValue);
+			if (!pPart->replaceField(pwszName, contentTransferEncoding))
+				return false;
 		}
 		break;
 	case FIELDTYPE_CONTENTDISPOSITION:
 		{
-			DummyParser field(pwszValue, DummyParser::FLAG_TSPECIAL, &status);
-			CHECK_QSTATUS();
-			status = pPart->setField(pwszName, field);
-			CHECK_QSTATUS();
-			ContentDispositionParser contentDisposition(&status);
-			CHECK_QSTATUS();
-			Part::Field f;
-			status = pPart->getField(pwszName, &contentDisposition, &f);
-			CHECK_QSTATUS();
-			if (f != Part::FIELD_EXIST)
-				return QSTATUS_FAIL;
-			status = pPart->replaceField(pwszName, contentDisposition);
-			CHECK_QSTATUS();
+			DummyParser field(pwszValue, DummyParser::FLAG_TSPECIAL);
+			if (!pPart->setField(pwszName, field))
+				return false;
+			ContentDispositionParser contentDisposition;
+			if (pPart->getField(pwszName, &contentDisposition) != Part::FIELD_EXIST)
+				return false;
+			if (!pPart->replaceField(pwszName, contentDisposition))
+				return false;
 		}
 		break;
 	case FIELDTYPE_MESSAGEID:
 		{
-			DummyParser field(pwszValue, 0, &status);
-			CHECK_QSTATUS();
-			status = pPart->setField(pwszName, field);
-			CHECK_QSTATUS();
-			MessageIdParser messageId(&status);
-			CHECK_QSTATUS();
-			Part::Field f;
-			status = pPart->getField(pwszName, &messageId, &f);
-			CHECK_QSTATUS();
-			if (f != Part::FIELD_EXIST)
-				return QSTATUS_FAIL;
-			status = pPart->replaceField(pwszName, messageId);
-			CHECK_QSTATUS();
+			DummyParser field(pwszValue, 0);
+			if (!pPart->setField(pwszName, field))
+				return false;
+			MessageIdParser messageId;
+			if (pPart->getField(pwszName, &messageId) != Part::FIELD_EXIST)
+				return false;
+			if (!pPart->replaceField(pwszName, messageId))
+				return false;
 		}
 		break;
 	case FIELDTYPE_REFERENCES:
 		{
-			DummyParser field(pwszValue, 0, &status);
-			CHECK_QSTATUS();
-			status = pPart->setField(pwszName, field);
-			CHECK_QSTATUS();
-			ReferencesParser references(&status);
-			CHECK_QSTATUS();
-			Part::Field f;
-			status = pPart->getField(pwszName, &references, &f);
-			CHECK_QSTATUS();
-			if (f != Part::FIELD_EXIST)
-				return QSTATUS_FAIL;
-			status = pPart->replaceField(pwszName, references);
-			CHECK_QSTATUS();
+			DummyParser field(pwszValue, 0);
+			if (!pPart->setField(pwszName, field))
+				return false;
+			ReferencesParser references;
+			if (pPart->getField(pwszName, &references) != Part::FIELD_EXIST)
+				return false;
+			if (!pPart->replaceField(pwszName, references))
+				return false;
 		}
 		break;
 	case FIELDTYPE_XQMAILATTACHMENT:
 		{
-			DummyParser field(pwszValue, 0, &status);
-			CHECK_QSTATUS();
-			status = pPart->setField(pwszName, field);
-			CHECK_QSTATUS();
-			XQMAILAttachmentParser attachment(&status);
-			CHECK_QSTATUS();
-			Part::Field f;
-			status = pPart->getField(pwszName, &attachment, &f);
-			CHECK_QSTATUS();
-			if (f != Part::FIELD_EXIST)
-				return QSTATUS_FAIL;
-			status = pPart->replaceField(pwszName, attachment);
-			CHECK_QSTATUS();
+			DummyParser field(pwszValue, 0);
+			if (!pPart->setField(pwszName, field))
+				return false;
+			XQMAILAttachmentParser attachment;
+			if (pPart->getField(pwszName, &attachment) != Part::FIELD_EXIST)
+				return false;
+			if (!pPart->replaceField(pwszName, attachment))
+				return false;
 		}
 		break;
 	case FIELDTYPE_SINGLEUNSTRUCTURED:
 		{
 			const WCHAR* pwszCharset = Part::getDefaultCharset();
-			UnstructuredParser field(pwszValue, pwszCharset, &status);
-			CHECK_QSTATUS();
-			status = pPart->replaceField(pwszName, field);
-			CHECK_QSTATUS();
+			UnstructuredParser field(pwszValue, pwszCharset);
+			if (!pPart->replaceField(pwszName, field))
+				return false;
 		}
 		break;
 	case FIELDTYPE_MULTIUNSTRUCTURED:
 		{
 			const WCHAR* pwszCharset = Part::getDefaultCharset();
-			UnstructuredParser field(pwszValue, pwszCharset, &status);
-			CHECK_QSTATUS();
-			status = pPart->setField(pwszName, field, true);
-			CHECK_QSTATUS();
+			UnstructuredParser field(pwszValue, pwszCharset);
+			if (!pPart->setField(pwszName, field, true))
+				return false;
 		}
 		break;
 	default:
@@ -783,174 +645,132 @@ QSTATUS qm::MessageCreator::setField(Part* pPart,
 		break;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::MessageCreator::makeMultipart(Part* pParentPart, Part* pPart)
+bool qm::MessageCreator::makeMultipart(Part* pParentPart,
+									   std::auto_ptr<Part> pPart)
 {
 	assert(pParentPart);
-	assert(pPart);
-	
-	DECLARE_QSTATUS();
+	assert(pPart.get());
 	
 	int n = 0;
 	
-	Part partTemp(&status);
-	CHECK_QSTATUS();
-	status = PartUtil(*pPart).copyContentFields(&partTemp);
-	CHECK_QSTATUS();
+	Part partTemp;
+	if (!PartUtil(*pPart).copyContentFields(&partTemp))
+		return false;
 	
-	status = pParentPart->setHeader(pPart->getHeader());
-	CHECK_QSTATUS();
+	if (!pParentPart->setHeader(pPart->getHeader()))
+		return false;
+	
 	const WCHAR* pwszFields[] = {
 		L"Content-Transfer-Encoding",
 		L"Content-Disposition",
 		L"Content-ID",
 		L"Content-Description"
 	};
-	for (n = 0; n < countof(pwszFields); ++n) {
-		status = pParentPart->removeField(pwszFields[n]);
-		CHECK_QSTATUS();
-	}
-	ContentTypeParser contentTypeNew(L"multipart", L"mixed", &status);
-	CHECK_QSTATUS();
+	for (n = 0; n < countof(pwszFields); ++n)
+		pParentPart->removeField(pwszFields[n]);
+	
+	ContentTypeParser contentTypeNew(L"multipart", L"mixed");
 	WCHAR wszBoundary[128];
 	Time time(Time::getCurrentTime());
 	swprintf(wszBoundary, L"__boundary-%04d%02d%02d%02d%02d%02d%03d%04d__",
 		time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute,
 		time.wSecond, time.wMilliseconds, ::GetCurrentThreadId());
-	status = contentTypeNew.setParameter(L"boundary", wszBoundary);
-	CHECK_QSTATUS();
-	status = pParentPart->replaceField(L"Content-Type", contentTypeNew);
-	CHECK_QSTATUS();
+	contentTypeNew.setParameter(L"boundary", wszBoundary);
+	if (!pParentPart->replaceField(L"Content-Type", contentTypeNew))
+		return false;
 	
-	status = pPart->setHeader(0);
-	CHECK_QSTATUS();
-	status = PartUtil(partTemp).copyContentFields(pPart);
-	CHECK_QSTATUS();
+	if (!pPart->setHeader(0))
+		return false;
+	if (!PartUtil(partTemp).copyContentFields(pPart.get()))
+		return false;
 	
-	status = pParentPart->addPart(pPart);
-	CHECK_QSTATUS();
+	pParentPart->addPart(pPart);
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::MessageCreator::createPartFromFile(
-	const WCHAR* pwszPath, Part** ppPart)
+std::auto_ptr<Part> qm::MessageCreator::createPartFromFile(const WCHAR* pwszPath)
 {
 	assert(pwszPath);
-	assert(ppPart);
 	
-	DECLARE_QSTATUS();
-	
-	*ppPart = 0;
-	
-	std::auto_ptr<Part> pPart;
-	status = newQsObject(&pPart);
-	CHECK_QSTATUS();
+	std::auto_ptr<Part> pPart(new Part());
 	
 	const WCHAR* pwszContentType = L"application/octet-stream";
-	string_ptr<WSTRING> wstrContentType;
+	wstring_ptr wstrContentType;
 	const WCHAR* pFileName = wcsrchr(pwszPath, L'\\');
 	pFileName = pFileName ? pFileName + 1 : pwszPath;
 	const WCHAR* pExt = wcschr(pFileName, L'.');
 	if (pExt) {
-		status = getContentTypeFromExtension(pExt + 1, &wstrContentType);
-		CHECK_QSTATUS();
+		wstrContentType = getContentTypeFromExtension(pExt + 1);
 		if (wstrContentType.get())
 			pwszContentType = wstrContentType.get();
 	}
 	
-	DummyParser dummyContentType(pwszContentType, 0, &status);
-	CHECK_QSTATUS();
-	status = pPart->setField(L"Content-Type", dummyContentType);
-	CHECK_QSTATUS();
-	ContentTypeParser contentType(&status);
-	CHECK_QSTATUS();
-	Part::Field f;
-	status = pPart->getField(L"Content-Type", &contentType, &f);
-	CHECK_QSTATUS();
-	if (f != Part::FIELD_EXIST)
-		return QSTATUS_FAIL;
-	status = contentType.setParameter(L"name", pFileName);
-	CHECK_QSTATUS();
-	status = pPart->replaceField(L"Content-Type", contentType);
-	CHECK_QSTATUS();
+	DummyParser dummyContentType(pwszContentType, 0);
+	if (!pPart->setField(L"Content-Type", dummyContentType))
+		return 0;
+	ContentTypeParser contentType;
+	if (pPart->getField(L"Content-Type", &contentType) != Part::FIELD_EXIST)
+		return 0;
+	contentType.setParameter(L"name", pFileName);
+	if (!pPart->replaceField(L"Content-Type", contentType))
+		return 0;
 	
-	SimpleParser contentTransferEncoding(L"base64",
-		SimpleParser::FLAG_RECOGNIZECOMMENT | SimpleParser::FLAG_TSPECIAL,
-		&status);
-	CHECK_QSTATUS();
-	status = pPart->setField(L"Content-Transfer-Encoding", contentTransferEncoding);
-	CHECK_QSTATUS();
+	ContentTransferEncodingParser contentTransferEncoding(L"base64");
+	if (!pPart->setField(L"Content-Transfer-Encoding", contentTransferEncoding))
+		return 0;
 	
-	ContentDispositionParser contentDisposition(L"attachment", &status);
-	CHECK_QSTATUS();
-	status = contentDisposition.setParameter(L"filename", pFileName);
-	CHECK_QSTATUS();
-	status = pPart->setField(L"Content-Disposition", contentDisposition);
-	CHECK_QSTATUS();
+	ContentDispositionParser contentDisposition(L"attachment");
+	contentDisposition.setParameter(L"filename", pFileName);
+	if (!pPart->setField(L"Content-Disposition", contentDisposition))
+		return 0;
 	
-	FileInputStream stream(pwszPath, &status);
-	CHECK_QSTATUS();
-	BufferedInputStream bufferedStream(&stream, false, &status);
-	CHECK_QSTATUS();
-	StringBuffer<STRING> buf(&status);
-	CHECK_QSTATUS();
+	FileInputStream stream(pwszPath);
+	if (!stream)
+		return 0;
+	BufferedInputStream bufferedStream(&stream, false);
+	StringBuffer<STRING> buf;
 	unsigned char b[48];
 	unsigned char e[64];
 	while (true) {
-		size_t nLen = 0;
-		status = bufferedStream.read(b, countof(b), &nLen);
-		CHECK_QSTATUS();
+		size_t nLen = bufferedStream.read(b, countof(b));
 		if (nLen == -1)
+			return 0;
+		else if (nLen == 0)
 			break;
+		
 		size_t nEncodedLen = 0;
 		Base64Encoder::encode(b, nLen, false, e, &nEncodedLen);
-		status = buf.append(reinterpret_cast<CHAR*>(e), nEncodedLen);
-		CHECK_QSTATUS();
-		status = buf.append("\r\n");
-		CHECK_QSTATUS();
+		buf.append(reinterpret_cast<CHAR*>(e), nEncodedLen);
+		buf.append("\r\n");
 	}
 	
-	status = pPart->setBody(buf.getCharArray(), buf.getLength());
-	CHECK_QSTATUS();
+	if (!pPart->setBody(buf.getCharArray(), buf.getLength()))
+		return 0;
 	
-	*ppPart = pPart.release();
-	
-	return QSTATUS_SUCCESS;
+	return pPart;
 }
 
-QSTATUS qm::MessageCreator::getContentTypeFromExtension(
-	const WCHAR* pwszExtension, WSTRING* pwstrContentType)
+wstring_ptr qm::MessageCreator::getContentTypeFromExtension(const WCHAR* pwszExtension)
 {
 	assert(pwszExtension);
-	assert(pwstrContentType);
 	
-	DECLARE_QSTATUS();
+	wstring_ptr wstrExt(concat(L".", pwszExtension));
+	wstring_ptr wstrContentType;
 	
-	string_ptr<WSTRING> wstrExt(concat(L".", pwszExtension));
-	if (!wstrExt.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	string_ptr<WSTRING> wstrContentType;
-	
-	Registry reg(HKEY_CLASSES_ROOT, wstrExt.get(), &status);
-	CHECK_QSTATUS();
+	Registry reg(HKEY_CLASSES_ROOT, wstrExt.get());
 	if (reg) {
-		LONG nRet = 0;
-		status = reg.getValue(L"Content Type", &wstrContentType, &nRet);
-		CHECK_QSTATUS();
-		if (nRet != ERROR_SUCCESS)
-			wstrContentType.reset(0);
-		if (wstrContentType.get() &&
-			wcsnicmp(wstrContentType.get(), L"text/", 5) == 0)
-			wstrContentType.reset(0);
+		if (reg.getValue(L"Content Type", &wstrContentType)) {
+			if (wstrContentType.get() &&
+				wcsnicmp(wstrContentType.get(), L"text/", 5) == 0)
+				wstrContentType.reset(0);
+		}
 	}
 	
-	*pwstrContentType = wstrContentType.release();
-	
-	return QSTATUS_SUCCESS;
+	return wstrContentType;
 }
 
 
@@ -969,14 +789,8 @@ qm::PartUtil::~PartUtil()
 {
 }
 
-QSTATUS qm::PartUtil::isResent(bool* pbResent) const
+bool qm::PartUtil::isResent() const
 {
-	assert(pbResent);
-	
-	DECLARE_QSTATUS();
-	
-	*pbResent = false;
-	
 	const WCHAR* pwszFields[] = {
 		L"Resent-To",
 		L"Resent-Cc",
@@ -986,15 +800,12 @@ QSTATUS qm::PartUtil::isResent(bool* pbResent) const
 		L"Resent-Message-Id"
 	};
 	
-	for (int n = 0; n < countof(pwszFields) && !*pbResent; ++n) {
-		bool bHas = false;
-		status = part_.hasField(pwszFields[n], &bHas);
-		CHECK_QSTATUS();
-		if (bHas)
-			*pbResent = true;
+	for (int n = 0; n < countof(pwszFields); ++n) {
+		if (part_.hasField(pwszFields[n]))
+			return true;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return false;
 }
 
 bool qm::PartUtil::isMultipart() const
@@ -1008,41 +819,25 @@ bool qm::PartUtil::isText() const
 	return !pContentType || _wcsicmp(pContentType->getMediaType(), L"text") == 0;
 }
 
-QSTATUS qm::PartUtil::isAttachment(bool* pbAttachment) const
+bool qm::PartUtil::isAttachment() const
 {
-	assert(pbAttachment);
-	
-	DECLARE_QSTATUS();
-	
-	*pbAttachment = false;
-	
 	if (isMultipart())
-		return QSTATUS_SUCCESS;
+		return false;
 	
 	const WCHAR* pwszContentDisposition = 0;
-	ContentDispositionParser contentDisposition(&status);
-	CHECK_QSTATUS();
-	Part::Field field;
-	status = part_.getField(L"Content-Disposition", &contentDisposition, &field);
-	CHECK_QSTATUS();
+	ContentDispositionParser contentDisposition;
+	Part::Field field = part_.getField(L"Content-Disposition", &contentDisposition);
 	if (field == Part::FIELD_EXIST) {
 		pwszContentDisposition = contentDisposition.getDispositionType();
-		if (_wcsicmp(pwszContentDisposition, L"attachment") == 0) {
-			*pbAttachment = true;
-			return QSTATUS_SUCCESS;
-		}
+		if (_wcsicmp(pwszContentDisposition, L"attachment") == 0)
+			return true;
 		
-		string_ptr<WSTRING> wstrFileName;
-		status = contentDisposition.getParameter(L"filename", &wstrFileName);
-		CHECK_QSTATUS();
-		if (wstrFileName.get()) {
-			*pbAttachment = true;
-			return QSTATUS_SUCCESS;
-		}
+		wstring_ptr wstrFileName(contentDisposition.getParameter(L"filename"));
+		if (wstrFileName.get())
+			return true;
 	}
 	else if (field == Part::FIELD_ERROR) {
-		*pbAttachment = true;
-		return QSTATUS_SUCCESS;
+		return true;
 	}
 	
 	const ContentTypeParser* pContentType = part_.getContentType();
@@ -1055,328 +850,262 @@ QSTATUS qm::PartUtil::isAttachment(bool* pbAttachment) const
 			(_wcsicmp(pwszMediaType, L"message") == 0 &&
 				_wcsicmp(pwszSubType, L"rfc822") == 0);
 		if (!bCanInline) {
-			*pbAttachment = true;
-			return QSTATUS_SUCCESS;
+			return true;
 		}
 		else if (pwszContentDisposition &&
 			_wcsicmp(pwszContentDisposition, L"inline") == 0 &&
 			_wcsicmp(pwszMediaType, L"text") == 0 &&
 			_wcsicmp(pwszSubType, L"plain") == 0) {
-			return QSTATUS_SUCCESS;
+			return false;
 		}
 		else {
-			string_ptr<WSTRING> wstrName;
-			status = pContentType->getParameter(L"name", &wstrName);
-			CHECK_QSTATUS();
-			if (wstrName.get()) {
-				*pbAttachment = true;
-				return QSTATUS_SUCCESS;
-			}
+			wstring_ptr wstrName(pContentType->getParameter(L"name"));
+			if (wstrName.get())
+				return true;
 		}
 	
 	}
 	
-	return QSTATUS_SUCCESS;
+	return false;
 }
 
-QSTATUS qm::PartUtil::getNames(
-	const WCHAR* pwszField, WSTRING* pwstrNames) const
+wstring_ptr qm::PartUtil::getNames(const WCHAR* pwszField) const
 {
 	assert(pwszField);
-	assert(pwstrNames);
 	
-	DECLARE_QSTATUS();
+	StringBuffer<WSTRING> buf;
 	
-	*pwstrNames = 0;
-	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
-	
-	AddressListParser address(0, &status);
-	CHECK_QSTATUS();
-	Part::Field field;
-	status = part_.getField(pwszField, &address, &field);
-	CHECK_QSTATUS();
-	if (field == Part::FIELD_EXIST) {
+	AddressListParser address(0);
+	if (part_.getField(pwszField, &address) == Part::FIELD_EXIST) {
 		const AddressListParser::AddressList& l = address.getAddressList();
-		AddressListParser::AddressList::const_iterator it = l.begin();
-		while (it != l.end()) {
-			if (it != l.begin()) {
-				status = buf.append(L", ");
-				CHECK_QSTATUS();
-			}
+		for (AddressListParser::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			if (it != l.begin())
+				buf.append(L", ");
 			
 			if ((*it)->getPhrase()) {
-				status = buf.append((*it)->getPhrase());
-				CHECK_QSTATUS();
+				buf.append((*it)->getPhrase());
 			}
 			else {
-				string_ptr<WSTRING> wstrAddress;
-				status = (*it)->getAddress(&wstrAddress);
-				CHECK_QSTATUS();
-				status = buf.append(wstrAddress.get());
-				CHECK_QSTATUS();
+				wstring_ptr wstrAddress((*it)->getAddress());
+				buf.append(wstrAddress.get());
 			}
-			
-			++it;
 		}
 	}
-	*pwstrNames = buf.getString();
-	
-	return QSTATUS_SUCCESS;
+	return buf.getString();
 }
 
-QSTATUS qm::PartUtil::getReference(WSTRING* pwstrReference) const
+wstring_ptr qm::PartUtil::getReference() const
 {
-	assert(pwstrReference);
-	
-	DECLARE_QSTATUS();
-	
-	*pwstrReference = 0;
-	
 	const WCHAR* pwszFields[] = {
 		L"In-Reply-To",
 		L"References"
 	};
-	for (int n = 0; n < countof(pwszFields) && !*pwstrReference; ++n) {
-		ReferencesParser references(&status);
-		CHECK_QSTATUS();
-		Part::Field field;
-		status = part_.getField(pwszFields[n], &references, &field);
-		CHECK_QSTATUS();
-		if (field == Part::FIELD_EXIST) {
+	for (int n = 0; n < countof(pwszFields); ++n) {
+		ReferencesParser references;
+		if (part_.getField(pwszFields[n], &references) == Part::FIELD_EXIST) {
 			const ReferencesParser::ReferenceList& l = references.getReferences();
-			ReferencesParser::ReferenceList::const_reverse_iterator it = l.rbegin();
-			while (it != l.rend() && !*pwstrReference) {
-				if ((*it).second == ReferencesParser::T_MSGID) {
-					*pwstrReference = allocWString((*it).first);
-					if (!*pwstrReference)
-						return QSTATUS_OUTOFMEMORY;
-				}
-				++it;
+			for (ReferencesParser::ReferenceList::const_reverse_iterator it = l.rbegin(); it != l.rend(); ++it) {
+				if ((*it).second == ReferencesParser::T_MSGID)
+					return allocWString((*it).first);
 			}
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return 0;
 }
 
-QSTATUS qm::PartUtil::getReferences(ReferenceList* pList) const
+void qm::PartUtil::getReferences(ReferenceList* pList) const
 {
 	assert(pList);
 	
-	DECLARE_QSTATUS();
-	
-	STLWrapper<ReferenceList> wrapper(*pList);
-	
-	ReferencesParser references(&status);
-	CHECK_QSTATUS();
-	Part::Field field;
-	status = part_.getField(L"References", &references, &field);
-	CHECK_QSTATUS();
-	if (field == Part::FIELD_EXIST) {
+	ReferencesParser references;
+	if (part_.getField(L"References", &references) == Part::FIELD_EXIST) {
 		const ReferencesParser::ReferenceList& l = references.getReferences();
-		ReferencesParser::ReferenceList::const_iterator it = l.begin();
-		while (it != l.end()) {
+		for (ReferencesParser::ReferenceList::const_iterator it = l.begin(); it != l.end(); ++it) {
 			if ((*it).second == ReferencesParser::T_MSGID) {
-				string_ptr<WSTRING> wstr(allocWString((*it).first));
-				if (!wstr.get())
-					return QSTATUS_OUTOFMEMORY;
-				status = wrapper.push_back(wstr.get());
-				CHECK_QSTATUS();
+				wstring_ptr wstr(allocWString((*it).first));
+				pList->push_back(wstr.get());
 				wstr.release();
 			}
-			++it;
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::PartUtil::getAllText(const WCHAR* pwszQuote,
-	const WCHAR* pwszCharset, bool bBodyOnly, WSTRING* pwstrText) const
+wxstring_ptr qm::PartUtil::getAllText(const WCHAR* pwszQuote,
+									 const WCHAR* pwszCharset,
+									 bool bBodyOnly) const
 {
-	assert(pwstrText);
-	
-	DECLARE_QSTATUS();
-	
-	*pwstrText = 0;
-	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
-	
+	XStringBuffer<WXSTRING> buf;
+	if (!getAllText(pwszQuote, pwszCharset, bBodyOnly, &buf))
+		return 0;
+	return buf.getXString();
+}
+
+bool qm::PartUtil::getAllText(const WCHAR* pwszQuote,
+							  const WCHAR* pwszCharset,
+							  bool bBodyOnly,
+							  qs::XStringBuffer<qs::WXSTRING>* pBuf) const
+{
 	if (!bBodyOnly) {
 		if (part_.getHeader()) {
-			string_ptr<WSTRING> wstrHeader;
-			status = a2w(part_.getHeader(), &wstrHeader);
-			CHECK_QSTATUS();
-			status = buf.append(wstrHeader.get());
-			CHECK_QSTATUS();
+			wxstring_ptr wstrHeader(a2w(part_.getHeader()));
+			if (!wstrHeader.get())
+				return false;
+			if (!pBuf->append(wstrHeader.get()))
+				return false;
 		}
-		status = buf.append(L"\n");
-		CHECK_QSTATUS();
+		if (!pBuf->append(L"\n"))
+			return false;
 	}
 	
 	if (isMultipart()) {
 		const ContentTypeParser* pContentType = part_.getContentType();
-		string_ptr<WSTRING> wstrBoundary;
-		status = pContentType->getParameter(L"boundary", &wstrBoundary);
-		CHECK_QSTATUS();
+		wstring_ptr wstrBoundary(pContentType->getParameter(L"boundary"));
 		
 		const Part::PartList& l = part_.getPartList();
 		if (!l.empty()) {
-			Part::PartList::const_iterator it = l.begin();
-			while (it != l.end()) {
-				status = buf.append(L"\n--");
-				CHECK_QSTATUS();
-				status = buf.append(wstrBoundary.get());
-				CHECK_QSTATUS();
-				status = buf.append(L"\n");
-				CHECK_QSTATUS();
-				string_ptr<WSTRING> wstr;
-				status = PartUtil(**it).getAllText(
-					pwszQuote, pwszCharset, false, &wstr);
-				CHECK_QSTATUS();
-				status = buf.append(wstr.get());
-				CHECK_QSTATUS();
-				++it;
+			for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it) {
+				if (!pBuf->append(L"\n--") ||
+					!pBuf->append(wstrBoundary.get()) ||
+					!pBuf->append(L"\n") ||
+					!PartUtil(**it).getAllText(pwszQuote, pwszCharset, false, pBuf))
+					return false;
 			}
-			status = buf.append(L"\n--");
-			CHECK_QSTATUS();
-			status = buf.append(wstrBoundary.get());
-			CHECK_QSTATUS();
-			status = buf.append(L"--\n");
-			CHECK_QSTATUS();
+			if (!pBuf->append(L"\n--") ||
+				!pBuf->append(wstrBoundary.get()) ||
+				!pBuf->append(L"--\n"))
+				return false;
 		}
 	}
 	else if (part_.getEnclosedPart()) {
-		string_ptr<WSTRING> wstr;
-		status = PartUtil(*part_.getEnclosedPart()).getAllText(
-			pwszQuote, pwszCharset, false, &wstr);
-		CHECK_QSTATUS();
-		status = buf.append(wstr.get());
-		CHECK_QSTATUS();
+		PartUtil util(*part_.getEnclosedPart());
+		if (!util.getAllText(pwszQuote, pwszCharset, false, pBuf))
+			return false;
 	}
 	else {
-		bool bAttachment = false;
-		status = isAttachment(&bAttachment);
-		CHECK_QSTATUS();
-		if (!bAttachment) {
-			string_ptr<WSTRING> wstrBody;
-			status = part_.getBodyText(pwszCharset, &wstrBody);
-			CHECK_QSTATUS();
+		if (!isAttachment()) {
 			if (pwszQuote) {
-				string_ptr<WSTRING> wstr;
-				status = quote(wstrBody.get(), pwszQuote, &wstr);
-				CHECK_QSTATUS();
-				wstrBody.reset(wstr.release());
+				wxstring_ptr wstrBody(part_.getBodyText(pwszCharset));
+				if (!wstrBody.get())
+					return false;
+				if (!quote(wstrBody.get(), pwszQuote, pBuf))
+					return false;
 			}
-			status = buf.append(wstrBody.get());
-			CHECK_QSTATUS();
+			else {
+				if (!part_.getBodyText(pwszCharset, pBuf))
+					return false;
+			}
 		}
 		else {
-			string_ptr<WSTRING> wstrBody;
-			status = a2w(part_.getBody(), &wstrBody);
-			CHECK_QSTATUS();
-			status = buf.append(wstrBody.get());
-			CHECK_QSTATUS();
+			wxstring_ptr wstrBody(a2w(part_.getBody()));
+			if (!pBuf->append(wstrBody.get()))
+				return false;
 		}
 	}
-	*pwstrText = buf.getString();
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
-	const WCHAR* pwszCharset, WSTRING* pwstrText) const
+wxstring_ptr qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
+									   const WCHAR* pwszCharset) const
 {
-	assert(pwstrText);
-	
-	DECLARE_QSTATUS();
-	
-	*pwstrText = 0;
-	
+	XStringBuffer<WXSTRING> buf;
+	if (!getBodyText(pwszQuote, pwszCharset, &buf))
+		return 0;
+	return buf.getXString();
+}
+
+bool qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
+							   const WCHAR* pwszCharset,
+							   XStringBuffer<WXSTRING>* pBuf) const
+{
 	if (isMultipart()) {
-		StringBuffer<WSTRING> buf(&status);
-		CHECK_QSTATUS();
-		
 		const ContentTypeParser* pContentType = part_.getContentType();
 		assert(pContentType);
 		bool bAlternative = _wcsicmp(pContentType->getSubType(), L"alternative") == 0;
+		bool bFirst = true;
 		const Part::PartList& l = part_.getPartList();
-		Part::PartList::const_iterator it = l.begin();
-		while (it != l.end()) {
-			string_ptr<WSTRING> wstrBody;
-			status = PartUtil(**it).getBodyText(pwszQuote, pwszCharset, &wstrBody);
-			CHECK_QSTATUS();
-			if (*wstrBody.get()) {
-				if (buf.getLength() != 0) {
-					if (*(buf.getCharArray() + buf.getLength() - 1) == L'\n' &&
-						pwszQuote) {
-						status = buf.append(pwszQuote);
-						CHECK_QSTATUS();
-					}
-					status = buf.append(L"\n");
-					CHECK_QSTATUS();
-					if (pwszQuote) {
-						status = buf.append(pwszQuote);
-						CHECK_QSTATUS();
-					}
-					status = buf.append(
-						L"------------------------------------"
-						L"------------------------------------\n");
-					CHECK_QSTATUS();
-				}
-				status = buf.append(wstrBody.get());
-				CHECK_QSTATUS();
-				if (bAlternative)
-					break;
+		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			size_t nLen = pBuf->getLength();
+			
+			if (bFirst) {
+				bFirst = false;
 			}
-			++it;
+			else {
+				if (*(pBuf->getCharArray() + pBuf->getLength() - 1) == L'\n' && pwszQuote) {
+					if (!pBuf->append(pwszQuote))
+						return false;
+				}
+				if (!pBuf->append(L"\n"))
+					return false;
+				if (pwszQuote) {
+					if (!pBuf->append(pwszQuote))
+						return false;
+				}
+				if (!pBuf->append(L"------------------------------------"
+					L"------------------------------------\n"))
+					return false;
+			}
+			
+			size_t nPrevLen = pBuf->getLength();
+			if (!PartUtil(**it).getBodyText(pwszQuote, pwszCharset, pBuf))
+				return false;
+			if (pBuf->getLength() == nPrevLen)
+				pBuf->remove(nLen, -1);
+			
+			if (bAlternative)
+				break;
 		}
-		
-		*pwstrText = buf.getString();
 	}
 	else {
-		string_ptr<WSTRING> wstrBody;
-		bool bAttachment = false;
-		status = isAttachment(&bAttachment);
-		if (!bAttachment && part_.getEnclosedPart()) {
-			status = PartUtil(*part_.getEnclosedPart()).getFormattedText(
-				false, pwszCharset, &wstrBody);
-			CHECK_QSTATUS();
-		}
-		else if (!bAttachment) {
-			status = part_.getBodyText(pwszCharset, &wstrBody);
-			CHECK_QSTATUS();
-		}
-		
-		if (wstrBody.get()) {
-			if (pwszQuote) {
-				string_ptr<WSTRING> wstr;
-				status = quote(wstrBody.get(), pwszQuote, &wstr);
-				CHECK_QSTATUS();
-				wstrBody.reset(wstr.release());
+		bool bAttachment = isAttachment();
+		if (pwszQuote) {
+			wxstring_ptr wstrBody;
+			if (!bAttachment && part_.getEnclosedPart()) {
+				PartUtil util(*part_.getEnclosedPart());
+				wstrBody = util.getFormattedText(false, pwszCharset);
+				if (!wstrBody.get())
+					return false;
 			}
-			*pwstrText = wstrBody.release();
+			else if (!bAttachment) {
+				wstrBody = part_.getBodyText(pwszCharset);
+				if (!wstrBody.get())
+					return false;
+			}
+			
+			if (wstrBody.get()) {
+				if (!quote(wstrBody.get(), pwszQuote, pBuf))
+					return false;
+			}
 		}
 		else {
-			*pwstrText = allocWString(L"");
-			if (!*pwstrText)
-				return QSTATUS_OUTOFMEMORY;
+			if (!bAttachment && part_.getEnclosedPart()) {
+				PartUtil util(*part_.getEnclosedPart());
+				if (!util.getFormattedText(false, pwszCharset, pBuf))
+					return false;
+			}
+			else if (!bAttachment) {
+				if (!part_.getBodyText(pwszCharset, pBuf))
+					return false;
+			}
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::PartUtil::getFormattedText(bool bUseSendersTimeZone,
-	const WCHAR* pwszCharset, WSTRING* pwstrText) const
+wxstring_ptr qm::PartUtil::getFormattedText(bool bUseSendersTimeZone,
+											const WCHAR* pwszCharset) const
 {
-	assert(pwstrText);
-	
-	DECLARE_QSTATUS();
-	
+	XStringBuffer<WXSTRING> buf;
+	if (!getFormattedText(bUseSendersTimeZone, pwszCharset, &buf))
+		return 0;
+	return buf.getXString();
+}
+
+bool qm::PartUtil::getFormattedText(bool bUseSendersTimeZone,
+									const WCHAR* pwszCharset,
+									XStringBuffer<WXSTRING>* pBuf) const
+{
 	const WCHAR* pwszFields[] = {
 		L"To",
 		L"Cc",
@@ -1388,98 +1117,65 @@ QSTATUS qm::PartUtil::getFormattedText(bool bUseSendersTimeZone,
 		L"From:    " 
 	};
 	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
-	
-	Part::Field field;
-	
 	for (int n = 0; n < countof(pwszFields); ++n) {
-		AddressListParser address(0, &status);
-		CHECK_QSTATUS();
-		status = part_.getField(pwszFields[n], &address, &field);
-		CHECK_QSTATUS();
-		if (field == Part::FIELD_EXIST) {
-			const AddressListParser::AddressList& l = address.getAddressList();
-			if (!l.empty()) {
-				status = buf.append(pwszFieldNames[n]);
-				CHECK_QSTATUS();
-				string_ptr<WSTRING> wstrNames;
-				status = address.getNames(&wstrNames);
-				CHECK_QSTATUS();
-				status = buf.append(wstrNames.get());
-				CHECK_QSTATUS();
-				status = buf.append(L"\n");
-				CHECK_QSTATUS();
+		AddressListParser address(0);
+		if (part_.getField(pwszFields[n], &address) == Part::FIELD_EXIST) {
+			if (!address.getAddressList().empty()) {
+				if (!pBuf->append(pwszFieldNames[n]))
+					return false;
+				wstring_ptr wstrNames(address.getNames());
+				if (!pBuf->append(wstrNames.get()) ||
+					!pBuf->append(L"\n"))
+					return false;
 			}
 		}
 	}
 	
-	UnstructuredParser subject(&status);
-	CHECK_QSTATUS();
-	status = part_.getField(L"Subject", &subject, &field);
-	CHECK_QSTATUS();
-	if (field == Part::FIELD_EXIST) {
-		status = buf.append(L"Subject: ");
-		CHECK_QSTATUS();
-		status = buf.append(subject.getValue());
-		CHECK_QSTATUS();
-		status = buf.append(L'\n');
-		CHECK_QSTATUS();
+	UnstructuredParser subject;
+	if (part_.getField(L"Subject", &subject) == Part::FIELD_EXIST) {
+		if (!pBuf->append(L"Subject: ") ||
+			!pBuf->append(subject.getValue()) ||
+			!pBuf->append(L'\n'))
+			return false;
 	}
 	
-	DateParser date(&status);
-	CHECK_QSTATUS();
-	status = part_.getField(L"Date", &date, &field);
-	CHECK_QSTATUS();
-	if (field == Part::FIELD_EXIST) {
-		string_ptr<WSTRING> wstrDate;
-		status = date.getTime().format(L"Date:    %Y4/%M0/%D %h:%m:%s\n",
-			bUseSendersTimeZone ? Time::FORMAT_ORIGINAL : Time::FORMAT_LOCAL,
-			&wstrDate);
-		CHECK_QSTATUS();
-		status = buf.append(wstrDate.get());
-		CHECK_QSTATUS();
+	DateParser date;
+	if (part_.getField(L"Date", &date) == Part::FIELD_EXIST) {
+		wstring_ptr wstrDate(date.getTime().format(L"Date:    %Y4/%M0/%D %h:%m:%s\n",
+			bUseSendersTimeZone ? Time::FORMAT_ORIGINAL : Time::FORMAT_LOCAL));
+		if (!pBuf->append(wstrDate.get()))
+			return false;
 	}
 	
 	AttachmentParser::AttachmentList names;
 	AttachmentParser::AttachmentListFree free(names);
-	status = AttachmentParser(part_).getAttachments(true, &names);
-	CHECK_QSTATUS();
+	AttachmentParser(part_).getAttachments(true, &names);
 	if (!names.empty()) {
-		status = buf.append(L"Attach:  ");
-		CHECK_QSTATUS();
-		AttachmentParser::AttachmentList::iterator it = names.begin();
-		while (it != names.end()) {
+		if (!pBuf->append(L"Attach:  "))
+			return false;
+		for (AttachmentParser::AttachmentList::iterator it = names.begin(); it != names.end(); ++it) {
 			if (it != names.begin()) {
-				status = buf.append(L", ");
-				CHECK_QSTATUS();
+				if (!pBuf->append(L", "))
+					return false;
 			}
-			status = buf.append((*it).first);
-			CHECK_QSTATUS();
-			++it;
+			if (!pBuf->append((*it).first))
+				return false;
 		}
-		status = buf.append(L"\n");
-		CHECK_QSTATUS();
+		if (!pBuf->append(L"\n"))
+			return false;
 	}
 	
-	status = buf.append(L"\n");
-	CHECK_QSTATUS();
-	string_ptr<WSTRING> wstrBody;
-	status = getBodyText(0, pwszCharset, &wstrBody);
-	CHECK_QSTATUS();
-	status = buf.append(wstrBody.get());
-	CHECK_QSTATUS();
+	if (!pBuf->append(L"\n"))
+		return false;
+	if (!getBodyText(0, pwszCharset, pBuf))
+		return false;
 	
-	*pwstrText = buf.getString();
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::PartUtil::getDigest(MessageList* pList) const
+bool qm::PartUtil::getDigest(MessageList* pList) const
 {
 	assert(pList);
-	
-	DECLARE_QSTATUS();
 	
 	struct Deleter
 	{
@@ -1504,60 +1200,44 @@ QSTATUS qm::PartUtil::getDigest(MessageList* pList) const
 		MessageList* p_;
 	} deleter(pList);
 	
-	DigestMode mode = DIGEST_NONE;
-	status = getDigestMode(&mode);
-	CHECK_QSTATUS();
+	DigestMode mode = getDigestMode();
 	if (mode == DIGEST_NONE)
-		return QSTATUS_SUCCESS;
+		return true;
 	
-	AddressListParser to(0, &status);
-	CHECK_QSTATUS();
-	Part::Field fieldTo;
-	status = part_.getField(L"To", &to, &fieldTo);
-	CHECK_QSTATUS();
+	AddressListParser to(0);
+	Part::Field fieldTo = part_.getField(L"To", &to);
 	
-	AddressListParser replyTo(0, &status);
-	CHECK_QSTATUS();
-	Part::Field fieldReplyTo;
-	status = part_.getField(L"Reply-To", &replyTo, &fieldReplyTo);
-	CHECK_QSTATUS();
+	AddressListParser replyTo(0);
+	Part::Field fieldReplyTo = part_.getField(L"Reply-To", &replyTo);
 	
 	switch (mode) {
 	case DIGEST_MULTIPART:
 		{
 			const Part::PartList& l = part_.getPartList();
-			Part::PartList::const_iterator it = l.begin();
-			while (it != l.end()) {
+			for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it) {
 				const Part* pEnclosedPart = (*it)->getEnclosedPart();
 				if (pEnclosedPart || PartUtil(**it).isText()) {
-					string_ptr<STRING> strContent;
-					if (pEnclosedPart) {
-						status = pEnclosedPart->getContent(&strContent);
-						CHECK_QSTATUS();
-					}
-					else {
-						status = (*it)->getContent(&strContent);
-						CHECK_QSTATUS();
-					}
-					std::auto_ptr<Message> pMessage;
-					status = newQsObject(strContent.get(),
-						-1, Message::FLAG_NONE, &pMessage);
-					CHECK_QSTATUS();
+					xstring_ptr strContent;
+					if (pEnclosedPart)
+						strContent = pEnclosedPart->getContent();
+					else
+						strContent = (*it)->getContent();
+					
+					std::auto_ptr<Message> pMessage(new Message());
+					if (pMessage->create(strContent.get(), -1, Message::FLAG_NONE))
+						return false;
 					
 					if (fieldTo == Part::FIELD_EXIST) {
-						status = pMessage->setField(L"To", to);
-						CHECK_QSTATUS();
+						if (!pMessage->setField(L"To", to))
+							return false;
 					}
 					if (fieldReplyTo == Part::FIELD_EXIST) {
-						status = pMessage->setField(L"Reply-To", replyTo);
-						CHECK_QSTATUS();
+						if (!pMessage->setField(L"Reply-To", replyTo))
+							return false;
 					}
-					status = STLWrapper<MessageList>(
-						*pList).push_back(pMessage.get());
-					CHECK_QSTATUS();
+					pList->push_back(pMessage.get());
 					pMessage.release();
 				}
-				++it;
 			}
 		}
 		break;
@@ -1565,18 +1245,17 @@ QSTATUS qm::PartUtil::getDigest(MessageList* pList) const
 		{
 			BMFindString<WSTRING> bmfsStart(
 				L"\n-----------------------------------"
-				L"-----------------------------------\n", &status);
-			CHECK_QSTATUS();
+				L"-----------------------------------\n");
 			const WCHAR* pwszSeparator = L"\n------------------------------\n";
 			size_t nSeparatorLen = wcslen(pwszSeparator);
-			BMFindString<WSTRING> bmfsSeparator(pwszSeparator, &status);
-			CHECK_QSTATUS();
+			BMFindString<WSTRING> bmfsSeparator(pwszSeparator);
 			
 			MessageCreator creator;
 			
-			string_ptr<WSTRING> wstrBody;
-			status = part_.getBodyText(&wstrBody);
-			CHECK_QSTATUS();
+			wxstring_ptr wstrBody(part_.getBodyText());
+			if (!wstrBody.get())
+				return false;
+			
 			const WCHAR* p = bmfsStart.find(wstrBody.get());
 			while (p) {
 				p = wcschr(p + 1, L'\n');
@@ -1589,22 +1268,18 @@ QSTATUS qm::PartUtil::getDigest(MessageList* pList) const
 				if (!pEnd)
 					break;
 				
-				Message* pMessage = 0;
-				status = creator.createMessage(p, pEnd - p, &pMessage);
-				CHECK_QSTATUS();
-				std::auto_ptr<Message> apMessage(pMessage);
+				std::auto_ptr<Message> pMessage(creator.createMessage(p, pEnd - p));
 				
 				if (fieldTo == Part::FIELD_EXIST) {
-					status = pMessage->setField(L"To", to);
-					CHECK_QSTATUS();
+					if (!pMessage->setField(L"To", to))
+						return false;
 				}
 				if (fieldReplyTo == Part::FIELD_EXIST) {
-					status = pMessage->setField(L"Reply-To", replyTo);
-					CHECK_QSTATUS();
+					if (!pMessage->setField(L"Reply-To", replyTo))
+						return false;
 				}
-				status = STLWrapper<MessageList>(*pList).push_back(pMessage);
-				CHECK_QSTATUS();
-				apMessage.release();
+				pList->push_back(pMessage.get());
+				pMessage.release();
 				
 				if (wcsncmp(pEnd + nSeparatorLen + 1, L"End of ", 7) == 0)
 					break;
@@ -1619,225 +1294,155 @@ QSTATUS qm::PartUtil::getDigest(MessageList* pList) const
 	
 	deleter.release();
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::PartUtil::getDigestMode(DigestMode* pMode) const
+PartUtil::DigestMode qm::PartUtil::getDigestMode() const
 {
-	assert(pMode);
-	
-	DECLARE_QSTATUS();
-	
-	*pMode = DIGEST_NONE;
-	
 	const ContentTypeParser* pContentType = part_.getContentType();
 	if (!pContentType || wcsicmp(pContentType->getMediaType(), L"text") == 0) {
-		UnstructuredParser subject(&status);
-		Part::Field f;
-		status = part_.getField(L"Subject", &subject, &f);
-		CHECK_QSTATUS();
-		if (f != Part::FIELD_EXIST)
-			return QSTATUS_SUCCESS;
-		
-		string_ptr<WSTRING> wstrSubject(tolower(subject.getValue()));
-		if (!wstrSubject.get())
-			return QSTATUS_OUTOFMEMORY;
-		if (!wcsstr(wstrSubject.get(), L"digest"))
-			return QSTATUS_SUCCESS;
-		
-		string_ptr<WSTRING> wstrBody;
-		status = part_.getBodyText(&wstrBody);
-		CHECK_QSTATUS();
-		BMFindString<WSTRING> bmfs(
-			L"\n----------------------------------"
-			L"------------------------------------\n", &status);
-		CHECK_QSTATUS();
-		if (bmfs.find(wstrBody.get()))
-			*pMode = DIGEST_RFC1153;
+		UnstructuredParser subject;
+		if (part_.getField(L"Subject", &subject) == Part::FIELD_EXIST) {
+			wstring_ptr wstrSubject(tolower(subject.getValue()));
+			if (wcsstr(wstrSubject.get(), L"digest")) {
+				wxstring_ptr wstrBody = part_.getBodyText();
+				if (wstrBody.get()) {
+					BMFindString<WSTRING> bmfs(
+						L"\n----------------------------------"
+						L"------------------------------------\n");
+					if (bmfs.find(wstrBody.get()))
+						return DIGEST_RFC1153;
+				}
+			}
+		}
 	}
 	else if (wcsicmp(pContentType->getMediaType(), L"multipart") == 0) {
-		if (wcsicmp(pContentType->getSubType(), L"mixed") != 0 &&
-			wcsicmp(pContentType->getSubType(), L"digest") != 0)
-			return QSTATUS_SUCCESS;
-		
-		const Part::PartList& l = part_.getPartList();
-		Part::PartList::const_iterator it = l.begin();
-		while (it != l.end()) {
-			bool b = false;
-			status = PartUtil(**it).isAttachment(&b);
-			CHECK_QSTATUS();
-			if (b)
-				return QSTATUS_SUCCESS;
-			++it;
+		if (wcsicmp(pContentType->getSubType(), L"mixed") == 0 &&
+			wcsicmp(pContentType->getSubType(), L"digest") == 0) {
+			const Part::PartList& l = part_.getPartList();
+			Part::PartList::const_iterator it = l.begin();
+			while (it != l.end()) {
+				if (PartUtil(**it).isAttachment())
+					break;
+				++it;
+			}
+			if (it == l.end())
+				return DIGEST_MULTIPART;
 		}
-		*pMode = DIGEST_MULTIPART;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return DIGEST_NONE;
 }
 
-QSTATUS qm::PartUtil::getHeader(const WCHAR* pwszName, STRING* pstrHeader) const
+string_ptr qm::PartUtil::getHeader(const WCHAR* pwszName) const
 {
 	assert(pwszName);
 	
-	DECLARE_QSTATUS();
+	string_ptr strName(wcs2mbs(pwszName));
 	
-	string_ptr<STRING> strName(wcs2mbs(pwszName));
-	if (!strName.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	StringBuffer<STRING> buf(&status);
-	CHECK_QSTATUS();
+	StringBuffer<STRING> buf;
 	
 	unsigned int nIndex = 0;
 	bool bExist = true;
 	while (bExist) {
-		string_ptr<STRING> str;
-		status = part_.getRawField(pwszName, nIndex, &str, &bExist);
-		CHECK_QSTATUS();
-		if (!bExist)
+		string_ptr str(part_.getRawField(pwszName, nIndex));
+		if (!str.get())
 			break;
 		
-		status = buf.append(strName.get());
-		CHECK_QSTATUS();
-		status = buf.append(": ");
-		CHECK_QSTATUS();
-		status = buf.append(str.get());
-		CHECK_QSTATUS();
-		status = buf.append("\r\n");
-		CHECK_QSTATUS();
+		buf.append(strName.get());
+		buf.append(": ");
+		buf.append(str.get());
+		buf.append("\r\n");
 		
 		++nIndex;
 	}
-	if (buf.getLength() != 0) {
-		status = buf.append("\r\n");
-		CHECK_QSTATUS();
-		*pstrHeader = buf.getString();
-	}
+	if (buf.getLength() == 0)
+		return 0;
 	
-	return QSTATUS_SUCCESS;
+	buf.append("\r\n");
+	return buf.getString();
 }
 
-QSTATUS qm::PartUtil::getAlternativeContentTypes(ContentTypeList* pList) const
+void qm::PartUtil::getAlternativeContentTypes(ContentTypeList* pList) const
 {
 	assert(pList);
 	
-	DECLARE_QSTATUS();
-	
-	STLWrapper<ContentTypeList> wrapper(*pList);
-	
 	const ContentTypeParser* pContentType = part_.getContentType();
 	if (pContentType && _wcsicmp(pContentType->getMediaType(), L"multipart") == 0) {
 		const Part::PartList& l = part_.getPartList();
 		if (_wcsicmp(pContentType->getSubType(), L"alternative") == 0) {
-			Part::PartList::const_reverse_iterator it = l.rbegin();
-			while (it != l.rend()) {
-				status = wrapper.push_back((*it)->getContentType());
-				CHECK_QSTATUS();
-				++it;
-			}
+			for (Part::PartList::const_reverse_iterator it = l.rbegin(); it != l.rend(); ++it)
+				pList->push_back((*it)->getContentType());
 		}
 		else {
-			if (!l.empty()) {
-				status = PartUtil(*l.front()).getAlternativeContentTypes(pList);
-				CHECK_QSTATUS();
-			}
+			if (!l.empty())
+				PartUtil(*l.front()).getAlternativeContentTypes(pList);
 		}
 	}
 	else {
-		status = wrapper.push_back(pContentType);
-		CHECK_QSTATUS();
+		pList->push_back(pContentType);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::PartUtil::getAlternativePart(const WCHAR* pwszMediaType,
-	const WCHAR* pwszSubType, const Part** ppPart) const
+const Part* qm::PartUtil::getAlternativePart(const WCHAR* pwszMediaType,
+											 const WCHAR* pwszSubType) const
 {
 	assert(pwszMediaType);
 	assert(pwszSubType);
-	assert(ppPart);
-	
-	DECLARE_QSTATUS();
-	
-	*ppPart = 0;
 	
 	const ContentTypeParser* pContentType = part_.getContentType();
 	if (pContentType && _wcsicmp(pContentType->getMediaType(), L"multipart") == 0) {
 		const Part::PartList& l = part_.getPartList();
 		if (_wcsicmp(pContentType->getSubType(), L"alternative") == 0) {
-			Part::PartList::const_reverse_iterator it = l.rbegin();
-			while (it != l.rend()) {
-				if (isContentType((*it)->getContentType(), pwszMediaType, pwszSubType)) {
-					*ppPart = *it;
-					break;
-				}
-				++it;
+			for (Part::PartList::const_reverse_iterator it = l.rbegin(); it != l.rend(); ++it) {
+				if (isContentType((*it)->getContentType(), pwszMediaType, pwszSubType))
+					return *it;
 			}
 		}
 		else {
-			if (!l.empty()) {
-				status = PartUtil(*l.front()).getAlternativePart(
-					pwszMediaType, pwszSubType, ppPart);
-				CHECK_QSTATUS();
-			}
+			if (!l.empty())
+				return PartUtil(*l.front()).getAlternativePart(pwszMediaType, pwszSubType);
 		}
 	}
 	else {
 		if (isContentType(pContentType, pwszMediaType, pwszSubType))
-			*ppPart = &part_;
+			return &part_;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return 0;
 }
 
-QSTATUS qm::PartUtil::getPartByContentId(
-	const WCHAR* pwszContentId, const Part** ppPart) const
+const Part* qm::PartUtil::getPartByContentId(const WCHAR* pwszContentId) const
 {
 	assert(pwszContentId);
-	assert(ppPart);
-	
-	DECLARE_QSTATUS();
-	
-	*ppPart = 0;
 	
 	if (isMultipart()) {
 		const Part::PartList& l = part_.getPartList();
-		Part::PartList::const_iterator it = l.begin();
-		while (it != l.end() && !*ppPart) {
-			status = PartUtil(**it).getPartByContentId(pwszContentId, ppPart);
-			CHECK_QSTATUS();
-			++it;
+		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			const Part* pPart = PartUtil(**it).getPartByContentId(pwszContentId);
+			if (pPart)
+				return pPart;
 		}
 	}
 	else {
-		MessageIdParser contentId(&status);
-		CHECK_QSTATUS();
-		Part::Field field;
-		status = part_.getField(L"Content-Id", &contentId, &field);
-		CHECK_QSTATUS();
-		if (field == Part::FIELD_EXIST &&
-			wcscmp(contentId.getMessageId(), pwszContentId) == 0) {
-			*ppPart = &part_;
-		}
+		MessageIdParser contentId;
+		if (part_.getField(L"Content-Id", &contentId) == Part::FIELD_EXIST &&
+			wcscmp(contentId.getMessageId(), pwszContentId) == 0)
+			return &part_;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return 0;
 }
 
-Part* qm::PartUtil::getEnclosingPart(qs::Part* pCandidatePart) const
+Part* qm::PartUtil::getEnclosingPart(Part* pCandidatePart) const
 {
 	assert(pCandidatePart);
 	
 	Part* pPart = 0;
 	if (pCandidatePart->isMultipart()) {
 		const Part::PartList& l = pCandidatePart->getPartList();
-		Part::PartList::const_iterator it = l.begin();
-		while (it != l.end() && !pPart) {
+		for (Part::PartList::const_iterator it = l.begin(); it != l.end() && !pPart; ++it)
 			pPart = getEnclosingPart(*it);
-			++it;
-		}
 	}
 	else {
 		if (pCandidatePart->getEnclosedPart() == &part_)
@@ -1847,40 +1452,21 @@ Part* qm::PartUtil::getEnclosingPart(qs::Part* pCandidatePart) const
 	return pPart;
 }
 
-QSTATUS qm::PartUtil::copyContentFields(Part* pPart) const
+bool qm::PartUtil::copyContentFields(Part* pPart) const
 {
-	DECLARE_QSTATUS();
-	
-	ContentTypeParser contentType(&status);
-	CHECK_QSTATUS();
-	Part::Field fieldContentType;
-	status = part_.getField(L"Content-Type", &contentType, &fieldContentType);
-	CHECK_QSTATUS();
-	SimpleParser contentTransferEncoding(
-		SimpleParser::FLAG_RECOGNIZECOMMENT | SimpleParser::FLAG_TSPECIAL,
-		&status);
-	CHECK_QSTATUS();
-	Part::Field fieldContentTransferEncoding;
-	status = part_.getField(L"Content-Transfer-Encoding",
-		&contentTransferEncoding, &fieldContentTransferEncoding);
-	CHECK_QSTATUS();
-	ContentDispositionParser contentDisposition(&status);
-	CHECK_QSTATUS();
-	Part::Field fieldContentDisposition;
-	status = part_.getField(L"Content-Disposition",
-		&contentDisposition, &fieldContentDisposition);
-	CHECK_QSTATUS();
-	MessageIdParser contentId(&status);
-	CHECK_QSTATUS();
-	Part::Field fieldContentId;
-	status = part_.getField(L"Content-ID", &contentId, &fieldContentId);
-	CHECK_QSTATUS();
-	UnstructuredParser contentDescription(&status);
-	CHECK_QSTATUS();
-	Part::Field fieldContentDescription;
-	status = part_.getField(L"Content-Description",
-		&contentDescription, &fieldContentDescription);
-	CHECK_QSTATUS();
+	ContentTypeParser contentType;
+	Part::Field fieldContentType = part_.getField(L"Content-Type", &contentType);
+	ContentTransferEncodingParser contentTransferEncoding;
+	Part::Field fieldContentTransferEncoding = part_.getField(
+		L"Content-Transfer-Encoding", &contentTransferEncoding);
+	ContentDispositionParser contentDisposition;
+	Part::Field fieldContentDisposition = part_.getField(
+		L"Content-Disposition", &contentDisposition);
+	MessageIdParser contentId;
+	Part::Field fieldContentId = part_.getField(L"Content-ID", &contentId);
+	UnstructuredParser contentDescription;
+	Part::Field fieldContentDescription = part_.getField(
+		L"Content-Description", &contentDescription);
 	
 	struct {
 		const WCHAR* pwszField_;
@@ -1895,136 +1481,137 @@ QSTATUS qm::PartUtil::copyContentFields(Part* pPart) const
 	};
 	for (int n = 0; n < countof(fields); ++n) {
 		if (fields[n].field_ == Part::FIELD_EXIST) {
-			status = pPart->replaceField(fields[n].pwszField_, *fields[n].pParser_);
-			CHECK_QSTATUS();
+			if (!pPart->replaceField(fields[n].pwszField_, *fields[n].pParser_))
+				return false;
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::PartUtil::a2w(const CHAR* psz, WSTRING* pwstr)
+wxstring_ptr qm::PartUtil::a2w(const CHAR* psz)
 {
-	return a2w(psz, -1, pwstr);
+	return a2w(psz, -1);
 }
 
-QSTATUS qm::PartUtil::a2w(const CHAR* psz, size_t nLen, WSTRING* pwstr)
+wxstring_ptr qm::PartUtil::a2w(const CHAR* psz,
+							   size_t nLen)
 {
-	assert(pwstr);
+	XStringBuffer<WXSTRING> buf;
+	if (!a2w(psz, nLen, &buf))
+		return 0;
+	return buf.getXString();
+}
+
+bool qm::PartUtil::a2w(const CHAR* psz,
+					   size_t nLen,
+					   XStringBuffer<WXSTRING>* pBuf)
+{
+	assert(pBuf);
 	
-	if (nLen == static_cast<size_t>(-1))
+	if (nLen == -1)
 		nLen = strlen(psz);
 	
-	string_ptr<WSTRING> wstr(allocWString(nLen + 1));
-	if (!wstr.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	WCHAR* p = wstr.get();
 	for (size_t n = 0; n < nLen; ++n) {
 		CHAR c = *(psz + n);
-		if (c != '\r')
-			*p++ = static_cast<WCHAR>(c);
+		if (c != '\r') {
+			if (!pBuf->append(static_cast<WCHAR>(c)))
+				return false;
+		}
 	}
-	*p = L'\0';
 	
-	*pwstr = wstr.release();
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::PartUtil::w2a(const WCHAR* pwsz, STRING* pstr)
+xstring_ptr qm::PartUtil::w2a(const WCHAR* pwsz)
 {
-	return w2a(pwsz, -1, pstr);
+	return w2a(pwsz, -1);
 }
 
-QSTATUS qm::PartUtil::w2a(const WCHAR* pwsz, size_t nLen, STRING* pstr)
+xstring_ptr qm::PartUtil::w2a(const WCHAR* pwsz,
+							  size_t nLen)
 {
-	assert(pstr);
+	XStringBuffer<XSTRING> buf;
+	if (!w2a(pwsz, nLen, &buf))
+		return 0;
+	return buf.getXString();
+}
+
+bool qm::PartUtil::w2a(const WCHAR* pwsz,
+					   size_t nLen,
+					   XStringBuffer<XSTRING>* pBuf)
+{
+	assert(pBuf);
 	
-	if (nLen == static_cast<size_t>(-1))
+	if (nLen == -1)
 		nLen = wcslen(pwsz);
 	
 	int nCount = std::count(pwsz, pwsz + nLen, L'\n');
 	
-	string_ptr<STRING> str(allocString(nLen + nCount + 1));
-	if (!str.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	CHAR* p = str.get();
 	for (size_t n = 0; n < nLen; ++n) {
 		WCHAR c = *(pwsz + n);
 		if (c >= 0x80)
-			return QSTATUS_FAIL;
-		if (c == L'\n')
-			*p++ = '\r';
-		*p++ = static_cast<CHAR>(c);
+			return false;
+		if (c == L'\n') {
+			if (!pBuf->append('\r'))
+				return false;
+		}
+		if (!pBuf->append(static_cast<CHAR>(c)))
+			return false;
 	}
-	*p = '\0';
 	
-	*pstr = str.release();
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::PartUtil::quote(const WCHAR* pwsz,
-	const WCHAR* pwszQuote, WSTRING* pwstrQuoted)
+wxstring_ptr qm::PartUtil::quote(const WCHAR* pwsz,
+								 const WCHAR* pwszQuote)
 {
-	assert(pwstrQuoted);
+	XStringBuffer<WXSTRING> buf;
+	if (!quote(pwsz, pwszQuote, &buf))
+		return 0;
+	return buf.getXString();
+}
+
+bool qm::PartUtil::quote(const WCHAR* pwsz,
+						 const WCHAR* pwszQuote,
+						 XStringBuffer<WXSTRING>* pBuf)
+{
+	assert(pwsz);
+	assert(pwszQuote);
+	assert(pBuf);
 	
-	size_t nLen = wcslen(pwsz);
-	size_t nQuoteLen = wcslen(pwszQuote);
-	
-	int nCount = std::count(pwsz, pwsz + nLen, L'\n');
-	
-	WSTRING wstr = allocWString(nLen + (nCount + 1)*nQuoteLen + 1);
-	if (!wstr)
-		return QSTATUS_OUTOFMEMORY;
-	
-	WCHAR* p = wstr;
-	wcscpy(p, pwszQuote);
-	p += nQuoteLen;
+	if (!pBuf->append(pwszQuote))
+		return false;
 	while (*pwsz) {
-		*p++ = *pwsz;
+		if (!pBuf->append(*pwsz))
+			return false;
 		if (*pwsz == L'\n' && *(pwsz + 1) != L'\0') {
-			wcscpy(p, pwszQuote);
-			p += nQuoteLen;
+			if (!pBuf->append(pwszQuote))
+				return false;
 		}
 		++pwsz;
 	}
-	*p = L'\0';
-	*pwstrQuoted = wstr;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::PartUtil::expandNames(const WCHAR** ppwszNames,
-	unsigned int nCount, WSTRING* pwstrNames)
+wstring_ptr qm::PartUtil::expandNames(const WCHAR** ppwszNames,
+									  unsigned int nCount)
 {
 	assert(ppwszNames);
-	assert(pwstrNames);
 	
-	unsigned int n = 0;
-	
-	size_t nLen = 0;
-	for (n = 0; n < nCount; ++n)
-		nLen += wcslen(ppwszNames[n]) + 2;
-	
-	string_ptr<WSTRING> wstrNames(allocWString(L"", nLen + 1));
-	if (!wstrNames.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	for (n = 0; n < nCount; ++n) {
+	StringBuffer<WSTRING> buf;
+	for (unsigned int n = 0; n < nCount; ++n) {
 		if (n != 0)
-			wcscat(wstrNames.get(), L", ");
-		wcscat(wstrNames.get(), ppwszNames[n]);
+			buf.append(L", ");
+		buf.append(ppwszNames[n]);
 	}
-	*pwstrNames = wstrNames.release();
-	
-	return QSTATUS_SUCCESS;
+	return buf.getString();
 }
 
 bool qm::PartUtil::isContentType(const ContentTypeParser* pContentType,
-	const WCHAR* pwszMediaType, const WCHAR* pwszSubType)
+								 const WCHAR* pwszMediaType,
+								 const WCHAR* pwszSubType)
 {
 	if (pContentType)
 		return _wcsicmp(pContentType->getMediaType(), pwszMediaType) == 0 &&
@@ -2050,111 +1637,67 @@ qm::AttachmentParser::~AttachmentParser()
 {
 }
 
-QSTATUS qm::AttachmentParser::hasAttachment(bool* pbHas) const
+bool qm::AttachmentParser::hasAttachment() const
 {
-	assert(pbHas);
-	
-	DECLARE_QSTATUS();
-	
-	*pbHas = false;
-	
 	PartUtil util(part_);
 	if (util.isMultipart()) {
 		const Part::PartList& l = part_.getPartList();
-		Part::PartList::const_iterator it = l.begin();
-		while (it != l.end() && !*pbHas) {
-			status = AttachmentParser(**it).hasAttachment(pbHas);
-			CHECK_QSTATUS();
-			++it;
+		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			if (AttachmentParser(**it).hasAttachment())
+				return true;
 		}
+		return false;
 	}
 	else if (part_.getEnclosedPart()) {
-		status = AttachmentParser(*part_.getEnclosedPart()).hasAttachment(pbHas);
-		CHECK_QSTATUS();
+		return AttachmentParser(*part_.getEnclosedPart()).hasAttachment();
 	}
 	else {
-		status = util.isAttachment(pbHas);
-		CHECK_QSTATUS();
+		return util.isAttachment();
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::AttachmentParser::getName(WSTRING* pwstrName) const
+wstring_ptr qm::AttachmentParser::getName() const
 {
-	assert(pwstrName);
+	wstring_ptr wstrName;
 	
-	DECLARE_QSTATUS();
+	ContentDispositionParser contentDisposition;
+	if (part_.getField(L"Content-Disposition", &contentDisposition) == Part::FIELD_EXIST)
+		wstrName = contentDisposition.getParameter(L"filename");
 	
-	string_ptr<WSTRING> wstrName;
-	
-	ContentDispositionParser contentDisposition(&status);
-	CHECK_QSTATUS();
-	Part::Field f;
-	status = part_.getField(L"Content-Disposition", &contentDisposition, &f);
-	CHECK_QSTATUS();
-	if (f == Part::FIELD_EXIST) {
-		status = contentDisposition.getParameter(L"filename", &wstrName);
-		CHECK_QSTATUS();
-	}
 	if (!wstrName.get()) {
 		const ContentTypeParser* pContentType = part_.getContentType();
-		if (pContentType) {
-			status = pContentType->getParameter(L"name", &wstrName);
-			CHECK_QSTATUS();
-		}
+		if (pContentType)
+			wstrName = pContentType->getParameter(L"name");
 	}
 	
-	*pwstrName = wstrName.release();
-	
-	return QSTATUS_SUCCESS;
+	return wstrName;
 }
 
-QSTATUS qm::AttachmentParser::getAttachments(
-	bool bIncludeDeleted, AttachmentList* pList) const
+void qm::AttachmentParser::getAttachments(bool bIncludeDeleted,
+										  AttachmentList* pList) const
 {
 	assert(pList);
 	
-	DECLARE_QSTATUS();
-	
 	if (!bIncludeDeleted) {
-		bool bDeleted = false;
-		status = isAttachmentDeleted(&bDeleted);
-		CHECK_QSTATUS();
-		if (bDeleted)
-			return QSTATUS_SUCCESS;
+		if (isAttachmentDeleted())
+			return;
 	}
 	
 	PartUtil util(part_);
 	if (util.isMultipart()) {
 		const Part::PartList& l = part_.getPartList();
-		Part::PartList::const_iterator it = l.begin();
-		while (it != l.end()) {
-			status = AttachmentParser(**it).getAttachments(bIncludeDeleted, pList);
-			CHECK_QSTATUS();
-			++it;
-		}
+		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it)
+			AttachmentParser(**it).getAttachments(bIncludeDeleted, pList);
 	}
 	else if (part_.getEnclosedPart()) {
-		status = AttachmentParser(*part_.getEnclosedPart()).getAttachments(bIncludeDeleted, pList);
-		CHECK_QSTATUS();
+		AttachmentParser(*part_.getEnclosedPart()).getAttachments(bIncludeDeleted, pList);
 	}
 	else {
-		bool bAttachment = false;
-		status = util.isAttachment(&bAttachment);
-		CHECK_QSTATUS();
-		if (bAttachment) {
-			string_ptr<WSTRING> wstrName;
-			status = getName(&wstrName);
-			CHECK_QSTATUS();
-			if (!wstrName.get() || !*wstrName.get()) {
-				wstrName.reset(allocWString(L"Untitled"));
-				if (!wstrName.get())
-					return QSTATUS_OUTOFMEMORY;
-			}
-			string_ptr<WSTRING> wstrOrigName(allocWString(wstrName.get()));
-			if (!wstrOrigName.get())
-				return QSTATUS_OUTOFMEMORY;
+		if (util.isAttachment()) {
+			wstring_ptr wstrName(getName());
+			if (!wstrName.get() || !*wstrName.get())
+				wstrName = allocWString(L"Untitled");
+			wstring_ptr wstrOrigName = allocWString(wstrName.get());
 			
 			int n = 1;
 			while (true) {
@@ -2171,155 +1714,109 @@ QSTATUS qm::AttachmentParser::getAttachments(
 				
 				WCHAR wsz[32];
 				swprintf(wsz, L"[%d]", n++);
-				wstrName.reset(concat(wstrOrigName.get(), wsz));
-				if (!wstrName.get())
-					return QSTATUS_OUTOFMEMORY;
+				wstrName = concat(wstrOrigName.get(), wsz);
 			}
-			status = STLWrapper<AttachmentList>(*pList).push_back(
-				AttachmentList::value_type(wstrName.get(), const_cast<Part*>(&part_)));
-			CHECK_QSTATUS();
+			pList->push_back(AttachmentList::value_type(
+				wstrName.get(), const_cast<Part*>(&part_)));
 			wstrName.release();
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::AttachmentParser::detach(const WCHAR* pwszDir,
-	const WCHAR* pwszName, DetachCallback* pCallback, WSTRING* pwstrPath) const
+AttachmentParser::Result qm::AttachmentParser::detach(const WCHAR* pwszDir,
+													  const WCHAR* pwszName,
+													  DetachCallback* pCallback,
+													  wstring_ptr* pwstrPath) const
 {
 	assert(pwszDir);
 	assert(pwszName);
 	assert(pCallback);
-	assert(pwstrPath);
 	
-	DECLARE_QSTATUS();
+	if (pwstrPath)
+		pwstrPath->reset(0);
 	
-	*pwstrPath = 0;
+	StringBuffer<WSTRING> buf(pwszDir);
+	if (*(pwszDir + (wcslen(pwszDir) - 1)) != L'\\')
+		buf.append(L'\\');
+	buf.append(pwszName);
 	
-	StringBuffer<WSTRING> buf(pwszDir, &status);
-	CHECK_QSTATUS();
-	if (*(pwszDir + (wcslen(pwszDir) - 1)) != L'\\') {
-		status = buf.append(L'\\');
-		CHECK_QSTATUS();
-	}
-	status = buf.append(pwszName);
-	CHECK_QSTATUS();
-	
-	string_ptr<WSTRING> wstrPath(buf.getString());
+	wstring_ptr wstrPath(buf.getString());
 	
 	W2T(wstrPath.get(), ptszPath);
 	if (::GetFileAttributes(ptszPath) != 0xffffffff) {
-		string_ptr<WSTRING> wstr;
-		status = pCallback->confirmOverwrite(wstrPath.get(), &wstr);
-		CHECK_QSTATUS();
+		wstring_ptr wstr(pCallback->confirmOverwrite(wstrPath.get()));
 		if (!wstr.get())
-			return QSTATUS_SUCCESS;
-		wstrPath.reset(wstr.release());
+			return RESULT_CANCEL;
+		wstrPath = wstr;
 	}
 	
 	const CHAR* p = part_.getBody();
 	size_t nLen = strlen(p);
-	const unsigned char* pBody =
-		reinterpret_cast<const unsigned char*>(p);
+	const unsigned char* pBody = reinterpret_cast<const unsigned char*>(p);
 	malloc_ptr<unsigned char> pBuf;
 	
-	SimpleParser contentTransferEncoding(
-		SimpleParser::FLAG_RECOGNIZECOMMENT | SimpleParser::FLAG_TSPECIAL,
-		&status);
-	CHECK_QSTATUS();
-	Part::Field f;
-	status = part_.getField(L"Content-Transfer-Encoding",
-		&contentTransferEncoding, &f);
-	CHECK_QSTATUS();
+	ContentTransferEncodingParser contentTransferEncoding;
+	Part::Field f = part_.getField(L"Content-Transfer-Encoding", &contentTransferEncoding);
 	if (f == Part::FIELD_EXIST) {
-		const WCHAR* pwszEncoding = contentTransferEncoding.getValue();
+		const WCHAR* pwszEncoding = contentTransferEncoding.getEncoding();
 		if (wcscmp(pwszEncoding, L"7bit") != 0 &&
 			wcscmp(pwszEncoding, L"8bit") != 0) {
-			std::auto_ptr<Encoder> pEncoder;
-			status = EncoderFactory::getInstance(pwszEncoding, &pEncoder);
-			CHECK_QSTATUS();
+			std::auto_ptr<Encoder> pEncoder(EncoderFactory::getInstance(pwszEncoding));
 			if (!pEncoder.get())
-				return QSTATUS_FAIL;
-			unsigned char* p = 0;
-			status = pEncoder->decode(pBody, nLen, &p, &nLen);
-			CHECK_QSTATUS();
-			pBuf.reset(p);
+				return RESULT_FAIL;
+			malloc_size_ptr<unsigned char> buf(pEncoder->decode(pBody, nLen));
+			if (!buf.get())
+				return RESULT_FAIL;
+			pBuf.reset(buf.release());
+			nLen = buf.size();
 			pBody = pBuf.get();
 		}
 	}
 	
-	FileOutputStream stream(wstrPath.get(), &status);
-	CHECK_QSTATUS();
-	BufferedOutputStream bufferedStream(&stream, false, &status);
-	CHECK_QSTATUS();
-	status = bufferedStream.write(pBody, nLen);
-	CHECK_QSTATUS();
+	FileOutputStream stream(wstrPath.get());
+	if (!stream)
+		return RESULT_FAIL;
+	BufferedOutputStream bufferedStream(&stream, false);
+	if (bufferedStream.write(pBody, nLen) != nLen)
+		return RESULT_FAIL;
+	if (!bufferedStream.close())
+		return RESULT_FAIL;
 	
-	*pwstrPath = wstrPath.release();
+	if (pwstrPath)
+		*pwstrPath = wstrPath;
 	
-	return QSTATUS_SUCCESS;
+	return RESULT_OK;
 }
 
-QSTATUS qm::AttachmentParser::isAttachmentDeleted(bool* pbDeleted) const
+bool qm::AttachmentParser::isAttachmentDeleted() const
 {
-	assert(pbDeleted);
-	
-	DECLARE_QSTATUS();
-	
-	*pbDeleted = false;
-	
-	NumberParser field(0, &status);
-	CHECK_QSTATUS();
-	Part::Field f;
-	status = part_.getField(L"X-QMAIL-AttachmentDeleted", &field, &f);
-	CHECK_QSTATUS();
-	*pbDeleted = f == Part::FIELD_EXIST && field.getValue() != 0;
-	
-	return QSTATUS_SUCCESS;
+	NumberParser field(0);
+	Part::Field f = part_.getField(L"X-QMAIL-AttachmentDeleted", &field);
+	return f == Part::FIELD_EXIST && field.getValue() != 0;
 }
 
-QSTATUS qm::AttachmentParser::removeAttachments(Part* pPart)
+void qm::AttachmentParser::removeAttachments(Part* pPart)
 {
 	assert(pPart);
-	
-	DECLARE_QSTATUS();
 	
 	PartUtil util(*pPart);
 	if (util.isMultipart()) {
 		const Part::PartList& l = pPart->getPartList();
-		Part::PartList::const_iterator it = l.begin();
-		while (it != l.end()) {
-			status = removeAttachments(*it);
-			CHECK_QSTATUS();
-			++it;
-		}
+		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it)
+			removeAttachments(*it);
 	}
 	else {
-		bool bAttachment = false;
-		status = util.isAttachment(&bAttachment);
-		CHECK_QSTATUS();
-		if (bAttachment) {
-			status = pPart->setBody("", 0);
-			CHECK_QSTATUS();
-		}
+		if (util.isAttachment())
+			pPart->setBody("", 0);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::AttachmentParser::setAttachmentDeleted(Part* pPart)
+void qm::AttachmentParser::setAttachmentDeleted(Part* pPart)
 {
 	assert(pPart);
 	
-	DECLARE_QSTATUS();
-	
-	NumberParser field(1, 0, &status);
-	CHECK_QSTATUS();
-	status = pPart->replaceField(L"X-QMAIL-AttachmentDeleted", field);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	NumberParser field(1, 0);
+	pPart->replaceField(L"X-QMAIL-AttachmentDeleted", field);
 }
 
 
@@ -2366,14 +1863,7 @@ qm::AttachmentParser::DetachCallback::~DetachCallback()
  *
  */
 
-qm::XQMAILAttachmentParser::XQMAILAttachmentParser(QSTATUS* pstatus)
-{
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
-}
-
-qm::XQMAILAttachmentParser::XQMAILAttachmentParser(
-	const AttachmentList& listAttachment, QSTATUS* pstatus)
+qm::XQMAILAttachmentParser::XQMAILAttachmentParser()
 {
 }
 
@@ -2388,39 +1878,24 @@ const XQMAILAttachmentParser::AttachmentList& qm::XQMAILAttachmentParser::getAtt
 	return listAttachment_;
 }
 
-QSTATUS qm::XQMAILAttachmentParser::parse(const Part& part,
-	const WCHAR* pwszName, Part::Field* pField)
+Part::Field qm::XQMAILAttachmentParser::parse(const Part& part,
+											  const WCHAR* pwszName)
 {
 	assert(pwszName);
-	assert(pField);
 	
-	DECLARE_QSTATUS();
+	string_ptr strValue(part.getRawField(pwszName, 0));
+	if (!strValue.get())
+		return Part::FIELD_NOTEXIST;
 	
-	*pField = Part::FIELD_ERROR;
+	wstring_ptr wstrValue(decode(strValue.get(), -1, 0));
 	
-	string_ptr<STRING> strValue;
-	bool bExist = false;
-	status = part.getRawField(pwszName, 0, &strValue, &bExist);
-	CHECK_QSTATUS();
-	if (!bExist) {
-		*pField = Part::FIELD_NOTEXIST;
-		return QSTATUS_SUCCESS;
-	}
-	
-	string_ptr<WSTRING> wstrValue;
-	status = decode(strValue.get(), -1, &wstrValue, 0);
-	CHECK_QSTATUS();
-	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
+	StringBuffer<WSTRING> buf;
 	const WCHAR* p = wstrValue.get();
 	while (true) {
 		if (*p == L',' || *p == L'\0') {
-			string_ptr<WSTRING> wstrName(buf.getString());
+			wstring_ptr wstrName(buf.getString());
 			if (*wstrName.get()) {
-				status = STLWrapper<AttachmentList>(
-					listAttachment_).push_back(wstrName.get());
-				CHECK_QSTATUS();
+				listAttachment_.push_back(wstrName.get());
 				wstrName.release();
 			}
 			
@@ -2430,72 +1905,42 @@ QSTATUS qm::XQMAILAttachmentParser::parse(const Part& part,
 		else if (*p == L'\\') {
 			if (*(p + 1) != L'\0') {
 				++p;
-				status = buf.append(*p);
-				CHECK_QSTATUS();
+				buf.append(*p);
 			}
 		}
 		else {
-			if ((*p != L' ' && *p != L'\t') ||
-				buf.getLength() != 0) {
-				status = buf.append(*p);
-				CHECK_QSTATUS();
-			}
+			if ((*p != L' ' && *p != L'\t') || buf.getLength() != 0)
+				buf.append(*p);
 		}
 		++p;
 	}
 	
-	*pField = Part::FIELD_EXIST;
-	
-	return QSTATUS_SUCCESS;
+	return Part::FIELD_EXIST;
 }
 
-QSTATUS qm::XQMAILAttachmentParser::unparse(
-	const Part& part, STRING* pstrValue) const
+string_ptr qm::XQMAILAttachmentParser::unparse(const Part& part) const
 {
-	assert(pstrValue);
-	
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrValue;
-	status = format(listAttachment_, &wstrValue);
-	CHECK_QSTATUS();
-	
-	status = encode(wstrValue.get(), -1, L"utf-8", L"B", false, pstrValue);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	wstring_ptr wstrValue(format(listAttachment_));
+	return encode(wstrValue.get(), -1, L"utf-8", L"B", false);
 }
 
-QSTATUS qm::XQMAILAttachmentParser::format(
-	const AttachmentList& l, WSTRING* pwstr)
+wstring_ptr qm::XQMAILAttachmentParser::format(const AttachmentList& l)
 {
-	DECLARE_QSTATUS();
+	StringBuffer<WSTRING> buf;
 	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
-	AttachmentList::const_iterator it = l.begin();
-	while (it != l.end()) {
-		if (it != l.begin()) {
-			status = buf.append(L",\n ");
-			CHECK_QSTATUS();
-		}
-		if (**it == L' ' || **it == L'\t') {
-			status = buf.append(L'\\');
-			CHECK_QSTATUS();
-		}
-		for (const WCHAR* p = *it; *p; ++p) {
-			if (*p == L'\\' || *p == L',') {
-				status = buf.append(L'\\');
-				CHECK_QSTATUS();
-			}
-			status = buf.append(*p);
-			CHECK_QSTATUS();
-		}
+	for (AttachmentList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		if (it != l.begin())
+			buf.append(L",\n ");
 		
-		++it;
+		if (**it == L' ' || **it == L'\t')
+			buf.append(L'\\');
+		
+		for (const WCHAR* p = *it; *p; ++p) {
+			if (*p == L'\\' || *p == L',')
+				buf.append(L'\\');
+			buf.append(*p);
+		}
 	}
 	
-	*pwstr = buf.getString();
-	
-	return QSTATUS_SUCCESS;
+	return buf.getString();
 }

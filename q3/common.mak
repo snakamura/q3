@@ -23,7 +23,7 @@ CESDKPPCJADIR			= d:/dev/msevt/wce300/ms pocket pc
 CESDKPPCENDIR			= d:/dev/msevt/wce300/ms pocket pc
 CESDKHPCPROJADIR		= d:/dev/msevt/wce211/ms hpc pro
 CESDKHPCPROENDIR		= d:/dev/msevt/wce211/ms hpc pro
-STLPORTDIR				= d:/dev/stlport/STLport-4.5.1/stlport
+STLPORTDIR				= d:/dev/stlport/STLport-4.6/stlport
 KCTRLDIR				= d:/home/wince/kctrl
 EVC4					= 1
 
@@ -286,6 +286,11 @@ ifeq ($(PLATFORM),desktop)
 	#########################################################################
 else
 	# WINCE #################################################################
+	ifeq ($(shell if [ -z "$(CEVER)" ]; then echo 1; elif [ $(CEVER) -ge 400 ]; then echo 0; else echo 1; fi),0)
+		# WINCE >= 400 ######################################################
+		CCFLAGS			+= -GX
+		#####################################################################
+	endif
 	DEFINES				+= -D_WIN32_WCE=$(CEVER) -DUNDER_CE=$(CEVER) -DUNICODE -D_UNICODE
 	LDFLAGS				+= -NODEFAULTLIB
 	RCFLAGS				+=  -D _WIN32_WCE=$(CEVER) -D UNDER_CE=$(CEVER)
@@ -363,6 +368,9 @@ else
 						  commdlg.lib
 	ifeq ($(BASEPLATFORM),ppc)
 		LIBS			+= aygshell.lib
+	endif
+	ifeq ($(PLATFORM),ppc2003)
+		LIBS			+= ccrtrtti.lib
 	endif
 	ifdef KCTRL
 		LIBS			+= $(KCTRLDIR)/lib/$(LIBCPU)/kctrl.lib

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -34,9 +34,9 @@ public:
 	virtual ~AttachmentSelectionModel();
 
 public:
-	virtual qs::QSTATUS hasAttachment(bool* pbHas) = 0;
-	virtual qs::QSTATUS hasSelectedAttachment(bool* pbHas) = 0;
-	virtual qs::QSTATUS getSelectedAttachment(NameList* pList) = 0;
+	virtual bool hasAttachment() = 0;
+	virtual bool hasSelectedAttachment() = 0;
+	virtual void getSelectedAttachment(NameList* pList) = 0;
 };
 
 }

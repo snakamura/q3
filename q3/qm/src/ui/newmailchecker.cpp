@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -9,7 +9,6 @@
 #include <qmdocument.h>
 #include <qmgoround.h>
 
-#include <qsnew.h>
 #include <qsras.h>
 
 #include "newmailchecker.h"
@@ -28,89 +27,55 @@ using namespace qs;
  *
  */
 
-qm::NewMailChecker::NewMailChecker(Profile* pProfile, Document* pDocument,
-	GoRound* pGoRound, SyncManager* pSyncManager, SyncDialogManager* pSyncDialogManager,
-	HWND hwnd, NewMailCheckerCallback* pCallback, QSTATUS* pstatus) :
+qm::NewMailChecker::NewMailChecker(Profile* pProfile,
+								   Document* pDocument,
+								   GoRound* pGoRound,
+								   SyncManager* pSyncManager,
+								   SyncDialogManager* pSyncDialogManager,
+								   HWND hwnd,
+								   NewMailCheckerCallback* pCallback) :
 	pDocument_(pDocument),
 	pGoRound_(pGoRound),
 	pSyncManager_(pSyncManager),
 	pSyncDialogManager_(pSyncDialogManager),
 	hwnd_(hwnd),
 	pCallback_(pCallback),
-	wstrCourse_(0),
 	bOnlyWhenConnected_(false),
-	pTimer_(0),
 	nId_(0)
 {
-	DECLARE_QSTATUS();
-	
-	int nInterval = 0;
-	status = pProfile->getInt(L"NewMailCheck", L"Interval", 0, &nInterval);
-	CHECK_QSTATUS_SET(pstatus);
-	status = pProfile->getString(L"NewMailCheck", L"Course", 0, &wstrCourse_);
-	CHECK_QSTATUS_SET(pstatus);
-	int nOnlyWhenConnected = 0;
-	status = pProfile->getInt(L"NewMailCheck",
-		L"OnlyWhenConnected", 0, &nOnlyWhenConnected);
-	CHECK_QSTATUS_SET(pstatus);
-	bOnlyWhenConnected_ = nOnlyWhenConnected != 0;
+	int nInterval = pProfile->getInt(L"NewMailCheck", L"Interval", 0);
+	wstrCourse_ = pProfile->getString(L"NewMailCheck", L"Course", 0);
+	bOnlyWhenConnected_ = pProfile->getInt(L"NewMailCheck", L"OnlyWhenConnected", 0) != 0;
 	
 	if (nInterval != 0) {
-		status = newQsObject(&pTimer_);
-		CHECK_QSTATUS_SET(pstatus);
+		pTimer_.reset(new Timer());
 		nId_ = TIMER_CHECK;
-		status = pTimer_->setTimer(&nId_, nInterval*60*1000, this);
-		CHECK_QSTATUS_SET(pstatus);
+		nId_ = pTimer_->setTimer(TIMER_CHECK, nInterval*60*1000, this);
 	}
 }
 
 qm::NewMailChecker::~NewMailChecker()
 {
-	if (pTimer_) {
+	if (pTimer_.get()) {
 		if (nId_ != 0)
 			pTimer_->killTimer(nId_);
-		delete pTimer_;
 	}
-	freeWString(wstrCourse_);
 }
 
-QSTATUS qm::NewMailChecker::timerTimeout(unsigned int nId)
+void qm::NewMailChecker::timerTimeout(unsigned int nId)
 {
-	DECLARE_QSTATUS();
-	
 	if (nId == nId_) {
 		bool bCheck = pDocument_->isCheckNewMail() &&
 			(!bOnlyWhenConnected_ || RasConnection::isNetworkConnected()) &&
 			pCallback_->canCheck();
 		if (bCheck) {
-			std::auto_ptr<SyncData> pData;
-			status = newQsObject(pSyncManager_, pDocument_,
-				hwnd_, SyncDialog::FLAG_NOTIFYNEWMESSAGE, &pData);
+			const GoRoundCourseList* pCourseList = pGoRound_->getCourseList();
+			const GoRoundCourse* pCourse = pCourseList->getCourse(wstrCourse_.get());
 			
-			const GoRoundCourse* pCourse = 0;
-			GoRoundCourseList* pCourseList = 0;
-			status = pGoRound_->getCourseList(&pCourseList);
-			CHECK_QSTATUS();
-			if (pCourseList && pCourseList->getCount() > 0)
-				pCourse = pCourseList->getCourse(wstrCourse_);
-			
-			status = SyncUtil::createGoRoundData(pCourse, pDocument_, pData.get());
-			CHECK_QSTATUS();
-			
-			if (!pData->isEmpty()) {
-				SyncDialog* pSyncDialog = 0;
-				status = pSyncDialogManager_->open(&pSyncDialog);
-				CHECK_QSTATUS();
-				pData->setCallback(pSyncDialog->getSyncManagerCallback());
-				
-				status = pSyncManager_->sync(pData.get());
-				CHECK_QSTATUS();
-				pData.release();
-			}
+			SyncUtil::goRound(pSyncManager_, pDocument_, pSyncDialogManager_,
+				hwnd_, SyncDialog::FLAG_NOTIFYNEWMESSAGE, pCourse);
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 

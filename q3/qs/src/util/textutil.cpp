@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -19,16 +19,14 @@ using namespace qs;
  *
  */
 
-QSTATUS qs::TextUtil::fold(const WCHAR* pwszText, size_t nLen,
-	size_t nLineWidth, const WCHAR* pwszQuote, size_t nQuoteLen,
-	size_t nTabWidth, WSTRING* pwstrText)
+wxstring_ptr qs::TextUtil::fold(const WCHAR* pwszText,
+								size_t nLen,
+								size_t nLineWidth,
+								const WCHAR* pwszQuote,
+								size_t nQuoteLen,
+								size_t nTabWidth)
 {
 	assert(pwszText);
-	assert(pwstrText);
-	
-	DECLARE_QSTATUS();
-	
-	*pwstrText = 0;
 	
 	if (nLen == -1)
 		nLen = wcslen(pwszText);
@@ -46,13 +44,13 @@ QSTATUS qs::TextUtil::fold(const WCHAR* pwszText, size_t nLen,
 		nLineWidth = 10;
 	}
 	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
+	XStringBuffer<WXSTRING> buf;
 	
 	size_t nCurrentLen = 0;
 	const WCHAR* pLine = pwszText;
 	const WCHAR* pBreak = 0;
-	for (const WCHAR* p = pwszText; p < pwszText + nLen; ++p) {
+	const WCHAR* p = pwszText;
+	while (p < pwszText + nLen) {
 		WCHAR c = *p;
 		size_t nCharLen = 1;
 		if (c == L'\t')
@@ -65,10 +63,9 @@ QSTATUS qs::TextUtil::fold(const WCHAR* pwszText, size_t nLen,
 		
 		bool bFlushed = true;
 		if (c == L'\n') {
-			status = buf.append(pwszQuote, nQuoteLen);
-			CHECK_QSTATUS();
-			status = buf.append(pLine, p - pLine + 1);
-			CHECK_QSTATUS();
+			if (!buf.append(pwszQuote, nQuoteLen) ||
+				!buf.append(pLine, p - pLine + 1))
+				return 0;
 			nCurrentLen = 0;
 			pLine = p + 1;
 			pBreak = 0;
@@ -76,13 +73,12 @@ QSTATUS qs::TextUtil::fold(const WCHAR* pwszText, size_t nLen,
 		else if (nCurrentLen + nCharLen > nLineWidth) {
 			if (!pBreak) {
 				if (pwszQuote) {
-					status = buf.append(pwszQuote, nQuoteLen);
-					CHECK_QSTATUS();
+					if (!buf.append(pwszQuote, nQuoteLen))
+						return 0;
 				}
-				status = buf.append(pLine, p - pLine);
-				CHECK_QSTATUS();
-				status = buf.append(L'\n');
-				CHECK_QSTATUS();
+				if (!buf.append(pLine, p - pLine) ||
+					!buf.append(L'\n'))
+					return 0;
 				nCurrentLen = nCharLen;
 				pLine = p;
 			}
@@ -105,13 +101,12 @@ QSTATUS qs::TextUtil::fold(const WCHAR* pwszText, size_t nLen,
 					assert(false);
 				}
 				if (pwszQuote) {
-					status = buf.append(pwszQuote, nQuoteLen);
-					CHECK_QSTATUS();
+					if (!buf.append(pwszQuote, nQuoteLen))
+						return 0;
 				}
-				status = buf.append(pLine, pEnd - pLine);
-				CHECK_QSTATUS();
-				status = buf.append(L'\n');
-				CHECK_QSTATUS();
+				if (!buf.append(pLine, pEnd - pLine) ||
+					!buf.append(L'\n'))
+					return 0;
 				pLine = pNext;
 				nCurrentLen = 0;
 				pBreak = 0;
@@ -125,23 +120,25 @@ QSTATUS qs::TextUtil::fold(const WCHAR* pwszText, size_t nLen,
 		
 		if (!bFlushed && isBreakChar(c) && p != pLine)
 			pBreak = p;
+		
+		++p;
 	}
 	if (p != pLine) {
 		if (pwszQuote) {
-			status = buf.append(pwszQuote, nQuoteLen);
-			CHECK_QSTATUS();
+			if (!buf.append(pwszQuote, nQuoteLen))
+				return 0;
 		}
-		status = buf.append(pLine, p - pLine);
-		CHECK_QSTATUS();
+		if (!buf.append(pLine, p - pLine))
+			return 0;
 	}
 	
-	*pwstrText = buf.getString();
-	
-	return QSTATUS_SUCCESS;
+	return buf.getXString();
 }
 
 std::pair<size_t, size_t> qs::TextUtil::findURL(const WCHAR* pwszText,
-	size_t nLen, const WCHAR* const* ppwszSchemas, size_t nSchemaCount)
+												size_t nLen,
+												const WCHAR* const* ppwszSchemas,
+												size_t nSchemaCount)
 {
 	assert(pwszText);
 	
@@ -219,51 +216,36 @@ bool qs::TextUtil::isURLChar(WCHAR c)
 		c == L')';
 }
 
-QSTATUS qs::TextUtil::encodePassword(const WCHAR* pwsz, WSTRING* pwstr)
+wstring_ptr qs::TextUtil::encodePassword(const WCHAR* pwsz)
 {
 	assert(pwsz);
-	assert(pwstr);
 	
-	DECLARE_QSTATUS();
+	Base64Encoder encoder(false);
+	malloc_size_ptr<unsigned char> encoded(encoder.encode(
+		reinterpret_cast<const unsigned char*>(pwsz),
+		wcslen(pwsz)*sizeof(WCHAR)));
+	if (!encoded.get())
+		return 0;
 	
-	Base64Encoder encoder(false, &status);
-	CHECK_QSTATUS();
-	unsigned char* p = 0;
-	size_t nLen = 0;
-	status = encoder.encode(reinterpret_cast<const unsigned char*>(pwsz),
-		wcslen(pwsz)*sizeof(WCHAR), &p, &nLen);
-	CHECK_QSTATUS();
-	malloc_ptr<unsigned char> pBuffer(p);
-	
-	string_ptr<WSTRING> wstr(allocWString(nLen*2 + 1));
-	if (!wstr.get())
-		return QSTATUS_OUTOFMEMORY;
-	
+	const unsigned char* p = encoded.get();
+	wstring_ptr wstr(allocWString(encoded.size()*2 + 1));
 	WCHAR* pDst = wstr.get();
-	for (size_t n = 0; n < nLen; ++n) {
+	for (size_t n = 0; n < encoded.size(); ++n) {
 		swprintf(pDst, L"%02x", *(p + n) ^ 'q');
 		pDst += 2;
 	}
 	*pDst = L'\0';
 	
-	*pwstr = wstr.release();
-	
-	return QSTATUS_SUCCESS;
+	return wstr;
 }
 
-QSTATUS qs::TextUtil::decodePassword(const WCHAR* pwsz, WSTRING* pwstr)
+wstring_ptr qs::TextUtil::decodePassword(const WCHAR* pwsz)
 {
 	assert(pwsz);
-	assert(pwstr);
-	
-	DECLARE_QSTATUS();
 	
 	size_t nLen = wcslen(pwsz);
 	
-	malloc_ptr<unsigned char> pBuf(
-		static_cast<unsigned char*>(malloc(nLen/2 + 1)));
-	if (!pBuf.get())
-		return QSTATUS_OUTOFMEMORY;
+	auto_ptr_array<unsigned char> pBuf(new unsigned char[nLen/2 + 1]);
 	unsigned char* p = pBuf.get();
 	
 	for (size_t n = 0; n < nLen; n += 2) {
@@ -274,20 +256,12 @@ QSTATUS qs::TextUtil::decodePassword(const WCHAR* pwsz, WSTRING* pwstr)
 		*p++ = m ^= 'q';
 	}
 	
-	Base64Encoder encoder(false, &status);
-	CHECK_QSTATUS();
-	unsigned char* pDecode = 0;
-	size_t nDecodeLen = 0;
-	status = encoder.decode(pBuf.get(), p - pBuf.get(), &pDecode, &nDecodeLen);
-	CHECK_QSTATUS();
-	malloc_ptr<unsigned char> pDecodeFree(pDecode);
+	Base64Encoder encoder(false);
+	malloc_size_ptr<unsigned char> decoded(
+		encoder.decode(pBuf.get(), p - pBuf.get()));
+	if (!decoded.get())
+		return 0;
 	
-	string_ptr<WSTRING> wstr(allocWString(
-		reinterpret_cast<WCHAR*>(pDecode), nDecodeLen/sizeof(WCHAR)));
-	if (!wstr.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	*pwstr = wstr.release();
-	
-	return QSTATUS_SUCCESS;
+	return allocWString(reinterpret_cast<WCHAR*>(decoded.get()),
+		decoded.size()/sizeof(WCHAR));
 }

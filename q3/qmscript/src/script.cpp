@@ -1,13 +1,11 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
-#include <qserror.h>
-#include <qsnew.h>
 #include <qsosutil.h>
 
 #include "macro.h"
@@ -49,13 +47,7 @@ qmscript::ScriptFactory::~ScriptFactory()
 
 extern "C" ScriptFactory* newScriptFactory()
 {
-	DECLARE_QSTATUS();
-	
-	std::auto_ptr<ScriptFactoryImpl> pFactory;
-	status = newQsObject(&pFactory);
-	CHECK_QSTATUS_VALUE(0);
-	
-	return pFactory.release();
+	return new ScriptFactoryImpl();
 }
 
 extern "C" void deleteScriptFactory(ScriptFactory* pFactory)
@@ -70,14 +62,12 @@ extern "C" void deleteScriptFactory(ScriptFactory* pFactory)
  *
  */
 
-qmscript::ScriptImpl::ScriptImpl(
-	const ScriptFactory::Init& init, QSTATUS* pstatus) :
+qmscript::ScriptImpl::ScriptImpl(const ScriptFactory::Init& init) :
 	pActiveScript_(0)
 {
-	DECLARE_QSTATUS();
-	
-	status = load(init);
-	CHECK_QSTATUS_SET(pstatus);
+	if (!load(init)) {
+		// TODO
+	}
 }
 
 qmscript::ScriptImpl::~ScriptImpl()
@@ -88,47 +78,49 @@ qmscript::ScriptImpl::~ScriptImpl()
 	}
 }
 
-QSTATUS qmscript::ScriptImpl::run(VARIANT* pvarArgs,
-	size_t nArgCount, VARIANT* pvarResult)
+bool qmscript::ScriptImpl::run(VARIANT* pvarArgs,
+							   size_t nArgCount,
+							   VARIANT* pvarResult)
 {
-	DECLARE_QSTATUS();
-	
 	ComPtr<IActiveScriptSite> pSite;
-	HRESULT hr = pActiveScript_->GetScriptSite(IID_IActiveScriptSite,
-		reinterpret_cast<void**>(&pSite));
-	CHECK_HRESULT();
+	HRESULT hr = pActiveScript_->GetScriptSite(
+		IID_IActiveScriptSite, reinterpret_cast<void**>(&pSite));
+	if (FAILED(hr))
+		return false;
 	
 	if (pvarArgs) {
-		status = static_cast<ActiveScriptSite*>(
-			pSite.get())->setArguments(pvarArgs, nArgCount);
-		CHECK_QSTATUS();
+		if (!static_cast<ActiveScriptSite*>(
+			pSite.get())->setArguments(pvarArgs, nArgCount))
+			return false;
 	}
 	
 	hr = pActiveScript_->SetScriptState(SCRIPTSTATE_CONNECTED);
-	CHECK_HRESULT();
+	if (FAILED(hr))
+		return false;
 	
 	if (pvarResult) {
 		VARIANT* pvar = static_cast<ActiveScriptSite*>(
 			pSite.get())->getResult();
 		hr = ::VariantCopy(pvarResult, pvar);
-		CHECK_HRESULT();
+		if (FAILED(hr))
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmscript::ScriptImpl::load(const ScriptFactory::Init& init)
+bool qmscript::ScriptImpl::load(const ScriptFactory::Init& init)
 {
-	DECLARE_QSTATUS();
-	
 	CLSID clsid;
 	HRESULT hr = ::CLSIDFromProgID(init.pwszLanguage_, &clsid);
-	CHECK_HRESULT();
+	if (FAILED(hr))
+		return false;
 	
 	ComPtr<IActiveScript> pActiveScript;
 	hr = ::CoCreateInstance(clsid, 0, CLSCTX_INPROC_SERVER,
 		IID_IActiveScript, reinterpret_cast<void**>(&pActiveScript));
-	CHECK_HRESULT();
+	if (FAILED(hr))
+		return false;
 	
 	ComPtr<IActiveScriptParse> pParse;
 	
@@ -138,44 +130,45 @@ QSTATUS qmscript::ScriptImpl::load(const ScriptFactory::Init& init)
 	if (hr == E_NOINTERFACE) {
 		hr = pActiveScript->QueryInterface(IID_IActiveScriptParse,
 			reinterpret_cast<void**>(&pParse));
-		CHECK_HRESULT();
+		if (FAILED(hr))
+			return false;
 		
 		hr = pParse->InitNew();
-		CHECK_HRESULT();
+		if (FAILED(hr))
+			return false;
+	}
+	else if (SUCCEEDED(hr)) {
+		ReaderIStream stream(init.pReader_);
+		hr = pPersistStreamInit->Load(&stream);
+		if (FAILED(hr))
+			return false;
 	}
 	else {
-		CHECK_HRESULT();
-		
-		ReaderIStream stream(init.pReader_, &status);
-		CHECK_QSTATUS();
-		hr = pPersistStreamInit->Load(&stream);
-		CHECK_HRESULT();
+		return false;
 	}
 	
-	std::auto_ptr<ActiveScriptSite> pSite;
-	status = newQsObject(init, &pSite);
-	CHECK_QSTATUS();
+	std::auto_ptr<ActiveScriptSite> pSite(new ActiveScriptSite(init));
 	hr = pActiveScript->SetScriptSite(pSite.get());
-	CHECK_HRESULT();
+	if (FAILED(hr))
+		return false;
 	pSite.release();
 	
 	if (pParse.get()) {
-		StringBuffer<WSTRING> buf(&status);
-		CHECK_QSTATUS();
+		StringBuffer<WSTRING> buf;
 		WCHAR wsz[1024];
 		while (true) {
-			size_t nRead = 0;
-			status = init.pReader_->read(wsz, countof(wsz), &nRead);
-			CHECK_QSTATUS();
+			size_t nRead = init.pReader_->read(wsz, countof(wsz));
 			if (nRead == -1)
+				return false;
+			else if (nRead == 0)
 				break;
-			status = buf.append(wsz, nRead);
-			CHECK_QSTATUS();
+			buf.append(wsz, nRead);
 		}
 		EXCEPINFO ei = { 0 };
 		hr = pParse->ParseScriptText(buf.getCharArray(), 0, 0, 0, 0, 0,
 			SCRIPTTEXT_ISPERSISTENT | SCRIPTTEXT_ISVISIBLE, 0, &ei);
-		CHECK_HRESULT();
+		if (FAILED(hr))
+			return false;
 	}
 	
 	struct {
@@ -195,13 +188,14 @@ QSTATUS qmscript::ScriptImpl::load(const ScriptFactory::Init& init)
 		if (names[n].b_) {
 			hr = pActiveScript->AddNamedItem(names[n].pwszName_,
 				SCRIPTITEM_ISSOURCE | SCRIPTITEM_ISVISIBLE);
-			CHECK_HRESULT();
+			if (FAILED(hr))
+				return false;
 		}
 	}
 	
 	pActiveScript_ = pActiveScript.release();
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -211,7 +205,7 @@ QSTATUS qmscript::ScriptImpl::load(const ScriptFactory::Init& init)
  *
  */
 
-qmscript::ScriptFactoryImpl::ScriptFactoryImpl(QSTATUS* pstatus)
+qmscript::ScriptFactoryImpl::ScriptFactoryImpl()
 {
 }
 
@@ -219,8 +213,7 @@ qmscript::ScriptFactoryImpl::~ScriptFactoryImpl()
 {
 }
 
-QSTATUS qmscript::ScriptFactoryImpl::newScript(
-	const Init& init, Script** ppScript)
+std::auto_ptr<Script> qmscript::ScriptFactoryImpl::newScript(const Init& init)
 {
 	assert(init.pwszLanguage_);
 	assert(init.pReader_);
@@ -228,19 +221,9 @@ QSTATUS qmscript::ScriptFactoryImpl::newScript(
 	assert(init.pProfile_);
 	assert(init.hwnd_);
 	assert(init.pModalHandler_);
-	assert(ppScript);
 	
-	DECLARE_QSTATUS();
-	
-	*ppScript = 0;
-	
-	std::auto_ptr<ScriptImpl> pScript;
-	status = newQsObject(init, &pScript);
-	CHECK_QSTATUS();
-	
-	*ppScript = pScript.release();
-	
-	return QSTATUS_SUCCESS;
+	std::auto_ptr<ScriptImpl> pScript(new ScriptImpl(init));
+	return pScript;
 }
 
 void qmscript::ScriptFactoryImpl::deleteScript(Script* pScript)
@@ -255,8 +238,7 @@ void qmscript::ScriptFactoryImpl::deleteScript(Script* pScript)
  *
  */
 
-qmscript::ActiveScriptSite::ActiveScriptSite(
-	const ScriptFactory::Init& init, QSTATUS* pstatus) :
+qmscript::ActiveScriptSite::ActiveScriptSite(const ScriptFactory::Init& init) :
 	nRef_(0),
 	hwnd_(init.hwnd_),
 	pModalHandler_(init.pModalHandler_),
@@ -269,32 +251,16 @@ qmscript::ActiveScriptSite::ActiveScriptSite(
 	pEditFrameWindow_(0),
 	pMessageFrameWindow_(0)
 {
-	DECLARE_QSTATUS();
+	ComPtr<IApplication> pApplicationObj(
+		Factory::getFactory().createApplication(&Application::getApplication()));
+	ComPtr<IDocument> pDocumentObj(Factory::getFactory().createDocument(init.pDocument_));
 	
-	ComPtr<IApplication> pApplicationObj;
-	status = Factory::getFactory().createApplication(
-		&Application::getApplication(), &pApplicationObj);
-	CHECK_QSTATUS_SET(pstatus);
+	std::auto_ptr<MacroParserObj> pMacroParserObj(new MacroParserObj());
+	pMacroParserObj->init(init.pDocument_, init.pProfile_, init.hwnd_);
 	
-	ComPtr<IDocument> pDocumentObj;
-	status = Factory::getFactory().createDocument(
-		init.pDocument_, &pDocumentObj);
-	CHECK_QSTATUS_SET(pstatus);
+	std::auto_ptr<ArgumentListObj> pArgumentListObj(new ArgumentListObj());
 	
-	std::auto_ptr<MacroParserObj> pMacroParserObj;
-	status = newQsObject(&pMacroParserObj);
-	CHECK_QSTATUS_SET(pstatus);
-	status = pMacroParserObj->init(
-		init.pDocument_, init.pProfile_, init.hwnd_);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	std::auto_ptr<ArgumentListObj> pArgumentListObj;
-	status = newQsObject(&pArgumentListObj);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	std::auto_ptr<ResultObj> pResultObj;
-	status = newQsObject(&pResultObj);
-	CHECK_QSTATUS_SET(pstatus);
+	std::auto_ptr<ResultObj> pResultObj(new ResultObj());
 	
 	std::auto_ptr<MainWindowObj> pMainWindowObj;
 	std::auto_ptr<EditFrameWindowObj> pEditFrameWindowObj;
@@ -303,22 +269,16 @@ qmscript::ActiveScriptSite::ActiveScriptSite(
 	case ScriptFactory::TYPE_NONE:
 		break;
 	case ScriptFactory::TYPE_MAIN:
-		status = newQsObject(&pMainWindowObj);
-		CHECK_QSTATUS_SET(pstatus);
-		status = pMainWindowObj->init(init.window_.pMainWindow_);
-		CHECK_QSTATUS_SET(pstatus);
+		pMainWindowObj.reset(new MainWindowObj());
+		pMainWindowObj->init(init.window_.pMainWindow_);
 		break;
 	case ScriptFactory::TYPE_EDIT:
-		status = newQsObject(&pEditFrameWindowObj);
-		CHECK_QSTATUS_SET(pstatus);
-		status = pEditFrameWindowObj->init(init.window_.pEditFrameWindow_);
-		CHECK_QSTATUS_SET(pstatus);
+		pEditFrameWindowObj.reset(new EditFrameWindowObj());
+		pEditFrameWindowObj->init(init.window_.pEditFrameWindow_);
 		break;
 	case ScriptFactory::TYPE_MESSAGE:
-		status = newQsObject(&pMessageFrameWindowObj);
-		CHECK_QSTATUS_SET(pstatus);
-		status = pMessageFrameWindowObj->init(init.window_.pMessageFrameWindow_);
-		CHECK_QSTATUS_SET(pstatus);
+		pMessageFrameWindowObj.reset(new MessageFrameWindowObj());
+		pMessageFrameWindowObj->init(init.window_.pMessageFrameWindow_);
 		break;
 	default:
 		assert(false);
@@ -363,7 +323,8 @@ qmscript::ActiveScriptSite::~ActiveScriptSite()
 		pResult_->Release();
 }
 
-QSTATUS qmscript::ActiveScriptSite::setArguments(VARIANT* pvarArgs, size_t nCount)
+bool qmscript::ActiveScriptSite::setArguments(VARIANT* pvarArgs,
+											  size_t nCount)
 {
 	return static_cast<ArgumentListObj*>(pArgumentList_)->init(pvarArgs, nCount);
 }
@@ -373,8 +334,8 @@ VARIANT* qmscript::ActiveScriptSite::getResult()
 	return static_cast<ResultObj*>(pResult_)->getValue();
 }
 
-STDMETHODIMP qmscript::ActiveScriptSite::QueryInterface(
-	REFIID riid, void** ppv)
+STDMETHODIMP qmscript::ActiveScriptSite::QueryInterface(REFIID riid,
+														void** ppv)
 {
 	*ppv = 0;
 	
@@ -407,9 +368,10 @@ STDMETHODIMP qmscript::ActiveScriptSite::GetLCID(LCID* plcid)
 	return E_NOTIMPL;
 }
 
-STDMETHODIMP qmscript::ActiveScriptSite::GetItemInfo(
-	LPCOLESTR pwszName, DWORD dwReturnMask,
-	IUnknown** ppUnkItem, ITypeInfo** ppTypeInfo)
+STDMETHODIMP qmscript::ActiveScriptSite::GetItemInfo(LPCOLESTR pwszName,
+													 DWORD dwReturnMask,
+													 IUnknown** ppUnkItem,
+													 ITypeInfo** ppTypeInfo)
 {
 	if (dwReturnMask & SCRIPTINFO_IUNKNOWN)
 		*ppUnkItem = 0;
@@ -451,14 +413,13 @@ STDMETHODIMP qmscript::ActiveScriptSite::GetItemInfo(
 	return TYPE_E_ELEMENTNOTFOUND;
 }
 
-STDMETHODIMP qmscript::ActiveScriptSite::GetDocVersionString(
-	BSTR* pbstrVersionString)
+STDMETHODIMP qmscript::ActiveScriptSite::GetDocVersionString(BSTR* pbstrVersionString)
 {
 	return E_NOTIMPL;
 }
 
-STDMETHODIMP qmscript::ActiveScriptSite::OnScriptTerminate(
-	const VARIANT* pvarResult, const EXCEPINFO* pExecpInfo)
+STDMETHODIMP qmscript::ActiveScriptSite::OnScriptTerminate(const VARIANT* pvarResult,
+														   const EXCEPINFO* pExecpInfo)
 {
 	return S_OK;
 }
@@ -468,11 +429,8 @@ STDMETHODIMP qmscript::ActiveScriptSite::OnStateChange(SCRIPTSTATE state)
 	return S_OK;
 }
 
-STDMETHODIMP qmscript::ActiveScriptSite::OnScriptError(
-	IActiveScriptError* pError)
+STDMETHODIMP qmscript::ActiveScriptSite::OnScriptError(IActiveScriptError* pError)
 {
-	DECLARE_QSTATUS();
-	
 	DWORD dwContext = 0;
 	ULONG nLine = 0;
 	LONG nChar = 0;
@@ -490,33 +448,24 @@ STDMETHODIMP qmscript::ActiveScriptSite::OnScriptError(
 	BSTRPtr bstrDescription(info.bstrDescription);
 	BSTRPtr bstrHelpFile(info.bstrHelpFile);
 	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS_HRESULT();
+	StringBuffer<WSTRING> buf;
 	if (bstrSource.get()) {
-		status = buf.append(bstrSource.get());
-		CHECK_QSTATUS_HRESULT();
-		status = buf.append(L"\n");
-		CHECK_QSTATUS_HRESULT();
+		buf.append(bstrSource.get());
+		buf.append(L"\n");
 	}
 	if (bstrDescription.get()) {
-		status = buf.append(bstrDescription.get());
-		CHECK_QSTATUS_HRESULT();
-		status = buf.append(L"\n");
-		CHECK_QSTATUS_HRESULT();
+		buf.append(bstrDescription.get());
+		buf.append(L"\n");
 	}
 	WCHAR wsz[32];
 	swprintf(wsz, L"%d:%d ", nLine, nChar);
-	status = buf.append(wsz);
-	CHECK_QSTATUS_HRESULT();
-	if (bstrLine.get()) {
-		status = buf.append(bstrLine.get());
-		CHECK_QSTATUS_HRESULT();
-	}
+	buf.append(wsz);
+	if (bstrLine.get())
+		buf.append(bstrLine.get());
 	
-	int nRet = 0;
-	messageBox(buf.getCharArray(), MB_OK | MB_ICONERROR, hwnd_, 0, 0, &nRet);
+	messageBox(buf.getCharArray(), MB_OK | MB_ICONERROR, hwnd_, 0, 0);
 	
-	return E_NOTIMPL;
+	return S_OK;
 }
 
 STDMETHODIMP qmscript::ActiveScriptSite::OnEnterScript()
@@ -552,7 +501,7 @@ STDMETHODIMP qmscript::ActiveScriptSite::EnableModeless(BOOL bEnable)
  *
  */
 
-qmscript::ReaderIStream::ReaderIStream(Reader* pReader, QSTATUS* pstatus) :
+qmscript::ReaderIStream::ReaderIStream(Reader* pReader) :
 	pReader_(pReader)
 {
 }
@@ -561,7 +510,8 @@ qmscript::ReaderIStream::~ReaderIStream()
 {
 }
 
-STDMETHODIMP qmscript::ReaderIStream::QueryInterface(REFIID riid, void** ppv)
+STDMETHODIMP qmscript::ReaderIStream::QueryInterface(REFIID riid,
+													 void** ppv)
 {
 	return E_NOTIMPL;
 }
@@ -576,16 +526,12 @@ STDMETHODIMP_(ULONG) qmscript::ReaderIStream::Release()
 	return E_NOTIMPL;
 }
 
-STDMETHODIMP qmscript::ReaderIStream::Read(void* pv, ULONG cb, ULONG* pcbRead)
+STDMETHODIMP qmscript::ReaderIStream::Read(void* pv,
+										   ULONG cb,
+										   ULONG* pcbRead)
 {
-	DECLARE_QSTATUS();
-	
-	size_t nRead = 0;
-	status = pReader_->read(static_cast<WCHAR*>(pv),
-		cb/sizeof(WCHAR), &nRead);
-	if (status == QSTATUS_OUTOFMEMORY)
-		return E_OUTOFMEMORY;
-	else if (status != QSTATUS_SUCCESS)
+	size_t nRead = pReader_->read(static_cast<WCHAR*>(pv), cb/sizeof(WCHAR));
+	if (nRead == -1)
 		return E_FAIL;
 	
 	*pcbRead = nRead*sizeof(WCHAR);
@@ -593,14 +539,16 @@ STDMETHODIMP qmscript::ReaderIStream::Read(void* pv, ULONG cb, ULONG* pcbRead)
 	return S_OK;
 }
 
-STDMETHODIMP qmscript::ReaderIStream::Write(
-	const void* pv, ULONG cb, ULONG* pcbWritten)
+STDMETHODIMP qmscript::ReaderIStream::Write(const void* pv,
+											ULONG cb,
+											ULONG* pcbWritten)
 {
 	return E_NOTIMPL;
 }
 
 STDMETHODIMP qmscript::ReaderIStream::Seek(LARGE_INTEGER nMove,
-	DWORD dwOrigin, ULARGE_INTEGER* pnPosition)
+										   DWORD dwOrigin,
+										   ULARGE_INTEGER* pnPosition)
 {
 	return E_NOTIMPL;
 }
@@ -610,8 +558,10 @@ STDMETHODIMP qmscript::ReaderIStream::SetSize(ULARGE_INTEGER nSize)
 	return E_NOTIMPL;
 }
 
-STDMETHODIMP qmscript::ReaderIStream::CopyTo(IStream* pStream, ULARGE_INTEGER cb,
-	ULARGE_INTEGER* pcbRead, ULARGE_INTEGER* pcbWritten)
+STDMETHODIMP qmscript::ReaderIStream::CopyTo(IStream* pStream,
+											 ULARGE_INTEGER cb,
+											 ULARGE_INTEGER* pcbRead,
+											 ULARGE_INTEGER* pcbWritten)
 {
 	return E_NOTIMPL;
 }
@@ -626,19 +576,22 @@ STDMETHODIMP qmscript::ReaderIStream::Revert()
 	return E_NOTIMPL;
 }
 
-STDMETHODIMP qmscript::ReaderIStream::LockRegion(
-	ULARGE_INTEGER nOffset, ULARGE_INTEGER cb, DWORD dwType)
+STDMETHODIMP qmscript::ReaderIStream::LockRegion(ULARGE_INTEGER nOffset,
+												 ULARGE_INTEGER cb,
+												 DWORD dwType)
 {
 	return E_NOTIMPL;
 }
 
-STDMETHODIMP qmscript::ReaderIStream::UnlockRegion(
-	ULARGE_INTEGER nOffset, ULARGE_INTEGER cb, DWORD dwType)
+STDMETHODIMP qmscript::ReaderIStream::UnlockRegion(ULARGE_INTEGER nOffset,
+												   ULARGE_INTEGER cb,
+												   DWORD dwType)
 {
 	return E_NOTIMPL;
 }
 
-STDMETHODIMP qmscript::ReaderIStream::Stat(STATSTG* pStatStg, DWORD dwFlags)
+STDMETHODIMP qmscript::ReaderIStream::Stat(STATSTG* pStatStg,
+										   DWORD dwFlags)
 {
 	return E_NOTIMPL;
 }

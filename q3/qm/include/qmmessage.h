@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -44,16 +44,18 @@ public:
 	};
 
 public:
-	explicit Message(qs::QSTATUS* pstatus);
-	Message(const CHAR* pwszMessage, size_t nLen,
-		Flag flag, qs::QSTATUS* pstatus);
+	Message();
 	virtual ~Message();
 
 public:
-	qs::QSTATUS create(const CHAR* pszMessage, size_t nLen, Flag flag);
-	qs::QSTATUS create(const CHAR* pszMessage, size_t nLen,
-		Flag flag, unsigned int nSecurity);
-	qs::QSTATUS clear();
+	bool create(const CHAR* pszMessage,
+				size_t nLen,
+				Flag flag);
+	bool create(const CHAR* pszMessage,
+				size_t nLen,
+				Flag flag,
+				unsigned int nSecurity);
+	void clear();
 	Flag getFlag() const;
 	void setFlag(Flag flag);
 	unsigned int getSecurity() const;
@@ -104,25 +106,32 @@ public:
 
 public:
 	unsigned int getFlags() const;
-	void setFlags(unsigned int nFlags, unsigned int nMask);
-	qs::QSTATUS createMessage(const WCHAR* pwszMessage,
-		size_t nLen, Message** ppMessage) const;
-	qs::QSTATUS createPart(const WCHAR* pwszMessage, size_t nLen,
-		qs::Part* pParent, bool bMessage, qs::Part** ppPart) const;
-	qs::QSTATUS createHeader(qs::Part* pPart,
-		const WCHAR* pwszMessage, size_t nLen) const;
+	void setFlags(unsigned int nFlags,
+				  unsigned int nMask);
+	std::auto_ptr<Message> createMessage(const WCHAR* pwszMessage,
+									     size_t nLen) const;
+	std::auto_ptr<qs::Part> createPart(const WCHAR* pwszMessage,
+									   size_t nLen,
+									   qs::Part* pParent,
+									   bool bMessage) const;
+	bool createHeader(qs::Part* pPart,
+					  const WCHAR* pwszMessage,
+					  size_t nLen) const;
 
 private:
-	qs::QSTATUS convertBody(qs::Converter* pConverter, const WCHAR* pwszBody,
-		size_t nBodyLen, qs::STRING* pstrBody, size_t* pnLen) const;
+	qs::xstring_size_ptr convertBody(qs::Converter* pConverter,
+									 const WCHAR* pwszBody,
+									 size_t nBodyLen) const;
 
 public:
-	static qs::QSTATUS setField(qs::Part* pPart, const WCHAR* pwszName,
-		const WCHAR* pwszValue, FieldType type);
-	static qs::QSTATUS makeMultipart(qs::Part* pParentPart, qs::Part* pPart);
-	static qs::QSTATUS createPartFromFile(const WCHAR* pwszPath, qs::Part** ppPart);
-	static qs::QSTATUS getContentTypeFromExtension(
-		const WCHAR* pwszExtension, qs::WSTRING* pwstrContentType);
+	static bool setField(qs::Part* pPart,
+						 const WCHAR* pwszName,
+						 const WCHAR* pwszValue,
+						 FieldType type);
+	static bool makeMultipart(qs::Part* pParentPart,
+							  std::auto_ptr<qs::Part> pPart);
+	static std::auto_ptr<qs::Part> createPartFromFile(const WCHAR* pwszPath);
+	static qs::wstring_ptr getContentTypeFromExtension(const WCHAR* pwszExtension);
 
 private:
 	MessageCreator(const MessageCreator&);
@@ -158,41 +167,63 @@ public:
 	~PartUtil();
 
 public:
-	qs::QSTATUS isResent(bool* pbResent) const;
+	bool isResent() const;
 	bool isMultipart() const;
 	bool isText() const;
-	qs::QSTATUS isAttachment(bool* pbAttachment) const;
-	qs::QSTATUS getNames(const WCHAR* pwszField, qs::WSTRING* pwstrNames) const;
-	qs::QSTATUS getReference(qs::WSTRING* pwstrReference) const;
-	qs::QSTATUS getReferences(ReferenceList* pList) const;
-	qs::QSTATUS getAllText(const WCHAR* pwszQuote, const WCHAR* pwszCharset,
-		bool bBodyOnly, qs::WSTRING* pwstrText) const;
-	qs::QSTATUS getBodyText(const WCHAR* pwszQuote,
-		const WCHAR* pwszCharset, qs::WSTRING* pwstrText) const;
-	qs::QSTATUS getFormattedText(bool bUseSendersTimeZone,
-		const WCHAR* pwszCharset, qs::WSTRING* pwstrText) const;
-	qs::QSTATUS getDigest(MessageList* pList) const;
-	qs::QSTATUS getDigestMode(DigestMode* pMode) const;
-	qs::QSTATUS getHeader(const WCHAR* pwszName, qs::STRING* pstrHeader) const;
-	qs::QSTATUS getAlternativeContentTypes(ContentTypeList* pList) const;
-	qs::QSTATUS getAlternativePart(const WCHAR* pwszMediaType,
-		const WCHAR* pwszSubType, const qs::Part** ppPart) const;
-	qs::QSTATUS getPartByContentId(const WCHAR* pwszContentId,
-		const qs::Part** ppPart) const;
+	bool isAttachment() const;
+	qs::wstring_ptr getNames(const WCHAR* pwszField) const;
+	qs::wstring_ptr getReference() const;
+	void getReferences(ReferenceList* pList) const;
+	qs::wxstring_ptr getAllText(const WCHAR* pwszQuote,
+								const WCHAR* pwszCharset,
+								bool bBodyOnly) const;
+	bool getAllText(const WCHAR* pwszQuote,
+					const WCHAR* pwszCharset,
+					bool bBodyOnly,
+					qs::XStringBuffer<qs::WXSTRING>* pBuf) const;
+	qs::wxstring_ptr getBodyText(const WCHAR* pwszQuote,
+								 const WCHAR* pwszCharset) const;
+	bool getBodyText(const WCHAR* pwszQuote,
+					 const WCHAR* pwszCharset,
+					 qs::XStringBuffer<qs::WXSTRING>* pBuf) const;
+	qs::wxstring_ptr getFormattedText(bool bUseSendersTimeZone,
+									  const WCHAR* pwszCharset) const;
+	bool getFormattedText(bool bUseSendersTimeZone,
+						  const WCHAR* pwszCharset,
+						  qs::XStringBuffer<qs::WXSTRING>* pBuf) const;
+	bool getDigest(MessageList* pList) const;
+	DigestMode getDigestMode() const;
+	qs::string_ptr getHeader(const WCHAR* pwszName) const;
+	void getAlternativeContentTypes(ContentTypeList* pList) const;
+	const qs::Part* getAlternativePart(const WCHAR* pwszMediaType,
+									   const WCHAR* pwszSubType) const;
+	const qs::Part* getPartByContentId(const WCHAR* pwszContentId) const;
 	qs::Part* getEnclosingPart(qs::Part* pCandidatePart) const;
-	qs::QSTATUS copyContentFields(qs::Part* pPart) const;
+	bool copyContentFields(qs::Part* pPart) const;
 
 public:
-	static qs::QSTATUS a2w(const CHAR* psz, qs::WSTRING* pwstr);
-	static qs::QSTATUS a2w(const CHAR* psz, size_t nLen, qs::WSTRING* pwstr);
-	static qs::QSTATUS w2a(const WCHAR* pwsz, qs::STRING* pstr);
-	static qs::QSTATUS w2a(const WCHAR* pwsz, size_t nLen, qs::STRING* pstr);
-	static qs::QSTATUS quote(const WCHAR* pwsz,
-		const WCHAR* pwszQuote, qs::WSTRING* pwstrQuoted);
-	static qs::QSTATUS expandNames(const WCHAR** ppwszNames,
-		unsigned int nCount, qs::WSTRING* pwstrNames);
+	static qs::wxstring_ptr a2w(const CHAR* psz);
+	static qs::wxstring_ptr a2w(const CHAR* psz,
+								size_t nLen);
+	static bool a2w(const CHAR* psz,
+					size_t nLen,
+					qs::XStringBuffer<qs::WXSTRING>* pBuf);
+	static qs::xstring_ptr w2a(const WCHAR* pwsz);
+	static qs::xstring_ptr w2a(const WCHAR* pwsz,
+							   size_t nLen);
+	static bool w2a(const WCHAR* pwsz,
+					size_t nLen,
+					qs::XStringBuffer<qs::XSTRING>* pBuf);
+	static qs::wxstring_ptr quote(const WCHAR* pwsz,
+								  const WCHAR* pwszQuote);
+	static bool quote(const WCHAR* pwsz,
+					  const WCHAR* pwszQuote,
+					  qs::XStringBuffer<qs::WXSTRING>* pBuf);
+	static qs::wstring_ptr expandNames(const WCHAR** ppwszNames,
+									   unsigned int nCount);
 	static bool isContentType(const qs::ContentTypeParser* pContentType,
-		const WCHAR* pwszMediaType, const WCHAR* pwszSubType);
+							  const WCHAR* pwszMediaType,
+							  const WCHAR* pwszSubType);
 
 private:
 	const qs::Part& part_;
@@ -208,6 +239,13 @@ private:
 class QMEXPORTCLASS AttachmentParser
 {
 public:
+	enum Result {
+		RESULT_OK,
+		RESULT_FAIL,
+		RESULT_CANCEL
+	};
+
+public:
 	typedef std::vector<std::pair<qs::WSTRING, qs::Part*> > AttachmentList;
 
 public:
@@ -217,8 +255,7 @@ public:
 		virtual ~DetachCallback();
 	
 	public:
-		virtual qs::QSTATUS confirmOverwrite(
-			const WCHAR* pwszPath, qs::WSTRING* pwstrPath) = 0;
+		virtual qs::wstring_ptr confirmOverwrite(const WCHAR* pwszPath) = 0;
 	};
 	
 	struct AttachmentListFree
@@ -234,16 +271,19 @@ public:
 	~AttachmentParser();
 
 public:
-	qs::QSTATUS hasAttachment(bool* pbHas) const;
-	qs::QSTATUS getName(qs::WSTRING* pwstrName) const;
-	qs::QSTATUS getAttachments(bool bIncludeDeleted, AttachmentList* pList) const;
-	qs::QSTATUS detach(const WCHAR* pwszDir, const WCHAR* pwszName,
-		DetachCallback* pCallback, qs::WSTRING* pwstrPath) const;
-	qs::QSTATUS isAttachmentDeleted(bool* pbDeleted) const;
+	bool hasAttachment() const;
+	qs::wstring_ptr getName() const;
+	void getAttachments(bool bIncludeDeleted,
+						AttachmentList* pList) const;
+	Result detach(const WCHAR* pwszDir,
+				  const WCHAR* pwszName,
+				  DetachCallback* pCallback,
+				  qs::wstring_ptr* pwstrPath) const;
+	bool isAttachmentDeleted() const;
 
 public:
-	static qs::QSTATUS removeAttachments(qs::Part* pPart);
-	static qs::QSTATUS setAttachmentDeleted(qs::Part* pPart);
+	static void removeAttachments(qs::Part* pPart);
+	static void setAttachmentDeleted(qs::Part* pPart);
 
 private:
 	AttachmentParser(const AttachmentParser&);

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -11,8 +11,6 @@
 #include <qmmessage.h>
 #include <qmmessageholder.h>
 
-#include <qserror.h>
-#include <qsnew.h>
 #include <qsthread.h>
 
 #include <algorithm>
@@ -35,11 +33,11 @@ using namespace qmimap4;
 using namespace qm;
 using namespace qs;
 
-#define CHECK_QSTATUS_ERROR() \
-	if (status != QSTATUS_SUCCESS) { \
+#define HANDLE_ERROR() \
+	do { \
 		reportError(); \
-		return status; \
-	} \
+		return false; \
+	} while (false) \
 
 
 namespace qmimap4 {
@@ -64,8 +62,9 @@ public:
 	};
 
 public:
-	MessageData(MessageHolder* pmh, Type type,
-		FetchDataBodyStructure* pBodyStructure);
+	MessageData(MessageHolder* pmh,
+				Type type,
+				FetchDataBodyStructure* pBodyStructure);
 	MessageData(const MessageData& data);
 	~MessageData();
 
@@ -87,7 +86,8 @@ private:
 };
 
 qmimap4::MessageData::MessageData(MessageHolder* pmh,
-	Type type, FetchDataBodyStructure* pBodyStructure) :
+								  Type type,
+								  FetchDataBodyStructure* pBodyStructure) :
 	ptr_(pmh),
 	nId_(pmh->getId()),
 	type_(type),
@@ -153,9 +153,7 @@ void qmimap4::MessageData::setBodyStructure(FetchDataBodyStructure* pBodyStructu
  *
  */
 
-qmimap4::Imap4ReceiveSession::Imap4ReceiveSession(QSTATUS* pstatus) :
-	pImap4_(0),
-	pCallback_(0),
+qmimap4::Imap4ReceiveSession::Imap4ReceiveSession() :
 	pDocument_(0),
 	pAccount_(0),
 	pSubAccount_(0),
@@ -170,19 +168,19 @@ qmimap4::Imap4ReceiveSession::Imap4ReceiveSession(QSTATUS* pstatus) :
 	nUidStart_(0),
 	nIdStart_(0)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qmimap4::Imap4ReceiveSession::~Imap4ReceiveSession()
 {
-	delete pImap4_;
-	delete pCallback_;
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::init(Document* pDocument,
-	Account* pAccount, SubAccount* pSubAccount, HWND hwnd,
-	Profile* pProfile, Logger* pLogger, ReceiveSessionCallback* pCallback)
+bool qmimap4::Imap4ReceiveSession::init(Document* pDocument,
+										Account* pAccount,
+										SubAccount* pSubAccount,
+										HWND hwnd,
+										Profile* pProfile,
+										Logger* pLogger,
+										ReceiveSessionCallback* pCallback)
 {
 	assert(pDocument);
 	assert(pAccount);
@@ -190,8 +188,6 @@ QSTATUS qmimap4::Imap4ReceiveSession::init(Document* pDocument,
 	assert(hwnd);
 	assert(pProfile);
 	assert(pCallback);
-	
-	DECLARE_QSTATUS();
 	
 	pDocument_ = pDocument;
 	pAccount_ = pAccount;
@@ -201,129 +197,90 @@ QSTATUS qmimap4::Imap4ReceiveSession::init(Document* pDocument,
 	pLogger_ = pLogger;
 	pSessionCallback_ = pCallback;
 	
-	status = newQsObject(this, pSubAccount_,
-		pDocument->getSecurity(), pSessionCallback_, &pCallback_);
-	CHECK_QSTATUS();
+	pCallback_.reset(new CallbackImpl(this, pSubAccount_,
+		pDocument->getSecurity(), pSessionCallback_));
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::connect()
+bool qmimap4::Imap4ReceiveSession::connect()
 {
-	assert(!pImap4_);
-	
-	DECLARE_QSTATUS();
+	assert(!pImap4_.get());
 	
 	Log log(pLogger_, L"qmimap4::Imap4ReceiveSession");
-	status = log.debug(L"Connecting to the server...");
-	CHECK_QSTATUS();
+	log.debug(L"Connecting to the server...");
 	
-	Imap4::Option option = {
-		pSubAccount_->getTimeout(),
-		pCallback_,
-		pCallback_,
-		pCallback_,
-		pLogger_
-	};
-	status = newQsObject(option, &pImap4_);
-	CHECK_QSTATUS();
+	pImap4_.reset(new Imap4(pSubAccount_->getTimeout(), pCallback_.get(),
+		pCallback_.get(), pCallback_.get(), pLogger_));
 	
-	Imap4::Ssl ssl = Imap4::SSL_NONE;
-	status = Util::getSsl(pSubAccount_, &ssl);
-	CHECK_QSTATUS();
-	status = pImap4_->connect(pSubAccount_->getHost(Account::HOST_RECEIVE),
-		pSubAccount_->getPort(Account::HOST_RECEIVE), ssl);
-	CHECK_QSTATUS_ERROR();
+	Imap4::Ssl ssl = Util::getSsl(pSubAccount_);
+	if (!pImap4_->connect(pSubAccount_->getHost(Account::HOST_RECEIVE),
+		pSubAccount_->getPort(Account::HOST_RECEIVE), ssl))
+		HANDLE_ERROR();
 	
-	status = log.debug(L"Connected to the server.");
-	CHECK_QSTATUS();
+	log.debug(L"Connected to the server.");
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::disconnect()
+bool qmimap4::Imap4ReceiveSession::disconnect()
 {
-	assert(pImap4_);
-	
-	DECLARE_QSTATUS();
+	assert(pImap4_.get());
 	
 	Log log(pLogger_, L"qmimap4::Imap4ReceiveSession");
-	status = log.debug(L"Disconnecting from the server...");
-	CHECK_QSTATUS();
+	log.debug(L"Disconnecting from the server...");
 	
-	status = pImap4_->disconnect();
-	CHECK_QSTATUS_ERROR();
+	pImap4_->disconnect();
 	
-	status = log.debug(L"Disconnected from the server.");
-	CHECK_QSTATUS();
+	log.debug(L"Disconnected from the server.");
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::selectFolder(NormalFolder* pFolder)
+bool qmimap4::Imap4ReceiveSession::selectFolder(NormalFolder* pFolder)
 {
 	assert(pFolder);
 	
-	DECLARE_QSTATUS();
+	pCallback_->setMessage(IDS_SELECTFOLDER);
 	
-	status = pCallback_->setMessage(IDS_SELECTFOLDER);
-	CHECK_QSTATUS();
-	
-	string_ptr<WSTRING> wstrName;
-	status = Util::getFolderName(pFolder, &wstrName);
-	CHECK_QSTATUS();
+	wstring_ptr wstrName(Util::getFolderName(pFolder));
 	
 	pFolder_ = 0;
 	
-	status = pImap4_->select(wstrName.get());
-	CHECK_QSTATUS_ERROR();
+	if (!pImap4_->select(wstrName.get()))
+		HANDLE_ERROR();
 	
 	pFolder_ = pFolder;
 	
-	status = pSessionCallback_->setRange(0, nExists_);
-	CHECK_QSTATUS();
-	status = pSessionCallback_->setPos(0);
-	CHECK_QSTATUS();
+	pSessionCallback_->setRange(0, nExists_);
+	pSessionCallback_->setPos(0);
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::closeFolder()
+bool qmimap4::Imap4ReceiveSession::closeFolder()
 {
 	assert(pFolder_);
 	
-	DECLARE_QSTATUS();
+	pCallback_->setRange(0, 0);
+	pCallback_->setPos(0);
 	
-	status = pCallback_->setRange(0, 0);
-	CHECK_QSTATUS();
-	status = pCallback_->setPos(0);
-	CHECK_QSTATUS();
-	
-	int nCloseFolder = 0;
-	status = pSubAccount_->getProperty(
-		L"Imap4", L"CloseFolder", 0, &nCloseFolder);
-	CHECK_QSTATUS();
-	if (nCloseFolder) {
-		status = pCallback_->setMessage(IDS_CLOSEFOLDER);
-		CHECK_QSTATUS();
-		
-		status = pImap4_->close();
-		CHECK_QSTATUS_ERROR();
+	if (pSubAccount_->getProperty(L"Imap4", L"CloseFolder", 0)) {
+		pCallback_->setMessage(IDS_CLOSEFOLDER);
+		if (!pImap4_->close())
+			HANDLE_ERROR();
 	}
 	
 	pFolder_ = 0;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::updateMessages()
+bool qmimap4::Imap4ReceiveSession::updateMessages()
 {
 	assert(pFolder_);
 	
-	DECLARE_QSTATUS();
-	
-	status = pCallback_->setMessage(IDS_UPDATEMESSAGES);
-	CHECK_QSTATUS();
+	pCallback_->setMessage(IDS_UPDATEMESSAGES);
 	
 	nUidStart_ = 0;
 	nIdStart_ = 0;
@@ -336,8 +293,8 @@ QSTATUS qmimap4::Imap4ReceiveSession::updateMessages()
 		}
 	}
 	else {
-		status = pFolder_->setValidity(nUidValidity_);
-		CHECK_QSTATUS();
+		if (!pFolder_->setValidity(nUidValidity_))
+			return false;
 	}
 	
 	if (nUidStart_ != 0) {
@@ -346,29 +303,22 @@ QSTATUS qmimap4::Imap4ReceiveSession::updateMessages()
 			typedef NormalFolder::FlagList FlagList;
 			
 			UpdateFlagsProcessHook(unsigned int nUidStart,
-				ReceiveSessionCallback* pSessionCallback) :
+								   ReceiveSessionCallback* pSessionCallback) :
 				nUidStart_(nUidStart),
 				pSessionCallback_(pSessionCallback),
 				nLastId_(0)
 			{
 			}
 			
-			virtual QSTATUS processFetchResponse(
-				ResponseFetch* pFetch, bool* pbProcessed)
+			virtual Result processFetchResponse(ResponseFetch* pFetch)
 			{
-				DECLARE_QSTATUS();
-				
-				STLWrapper<FlagList> wrapper(listFlag_);
-				
 				unsigned int nUid = 0;
 				unsigned int nFlags = 0;
 				
 				int nCount = 0;
 				
-				const ResponseFetch::FetchDataList& l =
-					pFetch->getFetchDataList();
-				ResponseFetch::FetchDataList::const_iterator it = l.begin();
-				while (it != l.end()) {
+				const ResponseFetch::FetchDataList& l = pFetch->getFetchDataList();
+				for (ResponseFetch::FetchDataList::const_iterator it = l.begin(); it != l.end(); ++it) {
 					switch ((*it)->getType()) {
 					case FetchData::TYPE_FLAGS:
 						nFlags = Util::getMessageFlagsFromImap4Flags(
@@ -383,19 +333,15 @@ QSTATUS qmimap4::Imap4ReceiveSession::updateMessages()
 					default:
 						break;
 					}
-					++it;
 				}
 				
 				if (nCount == 2 && nUid <= nUidStart_) {
-					status = wrapper.push_back(
-						FlagList::value_type(nUid, nFlags));
-					CHECK_QSTATUS();
-					status = pSessionCallback_->setPos(pFetch->getNumber());
-					CHECK_QSTATUS();
+					listFlag_.push_back(FlagList::value_type(nUid, nFlags));
+					pSessionCallback_->setPos(pFetch->getNumber());
 					nLastId_ = pFetch->getNumber();
 				}
 				
-				return QSTATUS_SUCCESS;
+				return RESULT_PROCESSED;
 			}
 			
 			unsigned int nUidStart_;
@@ -406,50 +352,34 @@ QSTATUS qmimap4::Imap4ReceiveSession::updateMessages()
 		
 		if (nExists_ != 0) {
 			Hook h(this, &hook);
-			ContinuousRange range(1, nUidStart_, true, &status);
-			CHECK_QSTATUS();
-			status = pImap4_->getFlags(range);
-			CHECK_QSTATUS_ERROR();
+			ContinuousRange range(1, nUidStart_, true);
+			if (!pImap4_->getFlags(range))
+				HANDLE_ERROR();
 		}
 		
 		bool bClear = false;
-		status = pFolder_->updateMessageFlags(hook.listFlag_, &bClear);
-		CHECK_QSTATUS();
+		if (!pFolder_->updateMessageFlags(hook.listFlag_, &bClear))
+			return false;
 		if (bClear)
 			nUidStart_ = 0;
 		else
 			nIdStart_ = hook.nLastId_;
 	}
 	
-	status = pSessionCallback_->setPos(nIdStart_);
-	CHECK_QSTATUS();
+	pSessionCallback_->setPos(nIdStart_);
 	
 	++nUidStart_;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
-	const SyncFilterSet* pSyncFilterSet)
+bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilterSet)
 {
-	DECLARE_QSTATUS();
+	int nFetchCount = pSubAccount_->getProperty(L"Imap4", L"FetchCount", 100);
+	int nOption = pSubAccount_->getProperty(L"Imap4", L"Option", 0xff);
 	
-	int nFetchCount = 0;
-	status = pSubAccount_->getProperty(L"Imap4",
-		L"FetchCount", 100, &nFetchCount);
-	CHECK_QSTATUS();
-	
-	int nOption = 0;
-	status = pSubAccount_->getProperty(L"Imap4", L"Option", 0xff, &nOption);
-	CHECK_QSTATUS();
-	
-	string_ptr<WSTRING> wstrAdditionalFields;
-	status = pSubAccount_->getProperty(L"Imap4",
-		L"AdditionalFields", 0, &wstrAdditionalFields);
-	CHECK_QSTATUS();
-	string_ptr<STRING> strAdditionalFields(wcs2mbs(wstrAdditionalFields.get()));
-	if (!strAdditionalFields.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrAdditionalFields(pSubAccount_->getProperty(L"Imap4", L"AdditionalFields", L""));
+	string_ptr strAdditionalFields(wcs2mbs(wstrAdditionalFields.get()));
 	
 	typedef std::vector<unsigned long> UidList;
 	UidList listMakeSeen;
@@ -460,23 +390,30 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 	container_deleter<BodyStructureList> deleter(listBodyStructure);
 	
 	MessageDataList listMessageData;
-	status = STLWrapper<MessageDataList>(listMessageData).reserve(
-		nExists_ - nIdStart_);
-	CHECK_QSTATUS();
+	listMessageData.reserve(nExists_ - nIdStart_);
 	
 	struct GetMessageDataProcessHook : public ProcessHook
 	{
 		typedef std::vector<unsigned long> UidList;
 		typedef std::vector<FetchDataBodyStructure*> BodyStructureList;
 		
-		GetMessageDataProcessHook(Document* pDocument, Account* pAccount,
-			SubAccount* pSubAccount, NormalFolder* pFolder, HWND hwnd,
-			Profile* pProfile, ReceiveSessionCallback* pSessionCallback,
-			const SyncFilterSet* pFilterSet, unsigned int nOption,
-			unsigned long nUidStart, MessageDataList& listMessageData,
-			UidList& listMakeSeen, UidList& listMakeDeleted,
-			BodyStructureList& listBodyStructure, Imap4* pImap4,
-			MacroVariableHolder* pGlobalVariable, Imap4ReceiveSession* pSession) :
+		GetMessageDataProcessHook(Document* pDocument,
+								  Account* pAccount,
+								  SubAccount* pSubAccount,
+								  NormalFolder* pFolder,
+								  HWND hwnd,
+								  Profile* pProfile,
+								  ReceiveSessionCallback* pSessionCallback,
+								  const SyncFilterSet* pFilterSet,
+								  unsigned int nOption,
+								  unsigned long nUidStart,
+								  MessageDataList& listMessageData,
+								  UidList& listMakeSeen,
+								  UidList& listMakeDeleted,
+								  BodyStructureList& listBodyStructure,
+								  Imap4* pImap4,
+								  MacroVariableHolder* pGlobalVariable,
+								  Imap4ReceiveSession* pSession) :
 			pDocument_(pDocument),
 			pAccount_(pAccount),
 			pSubAccount_(pSubAccount),
@@ -497,23 +434,19 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 		{
 		}
 		
-		virtual QSTATUS processFetchResponse(
-			ResponseFetch* pFetch, bool* pbProcessed)
+		virtual Result processFetchResponse(ResponseFetch* pFetch)
 		{
-			DECLARE_QSTATUS();
-			
 			unsigned long nUid = 0;
 			unsigned int nFlags = 0;
 			unsigned long nSize = static_cast<unsigned long>(-1);
 			FetchDataBodyStructure* pBodyStructure = 0;
-			string_ptr<STRING> strEnvelope;
+			string_ptr strEnvelope;
 			const CHAR* pszHeader = 0;
 			
 			int nCount = 0;
 			
 			const ResponseFetch::FetchDataList& l = pFetch->getFetchDataList();
-			ResponseFetch::FetchDataList::const_iterator it = l.begin();
-			while (it != l.end()) {
+			for (ResponseFetch::FetchDataList::const_iterator it = l.begin(); it != l.end(); ++it) {
 				switch ((*it)->getType()) {
 				case FetchData::TYPE_UID:
 					nUid = static_cast<FetchDataUid*>(*it)->getUid();
@@ -521,9 +454,10 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 					break;
 				case FetchData::TYPE_ENVELOPE:
 					if (nOption_ & OPTION_USEENVELOPE) {
-						status = Util::getMessageFromEnvelope(
-							static_cast<FetchDataEnvelope*>(*it), &strEnvelope);
-						CHECK_QSTATUS();
+						strEnvelope = Util::getMessageFromEnvelope(
+							static_cast<FetchDataEnvelope*>(*it));
+						if (!strEnvelope.get())
+							return RESULT_ERROR;
 						++nCount;
 					}
 					break;
@@ -550,179 +484,151 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 				default:
 					break;
 				}
-				++it;
 			}
 			
 			const int nNeedCount = 4 + (nOption_ & OPTION_USEENVELOPE ? 1 : 0) +
 				(nOption_ & OPTION_USEBODYSTRUCTUREALWAYS ? 1 : 0);
-			if (nCount == nNeedCount && nUid >= nUidStart_) {
-				status = pSessionCallback_->setPos(pFetch->getNumber());
-				CHECK_QSTATUS();
-				
-				StringBuffer<STRING> message(&status);
-				CHECK_QSTATUS();
-				if (strEnvelope.get()) {
-					status = message.append(strEnvelope.get());
-					CHECK_QSTATUS();
-				}
-				if (pBodyStructure) {
-					string_ptr<STRING> strBodyStructure;
-					status = Util::getHeaderFromBodyStructure(
-						pBodyStructure, &strBodyStructure);
-					CHECK_QSTATUS();
-					status = message.append(strBodyStructure.get());
-					CHECK_QSTATUS();
-				}
-				status = message.append(pszHeader);
-				CHECK_QSTATUS();
-				
-				Message msg(message.getCharArray(), message.getLength(),
-					Message::FLAG_TEMPORARY, &status);
-				CHECK_QSTATUS();
-				
-				bool bSelf = false;
-				status = pSubAccount_->isSelf(msg, &bSelf);
-				CHECK_QSTATUS();
-				if (bSelf) {
-					bool bSeen = nFlags & MessageHolder::FLAG_SEEN;
-					nFlags |= MessageHolder::FLAG_SEEN | MessageHolder::FLAG_SENT;
-					if (!bSeen) {
-						status = STLWrapper<UidList>(listMakeSeen_).push_back(nUid);
-						CHECK_QSTATUS();
-					}
-				}
-				
-				unsigned long nTextSize = pBodyStructure ?
-					Util::getTextSizeFromBodyStructure(pBodyStructure) : nSize;
-				
-				enum {
-					DOWNLOAD_NONE,
-					DOWNLOAD_HEADER,
-					DOWNLOAD_TEXT,
-					DOWNLOAD_HTML,
-					DOWNLOAD_ALL
-				} download = DOWNLOAD_NONE;
-				
-				const SyncFilter* pFilter = 0;
-				if (pFilterSet_) {
-					Imap4SyncFilterCallback callback(pDocument_, pAccount_,
-						pFolder_, &msg, nUid, nSize, nTextSize, hwnd_,
-						pProfile_, pGlobalVariable_, pSession_);
-					status = pFilterSet_->getFilter(&callback, &pFilter);
-					CHECK_QSTATUS();
-					if (pFilter) {
-						const SyncFilter::ActionList& listAction = pFilter->getActions();
-						SyncFilter::ActionList::const_iterator it = listAction.begin();
-						while (it != listAction.end()) {
-							const SyncFilterAction* pAction = *it;
-							if (wcscmp(pAction->getName(), L"download") == 0) {
-								const WCHAR* pwszType = pAction->getParam(L"type");
-								if (wcscmp(pwszType, L"all") == 0)
-									download = DOWNLOAD_ALL;
-								else if (wcscmp(pwszType, L"text") == 0)
-									download = DOWNLOAD_TEXT;
-								else if (wcscmp(pwszType, L"html") == 0)
-									download = DOWNLOAD_HTML;
-								else if (wcscmp(pwszType, L"header") == 0)
-									download = DOWNLOAD_HEADER;
-							}
-							else if (wcscmp(pAction->getName(), L"delete") == 0) {
-								nFlags |= MessageHolder::FLAG_DELETED;
-								status = STLWrapper<UidList>(
-									listMakeDeleted_).push_back(nUid);
-								CHECK_QSTATUS();
-							}
-							++it;
-						}
-					}
-				}
-				
-				if (download == DOWNLOAD_TEXT || download == DOWNLOAD_HTML) {
-					bool bAll = false;
-					if (pBodyStructure) {
-						bAll = !Util::hasAttachmentPart(pBodyStructure);
-					}
-					else {
-						PartUtil util(msg);
-						if (!util.isMultipart()) {
-							bool bAttachment = false;
-							status = util.isAttachment(&bAttachment);
-							CHECK_QSTATUS();
-							if (!bAttachment)
-								bAll = true;
-						}
-					}
-					if (bAll)
-						download = DOWNLOAD_ALL;
-				}
-				
-				switch (download) {
-				case DOWNLOAD_ALL:
-				case DOWNLOAD_HTML:
-					nFlags |= MessageHolder::FLAG_DOWNLOAD;
-					break;
-				case DOWNLOAD_TEXT:
-					nFlags |= MessageHolder::FLAG_DOWNLOADTEXT;
-					break;
-				case DOWNLOAD_HEADER:
-				case DOWNLOAD_NONE:
-					break;
-				default:
-					assert(false);
-					break;
-				}
-				nFlags |= MessageHolder::FLAG_INDEXONLY;
-				
-				Lock<Account> lock(*pAccount_);
-				
-				MessageHolder* pmh = 0;
-				status = pAccount_->storeMessage(pFolder_,
-					message.getCharArray(), &msg, nUid, nFlags, nSize, true, &pmh);
-				CHECK_QSTATUS();
-				assert(pmh);
-				
-				switch (download) {
-				case DOWNLOAD_ALL:
-					status = STLWrapper<MessageDataList>(listMessageData_).push_back(
-						MessageData(pmh, MessageData::TYPE_ALL, 0));
-					CHECK_QSTATUS();
-					break;
-				case DOWNLOAD_TEXT:
-				case DOWNLOAD_HTML:
-					{
-						MessageData::Type type = download == DOWNLOAD_TEXT ?
-							MessageData::TYPE_TEXT : MessageData::TYPE_HTML;
-						status = STLWrapper<MessageDataList>(listMessageData_).push_back(
-							MessageData(pmh, type, pBodyStructure));
-						CHECK_QSTATUS();
-						if (pBodyStructure) {
-							status = STLWrapper<BodyStructureList>(
-								listBodyStructure_).push_back(pBodyStructure);
-							CHECK_QSTATUS();
-							pFetch->detach(pBodyStructure);
-						}
-					}
-					break;
-				case DOWNLOAD_HEADER:
-					status = STLWrapper<MessageDataList>(listMessageData_).push_back(
-						MessageData(pmh, MessageData::TYPE_HEADER, 0));
-					break;
-				case DOWNLOAD_NONE:
-					break;
-				default:
-					assert(false);
-					break;
-				}
-				
-				if ((nFlags & MessageHolder::FLAG_SEEN) == 0) {
-					status = pSessionCallback_->notifyNewMessage();
-					CHECK_QSTATUS();
-				}
-				
-				*pbProcessed = true;
+			if (nCount != nNeedCount || nUid < nUidStart_)
+				return RESULT_UNPROCESSED;
+			
+			pSessionCallback_->setPos(pFetch->getNumber());
+			
+			XStringBuffer<XSTRING> buf;
+			if (strEnvelope.get()) {
+				if (!buf.append(strEnvelope.get()))
+					return RESULT_ERROR;
+			}
+			if (pBodyStructure) {
+				string_ptr strBodyStructure(Util::getHeaderFromBodyStructure(pBodyStructure));
+				if (!buf.append(strBodyStructure.get()))
+					return RESULT_ERROR;
+			}
+			if (!buf.append(pszHeader))
+				return RESULT_ERROR;
+			
+			Message msg;
+			if (!msg.create(buf.getCharArray(),
+				buf.getLength(), Message::FLAG_TEMPORARY))
+				return RESULT_ERROR;
+			
+			bool bSelf = pSubAccount_->isSelf(msg);
+			if (bSelf) {
+				bool bSeen = nFlags & MessageHolder::FLAG_SEEN;
+				nFlags |= MessageHolder::FLAG_SEEN | MessageHolder::FLAG_SENT;
+				if (!bSeen)
+					listMakeSeen_.push_back(nUid);
 			}
 			
-			return QSTATUS_SUCCESS;
+			unsigned long nTextSize = pBodyStructure ?
+				Util::getTextSizeFromBodyStructure(pBodyStructure) : nSize;
+			
+			enum {
+				DOWNLOAD_NONE,
+				DOWNLOAD_HEADER,
+				DOWNLOAD_TEXT,
+				DOWNLOAD_HTML,
+				DOWNLOAD_ALL
+			} download = DOWNLOAD_NONE;
+			
+			const SyncFilter* pFilter = 0;
+			if (pFilterSet_) {
+				Imap4SyncFilterCallback callback(pDocument_, pAccount_,
+					pFolder_, &msg, nUid, nSize, nTextSize, hwnd_,
+					pProfile_, pGlobalVariable_, pSession_);
+				pFilter = pFilterSet_->getFilter(&callback);
+				if (pFilter) {
+					const SyncFilter::ActionList& listAction = pFilter->getActions();
+					for (SyncFilter::ActionList::const_iterator it = listAction.begin(); it != listAction.end(); ++it) {
+						const SyncFilterAction* pAction = *it;
+						if (wcscmp(pAction->getName(), L"download") == 0) {
+							const WCHAR* pwszType = pAction->getParam(L"type");
+							if (wcscmp(pwszType, L"all") == 0)
+								download = DOWNLOAD_ALL;
+							else if (wcscmp(pwszType, L"text") == 0)
+								download = DOWNLOAD_TEXT;
+							else if (wcscmp(pwszType, L"html") == 0)
+								download = DOWNLOAD_HTML;
+							else if (wcscmp(pwszType, L"header") == 0)
+								download = DOWNLOAD_HEADER;
+						}
+						else if (wcscmp(pAction->getName(), L"delete") == 0) {
+							nFlags |= MessageHolder::FLAG_DELETED;
+							listMakeDeleted_.push_back(nUid);
+						}
+					}
+				}
+			}
+			
+			if (download == DOWNLOAD_TEXT || download == DOWNLOAD_HTML) {
+				bool bAll = false;
+				if (pBodyStructure) {
+					bAll = !Util::hasAttachmentPart(pBodyStructure);
+				}
+				else {
+					PartUtil util(msg);
+					if (!util.isMultipart()) {
+						if (!util.isAttachment())
+							bAll = true;
+					}
+				}
+				if (bAll)
+					download = DOWNLOAD_ALL;
+			}
+			
+			switch (download) {
+			case DOWNLOAD_ALL:
+			case DOWNLOAD_HTML:
+				nFlags |= MessageHolder::FLAG_DOWNLOAD;
+				break;
+			case DOWNLOAD_TEXT:
+				nFlags |= MessageHolder::FLAG_DOWNLOADTEXT;
+				break;
+			case DOWNLOAD_HEADER:
+			case DOWNLOAD_NONE:
+				break;
+			default:
+				assert(false);
+				break;
+			}
+			nFlags |= MessageHolder::FLAG_INDEXONLY;
+			
+			Lock<Account> lock(*pAccount_);
+			
+			MessageHolder* pmh = pAccount_->storeMessage(pFolder_,
+				buf.getCharArray(), &msg, nUid, nFlags, nSize, true);
+			if (!pmh)
+				return RESULT_ERROR;
+			
+			switch (download) {
+			case DOWNLOAD_ALL:
+				listMessageData_.push_back(MessageData(pmh, MessageData::TYPE_ALL, 0));
+				break;
+			case DOWNLOAD_TEXT:
+			case DOWNLOAD_HTML:
+				{
+					MessageData::Type type = download == DOWNLOAD_TEXT ?
+						MessageData::TYPE_TEXT : MessageData::TYPE_HTML;
+					listMessageData_.push_back(MessageData(pmh, type, pBodyStructure));
+					if (pBodyStructure) {
+						listBodyStructure_.push_back(pBodyStructure);
+						pFetch->detach(pBodyStructure);
+					}
+				}
+				break;
+			case DOWNLOAD_HEADER:
+				listMessageData_.push_back(MessageData(pmh, MessageData::TYPE_HEADER, 0));
+				break;
+			case DOWNLOAD_NONE:
+				break;
+			default:
+				assert(false);
+				break;
+			}
+			
+			if ((nFlags & MessageHolder::FLAG_SEEN) == 0)
+				pSessionCallback_->notifyNewMessage();
+			
+			return RESULT_PROCESSED;
 		}
 		
 		Document* pDocument_;
@@ -745,30 +651,25 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 	};
 	
 	if (nIdStart_ < nExists_) {
-		status = pCallback_->setMessage(IDS_DOWNLOADMESSAGESDATA);
-		CHECK_QSTATUS();
+		pCallback_->setMessage(IDS_DOWNLOADMESSAGESDATA);
 		
-		MacroVariableHolder globalVariable(&status);
-		CHECK_QSTATUS();
+		MacroVariableHolder globalVariable;
 		GetMessageDataProcessHook hook(pDocument_, pAccount_, pSubAccount_,
 			pFolder_, hwnd_, pProfile_, pSessionCallback_, pSyncFilterSet,
 			nOption, nUidStart_, listMessageData, listMakeSeen, listMakeDeleted,
-			listBodyStructure, pImap4_, &globalVariable, this);
+			listBodyStructure, pImap4_.get(), &globalVariable, this);
 		Hook h(this, &hook);
 		for (unsigned int nId = nIdStart_ + 1; nId <= nExists_; nId += nFetchCount) {
-			ContinuousRange range(nId,
-				QSMIN(static_cast<unsigned long>(nId + nFetchCount - 1), nExists_),
-				false, &status);
-			CHECK_QSTATUS();
-			status = pImap4_->getMessageData(range, (nOption & OPTION_USEENVELOPE) == 0,
-				(nOption & OPTION_USEBODYSTRUCTUREALWAYS) != 0, strAdditionalFields.get());
-			CHECK_QSTATUS_ERROR();
+			unsigned long nEnd = QSMIN(static_cast<unsigned long>(nId + nFetchCount - 1), nExists_);
+			ContinuousRange range(nId, nEnd, false);
+			if (!pImap4_->getMessageData(range, (nOption & OPTION_USEENVELOPE) == 0,
+				(nOption & OPTION_USEBODYSTRUCTUREALWAYS) != 0, strAdditionalFields.get()))
+				HANDLE_ERROR();
 		}
 	}
 	
 	if (!listMakeSeen.empty() || !listMakeDeleted.empty()) {
-		status = pCallback_->setMessage(IDS_SETFLAGS);
-		CHECK_QSTATUS();
+		pCallback_->setMessage(IDS_SETFLAGS);
 		
 		struct
 		{
@@ -780,55 +681,43 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 		};
 		for (int n = 0; n < countof(items); ++n) {
 			if (!items[n].p_->empty()) {
-				MultipleRange range(&(*items[n].p_)[0],
-					items[n].p_->size(), true, &status);
-				CHECK_QSTATUS();
-				Flags flags(items[n].flag_, &status);
-				CHECK_QSTATUS();
-				Flags mask(items[n].flag_, &status);
-				CHECK_QSTATUS();
-				status = pImap4_->setFlags(range, flags, mask);
-				CHECK_QSTATUS_ERROR();
+				MultipleRange range(&(*items[n].p_)[0], items[n].p_->size(), true);
+				Flags flags(items[n].flag_);
+				Flags mask(items[n].flag_);
+				if (!pImap4_->setFlags(range, flags, mask))
+					HANDLE_ERROR();
 			}
 		}
 	}
 	
 	if (!listMessageData.empty()) {
-		status = pCallback_->setMessage(IDS_DOWNLOADMESSAGES);
-		CHECK_QSTATUS();
+		pCallback_->setMessage(IDS_DOWNLOADMESSAGES);
 		
 		UidList listAllUid;
 		UidList listHeaderUid;
 		MessageDataList listPartial;
-		MessageDataList::const_iterator it = listMessageData.begin();
-		while (it != listMessageData.end()) {
+		for (MessageDataList::const_iterator it = listMessageData.begin(); it != listMessageData.end(); ++it) {
 			switch ((*it).getType()) {
 			case MessageData::TYPE_HEADER:
-				status = STLWrapper<UidList>(listHeaderUid).push_back((*it).getId());
-				CHECK_QSTATUS();
+				listHeaderUid.push_back((*it).getId());
 				break;
 			case MessageData::TYPE_TEXT:
 			case MessageData::TYPE_HTML:
-				status = STLWrapper<MessageDataList>(listPartial).push_back(*it);
-				CHECK_QSTATUS();
+				listPartial.push_back(*it);
 				break;
 			case MessageData::TYPE_ALL:
-				status = STLWrapper<UidList>(listAllUid).push_back((*it).getId());
-				CHECK_QSTATUS();
+				listAllUid.push_back((*it).getId());
 				break;
 			default:
 				break;
 			}
-			++it;
 		}
 		
 		unsigned int nPos = 0;
-		status = pSessionCallback_->setRange(0,
+		pSessionCallback_->setRange(0,
 			listHeaderUid.size() + listAllUid.size() +
 			listPartial.size()*(nOption & OPTION_USEBODYSTRUCTUREALWAYS ? 1 : 2));
-		CHECK_QSTATUS();
-		status = pSessionCallback_->setPos(0);
-		CHECK_QSTATUS();
+		pSessionCallback_->setPos(0);
 		
 		if ((nOption & OPTION_USEBODYSTRUCTUREALWAYS) == 0 && !listPartial.empty()) {
 			class BodyStructureProcessHook : public AbstractBodyStructureProcessHook
@@ -838,8 +727,9 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 			
 			public:
 				BodyStructureProcessHook(MessageDataList& listMessageData,
-					BodyStructureList& listBodyStructure,
-					ReceiveSessionCallback* pSessionCallback, unsigned int* pnPos) :
+										 BodyStructureList& listBodyStructure,
+										 ReceiveSessionCallback* pSessionCallback,
+										 unsigned int* pnPos) :
 					listMessageData_(listMessageData),
 					listBodyStructure_(listBodyStructure),
 					pSessionCallback_(pSessionCallback),
@@ -848,11 +738,10 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 				}
 				
 			protected:
-				virtual qs::QSTATUS setBodyStructure(unsigned long nUid,
-					FetchDataBodyStructure* pBodyStructure, bool* pbSet)
+				virtual bool setBodyStructure(unsigned long nUid,
+											  FetchDataBodyStructure* pBodyStructure,
+											  bool* pbSet)
 				{
-					DECLARE_QSTATUS();
-					
 					MessageDataList::iterator it = std::find_if(
 						listMessageData_.begin(), listMessageData_.end(),
 						std::bind2nd(
@@ -862,20 +751,18 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 								std::identity<unsigned long>()),
 							nUid));
 					if (it != listMessageData_.end()) {
-						status = STLWrapper<BodyStructureList>(
-							listBodyStructure_).push_back(pBodyStructure);
-						CHECK_QSTATUS();
+						listBodyStructure_.push_back(pBodyStructure);
 						(*it).setBodyStructure(pBodyStructure);
 						*pbSet = true;
 					}
 					
-					return QSTATUS_SUCCESS;
+					return true;
 				}
 				
-				virtual qs::QSTATUS processed()
+				virtual void processed()
 				{
 					++(*pnPos_);
-					return pSessionCallback_->setPos(*pnPos_);
+					pSessionCallback_->setPos(*pnPos_);
 				}
 			
 			private:
@@ -887,23 +774,18 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 			Hook h(this, &hook);
 			
 			UidList listPartialUid;
-			status = STLWrapper<UidList>(listPartialUid).resize(listPartial.size());
-			CHECK_QSTATUS();
+			listPartialUid.resize(listPartial.size());
 			std::transform(listPartial.begin(), listPartial.end(),
 				listPartialUid.begin(), std::mem_fun_ref(&MessageData::getId));
-			MultipleRange range(&listPartialUid[0], listPartialUid.size(), true, &status);
-			CHECK_QSTATUS();
-			status = pImap4_->getBodyStructure(range);
-			CHECK_QSTATUS_ERROR();
+			MultipleRange range(&listPartialUid[0], listPartialUid.size(), true);
+			if (!pImap4_->getBodyStructure(range))
+				HANDLE_ERROR();
 			
 			bool bMoved = false;
-			MessageDataList::iterator it = listPartial.begin();
-			while (it != listPartial.end()) {
+			for (MessageDataList::iterator it = listPartial.begin(); it != listPartial.end(); ) {
 				FetchDataBodyStructure* pBodyStructure = (*it).getBodyStructure();
-				if (!pBodyStructure ||
-					!Util::hasAttachmentPart(pBodyStructure)) {
-					status = STLWrapper<UidList>(listAllUid).push_back((*it).getId());
-					CHECK_QSTATUS();
+				if (!pBodyStructure || !Util::hasAttachmentPart(pBodyStructure)) {
+					listAllUid.push_back((*it).getId());
 					it = listPartial.erase(it);
 					bMoved = true;
 				}
@@ -919,9 +801,10 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 		{
 		public:
 			MessageProcessHook(Account* pAccount,
-				const MessageDataList& listMessageData,
-				ReceiveSessionCallback* pSessionCallback,
-				bool bHeader, unsigned int* pnPos) :
+							   const MessageDataList& listMessageData,
+							   ReceiveSessionCallback* pSessionCallback,
+							   bool bHeader,
+							   unsigned int* pnPos) :
 				pAccount_(pAccount),
 				listMessageData_(listMessageData),
 				it_(listMessageData_.begin()),
@@ -966,7 +849,7 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 								std::identity<unsigned long>()),
 							nUid));
 					if (m == it_)
-						return QSTATUS_SUCCESS;
+						return 0;
 				}
 				
 				it_ = m;
@@ -974,10 +857,10 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 				return (*it_).getMessagePtr();
 			}
 			
-			virtual QSTATUS processed()
+			virtual void processed()
 			{
 				++(*pnPos_);
-				return pSessionCallback_->setPos(*pnPos_);
+				pSessionCallback_->setPos(*pnPos_);
 			}
 		
 		private:
@@ -994,10 +877,9 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 				listMessageData, pSessionCallback_, false, &nPos);
 			Hook h(this, &hook);
 			
-			MultipleRange range(&listAllUid[0], listAllUid.size(), true, &status);
-			CHECK_QSTATUS();
-			status = pImap4_->getMessage(range, true);
-			CHECK_QSTATUS_ERROR();
+			MultipleRange range(&listAllUid[0], listAllUid.size(), true);
+			if (!pImap4_->getMessage(range, true))
+				HANDLE_ERROR();
 		}
 		
 		if (!listPartial.empty()) {
@@ -1005,9 +887,11 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 			{
 			public:
 				PartialMessageProcessHook(Account* pAccount,
-					const MessageDataList& listMessageData,
-					FetchDataBodyStructure* pBodyStructure,
-					const PartList& listPart, unsigned int nPartCount, bool bAll) :
+										  const MessageDataList& listMessageData,
+										  FetchDataBodyStructure* pBodyStructure,
+										  const PartList& listPart,
+										  unsigned int nPartCount,
+										  bool bAll) :
 					pAccount_(pAccount),
 					listMessageData_(listMessageData),
 					it_(listMessageData_.begin()),
@@ -1044,7 +928,7 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 					return false;
 				}
 				
-				virtual qm::MessagePtr getMessagePtr(unsigned long nUid)
+				virtual MessagePtr getMessagePtr(unsigned long nUid)
 				{
 					MessageDataList::const_iterator m = std::find_if(
 						it_, listMessageData_.end(),
@@ -1063,7 +947,7 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 									std::identity<unsigned long>()),
 								nUid));
 						if (m == it_)
-							return QSTATUS_SUCCESS;
+							return 0;
 					}
 					
 					it_ = m;
@@ -1071,9 +955,8 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 					return (*it_).getMessagePtr();
 				}
 				
-				virtual qs::QSTATUS processed()
+				virtual void processed()
 				{
-					return QSTATUS_SUCCESS;
 				}
 			
 			private:
@@ -1086,41 +969,33 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 				bool bAll_;
 			};
 			
-			MessageDataList::iterator it = listPartial.begin();
-			while (it != listPartial.end()) {
+			for (MessageDataList::iterator it = listPartial.begin(); it != listPartial.end(); ++it) {
 				Util::PartList listPart;
 				Util::PartListDeleter deleter(listPart);
 				unsigned int nPath = 0;
-				status = Util::getPartsFromBodyStructure(
-					(*it).getBodyStructure(), &nPath, &listPart);
-				CHECK_QSTATUS();
+				Util::getPartsFromBodyStructure((*it).getBodyStructure(), &nPath, &listPart);
 				
 				if (!listPart.empty()) {
-					string_ptr<STRING> strArg;
+					string_ptr strArg;
 					unsigned int nPartCount = 0;
 					bool bAll = false;
-					status = Util::getFetchArgFromPartList(listPart,
+					Util::getFetchArgFromPartList(listPart,
 						(*it).getType() == MessageData::TYPE_HTML ?
 							Util::FETCHARG_HTML : Util::FETCHARG_TEXT,
 						true, (nOption & OPTION_TRUSTBODYSTRUCTURE) == 0,
 						&strArg, &nPartCount, &bAll);
-					CHECK_QSTATUS();
 					
 					PartialMessageProcessHook hook(pAccount_, listMessageData,
 						(*it).getBodyStructure(), listPart, nPartCount, bAll);
 					Hook h(this, &hook);
 					
-					SingleRange range((*it).getId(), true, &status);
-					CHECK_QSTATUS();
-					status = pImap4_->fetch(range, strArg.get());
-					CHECK_QSTATUS_ERROR();
+					SingleRange range((*it).getId(), true);
+					if (!pImap4_->fetch(range, strArg.get()))
+						HANDLE_ERROR();
 				}
 				
-				status = pSessionCallback_->setPos(nPos);
-				CHECK_QSTATUS();
+				pSessionCallback_->setPos(nPos);
 				++nPos;
-				
-				++it;
 			}
 		}
 		
@@ -1129,70 +1004,55 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 				listMessageData, pSessionCallback_, true, &nPos);
 			Hook h(this, &hook);
 			
-			MultipleRange range(&listHeaderUid[0], listHeaderUid.size(), true, &status);
-			CHECK_QSTATUS();
-			status = pImap4_->getHeader(range, true);
-			CHECK_QSTATUS_ERROR();
+			MultipleRange range(&listHeaderUid[0], listHeaderUid.size(), true);
+			if (!pImap4_->getHeader(range, true))
+				HANDLE_ERROR();
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::applyOfflineJobs()
+bool qmimap4::Imap4ReceiveSession::applyOfflineJobs()
 {
-	DECLARE_QSTATUS();
+	pCallback_->setMessage(IDS_APPLYOFFLINEJOBS);
 	
-	status = pCallback_->setMessage(IDS_APPLYOFFLINEJOBS);
-	CHECK_QSTATUS();
-	
-	Imap4Driver* pDriver = static_cast<Imap4Driver*>(
-		pAccount_->getProtocolDriver());
+	Imap4Driver* pDriver = static_cast<Imap4Driver*>(pAccount_->getProtocolDriver());
 	OfflineJobManager* pManager = pDriver->getOfflineJobManager();
-	status = pManager->apply(pAccount_, pImap4_, pSessionCallback_);
-	CHECK_QSTATUS();
+	if (!pManager->apply(pAccount_, pImap4_.get(), pSessionCallback_))
+		return false;
 	
-	status = downloadReservedMessages();
-	CHECK_QSTATUS();
+	if (!downloadReservedMessages())
+		return false;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::downloadReservedMessages()
+bool qmimap4::Imap4ReceiveSession::downloadReservedMessages()
 {
-	DECLARE_QSTATUS();
-	
 	const Account::FolderList& listFolder = pAccount_->getFolders();
-	Account::FolderList::const_iterator it = listFolder.begin();
-	while (it != listFolder.end()) {
+	for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
 		Folder* pFolder = *it;
 		if (pFolder->getType() == Folder::TYPE_NORMAL &&
 			!(pFolder->getFlags() & Folder::FLAG_LOCAL) &&
 			pFolder->getFlags() & Folder::FLAG_SYNCABLE) {
-			status = downloadReservedMessages(
-				static_cast<NormalFolder*>(pFolder));
-			CHECK_QSTATUS();
+			if (!downloadReservedMessages(static_cast<NormalFolder*>(pFolder)))
+				return false;
 		}
-		++it;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::downloadReservedMessages(
-	NormalFolder* pFolder)
+bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolder)
 {
-	DECLARE_QSTATUS();
-	
 	if (pFolder->getDownloadCount() != 0) {
-		int nOption = 0;
-		status = pSubAccount_->getProperty(L"Imap4", L"Option", 0xff, &nOption);
-		CHECK_QSTATUS();
+		int nOption = pSubAccount_->getProperty(L"Imap4", L"Option", 0xff);
 		
 		Lock<Account> lock(*pAccount_);
 		
-		status = pFolder->loadMessageHolders();
-		CHECK_QSTATUS();
+		if (!pFolder->loadMessageHolders())
+			return false;
 		
 		typedef std::vector<unsigned long> UidList;
 		UidList listAll;
@@ -1201,22 +1061,16 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadReservedMessages(
 		for (unsigned int n = 0; n < pFolder->getCount(); ++n) {
 			MessageHolder* pmh = pFolder->getMessage(n);
 			unsigned int nFlags = pmh->getFlags();
-			if (nFlags & MessageHolder::FLAG_DOWNLOAD) {
-				status = STLWrapper<UidList>(listAll).push_back(pmh->getId());
-				CHECK_QSTATUS();
-			}
-			else if (nFlags & MessageHolder::FLAG_DOWNLOADTEXT) {
-				status = STLWrapper<UidList>(listText).push_back(pmh->getId());
-				CHECK_QSTATUS();
-			}
+			if (nFlags & MessageHolder::FLAG_DOWNLOAD)
+				listAll.push_back(pmh->getId());
+			else if (nFlags & MessageHolder::FLAG_DOWNLOADTEXT)
+				listText.push_back(pmh->getId());
 		}
 		
 		if (!listAll.empty() || !listText.empty()) {
-			string_ptr<WSTRING> wstrName;
-			status = Util::getFolderName(pFolder, &wstrName);
-			CHECK_QSTATUS();
-			status = pImap4_->select(wstrName.get());
-			CHECK_QSTATUS_ERROR();
+			wstring_ptr wstrName(Util::getFolderName(pFolder));
+			if (!pImap4_->select(wstrName.get()))
+				HANDLE_ERROR();
 		}
 		
 		if (!listAll.empty()) {
@@ -1226,7 +1080,8 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadReservedMessages(
 				typedef std::vector<unsigned long> UidList;
 			
 			public:
-				MessageProcessHook(NormalFolder* pFolder, const UidList& listUid) :
+				MessageProcessHook(NormalFolder* pFolder,
+								   const UidList& listUid) :
 					pFolder_(pFolder),
 					listUid_(listUid)
 				{
@@ -1254,13 +1109,12 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadReservedMessages(
 					UidList::const_iterator it = std::lower_bound(
 						listUid_.begin(), listUid_.end(), nUid);
 					if (it != listUid_.end() && *it == nUid)
-						pmh = pFolder_->getMessageById(nUid);
+						pmh = pFolder_->getMessageHolderById(nUid);
 					return MessagePtr(pmh);
 				}
 				
-				virtual qs::QSTATUS processed()
+				virtual void processed()
 				{
-					return QSTATUS_SUCCESS;
 				}
 			
 			private:
@@ -1273,19 +1127,16 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadReservedMessages(
 			
 			Hook h(this, &hook);
 			
-			MultipleRange range(&listAll[0], listAll.size(), true, &status);
-			CHECK_QSTATUS();
-			status = pImap4_->getMessage(range, true);
-			CHECK_QSTATUS_ERROR();
+			MultipleRange range(&listAll[0], listAll.size(), true);
+			if (!pImap4_->getMessage(range, true))
+				HANDLE_ERROR();
 		}
 		
 		if (!listText.empty()) {
 			typedef std::vector<FetchDataBodyStructure*> BodyStructureList;
 			BodyStructureList listBodyStructure;
 			container_deleter<BodyStructureList> deleter(listBodyStructure);
-			status = STLWrapper<BodyStructureList>(
-				listBodyStructure).resize(listText.size());
-			CHECK_QSTATUS();
+			listBodyStructure.resize(listText.size());
 			
 			class BodyStructureProcessHook : public AbstractBodyStructureProcessHook
 			{
@@ -1295,15 +1146,16 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadReservedMessages(
 			
 			public:
 				BodyStructureProcessHook(const UidList& listUid,
-					BodyStructureList& listBodyStructure) :
+										 BodyStructureList& listBodyStructure) :
 					listUid_(listUid),
 					listBodyStructure_(listBodyStructure)
 				{
 				}
 			
 			protected:
-				virtual qs::QSTATUS setBodyStructure(unsigned long nUid,
-					FetchDataBodyStructure* pBodyStructure, bool* pbSet)
+				virtual bool setBodyStructure(unsigned long nUid,
+											  FetchDataBodyStructure* pBodyStructure,
+											  bool* pbSet)
 				{
 					UidList::const_iterator it = std::lower_bound(
 						listUid_.begin(), listUid_.end(), nUid);
@@ -1311,12 +1163,11 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadReservedMessages(
 						listBodyStructure_[it - listUid_.begin()] = pBodyStructure;
 						*pbSet = true;
 					}
-					return QSTATUS_SUCCESS;
+					return true;
 				}
 				
-				virtual qs::QSTATUS processed()
+				virtual void processed()
 				{
-					return QSTATUS_SUCCESS;
 				}
 			
 			private:
@@ -1328,10 +1179,9 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadReservedMessages(
 			// TODO
 			// Callback progress
 			
-			MultipleRange range(&listText[0], listText.size(), true, &status);
-			CHECK_QSTATUS();
-			status = pImap4_->getBodyStructure(range);
-			CHECK_QSTATUS_ERROR();
+			MultipleRange range(&listText[0], listText.size(), true);
+			if (!pImap4_->getBodyStructure(range))
+				HANDLE_ERROR();
 			
 			class PartialMessageProcessHook : public AbstractPartialMessageProcessHook
 			{
@@ -1340,8 +1190,11 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadReservedMessages(
 			
 			public:
 				PartialMessageProcessHook(NormalFolder* pFolder,
-					const UidList& listUid, FetchDataBodyStructure* pBodyStructure,
-					const PartList& listPart, unsigned int nPartCount, bool bAll) :
+										  const UidList& listUid,
+										  FetchDataBodyStructure* pBodyStructure,
+										  const PartList& listPart,
+										  unsigned int nPartCount,
+										  bool bAll) :
 					pFolder_(pFolder),
 					listUid_(listUid),
 					pBodyStructure_(pBodyStructure),
@@ -1383,13 +1236,12 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadReservedMessages(
 					UidList::const_iterator it = std::lower_bound(
 						listUid_.begin(), listUid_.end(), nUid);
 					if (it != listUid_.end() && *it == nUid)
-						pmh = pFolder_->getMessageById(nUid);
+						pmh = pFolder_->getMessageHolderById(nUid);
 					return MessagePtr(pmh);
 				}
 				
-				virtual qs::QSTATUS processed()
+				virtual void processed()
 				{
-					return QSTATUS_SUCCESS;
 				}
 			
 			private:
@@ -1405,118 +1257,100 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadReservedMessages(
 					Util::PartList listPart;
 					Util::PartListDeleter deleter(listPart);
 					unsigned int nPath = 0;
-					status = Util::getPartsFromBodyStructure(
-						listBodyStructure[n], &nPath, &listPart);
-					CHECK_QSTATUS();
+					Util::getPartsFromBodyStructure(listBodyStructure[n], &nPath, &listPart);
 					
 					if (!listPart.empty()) {
-						string_ptr<STRING> strArg;
+						string_ptr strArg;
 						unsigned int nPartCount = 0;
 						bool bAll = false;
-						status = Util::getFetchArgFromPartList(
-							listPart, Util::FETCHARG_TEXT, true,
-							(nOption & OPTION_TRUSTBODYSTRUCTURE) == 0,
+						Util::getFetchArgFromPartList(listPart, Util::FETCHARG_TEXT,
+							true, (nOption & OPTION_TRUSTBODYSTRUCTURE) == 0,
 							&strArg, &nPartCount, &bAll);
-						CHECK_QSTATUS();
 						
 						PartialMessageProcessHook hook(pFolder, listText,
 							listBodyStructure[n], listPart, nPartCount, bAll);
 						Hook h(this, &hook);
 						
-						SingleRange range(listText[n], true, &status);
-						CHECK_QSTATUS();
-						status = pImap4_->fetch(range, strArg.get());
-						CHECK_QSTATUS_ERROR();
+						SingleRange range(listText[n], true);
+						if (!pImap4_->fetch(range, strArg.get()))
+							HANDLE_ERROR();
 					}
 				}
 			}
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::processCapabilityResponse(
-	ResponseCapability* pCapability)
+bool qmimap4::Imap4ReceiveSession::processCapabilityResponse(ResponseCapability* pCapability)
 {
 	// TODO
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::processContinueResponse(
-	ResponseContinue* pContinue)
+bool qmimap4::Imap4ReceiveSession::processContinueResponse(ResponseContinue* pContinue)
 {
 	// TODO
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::processExistsResponse(
-	ResponseExists* pExists)
+bool qmimap4::Imap4ReceiveSession::processExistsResponse(ResponseExists* pExists)
 {
 	nExists_ = pExists->getExists();
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::processExpungeResponse(
-	ResponseExpunge* pExpunge)
+bool qmimap4::Imap4ReceiveSession::processExpungeResponse(ResponseExpunge* pExpunge)
 {
 	// TODO
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::processFetchResponse(
-	ResponseFetch* pFetch)
+bool qmimap4::Imap4ReceiveSession::processFetchResponse(ResponseFetch* pFetch)
 {
-	DECLARE_QSTATUS();
-	
-	bool bProcessed = false;
+	ProcessHook::Result result = ProcessHook::RESULT_UNPROCESSED;
 	if (pProcessHook_) {
-		status = pProcessHook_->processFetchResponse(
-			pFetch, &bProcessed);
-		CHECK_QSTATUS();
+		result = pProcessHook_->processFetchResponse(pFetch);
+		if (result == ProcessHook::RESULT_ERROR)
+			return false;
 	}
-	if (!bProcessed) {
+	if (result == ProcessHook::RESULT_UNPROCESSED) {
 		// TODO
 	}
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::processFlagsResponse(
-	ResponseFlags* pFlags)
+bool qmimap4::Imap4ReceiveSession::processFlagsResponse(ResponseFlags* pFlags)
 {
 	// TODO
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::processListResponse(
-	ResponseList* pList)
+bool qmimap4::Imap4ReceiveSession::processListResponse(ResponseList* pList)
 {
 	// TODO
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::processNamespaceResponse(
-	ResponseNamespace* pNamespace)
+bool qmimap4::Imap4ReceiveSession::processNamespaceResponse(ResponseNamespace* pNamespace)
 {
 	// TODO
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::processRecentResponse(
-	ResponseRecent* pRecent)
+bool qmimap4::Imap4ReceiveSession::processRecentResponse(ResponseRecent* pRecent)
 {
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::processSearchResponse(
-	ResponseSearch* pSearch)
+bool qmimap4::Imap4ReceiveSession::processSearchResponse(ResponseSearch* pSearch)
 {
 	// TODO
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::processStateResponse(
-	ResponseState* pState)
+bool qmimap4::Imap4ReceiveSession::processStateResponse(ResponseState* pState)
 {
 	State* p = pState->getState();
 	switch (p->getCode()) {
@@ -1549,25 +1383,22 @@ QSTATUS qmimap4::Imap4ReceiveSession::processStateResponse(
 		break;
 	default:
 		assert(false);
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
 	// TODO
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::processStatusResponse(
-	ResponseStatus* pStatus)
+bool qmimap4::Imap4ReceiveSession::processStatusResponse(ResponseStatus* pStatus)
 {
 	// TODO
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::reportError()
+void qmimap4::Imap4ReceiveSession::reportError()
 {
-	assert(pImap4_);
-	
-	DECLARE_QSTATUS();
+	assert(pImap4_.get());
 	
 	struct
 	{
@@ -1634,21 +1465,15 @@ QSTATUS qmimap4::Imap4ReceiveSession::reportError()
 		Imap4::IMAP4_ERROR_MASK_LOWLEVEL,
 		Socket::SOCKET_ERROR_MASK_SOCKET
 	};
-	string_ptr<WSTRING> wstrDescriptions[countof(maps)];
+	wstring_ptr wstrDescriptions[countof(maps)];
 	for (int n = 0; n < countof(maps); ++n) {
 		for (int m = 0; m < countof(maps[n]) && !wstrDescriptions[n].get(); ++m) {
-			if (maps[n][m].nError_ != 0 &&
-				(nError & nMasks[n]) == maps[n][m].nError_) {
-				status = loadString(getResourceHandle(),
-					maps[n][m].nId_, &wstrDescriptions[n]);
-				CHECK_QSTATUS();
-			}
+			if (maps[n][m].nError_ != 0 && (nError & nMasks[n]) == maps[n][m].nError_)
+				wstrDescriptions[n] = loadString(getResourceHandle(), maps[n][m].nId_);
 		}
 	}
 	
-	string_ptr<WSTRING> wstrMessage;
-	status = loadString(getResourceHandle(), IDS_ERROR_MESSAGE, &wstrMessage);
-	CHECK_QSTATUS();
+	wstring_ptr wstrMessage(loadString(getResourceHandle(), IDS_ERROR_MESSAGE));
 	
 	const WCHAR* pwszDescription[] = {
 		wstrDescriptions[0].get(),
@@ -1658,10 +1483,7 @@ QSTATUS qmimap4::Imap4ReceiveSession::reportError()
 	};
 	SessionErrorInfo info(pAccount_, pSubAccount_, 0, wstrMessage.get(),
 		nError, pwszDescription, countof(pwszDescription));
-	status = pSessionCallback_->addError(info);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	pSessionCallback_->addError(info);
 }
 
 
@@ -1671,11 +1493,11 @@ QSTATUS qmimap4::Imap4ReceiveSession::reportError()
  *
  */
 
-qmimap4::Imap4ReceiveSession::CallbackImpl::CallbackImpl(
-	Imap4ReceiveSession* pSession, SubAccount* pSubAccount,
-	const Security* pSecurity, ReceiveSessionCallback* pSessionCallback,
-	QSTATUS* pstatus) :
-	AbstractCallback(pSubAccount, pSecurity, pstatus),
+qmimap4::Imap4ReceiveSession::CallbackImpl::CallbackImpl(Imap4ReceiveSession* pSession,
+														 SubAccount* pSubAccount,
+														 const Security* pSecurity,
+														 ReceiveSessionCallback* pSessionCallback) :
+	AbstractCallback(pSubAccount, pSecurity),
 	pSession_(pSession),
 	pSessionCallback_(pSessionCallback)
 {
@@ -1685,15 +1507,10 @@ qmimap4::Imap4ReceiveSession::CallbackImpl::~CallbackImpl()
 {
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::CallbackImpl::setMessage(UINT nId)
+void qmimap4::Imap4ReceiveSession::CallbackImpl::setMessage(UINT nId)
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrMessage;
-	status = loadString(getResourceHandle(), nId, &wstrMessage);
-	CHECK_QSTATUS();
-	
-	return pSessionCallback_->setMessage(wstrMessage.get());
+	wstring_ptr wstrMessage(loadString(getResourceHandle(), nId));
+	pSessionCallback_->setMessage(wstrMessage.get());
 }
 
 bool qmimap4::Imap4ReceiveSession::CallbackImpl::isCanceled(bool bForce) const
@@ -1701,52 +1518,50 @@ bool qmimap4::Imap4ReceiveSession::CallbackImpl::isCanceled(bool bForce) const
 	return pSessionCallback_->isCanceled(bForce);
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::CallbackImpl::initialize()
+void qmimap4::Imap4ReceiveSession::CallbackImpl::initialize()
 {
-	return setMessage(IDS_INITIALIZE);
+	setMessage(IDS_INITIALIZE);
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::CallbackImpl::lookup()
+void qmimap4::Imap4ReceiveSession::CallbackImpl::lookup()
 {
-	return setMessage(IDS_LOOKUP);
+	setMessage(IDS_LOOKUP);
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::CallbackImpl::connecting()
+void qmimap4::Imap4ReceiveSession::CallbackImpl::connecting()
 {
-	return setMessage(IDS_CONNECTING);
+	setMessage(IDS_CONNECTING);
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::CallbackImpl::connected()
+void qmimap4::Imap4ReceiveSession::CallbackImpl::connected()
 {
-	return setMessage(IDS_CONNECTED);
+	setMessage(IDS_CONNECTED);
 }
 
 
-QSTATUS qmimap4::Imap4ReceiveSession::CallbackImpl::authenticating()
+void qmimap4::Imap4ReceiveSession::CallbackImpl::authenticating()
 {
-	return setMessage(IDS_AUTHENTICATING);
+	setMessage(IDS_AUTHENTICATING);
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::CallbackImpl::setRange(
-	unsigned int nMin, unsigned int nMax)
+void qmimap4::Imap4ReceiveSession::CallbackImpl::setRange(unsigned int nMin,
+														  unsigned int nMax)
 {
-	return pSessionCallback_->setSubRange(nMin, nMax);
+	pSessionCallback_->setSubRange(nMin, nMax);
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::CallbackImpl::setPos(unsigned int nPos)
+void qmimap4::Imap4ReceiveSession::CallbackImpl::setPos(unsigned int nPos)
 {
-	return pSessionCallback_->setSubPos(nPos);
+	pSessionCallback_->setSubPos(nPos);
 }
 
-QSTATUS qmimap4::Imap4ReceiveSession::CallbackImpl::response(Response* pResponse)
+bool qmimap4::Imap4ReceiveSession::CallbackImpl::response(Response* pResponse)
 {
-	DECLARE_QSTATUS();
-	
 #define MAP_RESPONSE(type, name) \
 	case Response::type: \
-		status = pSession_->process##name##Response( \
-			static_cast<Response##name*>(pResponse)); \
-		CHECK_QSTATUS(); \
+		if (!pSession_->process##name##Response( \
+			static_cast<Response##name*>(pResponse))) \
+			return false; \
 		break \
 	
 	switch (pResponse->getType()) {
@@ -1764,10 +1579,10 @@ QSTATUS qmimap4::Imap4ReceiveSession::CallbackImpl::response(Response* pResponse
 	MAP_RESPONSE(TYPE_STATUS, Status);
 	default:
 		assert(false);
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -1800,7 +1615,7 @@ void Imap4ReceiveSession::Hook::unhook()
  *
  */
 
-qmimap4::Imap4ReceiveSessionUI::Imap4ReceiveSessionUI(QSTATUS* pstatus)
+qmimap4::Imap4ReceiveSessionUI::Imap4ReceiveSessionUI()
 {
 }
 
@@ -1813,10 +1628,9 @@ const WCHAR* qmimap4::Imap4ReceiveSessionUI::getClass()
 	return L"mail";
 }
 
-QSTATUS qmimap4::Imap4ReceiveSessionUI::getDisplayName(WSTRING* pwstrName)
+wstring_ptr qmimap4::Imap4ReceiveSessionUI::getDisplayName()
 {
-	assert(pwstrName);
-	return loadString(getResourceHandle(), IDS_IMAP4, pwstrName);
+	return loadString(getResourceHandle(), IDS_IMAP4);
 }
 
 short qmimap4::Imap4ReceiveSessionUI::getDefaultPort()
@@ -1824,22 +1638,9 @@ short qmimap4::Imap4ReceiveSessionUI::getDefaultPort()
 	return 143;
 }
 
-QSTATUS qmimap4::Imap4ReceiveSessionUI::createPropertyPage(
-	SubAccount* pSubAccount, PropertyPage** ppPage)
+std::auto_ptr<PropertyPage> qmimap4::Imap4ReceiveSessionUI::createPropertyPage(SubAccount* pSubAccount)
 {
-	assert(ppPage);
-	
-	DECLARE_QSTATUS();
-	
-	*ppPage = 0;
-	
-	std::auto_ptr<ReceivePage> pPage;
-	status = newQsObject(pSubAccount, &pPage);
-	CHECK_QSTATUS();
-	
-	*ppPage = pPage.release();
-	
-	return QSTATUS_SUCCESS;
+	return new ReceivePage(pSubAccount);
 }
 
 
@@ -1853,43 +1654,22 @@ Imap4ReceiveSessionFactory qmimap4::Imap4ReceiveSessionFactory::factory__;
 
 qmimap4::Imap4ReceiveSessionFactory::Imap4ReceiveSessionFactory()
 {
-	regist(L"imap4", this);
+	registerFactory(L"imap4", this);
 }
 
 qmimap4::Imap4ReceiveSessionFactory::~Imap4ReceiveSessionFactory()
 {
-	unregist(L"imap4");
+	unregisterFactory(L"imap4");
 }
 
-QSTATUS qmimap4::Imap4ReceiveSessionFactory::createSession(
-	ReceiveSession** ppReceiveSession)
+std::auto_ptr<ReceiveSession> qmimap4::Imap4ReceiveSessionFactory::createSession()
 {
-	assert(ppReceiveSession);
-	
-	DECLARE_QSTATUS();
-	
-	Imap4ReceiveSession* pSession = 0;
-	status = newQsObject(&pSession);
-	CHECK_QSTATUS();
-	
-	*ppReceiveSession = pSession;
-	
-	return QSTATUS_SUCCESS;
+	return new Imap4ReceiveSession();
 }
 
-QSTATUS qmimap4::Imap4ReceiveSessionFactory::createUI(ReceiveSessionUI** ppUI)
+std::auto_ptr<ReceiveSessionUI> qmimap4::Imap4ReceiveSessionFactory::createUI()
 {
-	assert(ppUI);
-	
-	DECLARE_QSTATUS();
-	
-	Imap4ReceiveSessionUI* pUI = 0;
-	status = newQsObject(&pUI);
-	CHECK_QSTATUS();
-	
-	*ppUI = pUI;
-	
-	return QSTATUS_SUCCESS;
+	return new Imap4ReceiveSessionUI();
 }
 
 
@@ -1899,11 +1679,17 @@ QSTATUS qmimap4::Imap4ReceiveSessionFactory::createUI(ReceiveSessionUI** ppUI)
  *
  */
 
-qmimap4::Imap4SyncFilterCallback::Imap4SyncFilterCallback(
-	Document* pDocument, Account* pAccount,
-	NormalFolder* pFolder, Message* pMessage, unsigned int nUid,
-	unsigned int nSize, unsigned int nTextSize, HWND hwnd, Profile* pProfile,
-	MacroVariableHolder* pGlobalVariable, Imap4ReceiveSession* pSession) :
+qmimap4::Imap4SyncFilterCallback::Imap4SyncFilterCallback(Document* pDocument,
+														  Account* pAccount,
+														  NormalFolder* pFolder,
+														  Message* pMessage,
+														  unsigned int nUid,
+														  unsigned int nSize,
+														  unsigned int nTextSize,
+														  HWND hwnd,
+														  Profile* pProfile,
+														  MacroVariableHolder* pGlobalVariable,
+														  Imap4ReceiveSession* pSession) :
 	pDocument_(pDocument),
 	pAccount_(pAccount),
 	pFolder_(pFolder),
@@ -1914,21 +1700,19 @@ qmimap4::Imap4SyncFilterCallback::Imap4SyncFilterCallback(
 	hwnd_(hwnd),
 	pProfile_(pProfile),
 	pGlobalVariable_(pGlobalVariable),
-	pSession_(pSession),
-	pmh_(0)
+	pSession_(pSession)
 {
 }
 
 qmimap4::Imap4SyncFilterCallback::~Imap4SyncFilterCallback()
 {
-	delete pmh_;
 }
 
-QSTATUS qmimap4::Imap4SyncFilterCallback::getMessage(unsigned int nFlags)
+bool qmimap4::Imap4SyncFilterCallback::getMessage(unsigned int nFlags)
 {
 	// TODO
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 const NormalFolder* qmimap4::Imap4SyncFilterCallback::getFolder()
@@ -1936,35 +1720,14 @@ const NormalFolder* qmimap4::Imap4SyncFilterCallback::getFolder()
 	return pFolder_;
 }
 
-QSTATUS qmimap4::Imap4SyncFilterCallback::getMacroContext(MacroContext** ppContext)
+std::auto_ptr<MacroContext> qmimap4::Imap4SyncFilterCallback::getMacroContext()
 {
-	assert(ppContext);
+	if (!pmh_.get())
+		pmh_.reset(new Imap4MessageHolder(this, pFolder_,
+			pMessage_, nUid_, nSize_, nTextSize_));
 	
-	DECLARE_QSTATUS();
-	
-	if (!pmh_) {
-		status = newQsObject(this, pFolder_, pMessage_,
-			nUid_, nSize_, nTextSize_, &pmh_);
-		CHECK_QSTATUS();
-	}
-	MacroContext::Init init = {
-		pmh_,
-		pMessage_,
-		pAccount_,
-		pDocument_,
-		hwnd_,
-		pProfile_,
-		false,
-		0,
-		pGlobalVariable_,
-	};
-	std::auto_ptr<MacroContext> pContext;
-	status = newQsObject(init, &pContext);
-	CHECK_QSTATUS();
-	
-	*ppContext = pContext.release();
-	
-	return QSTATUS_SUCCESS;
+	return new MacroContext(pmh_.get(), pMessage_, pAccount_,
+		pDocument_, hwnd_, pProfile_, false, 0, pGlobalVariable_);
 }
 
 
@@ -1974,23 +1737,24 @@ QSTATUS qmimap4::Imap4SyncFilterCallback::getMacroContext(MacroContext** ppConte
  *
  */
 
-qmimap4::Imap4MessageHolder::Imap4MessageHolder(
-	Imap4SyncFilterCallback* pCallback, NormalFolder* pFolder,
-	Message* pMessage, unsigned int nId, unsigned int nSize,
-	unsigned int nTextSize, QSTATUS* pstatus) :
-	AbstractMessageHolder(pFolder, pMessage, nId, nSize, nTextSize, pstatus),
+qmimap4::Imap4MessageHolder::Imap4MessageHolder(Imap4SyncFilterCallback* pCallback,
+												NormalFolder* pFolder,
+												Message* pMessage,
+												unsigned int nId,
+												unsigned int nSize,
+												unsigned int nTextSize) :
+	AbstractMessageHolder(pFolder, pMessage, nId, nSize, nTextSize),
 	pCallback_(pCallback)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qmimap4::Imap4MessageHolder::~Imap4MessageHolder()
 {
 }
 
-QSTATUS qmimap4::Imap4MessageHolder::getMessage(unsigned int nFlags,
-	const WCHAR* pwszField, Message* pMessage)
+bool qmimap4::Imap4MessageHolder::getMessage(unsigned int nFlags,
+											 const WCHAR* pwszField,
+											 Message* pMessage)
 {
 	assert(pMessage == AbstractMessageHolder::getMessage());
 	
@@ -2009,7 +1773,7 @@ QSTATUS qmimap4::Imap4MessageHolder::getMessage(unsigned int nFlags,
 	
 	for (int n = 0; n < countof(pwszFields); ++n) {
 		if (wcsicmp(pwszField, pwszFields[n]) == 0)
-			return QSTATUS_SUCCESS;
+			return false;
 	}
 	
 	return pCallback_->getMessage(nFlags);

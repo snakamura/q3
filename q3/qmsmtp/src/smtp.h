@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -70,15 +70,6 @@ public:
 	};
 
 public:
-	struct Option
-	{
-		long nTimeout_;
-		qs::SocketCallback* pSocketCallback_;
-		qs::SSLSocketCallback* pSSLSocketCallback_;
-		SmtpCallback* pSmtpCallback_;
-		qs::Logger* pLogger_;
-	};
-	
 	struct SendMessageData
 	{
 		const CHAR* pszEnvelopeFrom_;
@@ -96,28 +87,40 @@ private:
 	};
 
 public:
-	Smtp(const Option& option, qs::QSTATUS* pstatus);
+	Smtp(long nTimeout,
+		 qs::SocketCallback* pSocketCallback,
+		 qs::SSLSocketCallback* pSSLSocketCallback,
+		 SmtpCallback* pSmtpCallback,
+		 qs::Logger* pLogger);
 	~Smtp();
 
 public:
-	qs::QSTATUS connect(const WCHAR* pwszHost, short nPort, Ssl ssl);
-	qs::QSTATUS disconnect();
-	qs::QSTATUS sendMessage(const SendMessageData& data);
+	bool connect(const WCHAR* pwszHost,
+				 short nPort, Ssl ssl);
+	void disconnect();
+	bool sendMessage(const SendMessageData& data);
 	
 	unsigned int getLastError() const;
 	const WCHAR* getLastErrorResponse() const;
 
 private:
-	qs::QSTATUS helo(unsigned int* pnAuth, bool* pbStartTls);
-	qs::QSTATUS receive(unsigned int* pnCode);
-	qs::QSTATUS receive(unsigned int* pnCode, qs::STRING* pstrResponse);
-	qs::QSTATUS send(const SendData* pSendData, size_t nDataLen,
-		bool bProgress, unsigned int* pnCode, qs::STRING* pstrResponse);
-	qs::QSTATUS sendCommand(const CHAR* psz, unsigned int* pnCode);
-	qs::QSTATUS sendCommand(const CHAR* psz,
-		unsigned int* pnCode, qs::STRING* pstrResponse);
-	qs::QSTATUS setErrorResponse(const CHAR* pszErrorResponse);
-	qs::QSTATUS getAuthMethods(unsigned int* pnAuth);
+	bool helo(unsigned int* pnAuth,
+			  bool* pbStartTls);
+	bool receive(unsigned int* pnCode);
+	bool receive(unsigned int* pnCode,
+				 qs::string_ptr* pstrResponse);
+	bool send(const SendData* pSendData,
+			  size_t nDataLen,
+			  bool bProgress,
+			  unsigned int* pnCode,
+			  qs::string_ptr* pstrResponse);
+	bool sendCommand(const CHAR* psz,
+					 unsigned int* pnCode);
+	bool sendCommand(const CHAR* psz,
+					 unsigned int* pnCode,
+					 qs::string_ptr* pstrResponse);
+	void setErrorResponse(const CHAR* pszErrorResponse);
+	unsigned int getAuthMethods();
 
 private:
 	Smtp(const Smtp&);
@@ -129,9 +132,9 @@ private:
 	qs::SSLSocketCallback* pSSLSocketCallback_;
 	SmtpCallback* pSmtpCallback_;
 	qs::Logger* pLogger_;
-	qs::SocketBase* pSocket_;
+	std::auto_ptr<qs::SocketBase> pSocket_;
 	unsigned int nError_;
-	qs::WSTRING wstrErrorResponse_;
+	qs::wstring_ptr wstrErrorResponse_;
 };
 
 
@@ -147,15 +150,16 @@ public:
 	virtual ~SmtpCallback();
 
 public:
-	virtual qs::QSTATUS getUserInfo(qs::WSTRING* pwstrUserName,
-		qs::WSTRING* pwstrPassword) = 0;
-	virtual qs::QSTATUS setPassword(const WCHAR* pwszPassword) = 0;
-	virtual qs::QSTATUS getLocalHost(qs::WSTRING* pwstrLocalHost) = 0;
-	virtual qs::QSTATUS getAuthMethods(qs::WSTRING* pwstrAuthMethods) = 0;
+	virtual bool getUserInfo(qs::wstring_ptr* pwstrUserName,
+							 qs::wstring_ptr* pwstrPassword) = 0;
+	virtual void setPassword(const WCHAR* pwszPassword) = 0;
+	virtual qs::wstring_ptr getLocalHost() = 0;
+	virtual qs::wstring_ptr getAuthMethods() = 0;
 	
-	virtual qs::QSTATUS authenticating() = 0;
-	virtual qs::QSTATUS setRange(unsigned int nMin, unsigned int nMax) = 0;
-	virtual qs::QSTATUS setPos(unsigned int nPos) = 0;
+	virtual void authenticating() = 0;
+	virtual void setRange(unsigned int nMin,
+						  unsigned int nMax) = 0;
+	virtual void setPos(unsigned int nPos) = 0;
 };
 
 }

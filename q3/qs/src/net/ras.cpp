@@ -1,14 +1,12 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qsconv.h>
-#include <qserror.h>
-#include <qsnew.h>
 #include <qsras.h>
 #include <qssocket.h>
 
@@ -314,27 +312,20 @@ DWORD RasAPI::rasGetErrorString(UINT uErrorValue, LPTSTR pszErrorString, DWORD d
 
 struct qs::RasConnectionImpl
 {
-	static QSTATUS setMessage(RasConnectionCallback* pCallback, UINT nId);
+	static void setMessage(RasConnectionCallback* pCallback,
+						   UINT nId);
 	
 	HRASCONN hrasconn_;
 	unsigned int nDisconnectWait_;
 	RasConnectionCallback* pCallback_;
 };
 
-QSTATUS qs::RasConnectionImpl::setMessage(
-	RasConnectionCallback* pCallback, UINT nId)
+void qs::RasConnectionImpl::setMessage(RasConnectionCallback* pCallback,
+									   UINT nId)
 {
 	assert(pCallback);
-	
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrMessage;
-	status = loadString(getDllInstanceHandle(), nId, &wstrMessage);
-	CHECK_QSTATUS();
-	status = pCallback->setMessage(wstrMessage.get());
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	wstring_ptr wstrMessage(loadString(getDllInstanceHandle(), nId));
+	pCallback->setMessage(wstrMessage.get());
 }
 
 
@@ -344,32 +335,29 @@ QSTATUS qs::RasConnectionImpl::setMessage(
  *
  */
 
-static void CALLBACK lineProc(DWORD hDevice, DWORD dwMsg,
-	DWORD dwCallbackInstance, DWORD dwParam1, DWORD dwParam2, DWORD dwParam3);
+static void CALLBACK lineProc(DWORD hDevice,
+							  DWORD dwMsg,
+							  DWORD dwCallbackInstance,
+							  DWORD dwParam1,
+							  DWORD dwParam2,
+							  DWORD dwParam3);
 
 qs::RasConnection::RasConnection(unsigned int nDisconnectWait,
-	RasConnectionCallback* pCallback, QSTATUS* pstatus) :
+								 RasConnectionCallback* pCallback) :
 	pImpl_(0)
 {
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	
+	pImpl_ = new RasConnectionImpl();
 	pImpl_->hrasconn_ = 0;
 	pImpl_->nDisconnectWait_ = nDisconnectWait;
 	pImpl_->pCallback_ = pCallback;
 }
 
-qs::RasConnection::RasConnection(HRASCONN hrasconn, QSTATUS* pstatus)
+qs::RasConnection::RasConnection(HRASCONN hrasconn) :
+	pImpl_(0)
 {
 	assert(hrasconn);
 	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	
+	pImpl_ = new RasConnectionImpl();
 	pImpl_->hrasconn_ = hrasconn;
 	pImpl_->nDisconnectWait_ = 0;
 	pImpl_->pCallback_ = 0;
@@ -380,21 +368,17 @@ qs::RasConnection::~RasConnection()
 	delete pImpl_;
 }
 
-QSTATUS qs::RasConnection::connect(const WCHAR* pwszEntry, Result* pResult)
+RasConnection::Result qs::RasConnection::connect(const WCHAR* pwszEntry)
 {
-	DECLARE_QSTATUS();
-	
 	if (!RasAPI::isInit())
-		return QSTATUS_FAIL;
+		return RAS_FAIL;
 	
 	RASCONN rasconn = { sizeof(rasconn) };
 	DWORD dwSize = sizeof(rasconn);
 	DWORD dwConnection = 0;
 	if (!RasAPI::rasEnumConnections(&rasconn, &dwSize, &dwConnection)) {
-		if (dwConnection != 0) {
-			*pResult = RAS_ALREADYCONNECTED;
-			return QSTATUS_SUCCESS;
-		}
+		if (dwConnection != 0)
+			return RAS_ALREADYCONNECTED;
 	}
 	
 	W2T(pwszEntry, ptszEntry);
@@ -402,22 +386,15 @@ QSTATUS qs::RasConnection::connect(const WCHAR* pwszEntry, Result* pResult)
 	_tcsncpy(rdp.szEntryName, ptszEntry, countof(rdp.szEntryName));
 	BOOL bPassword = TRUE;
 	if (RasAPI::rasGetEntryDialParams(0, &rdp, &bPassword))
-		return QSTATUS_FAIL;
+		return RAS_FAIL;
 	
-	bool bCancel = false;
-	status = pImpl_->pCallback_->preConnect(&rdp, &bCancel);
-	CHECK_QSTATUS();
-	if (bCancel) {
-		*pResult = RAS_CANCEL;
-		return QSTATUS_SUCCESS;
-	}
+	if (!pImpl_->pCallback_->preConnect(&rdp))
+		return RAS_CANCEL;
 	
-	std::auto_ptr<RasWindow> pRasWindow;
-	status = newQsObject(this, pImpl_->pCallback_, &pRasWindow);
-	CHECK_QSTATUS();
-	status = pRasWindow->create(L"QsRasWindow",
-		0, WS_POPUP, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-	CHECK_QSTATUS();
+	std::auto_ptr<RasWindow> pRasWindow(new RasWindow(this, pImpl_->pCallback_));
+	if (!pRasWindow->create(L"QsRasWindow",
+		0, WS_POPUP, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+		return RAS_FAIL;
 	
 	if (RasAPI::rasDial(0, 0, &rdp, 0xffffffff,
 		pRasWindow->getHandle(), &pImpl_->hrasconn_)) {
@@ -425,7 +402,7 @@ QSTATUS qs::RasConnection::connect(const WCHAR* pwszEntry, Result* pResult)
 			RasAPI::rasHangUp(pImpl_->hrasconn_);
 			pImpl_->hrasconn_ = 0;
 		}
-		return QSTATUS_FAIL;
+		return RAS_FAIL;
 	}
 	
 	while (!pRasWindow->isEnd()) {
@@ -441,29 +418,26 @@ QSTATUS qs::RasConnection::connect(const WCHAR* pwszEntry, Result* pResult)
 		RASCONNSTATUS rcs = { sizeof(rcs) };
 		if (RasAPI::rasGetConnectStatus(pImpl_->hrasconn_, &rcs) != 0 ||
 			rcs.dwError != 0 || rcs.rasconnstate == RASCS_Disconnected)
-			return QSTATUS_FAIL;
+			return RAS_FAIL;
 	}
 	else {
 		if (pImpl_->pCallback_->isCanceled())
-			*pResult = RAS_CANCEL;
+			return RAS_CANCEL;
 		else
-			return QSTATUS_FAIL;
+			return RAS_FAIL;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return RAS_SUCCESS;
 }
 
-QSTATUS qs::RasConnection::disconnect(bool bWait, Result* pResult)
+RasConnection::Result qs::RasConnection::disconnect(bool bWait)
 {
-	DECLARE_QSTATUS();
-	
 	if (!pImpl_->hrasconn_)
-		return QSTATUS_FAIL;
+		return RAS_FAIL;
 	
 	if (pImpl_->pCallback_ && bWait && pImpl_->nDisconnectWait_ != 0) {
-		status = RasConnectionImpl::setMessage(
-			pImpl_->pCallback_, IDS_RAS_WAITINGBEFOREDISCONNECTING);
-		CHECK_QSTATUS();
+		RasConnectionImpl::setMessage(pImpl_->pCallback_,
+			IDS_RAS_WAITINGBEFOREDISCONNECTING);
 		for (unsigned int n = 0; n < pImpl_->nDisconnectWait_*10; ++n) {
 			if (pImpl_->pCallback_->isCanceled())
 				break;
@@ -472,14 +446,9 @@ QSTATUS qs::RasConnection::disconnect(bool bWait, Result* pResult)
 	}
 	
 	if (pImpl_->pCallback_) {
-		if (pImpl_->pCallback_->isCanceled()) {
-			*pResult = RAS_CANCEL;
-			return QSTATUS_SUCCESS;
-		}
-		
-		status = RasConnectionImpl::setMessage(
-			pImpl_->pCallback_, IDS_RAS_DISCONNECTING);
-		CHECK_QSTATUS();
+		if (pImpl_->pCallback_->isCanceled())
+			return RAS_CANCEL;
+		RasConnectionImpl::setMessage(pImpl_->pCallback_, IDS_RAS_DISCONNECTING);
 	}
 	
 	if (pImpl_->hrasconn_)
@@ -491,20 +460,13 @@ QSTATUS qs::RasConnection::disconnect(bool bWait, Result* pResult)
 		::Sleep(0);
 	pImpl_->hrasconn_ = 0;
 	
-	return QSTATUS_SUCCESS;
+	return RAS_SUCCESS;
 }
 
-QSTATUS qs::RasConnection::getActiveConnection(
-	size_t nIndex, RasConnection** ppRasConnection)
+std::auto_ptr<RasConnection> qs::RasConnection::getActiveConnection(size_t nIndex)
 {
-	assert(ppRasConnection);
-	
-	DECLARE_QSTATUS();
-	
-	*ppRasConnection = 0;
-	
 	if (!RasAPI::isInit())
-		return QSTATUS_FAIL;
+		return 0;
 	
 	HRASCONN hrasconn = 0;
 	RASCONN rasconn = { sizeof(rasconn) };
@@ -514,15 +476,13 @@ QSTATUS qs::RasConnection::getActiveConnection(
 	if (dwSize > sizeof(rasconn)) {
 		typedef std::vector<RASCONN> RasConnList;
 		RasConnList listRasConn;
-		status = STLWrapper<RasConnList>(
-			listRasConn).resize(dwSize/sizeof(RASCONN));
-		CHECK_QSTATUS();
+		listRasConn.resize(dwSize/sizeof(RASCONN));
 		if (RasAPI::rasEnumConnections(&listRasConn[0], &dwSize, &dwConnection) != 0)
-			return QSTATUS_FAIL;
+			return 0;
 		if (nIndex == -1)
 			nIndex = 0;
 		if (nIndex >= dwConnection)
-			return QSTATUS_FAIL;
+			return 0;
 		hrasconn = listRasConn[nIndex].hrasconn;
 	}
 	else if (dwConnection != 0) {
@@ -530,41 +490,28 @@ QSTATUS qs::RasConnection::getActiveConnection(
 		hrasconn = rasconn.hrasconn;
 	}
 	else {
-		return QSTATUS_FAIL;
+		return 0;
 	}
 	
-	std::auto_ptr<RasConnection> pConnection;
-	status = newQsObject(hrasconn, &pConnection);
-	CHECK_QSTATUS();
-	*ppRasConnection = pConnection.release();
-	
-	return QSTATUS_SUCCESS;
+	return new RasConnection(hrasconn);
 }
 
-QSTATUS qs::RasConnection::getActiveConnectionCount(int* pnCount)
+int qs::RasConnection::getActiveConnectionCount()
 {
-	assert(pnCount);
-	
-	*pnCount = 0;
-	
 	if (!RasAPI::isInit())
-		return QSTATUS_FAIL;
+		return -1;
 	
 	RASCONN rasconn = { sizeof(rasconn) };
 	DWORD dwSize = sizeof(rasconn);
 	DWORD dwConnection = 0;
 	if (RasAPI::rasEnumConnections(&rasconn, &dwSize, &dwConnection) != 0)
-		return QSTATUS_FAIL;
+		return -1;
 	
-	*pnCount = dwSize/sizeof(RASCONN);
-	
-	return QSTATUS_SUCCESS;
+	return dwSize/sizeof(RASCONN);
 }
 
-QSTATUS qs::RasConnection::getEntries(EntryList* pListEntry)
+void qs::RasConnection::getEntries(EntryList* pListEntry)
 {
-	DECLARE_QSTATUS();
-	
 	if (RasAPI::isInit()) {
 		DWORD dwEntries = 1;
 		DWORD dwSize = sizeof(RASENTRYNAME);
@@ -574,36 +521,24 @@ QSTATUS qs::RasConnection::getEntries(EntryList* pListEntry)
 		
 		typedef std::vector<RASENTRYNAME> EntryNameList;
 		EntryNameList listEntryName;
-		status = STLWrapper<EntryNameList>(listEntryName).resize(dwEntries);
-		CHECK_QSTATUS();
+		listEntryName.resize(dwEntries);
 		for (EntryNameList::size_type n = 0; n < listEntryName.size(); ++n)
 			listEntryName[n].dwSize = sizeof(RASENTRYNAME);
 		RasAPI::rasEnumEntries(0, 0, &listEntryName[0], &dwSize, &dwEntries);
 		
-		status = STLWrapper<EntryList>(
-			*pListEntry).reserve(listEntryName.size());
-		CHECK_QSTATUS();
+		pListEntry->reserve(listEntryName.size());
 		
-		for (n = 0; n < listEntryName.size(); ++n) {
+		for (EntryNameList::size_type n = 0; n < listEntryName.size(); ++n) {
 			if (listEntryName[n].szEntryName[0] != _T('`')) {
-				string_ptr<WSTRING> wstrEntryName(
-					tcs2wcs(listEntryName[n].szEntryName));
-				if (!wstrEntryName.get())
-					return QSTATUS_OUTOFMEMORY;
+				wstring_ptr wstrEntryName(tcs2wcs(listEntryName[n].szEntryName));
 				pListEntry->push_back(wstrEntryName.release());
 			}
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::RasConnection::getLocation(WSTRING* pwstrLocation)
+wstring_ptr qs::RasConnection::getLocation()
 {
-	assert(pwstrLocation);
-	
-	*pwstrLocation = 0;
-	
 	const TCHAR* ptszLocation = 0;
 	
 	malloc_ptr<LINETRANSLATECAPS> ptc;
@@ -658,17 +593,13 @@ QSTATUS qs::RasConnection::getLocation(WSTRING* pwstrLocation)
 		::lineShutdown(hLineApp);
 	}
 	
-	if (ptszLocation) {
-		string_ptr<WSTRING> wstrLocation(tcs2wcs(ptszLocation));
-		if (!wstrLocation.get())
-			return QSTATUS_OUTOFMEMORY;
-		*pwstrLocation = wstrLocation.release();
-	}
+	if (!ptszLocation)
+		return 0;
 	
-	return QSTATUS_SUCCESS;
+	return tcs2wcs(ptszLocation);
 }
 
-QSTATUS qs::RasConnection::setLocation(const WCHAR* pwszLocation)
+bool qs::RasConnection::setLocation(const WCHAR* pwszLocation)
 {
 	assert(pwszLocation);
 	
@@ -679,7 +610,7 @@ QSTATUS qs::RasConnection::setLocation(const WCHAR* pwszLocation)
 	if (::RegOpenKeyEx(HKEY_CURRENT_USER,
 		_T("ControlPanel\\Dial\\Locations"),
 		0, KEY_READ, &hKey) != ERROR_SUCCESS)
-		return QSTATUS_FAIL;
+		return false;
 	
 	int nLocation = -1;
 	DWORD dw = 0;
@@ -691,9 +622,11 @@ QSTATUS qs::RasConnection::setLocation(const WCHAR* pwszLocation)
 	while (::RegEnumValue(hKey, dw, szName, &dwNameLen, 0, &dwType,
 		reinterpret_cast<LPBYTE>(szValue), &dwValueLen) == ERROR_SUCCESS) {
 		if (dwType == REG_MULTI_SZ) {
-			for (unsigned int m = 0; m < _tcslen(szName); ++m) {
+			unsigned int m = 0;
+			while (m < _tcslen(szName)) {
 				if (!_istdigit(szName[m]))
 					break;
+				++m;
 			}
 			if (m == _tcslen(szName)) {
 				if (_tcscmp(ptszLocation, szValue) == 0) {
@@ -708,22 +641,22 @@ QSTATUS qs::RasConnection::setLocation(const WCHAR* pwszLocation)
 	}
 	::RegCloseKey(hKey);
 	if (nLocation == -1)
-		return QSTATUS_FAIL;
+		return false;
 	
 	if (::RegOpenKeyEx(HKEY_CURRENT_USER, _T("ControlPanel\\Dial"),
 		0, KEY_WRITE, &hKey) != ERROR_SUCCESS)
-		return QSTATUS_FAIL;
+		return false;
 	::RegSetValueEx(hKey, _T("CurrentLoc"), 0, REG_DWORD,
 		reinterpret_cast<LPBYTE>(&nLocation), sizeof(nLocation));
 	::RegCloseKey(hKey);
 	
-	return QSTATUS_SUCCESS;
+	return true;
 #else
-	return QSTATUS_FAIL;
+	return false;
 #endif
 }
 
-QSTATUS qs::RasConnection::selectLocation(HWND hwnd)
+bool qs::RasConnection::selectLocation(HWND hwnd)
 {
 	LONG lRet = 0;
 	HLINEAPP hLineApp = 0;
@@ -731,7 +664,7 @@ QSTATUS qs::RasConnection::selectLocation(HWND hwnd)
 	lRet = ::lineInitialize(&hLineApp,
 		getInstanceHandle(), lineProc, 0, &dwNumDevs);
 	if (lRet != 0)
-		return QSTATUS_FAIL;
+		return false;
 	
 	DWORD dwVersion = 0;
 #ifdef _WIN32_WCE
@@ -743,22 +676,18 @@ QSTATUS qs::RasConnection::selectLocation(HWND hwnd)
 		MAKELONG(0, 4), &dwVersion, &lineExtId);
 #endif
 	if (lRet != 0)
-		return QSTATUS_FAIL;
+		return false;
 	
 	::lineTranslateDialog(hLineApp, 0, dwVersion, hwnd, 0);
 	
 	::lineShutdown(hLineApp);
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 bool qs::RasConnection::isNetworkConnected()
 {
-	DECLARE_QSTATUS();
-	
-	Winsock winsock(&status);
-	if (status != QSTATUS_SUCCESS)
-		return false;
+	Winsock winsock;
 	
 	char szHostName[256];
 	if (::gethostname(szHostName, sizeof(szHostName)) != 0)
@@ -778,8 +707,12 @@ bool qs::RasConnection::isNetworkConnected()
 	return true;
 }
 
-static void CALLBACK lineProc(DWORD hDevice, DWORD dwMsg,
-	DWORD dwCallbackInstance, DWORD dwParam1, DWORD dwParam2, DWORD dwParam3)
+static void CALLBACK lineProc(DWORD hDevice,
+							  DWORD dwMsg,
+							  DWORD dwCallbackInstance,
+							  DWORD dwParam1,
+							  DWORD dwParam2,
+							  DWORD dwParam3)
 {
 }
 
@@ -809,9 +742,8 @@ const UINT qs::RasWindow::nRasDialEventMessage__ =
 #endif
 
 qs::RasWindow::RasWindow(RasConnection* pConnection,
-	RasConnectionCallback* pCallback, QSTATUS* pstatus) :
-	WindowBase(false, pstatus),
-	DefaultWindowHandler(pstatus),
+						 RasConnectionCallback* pCallback) :
+	WindowBase(false),
 	pConnection_(pConnection),
 	pCallback_(pCallback),
 	nTimerId_(0),
@@ -829,7 +761,9 @@ bool qs::RasWindow::isEnd() const
 	return bEnd_;
 }
 
-LRESULT qs::RasWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qs::RasWindow::windowProc(UINT uMsg,
+								  WPARAM wParam,
+								  LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_TIMER()
@@ -842,8 +776,6 @@ LRESULT qs::RasWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 LRESULT qs::RasWindow::onTimer(UINT nId)
 {
-	DECLARE_QSTATUS();
-	
 	if (nId == nTimerId_) {
 		if (pCallback_->isCanceled())
 			end(true);
@@ -853,65 +785,67 @@ LRESULT qs::RasWindow::onTimer(UINT nId)
 	return DefaultWindowHandler::onTimer(nId);
 }
 
-LRESULT qs::RasWindow::onRasDialEvent(WPARAM wParam, LPARAM lParam)
+LRESULT qs::RasWindow::onRasDialEvent(WPARAM wParam,
+									  LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
-	RASCONNSTATE rcs = static_cast<RASCONNSTATE>(wParam);
-	DWORD dwError = lParam;
-	
-	if (nTimerId_ == 0)
-		nTimerId_ = setTimer(TIMER_RAS, TIMEOUT);
-	
-	bool bDisconnect = false;
-	
-	if (dwError != 0) {
-		TCHAR szMessage[256];
-		if (RasAPI::rasGetErrorString(dwError, szMessage, countof(szMessage)) == 0) {
-			T2W_STATUS(szMessage, pwszMessage);
-			pCallback_->error(pwszMessage);
-		}
-		bDisconnect = true;
-	}
-	else if (pCallback_->isCanceled()) {
-		bDisconnect = true;
-	}
-	else {
-		struct {
-			RASCONNSTATE rcs_;
-			UINT nId_;
-		} states[] = {
-			{ RASCS_OpenPort,			IDS_RAS_OPENPORT		},
-			{ RASCS_PortOpened,			IDS_RAS_PORTOPENED		},
-			{ RASCS_ConnectDevice,		IDS_RAS_CONNECTDEVICE	},
-			{ RASCS_DeviceConnected,	IDS_RAS_DEVICECONNECTED	},
-			{ RASCS_Authenticate,		IDS_RAS_AUTHENTICATE	},
-			{ RASCS_Authenticated,		IDS_RAS_AUTHENTICATED	},
-			{ RASCS_Connected,			IDS_RAS_CONNECTED		}
-		};
-		for (int n = 0; n < countof(states); ++n) {
-			if (rcs == states[n].rcs_) {
-				RasConnectionImpl::setMessage(pCallback_, states[n].nId_);
-				break;
+	QTRY {
+		RASCONNSTATE rcs = static_cast<RASCONNSTATE>(wParam);
+		DWORD dwError = lParam;
+		
+		if (nTimerId_ == 0)
+			nTimerId_ = setTimer(TIMER_RAS, TIMEOUT);
+		
+		bool bDisconnect = false;
+		
+		if (dwError != 0) {
+			TCHAR szMessage[256];
+			if (RasAPI::rasGetErrorString(dwError, szMessage, countof(szMessage)) == 0) {
+				T2W(szMessage, pwszMessage);
+				pCallback_->error(pwszMessage);
 			}
+			bDisconnect = true;
+		}
+		else if (pCallback_->isCanceled()) {
+			bDisconnect = true;
+		}
+		else {
+			struct {
+				RASCONNSTATE rcs_;
+				UINT nId_;
+			} states[] = {
+				{ RASCS_OpenPort,			IDS_RAS_OPENPORT		},
+				{ RASCS_PortOpened,			IDS_RAS_PORTOPENED		},
+				{ RASCS_ConnectDevice,		IDS_RAS_CONNECTDEVICE	},
+				{ RASCS_DeviceConnected,	IDS_RAS_DEVICECONNECTED	},
+				{ RASCS_Authenticate,		IDS_RAS_AUTHENTICATE	},
+				{ RASCS_Authenticated,		IDS_RAS_AUTHENTICATED	},
+				{ RASCS_Connected,			IDS_RAS_CONNECTED		}
+			};
+			for (int n = 0; n < countof(states); ++n) {
+				if (rcs == states[n].rcs_) {
+					RasConnectionImpl::setMessage(pCallback_, states[n].nId_);
+					break;
+				}
+			}
+			
+			if (rcs == RASCS_Connected)
+				end(false);
 		}
 		
-		if (rcs == RASCS_Connected)
-			end(false);
+		if (bDisconnect)
+			end(true);
 	}
-	
-	if (bDisconnect)
-		end(true);
+	QCATCH_ALL() {
+		;
+	}
 	
 	return 0;
 }
 
 void qs::RasWindow::end(bool bDisconnect)
 {
-	if (bDisconnect) {
-		RasConnection::Result result;
-		pConnection_->disconnect(false, &result);
-	}
+	if (bDisconnect)
+		pConnection_->disconnect(false);
 	bEnd_ = true;
 	killTimer(nTimerId_);
 	nTimerId_ = 0;

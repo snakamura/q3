@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -80,17 +80,11 @@ public:
 	};
 
 public:
-	struct Init
-	{
-		const WCHAR* pwszTitle_;
-		Type type_;
-		Macro* pMacro_;
-		unsigned int nFlags_;
-		unsigned int nWidth_;
-	};
-
-public:
-	ViewColumn(const Init& init, qs::QSTATUS* pstatus);
+	ViewColumn(const WCHAR* pwszTitle,
+			   Type type,
+			   std::auto_ptr<Macro> pMacro,
+			   unsigned int nFlags,
+			   unsigned int nWidth);
 	~ViewColumn();
 
 public:
@@ -102,18 +96,19 @@ public:
 	void setFlags(unsigned int nFlags);
 	unsigned int getWidth() const;
 	void setWidth(unsigned int nWidth);
-	qs::QSTATUS getText(MessageHolder* pmh, qs::WSTRING* pwstrValue) const;
+	qs::wstring_ptr getText(MessageHolder* pmh) const;
 	unsigned int getNumber(MessageHolder* pmh) const;
-	qs::QSTATUS getTime(MessageHolder* pmh, qs::Time* pTime) const;
+	void getTime(MessageHolder* pmh,
+				 qs::Time* pTime) const;
 
 public:
 	ViewColumn(const ViewColumn&);
 	ViewColumn& operator=(const ViewColumn&);
 
 private:
-	qs::WSTRING wstrTitle_;
+	qs::wstring_ptr wstrTitle_;
 	Type type_;
-	Macro* pMacro_;
+	std::auto_ptr<Macro> pMacro_;
 	unsigned int nFlags_;
 	unsigned int nWidth_;
 };
@@ -131,14 +126,14 @@ public:
 	virtual ~ViewModelHandler();
 
 public:
-	virtual qs::QSTATUS itemAdded(const ViewModelEvent& event) = 0;
-	virtual qs::QSTATUS itemRemoved(const ViewModelEvent& event) = 0;
-	virtual qs::QSTATUS itemChanged(const ViewModelEvent& event) = 0;
-	virtual qs::QSTATUS itemStateChanged(const ViewModelEvent& event) = 0;
-	virtual qs::QSTATUS itemAttentionPaid(const ViewModelEvent& event) = 0;
-	virtual qs::QSTATUS updated(const ViewModelEvent& event) = 0;
-	virtual qs::QSTATUS sorted(const ViewModelEvent& event) = 0;
-	virtual qs::QSTATUS destroyed(const ViewModelEvent& event) = 0;
+	virtual void itemAdded(const ViewModelEvent& event) = 0;
+	virtual void itemRemoved(const ViewModelEvent& event) = 0;
+	virtual void itemChanged(const ViewModelEvent& event) = 0;
+	virtual void itemStateChanged(const ViewModelEvent& event) = 0;
+	virtual void itemAttentionPaid(const ViewModelEvent& event) = 0;
+	virtual void updated(const ViewModelEvent& event) = 0;
+	virtual void sorted(const ViewModelEvent& event) = 0;
+	virtual void destroyed(const ViewModelEvent& event) = 0;
 };
 
 
@@ -151,8 +146,13 @@ public:
 class ViewModelItem
 {
 public:
+	enum Flag {
+		FLAG_SELECTED	= 0x01,
+		FLAG_FOCUSED	= 0x02
+	};
+
+public:
 	ViewModelItem(MessageHolder* pmh);
-	ViewModelItem(MessageHolder* pmh, qs::QSTATUS* pstatus);
 	ViewModelItem(unsigned int nMessageIdHash);
 	~ViewModelItem();
 
@@ -164,8 +164,10 @@ public:
 	MessageHolder* getMessageHolder() const;
 	ViewModelItem* getParentItem() const;
 	void setParentItem(ViewModelItem* pParentItem);
+	bool isFlag(Flag flag) const;
 	unsigned int getFlags() const;
-	void setFlags(unsigned int nFlags, unsigned int nMask);
+	void setFlags(unsigned int nFlags,
+				  unsigned int nMask);
 	COLORREF getColor() const;
 	void setColor(COLORREF cr);
 	unsigned int getMessageFlags() const;
@@ -197,11 +199,6 @@ class ViewModel :
 	public MessageHolderHandler
 {
 public:
-	enum Flag {
-		FLAG_SELECTED	= 0x01,
-		FLAG_FOCUSED	= 0x02
-	};
-	
 	enum Sort {
 		SORT_INDEX_MASK		= 0x000000ff,
 		
@@ -219,9 +216,12 @@ public:
 	typedef std::vector<ViewModelItem*> ItemList;
 
 public:
-	ViewModel(ViewModelManager* pViewModelManager, Folder* pFolder,
-		qs::Profile* pProfile, Document* pDocument, HWND hwnd,
-		const ColorManager* pColorManager, qs::QSTATUS* pstatus);
+	ViewModel(ViewModelManager* pViewModelManager,
+			  Folder* pFolder,
+			  qs::Profile* pProfile,
+			  Document* pDocument,
+			  HWND hwnd,
+			  const ColorManager* pColorManager);
 	~ViewModel();
 
 public:
@@ -238,34 +238,36 @@ public:
 	MessageHolder* getMessageHolder(unsigned int n) const;
 	unsigned int getIndex(MessageHolder* pmh) const;
 	
-	qs::QSTATUS setSort(unsigned int nSort);
+	void setSort(unsigned int nSort);
 	unsigned int getSort() const;
 	
-	qs::QSTATUS setFilter(const Filter* pFilter);
+	void setFilter(const Filter* pFilter);
 	const Filter* getFilter() const;
 	
-	qs::QSTATUS addSelection(unsigned int n);
-	qs::QSTATUS addSelection(unsigned int nStart, unsigned int nEnd);
-	qs::QSTATUS removeSelection(unsigned int n);
-	qs::QSTATUS setSelection(unsigned int n);
-	qs::QSTATUS setSelection(unsigned int nStart, unsigned int nEnd);
-	qs::QSTATUS clearSelection();
-	qs::QSTATUS getSelection(MessageHolderList* pList) const;
+	void addSelection(unsigned int n);
+	void addSelection(unsigned int nStart,
+					  unsigned int nEnd);
+	void removeSelection(unsigned int n);
+	void setSelection(unsigned int n);
+	void setSelection(unsigned int nStart,
+					  unsigned int nEnd);
+	void clearSelection();
+	void getSelection(MessageHolderList* pList) const;
 	bool hasSelection() const;
 	unsigned int getSelectedCount() const;
 	bool isSelected(unsigned int n) const;
 	unsigned int getLastSelection() const;
 	void setLastSelection(unsigned int n);
-	qs::QSTATUS setFocused(unsigned int n);
+	void setFocused(unsigned int n);
 	unsigned int getFocused() const;
 	bool isFocused(unsigned int n) const;
 	
-	qs::QSTATUS payAttention(unsigned int n);
+	void payAttention(unsigned int n);
 	
-	qs::QSTATUS save() const;
+	bool save() const;
 	
-	qs::QSTATUS addViewModelHandler(ViewModelHandler* pHandler);
-	qs::QSTATUS removeViewModelHandler(ViewModelHandler* pHandler);
+	void addViewModelHandler(ViewModelHandler* pHandler);
+	void removeViewModelHandler(ViewModelHandler* pHandler);
 	
 	void lock() const;
 	void unlock() const;
@@ -274,37 +276,39 @@ public:
 #endif
 
 public:
-	virtual qs::QSTATUS messageAdded(const FolderEvent& event);
-	virtual qs::QSTATUS messageRemoved(const FolderEvent& event);
-	virtual qs::QSTATUS messageRefreshed(const FolderEvent& event);
-	virtual qs::QSTATUS unseenCountChanged(const FolderEvent& event);
-	virtual qs::QSTATUS folderDestroyed(const FolderEvent& event);
+	virtual void messageAdded(const FolderEvent& event);
+	virtual void messageRemoved(const FolderEvent& event);
+	virtual void messageRefreshed(const FolderEvent& event);
+	virtual void unseenCountChanged(const FolderEvent& event);
+	virtual void folderDestroyed(const FolderEvent& event);
 
 public:
-	virtual qs::QSTATUS messageHolderChanged(const MessageHolderEvent& event);
-	virtual qs::QSTATUS messageHolderDestroyed(const MessageHolderEvent& event);
+	virtual void messageHolderChanged(const MessageHolderEvent& event);
+	virtual void messageHolderDestroyed(const MessageHolderEvent& event);
 
 private:
-	qs::QSTATUS loadColumns();
-	qs::QSTATUS saveColumns() const;
-	qs::QSTATUS update(bool bRestoreSelection);
-	qs::QSTATUS sort(unsigned int nSort,
-		bool bRestoreSelection, bool bUpdateParentLink);
-	qs::QSTATUS makeParentLink();
-	qs::QSTATUS makeParentLink(const ItemList& listItemSortedByMessageIdHash,
-		const ItemList& listItemSortedByPointer, ViewModelItem* pItem);
+	void loadColumns();
+	void saveColumns() const;
+	void update(bool bRestoreSelection);
+	void sort(unsigned int nSort,
+			  bool bRestoreSelection,
+			  bool bUpdateParentLink);
+	void makeParentLink();
+	void makeParentLink(const ItemList& listItemSortedByMessageIdHash,
+						const ItemList& listItemSortedByPointer,
+						ViewModelItem* pItem);
 
 private:
-	qs::QSTATUS fireItemAdded(unsigned int nItem) const;
-	qs::QSTATUS fireItemRemoved(unsigned int nItem) const;
-	qs::QSTATUS fireItemChanged(unsigned int nItem) const;
-	qs::QSTATUS fireItemStateChanged(unsigned int nItem) const;
-	qs::QSTATUS fireItemAttentionPaid(unsigned int nItem) const;
-	qs::QSTATUS fireUpdated() const;
-	qs::QSTATUS fireSorted() const;
-	qs::QSTATUS fireDestroyed() const;
-	qs::QSTATUS fireEvent(const ViewModelEvent& event,
-		qs::QSTATUS (ViewModelHandler::*pfn)(const ViewModelEvent&)) const;
+	void fireItemAdded(unsigned int nItem) const;
+	void fireItemRemoved(unsigned int nItem) const;
+	void fireItemChanged(unsigned int nItem) const;
+	void fireItemStateChanged(unsigned int nItem) const;
+	void fireItemAttentionPaid(unsigned int nItem) const;
+	void fireUpdated() const;
+	void fireSorted() const;
+	void fireDestroyed() const;
+	void fireEvent(const ViewModelEvent& event,
+				   void (ViewModelHandler::*pfn)(const ViewModelEvent&)) const;
 
 private:
 	ViewModel(const ViewModel&);
@@ -315,7 +319,8 @@ private:
 	{
 	public:
 		SelectionRestorer(ViewModel* pViewModel,
-			bool bRefresh, bool bIgnore, qs::QSTATUS* pstatus);
+						  bool bRefresh,
+						  bool bIgnore);
 		~SelectionRestorer();
 	
 	public:
@@ -370,14 +375,14 @@ public:
 	virtual ~DefaultViewModelHandler();
 
 public:
-	virtual qs::QSTATUS itemAdded(const ViewModelEvent& event);
-	virtual qs::QSTATUS itemRemoved(const ViewModelEvent& event);
-	virtual qs::QSTATUS itemChanged(const ViewModelEvent& event);
-	virtual qs::QSTATUS itemStateChanged(const ViewModelEvent& event);
-	virtual qs::QSTATUS itemAttentionPaid(const ViewModelEvent& event);
-	virtual qs::QSTATUS updated(const ViewModelEvent& event);
-	virtual qs::QSTATUS sorted(const ViewModelEvent& event);
-	virtual qs::QSTATUS destroyed(const ViewModelEvent& event);
+	virtual void itemAdded(const ViewModelEvent& event);
+	virtual void itemRemoved(const ViewModelEvent& event);
+	virtual void itemChanged(const ViewModelEvent& event);
+	virtual void itemStateChanged(const ViewModelEvent& event);
+	virtual void itemAttentionPaid(const ViewModelEvent& event);
+	virtual void updated(const ViewModelEvent& event);
+	virtual void sorted(const ViewModelEvent& event);
+	virtual void destroyed(const ViewModelEvent& event);
 };
 
 
@@ -391,7 +396,8 @@ class ViewModelEvent
 {
 public:
 	ViewModelEvent(const ViewModel* pViewModel);
-	ViewModelEvent(const ViewModel* pViewModel, unsigned int nItem);
+	ViewModelEvent(const ViewModel* pViewModel,
+				   unsigned int nItem);
 	~ViewModelEvent();
 
 public:
@@ -441,7 +447,7 @@ public:
 
 public:
 	virtual ViewModel* getViewModel() const = 0;
-	virtual qs::QSTATUS setViewModel(ViewModel* pViewModel) = 0;
+	virtual void setViewModel(ViewModel* pViewModel) = 0;
 };
 
 
@@ -458,39 +464,42 @@ public:
 	typedef std::vector<std::pair<Account*, qs::Profile*> > ProfileMap;
 
 public:
-	ViewModelManager(qs::Profile* pProfile, Document* pDocument,
-		HWND hwnd, FolderModel* pFolderModel, qs::QSTATUS* pstatus);
+	ViewModelManager(qs::Profile* pProfile,
+					 Document* pDocument,
+					 HWND hwnd,
+					 FolderModel* pFolderModel);
 	~ViewModelManager();
 
 public:
 	FilterManager* getFilterManager() const;
 	
 	Account* getCurrentAccount() const;
-	qs::QSTATUS setCurrentAccount(Account* pAccount);
-	qs::QSTATUS setCurrentFolder(Folder* pFolder);
+	void setCurrentAccount(Account* pAccount);
+	void setCurrentFolder(Folder* pFolder);
 	ViewModel* getCurrentViewModel() const;
-	qs::QSTATUS getViewModel(Folder* pFolder, ViewModel** ppViewModel);
+	ViewModel* getViewModel(Folder* pFolder);
 	
-	qs::QSTATUS save() const;
+	bool save() const;
 	
-	qs::QSTATUS addViewModelManagerHandler(ViewModelManagerHandler* pHandler);
-	qs::QSTATUS removeViewModelManagerHandler(ViewModelManagerHandler* pHandler);
+	void addViewModelManagerHandler(ViewModelManagerHandler* pHandler);
+	void removeViewModelManagerHandler(ViewModelManagerHandler* pHandler);
 
 // These methods are intended to be called from ViewModel class.
 public:
 	void removeViewModel(ViewModel* pViewModel);
 
 public:
-	virtual qs::QSTATUS accountDestroyed(const AccountEvent& event);
+	virtual void accountDestroyed(const AccountEvent& event);
 
 private:
-	qs::QSTATUS setCurrentFolder(Account* pAccount, Folder* pFolder);
-	qs::QSTATUS setCurrentViewModel(ViewModel* pViewModel);
-	qs::QSTATUS getProfile(Folder* pFolder, qs::Profile** ppProfile);
+	void setCurrentFolder(Account* pAccount,
+						  Folder* pFolder);
+	void setCurrentViewModel(ViewModel* pViewModel);
+	qs::Profile* getProfile(Folder* pFolder);
 
 private:
-	qs::QSTATUS fireViewModelSelected(
-		ViewModel* pNewViewModel, ViewModel* pOldViewModel) const;
+	void fireViewModelSelected(ViewModel* pNewViewModel,
+							   ViewModel* pOldViewModel) const;
 
 private:
 	ViewModelManager(const ViewModelManager&);
@@ -507,8 +516,8 @@ private:
 	ViewModelList listViewModel_;
 	ViewModel* pCurrentViewModel_;
 	ProfileMap mapProfile_;
-	FilterManager* pFilterManager_;
-	ColorManager* pColorManager_;
+	std::auto_ptr<FilterManager> pFilterManager_;
+	std::auto_ptr<ColorManager> pColorManager_;
 	HandlerList listHandler_;
 };
 
@@ -525,8 +534,7 @@ public:
 	virtual ~ViewModelManagerHandler();
 
 public:
-	virtual qs::QSTATUS viewModelSelected(
-		const ViewModelManagerEvent& event) = 0;
+	virtual void viewModelSelected(const ViewModelManagerEvent& event) = 0;
 };
 
 
@@ -540,7 +548,8 @@ class ViewModelManagerEvent
 {
 public:
 	ViewModelManagerEvent(const ViewModelManager* pViewModelManager,
-		ViewModel* pNewViewModel, ViewModel* pOldViewModel);
+						  ViewModel* pNewViewModel,
+						  ViewModel* pOldViewModel);
 	~ViewModelManagerEvent();
 
 public:
@@ -570,11 +579,14 @@ class ViewModelItemComp :
 {
 public:
 	ViewModelItemComp(const ViewModel* pViewModel,
-		const ViewColumn& column, bool bAscending, bool bThread);
+					  const ViewColumn& column,
+					  bool bAscending,
+					  bool bThread);
 	~ViewModelItemComp();
 
 public:
-	bool operator()(const ViewModelItem* pLhs, const ViewModelItem* pRhs) const;
+	bool operator()(const ViewModelItem* pLhs,
+					const ViewModelItem* pRhs) const;
 
 private:
 	const ViewModel* pViewModel_;
@@ -594,7 +606,8 @@ class ViewModelItemEqual :
 	public std::binary_function<ViewModelItem*, ViewModelItem*, bool>
 {
 public:
-	bool operator()(const ViewModelItem* pLhs, const ViewModelItem* pRhs) const;
+	bool operator()(const ViewModelItem* pLhs,
+					const ViewModelItem* pRhs) const;
 };
 
 
@@ -608,7 +621,7 @@ class ViewModelParentItemComp : public std::unary_function<ViewModelItem*, bool>
 {
 public:
 	ViewModelParentItemComp(unsigned int nReferenceHash,
-		const WCHAR* pwszReference);
+							const WCHAR* pwszReference);
 
 public:
 	bool operator()(const ViewModelItem* pItem) const;

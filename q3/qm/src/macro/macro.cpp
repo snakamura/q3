@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -13,7 +13,6 @@
 #include <qmmessageholder.h>
 
 #include <qsstl.h>
-#include <qsnew.h>
 #include <qsconv.h>
 
 #include <algorithm>
@@ -34,34 +33,28 @@ using namespace qs;
  *
  */
 
-qm::MacroTokenizer::MacroTokenizer(const WCHAR* pwszMacro, QSTATUS* pstatus) :
+qm::MacroTokenizer::MacroTokenizer(const WCHAR* pwszMacro) :
 	pwszMacro_(pwszMacro),
 	p_(pwszMacro_),
 	pLast_(pwszMacro)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::MacroTokenizer::~MacroTokenizer()
 {
 }
 
-QSTATUS qm::MacroTokenizer::getToken(Token* pToken, WSTRING* pwstrToken)
+MacroTokenizer::Token qm::MacroTokenizer::getToken(wstring_ptr* pwstrToken)
 {
-	assert(pToken);
 	assert(pwstrToken);
 	
-	DECLARE_QSTATUS();
-	
-	*pwstrToken = 0;
+	pwstrToken->reset(0);
 	
 	while (*p_ == L' ' || *p_ == L'\t' || *p_ == L'\n')
 		++p_;
 	
 	if (!*p_) {
-		*pToken = TOKEN_END;
-		return QSTATUS_SUCCESS;
+		return TOKEN_END;
 	}
 	else if (*p_ == L'#') {
 		while (*p_ == L'#') {
@@ -70,104 +63,87 @@ QSTATUS qm::MacroTokenizer::getToken(Token* pToken, WSTRING* pwstrToken)
 			while (*p_ == L' ' || *p_ == L'\t' || *p_ == L'\n')
 				++p_;
 		}
-		if (!*p_) {
-			*pToken = TOKEN_END;
-			return QSTATUS_SUCCESS;
-		}
+		if (!*p_)
+			return TOKEN_END;
 	}
 	
 	pLast_ = p_;
 	
 	WCHAR c = *p_;
 	if (c == L'\"' || c == L'\'') {
-		StringBuffer<WSTRING> buf(&status);
-		CHECK_QSTATUS();
+		StringBuffer<WSTRING> buf;
 		for (++p_; *p_ && *p_ != c; ++p_) {
 			if (*p_ == L'\\') {
 				++p_;
 				switch (*p_) {
 				case L'n':
-					status = buf.append(L'\n');
-					CHECK_QSTATUS();
+					buf.append(L'\n');
 					break;
 				case L't':
-					status = buf.append(L'\t');
-					CHECK_QSTATUS();
+					buf.append(L'\t');
 					break;
 				case L'\\':
 				case L'\'':
 				case L'\"':
-					status = buf.append(*p_);
-					CHECK_QSTATUS();
+					buf.append(*p_);
 					break;
 				case L'\0':
-					*pToken = TOKEN_ERROR;
-					return QSTATUS_SUCCESS;
+					return TOKEN_ERROR;
 					break;
 				default:
-					status = buf.append(*p_);
-					CHECK_QSTATUS();
+					buf.append(*p_);
 					break;
 				}
 			}
 			else {
-				status = buf.append(*p_);
-				CHECK_QSTATUS();
+				buf.append(*p_);
 			}
 		}
-		if (!*p_) {
-			*pToken = TOKEN_ERROR;
-			return QSTATUS_SUCCESS;
-		}
+		if (!*p_)
+			return TOKEN_ERROR;
 		*pwstrToken = buf.getString();
 		++p_;
-		*pToken = TOKEN_LITERAL;
+		return TOKEN_LITERAL;
 	}
 	else if (c == L'/') {
-		StringBuffer<WSTRING> buf(&status);
-		CHECK_QSTATUS();
+		StringBuffer<WSTRING> buf;
 		for (++p_; *p_ && *p_ != L'/'; ++p_) {
 			if (*p_ == L'\\') {
-				if (*(p_ + 1) != L'/') {
-					status = buf.append(*p_);
-					CHECK_QSTATUS();
-				}
+				if (*(p_ + 1) != L'/')
+					buf.append(*p_);
 				++p_;
 			}
-			status = buf.append(*p_);
-			CHECK_QSTATUS();
+			buf.append(*p_);
 		}
-		if (!*p_) {
-			*pToken = TOKEN_ERROR;
-			return QSTATUS_SUCCESS;
-		}
+		if (!*p_)
+			return TOKEN_ERROR;
 		*pwstrToken = buf.getString();
 		++p_;
-		*pToken = TOKEN_REGEX;
+		return TOKEN_REGEX;
 	}
 	else if (c == L'@') {
 		++p_;
-		*pToken = TOKEN_AT;
+		return TOKEN_AT;
 	}
 	else if (c == L'$') {
 		++p_;
-		*pToken = TOKEN_DOLLAR;
+		return TOKEN_DOLLAR;
 	}
 	else if (c == L'%') {
 		++p_;
-		*pToken = TOKEN_PERCENT;
+		return TOKEN_PERCENT;
 	}
 	else if (c == L'(') {
 		++p_;
-		*pToken = TOKEN_LEFTPARENTHESIS;
+		return TOKEN_LEFTPARENTHESIS;
 	}
 	else if (c == L')') {
 		++p_;
-		*pToken = TOKEN_RIGHTPARENTHESIS;
+		return TOKEN_RIGHTPARENTHESIS;
 	}
 	else if (c == L',') {
 		++p_;
-		*pToken = TOKEN_COMMA;
+		return TOKEN_COMMA;
 	}
 	else {
 		const WCHAR* pwszSep = L" \t\n,()#";
@@ -175,12 +151,8 @@ QSTATUS qm::MacroTokenizer::getToken(Token* pToken, WSTRING* pwstrToken)
 		while (*p_ && !wcschr(pwszSep, *p_))
 			++p_;
 		*pwstrToken = allocWString(pBegin, p_ - pBegin);
-		if (!*pwstrToken)
-			return QSTATUS_OUTOFMEMORY;
-		*pToken = TOKEN_TEXT;
+		return TOKEN_TEXT;
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 const WCHAR* qm::MacroTokenizer::getLastPosition() const
@@ -195,39 +167,29 @@ const WCHAR* qm::MacroTokenizer::getLastPosition() const
  *
  */
 
-qm::MacroGlobalContext::MacroGlobalContext(
-	const Init& init, QSTATUS* pstatus) :
-	pDocument_(init.pDocument_),
-	hwnd_(init.hwnd_),
-	pProfile_(init.pProfile_),
-	bGetMessageAsPossible_(init.bGetMessageAsPossible_),
-	pErrorHandler_(init.pErrorHandler_),
-	pVariable_(0),
-	pGlobalVariable_(init.pGlobalVariable_),
-	pFunction_(0),
-	pArgument_(0)
+qm::MacroGlobalContext::MacroGlobalContext(Document* pDocument,
+										   HWND hwnd,
+										   Profile* pProfile,
+										   bool bGetMessageAsPossible,
+										   MacroErrorHandler* pErrorHandler,
+										   MacroVariableHolder* pGlobalVariable) :
+	pDocument_(pDocument),
+	hwnd_(hwnd),
+	pProfile_(pProfile),
+	bGetMessageAsPossible_(bGetMessageAsPossible),
+	pErrorHandler_(pErrorHandler),
+	pGlobalVariable_(pGlobalVariable)
 {
 	assert(pDocument_);
 	assert(hwnd_);
-	assert(pstatus);
 	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	DECLARE_QSTATUS();
-	
-	status = newQsObject(&pVariable_);
-	CHECK_QSTATUS_SET(pstatus);
-	status = newQsObject(&pFunction_);
-	CHECK_QSTATUS_SET(pstatus);
-	status = newQsObject(&pArgument_);
-	CHECK_QSTATUS_SET(pstatus);
+	pVariable_.reset(new MacroVariableHolder());
+	pFunction_.reset(new MacroFunctionHolder());
+	pArgument_.reset(new MacroArgumentHolder());
 }
 
 qm::MacroGlobalContext::~MacroGlobalContext()
 {
-	delete pVariable_;
-	delete pFunction_;
-	delete pArgument_;
 }
 
 Document* qm::MacroGlobalContext::getDocument() const
@@ -255,61 +217,43 @@ MacroErrorHandler* qm::MacroGlobalContext::getErrorHandler() const
 	return pErrorHandler_;
 }
 
-QSTATUS qm::MacroGlobalContext::getVariable(
-	const WCHAR* pwszName, MacroValue** ppValue) const
+MacroValuePtr qm::MacroGlobalContext::getVariable(const WCHAR* pwszName) const
 {
 	assert(pwszName);
-	assert(ppValue);
 	
-	DECLARE_QSTATUS();
-	
-	*ppValue = 0;
-	
-	status = pVariable_->getVariable(pwszName, ppValue);
-	CHECK_QSTATUS();
-	if (!*ppValue && pGlobalVariable_) {
-		status = pGlobalVariable_->getVariable(pwszName, ppValue);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	MacroValuePtr pValue(pVariable_->getVariable(pwszName));
+	if (!pValue.get() && pGlobalVariable_)
+		pValue = pGlobalVariable_->getVariable(pwszName);
+	return pValue;
 }
 
-QSTATUS qm::MacroGlobalContext::setVariable(
-	const WCHAR* pwszName, MacroValue* pValue, bool bGlobal)
+bool qm::MacroGlobalContext::setVariable(const WCHAR* pwszName,
+										 MacroValue* pValue,
+										 bool bGlobal)
 {
 	assert(pwszName);
 	assert(pValue);
 	
-	DECLARE_QSTATUS();
-	
-	if (bGlobal && pGlobalVariable_) {
-		status = pGlobalVariable_->setVariable(pwszName, pValue);
-		CHECK_QSTATUS();
-	}
-	else {
-		status = pVariable_->setVariable(pwszName, pValue);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (bGlobal && pGlobalVariable_)
+		return pGlobalVariable_->setVariable(pwszName, pValue);
+	else
+		return pVariable_->setVariable(pwszName, pValue);
 }
 
-QSTATUS qm::MacroGlobalContext::getFunction(
-	const WCHAR* pwszName, const MacroExpr** ppExpr) const
+const MacroExpr* qm::MacroGlobalContext::getFunction(const WCHAR* pwszName) const
 {
-	return pFunction_->getFunction(pwszName, ppExpr);
+	return pFunction_->getFunction(pwszName);
 }
 
-QSTATUS qm::MacroGlobalContext::setFunction(
-	const WCHAR* pwszName, const MacroExpr* pExpr, bool* pbSet)
+bool qm::MacroGlobalContext::setFunction(const WCHAR* pwszName,
+										 const MacroExpr* pExpr)
 {
-	return pFunction_->setFunction(pwszName, pExpr, pbSet);
+	return pFunction_->setFunction(pwszName, pExpr);
 }
 
-QSTATUS qm::MacroGlobalContext::pushArgumentContext()
+void qm::MacroGlobalContext::pushArgumentContext()
 {
-	return pArgument_->pushContext();
+	pArgument_->pushContext();
 }
 
 void qm::MacroGlobalContext::popArgumentContext()
@@ -317,15 +261,14 @@ void qm::MacroGlobalContext::popArgumentContext()
 	pArgument_->popContext();
 }
 
-QSTATUS qm::MacroGlobalContext::addArgument(MacroValue* pValue)
+void qm::MacroGlobalContext::addArgument(MacroValuePtr pValue)
 {
-	return pArgument_->addArgument(pValue);
+	pArgument_->addArgument(pValue);
 }
 
-QSTATUS qm::MacroGlobalContext::getArgument(
-	unsigned int n, MacroValue** ppValue) const
+MacroValuePtr qm::MacroGlobalContext::getArgument(unsigned int n) const
 {
-	return pArgument_->getArgument(n, ppValue);
+	return pArgument_->getArgument(n);
 }
 
 
@@ -335,10 +278,8 @@ QSTATUS qm::MacroGlobalContext::getArgument(
  *
  */
 
-qm::MacroFunctionHolder::MacroFunctionHolder(QSTATUS* pstatus)
+qm::MacroFunctionHolder::MacroFunctionHolder()
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::MacroFunctionHolder::~MacroFunctionHolder()
@@ -349,15 +290,9 @@ qm::MacroFunctionHolder::~MacroFunctionHolder()
 			std::select1st<FunctionMap::value_type>()));
 }
 
-QSTATUS qm::MacroFunctionHolder::getFunction(
-	const WCHAR* pwszName, const MacroExpr** ppExpr) const
+const MacroExpr* qm::MacroFunctionHolder::getFunction(const WCHAR* pwszName) const
 {
 	assert(pwszName);
-	assert(ppExpr);
-	
-	DECLARE_QSTATUS();
-	
-	*ppExpr = 0;
 	
 	FunctionMap::const_iterator it = std::find_if(
 		mapFunction_.begin(), mapFunction_.end(),
@@ -368,21 +303,16 @@ QSTATUS qm::MacroFunctionHolder::getFunction(
 				std::identity<const WCHAR*>()),
 			pwszName));
 	if (it != mapFunction_.end())
-		*ppExpr = (*it).second;
-	
-	return QSTATUS_SUCCESS;
+		return (*it).second;
+	else
+		return 0;
 }
 
-QSTATUS qm::MacroFunctionHolder::setFunction(
-	const WCHAR* pwszName, const MacroExpr* pExpr, bool* pbSet)
+bool qm::MacroFunctionHolder::setFunction(const WCHAR* pwszName,
+										  const MacroExpr* pExpr)
 {
 	assert(pwszName);
 	assert(pExpr);
-	assert(pbSet);
-	
-	DECLARE_QSTATUS();
-	
-	*pbSet = false;
 	
 	FunctionMap::const_iterator it = std::find_if(
 		mapFunction_.begin(), mapFunction_.end(),
@@ -392,18 +322,13 @@ QSTATUS qm::MacroFunctionHolder::setFunction(
 				std::select1st<FunctionMap::value_type>(),
 				std::identity<const WCHAR*>()),
 			pwszName));
-	if (it == mapFunction_.end()) {
-		string_ptr<WSTRING> wstrName(allocWString(pwszName));
-		if (!wstrName.get())
-			return QSTATUS_OUTOFMEMORY;
-		status = STLWrapper<FunctionMap>(mapFunction_).push_back(
-			std::make_pair(wstrName.get(), pExpr));
-		CHECK_QSTATUS();
-		wstrName.release();
-		*pbSet = true;
-	}
+	if (it != mapFunction_.end())
+		return false;
 	
-	return QSTATUS_SUCCESS;
+	wstring_ptr wstrName(allocWString(pwszName));
+	mapFunction_.push_back(std::make_pair(wstrName.get(), pExpr));
+	wstrName.release();
+	return true;
 }
 
 
@@ -413,20 +338,17 @@ QSTATUS qm::MacroFunctionHolder::setFunction(
  *
  */
 
-qm::MacroArgumentHolder::MacroArgumentHolder(QSTATUS* pstatus)
+qm::MacroArgumentHolder::MacroArgumentHolder()
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::MacroArgumentHolder::~MacroArgumentHolder()
 {
 }
 
-QSTATUS qm::MacroArgumentHolder::pushContext()
+void qm::MacroArgumentHolder::pushContext()
 {
-	return STLWrapper<ArgumentList>(
-		listArgument_).resize(listArgument_.size() + 1);
+	listArgument_.resize(listArgument_.size() + 1);
 }
 
 void qm::MacroArgumentHolder::popContext()
@@ -434,37 +356,27 @@ void qm::MacroArgumentHolder::popContext()
 	assert(!listArgument_.empty());
 	
 	std::vector<MacroValue*>& v = listArgument_.back();
-	std::vector<MacroValue*>::iterator it = v.begin();
-	while (it != v.end()) {
+	for (std::vector<MacroValue*>::iterator it = v.begin(); it != v.end(); ++it)
 		MacroValuePtr pValue(*it);
-		++it;
-	}
 	listArgument_.pop_back();
 }
 
-QSTATUS qm::MacroArgumentHolder::addArgument(MacroValue* pValue)
+void qm::MacroArgumentHolder::addArgument(MacroValuePtr pValue)
 {
 	assert(!listArgument_.empty());
-	return STLWrapper<std::vector<MacroValue*> >(
-		listArgument_.back()).push_back(pValue);
+	listArgument_.back().push_back(pValue.get());
+	pValue.release();
 }
 
-QSTATUS qm::MacroArgumentHolder::getArgument(unsigned int n, MacroValue** ppValue) const
+MacroValuePtr qm::MacroArgumentHolder::getArgument(unsigned int n) const
 {
-	assert(ppValue);
 	assert(!listArgument_.empty());
 	
-	DECLARE_QSTATUS();
-	
-	*ppValue = 0;
-	
 	const std::vector<MacroValue*>& v = listArgument_.back();
-	if (n < v.size()) {
-		status = v[n]->clone(ppValue);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (n >= v.size())
+		return 0;
+	else
+		return v[n]->clone();
 }
 
 
@@ -483,19 +395,14 @@ void qm::MacroExpr::release()
 	delete this;
 }
 
-QSTATUS qm::MacroExpr::error(const MacroContext& context,
-	MacroErrorHandler::Code code) const
+MacroValuePtr qm::MacroExpr::error(const MacroContext& context,
+								   MacroErrorHandler::Code code) const
 {
-	DECLARE_QSTATUS();
-	
 	if (context.getErrorHandler()) {
-		string_ptr<WSTRING> wstr;
-		status = getString(&wstr);
-		CHECK_QSTATUS();
-		context.getErrorHandler()->processError(
-			code, wstr.get());
+		wstring_ptr wstr(getString());
+		context.getErrorHandler()->processError(code, wstr.get());
 	}
-	return QSTATUS_FAIL;
+	return 0;
 }
 
 
@@ -505,58 +412,35 @@ QSTATUS qm::MacroExpr::error(const MacroContext& context,
  *
  */
 
-qm::MacroField::MacroField(const WCHAR* pwszName, QSTATUS* pstatus) :
-	wstrName_(0)
+qm::MacroField::MacroField(const WCHAR* pwszName)
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	string_ptr<WSTRING> wstrName(allocWString(pwszName));
-	if (!wstrName.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
-	wstrName_ = wstrName.release();
+	wstrName_ = allocWString(pwszName);
 }
 
 qm::MacroField::~MacroField()
 {
-	freeWString(wstrName_);
 }
 
-QSTATUS qm::MacroField::value(MacroContext* pContext,
-	MacroValue** ppValue) const
+MacroValuePtr qm::MacroField::value(MacroContext* pContext) const
 {
 	assert(pContext);
-	assert(ppValue);
-	
-	DECLARE_QSTATUS();
-	
-	*ppValue = 0;
 	
 	MessageHolderBase* pmh = pContext->getMessageHolder();
 	if (!pmh)
 		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
 	
-	Message* pMessage = 0;
-	status = pContext->getMessage(MacroContext::MESSAGETYPE_HEADER,
-		wstrName_, &pMessage);
-	CHECK_QSTATUS();
+	Message* pMessage = pContext->getMessage(
+		MacroContext::MESSAGETYPE_HEADER, wstrName_.get());
+	if (!pMessage)
+		return 0;
 	
-	string_ptr<STRING> strHeader;
-	status = PartUtil(*pMessage).getHeader(wstrName_, &strHeader);
-	CHECK_QSTATUS();
-	
-	return MacroValueFactory::getFactory().newField(wstrName_,
-		strHeader.get(), reinterpret_cast<MacroValueField**>(ppValue));
+	string_ptr strHeader(PartUtil(*pMessage).getHeader(wstrName_.get()));
+	return MacroValueFactory::getFactory().newField(wstrName_.get(), strHeader.get());
 }
 
-QSTATUS qm::MacroField::getString(WSTRING* pwstrExpr) const
+wstring_ptr qm::MacroField::getString() const
 {
-	assert(pwstrExpr);
-	*pwstrExpr = allocWString(wstrName_);
-	return *pwstrExpr ? QSTATUS_SUCCESS : QSTATUS_OUTOFMEMORY;
+	return allocWString(wstrName_.get());
 }
 
 
@@ -566,62 +450,26 @@ QSTATUS qm::MacroField::getString(WSTRING* pwstrExpr) const
  *
  */
 
-qm::MacroFieldCache::MacroFieldCache(const WCHAR* pwszName, QSTATUS* pstatus)
+qm::MacroFieldCache::MacroFieldCache(Type type) :
+	type_(type)
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	const WCHAR* pwszTypes[] = {
-		L"id",
-		L"date",
-		L"from",
-		L"to",
-		L"fromto",
-		L"subject",
-		L"size"
-	};
-	Type types[] = {
-		TYPE_ID,
-		TYPE_DATE,
-		TYPE_FROM,
-		TYPE_TO,
-		TYPE_FROMTO,
-		TYPE_SUBJECT,
-		TYPE_SIZE
-	};
-	
-	for (int n = 0; n < countof(pwszTypes); ++n) {
-		if (_wcsicmp(pwszName, pwszTypes[n]) == 0) {
-			type_ = types[n];
-			break;
-		}
-	}
-	if (n == countof(pwszTypes)) {
-		*pstatus = QSTATUS_FAIL;
-		return;
-	}
 }
 
 qm::MacroFieldCache::~MacroFieldCache()
 {
 }
 
-QSTATUS qm::MacroFieldCache::value(MacroContext* pContext,
-	MacroValue** ppValue) const
+MacroValuePtr qm::MacroFieldCache::value(MacroContext* pContext) const
 {
 	assert(pContext);
-	assert(ppValue);
-	
-	DECLARE_QSTATUS();
 	
 	MessageHolderBase* pmh = pContext->getMessageHolder();
 	if (!pmh)
 		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
 	
 	unsigned int (qm::MessageHolderBase::*pfnGetNumber)() const = 0;
-	QSTATUS (qm::MessageHolderBase::*pfnGetString)(WSTRING*) const = 0;
-	QSTATUS (qm::MessageHolderBase::*pfnGetTime)(Time*) const = 0;
+	wstring_ptr (qm::MessageHolderBase::*pfnGetString)() const = 0;
+	void (qm::MessageHolderBase::*pfnGetTime)(Time*) const = 0;
 	
 	MacroValueFactory& factory = MacroValueFactory::getFactory();
 	switch (type_) {
@@ -649,37 +497,25 @@ QSTATUS qm::MacroFieldCache::value(MacroContext* pContext,
 	}
 	
 	if (pfnGetNumber) {
-		status = factory.newNumber((pmh->*pfnGetNumber)(),
-			reinterpret_cast<MacroValueNumber**>(ppValue));
-		CHECK_QSTATUS();
+		return factory.newNumber((pmh->*pfnGetNumber)());
 	}
 	else if (pfnGetString) {
-		string_ptr<WSTRING> wstr;
-		status = (pmh->*pfnGetString)(&wstr);
-		CHECK_QSTATUS();
-		status = factory.newString(wstr.get(),
-			reinterpret_cast<MacroValueString**>(ppValue));
-		CHECK_QSTATUS();
+		wstring_ptr wstr((pmh->*pfnGetString)());
+		return factory.newString(wstr.get());
 	}
 	else if (pfnGetTime) {
 		Time time;
-		status = (pmh->*pfnGetTime)(&time);
-		CHECK_QSTATUS();
-		status = factory.newTime(time,
-			reinterpret_cast<MacroValueTime**>(ppValue));
-		CHECK_QSTATUS();
+		(pmh->*pfnGetTime)(&time);
+		return factory.newTime(time);
 	}
 	else {
 		assert(false);
+		return 0;
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::MacroFieldCache::getString(WSTRING* pwstrExpr) const
+wstring_ptr qm::MacroFieldCache::getString() const
 {
-	assert(pwstrExpr);
-	
 	const WCHAR* pwszNames[] = {
 		L"ID",
 		L"Date",
@@ -690,8 +526,28 @@ QSTATUS qm::MacroFieldCache::getString(WSTRING* pwstrExpr) const
 		L"Size"
 	};
 	
-	*pwstrExpr = concat(L"%", pwszNames[type_]);
-	return *pwstrExpr ? QSTATUS_SUCCESS : QSTATUS_OUTOFMEMORY;
+	return concat(L"%", pwszNames[type_]);
+}
+
+MacroFieldCache::Type qm::MacroFieldCache::getType(const WCHAR* pwszType)
+{
+	struct {
+		const WCHAR* pwsz_;
+		Type type_;
+	} types[] = {
+		{ L"id",		TYPE_ID			},
+		{ L"date",		TYPE_DATE		},
+		{ L"from",		TYPE_FROM		},
+		{ L"to",		TYPE_TO			},
+		{ L"fromto",	TYPE_FROMTO		},
+		{ L"subject",	TYPE_SUBJECT	},
+		{ L"size",		TYPE_SIZE		}
+	};
+	for (int n = 0; n < countof(types); ++n) {
+		if (_wcsicmp(pwszType, types[n].pwsz_) == 0)
+			return types[n].type_;
+	}
+	return TYPE_ERROR;
 }
 
 
@@ -701,84 +557,50 @@ QSTATUS qm::MacroFieldCache::getString(WSTRING* pwstrExpr) const
  *
  */
 
-qm::MacroLiteral::MacroLiteral(const WCHAR* pwszValue, QSTATUS* pstatus) :
-	wstrValue_(0)
+qm::MacroLiteral::MacroLiteral(const WCHAR* pwszValue)
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
 	wstrValue_ = allocWString(pwszValue);
-	if (!wstrValue_) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
 }
 
 qm::MacroLiteral::~MacroLiteral()
 {
-	freeWString(wstrValue_);
 }
 
-QSTATUS qm::MacroLiteral::value(MacroContext* pContext,
-	MacroValue** ppValue) const
+MacroValuePtr qm::MacroLiteral::value(MacroContext* pContext) const
 {
 	assert(pContext);
-	assert(ppValue);
-	
-	return MacroValueFactory::getFactory().newString(wstrValue_,
-		reinterpret_cast<MacroValueString**>(ppValue));
+	return MacroValueFactory::getFactory().newString(wstrValue_.get());
 }
 
-QSTATUS qm::MacroLiteral::getString(WSTRING* pwstrExpr) const
+wstring_ptr qm::MacroLiteral::getString() const
 {
-	assert(pwstrExpr);
-	
-	DECLARE_QSTATUS();
-	
-	*pwstrExpr = 0;
-	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
-	
-	status = buf.append(L'\'');
-	CHECK_QSTATUS();
-	
-	for (const WCHAR* p = wstrValue_; *p; ++p) {
+	StringBuffer<WSTRING> buf;
+	buf.append(L'\'');
+	for (const WCHAR* p = wstrValue_.get(); *p; ++p) {
 		switch (*p) {
 		case L'\n':
-			status = buf.append(L"\\n");
-			CHECK_QSTATUS();
+			buf.append(L"\\n");
 			break;
 		case L'\t':
-			status = buf.append(L"\\t");
-			CHECK_QSTATUS();
+			buf.append(L"\\t");
 			break;
 		case L'\\':
-			status = buf.append(L"\\\\");
-			CHECK_QSTATUS();
+			buf.append(L"\\\\");
 			break;
 		case L'\"':
-			status = buf.append(L"\\\"");
-			CHECK_QSTATUS();
+			buf.append(L"\\\"");
 			break;
 		case L'\'':
-			status = buf.append(L"\\\'");
-			CHECK_QSTATUS();
+			buf.append(L"\\\'");
 			break;
 		default:
-			status = buf.append(*p);
-			CHECK_QSTATUS();
+			buf.append(*p);
 			break;
 		}
 	}
+	buf.append(L'\'');
 	
-	status = buf.append(L'\'');
-	CHECK_QSTATUS();
-	
-	*pwstrExpr = buf.getString();
-	
-	return QSTATUS_SUCCESS;
+	return buf.getString();
 }
 
 
@@ -788,7 +610,7 @@ QSTATUS qm::MacroLiteral::getString(WSTRING* pwstrExpr) const
  *
  */
 
-qm::MacroNumber::MacroNumber(long nValue, QSTATUS* pstatus) :
+qm::MacroNumber::MacroNumber(long nValue) :
 	nValue_(nValue)
 {
 }
@@ -797,23 +619,17 @@ qm::MacroNumber::~MacroNumber()
 {
 }
 
-QSTATUS qm::MacroNumber::value(MacroContext* pContext,
-	MacroValue** ppValue) const
+MacroValuePtr qm::MacroNumber::value(MacroContext* pContext) const
 {
 	assert(pContext);
-	assert(ppValue);
-	
-	return MacroValueFactory::getFactory().newNumber(nValue_,
-		reinterpret_cast<MacroValueNumber**>(ppValue));
+	return MacroValueFactory::getFactory().newNumber(nValue_);
 }
 
-QSTATUS qm::MacroNumber::getString(WSTRING* pwstrExpr) const
+wstring_ptr qm::MacroNumber::getString() const
 {
-	assert(pwstrExpr);
 	WCHAR wsz[32];
 	swprintf(wsz, L"%ld", nValue_);
-	*pwstrExpr = allocWString(wsz);
-	return *pwstrExpr ? QSTATUS_SUCCESS : QSTATUS_OUTOFMEMORY;
+	return allocWString(wsz);
 }
 
 
@@ -823,69 +639,41 @@ QSTATUS qm::MacroNumber::getString(WSTRING* pwstrExpr) const
  *
  */
 
-qm::MacroRegex::MacroRegex(const WCHAR* pwszRegex, qs::QSTATUS* pstatus) :
-	wstrPattern_(0),
-	pPattern_(0)
+qm::MacroRegex::MacroRegex(const WCHAR* pwszPattern)
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrPattern(allocWString(pwszRegex));
-	if (!wstrPattern.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
-	
-	status = RegexCompiler().compile(pwszRegex, &pPattern_);
-	CHECK_QSTATUS_SET(pstatus);
-	wstrPattern_ = wstrPattern.release();
+	wstrPattern_ = allocWString(pwszPattern);
+	pPattern_ = RegexCompiler().compile(pwszPattern);
 }
 
 qm::MacroRegex::~MacroRegex()
 {
-	freeWString(wstrPattern_);
-	delete pPattern_;
 }
 
-QSTATUS qm::MacroRegex::value(MacroContext* pContext, MacroValue** ppValue) const
+bool qm::MacroRegex::operator!() const
+{
+	return pPattern_.get() == 0;
+}
+
+MacroValuePtr qm::MacroRegex::value(MacroContext* pContext) const
 {
 	assert(pContext);
-	assert(ppValue);
-	
-	return MacroValueFactory::getFactory().newRegex(wstrPattern_,
-		pPattern_, reinterpret_cast<MacroValueRegex**>(ppValue));
+	return MacroValueFactory::getFactory().newRegex(
+		wstrPattern_.get(), pPattern_.get());
 }
 
-QSTATUS qm::MacroRegex::getString(qs::WSTRING* pwstrExpr) const
+wstring_ptr qm::MacroRegex::getString() const
 {
-	assert(pwstrExpr);
-	
-	DECLARE_QSTATUS();
-	
-	*pwstrExpr = 0;
-	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
-	
-	status = buf.append(L'/');
-	CHECK_QSTATUS();
-	
-	for (const WCHAR* p = wstrPattern_; *p; ++p) {
-		if (*p == L'/') {
-			status = buf.append(L"\\/");
-			CHECK_QSTATUS();
-		}
-		else {
-			status = buf.append(*p);
-			CHECK_QSTATUS();
-		}
+	StringBuffer<WSTRING> buf;
+	buf.append(L'/');
+	for (const WCHAR* p = wstrPattern_.get(); *p; ++p) {
+		if (*p == L'/')
+			buf.append(L"\\/");
+		else
+			buf.append(*p);
 	}
+	buf.append(L'/');
 	
-	status = buf.append(L'/');
-	CHECK_QSTATUS();
-	
-	*pwstrExpr = buf.getString();
-	
-	return QSTATUS_SUCCESS;
+	return buf.getString();
 }
 
 
@@ -895,72 +683,46 @@ QSTATUS qm::MacroRegex::getString(qs::WSTRING* pwstrExpr) const
  *
  */
 
-qm::MacroVariable::MacroVariable(const WCHAR* pwszName, QSTATUS* pstatus) :
-	wstrName_(0),
+qm::MacroVariable::MacroVariable(const WCHAR* pwszName) :
 	n_(static_cast<unsigned int>(-1))
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
 	if (L'0' <= *pwszName && *pwszName <= L'9') {
-		for (const WCHAR* p = pwszName; *p; ++p) {
+		const WCHAR* p = pwszName;
+		while (*p) {
 			if (*p < L'0' || L'9' < *p)
 				break;
+			++p;
 		}
-		if (*p) {
-			*pstatus = QSTATUS_FAIL;
-			return;
+		if (!*p) {
+			WCHAR* pEnd = 0;
+			n_ = wcstol(pwszName, &pEnd, 10);
 		}
-		WCHAR* pEnd = 0;
-		n_ = wcstol(pwszName, &pEnd, 10);
 	}
-	else {
+	if (n_ == -1)
 		wstrName_ = allocWString(pwszName);
-		if (!wstrName_) {
-			*pstatus = QSTATUS_OUTOFMEMORY;
-			return;
-		}
-	}
 }
 
 qm::MacroVariable::~MacroVariable()
 {
-	freeWString(wstrName_);
 }
 
-QSTATUS qm::MacroVariable::value(MacroContext* pContext,
-	MacroValue** ppValue) const
+MacroValuePtr qm::MacroVariable::value(MacroContext* pContext) const
 {
 	assert(pContext);
-	assert(ppValue);
 	
-	DECLARE_QSTATUS();
-	
-	*ppValue = 0;
-	
-	if (n_ != static_cast<unsigned int>(-1)) {
-		status = pContext->getArgument(n_, ppValue);
-		CHECK_QSTATUS();
-	}
-	else {
-		status = pContext->getVariable(wstrName_, ppValue);
-		CHECK_QSTATUS();
-	}
-	if (!*ppValue) {
-		status = MacroValueFactory::getFactory().newString(
-			L"", reinterpret_cast<MacroValueString**>(ppValue));
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	MacroValuePtr pValue;
+	if (n_ != -1)
+		pValue = pContext->getArgument(n_);
+	else
+		pValue = pContext->getVariable(wstrName_.get());
+	if (!pValue.get())
+		pValue = MacroValueFactory::getFactory().newString(L"");
+	return pValue;
 }
 
-QSTATUS qm::MacroVariable::getString(WSTRING* pwstrExpr) const
+wstring_ptr qm::MacroVariable::getString() const
 {
-	assert(pwstrExpr);
-	*pwstrExpr = concat(L"$", wstrName_);
-	return *pwstrExpr ? QSTATUS_SUCCESS : QSTATUS_OUTOFMEMORY;
+	return concat(L"$", wstrName_.get());
 }
 
 
@@ -980,10 +742,22 @@ qm::MacroExprPtr::MacroExprPtr(MacroExpr* pExpr) :
 {
 }
 
+qm::MacroExprPtr::MacroExprPtr(MacroExprPtr& pExpr) :
+	pExpr_(pExpr.release())
+{
+}
+
 qm::MacroExprPtr::~MacroExprPtr()
 {
 	if (pExpr_)
 		pExpr_->release();
+}
+
+MacroExprPtr& qm::MacroExprPtr::operator=(MacroExprPtr& pExpr)
+{
+	if (&pExpr != this)
+		reset(pExpr.release());
+	return *this;
 }
 
 MacroExpr* qm::MacroExprPtr::get() const
@@ -1023,31 +797,25 @@ qm::MacroErrorHandler::~MacroErrorHandler()
  *
  */
 
-qm::Macro::Macro(MacroExpr* pExpr, QSTATUS* pstatus) :
-	pExpr_(pExpr)
+qm::Macro::Macro(MacroExprPtr pExpr) :
+	pExpr_(pExpr.release())
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::Macro::~Macro()
 {
-	if (pExpr_)
-		pExpr_->release();
+	pExpr_->release();
 }
 
-QSTATUS qm::Macro::value(MacroContext* pContext, MacroValue** ppValue) const
+MacroValuePtr qm::Macro::value(MacroContext* pContext) const
 {
 	assert(pContext);
-	assert(ppValue);
-	
-	return pExpr_->value(pContext, ppValue);
+	return pExpr_->value(pContext);
 }
 
-QSTATUS qm::Macro::getString(WSTRING* pwstrMacro) const
+wstring_ptr qm::Macro::getString() const
 {
-	assert(pwstrMacro);
-	return pExpr_->getString(pwstrMacro);
+	return pExpr_->getString();
 }
 
 
@@ -1057,46 +825,37 @@ QSTATUS qm::Macro::getString(WSTRING* pwstrMacro) const
  *
  */
 
-qm::MacroParser::MacroParser(Type type, QSTATUS* pstatus) :
+qm::MacroParser::MacroParser(Type type) :
 	type_(type),
 	pErrorHandler_(0)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::MacroParser::~MacroParser()
 {
 }
 
-QSTATUS qm::MacroParser::parse(const WCHAR* pwszMacro, Macro** ppMacro) const
+std::auto_ptr<Macro> qm::MacroParser::parse(const WCHAR* pwszMacro) const
 {
-	return parse(pwszMacro, 0, ppMacro);
+	return parse(pwszMacro, 0);
 }
 
-QSTATUS qm::MacroParser::parse(const WCHAR* pwszMacro,
-	Macro* pParentMacro, Macro** ppMacro) const
+std::auto_ptr<Macro> qm::MacroParser::parse(const WCHAR* pwszMacro,
+											Macro* pParentMacro) const
 {
 	assert(pwszMacro);
-	assert(ppMacro);
-	
-	DECLARE_QSTATUS();
 	
 	MacroExprPtr pMacroExpr;
 	
-	MacroTokenizer tokenizer(pwszMacro, &status);
-	CHECK_QSTATUS();
+	MacroTokenizer tokenizer(pwszMacro);
 	
 	typedef std::vector<MacroFunction*> FunctionStack;
 	FunctionStack stackFunction;
-	STLWrapper<FunctionStack> wrapper(stackFunction);
 	
 	bool bEnd = false;
 	while (!bEnd) {
-		MacroTokenizer::Token token;
-		string_ptr<WSTRING> wstrToken;
-		status = tokenizer.getToken(&token, &wstrToken);
-		CHECK_QSTATUS();
+		wstring_ptr wstrToken;
+		MacroTokenizer::Token token = tokenizer.getToken(&wstrToken);
 		if (pMacroExpr.get() && token != MacroTokenizer::TOKEN_END) {
 			return error(MacroErrorHandler::CODE_MACROCONTAINSMORETHANONEEXPR,
 				tokenizer.getLastPosition());
@@ -1108,85 +867,65 @@ QSTATUS qm::MacroParser::parse(const WCHAR* pwszMacro,
 				if (isNumber(wstrToken.get())) {
 					WCHAR* pEnd = 0;
 					long n = wcstol(wstrToken.get(), &pEnd, 10);
-					std::auto_ptr<MacroNumber> pNumber;
-					status = newQsObject(n, &pNumber);
-					CHECK_QSTATUS();
-					pExpr.reset(pNumber.release());
+					pExpr.reset(new MacroNumber(n));
 				}
 				else {
-					std::auto_ptr<MacroField> pField;
-					status = newQsObject(wstrToken.get(), &pField);
-					CHECK_QSTATUS();
-					pExpr.reset(pField.release());
+					pExpr.reset(new MacroField(wstrToken.get()));
 				}
 				break;
 			case MacroTokenizer::TOKEN_LITERAL:
-				{
-					std::auto_ptr<MacroLiteral> pLiteral;
-					status = newQsObject(wstrToken.get(), &pLiteral);
-					CHECK_QSTATUS();
-					pExpr.reset(pLiteral.release());
-				}
+				pExpr.reset(new MacroLiteral(wstrToken.get()));
 				break;
 			case MacroTokenizer::TOKEN_REGEX:
 				{
-					std::auto_ptr<MacroRegex> pRegex;
-					status = newQsObject(wstrToken.get(), &pRegex);
-					CHECK_QSTATUS();
+					std::auto_ptr<MacroRegex> pRegex(new MacroRegex(wstrToken.get()));
+					if (!*pRegex.get())
+						return error(MacroErrorHandler::CODE_INVALIDREGEX,
+							tokenizer.getLastPosition());
 					pExpr.reset(pRegex.release());
 				}
 				break;
 			case MacroTokenizer::TOKEN_AT:
 				{
 					const WCHAR* pLast = tokenizer.getLastPosition();
-					string_ptr<WSTRING> wstrFunction;
-					status = tokenizer.getToken(&token, &wstrFunction);
-					CHECK_QSTATUS();
+					wstring_ptr wstrFunction;
+					token = tokenizer.getToken(&wstrFunction);
 					if (token != MacroTokenizer::TOKEN_TEXT)
 						return error(MacroErrorHandler::CODE_INVALIDFUNCTIONNAME, pLast);
-					status = tokenizer.getToken(&token, &wstrToken);
-					CHECK_QSTATUS();
+					token = tokenizer.getToken(&wstrToken);
 					if (token != MacroTokenizer::TOKEN_LEFTPARENTHESIS)
 						return error(MacroErrorHandler::CODE_FUNCTIONWITHOUTPARENTHESIS, pLast);
-					MacroFunction* pFunction = 0;
-					status = MacroFunctionFactory::getFactory().newFunction(
-						type_, wstrFunction.get(), &pFunction);
-					CHECK_QSTATUS();
-					assert(pFunction);
-					std::auto_ptr<MacroFunction> apFunction(pFunction);
-					status = wrapper.push_back(pFunction);
-					CHECK_QSTATUS();
-					apFunction.release();
+					
+					std::auto_ptr<MacroFunction> pFunction(
+						MacroFunctionFactory::getFactory().newFunction(
+							type_, wstrFunction.get()));
+					stackFunction.push_back(pFunction.get());
+					pFunction.release();
 				}
 				break;
 			case MacroTokenizer::TOKEN_DOLLAR:
 				{
 					const WCHAR* pLast = tokenizer.getLastPosition();
-					string_ptr<WSTRING> wstrVariable;
-					status = tokenizer.getToken(&token, &wstrVariable);
-					CHECK_QSTATUS();
+					wstring_ptr wstrVariable;
+					token = tokenizer.getToken(&wstrVariable);
 					if (token != MacroTokenizer::TOKEN_TEXT)
 						return error(MacroErrorHandler::CODE_INVALIDVARIABLENAME, pLast);
-					std::auto_ptr<MacroVariable> pVariable;
-					status = newQsObject(wstrVariable.get(), &pVariable);
-					CHECK_QSTATUS();
-					pExpr.reset(pVariable.release());
+					
+					pExpr.reset(new MacroVariable(wstrVariable.get()));
 				}
 				break;
 			case MacroTokenizer::TOKEN_PERCENT:
 				{
 					const WCHAR* pLast = tokenizer.getLastPosition();
-					string_ptr<WSTRING> wstrField;
-					status = tokenizer.getToken(&token, &wstrField);
-					CHECK_QSTATUS();
+					wstring_ptr wstrType;
+					token = tokenizer.getToken(&wstrType);
 					if (token != MacroTokenizer::TOKEN_TEXT)
 						return error(MacroErrorHandler::CODE_INVALIDFIELDNAME, pLast);
-					std::auto_ptr<MacroFieldCache> pField;
-					status = newQsObject(wstrField.get(), &pField);
-					if (status == QSTATUS_FAIL)
+					
+					MacroFieldCache::Type type = MacroFieldCache::getType(wstrType.get());
+					if (type == MacroFieldCache::TYPE_ERROR)
 						return error(MacroErrorHandler::CODE_INVALIDFIELDNAME, pLast);
-					CHECK_QSTATUS();
-					pExpr.reset(pField.release());
+					pExpr.reset(new MacroFieldCache(type));
 				}
 				break;
 			case MacroTokenizer::TOKEN_LEFTPARENTHESIS:
@@ -1208,12 +947,8 @@ QSTATUS qm::MacroParser::parse(const WCHAR* pwszMacro,
 				if (!stackFunction.empty())
 					return error(MacroErrorHandler::CODE_SYNTAXERROR,
 						tokenizer.getLastPosition());
-				if (!pMacroExpr.get()) {
-					std::auto_ptr<MacroLiteral> pLiteral;
-					status = newQsObject(L"", &pLiteral);
-					CHECK_QSTATUS();
-					pMacroExpr.reset(pLiteral.release());
-				}
+				if (!pMacroExpr.get())
+					pMacroExpr.reset(new MacroLiteral(L""));
 				bEnd = true;
 				break;
 			case MacroTokenizer::TOKEN_ERROR:
@@ -1224,23 +959,18 @@ QSTATUS qm::MacroParser::parse(const WCHAR* pwszMacro,
 			if (pExpr.get()) {
 				if (stackFunction.empty()) {
 					assert(!pMacroExpr.get());
-					pMacroExpr.reset(pExpr.release());
+					pMacroExpr = pExpr;
 				}
 				else {
-					status = stackFunction.back()->addArg(pExpr.get());
-					CHECK_QSTATUS();
-					pExpr.release();
+					stackFunction.back()->addArg(pExpr);
 				}
 			}
 		}
 	}
 	
 	assert(pMacroExpr.get());
-	status = newQsObject(pMacroExpr.get(), ppMacro);
-	CHECK_QSTATUS();
-	pMacroExpr.release();
 	
-	return QSTATUS_SUCCESS;
+	return new Macro(pMacroExpr);
 }
 
 void qm::MacroParser::setErrorHandler(MacroErrorHandler* pErrorHandler)
@@ -1262,11 +992,12 @@ bool qm::MacroParser::isNumber(const WCHAR* pwsz)
 	return !*pwsz;
 }
 
-QSTATUS qm::MacroParser::error(MacroErrorHandler::Code code, const WCHAR* p) const
+std::auto_ptr<Macro> qm::MacroParser::error(MacroErrorHandler::Code code,
+											const WCHAR* p) const
 {
 	if (pErrorHandler_)
 		pErrorHandler_->parseError(code, p);
-	return QSTATUS_FAIL;
+	return 0;
 }
 
 
@@ -1279,7 +1010,7 @@ QSTATUS qm::MacroParser::error(MacroErrorHandler::Code code, const WCHAR* p) con
 struct qm::MacroVariableHolderImpl
 {
 public:
-	typedef std::vector<std::pair<qs::WSTRING, MacroValue*> > VariableMap;
+	typedef std::vector<std::pair<WSTRING, MacroValue*> > VariableMap;
 
 public:
 	VariableMap mapVariable_;
@@ -1292,43 +1023,26 @@ public:
  *
  */
 
-qm::MacroVariableHolder::MacroVariableHolder(QSTATUS* pstatus) :
+qm::MacroVariableHolder::MacroVariableHolder() :
 	pImpl_(0)
 {
-	assert(pstatus);
-	
-	DECLARE_QSTATUS();
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new MacroVariableHolderImpl();
 }
 
 qm::MacroVariableHolder::~MacroVariableHolder()
 {
 	if (pImpl_) {
-		MacroValuePtr pValue;
-		MacroVariableHolderImpl::VariableMap::iterator it =
-			pImpl_->mapVariable_.begin();
-		while (it != pImpl_->mapVariable_.end()) {
+		for (MacroVariableHolderImpl::VariableMap::iterator it = pImpl_->mapVariable_.begin(); it != pImpl_->mapVariable_.end(); ++it) {
 			freeWString((*it).first);
-			pValue.reset((*it).second);
-			++it;
+			MacroValuePtr pValue((*it).second);
 		}
 		delete pImpl_;
 	}
 }
 
-QSTATUS qm::MacroVariableHolder::getVariable(
-	const WCHAR* pwszName, MacroValue** ppValue) const
+MacroValuePtr qm::MacroVariableHolder::getVariable(const WCHAR* pwszName) const
 {
 	assert(pwszName);
-	assert(ppValue);
-	
-	DECLARE_QSTATUS();
-	
-	*ppValue = 0;
 	
 	typedef MacroVariableHolderImpl::VariableMap Map;
 	Map::const_iterator it = std::find_if(
@@ -1339,26 +1053,21 @@ QSTATUS qm::MacroVariableHolder::getVariable(
 				std::select1st<Map::value_type>(),
 				std::identity<const WCHAR*>()),
 			pwszName));
-	if (it != pImpl_->mapVariable_.end()) {
-		status = (*it).second->clone(ppValue);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (it != pImpl_->mapVariable_.end())
+		return (*it).second->clone();
+	else
+		return 0;
 }
 
-QSTATUS qm::MacroVariableHolder::setVariable(
-	const WCHAR* pwszName, MacroValue* pValue)
+bool qm::MacroVariableHolder::setVariable(const WCHAR* pwszName,
+										  MacroValue* pValue)
 {
 	assert(pwszName);
 	assert(pValue);
 	
-	DECLARE_QSTATUS();
-	
-	MacroValue* pCloneValue = 0;
-	status = pValue->clone(&pCloneValue);
-	CHECK_QSTATUS();
-	std::auto_ptr<MacroValue> apCloneValue(pCloneValue);
+	MacroValuePtr pCloneValue(pValue->clone());
+	if (!pCloneValue.get())
+		return false;
 	
 	typedef MacroVariableHolderImpl::VariableMap Map;
 	Map::iterator it = std::find_if(
@@ -1371,20 +1080,16 @@ QSTATUS qm::MacroVariableHolder::setVariable(
 			pwszName));
 	if (it != pImpl_->mapVariable_.end()) {
 		MacroValuePtr pValue((*it).second);
-		(*it).second = pCloneValue;
+		(*it).second = pCloneValue.release();
 	}
 	else {
-		string_ptr<WSTRING> wstrName(allocWString(pwszName));
-		if (!wstrName.get())
-			return QSTATUS_OUTOFMEMORY;
-		status = STLWrapper<Map>(pImpl_->mapVariable_).push_back(
-			std::make_pair(wstrName.get(), pCloneValue));
-		CHECK_QSTATUS();
+		wstring_ptr wstrName(allocWString(pwszName));
+		pImpl_->mapVariable_.push_back(std::make_pair(wstrName.get(), pCloneValue.get()));
 		wstrName.release();
+		pCloneValue.release();
 	}
-	apCloneValue.release();
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -1394,40 +1099,36 @@ QSTATUS qm::MacroVariableHolder::setVariable(
  *
  */
 
-qm::MacroContext::MacroContext(const Init& init, QSTATUS* pstatus) :
-	pmh_(init.pmh_),
-	pMessage_(init.pMessage_),
-	pAccount_(init.pAccount_),
+qm::MacroContext::MacroContext(MessageHolderBase* pmh,
+							   Message* pMessage,
+							   Account* pAccount,
+							   Document* pDocument,
+							   HWND hwnd,
+							   Profile* pProfile,
+							   bool bGetMessageAsPossible,
+							   MacroErrorHandler* pErrorHandler,
+							   MacroVariableHolder* pGlobalVariable) :
+	pmh_(pmh),
+	pMessage_(pMessage),
+	pAccount_(pAccount),
 	pGlobalContext_(0),
 	bOwnGlobalContext_(true)
 {
-	assert((!init.pmh_ && !init.pMessage_) || (init.pmh_ && init.pMessage_));
-	assert(!init.pmh_ || init.pmh_->getAccount() == init.pAccount_);
-	assert(!init.pmh_ || init.pmh_->getAccount()->isLocked());
-	assert(init.pAccount_);
-	assert(init.pDocument_);
-	assert(init.hwnd_);
-	assert(init.pProfile_);
-	assert(pstatus);
+	assert((!pmh && !pMessage) || (pmh && pMessage));
+	assert(!pmh || pmh->getAccount() == pAccount);
+	assert(!pmh || pmh->getAccount()->isLocked());
+	assert(pAccount);
+	assert(pDocument);
+	assert(hwnd);
+	assert(pProfile);
 	
-	DECLARE_QSTATUS();
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	MacroGlobalContext::Init globalInit = {
-		init.pDocument_,
-		init.hwnd_,
-		init.pProfile_,
-		init.bGetMessageAsPossible_,
-		init.pErrorHandler_,
-		init.pGlobalVariable_
-	};
-	status = newQsObject(globalInit, &pGlobalContext_);
-	CHECK_QSTATUS_SET(pstatus);
+	pGlobalContext_ = new MacroGlobalContext(pDocument, hwnd,
+		pProfile, bGetMessageAsPossible, pErrorHandler, pGlobalVariable);
 }
 
-qm::MacroContext::MacroContext(MessageHolderBase* pmh, Message* pMessage,
-	const MacroContext* pContext, QSTATUS* pstatus) :
+qm::MacroContext::MacroContext(MessageHolderBase* pmh,
+							   Message* pMessage,
+							   const MacroContext* pContext) :
 	pmh_(pmh),
 	pMessage_(pMessage),
 	pAccount_(pmh->getFolder()->getAccount()),
@@ -1455,15 +1156,9 @@ Message* qm::MacroContext::getMessage() const
 	return pMessage_;
 }
 
-QSTATUS qm::MacroContext::getMessage(MessageType type,
-	const WCHAR* pwszField, Message** ppMessage) const
+Message* qm::MacroContext::getMessage(MessageType type,
+									  const WCHAR* pwszField) const
 {
-	assert(ppMessage);
-	
-	DECLARE_QSTATUS();
-	
-	*ppMessage = 0;
-	
 	Message::Flag flag = pMessage_->getFlag();
 	unsigned int nFlags = 0;
 	switch (type) {
@@ -1493,13 +1188,11 @@ QSTATUS qm::MacroContext::getMessage(MessageType type,
 	if (nFlags) {
 		if (isGetMessageAsPossible())
 			nFlags = Account::GETMESSAGEFLAG_POSSIBLE;
-		status = pmh_->getMessage(nFlags, pwszField, pMessage_);
-		CHECK_QSTATUS();
+		if (!pmh_->getMessage(nFlags, pwszField, pMessage_))
+			return 0;
 	}
 	
-	*ppMessage = pMessage_;
-	
-	return QSTATUS_SUCCESS;
+	return pMessage_;
 }
 
 Account* qm::MacroContext::getAccount() const
@@ -1532,33 +1225,32 @@ MacroErrorHandler* qm::MacroContext::getErrorHandler() const
 	return pGlobalContext_->getErrorHandler();
 }
 
-QSTATUS qm::MacroContext::getVariable(
-	const WCHAR* pwszName, MacroValue** ppValue) const
+MacroValuePtr qm::MacroContext::getVariable(const WCHAR* pwszName) const
 {
-	return pGlobalContext_->getVariable(pwszName, ppValue);
+	return pGlobalContext_->getVariable(pwszName);
 }
 
-QSTATUS qm::MacroContext::setVariable(
-	const WCHAR* pwszName, MacroValue* pValue, bool bGlobal)
+bool qm::MacroContext::setVariable(const WCHAR* pwszName,
+								   MacroValue* pValue,
+								   bool bGlobal)
 {
 	return pGlobalContext_->setVariable(pwszName, pValue, bGlobal);
 }
 
-QSTATUS qm::MacroContext::getFunction(
-	const WCHAR* pwszName, const MacroExpr** ppExpr) const
+const MacroExpr* qm::MacroContext::getFunction(const WCHAR* pwszName) const
 {
-	return pGlobalContext_->getFunction(pwszName, ppExpr);
+	return pGlobalContext_->getFunction(pwszName);
 }
 
-QSTATUS qm::MacroContext::setFunction(
-	const WCHAR* pwszName, const MacroExpr* pExpr, bool* pbSet)
+bool qm::MacroContext::setFunction(const WCHAR* pwszName,
+								   const MacroExpr* pExpr)
 {
-	return pGlobalContext_->setFunction(pwszName, pExpr, pbSet);
+	return pGlobalContext_->setFunction(pwszName, pExpr);
 }
 
-QSTATUS qm::MacroContext::pushArgumentContext()
+void qm::MacroContext::pushArgumentContext()
 {
-	return pGlobalContext_->pushArgumentContext();
+	pGlobalContext_->pushArgumentContext();
 }
 
 void qm::MacroContext::popArgumentContext()
@@ -1566,30 +1258,25 @@ void qm::MacroContext::popArgumentContext()
 	pGlobalContext_->popArgumentContext();
 }
 
-QSTATUS qm::MacroContext::addArgument(MacroValue* pValue)
+void qm::MacroContext::addArgument(MacroValuePtr pValue)
 {
-	return pGlobalContext_->addArgument(pValue);
+	pGlobalContext_->addArgument(pValue);
 }
 
-QSTATUS qm::MacroContext::getArgument(
-	unsigned int n, MacroValue** ppValue) const
+MacroValuePtr qm::MacroContext::getArgument(unsigned int n) const
 {
-	return pGlobalContext_->getArgument(n, ppValue);
+	return pGlobalContext_->getArgument(n);
 }
 
-QSTATUS qm::MacroContext::resolvePath(
-	const WCHAR* pwszPath, qs::WSTRING* pwstrPath)
+wstring_ptr qm::MacroContext::resolvePath(const WCHAR* pwszPath)
 {
 	assert(pwszPath);
-	assert(pwstrPath);
 	
-	*pwstrPath = 0;
-	
-	string_ptr<WSTRING> wstrPath;
+	wstring_ptr wstrPath;
 	
 	if (*pwszPath == L'\\' || *pwszPath == L'/' ||
 		(*pwszPath != L'\0' && *(pwszPath + 1) == L':')) {
-		wstrPath.reset(allocWString(pwszPath));
+		wstrPath =allocWString(pwszPath);
 	}
 	else {
 		const WCHAR* pwszMailFolder =
@@ -1626,15 +1313,11 @@ QSTATUS qm::MacroContext::resolvePath(
 			{ L"\\",			1						},
 			{ p,				-1						}
 		};
-		wstrPath.reset(concat(c, countof(c)));
+		wstrPath = concat(c, countof(c));
 #else
-		wstrPath.reset(concat(pwszMailFolder, L"\\", pwszPath));
+		wstrPath = concat(pwszMailFolder, L"\\", pwszPath);
 #endif
 	}
-	if (!wstrPath.get())
-		return QSTATUS_OUTOFMEMORY;
 	
-	*pwstrPath = wstrPath.release();
-	
-	return QSTATUS_SUCCESS;
+	return wstrPath;
 }

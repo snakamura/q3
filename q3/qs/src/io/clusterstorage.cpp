@@ -1,16 +1,14 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qsclusterstorage.h>
 #include <qsconv.h>
-#include <qserror.h>
 #include <qsfile.h>
-#include <qsnew.h>
 #include <qsstl.h>
 #include <qsstream.h>
 
@@ -37,133 +35,111 @@ struct qs::ClusterStorageImpl
 	typedef std::vector<unsigned char> Map;
 	typedef std::vector<Map::size_type> SearchBegin;
 	
-	QSTATUS loadMap();
-	QSTATUS saveMap() const;
-	QSTATUS reopen();
-	QSTATUS getFreeOffset(unsigned int nSize, unsigned int* pnOffset);
-	QSTATUS getFreeOffset(unsigned int nSize,
-		unsigned int nCurrentOffset, unsigned int* pnOffset);
+	bool loadMap();
+	bool saveMap() const;
+	bool reopen();
+	unsigned int getFreeOffset(unsigned int nSize);
+	unsigned int getFreeOffset(unsigned int nSize,
+							   unsigned int nCurrentOffset);
 	Map::size_type getSearchBegin(unsigned int nSize) const;
-	void setSearchBegin(unsigned int nSize, Map::size_type nBegin, bool bFree);
+	void setSearchBegin(unsigned int nSize,
+						Map::size_type nBegin,
+						bool bFree);
 	
-	WSTRING wstrPath_;
-	WSTRING wstrBoxExt_;
-	WSTRING wstrMapExt_;
+	wstring_ptr wstrPath_;
+	wstring_ptr wstrBoxExt_;
+	wstring_ptr wstrMapExt_;
 	size_t nBlockSize_;
-	File* pFile_;
+	std::auto_ptr<File> pFile_;
 	Map map_;
 	SearchBegin searchBegin_;
 };
 
-QSTATUS qs::ClusterStorageImpl::loadMap()
+bool qs::ClusterStorageImpl::loadMap()
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrPath(concat(wstrPath_, wstrMapExt_));
-	if (!wstrPath.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrPath(concat(wstrPath_.get(), wstrMapExt_.get()));
 	
 	W2T(wstrPath.get(), ptszPath);
 	if (::GetFileAttributes(ptszPath) != 0xffffffff) {
-		FileInputStream fileStream(wstrPath.get(), &status);
-		CHECK_QSTATUS();
+		FileInputStream fileStream(wstrPath.get());
+		if (!fileStream)
+			return false;
 		
-		BufferedInputStream stream(&fileStream, false, &status);
-		CHECK_QSTATUS();
+		BufferedInputStream stream(&fileStream, false);
 		
-		STLWrapper<Map> wrapper(map_);
-		size_t nRead = 0;
 		while (true) {
 			unsigned char c = 0;
-			status = stream.read(&c, sizeof(c), &nRead);
-			CHECK_QSTATUS();
+			size_t nRead = stream.read(&c, sizeof(c));
 			if (nRead == -1)
+				return false;
+			else if (nRead == 0)
 				break;
-			status = wrapper.push_back(c);
-			CHECK_QSTATUS();
+			map_.push_back(c);
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::ClusterStorageImpl::saveMap() const
+bool qs::ClusterStorageImpl::saveMap() const
 {
-	DECLARE_QSTATUS();
+	wstring_ptr wstrPath(concat(wstrPath_.get(), wstrMapExt_.get()));
 	
-	string_ptr<WSTRING> wstrPath(concat(wstrPath_, wstrMapExt_));
-	if (!wstrPath.get())
-		return QSTATUS_OUTOFMEMORY;
+	TemporaryFileRenamer renamer(wstrPath.get());
 	
-	TemporaryFileRenamer renamer(wstrPath.get(), &status);
-	CHECK_QSTATUS();
-	
-	FileOutputStream fileStream(renamer.getPath(), &status);
-	CHECK_QSTATUS();
-	BufferedOutputStream stream(&fileStream, false, &status);
-	CHECK_QSTATUS();
+	FileOutputStream fileStream(renamer.getPath());
+	if (!fileStream)
+		return false;
+	BufferedOutputStream stream(&fileStream, false);
 	
 	Map::const_iterator it = map_.begin();
 	while (it != map_.end()) {
 		unsigned char c = *it;
-		status = stream.write(&c, sizeof(c));
-		CHECK_QSTATUS();
+		if (stream.write(&c, sizeof(c)) != sizeof(c))
+			return false;
 		++it;
 	}
 	
-	status = stream.close();
-	CHECK_QSTATUS();
+	if (!stream.close())
+		return false;
 	
-	status = renamer.rename();
-	CHECK_QSTATUS();
+	if (!renamer.rename())
+		return false;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::ClusterStorageImpl::reopen()
+bool qs::ClusterStorageImpl::reopen()
 {
-	DECLARE_QSTATUS();
+	if (pFile_.get())
+		return true;
 	
-	if (pFile_)
-		return QSTATUS_SUCCESS;
-	
-	string_ptr<WSTRING> wstrPath(concat(wstrPath_, wstrBoxExt_));
-	if (!wstrPath.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrPath(concat(wstrPath_.get(), wstrBoxExt_.get()));
 	
 	if (nBlockSize_ == static_cast<size_t>(0xffffffff)) {
-		BinaryFile* pFile = 0;
-		status = newQsObject(wstrPath.get(),
-			BinaryFile::MODE_READ | BinaryFile::MODE_WRITE, 256, &pFile);
-		CHECK_QSTATUS();
-		pFile_ = pFile;
+		std::auto_ptr<BinaryFile> pFile(new BinaryFile(wstrPath.get(),
+			BinaryFile::MODE_READ | BinaryFile::MODE_WRITE, 256));
+		if (!*pFile.get())
+			return false;
+		pFile_.reset(pFile.release());
 	}
 	else {
-		DividedFile* pFile = 0;
-		status = newQsObject(wstrPath.get(), nBlockSize_,
-			BinaryFile::MODE_READ | BinaryFile::MODE_WRITE, 256, &pFile);
-		CHECK_QSTATUS();
-		pFile_ = pFile;
+		std::auto_ptr<DividedFile> pFile(new DividedFile(wstrPath.get(),
+			nBlockSize_, BinaryFile::MODE_READ | BinaryFile::MODE_WRITE, 256));
+		pFile_.reset(pFile.release());
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::ClusterStorageImpl::getFreeOffset(
-	unsigned int nSize, unsigned int* pnOffset)
+unsigned int qs::ClusterStorageImpl::getFreeOffset(unsigned int nSize)
 {
-	return getFreeOffset(nSize, 0xffffffff, pnOffset);
+	return getFreeOffset(nSize, 0xffffffff);
 }
 
-QSTATUS qs::ClusterStorageImpl::getFreeOffset(unsigned int nSize,
-	unsigned int nCurrentOffset, unsigned int* pnOffset)
+unsigned int qs::ClusterStorageImpl::getFreeOffset(unsigned int nSize,
+												   unsigned int nCurrentOffset)
 {
-	assert(pnOffset);
-	
-	*pnOffset = 0xffffffff;
-	
-	DECLARE_QSTATUS();
-	
 	nSize = nSize + (CLUSTER_SIZE - nSize%CLUSTER_SIZE);
 	assert(nSize%CLUSTER_SIZE == 0);
 	nSize /= CLUSTER_SIZE;
@@ -184,7 +160,7 @@ QSTATUS qs::ClusterStorageImpl::getFreeOffset(unsigned int nSize,
 		it += nSearchBegin;
 	for (; it != map_.end() && nFindSize < nSize; ++it) {
 		if (static_cast<unsigned int>(it - map_.begin()) >= nCurrentOffset)
-			return QSTATUS_SUCCESS;
+			return nCurrentOffset;
 		
 		if (*it == 0xff) {
 			if (nFindSize != 0)
@@ -239,37 +215,31 @@ QSTATUS qs::ClusterStorageImpl::getFreeOffset(unsigned int nSize,
 		nBeginBit = 0;
 	}
 	if (nFindSize < nSize) {
-		STLWrapper<Map> wrapper(map_);
-		for (unsigned int n = 0; n < (nSize - nFindSize)/BYTE_SIZE; ++n) {
-			status = wrapper.push_back(0xff);
-			CHECK_QSTATUS();
-		}
+		for (unsigned int n = 0; n < (nSize - nFindSize)/BYTE_SIZE; ++n)
+			map_.push_back(0xff);
 		if ((nSize - nFindSize)%BYTE_SIZE != 0) {
 			BYTE bData = 0;
 			BYTE b = 1;
 			for (unsigned int m = 0; m < (nSize - nFindSize)%BYTE_SIZE; ++m, b <<= 1)
 				bData |= b;
-			status = wrapper.push_back(bData);
-			CHECK_QSTATUS();
+			map_.push_back(bData);
 		}
-		status = pFile_->setPosition(
+		if (pFile_->setPosition(
 			(map_.size()*BYTE_SIZE + (nSize - nFindSize)%BYTE_SIZE)*CLUSTER_SIZE,
-			File::SEEKORIGIN_BEGIN);
-		CHECK_QSTATUS();
-		status = pFile_->setEndOfFile();
-		CHECK_QSTATUS();
+			File::SEEKORIGIN_BEGIN) == -1)
+			return -1;
+		if (!pFile_->setEndOfFile())
+			return -1;
 		setSearchBegin(nSize, 0xffffffff, false);
 	}
 	else {
 		setSearchBegin(nSize, nBegin, false);
 	}
-	*pnOffset = nBegin*BYTE_SIZE + nBeginBit;
 	
-	return QSTATUS_SUCCESS;
+	return nBegin*BYTE_SIZE + nBeginBit;
 }
 
-ClusterStorageImpl::Map::size_type qs::ClusterStorageImpl::getSearchBegin(
-	unsigned int nSize) const
+ClusterStorageImpl::Map::size_type qs::ClusterStorageImpl::getSearchBegin(unsigned int nSize) const
 {
 	assert(searchBegin_.size() == SEARCHBEGIN_SIZE);
 	
@@ -281,8 +251,9 @@ ClusterStorageImpl::Map::size_type qs::ClusterStorageImpl::getSearchBegin(
 	return searchBegin_[n];
 }
 
-void qs::ClusterStorageImpl::setSearchBegin(
-	unsigned int nSize, Map::size_type nBegin, bool bFree)
+void qs::ClusterStorageImpl::setSearchBegin(unsigned int nSize,
+											Map::size_type nBegin,
+											bool bFree)
 {
 	assert(searchBegin_.size() == SEARCHBEGIN_SIZE);
 	
@@ -327,147 +298,117 @@ void qs::ClusterStorageImpl::setSearchBegin(
  *
  */
 
-qs::ClusterStorage::ClusterStorage(const Init& init, QSTATUS* pstatus)
+qs::ClusterStorage::ClusterStorage(const Init& init)
 {
-	assert(pstatus);
+	wstring_ptr wstrPath(concat(init.pwszPath_, L"\\", init.pwszName_));
+	wstring_ptr wstrBoxExt(allocWString(init.pwszBoxExt_));
+	wstring_ptr wstrMapExt(allocWString(init.pwszMapExt_));
+	ClusterStorageImpl::SearchBegin searchBegin(
+		ClusterStorageImpl::SEARCHBEGIN_SIZE);
 	
-	*pstatus = QSTATUS_SUCCESS;
+	std::auto_ptr<ClusterStorageImpl> pImpl(new ClusterStorageImpl());
+	pImpl->wstrPath_ = wstrPath;
+	pImpl->wstrBoxExt_ = wstrBoxExt;
+	pImpl->wstrMapExt_ = wstrMapExt;
+	pImpl->nBlockSize_ = init.nBlockSize_;
+	pImpl->searchBegin_.swap(searchBegin);
 	
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrPath(
-		concat(init.pwszPath_, L"\\", init.pwszName_));
-	if (!wstrPath.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
+	if (!pImpl->loadMap())
 		return;
-	}
 	
-	string_ptr<WSTRING> wstrBoxExt(allocWString(init.pwszBoxExt_));
-	if (!wstrBoxExt.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
-	
-	string_ptr<WSTRING> wstrMapExt(allocWString(init.pwszMapExt_));
-	if (!wstrMapExt.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	pImpl_->wstrPath_ = wstrPath.release();
-	pImpl_->wstrBoxExt_ = wstrBoxExt.release();
-	pImpl_->wstrMapExt_ = wstrMapExt.release();
-	pImpl_->nBlockSize_ = init.nBlockSize_;
-	pImpl_->pFile_ = 0;
-	
-	status = STLWrapper<ClusterStorageImpl::SearchBegin>(
-		pImpl_->searchBegin_).resize(ClusterStorageImpl::SEARCHBEGIN_SIZE);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	status = pImpl_->loadMap();
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = pImpl.release();
 }
 
 qs::ClusterStorage::~ClusterStorage()
 {
-	if (pImpl_) {
-		freeWString(pImpl_->wstrPath_);
-		freeWString(pImpl_->wstrBoxExt_);
-		freeWString(pImpl_->wstrMapExt_);
-		delete pImpl_->pFile_;
-		delete pImpl_;
-		pImpl_ = 0;
-	}
+	delete pImpl_;
+	pImpl_ = 0;
 }
 
-QSTATUS qs::ClusterStorage::close()
+bool qs::ClusterStorage::operator!() const
 {
-	DECLARE_QSTATUS();
-	
-	status = flush();
-	CHECK_QSTATUS();
-	
-	if (pImpl_->pFile_) {
-		status = pImpl_->pFile_->close();
-		CHECK_QSTATUS();
-		delete pImpl_->pFile_;
-		pImpl_->pFile_ = 0;
-	}
-	
-	return QSTATUS_SUCCESS;
+	return pImpl_ == 0;
 }
 
-QSTATUS qs::ClusterStorage::flush()
+bool qs::ClusterStorage::close()
 {
-	DECLARE_QSTATUS();
+	if (!flush())
+		return false;
 	
-	status = pImpl_->saveMap();
-	CHECK_QSTATUS();
-	
-	if (pImpl_->pFile_) {
-		status = pImpl_->pFile_->flush();
-		CHECK_QSTATUS();
+	if (pImpl_->pFile_.get()) {
+		/// TODO
+		if (!pImpl_->pFile_->close())
+			return false;
+		pImpl_->pFile_.reset(0);
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::ClusterStorage::load(unsigned char* p,
-	unsigned int nOffset, unsigned int* pnLength)
+bool qs::ClusterStorage::flush()
+{
+	if (!pImpl_->saveMap())
+		return false;
+	
+	if (pImpl_->pFile_.get()) {
+		if (!pImpl_->pFile_->flush())
+			return false;
+	}
+	
+	return true;
+}
+
+unsigned int qs::ClusterStorage::load(unsigned char* p,
+									  unsigned int nOffset,
+									  unsigned int nLength)
 {
 	assert(p);
-	assert(pnLength);
-	assert(*pnLength != 0);
+	assert(nLength != 0);
 	
-	DECLARE_QSTATUS();
+	if (!pImpl_->reopen())
+		return -1;
 	
-	status = pImpl_->reopen();
-	CHECK_QSTATUS();
-	
-	status = pImpl_->pFile_->setPosition(
+	if (pImpl_->pFile_->setPosition(
 		nOffset*ClusterStorageImpl::CLUSTER_SIZE,
-		File::SEEKORIGIN_BEGIN);
-	CHECK_QSTATUS();
+		File::SEEKORIGIN_BEGIN) == -1)
+		return -1;
 	
-	size_t nRead = 0;
-	status = pImpl_->pFile_->read(p, *pnLength, &nRead);
-	CHECK_QSTATUS();
-	*pnLength = nRead;
-	
-	return QSTATUS_SUCCESS;
+	return pImpl_->pFile_->read(p, nLength);
 }
 
-QSTATUS qs::ClusterStorage::save(const unsigned char* p[],
-	unsigned int nLength[], size_t nCount, unsigned int* pnOffset)
+unsigned int qs::ClusterStorage::save(const unsigned char* p[],
+									  unsigned int nLength[],
+									  size_t nCount)
 {
 	assert(p);
-	assert(pnOffset);
-	
-	*pnOffset = 0xffffffff;
-	
-	DECLARE_QSTATUS();
 	
 	size_t n = 0;
 	
-	status = pImpl_->reopen();
-	CHECK_QSTATUS();
+	if (!pImpl_->reopen())
+		return -1;
 	
 	unsigned int nAllLength = std::accumulate(&nLength[0], &nLength[nCount], 0);
-	unsigned int nOffset = 0;
-	status = pImpl_->getFreeOffset(nAllLength, &nOffset);
-	CHECK_QSTATUS();
+	unsigned int nOffset = pImpl_->getFreeOffset(nAllLength);
+	if (nOffset == -1)
+		return -1;
 	
 	struct Free
 	{
-		Free(ClusterStorage* pms, unsigned int nOffset, unsigned int nLength) :
-			pms_(pms), nOffset_(nOffset), nLength_(nLength) {}
+		Free(ClusterStorage* pms,
+			 unsigned int nOffset,
+			 unsigned int nLength) :
+			pms_(pms),
+			nOffset_(nOffset),
+			nLength_(nLength)
+		{
+		}
+		
 		~Free()
 		{
 			if (pms_)
 				pms_->free(nOffset_, nLength_);
 		}
+		
 		void release() { pms_ = 0; }
 		
 		ClusterStorage* pms_;
@@ -475,31 +416,29 @@ QSTATUS qs::ClusterStorage::save(const unsigned char* p[],
 		unsigned int nLength_;
 	} free(this, nOffset, nAllLength);
 	
-	File* pFile = pImpl_->pFile_;
+	File* pFile = pImpl_->pFile_.get();
 	
-	status = pFile->setPosition(nOffset*ClusterStorageImpl::CLUSTER_SIZE,
-		File::SEEKORIGIN_BEGIN);
-	CHECK_QSTATUS();
+	if (pFile->setPosition(nOffset*ClusterStorageImpl::CLUSTER_SIZE,
+		File::SEEKORIGIN_BEGIN) == -1)
+		return -1;
 	
 	for (n = 0; n < nCount; ++n) {
-		status = pFile->write(p[n], nLength[n]);
-		CHECK_QSTATUS();
+		if (pFile->write(p[n], nLength[n]) == -1)
+			return -1;
 	}
-	status = pFile->flush();
-	CHECK_QSTATUS();
+	if (!pFile->flush())
+		return -1;
 	
 	free.release();
-	*pnOffset = nOffset;
 	
-	return QSTATUS_SUCCESS;
+	return nOffset;
 }
 
-QSTATUS qs::ClusterStorage::free(unsigned int nOffset, unsigned int nLength)
+bool qs::ClusterStorage::free(unsigned int nOffset,
+							  unsigned int nLength)
 {
-	DECLARE_QSTATUS();
-	
-	status = pImpl_->reopen();
-	CHECK_QSTATUS();
+	if (!pImpl_->reopen())
+		return false;
 	
 	nLength = nLength + (ClusterStorageImpl::CLUSTER_SIZE -
 		nLength%ClusterStorageImpl::CLUSTER_SIZE);
@@ -534,26 +473,21 @@ QSTATUS qs::ClusterStorage::free(unsigned int nOffset, unsigned int nLength)
 	
 	pImpl_->setSearchBegin(nLength, nBegin, true);
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::ClusterStorage::compact(unsigned int nOffset,
-	unsigned int nLength, ClusterStorage* pmsOld, unsigned int* pnOffset)
+unsigned int qs::ClusterStorage::compact(unsigned int nOffset,
+										 unsigned int nLength,
+										 ClusterStorage* pmsOld)
 {
-	assert(pnOffset);
+	if (!pImpl_->reopen())
+		return -1;
 	
-	*pnOffset = 0xffffffff;
-	
-	DECLARE_QSTATUS();
-	
-	status = pImpl_->reopen();
-	CHECK_QSTATUS();
-	
-	unsigned int nOffsetNew = 0;
-	status = pImpl_->getFreeOffset(nLength,
-		pmsOld ? 0xffffffff : nOffset, &nOffsetNew);
-	CHECK_QSTATUS();
-	if (nOffsetNew != 0xffffffff) {
+	unsigned int nOffsetNew = pImpl_->getFreeOffset(
+		nLength, pmsOld ? 0xffffffff : nOffset);
+	if (nOffsetNew == -1)
+		return -1;
+	if (nOffsetNew != nOffset) {
 		size_t nLen = nLength;
 		nLen += ClusterStorageImpl::CLUSTER_SIZE -
 			nLen%ClusterStorageImpl::CLUSTER_SIZE;
@@ -561,45 +495,38 @@ QSTATUS qs::ClusterStorage::compact(unsigned int nOffset,
 		
 		malloc_ptr<unsigned char> p(
 			static_cast<unsigned char*>(malloc(nLen + 1)));
-		File* pFile = pmsOld ? pmsOld->pImpl_->pFile_ : pImpl_->pFile_;
-		status = pImpl_->pFile_->setPosition(
+		if (!p.get())
+			return -1;
+		File* pFile = pmsOld ? pmsOld->pImpl_->pFile_.get() : pImpl_->pFile_.get();
+		if (pImpl_->pFile_->setPosition(
 			nOffset*ClusterStorageImpl::CLUSTER_SIZE,
-			File::SEEKORIGIN_BEGIN);
-		CHECK_QSTATUS();
-		size_t nRead = 0;
-		status = pImpl_->pFile_->read(p.get(), nLen, &nRead);
-		CHECK_QSTATUS();
+			File::SEEKORIGIN_BEGIN) == -1)
+			return -1;
+		size_t nRead = pImpl_->pFile_->read(p.get(), nLen);
 		if (nRead != nLen)
-			return QSTATUS_FAIL;
+			return -1;
 		*(p.get() + nLen) = '\0';
-		status = pImpl_->pFile_->setPosition(
-			nOffsetNew*ClusterStorageImpl::CLUSTER_SIZE,
-			File::SEEKORIGIN_BEGIN);
-		CHECK_QSTATUS();
-		status = pImpl_->pFile_->write(p.get(), nLen);
-		CHECK_QSTATUS();
-		status = pImpl_->pFile_->flush();
+		if (pFile->setPosition(nOffsetNew*ClusterStorageImpl::CLUSTER_SIZE,
+			File::SEEKORIGIN_BEGIN) == -1)
+			return -1;
+		if (pFile->write(p.get(), nLen) != nLen)
+			return -1;
+		if (!pImpl_->pFile_->flush())
+			return false;
 		if (!pmsOld)
 			free(nOffset, nLength);
 	}
-	else {
-		nOffsetNew = nOffset;
-	}
-	*pnOffset = nOffsetNew;
 	
-	return QSTATUS_SUCCESS;
+	return nOffsetNew;
 }
 
-QSTATUS qs::ClusterStorage::freeUnrefered(const ReferList& listRefer)
+bool qs::ClusterStorage::freeUnrefered(const ReferList& listRefer)
 {
-	DECLARE_QSTATUS();
-	
-	status = pImpl_->reopen();
-	CHECK_QSTATUS();
+	if (!pImpl_->reopen())
+		return false;
 	
 	ClusterStorageImpl::Map m;
-	status = STLWrapper<ClusterStorageImpl::Map>(m).resize(pImpl_->map_.size());
-	CHECK_QSTATUS();
+	m.resize(pImpl_->map_.size());
 	
 	ReferList::const_iterator it = listRefer.begin();
 	while (it != listRefer.end()) {
@@ -642,27 +569,25 @@ QSTATUS qs::ClusterStorage::freeUnrefered(const ReferList& listRefer)
 	std::copy(m.begin(), m.end(), pImpl_->map_.begin());
 	std::fill(pImpl_->searchBegin_.begin(), pImpl_->searchBegin_.end(), 0);
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::ClusterStorage::freeUnused()
+bool qs::ClusterStorage::freeUnused()
 {
-	DECLARE_QSTATUS();
-	
-	status = pImpl_->reopen();
-	CHECK_QSTATUS();
+	if (!pImpl_->reopen())
+		return false;
 	
 	ClusterStorageImpl::Map& m = pImpl_->map_;
 	ClusterStorageImpl::Map::reverse_iterator it = m.rbegin();
 	while (it != m.rend() && *it == 0)
 		++it;
 	m.erase(it.base(), m.end());
-	status = pImpl_->pFile_->setPosition(m.size()*
+	if (pImpl_->pFile_->setPosition(m.size()*
 		ClusterStorageImpl::BYTE_SIZE*ClusterStorageImpl::CLUSTER_SIZE,
-		File::SEEKORIGIN_BEGIN);
-	CHECK_QSTATUS();
-	status = pImpl_->pFile_->setEndOfFile();
-	CHECK_QSTATUS();
+		File::SEEKORIGIN_BEGIN) == -1)
+		return false;
+	if (!pImpl_->pFile_->setEndOfFile())
+		return false;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }

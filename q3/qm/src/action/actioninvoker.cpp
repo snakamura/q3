@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -278,7 +278,7 @@ struct ActionNameMap
  *
  */
 
-qm::ActionInvoker::ActionInvoker(const ActionMap* pActionMap, QSTATUS* pstatus) :
+qm::ActionInvoker::ActionInvoker(const ActionMap* pActionMap) :
 	pActionMap_(pActionMap)
 {
 }
@@ -287,33 +287,25 @@ qm::ActionInvoker::~ActionInvoker()
 {
 }
 
-QSTATUS qm::ActionInvoker::invoke(UINT nId,
-	VARIANT** ppvarArgs, size_t nArgs) const
+void qm::ActionInvoker::invoke(UINT nId,
+							   VARIANT** ppvarArgs,
+							   size_t nArgs) const
 {
-	DECLARE_QSTATUS();
-	
 	Action* pAction = pActionMap_->getAction(nId);
 	if (pAction) {
 		ActionParam param = { ppvarArgs, nArgs };
 		ActionEvent event(nId, 0, &param);
-		bool bEnabled = false;
-		status = pAction->isEnabled(event, &bEnabled);
-		CHECK_QSTATUS();
-		if (bEnabled) {
-			status = pAction->invoke(event);
-			CHECK_QSTATUS();
-		}
+		bool bEnabled = pAction->isEnabled(event);
+		if (bEnabled)
+			pAction->invoke(event);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ActionInvoker::invoke(const WCHAR* pwszAction,
-	VARIANT** ppvarArgs, size_t nArgs) const
+void qm::ActionInvoker::invoke(const WCHAR* pwszAction,
+							   VARIANT** ppvarArgs,
+							   size_t nArgs) const
 {
 	assert(pwszAction);
-	
-	DECLARE_QSTATUS();
 	
 	ActionNameMap map = {
 		pwszAction,
@@ -327,10 +319,6 @@ QSTATUS qm::ActionInvoker::invoke(const WCHAR* pwszAction,
 			mem_data_ref(&ActionNameMap::pwszName_),
 			mem_data_ref(&ActionNameMap::pwszName_)));
 	if (pMap != actionNameMap + countof(actionNameMap) &&
-		wcscmp(pMap->pwszName_, pwszAction) == 0) {
-		status = invoke(pMap->nId_, ppvarArgs, nArgs);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+		wcscmp(pMap->pwszName_, pwszAction) == 0)
+		invoke(pMap->nId_, ppvarArgs, nArgs);
 }

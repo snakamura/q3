@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -9,7 +9,6 @@
 #include <qsaction.h>
 #include <qsconv.h>
 #include <qsmenu.h>
-#include <qsnew.h>
 #include <qsstl.h>
 
 #include <algorithm>
@@ -38,43 +37,35 @@ struct qs::MenuManagerImpl
 	
 	typedef std::vector<Menu> MenuMap;
 	
-	QSTATUS load(const WCHAR* pwszPath,
-		const ActionItem* pItem, size_t nItemCount,
-		const PopupMenuManager& popupMenuManager);
+	bool load(const WCHAR* pwszPath,
+			  const ActionItem* pItem,
+			  size_t nItemCount,
+			  const PopupMenuManager& popupMenuManager);
 	
-	static QSTATUS cloneMenu(HMENU hmenu, bool bBar, HMENU* phmenu);
+	static HMENU cloneMenu(HMENU hmenu, bool bBar);
 	
 	MenuManager* pThis_;
 	MenuMap mapMenu_;
 };
 
-QSTATUS qs::MenuManagerImpl::load(const WCHAR* pwszPath,
-	const ActionItem* pItem, size_t nItemCount,
-	const PopupMenuManager& popupMenuManager)
+bool qs::MenuManagerImpl::load(const WCHAR* pwszPath,
+							   const ActionItem* pItem,
+							   size_t nItemCount,
+							   const PopupMenuManager& popupMenuManager)
 {
 	assert(pwszPath);
 	
-	DECLARE_QSTATUS();
-	
-	XMLReader reader(&status);
-	CHECK_QSTATUS();
-	MenuContentHandler handler(pThis_, pItem,
-		nItemCount, popupMenuManager, &status);
-	CHECK_QSTATUS();
+	XMLReader reader;
+	MenuContentHandler handler(pThis_, pItem, nItemCount, popupMenuManager);
 	reader.setContentHandler(&handler);
-	status = reader.parse(pwszPath);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return reader.parse(pwszPath);
 }
 
-QSTATUS qs::MenuManagerImpl::cloneMenu(HMENU hmenu, bool bBar, HMENU* phmenu)
+HMENU qs::MenuManagerImpl::cloneMenu(HMENU hmenu, bool bBar)
 {
-	DECLARE_QSTATUS();
-	
 	HMENU hmenuNew = bBar ? ::CreateMenu() : ::CreatePopupMenu();
 	if (!hmenuNew)
-		return QSTATUS_FAIL;
+		return 0;
 	
 	TCHAR tszText[256];
 	UINT n = 0;
@@ -97,9 +88,9 @@ QSTATUS qs::MenuManagerImpl::cloneMenu(HMENU hmenu, bool bBar, HMENU* phmenu)
 			break;
 		
 		if (mii.hSubMenu) {
-			HMENU hmenuSub = 0;
-			status = cloneMenu(mii.hSubMenu, false, &hmenuSub);
-			CHECK_QSTATUS();
+			HMENU hmenuSub = cloneMenu(mii.hSubMenu, false);
+			if (!hmenuSub)
+				return 0;
 			::AppendMenu(hmenuNew, MF_POPUP,
 				reinterpret_cast<UINT_PTR>(hmenuSub), tszText);
 		}
@@ -111,9 +102,7 @@ QSTATUS qs::MenuManagerImpl::cloneMenu(HMENU hmenu, bool bBar, HMENU* phmenu)
 		++n;
 	}
 	
-	*phmenu = hmenuNew;
-	
-	return 0;
+	return hmenuNew;
 }
 
 
@@ -124,45 +113,36 @@ QSTATUS qs::MenuManagerImpl::cloneMenu(HMENU hmenu, bool bBar, HMENU* phmenu)
  */
 
 qs::MenuManager::MenuManager(const WCHAR* pwszPath,
-	const ActionItem* pItem, size_t nItemCount,
-	const PopupMenuManager& popupMenuManager, QSTATUS* pstatus) :
+							 const ActionItem* pItem,
+							 size_t nItemCount,
+							 const PopupMenuManager& popupMenuManager) :
 	pImpl_(0)
 {
 	assert(pwszPath);
 	assert(pItem);
-	assert(pstatus);
 	
-	DECLARE_QSTATUS();
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new MenuManagerImpl();
 	pImpl_->pThis_ = this;
 	
-	status = pImpl_->load(pwszPath, pItem,
-		nItemCount, popupMenuManager);
-	CHECK_QSTATUS_SET(pstatus);
+	if (!pImpl_->load(pwszPath, pItem, nItemCount, popupMenuManager))
+		return;
 }
 
 qs::MenuManager::~MenuManager()
 {
 	if (pImpl_) {
-		MenuManagerImpl::MenuMap::const_iterator it = pImpl_->mapMenu_.begin();
-		while (it != pImpl_->mapMenu_.end()) {
+		for (MenuManagerImpl::MenuMap::const_iterator it = pImpl_->mapMenu_.begin(); it != pImpl_->mapMenu_.end(); ++it) {
 			freeWString((*it).wstrName_);
 			::DestroyMenu((*it).hmenu_);
-			++it;
 		}
 		delete pImpl_;
 	}
 }
 
-QSTATUS qs::MenuManager::getMenu(const WCHAR* pwszName,
-	bool bBar, bool bClone, HMENU* phmenu) const
+HMENU qs::MenuManager::getMenu(const WCHAR* pwszName,
+							   bool bBar,
+							   bool bClone) const
 {
-	DECLARE_QSTATUS();
-	
 	MenuManagerImpl::MenuMap::const_iterator it = std::find_if(
 		pImpl_->mapMenu_.begin(), pImpl_->mapMenu_.end(),
 		std::bind2nd(
@@ -174,26 +154,23 @@ QSTATUS qs::MenuManager::getMenu(const WCHAR* pwszName,
 	if (it == pImpl_->mapMenu_.end() || (*it).bBar_ != bBar)
 		return 0;
 	
-	if (bClone) {
-		status = MenuManagerImpl::cloneMenu((*it).hmenu_, bBar, phmenu);
-		CHECK_QSTATUS();
-	}
-	else {
-		*phmenu = (*it).hmenu_;
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (bClone)
+		return MenuManagerImpl::cloneMenu((*it).hmenu_, bBar);
+	else
+		return (*it).hmenu_;
 }
 
-QSTATUS qs::MenuManager::add(WSTRING wstrName, HMENU hmenu, bool bBar)
+void qs::MenuManager::add(wstring_ptr wstrName,
+						  HMENU hmenu,
+						  bool bBar)
 {
 	MenuManagerImpl::Menu menu = {
-		wstrName,
+		wstrName.get(),
 		hmenu,
 		bBar
 	};
-	return STLWrapper<MenuManagerImpl::MenuMap>(
-		pImpl_->mapMenu_).push_back(menu);
+	pImpl_->mapMenu_.push_back(menu);
+	wstrName.release();
 }
 
 
@@ -214,8 +191,8 @@ qs::PopupMenu::~PopupMenu()
  *
  */
 
-qs::LoadMenuPopupMenu::LoadMenuPopupMenu(
-	HINSTANCE hInst, UINT nId, qs::QSTATUS* pstatus) :
+qs::LoadMenuPopupMenu::LoadMenuPopupMenu(HINSTANCE hInst,
+										 UINT nId) :
 	hInst_(hInst),
 	nId_(nId)
 {
@@ -225,16 +202,16 @@ qs::LoadMenuPopupMenu::~LoadMenuPopupMenu()
 {
 }
 
-qs::QSTATUS qs::LoadMenuPopupMenu::create(HMENU* phmenu) const
+HMENU qs::LoadMenuPopupMenu::create() const
 {
 	HMENU hmenu = ::LoadMenu(hInst_, MAKEINTRESOURCE(nId_));
 	if (!hmenu)
-		return QSTATUS_FAIL;
-	*phmenu = ::GetSubMenu(hmenu, 0);
-	assert(*phmenu);
+		return 0;
+	HMENU hmenuSub = ::GetSubMenu(hmenu, 0);
+	assert(hmenuSub);
 	::RemoveMenu(hmenu, 0, MF_BYPOSITION);
 	::DestroyMenu(hmenu);
-	return QSTATUS_SUCCESS;
+	return hmenuSub;
 }
 
 
@@ -258,13 +235,10 @@ struct qs::PopupMenuManagerImpl
  *
  */
 
-qs::PopupMenuManager::PopupMenuManager(QSTATUS* pstatus) :
+qs::PopupMenuManager::PopupMenuManager() :
 	pImpl_(0)
 {
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new PopupMenuManagerImpl();
 }
 
 qs::PopupMenuManager::~PopupMenuManager()
@@ -279,26 +253,17 @@ qs::PopupMenuManager::~PopupMenuManager()
 	}
 }
 
-QSTATUS qs::PopupMenuManager::addPopupMenu(
-	const WCHAR* pwszName, const PopupMenu* pPopupMenu)
+void qs::PopupMenuManager::addPopupMenu(const WCHAR* pwszName,
+										const PopupMenu* pPopupMenu)
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrName(allocWString(pwszName));
-	if (!wstrName.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrName(allocWString(pwszName));
 	
 	typedef PopupMenuManagerImpl::PopupMenuMap Map;
-	status = STLWrapper<Map>(pImpl_->mapPopupMenu_).push_back(
-		Map::value_type(wstrName.get(), pPopupMenu));
-	CHECK_QSTATUS();
+	pImpl_->mapPopupMenu_.push_back(Map::value_type(wstrName.get(), pPopupMenu));
 	wstrName.release();
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::PopupMenuManager::createSubMenu(
-	const WCHAR* pwszAction, HMENU* phmenu) const
+HMENU qs::PopupMenuManager::createSubMenu(const WCHAR* pwszAction) const
 {
 	PopupMenuManagerImpl::PopupMenuMap::const_iterator it = std::find_if(
 		pImpl_->mapPopupMenu_.begin(), pImpl_->mapPopupMenu_.end(),
@@ -309,9 +274,8 @@ QSTATUS qs::PopupMenuManager::createSubMenu(
 				std::identity<const WCHAR*>()),
 			pwszAction));
 	if (it == pImpl_->mapPopupMenu_.end())
-		return QSTATUS_FAIL;
-	else
-		return (*it).second->create(phmenu);
+		return 0;
+	return (*it).second->create();
 }
 
 
@@ -322,48 +286,39 @@ QSTATUS qs::PopupMenuManager::createSubMenu(
  */
 
 qs::MenuContentHandler::MenuContentHandler(MenuManager* pMenuManager,
-	const ActionItem* pItem, size_t nItemCount,
-	const PopupMenuManager& popupMenuManager, QSTATUS* pstatus) :
-	DefaultHandler(pstatus),
+										   const ActionItem* pItem,
+										   size_t nItemCount,
+										   const PopupMenuManager& popupMenuManager) :
 	pMenuManager_(pMenuManager),
 	pActionItem_(pItem),
 	nActionItemCount_(nItemCount),
 	popupMenuManager_(popupMenuManager)
 {
-	assert(pstatus);
-	
-	DECLARE_QSTATUS();
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	status = STLWrapper<StateStack>(stackState_).push_back(STATE_ROOT);
-	CHECK_QSTATUS_SET(pstatus);
+	stackState_.push_back(STATE_ROOT);
 }
 
 qs::MenuContentHandler::~MenuContentHandler()
 {
 }
 
-QSTATUS qs::MenuContentHandler::startElement(
-	const WCHAR* pwszNamespaceURI, const WCHAR* pwszLocalName,
-	const WCHAR* pwszQName, const Attributes& attributes)
+bool qs::MenuContentHandler::startElement(const WCHAR* pwszNamespaceURI,
+										  const WCHAR* pwszLocalName,
+										  const WCHAR* pwszQName,
+										  const Attributes& attributes)
 {
 	assert(!stackState_.empty());
 	
-	DECLARE_QSTATUS();
-	
 	if (wcscmp(pwszLocalName, L"menus") == 0) {
 		if (stackState_.back() != STATE_ROOT)
-			return QSTATUS_FAIL;
+			return false;
 		if (attributes.getLength() != 0)
-			return QSTATUS_FAIL;
-		status = STLWrapper<StateStack>(stackState_).push_back(STATE_MENUS);
-		CHECK_QSTATUS();
+			return false;
+		stackState_.push_back(STATE_MENUS);
 	}
 	else if (wcscmp(pwszLocalName, L"menu") == 0 ||
 		wcscmp(pwszLocalName, L"menubar") == 0) {
 		if (stackState_.back() != STATE_MENUS)
-			return QSTATUS_FAIL;
+			return false;
 		
 		bool bBar = wcscmp(pwszLocalName, L"menubar") == 0;
 		
@@ -373,45 +328,44 @@ QSTATUS qs::MenuContentHandler::startElement(
 			if (wcscmp(pwszAttrName, L"name") == 0)
 				pwszName = attributes.getValue(n);
 			else
-				return QSTATUS_FAIL;
+				return false;
 		}
 		if (!pwszName)
-			return QSTATUS_FAIL;
+			return false;
 		
-		string_ptr<WSTRING> wstrName(allocWString(pwszName));
-		if (!wstrName.get())
-			return QSTATUS_OUTOFMEMORY;
+		wstring_ptr wstrName(allocWString(pwszName));
 		
 		HMENU hmenu = bBar ? ::CreateMenu() : ::CreatePopupMenu();
 		if (!hmenu)
-			return QSTATUS_FAIL;
+			return false;
 		
 		struct Deleter
 		{
-			Deleter(HMENU hmenu) : hmenu_(hmenu) {}
+			Deleter(HMENU hmenu) :
+				hmenu_(hmenu)
+			{
+			}
+			
 			~Deleter()
 			{
 				if (hmenu_)
 					::DestroyMenu(hmenu_);
 			}
+			
 			void release() { hmenu_ = 0; }
+			
 			HMENU hmenu_;
 		} deleter(hmenu);
 		
-		status = pMenuManager_->add(wstrName.get(), hmenu, bBar);
-		CHECK_QSTATUS();
-		wstrName.release();
+		pMenuManager_->add(wstrName, hmenu, bBar);
 		deleter.release();
 		
-		status = STLWrapper<MenuStack>(stackMenu_).push_back(hmenu);
-		CHECK_QSTATUS();
-		
-		status = STLWrapper<StateStack>(stackState_).push_back(STATE_MENU);
-		CHECK_QSTATUS();
+		stackMenu_.push_back(hmenu);
+		stackState_.push_back(STATE_MENU);
 	}
 	else if (wcscmp(pwszLocalName, L"menuitem") == 0) {
 		if (stackState_.back() != STATE_MENU)
-			return QSTATUS_FAIL;
+			return false;
 		
 		const WCHAR* pwszText = 0;
 		const WCHAR* pwszAction = 0;
@@ -422,10 +376,10 @@ QSTATUS qs::MenuContentHandler::startElement(
 			else if (wcscmp(pwszAttrName, L"action") == 0)
 				pwszAction = attributes.getValue(n);
 			else
-				return QSTATUS_FAIL;
+				return false;
 		}
 		if (!pwszText || !pwszAction)
-			return QSTATUS_FAIL;
+			return false;
 		
 		assert(!stackMenu_.empty());
 		HMENU hmenu = stackMenu_.back();
@@ -436,25 +390,23 @@ QSTATUS qs::MenuContentHandler::startElement(
 		if (nId != -1)
 			::AppendMenu(hmenu, MF_STRING, nId, ptszText);
 		
-		status = STLWrapper<StateStack>(stackState_).push_back(STATE_MENUITEM);
-		CHECK_QSTATUS();
+		stackState_.push_back(STATE_MENUITEM);
 	}
 	else if (wcscmp(pwszLocalName, L"separator") == 0) {
 		if (stackState_.back() != STATE_MENU)
-			return QSTATUS_FAIL;
+			return false;
 		if (attributes.getLength() != 0)
-			return QSTATUS_FAIL;
+			return false;
 		
 		assert(!stackMenu_.empty());
 		HMENU hmenu = stackMenu_.back();
 		::AppendMenu(hmenu, MF_SEPARATOR, -1, 0);
 		
-		status = STLWrapper<StateStack>(stackState_).push_back(STATE_SEPARATOR);
-		CHECK_QSTATUS();
+		stackState_.push_back(STATE_SEPARATOR);
 	}
 	else if (wcscmp(pwszLocalName, L"popupmenu") == 0) {
 		if (stackState_.back() != STATE_MENU)
-			return QSTATUS_FAIL;
+			return false;
 		
 		const WCHAR* pwszText = 0;
 		const WCHAR* pwszAction = 0;
@@ -465,10 +417,10 @@ QSTATUS qs::MenuContentHandler::startElement(
 			else if (wcscmp(pwszAttrName, L"action") == 0)
 				pwszAction = attributes.getValue(n);
 			else
-				return QSTATUS_FAIL;
+				return false;
 		}
 		if (!pwszText)
-			return QSTATUS_FAIL;
+			return false;
 		
 		assert(!stackMenu_.empty());
 		HMENU hmenu = stackMenu_.back();
@@ -477,41 +429,36 @@ QSTATUS qs::MenuContentHandler::startElement(
 		State state = STATE_MENU;
 		HMENU hmenuSub = 0;
 		if (pwszAction) {
-			status = popupMenuManager_.createSubMenu(pwszAction, &hmenuSub);
-			CHECK_QSTATUS();
+			hmenuSub = popupMenuManager_.createSubMenu(pwszAction);
+			if (!hmenuSub)
+				return false;
 			state = STATE_POPUPMENU;
 		}
 		else {
 			hmenuSub = ::CreatePopupMenu();
 			if (!hmenuSub)
-				return QSTATUS_FAIL;
+				return false;
 			state = STATE_MENU;
 		}
 		::AppendMenu(hmenu, MF_POPUP,
 			reinterpret_cast<UINT_PTR>(hmenuSub), ptszText);
 		
-		if (state == STATE_MENU) {
-			status = STLWrapper<MenuStack>(stackMenu_).push_back(hmenuSub);
-			CHECK_QSTATUS();
-		}
-		
-		status = STLWrapper<StateStack>(stackState_).push_back(state);
-		CHECK_QSTATUS();
+		if (state == STATE_MENU)
+			stackMenu_.push_back(hmenuSub);
+		stackState_.push_back(state);
 	}
 	else {
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::MenuContentHandler::endElement(
-	const WCHAR* pwszNamespaceURI, const WCHAR* pwszLocalName,
-	const WCHAR* pwszQName)
+bool qs::MenuContentHandler::endElement(const WCHAR* pwszNamespaceURI,
+										const WCHAR* pwszLocalName,
+										const WCHAR* pwszQName)
 {
 	assert(!stackState_.empty());
-	
-	DECLARE_QSTATUS();
 	
 	if (wcscmp(pwszLocalName, L"menus") == 0) {
 		assert(stackState_.back() == STATE_MENUS);
@@ -541,24 +488,25 @@ QSTATUS qs::MenuContentHandler::endElement(
 		stackState_.pop_back();
 	}
 	else {
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::MenuContentHandler::characters(
-	const WCHAR* pwsz, size_t nStart, size_t nLength)
+bool qs::MenuContentHandler::characters(const WCHAR* pwsz,
+										size_t nStart,
+										size_t nLength)
 {
 	assert(!stackState_.empty());
 	
 	const WCHAR* p = pwsz + nStart;
 	for (size_t n = 0; n < nLength; ++n, ++p) {
 		if (*p != L' ' && *p != L'\t' && *p != '\n')
-			return QSTATUS_FAIL;
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 UINT qs::MenuContentHandler::getActionId(const WCHAR* pwszAction)

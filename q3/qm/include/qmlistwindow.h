@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -52,51 +52,71 @@ public:
 	};
 
 public:
-	ListWindow(ViewModelManager* pViewModelManager, qs::Profile* pProfile,
-		MessageFrameWindowManager* pMessageFrameWindowManager, qs::QSTATUS* pstatus);
+	ListWindow(ViewModelManager* pViewModelManager,
+			   qs::Profile* pProfile,
+			   MessageFrameWindowManager* pMessageFrameWindowManager);
 	virtual ~ListWindow();
 
 public:
-	qs::QSTATUS refresh();
-	qs::QSTATUS moveSelection(MoveSelection m, bool bShift, bool bCtrl);
+	void refresh();
+	void moveSelection(MoveSelection m,
+					   bool bShift,
+					   bool bCtrl);
 
 public:
 	HFONT getFont() const;
 	bool isShowHeaderColumn() const;
-	qs::QSTATUS setShowHeaderColumn(bool bShow);
-	qs::QSTATUS save();
+	void setShowHeaderColumn(bool bShow);
+	bool save();
 
 public:
-	virtual qs::QSTATUS preCreateWindow(CREATESTRUCT* pCreateStruct);
-	virtual qs::QSTATUS getAccelerator(qs::Accelerator** ppAccelerator);
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual bool preCreateWindow(CREATESTRUCT* pCreateStruct);
+	virtual qs::Accelerator* getAccelerator();
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
-	LRESULT onContextMenu(HWND hwnd, const POINT& pt);
+	LRESULT onContextMenu(HWND hwnd,
+						  const POINT& pt);
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
 	LRESULT onDestroy();
 	LRESULT onEraseBkgnd(HDC hdc);
-	LRESULT onHScroll(UINT nCode, UINT nPos, HWND hwnd);
-	LRESULT onKeyDown(UINT nKey, UINT nRepeat, UINT nFlags);
+	LRESULT onHScroll(UINT nCode,
+					  UINT nPos,
+					  HWND hwnd);
+	LRESULT onKeyDown(UINT nKey,
+					  UINT nRepeat,
+					  UINT nFlags);
 	LRESULT onKillFocus(HWND hwnd);
-	LRESULT onLButtonDblClk(UINT nFlags, const POINT& pt);
-	LRESULT onLButtonDown(UINT nFlags, const POINT& pt);
-	LRESULT onLButtonUp(UINT nFlags, const POINT& pt);
+	LRESULT onLButtonDblClk(UINT nFlags,
+							const POINT& pt);
+	LRESULT onLButtonDown(UINT nFlags,
+						  const POINT& pt);
+	LRESULT onLButtonUp(UINT nFlags,
+						const POINT& pt);
 #if !defined _WIN32_WCE || _WIN32_WCE >= 211
-	LRESULT onMouseWheel(UINT nFlags, short nDelta, const POINT& pt);
+	LRESULT onMouseWheel(UINT nFlags,
+						 short nDelta,
+						 const POINT& pt);
 #endif
 	LRESULT onPaint();
 	LRESULT onSetFocus(HWND hwnd);
-	LRESULT onSize(UINT nFlags, int cx, int cy);
-	LRESULT onVScroll(UINT nCode, UINT nPos, HWND hwnd);
-	
-	LRESULT onViewModelItemAdded(WPARAM wParam, LPARAM lParam);
-	LRESULT onViewModelItemRemoved(WPARAM wParam, LPARAM lParam);
+	LRESULT onSize(UINT nFlags,
+				   int cx,
+				   int cy);
+	LRESULT onVScroll(UINT nCode,
+					  UINT nPos,
+					  HWND hwnd);
+	LRESULT onViewModelItemAdded(WPARAM wParam,
+								 LPARAM lParam);
+	LRESULT onViewModelItemRemoved(WPARAM wParam,
+								   LPARAM lParam);
 
 public:
 	virtual bool isShow() const;
 	virtual bool isActive() const;
-	virtual qs::QSTATUS setActive();
+	virtual void setActive();
 
 private:
 	ListWindow(const ListWindow&);
@@ -119,7 +139,7 @@ class ListHeaderColumn :
 {
 public:
 	ListHeaderColumn(ListWindow* pListWindow,
-		qs::Profile* pProfile, qs::QSTATUS* pstatus);
+					 qs::Profile* pProfile);
 	virtual ~ListHeaderColumn();
 
 public:
@@ -128,15 +148,17 @@ public:
 
 // These methods are intended to be called from ListWindow class
 public:
-	qs::QSTATUS setViewModel(ViewModel* pViewModel);
+	void setViewModel(ViewModel* pViewModel);
 	bool isShow() const;
-	qs::QSTATUS setShow(bool bShow);
-	qs::QSTATUS save();
+	void setShow(bool bShow);
+	bool save();
 
 public:
-	virtual qs::QSTATUS getSuperClass(qs::WSTRING* pwstrSuperClass);
-	virtual qs::QSTATUS preCreateWindow(CREATESTRUCT* pCreateStruct);
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual qs::wstring_ptr getSuperClass();
+	virtual bool preCreateWindow(CREATESTRUCT* pCreateStruct);
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);

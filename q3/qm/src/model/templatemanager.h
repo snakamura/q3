@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -33,14 +33,16 @@ public:
 	typedef std::vector<qs::WSTRING> NameList;
 
 public:
-	TemplateManager(const WCHAR* pwszPath, qs::QSTATUS* pstatus);
+	TemplateManager(const WCHAR* pwszPath);
 	~TemplateManager();
 
 public:
-	qs::QSTATUS getTemplate(Account* pAccount, Folder* pFolder,
-		const WCHAR* pwszName, const Template** ppTemplate) const;
-	qs::QSTATUS getTemplateNames(Account* pAccount,
-		const WCHAR* pwszPrefix, NameList* pList) const;
+	const Template* getTemplate(Account* pAccount,
+								Folder* pFolder,
+								const WCHAR* pwszName) const;
+	void getTemplateNames(Account* pAccount,
+						  const WCHAR* pwszPrefix,
+						  NameList* pList) const;
 
 private:
 	TemplateManager(const TemplateManager&);
@@ -50,30 +52,31 @@ private:
 	class Item
 	{
 	public:
-		Item(const WCHAR* pwszPath, const FILETIME& ft,
-			Template* pTemplate, qs::QSTATUS* pstatus);
+		Item(const WCHAR* pwszPath,
+			 const FILETIME& ft,
+			 std::auto_ptr<Template> pTemplate);
 		~Item();
 	
 	public:
 		const WCHAR* getPath() const;
 		const FILETIME& getFileTime() const;
-		Template* getTemplate() const;
+		const Template* getTemplate() const;
 	
 	private:
 		Item(const Item&);
 		Item& operator=(const Item&);
 	
 	private:
-		qs::WSTRING wstrPath_;
+		qs::wstring_ptr wstrPath_;
 		FILETIME ft_;
-		Template* pTemplate_;
+		std::auto_ptr<Template> pTemplate_;
 	};
 
 private:
 	typedef std::vector<Item*> ItemList;
 
 private:
-	qs::WSTRING wstrPath_;
+	qs::wstring_ptr wstrPath_;
 	mutable ItemList listItem_;
 };
 

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -23,8 +23,8 @@ using namespace qs;
  *
  */
 
-qmpop3::ReceivePage::ReceivePage(SubAccount* pSubAccount, QSTATUS* pstatus) :
-	DefaultPropertyPage(getResourceHandle(), IDD_RECEIVE, pstatus),
+qmpop3::ReceivePage::ReceivePage(SubAccount* pSubAccount) :
+	DefaultPropertyPage(getResourceHandle(), IDD_RECEIVE),
 	pSubAccount_(pSubAccount)
 {
 }
@@ -33,34 +33,16 @@ qmpop3::ReceivePage::~ReceivePage()
 {
 }
 
-LRESULT qmpop3::ReceivePage::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qmpop3::ReceivePage::onInitDialog(HWND hwndFocus,
+										  LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
-	int nGetAll = 0;
-	status = pSubAccount_->getProperty(L"Pop3", L"GetAll", 20, &nGetAll);
-	CHECK_QSTATUS_VALUE(TRUE);
-	int nDeleteOnServer = 0;
-	status = pSubAccount_->getProperty(
-		L"Pop3", L"DeleteOnServer", 0, &nDeleteOnServer);
-	CHECK_QSTATUS_VALUE(TRUE);
-	int nHandleStatus = 0;
-	status = pSubAccount_->getProperty(
-		L"Pop3", L"HandleStatus", 0, &nHandleStatus);
-	CHECK_QSTATUS_VALUE(TRUE);
-	int nApop = 0;
-	status = pSubAccount_->getProperty(L"Pop3", L"Apop", 0, &nApop);
-	CHECK_QSTATUS_VALUE(TRUE);
-	int nStartTls = 0;
-	status = pSubAccount_->getProperty(L"Pop3", L"STARTTLS", 0, &nStartTls);
-	CHECK_QSTATUS_VALUE(TRUE);
-	unsigned int nNoopInterval = 0;
-	status = pSubAccount_->getProperty(L"Pop3", L"NoopInterval",
-		100, reinterpret_cast<int*>(&nNoopInterval));
-	CHECK_QSTATUS_VALUE(TRUE);
-	int nDeleteBefore = 0;
-	status = pSubAccount_->getProperty(L"Pop3", L"DeleteBefore", 0, &nDeleteBefore);
-	CHECK_QSTATUS_VALUE(TRUE);
+	int nGetAll = pSubAccount_->getProperty(L"Pop3", L"GetAll", 20);
+	int nDeleteOnServer = pSubAccount_->getProperty(L"Pop3", L"DeleteOnServer", 0);
+	int nHandleStatus = pSubAccount_->getProperty(L"Pop3", L"HandleStatus", 0);
+	int nApop = pSubAccount_->getProperty(L"Pop3", L"Apop", 0);
+	int nStartTls = pSubAccount_->getProperty(L"Pop3", L"STARTTLS", 0);
+	int nNoopInterval = pSubAccount_->getProperty(L"Pop3", L"NoopInterval", 100);
+	int nDeleteBefore = pSubAccount_->getProperty(L"Pop3", L"DeleteBefore", 0);
 	
 	setDlgItemInt(IDC_PORT, pSubAccount_->getPort(Account::HOST_RECEIVE));
 	sendDlgItemMessage(IDC_SSL, BM_SETCHECK,
@@ -120,8 +102,8 @@ LRESULT qmpop3::ReceivePage::onOk()
  *
  */
 
-qmpop3::SendPage::SendPage(SubAccount* pSubAccount, QSTATUS* pstatus) :
-	DefaultPropertyPage(getResourceHandle(), IDD_SEND, pstatus),
+qmpop3::SendPage::SendPage(SubAccount* pSubAccount) :
+	DefaultPropertyPage(getResourceHandle(), IDD_SEND),
 	pSubAccount_(pSubAccount)
 {
 }
@@ -130,16 +112,11 @@ qmpop3::SendPage::~SendPage()
 {
 }
 
-LRESULT qmpop3::SendPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qmpop3::SendPage::onInitDialog(HWND hwndFocus,
+									   LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
-	int nApop = 0;
-	status = pSubAccount_->getProperty(L"Pop3Send", L"Apop", 0, &nApop);
-	CHECK_QSTATUS_VALUE(TRUE);
-	int nStartTls = 0;
-	status = pSubAccount_->getProperty(L"Pop3Send", L"STARTTLS", 0, &nStartTls);
-	CHECK_QSTATUS_VALUE(TRUE);
+	int nApop = pSubAccount_->getProperty(L"Pop3Send", L"Apop", 0);
+	int nStartTls = pSubAccount_->getProperty(L"Pop3Send", L"STARTTLS", 0);
 	
 	setDlgItemInt(IDC_PORT, pSubAccount_->getPort(Account::HOST_SEND));
 	sendDlgItemMessage(IDC_SSL, BM_SETCHECK,

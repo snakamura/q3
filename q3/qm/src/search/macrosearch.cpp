@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -11,7 +11,6 @@
 #include <qmmacro.h>
 #include <qmmessage.h>
 
-#include <qsnew.h>
 #include <qsstl.h>
 
 #include "macrosearch.h"
@@ -28,7 +27,9 @@ using namespace qs;
  */
 
 qm::MacroSearchDriver::MacroSearchDriver(Document* pDocument,
-	Account* pAccount, HWND hwnd, Profile* pProfile, QSTATUS* pstatus) :
+										 Account* pAccount,
+										 HWND hwnd,
+										 Profile* pProfile) :
 	pDocument_(pDocument),
 	pAccount_(pAccount),
 	hwnd_(hwnd),
@@ -40,69 +41,45 @@ qm::MacroSearchDriver::~MacroSearchDriver()
 {
 }
 
-QSTATUS qm::MacroSearchDriver::search(
-	const SearchContext& context, MessageHolderList* pList)
+bool qm::MacroSearchDriver::search(const SearchContext& context,
+								   MessageHolderList* pList)
 {
 	assert(pList);
 	
-	DECLARE_QSTATUS();
-	
 	// TODO
 	// TYPE_SEARCH?
-	MacroParser parser(MacroParser::TYPE_RULE, &status);
-	CHECK_QSTATUS();
-	Macro* p = 0;
-	status = parser.parse(context.getCondition(), &p);
-	CHECK_QSTATUS();
-	std::auto_ptr<Macro> pMacro(p);
+	MacroParser parser(MacroParser::TYPE_RULE);
+	std::auto_ptr<Macro> pMacro(parser.parse(context.getCondition()));
+	if (!pMacro.get())
+		return false;
 	
 	SearchContext::FolderList listFolder;
-	status = context.getTargetFolders(pAccount_, &listFolder);
-	CHECK_QSTATUS();
+	context.getTargetFolders(pAccount_, &listFolder);
 	
-	MacroVariableHolder globalVariable(&status);
-	CHECK_QSTATUS();
+	MacroVariableHolder globalVariable;
 	
-	SearchContext::FolderList::const_iterator it = listFolder.begin();
-	while (it != listFolder.end()) {
+	for (SearchContext::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
 		NormalFolder* pFolder = *it;
 		
-		status = pFolder->loadMessageHolders();
-		CHECK_QSTATUS();
+		if (!pFolder->loadMessageHolders())
+			return false;
 		
 		unsigned int nCount = pFolder->getCount();
-		CHECK_QSTATUS();
 		for (unsigned int n = 0; n < nCount; ++n) {
 			MessageHolder* pmh = pFolder->getMessage(n);
 			
-			Message msg(&status);
-			CHECK_QSTATUS();
-			MacroContext::Init init = {
-				pmh,
-				&msg,
-				pAccount_,
-				pDocument_,
-				hwnd_,
-				pProfile_,
-				false,
-				0,
-				&globalVariable
-			};
-			MacroContext context(init, &status);
-			CHECK_QSTATUS();
-			MacroValuePtr pValue;
-			status = pMacro->value(&context, &pValue);
-			CHECK_QSTATUS();
-			if (pValue->boolean()) {
-				status = STLWrapper<MessageHolderList>(*pList).push_back(pmh);
-				CHECK_QSTATUS();
-			}
+			Message msg;
+			MacroContext context(pmh, &msg, pAccount_, pDocument_,
+				hwnd_, pProfile_, false, 0, &globalVariable);
+			MacroValuePtr pValue(pMacro->value(&context));
+			if (!pValue.get())
+				return false;
+			if (pValue->boolean())
+				pList->push_back(pmh);
 		}
-		
-		++it;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -112,7 +89,7 @@ QSTATUS qm::MacroSearchDriver::search(
  *
  */
 
-qm::MacroSearchUI::MacroSearchUI(Profile* pProfile, QSTATUS* pstatus) :
+qm::MacroSearchUI::MacroSearchUI(Profile* pProfile) :
 	pProfile_(pProfile)
 {
 }
@@ -131,23 +108,14 @@ const WCHAR* qm::MacroSearchUI::getName()
 	return L"macro";
 }
 
-QSTATUS qm::MacroSearchUI::getDisplayName(qs::WSTRING* pwstrName)
+wstring_ptr qm::MacroSearchUI::getDisplayName()
 {
-	return loadString(Application::getApplication().getResourceHandle(),
-		IDS_MACROSEARCH, pwstrName);
+	return loadString(Application::getApplication().getResourceHandle(), IDS_MACROSEARCH);
 }
 
-QSTATUS qm::MacroSearchUI::createPropertyPage(
-	bool bAllFolder, SearchPropertyPage** ppPage)
+std::auto_ptr<SearchPropertyPage> qm::MacroSearchUI::createPropertyPage(bool bAllFolder)
 {
-	DECLARE_QSTATUS();
-	
-	std::auto_ptr<MacroSearchPage> pPage;
-	status = newQsObject(pProfile_, bAllFolder, &pPage);
-	CHECK_QSTATUS();
-	*ppPage = pPage.release();
-	
-	return QSTATUS_SUCCESS;
+	return new MacroSearchPage(pProfile_, bAllFolder);
 }
 
 
@@ -157,12 +125,10 @@ QSTATUS qm::MacroSearchUI::createPropertyPage(
  *
  */
 
-qm::MacroSearchPage::MacroSearchPage(
-	Profile* pProfile, bool bAllFolder, QSTATUS* pstatus) :
-	SearchPropertyPage(Application::getApplication().getResourceHandle(),
-		IDD_MACROSEARCH, pstatus),
+qm::MacroSearchPage::MacroSearchPage(Profile* pProfile,
+									 bool bAllFolder) :
+	SearchPropertyPage(Application::getApplication().getResourceHandle(), IDD_MACROSEARCH),
 	pProfile_(pProfile),
-	wstrCondition_(0),
 	bAllFolder_(bAllFolder),
 	bRecursive_(false)
 {
@@ -170,7 +136,6 @@ qm::MacroSearchPage::MacroSearchPage(
 
 qm::MacroSearchPage::~MacroSearchPage()
 {
-	freeWString(wstrCondition_);
 }
 
 const WCHAR* qm::MacroSearchPage::getDriver() const
@@ -180,7 +145,7 @@ const WCHAR* qm::MacroSearchPage::getDriver() const
 
 const WCHAR* qm::MacroSearchPage::getCondition() const
 {
-	return wstrCondition_;
+	return wstrCondition_.get();
 }
 
 bool qm::MacroSearchPage::isAllFolder() const
@@ -193,7 +158,8 @@ bool qm::MacroSearchPage::isRecursive() const
 	return bRecursive_;
 }
 
-LRESULT qm::MacroSearchPage::onCommand(WORD nCode, WORD nId)
+LRESULT qm::MacroSearchPage::onCommand(WORD nCode,
+									   WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_MACRO, onMacro)
@@ -203,13 +169,10 @@ LRESULT qm::MacroSearchPage::onCommand(WORD nCode, WORD nId)
 	return SearchPropertyPage::onCommand(nCode, nId);
 }
 
-LRESULT qm::MacroSearchPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::MacroSearchPage::onInitDialog(HWND hwndFocus,
+										  LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrCondition;
-	status = pProfile_->getString(L"Search", L"Condition", L"", &wstrCondition);
-	CHECK_QSTATUS();
+	wstring_ptr wstrCondition(pProfile_->getString(L"Search", L"Condition", L""));
 	setDlgItemText(IDC_CONDITION, wstrCondition.get());
 	
 	struct {
@@ -221,9 +184,7 @@ LRESULT qm::MacroSearchPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 		{ IDC_SEARCHBODY,	L"SearchBody",	}
 	};
 	for (int n = 0; n < countof(items); ++n) {
-		int nValue = 0;
-		status = pProfile_->getInt(L"MacroSearch", items[n].pwszKey_, 0, &nValue);
-		CHECK_QSTATUS();
+		int nValue = pProfile_->getInt(L"MacroSearch", items[n].pwszKey_, 0);
 		if (nValue != 0)
 			sendDlgItemMessage(items[n].nId_, BM_SETCHECK, BST_CHECKED);
 	}
@@ -235,8 +196,7 @@ LRESULT qm::MacroSearchPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 		nFolder = 2;
 	}
 	else {
-		status = pProfile_->getInt(L"Search", L"Folder", 0, &nFolder);
-		CHECK_QSTATUS();
+		nFolder = pProfile_->getInt(L"Search", L"Folder", 0);
 		if (nFolder < 0 || 3 < nFolder)
 			nFolder = 0;
 	}
@@ -249,46 +209,32 @@ LRESULT qm::MacroSearchPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 
 LRESULT qm::MacroSearchPage::onOk()
 {
-	DECLARE_QSTATUS();
-	
 	if (PropSheet_GetCurrentPageHwnd(getSheet()->getHandle()) == getHandle()) {
-		string_ptr<WSTRING> wstrSearch(getDlgItemText(IDC_CONDITION));
+		wstring_ptr wstrSearch(getDlgItemText(IDC_CONDITION));
 		bool bMacro = sendDlgItemMessage(IDC_MACRO, BM_GETCHECK) == BST_CHECKED;
 		bool bCase = sendDlgItemMessage(IDC_MATCHCASE, BM_GETCHECK) == BST_CHECKED;
 		bool bSearchBody = sendDlgItemMessage(IDC_SEARCHBODY, BM_GETCHECK) == BST_CHECKED;
 		if (bMacro) {
-			wstrCondition_ = wstrSearch.release();
+			wstrCondition_ = wstrSearch;
 		}
 		else {
-			string_ptr<WSTRING> wstrLiteral;
-			status = getLiteral(wstrSearch.get(), &wstrLiteral);
-			CHECK_QSTATUS();
+			wstring_ptr wstrLiteral(getLiteral(wstrSearch.get()));
 			
-			StringBuffer<WSTRING> buf(&status);
-			CHECK_QSTATUS();
-			status = buf.append(L"@Or(");
-			CHECK_QSTATUS();
+			StringBuffer<WSTRING> buf;
+			buf.append(L"@Or(");
 			const WCHAR* pwszFields[] = {
 				L"%Subject",
 				L"%From",
 				L"%To"
 			};
 			for (int n = 0; n < countof(pwszFields); ++n) {
-				if (n != 0) {
-					status = buf.append(L", ");
-					CHECK_QSTATUS();
-				}
-				status = createMacro(&buf, pwszFields[n],
-					wstrLiteral.get(), bCase);
-				CHECK_QSTATUS();
+				if (n != 0)
+					buf.append(L", ");
+				createMacro(&buf, pwszFields[n], wstrLiteral.get(), bCase);
 			}
-			if (bSearchBody) {
-				status = createMacro(&buf, L"@Body('', @True())",
-					wstrLiteral.get(), bCase);
-				CHECK_QSTATUS();
-			}
-			status = buf.append(L")");
-			CHECK_QSTATUS();
+			if (bSearchBody)
+				createMacro(&buf, L"@Body('', @True())", wstrLiteral.get(), bCase);
+			buf.append(L")");
 			
 			wstrCondition_ = buf.getString();
 		}
@@ -297,7 +243,7 @@ LRESULT qm::MacroSearchPage::onOk()
 		bRecursive_ = sendDlgItemMessage(IDC_RECURSIVE, BM_GETCHECK) == BST_CHECKED;
 		
 		pProfile_->setString(L"Search", L"Condition",
-			bMacro ? wstrCondition_ : wstrSearch.get());
+			bMacro ? wstrCondition_.get() : wstrSearch.get());
 		pProfile_->setInt(L"MacroSearch", L"Macro", bMacro);
 		pProfile_->setInt(L"MacroSearch", L"MatchCase", bCase);
 		pProfile_->setInt(L"MacroSearch", L"SearchBody", bSearchBody);
@@ -332,51 +278,33 @@ void qm::MacroSearchPage::updateState()
 	Window(getDlgItem(IDC_SEARCHBODY)).enableWindow(bEnable);
 }
 
-QSTATUS qm::MacroSearchPage::getLiteral(const WCHAR* pwsz, WSTRING* pwstr)
+wstring_ptr qm::MacroSearchPage::getLiteral(const WCHAR* pwsz)
 {
-	DECLARE_QSTATUS();
+	StringBuffer<WSTRING> buf;
 	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
-	status = buf.append(L'\'');
-	CHECK_QSTATUS();
+	buf.append(L'\'');
 	for (const WCHAR* p = pwsz; *p; ++p) {
-		if (*p == L'\'') {
-			status = buf.append(L'\\');
-			CHECK_QSTATUS();
-		}
-		status = buf.append(*p);
-		CHECK_QSTATUS();
+		if (*p == L'\'')
+			buf.append(L'\\');
+		buf.append(*p);
 	}
-	status = buf.append(L'\'');
-	CHECK_QSTATUS();
+	buf.append(L'\'');
 	
-	*pwstr = buf.getString();
-	
-	return QSTATUS_SUCCESS;
+	return buf.getString();
 }
 
-QSTATUS qm::MacroSearchPage::createMacro(StringBuffer<WSTRING>* pBuf,
-	const WCHAR* pwszField, const WCHAR* pwszLiteral, bool bCase)
+void qm::MacroSearchPage::createMacro(StringBuffer<WSTRING>* pBuf,
+									  const WCHAR* pwszField,
+									  const WCHAR* pwszLiteral,
+									  bool bCase)
 {
-	DECLARE_QSTATUS();
-	
-	status = pBuf->append(L"@Contain(");
-	CHECK_QSTATUS();
-	status = pBuf->append(pwszField);
-	CHECK_QSTATUS();
-	status = pBuf->append(L", ");
-	CHECK_QSTATUS();
-	status = pBuf->append(pwszLiteral);
-	CHECK_QSTATUS();
-	status = pBuf->append(L", ");
-	CHECK_QSTATUS();
-	status = pBuf->append(bCase ? L"@True()" : L"@False()");
-	CHECK_QSTATUS();
-	status = pBuf->append(L')');
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	pBuf->append(L"@Contain(");
+	pBuf->append(pwszField);
+	pBuf->append(L", ");
+	pBuf->append(pwszLiteral);
+	pBuf->append(L", ");
+	pBuf->append(bCase ? L"@True()" : L"@False()");
+	pBuf->append(L')');
 }
 
 
@@ -391,38 +319,26 @@ MacroSearchDriverFactory::InitializerImpl qm::MacroSearchDriverFactory::init__;
 
 qm::MacroSearchDriverFactory::MacroSearchDriverFactory()
 {
-	regist(L"macro", this);
+	registerFactory(L"macro", this);
 }
 
 qm::MacroSearchDriverFactory::~MacroSearchDriverFactory()
 {
-	unregist(L"macro");
+	unregisterFactory(L"macro");
 }
 
-QSTATUS qm::MacroSearchDriverFactory::createDriver(Document* pDocument,
-	Account* pAccount, HWND hwnd, Profile* pProfile, SearchDriver** ppDriver)
+std::auto_ptr<SearchDriver> qm::MacroSearchDriverFactory::createDriver(Document* pDocument,
+																	   Account* pAccount,
+																	   HWND hwnd,
+																	   Profile* pProfile)
 {
-	DECLARE_QSTATUS();
-	
-	std::auto_ptr<MacroSearchDriver> pDriver;
-	status = newQsObject(pDocument, pAccount, hwnd, pProfile, &pDriver);
-	CHECK_QSTATUS();
-	*ppDriver = pDriver.release();
-	
-	return QSTATUS_SUCCESS;
+	return new MacroSearchDriver(pDocument, pAccount, hwnd, pProfile);
 }
 
-QSTATUS qm::MacroSearchDriverFactory::createUI(
-	Account* pAccount, Profile* pProfile, SearchUI** ppUI)
+std::auto_ptr<SearchUI> qm::MacroSearchDriverFactory::createUI(Account* pAccount,
+															   Profile* pProfile)
 {
-	DECLARE_QSTATUS();
-	
-	std::auto_ptr<MacroSearchUI> pUI;
-	status = newQsObject(pProfile, &pUI);
-	CHECK_QSTATUS();
-	*ppUI = pUI.release();
-	
-	return QSTATUS_SUCCESS;
+	return new MacroSearchUI(pProfile);
 }
 
 qm::MacroSearchDriverFactory::InitializerImpl::InitializerImpl()
@@ -433,20 +349,14 @@ qm::MacroSearchDriverFactory::InitializerImpl::~InitializerImpl()
 {
 }
 
-QSTATUS qm::MacroSearchDriverFactory::InitializerImpl::init()
+bool qm::MacroSearchDriverFactory::InitializerImpl::init()
 {
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pFactory__);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	pFactory__ = new MacroSearchDriverFactory();
+	return true;
 }
 
-QSTATUS qm::MacroSearchDriverFactory::InitializerImpl::term()
+void qm::MacroSearchDriverFactory::InitializerImpl::term()
 {
 	delete pFactory__;
 	pFactory__ = 0;
-	
-	return QSTATUS_SUCCESS;
 }

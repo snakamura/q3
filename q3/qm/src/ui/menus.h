@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -63,13 +63,16 @@ public:
 	};
 
 public:
-	explicit AttachmentMenu(qs::QSTATUS* pstatus);
+	AttachmentMenu();
 	~AttachmentMenu();
 
 public:
-	qs::QSTATUS getPart(unsigned int nId, Message* pMessage,
-		qs::WSTRING* pwstrName, const qs::Part** ppPart) const;
-	qs::QSTATUS createMenu(HMENU hmenu, const MessageHolderList& l);
+	bool getPart(unsigned int nId,
+				 Message* pMessage,
+				 qs::wstring_ptr* pwstrName,
+				 const qs::Part** ppPart) const;
+	bool createMenu(HMENU hmenu,
+					const MessageHolderList& l);
 
 private:
 	AttachmentMenu(const AttachmentMenu&);
@@ -97,15 +100,15 @@ public:
 	};
 
 public:
-	EncodingMenu(qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	explicit EncodingMenu(qs::Profile* pProfile);
 	~EncodingMenu();
 
 public:
 	const WCHAR* getEncoding(unsigned int nId) const;
-	qs::QSTATUS createMenu(HMENU hmenu);
+	bool createMenu(HMENU hmenu);
 
 private:
-	qs::QSTATUS load(qs::Profile* pProfile);
+	void load(qs::Profile* pProfile);
 
 private:
 	EncodingMenu(const EncodingMenu&);
@@ -134,12 +137,12 @@ public:
 	};
 
 public:
-	FilterMenu(FilterManager* pFilterManager, qs::QSTATUS* pstatus);
+	explicit FilterMenu(FilterManager* pFilterManager);
 	~FilterMenu();
 
 public:
-	qs::QSTATUS getFilter(unsigned int nId, const Filter** ppFilter) const;
-	qs::QSTATUS createMenu(HMENU hmenu);
+	const Filter* getFilter(unsigned int nId) const;
+	bool createMenu(HMENU hmenu);
 
 private:
 	FilterMenu(const FilterMenu&);
@@ -164,13 +167,12 @@ public:
 	};
 
 public:
-	GoRoundMenu(GoRound* pGoRound, qs::QSTATUS* pstatus);
+	explicit GoRoundMenu(GoRound* pGoRound);
 	~GoRoundMenu();
 
 public:
-	qs::QSTATUS getCourse(unsigned int nId,
-		const GoRoundCourse** ppCourse) const;
-	qs::QSTATUS createMenu(HMENU hmenu);
+	const GoRoundCourse* getCourse(unsigned int nId) const;
+	bool createMenu(HMENU hmenu);
 
 private:
 	GoRoundMenu(const GoRoundMenu&);
@@ -195,21 +197,21 @@ public:
 	};
 
 public:
-	explicit MoveMenu(qs::QSTATUS* pstatus);
+	MoveMenu();
 	~MoveMenu();
 
 public:
 	NormalFolder* getFolder(unsigned int nId) const;
-	qs::QSTATUS createMenu(HMENU hmenu, Account* pAccount,
-		bool bShowHidden, const qs::ActionMap& actionMap);
+	bool createMenu(HMENU hmenu, Account* pAccount,
+					bool bShowHidden,
+					const qs::ActionMap& actionMap);
 
 private:
 	static bool isMovableFolder(const Folder* pFolder);
-	static bool hasSelectableChildNormalFolder(
-		Account::FolderList::const_iterator first,
-		Account::FolderList::const_iterator last);
-	static qs::QSTATUS formatName(const Folder* pFolder,
-		unsigned int n, qs::WSTRING* pwstrName);
+	static bool hasSelectableChildNormalFolder(Account::FolderList::const_iterator first,
+											   Account::FolderList::const_iterator last);
+	static qs::wstring_ptr formatName(const Folder* pFolder,
+									  unsigned int n);
 
 private:
 	MoveMenu(const MoveMenu&);
@@ -218,7 +220,8 @@ private:
 private:
 	struct MenuInserter
 	{
-		MenuInserter(HMENU hmenu, Folder* pFolder);
+		MenuInserter(HMENU hmenu,
+					 Folder* pFolder);
 		
 		HMENU hmenu_;
 		Folder* pFolder_;
@@ -247,13 +250,13 @@ public:
 	};
 
 public:
-	ScriptMenu(ScriptManager* pScriptManager, qs::QSTATUS* pstatus);
+	explicit ScriptMenu(ScriptManager* pScriptManager);
 	~ScriptMenu();
 
 public:
 	const WCHAR* getScript(unsigned int nId) const;
 	ScriptManager* getScriptManager() const;
-	qs::QSTATUS createMenu(HMENU hmenu);
+	bool createMenu(HMENU hmenu);
 
 private:
 	void clear();
@@ -285,12 +288,12 @@ public:
 	};
 
 public:
-	SortMenu(ViewModelManager* pViewModelManager, qs::QSTATUS* pstatus);
+	explicit SortMenu(ViewModelManager* pViewModelManager);
 	~SortMenu();
 
 public:
 	unsigned int getSort(unsigned int nId) const;
-	qs::QSTATUS createMenu(HMENU hmenu);
+	bool createMenu(HMENU hmenu);
 
 private:
 	SortMenu(const SortMenu&);
@@ -315,12 +318,12 @@ public:
 	};
 
 public:
-	SubAccountMenu(FolderModel* pFolderModel, qs::QSTATUS* pstatus);
+	explicit SubAccountMenu(FolderModel* pFolderModel);
 	~SubAccountMenu();
 
 public:
 	const WCHAR* getName(unsigned int nId) const;
-	qs::QSTATUS createMenu(HMENU hmenu);
+	bool createMenu(HMENU hmenu);
 
 private:
 	SubAccountMenu(const SubAccountMenu&);
@@ -345,13 +348,12 @@ public:
 	};
 
 protected:
-	TemplateMenu(const TemplateManager* pTemplateManager,
-		qs::QSTATUS* pstatus);
+	explicit TemplateMenu(const TemplateManager* pTemplateManager);
 	~TemplateMenu();
 
 public:
 	const WCHAR* getTemplate(unsigned int nId) const;
-	qs::QSTATUS createMenu(HMENU hmenu, Account* pAccount);
+	bool createMenu(HMENU hmenu, Account* pAccount);
 
 protected:
 	virtual const WCHAR* getPrefix() const = 0;
@@ -385,7 +387,7 @@ class CreateTemplateMenu : public TemplateMenu
 {
 public:
 	CreateTemplateMenu(const TemplateManager* pTemplateManager,
-		bool bExternalEditor, qs::QSTATUS* pstatus);
+					   bool bExternalEditor);
 	~CreateTemplateMenu();
 
 protected:
@@ -412,8 +414,7 @@ private:
 class ViewTemplateMenu : public TemplateMenu
 {
 public:
-	ViewTemplateMenu(const TemplateManager* pTemplateManager,
-		qs::QSTATUS* pstatus);
+	explicit ViewTemplateMenu(const TemplateManager* pTemplateManager);
 	~ViewTemplateMenu();
 
 protected:

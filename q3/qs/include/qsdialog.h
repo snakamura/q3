@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -41,31 +41,33 @@ class QSEXPORTCLASS DialogBase :
 	public DefWindowProcHolder
 {
 protected:
-	DialogBase(bool bDeleteThis, QSTATUS* pstatus);
+	explicit DialogBase(bool bDeleteThis);
 
 public:
 	virtual ~DialogBase();
 
 public:
-	QSTATUS setDialogHandler(DialogHandler* pDialogHandler,
-		bool bDeleteHandler);
+	void setDialogHandler(DialogHandler* pDialogHandler,
+						  bool bDeleteHandler);
 	
-	QSTATUS addCommandHandler(CommandHandler* pch);
-	QSTATUS removeCommandHandler(CommandHandler* pch);
+	void addCommandHandler(CommandHandler* pch);
+	void removeCommandHandler(CommandHandler* pch);
 	
-	QSTATUS addNotifyHandler(NotifyHandler* pnh);
-	QSTATUS removeNotifyHandler(NotifyHandler* pnh);
+	void addNotifyHandler(NotifyHandler* pnh);
+	void removeNotifyHandler(NotifyHandler* pnh);
 	
-	QSTATUS addOwnerDrawHandler(OwnerDrawHandler* podh);
-	QSTATUS removeOwnerDrawHandler(OwnerDrawHandler* podh);
+	void addOwnerDrawHandler(OwnerDrawHandler* podh);
+	void removeOwnerDrawHandler(OwnerDrawHandler* podh);
 	
 	InitThread* getInitThread() const;
 
 public:
-	virtual LRESULT defWindowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT defWindowProc(UINT uMsg,
+								  WPARAM wParam,
+								  LPARAM lParam);
 
 public:
-	static QSTATUS processDialogMessage(MSG* pMsg, bool* pbProcessed);
+	static bool processDialogMessage(MSG* pMsg);
 
 private:
 	DialogBase(const DialogBase&);
@@ -77,8 +79,14 @@ private:
 #if 1//defined _WIN32_WCE && !defined _WIN32_WCE_EMULATION
 friend class WindowDestroy;
 #endif
-friend INT_PTR CALLBACK dialogProc(HWND, UINT, WPARAM, LPARAM);
-friend INT_PTR CALLBACK propertyPageProc(HWND, UINT, WPARAM, LPARAM);
+friend INT_PTR CALLBACK dialogProc(HWND,
+								   UINT,
+								   WPARAM,
+								   LPARAM);
+friend INT_PTR CALLBACK propertyPageProc(HWND,
+										 UINT,
+										 WPARAM,
+										 LPARAM);
 };
 
 
@@ -91,15 +99,17 @@ friend INT_PTR CALLBACK propertyPageProc(HWND, UINT, WPARAM, LPARAM);
 class QSEXPORTCLASS Dialog : public DialogBase
 {
 public:
-	Dialog(HINSTANCE hInstResource, UINT nId,
-		bool bDeleteThis, QSTATUS* pstatus);
+	Dialog(HINSTANCE hInstResource,
+		   UINT nId,
+		   bool bDeleteThis);
 	~Dialog();
 
 public:
-	QSTATUS doModal(HWND hwndParent,
-		ModalHandler* pModalHandler, int* pnRet);
-	QSTATUS create(HWND hwndParent);
-	QSTATUS endDialog(int nCode);
+	int doModal(HWND hwndParent);
+	int doModal(HWND hwndParent,
+				ModalHandler* pModalHandler);
+	bool create(HWND hwndParent);
+	bool endDialog(int nCode);
 
 private:
 	Dialog(const Dialog&);
@@ -123,8 +133,10 @@ public:
 
 public:
 	virtual DialogBase* getDialogBase() const = 0;
-	virtual QSTATUS setDialogBase(DialogBase* pDialogBase) = 0;
-	virtual INT_PTR dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
+	virtual void setDialogBase(DialogBase* pDialogBase) = 0;
+	virtual INT_PTR dialogProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam) = 0;
 	virtual void initProcResult() = 0;
 	virtual INT_PTR getProcResult() const = 0;
 };
@@ -172,13 +184,15 @@ class QSEXPORTCLASS DefaultDialogHandler :
 	public DefaultWindowHandlerBase
 {
 public:
-	explicit DefaultDialogHandler(QSTATUS* pstatus);
+	DefaultDialogHandler();
 	virtual ~DefaultDialogHandler();
 
 public:
 	virtual DialogBase* getDialogBase() const;
-	virtual QSTATUS setDialogBase(DialogBase* pDialogBase);
-	virtual INT_PTR dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual void setDialogBase(DialogBase* pDialogBase);
+	virtual INT_PTR dialogProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 	virtual void initProcResult();
 	virtual INT_PTR getProcResult() const;
 
@@ -200,6 +214,51 @@ private:
 
 /****************************************************************************
  *
+ * DefaultDialog
+ *
+ */
+
+class QSEXPORTCLASS DefaultDialog :
+	public Dialog,
+	public DefaultDialogHandler,
+	public DefaultCommandHandler
+{
+protected:
+	DefaultDialog(HINSTANCE hInst,
+				  UINT nId);
+
+public:
+	virtual ~DefaultDialog();
+
+protected:
+	void init(bool bDoneButton);
+
+public:
+	virtual INT_PTR dialogProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onDestroy();
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+	virtual LRESULT onCancel();
+
+private:
+	DefaultDialog(const DefaultDialog&);
+	DefaultDialog& operator=(const DefaultDialog&);
+};
+
+
+/****************************************************************************
+ *
  * PropertySheetBase
  *
  */
@@ -208,22 +267,24 @@ class QSEXPORTCLASS PropertySheetBase : public Window
 {
 public:
 	PropertySheetBase(HINSTANCE hInstResource,
-		const WCHAR* pwszTitle, bool bDeleteThis, QSTATUS* pstatus);
+					  const WCHAR* pwszTitle,
+					  bool bDeleteThis);
 	~PropertySheetBase();
 
 public:
-	QSTATUS doModal(HWND hwndParent,
-		ModalHandler* pModalHandler, int* pnRet);
+	int doModal(HWND hwndParent);
+	int doModal(HWND hwndParent,
+				ModalHandler* pModalHandler);
 	
-	QSTATUS add(PropertyPage* pPage);
-	QSTATUS setStartPage(int nPage);
+	void add(PropertyPage* pPage);
+	void setStartPage(int nPage);
 	PropertyPage* getPage(int nPage);
 	
 	void init();
 	bool isDialogMessage(MSG* pMsg);
 
 public:
-	static QSTATUS processDialogMessage(MSG* pMsg, bool* pbProcessed);
+	static bool processDialogMessage(MSG* pMsg);
 
 private:
 	PropertySheetBase(const PropertySheetBase&);
@@ -232,7 +293,9 @@ private:
 private:
 	class PropertySheetBaseImpl* pImpl_;
 
-friend int CALLBACK propertySheetProc(HWND, UINT, LPARAM);
+friend int CALLBACK propertySheetProc(HWND,
+									  UINT,
+									  LPARAM);
 };
 
 
@@ -245,15 +308,16 @@ friend int CALLBACK propertySheetProc(HWND, UINT, LPARAM);
 class QSEXPORTCLASS PropertyPage : public DialogBase
 {
 public:
-	PropertyPage(HINSTANCE hInstResource, UINT nId,
-		bool bDeleteThis, QSTATUS* pstatus);
+	PropertyPage(HINSTANCE hInstResource,
+				 UINT nId,
+				 bool bDeleteThis);
 	virtual ~PropertyPage();
 
 public:
 	PropertySheetBase* getSheet() const;
 
 private:
-	QSTATUS create(PropertySheetBase* pSheet, HPROPSHEETPAGE* phpsp);
+	HPROPSHEETPAGE create(PropertySheetBase* pSheet);
 
 private:
 	PropertyPage(const PropertyPage&);
@@ -263,46 +327,6 @@ private:
 	struct PropertyPageImpl* pImpl_;
 
 friend class PropertySheetBase;
-};
-
-
-/****************************************************************************
- *
- * DefaultDialog
- *
- */
-
-class QSEXPORTCLASS DefaultDialog :
-	public Dialog,
-	public DefaultDialogHandler,
-	public DefaultCommandHandler
-{
-protected:
-	DefaultDialog(HINSTANCE hInst, UINT nId, QSTATUS* pstatus);
-
-public:
-	virtual ~DefaultDialog();
-
-protected:
-	void init(bool bDoneButton);
-
-public:
-	virtual INT_PTR dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
-
-public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
-
-protected:
-	virtual LRESULT onDestroy();
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
-
-protected:
-	virtual LRESULT onOk();
-	virtual LRESULT onCancel();
-
-private:
-	DefaultDialog(const DefaultDialog&);
-	DefaultDialog& operator=(const DefaultDialog&);
 };
 
 
@@ -319,29 +343,36 @@ class QSEXPORTCLASS DefaultPropertyPage :
 	public NotifyHandler
 {
 protected:
-	DefaultPropertyPage(HINSTANCE hInst, UINT nId, QSTATUS* pstatus);
+	DefaultPropertyPage(HINSTANCE hInst,
+						UINT nId);
 
 public:
 	virtual ~DefaultPropertyPage();
 
 public:
-	virtual INT_PTR dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual INT_PTR dialogProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 public:
-	virtual LRESULT onNotify(NMHDR* pnmhdr, bool* pbHandled);
+	virtual LRESULT onNotify(NMHDR* pnmhdr,
+							 bool* pbHandled);
 
 protected:
 	virtual LRESULT onDestroy();
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
 
 private:
-	LRESULT onApply(NMHDR* pnmhdr, bool* pbHandled);
+	LRESULT onApply(NMHDR* pnmhdr,
+					bool* pbHandled);
 
 private:
 	DefaultPropertyPage(const DefaultPropertyPage&);
@@ -358,15 +389,19 @@ private:
 class QSEXPORTCLASS FileDialog
 {
 public:
-	FileDialog(bool bOpen, const WCHAR* pwszFilter,
-		const WCHAR* pwszInitialDir, const WCHAR* pwszDefaultExt,
-		const WCHAR* pwszFileName, DWORD dwFlags, QSTATUS* pstatus);
+	FileDialog(bool bOpen,
+			   const WCHAR* pwszFilter,
+			   const WCHAR* pwszInitialDir,
+			   const WCHAR* pwszDefaultExt,
+			   const WCHAR* pwszFileName,
+			   DWORD dwFlags);
 	~FileDialog();
 
 public:
 	const WCHAR* getPath() const;
-	QSTATUS doModal(HWND hwndParent,
-		ModalHandler* pModalHandler, int* pnRet);
+	int doModal(HWND hwndParent);
+	int doModal(HWND hwndParent,
+				ModalHandler* pModalHandler);
 
 private:
 	FileDialog(const FileDialog&);
@@ -388,7 +423,7 @@ class QSEXPORTCLASS BrowseFolderDialog : public DefaultDialog
 {
 public:
 	BrowseFolderDialog(const WCHAR* pwszTitle,
-		const WCHAR* pwszInitialPath, QSTATUS* pstatus);
+					   const WCHAR* pwszInitialPath);
 	virtual ~BrowseFolderDialog();
 
 public:
@@ -396,7 +431,8 @@ public:
 
 protected:
 	virtual LRESULT onDestroy();
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();

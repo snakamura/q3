@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -11,11 +11,10 @@
 #include <qmmessageholder.h>
 #include <qmfolder.h>
 
-#include <qserror.h>
 #include <qsassert.h>
 #include <qsmime.h>
-#include <qsutil.h>
 #include <qsthread.h>
+#include <qsutil.h>
 
 #include <cstdio>
 
@@ -73,16 +72,12 @@ unsigned int MessageHolderImpl::hash(const WCHAR* pwsz)
  */
 
 qm::MessageHolder::MessageHolder(NormalFolder* pFolder,
-	const Init& init, QSTATUS* pstatus)
+								 const Init& init)
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
 	nId_ = init.nId_;
 	nFlags_ = init.nFlags_;
-	nMessageIdHash_ = static_cast<unsigned int>(-1);
-	nReferenceHash_ = static_cast<unsigned int>(-1);
+	nMessageIdHash_ = -1;
+	nReferenceHash_ = -1;
 	nDate_ = init.nDate_;
 	nTime_ = init.nTime_;
 	nSize_ = init.nSize_;
@@ -119,27 +114,27 @@ unsigned int qm::MessageHolder::getFlags() const
 	return nFlags_;
 }
 
-QSTATUS qm::MessageHolder::getFrom(WSTRING* pwstrFrom) const
+wstring_ptr qm::MessageHolder::getFrom() const
 {
 	Lock<Account> lock(*getAccount());
-	return getAccount()->getData(messageCacheKey_, ITEM_FROM, pwstrFrom);
+	return getAccount()->getData(messageCacheKey_, ITEM_FROM);
 }
 
-QSTATUS qm::MessageHolder::getTo(WSTRING* pwstrTo) const
+wstring_ptr qm::MessageHolder::getTo() const
 {
 	Lock<Account> lock(*getAccount());
-	return getAccount()->getData(messageCacheKey_, ITEM_TO, pwstrTo);
+	return getAccount()->getData(messageCacheKey_, ITEM_TO);
 }
 
-QSTATUS qm::MessageHolder::getFromTo(WSTRING* pwstrFromTo) const
+wstring_ptr qm::MessageHolder::getFromTo() const
 {
 	if (isFlag(FLAG_SENT))
-		return getTo(pwstrFromTo);
+		return getTo();
 	else
-		return getFrom(pwstrFromTo);
+		return getFrom();
 }
 
-QSTATUS qm::MessageHolder::getDate(Time* pTime) const
+void qm::MessageHolder::getDate(Time* pTime) const
 {
 	assert(pTime);
 	
@@ -152,14 +147,12 @@ QSTATUS qm::MessageHolder::getDate(Time* pTime) const
 	int nTimeZone = ((nTime_ & 0x1000) ? -1 : 1)*
 		(((nTime_ >> 6) & 0x3f)*100 + (nTime_ & 0x3f));
 	pTime->setTimeZone(nTimeZone);
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::MessageHolder::getSubject(WSTRING* pwstrSubject) const
+wstring_ptr qm::MessageHolder::getSubject() const
 {
 	Lock<Account> lock(*getAccount());
-	return getAccount()->getData(messageCacheKey_, ITEM_SUBJECT, pwstrSubject);
+	return getAccount()->getData(messageCacheKey_, ITEM_SUBJECT);
 }
 
 unsigned int qm::MessageHolder::getSize() const
@@ -183,35 +176,36 @@ Account* qm::MessageHolder::getAccount() const
 	return pFolder_->getAccount();
 }
 
-QSTATUS qm::MessageHolder::getMessage(unsigned int nFlags,
-	const WCHAR* pwszField, Message* pMessage)
+bool qm::MessageHolder::getMessage(unsigned int nFlags,
+								   const WCHAR* pwszField,
+								   Message* pMessage)
 {
 	int nMethod = nFlags & Account::GETMESSAGEFLAG_METHOD_MASK;
 	switch (pMessage->getFlag()) {
 	case Message::FLAG_EMPTY:
 		break;
 	case Message::FLAG_NONE:
-		return QSTATUS_SUCCESS;
+		return true;
 	case Message::FLAG_HEADERONLY:
 		if (nMethod == Account::GETMESSAGEFLAG_HEADER)
-			return QSTATUS_SUCCESS;
+			return true;
 		break;
 	case Message::FLAG_TEXTONLY:
 		if (nMethod == Account::GETMESSAGEFLAG_HEADER ||
 			nMethod == Account::GETMESSAGEFLAG_TEXT)
-			return QSTATUS_SUCCESS;
+			return true;
 		break;
 	case Message::FLAG_HTMLONLY:
 		if (nMethod == Account::GETMESSAGEFLAG_HEADER ||
 			nMethod == Account::GETMESSAGEFLAG_TEXT ||
 			nMethod == Account::GETMESSAGEFLAG_HTML)
-			return QSTATUS_SUCCESS;
+			return true;
 		break;
 	case Message::FLAG_TEMPORARY:
 		break;
 	default:
 		assert(false);
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
 	return getAccount()->getMessage(this, nFlags, pMessage);
@@ -228,22 +222,19 @@ bool qm::MessageHolder::isFlag(Flag flag) const
 	return (nFlags_ & flag) != 0;
 }
 
-QSTATUS qm::MessageHolder::getMessageId(WSTRING* pwstrMessageId) const
+wstring_ptr qm::MessageHolder::getMessageId() const
 {
 	Lock<Account> lock(*getAccount());
-	return getAccount()->getData(messageCacheKey_, ITEM_MESSAGEID, pwstrMessageId);
+	return getAccount()->getData(messageCacheKey_, ITEM_MESSAGEID);
 }
 
 unsigned int qm::MessageHolder::getMessageIdHash() const
 {
-	if (nMessageIdHash_ == static_cast<unsigned int>(-1)) {
+	if (nMessageIdHash_ == -1) {
 		Lock<Account> lock(*getAccount());
-		if (nMessageIdHash_ == static_cast<unsigned int>(-1)) {
-			DECLARE_QSTATUS();
-			string_ptr<WSTRING> wstrMessageId;
-			status = getMessageId(&wstrMessageId);
-			// TODO
-			if (status == QSTATUS_SUCCESS)
+		if (nMessageIdHash_ == -1) {
+			wstring_ptr wstrMessageId(getMessageId());
+			if (*wstrMessageId.get())
 				nMessageIdHash_ = MessageHolderImpl::hash(wstrMessageId.get());
 			else
 				nMessageIdHash_ = 0;
@@ -252,22 +243,19 @@ unsigned int qm::MessageHolder::getMessageIdHash() const
 	return nMessageIdHash_;
 }
 
-QSTATUS qm::MessageHolder::getReference(WSTRING* pwstrReference) const
+wstring_ptr qm::MessageHolder::getReference() const
 {
 	Lock<Account> lock(*getAccount());
-	return getAccount()->getData(messageCacheKey_, ITEM_REFERENCE, pwstrReference);
+	return getAccount()->getData(messageCacheKey_, ITEM_REFERENCE);
 }
 
 unsigned int qm::MessageHolder::getReferenceHash() const
 {
-	if (nReferenceHash_ == static_cast<unsigned int>(-1)) {
+	if (nReferenceHash_ == -1) {
 		Lock<Account> lock(*getAccount());
-		if (nReferenceHash_ == static_cast<unsigned int>(-1)) {
-			DECLARE_QSTATUS();
-			string_ptr<WSTRING> wstrReference;
-			status = getReference(&wstrReference);
-			// TODO
-			if (status == QSTATUS_SUCCESS)
+		if (nReferenceHash_ == -1) {
+			wstring_ptr wstrReference(getReference());
+			if (*wstrReference.get())
 				nReferenceHash_ = MessageHolderImpl::hash(wstrReference.get());
 			else
 				nReferenceHash_ = 0;
@@ -339,14 +327,14 @@ void qm::MessageHolder::setFolder(NormalFolder* pFolder)
 	pFolder_ = pFolder;
 }
 
-QSTATUS qm::MessageHolder::destroy()
+void qm::MessageHolder::destroy()
 {
 	assert(getAccount()->isLocked());
-	return getAccount()->fireMessageHolderDestroyed(this);
+	getAccount()->fireMessageHolderDestroyed(this);
 }
 
 void qm::MessageHolder::setKeys(MessageCacheKey messageCacheKey,
-	const MessageBoxKey& messageBoxKey)
+								const MessageBoxKey& messageBoxKey)
 {
 	Lock<Account> lock(*getAccount());
 	
@@ -367,16 +355,16 @@ void qm::MessageHolder::setKeys(MessageCacheKey messageCacheKey,
  */
 
 qm::AbstractMessageHolder::AbstractMessageHolder(NormalFolder* pFolder,
-	Message* pMessage, unsigned int nId, unsigned int nSize,
-	unsigned int nTextSize, QSTATUS* pstatus) :
+												 Message* pMessage,
+												 unsigned int nId,
+												 unsigned int nSize,
+												 unsigned int nTextSize) :
 	pFolder_(pFolder),
 	pMessage_(pMessage),
 	nId_(nId),
 	nSize_(nSize),
 	nTextSize_(nTextSize)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::AbstractMessageHolder::~AbstractMessageHolder()
@@ -394,59 +382,39 @@ unsigned int qm::AbstractMessageHolder::getFlags() const
 	return 0;
 }
 
-QSTATUS qm::AbstractMessageHolder::getFrom(WSTRING* pwstrFrom) const
+wstring_ptr qm::AbstractMessageHolder::getFrom() const
 {
-	return getAddress(L"From", pwstrFrom);
+	return getAddress(L"From");
 }
 
-QSTATUS qm::AbstractMessageHolder::getTo(WSTRING* pwstrTo) const
+wstring_ptr qm::AbstractMessageHolder::getTo() const
 {
-	return getAddress(L"To", pwstrTo);
+	return getAddress(L"To");
 }
 
-QSTATUS qm::AbstractMessageHolder::getFromTo(WSTRING* pwstrFromTo) const
+wstring_ptr qm::AbstractMessageHolder::getFromTo() const
 {
-	return getFrom(pwstrFromTo);
+	return getFrom();
 }
 
-QSTATUS qm::AbstractMessageHolder::getSubject(WSTRING* pwstrSubject) const
+wstring_ptr qm::AbstractMessageHolder::getSubject() const
 {
-	assert(pwstrSubject);
-	
-	DECLARE_QSTATUS();
-	
-	UnstructuredParser subject(&status);
-	CHECK_QSTATUS();
-	Part::Field f;
-	status = pMessage_->getField(L"Subject", &subject, &f);
-	CHECK_QSTATUS();
-	if (f == Part::FIELD_EXIST)
-		*pwstrSubject = allocWString(subject.getValue());
+	UnstructuredParser subject;
+	if (pMessage_->getField(L"Subject", &subject) == Part::FIELD_EXIST)
+		return allocWString(subject.getValue());
 	else
-		*pwstrSubject = allocWString(L"");
-	if (!*pwstrSubject)
-		return QSTATUS_OUTOFMEMORY;
-	
-	return QSTATUS_SUCCESS;
+		return allocWString(L"");
 }
 
-QSTATUS qm::AbstractMessageHolder::getDate(Time* pTime) const
+void qm::AbstractMessageHolder::getDate(Time* pTime) const
 {
 	assert(pTime);
 	
-	DECLARE_QSTATUS();
-	
-	DateParser date(&status);
-	CHECK_QSTATUS();
-	Part::Field f;
-	status = pMessage_->getField(L"Date", &date, &f);
-	CHECK_QSTATUS();
-	if (f == Part::FIELD_EXIST)
+	DateParser date;
+	if (pMessage_->getField(L"Date", &date) == Part::FIELD_EXIST)
 		*pTime = date.getTime();
 	else
 		*pTime = Time::getCurrentTime();
-	
-	return QSTATUS_SUCCESS;
 }
 
 unsigned int qm::AbstractMessageHolder::getSize() const
@@ -479,30 +447,15 @@ Message* qm::AbstractMessageHolder::getMessage() const
 	return pMessage_;
 }
 
-QSTATUS qm::AbstractMessageHolder::getAddress(
-	const WCHAR* pwszName, WSTRING* pwstrValue) const
+wstring_ptr qm::AbstractMessageHolder::getAddress(const WCHAR* pwszName) const
 {
 	assert(pwszName);
-	assert(pwstrValue);
 	
-	DECLARE_QSTATUS();
-	
-	AddressListParser address(0, &status);
-	CHECK_QSTATUS();
-	Part::Field f;
-	status = pMessage_->getField(pwszName, &address, &f);
-	CHECK_QSTATUS();
-	if (f == Part::FIELD_EXIST) {
-		status = address.getNames(pwstrValue);
-		CHECK_QSTATUS();
-	}
-	else {
-		*pwstrValue = allocWString(L"");
-		if (!*pwstrValue)
-			return QSTATUS_OUTOFMEMORY;
-	}
-	
-	return QSTATUS_SUCCESS;
+	AddressListParser address(0);
+	if (pMessage_->getField(pwszName, &address) == Part::FIELD_EXIST)
+		return address.getNames();
+	else
+		return allocWString(L"");
 }
 
 
@@ -531,7 +484,8 @@ qm::MessageHolderEvent::MessageHolderEvent(MessageHolder* pmh) :
 }
 
 qm::MessageHolderEvent::MessageHolderEvent(MessageHolder* pmh,
-	unsigned int nOldFlags, unsigned int nNewFlags) :
+										   unsigned int nOldFlags,
+										   unsigned int nNewFlags) :
 	pmh_(pmh),
 	nOldFlags_(nOldFlags),
 	nNewFlags_(nNewFlags)
@@ -618,7 +572,7 @@ MessageHolder* qm::MessagePtr::lock() const
 	
 	if (pFolder_) {
 		pFolder_->getAccount()->lock();
-		return pFolder_->getMessageById(nId_);
+		return pFolder_->getMessageHolderById(nId_);
 	}
 	else {
 		return 0;

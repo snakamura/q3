@@ -1,16 +1,14 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved
  *
  */
 
 #include <qsconv.h>
 #include <qsencoder.h>
-#include <qserror.h>
 #include <qsinit.h>
-#include <qsnew.h>
 #include <qsosutil.h>
 #include <qsstl.h>
 #include <qsstream.h>
@@ -59,16 +57,16 @@ struct qs::InitImpl
 	typedef std::vector<ConverterFactory*> ConverterFactoryList;
 	typedef std::vector<EncoderFactory*> EncoderFactoryList;
 	
-	QSTATUS setSystemEncodingAndFonts(const WCHAR* pwszEncoding);
+	bool setSystemEncodingAndFonts(const WCHAR* pwszEncoding);
 	
-	ThreadLocal* pInitThread_;
+	std::auto_ptr<ThreadLocal> pInitThread_;
 	HINSTANCE hInst_;
-	WSTRING wstrTitle_;
-	WSTRING wstrSystemEncoding_;
-	WSTRING wstrFixedWidthFont_;
-	WSTRING wstrProportionalFont_;
+	wstring_ptr wstrTitle_;
+	wstring_ptr wstrSystemEncoding_;
+	wstring_ptr wstrFixedWidthFont_;
+	wstring_ptr wstrProportionalFont_;
 	bool bLogEnabled_;
-	WSTRING wstrLogDir_;
+	wstring_ptr wstrLogDir_;
 	Logger::Level logLevel_;
 	ConverterFactoryList listConverterFactory_;
 	EncoderFactoryList listEncoderFactory_;
@@ -80,36 +78,26 @@ struct qs::InitImpl
 Init* qs::InitImpl::pInit__ = 0;
 Initializer* qs::InitImpl::pInitializer__ = 0;
 
-QSTATUS qs::InitImpl::setSystemEncodingAndFonts(const WCHAR* pwszEncoding)
+bool qs::InitImpl::setSystemEncodingAndFonts(const WCHAR* pwszEncoding)
 {
-	freeWString(wstrSystemEncoding_);
-	
 	MIMECPINFO cpinfo;
 	ComPtr<IMultiLanguage> pMultiLanguage;
 	HRESULT hr = ::CoCreateInstance(CLSID_CMultiLanguage, 0, CLSCTX_ALL,
 		IID_IMultiLanguage, reinterpret_cast<void**>(&pMultiLanguage));
 	if (hr != S_OK)
-		return QSTATUS_FAIL;
+		return false;
 	hr = pMultiLanguage->GetCodePageInfo(::GetACP(), &cpinfo);
 	if (hr != S_OK)
-		return QSTATUS_FAIL;
+		return false;
 	
 	if (!pwszEncoding)
 		pwszEncoding = cpinfo.wszWebCharset;
 	
 	wstrSystemEncoding_ = allocWString(pwszEncoding);
-	if (!wstrSystemEncoding_)
-		return QSTATUS_OUTOFMEMORY;
-	
 	wstrFixedWidthFont_ = allocWString(cpinfo.wszFixedWidthFont);
-	if (!wstrFixedWidthFont_)
-		return QSTATUS_OUTOFMEMORY;
-	
 	wstrProportionalFont_ = allocWString(cpinfo.wszProportionalFont);
-	if (!wstrProportionalFont_)
-		return QSTATUS_OUTOFMEMORY;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -119,16 +107,12 @@ QSTATUS qs::InitImpl::setSystemEncodingAndFonts(const WCHAR* pwszEncoding)
  *
  */
 
-qs::Init::Init(HINSTANCE hInst, const WCHAR* pwszTitle,
-	unsigned int nFlags, unsigned int nThreadFlags, QSTATUS* pstatus) :
+qs::Init::Init(HINSTANCE hInst,
+			   const WCHAR* pwszTitle,
+			   unsigned int nFlags,
+			   unsigned int nThreadFlags) :
 	pImpl_(0)
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	DECLARE_QSTATUS();
-	
 #ifdef _WIN32_WCE
 //	std::set_stl_new_handler(stlNewHandler);
 #else
@@ -144,10 +128,8 @@ qs::Init::Init(HINSTANCE hInst, const WCHAR* pwszTitle,
 #else
 	HRESULT hr = ::OleInitialize(0);
 #endif
-	if (FAILED(hr)) {
-		*pstatus = QSTATUS_FAIL;
+	if (FAILED(hr))
 		return;
-	}
 	
 	INITCOMMONCONTROLSEX icc = {
 		sizeof(icc),
@@ -156,101 +138,54 @@ qs::Init::Init(HINSTANCE hInst, const WCHAR* pwszTitle,
 	};
 	::InitCommonControlsEx(&icc);
 	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	assert(pImpl_);
-	pImpl_->pInitThread_ = 0;
+	pImpl_ = new InitImpl();
 	pImpl_->hInst_ = hInst;
-	pImpl_->wstrTitle_ = 0;
-	pImpl_->wstrSystemEncoding_ = 0;
-	pImpl_->wstrFixedWidthFont_ = 0;
-	pImpl_->wstrProportionalFont_ = 0;
 	pImpl_->bLogEnabled_ = false;
-	pImpl_->wstrLogDir_ = 0;
 	pImpl_->logLevel_ = Logger::LEVEL_DEBUG;
 	
-	if (pwszTitle) {
+	if (pwszTitle)
 		pImpl_->wstrTitle_ = allocWString(pwszTitle);
-		if (!pImpl_->wstrTitle_) {
-			*pstatus = QSTATUS_OUTOFMEMORY;
-			return;
-		}
-	}
 	
 #ifdef QS_KCONVERT
-	status = pImpl_->setSystemEncodingAndFonts(L"shift_jis");
+	pImpl_->setSystemEncodingAndFonts(L"shift_jis");
 #else
-	status = pImpl_->setSystemEncodingAndFonts(0);
+	pImpl_->setSystemEncodingAndFonts(0);
 #endif
-	CHECK_QSTATUS_SET(pstatus);
 	
 	Initializer* pInitializer = InitImpl::pInitializer__;
 	while (pInitializer) {
-		status = pInitializer->init();
-		CHECK_QSTATUS_SET(pstatus);
+		if (!pInitializer->init())
+			return;
 		pInitializer = pInitializer->getNext();
 	}
 	
-#define DECLARE_CONVERTERFACTORY(x) \
-	x* p##x = 0; \
-	status = newQsObject(&p##x); \
-	CHECK_QSTATUS_SET(pstatus); \
-	pImpl_->listConverterFactory_.push_back(p##x)
-	
-	STLWrapper<InitImpl::ConverterFactoryList>(pImpl_->listConverterFactory_).reserve(6);
-	DECLARE_CONVERTERFACTORY(UTF8ConverterFactory);
-	DECLARE_CONVERTERFACTORY(UTF7ConverterFactory);
+	pImpl_->listConverterFactory_.push_back(new UTF8ConverterFactory());
+	pImpl_->listConverterFactory_.push_back(new UTF7ConverterFactory());
 #ifdef QS_KCONVERT
-	DECLARE_CONVERTERFACTORY(ShiftJISConverterFactory);
-	DECLARE_CONVERTERFACTORY(ISO2022JPConverterFactory);
-	DECLARE_CONVERTERFACTORY(EUCJPConverterFactory);
+	pImpl_->listConverterFactory_.push_back(new ShiftJISConverterFactory());
+	pImpl_->listConverterFactory_.push_back(new ISO2022JPConverterFactory());
+	pImpl_->listConverterFactory_.push_back(new EUCJPConverterFactory());
 #endif
-	DECLARE_CONVERTERFACTORY(MLangConverterFactory);
+	pImpl_->listConverterFactory_.push_back(new MLangConverterFactory());
 	
-#define DECLARE_ENCODERFACTORY(x) \
-	x* p##x = 0; \
-	status = newQsObject(&p##x); \
-	CHECK_QSTATUS_SET(pstatus); \
-	pImpl_->listEncoderFactory_.push_back(p##x)
+	pImpl_->listEncoderFactory_.push_back(new Base64EncoderFactory());
+	pImpl_->listEncoderFactory_.push_back(new BEncoderFactory());
+	pImpl_->listEncoderFactory_.push_back(new QuotedPrintableEncoderFactory());
+	pImpl_->listEncoderFactory_.push_back(new QEncoderFactory());
+	pImpl_->listEncoderFactory_.push_back(new UuencodeEncoderFactory());
+	pImpl_->listEncoderFactory_.push_back(new XUuencodeEncoderFactory());
 	
-	STLWrapper<InitImpl::EncoderFactoryList>(pImpl_->listEncoderFactory_).reserve(6);
-	DECLARE_ENCODERFACTORY(Base64EncoderFactory);
-	DECLARE_ENCODERFACTORY(BEncoderFactory);
-	DECLARE_ENCODERFACTORY(QuotedPrintableEncoderFactory);
-	DECLARE_ENCODERFACTORY(QEncoderFactory);
-	DECLARE_ENCODERFACTORY(UuencodeEncoderFactory);
-	DECLARE_ENCODERFACTORY(XUuencodeEncoderFactory);
-#undef DECLARE_ENCODERFACTORY
-	
-	status = newQsObject(&pImpl_->pInitThread_);
-	CHECK_QSTATUS_SET(pstatus);
-	assert(pImpl_->pInitThread_);
-	
+	pImpl_->pInitThread_.reset(new ThreadLocal());
 	InitImpl::pInit__ = this;
-	
-	std::auto_ptr<InitThread> apInitThread;
-	status = newQsObject(nThreadFlags, &apInitThread);
-	CHECK_QSTATUS_SET(pstatus);
-	status = pImpl_->pInitThread_->set(apInitThread.get());
-	CHECK_QSTATUS_SET(pstatus);
-	apInitThread.release();
+	pImpl_->pInitThread_->set(new InitThread(nThreadFlags));
 }
 
 qs::Init::~Init()
 {
-	if (pImpl_->pInitThread_) {
+	if (pImpl_->pInitThread_.get())
 		delete getInitThread();
-		delete pImpl_->pInitThread_;
-		pImpl_->pInitThread_ = 0;
-	}
 	
 	InitImpl::pInit__ = 0;
-	
-	freeWString(pImpl_->wstrTitle_);
-	freeWString(pImpl_->wstrSystemEncoding_);
-	freeWString(pImpl_->wstrFixedWidthFont_);
-	freeWString(pImpl_->wstrProportionalFont_);
-	freeWString(pImpl_->wstrLogDir_);
 	
 	std::for_each(pImpl_->listEncoderFactory_.begin(),
 		pImpl_->listEncoderFactory_.end(), deleter<EncoderFactory>());
@@ -281,29 +216,27 @@ HINSTANCE qs::Init::getInstanceHandle() const
 
 const WCHAR* qs::Init::getTitle() const
 {
-	return pImpl_->wstrTitle_;
+	return pImpl_->wstrTitle_.get();
 }
 
 const WCHAR* qs::Init::getSystemEncoding() const
 {
-	return pImpl_->wstrSystemEncoding_;
+	return pImpl_->wstrSystemEncoding_.get();
 }
 
 const WCHAR* qs::Init::getDefaultFixedWidthFont() const
 {
-	return pImpl_->wstrFixedWidthFont_;
+	return pImpl_->wstrFixedWidthFont_.get();
 }
 
 const WCHAR* qs::Init::getDefaultProportionalFont() const
 {
-	return pImpl_->wstrProportionalFont_;
+	return pImpl_->wstrProportionalFont_.get();
 }
 
 InitThread* qs::Init::getInitThread()
 {
-	void* pValue = 0;
-	pImpl_->pInitThread_->get(&pValue);
-	return static_cast<InitThread*>(pValue);
+	return static_cast<InitThread*>(pImpl_->pInitThread_->get());
 }
 
 bool qs::Init::isLogEnabled() const
@@ -313,7 +246,7 @@ bool qs::Init::isLogEnabled() const
 
 const WCHAR* qs::Init::getLogDirectory() const
 {
-	return pImpl_->wstrLogDir_;
+	return pImpl_->wstrLogDir_.get();
 }
 
 Logger::Level qs::Init::getLogLevel() const
@@ -321,19 +254,15 @@ Logger::Level qs::Init::getLogLevel() const
 	return pImpl_->logLevel_;
 }
 
-QSTATUS qs::Init::setLogInfo(bool bEnabled,
-	const WCHAR* pwszDir, Logger::Level level)
+void qs::Init::setLogInfo(bool bEnabled,
+						  const WCHAR* pwszDir,
+						  Logger::Level level)
 {
-	assert(!pImpl_->wstrLogDir_);
+	assert(!pImpl_->wstrLogDir_.get());
 	
 	pImpl_->wstrLogDir_ = allocWString(pwszDir);
-	if (!pImpl_->wstrLogDir_)
-		return QSTATUS_OUTOFMEMORY;
-	
 	pImpl_->bLogEnabled_ = bEnabled;
 	pImpl_->logLevel_ = level;
-	
-	return QSTATUS_SUCCESS;
 }
 
 void qs::Init::setInitThread(InitThread* pInitThread)
@@ -355,24 +284,22 @@ Init& qs::Init::getInit()
 
 struct qs::InitThreadImpl
 {
-	QSTATUS createLogger();
+	bool createLogger();
 	
-	Synchronizer* pSynchronizer_;
-	Logger* pLogger_;
+	std::auto_ptr<Synchronizer> pSynchronizer_;
+	std::auto_ptr<Logger> pLogger_;
 };
 
 
-QSTATUS qs::InitThreadImpl::createLogger()
+bool qs::InitThreadImpl::createLogger()
 {
-	assert(!pLogger_);
-	
-	DECLARE_QSTATUS();
+	assert(!pLogger_.get());
 	
 	const Init& init = Init::getInit();
 	if (init.isLogEnabled()) {
 		const WCHAR* pwszLogDir = init.getLogDirectory();
 		if (!pwszLogDir)
-			return QSTATUS_FAIL;
+			return false;
 		
 		Time time(Time::getCurrentTime());
 		WCHAR wszName[128];
@@ -381,28 +308,23 @@ QSTATUS qs::InitThreadImpl::createLogger()
 			time.wHour, time.wMinute, time.wSecond, time.wMilliseconds,
 			::GetCurrentThreadId());
 		
-		string_ptr<WSTRING> wstrPath(concat(pwszLogDir, wszName));
-		if (!wstrPath.get())
-			return QSTATUS_OUTOFMEMORY;
+		wstring_ptr wstrPath(concat(pwszLogDir, wszName));
 		
-		std::auto_ptr<FileOutputStream> pStream;
-		status = newQsObject(wstrPath.get(), &pStream);
-		CHECK_QSTATUS();
-		std::auto_ptr<BufferedOutputStream> pBufferedStream;
-		status = newQsObject(pStream.get(), true, &pBufferedStream);
-		CHECK_QSTATUS();
+		std::auto_ptr<FileOutputStream> pStream(new FileOutputStream(wstrPath.get()));
+		if (!*pStream.get())
+			return false;
+		std::auto_ptr<BufferedOutputStream> pBufferedStream(
+			new BufferedOutputStream(pStream.get(), true));
 		pStream.release();
 		
-		std::auto_ptr<Logger> pLogger;
-		status = newQsObject(pBufferedStream.get(),
-			true, init.getLogLevel(), &pLogger);
-		CHECK_QSTATUS();
+		std::auto_ptr<Logger> pLogger(new Logger(
+			pBufferedStream.get(), true, init.getLogLevel()));
 		pBufferedStream.release();
 		
-		pLogger_ = pLogger.release();
+		pLogger_ = pLogger;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -412,39 +334,26 @@ QSTATUS qs::InitThreadImpl::createLogger()
  *
  */
 
-qs::InitThread::InitThread(unsigned int nFlags, QSTATUS* pstatus) :
+qs::InitThread::InitThread(unsigned int nFlags) :
 	pImpl_(0)
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	pImpl_->pSynchronizer_ = 0;
-	pImpl_->pLogger_ = 0;
+	pImpl_ = new InitThreadImpl();
 	
 	Initializer* pInitializer = InitImpl::pInitializer__;
 	while (pInitializer) {
-		status = pInitializer->initThread();
-		CHECK_QSTATUS_SET(pstatus);
+		pInitializer->initThread();
 		pInitializer = pInitializer->getNext();
 	}
 	
-	if (nFlags & FLAG_SYNCHRONIZER) {
-		status = newQsObject(&pImpl_->pSynchronizer_);
-		CHECK_QSTATUS_SET(pstatus);
-	}
+	if (nFlags & FLAG_SYNCHRONIZER)
+		pImpl_->pSynchronizer_.reset(new Synchronizer());
 	
 	Init::getInit().setInitThread(this);
 }
 
 qs::InitThread::~InitThread()
 {
-	delete pImpl_->pSynchronizer_;
-	delete pImpl_->pLogger_;
+	pImpl_->pSynchronizer_.reset(0);
 	
 	Initializer* pInitializer = InitImpl::pInitializer__;
 	while (pInitializer) {
@@ -460,15 +369,15 @@ qs::InitThread::~InitThread()
 
 Synchronizer* qs::InitThread::getSynchronizer() const
 {
-	assert(pImpl_->pSynchronizer_);
-	return pImpl_->pSynchronizer_;
+	assert(pImpl_->pSynchronizer_.get());
+	return pImpl_->pSynchronizer_.get();
 }
 
 Logger* qs::InitThread::getLogger() const
 {
-	if (!pImpl_->pLogger_)
+	if (!pImpl_->pLogger_.get())
 		pImpl_->createLogger();
-	return pImpl_->pLogger_;
+	return pImpl_->pLogger_.get();
 }
 
 InitThread& qs::InitThread::getInitThread()
@@ -499,12 +408,11 @@ Initializer* qs::Initializer::getNext() const
 	return pNext_;
 }
 
-QSTATUS qs::Initializer::initThread()
+bool qs::Initializer::initThread()
 {
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::Initializer::termThread()
+void qs::Initializer::termThread()
 {
-	return QSTATUS_SUCCESS;
 }

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -32,19 +32,22 @@ class SmtpSendSessionFactory;
 class SmtpSendSession : public qm::SendSession
 {
 public:
-	SmtpSendSession(qs::QSTATUS* pstatus);
+	SmtpSendSession();
 	virtual ~SmtpSendSession();
 
 public:
-	virtual qs::QSTATUS init(qm::Document* pDocument, qm::Account* pAccount,
-		qm::SubAccount* pSubAccount, qs::Profile* pProfile,
-		qs::Logger* pLogger, qm::SendSessionCallback* pCallback);
-	virtual qs::QSTATUS connect();
-	virtual qs::QSTATUS disconnect();
-	virtual qs::QSTATUS sendMessage(qm::Message* pMessage);
+	virtual bool init(qm::Document* pDocument,
+					  qm::Account* pAccount,
+					  qm::SubAccount* pSubAccount,
+					  qs::Profile* pProfile,
+					  qs::Logger* pLogger,
+					  qm::SendSessionCallback* pCallback);
+	virtual bool connect();
+	virtual bool disconnect();
+	virtual bool sendMessage(qm::Message* pMessage);
 
 private:
-	qs::QSTATUS reportError();
+	void reportError();
 
 private:
 	SmtpSendSession(const SmtpSendSession&);
@@ -57,30 +60,32 @@ private:
 		public SmtpCallback
 	{
 	public:
-		CallbackImpl(qm::SubAccount* pSubAccount, const qm::Security* pSecurity,
-			qm::SendSessionCallback* pSessionCallback, qs::QSTATUS* pstatus);
+		CallbackImpl(qm::SubAccount* pSubAccount,
+					 const qm::Security* pSecurity,
+					 qm::SendSessionCallback* pSessionCallback);
 		virtual ~CallbackImpl();
 	
 	public:
-		qs::QSTATUS setMessage(UINT nId);
+		void setMessage(UINT nId);
 	
 	public:
 		virtual bool isCanceled(bool bForce) const;
-		virtual qs::QSTATUS initialize();
-		virtual qs::QSTATUS lookup();
-		virtual qs::QSTATUS connecting();
-		virtual qs::QSTATUS connected();
+		virtual void initialize();
+		virtual void lookup();
+		virtual void connecting();
+		virtual void connected();
 	
 	public:
-		virtual qs::QSTATUS getUserInfo(qs::WSTRING* pwstrUserName,
-			qs::WSTRING* pwstrPassword);
-		virtual qs::QSTATUS setPassword(const WCHAR* pwszPassword);
-		virtual qs::QSTATUS getLocalHost(qs::WSTRING* pwstrLocalHost);
-		virtual qs::QSTATUS getAuthMethods(qs::WSTRING* pwstrAuthMethods);
+		virtual bool getUserInfo(qs::wstring_ptr* pwstrUserName,
+								 qs::wstring_ptr* pwstrPassword);
+		virtual void setPassword(const WCHAR* pwszPassword);
+		virtual qs::wstring_ptr getLocalHost();
+		virtual qs::wstring_ptr getAuthMethods();
 		
-		virtual qs::QSTATUS authenticating();
-		virtual qs::QSTATUS setRange(unsigned int nMin, unsigned int nMax);
-		virtual qs::QSTATUS setPos(unsigned int nPos);
+		virtual void authenticating();
+		virtual void setRange(unsigned int nMin,
+							  unsigned int nMax);
+		virtual void setPos(unsigned int nPos);
 	
 	private:
 		CallbackImpl(const CallbackImpl&);
@@ -92,8 +97,8 @@ private:
 	};
 
 private:
-	Smtp* pSmtp_;
-	CallbackImpl* pCallback_;
+	std::auto_ptr<Smtp> pSmtp_;
+	std::auto_ptr<CallbackImpl> pCallback_;
 	qm::Account* pAccount_;
 	qm::SubAccount* pSubAccount_;
 	qs::Logger* pLogger_;
@@ -110,15 +115,14 @@ private:
 class SmtpSendSessionUI : public qm::SendSessionUI
 {
 public:
-	SmtpSendSessionUI(qs::QSTATUS* pstatus);
+	SmtpSendSessionUI();
 	virtual ~SmtpSendSessionUI();
 
 public:
 	virtual const WCHAR* getClass();
-	virtual qs::QSTATUS getDisplayName(qs::WSTRING* pwstrName);
+	virtual qs::wstring_ptr getDisplayName();
 	virtual short getDefaultPort();
-	virtual qs::QSTATUS createPropertyPage(
-		qm::SubAccount* pSubAccount, qs::PropertyPage** ppPage);
+	virtual std::auto_ptr<qs::PropertyPage> createPropertyPage(qm::SubAccount* pSubAccount);
 
 private:
 	SmtpSendSessionUI(const SmtpSendSessionUI&);
@@ -141,8 +145,8 @@ public:
 	virtual ~SmtpSendSessionFactory();
 
 public:
-	virtual qs::QSTATUS createSession(qm::SendSession** ppSendSession);
-	virtual qs::QSTATUS createUI(qm::SendSessionUI** ppUI);
+	virtual std::auto_ptr<qm::SendSession> createSession();
+	virtual std::auto_ptr<qm::SendSessionUI> createUI();
 
 private:
 	SmtpSendSessionFactory(const SmtpSendSessionFactory&);

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -13,7 +13,6 @@
 
 #include <qsaccelerator.h>
 #include <qsaction.h>
-#include <qsnew.h>
 
 #include <algorithm>
 
@@ -29,6 +28,7 @@
 #include "statusbar.h"
 #include "uiutil.h"
 #include "../action/action.h"
+#include "../action/actionmacro.h"
 #include "../action/editaction.h"
 #include "../action/findreplace.h"
 #include "../model/editmessage.h"
@@ -57,9 +57,10 @@ public:
 	};
 
 public:
-	QSTATUS initActions();
-	QSTATUS layoutChildren();
-	QSTATUS layoutChildren(int cx, int cy);
+	void initActions();
+	void layoutChildren();
+	void layoutChildren(int cx,
+						int cy);
 
 public:
 	EditFrameWindow* pThis_;
@@ -74,101 +75,96 @@ public:
 	SyncDialogManager* pSyncDialogManager_;
 	EditWindow* pEditWindow_;
 	StatusBar* pStatusBar_;
-	Accelerator* pAccelerator_;
-	ActionMap* pActionMap_;
-	ActionInvoker* pActionInvoker_;
-	FindReplaceManager* pFindReplaceManager_;
-	ScriptMenu* pScriptMenu_;
+	std::auto_ptr<Accelerator> pAccelerator_;
+	std::auto_ptr<ActionMap> pActionMap_;
+	std::auto_ptr<ActionInvoker> pActionInvoker_;
+	std::auto_ptr<FindReplaceManager> pFindReplaceManager_;
+	std::auto_ptr<ScriptMenu> pScriptMenu_;
 	bool bIme_;
 	bool bCreated_;
 	int nInitialShow_;
 	bool bLayouting_;
 };
 
-QSTATUS qm::EditFrameWindowImpl::initActions()
+void qm::EditFrameWindowImpl::initActions()
 {
-	DECLARE_QSTATUS();
+	pActionMap_.reset(new ActionMap());
+	pActionInvoker_.reset(new ActionInvoker(pActionMap_.get()));
+	pFindReplaceManager_.reset(new FindReplaceManager());
 	
-	status = newQsObject(&pActionMap_);
-	CHECK_QSTATUS();
-	status = newQsObject(pActionMap_, &pActionInvoker_);
-	CHECK_QSTATUS();
-	status = newQsObject(&pFindReplaceManager_);
-	CHECK_QSTATUS();
-	
-	status = InitAction2<EditAttachmentEditAddAction, EditMessageHolder*, HWND>(
-		pActionMap_, IDM_ATTACHMENTEDIT_ADD,
-		pEditWindow_->getEditMessageHolder(), pThis_->getHandle());
-	CHECK_QSTATUS();
-	status = InitAction2<EditAttachmentEditDeleteAction,
-		EditMessageHolder*, AttachmentSelectionModel*>(
-		pActionMap_, IDM_ATTACHMENTEDIT_DELETE, pEditWindow_->getEditMessageHolder(),
+	ADD_ACTION2(EditAttachmentEditAddAction,
+		IDM_ATTACHMENTEDIT_ADD,
+		pEditWindow_->getEditMessageHolder(),
+		pThis_->getHandle());
+	ADD_ACTION2(EditAttachmentEditDeleteAction,
+		IDM_ATTACHMENTEDIT_DELETE,
+		pEditWindow_->getEditMessageHolder(),
 		pEditWindow_->getAttachmentSelectionModel());
-	CHECK_QSTATUS();
-	status = InitAction3<EditEditCommandAction, EditWindow*,
-		EditEditCommandAction::PFN_DO, EditEditCommandAction::PFN_CANDO>(
-		pActionMap_, IDM_EDIT_COPY, pEditWindow_,
-		&EditWindowItem::copy, &EditWindowItem::canCopy);
-	CHECK_QSTATUS();
-	status = InitAction3<EditEditCommandAction, EditWindow*,
-		EditEditCommandAction::PFN_DO, EditEditCommandAction::PFN_CANDO>(
-		pActionMap_, IDM_EDIT_CUT, pEditWindow_,
-		&EditWindowItem::cut, &EditWindowItem::canCut);
-	CHECK_QSTATUS();
-	status = InitAction3<EditEditFindAction, TextWindow*,
-		Profile*, FindReplaceManager*>(
-		pActionMap_, IDM_EDIT_FIND, pEditWindow_->getTextWindow(),
-		pProfile_, pFindReplaceManager_);
-	CHECK_QSTATUS();
-	status = InitAction3<EditEditFindAction, TextWindow*,
-		bool, FindReplaceManager*>(
-		pActionMap_, IDM_EDIT_FINDNEXT, pEditWindow_->getTextWindow(),
-		true, pFindReplaceManager_);
-	CHECK_QSTATUS();
-	status = InitAction3<EditEditFindAction, TextWindow*,
-		bool, FindReplaceManager*>(
-		pActionMap_, IDM_EDIT_FINDPREV, pEditWindow_->getTextWindow(),
-		false, pFindReplaceManager_);
-	CHECK_QSTATUS();
-	status = InitAction3<EditEditCommandAction, EditWindow*,
-		EditEditCommandAction::PFN_DO, EditEditCommandAction::PFN_CANDO>(
-		pActionMap_, IDM_EDIT_PASTE, pEditWindow_,
-		&EditWindowItem::paste, &EditWindowItem::canPaste);
-	CHECK_QSTATUS();
-	status = InitAction2<EditEditPasteWithQuoteAction, TextWindow*, Profile*>(
-		pActionMap_, IDM_EDIT_PASTEWITHQUOTE, pEditWindow_->getTextWindow(), pProfile_);
-	CHECK_QSTATUS();
-	status = InitAction3<EditEditCommandAction, EditWindow*,
-		EditEditCommandAction::PFN_DO, EditEditCommandAction::PFN_CANDO>(
-		pActionMap_, IDM_EDIT_REDO, pEditWindow_,
-		&EditWindowItem::redo, &EditWindowItem::canRedo);
-	CHECK_QSTATUS();
-	status = InitAction3<EditEditReplaceAction, TextWindow*,
-		Profile*, FindReplaceManager*>(
-		pActionMap_, IDM_EDIT_REPLACE, pEditWindow_->getTextWindow(),
-		pProfile_, pFindReplaceManager_);
-	CHECK_QSTATUS();
-	status = InitAction3<EditEditCommandAction, EditWindow*,
-		EditEditCommandAction::PFN_DO, EditEditCommandAction::PFN_CANDO>(
-		pActionMap_, IDM_EDIT_SELECTALL, pEditWindow_,
-		&EditWindowItem::selectAll, &EditWindowItem::canSelectAll);
-	CHECK_QSTATUS();
-	status = InitAction3<EditEditCommandAction, EditWindow*,
-		EditEditCommandAction::PFN_DO, EditEditCommandAction::PFN_CANDO>(
-		pActionMap_, IDM_EDIT_UNDO, pEditWindow_,
-		&EditWindowItem::undo, &EditWindowItem::canUndo);
-	CHECK_QSTATUS();
-	status = InitAction1<ViewShowStatusBarAction<EditFrameWindow>, EditFrameWindow*>(
-		pActionMap_, IDM_VIEW_SHOWSTATUSBAR, pThis_);
-	CHECK_QSTATUS();
-	status = InitAction1<ViewShowToolbarAction<EditFrameWindow>, EditFrameWindow*>(
-		pActionMap_, IDM_VIEW_SHOWTOOLBAR, pThis_);
-	CHECK_QSTATUS();
+	ADD_ACTION3(EditEditCommandAction,
+		IDM_EDIT_COPY,
+		pEditWindow_,
+		&EditWindowItem::copy,
+		&EditWindowItem::canCopy);
+	ADD_ACTION3(EditEditCommandAction,
+		IDM_EDIT_CUT,
+		pEditWindow_,
+		&EditWindowItem::cut,
+		&EditWindowItem::canCut);
+	ADD_ACTION3(EditEditFindAction,
+		IDM_EDIT_FIND,
+		pEditWindow_->getTextWindow(),
+		pProfile_,
+		pFindReplaceManager_.get());
+	ADD_ACTION3(EditEditFindAction,
+		IDM_EDIT_FINDNEXT,
+		pEditWindow_->getTextWindow(),
+		true,
+		pFindReplaceManager_.get());
+	ADD_ACTION3(EditEditFindAction,
+		IDM_EDIT_FINDPREV,
+		pEditWindow_->getTextWindow(),
+		false,
+		pFindReplaceManager_.get());
+	ADD_ACTION3(EditEditCommandAction,
+		IDM_EDIT_PASTE,
+		pEditWindow_,
+		&EditWindowItem::paste,
+		&EditWindowItem::canPaste);
+	ADD_ACTION2(EditEditPasteWithQuoteAction,
+		IDM_EDIT_PASTEWITHQUOTE,
+		pEditWindow_->getTextWindow(),
+		pProfile_);
+	ADD_ACTION3(EditEditCommandAction,
+		IDM_EDIT_REDO,
+		pEditWindow_,
+		&EditWindowItem::redo,
+		&EditWindowItem::canRedo);
+	ADD_ACTION3(EditEditReplaceAction,
+		IDM_EDIT_REPLACE,
+		pEditWindow_->getTextWindow(),
+		pProfile_,
+		pFindReplaceManager_.get());
+	ADD_ACTION3(EditEditCommandAction,
+		IDM_EDIT_SELECTALL,
+		pEditWindow_,
+		&EditWindowItem::selectAll,
+		&EditWindowItem::canSelectAll);
+	ADD_ACTION3(EditEditCommandAction,
+		IDM_EDIT_UNDO,
+		pEditWindow_,
+		&EditWindowItem::undo,
+		&EditWindowItem::canUndo);
+	ADD_ACTION1(ViewShowStatusBarAction<EditFrameWindow>,
+		IDM_VIEW_SHOWSTATUSBAR,
+		pThis_);
+	ADD_ACTION1(ViewShowToolbarAction<EditFrameWindow>,
+		IDM_VIEW_SHOWTOOLBAR,
+		pThis_);
 	
 	struct {
 		UINT nId_;
 		TextWindow::MoveCaret moveCaret_;
-	} moveCaretActions[] = {
+	} moveCarets[] = {
 		{ IDM_EDIT_MOVECHARLEFT,	TextWindow::MOVECARET_CHARLEFT	},
 		{ IDM_EDIT_MOVECHARRIGHT,	TextWindow::MOVECARET_CHARRIGHT	},
 		{ IDM_EDIT_MOVELINESTART,	TextWindow::MOVECARET_LINESTART	},
@@ -178,115 +174,124 @@ QSTATUS qm::EditFrameWindowImpl::initActions()
 		{ IDM_EDIT_MOVEPAGEUP,		TextWindow::MOVECARET_PAGEUP	},
 		{ IDM_EDIT_MOVEPAGEDOWN,	TextWindow::MOVECARET_PAGEDOWN	},
 		{ IDM_EDIT_MOVEDOCSTART,	TextWindow::MOVECARET_DOCSTART	},
-		{ IDM_EDIT_MOVEDOCEND,		TextWindow::MOVECARET_DOCEND	}
+		{ IDM_EDIT_MOVEDOCEND,		TextWindow::MOVECARET_DOCEND	},
 	};
-	for (int n = 0; n < countof(moveCaretActions); ++n) {
-		status = InitAction2<EditEditMoveCaretAction, TextWindow*, TextWindow::MoveCaret>(
-			pActionMap_, moveCaretActions[n].nId_, pEditWindow_->getTextWindow(),
-			moveCaretActions[n].moveCaret_);
-		CHECK_QSTATUS();
+	for (int n = 0; n < countof(moveCarets); ++n) {
+		ADD_ACTION2(EditEditMoveCaretAction,
+			moveCarets[n].nId_,
+			pEditWindow_->getTextWindow(),
+			moveCarets[n].moveCaret_);
 	}
 	
-	status = InitAction1<FileCloseAction, HWND>(
-		pActionMap_, IDM_FILE_CLOSE, pThis_->getHandle());
-	CHECK_QSTATUS();
+	ADD_ACTION1(FileCloseAction,
+		IDM_FILE_CLOSE,
+		pThis_->getHandle());
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
-	status = InitAction1<FileCloseAction, HWND>(
-		pActionMap_, IDOK, pThis_->getHandle());
-	CHECK_QSTATUS();
+	ADD_ACTION1(FileCloseAction,
+		IDOK,
+		pThis_->getHandle());
 #endif
-	status = InitAction5<EditFileSendAction, bool,
-		Document*, EditMessageHolder*, EditFrameWindow*, Profile*>(
-		pActionMap_, IDM_FILE_DRAFT, true, pDocument_,
-		pEditWindow_->getEditMessageHolder(), pThis_, pProfile_);
-	CHECK_QSTATUS();
-	status = InitAction1<EditFileInsertAction, TextWindow*>(
-		pActionMap_, IDM_FILE_INSERT, pEditWindow_->getTextWindow());
-	CHECK_QSTATUS();
-	status = InitAction2<EditFileOpenAction, EditMessageHolder*, HWND>(
-		pActionMap_, IDM_FILE_OPEN, pEditWindow_->getEditMessageHolder(),
+	ADD_ACTION5(EditFileSendAction,
+		IDM_FILE_DRAFT,
+		true,
+		pDocument_,
+		pEditWindow_->getEditMessageHolder(),
+		pThis_,
+		pProfile_);
+	ADD_ACTION1(EditFileInsertAction,
+		IDM_FILE_INSERT,
+		pEditWindow_->getTextWindow());
+	ADD_ACTION2(EditFileOpenAction,
+		IDM_FILE_OPEN,
+		pEditWindow_->getEditMessageHolder(),
 		pThis_->getHandle());
-	CHECK_QSTATUS();
-	status = InitAction2<EditFileSaveAction, EditMessageHolder*, HWND>(
-		pActionMap_, IDM_FILE_SAVE, pEditWindow_->getEditMessageHolder(),
+	ADD_ACTION2(EditFileSaveAction,
+		IDM_FILE_SAVE,
+		pEditWindow_->getEditMessageHolder(),
 		pThis_->getHandle());
-	CHECK_QSTATUS();
-	status = InitAction5<EditFileSendAction, bool,
-		Document*, EditMessageHolder*, EditFrameWindow*, Profile*>(
-		pActionMap_, IDM_FILE_SEND, false, pDocument_,
-		pEditWindow_->getEditMessageHolder(), pThis_, pProfile_);
-	CHECK_QSTATUS();
-	status = InitAction6<EditFileSendAction, Document*, EditMessageHolder*,
-		EditFrameWindow*, Profile*, SyncManager*, SyncDialogManager*>(
-		pActionMap_, IDM_FILE_SENDNOW, pDocument_,
-		pEditWindow_->getEditMessageHolder(), pThis_, pProfile_,
-		pSyncManager_, pSyncDialogManager_);
-	CHECK_QSTATUS();
-	status = InitActionRange1<EditFocusItemAction, EditWindow*>(
-		pActionMap_, IDM_FOCUS_HEADEREDITITEM,
-		IDM_FOCUS_HEADEREDITITEM + 10, pEditWindow_);
-	CHECK_QSTATUS();
-	status = InitAction4<EditToolAddressBookAction,
-		EditMessageHolder*, EditWindow*, AddressBook*, Profile*>(
-		pActionMap_, IDM_TOOL_ADDRESSBOOK, pEditWindow_->getEditMessageHolder(),
-		pEditWindow_, pDocument_->getAddressBook(), pProfile_);
-	CHECK_QSTATUS();
-	status = InitAction2<EditToolAttachmentAction, EditMessageHolder*, HWND>(
-		pActionMap_, IDM_TOOL_ATTACHMENT, pEditWindow_->getEditMessageHolder(),
+	ADD_ACTION5(EditFileSendAction,
+		IDM_FILE_SEND,
+		false,
+		pDocument_,
+		pEditWindow_->getEditMessageHolder(),
+		pThis_,
+		pProfile_);
+	ADD_ACTION6(EditFileSendAction,
+		IDM_FILE_SENDNOW,
+		pDocument_,
+		pEditWindow_->getEditMessageHolder(),
+		pThis_,
+		pProfile_,
+		pSyncManager_,
+		pSyncDialogManager_);
+	ADD_ACTION_RANGE1(EditFocusItemAction,
+		IDM_FOCUS_HEADEREDITITEM,
+		IDM_FOCUS_HEADEREDITITEM + 10,
+		pEditWindow_);
+	ADD_ACTION4(EditToolAddressBookAction,
+		IDM_TOOL_ADDRESSBOOK,
+		pEditWindow_->getEditMessageHolder(),
+		pEditWindow_,
+		pDocument_->getAddressBook(),
+		pProfile_);
+	ADD_ACTION2(EditToolAttachmentAction,
+		IDM_TOOL_ATTACHMENT,
+		pEditWindow_->getEditMessageHolder(),
 		pThis_->getHandle());
-	CHECK_QSTATUS();
-	status = InitAction4<EditToolFlagAction, EditMessageHolder*,
-		EditToolFlagAction::PFN_IS, EditToolFlagAction::PFN_SET, bool>(
-		pActionMap_, IDM_TOOL_ENCRYPT, pEditWindow_->getEditMessageHolder(),
-		&EditMessage::isEncrypt, &EditMessage::setEncrypt, Security::isEnabled());
-	CHECK_QSTATUS();
-	status = InitAction2<EditToolInsertSignatureAction,
-		EditMessageHolder*, TextWindow*>(
-		pActionMap_, IDM_TOOL_INSERTSIGNATURE,
-		pEditWindow_->getEditMessageHolder(), pEditWindow_->getTextWindow());
-	CHECK_QSTATUS();
-	status = InitAction1<EditToolInsertTextAction, TextWindow*>(
-		pActionMap_, IDM_TOOL_INSERTTEXT, pEditWindow_->getTextWindow());
-	CHECK_QSTATUS();
-	status = InitAction1<EditToolHeaderEditAction, EditWindow*>(
-		pActionMap_, IDM_TOOL_HEADEREDIT, pEditWindow_);
-	CHECK_QSTATUS();
-	status = InitAction1<EditToolReformAction, TextWindow*>(
-		pActionMap_, IDM_TOOL_REFORM, pEditWindow_->getTextWindow());
-	CHECK_QSTATUS();
-	status = InitAction2<EditToolReformAllAction, TextWindow*, Profile*>(
-		pActionMap_, IDM_TOOL_REFORMALL, pEditWindow_->getTextWindow(), pProfile_);
-	CHECK_QSTATUS();
-	status = InitAction4<EditToolFlagAction, EditMessageHolder*,
-		EditToolFlagAction::PFN_IS, EditToolFlagAction::PFN_SET, bool>(
-		pActionMap_, IDM_TOOL_REFORMAUTO, pEditWindow_->getEditMessageHolder(),
-		&EditMessage::isAutoReform, &EditMessage::setAutoReform, true);
-	CHECK_QSTATUS();
-	status = InitAction4<EditToolFlagAction, EditMessageHolder*,
-		EditToolFlagAction::PFN_IS, EditToolFlagAction::PFN_SET, bool>(
-		pActionMap_, IDM_TOOL_SIGN, pEditWindow_->getEditMessageHolder(),
-		&EditMessage::isSign, &EditMessage::setSign, Security::isEnabled());
-	CHECK_QSTATUS();
-	status = InitActionRange4<ToolScriptAction,
-		ScriptMenu*, Document*, Profile*, EditFrameWindow*>(
-		pActionMap_, IDM_TOOL_SCRIPT, IDM_TOOL_SCRIPT + 100,
-		pScriptMenu_, pDocument_, pProfile_, pThis_);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	ADD_ACTION4(EditToolFlagAction,
+		IDM_TOOL_ENCRYPT,
+		pEditWindow_->getEditMessageHolder(),
+		&EditMessage::isEncrypt,
+		&EditMessage::setEncrypt,
+		Security::isEnabled());
+	ADD_ACTION2(EditToolInsertSignatureAction,
+		IDM_TOOL_INSERTSIGNATURE,
+		pEditWindow_->getEditMessageHolder(),
+		pEditWindow_->getTextWindow());
+	ADD_ACTION1(EditToolInsertTextAction,
+		IDM_TOOL_INSERTTEXT,
+		pEditWindow_->getTextWindow());
+	ADD_ACTION1(EditToolHeaderEditAction,
+		IDM_TOOL_HEADEREDIT,
+		pEditWindow_);
+	ADD_ACTION1(EditToolReformAction,
+		IDM_TOOL_REFORM,
+		pEditWindow_->getTextWindow());
+	ADD_ACTION2(EditToolReformAllAction,
+		IDM_TOOL_REFORMALL,
+		pEditWindow_->getTextWindow(),
+		pProfile_);
+	ADD_ACTION4(EditToolFlagAction,
+		IDM_TOOL_REFORMAUTO,
+		pEditWindow_->getEditMessageHolder(),
+		&EditMessage::isAutoReform,
+		&EditMessage::setAutoReform,
+		true);
+	ADD_ACTION4(EditToolFlagAction,
+		IDM_TOOL_SIGN,
+		pEditWindow_->getEditMessageHolder(),
+		&EditMessage::isSign,
+		&EditMessage::setSign,
+		Security::isEnabled());
+	ADD_ACTION_RANGE4(ToolScriptAction,
+		IDM_TOOL_SCRIPT,
+		IDM_TOOL_SCRIPT + 100,
+		pScriptMenu_.get(),
+		pDocument_,
+		pProfile_,
+		pThis_);
 }
 
-QSTATUS qm::EditFrameWindowImpl::layoutChildren()
+void qm::EditFrameWindowImpl::layoutChildren()
 {
 	RECT rect;
 	pThis_->getClientRect(&rect);
-	return layoutChildren(rect.right - rect.left, rect.bottom - rect.top);
+	layoutChildren(rect.right - rect.left, rect.bottom - rect.top);
 }
 
-QSTATUS qm::EditFrameWindowImpl::layoutChildren(int cx, int cy)
+void qm::EditFrameWindowImpl::layoutChildren(int cx,
+											 int cy)
 {
-	DECLARE_QSTATUS();
-	
 	bLayouting_ = true;
 	
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
@@ -324,12 +329,9 @@ QSTATUS qm::EditFrameWindowImpl::layoutChildren(int cx, int cy)
 		cx - 50,
 		-1
 	};
-	status = pStatusBar_->setParts(nWidth, countof(nWidth));
-	CHECK_QSTATUS();
+	pStatusBar_->setParts(nWidth, countof(nWidth));
 	
 	bLayouting_ = false;
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -340,39 +342,19 @@ QSTATUS qm::EditFrameWindowImpl::layoutChildren(int cx, int cy)
  */
 
 qm::EditFrameWindow::EditFrameWindow(EditFrameWindowManager* pManager,
-	Profile* pProfile, QSTATUS* pstatus) :
-	FrameWindow(Application::getApplication().getResourceHandle(), true, pstatus),
+									 Profile* pProfile) :
+	FrameWindow(Application::getApplication().getResourceHandle(), true),
 	pImpl_(0)
 {
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	DECLARE_QSTATUS();
-	
-	int nShowToolbar = 0;
-	status = pProfile->getInt(
-		L"MessageFrameWindow", L"ShowToolbar", 1, &nShowToolbar);
-	CHECK_QSTATUS_SET(pstatus);
-	int nShowStatusBar = 0;
-	status = pProfile->getInt(
-		L"MessageFrameWindow", L"ShowStatusBar", 1, &nShowStatusBar);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new EditFrameWindowImpl();
 	pImpl_->pThis_ = this;
-	pImpl_->bShowToolbar_ = nShowToolbar != 0;
-	pImpl_->bShowStatusBar_ = nShowStatusBar != 0;
+	pImpl_->bShowToolbar_ = pProfile->getInt(L"MessageFrameWindow", L"ShowToolbar", 1) != 0;
+	pImpl_->bShowStatusBar_ = pProfile->getInt(L"MessageFrameWindow", L"ShowStatusBar", 1) != 0;
 	pImpl_->pManager_ = pManager;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pDocument_ = 0;
 	pImpl_->pEditWindow_ = 0;
 	pImpl_->pStatusBar_ = 0;
-	pImpl_->pAccelerator_ = 0;
-	pImpl_->pActionMap_ = 0;
-	pImpl_->pActionInvoker_ = 0;
-	pImpl_->pFindReplaceManager_ = 0;
-	pImpl_->pScriptMenu_ = 0;
 	pImpl_->bIme_ = false;
 	pImpl_->bCreated_ = false;
 	pImpl_->nInitialShow_ = SW_SHOWNORMAL;
@@ -381,15 +363,7 @@ qm::EditFrameWindow::EditFrameWindow(EditFrameWindowManager* pManager,
 
 qm::EditFrameWindow::~EditFrameWindow()
 {
-	if (pImpl_) {
-		delete pImpl_->pAccelerator_;
-		delete pImpl_->pActionMap_;
-		delete pImpl_->pActionInvoker_;
-		delete pImpl_->pFindReplaceManager_;
-		delete pImpl_->pScriptMenu_;
-		delete pImpl_;
-		pImpl_ = 0;
-	}
+	delete pImpl_;
 }
 
 EditWindow* qm::EditFrameWindow::getEditWindow() const
@@ -399,7 +373,7 @@ EditWindow* qm::EditFrameWindow::getEditWindow() const
 
 const ActionInvoker* qm::EditFrameWindow::getActionInvoker() const
 {
-	return pImpl_->pActionInvoker_;
+	return pImpl_->pActionInvoker_.get();
 }
 
 void qm::EditFrameWindow::initialShow()
@@ -414,34 +388,28 @@ void qm::EditFrameWindow::close()
 
 bool qm::EditFrameWindow::tryClose()
 {
-	DECLARE_QSTATUS();
-	
 	bool bCancel = true;
 	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	int nMsg = 0;
-	status = messageBox(hInst, IDS_CONFIRMCLOSEEDITFRAME,
-		MB_YESNOCANCEL | MB_DEFBUTTON1 | MB_ICONQUESTION,
-		getHandle(), 0, 0, &nMsg);
-	if (status == QSTATUS_SUCCESS) {
-		switch (nMsg) {
-		case IDYES:
-			{
-				Action* pAction = pImpl_->pActionMap_->getAction(IDM_FILE_SEND);
-				assert(pAction);
-				status = pAction->invoke(ActionEvent(IDM_FILE_SEND, 0));
-				return true;
-			}
-			break;
-		case IDNO:
-			bCancel = false;
-			break;
-		default:
-			break;
+	int nMsg = messageBox(hInst, IDS_CONFIRMCLOSEEDITFRAME,
+		MB_YESNOCANCEL | MB_DEFBUTTON1 | MB_ICONQUESTION, getHandle(), 0, 0);
+	switch (nMsg) {
+	case IDYES:
+		{
+			Action* pAction = pImpl_->pActionMap_->getAction(IDM_FILE_SEND);
+			assert(pAction);
+			pAction->invoke(ActionEvent(IDM_FILE_SEND, 0));
+			return true;
 		}
-		if (!bCancel)
-			pImpl_->pManager_->close(this);
+		break;
+	case IDNO:
+		bCancel = false;
+		break;
+	default:
+		break;
 	}
+	if (!bCancel)
+		pImpl_->pManager_->close(this);
 	
 	return !bCancel;
 }
@@ -451,16 +419,12 @@ bool qm::EditFrameWindow::isShowToolbar() const
 	return pImpl_->bShowToolbar_;
 }
 
-QSTATUS qm::EditFrameWindow::setShowToolbar(bool bShow)
+void qm::EditFrameWindow::setShowToolbar(bool bShow)
 {
-	DECLARE_QSTATUS();
-	
 	if (bShow != pImpl_->bShowToolbar_) {
 		pImpl_->bShowToolbar_ = bShow;
-		status = pImpl_->layoutChildren();
+		pImpl_->layoutChildren();
 	}
-	
-	return status;
 }
 
 bool qm::EditFrameWindow::isShowStatusBar() const
@@ -468,42 +432,29 @@ bool qm::EditFrameWindow::isShowStatusBar() const
 	return pImpl_->bShowStatusBar_;
 }
 
-QSTATUS qm::EditFrameWindow::setShowStatusBar(bool bShow)
+void qm::EditFrameWindow::setShowStatusBar(bool bShow)
 {
-	DECLARE_QSTATUS();
-	
 	if (bShow != pImpl_->bShowStatusBar_) {
 		pImpl_->bShowStatusBar_ = bShow;
-		status = pImpl_->layoutChildren();
+		pImpl_->layoutChildren();
 	}
-	
-	return status;
 }
 
-QSTATUS qm::EditFrameWindow::getToolbarButtons(
-	Toolbar* pToolbar, bool* pbToolbar)
+bool qm::EditFrameWindow::getToolbarButtons(Toolbar* pToolbar)
 {
-	assert(pToolbar);
-	assert(pbToolbar);
-	*pbToolbar = true;
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::EditFrameWindow::createToolbarButtons(void* pCreateParam, HWND hwndToolbar)
+bool qm::EditFrameWindow::createToolbarButtons(void* pCreateParam,
+											   HWND hwndToolbar)
 {
-	DECLARE_QSTATUS();
-	
 	EditFrameWindowCreateContext* pContext =
 		static_cast<EditFrameWindowCreateContext*>(pCreateParam);
-	
-	status = pContext->pToolbarManager_->createToolbar(L"editframe", hwndToolbar);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return pContext->pToolbarManager_->createToolbar(L"editframe", hwndToolbar);
 }
 
 #if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
-QSTATUS qm::EditFrameWindow::getBarId(int n, UINT* pnId) const
+UINT qm::EditFrameWindow::getBarId(int n) const
 {
 	assert(n == 0 || n == 1);
 	assert(pnId);
@@ -511,76 +462,54 @@ QSTATUS qm::EditFrameWindow::getBarId(int n, UINT* pnId) const
 		EditFrameWindowImpl::ID_COMMANDBARMENU,
 		EditFrameWindowImpl::ID_COMMANDBARBUTTON
 	};
-	*pnId = nIds[n];
-	return QSTATUS_SUCCESS;
+	return nIds[n];
 }
 
-QSTATUS qm::EditFrameWindow::getCommandBandsRestoreInfo(
-	int n, COMMANDBANDSRESTOREINFO* pcbri) const
+bool qm::EditFrameWindow::getCommandBandsRestoreInfo(int n,
+													 COMMANDBANDSRESTOREINFO* pcbri) const
 {
-	DECLARE_QSTATUS();
-	
 	WCHAR wszKey[32];
 	swprintf(wszKey, L"CommandBandsRestoreInfo%d", n);
-	int nSize = sizeof(*pcbri);
-	status = pImpl_->pProfile_->getBinary(L"EditFrameWindow", wszKey,
-		reinterpret_cast<unsigned char*>(pcbri), &nSize);
+	size_t nSize = pImpl_->pProfile_->getBinary(L"EditFrameWindow", wszKey,
+		reinterpret_cast<unsigned char*>(pcbri), sizeof(*pcbri));
 	if (nSize != sizeof(*pcbri))
 		pcbri->cbSize = 0;
-	return status;
+	return true;
 }
 
-QSTATUS qm::EditFrameWindow::setCommandBandsRestoreInfo(
-	int n, const COMMANDBANDSRESTOREINFO& cbri)
+bool qm::EditFrameWindow::setCommandBandsRestoreInfo(int n,
+													 const COMMANDBANDSRESTOREINFO& cbri)
 {
 	WCHAR wszKey[32];
 	swprintf(wszKey, L"CommandBandsRestoreInfo%d", n);
-	return pImpl_->pProfile_->setBinary(L"EditFrameWindow", wszKey,
+	pImpl_->pProfile_->setBinary(L"EditFrameWindow", wszKey,
 		reinterpret_cast<const unsigned char*>(&cbri), sizeof(cbri));
+	return true;
 }
 #endif
 
-QSTATUS qm::EditFrameWindow::getMenuHandle(void* pCreateParam, HMENU* phmenu)
+HMENU qm::EditFrameWindow::getMenuHandle(void* pCreateParam)
 {
-	assert(phmenu);
-	
-	DECLARE_QSTATUS();
-	
 	EditFrameWindowCreateContext* pContext =
 		static_cast<EditFrameWindowCreateContext*>(pCreateParam);
-	
-	status = pContext->pMenuManager_->getMenu(
-		L"editframe", true, true, phmenu);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return pContext->pMenuManager_->getMenu(L"editframe", true, true);
 }
 
-QSTATUS qm::EditFrameWindow::getIconId(UINT* pnId)
+UINT qm::EditFrameWindow::getIconId()
 {
-	assert(pnId);
-	*pnId = IDI_MAINFRAME;
-	return QSTATUS_SUCCESS;
+	return IDI_MAINFRAME;
 }
 
-QSTATUS qm::EditFrameWindow::getWindowClass(WNDCLASS* pwc)
+void qm::EditFrameWindow::getWindowClass(WNDCLASS* pwc)
 {
-	DECLARE_QSTATUS();
-	
-	status = DefaultWindowHandler::getWindowClass(pwc);
-	CHECK_QSTATUS();
-	
+	FrameWindow::getWindowClass(pwc);
 	pwc->hIcon = ::LoadIcon(Application::getApplication().getResourceHandle(),
 		MAKEINTRESOURCE(IDI_MAINFRAME));
 	pwc->hbrBackground = reinterpret_cast<HBRUSH>(COLOR_BTNFACE + 1);
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditFrameWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
+bool qm::EditFrameWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
 {
-	DECLARE_QSTATUS();
-	
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 #define MENU_HEIGHT 26
 	SIPINFO si = { sizeof(si) };
@@ -589,29 +518,25 @@ QSTATUS qm::EditFrameWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
 	pCreateStruct->cy = si.rcVisibleDesktop.bottom -
 		si.rcVisibleDesktop.top - (si.fdwFlags & SIPF_ON ? 0 : MENU_HEIGHT);
 #elif !defined _WIN32_WCE
-	status = UIUtil::loadWindowPlacement(pImpl_->pProfile_,
-		L"EditFrameWindow", pCreateStruct, &pImpl_->nInitialShow_);
-	CHECK_QSTATUS();
+	pImpl_->nInitialShow_ = UIUtil::loadWindowPlacement(
+		pImpl_->pProfile_, L"EditFrameWindow", pCreateStruct);
 #endif
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::EditFrameWindow::getAction(UINT nId, Action** ppAction)
+Action* qm::EditFrameWindow::getAction(UINT nId)
 {
-	assert(ppAction);
-	*ppAction = pImpl_->pActionMap_->getAction(nId);
-	return QSTATUS_SUCCESS;
+	return pImpl_->pActionMap_->getAction(nId);
 }
 
-QSTATUS qm::EditFrameWindow::getAccelerator(Accelerator** ppAccelerator)
+Accelerator* qm::EditFrameWindow::getAccelerator()
 {
-	assert(ppAccelerator);
-	*ppAccelerator = pImpl_->pAccelerator_;
-	return QSTATUS_SUCCESS;
+	return pImpl_->pAccelerator_.get();
 }
 
-LRESULT qm::EditFrameWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qm::EditFrameWindow::windowProc(UINT uMsg,
+										WPARAM wParam,
+										LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_ACTIVATE()
@@ -624,7 +549,9 @@ LRESULT qm::EditFrameWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return FrameWindow::windowProc(uMsg, wParam, lParam);
 }
 
-LRESULT qm::EditFrameWindow::onActivate(UINT nFlags, HWND hwnd, bool bMinimized)
+LRESULT qm::EditFrameWindow::onActivate(UINT nFlags,
+										HWND hwnd,
+										bool bMinimized)
 {
 	FrameWindow::onActivate(nFlags, hwnd, bMinimized);
 	
@@ -656,53 +583,42 @@ LRESULT qm::EditFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (FrameWindow::onCreate(pCreateStruct) == -1)
 		return -1;
 	
-	DECLARE_QSTATUS();
-	
 	EditFrameWindowCreateContext* pContext =
 		static_cast<EditFrameWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pDocument_ = pContext->pDocument_;
 	pImpl_->pSyncManager_ = pContext->pSyncManager_;
 	pImpl_->pSyncDialogManager_ = pContext->pSyncDialogManager_;
 	
-	status = pContext->pKeyMap_->createAccelerator(
-		CustomAcceleratorFactory(), L"EditFrameWindow",
-		mapKeyNameToId, countof(mapKeyNameToId), &pImpl_->pAccelerator_);
-	CHECK_QSTATUS_VALUE(-1);
+	CustomAcceleratorFactory acceleratorFactory;
+	pImpl_->pAccelerator_ = pContext->pKeyMap_->createAccelerator(
+		&acceleratorFactory, L"EditFrameWindow",
+		mapKeyNameToId, countof(mapKeyNameToId));
+	if (!pImpl_->pAccelerator_.get())
+		return -1;
 	
 	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
-	std::auto_ptr<EditWindow> pEditWindow;
-	status = newQsObject(pImpl_->pProfile_, &pEditWindow);
-	CHECK_QSTATUS_VALUE(-1);
+	std::auto_ptr<EditWindow> pEditWindow(new EditWindow(pImpl_->pProfile_));
 	EditWindowCreateContext context = {
 		pContext->pMenuManager_,
 		pContext->pKeyMap_
 	};
-	status = pEditWindow->create(L"QmEditWindow", 0, dwStyle,
+	if (!pEditWindow->create(L"QmEditWindow", 0, dwStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-		getHandle(), 0, 0, EditFrameWindowImpl::ID_EDITWINDOW, &context);
-	CHECK_QSTATUS_VALUE(-1);
+		getHandle(), 0, 0, EditFrameWindowImpl::ID_EDITWINDOW, &context))
+		return -1;
 	pImpl_->pEditWindow_ = pEditWindow.release();
 	
-	std::auto_ptr<StatusBar> pStatusBar;
-	status = newQsObject(&pStatusBar);
-	CHECK_QSTATUS_VALUE(-1);
-	status = pStatusBar->create(L"QmStatusBarWindow",
+	std::auto_ptr<StatusBar> pStatusBar(new StatusBar());
+	if (!pStatusBar->create(L"QmStatusBarWindow",
 		0, dwStyle, CW_USEDEFAULT, CW_USEDEFAULT,
 		CW_USEDEFAULT, CW_USEDEFAULT, getHandle(), 0,
-		STATUSCLASSNAMEW, EditFrameWindowImpl::ID_STATUSBAR, 0);
-	CHECK_QSTATUS_VALUE(-1);
+		STATUSCLASSNAMEW, EditFrameWindowImpl::ID_STATUSBAR, 0))
+		return -1;
 	pImpl_->pStatusBar_ = pStatusBar.release();
 	
-	status = newQsObject(pImpl_->pDocument_->getScriptManager(),
-		&pImpl_->pScriptMenu_);
-	CHECK_QSTATUS();
-	
-	status = pImpl_->layoutChildren();
-	CHECK_QSTATUS_VALUE(-1);
-	
-	status = pImpl_->initActions();
-	CHECK_QSTATUS();
-	
+	pImpl_->pScriptMenu_.reset(new ScriptMenu(pImpl_->pDocument_->getScriptManager()));
+	pImpl_->layoutChildren();
+	pImpl_->initActions();
 	pImpl_->bCreated_ = true;
 	
 	return 0;
@@ -710,8 +626,6 @@ LRESULT qm::EditFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 
 LRESULT qm::EditFrameWindow::onDestroy()
 {
-	DECLARE_QSTATUS();
-	
 	Profile* pProfile = pImpl_->pProfile_;
 	
 	pProfile->setInt(L"MessageFrameWindow",
@@ -719,19 +633,17 @@ LRESULT qm::EditFrameWindow::onDestroy()
 	pProfile->setInt(L"MessageFrameWindow",
 		L"ShowStatusBar", pImpl_->bShowStatusBar_);
 	
-	status = UIUtil::saveWindowPlacement(
-		getHandle(), pProfile, L"EditFrameWindow");
+	UIUtil::saveWindowPlacement(getHandle(), pProfile, L"EditFrameWindow");
 	
-	status = FrameWindow::save();
-	CHECK_QSTATUS();
+	FrameWindow::save();
 	
 	return FrameWindow::onDestroy();
 }
 
-LRESULT qm::EditFrameWindow::onInitMenuPopup(HMENU hmenu, UINT nIndex, bool bSysMenu)
+LRESULT qm::EditFrameWindow::onInitMenuPopup(HMENU hmenu,
+											 UINT nIndex,
+											 bool bSysMenu)
 {
-	DECLARE_QSTATUS();
-	
 	if (!bSysMenu) {
 		UINT nIdFirst = 0;
 		UINT nIdLast = 0;
@@ -745,15 +657,16 @@ LRESULT qm::EditFrameWindow::onInitMenuPopup(HMENU hmenu, UINT nIndex, bool bSys
 		}
 		
 		if (nIdFirst == IDM_TOOL_SCRIPTNONE ||
-			nIdFirst == IDM_TOOL_SCRIPT) {
-			status = pImpl_->pScriptMenu_->createMenu(hmenu);
-		}
+			nIdFirst == IDM_TOOL_SCRIPT)
+			pImpl_->pScriptMenu_->createMenu(hmenu);
 	}
 	
 	return FrameWindow::onInitMenuPopup(hmenu, nIndex, bSysMenu);
 }
 
-LRESULT qm::EditFrameWindow::onSize(UINT nFlags, int cx, int cy)
+LRESULT qm::EditFrameWindow::onSize(UINT nFlags,
+									int cx,
+									int cy)
 {
 	if (pImpl_->bCreated_ &&
 		!pImpl_->bLayouting_ &&
@@ -770,9 +683,12 @@ LRESULT qm::EditFrameWindow::onSize(UINT nFlags, int cx, int cy)
  */
 
 qm::EditFrameWindowManager::EditFrameWindowManager(Document* pDocument,
-	SyncManager* pSyncManager, SyncDialogManager* pSyncDialogManager,
-	KeyMap* pKeyMap, Profile* pProfile, MenuManager* pMenuManager,
-	ToolbarManager* pToolbarManager, QSTATUS* pstatus) :
+												   SyncManager* pSyncManager,
+												   SyncDialogManager* pSyncDialogManager,
+												   KeyMap* pKeyMap,
+												   Profile* pProfile,
+												   MenuManager* pMenuManager,
+												   ToolbarManager* pToolbarManager) :
 	pDocument_(pDocument),
 	pSyncManager_(pSyncManager),
 	pSyncDialogManager_(pSyncDialogManager),
@@ -785,22 +701,16 @@ qm::EditFrameWindowManager::EditFrameWindowManager(Document* pDocument,
 
 qm::EditFrameWindowManager::~EditFrameWindowManager()
 {
-	FrameList::iterator it = listFrame_.begin();
-	while (it != listFrame_.end()) {
+	for (FrameList::iterator it = listFrame_.begin(); it != listFrame_.end(); ++it) {
 		EditMessageHolder* pHolder = (*it)->getEditWindow()->getEditMessageHolder();
 		delete pHolder->getEditMessage();
 		(*it)->destroyWindow();
-		++it;
 	}
 }
 
-QSTATUS qm::EditFrameWindowManager::open(EditMessage* pEditMessage)
+bool qm::EditFrameWindowManager::open(std::auto_ptr<EditMessage> pEditMessage)
 {
-	DECLARE_QSTATUS();
-	
-	std::auto_ptr<EditFrameWindow> pFrame;
-	status = newQsObject(this, pProfile_, &pFrame);
-	CHECK_QSTATUS();
+	std::auto_ptr<EditFrameWindow> pFrame(new EditFrameWindow(this, pProfile_));
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && _WIN32_WCE_PSPC
 	DWORD dwStyle = WS_CLIPCHILDREN;
 	DWORD dwExStyle = WS_EX_CAPTIONOKBTN;
@@ -819,22 +729,22 @@ QSTATUS qm::EditFrameWindowManager::open(EditMessage* pEditMessage)
 		pToolbarManager_,
 		pKeyMap_
 	};
-	status = pFrame->create(L"QmEditFrameWindow", L"QMAIL", dwStyle,
+	if (!pFrame->create(L"QmEditFrameWindow", L"QMAIL", dwStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-		0, dwExStyle, 0, 0, &context);
-	CHECK_QSTATUS();
+		0, dwExStyle, 0, 0, &context))
+		return false;
 	EditFrameWindow* p = pFrame.release();
 	
 	EditMessageHolder* pHolder = p->getEditWindow()->getEditMessageHolder();
-	status = pHolder->setEditMessage(pEditMessage);
-	CHECK_QSTATUS();
+	if (!pHolder->setEditMessage(pEditMessage.get()))
+		return false;
+	pEditMessage.release();
 	
-	status = STLWrapper<FrameList>(listFrame_).push_back(p);
-	CHECK_QSTATUS();
+	listFrame_.push_back(p);
 	
 	p->initialShow();
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 void qm::EditFrameWindowManager::close(EditFrameWindow* pEditFrameWindow)
@@ -850,43 +760,29 @@ void qm::EditFrameWindowManager::close(EditFrameWindow* pEditFrameWindow)
 	pEditFrameWindow->destroyWindow();
 }
 
-QSTATUS qm::EditFrameWindowManager::closeAll(bool* pbClosed)
+bool qm::EditFrameWindowManager::closeAll()
 {
-	assert(pbClosed);
-	
-	DECLARE_QSTATUS();
-	
 	while (!listFrame_.empty()) {
 		EditFrameWindow* pWindow = listFrame_.back();
 		if (!pWindow->tryClose())
 			break;
 	}
 	
-	*pbClosed = listFrame_.empty();
-	
-	return QSTATUS_SUCCESS;
+	return listFrame_.empty();
 }
 
-QSTATUS qm::EditFrameWindowManager::preModalDialog(HWND hwndParent)
+void qm::EditFrameWindowManager::preModalDialog(HWND hwndParent)
 {
-	FrameList::iterator it = listFrame_.begin();
-	while (it != listFrame_.end()) {
+	for (FrameList::iterator it = listFrame_.begin(); it != listFrame_.end(); ++it) {
 		if ((*it)->getHandle() != hwndParent)
 			(*it)->enableWindow(false);
-		++it;
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditFrameWindowManager::postModalDialog(HWND hwndParent)
+void qm::EditFrameWindowManager::postModalDialog(HWND hwndParent)
 {
-	FrameList::iterator it = listFrame_.begin();
-	while (it != listFrame_.end()) {
+	for (FrameList::iterator it = listFrame_.begin(); it != listFrame_.end(); ++it) {
 		if ((*it)->getHandle() != hwndParent)
 			(*it)->enableWindow(true);
-		++it;
 	}
-	
-	return QSTATUS_SUCCESS;
 }

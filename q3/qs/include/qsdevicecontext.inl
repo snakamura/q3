@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -9,7 +9,6 @@
 #ifndef __QSDEVICECONTEXT_INL__
 #define __QSDEVICECONTEXT_INL__
 
-#include <qserror.h>
 #include <qsassert.h>
 
 
@@ -44,8 +43,7 @@ inline qs::DeviceContext& qs::DeviceContext::operator=(HDC hdc)
 	return *this;
 }
 
-inline qs::DeviceContext& qs::DeviceContext::operator=(
-	const DeviceContext& dc)
+inline qs::DeviceContext& qs::DeviceContext::operator=(const DeviceContext& dc)
 {
 	hdc_ = dc.getHandle();
 	return *this;
@@ -121,29 +119,44 @@ inline HBITMAP qs::DeviceContext::selectObject(HBITMAP hbm)
 	return static_cast<HBITMAP>(::SelectObject(hdc_, hbm));
 }
 
-inline bool qs::DeviceContext::polyline(const POINT* ppt, int nPoints)
+inline bool qs::DeviceContext::polyline(const POINT* ppt,
+										int nPoints)
 {
 	assert(hdc_);
 	return ::Polyline(hdc_, ppt, nPoints) != 0;
 }
 
-inline bool qs::DeviceContext::bitBlt(int x, int y, int nWidth, int nHeight,
-	HDC hdc, int nSrcX, int nSrcY, DWORD dwRop)
+inline bool qs::DeviceContext::bitBlt(int x,
+									  int y,
+									  int nWidth,
+									  int nHeight,
+									  HDC hdc,
+									  int nSrcX,
+									  int nSrcY,
+									  DWORD dwRop)
 {
 	assert(hdc_);
 	return ::BitBlt(hdc_, x, y, nWidth, nHeight,
 		hdc, nSrcX, nSrcY, dwRop) != 0;
 }
 
-inline bool qs::DeviceContext::patBlt(int x, int y,
-	int nWidth, int nHeight, DWORD dwRop)
+inline bool qs::DeviceContext::patBlt(int x,
+									  int y,
+									  int nWidth,
+									  int nHeight,
+									  DWORD dwRop)
 {
 	assert(hdc_);
 	return ::PatBlt(hdc_, x, y, nWidth, nHeight, dwRop) != 0;
 }
 
-inline bool qs::DeviceContext::extTextOut(int x, int y, UINT nOptions,
-	const RECT& rect, const WCHAR* pwszString, UINT nCount, int* pnDx)
+inline bool qs::DeviceContext::extTextOut(int x,
+										  int y,
+										  UINT nOptions,
+										  const RECT& rect,
+										  const WCHAR* pwszString,
+										  UINT nCount,
+										  int* pnDx)
 {
 	assert(hdc_);
 	return ::ExtTextOutW(hdc_, x, y, nOptions, &rect,
@@ -156,8 +169,9 @@ inline bool qs::DeviceContext::getTextMetrics(TEXTMETRIC* ptm) const
 	return ::GetTextMetrics(hdc_, ptm) != 0;
 }
 
-inline bool qs::DeviceContext::getTextExtent(
-	const WCHAR* pwszString, int nCount, SIZE* pSize) const
+inline bool qs::DeviceContext::getTextExtent(const WCHAR* pwszString,
+											 int nCount,
+											 SIZE* pSize) const
 {
 	assert(hdc_);
 	return ::GetTextExtentPoint32W(hdc_, pwszString, nCount, pSize) != 0;
@@ -165,7 +179,11 @@ inline bool qs::DeviceContext::getTextExtent(
 
 #ifdef UNICODE
 inline bool qs::DeviceContext::getTextExtentEx(const WCHAR* pwszString,
-	int nCount, int nMaxExtent, int* pnFit, int* pnDx, SIZE* pSize) const
+											   int nCount,
+											   int nMaxExtent,
+											   int* pnFit,
+											   int* pnDx,
+											   SIZE* pSize) const
 {
 	assert(hdc_);
 	return ::GetTextExtentExPointW(hdc_, pwszString,
@@ -173,7 +191,8 @@ inline bool qs::DeviceContext::getTextExtentEx(const WCHAR* pwszString,
 }
 #endif
 
-inline bool qs::DeviceContext::fillSolidRect(const RECT& rect, COLORREF cr)
+inline bool qs::DeviceContext::fillSolidRect(const RECT& rect,
+											 COLORREF cr)
 {
 	setBkColor(cr);
 	return extTextOut(rect.left, rect.top,
@@ -192,7 +211,9 @@ inline int qs::DeviceContext::getDeviceCaps(int nIndex) const
 	return ::GetDeviceCaps(hdc_, nIndex);
 }
 
-inline bool qs::DeviceContext::drawIcon(int x, int y, HICON hIcon)
+inline bool qs::DeviceContext::drawIcon(int x,
+										int y,
+										HICON hIcon)
 {
 	assert(hdc_);
 	return ::DrawIcon(hdc_, x, y, hIcon) != 0;
@@ -212,7 +233,8 @@ inline void qs::DeviceContext::setHandle(HDC hdc)
  */
 
 template<class Object>
-qs::ObjectSelector<Object>::ObjectSelector(DeviceContext& dc, Object o) :
+qs::ObjectSelector<Object>::ObjectSelector(DeviceContext& dc,
+										   Object o) :
 	dc_(dc)
 {
 	o_ = dc_.selectObject(o);

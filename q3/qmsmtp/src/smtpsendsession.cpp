@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -14,7 +14,6 @@
 #include <qmsecurity.h>
 
 #include <qsconv.h>
-#include <qsnew.h>
 #include <qsthread.h>
 
 #include <algorithm>
@@ -28,11 +27,11 @@ using namespace qmsmtp;
 using namespace qm;
 using namespace qs;
 
-#define CHECK_QSTATUS_ERROR() \
-	if (status != QSTATUS_SUCCESS) { \
+#define HANDLE_ERROR() \
+	do { \
 		reportError(); \
-		return status; \
-	} \
+		return false; \
+	} while (false) \
 
 
 /****************************************************************************
@@ -41,135 +40,95 @@ using namespace qs;
  *
  */
 
-qmsmtp::SmtpSendSession::SmtpSendSession(QSTATUS* pstatus) :
-	pSmtp_(0),
-	pCallback_(0),
+qmsmtp::SmtpSendSession::SmtpSendSession() :
 	pAccount_(0),
 	pSubAccount_(0),
 	pLogger_(0),
 	pSessionCallback_(0)
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qmsmtp::SmtpSendSession::~SmtpSendSession()
 {
-	delete pSmtp_;
-	delete pCallback_;
 }
 
-QSTATUS qmsmtp::SmtpSendSession::init(Document* pDocument,
-	Account* pAccount, SubAccount* pSubAccount, Profile* pProfile,
-	Logger* pLogger, SendSessionCallback* pCallback)
+bool qmsmtp::SmtpSendSession::init(Document* pDocument,
+								   Account* pAccount,
+								   SubAccount* pSubAccount,
+								   Profile* pProfile,
+								   Logger* pLogger,
+								   SendSessionCallback* pCallback)
 {
 	assert(pAccount);
 	assert(pSubAccount);
 	assert(pCallback);
-	
-	DECLARE_QSTATUS();
 	
 	pAccount_ = pAccount;
 	pSubAccount_ = pSubAccount;
 	pLogger_ = pLogger;
 	pSessionCallback_ = pCallback;
 	
-	status = newQsObject(pSubAccount_, pDocument->getSecurity(),
-		pSessionCallback_, &pCallback_);
-	CHECK_QSTATUS();
+	pCallback_.reset(new CallbackImpl(pSubAccount_,
+		pDocument->getSecurity(), pSessionCallback_));
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmsmtp::SmtpSendSession::connect()
+bool qmsmtp::SmtpSendSession::connect()
 {
-	assert(!pSmtp_);
-	
-	DECLARE_QSTATUS();
+	assert(!pSmtp_.get());
 	
 	Log log(pLogger_, L"qmsmtp::SmtpSendSession");
-	status = log.debug(L"Connecting to the server...");
-	CHECK_QSTATUS();
+	log.debug(L"Connecting to the server...");
 	
-	Smtp::Option option = {
-		pSubAccount_->getTimeout(),
-		pCallback_,
-		pCallback_,
-		pCallback_,
-		pLogger_
-	};
-	status = newQsObject(option, &pSmtp_);
-	CHECK_QSTATUS();
+	pSmtp_.reset(new Smtp(pSubAccount_->getTimeout(), pCallback_.get(),
+		pCallback_.get(), pCallback_.get(), pLogger_));
 	
 	Smtp::Ssl ssl = Smtp::SSL_NONE;
-	if (pSubAccount_->isSsl(Account::HOST_SEND)) {
+	if (pSubAccount_->isSsl(Account::HOST_SEND))
 		ssl = Smtp::SSL_SSL;
-	}
-	else {
-		int nStartTls = 0;
-		status = pSubAccount_->getProperty(L"Smtp", L"STARTTLS", 0, &nStartTls);
-		CHECK_QSTATUS();
-		if (nStartTls)
-			ssl = Smtp::SSL_STARTTLS;
-	}
+	else if (pSubAccount_->getProperty(L"Smtp", L"STARTTLS", 0) != 0)
+		ssl = Smtp::SSL_STARTTLS;
 	
-	status = pSmtp_->connect(pSubAccount_->getHost(Account::HOST_SEND),
-		pSubAccount_->getPort(Account::HOST_SEND), ssl);
-	CHECK_QSTATUS_ERROR();
+	if (!pSmtp_->connect(pSubAccount_->getHost(Account::HOST_SEND),
+		pSubAccount_->getPort(Account::HOST_SEND), ssl))
+		HANDLE_ERROR();
 	
-	status = log.debug(L"Connected to the server.");
-	CHECK_QSTATUS();
+	log.debug(L"Connected to the server.");
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmsmtp::SmtpSendSession::disconnect()
+bool qmsmtp::SmtpSendSession::disconnect()
 {
-	assert(pSmtp_);
-	
-	DECLARE_QSTATUS();
+	assert(pSmtp_.get());
 	
 	Log log(pLogger_, L"qmsmtp::SmtpSendSession");
-	status = log.debug(L"Disconnecting from the server...");
-	CHECK_QSTATUS();
+	log.debug(L"Disconnecting from the server...");
 	
-	status = pSmtp_->disconnect();
-	CHECK_QSTATUS_ERROR();
+	pSmtp_->disconnect();
 	
-	status = log.debug(L"Disconnected from the server.");
-	CHECK_QSTATUS();
+	log.debug(L"Disconnected from the server.");
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmsmtp::SmtpSendSession::sendMessage(Message* pMessage)
+bool qmsmtp::SmtpSendSession::sendMessage(Message* pMessage)
 {
 	assert(pMessage);
 	
-	DECLARE_QSTATUS();
-	
 	Log log(pLogger_, L"qmsmtp::SmtpSendSession");
-	status = log.debug(L"Sending message...");
-	CHECK_QSTATUS();
+	log.debug(L"Sending message...");
 	
-	status = pCallback_->setMessage(IDS_SENDMESSAGE);
-	CHECK_QSTATUS();
+	pCallback_->setMessage(IDS_SENDMESSAGE);
 	
 	PartUtil util(*pMessage);
-	bool bResent = false;
-	status = util.isResent(&bResent);
-	CHECK_QSTATUS();
+	bool bResent = util.isResent();
 	
-	string_ptr<WSTRING> wstrEnvelopeFrom;
-	Part::Field field = Part::FIELD_ERROR;
-	AddressParser envelopeFrom(0, &status);
-	CHECK_QSTATUS();
-	status = pMessage->getField(L"X-QMAIL-EnvelopeFrom", &envelopeFrom, &field);
-	CHECK_QSTATUS();
-	if (field == Part::FIELD_EXIST) {
-		status = envelopeFrom.getAddress(&wstrEnvelopeFrom);
-		CHECK_QSTATUS();
+	wstring_ptr wstrEnvelopeFrom;
+	AddressParser envelopeFrom(0);
+	if (pMessage->getField(L"X-QMAIL-EnvelopeFrom", &envelopeFrom) == Part::FIELD_EXIST) {
+		wstrEnvelopeFrom = envelopeFrom.getAddress();
 	}
 	else {
 		const WCHAR* pwszNormalFields[] = {
@@ -182,28 +141,30 @@ QSTATUS qmsmtp::SmtpSendSession::sendMessage(Message* pMessage)
 		};
 		const WCHAR** ppwszFields = bResent ? pwszResentFields : pwszNormalFields;
 		for (int n = 0; n < 2 && !wstrEnvelopeFrom.get(); ++n) {
-			AddressListParser address(AddressListParser::FLAG_DISALLOWGROUP, &status);
-			CHECK_QSTATUS();
-			status = pMessage->getField(*(ppwszFields + n), &address, &field);
-			CHECK_QSTATUS();
-			if (field == Part::FIELD_EXIST) {
+			AddressListParser address(AddressListParser::FLAG_DISALLOWGROUP);
+			if (pMessage->getField(*(ppwszFields + n), &address) == Part::FIELD_EXIST) {
 				const AddressListParser::AddressList& l = address.getAddressList();
-				if (!l.empty()) {
-					status = l.front()->getAddress(&wstrEnvelopeFrom);
-					CHECK_QSTATUS();
-				}
+				if (!l.empty())
+					wstrEnvelopeFrom = l.front()->getAddress();
 			}
 		}
 	}
 	if (!wstrEnvelopeFrom.get())
-		return QSTATUS_FAIL;
+		return false;
 	
 	std::vector<STRING> vecAddress;
 	struct Deleter
 	{
-		Deleter(std::vector<STRING>& v) : v_(v) {}
+		Deleter(std::vector<STRING>& v) :
+			v_(v)
+		{
+		}
+		
 		~Deleter()
-			{ std::for_each(v_.begin(), v_.end(), string_free<STRING>()); }
+		{
+			std::for_each(v_.begin(), v_.end(), string_free<STRING>());
+		}
+		
 		std::vector<STRING>& v_;
 	} deleter(vecAddress);
 	const WCHAR* pwszNormalFields[] = {
@@ -218,55 +179,36 @@ QSTATUS qmsmtp::SmtpSendSession::sendMessage(Message* pMessage)
 	};
 	const WCHAR** ppwszFields = bResent ? pwszResentFields : pwszNormalFields;
 	for (int n = 0; n < 3; ++n) {
-		AddressListParser address(0, &status);
-		CHECK_QSTATUS();
-		status = pMessage->getField(*(ppwszFields + n), &address, &field);
-		CHECK_QSTATUS();
-		if (field == Part::FIELD_EXIST) {
+		AddressListParser address(0);
+		if (pMessage->getField(*(ppwszFields + n), &address) == Part::FIELD_EXIST) {
 			bool bReplace = false;
 			
 			const AddressListParser::AddressList& l = address.getAddressList();
-			AddressListParser::AddressList::const_iterator it = l.begin();
-			while (it != l.end()) {
+			for (AddressListParser::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
 				AddressParser* pAddress = *it;
 				AddressListParser* pGroup = pAddress->getGroup();
 				if (pGroup) {
 					const AddressListParser::AddressList& groups = pGroup->getAddressList();
-					AddressListParser::AddressList::const_iterator itG = groups.begin();
-					while (itG != groups.end()) {
-						string_ptr<WSTRING> wstrAddress;
-						status = (*itG)->getAddress(&wstrAddress);
-						CHECK_QSTATUS();
-						string_ptr<STRING> strAddress(wcs2mbs(wstrAddress.get()));
-						if (!strAddress.get())
-							return QSTATUS_OUTOFMEMORY;
-						status = STLWrapper<std::vector<STRING> >(
-							vecAddress).push_back(strAddress.get());
-						CHECK_QSTATUS();
+					for (AddressListParser::AddressList::const_iterator itG = groups.begin(); itG != groups.end(); ++itG) {
+						wstring_ptr wstrAddress((*itG)->getAddress());
+						string_ptr strAddress(wcs2mbs(wstrAddress.get()));
+						vecAddress.push_back(strAddress.get());
 						strAddress.release();
-						++itG;
 					}
 					pGroup->removeAllAddresses();
 					bReplace = true;
 				}
 				else {
-					string_ptr<WSTRING> wstrAddress;
-					status = pAddress->getAddress(&wstrAddress);
-					CHECK_QSTATUS();
-					string_ptr<STRING> strAddress(wcs2mbs(wstrAddress.get()));
-					if (!strAddress.get())
-						return QSTATUS_OUTOFMEMORY;
-					status = STLWrapper<std::vector<STRING> >(
-						vecAddress).push_back(strAddress.get());
-					CHECK_QSTATUS();
+					wstring_ptr wstrAddress(pAddress->getAddress());
+					string_ptr strAddress(wcs2mbs(wstrAddress.get()));
+					vecAddress.push_back(strAddress.get());
 					strAddress.release();
 				}
-				++it;
 			}
 			
 			if (bReplace) {
-				status = pMessage->replaceField(*(ppwszFields + n), address);
-				CHECK_QSTATUS();
+				if (!pMessage->replaceField(*(ppwszFields + n), address))
+					return false;
 			}
 		}
 	}
@@ -276,18 +218,12 @@ QSTATUS qmsmtp::SmtpSendSession::sendMessage(Message* pMessage)
 		L"Resent-Bcc",
 		L"X-QMAIL-EnvelopeFrom"
 	};
-	for (int m = 0; m < countof(pwszRemoveFields); ++m) {
-		status = pMessage->removeField(*(pwszRemoveFields + m));
-		CHECK_QSTATUS();
-	}
+	for (int m = 0; m < countof(pwszRemoveFields); ++m)
+		pMessage->removeField(*(pwszRemoveFields + m));
 	
-	string_ptr<STRING> strContent;
-	status = pMessage->getContent(&strContent);
-	CHECK_QSTATUS();
+	xstring_ptr strContent(pMessage->getContent());
 	
-	string_ptr<STRING> strEnvelopeFrom(wcs2mbs(wstrEnvelopeFrom.get()));
-	if (!strEnvelopeFrom.get())
-		return QSTATUS_OUTOFMEMORY;
+	string_ptr strEnvelopeFrom(wcs2mbs(wstrEnvelopeFrom.get()));
 	Smtp::SendMessageData data = {
 		strEnvelopeFrom.get(),
 		const_cast<const CHAR**>(&vecAddress[0]),
@@ -295,17 +231,15 @@ QSTATUS qmsmtp::SmtpSendSession::sendMessage(Message* pMessage)
 		strContent.get(),
 		strlen(strContent.get())
 	};
-	status = pSmtp_->sendMessage(data);
-	CHECK_QSTATUS_ERROR();
+	if (!pSmtp_->sendMessage(data))
+		HANDLE_ERROR();
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmsmtp::SmtpSendSession::reportError()
+void qmsmtp::SmtpSendSession::reportError()
 {
-	assert(pSmtp_);
-	
-	DECLARE_QSTATUS();
+	assert(pSmtp_.get());
 	
 	struct
 	{
@@ -356,21 +290,15 @@ QSTATUS qmsmtp::SmtpSendSession::reportError()
 		Smtp::SMTP_ERROR_MASK_LOWLEVEL,
 		Socket::SOCKET_ERROR_MASK_SOCKET
 	};
-	string_ptr<WSTRING> wstrDescriptions[countof(maps)];
+	wstring_ptr wstrDescriptions[countof(maps)];
 	for (int n = 0; n < countof(maps); ++n) {
 		for (int m = 0; m < countof(maps[n]) && !wstrDescriptions[n].get(); ++m) {
-			if (maps[n][m].nError_ != 0 &&
-				(nError & nMasks[n]) == maps[n][m].nError_) {
-				status = loadString(getResourceHandle(),
-					maps[n][m].nId_, &wstrDescriptions[n]);
-				CHECK_QSTATUS();
-			}
+			if (maps[n][m].nError_ != 0 && (nError & nMasks[n]) == maps[n][m].nError_)
+				wstrDescriptions[n] = loadString(getResourceHandle(), maps[n][m].nId_);
 		}
 	}
 	
-	string_ptr<WSTRING> wstrMessage;
-	status = loadString(getResourceHandle(), IDS_ERROR_MESSAGE, &wstrMessage);
-	CHECK_QSTATUS();
+	wstring_ptr wstrMessage(loadString(getResourceHandle(), IDS_ERROR_MESSAGE));
 	
 	const WCHAR* pwszDescription[] = {
 		wstrDescriptions[0].get(),
@@ -380,10 +308,7 @@ QSTATUS qmsmtp::SmtpSendSession::reportError()
 	};
 	SessionErrorInfo info(pAccount_, pSubAccount_, 0, wstrMessage.get(),
 		nError, pwszDescription, countof(pwszDescription));
-	status = pSessionCallback_->addError(info);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	pSessionCallback_->addError(info);
 }
 
 
@@ -393,30 +318,23 @@ QSTATUS qmsmtp::SmtpSendSession::reportError()
  *
  */
 
-qmsmtp::SmtpSendSession::CallbackImpl::CallbackImpl(
-	SubAccount* pSubAccount, const Security* pSecurity,
-	SendSessionCallback* pSessionCallback, QSTATUS* pstatus) :
+qmsmtp::SmtpSendSession::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
+													const Security* pSecurity,
+													SendSessionCallback* pSessionCallback) :
 	DefaultSSLSocketCallback(pSubAccount, Account::HOST_SEND, pSecurity),
 	pSubAccount_(pSubAccount),
 	pSessionCallback_(pSessionCallback)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qmsmtp::SmtpSendSession::CallbackImpl::~CallbackImpl()
 {
 }
 
-QSTATUS qmsmtp::SmtpSendSession::CallbackImpl::setMessage(UINT nId)
+void qmsmtp::SmtpSendSession::CallbackImpl::setMessage(UINT nId)
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrMessage;
-	status = loadString(getResourceHandle(), nId, &wstrMessage);
-	CHECK_QSTATUS();
-	
-	return pSessionCallback_->setMessage(wstrMessage.get());
+	wstring_ptr wstrMessage(loadString(getResourceHandle(), nId));
+	pSessionCallback_->setMessage(wstrMessage.get());
 }
 
 bool qmsmtp::SmtpSendSession::CallbackImpl::isCanceled(bool bForce) const
@@ -424,86 +342,67 @@ bool qmsmtp::SmtpSendSession::CallbackImpl::isCanceled(bool bForce) const
 	return pSessionCallback_->isCanceled(bForce);
 }
 
-QSTATUS qmsmtp::SmtpSendSession::CallbackImpl::initialize()
+void qmsmtp::SmtpSendSession::CallbackImpl::initialize()
 {
-	return setMessage(IDS_INITIALIZE);
+	setMessage(IDS_INITIALIZE);
 }
 
-QSTATUS qmsmtp::SmtpSendSession::CallbackImpl::lookup()
+void qmsmtp::SmtpSendSession::CallbackImpl::lookup()
 {
-	return setMessage(IDS_LOOKUP);
+	setMessage(IDS_LOOKUP);
 }
 
-QSTATUS qmsmtp::SmtpSendSession::CallbackImpl::connecting()
+void qmsmtp::SmtpSendSession::CallbackImpl::connecting()
 {
-	return setMessage(IDS_CONNECTING);
+	setMessage(IDS_CONNECTING);
 }
 
-QSTATUS qmsmtp::SmtpSendSession::CallbackImpl::connected()
+void qmsmtp::SmtpSendSession::CallbackImpl::connected()
 {
-	return setMessage(IDS_CONNECTED);
+	setMessage(IDS_CONNECTED);
 }
 
-QSTATUS qmsmtp::SmtpSendSession::CallbackImpl::getUserInfo(
-	WSTRING* pwstrUserName, WSTRING* pwstrPassword)
+bool qmsmtp::SmtpSendSession::CallbackImpl::getUserInfo(wstring_ptr* pwstrUserName,
+														wstring_ptr* pwstrPassword)
 {
 	assert(pwstrUserName);
 	assert(pwstrPassword);
 	
-	DECLARE_QSTATUS();
+	*pwstrUserName = allocWString(pSubAccount_->getUserName(Account::HOST_SEND));
+	*pwstrPassword = allocWString(pSubAccount_->getPassword(Account::HOST_SEND));
 	
-	string_ptr<WSTRING> wstrUserName(
-		allocWString(pSubAccount_->getUserName(Account::HOST_SEND)));
-	if (!wstrUserName.get())
-		return QSTATUS_OUTOFMEMORY;
-	string_ptr<WSTRING> wstrPassword(
-		allocWString(pSubAccount_->getPassword(Account::HOST_SEND)));
-	if (!wstrPassword.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	*pwstrUserName = wstrUserName.release();
-	*pwstrPassword = wstrPassword.release();
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmsmtp::SmtpSendSession::CallbackImpl::setPassword(
-	const WCHAR* pwszPassword)
+void qmsmtp::SmtpSendSession::CallbackImpl::setPassword(const WCHAR* pwszPassword)
 {
 	// TODO
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmsmtp::SmtpSendSession::CallbackImpl::getLocalHost(
-	WSTRING* pwstrLocalHost)
+wstring_ptr qmsmtp::SmtpSendSession::CallbackImpl::getLocalHost()
 {
-	assert(pwstrLocalHost);
-	return pSubAccount_->getProperty(L"Smtp",
-		L"LocalHost", L"", pwstrLocalHost);
+	return pSubAccount_->getProperty(L"Smtp", L"LocalHost", L"");
 }
 
-QSTATUS qmsmtp::SmtpSendSession::CallbackImpl::getAuthMethods(
-	WSTRING* pwstrAuthMethods)
+wstring_ptr qmsmtp::SmtpSendSession::CallbackImpl::getAuthMethods()
 {
-	assert(pwstrAuthMethods);
-	return pSubAccount_->getProperty(L"Smtp",
-		L"AuthMethods", L"", pwstrAuthMethods);
+	return pSubAccount_->getProperty(L"Smtp", L"AuthMethods", L"");
 }
 
-QSTATUS qmsmtp::SmtpSendSession::CallbackImpl::authenticating()
+void qmsmtp::SmtpSendSession::CallbackImpl::authenticating()
 {
-	return setMessage(IDS_AUTHENTICATING);
+	setMessage(IDS_AUTHENTICATING);
 }
 
-QSTATUS qmsmtp::SmtpSendSession::CallbackImpl::setRange(
-	unsigned int nMin, unsigned int nMax)
+void qmsmtp::SmtpSendSession::CallbackImpl::setRange(unsigned int nMin,
+													 unsigned int nMax)
 {
-	return pSessionCallback_->setSubRange(nMin, nMax);
+	pSessionCallback_->setSubRange(nMin, nMax);
 }
 
-QSTATUS qmsmtp::SmtpSendSession::CallbackImpl::setPos(unsigned int nPos)
+void qmsmtp::SmtpSendSession::CallbackImpl::setPos(unsigned int nPos)
 {
-	return pSessionCallback_->setSubPos(nPos);
+	pSessionCallback_->setSubPos(nPos);
 }
 
 
@@ -513,7 +412,7 @@ QSTATUS qmsmtp::SmtpSendSession::CallbackImpl::setPos(unsigned int nPos)
  *
  */
 
-qmsmtp::SmtpSendSessionUI::SmtpSendSessionUI(QSTATUS* pstatus)
+qmsmtp::SmtpSendSessionUI::SmtpSendSessionUI()
 {
 }
 
@@ -526,10 +425,9 @@ const WCHAR* qmsmtp::SmtpSendSessionUI::getClass()
 	return L"mail";
 }
 
-QSTATUS qmsmtp::SmtpSendSessionUI::getDisplayName(WSTRING* pwstrName)
+wstring_ptr qmsmtp::SmtpSendSessionUI::getDisplayName()
 {
-	assert(pwstrName);
-	return loadString(getResourceHandle(), IDS_SMTP, pwstrName);
+	return loadString(getResourceHandle(), IDS_SMTP);
 }
 
 short qmsmtp::SmtpSendSessionUI::getDefaultPort()
@@ -537,22 +435,9 @@ short qmsmtp::SmtpSendSessionUI::getDefaultPort()
 	return 25;
 }
 
-QSTATUS qmsmtp::SmtpSendSessionUI::createPropertyPage(
-	SubAccount* pSubAccount, PropertyPage** ppPage)
+std::auto_ptr<PropertyPage> qmsmtp::SmtpSendSessionUI::createPropertyPage(SubAccount* pSubAccount)
 {
-	assert(ppPage);
-	
-	DECLARE_QSTATUS();
-	
-	*ppPage = 0;
-	
-	std::auto_ptr<SendPage> pPage;
-	status = newQsObject(pSubAccount, &pPage);
-	CHECK_QSTATUS();
-	
-	*ppPage = pPage.release();
-	
-	return QSTATUS_SUCCESS;
+	return new SendPage(pSubAccount);
 }
 
 
@@ -566,41 +451,20 @@ SmtpSendSessionFactory qmsmtp::SmtpSendSessionFactory::factory__;
 
 qmsmtp::SmtpSendSessionFactory::SmtpSendSessionFactory()
 {
-	regist(L"smtp", this);
+	registerFactory(L"smtp", this);
 }
 
 qmsmtp::SmtpSendSessionFactory::~SmtpSendSessionFactory()
 {
-	unregist(L"smtp");
+	unregisterFactory(L"smtp");
 }
 
-QSTATUS qmsmtp::SmtpSendSessionFactory::createSession(
-	SendSession** ppSendSession)
+std::auto_ptr<SendSession> qmsmtp::SmtpSendSessionFactory::createSession()
 {
-	assert(ppSendSession);
-	
-	DECLARE_QSTATUS();
-	
-	SmtpSendSession* pSession = 0;
-	status = newQsObject(&pSession);
-	CHECK_QSTATUS();
-	
-	*ppSendSession = pSession;
-	
-	return QSTATUS_SUCCESS;
+	return new SmtpSendSession();
 }
 
-QSTATUS qmsmtp::SmtpSendSessionFactory::createUI(SendSessionUI** ppUI)
+std::auto_ptr<SendSessionUI> qmsmtp::SmtpSendSessionFactory::createUI()
 {
-	assert(ppUI);
-	
-	DECLARE_QSTATUS();
-	
-	SmtpSendSessionUI* pUI = 0;
-	status = newQsObject(&pUI);
-	CHECK_QSTATUS();
-	
-	*ppUI = pUI;
-	
-	return QSTATUS_SUCCESS;
+	return new SmtpSendSessionUI();
 }

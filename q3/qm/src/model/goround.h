@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -38,7 +38,7 @@ public:
 	typedef std::vector<GoRoundCourse*> CourseList;
 
 public:
-	GoRoundCourseList(qs::InputStream* pStream, qs::QSTATUS* pstatus);
+	GoRoundCourseList();
 	~GoRoundCourseList();
 
 public:
@@ -46,8 +46,8 @@ public:
 	GoRoundCourse* getCourse(size_t nIndex) const;
 	GoRoundCourse* getCourse(const WCHAR* pwszCourse) const;
 
-private:
-	qs::QSTATUS load(qs::InputStream* pStream);
+public:
+	bool load(qs::InputStream* pStream);
 
 private:
 	GoRoundCourseList(const GoRoundCourseList&);
@@ -81,7 +81,7 @@ public:
 
 public:
 	GoRoundCourse(const WCHAR* pwszName,
-		unsigned int nFlags, qs::QSTATUS* pstatus);
+				  unsigned int nFlags);
 	~GoRoundCourse();
 
 public:
@@ -92,18 +92,18 @@ public:
 	const EntryList& getEntries() const;
 
 public:
-	void setDialup(GoRoundDialup* pDialup);
+	void setDialup(std::auto_ptr<GoRoundDialup> pDialup);
 	void setType(Type type);
-	qs::QSTATUS addEntry(GoRoundEntry* pEntry);
+	void addEntry(std::auto_ptr<GoRoundEntry> pEntry);
 
 private:
 	GoRoundCourse(const GoRoundCourse&);
 	GoRoundCourse& operator=(const GoRoundCourse&);
 
 private:
-	qs::WSTRING wstrName_;
+	qs::wstring_ptr wstrName_;
 	unsigned int nFlags_;
-	GoRoundDialup* pDialup_;
+	std::auto_ptr<GoRoundDialup> pDialup_;
 	Type type_;
 	EntryList listEntry_;
 };
@@ -131,9 +131,12 @@ public:
 	};
 
 public:
-	GoRoundEntry(const WCHAR* pwszAccount, const WCHAR* pwszSubAccount,
-		const WCHAR* pwszFolder, unsigned int nFlags, const WCHAR* pwszFilterName,
-		ConnectReceiveBeforeSend crbs, qs::QSTATUS* pstatus);
+	GoRoundEntry(const WCHAR* pwszAccount,
+				 const WCHAR* pwszSubAccount,
+				 std::auto_ptr<qs::RegexPattern> pFolderName,
+				 unsigned int nFlags,
+				 const WCHAR* pwszFilterName,
+				 ConnectReceiveBeforeSend crbs);
 	~GoRoundEntry();
 
 public:
@@ -149,11 +152,11 @@ private:
 	GoRoundEntry& operator=(const GoRoundEntry&);
 
 private:
-	qs::WSTRING wstrAccount_;
-	qs::WSTRING wstrSubAccount_;
-	qs::RegexPattern* pFolderName_;
+	qs::wstring_ptr wstrAccount_;
+	qs::wstring_ptr wstrSubAccount_;
+	std::auto_ptr<qs::RegexPattern> pFolderName_;
 	unsigned int nFlags_;
-	qs::WSTRING wstrFilterName_;
+	qs::wstring_ptr wstrFilterName_;
 	ConnectReceiveBeforeSend crbs_;
 };
 
@@ -173,9 +176,10 @@ public:
 	};
 
 public:
-	GoRoundDialup(const WCHAR* pwszName, unsigned int nFlags,
-		const WCHAR* pwszDialFrom, unsigned int nDisconnectWait,
-		qs::QSTATUS* pstatus);
+	GoRoundDialup(const WCHAR* pwszName,
+				  unsigned int nFlags,
+				  const WCHAR* pwszDialFrom,
+				  unsigned int nDisconnectWait);
 	~GoRoundDialup();
 
 public:
@@ -189,9 +193,9 @@ private:
 	GoRoundDialup& operator=(const GoRoundDialup&);
 
 private:
-	qs::WSTRING wstrName_;
+	qs::wstring_ptr wstrName_;
 	unsigned int nFlags_;
-	qs::WSTRING wstrDialFrom_;
+	qs::wstring_ptr wstrDialFrom_;
 	unsigned int nDisconnectWait_;
 };
 
@@ -208,17 +212,20 @@ public:
 	typedef GoRoundCourseList::CourseList CourseList;
 
 public:
-	GoRoundContentHandler(CourseList* pListCourse, qs::QSTATUS* pstatus);
+	explicit GoRoundContentHandler(CourseList* pListCourse);
 	virtual ~GoRoundContentHandler();
 
 public:
-	virtual qs::QSTATUS startElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName,
-		const qs::Attributes& attributes);
-	virtual qs::QSTATUS endElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName);
-	virtual qs::QSTATUS characters(const WCHAR* pwsz,
-		size_t nStart, size_t nLength);
+	virtual bool startElement(const WCHAR* pwszNamespaceURI,
+							  const WCHAR* pwszLocalName,
+							  const WCHAR* pwszQName,
+							  const qs::Attributes& attributes);
+	virtual bool endElement(const WCHAR* pwszNamespaceURI,
+							const WCHAR* pwszLocalName,
+							const WCHAR* pwszQName);
+	virtual bool characters(const WCHAR* pwsz,
+							size_t nStart,
+							size_t nLength);
 
 private:
 	GoRoundContentHandler(const GoRoundContentHandler&);

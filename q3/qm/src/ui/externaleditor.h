@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -36,18 +36,20 @@ class TempFileCleaner;
 class ExternalEditorManager
 {
 public:
-	ExternalEditorManager(Document* pDocument, qs::Profile* pProfile,
-		HWND hwnd, TempFileCleaner* pTempFileCleaner,
-		FolderModel* pFolderModel, qs::QSTATUS* pstatus);
+	ExternalEditorManager(Document* pDocument,
+						  qs::Profile* pProfile,
+						  HWND hwnd,
+						  TempFileCleaner* pTempFileCleaner,
+						  FolderModel* pFolderModel);
 	~ExternalEditorManager();
 
 public:
-	qs::QSTATUS open(const WCHAR* pwszMessage);
+	bool open(const WCHAR* pwszMessage);
 
 private:
-	qs::QSTATUS createParam(const WCHAR* pwszTemplate,
-		const WCHAR* pwszPath, qs::WSTRING* pwstrParam);
-	qs::QSTATUS createMessage(const WCHAR* pwszPath);
+	qs::wstring_ptr createParam(const WCHAR* pwszTemplate,
+								const WCHAR* pwszPath);
+	bool createMessage(const WCHAR* pwszPath);
 
 private:
 	ExternalEditorManager(const ExternalEditorManager&);
@@ -64,14 +66,14 @@ private:
 	class WaitThread : public qs::Thread
 	{
 	public:
-		WaitThread(ExternalEditorManager* pManager, qs::QSTATUS* pstatus);
+		WaitThread(ExternalEditorManager* pManager);
 		virtual ~WaitThread();
 	
 	public:
 		void stop();
 	
 	public:
-		virtual unsigned int run();
+		virtual void run();
 	
 	private:
 		WaitThread(const WaitThread&);
@@ -92,8 +94,8 @@ private:
 	HWND hwnd_;
 	TempFileCleaner* pTempFileCleaner_;
 	ItemList listItem_;
-	WaitThread* pThread_;
-	qs::Event* pEvent_;
+	std::auto_ptr<WaitThread> pThread_;
+	std::auto_ptr<qs::Event> pEvent_;
 	qs::CriticalSection cs_;
 };
 

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -46,14 +46,49 @@ struct QSEXPORTCLASS KeyNameToId
 class QSEXPORTCLASS KeyMap
 {
 public:
-	KeyMap(const WCHAR* pwszPath, QSTATUS* pstatus);
-	KeyMap(InputStream* pInputStream, QSTATUS* pstatus);
+	/**
+	 * Create instance.
+	 * Call operator! to check if success or not.
+	 *
+	 * @param pwszPath [in] Path to the file which keymap is loaded from.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	KeyMap(const WCHAR* pwszPath);
+	
+	/**
+	 * Create instance.
+	 * Call operator! to check if success or not.
+	 *
+	 * @param pInputStream [in] Stream which keymap is loaded from.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	KeyMap(InputStream* pInputStream);
+	
 	~KeyMap();
 
 public:
-	QSTATUS createAccelerator(AcceleratorFactory& factory,
-		const WCHAR* pwszName, const KeyNameToId* pKeyNameToId,
-		int nMapSize, Accelerator** ppAccelerator) const;
+	/**
+	 * Check if keymap was loaded successfully or not.
+	 *
+	 * @return true if success, false otherwise.
+	 */
+	bool operator!() const;
+
+public:
+	/**
+	 * Create accelerator.
+	 *
+	 * @param pFactory [in] Accelerator factory.
+	 * @param pwszName [in] Name of keymap.
+	 * @param pKeyNameToId [in] Map from key name to accelerator id.
+	 * @param nMapSize [in] Size of the map specified by pKeyNameToId.
+	 * @return Created accelerator. Can not be null.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	std::auto_ptr<Accelerator> createAccelerator(AcceleratorFactory* pFactory,
+												 const WCHAR* pwszName,
+												 const KeyNameToId* pKeyNameToId,
+												 int nMapSize) const;
 
 private:
 	KeyMap(const KeyMap&);

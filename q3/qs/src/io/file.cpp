@@ -1,17 +1,15 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
-#include <qsfile.h>
 #include <qsconv.h>
-#include <qsstring.h>
-#include <qserror.h>
+#include <qsfile.h>
 #include <qsosutil.h>
-#include <qsnew.h>
+#include <qsstring.h>
 
 #include <algorithm>
 
@@ -37,16 +35,12 @@ qs::File::~File()
 {
 }
 
-QSTATUS qs::File::getTempFileName(const WCHAR* pwszDir, WSTRING* pwstrPath)
+wstring_ptr qs::File::getTempFileName(const WCHAR* pwszDir)
 {
 	assert(pwszDir);
-	assert(pwstrPath);
 	
-	*pwstrPath = 0;
+	wstring_ptr wstrPath(allocWString(wcslen(pwszDir) + 33));
 	
-	string_ptr<WSTRING> wstrPath(allocWString(wcslen(pwszDir) + 33));
-	if (!wstrPath.get())
-		return QSTATUS_OUTOFMEMORY;
 	WCHAR* pwszPath = wstrPath.get();
 	wcscpy(pwszPath, pwszDir);
 	WCHAR* p = pwszPath + wcslen(pwszDir);
@@ -61,25 +55,17 @@ QSTATUS qs::File::getTempFileName(const WCHAR* pwszDir, WSTRING* pwstrPath)
 		if (::GetFileAttributes(ptszPath) == 0xffffffff)
 			break;
 	}
-	*pwstrPath = wstrPath.release();
 	
-	return QSTATUS_SUCCESS;
+	return wstrPath;
 }
 
-QSTATUS qs::File::removeDirectory(const WCHAR* pwszDir)
+bool qs::File::removeDirectory(const WCHAR* pwszDir)
 {
 	assert(pwszDir);
 	assert(*(pwszDir + wcslen(pwszDir) - 1) != L'\\');
 	
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrPathBase(concat(pwszDir, L"\\*.*"));
-	if (!wstrPathBase.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	string_ptr<TSTRING> tstrPathBase(wcs2tcs(wstrPathBase.get()));
-	if (!tstrPathBase.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrPathBase(concat(pwszDir, L"\\*.*"));
+	tstring_ptr tstrPathBase(wcs2tcs(wstrPathBase.get()));
 	
 	WIN32_FIND_DATA fd;
 	AutoFindHandle hFind(::FindFirstFile(tstrPathBase.get(), &fd));
@@ -89,7 +75,7 @@ QSTATUS qs::File::removeDirectory(const WCHAR* pwszDir)
 	*(tstrPathBase.get() + nLen) = _T('\0');
 	
 	if (hFind.get()) {
-		string_ptr<TSTRING> tstrPath(allocTString(nLen + MAX_PATH + 10));
+		tstring_ptr tstrPath(allocTString(nLen + MAX_PATH + 10));
 		_tcscpy(tstrPath.get(), tstrPathBase.get());
 		TCHAR* pFileName = tstrPath.get() + nLen;
 		do {
@@ -99,16 +85,17 @@ QSTATUS qs::File::removeDirectory(const WCHAR* pwszDir)
 			if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
 				T2W(fd.cFileName, pwszFileName);
 				size_t nLen = wcslen(wstrPathBase.get()) - 3;
-				string_ptr<WSTRING> wstrPath(allocWString(nLen + wcslen(pwszFileName) + 10));
+				wstring_ptr wstrPath(allocWString(
+					nLen + wcslen(pwszFileName) + 10));
 				wcsncpy(wstrPath.get(), wstrPathBase.get(), nLen);
 				wcscpy(wstrPath.get() + nLen, pwszFileName);
-				status = File::removeDirectory(wstrPath.get());
-				CHECK_QSTATUS();
+				if (!File::removeDirectory(wstrPath.get()))
+					return false;
 			}
 			else {
 				_tcscpy(pFileName, fd.cFileName);
 				if (!::DeleteFile(tstrPath.get()))
-					return QSTATUS_FAIL;
+					return false;
 			}
 		} while (::FindNextFile(hFind.get(), &fd));
 	}
@@ -117,7 +104,7 @@ QSTATUS qs::File::removeDirectory(const WCHAR* pwszDir)
 	assert(*(tstrPathBase.get() + nLen - 1) == _T('\\'));
 	*(tstrPathBase.get() + nLen - 1) = _T('\0');
 	
-	return ::RemoveDirectory(tstrPathBase.get()) ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+	return ::RemoveDirectory(tstrPathBase.get()) != 0;
 }
 
 
@@ -133,28 +120,30 @@ struct qs::BinaryFileImpl
 		BUFFER_SIZE	= 256
 	};
 	
-	QSTATUS open(const WCHAR* pwszPath, unsigned int nMode);
-	QSTATUS close();
-	QSTATUS mapBuffer();
-	QSTATUS flushBuffer();
+	bool open(const WCHAR* pwszPath,
+			  unsigned int nMode);
+	bool close();
+	bool mapBuffer();
+	bool flushBuffer();
 	
 	HANDLE hFile_;
 	DWORD dwPosition_;
 	bool bWritten_;
-	unsigned char* pBuf_;
+	auto_ptr_array<unsigned char> pBuf_;
 	unsigned char* pBufEnd_;
 	unsigned char* pCurrent_;
 };
 
-QSTATUS qs::BinaryFileImpl::open(const WCHAR* pwszPath, unsigned int nMode)
+bool qs::BinaryFileImpl::open(const WCHAR* pwszPath,
+							  unsigned int nMode)
 {
 	assert(pwszPath);
 	assert(!hFile_);
 	assert(dwPosition_ == 0);
 	assert(!bWritten_);
-	assert(pBuf_);
-	assert(pBufEnd_ == pBuf_);
-	assert(pCurrent_ == pBuf_);
+	assert(pBuf_.get());
+	assert(pBufEnd_ == pBuf_.get());
+	assert(pCurrent_ == pBuf_.get());
 	
 	assert(nMode & BinaryFile::MODE_READ || nMode & BinaryFile::MODE_WRITE);
 	
@@ -178,79 +167,76 @@ QSTATUS qs::BinaryFileImpl::open(const WCHAR* pwszPath, unsigned int nMode)
 	}
 	
 	W2T(pwszPath, ptszPath);
-	hFile_ = ::CreateFile(ptszPath, dwMode, dwShare, 0, dwDescription,
-		FILE_ATTRIBUTE_NORMAL, 0);
-	if (hFile_ == INVALID_HANDLE_VALUE) {
-		hFile_ = 0;
-		return QSTATUS_FAIL;
-	}
+	AutoHandle hFile(::CreateFile(ptszPath, dwMode, dwShare,
+		0, dwDescription, FILE_ATTRIBUTE_NORMAL, 0));
+	if (!hFile.get())
+		return false;
+	hFile_ = hFile.release();
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::BinaryFileImpl::close()
+bool qs::BinaryFileImpl::close()
 {
-	DECLARE_QSTATUS();
-	
 	if (hFile_) {
-		status = flushBuffer();
-		if (!::CloseHandle(hFile_) && status != QSTATUS_SUCCESS)
-			status = QSTATUS_FAIL;
+		if (!flushBuffer())
+			return false;
+		if (!::CloseHandle(hFile_))
+			return false;
 		hFile_ = 0;
 	}
-	return status;
+	return true;
 }
 
-QSTATUS qs::BinaryFileImpl::mapBuffer()
+bool qs::BinaryFileImpl::mapBuffer()
 {
-	DECLARE_QSTATUS();
+	if (!flushBuffer())
+		return false;
+	assert(pBufEnd_ == pBuf_.get());
+	assert(pCurrent_ = pBuf_.get());
 	
-	status = flushBuffer();
-	CHECK_QSTATUS();
-	assert(pBufEnd_ == pBuf_);
-	assert(pCurrent_ = pBuf_);
-	
-	while (pBufEnd_ != pBuf_ + BUFFER_SIZE) {
+	while (pBufEnd_ != pBuf_.get() + BUFFER_SIZE) {
 		DWORD dwRead = 0;
-		if (!::ReadFile(hFile_, pBufEnd_, pBuf_ + BUFFER_SIZE - pBufEnd_, &dwRead, 0))
-			return QSTATUS_FAIL;
+		if (!::ReadFile(hFile_, pBufEnd_,
+			pBuf_.get() + BUFFER_SIZE - pBufEnd_, &dwRead, 0))
+			return false;
 		if (dwRead == 0)
 			break;
 		pBufEnd_ += dwRead;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::BinaryFileImpl::flushBuffer()
+bool qs::BinaryFileImpl::flushBuffer()
 {
 	if (bWritten_) {
-		assert(pCurrent_ != pBuf_);
-		assert(pBufEnd_ != pBuf_);
+		assert(pCurrent_ != pBuf_.get());
+		assert(pBufEnd_ != pBuf_.get());
 		
 		if (::SetFilePointer(hFile_, dwPosition_, 0, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
-			return QSTATUS_FAIL;
+			return false;
 		
-		unsigned char* p = pBuf_;
+		unsigned char* p = pBuf_.get();
 		while (p != pBufEnd_) {
 			DWORD dwWritten = 0;
 			if (!::WriteFile(hFile_, p, pBufEnd_ - p, &dwWritten, 0))
-				return QSTATUS_FAIL;
+				return false;
 			p += dwWritten;
 		}
 		bWritten_ = false;
 	}
 	
 	DWORD dwNewPos = ::SetFilePointer(hFile_,
-		dwPosition_ + (pCurrent_ - pBuf_), 0, FILE_BEGIN);
+		dwPosition_ + (pCurrent_ - pBuf_.get()), 0, FILE_BEGIN);
 	if (dwNewPos == INVALID_SET_FILE_POINTER)
-		return QSTATUS_FAIL;
+		return false;
 	dwPosition_ = dwNewPos;
 	
-	pCurrent_ = pBuf_;
-	pBufEnd_ = pBuf_;
+	pCurrent_ = pBuf_.get();
+	pBufEnd_ = pBuf_.get();
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -260,68 +246,61 @@ QSTATUS qs::BinaryFileImpl::flushBuffer()
  *
  */
 
-qs::BinaryFile::BinaryFile(const WCHAR* pwszPath, unsigned int nMode,
-	size_t nBufferSize, QSTATUS* pstatus)
+qs::BinaryFile::BinaryFile(const WCHAR* pwszPath,
+						   unsigned int nMode,
+						   size_t nBufferSize)
 {
 	assert(pwszPath);
-	assert(pstatus);
 	
 	if (nBufferSize == 0)
 		nBufferSize = BinaryFileImpl::BUFFER_SIZE;
 	
-	DECLARE_QSTATUS();
+	auto_ptr_array<unsigned char> pBuf(new unsigned char[nBufferSize]);
 	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	pImpl_->hFile_ = 0;
-	pImpl_->dwPosition_ = 0;
-	pImpl_->bWritten_ = false;
-	pImpl_->pBuf_ = 0;
-	pImpl_->pBufEnd_ = 0;
-	pImpl_->pCurrent_ = 0;
+	std::auto_ptr<BinaryFileImpl> pImpl(new BinaryFileImpl());
+	pImpl->hFile_ = 0;
+	pImpl->dwPosition_ = 0;
+	pImpl->bWritten_ = false;
+	pImpl->pBuf_ = pBuf;
+	pImpl->pBufEnd_ = pImpl->pBuf_.get();
+	pImpl->pCurrent_ = pImpl->pBuf_.get();
 	
-	malloc_ptr<unsigned char> pBuf(static_cast<unsigned char*>(malloc(nBufferSize)));
-	if (!pBuf.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
+	if (!pImpl->open(pwszPath, nMode))
 		return;
-	}
-	pImpl_->pBuf_ = pBuf.release();
-	pImpl_->pBufEnd_ = pImpl_->pBuf_;
-	pImpl_->pCurrent_ = pImpl_->pBuf_;
 	
-	status = pImpl_->open(pwszPath, nMode);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = pImpl.release();
 }
 
 qs::BinaryFile::~BinaryFile()
 {
 	if (pImpl_) {
 		pImpl_->close();
-		
-		free(pImpl_->pBuf_);
 		delete pImpl_;
 		pImpl_ = 0;
 	}
 }
 
-QSTATUS qs::BinaryFile::close()
+bool qs::BinaryFile::operator!() const
+{
+	return pImpl_ == 0;
+}
+
+bool qs::BinaryFile::close()
 {
 	return pImpl_->close();
 }
 
-QSTATUS qs::BinaryFile::read(unsigned char* p, size_t nRead, size_t* pnRead)
+size_t qs::BinaryFile::read(unsigned char* p,
+							size_t nRead)
 {
 	assert(p);
-	assert(pnRead);
 	
-	*pnRead = 0;
-	
-	DECLARE_QSTATUS();
+	size_t nSize = 0;
 	
 	if (static_cast<size_t>(pImpl_->pBufEnd_ - pImpl_->pCurrent_) >= nRead) {
 		memcpy(p, pImpl_->pCurrent_, nRead);
 		pImpl_->pCurrent_ += nRead;
-		*pnRead = nRead;
+		nSize = nRead;
 	}
 	else {
 		if (pImpl_->pCurrent_ != pImpl_->pBufEnd_) {
@@ -329,55 +308,48 @@ QSTATUS qs::BinaryFile::read(unsigned char* p, size_t nRead, size_t* pnRead)
 			memcpy(p, pImpl_->pCurrent_, n);
 			p += n;
 			nRead -= n;
-			*pnRead = n;
+			nSize = n;
 			pImpl_->pCurrent_ = pImpl_->pBufEnd_;
 		}
 		
 		if (nRead > BinaryFileImpl::BUFFER_SIZE/2) {
-			status = pImpl_->flushBuffer();
-			CHECK_QSTATUS();
-			assert(pImpl_->pBufEnd_ == pImpl_->pBuf_);
-			assert(pImpl_->pCurrent_ == pImpl_->pBuf_);
+			if (!pImpl_->flushBuffer())
+				return -1;
+			assert(pImpl_->pBufEnd_ == pImpl_->pBuf_.get());
+			assert(pImpl_->pCurrent_ == pImpl_->pBuf_.get());
 			
 			while (nRead != 0) {
 				DWORD dwRead = 0;
 				if (!::ReadFile(pImpl_->hFile_, p, nRead, &dwRead, 0))
-					return QSTATUS_FAIL;
-				if (dwRead == 0) {
-					if (*pnRead == 0)
-						*pnRead = -1;
+					return -1;
+				if (dwRead == 0)
 					break;
-				}
-				*pnRead += dwRead;
+				nSize += dwRead;
 				p += dwRead;
 				nRead -= dwRead;
 				pImpl_->dwPosition_ += dwRead;
 			}
 		}
 		else {
-			status = pImpl_->mapBuffer();
-			CHECK_QSTATUS();
+			if (!pImpl_->mapBuffer())
+				return -1;
 			if (static_cast<size_t>(pImpl_->pBufEnd_ - pImpl_->pCurrent_) < nRead)
 				nRead = pImpl_->pBufEnd_ - pImpl_->pCurrent_;
 			if (nRead != 0) {
 				memcpy(p, pImpl_->pCurrent_, nRead);
 				pImpl_->pCurrent_ += nRead;
-				*pnRead += nRead;
-			}
-			else {
-				if (*pnRead == 0)
-					*pnRead = -1;
+				nSize += nRead;
 			}
 		}
 	}
-	return QSTATUS_SUCCESS;
+	
+	return nSize;
 }
 
-QSTATUS qs::BinaryFile::write(const unsigned char* p, size_t nWrite)
+size_t qs::BinaryFile::write(const unsigned char* p,
+							 size_t nWrite)
 {
 	assert(p);
-	
-	DECLARE_QSTATUS();
 	
 	if (static_cast<size_t>(pImpl_->pBufEnd_ - pImpl_->pCurrent_) >= nWrite) {
 		memcpy(pImpl_->pCurrent_, p, nWrite);
@@ -395,23 +367,23 @@ QSTATUS qs::BinaryFile::write(const unsigned char* p, size_t nWrite)
 		}
 		
 		if (nWrite > BinaryFileImpl::BUFFER_SIZE/2) {
-			status = pImpl_->flushBuffer();
-			CHECK_QSTATUS();
-			assert(pImpl_->pBufEnd_ == pImpl_->pBuf_);
-			assert(pImpl_->pCurrent_ == pImpl_->pBuf_);
+			if (!pImpl_->flushBuffer())
+				return -1;
+			assert(pImpl_->pBufEnd_ == pImpl_->pBuf_.get());
+			assert(pImpl_->pCurrent_ == pImpl_->pBuf_.get());
 			
 			while (nWrite != 0) {
 				DWORD dwWritten = 0;
 				if (!::WriteFile(pImpl_->hFile_, p, nWrite, &dwWritten, 0))
-					return QSTATUS_FAIL;
+					return -1;
 				p += dwWritten;
 				nWrite -= dwWritten;
 				pImpl_->dwPosition_ += dwWritten;
 			}
 		}
 		else {
-			status = pImpl_->mapBuffer();
-			CHECK_QSTATUS();
+			if (!pImpl_->mapBuffer())
+				return -1;
 			memcpy(pImpl_->pCurrent_, p, nWrite);
 			pImpl_->pCurrent_ += nWrite;
 			if (pImpl_->pCurrent_ > pImpl_->pBufEnd_)
@@ -419,31 +391,27 @@ QSTATUS qs::BinaryFile::write(const unsigned char* p, size_t nWrite)
 			pImpl_->bWritten_ = true;
 		}
 	}
-	return QSTATUS_SUCCESS;
+	
+	return nWrite;
 }
 
-QSTATUS qs::BinaryFile::flush()
+bool qs::BinaryFile::flush()
 {
-	DECLARE_QSTATUS();
+	if (!pImpl_->flushBuffer())
+		return false;
 	
-	status = pImpl_->flushBuffer();
-	CHECK_QSTATUS();
-	
-	return ::FlushFileBuffers(pImpl_->hFile_) ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+	return ::FlushFileBuffers(pImpl_->hFile_) != 0;
 }
 
-QSTATUS qs::BinaryFile::getPosition(int* pnPosition)
+int qs::BinaryFile::getPosition()
 {
-	assert(pnPosition);
-	*pnPosition = pImpl_->dwPosition_ + (pImpl_->pCurrent_ - pImpl_->pBuf_);
-	return QSTATUS_SUCCESS;
+	return pImpl_->dwPosition_ + (pImpl_->pCurrent_ - pImpl_->pBuf_.get());
 }
 
-QSTATUS qs::BinaryFile::setPosition(int nPosition, SeekOrigin seekOrigin)
+int qs::BinaryFile::setPosition(int nPosition,
+								SeekOrigin seekOrigin)
 {
-	DECLARE_QSTATUS();
-	
-	if (pImpl_->pBuf_ != pImpl_->pBufEnd_) {
+	if (pImpl_->pBuf_.get() != pImpl_->pBufEnd_) {
 		DWORD dwNewPos = 0;
 		switch (seekOrigin) {
 		case SEEKORIGIN_BEGIN:
@@ -451,71 +419,64 @@ QSTATUS qs::BinaryFile::setPosition(int nPosition, SeekOrigin seekOrigin)
 			break;
 		case SEEKORIGIN_END:
 			{
-				size_t nSize = 0;
-				status = getSize(&nSize);
-				CHECK_QSTATUS();
+				size_t nSize = getSize();
+				if (nSize == -1)
+					return -1;
 				dwNewPos = nSize + nPosition;
 			}
 			break;
 		case SEEKORIGIN_CURRENT:
-			dwNewPos = pImpl_->dwPosition_ + (pImpl_->pCurrent_ - pImpl_->pBuf_) + nPosition;
+			dwNewPos = pImpl_->dwPosition_ +
+				(pImpl_->pCurrent_ - pImpl_->pBuf_.get()) + nPosition;
 			break;
 		default:
 			assert(false);
-			return QSTATUS_FAIL;
+			return -1;
 		}
 		if (pImpl_->dwPosition_ <= dwNewPos &&
-			dwNewPos <= pImpl_->dwPosition_ + (pImpl_->pBufEnd_ - pImpl_->pBuf_)) {
-			pImpl_->pCurrent_ = pImpl_->pBuf_ + (dwNewPos - pImpl_->dwPosition_);
-			return QSTATUS_SUCCESS;
+			dwNewPos <= pImpl_->dwPosition_ + (pImpl_->pBufEnd_ - pImpl_->pBuf_.get())) {
+			pImpl_->pCurrent_ = pImpl_->pBuf_.get() + (dwNewPos - pImpl_->dwPosition_);
+			return getPosition();
 		}
 	}
 	
 	DWORD dwMethod = seekOrigin == SEEKORIGIN_BEGIN ? FILE_BEGIN :
 		seekOrigin == SEEKORIGIN_END ? FILE_END : FILE_CURRENT;
-	status = pImpl_->flushBuffer();
-	CHECK_QSTATUS();
-	assert(pImpl_->pBufEnd_ == pImpl_->pBuf_);
-	assert(pImpl_->pCurrent_ == pImpl_->pBuf_);
+	if (!pImpl_->flushBuffer())
+		return -1;
+	assert(pImpl_->pBufEnd_ == pImpl_->pBuf_.get());
+	assert(pImpl_->pCurrent_ == pImpl_->pBuf_.get());
 	DWORD dwNewPos = ::SetFilePointer(pImpl_->hFile_, nPosition, 0, dwMethod);
 	if (dwNewPos == INVALID_SET_FILE_POINTER)
-		return QSTATUS_FAIL;
+		return -1;
 	pImpl_->dwPosition_ = dwNewPos;
 	
-	return QSTATUS_SUCCESS;
+	return getPosition();
 }
 
-QSTATUS qs::BinaryFile::setEndOfFile()
+bool qs::BinaryFile::setEndOfFile()
 {
-	DECLARE_QSTATUS();
+	int nPosition = getPosition();
 	
-	int nPosition = 0;
-	status = getPosition(&nPosition);
-	CHECK_QSTATUS();
-	
-	status = pImpl_->flushBuffer();
-	CHECK_QSTATUS();
-	assert(pImpl_->pBufEnd_ == pImpl_->pBuf_);
-	assert(pImpl_->pCurrent_ == pImpl_->pBuf_);
+	if (!pImpl_->flushBuffer())
+		return false;
+	assert(pImpl_->pBufEnd_ == pImpl_->pBuf_.get());
+	assert(pImpl_->pCurrent_ == pImpl_->pBuf_.get());
 	
 	DWORD dwNewPos = ::SetFilePointer(pImpl_->hFile_, nPosition, 0, FILE_BEGIN);
 	if (dwNewPos == INVALID_SET_FILE_POINTER)
-		return QSTATUS_FAIL;
+		return false;
 	pImpl_->dwPosition_ = dwNewPos;
 	
-	return ::SetEndOfFile(pImpl_->hFile_) ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+	return ::SetEndOfFile(pImpl_->hFile_) != 0;
 }
 
-QSTATUS qs::BinaryFile::getSize(size_t* pnSize)
+size_t qs::BinaryFile::getSize()
 {
-	assert(pnSize);
-	
 	DWORD dwSize = ::GetFileSize(pImpl_->hFile_, 0);
 	if (dwSize == -1)
-		return QSTATUS_FAIL;
-	*pnSize = QSMAX(dwSize, pImpl_->dwPosition_ + (pImpl_->pCurrent_ - pImpl_->pBuf_));
-	
-	return QSTATUS_SUCCESS;
+		return -1;
+	return QSMAX(dwSize, pImpl_->dwPosition_ + (pImpl_->pCurrent_ - pImpl_->pBuf_.get()));
 }
 
 
@@ -529,10 +490,10 @@ struct qs::DividedFileImpl
 {
 	typedef std::vector<BinaryFile*> FileList;
 	
-	QSTATUS getFile(unsigned int n, BinaryFile** ppFile);
-	QSTATUS getPath(unsigned int n, WSTRING* pwstrPath) const;
+	BinaryFile* getFile(unsigned int n);
+	wstring_ptr getPath(unsigned int n) const;
 	
-	WSTRING wstrPath_;
+	wstring_ptr wstrPath_;
 	size_t nBlockSize_;
 	unsigned int nMode_;
 	size_t nBufferSize_;
@@ -540,39 +501,29 @@ struct qs::DividedFileImpl
 	int nPosition_;
 };
 
-QSTATUS qs::DividedFileImpl::getFile(unsigned int n, BinaryFile** ppFile)
+BinaryFile* qs::DividedFileImpl::getFile(unsigned int n)
 {
-	assert(ppFile);
-	
-	DECLARE_QSTATUS();
-	
-	if (listFile_.size() <= n) {
-		status = STLWrapper<FileList>(listFile_).resize(n + 1);
-		CHECK_QSTATUS();
-	}
+	if (listFile_.size() <= n)
+		listFile_.resize(n + 1);
 	
 	BinaryFile*& pFile = listFile_[n];
 	if (!pFile) {
-		string_ptr<WSTRING> wstrPath;
-		status = getPath(n, &wstrPath);
-		CHECK_QSTATUS();
-		status = newQsObject(wstrPath.get(), nMode_, nBufferSize_, &pFile);
-		CHECK_QSTATUS();
+		wstring_ptr wstrPath(getPath(n));
+		std::auto_ptr<BinaryFile> p(new BinaryFile(
+			wstrPath.get(), nMode_, nBufferSize_));
+		if (!*p)
+			return 0;
+		pFile = p.release();
 	}
-	*ppFile = pFile;
 	
-	return QSTATUS_SUCCESS;
+	return pFile;
 }
 
-QSTATUS qs::DividedFileImpl::getPath(unsigned int n, WSTRING* pwstrPath) const
+wstring_ptr qs::DividedFileImpl::getPath(unsigned int n) const
 {
-	assert(pwstrPath);
-	
-	DECLARE_QSTATUS();
-	
-	const WCHAR* pFileName = wcsrchr(wstrPath_, L'\\');
+	const WCHAR* pFileName = wcsrchr(wstrPath_.get(), L'\\');
 	if (!pFileName)
-		pFileName = wstrPath_;
+		pFileName = wstrPath_.get();
 	const WCHAR* pExt = wcschr(pFileName, L'.');
 	if (!pExt)
 		pExt = pFileName + wcslen(pFileName);
@@ -580,16 +531,7 @@ QSTATUS qs::DividedFileImpl::getPath(unsigned int n, WSTRING* pwstrPath) const
 	WCHAR wsz[16];
 	swprintf(wsz, L"%03u", n);
 	
-	StringBuffer<WSTRING> buf(wstrPath_, pExt - wstrPath_, &status);
-	CHECK_QSTATUS();
-	status = buf.append(wsz);
-	CHECK_QSTATUS();
-	status = buf.append(pExt);
-	CHECK_QSTATUS();
-	
-	*pwstrPath = buf.getString();
-	
-	return QSTATUS_SUCCESS;
+	return concat(wstrPath_.get(), pExt - wstrPath_.get(), wsz, -1, pExt, -1);
 }
 
 
@@ -599,25 +541,16 @@ QSTATUS qs::DividedFileImpl::getPath(unsigned int n, WSTRING* pwstrPath) const
  *
  */
 
-qs::DividedFile::DividedFile(const WCHAR* pwszPath, size_t nBlockSize,
-	unsigned int nMode, size_t nBufferSize, QSTATUS* pstatus) :
+qs::DividedFile::DividedFile(const WCHAR* pwszPath,
+							 size_t nBlockSize,
+							 unsigned int nMode,
+							 size_t nBufferSize) :
 	pImpl_(0)
 {
-	assert(pstatus);
+	wstring_ptr wstrPath(allocWString(pwszPath));
 	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrPath(allocWString(pwszPath));
-	if (!wstrPath.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	pImpl_->wstrPath_ = wstrPath.release();
+	pImpl_ = new DividedFileImpl();
+	pImpl_->wstrPath_ = wstrPath;
 	pImpl_->nBlockSize_ = nBlockSize;
 	pImpl_->nMode_ = nMode;
 	pImpl_->nBufferSize_ = nBufferSize;
@@ -628,21 +561,19 @@ qs::DividedFile::~DividedFile()
 {
 	if (pImpl_) {
 		close();
-		
-		freeWString(pImpl_->wstrPath_);
 		delete pImpl_;
 		pImpl_ = 0;
 	}
 }
 
-QSTATUS qs::DividedFile::close()
+bool qs::DividedFile::close()
 {
 	bool bFail = false;
 	DividedFileImpl::FileList::iterator it = pImpl_->listFile_.begin();
 	while (it != pImpl_->listFile_.end()) {
 		BinaryFile* pFile = *it;
 		if (pFile) {
-			if (pFile->close() != QSTATUS_SUCCESS)
+			if (!pFile->close())
 				bFail = true;
 			delete pFile;
 			*it = 0;
@@ -650,28 +581,24 @@ QSTATUS qs::DividedFile::close()
 		++it;
 	}
 	
-	return !bFail ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+	return !bFail;
 }
 
-QSTATUS qs::DividedFile::read(unsigned char* p, size_t nRead, size_t* pnRead)
+size_t qs::DividedFile::read(unsigned char* p,
+							 size_t nRead)
 {
 	assert(p);
-	assert(pnRead);
-	
-	*pnRead = 0;
 	
 	if (nRead == 0)
-		return QSTATUS_SUCCESS;
-	
-	DECLARE_QSTATUS();
+		return 0;
 	
 	unsigned int nStart = pImpl_->nPosition_/pImpl_->nBlockSize_;
 	unsigned int nEnd = (pImpl_->nPosition_ + nRead - 1)/pImpl_->nBlockSize_;
 	size_t nReadAll = 0;
 	for (unsigned int n = nStart; n <= nEnd; ++n) {
-		BinaryFile* pFile = 0;
-		status = pImpl_->getFile(n, &pFile);
-		CHECK_QSTATUS();
+		BinaryFile* pFile = pImpl_->getFile(n);
+		if (!pFile)
+			return -1;
 		
 		size_t nReadSize = pImpl_->nBlockSize_;
 		int nPosition = 0;
@@ -684,38 +611,34 @@ QSTATUS qs::DividedFile::read(unsigned char* p, size_t nRead, size_t* pnRead)
 		}
 		assert(static_cast<size_t>(nPosition) < pImpl_->nBlockSize_);
 		assert(nReadSize <= pImpl_->nBlockSize_);
-		status = pFile->setPosition(nPosition, SEEKORIGIN_BEGIN);
-		CHECK_QSTATUS();
-		size_t nFileRead = 0;
-		status = pFile->read(p, nReadSize, &nFileRead);
-		CHECK_QSTATUS();
-		if (nFileRead != -1) {
-			p += nFileRead;
-			nRead -= nFileRead;
-			nReadAll += nFileRead;
-		}
+		if (pFile->setPosition(nPosition, SEEKORIGIN_BEGIN) == -1)
+			return -1;
+		size_t nFileRead = pFile->read(p, nReadSize);
+		if (nFileRead == -1)
+			return -1;
+		p += nFileRead;
+		nRead -= nFileRead;
+		nReadAll += nFileRead;
 		if (nFileRead != nReadSize)
 			break;
 	}
 	pImpl_->nPosition_ += nReadAll;
-	*pnRead = nReadAll == 0 ? -1 : nReadAll;
 	
-	return QSTATUS_SUCCESS;
+	return nReadAll;
 }
 
-QSTATUS qs::DividedFile::write(const unsigned char* p, size_t nWrite)
+size_t qs::DividedFile::write(const unsigned char* p,
+							  size_t nWrite)
 {
 	assert(p);
-	
-	DECLARE_QSTATUS();
 	
 	unsigned int nStart = pImpl_->nPosition_/pImpl_->nBlockSize_;
 	unsigned int nEnd = (pImpl_->nPosition_ + nWrite - 1)/pImpl_->nBlockSize_;
 	unsigned int nWriteAll = 0;
 	for (unsigned int n = nStart; n <= nEnd; ++n) {
-		BinaryFile* pFile = 0;
-		status = pImpl_->getFile(n, &pFile);
-		CHECK_QSTATUS();
+		BinaryFile* pFile = pImpl_->getFile(n);
+		if (!pFile)
+			return -1;
 		
 		size_t nWriteSize = pImpl_->nBlockSize_;
 		int nPosition = 0;
@@ -728,88 +651,99 @@ QSTATUS qs::DividedFile::write(const unsigned char* p, size_t nWrite)
 		}
 		assert(static_cast<size_t>(nPosition) < pImpl_->nBlockSize_);
 		assert(nWriteSize <= pImpl_->nBlockSize_);
-		status = pFile->setPosition(nPosition, SEEKORIGIN_BEGIN);
-		CHECK_QSTATUS();
-		status = pFile->write(p, nWriteSize);
-		CHECK_QSTATUS();
+		if (pFile->setPosition(nPosition, SEEKORIGIN_BEGIN) == -1)
+			return -1;
+		if (pFile->write(p, nWriteSize) == -1)
+			return -1;
 		p += nWriteSize;
 		nWrite -= nWriteSize;
 		nWriteAll += nWriteSize;
 	}
 	pImpl_->nPosition_ += nWriteAll;
 	
-	return QSTATUS_SUCCESS;
+	return nWrite;
 }
 
-QSTATUS qs::DividedFile::flush()
+bool qs::DividedFile::flush()
 {
 	bool bFail = false;
 	DividedFileImpl::FileList::iterator it = pImpl_->listFile_.begin();
 	while (it != pImpl_->listFile_.end()) {
 		BinaryFile* pFile = *it;
-		if (pFile && pFile->flush() != QSTATUS_SUCCESS)
+		if (pFile && !pFile->flush())
 			bFail = true;
 		++it;
 	}
 	
-	return !bFail ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+	return !bFail;
 }
 
-QSTATUS qs::DividedFile::getPosition(int* pnPosition)
+int qs::DividedFile::getPosition()
 {
-	assert(pnPosition);
-	*pnPosition = pImpl_->nPosition_;
-	return QSTATUS_SUCCESS;
+	return pImpl_->nPosition_;
 }
 
-QSTATUS qs::DividedFile::setPosition(int nPosition, SeekOrigin seekOrigin)
+int qs::DividedFile::setPosition(int nPosition,
+								 SeekOrigin seekOrigin)
 {
 	assert(seekOrigin == SEEKORIGIN_BEGIN);
 	pImpl_->nPosition_ = nPosition;
-	return QSTATUS_SUCCESS;
+	return getPosition();
 }
 
-QSTATUS qs::DividedFile::setEndOfFile()
+bool qs::DividedFile::setEndOfFile()
 {
-	DECLARE_QSTATUS();
-	
 	unsigned int nFile = pImpl_->nPosition_/pImpl_->nBlockSize_;
 	
-	BinaryFile* pFile = 0;
-	status = pImpl_->getFile(nFile, &pFile);
-	CHECK_QSTATUS();
+	BinaryFile* pFile = pImpl_->getFile(nFile);
+	if (!pFile)
+		return false;
 	
-	status = pFile->setPosition(pImpl_->nPosition_ - nFile*pImpl_->nBlockSize_,
-		SEEKORIGIN_BEGIN);
-	CHECK_QSTATUS();
-	status = pFile->setEndOfFile();
-	CHECK_QSTATUS();
+	if (pFile->setPosition(pImpl_->nPosition_ - nFile*pImpl_->nBlockSize_,
+		SEEKORIGIN_BEGIN) == -1)
+		return false;
+	if (!pFile->setEndOfFile())
+		return false;
 	
 	DividedFileImpl::FileList& l = pImpl_->listFile_;
 	for (unsigned int n = nFile + 1; n < l.size(); ++n)
 		delete l[n];
 	l.erase(l.begin() + nFile + 1, l.end());
 	
-	for (n = nFile + 1; ; ++n) {
-		string_ptr<WSTRING> wstrPath;
-		status = pImpl_->getPath(n, &wstrPath);
-		CHECK_QSTATUS();
+	for (unsigned int n = nFile + 1; ; ++n) {
+		wstring_ptr wstrPath(pImpl_->getPath(n));
 		W2T(wstrPath.get(), ptszPath);
 		if (::GetFileAttributes(ptszPath) == 0xffffffff)
 			break;
 		::DeleteFile(ptszPath);
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::DividedFile::getSize(size_t* pnSize)
+size_t qs::DividedFile::getSize()
 {
 	assert(false);
-	assert(pnSize);
-	*pnSize = 0;
-	return QSTATUS_SUCCESS;
+	return -1;
 }
+
+
+/****************************************************************************
+ *
+ * TemporaryFileRenamerImpl
+ *
+ */
+
+struct qs::TemporaryFileRenamerImpl
+{
+	wstring_ptr wstrOriginalPath_;
+	wstring_ptr wstrTemporaryPath_;
+#ifndef UNICODE
+	tstring_ptr tstrOriginalPath_;
+	tstring_ptr tstrTemporaryPath_;
+#endif
+	bool bRenamed_;
+};
 
 
 /****************************************************************************
@@ -818,91 +752,63 @@ QSTATUS qs::DividedFile::getSize(size_t* pnSize)
  *
  */
 
-qs::TemporaryFileRenamer::TemporaryFileRenamer(
-	const WCHAR* pwszPath, QSTATUS* pstatus) :
-	wstrOriginalPath_(0),
-	wstrTemporaryPath_(0),
-#ifndef UNICODE
-	tstrOriginalPath_(0),
-	tstrTemporaryPath_(0),
-#endif
-	bRenamed_(false)
+qs::TemporaryFileRenamer::TemporaryFileRenamer(const WCHAR* pwszPath) :
+	pImpl_(0)
 {
-	string_ptr<WSTRING> wstrOriginalPath(allocWString(pwszPath));
-	if (!wstrOriginalPath.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
-	
-	string_ptr<WSTRING> wstrTemporaryPath(concat(pwszPath, L".tmp"));
-	if (!wstrTemporaryPath.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
+	wstring_ptr wstrOriginalPath(allocWString(pwszPath));
+	wstring_ptr wstrTemporaryPath(concat(pwszPath, L".tmp"));
 	
 #ifndef UNICODE
-	string_ptr<TSTRING> tstrOriginalPath(wcs2tcs(wstrOriginalPath.get()));
-	if (!tstrOriginalPath.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
-	
-	string_ptr<TSTRING> tstrTemporaryPath(wcs2tcs(wstrTemporaryPath.get()));
-	if (!tstrTemporaryPath.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
+	tstring_ptr tstrOriginalPath(wcs2tcs(wstrOriginalPath.get()));
+	tstring_ptr tstrTemporaryPath(wcs2tcs(wstrTemporaryPath.get()));
 #endif
 	
-	wstrOriginalPath_ = wstrOriginalPath.release();
-	wstrTemporaryPath_ = wstrTemporaryPath.release();
+	pImpl_ = new TemporaryFileRenamerImpl();
+	pImpl_->wstrOriginalPath_ = wstrOriginalPath;
+	pImpl_->wstrTemporaryPath_ = wstrTemporaryPath;
 #ifndef UNICODE
-	tstrOriginalPath_ = tstrOriginalPath.release();
-	tstrTemporaryPath_ = tstrTemporaryPath.release();
+	pImpl_->tstrOriginalPath_ = tstrOriginalPath;
+	pImpl_->tstrTemporaryPath_ = tstrTemporaryPath;
 #endif
+	pImpl_->bRenamed_ = false;
 }
 
 qs::TemporaryFileRenamer::~TemporaryFileRenamer()
 {
-	if (!bRenamed_) {
+	if (!pImpl_->bRenamed_) {
 #ifdef UNICODE
-		const TCHAR* ptszPath = wstrTemporaryPath_;
+		const TCHAR* ptszPath = pImpl_->wstrTemporaryPath_.get();
 #else
-		const TCHAR* ptszPath = tstrTemporaryPath_;
+		const TCHAR* ptszPath = pImpl_->tstrTemporaryPath_.get();
 #endif
 		::DeleteFile(ptszPath);
 	}
-	
-	freeWString(wstrOriginalPath_);
-	freeWString(wstrTemporaryPath_);
-#ifndef UNICODE
-	freeTString(tstrOriginalPath_);
-	freeTString(tstrTemporaryPath_);
-#endif
+	delete pImpl_;
+	pImpl_ = 0;
 }
 
 const WCHAR* qs::TemporaryFileRenamer::getPath() const
 {
-	return wstrTemporaryPath_;
+	return pImpl_->wstrTemporaryPath_.get();
 }
 
-QSTATUS qs::TemporaryFileRenamer::rename()
+bool qs::TemporaryFileRenamer::rename()
 {
 #ifdef UNICODE
-	const TCHAR* ptszOriginalPath = wstrOriginalPath_;
-	const TCHAR* ptszTemporaryPath = wstrTemporaryPath_;
+	const TCHAR* ptszOriginalPath = pImpl_->wstrOriginalPath_.get();
+	const TCHAR* ptszTemporaryPath = pImpl_->wstrTemporaryPath_.get();
 #else
-	const TCHAR* ptszOriginalPath = tstrOriginalPath_;
-	const TCHAR* ptszTemporaryPath = tstrTemporaryPath_;
+	const TCHAR* ptszOriginalPath = pImpl_->tstrOriginalPath_.get();
+	const TCHAR* ptszTemporaryPath = pImpl_->tstrTemporaryPath_.get();
 #endif
 	if (::GetFileAttributes(ptszOriginalPath) != 0xffffffff) {
 		if (!::DeleteFile(ptszOriginalPath))
-			return QSTATUS_FAIL;
+			return false;
 	}
 	if (!::MoveFile(ptszTemporaryPath, ptszOriginalPath))
-		return QSTATUS_FAIL;
+		return false;
 	
-	bRenamed_ = true;
+	pImpl_->bRenamed_ = true;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }

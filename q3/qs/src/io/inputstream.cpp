@@ -1,16 +1,15 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
-#include <qsstream.h>
-#include <qserror.h>
-#include <qsnew.h>
-#include <qsstring.h>
 #include <qsconv.h>
+#include <qsosutil.h>
+#include <qsstream.h>
+#include <qsstring.h>
 
 #include <windows.h>
 
@@ -36,24 +35,21 @@ qs::InputStream::~InputStream()
 
 struct qs::FileInputStreamImpl
 {
-	QSTATUS open(const WCHAR* pwszPath);
+	bool open(const WCHAR* pwszPath);
 	
 	HANDLE hFile_;
 };
 
-QSTATUS qs::FileInputStreamImpl::open(const WCHAR* pwszPath)
+bool qs::FileInputStreamImpl::open(const WCHAR* pwszPath)
 {
-	DECLARE_QSTATUS();
-	
 	W2T(pwszPath, ptszPath);
-	hFile_ = ::CreateFile(ptszPath, GENERIC_READ, FILE_SHARE_READ, 0,
-		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-	if (hFile_ == INVALID_HANDLE_VALUE) {
-		hFile_ = 0;
-		return QSTATUS_FAIL;
-	}
+	AutoHandle hFile(::CreateFile(ptszPath, GENERIC_READ,
+		FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
+	if (!hFile.get())
+		return false;
+	hFile_ = hFile.release();
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -63,21 +59,16 @@ QSTATUS qs::FileInputStreamImpl::open(const WCHAR* pwszPath)
  *
  */
 
-qs::FileInputStream::FileInputStream(const WCHAR* pwszPath, QSTATUS* pstatus) :
+qs::FileInputStream::FileInputStream(const WCHAR* pwszPath) :
 	pImpl_(0)
 {
-	assert(pstatus);
+	std::auto_ptr<FileInputStreamImpl> pImpl(new FileInputStreamImpl());
+	pImpl->hFile_ = 0;
 	
-	*pstatus = QSTATUS_SUCCESS;
+	if (!pImpl->open(pwszPath))
+		return;
 	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	pImpl_->hFile_ = 0;
-	
-	status = pImpl_->open(pwszPath);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = pImpl.release();
 }
 
 qs::FileInputStream::~FileInputStream()
@@ -89,45 +80,45 @@ qs::FileInputStream::~FileInputStream()
 	}
 }
 
-QSTATUS qs::FileInputStream::close()
+bool qs::FileInputStream::operator!() const
 {
-	BOOL b = TRUE;
-	if (pImpl_->hFile_) {
-		b = ::CloseHandle(pImpl_->hFile_);
-		pImpl_->hFile_ = 0;
-	}
-	return b ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+	return pImpl_ == 0;
 }
 
-QSTATUS qs::FileInputStream::read(
-	unsigned char* p, size_t nRead, size_t* pnRead)
+bool qs::FileInputStream::close()
+{
+	bool b = true;
+	if (pImpl_->hFile_) {
+		b = ::CloseHandle(pImpl_->hFile_) != 0;
+		pImpl_->hFile_ = 0;
+	}
+	return b;
+}
+
+size_t qs::FileInputStream::read(unsigned char* p,
+								 size_t nRead)
 {
 	assert(p);
-	assert(pnRead);
-	
-	*pnRead = 0;
 	
 	if (nRead == 0)
-		return QSTATUS_SUCCESS;
+		return 0;
 	
-	DECLARE_QSTATUS();
+	size_t nSize = 0;
 	
 	while (nRead != 0) {
 		DWORD dwRead = 0;
 		if (!::ReadFile(pImpl_->hFile_, p, nRead, &dwRead, 0))
-			return QSTATUS_FAIL;
+			return -1;
 		if (dwRead == 0) {
-			if (*pnRead == 0)
-				*pnRead = -1;
-			return QSTATUS_SUCCESS;
+			break;
 		}
 		else {
-			*pnRead += dwRead;
+			nSize += dwRead;
 			nRead -= dwRead;
 			p += dwRead;
 		}
 	}
-	return QSTATUS_SUCCESS;
+	return nSize;
 }
 
 
@@ -139,8 +130,9 @@ QSTATUS qs::FileInputStream::read(
 
 struct qs::ByteInputStreamImpl
 {
-	const unsigned char* pBuf_;
-	const unsigned char* pBufEnd_;
+	malloc_ptr<unsigned char> pBuf_;
+	const unsigned char* pBegin_;
+	const unsigned char* pEnd_;
 	const unsigned char* p_;
 };
 
@@ -151,22 +143,39 @@ struct qs::ByteInputStreamImpl
  *
  */
 
-qs::ByteInputStream::ByteInputStream(
-	const unsigned char* p, size_t nLen, QSTATUS* pstatus) :
+qs::ByteInputStream::ByteInputStream(const unsigned char* p,
+									 size_t nLen,
+									 bool bCopy) :
 	pImpl_(0)
 {
 	assert(p);
-	assert(pstatus);
 	
-	*pstatus = QSTATUS_SUCCESS;
+	malloc_ptr<unsigned char> pBuf;
+	if (bCopy) {
+		pBuf.reset(static_cast<unsigned char*>(malloc(nLen)));
+		if (!pBuf.get())
+			return;
+		memcpy(pBuf.get(), p, nLen);
+	}
 	
-	DECLARE_QSTATUS();
+	pImpl_ = new ByteInputStreamImpl();
+	pImpl_->pBuf_ = pBuf;
+	pImpl_->pBegin_ = bCopy ? pImpl_->pBuf_.get() : p;
+	pImpl_->pEnd_ = pImpl_->pBegin_ + nLen;
+	pImpl_->p_ = pImpl_->pBegin_;
+}
+
+qs::ByteInputStream::ByteInputStream(malloc_ptr<unsigned char> p,
+									 size_t nLen) :
+	pImpl_(0)
+{
+	assert(p.get());
 	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new ByteInputStreamImpl();
 	pImpl_->pBuf_ = p;
-	pImpl_->pBufEnd_ = p + nLen;
-	pImpl_->p_ = p;
+	pImpl_->pBegin_ = pImpl_->pBuf_.get();
+	pImpl_->pEnd_ = pImpl_->pBegin_ + nLen;
+	pImpl_->p_ = pImpl_->pBegin_;
 }
 
 qs::ByteInputStream::~ByteInputStream()
@@ -175,35 +184,31 @@ qs::ByteInputStream::~ByteInputStream()
 	pImpl_ = 0;
 }
 
-QSTATUS qs::ByteInputStream::close()
+bool qs::ByteInputStream::operator!() const
 {
-	return QSTATUS_SUCCESS;
+	return pImpl_ == 0;
 }
 
-QSTATUS qs::ByteInputStream::read(
-	unsigned char* p, size_t nRead, size_t* pnRead)
+bool qs::ByteInputStream::close()
+{
+	return true;
+}
+
+size_t qs::ByteInputStream::read(unsigned char* p,
+								 size_t nRead)
 {
 	assert(p);
-	assert(pnRead);
-	
-	*pnRead = 0;
 	
 	if (nRead == 0)
-		return QSTATUS_SUCCESS;
+		return 0;
 	
-	if (nRead > static_cast<size_t>(pImpl_->pBufEnd_ - pImpl_->p_))
-		nRead = pImpl_->pBufEnd_ - pImpl_->p_;
+	if (nRead > static_cast<size_t>(pImpl_->pEnd_ - pImpl_->p_))
+		nRead = pImpl_->pEnd_ - pImpl_->p_;
 	
-	if (nRead != 0) {
-		*pnRead = nRead;
-		memcpy(p, pImpl_->p_, nRead);
-		pImpl_->p_ += nRead;
-	}
-	else {
-		*pnRead = -1;
-	}
+	memcpy(p, pImpl_->p_, nRead);
+	pImpl_->p_ += nRead;
 	
-	return QSTATUS_SUCCESS;
+	return nRead;
 }
 
 
@@ -219,30 +224,26 @@ struct qs::BufferedInputStreamImpl
 		BUFFER_SIZE	= 4096
 	};
 	
-	QSTATUS mapBuffer();
+	bool mapBuffer();
 	
 	InputStream* pInputStream_;
 	bool bDelete_;
-	unsigned char* pBuf_;
+	auto_ptr_array<unsigned char> pBuf_;
 	unsigned char* pBufEnd_;
 	unsigned char* p_;
 };
 
-QSTATUS qs::BufferedInputStreamImpl::mapBuffer()
+bool qs::BufferedInputStreamImpl::mapBuffer()
 {
 	assert(p_ == pBufEnd_);
 	
-	DECLARE_QSTATUS();
-	
-	size_t nRead = 0;
-	status = pInputStream_->read(pBuf_, BUFFER_SIZE, &nRead);
-	CHECK_QSTATUS();
+	size_t nRead = pInputStream_->read(pBuf_.get(), BUFFER_SIZE);
 	if (nRead == -1)
-		nRead = 0;
-	pBufEnd_ = pBuf_ + nRead;
-	p_ = pBuf_;
+		return false;
+	pBufEnd_ = pBuf_.get() + nRead;
+	p_ = pBuf_.get();
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -253,30 +254,20 @@ QSTATUS qs::BufferedInputStreamImpl::mapBuffer()
  */
 
 qs::BufferedInputStream::BufferedInputStream(InputStream* pInputStream,
-	bool bDelete, QSTATUS* pstatus) :
+											 bool bDelete) :
 	pImpl_(0)
 {
 	assert(pInputStream);
-	assert(pstatus);
 	
-	*pstatus = QSTATUS_SUCCESS;
+	auto_ptr_array<unsigned char> pBuf(
+		new unsigned char[BufferedInputStreamImpl::BUFFER_SIZE]);
 	
-	DECLARE_QSTATUS();
-	
-	malloc_ptr<unsigned char> pBuf(
-		static_cast<unsigned char*>(malloc(BufferedInputStreamImpl::BUFFER_SIZE)));
-	if (!pBuf.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new BufferedInputStreamImpl();
 	pImpl_->pInputStream_ = pInputStream;
 	pImpl_->bDelete_ = bDelete;
-	pImpl_->pBuf_ = pBuf.release();
-	pImpl_->pBufEnd_ = pImpl_->pBuf_;
-	pImpl_->p_ = pImpl_->pBuf_;
+	pImpl_->pBuf_ = pBuf;
+	pImpl_->pBufEnd_ = pImpl_->pBuf_.get();
+	pImpl_->p_ = pImpl_->pBuf_.get();
 }
 
 qs::BufferedInputStream::~BufferedInputStream()
@@ -284,32 +275,30 @@ qs::BufferedInputStream::~BufferedInputStream()
 	if (pImpl_) {
 		if (pImpl_->bDelete_)
 			delete pImpl_->pInputStream_;
-		free(pImpl_->pBuf_);
 		delete pImpl_;
 		pImpl_ = 0;
 	}
 }
 
-QSTATUS qs::BufferedInputStream::close()
+bool qs::BufferedInputStream::close()
 {
 	return pImpl_->pInputStream_->close();
 }
 
-QSTATUS qs::BufferedInputStream::read(
-	unsigned char* p, size_t nRead, size_t* pnRead)
+size_t qs::BufferedInputStream::read(unsigned char* p,
+									 size_t nRead)
 {
 	assert(p);
-	assert(pnRead);
-	
-	*pnRead = 0;
 	
 	if (nRead == 0)
-		return QSTATUS_SUCCESS;
+		return 0;
+	
+	size_t nSize = 0;
 	
 	if (static_cast<size_t>(pImpl_->pBufEnd_ - pImpl_->p_) > nRead) {
 		memcpy(p, pImpl_->p_, nRead);
 		pImpl_->p_ += nRead;
-		*pnRead = nRead;
+		nSize = nRead;
 	}
 	else {
 		if (pImpl_->p_ != pImpl_->pBufEnd_) {
@@ -317,41 +306,28 @@ QSTATUS qs::BufferedInputStream::read(
 			memcpy(p, pImpl_->p_, n);
 			pImpl_->p_ = pImpl_->pBufEnd_;
 			nRead -= n;
-			*pnRead = n;
+			nSize = n;
 			p += n;
 		}
 		
-		DECLARE_QSTATUS();
-		
 		if (nRead >= BufferedInputStreamImpl::BUFFER_SIZE/2) {
-			size_t n = 0;
-			status = pImpl_->pInputStream_->read(p, nRead, &n);
-			CHECK_QSTATUS();
-			if (n == -1) {
-				if (*pnRead == 0)
-					*pnRead = -1;
-			}
-			else {
-				*pnRead += n;
-			}
+			size_t n = pImpl_->pInputStream_->read(p, nRead);
+			if (n == -1)
+				return -1;
+			nSize += n;
 		}
 		else {
-			status = pImpl_->mapBuffer();
-			CHECK_QSTATUS();
+			if (!pImpl_->mapBuffer())
+				return -1;
 			if (static_cast<size_t>(pImpl_->pBufEnd_ - pImpl_->p_) < nRead)
 				nRead = pImpl_->pBufEnd_ - pImpl_->p_;
 			if (nRead != 0) {
 				memcpy(p, pImpl_->p_, nRead);
 				pImpl_->p_ += nRead;
-				*pnRead += nRead;
-			}
-			else {
-				if (*pnRead == 0)
-					*pnRead = -1;
+				nSize += nRead;
 			}
 		}
 	}
-	assert(*pnRead != 0);
 	
-	return QSTATUS_SUCCESS;
+	return nSize;
 }

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -24,16 +24,15 @@ using namespace qs;
  *
  */
 
-QSTATUS qmnntp::Util::reportError(Nntp* pNntp,
-	SessionCallback* pSessionCallback,
-	Account* pAccount, SubAccount* pSubAccount)
+void qmnntp::Util::reportError(Nntp* pNntp,
+							   SessionCallback* pSessionCallback,
+							   Account* pAccount,
+							   SubAccount* pSubAccount)
 {
 	assert(pNntp);
 	assert(pSessionCallback);
 	assert(pAccount);
 	assert(pSubAccount);
-	
-	DECLARE_QSTATUS();
 	
 	struct
 	{
@@ -85,21 +84,16 @@ QSTATUS qmnntp::Util::reportError(Nntp* pNntp,
 		Nntp::NNTP_ERROR_MASK_LOWLEVEL,
 		Socket::SOCKET_ERROR_MASK_SOCKET
 	};
-	string_ptr<WSTRING> wstrDescriptions[countof(maps)];
+	wstring_ptr wstrDescriptions[countof(maps)];
 	for (int n = 0; n < countof(maps); ++n) {
 		for (int m = 0; m < countof(maps[n]) && !wstrDescriptions[n].get(); ++m) {
 			if (maps[n][m].nError_ != 0 &&
-				(nError & nMasks[n]) == maps[n][m].nError_) {
-				status = loadString(getResourceHandle(),
-					maps[n][m].nId_, &wstrDescriptions[n]);
-				CHECK_QSTATUS();
-			}
+				(nError & nMasks[n]) == maps[n][m].nError_)
+				wstrDescriptions[n] = loadString(getResourceHandle(), maps[n][m].nId_);
 		}
 	}
 	
-	string_ptr<WSTRING> wstrMessage;
-	status = loadString(getResourceHandle(), IDS_ERROR_MESSAGE, &wstrMessage);
-	CHECK_QSTATUS();
+	wstring_ptr wstrMessage(loadString(getResourceHandle(), IDS_ERROR_MESSAGE));
 	
 	const WCHAR* pwszDescription[] = {
 		wstrDescriptions[0].get(),
@@ -109,10 +103,7 @@ QSTATUS qmnntp::Util::reportError(Nntp* pNntp,
 	};
 	SessionErrorInfo info(pAccount, pSubAccount, 0, wstrMessage.get(),
 		nError, pwszDescription, countof(pwszDescription));
-	status = pSessionCallback->addError(info);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	pSessionCallback->addError(info);
 }
 
 
@@ -123,42 +114,29 @@ QSTATUS qmnntp::Util::reportError(Nntp* pNntp,
  */
 
 qmnntp::AbstractCallback::AbstractCallback(SubAccount* pSubAccount,
-	const Security* pSecurity, QSTATUS* pstatus) :
+										   const Security* pSecurity) :
 	DefaultSSLSocketCallback(pSubAccount, Account::HOST_RECEIVE, pSecurity),
 	pSubAccount_(pSubAccount)
 {
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qmnntp::AbstractCallback::~AbstractCallback()
 {
 }
 
-QSTATUS qmnntp::AbstractCallback::getUserInfo(
-	WSTRING* pwstrUserName, WSTRING* pwstrPassword)
+bool qmnntp::AbstractCallback::getUserInfo(wstring_ptr* pwstrUserName,
+										   wstring_ptr* pwstrPassword)
 {
 	assert(pwstrUserName);
 	assert(pwstrPassword);
 	
-	DECLARE_QSTATUS();
+	*pwstrUserName = allocWString(pSubAccount_->getUserName(Account::HOST_RECEIVE));
+	*pwstrPassword = allocWString(pSubAccount_->getPassword(Account::HOST_RECEIVE));
 	
-	string_ptr<WSTRING> wstrUserName(
-		allocWString(pSubAccount_->getUserName(Account::HOST_RECEIVE)));
-	if (!wstrUserName.get())
-		return QSTATUS_OUTOFMEMORY;
-	string_ptr<WSTRING> wstrPassword(
-		allocWString(pSubAccount_->getPassword(Account::HOST_RECEIVE)));
-	if (!wstrPassword.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	*pwstrUserName = wstrUserName.release();
-	*pwstrPassword = wstrPassword.release();
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmnntp::AbstractCallback::setPassword(const WCHAR* pwszPassword)
+void qmnntp::AbstractCallback::setPassword(const WCHAR* pwszPassword)
 {
 	// TODO
-	return QSTATUS_SUCCESS;
 }

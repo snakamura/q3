@@ -1,13 +1,12 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qsassert.h>
-#include <qserror.h>
 #include <qsstl.h>
 
 #include "imap4.h"
@@ -45,13 +44,10 @@ qmimap4::DefaultProcessHook::~DefaultProcessHook()
 {
 }
 
-QSTATUS qmimap4::DefaultProcessHook::processFetchResponse(
-	ResponseFetch* pFetch, bool* pbProcessed)
+ProcessHook::Result qmimap4::DefaultProcessHook::processFetchResponse(ResponseFetch* pFetch)
 {
 	assert(pFetch);
-	assert(pbProcessed);
-	*pbProcessed = false;
-	return QSTATUS_SUCCESS;
+	return RESULT_UNPROCESSED;
 }
 
 
@@ -69,11 +65,8 @@ qmimap4::AbstractMessageProcessHook::~AbstractMessageProcessHook()
 {
 }
 
-QSTATUS qmimap4::AbstractMessageProcessHook::processFetchResponse(
-	ResponseFetch* pFetch, bool* pbProcessed)
+ProcessHook::Result qmimap4::AbstractMessageProcessHook::processFetchResponse(ResponseFetch* pFetch)
 {
-	DECLARE_QSTATUS();
-	
 	bool bHeader = isHeader();
 	
 	unsigned long nUid = 0;
@@ -82,8 +75,7 @@ QSTATUS qmimap4::AbstractMessageProcessHook::processFetchResponse(
 	int nCount = 0;
 	
 	const ResponseFetch::FetchDataList& l = pFetch->getFetchDataList();
-	ResponseFetch::FetchDataList::const_iterator it = l.begin();
-	while (it != l.end()) {
+	for (ResponseFetch::FetchDataList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		switch ((*it)->getType()) {
 		case FetchData::TYPE_BODY:
 			{
@@ -103,32 +95,29 @@ QSTATUS qmimap4::AbstractMessageProcessHook::processFetchResponse(
 		default:
 			break;
 		}
-		++it;
 	}
 	
-	if (nCount == 2) {
-		MessagePtr ptr(getMessagePtr(nUid));
-		MessagePtrLock mpl(ptr);
-		if (mpl) {
-			status = getAccount()->updateMessage(mpl, pBody->getContent());
-			CHECK_QSTATUS();
-			unsigned int nMask = MessageHolder::FLAG_DOWNLOAD |
-				MessageHolder::FLAG_DOWNLOADTEXT |
-				MessageHolder::FLAG_PARTIAL_MASK;
-			// TODO
-			// Should change the flag on server?
-			if (isMakeUnseen())
-				nMask |= MessageHolder::FLAG_SEEN;
-			mpl->setFlags(bHeader ? MessageHolder::FLAG_HEADERONLY : 0, nMask);
-		}
-		
-		status = processed();
-		CHECK_QSTATUS();
-		
-		*pbProcessed = true;
+	if (nCount != 2)
+		return RESULT_UNPROCESSED;
+	
+	MessagePtr ptr(getMessagePtr(nUid));
+	MessagePtrLock mpl(ptr);
+	if (mpl) {
+		if (!getAccount()->updateMessage(mpl, pBody->getContent()))
+			return RESULT_ERROR;
+		unsigned int nMask = MessageHolder::FLAG_DOWNLOAD |
+			MessageHolder::FLAG_DOWNLOADTEXT |
+			MessageHolder::FLAG_PARTIAL_MASK;
+		// TODO
+		// Should change the flag on server?
+		if (isMakeUnseen())
+			nMask |= MessageHolder::FLAG_SEEN;
+		mpl->setFlags(bHeader ? MessageHolder::FLAG_HEADERONLY : 0, nMask);
 	}
 	
-	return QSTATUS_SUCCESS;
+	processed();
+	
+	return RESULT_PROCESSED;
 }
 
 
@@ -146,19 +135,15 @@ qmimap4::AbstractPartialMessageProcessHook::~AbstractPartialMessageProcessHook()
 {
 }
 
-QSTATUS qmimap4::AbstractPartialMessageProcessHook::processFetchResponse(
-	ResponseFetch* pFetch, bool* pbProcessed)
+ProcessHook::Result qmimap4::AbstractPartialMessageProcessHook::processFetchResponse(ResponseFetch* pFetch)
 {
-	DECLARE_QSTATUS();
-	
 	const PartList& listPart = getPartList();
 	
 	unsigned long nUid = 0;
 	BodyList listBody;
 	
 	const ResponseFetch::FetchDataList& l = pFetch->getFetchDataList();
-	ResponseFetch::FetchDataList::const_iterator it = l.begin();
-	while (it != l.end()) {
+	for (ResponseFetch::FetchDataList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		switch ((*it)->getType()) {
 		case FetchData::TYPE_BODY:
 			{
@@ -177,10 +162,8 @@ QSTATUS qmimap4::AbstractPartialMessageProcessHook::processFetchResponse(
 							std::select2nd<PartList::value_type>()));
 					bAdd = part != listPart.end();
 				}
-				if (bAdd) {
-					status = STLWrapper<BodyList>(listBody).push_back(pBody);
-					CHECK_QSTATUS();
-				}
+				if (bAdd)
+					listBody.push_back(pBody);
 			}
 			break;
 		case FetchData::TYPE_UID:
@@ -189,33 +172,28 @@ QSTATUS qmimap4::AbstractPartialMessageProcessHook::processFetchResponse(
 		default:
 			break;
 		}
-		++it;
 	}
 	
-	if (listBody.size() == getPartCount() && nUid != 0) {
-		MessagePtr ptr(getMessagePtr(nUid));
-		MessagePtrLock mpl(ptr);
-		if (mpl) {
-			string_ptr<STRING> strContent;
-			status = Util::getContentFromBodyStructureAndBodies(
-				listPart, listBody, &strContent);
-			CHECK_QSTATUS();
-			status = getAccount()->updateMessage(mpl, strContent.get());
-			CHECK_QSTATUS();
-			unsigned int nMask = MessageHolder::FLAG_DOWNLOAD |
-				MessageHolder::FLAG_DOWNLOADTEXT |
-				MessageHolder::FLAG_PARTIAL_MASK;
-			// TODO
-			// Should change the flag on server?
-			if (isMakeUnseen())
-				nMask |= MessageHolder::FLAG_SEEN;
-			mpl->setFlags(isAll() ? 0 : MessageHolder::FLAG_TEXTONLY, nMask);
-		}
-		
-		*pbProcessed = true;
+	if (listBody.size() != getPartCount() || nUid == 0)
+		return RESULT_UNPROCESSED;
+	
+	MessagePtr ptr(getMessagePtr(nUid));
+	MessagePtrLock mpl(ptr);
+	if (mpl) {
+		xstring_ptr strContent(Util::getContentFromBodyStructureAndBodies(listPart, listBody));
+		if (!getAccount()->updateMessage(mpl, strContent.get()))
+			return RESULT_ERROR;
+		unsigned int nMask = MessageHolder::FLAG_DOWNLOAD |
+			MessageHolder::FLAG_DOWNLOADTEXT |
+			MessageHolder::FLAG_PARTIAL_MASK;
+		// TODO
+		// Should change the flag on server?
+		if (isMakeUnseen())
+			nMask |= MessageHolder::FLAG_SEEN;
+		mpl->setFlags(isAll() ? 0 : MessageHolder::FLAG_TEXTONLY, nMask);
 	}
 	
-	return QSTATUS_SUCCESS;
+	return RESULT_PROCESSED;
 }
 
 
@@ -233,19 +211,15 @@ qmimap4::AbstractBodyStructureProcessHook::~AbstractBodyStructureProcessHook()
 {
 }
 
-QSTATUS qmimap4::AbstractBodyStructureProcessHook::processFetchResponse(
-	ResponseFetch* pFetch, bool* pbProcessed)
+ProcessHook::Result qmimap4::AbstractBodyStructureProcessHook::processFetchResponse(ResponseFetch* pFetch)
 {
-	DECLARE_QSTATUS();
-	
 	unsigned long nUid = 0;
 	FetchDataBodyStructure* pBodyStructure = 0;
 	
 	int nCount = 0;
 	
 	const ResponseFetch::FetchDataList& l = pFetch->getFetchDataList();
-	ResponseFetch::FetchDataList::const_iterator it = l.begin();
-	while (it != l.end()) {
+	for (ResponseFetch::FetchDataList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		switch ((*it)->getType()) {
 		case FetchData::TYPE_UID:
 			nUid = static_cast<FetchDataUid*>(*it)->getUid();
@@ -256,21 +230,18 @@ QSTATUS qmimap4::AbstractBodyStructureProcessHook::processFetchResponse(
 			++nCount;
 			break;
 		}
-		++it;
 	}
 	
-	if (nCount == 2) {
-		bool bSet = false;
-		status = setBodyStructure(nUid, pBodyStructure, &bSet);
-		CHECK_QSTATUS();
-		if (bSet)
-			pFetch->detach(pBodyStructure);
-		
-		status = processed();
-		CHECK_QSTATUS();
-		
-		*pbProcessed = bSet;
-	}
+	if (nCount != 2)
+		return RESULT_UNPROCESSED;
 	
-	return QSTATUS_SUCCESS;
+	bool bSet = false;
+	if (!setBodyStructure(nUid, pBodyStructure, &bSet))
+		return RESULT_ERROR;
+	if (bSet)
+		pFetch->detach(pBodyStructure);
+	
+	processed();
+	
+	return bSet ? RESULT_PROCESSED : RESULT_UNPROCESSED;
 }

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -59,7 +59,7 @@ class FixedFormTextManager;
 class DefaultDialog : public qs::DefaultDialog
 {
 protected:
-	DefaultDialog(UINT nId, qs::QSTATUS* pstatus);
+	DefaultDialog(UINT nId);
 
 public:
 	virtual ~DefaultDialog();
@@ -76,23 +76,29 @@ private:
  *
  */
 
-class AccountDialog : public DefaultDialog, public qs::NotifyHandler
+class AccountDialog :
+	public DefaultDialog,
+	public qs::NotifyHandler
 {
 public:
-	AccountDialog(Document* pDocument, Account* pAccount,
-		SyncFilterManager* pSyncFilterManager,
-		qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	AccountDialog(Document* pDocument,
+				  Account* pAccount,
+				  SyncFilterManager* pSyncFilterManager,
+				  qs::Profile* pProfile);
 	virtual ~AccountDialog();
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 protected:
 	virtual LRESULT onDestroy();
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 public:
-	virtual LRESULT onNotify(NMHDR* pnmhdr, bool* pbHandled);
+	virtual LRESULT onNotify(NMHDR* pnmhdr,
+							 bool* pbHandled);
 
 private:
 	LRESULT onAddAccount();
@@ -100,10 +106,11 @@ private:
 	LRESULT onRemove();
 	LRESULT onRename();
 	LRESULT onProperty();
-	LRESULT onAccountSelChanged(NMHDR* pnmhdr, bool* pbHandled);
+	LRESULT onAccountSelChanged(NMHDR* pnmhdr,
+								bool* pbHandled);
 
 private:
-	qs::QSTATUS update();
+	void update();
 	void updateState();
 
 private:
@@ -124,7 +131,9 @@ private:
  *
  */
 
-class AddressBookDialog : public DefaultDialog, public qs::NotifyHandler
+class AddressBookDialog :
+	public DefaultDialog,
+	public qs::NotifyHandler
 {
 public:
 	enum Sort {
@@ -152,12 +161,13 @@ public:
 	class Item
 	{
 	public:
-		Item(qs::WSTRING wstrValue, Type type, qs::QSTATUS* pstatus);
+		Item(qs::wstring_ptr wstrValue,
+			 Type type);
 		~Item();
 	
 	public:
 		const WCHAR* getValue() const;
-		qs::WSTRING releaseValue();
+		qs::wstring_ptr releaseValue();
 		Type getType() const;
 	
 	private:
@@ -165,36 +175,43 @@ public:
 		Item& operator=(const Item&);
 	
 	private:
-		qs::WSTRING wstrValue_;
+		qs::wstring_ptr wstrValue_;
 		Type type_;
 	};
 
 public:
-	AddressBookDialog(AddressBook* pAddressBook, qs::Profile* pProfile,
-		const WCHAR* pwszAddress[], qs::QSTATUS* pstatus);
+	AddressBookDialog(AddressBook* pAddressBook,
+					  qs::Profile* pProfile,
+					  const WCHAR* pwszAddress[]);
 	virtual ~AddressBookDialog();
 
 public:
 	const AddressList& getAddresses(Type type) const;
 
 public:
-	virtual INT_PTR dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual INT_PTR dialogProc(UINT uMsg, WPARAM wParam,
+							   LPARAM lParam);
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 protected:
 	virtual LRESULT onDestroy();
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
 
 public:
-	virtual LRESULT onNotify(NMHDR* pnmhdr, bool* pbHandled);
+	virtual LRESULT onNotify(NMHDR* pnmhdr,
+							 bool* pbHandled);
 
 protected:
-	LRESULT onSize(UINT nFlags, int cx, int cy);
+	LRESULT onSize(UINT nFlags,
+				   int cx,
+				   int cy);
 
 private:
 	LRESULT onCategory();
@@ -203,25 +220,28 @@ private:
 #if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
 	LRESULT onFilterChange();
 #endif
-	LRESULT onAddressColumnClick(NMHDR* pnmhdr, bool* pbHandled);
-	LRESULT onAddressDblClk(NMHDR* pnmhdr, bool* pbHandled);
+	LRESULT onAddressColumnClick(NMHDR* pnmhdr,
+								 bool* pbHandled);
+	LRESULT onAddressDblClk(NMHDR* pnmhdr,
+							bool* pbHandled);
 
 private:
-	qs::QSTATUS update();
-	qs::QSTATUS select(Type type);
-	qs::QSTATUS remove();
-	qs::QSTATUS layout();
-	qs::QSTATUS createCategoryMenu(const AddressBook::CategoryList& l,
-		HMENU* phmenu, CategoryNameList* pList);
-	qs::QSTATUS setCurrentCategory(const WCHAR* pwszCategory);
+	void update();
+	void select(Type type);
+	void remove();
+	void layout();
+	HMENU createCategoryMenu(const AddressBook::CategoryList& l,
+							 CategoryNameList* pList);
+	void setCurrentCategory(const WCHAR* pwszCategory);
 	bool isCategory(const AddressBookAddress::CategoryList& listCategory) const;
 	bool isMatchFilter(const AddressBookEntry* pEntry) const;
 	bool isMatchFilter(const AddressBookAddress* pAddress) const;
 
 private:
 	static size_t getCategoryLevel(const WCHAR* pwszCategory);
-	static qs::QSTATUS getCategoryName(const WCHAR* pwszCategory,
-		size_t nLevel, bool bFull, qs::WSTRING* pwstrName);
+	static qs::wstring_ptr getCategoryName(const WCHAR* pwszCategory,
+										   size_t nLevel,
+										   bool bFull);
 
 private:
 	AddressBookDialog(const AddressBookDialog&);
@@ -233,14 +253,18 @@ private:
 		public qs::DefaultWindowHandler
 	{
 	public:
-		AddressListWindow(AddressBookDialog* pDialog, qs::QSTATUS* pstatus);
+		explicit AddressListWindow(AddressBookDialog* pDialog);
 		virtual ~AddressListWindow();
 	
 	public:
-		virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+		virtual LRESULT windowProc(UINT uMsg,
+								   WPARAM wParam,
+								   LPARAM lParam);
 	
 	protected:
-		LRESULT onChar(UINT nChar, UINT nRepeat, UINT nFlags);
+		LRESULT onChar(UINT nChar,
+					   UINT nRepeat,
+					   UINT nFlags);
 	
 	private:
 		AddressListWindow(const AddressListWindow&);
@@ -256,15 +280,15 @@ private:
 		public std::binary_function<AddressBookCategory*, AddressBookCategory*, bool>
 	{
 		bool operator()(const AddressBookCategory* pLhs,
-			const AddressBookCategory* pRhs);
+						const AddressBookCategory* pRhs);
 	};
 
 private:
 	AddressBook* pAddressBook_;
 	qs::Profile* pProfile_;
 	unsigned int nSort_;
-	qs::WSTRING wstrCategory_;
-	qs::WSTRING wstrFilter_;
+	qs::wstring_ptr wstrCategory_;
+	qs::wstring_ptr wstrFilter_;
 	AddressList listAddress_[3];
 	AddressListWindow wndAddressList_;
 };
@@ -276,30 +300,35 @@ private:
  *
  */
 
-class AttachmentDialog : public DefaultDialog, qs::NotifyHandler
+class AttachmentDialog :
+	public DefaultDialog,
+	qs::NotifyHandler
 {
 public:
-	AttachmentDialog(EditMessage::AttachmentList& listAttachment,
-		qs::QSTATUS* pstatus);
+	explicit AttachmentDialog(EditMessage::AttachmentList& listAttachment);
 	virtual ~AttachmentDialog();
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 protected:
 	virtual LRESULT onDestroy();
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 public:
-	virtual LRESULT onNotify(NMHDR* pnmhdr, bool* pbHandled);
+	virtual LRESULT onNotify(NMHDR* pnmhdr,
+							 bool* pbHandled);
 
 private:
 	LRESULT onAdd();
 	LRESULT onRemove();
-	LRESULT onAttachmentItemChanged(NMHDR* pnmhdr, bool* pbHandled);
+	LRESULT onAttachmentItemChanged(NMHDR* pnmhdr,
+									bool* pbHandled);
 
 private:
-	qs::QSTATUS update();
+	void update();
 	void updateState();
 
 private:
@@ -320,7 +349,7 @@ private:
 class CreateAccountDialog : public DefaultDialog
 {
 public:
-	CreateAccountDialog(qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	explicit CreateAccountDialog(qs::Profile* pProfile);
 	virtual ~CreateAccountDialog();
 
 public:
@@ -334,10 +363,12 @@ public:
 	unsigned int getCacheBlockSize() const;
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
@@ -349,7 +380,7 @@ private:
 	LRESULT onTypeChange();
 
 private:
-	qs::QSTATUS updateProtocols();
+	void updateProtocols();
 	void clearProtocols();
 	void updateState();
 
@@ -371,8 +402,8 @@ private:
 	qs::Profile* pProfile_;
 	ProtocolList listReceiveProtocol_;
 	ProtocolList listSendProtocol_;
-	qs::WSTRING wstrName_;
-	qs::WSTRING wstrClass_;
+	qs::wstring_ptr wstrName_;
+	qs::wstring_ptr wstrClass_;
 	int nReceiveProtocol_;
 	int nSendProtocol_;
 	unsigned int nBlockSize_;
@@ -396,7 +427,8 @@ public:
 	};
 
 public:
-	CreateFolderDialog(Type type, bool bAllowRemote, qs::QSTATUS* pstatus);
+	CreateFolderDialog(Type type,
+					   bool bAllowRemote);
 	virtual ~CreateFolderDialog();
 
 public:
@@ -404,10 +436,12 @@ public:
 	const WCHAR* getName() const;
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
@@ -426,7 +460,7 @@ private:
 private:
 	Type type_;
 	bool bAllowRemote_;
-	qs::WSTRING wstrName_;
+	qs::wstring_ptr wstrName_;
 };
 
 
@@ -439,17 +473,19 @@ private:
 class CreateSubAccountDialog : public DefaultDialog
 {
 public:
-	CreateSubAccountDialog(Document* pDocument, qs::QSTATUS* pstatus);
+	explicit CreateSubAccountDialog(Document* pDocument);
 	virtual ~CreateSubAccountDialog();
 
 public:
 	const WCHAR* getName() const;
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
@@ -466,7 +502,7 @@ private:
 
 private:
 	Document* pDocument_;
-	qs::WSTRING wstrName_;
+	qs::wstring_ptr wstrName_;
 };
 
 
@@ -479,14 +515,15 @@ private:
 class CustomFilterDialog : public DefaultDialog
 {
 public:
-	CustomFilterDialog(const WCHAR* pwszMacro, qs::QSTATUS* pstatus);
+	explicit CustomFilterDialog(const WCHAR* pwszMacro);
 	virtual ~CustomFilterDialog();
 
 public:
 	const WCHAR* getMacro() const;
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
@@ -496,7 +533,7 @@ private:
 	CustomFilterDialog& operator=(const CustomFilterDialog&);
 
 private:
-	qs::WSTRING wstrMacro_;
+	qs::wstring_ptr wstrMacro_;
 };
 
 
@@ -506,7 +543,9 @@ private:
  *
  */
 
-class DetachDialog : public DefaultDialog, public qs::NotifyHandler
+class DetachDialog :
+	public DefaultDialog,
+	public qs::NotifyHandler
 {
 public:
 	struct Item
@@ -520,29 +559,34 @@ public:
 	typedef std::vector<Item> List;
 
 public:
-	DetachDialog(qs::Profile* pProfile, List& list, qs::QSTATUS* pstatus);
+	DetachDialog(qs::Profile* pProfile,
+				 List& list);
 	virtual ~DetachDialog();
 
 public:
 	const WCHAR* getFolder() const;
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 protected:
 	virtual LRESULT onDestroy();
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
 
 public:
-	virtual LRESULT onNotify(NMHDR* pnmhdr, bool* pbHandled);
+	virtual LRESULT onNotify(NMHDR* pnmhdr,
+							 bool* pbHandled);
 
 private:
 	LRESULT onBrowse();
 	LRESULT onRename();
-	LRESULT onAttachmentItemChanged(NMHDR* pnmhdr, bool* pbHandled);
+	LRESULT onAttachmentItemChanged(NMHDR* pnmhdr,
+									bool* pbHandled);
 
 private:
 	void updateState();
@@ -554,7 +598,7 @@ private:
 private:
 	qs::Profile* pProfile_;
 	List& list_;
-	qs::WSTRING wstrFolder_;
+	qs::wstring_ptr wstrFolder_;
 };
 
 
@@ -567,8 +611,10 @@ private:
 class DialupDialog : public DefaultDialog
 {
 public:
-	DialupDialog(const WCHAR* pwszEntry, const WCHAR* pwszUserName,
-		const WCHAR* pwszPassword, const WCHAR* pwszDomain, qs::QSTATUS* pstatus);
+	DialupDialog(const WCHAR* pwszEntry,
+				 const WCHAR* pwszUserName,
+				 const WCHAR* pwszPassword,
+				 const WCHAR* pwszDomain);
 	virtual ~DialupDialog();
 
 public:
@@ -577,10 +623,12 @@ public:
 	const WCHAR* getDomain() const;
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
@@ -596,10 +644,10 @@ private:
 	DialupDialog& operator=(const DialupDialog&);
 
 private:
-	qs::WSTRING wstrEntry_;
-	qs::WSTRING wstrUserName_;
-	qs::WSTRING wstrPassword_;
-	qs::WSTRING wstrDomain_;
+	qs::wstring_ptr wstrEntry_;
+	qs::wstring_ptr wstrUserName_;
+	qs::wstring_ptr wstrPassword_;
+	qs::wstring_ptr wstrDomain_;
 };
 
 
@@ -612,7 +660,7 @@ private:
 class ExportDialog : public DefaultDialog
 {
 public:
-	ExportDialog(bool bSingleMessage, qs::QSTATUS* pstatus);
+	explicit ExportDialog(bool bSingleMessage);
 	virtual ~ExportDialog();
 
 public:
@@ -623,10 +671,12 @@ public:
 	const WCHAR* getEncoding() const;
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
@@ -650,7 +700,7 @@ private:
 
 private:
 	bool bSingleMessage_;
-	qs::WSTRING wstrPath_;
+	qs::wstring_ptr wstrPath_;
 	unsigned int nFlags_;
 };
 
@@ -664,7 +714,8 @@ private:
 class FindDialog : public DefaultDialog
 {
 public:
-	FindDialog(qs::Profile* pProfile, bool bSupportRegex, qs::QSTATUS* pstatus);
+	FindDialog(qs::Profile* pProfile,
+			   bool bSupportRegex);
 	virtual ~FindDialog();
 
 public:
@@ -674,10 +725,12 @@ public:
 	bool isPrev() const;
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 private:
 	LRESULT onFind(UINT nId);
@@ -698,7 +751,7 @@ private:
 private:
 	qs::Profile* pProfile_;
 	bool bSupportRegex_;
-	qs::WSTRING wstrFind_;
+	qs::wstring_ptr wstrFind_;
 	bool bMatchCase_;
 	bool bRegex_;
 	bool bPrev_;
@@ -714,7 +767,7 @@ private:
 class ImportDialog : public DefaultDialog
 {
 public:
-	ImportDialog(qs::QSTATUS* pstatus);
+	ImportDialog();
 	virtual ~ImportDialog();
 
 public:
@@ -723,10 +776,12 @@ public:
 	unsigned int getFlags() const;
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
@@ -743,7 +798,7 @@ private:
 	ImportDialog& operator=(const ImportDialog&);
 
 private:
-	qs::WSTRING wstrPath_;
+	qs::wstring_ptr wstrPath_;
 	bool bMultiple_;
 	unsigned int nFlags_;
 };
@@ -758,8 +813,9 @@ private:
 class InputBoxDialog : public DefaultDialog
 {
 public:
-	InputBoxDialog(bool bMultiLine, const WCHAR* pwszMessage,
-		const WCHAR* pwszValue, qs::QSTATUS* pstatus);
+	InputBoxDialog(bool bMultiLine,
+				   const WCHAR* pwszMessage,
+				   const WCHAR* pwszValue);
 	virtual ~InputBoxDialog();
 
 public:
@@ -767,7 +823,8 @@ public:
 	const WCHAR* getValue() const;
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
@@ -778,8 +835,8 @@ private:
 
 private:
 	bool bMultiLine_;
-	qs::WSTRING wstrMessage_;
-	qs::WSTRING wstrValue_;
+	qs::wstring_ptr wstrMessage_;
+	qs::wstring_ptr wstrValue_;
 };
 
 
@@ -792,14 +849,15 @@ private:
 class InsertTextDialog : public DefaultDialog
 {
 public:
-	explicit InsertTextDialog(qs::QSTATUS* pstatus);
+	InsertTextDialog();
 	virtual ~InsertTextDialog();
 
 public:
 	const FixedFormText* getText() const;
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
@@ -809,7 +867,7 @@ private:
 	InsertTextDialog& operator=(const InsertTextDialog&);
 
 private:
-	FixedFormTextManager* pManager_;
+	std::auto_ptr<FixedFormTextManager> pManager_;
 	FixedFormText* pText_;
 };
 
@@ -823,17 +881,19 @@ private:
 class MailFolderDialog : public qs::DefaultDialog
 {
 public:
-	MailFolderDialog(HINSTANCE hInstResource, qs::QSTATUS* pstatus);
+	explicit MailFolderDialog(HINSTANCE hInstResource);
 	virtual ~MailFolderDialog();
 
 public:
 	const WCHAR* getMailFolder() const;
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
@@ -850,7 +910,7 @@ private:
 	MailFolderDialog& operator=(const MailFolderDialog&);
 
 private:
-	qs::WSTRING wstrMailFolder_;
+	qs::wstring_ptr wstrMailFolder_;
 };
 
 
@@ -860,11 +920,13 @@ private:
  *
  */
 
-class MoveMessageDialog : public DefaultDialog, public qs::NotifyHandler
+class MoveMessageDialog :
+	public DefaultDialog,
+	public qs::NotifyHandler
 {
 public:
 	MoveMessageDialog(Document* pDocument,
-		qs::Profile* pProfile, qs::QSTATUS* pstatus);
+					  qs::Profile* pProfile);
 	virtual ~MoveMessageDialog();
 
 public:
@@ -872,13 +934,16 @@ public:
 	bool isCopy() const;
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 public:
-	virtual LRESULT onNotify(NMHDR* pnmhdr, bool* pbHandled);
+	virtual LRESULT onNotify(NMHDR* pnmhdr,
+							 bool* pbHandled);
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 	virtual LRESULT onDestroy();
 
 protected:
@@ -886,12 +951,14 @@ protected:
 
 private:
 	LRESULT onShowHidden();
-	LRESULT onFolderSelChanged(NMHDR* pnmhdr, bool* pbHandled);
+	LRESULT onFolderSelChanged(NMHDR* pnmhdr,
+							   bool* pbHandled);
 
 private:
-	qs::QSTATUS update();
-	qs::QSTATUS insertAccount(Account* pAccount);
-	qs::QSTATUS insertFolders(HTREEITEM hItem, Account* pAccount);
+	bool update();
+	bool insertAccount(Account* pAccount);
+	bool insertFolders(HTREEITEM hItem,
+					   Account* pAccount);
 	void updateState();
 
 private:
@@ -916,21 +983,23 @@ private:
 class ProgressDialog : public DefaultDialog
 {
 public:
-	ProgressDialog(UINT nTitleId, qs::QSTATUS* pstatus);
+	explicit ProgressDialog(UINT nTitleId);
 	virtual ~ProgressDialog();
 
 public:
-	qs::QSTATUS init(HWND hwnd);
+	bool init(HWND hwnd);
 	void term();
 	bool isCanceled() const;
-	qs::QSTATUS setTitle(UINT nId);
-	qs::QSTATUS setMessage(UINT nId);
-	qs::QSTATUS setRange(unsigned int nMin, unsigned int nMax);
-	qs::QSTATUS setPos(unsigned int n);
+	void setTitle(UINT nId);
+	void setMessage(UINT nId);
+	void setRange(unsigned int nMin,
+				  unsigned int nMax);
+	void setPos(unsigned int n);
 
 protected:
 	virtual LRESULT onDestroy();
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onCancel();
@@ -954,17 +1023,19 @@ private:
 class RenameDialog : public DefaultDialog
 {
 public:
-	RenameDialog(const WCHAR* pwszName, qs::QSTATUS* pstatus);
+	RenameDialog(const WCHAR* pwszName);
 	virtual ~RenameDialog();
 
 public:
 	const WCHAR* getName() const;
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
@@ -980,7 +1051,7 @@ private:
 	RenameDialog& operator=(const RenameDialog&);
 
 private:
-	qs::WSTRING wstrName_;
+	qs::wstring_ptr wstrName_;
 };
 
 
@@ -1000,7 +1071,7 @@ public:
 	};
 
 public:
-	ReplaceDialog(qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	explicit ReplaceDialog(qs::Profile* pProfile);
 	virtual ~ReplaceDialog();
 
 public:
@@ -1011,10 +1082,12 @@ public:
 	Type getType() const;
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 private:
 	LRESULT onReplace(UINT nId);
@@ -1034,8 +1107,8 @@ private:
 
 private:
 	qs::Profile* pProfile_;
-	qs::WSTRING wstrFind_;
-	qs::WSTRING wstrReplace_;
+	qs::wstring_ptr wstrFind_;
+	qs::wstring_ptr wstrReplace_;
 	bool bMatchCase_;
 	bool bRegex_;
 	Type type_;
@@ -1051,17 +1124,19 @@ private:
 class SelectDialupEntryDialog : public DefaultDialog
 {
 public:
-	SelectDialupEntryDialog(qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	explicit SelectDialupEntryDialog(qs::Profile* pProfile);
 	virtual ~SelectDialupEntryDialog();
 
 public:
 	const WCHAR* getEntry() const;
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
@@ -1078,7 +1153,7 @@ private:
 
 private:
 	qs::Profile* pProfile_;
-	qs::WSTRING wstrEntry_;
+	qs::wstring_ptr wstrEntry_;
 };
 
 
@@ -1091,15 +1166,17 @@ private:
 class SelectSyncFilterDialog : public DefaultDialog
 {
 public:
-	SelectSyncFilterDialog(SyncFilterManager* pManager, Account* pAccount,
-		const WCHAR* pwszDefaultName, qs::QSTATUS* pstatus);
+	SelectSyncFilterDialog(SyncFilterManager* pManager,
+						   Account* pAccount,
+						   const WCHAR* pwszDefaultName);
 	virtual ~SelectSyncFilterDialog();
 
 public:
 	const WCHAR* getName() const;
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -40,21 +40,21 @@ public:
 	typedef std::vector<Signature*> SignatureList;
 
 public:
-	explicit SignatureManager(qs::QSTATUS* pstatus);
+	SignatureManager();
 	~SignatureManager();
 
 public:
-	qs::QSTATUS getSignatures(Account* pAccount, SignatureList* pList);
-	qs::QSTATUS getSignature(Account* pAccount,
-		const WCHAR* pwszName, const Signature** ppSignature);
-	qs::QSTATUS getDefaultSignature(Account* pAccount,
-		const Signature** ppSignature);
+	void getSignatures(Account* pAccount,
+					   SignatureList* pList);
+	const Signature* getSignature(Account* pAccount,
+								  const WCHAR* pwszName);
+	const Signature* getDefaultSignature(Account* pAccount);
 
 public:
-	qs::QSTATUS addSignature(Signature* pSignature);
+	void addSignature(std::auto_ptr<Signature> pSignature);
 
 private:
-	qs::QSTATUS load();
+	bool load();
 	void clear();
 
 private:
@@ -76,12 +76,14 @@ private:
 class Signature
 {
 public:
-	Signature(qs::RegexPattern* pAccountName, qs::WSTRING wstrName,
-		bool bDefault, qs::WSTRING wstrSignature, qs::QSTATUS* pstatus);
+	Signature(std::auto_ptr<qs::RegexPattern> pAccountName,
+			  qs::wstring_ptr wstrName,
+			  bool bDefault,
+			  qs::wstring_ptr wstrSignature);
 	~Signature();
 
 public:
-	qs::QSTATUS match(Account* pAccount, bool* pbMatch) const;
+	bool match(Account* pAccount) const;
 	const WCHAR* getName() const;
 	bool isDefault() const;
 	const WCHAR* getSignature() const;
@@ -91,10 +93,10 @@ private:
 	Signature& operator=(const Signature&);
 
 private:
-	qs::RegexPattern* pAccountName_;
-	qs::WSTRING wstrName_;
+	std::auto_ptr<qs::RegexPattern> pAccountName_;
+	qs::wstring_ptr wstrName_;
 	bool bDefault_;
-	qs::WSTRING wstrSignature_;
+	qs::wstring_ptr wstrSignature_;
 };
 
 
@@ -114,17 +116,20 @@ public:
 	};
 
 public:
-	SignatureContentHandler(SignatureManager* pManager, qs::QSTATUS* pstatus);
+	explicit SignatureContentHandler(SignatureManager* pManager);
 	virtual ~SignatureContentHandler();
 
 public:
-	virtual qs::QSTATUS startElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName,
-		const qs::Attributes& attributes);
-	virtual qs::QSTATUS endElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName);
-	virtual qs::QSTATUS characters(const WCHAR* pwsz,
-		size_t nStart, size_t nLength);
+	virtual bool startElement(const WCHAR* pwszNamespaceURI,
+							  const WCHAR* pwszLocalName,
+							  const WCHAR* pwszQName,
+							  const qs::Attributes& attributes);
+	virtual bool endElement(const WCHAR* pwszNamespaceURI,
+							const WCHAR* pwszLocalName,
+							const WCHAR* pwszQName);
+	virtual bool characters(const WCHAR* pwsz,
+							size_t nStart,
+							size_t nLength);
 
 private:
 	SignatureContentHandler(const SignatureContentHandler&);
@@ -133,10 +138,10 @@ private:
 private:
 	SignatureManager* pManager_;
 	State state_;
-	qs::RegexPattern* pAccountName_;
-	qs::WSTRING wstrName_;
+	std::auto_ptr<qs::RegexPattern> pAccountName_;
+	qs::wstring_ptr wstrName_;
 	bool bDefault_;
-	qs::StringBuffer<qs::WSTRING>* pBuffer_;
+	qs::StringBuffer<qs::WSTRING> buffer_;
 };
 
 }

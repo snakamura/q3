@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -38,11 +38,12 @@ typedef DropTargetDragEvent DropTargetDropEvent;
 class QSEXPORTCLASS DragSource
 {
 public:
-	DragSource(QSTATUS* pstatus);
+	DragSource();
 	~DragSource();
 
 public:
-	QSTATUS startDrag(IDataObject* pDataObject, DWORD dwEffect);
+	bool startDrag(IDataObject* pDataObject,
+				   DWORD dwEffect);
 	DragSourceHandler* getDragSourceHandler() const;
 	void setDragSourceHandler(DragSourceHandler* pHandler);
 
@@ -70,7 +71,7 @@ public:
 	virtual ~DragSourceHandler();
 
 public:
-	virtual QSTATUS dragDropEnd(const DragSourceDropEvent& event) = 0;
+	virtual void dragDropEnd(const DragSourceDropEvent& event) = 0;
 };
 
 
@@ -83,7 +84,7 @@ public:
 class QSEXPORTCLASS DragSourceEvent
 {
 public:
-	DragSourceEvent(DragSource* pDragSource);
+	explicit DragSourceEvent(DragSource* pDragSource);
 	~DragSourceEvent();
 
 public:
@@ -107,7 +108,9 @@ private:
 class QSEXPORTCLASS DragSourceDropEvent : public DragSourceEvent
 {
 public:
-	DragSourceDropEvent(DragSource* pDragSource, bool bDrop, DWORD dwEffect);
+	DragSourceDropEvent(DragSource* pDragSource,
+						bool bDrop,
+						DWORD dwEffect);
 	~DragSourceDropEvent();
 
 public:
@@ -133,7 +136,7 @@ private:
 class QSEXPORTCLASS DropTarget
 {
 public:
-	DropTarget(HWND hwnd, QSTATUS* pstatus);
+	explicit DropTarget(HWND hwnd);
 	~DropTarget();
 
 public:
@@ -164,10 +167,10 @@ public:
 	virtual ~DropTargetHandler();
 
 public:
-	virtual QSTATUS dragEnter(const DropTargetDragEvent& event) = 0;
-	virtual QSTATUS dragOver(const DropTargetDragEvent& event) = 0;
-	virtual QSTATUS dragExit(const DropTargetEvent& event) = 0;
-	virtual QSTATUS drop(const DropTargetDropEvent& event) = 0;
+	virtual void dragEnter(const DropTargetDragEvent& event) = 0;
+	virtual void dragOver(const DropTargetDragEvent& event) = 0;
+	virtual void dragExit(const DropTargetEvent& event) = 0;
+	virtual void drop(const DropTargetDropEvent& event) = 0;
 };
 
 
@@ -180,7 +183,7 @@ public:
 class QSEXPORTCLASS DropTargetEvent
 {
 public:
-	DropTargetEvent(DropTarget* pDropTarget);
+	explicit DropTargetEvent(DropTarget* pDropTarget);
 	~DropTargetEvent();
 
 public:
@@ -205,7 +208,9 @@ class QSEXPORTCLASS DropTargetDragEvent : public DropTargetEvent
 {
 public:
 	DropTargetDragEvent(DropTarget* pDropTarget,
-		IDataObject* pDataObject, DWORD dwKeyState, const POINT& pt);
+						IDataObject* pDataObject,
+						DWORD dwKeyState,
+						const POINT& pt);
 	~DropTargetDragEvent();
 
 public:
@@ -236,7 +241,7 @@ private:
 class QSEXPORTCLASS DragGestureRecognizer
 {
 public:
-	DragGestureRecognizer(HWND hwnd, QSTATUS* pstatus);
+	explicit DragGestureRecognizer(HWND hwnd);
 	virtual ~DragGestureRecognizer();
 
 public:
@@ -264,7 +269,7 @@ public:
 	virtual ~DragGestureHandler();
 
 public:
-	virtual QSTATUS dragGestureRecognized(const DragGestureEvent& event) = 0;
+	virtual void dragGestureRecognized(const DragGestureEvent& event) = 0;
 };
 
 
@@ -277,7 +282,7 @@ public:
 class QSEXPORTCLASS DragGestureEvent
 {
 public:
-	DragGestureEvent(const POINT& pt);
+	explicit DragGestureEvent(const POINT& pt);
 	~DragGestureEvent();
 
 private:

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -42,7 +42,7 @@ class ListContainerWindow :
 	public FolderModelHandler
 {
 public:
-	ListContainerWindow(FolderModel* pFolderModel, qs::QSTATUS* pstatus);
+	explicit ListContainerWindow(FolderModel* pFolderModel);
 	virtual ~ListContainerWindow();
 
 public:
@@ -50,14 +50,18 @@ public:
 	void setListWindow(ListWindow* pListWindow);
 
 public:
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
-	LRESULT onSize(UINT nFlags, int cx, int cy);
+	LRESULT onSize(UINT nFlags,
+				   int cx,
+				   int cy);
 
 public:
-	virtual qs::QSTATUS accountSelected(const FolderModelEvent& event);
-	virtual qs::QSTATUS folderSelected(const FolderModelEvent& event);
+	virtual void accountSelected(const FolderModelEvent& event);
+	virtual void folderSelected(const FolderModelEvent& event);
 
 private:
 	ListContainerWindow(const ListContainerWindow&);
@@ -67,7 +71,7 @@ private:
 	FolderModel* pFolderModel_;
 	FolderListWindow* pFolderListWindow_;
 	ListWindow* pListWindow_;
-	DelayedFolderModelHandler* pDelayedFolderModelHandler_;
+	std::auto_ptr<DelayedFolderModelHandler> pDelayedFolderModelHandler_;
 };
 
 
@@ -94,22 +98,26 @@ public:
 
 public:
 	SyncNotificationWindow(SyncManager* pSyncManager,
-		SyncDialogManager* pSyncDialogManager, qs::QSTATUS* pstatus);
+						   SyncDialogManager* pSyncDialogManager);
 	virtual ~SyncNotificationWindow();
 
 public:
-	virtual qs::QSTATUS getWindowClass(WNDCLASS* pwc);
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual void getWindowClass(WNDCLASS* pwc);
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
 	LRESULT onDestroy();
-	LRESULT onLButtonDown(UINT nFlags, const POINT& pt);
+	LRESULT onLButtonDown(UINT nFlags,
+						  const POINT& pt);
 	LRESULT onPaint();
-	LRESULT onStatusChanged(WPARAM wParam, LPARAM lParam);
+	LRESULT onStatusChanged(WPARAM wParam,
+							LPARAM lParam);
 
 public:
-	virtual qs::QSTATUS statusChanged(const SyncManagerEvent& event);
+	virtual void statusChanged(const SyncManagerEvent& event);
 
 private:
 	SyncNotificationWindow(const SyncNotificationWindow&);

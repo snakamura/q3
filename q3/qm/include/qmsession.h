@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -57,12 +57,14 @@ public:
 
 public:
 	virtual bool isCanceled(bool bForce) = 0;
-	virtual qs::QSTATUS setPos(unsigned int n) = 0;
-	virtual qs::QSTATUS setRange(unsigned int nMin, unsigned int nMax) = 0;
-	virtual qs::QSTATUS setSubPos(unsigned int n) = 0;
-	virtual qs::QSTATUS setSubRange(unsigned int nMin, unsigned int nMax) = 0;
-	virtual qs::QSTATUS setMessage(const WCHAR* pwszMessage) = 0;
-	virtual qs::QSTATUS addError(const SessionErrorInfo& info) = 0;
+	virtual void setPos(unsigned int n) = 0;
+	virtual void setRange(unsigned int nMin,
+						  unsigned int nMax) = 0;
+	virtual void setSubPos(unsigned int n) = 0;
+	virtual void setSubRange(unsigned int nMin,
+							 unsigned int nMax) = 0;
+	virtual void setMessage(const WCHAR* pwszMessage) = 0;
+	virtual void addError(const SessionErrorInfo& info) = 0;
 };
 
 
@@ -78,17 +80,20 @@ public:
 	virtual ~ReceiveSession();
 
 public:
-	virtual qs::QSTATUS init(Document* pDocument, Account* pAccount,
-		SubAccount* pSubAccount, HWND hwnd, qs::Profile* pProfile,
-		qs::Logger* pLogger, ReceiveSessionCallback* pCallback) = 0;
-	virtual qs::QSTATUS connect() = 0;
-	virtual qs::QSTATUS disconnect() = 0;
-	virtual qs::QSTATUS selectFolder(NormalFolder* pFolder) = 0;
-	virtual qs::QSTATUS closeFolder() = 0;
-	virtual qs::QSTATUS updateMessages() = 0;
-	virtual qs::QSTATUS downloadMessages(
-		const SyncFilterSet* pSyncFilterSet) = 0;
-	virtual qs::QSTATUS applyOfflineJobs() = 0;
+	virtual bool init(Document* pDocument,
+					  Account* pAccount,
+					  SubAccount* pSubAccount,
+					  HWND hwnd,
+					  qs::Profile* pProfile,
+					  qs::Logger* pLogger,
+					  ReceiveSessionCallback* pCallback) = 0;
+	virtual bool connect() = 0;
+	virtual bool disconnect() = 0;
+	virtual bool selectFolder(NormalFolder* pFolder) = 0;
+	virtual bool closeFolder() = 0;
+	virtual bool updateMessages() = 0;
+	virtual bool downloadMessages(const SyncFilterSet* pSyncFilterSet) = 0;
+	virtual bool applyOfflineJobs() = 0;
 };
 
 
@@ -104,7 +109,7 @@ public:
 	virtual ~ReceiveSessionCallback();
 
 public:
-	virtual qs::QSTATUS notifyNewMessage() = 0;
+	virtual void notifyNewMessage() = 0;
 };
 
 
@@ -121,10 +126,9 @@ public:
 
 public:
 	virtual const WCHAR* getClass() = 0;
-	virtual qs::QSTATUS getDisplayName(qs::WSTRING* pwstrName) = 0;
+	virtual qs::wstring_ptr getDisplayName() = 0;
 	virtual short getDefaultPort() = 0;
-	virtual qs::QSTATUS createPropertyPage(
-		SubAccount* pSubAccount, qs::PropertyPage** ppPage) = 0;
+	virtual std::auto_ptr<qs::PropertyPage> createPropertyPage(SubAccount* pSubAccount) = 0;
 };
 
 
@@ -146,24 +150,18 @@ public:
 	virtual ~ReceiveSessionFactory();
 
 public:
-	static qs::QSTATUS getSession(const WCHAR* pwszName,
-		ReceiveSession** ppReceiveSession);
-	static qs::QSTATUS getSession(const WCHAR* pwszName,
-		std::auto_ptr<ReceiveSession>* papReceiveSession);
-	static qs::QSTATUS getUI(const WCHAR* pwszName,
-		ReceiveSessionUI** ppUI);
-	static qs::QSTATUS getUI(const WCHAR* pwszName,
-		std::auto_ptr<ReceiveSessionUI>* papUI);
-	static qs::QSTATUS getNames(NameList* pList);
+	static std::auto_ptr<ReceiveSession> getSession(const WCHAR* pwszName);
+	static std::auto_ptr<ReceiveSessionUI> getUI(const WCHAR* pwszName);
+	static void getNames(NameList* pList);
 
 protected:
-	virtual qs::QSTATUS createSession(ReceiveSession** ppReceiveSession) = 0;
-	virtual qs::QSTATUS createUI(ReceiveSessionUI** ppUI) = 0;
+	virtual std::auto_ptr<ReceiveSession> createSession() = 0;
+	virtual std::auto_ptr<ReceiveSessionUI> createUI() = 0;
 
 protected:
-	static qs::QSTATUS regist(const WCHAR* pwszName,
-		ReceiveSessionFactory* pFactory);
-	static qs::QSTATUS unregist(const WCHAR* pwszName);
+	static void registerFactory(const WCHAR* pwszName,
+								ReceiveSessionFactory* pFactory);
+	static void unregisterFactory(const WCHAR* pwszName);
 
 private:
 	ReceiveSessionFactory(const ReceiveSessionFactory&);
@@ -183,12 +181,15 @@ public:
 	virtual ~SendSession();
 
 public:
-	virtual qs::QSTATUS init(Document* pDocument, Account* pAccount,
-		SubAccount* pSubAccount, qs::Profile* pProfile,
-		qs::Logger* pLogger, SendSessionCallback* pCallback) = 0;
-	virtual qs::QSTATUS connect() = 0;
-	virtual qs::QSTATUS disconnect() = 0;
-	virtual qs::QSTATUS sendMessage(Message* pMessage) = 0;
+	virtual bool init(Document* pDocument,
+					  Account* pAccount,
+					  SubAccount* pSubAccount,
+					  qs::Profile* pProfile,
+					  qs::Logger* pLogger,
+					  SendSessionCallback* pCallback) = 0;
+	virtual bool connect() = 0;
+	virtual bool disconnect() = 0;
+	virtual bool sendMessage(Message* pMessage) = 0;
 };
 
 
@@ -218,10 +219,9 @@ public:
 
 public:
 	virtual const WCHAR* getClass() = 0;
-	virtual qs::QSTATUS getDisplayName(qs::WSTRING* pwstrName) = 0;
+	virtual qs::wstring_ptr getDisplayName() = 0;
 	virtual short getDefaultPort() = 0;
-	virtual qs::QSTATUS createPropertyPage(
-		SubAccount* pSubAccount, qs::PropertyPage** ppPage) = 0;
+	virtual std::auto_ptr<qs::PropertyPage> createPropertyPage(SubAccount* pSubAccount) = 0;
 };
 
 
@@ -243,24 +243,18 @@ public:
 	virtual ~SendSessionFactory();
 
 public:
-	static qs::QSTATUS getSession(const WCHAR* pwszName,
-		SendSession** ppSendSession);
-	static qs::QSTATUS getSession(const WCHAR* pwszName,
-		std::auto_ptr<SendSession>* papSendSession);
-	static qs::QSTATUS getUI(const WCHAR* pwszName,
-		SendSessionUI** ppUI);
-	static qs::QSTATUS getUI(const WCHAR* pwszName,
-		std::auto_ptr<SendSessionUI>* papUI);
-	static qs::QSTATUS getNames(NameList* pList);
+	static std::auto_ptr<SendSession> getSession(const WCHAR* pwszName);
+	static std::auto_ptr<SendSessionUI> getUI(const WCHAR* pwszName);
+	static void getNames(NameList* pList);
 
 protected:
-	virtual qs::QSTATUS createSession(SendSession** ppSendSession) = 0;
-	virtual qs::QSTATUS createUI(SendSessionUI** ppUI) = 0;
+	virtual std::auto_ptr<SendSession> createSession() = 0;
+	virtual std::auto_ptr<SendSessionUI> createUI() = 0;
 
 protected:
-	static qs::QSTATUS regist(const WCHAR* pwszName,
-		SendSessionFactory* pFactory);
-	static qs::QSTATUS unregist(const WCHAR* pwszName);
+	static void registerFactory(const WCHAR* pwszName,
+								SendSessionFactory* pFactory);
+	static void unregisterFactory(const WCHAR* pwszName);
 
 private:
 	SendSessionFactory(const SendSessionFactory&);
@@ -277,9 +271,13 @@ private:
 class QMEXPORTCLASS SessionErrorInfo
 {
 public:
-	SessionErrorInfo(Account* pAccount, SubAccount* pSubAccount,
-		NormalFolder* pFolder, const WCHAR* pwszMessage, unsigned int nCode,
-		const WCHAR* pwszDescriptions[], size_t nDescriptionCount);
+	SessionErrorInfo(Account* pAccount,
+					 SubAccount* pSubAccount,
+					 NormalFolder* pFolder,
+					 const WCHAR* pwszMessage,
+					 unsigned int nCode,
+					 const WCHAR* pwszDescriptions[],
+					 size_t nDescriptionCount);
 	~SessionErrorInfo();
 
 public:
@@ -316,13 +314,14 @@ class QMEXPORTCLASS DefaultSSLSocketCallback : public qs::SSLSocketCallback
 {
 public:
 	DefaultSSLSocketCallback(SubAccount* pSubAccount,
-		Account::Host host, const Security* pSecurity);
+							 Account::Host host,
+							 const Security* pSecurity);
 	virtual ~DefaultSSLSocketCallback();
 
 public:
-	virtual qs::QSTATUS getCertStore(const qs::Store** ppStore);
-	virtual qs::QSTATUS checkCertificate(
-		const qs::Certificate& cert, bool bVerified);
+	virtual const qs::Store* getCertStore();
+	virtual bool checkCertificate(const qs::Certificate& cert,
+								  bool bVerified);
 
 private:
 	DefaultSSLSocketCallback(const DefaultSSLSocketCallback&);

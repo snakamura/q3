@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -24,12 +24,12 @@ class Imap4SearchDriver : public qm::SearchDriver
 {
 public:
 	Imap4SearchDriver(qm::Account* pAccount,
-		qs::Profile* pProfile, qs::QSTATUS* pstatus);
+					  qs::Profile* pProfile);
 	virtual ~Imap4SearchDriver();
 
 public:
-	virtual qs::QSTATUS search(const qm::SearchContext& context,
-		qm::MessageHolderList* pList);
+	virtual bool search(const qm::SearchContext& context,
+						qm::MessageHolderList* pList);
 
 private:
 	Imap4SearchDriver(const Imap4SearchDriver&);
@@ -51,15 +51,14 @@ class Imap4SearchUI : public qm::SearchUI
 {
 public:
 	Imap4SearchUI(qm::Account* pAccount,
-		qs::Profile* pProfile, qs::QSTATUS* pstatus);
+				  qs::Profile* pProfile);
 	virtual ~Imap4SearchUI();
 
 public:
 	virtual int getIndex();
 	virtual const WCHAR* getName();
-	virtual qs::QSTATUS getDisplayName(qs::WSTRING* pwstrName);
-	virtual qs::QSTATUS createPropertyPage(
-		bool bAllFolder, qm::SearchPropertyPage** ppPage);
+	virtual qs::wstring_ptr getDisplayName();
+	virtual std::auto_ptr<qm::SearchPropertyPage> createPropertyPage(bool bAllFolder);
 
 private:
 	Imap4SearchUI(const Imap4SearchUI&);
@@ -80,8 +79,9 @@ private:
 class Imap4SearchPage : public qm::SearchPropertyPage
 {
 public:
-	Imap4SearchPage(qm::Account* pAccount, qs::Profile* pProfile,
-		bool bAllFolder, qs::QSTATUS* pstatus);
+	Imap4SearchPage(qm::Account* pAccount,
+					qs::Profile* pProfile,
+					bool bAllFolder);
 	virtual ~Imap4SearchPage();
 
 public:
@@ -91,16 +91,18 @@ public:
 	virtual bool isRecursive() const;
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
 
 private:
-	static qs::QSTATUS getLiteral(const WCHAR* pwsz, qs::WSTRING* pwstr);
+	static qs::wstring_ptr getLiteral(const WCHAR* pwsz);
 
 private:
 	LRESULT onImap4Command();
@@ -115,7 +117,7 @@ private:
 private:
 	qm::Account* pAccount_;
 	qs::Profile* pProfile_;
-	qs::WSTRING wstrCondition_;
+	qs::wstring_ptr wstrCondition_;
 	bool bAllFolder_;
 	bool bRecursive_;
 };
@@ -134,10 +136,12 @@ public:
 	virtual ~Imap4SearchDriverFactory();
 
 protected:
-	virtual qs::QSTATUS createDriver(qm::Document* pDocument, qm::Account* pAccount,
-		HWND hwnd, qs::Profile* pProfile, qm::SearchDriver** ppDriver);
-	virtual qs::QSTATUS createUI(qm::Account* pAccount,
-		qs::Profile* pProfile, qm::SearchUI** ppUI);
+	virtual std::auto_ptr<qm::SearchDriver> createDriver(qm::Document* pDocument,
+														 qm::Account* pAccount,
+														 HWND hwnd,
+														 qs::Profile* pProfile);
+	virtual std::auto_ptr<qm::SearchUI> createUI(qm::Account* pAccount,
+												 qs::Profile* pProfile);
 
 private:
 	Imap4SearchDriverFactory(const Imap4SearchDriverFactory&);

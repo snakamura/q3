@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -12,12 +12,10 @@
 #include <qmfilenames.h>
 #include <qmsecurity.h>
 
-#include <qserror.h>
-#include <qsnew.h>
-#include <qsstl.h>
-#include <qsstring.h>
 #include <qsconv.h>
 #include <qsosutil.h>
+#include <qsstl.h>
+#include <qsstring.h>
 
 #include <vector>
 #include <algorithm>
@@ -46,69 +44,46 @@ struct qm::DocumentImpl
 {
 	typedef std::vector<DocumentHandler*> DocumentHandlerList;
 	
-	QSTATUS setOffline(bool bOffline);
-	QSTATUS fireOfflineStatusChanged();
-	QSTATUS fireAccountListChanged(AccountListChangedEvent::Type type,
-		Account* pAccount) const;
+	void setOffline(bool bOffline);
+	void fireOfflineStatusChanged();
+	void fireAccountListChanged(AccountListChangedEvent::Type type,
+								Account* pAccount) const;
 	
 	Document* pThis_;
 	Profile* pProfile_;
 	Document::AccountList listAccount_;
 	DocumentHandlerList listDocumentHandler_;
-	RuleManager* pRuleManager_;
-	TemplateManager* pTemplateManager_;
-	ScriptManager* pScriptManager_;
-	SignatureManager* pSignatureManager_;
-	AddressBook* pAddressBook_;
-	Security* pSecurity_;
+	std::auto_ptr<RuleManager> pRuleManager_;
+	std::auto_ptr<TemplateManager> pTemplateManager_;
+	std::auto_ptr<ScriptManager> pScriptManager_;
+	std::auto_ptr<SignatureManager> pSignatureManager_;
+	std::auto_ptr<AddressBook> pAddressBook_;
+	std::auto_ptr<Security> pSecurity_;
 	unsigned int nOnline_;
 	bool bCheckNewMail_;
 };
 
-QSTATUS qm::DocumentImpl::setOffline(bool bOffline)
+void qm::DocumentImpl::setOffline(bool bOffline)
 {
-	DECLARE_QSTATUS();
+	for (Document::AccountList::iterator it = listAccount_.begin(); it != listAccount_.end(); ++it)
+		(*it)->setOffline(bOffline);
 	
-	Document::AccountList::iterator it = listAccount_.begin();
-	while (it != listAccount_.end()) {
-		status = (*it)->setOffline(bOffline);
-		CHECK_QSTATUS();
-		++it;
-	}
-	
-	status = fireOfflineStatusChanged();
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	fireOfflineStatusChanged();
 }
 
-QSTATUS qm::DocumentImpl::fireOfflineStatusChanged()
+void qm::DocumentImpl::fireOfflineStatusChanged()
 {
-	DECLARE_QSTATUS();
-	
 	DocumentEvent event(pThis_);
-	DocumentHandlerList::const_iterator it = listDocumentHandler_.begin();
-	while (it != listDocumentHandler_.end()) {
-		status = (*it++)->offlineStatusChanged(event);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	for (DocumentHandlerList::const_iterator it = listDocumentHandler_.begin(); it != listDocumentHandler_.end(); ++it)
+		(*it)->offlineStatusChanged(event);
 }
 
-QSTATUS qm::DocumentImpl::fireAccountListChanged(
-	AccountListChangedEvent::Type type, Account* pAccount) const
+void qm::DocumentImpl::fireAccountListChanged(AccountListChangedEvent::Type type,
+											  Account* pAccount) const
 {
-	DECLARE_QSTATUS();
-	
 	AccountListChangedEvent event(pThis_, type, pAccount);
-	DocumentHandlerList::const_iterator it = listDocumentHandler_.begin();
-	while (it != listDocumentHandler_.end()) {
-		status = (*it++)->accountListChanged(event);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	for (DocumentHandlerList::const_iterator it = listDocumentHandler_.begin(); it != listDocumentHandler_.end(); ++it)
+		(*it)->accountListChanged(event);
 }
 
 
@@ -118,55 +93,30 @@ QSTATUS qm::DocumentImpl::fireAccountListChanged(
  *
  */
 
-qm::Document::Document(Profile* pProfile, QSTATUS* pstatus) :
+qm::Document::Document(Profile* pProfile) :
 	pImpl_(0)
 {
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	DECLARE_QSTATUS();
-	
 	const WCHAR* pwszMailFolder =
 		Application::getApplication().getMailFolder();
 	
-	std::auto_ptr<RuleManager> pRuleManager;
-	status = newQsObject(&pRuleManager);
-	CHECK_QSTATUS_SET(pstatus);
+	std::auto_ptr<RuleManager> pRuleManager(new RuleManager());
+	std::auto_ptr<TemplateManager> pTemplateManager(new TemplateManager(pwszMailFolder));
+	std::auto_ptr<ScriptManager> pScriptManager(new ScriptManager(pwszMailFolder));
+	std::auto_ptr<SignatureManager> pSignatureManager(new SignatureManager());
+	std::auto_ptr<Security> pSecurity(new Security(pwszMailFolder));
+	std::auto_ptr<AddressBook> pAddressBook(new AddressBook(pProfile));
 	
-	std::auto_ptr<TemplateManager> pTemplateManager;
-	status = newQsObject(pwszMailFolder, &pTemplateManager);
-	CHECK_QSTATUS_SET(pstatus);
+	int nCheckNewMail = pProfile->getInt(L"NewMailCheck", L"Enable", 0);
 	
-	std::auto_ptr<ScriptManager> pScriptManager;
-	status = newQsObject(pwszMailFolder, &pScriptManager);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	std::auto_ptr<SignatureManager> pSignatureManager;
-	status = newQsObject(&pSignatureManager);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	std::auto_ptr<Security> pSecurity;
-	status = newQsObject(pwszMailFolder, &pSecurity);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	std::auto_ptr<AddressBook> pAddressBook;
-	status = newQsObject(pProfile, &pAddressBook);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	int nCheckNewMail = 0;
-	status = pProfile->getInt(L"NewMailCheck", L"Enable", 0, &nCheckNewMail);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new DocumentImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->pProfile_ = pProfile;
-	pImpl_->pRuleManager_ = pRuleManager.release();
-	pImpl_->pTemplateManager_ = pTemplateManager.release();
-	pImpl_->pScriptManager_ = pScriptManager.release();
-	pImpl_->pSignatureManager_ = pSignatureManager.release();
-	pImpl_->pAddressBook_ = pAddressBook.release();
-	pImpl_->pSecurity_ = pSecurity.release();
+	pImpl_->pRuleManager_ = pRuleManager;
+	pImpl_->pTemplateManager_ = pTemplateManager;
+	pImpl_->pScriptManager_ = pScriptManager;
+	pImpl_->pSignatureManager_ = pSignatureManager;
+	pImpl_->pAddressBook_ = pAddressBook;
+	pImpl_->pSecurity_ = pSecurity;
 	pImpl_->nOnline_ = 0;
 	pImpl_->bCheckNewMail_ = nCheckNewMail != 0;
 }
@@ -176,12 +126,6 @@ qm::Document::~Document()
 	if (pImpl_) {
 		AccountList& l = pImpl_->listAccount_;
 		std::for_each(l.begin(), l.end(), deleter<Account>());
-		delete pImpl_->pRuleManager_;
-		delete pImpl_->pTemplateManager_;
-		delete pImpl_->pScriptManager_;
-		delete pImpl_->pSignatureManager_;
-		delete pImpl_->pAddressBook_;
-		delete pImpl_->pSecurity_;
 		delete pImpl_;
 		pImpl_ = 0;
 	}
@@ -191,12 +135,10 @@ Account* qm::Document::getAccount(const WCHAR* pwszName) const
 {
 	assert(pwszName);
 	
-	DECLARE_QSTATUS();
-	
-	AccountList& l = pImpl_->listAccount_;
 	AccountList::const_iterator it = std::find_if(
-		l.begin(), l.end(), AccountNameEqual(pwszName));
-	return it != l.end() ? *it : 0;
+		pImpl_->listAccount_.begin(), pImpl_->listAccount_.end(),
+		AccountNameEqual(pwszName));
+	return it != pImpl_->listAccount_.end() ? *it : 0;
 }
 
 const Document::AccountList& qm::Document::getAccounts() const
@@ -208,131 +150,103 @@ bool qm::Document::hasAccount(const WCHAR* pwszName) const
 {
 	assert(pwszName);
 	
-	AccountList& l = pImpl_->listAccount_;
-	return std::find_if(l.begin(), l.end(),
-		AccountNameEqual(pwszName)) != l.end();
+	return std::find_if(pImpl_->listAccount_.begin(), pImpl_->listAccount_.end(),
+		AccountNameEqual(pwszName)) != pImpl_->listAccount_.end();
 }
 
-QSTATUS qm::Document::addAccount(Account* pAccount)
+void qm::Document::addAccount(std::auto_ptr<Account> pAccount)
 {
-	assert(pAccount);
+	assert(pAccount.get());
 	
-	DECLARE_QSTATUS();
-
 	const WCHAR* pwszName = pAccount->getName();
 	assert(!hasAccount(pwszName));
 	
 	AccountList& l = pImpl_->listAccount_;
-	assert(std::find(l.begin(), l.end(), pAccount) == l.end());
+	assert(std::find(l.begin(), l.end(), pAccount.get()) == l.end());
 	AccountList::iterator it = std::lower_bound(
-		l.begin(), l.end(), pAccount, AccountLess());
-	status = STLWrapper<AccountList>(l).insert(it, pAccount, &it);
-	CHECK_QSTATUS();
+		l.begin(), l.end(), pAccount.get(), AccountLess());
+	l.insert(it, pAccount.get());
+	Account* p = pAccount.release();
 	
-	status = pImpl_->fireAccountListChanged(
-		AccountListChangedEvent::TYPE_ADD, pAccount);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	pImpl_->fireAccountListChanged(AccountListChangedEvent::TYPE_ADD, p);
 }
 
-QSTATUS qm::Document::removeAccount(Account* pAccount)
+void qm::Document::removeAccount(Account* pAccount)
 {
 	assert(pAccount);
-	
-	DECLARE_QSTATUS();
 	
 	AccountList& l = pImpl_->listAccount_;
 	AccountList::iterator it = std::find(l.begin(), l.end(), pAccount);
 	assert(it != l.end());
 	
-	status = pAccount->deletePermanent(true);
-	CHECK_QSTATUS();
+	pAccount->deletePermanent(true);
 	l.erase(it);
 	
-	status = pImpl_->fireAccountListChanged(
-		AccountListChangedEvent::TYPE_REMOVE, pAccount);
-	CHECK_QSTATUS();
+	pImpl_->fireAccountListChanged(AccountListChangedEvent::TYPE_REMOVE, pAccount);
 	
 	delete pAccount;
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::Document::renameAccount(Account* pAccount, const WCHAR* pwszName)
+bool qm::Document::renameAccount(Account* pAccount,
+								 const WCHAR* pwszName)
 {
 	assert(pAccount);
 	assert(pwszName);
 	
-	DECLARE_QSTATUS();
+	if (!pAccount->save())
+		return false;
 	
-	status = pAccount->save();
-	CHECK_QSTATUS();
-	
-	string_ptr<WSTRING> wstrOldPath(allocWString(pAccount->getPath()));
-	if (!wstrOldPath.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrOldPath(allocWString(pAccount->getPath()));
 	
 	AccountList& l = pImpl_->listAccount_;
 	AccountList::iterator it = std::find(l.begin(), l.end(), pAccount);
 	assert(it != l.end());
 	
-	status = pAccount->deletePermanent(false);
-	CHECK_QSTATUS();
+	pAccount->deletePermanent(false);
 	l.erase(it);
 	
 	std::auto_ptr<Account> pOldAccount(pAccount);
-	status = pImpl_->fireAccountListChanged(
-		AccountListChangedEvent::TYPE_REMOVE, pAccount);
-	CHECK_QSTATUS();
+	pImpl_->fireAccountListChanged(AccountListChangedEvent::TYPE_REMOVE, pAccount);
 	pOldAccount.reset(0);
 	
 	const WCHAR* p = wcsrchr(wstrOldPath.get(), L'\\');
 	assert(p);
 	
-	string_ptr<WSTRING> wstrNewPath(concat(wstrOldPath.get(),
+	wstring_ptr wstrNewPath(concat(wstrOldPath.get(),
 		p - wstrOldPath.get() + 1, pwszName, -1));
-	if (!wstrNewPath.get())
-		return QSTATUS_OUTOFMEMORY;
 	
 	W2T(wstrOldPath.get(), ptszOldPath);
 	W2T(wstrNewPath.get(), ptszNewPath);
 	if (!::MoveFile(ptszOldPath, ptszNewPath))
-		return QSTATUS_FAIL;
+		return false;
 	
-	std::auto_ptr<Account> pNewAccount;
-	status = newQsObject(wstrNewPath.get(), getSecurity(), &pNewAccount);
-	CHECK_QSTATUS();
-	
+	std::auto_ptr<Account> pNewAccount(new Account(wstrNewPath.get(), getSecurity()));
 	it = std::lower_bound(l.begin(), l.end(), pNewAccount.get(), AccountLess());
-	status = STLWrapper<AccountList>(l).insert(it, pNewAccount.get(), &it);
-	CHECK_QSTATUS();
+	l.insert(it, pNewAccount.get());
 	pAccount = pNewAccount.release();
 	
-	status = pImpl_->fireAccountListChanged(
-		AccountListChangedEvent::TYPE_ADD, pAccount);
-	CHECK_QSTATUS();
+	pImpl_->fireAccountListChanged(AccountListChangedEvent::TYPE_ADD, pAccount);
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::Document::loadAccounts(const WCHAR* pwszPath)
+bool qm::Document::loadAccounts(const WCHAR* pwszPath)
 {
 	assert(pwszPath);
 	
-	DECLARE_QSTATUS();
-	
 	assert(*(pwszPath + wcslen(pwszPath) - 1) != L'\\');
-	string_ptr<WSTRING> wstrFind(concat(pwszPath, L"\\*.*"));
-	if (!wstrFind.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrFind(concat(pwszPath, L"\\*.*"));
 	W2T(wstrFind.get(), ptszFind);
 	
 	AccountList& l = pImpl_->listAccount_;
 	
 	struct AccountDestroy
 	{
-		AccountDestroy(AccountList& l) : p_(&l) {}
+		AccountDestroy(AccountList& l) :
+			p_(&l)
+		{
+		}
+		
 		~AccountDestroy()
 		{
 			if (p_) {
@@ -340,7 +254,12 @@ QSTATUS qm::Document::loadAccounts(const WCHAR* pwszPath)
 				p_->clear();
 			}
 		};
-		void release() { p_ = 0; }
+		
+		void release()
+		{
+			p_ = 0;
+		}
+		
 		AccountList* p_;
 	} accountDestroy(l);
 	
@@ -350,9 +269,7 @@ QSTATUS qm::Document::loadAccounts(const WCHAR* pwszPath)
 	if (hFind.get()) {
 		do {
 			T2W(fd.cFileName, pwszName);
-			string_ptr<WSTRING> wstrPath(concat(pwszPath, L"\\", pwszName));
-			if (!wstrPath.get())
-				return QSTATUS_OUTOFMEMORY;
+			wstring_ptr wstrPath(concat(pwszPath, L"\\", pwszName));
 			
 			int nFileNameLen = _tcslen(fd.cFileName);
 			if (nFileNameLen > 4 &&
@@ -385,21 +302,14 @@ QSTATUS qm::Document::loadAccounts(const WCHAR* pwszPath)
 					continue;
 				
 				AutoFindHandle hFindLink(::FindFirstFile(tszPath, &fd));
-				if (hFindLink.get()) {
-					wstrPath.reset(tcs2wcs(tszPath));
-					if (!wstrPath.get())
-						return QSTATUS_OUTOFMEMORY;
-				}
+				if (hFindLink.get())
+					wstrPath = tcs2wcs(tszPath);
 #else
 				WCHAR wszPath[MAX_PATH];
-				if (::SHGetShortcutTarget(
-					wstrPath.get(), wszPath, countof(wszPath))) {
+				if (::SHGetShortcutTarget(wstrPath.get(), wszPath, countof(wszPath))) {
 					AutoFindHandle hFindLink(::FindFirstFile(wszPath, &fd));
-					if (hFindLink.get()) {
-						wstrPath.reset(allocWString(wszPath));
-						if (!wstrPath.get())
-							return QSTATUS_OUTOFMEMORY;
-					}
+					if (hFindLink.get())
+						wstrPath = allocWString(wszPath);
 				}
 #endif
 			}
@@ -415,9 +325,7 @@ QSTATUS qm::Document::loadAccounts(const WCHAR* pwszPath)
 				{ FileNames::ACCOUNT,	-1	},
 				{ FileNames::XML_EXT,	-1	}
 			};
-			wstrPath.reset(concat(c, countof(c)));
-			if (!wstrPath.get())
-				return QSTATUS_OUTOFMEMORY;
+			wstrPath = concat(c, countof(c));
 			
 			W2T(wstrPath.get(), ptszPath);
 			DWORD dwAttributes = ::GetFileAttributes(ptszPath);
@@ -426,11 +334,11 @@ QSTATUS qm::Document::loadAccounts(const WCHAR* pwszPath)
 				WCHAR* p = wcsrchr(wstrPath.get(), L'\\');
 				assert(p);
 				*p = L'\0';
-				Account* pAccount = 0;
-				status = newQsObject(wstrPath.get(), pImpl_->pSecurity_, &pAccount);
-				CHECK_QSTATUS();
-				status = STLWrapper<AccountList>(l).push_back(pAccount);
-				CHECK_QSTATUS();
+				std::auto_ptr<Account> pAccount(new Account(
+					wstrPath.get(), pImpl_->pSecurity_.get()));
+				// TODO ERROR CHECK
+				l.push_back(pAccount.get());
+				pAccount.release();
 			}
 		} while (::FindNextFile(hFind.get(), &fd));
 	}
@@ -438,67 +346,59 @@ QSTATUS qm::Document::loadAccounts(const WCHAR* pwszPath)
 	accountDestroy.release();
 	std::sort(l.begin(), l.end(), AccountLess());
 	
-	status = pImpl_->fireAccountListChanged(
-		AccountListChangedEvent::TYPE_ALL, 0);
-	CHECK_QSTATUS();
+	pImpl_->fireAccountListChanged(AccountListChangedEvent::TYPE_ALL, 0);
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::Document::getFolder(Account* pAccount,
-	const WCHAR* pwszName, Folder** ppFolder) const
+qm::Folder* qm::Document::getFolder(Account* pAccount,
+								const WCHAR* pwszName) const
 {
 	assert(pAccount);
 	assert(pwszName);
-	assert(ppFolder);
-	
-	*ppFolder = 0;
 	
 	if (*pwszName == L'/' && *(pwszName + 1) == L'/') {
 		const WCHAR* p = wcschr(pwszName + 2, L'/');
 		if (p) {
-			string_ptr<WSTRING> wstrAccount(
-				allocWString(pwszName + 2, p - pwszName - 2));
-			if (!wstrAccount.get())
-				return QSTATUS_OUTOFMEMORY;
+			wstring_ptr wstrAccount(allocWString(pwszName + 2, p - pwszName - 2));
 			pAccount = getAccount(wstrAccount.get());
 			if (!pAccount)
-				return QSTATUS_SUCCESS;
+				return 0;
 			pwszName = p + 1;
 		}
 	}
 	
-	return pAccount->getFolder(pwszName, ppFolder);
+	return pAccount->getFolder(pwszName);
 }
 
 RuleManager* qm::Document::getRuleManager() const
 {
-	return pImpl_->pRuleManager_;
+	return pImpl_->pRuleManager_.get();
 }
 
 const TemplateManager* qm::Document::getTemplateManager() const
 {
-	return pImpl_->pTemplateManager_;
+	return pImpl_->pTemplateManager_.get();
 }
 
 ScriptManager* qm::Document::getScriptManager() const
 {
-	return pImpl_->pScriptManager_;
+	return pImpl_->pScriptManager_.get();
 }
 
 SignatureManager* qm::Document::getSignatureManager() const
 {
-	return pImpl_->pSignatureManager_;
+	return pImpl_->pSignatureManager_.get();
 }
 
 AddressBook* qm::Document::getAddressBook() const
 {
-	return pImpl_->pAddressBook_;
+	return pImpl_->pAddressBook_.get();
 }
 
 const Security* qm::Document::getSecurity() const
 {
-	return pImpl_->pSecurity_;
+	return pImpl_->pSecurity_.get();
 }
 
 bool qm::Document::isOffline() const
@@ -506,44 +406,28 @@ bool qm::Document::isOffline() const
 	return pImpl_->nOnline_ == 0;
 }
 
-QSTATUS qm::Document::setOffline(bool bOffline)
+void qm::Document::setOffline(bool bOffline)
 {
 	assert((pImpl_->nOnline_ & 0x7fffffff) == 0);
-	
-	DECLARE_QSTATUS();
 	
 	if (bOffline)
 		pImpl_->nOnline_ &= 0x7fffffff;
 	else
 		pImpl_->nOnline_ |= 0x80000000;
 	
-	status = pImpl_->setOffline(bOffline);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	pImpl_->setOffline(bOffline);
 }
 
-QSTATUS qm::Document::incrementInternalOnline()
+void qm::Document::incrementInternalOnline()
 {
-	DECLARE_QSTATUS();
-	
-	if (pImpl_->nOnline_++ == 0) {
-		status = pImpl_->setOffline(false);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (pImpl_->nOnline_++ == 0)
+		pImpl_->setOffline(false);
 }
 
-QSTATUS qm::Document::decrementInternalOnline()
+void qm::Document::decrementInternalOnline()
 {
-	DECLARE_QSTATUS();
-	
-	if (--pImpl_->nOnline_ == 0) {
-		status = pImpl_->setOffline(true);
-		CHECK_QSTATUS();
-	}
-	return QSTATUS_SUCCESS;
+	if (--pImpl_->nOnline_ == 0)
+		pImpl_->setOffline(true);
 }
 
 bool qm::Document::isCheckNewMail() const
@@ -556,39 +440,30 @@ void qm::Document::setCheckNewMail(bool bCheckNewMail)
 	pImpl_->bCheckNewMail_ = bCheckNewMail;
 }
 
-QSTATUS qm::Document::save()
+bool qm::Document::save()
 {
-	DECLARE_QSTATUS();
-	
-	AccountList::iterator it = pImpl_->listAccount_.begin();
-	while (it != pImpl_->listAccount_.end()) {
-		status = (*it)->save();
-		CHECK_QSTATUS();
-		++it;
+	for (AccountList::iterator it = pImpl_->listAccount_.begin(); it != pImpl_->listAccount_.end(); ++it) {
+		if (!(*it)->save())
+			return false;
 	}
 	
-	status = pImpl_->pProfile_->setInt(L"Global", L"Offline", isOffline());
-	CHECK_QSTATUS();
-	status = pImpl_->pProfile_->setInt(
-		L"NewMailCheck", L"Enable", isCheckNewMail());
-	CHECK_QSTATUS();
+	pImpl_->pProfile_->setInt(L"Global", L"Offline", isOffline());
+	pImpl_->pProfile_->setInt(L"NewMailCheck", L"Enable", isCheckNewMail());
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::Document::addDocumentHandler(DocumentHandler* pHandler)
+void qm::Document::addDocumentHandler(DocumentHandler* pHandler)
 {
-	return STLWrapper<DocumentImpl::DocumentHandlerList>(
-		pImpl_->listDocumentHandler_).push_back(pHandler);
+	pImpl_->listDocumentHandler_.push_back(pHandler);
 }
 
-QSTATUS qm::Document::removeDocumentHandler(DocumentHandler* pHandler)
+void qm::Document::removeDocumentHandler(DocumentHandler* pHandler)
 {
 	DocumentImpl::DocumentHandlerList& l = pImpl_->listDocumentHandler_;
 	DocumentImpl::DocumentHandlerList::iterator it =
 		std::remove(l.begin(), l.end(), pHandler);
 	l.erase(it, l.end());
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -617,16 +492,12 @@ qm::DefaultDocumentHandler::~DefaultDocumentHandler()
 {
 }
 
-QSTATUS qm::DefaultDocumentHandler::offlineStatusChanged(
-	const DocumentEvent& event)
+void qm::DefaultDocumentHandler::offlineStatusChanged(const DocumentEvent& event)
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::DefaultDocumentHandler::accountListChanged(
-	const AccountListChangedEvent& event)
+void qm::DefaultDocumentHandler::accountListChanged(const AccountListChangedEvent& event)
 {
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -657,8 +528,9 @@ Document* qm::DocumentEvent::getDocument() const
  *
  */
 
-qm::AccountListChangedEvent::AccountListChangedEvent(
-	Document* pDocument, Type type, Account* pAccount) :
+qm::AccountListChangedEvent::AccountListChangedEvent(Document* pDocument,
+													 Type type,
+													 Account* pAccount) :
 	type_(type),
 	pAccount_(pAccount)
 {

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -36,7 +36,7 @@ public:
 	void invoke(HWND hwnd);
 
 public:
-	virtual qs::QSTATUS process(const WCHAR* pwszOption);
+	virtual bool process(const WCHAR* pwszOption);
 
 private:
 	MainCommandLineHandler(const MainCommandLineHandler&);
@@ -53,10 +53,10 @@ private:
 
 private:
 	State state_;
-	qs::WSTRING wstrMailFolder_;
-	qs::WSTRING wstrProfile_;
-	qs::WSTRING wstrGoRound_;
-	qs::WSTRING wstrURL_;
+	qs::wstring_ptr wstrMailFolder_;
+	qs::wstring_ptr wstrProfile_;
+	qs::wstring_ptr wstrGoRound_;
+	qs::wstring_ptr wstrURL_;
 };
 
 
@@ -70,27 +70,31 @@ class MailFolderLock
 {
 public:
 	MailFolderLock(const WCHAR* pwszMailFolder,
-		bool* pbContinue, HWND* phwnd, qs::QSTATUS* pstatus);
+				   bool* pbContinue,
+				   HWND* phwnd);
 	~MailFolderLock();
 
 public:
-	qs::QSTATUS setWindow(HWND hwnd);
-	qs::QSTATUS unsetWindow();
+	bool setWindow(HWND hwnd);
+	void unsetWindow();
 
 private:
-	qs::QSTATUS lock(const WCHAR* pwszMailFolder,
-		bool* pbContinue, HWND* phwnd);
-	qs::QSTATUS unlock();
-	qs::QSTATUS read(HANDLE hFile, HWND* phwnd, qs::WSTRING* pwstrName);
+	void lock(const WCHAR* pwszMailFolder,
+			  bool* pbContinue,
+			  HWND* phwnd);
+	void unlock();
+	bool read(HANDLE hFile,
+			  HWND* phwnd,
+			  qs::wstring_ptr* pwstrName);
 
 private:
 	MailFolderLock(const MailFolderLock&);
 	MailFolderLock& operator=(const MailFolderLock&);
 
 private:
-	qs::TSTRING tstrPath_;
+	qs::tstring_ptr tstrPath_;
 	HANDLE hFile_;
-	qs::Mutex* pMutex_;
+	std::auto_ptr<qs::Mutex> pMutex_;
 };
 
 }

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -15,7 +15,6 @@
 #include <qmmessage.h>
 #include <qmsecurity.h>
 
-#include <qsnew.h>
 #include <qsstl.h>
 #include <qsstream.h>
 #include <qstextutil.h>
@@ -45,10 +44,10 @@ using namespace qs;
  *
  */
 
-qm::EditAttachmentEditAddAction::EditAttachmentEditAddAction(
-	EditMessageHolder* pEditMessageHolder, HWND hwndFrame, QSTATUS* pstatus) :
+qm::EditAttachmentEditAddAction::EditAttachmentEditAddAction(EditMessageHolder* pEditMessageHolder,
+															 HWND hwnd) :
 	pEditMessageHolder_(pEditMessageHolder),
-	hwndFrame_(hwndFrame)
+	hwnd_(hwnd)
 {
 }
 
@@ -56,36 +55,24 @@ qm::EditAttachmentEditAddAction::~EditAttachmentEditAddAction()
 {
 }
 
-QSTATUS qm::EditAttachmentEditAddAction::invoke(const ActionEvent& event)
+void qm::EditAttachmentEditAddAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
 	
-	string_ptr<WSTRING> wstrFilter;
-	status = loadString(Application::getApplication().getResourceHandle(),
-		IDS_FILTER_ATTACHMENT, &wstrFilter);
-	CHECK_QSTATUS();
+	wstring_ptr wstrFilter(loadString(
+		Application::getApplication().getResourceHandle(), IDS_FILTER_ATTACHMENT));
 	
 	FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
-		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_ALLOWMULTISELECT,
-		&status);
-	CHECK_QSTATUS();
+		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_ALLOWMULTISELECT);
 	
-	int nRet = IDCANCEL;
-	status = dialog.doModal(hwndFrame_, 0, &nRet);
-	CHECK_QSTATUS_VALUE(0);
-	if (nRet == IDOK) {
+	if (dialog.doModal(hwnd_) == IDOK) {
 		const WCHAR* pwszPath = dialog.getPath();
 		const WCHAR* p = pwszPath;
 		while (*p) {
-			status = pEditMessage->addAttachment(p);
-			CHECK_QSTATUS();
+			pEditMessage->addAttachment(p);
 			p += wcslen(p) + 1;
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -95,9 +82,8 @@ QSTATUS qm::EditAttachmentEditAddAction::invoke(const ActionEvent& event)
  *
  */
 
-qm::EditAttachmentEditDeleteAction::EditAttachmentEditDeleteAction(
-	EditMessageHolder* pEditMessageHolder,
-	AttachmentSelectionModel* pAttachmentSelectionModel, QSTATUS* pstatus) :
+qm::EditAttachmentEditDeleteAction::EditAttachmentEditDeleteAction(EditMessageHolder* pEditMessageHolder,
+																   AttachmentSelectionModel* pAttachmentSelectionModel) :
 	pEditMessageHolder_(pEditMessageHolder),
 	pAttachmentSelectionModel_(pAttachmentSelectionModel)
 {
@@ -107,32 +93,21 @@ qm::EditAttachmentEditDeleteAction::~EditAttachmentEditDeleteAction()
 {
 }
 
-QSTATUS qm::EditAttachmentEditDeleteAction::invoke(const ActionEvent& event)
+void qm::EditAttachmentEditDeleteAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
 	
 	AttachmentSelectionModel::NameList l;
 	StringListFree<AttachmentSelectionModel::NameList> free(l);
-	status = pAttachmentSelectionModel_->getSelectedAttachment(&l);
-	CHECK_QSTATUS();
+	pAttachmentSelectionModel_->getSelectedAttachment(&l);
 	
-	AttachmentSelectionModel::NameList::const_iterator it = l.begin();
-	while (it != l.end()) {
-		status = pEditMessage->removeAttachment(*it);
-		CHECK_QSTATUS();
-		++it;
-	}
-	
-	return QSTATUS_SUCCESS;
+	for (AttachmentSelectionModel::NameList::const_iterator it = l.begin(); it != l.end(); ++it)
+		pEditMessage->removeAttachment(*it);
 }
 
-QSTATUS qm::EditAttachmentEditDeleteAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::EditAttachmentEditDeleteAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	return pAttachmentSelectionModel_->hasSelectedAttachment(pbEnabled);
+	return pAttachmentSelectionModel_->hasSelectedAttachment();
 }
 
 
@@ -143,46 +118,32 @@ QSTATUS qm::EditAttachmentEditDeleteAction::isEnabled(
  */
 
 qm::EditEditCommandAction::EditEditCommandAction(EditWindow* pEditWindow,
-	PFN_DO pfnDo, PFN_CANDO pfnCanDo, QSTATUS* pstatus) :
+												 PFN_DO pfnDo,
+												 PFN_CANDO pfnCanDo) :
 	pEditWindow_(pEditWindow),
 	pfnDo_(pfnDo),
 	pfnCanDo_(pfnCanDo)
 {
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::EditEditCommandAction::~EditEditCommandAction()
 {
 }
 
-QSTATUS qm::EditEditCommandAction::invoke(const ActionEvent& event)
+void qm::EditEditCommandAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	EditWindowItem* pItem = pEditWindow_->getFocusedItem();
-	if (pItem) {
-		status = (pItem->*pfnDo_)();
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (pItem)
+		(pItem->*pfnDo_)();
 }
 
-QSTATUS qm::EditEditCommandAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::EditEditCommandAction::isEnabled(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	EditWindowItem* pItem = pEditWindow_->getFocusedItem();
-	if (pItem) {
-		status = (pItem->*pfnCanDo_)(pbEnabled);
-		CHECK_QSTATUS();
-	}
-	else {
-		*pbEnabled = false;
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (pItem)
+		return (pItem->*pfnCanDo_)();
+	else
+		return false;
 }
 
 
@@ -193,7 +154,8 @@ QSTATUS qm::EditEditCommandAction::isEnabled(
  */
 
 qm::EditEditFindAction::EditEditFindAction(TextWindow* pTextWindow,
-	Profile* pProfile, FindReplaceManager* pFindReplaceManager, QSTATUS* pstatus) :
+										   Profile* pProfile,
+										   FindReplaceManager* pFindReplaceManager) :
 	pTextWindow_(pTextWindow),
 	pProfile_(pProfile),
 	pFindReplaceManager_(pFindReplaceManager),
@@ -202,7 +164,8 @@ qm::EditEditFindAction::EditEditFindAction(TextWindow* pTextWindow,
 }
 
 qm::EditEditFindAction::EditEditFindAction(TextWindow* pTextWindow,
-	bool bNext, FindReplaceManager* pFindReplaceManager, QSTATUS* pstatus) :
+										   bool bNext,
+										   FindReplaceManager* pFindReplaceManager) :
 	pTextWindow_(pTextWindow),
 	pProfile_(0),
 	pFindReplaceManager_(pFindReplaceManager),
@@ -214,26 +177,19 @@ qm::EditEditFindAction::~EditEditFindAction()
 {
 }
 
-QSTATUS qm::EditEditFindAction::invoke(const ActionEvent& event)
+void qm::EditEditFindAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
-	HWND hwndFrame = pTextWindow_->getParentFrame();
+	HWND hwnd = pTextWindow_->getParentFrame();
 	
 	bool bFound = false;
 	if (type_ == TYPE_NORMAL) {
-		FindDialog dialog(pProfile_, true, &status);
-		CHECK_QSTATUS();
-		int nRet = 0;
-		status = dialog.doModal(hwndFrame, 0, &nRet);
-		CHECK_QSTATUS();
-		if (nRet != IDOK)
-			return QSTATUS_SUCCESS;
+		FindDialog dialog(pProfile_, true);
+		if (dialog.doModal(hwnd) != IDOK)
+			return;
 		
-		status = pFindReplaceManager_->setData(dialog.getFind(),
+		pFindReplaceManager_->setData(dialog.getFind(),
 			(dialog.isMatchCase() ? FindReplaceData::FLAG_MATCHCASE : 0) |
 			(dialog.isRegex() ? FindReplaceData::FLAG_REGEX : 0));
-		CHECK_QSTATUS();
 		
 		unsigned int nFlags = 0;
 		if (dialog.isMatchCase())
@@ -243,12 +199,12 @@ QSTATUS qm::EditEditFindAction::invoke(const ActionEvent& event)
 		if (dialog.isPrev())
 			nFlags |= TextWindow::FIND_PREVIOUS;
 		
-		status = pTextWindow_->find(dialog.getFind(), nFlags, &bFound);
-		CHECK_QSTATUS();
+		bFound = pTextWindow_->find(dialog.getFind(), nFlags);
 	}
 	else {
 		const FindReplaceData* pData = pFindReplaceManager_->getData();
-		assert(pData);
+		if (!pData)
+			return;
 		
 		unsigned int nFlags = 0;
 		if (pData->getFlags() & FindReplaceData::FLAG_MATCHCASE)
@@ -259,34 +215,22 @@ QSTATUS qm::EditEditFindAction::invoke(const ActionEvent& event)
 			nFlags |= TextWindow::FIND_PREVIOUS;
 		
 		const WCHAR* pwszReplace = pData->getReplace();
-		if (pwszReplace) {
-			status = pTextWindow_->replace(pData->getFind(),
-				pwszReplace, nFlags, &bFound);
-			CHECK_QSTATUS();
-		}
-		else {
-			status = pTextWindow_->find(pData->getFind(), nFlags, &bFound);
-			CHECK_QSTATUS();
-		}
+		if (pwszReplace)
+			bFound = pTextWindow_->replace(pData->getFind(), pwszReplace, nFlags);
+		else
+			bFound = pTextWindow_->find(pData->getFind(), nFlags);
 	}
 	
 	if (!bFound)
-		messageBox(Application::getApplication().getResourceHandle(),
-			IDS_FINDNOTFOUND, hwndFrame);
-	
-	return QSTATUS_SUCCESS;
+		ActionUtil::info(hwnd, IDS_FINDNOTFOUND);
 }
 
-QSTATUS qm::EditEditFindAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::EditEditFindAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
 	if (type_ == TYPE_NORMAL)
-		*pbEnabled = pTextWindow_->hasFocus();
+		return pTextWindow_->hasFocus();
 	else
-		*pbEnabled = pTextWindow_->hasFocus() &&
-			pFindReplaceManager_->getData();
-	return QSTATUS_SUCCESS;
+		return pTextWindow_->hasFocus() && pFindReplaceManager_->getData();
 }
 
 
@@ -297,7 +241,7 @@ QSTATUS qm::EditEditFindAction::isEnabled(
  */
 
 qm::EditEditMoveCaretAction::EditEditMoveCaretAction(TextWindow* pTextWindow,
-	TextWindow::MoveCaret moveCaret, QSTATUS* pstatus) :
+													 TextWindow::MoveCaret moveCaret) :
 	pTextWindow_(pTextWindow),
 	moveCaret_(moveCaret)
 {
@@ -307,7 +251,7 @@ qm::EditEditMoveCaretAction::~EditEditMoveCaretAction()
 {
 }
 
-QSTATUS qm::EditEditMoveCaretAction::invoke(const ActionEvent& event)
+void qm::EditEditMoveCaretAction::invoke(const ActionEvent& event)
 {
 	TextWindow::Select select = TextWindow::SELECT_CLEAR;
 	if (event.getParam()) {
@@ -320,15 +264,12 @@ QSTATUS qm::EditEditMoveCaretAction::invoke(const ActionEvent& event)
 		}
 	}
 	
-	return pTextWindow_->moveCaret(moveCaret_, 0, 0, false, select, true);
+	pTextWindow_->moveCaret(moveCaret_, 0, 0, false, select, true);
 }
 
-QSTATUS qm::EditEditMoveCaretAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::EditEditMoveCaretAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	*pbEnabled = pTextWindow_->hasFocus();
-	return QSTATUS_SUCCESS;
+	return pTextWindow_->hasFocus();
 }
 
 
@@ -338,8 +279,8 @@ QSTATUS qm::EditEditMoveCaretAction::isEnabled(
  *
  */
 
-qm::EditEditPasteWithQuoteAction::EditEditPasteWithQuoteAction(
-	TextWindow* pTextWindow, Profile* pProfile, QSTATUS* pstatus) :
+qm::EditEditPasteWithQuoteAction::EditEditPasteWithQuoteAction(TextWindow* pTextWindow,
+															   Profile* pProfile) :
 	pTextWindow_(pTextWindow),
 	pProfile_(pProfile)
 {
@@ -349,56 +290,39 @@ qm::EditEditPasteWithQuoteAction::~EditEditPasteWithQuoteAction()
 {
 }
 
-QSTATUS qm::EditEditPasteWithQuoteAction::invoke(const ActionEvent& event)
+void qm::EditEditPasteWithQuoteAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
+	wstring_ptr wstrText(Clipboard::getText(pTextWindow_->getHandle()));
+	if (!wstrText.get())
+		return;
 	
-	string_ptr<WSTRING> wstrText;
-	status = Clipboard::getText(pTextWindow_->getHandle(), &wstrText);
-	CHECK_QSTATUS();
-	
-	string_ptr<WSTRING> wstrQuote;
-	status = pProfile_->getString(L"EditWindow", L"PasteQuote", L"> ", &wstrQuote);
-	CHECK_QSTATUS();
+	wstring_ptr wstrQuote(pProfile_->getString(L"EditWindow", L"PasteQuote", L"> "));
 	
 	if (wstrText.get()) {
-		StringBuffer<WSTRING> buf(&status);
-		CHECK_QSTATUS();
+		// TODO
+		// use malloc based buffer.
+		StringBuffer<WSTRING> buf;
 		bool bNewLine = true;
 		for (const WCHAR* p = wstrText.get(); *p; ++p) {
-			if (bNewLine) {
-				status = buf.append(wstrQuote.get());
-				CHECK_QSTATUS();
-			}
+			if (bNewLine)
+				buf.append(wstrQuote.get());
 			bNewLine = *p == L'\n';
-			status = buf.append(*p);
-			CHECK_QSTATUS();
+			buf.append(*p);
 		}
 		
-		status = pTextWindow_->insertText(
-			buf.getCharArray(), buf.getLength());
-		CHECK_QSTATUS();
+		if (!pTextWindow_->insertText(buf.getCharArray(), buf.getLength())) {
+			ActionUtil::error(pTextWindow_->getParentFrame(), IDS_ERROR_PASTE);
+			return;
+		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditEditPasteWithQuoteAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::EditEditPasteWithQuoteAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	
-	DECLARE_QSTATUS();
-	
-	if (pTextWindow_->hasFocus()) {
-		status = Clipboard::isFormatAvailable(Clipboard::CF_QSTEXT, pbEnabled);
-		CHECK_QSTATUS();
-	}
-	else {
-		*pbEnabled = false;
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (pTextWindow_->hasFocus())
+		return Clipboard::isFormatAvailable(Clipboard::CF_QSTEXT);
+	else
+		return false;
 }
 
 
@@ -409,7 +333,8 @@ QSTATUS qm::EditEditPasteWithQuoteAction::isEnabled(
  */
 
 qm::EditEditReplaceAction::EditEditReplaceAction(TextWindow* pTextWindow,
-	Profile* pProfile, FindReplaceManager* pFindReplaceManager, QSTATUS* pstatus) :
+												 Profile* pProfile,
+												 FindReplaceManager* pFindReplaceManager) :
 	pTextWindow_(pTextWindow),
 	pProfile_(pProfile),
 	pFindReplaceManager_(pFindReplaceManager)
@@ -420,24 +345,16 @@ qm::EditEditReplaceAction::~EditEditReplaceAction()
 {
 }
 
-QSTATUS qm::EditEditReplaceAction::invoke(const ActionEvent& event)
+void qm::EditEditReplaceAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
+	HWND hwnd = pTextWindow_->getParentFrame();
 	
-	HWND hwndFrame = pTextWindow_->getParentFrame();
+	ReplaceDialog dialog(pProfile_);
+	if (dialog.doModal(hwnd) != IDOK)
+		return;
 	
-	ReplaceDialog dialog(pProfile_, &status);
-	CHECK_QSTATUS();
-	int nRet = 0;
-	status = dialog.doModal(hwndFrame, 0, &nRet);
-	CHECK_QSTATUS();
-	if (nRet != IDOK)
-		return QSTATUS_SUCCESS;
-	
-	status = pFindReplaceManager_->setData(
-		dialog.getFind(), dialog.getReplace(),
+	pFindReplaceManager_->setData(dialog.getFind(), dialog.getReplace(),
 		dialog.isMatchCase() ? FindReplaceData::FLAG_MATCHCASE : 0);
-	CHECK_QSTATUS();
 	
 	ReplaceDialog::Type type = dialog.getType();
 	unsigned int nFlags = 0;
@@ -449,38 +366,27 @@ QSTATUS qm::EditEditReplaceAction::invoke(const ActionEvent& event)
 		nFlags |= TextWindow::FIND_PREVIOUS;
 	
 	if (type == ReplaceDialog::TYPE_ALL) {
-		status = pTextWindow_->moveCaret(TextWindow::MOVECARET_DOCSTART,
+		pTextWindow_->moveCaret(TextWindow::MOVECARET_DOCSTART,
 			0, 0, false, TextWindow::SELECT_CLEAR, false);
-		CHECK_QSTATUS();
 		
 		while (true) {
-			bool bFound = false;
-			status = pTextWindow_->replace(dialog.getFind(),
-				dialog.getReplace(), nFlags, &bFound);
-			CHECK_QSTATUS();
+			bool bFound = pTextWindow_->replace(
+				dialog.getFind(), dialog.getReplace(), nFlags);
 			if (!bFound)
 				break;
 		}
 	}
 	else {
-		bool bFound = false;
-		status = pTextWindow_->replace(dialog.getFind(),
-			dialog.getReplace(), nFlags, &bFound);
-		CHECK_QSTATUS();
+		bool bFound = pTextWindow_->replace(
+			dialog.getFind(), dialog.getReplace(), nFlags);
 		if (!bFound)
-			messageBox(Application::getApplication().getResourceHandle(),
-				IDS_FINDNOTFOUND, hwndFrame);
+			ActionUtil::info(hwnd, IDS_FINDNOTFOUND);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditEditReplaceAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::EditEditReplaceAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	*pbEnabled = pTextWindow_->hasFocus();
-	return QSTATUS_SUCCESS;
+	return pTextWindow_->hasFocus();
 }
 
 
@@ -490,8 +396,7 @@ QSTATUS qm::EditEditReplaceAction::isEnabled(
  *
  */
 
-qm::EditFileInsertAction::EditFileInsertAction(
-	TextWindow* pTextWindow, QSTATUS* pstatus) :
+qm::EditFileInsertAction::EditFileInsertAction(TextWindow* pTextWindow) :
 	pTextWindow_(pTextWindow)
 {
 }
@@ -500,56 +405,54 @@ qm::EditFileInsertAction::~EditFileInsertAction()
 {
 }
 
-QSTATUS qm::EditFileInsertAction::invoke(const ActionEvent& event)
+void qm::EditFileInsertAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
+	HWND hwnd = pTextWindow_->getParentFrame();
 	
-	string_ptr<WSTRING> wstrFilter;
-	status = loadString(Application::getApplication().getResourceHandle(),
-		IDS_FILTER_INSERT, &wstrFilter);
-	CHECK_QSTATUS();
+	wstring_ptr wstrFilter(loadString(
+		Application::getApplication().getResourceHandle(), IDS_FILTER_INSERT));
 	
 	FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
-		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES, &status);
-	CHECK_QSTATUS();
-	
-	int nRet = IDCANCEL;
-	status = dialog.doModal(pTextWindow_->getParentFrame(), 0, &nRet);
-	CHECK_QSTATUS();
-	if (nRet == IDOK) {
-		FileInputStream stream(dialog.getPath(), &status);
-		CHECK_QSTATUS();
-		BufferedInputStream bufferedStream(&stream, false, &status);
-		CHECK_QSTATUS();
-		InputStreamReader reader(&bufferedStream, false, 0, &status);
-		CHECK_QSTATUS();
-		
-		StringBuffer<WSTRING> buf(&status);
-		CHECK_QSTATUS();
-		WCHAR wsz[1024];
-		while (true) {
-			size_t nLen = 0;
-			status = reader.read(wsz, countof(wsz), &nLen);
-			CHECK_QSTATUS();
-			if (nLen == -1)
-				break;
-			status = buf.append(wsz, nLen);
-			CHECK_QSTATUS();
-		}
-		
-		status = pTextWindow_->insertText(buf.getCharArray(), buf.getLength());
-		CHECK_QSTATUS();
+		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES);
+	if (dialog.doModal(hwnd) == IDOK) {
+		if (!insertText(dialog.getPath()))
+			ActionUtil::error(pTextWindow_->getParentFrame(), IDS_ERROR_INSERTFILE);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditFileInsertAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::EditFileInsertAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	*pbEnabled = pTextWindow_->hasFocus();
-	return QSTATUS_SUCCESS;
+	return pTextWindow_->hasFocus();
+}
+
+bool qm::EditFileInsertAction::insertText(const WCHAR* pwszPath)
+{
+	FileInputStream stream(pwszPath);
+	if (!stream)
+		return false;
+	BufferedInputStream bufferedStream(&stream, false);
+	InputStreamReader reader(&bufferedStream, false, 0);
+	if (!reader)
+		return false;
+	
+	// TODO
+	// use malloc based buffer
+	StringBuffer<WSTRING> buf;
+	WCHAR wsz[1024];
+	while (true) {
+		size_t nLen = reader.read(wsz, countof(wsz));
+		if (nLen == -1)
+			return false;
+		else if (nLen == 0)
+			break;
+		else
+			buf.append(wsz, nLen);
+	}
+	
+	if (!pTextWindow_->insertText(buf.getCharArray(), buf.getLength()))
+		return false;
+	
+	return true;
 }
 
 
@@ -559,11 +462,10 @@ QSTATUS qm::EditFileInsertAction::isEnabled(
  *
  */
 
-qm::EditFileOpenAction::EditFileOpenAction(
-	EditMessageHolder* pEditMessageHolder,
-	HWND hwndFrame, QSTATUS* pstatus) :
+qm::EditFileOpenAction::EditFileOpenAction(EditMessageHolder* pEditMessageHolder,
+										   HWND hwnd) :
 	pEditMessageHolder_(pEditMessageHolder),
-	hwndFrame_(hwndFrame)
+	hwnd_(hwnd)
 {
 }
 
@@ -571,53 +473,47 @@ qm::EditFileOpenAction::~EditFileOpenAction()
 {
 }
 
-QSTATUS qm::EditFileOpenAction::invoke(const ActionEvent& event)
+void qm::EditFileOpenAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrFilter;
-	status = loadString(Application::getApplication().getResourceHandle(),
-		IDS_FILTER_OPEN, &wstrFilter);
-	CHECK_QSTATUS();
+	wstring_ptr wstrFilter(loadString(
+		Application::getApplication().getResourceHandle(), IDS_FILTER_OPEN));
 	
 	FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
-		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES, &status);
-	CHECK_QSTATUS();
+		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES);
+	if (dialog.doModal(hwnd_) == IDOK) {
+		if (!open(dialog.getPath()))
+			ActionUtil::error(hwnd_, IDS_ERROR_OPENFILE);
+	}
+}
+
+bool qm::EditFileOpenAction::open(const WCHAR* pwszPath)
+{
+	FileInputStream stream(pwszPath);
+	if (!stream)
+		return false;
+	BufferedInputStream bufferedStream(&stream, false);
 	
-	int nRet = IDCANCEL;
-	status = dialog.doModal(hwndFrame_, 0, &nRet);
-	CHECK_QSTATUS();
-	if (nRet == IDOK) {
-		FileInputStream stream(dialog.getPath(), &status);
-		CHECK_QSTATUS();
-		BufferedInputStream bufferedStream(&stream, false, &status);
-		CHECK_QSTATUS();
-		
-		StringBuffer<STRING> buf(&status);
-		CHECK_QSTATUS();
-		unsigned char sz[1024];
-		while (true) {
-			size_t nLen = 0;
-			status = bufferedStream.read(sz, countof(sz), &nLen);
-			CHECK_QSTATUS();
-			if (nLen == -1)
-				break;
-			status = buf.append(reinterpret_cast<CHAR*>(sz), nLen);
-			CHECK_QSTATUS();
-		}
-		
-		std::auto_ptr<Message> pMessage;
-		status = newQsObject(buf.getCharArray(), buf.getLength(),
-			Message::FLAG_NONE, &pMessage);
-		CHECK_QSTATUS();
-		
-		EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
-		status = pEditMessage->setMessage(pMessage.get());
-		CHECK_QSTATUS();
-		pMessage.release();
+	StringBuffer<STRING> buf;
+	unsigned char sz[1024];
+	while (true) {
+		size_t nLen = bufferedStream.read(sz, countof(sz));
+		if (nLen == -1)
+			return false;
+		else if (nLen == 0)
+			break;
+		else
+			buf.append(reinterpret_cast<CHAR*>(sz), nLen);
 	}
 	
-	return QSTATUS_SUCCESS;
+	std::auto_ptr<Message> pMessage(new Message());
+	if (!pMessage->create(buf.getCharArray(), buf.getLength(), Message::FLAG_NONE))
+		return false;
+	
+	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
+	if (!pEditMessage->setMessage(pMessage))
+		return false;
+	
+	return true;
 }
 
 
@@ -627,10 +523,10 @@ QSTATUS qm::EditFileOpenAction::invoke(const ActionEvent& event)
  *
  */
 
-qm::EditFileSaveAction::EditFileSaveAction(
-	EditMessageHolder* pEditMessageHolder, HWND hwndFrame, QSTATUS* pstatus) :
+qm::EditFileSaveAction::EditFileSaveAction(EditMessageHolder* pEditMessageHolder,
+										   HWND hwnd) :
 	pEditMessageHolder_(pEditMessageHolder),
-	hwndFrame_(hwndFrame)
+	hwnd_(hwnd)
 {
 }
 
@@ -638,46 +534,38 @@ qm::EditFileSaveAction::~EditFileSaveAction()
 {
 }
 
-QSTATUS qm::EditFileSaveAction::invoke(const ActionEvent& event)
+void qm::EditFileSaveAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrFilter;
-	status = loadString(Application::getApplication().getResourceHandle(),
-		IDS_FILTER_SAVE, &wstrFilter);
-	CHECK_QSTATUS();
+	wstring_ptr wstrFilter(loadString(
+		Application::getApplication().getResourceHandle(), IDS_FILTER_SAVE));
 	
 	FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
-		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_OVERWRITEPROMPT,
-		&status);
-	CHECK_QSTATUS();
-	
-	int nRet = IDCANCEL;
-	status = dialog.doModal(hwndFrame_, 0, &nRet);
-	CHECK_QSTATUS();
-	if (nRet == IDOK) {
-		EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
-		Message* pMessage = 0;
-		status = pEditMessage->getMessage(&pMessage);
-		CHECK_QSTATUS();
-		
-		string_ptr<STRING> strMessage;
-		status = pMessage->getContent(&strMessage);
-		CHECK_QSTATUS();
-		
-		FileOutputStream stream(dialog.getPath(), &status);
-		CHECK_QSTATUS();
-		BufferedOutputStream bufferedStream(&stream, false, &status);
-		CHECK_QSTATUS();
-		status = bufferedStream.write(
-			reinterpret_cast<unsigned char*>(strMessage.get()),
-			strlen(strMessage.get()));
-		CHECK_QSTATUS();
-		status = bufferedStream.close();
-		CHECK_QSTATUS();
+		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_OVERWRITEPROMPT);
+	if (dialog.doModal(hwnd_) == IDOK) {
+		if (!save(dialog.getPath()))
+			ActionUtil::error(hwnd_, IDS_ERROR_SAVEFILE);
 	}
+}
+
+bool qm::EditFileSaveAction::save(const WCHAR* pwszPath)
+{
+	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
+	Message* pMessage = pEditMessage->getMessage();
 	
-	return QSTATUS_SUCCESS;
+	xstring_ptr strMessage(pMessage->getContent());
+	if (!strMessage.get())
+		return false;
+	
+	FileOutputStream stream(pwszPath);
+	if (!stream)
+		return false;
+	BufferedOutputStream bufferedStream(&stream, false);
+	if (bufferedStream.write(reinterpret_cast<unsigned char*>(strMessage.get()),
+		strlen(strMessage.get())) == -1)
+		return false;
+	if (!bufferedStream.close())
+		return false;
+	return true;
 }
 
 
@@ -688,8 +576,10 @@ QSTATUS qm::EditFileSaveAction::invoke(const ActionEvent& event)
  */
 
 qm::EditFileSendAction::EditFileSendAction(bool bDraft,
-	Document* pDocument, EditMessageHolder* pEditMessageHolder,
-	EditFrameWindow* pEditFrameWindow, Profile* pProfile, QSTATUS* pstatus) :
+										   Document* pDocument,
+										   EditMessageHolder* pEditMessageHolder,
+										   EditFrameWindow* pEditFrameWindow,
+										   Profile* pProfile) :
 	composer_(bDraft, pDocument, pProfile, pEditFrameWindow->getHandle(), 0),
 	pEditMessageHolder_(pEditMessageHolder),
 	pEditFrameWindow_(pEditFrameWindow),
@@ -700,9 +590,11 @@ qm::EditFileSendAction::EditFileSendAction(bool bDraft,
 }
 
 qm::EditFileSendAction::EditFileSendAction(Document* pDocument,
-	EditMessageHolder* pEditMessageHolder, EditFrameWindow* pEditFrameWindow,
-	qs::Profile* pProfile, SyncManager* pSyncManager,
-	SyncDialogManager* pSyncDialogManager, qs::QSTATUS* pstatus) :
+										   EditMessageHolder* pEditMessageHolder,
+										   EditFrameWindow* pEditFrameWindow,
+										   Profile* pProfile,
+										   SyncManager* pSyncManager,
+										   SyncDialogManager* pSyncDialogManager) :
 	composer_(false, pDocument, pProfile, pEditFrameWindow->getHandle(), 0),
 	pEditMessageHolder_(pEditMessageHolder),
 	pEditFrameWindow_(pEditFrameWindow),
@@ -716,33 +608,31 @@ qm::EditFileSendAction::~EditFileSendAction()
 {
 }
 
-QSTATUS qm::EditFileSendAction::invoke(const ActionEvent& event)
+void qm::EditFileSendAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
-	Message* pMessage = 0;
-	status = pEditMessage->getMessage(&pMessage);
-	CHECK_QSTATUS();
+	Message* pMessage = pEditMessage->getMessage();
 	
 	Account* pAccount = pEditMessage->getAccount();
 	SubAccount* pSubAccount = pEditMessage->getSubAccount();
 	
 	unsigned int nFlags = (pEditMessage->isSign() ? MessageComposer::FLAG_SIGN : 0) |
 		(pEditMessage->isEncrypt() ? MessageComposer::FLAG_ENCRYPT : 0);
-	status = composer_.compose(pEditMessage->getAccount(),
-		pEditMessage->getSubAccount(), pMessage, nFlags);
-	CHECK_QSTATUS();
+	if (!composer_.compose(pEditMessage->getAccount(),
+		pEditMessage->getSubAccount(), pMessage, nFlags)) {
+		ActionUtil::error(pEditFrameWindow_->getHandle(), IDS_ERROR_SEND);
+		return;
+	}
 	
 	if (pSyncManager_) {
-		status = SyncUtil::send(pSyncManager_, pDocument_, pSyncDialogManager_,
-			getMainWindow()->getHandle(), 0, pAccount, pSubAccount);
-		CHECK_QSTATUS();
+		if (!SyncUtil::send(pSyncManager_, pDocument_, pSyncDialogManager_,
+			pEditFrameWindow_->getHandle(), 0, pAccount, pSubAccount)) {
+			ActionUtil::error(pEditFrameWindow_->getHandle(), IDS_ERROR_SEND);
+			return;
+		}
 	}
 	
 	pEditFrameWindow_->close();
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -752,22 +642,21 @@ QSTATUS qm::EditFileSendAction::invoke(const ActionEvent& event)
  *
  */
 
-qm::EditFocusItemAction::EditFocusItemAction(
-	EditWindow* pEditWindow, QSTATUS* pstatus) :
+qm::EditFocusItemAction::EditFocusItemAction(EditWindow* pEditWindow) :
 	pEditWindow_(pEditWindow)
 {
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::EditFocusItemAction::~EditFocusItemAction()
 {
 }
 
-QSTATUS qm::EditFocusItemAction::invoke(const ActionEvent& event)
+void qm::EditFocusItemAction::invoke(const ActionEvent& event)
 {
 	EditWindowItem* pItem = pEditWindow_->getItemByNumber(
 		event.getId() - IDM_FOCUS_HEADEREDITITEM);
-	return pItem ? pItem->setFocus() : QSTATUS_SUCCESS;
+	if (pItem)
+		pItem->setFocus();
 }
 
 
@@ -777,9 +666,10 @@ QSTATUS qm::EditFocusItemAction::invoke(const ActionEvent& event)
  *
  */
 
-qm::EditToolAddressBookAction::EditToolAddressBookAction(
-	EditMessageHolder* pEditMessageHolder, EditWindow* pEditWindow,
-	AddressBook* pAddressBook, Profile* pProfile, QSTATUS* pstatus) :
+qm::EditToolAddressBookAction::EditToolAddressBookAction(EditMessageHolder* pEditMessageHolder,
+														 EditWindow* pEditWindow,
+														 AddressBook* pAddressBook,
+														 Profile* pProfile) :
 	pEditMessageHolder_(pEditMessageHolder),
 	pEditWindow_(pEditWindow),
 	pAddressBook_(pAddressBook),
@@ -791,35 +681,27 @@ qm::EditToolAddressBookAction::~EditToolAddressBookAction()
 {
 }
 
-QSTATUS qm::EditToolAddressBookAction::invoke(const ActionEvent& event)
+void qm::EditToolAddressBookAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
-	status = pEditMessage->update();
-	CHECK_QSTATUS();
+	pEditMessage->update();
 	
 	const WCHAR* pwszFields[] = {
 		L"To",
 		L"Cc",
 		L"Bcc"
 	};
-	WSTRING wstrAddresses[countof(pwszFields)];
-	for (int n = 0; n < countof(pwszFields); ++n) {
-		status = pEditMessage->getField(pwszFields[n],
-			EditMessage::FIELDTYPE_ADDRESSLIST, &wstrAddresses[n]);
-		CHECK_QSTATUS();
-	}
+	wstring_ptr wstrAddresses[countof(pwszFields)];
+	for (int n = 0; n < countof(pwszFields); ++n)
+		wstrAddresses[n] = pEditMessage->getField(
+			pwszFields[n], EditMessage::FIELDTYPE_ADDRESSLIST);
 	const WCHAR* pwszAddresses[] = {
-		wstrAddresses[0] ? wstrAddresses[0] : L"",
-		wstrAddresses[1] ? wstrAddresses[1] : L"",
-		wstrAddresses[2] ? wstrAddresses[2] : L"",
+		wstrAddresses[0].get() ? wstrAddresses[0].get() : L"",
+		wstrAddresses[1].get() ? wstrAddresses[1].get() : L"",
+		wstrAddresses[2].get() ? wstrAddresses[2].get() : L"",
 	};
-	AddressBookDialog dialog(pAddressBook_, pProfile_, pwszAddresses, &status);
-	CHECK_QSTATUS();
-	int nRet = 0;
-	status = dialog.doModal(pEditWindow_->getParentFrame(), 0, &nRet);
-	if (nRet == IDOK) {
+	AddressBookDialog dialog(pAddressBook_, pProfile_, pwszAddresses);
+	if (dialog.doModal(pEditWindow_->getParentFrame()) == IDOK) {
 		struct Type
 		{
 			AddressBookDialog::Type dialogType_;
@@ -830,35 +712,24 @@ QSTATUS qm::EditToolAddressBookAction::invoke(const ActionEvent& event)
 			{ AddressBookDialog::TYPE_BCC,	L"Bcc"	}
 		};
 		for (int n = 0; n < countof(types); ++n) {
-			StringBuffer<WSTRING> buf(&status);
+			StringBuffer<WSTRING> buf;
 			const AddressBookDialog::AddressList& l =
 				dialog.getAddresses(types[n].dialogType_);
-			AddressBookDialog::AddressList::const_iterator it = l.begin();
-			while (it != l.end()) {
-				if (buf.getLength() != 0) {
-					status = buf.append(L", ");
-					CHECK_QSTATUS();
-				}
-				status = buf.append(*it);
-				CHECK_QSTATUS();
-				++it;
+			for (AddressBookDialog::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
+				if (buf.getLength() != 0)
+					buf.append(L", ");
+				buf.append(*it);
 			}
 			
-			status = pEditMessage->setField(types[n].pwszField_,
+			pEditMessage->setField(types[n].pwszField_,
 				buf.getCharArray(), EditMessage::FIELDTYPE_ADDRESSLIST);
-			CHECK_QSTATUS();
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditToolAddressBookAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::EditToolAddressBookAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	*pbEnabled = !pEditWindow_->isHeaderEdit();
-	return QSTATUS_SUCCESS;
+	return !pEditWindow_->isHeaderEdit();
 }
 
 
@@ -868,10 +739,10 @@ QSTATUS qm::EditToolAddressBookAction::isEnabled(
  *
  */
 
-qm::EditToolAttachmentAction::EditToolAttachmentAction(
-	EditMessageHolder* pEditMessageHolder, HWND hwndFrame, QSTATUS* pstatus) :
+qm::EditToolAttachmentAction::EditToolAttachmentAction(EditMessageHolder* pEditMessageHolder,
+													   HWND hwnd) :
 	pEditMessageHolder_(pEditMessageHolder),
-	hwndFrame_(hwndFrame)
+	hwnd_(hwnd)
 {
 }
 
@@ -879,28 +750,17 @@ qm::EditToolAttachmentAction::~EditToolAttachmentAction()
 {
 }
 
-QSTATUS qm::EditToolAttachmentAction::invoke(const ActionEvent& event)
+void qm::EditToolAttachmentAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
 	
 	EditMessage::AttachmentList l;
 	EditMessage::AttachmentListFree free(l);
-	status = pEditMessage->getAttachments(&l);
-	CHECK_QSTATUS();
+	pEditMessage->getAttachments(&l);
 	
-	AttachmentDialog dialog(l, &status);
-	CHECK_QSTATUS();
-	int nRet = 0;
-	status = dialog.doModal(hwndFrame_, 0, &nRet);
-	CHECK_QSTATUS();
-	if (nRet == IDOK) {
-		status = pEditMessage->setAttachments(l);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	AttachmentDialog dialog(l);
+	if (dialog.doModal(hwnd_) == IDOK)
+		pEditMessage->setAttachments(l);
 }
 
 
@@ -911,7 +771,9 @@ QSTATUS qm::EditToolAttachmentAction::invoke(const ActionEvent& event)
  */
 
 qm::EditToolFlagAction::EditToolFlagAction(EditMessageHolder* pEditMessageHolder,
-	PFN_IS pfnIs, PFN_SET pfnSet, bool bEnabled, QSTATUS* pstatus) :
+										   PFN_IS pfnIs,
+										   PFN_SET pfnSet,
+										   bool bEnabled) :
 	pEditMessageHolder_(pEditMessageHolder),
 	pfnIs_(pfnIs),
 	pfnSet_(pfnSet),
@@ -923,28 +785,21 @@ qm::EditToolFlagAction::~EditToolFlagAction()
 {
 }
 
-QSTATUS qm::EditToolFlagAction::invoke(const ActionEvent& event)
+void qm::EditToolFlagAction::invoke(const ActionEvent& event)
 {
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
 	(pEditMessage->*pfnSet_)(!(pEditMessage->*pfnIs_)());
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditToolFlagAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::EditToolFlagAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	*pbEnabled = bEnabled_;
-	return QSTATUS_SUCCESS;
+	return bEnabled_;
 }
 
-QSTATUS qm::EditToolFlagAction::isChecked(
-	const ActionEvent& event, bool* pbChecked)
+bool qm::EditToolFlagAction::isChecked(const ActionEvent& event)
 {
-	assert(pbChecked);
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
-	*pbChecked = (pEditMessage->*pfnIs_)();
-	return QSTATUS_SUCCESS;
+	return (pEditMessage->*pfnIs_)();
 }
 
 
@@ -954,9 +809,8 @@ QSTATUS qm::EditToolFlagAction::isChecked(
  *
  */
 
-qm::EditToolInsertSignatureAction::EditToolInsertSignatureAction(
-	EditMessageHolder* pEditMessageHolder,
-	TextWindow* pTextWindow, QSTATUS* pstatus) :
+qm::EditToolInsertSignatureAction::EditToolInsertSignatureAction(EditMessageHolder* pEditMessageHolder,
+																 TextWindow* pTextWindow) :
 	pEditMessageHolder_(pEditMessageHolder),
 	pTextWindow_(pTextWindow)
 {
@@ -966,31 +820,22 @@ qm::EditToolInsertSignatureAction::~EditToolInsertSignatureAction()
 {
 }
 
-QSTATUS qm::EditToolInsertSignatureAction::invoke(const ActionEvent& event)
+void qm::EditToolInsertSignatureAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
-	string_ptr<WSTRING> wstrSignature;
-	status = pEditMessage->getSignatureText(&wstrSignature);
-	CHECK_QSTATUS();
+	wstring_ptr wstrSignature(pEditMessage->getSignatureText());
 	if (wstrSignature.get()) {
-		status = pTextWindow_->insertText(wstrSignature.get(), -1);
-		CHECK_QSTATUS();
-		status = pEditMessage->setSignature(0);
-		CHECK_QSTATUS();
+		if (!pTextWindow_->insertText(wstrSignature.get(), -1)) {
+			// TODO MSG
+		}
+		pEditMessage->setSignature(0);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditToolInsertSignatureAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::EditToolInsertSignatureAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	*pbEnabled = pTextWindow_->hasFocus() &&
+	return pTextWindow_->hasFocus() &&
 		pEditMessageHolder_->getEditMessage()->getSignature();
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -1000,8 +845,7 @@ QSTATUS qm::EditToolInsertSignatureAction::isEnabled(
  *
  */
 
-qm::EditToolInsertTextAction::EditToolInsertTextAction(
-	TextWindow* pTextWindow, QSTATUS* pstatus) :
+qm::EditToolInsertTextAction::EditToolInsertTextAction(TextWindow* pTextWindow) :
 	pTextWindow_(pTextWindow)
 {
 }
@@ -1010,30 +854,21 @@ qm::EditToolInsertTextAction::~EditToolInsertTextAction()
 {
 }
 
-QSTATUS qm::EditToolInsertTextAction::invoke(const ActionEvent& event)
+void qm::EditToolInsertTextAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
-	InsertTextDialog dialog(&status);
-	CHECK_QSTATUS();
-	int nRet = 0;
-	status = dialog.doModal(pTextWindow_->getParentFrame(), 0, &nRet);
-	if (nRet == IDOK) {
+	InsertTextDialog dialog;
+	if (dialog.doModal(pTextWindow_->getParentFrame()) == IDOK) {
 		const FixedFormText* pText = dialog.getText();
 		assert(pText);
-		status = pTextWindow_->insertText(pText->getText(), -1);
-		CHECK_QSTATUS();
+		if (!pTextWindow_->insertText(pText->getText(), -1)) {
+			// TODO MSG
+		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditToolInsertTextAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::EditToolInsertTextAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	*pbEnabled = pTextWindow_->hasFocus();
-	return QSTATUS_SUCCESS;
+	return pTextWindow_->hasFocus();
 }
 
 
@@ -1043,8 +878,7 @@ QSTATUS qm::EditToolInsertTextAction::isEnabled(
  *
  */
 
-qm::EditToolHeaderEditAction::EditToolHeaderEditAction(
-	EditWindow* pEditWindow, QSTATUS* pstatus) :
+qm::EditToolHeaderEditAction::EditToolHeaderEditAction(EditWindow* pEditWindow) :
 	pEditWindow_(pEditWindow)
 {
 }
@@ -1053,17 +887,14 @@ qm::EditToolHeaderEditAction::~EditToolHeaderEditAction()
 {
 }
 
-QSTATUS qm::EditToolHeaderEditAction::invoke(const ActionEvent& event)
+void qm::EditToolHeaderEditAction::invoke(const ActionEvent& event)
 {
-	return pEditWindow_->setHeaderEdit(!pEditWindow_->isHeaderEdit());
+	pEditWindow_->setHeaderEdit(!pEditWindow_->isHeaderEdit());
 }
 
-QSTATUS qm::EditToolHeaderEditAction::isChecked(
-	const ActionEvent& event, bool* pbChecked)
+bool qm::EditToolHeaderEditAction::isChecked(const ActionEvent& event)
 {
-	assert(pbChecked);
-	*pbChecked = pEditWindow_->isHeaderEdit();
-	return QSTATUS_SUCCESS;
+	return pEditWindow_->isHeaderEdit();
 }
 
 
@@ -1073,8 +904,7 @@ QSTATUS qm::EditToolHeaderEditAction::isChecked(
  *
  */
 
-qm::EditToolReformAction::EditToolReformAction(
-	TextWindow* pTextWindow, QSTATUS* pstatus) :
+qm::EditToolReformAction::EditToolReformAction(TextWindow* pTextWindow) :
 	pTextWindow_(pTextWindow)
 {
 }
@@ -1083,17 +913,14 @@ qm::EditToolReformAction::~EditToolReformAction()
 {
 }
 
-QSTATUS qm::EditToolReformAction::invoke(const ActionEvent& event)
+void qm::EditToolReformAction::invoke(const ActionEvent& event)
 {
-	return pTextWindow_->reform();
+	pTextWindow_->reform();
 }
 
-QSTATUS qm::EditToolReformAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::EditToolReformAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	*pbEnabled = pTextWindow_->hasFocus();
-	return QSTATUS_SUCCESS;
+	return pTextWindow_->hasFocus();
 }
 
 
@@ -1103,8 +930,8 @@ QSTATUS qm::EditToolReformAction::isEnabled(
  *
  */
 
-qm::EditToolReformAllAction::EditToolReformAllAction(
-	TextWindow* pTextWindow, Profile* pProfile, QSTATUS* pstatus) :
+qm::EditToolReformAllAction::EditToolReformAllAction(TextWindow* pTextWindow,
+													 Profile* pProfile) :
 	pTextWindow_(pTextWindow),
 	pProfile_(pProfile)
 {
@@ -1114,31 +941,24 @@ qm::EditToolReformAllAction::~EditToolReformAllAction()
 {
 }
 
-QSTATUS qm::EditToolReformAllAction::invoke(const ActionEvent& event)
+void qm::EditToolReformAllAction::invoke(const ActionEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	EditableTextModel* pTextModel =
 		static_cast<EditableTextModel*>(pTextWindow_->getTextModel());
-	string_ptr<WSTRING> wstrText;
-	status = pTextModel->getText(&wstrText);
-	CHECK_QSTATUS();
+	wxstring_ptr wstrText(pTextModel->getText());
+	if (!wstrText.get()) {
+		// TODO MSG
+	}
 	
 	// TODO
 	// Get line length and tab width
-	string_ptr<WSTRING> wstrReformedText;
-	status = TextUtil::fold(wstrText.get(), -1, 74, 0, 0, 4, &wstrReformedText);
-	CHECK_QSTATUS();
-	status = pTextModel->setText(wstrReformedText.get(), -1);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	wxstring_ptr wstrReformedText(TextUtil::fold(wstrText.get(), -1, 74, 0, 0, 4));
+	if (!pTextModel->setText(wstrReformedText.get(), -1)) {
+		// TODO MSG
+	}
 }
 
-QSTATUS qm::EditToolReformAllAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qm::EditToolReformAllAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	*pbEnabled = pTextWindow_->hasFocus();
-	return QSTATUS_SUCCESS;
+	return pTextWindow_->hasFocus();
 }

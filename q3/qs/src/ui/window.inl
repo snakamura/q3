@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -17,8 +17,7 @@
  */
 
 template<class Controller>
-qs::ControllerMap<Controller>::ControllerMap(QSTATUS* pstatus) :
-	base_(pstatus)
+qs::ControllerMap<Controller>::ControllerMap()
 {
 }
 
@@ -28,73 +27,64 @@ qs::ControllerMap<Controller>::~ControllerMap()
 }
 
 template<class Controller>
-qs::QSTATUS qs::ControllerMap<Controller>::initThread()
+bool qs::ControllerMap<Controller>::initThread()
 {
 	return base_.initThread();
 }
 
 template<class Controller>
-qs::QSTATUS qs::ControllerMap<Controller>::termThread()
+void qs::ControllerMap<Controller>::termThread()
 {
-	return base_.termThread();
+	base_.termThread();
 }
 
 template<class Controller>
-qs::QSTATUS qs::ControllerMap<Controller>::getThis(Controller** ppThis)
+Controller* qs::ControllerMap<Controller>::getThis()
 {
-	return base_.getThis(reinterpret_cast<void**>(ppThis));
+	return static_cast<Controller*>(base_.getThis());
 }
 
 template<class Controller>
-qs::QSTATUS qs::ControllerMap<Controller>::setThis(Controller* pThis)
+void qs::ControllerMap<Controller>::setThis(Controller* pThis)
 {
-	return base_.setThis(pThis);
+	base_.setThis(pThis);
 }
 
 template<class Controller>
-qs::QSTATUS qs::ControllerMap<Controller>::getController(HWND hwnd, Controller** ppController)
+Controller* qs::ControllerMap<Controller>::getController(HWND hwnd)
 {
-	return base_.getController(hwnd, reinterpret_cast<void**>(ppController));
+	return static_cast<Controller*>(base_.getController(hwnd));
 }
 
 template<class Controller>
-qs::QSTATUS qs::ControllerMap<Controller>::setController(HWND hwnd, Controller* pController)
+void qs::ControllerMap<Controller>::setController(HWND hwnd,
+												  Controller* pController)
 {
-	return base_.setController(hwnd, pController);
+	base_.setController(hwnd, pController);
 }
 
 template<class Controller>
-qs::QSTATUS qs::ControllerMap<Controller>::removeController(HWND hwnd)
+void qs::ControllerMap<Controller>::removeController(HWND hwnd)
 {
-	return base_.removeController(hwnd);
+	base_.removeController(hwnd);
 }
 
 template<class Controller>
-qs::QSTATUS qs::ControllerMap<Controller>::findController(HWND hwnd, Controller** ppController)
+Controller* qs::ControllerMap<Controller>::findController(HWND hwnd)
 {
 	assert(hwnd);
-	assert(ppController);
 	
-	DECLARE_QSTATUS();
-	
-	Controller* pThis = 0;
-	status = getController(hwnd, &pThis);
-	CHECK_QSTATUS_VALUE(0);
+	Controller* pThis = getController(hwnd);
 	if (!pThis) {
-		status = getThis(&pThis);
-		CHECK_QSTATUS_VALUE(0);
+		pThis = getThis();
 		if (pThis) {
 			assert(!pThis->getHandle());
 			pThis->setHandle(hwnd);
-			status = setController(hwnd, pThis);
-			CHECK_QSTATUS_VALUE(0);
-			status = setThis(0);
-			CHECK_QSTATUS_VALUE(0);
+			setController(hwnd, pThis);
+			setThis(0);
 		}
 	}
-	*ppController = pThis;
-	
-	return QSTATUS_SUCCESS;
+	return pThis;
 }
 
 #endif // __WINDOW_INL__

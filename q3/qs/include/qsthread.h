@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -37,7 +37,7 @@ class QSEXPORTCLASS Runnable
 {
 public:
 	virtual ~Runnable();
-	virtual unsigned int run() = 0;
+	virtual void run() = 0;
 };
 
 
@@ -50,21 +50,21 @@ public:
 class QSEXPORTCLASS Thread : public Runnable
 {
 public:
-	explicit Thread(QSTATUS* pstatus);
-	Thread(Runnable* pRunnable, QSTATUS* pstatus);
+	Thread();
+	explicit Thread(Runnable* pRunnable);
 	virtual ~Thread();
 
 public:
-	QSTATUS start();
-	QSTATUS join();
-	QSTATUS join(DWORD dwWait);
+	bool start();
+	bool join();
+	bool join(DWORD dwWait);
 	HANDLE getHandle() const;
 
 public:
-	virtual unsigned int run();
+	virtual void run();
 
 private:
-	QSTATUS init(Runnable* pRunnable);
+	void init(Runnable* pRunnable);
 
 private:
 	Thread(const Thread&);
@@ -84,12 +84,12 @@ private:
 class ThreadLocal
 {
 public:
-	explicit ThreadLocal(QSTATUS* pstatus);
+	ThreadLocal();
 	~ThreadLocal();
 
 public:
-	QSTATUS get(void** ppValue) const;
-	QSTATUS set(void* pValue);
+	void* get() const;
+	void set(void* pValue);
 
 private:
 	ThreadLocal(const ThreadLocal&);
@@ -214,17 +214,20 @@ private:
 class QSEXPORTCLASS Event
 {
 public:
-	Event(QSTATUS* pstatus);
-	Event(bool bManual, bool bInitial, QSTATUS* pstatus);
-	Event(bool bManual, bool bInitial, const WCHAR* pwszName, QSTATUS* pstatus);
+	Event();
+	Event(bool bManual,
+		  bool bInitial);
+	Event(bool bManual,
+		  bool bInitial,
+		  const WCHAR* pwszName);
 	~Event();
 
 public:
-	QSTATUS set();
-	QSTATUS reset();
-	QSTATUS pulse();
-	QSTATUS wait();
-	QSTATUS wait(unsigned int nMillisecond);
+	bool set();
+	bool reset();
+	bool pulse();
+	bool wait();
+	bool wait(unsigned int nMillisecond);
 	HANDLE getHandle() const;
 
 private:
@@ -245,17 +248,19 @@ private:
 class QSEXPORTCLASS Mutex
 {
 public:
-	Mutex(QSTATUS* pstatus);
-	Mutex(bool bOwner, QSTATUS* pstatus);
-	Mutex(bool bOwner, const WCHAR* pwszName, QSTATUS* pstatus);
+	Mutex();
+	Mutex(bool bOwner);
+	Mutex(bool bOwner,
+		  const WCHAR* pwszName);
 	~Mutex();
 
 public:
-	QSTATUS acquire();
-	QSTATUS release();
+	bool acquire();
+	bool release();
 
 private:
-	QSTATUS init(bool bOwner, const WCHAR* pwszName);
+	void init(bool bOwner,
+			  const WCHAR* pwszName);
 
 private:
 	Mutex(const Mutex&);
@@ -275,11 +280,11 @@ private:
 class QSEXPORTCLASS Synchronizer
 {
 public:
-	explicit Synchronizer(QSTATUS* pstatus);
+	Synchronizer();
 	~Synchronizer();
 
 public:
-	QSTATUS syncExec(Runnable* pRunnable);
+	void syncExec(Runnable* pRunnable);
 
 private:
 	Synchronizer(const Synchronizer&);

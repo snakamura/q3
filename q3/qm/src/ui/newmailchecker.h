@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -40,14 +40,17 @@ public:
 	};
 
 public:
-	NewMailChecker(qs::Profile* pProfile, Document* pDocument,
-		GoRound* pGoRound, SyncManager* pSyncManager,
-		SyncDialogManager* pSyncDialogManager, HWND hwnd,
-		NewMailCheckerCallback* pCallback, qs::QSTATUS* pstatus);
+	NewMailChecker(qs::Profile* pProfile,
+				   Document* pDocument,
+				   GoRound* pGoRound,
+				   SyncManager* pSyncManager,
+				   SyncDialogManager* pSyncDialogManager,
+				   HWND hwnd,
+				   NewMailCheckerCallback* pCallback);
 	~NewMailChecker();
 
 public:
-	virtual qs::QSTATUS timerTimeout(unsigned int nId);
+	virtual void timerTimeout(unsigned int nId);
 
 private:
 	NewMailChecker(const NewMailChecker&);
@@ -60,9 +63,9 @@ private:
 	SyncDialogManager* pSyncDialogManager_;
 	HWND hwnd_;
 	NewMailCheckerCallback* pCallback_;
-	qs::WSTRING wstrCourse_;
+	qs::wstring_ptr wstrCourse_;
 	bool bOnlyWhenConnected_;
-	qs::Timer* pTimer_;
+	std::auto_ptr<qs::Timer> pTimer_;
 	unsigned int nId_;
 };
 

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -28,10 +28,13 @@ public:
 	class Item
 	{
 	public:
-		Item(unsigned int nStartLine, unsigned int nStartChar,
-			unsigned int nEndLine, unsigned int nEndChar,
-			unsigned int nCharLine, unsigned int nCaretPos,
-			WSTRING wstrText, QSTATUS* pstatus);
+		Item(unsigned int nStartLine,
+			 unsigned int nStartChar,
+			 unsigned int nEndLine,
+			 unsigned int nEndChar,
+			 unsigned int nCharLine,
+			 unsigned int nCaretPos,
+			 wstring_ptr wstrText);
 		~Item();
 	
 	public:
@@ -54,22 +57,31 @@ public:
 		unsigned int nEndChar_;
 		unsigned int nCaretLine_;
 		unsigned int nCaretChar_;
-		WSTRING wstrText_;
+		wstring_ptr wstrText_;
 	};
 
 public:
-	TextWindowUndoManager(QSTATUS* pstatus);
+	TextWindowUndoManager();
 	~TextWindowUndoManager();
 
 public:
-	QSTATUS pushUndoItem(unsigned int nStartLine, unsigned int nStartChar,
-		unsigned int nEndLine, unsigned int nEndChar, unsigned int nCaretLine,
-		unsigned int nCaretChar, WSTRING wstrText, bool bClearUndo);
+	void pushUndoItem(unsigned int nStartLine,
+					  unsigned int nStartChar,
+					  unsigned int nEndLine,
+					  unsigned int nEndChar,
+					  unsigned int nCaretLine,
+					  unsigned int nCaretChar,
+					  wstring_ptr wstrText,
+					  bool bClearUndo);
 	Item* popUndoItem();
 	bool hasUndoItem() const;
-	QSTATUS pushRedoItem(unsigned int nStartLine, unsigned int nStartChar,
-		unsigned int nEndLine, unsigned int nEndChar,
-		unsigned int nCaretLine, unsigned int nCaretChar, WSTRING wstrText);
+	void pushRedoItem(unsigned int nStartLine,
+					  unsigned int nStartChar,
+					  unsigned int nEndLine,
+					  unsigned int nEndChar,
+					  unsigned int nCaretLine,
+					  unsigned int nCaretChar,
+					  wstring_ptr wstrText);
 	Item* popRedoItem();
 	bool hasRedoItem() const;
 	void clearRedoItems();
@@ -94,17 +106,21 @@ private:
  *
  */
 
-class TextWindowRuler : public WindowBase, public DefaultWindowHandler
+class TextWindowRuler :
+	public WindowBase,
+	public DefaultWindowHandler
 {
 public:
-	TextWindowRuler(TextWindowImpl* pImpl, QSTATUS* pstatus);
+	TextWindowRuler(TextWindowImpl* pImpl);
 	virtual ~TextWindowRuler();
 
 public:
 	void update();
 
 public:
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
 	LRESULT onEraseBkgnd(HDC hdc);

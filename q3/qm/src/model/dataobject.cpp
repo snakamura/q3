@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -15,8 +15,6 @@
 
 #include <qsassert.h>
 #include <qsconv.h>
-#include <qserror.h>
-#include <qsnew.h>
 #include <qsstl.h>
 #include <qsthread.h>
 
@@ -88,7 +86,7 @@ FORMATETC qm::MessageDataObject::formats__[] = {
 #endif
 };
 
-qm::MessageDataObject::MessageDataObject(Document* pDocument, QSTATUS* pstatus) :
+qm::MessageDataObject::MessageDataObject(Document* pDocument) :
 	nRef_(0),
 	pDocument_(pDocument),
 	pAccount_(0),
@@ -98,7 +96,9 @@ qm::MessageDataObject::MessageDataObject(Document* pDocument, QSTATUS* pstatus) 
 }
 
 qm::MessageDataObject::MessageDataObject(Document* pDocument,
-	Account* pAccount, const MessageHolderList& l, Flag flag, QSTATUS* pstatus) :
+										 Account* pAccount,
+										 const MessageHolderList& l,
+										 Flag flag) :
 	nRef_(0),
 	pDocument_(pDocument),
 	pAccount_(pAccount),
@@ -106,16 +106,10 @@ qm::MessageDataObject::MessageDataObject(Document* pDocument,
 {
 	assert(pDocument);
 	assert(pAccount);
+	assert(pAccount->isLocked());
 	assert(!l.empty());
-	assert(pstatus);
 	
-	DECLARE_QSTATUS();
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	status = STLWrapper<MessagePtrList>(listMessagePtr_).resize(l.size());
-	CHECK_QSTATUS_SET(pstatus);
-	std::copy(l.begin(), l.end(), listMessagePtr_.begin());
+	listMessagePtr_.assign(l.begin(), l.end());
 }
 
 qm::MessageDataObject::~MessageDataObject()
@@ -135,7 +129,8 @@ STDMETHODIMP_(ULONG) qm::MessageDataObject::Release()
 	return nRef;
 }
 
-STDMETHODIMP qm::MessageDataObject::QueryInterface(REFIID riid, void** ppv)
+STDMETHODIMP qm::MessageDataObject::QueryInterface(REFIID riid,
+												   void** ppv)
 {
 	*ppv = 0;
 	
@@ -147,11 +142,9 @@ STDMETHODIMP qm::MessageDataObject::QueryInterface(REFIID riid, void** ppv)
 	return *ppv ? S_OK : E_NOINTERFACE;
 }
 
-STDMETHODIMP qm::MessageDataObject::GetData(
-	FORMATETC* pFormat, STGMEDIUM* pMedium)
+STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
+											STGMEDIUM* pMedium)
 {
-	DECLARE_QSTATUS();
-	
 	HRESULT hr = QueryGetData(pFormat);
 	if (hr != S_OK)
 		return hr;
@@ -171,23 +164,16 @@ STDMETHODIMP qm::MessageDataObject::GetData(
 	else if (pFormat->cfFormat == nFormats__[FORMAT_MESSAGEHOLDERLIST]) {
 		typedef std::vector<WCHAR> Buffer;
 		Buffer buf;
-		MessagePtrList::const_iterator it = listMessagePtr_.begin();
-		while (it != listMessagePtr_.end()) {
+		for (MessagePtrList::const_iterator it = listMessagePtr_.begin(); it != listMessagePtr_.end(); ++it) {
 			MessagePtrLock mpl(*it);
 			if (mpl) {
-				string_ptr<WSTRING> wstrURI;
-				status = URI::getURI(mpl, &wstrURI);
-				CHECK_QSTATUS_VALUE(E_OUTOFMEMORY);
+				wstring_ptr wstrURI(URI::getURI(mpl));
 				size_t nLen = wcslen(wstrURI.get());
-				status = STLWrapper<Buffer>(buf).reserve(buf.size() + nLen + 1);
-				CHECK_QSTATUS_VALUE(E_OUTOFMEMORY);
-				std::copy(wstrURI.get(), wstrURI.get() + nLen + 1,
-					std::back_inserter(buf));
+				buf.resize(buf.size() + nLen + 1);
+				std::copy(wstrURI.get(), wstrURI.get() + nLen + 1, buf.end());
 			}
-			++it;
 		}
-		status = STLWrapper<Buffer>(buf).push_back(L'\0');
-		CHECK_QSTATUS_VALUE(E_OUTOFMEMORY);
+		buf.push_back(L'\0');
 		
 		hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT,
 			buf.size()*sizeof(WCHAR));
@@ -217,13 +203,12 @@ STDMETHODIMP qm::MessageDataObject::GetData(
 		if (!mpl)
 			return E_FAIL;
 		
-		Message msg(&status);
-		CHECK_QSTATUS_VALUE(E_OUTOFMEMORY);
-		status = mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg);
-		CHECK_QSTATUS_VALUE(E_FAIL);
-		string_ptr<STRING> strContent;
-		status = msg.getContent(&strContent);
-		CHECK_QSTATUS_VALUE(E_OUTOFMEMORY);
+		Message msg;
+		if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg))
+			return E_FAIL;
+		xstring_ptr strContent(msg.getContent());
+		if (!strContent.get())
+			return E_FAIL;
 		
 		size_t nLen = strlen(strContent.get());
 		hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, nLen);
@@ -245,28 +230,19 @@ STDMETHODIMP qm::MessageDataObject::GetData(
 		MessagePtrList::size_type n = 0;
 		while (n < listMessagePtr_.size()) {
 			MessagePtrLock mpl(listMessagePtr_[n]);
-			if (mpl) {
-				pfgd->fgd[n].dwFlags = FD_WRITESTIME;
-				
-				Time time;
-				status = mpl->getDate(&time);
-				if (status != QSTATUS_SUCCESS)
-					break;
-				::SystemTimeToFileTime(&time, &pfgd->fgd[n].ftLastWriteTime);
-				
-				string_ptr<WSTRING> wstrSubject;
-				status = mpl->getSubject(&wstrSubject);
-				if (status != QSTATUS_SUCCESS)
-					break;
-				string_ptr<WSTRING> wstrName;
-				status = getFileName(wstrSubject.get(), &wstrName);
-				if (status != QSTATUS_SUCCESS)
-					break;
-				string_ptr<TSTRING> tstrName(wcs2tcs(wstrName.get()));
-				if (!tstrName.get())
-					break;
-				_tcsncpy(pfgd->fgd[n].cFileName, tstrName.get(), MAX_PATH - 1);
-			}
+			if (!mpl)
+				break;
+			pfgd->fgd[n].dwFlags = FD_WRITESTIME;
+			
+			Time time;
+			mpl->getDate(&time);
+			::SystemTimeToFileTime(&time, &pfgd->fgd[n].ftLastWriteTime);
+			
+			wstring_ptr wstrSubject(mpl->getSubject());
+			wstring_ptr wstrName(getFileName(wstrSubject.get()));
+			W2T(wstrName.get(), ptszName);
+			_tcsncpy(pfgd->fgd[n].cFileName, ptszName, MAX_PATH - 1);
+			
 			++n;
 		}
 		GlobalUnlock(hGlobal);
@@ -288,17 +264,19 @@ STDMETHODIMP qm::MessageDataObject::GetData(
 	return S_OK;
 }
 
-STDMETHODIMP qm::MessageDataObject::GetDataHere(
-	FORMATETC* pFormat, STGMEDIUM* pMedium)
+STDMETHODIMP qm::MessageDataObject::GetDataHere(FORMATETC* pFormat,
+												STGMEDIUM* pMedium)
 {
 	return E_NOTIMPL;
 }
 
 STDMETHODIMP qm::MessageDataObject::QueryGetData(FORMATETC* pFormat)
 {
-	for (int n = 0; n < countof(nFormats__); ++n) {
+	int n = 0;
+	while (n < countof(nFormats__)) {
 		if (pFormat->cfFormat == nFormats__[n])
 			break;
+		++n;
 	}
 	if (n == countof(nFormats__) || pFormat->ptd)
 		return DV_E_FORMATETC;
@@ -320,17 +298,16 @@ STDMETHODIMP qm::MessageDataObject::QueryGetData(FORMATETC* pFormat)
 		return S_OK;
 }
 
-STDMETHODIMP qm::MessageDataObject::GetCanonicalFormatEtc(
-	FORMATETC* pFormatIn, FORMATETC* pFormatOut)
+STDMETHODIMP qm::MessageDataObject::GetCanonicalFormatEtc(FORMATETC* pFormatIn,
+														  FORMATETC* pFormatOut)
 {
 	return E_NOTIMPL;
 }
 
-STDMETHODIMP qm::MessageDataObject::SetData(
-	FORMATETC* pFormat, STGMEDIUM* pMedium, BOOL bRelease)
+STDMETHODIMP qm::MessageDataObject::SetData(FORMATETC* pFormat,
+											STGMEDIUM* pMedium,
+											BOOL bRelease)
 {
-	DECLARE_QSTATUS();
-	
 	if (pFormat->tymed != TYMED_HGLOBAL)
 		return DV_E_TYMED;
 	
@@ -349,10 +326,9 @@ STDMETHODIMP qm::MessageDataObject::SetData(
 		const WCHAR* p = static_cast<const WCHAR*>(pData);
 		while (*p) {
 			MessagePtr ptr;
-			status = URI::getMessageHolder(p, pDocument_, &ptr);
-			CHECK_QSTATUS_VALUE(E_FAIL);
-			status = STLWrapper<MessagePtrList>(listMessagePtr_).push_back(ptr);
-			CHECK_QSTATUS_VALUE(E_OUTOFMEMORY);
+			if (!URI::getMessageHolder(p, pDocument_, &ptr))
+				return E_FAIL;
+			listMessagePtr_.push_back(ptr);
 			p += wcslen(p) + 1;
 		}
 	}
@@ -366,18 +342,13 @@ STDMETHODIMP qm::MessageDataObject::SetData(
 	return S_OK;
 }
 
-STDMETHODIMP qm::MessageDataObject::EnumFormatEtc(
-	DWORD dwDirection, IEnumFORMATETC** ppEnum)
+STDMETHODIMP qm::MessageDataObject::EnumFormatEtc(DWORD dwDirection,
+												  IEnumFORMATETC** ppEnum)
 {
-	DECLARE_QSTATUS();
-	
 	if (dwDirection != DATADIR_GET)
 		return E_NOTIMPL;
 	
-	IEnumFORMATETCImpl* pEnum = 0;
-	status = newQsObject(&pEnum);
-	if (status == QSTATUS_OUTOFMEMORY)
-		return E_OUTOFMEMORY;
+	IEnumFORMATETCImpl* pEnum = new IEnumFORMATETCImpl();
 	pEnum->AddRef();
 	
 	*ppEnum = pEnum;
@@ -386,7 +357,9 @@ STDMETHODIMP qm::MessageDataObject::EnumFormatEtc(
 }
 
 STDMETHODIMP qm::MessageDataObject::DAdvise(FORMATETC* pFormat,
-	DWORD advf, IAdviseSink* pSink, DWORD* pdwConnection)
+											DWORD advf,
+											IAdviseSink* pSink,
+											DWORD* pdwConnection)
 {
 	return E_NOTIMPL;
 }
@@ -401,106 +374,90 @@ STDMETHODIMP qm::MessageDataObject::EnumDAdvise(IEnumSTATDATA** ppEnum)
 	return E_NOTIMPL;
 }
 
-QSTATUS qm::MessageDataObject::setClipboard(IDataObject* pDataObject)
+bool qm::MessageDataObject::setClipboard(IDataObject* pDataObject)
 {
 	assert(pDataObject);
 	
-	DECLARE_QSTATUS();
-	
 #ifdef _WIN32_WCE
-	Clipboard clipboard(0, &status);
-	CHECK_QSTATUS();
-	status = clipboard.empty();
-	CHECK_QSTATUS();
+	Clipboard clipboard(0);
+	if (!clipboard)
+		return false;
+	if (!clipboard.empty())
+		return false;
 	
 	for (int n = 0; n < countof(formats__); ++n) {
 		FORMATETC etc = formats__[n];
 		StgMedium medium;
 		HRESULT hr = pDataObject->GetData(&etc, &medium);
 		if (hr != S_OK)
-			return QSTATUS_FAIL;
-		status = clipboard.setData(etc.cfFormat, medium.hGlobal);
-		CHECK_QSTATUS();
+			return false;
+		if (!clipboard.setData(etc.cfFormat, medium.hGlobal))
+			return false;
 	}
 #else
 	HRESULT hr = ::OleSetClipboard(pDataObject);
 	if (hr != S_OK)
-		return QSTATUS_FAIL;
+		return false;
 #endif
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::MessageDataObject::getClipboard(
-	Document* pDocument, IDataObject** ppDataObject)
+IDataObject* qm::MessageDataObject::getClipboard(Document* pDocument)
 {
 	assert(pDocument);
-	assert(ppDataObject);
-	
-	DECLARE_QSTATUS();
-	
-	*ppDataObject = 0;
 	
 #ifdef _WIN32_WCE
-	std::auto_ptr<MessageDataObject> pDataObject;
-	status = newQsObject(pDocument, &pDataObject);
-	CHECK_QSTATUS();
+	std::auto_ptr<MessageDataObject> pDataObject(new MessageDataObject(pDocument));
 	
-	Clipboard clipboard(0, &status);
-	CHECK_QSTATUS();
+	Clipboard clipboard(0);
+	if (!clipboard)
+		return 0;
 	
 	for (int n = 0; n < countof(formats__); ++n) {
 		FORMATETC etc = formats__[n];
 		STGMEDIUM medium;
-		status = clipboard.getData(etc.cfFormat, &medium.hGlobal);
-		CHECK_QSTATUS();
+		medium.tymed = TYMED_HGLOBAL;
+		medium.hGlobal = clipboard.getData(etc.cfFormat);
+		if (!medium.hGlobal)
+			return 0;
 		HRESULT hr = pDataObject->SetData(&etc, &medium, FALSE);
 		if (hr != S_OK)
-			return QSTATUS_FAIL;
+			return 0;
 	}
 	
-	*ppDataObject = pDataObject.release();
+	return pDataObject.release();
 #else
-	HRESULT hr = ::OleGetClipboard(ppDataObject);
+	IDataObject* pDataObject = 0;
+	HRESULT hr = ::OleGetClipboard(&pDataObject);
 	if (hr != S_OK)
-		return QSTATUS_FAIL;
+		return 0;
+	return pDataObject;
 #endif
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::MessageDataObject::queryClipboard(bool* pbData)
+bool qm::MessageDataObject::queryClipboard()
 {
-	assert(pbData);
-	
-	DECLARE_QSTATUS();
-	
-	*pbData = false;
-	
 #ifdef _WIN32_WCE
-	status = Clipboard::isFormatAvailable(
-		nFormats__[FORMAT_MESSAGEHOLDERLIST], pbData);
-	CHECK_QSTATUS();
+	return Clipboard::isFormatAvailable(nFormats__[FORMAT_MESSAGEHOLDERLIST]);
 #else
 	ComPtr<IDataObject> pDataObject;
 	HRESULT hr = ::OleGetClipboard(&pDataObject);
 	if (hr != S_OK)
-		return QSTATUS_FAIL;
-	*pbData = canPasteMessage(pDataObject.get());
+		return false;
+	return canPasteMessage(pDataObject.get());
 #endif
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
-	Document* pDocument, NormalFolder* pFolderTo,
-	Flag flag, MessageOperationCallback* pCallback)
+bool qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
+										  Document* pDocument,
+										  NormalFolder* pFolderTo,
+										  Flag flag,
+										  MessageOperationCallback* pCallback)
 {
 	assert(pDataObject);
 	assert(pDocument);
 	assert(pFolderTo);
-	
-	DECLARE_QSTATUS();
 	
 	HRESULT hr = S_OK;
 	
@@ -522,32 +479,26 @@ QSTATUS qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
 			STGMEDIUM& stm_;
 		} deleter(stm);
 		
-		const WCHAR* p = reinterpret_cast<const WCHAR*>(
-			GlobalLock(stm.hGlobal));
+		const WCHAR* p = reinterpret_cast<const WCHAR*>(GlobalLock(stm.hGlobal));
 		MessagePtrList listMessagePtr;
 		while (*p) {
 			MessagePtr ptr;
-			status = URI::getMessageHolder(p, pDocument, &ptr);
-			CHECK_QSTATUS();
-			status = STLWrapper<MessagePtrList>(listMessagePtr).push_back(ptr);
-			CHECK_QSTATUS();
-			
+			if (!URI::getMessageHolder(p, pDocument, &ptr))
+				return false;
+			listMessagePtr.push_back(ptr);
 			p += wcslen(p) + 1;
 		}
 		
 		if (!listMessagePtr.empty()) {
-			if (pCallback) {
-				status = pCallback->setCount(listMessagePtr.size());
-				CHECK_QSTATUS();
-			}
+			if (pCallback)
+				pCallback->setCount(listMessagePtr.size());
 			
 			while (true) {
 				Account* pAccount = 0;
 				AccountLock lock;
 				MessageHolderList l;
 				
-				MessagePtrList::iterator it = listMessagePtr.begin();
-				while (it != listMessagePtr.end()) {
+				for (MessagePtrList::iterator it = listMessagePtr.begin(); it != listMessagePtr.end(); ++it) {
 					MessagePtrLock mpl(*it);
 					if (mpl) {
 						if (!pAccount) {
@@ -555,21 +506,18 @@ QSTATUS qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
 							lock.set(pAccount);
 						}
 						if (mpl->getAccount() == pAccount) {
-							status = STLWrapper<MessageHolderList>(l).push_back(mpl);
-							CHECK_QSTATUS();
+							l.push_back(mpl);
 							*it = MessagePtr();
 						}
 					}
-					++it;
 				}
 				if (!pAccount)
 					break;
 				
 				assert(!l.empty());
 				
-				status = pAccount->copyMessages(l, pFolderTo,
-					flag == FLAG_MOVE, pCallback);
-				CHECK_QSTATUS();
+				if (!pAccount->copyMessages(l, pFolderTo, flag == FLAG_MOVE, pCallback))
+					return false;
 				
 				if (pCallback && pCallback->isCanceled())
 					break;
@@ -577,7 +525,7 @@ QSTATUS qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 bool qm::MessageDataObject::canPasteMessage(IDataObject* pDataObject)
@@ -588,8 +536,9 @@ bool qm::MessageDataObject::canPasteMessage(IDataObject* pDataObject)
 	return pDataObject->QueryGetData(&fe) == S_OK;
 }
 
-MessageDataObject::Flag qm::MessageDataObject::getPasteFlag(
-	IDataObject* pDataObject, Document* pDocument, NormalFolder* pFolder)
+MessageDataObject::Flag qm::MessageDataObject::getPasteFlag(IDataObject* pDataObject,
+															Document* pDocument,
+															NormalFolder* pFolder)
 {
 	assert(pDataObject);
 	
@@ -622,21 +571,15 @@ MessageDataObject::Flag qm::MessageDataObject::getPasteFlag(
 	return flag;
 }
 
-QSTATUS qm::MessageDataObject::getFileName(
-	const WCHAR* pwszName, qs::WSTRING* pwstrName)
+wstring_ptr qm::MessageDataObject::getFileName(const WCHAR* pwszName)
 {
 	assert(pwszName);
-	assert(pwstrName);
-	
-	*pwstrName = 0;
 	
 	size_t nLen = wcslen(pwszName);
 	if (nLen + 4 >= MAX_PATH)
 		nLen = MAX_PATH - 5;
 	
-	string_ptr<WSTRING> wstrName(concat(pwszName, nLen, L".eml", 4));
-	if (!wstrName.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrName(concat(pwszName, nLen, L".eml", 4));
 	
 	const WCHAR* pwszEscape = L"\\/:*?\"<>|";
 	for (WCHAR* p = wstrName.get(); *p; ++p) {
@@ -644,9 +587,7 @@ QSTATUS qm::MessageDataObject::getFileName(
 			*p = L'_';
 	}
 	
-	*pwstrName = wstrName.release();
-	
-	return QSTATUS_SUCCESS;
+	return wstrName;
 }
 
 
@@ -656,7 +597,7 @@ QSTATUS qm::MessageDataObject::getFileName(
  *
  */
 
-qm::MessageDataObject::IEnumFORMATETCImpl::IEnumFORMATETCImpl(QSTATUS* pstatus) :
+qm::MessageDataObject::IEnumFORMATETCImpl::IEnumFORMATETCImpl() :
 	nRef_(0),
 	nCurrent_(0)
 {
@@ -679,8 +620,8 @@ STDMETHODIMP_(ULONG) qm::MessageDataObject::IEnumFORMATETCImpl::Release()
 	return nRef;
 }
 
-STDMETHODIMP qm::MessageDataObject::IEnumFORMATETCImpl::QueryInterface(
-	REFIID riid, void** ppv)
+STDMETHODIMP qm::MessageDataObject::IEnumFORMATETCImpl::QueryInterface(REFIID riid,
+																	   void** ppv)
 {
 	*ppv = 0;
 	
@@ -692,8 +633,9 @@ STDMETHODIMP qm::MessageDataObject::IEnumFORMATETCImpl::QueryInterface(
 	return *ppv ? S_OK : E_NOINTERFACE;
 }
 
-STDMETHODIMP qm::MessageDataObject::IEnumFORMATETCImpl::Next(
-	ULONG celt, FORMATETC* rgelt, ULONG* pceltFetched)
+STDMETHODIMP qm::MessageDataObject::IEnumFORMATETCImpl::Next(ULONG celt,
+															 FORMATETC* rgelt,
+															 ULONG* pceltFetched)
 {
 	int nCount = 0;
 	while (celt > 0 && nCurrent_ < countof(MessageDataObject::formats__)) {
@@ -718,15 +660,9 @@ STDMETHODIMP qm::MessageDataObject::IEnumFORMATETCImpl::Reset()
 	return S_OK;
 }
 
-STDMETHODIMP qm::MessageDataObject::IEnumFORMATETCImpl::Clone(
-	IEnumFORMATETC** ppEnum)
+STDMETHODIMP qm::MessageDataObject::IEnumFORMATETCImpl::Clone(IEnumFORMATETC** ppEnum)
 {
-	DECLARE_QSTATUS();
-	
-	IEnumFORMATETCImpl* pEnum = 0;
-	status = newQsObject(&pEnum);
-	if (status == QSTATUS_OUTOFMEMORY)
-		return E_OUTOFMEMORY;
+	IEnumFORMATETCImpl* pEnum = new IEnumFORMATETCImpl();
 	pEnum->nCurrent_ = nCurrent_;
 	pEnum->AddRef();
 	

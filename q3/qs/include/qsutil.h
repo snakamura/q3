@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -35,7 +35,8 @@ public:
 	virtual ~Observer();
 
 public:
-	virtual QSTATUS onUpdate(Observable* pObservable, void* pParam) = 0;
+	virtual void onUpdate(Observable* pObservable,
+						  void* pParam) = 0;
 };
 
 
@@ -52,10 +53,12 @@ public:
 	virtual ~TemplateObserver();
 
 public:
-	virtual QSTATUS onUpdate(ObservableImpl* pObservable, Param* pParam) = 0;
+	virtual void onUpdate(ObservableImpl* pObservable,
+						  Param* pParam) = 0;
 
 public:
-	virtual QSTATUS onUpdate(Observable* pObservable, void* pParam);
+	virtual void onUpdate(Observable* pObservable,
+						  void* pParam);
 };
 
 
@@ -68,15 +71,16 @@ public:
 class QSEXPORTCLASS Observable
 {
 public:
-	explicit Observable(QSTATUS* pstatus);
+	Observable();
 	~Observable();
 
 public:
-	QSTATUS addObserver(Observer* pObserver);
-	QSTATUS removeObserver(Observer* pObserver);
-	QSTATUS removeObservers();
-	QSTATUS notifyObservers(void* pParam);
-	QSTATUS notifyObservers(void* pParam, const Observer* pObserver);
+	void addObserver(Observer* pObserver);
+	void removeObserver(Observer* pObserver);
+	void removeObservers();
+	void notifyObservers(void* pParam);
+	void notifyObservers(void* pParam,
+						 const Observer* pObserver);
 
 private:
 	Observable(const Observable&);
@@ -104,9 +108,17 @@ public:
 
 public:
 	Time();
-	Time(const SYSTEMTIME& st, int nTimeZone);
-	Time(int nYear, int nMonth, int nDayOfWeek, int nDay, int nHour,
-		int nMinute, int nSecond, int nMilliseconds, int nTimeZone);
+	Time(const SYSTEMTIME& st,
+		 int nTimeZone);
+	Time(int nYear,
+		 int nMonth,
+		 int nDayOfWeek,
+		 int nDay,
+		 int nHour,
+		int nMinute,
+		int nSecond,
+		int nMilliseconds,
+		int nTimeZone);
 	Time(const Time& time);
 	~Time();
 
@@ -122,14 +134,17 @@ public:
 	Time& addDay(int nDay);
 	Time& convertToZone();
 	
-	QSTATUS format(const WCHAR* pwszFormat, Format format,
-		WSTRING* pwstrText) const;
+	wstring_ptr format(const WCHAR* pwszFormat,
+					   Format format) const;
 
 public:
 	static Time getCurrentTime();
-	static int getDayCount(int nYear, int nMonth);
+	static int getDayCount(int nYear,
+						   int nMonth);
 	static int getDayCount(int nYear);
-	static int getDayOfWeek(int nYear, int nMonth, int nDay);
+	static int getDayOfWeek(int nYear,
+							int nMonth,
+							int nDay);
 
 private:
 	static int getSystemTimeZone();
@@ -143,13 +158,21 @@ private:
 	static const WCHAR* pwszMonths__[];
 };
 
-QSEXPORTPROC bool operator==(const Time& lhs, const Time& rhs);
-QSEXPORTPROC bool operator!=(const Time& lhs, const Time& rhs);
-QSEXPORTPROC bool operator<(const Time& lhs, const Time& rhs);
-QSEXPORTPROC bool operator<=(const Time& lhs, const Time& rhs);
-QSEXPORTPROC bool operator>(const Time& lhs, const Time& rhs);
-QSEXPORTPROC bool operator>=(const Time& lhs, const Time& rhs);
-QSEXPORTPROC int compare(const Time& lhs, const Time& rhs, bool bIgnoreTimeZone);
+QSEXPORTPROC bool operator==(const Time& lhs,
+							 const Time& rhs);
+QSEXPORTPROC bool operator!=(const Time& lhs,
+							 const Time& rhs);
+QSEXPORTPROC bool operator<(const Time& lhs,
+							const Time& rhs);
+QSEXPORTPROC bool operator<=(const Time& lhs,
+							 const Time& rhs);
+QSEXPORTPROC bool operator>(const Time& lhs,
+							const Time& rhs);
+QSEXPORTPROC bool operator>=(const Time& lhs,
+							 const Time& rhs);
+QSEXPORTPROC int compare(const Time& lhs,
+						 const Time& rhs,
+						 bool bIgnoreTimeZone);
 
 
 /****************************************************************************
@@ -162,13 +185,13 @@ class QSEXPORTCLASS Color
 {
 public:
 	explicit Color(COLORREF cr);
-	Color(const WCHAR* pwszColor, QSTATUS* pstatus);
+	explicit Color(const WCHAR* pwszColor);
 
 public:
 	COLORREF getColor() const;
 	void setColor(COLORREF cr);
-	QSTATUS getString(WSTRING* pwstrColor) const;
-	QSTATUS setString(const WCHAR* pwszColor);
+	wstring_ptr getString() const;
+	bool setString(const WCHAR* pwszColor);
 
 private:
 	COLORREF cr_;
@@ -184,12 +207,12 @@ private:
 class QSEXPORTCLASS CommandLine
 {
 public:
-	CommandLine(CommandLineHandler* pHandler, QSTATUS* pstatus);
+	CommandLine(CommandLineHandler* pHandler);
 	~CommandLine();
 
 public:
-	QSTATUS parse(const WCHAR* pwszCommandLine);
-	QSTATUS parse(Reader& reader);
+	bool parse(const WCHAR* pwszCommandLine);
+	bool parse(Reader* pReader);
 
 private:
 	CommandLine(const CommandLine&);
@@ -212,7 +235,7 @@ public:
 	virtual ~CommandLineHandler();
 
 public:
-	virtual QSTATUS process(const WCHAR* pwszOption) = 0;
+	virtual bool process(const WCHAR* pwszOption) = 0;
 };
 
 }

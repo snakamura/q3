@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -23,48 +23,211 @@ namespace qs {
  *
  */
 
-QSEXPORTPROC STRING wcs2mbs(const WCHAR* pwszSrc);
-QSEXPORTPROC STRING wcs2mbs(const WCHAR* pwszSrc, size_t nLen);
-QSEXPORTPROC STRING wcs2mbs(const WCHAR* pwszSrc, size_t nLen, size_t* pnLen);
-QSEXPORTPROC TSTRING wcs2tcs(const WCHAR* pwszSrc);
-QSEXPORTPROC TSTRING wcs2tcs(const WCHAR* pwszSrc, size_t nLen);
-QSEXPORTPROC TSTRING wcs2tcs(const WCHAR* pwszSrc, size_t nLen, size_t* pnLen);
-QSEXPORTPROC WSTRING mbs2wcs(const CHAR* pszSrc);
-QSEXPORTPROC WSTRING mbs2wcs(const CHAR* pszSrc, size_t nLen);
-QSEXPORTPROC WSTRING mbs2wcs(const CHAR* pszSrc, size_t nLen, size_t* pnLen);
-QSEXPORTPROC TSTRING mbs2tcs(const CHAR* pszSrc);
-QSEXPORTPROC TSTRING mbs2tcs(const CHAR* pszSrc, size_t nLen);
-QSEXPORTPROC TSTRING mbs2tcs(const CHAR* pszSrc, size_t nLen, size_t* pnLen);
-QSEXPORTPROC WSTRING tcs2wcs(const TCHAR* ptszSrc);
-QSEXPORTPROC WSTRING tcs2wcs(const TCHAR* ptszSrc, size_t nLen);
-QSEXPORTPROC WSTRING tcs2wcs(const TCHAR* ptszSrc, size_t nLen, size_t* pnLen);
-QSEXPORTPROC STRING tcs2mbs(const TCHAR* ptszSrc);
-QSEXPORTPROC STRING tcs2mbs(const TCHAR* ptszSrc, size_t nLen);
-QSEXPORTPROC STRING tcs2mbs(const TCHAR* ptszSrc, size_t nLen, size_t* pnLen);
+/**
+ * Convert unicode string to native string.
+ *
+ * @param pwszSrc [in] Unicode string.
+ * @return Native string. Can not be null.
+ * @exception std::bad_alloc Out of memory.
+ */
+QSEXPORTPROC string_ptr wcs2mbs(const WCHAR* pwszSrc);
+
+/**
+ * Convert unicode string to native string.
+ *
+ * @param pwszSrc [in] Unicode string.
+ * @param nLen [in] Unicode string length.
+ * @return Native string. Can not be null.
+ * @exception std::bad_alloc Out of memory.
+ */
+QSEXPORTPROC string_ptr wcs2mbs(const WCHAR* pwszSrc,
+								size_t nLen);
+
+/**
+ * Convert unicode string to native string.
+ *
+ * @param pwszSrc [in] Unicode string.
+ * @param nLen [in] Unicode string length.
+ * @param pnLen [out] Converted native string length.
+ * @return Native string. Can not be null.
+ * @exception std::bad_alloc Out of memory.
+ */
+QSEXPORTPROC string_ptr wcs2mbs(const WCHAR* pwszSrc,
+								size_t nLen,
+								size_t* pnLen);
+
+/**
+ * Convert unicode string to program string.
+ *
+ * @param pwszSrc [in] Unicode string.
+ * @return Program string. Can not be null.
+ * @exception std::bad_alloc Out of memory.
+ */
+QSEXPORTPROC tstring_ptr wcs2tcs(const WCHAR* pwszSrc);
+
+/**
+ * Convert unicode string to program string.
+ *
+ * @param pwszSrc [in] Unicode string.
+ * @param nLen [in] Unicode string length.
+ * @return Program string. Can not be null.
+ * @exception std::bad_alloc Out of memory.
+ */
+QSEXPORTPROC tstring_ptr wcs2tcs(const WCHAR* pwszSrc,
+								 size_t nLen);
+
+/**
+ * Convert unicode string to program string.
+ *
+ * @param pwszSrc [in] Unicode string.
+ * @param nLen [in] Unicode string length.
+ * @param pnLen [out] Converted program string length.
+ * @return Program string. Can not be null.
+ * @exception std::bad_alloc Out of memory.
+ */
+QSEXPORTPROC tstring_ptr wcs2tcs(const WCHAR* pwszSrc,
+								 size_t nLen,
+								 size_t* pnLen);
+
+/**
+ * Convert native string to unicode string.
+ *
+ * @param pszSrc [in] Navite string.
+ * @return Unicode string. Can not be null.
+ * @exception std::bad_alloc Out of memory.
+ */
+QSEXPORTPROC wstring_ptr mbs2wcs(const CHAR* pszSrc);
+
+/**
+ * Convert native string to unicode string.
+ *
+ * @param pszSrc [in] Navite string.
+ * @param nLen [in] Native string length.
+ * @return Unicode string. Can not be null.
+ * @exception std::bad_alloc Out of memory.
+ */
+QSEXPORTPROC wstring_ptr mbs2wcs(const CHAR* pszSrc,
+								 size_t nLen);
+
+/**
+ * Convert native string to unicode string.
+ *
+ * @param pszSrc [in] Navite string.
+ * @param nLen [in] Native string length.
+ * @param pnLen [out] Converted unicode string length.
+ * @return Unicode string. Can not be null.
+ * @exception std::bad_alloc Out of memory.
+ */
+QSEXPORTPROC wstring_ptr mbs2wcs(const CHAR* pszSrc,
+								 size_t nLen,
+								 size_t* pnLen);
+
+/**
+ * Convert native string to program string.
+ *
+ * @param pszSrc [in] Native string.
+ * @return Program string. Can not be null.
+ * @exception std::bad_alloc Out of memory.
+ */
+QSEXPORTPROC tstring_ptr mbs2tcs(const CHAR* pszSrc);
+
+/**
+ * Convert native string to program string.
+ *
+ * @param pszSrc [in] Native string.
+ * @param nLen [in] Native string length.
+ * @return Program string. Can not be null.
+ * @exception std::bad_alloc Out of memory.
+ */
+QSEXPORTPROC tstring_ptr mbs2tcs(const CHAR* pszSrc,
+								 size_t nLen);
+
+/**
+ * Convert native string to program string.
+ *
+ * @param pszSrc [in] Native string.
+ * @param nLen [in] Native string length.
+ * @param pnLen [out] Converted program string length.
+ * @return Program string. Can not be null.
+ * @exception std::bad_alloc Out of memory.
+ */
+QSEXPORTPROC tstring_ptr mbs2tcs(const CHAR* pszSrc,
+								 size_t nLen,
+								 size_t* pnLen);
+
+/**
+ * Convert program string to unicode string.
+ *
+ * @param ptszSrc [in] Program string.
+ * @return Unicode string. Can not be null.
+ * @exception std::bad_alloc Out of memory.
+ */
+QSEXPORTPROC wstring_ptr tcs2wcs(const TCHAR* ptszSrc);
+
+/**
+ * Convert program string to unicode string.
+ *
+ * @param ptszSrc [in] Program string.
+ * @param nLen [in] Program string length.
+ * @return Unicode string. Can not be null.
+ * @exception std::bad_alloc Out of memory.
+ */
+QSEXPORTPROC wstring_ptr tcs2wcs(const TCHAR* ptszSrc,
+								 size_t nLen);
+
+/**
+ * Convert program string to unicode string.
+ *
+ * @param ptszSrc [in] Program string.
+ * @param nLen [in] Program string length.
+ * @param pnLen [out] Converted unicode string length.
+ * @return Unicode string. Can not be null.
+ * @exception std::bad_alloc Out of memory.
+ */
+QSEXPORTPROC wstring_ptr tcs2wcs(const TCHAR* ptszSrc,
+								 size_t nLen,
+								 size_t* pnLen);
+
+/**
+ * Convert program string to native string.
+ *
+ * @param ptszSrc [in] Program string.
+ * @return Native string. Can not be null.
+ * @exception std::bad_alloc Out of memory.
+ */
+QSEXPORTPROC string_ptr tcs2mbs(const TCHAR* ptszSrc);
+
+/**
+ * Convert program string to native string.
+ *
+ * @param ptszSrc [in] Program string.
+ * @param nLen [in] Program string length.
+ * @return Native string. Can not be null.
+ * @exception std::bad_alloc Out of memory.
+ */
+QSEXPORTPROC string_ptr tcs2mbs(const TCHAR* ptszSrc,
+								size_t nLen);
+
+/**
+ * Convert program string to native string.
+ *
+ * @param ptszSrc [in] Program string.
+ * @param nLen [in] Program string length.
+ * @param pnLen [out] Converted native string length.
+ * @return Native string. Can not be null.
+ * @exception std::bad_alloc Out of memory.
+ */
+QSEXPORTPROC string_ptr tcs2mbs(const TCHAR* ptszSrc,
+								size_t nLen,
+								size_t* pnLen);
 
 #ifdef UNICODE
 #define W2T(w, t) const TCHAR* t = w
 #else
 #define W2T(w, t) \
-	string_ptr<TSTRING> tstr##t; \
-	if (w) { \
-		tstr##t.reset(wcs2tcs(w)); \
-		if (!tstr##t.get()) \
-			return QSTATUS_OUTOFMEMORY; \
-	} \
-	const TCHAR* t = tstr##t.get()
-#endif
-
-#ifdef UNICODE
-#define W2T_STATUS(w, t) const TCHAR* t = w
-#else
-#define W2T_STATUS(w, t) \
-	string_ptr<TSTRING> tstr##t; \
-	if (w) { \
-		tstr##t.reset(wcs2tcs(w)); \
-		if (!tstr##t.get()) \
-			status = QSTATUS_OUTOFMEMORY; \
-	} \
+	tstring_ptr tstr##t; \
+	if (w) \
+		tstr##t = wcs2tcs(w); \
 	const TCHAR* t = tstr##t.get()
 #endif
 
@@ -72,78 +235,30 @@ QSEXPORTPROC STRING tcs2mbs(const TCHAR* ptszSrc, size_t nLen, size_t* pnLen);
 #define T2W(t, w) const WCHAR* w = t
 #else
 #define T2W(t, w) \
-	string_ptr<WSTRING> wstr##w; \
-	if (t) { \
-		wstr##w.reset(tcs2wcs(t)); \
-		if (!wstr##w.get()) \
-			return QSTATUS_OUTOFMEMORY; \
-	} \
-	const WCHAR* w = wstr##w.get()
-#endif
-
-#ifdef UNICODE
-#define T2W_STATUS(t, w) const WCHAR* w = t
-#else
-#define T2W_STATUS(t, w) \
-	string_ptr<WSTRING> wstr##w; \
-	if (t) { \
-		wstr##w.reset(tcs2wcs(t)); \
-		if (!wstr##w.get()) \
-			status = QSTATUS_OUTOFMEMORY; \
-	} \
+	wstring_ptr wstr##w; \
+	if (t) \
+		wstr##w = tcs2wcs(t); \
 	const WCHAR* w = wstr##w.get()
 #endif
 
 #ifdef UNICODE
 #define A2T(a, t) \
-	string_ptr<TSTRING> tstr##t; \
-	if (a) { \
-		tstr##t.reset(mbs2tcs(a)); \
-		if (!tstr##t.get()) \
-			return QSTATUS_OUTOFMEMORY; \
-	} \
+	tstring_ptr tstr##t; \
+	if (a) \
+		tstr##t = mbs2tcs(a); \
 	const TCHAR* t = tstr##t.get()
 #else
 #define A2T(a, t) const TCHAR* t = a
 #endif
 
 #ifdef UNICODE
-#define A2T_STATUS(a, t) \
-	string_ptr<TSTRING> tstr##t; \
-	if (a) { \
-		tstr##t.reset(mbs2tcs(a)); \
-		if (!tstr##t.get()) \
-			status = QSTATUS_OUTOFMEMORY; \
-	} \
-	const TCHAR* t = tstr##t.get()
-#else
-#define A2T_STATUS(a, t) const TCHAR* t = a
-#endif
-
-#ifdef UNICODE
 #define T2A(t, a) \
-	string_ptr<STRING> str##a; \
-	if (t) { \
-		str##a.reset(tcs2mbs(t)); \
-		if (!str##a.get()) \
-			return QSTATUS_OUTOFMEMORY; \
-	} \
+	string_ptr str##a; \
+	if (t) \
+		str##a = tcs2mbs(t); \
 	const CHAR* a = str##a.get()
 #else
 #define T2A(t, a) const CHAR* a = t
-#endif
-
-#ifdef UNICODE
-#define T2A_STATUS(t, a) \
-	string_ptr<STRING> str##a; \
-	if (t) { \
-		str##a.reset(tcs2mbs(t)); \
-		if (!str##a.get()) \
-			status = QSTATUS_OUTOFMEMORY; \
-	} \
-	const CHAR* a = str##a.get()
-#else
-#define T2A_STATUS(t, a) const CHAR* a = t
 #endif
 
 
@@ -159,10 +274,31 @@ public:
 	virtual ~Converter();
 
 public:
-	virtual QSTATUS encode(const WCHAR* pwsz, size_t* pnLen,
-		STRING* pstr, size_t* pnResultLen) = 0;
-	virtual QSTATUS decode(const CHAR* psz, size_t* pnLen,
-		WSTRING* pwstr, size_t* pnResultLen) = 0;
+	xstring_size_ptr encode(const WCHAR* pwsz,
+							size_t* pnLen)
+							QNOTHROW();
+	wxstring_size_ptr decode(const CHAR* psz,
+							 size_t* pnLen)
+							 QNOTHROW();
+	size_t encode(const WCHAR* pwsz,
+				  size_t nLen,
+				  XStringBuffer<XSTRING>* pBuf)
+				  QNOTHROW();
+	size_t decode(const CHAR* psz,
+				  size_t nLen,
+				  XStringBuffer<WXSTRING>* pBuf)
+				  QNOTHROW();
+
+protected:
+	virtual size_t encodeImpl(const WCHAR* pwsz,
+							  size_t nLen,
+							  XStringBuffer<XSTRING>* pBuf)
+							  QNOTHROW() = 0;
+	
+	virtual size_t decodeImpl(const CHAR* psz,
+							  size_t nLen,
+							  XStringBuffer<WXSTRING>* pBuf)
+							  QNOTHROW() = 0;
 };
 
 
@@ -175,24 +311,54 @@ public:
 class QSEXPORTCLASS ConverterFactory
 {
 protected:
-	explicit ConverterFactory(QSTATUS* pstatus);
+	ConverterFactory();
 
 public:
 	virtual ~ConverterFactory();
 
 public:
-	static QSTATUS getInstance(const WCHAR* pwszName, Converter** ppConverter);
-	static QSTATUS getInstance(const WCHAR* pwszName,
-		std::auto_ptr<Converter>* papConverter);
+	/**
+	 * Create instance of converter.
+	 *
+	 * @param pwszName [in] Encoding name.
+	 * @return Created converter. null if converter is not found or error occured.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	static std::auto_ptr<Converter> getInstance(const WCHAR* pwszName);
 
 protected:
-	virtual QSTATUS isSupported(const WCHAR* pwszName, bool* pbSupported) = 0;
-	virtual QSTATUS createInstance(const WCHAR* pwszName,
-		Converter** ppConverter) = 0;
+	/**
+	 * Check if the specified encoding is supported or not.
+	 *
+	 * @param pwszName [in] Encoding name.
+	 * @return ture if supported, false otherwise.
+	 */
+	virtual bool isSupported(const WCHAR* pwszName) = 0;
+	
+	/**
+	 * Create instance of converter.
+	 *
+	 * @param pwszName [in] Encoding name.
+	 * @return Created converter. null if converter is not found or error occured.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	virtual std::auto_ptr<Converter> createInstance(const WCHAR* pwszName) = 0;
 
 protected:
-	static QSTATUS regist(ConverterFactory* pFactory);
-	static QSTATUS unregist(ConverterFactory* pFactory);
+	/**
+	 * Register converter factory.
+	 *
+	 * @param pFactory [in] Factory.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	static void registerFactory(ConverterFactory* pFactory);
+	
+	/**
+	 * Unregister converter factory.
+	 *
+	 * @param pFactory [in] Factory.
+	 */
+	static void unregisterFactory(ConverterFactory* pFactory);
 
 private:
 	ConverterFactory(const ConverterFactory&);
@@ -209,14 +375,18 @@ private:
 class QSEXPORTCLASS UTF7Converter : public Converter
 {
 public:
-	UTF7Converter(bool bModified, QSTATUS* pstatus);
+	explicit UTF7Converter(bool bModified);
 	virtual ~UTF7Converter();
 
-public:
-	virtual QSTATUS encode(const WCHAR* pwsz, size_t* pnLen,
-		STRING* pstr, size_t* pnResultLen);
-	virtual QSTATUS decode(const CHAR* psz, size_t* pnLen,
-		WSTRING* pwstr, size_t* pnResultLen);
+protected:
+	virtual size_t encodeImpl(const WCHAR* pwsz,
+							  size_t nLen,
+							  XStringBuffer<XSTRING>* pBuf)
+							  QNOTHROW();
+	virtual size_t decodeImpl(const CHAR* psz,
+							  size_t nLen,
+							  XStringBuffer<WXSTRING>* pBuf)
+							  QNOTHROW();
 
 private:
 	UTF7Converter(const UTF7Converter&);
@@ -236,13 +406,12 @@ private:
 class UTF7ConverterFactory : public ConverterFactory
 {
 public:
-	UTF7ConverterFactory(QSTATUS* pstatus);
+	UTF7ConverterFactory();
 	virtual ~UTF7ConverterFactory();
 
 protected:
-	virtual QSTATUS isSupported(const WCHAR* pwszName, bool* pbSupported);
-	virtual QSTATUS createInstance(const WCHAR* pwszName,
-		Converter** ppConverter);
+	virtual bool isSupported(const WCHAR* pwszName);
+	virtual std::auto_ptr<Converter> createInstance(const WCHAR* pwszName);
 
 private:
 	UTF7ConverterFactory(const UTF7ConverterFactory&);
@@ -259,14 +428,18 @@ private:
 class QSEXPORTCLASS UTF8Converter : public Converter
 {
 public:
-	UTF8Converter(QSTATUS* pstatus);
+	UTF8Converter();
 	virtual ~UTF8Converter();
 
-public:
-	virtual QSTATUS encode(const WCHAR* pwsz, size_t* pnLen,
-		STRING* pstr, size_t* pnResultLen);
-	virtual QSTATUS decode(const CHAR* psz, size_t* pnLen,
-		WSTRING* pwstr, size_t* pnResultLen);
+protected:
+	virtual size_t encodeImpl(const WCHAR* pwsz,
+							  size_t nLen,
+							  XStringBuffer<XSTRING>* pBuf)
+							  QNOTHROW();
+	virtual size_t decodeImpl(const CHAR* psz,
+							  size_t nLen,
+							  XStringBuffer<WXSTRING>* pBuf)
+							  QNOTHROW();
 
 private:
 	UTF8Converter(const UTF8Converter&);
@@ -283,13 +456,12 @@ private:
 class UTF8ConverterFactory : public ConverterFactory
 {
 public:
-	UTF8ConverterFactory(QSTATUS* pstatus);
+	UTF8ConverterFactory();
 	virtual ~UTF8ConverterFactory();
 
 protected:
-	virtual QSTATUS isSupported(const WCHAR* pwszName, bool* pbSupported);
-	virtual QSTATUS createInstance(const WCHAR* pwszName,
-		Converter** ppConverter);
+	virtual bool isSupported(const WCHAR* pwszName);
+	virtual std::auto_ptr<Converter> createInstance(const WCHAR* pwszName);
 
 private:
 	UTF8ConverterFactory(const UTF8ConverterFactory&);
@@ -308,14 +480,18 @@ private:
 class QSEXPORTCLASS ShiftJISConverter : public Converter
 {
 public:
-	ShiftJISConverter(QSTATUS* pstatus);
+	ShiftJISConverter();
 	virtual ~ShiftJISConverter();
 
-public:
-	virtual QSTATUS encode(const WCHAR* pwsz, size_t* pnLen,
-		STRING* pstr, size_t* pnResultLen);
-	virtual QSTATUS decode(const CHAR* psz, size_t* pnLen,
-		WSTRING* pwstr, size_t* pnResultLen);
+protected:
+	virtual size_t encodeImpl(const WCHAR* pwsz,
+							  size_t nLen,
+							  XStringBuffer<XSTRING>* pBuf)
+							  QNOTHROW();
+	virtual size_t decodeImpl(const CHAR* psz,
+							  size_t nLen,
+							  XStringBuffer<WXSTRING>* pBuf)
+							  QNOTHROW();
 
 private:
 	ShiftJISConverter(const ShiftJISConverter&);
@@ -332,13 +508,12 @@ private:
 class ShiftJISConverterFactory : public ConverterFactory
 {
 public:
-	ShiftJISConverterFactory(QSTATUS* pstatus);
+	ShiftJISConverterFactory();
 	virtual ~ShiftJISConverterFactory();
 
 protected:
-	virtual QSTATUS isSupported(const WCHAR* pwszName, bool* pbSupported);
-	virtual QSTATUS createInstance(const WCHAR* pwszName,
-		Converter** ppConverter);
+	virtual bool isSupported(const WCHAR* pwszName);
+	virtual std::auto_ptr<Converter> createInstance(const WCHAR* pwszName);
 
 private:
 	ShiftJISConverterFactory(const ShiftJISConverterFactory&);
@@ -355,14 +530,18 @@ private:
 class QSEXPORTCLASS ISO2022JPConverter : public Converter
 {
 public:
-	ISO2022JPConverter(QSTATUS* pstatus);
+	ISO2022JPConverter();
 	virtual ~ISO2022JPConverter();
 
-public:
-	virtual QSTATUS encode(const WCHAR* pwsz, size_t* pnLen,
-		STRING* pstr, size_t* pnResultLen);
-	virtual QSTATUS decode(const CHAR* psz, size_t* pnLen,
-		WSTRING* pwstr, size_t* pnResultLen);
+protected:
+	virtual size_t encodeImpl(const WCHAR* pwsz,
+							  size_t nLen,
+							  XStringBuffer<XSTRING>* pBuf)
+							  QNOTHROW();
+	virtual size_t decodeImpl(const CHAR* psz,
+							  size_t nLen,
+							  XStringBuffer<WXSTRING>* pBuf)
+							  QNOTHROW();
 
 private:
 	ISO2022JPConverter(const ISO2022JPConverter&);
@@ -382,13 +561,12 @@ private:
 class ISO2022JPConverterFactory : public ConverterFactory
 {
 public:
-	ISO2022JPConverterFactory(QSTATUS* pstatus);
+	ISO2022JPConverterFactory();
 	virtual ~ISO2022JPConverterFactory();
 
 protected:
-	virtual QSTATUS isSupported(const WCHAR* pwszName, bool* pbSupported);
-	virtual QSTATUS createInstance(const WCHAR* pwszName,
-		Converter** ppConverter);
+	virtual bool isSupported(const WCHAR* pwszName);
+	virtual std::auto_ptr<Converter> createInstance(const WCHAR* pwszName);
 
 private:
 	ISO2022JPConverterFactory(const ISO2022JPConverterFactory&);
@@ -405,14 +583,18 @@ private:
 class QSEXPORTCLASS EUCJPConverter : public Converter
 {
 public:
-	EUCJPConverter(QSTATUS* pstatus);
+	EUCJPConverter();
 	virtual ~EUCJPConverter();
 
-public:
-	virtual QSTATUS encode(const WCHAR* pwsz, size_t* pnLen,
-		STRING* pstr, size_t* pnResultLen);
-	virtual QSTATUS decode(const CHAR* psz, size_t* pnLen,
-		WSTRING* pwstr, size_t* pnResultLen);
+protected:
+	virtual size_t encodeImpl(const WCHAR* pwsz,
+							  size_t nLen,
+							  XStringBuffer<XSTRING>* pBuf)
+							  QNOTHROW();
+	virtual size_t decodeImpl(const CHAR* psz,
+							  size_t nLen,
+							  XStringBuffer<WXSTRING>* pBuf)
+							  QNOTHROW();
 
 private:
 	EUCJPConverter(const EUCJPConverter&);
@@ -429,13 +611,12 @@ private:
 class EUCJPConverterFactory : public ConverterFactory
 {
 public:
-	EUCJPConverterFactory(QSTATUS* pstatus);
+	EUCJPConverterFactory();
 	virtual ~EUCJPConverterFactory();
 
 protected:
-	virtual QSTATUS isSupported(const WCHAR* pwszName, bool* pbSupported);
-	virtual QSTATUS createInstance(const WCHAR* pwszName,
-		Converter** ppConverter);
+	virtual bool isSupported(const WCHAR* pwszName);
+	virtual std::auto_ptr<Converter> createInstance(const WCHAR* pwszName);
 
 private:
 	EUCJPConverterFactory(const EUCJPConverterFactory&);
@@ -455,14 +636,18 @@ class QSEXPORTCLASS MLangConverter : public Converter
 {
 public:
 	MLangConverter(IMultiLanguage* pMultiLanguage,
-		DWORD dwEncoding, QSTATUS* pstatus);
+				   DWORD dwEncoding);
 	virtual ~MLangConverter();
 
-public:
-	virtual QSTATUS encode(const WCHAR* pwsz, size_t* pnLen,
-		STRING* pstr, size_t* pnResultLen);
-	virtual QSTATUS decode(const CHAR* psz, size_t* pnLen,
-		WSTRING* pwstr, size_t* pnResultLen);
+protected:
+	virtual size_t encodeImpl(const WCHAR* pwsz,
+							  size_t nLen,
+							  XStringBuffer<XSTRING>* pBuf)
+							  QNOTHROW();
+	virtual size_t decodeImpl(const CHAR* psz,
+							  size_t nLen,
+							  XStringBuffer<WXSTRING>* pBuf)
+							  QNOTHROW();
 
 private:
 	MLangConverter(const MLangConverter&);
@@ -482,13 +667,12 @@ private:
 class MLangConverterFactory : public ConverterFactory
 {
 public:
-	MLangConverterFactory(QSTATUS* pstatus);
+	MLangConverterFactory();
 	virtual ~MLangConverterFactory();
 
 protected:
-	virtual QSTATUS isSupported(const WCHAR* pwszName, bool* pbSupported);
-	virtual QSTATUS createInstance(const WCHAR* pwszName,
-		Converter** ppConverter);
+	virtual bool isSupported(const WCHAR* pwszName);
+	virtual std::auto_ptr<Converter> createInstance(const WCHAR* pwszName);
 
 private:
 	MLangConverterFactory(const MLangConverterFactory&);

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -15,7 +15,8 @@
 
 #if _WIN32_WCE < 300
 
-extern "C" QSEXPORTPROC int _stricmp(const char* lhs, const char* rhs)
+extern "C" QSEXPORTPROC int _stricmp(const char* lhs,
+									 const char* rhs)
 {
 	while (*lhs) {
 		if (*lhs != *rhs) {
@@ -32,7 +33,9 @@ extern "C" QSEXPORTPROC int _stricmp(const char* lhs, const char* rhs)
 	return *rhs ? -1 : 0;
 }
 
-extern "C" QSEXPORTPROC int _strnicmp(const char* lhs, const char* rhs, size_t n)
+extern "C" QSEXPORTPROC int _strnicmp(const char* lhs,
+									  const char* rhs,
+									  size_t n)
 {
 	for (size_t m = 0; m < n; ++m) {
 		if (!*lhs || !*rhs) {
@@ -57,7 +60,8 @@ extern "C" QSEXPORTPROC int _strnicmp(const char* lhs, const char* rhs, size_t n
 	return 0;
 }
 
-bool isValid(char c, int nBase)
+bool isValid(char c,
+			int nBase)
 {
 	if (nBase <= 10)
 		return '0' <= c && c < '0' + nBase;
@@ -67,7 +71,9 @@ bool isValid(char c, int nBase)
 			('A' <= c && c < 'A' + (nBase - 10));
 }
 
-extern "C" QSEXPORTPROC long strtol(const char* p, char** ppEnd, int nBase)
+extern "C" QSEXPORTPROC long strtol(const char* p,
+									char** ppEnd,
+									int nBase)
 {
 	const char* pOrg = p;
 	WCHAR wsz[32];
@@ -85,10 +91,12 @@ extern "C" QSEXPORTPROC long strtol(const char* p, char** ppEnd, int nBase)
 	return wcstol(wsz, &pEnd, nBase);
 }
 
+#if _STLPORT_VERSION < 0x460
 extern "C" QSEXPORTPROC int isdigit(int c)
 {
 	return '0' <= c && c <= '9';
 }
+#endif
 
 #endif // _WIN32_WCE < 300
 

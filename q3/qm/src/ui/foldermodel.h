@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -59,9 +59,11 @@ public:
 	virtual ~FolderModel();
 
 public:
-	virtual qs::QSTATUS setCurrent(Account* pAccount, Folder* pFolder, bool bDelay) = 0;
-	virtual qs::QSTATUS addFolderModelHandler(FolderModelHandler* pHandler) = 0;
-	virtual qs::QSTATUS removeFolderModelHandler(FolderModelHandler* pHandler) = 0;
+	virtual void setCurrent(Account* pAccount,
+							Folder* pFolder,
+							bool bDelay) = 0;
+	virtual void addFolderModelHandler(FolderModelHandler* pHandler) = 0;
+	virtual void removeFolderModelHandler(FolderModelHandler* pHandler) = 0;
 };
 
 
@@ -74,7 +76,7 @@ public:
 class DefaultFolderModel : public FolderModel
 {
 public:
-	explicit DefaultFolderModel(qs::QSTATUS* pstatus);
+	DefaultFolderModel();
 	~DefaultFolderModel();
 
 public:
@@ -82,13 +84,15 @@ public:
 	virtual Folder* getCurrentFolder() const;
 
 public:
-	virtual qs::QSTATUS setCurrent(Account* pAccount, Folder* pFolder, bool bDelay);
-	virtual qs::QSTATUS addFolderModelHandler(FolderModelHandler* pHandler);
-	virtual qs::QSTATUS removeFolderModelHandler(FolderModelHandler* pHandler);
+	virtual void setCurrent(Account* pAccount, Folder* pFolder, bool bDelay);
+	virtual void addFolderModelHandler(FolderModelHandler* pHandler);
+	virtual void removeFolderModelHandler(FolderModelHandler* pHandler);
 
 private:
-	qs::QSTATUS fireAccountSelected(Account* pAccount, bool bDelay) const;
-	qs::QSTATUS fireFolderSelected(Folder* pFolder, bool bDelay) const;
+	void fireAccountSelected(Account* pAccount,
+							 bool bDelay) const;
+	void fireFolderSelected(Folder* pFolder,
+							bool bDelay) const;
 
 private:
 	DefaultFolderModel(const DefaultFolderModel&);
@@ -116,8 +120,8 @@ public:
 	virtual ~FolderModelHandler();
 
 public:
-	virtual qs::QSTATUS accountSelected(const FolderModelEvent& event) = 0;
-	virtual qs::QSTATUS folderSelected(const FolderModelEvent& event) = 0;
+	virtual void accountSelected(const FolderModelEvent& event) = 0;
+	virtual void folderSelected(const FolderModelEvent& event) = 0;
 };
 
 
@@ -132,19 +136,19 @@ class DelayedFolderModelHandler :
 	public qs::TimerHandler
 {
 public:
-	DelayedFolderModelHandler(FolderModelHandler* pHandler,
-		qs::QSTATUS* pstatus);
+	DelayedFolderModelHandler(FolderModelHandler* pHandler);
 	virtual ~DelayedFolderModelHandler();
 
 public:
-	virtual qs::QSTATUS accountSelected(const FolderModelEvent& event);
-	virtual qs::QSTATUS folderSelected(const FolderModelEvent& event);
+	virtual void accountSelected(const FolderModelEvent& event);
+	virtual void folderSelected(const FolderModelEvent& event);
 
 public:
-	virtual qs::QSTATUS timerTimeout(unsigned int nId);
+	virtual void timerTimeout(unsigned int nId);
 
 private:
-	qs::QSTATUS set(Account* pAccount, Folder* pFolder);
+	void set(Account* pAccount,
+			 Folder* pFolder);
 
 private:
 	DelayedFolderModelHandler(const DelayedFolderModelHandler&);
@@ -158,7 +162,7 @@ private:
 
 private:
 	FolderModelHandler* pHandler_;
-	qs::Timer* pTimer_;
+	std::auto_ptr<qs::Timer> pTimer_;
 	unsigned int nTimerId_;
 	Account* pAccount_;
 	Folder* pFolder_;
@@ -174,8 +178,10 @@ private:
 class FolderModelEvent
 {
 public:
-	FolderModelEvent(Account* pAccount, bool bDelay);
-	FolderModelEvent(Folder* pFolder, bool bDelay);
+	FolderModelEvent(Account* pAccount,
+					 bool bDelay);
+	FolderModelEvent(Folder* pFolder,
+					 bool bDelay);
 	~FolderModelEvent();
 
 public:

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -59,28 +59,53 @@ public:
 	HBRUSH selectObject(HBRUSH hbrush);
 	HBITMAP selectObject(HBITMAP hbm);
 	
-	bool polyline(const POINT* ppt, int nPoints);
-	bool bitBlt(int x, int y, int nWidth, int nHeight, HDC hdc,
-		int nSrcX, int nSrcY, DWORD dwRop);
-	bool patBlt(int x, int y, int nWidth, int nHeight, DWORD dwRop);
+	bool polyline(const POINT* ppt,
+				  int nPoints);
+	bool bitBlt(int x,
+				int y,
+				int nWidth,
+				int nHeight,
+				HDC hdc,
+				int nSrcX,
+				int nSrcY,
+				DWORD dwRop);
+	bool patBlt(int x,
+				int y,
+				int nWidth,
+				int nHeight,
+				DWORD dwRop);
 	
-	bool extTextOut(int x, int y, UINT nOptions, const RECT& rect,
-		const WCHAR* pwszString, UINT nCount, int* pnDx);
+	bool extTextOut(int x,
+					int y,
+					UINT nOptions,
+					const RECT& rect,
+					const WCHAR* pwszString,
+					UINT nCount,
+					int* pnDx);
 	bool getTextMetrics(TEXTMETRIC* ptm) const;
 	bool getTextExtent(const WCHAR* pwszString,
-		int nCount, SIZE* pSize) const;
-	bool getTextExtentEx(const WCHAR* pwszString, int nCount,
-		int nMaxExtent, int* pnFit, int* pnDx, SIZE* pSize) const;
+					   int nCount,
+					   SIZE* pSize) const;
+	bool getTextExtentEx(const WCHAR* pwszString,
+						 int nCount,
+						 int nMaxExtent,
+						 int* pnFit,
+						 int* pnDx,
+						 SIZE* pSize) const;
 	
-	bool fillSolidRect(const RECT& rect, COLORREF cr);
+	bool fillSolidRect(const RECT& rect,
+					   COLORREF cr);
 	bool drawFocusRect(const RECT& rect);
 	
 	int enumFontFamilies(const WCHAR* pwszFamily,
-		FONTENUMPROC pProc, LPARAM lParam) const;
+						 FONTENUMPROC pProc,
+						 LPARAM lParam) const;
 	
 	int getDeviceCaps(int nIndex) const;
 	
-	bool drawIcon(int x, int y, HICON hIcon);
+	bool drawIcon(int x,
+				  int y,
+				  HICON hIcon);
 
 protected:
 	void setHandle(HDC hdc);
@@ -99,7 +124,7 @@ private:
 class QSEXPORTCLASS ClientDeviceContext : public DeviceContext
 {
 public:
-	ClientDeviceContext(HWND hwnd, QSTATUS* pstatus);
+	explicit ClientDeviceContext(HWND hwnd);
 	virtual ~ClientDeviceContext();
 
 private:
@@ -120,7 +145,7 @@ private:
 class QSEXPORTCLASS PaintDeviceContext : public DeviceContext
 {
 public:
-	PaintDeviceContext(HWND hwnd, QSTATUS* pstatus);
+	explicit PaintDeviceContext(HWND hwnd);
 	virtual ~PaintDeviceContext();
 
 private:
@@ -142,7 +167,7 @@ private:
 class QSEXPORTCLASS CompatibleDeviceContext : public DeviceContext
 {
 public:
-	CompatibleDeviceContext(HDC hdc, QSTATUS* pstatus);
+	explicit CompatibleDeviceContext(HDC hdc);
 	virtual ~CompatibleDeviceContext();
 
 private:
@@ -161,7 +186,8 @@ template<class Object>
 class QSEXPORTCLASS ObjectSelector
 {
 public:
-	ObjectSelector(DeviceContext& dc, Object o);
+	ObjectSelector(DeviceContext& dc,
+				   Object o);
 	~ObjectSelector();
 
 private:
@@ -217,8 +243,12 @@ public:
 	};
 
 public:
-	static QSTATUS createLogFont(HDC hdc, const WCHAR* pwszFaceName,
-		int nPointSize, unsigned int nStyle, unsigned int nCharset, LOGFONT* plf);
+	static void createLogFont(HDC hdc,
+							  const WCHAR* pwszFaceName,
+							  int nPointSize,
+							  unsigned int nStyle,
+							  unsigned int nCharset,
+							  LOGFONT* plf);
 };
 
 }

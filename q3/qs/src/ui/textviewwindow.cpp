@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -9,8 +9,6 @@
 #if 0
 
 #include <qstextviewwindow.h>
-#include <qserror.h>
-#include <qsnew.h>
 #include <qsdevicecontext.h>
 #include <qsstream.h>
 #include <qsconv.h>

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -14,8 +14,6 @@
 #include <qmmessageholder.h>
 
 #include <qsstl.h>
-#include <qserror.h>
-#include <qsnew.h>
 
 #include <algorithm>
 
@@ -35,34 +33,26 @@ using namespace qs;
  *
  */
 
-qm::ViewColumn::ViewColumn(const Init& init, QSTATUS* pstatus) :
-	wstrTitle_(0),
-	type_(init.type_),
-	pMacro_(0),
-	nFlags_(init.nFlags_),
-	nWidth_(init.nWidth_)
+qm::ViewColumn::ViewColumn(const WCHAR* pwszTitle,
+						   Type type,
+						   std::auto_ptr<Macro> pMacro,
+						   unsigned int nFlags,
+						   unsigned int nWidth) :
+	type_(type),
+	pMacro_(pMacro),
+	nFlags_(nFlags),
+	nWidth_(nWidth)
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	wstrTitle_ = allocWString(init.pwszTitle_);
-	if (!wstrTitle_) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
-	pMacro_ = init.pMacro_;
+	wstrTitle_ = allocWString(pwszTitle);
 }
 
 qm::ViewColumn::~ViewColumn()
 {
-	freeWString(wstrTitle_);
-	delete pMacro_;
 }
 
 const WCHAR* qm::ViewColumn::getTitle() const
 {
-	return wstrTitle_;
+	return wstrTitle_.get();
 }
 
 ViewColumn::Type qm::ViewColumn::getType() const
@@ -72,7 +62,7 @@ ViewColumn::Type qm::ViewColumn::getType() const
 
 const Macro* qm::ViewColumn::getMacro() const
 {
-	return pMacro_;
+	return pMacro_.get();
 }
 
 unsigned int qm::ViewColumn::getFlags() const
@@ -100,14 +90,11 @@ void qm::ViewColumn::setWidth(unsigned int nWidth)
 	nWidth_ = nWidth;
 }
 
-QSTATUS qm::ViewColumn::getText(MessageHolder* pmh, WSTRING* pwstrValue) const
+wstring_ptr qm::ViewColumn::getText(MessageHolder* pmh) const
 {
 	assert(pmh);
-	assert(pwstrValue);
 	
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrText;
+	wstring_ptr wstrText;
 	WCHAR wsz[32] = L"";
 	switch (type_) {
 	case ViewColumn::TYPE_NONE:
@@ -119,28 +106,21 @@ QSTATUS qm::ViewColumn::getText(MessageHolder* pmh, WSTRING* pwstrValue) const
 	case ViewColumn::TYPE_DATE:
 		{
 			Time t;
-			status = pmh->getDate(&t);
-			CHECK_QSTATUS();
-			status = t.format(L"%Y2/%M0/%D %h:%m",
-				Time::FORMAT_LOCAL, &wstrText);
-			CHECK_QSTATUS();
+			pmh->getDate(&t);
+			wstrText = t.format(L"%Y2/%M0/%D %h:%m", Time::FORMAT_LOCAL);
 		}
 		break;
 	case ViewColumn::TYPE_FROM:
-		status = pmh->getFrom(&wstrText);
-		CHECK_QSTATUS();
+		wstrText = pmh->getFrom();
 		break;
 	case ViewColumn::TYPE_TO:
-		status = pmh->getTo(&wstrText);
-		CHECK_QSTATUS();
+		wstrText = pmh->getTo();
 		break;
 	case ViewColumn::TYPE_FROMTO:
-		status = pmh->getFromTo(&wstrText);
-		CHECK_QSTATUS();
+		wstrText = pmh->getFromTo();
 		break;
 	case ViewColumn::TYPE_SUBJECT:
-		status = pmh->getSubject(&wstrText);
-		CHECK_QSTATUS();
+		wstrText = pmh->getSubject();
 		break;
 	case ViewColumn::TYPE_SIZE:
 		swprintf(wsz, L"%dKB", pmh->getSize()/1024 + 1);
@@ -155,14 +135,10 @@ QSTATUS qm::ViewColumn::getText(MessageHolder* pmh, WSTRING* pwstrValue) const
 		assert(false);
 		break;
 	}
-	if (!wstrText.get()) {
-		wstrText.reset(allocWString(wsz));
-		if (!wstrText.get())
-			return QSTATUS_OUTOFMEMORY;
-	}
-	*pwstrValue = wstrText.release();
+	if (!wstrText.get())
+		wstrText = allocWString(wsz);
 	
-	return QSTATUS_SUCCESS;
+	return wstrText;
 }
 
 unsigned int qm::ViewColumn::getNumber(MessageHolder* pmh) const
@@ -208,12 +184,11 @@ unsigned int qm::ViewColumn::getNumber(MessageHolder* pmh) const
 	return nValue;
 }
 
-QSTATUS qm::ViewColumn::getTime(MessageHolder* pmh, Time* pTime) const
+void qm::ViewColumn::getTime(MessageHolder* pmh,
+							 Time* pTime) const
 {
 	assert(pmh);
 	assert(pTime);
-	
-	DECLARE_QSTATUS();
 	
 	switch (type_) {
 	case ViewColumn::TYPE_NONE:
@@ -223,8 +198,7 @@ QSTATUS qm::ViewColumn::getTime(MessageHolder* pmh, Time* pTime) const
 		// TODO
 		break;
 	case ViewColumn::TYPE_DATE:
-		status = pmh->getDate(pTime);
-		CHECK_QSTATUS();
+		pmh->getDate(pTime);
 		break;
 	case ViewColumn::TYPE_FROM:
 		// TODO
@@ -256,8 +230,17 @@ QSTATUS qm::ViewColumn::getTime(MessageHolder* pmh, Time* pTime) const
 	// Default behavior
 	// Convert to string and then conver to time
 	// as it is a RFC2822 Date format
-	
-	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * ViewModelHandler
+ *
+ */
+
+qm::ViewModelHandler::~ViewModelHandler()
+{
 }
 
 
@@ -268,23 +251,21 @@ QSTATUS qm::ViewColumn::getTime(MessageHolder* pmh, Time* pTime) const
  */
 
 qm::ViewModel::SelectionRestorer::SelectionRestorer(ViewModel* pViewModel,
-	bool bRefresh, bool bIgnore, QSTATUS* pstatus) :
+													bool bRefresh,
+													bool bIgnore) :
 	pViewModel_(pViewModel),
 	bRefresh_(bRefresh),
 	pmhFocused_(0),
 	pmhLastSelection_(0)
 {
 	assert(pViewModel);
-	assert(pstatus);
 	assert(pViewModel->isLocked());
-	
-	*pstatus = QSTATUS_SUCCESS;
 	
 	if (!bIgnore) {
 		ViewModel::ItemList& l = pViewModel_->listItem_;
 		if (!l.empty()) {
 			ViewModelItem* pItemFocused = l[pViewModel_->nFocused_];
-			assert(pItemFocused->getFlags() & ViewModel::FLAG_FOCUSED);
+			assert(pItemFocused->getFlags() & ViewModelItem::FLAG_FOCUSED);
 			pmhFocused_ = pItemFocused->getMessageHolder();
 			
 			ViewModelItem* pItemLastSelection = l[pViewModel_->nLastSelection_];
@@ -330,24 +311,13 @@ void qm::ViewModel::SelectionRestorer::restore()
 	if (bRefresh_ && !l.empty()) {
 		assert(pViewModel_->nFocused_ < l.size());
 		l[pViewModel_->nFocused_]->setFlags(
-			ViewModel::FLAG_FOCUSED, ViewModel::FLAG_FOCUSED);
+			ViewModelItem::FLAG_FOCUSED, ViewModelItem::FLAG_FOCUSED);
 		assert(pViewModel_->nLastSelection_ < l.size());
 		l[pViewModel_->nLastSelection_]->setFlags(
-			ViewModel::FLAG_SELECTED, ViewModel::FLAG_SELECTED);
+			ViewModelItem::FLAG_SELECTED, ViewModelItem::FLAG_SELECTED);
 	}
 	
-	assert(l.empty() || l[pViewModel_->nFocused_]->getFlags() & ViewModel::FLAG_FOCUSED);
-}
-
-
-/****************************************************************************
- *
- * ViewModelHandler
- *
- */
-
-qm::ViewModelHandler::~ViewModelHandler()
-{
+	assert(l.empty() || l[pViewModel_->nFocused_]->getFlags() & ViewModelItem::FLAG_FOCUSED);
 }
 
 
@@ -358,8 +328,11 @@ qm::ViewModelHandler::~ViewModelHandler()
  */
 
 qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
-	Folder* pFolder, Profile* pProfile, Document* pDocument,
-	HWND hwnd, const ColorManager* pColorManager, QSTATUS* pstatus) :
+						 Folder* pFolder,
+						 Profile* pProfile,
+						 Document* pDocument,
+						 HWND hwnd,
+						 const ColorManager* pColorManager) :
 	pViewModelManager_(pViewModelManager),
 	pFolder_(pFolder),
 	pProfile_(pProfile),
@@ -374,50 +347,37 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 {
 	assert(pFolder);
 	assert(pProfile);
-	assert(pstatus);
-	
-	DECLARE_QSTATUS();
-	
-	*pstatus = QSTATUS_SUCCESS;
 	
 #ifndef NDEBUG
 	nLock_ = 0;
 #endif
 	
-	status = pColorManager->getColorSet(pFolder_, &pColorSet_);
-	CHECK_QSTATUS_SET(pstatus);
+	pColorSet_ = pColorManager->getColorSet(pFolder_);
 	
 	WCHAR wszSection[32];
 	swprintf(wszSection, L"Folder%d", pFolder_->getId());
-	status = pProfile_->getInt(wszSection, L"Sort",
-		SORT_ASCENDING | SORT_NOTHREAD | 1, reinterpret_cast<int*>(&nSort_));
-	CHECK_QSTATUS_SET(pstatus);
-	status = pProfile_->getInt(wszSection, L"Focus", 0,
-		reinterpret_cast<int*>(&nFocused_));
-	CHECK_QSTATUS_SET(pstatus);
+	nSort_ = pProfile_->getInt(wszSection, L"Sort", SORT_ASCENDING | SORT_NOTHREAD | 1);
+	nFocused_ = pProfile_->getInt(wszSection, L"Focus", 0);
 	
-	status = loadColumns();
-	CHECK_QSTATUS_SET(pstatus);
+	loadColumns();
 	if ((nSort_ & SORT_INDEX_MASK) >= getColumnCount())
 		nSort_ = 0;
 	
 	Lock<ViewModel> lock(*this);
 	
-	status = update(false);
-	CHECK_QSTATUS_SET(pstatus);
+	update(false);
 	
 	if (nFocused_ >= listItem_.size())
 		nFocused_ = listItem_.empty() ? 0 : listItem_.size() - 1;
 	if (!listItem_.empty()) {
 		nLastSelection_ = nFocused_;
-		listItem_[nFocused_]->setFlags(FLAG_SELECTED | FLAG_FOCUSED,
-			FLAG_SELECTED | FLAG_FOCUSED);
+		listItem_[nFocused_]->setFlags(
+			ViewModelItem::FLAG_SELECTED | ViewModelItem::FLAG_FOCUSED,
+			ViewModelItem::FLAG_SELECTED | ViewModelItem::FLAG_FOCUSED);
 	}
 	
-	status = pFolder_->addFolderHandler(this);
-	CHECK_QSTATUS_SET(pstatus);
-	status = pFolder->getAccount()->addMessageHolderHandler(this);
-	CHECK_QSTATUS_SET(pstatus);
+	pFolder_->addFolderHandler(this);
+	pFolder->getAccount()->addMessageHolderHandler(this);
 }
 
 qm::ViewModel::~ViewModel()
@@ -472,8 +432,6 @@ const ViewModelItem* qm::ViewModel::getItem(unsigned int n)
 	assert(isLocked());
 	assert(n < getCount());
 	
-	DECLARE_QSTATUS();
-	
 	ViewModelItem* pItem = listItem_[n];
 	MessageHolder* pmh = pItem->getMessageHolder();
 	if (pItem->getColor() == 0xffffffff ||
@@ -481,23 +439,10 @@ const ViewModelItem* qm::ViewModel::getItem(unsigned int n)
 		COLORREF cr = 0xff000000;
 		pItem->setMessageFlags(pmh->getFlags());
 		if (pColorSet_) {
-			Message msg(&status);
-			if (status == QSTATUS_SUCCESS) {
-				MacroContext::Init init = {
-					pmh,
-					&msg,
-					pFolder_->getAccount(),
-					pDocument_,
-					hwnd_,
-					pProfile_,
-					true,
-					0,
-					0
-				};
-				MacroContext context(init, &status);
-				if (status == QSTATUS_SUCCESS)
-					pColorSet_->getColor(&context, &cr);
-			}
+			Message msg;
+			MacroContext context(pmh, &msg, pFolder_->getAccount(),
+				pDocument_, hwnd_, pProfile_, true, 0, 0);
+			cr = pColorSet_->getColor(&context);
 		}
 		pItem->setColor(cr);
 	}
@@ -534,12 +479,10 @@ unsigned int qm::ViewModel::getIndex(MessageHolder* pmh) const
 		static_cast<unsigned int>(-1) : it - listItem_.begin();
 }
 
-QSTATUS qm::ViewModel::setSort(unsigned int nSort)
+void qm::ViewModel::setSort(unsigned int nSort)
 {
 	assert(nSort_ & SORT_DIRECTION_MASK);
 	assert(nSort_ & SORT_THREAD_MASK);
-	
-	DECLARE_QSTATUS();
 	
 	Lock<ViewModel> lock(*this);
 	
@@ -558,14 +501,11 @@ QSTATUS qm::ViewModel::setSort(unsigned int nSort)
 	assert(nSort & SORT_THREAD_MASK);
 	assert((nSort & SORT_INDEX_MASK) < getColumnCount());
 	
-	status = sort(nSort, true, true);
-	CHECK_QSTATUS();
+	sort(nSort, true, true);
 	
 	nSort_ = nSort;
 	
 	fireSorted();
-	
-	return QSTATUS_SUCCESS;
 }
 
 unsigned int qm::ViewModel::getSort() const
@@ -573,16 +513,12 @@ unsigned int qm::ViewModel::getSort() const
 	return nSort_;
 }
 
-QSTATUS qm::ViewModel::setFilter(const Filter* pFilter)
+void qm::ViewModel::setFilter(const Filter* pFilter)
 {
-	DECLARE_QSTATUS();
-	
 	if (pFilter != pFilter_) {
 		pFilter_ = pFilter;
-		status = update(true);
-		CHECK_QSTATUS();
+		update(true);
 	}
-	return QSTATUS_SUCCESS;
 }
 
 const Filter* qm::ViewModel::getFilter() const
@@ -590,143 +526,98 @@ const Filter* qm::ViewModel::getFilter() const
 	return pFilter_;
 }
 
-QSTATUS qm::ViewModel::addSelection(unsigned int n)
+void qm::ViewModel::addSelection(unsigned int n)
 {
 	assert(isLocked());
 	assert(n < getCount());
 	
-	DECLARE_QSTATUS();
-	
 	ViewModelItem* pItem = listItem_[n];
-	if (!(pItem->getFlags() & FLAG_SELECTED)) {
-		pItem->setFlags(FLAG_SELECTED, FLAG_SELECTED);
-		status = fireItemStateChanged(n);
-		CHECK_QSTATUS();
+	if (!(pItem->getFlags() & ViewModelItem::FLAG_SELECTED)) {
+		pItem->setFlags(ViewModelItem::FLAG_SELECTED, ViewModelItem::FLAG_SELECTED);
+		fireItemStateChanged(n);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ViewModel::addSelection(unsigned int nStart, unsigned int nEnd)
+void qm::ViewModel::addSelection(unsigned int nStart,
+								 unsigned int nEnd)
 {
 	assert(isLocked());
 	assert(nStart < getCount());
 	assert(nEnd < getCount());
-	
-	DECLARE_QSTATUS();
 	
 	if (nStart > nEnd)
 		std::swap(nStart, nEnd);
 	
-	while (nStart <= nEnd) {
-		status = addSelection(nStart);
-		++nStart;
-	}
-	
-	return QSTATUS_SUCCESS;
+	while (nStart <= nEnd)
+		addSelection(nStart);
 }
 
-QSTATUS qm::ViewModel::removeSelection(unsigned int n)
+void qm::ViewModel::removeSelection(unsigned int n)
 {
 	assert(isLocked());
 	assert(n < getCount());
 	
-	DECLARE_QSTATUS();
-	
 	ViewModelItem* pItem = listItem_[n];
-	if (pItem->getFlags() & FLAG_SELECTED) {
-		pItem->setFlags(0, FLAG_SELECTED);
-		status = fireItemStateChanged(n);
-		CHECK_QSTATUS();
+	if (pItem->getFlags() & ViewModelItem::FLAG_SELECTED) {
+		pItem->setFlags(0, ViewModelItem::FLAG_SELECTED);
+		fireItemStateChanged(n);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ViewModel::setSelection(unsigned int n)
+void qm::ViewModel::setSelection(unsigned int n)
 {
 	assert(isLocked());
 	
-	DECLARE_QSTATUS();
-	
-	status = clearSelection();
-	CHECK_QSTATUS();
-	
-	status = addSelection(n);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	clearSelection();
+	addSelection(n);
 }
 
-QSTATUS qm::ViewModel::setSelection(unsigned int nStart, unsigned int nEnd)
+void qm::ViewModel::setSelection(unsigned int nStart,
+								 unsigned int nEnd)
 {
 	assert(isLocked());
 	assert(nStart < getCount());
 	assert(nEnd < getCount());
-	
-	DECLARE_QSTATUS();
 	
 	if (nStart > nEnd)
 		std::swap(nStart, nEnd);
 	
 	unsigned int n = 0;
 	while (n < nStart) {
-		if (isSelected(n)) {
-			status = removeSelection(n);
-			CHECK_QSTATUS();
-		}
+		if (isSelected(n))
+			removeSelection(n);
 		++n;
 	}
 	while (n <= nEnd) {
-		if (!isSelected(n)) {
-			status = addSelection(n);
-			CHECK_QSTATUS();
-		}
+		if (!isSelected(n))
+			addSelection(n);
 		++n;
 	}
 	while (n < listItem_.size()) {
-		if (isSelected(n)) {
-			status = removeSelection(n);
-			CHECK_QSTATUS();
-		}
+		if (isSelected(n))
+			removeSelection(n);
 		++n;
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ViewModel::clearSelection()
+void qm::ViewModel::clearSelection()
 {
 	assert(isLocked());
 	
-	DECLARE_QSTATUS();
-	
-	for (ItemList::size_type n = 0; n < listItem_.size(); ++n) {
-		status = removeSelection(n);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	for (ItemList::size_type n = 0; n < listItem_.size(); ++n)
+		removeSelection(n);
 }
 
-QSTATUS qm::ViewModel::getSelection(MessageHolderList* pList) const
+void qm::ViewModel::getSelection(MessageHolderList* pList) const
 {
 	assert(pList);
 	assert(isLocked());
 	
-	DECLARE_QSTATUS();
-	
-	ItemList::const_iterator it = listItem_.begin();
-	while (it != listItem_.end()) {
-		if ((*it)->getFlags() & FLAG_SELECTED) {
-			status = STLWrapper<MessageHolderList>(
-				*pList).push_back((*it)->getMessageHolder());
-			CHECK_QSTATUS();
-		}
-		++it;
+	for (ItemList::const_iterator it = listItem_.begin(); it != listItem_.end(); ++it) {
+		ViewModelItem* pItem = *it;
+		if (pItem->getFlags() & ViewModelItem::FLAG_SELECTED)
+			pList->push_back(pItem->getMessageHolder());
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 bool qm::ViewModel::hasSelection() const
@@ -734,7 +625,7 @@ bool qm::ViewModel::hasSelection() const
 	assert(isLocked());
 	
 	ItemList::const_iterator it = listItem_.begin();
-	while (it != listItem_.end() && !((*it)->getFlags() & FLAG_SELECTED))
+	while (it != listItem_.end() && !((*it)->getFlags() & ViewModelItem::FLAG_SELECTED))
 		++it;
 	
 	return it != listItem_.end();
@@ -744,16 +635,10 @@ unsigned int qm::ViewModel::getSelectedCount() const
 {
 	assert(isLocked());
 	
-	unsigned int nCount = 0;
-	
-	ItemList::const_iterator it = listItem_.begin();
-	while (it != listItem_.end()) {
-		if ((*it)->getFlags() & FLAG_SELECTED)
-			++nCount;
-		++it;
-	}
-	
-	return nCount;
+	return std::count_if(listItem_.begin(), listItem_.end(),
+		std::bind2nd(
+			std::mem_fun(&ViewModelItem::isFlag),
+			ViewModelItem::FLAG_SELECTED));
 }
 
 bool qm::ViewModel::isSelected(unsigned int n) const
@@ -761,7 +646,7 @@ bool qm::ViewModel::isSelected(unsigned int n) const
 	assert(isLocked());
 	assert(n < getCount());
 	
-	return (listItem_[n]->getFlags() & FLAG_SELECTED) != 0;
+	return (listItem_[n]->getFlags() & ViewModelItem::FLAG_SELECTED) != 0;
 }
 
 unsigned int qm::ViewModel::getLastSelection() const
@@ -777,35 +662,31 @@ void qm::ViewModel::setLastSelection(unsigned int n)
 	nLastSelection_ = n;
 }
 
-QSTATUS qm::ViewModel::setFocused(unsigned int n)
+void qm::ViewModel::setFocused(unsigned int n)
 {
 	Lock<ViewModel> lock(*this);
 	
 	assert(n < getCount());
 	
-	DECLARE_QSTATUS();
-	
 	if (nFocused_ != n) {
 		unsigned int nOld = nFocused_;
 		nFocused_ = n;
 		
-		assert(listItem_[nOld]->getFlags() & FLAG_FOCUSED);
-		listItem_[nOld]->setFlags(0, FLAG_FOCUSED);
-		listItem_[nFocused_]->setFlags(FLAG_FOCUSED, FLAG_FOCUSED);
+		assert(listItem_[nOld]->getFlags() & ViewModelItem::FLAG_FOCUSED);
+		listItem_[nOld]->setFlags(0, ViewModelItem::FLAG_FOCUSED);
+		listItem_[nFocused_]->setFlags(ViewModelItem::FLAG_FOCUSED,
+			ViewModelItem::FLAG_FOCUSED);
 		
-		status = fireItemStateChanged(nOld);
-		CHECK_QSTATUS();
-		status = fireItemStateChanged(n);
-		CHECK_QSTATUS();
+		fireItemStateChanged(nOld);
+		fireItemStateChanged(n);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 unsigned int qm::ViewModel::getFocused() const
 {
 	Lock<ViewModel> lock(*this);
-	assert(listItem_.empty() || listItem_[nFocused_]->getFlags() & FLAG_FOCUSED);
+	assert(listItem_.empty() ||
+		listItem_[nFocused_]->getFlags() & ViewModelItem::FLAG_FOCUSED);
 	return nFocused_;
 }
 
@@ -813,44 +694,39 @@ bool qm::ViewModel::isFocused(unsigned int n) const
 {
 	Lock<ViewModel> lock(*this);
 	assert(n < getCount());
-	assert(listItem_.empty() || listItem_[nFocused_]->getFlags() & FLAG_FOCUSED);
+	assert(listItem_.empty() ||
+		listItem_[nFocused_]->getFlags() & ViewModelItem::FLAG_FOCUSED);
 	return n == nFocused_;
 }
 
-QSTATUS qm::ViewModel::payAttention(unsigned int n)
+void qm::ViewModel::payAttention(unsigned int n)
 {
-	return fireItemAttentionPaid(n);
+	fireItemAttentionPaid(n);
 }
 
-QSTATUS qm::ViewModel::save() const
+bool qm::ViewModel::save() const
 {
-	DECLARE_QSTATUS();
-	
 	WCHAR wszSection[32];
 	swprintf(wszSection, L"Folder%d", pFolder_->getId());
-	status = pProfile_->setInt(wszSection, L"Sort", nSort_);
-	CHECK_QSTATUS();
-	status = pProfile_->setInt(wszSection, L"Focus", nFocused_);
-	CHECK_QSTATUS();
+	pProfile_->setInt(wszSection, L"Sort", nSort_);
+	pProfile_->setInt(wszSection, L"Focus", nFocused_);
 	
-	status = saveColumns();
-	CHECK_QSTATUS();
+	saveColumns();
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::ViewModel::addViewModelHandler(ViewModelHandler* pHandler)
+void qm::ViewModel::addViewModelHandler(ViewModelHandler* pHandler)
 {
-	return STLWrapper<ViewModelHandlerList>(listHandler_).push_back(pHandler);
+	listHandler_.push_back(pHandler);
 }
 
-QSTATUS qm::ViewModel::removeViewModelHandler(ViewModelHandler* pHandler)
+void qm::ViewModel::removeViewModelHandler(ViewModelHandler* pHandler)
 {
 	ViewModelHandlerList& l = listHandler_;
 	ViewModelHandlerList::iterator it = std::remove(
 		l.begin(), l.end(), pHandler);
 	l.erase(it, l.end());
-	return QSTATUS_SUCCESS;
 }
 
 void qm::ViewModel::lock() const
@@ -876,11 +752,9 @@ bool qm::ViewModel::isLocked() const
 }
 #endif
 
-QSTATUS qm::ViewModel::messageAdded(const FolderEvent& event)
+void qm::ViewModel::messageAdded(const FolderEvent& event)
 {
 	assert(event.getFolder() == pFolder_);
-	
-	DECLARE_QSTATUS();
 	
 	Lock<ViewModel> lock(*this);
 	
@@ -891,50 +765,29 @@ QSTATUS qm::ViewModel::messageAdded(const FolderEvent& event)
 	
 	bool bAdd = true;
 	if (pFilter_) {
-		Message msg(&status);
-		CHECK_QSTATUS();
-		MacroContext::Init init = {
-			pmh,
-			&msg,
-			pFolder_->getAccount(),
-			pDocument_,
-			hwnd_,
-			pProfile_,
-			false,
-			0,
-			0
-		};
-		MacroContext context(init, &status);
-		CHECK_QSTATUS();
-		status = pFilter_->match(&context, &bAdd);
-		CHECK_QSTATUS();
+		Message msg;
+		MacroContext context(pmh, &msg, pFolder_->getAccount(),
+			pDocument_, hwnd_, pProfile_, false, 0, 0);
+		bAdd = pFilter_->match(&context);
 	}
 	
 	if (bAdd) {
-		std::auto_ptr<ViewModelItem> pItem;
-		status = newQsObject(pmh, &pItem);
-		CHECK_QSTATUS();
+		std::auto_ptr<ViewModelItem> pItem(new ViewModelItem(pmh));
 		
 		if ((getSort() & SORT_THREAD_MASK) == SORT_THREAD) {
 			unsigned int nReferenceHash = pmh->getReferenceHash();
 			if (nReferenceHash != 0) {
-				string_ptr<WSTRING> wstrReference;
-				status = pmh->getReference(&wstrReference);
-				CHECK_QSTATUS();
+				wstring_ptr wstrReference(pmh->getReference());
 				
-				ItemList::const_iterator it = listItem_.begin();
-				while (it != listItem_.end()) {
+				for (ItemList::const_iterator it = listItem_.begin(); it != listItem_.end(); ++it) {
 					MessageHolder* pmhParent = (*it)->getMessageHolder();
 					if (pmhParent->getMessageIdHash() == nReferenceHash) {
-						string_ptr<WSTRING> wstrMessageId;
-						status = pmhParent->getMessageId(&wstrMessageId);
-						CHECK_QSTATUS();
+						wstring_ptr wstrMessageId(pmhParent->getMessageId());
 						if (wcscmp(wstrReference.get(), wstrMessageId.get()) == 0) {
 							pItem->setParentItem(*it);
 							break;
 						}
 					}
-					++it;
 				}
 			}
 		}
@@ -945,9 +798,7 @@ QSTATUS qm::ViewModel::messageAdded(const FolderEvent& event)
 				(nSort_ & SORT_DIRECTION_MASK) == SORT_ASCENDING,
 				(nSort_ & SORT_THREAD_MASK) == SORT_THREAD));
 		
-		ItemList::iterator itInsert;
-		status = STLWrapper<ItemList>(listItem_).insert(it, pItem.get(), &itInsert);
-		CHECK_QSTATUS();
+		ItemList::iterator itInsert = listItem_.insert(it, pItem.get());
 		pItem.release();
 		
 		unsigned int nPos = itInsert - listItem_.begin();
@@ -958,26 +809,23 @@ QSTATUS qm::ViewModel::messageAdded(const FolderEvent& event)
 		if (listItem_.size() == 1) {
 			assert(nFocused_ == 0);
 			assert(nLastSelection_ == 0);
-			listItem_[0]->setFlags(FLAG_FOCUSED | FLAG_SELECTED,
-				FLAG_FOCUSED | FLAG_SELECTED);
+			listItem_[0]->setFlags(
+				ViewModelItem::FLAG_FOCUSED | ViewModelItem::FLAG_SELECTED,
+				ViewModelItem::FLAG_FOCUSED | ViewModelItem::FLAG_SELECTED);
 		}
-		assert(listItem_.empty() || (listItem_[nFocused_]->getFlags() & FLAG_FOCUSED));
+		assert(listItem_.empty() ||
+			(listItem_[nFocused_]->getFlags() & ViewModelItem::FLAG_FOCUSED));
 		
 		if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
 			++nUnseenCount_;
 		
-		status = fireItemAdded(nPos);
-		CHECK_QSTATUS();
+		fireItemAdded(nPos);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ViewModel::messageRemoved(const FolderEvent& event)
+void qm::ViewModel::messageRemoved(const FolderEvent& event)
 {
 	assert(event.getFolder() == pFolder_);
-	
-	DECLARE_QSTATUS();
 	
 	Lock<ViewModel> lock(*this);
 	
@@ -987,8 +835,8 @@ QSTATUS qm::ViewModel::messageRemoved(const FolderEvent& event)
 	if (nIndex != static_cast<unsigned int>(-1)) {
 		ItemList::iterator it = listItem_.begin() + nIndex;
 		
-		bool bHasFocus = ((*it)->getFlags() & FLAG_FOCUSED) != 0;
-		bool bSelected = ((*it)->getFlags() & FLAG_SELECTED) != 0;
+		bool bHasFocus = ((*it)->getFlags() & ViewModelItem::FLAG_FOCUSED) != 0;
+		bool bSelected = ((*it)->getFlags() & ViewModelItem::FLAG_SELECTED) != 0;
 		
 		bool bSort = false;
 		if ((getSort() & SORT_THREAD_MASK) == SORT_THREAD) {
@@ -1016,8 +864,7 @@ QSTATUS qm::ViewModel::messageRemoved(const FolderEvent& event)
 					pItem)) == listItem_.end());
 		}
 		
-		status = fireItemRemoved(nIndex);
-		CHECK_QSTATUS();
+		fireItemRemoved(nIndex);
 		
 		delete *it;
 		it = listItem_.erase(it);
@@ -1031,21 +878,24 @@ QSTATUS qm::ViewModel::messageRemoved(const FolderEvent& event)
 					--nFocused_;
 			}
 			if (!listItem_.empty())
-				listItem_[nFocused_]->setFlags(FLAG_FOCUSED, FLAG_FOCUSED);
+				listItem_[nFocused_]->setFlags(ViewModelItem::FLAG_FOCUSED,
+					ViewModelItem::FLAG_FOCUSED);
 		}
 		else if (nFocused_ > nIndex) {
 			--nFocused_;
 			assert(!listItem_.empty());
-			assert(listItem_[nFocused_]->getFlags() & FLAG_FOCUSED);
+			assert(listItem_[nFocused_]->getFlags() & ViewModelItem::FLAG_FOCUSED);
 		}
 		
 		if (bSelected) {
 			if (it == listItem_.end()) {
 				if (!listItem_.empty())
-					listItem_.back()->setFlags(FLAG_SELECTED, FLAG_SELECTED);
+					listItem_.back()->setFlags(ViewModelItem::FLAG_SELECTED,
+						ViewModelItem::FLAG_SELECTED);
 			}
 			else {
-				(*it)->setFlags(FLAG_SELECTED, FLAG_SELECTED);
+				(*it)->setFlags(ViewModelItem::FLAG_SELECTED,
+					ViewModelItem::FLAG_SELECTED);
 			}
 		}
 		if (nLastSelection_ == nIndex) {
@@ -1056,7 +906,8 @@ QSTATUS qm::ViewModel::messageRemoved(const FolderEvent& event)
 				else {
 					nLastSelection_ = listItem_.size() - 1;
 					listItem_[nLastSelection_]->setFlags(
-						FLAG_SELECTED, FLAG_SELECTED);
+						ViewModelItem::FLAG_SELECTED,
+						ViewModelItem::FLAG_SELECTED);
 				}
 			}
 		}
@@ -1065,39 +916,31 @@ QSTATUS qm::ViewModel::messageRemoved(const FolderEvent& event)
 			assert(!listItem_.empty());
 		}
 		
-		if (bSort) {
-			status = sort(nSort_, true, false);
-			CHECK_QSTATUS();
-		}
+		if (bSort)
+			sort(nSort_, true, false);
 		
 		if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
 			--nUnseenCount_;
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ViewModel::messageRefreshed(const FolderEvent& event)
+void qm::ViewModel::messageRefreshed(const FolderEvent& event)
 {
-	return update(true);
+	update(true);
 }
 
-QSTATUS qm::ViewModel::unseenCountChanged(const FolderEvent& event)
+void qm::ViewModel::unseenCountChanged(const FolderEvent& event)
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ViewModel::folderDestroyed(const FolderEvent& event)
+void qm::ViewModel::folderDestroyed(const FolderEvent& event)
 {
 	fireDestroyed();
 	pViewModelManager_->removeViewModel(this);
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ViewModel::messageHolderChanged(const MessageHolderEvent& event)
+void qm::ViewModel::messageHolderChanged(const MessageHolderEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	Lock<ViewModel> lock(*this);
 	
 	ViewModelItem item(event.getMessageHolder());
@@ -1114,33 +957,24 @@ QSTATUS qm::ViewModel::messageHolderChanged(const MessageHolderEvent& event)
 			nNewFlags & MessageHolder::FLAG_SEEN)
 			--nUnseenCount_;
 		
-		status = fireItemChanged(it - listItem_.begin());
-		CHECK_QSTATUS();
+		fireItemChanged(it - listItem_.begin());
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ViewModel::messageHolderDestroyed(const MessageHolderEvent& event)
+void qm::ViewModel::messageHolderDestroyed(const MessageHolderEvent& event)
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ViewModel::loadColumns()
+void qm::ViewModel::loadColumns()
 {
-	DECLARE_QSTATUS();
-	
-	STLWrapper<ColumnList> wrapper(listColumn_);
-	
-	MacroParser parser(MacroParser::TYPE_COLUMN, &status);
-	CHECK_QSTATUS();
+	MacroParser parser(MacroParser::TYPE_COLUMN);
 	
 	WCHAR wszSection[32];
 	swprintf(wszSection, L"Folder%d", pFolder_->getId());
 	
 	int nColumn = 0;
 	while (true) {
-		string_ptr<WSTRING> wstrTitle;
+		wstring_ptr wstrTitle;
 		ViewColumn::Type type = ViewColumn::TYPE_NONE;
 		std::auto_ptr<Macro> pMacro;
 		int nFlags = 0;
@@ -1149,13 +983,10 @@ QSTATUS qm::ViewModel::loadColumns()
 		WCHAR wszKey[32];
 		
 		swprintf(wszKey, L"ColumnTitle%d", nColumn);
-		status = pProfile_->getString(wszSection, wszKey, 0, &wstrTitle);
-		CHECK_QSTATUS();
+		wstrTitle = pProfile_->getString(wszSection, wszKey, 0);
 		
 		swprintf(wszKey, L"ColumnMacro%d", nColumn);
-		string_ptr<WSTRING> wstrMacro;
-		status = pProfile_->getString(wszSection, wszKey, 0, &wstrMacro);
-		CHECK_QSTATUS();
+		wstring_ptr wstrMacro(pProfile_->getString(wszSection, wszKey, 0));
 		if (!*wstrMacro.get())
 			break;
 		if (*wstrMacro.get() == L'%') {
@@ -1172,103 +1003,82 @@ QSTATUS qm::ViewModel::loadColumns()
 				{ L"%size",		ViewColumn::TYPE_SIZE		},
 				{ L"%flags",	ViewColumn::TYPE_FLAGS		}
 			};
-			int n = 0;
-			while (n < countof(defaults) && type == ViewColumn::TYPE_NONE) {
+			for (int n = 0; n < countof(defaults) && type == ViewColumn::TYPE_NONE; ++n) {
 				if (_wcsicmp(wstrMacro.get(), defaults[n].pwszMacro_) == 0)
 					type = defaults[n].type_;
-				++n;
 			}
 		}
 		if (type == ViewColumn::TYPE_NONE) {
-			Macro* p = 0;
-			status = parser.parse(wstrMacro.get(), &p);
-			CHECK_QSTATUS();
-			pMacro.reset(p);
+			pMacro = parser.parse(wstrMacro.get());
 			type = ViewColumn::TYPE_OTHER;
 		}
 		
 		swprintf(wszKey, L"ColumnFlags%d", nColumn);
-		status = pProfile_->getInt(wszSection, wszKey, 0, &nFlags);
-		CHECK_QSTATUS();
+		nFlags = pProfile_->getInt(wszSection, wszKey, 0);
 		
 		swprintf(wszKey, L"ColumnWidth%d", nColumn);
-		status = pProfile_->getInt(wszSection, wszKey, 0, &nWidth);
-		CHECK_QSTATUS();
+		nWidth = pProfile_->getInt(wszSection, wszKey, 0);
 		
-		ViewColumn::Init init = {
-			wstrTitle.get(),
-			type,
-			pMacro.get(),
-			nFlags,
-			nWidth
-		};
-		std::auto_ptr<ViewColumn> pColumn;
-		status = newQsObject(init, &pColumn);
-		CHECK_QSTATUS();
-		pMacro.release();
-		
-		status = wrapper.push_back(pColumn.get());
-		CHECK_QSTATUS();
+		std::auto_ptr<ViewColumn> pColumn(new ViewColumn(
+			wstrTitle.get(), type, pMacro, nFlags, nWidth));
+		listColumn_.push_back(pColumn.get());
 		pColumn.release();
-
+		
 		++nColumn;
 	}
 	
 	if (nColumn == 0) {
-		ViewColumn::Init inits[] = {
+		struct {
+			const WCHAR* pwszTitle_;
+			ViewColumn::Type type_;
+			unsigned int nFlags_;
+			unsigned int nWidth_;
+		} columns[] = {
 			{
 				L"",
 				ViewColumn::TYPE_FLAGS,
-				0,
 				ViewColumn::FLAG_ICON | ViewColumn::FLAG_SORT_NUMBER,
 				28
 			},
 			{
 				L"Date",
 				ViewColumn::TYPE_DATE,
-				0,
 				ViewColumn::FLAG_SORT_DATE,
 				80
 			},
 			{
 				L"From / To",
 				ViewColumn::TYPE_FROMTO,
-				0,
 				ViewColumn::FLAG_SORT_TEXT,
 				120
 			},
 			{
 				L"Subject",
 				ViewColumn::TYPE_SUBJECT,
-				0,
 				ViewColumn::FLAG_INDENT | ViewColumn::FLAG_LINE | ViewColumn::FLAG_SORT_TEXT,
 				250
 			},
 			{
 				L"Size",
 				ViewColumn::TYPE_SIZE,
-				0,
 				ViewColumn::FLAG_RIGHTALIGN | ViewColumn::FLAG_SORT_NUMBER,
 				40
 			}
 		};
-		for (int n = 0; n < countof(inits); ++n) {
-			std::auto_ptr<ViewColumn> pColumn;
-			status = newQsObject(inits[n], &pColumn);
-			CHECK_QSTATUS();
-			status = wrapper.push_back(pColumn.get());
-			CHECK_QSTATUS();
+		for (int n = 0; n < countof(columns); ++n) {
+			std::auto_ptr<Macro> pMacro;
+			std::auto_ptr<ViewColumn> pColumn(new ViewColumn(
+				columns[n].pwszTitle_, columns[n].type_, pMacro,
+				columns[n].nFlags_, columns[n].nWidth_));
+			listColumn_.push_back(pColumn.get());
 			pColumn.release();
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
+
 }
 
-QSTATUS qm::ViewModel::saveColumns() const
+void qm::ViewModel::saveColumns() const
 {
-	DECLARE_QSTATUS();
-	
 	WCHAR wszSection[32];
 	swprintf(wszSection, L"Folder%d", pFolder_->getId());
 	
@@ -1278,8 +1088,7 @@ QSTATUS qm::ViewModel::saveColumns() const
 		WCHAR wszKey[32];
 		
 		swprintf(wszKey, L"ColumnTitle%d", n);
-		status = pProfile_->setString(wszSection, wszKey, pColumn->getTitle());
-		CHECK_QSTATUS();
+		pProfile_->setString(wszSection, wszKey, pColumn->getTitle());
 		
 		struct {
 			ViewColumn::Type type_;
@@ -1299,77 +1108,53 @@ QSTATUS qm::ViewModel::saveColumns() const
 			if (macros[m].type_ == pColumn->getType())
 				pwszMacro = macros[m].pwszMacro_;
 		}
-		string_ptr<WSTRING> wstrMacro;
+		wstring_ptr wstrMacro;
 		if (!pwszMacro) {
-			status = pColumn->getMacro()->getString(&wstrMacro);
-			CHECK_QSTATUS();
+			wstrMacro = pColumn->getMacro()->getString();
 			pwszMacro = wstrMacro.get();
 		}
 		swprintf(wszKey, L"ColumnMacro%d", n);
-		status = pProfile_->setString(wszSection, wszKey, pwszMacro);
-		CHECK_QSTATUS();
+		pProfile_->setString(wszSection, wszKey, pwszMacro);
 		
 		swprintf(wszKey, L"ColumnFlags%d", n);
-		status = pProfile_->setInt(wszSection, wszKey, pColumn->getFlags());
-		CHECK_QSTATUS();
+		pProfile_->setInt(wszSection, wszKey, pColumn->getFlags());
 		
 		swprintf(wszKey, L"ColumnWidth%d", n);
-		status = pProfile_->setInt(wszSection, wszKey, pColumn->getWidth());
-		CHECK_QSTATUS();
+		pProfile_->setInt(wszSection, wszKey, pColumn->getWidth());
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ViewModel::update(bool bRestoreSelection)
+void qm::ViewModel::update(bool bRestoreSelection)
 {
-	DECLARE_QSTATUS();
-	
 	Lock<ViewModel> lock(*this);
 	
-	status = pFolder_->loadMessageHolders();
-	CHECK_QSTATUS();
+	// TODO
+	// Check error
+	if (!pFolder_->loadMessageHolders())
+		return;
 	
-	SelectionRestorer restorer(this, true, !bRestoreSelection, &status);
-	CHECK_QSTATUS();
+	SelectionRestorer restorer(this, true, !bRestoreSelection);
 	
 	std::for_each(listItem_.begin(), listItem_.end(), deleter<ViewModelItem>());
 	listItem_.clear();
 	
 	unsigned int nCount = pFolder_->getCount();
-	status = STLWrapper<ItemList>(listItem_).reserve(nCount);
-	CHECK_QSTATUS();
+	listItem_.reserve(nCount);
 	
 	nUnseenCount_ = 0;
 	
-	MacroVariableHolder globalVariable(&status);
-	CHECK_QSTATUS();
+	MacroVariableHolder globalVariable;
 	for (unsigned int n = 0; n < nCount; ++n) {
 		MessageHolder* pmh = pFolder_->getMessage(n);
 		bool bAdd = true;
 		if (pFilter_) {
-			Message msg(&status);
-			CHECK_QSTATUS();
-			MacroContext::Init init = {
-				pmh,
-				&msg,
-				pFolder_->getAccount(),
-				pDocument_,
-				hwnd_,
-				pProfile_,
-				false,
-				0,
-				&globalVariable
-			};
-			MacroContext context(init, &status);
-			CHECK_QSTATUS();
-			status = pFilter_->match(&context, &bAdd);
-			CHECK_QSTATUS();
+			Message msg;
+			MacroContext context(pmh, &msg, pFolder_->getAccount(),
+				pDocument_, hwnd_, pProfile_, false, 0, &globalVariable);
+			bAdd = pFilter_->match(&context);
 		}
 		if (bAdd) {
-			std::auto_ptr<ViewModelItem> pItem;
-			status = newQsObject(pmh, &pItem);
-			CHECK_QSTATUS();
+			std::auto_ptr<ViewModelItem> pItem(new ViewModelItem(pmh));
 			listItem_.push_back(pItem.release());
 			
 			if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
@@ -1377,35 +1162,27 @@ QSTATUS qm::ViewModel::update(bool bRestoreSelection)
 		}
 	}
 	
-	status = sort(nSort_, false, true);
-	CHECK_QSTATUS();
+	sort(nSort_, false, true);
 	
 	if (bRestoreSelection)
 		restorer.restore();
 	
-	status = fireUpdated();
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	fireUpdated();
 }
 
-QSTATUS qm::ViewModel::sort(unsigned int nSort,
-	bool bRestoreSelection, bool bUpdateParentLink)
+void qm::ViewModel::sort(unsigned int nSort,
+						 bool bRestoreSelection,
+						 bool bUpdateParentLink)
 {
 	assert(nSort & SORT_DIRECTION_MASK);
 	assert(nSort & SORT_THREAD_MASK);
 	
-	DECLARE_QSTATUS();
-	
 	Lock<ViewModel> lock(*this);
 	
-	SelectionRestorer restorer(this, false, !bRestoreSelection, &status);
-	CHECK_QSTATUS();
+	SelectionRestorer restorer(this, false, !bRestoreSelection);
 	
-	if (bUpdateParentLink && (nSort & SORT_THREAD_MASK) == SORT_THREAD) {
-		status = makeParentLink();
-		CHECK_QSTATUS();
-	}
+	if (bUpdateParentLink && (nSort & SORT_THREAD_MASK) == SORT_THREAD)
+		makeParentLink();
 	
 	std::stable_sort(listItem_.begin(), listItem_.end(),
 		ViewModelItemComp(this, getColumn(nSort & SORT_INDEX_MASK),
@@ -1414,22 +1191,13 @@ QSTATUS qm::ViewModel::sort(unsigned int nSort,
 	
 	if (bRestoreSelection)
 		restorer.restore();
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ViewModel::makeParentLink()
+void qm::ViewModel::makeParentLink()
 {
-	DECLARE_QSTATUS();
-	
 	Lock<ViewModel> lock(*this);
 	
-	ItemList listItemSortedByMessageIdHash;
-	status = STLWrapper<ItemList>(
-		listItemSortedByMessageIdHash).resize(listItem_.size());
-	CHECK_QSTATUS();
-	std::copy(listItem_.begin(), listItem_.end(),
-		listItemSortedByMessageIdHash.begin());
+	ItemList listItemSortedByMessageIdHash(listItem_);
 	std::sort(listItemSortedByMessageIdHash.begin(),
 		listItemSortedByMessageIdHash.end(),
 		binary_compose_f_gx_hy(
@@ -1441,33 +1209,19 @@ QSTATUS qm::ViewModel::makeParentLink()
 				std::mem_fun(&MessageHolder::getMessageIdHash),
 				std::mem_fun(&ViewModelItem::getMessageHolder))));
 	
-	ItemList listItemSortedByPointer;
-	status = STLWrapper<ItemList>(
-		listItemSortedByPointer).resize(listItem_.size());
-	CHECK_QSTATUS();
-	std::copy(listItem_.begin(), listItem_.end(),
-		listItemSortedByPointer.begin());
+	ItemList listItemSortedByPointer(listItem_);
 	std::sort(listItemSortedByPointer.begin(),
 		listItemSortedByPointer.end());
 	
-	ItemList::iterator it = listItem_.begin();
-	while (it != listItem_.end()) {
-		status = makeParentLink(listItemSortedByMessageIdHash,
-			listItemSortedByPointer, *it);
-		CHECK_QSTATUS();
-		++it;
-	}
-	
-	return QSTATUS_SUCCESS;
+	for (ItemList::iterator it = listItem_.begin(); it != listItem_.end(); ++it)
+		makeParentLink(listItemSortedByMessageIdHash, listItemSortedByPointer, *it);
 }
 
-QSTATUS qm::ViewModel::makeParentLink(
-	const ItemList& listItemSortedByMessageIdHash,
-	const ItemList& listItemSortedByPointer, ViewModelItem* pItem)
+void qm::ViewModel::makeParentLink(const ItemList& listItemSortedByMessageIdHash,
+								   const ItemList& listItemSortedByPointer,
+								   ViewModelItem* pItem)
 {
 	assert(pItem);
-	
-	DECLARE_QSTATUS();
 	
 	MessageHolder* pmh = pItem->getMessageHolder();
 	ViewModelItem* pParentItem = pItem->getParentItem();
@@ -1485,16 +1239,12 @@ QSTATUS qm::ViewModel::makeParentLink(
 			if  (it != listItemSortedByMessageIdHash.end() &&
 				(*it)->getMessageHolder()->getMessageIdHash() == nReferenceHash) {
 				bool bFound = false;
-				string_ptr<WSTRING> wstrReference;
-				status = pmh->getReference(&wstrReference);
-				CHECK_QSTATUS();
+				wstring_ptr wstrReference(pmh->getReference());
 				assert(*wstrReference.get());
 				while  (it != listItemSortedByMessageIdHash.end() &&
 					(*it)->getMessageHolder()->getMessageIdHash() == nReferenceHash &&
 					!bFound) {
-					string_ptr<WSTRING> wstrMessageId;
-					status = (*it)->getMessageHolder()->getMessageId(&wstrMessageId);
-					CHECK_QSTATUS();
+					wstring_ptr wstrMessageId((*it)->getMessageHolder()->getMessageId());
 					if (wcscmp(wstrReference.get(), wstrMessageId.get()) == 0) {
 						bFound = true;
 						break;
@@ -1513,86 +1263,56 @@ QSTATUS qm::ViewModel::makeParentLink(
 		if (it == listItemSortedByPointer.end() || *it != pParentItem)
 			pItem->setParentItem(0);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ViewModel::fireItemAdded(unsigned int nItem) const
+void qm::ViewModel::fireItemAdded(unsigned int nItem) const
 {
-	ViewModelEvent event(this, nItem);
-	return fireEvent(event, &ViewModelHandler::itemAdded);
+	fireEvent(ViewModelEvent(this, nItem), &ViewModelHandler::itemAdded);
 }
 
-QSTATUS qm::ViewModel::fireItemRemoved(unsigned int nItem) const
+void qm::ViewModel::fireItemRemoved(unsigned int nItem) const
 {
-	ViewModelEvent event(this, nItem);
-	return fireEvent(event, &ViewModelHandler::itemRemoved);
+	fireEvent(ViewModelEvent(this, nItem), &ViewModelHandler::itemRemoved);
 }
 
-QSTATUS qm::ViewModel::fireItemChanged(unsigned int nItem) const
+void qm::ViewModel::fireItemChanged(unsigned int nItem) const
 {
-	ViewModelEvent event(this, nItem);
-	return fireEvent(event, &ViewModelHandler::itemChanged);
+	fireEvent(ViewModelEvent(this, nItem), &ViewModelHandler::itemChanged);
 }
 
-QSTATUS qm::ViewModel::fireItemStateChanged(unsigned int nItem) const
+void qm::ViewModel::fireItemStateChanged(unsigned int nItem) const
 {
-	ViewModelEvent event(this, nItem);
-	return fireEvent(event, &ViewModelHandler::itemStateChanged);
+	fireEvent(ViewModelEvent(this, nItem), &ViewModelHandler::itemStateChanged);
 }
 
-QSTATUS qm::ViewModel::fireItemAttentionPaid(unsigned int nItem) const
+void qm::ViewModel::fireItemAttentionPaid(unsigned int nItem) const
 {
-	ViewModelEvent event(this, nItem);
-	return fireEvent(event, &ViewModelHandler::itemAttentionPaid);
+	fireEvent(ViewModelEvent(this, nItem), &ViewModelHandler::itemAttentionPaid);
 }
 
-QSTATUS qm::ViewModel::fireUpdated() const
+void qm::ViewModel::fireUpdated() const
 {
+	fireEvent(ViewModelEvent(this), &ViewModelHandler::updated);
+}
+
+void qm::ViewModel::fireSorted() const
+{
+	fireEvent(ViewModelEvent(this), &ViewModelHandler::sorted);
+}
+
+void qm::ViewModel::fireDestroyed() const
+{
+	ViewModelHandlerList l(listHandler_);
 	ViewModelEvent event(this);
-	return fireEvent(event, &ViewModelHandler::updated);
+	for (ViewModelHandlerList::const_iterator it = l.begin(); it != l.end(); ++it)
+		(*it)->destroyed(event);
 }
 
-QSTATUS qm::ViewModel::fireSorted() const
+void qm::ViewModel::fireEvent(const ViewModelEvent& event,
+							  void (ViewModelHandler::*pfn)(const ViewModelEvent&)) const
 {
-	ViewModelEvent event(this);
-	return fireEvent(event, &ViewModelHandler::sorted);
-}
-
-QSTATUS qm::ViewModel::fireDestroyed() const
-{
-	DECLARE_QSTATUS();
-	
-	ViewModelHandlerList l;
-	status = STLWrapper<ViewModelHandlerList>(l).resize(listHandler_.size());
-	CHECK_QSTATUS();
-	std::copy(listHandler_.begin(), listHandler_.end(), l.begin());
-	
-	ViewModelEvent event(this);
-	
-	ViewModelHandlerList::const_iterator it = l.begin();
-	while (it != l.end()) {
-		status = (*it)->destroyed(event);
-		CHECK_QSTATUS();
-		++it;
-	}
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::ViewModel::fireEvent(const ViewModelEvent& event,
-	QSTATUS (ViewModelHandler::*pfn)(const ViewModelEvent&)) const
-{
-	DECLARE_QSTATUS();
-	
-	ViewModelHandlerList::const_iterator it = listHandler_.begin();
-	while (it != listHandler_.end()) {
-		status = ((*it)->*pfn)(event);
-		CHECK_QSTATUS();
-		++it;
-	}
-	
-	return QSTATUS_SUCCESS;
+	for (ViewModelHandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
+		((*it)->*pfn)(event);
 }
 
 
@@ -1610,44 +1330,36 @@ qm::DefaultViewModelHandler::~DefaultViewModelHandler()
 {
 }
 
-QSTATUS qm::DefaultViewModelHandler::itemAdded(const ViewModelEvent& event)
+void qm::DefaultViewModelHandler::itemAdded(const ViewModelEvent& event)
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::DefaultViewModelHandler::itemRemoved(const ViewModelEvent& event)
+void qm::DefaultViewModelHandler::itemRemoved(const ViewModelEvent& event)
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::DefaultViewModelHandler::itemChanged(const ViewModelEvent& event)
+void qm::DefaultViewModelHandler::itemChanged(const ViewModelEvent& event)
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::DefaultViewModelHandler::itemStateChanged(const ViewModelEvent& event)
+void qm::DefaultViewModelHandler::itemStateChanged(const ViewModelEvent& event)
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::DefaultViewModelHandler::itemAttentionPaid(const ViewModelEvent& event)
+void qm::DefaultViewModelHandler::itemAttentionPaid(const ViewModelEvent& event)
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::DefaultViewModelHandler::updated(const ViewModelEvent& event)
+void qm::DefaultViewModelHandler::updated(const ViewModelEvent& event)
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::DefaultViewModelHandler::sorted(const ViewModelEvent& event)
+void qm::DefaultViewModelHandler::sorted(const ViewModelEvent& event)
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::DefaultViewModelHandler::destroyed(const ViewModelEvent& event)
+void qm::DefaultViewModelHandler::destroyed(const ViewModelEvent& event)
 {
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -1663,8 +1375,8 @@ qm::ViewModelEvent::ViewModelEvent(const ViewModel* pViewModel) :
 {
 }
 
-qm::ViewModelEvent::ViewModelEvent(
-	const ViewModel* pViewModel, unsigned int nItem) :
+qm::ViewModelEvent::ViewModelEvent(const ViewModel* pViewModel,
+								   unsigned int nItem) :
 	pViewModel_(pViewModel),
 	nItem_(nItem)
 {
@@ -1702,29 +1414,18 @@ qm::ViewModelHolder::~ViewModelHolder()
  *
  */
 
-qm::ViewModelManager::ViewModelManager(Profile* pProfile, Document* pDocument,
-	HWND hwnd, FolderModel* pFolderModel, QSTATUS* pstatus) :
+qm::ViewModelManager::ViewModelManager(Profile* pProfile,
+									   Document* pDocument,
+									   HWND hwnd,
+									   FolderModel* pFolderModel) :
 	pProfile_(pProfile),
 	pDocument_(pDocument),
 	hwnd_(hwnd),
 	pCurrentAccount_(0),
-	pCurrentViewModel_(0),
-	pFilterManager_(0),
-	pColorManager_(0)
+	pCurrentViewModel_(0)
 {
-	assert(pstatus);
-	
-	DECLARE_QSTATUS();
-	
-	std::auto_ptr<FilterManager> pFilterManager;
-	status = newQsObject(&pFilterManager);
-	CHECK_QSTATUS_SET(pstatus);
-	std::auto_ptr<ColorManager> pColorManager;
-	status = newQsObject(&pColorManager);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	pFilterManager_ = pFilterManager.release();
-	pColorManager_ = pColorManager.release();
+	pFilterManager_.reset(new FilterManager());
+	pColorManager_.reset(new ColorManager());
 }
 
 qm::ViewModelManager::~ViewModelManager()
@@ -1734,13 +1435,11 @@ qm::ViewModelManager::~ViewModelManager()
 	std::for_each(mapProfile_.begin(), mapProfile_.end(),
 		unary_compose_f_gx(
 			deleter<Profile>(), std::select2nd<ProfileMap::value_type>()));
-	delete pFilterManager_;
-	delete pColorManager_;
 }
 
 FilterManager* qm::ViewModelManager::getFilterManager() const
 {
-	return pFilterManager_;
+	return pFilterManager_.get();
 }
 
 Account* qm::ViewModelManager::getCurrentAccount() const
@@ -1748,14 +1447,14 @@ Account* qm::ViewModelManager::getCurrentAccount() const
 	return pCurrentAccount_;
 }
 
-QSTATUS qm::ViewModelManager::setCurrentAccount(Account* pAccount)
+void qm::ViewModelManager::setCurrentAccount(Account* pAccount)
 {
-	return setCurrentFolder(pAccount, 0);
+	setCurrentFolder(pAccount, 0);
 }
 
-QSTATUS qm::ViewModelManager::setCurrentFolder(Folder* pFolder)
+void qm::ViewModelManager::setCurrentFolder(Folder* pFolder)
 {
-	return setCurrentFolder(0, pFolder);
+	setCurrentFolder(0, pFolder);
 }
 
 ViewModel* qm::ViewModelManager::getCurrentViewModel() const
@@ -1763,71 +1462,47 @@ ViewModel* qm::ViewModelManager::getCurrentViewModel() const
 	return pCurrentViewModel_;
 }
 
-QSTATUS qm::ViewModelManager::getViewModel(
-	Folder* pFolder, ViewModel** ppViewModel)
+ViewModel* qm::ViewModelManager::getViewModel(Folder* pFolder)
 {
 	assert(pFolder);
-	assert(ppViewModel);
-	
-	DECLARE_QSTATUS();
-	
-	*ppViewModel = 0;
 	
 	ViewModelList::iterator it = std::find_if(listViewModel_.begin(),
 		listViewModel_.end(), ViewModelFolderComp(pFolder));
-	if (it == listViewModel_.end()) {
-		Profile* pProfile = 0;
-		status = getProfile(pFolder, &pProfile);
-		CHECK_QSTATUS();
-		std::auto_ptr<ViewModel> pViewModel;
-		status = newQsObject(this, pFolder, pProfile,
-			pDocument_, hwnd_, pColorManager_, &pViewModel);
-		CHECK_QSTATUS();
-		STLWrapper<ViewModelList>(listViewModel_).push_back(pViewModel.get());
-		CHECK_QSTATUS();
-		*ppViewModel = pViewModel.release();
-	}
-	else {
-		*ppViewModel = *it;
-	}
+	if (it != listViewModel_.end())
+		return *it;
 	
-	return QSTATUS_SUCCESS;
+	Profile* pProfile = getProfile(pFolder);
+	std::auto_ptr<ViewModel> pViewModel(new ViewModel(this,
+		pFolder, pProfile, pDocument_, hwnd_, pColorManager_.get()));
+	listViewModel_.push_back(pViewModel.get());
+	return pViewModel.release();
 }
 
-QSTATUS qm::ViewModelManager::save() const
+bool qm::ViewModelManager::save() const
 {
-	DECLARE_QSTATUS();
-	
-	ViewModelList::const_iterator itM = listViewModel_.begin();
-	while (itM != listViewModel_.end()) {
-		status = (*itM)->save();
-		CHECK_QSTATUS();
-		++itM;
+	for (ViewModelList::const_iterator itM = listViewModel_.begin(); itM != listViewModel_.end(); ++itM) {
+		if (!(*itM)->save())
+			return false;
 	}
 	
-	ProfileMap::const_iterator itP = mapProfile_.begin();
-	while (itP != mapProfile_.end()) {
-		status = (*itP).second->save();
-		CHECK_QSTATUS();
-		++itP;
+	for (ProfileMap::const_iterator itP = mapProfile_.begin(); itP != mapProfile_.end(); ++itP) {
+		if (!(*itP).second->save())
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::ViewModelManager::addViewModelManagerHandler(
-	ViewModelManagerHandler* pHandler)
+void qm::ViewModelManager::addViewModelManagerHandler(ViewModelManagerHandler* pHandler)
 {
-	return STLWrapper<HandlerList>(listHandler_).push_back(pHandler);
+	listHandler_.push_back(pHandler);
 }
 
-QSTATUS qm::ViewModelManager::removeViewModelManagerHandler(
-	ViewModelManagerHandler* pHandler)
+void qm::ViewModelManager::removeViewModelManagerHandler(ViewModelManagerHandler* pHandler)
 {
 	HandlerList& l = listHandler_;
 	HandlerList::iterator it = std::remove(l.begin(), l.end(), pHandler);
 	l.erase(it, l.end());
-	return QSTATUS_SUCCESS;
 }
 
 void qm::ViewModelManager::removeViewModel(ViewModel* pViewModel)
@@ -1838,7 +1513,7 @@ void qm::ViewModelManager::removeViewModel(ViewModel* pViewModel)
 	delete pViewModel;
 }
 
-QSTATUS qm::ViewModelManager::accountDestroyed(const AccountEvent& event)
+void qm::ViewModelManager::accountDestroyed(const AccountEvent& event)
 {
 	Account* pAccount = event.getAccount();
 	
@@ -1866,15 +1541,12 @@ QSTATUS qm::ViewModelManager::accountDestroyed(const AccountEvent& event)
 		delete (*itP).second;
 		mapProfile_.erase(itP);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ViewModelManager::setCurrentFolder(Account* pAccount, Folder* pFolder)
+void qm::ViewModelManager::setCurrentFolder(Account* pAccount,
+											Folder* pFolder)
 {
 	assert(!pAccount || !pFolder);
-	
-	DECLARE_QSTATUS();
 	
 	if (pAccount)
 		pCurrentAccount_ = pAccount;
@@ -1884,37 +1556,22 @@ QSTATUS qm::ViewModelManager::setCurrentFolder(Account* pAccount, Folder* pFolde
 		pCurrentAccount_ = 0;
 	
 	ViewModel* pViewModel = 0;
-	if (pFolder) {
-		status = getViewModel(pFolder, &pViewModel);
-		if (status != QSTATUS_SUCCESS) {
-			// TODO
-		}
-	}
-	status = setCurrentViewModel(pViewModel);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	if (pFolder)
+		pViewModel = getViewModel(pFolder);
+	setCurrentViewModel(pViewModel);
 }
 
-QSTATUS qm::ViewModelManager::setCurrentViewModel(ViewModel* pViewModel)
+void qm::ViewModelManager::setCurrentViewModel(ViewModel* pViewModel)
 {
-	DECLARE_QSTATUS();
-	
 	ViewModel* pOldViewModel = pCurrentViewModel_;
 	pCurrentViewModel_ = pViewModel;
 	
-	status = fireViewModelSelected(pViewModel, pOldViewModel);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	fireViewModelSelected(pViewModel, pOldViewModel);
 }
 
-QSTATUS qm::ViewModelManager::getProfile(Folder* pFolder, Profile** ppProfile)
+Profile* qm::ViewModelManager::getProfile(Folder* pFolder)
 {
 	assert(pFolder);
-	assert(ppProfile);
-	
-	DECLARE_QSTATUS();
 	
 	Account* pAccount = pFolder->getAccount();
 	ProfileMap::iterator it = std::find_if(
@@ -1925,44 +1582,26 @@ QSTATUS qm::ViewModelManager::getProfile(Folder* pFolder, Profile** ppProfile)
 				std::select1st<ProfileMap::value_type>(),
 				std::identity<Account*>()),
 			pAccount));
-	if (it == mapProfile_.end()) {
-		string_ptr<WSTRING> wstrPath(concat(
-			pAccount->getPath(), L"\\", FileNames::VIEW_XML));
-		if (!wstrPath.get())
-			return QSTATUS_OUTOFMEMORY;
-		std::auto_ptr<XMLProfile> pProfile;
-		status = newQsObject(wstrPath.get(), &pProfile);
-		CHECK_QSTATUS();
-		status = pProfile->load();
-		CHECK_QSTATUS();
-		status = STLWrapper<ProfileMap>(mapProfile_).push_back(
-			std::make_pair(pAccount, pProfile.get()));
-		CHECK_QSTATUS();
-		*ppProfile = pProfile.release();
-		
-		status = pAccount->addAccountHandler(this);
-		CHECK_QSTATUS();
-	}
-	else {
-		*ppProfile = (*it).second;
-	}
+	if (it != mapProfile_.end())
+		return (*it).second;
 	
-	return QSTATUS_SUCCESS;
+	wstring_ptr wstrPath(concat(pAccount->getPath(), L"\\", FileNames::VIEW_XML));
+	
+	std::auto_ptr<XMLProfile> pProfile(new XMLProfile(wstrPath.get()));
+	// TODO
+	// Ignore load error?
+	pProfile->load();
+	mapProfile_.push_back(std::make_pair(pAccount, pProfile.get()));
+	pAccount->addAccountHandler(this);
+	return pProfile.release();
 }
 
-QSTATUS qm::ViewModelManager::fireViewModelSelected(
-	ViewModel* pNewViewModel, ViewModel* pOldViewModel) const
+void qm::ViewModelManager::fireViewModelSelected(ViewModel* pNewViewModel,
+												 ViewModel* pOldViewModel) const
 {
-	DECLARE_QSTATUS();
-	
 	ViewModelManagerEvent event(this, pNewViewModel, pOldViewModel);
-	HandlerList::const_iterator it = listHandler_.begin();
-	while (it != listHandler_.end()) {
-		status = (*it)->viewModelSelected(event);
-		CHECK_QSTATUS();
-		++it;
-	}
-	return QSTATUS_SUCCESS;
+	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
+		(*it)->viewModelSelected(event);
 }
 
 
@@ -1983,9 +1622,9 @@ qm::ViewModelManagerHandler::~ViewModelManagerHandler()
  *
  */
 
-qm::ViewModelManagerEvent::ViewModelManagerEvent(
-	const ViewModelManager* pViewModelManager,
-	ViewModel* pNewViewModel, ViewModel* pOldViewModel) :
+qm::ViewModelManagerEvent::ViewModelManagerEvent(const ViewModelManager* pViewModelManager,
+												 ViewModel* pNewViewModel,
+												 ViewModel* pOldViewModel) :
 	pViewModelManager_(pViewModelManager),
 	pNewViewModel_(pNewViewModel),
 	pOldViewModel_(pOldViewModel)
@@ -2019,7 +1658,9 @@ ViewModel* qm::ViewModelManagerEvent::getOldViewModel() const
  */
 
 qm::ViewModelItemComp::ViewModelItemComp(const ViewModel* pViewModel,
-	const ViewColumn& column, bool bAscending, bool bThread) :
+										 const ViewColumn& column,
+										 bool bAscending,
+										 bool bThread) :
 	pViewModel_(pViewModel),
 	column_(column),
 	bAscending_(bAscending),
@@ -2031,11 +1672,9 @@ qm::ViewModelItemComp::~ViewModelItemComp()
 {
 }
 
-bool qm::ViewModelItemComp::operator()(
-	const ViewModelItem* pLhs, const ViewModelItem* pRhs) const
+bool qm::ViewModelItemComp::operator()(const ViewModelItem* pLhs,
+									   const ViewModelItem* pRhs) const
 {
-	DECLARE_QSTATUS();
-	
 	bool bLess = false;
 	bool bFixed = false;
 	if (bThread_) {
@@ -2086,20 +1725,14 @@ bool qm::ViewModelItemComp::operator()(
 		}
 		else if ((nFlags & ViewColumn::FLAG_SORT_MASK) == ViewColumn::FLAG_SORT_DATE) {
 			Time timeLhs;
-			status = column_.getTime(pmhLhs, &timeLhs);
-			CHECK_QSTATUS_VALUE(false);
+			column_.getTime(pmhLhs, &timeLhs);
 			Time timeRhs;
-			status = column_.getTime(pmhRhs, &timeRhs);
-			CHECK_QSTATUS_VALUE(false);
+			column_.getTime(pmhRhs, &timeRhs);
 			nComp = timeLhs < timeRhs ? -1 : timeLhs > timeRhs ? 1 : 0;
 		}
 		else {
-			string_ptr<WSTRING> wstrTextLhs;
-			status = column_.getText(pmhLhs, &wstrTextLhs);
-			CHECK_QSTATUS_VALUE(false);
-			string_ptr<WSTRING> wstrTextRhs;
-			status = column_.getText(pmhRhs, &wstrTextRhs);
-			CHECK_QSTATUS_VALUE(false);
+			wstring_ptr wstrTextLhs(column_.getText(pmhLhs));
+			wstring_ptr wstrTextRhs(column_.getText(pmhRhs));
 			nComp = _wcsicmp(wstrTextLhs.get(), wstrTextRhs.get());
 		}
 		if (bThread_ && nComp == 0)

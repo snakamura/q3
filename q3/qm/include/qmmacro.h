@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -47,6 +47,7 @@ class Account;
 class Document;
 class MacroExpr;
 	class MacroFunction;
+class MacroExprPtr;
 class MacroGlobalContext;
 class MacroFunctionHolder;
 class Message;
@@ -67,6 +68,7 @@ public:
 		CODE_FUNCTIONWITHOUTPARENTHESIS,
 		CODE_INVALIDVARIABLENAME,
 		CODE_INVALIDFIELDNAME,
+		CODE_INVALIDREGEX,
 		CODE_MACROCONTAINSMORETHANONEEXPR,
 		
 		CODE_FAIL,
@@ -76,13 +78,16 @@ public:
 		CODE_NOCONTEXTMESSAGE,
 		CODE_UNKNOWNFUNCTION,
 		CODE_INVALIDPART,
-		CODE_UNKNOWNACCOUNT
+		CODE_UNKNOWNACCOUNT,
+		CODE_GETMESSAGE
 	};
 
 public:
 	virtual ~MacroErrorHandler();
-	virtual void parseError(Code code, const WCHAR* pwsz) = 0;
-	virtual void processError(Code code, const WCHAR* pwsz) = 0;
+	virtual void parseError(Code code,
+							const WCHAR* pwsz) = 0;
+	virtual void processError(Code code,
+							  const WCHAR* pwsz) = 0;
 };
 
 
@@ -92,15 +97,18 @@ public:
  *
  */
 
+#pragma warning(push)
+#pragma warning(disable:4251)
+
 class QMEXPORTCLASS Macro
 {
 public:
-	Macro(MacroExpr* pExpr, qs::QSTATUS* pstatus);
+	explicit Macro(MacroExprPtr pExpr);
 	~Macro();
 
 public:
-	qs::QSTATUS value(MacroContext* pContext, MacroValue** ppValue) const;
-	qs::QSTATUS getString(qs::WSTRING* pwstrMacro) const;
+	MacroValuePtr value(MacroContext* pContext) const;
+	qs::wstring_ptr getString() const;
 
 private:
 	Macro(const Macro&);
@@ -109,6 +117,8 @@ private:
 private:
 	MacroExpr* pExpr_;
 };
+
+#pragma warning(pop)
 
 
 /****************************************************************************
@@ -132,13 +142,13 @@ public:
 	};
 
 public:
-	MacroParser(Type type, qs::QSTATUS* pstatus);
+	explicit MacroParser(Type type);
 	~MacroParser();
 
 public:
-	qs::QSTATUS parse(const WCHAR* pwszMacro, Macro** ppMacro) const;
-	qs::QSTATUS parse(const WCHAR* pwszMacro,
-		Macro* pParentMacro, Macro** ppMacro) const;
+	std::auto_ptr<Macro> parse(const WCHAR* pwszMacro) const;
+	std::auto_ptr<Macro> parse(const WCHAR* pwszMacro,
+							   Macro* pParentMacro) const;
 	void setErrorHandler(MacroErrorHandler* pErrorHandler);
 	MacroErrorHandler* getErrorHandler() const;
 
@@ -146,7 +156,8 @@ public:
 	static bool isNumber(const WCHAR* pwsz);
 
 private:
-	qs::QSTATUS error(MacroErrorHandler::Code code, const WCHAR* p) const;
+	std::auto_ptr<Macro> error(MacroErrorHandler::Code code,
+							   const WCHAR* p) const;
 
 private:
 	MacroParser(const MacroParser&);
@@ -167,12 +178,13 @@ private:
 class QMEXPORTCLASS MacroVariableHolder
 {
 public:
-	explicit MacroVariableHolder(qs::QSTATUS* pstatus);
+	MacroVariableHolder();
 	~MacroVariableHolder();
 
 public:
-	qs::QSTATUS getVariable(const WCHAR* pwszName, MacroValue** ppValue) const;
-	qs::QSTATUS setVariable(const WCHAR* pwszName, MacroValue* pValue);
+	MacroValuePtr getVariable(const WCHAR* pwszName) const;
+	bool setVariable(const WCHAR* pwszName,
+					 MacroValue* pValue);
 
 private:
 	MacroVariableHolder(const MacroVariableHolder&);
@@ -199,49 +211,43 @@ public:
 	};
 
 public:
-	struct Init
-	{
-		MessageHolderBase* pmh_;
-		Message* pMessage_;
-		Account* pAccount_;
-		Document* pDocument_;
-		HWND hwnd_;
-		qs::Profile* pProfile_;
-		bool bGetMessageAsPossible_;
-		MacroErrorHandler* pErrorHandler_;
-		MacroVariableHolder* pGlobalVariable_;
-	};
-	
-public:
-	MacroContext(const Init& init, qs::QSTATUS* pstatus);
-	MacroContext(MessageHolderBase* pmh, Message* pMessage,
-		const MacroContext* pContext, qs::QSTATUS* pstatus);
+	MacroContext(MessageHolderBase* pmh,
+				 Message* pMessage,
+				 Account* pAccount,
+				 Document* pDocument,
+				 HWND hwnd,
+				 qs::Profile* pProfile,
+				 bool bGetMessageAsPossible,
+				 MacroErrorHandler* pErrorHandler,
+				 MacroVariableHolder* pGlobalVariable);
+	MacroContext(MessageHolderBase* pmh,
+				 Message* pMessage,
+				 const MacroContext* pContext);
 	~MacroContext();
 
 public:
 	MessageHolderBase* getMessageHolder() const;
 	Message* getMessage() const;
-	qs::QSTATUS getMessage(MessageType type,
-		const WCHAR* pwszField, Message** ppMessage) const;
+	Message* getMessage(MessageType type,
+						const WCHAR* pwszField) const;
 	Account* getAccount() const;
 	Document* getDocument() const;
 	HWND getWindow() const;
 	qs::Profile* getProfile() const;
 	bool isGetMessageAsPossible() const;
 	MacroErrorHandler* getErrorHandler() const;
-	qs::QSTATUS getVariable(const WCHAR* pwszName,
-		MacroValue** ppValue) const;
-	qs::QSTATUS setVariable(const WCHAR* pwszName,
-		MacroValue* pValue, bool bGlobal);
-	qs::QSTATUS getFunction(const WCHAR* pwszName,
-		const MacroExpr** ppExpr) const;
-	qs::QSTATUS setFunction(const WCHAR* pwszName,
-		const MacroExpr* pExpr, bool* pbSet);
-	qs::QSTATUS pushArgumentContext();
+	MacroValuePtr getVariable(const WCHAR* pwszName) const;
+	bool setVariable(const WCHAR* pwszName,
+					 MacroValue* pValue,
+					 bool bGlobal);
+	const MacroExpr* getFunction(const WCHAR* pwszName) const;
+	bool setFunction(const WCHAR* pwszName,
+					 const MacroExpr* pExpr);
+	void pushArgumentContext();
 	void popArgumentContext();
-	qs::QSTATUS addArgument(MacroValue* pValue);
-	qs::QSTATUS getArgument(unsigned int n, MacroValue** ppValue) const;
-	qs::QSTATUS resolvePath(const WCHAR* pwszPath, qs::WSTRING* pwstrPath);
+	void addArgument(MacroValuePtr pValue);
+	MacroValuePtr getArgument(unsigned int n) const;
+	qs::wstring_ptr resolvePath(const WCHAR* pwszPath);
 
 private:
 	MacroContext(MacroContext&);
@@ -277,18 +283,20 @@ public:
 		TYPE_MESSAGELIST
 	};
 
+protected:
+	explicit MacroValue(Type type);
+
 public:
-	MacroValue(Type type, qs::QSTATUS* pstatus);
 	virtual ~MacroValue();
 
 public:
 	Type getType() const;
 
 public:
-	virtual qs::QSTATUS string(qs::WSTRING* pwstr) const = 0;
+	virtual qs::wstring_ptr string() const = 0;
 	virtual bool boolean() const = 0;
 	virtual unsigned int number() const = 0;
-	virtual qs::QSTATUS clone(MacroValue** ppValue) const = 0;
+	virtual MacroValuePtr clone() const = 0;
 
 private:
 	MacroValue(const MacroValue&);
@@ -308,18 +316,18 @@ private:
 class MacroValueBoolean : public MacroValue
 {
 public:
-	MacroValueBoolean(qs::QSTATUS* pstatus);
+	MacroValueBoolean();
 	virtual ~MacroValueBoolean();
 
 public:
-	qs::QSTATUS init(bool b);
+	void init(bool b);
 	void term();
 
 public:
-	virtual qs::QSTATUS string(qs::WSTRING* pwstr) const;
+	virtual qs::wstring_ptr string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
-	virtual qs::QSTATUS clone(MacroValue** ppValue) const;
+	virtual MacroValuePtr clone() const;
 
 private:
 	MacroValueBoolean(const MacroValueBoolean&);
@@ -339,25 +347,26 @@ private:
 class MacroValueString : public MacroValue
 {
 public:
-	MacroValueString(qs::QSTATUS* pstatus);
+	MacroValueString();
 	virtual ~MacroValueString();
 
 public:
-	qs::QSTATUS init(const WCHAR* pwsz, size_t nLen);
+	void init(const WCHAR* pwsz,
+			  size_t nLen);
 	void term();
 
 public:
-	virtual qs::QSTATUS string(qs::WSTRING* pwstr) const;
+	virtual qs::wstring_ptr string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
-	virtual qs::QSTATUS clone(MacroValue** ppValue) const;
+	virtual MacroValuePtr clone() const;
 
 private:
 	MacroValueString(const MacroValueString&);
 	MacroValueString& operator=(const MacroValueString&);
 
 private:
-	qs::WSTRING wstr_;
+	qs::wstring_ptr wstr_;
 };
 
 
@@ -370,18 +379,18 @@ private:
 class MacroValueNumber : public MacroValue
 {
 public:
-	MacroValueNumber(qs::QSTATUS* pstatus);
+	MacroValueNumber();
 	virtual ~MacroValueNumber();
 
 public:
-	qs::QSTATUS init(long n);
+	void init(long n);
 	void term();
 
 public:
-	virtual qs::QSTATUS string(qs::WSTRING* pwstr) const;
+	virtual qs::wstring_ptr string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
-	virtual qs::QSTATUS clone(MacroValue** ppValue) const;
+	virtual MacroValuePtr clone() const;
 
 private:
 	MacroValueNumber(const MacroValueNumber&);
@@ -401,22 +410,22 @@ private:
 class MacroValueRegex : public MacroValue
 {
 public:
-	MacroValueRegex(qs::QSTATUS* pstatus);
+	MacroValueRegex();
 	virtual ~MacroValueRegex();
 
 public:
-	qs::QSTATUS init(const WCHAR* pwszPattern,
-		const qs::RegexPattern* pPattern);
+	void init(const WCHAR* pwszPattern,
+			  const qs::RegexPattern* pPattern);
 	void term();
 
 public:
 	const qs::RegexPattern* getPattern() const;
 
 public:
-	virtual qs::QSTATUS string(qs::WSTRING* pwstr) const;
+	virtual qs::wstring_ptr string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
-	virtual qs::QSTATUS clone(MacroValue** ppValue) const;
+	virtual MacroValuePtr clone() const;
 
 private:
 	MacroValueRegex(const MacroValueRegex&);
@@ -437,24 +446,25 @@ private:
 class MacroValueField : public MacroValue
 {
 public:
-	MacroValueField(qs::QSTATUS* pstatus);
+	MacroValueField();
 	virtual ~MacroValueField();
 
 public:
-	qs::QSTATUS init(const WCHAR* pwszName, const CHAR* pszField);
+	void init(const WCHAR* pwszName,
+			  const CHAR* pszField);
 	void term();
 
 public:
 	const WCHAR* getName() const;
 	const CHAR* getField() const;
-	qs::QSTATUS getAddresses(std::vector<qs::WSTRING>* pAddresses) const;
-	qs::QSTATUS getNames(std::vector<qs::WSTRING>* pNames) const;
+	bool getAddresses(std::vector<qs::WSTRING>* pAddresses) const;
+	bool getNames(std::vector<qs::WSTRING>* pNames) const;
 
 public:
-	virtual qs::QSTATUS string(qs::WSTRING* pwstr) const;
+	virtual qs::wstring_ptr string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
-	virtual qs::QSTATUS clone(MacroValue** ppValue) const;
+	virtual MacroValuePtr clone() const;
 
 private:
 	bool isAddress() const;
@@ -464,8 +474,8 @@ private:
 	MacroValueField& operator=(const MacroValueField&);
 
 private:
-	qs::WSTRING wstrName_;
-	qs::STRING strField_;
+	qs::wstring_ptr wstrName_;
+	qs::string_ptr strField_;
 };
 
 
@@ -481,11 +491,11 @@ public:
 	typedef std::vector<qs::WSTRING> AddressList;
 
 public:
-	MacroValueAddress(qs::QSTATUS* pstatus);
+	MacroValueAddress();
 	virtual ~MacroValueAddress();
 
 public:
-	qs::QSTATUS init(const AddressList& l);
+	void init(const AddressList& l);
 	void term();
 
 public:
@@ -493,10 +503,10 @@ public:
 	void remove(const WCHAR* pwszAddress);
 
 public:
-	virtual qs::QSTATUS string(qs::WSTRING* pwstr) const;
+	virtual qs::wstring_ptr string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
-	virtual qs::QSTATUS clone(MacroValue** ppValue) const;
+	virtual MacroValuePtr clone() const;
 
 private:
 	MacroValueAddress(const MacroValueAddress&);
@@ -516,21 +526,21 @@ private:
 class MacroValueTime : public MacroValue
 {
 public:
-	MacroValueTime(qs::QSTATUS* pstatus);
+	MacroValueTime();
 	virtual ~MacroValueTime();
 
 public:
-	qs::QSTATUS init(const qs::Time& time);
+	void init(const qs::Time& time);
 	void term();
 
 public:
 	const qs::Time& getTime() const;
 
 public:
-	virtual qs::QSTATUS string(qs::WSTRING* pwstr) const;
+	virtual qs::wstring_ptr string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
-	virtual qs::QSTATUS clone(MacroValue** ppValue) const;
+	virtual MacroValuePtr clone() const;
 
 private:
 	MacroValueTime(const MacroValueTime&);
@@ -550,21 +560,21 @@ private:
 class MacroValuePart : public MacroValue
 {
 public:
-	MacroValuePart(qs::QSTATUS* pstatus);
+	MacroValuePart();
 	virtual ~MacroValuePart();
 
 public:
-	qs::QSTATUS init(const qs::Part* pPart);
+	void init(const qs::Part* pPart);
 	void term();
 
 public:
 	const qs::Part* getPart() const;
 
 public:
-	virtual qs::QSTATUS string(qs::WSTRING* pwstr) const;
+	virtual qs::wstring_ptr string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
-	virtual qs::QSTATUS clone(MacroValue** ppValue) const;
+	virtual MacroValuePtr clone() const;
 
 private:
 	MacroValuePart(const MacroValuePart&);
@@ -587,21 +597,21 @@ public:
 	typedef std::vector<MessagePtr> MessageList;
 
 public:
-	MacroValueMessageList(qs::QSTATUS* pstatus);
+	MacroValueMessageList();
 	virtual ~MacroValueMessageList();
 
 public:
-	qs::QSTATUS init(const MessageList& l);
+	void init(const MessageList& l);
 	void term();
 
 public:
 	const MessageList& getMessageList() const;
 
 public:
-	virtual qs::QSTATUS string(qs::WSTRING* pwstr) const;
+	virtual qs::wstring_ptr string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
-	virtual qs::QSTATUS clone(MacroValue** ppValue) const;
+	virtual MacroValuePtr clone() const;
 
 private:
 	MacroValueMessageList(const MacroValueMessageList&);
@@ -622,12 +632,14 @@ class QMEXPORTCLASS MacroValuePtr
 {
 public:
 	MacroValuePtr();
-	MacroValuePtr(MacroValue* pValue);
+	explicit MacroValuePtr(MacroValue* pValue);
+	MacroValuePtr(MacroValuePtr& pValue);
 	~MacroValuePtr();
 
 public:
 	MacroValue* operator->() const;
 	MacroValue** operator&();
+	MacroValuePtr& operator=(MacroValuePtr& pValue);
 
 public:
 	MacroValue* get() const;
@@ -654,29 +666,35 @@ public:
 	~MacroValueFactory();
 
 public:
-	qs::QSTATUS newBoolean(bool b, MacroValueBoolean** ppmvb);
+	MacroValuePtr newBoolean(bool b);
 	void deleteBoolean(MacroValueBoolean* pmvb);
-	qs::QSTATUS newString(const WCHAR* pwsz, MacroValueString** ppmvs);
-	qs::QSTATUS newString(const WCHAR* pwsz, size_t nLen,
-		MacroValueString** ppmvs);
+	
+	MacroValuePtr newString(const WCHAR* pwsz);
+	MacroValuePtr newString(const WCHAR* pwsz,
+							size_t nLen);
 	void deleteString(MacroValueString* pmvs);
-	qs::QSTATUS newNumber(unsigned int n, MacroValueNumber** ppmvn);
+	
+	MacroValuePtr newNumber(unsigned int n);
 	void deleteNumber(MacroValueNumber* pmvn);
-	qs::QSTATUS newRegex(const WCHAR* pwszPattern,
-		const qs::RegexPattern* pPattern, MacroValueRegex** ppmvr);
+	
+	MacroValuePtr newRegex(const WCHAR* pwszPattern,
+						   const qs::RegexPattern* pPattern);
 	void deleteRegex(MacroValueRegex* pmvr);
-	qs::QSTATUS newField(const WCHAR* pwszName,
-		const CHAR* pszField, MacroValueField** ppmvf);
+	
+	MacroValuePtr newField(const WCHAR* pwszName,
+						   const CHAR* pszField);
 	void deleteField(MacroValueField* pmvf);
-	qs::QSTATUS newAddress(const MacroValueAddress::AddressList& l,
-		MacroValueAddress** ppmva);
+	
+	MacroValuePtr newAddress(const MacroValueAddress::AddressList& l);
 	void deleteAddress(MacroValueAddress* pmva);
-	qs::QSTATUS newTime(const qs::Time& time, MacroValueTime** ppmvt);
+	
+	MacroValuePtr newTime(const qs::Time& time);
 	void deleteTime(MacroValueTime* pmvt);
-	qs::QSTATUS newPart(const qs::Part* pPart, MacroValuePart** ppmvp);
+	
+	MacroValuePtr newPart(const qs::Part* pPart);
 	void deletePart(MacroValuePart* pmvp);
-	qs::QSTATUS newMessageList(const MacroValueMessageList::MessageList& l,
-		MacroValueMessageList** ppmvml);
+	
+	MacroValuePtr newMessageList(const MacroValueMessageList::MessageList& l);
 	void deleteMessageList(MacroValueMessageList* pmvml);
 	
 	void deleteValue(MacroValue* pmv);

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -23,8 +23,8 @@ using namespace qs;
  *
  */
 
-qmnntp::ReceivePage::ReceivePage(SubAccount* pSubAccount, QSTATUS* pstatus) :
-	DefaultPropertyPage(getResourceHandle(), IDD_RECEIVE, pstatus),
+qmnntp::ReceivePage::ReceivePage(SubAccount* pSubAccount) :
+	DefaultPropertyPage(getResourceHandle(), IDD_RECEIVE),
 	pSubAccount_(pSubAccount)
 {
 }
@@ -33,27 +33,18 @@ qmnntp::ReceivePage::~ReceivePage()
 {
 }
 
-LRESULT qmnntp::ReceivePage::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qmnntp::ReceivePage::onInitDialog(HWND hwndFocus,
+										  LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
-	int nInitialFetchCount = 0;
-	status = pSubAccount_->getProperty(L"Nntp",
-		L"InitialFetchCount", 300, &nInitialFetchCount);
-	CHECK_QSTATUS_VALUE(TRUE);
-	int nUseXOver = 0;
-	status = pSubAccount_->getProperty(L"Nntp", L"UseXOVER", 1, &nUseXOver);
-	CHECK_QSTATUS_VALUE(TRUE);
-	int nXOverStep = 0;
-	status = pSubAccount_->getProperty(L"Nntp", L"XOVERStep", 100, &nXOverStep);
-	CHECK_QSTATUS_VALUE(TRUE);
+	int nInitialFetchCount = pSubAccount_->getProperty(L"Nntp", L"InitialFetchCount", 300);
+	bool bUseXOver = pSubAccount_->getProperty(L"Nntp", L"UseXOVER", 1) != 0;
+	int nXOverStep = pSubAccount_->getProperty(L"Nntp", L"XOVERStep", 100);
 	
 	setDlgItemInt(IDC_PORT, pSubAccount_->getPort(Account::HOST_RECEIVE));
 	sendDlgItemMessage(IDC_SSL, BM_SETCHECK,
 		pSubAccount_->isSsl(Account::HOST_RECEIVE) ? BST_CHECKED : BST_UNCHECKED);
 	setDlgItemInt(IDC_INITIALFETCHCOUNT, nInitialFetchCount);
-	sendDlgItemMessage(IDC_XOVER, BM_SETCHECK,
-		nUseXOver ? BST_CHECKED : BST_UNCHECKED);
+	sendDlgItemMessage(IDC_XOVER, BM_SETCHECK, bUseXOver ? BST_CHECKED : BST_UNCHECKED);
 	setDlgItemInt(IDC_FETCHCOUNT, nXOverStep);
 	sendDlgItemMessage(IDC_LOG, BM_SETCHECK,
 		pSubAccount_->isLog(Account::HOST_RECEIVE) ? BST_CHECKED : BST_UNCHECKED);
@@ -93,8 +84,8 @@ LRESULT qmnntp::ReceivePage::onOk()
  *
  */
 
-qmnntp::SendPage::SendPage(SubAccount* pSubAccount, QSTATUS* pstatus) :
-	DefaultPropertyPage(getResourceHandle(), IDD_SEND, pstatus),
+qmnntp::SendPage::SendPage(SubAccount* pSubAccount) :
+	DefaultPropertyPage(getResourceHandle(), IDD_SEND),
 	pSubAccount_(pSubAccount)
 {
 }
@@ -103,10 +94,9 @@ qmnntp::SendPage::~SendPage()
 {
 }
 
-LRESULT qmnntp::SendPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qmnntp::SendPage::onInitDialog(HWND hwndFocus,
+									   LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
 	setDlgItemInt(IDC_PORT, pSubAccount_->getPort(Account::HOST_SEND));
 	sendDlgItemMessage(IDC_SSL, BM_SETCHECK,
 		pSubAccount_->isSsl(Account::HOST_SEND) ? BST_CHECKED : BST_UNCHECKED);

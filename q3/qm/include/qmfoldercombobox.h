@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -35,30 +35,39 @@ class FolderComboBox :
 	public View
 {
 public:
-	FolderComboBox(qs::WindowBase* pParentWindow, FolderModel* pFolderModel,
-		qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	FolderComboBox(qs::WindowBase* pParentWindow,
+				   FolderModel* pFolderModel,
+				   qs::Profile* pProfile);
 	virtual ~FolderComboBox();
 
 public:
-	virtual qs::QSTATUS getSuperClass(qs::WSTRING* pwstrSuperClass);
-	virtual qs::QSTATUS preCreateWindow(CREATESTRUCT* pCreateStruct);
-	virtual qs::QSTATUS getAccelerator(qs::Accelerator** ppAccelerator);
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual qs::wstring_ptr getSuperClass();
+	virtual bool preCreateWindow(CREATESTRUCT* pCreateStruct);
+	virtual qs::Accelerator* getAccelerator();
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
-	LRESULT onContextMenu(HWND hwnd, const POINT& pt);
+	LRESULT onContextMenu(HWND hwnd,
+						  const POINT& pt);
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
 	LRESULT onDestroy();
-	LRESULT onLButtonDown(UINT nFlags, const POINT& pt);
-	LRESULT onMessageAdded(WPARAM wParam, LPARAM lParam);
-	LRESULT onMessageRemoved(WPARAM wParam, LPARAM lParam);
-	LRESULT onMessageRefreshed(WPARAM wParam, LPARAM lParam);
-	LRESULT onMessageChanged(WPARAM wParam, LPARAM lParam);
+	LRESULT onLButtonDown(UINT nFlags,
+						  const POINT& pt);
+	LRESULT onMessageAdded(WPARAM wParam,
+						   LPARAM lParam);
+	LRESULT onMessageRemoved(WPARAM wParam,
+							 LPARAM lParam);
+	LRESULT onMessageRefreshed(WPARAM wParam,
+							   LPARAM lParam);
+	LRESULT onMessageChanged(WPARAM wParam,
+							 LPARAM lParam);
 
 public:
 	virtual bool isShow() const;
 	virtual bool isActive() const;
-	virtual qs::QSTATUS setActive();
+	virtual void setActive();
 
 private:
 	FolderComboBox(const FolderComboBox&);

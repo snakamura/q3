@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -48,8 +48,9 @@ qm::SearchUI::~SearchUI()
  *
  */
 
-qm::SearchPropertyPage::SearchPropertyPage(HINSTANCE hInst, UINT nId, QSTATUS* pstatus) :
-	DefaultPropertyPage(hInst, nId, pstatus)
+qm::SearchPropertyPage::SearchPropertyPage(HINSTANCE hInst,
+										   UINT nId) :
+	DefaultPropertyPage(hInst, nId)
 {
 }
 
@@ -75,8 +76,7 @@ struct qm::SearchDriverFactoryImpl
 
 qm::SearchDriverFactoryImpl::FactoryList qm::SearchDriverFactoryImpl::listFactory__;
 
-qm::SearchDriverFactoryImpl::FactoryList::iterator
-	qm::SearchDriverFactoryImpl::getIterator(const WCHAR* pwszName)
+qm::SearchDriverFactoryImpl::FactoryList::iterator qm::SearchDriverFactoryImpl::getIterator(const WCHAR* pwszName)
 {
 	return std::find_if(listFactory__.begin(), listFactory__.end(),
 		std::bind2nd(
@@ -102,97 +102,53 @@ qm::SearchDriverFactory::~SearchDriverFactory()
 {
 }
 
-QSTATUS qm::SearchDriverFactory::getDriver(const WCHAR* pwszName,
-	Document* pDocument, Account* pAccount, HWND hwnd,
-	Profile* pProfile, SearchDriver** ppDriver)
+std::auto_ptr<SearchDriver> qm::SearchDriverFactory::getDriver(const WCHAR* pwszName,
+															   Document* pDocument,
+															   Account* pAccount,
+															   HWND hwnd,
+															   Profile* pProfile)
 {
-	assert(ppDriver);
-	
-	*ppDriver = 0;
-	
 	SearchDriverFactoryImpl::FactoryList::iterator it =
 		SearchDriverFactoryImpl::getIterator(pwszName);
 	if (it == SearchDriverFactoryImpl::listFactory__.end())
-		return QSTATUS_FAIL;
-	
-	return (*it).second->createDriver(pDocument, pAccount, hwnd, pProfile, ppDriver);
+		return 0;
+	else
+		return (*it).second->createDriver(pDocument, pAccount, hwnd, pProfile);
 }
 
-QSTATUS qm::SearchDriverFactory::getDriver(const WCHAR* pwszName,
-	Document* pDocument, Account* pAccount, HWND hwnd,
-	Profile* pProfile, std::auto_ptr<SearchDriver>* papDriver)
+std::auto_ptr<SearchUI> qm::SearchDriverFactory::getUI(const WCHAR* pwszName,
+													   Account* pAccount,
+													   Profile* pProfile)
 {
-	assert(papDriver);
-	
-	DECLARE_QSTATUS();
-	
-	SearchDriver* p = 0;
-	status = getDriver(pwszName, pDocument, pAccount, hwnd, pProfile, &p);
-	CHECK_QSTATUS();
-	papDriver->reset(p);
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::SearchDriverFactory::getUI(const WCHAR* pwszName,
-	Account* pAccount, Profile* pProfile, SearchUI** ppUI)
-{
-	assert(ppUI);
-	
-	*ppUI = 0;
-	
 	SearchDriverFactoryImpl::FactoryList::iterator it =
 		SearchDriverFactoryImpl::getIterator(pwszName);
 	if (it == SearchDriverFactoryImpl::listFactory__.end())
-		return QSTATUS_FAIL;
-	
-	return (*it).second->createUI(pAccount, pProfile, ppUI);
+		return 0;
+	else
+		return (*it).second->createUI(pAccount, pProfile);
 }
 
-QSTATUS qm::SearchDriverFactory::getUI(const WCHAR* pwszName,
-	Account* pAccount, Profile* pProfile, std::auto_ptr<SearchUI>* papUI)
-{
-	assert(papUI);
-	
-	DECLARE_QSTATUS();
-	
-	SearchUI* p = 0;
-	status = getUI(pwszName, pAccount, pProfile, &p);
-	CHECK_QSTATUS();
-	papUI->reset(p);
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::SearchDriverFactory::getNames(NameList* pList)
+void qm::SearchDriverFactory::getNames(NameList* pList)
 {
 	assert(pList);
 	
-	DECLARE_QSTATUS();
-	
-	status = STLWrapper<NameList>(*pList).resize(
-		SearchDriverFactoryImpl::listFactory__.size());
-	CHECK_QSTATUS();
+	pList->resize(SearchDriverFactoryImpl::listFactory__.size());
 	std::transform(SearchDriverFactoryImpl::listFactory__.begin(),
 		SearchDriverFactoryImpl::listFactory__.end(),
 		pList->begin(),
 		std::select1st<SearchDriverFactoryImpl::FactoryList::value_type>());
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::SearchDriverFactory::regist(const WCHAR* pwszName,
-	SearchDriverFactory* pFactory)
+void qm::SearchDriverFactory::registerFactory(const WCHAR* pwszName,
+											  SearchDriverFactory* pFactory)
 {
 	assert(pwszName);
 	assert(pFactory);
 	
-	return STLWrapper<SearchDriverFactoryImpl::FactoryList>(
-		SearchDriverFactoryImpl::listFactory__).push_back(
-			std::make_pair(pwszName, pFactory));
+	SearchDriverFactoryImpl::listFactory__.push_back(std::make_pair(pwszName, pFactory));
 }
 
-QSTATUS qm::SearchDriverFactory::unregist(const WCHAR* pwszName)
+void qm::SearchDriverFactory::unregisterFactory(const WCHAR* pwszName)
 {
 	assert(pwszName);
 	
@@ -200,8 +156,6 @@ QSTATUS qm::SearchDriverFactory::unregist(const WCHAR* pwszName)
 		SearchDriverFactoryImpl::getIterator(pwszName);
 	if (it != SearchDriverFactoryImpl::listFactory__.end())
 		SearchDriverFactoryImpl::listFactory__.erase(it);
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -212,44 +166,27 @@ QSTATUS qm::SearchDriverFactory::unregist(const WCHAR* pwszName)
  */
 
 qm::SearchContext::SearchContext(const WCHAR* pwszCondition,
-	const WCHAR* pwszTargetFolder, bool bRecursive, QSTATUS* pstatus) :
-	wstrCondition_(0),
-	wstrTargetFolder_(0),
+								 const WCHAR* pwszTargetFolder,
+								 bool bRecursive) :
 	bRecursive_(bRecursive)
 {
-	string_ptr<WSTRING> wstrCondition(allocWString(pwszCondition));
-	if (!wstrCondition.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
-	
-	string_ptr<WSTRING> wstrTargetFolder;
-	if (pwszTargetFolder) {
-		wstrTargetFolder.reset(allocWString(pwszTargetFolder));
-		if (!wstrTargetFolder.get()) {
-			*pstatus = QSTATUS_OUTOFMEMORY;
-			return;
-		}
-	}
-	
-	wstrCondition_ = wstrCondition.release();
-	wstrTargetFolder_ = wstrTargetFolder.release();
+	wstrCondition_ = (allocWString(pwszCondition));
+	if (pwszTargetFolder)
+		wstrTargetFolder_ = allocWString(pwszTargetFolder);
 }
 
 qm::SearchContext::~SearchContext()
 {
-	freeWString(wstrCondition_);
-	freeWString(wstrTargetFolder_);
 }
 
 const WCHAR* qm::SearchContext::getCondition() const
 {
-	return wstrCondition_;
+	return wstrCondition_.get();
 }
 
 const WCHAR* qm::SearchContext::getTargetFolder() const
 {
-	return wstrTargetFolder_;
+	return wstrTargetFolder_.get();
 }
 
 bool qm::SearchContext::isRecursive() const
@@ -257,61 +194,41 @@ bool qm::SearchContext::isRecursive() const
 	return bRecursive_;
 }
 
-QSTATUS qm::SearchContext::getTargetFolders(
-	Account* pAccount, FolderList* pList) const
+void qm::SearchContext::getTargetFolders(Account* pAccount,
+										 FolderList* pList) const
 {
 	assert(pAccount);
 	assert(pList);
 	
-	DECLARE_QSTATUS();
-	
 	Folder* pTargetFolder = 0;
-	if (wstrTargetFolder_) {
-		status = pAccount->getFolder(wstrTargetFolder_, &pTargetFolder);
-		CHECK_QSTATUS();
-	}
+	if (wstrTargetFolder_.get())
+		pTargetFolder = pAccount->getFolder(wstrTargetFolder_.get());
 	
 	if (pTargetFolder) {
 		if (bRecursive_) {
 			const Account::FolderList& l = pAccount->getFolders();
-			Account::FolderList::const_iterator it = l.begin();
-			while (it != l.end()) {
+			for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 				Folder* pFolder = *it;
 				
 				if (pFolder->getType() == Folder::TYPE_NORMAL &&
 					!pFolder->isHidden() &&
 					(pFolder == pTargetFolder ||
-					pTargetFolder->isAncestorOf(pFolder))) {
-					status = STLWrapper<FolderList>(*pList).push_back(
-						static_cast<NormalFolder*>(pFolder));
-					CHECK_QSTATUS();
-				}
-				
-				++it;
+					pTargetFolder->isAncestorOf(pFolder)))
+					pList->push_back(static_cast<NormalFolder*>(pFolder));
 			}
 		}
 		else {
-			if (pTargetFolder->getType() == Folder::TYPE_NORMAL) {
-				status = STLWrapper<FolderList>(*pList).push_back(
-					static_cast<NormalFolder*>(pTargetFolder));
-				CHECK_QSTATUS();
-			}
+			if (pTargetFolder->getType() == Folder::TYPE_NORMAL)
+				pList->push_back(static_cast<NormalFolder*>(pTargetFolder));
 		}
 	}
 	else {
 		const Account::FolderList& l = pAccount->getFolders();
-		Account::FolderList::const_iterator it = l.begin();
-		while (it != l.end()) {
+		for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 			Folder* pFolder = *it;
 			if (pFolder->getType() == Folder::TYPE_NORMAL &&
-				!pFolder->isFlag(Folder::FLAG_TRASHBOX)) {
-				status = STLWrapper<FolderList>(*pList).push_back(
-					static_cast<NormalFolder*>(pFolder));
-				CHECK_QSTATUS();
-			}
-			++it;
+				!pFolder->isFlag(Folder::FLAG_TRASHBOX))
+				pList->push_back(static_cast<NormalFolder*>(pFolder));
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }

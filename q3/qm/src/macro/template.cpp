@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -9,7 +9,6 @@
 #include <qmmacro.h>
 #include <qmtemplate.h>
 
-#include <qsnew.h>
 #include <qsstl.h>
 #include <qsstream.h>
 
@@ -27,15 +26,9 @@ using namespace qs;
  *
  */
 
-qm::Template::Template(const ValueList& l, QSTATUS* pstatus)
+qm::Template::Template(const ValueList& l) :
+	listValue_(l)
 {
-	assert(pstatus);
-	
-	DECLARE_QSTATUS();
-	
-	status = STLWrapper<ValueList>(listValue_).resize(l.size());
-	CHECK_QSTATUS_SET(pstatus);
-	std::copy(l.begin(), l.end(), listValue_.begin());
 }
 
 qm::Template::~Template()
@@ -44,69 +37,35 @@ qm::Template::~Template()
 		unary_compose_fx_gx(string_free<WSTRING>(), deleter<Macro>()));
 }
 
-QSTATUS qm::Template::getValue(
-	const TemplateContext& context, WSTRING* pwstrValue) const
+wstring_ptr qm::Template::getValue(const TemplateContext& context) const
 {
-	assert(pwstrValue);
+	StringBuffer<WSTRING> buf;
 	
-	DECLARE_QSTATUS();
-	
-	*pwstrValue = 0;
-	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
-	
-	MacroVariableHolder globalVariable(&status);
-	CHECK_QSTATUS();
+	MacroVariableHolder globalVariable;
 	
 	const TemplateContext::ArgumentList& l = context.getArgumentList();
-	TemplateContext::ArgumentList::const_iterator itA = l.begin();
-	while (itA != l.end()) {
-		MacroValuePtr pValue;
-		status = MacroValueFactory::getFactory().newString((*itA).pwszValue_,
-			reinterpret_cast<MacroValueString**>(&pValue));
-		CHECK_QSTATUS();
-		status = globalVariable.setVariable((*itA).pwszName_, pValue.get());
-		CHECK_QSTATUS();
-		++itA;
+	for (TemplateContext::ArgumentList::const_iterator itA = l.begin(); itA != l.end(); ++itA) {
+		MacroValuePtr pValue(MacroValueFactory::getFactory().newString((*itA).pwszValue_));
+		globalVariable.setVariable((*itA).pwszName_, pValue.get());
 	}
 	
-	ValueList::const_iterator itV = listValue_.begin();
-	while (itV != listValue_.end()) {
-		status = buf.append((*itV).first);
-		CHECK_QSTATUS();
+	for (ValueList::const_iterator itV = listValue_.begin(); itV != listValue_.end(); ++itV) {
+		buf.append((*itV).first);
 		
 		if ((*itV).second) {
-			MacroContext::Init init = {
-				context.getMessageHolder(),
-				context.getMessage(),
-				context.getAccount(),
-				context.getDocument(),
-				context.getWindow(),
-				context.getProfile(),
-				false,
-				context.getErrorHandler(),
-				&globalVariable
-			};
-			MacroContext c(init, &status);
-			CHECK_QSTATUS();
-			MacroValue* pValue = 0;
-			status = (*itV).second->value(&c, &pValue);
-			CHECK_QSTATUS();
-			MacroValuePtr apValue(pValue);
-			string_ptr<WSTRING> wstrValue;
-			status = pValue->string(&wstrValue);
-			CHECK_QSTATUS();
-			status = buf.append(wstrValue.get());
-			CHECK_QSTATUS();
+			MacroContext c(context.getMessageHolder(), context.getMessage(),
+				context.getAccount(), context.getDocument(),
+				context.getWindow(), context.getProfile(), false,
+				context.getErrorHandler(), &globalVariable);
+			MacroValuePtr pValue((*itV).second->value(&c));
+			if (!pValue.get())
+				return 0;
+			wstring_ptr wstrValue(pValue->string());
+			buf.append(wstrValue.get());
 		}
-		
-		++itV;
 	}
 	
-	*pwstrValue = buf.getString();
-	
-	return QSTATUS_SUCCESS;
+	return buf.getString();
 }
 
 
@@ -117,9 +76,13 @@ QSTATUS qm::Template::getValue(
  */
 
 qm::TemplateContext::TemplateContext(MessageHolderBase* pmh,
-	Message* pMessage, Account* pAccount, Document* pDocument, HWND hwnd,
-	Profile* pProfile, MacroErrorHandler* pErrorHandler,
-	const ArgumentList& listArgument, QSTATUS* pstatus) :
+									 Message* pMessage,
+									 Account* pAccount,
+									 Document* pDocument,
+									 HWND hwnd,
+									 Profile* pProfile,
+									 MacroErrorHandler* pErrorHandler,
+									 const ArgumentList& listArgument) :
 	pmh_(pmh),
 	pMessage_(pMessage),
 	pAccount_(pAccount),
@@ -129,8 +92,6 @@ qm::TemplateContext::TemplateContext(MessageHolderBase* pmh,
 	pErrorHandler_(pErrorHandler),
 	listArgument_(listArgument)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::TemplateContext::~TemplateContext()
@@ -184,7 +145,7 @@ const TemplateContext::ArgumentList& qm::TemplateContext::getArgumentList() cons
  *
  */
 
-qm::TemplateParser::TemplateParser(QSTATUS* pstatus)
+qm::TemplateParser::TemplateParser()
 {
 }
 
@@ -192,19 +153,18 @@ qm::TemplateParser::~TemplateParser()
 {
 }
 
-QSTATUS qm::TemplateParser::parse(Reader* pReader, Template** ppTemplate)
+std::auto_ptr<Template> qm::TemplateParser::parse(Reader* pReader) const
 {
 	assert(pReader);
-	assert(ppTemplate);
-	
-	DECLARE_QSTATUS();
-	
-	*ppTemplate = 0;
 	
 	Template::ValueList listValue;
 	struct Deleter
 	{
-		Deleter(Template::ValueList&l ) : p_(&l) {}
+		Deleter(Template::ValueList&l ) :
+			p_(&l)
+		{
+		}
+
 		~Deleter()
 		{
 			if (p_) {
@@ -214,15 +174,19 @@ QSTATUS qm::TemplateParser::parse(Reader* pReader, Template** ppTemplate)
 				p_->clear();
 			}
 		}
-		void release() { p_ = 0; }
+		
+		void release()
+		{
+			p_ = 0;
+		}
+
 		Template::ValueList* p_;
 	} deleter(listValue);
 	
-	MacroParser parser(MacroParser::TYPE_TEMPLATE, &status);
-	CHECK_QSTATUS();
+	MacroParser parser(MacroParser::TYPE_TEMPLATE);
 	
-	StringBuffer<WSTRING> bufText(&status);
-	StringBuffer<WSTRING> bufMacro(&status);
+	StringBuffer<WSTRING> bufText;
+	StringBuffer<WSTRING> bufMacro;
 	bool bMacro = false;
 	WCHAR cNext = L'\0';
 	while (true) {
@@ -232,21 +196,21 @@ QSTATUS qm::TemplateParser::parse(Reader* pReader, Template** ppTemplate)
 			cNext = L'\0';
 		}
 		else {
-			size_t nRead = 0;
-			status = pReader->read(&c, 1, &nRead);
-			CHECK_QSTATUS();
-			if (nRead != 1)
+			size_t nRead = pReader->read(&c, 1);
+			if (nRead == -1)
+				return 0;
+			else if (nRead != 1)
 				break;
 		}
 		
 		if (!bMacro) {
 			if (c == L'{') {
-				size_t nRead = 0;
-				status = pReader->read(&c, 1, &nRead);
-				CHECK_QSTATUS();
-				if (nRead == 1 && c == L'{') {
-					status = bufText.append(L'{');
-					CHECK_QSTATUS();
+				size_t nRead = pReader->read(&c, 1);
+				if (nRead == -1) {
+					return 0;
+				}
+				else if (nRead == 1 && c == L'{') {
+					bufText.append(L'{');
 				}
 				else {
 					bMacro = true;
@@ -255,48 +219,42 @@ QSTATUS qm::TemplateParser::parse(Reader* pReader, Template** ppTemplate)
 				}
 			}
 			else if (c == L'}') {
-				status = bufText.append(L'}');
-				CHECK_QSTATUS();
-				size_t nRead = 0;
-				status = pReader->read(&c, 1, &nRead);
-				CHECK_QSTATUS();
-				if (nRead == 1 && c != L'}')
+				bufText.append(L'}');
+				size_t nRead = pReader->read(&c, 1);
+				if (nRead == -1)
+					return 0;
+				else if (nRead == 1 && c != L'}')
 					cNext = c;
 			}
 			else {
-				status = bufText.append(c);
-				CHECK_QSTATUS();
+				bufText.append(c);
 			}
 		}
 		else {
 			if (c == L'{') {
-				status = bufMacro.append(L'{');
-				CHECK_QSTATUS();
-				size_t nRead = 0;
-				status = pReader->read(&c, 1, &nRead);
-				CHECK_QSTATUS();
-				if (nRead == 1 && c != L'{')
+				bufMacro.append(L'{');
+				size_t nRead = pReader->read(&c, 1);
+				if (nRead == -1)
+					return 0;
+				else if (nRead == 1 && c != L'{')
 					cNext = c;
 			}
 			else if (c == L'}') {
-				size_t nRead = 0;
-				status = pReader->read(&c, 1, &nRead);
-				CHECK_QSTATUS();
-				if (nRead == 1 && c == L'}') {
-					status = bufMacro.append(L'}');
-					CHECK_QSTATUS();
+				size_t nRead = pReader->read(&c, 1);
+				if (nRead == -1) {
+					return 0;
+				}
+				else if (nRead == 1 && c == L'}') {
+					bufMacro.append(L'}');
 				}
 				else {
-					Macro* pMacro = 0;
-					status = parser.parse(bufMacro.getCharArray(), &pMacro);
-					CHECK_QSTATUS();
-					std::auto_ptr<Macro> apMacro(pMacro);
-					string_ptr<WSTRING> wstrText(bufText.getString());
-					status = STLWrapper<Template::ValueList>(listValue
-						).push_back(std::make_pair(wstrText.get(), pMacro));
-					CHECK_QSTATUS();
+					std::auto_ptr<Macro> pMacro(parser.parse(bufMacro.getCharArray()));
+					if (!pMacro.get())
+						return 0;
+					wstring_ptr wstrText(bufText.getString());
+					listValue.push_back(std::make_pair(wstrText.get(), pMacro.get()));
 					wstrText.release();
-					apMacro.release();
+					pMacro.release();
 					bufText.remove();
 					bufMacro.remove();
 					bMacro = false;
@@ -305,25 +263,17 @@ QSTATUS qm::TemplateParser::parse(Reader* pReader, Template** ppTemplate)
 				}
 			}
 			else {
-				status = bufMacro.append(c);
-				CHECK_QSTATUS();
+				bufMacro.append(c);
 			}
 		}
 	}
 	if (bufText.getLength() != 0) {
-		string_ptr<WSTRING> wstrText(bufText.getString());
-		status = STLWrapper<Template::ValueList>(listValue).push_back(
-			std::make_pair(wstrText.get(), static_cast<Macro*>(0)));
-		CHECK_QSTATUS();
+		wstring_ptr wstrText(bufText.getString());
+		listValue.push_back(Template::ValueList::value_type(wstrText.get(), 0));
 		wstrText.release();
 	}
 	
-	std::auto_ptr<Template> pTemplate;
-	status = newQsObject(listValue, &pTemplate);
-	CHECK_QSTATUS();
+	std::auto_ptr<Template> pTemplate(new Template(listValue));
 	deleter.release();
-	
-	*ppTemplate = pTemplate.release();
-	
-	return QSTATUS_SUCCESS;
+	return pTemplate;
 }

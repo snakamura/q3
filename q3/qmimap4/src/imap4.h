@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -143,60 +143,70 @@ public:
 	};
 
 public:
-	struct Option
-	{
-		long nTimeout_;
-		qs::SocketCallback* pSocketCallback_;
-		qs::SSLSocketCallback* pSSLSocketCallback_;
-		Imap4Callback* pImap4Callback_;
-		qs::Logger* pLogger_;
-	};
-
-public:
-	Imap4(const Option& option, qs::QSTATUS* pstatus);
+	Imap4(long nTimeout,
+		  qs::SocketCallback* pSocketCallback,
+		  qs::SSLSocketCallback* pSSLSocketCallback,
+		  Imap4Callback* pImap4Callback,
+		  qs::Logger* pLogger);
 	~Imap4();
 
 public:
-	qs::QSTATUS connect(const WCHAR* pwszHost, short nPort, Ssl ssl);
-	qs::QSTATUS disconnect();
-	qs::QSTATUS checkConnection();
+	bool connect(const WCHAR* pwszHost,
+				 short nPort,
+				 Ssl ssl);
+	void disconnect();
+	bool checkConnection();
 	
-	qs::QSTATUS select(const WCHAR* pwszFolderName);
-	qs::QSTATUS close();
-	qs::QSTATUS noop();
+	bool select(const WCHAR* pwszFolderName);
+	bool close();
+	bool noop();
 	
-	qs::QSTATUS fetch(const Range& range, const CHAR* pszFetch);
-	qs::QSTATUS store(const Range& range, const CHAR* pszStore);
-	qs::QSTATUS copy(const Range& range, const WCHAR* pwszFolderName);
-	qs::QSTATUS search(const WCHAR* pwszSearch,
-		const WCHAR* pwszCharset, bool bUseCharset, bool bUid);
-	qs::QSTATUS expunge();
+	bool fetch(const Range& range,
+			   const CHAR* pszFetch);
+	bool store(const Range& range,
+			   const CHAR* pszStore);
+	bool copy(const Range& range,
+			  const WCHAR* pwszFolderName);
+	bool search(const WCHAR* pwszSearch,
+				const WCHAR* pwszCharset,
+				bool bUseCharset,
+				bool bUid);
+	bool expunge();
 	
-	qs::QSTATUS append(const WCHAR* pwszFolderName,
-		const CHAR* pszMessage, const Flags& flags);
-	qs::QSTATUS list(bool bSubscribeOnly,
-		const WCHAR* pwszRef, const WCHAR* pwszMailbox);
-	qs::QSTATUS create(const WCHAR* pwszFolderName);
-	qs::QSTATUS remove(const WCHAR* pwszFolderName);
-	qs::QSTATUS rename(const WCHAR* pwszOldFolderName,
-		const WCHAR* pwszNewFolderName);
-	qs::QSTATUS subscribe(const WCHAR* pwszFolderName);
-	qs::QSTATUS unsubscribe(const WCHAR* pwszFolderName);
-	qs::QSTATUS namespaceList();
+	bool append(const WCHAR* pwszFolderName,
+				const CHAR* pszMessage,
+				const Flags& flags);
+	bool list(bool bSubscribeOnly,
+			  const WCHAR* pwszRef,
+			  const WCHAR* pwszMailbox);
+	bool create(const WCHAR* pwszFolderName);
+	bool remove(const WCHAR* pwszFolderName);
+	bool rename(const WCHAR* pwszOldFolderName,
+				const WCHAR* pwszNewFolderName);
+	bool subscribe(const WCHAR* pwszFolderName);
+	bool unsubscribe(const WCHAR* pwszFolderName);
+	bool namespaceList();
 	
+	bool getFlags(const Range& range);
+	bool setFlags(const Range& range,
+				  const Flags& flags,
+				  const Flags& mask);
 	
-	qs::QSTATUS getFlags(const Range& range);
-	qs::QSTATUS setFlags(const Range& range,
-		const Flags& flags, const Flags& mask);
-	
-	qs::QSTATUS getMessageData(const Range& range,
-		bool bClientParse, bool bBody, const CHAR* pszFields);
-	qs::QSTATUS getMessage(const Range& range, bool bPeek);
-	qs::QSTATUS getHeader(const Range& range, bool bPeek);
-	qs::QSTATUS getBodyStructure(const Range& range);
-	qs::QSTATUS getPart(const Range& range, const PartPath& path);
-	qs::QSTATUS getPartMime(const Range& range, const PartPath& path);
-	qs::QSTATUS getPartBody(const Range& range, const PartPath& path);
+	bool getMessageData(const Range& range,
+						bool bClientParse,
+						bool bBody,
+						const CHAR* pszFields);
+	bool getMessage(const Range& range,
+					bool bPeek);
+	bool getHeader(const Range& range,
+				   bool bPeek);
+	bool getBodyStructure(const Range& range);
+	bool getPart(const Range& range,
+				 const PartPath& path);
+	bool getPartMime(const Range& range,
+					 const PartPath& path);
+	bool getPartBody(const Range& range,
+					 const PartPath& path);
 	
 	unsigned int getCapability() const;
 	
@@ -204,26 +214,35 @@ public:
 	const WCHAR* getLastErrorResponse() const;
 
 private:
-	qs::QSTATUS processGreeting();
-	qs::QSTATUS processCapability();
-	qs::QSTATUS processLogin();
-	qs::QSTATUS receive(const CHAR* pszTag,
-		bool bAcceptContinue, ParserCallback* pCallback);
-	qs::QSTATUS sendCommand(const CHAR* pszCommand, ParserCallback* pCallback);
-	qs::QSTATUS sendCommand(const CHAR* pszCommand,
-		qs::STRING* pstrTag, ParserCallback* pCallback);
-	qs::QSTATUS send(const CHAR* pszContent, const CHAR* pszTag,
-		bool bAcceptContinue, ParserCallback* pCallback);
-	qs::QSTATUS send(const CHAR** pszContents, size_t nCount,
-		const CHAR* pszTag, bool bAcceptContinue, ParserCallback* pCallback);
-	qs::QSTATUS sendCommandTokens(const CommandToken* pTokens, size_t nCount);
-	qs::QSTATUS getTag(qs::STRING* pstrTag);
-	qs::QSTATUS getAuthMethods(unsigned int* pnAuth);
+	bool processGreeting();
+	bool processCapability();
+	bool processLogin();
+	bool receive(const CHAR* pszTag,
+				 bool bAcceptContinue,
+				 ParserCallback* pCallback);
+	bool sendCommand(const CHAR* pszCommand,
+					 ParserCallback* pCallback);
+	bool sendCommand(const CHAR* pszCommand,
+					 qs::string_ptr* pstrTag,
+					 ParserCallback* pCallback);
+	bool send(const CHAR* pszContent,
+			  const CHAR* pszTag,
+			  bool bAcceptContinue,
+			  ParserCallback* pCallback);
+	bool send(const CHAR** pszContents,
+			  size_t nCount,
+			  const CHAR* pszTag,
+			  bool bAcceptContinue,
+			  ParserCallback* pCallback);
+	bool sendCommandTokens(const CommandToken* pTokens,
+						   size_t nCount);
+	qs::string_ptr getTag();
+	unsigned int getAuthMethods();
 
 private:
-	static qs::QSTATUS getQuotedString(const CHAR* psz, qs::STRING* pstrQuoted);
-	static qs::QSTATUS encodeSearchString(const WCHAR* pwsz,
-		const WCHAR* pwszCharset, qs::STRING* pstr);
+	static qs::string_ptr getQuotedString(const CHAR* psz);
+	static qs::string_ptr encodeSearchString(const WCHAR* pwsz,
+											 const WCHAR* pwszCharset);
 
 private:
 	Imap4(const Imap4&);
@@ -245,14 +264,14 @@ private:
 	qs::SSLSocketCallback* pSSLSocketCallback_;
 	Imap4Callback* pImap4Callback_;
 	qs::Logger* pLogger_;
-	qs::SocketBase* pSocket_;
-	qs::STRING strOverBuf_;
+	std::auto_ptr<qs::SocketBase> pSocket_;
+	qs::string_ptr strOverBuf_;
 	unsigned int nCapability_;
 	unsigned int nAuth_;
 	bool bDisconnected_;
 	unsigned int nTag_;
 	unsigned int nError_;
-	qs::UTF7Converter* pUTF7Converter_;
+	qs::UTF7Converter utf7Converter_;
 };
 
 
@@ -268,16 +287,17 @@ public:
 	virtual ~Imap4Callback();
 
 public:
-	virtual qs::QSTATUS getUserInfo(qs::WSTRING* pwstrUserName,
-		qs::WSTRING* pwstrPassword) = 0;
-	virtual qs::QSTATUS setPassword(const WCHAR* pwszPassword) = 0;
-	virtual qs::QSTATUS getAuthMethods(qs::WSTRING* pwstrAuthMethods) = 0;
+	virtual bool getUserInfo(qs::wstring_ptr* pwstrUserName,
+							 qs::wstring_ptr* pwstrPassword) = 0;
+	virtual void setPassword(const WCHAR* pwszPassword) = 0;
+	virtual qs::wstring_ptr getAuthMethods() = 0;
 	
-	virtual qs::QSTATUS authenticating() = 0;
-	virtual qs::QSTATUS setRange(unsigned int nMin, unsigned int nMax) = 0;
-	virtual qs::QSTATUS setPos(unsigned int nPos) = 0;
+	virtual void authenticating() = 0;
+	virtual void setRange(unsigned int nMin,
+						  unsigned int nMax) = 0;
+	virtual void setPos(unsigned int nPos) = 0;
 	
-	virtual qs::QSTATUS response(Response* pResponse) = 0;
+	virtual bool response(Response* pResponse) = 0;
 };
 
 
@@ -317,7 +337,7 @@ public:
 	virtual const CHAR* getRange() const;
 
 protected:
-	qs::QSTATUS setRange(const CHAR* pszRange);
+	void setRange(const CHAR* pszRange);
 
 private:
 	DefaultRange(const DefaultRange&);
@@ -325,7 +345,7 @@ private:
 
 private:
 	bool bUid_;
-	qs::STRING strRange_;
+	qs::string_ptr strRange_;
 };
 
 
@@ -338,7 +358,8 @@ private:
 class SingleRange : public DefaultRange
 {
 public:
-	SingleRange(unsigned long n, bool bUid, qs::QSTATUS* pstatus);
+	SingleRange(unsigned long n,
+				bool bUid);
 	virtual ~SingleRange();
 
 private:
@@ -356,8 +377,9 @@ private:
 class ContinuousRange : public DefaultRange
 {
 public:
-	ContinuousRange(unsigned long nBegin, unsigned long nEnd,
-		bool bUid, qs::QSTATUS* pstatus);
+	ContinuousRange(unsigned long nBegin,
+					unsigned long nEnd,
+					bool bUid);
 	virtual ~ContinuousRange();
 
 private:
@@ -375,8 +397,9 @@ private:
 class MultipleRange : public DefaultRange
 {
 public:
-	MultipleRange(const unsigned long* pn, size_t nCount,
-		bool bUid, qs::QSTATUS* pstatus);
+	MultipleRange(const unsigned long* pn,
+				  size_t nCount,
+				  bool bUid);
 	virtual ~MultipleRange();
 
 private:
@@ -394,7 +417,8 @@ private:
 class TextRange : public DefaultRange
 {
 public:
-	TextRange(const CHAR* pszRange, bool bUid, qs::QSTATUS* pstatus);
+	TextRange(const CHAR* pszRange,
+			  bool bUid);
 	virtual ~TextRange();
 
 private:
@@ -412,15 +436,16 @@ private:
 class Flags
 {
 public:
-	Flags(unsigned int nSystemFlags, qs::QSTATUS* pstatus);
-	Flags(unsigned int nSystemFlags, const CHAR** pszUserFlags,
-		size_t nCount, qs::QSTATUS* pstatus);
+	explicit Flags(unsigned int nSystemFlags);
+	Flags(unsigned int nSystemFlags,
+		  const CHAR** pszUserFlags,
+		  size_t nCount);
 	~Flags();
 
 public:
-	qs::QSTATUS getString(qs::STRING* pstr) const;
-	qs::QSTATUS getAdded(const Flags& mask, qs::STRING* pstr) const;
-	qs::QSTATUS getRemoved(const Flags& mask, qs::STRING* pstr) const;
+	qs::string_ptr getString() const;
+	qs::string_ptr getAdded(const Flags& mask) const;
+	qs::string_ptr getRemoved(const Flags& mask) const;
 
 public:
 	bool contains(Imap4::Flag flag) const;
@@ -430,9 +455,11 @@ public:
 	static const CHAR* getFlagString(Imap4::Flag flag);
 
 private:
-	qs::QSTATUS init(unsigned int nSystemFlags,
-		const CHAR** pszUserFlags, size_t nCount);
-	qs::QSTATUS getString(const Flags& mask, bool bAdd, qs::STRING* pstr) const;
+	void init(unsigned int nSystemFlags,
+			  const CHAR** pszUserFlags,
+			  size_t nCount);
+	qs::string_ptr getString(const Flags& mask,
+							 bool bAdd) const;
 
 private:
 	typedef std::vector<qs::STRING> FlagList;
@@ -456,7 +483,8 @@ private:
 class PartPath
 {
 public:
-	PartPath(const unsigned int* pnPart, size_t nCount, qs::QSTATUS* pstatus);
+	PartPath(const unsigned int* pnPart,
+			 size_t nCount);
 	~PartPath();
 
 public:
@@ -467,7 +495,7 @@ private:
 	PartPath& operator=(const PartPath&);
 
 private:
-	qs::STRING strPath_;
+	qs::string_ptr strPath_;
 };
 
 
@@ -495,8 +523,10 @@ public:
 		TYPE_STATUS
 	};
 
-public:
+protected:
 	Response(Type type);
+
+public:
 	virtual ~Response();
 
 public:
@@ -520,7 +550,7 @@ private:
 class ResponseCapability : public Response
 {
 public:
-	ResponseCapability(qs::QSTATUS* pstatus);
+	ResponseCapability();
 	virtual ~ResponseCapability();
 
 public:
@@ -528,7 +558,7 @@ public:
 	bool isSupportAuth(const CHAR* pszAuth) const;
 
 public:
-	qs::QSTATUS add(const CHAR* psz);
+	void add(const CHAR* psz);
 
 private:
 	ResponseCapability(const ResponseCapability&);
@@ -552,7 +582,7 @@ private:
 class ResponseContinue : public Response
 {
 public:
-	ResponseContinue(State* pState, qs::QSTATUS* pstatus);
+	ResponseContinue(std::auto_ptr<State> pState);
 	virtual ~ResponseContinue();
 
 public:
@@ -563,7 +593,7 @@ private:
 	ResponseContinue& operator=(const ResponseContinue&);
 
 private:
-	State* pState_;
+	std::auto_ptr<State> pState_;
 };
 
 
@@ -576,7 +606,7 @@ private:
 class ResponseExists : public Response
 {
 public:
-	ResponseExists(unsigned long nExists, qs::QSTATUS* pstatus);
+	ResponseExists(unsigned long nExists);
 	virtual ~ResponseExists();
 
 public:
@@ -600,7 +630,7 @@ private:
 class ResponseExpunge : public Response
 {
 public:
-	ResponseExpunge(unsigned long nExpunge, qs::QSTATUS* pstatus);
+	ResponseExpunge(unsigned long nExpunge);
 	virtual ~ResponseExpunge();
 
 public:
@@ -627,7 +657,8 @@ public:
 	typedef std::vector<FetchData*> FetchDataList;
 
 public:
-	ResponseFetch(unsigned long nNumber, List* pList, qs::QSTATUS* pstatus);
+	ResponseFetch(unsigned long nNumber,
+				  FetchDataList& listData);
 	virtual ~ResponseFetch();
 
 public:
@@ -635,6 +666,10 @@ public:
 	bool isUid(unsigned long nUid) const;
 	const FetchDataList& getFetchDataList() const;
 	FetchData* detach(FetchData* pFetchData);
+
+public:
+	static std::auto_ptr<ResponseFetch> create(unsigned long nNumber,
+											   List* pList);
 
 private:
 	ResponseFetch(const ResponseFetch&);
@@ -658,12 +693,16 @@ public:
 	typedef std::vector<qs::STRING> FlagList;
 
 public:
-	ResponseFlags(List* pList, qs::QSTATUS* pstatus);
+	ResponseFlags(unsigned int nSystemFlags,
+				  FlagList& listCustomFlag);
 	virtual ~ResponseFlags();
 
 public:
 	unsigned int getSystemFlags() const;
 	const FlagList& getCustomFlags() const;
+
+public:
+	static std::auto_ptr<ResponseFlags> create(List* pList);
 
 private:
 	ResponseFlags(const ResponseFlags&);
@@ -692,8 +731,10 @@ public:
 	};
 
 public:
-	ResponseList(bool bList, List* pListAttribute, CHAR cSeparator,
-		const CHAR* pszMailbox, qs::QSTATUS* pstatus);
+	ResponseList(bool bList,
+				 unsigned int nAttributes,
+				 WCHAR cSeparator,
+				 const WCHAR* pwszMailbox);
 	virtual ~ResponseList();
 
 public:
@@ -701,6 +742,12 @@ public:
 	unsigned int getAttributes() const;
 	WCHAR getSeparator() const;
 	const WCHAR* getMailbox() const;
+
+public:
+	static std::auto_ptr<ResponseList> create(bool bList,
+											  List* pListAttribute,
+											  CHAR cSeparator,
+											  const CHAR* pszMailbox);
 
 private:
 	ResponseList(const ResponseList&);
@@ -710,7 +757,7 @@ private:
 	bool bList_;
 	unsigned int nAttributes_;
 	WCHAR cSeparator_;
-	qs::WSTRING wstrMailbox_;
+	qs::wstring_ptr wstrMailbox_;
 };
 
 
@@ -726,14 +773,20 @@ public:
 	typedef std::vector<std::pair<qs::WSTRING, WCHAR> > NamespaceList;
 
 public:
-	ResponseNamespace(List* pListPersonal, List* pListOthers,
-		List* pListShared, qs::QSTATUS* pstatus);
+	ResponseNamespace(NamespaceList& listPersonal,
+					  NamespaceList& listOthers,
+					  NamespaceList& listShared);
 	virtual ~ResponseNamespace();
 
 public:
 	const NamespaceList& getPersonal() const;
 	const NamespaceList& getOthers() const;
 	const NamespaceList& getShared() const;
+
+public:
+	static std::auto_ptr<ResponseNamespace> create(List* pListPersonal,
+												   List* pListOthers,
+												   List* pListShared);
 
 private:
 	ResponseNamespace(const ResponseNamespace&);
@@ -755,7 +808,7 @@ private:
 class ResponseRecent : public Response
 {
 public:
-	ResponseRecent(unsigned long nRecent, qs::QSTATUS* pstatus);
+	explicit ResponseRecent(unsigned long nRecent);
 	virtual ~ResponseRecent();
 
 public:
@@ -782,14 +835,14 @@ public:
 	typedef std::vector<unsigned long> ResultList;
 
 public:
-	ResponseSearch(qs::QSTATUS* pstatus);
+	ResponseSearch();
 	virtual ~ResponseSearch();
 
 public:
 	const ResultList& getResult() const;
 
 public:
-	qs::QSTATUS add(unsigned long n);
+	void add(unsigned long n);
 
 private:
 	ResponseSearch(const ResponseSearch&);
@@ -819,7 +872,7 @@ public:
 	};
 
 public:
-	ResponseState(Flag flag, qs::QSTATUS* pstatus);
+	explicit ResponseState(Flag flag);
 	virtual ~ResponseState();
 
 public:
@@ -827,7 +880,7 @@ public:
 	State* getState() const;
 
 public:
-	void setState(State* pState);
+	void setState(std::auto_ptr<State> pState);
 
 private:
 	ResponseState(const ResponseState&);
@@ -835,7 +888,7 @@ private:
 
 private:
 	Flag flag_;
-	State* pState_;
+	std::auto_ptr<State> pState_;
 };
 
 
@@ -861,19 +914,24 @@ public:
 	typedef std::vector<std::pair<Status, unsigned int> > StatusList;
 
 public:
-	ResponseStatus(const CHAR* pszMailbox, List* pList, qs::QSTATUS* pstatus);
+	ResponseStatus(const WCHAR* pwszMailbox,
+				   StatusList& listStatus);
 	virtual ~ResponseStatus();
 
 public:
 	const WCHAR* getMailbox() const;
 	const StatusList& getStatusList() const;
 
+public:
+	static std::auto_ptr<ResponseStatus> create(const CHAR* pszMailbox,
+												List* pList);
+
 private:
 	ResponseStatus(const ResponseStatus&);
 	ResponseStatus& operator=(const ResponseStatus&);
 
 private:
-	qs::WSTRING wstrMailbox_;
+	qs::wstring_ptr wstrMailbox_;
 	StatusList listStatus_;
 };
 
@@ -936,8 +994,10 @@ public:
 	typedef std::vector<qs::STRING> FieldList;
 
 public:
-	FetchDataBody(const CHAR* pszSection,
-		qs::STRING strContent, qs::QSTATUS* pstatus);
+	FetchDataBody(Section section,
+				  PartPath& partPath,
+				  FieldList& listField,
+				  qs::string_ptr strContent);
 	virtual ~FetchDataBody();
 
 public:
@@ -945,7 +1005,11 @@ public:
 	const PartPath& getPartPath() const;
 	const FieldList& getFieldList() const;
 	const CHAR* getContent() const;
-	qs::STRING releaseContent();
+	qs::string_ptr releaseContent();
+
+public:
+	static std::auto_ptr<FetchDataBody> create(const CHAR* pszSection,
+											   qs::string_ptr strContent);
 
 private:
 	FetchDataBody(const FetchDataBody&);
@@ -955,7 +1019,7 @@ private:
 	Section section_;
 	PartPath partPath_;
 	FieldList listField_;
-	qs::STRING strContent_;
+	qs::string_ptr strContent_;
 };
 
 
@@ -973,7 +1037,20 @@ public:
 	typedef std::vector<FetchDataBodyStructure*> ChildList;
 
 public:
-	FetchDataBodyStructure(List* pList, bool bExtended, qs::QSTATUS* pstatus);
+	FetchDataBodyStructure(qs::string_ptr strContentType,
+						   qs::string_ptr strContentSubType,
+						   ParamList& listContentTypeParam,
+						   qs::string_ptr strId,
+						   qs::string_ptr strDescription,
+						   qs::string_ptr strEncoding,
+						   unsigned long nSize,
+						   unsigned long nLine,
+						   qs::string_ptr strMd5,
+						   qs::string_ptr strDisposition,
+						   ParamList& listDispositionParam,
+						   LanguageList& listLanguage,
+						   std::auto_ptr<FetchDataEnvelope> pEnvelope,
+						   ChildList& listChild);
 	virtual ~FetchDataBodyStructure();
 
 public:
@@ -992,30 +1069,39 @@ public:
 	const FetchDataEnvelope* getEnvelope() const;
 	const ChildList& getChildList() const;
 
+public:
+	static std::auto_ptr<FetchDataBodyStructure> create(List* pList,
+														bool bExtended);
+
 private:
-	qs::QSTATUS parseChild(ListItem* pListItem, bool bExtended);
-	qs::QSTATUS parseParam(ListItem* pListItem, ParamList* pListParam);
-	qs::QSTATUS parseDisposition(ListItem* pListItem);
-	qs::QSTATUS parseLanguage(ListItem* pListItem);
+	static std::auto_ptr<FetchDataBodyStructure> parseChild(ListItem* pListItem,
+															bool bExtended);
+	static bool parseParam(ListItem* pListItem,
+						   ParamList* pListParam);
+	static bool parseDisposition(ListItem* pListItem,
+								 qs::string_ptr* pstrDisposition,
+								 ParamList* pListParam);
+	static bool parseLanguage(ListItem* pListItem,
+							  LanguageList* pListLanguage);
 
 private:
 	FetchDataBodyStructure(const FetchDataBodyStructure&);
 	FetchDataBodyStructure& operator=(const FetchDataBodyStructure&);
 
 private:
-	qs::STRING strContentType_;
-	qs::STRING strContentSubType_;
+	qs::string_ptr strContentType_;
+	qs::string_ptr strContentSubType_;
 	ParamList listContentTypeParam_;
-	qs::STRING strId_;
-	qs::STRING strDescription_;
-	qs::STRING strEncoding_;
+	qs::string_ptr strId_;
+	qs::string_ptr strDescription_;
+	qs::string_ptr strEncoding_;
 	unsigned long nSize_;
 	unsigned long nLine_;
-	qs::STRING strMd5_;
-	qs::STRING strDisposition_;
+	qs::string_ptr strMd5_;
+	qs::string_ptr strDisposition_;
 	ParamList listDispositionParam_;
 	LanguageList listLanguage_;
-	FetchDataEnvelope* pEnvelope_;
+	std::auto_ptr<FetchDataEnvelope> pEnvelope_;
 	ChildList listChild_;
 };
 
@@ -1042,7 +1128,11 @@ public:
 	typedef std::vector<EnvelopeAddress*> AddressList;
 
 public:
-	FetchDataEnvelope(List* pList, qs::QSTATUS* pstatus);
+	FetchDataEnvelope(AddressList* pListAddress,
+					  qs::string_ptr strDate,
+					  qs::string_ptr strSubject,
+					  qs::string_ptr strMessageId,
+					  qs::string_ptr strInReplyTo);
 	virtual ~FetchDataEnvelope();
 
 public:
@@ -1052,16 +1142,19 @@ public:
 	const CHAR* getMessageId() const;
 	const CHAR* getInReplyTo() const;
 
+public:
+	static std::auto_ptr<FetchDataEnvelope> create(List* pList);
+
 private:
 	FetchDataEnvelope(const FetchDataEnvelope&);
 	FetchDataEnvelope& operator=(const FetchDataEnvelope&);
 
 private:
 	AddressList listAddress_[6];
-	qs::STRING strDate_;
-	qs::STRING strSubject_;
-	qs::STRING strMessageId_;
-	qs::STRING strInReplyTo_;
+	qs::string_ptr strDate_;
+	qs::string_ptr strSubject_;
+	qs::string_ptr strMessageId_;
+	qs::string_ptr strInReplyTo_;
 };
 
 
@@ -1077,12 +1170,16 @@ public:
 	typedef std::vector<qs::STRING> FlagList;
 
 public:
-	FetchDataFlags(List* pList, qs::QSTATUS* pstatus);
+	FetchDataFlags(unsigned int nSystemFlags,
+				   FlagList& listCustomFlag);
 	virtual ~FetchDataFlags();
 
 public:
 	unsigned int getSystemFlags() const;
 	const FlagList& getCustomFlags() const;
+
+public:
+	static std::auto_ptr<FetchDataFlags> create(List* pList);
 
 private:
 	FetchDataFlags(const FetchDataFlags&);
@@ -1103,11 +1200,14 @@ private:
 class FetchDataInternalDate : public FetchData
 {
 public:
-	FetchDataInternalDate(const CHAR* pszDate, qs::QSTATUS* pstatus);
+	FetchDataInternalDate(const qs::Time& time);
 	virtual ~FetchDataInternalDate();
 
 public:
 	const qs::Time& getTime() const;
+
+public:
+	static std::auto_ptr<FetchDataInternalDate> create(const CHAR* pszDate);
 
 private:
 	FetchDataInternalDate(const FetchDataInternalDate&);
@@ -1127,7 +1227,7 @@ private:
 class FetchDataSize : public FetchData
 {
 public:
-	FetchDataSize(unsigned long nSize, qs::QSTATUS* pstatus);
+	FetchDataSize(unsigned long nSize);
 	virtual ~FetchDataSize();
 
 public:
@@ -1151,7 +1251,7 @@ private:
 class FetchDataUid : public FetchData
 {
 public:
-	FetchDataUid(unsigned long nUid, qs::QSTATUS* pstatus);
+	FetchDataUid(unsigned long nUid);
 	virtual ~FetchDataUid();
 
 public:
@@ -1175,7 +1275,10 @@ private:
 class EnvelopeAddress
 {
 public:
-	EnvelopeAddress(List* pList, qs::QSTATUS* pstatus);
+	EnvelopeAddress(qs::string_ptr strName,
+					qs::string_ptr strDomain,
+					qs::string_ptr strMailbox,
+					qs::string_ptr strHost);
 	~EnvelopeAddress();
 
 public:
@@ -1184,15 +1287,18 @@ public:
 	const CHAR* getMailbox() const;
 	const CHAR* getHost() const;
 
+public:
+	static std::auto_ptr<EnvelopeAddress> create(List* pList);
+
 private:
 	EnvelopeAddress(const EnvelopeAddress&);
 	EnvelopeAddress& operator=(const EnvelopeAddress&);
 
 private:
-	qs::STRING strName_;
-	qs::STRING strDomain_;
-	qs::STRING strMailbox_;
-	qs::STRING strHost_;
+	qs::string_ptr strName_;
+	qs::string_ptr strDomain_;
+	qs::string_ptr strMailbox_;
+	qs::string_ptr strHost_;
 };
 
 
@@ -1236,7 +1342,7 @@ private:
 class ListItemNil : public ListItem
 {
 public:
-	ListItemNil(qs::QSTATUS* pstatus);
+	ListItemNil();
 	virtual ~ListItemNil();
 
 private:
@@ -1254,19 +1360,19 @@ private:
 class ListItemText : public ListItem
 {
 public:
-	ListItemText(qs::STRING str, qs::QSTATUS* pstatus);
+	ListItemText(qs::string_ptr str);
 	virtual ~ListItemText();
 
 public:
 	const CHAR* getText() const;
-	qs::STRING releaseText();
+	qs::string_ptr releaseText();
 
 private:
 	ListItemText(const ListItemText&);
 	ListItemText& operator=(const ListItemText&);
 
 private:
-	qs::STRING str_;
+	qs::string_ptr str_;
 };
 
 
@@ -1282,14 +1388,14 @@ public:
 	typedef std::vector<ListItem*> ItemList;
 
 public:
-	List(qs::QSTATUS* pstatus);
+	List();
 	virtual ~List();
 
 public:
 	const ItemList& getList() const;
 
 public:
-	qs::QSTATUS add(ListItem* pItem);
+	void add(std::auto_ptr<ListItem> pItem);
 
 private:
 	List(const List&);
@@ -1325,7 +1431,7 @@ public:
 	};
 
 public:
-	State(Code code, qs::QSTATUS* pstatus);
+	State(Code code);
 	~State();
 
 public:
@@ -1335,9 +1441,9 @@ public:
 	const List* getArgList() const;
 
 public:
-	void setMessage(qs::STRING str);
+	void setMessage(qs::string_ptr str);
 	void setArg(unsigned long n);
-	void setArg(List* pList);
+	void setArg(std::auto_ptr<List> pList);
 	
 private:
 	State(const State&);
@@ -1345,9 +1451,9 @@ private:
 
 private:
 	Code code_;
-	qs::STRING strMessage_;
+	qs::string_ptr strMessage_;
 	unsigned long n_;
-	List* pList_;
+	std::auto_ptr<List> pList_;
 };
 
 }

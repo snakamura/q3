@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -19,15 +19,6 @@
  */
 
 inline qm::ViewModelItem::ViewModelItem(MessageHolder* pmh) :
-	pmh_(pmh),
-	pParentItem_(0),
-	nFlags_(0),
-	cr_(0xffffffff),
-	nMessageFlags_(pmh->getFlags())
-{
-}
-
-inline qm::ViewModelItem::ViewModelItem(MessageHolder* pmh, qs::QSTATUS* pstatus) :
 	pmh_(pmh),
 	pParentItem_(0),
 	nFlags_(0),
@@ -78,13 +69,20 @@ inline void qm::ViewModelItem::setParentItem(ViewModelItem* pParentItem)
 	pParentItem_ = pParentItem;
 }
 
+inline bool qm::ViewModelItem::isFlag(Flag flag) const
+{
+	assert(pmh_);
+	return (nFlags_ & flag) != 0;
+}
+
 inline unsigned int qm::ViewModelItem::getFlags() const
 {
 	assert(pmh_);
 	return nFlags_;
 }
 
-inline void qm::ViewModelItem::setFlags(unsigned int nFlags, unsigned int nMask)
+inline void qm::ViewModelItem::setFlags(unsigned int nFlags,
+										unsigned int nMask)
 {
 	assert(pmh_);
 	nFlags_ &= ~nMask;
@@ -163,8 +161,8 @@ inline bool qm::ViewModelFolderComp::operator()(ViewModel* pViewModel) const
  *
  */
 
-inline bool qm::ViewModelItemEqual::operator()(
-	const ViewModelItem* pLhs, const ViewModelItem* pRhs) const
+inline bool qm::ViewModelItemEqual::operator()(const ViewModelItem* pLhs,
+											   const ViewModelItem* pRhs) const
 {
 	return pLhs->getMessageHolder() == pRhs->getMessageHolder();
 }
@@ -176,8 +174,8 @@ inline bool qm::ViewModelItemEqual::operator()(
  *
  */
 
-inline qm::ViewModelParentItemComp::ViewModelParentItemComp(
-	unsigned int nReferenceHash, const WCHAR* pwszReference) :
+inline qm::ViewModelParentItemComp::ViewModelParentItemComp(unsigned int nReferenceHash,
+															const WCHAR* pwszReference) :
 	nReferenceHash_(nReferenceHash),
 	pwszReference_(pwszReference)
 {
@@ -185,16 +183,11 @@ inline qm::ViewModelParentItemComp::ViewModelParentItemComp(
 
 inline bool qm::ViewModelParentItemComp::operator()(const ViewModelItem* pItem) const
 {
-	DECLARE_QSTATUS();
-	
 	MessageHolder* pmh = pItem->getMessageHolder();
 	if (pmh->getMessageIdHash() != nReferenceHash_)
 		return false;
 	
-	qs::string_ptr<qs::WSTRING> wstrMessageId;
-	status = pmh->getMessageId(&wstrMessageId);
-	CHECK_QSTATUS_VALUE(false);
-	
+	qs::wstring_ptr wstrMessageId(pmh->getMessageId());
 	return wcscmp(wstrMessageId.get(), pwszReference_) == 0;
 }
 

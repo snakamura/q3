@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -41,24 +41,24 @@ public:
 	typedef std::hash_map<MessageCacheKey, CacheItem*> ItemMap;
 
 public:
-	MessageCache(MessageStore* pMessageStore, qs::QSTATUS* pstatus);
+	explicit MessageCache(MessageStore* pMessageStore);
 	~MessageCache();
 
 public:
-	qs::QSTATUS getData(MessageCacheKey key,
-		MessageCacheItem item, qs::WSTRING* pwstrData);
+	qs::wstring_ptr getData(MessageCacheKey key,
+							MessageCacheItem item);
 	void removeData(MessageCacheKey key);
 
 public:
-	static qs::QSTATUS createData(const Message& msg,
-		unsigned char** ppData, size_t* pnLen);
+	static qs::malloc_size_ptr<unsigned char> createData(const Message& msg);
 
 private:
 	void insert(CacheItem* pItem);
 	void remove(ItemMap::iterator it);
 
 private:
-	static qs::QSTATUS writeToStream(qs::OutputStream* pStream, const WCHAR* pwsz);
+	static bool writeToStream(qs::OutputStream* pStream,
+							  const WCHAR* pwsz);
 
 private:
 	MessageCache(const MessageCache&);
@@ -86,7 +86,9 @@ class CacheItem
 {
 public:
 	CacheItem(MessageCacheKey key);
-	CacheItem(MessageCacheKey key, const qs::WSTRING* pItems);
+	CacheItem(MessageCacheKey key,
+			  qs::wxstring_ptr wstr,
+			  const WCHAR* pwszItem[]);
 	~CacheItem();
 
 public:
@@ -99,7 +101,8 @@ private:
 
 private:
 	MessageCacheKey key_;
-	qs::WSTRING items_[ITEM_MAX];
+	qs::wxstring_ptr wstr_;
+	const WCHAR* pwszItem_[ITEM_MAX];
 	CacheItem* pNewNext_;
 	CacheItem* pNewPrev_;
 

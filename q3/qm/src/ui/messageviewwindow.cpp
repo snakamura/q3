@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -14,7 +14,6 @@
 #include <qmtemplate.h>
 
 #include <qsconv.h>
-#include <qsnew.h>
 #include <qsstream.h>
 
 #include <tchar.h>
@@ -51,8 +50,10 @@ qm::MessageViewWindow::~MessageViewWindow()
  */
 
 qm::MessageViewWindowFactory::MessageViewWindowFactory(Document* pDocument,
-	Profile* pProfile, const WCHAR* pwszSection,
-	MenuManager* pMenuManager, bool bTextOnly, QSTATUS* pstatus) :
+													   Profile* pProfile,
+													   const WCHAR* pwszSection,
+													   MenuManager* pMenuManager,
+													   bool bTextOnly) :
 	pDocument_(pDocument),
 	pProfile_(pProfile),
 	pwszSection_(pwszSection),
@@ -65,47 +66,29 @@ qm::MessageViewWindowFactory::MessageViewWindowFactory(Document* pDocument,
 	pText_(0)
 #endif
 {
-	assert(pstatus);
-	
-	DECLARE_QSTATUS();
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	status = newQsObject(pDocument_, pProfile_,
-		pwszSection_, pMenuManager_, &pText_);
-	CHECK_QSTATUS_SET(pstatus);
+	pText_ = new TextMessageViewWindow(pDocument_,
+		pProfile_, pwszSection_, pMenuManager_);
 }
 
 qm::MessageViewWindowFactory::~MessageViewWindowFactory()
 {
 }
 
-QSTATUS qm::MessageViewWindowFactory::create(HWND hwnd)
+bool qm::MessageViewWindowFactory::create(HWND hwnd)
 {
 	assert(hwnd);
-	
-	DECLARE_QSTATUS();
 	
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	DWORD dwExStyle = 0;
 #else
 	DWORD dwExStyle = WS_EX_CLIENTEDGE;
 #endif
-	status = pText_->create(L"QmTextMessageViewWindow", 0,
+	return pText_->create(L"QmTextMessageViewWindow", 0,
 		WS_CHILD, 0, 0, 500, 500, hwnd, dwExStyle, 0, 1002, 0);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::MessageViewWindowFactory::getMessageViewWindow(
-	const ContentTypeParser* pContentType,
-	MessageViewWindow** ppMessageViewWindow)
+MessageViewWindow* qm::MessageViewWindowFactory::getMessageViewWindow(const ContentTypeParser* pContentType)
 {
-	assert(ppMessageViewWindow);
-	
-	DECLARE_QSTATUS();
-	
 #ifdef QMHTMLVIEW
 	bool bHtml = !bTextOnly_ &&
 		pContentType &&
@@ -113,9 +96,8 @@ QSTATUS qm::MessageViewWindowFactory::getMessageViewWindow(
 		_wcsicmp(pContentType->getSubType(), L"html") == 0;
 	
 	if (bHtml && !pHtml_ && Application::getApplication().getAtlHandle()) {
-		std::auto_ptr<HtmlMessageViewWindow> pHtml;
-		status = newQsObject(pProfile_, pwszSection_, pMenuManager_, &pHtml);
-		CHECK_QSTATUS();
+		std::auto_ptr<HtmlMessageViewWindow> pHtml(new HtmlMessageViewWindow(
+			pProfile_, pwszSection_, pMenuManager_));
 		HWND hwnd = pText_->getParent();
 #ifdef _WIN32_WCE
 		const WCHAR* pwszId = L"{8856F961-340A-11D0-A96B-00C04FD705A2}";
@@ -124,22 +106,20 @@ QSTATUS qm::MessageViewWindowFactory::getMessageViewWindow(
 		const WCHAR* pwszId = L"Shell.Explorer";
 		DWORD dwExStyle = 0;
 #endif
-		status = pHtml->create(L"QmHtmlMessageViewWindow", pwszId,
-			WS_CHILD, 0, 0, 500, 500, hwnd, dwExStyle, 0, 1003, 0);
-		CHECK_QSTATUS();
+		if (!pHtml->create(L"QmHtmlMessageViewWindow", pwszId,
+			WS_CHILD, 0, 0, 500, 500, hwnd, dwExStyle, 0, 1003, 0))
+			return 0;
 		pHtml_ = pHtml.release();
 	}
 	else if (bHtml) {
 		bHtml = pHtml_ != 0;
 	}
 	
-	*ppMessageViewWindow = bHtml ? static_cast<MessageViewWindow*>(pHtml_) :
+	return bHtml ? static_cast<MessageViewWindow*>(pHtml_) :
 		static_cast<MessageViewWindow*>(pText_);
 #else
-	*ppMessageViewWindow = pText_;
+	return pText_;
 #endif
-	
-	return QSTATUS_SUCCESS;
 }
 
 TextMessageViewWindow* qm::MessageViewWindowFactory::getTextMessageViewWindow() const
@@ -147,8 +127,7 @@ TextMessageViewWindow* qm::MessageViewWindowFactory::getTextMessageViewWindow() 
 	return pText_;
 }
 
-bool qm::MessageViewWindowFactory::isSupported(
-	const ContentTypeParser* pContentType) const
+bool qm::MessageViewWindowFactory::isSupported(const ContentTypeParser* pContentType) const
 {
 	return !pContentType || _wcsicmp(pContentType->getMediaType(), L"text") == 0;
 }
@@ -161,30 +140,26 @@ bool qm::MessageViewWindowFactory::isSupported(
  */
 
 qm::TextMessageViewWindow::TextMessageViewWindow(Document* pDocument,
-	Profile* pProfile, const WCHAR* pwszSection,
-	MenuManager* pMenuManager, QSTATUS* pstatus) :
-	TextWindow(0, pProfile, pwszSection, true, pstatus),
+												 Profile* pProfile,
+												 const WCHAR* pwszSection,
+												 MenuManager* pMenuManager) :
+	TextWindow(0, pProfile, pwszSection, true),
 	pDocument_(pDocument),
 	pProfile_(pProfile),
 	pMenuManager_(pMenuManager)
 {
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	DECLARE_QSTATUS();
-	
-	status = newQsObject(&pTextModel_);
-	CHECK_QSTATUS_SET(pstatus);
-	setTextModel(pTextModel_);
+	pTextModel_.reset(new ReadOnlyTextModel());
+	setTextModel(pTextModel_.get());
 	setLinkHandler(this);
 }
 
 qm::TextMessageViewWindow::~TextMessageViewWindow()
 {
-	delete pTextModel_;
 }
 
-LRESULT qm::TextMessageViewWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qm::TextMessageViewWindow::windowProc(UINT uMsg,
+											  WPARAM wParam,
+											  LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_CONTEXTMENU()
@@ -193,15 +168,13 @@ LRESULT qm::TextMessageViewWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM l
 	return TextWindow::windowProc(uMsg, wParam, lParam);
 }
 
-LRESULT qm::TextMessageViewWindow::onContextMenu(HWND hwnd, const POINT& pt)
+LRESULT qm::TextMessageViewWindow::onContextMenu(HWND hwnd,
+												 const POINT& pt)
 {
-	DECLARE_QSTATUS();
-	
 	setActive();
 	
-	HMENU hmenu = 0;
-	status = pMenuManager_->getMenu(L"message", false, false, &hmenu);
-	if (status == QSTATUS_SUCCESS) {
+	HMENU hmenu = pMenuManager_->getMenu(L"message", false, false);
+	if (hmenu) {
 		UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
 #ifndef _WIN32_WCE
 		nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
@@ -212,7 +185,8 @@ LRESULT qm::TextMessageViewWindow::onContextMenu(HWND hwnd, const POINT& pt)
 	return TextWindow::onContextMenu(hwnd, pt);
 }
 
-LRESULT qm::TextMessageViewWindow::onLButtonDown(UINT nFlags, const POINT& pt)
+LRESULT qm::TextMessageViewWindow::onLButtonDown(UINT nFlags,
+												 const POINT& pt)
 {
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && _WIN32_WCE_PSPC
 	if (tapAndHold(pt))
@@ -221,7 +195,7 @@ LRESULT qm::TextMessageViewWindow::onLButtonDown(UINT nFlags, const POINT& pt)
 	return TextWindow::onLButtonDown(nFlags, pt);
 }
 
-QSTATUS qm::TextMessageViewWindow::openLink(const WCHAR* pwszURL)
+bool qm::TextMessageViewWindow::openLink(const WCHAR* pwszURL)
 {
 	return UIUtil::openURL(getParentFrame(), pwszURL);
 }
@@ -236,80 +210,58 @@ bool qm::TextMessageViewWindow::isActive()
 	return hasFocus();
 }
 
-QSTATUS qm::TextMessageViewWindow::setActive()
+void qm::TextMessageViewWindow::setActive()
 {
 	setFocus();
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
-	Message* pMessage, const Template* pTemplate,
-	const WCHAR* pwszEncoding, unsigned int nFlags)
+bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
+										   Message* pMessage,
+										   const Template* pTemplate,
+										   const WCHAR* pwszEncoding,
+										   unsigned int nFlags)
 {
 	assert((pmh && pMessage) || (!pmh && !pMessage));
 	
-	DECLARE_QSTATUS();
-	
 	if (pmh) {
 		PartUtil util(*pMessage);
-		string_ptr<WSTRING> wstrText;
+		wxstring_ptr wstrText;
 		if (nFlags & FLAG_RAWMODE) {
-			status = util.getAllText(0, pwszEncoding, false, &wstrText);
-			CHECK_QSTATUS();
+			wstrText = util.getAllText(0, pwszEncoding, false);
 		}
 		else if (pTemplate) {
+			// TODO
+			// Performance up.
 			TemplateContext context(pmh, pMessage,
 				pmh->getFolder()->getAccount(), pDocument_, getHandle(),
-				pProfile_, 0, TemplateContext::ArgumentList(), &status);
-			CHECK_QSTATUS();
-			status = pTemplate->getValue(context, &wstrText);
-			CHECK_QSTATUS();
+				pProfile_, 0, TemplateContext::ArgumentList());
+			wstring_ptr wstr(pTemplate->getValue(context));
+			wstrText = allocWXString(wstr.get());
 		}
 		else if (nFlags & FLAG_INCLUDEHEADER) {
-			status = util.getFormattedText(false, pwszEncoding, &wstrText);
-			CHECK_QSTATUS();
+			wstrText = util.getFormattedText(false, pwszEncoding);
 		}
 		else {
 			const Part* pPart = 0;
-			if (PartUtil::isContentType(pMessage->getContentType(),
-				L"multipart", L"alternative")) {
-				status = util.getAlternativePart(L"text", L"plain", &pPart);
-				CHECK_QSTATUS();
-			}
-			if (pPart) {
-				status = PartUtil(*pPart).getBodyText(0, pwszEncoding, &wstrText);
-				CHECK_QSTATUS();
-			}
-			else {
-				status = util.getBodyText(0, pwszEncoding, &wstrText);
-				CHECK_QSTATUS();
-			}
+			if (PartUtil::isContentType(pMessage->getContentType(), L"multipart", L"alternative"))
+				pPart = util.getAlternativePart(L"text", L"plain");
+			
+			if (pPart)
+				wstrText = PartUtil(*pPart).getBodyText(0, pwszEncoding);
+			else
+				wstrText = util.getBodyText(0, pwszEncoding);
 		}
 		
-		std::auto_ptr<StringReader> pReader;
-		status = newQsObject(wstrText.get(), &pReader);
-		CHECK_QSTATUS();
-		
-		status = pTextModel_->loadText(pReader.get(), true);
-		CHECK_QSTATUS();
-		pReader.release();
+		std::auto_ptr<StringReader> pReader(new StringReader(wstrText));
+		return pTextModel_->loadText(pReader, true);
 	}
 	else {
-		status = pTextModel_->setText(L"", 0);
-		CHECK_QSTATUS();
+		return pTextModel_->setText(L"", 0);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::TextMessageViewWindow::scrollPage(bool bPrev, bool* pbScrolled)
+bool qm::TextMessageViewWindow::scrollPage(bool bPrev)
 {
-	assert(pbScrolled);
-	
-	DECLARE_QSTATUS();
-	
-	*pbScrolled = false;
-	
 	SCROLLINFO info = {
 		sizeof(info),
 		SIF_ALL
@@ -317,30 +269,29 @@ QSTATUS qm::TextMessageViewWindow::scrollPage(bool bPrev, bool* pbScrolled)
 	::GetScrollInfo(getHandle(), SB_VERT, &info);
 	if ((bPrev && info.nPos != 0) ||
 		(!bPrev && info.nPos < static_cast<int>(info.nMax - info.nPage + 1))) {
-		status = scroll(bPrev ? SCROLL_PAGEUP : SCROLL_PAGEDOWN, 0, false);
-		CHECK_QSTATUS();
-		*pbScrolled = true;
+		scroll(bPrev ? SCROLL_PAGEUP : SCROLL_PAGEDOWN, 0, false);
+		return true;
 	}
-	
-	return QSTATUS_SUCCESS;
+	else {
+		return false;
+	}
 }
 
-QSTATUS qm::TextMessageViewWindow::setSelectMode(bool bSelectMode)
+void qm::TextMessageViewWindow::setSelectMode(bool bSelectMode)
 {
 	setShowNewLine(bSelectMode);
 	setShowTab(bSelectMode);
 	setShowCaret(bSelectMode);
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::TextMessageViewWindow::find(const WCHAR* pwszFind,
-	unsigned int nFlags, bool* pbFound)
+bool qm::TextMessageViewWindow::find(const WCHAR* pwszFind,
+									 unsigned int nFlags)
 {
 	unsigned int nFindFlags =
 		(nFlags & MessageWindow::FIND_MATCHCASE ? FIND_MATCHCASE : 0) |
 		(nFlags & MessageWindow::FIND_REGEX ? FIND_REGEX : 0) |
 		(nFlags & MessageWindow::FIND_PREVIOUS ? FIND_PREVIOUS : 0);
-	return TextWindow::find(pwszFind, nFindFlags, pbFound);
+	return TextWindow::find(pwszFind, nFindFlags);
 }
 
 unsigned int qm::TextMessageViewWindow::getSupportedFindFlags() const
@@ -350,29 +301,29 @@ unsigned int qm::TextMessageViewWindow::getSupportedFindFlags() const
 		MessageWindow::FIND_PREVIOUS;
 }
 
-QSTATUS qm::TextMessageViewWindow::openLink()
+bool qm::TextMessageViewWindow::openLink()
 {
 	return TextWindow::openLink();
 }
 
-QSTATUS qm::TextMessageViewWindow::copy()
+void qm::TextMessageViewWindow::copy()
 {
-	return TextWindow::copy();
+	TextWindow::copy();
 }
 
-QSTATUS qm::TextMessageViewWindow::canCopy(bool* pbCan)
+bool qm::TextMessageViewWindow::canCopy()
 {
-	return TextWindow::canCopy(pbCan);
+	return TextWindow::canCopy();
 }
 
-QSTATUS qm::TextMessageViewWindow::selectAll()
+void qm::TextMessageViewWindow::selectAll()
 {
-	return TextWindow::selectAll();
+	TextWindow::selectAll();
 }
 
-QSTATUS qm::TextMessageViewWindow::canSelectAll(bool* pbCan)
+bool qm::TextMessageViewWindow::canSelectAll()
 {
-	return TextWindow::canSelectAll(pbCan);
+	return TextWindow::canSelectAll();
 }
 
 
@@ -385,9 +336,9 @@ QSTATUS qm::TextMessageViewWindow::canSelectAll(bool* pbCan)
  */
 
 qm::HtmlMessageViewWindow::HtmlMessageViewWindow(Profile* pProfile,
-	const WCHAR* pwszSection, MenuManager* pMenuManager, QSTATUS* pstatus) :
-	WindowBase(true, pstatus),
-	DefaultWindowHandler(pstatus),
+												 const WCHAR* pwszSection,
+												 MenuManager* pMenuManager) :
+	WindowBase(true),
 	pProfile_(pProfile),
 	pwszSection_(pwszSection),
 	pMenuManager_(pMenuManager),
@@ -406,11 +357,9 @@ qm::HtmlMessageViewWindow::~HtmlMessageViewWindow()
 	clearRelatedContent();
 }
 
-QSTATUS qm::HtmlMessageViewWindow::getSuperClass(WSTRING* pwstrSuperClass)
+wstring_ptr qm::HtmlMessageViewWindow::getSuperClass()
 {
-	assert(pwstrSuperClass);
-	*pwstrSuperClass = allocWString(L"AtlAxWin");
-	return *pwstrSuperClass ? QSTATUS_SUCCESS : QSTATUS_OUTOFMEMORY;
+	return allocWString(L"AtlAxWin");
 }
 
 LRESULT qm::HtmlMessageViewWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -424,8 +373,6 @@ LRESULT qm::HtmlMessageViewWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM l
 
 LRESULT qm::HtmlMessageViewWindow::onCreate(CREATESTRUCT* pCreateStruct)
 {
-	DECLARE_QSTATUS();
-	
 	if (DefaultWindowHandler::onCreate(pCreateStruct) == -1)
 		return -1;
 	
@@ -455,9 +402,8 @@ LRESULT qm::HtmlMessageViewWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (FAILED(hr))
 		return -1;
 	pAmbientDispatch->Release();
-	std::auto_ptr<AmbientDispatchHook> pHook;
-	status = newQsObject(this, pAmbientDispatch, &pHook);
-	CHECK_QSTATUS_VALUE(-1);
+	std::auto_ptr<AmbientDispatchHook> pHook(
+		new AmbientDispatchHook(this, pAmbientDispatch));
 	pHook.release();
 	
 	ComPtr<IUnknown> pUnkControl;
@@ -475,8 +421,7 @@ LRESULT qm::HtmlMessageViewWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (FAILED(hr))
 		return -1;
 	
-	status = newQsObject(this, &pServiceProvider_);
-	CHECK_QSTATUS_VALUE(-1);
+	pServiceProvider_ = new IServiceProviderImpl(this);
 	pServiceProvider_->AddRef();
 	hr = pSite->SetSite(static_cast<IServiceProvider*>(pServiceProvider_));
 	if (FAILED(hr))
@@ -488,9 +433,8 @@ LRESULT qm::HtmlMessageViewWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (FAILED(hr))
 		return -1;
 	
-	IDocHostUIHandlerDispatchImpl* pDocHostUIHandlerDispatch = 0;
-	status = newQsObject(this, &pDocHostUIHandlerDispatch);
-	CHECK_QSTATUS_VALUE(-1);
+	IDocHostUIHandlerDispatchImpl* pDocHostUIHandlerDispatch =
+		new IDocHostUIHandlerDispatchImpl(this);
 	pDocHostUIHandlerDispatch->AddRef();
 	hr = pAxWinHostWindow->SetExternalUIHandler(pDocHostUIHandlerDispatch);
 	if (FAILED(hr))
@@ -514,8 +458,7 @@ LRESULT qm::HtmlMessageViewWindow::onCreate(CREATESTRUCT* pCreateStruct)
 			return -1;
 	}
 	
-	status = newQsObject(this, pWebBrowser_, &pWebBrowserEvents_);
-	CHECK_QSTATUS_VALUE(-1);
+	pWebBrowserEvents_ = new DWebBrowserEvents2Impl(this, pWebBrowser_);
 	pWebBrowserEvents_->AddRef();
 	ComPtr<IConnectionPointContainer> pConnectionPointContainer;
 	hr = pWebBrowser_->QueryInterface(IID_IConnectionPointContainer,
@@ -579,19 +522,19 @@ bool qm::HtmlMessageViewWindow::isActive()
 	return false;
 }
 
-QSTATUS qm::HtmlMessageViewWindow::setActive()
+void qm::HtmlMessageViewWindow::setActive()
 {
 	HRESULT hr = S_OK;
 	
 	ComPtr<IDispatch> pDisp;
 	hr = pWebBrowser_->get_Document(&pDisp);
 	if (FAILED(hr))
-		return QSTATUS_FAIL;
+		return;
 	ComPtr<IHTMLDocument2> pHTMLDocument;
 	hr = pDisp->QueryInterface(IID_IHTMLDocument2,
 		reinterpret_cast<void**>(&pHTMLDocument));
 	if (FAILED(hr))
-		return QSTATUS_FAIL;
+		return;
 	
 	BSTR bstrState;
 	hr = pHTMLDocument->get_readyState(&bstrState);
@@ -601,28 +544,26 @@ QSTATUS qm::HtmlMessageViewWindow::setActive()
 		ComPtr<IHTMLWindow2> pHTMLWindow;
 		hr = pHTMLDocument->get_parentWindow(&pHTMLWindow);
 		if (FAILED(hr))
-			return QSTATUS_FAIL;
+			return;
 		
 		hr = pHTMLWindow->focus();
 		if (FAILED(hr))
-			return QSTATUS_FAIL;
+			return;
 		
 		bActivate_ = false;
 	}
 	else {
 		bActivate_ = true;
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
-	Message* pMessage, const Template* pTemplate,
-	const WCHAR* pwszEncoding, unsigned int nFlags)
+bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
+										   Message* pMessage,
+										   const Template* pTemplate,
+										   const WCHAR* pwszEncoding,
+										   unsigned int nFlags)
 {
 	assert(pmh && pMessage);
-	
-	DECLARE_QSTATUS();
 	
 	bOnlineMode_ = (nFlags & FLAG_ONLINEMODE) != 0;
 	
@@ -632,22 +573,15 @@ QSTATUS qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 	hr = pWebBrowser_->QueryInterface(IID_IOleControl,
 		reinterpret_cast<void**>(&pControl));
 	if (FAILED(hr))
-		return QSTATUS_FAIL;
+		return false;
 	pControl->OnAmbientPropertyChange(DISPID_AMBIENT_DLCONTROL);
 	
 	PartUtil util(*pMessage);
-	const Part* pPart = 0;
-	status = util.getAlternativePart(L"text", L"html", &pPart);
-	CHECK_QSTATUS();
+	const Part* pPart = util.getAlternativePart(L"text", L"html");
 	assert(pPart);
 	
-	string_ptr<WSTRING> wstrId;
-	status = prepareRelatedContent(*pMessage, *pPart, pwszEncoding, &wstrId);
-	CHECK_QSTATUS();
-	
-	string_ptr<WSTRING> wstrUrl(concat(L"cid:", wstrId.get()));
-	if (!wstrUrl.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrId(prepareRelatedContent(*pMessage, *pPart, pwszEncoding));
+	wstring_ptr wstrUrl(concat(L"cid:", wstrId.get()));
 	BSTRPtr bstrURL(::SysAllocString(wstrUrl.get()));
 	int n = 0;
 	Variant v[4];
@@ -655,49 +589,46 @@ QSTATUS qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 	v[0].lVal = navNoHistory | navNoReadFromCache | navNoWriteToCache;
 	hr = pWebBrowser_->Navigate(bstrURL.get(), &v[0], &v[1], &v[2], &v[3]);
 	if (FAILED(hr))
-		return QSTATUS_FAIL;
+		return false;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::HtmlMessageViewWindow::scrollPage(bool bPrev, bool* pbScrolled)
+bool qm::HtmlMessageViewWindow::scrollPage(bool bPrev)
 {
-	assert(pbScrolled);
-	
-	*pbScrolled = false;
-	
 	HRESULT hr = S_OK;
+	
 	ComPtr<IDispatch> pDisp;
 	hr = pWebBrowser_->get_Document(&pDisp);
 	if (FAILED(hr))
-		return QSTATUS_FAIL;
+		return false;
 	ComPtr<IHTMLDocument2> pHTMLDocument;
 	hr = pDisp->QueryInterface(IID_IHTMLDocument2,
 		reinterpret_cast<void**>(&pHTMLDocument));
 	if (FAILED(hr))
-		return QSTATUS_FAIL;
+		return false;
 	ComPtr<IHTMLElement> pBodyElement;
 	hr = pHTMLDocument->get_body(&pBodyElement);
 	if (FAILED(hr))
-		return QSTATUS_FAIL;
+		return false;
 	ComPtr<IHTMLElement2> pBodyElement2;
 	hr = pBodyElement->QueryInterface(IID_IHTMLElement2,
 		reinterpret_cast<void**>(&pBodyElement2));
 	if (FAILED(hr))
-		return QSTATUS_FAIL;
+		return false;
 	
 	long nScrollHeight = 0;
 	hr = pBodyElement2->get_scrollHeight(&nScrollHeight);
 	if (FAILED(hr))
-		return QSTATUS_FAIL;
+		return false;
 	long nClientHeight = 0;
 	hr = pBodyElement2->get_clientHeight(&nClientHeight);
 	if (FAILED(hr))
-		return QSTATUS_FAIL;
+		return false;
 	long nScrollTop = 0;
 	hr = pBodyElement2->get_scrollTop(&nScrollTop);
 	if (FAILED(hr))
-		return QSTATUS_FAIL;
+		return false;
 	
 	if ((bPrev && nScrollTop != 0) ||
 		(!bPrev && nScrollTop + nClientHeight < nScrollHeight)) {
@@ -707,96 +638,91 @@ QSTATUS qm::HtmlMessageViewWindow::scrollPage(bool bPrev, bool* pbScrolled)
 		v.bstrVal = bstrScroll.get();
 		hr = pBodyElement2->doScroll(v);
 		if (FAILED(hr))
-			return QSTATUS_FAIL;
-		*pbScrolled = true;
+			return false;
+		return true;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return false;
 }
 
-QSTATUS qm::HtmlMessageViewWindow::setSelectMode(bool bSelectMode)
+void qm::HtmlMessageViewWindow::setSelectMode(bool bSelectMode)
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::HtmlMessageViewWindow::find(const WCHAR* pwszFind,
-	unsigned int nFlags, bool* pbFound)
+bool qm::HtmlMessageViewWindow::find(const WCHAR* pwszFind,
+									 unsigned int nFlags)
 {
 	assert(pwszFind);
-	assert(pbFound);
-	
-	DECLARE_QSTATUS();
 	
 	bool bPrev = (nFlags & MessageWindow::FIND_PREVIOUS) != 0;
 	
 	HRESULT hr = S_OK;
+	
 	ComPtr<IDispatch> pDispDocument;
 	hr = pWebBrowser_->get_Document(&pDispDocument);
 	if (FAILED(hr))
-		return QSTATUS_FAIL;
+		return false;
 	ComPtr<IHTMLDocument2> pHTMLDocument;
 	hr = pDispDocument->QueryInterface(IID_IHTMLDocument2,
 		reinterpret_cast<void**>(&pHTMLDocument));
 	if (FAILED(hr))
-		return QSTATUS_FAIL;
+		return false;
 	
 	ComPtr<IHTMLSelectionObject> pSelection;
 	hr = pHTMLDocument->get_selection(&pSelection);
 	if (FAILED(hr))
-		return QSTATUS_FAIL;
+		return false;
 	
 	ComPtr<IDispatch> pDispRange;
 	hr = pSelection->createRange(&pDispRange);
 	if (FAILED(hr))
-		return QSTATUS_FAIL;
+		return false;
 	ComPtr<IHTMLTxtRange> pRange;
 	hr = pDispRange->QueryInterface(IID_IHTMLTxtRange,
 		reinterpret_cast<void**>(&pRange));
 	if (FAILED(hr))
-		return QSTATUS_FAIL;
+		return false;
 	
 	BSTRPtr bstrText;
 	hr = pRange->get_text(&bstrText);
 	if (FAILED(hr))
-		return QSTATUS_FAIL;
+		return false;
 	if (bstrText.get() && *bstrText.get()) {
 		hr = pRange->collapse(bPrev ? VARIANT_TRUE : VARIANT_FALSE);
 		if (FAILED(hr))
-			return QSTATUS_FAIL;
+			return false;
 	}
 	else {
 		ComPtr<IHTMLElement> pElement;
 		hr = pHTMLDocument->get_body(&pElement);
 		if (FAILED(hr))
-			return QSTATUS_FAIL;
+			return false;
 		ComPtr<IHTMLBodyElement> pBody;
 		hr = pElement->QueryInterface(IID_IHTMLBodyElement,
 			reinterpret_cast<void**>(&pBody));
 		if (FAILED(hr))
-			return QSTATUS_FAIL;
+			return false;
 		
 		pRange.release()->Release();
 		hr = pBody->createTextRange(&pRange);
 		if (FAILED(hr))
-			return QSTATUS_FAIL;
+			return false;
 	}
 	
 	BSTRPtr bstrFind(::SysAllocString(pwszFind));
 	if (!bstrFind.get())
-		return QSTATUS_OUTOFMEMORY;
+		return false;
 	VARIANT_BOOL bFound = VARIANT_FALSE;
 	hr = pRange->findText(bstrFind.get(), bPrev ? -1 : 1,
 		nFlags & MessageWindow::FIND_MATCHCASE ? 4 : 0, &bFound);
 	if (FAILED(hr))
-		return QSTATUS_FAIL;
+		return false;
 	if (bFound == VARIANT_TRUE) {
 		hr = pRange->select();
 		if (FAILED(hr))
-			return QSTATUS_FAIL;
+			return false;
 	}
-	*pbFound = bFound == VARIANT_TRUE;
-	
-	return QSTATUS_SUCCESS;
+	return bFound == VARIANT_TRUE;
 }
 
 unsigned int qm::HtmlMessageViewWindow::getSupportedFindFlags() const
@@ -804,49 +730,37 @@ unsigned int qm::HtmlMessageViewWindow::getSupportedFindFlags() const
 	return MessageWindow::FIND_MATCHCASE | MessageWindow::FIND_PREVIOUS;
 }
 
-QSTATUS qm::HtmlMessageViewWindow::openLink()
+bool qm::HtmlMessageViewWindow::openLink()
 {
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::HtmlMessageViewWindow::copy()
+void qm::HtmlMessageViewWindow::copy()
 {
-	return pWebBrowser_->ExecWB(OLECMDID_COPY,
-		OLECMDEXECOPT_DONTPROMPTUSER, 0, 0) == S_OK ?
-			QSTATUS_SUCCESS : QSTATUS_FAIL;
+	pWebBrowser_->ExecWB(OLECMDID_COPY, OLECMDEXECOPT_DONTPROMPTUSER, 0, 0);
 }
 
-QSTATUS qm::HtmlMessageViewWindow::canCopy(bool* pbCan)
+bool qm::HtmlMessageViewWindow::canCopy()
 {
 	OLECMDF f;
 	HRESULT hr = pWebBrowser_->QueryStatusWB(OLECMDID_COPY, &f);
-	*pbCan = (f & OLECMDF_ENABLED) != 0;
-	return QSTATUS_SUCCESS;
+	return (f & OLECMDF_ENABLED) != 0;
 }
 
-QSTATUS qm::HtmlMessageViewWindow::selectAll()
+void qm::HtmlMessageViewWindow::selectAll()
 {
-	return pWebBrowser_->ExecWB(OLECMDID_SELECTALL,
-		OLECMDEXECOPT_DONTPROMPTUSER, 0, 0) == S_OK ?
-			QSTATUS_SUCCESS : QSTATUS_FAIL;
+	pWebBrowser_->ExecWB(OLECMDID_SELECTALL, OLECMDEXECOPT_DONTPROMPTUSER, 0, 0);
 }
 
-QSTATUS qm::HtmlMessageViewWindow::canSelectAll(bool* pbCan)
+bool qm::HtmlMessageViewWindow::canSelectAll()
 {
-	assert(pbCan);
-	*pbCan = true;
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::HtmlMessageViewWindow::prepareRelatedContent(const Message& msg,
-	const Part& partHtml, const WCHAR* pwszEncoding, WSTRING* pwstrId)
+wstring_ptr qm::HtmlMessageViewWindow::prepareRelatedContent(const Message& msg,
+															 const Part& partHtml,
+															 const WCHAR* pwszEncoding)
 {
-	assert(pwstrId);
-	
-	DECLARE_QSTATUS();
-	
-	*pwstrId = 0;
-	
 	clearRelatedContent();
 	
 	const WCHAR* pwszId = L"uniqueid@qmail";
@@ -861,85 +775,59 @@ QSTATUS qm::HtmlMessageViewWindow::prepareRelatedContent(const Message& msg,
 //	CHECK_QSTATUS();
 //	if (field == Part::FIELD_EXIST)
 //		pwszId = messageId.getMessageId();
-	status = prepareRelatedContent(partHtml, pwszId, pwszEncoding);
-	CHECK_QSTATUS();
+	prepareRelatedContent(partHtml, pwszId, pwszEncoding);
 	
-	*pwstrId = allocWString(pwszId);
-	if (!*pwstrId)
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrId(allocWString(pwszId));
 	
-	status = prepareRelatedContent(msg, 0, 0);
-	CHECK_QSTATUS();
+	prepareRelatedContent(msg, 0, 0);
 	
-	return QSTATUS_SUCCESS;
+	return wstrId;
 }
 
 void qm::HtmlMessageViewWindow::clearRelatedContent()
 {
-	ContentList::iterator it = listContent_.begin();
-	while (it != listContent_.end()) {
+	for (ContentList::iterator it = listContent_.begin(); it != listContent_.end(); ++it)
 		(*it).destroy();
-		++it;
-	}
 	listContent_.clear();
 }
 
-QSTATUS qm::HtmlMessageViewWindow::prepareRelatedContent(
-	const Part& part, const WCHAR* pwszId, const WCHAR* pwszEncoding)
+void qm::HtmlMessageViewWindow::prepareRelatedContent(const Part& part,
+													  const WCHAR* pwszId,
+													  const WCHAR* pwszEncoding)
 {
-	DECLARE_QSTATUS();
-	
 	if (PartUtil(part).isMultipart()) {
 		const Part::PartList& l = part.getPartList();
-		Part::PartList::const_iterator it = l.begin();
-		while (it != l.end()) {
-			status = prepareRelatedContent(**it, 0, 0);
-			CHECK_QSTATUS();
-			++it;
-		}
+		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it)
+			prepareRelatedContent(**it, 0, 0);
 	}
 	else {
-		string_ptr<WSTRING> wstrId;
+		wstring_ptr wstrId;
 		if (pwszId) {
-			wstrId.reset(allocWString(pwszId));
-			if (!wstrId.get())
-				return QSTATUS_OUTOFMEMORY;
+			wstrId = allocWString(pwszId);
 		}
 		else {
-			MessageIdParser contentId(&status);
-			CHECK_QSTATUS();
-			Part::Field field;
-			status = part.getField(L"Content-Id", &contentId, &field);
-			CHECK_QSTATUS();
-			if (field == Part::FIELD_EXIST) {
-				wstrId.reset(allocWString(contentId.getMessageId()));
-				if (!wstrId.get())
-					return QSTATUS_OUTOFMEMORY;
-			}
+			MessageIdParser contentId;
+			if (part.getField(L"Content-Id", &contentId) == Part::FIELD_EXIST)
+				wstrId = allocWString(contentId.getMessageId());
 		}
 		
 		if (wstrId.get()) {
-			string_ptr<WSTRING> wstrMimeType;
+			wstring_ptr wstrMimeType;
 			const WCHAR* pwszMediaType = L"text";
 			const WCHAR* pwszSubType = L"plain";
-			string_ptr<WSTRING> wstrCharset;
+			wstring_ptr wstrCharset;
 			const ContentTypeParser* pContentType = part.getContentType();
 			if (pContentType) {
 				pwszMediaType = pContentType->getMediaType();
 				pwszSubType = pContentType->getSubType();
-				status = pContentType->getParameter(L"charset", &wstrCharset);
-				CHECK_QSTATUS();
+				wstrCharset = pContentType->getParameter(L"charset");
 			}
-			if (pwszEncoding) {
-				wstrCharset.reset(allocWString(pwszEncoding));
-				if (!wstrCharset.get())
-					return QSTATUS_OUTOFMEMORY;
-			}
+			if (pwszEncoding)
+				wstrCharset = allocWString(pwszEncoding);
+			
 			size_t nMimeTypeLen = wcslen(pwszMediaType) + wcslen(pwszSubType) +
 				(wstrCharset.get() ? wcslen(wstrCharset.get()) + 12 : 0) + 2;
-			wstrMimeType.reset(allocWString(nMimeTypeLen));
-			if (!wstrMimeType.get())
-				return QSTATUS_OUTOFMEMORY;
+			wstrMimeType = allocWString(nMimeTypeLen);
 			wcscpy(wstrMimeType.get(), pwszMediaType);
 			wcscat(wstrMimeType.get(), L"/");
 			wcscat(wstrMimeType.get(), pwszSubType);
@@ -950,21 +838,21 @@ QSTATUS qm::HtmlMessageViewWindow::prepareRelatedContent(
 			}
 			assert(wcslen(wstrMimeType.get()) < nMimeTypeLen);
 			
-			unsigned char* pData = 0;
-			size_t nLen = 0;
-			status = part.getBodyData(&pData, &nLen);
-			CHECK_QSTATUS();
-			malloc_ptr<unsigned char> p(pData);
-			Content content = { wstrId.get(), wstrMimeType.get(), pData, nLen };
-			status = STLWrapper<ContentList>(listContent_).push_back(content);
-			CHECK_QSTATUS();
+			malloc_size_ptr<unsigned char> pData(part.getBodyData());
+			if (!pData.get())
+				return;
+			Content content = {
+				wstrId.get(),
+				wstrMimeType.get(),
+				pData.get(),
+				pData.size()
+			};
+			listContent_.push_back(content);
 			wstrId.release();
 			wstrMimeType.release();
-			p.release();
+			pData.release();
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -991,13 +879,10 @@ void HtmlMessageViewWindow::Content::destroy()
  *
  */
 
-qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::IInternetSecurityManagerImpl(
-	bool bProhibitAll, QSTATUS* pstatus) :
+qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::IInternetSecurityManagerImpl(bool bProhibitAll) :
 	nRef_(0),
 	bProhibitAll_(bProhibitAll)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::~IInternetSecurityManagerImpl()
@@ -1017,8 +902,8 @@ STDMETHODIMP_(ULONG) qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::Re
 	return nRef;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::QueryInterface(
-	REFIID riid, void** ppv)
+STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::QueryInterface(REFIID riid,
+																					 void** ppv)
 {
 	*ppv = 0;
 	
@@ -1030,20 +915,19 @@ STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::QueryInter
 	return *ppv ? S_OK : E_NOINTERFACE;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::SetSecuritySite(
-	IInternetSecurityMgrSite* pSite)
+STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::SetSecuritySite(IInternetSecurityMgrSite* pSite)
 {
 	return INET_E_DEFAULT_ACTION;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::GetSecuritySite(
-	IInternetSecurityMgrSite** ppSite)
+STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::GetSecuritySite(IInternetSecurityMgrSite** ppSite)
 {
 	return INET_E_DEFAULT_ACTION;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::MapUrlToZone(
-	LPCWSTR pwszUrl, DWORD* pdwZone, DWORD dwFlags)
+STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::MapUrlToZone(LPCWSTR pwszUrl,
+																				   DWORD* pdwZone,
+																				   DWORD dwFlags)
 {
 	if (!pdwZone)
 		return E_INVALIDARG;
@@ -1053,15 +937,22 @@ STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::MapUrlToZo
 	return S_OK;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::GetSecurityId(
-	LPCWSTR pwszUrl, BYTE* pbSecurityId, DWORD* pcbSecurityId, DWORD_PTR dwReserved)
+STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::GetSecurityId(LPCWSTR pwszUrl,
+																					BYTE* pbSecurityId,
+																					DWORD* pcbSecurityId,
+																					DWORD_PTR dwReserved)
 {
 	return INET_E_DEFAULT_ACTION;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::ProcessUrlAction(
-	LPCWSTR pwszUrl, DWORD dwAction, BYTE* pPolicy, DWORD cbPolicy,
-	BYTE* pContext, DWORD cbContext, DWORD dwFlags, DWORD dwReserved)
+STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::ProcessUrlAction(LPCWSTR pwszUrl,
+																					   DWORD dwAction,
+																					   BYTE* pPolicy,
+																					   DWORD cbPolicy,
+																					   BYTE* pContext,
+																					   DWORD cbContext,
+																					   DWORD dwFlags,
+																					   DWORD dwReserved)
 {
 	if (bProhibitAll_) {
 		if (cbPolicy < sizeof(DWORD))
@@ -1076,21 +967,27 @@ STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::ProcessUrl
 	}
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::QueryCustomPolicy(
-	LPCWSTR pwszUrl, REFGUID guidKey, BYTE** ppPolicy, DWORD* pcbPolicy,
-	BYTE* pContent, DWORD cbContent, DWORD dwReserved)
+STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::QueryCustomPolicy(LPCWSTR pwszUrl,
+																						REFGUID guidKey,
+																						BYTE** ppPolicy,
+																						DWORD* pcbPolicy,
+																						BYTE* pContent,
+																						DWORD cbContent,
+																						DWORD dwReserved)
 {
 	return INET_E_DEFAULT_ACTION;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::SetZoneMapping(
-	DWORD dwZone, LPCWSTR pwszPattern, DWORD dwFlags)
+STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::SetZoneMapping(DWORD dwZone,
+																					 LPCWSTR pwszPattern,
+																					 DWORD dwFlags)
 {
 	return INET_E_DEFAULT_ACTION;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::GetZoneMappings(
-	DWORD dwZone, IEnumString** ppenumString, DWORD dwFlags)
+STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::GetZoneMappings(DWORD dwZone,
+																					  IEnumString** ppenumString,
+																					  DWORD dwFlags)
 {
 	return INET_E_DEFAULT_ACTION;
 }
@@ -1102,16 +999,13 @@ STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::GetZoneMap
  *
  */
 
-qm::HtmlMessageViewWindow::InternetProtocol::InternetProtocol(
-	HtmlMessageViewWindow* pHtmlMessageViewWindow, QSTATUS* pstatus) :
+qm::HtmlMessageViewWindow::InternetProtocol::InternetProtocol(HtmlMessageViewWindow* pHtmlMessageViewWindow) :
 	nRef_(0),
 	pHtmlMessageViewWindow_(pHtmlMessageViewWindow),
 	pContent_(0),
 	pCurrent_(0),
 	pSink_(0)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::HtmlMessageViewWindow::InternetProtocol::~InternetProtocol()
@@ -1131,8 +1025,8 @@ STDMETHODIMP_(ULONG) qm::HtmlMessageViewWindow::InternetProtocol::Release()
 	return nRef;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::QueryInterface(
-	REFIID riid, void** ppv)
+STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::QueryInterface(REFIID riid,
+																		 void** ppv)
 {
 	*ppv = 0;
 	
@@ -1150,14 +1044,13 @@ STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::QueryInterface(
 	return *ppv ? S_OK : E_NOINTERFACE;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Abort(
-	HRESULT hrReason, DWORD dwOptions)
+STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Abort(HRESULT hrReason,
+																DWORD dwOptions)
 {
 	return S_OK;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Continue(
-	PROTOCOLDATA* pProtocolData)
+STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Continue(PROTOCOLDATA* pProtocolData)
 {
 	return E_NOTIMPL;
 }
@@ -1167,9 +1060,11 @@ STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Resume()
 	return E_NOTIMPL;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Start(
-	LPCWSTR pwszUrl, IInternetProtocolSink* pSink,
-	IInternetBindInfo* pBindInfo, DWORD dwFlags, HANDLE_PTR dwReserved)
+STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Start(LPCWSTR pwszUrl,
+																IInternetProtocolSink* pSink,
+																IInternetBindInfo* pBindInfo,
+																DWORD dwFlags,
+																HANDLE_PTR dwReserved)
 {
 	if (wcsncmp(pwszUrl, L"cid:", 4) != 0)
 		return E_FAIL;
@@ -1212,20 +1107,19 @@ STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Suspend()
 	return E_NOTIMPL;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Terminate(
-	DWORD dwOptions)
+STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Terminate(DWORD dwOptions)
 {
 	return S_OK;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::LockRequest(
-	DWORD dwOptions)
+STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::LockRequest(DWORD dwOptions)
 {
 	return S_OK;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Read(
-	void* pv, ULONG cb, ULONG* pcbRead)
+STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Read(void* pv,
+															   ULONG cb,
+															   ULONG* pcbRead)
 {
 	assert(pv);
 	assert(pcbRead);
@@ -1245,8 +1139,9 @@ STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Read(
 	return S_OK;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Seek(
-	LARGE_INTEGER move, DWORD dwOrigin, ULARGE_INTEGER* pNewPos)
+STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Seek(LARGE_INTEGER move,
+															   DWORD dwOrigin,
+															   ULARGE_INTEGER* pNewPos)
 {
 	return E_NOTIMPL;
 }
@@ -1256,29 +1151,42 @@ STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::UnlockRequest()
 	return S_OK;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::CombineUrl(
-	LPCWSTR pwszBaseUrl, LPCWSTR pwszRelativeUrl, DWORD dwCombineFlags,
-	LPWSTR pwszResult, DWORD cchResult, DWORD* pcchResult, DWORD dwReserved)
+STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::CombineUrl(LPCWSTR pwszBaseUrl,
+																	 LPCWSTR pwszRelativeUrl,
+																	 DWORD dwCombineFlags,
+																	 LPWSTR pwszResult,
+																	 DWORD cchResult,
+																	 DWORD* pcchResult,
+																	 DWORD dwReserved)
 {
 	return E_NOTIMPL;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::CompareUrl(
-	LPCWSTR pwszUrl1, LPCWSTR pwszUrl2, DWORD dwCompareFlags)
+STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::CompareUrl(LPCWSTR pwszUrl1,
+																	 LPCWSTR pwszUrl2,
+																	 DWORD dwCompareFlags)
 {
 	return E_NOTIMPL;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::ParseUrl(
-	LPCWSTR pwszUrl, PARSEACTION action, DWORD dwParseFlags,
-	LPWSTR pwszResult, DWORD cchResult, DWORD* pcchResult, DWORD dwReserved)
+STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::ParseUrl(LPCWSTR pwszUrl,
+																   PARSEACTION action,
+																   DWORD dwParseFlags,
+																   LPWSTR pwszResult,
+																   DWORD cchResult,
+																   DWORD* pcchResult,
+																   DWORD dwReserved)
 {
 	return E_NOTIMPL;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::QueryInfo(
-	LPCWSTR pwszUrl, QUERYOPTION option, DWORD dwQueryFlags,
-	LPVOID pBuffer, DWORD cbBuffer, DWORD* pcbBuffer, DWORD dwReserved)
+STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::QueryInfo(LPCWSTR pwszUrl,
+																	QUERYOPTION option,
+																	DWORD dwQueryFlags,
+																	LPVOID pBuffer,
+																	DWORD cbBuffer,
+																	DWORD* pcbBuffer,
+																	DWORD dwReserved)
 {
 	return E_NOTIMPL;
 }
@@ -1290,20 +1198,12 @@ STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::QueryInfo(
  *
  */
 
-qm::HtmlMessageViewWindow::IServiceProviderImpl::IServiceProviderImpl(
-	HtmlMessageViewWindow* pHtmlMessageViewWindow, QSTATUS* pstatus) :
+qm::HtmlMessageViewWindow::IServiceProviderImpl::IServiceProviderImpl(HtmlMessageViewWindow* pHtmlMessageViewWindow) :
 	nRef_(0),
 	pHtmlMessageViewWindow_(pHtmlMessageViewWindow),
 	pSecurityManager_(0)
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	DECLARE_QSTATUS();
-	
-	status = newQsObject(true, &pSecurityManager_);
-	CHECK_QSTATUS_SET(pstatus);
+	pSecurityManager_ = new IInternetSecurityManagerImpl(true);
 	pSecurityManager_->AddRef();
 }
 
@@ -1326,8 +1226,8 @@ STDMETHODIMP_(ULONG) qm::HtmlMessageViewWindow::IServiceProviderImpl::Release()
 	return nRef;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::IServiceProviderImpl::QueryInterface(
-	REFIID riid, void** ppv)
+STDMETHODIMP qm::HtmlMessageViewWindow::IServiceProviderImpl::QueryInterface(REFIID riid,
+																			 void** ppv)
 {
 	*ppv = 0;
 	
@@ -1339,11 +1239,10 @@ STDMETHODIMP qm::HtmlMessageViewWindow::IServiceProviderImpl::QueryInterface(
 	return *ppv ? S_OK : E_NOINTERFACE;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::IServiceProviderImpl::QueryService(
-	REFGUID guidService, REFIID riid, void** ppv)
+STDMETHODIMP qm::HtmlMessageViewWindow::IServiceProviderImpl::QueryService(REFGUID guidService,
+																		   REFIID riid,
+																		   void** ppv)
 {
-	DECLARE_QSTATUS();
-	
 	*ppv = 0;
 	
 	if (guidService == SID_SInternetSecurityManager &&
@@ -1353,9 +1252,7 @@ STDMETHODIMP qm::HtmlMessageViewWindow::IServiceProviderImpl::QueryService(
 	}
 	else if (guidService == IID_IInternetProtocol &&
 		riid == IID_IInternetProtocol) {
-		InternetProtocol* pInternetProtocol = 0;
-		status = newQsObject(pHtmlMessageViewWindow_, &pInternetProtocol);
-		CHECK_QSTATUS_VALUE(E_OUTOFMEMORY);
+		InternetProtocol* pInternetProtocol = new InternetProtocol(pHtmlMessageViewWindow_);
 		pInternetProtocol->AddRef();
 		*ppv = static_cast<IInternetProtocol*>(pInternetProtocol);
 	}
@@ -1370,13 +1267,10 @@ STDMETHODIMP qm::HtmlMessageViewWindow::IServiceProviderImpl::QueryService(
  *
  */
 
-qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::IDocHostUIHandlerDispatchImpl(
-	HtmlMessageViewWindow* pWindow, QSTATUS* pstatus) :
+qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::IDocHostUIHandlerDispatchImpl(HtmlMessageViewWindow* pWindow) :
 	nRef_(0),
 	pWindow_(pWindow)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::~IDocHostUIHandlerDispatchImpl()
@@ -1396,8 +1290,8 @@ STDMETHODIMP_(ULONG) qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::R
 	return nRef;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::QueryInterface(
-	REFIID riid, void** ppv)
+STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::QueryInterface(REFIID riid,
+																					  void** ppv)
 {
 	*ppv = 0;
 	
@@ -1411,41 +1305,50 @@ STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::QueryInte
 	return *ppv ? S_OK : E_NOINTERFACE;
 }
 
-STDMETHODIMP HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::GetIDsOfNames(
-	REFIID riid, OLECHAR** rgszNames, unsigned int cNames, LCID lcid, DISPID* pDispId)
+STDMETHODIMP HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::GetIDsOfNames(REFIID riid,
+																				 OLECHAR** rgszNames,
+																				 unsigned int cNames,
+																				 LCID lcid,
+																				 DISPID* pDispId)
 {
 	return E_NOTIMPL;
 }
 
-STDMETHODIMP HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::GetTypeInfo(
-	unsigned int nTypeInfo, LCID lcid, ITypeInfo** ppTypeInfo)
+STDMETHODIMP HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::GetTypeInfo(unsigned int nTypeInfo,
+																			   LCID lcid,
+																			   ITypeInfo** ppTypeInfo)
 {
 	return E_NOTIMPL;
 }
 
-STDMETHODIMP HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::GetTypeInfoCount(
-	unsigned int* pcTypeInfo)
+STDMETHODIMP HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::GetTypeInfoCount(unsigned int* pcTypeInfo)
 {
 	return E_NOTIMPL;
 }
 
-STDMETHODIMP HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::Invoke(
-	DISPID dispId, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS* pDispParams,
-	VARIANT* pVarResult, EXCEPINFO* pExcepInfo, unsigned int* pnArgErr)
+STDMETHODIMP HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::Invoke(DISPID dispId,
+																		  REFIID riid,
+																		  LCID lcid,
+																		  WORD wFlags,
+																		  DISPPARAMS* pDispParams,
+																		  VARIANT* pVarResult,
+																		  EXCEPINFO* pExcepInfo,
+																		  unsigned int* pnArgErr)
 {
 	return E_NOTIMPL;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::ShowContextMenu(
-	DWORD dwId, DWORD x, DWORD y, IUnknown* pUnk, IDispatch* pDisp, HRESULT* phrResult)
+STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::ShowContextMenu(DWORD dwId,
+																					   DWORD x,
+																					   DWORD y,
+																					   IUnknown* pUnk,
+																					   IDispatch* pDisp,
+																					   HRESULT* phrResult)
 {
-	DECLARE_QSTATUS();
-	
 	pWindow_->setActive();
 	
-	HMENU hmenu = 0;
-	status = pWindow_->pMenuManager_->getMenu(L"message", false, false, &hmenu);
-	if (status == QSTATUS_SUCCESS) {
+	HMENU hmenu = pWindow_->pMenuManager_->getMenu(L"message", false, false);
+	if (hmenu) {
 		UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
 #ifndef _WIN32_WCE
 		nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
@@ -1458,17 +1361,20 @@ STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::ShowConte
 	return S_OK;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::GetHostInfo(
-	DWORD* pdwFlags, DWORD* pdwDoubleClick)
+STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::GetHostInfo(DWORD* pdwFlags,
+																				   DWORD* pdwDoubleClick)
 {
 	*pdwFlags = DOCHOSTUIFLAG_OPENNEWWIN;
 	*pdwDoubleClick = DOCHOSTUIDBLCLK_DEFAULT;
 	return S_OK;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::ShowUI(
-	DWORD dwId, IUnknown* pActiveObject, IUnknown* pCommandTarget,
-	IUnknown* pFrame, IUnknown* pUIWindow, HRESULT* phrResult)
+STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::ShowUI(DWORD dwId,
+																			  IUnknown* pActiveObject,
+																			  IUnknown* pCommandTarget,
+																			  IUnknown* pFrame,
+																			  IUnknown* pUIWindow,
+																			  HRESULT* phrResult)
 {
 	return S_OK;
 }
@@ -1483,65 +1389,69 @@ STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::UpdateUI(
 	return S_OK;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::EnableModeless(
-	VARIANT_BOOL bEnable)
+STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::EnableModeless(VARIANT_BOOL bEnable)
 {
 	return S_OK;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::OnDocWindowActivate(
-	VARIANT_BOOL bActivate)
+STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::OnDocWindowActivate(VARIANT_BOOL bActivate)
 {
 	return S_OK;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::OnFrameWindowActivate(
-	VARIANT_BOOL bActivate)
+STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::OnFrameWindowActivate(VARIANT_BOOL bActivate)
 {
 	return S_OK;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::ResizeBorder(
-	long left, long top, long right, long buttom,
-	IUnknown* pUIWindow, VARIANT_BOOL bFrameWindow)
+STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::ResizeBorder(long left,
+																					long top,
+																					long right,
+																					long buttom,
+																					IUnknown* pUIWindow,
+																					VARIANT_BOOL bFrameWindow)
 {
 	return S_OK;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::TranslateAccelerator(
-	DWORD hwnd, DWORD nMessage, DWORD wParam, DWORD lParam,
-	BSTR bstrGuidCmdGroup, DWORD nCmdId, HRESULT* phrResult)
+STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::TranslateAccelerator(DWORD hwnd,
+																							DWORD nMessage,
+																							DWORD wParam,
+																							DWORD lParam,
+																							BSTR bstrGuidCmdGroup,
+																							DWORD nCmdId,
+																							HRESULT* phrResult)
 {
 	*phrResult = S_FALSE;
 	return S_OK;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::GetOptionKeyPath(
-	BSTR* pbstrKey, DWORD dw)
+STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::GetOptionKeyPath(BSTR* pbstrKey,
+																						DWORD dw)
 {
 	return S_FALSE;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::GetDropTarget(
-	IUnknown* pDropTarget, IUnknown** ppDropTarget)
+STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::GetDropTarget(IUnknown* pDropTarget,
+																					 IUnknown** ppDropTarget)
 {
 	return S_FALSE;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::GetExternal(
-	IDispatch** ppDispatch)
+STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::GetExternal(IDispatch** ppDispatch)
 {
 	return E_NOINTERFACE;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::TranslateUrl(
-	DWORD dwTranslate, BSTR bstrURLIn, BSTR* bstrURLOut)
+STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::TranslateUrl(DWORD dwTranslate,
+																					BSTR bstrURLIn,
+																					BSTR* bstrURLOut)
 {
 	return S_FALSE;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::FilterDataObject(
-	IUnknown* pInObject, IUnknown** ppOutObject)
+STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::FilterDataObject(IUnknown* pInObject,
+																						IUnknown** ppOutObject)
 {
 	return S_FALSE;
 }
@@ -1553,15 +1463,12 @@ STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::FilterDat
  *
  */
 
-qm::HtmlMessageViewWindow::DWebBrowserEvents2Impl::DWebBrowserEvents2Impl(
-	HtmlMessageViewWindow* pHtmlMessageViewWindow,
-	IWebBrowser2* pWebBrowser, QSTATUS* pstatus) :
+qm::HtmlMessageViewWindow::DWebBrowserEvents2Impl::DWebBrowserEvents2Impl(HtmlMessageViewWindow* pHtmlMessageViewWindow,
+																		  IWebBrowser2* pWebBrowser) :
 	nRef_(0),
 	pHtmlMessageViewWindow_(pHtmlMessageViewWindow),
 	pWebBrowser_(pWebBrowser)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::HtmlMessageViewWindow::DWebBrowserEvents2Impl::~DWebBrowserEvents2Impl()
@@ -1581,8 +1488,8 @@ STDMETHODIMP_(ULONG) qm::HtmlMessageViewWindow::DWebBrowserEvents2Impl::Release(
 	return nRef;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::DWebBrowserEvents2Impl::QueryInterface(
-	REFIID riid, void** ppv)
+STDMETHODIMP qm::HtmlMessageViewWindow::DWebBrowserEvents2Impl::QueryInterface(REFIID riid,
+																			   void** ppv)
 {
 	*ppv = 0;
 	
@@ -1596,27 +1503,35 @@ STDMETHODIMP qm::HtmlMessageViewWindow::DWebBrowserEvents2Impl::QueryInterface(
 	return *ppv ? S_OK : E_NOINTERFACE;
 }
 
-STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::GetIDsOfNames(
-	REFIID riid, OLECHAR** rgszNames, unsigned int cNames, LCID lcid, DISPID* pDispId)
+STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::GetIDsOfNames(REFIID riid,
+																		  OLECHAR** rgszNames,
+																		  unsigned int cNames,
+																		  LCID lcid,
+																		  DISPID* pDispId)
 {
 	return E_NOTIMPL;
 }
 
-STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::GetTypeInfo(
-	unsigned int nTypeInfo, LCID lcid, ITypeInfo** ppTypeInfo)
+STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::GetTypeInfo(unsigned int nTypeInfo,
+																		LCID lcid,
+																		ITypeInfo** ppTypeInfo)
 {
 	return E_NOTIMPL;
 }
 
-STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::GetTypeInfoCount(
-	unsigned int* pcTypeInfo)
+STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::GetTypeInfoCount(unsigned int* pcTypeInfo)
 {
 	return E_NOTIMPL;
 }
 
-STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::Invoke(
-	DISPID dispId, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS* pDispParams,
-	VARIANT* pVarResult, EXCEPINFO* pExcepInfo, unsigned int* pnArgErr)
+STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::Invoke(DISPID dispId,
+																   REFIID riid,
+																   LCID lcid,
+																   WORD wFlags,
+																   DISPPARAMS* pDispParams,
+																   VARIANT* pVarResult,
+																   EXCEPINFO* pExcepInfo,
+																   unsigned int* pnArgErr)
 {
 	if (dispId == DISPID_BEFORENAVIGATE2) {
 		if (!pDispParams || pDispParams->cArgs != 7)
@@ -1646,9 +1561,7 @@ STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::Invoke(
 			pWebBrowser->Stop();
 		
 		if (!bAllow && pWebBrowser.get() == pWebBrowser_) {
-			string_ptr<TSTRING> tstrURL(wcs2tcs(bstrURL));
-			if (!tstrURL.get())
-				return E_OUTOFMEMORY;
+			tstring_ptr tstrURL(wcs2tcs(bstrURL));
 			SHELLEXECUTEINFO sei = {
 				sizeof(sei),
 				0,
@@ -1702,26 +1615,18 @@ STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::Invoke(
 
 HtmlMessageViewWindow::AmbientDispatchHook::Map qm::HtmlMessageViewWindow::AmbientDispatchHook::map__;
 
-qm::HtmlMessageViewWindow::AmbientDispatchHook::AmbientDispatchHook(
-	HtmlMessageViewWindow* pHtmlMessageViewWindow, IDispatch* pDispatch, QSTATUS* pstatus) :
+qm::HtmlMessageViewWindow::AmbientDispatchHook::AmbientDispatchHook(HtmlMessageViewWindow* pHtmlMessageViewWindow,
+																	IDispatch* pDispatch) :
 	nRef_(1),
 	pHtmlMessageViewWindow_(pHtmlMessageViewWindow),
 	pDispatch_(pDispatch),
 	pDispatchVtbl_(0)
 {
-	assert(pstatus);
-	
-	DECLARE_QSTATUS();
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
 	IDispatchType* pDispatchType = reinterpret_cast<IDispatchType*>(pDispatch);
 	pDispatchVtbl_ = pDispatchType->pVtbl;
 	pDispatchType->pVtbl = reinterpret_cast<IDispatchType*>(this)->pVtbl;
 	
-	status = STLWrapper<Map>(map__).push_back(
-		Map::value_type(pDispatchType, this));
-	CHECK_QSTATUS_SET(pstatus);
+	map__.push_back(Map::value_type(pDispatchType, this));
 }
 
 qm::HtmlMessageViewWindow::AmbientDispatchHook::~AmbientDispatchHook()
@@ -1750,34 +1655,42 @@ STDMETHODIMP_(ULONG) qm::HtmlMessageViewWindow::AmbientDispatchHook::Release()
 	return nRef;
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::QueryInterface(
-	REFIID riid, void** ppv)
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::QueryInterface(REFIID riid,
+																			void** ppv)
 {
 	return (*getVtbl()->QueryInterface)(getDispatchType(), riid, ppv);
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::GetIDsOfNames(
-	REFIID riid, OLECHAR** rgszNames, unsigned int cNames, LCID lcid, DISPID* pDispId)
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::GetIDsOfNames(REFIID riid,
+																		   OLECHAR** rgszNames,
+																		   unsigned int cNames,
+																		   LCID lcid,
+																		   DISPID* pDispId)
 {
 	return (*getVtbl()->GetIDsOfNames)(getDispatchType(),
 		riid, rgszNames, cNames, lcid, pDispId);
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::GetTypeInfo(
-	unsigned int nTypeInfo, LCID lcid, ITypeInfo** ppTypeInfo)
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::GetTypeInfo(unsigned int nTypeInfo,
+																		 LCID lcid,
+																		 ITypeInfo** ppTypeInfo)
 {
 	return (*getVtbl()->GetTypeInfo)(getDispatchType(), nTypeInfo, lcid, ppTypeInfo);
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::GetTypeInfoCount(
-	unsigned int* pcTypeInfo)
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::GetTypeInfoCount(unsigned int* pcTypeInfo)
 {
 	return (*getVtbl()->GetTypeInfoCount)(getDispatchType(), pcTypeInfo);
 }
 
-STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::Invoke(
-	DISPID dispId, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS* pDispParams,
-	VARIANT* pVarResult, EXCEPINFO* pExcepInfo, unsigned int* pnArgErr)
+STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::Invoke(DISPID dispId,
+																	REFIID riid,
+																	LCID lcid,
+																	WORD wFlags,
+																	DISPPARAMS* pDispParams,
+																	VARIANT* pVarResult,
+																	EXCEPINFO* pExcepInfo,
+																	unsigned int* pnArgErr)
 {
 	if (dispId == DISPID_AMBIENT_DLCONTROL) {
 		::VariantInit(pVarResult);
@@ -1947,8 +1860,7 @@ HtmlMessageViewWindow::AmbientDispatchHook::IDispatchVtbl* qm::HtmlMessageViewWi
 	return getThis()->pDispatchVtbl_;
 }
 
-HtmlMessageViewWindow::AmbientDispatchHook* qm::HtmlMessageViewWindow::AmbientDispatchHook::get(
-	IDispatchType* pDispatchType)
+HtmlMessageViewWindow::AmbientDispatchHook* qm::HtmlMessageViewWindow::AmbientDispatchHook::get(IDispatchType* pDispatchType)
 {
 	Map::const_iterator it = map__.begin();
 	while (it != map__.end() && (*it).first != pDispatchType)

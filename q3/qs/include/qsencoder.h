@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -10,6 +10,7 @@
 #define __QSENCODER_H__
 
 #include <qs.h>
+#include <qsstl.h>
 
 
 namespace qs {
@@ -26,10 +27,27 @@ public:
 	virtual ~Encoder();
 
 public:
-	virtual QSTATUS encode(const unsigned char* pSrc, size_t nSrcLen,
-		unsigned char** ppDst, size_t* pnDstLen) = 0;
-	virtual QSTATUS decode(const unsigned char* pSrc, size_t nSrcLen,
-		unsigned char** ppDst, size_t* pnDstLen) = 0;
+	/**
+	 * Encode the specified buffer.
+	 *
+	 * @param pSrc [in] Buffer.
+	 * @param nSrcLen [in] Buffer length.
+	 * @return Encoded buffer. null if failed.
+	 */
+	virtual malloc_size_ptr<unsigned char> encode(const unsigned char* pSrc,
+												  size_t nSrcLen)
+												  QNOTHROW() = 0;
+	
+	/**
+	 * Decode the specified buffer.
+	 *
+	 * @param pSrc [in] Buffer.
+	 * @param nSrcLen [in] Buffer length.
+	 * @return Decoded buffer. null if failed.
+	 */
+	virtual malloc_size_ptr<unsigned char> decode(const unsigned char* pSrc,
+												  size_t nSrcLen)
+												  QNOTHROW() = 0;
 };
 
 
@@ -42,23 +60,52 @@ public:
 class QSEXPORTCLASS EncoderFactory
 {
 protected:
-	explicit EncoderFactory(QSTATUS* pstatus);
+	EncoderFactory();
 
 public:
 	virtual ~EncoderFactory();
 
 public:
-	static QSTATUS getInstance(const WCHAR* pwszName, Encoder** ppEncoder);
-	static QSTATUS getInstance(const WCHAR* pwszName,
-		std::auto_ptr<Encoder>* papEncoder);
+	/**
+	 * Create instance of encoder.
+	 *
+	 * @param pwszName [in] Encoding name.
+	 * @return Created encoder. null if encoder is not found or error occured.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	static std::auto_ptr<Encoder> getInstance(const WCHAR* pwszName);
 
 protected:
+	/**
+	 * Get encoding name.
+	 *
+	 * @return Encoding name.
+	 */
 	virtual const WCHAR* getName() const = 0;
-	virtual QSTATUS createInstance(Encoder** ppEncoder) = 0;
+	
+	/**
+	 * Create instance of encoder.
+	 *
+	 * @return Created encoder. null if encoder is not found or error occured.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	virtual std::auto_ptr<Encoder> createInstance() = 0;
 
 protected:
-	static QSTATUS regist(EncoderFactory* pFactory);
-	static QSTATUS unregist(EncoderFactory* pFactory);
+	/**
+	 * Register encoder factory.
+	 *
+	 * @param pFactory [in] Factory.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	static void registerFactory(EncoderFactory* pFactory);
+	
+	/**
+	 * Unregister encoder factory.
+	 *
+	 * @param pFactory [in] Factory.
+	 */
+	static void unregisterFactory(EncoderFactory* pFactory);
 
 private:
 	EncoderFactory(const EncoderFactory&);
@@ -80,18 +127,38 @@ public:
 	};
 
 public:
-	Base64Encoder(bool bFold, QSTATUS* pstatus);
+	/**
+	 * Create instance.
+	 *
+	 * @param bFold Specify make folding or not.
+	 */
+	explicit Base64Encoder(bool bFold);
+	
 	virtual ~Base64Encoder();
 
 public:
-	virtual QSTATUS encode(const unsigned char* pSrc, size_t nSrcLen,
-		unsigned char** ppDst, size_t* pnDstLen);
-	virtual QSTATUS decode(const unsigned char* pSrc, size_t nSrcLen,
-		unsigned char** ppDst, size_t* pnDstLen);
+	virtual malloc_size_ptr<unsigned char> encode(const unsigned char* pSrc,
+												  size_t nSrcLen)
+												  QNOTHROW();
+	virtual malloc_size_ptr<unsigned char> decode(const unsigned char* pSrc,
+												  size_t nSrcLen)
+												  QNOTHROW();
 
 public:
-	static void encode(const unsigned char* pSrc, size_t nSrcLen,
-		bool bFold, unsigned char* pDst, size_t* pDstLen);
+	/**
+	 * Encode. Sufficient buffer must be allocated.
+	 *
+	 * @param pSrc [in] Buffer to be encoded.
+	 * @param nSrcLen [in] Buffer length.
+	 * @param bFold [in] Make folding or not.
+	 * @param pDst [in] Buffer that decoded result to be written.
+	 * @param pnDstLen [out] Writte size.
+	 */
+	static void encode(const unsigned char* pSrc,
+					   size_t nSrcLen,
+					   bool bFold,
+					   unsigned char* pDst,
+					   size_t* pnDstLen);
 
 private:
 	Base64Encoder(const Base64Encoder&);
@@ -111,12 +178,12 @@ private:
 class Base64EncoderFactory : public EncoderFactory
 {
 public:
-	Base64EncoderFactory(QSTATUS* pstatus);
+	Base64EncoderFactory();
 	virtual ~Base64EncoderFactory();
 
 protected:
 	virtual const WCHAR* getName() const;
-	virtual QSTATUS createInstance(Encoder** ppEncoder);
+	virtual std::auto_ptr<Encoder> createInstance();
 
 private:
 	Base64EncoderFactory(const Base64EncoderFactory&);
@@ -133,12 +200,12 @@ private:
 class BEncoderFactory : public EncoderFactory
 {
 public:
-	BEncoderFactory(QSTATUS* pstatus);
+	BEncoderFactory();
 	virtual ~BEncoderFactory();
 
 protected:
 	virtual const WCHAR* getName() const;
-	virtual QSTATUS createInstance(Encoder** ppEncoder);
+	virtual std::auto_ptr<Encoder> createInstance();
 
 private:
 	BEncoderFactory(const BEncoderFactory&);
@@ -155,14 +222,16 @@ private:
 class QSEXPORTCLASS QuotedPrintableEncoder : public Encoder
 {
 public:
-	QuotedPrintableEncoder(bool bQ, QSTATUS* pstatus);
+	explicit QuotedPrintableEncoder(bool bQ);
 	virtual ~QuotedPrintableEncoder();
 
 public:
-	virtual QSTATUS encode(const unsigned char* pSrc, size_t nSrcLen,
-		unsigned char** ppDst, size_t* pnDstLen);
-	virtual QSTATUS decode(const unsigned char* pSrc, size_t nSrcLen,
-		unsigned char** ppDst, size_t* pnDstLen);
+	virtual malloc_size_ptr<unsigned char> encode(const unsigned char* pSrc,
+												  size_t nSrcLen)
+												  QNOTHROW();
+	virtual malloc_size_ptr<unsigned char> decode(const unsigned char* pSrc,
+												  size_t nSrcLen)
+												  QNOTHROW();
 
 private:
 	QuotedPrintableEncoder(const QuotedPrintableEncoder&);
@@ -182,12 +251,12 @@ private:
 class QuotedPrintableEncoderFactory : public EncoderFactory
 {
 public:
-	QuotedPrintableEncoderFactory(QSTATUS* pstatus);
+	QuotedPrintableEncoderFactory();
 	virtual ~QuotedPrintableEncoderFactory();
 
 protected:
 	virtual const WCHAR* getName() const;
-	virtual QSTATUS createInstance(Encoder** ppEncoder);
+	virtual std::auto_ptr<Encoder> createInstance();
 
 private:
 	QuotedPrintableEncoderFactory(const QuotedPrintableEncoderFactory&);
@@ -204,12 +273,12 @@ private:
 class QEncoderFactory : public EncoderFactory
 {
 public:
-	QEncoderFactory(QSTATUS* pstatus);
+	QEncoderFactory();
 	virtual ~QEncoderFactory();
 
 protected:
 	virtual const WCHAR* getName() const;
-	virtual QSTATUS createInstance(Encoder** ppEncoder);
+	virtual std::auto_ptr<Encoder> createInstance();
 
 private:
 	QEncoderFactory(const QEncoderFactory&);
@@ -226,14 +295,16 @@ private:
 class QSEXPORTCLASS UuencodeEncoder : public Encoder
 {
 public:
-	explicit UuencodeEncoder(QSTATUS* pstatus);
+	UuencodeEncoder();
 	virtual ~UuencodeEncoder();
 
 public:
-	virtual QSTATUS encode(const unsigned char* pSrc, size_t nSrcLen,
-		unsigned char** ppDst, size_t* pnDstLen);
-	virtual QSTATUS decode(const unsigned char* pSrc, size_t nSrcLen,
-		unsigned char** ppDst, size_t* pnDstLen);
+	virtual malloc_size_ptr<unsigned char> encode(const unsigned char* pSrc,
+												  size_t nSrcLen)
+												  QNOTHROW();
+	virtual malloc_size_ptr<unsigned char> decode(const unsigned char* pSrc,
+												  size_t nSrcLen)
+												  QNOTHROW();
 
 private:
 	UuencodeEncoder(const UuencodeEncoder&);
@@ -251,12 +322,12 @@ private:
 class UuencodeEncoderFactory : public EncoderFactory
 {
 public:
-	UuencodeEncoderFactory(QSTATUS* pstatus);
+	UuencodeEncoderFactory();
 	virtual ~UuencodeEncoderFactory();
 
 protected:
 	virtual const WCHAR* getName() const;
-	virtual QSTATUS createInstance(Encoder** ppEncoder);
+	virtual std::auto_ptr<Encoder> createInstance();
 
 private:
 	UuencodeEncoderFactory(const UuencodeEncoderFactory&);
@@ -273,12 +344,12 @@ private:
 class XUuencodeEncoderFactory : public EncoderFactory
 {
 public:
-	XUuencodeEncoderFactory(QSTATUS* pstatus);
+	XUuencodeEncoderFactory();
 	virtual ~XUuencodeEncoderFactory();
 
 protected:
 	virtual const WCHAR* getName() const;
-	virtual QSTATUS createInstance(Encoder** ppEncoder);
+	virtual std::auto_ptr<Encoder> createInstance();
 
 private:
 	XUuencodeEncoderFactory(const XUuencodeEncoderFactory&);

@@ -1,19 +1,17 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qs.h>
+#include <qsassert.h>
 #include <qsinit.h>
-#include <qsthread.h>
-#include <qserror.h>
 #include <qsstl.h>
 #include <qsstring.h>
-#include <qsnew.h>
-#include <qsassert.h>
+#include <qsthread.h>
 
 #include <memory>
 #include <vector>
@@ -41,12 +39,14 @@ ModalHandler* g_pModalHandler = 0;
  *
  */
 
-QSTATUS initProcess(HINSTANCE hInst);
-QSTATUS termProcess();
-QSTATUS initThread();
-QSTATUS termThread();
+void initProcess(HINSTANCE hInst);
+void termProcess();
+void initThread();
+void termThread();
 
-BOOL WINAPI DllMain(/*HINSTANCE*/HANDLE hInst, DWORD dwReason, LPVOID lpReserved)
+BOOL WINAPI DllMain(HANDLE hInst,
+					DWORD dwReason,
+					LPVOID lpReserved)
 {
 	switch (dwReason) {
 	case DLL_PROCESS_ATTACH:
@@ -57,49 +57,37 @@ BOOL WINAPI DllMain(/*HINSTANCE*/HANDLE hInst, DWORD dwReason, LPVOID lpReserved
 			::OutputDebugString(tsz);
 		}
 #endif
-		if (initProcess(static_cast<HINSTANCE>(hInst)) != QSTATUS_SUCCESS)
-			return FALSE;
+		initProcess(static_cast<HINSTANCE>(hInst));
 		break;
 	case DLL_PROCESS_DETACH:
-		if (termProcess() != QSTATUS_SUCCESS)
-			return FALSE;
+		termProcess();
 		break;
 	case DLL_THREAD_ATTACH:
-		if (initThread() != QSTATUS_SUCCESS)
-			return FALSE;
+		initThread();
 		break;
 	case DLL_THREAD_DETACH:
-		if (termThread() != QSTATUS_SUCCESS)
-			return FALSE;
+		termThread();
 		break;
 	}
 	return TRUE;
 }
 
-QSTATUS initProcess(HINSTANCE hInst)
+void initProcess(HINSTANCE hInst)
 {
-	DECLARE_QSTATUS();
-	
 	g_hInstDll = hInst;
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS termProcess()
+void termProcess()
 {
 	g_hInstDll = 0;
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS initThread()
+void initThread()
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS termThread()
+void termThread()
 {
-	return QSTATUS_SUCCESS;
 }
 
 

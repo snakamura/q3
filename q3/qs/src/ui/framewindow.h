@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -21,17 +21,23 @@ namespace qs {
  *
  */
 
-class MenuBarWindow : public WindowBase, public DefaultWindowHandler
+class MenuBarWindow :
+	public WindowBase,
+	public DefaultWindowHandler
 {
 public:
-	MenuBarWindow(HWND hwndFrame, QSTATUS* pstatus);
+	MenuBarWindow(HWND hwndFrame);
 	virtual ~MenuBarWindow();
 
 public:
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
-	LRESULT onInitMenuPopup(HMENU hmenu, UINT nIndex, bool bSysMenu);
+	LRESULT onInitMenuPopup(HMENU hmenu,
+							UINT nIndex,
+							bool bSysMenu);
 
 private:
 	MenuBarWindow(const MenuBarWindow&);

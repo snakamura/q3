@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -78,43 +78,36 @@ public:
 	};
 
 public:
-	struct Init
-	{
-		unsigned int nId_;
-		const WCHAR* pwszName_;
-		WCHAR cSeparator_;
-		unsigned int nFlags_;
-		unsigned int nCount_;
-		unsigned int nUnseenCount_;
-		Folder* pParentFolder_;
-		Account* pAccount_;
-	};
-
-public:
-	Folder(const Init& init, qs::QSTATUS* pstatus);
+	Folder(unsigned int nId,
+		   const WCHAR* pwszName,
+		   WCHAR cSeparator,
+		   unsigned int nFlags,
+		   Folder* pParentFolder,
+		   Account* pAccount);
 	virtual ~Folder();
 
 public:
 	unsigned int getId() const;
 	const WCHAR* getName() const;
-	qs::QSTATUS getDisplayName(qs::WSTRING* pwstrName) const;
-	qs::QSTATUS getFullName(qs::WSTRING* pwstrName) const;
+	qs::wstring_ptr getDisplayName() const;
+	qs::wstring_ptr getFullName() const;
 	WCHAR getSeparator() const;
 	unsigned int getFlags() const;
 	bool isFlag(Flag flag) const;
-	void setFlags(unsigned int nFlags, unsigned int nMask);
+	void setFlags(unsigned int nFlags,
+				  unsigned int nMask);
 	Folder* getParentFolder() const;
 	bool isAncestorOf(const Folder* pFolder) const;
 	bool isHidden() const;
 	unsigned int getLevel() const;
 	Account* getAccount() const;
 	
-	qs::QSTATUS addFolderHandler(FolderHandler* pHandler);
-	qs::QSTATUS removeFolderHandler(FolderHandler* pHandler);
+	void addFolderHandler(FolderHandler* pHandler);
+	void removeFolderHandler(FolderHandler* pHandler);
 
 // These methods are intended to be called from Account class.
 public:
-	qs::QSTATUS setName(const WCHAR* pwszName);
+	void setName(const WCHAR* pwszName);
 
 // These methods are intended to be called from impl classes.
 public:
@@ -124,13 +117,13 @@ public:
 	virtual Type getType() const = 0;
 	virtual unsigned int getCount() const = 0;
 	virtual unsigned int getUnseenCount() const = 0;
-	virtual qs::QSTATUS getSize(unsigned int* pnSize) = 0;
-	virtual qs::QSTATUS getBoxSize(unsigned int* pnSize) = 0;
+	virtual unsigned int getSize() = 0;
+	virtual unsigned int getBoxSize() = 0;
 	virtual MessageHolder* getMessage(unsigned int n) const = 0;
-	virtual qs::QSTATUS getMessages(const MessageHolderList** ppList) = 0;
-	virtual qs::QSTATUS loadMessageHolders() = 0;
-	virtual qs::QSTATUS saveMessageHolders() = 0;
-	virtual qs::QSTATUS deletePermanent() = 0;
+	virtual const MessageHolderList& getMessages() = 0;
+	virtual bool loadMessageHolders() = 0;
+	virtual bool saveMessageHolders() = 0;
+	virtual bool deletePermanent() = 0;
 
 private:
 	Folder(const Folder&);
@@ -150,49 +143,53 @@ private:
 class QMEXPORTCLASS NormalFolder : public Folder
 {
 public:
-	struct Init : public Folder::Init
-	{
-		unsigned int nValidity_;
-		unsigned int nDownloadCount_;
-		unsigned int nDeletedCount_;
-	};
-
-public:
 	typedef std::vector<std::pair<unsigned int, unsigned int> > FlagList;
 
 public:
-	NormalFolder(const Init& init, qs::QSTATUS* pstatus);
+	NormalFolder(unsigned int nId,
+				 const WCHAR* pwszName,
+				 WCHAR cSeparator,
+				 unsigned int nFlags,
+				 unsigned int nCount,
+				 unsigned int nUnseenCount,
+				 unsigned int nValidity,
+				 unsigned int nDownloadCount,
+				 unsigned int nDeletedCount,
+				 Folder* pParentFolder,
+				 Account* pAccount);
 	virtual ~NormalFolder();
 
 public:
 	unsigned int getValidity() const;
-	qs::QSTATUS setValidity(unsigned int nValidity);
+	bool setValidity(unsigned int nValidity);
 	unsigned int getDownloadCount() const;
 	unsigned int getDeletedCount() const;
 	unsigned int getLastSyncTime() const;
 	void setLastSyncTime(unsigned int nTime);
-	qs::QSTATUS getMessageById(unsigned int nId, MessagePtr* pptr);
-	MessageHolder* getMessageById(unsigned int nId) const;
-	qs::QSTATUS updateMessageFlags(const FlagList& listFlag, bool* pbClear);
+	MessagePtr getMessageById(unsigned int nId);
+	MessageHolder* getMessageHolderById(unsigned int nId) const;
+	bool updateMessageFlags(const FlagList& listFlag,
+							bool* pbClear);
 
 public:
 	virtual Type getType() const;
 	virtual unsigned int getCount() const;
 	virtual unsigned int getUnseenCount() const;
-	virtual qs::QSTATUS getSize(unsigned int* pnSize);
-	virtual qs::QSTATUS getBoxSize(unsigned int* pnSize);
+	virtual unsigned int getSize();
+	virtual unsigned getBoxSize();
 	virtual MessageHolder* getMessage(unsigned int n) const;
-	virtual qs::QSTATUS getMessages(const MessageHolderList** ppList);
-	virtual qs::QSTATUS loadMessageHolders();
-	virtual qs::QSTATUS saveMessageHolders();
-	virtual qs::QSTATUS deletePermanent();
+	virtual const MessageHolderList& getMessages();
+	virtual bool loadMessageHolders();
+	virtual bool saveMessageHolders();
+	virtual bool deletePermanent();
 
 // These methods are intended to be called from Account class
 public:
-	qs::QSTATUS generateId(unsigned int* pnId);
-	qs::QSTATUS appendMessage(MessageHolder* pmh);
-	qs::QSTATUS removeMessage(MessageHolder* pmh);
-	qs::QSTATUS moveMessages(const MessageHolderList& l, NormalFolder* pFolder);
+	unsigned int generateId();
+	bool appendMessage(std::auto_ptr<MessageHolder> pmh);
+	void removeMessage(MessageHolder* pmh);
+	bool moveMessages(const MessageHolderList& l,
+					  NormalFolder* pFolder);
 
 private:
 	NormalFolder(const NormalFolder&);
@@ -212,16 +209,18 @@ private:
 class QMEXPORTCLASS QueryFolder : public Folder
 {
 public:
-	struct Init : public Folder::Init
-	{
-		const WCHAR* pwszDriver_;
-		const WCHAR* pwszCondition_;
-		const WCHAR* pwszTargetFolder_;
-		bool bRecursive_;
-	};
-
-public:
-	QueryFolder(const Init& init, qs::QSTATUS* pstatus);
+	QueryFolder(unsigned int nId,
+				const WCHAR* pwszName,
+				WCHAR cSeparator,
+				unsigned int nFlags,
+				unsigned int nCount,
+				unsigned int nUseenCount,
+				const WCHAR* pwszDriver,
+				const WCHAR* pwszCondition,
+				const WCHAR* pwszTargetFolder,
+				bool bRecursive,
+				Folder* pParentFolder,
+				Account* pAccount);
 	virtual ~QueryFolder();
 
 public:
@@ -229,21 +228,25 @@ public:
 	const WCHAR* getCondition() const;
 	const WCHAR* getTargetFolder() const;
 	bool isRecursive() const;
-	qs::QSTATUS set(const WCHAR* pwszDriver, const WCHAR* pwszCondition,
-		const WCHAR* pwszTargetFolder, bool bRecursive);
-	qs::QSTATUS search(Document* pDocument, HWND hwnd, qs::Profile* pProfile);
+	void set(const WCHAR* pwszDriver,
+			 const WCHAR* pwszCondition,
+			 const WCHAR* pwszTargetFolder,
+			 bool bRecursive);
+	bool search(Document* pDocument,
+				HWND hwnd,
+				qs::Profile* pProfile);
 
 public:
 	virtual Type getType() const;
 	virtual unsigned int getCount() const;
 	virtual unsigned int getUnseenCount() const;
-	virtual qs::QSTATUS getSize(unsigned int* pnSize);
-	virtual qs::QSTATUS getBoxSize(unsigned int* pnSize);
+	virtual unsigned int getSize();
+	virtual unsigned int getBoxSize();
 	virtual MessageHolder* getMessage(unsigned int n) const;
-	virtual qs::QSTATUS getMessages(const MessageHolderList** ppList);
-	virtual qs::QSTATUS loadMessageHolders();
-	virtual qs::QSTATUS saveMessageHolders();
-	virtual qs::QSTATUS deletePermanent();
+	virtual const MessageHolderList& getMessages();
+	virtual bool loadMessageHolders();
+	virtual bool saveMessageHolders();
+	virtual bool deletePermanent();
 
 private:
 	QueryFolder(const QueryFolder&);
@@ -263,17 +266,21 @@ private:
 class FolderLess : public std::binary_function<Folder*, Folder*, bool>
 {
 public:
-	bool operator()(const Folder* pFolderLhs, const Folder* pFolderRhs) const;
+	bool operator()(const Folder* pFolderLhs,
+					const Folder* pFolderRhs) const;
 
 public:
-	static int compare(const Folder* pFolderLhs, const Folder* pFolderRhs);
+	static int compare(const Folder* pFolderLhs,
+					   const Folder* pFolderRhs);
 
 private:
 	typedef std::vector<const Folder*> FolderPath;
 
 private:
-	static int compareSingle(const Folder* pFolderLhs, const Folder* pFolderRhs);
-	static qs::QSTATUS getFolderPath(const Folder* pFolder, FolderPath* pPath);
+	static int compareSingle(const Folder* pFolderLhs,
+							 const Folder* pFolderRhs);
+	static void getFolderPath(const Folder* pFolder,
+							  FolderPath* pPath);
 };
 
 
@@ -289,11 +296,11 @@ public:
 	virtual ~FolderHandler();
 
 public:
-	virtual qs::QSTATUS messageAdded(const FolderEvent& event) = 0;
-	virtual qs::QSTATUS messageRemoved(const FolderEvent& event) = 0;
-	virtual qs::QSTATUS messageRefreshed(const FolderEvent& event) = 0;
-	virtual qs::QSTATUS unseenCountChanged(const FolderEvent& event) = 0;
-	virtual qs::QSTATUS folderDestroyed(const FolderEvent& event) = 0;
+	virtual void messageAdded(const FolderEvent& event) = 0;
+	virtual void messageRemoved(const FolderEvent& event) = 0;
+	virtual void messageRefreshed(const FolderEvent& event) = 0;
+	virtual void unseenCountChanged(const FolderEvent& event) = 0;
+	virtual void folderDestroyed(const FolderEvent& event) = 0;
 };
 
 
@@ -306,7 +313,8 @@ public:
 class FolderEvent
 {
 public:
-	FolderEvent(Folder* pFolder, MessageHolder* pmh);
+	FolderEvent(Folder* pFolder,
+				MessageHolder* pmh);
 	~FolderEvent();
 
 public:

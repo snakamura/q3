@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -14,7 +14,6 @@
 
 #include <qsaccelerator.h>
 #include <qsconv.h>
-#include <qsnew.h>
 #include <qsuiutil.h>
 
 #include <algorithm>
@@ -43,27 +42,31 @@ class qm::FolderListWindowImpl :
 	public FolderListModelHandler
 {
 public:
-	QSTATUS loadColumns();
-	QSTATUS saveColumns();
-	QSTATUS setCurrentAccount(Account* pAccount, bool bShowSize);
-	QSTATUS open(int nItem);
+	void loadColumns();
+	void saveColumns();
+	void setCurrentAccount(Account* pAccount,
+						   bool bShowSize);
+	void open(int nItem);
 	Folder* getFolder(int nItem) const;
 
 public:
-	virtual LRESULT onNotify(NMHDR* pnmhdr, bool* pbHandled);
+	virtual LRESULT onNotify(NMHDR* pnmhdr,
+							 bool* pbHandled);
 
 public:
-	virtual qs::QSTATUS accountChanged(const FolderListModelEvent& event);
-	virtual qs::QSTATUS folderListChanged(const FolderListModelEvent& event);
+	virtual void accountChanged(const FolderListModelEvent& event);
+	virtual void folderListChanged(const FolderListModelEvent& event);
 
 private:
 #if defined _WIN32_WCE && _WIN32_WCE >= 400 && defined _WIN32_WCE_PSPC
-	LRESULT onRecognizeGesture(NMHDR* pnmhdr, bool* pbHandled);
+	LRESULT onRecognizeGesture(NMHDR* pnmhdr,
+							   bool* pbHandled);
 #endif
-	LRESULT onItemChanged(NMHDR* pnmhdr, bool* pbHandled);
+	LRESULT onItemChanged(NMHDR* pnmhdr,
+						  bool* pbHandled);
 
 private:
-	QSTATUS updateFolderListModel();
+	void updateFolderListModel();
 
 private:
 	static int getIndent(Folder* pFolder);
@@ -75,7 +78,7 @@ public:
 	FolderModel* pFolderModel_;
 	MenuManager* pMenuManager_;
 	Profile* pProfile_;
-	Accelerator* pAccelerator_;
+	std::auto_ptr<Accelerator> pAccelerator_;
 	Document* pDocument_;
 	
 	UINT nId_;
@@ -84,10 +87,8 @@ public:
 	bool bInserting_;
 };
 
-QSTATUS qm::FolderListWindowImpl::loadColumns()
+void qm::FolderListWindowImpl::loadColumns()
 {
-	DECLARE_QSTATUS();
-	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	struct {
 		UINT nId_;
@@ -102,16 +103,11 @@ QSTATUS qm::FolderListWindowImpl::loadColumns()
 		{ IDS_FOLDERLISTSIZE,			L"SizeWidth",			false,	150	},
 	};
 	for (int n = 0; n < countof(columns); ++n) {
-		string_ptr<WSTRING> wstrTitle;
-		status = loadString(hInst, columns[n].nId_, &wstrTitle);
-		CHECK_QSTATUS();
+		wstring_ptr wstrTitle(loadString(hInst, columns[n].nId_));
 		W2T(wstrTitle.get(), ptszTitle);
 		
-		int nWidth = 0;
-		status = pProfile_->getInt(L"FolderListWindow",
-			columns[n].pwszWidthKey_, columns[n].nDefaultWidth_, &nWidth);
-		CHECK_QSTATUS();
-		
+		int nWidth = pProfile_->getInt(L"FolderListWindow",
+			columns[n].pwszWidthKey_, columns[n].nDefaultWidth_);
 		LVCOLUMN column = {
 			LVCF_FMT | LVCF_SUBITEM | LVCF_TEXT | LVCF_WIDTH,
 			columns[n].bLeft_ ? LVCFMT_LEFT : LVCFMT_RIGHT,
@@ -122,14 +118,10 @@ QSTATUS qm::FolderListWindowImpl::loadColumns()
 		};
 		ListView_InsertColumn(pThis_->getHandle(), n, &column);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderListWindowImpl::saveColumns()
+void qm::FolderListWindowImpl::saveColumns()
 {
-	DECLARE_QSTATUS();
-	
 	const WCHAR* pwszWidthKeys[] = {
 		L"NameWidth",
 		L"IdWidth",
@@ -139,19 +131,13 @@ QSTATUS qm::FolderListWindowImpl::saveColumns()
 	};
 	for (int n = 0; n < countof(pwszWidthKeys); ++n) {
 		int nWidth = ListView_GetColumnWidth(pThis_->getHandle(), n);
-		status = pProfile_->setInt(L"FolderListWindow",
-			pwszWidthKeys[n], nWidth);
-		CHECK_QSTATUS();
+		pProfile_->setInt(L"FolderListWindow", pwszWidthKeys[n], nWidth);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderListWindowImpl::setCurrentAccount(
-	Account* pAccount, bool bShowSize)
+void qm::FolderListWindowImpl::setCurrentAccount(Account* pAccount,
+												 bool bShowSize)
 {
-	DECLARE_QSTATUS();
-	
 	DisableRedraw disable(pThis_->getHandle());
 	
 	ListView_DeleteAllItems(pThis_->getHandle());
@@ -160,22 +146,16 @@ QSTATUS qm::FolderListWindowImpl::setCurrentAccount(
 		const Account::FolderList& l = pAccount->getFolders();
 		typedef std::vector<std::pair<Folder*, std::pair<unsigned int, unsigned int> > > FolderList;
 		FolderList listFolder;
-		status = STLWrapper<FolderList>(listFolder).reserve(l.size());
-		CHECK_QSTATUS();
-		Account::FolderList::const_iterator it = l.begin();
-		while (it != l.end()) {
+		listFolder.reserve(l.size());
+		for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 			Folder* pFolder = *it;
 			unsigned int nSize = 0;
 			unsigned int nBoxSize = 0;
 			if (bShowSize) {
-				status = pFolder->getSize(&nSize);
-				CHECK_QSTATUS();
-				status = pFolder->getBoxSize(&nBoxSize);
-				CHECK_QSTATUS();
+				nSize = pFolder->getSize();
+				nBoxSize = pFolder->getBoxSize();
 			}
-			listFolder.push_back(std::make_pair(pFolder,
-				std::make_pair(nSize, nBoxSize)));
-			++it;
+			listFolder.push_back(std::make_pair(pFolder, std::make_pair(nSize, nBoxSize)));
 		}
 		std::sort(listFolder.begin(), listFolder.end(),
 			binary_compose_f_gx_hy(
@@ -236,28 +216,18 @@ QSTATUS qm::FolderListWindowImpl::setCurrentAccount(
 	}
 	
 	updateFolderListModel();
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderListWindowImpl::open(int nItem)
+void qm::FolderListWindowImpl::open(int nItem)
 {
-	DECLARE_QSTATUS();
-	
 	Folder* pFolder = getFolder(nItem);
-	if (!pFolder->isHidden()) {
-		status = pFolderModel_->setCurrent(0, pFolder, false);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (!pFolder->isHidden())
+		pFolderModel_->setCurrent(0, pFolder, false);
 }
 
 Folder* qm::FolderListWindowImpl::getFolder(int nItem) const
 {
 	assert(nItem != -1);
-	
-	DECLARE_QSTATUS();
 	
 	LVITEM item = {
 		LVIF_PARAM,
@@ -268,7 +238,8 @@ Folder* qm::FolderListWindowImpl::getFolder(int nItem) const
 	return reinterpret_cast<Folder*>(item.lParam);
 }
 
-LRESULT qm::FolderListWindowImpl::onNotify(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qm::FolderListWindowImpl::onNotify(NMHDR* pnmhdr,
+										   bool* pbHandled)
 {
 	BEGIN_NOTIFY_HANDLER()
 #if defined _WIN32_WCE && _WIN32_WCE >= 400 && defined _WIN32_WCE_PSPC
@@ -279,25 +250,27 @@ LRESULT qm::FolderListWindowImpl::onNotify(NMHDR* pnmhdr, bool* pbHandled)
 	return 1;
 }
 
-QSTATUS qm::FolderListWindowImpl::accountChanged(const FolderListModelEvent& event)
+void qm::FolderListWindowImpl::accountChanged(const FolderListModelEvent& event)
 {
-	return setCurrentAccount(pFolderListModel_->getAccount(), false);
+	setCurrentAccount(pFolderListModel_->getAccount(), false);
 }
 
-QSTATUS qm::FolderListWindowImpl::folderListChanged(const FolderListModelEvent& event)
+void qm::FolderListWindowImpl::folderListChanged(const FolderListModelEvent& event)
 {
-	return setCurrentAccount(pFolderListModel_->getAccount(), false);
+	setCurrentAccount(pFolderListModel_->getAccount(), false);
 }
 
 #if defined _WIN32_WCE && _WIN32_WCE >= 400 && defined _WIN32_WCE_PSPC
-LRESULT qm::FolderListWindowImpl::onRecognizeGesture(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qm::FolderListWindowImpl::onRecognizeGesture(NMHDR* pnmhdr,
+													 bool* pbHandled)
 {
 	*pbHandled = true;
 	return TRUE;
 }
 #endif
 
-LRESULT qm::FolderListWindowImpl::onItemChanged(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qm::FolderListWindowImpl::onItemChanged(NMHDR* pnmhdr,
+												bool* pbHandled)
 {
 	if (!bInserting_) {
 		NMLISTVIEW* pnmlv = reinterpret_cast<NMLISTVIEW*>(pnmhdr);
@@ -314,10 +287,8 @@ LRESULT qm::FolderListWindowImpl::onItemChanged(NMHDR* pnmhdr, bool* pbHandled)
 	return 0;
 }
 
-QSTATUS qm::FolderListWindowImpl::updateFolderListModel()
+void qm::FolderListWindowImpl::updateFolderListModel()
 {
-	DECLARE_QSTATUS();
-	
 	Folder* pFocusedFolder = 0;
 	int nItem = ListView_GetNextItem(pThis_->getHandle(),
 		-1, LVNI_ALL | LVNI_FOCUSED);
@@ -328,8 +299,7 @@ QSTATUS qm::FolderListWindowImpl::updateFolderListModel()
 	int nCount = ListView_GetItemCount(pThis_->getHandle());
 	Account::FolderList l;
 	if (nCount != 0) {
-		status = STLWrapper<Account::FolderList>(l).reserve(nCount);
-		CHECK_QSTATUS();
+		l.reserve(nCount);
 		
 		int nItem = -1;
 		while (true) {
@@ -341,10 +311,7 @@ QSTATUS qm::FolderListWindowImpl::updateFolderListModel()
 			l.push_back(pFolder);
 		}
 	}
-	status = pFolderListModel_->setSelectedFolders(l);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	pFolderListModel_->setSelectedFolders(l);
 }
 
 int qm::FolderListWindowImpl::getIndent(Folder* pFolder)
@@ -368,23 +335,19 @@ int qm::FolderListWindowImpl::getIndent(Folder* pFolder)
  */
 
 qm::FolderListWindow::FolderListWindow(WindowBase* pParentWindow,
-	FolderListModel* pFolderListModel, FolderModel* pFolderModel,
-	Profile* pProfile, QSTATUS* pstatus) :
-	WindowBase(true, pstatus),
-	DefaultWindowHandler(pstatus),
+									   FolderListModel* pFolderListModel,
+									   FolderModel* pFolderModel,
+									   Profile* pProfile) :
+	WindowBase(true),
 	pImpl_(0)
 {
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new FolderListWindowImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->pParentWindow_ = pParentWindow;
 	pImpl_->pFolderListModel_ = pFolderListModel;
 	pImpl_->pFolderModel_ = pFolderModel;
 	pImpl_->pMenuManager_ = 0;
 	pImpl_->pProfile_ = pProfile;
-	pImpl_->pAccelerator_ = 0;
 	pImpl_->pDocument_ = 0;
 	pImpl_->nId_ = 0;
 	pImpl_->hfont_ = 0;
@@ -393,24 +356,19 @@ qm::FolderListWindow::FolderListWindow(WindowBase* pParentWindow,
 	
 	setWindowHandler(this, false);
 	
-	status = pParentWindow->addNotifyHandler(pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	status = pImpl_->pFolderListModel_->addFolderListModelHandler(pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pParentWindow->addNotifyHandler(pImpl_);
+	pImpl_->pFolderListModel_->addFolderListModelHandler(pImpl_);
 }
 
 qm::FolderListWindow::~FolderListWindow()
 {
-	if (pImpl_) {
-		delete pImpl_->pAccelerator_;
-		delete pImpl_;
-	}
+	delete pImpl_;
 }
 
-QSTATUS qm::FolderListWindow::save()
+bool qm::FolderListWindow::save()
 {
-	return pImpl_->saveColumns();
+	pImpl_->saveColumns();
+	return true;
 }
 
 bool qm::FolderListWindow::isSizeShown() const
@@ -418,50 +376,33 @@ bool qm::FolderListWindow::isSizeShown() const
 	return pImpl_->bSizeShown_;
 }
 
-QSTATUS qm::FolderListWindow::showSize()
+void qm::FolderListWindow::showSize()
 {
-	DECLARE_QSTATUS();
-	
-	if (!pImpl_->bSizeShown_) {
-		status = pImpl_->setCurrentAccount(
-			pImpl_->pFolderListModel_->getAccount(), true);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (!pImpl_->bSizeShown_)
+		pImpl_->setCurrentAccount(pImpl_->pFolderListModel_->getAccount(), true);
 }
 
-QSTATUS qm::FolderListWindow::getSuperClass(WSTRING* pwstrSuperClass)
+wstring_ptr qm::FolderListWindow::getSuperClass()
 {
-	assert(pwstrSuperClass);
-	
-	*pwstrSuperClass = allocWString(WC_LISTVIEWW);
-	if (!*pwstrSuperClass)
-		return QSTATUS_OUTOFMEMORY;
-	
-	return QSTATUS_SUCCESS;
+	return allocWString(WC_LISTVIEWW);
 }
 
-QSTATUS qm::FolderListWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
+bool qm::FolderListWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
 {
-	DECLARE_QSTATUS();
-	
-	status = DefaultWindowHandler::preCreateWindow(pCreateStruct);
-	CHECK_QSTATUS();
-	
+	if (!DefaultWindowHandler::preCreateWindow(pCreateStruct))
+		return false;
 	pCreateStruct->style |= LVS_REPORT | LVS_NOSORTHEADER | LVS_SHOWSELALWAYS;
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::FolderListWindow::getAccelerator(Accelerator** ppAccelerator)
+Accelerator* qm::FolderListWindow::getAccelerator()
 {
-	assert(ppAccelerator);
-	*ppAccelerator = pImpl_->pAccelerator_;
-	return QSTATUS_SUCCESS;
+	return pImpl_->pAccelerator_.get();
 }
 
-LRESULT qm::FolderListWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qm::FolderListWindow::windowProc(UINT uMsg,
+										 WPARAM wParam,
+										 LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_CONTEXTMENU()
@@ -474,14 +415,11 @@ LRESULT qm::FolderListWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
 
-LRESULT qm::FolderListWindow::onContextMenu(HWND hwnd, const POINT& pt)
+LRESULT qm::FolderListWindow::onContextMenu(HWND hwnd,
+											const POINT& pt)
 {
-	DECLARE_QSTATUS();
-	
-	HMENU hmenu = 0;
-	status = pImpl_->pMenuManager_->getMenu(
-		L"folderlist", false, false, &hmenu);
-	if (status == QSTATUS_SUCCESS) {
+	HMENU hmenu = pImpl_->pMenuManager_->getMenu(L"folderlist", false, false);
+	if (hmenu) {
 		UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
 #ifndef _WIN32_WCE
 		nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
@@ -497,23 +435,21 @@ LRESULT qm::FolderListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (DefaultWindowHandler::onCreate(pCreateStruct) == -1)
 		return -1;
 	
-	DECLARE_QSTATUS();
-	
 	FolderListWindowCreateContext* pContext =
 		static_cast<FolderListWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pDocument_ = pContext->pDocument_;
 	pImpl_->pMenuManager_ = pContext->pMenuManager_;
 	
-	status = pContext->pKeyMap_->createAccelerator(
-		CustomAcceleratorFactory(), L"FolderListWindow",
-		mapKeyNameToId, countof(mapKeyNameToId), &pImpl_->pAccelerator_);
-	CHECK_QSTATUS_VALUE(-1);
+	CustomAcceleratorFactory acceleratorFactory;
+	pImpl_->pAccelerator_ = pContext->pKeyMap_->createAccelerator(
+		&acceleratorFactory, L"FolderListWindow", mapKeyNameToId, countof(mapKeyNameToId));
+	if (!pImpl_->pAccelerator_.get())
+		return -1;
 	
 	pImpl_->nId_ = getWindowLong(GWL_ID);
 	
-	status = qs::UIUtil::createFontFromProfile(pImpl_->pProfile_,
-		L"FolderListWindow", false, &pImpl_->hfont_);
-	CHECK_QSTATUS_VALUE(-1);
+	pImpl_->hfont_ = qs::UIUtil::createFontFromProfile(
+		pImpl_->pProfile_, L"FolderListWindow", false);
 	setFont(pImpl_->hfont_);
 	
 	HIMAGELIST hImageList = ImageList_LoadImage(
@@ -524,8 +460,7 @@ LRESULT qm::FolderListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	ListView_SetExtendedListViewStyle(getHandle(),
 		LVS_EX_FULLROWSELECT | LVS_EX_CHECKBOXES);
 	
-	status = pImpl_->loadColumns();
-	CHECK_QSTATUS_VALUE(-1);
+	pImpl_->loadColumns();
 	
 	return 0;
 }
@@ -543,7 +478,9 @@ LRESULT qm::FolderListWindow::onDestroy()
 	return DefaultWindowHandler::onDestroy();
 }
 
-LRESULT qm::FolderListWindow::onKeyDown(UINT nKey, UINT nRepeat, UINT nFlags)
+LRESULT qm::FolderListWindow::onKeyDown(UINT nKey,
+										UINT nRepeat,
+										UINT nFlags)
 {
 	switch (nKey) {
 	case VK_RETURN:
@@ -561,7 +498,8 @@ LRESULT qm::FolderListWindow::onKeyDown(UINT nKey, UINT nRepeat, UINT nFlags)
 	return DefaultWindowHandler::onKeyDown(nKey, nRepeat, nFlags);
 }
 
-LRESULT qm::FolderListWindow::onLButtonDblClk(UINT nFlags, const POINT& pt)
+LRESULT qm::FolderListWindow::onLButtonDblClk(UINT nFlags,
+											  const POINT& pt)
 {
 	LVHITTESTINFO info = {
 		{ pt.x, pt.y }
@@ -573,7 +511,8 @@ LRESULT qm::FolderListWindow::onLButtonDblClk(UINT nFlags, const POINT& pt)
 	return DefaultWindowHandler::onLButtonDblClk(nFlags, pt);
 }
 
-LRESULT qm::FolderListWindow::onLButtonDown(UINT nFlags, const POINT& pt)
+LRESULT qm::FolderListWindow::onLButtonDown(UINT nFlags,
+											const POINT& pt)
 {
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && _WIN32_WCE_PSPC
 	if (tapAndHold(pt))
@@ -592,8 +531,7 @@ bool qm::FolderListWindow::isActive() const
 	return hasFocus();
 }
 
-QSTATUS qm::FolderListWindow::setActive()
+void qm::FolderListWindow::setActive()
 {
 	setFocus();
-	return QSTATUS_SUCCESS;
 }

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -121,24 +121,23 @@ public:
 
 public:
 	RasConnection(unsigned int nDisconnectWait,
-		RasConnectionCallback* pCallback, QSTATUS* pstatus);
-	RasConnection(HRASCONN hrasconn, QSTATUS* pstatus);
+				  RasConnectionCallback* pCallback);
+	explicit RasConnection(HRASCONN hrasconn);
 	~RasConnection();
 
 public:
-	QSTATUS connect(const WCHAR* pwszEntry, Result* pResult);
-	QSTATUS disconnect(bool bWait, Result* pResult);
+	Result connect(const WCHAR* pwszEntry);
+	Result disconnect(bool bWait);
 	
 public:
-	static QSTATUS getActiveConnection(size_t nIndex,
-		RasConnection** ppRasConnection);
-	static QSTATUS getActiveConnectionCount(int* pnCount);
+	static std::auto_ptr<RasConnection> getActiveConnection(size_t nIndex);
+	static int getActiveConnectionCount();
 
 public:
-	static QSTATUS getEntries(EntryList* pListEntry);
-	static QSTATUS getLocation(WSTRING* pwstrLocation);
-	static QSTATUS setLocation(const WCHAR* pwszLocation);
-	static QSTATUS selectLocation(HWND hwnd);
+	static void getEntries(EntryList* pListEntry);
+	static wstring_ptr getLocation();
+	static bool setLocation(const WCHAR* pwszLocation);
+	static bool selectLocation(HWND hwnd);
 	static bool isNetworkConnected();
 
 private:
@@ -163,9 +162,9 @@ public:
 
 public:
 	virtual bool isCanceled() = 0;
-	virtual QSTATUS preConnect(RASDIALPARAMS* prdp, bool* pbCancel) = 0;
-	virtual QSTATUS setMessage(const WCHAR* pwszMessage) = 0;
-	virtual QSTATUS error(const WCHAR* pwszMessage) = 0;
+	virtual bool preConnect(RASDIALPARAMS* prdp) = 0;
+	virtual void setMessage(const WCHAR* pwszMessage) = 0;
+	virtual void error(const WCHAR* pwszMessage) = 0;
 };
 
 }

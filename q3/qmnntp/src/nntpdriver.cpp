@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -12,8 +12,6 @@
 #include <qmmessageholder.h>
 
 #include <qsassert.h>
-#include <qserror.h>
-#include <qsnew.h>
 
 #include "nntp.h"
 #include "nntpdriver.h"
@@ -30,7 +28,7 @@ using namespace qs;
  */
 
 qmnntp::NntpDriver::NntpDriver(Account* pAccount,
-	const Security* pSecurity, QSTATUS* pstatus) :
+							   const Security* pSecurity) :
 	pAccount_(pAccount),
 	pSecurity_(pSecurity),
 	pSubAccount_(0),
@@ -39,9 +37,6 @@ qmnntp::NntpDriver::NntpDriver(Account* pAccount,
 	pLogger_(0),
 	bOffline_(true)
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qmnntp::NntpDriver::~NntpDriver()
@@ -62,61 +57,42 @@ bool qmnntp::NntpDriver::isSupport(Account::Support support)
 	}
 }
 
-QSTATUS qmnntp::NntpDriver::setOffline(bool bOffline)
+void qmnntp::NntpDriver::setOffline(bool bOffline)
 {
-	DECLARE_QSTATUS();
-	
-	if (!bOffline_ && bOffline) {
-		status = clearSession();
-		CHECK_QSTATUS();
-	}
+	if (!bOffline_ && bOffline)
+		clearSession();
 	bOffline_ = bOffline;
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmnntp::NntpDriver::save()
+bool qmnntp::NntpDriver::save()
 {
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmnntp::NntpDriver::createFolder(SubAccount* pSubAccount,
-	const WCHAR* pwszName, Folder* pParent, NormalFolder** ppFolder)
+std::auto_ptr<NormalFolder> qmnntp::NntpDriver::createFolder(SubAccount* pSubAccount,
+															 const WCHAR* pwszName,
+															 Folder* pParent)
 {
-	DECLARE_QSTATUS();
-	
-	NormalFolder::Init init;
-	init.nId_ = pAccount_->generateFolderId();
-	init.pwszName_ = pwszName;
-	init.cSeparator_ = L'/';
-	init.nFlags_ = Folder::FLAG_SYNCABLE;
-	init.nCount_ = 0;
-	init.nUnseenCount_ = 0;
-	init.pParentFolder_ = pParent;
-	init.pAccount_ = pAccount_;
-	status = newQsObject(init, ppFolder);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return new NormalFolder(pAccount_->generateFolderId(), pwszName,
+		L'/', Folder::FLAG_SYNCABLE, 0, 0, 0, 0, 0, pParent, pAccount_);
 }
 
-QSTATUS qmnntp::NntpDriver::removeFolder(
-	SubAccount* pSubAccount, NormalFolder* pFolder)
+bool qmnntp::NntpDriver::removeFolder(SubAccount* pSubAccount,
+									  NormalFolder* pFolder)
 {
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmnntp::NntpDriver::renameFolder(SubAccount* pSubAccount,
-	NormalFolder* pFolder, const WCHAR* pwszName)
+bool qmnntp::NntpDriver::renameFolder(SubAccount* pSubAccount,
+									  NormalFolder* pFolder,
+									  const WCHAR* pwszName)
 {
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmnntp::NntpDriver::createDefaultFolders(Account::FolderList* pList)
+bool qmnntp::NntpDriver::createDefaultFolders(Account::FolderList* pList)
 {
 	assert(pList);
-	
-	DECLARE_QSTATUS();
 	
 	struct {
 		const WCHAR* pwszName_;
@@ -127,41 +103,32 @@ QSTATUS qmnntp::NntpDriver::createDefaultFolders(Account::FolderList* pList)
 		{ L"Trash",		Folder::FLAG_LOCAL | Folder::FLAG_TRASHBOX							}
 	};
 	
-	status = STLWrapper<Account::FolderList>(*pList).reserve(countof(folders));
-	CHECK_QSTATUS();
+	pList->reserve(countof(folders));
 	
 	for (int n = 0; n < countof(folders); ++n) {
-		NormalFolder::Init init;
-		init.nId_ = n + 1;
-		init.pwszName_ = folders[n].pwszName_;
-		init.cSeparator_ = L'/';
-		init.nFlags_ = folders[n].nFlags_;
-		init.nCount_ = 0;
-		init.nUnseenCount_ = 0;
-		init.pParentFolder_ = 0;
-		init.pAccount_ = pAccount_;
-		init.nValidity_ = 0;
-		init.nDownloadCount_ = 0;
-		
-		NormalFolder* p = 0;
-		status = newQsObject(init, &p);
-		CHECK_QSTATUS();
-		pList->push_back(p);
+		std::auto_ptr<NormalFolder> pFolder(new NormalFolder(n + 1, folders[n].pwszName_,
+			L'/', folders[n].nFlags_, 0, 0, 0, 0, 0, 0, pAccount_));
+		pList->push_back(pFolder.get());
+		pFolder.release();
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmnntp::NntpDriver::getRemoteFolders(
-	SubAccount* pSubAccount, RemoteFolderList* pList)
+bool qmnntp::NntpDriver::getRemoteFolders(SubAccount* pSubAccount,
+										  RemoteFolderList* pList)
 {
 	// TODO
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmnntp::NntpDriver::getMessage(SubAccount* pSubAccount,
-	MessageHolder* pmh, unsigned int nFlags, STRING* pstrMessage,
-	Message::Flag* pFlag, bool* pbGet, bool* pbMadeSeen)
+bool qmnntp::NntpDriver::getMessage(SubAccount* pSubAccount,
+									MessageHolder* pmh,
+									unsigned int nFlags,
+									xstring_ptr* pstrMessage,
+									Message::Flag* pFlag,
+									bool* pbGet,
+									bool* pbMadeSeen)
 {
 	assert(pSubAccount);
 	assert(pmh);
@@ -170,34 +137,34 @@ QSTATUS qmnntp::NntpDriver::getMessage(SubAccount* pSubAccount,
 	assert(pbGet);
 	assert(pbMadeSeen);
 	
-	DECLARE_QSTATUS();
-	
-	*pstrMessage = 0;
+	pstrMessage->reset(0);
 	*pFlag = Message::FLAG_EMPTY;
 	*pbGet = false;
 	*pbMadeSeen = false;
 	
 	if (!bOffline_) {
-		status = prepareSession(pSubAccount, pmh->getFolder());
-		CHECK_QSTATUS();
+		if (!prepareSession(pSubAccount, pmh->getFolder()))
+			return false;
 		
-		string_ptr<STRING> strMessage;
-		status = pNntp_->getMessage(pmh->getId(),
-			Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage);
-		CHECK_QSTATUS();
+		xstring_ptr strMessage;
+		if (!pNntp_->getMessage(pmh->getId(),
+			Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage))
+			return false;
 		if (strMessage.get()) {
-			*pstrMessage = strMessage.release();
+			*pstrMessage = strMessage;
 			*pFlag = Message::FLAG_NONE;
 			*pbGet = true;
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmnntp::NntpDriver::setMessagesFlags(SubAccount* pSubAccount,
-	NormalFolder* pFolder, const MessageHolderList& l,
-	unsigned int nFlags, unsigned int nMask)
+bool qmnntp::NntpDriver::setMessagesFlags(SubAccount* pSubAccount,
+										  NormalFolder* pFolder,
+										  const MessageHolderList& l,
+										  unsigned int nFlags,
+										  unsigned int nMask)
 {
 	assert(pSubAccount);
 	assert(pFolder);
@@ -211,27 +178,27 @@ QSTATUS qmnntp::NntpDriver::setMessagesFlags(SubAccount* pSubAccount,
 					std::identity<Folder*>()),
 				pFolder))) == l.end());
 	
-	MessageHolderList::const_iterator it = l.begin();
-	while (it != l.end()) {
+	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it)
 		(*it)->setFlags(nFlags, nMask);
-		++it;
-	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmnntp::NntpDriver::appendMessage(SubAccount* pSubAccount,
-	NormalFolder* pFolder, const CHAR* pszMessage, unsigned int nFlags)
+bool qmnntp::NntpDriver::appendMessage(SubAccount* pSubAccount,
+									   NormalFolder* pFolder,
+									   const CHAR* pszMessage,
+									   unsigned int nFlags)
 {
 	assert(pSubAccount);
 	assert(pFolder);
 	assert(pszMessage);
 	
-	return QSTATUS_FAIL;
+	return false;
 }
 
-QSTATUS qmnntp::NntpDriver::removeMessages(SubAccount* pSubAccount,
-	NormalFolder* pFolder, const MessageHolderList& l)
+bool qmnntp::NntpDriver::removeMessages(SubAccount* pSubAccount,
+										NormalFolder* pFolder,
+										const MessageHolderList& l)
 {
 	assert(pSubAccount);
 	assert(pFolder);
@@ -246,21 +213,19 @@ QSTATUS qmnntp::NntpDriver::removeMessages(SubAccount* pSubAccount,
 					std::identity<Folder*>()),
 				pFolder))) == l.end());
 	
-	DECLARE_QSTATUS();
-	
-	MessageHolderList::const_iterator it = l.begin();
-	while (it != l.end()) {
-		status = pAccount_->unstoreMessage(*it);
-		CHECK_QSTATUS();
-		++it;
+	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		if (!pAccount_->unstoreMessage(*it))
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmnntp::NntpDriver::copyMessages(SubAccount* pSubAccount,
-	const MessageHolderList& l, NormalFolder* pFolderFrom,
-	NormalFolder* pFolderTo, bool bMove)
+bool qmnntp::NntpDriver::copyMessages(SubAccount* pSubAccount,
+									  const MessageHolderList& l,
+									  NormalFolder* pFolderFrom,
+									  NormalFolder* pFolderTo,
+									  bool bMove)
 {
 	assert(!l.empty());
 	assert(pFolderFrom);
@@ -274,21 +239,19 @@ QSTATUS qmnntp::NntpDriver::copyMessages(SubAccount* pSubAccount,
 					std::identity<Folder*>()),
 				pFolderFrom))) == l.end());
 	
-	return QSTATUS_FAIL;
+	return false;
 }
 
-QSTATUS qmnntp::NntpDriver::clearDeletedMessages(
-	SubAccount* pSubAccount, NormalFolder* pFolder)
+bool qmnntp::NntpDriver::clearDeletedMessages(SubAccount* pSubAccount,
+											  NormalFolder* pFolder)
 {
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmnntp::NntpDriver::prepareSession(
-	SubAccount* pSubAccount, NormalFolder* pFolder)
+bool qmnntp::NntpDriver::prepareSession(SubAccount* pSubAccount,
+										NormalFolder* pFolder)
 {
 	assert(pSubAccount);
-	
-	DECLARE_QSTATUS();
 	
 	if (pSubAccount_ != pSubAccount) {
 		clearSession();
@@ -297,65 +260,47 @@ QSTATUS qmnntp::NntpDriver::prepareSession(
 		std::auto_ptr<CallbackImpl> pCallback;
 		std::auto_ptr<Nntp> pNntp;
 		
-		if (pSubAccount->isLog(Account::HOST_RECEIVE)) {
-			Logger* p = 0;
-			status = pAccount_->openLogger(Account::HOST_RECEIVE, &p);
-			CHECK_QSTATUS();
-			pLogger.reset(p);
-		}
+		if (pSubAccount->isLog(Account::HOST_RECEIVE))
+			pLogger = pAccount_->openLogger(Account::HOST_RECEIVE);
 		
-		status = newQsObject(pSubAccount, pSecurity_, &pCallback);
-		CHECK_QSTATUS();
+		pCallback.reset(new CallbackImpl(pSubAccount, pSecurity_));
 		
-		Nntp::Option option = {
-			pSubAccount->getTimeout(),
-			pCallback.get(),
-			pCallback.get(),
-			pCallback.get(),
-			pLogger.get()
-		};
-		status = newQsObject(option, &pNntp);
-		CHECK_QSTATUS();
-		status = pNntp->connect(
+		pNntp.reset(new Nntp(pSubAccount->getTimeout(), pCallback.get(),
+			pCallback.get(), pCallback.get(), pLogger.get()));
+		if (!pNntp->connect(
 			pSubAccount->getHost(Account::HOST_RECEIVE),
 			pSubAccount->getPort(Account::HOST_RECEIVE),
-			pSubAccount->isSsl(Account::HOST_RECEIVE));
-		CHECK_QSTATUS();
+			pSubAccount->isSsl(Account::HOST_RECEIVE)))
+			return false;
 		
-		pNntp_ = pNntp.release();
-		pCallback_ = pCallback.release();
-		pLogger_ = pLogger.release();
+		pNntp_ = pNntp;
+		pCallback_ = pCallback;
+		pLogger_ = pLogger;
 		pSubAccount_ = pSubAccount;
 	}
 	
-	assert(pNntp_);
+	assert(pNntp_.get());
 	
-	string_ptr<WSTRING> wstrGroup;
-	status = pFolder->getFullName(&wstrGroup);
-	CHECK_QSTATUS();
+	wstring_ptr wstrGroup(pFolder->getFullName());
 	
 	const WCHAR* pwszGroup = pNntp_->getGroup();
 	if (!pwszGroup || wcscmp(wstrGroup.get(), pwszGroup) != 0) {
-		status = pNntp_->group(wstrGroup.get());
-		CHECK_QSTATUS();
+		if (!pNntp_->group(wstrGroup.get()))
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmnntp::NntpDriver::clearSession()
+void qmnntp::NntpDriver::clearSession()
 {
-	if (pNntp_) {
+	if (pNntp_.get()) {
 		pNntp_->disconnect();
-		delete pNntp_;
-		pNntp_ = 0;
-		delete pCallback_;
-		pCallback_ = 0;
-		delete pLogger_;
-		pLogger_ = 0;
+		pNntp_.reset(0);
+		pCallback_.reset(0);
+		pLogger_.reset(0);
 		pSubAccount_ = 0;
 	}
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -366,8 +311,8 @@ QSTATUS qmnntp::NntpDriver::clearSession()
  */
 
 qmnntp::NntpDriver::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
-	const Security* pSecurity, QSTATUS* pstatus) :
-	AbstractCallback(pSubAccount, pSecurity, pstatus)
+											   const Security* pSecurity) :
+	AbstractCallback(pSubAccount, pSecurity)
 {
 }
 
@@ -380,40 +325,33 @@ bool qmnntp::NntpDriver::CallbackImpl::isCanceled(bool bForce) const
 	return false;
 }
 
-QSTATUS qmnntp::NntpDriver::CallbackImpl::initialize()
+void qmnntp::NntpDriver::CallbackImpl::initialize()
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmnntp::NntpDriver::CallbackImpl::lookup()
+void qmnntp::NntpDriver::CallbackImpl::lookup()
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmnntp::NntpDriver::CallbackImpl::connecting()
+void qmnntp::NntpDriver::CallbackImpl::connecting()
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmnntp::NntpDriver::CallbackImpl::connected()
+void qmnntp::NntpDriver::CallbackImpl::connected()
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmnntp::NntpDriver::CallbackImpl::authenticating()
+void qmnntp::NntpDriver::CallbackImpl::authenticating()
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmnntp::NntpDriver::CallbackImpl::setRange(
-	unsigned int nMin, unsigned int nMax)
+void qmnntp::NntpDriver::CallbackImpl::setRange(unsigned int nMin,
+												unsigned int nMax)
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmnntp::NntpDriver::CallbackImpl::setPos(unsigned int nPos)
+void qmnntp::NntpDriver::CallbackImpl::setPos(unsigned int nPos)
 {
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -427,27 +365,16 @@ NntpFactory qmnntp::NntpFactory::factory__;
 
 qmnntp::NntpFactory::NntpFactory()
 {
-	regist(L"nntp", this);
+	registerFactory(L"nntp", this);
 }
 
 qmnntp::NntpFactory::~NntpFactory()
 {
-	unregist(L"nntp");
+	unregisterFactory(L"nntp");
 }
 
-QSTATUS qmnntp::NntpFactory::createDriver(Account* pAccount,
-	const Security* pSecurity, ProtocolDriver** ppProtocolDriver)
+std::auto_ptr<ProtocolDriver> qmnntp::NntpFactory::createDriver(Account* pAccount,
+																const Security* pSecurity)
 {
-	assert(pAccount);
-	assert(ppProtocolDriver);
-	
-	DECLARE_QSTATUS();
-	
-	NntpDriver* pDriver = 0;
-	status = newQsObject(pAccount, pSecurity, &pDriver);
-	CHECK_QSTATUS();
-	
-	*ppProtocolDriver = pDriver;
-	
-	return QSTATUS_SUCCESS;
+	return new NntpDriver(pAccount, pSecurity);
 }

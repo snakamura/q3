@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -19,7 +19,9 @@ namespace qs {
  *
  */
 
-class SynchronizerWindow : public WindowBase, public DefaultWindowHandler
+class SynchronizerWindow :
+	public WindowBase,
+	public DefaultWindowHandler
 {
 public:
 	enum {
@@ -27,14 +29,17 @@ public:
 	};
 
 public:
-	explicit SynchronizerWindow(QSTATUS* pstatus);
+	SynchronizerWindow();
 	virtual ~SynchronizerWindow();
 
 public:
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
-	LRESULT onSyncExec(WPARAM wParam, LPARAM lParam);
+	LRESULT onSyncExec(WPARAM wParam,
+					   LPARAM lParam);
 
 private:
 	SynchronizerWindow(const SynchronizerWindow&);

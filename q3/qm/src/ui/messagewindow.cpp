@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -15,9 +15,7 @@
 #include <qmsecurity.h>
 
 #include <qsaccelerator.h>
-#include <qserror.h>
 #include <qskeymap.h>
-#include <qsnew.h>
 #include <qsprofile.h>
 
 #include "headerwindow.h"
@@ -56,16 +54,19 @@ public:
 	typedef std::vector<MessageWindowHandler*> HandlerList;
 
 public:
-	QSTATUS layoutChildren();
-	QSTATUS layoutChildren(int cx, int cy);
-	QSTATUS setMessage(MessageHolder* pmh, bool bResetEncoding);
+	void layoutChildren();
+	void layoutChildren(int cx,
+						int cy);
+	bool setMessage(MessageHolder* pmh,
+					bool bResetEncoding);
 
 public:
-	virtual QSTATUS messageChanged(const MessageModelEvent& event);
+	virtual void messageChanged(const MessageModelEvent& event);
 
 private:
-	QSTATUS fireMessageChanged(MessageHolder* pmh,
-		Message& msg, const ContentTypeParser* pContentType) const;
+	void fireMessageChanged(MessageHolder* pmh,
+							Message& msg,
+							const ContentTypeParser* pContentType) const;
 
 public:
 	MessageWindow* pThis_;
@@ -78,37 +79,35 @@ public:
 	
 	Profile* pProfile_;
 	const WCHAR* pwszSection_;
-	Accelerator* pAccelerator_;
+	std::auto_ptr<Accelerator> pAccelerator_;
 	Document* pDocument_;
 	HeaderWindow* pHeaderWindow_;
 	MessageViewWindow* pMessageViewWindow_;
 	bool bCreated_;
 	
 	MessageModel* pMessageModel_;
-	MessageViewWindowFactory* pFactory_;
+	std::auto_ptr<MessageViewWindowFactory> pFactory_;
 	
-	WSTRING wstrEncoding_;
-	WSTRING wstrTemplate_;
+	wstring_ptr wstrEncoding_;
+	wstring_ptr wstrTemplate_;
 	bool bSelectMode_;
 	
 	HandlerList listHandler_;
 };
 
-QSTATUS qm::MessageWindowImpl::layoutChildren()
+void qm::MessageWindowImpl::layoutChildren()
 {
 	RECT rect;
 	pThis_->getClientRect(&rect);
-	return layoutChildren(rect.right - rect.left, rect.bottom - rect.top);
+	layoutChildren(rect.right - rect.left, rect.bottom - rect.top);
 }
 
-QSTATUS qm::MessageWindowImpl::layoutChildren(int cx, int cy)
+void qm::MessageWindowImpl::layoutChildren(int cx,
+										   int cy)
 {
-	DECLARE_QSTATUS();
-	
 	int nHeaderHeight = 0;
 	if (bShowHeaderWindow_) {
-		status = pHeaderWindow_->layout();
-		CHECK_QSTATUS();
+		pHeaderWindow_->layout();
 		nHeaderHeight = pHeaderWindow_->getHeight();
 	}
 	
@@ -121,33 +120,27 @@ QSTATUS qm::MessageWindowImpl::layoutChildren(int cx, int cy)
 		pMessageViewWindow_->getWindow().setWindowPos(
 			HWND_TOP, 0, nY, cx, nHeight, 0);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::MessageWindowImpl::setMessage(MessageHolder* pmh, bool bResetEncoding)
+bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
+									   bool bResetEncoding)
 {
-	DECLARE_QSTATUS();
-	
 	bool bActive = pThis_->isActive();
 	
-	if (bResetEncoding) {
-		freeWString(wstrEncoding_);
-		wstrEncoding_ = 0;
-	}
+	if (bResetEncoding)
+		wstrEncoding_.reset(0);
 	
 	Account* pAccount = pMessageModel_->getCurrentAccount();
 	assert(!pmh || pmh->getFolder()->getAccount() == pAccount);
 	
-	Message msg(&status);
-	CHECK_QSTATUS();
+	Message msg;
 	if (pmh) {
 		unsigned int nFlags = Account::GETMESSAGEFLAG_MAKESEEN |
 			(bRawMode_ ? Account::GETMESSAGEFLAG_ALL :
 				bHtmlMode_ ? Account::GETMESSAGEFLAG_HTML :
 				Account::GETMESSAGEFLAG_TEXT);
-		status = pmh->getMessage(nFlags, 0, &msg);
-		CHECK_QSTATUS();
+		if (!pmh->getMessage(nFlags, 0, &msg))
+			return false;
 		
 		unsigned int nSecurity = Message::SECURITY_NONE;
 		const Security* pSecurity = pDocument_->getSecurity();
@@ -158,19 +151,19 @@ QSTATUS qm::MessageWindowImpl::setMessage(MessageHolder* pmh, bool bResetEncodin
 				if ((nFlags & Account::GETMESSAGEFLAG_METHOD_MASK) !=
 					Account::GETMESSAGEFLAG_ALL) {
 					msg.clear();
-					status = pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg);
-					CHECK_QSTATUS();
+					if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg))
+						return false;
 				}
 			}
 			
 			while  (type != SMIMEUtility::TYPE_NONE) {
-				string_ptr<STRING> strMessage;
+				xstring_ptr strMessage;
 				switch (type) {
 				case SMIMEUtility::TYPE_SIGNED:
 				case SMIMEUtility::TYPE_MULTIPARTSIGNED:
-					status = pSMIMEUtility->verify(msg,
-						pSecurity->getCA(), &strMessage);
-					CHECK_QSTATUS();
+					strMessage = pSMIMEUtility->verify(msg, pSecurity->getCA());
+					if (!strMessage.get())
+						return false;
 					nSecurity |= Message::SECURITY_VERIFIED;
 					break;
 				case SMIMEUtility::TYPE_ENVELOPED:
@@ -179,9 +172,9 @@ QSTATUS qm::MessageWindowImpl::setMessage(MessageHolder* pmh, bool bResetEncodin
 						PrivateKey* pPrivateKey = pSubAccount->getPrivateKey();
 						Certificate* pCertificate = pSubAccount->getCertificate();
 						if (pPrivateKey && pCertificate) {
-							status = pSMIMEUtility->decrypt(msg,
-								pPrivateKey, pCertificate, &strMessage);
-							CHECK_QSTATUS();
+							strMessage = pSMIMEUtility->decrypt(msg, pPrivateKey, pCertificate);
+							if (!strMessage.get())
+								return false;
 							nSecurity |= Message::SECURITY_DECRYPTED;
 						}
 					}
@@ -193,9 +186,8 @@ QSTATUS qm::MessageWindowImpl::setMessage(MessageHolder* pmh, bool bResetEncodin
 				if (!strMessage.get())
 					break;
 				
-				status = msg.create(strMessage.get(), -1,
-					Message::FLAG_NONE, nSecurity);
-				CHECK_QSTATUS();
+				if (!msg.create(strMessage.get(), -1, Message::FLAG_NONE, nSecurity))
+					return false;
 				type = pSMIMEUtility->getType(msg);
 			}
 		}
@@ -203,23 +195,20 @@ QSTATUS qm::MessageWindowImpl::setMessage(MessageHolder* pmh, bool bResetEncodin
 	
 	const ContentTypeParser* pContentType = 0;
 	MessageViewWindow* pMessageViewWindow = 0;
-	if (pmh && !bRawMode_ && bHtmlMode_ && !wstrTemplate_) {
+	if (pmh && !bRawMode_ && bHtmlMode_ && !wstrTemplate_.get()) {
 		PartUtil util(msg);
 		PartUtil::ContentTypeList l;
-		status = util.getAlternativeContentTypes(&l);
-		CHECK_QSTATUS();
+		util.getAlternativeContentTypes(&l);
 		
 		PartUtil::ContentTypeList::iterator it = std::find_if(
 			l.begin(), l.end(),
 			std::bind1st(
 				std::mem_fun(
 					MessageViewWindowFactory::isSupported),
-				pFactory_));
+				pFactory_.get()));
 		pContentType = it != l.end() ? *it : 0;
 		
-		status = pFactory_->getMessageViewWindow(
-			pContentType, &pMessageViewWindow);
-		CHECK_QSTATUS();
+		pMessageViewWindow = pFactory_->getMessageViewWindow(pContentType);
 	}
 	else {
 		pMessageViewWindow = pFactory_->getTextMessageViewWindow();
@@ -238,75 +227,54 @@ QSTATUS qm::MessageWindowImpl::setMessage(MessageHolder* pmh, bool bResetEncodin
 		if (pAccount) {
 			TemplateContext context(pmh, &msg, pAccount,
 				pDocument_, pThis_->getHandle(), pProfile_, 0,
-				TemplateContext::ArgumentList(), &status);
-			CHECK_QSTATUS();
-			status = pHeaderWindow_->setMessage(&context);
-			CHECK_QSTATUS();
+				TemplateContext::ArgumentList());
+			pHeaderWindow_->setMessage(&context);
 		}
 		else {
-			status = pHeaderWindow_->setMessage(0);
-			CHECK_QSTATUS();
+			pHeaderWindow_->setMessage(0);
 		}
 		bLayout = true;
 	}
 	
-	if (bLayout) {
-		status = layoutChildren();
-		CHECK_QSTATUS();
-	}
+	if (bLayout)
+		layoutChildren();
 	
 	const Template* pTemplate = 0;
-	if (pmh && wstrTemplate_) {
-		status = pDocument_->getTemplateManager()->getTemplate(
-			pAccount, pmh->getFolder(), wstrTemplate_, &pTemplate);
-		CHECK_QSTATUS();
-	}
+	if (pmh && wstrTemplate_.get())
+		pTemplate = pDocument_->getTemplateManager()->getTemplate(
+			pAccount, pmh->getFolder(), wstrTemplate_.get());
 	
 	unsigned int nFlags = (bRawMode_ ? MessageViewWindow::FLAG_RAWMODE : 0) |
 		(!bShowHeaderWindow_ ? MessageViewWindow::FLAG_INCLUDEHEADER : 0) |
 		(bHtmlOnlineMode_ ? MessageViewWindow::FLAG_ONLINEMODE : 0);
-	status = pMessageViewWindow->setMessage(pmh,
-		pmh ? &msg : 0, pTemplate, wstrEncoding_, nFlags);
-	CHECK_QSTATUS();
-	if (bActive) {
-		status = pThis_->setActive();
-		CHECK_QSTATUS();
-	}
+	if (!pMessageViewWindow->setMessage(pmh, pmh ? &msg : 0,
+		pTemplate, wstrEncoding_.get(), nFlags))
+		return false;
+	if (bActive)
+		pThis_->setActive();
 	
-	status = fireMessageChanged(pmh, msg, pContentType);
-	CHECK_QSTATUS();
+	fireMessageChanged(pmh, msg, pContentType);
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::MessageWindowImpl::messageChanged(const MessageModelEvent& event)
+void qm::MessageWindowImpl::messageChanged(const MessageModelEvent& event)
 {
 	MessageHolder* pmh = event.getMessageHolder();
-	if (pmh) {
-		return setMessage(pmh, true);
-	}
-	else {
+	if (pmh)
+		setMessage(pmh, true);
+	else
 		pThis_->postMessage(WM_MESSAGEMODEL_MESSAGECHANGED, 0,
 			reinterpret_cast<LPARAM>(event.getMessageHolder()));
-		return QSTATUS_SUCCESS;
-	}
 }
 
-QSTATUS qm::MessageWindowImpl::fireMessageChanged(MessageHolder* pmh,
-	Message& msg, const ContentTypeParser* pContentType) const
+void qm::MessageWindowImpl::fireMessageChanged(MessageHolder* pmh,
+											   Message& msg,
+											   const ContentTypeParser* pContentType) const
 {
-	DECLARE_QSTATUS();
-	
 	MessageWindowEvent event(pmh, msg, pContentType);
-	
-	HandlerList::const_iterator it = listHandler_.begin();
-	while (it != listHandler_.end()) {
-		status = (*it)->messageChanged(event);
-		CHECK_QSTATUS();
-		++it;
-	}
-	
-	return QSTATUS_SUCCESS;
+	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
+		(*it)->messageChanged(event);
 }
 
 
@@ -317,72 +285,38 @@ QSTATUS qm::MessageWindowImpl::fireMessageChanged(MessageHolder* pmh,
  */
 
 qm::MessageWindow::MessageWindow(MessageModel* pMessageModel,
-	Profile* pProfile, const WCHAR* pwszSection, QSTATUS* pstatus) :
-	WindowBase(true, pstatus),
-	DefaultWindowHandler(pstatus),
+								 Profile* pProfile,
+								 const WCHAR* pwszSection) :
+	WindowBase(true),
 	pImpl_(0)
 {
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
+	wstring_ptr wstrTemplate(pProfile->getString(pwszSection, L"Template", L""));
 	
-	DECLARE_QSTATUS();
-	
-	int nShowHeaderWindow = 0;
-	status = pProfile->getInt(pwszSection, L"ShowHeaderWindow",
-		1, &nShowHeaderWindow);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	int nHtmlMode = 0;
-	status = pProfile->getInt(pwszSection, L"HtmlMode", 0, &nHtmlMode);
-	CHECK_QSTATUS_SET(pstatus);
-	int nHtmlOnlineMode = 0;
-	status = pProfile->getInt(pwszSection, L"HtmlOnlineMode", 0, &nHtmlOnlineMode);
-	CHECK_QSTATUS_SET(pstatus);
-	int nDecryptVerifyMode = 0;
-	status = pProfile->getInt(pwszSection,
-		L"DecryptVerifyMode", 0, &nDecryptVerifyMode);
-	CHECK_QSTATUS_SET(pstatus);
-	string_ptr<WSTRING> wstrTemplate;
-	status = pProfile->getString(pwszSection, L"Template", L"", &wstrTemplate);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new MessageWindowImpl();
 	pImpl_->pThis_ = this;
-	pImpl_->bShowHeaderWindow_ = nShowHeaderWindow != 0;
+	pImpl_->bShowHeaderWindow_ = pProfile->getInt(pwszSection, L"ShowHeaderWindow", 1) != 0;
 	pImpl_->bRawMode_ = false;
-	pImpl_->bHtmlMode_ = nHtmlMode != 0;
-	pImpl_->bHtmlOnlineMode_ = nHtmlOnlineMode != 0;
-	pImpl_->bDecryptVerifyMode_ = nDecryptVerifyMode != 0;
+	pImpl_->bHtmlMode_ = pProfile->getInt(pwszSection, L"HtmlMode", 0) != 0;
+	pImpl_->bHtmlOnlineMode_ = pProfile->getInt(pwszSection, L"HtmlOnlineMode", 0) != 0;
+	pImpl_->bDecryptVerifyMode_ = pProfile->getInt(pwszSection, L"DecryptVerifyMode", 0) != 0;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pwszSection_ = pwszSection;
-	pImpl_->pAccelerator_ = 0;
 	pImpl_->pDocument_ = 0;
 	pImpl_->pHeaderWindow_ = 0;
 	pImpl_->pMessageViewWindow_ = 0;
 	pImpl_->bCreated_ = false;
 	pImpl_->pMessageModel_ = pMessageModel;
-	pImpl_->pFactory_ = 0;
-	pImpl_->wstrEncoding_ = 0;
-	pImpl_->wstrTemplate_ = *wstrTemplate.get() ? wstrTemplate.release() : 0;
+	pImpl_->wstrTemplate_ = *wstrTemplate.get() ? wstrTemplate : 0;
 	pImpl_->bSelectMode_ = false;
 	
-	status = pImpl_->pMessageModel_->addMessageModelHandler(pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_->pMessageModel_->addMessageModelHandler(pImpl_);
 	
 	setWindowHandler(this, false);
 }
 
 qm::MessageWindow::~MessageWindow()
 {
-	if (pImpl_) {
-		delete pImpl_->pFactory_;
-		delete pImpl_->pAccelerator_;
-		freeWString(pImpl_->wstrEncoding_);
-		freeWString(pImpl_->wstrTemplate_);
-		delete pImpl_;
-		pImpl_ = 0;
-	}
+	delete pImpl_;
 }
 
 bool qm::MessageWindow::isShowHeaderWindow() const
@@ -390,14 +324,12 @@ bool qm::MessageWindow::isShowHeaderWindow() const
 	return pImpl_->bShowHeaderWindow_;
 }
 
-QSTATUS qm::MessageWindow::setShowHeaderWindow(bool bShow)
+void qm::MessageWindow::setShowHeaderWindow(bool bShow)
 {
-	DECLARE_QSTATUS();
 	if (bShow != pImpl_->bShowHeaderWindow_) {
 		pImpl_->bShowHeaderWindow_ = bShow;
-		status = pImpl_->layoutChildren();
+		pImpl_->layoutChildren();
 	}
-	return status;
 }
 
 bool qm::MessageWindow::isRawMode() const
@@ -405,17 +337,13 @@ bool qm::MessageWindow::isRawMode() const
 	return pImpl_->bRawMode_;
 }
 
-QSTATUS qm::MessageWindow::setRawMode(bool bRawMode)
+void qm::MessageWindow::setRawMode(bool bRawMode)
 {
-	DECLARE_QSTATUS();
-	
 	if (bRawMode != pImpl_->bRawMode_) {
 		pImpl_->bRawMode_ = bRawMode;
 		MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
-		status = pImpl_->setMessage(mpl, false);
-		CHECK_QSTATUS();
+		pImpl_->setMessage(mpl, false);
 	}
-	return QSTATUS_SUCCESS;
 }
 
 bool qm::MessageWindow::isHtmlMode() const
@@ -423,18 +351,13 @@ bool qm::MessageWindow::isHtmlMode() const
 	return pImpl_->bHtmlMode_;
 }
 
-QSTATUS qm::MessageWindow::setHtmlMode(bool bHtmlMode)
+void qm::MessageWindow::setHtmlMode(bool bHtmlMode)
 {
-	DECLARE_QSTATUS();
-	
 	if (bHtmlMode != pImpl_->bHtmlMode_) {
 		pImpl_->bHtmlMode_ = bHtmlMode;
 		MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
-		status = pImpl_->setMessage(mpl, false);
-		CHECK_QSTATUS();
+		pImpl_->setMessage(mpl, false);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 bool qm::MessageWindow::isHtmlOnlineMode() const
@@ -442,18 +365,13 @@ bool qm::MessageWindow::isHtmlOnlineMode() const
 	return pImpl_->bHtmlOnlineMode_;
 }
 
-QSTATUS qm::MessageWindow::setHtmlOnlineMode(bool bHtmlOnlineMode)
+void qm::MessageWindow::setHtmlOnlineMode(bool bHtmlOnlineMode)
 {
-	DECLARE_QSTATUS();
-	
 	if (bHtmlOnlineMode != pImpl_->bHtmlOnlineMode_) {
 		pImpl_->bHtmlOnlineMode_ = bHtmlOnlineMode;
 		MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
-		status = pImpl_->setMessage(mpl, false);
-		CHECK_QSTATUS();
+		pImpl_->setMessage(mpl, false);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 bool qm::MessageWindow::isDecryptVerifyMode() const
@@ -461,83 +379,58 @@ bool qm::MessageWindow::isDecryptVerifyMode() const
 	return pImpl_->bDecryptVerifyMode_;
 }
 
-QSTATUS qm::MessageWindow::setDecryptVerifyMode(bool bDecryptVerifyMode)
+void qm::MessageWindow::setDecryptVerifyMode(bool bDecryptVerifyMode)
 {
-	DECLARE_QSTATUS();
-	
 	if (bDecryptVerifyMode != pImpl_->bDecryptVerifyMode_) {
 		pImpl_->bDecryptVerifyMode_ = bDecryptVerifyMode;
 		MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
-		status = pImpl_->setMessage(mpl, false);
-		CHECK_QSTATUS();
+		pImpl_->setMessage(mpl, false);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 const WCHAR* qm::MessageWindow::getEncoding() const
 {
-	return pImpl_->wstrEncoding_;
+	return pImpl_->wstrEncoding_.get();
 }
 
-QSTATUS qm::MessageWindow::setEncoding(const WCHAR* pwszEncoding)
+void qm::MessageWindow::setEncoding(const WCHAR* pwszEncoding)
 {
-	DECLARE_QSTATUS();
-	
-	if (!((pwszEncoding && pImpl_->wstrEncoding_ &&
-		wcscmp(pwszEncoding, pImpl_->wstrEncoding_) == 0) ||
-		(!pwszEncoding && !pImpl_->wstrEncoding_))) {
-		string_ptr<WSTRING> wstrEncoding;
-		if (pwszEncoding) {
-			wstrEncoding.reset(allocWString(pwszEncoding));
-			if (!wstrEncoding.get())
-				return QSTATUS_OUTOFMEMORY;
-		}
-		
-		freeWString(pImpl_->wstrEncoding_);
-		pImpl_->wstrEncoding_ = wstrEncoding.release();
+	if (!((pwszEncoding && pImpl_->wstrEncoding_.get() &&
+		wcscmp(pwszEncoding, pImpl_->wstrEncoding_.get()) == 0) ||
+		(!pwszEncoding && !pImpl_->wstrEncoding_.get()))) {
+		if (pwszEncoding)
+			pImpl_->wstrEncoding_ = allocWString(pwszEncoding);
+		else
+			pImpl_->wstrEncoding_.reset(0);
 		
 		MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
-		status = pImpl_->setMessage(mpl, false);
-		CHECK_QSTATUS();
+		pImpl_->setMessage(mpl, false);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 const WCHAR* qm::MessageWindow::getTemplate() const
 {
-	return pImpl_->wstrTemplate_;
+	return pImpl_->wstrTemplate_.get();
 }
 
-QSTATUS qm::MessageWindow::setTemplate(const WCHAR* pwszTemplate)
+void qm::MessageWindow::setTemplate(const WCHAR* pwszTemplate)
 {
-	DECLARE_QSTATUS();
-	
-	if (!((pwszTemplate && pImpl_->wstrTemplate_ &&
-		wcscmp(pwszTemplate, pImpl_->wstrTemplate_) == 0) ||
-		(!pwszTemplate && !pImpl_->wstrTemplate_))) {
-		string_ptr<WSTRING> wstrTemplate;
-		if (pwszTemplate) {
-			wstrTemplate.reset(allocWString(pwszTemplate));
-			if (!wstrTemplate.get())
-				return QSTATUS_OUTOFMEMORY;
-		}
-		
-		freeWString(pImpl_->wstrTemplate_);
-		pImpl_->wstrTemplate_ = wstrTemplate.release();
+	if (!((pwszTemplate && pImpl_->wstrTemplate_.get() &&
+		wcscmp(pwszTemplate, pImpl_->wstrTemplate_.get()) == 0) ||
+		(!pwszTemplate && !pImpl_->wstrTemplate_.get()))) {
+		if (pwszTemplate)
+			pImpl_->wstrTemplate_ = allocWString(pwszTemplate);
+		else
+			pImpl_->wstrTemplate_.reset(0);
 		
 		MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
-		status = pImpl_->setMessage(mpl, false);
-		CHECK_QSTATUS();
+		pImpl_->setMessage(mpl, false);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::MessageWindow::scrollPage(bool bPrev, bool* pbScrolled)
+bool qm::MessageWindow::scrollPage(bool bPrev)
 {
-	return pImpl_->pMessageViewWindow_->scrollPage(bPrev, pbScrolled);
+	return pImpl_->pMessageViewWindow_->scrollPage(bPrev);
 }
 
 bool qm::MessageWindow::isSelectMode() const
@@ -545,23 +438,18 @@ bool qm::MessageWindow::isSelectMode() const
 	return pImpl_->bSelectMode_;
 }
 
-QSTATUS qm::MessageWindow::setSelectMode(bool bSelectMode)
+void qm::MessageWindow::setSelectMode(bool bSelectMode)
 {
-	DECLARE_QSTATUS();
-	
 	if (pImpl_->bSelectMode_ != bSelectMode) {
-		status = pImpl_->pMessageViewWindow_->setSelectMode(bSelectMode);
-		CHECK_QSTATUS();
+		pImpl_->pMessageViewWindow_->setSelectMode(bSelectMode);
 		pImpl_->bSelectMode_ = bSelectMode;
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::MessageWindow::find(const WCHAR* pwszFind,
-	unsigned int nFlags, bool* pbFound)
+bool qm::MessageWindow::find(const WCHAR* pwszFind,
+							 unsigned int nFlags)
 {
-	return pImpl_->pMessageViewWindow_->find(pwszFind, nFlags, pbFound);
+	return pImpl_->pMessageViewWindow_->find(pwszFind, nFlags);
 }
 
 unsigned int qm::MessageWindow::getSupportedFindFlags() const
@@ -569,7 +457,7 @@ unsigned int qm::MessageWindow::getSupportedFindFlags() const
 	return pImpl_->pMessageViewWindow_->getSupportedFindFlags();
 }
 
-QSTATUS qm::MessageWindow::openLink()
+bool qm::MessageWindow::openLink()
 {
 	return pImpl_->pMessageViewWindow_->openLink();
 }
@@ -593,53 +481,40 @@ AttachmentSelectionModel* qm::MessageWindow::getAttachmentSelectionModel() const
 	return pImpl_->pHeaderWindow_->getAttachmentSelectionModel();
 }
 
-QSTATUS qm::MessageWindow::save()
+bool qm::MessageWindow::save()
 {
-	DECLARE_QSTATUS();
-	
 	Profile* pProfile = pImpl_->pProfile_;
 	
-	status = pProfile->setInt(pImpl_->pwszSection_,
-		L"ShowHeaderWindow", pImpl_->bShowHeaderWindow_);
-	CHECK_QSTATUS();
-	status = pProfile->setInt(pImpl_->pwszSection_,
-		L"HtmlMode", pImpl_->bHtmlMode_);
-	CHECK_QSTATUS();
-	status = pProfile->setInt(pImpl_->pwszSection_,
-		L"HtmlOnlineMode", pImpl_->bHtmlOnlineMode_);
-	CHECK_QSTATUS();
-	status = pProfile->setInt(pImpl_->pwszSection_,
-		L"DecryptVerifyMode", pImpl_->bDecryptVerifyMode_);
-	CHECK_QSTATUS();
-	status = pProfile->setString(pImpl_->pwszSection_,
-		L"Template", pImpl_->wstrTemplate_ ? pImpl_->wstrTemplate_ : L"");
-	CHECK_QSTATUS();
+	pProfile->setInt(pImpl_->pwszSection_, L"ShowHeaderWindow", pImpl_->bShowHeaderWindow_);
+	pProfile->setInt(pImpl_->pwszSection_, L"HtmlMode", pImpl_->bHtmlMode_);
+	pProfile->setInt(pImpl_->pwszSection_, L"HtmlOnlineMode", pImpl_->bHtmlOnlineMode_);
+	pProfile->setInt(pImpl_->pwszSection_, L"DecryptVerifyMode", pImpl_->bDecryptVerifyMode_);
+	pProfile->setString(pImpl_->pwszSection_, L"Template",
+		pImpl_->wstrTemplate_.get() ? pImpl_->wstrTemplate_.get() : L"");
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::MessageWindow::addMessageWindowHandler(MessageWindowHandler* pHandler)
+void qm::MessageWindow::addMessageWindowHandler(MessageWindowHandler* pHandler)
 {
-	return STLWrapper<MessageWindowImpl::HandlerList>(
-		pImpl_->listHandler_).push_back(pHandler);
+	pImpl_->listHandler_.push_back(pHandler);
 }
 
-QSTATUS qm::MessageWindow::removeMessageWindowHandler(MessageWindowHandler* pHandler)
+void qm::MessageWindow::removeMessageWindowHandler(MessageWindowHandler* pHandler)
 {
 	MessageWindowImpl::HandlerList::iterator it = std::remove(
 		pImpl_->listHandler_.begin(), pImpl_->listHandler_.end(), pHandler);
 	pImpl_->listHandler_.erase(it, pImpl_->listHandler_.end());
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::MessageWindow::getAccelerator(Accelerator** ppAccelerator)
+Accelerator* qm::MessageWindow::getAccelerator()
 {
-	assert(ppAccelerator);
-	*ppAccelerator = pImpl_->pAccelerator_;
-	return QSTATUS_SUCCESS;
+	return pImpl_->pAccelerator_.get();
 }
 
-LRESULT qm::MessageWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qm::MessageWindow::windowProc(UINT uMsg,
+									  WPARAM wParam,
+									  LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_CREATE()
@@ -656,41 +531,36 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (DefaultWindowHandler::onCreate(pCreateStruct) == -1)
 		return -1;
 	
-	DECLARE_QSTATUS();
-	
 	MessageWindowCreateContext* pContext =
 		static_cast<MessageWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pDocument_ = pContext->pDocument_;
 	
-	status = pContext->pKeyMap_->createAccelerator(
-		CustomAcceleratorFactory(), pImpl_->pwszSection_,
-		mapKeyNameToId, countof(mapKeyNameToId), &pImpl_->pAccelerator_);
-	CHECK_QSTATUS_VALUE(-1);
+	CustomAcceleratorFactory acceleratorFactory;
+	pImpl_->pAccelerator_ = pContext->pKeyMap_->createAccelerator(
+		&acceleratorFactory, pImpl_->pwszSection_, mapKeyNameToId, countof(mapKeyNameToId));
+	if (!pImpl_->pAccelerator_.get())
+		return -1;
 	
-	std::auto_ptr<HeaderWindow> pHeaderWindow;
-	status = newQsObject(pImpl_->pProfile_, &pHeaderWindow);
-	CHECK_QSTATUS_VALUE(-1);
+	std::auto_ptr<HeaderWindow> pHeaderWindow(new HeaderWindow(pImpl_->pProfile_));
 	HeaderWindowCreateContext context = {
 		pContext->pDocument_,
 		pContext->pMenuManager_,
 	};
-	status = pHeaderWindow->create(L"QmHeaderWindow", 0, WS_VISIBLE | WS_CHILD,
+	if (!pHeaderWindow->create(L"QmHeaderWindow", 0, WS_VISIBLE | WS_CHILD,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-		getHandle(), 0, 0, MessageWindowImpl::ID_HEADERWINDOW, &context);
-	CHECK_QSTATUS_VALUE(-1);
+		getHandle(), 0, 0, MessageWindowImpl::ID_HEADERWINDOW, &context))
+		return -1;
 	pImpl_->pHeaderWindow_ = pHeaderWindow.release();
 	
-	std::auto_ptr<MessageViewWindowFactory> pFactory;
-	status = newQsObject(pImpl_->pDocument_, pImpl_->pProfile_,
-		pImpl_->pwszSection_, pContext->pMenuManager_, false, &pFactory);
-	CHECK_QSTATUS_VALUE(-1);
-	pImpl_->pFactory_ = pFactory.release();
+	std::auto_ptr<MessageViewWindowFactory> pFactory(
+		new MessageViewWindowFactory(pImpl_->pDocument_, pImpl_->pProfile_,
+		pImpl_->pwszSection_, pContext->pMenuManager_, false));
+	pImpl_->pFactory_ = pFactory;
 	
-	status = pImpl_->pFactory_->create(getHandle());
-	CHECK_QSTATUS_VALUE(-1);
+	if (!pImpl_->pFactory_->create(getHandle()))
+		return -1;
 	pImpl_->pMessageViewWindow_ = pImpl_->pFactory_->getTextMessageViewWindow();
-	status = pImpl_->layoutChildren();
-	CHECK_QSTATUS_VALUE(-1);
+	pImpl_->layoutChildren();
 	pImpl_->pMessageViewWindow_->getWindow().showWindow(SW_SHOW);
 	
 	pImpl_->bCreated_ = true;
@@ -704,21 +574,24 @@ LRESULT qm::MessageWindow::onDestroy()
 	return DefaultWindowHandler::onDestroy();
 }
 
-LRESULT qm::MessageWindow::onLButtonDown(UINT nFlags, const POINT& pt)
+LRESULT qm::MessageWindow::onLButtonDown(UINT nFlags,
+										 const POINT& pt)
 {
 	setFocus();
 	return DefaultWindowHandler::onLButtonDown(nFlags, pt);
 }
 
-LRESULT qm::MessageWindow::onSize(UINT nFlags, int cx, int cy)
+LRESULT qm::MessageWindow::onSize(UINT nFlags,
+								  int cx,
+								  int cy)
 {
 	if (pImpl_->bCreated_)
 		pImpl_->layoutChildren(cx, cy);
 	return DefaultWindowHandler::onSize(nFlags, cx, cy);
 }
 
-LRESULT qm::MessageWindow::onMessageModelMessageChanged(
-	WPARAM wParam, LPARAM lParam)
+LRESULT qm::MessageWindow::onMessageModelMessageChanged(WPARAM wParam,
+														LPARAM lParam)
 {
 	pImpl_->setMessage(reinterpret_cast<MessageHolder*>(lParam), true);
 	return 0;
@@ -737,13 +610,12 @@ bool qm::MessageWindow::isActive() const
 		pImpl_->pHeaderWindow_->isActive();
 }
 
-QSTATUS qm::MessageWindow::setActive()
+void qm::MessageWindow::setActive()
 {
 	if (pImpl_->pMessageViewWindow_)
 		pImpl_->pMessageViewWindow_->setActive();
 	else
 		setFocus();
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -765,7 +637,8 @@ qm::MessageWindowHandler::~MessageWindowHandler()
  */
 
 qm::MessageWindowEvent::MessageWindowEvent(MessageHolder* pmh,
-	Message& msg, const ContentTypeParser* pContentType) :
+										   Message& msg,
+										   const ContentTypeParser* pContentType) :
 	pmh_(pmh),
 	msg_(msg),
 	pContentType_(pContentType)

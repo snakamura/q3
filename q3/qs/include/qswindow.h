@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -76,21 +76,37 @@ class InitThread;
  *
  */
 
-QSEXPORTPROC QSTATUS messageBox(HINSTANCE hInstResource, UINT nId);
-QSEXPORTPROC QSTATUS messageBox(HINSTANCE hInstResource, UINT nId, int* pnRet);
-QSEXPORTPROC QSTATUS messageBox(HINSTANCE hInstResource, UINT nId, UINT nType);
-QSEXPORTPROC QSTATUS messageBox(HINSTANCE hInstResource,
-	UINT nId, UINT nType, int* pnRet);
-QSEXPORTPROC QSTATUS messageBox(HINSTANCE hInstResource, UINT nId, HWND hwnd);
-QSEXPORTPROC QSTATUS messageBox(HINSTANCE hInstResource,
-	UINT nId, HWND hwnd, int* pnRet);
-QSEXPORTPROC QSTATUS messageBox(HINSTANCE hInstResource, UINT nId, UINT nType,
-	HWND hwnd, const WCHAR* pwszTitle, ModalHandler* pModalHandler, int* pnRet);
-QSEXPORTPROC QSTATUS messageBox(const WCHAR* pwszMessage);
-QSEXPORTPROC QSTATUS messageBox(const WCHAR* pwszMessage, int* pnRet);
-QSEXPORTPROC QSTATUS messageBox(const WCHAR* pwszMessage, UINT nType, int* pnRet);
-QSEXPORTPROC QSTATUS messageBox(const WCHAR* pwszMessage, UINT nType,
-	HWND hwnd, const WCHAR* pwszTitle, ModalHandler* pModalHandler, int* pnRet);
+QSEXPORTPROC int messageBox(HINSTANCE hInstResource,
+							UINT nId);
+QSEXPORTPROC int messageBox(HINSTANCE hInstResource,
+							UINT nId,
+							UINT nType);
+QSEXPORTPROC int messageBox(HINSTANCE hInstResource,
+							UINT nId,
+							HWND hwnd);
+QSEXPORTPROC int messageBox(HINSTANCE hInstResource,
+							UINT nId,
+							UINT nType,
+							HWND hwnd);
+QSEXPORTPROC int messageBox(HINSTANCE hInstResource,
+							UINT nId,
+							UINT nType,
+							HWND hwnd,
+							const WCHAR* pwszTitle,
+							ModalHandler* pModalHandler);
+QSEXPORTPROC int messageBox(const WCHAR* pwszMessage);
+QSEXPORTPROC int messageBox(const WCHAR* pwszMessage,
+							UINT nType);
+QSEXPORTPROC int messageBox(const WCHAR* pwszMessage,
+							HWND hwnd);
+QSEXPORTPROC int messageBox(const WCHAR* pwszMessage,
+							UINT nType,
+							HWND hwnd);
+QSEXPORTPROC int messageBox(const WCHAR* pwszMessage,
+							UINT nType,
+							HWND hwnd,
+							const WCHAR* pwszTitle,
+							ModalHandler* pModalHandler);
 
 
 /****************************************************************************
@@ -121,7 +137,8 @@ public:
 	bool isVisible() const;
 	bool isIconic() const;
 	DWORD getStyle() const;
-	DWORD setStyle(DWORD dwStyle, DWORD dwMask);
+	DWORD setStyle(DWORD dwStyle,
+				   DWORD dwMask);
 	bool enableWindow();
 	bool enableWindow(bool bEnable);
 	bool isWindowEnabled() const;
@@ -129,9 +146,21 @@ public:
 	
 	bool getClientRect(RECT* pRect) const;
 	bool getWindowRect(RECT* pRect) const;
-	bool setWindowPos(HWND hwnd, int x, int y, int cx, int cy, UINT nFlags);
-	bool moveWindow(int x, int y, int cx, int cy);
-	bool moveWindow(int x, int y, int cx, int cy, bool bRepaint);
+	bool setWindowPos(HWND hwnd,
+					  int x,
+					  int y,
+					  int cx,
+					  int cy,
+					  UINT nFlags);
+	bool moveWindow(int x,
+					int y,
+					int cx,
+					int cy);
+	bool moveWindow(int x,
+					int y,
+					int cx,
+					int cy,
+					bool bRepaint);
 	
 	bool screenToClient(POINT* pPoint) const;
 	bool screenToClient(RECT* pRect) const;
@@ -149,7 +178,9 @@ public:
 #ifndef _WIN32_WCE
 	bool getWindowPlacement(WINDOWPLACEMENT* pwp) const;
 	bool setWindowPlacement(const WINDOWPLACEMENT& wp);
-	bool redrawWindow(const RECT* pRect, HRGN hrgn, UINT nFlags);
+	bool redrawWindow(const RECT* pRect,
+					  HRGN hrgn,
+					  UINT nFlags);
 #endif
 	
 	static HWND getFocus();
@@ -167,7 +198,8 @@ public:
 	bool invalidate();
 	bool invalidate(bool bErase);
 	bool invalidateRect(const RECT& rect);
-	bool invalidateRect(const RECT& rect, bool bErase);
+	bool invalidateRect(const RECT& rect,
+						bool bErase);
 	bool validate();
 	bool validateRect(const RECT& rect);
 	
@@ -179,43 +211,70 @@ public:
 	HFONT getFont();
 	void setFont(HFONT hfont);
 	
-	bool createCaret(int nWidth, int nHeight);
-	bool createCaret(int nWidth, int nHeight, HBITMAP hBitmap);
+	bool createCaret(int nWidth,
+					 int nHeight);
+	bool createCaret(int nWidth,
+					 int nHeight,
+					 HBITMAP hBitmap);
 	static bool destroyCaret();
 	bool showCaret();
 	bool hideCaret();
 	static bool setCaretPos(const POINT& pt);
 	static bool getCaretPos(POINT* pPoint);
 	
-	bool getScrollInfo(int nBar, SCROLLINFO* psi) const;
-	bool setScrollInfo(int nBar, const SCROLLINFO& si);
-	bool setScrollInfo(int nBar, const SCROLLINFO& si, bool bRedraw);
+	bool getScrollInfo(int nBar,
+					   SCROLLINFO* psi) const;
+	bool setScrollInfo(int nBar,
+					   const SCROLLINFO& si);
+	bool setScrollInfo(int nBar,
+					   const SCROLLINFO& si,
+					   bool bRedraw);
 	int getScrollPos(int nBar) const;
-	bool setScrollPos(int nBar, int nPos);
-	bool setScrollPos(int nBar, int nPos, bool bRedraw);
-	bool getScrollRange(int nBar, int* pnMinPos, int* pnMaxPos) const;
-	bool setScrollRange(int nBar, int nMinPos, int nMaxPos);
-	bool setScrollRange(int nBar, int nMinPos, int nMaxPos, bool bRedraw);
-	int scrollWindow(int x, int y);
-	int scrollWindow(int x, int y, const RECT* prcScroll,
-		const RECT* prcClip, HRGN hrgnUpdate, RECT* prcUpdate, UINT nFlags);
+	bool setScrollPos(int nBar,
+					  int nPos);
+	bool setScrollPos(int nBar,
+					  int nPos,
+					  bool bRedraw);
+	bool getScrollRange(int nBar,
+						int* pnMinPos,
+						int* pnMaxPos) const;
+	bool setScrollRange(int nBar,
+						int nMinPos,
+						int nMaxPos);
+	bool setScrollRange(int nBar,
+						int nMinPos,
+						int nMaxPos,
+						bool bRedraw);
+	int scrollWindow(int x,
+					 int y);
+	int scrollWindow(int x,
+					 int y,
+					 const RECT* prcScroll,
+					 const RECT* prcClip,
+					 HRGN hrgnUpdate,
+					 RECT* prcUpdate,
+					 UINT nFlags);
 	
 	static HWND getCapture();
 	static bool releaseCapture();
 	bool isCapture() const;
 	HWND setCapture();
 	
-	WSTRING getClassName() const;
+	wstring_ptr getClassName() const;
 	
-	WSTRING getWindowText() const;
+	wstring_ptr getWindowText() const;
 	bool setWindowText(const WCHAR* pwszText);
 	int getWindowTextLength() const;
 	
 	long getWindowLong(int n) const;
-	long setWindowLong(int n, long l);
+	long setWindowLong(int n,
+					   long l);
 	
-	UINT setTimer(UINT nId, UINT nTimeout);
-	UINT setTimer(UINT nId, UINT nTimeout, TIMERPROC proc);
+	UINT setTimer(UINT nId,
+				  UINT nTimeout);
+	UINT setTimer(UINT nId,
+				  UINT nTimeout,
+				  TIMERPROC proc);
 	bool killTimer(UINT nId);
 	
 #ifndef _WIN32_WCE
@@ -226,26 +285,46 @@ public:
 #endif
 	
 	bool postMessage(UINT uMsg);
-	bool postMessage(UINT uMsg, WPARAM wParam);
-	bool postMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	bool postMessage(UINT uMsg,
+					 WPARAM wParam);
+	bool postMessage(UINT uMsg,
+					 WPARAM wParam,
+					 LPARAM lParam);
 	LRESULT sendMessage(UINT uMsg);
-	LRESULT sendMessage(UINT uMsg, WPARAM wParam);
-	LRESULT sendMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT sendMessage(UINT uMsg,
+						WPARAM wParam);
+	LRESULT sendMessage(UINT uMsg,
+						WPARAM wParam,
+						LPARAM lParam);
 	
 	bool peekMessage(MSG* pMsg);
-	bool peekMessage(MSG* pMsg, UINT uMsgFilterMin,
-		UINT uMsgFilterMax, UINT nRemoveMsg);
+	bool peekMessage(MSG* pMsg,
+					 UINT uMsgFilterMin,
+					 UINT uMsgFilterMax,
+					 UINT nRemoveMsg);
 	
 	HWND getDlgItem(int nDlgItem) const;
 	int getDlgItemInt(int nDlgItem) const;
-	int getDlgItemInt(int nDlgItem, bool* pbTranslated, bool bSigned) const;
-	bool setDlgItemInt(int nDlgItem, int nValue);
-	bool setDlgItemInt(int nDlgItem, int nValue, bool bSigned);
-	WSTRING getDlgItemText(int nDlgItem) const;
-	bool setDlgItemText(int nDlgItem, const WCHAR* pwszText);
-	LRESULT sendDlgItemMessage(int nDlgItem, UINT uMsg);
-	LRESULT sendDlgItemMessage(int nDlgItem, UINT uMsg, WPARAM wParam);
-	LRESULT sendDlgItemMessage(int nDlgItem, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	int getDlgItemInt(int nDlgItem,
+					  bool* pbTranslated,
+					  bool bSigned) const;
+	bool setDlgItemInt(int nDlgItem,
+					   int nValue);
+	bool setDlgItemInt(int nDlgItem,
+					   int nValue,
+					   bool bSigned);
+	wstring_ptr getDlgItemText(int nDlgItem) const;
+	bool setDlgItemText(int nDlgItem,
+						const WCHAR* pwszText);
+	LRESULT sendDlgItemMessage(int nDlgItem,
+							   UINT uMsg);
+	LRESULT sendDlgItemMessage(int nDlgItem,
+							   UINT uMsg,
+							   WPARAM wParam);
+	LRESULT sendDlgItemMessage(int nDlgItem,
+							   UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 	bool isDialogMessage(MSG* pMsg);
 	
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
@@ -272,7 +351,9 @@ public:
 	virtual ~DefWindowProcHolder();
 
 public:
-	virtual LRESULT defWindowProc(UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
+	virtual LRESULT defWindowProc(UINT uMsg,
+								  WPARAM wParam,
+								  LPARAM lParam) = 0;
 };
 
 
@@ -287,42 +368,59 @@ class QSEXPORTCLASS WindowBase :
 	public DefWindowProcHolder
 {
 public:
-	WindowBase(bool bDeleteThis, QSTATUS* pstatus);
+	explicit WindowBase(bool bDeleteThis);
 	virtual ~WindowBase();
 
 public:
-	QSTATUS setWindowHandler(WindowHandler* pWindowHandler,
-		bool bDeleteHandler);
-	QSTATUS create(const WCHAR* pwszClassName, const WCHAR* pwszTitle,
-		DWORD dwStyle, const RECT& rect, HWND hwndParent,
-		DWORD dwExStyle, const WCHAR* pwszSuperClass, UINT nId, void* pParam);
-	QSTATUS create(const WCHAR* pwszClassName, const WCHAR* pwszTitle,
-		DWORD dwStyle, int x, int y, int cx, int cy, HWND hwndParent,
-		DWORD dwExStyle, const WCHAR* pwszSuperClass, UINT nId, void* pParam);
+	void setWindowHandler(WindowHandler* pWindowHandler,
+						  bool bDeleteHandler);
+	bool create(const WCHAR* pwszClassName,
+				const WCHAR* pwszTitle,
+				DWORD dwStyle,
+				const RECT& rect,
+				HWND hwndParent,
+				DWORD dwExStyle,
+				const WCHAR* pwszSuperClass,
+				UINT nId,
+				void* pParam);
+	bool create(const WCHAR* pwszClassName,
+				const WCHAR* pwszTitle,
+				DWORD dwStyle,
+				int x,
+				int y,
+				int cx,
+				int cy,
+				HWND hwndParent,
+				DWORD dwExStyle,
+				const WCHAR* pwszSuperClass,
+				UINT nId,
+				void* pParam);
 	
-	QSTATUS subclassWindow(HWND hwnd);
-	QSTATUS unsubclassWindow();
+	bool subclassWindow(HWND hwnd);
+	bool unsubclassWindow();
 	
-	QSTATUS addCommandHandler(CommandHandler* pch);
-	QSTATUS removeCommandHandler(CommandHandler* pch);
+	void addCommandHandler(CommandHandler* pch);
+	void removeCommandHandler(CommandHandler* pch);
 	
-	QSTATUS addNotifyHandler(NotifyHandler* pnh);
-	QSTATUS removeNotifyHandler(NotifyHandler* pnh);
+	void addNotifyHandler(NotifyHandler* pnh);
+	void removeNotifyHandler(NotifyHandler* pnh);
 	
-	QSTATUS addOwnerDrawHandler(OwnerDrawHandler* podh);
-	QSTATUS removeOwnerDrawHandler(OwnerDrawHandler* podh);
+	void addOwnerDrawHandler(OwnerDrawHandler* podh);
+	void removeOwnerDrawHandler(OwnerDrawHandler* podh);
 	
-	QSTATUS getAccelerator(Accelerator** ppAccelerator);
-	QSTATUS preTranslateAccelerator(const MSG& msg, bool* pbProcessed);
+	Accelerator* getAccelerator() const;
+	bool preTranslateAccelerator(const MSG& msg);
 	bool isFrame() const;
 	
 	InitThread* getInitThread() const;
 
 public:
-	virtual LRESULT defWindowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT defWindowProc(UINT uMsg,
+								  WPARAM wParam,
+								  LPARAM lParam);
 
 public:
-	static QSTATUS translateAccelerator(const MSG& msg, bool* pbProcessed);
+	static bool translateAccelerator(const MSG& msg);
 
 private:
 	WindowBase(const WindowBase&);
@@ -332,10 +430,13 @@ private:
 	class WindowBaseImpl* pImpl_;
 
 friend class WindowBaseImpl;
-#if 1//defined _WIN32_WCE && !defined _WIN32_WCE_EMULATION
+#if defined _WIN32_WCE && !defined _WIN32_WCE_EMULATION
 friend class WindowDestroy;
 #endif
-friend LRESULT CALLBACK windowProc(HWND, UINT, WPARAM, LPARAM);
+friend LRESULT CALLBACK windowProc(HWND,
+								   UINT,
+								   WPARAM,
+								   LPARAM);
 };
 
 
@@ -352,17 +453,20 @@ public:
 
 public:
 	virtual UINT getId() const = 0;
-	virtual QSTATUS setEnable();
-	virtual QSTATUS setEnable(bool bEnable) = 0;
-	virtual QSTATUS setCheck();
-	virtual QSTATUS setCheck(bool bCheck) = 0;
-	virtual QSTATUS setText(const WCHAR* pwszText);
-	virtual QSTATUS setText(const WCHAR* pwszText, bool bWithoutAccel) = 0;
-	virtual QSTATUS setText(HINSTANCE hInstResource, UINT nId);
-	virtual QSTATUS setText(HINSTANCE hInstResource,
-		UINT nId, bool bWithoutAccel);
-	virtual QSTATUS getText(WSTRING* pwstrText) const = 0;
-	virtual QSTATUS updateText() = 0;
+	virtual void setEnable();
+	virtual void setEnable(bool bEnable) = 0;
+	virtual void setCheck();
+	virtual void setCheck(bool bCheck) = 0;
+	virtual void setText(const WCHAR* pwszText);
+	virtual void setText(const WCHAR* pwszText,
+						 bool bWithoutAccel) = 0;
+	virtual void setText(HINSTANCE hInstResource,
+						 UINT nId);
+	virtual void setText(HINSTANCE hInstResource,
+						 UINT nId,
+						 bool bWithoutAccel);
+	virtual wstring_ptr getText() const = 0;
+	virtual void updateText() = 0;
 };
 
 
@@ -375,7 +479,8 @@ public:
 class QSEXPORTCLASS CommandUpdateMenu : public CommandUpdate
 {
 public:
-	CommandUpdateMenu(HMENU hmenu, UINT nId, QSTATUS* pstatus);
+	CommandUpdateMenu(HMENU hmenu,
+					  UINT nId);
 	virtual ~CommandUpdateMenu();
 
 public:
@@ -383,11 +488,12 @@ public:
 
 public:
 	virtual UINT getId() const;
-	virtual QSTATUS setEnable(bool bEnable);
-	virtual QSTATUS setCheck(bool bCheck);
-	virtual QSTATUS setText(const WCHAR* pwszText, bool bWithoutAccel);
-	virtual QSTATUS getText(WSTRING* pwstrText) const;
-	virtual QSTATUS updateText();
+	virtual void setEnable(bool bEnable);
+	virtual void setCheck(bool bCheck);
+	virtual void setText(const WCHAR* pwszText,
+						 bool bWithoutAccel);
+	virtual wstring_ptr getText() const;
+	virtual void updateText();
 
 private:
 	CommandUpdateMenu(const CommandUpdateMenu&);
@@ -408,16 +514,18 @@ private:
 class QSEXPORTCLASS CommandUpdateToolbar : public CommandUpdate
 {
 public:
-	CommandUpdateToolbar(HWND hwnd, UINT nId, QSTATUS* pstatus);
+	CommandUpdateToolbar(HWND hwnd,
+						 UINT nId);
 	virtual ~CommandUpdateToolbar();
 
 public:
 	virtual UINT getId() const;
-	virtual QSTATUS setEnable(bool bEnable);
-	virtual QSTATUS setCheck(bool bCheck);
-	virtual QSTATUS setText(const WCHAR* pwszText, bool bWithoutAccel);
-	virtual QSTATUS getText(WSTRING* pwstrText) const;
-	virtual QSTATUS updateText();
+	virtual void setEnable(bool bEnable);
+	virtual void setCheck(bool bCheck);
+	virtual void setText(const WCHAR* pwszText,
+						 bool bWithoutAccel);
+	virtual wstring_ptr getText() const;
+	virtual void updateText();
 
 private:
 	CommandUpdateToolbar(const CommandUpdateToolbar&);
@@ -441,7 +549,8 @@ public:
 	virtual ~CommandHandler();
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId) = 0;
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId) = 0;
 };
 
 #define BEGIN_COMMAND_HANDLER() \
@@ -491,11 +600,12 @@ public:
 class QSEXPORTCLASS DefaultCommandHandler : public CommandHandler
 {
 public:
-	explicit DefaultCommandHandler(QSTATUS* pstatus);
+	DefaultCommandHandler();
 	virtual ~DefaultCommandHandler();
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 };
 
 
@@ -511,7 +621,8 @@ public:
 	virtual ~NotifyHandler();
 
 public:
-	virtual LRESULT onNotify(NMHDR* pnmhdr, bool* pbHandled) = 0;
+	virtual LRESULT onNotify(NMHDR* pnmhdr,
+							 bool* pbHandled) = 0;
 };
 
 #define BEGIN_NOTIFY_HANDLER() \
@@ -560,8 +671,8 @@ public:
 	virtual ~ModalHandler();
 
 public:
-	virtual QSTATUS preModalDialog(HWND hwndParent) = 0;
-	virtual QSTATUS postModalDialog(HWND hwndParent) = 0;
+	virtual void preModalDialog(HWND hwndParent) = 0;
+	virtual void postModalDialog(HWND hwndParent) = 0;
 };
 
 
@@ -575,7 +686,7 @@ class QSEXPORTCLASS ModalHandlerInvoker
 {
 public:
 	ModalHandlerInvoker(ModalHandler* pModalHandler,
-		HWND hwnd, QSTATUS* pstatus);
+						HWND hwnd);
 	~ModalHandlerInvoker();
 
 private:
@@ -600,22 +711,25 @@ public:
 	virtual ~WindowHandler();
 
 public:
-	virtual QSTATUS setWindowBase(WindowBase* pWindowBase) = 0;
+	virtual void setWindowBase(WindowBase* pWindowBase) = 0;
 	
-	virtual QSTATUS getSuperClass(WSTRING* pwstrSuperClass) = 0;
-	virtual QSTATUS getWindowClass(WNDCLASS* pwc) = 0;
-	virtual QSTATUS getWindowClass(
-		const WCHAR* pwszSuperClass, WNDCLASS* pwc, WNDPROC* pproc) = 0;
+	virtual wstring_ptr getSuperClass() = 0;
+	virtual void getWindowClass(WNDCLASS* pwc) = 0;
+	virtual bool getWindowClass(const WCHAR* pwszSuperClass,
+								WNDCLASS* pwc,
+								WNDPROC* pproc) = 0;
 	
-	virtual QSTATUS preCreateWindow(CREATESTRUCT* pCreateStruct) = 0;
-	virtual QSTATUS preSubclassWindow() = 0;
+	virtual bool preCreateWindow(CREATESTRUCT* pCreateStruct) = 0;
+	virtual bool preSubclassWindow() = 0;
 	
-	virtual QSTATUS getAction(UINT nId, Action** ppAction) = 0;
-	virtual QSTATUS getAccelerator(Accelerator** ppAccelerator) = 0;
-	virtual QSTATUS preTranslateAccelerator(const MSG& msg, bool* pbProcessed) = 0;
+	virtual Action* getAction(UINT nId) = 0;
+	virtual Accelerator* getAccelerator() = 0;
+	virtual bool preTranslateAccelerator(const MSG& msg) = 0;
 	virtual bool isFrame() const = 0;
 	
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam) = 0;
 };
 
 #define BEGIN_MESSAGE_HANDLER() \
@@ -942,65 +1056,112 @@ public:
 	virtual DefWindowProcHolder* getDefWindowProcHolder() = 0;
 
 protected:
-	LRESULT onActivate(UINT nFlags, HWND hwnd, bool bMinimized);
+	LRESULT onActivate(UINT nFlags,
+					   HWND hwnd,
+					   bool bMinimized);
 #ifndef _WIN32_WCE
-	LRESULT onActivateApp(bool bActivate, DWORD dwThreadId);
+	LRESULT onActivateApp(bool bActivate,
+						  DWORD dwThreadId);
 #endif
-	LRESULT onChar(UINT nChar, UINT nRepeat, UINT nFlags);
+	LRESULT onChar(UINT nChar,
+				   UINT nRepeat,
+				   UINT nFlags);
 	LRESULT onClose();
-	LRESULT onCommand(UINT nCode, UINT nId, HWND hwnd);
-	LRESULT onContextMenu(HWND hwnd, const POINT& pt);
+	LRESULT onCommand(UINT nCode,
+					  UINT nId,
+					  HWND hwnd);
+	LRESULT onContextMenu(HWND hwnd,
+						  const POINT& pt);
 	LRESULT onCopy();
-	LRESULT onCopyData(HWND hwnd, COPYDATASTRUCT* pData);
+	LRESULT onCopyData(HWND hwnd,
+					   COPYDATASTRUCT* pData);
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
-	LRESULT onCtlColorStatic(HDC hdc, HWND hwnd);
+	LRESULT onCtlColorStatic(HDC hdc,
+							 HWND hwnd);
 	LRESULT onCut();
 	LRESULT onDestroy();
 	LRESULT onEraseBkgnd(HDC hdc);
 #ifndef _WIN32_WCE
 	LRESULT onDropFiles(HDROP hdrop);
-	LRESULT onEndSession(bool bEnd, int nOption);
+	LRESULT onEndSession(bool bEnd,
+						 int nOption);
 #endif
-	LRESULT onHScroll(UINT nCode, UINT nPos, HWND hwnd);
-	LRESULT onImeChar(UINT nChar, UINT nRepeat, UINT nFlags);
-	LRESULT onImeComposition(UINT nChar, UINT nFlags);
+	LRESULT onHScroll(UINT nCode,
+					  UINT nPos,
+					  HWND hwnd);
+	LRESULT onImeChar(UINT nChar,
+					  UINT nRepeat,
+					  UINT nFlags);
+	LRESULT onImeComposition(UINT nChar,
+							 UINT nFlags);
 	LRESULT onImeEndComposition();
 	LRESULT onImeStartComposition();
-	LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	LRESULT onInitDialog(HWND hwndFocus,
+						 LPARAM lParam);
 #ifndef _WIN32_WCE
 	LRESULT onInitMenu(HMENU hmenu);
 #endif
-	LRESULT onInitMenuPopup(HMENU hmenu, UINT nIndex, bool bSysMenu);
-	LRESULT onKeyDown(UINT nKey, UINT nRepeat, UINT nFlags);
-	LRESULT onKeyUp(UINT nKey, UINT nRepeat, UINT nFlags);
+	LRESULT onInitMenuPopup(HMENU hmenu,
+							UINT nIndex,
+							bool bSysMenu);
+	LRESULT onKeyDown(UINT nKey,
+					  UINT nRepeat,
+					  UINT nFlags);
+	LRESULT onKeyUp(UINT nKey,
+					UINT nRepeat,
+					UINT nFlags);
 	LRESULT onKillFocus(HWND hwnd);
-	LRESULT onLButtonDblClk(UINT nFlags, const POINT& pt);
-	LRESULT onLButtonDown(UINT nFlags, const POINT& pt);
-	LRESULT onLButtonUp(UINT nFlags, const POINT& pt);
+	LRESULT onLButtonDblClk(UINT nFlags,
+							const POINT& pt);
+	LRESULT onLButtonDown(UINT nFlags,
+						  const POINT& pt);
+	LRESULT onLButtonUp(UINT nFlags,
+						const POINT& pt);
 #ifndef _WIN32_WCE
-	LRESULT onMouseActivate(HWND hwnd, UINT nHitTest, UINT uMsg);
+	LRESULT onMouseActivate(HWND hwnd,
+							UINT nHitTest,
+							UINT uMsg);
 #endif
-	LRESULT onMouseMove(UINT nFlags, const POINT& pt);
+	LRESULT onMouseMove(UINT nFlags,
+						const POINT& pt);
 #if !defined _WIN32_WCE || _WIN32_WCE >= 211
-	LRESULT onMouseWheel(UINT nFlags, short nDelta, const POINT& pt);
+	LRESULT onMouseWheel(UINT nFlags,
+						 short nDelta,
+						 const POINT& pt);
 #endif
 	LRESULT onPaint();
 	LRESULT onPaste();
 #ifndef _WIN32_WCE
 	LRESULT onQueryEndSession(int nOption);
 #endif
-	LRESULT onRButtonDblClk(UINT nFlags, const POINT& pt);
-	LRESULT onRButtonDown(UINT nFlags, const POINT& pt);
-	LRESULT onRButtonUp(UINT nFlags, const POINT& pt);
-	LRESULT onSetCursor(HWND hwnd, UINT nHitTest, UINT nMessage);
+	LRESULT onRButtonDblClk(UINT nFlags,
+							const POINT& pt);
+	LRESULT onRButtonDown(UINT nFlags,
+						  const POINT& pt);
+	LRESULT onRButtonUp(UINT nFlags,
+						const POINT& pt);
+	LRESULT onSetCursor(HWND hwnd,
+						UINT nHitTest,
+						UINT nMessage);
 	LRESULT onSetFocus(HWND hwnd);
-	LRESULT onSettingChange(WPARAM wParam, LPARAM lParam);
-	LRESULT onSize(UINT nFlags, int cx, int cy);
-	LRESULT onSysChar(UINT nKey, UINT nRepeat, UINT nFlags);
-	LRESULT onSysKeyDown(UINT nKey, UINT nRepeat, UINT nFlags);
-	LRESULT onSysKeyUp(UINT nKey, UINT nRepeat, UINT nFlags);
+	LRESULT onSettingChange(WPARAM wParam,
+							LPARAM lParam);
+	LRESULT onSize(UINT nFlags,
+				   int cx,
+				   int cy);
+	LRESULT onSysChar(UINT nKey,
+					  UINT nRepeat,
+					  UINT nFlags);
+	LRESULT onSysKeyDown(UINT nKey,
+						 UINT nRepeat,
+						 UINT nFlags);
+	LRESULT onSysKeyUp(UINT nKey,
+					   UINT nRepeat,
+					   UINT nFlags);
 	LRESULT onTimer(UINT nId);
-	LRESULT onVScroll(UINT nCode, UINT nPos, HWND hwnd);
+	LRESULT onVScroll(UINT nCode,
+					  UINT nPos,
+					  HWND hwnd);
 };
 
 
@@ -1015,25 +1176,28 @@ class QSEXPORTCLASS DefaultWindowHandler :
 	public DefaultWindowHandlerBase
 {
 public:
-	explicit DefaultWindowHandler(QSTATUS* pstatus);
+	DefaultWindowHandler();
 	virtual ~DefaultWindowHandler();
 
 public:
 	WindowBase* getWindowBase() const;
 
 public:
-	virtual QSTATUS setWindowBase(WindowBase* pWindowBase);
-	virtual QSTATUS getSuperClass(WSTRING* pwstrSuperClass);
-	virtual QSTATUS getWindowClass(WNDCLASS* pwc);
-	virtual QSTATUS getWindowClass(
-		const WCHAR* pwszSuperClass, WNDCLASS* pwc, WNDPROC* pproc);
-	virtual QSTATUS preCreateWindow(CREATESTRUCT* pCreateStruct);
-	virtual QSTATUS preSubclassWindow();
-	virtual QSTATUS getAction(UINT nId, Action** ppAction);
-	virtual QSTATUS getAccelerator(Accelerator** ppAccelerator);
-	virtual QSTATUS preTranslateAccelerator(const MSG& msg, bool* pbProcessed);
+	virtual void setWindowBase(WindowBase* pWindowBase);
+	virtual wstring_ptr getSuperClass();
+	virtual void getWindowClass(WNDCLASS* pwc);
+	virtual bool getWindowClass(const WCHAR* pwszSuperClass,
+								WNDCLASS* pwc,
+								WNDPROC* pproc);
+	virtual bool preCreateWindow(CREATESTRUCT* pCreateStruct);
+	virtual bool preSubclassWindow();
+	virtual Action* getAction(UINT nId);
+	virtual Accelerator* getAccelerator();
+	virtual bool preTranslateAccelerator(const MSG& msg);
 	virtual bool isFrame() const;
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 public:
 	virtual DefWindowProcHolder* getDefWindowProcHolder();
@@ -1052,15 +1216,15 @@ private:
 class QSEXPORTCLASS MessageLoop
 {
 public:
-	MessageLoop(QSTATUS* pstatus);
+	MessageLoop();
 	~MessageLoop();
 
 public:
-	QSTATUS run();
+	void run();
 
 public:
-	QSTATUS addFrame(FrameWindow* pFrameWindow);
-	QSTATUS removeFrame(FrameWindow* pFrameWindow);
+	void addFrame(FrameWindow* pFrameWindow);
+	void removeFrame(FrameWindow* pFrameWindow);
 
 public:
 	static MessageLoop& getMessageLoop();
@@ -1095,7 +1259,8 @@ public:
 	};
 
 public:
-	FrameWindow(HINSTANCE hInstResource, bool bDeleteThis, QSTATUS* pstatus);
+	FrameWindow(HINSTANCE hInstResource,
+				bool bDeleteThis);
 	virtual ~FrameWindow();
 
 public:
@@ -1104,35 +1269,43 @@ public:
 	void adjustWindowSize(LPARAM lParam);
 
 public:
-	virtual QSTATUS processIdle();
+	virtual void processIdle();
 
 protected:
-	QSTATUS save();
+	bool save();
 
 protected:
-	virtual QSTATUS getToolbarButtons(Toolbar* pToolbar, bool* pbToolbar);
-	virtual QSTATUS createToolbarButtons(void* pCreateParam, HWND hwndToolbar);
+	virtual bool getToolbarButtons(Toolbar* pToolbar);
+	virtual bool createToolbarButtons(void* pCreateParam,
+									  HWND hwndToolbar);
 #if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
-	virtual QSTATUS getBarId(int n, UINT* pnId) const = 0;
-	virtual QSTATUS getCommandBandsRestoreInfo(int n,
-		COMMANDBANDSRESTOREINFO* pcbri) const = 0;
-	virtual QSTATUS setCommandBandsRestoreInfo(int n,
-		const COMMANDBANDSRESTOREINFO& cbri) = 0;
+	virtual UINT getBarId(int n) const = 0;
+	virtual bool getCommandBandsRestoreInfo(int n,
+											COMMANDBANDSRESTOREINFO* pcbri) const = 0;
+	virtual bool setCommandBandsRestoreInfo(int n,
+											const COMMANDBANDSRESTOREINFO& cbri) = 0;
 #endif
-	virtual QSTATUS getMenuHandle(void* pCreateParam, HMENU* phmenu);
-	virtual QSTATUS getMenuId(UINT* pnId);
-	virtual QSTATUS getIconId(UINT* pnId);
+	virtual HMENU getMenuHandle(void* pCreateParam);
+	virtual UINT getMenuId();
+	virtual UINT getIconId();
 
 public:
 	virtual bool isFrame() const;
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
-	LRESULT onActivate(UINT nFlags, HWND hwnd, bool bMinimized);
+	LRESULT onActivate(UINT nFlags,
+					   HWND hwnd,
+					   bool bMinimized);
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
 	LRESULT onDestroy();
-	LRESULT onInitMenuPopup(HMENU hmenu, UINT nIndex, bool bSysMenu);
-	LRESULT onSettingChange(WPARAM wParam, LPARAM lParam);
+	LRESULT onInitMenuPopup(HMENU hmenu,
+							UINT nIndex,
+							bool bSysMenu);
+	LRESULT onSettingChange(WPARAM wParam,
+							LPARAM lParam);
 
 private:
 	FrameWindow(const FrameWindow&);
@@ -1154,31 +1327,49 @@ class QSEXPORTCLASS SplitterWindow :
 	public DefaultWindowHandler
 {
 public:
-	SplitterWindow(int nColumn, int nRow, bool bDeleteThis,
-		SplitterWindowHandler* pHandler, QSTATUS* pstatus);
+	SplitterWindow(int nColumn,
+				   int nRow,
+				   bool bDeleteThis,
+				   SplitterWindowHandler* pHandler);
 	virtual ~SplitterWindow();
 
 public:
-	QSTATUS add(int nColumn, int nRow, Window* pWindow);
-	QSTATUS setPane(int nColumn, int nRow, Window* pWindow);
-	QSTATUS showPane(int nColumn, int nRow, bool bShow);
-	QSTATUS isShowPane(int nColumn, int nRow, bool* pbShow);
+	void add(int nColumn,
+			 int nRow,
+			 Window* pWindow);
+	void setPane(int nColumn,
+				 int nRow,
+				 Window* pWindow);
+	void showPane(int nColumn,
+				  int nRow,
+				  bool bShow);
+	bool isShowPane(int nColumn,
+					int nRow);
 	
-	QSTATUS getColumnWidth(int nColumn, int* pnWidth);
-	QSTATUS setColumnWidth(int nColumn, int nWidth);
+	int getColumnWidth(int nColumn);
+	void setColumnWidth(int nColumn,
+						int nWidth);
 	
-	QSTATUS getRowHeight(int nRow, int* pnHeight);
-	QSTATUS setRowHeight(int nRow, int nHeight);
+	int getRowHeight(int nRow);
+	void setRowHeight(int nRow,
+					  int nHeight);
 
 public:
-	virtual QSTATUS getWindowClass(WNDCLASS* pwc);
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual void getWindowClass(WNDCLASS* pwc);
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
-	LRESULT onLButtonDown(UINT nFlags, const POINT& pt);
-	LRESULT onLButtonUp(UINT nFlags, const POINT& pt);
-	LRESULT onMouseMove(UINT nFlags, const POINT& pt);
-	LRESULT onSize(UINT nFlags, int cx, int cy);
+	LRESULT onLButtonDown(UINT nFlags,
+						  const POINT& pt);
+	LRESULT onLButtonUp(UINT nFlags,
+						const POINT& pt);
+	LRESULT onMouseMove(UINT nFlags,
+						const POINT& pt);
+	LRESULT onSize(UINT nFlags,
+				   int cx,
+				   int cy);
 
 private:
 	SplitterWindow(const SplitterWindow&);
@@ -1201,7 +1392,7 @@ public:
 	virtual ~SplitterWindowHandler();
 
 public:
-	virtual QSTATUS sizeChanged(const SplitterWindowEvent& event) = 0;
+	virtual void sizeChanged(const SplitterWindowEvent& event) = 0;
 };
 
 
@@ -1242,17 +1433,27 @@ class QSEXPORTCLASS KanjiinWindow :
 	public DefaultWindowHandler
 {
 public:
-	KanjiinWindow(bool bDeleteThis, QSTATUS* pstatus);
+	explicit KanjiinWindow(bool bDeleteThis);
 	virtual ~KanjiinWindow();
 
 public:
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
-	LRESULT onChar(UINT nChar, UINT nRepeat, UINT nFlags);
-	LRESULT onCommand(UINT nCode, UINT nId, HWND hwnd);
-	LRESULT onSysChar(UINT nKey, UINT nRepeat, UINT nFlags);
-	LRESULT onSysKeyDown(UINT nKey, UINT nRepeat, UINT nFlags);
+	LRESULT onChar(UINT nChar,
+				   UINT nRepeat,
+				   UINT nFlags);
+	LRESULT onCommand(UINT nCode,
+					  UINT nId,
+					  HWND hwnd);
+	LRESULT onSysChar(UINT nKey,
+					  UINT nRepeat,
+					  UINT nFlags);
+	LRESULT onSysKeyDown(UINT nKey,
+						 UINT nRepeat,
+						 UINT nFlags);
 
 private:
 	struct KanjiinWindowImpl* pImpl_;
@@ -1274,14 +1475,18 @@ class QSEXPORTCLASS CommandBand :
 	public DefaultWindowHandler
 {
 public:
-	CommandBand(bool bDeleteThis, QSTATUS* pstatus);
+	explicit CommandBand(bool bDeleteThis);
 	virtual ~CommandBand();
 
 public:
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
-	LRESULT onSize(UINT nFlags, int cx, int cy);
+	LRESULT onSize(UINT nFlags,
+				   int cx,
+				   int cy);
 
 private:
 	CommandBand(const CommandBand&);
@@ -1325,7 +1530,7 @@ public:
 	~Cursor();
 
 public:
-	QSTATUS reset();
+	void reset();
 
 private:
 	Cursor(const Cursor&);
@@ -1350,7 +1555,7 @@ public:
 	~WaitCursor();
 
 public:
-	QSTATUS reset();
+	void reset();
 
 private:
 	WaitCursor(const WaitCursor&);

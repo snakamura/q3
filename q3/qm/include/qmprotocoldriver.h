@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -44,34 +44,47 @@ public:
 
 public:
 	virtual bool isSupport(Account::Support support) = 0;
-	virtual qs::QSTATUS setOffline(bool bOffline) = 0;
-	virtual qs::QSTATUS save() = 0;
+	virtual void setOffline(bool bOffline) = 0;
+	virtual bool save() = 0;
 	
-	virtual qs::QSTATUS createFolder(SubAccount* pSubAccount,
-		const WCHAR* pwszName, Folder* pParent, NormalFolder** ppFolder) = 0;
-	virtual qs::QSTATUS removeFolder(
-		SubAccount* pSubAccount, NormalFolder* pFolder) = 0;
-	virtual qs::QSTATUS renameFolder(SubAccount* pSubAccount,
-		NormalFolder* pFolder, const WCHAR* pwszName) = 0;
-	virtual qs::QSTATUS createDefaultFolders(Account::FolderList* pList) = 0;
-	virtual qs::QSTATUS getRemoteFolders(
-		SubAccount* pSubAccount, RemoteFolderList* pList) = 0;
+	virtual std::auto_ptr<NormalFolder> createFolder(SubAccount* pSubAccount,
+													 const WCHAR* pwszName,
+													 Folder* pParent) = 0;
+	virtual bool removeFolder(SubAccount* pSubAccount,
+							  NormalFolder* pFolder) = 0;
+	virtual bool renameFolder(SubAccount* pSubAccount,
+							  NormalFolder* pFolder,
+							  const WCHAR* pwszName) = 0;
+	virtual bool createDefaultFolders(Account::FolderList* pList) = 0;
+	virtual bool getRemoteFolders(SubAccount* pSubAccount,
+								  RemoteFolderList* pList) = 0;
 	
-	virtual qs::QSTATUS getMessage(SubAccount* pSubAccount,
-		MessageHolder* pmh, unsigned int nFlags, qs::STRING* pstrMessage,
-		Message::Flag* pFlag, bool* pbGet, bool* pbMadeSeen) = 0;
-	virtual qs::QSTATUS setMessagesFlags(SubAccount* pSubAccount,
-		NormalFolder* pFolder, const MessageHolderList& l,
-		unsigned int nFlags, unsigned int nMask) = 0;
-	virtual qs::QSTATUS appendMessage(SubAccount* pSubAccount,
-		NormalFolder* pFolder, const CHAR* pszMessage, unsigned int nFlags) = 0;
-	virtual qs::QSTATUS removeMessages(SubAccount* pSubAccount,
-		NormalFolder* pFolder, const MessageHolderList& l) = 0;
-	virtual qs::QSTATUS copyMessages(SubAccount* pSubAccount,
-		const MessageHolderList& l, NormalFolder* pFolderFrom,
-		NormalFolder* pFolderTo, bool bMove) = 0;
-	virtual qs::QSTATUS clearDeletedMessages(
-		SubAccount* pSubAccount, NormalFolder* pFolder) = 0;
+	virtual bool getMessage(SubAccount* pSubAccount,
+							MessageHolder* pmh,
+							unsigned int nFlags,
+							qs::xstring_ptr* pstrMessage,
+							Message::Flag* pFlag,
+							bool* pbGet,
+							bool* pbMadeSeen) = 0;
+	virtual bool setMessagesFlags(SubAccount* pSubAccount,
+								  NormalFolder* pFolder,
+								  const MessageHolderList& l,
+								  unsigned int nFlags,
+								  unsigned int nMask) = 0;
+	virtual bool appendMessage(SubAccount* pSubAccount,
+							   NormalFolder* pFolder,
+							   const CHAR* pszMessage,
+							   unsigned int nFlags) = 0;
+	virtual bool removeMessages(SubAccount* pSubAccount,
+								NormalFolder* pFolder,
+								const MessageHolderList& l) = 0;
+	virtual bool copyMessages(SubAccount* pSubAccount,
+							  const MessageHolderList& l,
+							  NormalFolder* pFolderFrom,
+							  NormalFolder* pFolderTo,
+							  bool bMove) = 0;
+	virtual bool clearDeletedMessages(SubAccount* pSubAccount,
+									  NormalFolder* pFolder) = 0;
 };
 
 
@@ -90,19 +103,17 @@ public:
 	virtual ~ProtocolFactory();
 
 public:
-	static qs::QSTATUS getDriver(Account* pAccount,
-		const Security* pSecurity, ProtocolDriver** ppProtocolDriver);
-	static qs::QSTATUS getDriver(Account* pAccount, const Security* pSecurity,
-		std::auto_ptr<ProtocolDriver>* papProtocolDriver);
+	static std::auto_ptr<ProtocolDriver> getDriver(Account* pAccount,
+												   const Security* pSecurity);
 
 protected:
-	virtual qs::QSTATUS createDriver(Account* pAccount,
-		const Security* pSecurity, ProtocolDriver** ppProtocolDriver) = 0;
+	virtual std::auto_ptr<ProtocolDriver> createDriver(Account* pAccount,
+													   const Security* pSecurity) = 0;
 
 protected:
-	static qs::QSTATUS regist(const WCHAR* pwszName,
-		ProtocolFactory* pFactory);
-	static qs::QSTATUS unregist(const WCHAR* pwszName);
+	static void registerFactory(const WCHAR* pwszName,
+								ProtocolFactory* pFactory);
+	static void unregisterFactory(const WCHAR* pwszName);
 
 private:
 	ProtocolFactory(const ProtocolFactory&);

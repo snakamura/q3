@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -24,7 +24,7 @@ using namespace qs;
  *
  */
 
-qm::TempFileCleaner::TempFileCleaner(QSTATUS* pstatus)
+qm::TempFileCleaner::TempFileCleaner()
 {
 }
 
@@ -32,13 +32,9 @@ qm::TempFileCleaner::~TempFileCleaner()
 {
 }
 
-QSTATUS qm::TempFileCleaner::add(const WCHAR* pwszPath)
+void qm::TempFileCleaner::add(const WCHAR* pwszPath)
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<TSTRING> tstrPath(wcs2tcs(pwszPath));
-	if (!tstrPath.get())
-		return QSTATUS_OUTOFMEMORY;
+	tstring_ptr tstrPath(wcs2tcs(pwszPath));
 	
 	List::iterator it = std::find_if(list_.begin(), list_.end(),
 		std::bind2nd(
@@ -59,20 +55,15 @@ QSTATUS qm::TempFileCleaner::add(const WCHAR* pwszPath)
 		BOOL b = ::GetFileTime(hFile.get(), 0, 0, &ft);
 		hFile.close();
 		if (b) {
-			status = STLWrapper<List>(list_).push_back(
-				List::value_type(tstrPath.get(), ft));
-			CHECK_QSTATUS();
+			list_.push_back(List::value_type(tstrPath.get(), ft));
 			tstrPath.release();
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 void qm::TempFileCleaner::clean(TempFileCleanerCallback* pCallback)
 {
-	List::iterator it = list_.begin();
-	while (it != list_.end()) {
+	for (List::iterator it = list_.begin(); it != list_.end(); ++it) {
 		AutoHandle hFile(::CreateFile((*it).first, GENERIC_READ, 0, 0,
 			OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
 		if (hFile .get()) {
@@ -82,18 +73,14 @@ void qm::TempFileCleaner::clean(TempFileCleanerCallback* pCallback)
 			if (b) {
 				bool bDelete = true;
 				if (::CompareFileTime(&(*it).second, &ft) != 0) {
-					string_ptr<WSTRING> wstrPath(tcs2wcs((*it).first));
-					if (wstrPath.get())
-						bDelete = pCallback->confirmDelete(wstrPath.get());
-					else
-						bDelete = false;
+					wstring_ptr wstrPath(tcs2wcs((*it).first));
+					bDelete = pCallback->confirmDelete(wstrPath.get());
 				}
 				if (bDelete)
 					::DeleteFile((*it).first);
 			}
 		}
 		freeTString((*it).first);
-		++it;
 	}
 	
 	list_.clear();

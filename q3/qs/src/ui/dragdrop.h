@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -34,10 +34,14 @@ public:
 	~DragDropManager();
 
 public:
-	QSTATUS doDragDrop(IDataObject* pDataObject, DragSource* pDragSource,
-		DWORD dwEffect, DWORD* pdwEffect, bool* pbCanceled);
-	QSTATUS registerDragDrop(HWND hwnd, DropTarget* pDropTarget);
-	QSTATUS revokeDragDrop(HWND hwnd);
+	bool doDragDrop(IDataObject* pDataObject,
+					DragSource* pDragSource,
+					DWORD dwEffect,
+					DWORD* pdwEffect,
+					bool* pbCanceled);
+	bool registerDragDrop(HWND hwnd,
+						  DropTarget* pDropTarget);
+	bool revokeDragDrop(HWND hwnd);
 
 public:
 	static DragDropManager& getInstance();
@@ -62,20 +66,26 @@ class DragGestureRecognizerWindow :
 	public DefaultWindowHandler
 {
 public:
-	DragGestureRecognizerWindow(DragGestureRecognizer* pRecognizer,
-		QSTATUS* pstatus);
+	explicit DragGestureRecognizerWindow(DragGestureRecognizer* pRecognizer);
 	virtual ~DragGestureRecognizerWindow();
 
 public:
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
 	LRESULT onDestroy();
-	LRESULT onLButtonDown(UINT nFlags, const POINT& pt);
-	LRESULT onLButtonUp(UINT nFlags, const POINT& pt);
-	LRESULT onMouseMove(UINT nFlags, const POINT& pt);
-	LRESULT onRButtonDown(UINT nFlags, const POINT& pt);
-	LRESULT onRButtonUp(UINT nFlags, const POINT& pt);
+	LRESULT onLButtonDown(UINT nFlags,
+						  const POINT& pt);
+	LRESULT onLButtonUp(UINT nFlags,
+						const POINT& pt);
+	LRESULT onMouseMove(UINT nFlags,
+						const POINT& pt);
+	LRESULT onRButtonDown(UINT nFlags,
+						  const POINT& pt);
+	LRESULT onRButtonUp(UINT nFlags,
+						const POINT& pt);
 
 private:
 	DragGestureRecognizerWindow(const DragGestureRecognizerWindow&);

@@ -1,13 +1,12 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qsutil.h>
-#include <qserror.h>
 
 #include <cstdio>
 
@@ -57,14 +56,22 @@ qs::Time::Time()
 	nTimeZone_ = 0;
 }
 
-qs::Time::Time(const SYSTEMTIME& st, int nTimeZone)
+qs::Time::Time(const SYSTEMTIME& st,
+			   int nTimeZone)
 {
 	static_cast<SYSTEMTIME&>(*this) = st;
 	nTimeZone_ = nTimeZone;
 }
 
-qs::Time::Time(int nYear, int nMonth, int nDayOfWeek, int nDay,
-	int nHour, int nMinute, int nSecond, int nMilliseconds, int nTimeZone)
+qs::Time::Time(int nYear,
+			   int nMonth,
+			   int nDayOfWeek,
+			   int nDay,
+			   int nHour,
+			   int nMinute,
+			   int nSecond,
+			   int nMilliseconds,
+			   int nTimeZone)
 {
 	wYear = nYear;
 	wMonth = nMonth;
@@ -191,11 +198,9 @@ Time& qs::Time::convertToZone()
 	return *this;
 }
 
-QSTATUS qs::Time::format(const WCHAR* pwszFormat, Format format,
-	WSTRING* pwstrText) const
+wstring_ptr qs::Time::format(const WCHAR* pwszFormat,
+							 Format format) const
 {
-	DECLARE_QSTATUS();
-	
 	Time time(*this);
 	
 	int nTimeZone = nTimeZone_;
@@ -214,11 +219,10 @@ QSTATUS qs::Time::format(const WCHAR* pwszFormat, Format format,
 		break;
 	default:
 		assert(false);
-		return QSTATUS_FAIL;
+		return 0;
 	}
 	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
+	StringBuffer<WSTRING> buf;
 	WCHAR wsz[32];
 	for (const WCHAR* p = pwszFormat; *p; ++p) {
 		if (*p == L'%') {
@@ -232,70 +236,68 @@ QSTATUS qs::Time::format(const WCHAR* pwszFormat, Format format,
 					swprintf(wsz, L"%04d", time.wYear);
 					break;
 				default:
-					return QSTATUS_FAIL;
+					return 0;
 				}
-				status = buf.append(wsz);
+				buf.append(wsz);
 				p += 2;
 				break;
 			case L'M':
 				switch (*(p + 2)) {
 				case L'0':
 					swprintf(wsz, L"%02d", time.wMonth);
-					status = buf.append(wsz);
+					buf.append(wsz);
 					break;
 				case L'1':
-					status = buf.append(pwszMonths__[time.wMonth - 1]);
+					buf.append(pwszMonths__[time.wMonth - 1]);
 					break;
 				default:
-					return QSTATUS_FAIL;
+					return 0;
 				}
 				p += 2;
 				break;
 			case L'D':
 				swprintf(wsz, L"%02d", time.wDay);
-				status = buf.append(wsz);
+				buf.append(wsz);
 				++p;
 				break;
 			case L'W':
-				status = buf.append(pwszWeeks__[time.wDayOfWeek]);
+				buf.append(pwszWeeks__[time.wDayOfWeek]);
 				++p;
 				break;
 			case L'h':
 				swprintf(wsz, L"%02d", time.wHour);
-				status = buf.append(wsz);
+				buf.append(wsz);
 				++p;
 				break;
 			case L'm':
 				swprintf(wsz, L"%02d", time.wMinute);
-				status = buf.append(wsz);
+				buf.append(wsz);
 				++p;
 				break;
 			case L's':
 				swprintf(wsz, L"%02d", time.wSecond);
-				status = buf.append(wsz);
+				buf.append(wsz);
 				++p;
 				break;
 			case L'z':
 				swprintf(wsz, L"%c%04d",
 					nTimeZone < 0 ? L'-' : L'+', abs(nTimeZone));
-				status = buf.append(wsz);
+				buf.append(wsz);
 				++p;
 				break;
 			case L'%':
-				status = buf.append(L'%');
+				buf.append(L'%');
 				break;
 			default:
-				return QSTATUS_FAIL;
+				return 0;
 			}
-			CHECK_QSTATUS();
 		}
 		else {
 			buf.append(*p);
 		}
 	}
 	
-	*pwstrText = buf.getString();
-	return QSTATUS_SUCCESS;
+	return buf.getString();
 }
 
 Time qs::Time::getCurrentTime()
@@ -305,7 +307,8 @@ Time qs::Time::getCurrentTime()
 	return Time(st, getSystemTimeZone());
 }
 
-int qs::Time::getDayCount(int nYear, int nMonth)
+int qs::Time::getDayCount(int nYear,
+						  int nMonth)
 {
 	assert(0 < nMonth && nMonth <= 12);
 	assert(nYear >= 0);
@@ -330,7 +333,9 @@ int qs::Time::getDayCount(int nYear)
 	return nYear % 4 ? 365 : nYear%100 ? 366 : nYear%400 ? 365 : 366;
 }
 
-int qs::Time::getDayOfWeek(int nYear, int nMonth, int nDay)
+int qs::Time::getDayOfWeek(int nYear,
+						   int nMonth,
+						   int nDay)
 {
 	assert(0 < nMonth && nMonth <= 12);
 	assert(0 < nDay && nDay <= getDayCount(nYear, nMonth));
@@ -418,7 +423,8 @@ Time qs::Time::getTransitionDate(const SYSTEMTIME& time)
 		time.wHour, time.wMinute, time.wSecond, time.wMilliseconds, 0);
 }
 
-QSEXPORTPROC bool qs::operator==(const Time& lhs, const Time& rhs)
+QSEXPORTPROC bool qs::operator==(const Time& lhs,
+								 const Time& rhs)
 {
 	return lhs.wYear == rhs.wYear &&
 		lhs.wMonth == rhs.wMonth &&
@@ -429,12 +435,14 @@ QSEXPORTPROC bool qs::operator==(const Time& lhs, const Time& rhs)
 		lhs.wMilliseconds == rhs.wMilliseconds;
 }
 
-QSEXPORTPROC bool qs::operator!=(const Time& lhs, const Time& rhs)
+QSEXPORTPROC bool qs::operator!=(const Time& lhs,
+								 const Time& rhs)
 {
 	return !(lhs == rhs);
 }
 
-QSEXPORTPROC bool qs::operator<(const Time& lhs, const Time& rhs)
+QSEXPORTPROC bool qs::operator<(const Time& lhs,
+								const Time& rhs)
 {
 	if (lhs.wYear != rhs.wYear)
 		return lhs.wYear < rhs.wYear;
@@ -451,22 +459,27 @@ QSEXPORTPROC bool qs::operator<(const Time& lhs, const Time& rhs)
 	return lhs.wMilliseconds < rhs.wMilliseconds;
 }
 
-QSEXPORTPROC bool qs::operator<=(const Time& lhs, const Time& rhs)
+QSEXPORTPROC bool qs::operator<=(const Time& lhs,
+								 const Time& rhs)
 {
 	return !(rhs < lhs);
 }
 
-QSEXPORTPROC bool qs::operator>(const Time& lhs, const Time& rhs)
+QSEXPORTPROC bool qs::operator>(const Time& lhs,
+								const Time& rhs)
 {
 	return rhs < lhs;
 }
 
-QSEXPORTPROC bool qs::operator>=(const Time& lhs, const Time& rhs)
+QSEXPORTPROC bool qs::operator>=(const Time& lhs,
+								 const Time& rhs)
 {
 	return !(lhs < rhs);
 }
 
-QSEXPORTPROC int qs::compare(const Time& lhs, const Time& rhs, bool bIgnoreTimeZone)
+QSEXPORTPROC int qs::compare(const Time& lhs,
+							 const Time& rhs,
+							 bool bIgnoreTimeZone)
 {
 	if (bIgnoreTimeZone) {
 		return (lhs < rhs) ? -1 : (lhs > rhs) ? 1 : 0;

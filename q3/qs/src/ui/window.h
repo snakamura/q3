@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -50,29 +50,30 @@ private:
 	typedef std::hash_map<HWND, void*, hash_hwnd> Map;
 
 public:
-	ControllerMapBase(QSTATUS* pstatus);
+	ControllerMapBase();
 	~ControllerMapBase();
 
 public:
-	QSTATUS initThread();
-	QSTATUS termThread();
+	bool initThread();
+	void termThread();
 
 public:
-	QSTATUS getThis(void** ppThis);
-	QSTATUS setThis(void* pThis);
+	void* getThis();
+	void setThis(void* pThis);
 	
-	QSTATUS getController(HWND hwnd, void** ppController);
-	QSTATUS setController(HWND hwnd, void* pController);
-	QSTATUS removeController(HWND hwnd);
-	QSTATUS findController(HWND hwnd, void** ppController);
+	void* getController(HWND hwnd);
+	void setController(HWND hwnd,
+					   void* pController);
+	void removeController(HWND hwnd);
+	void* findController(HWND hwnd);
 
 private:
 	ControllerMapBase(const ControllerMapBase&);
 	ControllerMapBase& operator=(const ControllerMapBase&);
 
 private:
-	ThreadLocal* pThis_;
-	ThreadLocal* pMap_;
+	std::auto_ptr<ThreadLocal> pThis_;
+	std::auto_ptr<ThreadLocal> pMap_;
 };
 
 
@@ -86,21 +87,22 @@ template<class Controller>
 class ControllerMap
 {
 public:
-	ControllerMap(QSTATUS* pstatus);
+	ControllerMap();
 	~ControllerMap();
 
 public:
-	QSTATUS initThread();
-	QSTATUS termThread();
+	bool initThread();
+	void termThread();
 
 public:
-	QSTATUS getThis(Controller** ppThis);
-	QSTATUS setThis(Controller* pThis);
+	Controller* getThis();
+	void setThis(Controller* pThis);
 	
-	QSTATUS getController(HWND hwnd, Controller** ppController);
-	QSTATUS setController(HWND hwnd, Controller* pController);
-	QSTATUS removeController(HWND hwnd);
-	QSTATUS findController(HWND hwnd, Controller** ppController);
+	Controller* getController(HWND hwnd);
+	void setController(HWND hwnd,
+					   Controller* pController);
+	void removeController(HWND hwnd);
+	Controller* findController(HWND hwnd);
 
 private:
 	ControllerMap(const ControllerMap&);
@@ -121,18 +123,18 @@ private:
 class WindowDestroy
 {
 public:
-	WindowDestroy(QSTATUS* pstatus);
+	WindowDestroy();
 	~WindowDestroy();
 
 public:
-	QSTATUS process(HWND hwnd);
+	void process(HWND hwnd);
 
 public:
 	static WindowDestroy* getWindowDestroy();
 
 private:
-	QSTATUS isMapped(HWND hwnd, bool* pbMapped);
-	QSTATUS destroy(HWND hwnd);
+	bool isMapped(HWND hwnd);
+	void destroy(HWND hwnd);
 	void remove(HWND hwnd);
 
 private:
@@ -151,10 +153,10 @@ private:
 		virtual ~InitializerImpl();
 	
 	public:
-		virtual QSTATUS init();
-		virtual QSTATUS term();
-		virtual QSTATUS initThread();
-		virtual QSTATUS termThread();
+		virtual bool init();
+		virtual void term();
+		virtual bool initThread();
+		virtual void termThread();
 	} init__;
 
 friend class InitializerImpl;

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -71,7 +71,8 @@ protected:
 	~ObjectBase();
 
 protected:
-	virtual HRESULT internalQueryInterface(REFIID riid, void** ppv) = 0;
+	virtual HRESULT internalQueryInterface(REFIID riid,
+										   void** ppv) = 0;
 
 private:
 	ObjectBase(const ObjectBase&);
@@ -89,11 +90,12 @@ template<class T>
 class Object : public T
 {
 public:
-	explicit Object(qs::QSTATUS* pstatus);
+	Object();
 	~Object();
 
 public:
-	STDMETHOD(QueryInterface)(REFIID riid, void** ppv);
+	STDMETHOD(QueryInterface)(REFIID riid,
+							  void** ppv);
 	STDMETHOD_(ULONG, AddRef)();
 	STDMETHOD_(ULONG, Release)();
 
@@ -116,21 +118,31 @@ template<class T, class I, const IID* piid>
 class DispObject : public Object<T>
 {
 public:
-	explicit DispObject(qs::QSTATUS* pstatus);
+	DispObject();
 	~DispObject();
 
 public:
-	STDMETHOD(QueryInterface)(REFIID riid, void** ppv);
+	STDMETHOD(QueryInterface)(REFIID riid,
+							  void** ppv);
 
 public:
-	STDMETHOD(GetIDsOfNames)(REFIID riid, LPOLESTR* ppwszNames,
-		unsigned int nNames, LCID lcid, DISPID* pDispId);
+	STDMETHOD(GetIDsOfNames)(REFIID riid,
+							 LPOLESTR* ppwszNames,
+							 unsigned int nNames,
+							 LCID lcid,
+							 DISPID* pDispId);
 	STDMETHOD(GetTypeInfo)(unsigned int nTypeInfo,
-		LCID lcid, ITypeInfo** ppTypeInfo);
+						   LCID lcid,
+						   ITypeInfo** ppTypeInfo);
 	STDMETHOD(GetTypeInfoCount)(unsigned int* pnCount);
-	STDMETHOD(Invoke)(DISPID dispId, REFIID riid, LCID lcid,
-		WORD wFlags, DISPPARAMS* pDispParams, VARIANT* pvarResult,
-		EXCEPINFO* pExcepInfo, unsigned int* pnArgErr);
+	STDMETHOD(Invoke)(DISPID dispId,
+					  REFIID riid,
+					  LCID lcid,
+					  WORD wFlags,
+					  DISPPARAMS* pDispParams,
+					  VARIANT* pvarResult,
+					  EXCEPINFO* pExcepInfo,
+					  unsigned int* pnArgErr);
 
 private:
 	DispObject(const DispObject&);
@@ -151,14 +163,17 @@ template<class T>
 class ClassFactoryImpl : public ObjectBase, public IClassFactory
 {
 protected:
-	ClassFactoryImpl(qs::QSTATUS* pstatus);
+	ClassFactoryImpl();
 	~ClassFactoryImpl();
 
 protected:
-	HRESULT internalQueryInterface(REFIID riid, void** ppv);
+	HRESULT internalQueryInterface(REFIID riid,
+								   void** ppv);
 
 public:
-	STDMETHOD(CreateInstance)(IUnknown* pUnkOuter, REFIID riid, void** ppv);
+	STDMETHOD(CreateInstance)(IUnknown* pUnkOuter,
+							  REFIID riid,
+							  void** ppv);
 	STDMETHOD(LockServer)(BOOL bLock);
 
 private:
@@ -174,21 +189,29 @@ private:
  */
 
 template<class I, const IID* piid, class T, class Traits = EnumTraits<T> >
-class EnumBase : public ObjectBase, public I
+class EnumBase :
+	public ObjectBase,
+	public I
 {
 protected:
-	EnumBase(qs::QSTATUS* pstatus);
+	EnumBase();
 	~EnumBase();
 
 public:
-	qs::QSTATUS init(T* p, size_t nCount);
-	qs::QSTATUS init(T* p, size_t nCount, const Traits& traits);
+	bool init(T* p,
+			  size_t nCount);
+	bool init(T* p,
+			  size_t nCount,
+			  const Traits& traits);
 
 protected:
-	virtual HRESULT internalQueryInterface(REFIID riid, void** ppv);
+	virtual HRESULT internalQueryInterface(REFIID riid,
+										   void** ppv);
 
 public:
-	STDMETHOD(Next)(ULONG nElem, T* p, ULONG* pnFetched);
+	STDMETHOD(Next)(ULONG nElem,
+					T* p,
+					ULONG* pnFetched);
 	STDMETHOD(Skip)(ULONG nElem);
 	STDMETHOD(Reset)();
 	STDMETHOD(Clone)(I** ppEnum);
@@ -216,18 +239,20 @@ private:
 template<class T>
 struct EnumTraits
 {
-	qs::QSTATUS init(T* p) const;
+	bool init(T* p) const;
 	void destroy(T* p) const;
-	qs::QSTATUS copy(T* pTo, T* pFrom) const;
+	bool copy(T* pTo,
+			  T* pFrom) const;
 };
 
 
 template<>
 struct EnumTraits<VARIANT>
 {
-	qs::QSTATUS init(VARIANT* p) const;
+	bool init(VARIANT* p) const;
 	void destroy(VARIANT* p) const;
-	qs::QSTATUS copy(VARIANT* pTo, VARIANT* pFrom) const;
+	bool copy(VARIANT* pTo,
+			  VARIANT* pFrom) const;
 };
 
 
@@ -237,17 +262,20 @@ struct EnumTraits<VARIANT>
  *
  */
 
-class ApplicationImpl : public ObjectBase, public IApplication
+class ApplicationImpl :
+	public ObjectBase,
+	public IApplication
 {
 protected:
-	explicit ApplicationImpl(qs::QSTATUS* pstatus);
+	ApplicationImpl();
 	~ApplicationImpl();
 
 public:
-	qs::QSTATUS init(qm::Application* pApplication);
+	void init(qm::Application* pApplication);
 
 protected:
-	virtual HRESULT internalQueryInterface(REFIID riid, void** ppv);
+	virtual HRESULT internalQueryInterface(REFIID riid,
+										   void** ppv);
 
 public:
 	STDMETHOD(get_version)(BSTR* pbstrVersion);
@@ -270,18 +298,21 @@ typedef DispObject<ApplicationImpl, IApplication, &IID_IApplication> Application
  *
  */
 
-class DocumentImpl : public ObjectBase, public IDocument
+class DocumentImpl :
+	public ObjectBase,
+	public IDocument
 {
 protected:
-	explicit DocumentImpl(qs::QSTATUS* pstatus);
+	DocumentImpl();
 	~DocumentImpl();
 
 public:
-	qs::QSTATUS init(qm::Document* pDocument);
+	void init(qm::Document* pDocument);
 	qm::Document* getDocument() const;
 
 protected:
-	virtual HRESULT internalQueryInterface(REFIID riid, void** ppv);
+	virtual HRESULT internalQueryInterface(REFIID riid,
+										   void** ppv);
 
 public:
 	STDMETHOD(get_accounts)(IAccountList** ppAccountList);
@@ -305,18 +336,21 @@ typedef DispObject<DocumentImpl, IDocument, &IID_IDocument> DocumentObj;
  *
  */
 
-class AccountImpl : public ObjectBase, public IAccount
+class AccountImpl :
+	public ObjectBase,
+	public IAccount
 {
 protected:
-	explicit AccountImpl(qs::QSTATUS* pstatus);
+	AccountImpl();
 	~AccountImpl();
 
 public:
-	qs::QSTATUS init(qm::Account* pAccount);
+	void init(qm::Account* pAccount);
 	qm::Account* getAccount() const;
 
 protected:
-	virtual HRESULT internalQueryInterface(REFIID riid, void** ppv);
+	virtual HRESULT internalQueryInterface(REFIID riid,
+										   void** ppv);
 
 public:
 	STDMETHOD(get_name)(BSTR* pbstrName);
@@ -342,17 +376,19 @@ typedef DispObject<AccountImpl, IAccount, &IID_IAccount> AccountObj;
 class AccountListImpl : public ObjectBase, public IAccountList
 {
 protected:
-	AccountListImpl(qs::QSTATUS* pstatus);
+	AccountListImpl();
 	~AccountListImpl();
 
 public:
-	qs::QSTATUS init(qm::Document* pDocument);
+	void init(qm::Document* pDocument);
 
 protected:
-	virtual HRESULT internalQueryInterface(REFIID riid, void** ppv);
+	virtual HRESULT internalQueryInterface(REFIID riid,
+										   void** ppv);
 
 public:
-	STDMETHOD(get_item)(VARIANT varIndexOrName, IAccount** ppAccount);
+	STDMETHOD(get_item)(VARIANT varIndexOrName,
+						IAccount** ppAccount);
 	STDMETHOD(get_length)(unsigned int* pnLength);
 	STDMETHOD(_newEnum)(IUnknown** ppUnk);
 
@@ -377,11 +413,11 @@ template<class T>
 class FolderBase : public T
 {
 public:
-	FolderBase(qs::QSTATUS* pstatus);
+	FolderBase();
 	~FolderBase();
 
 public:
-	qs::QSTATUS init(qm::Folder* pFolder);
+	void init(qm::Folder* pFolder);
 
 public:
 	STDMETHOD(get_id)(unsigned int* pnId);
@@ -409,17 +445,20 @@ private:
  *
  */
 
-class NormalFolderImpl : public ObjectBase, public INormalFolder
+class NormalFolderImpl :
+	public ObjectBase,
+	public INormalFolder
 {
 protected:
-	NormalFolderImpl(qs::QSTATUS* pstatus);
+	NormalFolderImpl();
 	~NormalFolderImpl();
 
 public:
-	qs::QSTATUS init(qm::Folder* pFolder);
+	void init(qm::Folder* pFolder);
 
 protected:
-	virtual HRESULT internalQueryInterface(REFIID riid, void** ppv);
+	virtual HRESULT internalQueryInterface(REFIID riid,
+										   void** ppv);
 
 private:
 	NormalFolderImpl(const NormalFolderImpl&);
@@ -435,17 +474,20 @@ typedef DispObject<FolderBase<NormalFolderImpl>, INormalFolder, &IID_INormalFold
  *
  */
 
-class QueryFolderImpl : public ObjectBase, public IQueryFolder
+class QueryFolderImpl :
+	public ObjectBase,
+	public IQueryFolder
 {
 protected:
-	QueryFolderImpl(qs::QSTATUS* pstatus);
+	QueryFolderImpl();
 	~QueryFolderImpl();
 
 public:
-	qs::QSTATUS init(qm::Folder* pFolder);
+	void init(qm::Folder* pFolder);
 
 protected:
-	virtual HRESULT internalQueryInterface(REFIID riid, void** ppv);
+	virtual HRESULT internalQueryInterface(REFIID riid,
+										   void** ppv);
 
 private:
 	QueryFolderImpl(const QueryFolderImpl&);
@@ -461,20 +503,24 @@ typedef DispObject<FolderBase<QueryFolderImpl>, IQueryFolder, &IID_IQueryFolder>
  *
  */
 
-class FolderListImpl : public ObjectBase, public IFolderList
+class FolderListImpl :
+	public ObjectBase,
+	public IFolderList
 {
 protected:
-	FolderListImpl(qs::QSTATUS* pstatus);
+	FolderListImpl();
 	~FolderListImpl();
 
 public:
-	qs::QSTATUS init(qm::Account* pAccount);
+	void init(qm::Account* pAccount);
 
 protected:
-	virtual HRESULT internalQueryInterface(REFIID riid, void** ppv);
+	virtual HRESULT internalQueryInterface(REFIID riid,
+										   void** ppv);
 
 public:
-	STDMETHOD(get_item)(VARIANT varIndexOrName, IFolder** ppFolder);
+	STDMETHOD(get_item)(VARIANT varIndexOrName,
+						IFolder** ppFolder);
 	STDMETHOD(get_length)(unsigned int* pnLength);
 	STDMETHOD(_newEnum)(IUnknown** ppUnk);
 
@@ -495,18 +541,21 @@ typedef DispObject<FolderListImpl, IFolderList, &IID_IFolderList> FolderListObj;
  *
  */
 
-class MessageHolderImpl : public ObjectBase, public IMessageHolder
+class MessageHolderImpl :
+	public ObjectBase,
+	public IMessageHolder
 {
 protected:
-	MessageHolderImpl(qs::QSTATUS* pstatus);
+	MessageHolderImpl();
 	~MessageHolderImpl();
 
 public:
-	qs::QSTATUS init(qm::MessageHolder* pmh);
+	void init(qm::MessageHolder* pmh);
 	qm::MessageHolder* getMessageHolder() const;
 
 protected:
-	virtual HRESULT internalQueryInterface(REFIID riid, void** ppv);
+	virtual HRESULT internalQueryInterface(REFIID riid,
+										   void** ppv);
 
 public:
 	STDMETHOD(get_id)(unsigned int* pnId);
@@ -521,7 +570,8 @@ public:
 	STDMETHOD(get_message)(IMessage** ppMessage);
 
 private:
-	HRESULT getString(qs::QSTATUS (qm::MessageHolder::*pfn)(qs::WSTRING*) const, BSTR* pbstr);
+	HRESULT getString(qs::wstring_ptr (qm::MessageHolder::*pfn)() const,
+					  BSTR* pbstr);
 
 private:
 	MessageHolderImpl(const MessageHolderImpl&);
@@ -540,20 +590,24 @@ typedef DispObject<MessageHolderImpl, IMessageHolder, &IID_IMessageHolder> Messa
  *
  */
 
-class MessageHolderListImpl : public ObjectBase, public IMessageHolderList
+class MessageHolderListImpl :
+	public ObjectBase,
+	public IMessageHolderList
 {
 protected:
-	MessageHolderListImpl(qs::QSTATUS* pstatus);
+	MessageHolderListImpl();
 	~MessageHolderListImpl();
 
 public:
-	qs::QSTATUS init(qm::Folder* pFolder);
+	void init(qm::Folder* pFolder);
 
 protected:
-	virtual HRESULT internalQueryInterface(REFIID riid, void** ppv);
+	virtual HRESULT internalQueryInterface(REFIID riid,
+										   void** ppv);
 
 public:
-	STDMETHOD(get_item)(unsigned int nIndex, IMessageHolder** ppMessageHolder);
+	STDMETHOD(get_item)(unsigned int nIndex,
+						IMessageHolder** ppMessageHolder);
 	STDMETHOD(get_length)(unsigned int* pnLength);
 
 private:
@@ -576,18 +630,21 @@ typedef DispObject<MessageHolderListImpl, IMessageHolderList, &IID_IMessageHolde
 class MessageImpl : public ObjectBase, public IMessage
 {
 protected:
-	MessageImpl(qs::QSTATUS* pstatus);
+	MessageImpl();
 	~MessageImpl();
 
 public:
 	qm::Message* getMessage();
 
 protected:
-	virtual HRESULT internalQueryInterface(REFIID riid, void** ppv);
+	virtual HRESULT internalQueryInterface(REFIID riid,
+										   void** ppv);
 
 public:
 	STDMETHOD(get_content)(VARIANT* pvarContent);
-	STDMETHOD(get_bodyText)(BSTR bstrQuote, BSTR bstrCharset, BSTR* pbstrBody);
+	STDMETHOD(get_bodyText)(BSTR bstrQuote,
+							BSTR bstrCharset,
+							BSTR* pbstrBody);
 
 private:
 	MessageImpl(const MessageImpl&);
@@ -606,17 +663,20 @@ typedef DispObject<MessageImpl, IMessage, &IID_IMessage> MessageObj;
  *
  */
 
-class MainWindowImpl : public ObjectBase, public IMainWindow
+class MainWindowImpl :
+	public ObjectBase,
+	public IMainWindow
 {
 protected:
-	MainWindowImpl(qs::QSTATUS* pstatus);
+	MainWindowImpl();
 	~MainWindowImpl();
 
 public:
-	qs::QSTATUS init(qm::MainWindow* pMainWindow);
+	void init(qm::MainWindow* pMainWindow);
 
 protected:
-	virtual HRESULT internalQueryInterface(REFIID riid, void** ppv);
+	virtual HRESULT internalQueryInterface(REFIID riid,
+										   void** ppv);
 
 public:
 
@@ -641,17 +701,20 @@ typedef DispObject<ActionInvokeHelper<MainWindowImpl>,
  *
  */
 
-class EditFrameWindowImpl : public ObjectBase, public IEditFrameWindow
+class EditFrameWindowImpl :
+	public ObjectBase,
+	public IEditFrameWindow
 {
 protected:
-	EditFrameWindowImpl(qs::QSTATUS* pstatus);
+	EditFrameWindowImpl();
 	~EditFrameWindowImpl();
 
 public:
-	qs::QSTATUS init(qm::EditFrameWindow* pEditFrameWindow);
+	void init(qm::EditFrameWindow* pEditFrameWindow);
 
 protected:
-	virtual HRESULT internalQueryInterface(REFIID riid, void** ppv);
+	virtual HRESULT internalQueryInterface(REFIID riid,
+										   void** ppv);
 
 public:
 
@@ -676,17 +739,20 @@ typedef DispObject<ActionInvokeHelper<EditFrameWindowImpl>,
  *
  */
 
-class MessageFrameWindowImpl : public ObjectBase, public IMessageFrameWindow
+class MessageFrameWindowImpl :
+	public ObjectBase,
+	public IMessageFrameWindow
 {
 protected:
-	MessageFrameWindowImpl(qs::QSTATUS* pstatus);
+	MessageFrameWindowImpl();
 	~MessageFrameWindowImpl();
 
 public:
-	qs::QSTATUS init(qm::MessageFrameWindow* pMessageFrameWindow);
+	void init(qm::MessageFrameWindow* pMessageFrameWindow);
 
 protected:
-	virtual HRESULT internalQueryInterface(REFIID riid, void** ppv);
+	virtual HRESULT internalQueryInterface(REFIID riid,
+										   void** ppv);
 
 public:
 
@@ -714,21 +780,27 @@ typedef DispObject<ActionInvokeHelper<MessageFrameWindowImpl>,
 class MacroImpl : public ObjectBase, public IMacro
 {
 protected:
-	MacroImpl(qs::QSTATUS* pstatus);
+	MacroImpl();
 	~MacroImpl();
 
 public:
-	qs::QSTATUS init(qm::Macro* pMacro, qm::Document* pDocument,
-		qs::Profile* pProfile, HWND hwnd_);
+	void init(std::auto_ptr<qm::Macro> pMacro,
+			  qm::Document* pDocument,
+			  qs::Profile* pProfile,
+			  HWND hwnd);
 
 protected:
-	virtual HRESULT internalQueryInterface(REFIID riid, void** ppv);
+	virtual HRESULT internalQueryInterface(REFIID riid,
+										   void** ppv);
 
 public:
 	STDMETHOD(evaluate)(IMessageHolder* pMessageHolder,
-		IAccount* pAccount, VARIANT* pvarResult);
-	STDMETHOD(setVariable)(BSTR bstrName, VARIANT var);
-	STDMETHOD(getVariable)(BSTR bstrName, VARIANT* pVar);
+						IAccount* pAccount,
+						VARIANT* pvarResult);
+	STDMETHOD(setVariable)(BSTR bstrName,
+						   VARIANT var);
+	STDMETHOD(getVariable)(BSTR bstrName,
+						   VARIANT* pVar);
 	STDMETHOD(removeVariable)(BSTR bstrName);
 
 private:
@@ -739,7 +811,7 @@ private:
 	typedef std::vector<std::pair<qs::WSTRING, VARIANT> > VariableList;
 
 private:
-	qm::Macro* pMacro_;
+	std::auto_ptr<qm::Macro> pMacro_;
 	qm::Document* pDocument_;
 	qs::Profile* pProfile_;
 	HWND hwnd_;
@@ -758,17 +830,21 @@ typedef DispObject<MacroImpl, IMacro, &IID_IMacro> MacroObj;
 class MacroParserImpl : public ObjectBase, public IMacroParser
 {
 protected:
-	MacroParserImpl(qs::QSTATUS* pstatus);
+	MacroParserImpl();
 	~MacroParserImpl();
 
 public:
-	qs::QSTATUS init(qm::Document* pDocument, qs::Profile* pProfile, HWND hwnd);
+	void init(qm::Document* pDocument,
+			  qs::Profile* pProfile,
+			  HWND hwnd);
 
 protected:
-	virtual HRESULT internalQueryInterface(REFIID riid, void** ppv);
+	virtual HRESULT internalQueryInterface(REFIID riid,
+										   void** ppv);
 
 public:
-	STDMETHOD(parse)(BSTR bstrMacro, IMacro** ppMacro);
+	STDMETHOD(parse)(BSTR bstrMacro,
+					 IMacro** ppMacro);
 
 private:
 	MacroParserImpl(const MacroParserImpl&);
@@ -789,20 +865,25 @@ typedef DispObject<MacroParserImpl, IMacroParser, &IID_IMacroParser> MacroParser
  *
  */
 
-class ArgumentListImpl : public ObjectBase, public IArgumentList
+class ArgumentListImpl :
+	public ObjectBase,
+	public IArgumentList
 {
 protected:
-	ArgumentListImpl(qs::QSTATUS* pstatus);
+	ArgumentListImpl();
 	~ArgumentListImpl();
 
 public:
-	qs::QSTATUS init(VARIANT* pvar, size_t nCount);
+	bool init(VARIANT* pvar,
+			  size_t nCount);
 
 protected:
-	virtual HRESULT internalQueryInterface(REFIID riid, void** ppv);
+	virtual HRESULT internalQueryInterface(REFIID riid,
+										   void** ppv);
 
 public:
-	STDMETHOD(get_item)(unsigned int nIndex, VARIANT* pvarArg);
+	STDMETHOD(get_item)(unsigned int nIndex,
+						VARIANT* pvarArg);
 	STDMETHOD(get_length)(unsigned int* pnLength);
 	STDMETHOD(_newEnum)(IUnknown** ppUnk);
 
@@ -829,14 +910,15 @@ typedef DispObject<ArgumentListImpl, IArgumentList, &IID_IArgumentList> Argument
 class ResultImpl : public ObjectBase, public IResult
 {
 protected:
-	ResultImpl(qs::QSTATUS* pstatus);
+	ResultImpl();
 	~ResultImpl();
 
 public:
 	VARIANT* getValue();
 
 protected:
-	virtual HRESULT internalQueryInterface(REFIID riid, void** ppv);
+	virtual HRESULT internalQueryInterface(REFIID riid,
+										   void** ppv);
 
 public:
 	STDMETHOD(put_value)(VARIANT varValue);
@@ -867,13 +949,11 @@ public:
 	~Factory();
 
 public:
-	qs::QSTATUS createApplication(qm::Application* pApplication,
-		IApplication** ppApplication);
-	qs::QSTATUS createDocument(qm::Document* pDocument, IDocument** ppDocument);
-	qs::QSTATUS createAccount(qm::Account* pAccount, IAccount** ppAccount);
-	qs::QSTATUS createFolder(qm::Folder* pFolder, IFolder** ppFolder);
-	qs::QSTATUS createMessageHolder(qm::MessageHolder* pmh,
-		IMessageHolder** ppMessageHolder);
+	IApplication* createApplication(qm::Application* pApplication);
+	IDocument* createDocument(qm::Document* pDocument);
+	IAccount* createAccount(qm::Account* pAccount);
+	IFolder* createFolder(qm::Folder* pFolder);
+	IMessageHolder* createMessageHolder(qm::MessageHolder* pmh);
 
 public:
 	static Factory& getFactory();

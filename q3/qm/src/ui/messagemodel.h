@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -46,11 +46,11 @@ public:
 
 public:
 	virtual Account* getCurrentAccount() const = 0;
-	virtual qs::QSTATUS setCurrentAccount(Account* pAccount) = 0;
+	virtual void setCurrentAccount(Account* pAccount) = 0;
 	virtual MessagePtr getCurrentMessage() const = 0;
-	virtual qs::QSTATUS setMessage(MessageHolder* pmh) = 0;
-	virtual qs::QSTATUS addMessageModelHandler(MessageModelHandler* pHandler) = 0;
-	virtual qs::QSTATUS removeMessageModelHandler(MessageModelHandler* pHandler) = 0;
+	virtual void setMessage(MessageHolder* pmh) = 0;
+	virtual void addMessageModelHandler(MessageModelHandler* pHandler) = 0;
+	virtual void removeMessageModelHandler(MessageModelHandler* pHandler) = 0;
 };
 
 
@@ -67,32 +67,32 @@ class AbstractMessageModel :
 	public DefaultAccountHandler
 {
 protected:
-	AbstractMessageModel(qs::QSTATUS* pstatus);
+	AbstractMessageModel();
 
 public:
 	virtual ~AbstractMessageModel();
 
 public:
 	virtual Account* getCurrentAccount() const;
-	virtual qs::QSTATUS setCurrentAccount(Account* pAccount);
+	virtual void setCurrentAccount(Account* pAccount);
 	virtual MessagePtr getCurrentMessage() const;
-	virtual qs::QSTATUS setMessage(MessageHolder* pmh);
-	virtual qs::QSTATUS addMessageModelHandler(MessageModelHandler* pHandler);
-	virtual qs::QSTATUS removeMessageModelHandler(MessageModelHandler* pHandler);
+	virtual void setMessage(MessageHolder* pmh);
+	virtual void addMessageModelHandler(MessageModelHandler* pHandler);
+	virtual void removeMessageModelHandler(MessageModelHandler* pHandler);
 
 public:
 	virtual ViewModel* getViewModel() const;
-	virtual qs::QSTATUS setViewModel(ViewModel* pViewModel);
+	virtual void setViewModel(ViewModel* pViewModel);
 
 public:
-	virtual qs::QSTATUS itemRemoved(const ViewModelEvent& event);
-	virtual qs::QSTATUS destroyed(const ViewModelEvent& event);
+	virtual void itemRemoved(const ViewModelEvent& event);
+	virtual void destroyed(const ViewModelEvent& event);
 
 public:
-	virtual qs::QSTATUS accountDestroyed(const AccountEvent& event);
+	virtual void accountDestroyed(const AccountEvent& event);
 
 private:
-	qs::QSTATUS fireMessageChanged(MessageHolder* pmh) const;
+	void fireMessageChanged(MessageHolder* pmh) const;
 
 private:
 	AbstractMessageModel(const AbstractMessageModel&);
@@ -119,7 +119,7 @@ private:
 class MessageMessageModel : public AbstractMessageModel
 {
 public:
-	MessageMessageModel(qs::QSTATUS* pstatus);
+	MessageMessageModel();
 	virtual ~MessageMessageModel();
 
 private:
@@ -141,23 +141,23 @@ class PreviewMessageModel :
 {
 public:
 	PreviewMessageModel(ViewModelManager* pViewModelManager,
-		bool bConnectToViewModel, qs::QSTATUS* pstatus);
+						bool bConnectToViewModel);
 	virtual ~PreviewMessageModel();
 
 public:
-	qs::QSTATUS updateToViewModel();
-	qs::QSTATUS connectToViewModel();
-	qs::QSTATUS disconnectFromViewModel();
+	void updateToViewModel();
+	void connectToViewModel();
+	void disconnectFromViewModel();
 	bool isConnectedToViewModel() const;
 
 public:
-	virtual qs::QSTATUS itemStateChanged(const ViewModelEvent& event);
+	virtual void itemStateChanged(const ViewModelEvent& event);
 
 public:
-	virtual qs::QSTATUS viewModelSelected(const ViewModelManagerEvent& event);
+	virtual void viewModelSelected(const ViewModelManagerEvent& event);
 
 public:
-	virtual qs::QSTATUS timerTimeout(unsigned int nId);
+	virtual void timerTimeout(unsigned int nId);
 
 private:
 	PreviewMessageModel(const PreviewMessageModel&);
@@ -171,7 +171,7 @@ private:
 
 private:
 	ViewModelManager* pViewModelManager_;
-	qs::Timer* pTimer_;
+	std::auto_ptr<qs::Timer> pTimer_;
 	unsigned int nTimerId_;
 	bool bConnectedToViewModel_;
 };
@@ -189,7 +189,7 @@ public:
 	virtual ~MessageModelHandler();
 
 public:
-	virtual qs::QSTATUS messageChanged(const MessageModelEvent& event) = 0;
+	virtual void messageChanged(const MessageModelEvent& event) = 0;
 };
 
 
@@ -202,7 +202,8 @@ public:
 class MessageModelEvent
 {
 public:
-	MessageModelEvent(const MessageModel* pModel, MessageHolder* pmh);
+	MessageModelEvent(const MessageModel* pModel,
+					  MessageHolder* pmh);
 	~MessageModelEvent();
 
 public:

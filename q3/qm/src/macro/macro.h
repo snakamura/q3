@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -131,11 +131,11 @@ public:
 	};
 
 public:
-	MacroTokenizer(const WCHAR* pwszMacro, qs::QSTATUS* pstatus);
+	explicit MacroTokenizer(const WCHAR* pwszMacro);
 	~MacroTokenizer();
 
 public:
-	qs::QSTATUS getToken(Token* pToken, qs::WSTRING* pwstrToken);
+	Token getToken(qs::wstring_ptr* pwstrToken);
 	const WCHAR* getLastPosition() const;
 
 private:
@@ -158,18 +158,12 @@ private:
 class MacroGlobalContext
 {
 public:
-	struct Init
-	{
-		Document* pDocument_;
-		HWND hwnd_;
-		qs::Profile* pProfile_;
-		bool bGetMessageAsPossible_;
-		MacroErrorHandler* pErrorHandler_;
-		MacroVariableHolder* pGlobalVariable_;
-	};
-
-public:
-	MacroGlobalContext(const Init& init, qs::QSTATUS* pstatus);
+	MacroGlobalContext(Document* pDocument,
+					   HWND hwnd,
+					   qs::Profile* pProfile,
+					   bool bGetMessageAsPossible,
+					   MacroErrorHandler* pErrorHandler,
+					   MacroVariableHolder* pGlobalVariable);
 	~MacroGlobalContext();
 
 public:
@@ -178,18 +172,17 @@ public:
 	qs::Profile* getProfile() const;
 	bool isGetMessageAsPossible() const;
 	MacroErrorHandler* getErrorHandler() const;
-	qs::QSTATUS getVariable(const WCHAR* pwszName,
-		MacroValue** ppValue) const;
-	qs::QSTATUS setVariable(const WCHAR* pwszName,
-		MacroValue* pValue, bool bGlobal);
-	qs::QSTATUS getFunction(const WCHAR* pwszName,
-		const MacroExpr** ppExpr) const;
-	qs::QSTATUS setFunction(const WCHAR* pwszName,
-		const MacroExpr* pExpr, bool* pbSet);
-	qs::QSTATUS pushArgumentContext();
+	MacroValuePtr getVariable(const WCHAR* pwszName) const;
+	bool setVariable(const WCHAR* pwszName,
+					 MacroValue* pValue,
+					 bool bGlobal);
+	const MacroExpr* getFunction(const WCHAR* pwszName) const;
+	bool setFunction(const WCHAR* pwszName,
+					 const MacroExpr* pExpr);
+	void pushArgumentContext();
 	void popArgumentContext();
-	qs::QSTATUS addArgument(MacroValue* pValue);
-	qs::QSTATUS getArgument(unsigned int n, MacroValue** ppValue) const;
+	void addArgument(MacroValuePtr pValue);
+	MacroValuePtr getArgument(unsigned int n) const;
 
 private:
 	MacroGlobalContext(const MacroGlobalContext&);
@@ -201,10 +194,10 @@ private:
 	qs::Profile* pProfile_;
 	bool bGetMessageAsPossible_;
 	MacroErrorHandler* pErrorHandler_;
-	MacroVariableHolder* pVariable_;
 	MacroVariableHolder* pGlobalVariable_;
-	MacroFunctionHolder* pFunction_;
-	MacroArgumentHolder* pArgument_;
+	std::auto_ptr<MacroVariableHolder> pVariable_;
+	std::auto_ptr<MacroFunctionHolder> pFunction_;
+	std::auto_ptr<MacroArgumentHolder> pArgument_;
 };
 
 
@@ -217,14 +210,13 @@ private:
 class MacroFunctionHolder
 {
 public:
-	explicit MacroFunctionHolder(qs::QSTATUS* pstatus);
+	MacroFunctionHolder();
 	~MacroFunctionHolder();
 
 public:
-	qs::QSTATUS getFunction(const WCHAR* pwszName,
-		const MacroExpr** ppExpr) const;
-	qs::QSTATUS setFunction(const WCHAR* pwszName,
-		const MacroExpr* pExpr, bool* pbSet);
+	const MacroExpr* getFunction(const WCHAR* pwszName) const;
+	bool setFunction(const WCHAR* pwszName,
+					 const MacroExpr* pExpr);
 
 private:
 	MacroFunctionHolder(const MacroFunctionHolder&);
@@ -247,14 +239,14 @@ private:
 class MacroArgumentHolder
 {
 public:
-	explicit MacroArgumentHolder(qs::QSTATUS* pstatus);
+	MacroArgumentHolder();
 	~MacroArgumentHolder();
 
 public:
-	qs::QSTATUS pushContext();
+	void pushContext();
 	void popContext();
-	qs::QSTATUS addArgument(MacroValue* pValue);
-	qs::QSTATUS getArgument(unsigned int n, MacroValue** ppValue) const;
+	void addArgument(MacroValuePtr pValue);
+	MacroValuePtr getArgument(unsigned int n) const;
 
 private:
 	MacroArgumentHolder(const MacroArgumentHolder&);
@@ -280,14 +272,13 @@ public:
 	virtual ~MacroExpr();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const = 0;
-	virtual qs::QSTATUS getString(qs::WSTRING* pwstrExpr) const = 0;
+	virtual MacroValuePtr value(MacroContext* pContext) const = 0;
+	virtual qs::wstring_ptr getString() const = 0;
 	virtual void release();
 
 protected:
-	qs::QSTATUS error(const MacroContext& context,
-		MacroErrorHandler::Code code) const;
+	MacroValuePtr error(const MacroContext& context,
+						MacroErrorHandler::Code code) const;
 };
 
 
@@ -300,20 +291,19 @@ protected:
 class MacroField : public MacroExpr
 {
 public:
-	MacroField(const WCHAR* pwszName, qs::QSTATUS* pstatus);
+	explicit MacroField(const WCHAR* pwszName);
 	virtual ~MacroField();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
-	virtual qs::QSTATUS getString(qs::WSTRING* pwstrExpr) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+	virtual qs::wstring_ptr getString() const;
 
 private:
 	MacroField(const MacroField&);
 	MacroField& operator=(const MacroField&);
 
 private:
-	qs::WSTRING wstrName_;
+	qs::wstring_ptr wstrName_;
 };
 
 
@@ -326,19 +316,6 @@ private:
 class MacroFieldCache : public MacroExpr
 {
 public:
-	MacroFieldCache(const WCHAR* pwszName, qs::QSTATUS* pstatus);
-	virtual ~MacroFieldCache();
-
-public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
-	virtual qs::QSTATUS getString(qs::WSTRING* pwstrExpr) const;
-
-private:
-	MacroFieldCache(const MacroFieldCache&);
-	MacroFieldCache& operator=(const MacroFieldCache&);
-
-private:
 	enum Type {
 		TYPE_ID,
 		TYPE_DATE,
@@ -346,8 +323,27 @@ private:
 		TYPE_TO,
 		TYPE_FROMTO,
 		TYPE_SUBJECT,
-		TYPE_SIZE
+		TYPE_SIZE,
+		TYPE_ERROR
 	};
+
+public:
+	explicit MacroFieldCache(Type type);
+	virtual ~MacroFieldCache();
+
+public:
+	bool operator!() const;
+
+public:
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+	virtual qs::wstring_ptr getString() const;
+
+public:
+	static Type getType(const WCHAR* pwszType);
+
+private:
+	MacroFieldCache(const MacroFieldCache&);
+	MacroFieldCache& operator=(const MacroFieldCache&);
 
 private:
 	Type type_;
@@ -363,20 +359,19 @@ private:
 class MacroLiteral : public MacroExpr
 {
 public:
-	MacroLiteral(const WCHAR* pwszValue, qs::QSTATUS* pstatus);
+	explicit MacroLiteral(const WCHAR* pwszValue);
 	virtual ~MacroLiteral();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
-	virtual qs::QSTATUS getString(qs::WSTRING* pwstrExpr) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+	virtual qs::wstring_ptr getString() const;
 
 private:
 	MacroLiteral(const MacroLiteral&);
 	MacroLiteral& operator=(const MacroLiteral&);
 
 private:
-	qs::WSTRING wstrValue_;
+	qs::wstring_ptr wstrValue_;
 };
 
 
@@ -389,13 +384,12 @@ private:
 class MacroNumber : public MacroExpr
 {
 public:
-	MacroNumber(long nValue, qs::QSTATUS* pstatus);
+	explicit MacroNumber(long nValue);
 	virtual ~MacroNumber();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
-	virtual qs::QSTATUS getString(qs::WSTRING* pwstrExpr) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+	virtual qs::wstring_ptr getString() const;
 
 private:
 	MacroNumber(const MacroNumber&);
@@ -415,21 +409,23 @@ private:
 class MacroRegex : public MacroExpr
 {
 public:
-	MacroRegex(const WCHAR* pwszPattern, qs::QSTATUS* pstatus);
+	explicit MacroRegex(const WCHAR* pwszPattern);
 	virtual ~MacroRegex();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
-	virtual qs::QSTATUS getString(qs::WSTRING* pwstrExpr) const;
+	bool operator!() const;
+
+public:
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+	virtual qs::wstring_ptr getString() const;
 
 private:
 	MacroRegex(const MacroRegex&);
 	MacroRegex& operator=(const MacroRegex&);
 
 private:
-	qs::WSTRING wstrPattern_;
-	qs::RegexPattern* pPattern_;
+	qs::wstring_ptr wstrPattern_;
+	std::auto_ptr<qs::RegexPattern> pPattern_;
 };
 
 
@@ -442,20 +438,19 @@ private:
 class MacroVariable : public MacroExpr
 {
 public:
-	MacroVariable(const WCHAR* pwszName, qs::QSTATUS* pstatus);
+	explicit MacroVariable(const WCHAR* pwszName);
 	virtual ~MacroVariable();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
-	virtual qs::QSTATUS getString(qs::WSTRING* pwstrExpr) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+	virtual qs::wstring_ptr getString() const;
 
 private:
 	MacroVariable(const MacroVariable&);
 	MacroVariable& operator=(const MacroVariable&);
 
 private:
-	qs::WSTRING wstrName_;
+	qs::wstring_ptr wstrName_;
 	unsigned int n_;
 };
 
@@ -468,16 +463,17 @@ private:
 
 class MacroFunction : public MacroExpr
 {
+protected:
+	MacroFunction();
+
 public:
-	explicit MacroFunction(qs::QSTATUS* pstatus);
 	virtual ~MacroFunction();
 
 public:
-	qs::QSTATUS addArg(MacroExpr* pArg);
+	void addArg(MacroExprPtr pArg);
 
 public:
-	virtual qs::QSTATUS getString(qs::WSTRING* pwstrExpr) const;
-	virtual void release();
+	virtual qs::wstring_ptr getString() const;
 
 protected:
 	virtual const WCHAR* getName() const = 0;
@@ -485,11 +481,21 @@ protected:
 protected:
 	size_t getArgSize() const;
 	const MacroExpr* getArg(size_t n) const;
-	qs::QSTATUS getPart(MacroContext* pContext,
-		size_t n, const qs::Part** ppPart) const;
+	bool checkArgSize(MacroContext* pContext,
+					  size_t n) const;
+	bool checkArgSizeRange(MacroContext* pContext,
+						   size_t nMin,
+						   size_t nMax) const;
+	bool checkArgSizeMin(MacroContext* pContext,
+						 size_t nMin) const;
+	const qs::Part* getPart(MacroContext* pContext,
+							size_t n) const;
+	Message* getMessage(MacroContext* pContext,
+						MacroContext::MessageType type,
+						const WCHAR* pwszField) const;
 
 private:
-	qs::QSTATUS getArgString(qs::WSTRING* pwstrArg) const;
+	qs::wstring_ptr getArgString() const;
 
 private:
 	MacroFunction(const MacroFunction&);
@@ -512,12 +518,11 @@ private:
 class MacroFunctionAccount : public MacroFunction
 {
 public:
-	MacroFunctionAccount(qs::QSTATUS* pstatus);
+	MacroFunctionAccount();
 	virtual ~MacroFunctionAccount();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -537,12 +542,11 @@ private:
 class MacroFunctionAccountDirectory : public MacroFunction
 {
 public:
-	MacroFunctionAccountDirectory(qs::QSTATUS* pstatus);
+	MacroFunctionAccountDirectory();
 	virtual ~MacroFunctionAccountDirectory();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -562,12 +566,11 @@ private:
 class MacroFunctionAdditive : public MacroFunction
 {
 public:
-	MacroFunctionAdditive(bool bAdd, qs::QSTATUS* pstatus);
+	explicit MacroFunctionAdditive(bool bAdd);
 	virtual ~MacroFunctionAdditive();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -590,12 +593,11 @@ private:
 class MacroFunctionAddress : public MacroFunction
 {
 public:
-	MacroFunctionAddress(bool bName, qs::QSTATUS* pstatus);
+	explicit MacroFunctionAddress(bool bName);
 	virtual ~MacroFunctionAddress();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -618,12 +620,11 @@ private:
 class MacroFunctionAddressBook : public MacroFunction
 {
 public:
-	MacroFunctionAddressBook(qs::QSTATUS* pstatus);
+	MacroFunctionAddressBook();
 	virtual ~MacroFunctionAddressBook();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -643,12 +644,11 @@ private:
 class MacroFunctionAnd : public MacroFunction
 {
 public:
-	explicit MacroFunctionAnd(qs::QSTATUS* pstatus);
+	MacroFunctionAnd();
 	virtual ~MacroFunctionAnd();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -668,12 +668,11 @@ private:
 class MacroFunctionAttachment : public MacroFunction
 {
 public:
-	explicit MacroFunctionAttachment(qs::QSTATUS* pstatus);
+	MacroFunctionAttachment();
 	virtual ~MacroFunctionAttachment();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -693,12 +692,11 @@ private:
 class MacroFunctionBody : public MacroFunction
 {
 public:
-	explicit MacroFunctionBody(qs::QSTATUS* pstatus);
+	MacroFunctionBody();
 	virtual ~MacroFunctionBody();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -718,12 +716,11 @@ private:
 class MacroFunctionBoolean : public MacroFunction
 {
 public:
-	MacroFunctionBoolean(bool b, qs::QSTATUS* pstatus);
+	explicit MacroFunctionBoolean(bool b);
 	virtual ~MacroFunctionBoolean();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -746,12 +743,11 @@ private:
 class MacroFunctionClipboard : public MacroFunction
 {
 public:
-	explicit MacroFunctionClipboard(qs::QSTATUS* pstatus);
+	MacroFunctionClipboard();
 	virtual ~MacroFunctionClipboard();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -771,12 +767,11 @@ private:
 class MacroFunctionComputerName : public MacroFunction
 {
 public:
-	explicit MacroFunctionComputerName(qs::QSTATUS* pstatus);
+	MacroFunctionComputerName();
 	virtual ~MacroFunctionComputerName();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -796,12 +791,11 @@ private:
 class MacroFunctionConcat : public MacroFunction
 {
 public:
-	explicit MacroFunctionConcat(qs::QSTATUS* pstatus);
+	MacroFunctionConcat();
 	virtual ~MacroFunctionConcat();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -821,12 +815,11 @@ private:
 class MacroFunctionContain : public MacroFunction
 {
 public:
-	MacroFunctionContain(bool bBeginWith, qs::QSTATUS* pstatus);
+	explicit MacroFunctionContain(bool bBeginWith);
 	virtual ~MacroFunctionContain();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -849,12 +842,11 @@ private:
 class MacroFunctionCopy : public MacroFunction
 {
 public:
-	MacroFunctionCopy(bool bMove, qs::QSTATUS* pstatus);
+	explicit MacroFunctionCopy(bool bMove);
 	virtual ~MacroFunctionCopy();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -877,12 +869,11 @@ private:
 class MacroFunctionDate : public MacroFunction
 {
 public:
-	explicit MacroFunctionDate(qs::QSTATUS* pstatus);
+	MacroFunctionDate();
 	virtual ~MacroFunctionDate();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -902,12 +893,11 @@ private:
 class MacroFunctionDecode : public MacroFunction
 {
 public:
-	explicit MacroFunctionDecode(qs::QSTATUS* pstatus);
+	MacroFunctionDecode();
 	virtual ~MacroFunctionDecode();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -927,12 +917,11 @@ private:
 class MacroFunctionDefun : public MacroFunction
 {
 public:
-	explicit MacroFunctionDefun(qs::QSTATUS* pstatus);
+	MacroFunctionDefun();
 	virtual ~MacroFunctionDefun();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -952,12 +941,11 @@ private:
 class MacroFunctionDelete : public MacroFunction
 {
 public:
-	explicit MacroFunctionDelete(qs::QSTATUS* pstatus);
+	MacroFunctionDelete();
 	virtual ~MacroFunctionDelete();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -977,12 +965,11 @@ private:
 class MacroFunctionEqual : public MacroFunction
 {
 public:
-	explicit MacroFunctionEqual(qs::QSTATUS* pstatus);
+	MacroFunctionEqual();
 	virtual ~MacroFunctionEqual();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1002,12 +989,11 @@ private:
 class MacroFunctionEval : public MacroFunction
 {
 public:
-	MacroFunctionEval(MacroParser::Type type, qs::QSTATUS* pstatus);
+	explicit MacroFunctionEval(MacroParser::Type type);
 	virtual ~MacroFunctionEval();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1030,12 +1016,11 @@ private:
 class MacroFunctionExecute : public MacroFunction
 {
 public:
-	explicit MacroFunctionExecute(qs::QSTATUS* pstatus);
+	MacroFunctionExecute();
 	virtual ~MacroFunctionExecute();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1055,12 +1040,11 @@ private:
 class MacroFunctionExist : public MacroFunction
 {
 public:
-	explicit MacroFunctionExist(qs::QSTATUS* pstatus);
+	MacroFunctionExist();
 	virtual ~MacroFunctionExist();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1080,12 +1064,11 @@ private:
 class MacroFunctionExit : public MacroFunction
 {
 public:
-	explicit MacroFunctionExit(qs::QSTATUS* pstatus);
+	MacroFunctionExit();
 	virtual ~MacroFunctionExit();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1105,12 +1088,11 @@ private:
 class MacroFunctionField : public MacroFunction
 {
 public:
-	explicit MacroFunctionField(qs::QSTATUS* pstatus);
+	MacroFunctionField();
 	virtual ~MacroFunctionField();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1130,12 +1112,11 @@ private:
 class MacroFunctionFieldParameter : public MacroFunction
 {
 public:
-	explicit MacroFunctionFieldParameter(qs::QSTATUS* pstatus);
+	MacroFunctionFieldParameter();
 	virtual ~MacroFunctionFieldParameter();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1155,12 +1136,11 @@ private:
 class MacroFunctionFind : public MacroFunction
 {
 public:
-	explicit MacroFunctionFind(qs::QSTATUS* pstatus);
+	MacroFunctionFind();
 	virtual ~MacroFunctionFind();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1180,13 +1160,12 @@ private:
 class MacroFunctionFlag : public MacroFunction
 {
 public:
-	explicit MacroFunctionFlag(qs::QSTATUS* pstatus);
-	MacroFunctionFlag(MessageHolder::Flag flag, qs::QSTATUS* pstatus);
+	MacroFunctionFlag();
+	explicit MacroFunctionFlag(MessageHolder::Flag flag);
 	virtual ~MacroFunctionFlag();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1210,12 +1189,11 @@ private:
 class MacroFunctionFolder : public MacroFunction
 {
 public:
-	explicit MacroFunctionFolder(qs::QSTATUS* pstatus);
+	MacroFunctionFolder();
 	virtual ~MacroFunctionFolder();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1235,12 +1213,11 @@ private:
 class MacroFunctionForEach : public MacroFunction
 {
 public:
-	explicit MacroFunctionForEach(qs::QSTATUS* pstatus);
+	MacroFunctionForEach();
 	virtual ~MacroFunctionForEach();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1260,21 +1237,22 @@ private:
 class MacroFunctionFormatAddress : public MacroFunction
 {
 public:
-	explicit MacroFunctionFormatAddress(qs::QSTATUS* pstatus);
+	MacroFunctionFormatAddress();
 	virtual ~MacroFunctionFormatAddress();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
 
 private:
-	static qs::QSTATUS replacePhrase(AddressBook* pAddressBook,
-		qs::AddressListParser* pAddressList, bool bForce);
-	static qs::QSTATUS replacePhrase(AddressBook* pAddressBook,
-		qs::AddressParser* pAddress, bool bForce);
+	static void replacePhrase(AddressBook* pAddressBook,
+							  qs::AddressListParser* pAddressList,
+							  bool bForce);
+	static void replacePhrase(AddressBook* pAddressBook,
+							  qs::AddressParser* pAddress,
+							  bool bForce);
 
 private:
 	MacroFunctionFormatAddress(const MacroFunctionFormatAddress&);
@@ -1291,12 +1269,11 @@ private:
 class MacroFunctionFormatDate : public MacroFunction
 {
 public:
-	explicit MacroFunctionFormatDate(qs::QSTATUS* pstatus);
+	MacroFunctionFormatDate();
 	virtual ~MacroFunctionFormatDate();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1316,13 +1293,11 @@ private:
 class MacroFunctionFunction : public MacroFunction
 {
 public:
-	MacroFunctionFunction(const WCHAR* pwszName, qs::QSTATUS* pstatus);
+	explicit MacroFunctionFunction(const WCHAR* pwszName);
 	virtual ~MacroFunctionFunction();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
-	virtual void release();
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1332,7 +1307,7 @@ private:
 	MacroFunctionFunction& operator=(const MacroFunctionFunction&);
 
 private:
-	qs::WSTRING wstrName_;
+	qs::wstring_ptr wstrName_;
 };
 
 
@@ -1345,12 +1320,11 @@ private:
 class MacroFunctionHeader : public MacroFunction
 {
 public:
-	explicit MacroFunctionHeader(qs::QSTATUS* pstatus);
+	MacroFunctionHeader();
 	virtual ~MacroFunctionHeader();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1370,12 +1344,11 @@ private:
 class MacroFunctionHtmlEscape : public MacroFunction
 {
 public:
-	explicit MacroFunctionHtmlEscape(qs::QSTATUS* pstatus);
+	MacroFunctionHtmlEscape();
 	virtual ~MacroFunctionHtmlEscape();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1395,12 +1368,11 @@ private:
 class MacroFunctionI : public MacroFunction
 {
 public:
-	explicit MacroFunctionI(qs::QSTATUS* pstatus);
+	MacroFunctionI();
 	virtual ~MacroFunctionI();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1420,12 +1392,11 @@ private:
 class MacroFunctionId : public MacroFunction
 {
 public:
-	explicit MacroFunctionId(qs::QSTATUS* pstatus);
+	MacroFunctionId();
 	virtual ~MacroFunctionId();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1445,12 +1416,11 @@ private:
 class MacroFunctionIdentity : public MacroFunction
 {
 public:
-	explicit MacroFunctionIdentity(qs::QSTATUS* pstatus);
+	MacroFunctionIdentity();
 	virtual ~MacroFunctionIdentity();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1470,12 +1440,11 @@ private:
 class MacroFunctionIf : public MacroFunction
 {
 public:
-	explicit MacroFunctionIf(qs::QSTATUS* pstatus);
+	MacroFunctionIf();
 	virtual ~MacroFunctionIf();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1495,12 +1464,11 @@ private:
 class MacroFunctionInclude : public MacroFunction
 {
 public:
-	MacroFunctionInclude(MacroParser::Type type, qs::QSTATUS* pstatus);
+	explicit MacroFunctionInclude(MacroParser::Type type);
 	virtual ~MacroFunctionInclude();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1523,12 +1491,11 @@ private:
 class MacroFunctionInputBox : public MacroFunction
 {
 public:
-	explicit MacroFunctionInputBox(qs::QSTATUS* pstatus);
+	MacroFunctionInputBox();
 	virtual ~MacroFunctionInputBox();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1548,12 +1515,11 @@ private:
 class MacroFunctionLength : public MacroFunction
 {
 public:
-	explicit MacroFunctionLength(qs::QSTATUS* pstatus);
+	MacroFunctionLength();
 	virtual ~MacroFunctionLength();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1573,12 +1539,11 @@ private:
 class MacroFunctionLoad : public MacroFunction
 {
 public:
-	explicit MacroFunctionLoad(qs::QSTATUS* pstatus);
+	MacroFunctionLoad();
 	virtual ~MacroFunctionLoad();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1598,12 +1563,11 @@ private:
 class MacroFunctionMessageBox : public MacroFunction
 {
 public:
-	explicit MacroFunctionMessageBox(qs::QSTATUS* pstatus);
+	MacroFunctionMessageBox();
 	virtual ~MacroFunctionMessageBox();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1623,12 +1587,11 @@ private:
 class MacroFunctionMessages : public MacroFunction
 {
 public:
-	explicit MacroFunctionMessages(qs::QSTATUS* pstatus);
+	MacroFunctionMessages();
 	virtual ~MacroFunctionMessages();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1648,12 +1611,11 @@ private:
 class MacroFunctionNot : public MacroFunction
 {
 public:
-	explicit MacroFunctionNot(qs::QSTATUS* pstatus);
+	MacroFunctionNot();
 	virtual ~MacroFunctionNot();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1673,12 +1635,11 @@ private:
 class MacroFunctionOr : public MacroFunction
 {
 public:
-	explicit MacroFunctionOr(qs::QSTATUS* pstatus);
+	MacroFunctionOr();
 	virtual ~MacroFunctionOr();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1698,12 +1659,11 @@ private:
 class MacroFunctionOSVersion : public MacroFunction
 {
 public:
-	explicit MacroFunctionOSVersion(qs::QSTATUS* pstatus);
+	MacroFunctionOSVersion();
 	virtual ~MacroFunctionOSVersion();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1723,18 +1683,18 @@ private:
 class MacroFunctionParseURL : public MacroFunction
 {
 public:
-	explicit MacroFunctionParseURL(qs::QSTATUS* pstatus);
+	MacroFunctionParseURL();
 	virtual ~MacroFunctionParseURL();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
 
 private:
-	static qs::QSTATUS decode(const WCHAR* p, size_t nLen, qs::WSTRING* pwstr);
+	static qs::wstring_ptr decode(const WCHAR* p,
+								  size_t nLen);
 	static bool isHex(WCHAR c);
 
 private:
@@ -1752,12 +1712,11 @@ private:
 class MacroFunctionPart : public MacroFunction
 {
 public:
-	explicit MacroFunctionPart(qs::QSTATUS* pstatus);
+	MacroFunctionPart();
 	virtual ~MacroFunctionPart();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1777,12 +1736,11 @@ private:
 class MacroFunctionPassed : public MacroFunction
 {
 public:
-	explicit MacroFunctionPassed(qs::QSTATUS* pstatus);
+	MacroFunctionPassed();
 	virtual ~MacroFunctionPassed();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1802,12 +1760,11 @@ private:
 class MacroFunctionProcessId : public MacroFunction
 {
 public:
-	explicit MacroFunctionProcessId(qs::QSTATUS* pstatus);
+	MacroFunctionProcessId();
 	virtual ~MacroFunctionProcessId();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1827,12 +1784,11 @@ private:
 class MacroFunctionProfile : public MacroFunction
 {
 public:
-	explicit MacroFunctionProfile(qs::QSTATUS* pstatus);
+	MacroFunctionProfile();
 	virtual ~MacroFunctionProfile();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1852,12 +1808,11 @@ private:
 class MacroFunctionProfileName : public MacroFunction
 {
 public:
-	explicit MacroFunctionProfileName(qs::QSTATUS* pstatus);
+	MacroFunctionProfileName();
 	virtual ~MacroFunctionProfileName();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1877,12 +1832,11 @@ private:
 class MacroFunctionProgn : public MacroFunction
 {
 public:
-	explicit MacroFunctionProgn(qs::QSTATUS* pstatus);
+	MacroFunctionProgn();
 	virtual ~MacroFunctionProgn();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1902,12 +1856,11 @@ private:
 class MacroFunctionReferences : public MacroFunction
 {
 public:
-	explicit MacroFunctionReferences(qs::QSTATUS* pstatus);
+	MacroFunctionReferences();
 	virtual ~MacroFunctionReferences();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1927,12 +1880,11 @@ private:
 class MacroFunctionRegexFind : public MacroFunction
 {
 public:
-	explicit MacroFunctionRegexFind(qs::QSTATUS* pstatus);
+	MacroFunctionRegexFind();
 	virtual ~MacroFunctionRegexFind();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1952,12 +1904,11 @@ private:
 class MacroFunctionRegexMatch : public MacroFunction
 {
 public:
-	explicit MacroFunctionRegexMatch(qs::QSTATUS* pstatus);
+	MacroFunctionRegexMatch();
 	virtual ~MacroFunctionRegexMatch();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -1977,12 +1928,11 @@ private:
 class MacroFunctionRegexReplace : public MacroFunction
 {
 public:
-	explicit MacroFunctionRegexReplace(qs::QSTATUS* pstatus);
+	MacroFunctionRegexReplace();
 	virtual ~MacroFunctionRegexReplace();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -2002,12 +1952,11 @@ private:
 class MacroFunctionRelative : public MacroFunction
 {
 public:
-	MacroFunctionRelative(bool bLess, qs::QSTATUS* pstatus);
+	explicit MacroFunctionRelative(bool bLess);
 	virtual ~MacroFunctionRelative();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -2030,19 +1979,18 @@ private:
 class MacroFunctionRemove : public MacroFunction
 {
 public:
-	explicit MacroFunctionRemove(qs::QSTATUS* pstatus);
+	MacroFunctionRemove();
 	virtual ~MacroFunctionRemove();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
 
 private:
-	static qs::QSTATUS remove(qs::AddressListParser* pAddressList,
-		const WCHAR* pwszAddress);
+	static void remove(qs::AddressListParser* pAddressList,
+					   const WCHAR* pwszAddress);
 
 private:
 	MacroFunctionRemove(const MacroFunctionRemove&);
@@ -2059,12 +2007,11 @@ private:
 class MacroFunctionSave : public MacroFunction
 {
 public:
-	explicit MacroFunctionSave(qs::QSTATUS* pstatus);
+	MacroFunctionSave();
 	virtual ~MacroFunctionSave();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -2084,12 +2031,11 @@ private:
 class MacroFunctionScript : public MacroFunction
 {
 public:
-	explicit MacroFunctionScript(qs::QSTATUS* pstatus);
+	MacroFunctionScript();
 	virtual ~MacroFunctionScript();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -2109,12 +2055,11 @@ private:
 class MacroFunctionSet : public MacroFunction
 {
 public:
-	explicit MacroFunctionSet(qs::QSTATUS* pstatus);
+	MacroFunctionSet();
 	virtual ~MacroFunctionSet();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -2134,12 +2079,11 @@ private:
 class MacroFunctionSize : public MacroFunction
 {
 public:
-	explicit MacroFunctionSize(qs::QSTATUS* pstatus);
+	MacroFunctionSize();
 	virtual ~MacroFunctionSize();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -2159,12 +2103,11 @@ private:
 class MacroFunctionSubAccount : public MacroFunction
 {
 public:
-	explicit MacroFunctionSubAccount(qs::QSTATUS* pstatus);
+	MacroFunctionSubAccount();
 	virtual ~MacroFunctionSubAccount();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -2184,12 +2127,11 @@ private:
 class MacroFunctionSubject : public MacroFunction
 {
 public:
-	explicit MacroFunctionSubject(qs::QSTATUS* pstatus);
+	MacroFunctionSubject();
 	virtual ~MacroFunctionSubject();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -2209,12 +2151,11 @@ private:
 class MacroFunctionSubstring : public MacroFunction
 {
 public:
-	explicit MacroFunctionSubstring(qs::QSTATUS* pstatus);
+	MacroFunctionSubstring();
 	virtual ~MacroFunctionSubstring();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -2234,12 +2175,11 @@ private:
 class MacroFunctionSubstringSep : public MacroFunction
 {
 public:
-	MacroFunctionSubstringSep(bool bAfter, qs::QSTATUS* pstatus);
+	explicit MacroFunctionSubstringSep(bool bAfter);
 	virtual ~MacroFunctionSubstringSep();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -2262,12 +2202,11 @@ private:
 class MacroFunctionVariable : public MacroFunction
 {
 public:
-	explicit MacroFunctionVariable(qs::QSTATUS* pstatus);
+	MacroFunctionVariable();
 	virtual ~MacroFunctionVariable();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -2287,12 +2226,11 @@ private:
 class MacroFunctionWhile : public MacroFunction
 {
 public:
-	explicit MacroFunctionWhile(qs::QSTATUS* pstatus);
+	MacroFunctionWhile();
 	virtual ~MacroFunctionWhile();
 
 public:
-	virtual qs::QSTATUS value(MacroContext* pContext,
-		MacroValue** ppValue) const;
+	virtual MacroValuePtr value(MacroContext* pContext) const;
 
 protected:
 	virtual const WCHAR* getName() const;
@@ -2313,8 +2251,12 @@ class MacroExprPtr
 {
 public:
 	MacroExprPtr();
-	MacroExprPtr(MacroExpr* pExpr);
+	explicit MacroExprPtr(MacroExpr* pExpr);
+	MacroExprPtr(MacroExprPtr& pExpr);
 	~MacroExprPtr();
+
+public:
+	MacroExprPtr& operator=(MacroExprPtr& pExpr);
 
 public:
 	MacroExpr* get() const;
@@ -2341,8 +2283,8 @@ public:
 	~MacroFunctionFactory();
 
 public:
-	qs::QSTATUS newFunction(MacroParser::Type type,
-		const WCHAR* pwszName, MacroFunction** ppFunction) const;
+	std::auto_ptr<MacroFunction> newFunction(MacroParser::Type type,
+											 const WCHAR* pwszName) const;
 
 public:
 	static const MacroFunctionFactory& getFactory();

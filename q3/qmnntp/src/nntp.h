@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -48,6 +48,7 @@ public:
 		NNTP_ERROR_DISCONNECT		= 0x00090000,
 		NNTP_ERROR_SEND				= 0x000a0000,
 		NNTP_ERROR_SSL				= 0x000b0000,
+		NNTP_ERROR_PARSE			= 0x000c0000,
 		NNTP_ERROR_MASK_LOWLEVEL	= 0x00ff0000,
 		
 		NNTP_ERROR_GREETING			= 0x00000100,
@@ -68,22 +69,14 @@ public:
 		GETMESSAGEFLAG_BODY		= 2
 	};
 
-public:
-	struct Option
-	{
-		long nTimeout_;
-		qs::SocketCallback* pSocketCallback_;
-		qs::SSLSocketCallback* pSSLSocketCallback_;
-		NntpCallback* pNntpCallback_;
-		qs::Logger* pLogger_;
-	};
-
 private:
 	enum State {
 		STATE_NONE,
+		STATE_CR1,
+		STATE_LF1,
 		STATE_PERIOD,
-		STATE_CR,
-		STATE_LF
+		STATE_CR2,
+		STATE_LF2
 	};
 
 private:
@@ -94,49 +87,75 @@ private:
 	};
 
 public:
-	Nntp(const Option& option, qs::QSTATUS* pstatus);
+	Nntp(long nTimeout,
+		 qs::SocketCallback* pSocketCallback,
+		 qs::SSLSocketCallback* pSSLSocketCallback,
+		 NntpCallback* pNntpCallback,
+		 qs::Logger* pLogger);
 	~Nntp();
 
 public:
-	qs::QSTATUS connect(const WCHAR* pwszHost, short nPort, bool bSsl);
-	qs::QSTATUS disconnect();
+	bool connect(const WCHAR* pwszHost,
+				 short nPort,
+				 bool bSsl);
+	void disconnect();
 	const WCHAR* getGroup() const;
 	unsigned int getEstimatedCount() const;
 	unsigned int getFirst() const;
 	unsigned int getLast() const;
-	qs::QSTATUS group(const WCHAR* pwszGroup);
-	qs::QSTATUS getMessage(unsigned int n,
-		GetMessageFlag flag, qs::STRING* pstrMessage);
-	qs::QSTATUS getMessage(const WCHAR* pwszMessageId,
-		GetMessageFlag flag, qs::STRING* pstrMessage);
-	qs::QSTATUS getMessagesData(unsigned int nStart,
-		unsigned int nEnd, MessagesData** ppMessageData);
-	qs::QSTATUS postMessage(const CHAR* pszMessage, size_t nLen);
+	bool group(const WCHAR* pwszGroup);
+	bool getMessage(unsigned int n,
+					GetMessageFlag flag,
+					qs::xstring_ptr* pstrMessage);
+	bool getMessage(const WCHAR* pwszMessageId,
+					GetMessageFlag flag,
+					qs::xstring_ptr* pstrMessage);
+	bool getMessagesData(unsigned int nStart,
+						 unsigned int nEnd,
+						 std::auto_ptr<MessagesData>* ppMessageData);
+	bool postMessage(const CHAR* pszMessage,
+					 size_t nLen);
 	
 	unsigned int getLastError() const;
 	const WCHAR* getLastErrorResponse() const;
 
 private:
-	qs::QSTATUS getMessage(unsigned int n, const WCHAR* pwszMessageId,
-		GetMessageFlag flag, qs::STRING* pstrMessage);
-	qs::QSTATUS receive(unsigned int* pnCode);
-	qs::QSTATUS receive(unsigned int* pnCode, qs::STRING* pstrResponse);
-	qs::QSTATUS receive(const CHAR* pszMultilineCodes[], size_t nCodeCount,
-		unsigned int* pnCode, qs::STRING* pstrResponse, qs::STRING* pstrContent);
-	qs::QSTATUS sendCommand(const CHAR* pszCommand, unsigned int* pnCode);
-	qs::QSTATUS sendCommand(const CHAR* pszCommand,
-		unsigned int* pnCode, qs::STRING* pstrResponse);
-	qs::QSTATUS sendCommand(const CHAR* pszCommand,
-		const CHAR* pszMultilineCodes[], size_t nCodeCount,
-		unsigned int* pnCode, qs::STRING* pstrResponse, qs::STRING* pstrContent);
-	qs::QSTATUS send(const SendData* pSendData, size_t nDataLen,
-		const CHAR* pszMultilineCodes[], size_t nCodeCount,
-		unsigned int* pnCode, qs::STRING* pstrResponse, qs::STRING* pstrContent);
-	qs::QSTATUS setErrorResponse(const CHAR* pszErrorResponse);
+	bool getMessage(unsigned int n,
+					const WCHAR* pwszMessageId,
+					GetMessageFlag flag,
+					qs::xstring_ptr* pstrMessage);
+	bool receive(unsigned int* pnCode);
+	bool receive(unsigned int* pnCode,
+				 qs::string_ptr* pstrResponse);
+	bool receive(const CHAR* pszMultilineCodes[],
+				 size_t nCodeCount,
+				 unsigned int* pnCode,
+				 qs::string_ptr* pstrResponse,
+				 qs::xstring_ptr* pstrContent);
+	bool sendCommand(const CHAR* pszCommand,
+					 unsigned int* pnCode);
+	bool sendCommand(const CHAR* pszCommand,
+					 unsigned int* pnCode,
+					 qs::string_ptr* pstrResponse);
+	bool sendCommand(const CHAR* pszCommand,
+					 const CHAR* pszMultilineCodes[],
+					 size_t nCodeCount,
+					 unsigned int* pnCode,
+					 qs::string_ptr* pstrResponse,
+					 qs::xstring_ptr* pstrContent);
+	bool send(const SendData* pSendData,
+			  size_t nDataLen,
+			  const CHAR* pszMultilineCodes[],
+			  size_t nCodeCount,
+			  unsigned int* pnCode,
+			  qs::string_ptr* pstrResponse,
+			  qs::xstring_ptr* pstrContent);
+	void setErrorResponse(const CHAR* pszErrorResponse);
 
 private:
-	static qs::QSTATUS addContent(qs::StringBuffer<qs::STRING>* pBuf,
-		const CHAR* psz, size_t nLen, State* pState);
+	static bool checkContent(CHAR* psz,
+							 size_t* pnLen,
+							 State* pState);
 
 private:
 	Nntp(const Nntp&);
@@ -148,13 +167,13 @@ private:
 	qs::SSLSocketCallback* pSSLSocketCallback_;
 	NntpCallback* pNntpCallback_;
 	qs::Logger* pLogger_;
-	qs::SocketBase* pSocket_;
-	qs::WSTRING wstrGroup_;
+	std::auto_ptr<qs::SocketBase> pSocket_;
+	qs::wstring_ptr wstrGroup_;
 	unsigned int nCount_;
 	unsigned int nFirst_;
 	unsigned int nLast_;
 	unsigned int nError_;
-	qs::WSTRING wstrErrorResponse_;
+	qs::wstring_ptr wstrErrorResponse_;
 };
 
 
@@ -170,13 +189,14 @@ public:
 	virtual ~NntpCallback();
 
 public:
-	virtual qs::QSTATUS getUserInfo(qs::WSTRING* pwstrUserName,
-		qs::WSTRING* pwstrPassword) = 0;
-	virtual qs::QSTATUS setPassword(const WCHAR* pwszPassword) = 0;
+	virtual bool getUserInfo(qs::wstring_ptr* pwstrUserName,
+							 qs::wstring_ptr* pwstrPassword) = 0;
+	virtual void setPassword(const WCHAR* pwszPassword) = 0;
 	
-	virtual qs::QSTATUS authenticating() = 0;
-	virtual qs::QSTATUS setRange(unsigned int nMin, unsigned int nMax) = 0;
-	virtual qs::QSTATUS setPos(unsigned int nPos) = 0;
+	virtual void authenticating() = 0;
+	virtual void setRange(unsigned int nMin,
+						  unsigned int nMax) = 0;
+	virtual void setPos(unsigned int nPos) = 0;
 };
 
 
@@ -202,7 +222,7 @@ public:
 	};
 
 public:
-	MessagesData(qs::QSTATUS* pstatus);
+	MessagesData();
 	~MessagesData();
 
 public:
@@ -210,7 +230,7 @@ public:
 	const Item& getItem(size_t n) const;
 
 public:
-	qs::QSTATUS setData(qs::STRING strData);
+	bool setData(qs::xstring_ptr strData);
 
 private:
 	MessagesData(const MessagesData&);
@@ -220,7 +240,7 @@ private:
 	typedef std::vector<Item> ItemList;
 
 private:
-	qs::STRING strData_;
+	qs::xstring_ptr strData_;
 	ItemList listItem_;
 };
 

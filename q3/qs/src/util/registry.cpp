@@ -1,14 +1,13 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
-#include <qsosutil.h>
-#include <qserror.h>
 #include <qsconv.h>
+#include <qsosutil.h>
 
 #include <tchar.h>
 
@@ -21,19 +20,19 @@ using namespace qs;
  *
  */
 
-qs::Registry::Registry(HKEY hkey, const WCHAR* pwszSubKey, QSTATUS* pstatus) :
+qs::Registry::Registry(HKEY hkey,
+					   const WCHAR* pwszSubKey) :
 	hkey_(0)
 {
-	assert(pstatus);
-	*pstatus = init(hkey, pwszSubKey, 0);
+	init(hkey, pwszSubKey, 0);
 }
 
-qs::Registry::Registry(HKEY hkey, const WCHAR* pwszSubKey,
-	const WCHAR* pwszClass, QSTATUS* pstatus) :
+qs::Registry::Registry(HKEY hkey,
+					   const WCHAR* pwszSubKey,
+					   const WCHAR* pwszClass) :
 	hkey_(0)
 {
-	assert(pstatus);
-	*pstatus = init(hkey, pwszSubKey, pwszClass);
+	init(hkey, pwszSubKey, pwszClass);
 }
 
 qs::Registry::~Registry()
@@ -50,173 +49,119 @@ qs::Registry::operator HKEY() const
 	return hkey_;
 }
 
-QSTATUS qs::Registry::getValue(const WCHAR* pwszName, DWORD* pdwValue)
-{
-	LONG nRet = ERROR_SUCCESS;
-	return getValue(pwszName, pdwValue, &nRet);
-}
-
-QSTATUS qs::Registry::getValue(const WCHAR* pwszName, DWORD* pdwValue, LONG* pnRet)
+bool qs::Registry::getValue(const WCHAR* pwszName,
+							DWORD* pdwValue)
 {
 	assert(pdwValue);
-	assert(pnRet);
 	
 	if (!hkey_)
-		return QSTATUS_FAIL;
+		return false;
 	
 	W2T(pwszName, ptszName);
 	
 	DWORD dwSize = sizeof(DWORD);
 	DWORD dwType = REG_DWORD;
-	*pnRet = ::RegQueryValueEx(hkey_, ptszName, 0,
-		&dwType, reinterpret_cast<LPBYTE>(pdwValue), &dwSize);
-	
-	return QSTATUS_SUCCESS;
+	return ::RegQueryValueEx(hkey_, ptszName, 0, &dwType,
+		reinterpret_cast<LPBYTE>(pdwValue), &dwSize) == ERROR_SUCCESS;
 }
 
-QSTATUS qs::Registry::getValue(const WCHAR* pwszName, WSTRING* pwstrValue)
-{
-	LONG nRet = ERROR_SUCCESS;
-	return getValue(pwszName, pwstrValue, &nRet);
-}
-
-QSTATUS qs::Registry::getValue(const WCHAR* pwszName,
-	WSTRING* pwstrValue, LONG* pnRet)
+bool qs::Registry::getValue(const WCHAR* pwszName,
+							wstring_ptr* pwstrValue)
 {
 	assert(pwstrValue);
-	assert(pnRet);
 	
 	if (!hkey_)
-		return QSTATUS_FAIL;
+		return false;
 	
 	W2T(pwszName, ptszName);
 	
 	DWORD dwType = REG_SZ;
 	DWORD dwSize = 0;
-	*pnRet = ::RegQueryValueEx(hkey_, ptszName, 0, &dwType, 0, &dwSize);
-	if (*pnRet != ERROR_SUCCESS)
-		return QSTATUS_SUCCESS;
-	string_ptr<TSTRING> tstrValue(allocTString(dwSize + 1));
-	*pnRet = ::RegQueryValueEx(hkey_, ptszName, 0,
-		&dwType, reinterpret_cast<LPBYTE>(tstrValue.get()), &dwSize);
-	if (*pnRet != ERROR_SUCCESS)
-		return QSTATUS_SUCCESS;
+	if (::RegQueryValueEx(hkey_, ptszName, 0, &dwType, 0, &dwSize) != ERROR_SUCCESS)
+		return false;
+	tstring_ptr tstrValue(allocTString(dwSize + 1));
+	if (::RegQueryValueEx(hkey_, ptszName, 0, &dwType,
+		reinterpret_cast<LPBYTE>(tstrValue.get()), &dwSize) != ERROR_SUCCESS)
+		return false;
 	*pwstrValue = tcs2wcs(tstrValue.get());
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::Registry::getValue(const WCHAR* pwszName, BYTE* pByte, int* pnSize)
-{
-	LONG nRet = ERROR_SUCCESS;
-	return getValue(pwszName, pByte, pnSize, &nRet);
-}
-
-QSTATUS qs::Registry::getValue(const WCHAR* pwszName,
-	BYTE* pByte, int* pnSize, LONG* pnRet)
+bool qs::Registry::getValue(const WCHAR* pwszName,
+							BYTE* pByte,
+							size_t* pnSize)
 {
 	assert(pByte);
 	assert(pnSize);
-	assert(pnRet);
 	
 	if (!hkey_)
-		return QSTATUS_FAIL;
+		return false;
 	
 	W2T(pwszName, ptszName);
 	
 	DWORD dwSize = *pnSize;
 	DWORD dwType = REG_BINARY;
-	*pnRet = ::RegQueryValueEx(hkey_, ptszName, 0, &dwType, pByte, &dwSize);
+	if (!::RegQueryValueEx(hkey_, ptszName, 0, &dwType, pByte, &dwSize) != ERROR_SUCCESS)
+		return false;
 	*pnSize = dwSize;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::Registry::setValue(const WCHAR* pwszName, DWORD dwValue)
+bool qs::Registry::setValue(const WCHAR* pwszName,
+							DWORD dwValue)
 {
-	LONG nRet = ERROR_SUCCESS;
-	return setValue(pwszName, dwValue, &nRet);
-}
-
-QSTATUS qs::Registry::setValue(const WCHAR* pwszName, DWORD dwValue, LONG* pnRet)
-{
-	assert(pnRet);
-	
 	if (!hkey_)
-		return QSTATUS_FAIL;
+		return false;
 	
 	W2T(pwszName, ptszName);
-	*pnRet = ::RegSetValueEx(hkey_, ptszName, 0, REG_DWORD,
-		reinterpret_cast<const BYTE*>(&dwValue), sizeof(DWORD));
-	
-	return QSTATUS_SUCCESS;
+	return ::RegSetValueEx(hkey_, ptszName, 0, REG_DWORD,
+		reinterpret_cast<const BYTE*>(&dwValue), sizeof(DWORD)) == ERROR_SUCCESS;
 }
 
-QSTATUS qs::Registry::setValue(const WCHAR* pwszName, const WCHAR* pwszValue)
+bool qs::Registry::setValue(const WCHAR* pwszName,
+							const WCHAR* pwszValue)
 {
-	LONG nRet = ERROR_SUCCESS;
-	return setValue(pwszName, pwszValue, &nRet);
-}
-
-QSTATUS qs::Registry::setValue(const WCHAR* pwszName,
-	const WCHAR* pwszValue, LONG* pnRet)
-{
-	assert(pnRet);
-	
 	if (!hkey_)
-		return QSTATUS_FAIL;
+		return false;
 	
 	W2T(pwszName, ptszName);
 	W2T(pwszValue, ptszValue);
-	*pnRet = ::RegSetValueEx(hkey_, ptszName, 0, REG_SZ,
+	return ::RegSetValueEx(hkey_, ptszName, 0, REG_SZ,
 		reinterpret_cast<const BYTE*>(ptszValue),
-		(_tcslen(ptszValue) + 1)*sizeof(TCHAR));
-	
-	return QSTATUS_SUCCESS;
+		(_tcslen(ptszValue) + 1)*sizeof(TCHAR)) == ERROR_SUCCESS;
 }
 
-QSTATUS qs::Registry::setValue(const WCHAR* pwszName, const BYTE* pByte, int nSize)
+bool qs::Registry::setValue(const WCHAR* pwszName,
+							const BYTE* pByte,
+							size_t nSize)
 {
-	LONG nRet = ERROR_SUCCESS;
-	return setValue(pwszName, pByte, nSize, &nRet);
-}
-
-QSTATUS qs::Registry::setValue(const WCHAR* pwszName,
-	const BYTE* pByte, int nSize, LONG* pnRet)
-{
-	assert(pnRet);
-	
 	if (!hkey_)
-		return QSTATUS_FAIL;
+		return false;
 	
 	W2T(pwszName, ptszName);
-	*pnRet = ::RegSetValueEx(hkey_, ptszName, 0, REG_BINARY, pByte, nSize);
-	
-	return QSTATUS_SUCCESS;
+	return ::RegSetValueEx(hkey_, ptszName, 0, REG_BINARY, pByte, nSize) == ERROR_SUCCESS;
 }
 
-QSTATUS qs::Registry::deleteKey(HKEY hkey,
-	const WCHAR* pwszSubKey, LONG* pnRet)
+bool qs::Registry::deleteKey(HKEY hkey,
+							 const WCHAR* pwszSubKey)
 {
 	assert(hkey);
-	assert(pnRet);
 	
 	W2T(pwszSubKey, ptszSubKey);
-	*pnRet = ::RegDeleteKey(hkey, ptszSubKey);
-	
-	return QSTATUS_SUCCESS;
+	return ::RegDeleteKey(hkey, ptszSubKey) == ERROR_SUCCESS;
 }
 
-QSTATUS qs::Registry::init(HKEY hkey, const WCHAR* pwszSubKey, const WCHAR* pwszClass)
+void qs::Registry::init(HKEY hkey,
+						const WCHAR* pwszSubKey,
+						const WCHAR* pwszClass)
 {
 	W2T(pwszSubKey, ptszSubKey);
 	
-	string_ptr<TSTRING> tstrClass;
-	if (pwszClass) {
-		tstrClass.reset(wcs2tcs(pwszClass));
-		if (!tstrClass.get())
-			return QSTATUS_OUTOFMEMORY;
-	}
+	tstring_ptr tstrClass;
+	if (pwszClass)
+		tstrClass = wcs2tcs(pwszClass);
 	
 	DWORD dw = 0;
 #ifdef _WIN32_WCE
@@ -228,6 +173,4 @@ QSTATUS qs::Registry::init(HKEY hkey, const WCHAR* pwszSubKey, const WCHAR* pwsz
 #endif // _WIN32_WCE
 	if (nRet != ERROR_SUCCESS)
 		hkey_ = 0;
-	
-	return QSTATUS_SUCCESS;
 }

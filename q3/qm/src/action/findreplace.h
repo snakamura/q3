@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -32,8 +32,9 @@ public:
 	};
 
 public:
-	FindReplaceData(const WCHAR* pwszFind, const WCHAR* pwszReplace,
-		unsigned int nFlags, qs::QSTATUS* pstatus);
+	FindReplaceData(const WCHAR* pwszFind,
+					const WCHAR* pwszReplace,
+					unsigned int nFlags);
 	~FindReplaceData();
 
 public:
@@ -46,8 +47,8 @@ private:
 	FindReplaceData& operator=(const FindReplaceData&);
 
 private:
-	qs::WSTRING wstrFind_;
-	qs::WSTRING wstrReplace_;
+	qs::wstring_ptr wstrFind_;
+	qs::wstring_ptr wstrReplace_;
 	unsigned int nFlags_;
 };
 
@@ -61,21 +62,23 @@ private:
 class FindReplaceManager
 {
 public:
-	FindReplaceManager(qs::QSTATUS* pstatus);
+	FindReplaceManager();
 	~FindReplaceManager();
 
 public:
 	const FindReplaceData* getData() const;
-	qs::QSTATUS setData(const WCHAR* pwszFind, unsigned int nFlags);
-	qs::QSTATUS setData(const WCHAR* pwszFind,
-		const WCHAR* pwszReplace, unsigned int nFlags);
+	void setData(const WCHAR* pwszFind,
+				 unsigned int nFlags);
+	void setData(const WCHAR* pwszFind,
+				 const WCHAR* pwszReplace,
+				 unsigned int nFlags);
 
 private:
 	FindReplaceManager(const FindReplaceManager&);
 	FindReplaceManager& operator=(const FindReplaceManager&);
 
 private:
-	FindReplaceData* pData_;
+	std::auto_ptr<FindReplaceData> pData_;
 };
 
 }

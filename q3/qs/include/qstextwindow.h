@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -40,7 +40,8 @@ public:
 	class Line
 	{
 	public:
-		Line(const WCHAR* pwszText, size_t nLen);
+		Line(const WCHAR* pwszText,
+			 size_t nLen);
 		~Line();
 	
 	public:
@@ -59,11 +60,16 @@ public:
 	virtual size_t getLineCount() const = 0;
 	virtual Line getLine(size_t nLine) const = 0;
 	virtual bool isEditable() const = 0;
-	virtual QSTATUS update(unsigned int nStartLine, unsigned int nStartChar,
-		unsigned int nEndLine, unsigned int nEndChar, const WCHAR* pwsz,
-		size_t nLen, unsigned int* pnLine, unsigned int* pnChar) = 0;
-	virtual QSTATUS addTextModelHandler(TextModelHandler* pHandler) = 0;
-	virtual QSTATUS removeTextModelHandler(TextModelHandler* pHandler) = 0;
+	virtual void update(unsigned int nStartLine,
+						unsigned int nStartChar,
+						unsigned int nEndLine,
+						unsigned int nEndChar,
+						const WCHAR* pwsz,
+						size_t nLen,
+						unsigned int* pnLine,
+						unsigned int* pnChar) = 0;
+	virtual void addTextModelHandler(TextModelHandler* pHandler) = 0;
+	virtual void removeTextModelHandler(TextModelHandler* pHandler) = 0;
 };
 
 
@@ -76,17 +82,18 @@ public:
 class QSEXPORTCLASS AbstractTextModel : public TextModel
 {
 public:
-	explicit AbstractTextModel(QSTATUS* pstatus);
+	AbstractTextModel();
 	virtual ~AbstractTextModel();
 
 public:
-	virtual QSTATUS addTextModelHandler(TextModelHandler* pHandler);
-	virtual QSTATUS removeTextModelHandler(TextModelHandler* pHandler);
+	virtual void addTextModelHandler(TextModelHandler* pHandler);
+	virtual void removeTextModelHandler(TextModelHandler* pHandler);
 
 public:
-	QSTATUS fireTextUpdated(unsigned int nStartLine,
-		unsigned int nOldEndLine, unsigned int nNewEndLine);
-	QSTATUS fireTextSet();
+	void fireTextUpdated(unsigned int nStartLine,
+						 unsigned int nOldEndLine,
+						 unsigned int nNewEndLine);
+	void fireTextSet();
 
 private:
 	AbstractTextModel(const AbstractTextModel&);
@@ -106,20 +113,26 @@ private:
 class QSEXPORTCLASS EditableTextModel : public AbstractTextModel
 {
 public:
-	explicit EditableTextModel(QSTATUS* pstatus);
+	EditableTextModel();
 	virtual ~EditableTextModel();
 
 public:
-	QSTATUS getText(WSTRING* pwstrText) const;
-	QSTATUS setText(const WCHAR* pwszText, size_t nLen);
+	wxstring_ptr getText() const;
+	bool setText(const WCHAR* pwszText,
+				 size_t nLen);
 
 public:
 	virtual size_t getLineCount() const;
 	virtual Line getLine(size_t nLine) const;
 	virtual bool isEditable() const;
-	virtual QSTATUS update(unsigned int nStartLine, unsigned int nStartChar,
-		unsigned int nEndLine, unsigned int nEndChar, const WCHAR* pwsz,
-		size_t nLen, unsigned int* pnLine, unsigned int* pnChar);
+	virtual void update(unsigned int nStartLine,
+						unsigned int nStartChar,
+						unsigned int nEndLine,
+						unsigned int nEndChar,
+						const WCHAR* pwsz,
+						size_t nLen,
+						unsigned int* pnLine,
+						unsigned int* pnChar);
 
 private:
 	EditableTextModel(const EditableTextModel&);
@@ -139,22 +152,29 @@ private:
 class QSEXPORTCLASS ReadOnlyTextModel : public AbstractTextModel
 {
 public:
-	explicit ReadOnlyTextModel(QSTATUS* pstatus);
+	ReadOnlyTextModel();
 	virtual ~ReadOnlyTextModel();
 
 public:
-	QSTATUS getText(const WCHAR** ppwszText, size_t* pnLen) const;
-	QSTATUS setText(const WCHAR* pwszText, size_t nLen);
-	QSTATUS loadText(Reader* pReader, bool bAsync);
-	QSTATUS cancelLoad();
+	std::pair<const WCHAR*, size_t> getText() const;
+	bool setText(const WCHAR* pwszText,
+				 size_t nLen);
+	bool loadText(std::auto_ptr<Reader> pReader,
+				  bool bAsync);
+	void cancelLoad();
 
 public:
 	virtual size_t getLineCount() const;
 	virtual Line getLine(size_t nLine) const;
 	virtual bool isEditable() const;
-	virtual QSTATUS update(unsigned int nStartLine, unsigned int nStartChar,
-		unsigned int nEndLine, unsigned int nEndChar, const WCHAR* pwsz,
-		size_t nLen, unsigned int* pnLine, unsigned int* pnChar);
+	virtual void update(unsigned int nStartLine,
+						unsigned int nStartChar,
+						unsigned int nEndLine,
+						unsigned int nEndChar,
+						const WCHAR* pwsz,
+						size_t nLen,
+						unsigned int* pnLine,
+						unsigned int* pnChar);
 
 private:
 	ReadOnlyTextModel(const ReadOnlyTextModel&);
@@ -177,8 +197,8 @@ public:
 	virtual ~TextModelHandler();
 
 public:
-	virtual QSTATUS textUpdated(const TextModelEvent& event) = 0;
-	virtual QSTATUS textSet(const TextModelEvent& event) = 0;
+	virtual void textUpdated(const TextModelEvent& event) = 0;
+	virtual void textSet(const TextModelEvent& event) = 0;
 };
 
 
@@ -191,8 +211,10 @@ public:
 class QSEXPORTCLASS TextModelEvent
 {
 public:
-	TextModelEvent(TextModel* pTextModel, unsigned int nStartLine,
-		unsigned int nOldEndLine, unsigned int nNewEndLine);
+	TextModelEvent(TextModel* pTextModel,
+				   unsigned int nStartLine,
+				   unsigned int nOldEndLine,
+				   unsigned int nNewEndLine);
 	~TextModelEvent();
 
 public:
@@ -273,36 +295,47 @@ public:
 	};
 
 public:
-	TextWindow(TextModel* pTextModel, Profile* pProfile,
-		const WCHAR* pwszSection, bool bDeleteThis, QSTATUS* pstatus);
+	TextWindow(TextModel* pTextModel,
+			   Profile* pProfile,
+			   const WCHAR* pwszSection,
+			   bool bDeleteThis);
 	virtual ~TextWindow();
 
 public:
 	TextModel* getTextModel() const;
 	void setTextModel(TextModel* pTextModel);
-	QSTATUS insertText(const WCHAR* pwszText, size_t nLen);
+	bool insertText(const WCHAR* pwszText,
+					size_t nLen);
 	bool isSelected() const;
-	QSTATUS getSelectedText(WSTRING* pwstrText) const;
-	QSTATUS selectAll();
-	QSTATUS canSelectAll(bool* pbCan) const;
-	QSTATUS cut();
-	QSTATUS canCut(bool* pbCan) const;
-	QSTATUS copy();
-	QSTATUS canCopy(bool* pbCan) const;
-	QSTATUS paste();
-	QSTATUS canPaste(bool* pbCan) const;
-	QSTATUS undo();
-	QSTATUS canUndo(bool* pbCan) const;
-	QSTATUS redo();
-	QSTATUS canRedo(bool* pbCan) const;
-	QSTATUS find(const WCHAR* pwszFind, unsigned int nFlags, bool* pbFound);
-	QSTATUS replace(const WCHAR* pwszFind, const WCHAR* pwszReplace,
-		unsigned int nFlags, bool* pbFound);
-	QSTATUS reform();
-	QSTATUS scroll(Scroll scroll, int nPos, bool bRepeat);
-	QSTATUS moveCaret(MoveCaret moveCaret, unsigned int nLine,
-		unsigned int nChar, bool bRepeat, Select select, bool bScroll);
-	QSTATUS openLink();
+	wstring_ptr getSelectedText() const;
+	bool selectAll();
+	bool canSelectAll() const;
+	bool cut();
+	bool canCut() const;
+	bool copy();
+	bool canCopy() const;
+	bool paste();
+	bool canPaste() const;
+	bool undo();
+	bool canUndo() const;
+	bool redo();
+	bool canRedo() const;
+	bool find(const WCHAR* pwszFind,
+			  unsigned int nFlags);
+	bool replace(const WCHAR* pwszFind,
+				 const WCHAR* pwszReplace,
+				 unsigned int nFlags);
+	void reform();
+	void scroll(Scroll scroll,
+				int nPos,
+				bool bRepeat);
+	void moveCaret(MoveCaret moveCaret,
+				   unsigned int nLine,
+				   unsigned int nChar,
+				   bool bRepeat,
+				   Select select,
+				   bool bScroll);
+	bool openLink();
 	TextWindowLinkHandler* getLinkHandler() const;
 	void setLinkHandler(TextWindowLinkHandler* pLinkHandler);
 	
@@ -313,63 +346,93 @@ public:
 	unsigned int getLineSpacing() const;
 	void setLineSpacing(unsigned int nLineSpacing);
 	unsigned int getCharInLine() const;
-	QSTATUS setCharInLine(unsigned int nCharInLine);
+	void setCharInLine(unsigned int nCharInLine);
 	unsigned int getTabWidth() const;
-	QSTATUS setTabWidth(unsigned int nTabWidth);
-	void getMargin(unsigned int* pnTop, unsigned int* pnBottom,
-		unsigned int* pnLeft, unsigned int* pnRight) const;
-	QSTATUS setMargin(unsigned int nTop, unsigned int nBottom,
-		unsigned int nLeft, unsigned int nRight);
+	void setTabWidth(unsigned int nTabWidth);
+	void getMargin(unsigned int* pnTop,
+				   unsigned int* pnBottom,
+				   unsigned int* pnLeft,
+				   unsigned int* pnRight) const;
+	void setMargin(unsigned int nTop,
+				   unsigned int nBottom,
+				   unsigned int nLeft,
+				   unsigned int nRight);
 	bool isShowNewLine() const;
 	void setShowNewLine(bool bShowNewLine);
 	bool isShowTab() const;
 	void setShowTab(bool bShowTab);
 	bool isShowScrollBar(bool bHorizontal) const;
-	QSTATUS setShowScrollBar(bool bHorizontal, bool bShowScrollBar);
+	void setShowScrollBar(bool bHorizontal,
+						  bool bShowScrollBar);
 	bool isShowCaret() const;
 	void setShowCaret(bool bShowCaret);
 	const WCHAR* getQuote(unsigned int n) const;
-	QSTATUS setQuote(unsigned int n, const WCHAR* pwszQuote);
+	void setQuote(unsigned int n,
+				  const WCHAR* pwszQuote);
 	COLORREF getQuoteColor(unsigned int n) const;
-	void setQuoteColor(unsigned int n, COLORREF cr);
+	void setQuoteColor(unsigned int n,
+					   COLORREF cr);
 	unsigned int getReformLineLength() const;
 	void setReformLineLength(unsigned int nReformLineLength);
 	const WCHAR* getReformQuote() const;
-	QSTATUS setReformQuote(const WCHAR* pwszReformQuote);
+	void setReformQuote(const WCHAR* pwszReformQuote);
 
 public:
-	virtual QSTATUS getWindowClass(WNDCLASS* pwc);
-	virtual QSTATUS preCreateWindow(CREATESTRUCT* pCreateStruct);
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual void getWindowClass(WNDCLASS* pwc);
+	virtual bool preCreateWindow(CREATESTRUCT* pCreateStruct);
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
-	LRESULT onChar(UINT nChar, UINT nRepeat, UINT nFlags);
+	LRESULT onChar(UINT nChar,
+				   UINT nRepeat,
+				   UINT nFlags);
 	LRESULT onCopy();
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
 	LRESULT onCut();
 	LRESULT onDestroy();
 	LRESULT onEraseBkgnd(HDC hdc);
-	LRESULT onHScroll(UINT nCode, UINT nPos, HWND hwnd);
-	LRESULT onImeChar(UINT nChar, UINT nRepeat, UINT nFlags);
-	LRESULT onImeComposition(UINT nChar, UINT nFlags);
+	LRESULT onHScroll(UINT nCode,
+					  UINT nPos,
+					  HWND hwnd);
+	LRESULT onImeChar(UINT nChar,
+					  UINT nRepeat,
+					  UINT nFlags);
+	LRESULT onImeComposition(UINT nChar,
+							 UINT nFlags);
 	LRESULT onImeEndComposition();
 	LRESULT onImeStartComposition();
-	LRESULT onKeyDown(UINT nKey, UINT nRepeat, UINT nFlags);
+	LRESULT onKeyDown(UINT nKey,
+					  UINT nRepeat,
+					  UINT nFlags);
 	LRESULT onKillFocus(HWND hwnd);
-	LRESULT onLButtonDblClk(UINT nFlags, const POINT& pt);
-	LRESULT onLButtonDown(UINT nFlags, const POINT& pt);
-	LRESULT onLButtonUp(UINT nFlags, const POINT& pt);
-	LRESULT onMouseMove(UINT nFlags, const POINT& pt);
+	LRESULT onLButtonDblClk(UINT nFlags,
+							const POINT& pt);
+	LRESULT onLButtonDown(UINT nFlags,
+						  const POINT& pt);
+	LRESULT onLButtonUp(UINT nFlags,
+						const POINT& pt);
+	LRESULT onMouseMove(UINT nFlags,
+						const POINT& pt);
 #if !defined _WIN32_WCE || _WIN32_WCE >= 211
-	LRESULT onMouseWheel(UINT nFlags, short nDelta, const POINT& pt);
+	LRESULT onMouseWheel(UINT nFlags,
+						 short nDelta,
+						 const POINT& pt);
 #endif
 	LRESULT onPaint();
 	LRESULT onPaste();
-	LRESULT onSetCursor(HWND hwnd, UINT nHitTest, UINT nMessage);
+	LRESULT onSetCursor(HWND hwnd,
+						UINT nHitTest,
+						UINT nMessage);
 	LRESULT onSetFocus(HWND hwnd);
-	LRESULT onSize(UINT nFlags, int cx, int cy);
+	LRESULT onSize(UINT nFlags,
+				   int cx,
+				   int cy);
 	LRESULT onTimer(UINT nId);
-	LRESULT onVScroll(UINT nCode, UINT nPos, HWND hwnd);
+	LRESULT onVScroll(UINT nCode,
+					  UINT nPos,
+					  HWND hwnd);
 
 private:
 	TextWindow(const TextWindow&);
@@ -392,7 +455,7 @@ public:
 	virtual ~TextWindowLinkHandler();
 
 public:
-	virtual QSTATUS openLink(const WCHAR* pwszURL) = 0;
+	virtual bool openLink(const WCHAR* pwszURL) = 0;
 };
 
 }

@@ -1062,6 +1062,19 @@ BEGIN
     IDS_ERROR_CREATEFOLDER  "Could not create folder."
     IDS_ERROR_EXECUTEATTACHMENT "Could not execute attachment file."
     IDS_ERROR_DIALUP        "Error occured while dialing up"
+    IDS_ERROR_CLEARDELETED  "Could not clear deleted messages."
+    IDS_ERROR_COPYMESSAGES  "Could not copy messages."
+    IDS_ERROR_CUTMESSAGES   "Could not cut messages."
+    IDS_ERROR_DELETECACHE   "Could not delete cache."
+    IDS_ERROR_DELETEMESSAGES "Could not delete messages."
+    IDS_ERROR_PASTEMESSAGES "Could not paste messages."
+    IDS_ERROR_COMPACT       "Error occured while compacting message box."
+    IDS_ERROR_SAVE          "Error occured while saving."
+    IDS_ERROR_EXPORT        "Error occured while exporting."
+    IDS_ERROR_IMPORT        "Error occured while importing."
+    IDS_ERROR_PRINT         "Error occured while printing."
+    IDS_ERROR_SALVAGE       "Error occured while salvaging."
+    IDS_ERROR_DELETEFOLDER  "Error occured while deleting the folder."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1138,6 +1151,42 @@ BEGIN
     IDS_SEARCH              "Search"
     IDS_MACROSEARCH         "Macro"
     IDS_ALLFOLDER           "(All Folders)"
+    IDS_SYNCHRONIZING       "This operation is not allowed while synchronizing."END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_EMPTYFOLDER   "Error occured while emptying the folder."
+    IDS_ERROR_EMPTYTRASH    "Error occured while emptying the trash."
+    IDS_ERROR_RENAMEFOLDER  "Error occured while renaming the folder."
+    IDS_ERROR_UPDATEFOLDER  "Error occured while updating folder."
+    IDS_ERROR_APPLYRULE     "Error occured while applying rule."
+    IDS_ERROR_APPLYTEMPLATE "Error occured while applying template."
+    IDS_ERROR_COMBINE       "Error occured while combining messages."
+    IDS_ERROR_CREATEMESSAGE "Error occured while creating message."
+    IDS_ERROR_DELETEATTACHMENT "Error occured while deleting attachments."
+    IDS_ERROR_DETACHATTACHMENT "Error occured while detaching attachments."
+    IDS_ERROR_EXPANDDIGEST  "Error occured while expanding digest."
+    IDS_ERROR_MARKMESSAGE   "Error occured while mark messages."
+    IDS_ERROR_MOVEMESSAGE   "Error occured while moving messages."
+    IDS_ERROR_COPYMESSAGE   "Error occured while copying messages."
+    IDS_ERROR_OPENURL       "Error occured while opening the URL."
+    IDS_ERROR_SETFLAGS      "Error occured while setting flags."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_SEARCH        "Error occured while searching."
+    IDS_ERROR_DIALUPCONNECT "Error occured while connecting dialup."
+    IDS_ERROR_DIALUPDISCONNECT "Error occured while disconnecting dialup."
+    IDS_ERROR_GOROUND       "Error occured while going around."
+    IDS_ERROR_SYNC          "Error occured while synchronizing."
+    IDS_ERROR_OPENLINK      "Error occured while opending link."
+    IDS_ERROR_REFRESH       "Error occured while refreshing."
+    IDS_ERROR_INSERTFILE    "Error occured while inserting file."
+    IDS_ERROR_PASTE         "Error occured while pasting."
+    IDS_ERROR_OPENFILE      "Error occured while opening file."
+    IDS_ERROR_SAVEFILE      "Error occured while saving file."
+    IDS_ERROR_SEND          "Error occured while sending."
 END
 
 #endif    // Japanese resources

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -51,12 +51,14 @@ public:
 	};
 
 public:
-	HeaderEditLine(HeaderEditLineCallback* pCallback, unsigned int nFlags,
-		qs::RegexPattern* pClass, qs::QSTATUS* pstatus);
+	HeaderEditLine(HeaderEditLineCallback* pCallback,
+				   unsigned int nFlags,
+				   std::auto_ptr<qs::RegexPattern> pClass);
 	~HeaderEditLine();
 
 public:
-	qs::QSTATUS setEditMessage(EditMessage* pEditMessage, bool bReset);
+	void setEditMessage(EditMessage* pEditMessage,
+						bool bReset);
 	EditWindowItem* getNextFocusItem(EditWindowItem** ppItem) const;
 	EditWindowItem* getPrevFocusItem(EditWindowItem** ppItem) const;
 	HeaderEditItem* getFocusedItem() const;
@@ -72,7 +74,7 @@ private:
 private:
 	HeaderEditLineCallback* pCallback_;
 	unsigned int nFlags_;
-	qs::RegexPattern* pClass_;
+	std::auto_ptr<qs::RegexPattern> pClass_;
 	bool bHide_;
 };
 
@@ -99,7 +101,9 @@ public:
  *
  */
 
-class HeaderEditItem : public LineLayoutItem, public EditWindowItem
+class HeaderEditItem :
+	public LineLayoutItem,
+	public EditWindowItem
 {
 protected:
 	enum InitialFocus {
@@ -109,8 +113,7 @@ protected:
 	};
 
 protected:
-	HeaderEditItem(EditWindowFocusController* pController,
-		qs::QSTATUS* pstatus);
+	explicit HeaderEditItem(EditWindowFocusController* pController);
 
 public:
 	virtual ~HeaderEditItem();
@@ -119,18 +122,18 @@ public:
 	unsigned int getNumber() const;
 
 public:
-	virtual qs::QSTATUS setEditMessage(
-		EditMessage* pEditMessage, bool bReset) = 0;
+	virtual void setEditMessage(EditMessage* pEditMessage,
+								bool bReset) = 0;
 	virtual void releaseEditMessage(EditMessage* pEditMessage) = 0;
-	virtual qs::QSTATUS updateEditMessage(EditMessage* pEditMessage) = 0;
+	virtual void updateEditMessage(EditMessage* pEditMessage) = 0;
 	virtual bool hasFocus() const = 0;
 	virtual bool hasInitialFocus() const = 0;
 	virtual bool isFocusItem() const = 0;
 
 public:
-	qs::QSTATUS setNumber(const WCHAR* pwszNumber);
+	void setNumber(unsigned int nNumber);
 	void setInitialFocus(bool bInitialFocus);
-	qs::QSTATUS addValue(const WCHAR* pwszValue, size_t nLen);
+	void setValue(const WCHAR* pwszValue);
 
 protected:
 	EditWindowFocusController* getController() const;
@@ -138,18 +141,18 @@ protected:
 	const WCHAR* getValue() const;
 
 public:
-	virtual qs::QSTATUS copy();
-	virtual qs::QSTATUS canCopy(bool* pbCan);
-	virtual qs::QSTATUS cut();
-	virtual qs::QSTATUS canCut(bool* pbCan);
-	virtual qs::QSTATUS paste();
-	virtual qs::QSTATUS canPaste(bool* pbCan);
-	virtual qs::QSTATUS selectAll();
-	virtual qs::QSTATUS canSelectAll(bool* pbCan);
-	virtual qs::QSTATUS undo();
-	virtual qs::QSTATUS canUndo(bool* pbCan);
-	virtual qs::QSTATUS redo();
-	virtual qs::QSTATUS canRedo(bool* pbCan);
+	virtual void copy();
+	virtual bool canCopy();
+	virtual void cut();
+	virtual bool canCut();
+	virtual void paste();
+	virtual bool canPaste();
+	virtual void selectAll();
+	virtual bool canSelectAll();
+	virtual void undo();
+	virtual bool canUndo();
+	virtual void redo();
+	virtual bool canRedo();
 
 private:
 	HeaderEditItem(const HeaderEditItem&);
@@ -159,7 +162,7 @@ private:
 	EditWindowFocusController* pController_;
 	unsigned int nNumber_;
 	InitialFocus initialFocus_;
-	qs::WSTRING wstrValue_;
+	qs::wstring_ptr wstrValue_;
 };
 
 
@@ -186,32 +189,33 @@ public:
 	};
 
 protected:
-	TextHeaderEditItem(EditWindowFocusController* pController,
-		qs::QSTATUS* pstatus);
+	explicit TextHeaderEditItem(EditWindowFocusController* pController);
 
 public:
 	virtual ~TextHeaderEditItem();
 
 public:
-	virtual qs::QSTATUS setEditMessage(
-		EditMessage* pEditMessage, bool bReset);
+	virtual void setEditMessage(EditMessage* pEditMessage,
+								bool bReset);
 	virtual void releaseEditMessage(EditMessage* pEditMessage);
 	virtual bool hasFocus() const;
 
 public:
-	qs::QSTATUS setStyle(const WCHAR* pwszStyle);
-	qs::QSTATUS setField(const WCHAR* pwszField);
-	qs::QSTATUS setType(const WCHAR* pwszType);
+	void setStyle(unsigned int nStyle);
+	void setField(const WCHAR* pwszField);
+	void setType(Type type);
 
 public:
-	virtual qs::QSTATUS create(qs::WindowBase* pParent,
-		const std::pair<HFONT, HFONT>& fonts, UINT nId);
-	virtual qs::QSTATUS destroy();
-	virtual qs::QSTATUS layout(const RECT& rect, unsigned int nFontHeight);
-	virtual qs::QSTATUS show(bool bShow);
+	virtual bool create(qs::WindowBase* pParent,
+						const std::pair<HFONT, HFONT>& fonts,
+						UINT nId);
+	virtual void destroy();
+	virtual void layout(const RECT& rect,
+						unsigned int nFontHeight);
+	virtual void show(bool bShow);
 
 public:
-	virtual qs::QSTATUS fieldChanged(const EditMessageFieldEvent& event);
+	virtual void fieldChanged(const EditMessageFieldEvent& event);
 
 protected:
 	HWND getHandle() const;
@@ -224,7 +228,11 @@ protected:
 	virtual UINT getWindowExStyle() const = 0;
 
 public:
-	virtual qs::QSTATUS setFocus();
+	virtual void setFocus();
+
+public:
+	static unsigned int parseStyle(const WCHAR* pwszStyle);
+	static Type parseType(const WCHAR* pwszType);
 
 private:
 	TextHeaderEditItem(const TextHeaderEditItem&);
@@ -232,10 +240,10 @@ private:
 
 private:
 	unsigned int nStyle_;
-	qs::WSTRING wstrField_;
+	qs::wstring_ptr wstrField_;
 	Type type_;
 	HWND hwnd_;
-	EditWindowItemWindow* pItemWindow_;
+	std::auto_ptr<EditWindowItemWindow> pItemWindow_;
 };
 
 
@@ -248,12 +256,11 @@ private:
 class StaticHeaderEditItem : public TextHeaderEditItem
 {
 public:
-	StaticHeaderEditItem(EditWindowFocusController* pController,
-		qs::QSTATUS* pstatus);
+	explicit StaticHeaderEditItem(EditWindowFocusController* pController);
 	virtual ~StaticHeaderEditItem();
 
 public:
-	virtual qs::QSTATUS updateEditMessage(EditMessage* pEditMessage);
+	virtual void updateEditMessage(EditMessage* pEditMessage);
 	virtual bool hasInitialFocus() const;
 	virtual bool isFocusItem() const;
 
@@ -282,26 +289,26 @@ class EditHeaderEditItem :
 	public qs::DefaultCommandHandler
 {
 public:
-	EditHeaderEditItem(EditWindowFocusController* pController,
-		qs::QSTATUS* pstatus);
+	EditHeaderEditItem(EditWindowFocusController* pController);
 	virtual ~EditHeaderEditItem();
 
 public:
 	void setExpandAlias(bool bExpandAlias);
 
 public:
-	virtual qs::QSTATUS setEditMessage(
-		EditMessage* pEditMessage, bool bReset);
-	virtual qs::QSTATUS updateEditMessage(EditMessage* pEditMessage);
+	virtual void setEditMessage(EditMessage* pEditMessage,
+								bool bReset);
+	virtual void updateEditMessage(EditMessage* pEditMessage);
 	virtual void releaseEditMessage(EditMessage* pEditMessage);
 	virtual bool hasInitialFocus() const;
 	virtual bool isFocusItem() const;
 
 public:
 	virtual unsigned int getHeight(unsigned int nFontHeight) const;
-	virtual qs::QSTATUS create(qs::WindowBase* pParent,
-		const std::pair<HFONT, HFONT>& fonts, UINT nId);
-	virtual qs::QSTATUS destroy();
+	virtual bool create(qs::WindowBase* pParent,
+						const std::pair<HFONT, HFONT>& fonts,
+						UINT nId);
+	virtual void destroy();
 
 protected:
 	virtual const TCHAR* getWindowClassName() const;
@@ -309,19 +316,20 @@ protected:
 	virtual UINT getWindowExStyle() const;
 
 public:
-	virtual qs::QSTATUS copy();
-	virtual qs::QSTATUS canCopy(bool* pbCan);
-	virtual qs::QSTATUS cut();
-	virtual qs::QSTATUS canCut(bool* pbCan);
-	virtual qs::QSTATUS paste();
-	virtual qs::QSTATUS canPaste(bool* pbCan);
-	virtual qs::QSTATUS selectAll();
-	virtual qs::QSTATUS canSelectAll(bool* pbCan);
-	virtual qs::QSTATUS undo();
-	virtual qs::QSTATUS canUndo(bool* pbCan);
+	virtual void copy();
+	virtual bool canCopy();
+	virtual void cut();
+	virtual bool canCut();
+	virtual void paste();
+	virtual bool canPaste();
+	virtual void selectAll();
+	virtual bool canSelectAll();
+	virtual void undo();
+	virtual bool canUndo();
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 private:
 	LRESULT onKillFocus();
@@ -352,39 +360,41 @@ class AttachmentHeaderEditItem :
 {
 public:
 	AttachmentHeaderEditItem(EditWindowFocusController* pController,
-		qs::MenuManager* pMenuManager, qs::QSTATUS* pstatus);
+							 qs::MenuManager* pMenuManager);
 	virtual ~AttachmentHeaderEditItem();
 
 public:
-	virtual qs::QSTATUS setEditMessage(
-		EditMessage* pEditMessage, bool bReset);
+	virtual void setEditMessage(EditMessage* pEditMessage,
+								bool bReset);
 	virtual void releaseEditMessage(EditMessage* pEditMessage);
-	virtual qs::QSTATUS updateEditMessage(EditMessage* pEditMessage);
+	virtual void updateEditMessage(EditMessage* pEditMessage);
 	virtual bool hasFocus() const;
 	virtual bool hasInitialFocus() const;
 	virtual bool isFocusItem() const;
 
 public:
 	virtual unsigned int getHeight(unsigned int nFontHeight) const;
-	virtual qs::QSTATUS create(qs::WindowBase* pParent,
-		const std::pair<HFONT, HFONT>& fonts, UINT nId);
-	virtual qs::QSTATUS destroy();
-	virtual qs::QSTATUS layout(const RECT& rect, unsigned int nFontHeight);
-	virtual qs::QSTATUS show(bool bShow);
+	virtual bool create(qs::WindowBase* pParent,
+						const std::pair<HFONT, HFONT>& fonts,
+						UINT nId);
+	virtual void destroy();
+	virtual void layout(const RECT& rect,
+						unsigned int nFontHeight);
+	virtual void show(bool bShow);
 
 public:
-	virtual qs::QSTATUS setFocus();
+	virtual void setFocus();
 
 public:
-	virtual qs::QSTATUS attachmentsChanged(const EditMessageEvent& event);
+	virtual void attachmentsChanged(const EditMessageEvent& event);
 
 public:
-	virtual qs::QSTATUS hasAttachment(bool* pbHas);
-	virtual qs::QSTATUS hasSelectedAttachment(bool* pbHas);
-	virtual qs::QSTATUS getSelectedAttachment(NameList* pList);
+	virtual bool hasAttachment();
+	virtual bool hasSelectedAttachment();
+	virtual void getSelectedAttachment(NameList* pList);
 
 private:
-	qs::QSTATUS update(EditMessage* pEditMessage);
+	void update(EditMessage* pEditMessage);
 	void clear();
 
 private:
@@ -397,15 +407,19 @@ private:
 		public qs::DefaultWindowHandler
 	{
 	public:
-		AttachmentEditWindow(AttachmentHeaderEditItem* pItem, qs::QSTATUS* pstatus);
+		explicit AttachmentEditWindow(AttachmentHeaderEditItem* pItem);
 		virtual ~AttachmentEditWindow();
 	
 	public:
-		virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+		virtual LRESULT windowProc(UINT uMsg,
+								   WPARAM wParam,
+								   LPARAM lParam);
 	
 	protected:
-		LRESULT onContextMenu(HWND hwnd, const POINT& pt);
-		LRESULT onLButtonDown(UINT nFlags, const POINT& pt);
+		LRESULT onContextMenu(HWND hwnd,
+							  const POINT& pt);
+		LRESULT onLButtonDown(UINT nFlags,
+							  const POINT& pt);
 	
 	private:
 		AttachmentEditWindow(const AttachmentEditWindow&);
@@ -419,7 +433,7 @@ private:
 private:
 	AttachmentEditWindow wnd_;
 	qs::MenuManager* pMenuManager_;
-	EditWindowItemWindow* pItemWindow_;
+	std::auto_ptr<EditWindowItemWindow> pItemWindow_;
 	EditMessage* pEditMessage_;
 };
 
@@ -435,8 +449,7 @@ class ComboBoxHeaderEditItem :
 	public qs::DefaultCommandHandler
 {
 public:
-	ComboBoxHeaderEditItem(EditWindowFocusController* pController,
-		qs::QSTATUS* pstatus);
+	explicit ComboBoxHeaderEditItem(EditWindowFocusController* pController);
 	virtual ~ComboBoxHeaderEditItem();
 
 public:
@@ -447,17 +460,20 @@ public:
 
 public:
 	virtual unsigned int getHeight(unsigned int nFontHeight) const;
-	virtual qs::QSTATUS create(qs::WindowBase* pParent,
-		const std::pair<HFONT, HFONT>& fonts, UINT nId);
-	virtual qs::QSTATUS destroy();
-	virtual qs::QSTATUS layout(const RECT& rect, unsigned int nFontHeight);
-	virtual qs::QSTATUS show(bool bShow);
+	virtual bool create(qs::WindowBase* pParent,
+						const std::pair<HFONT, HFONT>& fonts,
+						UINT nId);
+	virtual void destroy();
+	virtual void layout(const RECT& rect,
+						unsigned int nFontHeight);
+	virtual void show(bool bShow);
 
 public:
-	virtual qs::QSTATUS setFocus();
+	virtual void setFocus();
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 protected:
 	virtual LRESULT onChange();
@@ -471,7 +487,7 @@ private:
 
 private:
 	HWND hwnd_;
-	EditWindowItemWindow* pItemWindow_;
+	std::auto_ptr<EditWindowItemWindow> pItemWindow_;
 	qs::WindowBase* pParent_;
 	UINT nId_;
 };
@@ -488,25 +504,24 @@ class SignatureHeaderEditItem :
 	public DefaultEditMessageHandler
 {
 public:
-	SignatureHeaderEditItem(EditWindowFocusController* pController,
-		qs::QSTATUS* pstatus);
+	explicit SignatureHeaderEditItem(EditWindowFocusController* pController);
 	virtual ~SignatureHeaderEditItem();
 
 public:
-	virtual qs::QSTATUS setEditMessage(
-		EditMessage* pEditMessage, bool bReset);
+	virtual void setEditMessage(EditMessage* pEditMessage,
+								bool bReset);
 	virtual void releaseEditMessage(EditMessage* pEditMessage);
-	virtual qs::QSTATUS updateEditMessage(EditMessage* pEditMessage);
+	virtual void updateEditMessage(EditMessage* pEditMessage);
 
 public:
-	virtual qs::QSTATUS accountChanged(const EditMessageEvent& event);
-	virtual qs::QSTATUS signatureChanged(const EditMessageEvent& event);
+	virtual void accountChanged(const EditMessageEvent& event);
+	virtual void signatureChanged(const EditMessageEvent& event);
 
 protected:
 	virtual LRESULT onChange();
 
 private:
-	qs::QSTATUS update(EditMessage* pEditMessage);
+	void update(EditMessage* pEditMessage);
 
 private:
 	SignatureHeaderEditItem(const SignatureHeaderEditItem&);
@@ -528,21 +543,20 @@ class AccountHeaderEditItem :
 	public DefaultEditMessageHandler
 {
 public:
-	AccountHeaderEditItem(EditWindowFocusController* pController,
-		qs::QSTATUS* pstatus);
+	explicit AccountHeaderEditItem(EditWindowFocusController* pController);
 	virtual ~AccountHeaderEditItem();
 
 public:
-	virtual qs::QSTATUS setEditMessage(
-		EditMessage* pEditMessage, bool bReset);
-	virtual qs::QSTATUS updateEditMessage(EditMessage* pEditMessage);
+	virtual void setEditMessage(EditMessage* pEditMessage,
+								bool bReset);
+	virtual void updateEditMessage(EditMessage* pEditMessage);
 	virtual void releaseEditMessage(EditMessage* pEditMessage);
 
 public:
 	void setShowFrom(bool bShow);
 
 public:
-	virtual qs::QSTATUS accountChanged(const EditMessageEvent& event);
+	virtual void accountChanged(const EditMessageEvent& event);
 
 protected:
 	virtual LRESULT onChange();
@@ -567,22 +581,32 @@ class HeaderEditWindowContentHandler : public qs::DefaultHandler
 {
 public:
 	HeaderEditWindowContentHandler(LineLayout* pLayout,
-		EditWindowFocusController* pController, qs::MenuManager* pMenuManager,
-		HeaderEditLineCallback* pCallback, qs::QSTATUS* pstatus);
+								   EditWindowFocusController* pController,
+								   qs::MenuManager* pMenuManager,
+								   HeaderEditLineCallback* pCallback);
 	virtual ~HeaderEditWindowContentHandler();
 
 public:
 	AttachmentSelectionModel* getAttachmentSelectionModel() const;
 
 public:
-	virtual qs::QSTATUS startElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName,
-		const qs::Attributes& attributes);
-	virtual qs::QSTATUS endElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName);
-	virtual qs::QSTATUS characters(const WCHAR* pwsz,
-		size_t nStart, size_t nLength);
+	virtual bool startElement(const WCHAR* pwszNamespaceURI,
+							  const WCHAR* pwszLocalName,
+							  const WCHAR* pwszQName,
+							  const qs::Attributes& attributes);
+	virtual bool endElement(const WCHAR* pwszNamespaceURI,
+							const WCHAR* pwszLocalName,
+							const WCHAR* pwszQName);
+	virtual bool characters(const WCHAR* pwsz,
+							size_t nStart,
+							size_t nLength);
 
+private:
+	static void setWidth(LineLayoutItem* pItem,
+						 const WCHAR* pwszWidth);
+	static void setNumber(HeaderEditItem* pItem,
+						  const WCHAR* pwszNumber);
+	
 private:
 	HeaderEditWindowContentHandler(const HeaderEditWindowContentHandler&);
 	HeaderEditWindowContentHandler& operator=(const HeaderEditWindowContentHandler&);
@@ -604,6 +628,7 @@ private:
 	HeaderEditItem* pCurrentItem_;
 	State state_;
 	AttachmentSelectionModel* pAttachmentSelectionModel_;
+	qs::StringBuffer<qs::WSTRING> buffer_;
 };
 
 

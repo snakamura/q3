@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -40,22 +40,26 @@ class MessageFrameWindowManager
 {
 public:
 	MessageFrameWindowManager(Document* pDocument,
-		TempFileCleaner* pTempFileCleaner, qs::MenuManager* pMenuManager,
-		qs::ToolbarManager* pToolbarManager, qs::KeyMap* pKeyMap,
-		qs::Profile* pProfile, ViewModelManager* pViewModelManager,
-		EditFrameWindowManager* pEditFrameWindowManager,
-		ExternalEditorManager* pExternalEditorManager, qs::QSTATUS* pstatus);
+							  TempFileCleaner* pTempFileCleaner,
+							  qs::MenuManager* pMenuManager,
+							  qs::ToolbarManager* pToolbarManager,
+							  qs::KeyMap* pKeyMap,
+							  qs::Profile* pProfile,
+							  ViewModelManager* pViewModelManager,
+							  EditFrameWindowManager* pEditFrameWindowManager,
+							  ExternalEditorManager* pExternalEditorManager);
 	~MessageFrameWindowManager();
 
 public:
-	qs::QSTATUS open(ViewModel* pViewModel, MessageHolder* pmh);
+	bool open(ViewModel* pViewModel,
+			  MessageHolder* pmh);
 	void close(MessageFrameWindow* pMessageFrameWindow);
-	qs::QSTATUS preModalDialog(HWND hwndParent);
-	qs::QSTATUS postModalDialog(HWND hwndParent);
-	qs::QSTATUS save() const;
+	void preModalDialog(HWND hwndParent);
+	void postModalDialog(HWND hwndParent);
+	bool save() const;
 
 private:
-	qs::QSTATUS create(MessageFrameWindow** ppFrame);
+	MessageFrameWindow* create();
 
 private:
 	MessageFrameWindowManager(const MessageFrameWindowManager&);

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -9,7 +9,6 @@
 #include <qmdocument.h>
 #include <qmmessage.h>
 
-#include <qsnew.h>
 #include <qsthread.h>
 
 #include "lastid.h"
@@ -24,11 +23,11 @@ using namespace qm;
 using namespace qs;
 
 
-#define CHECK_QSTATUS_ERROR() \
-	if (status != QSTATUS_SUCCESS) { \
-		Util::reportError(pNntp_, pSessionCallback_, pAccount_, pSubAccount_); \
-		return status; \
-	} \
+#define HANDLE_ERROR() \
+	do { \
+		Util::reportError(pNntp_.get(), pSessionCallback_, pAccount_, pSubAccount_); \
+		return false; \
+	} while (false) \
 
 
 /****************************************************************************
@@ -37,28 +36,22 @@ using namespace qs;
  *
  */
 
-qmnntp::NntpReceiveSession::NntpReceiveSession(QSTATUS* pstatus) :
-	pNntp_(0),
-	pCallback_(0),
+qmnntp::NntpReceiveSession::NntpReceiveSession() :
 	pDocument_(0),
 	pAccount_(0),
 	pSubAccount_(0),
 	pFolder_(0),
 	hwnd_(0),
 	pLogger_(0),
-	pSessionCallback_(0),
-	pLastIdList_(0)
+	pSessionCallback_(0)
 {
 }
 
 qmnntp::NntpReceiveSession::~NntpReceiveSession()
 {
-	delete pNntp_;
-	delete pCallback_;
-	delete pLastIdList_;
 }
 
-QSTATUS qmnntp::NntpReceiveSession::init(Document* pDocument,
+bool qmnntp::NntpReceiveSession::init(Document* pDocument,
 	Account* pAccount, SubAccount* pSubAccount, HWND hwnd,
 	Profile* pProfile, Logger* pLogger, ReceiveSessionCallback* pCallback)
 {
@@ -69,8 +62,6 @@ QSTATUS qmnntp::NntpReceiveSession::init(Document* pDocument,
 	assert(pProfile);
 	assert(pCallback);
 	
-	DECLARE_QSTATUS();
-	
 	pDocument_ = pDocument;
 	pAccount_ = pAccount;
 	pSubAccount_ = pSubAccount;
@@ -79,119 +70,85 @@ QSTATUS qmnntp::NntpReceiveSession::init(Document* pDocument,
 	pLogger_ = pLogger;
 	pSessionCallback_ = pCallback;
 	
-	status = newQsObject(pSubAccount_, pDocument->getSecurity(),
-		pSessionCallback_, &pCallback_);
-	CHECK_QSTATUS();
+	pCallback_.reset(new CallbackImpl(pSubAccount_,
+		pDocument->getSecurity(), pSessionCallback_));
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmnntp::NntpReceiveSession::connect()
+bool qmnntp::NntpReceiveSession::connect()
 {
-	assert(!pNntp_);
-	
-	DECLARE_QSTATUS();
+	assert(!pNntp_.get());
 	
 	Log log(pLogger_, L"qmnntp::NntpReceiveSession");
-	status = log.debug(L"Connecting to the server...");
-	CHECK_QSTATUS();
+	log.debug(L"Connecting to the server...");
 	
-	Nntp::Option option = {
-		pSubAccount_->getTimeout(),
-		pCallback_,
-		pCallback_,
-		pCallback_,
-		pLogger_
-	};
-	status = newQsObject(option, &pNntp_);
-	CHECK_QSTATUS();
-	
-	status = pNntp_->connect(pSubAccount_->getHost(Account::HOST_RECEIVE),
+	pNntp_.reset(new Nntp(pSubAccount_->getTimeout(), pCallback_.get(),
+		pCallback_.get(), pCallback_.get(), pLogger_));
+	if (!pNntp_->connect(pSubAccount_->getHost(Account::HOST_RECEIVE),
 		pSubAccount_->getPort(Account::HOST_RECEIVE),
-		pSubAccount_->isSsl(Account::HOST_RECEIVE));
-	CHECK_QSTATUS_ERROR();
+		pSubAccount_->isSsl(Account::HOST_RECEIVE)))
+		HANDLE_ERROR();
 	
-	status = log.debug(L"Connected to the server.");
-	CHECK_QSTATUS();
+	log.debug(L"Connected to the server.");
 	
-	string_ptr<WSTRING> wstrPath(concat(pAccount_->getPath(), L"\\lastid.xml"));
-	if (!wstrPath.get())
-		return QSTATUS_OUTOFMEMORY;
-	status = newQsObject(wstrPath.get(), &pLastIdList_);
-	CHECK_QSTATUS();
+	wstring_ptr wstrPath(concat(pAccount_->getPath(), L"\\lastid.xml"));
+	pLastIdList_.reset(new LastIdList(wstrPath.get()));
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmnntp::NntpReceiveSession::disconnect()
+bool qmnntp::NntpReceiveSession::disconnect()
 {
-	assert(pNntp_);
-	
-	DECLARE_QSTATUS();
+	assert(pNntp_.get());
 	
 	if (pLastIdList_->isModified()) {
-		status = pLastIdList_->save();
-		CHECK_QSTATUS();
+		if (!pLastIdList_->save())
+			return false;
 	}
 	
 	Log log(pLogger_, L"qmnntp::NntpReceiveSession");
-	status = log.debug(L"Disconnecting from the server...");
-	CHECK_QSTATUS();
+	log.debug(L"Disconnecting from the server...");
 	
-	status = pNntp_->disconnect();
-	CHECK_QSTATUS_ERROR();
+	pNntp_->disconnect();
 	
-	status = log.debug(L"Disconnected from the server.");
-	CHECK_QSTATUS();
+	log.debug(L"Disconnected from the server.");
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmnntp::NntpReceiveSession::selectFolder(NormalFolder* pFolder)
+bool qmnntp::NntpReceiveSession::selectFolder(NormalFolder* pFolder)
 {
-	DECLARE_QSTATUS();
+	pCallback_->setMessage(IDS_SELECTGROUP);
 	
-	status = pCallback_->setMessage(IDS_SELECTGROUP);
-	CHECK_QSTATUS();
-	
-	string_ptr<WSTRING> wstrGroup;
-	status = pFolder->getFullName(&wstrGroup);
-	CHECK_QSTATUS();
-	
-	status = pNntp_->group(wstrGroup.get());
-	CHECK_QSTATUS();
+	wstring_ptr wstrGroup(pFolder->getFullName());
+	if (!pNntp_->group(wstrGroup.get()))
+		HANDLE_ERROR();
 	
 	pFolder_ = pFolder;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmnntp::NntpReceiveSession::closeFolder()
+bool qmnntp::NntpReceiveSession::closeFolder()
 {
 	assert(pFolder_);
 	
-	DECLARE_QSTATUS();
-	
-	status = pCallback_->setRange(0, 0);
-	CHECK_QSTATUS();
-	status = pCallback_->setPos(0);
-	CHECK_QSTATUS();
+	pCallback_->setRange(0, 0);
+	pCallback_->setPos(0);
 	
 	pFolder_ = 0;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmnntp::NntpReceiveSession::updateMessages()
+bool qmnntp::NntpReceiveSession::updateMessages()
 {
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmnntp::NntpReceiveSession::downloadMessages(
-	const SyncFilterSet* pSyncFilterSet)
+bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilterSet)
 {
-	DECLARE_QSTATUS();
-	
 	unsigned int nStart = pNntp_->getFirst();
 	{
 		unsigned int nLastId = pLastIdList_->getLastId(pNntp_->getGroup());
@@ -199,54 +156,41 @@ QSTATUS qmnntp::NntpReceiveSession::downloadMessages(
 			nStart = nLastId + 1;
 		
 		Lock<Account> lock(*pAccount_);
-		status = pFolder_->loadMessageHolders();
-		CHECK_QSTATUS();
+		if (!pFolder_->loadMessageHolders())
+			return false;
 		unsigned int nCount = pFolder_->getCount();
 		if (nCount != 0) {
 			unsigned int nId = pFolder_->getMessage(nCount - 1)->getId();
 			nStart = QSMAX(nStart, nId + 1);
 		}
 		else if (nLastId == 0) {
-			unsigned int nInitialFetchCount = 0;
-			status = pSubAccount_->getProperty(L"Nntp", L"InitialFetchCount",
-				300, reinterpret_cast<int*>(&nInitialFetchCount));
-			CHECK_QSTATUS();
+			unsigned int nInitialFetchCount = pSubAccount_->getProperty(
+				L"Nntp", L"InitialFetchCount", 300);
 			if (pNntp_->getLast() > nInitialFetchCount - 1)
 				nStart = QSMAX(nStart, pNntp_->getLast() - nInitialFetchCount + 1);
 		}
 	}
 	
-	status = pCallback_->setMessage(IDS_DOWNLOADMESSAGES);
-	CHECK_QSTATUS();
-	status = pSessionCallback_->setRange(0, pNntp_->getLast());
-	CHECK_QSTATUS();
-	status = pSessionCallback_->setPos(nStart);
-	CHECK_QSTATUS();
+	pCallback_->setMessage(IDS_DOWNLOADMESSAGES);
+	pSessionCallback_->setRange(0, pNntp_->getLast());
+	pSessionCallback_->setPos(nStart);
 	
-	int nUseXOver = 1;
-	status = pSubAccount_->getProperty(L"Nntp", L"UseXOVER", 1, &nUseXOver);
-	CHECK_QSTATUS();
+	bool bUseXOver = pSubAccount_->getProperty(L"Nntp", L"UseXOVER", 1) != 0;
 	
-	MacroVariableHolder globalVariable(&status);
-	CHECK_QSTATUS();
+	MacroVariableHolder globalVariable;
 	
-	if (nUseXOver) {
-		unsigned int nStep = 0;
-		status = pSubAccount_->getProperty(L"Nntp", L"XOVERStep",
-			100, reinterpret_cast<int*>(&nStep));
-		CHECK_QSTATUS();
+	if (bUseXOver) {
+		unsigned int nStep = pSubAccount_->getProperty(L"Nntp", L"XOVERStep", 100);
 		
 		for (unsigned int n = nStart; n <= pNntp_->getLast(); n += nStep) {
-			MessagesData* p = 0;
-			status = pNntp_->getMessagesData(n, n + nStep - 1, &p);
-			CHECK_QSTATUS_ERROR();
-			std::auto_ptr<MessagesData> pData(p);
+			std::auto_ptr<MessagesData> pData;
+			if (!pNntp_->getMessagesData(n, n + nStep - 1, &pData))
+				HANDLE_ERROR();
 			
 			for (size_t m = 0; m < pData->getCount(); ++m) {
 				if (pSessionCallback_->isCanceled(false))
-					return QSTATUS_SUCCESS;
-				status = pSessionCallback_->setPos(n + m);
-				CHECK_QSTATUS();
+					return true;
+				pSessionCallback_->setPos(n + m);
 				
 				const MessagesData::Item& item = pData->getItem(m);
 				
@@ -261,56 +205,47 @@ QSTATUS qmnntp::NntpReceiveSession::downloadMessages(
 					{ "References",	item.pszReferences_	}
 				};
 				
-				StringBuffer<STRING> buf(&status);
-				CHECK_QSTATUS();
+				StringBuffer<STRING> buf;
 				for (int f = 0; f < countof(fields); ++f) {
 					if (*fields[f].pszValue_) {
-						status = buf.append(fields[f].pszName_);
-						CHECK_QSTATUS();
-						status = buf.append(": ");
-						CHECK_QSTATUS();
-						status = buf.append(fields[f].pszValue_);
-						CHECK_QSTATUS();
-						status = buf.append("\r\n");
-						CHECK_QSTATUS();
+						buf.append(fields[f].pszName_);
+						buf.append(": ");
+						buf.append(fields[f].pszValue_);
+						buf.append("\r\n");
 					}
 				}
-				status = buf.append("\r\n");
-				CHECK_QSTATUS();
+				buf.append("\r\n");
 				
 				const CHAR* pszMessage = buf.getCharArray();
 				unsigned int nFlags = MessageHolder::FLAG_INDEXONLY;
 				
-				string_ptr<STRING> strMessage;
+				xstring_ptr strMessage;
 				if (pSyncFilterSet) {
 					bool bDownload = false;
-					Message msg(buf.getCharArray(), buf.getLength(),
-						Message::FLAG_TEMPORARY, &status);
-					CHECK_QSTATUS();
+					Message msg;
+					if (!msg.create(buf.getCharArray(), buf.getLength(), Message::FLAG_TEMPORARY))
+						return false;
+					
 					State state = STATE_NONE;
-					const SyncFilter* pFilter = 0;
 					NntpSyncFilterCallback callback(pDocument_, pAccount_,
 						pFolder_, &msg, item.nBytes_, hwnd_, pProfile_, &globalVariable,
-						pNntp_, item.nId_, strMessage.getThis(), &state);
-					status = pSyncFilterSet->getFilter(&callback, &pFilter);
-					CHECK_QSTATUS();
+						pNntp_.get(), item.nId_, &strMessage, &state);
+					const SyncFilter* pFilter = pSyncFilterSet->getFilter(&callback);
 					if (pFilter) {
 						const SyncFilter::ActionList& listAction = pFilter->getActions();
-						SyncFilter::ActionList::const_iterator it = listAction.begin();
-						while (it != listAction.end()) {
+						for (SyncFilter::ActionList::const_iterator it = listAction.begin(); it != listAction.end(); ++it) {
 							const SyncFilterAction* pAction = *it;
 							if (wcscmp(pAction->getName(), L"download") == 0) {
 								if (state != STATE_ALL) {
-									status = pNntp_->getMessage(item.nId_,
-										Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage);
-									CHECK_QSTATUS_ERROR();
+									if (!pNntp_->getMessage(item.nId_,
+										Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage))
+										HANDLE_ERROR();
 								}
 								if (strMessage.get()) {
 									pszMessage = strMessage.get();
 									nFlags = 0;
 								}
 							}
-							++it;
 						}
 					}
 				}
@@ -318,34 +253,29 @@ QSTATUS qmnntp::NntpReceiveSession::downloadMessages(
 				{
 					Lock<Account> lock(*pAccount_);
 					
-					MessageHolder* pmh = 0;
-					status = pAccount_->storeMessage(pFolder_, pszMessage,
-						0, item.nId_, nFlags, item.nBytes_,
-						nFlags == MessageHolder::FLAG_INDEXONLY, &pmh);
-					CHECK_QSTATUS();
+					MessageHolder* pmh = pAccount_->storeMessage(pFolder_,
+						pszMessage, 0, item.nId_, nFlags, item.nBytes_,
+						nFlags == MessageHolder::FLAG_INDEXONLY);
+					if (!pmh)
+						return false;
 				}
 				
-				if ((nFlags & MessageHolder::FLAG_SEEN) == 0) {
-					status = pSessionCallback_->notifyNewMessage();
-					CHECK_QSTATUS();
-				}
+				if ((nFlags & MessageHolder::FLAG_SEEN) == 0)
+					pSessionCallback_->notifyNewMessage();
 				
-				status = pLastIdList_->setLastId(pNntp_->getGroup(), item.nId_);
-				CHECK_QSTATUS();
+				pLastIdList_->setLastId(pNntp_->getGroup(), item.nId_);
 			}
 		}
 	}
 	else {
 		for (unsigned int n = nStart; n <= pNntp_->getLast(); ++n) {
 			if (pSessionCallback_->isCanceled(false))
-				return QSTATUS_SUCCESS;
-			status = pSessionCallback_->setPos(n);
-			CHECK_QSTATUS();
+				return true;
+			pSessionCallback_->setPos(n);
 			
-			string_ptr<STRING> strMessage;
-			status = pNntp_->getMessage(n,
-				Nntp::GETMESSAGEFLAG_HEAD, &strMessage);
-			CHECK_QSTATUS_ERROR();
+			xstring_ptr strMessage;
+			if (!pNntp_->getMessage(n, Nntp::GETMESSAGEFLAG_HEAD, &strMessage))
+				HANDLE_ERROR();
 			
 			if (strMessage.get()) {
 				// TODO
@@ -353,62 +283,49 @@ QSTATUS qmnntp::NntpReceiveSession::downloadMessages(
 				
 				Lock<Account> lock(*pAccount_);
 				
-				MessageHolder* pmh = 0;
-				status = pAccount_->storeMessage(pFolder_, strMessage.get(),
-					0, n, MessageHolder::FLAG_INDEXONLY, -1, true, &pmh);
-				CHECK_QSTATUS();
+				MessageHolder* pmh = pAccount_->storeMessage(pFolder_,
+					strMessage.get(), 0, n, MessageHolder::FLAG_INDEXONLY, -1, true);
+				if (!pmh)
+					return false;
 				
-				status = pSessionCallback_->notifyNewMessage();
-				CHECK_QSTATUS();
+				pSessionCallback_->notifyNewMessage();
 				
-				status = pLastIdList_->setLastId(pNntp_->getGroup(), n);
-				CHECK_QSTATUS();
+				pLastIdList_->setLastId(pNntp_->getGroup(), n);
 			}
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmnntp::NntpReceiveSession::applyOfflineJobs()
+bool qmnntp::NntpReceiveSession::applyOfflineJobs()
 {
 	return downloadReservedMessages();
 }
 
-QSTATUS qmnntp::NntpReceiveSession::downloadReservedMessages()
+bool qmnntp::NntpReceiveSession::downloadReservedMessages()
 {
-	DECLARE_QSTATUS();
-	
 	const Account::FolderList& l = pAccount_->getFolders();
-	Account::FolderList::const_iterator it = l.begin();
-	while (it != l.end()) {
+	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		Folder* pFolder = *it;
 		if (pFolder->getType() == Folder::TYPE_NORMAL) {
-			status = downloadReservedMessages(
-				static_cast<NormalFolder*>(pFolder));
-			CHECK_QSTATUS();
+			if (!downloadReservedMessages(static_cast<NormalFolder*>(pFolder)))
+				return false;
 		}
-		++it;
 	}
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmnntp::NntpReceiveSession::downloadReservedMessages(
-	NormalFolder* pFolder)
+bool qmnntp::NntpReceiveSession::downloadReservedMessages(NormalFolder* pFolder)
 {
 	assert(pFolder);
 	
-	DECLARE_QSTATUS();
-	
 	if (pFolder->getDownloadCount() == 0)
-		return QSTATUS_SUCCESS;
+		return true;
 	
-	string_ptr<WSTRING> wstrGroup;
-	status = pFolder->getFullName(&wstrGroup);
-	CHECK_QSTATUS();
-	status = pNntp_->group(wstrGroup.get());
-	CHECK_QSTATUS_ERROR();
+	wstring_ptr wstrGroup(pFolder->getFullName());
+	if (!pNntp_->group(wstrGroup.get()))
+		HANDLE_ERROR();
 	
 	typedef std::vector<MessagePtr> List;
 	List l;
@@ -416,11 +333,10 @@ QSTATUS qmnntp::NntpReceiveSession::downloadReservedMessages(
 	{
 		Lock<Account> lock(*pAccount_);
 		
-		status = pFolder->loadMessageHolders();
-		CHECK_QSTATUS();
+		if (!pFolder->loadMessageHolders())
+			return false;
 		
-		status = STLWrapper<List>(l).reserve(pFolder->getDownloadCount());
-		CHECK_QSTATUS();
+		l.reserve(pFolder->getDownloadCount());
 		
 		for (unsigned int n = 0; n < pFolder->getCount(); ++n) {
 			MessageHolder* pmh = pFolder->getMessage(n);
@@ -430,29 +346,27 @@ QSTATUS qmnntp::NntpReceiveSession::downloadReservedMessages(
 		}
 	}
 	
-	List::const_iterator it = l.begin();
-	while (it != l.end()) {
+	for (List::const_iterator it = l.begin(); it != l.end(); ++it) {
 		MessagePtrLock mpl(*it);
 		if (mpl) {
-			string_ptr<STRING> strMessage;
-			status = pNntp_->getMessage(mpl->getId(),
-				Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage);
-			CHECK_QSTATUS();
+			xstring_ptr strMessage;
+			if (!pNntp_->getMessage(mpl->getId(),
+				Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage))
+				HANDLE_ERROR();
 			
 			unsigned int nMask = MessageHolder::FLAG_DOWNLOAD |
 				MessageHolder::FLAG_DOWNLOADTEXT;
 			if (strMessage.get()) {
-				status = pAccount_->updateMessage(mpl, strMessage.get());
-				CHECK_QSTATUS();
+				if (!pAccount_->updateMessage(mpl, strMessage.get()))
+					return false;
 				nMask |=  MessageHolder::FLAG_SEEN |
 					MessageHolder::FLAG_PARTIAL_MASK;
 			}
 			mpl->setFlags(0, nMask);
 		}
-		++it;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -462,10 +376,10 @@ QSTATUS qmnntp::NntpReceiveSession::downloadReservedMessages(
  *
  */
 
-qmnntp::NntpReceiveSession::CallbackImpl::CallbackImpl(
-	SubAccount* pSubAccount, const Security* pSecurity,
-	ReceiveSessionCallback* pSessionCallback, QSTATUS* pstatus) :
-	AbstractCallback(pSubAccount, pSecurity, pstatus),
+qmnntp::NntpReceiveSession::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
+													   const Security* pSecurity,
+													   ReceiveSessionCallback* pSessionCallback) :
+	AbstractCallback(pSubAccount, pSecurity),
 	pSessionCallback_(pSessionCallback)
 {
 }
@@ -474,15 +388,10 @@ qmnntp::NntpReceiveSession::CallbackImpl::~CallbackImpl()
 {
 }
 
-QSTATUS qmnntp::NntpReceiveSession::CallbackImpl::setMessage(UINT nId)
+void qmnntp::NntpReceiveSession::CallbackImpl::setMessage(UINT nId)
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrMessage;
-	status = loadString(getResourceHandle(), nId, &wstrMessage);
-	CHECK_QSTATUS();
-	
-	return pSessionCallback_->setMessage(wstrMessage.get());
+	wstring_ptr wstrMessage(loadString(getResourceHandle(), nId));
+	pSessionCallback_->setMessage(wstrMessage.get());
 }
 
 bool qmnntp::NntpReceiveSession::CallbackImpl::isCanceled(bool bForce) const
@@ -490,40 +399,40 @@ bool qmnntp::NntpReceiveSession::CallbackImpl::isCanceled(bool bForce) const
 	return pSessionCallback_->isCanceled(bForce);
 }
 
-QSTATUS qmnntp::NntpReceiveSession::CallbackImpl::initialize()
+void qmnntp::NntpReceiveSession::CallbackImpl::initialize()
 {
-	return setMessage(IDS_INITIALIZE);
+	setMessage(IDS_INITIALIZE);
 }
 
-QSTATUS qmnntp::NntpReceiveSession::CallbackImpl::lookup()
+void qmnntp::NntpReceiveSession::CallbackImpl::lookup()
 {
-	return setMessage(IDS_LOOKUP);
+	setMessage(IDS_LOOKUP);
 }
 
-QSTATUS qmnntp::NntpReceiveSession::CallbackImpl::connecting()
+void qmnntp::NntpReceiveSession::CallbackImpl::connecting()
 {
-	return setMessage(IDS_CONNECTING);
+	setMessage(IDS_CONNECTING);
 }
 
-QSTATUS qmnntp::NntpReceiveSession::CallbackImpl::connected()
+void qmnntp::NntpReceiveSession::CallbackImpl::connected()
 {
-	return setMessage(IDS_CONNECTED);
+	setMessage(IDS_CONNECTED);
 }
 
-QSTATUS qmnntp::NntpReceiveSession::CallbackImpl::authenticating()
+void qmnntp::NntpReceiveSession::CallbackImpl::authenticating()
 {
-	return setMessage(IDS_AUTHENTICATING);
+	setMessage(IDS_AUTHENTICATING);
 }
 
-QSTATUS qmnntp::NntpReceiveSession::CallbackImpl::setRange(
-	unsigned int nMin, unsigned int nMax)
+void qmnntp::NntpReceiveSession::CallbackImpl::setRange(unsigned int nMin,
+														unsigned int nMax)
 {
-	return pSessionCallback_->setSubRange(nMin, nMax);
+	pSessionCallback_->setSubRange(nMin, nMax);
 }
 
-QSTATUS qmnntp::NntpReceiveSession::CallbackImpl::setPos(unsigned int nPos)
+void qmnntp::NntpReceiveSession::CallbackImpl::setPos(unsigned int nPos)
 {
-	return pSessionCallback_->setSubPos(nPos);
+	pSessionCallback_->setSubPos(nPos);
 }
 
 
@@ -533,7 +442,7 @@ QSTATUS qmnntp::NntpReceiveSession::CallbackImpl::setPos(unsigned int nPos)
  *
  */
 
-qmnntp::NntpReceiveSessionUI::NntpReceiveSessionUI(QSTATUS* pstatus)
+qmnntp::NntpReceiveSessionUI::NntpReceiveSessionUI()
 {
 }
 
@@ -546,10 +455,9 @@ const WCHAR* qmnntp::NntpReceiveSessionUI::getClass()
 	return L"news";
 }
 
-QSTATUS qmnntp::NntpReceiveSessionUI::getDisplayName(WSTRING* pwstrName)
+wstring_ptr qmnntp::NntpReceiveSessionUI::getDisplayName()
 {
-	assert(pwstrName);
-	return loadString(getResourceHandle(), IDS_NNTP, pwstrName);
+	return loadString(getResourceHandle(), IDS_NNTP);
 }
 
 short qmnntp::NntpReceiveSessionUI::getDefaultPort()
@@ -557,22 +465,9 @@ short qmnntp::NntpReceiveSessionUI::getDefaultPort()
 	return 119;
 }
 
-QSTATUS qmnntp::NntpReceiveSessionUI::createPropertyPage(
-	SubAccount* pSubAccount, PropertyPage** ppPage)
+std::auto_ptr<PropertyPage> qmnntp::NntpReceiveSessionUI::createPropertyPage(SubAccount* pSubAccount)
 {
-	assert(ppPage);
-	
-	DECLARE_QSTATUS();
-	
-	*ppPage = 0;
-	
-	std::auto_ptr<ReceivePage> pPage;
-	status = newQsObject(pSubAccount, &pPage);
-	CHECK_QSTATUS();
-	
-	*ppPage = pPage.release();
-	
-	return QSTATUS_SUCCESS;
+	return new ReceivePage(pSubAccount);
 }
 
 
@@ -586,43 +481,22 @@ NntpReceiveSessionFactory qmnntp::NntpReceiveSessionFactory::factory__;
 
 qmnntp::NntpReceiveSessionFactory::NntpReceiveSessionFactory()
 {
-	regist(L"nntp", this);
+	registerFactory(L"nntp", this);
 }
 
 qmnntp::NntpReceiveSessionFactory::~NntpReceiveSessionFactory()
 {
-	unregist(L"nntp");
+	unregisterFactory(L"nntp");
 }
 
-QSTATUS qmnntp::NntpReceiveSessionFactory::createSession(
-	ReceiveSession** ppReceiveSession)
+std::auto_ptr<ReceiveSession> qmnntp::NntpReceiveSessionFactory::createSession()
 {
-	assert(ppReceiveSession);
-	
-	DECLARE_QSTATUS();
-	
-	NntpReceiveSession* pSession = 0;
-	status = newQsObject(&pSession);
-	CHECK_QSTATUS();
-	
-	*ppReceiveSession = pSession;
-	
-	return QSTATUS_SUCCESS;
+	return new NntpReceiveSession();
 }
 
-QSTATUS qmnntp::NntpReceiveSessionFactory::createUI(ReceiveSessionUI** ppUI)
+std::auto_ptr<ReceiveSessionUI> qmnntp::NntpReceiveSessionFactory::createUI()
 {
-	assert(ppUI);
-	
-	DECLARE_QSTATUS();
-	
-	NntpReceiveSessionUI* pUI = 0;
-	status = newQsObject(&pUI);
-	CHECK_QSTATUS();
-	
-	*ppUI = pUI;
-	
-	return QSTATUS_SUCCESS;
+	return new NntpReceiveSessionUI();
 }
 
 
@@ -632,12 +506,18 @@ QSTATUS qmnntp::NntpReceiveSessionFactory::createUI(ReceiveSessionUI** ppUI)
  *
  */
 
-qmnntp::NntpSyncFilterCallback::NntpSyncFilterCallback(
-	Document* pDocument, Account* pAccount, NormalFolder* pFolder,
-	Message* pMessage, unsigned int nSize, HWND hwnd, Profile* pProfile,
-	MacroVariableHolder* pGlobalVariable, Nntp* pNntp,
-	unsigned int nMessage, qs::string_ptr<qs::STRING>* pstrMessage,
-	NntpReceiveSession::State* pState) :
+qmnntp::NntpSyncFilterCallback::NntpSyncFilterCallback(Document* pDocument,
+													   Account* pAccount,
+													   NormalFolder* pFolder,
+													   Message* pMessage,
+													   unsigned int nSize,
+													   HWND hwnd,
+													   Profile* pProfile,
+													   MacroVariableHolder* pGlobalVariable,
+													   Nntp* pNntp,
+													   unsigned int nMessage,
+													   qs::xstring_ptr* pstrMessage,
+													   NntpReceiveSession::State* pState) :
 	pDocument_(pDocument),
 	pAccount_(pAccount),
 	pFolder_(pFolder),
@@ -649,20 +529,16 @@ qmnntp::NntpSyncFilterCallback::NntpSyncFilterCallback(
 	pNntp_(pNntp),
 	nMessage_(nMessage),
 	pstrMessage_(pstrMessage),
-	pState_(pState),
-	pmh_(0)
+	pState_(pState)
 {
 }
 
 qmnntp::NntpSyncFilterCallback::~NntpSyncFilterCallback()
 {
-	delete pmh_;
 }
 
-QSTATUS qmnntp::NntpSyncFilterCallback::getMessage(unsigned int nFlag)
+bool qmnntp::NntpSyncFilterCallback::getMessage(unsigned int nFlag)
 {
-	DECLARE_QSTATUS();
-	
 	bool bDownload = false;
 	unsigned int nMaxLine = 0xffffffff;
 	switch (nFlag & Account::GETMESSAGEFLAG_METHOD_MASK) {
@@ -679,26 +555,25 @@ QSTATUS qmnntp::NntpSyncFilterCallback::getMessage(unsigned int nFlag)
 		break;
 	default:
 		assert(false);
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
 	if (bDownload) {
-		string_ptr<STRING>& str = *pstrMessage_;
+		xstring_ptr& str = *pstrMessage_;
 		
 		str.reset(0);
-		status = pNntp_->getMessage(nMessage_,
-			Nntp::GETMESSAGEFLAG_HEAD, &str);
-		CHECK_QSTATUS();
+		if (pNntp_->getMessage(nMessage_, Nntp::GETMESSAGEFLAG_HEAD, &str))
+			return false;
 		
 		size_t nLen = static_cast<size_t>(-1);
 		CHAR* p = strstr(str.get(), "\r\n\r\n");
 		if (p)
 			nLen = p - str.get() + 4;
-		status = pMessage_->create(str.get(), nLen, Message::FLAG_HEADERONLY);
-		CHECK_QSTATUS();
+		if (!pMessage_->create(str.get(), nLen, Message::FLAG_HEADERONLY))
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 const NormalFolder* qmnntp::NntpSyncFilterCallback::getFolder()
@@ -706,35 +581,13 @@ const NormalFolder* qmnntp::NntpSyncFilterCallback::getFolder()
 	return pFolder_;
 }
 
-QSTATUS qmnntp::NntpSyncFilterCallback::getMacroContext(
-	MacroContext** ppContext)
+std::auto_ptr<MacroContext> qmnntp::NntpSyncFilterCallback::getMacroContext()
 {
-	assert(ppContext);
+	if (!pmh_.get())
+		pmh_.reset(new NntpMessageHolder(this, pFolder_, pMessage_, nSize_));
 	
-	DECLARE_QSTATUS();
-	
-	if (!pmh_) {
-		status = newQsObject(this, pFolder_, pMessage_, nSize_, &pmh_);
-		CHECK_QSTATUS();
-	}
-	MacroContext::Init init = {
-		pmh_,
-		pMessage_,
-		pAccount_,
-		pDocument_,
-		hwnd_,
-		pProfile_,
-		false,
-		0,
-		pGlobalVariable_
-	};
-	std::auto_ptr<MacroContext> pContext;
-	status = newQsObject(init, &pContext);
-	CHECK_QSTATUS();
-	
-	*ppContext = pContext.release();
-	
-	return QSTATUS_SUCCESS;
+	return new MacroContext(pmh_.get(), pMessage_, pAccount_,
+		pDocument_, hwnd_, pProfile_, false, 0, pGlobalVariable_);
 }
 
 
@@ -744,22 +597,22 @@ QSTATUS qmnntp::NntpSyncFilterCallback::getMacroContext(
  *
  */
 
-qmnntp::NntpMessageHolder::NntpMessageHolder(
-	NntpSyncFilterCallback* pCallback, NormalFolder* pFolder,
-	Message* pMessage, unsigned int nSize, QSTATUS* pstatus) :
-	AbstractMessageHolder(pFolder, pMessage, -1, nSize, nSize, pstatus),
+qmnntp::NntpMessageHolder::NntpMessageHolder(NntpSyncFilterCallback* pCallback,
+											 NormalFolder* pFolder,
+											 Message* pMessage,
+											 unsigned int nSize) :
+	AbstractMessageHolder(pFolder, pMessage, -1, nSize, nSize),
 	pCallback_(pCallback)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qmnntp::NntpMessageHolder::~NntpMessageHolder()
 {
 }
 
-QSTATUS qmnntp::NntpMessageHolder::getMessage(unsigned int nFlags,
-	const WCHAR* pwszField, Message* pMessage)
+bool qmnntp::NntpMessageHolder::getMessage(unsigned int nFlags,
+										   const WCHAR* pwszField,
+										   Message* pMessage)
 {
 	assert(pMessage == AbstractMessageHolder::getMessage());
 	
@@ -773,7 +626,7 @@ QSTATUS qmnntp::NntpMessageHolder::getMessage(unsigned int nFlags,
 	
 	for (int n = 0; n < countof(pwszFields); ++n) {
 		if (wcsicmp(pwszField, pwszFields[n]) == 0)
-			return QSTATUS_SUCCESS;
+			return false;
 	}
 	
 	return pCallback_->getMessage(nFlags);

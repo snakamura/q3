@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -39,7 +39,7 @@ class QMEXPORTCLASS EditFrameWindow : public qs::FrameWindow
 {
 public:
 	EditFrameWindow(EditFrameWindowManager* pManager,
-		qs::Profile* pProfile, qs::QSTATUS* pstatus);
+					qs::Profile* pProfile);
 	virtual ~EditFrameWindow();
 
 public:
@@ -50,37 +50,46 @@ public:
 	bool tryClose();
 	
 	bool isShowToolbar() const;
-	qs::QSTATUS setShowToolbar(bool bShow);
+	void setShowToolbar(bool bShow);
 	bool isShowStatusBar() const;
-	qs::QSTATUS setShowStatusBar(bool bShow);
+	void setShowStatusBar(bool bShow);
 
 protected:
-	virtual qs::QSTATUS getToolbarButtons(Toolbar* pToolbar, bool* pbToolbar);
-	virtual qs::QSTATUS createToolbarButtons(void* pCreateParam, HWND hwndToolbar);
+	virtual bool getToolbarButtons(Toolbar* pToolbar);
+	virtual bool createToolbarButtons(void* pCreateParam,
+									  HWND hwndToolbar);
 #if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
-	virtual qs::QSTATUS getBarId(int n, UINT* pnId) const;
-	virtual qs::QSTATUS getCommandBandsRestoreInfo(int n,
-		COMMANDBANDSRESTOREINFO* pcbri) const;
-	virtual qs::QSTATUS setCommandBandsRestoreInfo(int n,
-		const COMMANDBANDSRESTOREINFO& cbri);
+	virtual UINT getBarId(int n) const;
+	virtual bool getCommandBandsRestoreInfo(int n,
+											COMMANDBANDSRESTOREINFO* pcbri) const;
+	virtual bool setCommandBandsRestoreInfo(int n,
+											const COMMANDBANDSRESTOREINFO& cbri);
 #endif
-	virtual qs::QSTATUS getMenuHandle(void* pCreateParam, HMENU* phmenu);
-	virtual qs::QSTATUS getIconId(UINT* pnId);
+	virtual HMENU getMenuHandle(void* pCreateParam);
+	virtual UINT getIconId();
 
 public:
-	virtual qs::QSTATUS getWindowClass(WNDCLASS* pwc);
-	virtual qs::QSTATUS preCreateWindow(CREATESTRUCT* pCreateStruct);
-	virtual qs::QSTATUS getAction(UINT nId, qs::Action** ppAction);
-	virtual qs::QSTATUS getAccelerator(qs::Accelerator** ppAccelerator);
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual void getWindowClass(WNDCLASS* pwc);
+	virtual bool preCreateWindow(CREATESTRUCT* pCreateStruct);
+	virtual qs::Action* getAction(UINT nId);
+	virtual qs::Accelerator* getAccelerator();
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
-	LRESULT onActivate(UINT nFlags, HWND hwnd, bool bMinimized);
+	LRESULT onActivate(UINT nFlags,
+					   HWND hwnd,
+					   bool bMinimized);
 	LRESULT onClose();
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
 	LRESULT onDestroy();
-	LRESULT onInitMenuPopup(HMENU hmenu, UINT nIndex, bool bSysMenu);
-	LRESULT onSize(UINT nFlags, int cx, int cy);
+	LRESULT onInitMenuPopup(HMENU hmenu,
+						    UINT nIndex,
+						    bool bSysMenu);
+	LRESULT onSize(UINT nFlags,
+				   int cx,
+				   int cy);
 
 private:
 	EditFrameWindow(const EditFrameWindow&);
@@ -102,7 +111,7 @@ class EditWindow :
 	public qs::DefaultWindowHandler
 {
 public:
-	EditWindow(qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	explicit EditWindow(qs::Profile* pProfile);
 	virtual ~EditWindow();
 
 public:
@@ -114,16 +123,20 @@ public:
 	void saveFocusedItem();
 	void restoreFocusedItem();
 	bool isHeaderEdit() const;
-	qs::QSTATUS setHeaderEdit(bool bHeaderEdit);
+	void setHeaderEdit(bool bHeaderEdit);
 
 public:
-	virtual qs::QSTATUS getAccelerator(qs::Accelerator** ppAccelerator);
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual qs::Accelerator* getAccelerator();
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
 	LRESULT onDestroy();
-	LRESULT onSize(UINT nFlags, int cx, int cy);
+	LRESULT onSize(UINT nFlags,
+				   int cx,
+				   int cy);
 
 private:
 	EditWindow(const EditWindow&);
@@ -145,15 +158,16 @@ class HeaderEditWindow :
 	public qs::DefaultWindowHandler
 {
 public:
-	HeaderEditWindow(qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	explicit HeaderEditWindow(qs::Profile* pProfile);
 	virtual ~HeaderEditWindow();
 
 public:
-	qs::QSTATUS setEditMessage(EditMessage* pEditMessage, bool bReset);
+	void setEditMessage(EditMessage* pEditMessage,
+						bool bReset);
 	void releaseEditMessage(EditMessage* pEditMessage);
-	qs::QSTATUS updateEditMessage(EditMessage* pEditMessage);
+	void updateEditMessage(EditMessage* pEditMessage);
 	int getHeight() const;
-	qs::QSTATUS layout();
+	void layout();
 	EditWindowItem* getFocusedItem() const;
 	EditWindowItem* getInitialFocusedItem() const;
 	EditWindowItem* getNextFocusItem(EditWindowItem* pItem) const;
@@ -162,14 +176,19 @@ public:
 	AttachmentSelectionModel* getAttachmentSelectionModel() const;
 
 public:
-	virtual qs::QSTATUS getWindowClass(WNDCLASS* pwc);
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual void getWindowClass(WNDCLASS* pwc);
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 protected:
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
-	LRESULT onCtlColorStatic(HDC hdc, HWND hwnd);
+	LRESULT onCtlColorStatic(HDC hdc,
+							 HWND hwnd);
 	LRESULT onDestroy();
-	LRESULT onSize(UINT nFlags, int cx, int cy);
+	LRESULT onSize(UINT nFlags,
+				   int cx,
+				   int cy);
 
 private:
 	HeaderEditWindow(const HeaderEditWindow&);

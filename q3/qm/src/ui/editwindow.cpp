@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -13,7 +13,6 @@
 #include <qsconv.h>
 #include <qsdragdrop.h>
 #include <qskeymap.h>
-#include <qsnew.h>
 
 #include <tchar.h>
 
@@ -50,48 +49,50 @@ public:
 	};
 
 public:
-	QSTATUS layoutChildren();
-	QSTATUS layoutChildren(int cx, int cy);
-	QSTATUS updateEditMessage() const;
+	void layoutChildren();
+	void layoutChildren(int cx,
+						int cy);
+	bool updateEditMessage() const;
 
 public:
-	virtual QSTATUS copy();
-	virtual QSTATUS canCopy(bool* pbCan);
-	virtual QSTATUS cut();
-	virtual QSTATUS canCut(bool* pbCan);
-	virtual QSTATUS paste();
-	virtual QSTATUS canPaste(bool* pbCan);
-	virtual QSTATUS selectAll();
-	virtual QSTATUS canSelectAll(bool* pbCan);
-	virtual QSTATUS undo();
-	virtual QSTATUS canUndo(bool* pbCan);
-	virtual QSTATUS redo();
-	virtual QSTATUS canRedo(bool* pbCan);
-	virtual qs::QSTATUS setFocus();
+	virtual void copy();
+	virtual bool canCopy();
+	virtual void cut();
+	virtual bool canCut();
+	virtual void paste();
+	virtual bool canPaste();
+	virtual void selectAll();
+	virtual bool canSelectAll();
+	virtual void undo();
+	virtual bool canUndo();
+	virtual void redo();
+	virtual bool canRedo();
+	virtual void setFocus();
 
 public:
-	virtual qs::QSTATUS setFocus(EditWindowItem* pItem, Focus focus);
+	virtual void setFocus(EditWindowItem* pItem,
+						  Focus focus);
 
 public:
 	virtual bool isHidden() const;
 
 public:
-	virtual QSTATUS layout();
+	virtual void layout();
 
 public:
 	virtual EditMessage* getEditMessage();
-	virtual qs::QSTATUS setEditMessage(EditMessage* pEditMessage);
+	virtual bool setEditMessage(EditMessage* pEditMessage);
 	virtual void releaseEditMessage();
 
 public:
-	virtual qs::QSTATUS messageSet(const EditMessageEvent& event);
-	virtual qs::QSTATUS messageUpdate(const EditMessageEvent& event);
+	virtual void messageSet(const EditMessageEvent& event);
+	virtual void messageUpdate(const EditMessageEvent& event);
 
 public:
-	virtual QSTATUS dragEnter(const DropTargetDragEvent& event);
-	virtual QSTATUS dragOver(const DropTargetDragEvent& event);
-	virtual QSTATUS dragExit(const DropTargetEvent& event);
-	virtual QSTATUS drop(const DropTargetDropEvent& event);
+	virtual void dragEnter(const DropTargetDragEvent& event);
+	virtual void dragOver(const DropTargetDragEvent& event);
+	virtual void dragExit(const DropTargetEvent& event);
+	virtual void drop(const DropTargetDropEvent& event);
 
 public:
 	EditWindow* pThis_;
@@ -99,12 +100,12 @@ public:
 	bool bHideHeaderIfNoFocus_;
 	
 	Profile* pProfile_;
-	Accelerator* pAccelerator_;
+	std::auto_ptr<Accelerator> pAccelerator_;
 	EditMessage* pEditMessage_;
 	HeaderEditWindow* pHeaderEditWindow_;
 	EditTextWindow* pTextWindow_;
-	EditWindowItemWindow* pItemWindow_;
-	DropTarget* pDropTarget_;
+	std::auto_ptr<EditWindowItemWindow> pItemWindow_;
+	std::auto_ptr<DropTarget> pDropTarget_;
 	bool bCreated_;
 	
 	bool bHeaderEdit_;
@@ -112,38 +113,32 @@ public:
 	bool bCanDrop_;
 };
 
-QSTATUS qm::EditWindowImpl::layoutChildren()
+void qm::EditWindowImpl::layoutChildren()
 {
 	RECT rect;
 	pThis_->getClientRect(&rect);
-	return layoutChildren(rect.right - rect.left, rect.bottom - rect.top);
+	layoutChildren(rect.right - rect.left, rect.bottom - rect.top);
 }
 
-QSTATUS qm::EditWindowImpl::layoutChildren(int cx, int cy)
+void qm::EditWindowImpl::layoutChildren(int cx,
+										int cy)
 {
-	DECLARE_QSTATUS();
+	pHeaderEditWindow_->layout();
 	
-	status = pHeaderEditWindow_->layout();
-	CHECK_QSTATUS();
 	int nHeaderHeight = pHeaderEditWindow_->getHeight();
-	
 	pHeaderEditWindow_->setWindowPos(0, 0, 0, cx, nHeaderHeight, SWP_NOZORDER);
 	pHeaderEditWindow_->showWindow(bHeaderEdit_ ? SW_HIDE : SW_SHOW);
 	
 	int nY = bHeaderEdit_ ? 0 : nHeaderHeight;
 	int nHeight = cy > nY ? cy - nY : 0;
 	pTextWindow_->setWindowPos(HWND_TOP, 0, nY, cx, nHeight, 0);
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditWindowImpl::updateEditMessage() const
+bool qm::EditWindowImpl::updateEditMessage() const
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrText;
-	status = pTextWindow_->getEditableTextModel()->getText(&wstrText);
-	CHECK_QSTATUS();
+	wxstring_ptr wstrText(pTextWindow_->getEditableTextModel()->getText());
+	if (!wstrText.get())
+		return false;
 	
 	if (bHeaderEdit_) {
 		const WCHAR* p = wcsstr(wstrText.get(), L"\n\n");
@@ -153,91 +148,87 @@ QSTATUS qm::EditWindowImpl::updateEditMessage() const
 			nHeaderLen = p - wstrText.get() + 1;
 			pBody = p + 2;
 		}
-		status = pEditMessage_->setHeader(wstrText.get(), nHeaderLen);
-		CHECK_QSTATUS();
-		status = pEditMessage_->setBody(pBody);
-		CHECK_QSTATUS();
+		if (!pEditMessage_->setHeader(wstrText.get(), nHeaderLen))
+			return false;
+		if (!pEditMessage_->setBody(pBody))
+			return false;
 	}
 	else {
-		status = pHeaderEditWindow_->updateEditMessage(pEditMessage_);
-		CHECK_QSTATUS();
-		
-		status = pEditMessage_->setBody(wstrText.get());
-		CHECK_QSTATUS();
+		pHeaderEditWindow_->updateEditMessage(pEditMessage_);
+		if (!pEditMessage_->setBody(wstrText.get()))
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::EditWindowImpl::copy()
+void qm::EditWindowImpl::copy()
 {
-	return pTextWindow_->copy();
+	pTextWindow_->copy();
 }
 
-QSTATUS qm::EditWindowImpl::canCopy(bool* pbCan)
+bool qm::EditWindowImpl::canCopy()
 {
-	return pTextWindow_->canCopy(pbCan);
+	return pTextWindow_->canCopy();
 }
 
-QSTATUS qm::EditWindowImpl::cut()
+void qm::EditWindowImpl::cut()
 {
-	return pTextWindow_->cut();
+	pTextWindow_->cut();
 }
 
-QSTATUS qm::EditWindowImpl::canCut(bool* pbCan)
+bool qm::EditWindowImpl::canCut()
 {
-	return pTextWindow_->canCut(pbCan);
+	return pTextWindow_->canCut();
 }
 
-QSTATUS qm::EditWindowImpl::paste()
+void qm::EditWindowImpl::paste()
 {
-	return pTextWindow_->paste();
+	pTextWindow_->paste();
 }
 
-QSTATUS qm::EditWindowImpl::canPaste(bool* pbCan)
+bool qm::EditWindowImpl::canPaste()
 {
-	return pTextWindow_->canPaste(pbCan);
+	return pTextWindow_->canPaste();
 }
 
-QSTATUS qm::EditWindowImpl::selectAll()
+void qm::EditWindowImpl::selectAll()
 {
-	return pTextWindow_->selectAll();
+	pTextWindow_->selectAll();
 }
 
-QSTATUS qm::EditWindowImpl::canSelectAll(bool* pbCan)
+bool qm::EditWindowImpl::canSelectAll()
 {
-	assert(pbCan);
-	*pbCan = true;
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::EditWindowImpl::undo()
+void qm::EditWindowImpl::undo()
 {
-	return pTextWindow_->undo();
+	pTextWindow_->undo();
 }
 
-QSTATUS qm::EditWindowImpl::canUndo(bool* pbCan)
+bool qm::EditWindowImpl::canUndo()
 {
-	return pTextWindow_->canUndo(pbCan);
+	return pTextWindow_->canUndo();
 }
 
-QSTATUS qm::EditWindowImpl::redo()
+void qm::EditWindowImpl::redo()
 {
-	return pTextWindow_->redo();
+	pTextWindow_->redo();
 }
 
-QSTATUS qm::EditWindowImpl::canRedo(bool* pbCan)
+bool qm::EditWindowImpl::canRedo()
 {
-	return pTextWindow_->canRedo(pbCan);
+	return pTextWindow_->canRedo();
 }
 
-QSTATUS qm::EditWindowImpl::setFocus()
+void qm::EditWindowImpl::setFocus()
 {
 	pTextWindow_->setFocus();
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditWindowImpl::setFocus(EditWindowItem* pItem, Focus focus)
+void qm::EditWindowImpl::setFocus(EditWindowItem* pItem,
+								  Focus focus)
 {
 	EditWindowItem* pNewItem = 0;
 	if (pItem == this) {
@@ -253,8 +244,6 @@ QSTATUS qm::EditWindowImpl::setFocus(EditWindowItem* pItem, Focus focus)
 			pNewItem = this;
 	}
 	pNewItem->setFocus();
-	
-	return QSTATUS_SUCCESS;
 }
 
 bool qm::EditWindowImpl::isHidden() const
@@ -262,16 +251,10 @@ bool qm::EditWindowImpl::isHidden() const
 	return bHideHeaderIfNoFocus_ && pTextWindow_ && pTextWindow_->hasFocus();
 }
 
-QSTATUS qm::EditWindowImpl::layout()
+void qm::EditWindowImpl::layout()
 {
-	DECLARE_QSTATUS();
-	
-	if (bHideHeaderIfNoFocus_) {
-		status = layoutChildren();
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (bHideHeaderIfNoFocus_)
+		layoutChildren();
 }
 
 EditMessage* qm::EditWindowImpl::getEditMessage()
@@ -279,51 +262,40 @@ EditMessage* qm::EditWindowImpl::getEditMessage()
 	return pEditMessage_;
 }
 
-QSTATUS qm::EditWindowImpl::setEditMessage(EditMessage* pEditMessage)
+bool qm::EditWindowImpl::setEditMessage(EditMessage* pEditMessage)
 {
 	assert(pEditMessage);
 	assert(!pEditMessage_ || pEditMessage_ == pEditMessage);
 	
-	DECLARE_QSTATUS();
-	
 	EditableTextModel* pTextModel = pTextWindow_->getEditableTextModel();
 	if (bHeaderEdit_) {
-		string_ptr<WSTRING> wstrHeader;
-		status = pEditMessage->getHeader(&wstrHeader);
-		CHECK_QSTATUS();
+		wxstring_ptr wstrHeader(pEditMessage->getHeader());
+		if (!wstrHeader.get())
+			return false;
 		
-		StringBuffer<WSTRING> buf(&status);
-		CHECK_QSTATUS();
-		status = buf.append(wstrHeader.get());
-		CHECK_QSTATUS();
-		status = buf.append(L"\n");
-		CHECK_QSTATUS();
-		status = buf.append(pEditMessage->getBody());
-		CHECK_QSTATUS();
+		XStringBuffer<WXSTRING> buf;
+		if (!buf.append(wstrHeader.get()) ||
+			!buf.append(L"\n") ||
+			!buf.append(pEditMessage->getBody()))
+			return false;
 		
-		status = pTextModel->setText(buf.getCharArray(), buf.getLength());
-		CHECK_QSTATUS();
+		if (!pTextModel->setText(buf.getCharArray(), buf.getLength()))
+			return false;
 	}
 	else {
-		status = pHeaderEditWindow_->setEditMessage(
-			pEditMessage, pEditMessage_ != 0);
-		CHECK_QSTATUS();
+		pHeaderEditWindow_->setEditMessage(pEditMessage, pEditMessage_ != 0);
+		if (!pTextModel->setText(pEditMessage->getBody(), -1))
+			return false;
 		
-		status = pTextModel->setText(pEditMessage->getBody(), -1);
-		CHECK_QSTATUS();
-		
-		if (!pEditMessage_) {
-			status = pEditMessage->addEditMessageHandler(this);
-			CHECK_QSTATUS();
-		}
+		if (!pEditMessage_)
+			pEditMessage->addEditMessageHandler(this);
 	}
 	
 	pEditMessage_ = pEditMessage;
 	
-	status = layoutChildren();
-	CHECK_QSTATUS();
+	layoutChildren();
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 void qm::EditWindowImpl::releaseEditMessage()
@@ -334,17 +306,21 @@ void qm::EditWindowImpl::releaseEditMessage()
 	pEditMessage_ = 0;
 }
 
-QSTATUS qm::EditWindowImpl::messageSet(const EditMessageEvent& event)
+void qm::EditWindowImpl::messageSet(const EditMessageEvent& event)
 {
-	return setEditMessage(event.getEditMessage());
+	// TODO
+	// Error handling
+	setEditMessage(event.getEditMessage());
 }
 
-QSTATUS qm::EditWindowImpl::messageUpdate(const EditMessageEvent& event)
+void qm::EditWindowImpl::messageUpdate(const EditMessageEvent& event)
 {
-	return updateEditMessage();
+	// TODO
+	// Error handling
+	updateEditMessage();
 }
 
-QSTATUS qm::EditWindowImpl::dragEnter(const DropTargetDragEvent& event)
+void qm::EditWindowImpl::dragEnter(const DropTargetDragEvent& event)
 {
 	IDataObject* pDataObject = event.getDataObject();
 	
@@ -375,27 +351,21 @@ QSTATUS qm::EditWindowImpl::dragEnter(const DropTargetDragEvent& event)
 	
 	if (bCanDrop_)
 		event.setEffect(DROPEFFECT_COPY);
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditWindowImpl::dragOver(const DropTargetDragEvent& event)
+void qm::EditWindowImpl::dragOver(const DropTargetDragEvent& event)
 {
 	if (bCanDrop_) 
 		event.setEffect(DROPEFFECT_COPY);
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditWindowImpl::dragExit(const DropTargetEvent& event)
+void qm::EditWindowImpl::dragExit(const DropTargetEvent& event)
 {
 	bCanDrop_ = false;
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditWindowImpl::drop(const DropTargetDropEvent& event)
+void qm::EditWindowImpl::drop(const DropTargetDropEvent& event)
 {
-	DECLARE_QSTATUS();
-	
 	IDataObject* pDataObject = event.getDataObject();
 	
 #ifndef _WIN32_WCE
@@ -418,15 +388,12 @@ QSTATUS qm::EditWindowImpl::drop(const DropTargetDropEvent& event)
 				if (dwAttributes != 0xffffffff &&
 					!(dwAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
 					T2W(tszPath, pwszPath);
-					status = pEditMessage_->addAttachment(pwszPath);
-					CHECK_QSTATUS();
+					pEditMessage_->addAttachment(pwszPath);
 				}
 			}
 		}
 	}
 #endif
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -436,32 +403,17 @@ QSTATUS qm::EditWindowImpl::drop(const DropTargetDropEvent& event)
  *
  */
 
-qm::EditWindow::EditWindow(Profile* pProfile, QSTATUS* pstatus) :
-	WindowBase(true, pstatus),
-	DefaultWindowHandler(pstatus),
+qm::EditWindow::EditWindow(Profile* pProfile) :
+	WindowBase(true),
 	pImpl_(0)
 {
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	DECLARE_QSTATUS();
-	
-	int nHideHeaderIfNoFocus = 0;
-	status = pProfile->getInt(L"EditWindow",
-		L"HideHeaderIfNoFocus", 0, &nHideHeaderIfNoFocus);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new EditWindowImpl();
 	pImpl_->pThis_ = this;
-	pImpl_->bHideHeaderIfNoFocus_ = nHideHeaderIfNoFocus != 0;
+	pImpl_->bHideHeaderIfNoFocus_ = pProfile->getInt(L"EditWindow", L"HideHeaderIfNoFocus", 0) != 0;
 	pImpl_->pProfile_ = pProfile;
-	pImpl_->pAccelerator_ = 0;
 	pImpl_->pEditMessage_ = 0;
 	pImpl_->pHeaderEditWindow_ = 0;
 	pImpl_->pTextWindow_ = 0;
-	pImpl_->pItemWindow_ = 0;
-	pImpl_->pDropTarget_ = 0;
 	pImpl_->bCreated_ = false;
 	pImpl_->bHeaderEdit_ = false;
 	pImpl_->pLastFocusedItem_ = 0;
@@ -472,12 +424,7 @@ qm::EditWindow::EditWindow(Profile* pProfile, QSTATUS* pstatus) :
 
 qm::EditWindow::~EditWindow()
 {
-	if (pImpl_) {
-		delete pImpl_->pItemWindow_;
-		delete pImpl_->pAccelerator_;
-		delete pImpl_;
-		pImpl_ = 0;
-	}
+	delete pImpl_;
 }
 
 EditMessageHolder* qm::EditWindow::getEditMessageHolder() const
@@ -533,35 +480,25 @@ bool qm::EditWindow::isHeaderEdit() const
 	return pImpl_->bHeaderEdit_;
 }
 
-QSTATUS qm::EditWindow::setHeaderEdit(bool bHeaderEdit)
+void qm::EditWindow::setHeaderEdit(bool bHeaderEdit)
 {
-	DECLARE_QSTATUS();
-	
 	if (bHeaderEdit != pImpl_->bHeaderEdit_) {
-		Message* pMessage = 0;
-		status = pImpl_->pEditMessage_->getMessage(&pMessage);
-		CHECK_QSTATUS();
-		
+		Message* pMessage = pImpl_->pEditMessage_->getMessage();
 		pImpl_->bHeaderEdit_ = bHeaderEdit;
-		
-		status = pImpl_->setEditMessage(pImpl_->pEditMessage_);
-		CHECK_QSTATUS();
-		
+		pImpl_->setEditMessage(pImpl_->pEditMessage_);
 		pImpl_->layoutChildren();
 		pImpl_->pTextWindow_->setFocus();
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditWindow::getAccelerator(Accelerator** ppAccelerator)
+Accelerator* qm::EditWindow::getAccelerator()
 {
-	assert(ppAccelerator);
-	*ppAccelerator = pImpl_->pAccelerator_;
-	return QSTATUS_SUCCESS;
+	return pImpl_->pAccelerator_.get();
 }
 
-LRESULT qm::EditWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qm::EditWindow::windowProc(UINT uMsg,
+								   WPARAM wParam,
+								   LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_CREATE()
@@ -576,56 +513,51 @@ LRESULT qm::EditWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (DefaultWindowHandler::onCreate(pCreateStruct) == -1)
 		return -1;
 	
-	DECLARE_QSTATUS();
-	
 	EditWindowCreateContext* pContext =
 		static_cast<EditWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	
-	status = pContext->pKeyMap_->createAccelerator(
-		CustomAcceleratorFactory(), L"EditWindow",
-		mapKeyNameToId, countof(mapKeyNameToId), &pImpl_->pAccelerator_);
-	CHECK_QSTATUS_VALUE(-1);
+	CustomAcceleratorFactory acceleratorFactory;
+	pImpl_->pAccelerator_ = pContext->pKeyMap_->createAccelerator(
+		&acceleratorFactory, L"EditWindow", mapKeyNameToId, countof(mapKeyNameToId));
+	if (!pImpl_->pAccelerator_.get())
+		return -1;
 	
-	std::auto_ptr<HeaderEditWindow> pHeaderEditWindow;
-	status = newQsObject(pImpl_->pProfile_, &pHeaderEditWindow);
-	CHECK_QSTATUS_VALUE(-1);
+	std::auto_ptr<HeaderEditWindow> pHeaderEditWindow(
+		new HeaderEditWindow(pImpl_->pProfile_));
 	HeaderEditWindowCreateContext headerEditContext = {
 		pImpl_,
 		pContext->pMenuManager_,
 		pImpl_
 	};
-	status = pHeaderEditWindow->create(L"QmHeaderEditWindow", 0,
+	if (!pHeaderEditWindow->create(L"QmHeaderEditWindow", 0,
 		WS_VISIBLE | WS_CHILD, CW_USEDEFAULT, CW_USEDEFAULT,
 		CW_USEDEFAULT, CW_USEDEFAULT, getHandle(), 0, 0,
-		EditWindowImpl::ID_HEADEREDITWINDOW, &headerEditContext);
-	CHECK_QSTATUS_VALUE(-1);
+		EditWindowImpl::ID_HEADEREDITWINDOW, &headerEditContext))
+		return -1;
 	pImpl_->pHeaderEditWindow_ = pHeaderEditWindow.release();
 	
 	EditTextWindowCreateContext editTextContext = {
 		pContext->pMenuManager_,
 		pImpl_
 	};
-	std::auto_ptr<EditTextWindow> pTextWindow;
-	status = newQsObject(pImpl_->pProfile_, L"EditWindow", &pTextWindow);
-	CHECK_QSTATUS_VALUE(-1);
+	std::auto_ptr<EditTextWindow> pTextWindow(
+		new EditTextWindow(pImpl_->pProfile_, L"EditWindow"));
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	DWORD dwExStyle = 0;
 #else
 	DWORD dwExStyle = WS_EX_CLIENTEDGE;
 #endif
-	status = pTextWindow->create(L"QmEditTextWindow", 0,
+	if (!pTextWindow->create(L"QmEditTextWindow", 0,
 		WS_VISIBLE | WS_CHILD, CW_USEDEFAULT, CW_USEDEFAULT,
 		CW_USEDEFAULT, CW_USEDEFAULT, getHandle(), dwExStyle, 0,
-		EditWindowImpl::ID_TEXTWINDOW, &editTextContext);
-	CHECK_QSTATUS_VALUE(-1);
+		EditWindowImpl::ID_TEXTWINDOW, &editTextContext))
+		return -1;
 	pImpl_->pTextWindow_ = pTextWindow.release();
 	
-	status = newQsObject(pImpl_, pImpl_,
-		pImpl_->pTextWindow_->getHandle(), true, &pImpl_->pItemWindow_);
-	CHECK_QSTATUS_VALUE(-1);
+	pImpl_->pItemWindow_.reset(new EditWindowItemWindow(pImpl_,
+		pImpl_, pImpl_->pTextWindow_->getHandle(), true));
 	
-	status = newQsObject(getHandle(), &pImpl_->pDropTarget_);
-	CHECK_QSTATUS_VALUE(-1);
+	pImpl_->pDropTarget_.reset(new DropTarget(getHandle()));
 	pImpl_->pDropTarget_->setDropTargetHandler(pImpl_);
 	
 	pImpl_->bCreated_ = true;
@@ -636,13 +568,13 @@ LRESULT qm::EditWindow::onCreate(CREATESTRUCT* pCreateStruct)
 LRESULT qm::EditWindow::onDestroy()
 {
 	pImpl_->pItemWindow_->unsubclassWindow();
-	
-	delete pImpl_->pDropTarget_;
-	
+	pImpl_->pDropTarget_.reset(0);
 	return DefaultWindowHandler::onDestroy();
 }
 
-LRESULT qm::EditWindow::onSize(UINT nFlags, int cx, int cy)
+LRESULT qm::EditWindow::onSize(UINT nFlags,
+							   int cx,
+							   int cy)
 {
 	if (pImpl_->bCreated_)
 		pImpl_->layoutChildren(cx, cy);
@@ -667,31 +599,28 @@ qm::EditWindowItem::~EditWindowItem()
  *
  */
 
-qm::EditWindowItemWindow::EditWindowItemWindow(
-	EditWindowFocusController* pController, EditWindowItem* pItem,
-	HWND hwnd, QSTATUS* pstatus) :
-	WindowBase(false, pstatus),
-	DefaultWindowHandler(pstatus),
+qm::EditWindowItemWindow::EditWindowItemWindow(EditWindowFocusController* pController,
+											   EditWindowItem* pItem,
+											   HWND hwnd) :
+	WindowBase(false),
 	pController_(pController),
 	pItem_(pItem),
 	bPrevOnly_(false)
 {
 	setWindowHandler(this, false);
-	
 	subclassWindow(hwnd);
 }
 
-qm::EditWindowItemWindow::EditWindowItemWindow(
-	EditWindowFocusController* pController, EditWindowItem* pItem,
-	HWND hwnd, bool bPrevOnly, QSTATUS* pstatus) :
-	WindowBase(false, pstatus),
-	DefaultWindowHandler(pstatus),
+qm::EditWindowItemWindow::EditWindowItemWindow(EditWindowFocusController* pController,
+											   EditWindowItem* pItem,
+											   HWND hwnd,
+											   bool bPrevOnly) :
+	WindowBase(false),
 	pController_(pController),
 	pItem_(pItem),
 	bPrevOnly_(bPrevOnly)
 {
 	setWindowHandler(this, false);
-	
 	subclassWindow(hwnd);
 }
 
@@ -699,7 +628,9 @@ qm::EditWindowItemWindow::~EditWindowItemWindow()
 {
 }
 
-LRESULT qm::EditWindowItemWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qm::EditWindowItemWindow::windowProc(UINT uMsg,
+											 WPARAM wParam,
+											 LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_CHAR()
@@ -707,7 +638,9 @@ LRESULT qm::EditWindowItemWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lP
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
 
-LRESULT qm::EditWindowItemWindow::onChar(UINT nChar, UINT nRepeat, UINT nFlags)
+LRESULT qm::EditWindowItemWindow::onChar(UINT nChar,
+										 UINT nRepeat,
+										 UINT nFlags)
 {
 	if (nChar == _T('\t')) {
 		bool bShift = ::GetKeyState(VK_SHIFT) < 0;
@@ -740,16 +673,12 @@ qm::EditWindowFocusController::~EditWindowFocusController()
  */
 
 qm::EditTextWindow::EditTextWindow(Profile* pProfile,
-	const WCHAR* pwszSection, QSTATUS* pstatus) :
-	TextWindow(0, pProfile, pwszSection, true, pstatus),
+								   const WCHAR* pwszSection) :
+	TextWindow(0, pProfile, pwszSection, true),
 	pMenuManager_(0),
 	pCallback_(0)
 {
-	DECLARE_QSTATUS();
-	
-	std::auto_ptr<EditableTextModel> pTextModel;
-	status = newQsObject(&pTextModel);
-	CHECK_QSTATUS_SET(pstatus);
+	std::auto_ptr<EditableTextModel> pTextModel(new EditableTextModel());
 	setTextModel(pTextModel.release());
 	setLinkHandler(this);
 }
@@ -764,7 +693,9 @@ EditableTextModel* qm::EditTextWindow::getEditableTextModel() const
 	return static_cast<EditableTextModel*>(getTextModel());
 }
 
-LRESULT qm::EditTextWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qm::EditTextWindow::windowProc(UINT uMsg,
+									   WPARAM wParam,
+									   LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_CONTEXTMENU()
@@ -776,13 +707,11 @@ LRESULT qm::EditTextWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return TextWindow::windowProc(uMsg, wParam, lParam);
 }
 
-LRESULT qm::EditTextWindow::onContextMenu(HWND hwnd, const POINT& pt)
+LRESULT qm::EditTextWindow::onContextMenu(HWND hwnd,
+										  const POINT& pt)
 {
-	DECLARE_QSTATUS();
-	
-	HMENU hmenu = 0;
-	status = pMenuManager_->getMenu(L"edit", false, false, &hmenu);
-	if (status == QSTATUS_SUCCESS) {
+	HMENU hmenu = pMenuManager_->getMenu(L"edit", false, false);
+	if (hmenu) {
 		UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
 #ifndef _WIN32_WCE
 		nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
@@ -813,7 +742,8 @@ LRESULT qm::EditTextWindow::onKillFocus(HWND hwnd)
 	return TextWindow::onKillFocus(hwnd);
 }
 
-LRESULT qm::EditTextWindow::onLButtonDown(UINT nFlags, const POINT& pt)
+LRESULT qm::EditTextWindow::onLButtonDown(UINT nFlags,
+										  const POINT& pt)
 {
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && _WIN32_WCE_PSPC
 	if (tapAndHold(pt))
@@ -829,7 +759,7 @@ LRESULT qm::EditTextWindow::onSetFocus(HWND hwnd)
 	return TextWindow::onSetFocus(hwnd);
 }
 
-QSTATUS qm::EditTextWindow::openLink(const WCHAR* pwszURL)
+bool qm::EditTextWindow::openLink(const WCHAR* pwszURL)
 {
 	return UIUtil::openURL(getParentFrame(), pwszURL);
 }

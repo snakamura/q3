@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -23,7 +23,7 @@ namespace qs {
 class Tokenizer
 {
 public:
-	enum Token {
+	enum TokenType {
 		T_SPECIAL,
 		T_ATOM,
 		T_QSTRING,
@@ -40,26 +40,40 @@ public:
 		F_TSPECIAL			= 0x0200,
 		F_ESPECIAL			= 0x0400
 	};
+	
+	struct Token
+	{
+		Token(TokenType type);
+		Token(TokenType type,
+			  string_ptr str);
+		Token(Token& token);
+		Token& operator=(Token& token);
+		
+		TokenType type_;
+		string_ptr str_;
+	};
 
 public:
-	Tokenizer(const CHAR* psz, size_t nLen,
-		unsigned int nFlags, QSTATUS* pstatus);
+	Tokenizer(const CHAR* psz,
+			  size_t nLen,
+			  unsigned int nFlags);
 	~Tokenizer();
 
 public:
-	QSTATUS getToken(Token* pToken, STRING* pstrToken);
+	Token getToken();
 
 public:
 	static bool isCtl(unsigned char c);
 	static bool isSpace(unsigned char c);
-	static bool isSpecial(unsigned char c, unsigned int nFlags);
+	static bool isSpecial(unsigned char c,
+						  unsigned int nFlags);
 
 private:
 	Tokenizer(const Tokenizer&);
 	Tokenizer& operator=(const Tokenizer&);
 
 private:
-	STRING str_;
+	string_ptr str_;
 	const CHAR* p_;
 	unsigned int nFlags_;
 };
@@ -91,13 +105,18 @@ public:
 	};
 
 public:
-	AddrSpecParser(QSTATUS* pstatus);
+	AddrSpecParser();
 	~AddrSpecParser();
 
 public:
-	QSTATUS parseAddrSpec(const Part& part, Tokenizer& t, State state,
-		Type type, STRING* pstrMailbox, STRING* pstrHost,
-		STRING* pstrComment, Part::Field* pField, bool* pbEnd) const;
+	Part::Field parseAddrSpec(const Part& part,
+							  Tokenizer& t,
+							  State state,
+							  Type type,
+							  string_ptr* pstrMailbox,
+							  string_ptr* pstrHost,
+							  string_ptr* pstrComment,
+							  bool* pbEnd) const;
 
 private:
 	AddrSpecParser(const AddrSpecParser&);
@@ -116,7 +135,7 @@ class FieldComparator :
 {
 public:
 	bool operator()(const std::pair<STRING, STRING>& lhs,
-		const std::pair<STRING, STRING>& rhs) const;
+					const std::pair<STRING, STRING>& rhs) const;
 };
 
 }

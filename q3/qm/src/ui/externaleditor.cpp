@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -10,7 +10,6 @@
 #include <qmmessage.h>
 
 #include <qsconv.h>
-#include <qsnew.h>
 #include <qsosutil.h>
 #include <qsstream.h>
 
@@ -30,57 +29,45 @@ using namespace qs;
  */
 
 qm::ExternalEditorManager::ExternalEditorManager(Document* pDocument,
-	Profile* pProfile, HWND hwnd, TempFileCleaner* pTempFileCleaner,
-	FolderModel* pFolderModel, QSTATUS* pstatus) :
+												 Profile* pProfile,
+												 HWND hwnd,
+												 TempFileCleaner* pTempFileCleaner,
+												 FolderModel* pFolderModel) :
 	composer_(false, pDocument, pProfile, hwnd, pFolderModel),
 	pProfile_(pProfile),
 	hwnd_(hwnd),
-	pTempFileCleaner_(pTempFileCleaner),
-	pThread_(0),
-	pEvent_(0)
+	pTempFileCleaner_(pTempFileCleaner)
 {
 }
 
 qm::ExternalEditorManager::~ExternalEditorManager()
 {
-	if (pThread_) {
+	if (pThread_.get())
 		pThread_->stop();
-		delete pThread_;
-	}
-	delete pEvent_;
 	
-	ItemList::iterator it = listItem_.begin();
-	while (it != listItem_.end()) {
+	for (ItemList::iterator it = listItem_.begin(); it != listItem_.end(); ++it) {
 		Item& item = *it;
 		freeWString(item.wstrPath_);
 		::CloseHandle(item.hProcess_);
-		++it;
 	}
 }
 
-QSTATUS qm::ExternalEditorManager::open(const WCHAR* pwszMessage)
+bool qm::ExternalEditorManager::open(const WCHAR* pwszMessage)
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrPath;
-	status = UIUtil::writeTemporaryFile(pwszMessage,
-		L"q3edit", L"txt", pTempFileCleaner_, &wstrPath);
-	CHECK_QSTATUS();
+	wstring_ptr wstrPath(UIUtil::writeTemporaryFile(
+		pwszMessage, L"q3edit", L"txt", pTempFileCleaner_));
+	if (!wstrPath.get())
+		return false;
 	
 	W2T(wstrPath.get(), ptszPath);
 	WIN32_FIND_DATA fd;
 	AutoFindHandle hFind(::FindFirstFile(ptszPath, &fd));
 	if (!hFind.get())
-		return QSTATUS_FAIL;
+		return false;
 	
-	string_ptr<WSTRING> wstrEditor;
-	status = pProfile_->getString(L"Global", L"ExternalEditor", L"", &wstrEditor);
-	CHECK_QSTATUS();
-	if (!*wstrEditor.get()) {
-		wstrEditor.reset(0);
-		status = pProfile_->getString(L"Global", L"Editor", L"", &wstrEditor);
-		CHECK_QSTATUS();
-	}
+	wstring_ptr wstrEditor(pProfile_->getString(L"Global", L"ExternalEditor", L""));
+	if (!*wstrEditor.get())
+		wstrEditor = pProfile_->getString(L"Global", L"Editor", L"");
 	
 	const WCHAR* pFile = wstrEditor.get();
 	WCHAR* pParam = 0;
@@ -96,9 +83,7 @@ QSTATUS qm::ExternalEditorManager::open(const WCHAR* pwszMessage)
 		++pParam;
 	}
 	
-	string_ptr<WSTRING> wstrParam;
-	status = createParam(pParam, wstrPath.get(), &wstrParam);
-	CHECK_QSTATUS();
+	wstring_ptr wstrParam(createParam(pParam, wstrPath.get()));
 	
 	W2T(pFile, ptszFile);
 	W2T(wstrParam.get(), ptszParam);
@@ -117,7 +102,8 @@ QSTATUS qm::ExternalEditorManager::open(const WCHAR* pwszMessage)
 		SW_SHOWDEFAULT,
 #endif
 	};
-	::ShellExecuteEx(&sei);
+	if (!::ShellExecuteEx(&sei))
+		return false;
 	
 	AutoHandle hProcess(sei.hProcess);
 	
@@ -131,113 +117,90 @@ QSTATUS qm::ExternalEditorManager::open(const WCHAR* pwszMessage)
 	};
 	{
 		Lock<CriticalSection> lock(cs_);
-		status = STLWrapper<ItemList>(listItem_).push_back(item);
-		CHECK_QSTATUS();
+		listItem_.push_back(item);
 	}
 	wstrPath.release();
 	hProcess.release();
 	
-	if (!pThread_) {
-		status = newQsObject(&pEvent_);
-		CHECK_QSTATUS();
-		
-		status = newQsObject(this, &pThread_);
-		CHECK_QSTATUS();
-		status = pThread_->start();
-		CHECK_QSTATUS();
+	if (!pThread_.get()) {
+		pEvent_.reset(new Event());
+		pThread_.reset(new WaitThread(this));
+		if (!pThread_->start())
+			return false;
 	}
 	else {
 		pEvent_->set();
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::ExternalEditorManager::createParam(const WCHAR* pwszTemplate,
-	const WCHAR* pwszPath, WSTRING* pwstrParam)
+wstring_ptr qm::ExternalEditorManager::createParam(const WCHAR* pwszTemplate,
+												   const WCHAR* pwszPath)
 {
 	assert(pwszPath);
-	assert(pwstrParam);
 	
-	DECLARE_QSTATUS();
-	
-	StringBuffer<WSTRING> bufParam(&status);
-	CHECK_QSTATUS();
+	StringBuffer<WSTRING> bufParam;
 	if (pwszTemplate) {
 		const WCHAR* p = wcsstr(pwszTemplate, L"%f");
 		if (p) {
-			status = bufParam.append(pwszTemplate, p - pwszTemplate);
-			CHECK_QSTATUS();
-			status = bufParam.append(pwszPath);
-			CHECK_QSTATUS();
-			status = bufParam.append(p + 2);
-			CHECK_QSTATUS();
+			bufParam.append(pwszTemplate, p - pwszTemplate);
+			bufParam.append(pwszPath);
+			bufParam.append(p + 2);
 		}
 		else {
-			status = bufParam.append(pwszTemplate);
-			CHECK_QSTATUS();
-			status = bufParam.append(L' ');
-			CHECK_QSTATUS();
-			status = bufParam.append(pwszPath);
-			CHECK_QSTATUS();
+			bufParam.append(pwszTemplate);
+			bufParam.append(L' ');
+			bufParam.append(pwszPath);
 		}
 	}
 	else {
-		status = bufParam.append(pwszPath);
-		CHECK_QSTATUS();
+		bufParam.append(pwszPath);
 	}
 	
-	*pwstrParam = bufParam.getString();
-	
-	return QSTATUS_SUCCESS;
+	return bufParam.getString();
 }
 
-QSTATUS qm::ExternalEditorManager::createMessage(const WCHAR* pwszPath)
+bool qm::ExternalEditorManager::createMessage(const WCHAR* pwszPath)
 {
 	assert(pwszPath);
 	
-	DECLARE_QSTATUS();
-	
-	FileInputStream stream(pwszPath, &status);
-	CHECK_QSTATUS();
-	BufferedInputStream bufferedStream(&stream, false, &status);
-	CHECK_QSTATUS();
-	InputStreamReader reader(&bufferedStream,
-		false, getSystemEncoding(), &status);
-	CHECK_QSTATUS();
+	FileInputStream stream(pwszPath);
+	if (!stream)
+		return false;
+	BufferedInputStream bufferedStream(&stream, false);
+	InputStreamReader reader(&bufferedStream, false, getSystemEncoding());
+	if (!reader)
+		return false;
 	
 	typedef std::vector<WCHAR> Buffer;
 	Buffer buffer;
 	size_t nSize = 0;
 	while (true) {
-		status = STLWrapper<Buffer>(buffer).resize(nSize + 1024);
-		CHECK_QSTATUS();
-		size_t nRead = 0;
-		status = reader.read(&buffer[nSize], 1024, &nRead);
-		CHECK_QSTATUS();
+		buffer.resize(nSize + 1024);
+		size_t nRead = reader.read(&buffer[nSize], 1024);
 		if (nRead == -1)
+			return false;
+		else if (nRead == 0)
 			break;
 		nSize += nRead;
 	}
-	status = reader.close();
-	CHECK_QSTATUS();
+	if (!reader.close())
+		return false;
 	
 	if (nSize != 0) {
-		Message* p = 0;
 		MessageCreator creator(MessageCreator::FLAG_ADDCONTENTTYPE |
 			MessageCreator::FLAG_EXPANDALIAS);
-		status = creator.createMessage(&buffer[0], nSize, &p);
-		CHECK_QSTATUS();
-		std::auto_ptr<Message> pMessage(p);
+		std::auto_ptr<Message> pMessage(creator.createMessage(&buffer[0], nSize));
 		
 		unsigned int nFlags = 0;
 		// TODO
 		// Set flags
-		status = composer_.compose(0, 0, pMessage.get(), nFlags);
-		CHECK_QSTATUS();
+		if (!composer_.compose(0, 0, pMessage.get(), nFlags))
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -247,9 +210,7 @@ QSTATUS qm::ExternalEditorManager::createMessage(const WCHAR* pwszPath)
  *
  */
 
-qm::ExternalEditorManager::WaitThread::WaitThread(
-	ExternalEditorManager* pManager, QSTATUS* pstatus) :
-	Thread(pstatus),
+qm::ExternalEditorManager::WaitThread::WaitThread(ExternalEditorManager* pManager) :
 	pManager_(pManager),
 	bStop_(false)
 {
@@ -266,20 +227,15 @@ void qm::ExternalEditorManager::WaitThread::stop()
 	join();
 }
 
-unsigned int qm::ExternalEditorManager::WaitThread::run()
+void qm::ExternalEditorManager::WaitThread::run()
 {
-	DECLARE_QSTATUS();
-	
 	while (true) {
 		typedef std::vector<HANDLE> HandleList;
 		HandleList listHandle;
 		{
 			Lock<CriticalSection> lock(pManager_->cs_);
-			status = STLWrapper<HandleList>(listHandle).resize(
-				pManager_->listItem_.size() + 1);
+			listHandle.resize(pManager_->listItem_.size() + 1);
 			listHandle[0] = pManager_->pEvent_->getHandle();
-			// TODO
-			// Error
 			std::transform(pManager_->listItem_.begin(),
 				pManager_->listItem_.end(),
 				listHandle.begin() + 1,
@@ -301,10 +257,10 @@ unsigned int qm::ExternalEditorManager::WaitThread::run()
 		
 		if (handle == pManager_->pEvent_->getHandle()) {
 			if (bStop_)
-				return 0;
+				return;
 		}
 		else {
-			string_ptr<WSTRING> wstrPath;
+			wstring_ptr wstrPath;
 			FILETIME ft;
 			{
 				Lock<CriticalSection> lock(pManager_->cs_);
@@ -325,20 +281,15 @@ unsigned int qm::ExternalEditorManager::WaitThread::run()
 				pManager_->listItem_.erase(it);
 			}
 			
-			W2T_STATUS(wstrPath.get(), ptszPath);
-			// TODO
-			// Error
+			W2T(wstrPath.get(), ptszPath);
 			WIN32_FIND_DATA fd;
 			AutoFindHandle hFind(::FindFirstFile(ptszPath, &fd));
 			if (hFind.get() && ::CompareFileTime(&ft, &fd.ftLastWriteTime) != 0) {
-				status = pManager_->createMessage(wstrPath.get());
-				// TODO
-				// Error
-				
+				if (!pManager_->createMessage(wstrPath.get())) {
+					// TODO MSG
+				}
 				::DeleteFile(ptszPath);
 			}
 		}
 	}
-	
-	return 0;
 }

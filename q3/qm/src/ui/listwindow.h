@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -29,8 +29,10 @@ namespace qm {
 class PaintInfo
 {
 public:
-	PaintInfo(qs::DeviceContext* pdc, ViewModel* pViewModel,
-		unsigned int nIndex, const RECT& rect);
+	PaintInfo(qs::DeviceContext* pdc,
+			  ViewModel* pViewModel,
+			  unsigned int nIndex,
+			  const RECT& rect);
 	~PaintInfo();
 
 public:
@@ -67,5 +69,7 @@ struct ListWindowCreateContext
 };
 
 }
+
+#include "listwindow.inl"
 
 #endif // __LISTWINDOW_H__

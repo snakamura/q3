@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -38,11 +38,17 @@ class ResponseFetch;
 class ProcessHook
 {
 public:
+	enum Result {
+		RESULT_PROCESSED,
+		RESULT_UNPROCESSED,
+		RESULT_ERROR
+	};
+	
+public:
 	virtual ~ProcessHook();
 
 public:
-	virtual qs::QSTATUS processFetchResponse(
-		ResponseFetch* pFetch, bool* pbProcessed) = 0;
+	virtual Result processFetchResponse(ResponseFetch* pFetch) = 0;
 };
 
 
@@ -59,8 +65,7 @@ public:
 	virtual ~DefaultProcessHook();
 
 public:
-	virtual qs::QSTATUS processFetchResponse(
-		ResponseFetch* pFetch, bool* pbProcessed);
+	virtual Result processFetchResponse(ResponseFetch* pFetch);
 };
 
 
@@ -77,15 +82,14 @@ public:
 	virtual ~AbstractMessageProcessHook();
 
 public:
-	virtual qs::QSTATUS processFetchResponse(
-		ResponseFetch* pFetch, bool* pbProcessed);
+	virtual Result processFetchResponse(ResponseFetch* pFetch);
 
 protected:
 	virtual qm::Account* getAccount() = 0;
 	virtual bool isHeader() = 0;
 	virtual bool isMakeUnseen() = 0;
 	virtual qm::MessagePtr getMessagePtr(unsigned long nUid) = 0;
-	virtual qs::QSTATUS processed() = 0;
+	virtual void processed() = 0;
 
 private:
 	AbstractMessageProcessHook(const AbstractMessageProcessHook&);
@@ -110,8 +114,7 @@ public:
 	virtual ~AbstractPartialMessageProcessHook();
 
 public:
-	virtual qs::QSTATUS processFetchResponse(
-		ResponseFetch* pFetch, bool* pbProcessed);
+	virtual Result processFetchResponse(ResponseFetch* pFetch);
 
 protected:
 	virtual qm::Account* getAccount() = 0;
@@ -120,7 +123,7 @@ protected:
 	virtual unsigned int getPartCount() = 0;
 	virtual bool isMakeUnseen() = 0;
 	virtual qm::MessagePtr getMessagePtr(unsigned long nUid) = 0;
-	virtual qs::QSTATUS processed() = 0;
+	virtual void processed() = 0;
 
 private:
 	AbstractPartialMessageProcessHook(const AbstractPartialMessageProcessHook&);
@@ -141,13 +144,13 @@ public:
 	virtual ~AbstractBodyStructureProcessHook();
 
 public:
-	virtual qs::QSTATUS processFetchResponse(
-		ResponseFetch* pFetch, bool* pbProcessed);
+	virtual Result processFetchResponse(ResponseFetch* pFetch);
 
 protected:
-	virtual qs::QSTATUS setBodyStructure(unsigned long nUid,
-		FetchDataBodyStructure* pBodyStructure, bool* pbSet) = 0;
-	virtual qs::QSTATUS processed() = 0;
+	virtual bool setBodyStructure(unsigned long nUid,
+								  FetchDataBodyStructure* pBodyStructure,
+								  bool* pbSet) = 0;
+	virtual void processed() = 0;
 
 private:
 	AbstractBodyStructureProcessHook(const AbstractBodyStructureProcessHook&);

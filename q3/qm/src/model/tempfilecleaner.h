@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -32,11 +32,11 @@ class TempFileCleanerCallback;
 class TempFileCleaner
 {
 public:
-	TempFileCleaner(qs::QSTATUS* pstatus);
+	TempFileCleaner();
 	~TempFileCleaner();
 
 public:
-	qs::QSTATUS add(const WCHAR* pwszPath);
+	void add(const WCHAR* pwszPath);
 	void clean(TempFileCleanerCallback* pCallback);
 
 private:

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -12,7 +12,6 @@
 
 #include <qsconv.h>
 #include <qsinit.h>
-#include <qsnew.h>
 
 #include <algorithm>
 
@@ -38,68 +37,54 @@ using namespace qs;
  *
  */
 
-qm::SyncDialogManager::SyncDialogManager(Profile* pProfile, QSTATUS* pstatus) :
-	pProfile_(pProfile),
-	pThread_(0)
+qm::SyncDialogManager::SyncDialogManager(Profile* pProfile) :
+	pProfile_(pProfile)
 {
 }
 
 qm::SyncDialogManager::~SyncDialogManager()
 {
-	if (pThread_) {
+	if (pThread_.get())
 		pThread_->stop();
-		delete pThread_;
-	}
 }
 
-QSTATUS qm::SyncDialogManager::open(SyncDialog** ppSyncDialog)
+SyncDialog* qm::SyncDialogManager::open()
 {
-	assert(ppSyncDialog);
-	
-	DECLARE_QSTATUS();
-	
-	*ppSyncDialog = 0;
-	
-	if (!pThread_) {
-		std::auto_ptr<SyncDialogThread> pThread;
-		status = newQsObject(pProfile_, &pThread);
-		CHECK_QSTATUS();
-		status = pThread->start();
-		CHECK_QSTATUS();
-		pThread_ = pThread.release();
+	if (!pThread_.get()) {
+		std::auto_ptr<SyncDialogThread> pThread(new SyncDialogThread(pProfile_));
+		if (!pThread->start())
+			return 0;
+		pThread_ = pThread;
 	}
-	*ppSyncDialog = pThread_->getDialog();
-	if (!*ppSyncDialog)
-		return QSTATUS_FAIL;
-	
-	return QSTATUS_SUCCESS;
+	return pThread_->getDialog();
 }
 
-QSTATUS qm::SyncDialogManager::save() const
+bool qm::SyncDialogManager::save() const
 {
-	if (pThread_) {
+	if (pThread_.get()) {
 		SyncDialog* pSyncDialog = pThread_->getDialog();
-		class RunnableImpl : public Runnable
+		struct RunnableImpl : public Runnable
 		{
-		public:
 			RunnableImpl(SyncDialog* pSyncDialog) :
-				pSyncDialog_(pSyncDialog)
+				pSyncDialog_(pSyncDialog),
+				bSave_(false)
 			{
 			}
 			
-			virtual unsigned int run()
+			virtual void run()
 			{
-				pSyncDialog_->save();
-				return 0;
+				bSave_ = pSyncDialog_->save();
 			}
-		
-		private:
+			
 			SyncDialog* pSyncDialog_;
+			bool bSave_;
 		} runnable(pSyncDialog);
 		pSyncDialog->getInitThread()->getSynchronizer()->syncExec(&runnable);
+		return runnable.bSave_;
 	}
-	
-	return QSTATUS_SUCCESS;
+	else {
+		return true;
+	}
 }
 
 
@@ -109,23 +94,14 @@ QSTATUS qm::SyncDialogManager::save() const
  *
  */
 
-qm::SyncDialog::SyncDialog(Profile* pProfile, QSTATUS* pstatus) :
-	Dialog(Application::getApplication().getResourceHandle(), IDD_SYNC, false, pstatus),
-	DefaultDialogHandler(pstatus),
-	DefaultCommandHandler(pstatus),
+qm::SyncDialog::SyncDialog(Profile* pProfile) :
+	Dialog(Application::getApplication().getResourceHandle(), IDD_SYNC, false),
 	pProfile_(pProfile),
 	pStatusWindow_(0),
 	bShowError_(false),
 	nCanceledTime_(0)
 {
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	DECLARE_QSTATUS();
-	
-	status = addCommandHandler(this);
-	CHECK_QSTATUS_SET(pstatus);
-	
+	addCommandHandler(this);
 	setDialogHandler(this, false);
 }
 
@@ -176,11 +152,9 @@ void qm::SyncDialog::resetCanceledTime()
 	nCanceledTime_ = 0;
 }
 
-QSTATUS qm::SyncDialog::addError(const WCHAR* pwszError)
+void qm::SyncDialog::addError(const WCHAR* pwszError)
 {
 	assert(pwszError);
-	
-	DECLARE_QSTATUS();
 	
 	W2T(pwszError, ptszError);
 	
@@ -196,8 +170,6 @@ QSTATUS qm::SyncDialog::addError(const WCHAR* pwszError)
 		showWindow();
 		setForegroundWindow();
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 bool qm::SyncDialog::hasError() const
@@ -205,7 +177,7 @@ bool qm::SyncDialog::hasError() const
 	return Window(getDlgItem(IDC_ERROR)).getWindowTextLength() != 0;
 }
 
-QSTATUS qm::SyncDialog::enableCancel(bool bEnable)
+void qm::SyncDialog::enableCancel(bool bEnable)
 {
 	Window(getDlgItem(IDC_CANCEL)).enableWindow(bEnable);
 	
@@ -215,40 +187,31 @@ QSTATUS qm::SyncDialog::enableCancel(bool bEnable)
 	sendDlgItemMessage(nOldId, BM_SETSTYLE, BS_PUSHBUTTON, TRUE);
 	sendMessage(DM_SETDEFID, nNewId);
 	sendDlgItemMessage(nNewId, BM_SETSTYLE, BS_DEFPUSHBUTTON, TRUE);
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::SyncDialog::showDialupDialog(RASDIALPARAMS* prdp, bool* pbCancel) const
+bool qm::SyncDialog::showDialupDialog(RASDIALPARAMS* prdp) const
 {
 	assert(prdp);
-	assert(pbCancel);
 	
 	struct RunnableImpl : public Runnable
 	{
-		RunnableImpl(HWND hwnd, RASDIALPARAMS* prdp, bool* pbCancel) :
+		RunnableImpl(HWND hwnd,
+					 RASDIALPARAMS* prdp) :
 			hwnd_(hwnd),
 			prdp_(prdp),
-			pbCancel_(pbCancel)
+			bCancel_(false)
 		{
 		}
 		
-		virtual unsigned int run()
+		virtual void run()
 		{
-			DECLARE_QSTATUS();
-			
 			T2W(prdp_->szEntryName, pwszEntryName);
 			T2W(prdp_->szUserName, pwszUserName);
 			T2W(prdp_->szPassword, pwszPassword);
 			T2W(prdp_->szDomain, pwszDomain);
 			
-			DialupDialog dialog(pwszEntryName, pwszUserName,
-				pwszPassword, pwszDomain, &status);
-			CHECK_QSTATUS();
-			int nRet = 0;
-			status = dialog.doModal(hwnd_, 0, &nRet);
-			CHECK_QSTATUS();
-			if (nRet == IDOK) {
+			DialupDialog dialog(pwszEntryName, pwszUserName, pwszPassword, pwszDomain);
+			if (dialog.doModal(hwnd_, 0) == IDOK) {
 				W2T(dialog.getUserName(), ptszUserName);
 				_tcsncpy(prdp_->szUserName, ptszUserName, UNLEN);
 				W2T(dialog.getPassword(), ptszPassword);
@@ -257,98 +220,70 @@ QSTATUS qm::SyncDialog::showDialupDialog(RASDIALPARAMS* prdp, bool* pbCancel) co
 				_tcsncpy(prdp_->szDomain, ptszDomain, DNLEN);
 			}
 			else {
-				*pbCancel_ = true;
+				bCancel_ = true;
 			}
-			
-			return 0;
 		}
 		
 		HWND hwnd_;
 		RASDIALPARAMS* prdp_;
-		bool* pbCancel_;
-	} runnable(getHandle(), prdp, pbCancel);
-	
-	return getInitThread()->getSynchronizer()->syncExec(&runnable);
+		bool bCancel_;
+	} runnable(getHandle(), prdp);
+	getInitThread()->getSynchronizer()->syncExec(&runnable);
+	return !runnable.bCancel_;
 }
 
-QSTATUS qm::SyncDialog::selectDialupEntry(WSTRING* pwstrEntry) const
+wstring_ptr qm::SyncDialog::selectDialupEntry() const
 {
-	assert(pwstrEntry);
-	
 	struct RunnableImpl : public Runnable
 	{
-		RunnableImpl(Profile* pProfile, HWND hwnd, WSTRING* pwstrEntry) :
+		RunnableImpl(Profile* pProfile,
+					 HWND hwnd) :
 			pProfile_(pProfile),
-			hwnd_(hwnd),
-			pwstrEntry_(pwstrEntry)
+			hwnd_(hwnd)
 		{
 		}
 		
-		virtual unsigned int run()
+		virtual void run()
 		{
-			DECLARE_QSTATUS();
-			
-			SelectDialupEntryDialog dialog(pProfile_, &status);
-			CHECK_QSTATUS_VALUE(1);
-			int nRet = 0;
-			status = dialog.doModal(hwnd_, 0, &nRet);
-			CHECK_QSTATUS_VALUE(1);
-			
-			if (nRet == IDOK) {
-				string_ptr<WSTRING> wstrEntry(allocWString(dialog.getEntry()));
-				if (!wstrEntry.get())
-					return 1;
-				*pwstrEntry_ = wstrEntry.release();
-			}
-			
-			return 0;
+			SelectDialupEntryDialog dialog(pProfile_);
+			if (dialog.doModal(hwnd_, 0) == IDOK)
+				wstrEntry_ = allocWString(dialog.getEntry());
 		}
 		
 		Profile* pProfile_;
 		HWND hwnd_;
-		WSTRING* pwstrEntry_;
-	} runnable(pProfile_, getHandle(), pwstrEntry);
-	
-	return getInitThread()->getSynchronizer()->syncExec(&runnable);
+		wstring_ptr wstrEntry_;
+	} runnable(pProfile_, getHandle());
+	getInitThread()->getSynchronizer()->syncExec(&runnable);
+	return runnable.wstrEntry_;
 }
 
-QSTATUS qm::SyncDialog::notifyNewMessage() const
+void qm::SyncDialog::notifyNewMessage() const
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrSound;
-	status = pProfile_->getString(L"NewMailCheck", L"Sound", 0, &wstrSound);
-	CHECK_QSTATUS();
-	
+	wstring_ptr wstrSound(pProfile_->getString(L"NewMailCheck", L"Sound", 0));
 	if (*wstrSound.get()) {
 		W2T(wstrSound.get(), ptszSound);
 		sndPlaySound(ptszSound, SND_ASYNC);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::SyncDialog::save() const
+bool qm::SyncDialog::save() const
 {
-	DECLARE_QSTATUS();
-	
 #ifndef _WIN32_WCE
 	RECT rect;
 	getWindowRect(&rect);
-	status = pProfile_->setInt(L"SyncDialog", L"X", rect.left);
-	CHECK_QSTATUS();
-	status = pProfile_->setInt(L"SyncDialog", L"Y", rect.top);
-	CHECK_QSTATUS();
-	status = pProfile_->setInt(L"SyncDialog", L"Width", rect.right - rect.left);
-	CHECK_QSTATUS();
-	status = pProfile_->setInt(L"SyncDialog", L"Height", rect.bottom - rect.top);
-	CHECK_QSTATUS();
+	pProfile_->setInt(L"SyncDialog", L"X", rect.left);
+	pProfile_->setInt(L"SyncDialog", L"Y", rect.top);
+	pProfile_->setInt(L"SyncDialog", L"Width", rect.right - rect.left);
+	pProfile_->setInt(L"SyncDialog", L"Height", rect.bottom - rect.top);
 #endif
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-INT_PTR qm::SyncDialog::dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR qm::SyncDialog::dialogProc(UINT uMsg,
+								   WPARAM wParam,
+								   LPARAM lParam)
 {
 	BEGIN_DIALOG_HANDLER()
 		HANDLE_CLOSE()
@@ -359,7 +294,8 @@ INT_PTR qm::SyncDialog::dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefaultDialogHandler::dialogProc(uMsg, wParam, lParam);
 }
 
-LRESULT qm::SyncDialog::onCommand(WORD nCode, WORD nId)
+LRESULT qm::SyncDialog::onCommand(WORD nCode,
+								  WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_CANCEL, onCancel)
@@ -385,16 +321,12 @@ LRESULT qm::SyncDialog::onDestroy()
 	return 0;
 }
 
-LRESULT qm::SyncDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::SyncDialog::onInitDialog(HWND hwndFocus,
+									 LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
-	status = newQsObject(this, &pStatusWindow_);
-	CHECK_QSTATUS_VALUE(TRUE);
-	status = pStatusWindow_->create(L"QmSyncStatus", 0,
-		WS_VISIBLE | WS_CHILD | WS_VSCROLL,
+	pStatusWindow_ = new SyncStatusWindow(this);
+	pStatusWindow_->create(L"QmSyncStatus", 0, WS_VISIBLE | WS_CHILD | WS_VSCROLL,
 		0, 0, 0, 0, getHandle(), WS_EX_STATICEDGE, 0, IDC_SYNCSTATUS, 0);
-	CHECK_QSTATUS_VALUE(TRUE);
 	
 #ifdef _WIN32_WCE
 	int x = 0;
@@ -404,25 +336,19 @@ LRESULT qm::SyncDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	int nWidth = rectWorkArea.right - rectWorkArea.left;
 	int nHeight = rectWorkArea.bottom - rectWorkArea.top;
 #else
-	int x = 0;
-	status = pProfile_->getInt(L"SyncDialog", L"X", 0, &x);
-	CHECK_QSTATUS_VALUE(TRUE);
-	int y = 0;
-	status = pProfile_->getInt(L"SyncDialog", L"Y", 0, &y);
-	CHECK_QSTATUS_VALUE(TRUE);
-	int nWidth = 300;
-	status = pProfile_->getInt(L"SyncDialog", L"Width", 300, &nWidth);
-	CHECK_QSTATUS_VALUE(TRUE);
-	int nHeight = 200;
-	status = pProfile_->getInt(L"SyncDialog", L"Height", 200, &nHeight);
-	CHECK_QSTATUS_VALUE(TRUE);
+	int x = pProfile_->getInt(L"SyncDialog", L"X", 0);
+	int y = pProfile_->getInt(L"SyncDialog", L"Y", 0);
+	int nWidth = pProfile_->getInt(L"SyncDialog", L"Width", 300);
+	int nHeight = pProfile_->getInt(L"SyncDialog", L"Height", 200);
 #endif
 	setWindowPos(0, x, y, nWidth, nHeight, SWP_NOZORDER);
 	
 	return TRUE;
 }
 
-LRESULT qm::SyncDialog::onSize(UINT nFlags, int cx, int cy)
+LRESULT qm::SyncDialog::onSize(UINT nFlags,
+							   int cx,
+							   int cy)
 {
 	layout(cx, cy);
 	return DefaultDialogHandler::onSize(nFlags, cx, cy);
@@ -454,7 +380,8 @@ void qm::SyncDialog::layout()
 	layout(rect.right - rect.left, rect.bottom - rect.top);
 }
 
-void qm::SyncDialog::layout(int cx, int cy)
+void qm::SyncDialog::layout(int cx,
+							int cy)
 {
 	Window message(getDlgItem(IDC_MESSAGE));
 	Window cancel(getDlgItem(IDC_CANCEL));
@@ -522,44 +449,33 @@ void qm::SyncDialog::layout(int cx, int cy)
  *
  */
 
-qm::SyncStatusWindow::SyncStatusWindow(SyncDialog* pSyncDialog, QSTATUS* pstatus) :
-	WindowBase(true, pstatus),
-	DefaultWindowHandler(pstatus),
+qm::SyncStatusWindow::SyncStatusWindow(SyncDialog* pSyncDialog) :
+	WindowBase(true),
 	pSyncDialog_(pSyncDialog),
 	bNewMessage_(false),
 	nFontHeight_(0),
-	wstrFinished_(0),
-	wstrCancel_(0),
 	nCancelWidth_(0)
 {
-	DECLARE_QSTATUS();
-	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	status = loadString(hInst, IDS_SYNCMSG_FINISHED, &wstrFinished_);
-	CHECK_QSTATUS_SET(pstatus);
-	status = loadString(hInst, IDS_CANCEL, &wstrCancel_);
-	CHECK_QSTATUS_SET(pstatus);
+	wstrFinished_ = loadString(hInst, IDS_SYNCMSG_FINISHED);
+	wstrCancel_ = loadString(hInst, IDS_CANCEL);
 	
 	setWindowHandler(this, false);
 }
 
 qm::SyncStatusWindow::~SyncStatusWindow()
 {
-	freeWString(wstrFinished_);
-	freeWString(wstrCancel_);
 }
 
-QSTATUS qm::SyncStatusWindow::getWindowClass(WNDCLASS* pwc)
+void qm::SyncStatusWindow::getWindowClass(WNDCLASS* pwc)
 {
-	DECLARE_QSTATUS();
-	
-	status = DefaultWindowHandler::getWindowClass(pwc);
+	DefaultWindowHandler::getWindowClass(pwc);
 	pwc->hbrBackground = reinterpret_cast<HBRUSH>(COLOR_BTNFACE + 1);
-	
-	return QSTATUS_SUCCESS;
 }
 
-LRESULT qm::SyncStatusWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qm::SyncStatusWindow::windowProc(UINT uMsg,
+										 WPARAM wParam,
+										 LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_CREATE()
@@ -570,7 +486,7 @@ LRESULT qm::SyncStatusWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
 
-QSTATUS qm::SyncStatusWindow::start(unsigned int nParam)
+void qm::SyncStatusWindow::start(unsigned int nParam)
 {
 	pSyncDialog_->resetCanceledTime();
 	pSyncDialog_->setMessage(L"");
@@ -582,10 +498,9 @@ QSTATUS qm::SyncStatusWindow::start(unsigned int nParam)
 		{
 		}
 		
-		virtual unsigned int run()
+		virtual void run()
 		{
 			pSyncDialog_->enableCancel(true);
-			return 0;
 		}
 	
 	private:
@@ -595,8 +510,6 @@ QSTATUS qm::SyncStatusWindow::start(unsigned int nParam)
 	
 	if (nParam & SyncDialog::FLAG_SHOWDIALOG)
 		pSyncDialog_->show();
-	
-	return QSTATUS_SUCCESS;
 }
 
 void qm::SyncStatusWindow::end()
@@ -621,10 +534,9 @@ void qm::SyncStatusWindow::end()
 		{
 		}
 		
-		virtual unsigned int run()
+		virtual void run()
 		{
 			pSyncDialog_->enableCancel(false);
-			return 0;
 		}
 	
 	private:
@@ -639,25 +551,19 @@ void qm::SyncStatusWindow::end()
 		pSyncDialog_->notifyNewMessage();
 }
 
-QSTATUS qm::SyncStatusWindow::startThread(unsigned int nId, unsigned int nParam)
+void qm::SyncStatusWindow::startThread(unsigned int nId,
+									   unsigned int nParam)
 {
-	DECLARE_QSTATUS();
-	
-	std::auto_ptr<Item> pItem;
-	status = newQsObject(nId, nParam, &pItem);
-	CHECK_QSTATUS();
+	std::auto_ptr<Item> pItem(new Item(nId, nParam));
 	
 	{
 		Lock<CriticalSection> lock(cs_);
-		status = STLWrapper<ItemList>(listItem_).push_back(pItem.get());
-		CHECK_QSTATUS();
+		listItem_.push_back(pItem.get());
 		pItem.release();
 	}
 	
 	invalidate(false);
 	updateScrollBar();
-	
-	return QSTATUS_SUCCESS;
 }
 
 void qm::SyncStatusWindow::endThread(unsigned int nId)
@@ -675,8 +581,9 @@ void qm::SyncStatusWindow::endThread(unsigned int nId)
 	invalidate(false);
 }
 
-QSTATUS qm::SyncStatusWindow::setPos(
-	unsigned int nId, bool bSub, unsigned int nPos)
+void qm::SyncStatusWindow::setPos(unsigned int nId,
+								  bool bSub,
+								  unsigned int nPos)
 {
 	Lock<CriticalSection> lock(cs_);
 	ItemList::iterator it = getItem(nId);
@@ -688,140 +595,105 @@ QSTATUS qm::SyncStatusWindow::setPos(
 	}
 	
 	invalidate(false);
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::SyncStatusWindow::setRange(unsigned int nId,
-	bool bSub, unsigned int nMin, unsigned int nMax)
+void qm::SyncStatusWindow::setRange(unsigned int nId,
+									bool bSub,
+									unsigned int nMin,
+									unsigned int nMax)
 {
 	Lock<CriticalSection> lock(cs_);
 	ItemList::iterator it = getItem(nId);
 	(*it)->setRange(bSub, nMin, nMax);
 	invalidate(false);
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::SyncStatusWindow::setAccount(unsigned int nId,
-	Account* pAccount, SubAccount* pSubAccount)
+void qm::SyncStatusWindow::setAccount(unsigned int nId,
+									  Account* pAccount,
+									  SubAccount* pSubAccount)
 {
-	DECLARE_QSTATUS();
-	
 	Lock<CriticalSection> lock(cs_);
 	ItemList::iterator it = getItem(nId);
-	status = (*it)->setAccount(pAccount, pSubAccount);
-	CHECK_QSTATUS();
+	(*it)->setAccount(pAccount, pSubAccount);
 	invalidate(false);
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::SyncStatusWindow::setFolder(
-	unsigned int nId, Folder* pFolder)
+void qm::SyncStatusWindow::setFolder(unsigned int nId,
+									 Folder* pFolder)
 {
-	DECLARE_QSTATUS();
-	
 	Lock<CriticalSection> lock(cs_);
 	ItemList::iterator it = getItem(nId);
-	status = (*it)->setFolder(pFolder);
-	CHECK_QSTATUS();
+	(*it)->setFolder(pFolder);
 	invalidate(false);
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::SyncStatusWindow::setMessage(
-	unsigned int nId, const WCHAR* pwszMessage)
+void qm::SyncStatusWindow::setMessage(unsigned int nId,
+									  const WCHAR* pwszMessage)
 {
-	DECLARE_QSTATUS();
-	
 	if (nId == -1) {
 		pSyncDialog_->setMessage(pwszMessage);
 	}
 	else {
 		Lock<CriticalSection> lock(cs_);
 		ItemList::iterator it = getItem(nId);
-		status = (*it)->setMessage(pwszMessage);
-		CHECK_QSTATUS();
+		(*it)->setMessage(pwszMessage);
 		(*it)->setRange(true, 0, 0);
 		(*it)->setPos(true, 0);
 		invalidate(false);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::SyncStatusWindow::addError(
-	unsigned int nId, const SessionErrorInfo& info)
+void qm::SyncStatusWindow::addError(unsigned int nId,
+									const SessionErrorInfo& info)
 {
-	DECLARE_QSTATUS();
-	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
+	StringBuffer<WSTRING> buf;
 	
 	Account* pAccount = info.getAccount();
 	if (pAccount) {
-		status = buf.append(L"[");
-		CHECK_QSTATUS();
-		status = buf.append(pAccount->getName());
-		CHECK_QSTATUS();
+		buf.append(L"[");
+		buf.append(pAccount->getName());
 		
 		SubAccount* pSubAccount = info.getSubAccount();
 		if (*pSubAccount->getName()) {
-			status = buf.append(L'/');
-			CHECK_QSTATUS();
-			status = buf.append(pSubAccount->getName());
-			CHECK_QSTATUS();
+			buf.append(L'/');
+			buf.append(pSubAccount->getName());
 		}
 		
 		NormalFolder* pFolder = info.getFolder();
 		if (pFolder) {
-			string_ptr<WSTRING> wstrName;
-			status = pFolder->getFullName(&wstrName);
-			CHECK_QSTATUS();
-			status = buf.append(L" - ");
-			CHECK_QSTATUS();
-			status = buf.append(wstrName.get());
-			CHECK_QSTATUS();
+			wstring_ptr wstrName(pFolder->getFullName());
+			buf.append(L" - ");
+			buf.append(wstrName.get());
 		}
 		
-		status = buf.append(L"] ");
-		CHECK_QSTATUS();
+		buf.append(L"] ");
 	}
 	
-	status = buf.append(info.getMessage());
-	CHECK_QSTATUS();
+	buf.append(info.getMessage());
 	
 	unsigned int nCode = info.getCode();
 	if (nCode != 0) {
 		WCHAR wszCode[32];
 		swprintf(wszCode, L" (0x%08X)", info.getCode());
-		status = buf.append(wszCode);
-		CHECK_QSTATUS();
+		buf.append(wszCode);
 	}
 	
-	status = buf.append(L"\r\n");
-	CHECK_QSTATUS();
+	buf.append(L"\r\n");
 	
 	for (size_t n = 0; n < info.getDescriptionCount(); ++n) {
 		const WCHAR* p = info.getDescription(n);
 		if (p) {
-			status = buf.append(L"  ");
-			CHECK_QSTATUS();
-			status = buf.append(p);
-			CHECK_QSTATUS();
-			status = buf.append(L"\r\n");
-			CHECK_QSTATUS();
+			buf.append(L"  ");
+			buf.append(p);
+			buf.append(L"\r\n");
 		}
 	}
 	
-	status = pSyncDialog_->addError(buf.getCharArray());
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	pSyncDialog_->addError(buf.getCharArray());
 }
 
-bool qm::SyncStatusWindow::isCanceled(unsigned int nId, bool bForce)
+bool qm::SyncStatusWindow::isCanceled(unsigned int nId,
+									  bool bForce)
 {
 	unsigned int nCanceledTime = pSyncDialog_->getCanceledTime();
 	if (nCanceledTime == 0)
@@ -832,70 +704,38 @@ bool qm::SyncStatusWindow::isCanceled(unsigned int nId, bool bForce)
 		return ::GetTickCount() - nCanceledTime > 10*1000;
 }
 
-QSTATUS qm::SyncStatusWindow::selectDialupEntry(WSTRING* pwstrEntry)
+wstring_ptr qm::SyncStatusWindow::selectDialupEntry()
 {
-	assert(pwstrEntry);
-	
-	class RunnableImpl : public Runnable
+	struct RunnableImpl : public Runnable
 	{
-	public:
-		RunnableImpl(SyncDialog* pSyncDialog, WSTRING* pwstrEntry) :
-			pSyncDialog_(pSyncDialog),
-			pwstrEntry_(pwstrEntry)
+		RunnableImpl(SyncDialog* pSyncDialog) :
+			pSyncDialog_(pSyncDialog)
 		{
 		}
 		
-		virtual unsigned int run()
+		virtual void run()
 		{
-			pSyncDialog_->selectDialupEntry(pwstrEntry_);
-			return 0;
-		}
-	
-	private:
-		SyncDialog* pSyncDialog_;
-		WSTRING* pwstrEntry_;
-	} runnable(pSyncDialog_, pwstrEntry);
-	pSyncDialog_->getInitThread()->getSynchronizer()->syncExec(&runnable);
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::SyncStatusWindow::showDialupDialog(
-	RASDIALPARAMS* prdp, bool* pbCancel)
-{
-	class RunnableImpl : public Runnable
-	{
-	public:
-		RunnableImpl(SyncDialog* pSyncDialog, RASDIALPARAMS* prdp, bool* pbCancel) :
-			pSyncDialog_(pSyncDialog),
-			prdp_(prdp),
-			pbCancel_(pbCancel)
-		{
+			wstrEntry_ = pSyncDialog_->selectDialupEntry();
 		}
 		
-		virtual unsigned int run()
-		{
-			pSyncDialog_->showDialupDialog(prdp_, pbCancel_);
-			return 0;
-		}
-	
-	private:
 		SyncDialog* pSyncDialog_;
-		RASDIALPARAMS* prdp_;
-		bool* pbCancel_;
-	} runnable(pSyncDialog_, prdp, pbCancel);
+		wstring_ptr wstrEntry_;
+	} runnable(pSyncDialog_);
 	pSyncDialog_->getInitThread()->getSynchronizer()->syncExec(&runnable);
-	
-	return QSTATUS_SUCCESS;
+	return runnable.wstrEntry_;
 }
 
-QSTATUS qm::SyncStatusWindow::notifyNewMessage(unsigned int nId)
+bool qm::SyncStatusWindow::showDialupDialog(RASDIALPARAMS* prdp)
+{
+	return pSyncDialog_->showDialupDialog(prdp);
+}
+
+void qm::SyncStatusWindow::notifyNewMessage(unsigned int nId)
 {
 	Lock<CriticalSection> lock(cs_);
 	ItemList::iterator it = getItem(nId);
 	if ((*it)->getParam() & SyncDialog::FLAG_NOTIFYNEWMESSAGE)
 		bNewMessage_ = true;
-	return QSTATUS_SUCCESS;
 }
 
 LRESULT qm::SyncStatusWindow::onCreate(CREATESTRUCT* pCreateStruct)
@@ -903,10 +743,7 @@ LRESULT qm::SyncStatusWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (DefaultWindowHandler::onCreate(pCreateStruct) == -1)
 		return -1;
 	
-	DECLARE_QSTATUS();
-	
-	ClientDeviceContext dc(getHandle(), &status);
-	CHECK_QSTATUS_VALUE(-1);
+	ClientDeviceContext dc(getHandle());
 	ObjectSelector<HFONT> selector(dc,
 		reinterpret_cast<HFONT>(::GetStockObject(DEFAULT_GUI_FONT)));
 	TEXTMETRIC tm;
@@ -914,7 +751,7 @@ LRESULT qm::SyncStatusWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	nFontHeight_ = tm.tmHeight + tm.tmExternalLeading;
 	
 	SIZE size;
-	dc.getTextExtent(wstrCancel_, wcslen(wstrCancel_), &size);
+	dc.getTextExtent(wstrCancel_.get(), wcslen(wstrCancel_.get()), &size);
 	nCancelWidth_ = size.cx;
 	
 	return 0;
@@ -922,10 +759,7 @@ LRESULT qm::SyncStatusWindow::onCreate(CREATESTRUCT* pCreateStruct)
 
 LRESULT qm::SyncStatusWindow::onPaint()
 {
-	DECLARE_QSTATUS();
-	
-	PaintDeviceContext dc(getHandle(), &status);
-	CHECK_QSTATUS_VALUE(0);
+	PaintDeviceContext dc(getHandle());
 	
 	ObjectSelector<HFONT> selector(dc,
 		reinterpret_cast<HFONT>(::GetStockObject(DEFAULT_GUI_FONT)));
@@ -941,13 +775,10 @@ LRESULT qm::SyncStatusWindow::onPaint()
 	
 	Lock<CriticalSection> lock(cs_);
 	
-	ItemList::size_type n = nPos;
-	while (n < static_cast<ItemList::size_type>(nPos + nCount) &&
-		n < listItem_.size()) {
+	for (ItemList::size_type n = nPos; n < static_cast<ItemList::size_type>(nPos + nCount) && n < listItem_.size(); ++n) {
 		rect.bottom = rect.top + nItemHeight;
 		paintItem(&dc, rect, listItem_[n]);
 		rect.top = rect.bottom;
-		++n;
 	}
 	
 	rect.bottom = nBottom;
@@ -956,7 +787,9 @@ LRESULT qm::SyncStatusWindow::onPaint()
 	return 0;
 }
 
-LRESULT qm::SyncStatusWindow::onSize(UINT nFlags, int cx, int cy)
+LRESULT qm::SyncStatusWindow::onSize(UINT nFlags,
+									 int cx,
+									 int cy)
 {
 	updateScrollBar();
 	invalidate();
@@ -964,7 +797,9 @@ LRESULT qm::SyncStatusWindow::onSize(UINT nFlags, int cx, int cy)
 	return DefaultWindowHandler::onSize(nFlags, cx, cy);
 }
 
-LRESULT qm::SyncStatusWindow::onVScroll(UINT nCode, UINT nPos, HWND hwnd)
+LRESULT qm::SyncStatusWindow::onVScroll(UINT nCode,
+										UINT nPos,
+										HWND hwnd)
 {
 	SCROLLINFO si = {
 		sizeof(si),
@@ -1050,10 +885,9 @@ void qm::SyncStatusWindow::updateScrollBar()
 		{
 		}
 		
-		virtual unsigned int run()
+		virtual void run()
 		{
 			pWindow_->setScrollInfo(SB_VERT, si_);
-			return 0;
 		}
 	
 	private:
@@ -1064,7 +898,8 @@ void qm::SyncStatusWindow::updateScrollBar()
 }
 
 void qm::SyncStatusWindow::paintItem(DeviceContext* pdc,
-	const RECT& rect, const Item* pItem)
+									 const RECT& rect,
+									 const Item* pItem)
 {
 	RECT rectClip = {
 		rect.left,
@@ -1110,7 +945,7 @@ void qm::SyncStatusWindow::paintItem(DeviceContext* pdc,
 	if (pItem)
 		pwszMessage = pItem->getMessage();
 	else
-		pwszMessage = wstrFinished_;
+		pwszMessage = wstrFinished_.get();
 	
 	pdc->setTextColor(::GetSysColor(COLOR_BTNTEXT));
 	pdc->setBkColor(::GetSysColor(COLOR_BTNFACE));
@@ -1120,7 +955,8 @@ void qm::SyncStatusWindow::paintItem(DeviceContext* pdc,
 }
 
 void qm::SyncStatusWindow::paintProgress(qs::DeviceContext* pdc,
-	const RECT& rect, const Item::Progress& progress)
+										 const RECT& rect,
+										 const Item::Progress& progress)
 {
 	int nMin = progress.nMin_;
 	int nMax = progress.nMax_;
@@ -1185,8 +1021,7 @@ void qm::SyncStatusWindow::paintProgress(qs::DeviceContext* pdc,
 		rectUnHighlight, wsz, wcslen(wsz), 0);
 }
 
-SyncStatusWindow::ItemList::iterator qm::SyncStatusWindow::getItem(
-	unsigned int nId)
+SyncStatusWindow::ItemList::iterator qm::SyncStatusWindow::getItem(unsigned int nId)
 {
 	ItemList::iterator it = listItem_.begin();
 	while (it != listItem_.end() &&
@@ -1203,14 +1038,12 @@ SyncStatusWindow::ItemList::iterator qm::SyncStatusWindow::getItem(
  */
 
 qm::SyncStatusWindow::Item::Item(unsigned int nId,
-	unsigned int nParam, qs::QSTATUS* pstatus) :
+								 unsigned int nParam) :
 	nId_(nId),
 	nParam_(nParam),
 	pAccount_(0),
 	pSubAccount_(0),
-	pFolder_(0),
-	wstrOriginalMessage_(0),
-	wstrMessage_(0)
+	pFolder_(0)
 {
 	main_.nMin_ = 0;
 	main_.nMax_ = 0;
@@ -1222,8 +1055,6 @@ qm::SyncStatusWindow::Item::Item(unsigned int nId,
 
 qm::SyncStatusWindow::Item::~Item()
 {
-	freeWString(wstrOriginalMessage_);
-	freeWString(wstrMessage_);
 }
 
 unsigned int qm::SyncStatusWindow::Item::getId() const
@@ -1243,92 +1074,70 @@ const SyncStatusWindow::Item::Progress& qm::SyncStatusWindow::Item::getProgress(
 
 const WCHAR* qm::SyncStatusWindow::Item::getMessage() const
 {
-	return wstrMessage_ ? wstrMessage_ : L"";
+	return wstrMessage_.get() ? wstrMessage_.get() : L"";
 }
 
-void qm::SyncStatusWindow::Item::setPos(bool bSub, unsigned int nPos)
+void qm::SyncStatusWindow::Item::setPos(bool bSub,
+										unsigned int nPos)
 {
 	Progress& p = bSub ? sub_ : main_;
 	p.nPos_ = nPos;
 }
 
-void qm::SyncStatusWindow::Item::setRange(
-	bool bSub, unsigned int nMin, unsigned int nMax)
+void qm::SyncStatusWindow::Item::setRange(bool bSub,
+										  unsigned int nMin,
+										  unsigned int nMax)
 {
 	Progress& p = bSub ? sub_ : main_;
 	p.nMin_ = nMin;
 	p.nMax_ = nMax;
 }
 
-QSTATUS qm::SyncStatusWindow::Item::setAccount(
-	Account* pAccount, SubAccount* pSubAccount)
+void qm::SyncStatusWindow::Item::setAccount(Account* pAccount,
+											SubAccount* pSubAccount)
 {
 	pAccount_ = pAccount;
 	pSubAccount_ = pSubAccount;
-	return updateMessage();
+	updateMessage();
 }
 
-QSTATUS qm::SyncStatusWindow::Item::setFolder(Folder* pFolder)
+void qm::SyncStatusWindow::Item::setFolder(Folder* pFolder)
 {
 	pFolder_ = pFolder;
-	return updateMessage();
+	updateMessage();
 }
 
-QSTATUS qm::SyncStatusWindow::Item::setMessage(const WCHAR* pwszMessage)
+void qm::SyncStatusWindow::Item::setMessage(const WCHAR* pwszMessage)
 {
-	string_ptr<WSTRING> wstrMessage(allocWString(pwszMessage));
-	if (!wstrMessage.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	freeWString(wstrOriginalMessage_);
-	wstrOriginalMessage_ = wstrMessage.release();
-	
-	return updateMessage();
+	wstrOriginalMessage_ = allocWString(pwszMessage);
+	updateMessage();
 }
 
-QSTATUS qm::SyncStatusWindow::Item::updateMessage()
+void qm::SyncStatusWindow::Item::updateMessage()
 {
-	DECLARE_QSTATUS();
-	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
+	StringBuffer<WSTRING> buf;
 	
 	if (pAccount_) {
-		status = buf.append(L'[');
-		CHECK_QSTATUS();
-		status = buf.append(pAccount_->getName());
-		CHECK_QSTATUS();
+		buf.append(L'[');
+		buf.append(pAccount_->getName());
 		if (*pSubAccount_->getName()) {
-			status = buf.append(L" (");
-			CHECK_QSTATUS();
-			status = buf.append(pSubAccount_->getName());
-			CHECK_QSTATUS();
-			status = buf.append(L')');
-			CHECK_QSTATUS();
+			buf.append(L" (");
+			buf.append(pSubAccount_->getName());
+			buf.append(L')');
 		}
 		
 		if (pFolder_) {
-			status = buf.append(L" - ");
-			CHECK_QSTATUS();
-			string_ptr<WSTRING> wstrFolder;
-			status = pFolder_->getFullName(&wstrFolder);
-			CHECK_QSTATUS();
-			status = buf.append(wstrFolder.get());
-			CHECK_QSTATUS();
+			buf.append(L" - ");
+			wstring_ptr wstrFolder(pFolder_->getFullName());
+			buf.append(wstrFolder.get());
 		}
-		status = buf.append(L"] ");
-		CHECK_QSTATUS();
+		buf.append(L"] ");
 	}
 	
-	if (wstrOriginalMessage_) {
-		status = buf.append(wstrOriginalMessage_);
-		CHECK_QSTATUS();
-	}
+	if (wstrOriginalMessage_.get())
+		buf.append(wstrOriginalMessage_.get());
 	
-	freeWString(wstrMessage_);
 	wstrMessage_ = buf.getString();
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -1338,21 +1147,15 @@ QSTATUS qm::SyncStatusWindow::Item::updateMessage()
  *
  */
 
-qm::SyncDialogThread::SyncDialogThread(qs::Profile* pProfile, qs::QSTATUS* pstatus) :
-	Thread(pstatus),
+qm::SyncDialogThread::SyncDialogThread(qs::Profile* pProfile) :
 	pProfile_(pProfile),
-	pDialog_(0),
-	pEvent_(0)
+	pDialog_(0)
 {
-	DECLARE_QSTATUS();
-	
-	status = newQsObject(true, false, &pEvent_);
-	CHECK_QSTATUS_SET(pstatus);
+	pEvent_.reset(new Event(true, false));
 }
 
 qm::SyncDialogThread::~SyncDialogThread()
 {
-	delete pEvent_;
 }
 
 SyncDialog* qm::SyncDialogThread::getDialog()
@@ -1367,12 +1170,9 @@ void qm::SyncDialogThread::stop()
 	join();
 }
 
-unsigned int qm::SyncDialogThread::run()
+void qm::SyncDialogThread::run()
 {
-	DECLARE_QSTATUS();
-	
-	InitThread init(InitThread::FLAG_SYNCHRONIZER, &status);
-	CHECK_QSTATUS_VALUE(-1);
+	InitThread init(InitThread::FLAG_SYNCHRONIZER);
 	
 	std::auto_ptr<SyncDialog> pDialog;
 	{
@@ -1381,13 +1181,11 @@ unsigned int qm::SyncDialogThread::run()
 			Set(Event* pEvent) : pEvent_(pEvent) {}
 			~Set() { pEvent_->set(); }
 			Event* pEvent_;
-		} set(pEvent_);
+		} set(pEvent_.get());
 		
-		status = newQsObject(pProfile_, &pDialog);
-		CHECK_QSTATUS_VALUE(-1);
+		pDialog.reset(new SyncDialog(pProfile_));
 		Window wnd(Window::getForegroundWindow());
-		status = pDialog->create(0);
-		CHECK_QSTATUS_VALUE(-1);
+		pDialog->create(0);
 		wnd.setForegroundWindow();
 		pDialog_ = pDialog.get();
 	}
@@ -1399,6 +1197,4 @@ unsigned int qm::SyncDialogThread::run()
 			::DispatchMessage(&msg);
 		}
 	}
-	
-	return 0;
 }

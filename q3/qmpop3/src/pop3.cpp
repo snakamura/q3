@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -9,7 +9,6 @@
 #include <qsconv.h>
 #include <qsmd5.h>
 #include <qsmime.h>
-#include <qsnew.h>
 
 #include <algorithm>
 #include <stdio.h>
@@ -26,111 +25,104 @@ using namespace qs;
  *
  */
 
-#define CHECK_QSTATUS_ERROR(e) \
-	if (status != QSTATUS_SUCCESS) { \
+#define POP3_ERROR(e) \
+	do { \
 		nError_ = e; \
-		return status; \
-	} \
+		return false; \
+	} while (false)
 
-#define CHECK_QSTATUS_ERROR_OR(e) \
-	if (status != QSTATUS_SUCCESS) { \
+#define POP3_ERROR_SOCKET(e) \
+	do { \
+		nError_ = e | pSocket_->getLastError(); \
+		return false; \
+	} while (false)
+
+#define POP3_ERROR_OR(e) \
+	do { \
 		nError_ |= e; \
-		return status; \
-	} \
-
-#define CHECK_ERROR(c, q, e) \
-	if (c) { \
-		nError_ = e; \
-		return q; \
-	} \
+		return false; \
+	} while (false)
 
 const CHAR* qmpop3::Pop3::pszOk__ = "+OK";
 const CHAR* qmpop3::Pop3::pszErr__ = "-ERR";
 
-qmpop3::Pop3::Pop3(const Option& option, QSTATUS* pstatus) :
-	nTimeout_(option.nTimeout_),
-	pSocketCallback_(option.pSocketCallback_),
-	pSSLSocketCallback_(option.pSSLSocketCallback_),
-	pPop3Callback_(option.pPop3Callback_),
-	pLogger_(option.pLogger_),
-	pSocket_(0),
+qmpop3::Pop3::Pop3(long nTimeout,
+				   qs::SocketCallback* pSocketCallback,
+				   qs::SSLSocketCallback* pSSLSocketCallback,
+				   Pop3Callback* pPop3Callback,
+				   qs::Logger* pLogger) :
+	nTimeout_(nTimeout),
+	pSocketCallback_(pSocketCallback),
+	pSSLSocketCallback_(pSSLSocketCallback),
+	pPop3Callback_(pPop3Callback),
+	pLogger_(pLogger),
 	nCount_(0),
-	nError_(POP3_ERROR_SUCCESS),
-	wstrErrorResponse_(0)
+	nError_(POP3_ERROR_SUCCESS)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qmpop3::Pop3::~Pop3()
 {
-	delete pSocket_;
-	freeWString(wstrErrorResponse_);
 }
 
-QSTATUS qmpop3::Pop3::connect(const WCHAR* pwszHost,
-	short nPort, bool bApop, Ssl ssl)
+bool qmpop3::Pop3::connect(const WCHAR* pwszHost,
+						   short nPort,
+						   bool bApop,
+						   Ssl ssl)
 {
 	assert(pwszHost);
 	
-	DECLARE_QSTATUS();
+	std::auto_ptr<Socket> pSocket(new Socket(
+		nTimeout_, pSocketCallback_, pLogger_));
 	
-	Socket::Option option = {
-		nTimeout_,
-		pSocketCallback_,
-		pLogger_
-	};
-	std::auto_ptr<Socket> pSocket;
-	status = newQsObject(option, &pSocket);
-	CHECK_QSTATUS_ERROR(POP3_ERROR_INITIALIZE);
-	
-	status = pSocket->connect(pwszHost, nPort);
-	CHECK_QSTATUS_ERROR(POP3_ERROR_CONNECT | pSocket->getLastError());
+	if (!pSocket->connect(pwszHost, nPort))
+		POP3_ERROR_SOCKET(POP3_ERROR_CONNECT);
 	
 	if (ssl == SSL_SSL) {
 		SSLSocketFactory* pFactory = SSLSocketFactory::getFactory();
-		CHECK_ERROR(!pFactory, QSTATUS_FAIL, POP3_ERROR_SSL);
-		SSLSocket* pSSLSocket = 0;
-		status = pFactory->createSSLSocket(pSocket.get(),
-			true, pSSLSocketCallback_, pLogger_, &pSSLSocket);
-		CHECK_QSTATUS_ERROR(POP3_ERROR_SSL);
+		if (!pFactory)
+			POP3_ERROR(POP3_ERROR_SSL);
+		
+		std::auto_ptr<SSLSocket> pSSLSocket = pFactory->createSSLSocket(
+			pSocket.get(), true, pSSLSocketCallback_, pLogger_);
+		if (!pSSLSocket.get())
+			POP3_ERROR(POP3_ERROR_SSL);
+		
 		pSocket.release();
 		pSocket_ = pSSLSocket;
 	}
 	else {
-		pSocket_ = pSocket.release();
+		pSocket_ = pSocket;
 	}
 	
-	string_ptr<STRING> strGreeting;
-	status = receive(&strGreeting);
-	CHECK_QSTATUS_ERROR_OR(POP3_ERROR_GREETING);
+	string_ptr strGreeting;
+	if (!receive(&strGreeting))
+		POP3_ERROR_OR(POP3_ERROR_GREETING);
 	
 	if (ssl == SSL_STARTTLS) {
-		status = sendCommand("STLS\r\n");
-		CHECK_QSTATUS_ERROR_OR(POP3_ERROR_STLS);
+		if (!sendCommand("STLS\r\n"))
+			POP3_ERROR_OR(POP3_ERROR_STLS);
 		
 		SSLSocketFactory* pFactory = SSLSocketFactory::getFactory();
-		CHECK_ERROR(!pFactory, QSTATUS_FAIL, POP3_ERROR_SSL);
-		SSLSocket* pSSLSocket = 0;
-		status = pFactory->createSSLSocket(static_cast<Socket*>(pSocket_),
-			true, pSSLSocketCallback_, pLogger_, &pSSLSocket);
-		CHECK_QSTATUS_ERROR(POP3_ERROR_SSL);
+		if (!pFactory)
+			POP3_ERROR(POP3_ERROR_SSL);
+		
+		std::auto_ptr<SSLSocket> pSSLSocket(pFactory->createSSLSocket(
+			static_cast<Socket*>(pSocket_.get()), true, pSSLSocketCallback_, pLogger_));
+		if (!pSSLSocket.get())
+			POP3_ERROR(POP3_ERROR_SSL);
+		pSocket_.release();
 		pSocket_ = pSSLSocket;
 	}
 	
-	string_ptr<WSTRING> wstrUserName;
-	string_ptr<WSTRING> wstrPassword;
-	status = pPop3Callback_->getUserInfo(&wstrUserName, &wstrPassword);
-	CHECK_QSTATUS_ERROR_OR(POP3_ERROR_USER | POP3_ERROR_OTHER);
-	string_ptr<STRING> strUserName(wcs2mbs(wstrUserName.get()));
-	CHECK_ERROR(!strUserName.get(), QSTATUS_OUTOFMEMORY,
-		POP3_ERROR_USER | POP3_ERROR_OTHER);
-	string_ptr<STRING> strPassword(wcs2mbs(wstrPassword.get()));
-	CHECK_ERROR(!strPassword.get(), QSTATUS_OUTOFMEMORY,
-		POP3_ERROR_USER | POP3_ERROR_OTHER);
+	wstring_ptr wstrUserName;
+	wstring_ptr wstrPassword;
+	if (!pPop3Callback_->getUserInfo(&wstrUserName, &wstrPassword))
+		POP3_ERROR(POP3_ERROR_USER | POP3_ERROR_OTHER);
+	string_ptr strUserName(wcs2mbs(wstrUserName.get()));
+	string_ptr strPassword(wcs2mbs(wstrPassword.get()));
 	
-	status = pPop3Callback_->authenticating();
-	CHECK_QSTATUS_ERROR(POP3_ERROR_OTHER);
+	pPop3Callback_->authenticating();
 	
 	if (bApop) {
 		CHAR szDigestString[128] = "";
@@ -138,10 +130,7 @@ QSTATUS qmpop3::Pop3::connect(const WCHAR* pwszHost,
 		if (pBegin) {
 			const CHAR* pEnd = strchr(pBegin + 1, '>');
 			if (pEnd) {
-				string_ptr<STRING> strApop(allocString(
-					pEnd - pBegin + strlen(strPassword.get()) + 2));
-				CHECK_ERROR(!strApop.get(), QSTATUS_OUTOFMEMORY,
-					POP3_ERROR_GENERATEDIGEST | POP3_ERROR_APOP);
+				string_ptr strApop(allocString(pEnd - pBegin + strlen(strPassword.get()) + 2));
 				CHAR* p = strApop.get();
 				strncpy(p, pBegin, pEnd - pBegin + 1);
 				p += pEnd - pBegin + 1;
@@ -151,37 +140,30 @@ QSTATUS qmpop3::Pop3::connect(const WCHAR* pwszHost,
 					strlen(strApop.get()), szDigestString);
 			}
 		}
-		CHECK_ERROR(szDigestString[0] == '\0', QSTATUS_FAIL,
-			POP3_ERROR_GENERATEDIGEST | POP3_ERROR_APOP);
+		if (szDigestString[0] == '\0')
+			POP3_ERROR(POP3_ERROR_GENERATEDIGEST | POP3_ERROR_APOP);
 		
-		string_ptr<STRING> strApop(allocString(strlen(strUserName.get()) + 128 + 10));
-		CHECK_ERROR(!strApop.get(), QSTATUS_OUTOFMEMORY,
-			POP3_ERROR_GENERATEDIGEST | POP3_ERROR_APOP);
+		string_ptr strApop(allocString(strlen(strUserName.get()) + 128 + 10));
 		sprintf(strApop.get(), "APOP %s %s\r\n", strUserName.get(), szDigestString);
-		status = sendCommand(strApop.get());
-		CHECK_QSTATUS_ERROR_OR(POP3_ERROR_APOP);
+		if (!sendCommand(strApop.get()))
+			POP3_ERROR_OR(POP3_ERROR_APOP);
 	}
 	else {
-		string_ptr<STRING> strUser(allocString(strlen(strUserName.get()) + 10));
-		CHECK_ERROR(!strUser.get(), QSTATUS_OUTOFMEMORY,
-			POP3_ERROR_OTHER | POP3_ERROR_USER);
+		string_ptr strUser(allocString(strlen(strUserName.get()) + 10));
 		sprintf(strUser.get(), "USER %s\r\n", strUserName.get());
-		status = sendCommand(strUser.get());
-		CHECK_QSTATUS_ERROR_OR(POP3_ERROR_USER);
+		if (!sendCommand(strUser.get()))
+			POP3_ERROR_OR(POP3_ERROR_USER);
 		
-		string_ptr<STRING> strPass(allocString(strlen(strPassword.get()) + 10));
-		CHECK_ERROR(!strPass.get(), QSTATUS_OUTOFMEMORY,
-			POP3_ERROR_OTHER | POP3_ERROR_PASS);
+		string_ptr strPass(allocString(strlen(strPassword.get()) + 10));
 		sprintf(strPass.get(), "PASS %s\r\n", strPassword.get());
-		status = sendCommand(strPass.get());
-		CHECK_QSTATUS_ERROR_OR(POP3_ERROR_PASS);
+		if (!sendCommand(strPass.get()))
+			POP3_ERROR_OR(POP3_ERROR_PASS);
 	}
-	status = pPop3Callback_->setPassword(wstrPassword.get());
-	CHECK_QSTATUS_ERROR(POP3_ERROR_USER | POP3_ERROR_OTHER);
+	pPop3Callback_->setPassword(wstrPassword.get());
 	
-	string_ptr<STRING> strStat;
-	status = sendCommand("STAT\r\n", &strStat);
-	CHECK_QSTATUS_ERROR_OR(POP3_ERROR_STAT);
+	string_ptr strStat;
+	if (!sendCommand("STAT\r\n", &strStat))
+		POP3_ERROR_OR(POP3_ERROR_STAT);
 	
 	const CHAR* pStat = strStat.get();
 	int n = 0;
@@ -193,20 +175,22 @@ QSTATUS qmpop3::Pop3::connect(const WCHAR* pwszHost,
 			*pEnd = '\0';
 			CHAR* p = 0;
 			nCount_ = strtol(pStat, &p, 10);
-			CHECK_ERROR(*p, QSTATUS_FAIL, POP3_ERROR_PARSE | POP3_ERROR_STAT);
+			if (*p)
+				POP3_ERROR(POP3_ERROR_PARSE | POP3_ERROR_STAT);
 		}
 		pStat= pEnd + 1;
 	}
-	CHECK_ERROR(n != 3, QSTATUS_FAIL, POP3_ERROR_PARSE | POP3_ERROR_STAT);
+	if (n != 3)
+		POP3_ERROR(POP3_ERROR_PARSE | POP3_ERROR_STAT);
 	
 	nError_ = POP3_ERROR_SUCCESS;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::Pop3::disconnect()
+void qmpop3::Pop3::disconnect()
 {
-	if (pSocket_) {
+	if (pSocket_.get()) {
 		bool bQuit = true;
 		switch (nError_ & POP3_ERROR_MASK_LOWLEVEL) {
 		case POP3_ERROR_CONNECT:
@@ -229,26 +213,24 @@ QSTATUS qmpop3::Pop3::disconnect()
 		}
 		if (bQuit)
 			sendCommand("QUIT\r\n");
-		delete pSocket_;
-		pSocket_ = 0;
+		pSocket_.reset(0);
 	}
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmpop3::Pop3::getMessageCount() const
+unsigned int qmpop3::Pop3::getMessageCount() const
 {
 	return nCount_;
 }
 
-QSTATUS qmpop3::Pop3::getMessage(unsigned int nMsg,
-	unsigned int nMaxLine, STRING* pstrMessage, unsigned int* pnSize)
+bool qmpop3::Pop3::getMessage(unsigned int nMsg,
+							  unsigned int nMaxLine,
+							  xstring_ptr* pstrMessage,
+							  unsigned int* pnSize)
 {
 	assert(pstrMessage);
 	
-	DECLARE_QSTATUS();
-	
-	CHECK_ERROR(nMsg >= getMessageCount(), QSTATUS_FAIL,
-		POP3_ERROR_RETR | POP3_ERROR_RESPONSE);
+	if (nMsg >= getMessageCount())
+		POP3_ERROR(POP3_ERROR_RETR | POP3_ERROR_RESPONSE);
 	
 	CHAR szRetr[128];
 	if (nMaxLine == 0xffffffff)
@@ -256,90 +238,90 @@ QSTATUS qmpop3::Pop3::getMessage(unsigned int nMsg,
 	else
 		sprintf(szRetr, "TOP %d %d\r\n", nMsg + 1, nMaxLine);
 	
-	if (pnSize) {
-		status = pPop3Callback_->setRange(0, *pnSize);
-		CHECK_QSTATUS_ERROR(
-			(nMaxLine == 0xffffffff ? POP3_ERROR_RETR : POP3_ERROR_TOP) |
-			POP3_ERROR_OTHER);
-	}
-	string_ptr<STRING> strResponse;
-	string_ptr<STRING> strContent;
-	status = sendCommand(szRetr, &strResponse, &strContent);
-	CHECK_QSTATUS_ERROR(
-		(nMaxLine == 0xffffffff ? POP3_ERROR_RETR : POP3_ERROR_TOP));
+	if (pnSize)
+		pPop3Callback_->setRange(0, *pnSize);
 	
-	size_t nLen = strlen(strContent.get());
+	string_ptr strResponse;
+	xstring_size_ptr strContent;
+	if (!sendCommand(szRetr, &strResponse, &strContent, pnSize ? *pnSize : 0))
+		POP3_ERROR_OR(nMaxLine == 0xffffffff ? POP3_ERROR_RETR : POP3_ERROR_TOP);
+	
+	size_t nLen = strContent.size();
 	if (pnSize)
 		*pnSize = nLen;
 	if (nLen >= 2 && strContent[nLen - 1] == '\n' && strContent[nLen - 2] == '\r')
 		strContent[nLen - 2] = '\0';
 	
-	*pstrMessage = strContent.release();
+	pstrMessage->reset(strContent.release());
+	
 	nError_ = POP3_ERROR_SUCCESS;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::Pop3::getMessageSize(unsigned int nMsg, unsigned int* pnSize)
+bool qmpop3::Pop3::getMessageSize(unsigned int nMsg,
+								  unsigned int* pnSize)
 {
 	assert(pnSize);
 	
-	DECLARE_QSTATUS();
-	
-	*pnSize = static_cast<unsigned int>(-1);
+	*pnSize = -1;
 	
 	CHAR szList[128];
 	sprintf(szList, "LIST %d\r\n", nMsg + 1);
 	
-	string_ptr<STRING> strResponse;
-	status = sendCommand(szList, &strResponse);
-	CHECK_QSTATUS_ERROR_OR(POP3_ERROR_LIST);
+	string_ptr strResponse;
+	if (!sendCommand(szList, &strResponse))
+		POP3_ERROR_OR(POP3_ERROR_LIST);
 	
 	const CHAR* p = strchr(strResponse.get(), ' ');
-	CHECK_ERROR(!p, QSTATUS_FAIL, POP3_ERROR_LIST | POP3_ERROR_PARSE);
+	if (!p)
+		POP3_ERROR(POP3_ERROR_LIST | POP3_ERROR_PARSE);
 	p = strchr(p + 1, ' ');
-	CHECK_ERROR(!p, QSTATUS_FAIL, POP3_ERROR_LIST | POP3_ERROR_PARSE);
+	if (!p)
+		POP3_ERROR(POP3_ERROR_LIST | POP3_ERROR_PARSE);
 	++p;
 	CHAR* pEnd = strchr(p, '\r');
-	CHECK_ERROR(!pEnd, QSTATUS_FAIL, POP3_ERROR_LIST | POP3_ERROR_PARSE);
+	if (!pEnd)
+		POP3_ERROR(POP3_ERROR_LIST | POP3_ERROR_PARSE);
 	*pEnd = '\0';
 	CHAR* pTemp = 0;
 	*pnSize = strtol(p, &pTemp, 10);
-	CHECK_ERROR(*pTemp != '\0', QSTATUS_FAIL, POP3_ERROR_LIST | POP3_ERROR_PARSE);
+	if (*pTemp != '\0')
+		POP3_ERROR(POP3_ERROR_LIST | POP3_ERROR_PARSE);
 	
 	nError_ = POP3_ERROR_SUCCESS;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::Pop3::getMessageSizes(MessageSizeList* pList)
+bool qmpop3::Pop3::getMessageSizes(MessageSizeList* pList)
 {
 	assert(pList);
 	assert(pList->empty());
 	
-	DECLARE_QSTATUS();
+	pList->reserve(nCount_);
 	
-	status = STLWrapper<MessageSizeList>(*pList).reserve(nCount_);
-	CHECK_QSTATUS_ERROR(POP3_ERROR_LIST | POP3_ERROR_OTHER);
+	string_ptr strResponse;
+	xstring_size_ptr strContent;
 	
-	string_ptr<STRING> strResponse;
-	string_ptr<STRING> strContent;
-	
-	status = sendCommand("LIST\r\n", &strResponse, &strContent);
-	CHECK_QSTATUS_ERROR_OR(POP3_ERROR_LIST);
+	if (!sendCommand("LIST\r\n", &strResponse, &strContent, 0))
+		POP3_ERROR_OR(POP3_ERROR_LIST);
 	
 	const CHAR* p = strContent.get();
 	while (*p) {
 		p = strchr(p, ' ');
-		CHECK_ERROR(!p, QSTATUS_FAIL, POP3_ERROR_LIST | POP3_ERROR_PARSE);
+		if (!p)
+			POP3_ERROR(POP3_ERROR_LIST | POP3_ERROR_PARSE);
 		++p;
 		CHAR* pEnd = strstr(p, "\r\n");
-		CHECK_ERROR(!pEnd, QSTATUS_FAIL, POP3_ERROR_LIST | POP3_ERROR_PARSE);
+		if (!pEnd)
+			POP3_ERROR(POP3_ERROR_LIST | POP3_ERROR_PARSE);
 		*pEnd = '\0';
 		
 		CHAR* pTemp = 0;
 		unsigned int n = strtol(p, &pTemp, 10);
-		CHECK_ERROR(*pTemp != '\0', QSTATUS_FAIL, POP3_ERROR_LIST | POP3_ERROR_PARSE);
+		if (*pTemp != '\0')
+			POP3_ERROR(POP3_ERROR_LIST | POP3_ERROR_PARSE);
 		
 		pList->push_back(n);
 		
@@ -348,106 +330,98 @@ QSTATUS qmpop3::Pop3::getMessageSizes(MessageSizeList* pList)
 	
 	nError_ = POP3_ERROR_SUCCESS;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::Pop3::deleteMessage(unsigned int nMsg)
+bool qmpop3::Pop3::deleteMessage(unsigned int nMsg)
 {
-	DECLARE_QSTATUS();
-	
-	CHECK_ERROR(nMsg >= getMessageCount(), QSTATUS_FAIL,
-		POP3_ERROR_DELE | POP3_ERROR_RESPONSE);
+	if (nMsg >= getMessageCount())
+		POP3_ERROR(POP3_ERROR_DELE | POP3_ERROR_RESPONSE);
 	
 	CHAR szDele[128];
 	sprintf(szDele, "DELE %d\r\n", nMsg + 1);
 	
-	status = sendCommand(szDele);
-	CHECK_QSTATUS_ERROR_OR(POP3_ERROR_DELE);
+	if (!sendCommand(szDele))
+		POP3_ERROR_OR(POP3_ERROR_DELE);
 	
 	nError_ = POP3_ERROR_SUCCESS;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::Pop3::getUid(unsigned int nMsg, WSTRING* pwstrUid)
+bool qmpop3::Pop3::getUid(unsigned int nMsg,
+						  wstring_ptr* pwstrUid)
 {
 	assert(pwstrUid);
 	
-	DECLARE_QSTATUS();
-	
-	CHECK_ERROR(nMsg >= getMessageCount(), QSTATUS_FAIL,
-		POP3_ERROR_UIDL | POP3_ERROR_RESPONSE);
+	if (nMsg >= getMessageCount())
+		POP3_ERROR(POP3_ERROR_UIDL | POP3_ERROR_RESPONSE);
 	
 	CHAR szUidl[128];
 	sprintf(szUidl, "UIDL %d\r\n", nMsg + 1);
 	
-	string_ptr<STRING> strResponse;
-	status = sendCommand(szUidl, &strResponse);
-	CHECK_QSTATUS_ERROR(POP3_ERROR_UIDL);
+	string_ptr strResponse;
+	if (!sendCommand(szUidl, &strResponse))
+		POP3_ERROR_OR(POP3_ERROR_UIDL);
 	
 	const CHAR* p = strchr(strResponse.get() + 4, ' ');
-	CHECK_ERROR(!p, QSTATUS_FAIL, POP3_ERROR_UIDL | POP3_ERROR_PARSE);
+	if (!p)
+		POP3_ERROR(POP3_ERROR_UIDL | POP3_ERROR_PARSE);
 	const CHAR* pEnd = strstr(p, "\r\n");
-	CHECK_ERROR(!pEnd, QSTATUS_FAIL, POP3_ERROR_UIDL | POP3_ERROR_PARSE);
+	if (!pEnd)
+		POP3_ERROR(POP3_ERROR_UIDL | POP3_ERROR_PARSE);
 	*pwstrUid = mbs2wcs(p + 1, pEnd - p - 1);
-	CHECK_ERROR(!*pwstrUid, QSTATUS_OUTOFMEMORY, POP3_ERROR_UIDL | POP3_ERROR_OTHER);
 	
 	nError_ = POP3_ERROR_SUCCESS;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::Pop3::getUids(UidList* pList)
+bool qmpop3::Pop3::getUids(UidList* pList)
 {
 	assert(pList);
 	assert(pList->empty());
 	
-	DECLARE_QSTATUS();
+	pList->reserve(nCount_);
 	
-	status = STLWrapper<UidList>(*pList).reserve(nCount_);
-	CHECK_QSTATUS_ERROR(POP3_ERROR_UIDL | POP3_ERROR_OTHER);
-	
-	string_ptr<STRING> strResponse;
-	string_ptr<STRING> strContent;
-	status = sendCommand("UIDL\r\n", &strResponse, &strContent);
-	CHECK_QSTATUS_ERROR(POP3_ERROR_UIDL);
+	string_ptr strResponse;
+	xstring_size_ptr strContent;
+	if (!sendCommand("UIDL\r\n", &strResponse, &strContent, 0))
+		POP3_ERROR_OR(POP3_ERROR_UIDL);
 	
 	const CHAR* p = strContent.get();
 	while (*p) {
 		p = strchr(p, ' ');
-		CHECK_ERROR(!p, QSTATUS_FAIL, POP3_ERROR_UIDL | POP3_ERROR_PARSE);
+		if (!p)
+			POP3_ERROR(POP3_ERROR_UIDL | POP3_ERROR_PARSE);
 		++p;
 		const CHAR* pEnd = strstr(p, "\r\n");
-		CHECK_ERROR(!pEnd, QSTATUS_FAIL, POP3_ERROR_UIDL | POP3_ERROR_PARSE);
-		string_ptr<WSTRING> strUid(mbs2wcs(p, pEnd - p));
-		CHECK_ERROR(!strUid.get(), QSTATUS_OUTOFMEMORY,
-			POP3_ERROR_UIDL | POP3_ERROR_OTHER);
+		if (!pEnd)
+			POP3_ERROR(POP3_ERROR_UIDL | POP3_ERROR_PARSE);
+		wstring_ptr strUid(mbs2wcs(p, pEnd - p));
 		pList->push_back(strUid.release());
 		p = pEnd + 2;
 	}
 	
 	nError_ = POP3_ERROR_SUCCESS;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::Pop3::noop()
+bool qmpop3::Pop3::noop()
 {
-	DECLARE_QSTATUS();
-	
-	status = sendCommand("NOOP\r\n");
-	CHECK_QSTATUS_ERROR_OR(POP3_ERROR_NOOP);
+	if (!sendCommand("NOOP\r\n"))
+		POP3_ERROR_OR(POP3_ERROR_NOOP);
 	
 	nError_ = POP3_ERROR_SUCCESS;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::Pop3::sendMessage(const CHAR* pszMessage, size_t nLen)
+bool qmpop3::Pop3::sendMessage(const CHAR* pszMessage,
+							   size_t nLen)
 {
 	assert(pszMessage);
-	
-	DECLARE_QSTATUS();
 	
 	if (nLen == -1)
 		nLen = strlen(pszMessage);
@@ -460,14 +434,12 @@ QSTATUS qmpop3::Pop3::sendMessage(const CHAR* pszMessage, size_t nLen)
 	for (size_t m = 0; m < nLen; ++m, ++p) {
 		if (*p == '.' && m > 1 && *(p - 1) == '\n' && *(p - 2) == '\r') {
 			sd.nLength_ = p - sd.psz_ + 1;
-			status = STLWrapper<SendDataList>(listSendData).push_back(sd);
-			CHECK_QSTATUS_ERROR(POP3_ERROR_XTNDXMIT);
+			listSendData.push_back(sd);
 			sd.psz_ = p;
 		}
 	}
 	sd.nLength_ = p - sd.psz_;
-	status = STLWrapper<SendDataList>(listSendData).push_back(sd);
-	CHECK_QSTATUS_ERROR(POP3_ERROR_XTNDXMIT);
+	listSendData.push_back(sd);
 	
 	if (nLen > 2 && pszMessage[nLen - 2] == '\r' && pszMessage[nLen - 1] == '\n') {
 		sd.psz_ = ".\r\n";
@@ -477,18 +449,17 @@ QSTATUS qmpop3::Pop3::sendMessage(const CHAR* pszMessage, size_t nLen)
 		sd.psz_ = "\r\n.\r\n";
 		sd.nLength_ = 5;
 	}
-	status = STLWrapper<SendDataList>(listSendData).push_back(sd);
-	CHECK_QSTATUS_ERROR(POP3_ERROR_XTNDXMIT);
+	listSendData.push_back(sd);
 	
-	status = sendCommand("XTND XMIT\r\n");
-	CHECK_QSTATUS_ERROR_OR(POP3_ERROR_XTNDXMIT);
+	if (!sendCommand("XTND XMIT\r\n"))
+		POP3_ERROR_OR(POP3_ERROR_XTNDXMIT);
 	
-	status = send(&listSendData[0], listSendData.size(), true);
-	CHECK_QSTATUS_ERROR_OR(POP3_ERROR_XTNDXMIT);
+	if (!send(&listSendData[0], listSendData.size(), true))
+		POP3_ERROR_OR(POP3_ERROR_XTNDXMIT);
 	
 	nError_ = POP3_ERROR_SUCCESS;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 unsigned int qmpop3::Pop3::getLastError() const
@@ -498,221 +469,271 @@ unsigned int qmpop3::Pop3::getLastError() const
 
 const WCHAR* qmpop3::Pop3::getLastErrorResponse() const
 {
-	return wstrErrorResponse_;
+	return wstrErrorResponse_.get();
 }
 
-QSTATUS qmpop3::Pop3::receive(STRING* pstrResponse)
+bool qmpop3::Pop3::receive(string_ptr* pstrResponse)
 {
-	return receive(pstrResponse, 0);
+	return receive(pstrResponse, 0, 0);
 }
 
-QSTATUS qmpop3::Pop3::receive(STRING* pstrResponse, STRING* pstrContent)
+bool qmpop3::Pop3::receive(string_ptr* pstrResponse,
+						   xstring_size_ptr* pstrContent,
+						   size_t nContentSizeHint)
 {
 	assert(!pstrContent || pstrResponse);
 	
-	DECLARE_QSTATUS();
+	if (!pSocket_.get())
+		POP3_ERROR(POP3_ERROR_INVALIDSOCKET);
 	
-	CHECK_ERROR(!pSocket_, QSTATUS_FAIL, POP3_ERROR_INVALIDSOCKET);
-	
-	StringBuffer<STRING> bufResponse(&status);
-	CHECK_QSTATUS_ERROR(POP3_ERROR_OTHER);
-	StringBuffer<STRING> bufContent(&status);
-	CHECK_QSTATUS_ERROR(POP3_ERROR_OTHER);
+	StringBuffer<STRING> bufResponse;
+	XStringBuffer<XSTRING> bufContent;
 	
 	bool bContent = false;
 	bool bMultiLine = pstrContent != 0;
 	char buf[1024];
-	State state = STATE_NONE;
+	State state = STATE_LF1;
 	bool bEnd = false;
 	do {
-		int nSelect = Socket::SELECT_READ;
-		status = pSocket_->select(&nSelect);
-		CHECK_QSTATUS_ERROR(POP3_ERROR_SELECT | pSocket_->getLastError());
-		CHECK_ERROR(nSelect == 0, QSTATUS_FAIL, POP3_ERROR_TIMEOUT);
+		int nSelect = pSocket_->select(Socket::SELECT_READ);
+		if (nSelect == -1)
+			POP3_ERROR_SOCKET(POP3_ERROR_SELECT);
+		else if (nSelect == 0)
+			POP3_ERROR(POP3_ERROR_TIMEOUT);
 		
-		int nLen = sizeof(buf);
-		status = pSocket_->recv(buf, &nLen, 0);
-		CHECK_QSTATUS_ERROR(POP3_ERROR_RECEIVE | pSocket_->getLastError());
-		CHECK_ERROR(nLen == 0, QSTATUS_FAIL, POP3_ERROR_DISCONNECT);
-		
-		if (bMultiLine) {
-			if (!bContent) {
-				status = bufResponse.append(buf, nLen);
-				CHECK_QSTATUS_ERROR(POP3_ERROR_OTHER);
+		if (bContent) {
+			XStringBufferLock<XSTRING> lock(&bufContent, sizeof(buf));
+			CHAR* pLock = lock.get();
+			if (!pLock)
+				POP3_ERROR(POP3_ERROR_OTHER);
+			
+			size_t nLen = pSocket_->recv(pLock, sizeof(buf), 0);
+			if (nLen == -1)
+				POP3_ERROR_SOCKET(POP3_ERROR_RECEIVE);
+			else if (nLen == 0)
+				POP3_ERROR(POP3_ERROR_DISCONNECT);
+			
+			if (!checkContent(pLock, &nLen, &state))
+				POP3_ERROR(POP3_ERROR_PARSE);
+			
+			lock.unlock(nLen);
+		}
+		else {
+			size_t nLen = pSocket_->recv(buf, sizeof(buf), 0);
+			if (nLen == -1)
+				POP3_ERROR_SOCKET(POP3_ERROR_RECEIVE);
+			else if (nLen == 0)
+				POP3_ERROR(POP3_ERROR_DISCONNECT);
+			
+			if (bMultiLine) {
+				assert(!bContent);
+				bufResponse.append(buf, nLen);
 				
 				const CHAR* pRes = bufResponse.getCharArray();
 				const CHAR* p = strstr(pRes, "\r\n");
 				if (p) {
 					bContent = true;
-					status = addContent(&bufContent, p + 2,
-						bufResponse.getLength() - (p - pRes) - 2, &state);
-					CHECK_QSTATUS_ERROR(POP3_ERROR_OTHER);
+					
+					if (nContentSizeHint != 0) {
+						if (!bufContent.reserve(nContentSizeHint + sizeof(buf)))
+							POP3_ERROR(POP3_ERROR_OTHER);
+					}
+					
+					size_t nContentLen = bufResponse.getLength() - (p - pRes) - 2;
+					char* pContent = buf + nLen - nContentLen;
+					if (!checkContent(pContent, &nContentLen, &state))
+						POP3_ERROR(POP3_ERROR_PARSE);
+					if (!bufContent.append(pContent, nContentLen))
+						POP3_ERROR(POP3_ERROR_OTHER);
 					bufResponse.remove(p + 2 - pRes, bufResponse.getLength());
 				}
-				if (bufResponse.getLength() > 4 &&
-					strncmp(pRes, pszErr__, 4) == 0)
+				if (bufResponse.getLength() > 4 && strncmp(pRes, pszErr__, 4) == 0)
 					bMultiLine = false;
 			}
 			else {
-				status = addContent(&bufContent, buf, nLen, &state);
-				CHECK_QSTATUS_ERROR(POP3_ERROR_OTHER);
+				bufResponse.append(buf, nLen);
 			}
 		}
-		else {
-			status = bufResponse.append(buf, nLen);
-			CHECK_QSTATUS_ERROR(POP3_ERROR_OTHER);
-		}
-		
-		if (bMultiLine) {
-			status = pPop3Callback_->setPos(bufContent.getLength());
-			CHECK_QSTATUS_ERROR(POP3_ERROR_OTHER);
-		}
+			
+		if (bMultiLine)
+			pPop3Callback_->setPos(bufContent.getLength());
 		
 		if (bMultiLine)
-			bEnd = state == STATE_LF;
+			bEnd = state == STATE_LF2;
 		else
 			bEnd = bufResponse.getLength() >= 2 &&
 				strncmp(bufResponse.getCharArray() + bufResponse.getLength() - 2, "\r\n", 2) == 0;
 	} while (!bEnd);
 	
 	if (strncmp(bufResponse.getCharArray(), pszOk__, 3) != 0) {
-		status = setErrorResponse(bufResponse.getCharArray());
-		CHECK_QSTATUS_ERROR(POP3_ERROR_OTHER);
-		CHECK_ERROR(true, QSTATUS_FAIL, POP3_ERROR_RESPONSE);
+		setErrorResponse(bufResponse.getCharArray());
+		POP3_ERROR(POP3_ERROR_RESPONSE);
 	}
 	
 	if (pstrResponse)
 		*pstrResponse = bufResponse.getString();
 	if (pstrContent) {
 		bufContent.remove(bufContent.getLength() - 2, bufContent.getLength());
-		*pstrContent = bufContent.getString();
+		*pstrContent = bufContent.getXStringSize();
 	}
 	
 	nError_ = POP3_ERROR_SUCCESS;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qmpop3::Pop3::sendCommand(const CHAR* pszCommand)
+bool qmpop3::Pop3::sendCommand(const CHAR* pszCommand)
 {
-	return sendCommand(pszCommand, 0, 0);
+	return sendCommand(pszCommand, 0, 0, 0);
 }
 
-QSTATUS qmpop3::Pop3::sendCommand(const CHAR* pszCommand, STRING* pstrResponse)
+bool qmpop3::Pop3::sendCommand(const CHAR* pszCommand,
+							   string_ptr* pstrResponse)
 {
-	return sendCommand(pszCommand, pstrResponse, 0);
+	return sendCommand(pszCommand, pstrResponse, 0, 0);
 }
 
-QSTATUS qmpop3::Pop3::sendCommand(const CHAR* pszCommand,
-	STRING* pstrResponse, STRING* pstrContent)
+bool qmpop3::Pop3::sendCommand(const CHAR* pszCommand,
+							   string_ptr* pstrResponse,
+							   xstring_size_ptr* pstrContent,
+							   size_t nContentSizeHint)
 {
-	SendData sd = { pszCommand, strlen(pszCommand) };
-	return send(&sd, 1, false, pstrResponse, pstrContent);
+	SendData sd = {
+		pszCommand,
+		strlen(pszCommand)
+	};
+	return send(&sd, 1, false, pstrResponse, pstrContent, nContentSizeHint);
 }
 
-QSTATUS qmpop3::Pop3::send(const SendData* pSendData, size_t nDataLen, bool bProgress)
+bool qmpop3::Pop3::send(const SendData* pSendData,
+						size_t nDataLen,
+						bool bProgress)
 {
-	return send(pSendData, nDataLen, bProgress, 0, 0);
+	return send(pSendData, nDataLen, bProgress, 0, 0, 0);
 }
 
-QSTATUS qmpop3::Pop3::send(const SendData* pSendData, size_t nDataLen,
-	bool bProgress, STRING* pstrResponse, STRING* pstrContent)
+bool qmpop3::Pop3::send(const SendData* pSendData,
+						size_t nDataLen,
+						bool bProgress,
+						string_ptr* pstrResponse,
+						xstring_size_ptr* pstrContent,
+						size_t nContentSizeHint)
 {
 	assert(pSendData);
 	assert(nDataLen > 0);
 	
-	DECLARE_QSTATUS();
-	
-	CHECK_ERROR(!pSocket_, QSTATUS_FAIL, POP3_ERROR_INVALIDSOCKET);
+	if (!pSocket_.get())
+		POP3_ERROR(POP3_ERROR_INVALIDSOCKET);
 	
 	if (bProgress) {
 		size_t nLen = 0;
 		for (size_t n = 0; n < nDataLen; ++n)
 			nLen += (pSendData + n)->nLength_;
-		status = pPop3Callback_->setRange(0, nLen);
-		CHECK_QSTATUS_ERROR(POP3_ERROR_SEND);
+		pPop3Callback_->setRange(0, nLen);
 	}
 	
 	for (size_t n = 0; n < nDataLen; ++n) {
 		const SendData& data = *(pSendData + n);
 		size_t nTotal = 0;
 		while (nTotal < data.nLength_) {
-			int nSelect = Socket::SELECT_READ | Socket::SELECT_WRITE;
-			status = pSocket_->select(&nSelect);
-			CHECK_QSTATUS_ERROR(POP3_ERROR_SELECT | pSocket_->getLastError());
-			CHECK_ERROR(nSelect == 0, QSTATUS_FAIL, POP3_ERROR_TIMEOUT);
+			int nSelect = pSocket_->select(Socket::SELECT_READ | Socket::SELECT_WRITE);
+			if (nSelect == -1)
+				POP3_ERROR_SOCKET(POP3_ERROR_SELECT);
+			else if (nSelect == 0)
+				POP3_ERROR(POP3_ERROR_TIMEOUT);
 			
-			int nSend = QSMIN(size_t(2048), data.nLength_ - nTotal);
-			status = pSocket_->send(data.psz_ + nTotal, &nSend, 0);
-			CHECK_QSTATUS_ERROR(POP3_ERROR_SEND | pSocket_->getLastError());
+			size_t nSend = pSocket_->send(data.psz_ + nTotal,
+				QSMIN(size_t(2048), data.nLength_ - nTotal), 0);
+			if (nSend == -1)
+				POP3_ERROR_SOCKET(POP3_ERROR_SEND);
 			nTotal += nSend;
-			if (bProgress) {
-				status = pPop3Callback_->setPos(nTotal);
-				CHECK_QSTATUS_ERROR(POP3_ERROR_SEND);
-			}
+			
+			if (bProgress)
+				pPop3Callback_->setPos(nTotal);
 		}
 	}
 	if (bProgress) {
-		status = pPop3Callback_->setRange(0, 0);
-		CHECK_QSTATUS_ERROR(POP3_ERROR_SEND);
-		status = pPop3Callback_->setPos(0);
-		CHECK_QSTATUS_ERROR(POP3_ERROR_SEND);
+		pPop3Callback_->setRange(0, 0);
+		pPop3Callback_->setPos(0);
 	}
 	
-	return receive(pstrResponse, pstrContent);
+	return receive(pstrResponse, pstrContent, nContentSizeHint);
 }
 
-QSTATUS qmpop3::Pop3::setErrorResponse(const CHAR* pszErrorResponse)
+void qmpop3::Pop3::setErrorResponse(const CHAR* pszErrorResponse)
 {
-	freeWString(wstrErrorResponse_);
 	wstrErrorResponse_ = mbs2wcs(pszErrorResponse);
-	if (!wstrErrorResponse_)
-		return QSTATUS_OUTOFMEMORY;
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmpop3::Pop3::addContent(StringBuffer<STRING>* pBuf,
-	const CHAR* psz, size_t nLen, State* pState)
+bool qmpop3::Pop3::checkContent(CHAR* psz,
+								size_t* pnLen,
+								State* pState)
 {
-	DECLARE_QSTATUS();
+	assert(psz);
+	assert(pnLen);
+	assert(pState);
+	
+	CHAR* p = psz;
+	CHAR* pOrg = p;
+	size_t nLen = *pnLen;
 	
 	while (nLen != 0) {
 		CHAR c = *psz;
-		switch (c) {
-		case '.':
-			if (*pState != STATE_PERIOD &&
-				(pBuf->getLength() == 0 ||
-					(pBuf->getLength() >= 2 &&
-					pBuf->get(pBuf->getLength() - 1) == '\n' &&
-					pBuf->get(pBuf->getLength() - 2) == '\r'))) {
-				*pState = STATE_PERIOD;
+		
+		switch (*pState) {
+		case STATE_NONE:
+			if (c == '\r')
+				*pState = STATE_CR1;
+			break;
+		case STATE_CR1:
+			if (c == '\n')
+				*pState = STATE_LF1;
+			else
+				*pState = STATE_NONE;
+			break;
+		case STATE_LF1:
+			if (c == '.') {
 				c = '\0';
+				*pState = STATE_PERIOD;
+			}
+			else if (c == '\r') {
+				*pState = STATE_CR1;
 			}
 			else {
 				*pState = STATE_NONE;
 			}
 			break;
-		case '\r':
-			*pState = *pState == STATE_PERIOD ? STATE_CR : STATE_NONE;
+		case STATE_PERIOD:
+			if (c == '\r')
+				*pState = STATE_CR2;
+			else
+				*pState = STATE_NONE;
 			break;
-		case '\n':
-			*pState = *pState == STATE_CR ? STATE_LF : STATE_NONE;
+		case STATE_CR2:
+			if (c == '\n')
+				*pState = STATE_LF2;
+			else
+				*pState = STATE_NONE;
 			break;
+		case STATE_LF2:
+			return false;
 		default:
-			*pState = STATE_NONE;
-			break;
+			assert(false);
+			return false;
 		}
 		if (c != '\0') {
-			status = pBuf->append(c);
-			CHECK_QSTATUS();
+			if (p != psz)
+				*p = c;
+			++p;
 		}
 		
 		++psz;
 		--nLen;
 	}
 	
-	return QSTATUS_SUCCESS;
+	*pnLen = p - pOrg;
+	
+	return true;
 }
 
 

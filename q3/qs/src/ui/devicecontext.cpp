@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -26,23 +26,21 @@ using namespace qs;
 
 #ifndef UNICODE
 bool qs::DeviceContext::getTextExtentEx(const WCHAR* pwszString,
-	int nCount, int nMaxExtent, int* pnFit, int* pnDx, SIZE* pSize) const
+										int nCount,
+										int nMaxExtent,
+										int* pnFit,
+										int* pnDx,
+										SIZE* pSize) const
 {
 	assert(hdc_);
 	
-	DECLARE_QSTATUS();
-	
-	string_ptr<STRING> str(wcs2mbs(pwszString, nCount));
-	if (!str.get())
-		return false;
+	string_ptr str(wcs2mbs(pwszString, nCount));
 	
 	int nLen = strlen(str.get());
 	
 	std::vector<int> dx;
-	if (pnDx) {
-		status = STLWrapper<std::vector<int> >(dx).resize(nLen);
-		CHECK_QSTATUS_VALUE(false);
-	}
+	if (pnDx)
+		dx.resize(nLen);
 	
 	if (!::GetTextExtentExPoint(hdc_, str.get(), nLen,
 		nMaxExtent, pnFit, pnDx ? &dx[0] : 0, pSize))
@@ -85,12 +83,11 @@ bool qs::DeviceContext::getTextExtentEx(const WCHAR* pwszString,
 #endif
 
 int qs::DeviceContext::enumFontFamilies(const WCHAR* pwszFamily,
-	FONTENUMPROC pProc, LPARAM lParam) const
+										FONTENUMPROC pProc,
+										LPARAM lParam) const
 {
 	assert(hdc_);
-	string_ptr<TSTRING> tstrFamily(wcs2tcs(pwszFamily));
-	if (!tstrFamily.get())
-		return -1;
+	tstring_ptr tstrFamily(wcs2tcs(pwszFamily));
 	return ::EnumFontFamilies(hdc_, tstrFamily.get(), pProc, lParam);
 }
 
@@ -101,23 +98,17 @@ int qs::DeviceContext::enumFontFamilies(const WCHAR* pwszFamily,
  *
  */
 
-qs::ClientDeviceContext::ClientDeviceContext(HWND hwnd, QSTATUS* pstatus) :
+qs::ClientDeviceContext::ClientDeviceContext(HWND hwnd) :
 	DeviceContext(0),
 	hwnd_(hwnd)
 {
-	assert(pstatus);
-	
-	HDC hdc = ::GetDC(hwnd_);
-	if (!hdc) {
-		*pstatus = QSTATUS_FAIL;
-		return;
-	}
-	setHandle(hdc);
+	setHandle(::GetDC(hwnd_));
 }
 
 qs::ClientDeviceContext::~ClientDeviceContext()
 {
-	::ReleaseDC(hwnd_, getHandle());
+	if (getHandle())
+		::ReleaseDC(hwnd_, getHandle());
 }
 
 
@@ -127,23 +118,17 @@ qs::ClientDeviceContext::~ClientDeviceContext()
  *
  */
 
-qs::PaintDeviceContext::PaintDeviceContext(HWND hwnd, QSTATUS* pstatus) :
+qs::PaintDeviceContext::PaintDeviceContext(HWND hwnd) :
 	DeviceContext(0),
 	hwnd_(hwnd)
 {
-	assert(pstatus);
-	
-	HDC hdc = ::BeginPaint(hwnd_, &ps_);
-	if (!hdc) {
-		*pstatus = QSTATUS_FAIL;
-		return;
-	}
-	setHandle(hdc);
+	setHandle(::BeginPaint(hwnd_, &ps_));
 }
 
 qs::PaintDeviceContext::~PaintDeviceContext()
 {
-	::EndPaint(hwnd_, &ps_);
+	if (getHandle())
+		::EndPaint(hwnd_, &ps_);
 }
 
 
@@ -153,25 +138,16 @@ qs::PaintDeviceContext::~PaintDeviceContext()
  *
  */
 
-qs::CompatibleDeviceContext::CompatibleDeviceContext(
-	HDC hdc, QSTATUS* pstatus) :
+qs::CompatibleDeviceContext::CompatibleDeviceContext(HDC hdc) :
 	DeviceContext(0)
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	HDC hdcMem = ::CreateCompatibleDC(hdc);
-	if (!hdcMem) {
-		*pstatus = QSTATUS_FAIL;
-		return;
-	}
-	setHandle(hdcMem);
+	setHandle(::CreateCompatibleDC(hdc));
 }
 
 CompatibleDeviceContext::~CompatibleDeviceContext()
 {
-	::DeleteDC(getHandle());
+	if (getHandle())
+		::DeleteDC(getHandle());
 }
 
 
@@ -181,13 +157,18 @@ CompatibleDeviceContext::~CompatibleDeviceContext()
  *
  */
 
-int CALLBACK enumFontFamProc(ENUMLOGFONT*, NEWTEXTMETRIC*, int, LPARAM);
+int CALLBACK enumFontFamProc(ENUMLOGFONT*,
+							 NEWTEXTMETRIC*,
+							 int,
+							 LPARAM);
 
-QSTATUS qs::FontHelper::createLogFont(HDC hdc, const WCHAR* pwszFaceName,
-	int nPointSize, unsigned int nStyle, unsigned int nCharset, LOGFONT* plf)
+void qs::FontHelper::createLogFont(HDC hdc,
+								   const WCHAR* pwszFaceName,
+								   int nPointSize,
+								   unsigned int nStyle,
+								   unsigned int nCharset,
+								   LOGFONT* plf)
 {
-	DECLARE_QSTATUS();
-	
 	memset(plf, 0, sizeof(LOGFONT));
 	
 	W2T(pwszFaceName, ptszFaceName);
@@ -207,12 +188,12 @@ QSTATUS qs::FontHelper::createLogFont(HDC hdc, const WCHAR* pwszFaceName,
 	plf->lfStrikeOut = (nStyle & STYLE_STRIKEOUT) != 0;
 	if (nCharset)
 		plf->lfCharSet = nCharset;
-	
-	return QSTATUS_SUCCESS;
 }
 
 int CALLBACK enumFontFamProc(ENUMLOGFONT* pelf,
-	NEWTEXTMETRIC* pntm, int nFontType, LPARAM lParam)
+							 NEWTEXTMETRIC* pntm,
+							 int nFontType,
+							 LPARAM lParam)
 {
 	LOGFONT* plf = reinterpret_cast<LOGFONT*>(lParam);
 	if (_tcscmp(plf->lfFaceName, pelf->elfLogFont.lfFaceName) == 0) {

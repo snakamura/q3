@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -12,9 +12,7 @@
 #include <qmmessage.h>
 #include <qmsecurity.h>
 
-#include <qserror.h>
 #include <qsmime.h>
-#include <qsnew.h>
 #include <qsprofile.h>
 #include <qsstl.h>
 #include <qstextutil.h>
@@ -40,18 +38,18 @@ struct qm::SubAccountImpl
 {
 	typedef std::vector<WSTRING> AddressList;
 	
-	QSTATUS load();
+	void load();
 	
 	SubAccount* pThis_;
 	Account* pAccount_;
-	WSTRING wstrName_;
-	WSTRING wstrIdentity_;
-	WSTRING wstrSenderName_;
-	WSTRING wstrSenderAddress_;
-	WSTRING wstrHost_[Account::HOST_SIZE];
+	wstring_ptr wstrName_;
+	wstring_ptr wstrIdentity_;
+	wstring_ptr wstrSenderName_;
+	wstring_ptr wstrSenderAddress_;
+	wstring_ptr wstrHost_[Account::HOST_SIZE];
 	short nPort_[Account::HOST_SIZE];
-	WSTRING wstrUserName_[Account::HOST_SIZE];
-	WSTRING wstrPassword_[Account::HOST_SIZE];
+	wstring_ptr wstrUserName_[Account::HOST_SIZE];
+	wstring_ptr wstrPassword_[Account::HOST_SIZE];
 	bool bSsl_[Account::HOST_SIZE];
 	bool bLog_[Account::HOST_SIZE];
 	long nTimeout_;
@@ -60,23 +58,20 @@ struct qm::SubAccountImpl
 	bool bAddMessageId_;
 	bool bAllowUnverifiedCertificate_;
 	SubAccount::DialupType dialupType_;
-	WSTRING wstrDialupEntry_;
+	wstring_ptr wstrDialupEntry_;
 	bool bDialupShowDialog_;
 	unsigned int nDialupDisconnectWait_;
-	PrivateKey* pPrivateKey_;
-	Certificate* pCertificate_;
+	std::auto_ptr<PrivateKey> pPrivateKey_;
+	std::auto_ptr<Certificate> pCertificate_;
 	AddressList listMyAddress_;
-	Profile* pProfile_;
-	WSTRING wstrSyncFilterName_;
+	std::auto_ptr<Profile> pProfile_;
+	wstring_ptr wstrSyncFilterName_;
 };
 
-QSTATUS qm::SubAccountImpl::load()
+void qm::SubAccountImpl::load()
 {
-	DECLARE_QSTATUS();
-	
 #define LOAD_STRING(section, key, default, name) \
-	status = pProfile_->getString(section, key, default, &##name); \
-	CHECK_QSTATUS()
+	this->##name = pProfile_->getString(section, key, default);
 	
 	LOAD_STRING(L"Global",	L"Identity",		0,	wstrIdentity_						);
 	LOAD_STRING(L"Global",	L"SenderName",		0,	wstrSenderName_						);
@@ -92,9 +87,7 @@ QSTATUS qm::SubAccountImpl::load()
 
 #pragma warning(disable:4800)
 #define LOAD_INT(section, key, default, name, type, tempname) \
-	int _##tempname##_ = 0; \
-	status = pProfile_->getInt(section, key, default, &_##tempname##_); \
-	CHECK_QSTATUS(); \
+	int _##tempname##_ = pProfile_->getInt(section, key, default); \
 	##name = static_cast<type>(_##tempname##_)
 	
 	LOAD_INT(L"Send",		L"Port",						25,		nPort_[Account::HOST_SEND],		short,					nSendPort					);
@@ -121,72 +114,51 @@ QSTATUS qm::SubAccountImpl::load()
 		{ Account::HOST_RECEIVE,	L"Receive"	}
 	};
 	for (int n = 0; n < countof(entries); ++n) {
-		WSTRING& wstrPassword = wstrPassword_[entries[n].host_];
-		if (!*wstrPassword) {
-			string_ptr<WSTRING> wstrEncodedPassword;
-			status = pProfile_->getString(entries[n].pwszSection_,
-				L"EncodedPassword", 0, &wstrEncodedPassword);
-			CHECK_QSTATUS();
-			string_ptr<WSTRING> wstr;
-			status = TextUtil::decodePassword(
-				wstrEncodedPassword.get(), &wstr);
-			CHECK_QSTATUS();
-			freeWString(wstrPassword);
-			wstrPassword = wstr.release();
+		wstring_ptr& wstrPassword = wstrPassword_[entries[n].host_];
+		if (!*wstrPassword.get()) {
+			wstring_ptr wstrEncodedPassword(pProfile_->getString(
+				entries[n].pwszSection_, L"EncodedPassword", 0));
+			wstring_ptr wstr(TextUtil::decodePassword(wstrEncodedPassword.get()));
+			wstrPassword = wstr;
 		}
 	}
 	
-	string_ptr<WSTRING> wstrMyAddress;
-	status = pProfile_->getString(L"Global", L"MyAddress", 0, &wstrMyAddress);
-	CHECK_QSTATUS();
-	status = pThis_->setMyAddress(wstrMyAddress.get());
-	CHECK_QSTATUS();
+	wstring_ptr wstrMyAddress(pProfile_->getString(L"Global", L"MyAddress", 0));
+	pThis_->setMyAddress(wstrMyAddress.get());
 	
 	if (Security::isEnabled()) {
 		{
-			std::auto_ptr<PrivateKey> pPrivateKey;
-			status = CryptoUtil<PrivateKey>::getInstance(&pPrivateKey);
-			CHECK_QSTATUS();
+			std::auto_ptr<PrivateKey> pPrivateKey(PrivateKey::getInstance());
 			ConcatW c[] = {
-				{ pAccount_->getPath(),			-1	},
-				{ L"\\",						1	},
-				{ FileNames::KEY,				-1	},
-				{ *wstrIdentity_ ? L"_" : L"",	-1	},
-				{ wstrIdentity_,				-1	},
-				{ FileNames::PEM_EXT,			-1	}
+				{ pAccount_->getPath(),				-1	},
+				{ L"\\",							1	},
+				{ FileNames::KEY,					-1	},
+				{ *wstrName_.get() ? L"_" : L"",	-1	},
+				{ wstrName_.get(),					-1	},
+				{ FileNames::PEM_EXT,				-1	}
 			};
-			string_ptr<WSTRING> wstrPath(concat(c, countof(c)));
-			if (!wstrPath.get())
-				return QSTATUS_OUTOFMEMORY;
-			status = pPrivateKey->load(wstrPath.get(),
-				PrivateKey::FILETYPE_PEM, 0);
-			if (status == QSTATUS_SUCCESS)
-				pPrivateKey_ = pPrivateKey.release();
+			wstring_ptr wstrPath(concat(c, countof(c)));
+			if (pPrivateKey->load(wstrPath.get(),
+				PrivateKey::FILETYPE_PEM, 0))
+				pPrivateKey_ = pPrivateKey;
 		}
 		
 		{
-			std::auto_ptr<Certificate> pCertificate;
-			status = CryptoUtil<Certificate>::getInstance(&pCertificate);
-			CHECK_QSTATUS();
+			std::auto_ptr<Certificate> pCertificate(Certificate::getInstance());
 			ConcatW c[] = {
-				{ pAccount_->getPath(),			-1	},
-				{ L"\\",						1	},
-				{ FileNames::CERT,				-1	},
-				{ *wstrIdentity_ ? L"_" : L"",	-1	},
-				{ wstrIdentity_,				-1	},
-				{ FileNames::PEM_EXT,			-1	}
+				{ pAccount_->getPath(),				-1	},
+				{ L"\\",							1	},
+				{ FileNames::CERT,					-1	},
+				{ *wstrName_.get() ? L"_" : L"",	-1	},
+				{ wstrName_.get(),					-1	},
+				{ FileNames::PEM_EXT,				-1	}
 			};
-			string_ptr<WSTRING> wstrPath(concat(c, countof(c)));
-			if (!wstrPath.get())
-				return QSTATUS_OUTOFMEMORY;
-			status = pCertificate->load(wstrPath.get(),
-				Certificate::FILETYPE_PEM, 0);
-			if (status == QSTATUS_SUCCESS)
-				pCertificate_ = pCertificate.release();
+			wstring_ptr wstrPath(concat(c, countof(c)));
+			if (pCertificate->load(wstrPath.get(),
+				Certificate::FILETYPE_PEM, 0))
+				pCertificate_ = pCertificate;
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -196,40 +168,22 @@ QSTATUS qm::SubAccountImpl::load()
  *
  */
 
-qm::SubAccount::SubAccount(Account* pAccount, Profile* pProfile,
-	const WCHAR* pwszName, QSTATUS* pstatus)
+qm::SubAccount::SubAccount(Account* pAccount,
+						   std::auto_ptr<Profile> pProfile,
+						   const WCHAR* pwszName)
 {
 	assert(pAccount);
-	assert(pProfile);
+	assert(pProfile.get());
 	assert(pwszName);
-	assert(pstatus);
 	
-	*pstatus = QSTATUS_SUCCESS;
+	wstring_ptr wstrName(allocWString(pwszName));
 	
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrName(allocWString(pwszName));
-	if (!wstrName.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new SubAccountImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->pAccount_ = pAccount;
-	pImpl_->wstrName_ = wstrName.release();
-	pImpl_->wstrIdentity_ = 0;
-	pImpl_->wstrSenderName_ = 0;
-	pImpl_->wstrSenderAddress_ = 0;
-	pImpl_->wstrHost_[Account::HOST_SEND] = 0;
-	pImpl_->wstrHost_[Account::HOST_RECEIVE] = 0;
+	pImpl_->wstrName_ = wstrName;
 	pImpl_->nPort_[Account::HOST_SEND] = 0;
 	pImpl_->nPort_[Account::HOST_RECEIVE] = 0;
-	pImpl_->wstrUserName_[Account::HOST_SEND] = 0;
-	pImpl_->wstrUserName_[Account::HOST_RECEIVE] = 0;
-	pImpl_->wstrPassword_[Account::HOST_SEND] = 0;
-	pImpl_->wstrPassword_[Account::HOST_RECEIVE] = 0;
 	pImpl_->bSsl_[Account::HOST_SEND] = false;
 	pImpl_->bSsl_[Account::HOST_RECEIVE] = false;
 	pImpl_->bLog_[Account::HOST_SEND] = false;
@@ -240,44 +194,18 @@ qm::SubAccount::SubAccount(Account* pAccount, Profile* pProfile,
 	pImpl_->bAddMessageId_ = true;
 	pImpl_->bAllowUnverifiedCertificate_ = false;
 	pImpl_->dialupType_ = SubAccount::DIALUPTYPE_NEVER;
-	pImpl_->wstrDialupEntry_ = 0;
 	pImpl_->bDialupShowDialog_ = false;
 	pImpl_->nDialupDisconnectWait_ = 0;
-	pImpl_->pPrivateKey_ = 0;
-	pImpl_->pCertificate_ = 0;
 	pImpl_->pProfile_ = pProfile;
-	pImpl_->wstrSyncFilterName_ = 0;
 	
-	status = pImpl_->load();
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_->load();
 }
 
 qm::SubAccount::~SubAccount()
 {
 	if (pImpl_) {
-		WSTRING* pwstrs[] = {
-			&pImpl_->wstrName_,
-			&pImpl_->wstrIdentity_,
-			&pImpl_->wstrSenderName_,
-			&pImpl_->wstrSenderAddress_,
-			&pImpl_->wstrHost_[Account::HOST_SEND],
-			&pImpl_->wstrHost_[Account::HOST_RECEIVE],
-			&pImpl_->wstrUserName_[Account::HOST_SEND],
-			&pImpl_->wstrUserName_[Account::HOST_RECEIVE],
-			&pImpl_->wstrPassword_[Account::HOST_SEND],
-			&pImpl_->wstrPassword_[Account::HOST_RECEIVE],
-			&pImpl_->wstrDialupEntry_
-		};
-		for (int n = 0; n < countof(pwstrs); ++n)
-			freeWString(*pwstrs[n]);
 		std::for_each(pImpl_->listMyAddress_.begin(),
 			pImpl_->listMyAddress_.end(), string_free<WSTRING>());
-		delete pImpl_->pProfile_;
-		freeWString(pImpl_->wstrSyncFilterName_);
-		
-		delete pImpl_->pPrivateKey_;
-		delete pImpl_->pCertificate_;
-		
 		delete pImpl_;
 		pImpl_ = 0;
 	}
@@ -290,105 +218,63 @@ Account* qm::SubAccount::getAccount() const
 
 const WCHAR* qm::SubAccount::getName() const
 {
-	return pImpl_->wstrName_;
+	return pImpl_->wstrName_.get();
 }
 
 const WCHAR* qm::SubAccount::getIdentity() const
 {
-	return pImpl_->wstrIdentity_;
+	return pImpl_->wstrIdentity_.get();
 }
 
-QSTATUS qm::SubAccount::setIdentity(const WCHAR* pwszIdentity)
+void qm::SubAccount::setIdentity(const WCHAR* pwszIdentity)
 {
-	string_ptr<WSTRING> wstrIdentity(allocWString(pwszIdentity));
-	if (!wstrIdentity.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	freeWString(pImpl_->wstrIdentity_);
-	pImpl_->wstrIdentity_ = wstrIdentity.release();
-	
-	return QSTATUS_SUCCESS;
+	pImpl_->wstrIdentity_ = allocWString(pwszIdentity);
 }
 
 const WCHAR* qm::SubAccount::getSenderName() const
 {
-	return pImpl_->wstrSenderName_;
+	return pImpl_->wstrSenderName_.get();
 }
 
-QSTATUS qm::SubAccount::setSenderName(const WCHAR* pwszName)
+void qm::SubAccount::setSenderName(const WCHAR* pwszName)
 {
-	string_ptr<WSTRING> wstrName(allocWString(pwszName));
-	if (!wstrName.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	freeWString(pImpl_->wstrSenderName_);
-	pImpl_->wstrSenderName_ = wstrName.release();
-	
-	return QSTATUS_SUCCESS;
+	pImpl_->wstrSenderName_ = allocWString(pwszName);
 }
 
 const WCHAR* qm::SubAccount::getSenderAddress() const
 {
-	return pImpl_->wstrSenderAddress_;
+	return pImpl_->wstrSenderAddress_.get();
 }
 
-QSTATUS qm::SubAccount::setSenderAddress(const WCHAR* pwszAddress)
+void qm::SubAccount::setSenderAddress(const WCHAR* pwszAddress)
 {
-	string_ptr<WSTRING> wstrAddress(allocWString(pwszAddress));
-	if (!wstrAddress.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	freeWString(pImpl_->wstrSenderAddress_);
-	pImpl_->wstrSenderAddress_ = wstrAddress.release();
-	
-	return QSTATUS_SUCCESS;
+	pImpl_->wstrSenderAddress_ = allocWString(pwszAddress);
 }
 
-QSTATUS qm::SubAccount::getMyAddress(WSTRING* pwstrAddress) const
+wstring_ptr qm::SubAccount::getMyAddress() const
 {
-	assert(pwstrAddress);
-	
-	DECLARE_QSTATUS();
-	
-	*pwstrAddress = 0;
-	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
-	SubAccountImpl::AddressList::const_iterator it = pImpl_->listMyAddress_.begin();
-	while (it != pImpl_->listMyAddress_.end()) {
-		if (buf.getLength() != 0) {
-			status = buf.append(L", ");
-			CHECK_QSTATUS();
-		}
-		status = buf.append(*it);
-		CHECK_QSTATUS();
-		++it;
+	StringBuffer<WSTRING> buf;
+	for (SubAccountImpl::AddressList::const_iterator it = pImpl_->listMyAddress_.begin(); it != pImpl_->listMyAddress_.end(); ++it) {
+		if (buf.getLength() != 0)
+			buf.append(L", ");
+		buf.append(*it);
 	}
-	
-	*pwstrAddress = buf.getString();
-	
-	return QSTATUS_SUCCESS;
+	return buf.getString();
 }
 
-QSTATUS qm::SubAccount::setMyAddress(const WCHAR* pwszAddress)
+void qm::SubAccount::setMyAddress(const WCHAR* pwszAddress)
 {
-	DECLARE_QSTATUS();
-	
 	std::for_each(pImpl_->listMyAddress_.begin(),
 		pImpl_->listMyAddress_.end(), string_free<WSTRING>());
 	pImpl_->listMyAddress_.clear();
 	
-	STLWrapper<SubAccountImpl::AddressList> wrapper(pImpl_->listMyAddress_);
 	const WCHAR* p = pwszAddress;
 	const WCHAR* pEnd = wcschr(p, L',');
 	while (true) {
 		size_t nLen = pEnd ? pEnd - p : static_cast<size_t>(-1);
-		string_ptr<WSTRING> wstr(trim(p, nLen));
-		if (!wstr.get())
-			return QSTATUS_OUTOFMEMORY;
+		wstring_ptr wstr(trim(p, nLen));
 		if (wcslen(wstr.get()) != 0) {
-			status = wrapper.push_back(wstr.get());
-			CHECK_QSTATUS();
+			pImpl_->listMyAddress_.push_back(wstr.get());
 			wstr.release();
 		}
 		
@@ -398,16 +284,14 @@ QSTATUS qm::SubAccount::setMyAddress(const WCHAR* pwszAddress)
 		p = pEnd + 1;
 		pEnd = wcschr(p, L',');
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-bool qm::SubAccount::isMyAddress(const WCHAR* pwszMailbox, const WCHAR* pwszHost) const
+bool qm::SubAccount::isMyAddress(const WCHAR* pwszMailbox,
+								 const WCHAR* pwszHost) const
 {
 	typedef SubAccountImpl::AddressList List;
 	const List& l = pImpl_->listMyAddress_;
-	List::const_iterator it = l.begin();
-	while (it != l.end()) {
+	for (List::const_iterator it = l.begin(); it != l.end(); ++it) {
 		const WCHAR* p = wcsrchr(*it, L'@');
 		if (p) {
 			if (wcslen(pwszMailbox) == static_cast<size_t>(p - *it) &&
@@ -419,7 +303,6 @@ bool qm::SubAccount::isMyAddress(const WCHAR* pwszMailbox, const WCHAR* pwszHost
 			if (_wcsicmp(*it, pwszMailbox) == 0)
 				return true;
 		}
-		++it;
 	}
 	return false;
 }
@@ -428,43 +311,33 @@ bool qm::SubAccount::isMyAddress(const AddressListParser& address) const
 {
 	typedef AddressListParser::AddressList List;
 	const List& l = address.getAddressList();
-	List::const_iterator it = l.begin();
-	while (it != l.end()) {
+	for (List::const_iterator it = l.begin(); it != l.end(); ++it) {
 		const AddressParser* pAddress = *it;
 		const AddressListParser* pGroup = pAddress->getGroup();
 		if (pGroup) {
 			const List& l = pGroup->getAddressList();
-			List::const_iterator it = l.begin();
-			while (it != l.end()) {
+			for (List::const_iterator it = l.begin(); it != l.end(); ++it) {
 				if (isMyAddress((*it)->getMailbox(), (*it)->getHost()))
 					return true;
-				++it;
 			}
 		}
 		else {
 			if (isMyAddress(pAddress->getMailbox(), pAddress->getHost()))
 				return true;
 		}
-		++it;
 	}
 	return false;
 }
 
 const WCHAR* qm::SubAccount::getHost(Account::Host host) const
 {
-	return pImpl_->wstrHost_[host];
+	return pImpl_->wstrHost_[host].get();
 }
 
-QSTATUS qm::SubAccount::setHost(Account::Host host, const WCHAR* pwszHost)
+void qm::SubAccount::setHost(Account::Host host,
+							 const WCHAR* pwszHost)
 {
-	string_ptr<WSTRING> wstrHost(allocWString(pwszHost));
-	if (!wstrHost.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	freeWString(pImpl_->wstrHost_[host]);
-	pImpl_->wstrHost_[host] = wstrHost.release();
-	
-	return QSTATUS_SUCCESS;
+	pImpl_->wstrHost_[host] = allocWString(pwszHost);
 }
 
 short qm::SubAccount::getPort(Account::Host host) const
@@ -479,36 +352,24 @@ void qm::SubAccount::setPort(Account::Host host, short nPort)
 
 const WCHAR* qm::SubAccount::getUserName(Account::Host host) const
 {
-	return pImpl_->wstrUserName_[host];
+	return pImpl_->wstrUserName_[host].get();
 }
 
-QSTATUS qm::SubAccount::setUserName(Account::Host host, const WCHAR* pwszUserName)
+void qm::SubAccount::setUserName(Account::Host host,
+								 const WCHAR* pwszUserName)
 {
-	string_ptr<WSTRING> wstrUserName(allocWString(pwszUserName));
-	if (!wstrUserName.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	freeWString(pImpl_->wstrUserName_[host]);
-	pImpl_->wstrUserName_[host] = wstrUserName.release();
-	
-	return QSTATUS_SUCCESS;
+	pImpl_->wstrUserName_[host] = allocWString(pwszUserName);
 }
 
 const WCHAR* qm::SubAccount::getPassword(Account::Host host) const
 {
-	return pImpl_->wstrPassword_[host];
+	return pImpl_->wstrPassword_[host].get();
 }
 
-QSTATUS qm::SubAccount::setPassword(Account::Host host, const WCHAR* pwszPassword)
+void qm::SubAccount::setPassword(Account::Host host,
+								 const WCHAR* pwszPassword)
 {
-	string_ptr<WSTRING> wstrPassword(allocWString(pwszPassword));
-	if (!wstrPassword.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	freeWString(pImpl_->wstrPassword_[host]);
-	pImpl_->wstrPassword_[host] = wstrPassword.release();
-	
-	return QSTATUS_SUCCESS;
+	pImpl_->wstrPassword_[host] = allocWString(pwszPassword);
 }
 
 bool qm::SubAccount::isSsl(Account::Host host) const
@@ -593,19 +454,12 @@ void qm::SubAccount::setDialupType(DialupType type)
 
 const WCHAR* qm::SubAccount::getDialupEntry() const
 {
-	return pImpl_->wstrDialupEntry_;
+	return pImpl_->wstrDialupEntry_.get();
 }
 
-QSTATUS qm::SubAccount::setDialupEntry(const WCHAR* pwszEntry)
+void qm::SubAccount::setDialupEntry(const WCHAR* pwszEntry)
 {
-	string_ptr<WSTRING> wstrEntry(allocWString(pwszEntry));
-	if (!wstrEntry.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	freeWString(pImpl_->wstrDialupEntry_);
-	pImpl_->wstrDialupEntry_ = wstrEntry.release();
-	
-	return QSTATUS_SUCCESS;
+	pImpl_->wstrDialupEntry_ = allocWString(pwszEntry);
 }
 
 bool qm::SubAccount::isDialupShowDialog() const
@@ -630,172 +484,116 @@ void qm::SubAccount::setDialupDisconnectWait(unsigned int nWait)
 
 PrivateKey* qm::SubAccount::getPrivateKey() const
 {
-	return pImpl_->pPrivateKey_;
+	return pImpl_->pPrivateKey_.get();
 }
 
 Certificate* qm::SubAccount::getCertificate() const
 {
-	return pImpl_->pCertificate_;
+	return pImpl_->pCertificate_.get();
 }
 
-QSTATUS qm::SubAccount::getProperty(const WCHAR* pwszSection,
-	const WCHAR* pwszKey, int nDefault, int* pnValue) const
-{
-	assert(pwszSection);
-	assert(pwszKey);
-	assert(pnValue);
-	
-	DECLARE_QSTATUS();
-	
-	*pnValue = 0;
-	
-	if (!*pnValue) {
-		status = pImpl_->pProfile_->getInt(pwszSection,
-			pwszKey, nDefault, pnValue);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::SubAccount::setProperty(const WCHAR* pwszSection,
-	const WCHAR* pwszKey, int nValue)
+int qm::SubAccount::getProperty(const WCHAR* pwszSection,
+								const WCHAR* pwszKey,
+								int nDefault) const
 {
 	assert(pwszSection);
 	assert(pwszKey);
 	
-	DECLARE_QSTATUS();
-	
-	status = pImpl_->pProfile_->setInt(pwszSection, pwszKey, nValue);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return pImpl_->pProfile_->getInt(pwszSection, pwszKey, nDefault);
 }
 
-QSTATUS qm::SubAccount::getProperty(const WCHAR* pwszSection,
-	const WCHAR* pwszKey, const WCHAR* pwszDefault, WSTRING* pwstrValue) const
+void qm::SubAccount::setProperty(const WCHAR* pwszSection,
+								 const WCHAR* pwszKey,
+								 int nValue)
 {
 	assert(pwszSection);
 	assert(pwszKey);
-	assert(pwstrValue);
 	
-	DECLARE_QSTATUS();
-	
-	*pwstrValue = 0;
+	pImpl_->pProfile_->setInt(pwszSection, pwszKey, nValue);
+}
+
+wstring_ptr qm::SubAccount::getProperty(const WCHAR* pwszSection,
+										const WCHAR* pwszKey,
+										const WCHAR* pwszDefault) const
+{
+	assert(pwszSection);
+	assert(pwszKey);
 	
 	if (wcscmp(pwszSection, L"Global") == 0) {
-		if (wcscmp(pwszKey, L"Path") == 0) {
-			*pwstrValue = allocWString(pImpl_->pAccount_->getPath());
-			if (!*pwstrValue)
-				return QSTATUS_OUTOFMEMORY;
-		}
+		if (wcscmp(pwszKey, L"Path") == 0)
+			return allocWString(pImpl_->pAccount_->getPath());
 	}
 	
-	if (!*pwstrValue) {
-		status = pImpl_->pProfile_->getString(
-			pwszSection, pwszKey, pwszDefault, pwstrValue);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	return pImpl_->pProfile_->getString(pwszSection, pwszKey, pwszDefault);
 }
 
-QSTATUS qm::SubAccount::setProperty(const WCHAR* pwszSection,
-	const WCHAR* pwszKey, const WCHAR* pwszValue)
+void qm::SubAccount::setProperty(const WCHAR* pwszSection,
+								 const WCHAR* pwszKey,
+								 const WCHAR* pwszValue)
 {
 	assert(pwszSection);
 	assert(pwszKey);
 	assert(pwszValue);
 	
-	DECLARE_QSTATUS();
-	
-	status = pImpl_->pProfile_->setString(pwszSection, pwszKey, pwszValue);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	pImpl_->pProfile_->setString(pwszSection, pwszKey, pwszValue);
 }
 
 const WCHAR* qm::SubAccount::getSyncFilterName() const
 {
-	return pImpl_->wstrSyncFilterName_;
+	return pImpl_->wstrSyncFilterName_.get();
 }
 
-QSTATUS qm::SubAccount::setSyncFilterName(const WCHAR* pwszName)
+void qm::SubAccount::setSyncFilterName(const WCHAR* pwszName)
 {
-	string_ptr<WSTRING> wstrName(allocWString(pwszName));
-	if (!wstrName.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	freeWString(pImpl_->wstrSyncFilterName_);
-	pImpl_->wstrSyncFilterName_ = wstrName.release();
-	
-	return QSTATUS_SUCCESS;
+	pImpl_->wstrSyncFilterName_ = allocWString(pwszName);
 }
 
-QSTATUS qm::SubAccount::isSelf(const Message& msg, bool* pbSelf) const
+bool qm::SubAccount::isSelf(const Message& msg) const
 {
-	assert(pbSelf);
-	
-	DECLARE_QSTATUS();
-	
-	*pbSelf = false;
+	bool bSelf = false;
 	
 	if (pImpl_->bTreatAsSent_) {
-		AddressListParser from(AddressListParser::FLAG_DISALLOWGROUP, &status);
-		CHECK_QSTATUS();
-		Part::Field field;
-		status = msg.getField(L"From", &from, &field);
-		CHECK_QSTATUS();
-		if (field == Part::FIELD_EXIST) {
+		AddressListParser from(AddressListParser::FLAG_DISALLOWGROUP);
+		if (msg.getField(L"From", &from) == Part::FIELD_EXIST) {
 			const AddressListParser::AddressList& listFrom = from.getAddressList();
 			if (!listFrom.empty()) {
 				AddressParser* pFrom = listFrom.front();
 				if (isMyAddress(pFrom->getMailbox(), pFrom->getHost())) {
-					AddressListParser sender(AddressListParser::FLAG_DISALLOWGROUP, &status);
-					CHECK_QSTATUS();
-					status = msg.getField(L"Sender", &sender, &field);
-					CHECK_QSTATUS();
-					if (field == Part::FIELD_EXIST) {
-						const AddressListParser::AddressList& listSender =
-							sender.getAddressList();
+					AddressListParser sender(AddressListParser::FLAG_DISALLOWGROUP);
+					if (msg.getField(L"Sender", &sender) == Part::FIELD_EXIST) {
+						const AddressListParser::AddressList& listSender = sender.getAddressList();
 						if (!listSender.empty()) {
 							AddressParser* pSender = listSender.front();
-							*pbSelf = wcsicmp(pFrom->getMailbox(), pSender->getMailbox()) == 0 &&
+							bSelf = wcsicmp(pFrom->getMailbox(), pSender->getMailbox()) == 0 &&
 								wcsicmp(pFrom->getHost(), pSender->getHost()) == 0;
 						}
 					}
 					else {
-						*pbSelf = true;
+						bSelf = true;
 					}
 				}
 			}
-			if (*pbSelf) {
+			if (bSelf) {
 				const WCHAR* pwszFields[] = {
 					L"Posted",
 					L"X-ML-Name",
 					L"Mailing-List"
 				};
-				for (int n = 0; n < countof(pwszFields) && *pbSelf; ++n) {
-					bool bHas = false;
-					status = msg.hasField(pwszFields[n], &bHas);
-					CHECK_QSTATUS();
-					if (bHas)
-						*pbSelf = false;
+				for (int n = 0; n < countof(pwszFields) && bSelf; ++n) {
+					if (msg.hasField(pwszFields[n]))
+						bSelf = false;
 				}
 			}
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return bSelf;
 }
 
-QSTATUS qm::SubAccount::save() const
+bool qm::SubAccount::save() const
 {
-	DECLARE_QSTATUS();
-	
 #define SAVE_STRING(section, key, name) \
-	status = pImpl_->pProfile_->setString(section, key, pImpl_->##name); \
-	CHECK_QSTATUS(); \
+	pImpl_->pProfile_->setString(section, key, pImpl_->##name.get());
 	
 	SAVE_STRING(L"Global",	L"Identity",		wstrIdentity_						);
 	SAVE_STRING(L"Global",	L"SenderName",		wstrSenderName_						);
@@ -808,8 +606,7 @@ QSTATUS qm::SubAccount::save() const
 	SAVE_STRING(L"Dialup",	L"Entry",			wstrDialupEntry_					);
 	
 #define SAVE_INT(section, key, name) \
-	status = pImpl_->pProfile_->setInt(section, key, pImpl_->##name); \
-	CHECK_QSTATUS(); \
+	pImpl_->pProfile_->setInt(section, key, pImpl_->##name);
 	
 	SAVE_INT(L"Send",		L"Port",						nPort_[Account::HOST_SEND]		);
 	SAVE_INT(L"Receive",	L"Port",						nPort_[Account::HOST_RECEIVE]	);
@@ -834,35 +631,22 @@ QSTATUS qm::SubAccount::save() const
 		{ Account::HOST_RECEIVE,	L"Receive"	}
 	};
 	for (int n = 0; n < countof(entries); ++n) {
-		string_ptr<WSTRING> wstrEncodedPassword;
-		status = TextUtil::encodePassword(
-			pImpl_->wstrPassword_[entries[n].host_],
-			&wstrEncodedPassword);
-		CHECK_QSTATUS();
-		status = pImpl_->pProfile_->setString(entries[n].pwszSection_,
+		wstring_ptr wstrEncodedPassword(TextUtil::encodePassword(
+			pImpl_->wstrPassword_[entries[n].host_].get()));
+		pImpl_->pProfile_->setString(entries[n].pwszSection_,
 			L"EncodedPassword", wstrEncodedPassword.get());
-		CHECK_QSTATUS();
-		status = pImpl_->pProfile_->setString(
-			entries[n].pwszSection_, L"Password", L"");
-		CHECK_QSTATUS();
+		pImpl_->pProfile_->setString(entries[n].pwszSection_, L"Password", L"");
 	}
 	
-	string_ptr<WSTRING> wstrMyAddress;
-	status = getMyAddress(&wstrMyAddress);
-	CHECK_QSTATUS();
-	status = pImpl_->pProfile_->setString(L"Global", L"MyAddress", wstrMyAddress.get());
-	CHECK_QSTATUS();
+	wstring_ptr wstrMyAddress(getMyAddress());
+	pImpl_->pProfile_->setString(L"Global", L"MyAddress", wstrMyAddress.get());
 	
 	return pImpl_->pProfile_->save();
 }
 
-QSTATUS qm::SubAccount::setName(const WCHAR* pwszName)
+bool qm::SubAccount::setName(const WCHAR* pwszName)
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrName(allocWString(pwszName));
-	if (!wstrName.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrName(allocWString(pwszName));
 	
 	ConcatW c[] = {
 		{ pImpl_->pAccount_->getPath(),	-1	},
@@ -872,20 +656,17 @@ QSTATUS qm::SubAccount::setName(const WCHAR* pwszName)
 		{ wstrName.get(),				-1	},
 		{ FileNames::XML_EXT,			-1	}
 	};
-	string_ptr<WSTRING> wstrPath(concat(c, countof(c)));
-	if (!wstrPath.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrPath(concat(c, countof(c)));
 	
-	status = pImpl_->pProfile_->rename(wstrPath.get());
-	CHECK_QSTATUS();
+	if (!pImpl_->pProfile_->rename(wstrPath.get()))
+		return false;
 	
-	freeWString(pImpl_->wstrName_);
-	pImpl_->wstrName_ = wstrName.release();
+	pImpl_->wstrName_ = wstrName;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::SubAccount::deletePermanent()
+bool qm::SubAccount::deletePermanent()
 {
 	return pImpl_->pProfile_->deletePermanent();
 }

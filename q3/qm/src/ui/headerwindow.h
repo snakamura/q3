@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -47,14 +47,14 @@ public:
 
 public:
 	HeaderLine(const WCHAR* pwszHideIfEmpty,
-		qs::RegexPattern* pClass, qs::QSTATUS* pstatus);
+			   std::auto_ptr<qs::RegexPattern> pClass);
 	~HeaderLine();
 
 public:
-	qs::QSTATUS setMessage(const TemplateContext* pContext);
+	void setMessage(const TemplateContext* pContext);
 
 public:
-	qs::QSTATUS fixup();
+	void fixup();
 
 protected:
 	virtual bool isHidden() const;
@@ -65,7 +65,7 @@ private:
 
 private:
 	HideList listHide_;
-	qs::RegexPattern* pClass_;
+	std::auto_ptr<qs::RegexPattern> pClass_;
 	bool bHide_;
 };
 
@@ -76,7 +76,9 @@ private:
  *
  */
 
-class HeaderItem : public LineLayoutItem, public MessageWindowItem
+class HeaderItem :
+	public LineLayoutItem,
+	public MessageWindowItem
 {
 public:
 	enum Flag {
@@ -84,7 +86,7 @@ public:
 	};
 
 protected:
-	explicit HeaderItem(qs::QSTATUS* pstatus);
+	HeaderItem();
 
 public:
 	virtual ~HeaderItem();
@@ -93,35 +95,33 @@ public:
 	const WCHAR* getName() const;
 
 public:
-	qs::QSTATUS setName(const WCHAR* pwszName);
-	void setFlags(unsigned int nFlags, unsigned int nMask);
-	qs::QSTATUS addValue(const WCHAR* pwszValue, size_t nLen);
-	qs::QSTATUS fixupValue();
+	void setName(const WCHAR* pwszName);
+	void setFlags(unsigned int nFlags,
+				  unsigned int nMask);
+	void setTemplate(std::auto_ptr<Template> pTemplate);
 
 public:
-	virtual qs::QSTATUS setMessage(const TemplateContext* pContext) = 0;
+	virtual void setMessage(const TemplateContext* pContext) = 0;
 	virtual bool isEmptyValue() const = 0;
 	virtual bool isActive() const = 0;
 
 public:
-	virtual qs::QSTATUS copy();
-	virtual qs::QSTATUS canCopy(bool* pbCan);
-	virtual qs::QSTATUS selectAll();
-	virtual qs::QSTATUS canSelectAll(bool* pbCan);
+	virtual void copy();
+	virtual bool canCopy();
+	virtual void selectAll();
+	virtual bool canSelectAll();
 
 protected:
-	qs::QSTATUS getValue(const TemplateContext& context,
-		qs::WSTRING* pwstrValue) const;
+	qs::wstring_ptr getValue(const TemplateContext& context) const;
 
 private:
 	HeaderItem(const HeaderItem&);
 	HeaderItem& operator=(const HeaderItem&);
 
 private:
-	qs::WSTRING wstrName_;
-	qs::WSTRING wstrValue_;
+	qs::wstring_ptr wstrName_;
 	unsigned int nFlags_;
-	Template* pTemplate_;
+	std::auto_ptr<Template> pTemplate_;
 };
 
 
@@ -141,24 +141,26 @@ public:
 	};
 
 protected:
-	explicit TextHeaderItem(qs::QSTATUS* pstatus);
+	TextHeaderItem();
 
 public:
 	virtual ~TextHeaderItem();
 
 public:
-	qs::QSTATUS setStyle(const WCHAR* pwszStyle);
+	void setStyle(unsigned int nStyle);
 
 public:
 	virtual unsigned int getHeight(unsigned int nFontHeight) const;
-	virtual qs::QSTATUS create(qs::WindowBase* pParent,
-		const std::pair<HFONT, HFONT>& fonts, UINT nId);
-	virtual qs::QSTATUS destroy();
-	virtual qs::QSTATUS layout(const RECT& rect, unsigned int nFontHeight);
-	virtual qs::QSTATUS show(bool bShow);
+	virtual bool create(qs::WindowBase* pParent,
+						const std::pair<HFONT, HFONT>& fonts,
+						UINT nId);
+	virtual void destroy();
+	virtual void layout(const RECT& rect,
+						unsigned int nFontHeight);
+	virtual void show(bool bShow);
 
 public:
-	virtual qs::QSTATUS setMessage(const TemplateContext* pContext);
+	virtual void setMessage(const TemplateContext* pContext);
 	virtual bool isEmptyValue() const;
 	virtual bool isActive() const;
 
@@ -168,6 +170,9 @@ protected:
 
 protected:
 	HWND getHandle() const;
+
+public:
+	static unsigned int parseStyle(const WCHAR* pwszStyle);
 
 private:
 	TextHeaderItem(const TextHeaderItem&);
@@ -188,7 +193,7 @@ private:
 class StaticHeaderItem : public TextHeaderItem
 {
 public:
-	explicit StaticHeaderItem(qs::QSTATUS* pstatus);
+	StaticHeaderItem();
 	virtual ~StaticHeaderItem();
 
 protected:
@@ -210,7 +215,7 @@ private:
 class EditHeaderItem : public TextHeaderItem
 {
 public:
-	explicit EditHeaderItem(qs::QSTATUS* pstatus);
+	EditHeaderItem();
 	virtual ~EditHeaderItem();
 
 protected:
@@ -218,10 +223,10 @@ protected:
 	virtual UINT getWindowStyle() const;
 
 public:
-	virtual qs::QSTATUS copy();
-	virtual qs::QSTATUS canCopy(bool* pbCan);
-	virtual qs::QSTATUS selectAll();
-	virtual qs::QSTATUS canSelectAll(bool* pbCan);
+	virtual void copy();
+	virtual bool canCopy();
+	virtual void selectAll();
+	virtual bool canSelectAll();
 
 private:
 	EditHeaderItem(const EditHeaderItem&);
@@ -240,26 +245,28 @@ class AttachmentHeaderItem :
 	public AttachmentSelectionModel
 {
 public:
-	AttachmentHeaderItem(qs::MenuManager* pMenuManager, qs::QSTATUS* pstatus);
+	explicit AttachmentHeaderItem(qs::MenuManager* pMenuManager);
 	virtual ~AttachmentHeaderItem();
 
 public:
 	virtual unsigned int getHeight(unsigned int nFontHeight) const;
-	virtual qs::QSTATUS create(qs::WindowBase* pParent,
-		const std::pair<HFONT, HFONT>& fonts, UINT nId);
-	virtual qs::QSTATUS destroy();
-	virtual qs::QSTATUS layout(const RECT& rect, unsigned int nFontHeight);
-	virtual qs::QSTATUS show(bool bShow);
+	virtual bool create(qs::WindowBase* pParent,
+						const std::pair<HFONT, HFONT>& fonts,
+						UINT nId);
+	virtual void destroy();
+	virtual void layout(const RECT& rect,
+						unsigned int nFontHeight);
+	virtual void show(bool bShow);
 
 public:
-	virtual qs::QSTATUS setMessage(const TemplateContext* pContext);
+	virtual void setMessage(const TemplateContext* pContext);
 	virtual bool isEmptyValue() const;
 	virtual bool isActive() const;
 
 public:
-	virtual qs::QSTATUS hasAttachment(bool* pbHas);
-	virtual qs::QSTATUS hasSelectedAttachment(bool* pbHas);
-	virtual qs::QSTATUS getSelectedAttachment(NameList* pList);
+	virtual bool hasAttachment();
+	virtual bool hasSelectedAttachment();
+	virtual void getSelectedAttachment(NameList* pList);
 
 private:
 	AttachmentHeaderItem(const AttachmentHeaderItem&);
@@ -271,16 +278,21 @@ private:
 		public qs::DefaultWindowHandler
 	{
 	public:
-		AttachmentWindow(AttachmentHeaderItem* pItem, qs::QSTATUS* pstatus);
+		explicit AttachmentWindow(AttachmentHeaderItem* pItem);
 		virtual ~AttachmentWindow();
 	
 	public:
-		virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+		virtual LRESULT windowProc(UINT uMsg,
+								   WPARAM wParam,
+								   LPARAM lParam);
 	
 	protected:
-		LRESULT onContextMenu(HWND hwnd, const POINT& pt);
-		LRESULT onLButtonDblClk(UINT nFlags, const POINT& pt);
-		LRESULT onLButtonDown(UINT nFlags, const POINT& pt);
+		LRESULT onContextMenu(HWND hwnd,
+							  const POINT& pt);
+		LRESULT onLButtonDblClk(UINT nFlags,
+								const POINT& pt);
+		LRESULT onLButtonDown(UINT nFlags,
+							  const POINT& pt);
 	
 	private:
 		AttachmentWindow(const AttachmentWindow&);
@@ -307,20 +319,27 @@ class HeaderWindowContentHandler : public qs::DefaultHandler
 {
 public:
 	HeaderWindowContentHandler(LineLayout* pLayout,
-		qs::MenuManager* pMenuManager, qs::QSTATUS* pstatus);
+							   qs::MenuManager* pMenuManager);
 	virtual ~HeaderWindowContentHandler();
 
 public:
 	AttachmentSelectionModel* getAttachmentSelectionModel() const;
 
 public:
-	virtual qs::QSTATUS startElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName,
-		const qs::Attributes& attributes);
-	virtual qs::QSTATUS endElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName);
-	virtual qs::QSTATUS characters(const WCHAR* pwsz,
-		size_t nStart, size_t nLength);
+	virtual bool startElement(const WCHAR* pwszNamespaceURI,
+							  const WCHAR* pwszLocalName,
+							  const WCHAR* pwszQName,
+							  const qs::Attributes& attributes);
+	virtual bool endElement(const WCHAR* pwszNamespaceURI,
+							const WCHAR* pwszLocalName,
+							const WCHAR* pwszQName);
+	virtual bool characters(const WCHAR* pwsz,
+							size_t nStart,
+							size_t nLength);
+
+private:
+	static void setWidth(LineLayoutItem* pItem,
+						 const WCHAR* pwszWidth);
 
 private:
 	HeaderWindowContentHandler(const HeaderWindowContentHandler&);
@@ -341,6 +360,7 @@ private:
 	HeaderItem* pCurrentItem_;
 	State state_;
 	AttachmentSelectionModel* pAttachmentSelectionModel_;
+	qs::StringBuffer<qs::WSTRING> buffer_;
 };
 
 

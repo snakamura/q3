@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -30,10 +30,10 @@ public:
 	virtual ~MessageWindowItem();
 
 public:
-	virtual qs::QSTATUS copy() = 0;
-	virtual qs::QSTATUS canCopy(bool* pbCan) = 0;
-	virtual qs::QSTATUS selectAll() = 0;
-	virtual qs::QSTATUS canSelectAll(bool* pbCan) = 0;
+	virtual void copy() = 0;
+	virtual bool canCopy() = 0;
+	virtual void selectAll() = 0;
+	virtual bool canSelectAll() = 0;
 };
 
 

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -11,7 +11,6 @@
 #include <qmmessagewindow.h>
 
 #include <qsconv.h>
-#include <qsnew.h>
 #include <qsstream.h>
 #include <qswindow.h>
 
@@ -33,17 +32,17 @@ using namespace qs;
  *
  */
 
-QSTATUS qm::UIUtil::loadWindowPlacement(Profile* pProfile,
-	const WCHAR* pwszSection, CREATESTRUCT* pCreateStruct, int* pnShow)
+int qm::UIUtil::loadWindowPlacement(Profile* pProfile,
+									const WCHAR* pwszSection,
+									CREATESTRUCT* pCreateStruct)
 {
 	assert(pProfile);
 	assert(pwszSection);
 	assert(pCreateStruct);
-	assert(pnShow);
 	
-	DECLARE_QSTATUS();
-	
-#ifndef _WIN32_WCE
+#ifdef _WIN32_WCE
+	return SW_SHOW;
+#else
 	struct {
 		const WCHAR* pwszKey_;
 		int n_;
@@ -53,11 +52,10 @@ QSTATUS qm::UIUtil::loadWindowPlacement(Profile* pProfile,
 		{ L"Width",		0 },
 		{ L"Height",	0 }
 	};
-	for (int n = 0; n < countof(items); ++n) {
-		status = pProfile->getInt(pwszSection,
-			items[n].pwszKey_, 0, &items[n].n_);
-		CHECK_QSTATUS();
-	}
+	for (int n = 0; n < countof(items); ++n)
+		items[n].n_ = pProfile->getInt(pwszSection, items[n].pwszKey_, 0);
+	
+	int nShow = SW_SHOWNORMAL;
 	if (items[2].n_ != 0 && items[3].n_ != 0) {
 		RECT rect;
 		::SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, 0);
@@ -66,29 +64,23 @@ QSTATUS qm::UIUtil::loadWindowPlacement(Profile* pProfile,
 		pCreateStruct->cx = items[2].n_;
 		pCreateStruct->cy = items[3].n_;
 		
-		status = pProfile->getInt(pwszSection, L"Show", SW_SHOWNORMAL, pnShow);
-		CHECK_QSTATUS();
-		if (*pnShow != SW_MAXIMIZE &&
-			*pnShow != SW_MINIMIZE &&
-			*pnShow != SW_SHOWNORMAL)
-			*pnShow = SW_SHOWNORMAL;
+		int nShow = pProfile->getInt(pwszSection, L"Show", SW_SHOWNORMAL);
+		if (nShow != SW_MAXIMIZE &&
+			nShow != SW_MINIMIZE &&
+			nShow != SW_SHOWNORMAL)
+			nShow = SW_SHOWNORMAL;
 	}
-	else {
-		*pnShow = SW_SHOWNORMAL;
-	}
+	return nShow;
 #endif
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::UIUtil::saveWindowPlacement(HWND hwnd,
-	Profile* pProfile, const WCHAR* pwszSection)
+void qm::UIUtil::saveWindowPlacement(HWND hwnd,
+									 Profile* pProfile,
+									 const WCHAR* pwszSection)
 {
 	assert(hwnd);
 	assert(pProfile);
 	assert(pwszSection);
-	
-	DECLARE_QSTATUS();
 	
 #ifndef _WIN32_WCE
 	WINDOWPLACEMENT wp = { sizeof(wp) };
@@ -104,10 +96,8 @@ QSTATUS qm::UIUtil::saveWindowPlacement(HWND hwnd,
 		{ L"Width",		rect.right - rect.left	},
 		{ L"Height",	rect.bottom - rect.top	}
 	};
-	for (int n = 0; n < countof(items); ++n) {
-		status = pProfile->setInt(pwszSection, items[n].pwszKey_, items[n].n_);
-		CHECK_QSTATUS();
-	}
+	for (int n = 0; n < countof(items); ++n)
+		pProfile->setInt(pwszSection, items[n].pwszKey_, items[n].n_);
 	
 	int nShow = SW_SHOWNORMAL;
 	switch (wp.showCmd) {
@@ -120,44 +110,30 @@ QSTATUS qm::UIUtil::saveWindowPlacement(HWND hwnd,
 		nShow = SW_MINIMIZE;
 		break;
 	}
-	status = pProfile->setInt(pwszSection, L"Show", nShow);
-	CHECK_QSTATUS();
+	pProfile->setInt(pwszSection, L"Show", nShow);
 #endif
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::UIUtil::formatMenu(const WCHAR* pwszText, WSTRING* pwstrText)
+wstring_ptr qm::UIUtil::formatMenu(const WCHAR* pwszText)
 {
 	assert(pwszText);
-	assert(pwstrText);
 	
-	DECLARE_QSTATUS();
-	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
-	status = buf.append(L'&');
-	CHECK_QSTATUS();
+	StringBuffer<WSTRING> buf;
+	buf.append(L'&');
 	while (*pwszText) {
-		if (*pwszText == L'&') {
-			status = buf.append(L'&');
-			CHECK_QSTATUS();
-		}
-		status = buf.append(*pwszText);
-		CHECK_QSTATUS();
+		if (*pwszText == L'&')
+			buf.append(L'&');
+		buf.append(*pwszText);
 		++pwszText;
 	}
 	
-	*pwstrText = buf.getString();
-	
-	return QSTATUS_SUCCESS;
+	return buf.getString();
 }
 
-QSTATUS qm::UIUtil::openURL(HWND hwnd, const WCHAR* pwszURL)
+bool qm::UIUtil::openURL(HWND hwnd,
+						 const WCHAR* pwszURL)
 {
 	assert(pwszURL);
-	
-	DECLARE_QSTATUS();
 	
 	W2T(pwszURL, ptszURL);
 	
@@ -171,12 +147,11 @@ QSTATUS qm::UIUtil::openURL(HWND hwnd, const WCHAR* pwszURL)
 		0,
 		SW_SHOW
 	};
-	::ShellExecuteEx(&info);
-	
-	return QSTATUS_SUCCESS;
+	return ::ShellExecuteEx(&info) != 0;
 }
 
-int qm::UIUtil::getFolderImage(Folder* pFolder, bool bSelected)
+int qm::UIUtil::getFolderImage(Folder* pFolder,
+							   bool bSelected)
 {
 	int nImage = 0;
 	switch (pFolder->getType()) {
@@ -207,15 +182,16 @@ int qm::UIUtil::getFolderImage(Folder* pFolder, bool bSelected)
 	return nImage;
 }
 
-QSTATUS qm::UIUtil::updateStatusBar(MessageWindow* pMessageWindow,
-	StatusBar* pStatusBar, int nOffset, MessageHolder* pmh,
-	Message& msg, const ContentTypeParser* pContentType)
+void qm::UIUtil::updateStatusBar(MessageWindow* pMessageWindow,
+								 StatusBar* pStatusBar,
+								 int nOffset,
+								 MessageHolder* pmh,
+								 Message& msg,
+								 const ContentTypeParser* pContentType)
 {
-	DECLARE_QSTATUS();
-	
 	if (pmh) {
 		const WCHAR* pwszEncoding = pMessageWindow->getEncoding();
-		string_ptr<WSTRING> wstrCharset;
+		wstring_ptr wstrCharset;
 		if (!pwszEncoding) {
 			if (!pContentType) {
 				if (msg.isMultipart()) {
@@ -227,66 +203,52 @@ QSTATUS qm::UIUtil::updateStatusBar(MessageWindow* pMessageWindow,
 					pContentType = msg.getContentType();
 				}
 			}
-			if (pContentType) {
-				status = pContentType->getParameter(L"charset", &wstrCharset);
-				CHECK_QSTATUS();
-			}
+			if (pContentType)
+				wstrCharset = pContentType->getParameter(L"charset");
 			pwszEncoding = wstrCharset.get();
 		}
 		if (!pwszEncoding)
 			pwszEncoding = L"us-ascii";
-		status = pStatusBar->setText(nOffset + 1, pwszEncoding);
-		CHECK_QSTATUS();
+		pStatusBar->setText(nOffset + 1, pwszEncoding);
 		
 		const WCHAR* pwszTemplate = pMessageWindow->getTemplate();
-		string_ptr<WSTRING> wstrNone;
+		wstring_ptr wstrNone;
 		if (pwszTemplate) {
 			pwszTemplate += 5;
 		}
 		else {
-			status = loadString(Application::getApplication().getResourceHandle(),
-				IDS_NONE, &wstrNone);
-			CHECK_QSTATUS();
+			wstrNone = loadString(Application::getApplication().getResourceHandle(), IDS_NONE);
 			pwszTemplate = wstrNone.get();
 		}
-		status = pStatusBar->setText(nOffset + 2, pwszTemplate);
-		CHECK_QSTATUS();
+		pStatusBar->setText(nOffset + 2, pwszTemplate);
 		
 		unsigned int nSecurity = msg.getSecurity();
 		if (nSecurity & Message::SECURITY_DECRYPTED) {
 			// TODO
 			// Use icon
-			status = pStatusBar->setText(nOffset + 3, L"D");
-			CHECK_QSTATUS();
+			pStatusBar->setText(nOffset + 3, L"D");
 		}
 		if (nSecurity & Message::SECURITY_VERIFIED) {
 			// TODO
 			// Use icon
-			status = pStatusBar->setText(nOffset + 4, L"V");
-			CHECK_QSTATUS();
+			pStatusBar->setText(nOffset + 4, L"V");
 		}
 	}
 	else {
-		for (int n = 1; n < 5; ++n) {
-			status = pStatusBar->setText(nOffset + n, L"");
-			CHECK_QSTATUS();
-		}
+		for (int n = 1; n < 5; ++n)
+			pStatusBar->setText(nOffset + n, L"");
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::UIUtil::writeTemporaryFile(const WCHAR* pwszValue,
-	const WCHAR* pwszPrefix, const WCHAR* pwszExtension,
-	TempFileCleaner* pTempFileCleaner, WSTRING* pwstrPath)
+wstring_ptr qm::UIUtil::writeTemporaryFile(const WCHAR* pwszValue,
+										   const WCHAR* pwszPrefix,
+										   const WCHAR* pwszExtension,
+										   TempFileCleaner* pTempFileCleaner)
 {
 	assert(pwszValue);
 	assert(pwszPrefix);
 	assert(pwszExtension);
 	assert(pTempFileCleaner);
-	assert(pwstrPath);
-	
-	DECLARE_QSTATUS();
 	
 	Time time(Time::getCurrentTime());
 	WCHAR wszName[128];
@@ -294,29 +256,23 @@ QSTATUS qm::UIUtil::writeTemporaryFile(const WCHAR* pwszValue,
 		time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute,
 		time.wSecond, time.wMilliseconds, pwszExtension);
 	
-	string_ptr<WSTRING> wstrPath(concat(
-		Application::getApplication().getTemporaryFolder(), wszName));
-	if (!wstrPath.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrPath(concat(Application::getApplication().getTemporaryFolder(), wszName));
 	
-	FileOutputStream stream(wstrPath.get(), &status);
-	CHECK_QSTATUS();
-	BufferedOutputStream bufferedStream(&stream, false, &status);
-	CHECK_QSTATUS();
-	OutputStreamWriter writer(&bufferedStream,
-		false, getSystemEncoding(), &status);
-	CHECK_QSTATUS();
-	status = writer.write(pwszValue, wcslen(pwszValue));
-	CHECK_QSTATUS();
-	status = writer.close();
-	CHECK_QSTATUS();
+	FileOutputStream stream(wstrPath.get());
+	if (!stream)
+		return 0;
+	BufferedOutputStream bufferedStream(&stream, false);
+	OutputStreamWriter writer(&bufferedStream, false, getSystemEncoding());
+	if (!writer)
+		return 0;
+	if (writer.write(pwszValue, wcslen(pwszValue)) == -1)
+		return 0;
+	if (!writer.close())
+		return 0;
 	
-	status = pTempFileCleaner->add(wstrPath.get());
-	CHECK_QSTATUS();
+	pTempFileCleaner->add(wstrPath.get());
 	
-	*pwstrPath = wstrPath.release();
-	
-	return QSTATUS_SUCCESS;
+	return wstrPath;
 }
 
 
@@ -326,36 +282,30 @@ QSTATUS qm::UIUtil::writeTemporaryFile(const WCHAR* pwszValue,
  *
  */
 
-qm::ProgressDialogInit::ProgressDialogInit(
-	ProgressDialog* pDialog, HWND hwnd, QSTATUS* pstatus) :
+qm::ProgressDialogInit::ProgressDialogInit(ProgressDialog* pDialog,
+										   HWND hwnd) :
 	pDialog_(0)
 {
-	DECLARE_QSTATUS();
-	
-	status = pDialog->init(hwnd);
-	CHECK_QSTATUS_SET(pstatus);
+	pDialog->init(hwnd);
 	pDialog_ = pDialog;
 }
 
 qm::ProgressDialogInit::ProgressDialogInit(ProgressDialog* pDialog,
-	HWND hwnd, UINT nTitle, UINT nMessage, unsigned int nMin,
-	unsigned int nMax, unsigned int nPos, qs::QSTATUS* pstatus) :
+										   HWND hwnd,
+										   UINT nTitle,
+										   UINT nMessage,
+										   unsigned int nMin,
+										   unsigned int nMax,
+										   unsigned int nPos) :
 	pDialog_(0)
 {
-	DECLARE_QSTATUS();
-	
-	status = pDialog->init(hwnd);
-	CHECK_QSTATUS_SET(pstatus);
+	pDialog->init(hwnd);
 	pDialog_ = pDialog;
 	
-	status = pDialog->setTitle(nTitle);
-	CHECK_QSTATUS_SET(pstatus);
-	status = pDialog->setMessage(nMessage);
-	CHECK_QSTATUS_SET(pstatus);
-	status = pDialog->setRange(nMin, nMax);
-	CHECK_QSTATUS_SET(pstatus);
-	status = pDialog->setPos(nPos);
-	CHECK_QSTATUS_SET(pstatus);
+	pDialog->setTitle(nTitle);
+	pDialog->setMessage(nMessage);
+	pDialog->setRange(nMin, nMax);
+	pDialog->setPos(nPos);
 }
 
 qm::ProgressDialogInit::~ProgressDialogInit()
@@ -371,12 +321,12 @@ qm::ProgressDialogInit::~ProgressDialogInit()
  *
  */
 
-qm::ProgressDialogMessageOperationCallback::ProgressDialogMessageOperationCallback(
-	HWND hwnd, UINT nTitle, UINT nMessage) :
+qm::ProgressDialogMessageOperationCallback::ProgressDialogMessageOperationCallback(HWND hwnd,
+																				   UINT nTitle,
+																				   UINT nMessage) :
 	hwnd_(hwnd),
 	nTitle_(nTitle),
 	nMessage_(nMessage),
-	pDialog_(0),
 	nCount_(-1),
 	nPos_(0)
 {
@@ -384,71 +334,46 @@ qm::ProgressDialogMessageOperationCallback::ProgressDialogMessageOperationCallba
 
 qm::ProgressDialogMessageOperationCallback::~ProgressDialogMessageOperationCallback()
 {
-	if (pDialog_) {
+	if (pDialog_.get())
 		pDialog_->term();
-		delete pDialog_;
-	}
 }
 
 bool qm::ProgressDialogMessageOperationCallback::isCanceled()
 {
-	if (pDialog_)
+	if (pDialog_.get())
 		return pDialog_->isCanceled();
 	else
 		return false;
 }
 
-QSTATUS qm::ProgressDialogMessageOperationCallback::setCount(unsigned int nCount)
+void qm::ProgressDialogMessageOperationCallback::setCount(unsigned int nCount)
 {
-	DECLARE_QSTATUS();
-	
 	if (nCount_ == static_cast<unsigned int>(-1)) {
 		nCount_ = nCount;
-		
-		if (pDialog_) {
-			status = pDialog_->setRange(0, nCount);
-			CHECK_QSTATUS();
-		}
+		if (pDialog_.get())
+			pDialog_->setRange(0, nCount);
 	}
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ProgressDialogMessageOperationCallback::step(unsigned int nStep)
+void qm::ProgressDialogMessageOperationCallback::step(unsigned int nStep)
 {
-	DECLARE_QSTATUS();
-	
 	nPos_ += nStep;
-	
-	if (pDialog_) {
-		status = pDialog_->setPos(nPos_);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (pDialog_.get())
+		pDialog_->setPos(nPos_);
 }
 
-QSTATUS qm::ProgressDialogMessageOperationCallback::show()
+void qm::ProgressDialogMessageOperationCallback::show()
 {
-	assert(!pDialog_);
+	assert(!pDialog_.get());
 	
-	DECLARE_QSTATUS();
+	std::auto_ptr<ProgressDialog> pDialog(new ProgressDialog(nTitle_));
+	pDialog->init(hwnd_);
+	pDialog_ = pDialog;
 	
-	std::auto_ptr<ProgressDialog> pDialog;
-	status = newQsObject(nTitle_, &pDialog);
-	CHECK_QSTATUS();
-	status = pDialog->init(hwnd_);
-	CHECK_QSTATUS();
-	pDialog_ = pDialog.release();
-	
-	status = pDialog_->setMessage(nMessage_);
-	CHECK_QSTATUS();
+	pDialog_->setMessage(nMessage_);
 	
 	if (nCount_ != static_cast<unsigned int>(-1)) {
-		status = pDialog_->setRange(0, nCount_);
-		CHECK_QSTATUS();
-		status = pDialog_->setPos(nPos_);
-		CHECK_QSTATUS();
+		pDialog_->setRange(0, nCount_);
+		pDialog_->setPos(nPos_);
 	}
-	
-	return QSTATUS_SUCCESS;
 }

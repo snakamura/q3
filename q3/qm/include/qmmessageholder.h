@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -83,17 +83,18 @@ public:
 public:
 	virtual unsigned int getId() const = 0;
 	virtual unsigned int getFlags() const = 0;
-	virtual qs::QSTATUS getFrom(qs::WSTRING* pwstrFrom) const = 0;
-	virtual qs::QSTATUS getTo(qs::WSTRING* pwstrTo) const = 0;
-	virtual qs::QSTATUS getFromTo(qs::WSTRING* pwstrFromTo) const = 0;
-	virtual qs::QSTATUS getSubject(qs::WSTRING* pwstrSubject) const = 0;
-	virtual qs::QSTATUS getDate(qs::Time* pTime) const = 0;
+	virtual qs::wstring_ptr getFrom() const = 0;
+	virtual qs::wstring_ptr getTo() const = 0;
+	virtual qs::wstring_ptr getFromTo() const = 0;
+	virtual qs::wstring_ptr getSubject() const = 0;
+	virtual void getDate(qs::Time* pTime) const = 0;
 	virtual unsigned int getSize() const = 0;
 	virtual unsigned int getTextSize() const = 0;
 	virtual NormalFolder* getFolder() const = 0;
 	virtual Account* getAccount() const = 0;
-	virtual qs::QSTATUS getMessage(unsigned int nFlags,
-		const WCHAR* pwszField, Message* pMessage) = 0;
+	virtual bool getMessage(unsigned int nFlags,
+							const WCHAR* pwszField,
+							Message* pMessage) = 0;
 	virtual MessageHolder* getMessageHolder() = 0;
 };
 
@@ -129,7 +130,7 @@ public:
 
 public:
 	MessageHolder(NormalFolder* pFolder,
-		const Init& init, qs::QSTATUS* pstatus);
+				  const Init& init);
 	virtual ~MessageHolder();
 
 public:
@@ -139,24 +140,25 @@ public:
 public:
 	virtual unsigned int getId() const;
 	virtual unsigned int getFlags() const;
-	virtual qs::QSTATUS getFrom(qs::WSTRING* pwstrFrom) const;
-	virtual qs::QSTATUS getTo(qs::WSTRING* pwstrTo) const;
-	virtual qs::QSTATUS getFromTo(qs::WSTRING* pwstrFromTo) const;
-	virtual qs::QSTATUS getSubject(qs::WSTRING* pwstrSubject) const;
-	virtual qs::QSTATUS getDate(qs::Time* pTime) const;
+	virtual qs::wstring_ptr getFrom() const;
+	virtual qs::wstring_ptr getTo() const;
+	virtual qs::wstring_ptr getFromTo() const;
+	virtual qs::wstring_ptr getSubject() const;
+	virtual void getDate(qs::Time* pTime) const;
 	virtual unsigned int getSize() const;
 	virtual unsigned int getTextSize() const;
 	virtual NormalFolder* getFolder() const;
 	virtual Account* getAccount() const;
-	virtual qs::QSTATUS getMessage(unsigned int nFlags,
-		const WCHAR* pwszField, Message* pMessage);
+	virtual bool getMessage(unsigned int nFlags,
+							const WCHAR* pwszField,
+							Message* pMessage);
 	virtual MessageHolder* getMessageHolder();
 	
 public:
 	bool isFlag(Flag flag) const;
-	qs::QSTATUS getMessageId(qs::WSTRING* pwstrMessageId) const;
+	qs::wstring_ptr getMessageId() const;
 	unsigned int getMessageIdHash() const;
-	qs::QSTATUS getReference(qs::WSTRING* pwstrReference) const;
+	qs::wstring_ptr getReference() const;
 	unsigned int getReferenceHash() const;
 	MessageCacheKey getMessageCacheKey() const;
 	const MessageBoxKey& getMessageBoxKey() const;
@@ -169,14 +171,15 @@ public:
 public:
 	void getInit(Init* pInit) const;
 	void setId(unsigned int nId);
-	void setFlags(unsigned int nFlags, unsigned int nMask);
+	void setFlags(unsigned int nFlags,
+				  unsigned int nMask);
 	void setFolder(NormalFolder* pFolder);
-	qs::QSTATUS destroy();
+	void destroy();
 
 // These methods are intended to be called from Account class
 public:
 	void setKeys(MessageCacheKey messageCacheKey,
-		const MessageBoxKey& messageBoxKey);
+				 const MessageBoxKey& messageBoxKey);
 
 private:
 	MessageHolder(const MessageHolder&);
@@ -207,9 +210,11 @@ typedef std::vector<MessageHolder*> MessageHolderList;
 class QMEXPORTCLASS AbstractMessageHolder : public MessageHolderBase
 {
 protected:
-	AbstractMessageHolder(NormalFolder* pFolder, Message* pMessage,
-		unsigned int nId, unsigned int nSize,
-		unsigned int nTextSize, qs::QSTATUS* pstatus);
+	AbstractMessageHolder(NormalFolder* pFolder,
+						  Message* pMessage,
+						  unsigned int nId,
+						  unsigned int nSize,
+						  unsigned int nTextSize);
 
 public:
 	virtual ~AbstractMessageHolder();
@@ -217,11 +222,11 @@ public:
 public:
 	virtual unsigned int getId() const;
 	virtual unsigned int getFlags() const;
-	virtual qs::QSTATUS getFrom(qs::WSTRING* pwstrFrom) const;
-	virtual qs::QSTATUS getTo(qs::WSTRING* pwstrTo) const;
-	virtual qs::QSTATUS getFromTo(qs::WSTRING* pwstrFromTo) const;
-	virtual qs::QSTATUS getSubject(qs::WSTRING* pwstrSubject) const;
-	virtual qs::QSTATUS getDate(qs::Time* pTime) const;
+	virtual qs::wstring_ptr getFrom() const;
+	virtual qs::wstring_ptr getTo() const;
+	virtual qs::wstring_ptr getFromTo() const;
+	virtual qs::wstring_ptr getSubject() const;
+	virtual void getDate(qs::Time* pTime) const;
 	virtual unsigned int getSize() const;
 	virtual unsigned int getTextSize() const;
 	virtual NormalFolder* getFolder() const;
@@ -232,8 +237,7 @@ protected:
 	Message* getMessage() const;
 
 private:
-	qs::QSTATUS getAddress(const WCHAR* pwszName,
-		qs::WSTRING* pwstrValue) const;
+	qs::wstring_ptr getAddress(const WCHAR* pwszName) const;
 
 private:
 	AbstractMessageHolder(const AbstractMessageHolder&);
@@ -260,8 +264,8 @@ public:
 	virtual ~MessageHolderHandler();
 
 public:
-	virtual qs::QSTATUS messageHolderChanged(const MessageHolderEvent& event) = 0;
-	virtual qs::QSTATUS messageHolderDestroyed(const MessageHolderEvent& event) = 0;
+	virtual void messageHolderChanged(const MessageHolderEvent& event) = 0;
+	virtual void messageHolderDestroyed(const MessageHolderEvent& event) = 0;
 };
 
 
@@ -276,7 +280,8 @@ class MessageHolderEvent
 public:
 	MessageHolderEvent(MessageHolder* pmh);
 	MessageHolderEvent(MessageHolder* pmh,
-		unsigned int nOldFlags, unsigned int nNewFlags);
+					   unsigned int nOldFlags,
+					   unsigned int nNewFlags);
 	~MessageHolderEvent();
 
 public:

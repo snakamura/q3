@@ -1,13 +1,12 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qsaction.h>
-#include <qsnew.h>
 #include <qsstl.h>
 
 #include <algorithm>
@@ -34,7 +33,8 @@ qs::Action::~Action()
  *
  */
 
-qs::ActionEvent::ActionEvent(unsigned int nId, unsigned int nModifier) :
+qs::ActionEvent::ActionEvent(unsigned int nId,
+							 unsigned int nModifier) :
 	nId_(nId),
 	nModifier_(nModifier),
 	pParam_(0)
@@ -42,7 +42,8 @@ qs::ActionEvent::ActionEvent(unsigned int nId, unsigned int nModifier) :
 }
 
 qs::ActionEvent::ActionEvent(unsigned int nId,
-	unsigned int nModifier, void* pParam) :
+							 unsigned int nModifier,
+							 void* pParam) :
 	nId_(nId),
 	nModifier_(nModifier),
 	pParam_(pParam)
@@ -83,28 +84,19 @@ qs::AbstractAction::~AbstractAction()
 {
 }
 
-QSTATUS qs::AbstractAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
+bool qs::AbstractAction::isEnabled(const ActionEvent& event)
 {
-	assert(pbEnabled);
-	*pbEnabled = true;
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::AbstractAction::isChecked(
-	const ActionEvent& event, bool* pbChecked)
+bool qs::AbstractAction::isChecked(const ActionEvent& event)
 {
-	assert(pbChecked);
-	*pbChecked = false;
-	return QSTATUS_SUCCESS;
+	return false;
 }
 
-QSTATUS qs::AbstractAction::getText(
-	const ActionEvent& event, WSTRING* pwstrText)
+wstring_ptr qs::AbstractAction::getText(const ActionEvent& event)
 {
-	assert(pwstrText);
-	*pwstrText = 0;
-	return QSTATUS_SUCCESS;
+	return 0;
 }
 
 
@@ -123,10 +115,10 @@ struct qs::ActionMapImpl
 		Action* pAction_;
 	};
 	
-	struct ActionItemLess :
-		public std::binary_function<ActionItem, ActionItem, bool>
+	struct ActionItemLess : public std::binary_function<ActionItem, ActionItem, bool>
 	{
-		bool operator()(const ActionItem& lhs, const ActionItem& rhs) const;
+		bool operator()(const ActionItem& lhs,
+						const ActionItem& rhs) const;
 	};
 	
 	typedef std::vector<ActionItem> ItemList;
@@ -140,8 +132,8 @@ struct qs::ActionMapImpl
  *
  */
 
-bool qs::ActionMapImpl::ActionItemLess::operator()(
-	const ActionItem& lhs, const ActionItem& rhs) const
+bool qs::ActionMapImpl::ActionItemLess::operator()(const ActionItem& lhs,
+												   const ActionItem& rhs) const
 {
 	return lhs.nFrom_ < rhs.nFrom_;
 }
@@ -153,25 +145,18 @@ bool qs::ActionMapImpl::ActionItemLess::operator()(
  *
  */
 
-qs::ActionMap::ActionMap(QSTATUS* pstatus) :
+qs::ActionMap::ActionMap() :
 	pImpl_(0)
 {
-	assert(pstatus);
-	
-	DECLARE_QSTATUS();
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new ActionMapImpl();
 }
 
 qs::ActionMap::~ActionMap()
 {
-	ActionMapImpl::ItemList& l = pImpl_->listItem_;
-	ActionMapImpl::ItemList::iterator it = l.begin();
-	while (it != l.end())
-		delete (*it++).pAction_;
+	std::for_each(pImpl_->listItem_.begin(), pImpl_->listItem_.end(),
+		unary_compose_f_gx(
+			deleter<Action>(),
+			mem_data_ref(&ActionMapImpl::ActionItem::pAction_)));
 	delete pImpl_;
 }
 
@@ -189,19 +174,24 @@ Action* qs::ActionMap::getAction(unsigned int nId) const
 		return 0;
 }
 
-QSTATUS qs::ActionMap::addAction(unsigned int nId, Action* pAction)
+void qs::ActionMap::addAction(unsigned int nId,
+							  std::auto_ptr<Action> pAction)
 {
-	return addAction(nId, nId + 1, pAction);
+	addAction(nId, nId + 1, pAction);
 }
 
-QSTATUS qs::ActionMap::addAction(unsigned int nIdFrom,
-	unsigned int nIdTo, Action* pAction)
+void qs::ActionMap::addAction(unsigned int nIdFrom,
+							  unsigned int nIdTo,
+							  std::auto_ptr<Action> pAction)
 {
-	ActionMapImpl::ActionItem item = { nIdFrom, nIdTo, pAction };
+	ActionMapImpl::ActionItem item = {
+		nIdFrom,
+		nIdTo,
+		pAction.get()
+	};
 	ActionMapImpl::ItemList& l = pImpl_->listItem_;
 	ActionMapImpl::ItemList::iterator it = std::lower_bound(
 		l.begin(), l.end(), item, ActionMapImpl::ActionItemLess());
-	ActionMapImpl::ItemList::iterator p;
-	return STLWrapper<ActionMapImpl::ItemList>(
-		pImpl_->listItem_).insert(it, item, &p);
+	pImpl_->listItem_.insert(it, item);
+	pAction.release();
 }

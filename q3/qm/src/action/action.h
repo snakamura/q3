@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -101,6 +101,7 @@ class ViewSortAction;
 class ViewSortDirectionAction;
 class ViewSortThreadAction;
 class ViewTemplateAction;
+class ActionUtil;
 
 class AttachmentMenu;
 class AttachmentSelectionModel;
@@ -168,14 +169,15 @@ class AttachmentOpenAction : public qs::AbstractAction
 {
 public:
 	AttachmentOpenAction(MessageModel* pMessageModel,
-		AttachmentSelectionModel* pAttachmentSelectionModel,
-		qs::Profile* pProfile, TempFileCleaner* pTempFileCleaner,
-		HWND hwnd, qs::QSTATUS* pstatus);
+						 AttachmentSelectionModel* pAttachmentSelectionModel,
+						 qs::Profile* pProfile,
+						 TempFileCleaner* pTempFileCleaner,
+						 HWND hwnd);
 	virtual ~AttachmentOpenAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	AttachmentOpenAction(const AttachmentOpenAction&);
@@ -184,6 +186,7 @@ private:
 private:
 	MessageModel* pMessageModel_;
 	AttachmentSelectionModel* pAttachmentSelectionModel_;
+	HWND hwnd_;
 	AttachmentHelper helper_;
 };
 
@@ -198,13 +201,15 @@ class AttachmentSaveAction : public qs::AbstractAction
 {
 public:
 	AttachmentSaveAction(MessageModel* pMessageModel,
-		AttachmentSelectionModel* pAttachmentSelectionModel,
-		bool bAll, qs::Profile* pProfile, HWND hwnd, qs::QSTATUS* pstatus);
+						 AttachmentSelectionModel* pAttachmentSelectionModel,
+						 bool bAll,
+						 qs::Profile* pProfile,
+						 HWND hwnd);
 	virtual ~AttachmentSaveAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	AttachmentSaveAction(const AttachmentSaveAction&);
@@ -215,6 +220,7 @@ private:
 	AttachmentSelectionModel* pAttachmentSelectionModel_;
 	bool bAll_;
 	AttachmentHelper helper_;
+	HWND hwnd_;
 };
 
 
@@ -227,15 +233,16 @@ private:
 class DispatchAction : public qs::AbstractAction
 {
 public:
-	DispatchAction(View* pViews[], qs::Action* pActions[],
-		size_t nCount, qs::QSTATUS* pstatus);
+	DispatchAction(View* pViews[],
+				   std::auto_ptr<qs::Action> pActions[],
+				   size_t nCount);
 	virtual ~DispatchAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
-	virtual qs::QSTATUS isChecked(const qs::ActionEvent& event, bool* pbChecked);
-	virtual qs::QSTATUS getText(const qs::ActionEvent& event, qs::WSTRING* pwstrText);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
+	virtual qs::wstring_ptr getText(const qs::ActionEvent& event);
 
 private:
 	qs::Action* getAction() const;
@@ -268,12 +275,13 @@ private:
 class EditClearDeletedAction : public qs::AbstractAction
 {
 public:
-	EditClearDeletedAction(FolderModel* pFolderModel, qs::QSTATUS* pstatus);
+	EditClearDeletedAction(FolderModel* pFolderModel,
+						   HWND hwnd);
 	virtual ~EditClearDeletedAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	EditClearDeletedAction(const EditClearDeletedAction&);
@@ -281,6 +289,7 @@ private:
 
 private:
 	FolderModel* pFolderModel_;
+	HWND hwnd_;
 };
 
 
@@ -293,17 +302,18 @@ private:
 class EditCommandAction : public qs::AbstractAction
 {
 public:
-	typedef qs::QSTATUS (MessageWindowItem::*PFN_DO)();
-	typedef qs::QSTATUS (MessageWindowItem::*PFN_CANDO)(bool* pbCan);
+	typedef void (MessageWindowItem::*PFN_DO)();
+	typedef bool (MessageWindowItem::*PFN_CANDO)();
 
 public:
 	EditCommandAction(MessageWindow* pMessageWindow,
-		PFN_DO pfnDo, PFN_CANDO pfnCanDo, qs::QSTATUS* pstatus);
+					  PFN_DO pfnDo,
+					  PFN_CANDO pfnCanDo);
 	virtual ~EditCommandAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	EditCommandAction(const EditCommandAction&);
@@ -325,13 +335,15 @@ private:
 class EditCopyMessageAction : public qs::AbstractAction
 {
 public:
-	EditCopyMessageAction(Document* pDocument, FolderModel* pFolderModel,
-		MessageSelectionModel* pMessageSelectionModel, qs::QSTATUS* pstatus);
+	EditCopyMessageAction(Document* pDocument,
+						  FolderModel* pFolderModel,
+						  MessageSelectionModel* pMessageSelectionModel,
+						  HWND hwnd);
 	virtual ~EditCopyMessageAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	EditCopyMessageAction(const EditCopyMessageAction&);
@@ -341,6 +353,7 @@ private:
 	Document* pDocument_;
 	FolderModel* pFolderModel_;
 	MessageSelectionModel* pMessageSelectionModel_;
+	HWND hwnd_;
 };
 
 
@@ -353,13 +366,15 @@ private:
 class EditCutMessageAction : public qs::AbstractAction
 {
 public:
-	EditCutMessageAction(Document* pDocument, FolderModel* pFolderModel,
-		MessageSelectionModel* pMessageSelectionModel, qs::QSTATUS* pstatus);
+	EditCutMessageAction(Document* pDocument,
+						 FolderModel* pFolderModel,
+						 MessageSelectionModel* pMessageSelectionModel,
+						 HWND hwnd);
 	virtual ~EditCutMessageAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	EditCutMessageAction(const EditCutMessageAction&);
@@ -369,6 +384,7 @@ private:
 	Document* pDocument_;
 	FolderModel* pFolderModel_;
 	MessageSelectionModel* pMessageSelectionModel_;
+	HWND hwnd_;
 };
 
 
@@ -381,19 +397,21 @@ private:
 class EditDeleteCacheAction : public qs::AbstractAction
 {
 public:
-	EditDeleteCacheAction(MessageSelectionModel* pModel, qs::QSTATUS* pstatus);
+	EditDeleteCacheAction(MessageSelectionModel* pMessageSelectionModel,
+						  HWND hwnd);
 	virtual ~EditDeleteCacheAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	EditDeleteCacheAction(const EditDeleteCacheAction&);
 	EditDeleteCacheAction& operator=(const EditDeleteCacheAction&);
 
 private:
-	MessageSelectionModel* pModel_;
+	MessageSelectionModel* pMessageSelectionModel_;
+	HWND hwnd_;
 };
 
 
@@ -406,16 +424,18 @@ private:
 class EditDeleteMessageAction : public qs::AbstractAction
 {
 public:
-	EditDeleteMessageAction(MessageSelectionModel* pModel,
-		bool bDirect, HWND hwndFrame, qs::QSTATUS* pstatus);
-	EditDeleteMessageAction(MessageModel* pModel,
-		ViewModelHolder* pViewModelHolder,
-		bool bDirect, qs::QSTATUS* pstatus);
+	EditDeleteMessageAction(MessageSelectionModel* pMessageSelectionModel,
+							bool bDirect,
+							HWND hwnd);
+	EditDeleteMessageAction(MessageModel* pMessageModel,
+							ViewModelHolder* pViewModelHolder,
+							bool bDirect,
+							HWND hwnd);
 	virtual ~EditDeleteMessageAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	EditDeleteMessageAction(const EditDeleteMessageAction&);
@@ -426,7 +446,7 @@ private:
 	MessageModel* pMessageModel_;
 	ViewModelHolder* pViewModelHolder_;
 	bool bDirect_;
-	HWND hwndFrame_;
+	HWND hwnd_;
 };
 
 
@@ -446,15 +466,17 @@ public:
 	};
 
 public:
-	EditFindAction(MessageWindow* pMessageWindow, qs::Profile* pProfile,
-		FindReplaceManager* pFindReplaceManager, qs::QSTATUS* pstatus);
-	EditFindAction(MessageWindow* pMessageWindow, bool bNext,
-		FindReplaceManager* pFindReplaceManager, qs::QSTATUS* pstatus);
+	EditFindAction(MessageWindow* pMessageWindow,
+				   qs::Profile* pProfile,
+				   FindReplaceManager* pFindReplaceManager);
+	EditFindAction(MessageWindow* pMessageWindow,
+				   bool bNext,
+				   FindReplaceManager* pFindReplaceManager);
 	virtual ~EditFindAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	EditFindAction(const EditFindAction&);
@@ -478,12 +500,13 @@ class EditPasteMessageAction : public qs::AbstractAction
 {
 public:
 	EditPasteMessageAction(Document* pDocument,
-		FolderModel* pModel, HWND hwndFrame, qs::QSTATUS* pstatus);
+						   FolderModel* pFolderModel,
+						   HWND hwnd);
 	virtual ~EditPasteMessageAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	EditPasteMessageAction(const EditPasteMessageAction&);
@@ -491,8 +514,8 @@ private:
 
 private:
 	Document* pDocument_;
-	FolderModel* pModel_;
-	HWND hwndFrame_;
+	FolderModel* pFolderModel_;
+	HWND hwnd_;
 };
 
 
@@ -505,13 +528,12 @@ private:
 class EditSelectAllMessageAction : public qs::AbstractAction
 {
 public:
-	EditSelectAllMessageAction(MessageSelectionModel* pMessageSelectionModel,
-		qs::QSTATUS* pstatus);
+	explicit EditSelectAllMessageAction(MessageSelectionModel* pMessageSelectionModel);
 	virtual ~EditSelectAllMessageAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	EditSelectAllMessageAction(const EditSelectAllMessageAction&);
@@ -531,11 +553,11 @@ private:
 class FileCloseAction : public qs::AbstractAction
 {
 public:
-	FileCloseAction(HWND hwnd, qs::QSTATUS* pstatus);
+	explicit FileCloseAction(HWND hwnd);
 	virtual ~FileCloseAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual void invoke(const qs::ActionEvent& event);
 
 private:
 	FileCloseAction(const FileCloseAction&);
@@ -555,12 +577,13 @@ private:
 class FileCompactAction : public qs::AbstractAction
 {
 public:
-	FileCompactAction(FolderModel* pFolderModel, qs::QSTATUS* pstatus);
+	FileCompactAction(FolderModel* pFolderModel,
+					  HWND hwnd);
 	virtual ~FileCompactAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	FileCompactAction(const FileCompactAction&);
@@ -568,6 +591,7 @@ private:
 
 private:
 	FolderModel* pFolderModel_;
+	HWND hwnd_;
 };
 
 
@@ -580,16 +604,18 @@ private:
 class FileExitAction : public qs::AbstractAction
 {
 public:
-	FileExitAction(HWND hwnd, Document* pDocument,
-		SyncManager* pSyncManager, TempFileCleaner* pTempFileCleaner,
-		EditFrameWindowManager* pEditFrameWindowManager, qs::QSTATUS* pstatus);
+	FileExitAction(HWND hwnd,
+				   Document* pDocument,
+				   SyncManager* pSyncManager,
+				   TempFileCleaner* pTempFileCleaner,
+				   EditFrameWindowManager* pEditFrameWindowManager);
 	virtual ~FileExitAction();
 
 public:
-	qs::QSTATUS exit(bool bDestroy, bool* pbCanceled);
+	bool exit(bool bDestroy);
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual void invoke(const qs::ActionEvent& event);
 
 private:
 	FileExitAction(const FileExitAction&);
@@ -613,26 +639,32 @@ private:
 class FileExportAction : public qs::AbstractAction
 {
 public:
-	FileExportAction(MessageSelectionModel* pModel,
-		HWND hwndFrame, qs::QSTATUS* pstatus);
+	FileExportAction(MessageSelectionModel* pMessageSelectionModel,
+					 HWND hwnd);
 	virtual ~FileExportAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
-	static qs::QSTATUS writeMessage(qs::OutputStream* pStream,
-		const MessagePtr& ptr, bool bAddFlags, const Template* pTemplate,
-		const WCHAR* pwszEncoding, bool bWriteSeparator);
+	bool export(const MessageHolderList& l);
+
+private:
+	static bool writeMessage(qs::OutputStream* pStream,
+							 const MessagePtr& ptr,
+							 bool bAddFlags,
+							 const Template* pTemplate,
+							 const WCHAR* pwszEncoding,
+							 bool bWriteSeparator);
 
 private:
 	FileExportAction(const FileExportAction&);
 	FileExportAction& operator=(const FileExportAction&);
 
 private:
-	MessageSelectionModel* pModel_;
-	HWND hwndFrame_;
+	MessageSelectionModel* pMessageSelectionModel_;
+	HWND hwnd_;
 };
 
 
@@ -646,21 +678,31 @@ class FileImportAction : public qs::AbstractAction
 {
 public:
 	FileImportAction(FolderModel* pFolderModel,
-		HWND hwndFrame, qs::QSTATUS* pstatus);
+					 HWND hwnd);
 	virtual ~FileImportAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 public:
-	static qs::QSTATUS readMessage(NormalFolder* pFolder,
-		qs::InputStream* pStream, bool bMultiple, unsigned int nFlags,
-		ProgressDialog* pDialog, int* pnPos, bool* pbCanceled);
+	static bool readMessage(NormalFolder* pFolder,
+							qs::InputStream* pStream,
+							bool bMultiple,
+							unsigned int nFlags,
+							ProgressDialog* pDialog,
+							int* pnPos,
+							bool* pbCanceled);
 
 private:
-	static qs::QSTATUS readLine(qs::InputStream* pStream, CHAR cPrev,
-		qs::STRING* pstrLine, CHAR* pcNext, bool* pbNewLine);
+	bool import(NormalFolder* pFolder);
+
+private:
+	static bool readLine(qs::InputStream* pStream,
+						 CHAR cPrev,
+						 qs::string_ptr* pstrLine,
+						 CHAR* pcNext,
+						 bool* pbNewLine);
 
 private:
 	FileImportAction(const FileImportAction&);
@@ -668,7 +710,7 @@ private:
 
 private:
 	FolderModel* pFolderModel_;
-	HWND hwndFrame_;
+	HWND hwnd_;
 };
 
 
@@ -682,13 +724,13 @@ class FileOfflineAction : public qs::AbstractAction
 {
 public:
 	FileOfflineAction(Document* pDocument,
-		SyncManager* pSyncManager, qs::QSTATUS* pstatus);
+					  SyncManager* pSyncManager);
 	virtual ~FileOfflineAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
-	virtual qs::QSTATUS isChecked(const qs::ActionEvent& event, bool* pbChecked);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
 
 private:
 	FileOfflineAction(const FileOfflineAction&);
@@ -709,14 +751,21 @@ private:
 class FilePrintAction : public qs::AbstractAction
 {
 public:
-	FilePrintAction(Document* pDocument, MessageSelectionModel* pModel,
-		HWND hwnd, qs::Profile* pProfile,
-		TempFileCleaner* pTempFileCleaner, qs::QSTATUS* pstatus);
+	FilePrintAction(Document* pDocument,
+					MessageSelectionModel* pModel,
+					HWND hwnd,
+					qs::Profile* pProfile,
+					TempFileCleaner* pTempFileCleaner);
 	virtual ~FilePrintAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	bool print(Account* pAccount,
+			   Folder* pFolder,
+			   MessageHolder* pmh);
 
 private:
 	FilePrintAction(const FilePrintAction&);
@@ -740,12 +789,13 @@ private:
 class FileSalvageAction : public qs::AbstractAction
 {
 public:
-	FileSalvageAction(FolderModel* pFolderModel, qs::QSTATUS* pstatus);
+	FileSalvageAction(FolderModel* pFolderModel,
+					  HWND hwnd);
 	virtual ~FileSalvageAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	FileSalvageAction(const FileSalvageAction&);
@@ -753,6 +803,7 @@ private:
 
 private:
 	FolderModel* pFolderModel_;
+	HWND hwnd_;
 };
 
 
@@ -766,11 +817,12 @@ class FileSaveAction : public qs::AbstractAction
 {
 public:
 	FileSaveAction(Document* pDocument,
-		ViewModelManager* pViewModelManager, qs::QSTATUS* pstatus);
+				   ViewModelManager* pViewModelManager,
+				   HWND hwnd);
 	virtual ~FileSaveAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual void invoke(const qs::ActionEvent& event);
 
 private:
 	FileSaveAction(const FileSaveAction&);
@@ -779,6 +831,7 @@ private:
 private:
 	Document* pDocument_;
 	ViewModelManager* pViewModelManager_;
+	HWND hwnd_;
 };
 
 
@@ -792,12 +845,13 @@ class FolderCreateAction : public qs::AbstractAction
 {
 public:
 	FolderCreateAction(FolderSelectionModel* pFolderSelectionModel,
-		HWND hwndFrame, qs::Profile* pProfile, qs::QSTATUS* pstatus);
+					   HWND hwnd,
+					   qs::Profile* pProfile);
 	virtual ~FolderCreateAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	FolderCreateAction(const FolderCreateAction&);
@@ -805,7 +859,7 @@ private:
 
 private:
 	FolderSelectionModel* pFolderSelectionModel_;
-	HWND hwndFrame_;
+	HWND hwnd_;
 	qs::Profile* pProfile_;
 };
 
@@ -820,12 +874,13 @@ class FolderDeleteAction : public qs::AbstractAction
 {
 public:
 	FolderDeleteAction(FolderModel* pFolderModel,
-		FolderSelectionModel* pFolderSelectionModel, qs::QSTATUS* pstatus);
+					   FolderSelectionModel* pFolderSelectionModel,
+					   HWND hwnd);
 	virtual ~FolderDeleteAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	FolderDeleteAction(const FolderDeleteAction&);
@@ -834,6 +889,7 @@ private:
 private:
 	FolderModel* pFolderModel_;
 	FolderSelectionModel* pFolderSelectionModel_;
+	HWND hwnd_;
 };
 
 
@@ -846,19 +902,21 @@ private:
 class FolderEmptyAction : public qs::AbstractAction
 {
 public:
-	FolderEmptyAction(FolderSelectionModel* pModel, qs::QSTATUS* pstatus);
+	FolderEmptyAction(FolderSelectionModel* pFolderSelectionModel,
+					  HWND hwnd);
 	virtual ~FolderEmptyAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	FolderEmptyAction(const FolderEmptyAction&);
 	FolderEmptyAction& operator=(const FolderEmptyAction&);
 
 private:
-	FolderSelectionModel* pModel_;
+	FolderSelectionModel* pFolderSelectionModel_;
+	HWND hwnd_;
 };
 
 
@@ -872,12 +930,12 @@ class FolderEmptyTrashAction : public qs::AbstractAction
 {
 public:
 	FolderEmptyTrashAction(FolderModel* pFolderModel,
-		HWND hwndFrame, qs::QSTATUS* pstatus);
+						   HWND hwnd);
 	virtual ~FolderEmptyTrashAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	NormalFolder* getTrash() const;
@@ -888,7 +946,7 @@ private:
 
 private:
 	FolderModel* pFolderModel_;
-	HWND hwndFrame_;
+	HWND hwnd_;
 };
 
 
@@ -901,24 +959,27 @@ private:
 class FolderPropertyAction : public qs::AbstractAction
 {
 public:
-	FolderPropertyAction(FolderSelectionModel* pModel,
-		HWND hwnd, qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	FolderPropertyAction(FolderSelectionModel* pFolderSelectionModel,
+						 HWND hwnd,
+						 qs::Profile* pProfile);
 	virtual ~FolderPropertyAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 public:
-	static qs::QSTATUS openProperty(const Account::FolderList& listFolder,
-		bool bOpenCondition, HWND hwnd, qs::Profile* pProfile);
+	static void openProperty(const Account::FolderList& listFolder,
+							 bool bOpenCondition,
+							 HWND hwnd,
+							 qs::Profile* pProfile);
 
 private:
 	FolderPropertyAction(const FolderPropertyAction&);
 	FolderPropertyAction& operator=(const FolderPropertyAction&);
 
 private:
-	FolderSelectionModel* pModel_;
+	FolderSelectionModel* pFolderSelectionModel_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
 };
@@ -934,12 +995,12 @@ class FolderRenameAction : public qs::AbstractAction
 {
 public:
 	FolderRenameAction(FolderSelectionModel* pFolderSelectionModel,
-		HWND hwnd, qs::QSTATUS* pstatus);
+					   HWND hwnd);
 	virtual ~FolderRenameAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	FolderRenameAction(const FolderRenameAction&);
@@ -960,12 +1021,12 @@ private:
 class FolderShowSizeAction : public qs::AbstractAction
 {
 public:
-	FolderShowSizeAction(FolderListWindow* pFolderListWindow, qs::QSTATUS* pstatus);
+	explicit FolderShowSizeAction(FolderListWindow* pFolderListWindow);
 	virtual ~FolderShowSizeAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	FolderShowSizeAction(const FolderShowSizeAction&);
@@ -985,12 +1046,13 @@ private:
 class FolderUpdateAction : public qs::AbstractAction
 {
 public:
-	FolderUpdateAction(FolderModel* pFolderModel, qs::QSTATUS* pstatus);
+	FolderUpdateAction(FolderModel* pFolderModel,
+					   HWND hwnd);
 	virtual ~FolderUpdateAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	FolderUpdateAction(const FolderUpdateAction&);
@@ -998,6 +1060,7 @@ private:
 
 private:
 	FolderModel* pFolderModel_;
+	HWND hwnd_;
 };
 
 
@@ -1010,16 +1073,21 @@ private:
 class MessageApplyRuleAction : public qs::AbstractAction
 {
 public:
-	MessageApplyRuleAction(RuleManager* pRuleManager, FolderModel* pFolderModel,
-		Document* pDocument, HWND hwnd, qs::Profile* pProfile, qs::QSTATUS* pstatus);
 	MessageApplyRuleAction(RuleManager* pRuleManager,
-		MessageSelectionModel* pMessageSelectionModel, Document* pDocument,
-		HWND hwnd, qs::Profile* pProfile, qs::QSTATUS* pstatus);
+						   FolderModel* pFolderModel,
+						   Document* pDocument,
+						   HWND hwnd,
+						   qs::Profile* pProfile);
+	MessageApplyRuleAction(RuleManager* pRuleManager,
+						   MessageSelectionModel* pMessageSelectionModel,
+						   Document* pDocument,
+						   HWND hwnd,
+						   qs::Profile* pProfile);
 	virtual ~MessageApplyRuleAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	MessageApplyRuleAction(const MessageApplyRuleAction&);
@@ -1045,16 +1113,19 @@ class MessageApplyTemplateAction : public qs::AbstractAction
 {
 public:
 	MessageApplyTemplateAction(TemplateMenu* pTemplateMenu,
-		Document* pDocument, FolderModelBase* pFolderModel,
-		MessageSelectionModel* pMessageSelectionModel,
-		EditFrameWindowManager* pEditFrameWindowManager,
-		ExternalEditorManager* pExternalEditorManager, HWND hwnd,
-		qs::Profile* pProfile, bool bExternalEditor, qs::QSTATUS* pstatus);
+							   Document* pDocument,
+							   FolderModelBase* pFolderModel,
+							   MessageSelectionModel* pMessageSelectionModel,
+							   EditFrameWindowManager* pEditFrameWindowManager,
+							   ExternalEditorManager* pExternalEditorManager,
+							   HWND hwnd,
+							   qs::Profile* pProfile,
+							   bool bExternalEditor);
 	virtual ~MessageApplyTemplateAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	MessageApplyTemplateAction(const MessageApplyTemplateAction&);
@@ -1063,6 +1134,7 @@ private:
 private:
 	TemplateProcessor processor_;
 	TemplateMenu* pTemplateMenu_;
+	HWND hwnd_;
 };
 
 
@@ -1076,15 +1148,16 @@ class MessageCombineAction : public qs::AbstractAction
 {
 public:
 	MessageCombineAction(MessageSelectionModel* pMessageSelectionModel,
-		HWND hwnd, qs::QSTATUS* pstatus);
+						 HWND hwnd);
 	virtual ~MessageCombineAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
-	static qs::QSTATUS combine(const MessageHolderList& l, Message* pMessage);
+	static bool combine(const MessageHolderList& l,
+						Message* pMessage);
 	static bool isSpecialField(const CHAR* pszField);
 
 private:
@@ -1106,17 +1179,20 @@ private:
 class MessageCreateAction : public qs::AbstractAction
 {
 public:
-	MessageCreateAction(Document* pDocument, FolderModelBase* pFolderModel,
-		MessageSelectionModel* pMessageSelectionModel,
-		const WCHAR* pwszTemplateName,
-		EditFrameWindowManager* pEditFrameWindowManager,
-		ExternalEditorManager* pExternalEditorManager, HWND hwnd,
-		qs::Profile* pProfile, bool bExternalEditor, qs::QSTATUS* pstatus);
+	MessageCreateAction(Document* pDocument,
+						FolderModelBase* pFolderModel,
+						MessageSelectionModel* pMessageSelectionModel,
+						const WCHAR* pwszTemplateName,
+						EditFrameWindowManager* pEditFrameWindowManager,
+						ExternalEditorManager* pExternalEditorManager,
+						HWND hwnd,
+						qs::Profile* pProfile,
+						bool bExternalEditor);
 	virtual ~MessageCreateAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	MessageCreateAction(const MessageCreateAction&);
@@ -1125,7 +1201,8 @@ private:
 private:
 	TemplateProcessor processor_;
 	FolderModelBase* pFolderModel_;
-	qs::WSTRING wstrTemplateName_;
+	qs::wstring_ptr wstrTemplateName_;
+	HWND hwnd_;
 };
 
 
@@ -1139,13 +1216,15 @@ class MessageCreateFromClipboardAction : public qs::AbstractAction
 {
 public:
 	MessageCreateFromClipboardAction(bool bDraft,
-		Document* pDocument, qs::Profile* pProfile, HWND hwnd,
-		FolderModel* pFolderModel, qs::QSTATUS* pstatus);
+									 Document* pDocument,
+									 qs::Profile* pProfile,
+									 HWND hwnd,
+									 FolderModel* pFolderModel);
 	virtual ~MessageCreateFromClipboardAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	MessageCreateFromClipboardAction(const MessageCreateFromClipboardAction&);
@@ -1153,6 +1232,7 @@ private:
 
 private:
 	MessageComposer composer_;
+	HWND hwnd_;
 };
 
 
@@ -1165,13 +1245,19 @@ private:
 class MessageDeleteAttachmentAction : public qs::AbstractAction
 {
 public:
-	MessageDeleteAttachmentAction(
-		MessageSelectionModel* pMessageSelectionModel, qs::QSTATUS* pstatus);
+	MessageDeleteAttachmentAction(MessageSelectionModel* pMessageSelectionModel,
+								  HWND hwnd);
 	virtual ~MessageDeleteAttachmentAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	bool deleteAttachment(Account* pAccount,
+						  const MessageHolderList& l) const;
+	bool deleteAttachment(Account* pAccount,
+						  MessageHolder* pmh) const;
 
 private:
 	MessageDeleteAttachmentAction(const MessageDeleteAttachmentAction&);
@@ -1179,6 +1265,7 @@ private:
 
 private:
 	MessageSelectionModel* pMessageSelectionModel_;
+	HWND hwnd_;
 };
 
 
@@ -1192,13 +1279,13 @@ class MessageDetachAction : public qs::AbstractAction
 {
 public:
 	MessageDetachAction(qs::Profile* pProfile,
-		MessageSelectionModel* pMessageSelectionModel,
-		HWND hwnd, qs::QSTATUS* pstatus);
+						MessageSelectionModel* pMessageSelectionModel,
+						HWND hwnd);
 	virtual ~MessageDetachAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	MessageDetachAction(const MessageDetachAction&);
@@ -1207,6 +1294,7 @@ private:
 private:
 	MessageSelectionModel* pMessageSelectionModel_;
 	AttachmentHelper helper_;
+	HWND hwnd_;
 };
 
 
@@ -1220,12 +1308,18 @@ class MessageExpandDigestAction : public qs::AbstractAction
 {
 public:
 	MessageExpandDigestAction(MessageSelectionModel* pMessageSelectionModel,
-		qs::QSTATUS* pstatus);
+							  HWND hwnd);
 	virtual ~MessageExpandDigestAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	bool expandDigest(Account* pAccount,
+					  const MessageHolderList& l);
+	bool expandDigest(Account* pAccount,
+					  MessageHolder* pmh);
 
 private:
 	MessageExpandDigestAction(const MessageExpandDigestAction&);
@@ -1233,6 +1327,7 @@ private:
 
 private:
 	MessageSelectionModel* pMessageSelectionModel_;
+	HWND hwnd_;
 };
 
 
@@ -1246,12 +1341,14 @@ class MessageMarkAction : public qs::AbstractAction
 {
 public:
 	MessageMarkAction(MessageSelectionModel* pModel,
-		unsigned int nFlags, unsigned int nMask, qs::QSTATUS* pstatus);
+					  unsigned int nFlags,
+					  unsigned int nMask,
+					  HWND hwnd);
 	virtual ~MessageMarkAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	MessageMarkAction(const MessageMarkAction&);
@@ -1261,6 +1358,7 @@ private:
 	MessageSelectionModel* pModel_;
 	unsigned int nFlags_;
 	unsigned int nMask_;
+	HWND hwnd_;
 };
 
 
@@ -1273,22 +1371,23 @@ private:
 class MessageMoveAction : public qs::AbstractAction
 {
 public:
-	MessageMoveAction(MessageSelectionModel* pModel,
-		MoveMenu* pMoveMenu, HWND hwndFrame, qs::QSTATUS* pstatus);
+	MessageMoveAction(MessageSelectionModel* pMessageSelectionModel,
+					  MoveMenu* pMoveMenu,
+					  HWND hwnd);
 	virtual ~MessageMoveAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	MessageMoveAction(const MessageMoveAction&);
 	MessageMoveAction& operator=(const MessageMoveAction&);
 
 private:
-	MessageSelectionModel* pModel_;
+	MessageSelectionModel* pMessageSelectionModel_;
 	MoveMenu* pMoveMenu_;
-	HWND hwndFrame_;
+	HWND hwnd_;
 };
 
 
@@ -1301,13 +1400,15 @@ private:
 class MessageMoveOtherAction : public qs::AbstractAction
 {
 public:
-	MessageMoveOtherAction(Document* pDocument, MessageSelectionModel* pModel,
-		qs::Profile* pProfile, HWND hwndFrame, qs::QSTATUS* pstatus);
+	MessageMoveOtherAction(Document* pDocument,
+						   MessageSelectionModel* pMessageSelectionModel,
+						   qs::Profile* pProfile,
+						   HWND hwnd);
 	virtual ~MessageMoveOtherAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	MessageMoveOtherAction(const MessageMoveOtherAction&);
@@ -1315,9 +1416,9 @@ private:
 
 private:
 	Document* pDocument_;
-	MessageSelectionModel* pModel_;
+	MessageSelectionModel* pMessageSelectionModel_;
 	qs::Profile* pProfile_;
-	HWND hwndFrame_;
+	HWND hwnd_;
 };
 
 
@@ -1331,16 +1432,18 @@ class MessageOpenAttachmentAction : public qs::AbstractAction
 {
 public:
 	MessageOpenAttachmentAction(qs::Profile* pProfile,
-		AttachmentMenu* pAttachmentMenu, TempFileCleaner* pTempFileCleaner,
-		HWND hwnd, qs::QSTATUS* pstatus);
+								AttachmentMenu* pAttachmentMenu,
+								TempFileCleaner* pTempFileCleaner,
+								HWND hwnd);
 	virtual ~MessageOpenAttachmentAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual void invoke(const qs::ActionEvent& event);
 
 private:
 	AttachmentMenu* pAttachmentMenu_;
 	AttachmentHelper helper_;
+	HWND hwnd_;
 };
 
 
@@ -1353,16 +1456,19 @@ private:
 class MessageOpenURLAction : public qs::AbstractAction
 {
 public:
-	MessageOpenURLAction(Document* pDocument, FolderModelBase* pFolderModel,
-		MessageSelectionModel* pMessageSelectionModel,
-		EditFrameWindowManager* pEditFrameWindowManager,
-		ExternalEditorManager* pExternalEditorManager, HWND hwnd,
-		qs::Profile* pProfile, bool bExternalEditor, qs::QSTATUS* pstatus);
+	MessageOpenURLAction(Document* pDocument,
+						 FolderModelBase* pFolderModel,
+						 MessageSelectionModel* pMessageSelectionModel,
+						 EditFrameWindowManager* pEditFrameWindowManager,
+						 ExternalEditorManager* pExternalEditorManager,
+						 HWND hwnd,
+						 qs::Profile* pProfile,
+						 bool bExternalEditor);
 	virtual ~MessageOpenURLAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	MessageOpenURLAction(const MessageOpenURLAction&);
@@ -1370,6 +1476,7 @@ private:
 
 private:
 	TemplateProcessor processor_;
+	HWND hwnd_;
 };
 
 
@@ -1382,20 +1489,20 @@ private:
 class MessagePropertyAction : public qs::AbstractAction
 {
 public:
-	MessagePropertyAction(MessageSelectionModel* pModel,
-		HWND hwnd, qs::QSTATUS* pstatus);
+	MessagePropertyAction(MessageSelectionModel* pMessageSelectionModel,
+						  HWND hwnd);
 	virtual ~MessagePropertyAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	MessagePropertyAction(const MessagePropertyAction&);
 	MessagePropertyAction& operator=(const MessagePropertyAction&);
 
 private:
-	MessageSelectionModel* pModel_;
+	MessageSelectionModel* pMessageSelectionModel_;
 	HWND hwnd_;
 };
 
@@ -1409,13 +1516,15 @@ private:
 class MessageSearchAction : public qs::AbstractAction
 {
 public:
-	MessageSearchAction(FolderModel* pFolderModel, Document* pDocument,
-		HWND hwnd, qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	MessageSearchAction(FolderModel* pFolderModel,
+						Document* pDocument,
+						HWND hwnd,
+						qs::Profile* pProfile);
 	virtual ~MessageSearchAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	MessageSearchAction(const MessageSearchAction&);
@@ -1438,14 +1547,16 @@ private:
 class ToolAccountAction : public qs::AbstractAction
 {
 public:
-	ToolAccountAction(Document* pDocument, FolderModel* pFolderModel,
-		SyncFilterManager* pSyncFilterManager, qs::Profile* pProfile,
-		HWND hwndFrame, qs::QSTATUS* pstatus);
+	ToolAccountAction(Document* pDocument,
+					  FolderModel* pFolderModel,
+					  SyncFilterManager* pSyncFilterManager,
+					  qs::Profile* pProfile,
+					  HWND hwnd);
 	virtual ~ToolAccountAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	ToolAccountAction(const ToolAccountAction&);
@@ -1456,7 +1567,7 @@ private:
 	FolderModel* pFolderModel_;
 	SyncFilterManager* pSyncFilterManager_;
 	qs::Profile* pProfile_;
-	HWND hwndFrame_;
+	HWND hwnd_;
 };
 
 
@@ -1469,12 +1580,12 @@ private:
 class ToolCheckNewMailAction : public qs::AbstractAction
 {
 public:
-	ToolCheckNewMailAction(Document* pDocument, qs::QSTATUS* pstatus);
+	explicit ToolCheckNewMailAction(Document* pDocument);
 	virtual ~ToolCheckNewMailAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isChecked(const qs::ActionEvent& event, bool* pbChecked);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
 
 private:
 	ToolCheckNewMailAction(const ToolCheckNewMailAction&);
@@ -1494,16 +1605,18 @@ private:
 class ToolDialupAction : public qs::AbstractAction
 {
 public:
-	ToolDialupAction(SyncManager* pSyncManager, Document* pDocument,
-		SyncDialogManager* pSyncDialogManager, HWND hwnd, qs::QSTATUS* pstatus);
+	ToolDialupAction(SyncManager* pSyncManager,
+					 Document* pDocument,
+					 SyncDialogManager* pSyncDialogManager,
+					 HWND hwnd);
 	virtual ~ToolDialupAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS getText(const qs::ActionEvent& event, qs::WSTRING* pwstrText);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual qs::wstring_ptr getText(const qs::ActionEvent& event);
 
 private:
-	qs::QSTATUS isConnected(bool* pbConnected) const;
+	bool isConnected() const;
 
 private:
 	ToolDialupAction(const ToolDialupAction&);
@@ -1526,14 +1639,16 @@ private:
 class ToolGoRoundAction : public qs::AbstractAction
 {
 public:
-	ToolGoRoundAction(SyncManager* pSyncManager, Document* pDocument,
-		GoRound* pGoRound, SyncDialogManager* pSyncDialogManager,
-		HWND hwnd, GoRoundMenu* pGoRoundMenu, qs::QSTATUS* pstatus);
+	ToolGoRoundAction(SyncManager* pSyncManager,
+					  Document* pDocument,
+					  GoRound* pGoRound,
+					  SyncDialogManager* pSyncDialogManager,
+					  HWND hwnd,
+					  GoRoundMenu* pGoRoundMenu);
 	virtual ~ToolGoRoundAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
 
 private:
 	ToolGoRoundAction(const ToolGoRoundAction&);
@@ -1558,12 +1673,13 @@ private:
 class ToolOptionsAction : public qs::AbstractAction
 {
 public:
-	ToolOptionsAction(qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	ToolOptionsAction(qs::Profile* pProfile,
+					  HWND hwnd);
 	virtual ~ToolOptionsAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	ToolOptionsAction(const ToolOptionsAction&);
@@ -1571,6 +1687,7 @@ private:
 
 private:
 	qs::Profile* pProfile_;
+	HWND hwnd_;
 };
 
 
@@ -1583,19 +1700,23 @@ private:
 class ToolScriptAction : public qs::AbstractAction
 {
 public:
-	ToolScriptAction(ScriptMenu* pScriptMenu, Document* pDocument,
-		qs::Profile* pProfile, MainWindow* pMainWindow, qs::QSTATUS* pstatus);
-	ToolScriptAction(ScriptMenu* pScriptMenu, Document* pDocument,
-		qs::Profile* pProfile, EditFrameWindow* pEditFrameWindow,
-		qs::QSTATUS* pstatus);
-	ToolScriptAction(ScriptMenu* pScriptMenu, Document* pDocument,
-		qs::Profile* pProfile, MessageFrameWindow* pMessageFrameWindow,
-		qs::QSTATUS* pstatus);
+	ToolScriptAction(ScriptMenu* pScriptMenu,
+					 Document* pDocument,
+					 qs::Profile* pProfile,
+					 MainWindow* pMainWindow);
+	ToolScriptAction(ScriptMenu* pScriptMenu,
+					 Document* pDocument,
+					 qs::Profile* pProfile,
+					 EditFrameWindow* pEditFrameWindow);
+	ToolScriptAction(ScriptMenu* pScriptMenu,
+					 Document* pDocument,
+					 qs::Profile* pProfile,
+					 MessageFrameWindow* pMessageFrameWindow);
 	virtual ~ToolScriptAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	ToolScriptAction(const ToolScriptAction&);
@@ -1620,14 +1741,15 @@ private:
 class ToolSubAccountAction : public qs::AbstractAction
 {
 public:
-	ToolSubAccountAction(Document* pDocument, FolderModel* pFolderModel,
-		SubAccountMenu* pSubAccountMenu, qs::QSTATUS* pstatus);
+	ToolSubAccountAction(Document* pDocument,
+						 FolderModel* pFolderModel,
+						 SubAccountMenu* pSubAccountMenu);
 	virtual ~ToolSubAccountAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
-	virtual qs::QSTATUS isChecked(const qs::ActionEvent& event, bool* pbChecked);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
 
 private:
 	ToolSubAccountAction(const ToolSubAccountAction&);
@@ -1655,14 +1777,17 @@ public:
 	};
 
 public:
-	ToolSyncAction(SyncManager* pSyncManager, Document* pDocument,
-		FolderModel* pFolderModel, SyncDialogManager* pSyncDialogManager,
-		unsigned int nSync, HWND hwnd, qs::QSTATUS* pstatus);
+	ToolSyncAction(SyncManager* pSyncManager,
+				   Document* pDocument,
+				   FolderModel* pFolderModel,
+				   SyncDialogManager* pSyncDialogManager,
+				   unsigned int nSync,
+				   HWND hwnd);
 	virtual ~ToolSyncAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	ToolSyncAction(const ToolSyncAction&);
@@ -1687,14 +1812,14 @@ private:
 class ViewEncodingAction : public qs::AbstractAction
 {
 public:
-	ViewEncodingAction(MessageWindow* pMessageWindow, qs::QSTATUS* pstatus);
+	explicit ViewEncodingAction(MessageWindow* pMessageWindow);
 	ViewEncodingAction(MessageWindow* pMessageWindow,
-		EncodingMenu* pEncodingMenu, qs::QSTATUS* pstatus);
+					   EncodingMenu* pEncodingMenu);
 	virtual ~ViewEncodingAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isChecked(const qs::ActionEvent& event, bool* pbChecked);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
 
 private:
 	ViewEncodingAction(const ViewEncodingAction&);
@@ -1716,13 +1841,13 @@ class ViewFilterAction : public qs::AbstractAction
 {
 public:
 	ViewFilterAction(ViewModelManager* pViewModelManager,
-		FilterMenu* pFilterMenu, qs::QSTATUS* pstatus);
+					 FilterMenu* pFilterMenu);
 	virtual ~ViewFilterAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
-	virtual qs::QSTATUS isChecked(const qs::ActionEvent& event, bool* pbChecked);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
 
 private:
 	ViewFilterAction(const ViewFilterAction&);
@@ -1744,13 +1869,13 @@ class ViewFilterCustomAction : public qs::AbstractAction
 {
 public:
 	ViewFilterCustomAction(ViewModelManager* pViewModelManager,
-		HWND hwndFrame, qs::QSTATUS* pstatus);
+						   HWND hwnd);
 	virtual ~ViewFilterCustomAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
-	virtual qs::QSTATUS isChecked(const qs::ActionEvent& event, bool* pbChecked);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
 
 private:
 	ViewFilterCustomAction(const ViewFilterCustomAction&);
@@ -1758,8 +1883,8 @@ private:
 
 private:
 	ViewModelManager* pViewModelManager_;
-	HWND hwndFrame_;
-	Filter* pFilter_;
+	HWND hwnd_;
+	std::auto_ptr<Filter> pFilter_;
 };
 
 
@@ -1772,14 +1897,13 @@ private:
 class ViewFilterNoneAction : public qs::AbstractAction
 {
 public:
-	ViewFilterNoneAction(ViewModelManager* pViewModelManager,
-		qs::QSTATUS* pstatus);
+	explicit ViewFilterNoneAction(ViewModelManager* pViewModelManager);
 	virtual ~ViewFilterNoneAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
-	virtual qs::QSTATUS isChecked(const qs::ActionEvent& event, bool* pbChecked);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
 
 private:
 	ViewFilterNoneAction(const ViewFilterNoneAction&);
@@ -1799,12 +1923,13 @@ private:
 class ViewFocusAction : public qs::AbstractAction
 {
 public:
-	ViewFocusAction(View* pViews[], size_t nViewCount,
-		bool bNext, qs::QSTATUS* pstatus);
+	ViewFocusAction(View* pViews[],
+					size_t nViewCount,
+					bool bNext);
 	virtual ~ViewFocusAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual void invoke(const qs::ActionEvent& event);
 
 private:
 	ViewFocusAction(const ViewFocusAction&);
@@ -1828,18 +1953,18 @@ private:
 class ViewLockPreviewAction : public qs::AbstractAction
 {
 public:
-	ViewLockPreviewAction(PreviewMessageModel* pPreviewModel, qs::QSTATUS* pstatus);
+	explicit ViewLockPreviewAction(PreviewMessageModel* pPreviewMessageModel);
 	virtual ~ViewLockPreviewAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual void invoke(const qs::ActionEvent& event);
 
 private:
 	ViewLockPreviewAction(const ViewLockPreviewAction&);
 	ViewLockPreviewAction& operator=(const ViewLockPreviewAction&);
 
 private:
-	PreviewMessageModel* pPreviewModel_;
+	PreviewMessageModel* pPreviewMessageModel_;
 };
 
 
@@ -1853,17 +1978,19 @@ class ViewMessageModeAction : public qs::AbstractAction
 {
 public:
 	typedef bool (MessageWindow::*PFN_IS)() const;
-	typedef qs::QSTATUS (MessageWindow::*PFN_SET)(bool);
+	typedef void (MessageWindow::*PFN_SET)(bool);
 
 public:
-	ViewMessageModeAction(MessageWindow* pMessageWindow, PFN_IS pfnIs,
-		PFN_SET pfnSet, bool bEnabled, qs::QSTATUS* pstatus);
+	ViewMessageModeAction(MessageWindow* pMessageWindow,
+						  PFN_IS pfnIs,
+						  PFN_SET pfnSet,
+						  bool bEnabled);
 	virtual ~ViewMessageModeAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
-	virtual qs::QSTATUS isChecked(const qs::ActionEvent& event, bool* pbChecked);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
 
 private:
 	ViewMessageModeAction(const ViewMessageModeAction&);
@@ -1895,12 +2022,13 @@ public:
 
 public:
 	ViewNavigateFolderAction(Document* pDocument,
-		FolderModel* pFolderModel, Type type, qs::QSTATUS* pstatus);
+							 FolderModel* pFolderModel,
+							 Type type);
 	virtual ~ViewNavigateFolderAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	ViewNavigateFolderAction(const ViewNavigateFolderAction&);
@@ -1933,20 +2061,24 @@ public:
 
 public:
 	ViewNavigateMessageAction(ViewModelManager* pViewModelManager,
-		FolderModel* pFolderModel, MainWindow* pMainWindow,
-		MessageWindow* pMessageWindow, Type type, qs::QSTATUS* pstatus);
+							  FolderModel* pFolderModel,
+							  MainWindow* pMainWindow,
+							  MessageWindow* pMessageWindow,
+							  Type type);
 	ViewNavigateMessageAction(ViewModelManager* pViewModelManager,
-		ViewModelHolder* pViewModelHolder, MessageWindow* pMessageWindow,
-		Type type, qs::QSTATUS* pstatus);
+							  ViewModelHolder* pViewModelHolder,
+							  MessageWindow* pMessageWindow,
+							  Type type);
 	virtual ~ViewNavigateMessageAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
-	qs::QSTATUS getNextUnseen(ViewModel* pViewModel, unsigned int nIndex,
-		bool bIncludeSelf, ViewModel** ppViewModel, unsigned int* pnIndex) const;
+	std::pair<ViewModel*, unsigned int> getNextUnseen(ViewModel* pViewModel,
+													  unsigned int nIndex,
+													  bool bIncludeSelf) const;
 
 private:
 	ViewNavigateMessageAction(const ViewNavigateMessageAction&);
@@ -1971,11 +2103,11 @@ private:
 class ViewOpenLinkAction : public qs::AbstractAction
 {
 public:
-	ViewOpenLinkAction(MessageWindow* pMessageWindow, qs::QSTATUS* pstatus);
+	explicit ViewOpenLinkAction(MessageWindow* pMessageWindow);
 	virtual ~ViewOpenLinkAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual void invoke(const qs::ActionEvent& event);
 
 private:
 	ViewOpenLinkAction(const ViewOpenLinkAction&);
@@ -1995,14 +2127,17 @@ private:
 class ViewRefreshAction : public qs::AbstractAction
 {
 public:
-	ViewRefreshAction(SyncManager* pSyncManager, Document* pDocument,
-		FolderModel* pFolderModel, SyncDialogManager* pSyncDialogManager,
-		HWND hwnd, qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	ViewRefreshAction(SyncManager* pSyncManager,
+					  Document* pDocument,
+					  FolderModel* pFolderModel,
+					  SyncDialogManager* pSyncDialogManager,
+					  HWND hwnd,
+					  qs::Profile* pProfile);
 	virtual ~ViewRefreshAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	ViewRefreshAction(const ViewRefreshAction&);
@@ -2046,11 +2181,12 @@ public:
 	};
 
 public:
-	ViewScrollAction(HWND hwnd, Scroll scroll, qs::QSTATUS* pstatus);
+	ViewScrollAction(HWND hwnd,
+					 Scroll scroll);
 	virtual ~ViewScrollAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual void invoke(const qs::ActionEvent& event);
 
 private:
 	ViewScrollAction(const ViewScrollAction&);
@@ -2072,12 +2208,12 @@ private:
 class ViewSelectModeAction : public qs::AbstractAction
 {
 public:
-	ViewSelectModeAction(MessageWindow* pMessageWindow, qs::QSTATUS* pstatus);
+	explicit ViewSelectModeAction(MessageWindow* pMessageWindow);
 	virtual ~ViewSelectModeAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isChecked(const qs::ActionEvent& event, bool* pbChecked);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
 
 private:
 	ViewSelectModeAction(const ViewSelectModeAction&);
@@ -2098,17 +2234,20 @@ template<class WindowX>
 class ViewShowControlAction : public qs::AbstractAction
 {
 public:
-	typedef qs::QSTATUS (WindowX::*PFN_SET)(bool);
+	typedef void (WindowX::*PFN_SET)(bool);
 	typedef bool (WindowX::*PFN_IS)() const;
 
 public:
-	ViewShowControlAction(WindowX* pWindow, PFN_SET pfnSet, PFN_IS pfnIs,
-		UINT nShowId, UINT nHideId, qs::QSTATUS* pstatus);
+	ViewShowControlAction(WindowX* pWindow,
+						  PFN_SET pfnSet,
+						  PFN_IS pfnIs,
+						  UINT nShowId,
+						  UINT nHideId);
 	virtual ~ViewShowControlAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS getText(const qs::ActionEvent& event, qs::WSTRING* pwstrText);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual qs::wstring_ptr getText(const qs::ActionEvent& event);
 
 private:
 	ViewShowControlAction(const ViewShowControlAction&);
@@ -2132,7 +2271,7 @@ private:
 class ViewShowFolderAction : public ViewShowControlAction<MainWindow>
 {
 public:
-	ViewShowFolderAction(MainWindow* pMainWindow, qs::QSTATUS* pstatus);
+	explicit ViewShowFolderAction(MainWindow* pMainWindow);
 	virtual ~ViewShowFolderAction();
 
 private:
@@ -2150,7 +2289,7 @@ private:
 class ViewShowHeaderAction : public ViewShowControlAction<MessageWindow>
 {
 public:
-	ViewShowHeaderAction(MessageWindow* pMessageWindow, qs::QSTATUS* pstatus);
+	explicit ViewShowHeaderAction(MessageWindow* pMessageWindow);
 	virtual ~ViewShowHeaderAction();
 
 private:
@@ -2168,7 +2307,7 @@ private:
 class ViewShowHeaderColumnAction : public ViewShowControlAction<ListWindow>
 {
 public:
-	ViewShowHeaderColumnAction(ListWindow* pListWindow, qs::QSTATUS* pstatus);
+	explicit ViewShowHeaderColumnAction(ListWindow* pListWindow);
 	virtual ~ViewShowHeaderColumnAction();
 
 private:
@@ -2186,7 +2325,7 @@ private:
 class ViewShowPreviewAction : public ViewShowControlAction<MainWindow>
 {
 public:
-	ViewShowPreviewAction(MainWindow* pMainWindow, qs::QSTATUS* pstatus);
+	explicit ViewShowPreviewAction(MainWindow* pMainWindow);
 	virtual ~ViewShowPreviewAction();
 
 private:
@@ -2205,7 +2344,7 @@ template<class WindowX>
 class ViewShowStatusBarAction : public ViewShowControlAction<WindowX>
 {
 public:
-	ViewShowStatusBarAction(WindowX* pWindow, qs::QSTATUS* pstatus);
+	explicit ViewShowStatusBarAction(WindowX* pWindow);
 	virtual ~ViewShowStatusBarAction();
 
 private:
@@ -2224,7 +2363,7 @@ template<class WindowX>
 class ViewShowToolbarAction : public ViewShowControlAction<WindowX>
 {
 public:
-	ViewShowToolbarAction(WindowX* pWindow, qs::QSTATUS* pstatus);
+	explicit ViewShowToolbarAction(WindowX* pWindow);
 	virtual ~ViewShowToolbarAction();
 
 private:
@@ -2242,11 +2381,11 @@ private:
 class ViewShowSyncDialogAction : public qs::AbstractAction
 {
 public:
-	ViewShowSyncDialogAction(SyncDialogManager* pManager, qs::QSTATUS* pstatus);
+	explicit ViewShowSyncDialogAction(SyncDialogManager* pManager);
 	virtual ~ViewShowSyncDialogAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual void invoke(const qs::ActionEvent& event);
 
 private:
 	ViewShowSyncDialogAction(const ViewShowSyncDialogAction&);
@@ -2267,13 +2406,13 @@ class ViewSortAction : public qs::AbstractAction
 {
 public:
 	ViewSortAction(ViewModelManager* pViewModelManager,
-		SortMenu* pSortMenu, qs::QSTATUS* pstatus);
+				   SortMenu* pSortMenu);
 	virtual ~ViewSortAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
-	virtual qs::QSTATUS isChecked(const qs::ActionEvent& event, bool* pbChecked);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
 
 private:
 	ViewSortAction(const ViewSortAction&);
@@ -2295,13 +2434,13 @@ class ViewSortDirectionAction : public qs::AbstractAction
 {
 public:
 	ViewSortDirectionAction(ViewModelManager* pViewModelManager,
-		bool bAscending, qs::QSTATUS* pstatus);
+							bool bAscending);
 	virtual ~ViewSortDirectionAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
-	virtual qs::QSTATUS isChecked(const qs::ActionEvent& event, bool* pbChecked);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
 
 private:
 	ViewSortDirectionAction(const ViewSortDirectionAction&);
@@ -2322,13 +2461,13 @@ private:
 class ViewSortThreadAction : public qs::AbstractAction
 {
 public:
-	ViewSortThreadAction(ViewModelManager* pViewModelManager, qs::QSTATUS* pstatus);
+	explicit ViewSortThreadAction(ViewModelManager* pViewModelManager);
 	virtual ~ViewSortThreadAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
-	virtual qs::QSTATUS isChecked(const qs::ActionEvent& event, bool* pbChecked);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
 
 private:
 	ViewSortThreadAction(const ViewSortThreadAction&);
@@ -2348,14 +2487,14 @@ private:
 class ViewTemplateAction : public qs::AbstractAction
 {
 public:
-	ViewTemplateAction(MessageWindow* pMessageWindow, qs::QSTATUS* pstatus);
+	explicit ViewTemplateAction(MessageWindow* pMessageWindow);
 	ViewTemplateAction(MessageWindow* pMessageWindow,
-		TemplateMenu* pTemplateMenu, qs::QSTATUS* pstatus);
+					   TemplateMenu* pTemplateMenu);
 	virtual ~ViewTemplateAction();
 
 public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-	virtual qs::QSTATUS isChecked(const qs::ActionEvent& event, bool* pbChecked);
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
 
 private:
 	ViewTemplateAction(const ViewTemplateAction&);
@@ -2365,6 +2504,24 @@ private:
 	MessageWindow* pMessageWindow_;
 	TemplateMenu* pTemplateMenu_;
 };
+
+
+/****************************************************************************
+ *
+ * ActionUtil
+ *
+ */
+
+class ActionUtil
+{
+public:
+	static void info(HWND hwnd,
+					 UINT nMessage);
+	static void error(HWND hwnd,
+					  UINT nMessage);
+};
+
+
 
 }
 

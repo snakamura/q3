@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -27,9 +27,27 @@ public:
 	virtual ~Accelerator();
 
 public:
-	virtual QSTATUS translateAccelerator(HWND hwnd,
-		const MSG& msg, bool* pbProcessed) = 0;
-	virtual QSTATUS getKeyFromId(UINT nId, WSTRING* pwstr) = 0;
+	/**
+	 * Translate message to an accelerator command.
+	 *
+	 * @param hwnd [in] Window handle.
+	 * @param msg [in] Message.
+	 *
+	 * @return true if translated, false otherwise.
+	 */
+	virtual bool translateAccelerator(HWND hwnd,
+									  const MSG& msg) = 0;
+	
+	/**
+	 * Get string representation of the key combination of
+	 * the specified id.
+	 *
+	 * @param nId [in] Id.
+	 * @return String representation of the key combination.
+	 *         Can not be null.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	virtual wstring_ptr getKeyFromId(UINT nId) = 0;
 };
 
 
@@ -45,8 +63,16 @@ public:
 	virtual ~AcceleratorFactory();
 
 public:
-	virtual QSTATUS createAccelerator(const ACCEL* pAccel, int nSize,
-		Accelerator** ppAccelerator) = 0;
+	/**
+	 * Create accelerator.
+	 *
+	 * @param pAccel [in] List of accelerators.
+	 * @param nSize [in] Size of the list.
+	 * @return Created accelerator. Can not be null.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	virtual std::auto_ptr<Accelerator> createAccelerator(const ACCEL* pAccel,
+														 int nSize) = 0;
 };
 
 
@@ -59,13 +85,14 @@ public:
 class QSEXPORTCLASS AbstractAccelerator : public Accelerator
 {
 protected:
-	AbstractAccelerator(const ACCEL* pAccel, int nSize, QSTATUS* pstatus);
+	AbstractAccelerator(const ACCEL* pAccel,
+						int nSize);
 
 public:
 	virtual ~AbstractAccelerator();
 
 public:
-	virtual QSTATUS getKeyFromId(UINT nId, WSTRING* pwstr);
+	virtual wstring_ptr getKeyFromId(UINT nId);
 
 private:
 	AbstractAccelerator(const AbstractAccelerator&);
@@ -85,12 +112,13 @@ private:
 class QSEXPORTCLASS SystemAccelerator : public AbstractAccelerator
 {
 public:
-	SystemAccelerator(const ACCEL* pAccel, int nSize, QSTATUS* pstatus);
+	SystemAccelerator(const ACCEL* pAccel,
+					  int nSize);
 	virtual ~SystemAccelerator();
 
 public:
-	virtual QSTATUS translateAccelerator(HWND hwnd,
-		const MSG& msg, bool* pbProcessed);
+	virtual bool translateAccelerator(HWND hwnd,
+									  const MSG& msg);
 
 private:
 	SystemAccelerator(const SystemAccelerator&);
@@ -114,8 +142,8 @@ public:
 	virtual ~SystemAcceleratorFactory();
 
 public:
-	virtual QSTATUS createAccelerator(const ACCEL* pAccel, int nSize,
-		Accelerator** ppAccelerator);
+	virtual std::auto_ptr<Accelerator> createAccelerator(const ACCEL* pAccel,
+														 int nSize);
 
 private:
 	SystemAcceleratorFactory(const SystemAcceleratorFactory&);
@@ -132,12 +160,13 @@ private:
 class QSEXPORTCLASS CustomAccelerator : public AbstractAccelerator
 {
 public:
-	CustomAccelerator(const ACCEL* pAccel, int nSize, QSTATUS* pstatus);
+	CustomAccelerator(const ACCEL* pAccel,
+					  int nSize);
 	virtual ~CustomAccelerator();
 
 public:
-	virtual QSTATUS translateAccelerator(HWND hwnd,
-		const MSG& msg, bool* pbProcessed);
+	virtual bool translateAccelerator(HWND hwnd,
+									  const MSG& msg);
 
 private:
 	CustomAccelerator(const CustomAccelerator&);
@@ -161,8 +190,8 @@ public:
 	virtual ~CustomAcceleratorFactory();
 
 public:
-	virtual QSTATUS createAccelerator(const ACCEL* pAccel, int nSize,
-		Accelerator** ppAccelerator);
+	virtual std::auto_ptr<Accelerator> createAccelerator(const ACCEL* pAccel,
+														 int nSize);
 
 private:
 	CustomAcceleratorFactory(const CustomAcceleratorFactory&);

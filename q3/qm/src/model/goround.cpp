@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -11,7 +11,6 @@
 #include <qmgoround.h>
 
 #include <qsconv.h>
-#include <qsnew.h>
 #include <qsosutil.h>
 
 #include <algorithm>
@@ -30,20 +29,15 @@ using namespace qs;
 
 struct qm::GoRoundImpl
 {
-	QSTATUS load();
+	bool load();
 	
 	FILETIME ft_;
-	GoRoundCourseList* pCourseList_;
+	std::auto_ptr<GoRoundCourseList> pCourseList_;
 };
 
-QSTATUS qm::GoRoundImpl::load()
+bool qm::GoRoundImpl::load()
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrPath;
-	status = Application::getApplication().getProfilePath(
-		FileNames::GOROUND_XML, &wstrPath);
-	CHECK_QSTATUS();
+	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::GOROUND_XML));
 	
 	W2T(wstrPath.get(), ptszPath);
 	AutoHandle hFile(::CreateFile(ptszPath, GENERIC_READ, 0, 0,
@@ -54,22 +48,20 @@ QSTATUS qm::GoRoundImpl::load()
 		hFile.close();
 		
 		if (::CompareFileTime(&ft, &ft_) != 0) {
-			delete pCourseList_;
-			pCourseList_ = 0;
+			FileInputStream fileStream(wstrPath.get());
+			if (!fileStream)
+				return false;
+			BufferedInputStream stream(&fileStream, false);
 			
-			FileInputStream fileStream(wstrPath.get(), &status);
-			CHECK_QSTATUS();
-			BufferedInputStream stream(&fileStream, false, &status);
-			CHECK_QSTATUS();
-			
-			status = newQsObject(&stream, &pCourseList_);
-			CHECK_QSTATUS();
+			pCourseList_.reset(new GoRoundCourseList());
+			if (!pCourseList_->load(&stream))
+				return false;
 			
 			ft_ = ft;
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -79,45 +71,27 @@ QSTATUS qm::GoRoundImpl::load()
  *
  */
 
-qm::GoRound::GoRound(QSTATUS* pstatus) :
+qm::GoRound::GoRound() :
 	pImpl_(0)
 {
-	assert(pstatus);
-	
-	DECLARE_QSTATUS();
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new GoRoundImpl();
 	
 	SYSTEMTIME st;
 	::GetSystemTime(&st);
 	::SystemTimeToFileTime(&st, &pImpl_->ft_);
-	pImpl_->pCourseList_ = 0;
+	pImpl_->pCourseList_.reset(new GoRoundCourseList());
 }
 
 qm::GoRound::~GoRound()
 {
-	if (pImpl_) {
-		delete pImpl_->pCourseList_;
+	if (pImpl_)
 		delete pImpl_;
-	}
 }
 
-QSTATUS qm::GoRound::getCourseList(GoRoundCourseList** ppCourseList)
+const GoRoundCourseList* qm::GoRound::getCourseList()
 {
-	assert(ppCourseList);
-	
-	DECLARE_QSTATUS();
-	
-	*ppCourseList = 0;
-	
-	status = pImpl_->load();
-	CHECK_QSTATUS();
-	*ppCourseList = pImpl_->pCourseList_;
-	
-	return QSTATUS_SUCCESS;
+	pImpl_->load();
+	return pImpl_->pCourseList_.get();
 }
 
 
@@ -127,17 +101,8 @@ QSTATUS qm::GoRound::getCourseList(GoRoundCourseList** ppCourseList)
  *
  */
 
-qm::GoRoundCourseList::GoRoundCourseList(InputStream* pStream, QSTATUS* pstatus)
+qm::GoRoundCourseList::GoRoundCourseList()
 {
-	assert(pStream);
-	assert(pstatus);
-
-	DECLARE_QSTATUS();
-	
-	*pstatus = QSTATUS_SUCCESS;
-
-	status = load(pStream);
-	CHECK_QSTATUS_SET(pstatus);
 }
 
 qm::GoRoundCourseList::~GoRoundCourseList()
@@ -169,21 +134,13 @@ GoRoundCourse* qm::GoRoundCourseList::getCourse(const WCHAR* pwszCourse) const
 	return it != listCourse_.end() ? *it : 0;
 }
 
-QSTATUS qm::GoRoundCourseList::load(InputStream* pStream)
+bool qm::GoRoundCourseList::load(InputStream* pStream)
 {
-	DECLARE_QSTATUS();
-	
-	XMLReader reader(&status);
-	CHECK_QSTATUS();
-	GoRoundContentHandler handler(&listCourse_, &status);
-	CHECK_QSTATUS();
+	XMLReader reader;
+	GoRoundContentHandler handler(&listCourse_);
 	reader.setContentHandler(&handler);
-	InputSource source(pStream, &status);
-	CHECK_QSTATUS();
-	status = reader.parse(&source);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	InputSource source(pStream);
+	return reader.parse(&source);
 }
 
 
@@ -194,35 +151,23 @@ QSTATUS qm::GoRoundCourseList::load(InputStream* pStream)
  */
 
 qm::GoRoundCourse::GoRoundCourse(const WCHAR* pwszName,
-	unsigned int nFlags, QSTATUS* pstatus) :
-	wstrName_(0),
+								 unsigned int nFlags) :
 	nFlags_(nFlags),
-	pDialup_(0),
 	type_(TYPE_SEQUENTIAL)
 {
 	assert(pwszName);
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
 	
 	wstrName_ = allocWString(pwszName);
-	if (!wstrName_) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
 }
 
 qm::GoRoundCourse::~GoRoundCourse()
 {
-	freeWString(wstrName_);
-	delete pDialup_;
-	std::for_each(listEntry_.begin(), listEntry_.end(),
-		deleter<GoRoundEntry>());
+	std::for_each(listEntry_.begin(), listEntry_.end(), deleter<GoRoundEntry>());
 }
 
 const WCHAR* qm::GoRoundCourse::getName() const
 {
-	return wstrName_;
+	return wstrName_.get();
 }
 
 bool qm::GoRoundCourse::isFlag(Flag flag) const
@@ -237,7 +182,7 @@ GoRoundCourse::Type qm::GoRoundCourse::getType() const
 
 const GoRoundDialup* qm::GoRoundCourse::getDialup() const
 {
-	return pDialup_;
+	return pDialup_.get();
 }
 
 const GoRoundCourse::EntryList& qm::GoRoundCourse::getEntries() const
@@ -245,7 +190,7 @@ const GoRoundCourse::EntryList& qm::GoRoundCourse::getEntries() const
 	return listEntry_;
 }
 
-void qm::GoRoundCourse::setDialup(GoRoundDialup* pDialup)
+void qm::GoRoundCourse::setDialup(std::auto_ptr<GoRoundDialup> pDialup)
 {
 	pDialup_ = pDialup;
 }
@@ -255,9 +200,10 @@ void qm::GoRoundCourse::setType(Type type)
 	type_ = type;
 }
 
-QSTATUS qm::GoRoundCourse::addEntry(GoRoundEntry* pEntry)
+void qm::GoRoundCourse::addEntry(std::auto_ptr<GoRoundEntry> pEntry)
 {
-	return STLWrapper<EntryList>(listEntry_).push_back(pEntry);
+	listEntry_.push_back(pEntry.get());
+	pEntry.release();
 }
 
 
@@ -268,70 +214,41 @@ QSTATUS qm::GoRoundCourse::addEntry(GoRoundEntry* pEntry)
  */
 
 qm::GoRoundEntry::GoRoundEntry(const WCHAR* pwszAccount,
-	const WCHAR* pwszSubAccount, const WCHAR* pwszFolder,
-	unsigned int nFlags, const WCHAR* pwszFilterName,
-	ConnectReceiveBeforeSend crbs, QSTATUS* pstatus) :
-	wstrAccount_(0),
-	wstrSubAccount_(0),
-	pFolderName_(0),
+							  const WCHAR* pwszSubAccount,
+							  std::auto_ptr<RegexPattern> pFolderName,
+							  unsigned int nFlags,
+							  const WCHAR* pwszFilterName,
+							  ConnectReceiveBeforeSend crbs) :
+	pFolderName_(pFolderName),
 	nFlags_(nFlags),
-	wstrFilterName_(0),
 	crbs_(crbs)
 {
 	assert(pwszAccount);
-	assert(pstatus);
-	
-	DECLARE_QSTATUS();
-	
-	*pstatus = QSTATUS_SUCCESS;
 	
 	wstrAccount_ = allocWString(pwszAccount);
-	if (!wstrAccount_) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
-	if (pwszSubAccount) {
+	if (pwszSubAccount)
 		wstrSubAccount_ = allocWString(pwszSubAccount);
-		if (!wstrSubAccount_) {
-			*pstatus = QSTATUS_OUTOFMEMORY;
-			return;
-		}
-	}
-	if (pwszFolder) {
-		RegexCompiler compiler;
-		status = compiler.compile(pwszFolder, &pFolderName_);
-		CHECK_QSTATUS_SET(pstatus);
-	}
-	if (pwszFilterName) {
+	if (pwszFilterName)
 		wstrFilterName_ = allocWString(pwszFilterName);
-		if (!wstrFilterName_) {
-			*pstatus = QSTATUS_OUTOFMEMORY;
-			return;
-		}
-	}
 }
 
 qm::GoRoundEntry::~GoRoundEntry()
 {
-	freeWString(wstrAccount_);
-	freeWString(wstrSubAccount_);
-	delete pFolderName_;
-	freeWString(wstrFilterName_);
 }
 
 const WCHAR* qm::GoRoundEntry::getAccount() const
 {
-	return wstrAccount_;
+	return wstrAccount_.get();
 }
 
 const WCHAR* qm::GoRoundEntry::getSubAccount() const
 {
-	return wstrSubAccount_;
+	return wstrSubAccount_.get();
 }
 
 const RegexPattern* qm::GoRoundEntry::getFolderNamePattern() const
 {
-	return pFolderName_;
+	return pFolderName_.get();
 }
 
 bool qm::GoRoundEntry::isFlag(Flag flag) const
@@ -341,7 +258,7 @@ bool qm::GoRoundEntry::isFlag(Flag flag) const
 
 const WCHAR* qm::GoRoundEntry::getFilterName() const
 {
-	return wstrFilterName_;
+	return wstrFilterName_.get();
 }
 
 GoRoundEntry::ConnectReceiveBeforeSend qm::GoRoundEntry::getConnectReceiveBeforeSend() const
@@ -356,42 +273,26 @@ GoRoundEntry::ConnectReceiveBeforeSend qm::GoRoundEntry::getConnectReceiveBefore
  *
  */
 
-qm::GoRoundDialup::GoRoundDialup(const WCHAR* pwszName, unsigned int nFlags,
-	const WCHAR* pwszDialFrom, unsigned int nDisconnectWait, QSTATUS* pstatus) :
-	wstrName_(0),
+qm::GoRoundDialup::GoRoundDialup(const WCHAR* pwszName,
+								 unsigned int nFlags,
+								 const WCHAR* pwszDialFrom,
+								 unsigned int nDisconnectWait) :
 	nFlags_(nFlags),
-	wstrDialFrom_(0),
 	nDisconnectWait_(nDisconnectWait)
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	if (pwszName) {
+	if (pwszName)
 		wstrName_ = allocWString(pwszName);
-		if (!wstrName_) {
-			*pstatus = QSTATUS_OUTOFMEMORY;
-			return;
-		}
-	}
-	if (pwszDialFrom) {
+	if (pwszDialFrom)
 		wstrDialFrom_ = allocWString(pwszDialFrom);
-		if (!wstrDialFrom_) {
-			*pstatus = QSTATUS_OUTOFMEMORY;
-			return;
-		}
-	}
 }
 
 qm::GoRoundDialup::~GoRoundDialup()
 {
-	freeWString(wstrName_);
-	freeWString(wstrDialFrom_);
 }
 
 const WCHAR* qm::GoRoundDialup::getName() const
 {
-	return wstrName_;
+	return wstrName_.get();
 }
 
 unsigned int qm::GoRoundDialup::getFlags() const
@@ -401,7 +302,7 @@ unsigned int qm::GoRoundDialup::getFlags() const
 
 const WCHAR* qm::GoRoundDialup::getDialFrom() const
 {
-	return wstrDialFrom_;
+	return wstrDialFrom_.get();
 }
 
 unsigned int qm::GoRoundDialup::getDisconnectWait() const
@@ -416,37 +317,33 @@ unsigned int qm::GoRoundDialup::getDisconnectWait() const
  *
  */
 
-qm::GoRoundContentHandler::GoRoundContentHandler(
-	CourseList* pListCourse, QSTATUS* pstatus) :
-	DefaultHandler(pstatus),
+qm::GoRoundContentHandler::GoRoundContentHandler(CourseList* pListCourse) :
 	pListCourse_(pListCourse),
 	state_(STATE_ROOT),
 	pCurrentCourse_(0),
 	pCurrentEntry_(0)
 {
-	assert(pstatus);
 }
 
 qm::GoRoundContentHandler::~GoRoundContentHandler()
 {
 }
 
-QSTATUS qm::GoRoundContentHandler::startElement(
-	const WCHAR* pwszNamespaceURI, const WCHAR* pwszLocalName,
-	const WCHAR* pwszQName, const Attributes& attributes)
+bool qm::GoRoundContentHandler::startElement(const WCHAR* pwszNamespaceURI,
+											 const WCHAR* pwszLocalName,
+											 const WCHAR* pwszQName,
+											 const Attributes& attributes)
 {
-	DECLARE_QSTATUS();
-	
 	if (wcscmp(pwszLocalName, L"goround") == 0) {
 		if (state_ != STATE_ROOT)
-			return QSTATUS_FAIL;
+			return false;
 		if (attributes.getLength() != 0)
-			return QSTATUS_FAIL;
+			return false;
 		state_ = STATE_GOROUND;
 	}
 	else if (wcscmp(pwszLocalName, L"course") == 0) {
 		if (state_ != STATE_GOROUND)
-			return QSTATUS_FAIL;
+			return false;
 		
 		const WCHAR* pwszName = 0;
 		unsigned int nFlags = 0;
@@ -460,25 +357,22 @@ QSTATUS qm::GoRoundContentHandler::startElement(
 					nFlags |= GoRoundCourse::FLAG_CONFIRM;
 			}
 			else {
-				return QSTATUS_FAIL;
+				return false;
 			}
 		}
 		if (!pwszName)
-			return QSTATUS_FAIL;
+			return false;
 		
-		std::auto_ptr<GoRoundCourse> pCourse;
-		status = newQsObject(pwszName, nFlags, &pCourse);
-		CHECK_QSTATUS();
+		std::auto_ptr<GoRoundCourse> pCourse(new GoRoundCourse(pwszName, nFlags));
 		
-		STLWrapper<CourseList>(*pListCourse_).push_back(pCourse.get());
-		CHECK_QSTATUS();
+		pListCourse_->push_back(pCourse.get());
 		pCurrentCourse_ = pCourse.release();
 		
 		state_ = STATE_COURSE;
 	}
 	else if (wcscmp(pwszLocalName, L"dialup") == 0) {
 		if (state_ != STATE_COURSE)
-			return QSTATUS_FAIL;
+			return false;
 		
 		assert(pCurrentCourse_);
 		
@@ -502,49 +396,44 @@ QSTATUS qm::GoRoundContentHandler::startElement(
 				WCHAR* pEnd = 0;
 				nDisconnectWait = wcstol(attributes.getValue(n), &pEnd, 10);
 				if (*pEnd)
-					return QSTATUS_FAIL;
+					return false;
 			}
 			else if (wcscmp(pwszAttrName, L"wheneverNotConnected") == 0) {
 				if (wcscmp(attributes.getValue(n), L"true") == 0)
 					nFlags |= GoRoundDialup::FLAG_WHENEVERNOTCONNECTED;
 			}
 			else {
-				return QSTATUS_FAIL;
+				return false;
 			}
 		}
 		
-		std::auto_ptr<GoRoundDialup> pDialup;
-		status = newQsObject(pwszName, nFlags,
-			pwszDialFrom, nDisconnectWait, &pDialup);
-		CHECK_QSTATUS();
-		
-		pCurrentCourse_->setDialup(pDialup.release());
+		std::auto_ptr<GoRoundDialup> pDialup(new GoRoundDialup(
+			pwszName, nFlags, pwszDialFrom, nDisconnectWait));
+		pCurrentCourse_->setDialup(pDialup);
 		
 		state_ = STATE_DIALUP;
 	}
 	else if (wcscmp(pwszLocalName, L"sequential") == 0) {
 		if (state_ != STATE_COURSE)
-			return QSTATUS_FAIL;
+			return false;
 		
 		assert(pCurrentCourse_);
-		
 		pCurrentCourse_->setType(GoRoundCourse::TYPE_SEQUENTIAL);
 		
 		state_ = STATE_TYPE;
 	}
 	else if (wcscmp(pwszLocalName, L"parallel") == 0) {
 		if (state_ != STATE_COURSE)
-			return QSTATUS_FAIL;
+			return false;
 		
 		assert(pCurrentCourse_);
-		
 		pCurrentCourse_->setType(GoRoundCourse::TYPE_PARALLEL);
 		
 		state_ = STATE_TYPE;
 	}
 	else if (wcscmp(pwszLocalName, L"entry") == 0) {
 		if (state_ != STATE_TYPE)
-			return QSTATUS_FAIL;
+			return false;
 		
 		assert(pCurrentCourse_);
 		
@@ -585,40 +474,43 @@ QSTATUS qm::GoRoundContentHandler::startElement(
 					GoRoundEntry::CRBS_TRUE : GoRoundEntry::CRBS_FALSE;
 			}
 			else {
-				return QSTATUS_FAIL;
+				return false;
 			}
 		}
 		if (!pwszAccount)
-			return QSTATUS_FAIL;
+			return false;
 		
 		if (!(nFlags & GoRoundEntry::FLAG_SEND) &&
 			!(nFlags & GoRoundEntry::FLAG_RECEIVE))
 			nFlags |= GoRoundEntry::FLAG_SEND | GoRoundEntry::FLAG_RECEIVE;
 		
-		std::auto_ptr<GoRoundEntry> pEntry;
-		status = newQsObject(pwszAccount, pwszSubAccount,
-			pwszFolder, nFlags, pwszFilter, crbs, &pEntry);
-		CHECK_QSTATUS();
+		std::auto_ptr<RegexPattern> pFolderName;
+		if (pwszFolder) {
+			RegexCompiler compiler;
+			pFolderName = compiler.compile(pwszFolder);
+			if (!pFolderName.get())
+				return false;
+		}
 		
-		status = pCurrentCourse_->addEntry(pEntry.get());
-		CHECK_QSTATUS();
-		pCurrentEntry_ = pEntry.release();
+		std::auto_ptr<GoRoundEntry> pEntry(new GoRoundEntry(pwszAccount,
+			pwszSubAccount, pFolderName, nFlags, pwszFilter, crbs));
+		
+		pCurrentEntry_ = pEntry.get();
+		pCurrentCourse_->addEntry(pEntry);
 		
 		state_ = STATE_ENTRY;
 	}
 	else {
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::GoRoundContentHandler::endElement(
-	const WCHAR* pwszNamespaceURI, const WCHAR* pwszLocalName,
-	const WCHAR* pwszQName)
+bool qm::GoRoundContentHandler::endElement(const WCHAR* pwszNamespaceURI,
+										   const WCHAR* pwszLocalName,
+										   const WCHAR* pwszQName)
 {
-	DECLARE_QSTATUS();
-	
 	if (wcscmp(pwszLocalName, L"goround") == 0) {
 		assert(state_ == STATE_GOROUND);
 		state_ = STATE_ROOT;
@@ -649,22 +541,21 @@ QSTATUS qm::GoRoundContentHandler::endElement(
 	}
 	else {
 		assert(false);
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::GoRoundContentHandler::characters(
-	const WCHAR* pwsz, size_t nStart, size_t nLength)
+bool qm::GoRoundContentHandler::characters(const WCHAR* pwsz,
+										   size_t nStart,
+										   size_t nLength)
 {
-	DECLARE_QSTATUS();
-	
 	const WCHAR* p = pwsz + nStart;
 	for (size_t n = 0; n < nLength; ++n, ++p) {
 		if (*p != L' ' && *p != L'\t' && *p != '\n')
-			return QSTATUS_FAIL;
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -44,8 +44,22 @@ public:
 	virtual ~InputStream();
 
 public:
-	virtual QSTATUS close() = 0;
-	virtual QSTATUS read(unsigned char* p, size_t nRead, size_t* pnRead) = 0;
+	/**
+	 * Close stream.
+	 *
+	 * @return true if success, false otherwise.
+	 */
+	virtual bool close() = 0;
+	
+	/**
+	 * Read from stream.
+	 *
+	 * @param p [in] Buffer.
+	 * @param nRead [in] Size to read.
+	 * @return Read size.
+	 */
+	virtual size_t read(unsigned char* p,
+						size_t nRead) = 0;
 };
 
 
@@ -58,12 +72,29 @@ public:
 class QSEXPORTCLASS FileInputStream : public InputStream
 {
 public:
-	FileInputStream(const WCHAR* pwszPath, QSTATUS* pstatus);
+	/**
+	 * Create instance.
+	 * Call operator! to check if success or not.
+	 *
+	 * @param pwszPath [in] Path.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	explicit FileInputStream(const WCHAR* pwszPath);
+	
 	virtual ~FileInputStream();
 
 public:
-	virtual QSTATUS close();
-	virtual QSTATUS read(unsigned char* p, size_t nRead, size_t* pnRead);
+	/**
+	 * Check if stream is open or not.
+	 *
+	 * @return true if failed, false otherwise.
+	 */
+	bool operator!() const;
+
+public:
+	virtual bool close();
+	virtual size_t read(unsigned char* p,
+						size_t nRead);
 
 private:
 	FileInputStream(const FileInputStream&);
@@ -83,12 +114,43 @@ private:
 class QSEXPORTCLASS ByteInputStream : public InputStream
 {
 public:
-	ByteInputStream(const unsigned char* p, size_t nLen, QSTATUS* pstatus);
+	/**
+	 * Create instance.
+	 * Call operator! to check if success or not.
+	 *
+	 * @param p [in] Buffer.
+	 * @param nLen [in] Buffer size.
+	 * @param bCopy [in] Copy buffer or not.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	ByteInputStream(const unsigned char* p,
+					size_t nLen,
+					bool bCopy);
+	
+	/**
+	 * Create instance.
+	 *
+	 * @param p [in] Buffer.
+	 * @param nLen [in] Buffer size.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	ByteInputStream(malloc_ptr<unsigned char> p,
+					size_t nLen);
+	
 	virtual ~ByteInputStream();
 
 public:
-	virtual QSTATUS close();
-	virtual QSTATUS read(unsigned char* p, size_t nRead, size_t* pnRead);
+	/**
+	 * Check if stream is open or not.
+	 *
+	 * @return true if failed, false otherwise.
+	 */
+	bool operator!() const;
+
+public:
+	virtual bool close();
+	virtual size_t read(unsigned char* p,
+						size_t nRead);
 
 private:
 	ByteInputStream(const ByteInputStream&);
@@ -108,13 +170,22 @@ private:
 class QSEXPORTCLASS BufferedInputStream : public InputStream
 {
 public:
+	/**
+	 * Create instance.
+	 *
+	 * @param pInputStream [in] Wrapped stream.
+	 * @param bDelete [in] true if delete wrapped stream on destroy, false otherwise.
+	 * @exception std::bad_alloc Out of memory.
+	 */
 	BufferedInputStream(InputStream* pInputStream,
-		bool bDelete, QSTATUS* pstatus);
+						bool bDelete);
+	
 	virtual ~BufferedInputStream();
 
 public:
-	virtual QSTATUS close();
-	virtual QSTATUS read(unsigned char* p, size_t nRead, size_t* pnRead);
+	virtual bool close();
+	virtual size_t read(unsigned char* p,
+						size_t nRead);
 
 private:
 	BufferedInputStream(const BufferedInputStream&);
@@ -137,9 +208,29 @@ public:
 	virtual ~OutputStream();
 
 public:
-	virtual QSTATUS close() = 0;
-	virtual QSTATUS write(const unsigned char* p, size_t nWrite) = 0;
-	virtual QSTATUS flush() = 0;
+	/**
+	 * Close stream.
+	 *
+	 * @return true if success, false otherwise.
+	 */
+	virtual bool close() = 0;
+	
+	/**
+	 * Write to stream.
+	 *
+	 * @param p [in] Buffer.
+	 * @param nWrite [in] Buffer size.
+	 * @return Size written.
+	 */
+	virtual size_t write(const unsigned char* p,
+						 size_t nWrite) = 0;
+	
+	/**
+	 * Flush stream.
+	 *
+	 * @return true if success, false otherwise.
+	 */
+	virtual bool flush() = 0;
 };
 
 
@@ -152,13 +243,30 @@ public:
 class QSEXPORTCLASS FileOutputStream : public OutputStream
 {
 public:
-	FileOutputStream(const WCHAR* pwszPath, QSTATUS* pstatus);
+	/**
+	 * Create instance.
+	 * Call operator! to check if success or not.
+	 *
+	 * @param pwszPath [in] Path.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	explicit FileOutputStream(const WCHAR* pwszPath);
+	
 	virtual ~FileOutputStream();
 
 public:
-	virtual QSTATUS close();
-	virtual QSTATUS write(const unsigned char* p, size_t nWrite);
-	virtual QSTATUS flush();
+	/**
+	 * Check if stream is open or not.
+	 *
+	 * @return true if failed, false otherwise.
+	 */
+	bool operator!() const;
+
+public:
+	virtual bool close();
+	virtual size_t write(const unsigned char* p,
+						 size_t nWrite);
+	virtual bool flush();
 
 private:
 	FileOutputStream(const FileOutputStream&);
@@ -178,18 +286,42 @@ private:
 class QSEXPORTCLASS ByteOutputStream : public OutputStream
 {
 public:
-	explicit ByteOutputStream(QSTATUS* pstatus);
+	/**
+	 * Create instance.
+	 *
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	ByteOutputStream();
+	
 	virtual ~ByteOutputStream();
 
 public:
+	/**
+	 * Get buffer.
+	 *
+	 * @return Buffer.
+	 */
 	const unsigned char* getBuffer() const;
-	unsigned char* releaseBuffer();
+	
+	/**
+	 * Release buffer.
+	 *
+	 * @return Buffer.
+	 */
+	malloc_ptr<unsigned char> releaseBuffer();
+	
+	/**
+	 * Get buffer size.
+	 *
+	 * @return Buffer size.
+	 */
 	size_t getLength() const;
 
 public:
-	virtual QSTATUS close();
-	virtual QSTATUS write(const unsigned char* p, size_t nWrite);
-	virtual QSTATUS flush();
+	virtual bool close();
+	virtual size_t write(const unsigned char* p,
+						 size_t nWrite);
+	virtual bool flush();
 
 private:
 	ByteOutputStream(const ByteOutputStream&);
@@ -209,14 +341,23 @@ private:
 class QSEXPORTCLASS BufferedOutputStream : public OutputStream
 {
 public:
+	/**
+	 * Create instance.
+	 *
+	 * @param pOutputStream [in] Wrapped stream.
+	 * @param bDelete [in] true if delete wrapped stream on destroy, false otherwise.
+	 * @exception std::bad_alloc Out of memory.
+	 */
 	BufferedOutputStream(OutputStream* pOutputStream,
-		bool bDelete, QSTATUS* pstatus);
+						 bool bDelete);
+	
 	virtual ~BufferedOutputStream();
 
 public:
-	virtual QSTATUS close();
-	virtual QSTATUS write(const unsigned char* p, size_t nWrite);
-	virtual QSTATUS flush();
+	virtual bool close();
+	virtual size_t write(const unsigned char* p,
+						 size_t nWrite);
+	virtual bool flush();
 
 private:
 	BufferedOutputStream(const BufferedOutputStream&);
@@ -239,8 +380,22 @@ public:
 	virtual ~Reader();
 
 public:
-	virtual QSTATUS close() = 0;
-	virtual QSTATUS read(WCHAR* p, size_t nRead, size_t* pnRead) = 0;
+	/**
+	 * Close reader.
+	 *
+	 * @return true if success, false otherwise.
+	 */
+	virtual bool close() = 0;
+	
+	/**
+	 * Read from reader.
+	 *
+	 * @param p Buffer.
+	 * @param nRead Size to read.
+	 * @return Read size.
+	 */
+	virtual size_t read(WCHAR* p,
+						size_t nRead) = 0;
 };
 
 
@@ -253,13 +408,32 @@ public:
 class QSEXPORTCLASS InputStreamReader : public Reader
 {
 public:
-	InputStreamReader(InputStream* pInputStream, bool bDelete,
-		const WCHAR* pwszEncoding, QSTATUS* pstatus);
+	/**
+	 * Create instance.
+	 * Call operator! to check if success or not.
+	 *
+	 * @param pInputStream [in] Wrapped stream.
+	 * @param bDelete [in] true if delete wrapped stream on destroy, false otherwise.
+	 * @param pwszEncoding [in] Encoding. If null, use system encoding.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	InputStreamReader(InputStream* pInputStream,
+					  bool bDelete,
+					  const WCHAR* pwszEncoding);
+	
 	virtual ~InputStreamReader();
 
 public:
-	virtual QSTATUS close();
-	virtual QSTATUS read(WCHAR* p, size_t nRead, size_t* pnRead);
+	/**
+	 * Check if reader is open or not.
+	 *
+	 * @return true if failed, false otherwise.
+	 */
+	bool operator!() const;
+
+public:
+	virtual bool close();
+	virtual size_t read(WCHAR* p, size_t nRead);
 
 private:
 	InputStreamReader(const InputStreamReader&);
@@ -279,13 +453,62 @@ private:
 class QSEXPORTCLASS StringReader : public Reader
 {
 public:
-	StringReader(const WCHAR* pwsz, QSTATUS* pstatus);
-	StringReader(const WCHAR* pwsz, size_t nLen, QSTATUS* pstatus);
+	/**
+	 * Create instance.
+	 * Call operator! to check if success or not.
+	 *
+	 * @param pwsz [in] String.
+	 * @param bCopy [in] Copy string or not.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	StringReader(const WCHAR* pwsz,
+				 bool bCopy);
+	
+	/**
+	 * Create instance.
+	 * Call operator! to check if success or not.
+	 *
+	 * @param pwsz [in] String.
+	 * @param nLen [in] String length.
+	 * @param bCopy [in] Copy string or not.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	StringReader(const WCHAR* pwsz,
+				 size_t nLen,
+				 bool bCopy);
+	
+	/**
+	 * Create instance.
+	 *
+	 * @param wstr [in] String.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	explicit StringReader(wxstring_ptr wstr);
+	
+	/**
+	 * Create instance.
+	 *
+	 * @param wstr [in] String.
+	 * @param nLen [in] String length.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	StringReader(wxstring_ptr wstr,
+				 size_t nLen);
+	
 	virtual ~StringReader();
 
 public:
-	virtual QSTATUS close();
-	virtual QSTATUS read(WCHAR* p, size_t nRead, size_t* pnRead);
+	/**
+	 * Check if reader is open or not.
+	 *
+	 * @return true if failed, false otherwise.
+	 */
+	bool operator!() const;
+
+public:
+	virtual bool close();
+	virtual size_t read(WCHAR* p,
+						size_t nRead);
 
 private:
 	StringReader(const StringReader&);
@@ -305,15 +528,30 @@ private:
 class QSEXPORTCLASS BufferedReader : public Reader
 {
 public:
-	BufferedReader(Reader* pReader, bool bDelete, QSTATUS* pstatus);
+	/**
+	 * Create instance.
+	 *
+	 * @param pReader [in] Wrapped reader.
+	 * @param bDelete [in] true if delete wrapped reader on destroy, false otherwise.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	BufferedReader(Reader* pReader,
+				   bool bDelete);
+	
 	virtual ~BufferedReader();
 
 public:
-	QSTATUS readLine(WSTRING* pwstr);
+	/**
+	 * Read line.
+	 *
+	 * @param pwstr [out] Line.
+	 * @return true if success, false otherwise.
+	 */
+	bool readLine(wxstring_ptr* pwstr);
 
 public:
-	virtual QSTATUS close();
-	virtual QSTATUS read(WCHAR* p, size_t nRead, size_t* pnRead);
+	virtual bool close();
+	virtual size_t read(WCHAR* p, size_t nRead);
 
 private:
 	BufferedReader(const BufferedReader&);
@@ -336,8 +574,22 @@ public:
 	virtual ~Writer();
 
 public:
-	virtual QSTATUS close() = 0;
-	virtual QSTATUS write(const WCHAR* p, size_t nWrite) = 0;
+	/**
+	 * Close writer.
+	 *
+	 * @return true if success, false otherwise.
+	 */
+	virtual bool close() = 0;
+	
+	/**
+	 * Write to writer.
+	 *
+	 * @param p [in] Buffer.
+	 * @param nWrite [in] Size to write.
+	 * @return Written size.
+	 */
+	virtual size_t write(const WCHAR* p,
+						 size_t nWrite) = 0;
 };
 
 
@@ -350,13 +602,33 @@ public:
 class QSEXPORTCLASS OutputStreamWriter : public Writer
 {
 public:
-	OutputStreamWriter(OutputStream* pOutputStream, bool bDelete,
-		const WCHAR* pwszEncoding, QSTATUS* pstatus);
+	/**
+	 * Create instance.
+	 * Call operator! to check if success or not.
+	 *
+	 * @param pOutputStream [in] Wrapped stream.
+	 * @param bDelete [in] true if delete wrapped stream on destroy, false otherwise.
+	 * @param pwszEncoding [in] Encoding. If null, use system encoding.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	OutputStreamWriter(OutputStream* pOutputStream,
+					   bool bDelete,
+					   const WCHAR* pwszEncoding);
+	
 	virtual ~OutputStreamWriter();
 
 public:
-	virtual QSTATUS close();
-	virtual QSTATUS write(const WCHAR* p, size_t nWrite);
+	/**
+	 * Check if writer is open or not.
+	 *
+	 * @return true if failed, false otherwise.
+	 */
+	bool operator!() const;
+
+public:
+	virtual bool close();
+	virtual size_t write(const WCHAR* p,
+						 size_t nWrite);
 
 private:
 	OutputStreamWriter(const OutputStreamWriter&);
@@ -376,12 +648,19 @@ private:
 class QSEXPORTCLASS StringWriter : public Writer
 {
 public:
-	explicit StringWriter(QSTATUS* pstatus);
+	/**
+	 * Create instance.
+	 *
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	StringWriter();
+	
 	virtual ~StringWriter();
 
 public:
-	virtual QSTATUS close();
-	virtual QSTATUS write(const WCHAR* p, size_t nWrite);
+	virtual bool close();
+	virtual size_t write(const WCHAR* p,
+						 size_t nWrite);
 
 private:
 	StringWriter(const StringWriter&);
@@ -401,15 +680,30 @@ private:
 class QSEXPORTCLASS BufferedWriter : public Writer
 {
 public:
-	BufferedWriter(Writer* pWriter, bool bDelete, QSTATUS* pstatus);
+	/**
+	 * Create instance.
+	 *
+	 * @param pWriter [in] Wrapped writer.
+	 * @param bDelete [in] true if delete wrapped writer on destroy, false otherwise.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	BufferedWriter(Writer* pWriter,
+				   bool bDelete);
+	
 	virtual ~BufferedWriter();
 
 public:
-	QSTATUS newLine();
+	/**
+	 * Write new line.
+	 *
+	 * @return true if success, false otherwise.
+	 */
+	bool newLine();
 
 public:
-	virtual QSTATUS close();
-	virtual QSTATUS write(const WCHAR* p, size_t nWrite);
+	virtual bool close();
+	virtual size_t write(const WCHAR* p,
+						 size_t nWrite);
 
 private:
 	BufferedWriter(const BufferedWriter&);

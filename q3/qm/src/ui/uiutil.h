@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -40,23 +40,31 @@ class TempFileCleaner;
 class UIUtil
 {
 public:
-	static qs::QSTATUS loadWindowPlacement(qs::Profile* pProfile,
-		const WCHAR* pwszSection, CREATESTRUCT* pCreateStruct, int* pnShow);
-	static qs::QSTATUS saveWindowPlacement(HWND hwnd,
-		qs::Profile* pProfile, const WCHAR* pwszSection);
+	static int loadWindowPlacement(qs::Profile* pProfile,
+								   const WCHAR* pwszSection,
+								   CREATESTRUCT* pCreateStruct);
+	static void saveWindowPlacement(HWND hwnd,
+									qs::Profile* pProfile,
+									const WCHAR* pwszSection);
 	
-	static qs::QSTATUS formatMenu(const WCHAR* pwszText, qs::WSTRING* pwstrText);
-	static qs::QSTATUS openURL(HWND hwnd, const WCHAR* pwszURL);
+	static qs::wstring_ptr formatMenu(const WCHAR* pwszText);
+	static bool openURL(HWND hwnd,
+						const WCHAR* pwszURL);
 	
-	static int getFolderImage(Folder* pFolder, bool bSelected);
+	static int getFolderImage(Folder* pFolder,
+							  bool bSelected);
 	
-	static qs::QSTATUS updateStatusBar(MessageWindow* pMessageWindow,
-		StatusBar* pStatusBar, int nOffset, MessageHolder* pmh,
-		Message& msg, const qs::ContentTypeParser* pContentType);
+	static void updateStatusBar(MessageWindow* pMessageWindow,
+								StatusBar* pStatusBar,
+								int nOffset,
+								MessageHolder* pmh,
+								Message& msg,
+								const qs::ContentTypeParser* pContentType);
 	
-	static qs::QSTATUS writeTemporaryFile(const WCHAR* pwszValue,
-		const WCHAR* pwszPrefix, const WCHAR* pwszExtension,
-		TempFileCleaner* pTempFileCleaner, qs::WSTRING* pwstrPath);
+	static qs::wstring_ptr writeTemporaryFile(const WCHAR* pwszValue,
+											  const WCHAR* pwszPrefix,
+											  const WCHAR* pwszExtension,
+											  TempFileCleaner* pTempFileCleaner);
 };
 
 
@@ -69,10 +77,15 @@ public:
 class ProgressDialogInit
 {
 public:
-	ProgressDialogInit(ProgressDialog* pDialog, HWND hwnd, qs::QSTATUS* pstatus);
-	ProgressDialogInit(ProgressDialog* pDialog, HWND hwnd,
-		UINT nTitle, UINT nMessage, unsigned int nMin,
-		unsigned int nMax, unsigned int nPos, qs::QSTATUS* pstatus);
+	ProgressDialogInit(ProgressDialog* pDialog,
+					   HWND hwnd);
+	ProgressDialogInit(ProgressDialog* pDialog,
+					   HWND hwnd,
+					   UINT nTitle,
+					   UINT nMessage,
+					   unsigned int nMin,
+					   unsigned int nMax,
+					   unsigned int nPos);
 	~ProgressDialogInit();
 
 private:
@@ -94,15 +107,16 @@ class ProgressDialogMessageOperationCallback :
 	public MessageOperationCallback
 {
 public:
-	ProgressDialogMessageOperationCallback(
-		HWND hwnd, UINT nTitle, UINT nMessage);
+	ProgressDialogMessageOperationCallback(HWND hwnd,
+										   UINT nTitle,
+										   UINT nMessage);
 	virtual ~ProgressDialogMessageOperationCallback();
 
 public:
 	virtual bool isCanceled();
-	virtual qs::QSTATUS setCount(unsigned int nCount);
-	virtual qs::QSTATUS step(unsigned int nStep);
-	virtual qs::QSTATUS show();
+	virtual void setCount(unsigned int nCount);
+	virtual void step(unsigned int nStep);
+	virtual void show();
 
 private:
 	ProgressDialogMessageOperationCallback(ProgressDialogMessageOperationCallback&);
@@ -112,7 +126,7 @@ private:
 	HWND hwnd_;
 	UINT nTitle_;
 	UINT nMessage_;
-	ProgressDialog* pDialog_;
+	std::auto_ptr<ProgressDialog> pDialog_;
 	unsigned int nCount_;
 	unsigned int nPos_;
 };

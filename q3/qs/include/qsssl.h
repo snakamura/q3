@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -48,8 +48,22 @@ public:
 	virtual ~SSLSocketCallback();
 
 public:
-	virtual QSTATUS getCertStore(const Store** ppStore) = 0;
-	virtual QSTATUS checkCertificate(const Certificate& cert, bool bVerified) = 0;
+	/**
+	 * Get certificate store.
+	 *
+	 * @return Certificate store. null if not exists.
+	 */
+	virtual const Store* getCertStore() = 0;
+	
+	/**
+	 * Check server certificate.
+	 *
+	 * @param cert [in] Server certificate.
+	 * @param bVerified [in] true if certificate was verified, false otherwise.
+	 * @return true if ok, flase otherwise.
+	 */
+	virtual bool checkCertificate(const Certificate& cert,
+								  bool bVerified) = 0;
 };
 
 
@@ -68,15 +82,42 @@ public:
 	virtual ~SSLSocketFactory();
 
 public:
-	virtual QSTATUS createSSLSocket(Socket* pSocket, bool bDeleteSocket,
-		SSLSocketCallback* pCallback, Logger* ppLogger, SSLSocket** ppSSLSocket) = 0;
+	/**
+	 * Create SSLSocket.
+	 *
+	 * @param pSocket [in] Base socket.
+	 * @param bDeleteSocket [in] true if delete the base socket when this socket is deleted.
+	 * @param pCallback [in] Callback.
+	 * @param ppLogger [out] Logger.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	virtual std::auto_ptr<SSLSocket> createSSLSocket(Socket* pSocket,
+													 bool bDeleteSocket,
+													 SSLSocketCallback* pCallback,
+													 Logger* ppLogger) = 0;
 
 public:
+	/**
+	 * Get factory.
+	 *
+	 * @return Factory. null if no factory was registered.
+	 */
 	static SSLSocketFactory* getFactory();
 
 protected:
-	static QSTATUS regist(SSLSocketFactory* pFactory);
-	static QSTATUS unregist(SSLSocketFactory* pFactory);
+	/**
+	 * Register factory.
+	 *
+	 * @param pFactory [in] Factory.
+	 */
+	static void registerFactory(SSLSocketFactory* pFactory);
+	
+	/**
+	 * Unregister factory.
+	 *
+	 * @param pFactory [in] Factory.
+	 */
+	static void unregisterFactory(SSLSocketFactory* pFactory);
 
 private:
 	SSLSocketFactory(const SSLSocketFactory&);

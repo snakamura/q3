@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -37,15 +37,16 @@ class ReaderIStream;
 class ScriptImpl : public Script
 {
 public:
-	ScriptImpl(const ScriptFactory::Init& init, qs::QSTATUS* pstatus);
+	explicit ScriptImpl(const ScriptFactory::Init& init);
 	virtual ~ScriptImpl();
 
 public:
-	virtual qs::QSTATUS run(VARIANT* pvarArgs,
-		size_t nArgCount, VARIANT* pvarResult);
+	virtual bool run(VARIANT* pvarArgs,
+					 size_t nArgCount,
+					 VARIANT* pvarResult);
 
 private:
-	qs::QSTATUS load(const ScriptFactory::Init& init);
+	bool load(const ScriptFactory::Init& init);
 
 private:
 	ScriptImpl(const ScriptImpl&);
@@ -65,11 +66,11 @@ private:
 class ScriptFactoryImpl : public ScriptFactory
 {
 public:
-	ScriptFactoryImpl(qs::QSTATUS* pstatus);
+	ScriptFactoryImpl();
 	virtual ~ScriptFactoryImpl();
 
 public:
-	virtual qs::QSTATUS newScript(const Init& init, Script** ppScript);
+	virtual std::auto_ptr<Script> newScript(const Init& init);
 	virtual void deleteScript(Script* pScript);
 
 private:
@@ -89,25 +90,29 @@ class ActiveScriptSite :
 	public IActiveScriptSiteWindow
 {
 public:
-	ActiveScriptSite(const ScriptFactory::Init& init, qs::QSTATUS* pstatus);
+	ActiveScriptSite(const ScriptFactory::Init& init);
 	~ActiveScriptSite();
 
 public:
-	qs::QSTATUS setArguments(VARIANT* pvarArgs, size_t nCount);
+	bool setArguments(VARIANT* pvarArgs,
+					  size_t nCount);
 	VARIANT* getResult();
 
 public:
-	STDMETHOD(QueryInterface)(REFIID riid, void** ppv);
+	STDMETHOD(QueryInterface)(REFIID riid,
+							  void** ppv);
 	STDMETHOD_(ULONG, AddRef)();
 	STDMETHOD_(ULONG, Release)();
 
 public:
 	STDMETHOD(GetLCID)(LCID* plcid);
-	STDMETHOD(GetItemInfo)(LPCOLESTR pwszName, DWORD dwReturnMask,
-		IUnknown** ppUnkItem, ITypeInfo** ppTypeInfo);
+	STDMETHOD(GetItemInfo)(LPCOLESTR pwszName,
+						   DWORD dwReturnMask,
+						   IUnknown** ppUnkItem,
+						   ITypeInfo** ppTypeInfo);
 	STDMETHOD(GetDocVersionString)(BSTR* pbstrVersionString);
 	STDMETHOD(OnScriptTerminate)(const VARIANT* pvarResult,
-		const EXCEPINFO* pExecpInfo);
+								 const EXCEPINFO* pExecpInfo);
 	STDMETHOD(OnStateChange)(SCRIPTSTATE state);
 	STDMETHOD(OnScriptError)(IActiveScriptError* pError);
 	STDMETHOD(OnEnterScript)();
@@ -145,31 +150,42 @@ private:
 class ReaderIStream : public IStream
 {
 public:
-	ReaderIStream(qs::Reader* pReader, qs::QSTATUS* pstatus);
+	explicit ReaderIStream(qs::Reader* pReader);
 	~ReaderIStream();
 
 public:
-	STDMETHOD(QueryInterface)(REFIID riid, void** ppv);
+	STDMETHOD(QueryInterface)(REFIID riid,
+							  void** ppv);
 	STDMETHOD_(ULONG, AddRef)();
 	STDMETHOD_(ULONG, Release)();
 
 public:
-	STDMETHOD(Read)(void* pv, ULONG cb, ULONG* pcbRead);
-	STDMETHOD(Write)(const void* pv, ULONG cb, ULONG* pcbWritten);
+	STDMETHOD(Read)(void* pv,
+					ULONG cb,
+					ULONG* pcbRead);
+	STDMETHOD(Write)(const void* pv,
+					 ULONG cb,
+					 ULONG* pcbWritten);
 
 public:
 	STDMETHOD(Seek)(LARGE_INTEGER nMove,
-		DWORD dwOrigin, ULARGE_INTEGER* pnPosition);
+					DWORD dwOrigin,
+					ULARGE_INTEGER* pnPosition);
 	STDMETHOD(SetSize)(ULARGE_INTEGER nSize);
-	STDMETHOD(CopyTo)(IStream* pStream, ULARGE_INTEGER cb,
-		ULARGE_INTEGER* pcbRead, ULARGE_INTEGER* pcbWritten);
+	STDMETHOD(CopyTo)(IStream* pStream,
+					  ULARGE_INTEGER cb,
+					  ULARGE_INTEGER* pcbRead,
+					  ULARGE_INTEGER* pcbWritten);
 	STDMETHOD(Commit)(DWORD dwFlags);
 	STDMETHOD(Revert)();
 	STDMETHOD(LockRegion)(ULARGE_INTEGER nOffset,
-		ULARGE_INTEGER cb, DWORD dwType);
+						  ULARGE_INTEGER cb,
+						  DWORD dwType);
 	STDMETHOD(UnlockRegion)(ULARGE_INTEGER nOffset,
-		ULARGE_INTEGER cb, DWORD dwType);
-	STDMETHOD(Stat)(STATSTG* pStatStg, DWORD dwFlags);
+							ULARGE_INTEGER cb,
+							DWORD dwType);
+	STDMETHOD(Stat)(STATSTG* pStatStg,
+					DWORD dwFlags);
 	STDMETHOD(Clone)(IStream** ppStream);
 
 private:

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -35,14 +35,34 @@ class SyncManager;
 class SyncUtil
 {
 public:
-	static qs::QSTATUS syncFolder(SyncManager* pSyncManager,
-		Document* pDocument, SyncDialogManager* pSyncDialogManager,
-		HWND hwnd, unsigned int nCallbackParam, NormalFolder* pFolder);
-	static qs::QSTATUS send(SyncManager* pSyncManager, Document* pDocument,
-		SyncDialogManager* pSyncDialogManager, HWND hwnd,
-		unsigned int nCallbackParam, Account* pAccount, SubAccount* pSubAccount);
-	static qs::QSTATUS createGoRoundData(const GoRoundCourse* pCourse,
-		Document* pDocument, SyncData* pData);
+	static bool syncFolder(SyncManager* pSyncManager,
+						   Document* pDocument,
+						   SyncDialogManager* pSyncDialogManager,
+						   HWND hwnd,
+						   unsigned int nCallbackParam,
+						   NormalFolder* pFolder);
+	static bool sync(SyncManager* pSyncManager,
+					 Document* pDocument,
+					 SyncDialogManager* pSyncDialogManager,
+					 HWND hwnd,
+					 unsigned int nCallbackParam,
+					 Account* pAccount,
+					 bool bSend,
+					 bool bReceive,
+					 bool bSelectSyncFilter);
+	static bool send(SyncManager* pSyncManager,
+					 Document* pDocument,
+					 SyncDialogManager* pSyncDialogManager,
+					 HWND hwnd,
+					 unsigned int nCallbackParam,
+					 Account* pAccount,
+					 SubAccount* pSubAccount);
+	static bool goRound(SyncManager* pSyncManager,
+						Document* pDocument,
+						SyncDialogManager* pSyncDialogManager,
+						HWND hwnd,
+						unsigned int nCallbackParam,
+						const GoRoundCourse* pCourse);
 };
 
 }

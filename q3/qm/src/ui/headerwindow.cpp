@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -16,9 +16,7 @@
 
 #include <qsconv.h>
 #include <qsdevicecontext.h>
-#include <qserror.h>
 #include <qsinit.h>
-#include <qsnew.h>
 #include <qssax.h>
 #include <qsstl.h>
 #include <qsuiutil.h>
@@ -51,8 +49,8 @@ public:
 	};
 
 public:
-	QSTATUS load(MenuManager* pMenuManager);
-	QSTATUS create(MenuManager* pMenuManager);
+	bool load(MenuManager* pMenuManager);
+	bool create(MenuManager* pMenuManager);
 
 public:
 	HeaderWindow* pThis_;
@@ -62,51 +60,37 @@ public:
 	HFONT hfont_;
 	HFONT hfontBold_;
 	HBRUSH hbrBackground_;
-	LineLayout* pLayout_;
+	std::auto_ptr<LineLayout> pLayout_;
 	AttachmentSelectionModel* pAttachmentSelectionModel_;
 };
 
-QSTATUS qm::HeaderWindowImpl::load(MenuManager* pMenuManager)
+bool qm::HeaderWindowImpl::load(MenuManager* pMenuManager)
 {
-	DECLARE_QSTATUS();
+	pLayout_.reset(new LineLayout());
 	
-	status = newQsObject(&pLayout_);
-	CHECK_QSTATUS();
+	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::HEADER_XML));
 	
-	string_ptr<WSTRING> wstrPath;
-	status = Application::getApplication().getProfilePath(
-		FileNames::HEADER_XML, &wstrPath);
-	CHECK_QSTATUS();
-	
-	XMLReader reader(&status);
-	CHECK_QSTATUS();
-	HeaderWindowContentHandler contentHandler(
-		pLayout_, pMenuManager, &status);
-	CHECK_QSTATUS();
+	XMLReader reader;
+	HeaderWindowContentHandler contentHandler(pLayout_.get(), pMenuManager);
 	reader.setContentHandler(&contentHandler);
-	W2T(wstrPath.get(), ptszPath);
-	if (::GetFileAttributes(ptszPath) != 0xffffffff) {
-		status = reader.parse(wstrPath.get());
-		CHECK_QSTATUS();
-		pAttachmentSelectionModel_ = contentHandler.getAttachmentSelectionModel();
-	}
+	if (!reader.parse(wstrPath.get()))
+		return false;
+	pAttachmentSelectionModel_ = contentHandler.getAttachmentSelectionModel();
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::HeaderWindowImpl::create(MenuManager* pMenuManager)
+bool qm::HeaderWindowImpl::create(MenuManager* pMenuManager)
 {
-	DECLARE_QSTATUS();
-	
-	status = load(pMenuManager);
-	CHECK_QSTATUS();
+	if (!load(pMenuManager))
+		return false;
 	
 	std::pair<HFONT, HFONT> fonts(hfont_, hfontBold_);
 	UINT nId = ID_HEADER_ITEM;
-	status = pLayout_->create(pThis_, fonts, &nId);
-	CHECK_QSTATUS();
+	if (!pLayout_->create(pThis_, fonts, &nId))
+		return false;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -116,25 +100,17 @@ QSTATUS qm::HeaderWindowImpl::create(MenuManager* pMenuManager)
  *
  */
 
-qm::HeaderWindow::HeaderWindow(Profile* pProfile, QSTATUS* pstatus) :
-	WindowBase(true, pstatus),
-	DefaultWindowHandler(pstatus),
+qm::HeaderWindow::HeaderWindow(Profile* pProfile) :
+	WindowBase(true),
 	pImpl_(0)
 {
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new HeaderWindowImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->pDocument_ = 0;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->hfont_ = 0;
 	pImpl_->hfontBold_ = 0;
 	pImpl_->hbrBackground_ = 0;
-	pImpl_->pLayout_ = 0;
 	pImpl_->pAttachmentSelectionModel_ = 0;
 	
 	setWindowHandler(this, false);
@@ -142,11 +118,7 @@ qm::HeaderWindow::HeaderWindow(Profile* pProfile, QSTATUS* pstatus) :
 
 qm::HeaderWindow::~HeaderWindow()
 {
-	if (pImpl_) {
-		delete pImpl_->pLayout_;
-		delete pImpl_;
-		pImpl_ = 0;
-	}
+	delete pImpl_;
 }
 
 int qm::HeaderWindow::getHeight() const
@@ -154,26 +126,18 @@ int qm::HeaderWindow::getHeight() const
 	return pImpl_->pLayout_->getHeight();
 }
 
-QSTATUS qm::HeaderWindow::setMessage(const TemplateContext* pContext)
+void qm::HeaderWindow::setMessage(const TemplateContext* pContext)
 {
-	DECLARE_QSTATUS();
-	
 	for (unsigned int n = 0; n < pImpl_->pLayout_->getLineCount(); ++n) {
 		HeaderLine* pLine = static_cast<HeaderLine*>(
 			pImpl_->pLayout_->getLine(n));
-		status = pLine->setMessage(pContext);
-		CHECK_QSTATUS();
+		pLine->setMessage(pContext);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::HeaderWindow::layout()
+void qm::HeaderWindow::layout()
 {
-	DECLARE_QSTATUS();
-	
-	ClientDeviceContext dc(getHandle(), &status);
-	CHECK_QSTATUS();
+	ClientDeviceContext dc(getHandle());
 	ObjectSelector<HFONT> fontSelecter(dc, pImpl_->hfont_);
 	TEXTMETRIC tm;
 	dc.getTextMetrics(&tm);
@@ -183,8 +147,6 @@ QSTATUS qm::HeaderWindow::layout()
 	getClientRect(&rect);
 	
 	pImpl_->pLayout_->layout(rect, nFontHeight);
-	
-	return QSTATUS_SUCCESS;
 }
 
 bool qm::HeaderWindow::isActive() const
@@ -220,19 +182,15 @@ AttachmentSelectionModel* qm::HeaderWindow::getAttachmentSelectionModel() const
 	return pImpl_->pAttachmentSelectionModel_;
 }
 
-QSTATUS qm::HeaderWindow::getWindowClass(WNDCLASS* pwc)
+void qm::HeaderWindow::getWindowClass(WNDCLASS* pwc)
 {
-	DECLARE_QSTATUS();
-	
-	status = DefaultWindowHandler::getWindowClass(pwc);
-	CHECK_QSTATUS();
-	
+	DefaultWindowHandler::getWindowClass(pwc);
 	pwc->hbrBackground = reinterpret_cast<HBRUSH>(COLOR_3DFACE + 1);
-	
-	return QSTATUS_SUCCESS;
 }
 
-LRESULT qm::HeaderWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qm::HeaderWindow::windowProc(UINT uMsg,
+									 WPARAM wParam,
+									 LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_CREATE()
@@ -248,34 +206,31 @@ LRESULT qm::HeaderWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (DefaultWindowHandler::onCreate(pCreateStruct) == -1)
 		return -1;
 	
-	DECLARE_QSTATUS();
-	
 	HeaderWindowCreateContext* pContext =
 		static_cast<HeaderWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pDocument_ = pContext->pDocument_;
 	
-	status = UIUtil::createFontFromProfile(pImpl_->pProfile_,
-		L"HeaderWindow", false, &pImpl_->hfont_);
-	CHECK_QSTATUS_VALUE(-1);
+	pImpl_->hfont_ = UIUtil::createFontFromProfile(
+		pImpl_->pProfile_, L"HeaderWindow", false);
 	LOGFONT lf;
 	::GetObject(pImpl_->hfont_, sizeof(lf), &lf);
 	lf.lfWeight = FW_BOLD;
 	pImpl_->hfontBold_ = ::CreateFontIndirect(&lf);
 	
-	string_ptr<WSTRING> wstrClassName(getClassName());
-	W2T_STATUS(wstrClassName.get(), ptszClassName);
-	CHECK_QSTATUS_VALUE(-1);
+	wstring_ptr wstrClassName(getClassName());
+	W2T(wstrClassName.get(), ptszClassName);
 	WNDCLASS wc;
 	::GetClassInfo(getInstanceHandle(), ptszClassName, &wc);
 	pImpl_->hbrBackground_ = wc.hbrBackground;
 	
-	status = pImpl_->create(pContext->pMenuManager_);
-	CHECK_QSTATUS_VALUE(-1);
+	if (!pImpl_->create(pContext->pMenuManager_))
+		return false;
 	
 	return 0;
 }
 
-LRESULT qm::HeaderWindow::onCtlColorStatic(HDC hdc, HWND hwnd)
+LRESULT qm::HeaderWindow::onCtlColorStatic(HDC hdc,
+										   HWND hwnd)
 {
 	DefaultWindowHandler::onCtlColorStatic(hdc, hwnd);
 	DeviceContext dc(hdc);
@@ -298,7 +253,9 @@ LRESULT qm::HeaderWindow::onDestroy()
 	return DefaultWindowHandler::onDestroy();
 }
 
-LRESULT qm::HeaderWindow::onSize(UINT nFlags, int cx, int cy)
+LRESULT qm::HeaderWindow::onSize(UINT nFlags,
+								 int cx,
+								 int cy)
 {
 	layout();
 	
@@ -313,28 +270,19 @@ LRESULT qm::HeaderWindow::onSize(UINT nFlags, int cx, int cy)
  */
 
 qm::HeaderLine::HeaderLine(const WCHAR* pwszHideIfEmpty,
-	qs::RegexPattern* pClass, QSTATUS* pstatus) :
-	LineLayoutLine(pstatus),
+						   std::auto_ptr<RegexPattern> pClass) :
 	pClass_(pClass),
 	bHide_(false)
 {
-	DECLARE_QSTATUS();
-	
 	const WCHAR* p = pwszHideIfEmpty;
 	while (p) {
 		const WCHAR* pEnd = wcschr(p, L',');
-		string_ptr<WSTRING> wstr;
+		wstring_ptr wstr;
 		if (pEnd)
-			wstr.reset(allocWString(p, pEnd - p));
+			wstr = allocWString(p, pEnd - p);
 		else
-			wstr.reset(allocWString(p));
-		if (!wstr.get()) {
-			*pstatus = QSTATUS_OUTOFMEMORY;
-			return;
-		}
-		status = STLWrapper<HideList>(listHide_).push_back(
-			HideList::value_type(wstr.get(), 0));
-		CHECK_QSTATUS_SET(pstatus);
+			wstr = allocWString(p);
+		listHide_.push_back(HideList::value_type(wstr.get(), 0));
 		wstr.release();
 		
 		p = pEnd ? pEnd + 1 : 0;
@@ -347,54 +295,35 @@ qm::HeaderLine::~HeaderLine()
 		unary_compose_f_gx(
 			string_free<WSTRING>(),
 			std::select1st<HideList::value_type>()));
-	delete pClass_;
 }
 
-QSTATUS qm::HeaderLine::setMessage(const TemplateContext* pContext)
+void qm::HeaderLine::setMessage(const TemplateContext* pContext)
 {
-	DECLARE_QSTATUS();
-	
-	if (pContext && pClass_) {
-		const WCHAR* pwszClass = pContext->getAccount()->getClass();
-		bool bMatch = false;
-		status = pClass_->match(pwszClass, &bMatch);
-		CHECK_QSTATUS();
-		bHide_ = !bMatch;
-	}
-	else {
+	if (pContext && pClass_.get())
+		bHide_ = !pClass_->match(pContext->getAccount()->getClass());
+	else
 		bHide_ = false;
-	}
 	
 	if (!bHide_) {
 		for (unsigned int n = 0; n < getItemCount(); ++n) {
 			HeaderItem* pItem = static_cast<HeaderItem*>(getItem(n));
-			status = pItem->setMessage(pContext);
-			CHECK_QSTATUS();
+			pItem->setMessage(pContext);
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::HeaderLine::fixup()
+void qm::HeaderLine::fixup()
 {
-	HideList::iterator itH = listHide_.begin();
-	while (itH != listHide_.end()) {
-		unsigned int nItem = 0;
-		while (nItem < getItemCount()) {
+	for (HideList::iterator itH = listHide_.begin(); itH != listHide_.end(); ++itH) {
+		for (unsigned int nItem = 0; nItem < getItemCount(); ++nItem) {
 			HeaderItem* pItem = static_cast<HeaderItem*>(getItem(nItem));
 			const WCHAR* pwszName = pItem->getName();
 			if (pwszName && wcscmp(pwszName, (*itH).first) == 0) {
 				(*itH).second = pItem;
 				break;
 			}
-			++nItem;
 		}
-		
-		++itH;
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 bool qm::HeaderLine::isHidden() const
@@ -402,13 +331,15 @@ bool qm::HeaderLine::isHidden() const
 	if (bHide_)
 		return true;
 	
-	HideList::const_iterator itH = listHide_.begin();
-	while (itH != listHide_.end()) {
+	if (listHide_.empty())
+		return false;
+	
+	for (HideList::const_iterator itH = listHide_.begin(); itH != listHide_.end(); ++itH) {
 		if ((*itH).second && !(*itH).second->isEmptyValue())
-			break;
-		++itH;
+			return false;
 	}
-	return !listHide_.empty() && itH == listHide_.end();
+	
+	return true;
 }
 
 
@@ -418,122 +349,61 @@ bool qm::HeaderLine::isHidden() const
  *
  */
 
-qm::HeaderItem::HeaderItem(QSTATUS* pstatus) :
-	LineLayoutItem(pstatus),
-	wstrName_(0),
-	wstrValue_(0),
-	nFlags_(0),
-	pTemplate_(0)
+qm::HeaderItem::HeaderItem() :
+	nFlags_(0)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::HeaderItem::~HeaderItem()
 {
-	freeWString(wstrName_);
-	freeWString(wstrValue_);
-	delete pTemplate_;
 }
 
 const WCHAR* qm::HeaderItem::getName() const
 {
-	return wstrName_;
+	return wstrName_.get();
 }
 
-QSTATUS qm::HeaderItem::setName(const WCHAR* pwszName)
+void qm::HeaderItem::setName(const WCHAR* pwszName)
 {
 	wstrName_ = allocWString(pwszName);
-	return wstrName_ ? QSTATUS_SUCCESS : QSTATUS_OUTOFMEMORY;
 }
 
-void qm::HeaderItem::setFlags(unsigned int nFlags, unsigned int nMask)
+void qm::HeaderItem::setFlags(unsigned int nFlags,
+							  unsigned int nMask)
 {
 	nFlags_ &= ~nMask;
 	nFlags_ |= nFlags & nMask;
 }
 
-QSTATUS qm::HeaderItem::addValue(const WCHAR* pwszValue, size_t nLen)
+void qm::HeaderItem::setTemplate(std::auto_ptr<Template> pTemplate)
 {
-	if (wstrValue_) {
-		size_t nOrgLen = wcslen(wstrValue_);
-		string_ptr<WSTRING> wstrValue(allocWString(
-			wstrValue_,  nOrgLen + nLen + 1));
-		if (!wstrValue.get())
-			return QSTATUS_OUTOFMEMORY;
-		wcsncpy(wstrValue.get() + nOrgLen, pwszValue, nLen);
-		*(wstrValue.get() + nOrgLen + nLen) = L'\0';
-		wstrValue_ = wstrValue.release();
-	}
-	else {
-		wstrValue_ = allocWString(pwszValue, nLen);
-		if (!wstrValue_)
-			return QSTATUS_OUTOFMEMORY;
-	}
-	return QSTATUS_SUCCESS;
+	pTemplate_ = pTemplate;
 }
 
-QSTATUS qm::HeaderItem::fixupValue()
+void qm::HeaderItem::copy()
 {
-	DECLARE_QSTATUS();
-	
-	if (wstrValue_) {
-		TemplateParser parser(&status);
-		CHECK_QSTATUS();
-		StringReader reader(wstrValue_, &status);
-		CHECK_QSTATUS();
-		status = parser.parse(&reader, &pTemplate_);
-		CHECK_QSTATUS();
-		// TODO
-		status = reader.close();
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::HeaderItem::copy()
+bool qm::HeaderItem::canCopy()
 {
-	return QSTATUS_SUCCESS;
+	return false;
 }
 
-QSTATUS qm::HeaderItem::canCopy(bool* pbCan)
+void qm::HeaderItem::selectAll()
 {
-	assert(pbCan);
-	*pbCan = false;
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::HeaderItem::selectAll()
+bool qm::HeaderItem::canSelectAll()
 {
-	return QSTATUS_SUCCESS;
+	return false;
 }
 
-QSTATUS qm::HeaderItem::canSelectAll(bool* pbCan)
+wstring_ptr qm::HeaderItem::getValue(const TemplateContext& context) const
 {
-	assert(pbCan);
-	*pbCan = false;
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::HeaderItem::getValue(
-	const TemplateContext& context, WSTRING* pwstrValue) const
-{
-	assert(pwstrValue);
-	
-	DECLARE_QSTATUS();
-	
-	if (context.getMessageHolder() || (nFlags_ & FLAG_SHOWALWAYS)) {
-		status = pTemplate_->getValue(context, pwstrValue);
-		CHECK_QSTATUS();
-	}
-	else {
-		*pwstrValue = allocWString(L"");
-		if (!*pwstrValue)
-			return QSTATUS_OUTOFMEMORY;
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (context.getMessageHolder() || (nFlags_ & FLAG_SHOWALWAYS))
+		return pTemplate_->getValue(context);
+	else
+		return allocWString(L"");
 }
 
 
@@ -543,8 +413,7 @@ QSTATUS qm::HeaderItem::getValue(
  *
  */
 
-qm::TextHeaderItem::TextHeaderItem(QSTATUS* pstatus) :
-	HeaderItem(pstatus),
+qm::TextHeaderItem::TextHeaderItem() :
 	nStyle_(STYLE_NORMAL),
 	hwnd_(0)
 {
@@ -554,31 +423,9 @@ qm::TextHeaderItem::~TextHeaderItem()
 {
 }
 
-QSTATUS qm::TextHeaderItem::setStyle(const WCHAR* pwszStyle)
+void qm::TextHeaderItem::setStyle(unsigned int nStyle)
 {
-	const WCHAR* p = pwszStyle;
-	while (p) {
-		const WCHAR* pEnd = wcschr(p, L',');
-		size_t nLen = pEnd ? pEnd - p : wcslen(p);
-		struct {
-			const WCHAR* pwszName_;
-			Style style_;
-		} styles[] = {
-			{ L"bold",		STYLE_BOLD		},
-			{ L"italic",	STYLE_ITALIC	}
-		};
-		for (int n = 0; n < countof(styles); ++n) {
-			if (wcsncmp(p, styles[n].pwszName_, nLen) == 0) {
-				nStyle_ |= styles[n].style_;
-				break;
-			}
-		}
-		if (n == countof(styles))
-			return QSTATUS_FAIL;
-		p = pEnd ? pEnd + 1 : 0;
-	}
-	
-	return QSTATUS_SUCCESS;
+	nStyle_ = nStyle;
 }
 
 unsigned int qm::TextHeaderItem::getHeight(unsigned int nFontHeight) const
@@ -586,8 +433,9 @@ unsigned int qm::TextHeaderItem::getHeight(unsigned int nFontHeight) const
 	return nFontHeight;
 }
 
-QSTATUS qm::TextHeaderItem::create(WindowBase* pParent,
-	const std::pair<HFONT, HFONT>& fonts, UINT nId)
+bool qm::TextHeaderItem::create(WindowBase* pParent,
+								const std::pair<HFONT, HFONT>& fonts,
+								UINT nId)
 {
 	assert(!hwnd_);
 	
@@ -596,49 +444,42 @@ QSTATUS qm::TextHeaderItem::create(WindowBase* pParent,
 		pParent->getHandle(), reinterpret_cast<HMENU>(nId),
 		Init::getInit().getInstanceHandle(), 0);
 	if (!hwnd_)
-		return QSTATUS_FAIL;
+		return false;
 	
 	Window(hwnd_).setFont((nStyle_ & STYLE_BOLD) ? fonts.second : fonts.first);
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::TextHeaderItem::destroy()
+void qm::TextHeaderItem::destroy()
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::TextHeaderItem::layout(const RECT& rect, unsigned int nFontHeight)
+void qm::TextHeaderItem::layout(const RECT& rect,
+								unsigned int nFontHeight)
 {
 	unsigned int nHeight = getHeight(nFontHeight);
 	Window(hwnd_).setWindowPos(0, rect.left,
 		rect.top + ((rect.bottom - rect.top) - nHeight)/2,
 		rect.right - rect.left, nHeight,
 		SWP_NOZORDER | SWP_NOACTIVATE);
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::TextHeaderItem::show(bool bShow)
+void qm::TextHeaderItem::show(bool bShow)
 {
 	Window(hwnd_).showWindow(bShow ? SW_SHOW : SW_HIDE);
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::TextHeaderItem::setMessage(const TemplateContext* pContext)
+void qm::TextHeaderItem::setMessage(const TemplateContext* pContext)
 {
-	DECLARE_QSTATUS();
-	
 	if (pContext) {
-		string_ptr<WSTRING> wstrValue;
-		status = getValue(*pContext, &wstrValue);
-		CHECK_QSTATUS();
-		Window(hwnd_).setWindowText(wstrValue.get());
+		wstring_ptr wstrValue(getValue(*pContext));
+		if (wstrValue.get())
+			Window(hwnd_).setWindowText(wstrValue.get());
 	}
 	else {
 		Window(hwnd_).setWindowText(L"");
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 bool qm::TextHeaderItem::isEmptyValue() const
@@ -656,6 +497,33 @@ HWND qm::TextHeaderItem::getHandle() const
 	return hwnd_;
 }
 
+unsigned int qm::TextHeaderItem::parseStyle(const WCHAR* pwszStyle)
+{
+	unsigned int nStyle = 0;
+	
+	const WCHAR* p = pwszStyle;
+	while (p) {
+		const WCHAR* pEnd = wcschr(p, L',');
+		size_t nLen = pEnd ? pEnd - p : wcslen(p);
+		struct {
+			const WCHAR* pwszName_;
+			Style style_;
+		} styles[] = {
+			{ L"bold",		STYLE_BOLD		},
+			{ L"italic",	STYLE_ITALIC	}
+		};
+		for (int n = 0; n < countof(styles); ++n) {
+			if (wcsncmp(p, styles[n].pwszName_, nLen) == 0) {
+				nStyle |= styles[n].style_;
+				break;
+			}
+		}
+		p = pEnd ? pEnd + 1 : 0;
+	}
+	
+	return nStyle;
+}
+
 
 /****************************************************************************
  *
@@ -663,8 +531,7 @@ HWND qm::TextHeaderItem::getHandle() const
  *
  */
 
-qm::StaticHeaderItem::StaticHeaderItem(QSTATUS* pstatus) :
-	TextHeaderItem(pstatus)
+qm::StaticHeaderItem::StaticHeaderItem()
 {
 }
 
@@ -689,8 +556,7 @@ UINT qm::StaticHeaderItem::getWindowStyle() const
  *
  */
 
-qm::EditHeaderItem::EditHeaderItem(QSTATUS* pstatus) :
-	TextHeaderItem(pstatus)
+qm::EditHeaderItem::EditHeaderItem()
 {
 }
 
@@ -709,35 +575,29 @@ UINT qm::EditHeaderItem::getWindowStyle() const
 }
 
 
-QSTATUS qm::EditHeaderItem::copy()
+void qm::EditHeaderItem::copy()
 {
 	Window(getHandle()).sendMessage(WM_COPY);
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditHeaderItem::canCopy(bool* pbCan)
+bool qm::EditHeaderItem::canCopy()
 {
-	assert(pbCan);
 	DWORD dwStart = 0;
 	DWORD dwEnd = 0;
 	Window(getHandle()).sendMessage(EM_GETSEL,
 		reinterpret_cast<WPARAM>(&dwStart),
 		reinterpret_cast<LPARAM>(&dwEnd));
-	*pbCan = dwStart != dwEnd;
-	return QSTATUS_SUCCESS;
+	return dwStart != dwEnd;
 }
 
-QSTATUS qm::EditHeaderItem::selectAll()
+void qm::EditHeaderItem::selectAll()
 {
 	Window(getHandle()).sendMessage(EM_SETSEL, 0, -1);
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::EditHeaderItem::canSelectAll(bool* pbCan)
+bool qm::EditHeaderItem::canSelectAll()
 {
-	assert(pbCan);
-	*pbCan = true;
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -747,10 +607,8 @@ QSTATUS qm::EditHeaderItem::canSelectAll(bool* pbCan)
  *
  */
 
-qm::AttachmentHeaderItem::AttachmentHeaderItem(
-	MenuManager* pMenuManager, QSTATUS* pstatus) :
-	HeaderItem(pstatus),
-	wnd_(this, pstatus),
+qm::AttachmentHeaderItem::AttachmentHeaderItem(MenuManager* pMenuManager) :
+	wnd_(this),
 	pMenuManager_(pMenuManager)
 {
 }
@@ -764,17 +622,16 @@ unsigned int qm::AttachmentHeaderItem::getHeight(unsigned int nFontHeight) const
 	return nFontHeight + 7;
 }
 
-QSTATUS qm::AttachmentHeaderItem::create(WindowBase* pParent,
-	const std::pair<HFONT, HFONT>& fonts, UINT nId)
+bool qm::AttachmentHeaderItem::create(WindowBase* pParent,
+									  const std::pair<HFONT, HFONT>& fonts,
+									  UINT nId)
 {
 	assert(!wnd_.getHandle());
 	
-	DECLARE_QSTATUS();
-	
-	status = wnd_.create(L"QmAttachmentWindow", 0,
+	if (!wnd_.create(L"QmAttachmentWindow", 0,
 		WS_CHILD | WS_VISIBLE | LVS_SMALLICON | LVS_SHAREIMAGELISTS,
-		0, 0, 0, 0, pParent->getHandle(), 0, WC_LISTVIEWW, nId, 0);
-	CHECK_QSTATUS();
+		0, 0, 0, 0, pParent->getHandle(), 0, WC_LISTVIEWW, nId, 0))
+		return false;
 	
 	ListView_SetBkColor(wnd_.getHandle(), ::GetSysColor(COLOR_3DFACE));
 	ListView_SetTextBkColor(wnd_.getHandle(), ::GetSysColor(COLOR_3DFACE));
@@ -786,33 +643,28 @@ QSTATUS qm::AttachmentHeaderItem::create(WindowBase* pParent,
 	
 	wnd_.setFont(fonts.first);
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::AttachmentHeaderItem::destroy()
+void qm::AttachmentHeaderItem::destroy()
 {
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::AttachmentHeaderItem::layout(
-	const RECT& rect, unsigned int nFontHeight)
+void qm::AttachmentHeaderItem::layout(const RECT& rect,
+									  unsigned int nFontHeight)
 {
 	wnd_.setWindowPos(0, rect.left, rect.top,
 		rect.right - rect.left, rect.bottom - rect.top,
 		SWP_NOZORDER | SWP_NOACTIVATE);
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::AttachmentHeaderItem::show(bool bShow)
+void qm::AttachmentHeaderItem::show(bool bShow)
 {
 	wnd_.showWindow(bShow ? SW_SHOW : SW_HIDE);
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::AttachmentHeaderItem::setMessage(const TemplateContext* pContext)
+void qm::AttachmentHeaderItem::setMessage(const TemplateContext* pContext)
 {
-	DECLARE_QSTATUS();
-	
 	HWND hwnd = wnd_.getHandle();
 	
 	ListView_DeleteAllItems(hwnd);
@@ -821,42 +673,33 @@ QSTATUS qm::AttachmentHeaderItem::setMessage(const TemplateContext* pContext)
 		MessageHolderBase* pmh = pContext->getMessageHolder();
 		if (pmh) {
 			Message* pMessage = pContext->getMessage();
-			status = pmh->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, pMessage);
-			CHECK_QSTATUS();
-			
-			AttachmentParser parser(*pMessage);
-			AttachmentParser::AttachmentList list;
-			AttachmentParser::AttachmentListFree free(list);
-			status = parser.getAttachments(true, &list);
-			CHECK_QSTATUS();
-			AttachmentParser::AttachmentList::size_type n = 0;
-			while (n < list.size()) {
-				W2T(list[n].first, ptszName);
-				SHFILEINFO info = { 0 };
-				::SHGetFileInfo(ptszName, FILE_ATTRIBUTE_NORMAL, &info, sizeof(info),
-					SHGFI_USEFILEATTRIBUTES | SHGFI_SYSICONINDEX | SHGFI_SMALLICON);
-				LVITEM item = {
-					LVIF_TEXT | LVIF_IMAGE,
-					n,
-					0,
-					0,
-					0,
-					const_cast<LPTSTR>(ptszName),
-					0,
-					info.iIcon
-				};
-				ListView_InsertItem(hwnd, &item);
-				++n;
+			if (pmh->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, pMessage)) {
+				AttachmentParser parser(*pMessage);
+				AttachmentParser::AttachmentList list;
+				AttachmentParser::AttachmentListFree free(list);
+				parser.getAttachments(true, &list);
+				for (AttachmentParser::AttachmentList::size_type n = 0; n < list.size(); ++n) {
+					W2T(list[n].first, ptszName);
+					SHFILEINFO info = { 0 };
+					::SHGetFileInfo(ptszName, FILE_ATTRIBUTE_NORMAL, &info, sizeof(info),
+						SHGFI_USEFILEATTRIBUTES | SHGFI_SYSICONINDEX | SHGFI_SMALLICON);
+					LVITEM item = {
+						LVIF_TEXT | LVIF_IMAGE,
+						n,
+						0,
+						0,
+						0,
+						const_cast<LPTSTR>(ptszName),
+						0,
+						info.iIcon
+					};
+					ListView_InsertItem(hwnd, &item);
+				}
+				
+				wnd_.enableWindow(!parser.isAttachmentDeleted());
 			}
-			
-			bool bDeleted = false;
-			status = parser.isAttachmentDeleted(&bDeleted);
-			CHECK_QSTATUS();
-			wnd_.enableWindow(!bDeleted);
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 bool qm::AttachmentHeaderItem::isEmptyValue() const
@@ -869,25 +712,19 @@ bool qm::AttachmentHeaderItem::isActive() const
 	return wnd_.hasFocus();
 }
 
-QSTATUS qm::AttachmentHeaderItem::hasAttachment(bool* pbHas)
+bool qm::AttachmentHeaderItem::hasAttachment()
 {
-	assert(pbHas);
-	*pbHas = ListView_GetItemCount(wnd_.getHandle()) != 0;
-	return QSTATUS_SUCCESS;
+	return ListView_GetItemCount(wnd_.getHandle()) != 0;
 }
 
-QSTATUS qm::AttachmentHeaderItem::hasSelectedAttachment(bool* pbHas)
+bool qm::AttachmentHeaderItem::hasSelectedAttachment()
 {
-	assert(pbHas);
-	*pbHas = ListView_GetSelectedCount(wnd_.getHandle()) != 0;
-	return QSTATUS_SUCCESS;
+	return ListView_GetSelectedCount(wnd_.getHandle()) != 0;
 }
 
-QSTATUS qm::AttachmentHeaderItem::getSelectedAttachment(NameList* pList)
+void qm::AttachmentHeaderItem::getSelectedAttachment(NameList* pList)
 {
 	assert(pList);
-	
-	DECLARE_QSTATUS();
 	
 	HWND hwnd = wnd_.getHandle();
 	
@@ -895,16 +732,11 @@ QSTATUS qm::AttachmentHeaderItem::getSelectedAttachment(NameList* pList)
 	while (nItem != -1) {
 		TCHAR tszName[MAX_PATH];
 		ListView_GetItemText(hwnd, nItem, 0, tszName, countof(tszName));
-		string_ptr<WSTRING> wstrName(tcs2wcs(tszName));
-		if (!wstrName.get())
-			return QSTATUS_OUTOFMEMORY;
-		status = STLWrapper<NameList>(*pList).push_back(wstrName.get());
-		CHECK_QSTATUS();
+		wstring_ptr wstrName(tcs2wcs(tszName));
+		pList->push_back(wstrName.get());
 		wstrName.release();
 		nItem = ListView_GetNextItem(hwnd, nItem, LVNI_ALL | LVNI_SELECTED);
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -914,10 +746,8 @@ QSTATUS qm::AttachmentHeaderItem::getSelectedAttachment(NameList* pList)
  *
  */
 
-qm::AttachmentHeaderItem::AttachmentWindow::AttachmentWindow(
-	AttachmentHeaderItem* pItem, QSTATUS* pstatus) :
-	WindowBase(false, pstatus),
-	DefaultWindowHandler(pstatus),
+qm::AttachmentHeaderItem::AttachmentWindow::AttachmentWindow(AttachmentHeaderItem* pItem) :
+	WindowBase(false),
 	pItem_(pItem)
 {
 	setWindowHandler(this, false);
@@ -927,8 +757,9 @@ qm::AttachmentHeaderItem::AttachmentWindow::~AttachmentWindow()
 {
 }
 
-LRESULT qm::AttachmentHeaderItem::AttachmentWindow::windowProc(
-	UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qm::AttachmentHeaderItem::AttachmentWindow::windowProc(UINT uMsg,
+															   WPARAM wParam,
+															   LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_CONTEXTMENU()
@@ -938,14 +769,11 @@ LRESULT qm::AttachmentHeaderItem::AttachmentWindow::windowProc(
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
 
-LRESULT qm::AttachmentHeaderItem::AttachmentWindow::onContextMenu(
-	HWND hwnd, const POINT& pt)
+LRESULT qm::AttachmentHeaderItem::AttachmentWindow::onContextMenu(HWND hwnd,
+																  const POINT& pt)
 {
-	DECLARE_QSTATUS();
-	
-	HMENU hmenu = 0;
-	status = pItem_->pMenuManager_->getMenu(L"attachment", false, false, &hmenu);
-	if (status == QSTATUS_SUCCESS) {
+	HMENU hmenu = pItem_->pMenuManager_->getMenu(L"attachment", false, false);
+	if (hmenu) {
 		UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
 #ifndef _WIN32_WCE
 		nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
@@ -955,8 +783,8 @@ LRESULT qm::AttachmentHeaderItem::AttachmentWindow::onContextMenu(
 	return DefaultWindowHandler::onContextMenu(hwnd, pt);
 }
 
-LRESULT qm::AttachmentHeaderItem::AttachmentWindow::onLButtonDown(
-	UINT nFlags, const POINT& pt)
+LRESULT qm::AttachmentHeaderItem::AttachmentWindow::onLButtonDown(UINT nFlags,
+																  const POINT& pt)
 {
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && _WIN32_WCE < 400 && _WIN32_WCE_PSPC
 	if (tapAndHold(pt))
@@ -965,8 +793,8 @@ LRESULT qm::AttachmentHeaderItem::AttachmentWindow::onLButtonDown(
 	return DefaultWindowHandler::onLButtonDown(nFlags, pt);
 }
 
-LRESULT qm::AttachmentHeaderItem::AttachmentWindow::onLButtonDblClk(
-	UINT nFlags, const POINT& pt)
+LRESULT qm::AttachmentHeaderItem::AttachmentWindow::onLButtonDblClk(UINT nFlags,
+																	const POINT& pt)
 {
 	Window(getParentFrame()).postMessage(WM_COMMAND,
 		MAKEWPARAM(IDM_ATTACHMENT_OPEN, 0), 0);
@@ -980,9 +808,8 @@ LRESULT qm::AttachmentHeaderItem::AttachmentWindow::onLButtonDblClk(
  *
  */
 
-qm::HeaderWindowContentHandler::HeaderWindowContentHandler(
-	LineLayout* pLayout, MenuManager* pMenuManager, QSTATUS* pstatus) :
-	DefaultHandler(pstatus),
+qm::HeaderWindowContentHandler::HeaderWindowContentHandler(LineLayout* pLayout,
+														   MenuManager* pMenuManager) :
 	pLayout_(pLayout),
 	pMenuManager_(pMenuManager),
 	pCurrentLine_(0),
@@ -1001,20 +828,19 @@ AttachmentSelectionModel* qm::HeaderWindowContentHandler::getAttachmentSelection
 	return pAttachmentSelectionModel_;
 }
 
-QSTATUS qm::HeaderWindowContentHandler::startElement(
-	const WCHAR* pwszNamespaceURI, const WCHAR* pwszLocalName,
-	const WCHAR* pwszQName, const Attributes& attributes)
+bool qm::HeaderWindowContentHandler::startElement(const WCHAR* pwszNamespaceURI,
+												  const WCHAR* pwszLocalName,
+												  const WCHAR* pwszQName,
+												  const Attributes& attributes)
 {
-	DECLARE_QSTATUS();
-	
 	if (wcscmp(pwszLocalName, L"header") == 0) {
 		if (state_ != STATE_ROOT)
-			return QSTATUS_FAIL;
+			return false;
 		state_ = STATE_HEADER;
 	}
 	else if (wcscmp(pwszLocalName, L"line") == 0) {
 		if (state_ != STATE_HEADER)
-			return QSTATUS_FAIL;
+			return false;
 		
 		const WCHAR* pwszHideIfEmpty = 0;
 		const WCHAR* pwszClass = 0;
@@ -1025,61 +851,46 @@ QSTATUS qm::HeaderWindowContentHandler::startElement(
 			else if (wcscmp(pwszAttrLocalName, L"class") == 0)
 				pwszClass = attributes.getValue(n);
 			else
-				return QSTATUS_FAIL;
+				return false;
 		}
 		
 		std::auto_ptr<RegexPattern> pClass;
 		if (pwszClass) {
-			RegexCompiler compiler;
-			RegexPattern* p = 0;
-			status = compiler.compile(pwszClass, &p);
-			CHECK_QSTATUS();
-			pClass.reset(p);
+			pClass = RegexCompiler().compile(pwszClass);
+			if (!pClass.get())
+				return false;
 		}
-		std::auto_ptr<HeaderLine> pHeaderLine;
-		status = newQsObject(pwszHideIfEmpty, pClass.get(), &pHeaderLine);
-		CHECK_QSTATUS();
-		pClass.release();
-		status = pLayout_->addLine(pHeaderLine.get());
-		CHECK_QSTATUS();
-		pCurrentLine_ = pHeaderLine.release();
+		
+		std::auto_ptr<HeaderLine> pHeaderLine(
+			new HeaderLine(pwszHideIfEmpty, pClass));
+		pCurrentLine_ = pHeaderLine.get();
+		pLayout_->addLine(pHeaderLine);
 		
 		state_ = STATE_LINE;
 	}
 	else if (wcscmp(pwszLocalName, L"static") == 0 ||
 		wcscmp(pwszLocalName, L"edit") == 0) {
 		if (state_ != STATE_LINE)
-			return QSTATUS_FAIL;
+			return false;
 		
 		assert(pCurrentLine_);
 		
 		std::auto_ptr<TextHeaderItem> pItem;
-		if (wcscmp(pwszLocalName, L"static") == 0) {
-			std::auto_ptr<StaticHeaderItem> p;
-			status = newQsObject(&p);
-			CHECK_QSTATUS();
-			pItem.reset(p.release());
-		}
-		else {
-			std::auto_ptr<EditHeaderItem> p;
-			status = newQsObject(&p);
-			CHECK_QSTATUS();
-			pItem.reset(p.release());
-		}
+		if (wcscmp(pwszLocalName, L"static") == 0)
+			pItem.reset(new StaticHeaderItem());
+		else
+			pItem.reset(new EditHeaderItem());
 		
 		for (int n = 0; n < attributes.getLength(); ++n) {
 			const WCHAR* pwszAttrLocalName = attributes.getLocalName(n);
 			if (wcscmp(pwszAttrLocalName, L"name") == 0) {
-				status = pItem->setName(attributes.getValue(n));
-				CHECK_QSTATUS();
+				pItem->setName(attributes.getValue(n));
 			}
 			else if (wcscmp(pwszAttrLocalName, L"width") == 0) {
-				status = pItem->setWidth(attributes.getValue(n));
-				CHECK_QSTATUS();
+				setWidth(pItem.get(), attributes.getValue(n));
 			}
 			else if (wcscmp(pwszAttrLocalName, L"style") == 0) {
-				status = pItem->setStyle(attributes.getValue(n));
-				CHECK_QSTATUS();
+				pItem->setStyle(TextHeaderItem::parseStyle(attributes.getValue(n)));
 			}
 			else if (wcscmp(pwszAttrLocalName, L"showAlways") == 0) {
 				if (wcscmp(attributes.getValue(n), L"true") == 0)
@@ -1087,35 +898,31 @@ QSTATUS qm::HeaderWindowContentHandler::startElement(
 						HeaderItem::FLAG_SHOWALWAYS);
 			}
 			else {
-				return QSTATUS_FAIL;
+				return false;
 			}
 		}
 		
-		status = pCurrentLine_->addItem(pItem.get());
-		CHECK_QSTATUS();
-		pCurrentItem_ = pItem.release();
+		pCurrentItem_ = pItem.get();
+		pCurrentLine_->addItem(pItem);
 		
 		state_ = STATE_ITEM;
 	}
 	else if (wcscmp(pwszLocalName, L"attachment") == 0) {
 		if (state_ != STATE_LINE)
-			return QSTATUS_FAIL;
+			return false;
 		
 		assert(pCurrentLine_);
 		
-		std::auto_ptr<AttachmentHeaderItem> pItem;
-		status = newQsObject(pMenuManager_, &pItem);
-		CHECK_QSTATUS();
+		std::auto_ptr<AttachmentHeaderItem> pItem(
+			new AttachmentHeaderItem(pMenuManager_));
 		
 		for (int n = 0; n < attributes.getLength(); ++n) {
 			const WCHAR* pwszAttrLocalName = attributes.getLocalName(n);
 			if (wcscmp(pwszAttrLocalName, L"name") == 0) {
-				status = pItem->setName(attributes.getValue(n));
-				CHECK_QSTATUS();
+				pItem->setName(attributes.getValue(n));
 			}
 			else if (wcscmp(pwszAttrLocalName, L"width") == 0) {
-				status = pItem->setWidth(attributes.getValue(n));
-				CHECK_QSTATUS();
+				setWidth(pItem.get(), attributes.getValue(n));
 			}
 			else if (wcscmp(pwszAttrLocalName, L"showAlways") == 0) {
 				if (wcscmp(attributes.getValue(n), L"true") == 0)
@@ -1123,30 +930,27 @@ QSTATUS qm::HeaderWindowContentHandler::startElement(
 						HeaderItem::FLAG_SHOWALWAYS);
 			}
 			else {
-				return QSTATUS_FAIL;
+				return false;
 			}
 		}
 		
-		status = pCurrentLine_->addItem(pItem.get());
-		CHECK_QSTATUS();
 		pAttachmentSelectionModel_ = pItem.get();
-		pCurrentItem_ = pItem.release();
+		pCurrentItem_ = pItem.get();
+		pCurrentLine_->addItem(pItem);
 		
 		state_ = STATE_ITEM;
 	}
 	else {
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::HeaderWindowContentHandler::endElement(
-	const WCHAR* pwszNamespaceURI, const WCHAR* pwszLocalName,
-	const WCHAR* pwszQName)
+bool qm::HeaderWindowContentHandler::endElement(const WCHAR* pwszNamespaceURI,
+												const WCHAR* pwszLocalName,
+												const WCHAR* pwszQName)
 {
-	DECLARE_QSTATUS();
-	
 	if (wcscmp(pwszLocalName, L"header") == 0) {
 		assert(state_ == STATE_HEADER);
 		state_ = STATE_ROOT;
@@ -1154,8 +958,7 @@ QSTATUS qm::HeaderWindowContentHandler::endElement(
 	else if (wcscmp(pwszLocalName, L"line") == 0) {
 		assert(state_ == STATE_LINE);
 		assert(pCurrentLine_);
-		status = pCurrentLine_->fixup();
-		CHECK_QSTATUS();
+		pCurrentLine_->fixup();
 		pCurrentLine_ = 0;
 		state_ = STATE_HEADER;
 	}
@@ -1164,36 +967,51 @@ QSTATUS qm::HeaderWindowContentHandler::endElement(
 		wcscmp(pwszLocalName, L"attachment") == 0) {
 		assert(state_ == STATE_ITEM);
 		assert(pCurrentItem_);
-		status = pCurrentItem_->fixupValue();
-		CHECK_QSTATUS();
+		
+		StringReader reader(buffer_.getCharArray(), false);
+		std::auto_ptr<Template> pTemplate(TemplateParser().parse(&reader));
+		if (!pTemplate.get())
+			return false;
+		if (!reader.close())
+			return false;
+		
+		pCurrentItem_->setTemplate(pTemplate);
+		buffer_.remove();
+		
 		pCurrentItem_ = 0;
 		state_ = STATE_LINE;
 	}
 	else {
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::HeaderWindowContentHandler::characters(
-	const WCHAR* pwsz, size_t nStart, size_t nLength)
+bool qm::HeaderWindowContentHandler::characters(const WCHAR* pwsz,
+												size_t nStart,
+												size_t nLength)
 {
-	DECLARE_QSTATUS();
-	
 	if (state_ == STATE_ITEM) {
-		assert(pCurrentItem_);
-		
-		status = pCurrentItem_->addValue(pwsz + nStart, nLength);
-		CHECK_QSTATUS();
+		buffer_.append(pwsz + nStart, nLength);
 	}
 	else {
 		const WCHAR* p = pwsz + nStart;
 		for (size_t n = 0; n < nLength; ++n, ++p) {
 			if (*p != L' ' && *p != L'\t' && *p != L'\n')
-				return QSTATUS_FAIL;
+				return false;
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
+
+void qm::HeaderWindowContentHandler::setWidth(LineLayoutItem* pItem,
+											  const WCHAR* pwszWidth)
+{
+	double dWidth = 0;
+	LineLayoutItem::Unit unit;
+	if (LineLayoutItem::parseWidth(pwszWidth, &dWidth, &unit))
+		pItem->setWidth(dWidth, unit);
+}
+

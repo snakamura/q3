@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -22,16 +22,15 @@ using namespace qs;
  *
  */
 
-QSTATUS qmpop3::Util::reportError(Pop3* pPop3,
-	SessionCallback* pSessionCallback,
-	Account* pAccount, SubAccount* pSubAccount)
+void qmpop3::Util::reportError(Pop3* pPop3,
+							   SessionCallback* pSessionCallback,
+							   Account* pAccount,
+							   SubAccount* pSubAccount)
 {
 	assert(pPop3);
 	assert(pSessionCallback);
 	assert(pAccount);
 	assert(pSubAccount);
-	
-	DECLARE_QSTATUS();
 	
 	struct
 	{
@@ -89,21 +88,16 @@ QSTATUS qmpop3::Util::reportError(Pop3* pPop3,
 		Pop3::POP3_ERROR_MASK_LOWLEVEL,
 		Socket::SOCKET_ERROR_MASK_SOCKET
 	};
-	string_ptr<WSTRING> wstrDescriptions[countof(maps)];
+	wstring_ptr wstrDescriptions[countof(maps)];
 	for (int n = 0; n < countof(maps); ++n) {
 		for (int m = 0; m < countof(maps[n]) && !wstrDescriptions[n].get(); ++m) {
 			if (maps[n][m].nError_ != 0 &&
-				(nError & nMasks[n]) == maps[n][m].nError_) {
-				status = loadString(getResourceHandle(),
-					maps[n][m].nId_, &wstrDescriptions[n]);
-				CHECK_QSTATUS();
-			}
+				(nError & nMasks[n]) == maps[n][m].nError_)
+				wstrDescriptions[n] = loadString(getResourceHandle(), maps[n][m].nId_);
 		}
 	}
 	
-	string_ptr<WSTRING> wstrMessage;
-	status = loadString(getResourceHandle(), IDS_ERROR_MESSAGE, &wstrMessage);
-	CHECK_QSTATUS();
+	wstring_ptr wstrMessage(loadString(getResourceHandle(), IDS_ERROR_MESSAGE));
 	
 	const WCHAR* pwszDescription[] = {
 		wstrDescriptions[0].get(),
@@ -113,32 +107,17 @@ QSTATUS qmpop3::Util::reportError(Pop3* pPop3,
 	};
 	SessionErrorInfo info(pAccount, pSubAccount, 0, wstrMessage.get(),
 		nError, pwszDescription, countof(pwszDescription));
-	status = pSessionCallback->addError(info);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	pSessionCallback->addError(info);
 }
 
-QSTATUS qmpop3::Util::getSsl(SubAccount* pSubAccount, Pop3::Ssl* pSsl)
+Pop3::Ssl qmpop3::Util::getSsl(SubAccount* pSubAccount)
 {
 	assert(pSubAccount);
-	assert(pSsl);
 	
-	DECLARE_QSTATUS();
-	
-	Pop3::Ssl ssl = Pop3::SSL_NONE;
-	if (pSubAccount->isSsl(Account::HOST_RECEIVE)) {
-		ssl = Pop3::SSL_SSL;
-	}
-	else {
-		int nStartTls = 0;
-		status = pSubAccount->getProperty(L"Pop3", L"STARTTLS", 0, &nStartTls);
-		CHECK_QSTATUS();
-		if (nStartTls)
-			ssl = Pop3::SSL_STARTTLS;
-	}
-	
-	*pSsl = ssl;
-	
-	return QSTATUS_SUCCESS;
+	if (pSubAccount->isSsl(Account::HOST_RECEIVE))
+		return Pop3::SSL_SSL;
+	else if (pSubAccount->getProperty(L"Pop3", L"STARTTLS", 0) != 0)
+		return Pop3::SSL_STARTTLS;
+	else
+		return Pop3::SSL_NONE;
 }

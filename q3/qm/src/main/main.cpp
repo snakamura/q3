@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -10,8 +10,6 @@
 #include <qmapplication.h>
 #include <qmmain.h>
 
-#include <qserror.h>
-#include <qsnew.h>
 #include <qsosutil.h>
 #include <qsthread.h>
 
@@ -29,7 +27,7 @@ using namespace qs;
 
 namespace qm{
 
-QSTATUS main(const WCHAR* pwszCommandLine);
+int main(const WCHAR* pwszCommandLine);
 
 }
 
@@ -49,7 +47,9 @@ HINSTANCE g_hInstDll = 0;
  *
  */
 
-BOOL WINAPI DllMain(HANDLE hInst, DWORD dwReason, LPVOID lpReserved)
+BOOL WINAPI DllMain(HANDLE hInst,
+					DWORD dwReason,
+					LPVOID lpReserved)
 {
 	switch (dwReason) {
 	case DLL_PROCESS_ATTACH:
@@ -81,50 +81,35 @@ BOOL WINAPI DllMain(HANDLE hInst, DWORD dwReason, LPVOID lpReserved)
 
 extern "C" QMEXPORTPROC int qmMain(const WCHAR* pwszCommandLine)
 {
-	DECLARE_QSTATUS();
-	
-	status = main(pwszCommandLine);
-	CHECK_QSTATUS_VALUE(1);
-	
-	return 0;
+	return main(pwszCommandLine);
 }
 
-QSTATUS qm::main(const WCHAR* pwszCommandLine)
+int qm::main(const WCHAR* pwszCommandLine)
 {
-	DECLARE_QSTATUS();
-	
 	MainCommandLineHandler handler;
-	CommandLine commandLine(&handler, &status);
-	CHECK_QSTATUS();
-	status = commandLine.parse(pwszCommandLine);
-	CHECK_QSTATUS();
+	CommandLine commandLine(&handler);
+	if (!commandLine.parse(pwszCommandLine))
+		return 1;
 	
-	string_ptr<WSTRING> wstrMailFolder;
+	wstring_ptr wstrMailFolder;
 	const WCHAR* pwszMailFolder = handler.getMailFolder();
-	if (pwszMailFolder && *pwszMailFolder) {
-		wstrMailFolder.reset(allocWString(pwszMailFolder));
-		if (!wstrMailFolder.get())
-			return QSTATUS_OUTOFMEMORY;
-	}
+	if (pwszMailFolder && *pwszMailFolder)
+		wstrMailFolder = allocWString(pwszMailFolder);
 	
-	string_ptr<WSTRING> wstrProfile;
+	wstring_ptr wstrProfile;
 	const WCHAR* pwszProfile = handler.getProfile();
-	if (pwszProfile) {
-		wstrProfile.reset(allocWString(pwszProfile));
-		if (!wstrProfile.get())
-			return QSTATUS_OUTOFMEMORY;
-	}
+	if (pwszProfile)
+		wstrProfile = allocWString(pwszProfile);
 	
 	if (!wstrMailFolder.get() || !wstrProfile.get()) {
-		Registry reg(HKEY_CURRENT_USER,
-			L"Software\\sn\\q3\\Setting", &status);
-		CHECK_QSTATUS();
+		Registry reg(HKEY_CURRENT_USER, L"Software\\sn\\q3\\Setting");
+		if (!reg)
+			return 1;
 		
 		if (!wstrMailFolder.get()) {
-			status = reg.getValue(L"MailFolder", &wstrMailFolder);
-			CHECK_QSTATUS();
-			
-			bool bSelect = !wstrMailFolder.get();
+			bool bSelect = !reg.getValue(L"MailFolder", &wstrMailFolder);
+			if (!bSelect)
+				bSelect = !wstrMailFolder.get();
 			if (!bSelect) {
 				W2T(wstrMailFolder.get(), ptszMailFolder);
 				DWORD dwAttributes = ::GetFileAttributes(ptszMailFolder);
@@ -134,19 +119,11 @@ QSTATUS qm::main(const WCHAR* pwszCommandLine)
 			if (bSelect) {
 				// TODO
 				// Use resource handle
-				MailFolderDialog dialog(g_hInstDll, &status);
-				CHECK_QSTATUS();
-				int nRet = 0;
-				status = dialog.doModal(0, 0, &nRet);
-				CHECK_QSTATUS();
-				if (nRet != IDOK)
-					return QSTATUS_FAIL;
-				wstrMailFolder.reset(allocWString(dialog.getMailFolder()));
-				if (!wstrMailFolder.get())
-					return QSTATUS_OUTOFMEMORY;
-				
-				status = reg.setValue(L"MailFolder", wstrMailFolder.get());
-				CHECK_QSTATUS();
+				MailFolderDialog dialog(g_hInstDll);
+				if (dialog.doModal(0) != IDOK)
+					return 1;
+				wstrMailFolder = allocWString(dialog.getMailFolder());
+				reg.setValue(L"MailFolder", wstrMailFolder.get());
 			}
 			int nLen = wcslen(wstrMailFolder.get());
 			if (*(wstrMailFolder.get() + nLen - 1) == L'\\')
@@ -154,50 +131,37 @@ QSTATUS qm::main(const WCHAR* pwszCommandLine)
 		}
 		
 		if (!wstrProfile.get()) {
-			status = reg.getValue(L"Profile", &wstrProfile);
-			CHECK_QSTATUS();
-			if (!wstrProfile.get()) {
-				wstrProfile.reset(allocWString(L""));
-				if (!wstrProfile.get())
-					return QSTATUS_OUTOFMEMORY;
-			}
+			if (!reg.getValue(L"Profile", &wstrProfile) || !wstrProfile.get())
+				wstrProfile = allocWString(L"");
 		}
 	}
 	
 	bool bContinue = false;
 	HWND hwndPrev = 0;
-	std::auto_ptr<MailFolderLock> pLock;
-	status = newQsObject(wstrMailFolder.get(), &bContinue, &hwndPrev, &pLock);
-	CHECK_QSTATUS();
+	std::auto_ptr<MailFolderLock> pLock(new MailFolderLock(
+		wstrMailFolder.get(), &bContinue, &hwndPrev));
 	if (!bContinue) {
 		if (hwndPrev)
 			handler.invoke(hwndPrev);
-		return QSTATUS_SUCCESS;
+		return 0;
 	}
 	
-	std::auto_ptr<Application> pApplication;
-	status = newQsObject(g_hInstDll, wstrMailFolder.get(),
-		wstrProfile.get(), pLock.get(), &pApplication);
-	CHECK_QSTATUS();
-	wstrMailFolder.release();
-	wstrProfile.release();
+	MailFolderLock* pLockTemp = pLock.get();
+	std::auto_ptr<Application> pApplication(new Application(
+		g_hInstDll, wstrMailFolder, wstrProfile, pLock));
 	
-	status = pApplication->initialize();
-	CHECK_QSTATUS();
+	if (!pApplication->initialize())
+		return 1;
 	
 	assert(getMainWindow());
-	status = pLock->setWindow(getMainWindow()->getHandle());
-	CHECK_QSTATUS();
+	pLockTemp->setWindow(getMainWindow()->getHandle());
 	handler.invoke(getMainWindow()->getHandle());
-	pLock.release();
 	
-	status = pApplication->run();
-	CHECK_QSTATUS();
+	pApplication->run();
 	
-	status = pApplication->uninitialize();
-	CHECK_QSTATUS();
+	pApplication->uninitialize();
 	
-	return QSTATUS_SUCCESS;
+	return 0;
 }
 
 
@@ -208,30 +172,22 @@ QSTATUS qm::main(const WCHAR* pwszCommandLine)
  */
 
 qm::MainCommandLineHandler::MainCommandLineHandler() :
-	state_(STATE_NONE),
-	wstrMailFolder_(0),
-	wstrProfile_(0),
-	wstrGoRound_(0),
-	wstrURL_(0)
+	state_(STATE_NONE)
 {
 }
 
 qm::MainCommandLineHandler::~MainCommandLineHandler()
 {
-	freeWString(wstrMailFolder_);
-	freeWString(wstrProfile_);
-	freeWString(wstrGoRound_);
-	freeWString(wstrURL_);
 }
 
 const WCHAR* qm::MainCommandLineHandler::getMailFolder() const
 {
-	return wstrMailFolder_;
+	return wstrMailFolder_.get();
 }
 
 const WCHAR* qm::MainCommandLineHandler::getProfile() const
 {
-	return wstrProfile_;
+	return wstrProfile_.get();
 }
 
 void qm::MainCommandLineHandler::invoke(HWND hwnd)
@@ -240,8 +196,8 @@ void qm::MainCommandLineHandler::invoke(HWND hwnd)
 		WCHAR* pwsz_;
 		DWORD dwData_;
 	} commands[] = {
-		{ wstrGoRound_,	IDM_TOOL_GOROUND	},
-		{ wstrURL_,		IDM_MESSAGE_OPENURL	}
+		{ wstrGoRound_.get(),	IDM_TOOL_GOROUND	},
+		{ wstrURL_.get(),		IDM_MESSAGE_OPENURL	}
 	};
 	
 	COPYDATASTRUCT data = {
@@ -260,10 +216,8 @@ void qm::MainCommandLineHandler::invoke(HWND hwnd)
 		::SendMessage(hwnd, WM_COPYDATA, 0, reinterpret_cast<LPARAM>(&data));
 }
 
-QSTATUS qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
+bool qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
 {
-	DECLARE_QSTATUS();
-	
 	struct {
 		const WCHAR* pwsz_;
 		State state_;
@@ -274,7 +228,7 @@ QSTATUS qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
 		{ L"s",	STATE_URL			}
 	};
 	
-	WSTRING* pwstr[] = {
+	wstring_ptr* pwstr[] = {
 		&wstrMailFolder_,
 		&wstrProfile_,
 		&wstrGoRound_,
@@ -294,19 +248,14 @@ QSTATUS qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
 	case STATE_PROFILE:
 	case STATE_GOROUND:
 	case STATE_URL:
-		{
-			WSTRING& wstr = *pwstr[state_ - STATE_MAILFOLDER];
-			wstr = allocWString(pwszOption);
-			if (!wstr)
-				return QSTATUS_OUTOFMEMORY;
-			state_ = STATE_NONE;
-		}
+		*pwstr[state_ - STATE_MAILFOLDER] = allocWString(pwszOption);
+		state_ = STATE_NONE;
 		break;
 	default:
 		break;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -317,15 +266,11 @@ QSTATUS qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
  */
 
 qm::MailFolderLock::MailFolderLock(const WCHAR* pwszMailFolder,
-	bool* pbContinue, HWND* phwnd, QSTATUS* pstatus) :
-	tstrPath_(0),
-	hFile_(0),
-	pMutex_(0)
+								   bool* pbContinue,
+								   HWND* phwnd) :
+	hFile_(0)
 {
-	DECLARE_QSTATUS();
-	
-	status = lock(pwszMailFolder, pbContinue, phwnd);
-	CHECK_QSTATUS_SET(pstatus);
+	lock(pwszMailFolder, pbContinue, phwnd);
 }
 
 qm::MailFolderLock::~MailFolderLock()
@@ -333,27 +278,22 @@ qm::MailFolderLock::~MailFolderLock()
 	unlock();
 }
 
-QSTATUS qm::MailFolderLock::setWindow(HWND hwnd)
+bool qm::MailFolderLock::setWindow(HWND hwnd)
 {
 	assert(hwnd);
 	assert(hFile_);
-	assert(pMutex_);
+	assert(pMutex_.get());
 	
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrName;
+	wstring_ptr wstrName;
 #ifdef _WIN32_WCE
-	Registry reg(HKEY_LOCAL_MACHINE, L"Ident", &status);
-	CHECK_QSTATUS();
-	status = reg.getValue(L"Name", &wstrName);
-	CHECK_QSTATUS();
+	Registry reg(HKEY_LOCAL_MACHINE, L"Ident");
+	if (reg)
+		reg.getValue(L"Name", &wstrName);
 #else
 	TCHAR tszComputerName[MAX_COMPUTERNAME_LENGTH + 1];
 	DWORD dwSize = countof(tszComputerName);
 	::GetComputerName(tszComputerName, &dwSize);
-	wstrName.reset(tcs2wcs(tszComputerName));
-	if (!wstrName.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstrName = tcs2wcs(tszComputerName);
 #endif
 	
 	WCHAR wszHandle[32];
@@ -366,51 +306,36 @@ QSTATUS qm::MailFolderLock::setWindow(HWND hwnd)
 	for (int n = 0; n < countof(pwsz); ++n) {
 		DWORD dw = 0;
 		if (!::WriteFile(hFile_, pwsz[n], wcslen(pwsz[n])*sizeof(WCHAR), &dw, 0))
-			return QSTATUS_FAIL;
+			return false;
 	}
 	if (!::FlushFileBuffers(hFile_))
-		return QSTATUS_FAIL;
+		return false;
 	
-	status = pMutex_->release();
-	CHECK_QSTATUS();
+	pMutex_->release();
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qm::MailFolderLock::unsetWindow()
+void qm::MailFolderLock::unsetWindow()
 {
-	assert(pMutex_);
-	
-	DECLARE_QSTATUS();
-	
-	status = pMutex_->acquire();
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	assert(pMutex_.get());
+	pMutex_->acquire();
 }
 
-QSTATUS qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
-	bool* pbContinue, HWND* phwnd)
+void qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
+							  bool* pbContinue,
+							  HWND* phwnd)
 {
 	assert(pwszMailFolder);
 	assert(pbContinue);
 	
-	DECLARE_QSTATUS();
-	
 	*pbContinue = false;
 	
-	string_ptr<WSTRING> wstrPath(concat(pwszMailFolder, L"\\lock"));
-	if (!wstrPath.get())
-		return QSTATUS_OUTOFMEMORY;
-	string_ptr<TSTRING> tstrPath(wcs2tcs(wstrPath.get()));
-	if (!tstrPath.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrPath(concat(pwszMailFolder, L"\\lock"));
+	tstring_ptr tstrPath(wcs2tcs(wstrPath.get()));
 	
-	std::auto_ptr<Mutex> pMutex;
-	status = newQsObject(false, L"QMAIL3Mutex", &pMutex);
-	CHECK_QSTATUS();
-	status = pMutex->acquire();
-	CHECK_QSTATUS();
+	std::auto_ptr<Mutex> pMutex(new Mutex(false, L"QMAIL3Mutex"));
+	pMutex->acquire();
 	
 	AutoHandle hFile(::CreateFile(tstrPath.get(),
 		GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, 0,
@@ -420,32 +345,26 @@ QSTATUS qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
 			GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
 			0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
 		if (!hFileRead.get())
-			return QSTATUS_FAIL;
+			return;
 		
 		HWND hwnd = 0;
-		status = read(hFileRead.get(), &hwnd, 0);
-		CHECK_QSTATUS();
-		::SetForegroundWindow(hwnd);
+		if (read(hFileRead.get(), &hwnd, 0))
+			::SetForegroundWindow(hwnd);
 		*phwnd = hwnd;
 	}
 	else if (::GetLastError() == ERROR_ALREADY_EXISTS) {
 		const WCHAR* pwszName = L"Unknown";
-		string_ptr<WSTRING> wstrName;
-		status = read(hFile.get(), 0, &wstrName);
-		if (status == QSTATUS_SUCCESS)
+		wstring_ptr wstrName;
+		if (read(hFile.get(), 0, &wstrName))
 			pwszName = wstrName.get();
 		
-		string_ptr<WSTRING> wstrTemplate;
-		status = loadString(g_hInstDll, IDS_CONFIRM_IGNORELOCK, &wstrTemplate);
-		CHECK_QSTATUS();
-		string_ptr<WSTRING> wstrMessage(allocWString(
+		wstring_ptr wstrTemplate(loadString(g_hInstDll, IDS_CONFIRM_IGNORELOCK));
+		wstring_ptr wstrMessage(allocWString(
 			wcslen(wstrTemplate.get()) + wcslen(pwszName)));
 		swprintf(wstrMessage.get(), wstrTemplate.get(), pwszName);
 		
-		int nRet= 0;
-		status = messageBox(wstrMessage.get(),
-			MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2, &nRet);
-		CHECK_QSTATUS();
+		int nRet= messageBox(wstrMessage.get(),
+			MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2);
 		*pbContinue = nRet == IDYES;
 	}
 	else {
@@ -454,59 +373,50 @@ QSTATUS qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
 	
 	if (*pbContinue) {
 		hFile_ = hFile.release();
-		tstrPath_ = tstrPath.release();
-		pMutex_ = pMutex.release();
+		tstrPath_ = tstrPath;
+		pMutex_ = pMutex;
 	}
 	else {
 		pMutex->release();
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::MailFolderLock::unlock()
+void qm::MailFolderLock::unlock()
 {
-	DECLARE_QSTATUS();
-	
 	if (hFile_) {
-		assert(tstrPath_);
-		assert(pMutex_);
+		assert(tstrPath_.get());
+		assert(pMutex_.get());
 		
 		::CloseHandle(hFile_);
-		::DeleteFile(tstrPath_);
+		::DeleteFile(tstrPath_.get());
 		
 		pMutex_->release();
-		delete pMutex_;
-		
-		freeTString(tstrPath_);
 		
 		hFile_ = 0;
-		pMutex_ = 0;
-		tstrPath_ = 0;
+		pMutex_.reset(0);
+		tstrPath_.reset(0);
 	}
 	assert(!hFile_);
-	assert(!pMutex_);
-	assert(!tstrPath_);
-	
-	return QSTATUS_SUCCESS;
+	assert(!pMutex_.get());
+	assert(!tstrPath_.get());
 }
 
-QSTATUS qm::MailFolderLock::read(HANDLE hFile, HWND* phwnd, WSTRING* pwstrName)
+bool qm::MailFolderLock::read(HANDLE hFile,
+							  HWND* phwnd,
+							  wstring_ptr* pwstrName)
 {
 	assert(hFile);
-	
-	DECLARE_QSTATUS();
 	
 	WCHAR wsz[1024];
 	DWORD dw = 0;
 	if (!::ReadFile(hFile, wsz, sizeof(wsz) - sizeof(WCHAR), &dw, 0))
-		return QSTATUS_FAIL;
+		return false;
 	wsz[dw/sizeof(WCHAR)] = L'\0';
 	::SetFilePointer(hFile, 0, 0, FILE_BEGIN);
 	
 	WCHAR* p = wcschr(wsz, L'\n');
 	if (!p)
-		return QSTATUS_FAIL;
+		return false;
 	*p = L'\0';
 	
 	if (phwnd) {
@@ -515,11 +425,8 @@ QSTATUS qm::MailFolderLock::read(HANDLE hFile, HWND* phwnd, WSTRING* pwstrName)
 		*phwnd = reinterpret_cast<HWND>(hwnd);
 	}
 	
-	if (pwstrName) {
+	if (pwstrName)
 		*pwstrName = allocWString(p + 1);
-		if (!*pwstrName)
-			return QSTATUS_OUTOFMEMORY;
-	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -29,8 +29,8 @@ using namespace qs;
  *
  */
 
-qm::DefaultPropertyPage::DefaultPropertyPage(UINT nId, QSTATUS* pstatus) :
-	qs::DefaultPropertyPage(Application::getApplication().getResourceHandle(), nId, pstatus)
+qm::DefaultPropertyPage::DefaultPropertyPage(UINT nId) :
+	qs::DefaultPropertyPage(Application::getApplication().getResourceHandle(), nId)
 {
 }
 
@@ -46,8 +46,8 @@ qm::DefaultPropertyPage::~DefaultPropertyPage()
  */
 
 qm::AccountAdvancedPage::AccountAdvancedPage(SubAccount* pSubAccount,
-	SyncFilterManager* pSyncFilterManager, QSTATUS* pstatus) :
-	DefaultPropertyPage(IDD_ACCOUNTADVANCED, pstatus),
+											 SyncFilterManager* pSyncFilterManager) :
+	DefaultPropertyPage(IDD_ACCOUNTADVANCED),
 	pSubAccount_(pSubAccount),
 	pSyncFilterManager_(pSyncFilterManager)
 {
@@ -57,32 +57,22 @@ qm::AccountAdvancedPage::~AccountAdvancedPage()
 {
 }
 
-LRESULT qm::AccountAdvancedPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::AccountAdvancedPage::onInitDialog(HWND hwndFocus,
+											  LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
 	setDlgItemText(IDC_IDENTITY, pSubAccount_->getIdentity());
-	string_ptr<WSTRING> wstrMyAddress;
-	status = pSubAccount_->getMyAddress(&wstrMyAddress);
-	CHECK_QSTATUS_VALUE(TRUE);
+	wstring_ptr wstrMyAddress = pSubAccount_->getMyAddress();
 	setDlgItemText(IDC_MYADDRESS, wstrMyAddress.get());
 	
 	SyncFilterManager::FilterSetList l;
-	status = pSyncFilterManager_->getFilterSets(
-		pSubAccount_->getAccount(), &l);
-	CHECK_QSTATUS_VALUE(TRUE);
-	SyncFilterManager::FilterSetList::const_iterator it = l.begin();
-	while (it != l.end()) {
+	pSyncFilterManager_->getFilterSets(pSubAccount_->getAccount(), &l);
+	for (SyncFilterManager::FilterSetList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		SyncFilterSet* pSet = *it;
-		
-		W2T_STATUS(pSet->getName(), ptszName);
-		CHECK_QSTATUS_VALUE(TRUE);
+		W2T(pSet->getName(), ptszName);
 		sendDlgItemMessage(IDC_SYNCFILTER, CB_ADDSTRING,
 			0, reinterpret_cast<LPARAM>(ptszName));
-		
-		++it;
 	}
-	W2T_STATUS(pSubAccount_->getSyncFilterName(), ptszName);
+	W2T(pSubAccount_->getSyncFilterName(), ptszName);
 	if (sendDlgItemMessage(IDC_SYNCFILTER, CB_SELECTSTRING,
 		-1, reinterpret_cast<LPARAM>(ptszName)) == CB_ERR)
 		sendDlgItemMessage(IDC_SYNCFILTER, CB_SETCURSEL, 0);
@@ -100,16 +90,18 @@ LRESULT qm::AccountAdvancedPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 
 LRESULT qm::AccountAdvancedPage::onOk()
 {
-	string_ptr<WSTRING> wstr;
-	wstr.reset(getDlgItemText(IDC_IDENTITY));
-	if (wstr.get())
-		pSubAccount_->setIdentity(wstr.get());
-	wstr.reset(getDlgItemText(IDC_MYADDRESS));
-	if (wstr.get())
-		pSubAccount_->setMyAddress(wstr.get());
-	wstr.reset(getDlgItemText(IDC_SYNCFILTER));
-	if (wstr.get())
-		pSubAccount_->setSyncFilterName(wstr.get());
+	wstring_ptr wstrIdentity(getDlgItemText(IDC_IDENTITY));
+	if (wstrIdentity.get())
+		pSubAccount_->setIdentity(wstrIdentity.get());
+	
+	wstring_ptr wstrMyAddress(getDlgItemText(IDC_MYADDRESS));
+	if (wstrMyAddress.get())
+		pSubAccount_->setMyAddress(wstrMyAddress.get());
+	
+	wstring_ptr wstrSyncFilter(getDlgItemText(IDC_SYNCFILTER));
+	if (wstrSyncFilter.get())
+		pSubAccount_->setSyncFilterName(wstrSyncFilter.get());
+	
 	pSubAccount_->setTimeout(getDlgItemInt(IDC_TIMEOUT));
 	pSubAccount_->setConnectReceiveBeforeSend(
 		sendDlgItemMessage(IDC_CONNECTRECEIVEHOSTBEFORESEND, BM_GETCHECK) == BST_CHECKED);
@@ -139,9 +131,8 @@ struct {
 };
 }
 
-qm::AccountDialupPage::AccountDialupPage(
-	SubAccount* pSubAccount, QSTATUS* pstatus) :
-	DefaultPropertyPage(IDD_ACCOUNTDIALUP, pstatus),
+qm::AccountDialupPage::AccountDialupPage(SubAccount* pSubAccount) :
+	DefaultPropertyPage(IDD_ACCOUNTDIALUP),
 	pSubAccount_(pSubAccount)
 {
 }
@@ -150,7 +141,8 @@ qm::AccountDialupPage::~AccountDialupPage()
 {
 }
 
-LRESULT qm::AccountDialupPage::onCommand(WORD nCode, WORD nId)
+LRESULT qm::AccountDialupPage::onCommand(WORD nCode,
+										 WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_DIALPROPERTY, onDialProperty)
@@ -159,10 +151,9 @@ LRESULT qm::AccountDialupPage::onCommand(WORD nCode, WORD nId)
 	return DefaultPropertyPage::onCommand(nCode, nId);
 }
 
-LRESULT qm::AccountDialupPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::AccountDialupPage::onInitDialog(HWND hwndFocus,
+											LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
 	for (int n = 0; n < countof(types); ++n) {
 		if (pSubAccount_->getDialupType() == types[n].type_) {
 			sendDlgItemMessage(types[n].nId_, BM_SETCHECK, BST_CHECKED);
@@ -172,8 +163,7 @@ LRESULT qm::AccountDialupPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	
 	RasConnection::EntryList listEntry;
 	StringListFree<RasConnection::EntryList> free(listEntry);
-	status = RasConnection::getEntries(&listEntry);
-	CHECK_QSTATUS_VALUE(TRUE);
+	RasConnection::getEntries(&listEntry);
 	
 	if (listEntry.empty()) {
 		UINT nIds[] = {
@@ -191,14 +181,13 @@ LRESULT qm::AccountDialupPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	else {
 		RasConnection::EntryList::const_iterator it = listEntry.begin();
 		while (it != listEntry.end()) {
-			W2T_STATUS(*it, ptszName);
-			CHECK_QSTATUS_VALUE(TRUE);
+			W2T(*it, ptszName);
 			sendDlgItemMessage(IDC_ENTRY, CB_ADDSTRING,
 				0, reinterpret_cast<LPARAM>(ptszName));
 			++it;
 		}
 		
-		W2T_STATUS(pSubAccount_->getDialupEntry(), ptszEntry);
+		W2T(pSubAccount_->getDialupEntry(), ptszEntry);
 		if (sendDlgItemMessage(IDC_ENTRY, CB_SELECTSTRING,
 			-1, reinterpret_cast<LPARAM>(ptszEntry)) == CB_ERR)
 			sendDlgItemMessage(IDC_ENTRY, CB_SETCURSEL, 0);
@@ -215,8 +204,6 @@ LRESULT qm::AccountDialupPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 
 LRESULT qm::AccountDialupPage::onOk()
 {
-	DECLARE_QSTATUS();
-	
 	for (int n = 0; n < countof(types); ++n) {
 		if (sendDlgItemMessage(types[n].nId_, BM_GETCHECK) == BST_CHECKED) {
 			pSubAccount_->setDialupType(types[n].type_);
@@ -228,13 +215,12 @@ LRESULT qm::AccountDialupPage::onOk()
 	if (nIndex != CB_ERR) {
 		int nLen = sendDlgItemMessage(IDC_ENTRY, CB_GETLBTEXTLEN, nIndex);
 		if (nLen != CB_ERR) {
-			string_ptr<TSTRING> tstrEntry(allocTString(nLen + 1));
+			tstring_ptr tstrEntry(allocTString(nLen + 1));
 			if (tstrEntry.get()) {
 				sendDlgItemMessage(IDC_ENTRY, CB_GETLBTEXT,
 					nIndex, reinterpret_cast<LPARAM>(tstrEntry.get()));
-				T2W_STATUS(tstrEntry.get(), ptszEntry);
-				if (status == QSTATUS_SUCCESS)
-					pSubAccount_->setDialupEntry(ptszEntry);
+				T2W(tstrEntry.get(), ptszEntry);
+				pSubAccount_->setDialupEntry(ptszEntry);
 			}
 		}
 	}
@@ -280,9 +266,8 @@ void qm::AccountDialupPage::updateState()
  *
  */
 
-qm::AccountGeneralPage::AccountGeneralPage(
-	SubAccount* pSubAccount, QSTATUS* pstatus) :
-	DefaultPropertyPage(IDD_ACCOUNTGENERAL, pstatus),
+qm::AccountGeneralPage::AccountGeneralPage(SubAccount* pSubAccount) :
+	DefaultPropertyPage(IDD_ACCOUNTGENERAL),
 	pSubAccount_(pSubAccount)
 {
 }
@@ -291,7 +276,8 @@ qm::AccountGeneralPage::~AccountGeneralPage()
 {
 }
 
-LRESULT qm::AccountGeneralPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::AccountGeneralPage::onInitDialog(HWND hwndFocus,
+											 LPARAM lParam)
 {
 	setDlgItemText(IDC_RECEIVEHOST, pSubAccount_->getHost(Account::HOST_RECEIVE));
 	setDlgItemText(IDC_SENDHOST, pSubAccount_->getHost(Account::HOST_SEND));
@@ -303,19 +289,21 @@ LRESULT qm::AccountGeneralPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 
 LRESULT qm::AccountGeneralPage::onOk()
 {
-	string_ptr<WSTRING> wstr;
-	wstr.reset(getDlgItemText(IDC_RECEIVEHOST));
-	if (wstr.get())
-		pSubAccount_->setHost(Account::HOST_RECEIVE, wstr.get());
-	wstr.reset(getDlgItemText(IDC_SENDHOST));
-	if (wstr.get())
-		pSubAccount_->setHost(Account::HOST_SEND, wstr.get());
-	wstr.reset(getDlgItemText(IDC_NAME));
-	if (wstr.get())
-		pSubAccount_->setSenderName(wstr.get());
-	wstr.reset(getDlgItemText(IDC_ADDRESS));
-	if (wstr.get())
-		pSubAccount_->setSenderAddress(wstr.get());
+	wstring_ptr wstrReceiveHost(getDlgItemText(IDC_RECEIVEHOST));
+	if (wstrReceiveHost.get())
+		pSubAccount_->setHost(Account::HOST_RECEIVE, wstrReceiveHost.get());
+	
+	wstring_ptr wstrSendHost(getDlgItemText(IDC_SENDHOST));
+	if (wstrSendHost.get())
+		pSubAccount_->setHost(Account::HOST_SEND, wstrSendHost.get());
+	
+	wstring_ptr wstrName(getDlgItemText(IDC_NAME));
+	if (wstrName.get())
+		pSubAccount_->setSenderName(wstrName.get());
+	
+	wstring_ptr wstrAddress(getDlgItemText(IDC_ADDRESS));
+	if (wstrAddress.get())
+		pSubAccount_->setSenderAddress(wstrAddress.get());
 	
 	return DefaultPropertyPage::onOk();
 }
@@ -327,8 +315,8 @@ LRESULT qm::AccountGeneralPage::onOk()
  *
  */
 
-qm::AccountUserPage::AccountUserPage(SubAccount* pSubAccount, QSTATUS* pstatus) :
-	DefaultPropertyPage(IDD_ACCOUNTUSER, pstatus),
+qm::AccountUserPage::AccountUserPage(SubAccount* pSubAccount) :
+	DefaultPropertyPage(IDD_ACCOUNTUSER),
 	pSubAccount_(pSubAccount)
 {
 }
@@ -337,7 +325,8 @@ qm::AccountUserPage::~AccountUserPage()
 {
 }
 
-LRESULT qm::AccountUserPage::onCommand(WORD nCode, WORD nId)
+LRESULT qm::AccountUserPage::onCommand(WORD nCode,
+									   WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_SENDAUTHENTICATE, onSendAuthenticate)
@@ -345,7 +334,8 @@ LRESULT qm::AccountUserPage::onCommand(WORD nCode, WORD nId)
 	return DefaultPropertyPage::onCommand(nCode, nId);
 }
 
-LRESULT qm::AccountUserPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::AccountUserPage::onInitDialog(HWND hwndFocus,
+										  LPARAM lParam)
 {
 	setDlgItemText(IDC_RECEIVEUSERNAME, pSubAccount_->getUserName(Account::HOST_RECEIVE));
 	setDlgItemText(IDC_RECEIVEPASSWORD, pSubAccount_->getPassword(Account::HOST_RECEIVE));
@@ -361,21 +351,22 @@ LRESULT qm::AccountUserPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 
 LRESULT qm::AccountUserPage::onOk()
 {
-	string_ptr<WSTRING> wstr;
-	wstr.reset(getDlgItemText(IDC_RECEIVEUSERNAME));
-	if (wstr.get())
-		pSubAccount_->setUserName(Account::HOST_RECEIVE, wstr.get());
-	wstr.reset(getDlgItemText(IDC_RECEIVEPASSWORD));
-	if (wstr.get())
-		pSubAccount_->setPassword(Account::HOST_RECEIVE, wstr.get());
+	wstring_ptr wstrReceiveUserName(getDlgItemText(IDC_RECEIVEUSERNAME));
+	if (wstrReceiveUserName.get())
+		pSubAccount_->setUserName(Account::HOST_RECEIVE, wstrReceiveUserName.get());
+	
+	wstring_ptr wstrReceivePassword(getDlgItemText(IDC_RECEIVEPASSWORD));
+	if (wstrReceivePassword.get())
+		pSubAccount_->setPassword(Account::HOST_RECEIVE, wstrReceivePassword.get());
 	
 	if (sendDlgItemMessage(IDC_SENDAUTHENTICATE, BM_GETCHECK) == BST_CHECKED) {
-		wstr.reset(getDlgItemText(IDC_SENDUSERNAME));
-		if (wstr.get())
-			pSubAccount_->setUserName(Account::HOST_SEND, wstr.get());
-		wstr.reset(getDlgItemText(IDC_SENDPASSWORD));
-		if (wstr.get())
-			pSubAccount_->setPassword(Account::HOST_SEND, wstr.get());
+		wstring_ptr wstrSendUserName(getDlgItemText(IDC_SENDUSERNAME));
+		if (wstrSendUserName.get())
+			pSubAccount_->setUserName(Account::HOST_SEND, wstrSendUserName.get());
+		
+		wstring_ptr wstrSendPassword(getDlgItemText(IDC_SENDPASSWORD));
+		if (wstrSendPassword.get())
+			pSubAccount_->setPassword(Account::HOST_SEND, wstrSendPassword.get());
 	}
 	else {
 		pSubAccount_->setUserName(Account::HOST_SEND, L"");
@@ -406,13 +397,11 @@ void qm::AccountUserPage::updateState()
  */
 
 qm::FolderConditionPage::FolderConditionPage(QueryFolder* pFolder,
-	Profile* pProfile, QSTATUS* pstatus) :
-	DefaultPropertyPage(IDD_FOLDERCONDITION, pstatus),
+											 Profile* pProfile) :
+	DefaultPropertyPage(IDD_FOLDERCONDITION),
 	pFolder_(pFolder),
 	pProfile_(pProfile),
 	nDriver_(0),
-	wstrCondition_(0),
-	wstrTargetFolder_(0),
 	bRecursive_(false)
 {
 }
@@ -420,8 +409,6 @@ qm::FolderConditionPage::FolderConditionPage(QueryFolder* pFolder,
 qm::FolderConditionPage::~FolderConditionPage()
 {
 	std::for_each(listUI_.begin(), listUI_.end(), deleter<SearchUI>());
-	freeWString(wstrCondition_);
-	freeWString(wstrTargetFolder_);
 }
 
 const WCHAR* qm::FolderConditionPage::getDriver() const
@@ -431,12 +418,12 @@ const WCHAR* qm::FolderConditionPage::getDriver() const
 
 const WCHAR* qm::FolderConditionPage::getCondition() const
 {
-	return wstrCondition_;
+	return wstrCondition_.get();
 }
 
 const WCHAR* qm::FolderConditionPage::getTargetFolder() const
 {
-	return wstrTargetFolder_;
+	return wstrTargetFolder_.get();
 }
 
 bool qm::FolderConditionPage::isRecursive() const
@@ -444,14 +431,11 @@ bool qm::FolderConditionPage::isRecursive() const
 	return bRecursive_;
 }
 
-LRESULT qm::FolderConditionPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::FolderConditionPage::onInitDialog(HWND hwndFocus,
+											  LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
-	status = initDriver();
-	CHECK_QSTATUS_VALUE(TRUE);
-	status = initFolder();
-	CHECK_QSTATUS_VALUE(TRUE);
+	initDriver();
+	initFolder();
 	
 	setDlgItemText(IDC_CONDITION, pFolder_->getCondition());
 	sendDlgItemMessage(IDC_RECURSIVE, BM_SETCHECK,
@@ -466,31 +450,23 @@ LRESULT qm::FolderConditionPage::onOk()
 	wstrCondition_ = getDlgItemText(IDC_CONDITION);
 	int nFolder = sendDlgItemMessage(IDC_FOLDER, CB_GETCURSEL);
 	if (nFolder != 0)
-		listFolder_[nFolder - 1]->getFullName(&wstrTargetFolder_);
+		wstrTargetFolder_ = listFolder_[nFolder - 1]->getFullName();
 	bRecursive_ = sendDlgItemMessage(IDC_RECURSIVE, BM_GETCHECK) == BST_CHECKED;
 	
 	return DefaultPropertyPage::onOk();
 }
 
-QSTATUS qm::FolderConditionPage::initDriver()
+void qm::FolderConditionPage::initDriver()
 {
-	DECLARE_QSTATUS();
-	
 	SearchDriverFactory::NameList listName;
-	status = SearchDriverFactory::getNames(&listName);
-	CHECK_QSTATUS();
-	SearchDriverFactory::NameList::const_iterator itN = listName.begin();
-	while (itN != listName.end()) {
-		std::auto_ptr<SearchUI> pUI;
-		status = SearchDriverFactory::getUI(*itN,
-			pFolder_->getAccount(), pProfile_, &pUI);
-		CHECK_QSTATUS();
+	SearchDriverFactory::getNames(&listName);
+	for (SearchDriverFactory::NameList::const_iterator itN = listName.begin(); itN != listName.end(); ++itN) {
+		std::auto_ptr<SearchUI> pUI(SearchDriverFactory::getUI(
+			*itN, pFolder_->getAccount(), pProfile_));
 		if (pUI.get()) {
-			status = STLWrapper<UIList>(listUI_).push_back(pUI.get());
-			CHECK_QSTATUS();
+			listUI_.push_back(pUI.get());
 			pUI.release();
 		}
-		++itN;
 	}
 	std::sort(listUI_.begin(), listUI_.end(),
 		binary_compose_f_gx_hy(
@@ -500,9 +476,7 @@ QSTATUS qm::FolderConditionPage::initDriver()
 	int nIndex = 0;
 	for (UIList::size_type n = 0; n < listUI_.size(); ++n) {
 		SearchUI* pUI = listUI_[n];
-		string_ptr<WSTRING> wstrName;
-		status = pUI->getDisplayName(&wstrName);
-		CHECK_QSTATUS();
+		wstring_ptr wstrName(pUI->getDisplayName());
 		W2T(wstrName.get(), ptszName);
 		sendDlgItemMessage(IDC_DRIVER, CB_ADDSTRING, 0,
 			reinterpret_cast<LPARAM>(ptszName));
@@ -510,50 +484,37 @@ QSTATUS qm::FolderConditionPage::initDriver()
 			nIndex = n;
 	}
 	sendDlgItemMessage(IDC_DRIVER, CB_SETCURSEL, nIndex);
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderConditionPage::initFolder()
+void qm::FolderConditionPage::initFolder()
 {
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrAllFolder;
-	status = loadString(Application::getApplication().getResourceHandle(),
-		IDS_ALLFOLDER, &wstrAllFolder);
-	CHECK_QSTATUS();
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	wstring_ptr wstrAllFolder(loadString(hInst, IDS_ALLFOLDER));
 	W2T(wstrAllFolder.get(), ptszAllFolder);
 	sendDlgItemMessage(IDC_FOLDER, CB_ADDSTRING, 0,
 		reinterpret_cast<LPARAM>(ptszAllFolder));
 	
 	Account* pAccount = pFolder_->getAccount();
 	const Account::FolderList& l = pAccount->getFolders();
-	status = STLWrapper<Account::FolderList>(listFolder_).resize(l.size());
-	CHECK_QSTATUS();
-	std::copy(l.begin(), l.end(), listFolder_.begin());
+	listFolder_.assign(l.begin(), l.end());
 	std::sort(listFolder_.begin(), listFolder_.end(), FolderLess());
 	
 	Folder* pTargetFolder = 0;
 	const WCHAR* pwszTargetFolder = pFolder_->getTargetFolder();
-	if (pwszTargetFolder) {
-		status = pAccount->getFolder(pwszTargetFolder, &pTargetFolder);
-		CHECK_QSTATUS();
-	}
+	if (pwszTargetFolder)
+		pTargetFolder = pAccount->getFolder(pwszTargetFolder);
 	
 	int nIndex = 0;
 	for (Account::FolderList::size_type n = 0; n < listFolder_.size(); ++n) {
 		Folder* pFolder = listFolder_[n];
 		
 		unsigned int nLevel = pFolder->getLevel();
-		StringBuffer<WSTRING> buf(&status);
-		CHECK_QSTATUS();
+		StringBuffer<WSTRING> buf;
 		while (nLevel != 0) {
-			status = buf.append(L"  ");
-			CHECK_QSTATUS();
+			buf.append(L"  ");
 			--nLevel;
 		}
-		status = buf.append(pFolder->getName());
-		CHECK_QSTATUS();
+		buf.append(pFolder->getName());
 		
 		W2T(buf.getCharArray(), ptszName);
 		sendDlgItemMessage(IDC_FOLDER, CB_ADDSTRING, 0,
@@ -563,8 +524,6 @@ QSTATUS qm::FolderConditionPage::initFolder()
 			nIndex = n + 1;
 	}
 	sendDlgItemMessage(IDC_FOLDER, CB_SETCURSEL, nIndex);
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -593,9 +552,8 @@ struct
 };
 };
 
-qm::FolderPropertyPage::FolderPropertyPage(
-	const Account::FolderList& l, QSTATUS* pstatus) :
-	DefaultPropertyPage(IDD_FOLDERPROPERTY, pstatus),
+qm::FolderPropertyPage::FolderPropertyPage(const Account::FolderList& l) :
+	DefaultPropertyPage(IDD_FOLDERPROPERTY),
 	listFolder_(l),
 	nFlags_(0),
 	nMask_(0)
@@ -617,34 +575,25 @@ unsigned int qm::FolderPropertyPage::getMask() const
 	return nMask_;
 }
 
-LRESULT qm::FolderPropertyPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::FolderPropertyPage::onInitDialog(HWND hwndFocus,
+											 LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
 	if (listFolder_.size() == 1) {
 		Folder* pFolder = listFolder_.front();
 		
-		string_ptr<WSTRING> wstrName;
-		status = pFolder->getFullName(&wstrName);
-		CHECK_QSTATUS_VALUE(TRUE);
+		wstring_ptr wstrName(pFolder->getFullName());
 		setDlgItemText(IDC_NAME, wstrName.get());
 		
 		setDlgItemInt(IDC_ID, pFolder->getId());
 		
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		string_ptr<WSTRING> wstrTemplate;
-		status = loadString(hInst, IDS_FOLDERTYPETEMPLATE, &wstrTemplate);
-		CHECK_QSTATUS_VALUE(TRUE);
+		wstring_ptr wstrTemplate(loadString(hInst, IDS_FOLDERTYPETEMPLATE));
 		UINT nTypeId = pFolder->getType() == Folder::TYPE_NORMAL ?
 			IDS_NORMALFOLDER : IDS_QUERYFOLDER;
 		UINT nLocalId = pFolder->isFlag(Folder::FLAG_LOCAL) ?
 			IDS_LOCALFOLDER : IDS_REMOTEFOLDER;
-		string_ptr<WSTRING> wstrType;
-		status = loadString(hInst, nTypeId, &wstrType);
-		CHECK_QSTATUS_VALUE(TRUE);
-		string_ptr<WSTRING> wstrLocal;
-		status = loadString(hInst, nLocalId, &wstrLocal);
-		CHECK_QSTATUS_VALUE(TRUE);
+		wstring_ptr wstrType(loadString(hInst, nTypeId));
+		wstring_ptr wstrLocal(loadString(hInst, nLocalId));
 		WCHAR wszType[128];
 		swprintf(wszType, wstrTemplate.get(), wstrType.get(), wstrLocal.get());
 		setDlgItemText(IDC_TYPE, wszType);
@@ -666,8 +615,7 @@ LRESULT qm::FolderPropertyPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 		for (int n = 0; n < countof(folderFlags); ++n) {
 			unsigned int nCount = 0;
 			bool bEnable = false;
-			Account::FolderList::const_iterator it = listFolder_.begin();
-			while (it != listFolder_.end()) {
+			for (Account::FolderList::const_iterator it = listFolder_.begin(); it != listFolder_.end(); ++it) {
 				Folder* pFolder = *it;
 				if (pFolder->getFlags() & folderFlags[n].flag_)
 					++nCount;
@@ -676,8 +624,6 @@ LRESULT qm::FolderPropertyPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 				b = folderFlags[n].bReverse_ ? !b : b;
 				if (b)
 					bEnable = true;
-				
-				++it;
 			}
 			sendDlgItemMessage(folderFlags[n].nId_, BM_SETCHECK,
 				nCount == 0 ? BST_UNCHECKED :
@@ -745,9 +691,8 @@ struct
 };
 }
 
-qm::MessagePropertyPage::MessagePropertyPage(
-	const MessageHolderList& l, QSTATUS* pstatus) :
-	DefaultPropertyPage(IDD_MESSAGEPROPERTY, pstatus),
+qm::MessagePropertyPage::MessagePropertyPage(const MessageHolderList& l) :
+	DefaultPropertyPage(IDD_MESSAGEPROPERTY),
 	listMessage_(l),
 	nFlags_(0),
 	nMask_(0)
@@ -769,17 +714,16 @@ unsigned int qm::MessagePropertyPage::getMask() const
 	return nMask_;
 }
 
-LRESULT qm::MessagePropertyPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qm::MessagePropertyPage::onInitDialog(HWND hwndFocus,
+											  LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
 	if (listMessage_.size() == 1) {
 		MessageHolder* pmh = listMessage_.front();
 		
 		int n = 0;
 		struct
 		{
-			QSTATUS (MessageHolder::*pfn_)(WSTRING* pwstr) const;
+			wstring_ptr (MessageHolder::*pfn_)() const;
 			UINT nId_;
 		} texts[] = {
 			{ &MessageHolder::getFrom,		IDC_FROM	},
@@ -787,9 +731,7 @@ LRESULT qm::MessagePropertyPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 			{ &MessageHolder::getSubject,	IDC_SUBJECT	}
 		};
 		for (n = 0; n < countof(texts); ++n) {
-			string_ptr<WSTRING> wstr;
-			status = (pmh->*texts[n].pfn_)(&wstr);
-			CHECK_QSTATUS_VALUE(TRUE);
+			wstring_ptr wstr((pmh->*texts[n].pfn_)());
 			setDlgItemText(texts[n].nId_, wstr.get());
 		}
 		
@@ -804,17 +746,12 @@ LRESULT qm::MessagePropertyPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 		for (n = 0; n < countof(numbers); ++n)
 			setDlgItemInt(numbers[n].nId_, (pmh->*numbers[n].pfn_)());
 		
-		string_ptr<WSTRING> wstrFolder;
-		status = pmh->getFolder()->getFullName(&wstrFolder);
-		CHECK_QSTATUS_VALUE(TRUE);
+		wstring_ptr wstrFolder(pmh->getFolder()->getFullName());
 		setDlgItemText(IDC_FOLDER, wstrFolder.get());
 		
 		Time time;
-		status = pmh->getDate(&time);
-		CHECK_QSTATUS_VALUE(TRUE);
-		string_ptr<WSTRING> wstrTime;
-		status = time.format(L"%Y4/%M0/%D %h:%m:%s", Time::FORMAT_LOCAL, &wstrTime);
-		CHECK_QSTATUS_VALUE(TRUE);
+		pmh->getDate(&time);
+		wstring_ptr wstrTime(time.format(L"%Y4/%M0/%D %h:%m:%s", Time::FORMAT_LOCAL));
 		setDlgItemText(IDC_DATE, wstrTime.get());
 		
 		unsigned int nFlags = pmh->getFlags();
@@ -828,11 +765,9 @@ LRESULT qm::MessagePropertyPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	else {
 		for (int n = 0; n < countof(flags); ++n) {
 			unsigned int nCount = 0;
-			MessageHolderList::const_iterator it = listMessage_.begin();
-			while (it != listMessage_.end()) {
+			for (MessageHolderList::const_iterator it = listMessage_.begin(); it != listMessage_.end(); ++it) {
 				if ((*it)->getFlags() & flags[n].flag_)
 					++nCount;
-				++it;
 			}
 			
 			sendDlgItemMessage(flags[n].nId_, BM_SETCHECK,

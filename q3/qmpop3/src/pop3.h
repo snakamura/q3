@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -75,19 +75,11 @@ public:
 private:
 	enum State {
 		STATE_NONE,
+		STATE_CR1,
+		STATE_LF1,
 		STATE_PERIOD,
-		STATE_CR,
-		STATE_LF
-	};
-
-public:
-	struct Option
-	{
-		long nTimeout_;
-		qs::SocketCallback* pSocketCallback_;
-		qs::SSLSocketCallback* pSSLSocketCallback_;
-		Pop3Callback* pPop3Callback_;
-		qs::Logger* pLogger_;
+		STATE_CR2,
+		STATE_LF2
 	};
 
 private:
@@ -102,42 +94,65 @@ public:
 	typedef std::vector<qs::WSTRING> UidList;
 
 public:
-	Pop3(const Option& option, qs::QSTATUS* pstatus);
+	Pop3(long nTimeout,
+		 qs::SocketCallback* pSocketCallback,
+		 qs::SSLSocketCallback* pSSLSocketCallback,
+		 Pop3Callback* pPop3Callback,
+		 qs::Logger* pLogger);
 	~Pop3();
 
 public:
-	qs::QSTATUS connect(const WCHAR* pwszHost,
-		short nPort, bool bApop, Ssl ssl);
-	qs::QSTATUS disconnect();
-	qs::QSTATUS getMessageCount() const;
-	qs::QSTATUS getMessage(unsigned int nMsg, unsigned int nMaxLine,
-		qs::STRING* pstrMessage, unsigned int* pnSize);
-	qs::QSTATUS getMessageSize(unsigned int nMsg, unsigned int* pnSize);
-	qs::QSTATUS getMessageSizes(MessageSizeList* pList);
-	qs::QSTATUS deleteMessage(unsigned int nMsg);
-	qs::QSTATUS getUid(unsigned int nMsg, qs::WSTRING* pwstrUid);
-	qs::QSTATUS getUids(UidList* pList);
-	qs::QSTATUS noop();
-	qs::QSTATUS sendMessage(const CHAR* pszMessage, size_t nLen);
+	bool connect(const WCHAR* pwszHost,
+				 short nPort,
+				 bool bApop,
+				 Ssl ssl);
+	void disconnect();
+	unsigned int getMessageCount() const;
+	bool getMessage(unsigned int nMsg,
+					unsigned int nMaxLine,
+					qs::xstring_ptr* pstrMessage,
+					unsigned int* pnSize);
+	bool getMessageSize(unsigned int nMsg,
+						unsigned int* pnSize);
+	bool getMessageSizes(MessageSizeList* pList);
+	bool deleteMessage(unsigned int nMsg);
+	bool getUid(unsigned int nMsg,
+				qs::wstring_ptr* pwstrUid);
+	bool getUids(UidList* pList);
+	bool noop();
+	bool sendMessage(const CHAR* pszMessage,
+					 size_t nLen);
 	
 	unsigned int getLastError() const;
 	const WCHAR* getLastErrorResponse() const;
 
 private:
-	qs::QSTATUS receive(qs::STRING* pstrResponse);
-	qs::QSTATUS receive(qs::STRING* pstrResponse, qs::STRING* pstrContent);
-	qs::QSTATUS sendCommand(const CHAR* pszCommand);
-	qs::QSTATUS sendCommand(const CHAR* pszCommand, qs::STRING* pstrResponse);
-	qs::QSTATUS sendCommand(const CHAR* pszCommand,
-		qs::STRING* pstrResponse, qs::STRING* pstrContent);
-	qs::QSTATUS send(const SendData* pSendData, size_t nDataLen, bool bProgress);
-	qs::QSTATUS send(const SendData* pSendData, size_t nDataLen,
-		bool bProgress, qs::STRING* pstrResponse, qs::STRING* pstrContent);
-	qs::QSTATUS setErrorResponse(const CHAR* pszErrorResponse);
+	bool receive(qs::string_ptr* pstrResponse);
+	bool receive(qs::string_ptr* pstrResponse,
+				 qs::xstring_size_ptr* pstrContent,
+				 size_t nContentSizeHint);
+	bool sendCommand(const CHAR* pszCommand);
+	bool sendCommand(const CHAR* pszCommand,
+					 qs::string_ptr* pstrResponse);
+	bool sendCommand(const CHAR* pszCommand,
+					 qs::string_ptr* pstrResponse,
+					 qs::xstring_size_ptr* pstrContent,
+					 size_t nContentSizeHint);
+	bool send(const SendData* pSendData,
+			  size_t nDataLen,
+			  bool bProgress);
+	bool send(const SendData* pSendData,
+			  size_t nDataLen,
+			  bool bProgress,
+			  qs::string_ptr* pstrResponse,
+			  qs::xstring_size_ptr* pstrContent,
+			  size_t nContentSizeHint);
+	void setErrorResponse(const CHAR* pszErrorResponse);
 
 private:
-	static qs::QSTATUS addContent(qs::StringBuffer<qs::STRING>* pBuf,
-		const CHAR* psz, size_t nLen, State* pState);
+	static bool checkContent(CHAR* psz,
+							 size_t* pnLen,
+							 State* pState);
 
 private:
 	Pop3(const Pop3&);
@@ -149,10 +164,10 @@ private:
 	qs::SSLSocketCallback* pSSLSocketCallback_;
 	Pop3Callback* pPop3Callback_;
 	qs::Logger* pLogger_;
-	qs::SocketBase* pSocket_;
+	std::auto_ptr<qs::SocketBase> pSocket_;
 	unsigned int nCount_;
 	unsigned int nError_;
-	qs::WSTRING wstrErrorResponse_;
+	qs::wstring_ptr wstrErrorResponse_;
 
 private:
 	static const CHAR* pszOk__;
@@ -172,13 +187,14 @@ public:
 	virtual ~Pop3Callback();
 
 public:
-	virtual qs::QSTATUS getUserInfo(qs::WSTRING* pwstrUserName,
-		qs::WSTRING* pwstrPassword) = 0;
-	virtual qs::QSTATUS setPassword(const WCHAR* pwszPassword) = 0;
+	virtual bool getUserInfo(qs::wstring_ptr* pwstrUserName,
+							 qs::wstring_ptr* pwstrPassword) = 0;
+	virtual void setPassword(const WCHAR* pwszPassword) = 0;
 	
-	virtual qs::QSTATUS authenticating() = 0;
-	virtual qs::QSTATUS setRange(unsigned int nMin, unsigned int nMax) = 0;
-	virtual qs::QSTATUS setPos(unsigned int nPos) = 0;
+	virtual void authenticating() = 0;
+	virtual void setRange(unsigned int nMin,
+						  unsigned int nMax) = 0;
+	virtual void setPos(unsigned int nPos) = 0;
 };
 
 }

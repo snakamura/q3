@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -44,13 +44,18 @@ public:
 	};
 
 public:
-	MessageComposer(bool bDraft, Document* pDocument,
-		qs::Profile* pProfile, HWND hwnd, FolderModel* pFolderModel);
+	MessageComposer(bool bDraft,
+					Document* pDocument,
+					qs::Profile* pProfile,
+					HWND hwnd,
+					FolderModel* pFolderModel);
 	~MessageComposer();
 
 public:
-	qs::QSTATUS compose(Account* pAccount, SubAccount* pSubAccount,
-		Message* pMessage, unsigned int nFlags) const;
+	bool compose(Account* pAccount,
+				 SubAccount* pSubAccount,
+				 Message* pMessage,
+				 unsigned int nFlags) const;
 
 private:
 	MessageComposer(const MessageComposer&);
@@ -75,13 +80,12 @@ class SMIMECallbackImpl : public qs::SMIMECallback
 {
 public:
 	SMIMECallbackImpl(const Security* pSecurity,
-		AddressBook* pAddressBook, qs::QSTATUS* pstatus);
+					  AddressBook* pAddressBook);
 	~SMIMECallbackImpl();
 
 public:
-	virtual qs::QSTATUS getContent(qs::Part* pPart, qs::STRING* pstrContent);
-	virtual qs::QSTATUS getCertificate(const WCHAR* pwszAddress,
-		qs::Certificate** ppCertificate);
+	virtual qs::xstring_ptr getContent(qs::Part* pPart);
+	virtual std::auto_ptr<qs::Certificate> getCertificate(const WCHAR* pwszAddress);
 
 private:
 	SMIMECallbackImpl(const SMIMECallbackImpl&);

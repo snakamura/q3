@@ -1,16 +1,14 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qsassert.h>
 #include <qsconv.h>
-#include <qserror.h>
 #include <qslog.h>
-#include <qsnew.h>
 #include <qssocket.h>
 #include <qsstring.h>
 
@@ -23,22 +21,15 @@ using namespace qs;
  *
  */
 
-qs::Winsock::Winsock(QSTATUS* pstatus) :
-	status_(QSTATUS_SUCCESS)
+qs::Winsock::Winsock()
 {
-	assert(pstatus);
-	
 	WSADATA wsadata;
-	if (WSAStartup(MAKEWORD(2, 0), &wsadata))
-		status_ = QSTATUS_FAIL;
-	
-	*pstatus = status_;
+	WSAStartup(MAKEWORD(2, 0), &wsadata);
 }
 
 qs::Winsock::~Winsock()
 {
-	if (status_ == QSTATUS_SUCCESS)
-		WSACleanup();
+	WSACleanup();
 }
 
 
@@ -61,8 +52,12 @@ qs::SocketBase::~SocketBase()
 
 struct qs::SocketImpl
 {
-	QSTATUS init(SOCKET socket, const Socket::Option& option);
-	QSTATUS connect(const WCHAR* pwszHost, short nPort);
+	bool init(SOCKET socket,
+			  long nTimeout,
+			  SocketCallback* pSocketCallback,
+			  Logger* pLogger);
+	bool connect(const WCHAR* pwszHost,
+				 short nPort);
 	
 	SOCKET socket_;
 	long nTimeout_;
@@ -75,39 +70,37 @@ struct qs::SocketImpl
 	SocketOutputStream* pOutputStream_;
 };
 
-QSTATUS qs::SocketImpl::init(SOCKET socket, const Socket::Option& option)
+bool qs::SocketImpl::init(SOCKET socket,
+						  long nTimeout,
+						  SocketCallback* pSocketCallback,
+						  Logger* pLogger)
 {
-	DECLARE_QSTATUS();
-	
 	socket_ = socket;
-	nTimeout_ = option.nTimeout_;
-	pSocketCallback_ = option.pSocketCallback_;
-	pLogger_ = option.pLogger_;
+	nTimeout_ = nTimeout;
+	pSocketCallback_ = pSocketCallback;
+	pLogger_ = pLogger;
 	nError_ = Socket::SOCKET_ERROR_SUCCESS;
 	bDebug_ = false;
 	pInputStream_ = 0;
 	pOutputStream_ = 0;
 	
 	if (!socket_) {
-		if (pSocketCallback_) {
-			status = pSocketCallback_->initialize();
-			CHECK_QSTATUS();
-		}
+		if (pSocketCallback_)
+			pSocketCallback_->initialize();
 		
 		SOCKET s = ::socket(PF_INET, SOCK_STREAM, 0);
 		if (s == INVALID_SOCKET)
-			return QSTATUS_FAIL;
+			return false;
 		socket_ = s;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::SocketImpl::connect(const WCHAR* pwszHost, short nPort)
+bool qs::SocketImpl::connect(const WCHAR* pwszHost,
+							 short nPort)
 {
 	assert(pwszHost);
-	
-	DECLARE_QSTATUS();
 	
 	Log log(pLogger_, L"qs::Socket");
 	
@@ -117,9 +110,7 @@ QSTATUS qs::SocketImpl::connect(const WCHAR* pwszHost, short nPort)
 		sockAddr.sin_family = AF_INET;
 		sockAddr.sin_port = ::htons(nPort);
 		
-		string_ptr<STRING> strHost(wcs2mbs(pwszHost));
-		if (!strHost.get())
-			return QSTATUS_OUTOFMEMORY;
+		string_ptr strHost(wcs2mbs(pwszHost));
 		unsigned long nAddr = inet_addr(strHost.get());
 		if (nAddr != INADDR_NONE) {
 			sockAddr.sin_addr.s_addr = nAddr;
@@ -129,12 +120,8 @@ QSTATUS qs::SocketImpl::connect(const WCHAR* pwszHost, short nPort)
 				pSocketCallback_->lookup();
 			
 			if (log.isDebugEnabled()) {
-				string_ptr<WSTRING> wstrLog(
-					concat(L"Looking up host: ", pwszHost));
-				if (!wstrLog.get())
-					return QSTATUS_OUTOFMEMORY;
-				status = log.debug(wstrLog.get());
-				CHECK_QSTATUS();
+				wstring_ptr wstrLog(concat(L"Looking up host: ", pwszHost));
+				log.debug(wstrLog.get());
 			}
 			
 			hostent* phe = gethostbyname(strHost.get());
@@ -142,7 +129,7 @@ QSTATUS qs::SocketImpl::connect(const WCHAR* pwszHost, short nPort)
 				phe = gethostbyname(strHost.get());
 			if (!phe || !phe->h_addr_list[0]) {
 				nError_ = Socket::SOCKET_ERROR_LOOKUPNAME;
-				return QSTATUS_FAIL;
+				return false;
 			}
 			::memcpy(&sockAddr.sin_addr.s_addr,
 				phe->h_addr_list[0], phe->h_length);
@@ -175,19 +162,17 @@ QSTATUS qs::SocketImpl::connect(const WCHAR* pwszHost, short nPort)
 			bool b_;
 		} blockMode(socket_, pSocketCallback_ != 0);
 		
-		status = log.debug(L"Connecting...");
-		CHECK_QSTATUS();
+		log.debug(L"Connecting...");
 		
-		if (::connect(socket_, reinterpret_cast<sockaddr*>(&sockAddr),
-			sizeof(sockAddr))) {
+		if (::connect(socket_, reinterpret_cast<sockaddr*>(&sockAddr), sizeof(sockAddr))) {
 			bool bConnect = false;
 			nError_ = Socket::SOCKET_ERROR_SUCCESS;
 			if (::WSAGetLastError() == WSAEWOULDBLOCK) {
-				for (int n = 0; n < nTimeout_; ++n) {
+				int n = 0;
+				while (n < nTimeout_) {
 					assert(pSocketCallback_);
 					if (pSocketCallback_->isCanceled(false)) {
-						status = log.debug(L"Connection canceled.");
-						CHECK_QSTATUS();
+						log.debug(L"Connection canceled.");
 						nError_ = Socket::SOCKET_ERROR_CANCEL;
 						break;
 					}
@@ -199,10 +184,10 @@ QSTATUS qs::SocketImpl::connect(const WCHAR* pwszHost, short nPort)
 						bConnect = true;
 						break;
 					}
+					++n;
 				}
 				if (n == nTimeout_) {
-					status = log.debug(L"Connection timeout.");
-					CHECK_QSTATUS();
+					log.debug(L"Connection timeout.");
 					nError_ = Socket::SOCKET_ERROR_CONNECTTIMEOUT;
 				}
 			}
@@ -210,13 +195,12 @@ QSTATUS qs::SocketImpl::connect(const WCHAR* pwszHost, short nPort)
 				nError_ = Socket::SOCKET_ERROR_CONNECT;
 			}
 			if (!bConnect)
-				return QSTATUS_FAIL;
+				return false;
 		}
 		if (pSocketCallback_)
 			pSocketCallback_->connected();
 		
-		status = log.debug(L"Connected.");
-		CHECK_QSTATUS();
+		log.debug(L"Connected.");
 	}
 	else {
 #ifndef _WIN32_WCE
@@ -225,7 +209,7 @@ QSTATUS qs::SocketImpl::connect(const WCHAR* pwszHost, short nPort)
 		bDebug_ = true;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -235,53 +219,42 @@ QSTATUS qs::SocketImpl::connect(const WCHAR* pwszHost, short nPort)
  *
  */
 
-qs::Socket::Socket(const Option& option, QSTATUS* pstatus) :
+qs::Socket::Socket(long nTimeout,
+				   SocketCallback* pSocketCallback,
+				   Logger* pLogger) :
 	pImpl_(0)
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	status = pImpl_->init(0, option);
-	CHECK_QSTATUS_SET(pstatus);
+	std::auto_ptr<SocketImpl> pImpl(new SocketImpl());
+	if (!pImpl->init(0, nTimeout, pSocketCallback, pLogger))
+		return;
+	pImpl_ = pImpl.release();
 }
 
-qs::Socket::Socket(SOCKET socket, const Option& option, QSTATUS* pstatus) :
+qs::Socket::Socket(SOCKET socket,
+				   long nTimeout,
+				   SocketCallback* pSocketCallback,
+				   Logger* pLogger) :
 	pImpl_(0)
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	status = pImpl_->init(socket, option);
-	CHECK_QSTATUS_SET(pstatus);
+	std::auto_ptr<SocketImpl> pImpl(new SocketImpl());
+	if (!pImpl->init(socket, nTimeout, pSocketCallback, pLogger))
+		return;
+	pImpl_ = pImpl.release();
 }
 
-qs::Socket::Socket(const WCHAR* pwszHost, short nPort,
-	const Option& option, QSTATUS* pstatus) :
+qs::Socket::Socket(const WCHAR* pwszHost,
+				   short nPort,
+				   long nTimeout,
+				   SocketCallback* pSocketCallback,
+				   Logger* pLogger) :
 	pImpl_(0)
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	status = pImpl_->init(0, option);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	status = pImpl_->connect(pwszHost, nPort);
-	CHECK_QSTATUS_SET(pstatus);
+	std::auto_ptr<SocketImpl> pImpl(new SocketImpl());
+	if (!pImpl->init(0, nTimeout, pSocketCallback, pLogger))
+		return;
+	if (!pImpl->connect(pwszHost, nPort))
+		return;
+	pImpl_ = pImpl.release();
 }
 
 qs::Socket::~Socket()
@@ -297,12 +270,18 @@ qs::Socket::~Socket()
 	}
 }
 
+bool qs::Socket::operator!() const
+{
+	return pImpl_ == 0;
+}
+
 SOCKET qs::Socket::getSocket() const
 {
 	return pImpl_->socket_;
 }
 
-QSTATUS qs::Socket::connect(const WCHAR* pwszHost, short nPort)
+bool qs::Socket::connect(const WCHAR* pwszHost,
+						 short nPort)
 {
 	return pImpl_->connect(pwszHost, nPort);
 }
@@ -322,24 +301,20 @@ void qs::Socket::setLastError(unsigned int nError)
 	pImpl_->nError_ = nError;
 }
 
-QSTATUS qs::Socket::close()
+bool qs::Socket::close()
 {
-	DECLARE_QSTATUS();
-	
 	Log log(pImpl_->pLogger_, L"qs::Socket");
 	
 	if (!pImpl_->bDebug_) {
 		if (pImpl_->socket_) {
-			status = log.debug(L"Closing socket...");
-			CHECK_QSTATUS();
+			log.debug(L"Closing socket...");
 			
 			if (::closesocket(pImpl_->socket_)) {
 				pImpl_->nError_ = SOCKET_ERROR_CLOSESOCKET;
-				return QSTATUS_FAIL;
+				return false;
 			}
 			
-			status = log.debug(L"Closed socket.");
-			CHECK_QSTATUS();
+			log.debug(L"Closed socket.");
 		}
 	}
 	else {
@@ -347,134 +322,124 @@ QSTATUS qs::Socket::close()
 		::FreeConsole();
 #endif
 	}
-	return QSTATUS_SUCCESS;
+	
+	return true;
 }
 
-QSTATUS qs::Socket::recv(char* p, int* pnLen, int nFlags)
+int qs::Socket::recv(char* p,
+					 int nLen,
+					 int nFlags)
 {
-	DECLARE_QSTATUS();
-	
 	Log log(pImpl_->pLogger_, L"qs::Socket");
 	
+	int nRecv = -1;
 	if (!pImpl_->bDebug_) {
-		*pnLen = ::recv(pImpl_->socket_, p, *pnLen, nFlags);
-		if (*pnLen == SOCKET_ERROR) {
-			status = log.debug(L"Error occured while receiving.");
-			CHECK_QSTATUS();
+		nRecv = ::recv(pImpl_->socket_, p, nLen, nFlags);
+		if (nRecv == SOCKET_ERROR) {
+			log.debug(L"Error occured while receiving.");
 			pImpl_->nError_ = SOCKET_ERROR_RECV;
-			return QSTATUS_FAIL;
+			return -1;
 		}
 		
-		status = log.debug(L"Received data",
-			reinterpret_cast<unsigned char*>(p), *pnLen);
-		CHECK_QSTATUS();
+		log.debug(L"Received data", reinterpret_cast<unsigned char*>(p), nRecv);
 	}
 	else {
 #ifndef _WIN32_WCE
 		DWORD dw = 0;
-		if (!::ReadFile(::GetStdHandle(STD_INPUT_HANDLE), p, *pnLen, &dw, 0))
-			return QSTATUS_FAIL;
-		*pnLen = dw;
+		if (!::ReadFile(::GetStdHandle(STD_INPUT_HANDLE), p, nLen, &dw, 0))
+			return -1;
+		nRecv = dw;
 #endif
 	}
-	return QSTATUS_SUCCESS;
+	
+	return nRecv;
 }
 
-QSTATUS qs::Socket::send(const char* p, int* pnLen, int nFlags)
+int qs::Socket::send(const char* p,
+					 int nLen,
+					 int nFlags)
 {
-	DECLARE_QSTATUS();
-	
 	Log log(pImpl_->pLogger_, L"qs::Socket");
 	
+	int nSent = -1;
 	if (!pImpl_->bDebug_) {
-		*pnLen = ::send(pImpl_->socket_, p, *pnLen, nFlags);
-		if (*pnLen == SOCKET_ERROR) {
-			status = log.debug(L"Error occured while sending.");
-			CHECK_QSTATUS();
+		nSent = ::send(pImpl_->socket_, p, nLen, nFlags);
+		if (nSent == SOCKET_ERROR) {
+			log.debug(L"Error occured while sending.");
 			pImpl_->nError_ = SOCKET_ERROR_SEND;
-			return QSTATUS_FAIL;
+			return -1;
 		}
 		
-		status = log.debug(L"Sent data",
-			reinterpret_cast<const unsigned char*>(p), *pnLen);
-		CHECK_QSTATUS();
+		log.debug(L"Sent data", reinterpret_cast<const unsigned char*>(p), nSent);
 	}
 	else {
 #ifndef _WIN32_WCE
 		DWORD dw = 0;
-		if (!::WriteFile(::GetStdHandle(STD_OUTPUT_HANDLE), p, *pnLen, &dw, 0))
-			return QSTATUS_FAIL;
-		*pnLen = dw;
+		if (!::WriteFile(::GetStdHandle(STD_OUTPUT_HANDLE), p, nLen, &dw, 0))
+			return -1;
+		nSent = dw;
 #endif
 	}
-	return QSTATUS_SUCCESS;
+	
+	return nSent;
 }
 
-QSTATUS qs::Socket::select(int* pnSelect)
+int qs::Socket::select(int nSelect)
 {
-	return select(pnSelect, getTimeout());
+	return select(nSelect, getTimeout());
 }
 
-QSTATUS qs::Socket::select(int* pnSelect, long nTimeout)
+int qs::Socket::select(int nSelect,
+					   long nTimeout)
 {
+	int nSelected = 0;
+	
 	if (!pImpl_->bDebug_) {
 		int nSelects[] = { SELECT_READ, SELECT_WRITE, SELECT_EXCEPT };
 		fd_set fdset[3];
 		for (int n = 0; n < 3; ++n) {
 			FD_ZERO(&fdset[n]);
-			if (*pnSelect & nSelects[n])
+			if (nSelect & nSelects[n])
 				FD_SET(pImpl_->socket_, &fdset[n]);
 		}
 		timeval tvTimeout = { nTimeout, 0 };
 		int nRet = ::select(pImpl_->socket_,
-			*pnSelect & SELECT_READ ? &fdset[0] : 0,
-			*pnSelect & SELECT_WRITE ? &fdset[1] : 0,
-			*pnSelect & SELECT_EXCEPT ? &fdset[2] : 0,
+			nSelect & SELECT_READ ? &fdset[0] : 0,
+			nSelect & SELECT_WRITE ? &fdset[1] : 0,
+			nSelect & SELECT_EXCEPT ? &fdset[2] : 0,
 			&tvTimeout);
-		*pnSelect = 0;
 		if (nRet == SOCKET_ERROR) {
-			return QSTATUS_FAIL;
+			return -1;
 		}
 		else if (nRet != 0) {
 			for (int n = 0; n < 3; ++n) {
 				if (FD_ISSET(pImpl_->socket_, &fdset[n]))
-					*pnSelect |= nSelects[n];
+					nSelected |= nSelects[n];
 			}
 		}
 	}
 	else {
-		if (*pnSelect & SELECT_WRITE)
-			*pnSelect = SELECT_WRITE;
-		else if (*pnSelect & SELECT_READ)
-			*pnSelect = SELECT_READ;
+		if (nSelect & SELECT_WRITE)
+			nSelected = SELECT_WRITE;
+		else if (nSelect & SELECT_READ)
+			nSelected = SELECT_READ;
 	}
-	return QSTATUS_SUCCESS;
+	
+	return nSelected;
 }
 
-QSTATUS qs::Socket::getInputStream(InputStream** ppStream)
+InputStream* qs::Socket::getInputStream()
 {
-	DECLARE_QSTATUS();
-	
-	if (!pImpl_->pInputStream_) {
-		status = newQsObject(this, &pImpl_->pInputStream_);
-		CHECK_QSTATUS();
-	}
-	*ppStream = pImpl_->pInputStream_;
-	
-	return QSTATUS_SUCCESS;
+	if (!pImpl_->pInputStream_)
+		pImpl_->pInputStream_ = new SocketInputStream(this);
+	return pImpl_->pInputStream_;
 }
 
-QSTATUS qs::Socket::getOutputStream(OutputStream** ppStream)
+OutputStream* qs::Socket::getOutputStream()
 {
-	DECLARE_QSTATUS();
-	
-	if (!pImpl_->pOutputStream_) {
-		status = newQsObject(this, &pImpl_->pOutputStream_);
-		CHECK_QSTATUS();
-	}
-	*ppStream = pImpl_->pOutputStream_;
-	
-	return QSTATUS_SUCCESS;
+	if (!pImpl_->pOutputStream_)
+		pImpl_->pOutputStream_ = new SocketOutputStream(this);
+	return pImpl_->pOutputStream_;
 }
 
 
@@ -486,13 +451,13 @@ QSTATUS qs::Socket::getOutputStream(OutputStream** ppStream)
 
 struct qs::ServerSocketImpl
 {
-	QSTATUS bind(short nPort);
-	QSTATUS listen(int nBackLog);
+	bool bind(short nPort);
+	bool listen(int nBackLog);
 	
 	SOCKET socket_;
 };
 
-QSTATUS qs::ServerSocketImpl::bind(short nPort)
+bool qs::ServerSocketImpl::bind(short nPort)
 {
 	int b = 1;
 	setsockopt(socket_, SOL_SOCKET, SO_REUSEADDR,
@@ -502,13 +467,12 @@ QSTATUS qs::ServerSocketImpl::bind(short nPort)
 	sockAddr.sin_family = AF_INET;
 	sockAddr.sin_port = htons(nPort);
 	sockAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	return ::bind(socket_, reinterpret_cast<sockaddr*>(&sockAddr),
-		sizeof(sockAddr)) == 0 ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+	return ::bind(socket_, reinterpret_cast<sockaddr*>(&sockAddr), sizeof(sockAddr)) == 0;
 }
 
-QSTATUS qs::ServerSocketImpl::listen(int nBackLog)
+bool qs::ServerSocketImpl::listen(int nBackLog)
 {
-	return ::listen(socket_, nBackLog) == 0 ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+	return ::listen(socket_, nBackLog) == 0;
 }
 
 
@@ -518,31 +482,24 @@ QSTATUS qs::ServerSocketImpl::listen(int nBackLog)
  *
  */
 
-qs::ServerSocket::ServerSocket(short nPort, int nBackLog, QSTATUS* pstatus) :
+qs::ServerSocket::ServerSocket(short nPort,
+							   int nBackLog) :
 	pImpl_(0)
 {
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	pImpl_->socket_ = 0;
+	std::auto_ptr<ServerSocketImpl> pImpl(new ServerSocketImpl());
+	pImpl->socket_ = 0;
 	
 	SOCKET s = socket(PF_INET, SOCK_STREAM, 0);
-	if (s == INVALID_SOCKET) {
-		*pstatus = QSTATUS_FAIL;
+	if (s == INVALID_SOCKET)
 		return;
-	}
-	pImpl_->socket_ = s;
+	pImpl->socket_ = s;
 	
-	status = pImpl_->bind(nPort);
-	CHECK_QSTATUS_SET(pstatus);
+	if (!pImpl->bind(nPort))
+		return;
+	if (!pImpl->listen(nBackLog))
+		return;
 	
-	status = pImpl_->listen(nBackLog);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = pImpl.release();
 }
 
 qs::ServerSocket::~ServerSocket()
@@ -555,20 +512,23 @@ qs::ServerSocket::~ServerSocket()
 	}
 }
 
-QSTATUS qs::ServerSocket::close()
+bool qs::ServerSocket::operator!() const
+{
+	return pImpl_ == 0;
+}
+
+bool qs::ServerSocket::close()
 {
 	if (pImpl_->socket_) {
 		if (::closesocket(pImpl_->socket_))
-			return QSTATUS_FAIL;
+			return false;
 	}
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::ServerSocket::accept(SOCKET* pSocket)
+SOCKET qs::ServerSocket::accept()
 {
-	assert(pSocket);
-	*pSocket = ::accept(pImpl_->socket_, 0, 0);
-	return *pSocket != INVALID_SOCKET ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+	return ::accept(pImpl_->socket_, 0, 0);
 }
 
 
@@ -589,66 +549,59 @@ qs::SocketCallback::~SocketCallback()
  *
  */
 
-qs::SocketInputStream::SocketInputStream(
-	SocketBase* pSocket, QSTATUS* pstatus) :
+qs::SocketInputStream::SocketInputStream(SocketBase* pSocket) :
 	pSocket_(pSocket)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qs::SocketInputStream::~SocketInputStream()
 {
 }
 
-QSTATUS qs::SocketInputStream::close()
+bool qs::SocketInputStream::close()
 {
 	return pSocket_->close();
 }
 
-QSTATUS qs::SocketInputStream::read(
-	unsigned char* p, size_t nRead, size_t* pnRead)
+size_t qs::SocketInputStream::read(unsigned char* p,
+								   size_t nRead)
 {
 	assert(p);
-	assert(pnRead);
-	
-	*pnRead = 0;
 	
 	if (nRead == 0)
-		return QSTATUS_SUCCESS;
+		return 0;
 	
-	DECLARE_QSTATUS();
+	size_t nSize = 0;
 	
 	while (nRead != 0) {
-		for (long n = 0; n < pSocket_->getTimeout(); ++n) {
+		long n = 0;
+		while (n < pSocket_->getTimeout()) {
 			// TODO
 			// Check cancel
-			int nSelect = Socket::SELECT_READ;
-			status = pSocket_->select(&nSelect, 1);
-			CHECK_QSTATUS();
+			int nSelect = pSocket_->select(Socket::SELECT_READ, 1);
+			if (nSelect == -1)
+				return -1;
 			if (nSelect & Socket::SELECT_READ)
 				break;
+			++n;
 		}
 		if (n == pSocket_->getTimeout()) {
 			pSocket_->setLastError(Socket::SOCKET_ERROR_RECVTIMEOUT);
-			return QSTATUS_SUCCESS;
+			return nSize;
 		}
 		
-		int nLen = nRead;
-		status = pSocket_->recv(reinterpret_cast<char*>(p), &nLen, 0);
-		CHECK_QSTATUS();
-		if (nLen == 0) {
-			if (*pnRead == 0)
-				*pnRead = -1;
-			return QSTATUS_SUCCESS;
-		}
-		else {
-			*pnRead += nLen;
-			nRead -= nLen;
-			p += nLen;
-		}
+		int nLen = pSocket_->recv(reinterpret_cast<char*>(p), nRead, 0);
+		if (nLen == -1)
+			return -1;
+		if (nLen == 0)
+			return 0;
+		
+		nSize += nLen;
+		nRead -= nLen;
+		p += nLen;
 	}
-	return QSTATUS_SUCCESS;
+	
+	return nSize;
 }
 
 
@@ -658,58 +611,59 @@ QSTATUS qs::SocketInputStream::read(
  *
  */
 
-qs::SocketOutputStream::SocketOutputStream(
-	SocketBase* pSocket, QSTATUS* pstatus) :
+qs::SocketOutputStream::SocketOutputStream(SocketBase* pSocket) :
 	pSocket_(pSocket)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 SocketOutputStream::~SocketOutputStream()
 {
 }
 
-QSTATUS SocketOutputStream::close()
+bool SocketOutputStream::close()
 {
 	return pSocket_->close();
 }
 
-QSTATUS SocketOutputStream::write(const unsigned char* p, size_t nWrite)
+size_t SocketOutputStream::write(const unsigned char* p,
+								 size_t nWrite)
 {
 	assert(p);
 	
 	if (nWrite == 0)
-		return QSTATUS_SUCCESS;
+		return 0;
 	
-	DECLARE_QSTATUS();
+	size_t nSize = 0;
 	
 	while (nWrite != 0) {
-		for (long n = 0; n < pSocket_->getTimeout(); ++n) {
+		long n = 0;
+		while (n < pSocket_->getTimeout()) {
 			// TODO
 			// Check cancel
-			int nSelect = Socket::SELECT_WRITE;
-			status = pSocket_->select(&nSelect, 1);
-			CHECK_QSTATUS();
+			int nSelect = pSocket_->select(Socket::SELECT_WRITE, 1);
+			if (nSelect == -1)
+				return -1;
 			if (nSelect & Socket::SELECT_WRITE)
 				break;
+			++n;
 		}
 		if (n == pSocket_->getTimeout()) {
 			pSocket_->setLastError(Socket::SOCKET_ERROR_SENDTIMEOUT);
-			return QSTATUS_SUCCESS;
+			return nSize;
 		}
 		
-		int nLen = nWrite;
-		status = pSocket_->send(reinterpret_cast<const char*>(p), &nLen, 0);
-		CHECK_QSTATUS();
+		int nLen = pSocket_->send(reinterpret_cast<const char*>(p), nWrite, 0);
+		if (nLen == -1)
+			return -1;
+		nSize += nLen;
 		nWrite -= nLen;
 		p += nLen;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return nSize;
 }
 
-QSTATUS SocketOutputStream::flush()
+bool SocketOutputStream::flush()
 {
-	return QSTATUS_SUCCESS;
+	return true;
 }

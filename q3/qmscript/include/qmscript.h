@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -36,8 +36,9 @@ public:
 	virtual ~Script();
 
 public:
-	virtual qs::QSTATUS run(VARIANT* pvarArgs,
-		size_t nArgCount, VARIANT* pvarResult) = 0;
+	virtual bool run(VARIANT* pvarArgs,
+					 size_t nArgCount,
+					 VARIANT* pvarResult) = 0;
 };
 
 
@@ -78,7 +79,7 @@ public:
 	virtual ~ScriptFactory();
 
 public:
-	virtual qs::QSTATUS newScript(const Init& init, Script** ppScript) = 0;
+	virtual std::auto_ptr<Script> newScript(const Init& init) = 0;
 	virtual void deleteScript(Script* pScript) = 0;
 };
 
@@ -92,7 +93,6 @@ public:
  */
 
 extern "C" qmscript::ScriptFactory* newScriptFactory();
-extern "C" void deleteScriptFactory(
-	qmscript::ScriptFactory* pFactory);
+extern "C" void deleteScriptFactory(qmscript::ScriptFactory* pFactory);
 
 #endif // __QMSCRIPT_H__

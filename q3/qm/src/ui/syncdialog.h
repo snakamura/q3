@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -37,12 +37,12 @@ class SyncDialogThread;
 class SyncDialogManager
 {
 public:
-	SyncDialogManager(qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	explicit SyncDialogManager(qs::Profile* pProfile);
 	~SyncDialogManager();
 
 public:
-	qs::QSTATUS open(SyncDialog** ppSyncDialog);
-	qs::QSTATUS save() const;
+	SyncDialog* open();
+	bool save() const;
 
 private:
 	SyncDialogManager(const SyncDialogManager&);
@@ -50,7 +50,7 @@ private:
 
 private:
 	qs::Profile* pProfile_;
-	SyncDialogThread* pThread_;
+	std::auto_ptr<SyncDialogThread> pThread_;
 };
 
 
@@ -73,7 +73,7 @@ public:
 	};
 
 public:
-	SyncDialog(qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	explicit SyncDialog(qs::Profile* pProfile);
 	virtual ~SyncDialog();
 
 public:
@@ -85,25 +85,31 @@ public:
 	void setMessage(const WCHAR* pwszMessage);
 	unsigned int getCanceledTime() const;
 	void resetCanceledTime();
-	qs::QSTATUS addError(const WCHAR* pwszError);
+	void addError(const WCHAR* pwszError);
 	bool hasError() const;
-	qs::QSTATUS enableCancel(bool bEnable);
-	qs::QSTATUS showDialupDialog(RASDIALPARAMS* prdp, bool* pbCancel) const;
-	qs::QSTATUS selectDialupEntry(qs::WSTRING* pwstrEntry) const;
-	qs::QSTATUS notifyNewMessage() const;
-	qs::QSTATUS save() const;
+	void enableCancel(bool bEnable);
+	bool showDialupDialog(RASDIALPARAMS* prdp) const;
+	qs::wstring_ptr selectDialupEntry() const;
+	void notifyNewMessage() const;
+	bool save() const;
 
 public:
-	virtual INT_PTR dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual INT_PTR dialogProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 public:
-	virtual LRESULT onCommand(WORD nCode, WORD nId);
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 protected:
 	LRESULT onClose();
 	LRESULT onDestroy();
-	LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
-	LRESULT onSize(UINT nFlags, int cx, int cy);
+	LRESULT onInitDialog(HWND hwndFocus,
+						 LPARAM lParam);
+	LRESULT onSize(UINT nFlags,
+				   int cx,
+				   int cy);
 
 private:
 	LRESULT onCancel();
@@ -112,7 +118,8 @@ private:
 
 private:
 	void layout();
-	void layout(int cx, int cy);
+	void layout(int cx,
+				int cy);
 
 private:
 	SyncDialog(const SyncDialog&);
@@ -150,7 +157,8 @@ private:
 		};
 	
 	public:
-		Item(unsigned int nId, unsigned int nParam, qs::QSTATUS* pstatus);
+		Item(unsigned int nId,
+			 unsigned int nParam);
 		~Item();
 	
 	public:
@@ -160,14 +168,18 @@ private:
 		const WCHAR* getMessage() const;
 	
 	public:
-		void setPos(bool bSub, unsigned int nPos);
-		void setRange(bool bSub, unsigned int nMin, unsigned int nMax);
-		qs::QSTATUS setAccount(Account* pAccount, SubAccount* pSubAccount);
-		qs::QSTATUS setFolder(Folder* pFolder);
-		qs::QSTATUS setMessage(const WCHAR* pwszMessage);
+		void setPos(bool bSub,
+					unsigned int nPos);
+		void setRange(bool bSub,
+					  unsigned int nMin,
+					  unsigned int nMax);
+		void setAccount(Account* pAccount,
+						SubAccount* pSubAccount);
+		void setFolder(Folder* pFolder);
+		void setMessage(const WCHAR* pwszMessage);
 	
 	private:
-		qs::QSTATUS updateMessage();
+		void updateMessage();
 	
 	private:
 		unsigned int nId_;
@@ -177,53 +189,69 @@ private:
 		Account* pAccount_;
 		SubAccount* pSubAccount_;
 		Folder* pFolder_;
-		qs::WSTRING wstrOriginalMessage_;
-		qs::WSTRING wstrMessage_;
+		qs::wstring_ptr wstrOriginalMessage_;
+		qs::wstring_ptr wstrMessage_;
 	};
 
 private:
 	typedef std::vector<Item*> ItemList;
 
 public:
-	SyncStatusWindow(SyncDialog* pSyncDialog, qs::QSTATUS* pstatus);
+	explicit SyncStatusWindow(SyncDialog* pSyncDialog);
 	virtual ~SyncStatusWindow();
 
 public:
-	virtual qs::QSTATUS getWindowClass(WNDCLASS* pwc);
-	virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual void getWindowClass(WNDCLASS* pwc);
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
 
 public:
-	virtual qs::QSTATUS start(unsigned int nParam);
+	virtual void start(unsigned int nParam);
 	virtual void end();
-	virtual qs::QSTATUS startThread(unsigned int nId, unsigned int nParam);
+	virtual void startThread(unsigned int nId,
+							 unsigned int nParam);
 	virtual void endThread(unsigned int nId);
-	virtual qs::QSTATUS setPos(unsigned int nId,
-		bool bSub, unsigned int nPos);
-	virtual qs::QSTATUS setRange(unsigned int nId, bool bSub,
-		unsigned int nMin, unsigned int nMax);
-	virtual qs::QSTATUS setAccount(unsigned int nId,
-		Account* pAccount, SubAccount* pSubAccount);
-	virtual qs::QSTATUS setFolder(unsigned int nId, Folder* pFolder);
-	virtual qs::QSTATUS setMessage(unsigned int nId, const WCHAR* pwszMessage);
-	virtual qs::QSTATUS addError(unsigned int nId, const SessionErrorInfo& info);
+	virtual void setPos(unsigned int nId,
+						bool bSub,
+						unsigned int nPos);
+	virtual void setRange(unsigned int nId,
+						  bool bSub,
+						  unsigned int nMin,
+						  unsigned int nMax);
+	virtual void setAccount(unsigned int nId,
+							Account* pAccount,
+							SubAccount* pSubAccount);
+	virtual void setFolder(unsigned int nId,
+						   Folder* pFolder);
+	virtual void setMessage(unsigned int nId,
+							const WCHAR* pwszMessage);
+	virtual void addError(unsigned int nId,
+						  const SessionErrorInfo& info);
 	virtual bool isCanceled(unsigned int nId, bool bForce);
-	virtual qs::QSTATUS selectDialupEntry(qs::WSTRING* pwstrEntry);
-	virtual qs::QSTATUS showDialupDialog(RASDIALPARAMS* prdp, bool* pbCancel);
-	virtual qs::QSTATUS notifyNewMessage(unsigned int nId);
+	virtual qs::wstring_ptr selectDialupEntry();
+	virtual bool showDialupDialog(RASDIALPARAMS* prdp);
+	virtual void notifyNewMessage(unsigned int nId);
 
 protected:
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
 	LRESULT onPaint();
-	LRESULT onSize(UINT nFlags, int cx, int cy);
-	LRESULT onVScroll(UINT nCode, UINT nPos, HWND hwnd);
+	LRESULT onSize(UINT nFlags,
+				   int cx,
+				   int cy);
+	LRESULT onVScroll(UINT nCode,
+					  UINT nPos,
+					  HWND hwnd);
 
 private:
 	int getItemHeight() const;
 	void updateScrollBar();
 	void paintItem(qs::DeviceContext* pdc,
-		const RECT& rect, const Item* pItem);
+				   const RECT& rect,
+				   const Item* pItem);
 	void paintProgress(qs::DeviceContext* pdc,
-		const RECT& rect, const Item::Progress& progress);
+					   const RECT& rect,
+					   const Item::Progress& progress);
 	ItemList::iterator getItem(unsigned int nId);
 
 private:
@@ -236,8 +264,8 @@ private:
 	bool bNewMessage_;
 	qs::CriticalSection cs_;
 	int nFontHeight_;
-	qs::WSTRING wstrFinished_;
-	qs::WSTRING wstrCancel_;
+	qs::wstring_ptr wstrFinished_;
+	qs::wstring_ptr wstrCancel_;
 	int nCancelWidth_;
 };
 
@@ -251,7 +279,7 @@ private:
 class SyncDialogThread : public qs::Thread
 {
 public:
-	SyncDialogThread(qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	SyncDialogThread(qs::Profile* pProfile);
 	virtual ~SyncDialogThread();
 
 public:
@@ -259,7 +287,7 @@ public:
 	void stop();
 
 public:
-	virtual unsigned int run();
+	virtual void run();
 
 private:
 	SyncDialogThread(const SyncDialogThread&);
@@ -268,7 +296,7 @@ private:
 private:
 	qs::Profile* pProfile_;
 	SyncDialog* pDialog_;
-	qs::Event* pEvent_;
+	std::auto_ptr<qs::Event> pEvent_;
 };
 
 }

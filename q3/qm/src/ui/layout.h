@@ -31,21 +31,23 @@ class LineLayoutItem;
 class LineLayout
 {
 public:
-	explicit LineLayout(qs::QSTATUS* pstatus);
+	LineLayout();
 	~LineLayout();
 
 public:
 	unsigned int getLineCount() const;
 	LineLayoutLine* getLine(unsigned int n) const;
 	int getHeight() const;
-	qs::QSTATUS create(qs::WindowBase* pParent,
-		const std::pair<HFONT, HFONT>& fonts, UINT* pnId) const;
-	qs::QSTATUS destroy() const;
-	qs::QSTATUS layout(const RECT& rect, unsigned int nFontHeight);
+	bool create(qs::WindowBase* pParent,
+				const std::pair<HFONT, HFONT>& fonts,
+				UINT* pnId) const;
+	void destroy() const;
+	void layout(const RECT& rect,
+				unsigned int nFontHeight);
 
 public:
 	void setLineSpacing(unsigned int nLineSpacing);
-	qs::QSTATUS addLine(LineLayoutLine* pLine);
+	void addLine(std::auto_ptr<LineLayoutLine> pLine);
 
 private:
 	LineLayout(const LineLayout&);
@@ -70,21 +72,23 @@ private:
 class LineLayoutLine
 {
 public:
-	explicit LineLayoutLine(qs::QSTATUS* pstatus);
+	LineLayoutLine();
 	virtual ~LineLayoutLine();
 
 public:
 	unsigned int getItemCount() const;
 	LineLayoutItem* getItem(unsigned int n) const;
 	unsigned int getHeight(unsigned int nFontHeight) const;
-	qs::QSTATUS create(qs::WindowBase* pParent,
-		const std::pair<HFONT, HFONT>& fonts, UINT* pnId) const;
-	qs::QSTATUS destroy() const;
-	qs::QSTATUS layout(const RECT& rect, unsigned int nFontHeight) const;
-	qs::QSTATUS show(bool bShow) const;
+	bool create(qs::WindowBase* pParent,
+				const std::pair<HFONT, HFONT>& fonts,
+				UINT* pnId) const;
+	void destroy() const;
+	void layout(const RECT& rect,
+				unsigned int nFontHeight) const;
+	void show(bool bShow) const;
 
 public:
-	qs::QSTATUS addItem(LineLayoutItem* pItem);
+	void addItem(std::auto_ptr<LineLayoutItem> pItem);
 
 protected:
 	virtual bool isHidden() const;
@@ -118,7 +122,7 @@ public:
 	};
 
 protected:
-	explicit LineLayoutItem(qs::QSTATUS* pstatus);
+	LineLayoutItem();
 
 public:
 	virtual ~LineLayoutItem();
@@ -128,16 +132,23 @@ public:
 	Unit getUnit() const;
 
 public:
-	void setWidth(double dWidth, Unit unit);
-	qs::QSTATUS setWidth(const WCHAR* pwszWidth);
+	void setWidth(double dWidth,
+				  Unit unit);
 
 public:
 	virtual unsigned int getHeight(unsigned int nFontHeight) const = 0;
-	virtual qs::QSTATUS create(qs::WindowBase* pParent,
-		const std::pair<HFONT, HFONT>& fonts, UINT nId) = 0;
-	virtual qs::QSTATUS destroy() = 0;
-	virtual qs::QSTATUS layout(const RECT& rect, unsigned int nFontHeight) = 0;
-	virtual qs::QSTATUS show(bool bShow) = 0;
+	virtual bool create(qs::WindowBase* pParent,
+						const std::pair<HFONT, HFONT>& fonts,
+						UINT nId) = 0;
+	virtual void destroy() = 0;
+	virtual void layout(const RECT& rect,
+						unsigned int nFontHeight) = 0;
+	virtual void show(bool bShow) = 0;
+
+public:
+	static bool parseWidth(const WCHAR* pwszWidth,
+						   double* pdWidth,
+						   Unit* pUnit);
 
 private:
 	LineLayoutItem(const LineLayoutItem&);

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -44,12 +44,11 @@ public:
 	typedef std::vector<std::pair<qs::WSTRING, Macro*> > ValueList;
 
 public:
-	Template(const ValueList& l, qs::QSTATUS* pstatus);
+	Template(const ValueList& l);
 	~Template();
 
 public:
-	qs::QSTATUS getValue(const TemplateContext& context,
-		qs::WSTRING* pwstrValue) const;
+	qs::wstring_ptr getValue(const TemplateContext& context) const;
 
 private:
 	Template(const Template&);
@@ -79,10 +78,14 @@ public:
 	typedef std::vector<Argument> ArgumentList;
 
 public:
-	TemplateContext(MessageHolderBase* pmh, Message* pMessage,
-		Account* pAccount, Document* pDocument, HWND hwnd,
-		qs::Profile* pProfile, MacroErrorHandler* pErrorHandler,
-		const ArgumentList& listArgument, qs::QSTATUS* pstatus);
+	TemplateContext(MessageHolderBase* pmh,
+					Message* pMessage,
+					Account* pAccount,
+					Document* pDocument,
+					HWND hwnd,
+					qs::Profile* pProfile,
+					MacroErrorHandler* pErrorHandler,
+					const ArgumentList& listArgument);
 	~TemplateContext();
 
 public:
@@ -120,11 +123,11 @@ private:
 class TemplateParser
 {
 public:
-	explicit TemplateParser(qs::QSTATUS* pstatus);
+	TemplateParser();
 	~TemplateParser();
 
 public:
-	qs::QSTATUS parse(qs::Reader* pReader, Template** ppTemplate);
+	std::auto_ptr<Template> parse(qs::Reader* pReader) const;
 
 private:
 	TemplateParser(const TemplateParser&);

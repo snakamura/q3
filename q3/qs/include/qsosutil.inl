@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -371,13 +371,10 @@ inline qs::StgMedium::~StgMedium()
  *
  */
 
-inline qs::Library::Library(const WCHAR* pwszPath, QSTATUS* pstatus) :
+inline qs::Library::Library(const WCHAR* pwszPath) :
 	hInst_(0)
 {
-	DECLARE_QSTATUS();
-	
-	W2T_STATUS(pwszPath, ptszPath);
-	CHECK_QSTATUS_SET(pstatus);
+	W2T(pwszPath, ptszPath);
 	hInst_ = ::LoadLibrary(ptszPath);
 }
 

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -54,24 +54,24 @@ public:
 	virtual const WCHAR* getType(int nIndex) const;
 	virtual const WCHAR* getValue(int nIndex) const;
 	virtual int getIndex(const WCHAR* pwszURI,
-		const WCHAR* pwszLocalName) const;
+						 const WCHAR* pwszLocalName) const;
 	virtual int getIndex(const WCHAR* pwszQName) const;
 	virtual const WCHAR* getType(const WCHAR* pwszURI,
-		const WCHAR* pwszLocalName) const;
+								 const WCHAR* pwszLocalName) const;
 	virtual const WCHAR* getType(const WCHAR* pwszQName) const;
 	virtual const WCHAR* getValue(const WCHAR* pwszURI,
-		const WCHAR* pwszLocalName) const;
+								  const WCHAR* pwszLocalName) const;
 	virtual const WCHAR* getValue(const WCHAR* pwszQName) const;
 
 public:
 	virtual bool isDeclared(int index) const;
 	virtual bool isDeclared(const WCHAR* pwszQName) const;
 	virtual bool isDeclared(const WCHAR* pwszURI,
-		const WCHAR* pwszLocalName) const;
+							const WCHAR* pwszLocalName) const;
 	virtual bool isSpecified(int index) const;
 	virtual bool isSpecified(const WCHAR* pwszQName) const;
 	virtual bool isSpecified(const WCHAR* pwszURI,
-		const WCHAR* pwszLocalName) const;
+							 const WCHAR* pwszLocalName) const;
 
 private:
 	AttributesImpl(const AttributesImpl&);

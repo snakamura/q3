@@ -1,14 +1,12 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qsdialog.h>
-#include <qserror.h>
-#include <qsnew.h>
 #include <qsconv.h>
 
 #include <algorithm>
@@ -47,13 +45,11 @@ public:
 	typedef std::vector<PropertyPage*> PageList;
 
 public:
-	static QSTATUS getPropertySheetMap(PropertySheetMap** ppMap);
+	static PropertySheetMap* getPropertySheetMap();
 	
-	static QSTATUS getModelessList(const ModelessList** ppList);
-	static QSTATUS addModelessPropertySheet(
-		PropertySheetBase* pPropertySheetBase);
-	static QSTATUS removeModelessPropertySheet(
-		PropertySheetBase* pPropertySheetBase);
+	static const ModelessList* getModelessList();
+	static void addModelessPropertySheet(PropertySheetBase* pPropertySheetBase);
+	static void removeModelessPropertySheet(PropertySheetBase* pPropertySheetBase);
 
 private:
 	PropertySheetBase* pThis_;
@@ -72,10 +68,10 @@ private:
 		virtual ~InitializerImpl();
 	
 	public:
-		virtual QSTATUS init();
-		virtual QSTATUS term();
-		virtual QSTATUS initThread();
-		virtual QSTATUS termThread();
+		virtual bool init();
+		virtual void term();
+		virtual bool initThread();
+		virtual void termThread();
 	} init__;
 
 friend class InitializerImpl;
@@ -86,63 +82,28 @@ PropertySheetBaseImpl::PropertySheetMap* qs::PropertySheetBaseImpl::pMap__;
 ThreadLocal* qs::PropertySheetBaseImpl::pModelessList__;
 PropertySheetBaseImpl::InitializerImpl qs::PropertySheetBaseImpl::init__;
 
-QSTATUS qs::PropertySheetBaseImpl::getPropertySheetMap(PropertySheetMap** ppMap)
+PropertySheetBaseImpl::PropertySheetMap* qs::PropertySheetBaseImpl::getPropertySheetMap()
 {
-	assert(ppMap);
-	*ppMap = pMap__;
-	return QSTATUS_SUCCESS;
+	return pMap__;
 }
 
-QSTATUS qs::PropertySheetBaseImpl::getModelessList(const ModelessList** ppList)
+const PropertySheetBaseImpl::ModelessList* qs::PropertySheetBaseImpl::getModelessList()
 {
-	assert(ppList);
-	
-	DECLARE_QSTATUS();
-	
-	*ppList = 0;
-	
-	void* pValue = 0;
-	status = pModelessList__->get(&pValue);
-	CHECK_QSTATUS();
-	
-	*ppList = static_cast<ModelessList*>(pValue);
-	assert(*ppList);
-	
-	return QSTATUS_SUCCESS;
+	return static_cast<ModelessList*>(pModelessList__->get());
 }
 
-QSTATUS qs::PropertySheetBaseImpl::addModelessPropertySheet(
-	PropertySheetBase* pPropertySheetBase)
+void qs::PropertySheetBaseImpl::addModelessPropertySheet(PropertySheetBase* pPropertySheetBase)
 {
-	DECLARE_QSTATUS();
-	
-	void* pValue = 0;
-	status = pModelessList__->get(&pValue);
-	CHECK_QSTATUS();
-	
-	ModelessList* pList = static_cast<ModelessList*>(pValue);
-	assert(pList);
-	
-	return STLWrapper<ModelessList>(*pList).push_back(pPropertySheetBase);
+	ModelessList* pList = static_cast<ModelessList*>(pModelessList__->get());
+	pList->push_back(pPropertySheetBase);
 }
 
-QSTATUS qs::PropertySheetBaseImpl::removeModelessPropertySheet(
-	PropertySheetBase* pPropertySheetBase)
+void qs::PropertySheetBaseImpl::removeModelessPropertySheet(PropertySheetBase* pPropertySheetBase)
 {
-	DECLARE_QSTATUS();
-	
-	void* pValue = 0;
-	status = pModelessList__->get(&pValue);
-	CHECK_QSTATUS();
-	
-	ModelessList* pList = static_cast<ModelessList*>(pValue);
-	assert(pList);
-	
+	ModelessList* pList = static_cast<ModelessList*>(pModelessList__->get());
 	ModelessList::iterator it = std::remove(
 		pList->begin(), pList->end(), pPropertySheetBase);
 	pList->erase(it, pList->end());
-	
-	return QSTATUS_SUCCESS;
 }
 
 qs::PropertySheetBaseImpl::InitializerImpl::InitializerImpl()
@@ -153,59 +114,36 @@ qs::PropertySheetBaseImpl::InitializerImpl::~InitializerImpl()
 {
 }
 
-QSTATUS qs::PropertySheetBaseImpl::InitializerImpl::init()
+bool qs::PropertySheetBaseImpl::InitializerImpl::init()
 {
-	DECLARE_QSTATUS();
-	
-	status = newQsObject(&PropertySheetBaseImpl::pMap__);
-	CHECK_QSTATUS();
-	
-	status = newQsObject(&PropertySheetBaseImpl::pModelessList__);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	PropertySheetBaseImpl::pMap__ = new PropertySheetBaseImpl::PropertySheetMap();
+	PropertySheetBaseImpl::pModelessList__ = new ThreadLocal();
+	return true;
 }
 
-QSTATUS qs::PropertySheetBaseImpl::InitializerImpl::term()
+void qs::PropertySheetBaseImpl::InitializerImpl::term()
 {
 	delete PropertySheetBaseImpl::pModelessList__;
 	PropertySheetBaseImpl::pModelessList__ = 0;
 	
 	delete PropertySheetBaseImpl::pMap__;
 	PropertySheetBaseImpl::pMap__ = 0;
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::PropertySheetBaseImpl::InitializerImpl::initThread()
+bool qs::PropertySheetBaseImpl::InitializerImpl::initThread()
 {
-	DECLARE_QSTATUS();
+	if (!PropertySheetBaseImpl::pMap__->initThread())
+		return false;
 	
-	status = PropertySheetBaseImpl::pMap__->initThread();
-	CHECK_QSTATUS();
+	pModelessList__->set(new ModelessList());
 	
-	ModelessList* pList = 0;
-	status = newObject(&pList);
-	CHECK_QSTATUS();
-	assert(pList);
-	std::auto_ptr<ModelessList> apList(pList);
-	status = pModelessList__->set(pList);
-	CHECK_QSTATUS();
-	apList.release();
-	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::PropertySheetBaseImpl::InitializerImpl::termThread()
+void qs::PropertySheetBaseImpl::InitializerImpl::termThread()
 {
-	void* pValue = 0;
-	QSTATUS status = pModelessList__->get(&pValue);
-	if (status == QSTATUS_SUCCESS)
-		delete static_cast<ModelessList*>(pValue);
-	
+	delete static_cast<ModelessList*>(pModelessList__->get());
 	PropertySheetBaseImpl::pMap__->termThread();
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -216,20 +154,13 @@ QSTATUS qs::PropertySheetBaseImpl::InitializerImpl::termThread()
  */
 
 qs::PropertySheetBase::PropertySheetBase(HINSTANCE hInstResource,
-	const WCHAR* pwszTitle, bool bDeleteThis, QSTATUS* pstatus) :
+										 const WCHAR* pwszTitle,
+										 bool bDeleteThis) :
 	Window(0)
 {
-	assert(pstatus);
+	tstring_ptr tstrTitle(wcs2tcs(pwszTitle));
 	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	DECLARE_QSTATUS();
-	
-	TSTRING tstrTitle = wcs2tcs(pwszTitle);
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	assert(pImpl_);
+	pImpl_ = new PropertySheetBaseImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->bDeleteThis_ = bDeleteThis;
 	memset(&pImpl_->psh_, 0, sizeof(pImpl_->psh_));
@@ -239,7 +170,7 @@ qs::PropertySheetBase::PropertySheetBase(HINSTANCE hInstResource,
 	pImpl_->psh_.dwFlags |= PSH_MAXIMIZE;
 #endif
 	pImpl_->psh_.hInstance = hInstResource;
-	pImpl_->psh_.pszCaption = tstrTitle;
+	pImpl_->psh_.pszCaption = tstrTitle.release();
 	pImpl_->psh_.nPages = 0;
 	pImpl_->psh_.nStartPage = 0;
 	pImpl_->psh_.pfnCallback = propertySheetProc;
@@ -248,8 +179,8 @@ qs::PropertySheetBase::PropertySheetBase(HINSTANCE hInstResource,
 
 qs::PropertySheetBase::~PropertySheetBase()
 {
-	PropertySheetBaseImpl::PropertySheetMap* pMap = 0;
-	PropertySheetBaseImpl::getPropertySheetMap(&pMap);
+	PropertySheetBaseImpl::PropertySheetMap* pMap =
+		PropertySheetBaseImpl::getPropertySheetMap();
 	pMap->removeController(getHandle());
 	
 	if (pImpl_) {
@@ -259,19 +190,18 @@ qs::PropertySheetBase::~PropertySheetBase()
 	}
 }
 
-QSTATUS qs::PropertySheetBase::doModal(HWND hwndParent,
-	ModalHandler* pModalHandler, int* pnRet)
+int qs::PropertySheetBase::doModal(HWND hwndParent)
 {
-	assert(pnRet);
-	
-	DECLARE_QSTATUS();
-	
+	return doModal(hwndParent, 0);
+}
+
+int qs::PropertySheetBase::doModal(HWND hwndParent,
+								   ModalHandler* pModalHandler)
+{
 	if (pModalHandler)
 		pModalHandler = getModalHandler();
 	
-	auto_ptr_array<HPROPSHEETPAGE> aphpsp;
-	status = newArray(pImpl_->listPage_.size(), &aphpsp);
-	CHECK_QSTATUS();
+	auto_ptr_array<HPROPSHEETPAGE> aphpsp(new HPROPSHEETPAGE[pImpl_->listPage_.size()]);
 	
 	pImpl_->psh_.hwndParent = hwndParent;
 	pImpl_->psh_.phpage = aphpsp.get();
@@ -281,42 +211,30 @@ QSTATUS qs::PropertySheetBase::doModal(HWND hwndParent,
 	while (it != pImpl_->listPage_.end())
 		aphpsp[n++] = (*it++)->pImpl_->hpsp_;
 	
-	ModalHandlerInvoker(pModalHandler, hwndParent, &status);
-	CHECK_QSTATUS();
+	ModalHandlerInvoker(pModalHandler, hwndParent);
 	
-	PropertySheetBaseImpl::PropertySheetMap* pMap = 0;
-	status = PropertySheetBaseImpl::getPropertySheetMap(&pMap);
-	CHECK_QSTATUS();
+	PropertySheetBaseImpl::PropertySheetMap* pMap = 
+		PropertySheetBaseImpl::getPropertySheetMap();
 	pMap->setThis(this);
-	*pnRet = ::PropertySheet(&pImpl_->psh_);
 	
-	return QSTATUS_SUCCESS;
+	return ::PropertySheet(&pImpl_->psh_);
 }
 
-QSTATUS qs::PropertySheetBase::add(PropertyPage* pPage)
+void qs::PropertySheetBase::add(PropertyPage* pPage)
 {
 	assert(pPage);
 	
-	DECLARE_QSTATUS();
-	
-	HPROPSHEETPAGE hpsp = 0;
-	status = pPage->create(this, &hpsp);
-	CHECK_QSTATUS();
+	HPROPSHEETPAGE hpsp = pPage->create(this);
 	
 	if (getHandle())
 		PropSheet_AddPage(getHandle(), hpsp);
 	++pImpl_->psh_.nPages;
-	status = STLWrapper<PropertySheetBaseImpl::PageList>
-		(pImpl_->listPage_).push_back(pPage);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	pImpl_->listPage_.push_back(pPage);
 }
 
-QSTATUS qs::PropertySheetBase::setStartPage(int nPage)
+void qs::PropertySheetBase::setStartPage(int nPage)
 {
 	pImpl_->psh_.nStartPage = nPage;
-	return QSTATUS_SUCCESS;
 }
 
 PropertyPage* qs::PropertySheetBase::getPage(int nPage)
@@ -341,53 +259,38 @@ bool qs::PropertySheetBase::isDialogMessage(MSG* pMsg)
 	return sendMessage(PSM_ISDIALOGMESSAGE, 0, reinterpret_cast<LPARAM>(pMsg)) != 0;
 }
 
-QSTATUS qs::PropertySheetBase::processDialogMessage(
-	MSG* pMsg, bool* pbProcessed)
+bool qs::PropertySheetBase::processDialogMessage(MSG* pMsg)
 {
-	assert(pbProcessed);
-	
-	*pbProcessed = false;
-	
 	if ((pMsg->message < WM_KEYFIRST || WM_KEYLAST < pMsg->message) &&
 		(pMsg->message < WM_MOUSEFIRST || WM_MOUSELAST < pMsg->message))
-		return QSTATUS_SUCCESS;
+		return false;
 	
-	DECLARE_QSTATUS();
-	
-	const PropertySheetBaseImpl::ModelessList* pList = 0;
-	status = PropertySheetBaseImpl::getModelessList(&pList);
-	CHECK_QSTATUS();
+	const PropertySheetBaseImpl::ModelessList* pList =
+		PropertySheetBaseImpl::getModelessList();
 	
 	PropertySheetBaseImpl::ModelessList::const_iterator it = pList->begin();
 	while (it != pList->end() && !(*it)->isDialogMessage(pMsg))
 		++it;
-	*pbProcessed = it != pList->end();
-	
-	return QSTATUS_SUCCESS;
+	return it != pList->end();
 }
 
-int CALLBACK qs::propertySheetProc(HWND hwnd, UINT uMsg, LPARAM lParam)
+int CALLBACK qs::propertySheetProc(HWND hwnd,
+								   UINT uMsg,
+								   LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
 	switch (uMsg) {
 	case PSCB_INITIALIZED:
 		{
-			PropertySheetBaseImpl::PropertySheetMap* pMap = 0;
-			status = PropertySheetBaseImpl::getPropertySheetMap(&pMap);
-			CHECK_QSTATUS_VALUE(0);
-			PropertySheetBase* pThis = 0;
-			status = pMap->getThis(&pThis);
-			CHECK_QSTATUS_VALUE(0);
+			PropertySheetBaseImpl::PropertySheetMap* pMap =
+				PropertySheetBaseImpl::getPropertySheetMap();
+			PropertySheetBase* pThis = pMap->getThis();
 			assert(pThis);
-			status = pMap->setController(hwnd, pThis);
-			CHECK_QSTATUS_VALUE(0);
+			pMap->setController(hwnd, pThis);
 			pThis->setHandle(hwnd);
 #if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
 			pThis->centerWindow();
 #endif
-			status = pMap->setThis(0);
-			CHECK_QSTATUS_VALUE(0);
+			pMap->setThis(0);
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && _WIN32_WCE_PSPC
 			Window wndTab(::GetDlgItem(hwnd, 0x3020));
 			wndTab.setStyle(TCS_BOTTOM, TCS_BOTTOM);
@@ -410,20 +313,12 @@ int CALLBACK qs::propertySheetProc(HWND hwnd, UINT uMsg, LPARAM lParam)
  */
 
 qs::PropertyPage::PropertyPage(HINSTANCE hInstResource,
-	UINT nId, bool bDeleteThis, QSTATUS* pstatus) :
-	DialogBase(bDeleteThis, pstatus),
+							   UINT nId,
+							   bool bDeleteThis) :
+	DialogBase(bDeleteThis),
 	pImpl_(0)
 {
-	assert(pstatus);
-	
-	if (*pstatus != QSTATUS_SUCCESS)
-		return;
-	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	assert(pImpl_);
+	pImpl_ = new PropertyPageImpl();
 	pImpl_->nId_ = nId;
 	memset(&pImpl_->psp_, 0, sizeof(pImpl_->psp_));
 	pImpl_->psp_.dwSize = sizeof(pImpl_->psp_);
@@ -445,52 +340,40 @@ PropertySheetBase* qs::PropertyPage::getSheet() const
 	return pImpl_->pSheet_;
 }
 
-QSTATUS qs::PropertyPage::create(
-	PropertySheetBase* pSheet, HPROPSHEETPAGE* phpsp)
+HPROPSHEETPAGE qs::PropertyPage::create(PropertySheetBase* pSheet)
 {
 	assert(pImpl_);
 	assert(!pImpl_->hpsp_);
 	assert(pSheet);
-	assert(phpsp);
 	
 	pImpl_->hpsp_ = ::CreatePropertySheetPage(&pImpl_->psp_);
 	if (!pImpl_->hpsp_)
-		return QSTATUS_FAIL;
+		return 0;
 	
 	pImpl_->pSheet_ = pSheet;
-	*phpsp = pImpl_->hpsp_;
 	
-	return QSTATUS_SUCCESS;
+	return pImpl_->hpsp_;
 }
 
-INT_PTR CALLBACK qs::propertyPageProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK qs::propertyPageProc(HWND hwnd,
+									  UINT uMsg,
+									  WPARAM wParam,
+									  LPARAM lParam)
 {
-	DECLARE_QSTATUS();
-	
-	DialogBaseImpl::DialogMap* pMap = 0;
-	status = DialogBaseImpl::getDialogMap(&pMap);
-	CHECK_QSTATUS();
-	DialogBase* pThis = 0;
-//	status = pMap->findController(hwnd, &pThis);
-//	CHECK_QSTATUS_VALUE(0);
-	status = pMap->getController(hwnd, &pThis);
-	CHECK_QSTATUS_VALUE(0);
+	DialogBaseImpl::DialogMap* pMap = DialogBaseImpl::getDialogMap();
+	DialogBase* pThis = pMap->getController(hwnd);
 	if (!pThis) {
 		HWND hwndSheet = ::GetParent(hwnd);
 		assert(hwndSheet);
-		PropertySheetBaseImpl::PropertySheetMap* pSheetMap = 0;
-		status = PropertySheetBaseImpl::getPropertySheetMap(&pSheetMap);
-		CHECK_QSTATUS_VALUE(0);
-		PropertySheetBase* pSheet = 0;
-		status = pSheetMap->getController(hwndSheet, &pSheet);
-		CHECK_QSTATUS_VALUE(0);
+		PropertySheetBaseImpl::PropertySheetMap* pSheetMap =
+			PropertySheetBaseImpl::getPropertySheetMap();
+		PropertySheetBase* pSheet = pSheetMap->getController(hwndSheet);
 		if (pSheet) {
 			HWND hwndTab = PropSheet_GetTabControl(hwndSheet);
 			int nPage = TabCtrl_GetCurSel(hwndTab);
 			pThis = pSheet->getPage(nPage);
 			if (pThis) {
-				status = pMap->setController(hwnd, pThis);
-				CHECK_QSTATUS_VALUE(0);
+				pMap->setController(hwnd, pThis);
 				pThis->setHandle(hwnd);
 			}
 		}
@@ -502,12 +385,9 @@ INT_PTR CALLBACK qs::propertyPageProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 		{
 			HWND hwndSheet = pThis->getParent();
 			assert(hwndSheet);
-			PropertySheetBaseImpl::PropertySheetMap* pSheetMap = 0;
-			status = PropertySheetBaseImpl::getPropertySheetMap(&pSheetMap);
-			CHECK_QSTATUS_VALUE(0);
-			PropertySheetBase* pSheet = 0;
-			status = pSheetMap->getController(hwndSheet, &pSheet);
-			CHECK_QSTATUS_VALUE(0);
+			PropertySheetBaseImpl::PropertySheetMap* pSheetMap =
+				PropertySheetBaseImpl::getPropertySheetMap();
+			PropertySheetBase* pSheet = pSheetMap->getController(hwndSheet);
 			if (pSheet)
 				pSheet->init();
 		}
@@ -533,19 +413,12 @@ INT_PTR CALLBACK qs::propertyPageProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
  *
  */
 
-qs::DefaultPropertyPage::DefaultPropertyPage(
-	HINSTANCE hInst, UINT nId, QSTATUS* pstatus) :
-	PropertyPage(hInst, nId, false, pstatus),
-	DefaultDialogHandler(pstatus),
-	DefaultCommandHandler(pstatus)
+qs::DefaultPropertyPage::DefaultPropertyPage(HINSTANCE hInst,
+											 UINT nId) :
+	PropertyPage(hInst, nId, false)
 {
-	DECLARE_QSTATUS();
-	
-	status = addCommandHandler(this);
-	CHECK_QSTATUS_SET(pstatus);
-	status = addNotifyHandler(this);
-	CHECK_QSTATUS_SET(pstatus);
-	
+	addCommandHandler(this);
+	addNotifyHandler(this);
 	setDialogHandler(this, false);
 }
 
@@ -553,7 +426,9 @@ qs::DefaultPropertyPage::~DefaultPropertyPage()
 {
 }
 
-INT_PTR qs::DefaultPropertyPage::dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR qs::DefaultPropertyPage::dialogProc(UINT uMsg,
+											WPARAM wParam,
+											LPARAM lParam)
 {
 	BEGIN_DIALOG_HANDLER()
 		HANDLE_DESTROY()
@@ -562,12 +437,14 @@ INT_PTR qs::DefaultPropertyPage::dialogProc(UINT uMsg, WPARAM wParam, LPARAM lPa
 	return DefaultDialogHandler::dialogProc(uMsg, wParam, lParam);
 }
 
-LRESULT qs::DefaultPropertyPage::onCommand(WORD nCode, WORD nId)
+LRESULT qs::DefaultPropertyPage::onCommand(WORD nCode,
+										   WORD nId)
 {
 	return 1;
 }
 
-LRESULT qs::DefaultPropertyPage::onNotify(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qs::DefaultPropertyPage::onNotify(NMHDR* pnmhdr,
+										  bool* pbHandled)
 {
 	BEGIN_NOTIFY_HANDLER()
 		HANDLE_NOTIFY_CODE(PSN_APPLY, onApply)
@@ -582,7 +459,8 @@ LRESULT qs::DefaultPropertyPage::onDestroy()
 	return 0;
 }
 
-LRESULT qs::DefaultPropertyPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
+LRESULT qs::DefaultPropertyPage::onInitDialog(HWND hwndFocus,
+											  LPARAM lParam)
 {
 	return TRUE;
 }
@@ -592,7 +470,8 @@ LRESULT qs::DefaultPropertyPage::onOk()
 	return 0;
 }
 
-LRESULT qs::DefaultPropertyPage::onApply(NMHDR* pnmhdr, bool* pbHandled)
+LRESULT qs::DefaultPropertyPage::onApply(NMHDR* pnmhdr,
+										 bool* pbHandled)
 {
 	return onOk();
 }

@@ -1,15 +1,13 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qsconv.h>
-#include <qserror.h>
 #include <qsfile.h>
-#include <qsnew.h>
 #include <qsosutil.h>
 #include <qsprofile.h>
 #include <qsstl.h>
@@ -49,15 +47,15 @@ qs::Profile::~Profile()
 
 struct qs::RegistryProfileImpl
 {
-	WSTRING wstrKey_;
+	wstring_ptr getKeyName(const WCHAR* pwszSection);
 	
-	WSTRING getKeyName(const WCHAR* pwszSection);
+	wstring_ptr wstrKey_;
 };
 
-WSTRING qs::RegistryProfileImpl::getKeyName(const WCHAR* pwszSection)
+wstring_ptr qs::RegistryProfileImpl::getKeyName(const WCHAR* pwszSection)
 {
 	assert(pwszSection);
-	return concat(wstrKey_, pwszSection);
+	return concat(wstrKey_.get(), pwszSection);
 }
 
 
@@ -68,19 +66,10 @@ WSTRING qs::RegistryProfileImpl::getKeyName(const WCHAR* pwszSection)
  */
 
 qs::RegistryProfile::RegistryProfile(const WCHAR* pwszCompanyName,
-	const WCHAR* pwszAppName, QSTATUS* pstatus)
+									 const WCHAR* pwszAppName)
 {
 	assert(pwszCompanyName);
 	assert(pwszAppName);
-	assert(pstatus);
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	pImpl_->wstrKey_ = 0;
 	
 	const ConcatW c[] = {
 		{ L"Software\\",	-1 },
@@ -89,223 +78,154 @@ qs::RegistryProfile::RegistryProfile(const WCHAR* pwszCompanyName,
 		{ pwszAppName,		-1 },
 		{ L"\\"				-1 }
 	};
-	WSTRING wstrKey = concat(c, countof(c));
-	if (!wstrKey) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
+	wstring_ptr wstrKey = concat(c, countof(c));
+	
+	pImpl_ = new RegistryProfileImpl();
 	pImpl_->wstrKey_ = wstrKey;
 }
 
 qs::RegistryProfile::~RegistryProfile()
 {
-	if (pImpl_) {
-		freeWString(pImpl_->wstrKey_);
-		delete pImpl_;
-		pImpl_ = 0;
-	}
+	delete pImpl_;
+	pImpl_ = 0;
 }
 
-QSTATUS qs::RegistryProfile::getString(const WCHAR* pwszSection,
-	const WCHAR* pwszKey, const WCHAR* pwszDefault, WSTRING* pwstrValue)
+wstring_ptr qs::RegistryProfile::getString(const WCHAR* pwszSection,
+										   const WCHAR* pwszKey,
+										   const WCHAR* pwszDefault)
 {
 	assert(pImpl_);
-	
 	assert(pwszSection);
 	assert(pwszKey);
-	assert(pwstrValue);
 	
 	if (!pwszDefault)
 		pwszDefault = L"";
-	*pwstrValue = 0;
 	
-	DECLARE_QSTATUS();
+	wstring_ptr wstrValue;
 	
-	string_ptr<WSTRING> wstrRegKey(pImpl_->getKeyName(pwszSection));
-	if (!wstrRegKey.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrRegKey(pImpl_->getKeyName(pwszSection));
+	Registry reg(HKEY_CURRENT_USER, wstrRegKey.get());
+	if (!reg)
+		setString(pwszSection, pwszKey, pwszDefault);
+	else
+		reg.getValue(pwszKey, &wstrValue);
 	
-	Registry reg(HKEY_CURRENT_USER, wstrRegKey.get(), &status);
-	CHECK_QSTATUS();
-	if (!reg) {
-		status = setString(pwszSection, pwszKey, pwszDefault);
-		CHECK_QSTATUS();
-		*pwstrValue = allocWString(pwszDefault);
-		if (!*pwstrValue)
-			return QSTATUS_OUTOFMEMORY;
-	}
-	else {
-		LONG nRet = 0;
-		status = reg.getValue(pwszKey, pwstrValue, &nRet);
-		CHECK_QSTATUS();
-		if (nRet != ERROR_SUCCESS) {
-			assert(!*pwstrValue);
-			*pwstrValue = allocWString(pwszDefault);
-		}
-		assert(*pwstrValue);
-	}
+	if (!wstrValue.get())
+		wstrValue = allocWString(pwszDefault);
 	
-	return QSTATUS_SUCCESS;
+	return wstrValue;
 }
 
-QSTATUS qs::RegistryProfile::setString(const WCHAR* pwszSection,
-	const WCHAR* pwszKey, const WCHAR* pwszValue)
+void qs::RegistryProfile::setString(const WCHAR* pwszSection,
+									const WCHAR* pwszKey,
+									const WCHAR* pwszValue)
 {
 	assert(pImpl_);
-	
 	assert(pwszSection);
 	assert(pwszKey);
 	assert(pwszValue);
 	
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrRegKey(pImpl_->getKeyName(pwszSection));
-	if (!wstrRegKey.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	Registry reg(HKEY_CURRENT_USER, wstrRegKey.get(), &status);
-	CHECK_QSTATUS();
-	if (!reg)
-		return QSTATUS_FAIL;
-	return reg.setValue(pwszKey, pwszValue);
+	wstring_ptr wstrRegKey(pImpl_->getKeyName(pwszSection));
+	Registry reg(HKEY_CURRENT_USER, wstrRegKey.get());
+	if (reg)
+		reg.setValue(pwszKey, pwszValue);
 }
 
-QSTATUS qs::RegistryProfile::getInt(const WCHAR* pwszSection,
-	const WCHAR* pwszKey, int nDefault, int* pnValue)
+int qs::RegistryProfile::getInt(const WCHAR* pwszSection,
+								const WCHAR* pwszKey,
+								int nDefault)
 {
 	assert(pImpl_);
-	
 	assert(pwszSection);
 	assert(pwszKey);
-	assert(pnValue);
 	
-	*pnValue = nDefault;
+	int nValue = nDefault;
 	
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrRegKey(pImpl_->getKeyName(pwszSection));
-	if (!wstrRegKey.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	Registry reg(HKEY_CURRENT_USER, wstrRegKey.get(), &status);
-	CHECK_QSTATUS();
-	if (!reg) {
-		status = setInt(pwszSection, pwszKey, nDefault);
-		CHECK_QSTATUS();
+	wstring_ptr wstrRegKey(pImpl_->getKeyName(pwszSection));
+	Registry reg(HKEY_CURRENT_USER, wstrRegKey.get());
+	if (reg) {
+		setInt(pwszSection, pwszKey, nDefault);
 	}
 	else {
-		LONG nRet = 0;
 		DWORD dwValue = 0;
-		status = reg.getValue(pwszKey, &dwValue, &nRet);
-		CHECK_QSTATUS();
-		if (nRet == ERROR_SUCCESS)
-			*pnValue = dwValue;
+		if (reg.getValue(pwszKey, &dwValue))
+			nValue = dwValue;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return nValue;
 }
 
-QSTATUS qs::RegistryProfile::setInt(const WCHAR* pwszSection,
-	const WCHAR* pwszKey, int nValue)
+void qs::RegistryProfile::setInt(const WCHAR* pwszSection,
+								 const WCHAR* pwszKey,
+								 int nValue)
 {
 	assert(pImpl_);
-	
 	assert(pwszSection);
 	assert(pwszKey);
 	
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrRegKey(pImpl_->getKeyName(pwszSection));
-	if (!wstrRegKey.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	Registry reg(HKEY_CURRENT_USER, wstrRegKey.get(), &status);
-	CHECK_QSTATUS();
-	if (!reg)
-		return QSTATUS_FAIL;
-	return reg.setValue(pwszKey, nValue);
+	wstring_ptr wstrRegKey(pImpl_->getKeyName(pwszSection));
+	Registry reg(HKEY_CURRENT_USER, wstrRegKey.get());
+	if (reg)
+		reg.setValue(pwszKey, nValue);
 }
 
-QSTATUS qs::RegistryProfile::getBinary(const WCHAR* pwszSection,
-	const WCHAR* pwszKey, unsigned char* pValue, int* pnSize)
+size_t qs::RegistryProfile::getBinary(const WCHAR* pwszSection,
+									  const WCHAR* pwszKey,
+									  unsigned char* pValue,
+									  size_t nSize)
 {
 	assert(pImpl_);
-	
-	assert(pwszSection);
-	assert(pwszKey);
-	assert(pValue);
-	assert(pnSize);
-	
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrRegKey(pImpl_->getKeyName(pwszSection));
-	if (!wstrRegKey.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	Registry reg(HKEY_CURRENT_USER, wstrRegKey.get(), &status);
-	CHECK_QSTATUS();
-	if (reg) {
-		LONG nRet = 0;
-		status = reg.getValue(pwszKey, pValue, pnSize, &nRet);
-		CHECK_QSTATUS();
-		if (nRet != QSTATUS_SUCCESS)
-			*pnSize = 0;
-	}
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qs::RegistryProfile::setBinary(const WCHAR* pwszSection,
-	const WCHAR* pwszKey, const unsigned char* pValue, int nSize)
-{
-	assert(pImpl_);
-	
 	assert(pwszSection);
 	assert(pwszKey);
 	assert(pValue);
 	
-	DECLARE_QSTATUS();
+	wstring_ptr wstrRegKey(pImpl_->getKeyName(pwszSection));
+	Registry reg(HKEY_CURRENT_USER, wstrRegKey.get());
+	if (reg)
+		reg.getValue(pwszKey, pValue, &nSize);
 	
-	string_ptr<WSTRING> wstrRegKey(pImpl_->getKeyName(pwszSection));
-	if (!wstrRegKey.get())
-		return QSTATUS_OUTOFMEMORY;
+	return nSize;
+}
+
+void qs::RegistryProfile::setBinary(const WCHAR* pwszSection,
+									const WCHAR* pwszKey,
+									const unsigned char* pValue,
+									int nSize)
+{
+	assert(pImpl_);
+	assert(pwszSection);
+	assert(pwszKey);
+	assert(pValue);
 	
-	Registry reg(HKEY_CURRENT_USER, wstrRegKey.get(), &status);
-	CHECK_QSTATUS();
-	if (!reg)
-		return QSTATUS_FAIL;
-	return reg.setValue(pwszKey, pValue, nSize);
+	wstring_ptr wstrRegKey(pImpl_->getKeyName(pwszSection));
+	Registry reg(HKEY_CURRENT_USER, wstrRegKey.get());
+	if (reg)
+		reg.setValue(pwszKey, pValue, nSize);
 }
 
-QSTATUS qs::RegistryProfile::load()
+bool qs::RegistryProfile::load()
 {
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::RegistryProfile::save() const
+bool qs::RegistryProfile::save() const
 {
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::RegistryProfile::deletePermanent()
+bool qs::RegistryProfile::deletePermanent()
 {
 	assert(pImpl_);
 	
-	DECLARE_QSTATUS();
-	
-	WSTRING strRegKey = allocWString(pImpl_->wstrKey_);
-	strRegKey[wcslen(strRegKey) - 1] = L'\0';
-	
-	LONG nRet = 0;
-	status = Registry::deleteKey(HKEY_CURRENT_USER, strRegKey, &nRet);
-	CHECK_QSTATUS();
-	return nRet == ERROR_SUCCESS ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+	wstring_ptr strRegKey(allocWString(pImpl_->wstrKey_.get()));
+	strRegKey.get()[wcslen(strRegKey.get()) - 1] = L'\0';
+	return Registry::deleteKey(HKEY_CURRENT_USER, strRegKey.get());
 }
 
-QSTATUS qs::RegistryProfile::rename(const WCHAR* pwszName)
+bool qs::RegistryProfile::rename(const WCHAR* pwszName)
 {
 	assert(false);
-	return QSTATUS_FAIL;
+	return false;
 }
 
 
@@ -317,19 +237,18 @@ QSTATUS qs::RegistryProfile::rename(const WCHAR* pwszName)
 
 struct qs::AbstractProfileImpl
 {
-	static QSTATUS getEntry(const WCHAR* pwszSection,
-		const WCHAR* pwszKey, WSTRING* pwstrEntry);
+	static wstring_ptr getEntry(const WCHAR* pwszSection,
+								const WCHAR* pwszKey);
 	
-	WSTRING wstrPath_;
-	AbstractProfile::Map* pMap_;
+	wstring_ptr wstrPath_;
+	AbstractProfile::Map map_;
 	CriticalSection cs_;
 };
 
-QSTATUS qs::AbstractProfileImpl::getEntry(const WCHAR* pwszSection,
-	const WCHAR* pwszKey, WSTRING* pwstrEntry)
+wstring_ptr qs::AbstractProfileImpl::getEntry(const WCHAR* pwszSection,
+											  const WCHAR* pwszKey)
 {
-	*pwstrEntry = concat(pwszSection, L"_", pwszKey);
-	return *pwstrEntry ? QSTATUS_SUCCESS : QSTATUS_OUTOFMEMORY;
+	return concat(pwszSection, L"_", pwszKey);
 }
 
 
@@ -339,133 +258,89 @@ QSTATUS qs::AbstractProfileImpl::getEntry(const WCHAR* pwszSection,
  *
  */
 
-qs::AbstractProfile::AbstractProfile(const WCHAR* pwszPath, QSTATUS* pstatus) :
+qs::AbstractProfile::AbstractProfile(const WCHAR* pwszPath) :
 	pImpl_(0)
 {
-	DECLARE_QSTATUS();
+	wstring_ptr wstrPath(allocWString(pwszPath));
 	
-	string_ptr<WSTRING> wstrPath(allocWString(pwszPath));
-	if (!wstrPath.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
-	
-	std::auto_ptr<AbstractProfile::Map> pMap;
-	status = newObject(&pMap);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	pImpl_->wstrPath_ = wstrPath.release();
-	pImpl_->pMap_ = pMap.release();
+	pImpl_ = new AbstractProfileImpl();
+	pImpl_->wstrPath_ = wstrPath;
 }
 
 qs::AbstractProfile::~AbstractProfile()
 {
 	if (pImpl_) {
-		std::for_each(pImpl_->pMap_->begin(), pImpl_->pMap_->end(),
+		std::for_each(pImpl_->map_.begin(), pImpl_->map_.end(),
 			unary_compose_fx_gx(
 				string_free<WSTRING>(),
 				string_free<WSTRING>()));
-		freeWString(pImpl_->wstrPath_);
-		delete pImpl_->pMap_;
 		delete pImpl_;
 		pImpl_ = 0;
 	}
 }
 
-QSTATUS qs::AbstractProfile::getString(const WCHAR* pwszSection,
-	const WCHAR* pwszKey, const WCHAR* pwszDefault, WSTRING* pwstrValue)
+wstring_ptr qs::AbstractProfile::getString(const WCHAR* pwszSection,
+										   const WCHAR* pwszKey,
+										   const WCHAR* pwszDefault)
 {
 	assert(pwszSection);
 	assert(pwszKey);
-	assert(pwstrValue);
 	
-	DECLARE_QSTATUS();
+	if (!pwszDefault)
+		pwszDefault = L"";
 	
-	string_ptr<WSTRING> wstrEntry;
-	status = AbstractProfileImpl::getEntry(pwszSection, pwszKey, &wstrEntry);
-	CHECK_QSTATUS();
+	wstring_ptr wstrEntry(AbstractProfileImpl::getEntry(pwszSection, pwszKey));
 	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
-	AbstractProfile::Map::iterator it = pImpl_->pMap_->find(wstrEntry.get());
-	if (it == pImpl_->pMap_->end()) {
-		if (!pwszDefault)
-			pwszDefault = L"";
-		string_ptr<WSTRING> wstrValue(allocWString(pwszDefault));
-		if (!wstrValue.get())
-			return QSTATUS_OUTOFMEMORY;
-		std::pair<AbstractProfile::Map::iterator, bool> ret;
-		status = STLWrapper<AbstractProfile::Map>(*pImpl_->pMap_).insert(
-			std::make_pair(wstrEntry.get(), wstrValue.get()), &ret);
-		CHECK_QSTATUS();
-		assert(ret.second);
+	AbstractProfile::Map::iterator it = pImpl_->map_.find(wstrEntry.get());
+	if (it == pImpl_->map_.end()) {
+		wstring_ptr wstrValue(allocWString(pwszDefault));
+		it = pImpl_->map_.insert(std::make_pair(wstrEntry.get(), wstrValue.get())).first;
 		wstrEntry.release();
 		wstrValue.release();
-		it = ret.first;
 	}
 	
-	*pwstrValue = allocWString((*it).second);
-	if (!*pwstrValue)
-		return QSTATUS_OUTOFMEMORY;
-	
-	return QSTATUS_SUCCESS;
+	return allocWString((*it).second);
 }
 
-QSTATUS qs::AbstractProfile::setString(const WCHAR* pwszSection,
-	const WCHAR* pwszKey, const WCHAR* pwszValue)
+void qs::AbstractProfile::setString(const WCHAR* pwszSection,
+									const WCHAR* pwszKey,
+									const WCHAR* pwszValue)
 {
 	assert(pwszSection);
 	assert(pwszKey);
 	assert(pwszValue);
 	
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrEntry;
-	status = AbstractProfileImpl::getEntry(pwszSection, pwszKey, &wstrEntry);
-	CHECK_QSTATUS();
-	
-	string_ptr<WSTRING> wstrValue(allocWString(pwszValue));
-	if (!wstrValue.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrEntry(AbstractProfileImpl::getEntry(pwszSection, pwszKey));
+	wstring_ptr wstrValue(allocWString(pwszValue));
 	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
-	AbstractProfile::Map::iterator it = pImpl_->pMap_->find(wstrEntry.get());
-	if (it == pImpl_->pMap_->end()) {
-		std::pair<AbstractProfile::Map::iterator, bool> ret;
-		status = STLWrapper<AbstractProfile::Map>(*pImpl_->pMap_).insert(
-			std::make_pair(wstrEntry.get(), wstrValue.get()), &ret);
-		CHECK_QSTATUS();
-		assert(ret.second);
+	AbstractProfile::Map::iterator it = pImpl_->map_.find(wstrEntry.get());
+	if (it == pImpl_->map_.end()) {
+		pImpl_->map_.insert(std::make_pair(wstrEntry.get(), wstrValue.get()));
 		wstrEntry.release();
+		wstrValue.release();
 	}
 	else {
 		freeWString((*it).second);
-		(*it).second = wstrValue.get();
+		(*it).second = wstrValue.release();
 	}
-	wstrValue.release();
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::AbstractProfile::getInt(const WCHAR* pwszSection,
-	const WCHAR* pwszKey, int nDefault, int* pnValue)
+int qs::AbstractProfile::getInt(const WCHAR* pwszSection,
+								const WCHAR* pwszKey,
+								int nDefault)
 {
 	assert(pwszSection);
 	assert(pwszKey);
-	assert(pnValue);
 	
-	*pnValue = nDefault;
-	
-	DECLARE_QSTATUS();
+	int nValue = nDefault;
 	
 	WCHAR wszDefault[32];
 	swprintf(wszDefault, L"%d", nDefault);
-	string_ptr<WSTRING> wstrValue;
-	status = getString(pwszSection, pwszKey, wszDefault, &wstrValue);
-	CHECK_QSTATUS();
+	wstring_ptr wstrValue(getString(pwszSection, pwszKey, wszDefault));
 	
 	const WCHAR* p = wstrValue.get();
 	if (*p == L'-')
@@ -474,44 +349,44 @@ QSTATUS qs::AbstractProfile::getInt(const WCHAR* pwszSection,
 		while (*p && iswdigit(*p))
 			++p;
 		if (!*p)
-			*pnValue = _wtoi(wstrValue.get());
+			nValue = _wtoi(wstrValue.get());
 	}
 	
-	return QSTATUS_SUCCESS;
+	return nValue;
 }
 
-QSTATUS qs::AbstractProfile::setInt(
-	const WCHAR* pwszSection, const WCHAR* pwszKey, int nValue)
+void qs::AbstractProfile::setInt(const WCHAR* pwszSection,
+								 const WCHAR* pwszKey,
+								 int nValue)
 {
 	assert(pwszSection);
 	assert(pwszKey);
 	
 	WCHAR wszValue[32];
 	swprintf(wszValue, L"%d", nValue);
-	return setString(pwszSection, pwszKey, wszValue);
+	setString(pwszSection, pwszKey, wszValue);
 }
 
-QSTATUS qs::AbstractProfile::getBinary(const WCHAR* pwszSection,
-	const WCHAR* pwszKey, unsigned char* pValue, int* pnSize)
+size_t qs::AbstractProfile::getBinary(const WCHAR* pwszSection,
+									  const WCHAR* pwszKey,
+									  unsigned char* pValue,
+									  size_t nSize)
 {
 	assert(pwszSection);
 	assert(pwszKey);
 	assert(pValue);
-	assert(pnSize);
 	
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrEntry;
-	status = AbstractProfileImpl::getEntry(pwszSection, pwszKey, &wstrEntry);
-	CHECK_QSTATUS();
+	wstring_ptr wstrEntry(AbstractProfileImpl::getEntry(pwszSection, pwszKey));
 	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
-	AbstractProfile::Map::iterator it = pImpl_->pMap_->find(wstrEntry.get());
-	if (it != pImpl_->pMap_->end()) {
+	size_t nResultSize = 0;
+	
+	AbstractProfile::Map::iterator it = pImpl_->map_.find(wstrEntry.get());
+	if (it != pImpl_->map_.end()) {
 		const WCHAR* pwszValue = (*it).second;
 		size_t nLen = wcslen(pwszValue);
-		if (nLen % 2 == 0 && nLen <= static_cast<size_t>(*pnSize*2)) {
+		if (nLen % 2 == 0 && nLen <= static_cast<size_t>(nSize*2)) {
 			unsigned char* p = pValue;
 			WCHAR wsz[3];
 			WCHAR* pEnd = 0;
@@ -520,82 +395,64 @@ QSTATUS qs::AbstractProfile::getBinary(const WCHAR* pwszSection,
 				*p++ = static_cast<unsigned char>(wcstol(wsz, &pEnd, 16));
 				pwszValue += 2;
 			}
-			*pnSize = p - pValue;
+			nResultSize = p - pValue;
 		}
-		else {
-			*pnSize = 0;
-		}
-	}
-	else {
-		*pnSize = 0;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return nResultSize;
 }
 
-QSTATUS qs::AbstractProfile::setBinary(const WCHAR* pwszSection,
-	const WCHAR* pwszKey, const unsigned char* pValue, int nSize)
+void qs::AbstractProfile::setBinary(const WCHAR* pwszSection,
+									const WCHAR* pwszKey,
+									const unsigned char* pValue,
+									int nSize)
 {
 	assert(pwszSection);
 	assert(pwszKey);
 	assert(pValue);
 	
-	string_ptr<WSTRING> wstrValue(allocWString(nSize*2 + 1));
-	if (!wstrValue.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstrValue(allocWString(nSize*2 + 1));
 	for (int n = 0; n < nSize; ++n)
 		swprintf(wstrValue.get() + n*2, L"%02x", *(pValue + n));
 	*(wstrValue.get() + nSize*2) = L'\0';
 	
-	return setString(pwszSection, pwszKey, wstrValue.get());
+	setString(pwszSection, pwszKey, wstrValue.get());
 }
 
-QSTATUS qs::AbstractProfile::load()
+bool qs::AbstractProfile::load()
 {
-	return loadImpl(pImpl_->wstrPath_);
+	Lock<CriticalSection> lock(pImpl_->cs_);
+	return loadImpl(pImpl_->wstrPath_.get());
 }
 
-QSTATUS qs::AbstractProfile::save() const
+bool qs::AbstractProfile::save() const
 {
-	return saveImpl(pImpl_->wstrPath_);
+	Lock<CriticalSection> lock(pImpl_->cs_);
+	return saveImpl(pImpl_->wstrPath_.get());
 }
 
-QSTATUS qs::AbstractProfile::deletePermanent()
+bool qs::AbstractProfile::deletePermanent()
 {
-	W2T(pImpl_->wstrPath_, ptszPath);
-	return ::DeleteFile(ptszPath) ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+	W2T(pImpl_->wstrPath_.get(), ptszPath);
+	return ::DeleteFile(ptszPath) != 0;
 }
 
-QSTATUS qs::AbstractProfile::rename(const WCHAR* pwszName)
+bool qs::AbstractProfile::rename(const WCHAR* pwszName)
 {
-	string_ptr<WSTRING> wstrPath(allocWString(pwszName));
-	if (!wstrPath.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	W2T(pImpl_->wstrPath_, ptszOldPath);
+	wstring_ptr wstrPath(allocWString(pwszName));
+	W2T(pImpl_->wstrPath_.get(), ptszOldPath);
 	W2T(wstrPath.get(), ptszNewPath);
 	if (!::MoveFile(ptszOldPath, ptszNewPath))
-		return QSTATUS_FAIL;
+		return false;
 	
-	freeWString(pImpl_->wstrPath_);
-	pImpl_->wstrPath_ = wstrPath.release();
+	pImpl_->wstrPath_ = wstrPath;
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-AbstractProfile::Map* qs::AbstractProfile::getMap() const
+AbstractProfile::Map& qs::AbstractProfile::getMap() const
 {
-	return pImpl_->pMap_;
-}
-
-void qs::AbstractProfile::lock() const
-{
-	pImpl_->cs_.lock();
-}
-
-void qs::AbstractProfile::unlock() const
-{
-	pImpl_->cs_.unlock();
+	return pImpl_->map_;
 }
 
 
@@ -607,19 +464,21 @@ void qs::AbstractProfile::unlock() const
 
 struct qs::TextProfileImpl
 {
-	static QSTATUS parseLine(const WCHAR* pwszLine,
-		WSTRING* pwstrKey, WSTRING* pwstrValue);
+	static void parseLine(const WCHAR* pwszLine,
+						  wstring_ptr* pwstrKey,
+						  wstring_ptr* pwstrValue);
 };
 
-QSTATUS qs::TextProfileImpl::parseLine(const WCHAR* pwszLine,
-	WSTRING* pwstrKey, WSTRING* pwstrValue)
+void qs::TextProfileImpl::parseLine(const WCHAR* pwszLine,
+									wstring_ptr* pwstrKey,
+									wstring_ptr* pwstrValue)
 {
 	assert(pwszLine);
 	assert(pwstrKey);
 	assert(pwstrValue);
 	
-	*pwstrKey = 0;
-	*pwstrValue = 0;
+	pwstrKey->reset(0);
+	pwstrValue->reset(0);
 	
 	const WCHAR* p = wcschr(pwszLine, L':');
 	if (p && p != pwszLine) {
@@ -630,19 +489,12 @@ QSTATUS qs::TextProfileImpl::parseLine(const WCHAR* pwszLine,
 			++p;
 			while (*p == L' ')
 				++p;
-			string_ptr<WSTRING> wstrKey(
-				allocWString(pwszLine, pKeyEnd - pwszLine + 1));
-			if (!wstrKey.get())
-				return QSTATUS_OUTOFMEMORY;
-			string_ptr<WSTRING> wstrValue(allocWString(p));
-			if (!wstrValue.get())
-				return QSTATUS_OUTOFMEMORY;
-			*pwstrKey = wstrKey.release();
-			*pwstrValue = wstrValue.release();
+			wstring_ptr wstrKey(allocWString(pwszLine, pKeyEnd - pwszLine + 1));
+			wstring_ptr wstrValue(allocWString(p));
+			*pwstrKey = wstrKey;
+			*pwstrValue = wstrValue;
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -652,8 +504,8 @@ QSTATUS qs::TextProfileImpl::parseLine(const WCHAR* pwszLine,
  *
  */
 
-qs::TextProfile::TextProfile(const WCHAR* pwszPath, QSTATUS* pstatus) :
-	AbstractProfile(pwszPath, pstatus)
+qs::TextProfile::TextProfile(const WCHAR* pwszPath) :
+	AbstractProfile(pwszPath)
 {
 }
 
@@ -661,63 +513,59 @@ qs::TextProfile::~TextProfile()
 {
 }
 
-QSTATUS qs::TextProfile::loadImpl(const WCHAR* pwszPath)
+bool qs::TextProfile::loadImpl(const WCHAR* pwszPath)
 {
-	DECLARE_QSTATUS();
-	
 	W2T(pwszPath, ptszPath);
 	if (::GetFileAttributes(ptszPath) == 0xffffffff)
-		return QSTATUS_SUCCESS;
+		return true;
 	
-	FileInputStream stream(pwszPath, &status);
-	CHECK_QSTATUS();
-	InputStreamReader reader(&stream, false, L"utf-8", &status);
-	CHECK_QSTATUS();
-	BufferedReader bufferedReader(&reader, false, &status);
-	CHECK_QSTATUS();
+	FileInputStream stream(pwszPath);
+	if (!stream)
+		return false;
+	InputStreamReader reader(&stream, false, L"utf-8");
+	if (!reader)
+		return false;
+	BufferedReader bufferedReader(&reader, false);
 	
-	string_ptr<WSTRING> wstrLine;
 	while (true) {
-		status = bufferedReader.readLine(&wstrLine);
-		CHECK_QSTATUS();
+		wxstring_ptr wstrLine;
+		if (!bufferedReader.readLine(&wstrLine))
+			return false;
 		if (!wstrLine.get())
 			break;
 		
 		if (*wstrLine.get() != L'#') {
-			string_ptr<WSTRING> wstrKey;
-			string_ptr<WSTRING> wstrValue;
-			status = TextProfileImpl::parseLine(
-				wstrLine.get(), &wstrKey, &wstrValue);
-			CHECK_QSTATUS();
+			wstring_ptr wstrKey;
+			wstring_ptr wstrValue;
+			TextProfileImpl::parseLine(wstrLine.get(), &wstrKey, &wstrValue);
 			
 			if (wstrKey.get()) {
-				std::pair<AbstractProfile::Map::iterator, bool> ret;
-				status = STLWrapper<AbstractProfile::Map>(*getMap()).insert(
-					std::make_pair(wstrKey.get(), wstrValue.get()), &ret);
-				CHECK_QSTATUS();
-				if (ret.second) {
+				if (getMap().insert(std::make_pair(wstrKey.get(), wstrValue.get())).second) {
 					wstrKey.release();
 					wstrValue.release();
 				}
 			}
 		}
-		
-		wstrLine.reset(0);
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::TextProfile::saveImpl(const WCHAR* pwszPath) const
+bool qs::TextProfile::saveImpl(const WCHAR* pwszPath) const
 {
-	Lock<AbstractProfile> lock(*this);
-	
 	class FileRemover
 	{
 	public:
 		FileRemover(const TCHAR* ptszPath) :
-			ptszPath_(ptszPath) {}
-		~FileRemover() { if (ptszPath_) ::DeleteFile(ptszPath_); }
+			ptszPath_(ptszPath)
+		{
+		}
+		
+		~FileRemover()
+		{
+			if (ptszPath_)
+				::DeleteFile(ptszPath_);
+		}
 	
 	public:
 		void release() { ptszPath_ = 0; }
@@ -726,63 +574,60 @@ QSTATUS qs::TextProfile::saveImpl(const WCHAR* pwszPath) const
 		const TCHAR* ptszPath_;
 	};
 	
-	DECLARE_QSTATUS();
-	
 	W2T(pwszPath, ptszOrigPath);
-	
-	string_ptr<WSTRING> wstrPath(concat(pwszPath, L".tmp"));
-	if (!wstrPath.get())
-		return QSTATUS_OUTOFMEMORY;
-	
+	wstring_ptr wstrPath(concat(pwszPath, L".tmp"));
 	W2T(wstrPath.get(), ptszPath);
 	
-	AbstractProfile::Map* pMap = getMap();
+	AbstractProfile::Map& map = getMap();
 	typedef std::vector<std::pair<WSTRING, std::pair<WSTRING, bool> > > EntryList;
 	EntryList listEntry;
-	STLWrapper<EntryList>(listEntry).reserve(pMap->size());
-	AbstractProfile::Map::const_iterator it = pMap->begin();
-	while (it != pMap->end()) {
+	listEntry.reserve(map.size());
+	AbstractProfile::Map::const_iterator it = map.begin();
+	while (it != map.end()) {
 		listEntry.push_back(std::make_pair(
 			(*it).first, std::make_pair((*it).second, false)));
 		++it;
 	}
 	
-	FileOutputStream outputStream(wstrPath.get(), &status);
-	CHECK_QSTATUS();
+	FileOutputStream outputStream(wstrPath.get());
+	if (!outputStream)
+		return false;
 	FileRemover fileRemover(ptszPath);
-	OutputStreamWriter writer(&outputStream, false, L"utf-8", &status);
-	CHECK_QSTATUS();
-	BufferedWriter bufferedWriter(&writer, false, &status);
-	CHECK_QSTATUS();
+	OutputStreamWriter writer(&outputStream, false, L"utf-8");
+	if (!writer)
+		return false;
+	BufferedWriter bufferedWriter(&writer, false);
 	
 	bool bOrigFileExist = ::GetFileAttributes(ptszOrigPath) != 0xffffffff;
+	bool bError = true;
 	if (bOrigFileExist) {
-		FileInputStream inputStream(pwszPath, &status);
-		CHECK_QSTATUS();
-		InputStreamReader reader(&inputStream, false, L"utf-8", &status);
-		CHECK_QSTATUS();
-		BufferedReader bufferedReader(&reader, false, &status);
-		CHECK_QSTATUS();
+		FileInputStream inputStream(pwszPath);
+		if (!inputStream)
+			return false;
+		InputStreamReader reader(&inputStream, false, L"utf-8");
+		if (!reader)
+			return false;
+		BufferedReader bufferedReader(&reader, false);
 		
-		string_ptr<WSTRING> wstrLine;
 		while (true) {
-			status = bufferedReader.readLine(&wstrLine);
-			CHECK_QSTATUS();
-			if (!wstrLine.get())
+			wxstring_ptr wstrLine;
+			if (!bufferedReader.readLine(&wstrLine))
+				return false;
+			if (!wstrLine.get()) {
+				bError = false;
 				break;
+			}
 			
 			bool bWritten = false;
 			if (*wstrLine.get() != L'#') {
-				string_ptr<WSTRING> wstrKey;
-				string_ptr<WSTRING> wstrValue;
-				status = TextProfileImpl::parseLine(wstrLine.get(), &wstrKey, &wstrValue);
-				CHECK_QSTATUS();
+				wstring_ptr wstrKey;
+				wstring_ptr wstrValue;
+				TextProfileImpl::parseLine(wstrLine.get(), &wstrKey, &wstrValue);
 				
 				if (wstrKey.get()) {
 					bWritten = true;
-					if ((status = bufferedWriter.write(wstrKey.get(),
-						wcslen(wstrKey.get()))) != QSTATUS_SUCCESS ||
-						(status = bufferedWriter.write(L": ", 2)) != QSTATUS_SUCCESS)
+					if (bufferedWriter.write(wstrKey.get(), wcslen(wstrKey.get())) == -1 ||
+						bufferedWriter.write(L": ", 2) == -1)
 						break;
 					const WCHAR* pwszValue = 0;
 					EntryList::iterator it = std::lower_bound(
@@ -798,51 +643,47 @@ QSTATUS qs::TextProfile::saveImpl(const WCHAR* pwszPath) const
 					else {
 						pwszValue = wstrValue.get();
 					}
-					if ((status = bufferedWriter.write(pwszValue,
-							wcslen(pwszValue))) != QSTATUS_SUCCESS ||
-						(status = bufferedWriter.newLine()) != QSTATUS_SUCCESS)
+					if (bufferedWriter.write(pwszValue, wcslen(pwszValue)) == -1 ||
+						!bufferedWriter.newLine())
 						break;
 				}
 			}
 			if (!bWritten) {
-				if ((status = bufferedWriter.write(wstrLine.get(),
-						wcslen(wstrLine.get()))) != QSTATUS_SUCCESS ||
-					(status = bufferedWriter.newLine()) != QSTATUS_SUCCESS)
+				if (bufferedWriter.write(wstrLine.get(), wcslen(wstrLine.get())) == -1 ||
+					!bufferedWriter.newLine())
 					break;
 			}
-			
-			wstrLine.reset(0);
 		}
-		if (status == QSTATUS_SUCCESS)
-			status = bufferedReader.close();
+		if (!bError)
+			bError = !bufferedReader.close();
 	}
 	
-	if (status == QSTATUS_SUCCESS) {
+	if (!bError) {
 		EntryList::iterator it = listEntry.begin();
 		while (it != listEntry.end()) {
 			if (!(*it).second.second) {
-				if ((status = bufferedWriter.write((*it).first,
-						wcslen((*it).first))) != QSTATUS_SUCCESS ||
-					(status = bufferedWriter.write(L": ", 2)) != QSTATUS_SUCCESS ||
-					(status = bufferedWriter.write((*it).second.first,
-						wcslen((*it).second.first))) != QSTATUS_SUCCESS ||
-					(status = bufferedWriter.newLine()) != QSTATUS_SUCCESS)
+				if (bufferedWriter.write((*it).first, wcslen((*it).first)) == -1 ||
+					bufferedWriter.write(L": ", 2) == -1 ||
+					bufferedWriter.write((*it).second.first, wcslen((*it).second.first)) == -1 ||
+					!bufferedWriter.newLine()) {
+					bError = true;
 					break;
+				}
 			}
 			++it;
 		}
 	}
-	if (status == QSTATUS_SUCCESS)
-		status = bufferedWriter.close();
+	if (!bError)
+		bError = !bufferedWriter.close();
 	
-	if (status == QSTATUS_SUCCESS) {
+	if (!bError) {
 		if ((bOrigFileExist && !::DeleteFile(ptszOrigPath)) || 
 			!::MoveFile(ptszPath, ptszOrigPath))
-			status = QSTATUS_FAIL;
+			bError = true;
 		fileRemover.release();
 	}
 	
-	return status;
+	return !bError;
 }
 
 
@@ -852,8 +693,8 @@ QSTATUS qs::TextProfile::saveImpl(const WCHAR* pwszPath) const
  *
  */
 
-qs::XMLProfile::XMLProfile(const WCHAR* pwszPath, QSTATUS* pstatus) :
-	AbstractProfile(pwszPath, pstatus)
+qs::XMLProfile::XMLProfile(const WCHAR* pwszPath) :
+	AbstractProfile(pwszPath)
 {
 }
 
@@ -861,103 +702,87 @@ qs::XMLProfile::~XMLProfile()
 {
 }
 
-QSTATUS qs::XMLProfile::loadImpl(const WCHAR* pwszPath)
+bool qs::XMLProfile::loadImpl(const WCHAR* pwszPath)
 {
-	DECLARE_QSTATUS();
-	
 	W2T(pwszPath, ptszPath);
 	if (::GetFileAttributes(ptszPath) == 0xffffffff)
-		return QSTATUS_SUCCESS;
+		return true;
 	
-	XMLReader reader(&status);
-	CHECK_QSTATUS();
-	XMLProfileContentHandler handler(getMap(), &status);
-	CHECK_QSTATUS();
+	XMLReader reader;
+	XMLProfileContentHandler handler(&getMap());
 	reader.setContentHandler(&handler);
-	status = reader.parse(pwszPath);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return reader.parse(pwszPath);
 }
 
-QSTATUS qs::XMLProfile::saveImpl(const WCHAR* pwszPath) const
+bool qs::XMLProfile::saveImpl(const WCHAR* pwszPath) const
 {
-	DECLARE_QSTATUS();
+	TemporaryFileRenamer renamer(pwszPath);
 	
-	TemporaryFileRenamer renamer(pwszPath, &status);
-	CHECK_QSTATUS();
+	FileOutputStream outputStream(renamer.getPath());
+	if (!outputStream)
+		return false;
+	OutputStreamWriter writer(&outputStream, false, L"utf-8");
+	if (!writer)
+		return false;
+	BufferedWriter bufferedWriter(&writer, false);
 	
-	FileOutputStream outputStream(renamer.getPath(), &status);
-	CHECK_QSTATUS();
-	OutputStreamWriter writer(&outputStream, false, L"utf-8", &status);
-	CHECK_QSTATUS();
-	BufferedWriter bufferedWriter(&writer, false, &status);
-	CHECK_QSTATUS();
+	OutputHandler handler(&bufferedWriter);
 	
-	OutputHandler handler(&bufferedWriter, &status);
-	CHECK_QSTATUS();
+	if (!handler.startDocument())
+		return false;
 	
-	status = handler.startDocument();
-	CHECK_QSTATUS();
+	if (!handler.startElement(0, 0, L"profile", DefaultAttributes()))
+		return false;
 	
-	status = handler.startElement(0, 0, L"profile", DefaultAttributes());
-	CHECK_QSTATUS();
-	
-	string_ptr<WSTRING> wstrSection;
+	wstring_ptr wstrSection;
 	size_t nSectionLen = 0;
-	AbstractProfile::Map* pMap = getMap();
-	AbstractProfile::Map::iterator it = pMap->begin();
-	while (it != pMap->end()) {
+	AbstractProfile::Map& map = getMap();
+	AbstractProfile::Map::iterator it = map.begin();
+	while (it != map.end()) {
 		const WCHAR* pwszEntry = (*it).first;
 		if (!wstrSection.get() ||
 			wcsncmp(pwszEntry, wstrSection.get(), nSectionLen) != 0 ||
 			*(pwszEntry + nSectionLen) != L'_') {
 			if (wstrSection.get()) {
-				status = handler.endElement(0, 0, L"section");
-				CHECK_QSTATUS();
+				if (!handler.endElement(0, 0, L"section"))
+					return false;
 			}
 			
 			const WCHAR* p = wcschr(pwszEntry, L'_');
 			assert(p);
-			wstrSection.reset(allocWString(pwszEntry, p - pwszEntry));
-			if (!wstrSection.get())
-				return QSTATUS_OUTOFMEMORY;
+			wstrSection = allocWString(pwszEntry, p - pwszEntry);
 			nSectionLen = wcslen(wstrSection.get());
 			
-			status = handler.startElement(0, 0, L"section",
-				XMLProfileAttributes(wstrSection.get()));
-			CHECK_QSTATUS();
+			if (!handler.startElement(0, 0, L"section",
+				XMLProfileAttributes(wstrSection.get())))
+				return false;
 		}
 		
 		const WCHAR* p = wcschr(pwszEntry, L'_');
 		assert(p);
-		status = handler.startElement(0, 0,
-			L"key", XMLProfileAttributes(p + 1));
-		CHECK_QSTATUS();
-		status = handler.characters((*it).second, 0, wcslen((*it).second));
-		CHECK_QSTATUS();
-		status = handler.endElement(0, 0, L"key");
-		CHECK_QSTATUS();
+		if (!handler.startElement(0, 0, L"key", XMLProfileAttributes(p + 1)))
+			return false;
+		if (!handler.characters((*it).second, 0, wcslen((*it).second)))
+			return false;
+		if (!handler.endElement(0, 0, L"key"))
+			return false;
 		
 		++it;
 	}
 	if (wstrSection.get()) {
-		status = handler.endElement(0, 0, L"section");
-		CHECK_QSTATUS();
+		if (!handler.endElement(0, 0, L"section"))
+			return false;
 	}
-	status = handler.endElement(0, 0, L"profile");
-	CHECK_QSTATUS();
+	if (!handler.endElement(0, 0, L"profile"))
+		return false;
 	
-	status = handler.endDocument();
-	CHECK_QSTATUS();
+	if (!handler.endDocument())
+		return false;
 	
-	status = bufferedWriter.close();
-	CHECK_QSTATUS();
+	if (!bufferedWriter.close())
+		return false;
 	
-	status = renamer.rename();
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return renamer.rename();
 }
 
 
@@ -967,46 +792,31 @@ QSTATUS qs::XMLProfile::saveImpl(const WCHAR* pwszPath) const
  *
  */
 
-qs::XMLProfileContentHandler::XMLProfileContentHandler(
-	AbstractProfile::Map* pMap, QSTATUS* pstatus) :
-	DefaultHandler(pstatus),
+qs::XMLProfileContentHandler::XMLProfileContentHandler(AbstractProfile::Map* pMap) :
 	pMap_(pMap),
-	state_(STATE_ROOT),
-	wstrSection_(0),
-	wstrEntry_(0),
-	pBuffer_(0)
+	state_(STATE_ROOT)
 {
-	DECLARE_QSTATUS();
-	
-	status = newQsObject(&pBuffer_);
-	CHECK_QSTATUS_SET(pstatus);
 }
 
 qs::XMLProfileContentHandler::~XMLProfileContentHandler()
 {
-	freeWString(wstrSection_);
-	freeWString(wstrEntry_);
-	delete pBuffer_;
 }
 
-QSTATUS qs::XMLProfileContentHandler::startElement(
-	const WCHAR* pwszNamespaceURI, const WCHAR* pwszLocalName,
-	const WCHAR* pwszQName, const Attributes& attributes)
+bool qs::XMLProfileContentHandler::startElement(const WCHAR* pwszNamespaceURI,
+												const WCHAR* pwszLocalName,
+												const WCHAR* pwszQName,
+												const Attributes& attributes)
 {
-	DECLARE_QSTATUS();
-	
 	if (wcscmp(pwszLocalName, L"profile") == 0) {
 		if (state_ != STATE_ROOT)
-			return QSTATUS_FAIL;
-		
+			return false;
 		if (attributes.getLength() != 0)
-			return QSTATUS_FAIL;
-		
+			return false;
 		state_ = STATE_PROFILE;
 	}
 	else if (wcscmp(pwszLocalName, L"section") == 0) {
 		if (state_ != STATE_PROFILE)
-			return QSTATUS_FAIL;
+			return false;
 		
 		const WCHAR* pwszName = 0;
 		for (int n = 0; n < attributes.getLength(); ++n) {
@@ -1014,21 +824,19 @@ QSTATUS qs::XMLProfileContentHandler::startElement(
 			if (wcscmp(pwszAttrName, L"name") == 0)
 				pwszName = attributes.getValue(n);
 			else
-				return QSTATUS_FAIL;
+				return false;
 		}
 		if (!pwszName)
-			return QSTATUS_FAIL;
+			return false;
 		
-		assert(!wstrSection_);
+		assert(!wstrSection_.get());
 		wstrSection_ = allocWString(pwszName);
-		if (!wstrSection_)
-			return QSTATUS_OUTOFMEMORY;
 		
 		state_ = STATE_SECTION;
 	}
 	else if (wcscmp(pwszLocalName, L"key") == 0) {
 		if (state_ != STATE_SECTION)
-			return QSTATUS_FAIL;
+			return false;
 		
 		const WCHAR* pwszName = 0;
 		for (int n = 0; n < attributes.getLength(); ++n) {
@@ -1036,81 +844,72 @@ QSTATUS qs::XMLProfileContentHandler::startElement(
 			if (wcscmp(pwszAttrName, L"name") == 0)
 				pwszName = attributes.getValue(n);
 			else
-				return QSTATUS_FAIL;
+				return false;
 		}
 		if (!pwszName)
-			return QSTATUS_FAIL;
+			return false;
 		
-		assert(!wstrEntry_);
-		wstrEntry_ = concat(wstrSection_, L"_", pwszName);
-		if (!wstrEntry_)
-			return QSTATUS_OUTOFMEMORY;
+		assert(!wstrEntry_.get());
+		wstrEntry_ = concat(wstrSection_.get(), L"_", pwszName);
 		
 		state_ = STATE_KEY;
 	}
 	else {
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::XMLProfileContentHandler::endElement(
-	const WCHAR* pwszNamespaceURI, const WCHAR* pwszLocalName,
-	const WCHAR* pwszQName)
+bool qs::XMLProfileContentHandler::endElement(const WCHAR* pwszNamespaceURI,
+											  const WCHAR* pwszLocalName,
+											  const WCHAR* pwszQName)
 {
-	DECLARE_QSTATUS();
-	
 	if (wcscmp(pwszLocalName, L"profile") == 0) {
 		assert(state_ == STATE_PROFILE);
 		state_ = STATE_ROOT;
 	}
 	else if (wcscmp(pwszLocalName, L"section") == 0) {
 		assert(state_ == STATE_SECTION);
-		assert(wstrSection_);
-		freeWString(wstrSection_);
-		wstrSection_ = 0;
+		assert(wstrSection_.get());
+		wstrSection_.reset(0);
 		state_ = STATE_PROFILE;
 	}
 	else if (wcscmp(pwszLocalName, L"key") == 0) {
 		assert(state_ == STATE_KEY);
-		assert(wstrEntry_);
+		assert(wstrEntry_.get());
 		
-		string_ptr<WSTRING> wstrValue(pBuffer_->getString());
-		std::pair<AbstractProfile::Map::iterator, bool> ret;
-		status = STLWrapper<AbstractProfile::Map>(*pMap_).insert(
-			std::make_pair(wstrEntry_, wstrValue.get()), &ret);
-		CHECK_QSTATUS();
-		wstrEntry_ = 0;
+		wstring_ptr wstrValue(buffer_.getString());
+		pMap_->insert(std::make_pair(wstrEntry_.get(), wstrValue.get()));
 		wstrValue.release();
+		wstrEntry_.release();
+		wstrEntry_.reset(0);
 		
 		state_ = STATE_SECTION;
 	}
 	else {
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::XMLProfileContentHandler::characters(
-	const WCHAR* pwsz, size_t nStart, size_t nLength)
+bool qs::XMLProfileContentHandler::characters(const WCHAR* pwsz,
+											  size_t nStart,
+											  size_t nLength)
 {
-	DECLARE_QSTATUS();
-	
 	if (state_ == STATE_KEY) {
-		status = pBuffer_->append(pwsz + nStart, nLength);
-		CHECK_QSTATUS();
+		buffer_.append(pwsz + nStart, nLength);
 	}
 	else {
 		const WCHAR* p = pwsz + nStart;
 		for (size_t n = 0; n < nLength; ++n, ++p) {
 			if (*p != L' ' && *p != L'\t' && *p != '\n')
-				return QSTATUS_FAIL;
+				return false;
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -30,16 +30,19 @@ namespace qmpop3 {
 class Pop3SendSession : public qm::SendSession
 {
 public:
-	Pop3SendSession(qs::QSTATUS* pstatus);
+	Pop3SendSession();
 	virtual ~Pop3SendSession();
 
 public:
-	virtual qs::QSTATUS init(qm::Document* pDocument, qm::Account* pAccount,
-		qm::SubAccount* pSubAccount, qs::Profile* pProfile,
-		qs::Logger* pLogger, qm::SendSessionCallback* pCallback);
-	virtual qs::QSTATUS connect();
-	virtual qs::QSTATUS disconnect();
-	virtual qs::QSTATUS sendMessage(qm::Message* pMessage);
+	virtual bool init(qm::Document* pDocument,
+					  qm::Account* pAccount,
+					  qm::SubAccount* pSubAccount,
+					  qs::Profile* pProfile,
+					  qs::Logger* pLogger,
+					  qm::SendSessionCallback* pCallback);
+	virtual bool connect();
+	virtual bool disconnect();
+	virtual bool sendMessage(qm::Message* pMessage);
 
 private:
 	Pop3SendSession(const Pop3SendSession&);
@@ -52,28 +55,30 @@ private:
 		public Pop3Callback
 	{
 	public:
-		CallbackImpl(qm::SubAccount* pSubAccount, const qm::Security* pSecurity,
-			qm::SendSessionCallback* pSessionCallback, qs::QSTATUS* pstatus);
+		CallbackImpl(qm::SubAccount* pSubAccount,
+					 const qm::Security* pSecurity,
+					 qm::SendSessionCallback* pSessionCallback);
 		virtual ~CallbackImpl();
 	
 	public:
-		qs::QSTATUS setMessage(UINT nId);
+		void setMessage(UINT nId);
 	
 	public:
 		virtual bool isCanceled(bool bForce) const;
-		virtual qs::QSTATUS initialize();
-		virtual qs::QSTATUS lookup();
-		virtual qs::QSTATUS connecting();
-		virtual qs::QSTATUS connected();
+		virtual void initialize();
+		virtual void lookup();
+		virtual void connecting();
+		virtual void connected();
 	
 	public:
-		virtual qs::QSTATUS getUserInfo(qs::WSTRING* pwstrUserName,
-			qs::WSTRING* pwstrPassword);
-		virtual qs::QSTATUS setPassword(const WCHAR* pwszPassword);
+		virtual bool getUserInfo(qs::wstring_ptr* pwstrUserName,
+								 qs::wstring_ptr* pwstrPassword);
+		virtual void setPassword(const WCHAR* pwszPassword);
 		
-		virtual qs::QSTATUS authenticating();
-		virtual qs::QSTATUS setRange(unsigned int nMin, unsigned int nMax);
-		virtual qs::QSTATUS setPos(unsigned int nPos);
+		virtual void authenticating();
+		virtual void setRange(unsigned int nMin,
+							  unsigned int nMax);
+		virtual void setPos(unsigned int nPos);
 	
 	private:
 		CallbackImpl(const CallbackImpl&);
@@ -85,8 +90,8 @@ private:
 	};
 
 private:
-	Pop3* pPop3_;
-	CallbackImpl* pCallback_;
+	std::auto_ptr<Pop3> pPop3_;
+	std::auto_ptr<CallbackImpl> pCallback_;
 	qm::Account* pAccount_;
 	qm::SubAccount* pSubAccount_;
 	qs::Logger* pLogger_;
@@ -103,15 +108,14 @@ private:
 class Pop3SendSessionUI : public qm::SendSessionUI
 {
 public:
-	Pop3SendSessionUI(qs::QSTATUS* pstatus);
+	Pop3SendSessionUI();
 	virtual ~Pop3SendSessionUI();
 
 public:
 	virtual const WCHAR* getClass();
-	virtual qs::QSTATUS getDisplayName(qs::WSTRING* pwstrName);
+	virtual qs::wstring_ptr getDisplayName();
 	virtual short getDefaultPort();
-	virtual qs::QSTATUS createPropertyPage(
-		qm::SubAccount* pSubAccount, qs::PropertyPage** ppPage);
+	virtual std::auto_ptr<qs::PropertyPage> createPropertyPage(qm::SubAccount* pSubAccount);
 
 private:
 	Pop3SendSessionUI(const Pop3SendSessionUI&);
@@ -134,8 +138,8 @@ public:
 	virtual ~Pop3SendSessionFactory();
 
 public:
-	virtual qs::QSTATUS createSession(qm::SendSession** ppSendSession);
-	virtual qs::QSTATUS createUI(qm::SendSessionUI** ppUI);
+	virtual std::auto_ptr<qm::SendSession> createSession();
+	virtual std::auto_ptr<qm::SendSessionUI> createUI();
 
 private:
 	Pop3SendSessionFactory(const Pop3SendSessionFactory&);

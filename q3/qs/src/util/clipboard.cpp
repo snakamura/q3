@@ -1,13 +1,12 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qsosutil.h>
-#include <qserror.h>
 #include <qswindow.h>
 #include <qsconv.h>
 
@@ -25,13 +24,10 @@ using namespace qs;
  *
  */
 
-qs::Clipboard::Clipboard(HWND hwnd, QSTATUS* pstatus) :
+qs::Clipboard::Clipboard(HWND hwnd) :
 	bOpen_(false)
 {
-	assert(pstatus);
-	
 	bOpen_ = ::OpenClipboard(hwnd) != 0;
-	*pstatus = bOpen_ ? QSTATUS_SUCCESS : QSTATUS_FAIL;
 }
 
 qs::Clipboard::~Clipboard()
@@ -39,67 +35,61 @@ qs::Clipboard::~Clipboard()
 	close();
 }
 
-QSTATUS qs::Clipboard::close()
+bool qs::Clipboard::operator!() const
+{
+	return !bOpen_;
+}
+
+bool qs::Clipboard::close()
 {
 	if (bOpen_)
-		return ::CloseClipboard() ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+		return ::CloseClipboard() != 0;
 	else
-		return QSTATUS_SUCCESS;
+		return true;
 }
 
-QSTATUS qs::Clipboard::getData(UINT nFormat, HANDLE* phMem) const
+HANDLE qs::Clipboard::getData(UINT nFormat) const
 {
-	assert(phMem);
-	*phMem = ::GetClipboardData(nFormat);
-	return *phMem ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+	return ::GetClipboardData(nFormat);
 }
 
-QSTATUS qs::Clipboard::setData(UINT nFormat, HANDLE hMem)
+HANDLE qs::Clipboard::setData(UINT nFormat,
+							  HANDLE hMem)
 {
-	return setData(nFormat, hMem, 0);
+	return ::SetClipboardData(nFormat, hMem);
 }
 
-QSTATUS qs::Clipboard::setData(UINT nFormat, HANDLE hMem, HANDLE* phMem)
+bool qs::Clipboard::empty() const
 {
-	HANDLE hMemPrevious = ::SetClipboardData(nFormat, hMem);
-	if (phMem)
-		*phMem = hMemPrevious;
-	return hMemPrevious ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+	return ::EmptyClipboard() != 0;
 }
 
-QSTATUS qs::Clipboard::empty() const
+bool qs::Clipboard::isFormatAvailable(UINT nFormat)
 {
-	return ::EmptyClipboard() ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+	return ::IsClipboardFormatAvailable(nFormat) != 0;
 }
 
-QSTATUS qs::Clipboard::isFormatAvailable(UINT nFormat, bool* pbAvailable)
-{
-	assert(pbAvailable);
-	*pbAvailable = ::IsClipboardFormatAvailable(nFormat) != 0;
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qs::Clipboard::setText(const WCHAR* pwszText)
+bool qs::Clipboard::setText(const WCHAR* pwszText)
 {
 	return Clipboard::setText(0, pwszText);
 }
 
-QSTATUS qs::Clipboard::setText(HWND hwnd, const WCHAR* pwszText)
+bool qs::Clipboard::setText(HWND hwnd,
+							const WCHAR* pwszText)
 {
-	DECLARE_QSTATUS();
-	
 	if (!hwnd) {
 		Window* pMainWindow = getMainWindow();
 		if (!pMainWindow)
-			return QSTATUS_FAIL;
+			return false;
 		hwnd = pMainWindow->getHandle();
 	}
 	
-	Clipboard clipboard(hwnd, &status);
-	CHECK_QSTATUS();
+	Clipboard clipboard(hwnd);
+	if (!clipboard)
+		return false;
 	
-	status = clipboard.empty();
-	CHECK_QSTATUS();
+	if (!clipboard.empty())
+		return false;
 	
 	int nTextLen = wcslen(pwszText);
 	size_t nCount = std::count(pwszText, pwszText + nTextLen, L'\n');
@@ -108,23 +98,21 @@ QSTATUS qs::Clipboard::setText(HWND hwnd, const WCHAR* pwszText)
 #ifdef _WIN32_WCE
 	HANDLE hMem = ::LocalAlloc(LMEM_FIXED, (nTextLen + nCount + 1)*sizeof(WCHAR));
 	if (!hMem)
-		return QSTATUS_OUTOFMEMORY;
+		return false;
 	WCHAR* pwszMem = reinterpret_cast<WCHAR*>(hMem);
 #else // _WIN32_WCE
 	HANDLE hMem = ::GlobalAlloc(LMEM_FIXED, (nTextLen + nCount + 1)*sizeof(WCHAR));
 	if (!hMem)
-		return QSTATUS_OUTOFMEMORY;
+		return false;
 	WCHAR* pwszMem = static_cast<WCHAR*>(::GlobalLock(hMem));
 #endif
 	const WCHAR* pSrc = pwszText;
 	WCHAR* pDst = pwszMem;
 #else // UNICODE
-	string_ptr<TSTRING> tstrText(wcs2tcs(pwszText));
-	if (!tstrText.get())
-		return QSTATUS_OUTOFMEMORY;
+	tstring_ptr tstrText(wcs2tcs(pwszText));
 	HANDLE hMem = ::GlobalAlloc(LMEM_FIXED, (strlen(tstrText.get()) + nCount + 1)*sizeof(CHAR));
 	if (!hMem)
-		return QSTATUS_OUTOFMEMORY;
+		return false;
 	TCHAR* ptszMem = static_cast<TCHAR*>(::GlobalLock(hMem));
 	const TCHAR* pSrc = tstrText.get();
 	TCHAR* pDst = ptszMem;
@@ -140,45 +128,39 @@ QSTATUS qs::Clipboard::setText(HWND hwnd, const WCHAR* pwszText)
 	::GlobalUnlock(hMem);
 #endif
 	
-	status = clipboard.setData(CF_QSTEXT, hMem);
-	if (status != QSTATUS_SUCCESS) {
+	if (!clipboard.setData(CF_QSTEXT, hMem)) {
 #ifdef _WIN32_WCE
 		::LocalFree(hMem);
 #else
 		::GlobalFree(hMem);
 #endif
-		return status;
+		return false;
 	}
-	return QSTATUS_SUCCESS;
+	
+	return true;
 }
 
-QSTATUS qs::Clipboard::getText(WSTRING* pwstrText)
+wstring_ptr qs::Clipboard::getText()
 {
-	return Clipboard::getText(0, pwstrText);
+	return Clipboard::getText(0);
 }
 
-QSTATUS qs::Clipboard::getText(HWND hwnd, WSTRING* pwstrText)
+wstring_ptr qs::Clipboard::getText(HWND hwnd)
 {
-	assert(pwstrText);
-	
-	*pwstrText = 0;
-	
-	DECLARE_QSTATUS();
-	
 	if (!hwnd) {
 		Window* pMainWindow = getMainWindow();
 		if (!pMainWindow)
-			return QSTATUS_FAIL;
+			return 0;
 		hwnd = pMainWindow->getHandle();
 	}
 	
-	Clipboard clipboard(hwnd, &status);
-	CHECK_QSTATUS();
+	Clipboard clipboard(hwnd);
+	if (!clipboard)
+		return 0;
 	
-	HANDLE hMem = 0;
-	status = clipboard.getData(CF_QSTEXT, &hMem);
-	CHECK_QSTATUS();
-	assert(hMem);
+	HANDLE hMem = clipboard.getData(CF_QSTEXT);
+	if (!hMem)
+		return 0;
 	
 	const TCHAR* psz = 0;
 	
@@ -189,11 +171,11 @@ QSTATUS qs::Clipboard::getText(HWND hwnd, WSTRING* pwstrText)
 #endif
 	
 #ifdef UNICODE
-	string_ptr<WSTRING> wstrText(allocWString(wcslen(psz) + 1));
+	wstring_ptr wstrText(allocWString(wcslen(psz) + 1));
 	const WCHAR* pSrc = psz;
 	WCHAR* pDst = wstrText.get();
 #else
-	string_ptr<WSTRING> wstrText(tcs2wcs(psz));
+	wstring_ptr wstrText(tcs2wcs(psz));
 	const WCHAR* pSrc = wstrText.get();
 	WCHAR* pDst = wstrText.get();
 #endif
@@ -208,7 +190,5 @@ QSTATUS qs::Clipboard::getText(HWND hwnd, WSTRING* pwstrText)
 	::GlobalUnlock(hMem);
 #endif // _WIN32_WCE
 	
-	*pwstrText = wstrText.release();
-	
-	return QSTATUS_SUCCESS;
+	return wstrText;
 }

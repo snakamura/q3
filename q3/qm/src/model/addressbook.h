@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -58,31 +58,27 @@ public:
 	typedef std::vector<std::pair<const WCHAR*, AddressBookEntry*> > EntryMap;
 
 public:
-	AddressBook(qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	AddressBook(qs::Profile* pProfile);
 	~AddressBook();
 
 public:
-	qs::QSTATUS getEntries(const EntryList** ppList);
-	qs::QSTATUS getCategories(CategoryList* pList);
-	qs::QSTATUS getAddress(const WCHAR* pwszAlias,
-		const AddressBookAddress** ppAddress);
-	qs::QSTATUS expandAlias(const WCHAR* pwszAddresses,
-		qs::WSTRING* pwstrAddresses);
-	qs::QSTATUS getEntry(const WCHAR* pwszAddress,
-		const AddressBookEntry** ppEntry);
+	const EntryList& getEntries();
+	void getCategories(CategoryList* pList);
+	const AddressBookAddress* getAddress(const WCHAR* pwszAlias);
+	qs::wstring_ptr expandAlias(const WCHAR* pwszAddresses);
+	const AddressBookEntry* getEntry(const WCHAR* pwszAddress);
 	void setEnableReload(bool bEnable);
 
 public:
-	qs::QSTATUS addEntry(AddressBookEntry* pEntry);
-	qs::QSTATUS getCategory(const WCHAR* pwszCategory,
-		const AddressBookCategory** ppCategory);
+	void addEntry(std::auto_ptr<AddressBookEntry> pEntry);
+	const AddressBookCategory* getCategory(const WCHAR* pwszCategory);
 
 private:
-	qs::QSTATUS initWAB();
-	qs::QSTATUS load();
-	qs::QSTATUS loadWAB();
+	bool initWAB();
+	bool load();
+	bool loadWAB();
 	void clear(unsigned int nType);
-	qs::QSTATUS prepareEntryMap();
+	void prepareEntryMap();
 
 private:
 	AddressBook(const AddressBook&);
@@ -93,7 +89,7 @@ private:
 	class IMAPIAdviseSinkImpl : public IMAPIAdviseSink
 	{
 	public:
-		IMAPIAdviseSinkImpl(AddressBook* pAddressBook, qs::QSTATUS* pstatus);
+		explicit IMAPIAdviseSinkImpl(AddressBook* pAddressBook);
 		~IMAPIAdviseSinkImpl();
 	
 	public:
@@ -102,7 +98,8 @@ private:
 		STDMETHOD_(ULONG, Release)();
 	
 	public:
-		STDMETHOD_(ULONG, OnNotify)(ULONG cNotif, LPNOTIFICATION lpNotifications);
+		STDMETHOD_(ULONG, OnNotify)(ULONG cNotif,
+									LPNOTIFICATION lpNotifications);
 	
 	private:
 		IMAPIAdviseSinkImpl(const IMAPIAdviseSinkImpl&);
@@ -119,14 +116,17 @@ private:
 		public qs::DefaultWindowHandler
 	{
 	public:
-		NotificationWindow(AddressBook* pAddressBook, qs::QSTATUS* pstatus);
+		explicit NotificationWindow(AddressBook* pAddressBook);
 		virtual ~NotificationWindow();
 	
 	public:
-		virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+		virtual LRESULT windowProc(UINT uMsg,
+								   WPARAM wParam,
+								   LPARAM lParam);
 	
 	protected:
-		LRESULT onDBNotification(WPARAM wParam, LPARAM lParam);
+		LRESULT onDBNotification(WPARAM wParam,
+								 LPARAM lParam);
 	
 	private:
 		NotificationWindow(const NotificationWindow&);
@@ -170,7 +170,7 @@ public:
 	typedef std::vector<AddressBookAddress*> AddressList;
 
 public:
-	AddressBookEntry(bool bWAB, qs::QSTATUS* pstatus);
+	explicit AddressBookEntry(bool bWAB);
 	~AddressBookEntry();
 
 public:
@@ -180,9 +180,9 @@ public:
 	const AddressList& getAddresses() const;
 
 public:
-	void setName(qs::WSTRING wstrName);
-	void setSortKey(qs::WSTRING wstrSortKey);
-	qs::QSTATUS addAddress(AddressBookAddress* pAddress);
+	void setName(qs::wstring_ptr wstrName);
+	void setSortKey(qs::wstring_ptr wstrSortKey);
+	void addAddress(std::auto_ptr<AddressBookAddress> pAddress);
 
 private:
 	AddressBookEntry(const AddressBookEntry&);
@@ -190,8 +190,8 @@ private:
 
 private:
 	bool bWAB_;
-	qs::WSTRING wstrName_;
-	qs::WSTRING wstrSortKey_;
+	qs::wstring_ptr wstrName_;
+	qs::wstring_ptr wstrSortKey_;
 	AddressList listAddress_;
 };
 
@@ -209,9 +209,11 @@ public:
 
 public:
 	AddressBookAddress(const AddressBookEntry* pEntry,
-		const WCHAR* pwszAlias, const CategoryList& listCategory,
-		const WCHAR* pwszComment, const WCHAR* pwszCertificate,
-		bool bRFC2822, qs::QSTATUS* pstatus);
+					   const WCHAR* pwszAlias,
+					   const CategoryList& listCategory,
+					   const WCHAR* pwszComment,
+					   const WCHAR* pwszCertificate,
+					   bool bRFC2822);
 	~AddressBookAddress();
 
 public:
@@ -222,10 +224,10 @@ public:
 	const WCHAR* getComment() const;
 	const WCHAR* getCertificate() const;
 	bool isRFC2822() const;
-	qs::QSTATUS getValue(qs::WSTRING* pwstrValue) const;
+	qs::wstring_ptr getValue() const;
 
 public:
-	void setAddress(qs::WSTRING wstrAddress);
+	void setAddress(qs::wstring_ptr wstrAddress);
 
 private:
 	AddressBookAddress(const AddressBookAddress&);
@@ -233,11 +235,11 @@ private:
 
 private:
 	const AddressBookEntry* pEntry_;
-	qs::WSTRING wstrAddress_;
-	qs::WSTRING wstrAlias_;
+	qs::wstring_ptr wstrAddress_;
+	qs::wstring_ptr wstrAlias_;
 	CategoryList listCategory_;
-	qs::WSTRING wstrComment_;
-	qs::WSTRING wstrCertificate_;
+	qs::wstring_ptr wstrComment_;
+	qs::wstring_ptr wstrCertificate_;
 	bool bRFC2822_;
 };
 
@@ -251,7 +253,7 @@ private:
 class AddressBookCategory
 {
 public:
-	AddressBookCategory(const WCHAR* pwszName, qs::QSTATUS* pstatus);
+	explicit AddressBookCategory(const WCHAR* pwszName);
 	~AddressBookCategory();
 
 public:
@@ -262,7 +264,7 @@ private:
 	AddressBookCategory& operator=(const AddressBookCategory&);
 
 private:
-	qs::WSTRING wstrName_;
+	qs::wstring_ptr wstrName_;
 };
 
 
@@ -275,17 +277,20 @@ private:
 class AddressBookContentHandler : public qs::DefaultHandler
 {
 public:
-	AddressBookContentHandler(AddressBook* pAddressBook, qs::QSTATUS* pstatus);
+	explicit AddressBookContentHandler(AddressBook* pAddressBook);
 	virtual ~AddressBookContentHandler();
 
 public:
-	virtual qs::QSTATUS startElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName,
-		const qs::Attributes& attributes);
-	virtual qs::QSTATUS endElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName);
-	virtual qs::QSTATUS characters(const WCHAR* pwsz,
-		size_t nStart, size_t nLength);
+	virtual bool startElement(const WCHAR* pwszNamespaceURI,
+							  const WCHAR* pwszLocalName,
+							  const WCHAR* pwszQName,
+							  const qs::Attributes& attributes);
+	virtual bool endElement(const WCHAR* pwszNamespaceURI,
+							const WCHAR* pwszLocalName,
+							const WCHAR* pwszQName);
+	virtual bool characters(const WCHAR* pwsz,
+							size_t nStart,
+							size_t nLength);
 
 private:
 	enum State {
@@ -305,7 +310,7 @@ private:
 private:
 	AddressBook* pAddressBook_;
 	State state_;
-	qs::StringBuffer<qs::WSTRING>* pBuffer_;
+	qs::StringBuffer<qs::WSTRING> buffer_;
 	AddressBookEntry* pEntry_;
 	AddressBookAddress* pAddress_;
 };

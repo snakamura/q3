@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -25,25 +25,34 @@ namespace qscrypto {
 class SSLSocketImpl : public qs::SSLSocket
 {
 public:
-	SSLSocketImpl(qs::Socket* pSocket, bool bDeleteSocket,
-		qs::SSLSocketCallback* pCallback,
-		qs::Logger* pLogger, qs::QSTATUS* pstatus);
+	SSLSocketImpl(qs::Socket* pSocket,
+				  bool bDeleteSocket,
+				  qs::SSLSocketCallback* pCallback,
+				  qs::Logger* pLogger);
 	virtual ~SSLSocketImpl();
+
+public:
+	bool operator!() const;
 
 public:
 	virtual long getTimeout() const;
 	virtual unsigned int getLastError() const;
 	virtual void setLastError(unsigned int nError);
-	virtual qs::QSTATUS close();
-	virtual qs::QSTATUS recv(char* p, int* pnLen, int nFlags);
-	virtual qs::QSTATUS send(const char* p, int* pnLen, int nFlags);
-	virtual qs::QSTATUS select(int* pnSelect);
-	virtual qs::QSTATUS select(int* pnSelect, long nTimeout);
-	virtual qs::QSTATUS getInputStream(qs::InputStream** ppStream);
-	virtual qs::QSTATUS getOutputStream(qs::OutputStream** ppStream);
+	virtual bool close();
+	virtual int recv(char* p,
+					 int nLen,
+					 int nFlags);
+	virtual int send(const char* p,
+					 int nLen,
+					 int nFlags);
+	virtual int select(int nSelect);
+	virtual int select(int nSelect,
+					   long nTimeout);
+	virtual qs::InputStream* getInputStream();
+	virtual qs::OutputStream* getOutputStream();
 
 private:
-	qs::QSTATUS connect(qs::Socket* pSocket);
+	bool connect(qs::Socket* pSocket);
 
 private:
 	SSLSocketImpl(const SSLSocketImpl&);
@@ -74,9 +83,10 @@ public:
 	virtual ~SSLSocketFactoryImpl();
 
 public:
-	virtual qs::QSTATUS createSSLSocket(qs::Socket* pSocket,
-		bool bDeleteSocket, qs::SSLSocketCallback* pCallback,
-		qs::Logger* pLogger, qs::SSLSocket** ppSSLSocket);
+	virtual std::auto_ptr<qs::SSLSocket> createSSLSocket(qs::Socket* pSocket,
+														 bool bDeleteSocket,
+														 qs::SSLSocketCallback* pCallback,
+														 qs::Logger* pLogger);
 
 private:
 	SSLSocketFactoryImpl(const SSLSocketFactoryImpl&);

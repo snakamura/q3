@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -33,9 +33,10 @@ class MessagePtr;
 class URI
 {
 public:
-	static qs::QSTATUS getMessageHolder(const WCHAR* pwszURI,
-		Document* pDocument, MessagePtr* pptr);
-	static qs::QSTATUS getURI(MessageHolder* pmh, qs::WSTRING* pwstrURI);
+	static bool getMessageHolder(const WCHAR* pwszURI,
+								 Document* pDocument,
+								 MessagePtr* pptr);
+	static qs::wstring_ptr getURI(MessageHolder* pmh);
 };
 
 }

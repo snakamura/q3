@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -36,9 +36,9 @@ qs::Certificate::~Certificate()
 {
 }
 
-QSTATUS qs::Certificate::getInstance(Certificate** ppCertificate)
+std::auto_ptr<Certificate> qs::Certificate::getInstance()
 {
-	return CryptoFactory::getFactory()->createCertificate(ppCertificate);
+	return CryptoFactory::getFactory()->createCertificate();
 }
 
 
@@ -52,9 +52,9 @@ qs::PrivateKey::~PrivateKey()
 {
 }
 
-QSTATUS qs::PrivateKey::getInstance(PrivateKey** ppPrivateKey)
+std::auto_ptr<PrivateKey> qs::PrivateKey::getInstance()
 {
-	return CryptoFactory::getFactory()->createPrivateKey(ppPrivateKey);
+	return CryptoFactory::getFactory()->createPrivateKey();
 }
 
 
@@ -68,9 +68,9 @@ qs::PublicKey::~PublicKey()
 {
 }
 
-QSTATUS qs::PublicKey::getInstance(PublicKey** ppPublicKey)
+std::auto_ptr<PublicKey> qs::PublicKey::getInstance()
 {
-	return CryptoFactory::getFactory()->createPublicKey(ppPublicKey);
+	return CryptoFactory::getFactory()->createPublicKey();
 }
 
 
@@ -95,9 +95,9 @@ qs::Store::~Store()
 {
 }
 
-QSTATUS qs::Store::getInstance(Store** ppStore)
+std::auto_ptr<Store> qs::Store::getInstance()
 {
-	return CryptoFactory::getFactory()->createStore(ppStore);
+	return CryptoFactory::getFactory()->createStore();
 }
 
 
@@ -111,9 +111,9 @@ qs::Cipher::~Cipher()
 {
 }
 
-QSTATUS qs::Cipher::getInstance(const WCHAR* pwszName, Cipher** ppCipher)
+std::auto_ptr<Cipher> qs::Cipher::getInstance(const WCHAR* pwszName)
 {
-	return CryptoFactory::getFactory()->createCipher(pwszName, ppCipher);
+	return CryptoFactory::getFactory()->createCipher(pwszName);
 }
 
 
@@ -127,9 +127,9 @@ qs::SMIMEUtility::~SMIMEUtility()
 {
 }
 
-QSTATUS qs::SMIMEUtility::getInstance(SMIMEUtility** ppSMIMEUtility)
+std::auto_ptr<SMIMEUtility> qs::SMIMEUtility::getInstance()
 {
-	return CryptoFactory::getFactory()->createSMIMEUtility(ppSMIMEUtility);
+	return CryptoFactory::getFactory()->createSMIMEUtility();
 }
 
 
@@ -177,16 +177,14 @@ CryptoFactory* qs::CryptoFactory::getFactory()
 	return CryptoFactoryImpl::pFactory__;
 }
 
-QSTATUS qs::CryptoFactory::regist(CryptoFactory* pFactory)
+void qs::CryptoFactory::registerFactory(CryptoFactory* pFactory)
 {
 	assert(!CryptoFactoryImpl::pFactory__);
 	CryptoFactoryImpl::pFactory__ = pFactory;
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::CryptoFactory::unregist(CryptoFactory* pFactory)
+void qs::CryptoFactory::unregisterFactory(CryptoFactory* pFactory)
 {
 	assert(CryptoFactoryImpl::pFactory__ == pFactory);
 	CryptoFactoryImpl::pFactory__ = 0;
-	return QSTATUS_SUCCESS;
 }

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -39,8 +39,7 @@ public:
 	~DetachCallbackImpl();
 
 public:
-	virtual QSTATUS confirmOverwrite(
-		const WCHAR* pwszPath, WSTRING* pwstrPath);
+	virtual wstring_ptr confirmOverwrite(const WCHAR* pwszPath);
 
 private:
 	DetachCallbackImpl(const DetachCallbackImpl&);
@@ -60,48 +59,30 @@ DetachCallbackImpl::~DetachCallbackImpl()
 {
 }
 
-QSTATUS DetachCallbackImpl::confirmOverwrite(
-	const WCHAR* pwszPath, WSTRING* pwstrPath)
+wstring_ptr DetachCallbackImpl::confirmOverwrite(const WCHAR* pwszPath)
 {
 	assert(pwszPath);
-	assert(pwstrPath);
-	
-	DECLARE_QSTATUS();
-	
-	*pwstrPath = 0;
 	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	
-	string_ptr<WSTRING> wstr;
-	status = loadString(hInst, IDS_CONFIRMOVERWRITE, &wstr);
-	CHECK_QSTATUS();
-	string_ptr<WSTRING> wstrMessage(concat(wstr.get(), pwszPath));
-	if (!wstrMessage.get())
-		return QSTATUS_OUTOFMEMORY;
+	wstring_ptr wstr(loadString(hInst, IDS_CONFIRMOVERWRITE));
+	wstring_ptr wstrMessage(concat(wstr.get(), pwszPath));
 	
-	string_ptr<WSTRING> wstrPath;
-	int nMsg = 0;
-	status = messageBox(wstrMessage.get(), MB_YESNOCANCEL, hwnd_, 0, 0, &nMsg);
-	CHECK_QSTATUS();
+	wstring_ptr wstrPath;
+	int nMsg = messageBox(wstrMessage.get(), MB_YESNOCANCEL, hwnd_, 0, 0);
 	switch (nMsg) {
 	case IDCANCEL:
 		break;
 	case IDYES:
-		wstrPath.reset(allocWString(pwszPath));
-		if (!wstrPath.get())
-			return QSTATUS_OUTOFMEMORY;
+		wstrPath = allocWString(pwszPath);
 		break;
 	case IDNO:
 		{
-			string_ptr<WSTRING> wstrFilter;
-			status = loadString(hInst, IDS_FILTER_ATTACHMENT, &wstrFilter);
-			CHECK_QSTATUS();
+			wstring_ptr wstrFilter(loadString(hInst, IDS_FILTER_ATTACHMENT));
 			
 			const WCHAR* pwszDir = 0;
 			const WCHAR* pwszFileName = 0;
-			string_ptr<WSTRING> wstr(allocWString(pwszPath));
-			if (!wstr.get())
-				return QSTATUS_OUTOFMEMORY;
+			wstring_ptr wstr(allocWString(pwszPath));
 			WCHAR* p = wcsrchr(wstr.get(), L'\\');
 			if (p) {
 				*p = L'\0';
@@ -113,26 +94,17 @@ QSTATUS DetachCallbackImpl::confirmOverwrite(
 			}
 			
 			FileDialog dialog(false, wstrFilter.get(), pwszDir, 0, pwszFileName,
-				OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES, &status);
-			CHECK_QSTATUS();
+				OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES);
 			
-			int nRet = IDCANCEL;
-			status = dialog.doModal(hwnd_, 0, &nRet);
-			CHECK_QSTATUS_VALUE(0);
-			if (nRet == IDOK) {
-				wstrPath.reset(allocWString(dialog.getPath()));
-				if (!wstrPath.get())
-					return QSTATUS_OUTOFMEMORY;
-			}
+			if (dialog.doModal(hwnd_) == IDOK)
+				wstrPath = allocWString(dialog.getPath());
 		}
 		break;
 	default:
 		break;
 	}
 	
-	*pwstrPath = wstrPath.release();
-	
-	return QSTATUS_SUCCESS;
+	return wstrPath;
 }
 
 
@@ -143,7 +115,8 @@ QSTATUS DetachCallbackImpl::confirmOverwrite(
  */
 
 qm::AttachmentHelper::AttachmentHelper(Profile* pProfile,
-	TempFileCleaner* pTempFileCleaner, HWND hwnd) :
+									   TempFileCleaner* pTempFileCleaner,
+									   HWND hwnd) :
 	pProfile_(pProfile),
 	pTempFileCleaner_(pTempFileCleaner),
 	hwnd_(hwnd)
@@ -156,11 +129,9 @@ qm::AttachmentHelper::~AttachmentHelper()
 {
 }
 
-QSTATUS qm::AttachmentHelper::detach(
-	const MessageHolderList& listMessageHolder, const NameList* pListName)
+AttachmentParser::Result qm::AttachmentHelper::detach(const MessageHolderList& listMessageHolder,
+													  const NameList* pListName)
 {
-	DECLARE_QSTATUS();
-	
 	DetachDialog::List list;
 	struct Deleter
 	{
@@ -175,24 +146,19 @@ QSTATUS qm::AttachmentHelper::detach(
 		DetachDialog::List& l_;
 	} deleter(list);
 	
-	MessageHolderList::const_iterator itM = listMessageHolder.begin();
-	while (itM != listMessageHolder.end()) {
+	for (MessageHolderList::const_iterator itM = listMessageHolder.begin(); itM != listMessageHolder.end(); ++itM) {
 		MessageHolder* pmh = *itM;
 		
-		Message msg(&status);
-		CHECK_QSTATUS();
-		status = pmh->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, &msg);
-		CHECK_QSTATUS();
+		Message msg;
+		if (!pmh->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, &msg))
+			return AttachmentParser::RESULT_FAIL;
+		
 		AttachmentParser parser(msg);
 		AttachmentParser::AttachmentList l;
 		AttachmentParser::AttachmentListFree free(l);
-		status = parser.getAttachments(false, &l);
-		CHECK_QSTATUS();
-		AttachmentParser::AttachmentList::iterator itA = l.begin();
-		while (itA != l.end()) {
-			string_ptr<WSTRING> wstrName(allocWString((*itA).first));
-			if (!wstrName.get())
-				return QSTATUS_OUTOFMEMORY;
+		parser.getAttachments(false, &l);
+		for (AttachmentParser::AttachmentList::iterator itA = l.begin(); itA != l.end(); ++itA) {
+			wstring_ptr wstrName(allocWString((*itA).first));
 			
 			bool bSelected = true;
 			if (pListName) {
@@ -207,38 +173,27 @@ QSTATUS qm::AttachmentHelper::detach(
 				wstrName.get(),
 				bSelected
 			};
-			status = STLWrapper<DetachDialog::List>(list).push_back(item);
-			CHECK_QSTATUS();
+			list.push_back(item);
 			wstrName.release();
-			
-			++itA;
 		}
-		
-		++itM;
 	}
 	
 	if (!list.empty()) {
-		DetachDialog dialog(pProfile_, list, &status);
-		CHECK_QSTATUS();
-		int nRet = 0;
-		status = dialog.doModal(hwnd_, 0, &nRet);
-		CHECK_QSTATUS();
-		if (nRet == IDOK) {
+		DetachDialog dialog(pProfile_, list);
+		if (dialog.doModal(hwnd_) == IDOK) {
 			const WCHAR* pwszFolder = dialog.getFolder();
 			
 			MessageHolder* pmh = 0;
-			Message msg(&status);
+			Message msg;
 			AttachmentParser::AttachmentList l;
 			AttachmentParser::AttachmentListFree free(l);
 			DetachCallbackImpl callback(hwnd_);
 			unsigned int n = 0;
-			DetachDialog::List::iterator it = list.begin();
-			while (it != list.end()) {
+			for (DetachDialog::List::iterator it = list.begin(); it != list.end(); ++it) {
 				if ((*it).pmh_ != pmh) {
 					pmh = (*it).pmh_;
 					n = 0;
-					status = msg.clear();
-					CHECK_QSTATUS();
+					msg.clear();
 					free.free();
 				}
 				else {
@@ -246,83 +201,70 @@ QSTATUS qm::AttachmentHelper::detach(
 				}
 				if ((*it).wstrName_) {
 					if (msg.getFlag() == Message::FLAG_EMPTY) {
-						status = (*it).pmh_->getMessage(
-							Account::GETMESSAGEFLAG_ALL, 0, &msg);
-						CHECK_QSTATUS();
+						if (!(*it).pmh_->getMessage(
+							Account::GETMESSAGEFLAG_ALL, 0, &msg))
+							return AttachmentParser::RESULT_FAIL;
 					}
-					if (l.empty()) {
-						status = AttachmentParser(msg).getAttachments(false, &l);
-						CHECK_QSTATUS();
-					}
+					if (l.empty())
+						AttachmentParser(msg).getAttachments(false, &l);
 					assert(n < l.size());
 					const AttachmentParser::AttachmentList::value_type& v = l[n];
-					string_ptr<WSTRING> wstrPath;
-					status = AttachmentParser(*v.second).detach(
-						pwszFolder, (*it).wstrName_, &callback, &wstrPath);
-					CHECK_QSTATUS();
+					if (AttachmentParser(*v.second).detach(pwszFolder, (*it).wstrName_,
+						&callback, 0) == AttachmentParser::RESULT_FAIL)
+						return AttachmentParser::RESULT_FAIL;
 				}
-				++it;
 			}
 		}
 	}
 	
-	return QSTATUS_SUCCESS;
+	return AttachmentParser::RESULT_OK;
 }
 
-QSTATUS qm::AttachmentHelper::open(const Part* pPart,
-	const WCHAR* pwszName, bool bOpenWithEditor)
+AttachmentParser::Result qm::AttachmentHelper::open(const Part* pPart,
+													const WCHAR* pwszName,
+													bool bOpenWithEditor)
 {
 	assert(pPart);
 	assert(pwszName);
 	assert(pTempFileCleaner_);
 	
-	DECLARE_QSTATUS();
-	
 	AttachmentParser parser(*pPart);
 	DetachCallbackImpl callback(hwnd_);
 	const WCHAR* pwszTempDir =
 		Application::getApplication().getTemporaryFolder();
-	string_ptr<WSTRING> wstrPath;
-	status = parser.detach(pwszTempDir, pwszName, &callback, &wstrPath);
-	CHECK_QSTATUS();
-	if (!wstrPath.get())
-		return QSTATUS_SUCCESS;
+	wstring_ptr wstrPath;
+	AttachmentParser::Result result = parser.detach(
+		pwszTempDir, pwszName, &callback, &wstrPath);
+	if (result != AttachmentParser::RESULT_OK)
+		return result;
+	assert(wstrPath.get());
 	
-	status = pTempFileCleaner_->add(wstrPath.get());
-	CHECK_QSTATUS();
+	pTempFileCleaner_->add(wstrPath.get());
 	
 	if (!bOpenWithEditor) {
 		const WCHAR* p = wcsrchr(wstrPath.get(), L'.');
 		if (p) {
 			++p;
 			
-			string_ptr<WSTRING> wstrExtensions;
-			status = pProfile_->getString(L"Global", L"WarnExtensions",
-				L"exe com pif bat scr htm html hta vbs js", &wstrExtensions);
-			CHECK_QSTATUS();
+			wstring_ptr wstrExtensions(pProfile_->getString(L"Global",
+				L"WarnExtensions", L"exe com pif bat scr htm html hta vbs js"));
 			if (wcsstr(wstrExtensions.get(), p)) {
-				int nMsg = 0;
-				status = messageBox(
+				int nMsg = messageBox(
 					Application::getApplication().getResourceHandle(),
 					IDS_CONFIRMEXECUTEATTACHMENT,
-					MB_YESNO | MB_DEFBUTTON2 | MB_ICONWARNING, hwnd_, 0, 0, &nMsg);
-				CHECK_QSTATUS();
+					MB_YESNO | MB_DEFBUTTON2 | MB_ICONWARNING, hwnd_, 0, 0);
 				if (nMsg != IDYES)
-					return QSTATUS_SUCCESS;
+					return AttachmentParser::RESULT_CANCEL;
 			}
 		}
 	}
 	
 	W2T(wstrPath.get(), ptszPath);
 	
-	string_ptr<TSTRING> tstrEditor;
+	tstring_ptr tstrEditor;
 	if (bOpenWithEditor) {
-		string_ptr<WSTRING> wstrEditor;
-		status = pProfile_->getString(L"Global", L"Editor", L"", &wstrEditor);
-		CHECK_QSTATUS();
-		tstrEditor.reset(wcs2tcs(wstrEditor.get()));
-		if (!tstrEditor.get())
-			return QSTATUS_OUTOFMEMORY;
+		wstring_ptr wstrEditor(pProfile_->getString(L"Global", L"Editor", L""));
+		tstrEditor = wcs2tcs(wstrEditor.get());
 	}
 	
 	SHELLEXECUTEINFO sei = {
@@ -342,11 +284,8 @@ QSTATUS qm::AttachmentHelper::open(const Part* pPart,
 	else {
 		sei.lpFile = ptszPath;
 	}
-	if (!::ShellExecuteEx(&sei)) {
-		status = messageBox(Application::getApplication().getResourceHandle(),
-			IDS_ERROR_EXECUTEATTACHMENT, hwnd_);
-		CHECK_QSTATUS();
-	}
+	if (!::ShellExecuteEx(&sei))
+		return AttachmentParser::RESULT_FAIL;
 	
-	return QSTATUS_SUCCESS;
+	return AttachmentParser::RESULT_OK;
 }

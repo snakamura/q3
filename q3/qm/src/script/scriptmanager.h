@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -51,24 +51,29 @@ public:
 	typedef std::vector<qs::WSTRING> NameList;
 
 public:
-	ScriptManager(const WCHAR* pwszPath, qs::QSTATUS* pstatus);
+	explicit ScriptManager(const WCHAR* pwszPath);
 	~ScriptManager();
 
 public:
-	qs::QSTATUS getScript(const WCHAR* pwszName, Document* pDocument,
-		qs::Profile* pProfile, qs::ModalHandler* pModalHandler,
-		const WindowInfo& info, qmscript::Script** ppScript) const;
-	qs::QSTATUS getScriptNames(NameList* pList) const;
-	qs::QSTATUS createScript(const WCHAR* pwszScript, const WCHAR* pwszLanguage,
-		Document* pDocument, qs::Profile* pProfile, HWND hwnd,
-		qs::ModalHandler* pModalHandler, qmscript::Script** ppScript) const;
+	std::auto_ptr<qmscript::Script> getScript(const WCHAR* pwszName,
+											  Document* pDocument,
+											  qs::Profile* pProfile,
+											  qs::ModalHandler* pModalHandler,
+											  const WindowInfo& info) const;
+	void getScriptNames(NameList* pList) const;
+	std::auto_ptr<qmscript::Script> createScript(const WCHAR* pwszScript,
+												 const WCHAR* pwszLanguage,
+												 Document* pDocument,
+												 qs::Profile* pProfile,
+												 HWND hwnd,
+												 qs::ModalHandler* pModalHandler) const;
 
 private:
 	ScriptManager(const ScriptManager&);
 	ScriptManager& operator=(const ScriptManager&);
 
 private:
-	qs::WSTRING wstrPath_;
+	qs::wstring_ptr wstrPath_;
 	HINSTANCE hInst_;
 	qmscript::ScriptFactory* pFactory_;
 };

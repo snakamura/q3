@@ -1,14 +1,13 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qsaction.h>
 #include <qsconv.h>
-#include <qsnew.h>
 
 #include <commctrl.h>
 #include <tchar.h>
@@ -28,30 +27,25 @@ struct qs::ToolbarManagerImpl
 {
 	typedef std::vector<Toolbar*> ToolbarList;
 	
-	QSTATUS load(const WCHAR* pwszPath,
-		const ActionItem* pItem, size_t nItemCount);
+	bool load(const WCHAR* pwszPath,
+			  const ActionItem* pItem,
+			  size_t nItemCount);
 	
 	ToolbarManager* pThis_;
 	HIMAGELIST hImageList_;
 	ToolbarList listToolbar_;
 };
 
-QSTATUS qs::ToolbarManagerImpl::load(const WCHAR* pwszPath,
-	const ActionItem* pItem, size_t nItemCount)
+bool qs::ToolbarManagerImpl::load(const WCHAR* pwszPath,
+								  const ActionItem* pItem,
+								  size_t nItemCount)
 {
 	assert(pwszPath);
 	
-	DECLARE_QSTATUS();
-	
-	XMLReader reader(&status);
-	CHECK_QSTATUS();
-	ToolbarContentHandler handler(&listToolbar_, pItem, nItemCount, &status);
-	CHECK_QSTATUS();
+	XMLReader reader;
+	ToolbarContentHandler handler(&listToolbar_, pItem, nItemCount);
 	reader.setContentHandler(&handler);
-	status = reader.parse(pwszPath);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return reader.parse(pwszPath);
 }
 
 
@@ -61,15 +55,14 @@ QSTATUS qs::ToolbarManagerImpl::load(const WCHAR* pwszPath,
  *
  */
 
-qs::ToolbarManager::ToolbarManager(const WCHAR* pwszPath, HBITMAP hBitmap,
-	const ActionItem* pItem, size_t nItemCount, QSTATUS* pstatus) :
+qs::ToolbarManager::ToolbarManager(const WCHAR* pwszPath,
+								   HBITMAP hBitmap,
+								   const ActionItem* pItem,
+								   size_t nItemCount) :
 	pImpl_(0)
 {
 	assert(pwszPath);
 	assert(pItem);
-	assert(pstatus);
-	
-	DECLARE_QSTATUS();
 	
 #ifdef _WIN32_WCE
 	UINT nFlags = ILC_COLOR | ILC_MASK;
@@ -79,13 +72,14 @@ qs::ToolbarManager::ToolbarManager(const WCHAR* pwszPath, HBITMAP hBitmap,
 	HIMAGELIST hImageList = ImageList_Create(16, 16, nFlags, 16, 16);
 	ImageList_AddMasked(hImageList, hBitmap, RGB(192, 192, 192));
 	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	pImpl_->pThis_ = this;
-	pImpl_->hImageList_ = hImageList;
+	std::auto_ptr<ToolbarManagerImpl> pImpl(new ToolbarManagerImpl());
+	pImpl->pThis_ = this;
+	pImpl->hImageList_ = hImageList;
 	
-	status = pImpl_->load(pwszPath, pItem, nItemCount);
-	CHECK_QSTATUS_SET(pstatus);
+	if (!pImpl->load(pwszPath, pItem, nItemCount))
+		return;
+	
+	pImpl_ = pImpl.release();
 }
 
 qs::ToolbarManager::~ToolbarManager()
@@ -98,10 +92,9 @@ qs::ToolbarManager::~ToolbarManager()
 	}
 }
 
-QSTATUS qs::ToolbarManager::createToolbar(const WCHAR* pwszName, HWND hwnd) const
+bool qs::ToolbarManager::createToolbar(const WCHAR* pwszName,
+									   HWND hwnd) const
 {
-	DECLARE_QSTATUS();
-	
 	ToolbarManagerImpl::ToolbarList::const_iterator it = std::find_if(
 		pImpl_->listToolbar_.begin(), pImpl_->listToolbar_.end(),
 		std::bind2nd(
@@ -110,13 +103,10 @@ QSTATUS qs::ToolbarManager::createToolbar(const WCHAR* pwszName, HWND hwnd) cons
 				std::mem_fun(&Toolbar::getName),
 				std::identity<const WCHAR*>()),
 			pwszName));
-	if (it != pImpl_->listToolbar_.end()) {
-		const Toolbar* pToolbar = *it;
-		status = pToolbar->create(hwnd, pImpl_->hImageList_);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (it != pImpl_->listToolbar_.end())
+		return (*it)->create(hwnd, pImpl_->hImageList_);
+	else
+		return false;
 }
 
 
@@ -126,52 +116,47 @@ QSTATUS qs::ToolbarManager::createToolbar(const WCHAR* pwszName, HWND hwnd) cons
  *
  */
 
-qs::Toolbar::Toolbar(const WCHAR* pwszName, bool bShowText, QSTATUS* pstatus) :
-	wstrName_(0),
+qs::Toolbar::Toolbar(const WCHAR* pwszName,
+					 bool bShowText) :
 	bShowText_(bShowText)
 {
 	wstrName_ = allocWString(pwszName);
-	if (!wstrName_) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
 }
 
 qs::Toolbar::~Toolbar()
 {
-	freeWString(wstrName_);
 	std::for_each(listItem_.begin(), listItem_.end(), deleter<ToolbarItem>());
 }
 
 const WCHAR* qs::Toolbar::getName() const
 {
-	return wstrName_;
+	return wstrName_.get();
 }
 
-QSTATUS qs::Toolbar::create(HWND hwnd, HIMAGELIST hImageList) const
+bool qs::Toolbar::create(HWND hwnd,
+						 HIMAGELIST hImageList) const
 {
-	DECLARE_QSTATUS();
-	
 	HIMAGELIST hImageListCopy = ImageList_Duplicate(hImageList);
 	if (!hImageListCopy)
-		return QSTATUS_FAIL;
+		return false;
 	::SendMessage(hwnd, TB_SETIMAGELIST, 0, reinterpret_cast<LPARAM>(hImageListCopy));
 	
 	ItemList::const_iterator it = listItem_.begin();
 	while (it != listItem_.end()) {
-		status = (*it)->create(hwnd, bShowText_);
-		CHECK_QSTATUS();
+		if (!(*it)->create(hwnd, bShowText_))
+			return false;
 		++it;
 	}
 	
 	::SendMessage(hwnd, TB_AUTOSIZE, 0, 0);
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::Toolbar::add(ToolbarItem* pItem)
+void qs::Toolbar::add(std::auto_ptr<ToolbarItem> pItem)
 {
-	return STLWrapper<ItemList>(listItem_).push_back(pItem);
+	listItem_.push_back(pItem.get());
+	pItem.release();
 }
 
 
@@ -181,7 +166,7 @@ QSTATUS qs::Toolbar::add(ToolbarItem* pItem)
  *
  */
 
-qs::ToolbarItem::ToolbarItem(QSTATUS* pstatus)
+qs::ToolbarItem::ToolbarItem()
 {
 }
 
@@ -196,73 +181,50 @@ qs::ToolbarItem::~ToolbarItem()
  *
  */
 
-qs::ToolbarButton::ToolbarButton(int nImage, const WCHAR* pwszText,
-	const WCHAR* pwszToolTip, UINT nAction,
-	const WCHAR* pwszDropDown, QSTATUS* pstatus) :
-	ToolbarItem(pstatus),
+qs::ToolbarButton::ToolbarButton(int nImage,
+								 const WCHAR* pwszText,
+								 const WCHAR* pwszToolTip,
+								 UINT nAction,
+								 const WCHAR* pwszDropDown) :
 	nImage_(nImage),
-	wstrText_(0),
-	wstrToolTip_(0),
-	nAction_(nAction),
-	wstrDropDown_(0)
+	nAction_(nAction)
 {
-	string_ptr<WSTRING> wstrText;
-	if (pwszText) {
-		wstrText.reset(allocWString(pwszText));
-		if (!wstrText.get()) {
-			*pstatus = QSTATUS_OUTOFMEMORY;
-			return;
-		}
-	}
+	wstring_ptr wstrText;
+	if (pwszText)
+		wstrText = allocWString(pwszText);
 	
-	string_ptr<WSTRING> wstrToolTip;
-	if (pwszToolTip) {
-		wstrToolTip.reset(allocWString(pwszToolTip));
-		if (!wstrToolTip.get()) {
-			*pstatus = QSTATUS_OUTOFMEMORY;
-			return;
-		}
-	}
+	wstring_ptr wstrToolTip;
+	if (pwszToolTip)
+		wstrToolTip = allocWString(pwszToolTip);
 	
-	string_ptr<WSTRING> wstrDropDown;
-	if (pwszDropDown) {
-		wstrDropDown.reset(allocWString(pwszDropDown));
-		if (!wstrDropDown.get()) {
-			*pstatus = QSTATUS_OUTOFMEMORY;
-			return;
-		}
-	}
+	wstring_ptr wstrDropDown;
+	if (pwszDropDown)
+		wstrDropDown = allocWString(pwszDropDown);
 	
-	wstrText_ = wstrText.release();
-	wstrToolTip_ = wstrToolTip.release();
-	wstrDropDown_ = wstrDropDown.release();
+	wstrText_ = wstrText;
+	wstrToolTip_ = wstrToolTip;
+	wstrDropDown_ = wstrDropDown;
 }
 
 qs::ToolbarButton::~ToolbarButton()
 {
-	freeWString(wstrText_);
-	freeWString(wstrToolTip_);
-	freeWString(wstrDropDown_);
 }
 
-QSTATUS qs::ToolbarButton::create(HWND hwnd, bool bShowText)
+bool qs::ToolbarButton::create(HWND hwnd,
+							   bool bShowText)
 {
-	DECLARE_QSTATUS();
-	
 	// TODO
 	// Add tooltip, handle dropdown.
 	
 	int nTextIndex = -1;
-	if (bShowText && wstrText_) {
-		W2T(wstrText_, ptszText);
+	if (bShowText && wstrText_.get()) {
+		W2T(wstrText_.get(), ptszText);
 		size_t nLen = _tcslen(ptszText);
-		string_ptr<TSTRING> tstrText(allocTString(nLen + 2));
-		if (tstrText.get()) {
-			_tcscpy(tstrText.get(), ptszText);
-			*(tstrText.get() + nLen + 1) = _T('\0');
-			nTextIndex = ::SendMessage(hwnd, TB_ADDSTRING,
-				0, reinterpret_cast<LPARAM>(tstrText.get()));
-		}
+		tstring_ptr tstrText(allocTString(nLen + 2));
+		_tcscpy(tstrText.get(), ptszText);
+		*(tstrText.get() + nLen + 1) = _T('\0');
+		nTextIndex = ::SendMessage(hwnd, TB_ADDSTRING,
+			0, reinterpret_cast<LPARAM>(tstrText.get()));
 	}
 	
 	TBBUTTON button = { 0 };
@@ -273,7 +235,7 @@ QSTATUS qs::ToolbarButton::create(HWND hwnd, bool bShowText)
 	button.iString = nTextIndex;
 	::SendMessage(hwnd, TB_ADDBUTTONS, 1, reinterpret_cast<LPARAM>(&button));
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -283,8 +245,7 @@ QSTATUS qs::ToolbarButton::create(HWND hwnd, bool bShowText)
  *
  */
 
-qs::ToolbarSeparator::ToolbarSeparator(QSTATUS* pstatus) :
-	ToolbarItem(pstatus)
+qs::ToolbarSeparator::ToolbarSeparator()
 {
 }
 
@@ -292,7 +253,8 @@ qs::ToolbarSeparator::~ToolbarSeparator()
 {
 }
 
-QSTATUS qs::ToolbarSeparator::create(HWND hwnd, bool bShowText)
+bool qs::ToolbarSeparator::create(HWND hwnd,
+								  bool bShowText)
 {
 	TBBUTTON button = { 0 };
 	button.iBitmap = 0;
@@ -301,7 +263,7 @@ QSTATUS qs::ToolbarSeparator::create(HWND hwnd, bool bShowText)
 	button.fsStyle = TBSTYLE_SEP;
 	::SendMessage(hwnd, TB_ADDBUTTONS, 1, reinterpret_cast<LPARAM>(&button));
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -312,8 +274,8 @@ QSTATUS qs::ToolbarSeparator::create(HWND hwnd, bool bShowText)
  */
 
 qs::ToolbarContentHandler::ToolbarContentHandler(ToolbarList* pListToolbar,
-	const ActionItem* pItem, size_t nItemCount, QSTATUS* pstatus) :
-	DefaultHandler(pstatus),
+												 const ActionItem* pItem,
+												 size_t nItemCount) :
 	pListToolbar_(pListToolbar),
 	pActionItem_(pItem),
 	nActionItemCount_(nItemCount),
@@ -326,21 +288,21 @@ qs::ToolbarContentHandler::~ToolbarContentHandler()
 {
 }
 
-QSTATUS qs::ToolbarContentHandler::startElement(const WCHAR* pwszNamespaceURI,
-	const WCHAR* pwszLocalName, const WCHAR* pwszQName, const Attributes& attributes)
+bool qs::ToolbarContentHandler::startElement(const WCHAR* pwszNamespaceURI,
+											 const WCHAR* pwszLocalName,
+											 const WCHAR* pwszQName,
+											 const Attributes& attributes)
 {
-	DECLARE_QSTATUS();
-	
 	if (wcscmp(pwszLocalName, L"toolbars") == 0) {
 		if (state_ != STATE_ROOT)
-			return QSTATUS_FAIL;
+			return false;
 		if (attributes.getLength() != 0)
-			return QSTATUS_FAIL;
+			return false;
 		state_ = STATE_TOOLBARS;
 	}
 	else if (wcscmp(pwszLocalName, L"toolbar") == 0) {
 		if (state_ != STATE_TOOLBARS)
-			return QSTATUS_FAIL;
+			return false;
 		
 		const WCHAR* pwszName = 0;
 		bool bShowText = true;
@@ -351,27 +313,22 @@ QSTATUS qs::ToolbarContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			else if (wcscmp(pwszAttrName, L"showText") == 0)
 				bShowText = wcscmp(attributes.getValue(n), L"true") == 0;
 			else
-				return QSTATUS_FAIL;
+				return false;
 		}
 		if (!pwszName)
-			return QSTATUS_FAIL;
+			return false;
 		
-		string_ptr<WSTRING> wstrName(allocWString(pwszName));
-		if (!wstrName.get())
-			return QSTATUS_OUTOFMEMORY;
+		wstring_ptr wstrName(allocWString(pwszName));
 		
-		std::auto_ptr<Toolbar> pToolbar;
-		status = newQsObject(pwszName, bShowText, &pToolbar);
-		CHECK_QSTATUS();
-		status = STLWrapper<ToolbarList>(*pListToolbar_).push_back(pToolbar.get());
-		CHECK_QSTATUS();
+		std::auto_ptr<Toolbar> pToolbar(new Toolbar(pwszName, bShowText));
+		pListToolbar_->push_back(pToolbar.get());
 		pToolbar_ = pToolbar.release();
 		
 		state_ = STATE_TOOLBAR;
 	}
 	else if (wcscmp(pwszLocalName, L"button") == 0) {
 		if (state_ != STATE_TOOLBAR)
-			return QSTATUS_FAIL;
+			return false;
 		
 		int nImage = -1;
 		const WCHAR* pwszText = 0;
@@ -384,7 +341,7 @@ QSTATUS qs::ToolbarContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 				WCHAR* pEnd = 0;
 				nImage = wcstol(attributes.getValue(n), &pEnd, 10);
 				if (*pEnd)
-					return QSTATUS_FAIL;
+					return false;
 			}
 			else if (wcscmp(pwszAttrName, L"text") == 0) {
 				pwszText = attributes.getValue(n);
@@ -399,53 +356,44 @@ QSTATUS qs::ToolbarContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 				pwszDropDown = attributes.getValue(n);
 			}
 			else {
-				return QSTATUS_FAIL;
+				return false;
 			}
 		}
 		
 		if (nImage == -1 || (!pwszAction && !pwszDropDown))
-			return QSTATUS_FAIL;
+			return false;
 		
 		UINT nAction = getActionId(pwszAction);
 		if (nAction != -1) {
-			std::auto_ptr<ToolbarButton> pButton;
-			status = newQsObject(nImage, pwszText, pwszToolTip,
-				nAction, pwszDropDown, &pButton);
-			CHECK_QSTATUS();
-			pToolbar_->add(pButton.get());
-			CHECK_QSTATUS();
-			pButton.release();
+			std::auto_ptr<ToolbarButton> pButton(new ToolbarButton(
+				nImage, pwszText, pwszToolTip, nAction, pwszDropDown));
+			pToolbar_->add(pButton);
 		}
 		
 		state_ = STATE_BUTTON;
 	}
 	else if (wcscmp(pwszLocalName, L"separator") == 0) {
 		if (state_ != STATE_TOOLBAR)
-			return QSTATUS_FAIL;
+			return false;
 		if (attributes.getLength() != 0)
-			return QSTATUS_FAIL;
+			return false;
 		
-		std::auto_ptr<ToolbarSeparator> pSeparator;
-		status = newQsObject(&pSeparator);
-		CHECK_QSTATUS();
-		pToolbar_->add(pSeparator.get());
-		CHECK_QSTATUS();
-		pSeparator.release();
+		std::auto_ptr<ToolbarSeparator> pSeparator(new ToolbarSeparator());
+		pToolbar_->add(pSeparator);
 		
 		state_ = STATE_SEPARATOR;
 	}
 	else {
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::ToolbarContentHandler::endElement(const WCHAR* pwszNamespaceURI,
-	const WCHAR* pwszLocalName, const WCHAR* pwszQName)
+bool qs::ToolbarContentHandler::endElement(const WCHAR* pwszNamespaceURI,
+										   const WCHAR* pwszLocalName,
+										   const WCHAR* pwszQName)
 {
-	DECLARE_QSTATUS();
-	
 	if (wcscmp(pwszLocalName, L"toolbars") == 0) {
 		assert(state_ == STATE_TOOLBARS);
 		state_ = STATE_ROOT;
@@ -464,22 +412,23 @@ QSTATUS qs::ToolbarContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		state_ = STATE_TOOLBAR;
 	}
 	else {
-		return QSTATUS_FAIL;
+		return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qs::ToolbarContentHandler::characters(
-	const WCHAR* pwsz, size_t nStart, size_t nLength)
+bool qs::ToolbarContentHandler::characters(const WCHAR* pwsz,
+										   size_t nStart,
+										   size_t nLength)
 {
 	const WCHAR* p = pwsz + nStart;
 	for (size_t n = 0; n < nLength; ++n, ++p) {
 		if (*p != L' ' && *p != L'\t' && *p != '\n')
-			return QSTATUS_FAIL;
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 UINT qs::ToolbarContentHandler::getActionId(const WCHAR* pwszAction)

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -29,21 +29,19 @@ public:
 	typedef std::vector<qs::WSTRING> AttachmentList;
 
 public:
-	XQMAILAttachmentParser(qs::QSTATUS* pstatus);
-	XQMAILAttachmentParser(const AttachmentList& listAttachment,
-		qs::QSTATUS* pstatus);
+	XQMAILAttachmentParser();
 	virtual ~XQMAILAttachmentParser();
 
 public:
 	const AttachmentList& getAttachments() const;
 
 public:
-	virtual qs::QSTATUS parse(const qs::Part& part,
-		const WCHAR* pwszName, qs::Part::Field* pField);
-	virtual qs::QSTATUS unparse(const qs::Part& part, qs::STRING* pstrValue) const;
+	virtual qs::Part::Field parse(const qs::Part& part,
+								  const WCHAR* pwszName);
+	virtual qs::string_ptr unparse(const qs::Part& part) const;
 
 public:
-	static qs::QSTATUS format(const AttachmentList& l, qs::WSTRING* pwstr);
+	static qs::wstring_ptr format(const AttachmentList& l);
 
 private:
 	XQMAILAttachmentParser(const XQMAILAttachmentParser&);

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -25,11 +25,11 @@ namespace qscrypto {
 class NameImpl : public qs::Name
 {
 public:
-	NameImpl(X509_NAME* pName, qs::QSTATUS* pstatus);
+	explicit NameImpl(X509_NAME* pName);
 	virtual ~NameImpl();
 
 public:
-	virtual qs::QSTATUS getCommonName(qs::WSTRING* pwstrCommonName) const;
+	virtual qs::wstring_ptr getCommonName() const;
 
 private:
 	NameImpl(const NameImpl&);
@@ -49,8 +49,8 @@ private:
 class CertificateImpl : public qs::Certificate
 {
 public:
-	CertificateImpl(qs::QSTATUS* pstatus);
-	CertificateImpl(X509* pX509);
+	CertificateImpl();
+	explicit CertificateImpl(X509* pX509);
 	virtual ~CertificateImpl();
 
 public:
@@ -58,13 +58,15 @@ public:
 	X509* releaseX509();
 
 public:
-	virtual qs::QSTATUS load(const WCHAR* pwszPath,
-		FileType type, qs::PasswordCallback* pCallback);
-	virtual qs::QSTATUS load(qs::InputStream* pStream,
-		FileType type, qs::PasswordCallback* pCallback);
-	virtual qs::QSTATUS getText(qs::WSTRING* pwstrText) const;
-	virtual qs::QSTATUS getSubject(qs::Name** ppName) const;
-	virtual qs::QSTATUS getIssuer(qs::Name** ppName) const;
+	virtual bool load(const WCHAR* pwszPath,
+					  FileType type,
+					  qs::PasswordCallback* pCallback);
+	virtual bool load(qs::InputStream* pStream,
+					  FileType type,
+					  qs::PasswordCallback* pCallback);
+	virtual qs::wstring_ptr getText() const;
+	virtual std::auto_ptr<qs::Name> getSubject() const;
+	virtual std::auto_ptr<qs::Name> getIssuer() const;
 
 private:
 	CertificateImpl(const CertificateImpl&);
@@ -85,17 +87,19 @@ private:
 class PrivateKeyImpl : public qs::PrivateKey
 {
 public:
-	PrivateKeyImpl(qs::QSTATUS* pstatus);
+	PrivateKeyImpl();
 	virtual ~PrivateKeyImpl();
 
 public:
 	EVP_PKEY* getKey() const;
 
 public:
-	virtual qs::QSTATUS load(const WCHAR* pwszPath,
-		FileType type, qs::PasswordCallback* pCallback);
-	virtual qs::QSTATUS load(qs::InputStream* pStream,
-		FileType type, qs::PasswordCallback* pCallback);
+	virtual bool load(const WCHAR* pwszPath,
+					  FileType type,
+					  qs::PasswordCallback* pCallback);
+	virtual bool load(qs::InputStream* pStream,
+					  FileType type,
+					  qs::PasswordCallback* pCallback);
 
 private:
 	PrivateKeyImpl(const PrivateKeyImpl&);
@@ -115,17 +119,19 @@ private:
 class PublicKeyImpl : public qs::PublicKey
 {
 public:
-	PublicKeyImpl(qs::QSTATUS* pstatus);
+	PublicKeyImpl();
 	virtual ~PublicKeyImpl();
 
 public:
 	EVP_PKEY* getKey() const;
 
 public:
-	virtual qs::QSTATUS load(const WCHAR* pwszPath,
-		FileType type, qs::PasswordCallback* pCallback);
-	virtual qs::QSTATUS load(qs::InputStream* pStream,
-		FileType type, qs::PasswordCallback* pCallback);
+	virtual bool load(const WCHAR* pwszPath,
+					  FileType type,
+					  qs::PasswordCallback* pCallback);
+	virtual bool load(qs::InputStream* pStream,
+					  FileType type,
+					  qs::PasswordCallback* pCallback);
 
 private:
 	PublicKeyImpl(const PublicKeyImpl&);
@@ -145,14 +151,15 @@ private:
 class StoreImpl : public qs::Store
 {
 public:
-	StoreImpl(qs::QSTATUS* pstatus);
+	StoreImpl();
 	virtual ~StoreImpl();
 
 public:
 	X509_STORE* getStore() const;
 
 public:
-	virtual qs::QSTATUS load(const WCHAR* pwszFile, FileType type);
+	virtual bool load(const WCHAR* pwszPath,
+					  FileType type);
 
 private:
 	StoreImpl(const StoreImpl&);
@@ -172,7 +179,7 @@ private:
 class CipherImpl : public qs::Cipher
 {
 public:
-	CipherImpl(const WCHAR* pwszName, qs::QSTATUS* pstatus);
+	explicit CipherImpl(const WCHAR* pwszName);
 	virtual ~CipherImpl();
 
 public:
@@ -200,14 +207,12 @@ public:
 	virtual ~CryptoFactoryImpl();
 
 public:
-	virtual qs::QSTATUS createCertificate(qs::Certificate** ppCertificate);
-	virtual qs::QSTATUS createPrivateKey(qs::PrivateKey** ppPrivateKey);
-	virtual qs::QSTATUS createPublicKey(qs::PublicKey** ppPublicKey);
-	virtual qs::QSTATUS createStore(qs::Store** ppStore);
-	virtual qs::QSTATUS createCipher(
-		const WCHAR* pwszName, qs::Cipher** ppCipher);
-	virtual qs::QSTATUS createSMIMEUtility(
-		qs::SMIMEUtility** ppSMIMEUtility);
+	virtual std::auto_ptr<qs::Certificate> createCertificate();
+	virtual std::auto_ptr<qs::PrivateKey> createPrivateKey();
+	virtual std::auto_ptr<qs::PublicKey> createPublicKey();
+	virtual std::auto_ptr<qs::Store> createStore();
+	virtual std::auto_ptr<qs::Cipher> createCipher(const WCHAR* pwszName);
+	virtual std::auto_ptr<qs::SMIMEUtility> createSMIMEUtility();
 
 private:
 	CryptoFactoryImpl(const CryptoFactoryImpl&);

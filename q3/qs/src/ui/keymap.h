@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -27,17 +27,21 @@ public:
 	typedef std::vector<std::pair<std::pair<WSTRING, WSTRING>, ACCEL> > AccelMap;
 
 public:
-	KeyMapContentHandler(AccelMap* pMapAccel, QSTATUS* pstatus);
+	explicit KeyMapContentHandler(AccelMap* pMapAccel);
 	virtual ~KeyMapContentHandler();
 
 public:
-	virtual qs::QSTATUS startElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName,
-		const qs::Attributes& attributes);
-	virtual qs::QSTATUS endElement(const WCHAR* pwszNamespaceURI,
-		const WCHAR* pwszLocalName, const WCHAR* pwszQName);
-	virtual qs::QSTATUS characters(const WCHAR* pwsz,
-		size_t nStart, size_t nLength);
+	virtual bool startElement(const WCHAR* pwszNamespaceURI,
+							  const WCHAR* pwszLocalName,
+							  const WCHAR* pwszQName,
+							  const qs::Attributes& attributes);
+	virtual bool endElement(const WCHAR* pwszNamespaceURI,
+							const WCHAR* pwszLocalName,
+							const WCHAR* pwszQName);
+	virtual bool characters(const WCHAR* pwsz,
+							size_t nStart,
+							size_t nLength);
+
 
 private:
 	KeyMapContentHandler(const KeyMapContentHandler&);
@@ -55,8 +59,8 @@ private:
 private:
 	AccelMap* pMapAccel_;
 	State state_;
-	WSTRING wstrCurrentName_;
-	WSTRING wstrCurrentAction_;
+	wstring_ptr wstrCurrentName_;
+	wstring_ptr wstrCurrentAction_;
 };
 
 }

@@ -1,14 +1,13 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qsassert.h>
-#include <qserror.h>
-#include <qsnew.h>
+#include <qsstl.h>
 
 #include <algorithm>
 
@@ -36,7 +35,7 @@ qs::RegexNode::~RegexNode()
  *
  */
 
-qs::RegexRegexNode::RegexRegexNode(unsigned int nGroup, QSTATUS* pstatus) :
+qs::RegexRegexNode::RegexRegexNode(unsigned int nGroup) :
 	nGroup_(nGroup)
 {
 }
@@ -57,9 +56,10 @@ unsigned int qs::RegexRegexNode::getGroup() const
 	return nGroup_;
 }
 
-QSTATUS qs::RegexRegexNode::addNode(RegexNode* pNode)
+void qs::RegexRegexNode::addNode(std::auto_ptr<RegexNode> pNode)
 {
-	return STLWrapper<NodeList>(listNode_).push_back(pNode);
+	listNode_.push_back(pNode.get());
+	pNode.release();
 }
 
 RegexNode::Type qs::RegexRegexNode::getType() const
@@ -74,15 +74,9 @@ RegexNode::Type qs::RegexRegexNode::getType() const
  *
  */
 
-qs::RegexBrunchNode::RegexBrunchNode(
-	RegexPieceNode* pPieceNode, QSTATUS* pstatus)
+qs::RegexBrunchNode::RegexBrunchNode(std::auto_ptr<RegexPieceNode> pPieceNode)
 {
-	assert(pstatus);
-	
-	DECLARE_QSTATUS();
-	
-	status = addNode(pPieceNode);
-	CHECK_QSTATUS_SET(pstatus);
+	addNode(pPieceNode);
 }
 
 qs::RegexBrunchNode::~RegexBrunchNode()
@@ -96,9 +90,10 @@ const RegexBrunchNode::NodeList& qs::RegexBrunchNode::getNodeList() const
 	return listNode_;
 }
 
-QSTATUS qs::RegexBrunchNode::addNode(RegexPieceNode* pPieceNode)
+void qs::RegexBrunchNode::addNode(std::auto_ptr<RegexPieceNode> pPieceNode)
 {
-	return STLWrapper<NodeList>(listNode_).push_back(pPieceNode);
+	listNode_.push_back(pPieceNode.get());
+	pPieceNode.release();
 }
 
 RegexNode::Type qs::RegexBrunchNode::getType() const
@@ -113,8 +108,8 @@ RegexNode::Type qs::RegexBrunchNode::getType() const
  *
  */
 
-qs::RegexPieceNode::RegexPieceNode(RegexAtom* pAtom,
-	RegexQuantifier* pQuantifier, QSTATUS* pstatus) :
+qs::RegexPieceNode::RegexPieceNode(std::auto_ptr<RegexAtom> pAtom,
+								   std::auto_ptr<RegexQuantifier> pQuantifier) :
 	pAtom_(pAtom),
 	pQuantifier_(pQuantifier)
 {
@@ -122,18 +117,16 @@ qs::RegexPieceNode::RegexPieceNode(RegexAtom* pAtom,
 
 qs::RegexPieceNode::~RegexPieceNode()
 {
-	delete pAtom_;
-	delete pQuantifier_;
 }
 
 const RegexAtom* qs::RegexPieceNode::getAtom() const
 {
-	return pAtom_;
+	return pAtom_.get();
 }
 
 const RegexQuantifier* qs::RegexPieceNode::getQuantifier() const
 {
-	return pQuantifier_;
+	return pQuantifier_.get();
 }
 
 RegexNode::Type qs::RegexPieceNode::getType() const
@@ -148,10 +141,8 @@ RegexNode::Type qs::RegexPieceNode::getType() const
  *
  */
 
-qs::RegexEmptyNode::RegexEmptyNode(QSTATUS* pstatus)
+qs::RegexEmptyNode::RegexEmptyNode()
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qs::RegexEmptyNode::~RegexEmptyNode()
@@ -186,11 +177,9 @@ const RegexRegexNode* qs::RegexAtom::getNode() const
  *
  */
 
-qs::RegexCharAtom::RegexCharAtom(WCHAR c, QSTATUS* pstatus) :
+qs::RegexCharAtom::RegexCharAtom(WCHAR c) :
 	c_(c)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qs::RegexCharAtom::~RegexCharAtom()
@@ -209,13 +198,11 @@ bool qs::RegexCharAtom::match(WCHAR c) const
  *
  */
 
-qs::RegexMultiEscapeAtom::RegexMultiEscapeAtom(
-	Type type, bool bNegative, QSTATUS* pstatus) :
+qs::RegexMultiEscapeAtom::RegexMultiEscapeAtom(Type type,
+											   bool bNegative) :
 	type_(type),
 	bNegative_(bNegative)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qs::RegexMultiEscapeAtom::~RegexMultiEscapeAtom()
@@ -254,8 +241,8 @@ qs::RegexCharGroupAtom::CharGroup::~CharGroup()
 {
 }
 
-qs::RegexCharGroupAtom::RangeCharGroup::RangeCharGroup(
-	WCHAR cStart, WCHAR cEnd) :
+qs::RegexCharGroupAtom::RangeCharGroup::RangeCharGroup(WCHAR cStart,
+													   WCHAR cEnd) :
 	cStart_(cStart),
 	cEnd_(cEnd)
 {
@@ -270,14 +257,13 @@ bool qs::RegexCharGroupAtom::RangeCharGroup::match(WCHAR c) const
 	return cStart_ <= c && c <= cEnd_;
 }
 
-qs::RegexCharGroupAtom::AtomCharGroup::AtomCharGroup(RegexAtom* pAtom) :
+qs::RegexCharGroupAtom::AtomCharGroup::AtomCharGroup(std::auto_ptr<RegexAtom> pAtom) :
 	pAtom_(pAtom)
 {
 }
 
 qs::RegexCharGroupAtom::AtomCharGroup::~AtomCharGroup()
 {
-	delete pAtom_;
 }
 
 bool qs::RegexCharGroupAtom::AtomCharGroup::match(WCHAR c) const
@@ -285,19 +271,16 @@ bool qs::RegexCharGroupAtom::AtomCharGroup::match(WCHAR c) const
 	return pAtom_->match(c);
 }
 
-qs::RegexCharGroupAtom::RegexCharGroupAtom(QSTATUS* pstatus) :
+qs::RegexCharGroupAtom::RegexCharGroupAtom() :
 	bNegative_(false),
 	pSubAtom_(0)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qs::RegexCharGroupAtom::~RegexCharGroupAtom()
 {
 	std::for_each(listCharGroup_.begin(),
 		listCharGroup_.end(), deleter<CharGroup>());
-	delete pSubAtom_;
 }
 
 bool qs::RegexCharGroupAtom::match(WCHAR c) const
@@ -310,7 +293,7 @@ bool qs::RegexCharGroupAtom::match(WCHAR c) const
 	}
 	if ((!bMatch && !bNegative_) || (bMatch && bNegative_))
 		return false;
-	else if (pSubAtom_)
+	else if (pSubAtom_.get())
 		return !pSubAtom_->match(c);
 	else
 		return bNegative_ ? !bMatch : bMatch;
@@ -321,37 +304,22 @@ void qs::RegexCharGroupAtom::setNegative(bool bNegative)
 	bNegative_ = bNegative;
 }
 
-QSTATUS qs::RegexCharGroupAtom::addRangeCharGroup(WCHAR cStart, WCHAR cEnd)
+void qs::RegexCharGroupAtom::addRangeCharGroup(WCHAR cStart,
+											   WCHAR cEnd)
 {
-	DECLARE_QSTATUS();
-	
-	std::auto_ptr<RangeCharGroup> pCharGroup;
-	status = newObject(cStart, cEnd, &pCharGroup);
-	CHECK_QSTATUS();
-	status = STLWrapper<CharGroupList>(
-		listCharGroup_).push_back(pCharGroup.get());
-	CHECK_QSTATUS();
+	std::auto_ptr<RangeCharGroup> pCharGroup(new RangeCharGroup(cStart, cEnd));
+	listCharGroup_.push_back(pCharGroup.get());
 	pCharGroup.release();
-	
-	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::RegexCharGroupAtom::addAtomCharGroup(RegexAtom* pAtom)
+void qs::RegexCharGroupAtom::addAtomCharGroup(std::auto_ptr<RegexAtom> pAtom)
 {
-	DECLARE_QSTATUS();
-	
-	std::auto_ptr<AtomCharGroup> pCharGroup;
-	status = newObject(pAtom, &pCharGroup);
-	CHECK_QSTATUS();
-	status = STLWrapper<CharGroupList>(
-		listCharGroup_).push_back(pCharGroup.get());
-	CHECK_QSTATUS();
+	std::auto_ptr<AtomCharGroup> pCharGroup(new AtomCharGroup(pAtom));
+	listCharGroup_.push_back(pCharGroup.get());
 	pCharGroup.release();
-	
-	return QSTATUS_SUCCESS;
 }
 
-void qs::RegexCharGroupAtom::setSubAtom(RegexCharGroupAtom* pSubAtom)
+void qs::RegexCharGroupAtom::setSubAtom(std::auto_ptr<RegexCharGroupAtom> pSubAtom)
 {
 	pSubAtom_ = pSubAtom;
 }
@@ -363,19 +331,18 @@ void qs::RegexCharGroupAtom::setSubAtom(RegexCharGroupAtom* pSubAtom)
  *
  */
 
-qs::RegexNodeAtom::RegexNodeAtom(RegexRegexNode* pNode, QSTATUS* pstatus) :
+qs::RegexNodeAtom::RegexNodeAtom(std::auto_ptr<RegexRegexNode> pNode) :
 	pNode_(pNode)
 {
 }
 
 qs::RegexNodeAtom::~RegexNodeAtom()
 {
-	delete pNode_;
 }
 
 const RegexRegexNode* qs::RegexNodeAtom::getNode() const
 {
-	return pNode_;
+	return pNode_.get();
 }
 
 bool qs::RegexNodeAtom::match(WCHAR c) const
@@ -392,13 +359,12 @@ bool qs::RegexNodeAtom::match(WCHAR c) const
  */
 
 qs::RegexQuantifier::RegexQuantifier(Type type,
-	unsigned int nMin, unsigned int nMax, QSTATUS* pstatus) :
+									 unsigned int nMin,
+									 unsigned int nMax) :
 	type_(type),
 	nMin_(nMin),
 	nMax_(nMax)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qs::RegexQuantifier::~RegexQuantifier()
@@ -427,214 +393,133 @@ unsigned int qs::RegexQuantifier::getMax() const
  *
  */
 
-const WCHAR qs::RegexParser::wszSingleEscapeChar__[] =
-	L"nrt\\|.-^?*+{}()[]";
+const WCHAR qs::RegexParser::wszSingleEscapeChar__[] = L"nrt\\|.-^?*+{}()[]";
 
-qs::RegexParser::RegexParser(const WCHAR* pwszPattern, QSTATUS* pstatus) :
+qs::RegexParser::RegexParser(const WCHAR* pwszPattern) :
 	pwszPattern_(pwszPattern),
 	p_(pwszPattern),
 	nGroup_(0)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qs::RegexParser::~RegexParser()
 {
 }
 
-QSTATUS qs::RegexParser::parse(RegexRegexNode** ppNode)
+std::auto_ptr<RegexRegexNode> qs::RegexParser::parse()
 {
-	assert(ppNode);
-	
-	DECLARE_QSTATUS();
-	
 	p_ = pwszPattern_;
 	
-	std::auto_ptr<RegexRegexNode> pNode;
-	status = parseRegex(&pNode);
-	CHECK_QSTATUS();
-	*ppNode = pNode.release();
-	
-	return *p_ == L'\0' ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+	std::auto_ptr<RegexRegexNode> pNode(parseRegex());
+	if (*p_ != L'\0')
+		return 0;
+	return pNode;
 }
 
-QSTATUS qs::RegexParser::parseRegex(std::auto_ptr<RegexRegexNode>* ppNode)
+std::auto_ptr<RegexRegexNode> qs::RegexParser::parseRegex()
 {
-	DECLARE_QSTATUS();
-	
-	std::auto_ptr<RegexRegexNode> pRegexNode;
-	status = newQsObject(nGroup_++, &pRegexNode);
-	CHECK_QSTATUS();
+	std::auto_ptr<RegexRegexNode> pRegexNode(new RegexRegexNode(nGroup_++));
 	
 	while (true) {
-		std::auto_ptr<RegexNode> pNode;
-		status = parseBranch(&pNode);
-		CHECK_QSTATUS();
-		status = pRegexNode->addNode(pNode.get());
-		CHECK_QSTATUS();
-		pNode.release();
+		std::auto_ptr<RegexNode> pNode(parseBranch());
+		pRegexNode->addNode(pNode);
 		
 		if (*p_ != L'|' || *p_ == L')')
 			break;
 		++p_;
 	}
-	ppNode->reset(pRegexNode.release());
 	
-	return QSTATUS_SUCCESS;
+	return pRegexNode;
 }
 
-QSTATUS qs::RegexParser::parseBranch(std::auto_ptr<RegexNode>* ppNode)
+std::auto_ptr<RegexNode> qs::RegexParser::parseBranch()
 {
-	DECLARE_QSTATUS();
-	
 	std::auto_ptr<RegexBrunchNode> pBrunchNode;
 	std::auto_ptr<RegexPieceNode> pPieceNode;
 	while (*p_ != L'|' && *p_ != L')' && *p_ != L'\0') {
-		if (pPieceNode.get()) {
-			status = newQsObject(pPieceNode.get(), &pBrunchNode);
-			CHECK_QSTATUS();
-			pPieceNode.release();
-		}
-		status = parsePiece(&pPieceNode);
-		CHECK_QSTATUS();
-		if (pBrunchNode.get()) {
-			status = pBrunchNode->addNode(pPieceNode.get());
-			CHECK_QSTATUS();
-			pPieceNode.release();
-		}
+		if (pPieceNode.get())
+			pBrunchNode.reset(new RegexBrunchNode(pPieceNode));
+		pPieceNode = parsePiece();
+		if (pBrunchNode.get())
+			pBrunchNode->addNode(pPieceNode);
 	}
 	
-	if (pBrunchNode.get()) {
-		ppNode->reset(pBrunchNode.release());
-	}
-	else if (pPieceNode.get()) {
-		ppNode->reset(pPieceNode.release());
-	}
-	else {
-		RegexEmptyNode* pEmptyNode;
-		status = newQsObject(&pEmptyNode);
-		CHECK_QSTATUS();
-		ppNode->reset(pEmptyNode);
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (pBrunchNode.get())
+		return pBrunchNode;
+	else if (pPieceNode.get())
+		return pPieceNode;
+	else
+		return new RegexEmptyNode();
 }
 
-QSTATUS qs::RegexParser::parsePiece(std::auto_ptr<RegexPieceNode>* ppPieceNode)
+std::auto_ptr<RegexPieceNode> qs::RegexParser::parsePiece()
 {
-	assert(ppPieceNode);
-	
-	DECLARE_QSTATUS();
-	
 	std::auto_ptr<RegexAtom> pAtom;
 	if (*p_ == L'(') {
 		++p_;
-		std::auto_ptr<RegexRegexNode> pNode;
-		status = parseRegex(&pNode);
-		CHECK_QSTATUS();
+		std::auto_ptr<RegexRegexNode> pNode(parseRegex());
 		if (*p_ != L')')
-			return QSTATUS_FAIL;
-		RegexNodeAtom* pNodeAtom = 0;
-		status = newQsObject(pNode.get(), &pNodeAtom);
-		CHECK_QSTATUS();
-		pNode.release();
-		pAtom.reset(pNodeAtom);
+			return 0;
+		pAtom.reset(new RegexNodeAtom(pNode));
 		++p_;
 	}
 	else if (*p_ == L'[') {
-		std::auto_ptr<RegexCharGroupAtom> pCharGroupAtom;
-		status = parseCharGroup(&pCharGroupAtom);
-		CHECK_QSTATUS();
-		pAtom.reset(pCharGroupAtom.release());
+		pAtom = parseCharGroup();
+		if (!pAtom.get())
+			return 0;
 	}
 	else if (*p_ == L'.') {
-		RegexMultiEscapeAtom* pMultiEscapeAtom = 0;
-		status = newQsObject(RegexMultiEscapeAtom::TYPE_DOT,
-			false, &pMultiEscapeAtom);
-		CHECK_QSTATUS();
-		pAtom.reset(pMultiEscapeAtom);
+		pAtom.reset(new RegexMultiEscapeAtom(RegexMultiEscapeAtom::TYPE_DOT, false));
 		++p_;
 	}
 	else if (*p_ == L'\\') {
 		++p_;
-		if (wcschr(wszSingleEscapeChar__, *p_)) {
-			RegexCharAtom* pCharAtom = 0;
-			status = newQsObject(*p_, &pCharAtom);
-			CHECK_QSTATUS();
-			pAtom.reset(pCharAtom);
-		}
-		else if (*p_ == L's' || *p_ == L'S') {
-			RegexMultiEscapeAtom* pMultiEscapeAtom = 0;
-			status = newQsObject(RegexMultiEscapeAtom::TYPE_WHITESPACE,
-				*p_ == L'S', &pMultiEscapeAtom);
-			CHECK_QSTATUS();
-			pAtom.reset(pMultiEscapeAtom);
-		}
-		else if (*p_ == L'w' || *p_ == L'W') {
-			RegexMultiEscapeAtom* pMultiEscapeAtom = 0;
-			status = newQsObject(RegexMultiEscapeAtom::TYPE_WORD,
-				*p_ == L'W', &pMultiEscapeAtom);
-			CHECK_QSTATUS();
-			pAtom.reset(pMultiEscapeAtom);
-		}
-		else {
-			return QSTATUS_FAIL;
-		}
+		if (wcschr(wszSingleEscapeChar__, *p_))
+			pAtom.reset(new RegexCharAtom(*p_));
+		else if (*p_ == L's' || *p_ == L'S')
+			pAtom.reset(new RegexMultiEscapeAtom(
+				RegexMultiEscapeAtom::TYPE_WHITESPACE, *p_ == L'S'));
+		else if (*p_ == L'w' || *p_ == L'W')
+			pAtom.reset(new RegexMultiEscapeAtom(
+				RegexMultiEscapeAtom::TYPE_WORD, *p_ == L'W'));
+		else
+			return 0;
 		++p_;
 	}
 	else if (*p_ == L'?' || *p_ == L'*' || *p_ == L'+' ||
 		*p_ == L']' || *p_ == L'{' || *p_ == L'}') {
-		return QSTATUS_FAIL;
+		return 0;
 	}
 	else {
-		RegexCharAtom* pCharAtom = 0;
-		status = newQsObject(*p_, &pCharAtom);
-		CHECK_QSTATUS();
-		pAtom.reset(pCharAtom);
+		pAtom.reset(new RegexCharAtom(*p_));
 		++p_;
 	}
 	
 	std::auto_ptr<RegexQuantifier> pQuantifier;
 	if (*p_ == L'?') {
-		status = newQsObject(RegexQuantifier::TYPE_RANGE, 0, 1, &pQuantifier);
-		CHECK_QSTATUS();
+		pQuantifier.reset(new RegexQuantifier(RegexQuantifier::TYPE_RANGE, 0, 1));
 		++p_;
 	}
 	else if (*p_ == L'*') {
-		status = newQsObject(RegexQuantifier::TYPE_MIN, 0, 0, &pQuantifier);
-		CHECK_QSTATUS();
+		pQuantifier.reset(new RegexQuantifier(RegexQuantifier::TYPE_MIN, 0, 0));
 		++p_;
 	}
 	else if (*p_ == L'+') {
-		status = newQsObject(RegexQuantifier::TYPE_MIN, 1, 0, &pQuantifier);
-		CHECK_QSTATUS();
+		pQuantifier.reset(new RegexQuantifier(RegexQuantifier::TYPE_MIN, 1, 0));
 		++p_;
 	}
 	else if (*p_ == L'{') {
-		status = parseQuantity(&pQuantifier);
-		CHECK_QSTATUS();
+		pQuantifier = parseQuantity();
 	}
 	
-	status = newQsObject(pAtom.get(), pQuantifier.get(), ppPieceNode);
-	CHECK_QSTATUS();
-	pAtom.release();
-	pQuantifier.release();
-	
-	return QSTATUS_SUCCESS;
+	return new RegexPieceNode(pAtom, pQuantifier);
 }
 
-QSTATUS qs::RegexParser::parseCharGroup(
-	std::auto_ptr<RegexCharGroupAtom>* ppCharGroupAtom)
+std::auto_ptr<RegexCharGroupAtom> qs::RegexParser::parseCharGroup()
 {
-	assert(ppCharGroupAtom);
 	assert(*p_ == L'[');
 	
-	DECLARE_QSTATUS();
-	
-	std::auto_ptr<RegexCharGroupAtom> pCharGroupAtom;
-	status = newQsObject(&pCharGroupAtom);
-	CHECK_QSTATUS();
+	std::auto_ptr<RegexCharGroupAtom> pCharGroupAtom(new RegexCharGroupAtom());
 	
 	++p_;
 	bool bNegative = *p_ == L'^';
@@ -643,19 +528,18 @@ QSTATUS qs::RegexParser::parseCharGroup(
 	pCharGroupAtom->setNegative(bNegative);
 	
 	if (*p_ == L'-') {
-		status = pCharGroupAtom->addRangeCharGroup(L'-', L'-');
-		CHECK_QSTATUS();
+		pCharGroupAtom->addRangeCharGroup(L'-', L'-');
 		++p_;
 	}
 	else if (*p_ == L'[' || *p_ == L']') {
-		return QSTATUS_FAIL;
+		return 0;
 	}
 	
 	while (*p_ != L']') {
 		WCHAR cStart = L'\0';
 		bool bDash = false;
 		if (*p_ == L'[') {
-			return QSTATUS_FAIL;
+			return 0;
 		}
 		else if (*p_ == L'\\') {
 			++p_;
@@ -663,16 +547,12 @@ QSTATUS qs::RegexParser::parseCharGroup(
 				cStart = *p_;
 			}
 			else if (*p_ == L's' || *p_ == L'S') {
-				std::auto_ptr<RegexMultiEscapeAtom> pAtom;
-				status = newQsObject(RegexMultiEscapeAtom::TYPE_WHITESPACE,
-					*p_ == L'S', &pAtom);
-				CHECK_QSTATUS();
-				pCharGroupAtom->addAtomCharGroup(pAtom.get());
-				CHECK_QSTATUS();
-				pAtom.release();
+				std::auto_ptr<RegexMultiEscapeAtom> pAtom(new RegexMultiEscapeAtom(
+					RegexMultiEscapeAtom::TYPE_WHITESPACE, *p_ == L'S'));
+				pCharGroupAtom->addAtomCharGroup(pAtom);
 			}
 			else {
-				return QSTATUS_FAIL;
+				return 0;
 			}
 		}
 		else if (*p_ == L'-') {
@@ -687,69 +567,53 @@ QSTATUS qs::RegexParser::parseCharGroup(
 			if (*p_ == L'-') {
 				++p_;
 				if (*p_ == L']') {
-					if (cStart != L'\0') {
-						status = pCharGroupAtom->addRangeCharGroup(cStart, cStart);
-						CHECK_QSTATUS();
-					}
-					status = pCharGroupAtom->addRangeCharGroup(L'-', L'-');
-					CHECK_QSTATUS();
+					if (cStart != L'\0')
+						pCharGroupAtom->addRangeCharGroup(cStart, cStart);
+					pCharGroupAtom->addRangeCharGroup(L'-', L'-');
 				}
 				else if (*p_ == L'[') {
-					if (cStart != L'\0') {
-						status = pCharGroupAtom->addRangeCharGroup(cStart, cStart);
-						CHECK_QSTATUS();
-					}
-					std::auto_ptr<RegexCharGroupAtom> pSubAtom;
-					status = parseCharGroup(&pSubAtom);
-					CHECK_QSTATUS();
-					pCharGroupAtom->setSubAtom(pSubAtom.release());
+					if (cStart != L'\0')
+						pCharGroupAtom->addRangeCharGroup(cStart, cStart);
+					std::auto_ptr<RegexCharGroupAtom> pSubAtom(new RegexCharGroupAtom());
+					pCharGroupAtom->setSubAtom(pSubAtom);
 					if (*p_ != L']')
-						return QSTATUS_FAIL;
+						return 0;
 				}
 				else if (*p_ == L'\\' && !bDash) {
 					++p_;
-					if (wcschr(wszSingleEscapeChar__, *p_)) {
-						status = pCharGroupAtom->addRangeCharGroup(cStart, *p_);
-						CHECK_QSTATUS();
-					}
-					else {
-						return QSTATUS_FAIL;
-					}
+					if (wcschr(wszSingleEscapeChar__, *p_))
+						pCharGroupAtom->addRangeCharGroup(cStart, *p_);
+					else
+						return 0;
 					++p_;
 				}
 				else if (!bDash) {
-					status = pCharGroupAtom->addRangeCharGroup(cStart, *p_);
-					CHECK_QSTATUS();
+					pCharGroupAtom->addRangeCharGroup(cStart, *p_);
 					++p_;
 				}
 				else {
-					return QSTATUS_FAIL;
+					return 0;
 				}
 			}
 			else {
-				status = pCharGroupAtom->addRangeCharGroup(cStart, cStart);
-				CHECK_QSTATUS();
+				pCharGroupAtom->addRangeCharGroup(cStart, cStart);
 			}
 		}
 	}
 	++p_;
 	
-	*ppCharGroupAtom = pCharGroupAtom;
-	
-	return QSTATUS_SUCCESS;
+	return pCharGroupAtom;
 }
 
-QSTATUS qs::RegexParser::parseQuantity(
-	std::auto_ptr<RegexQuantifier>* ppQuantifier)
+std::auto_ptr<RegexQuantifier> qs::RegexParser::parseQuantity()
 {
-	assert(ppQuantifier);
 	assert(*p_ == L'{');
 	
-	DECLARE_QSTATUS();
+	std::auto_ptr<RegexQuantifier> pQuantifier;
 	
 	++p_;
 	if (*p_ < L'0' || L'9' < *p_)
-		return QSTATUS_FAIL;
+		return 0;
 	
 	unsigned int nMin = 0;
 	while (L'0' <= *p_ && *p_ <= L'9') {
@@ -757,15 +621,13 @@ QSTATUS qs::RegexParser::parseQuantity(
 		++p_;
 	}
 	if (*p_ == L'}') {
-		status = newQsObject(RegexQuantifier::TYPE_RANGE, nMin, nMin, ppQuantifier);
-		CHECK_QSTATUS();
+		pQuantifier.reset(new RegexQuantifier(RegexQuantifier::TYPE_RANGE, nMin, nMin));
 		++p_;
 	}
 	else if (*p_ == L',') {
 		++p_;
 		if (*p_ == L'}') {
-			status = newQsObject(RegexQuantifier::TYPE_MIN, nMin, 0, ppQuantifier);
-			CHECK_QSTATUS();
+			pQuantifier.reset(new RegexQuantifier(RegexQuantifier::TYPE_MIN, nMin, 0));
 			++p_;
 		}
 		else if (L'0' <= *p_ && *p_ <= L'9') {
@@ -775,23 +637,22 @@ QSTATUS qs::RegexParser::parseQuantity(
 				++p_;
 			}
 			if (nMin > nMax)
-				return QSTATUS_FAIL;
+				return 0;
 			if (*p_ == L'}') {
-				status = newQsObject(RegexQuantifier::TYPE_RANGE, nMin, nMax, ppQuantifier);
-				CHECK_QSTATUS();
+				pQuantifier.reset(new RegexQuantifier(RegexQuantifier::TYPE_RANGE, nMin, nMax));
 				++p_;
 			}
 			else {
-				return QSTATUS_FAIL;
+				return 0;
 			}
 		}
 		else {
-			return QSTATUS_FAIL;
+			return 0;
 		}
 	}
 	else {
-		return QSTATUS_FAIL;
+		return 0;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return pQuantifier;
 }

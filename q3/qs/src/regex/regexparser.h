@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -64,7 +64,7 @@ public:
 	typedef std::vector<RegexNode*> NodeList;
 
 public:
-	RegexRegexNode(unsigned int nGroup, QSTATUS* pstatus);
+	explicit RegexRegexNode(unsigned int nGroup);
 	virtual ~RegexRegexNode();
 
 public:
@@ -72,7 +72,7 @@ public:
 	unsigned int getGroup() const;
 
 public:
-	QSTATUS addNode(RegexNode* pNode);
+	void addNode(std::auto_ptr<RegexNode> pNode);
 
 public:
 	virtual Type getType() const;
@@ -99,14 +99,14 @@ public:
 	typedef std::vector<RegexPieceNode*> NodeList;
 
 public:
-	RegexBrunchNode(RegexPieceNode* pPieceNode, QSTATUS* pstatus);
+	explicit RegexBrunchNode(std::auto_ptr<RegexPieceNode> pPieceNode);
 	virtual ~RegexBrunchNode();
 
 public:
 	const NodeList& getNodeList() const;
 
 public:
-	QSTATUS addNode(RegexPieceNode* pPieceNode);
+	void addNode(std::auto_ptr<RegexPieceNode> pPieceNode);
 
 public:
 	virtual Type getType() const;
@@ -129,8 +129,8 @@ private:
 class RegexPieceNode : public RegexNode
 {
 public:
-	RegexPieceNode(RegexAtom* pAtom,
-		RegexQuantifier* pQuantifier, QSTATUS* pstatus);
+	RegexPieceNode(std::auto_ptr<RegexAtom> pAtom,
+				   std::auto_ptr<RegexQuantifier> pQuantifier);
 	virtual ~RegexPieceNode();
 
 public:
@@ -145,8 +145,8 @@ private:
 	RegexPieceNode& operator=(const RegexPieceNode&);
 
 private:
-	RegexAtom* pAtom_;
-	RegexQuantifier* pQuantifier_;
+	std::auto_ptr<RegexAtom> pAtom_;
+	std::auto_ptr<RegexQuantifier> pQuantifier_;
 };
 
 
@@ -159,7 +159,7 @@ private:
 class RegexEmptyNode : public RegexNode
 {
 public:
-	RegexEmptyNode(QSTATUS* pstatus);
+	RegexEmptyNode();
 	virtual ~RegexEmptyNode();
 
 public:
@@ -197,7 +197,7 @@ public:
 class RegexCharAtom : public RegexAtom
 {
 public:
-	RegexCharAtom(WCHAR c, QSTATUS* pstatus);
+	explicit RegexCharAtom(WCHAR c);
 	virtual ~RegexCharAtom();
 
 public:
@@ -228,7 +228,8 @@ public:
 	};
 
 public:
-	RegexMultiEscapeAtom(Type type, bool bNegative, QSTATUS* pstatus);
+	RegexMultiEscapeAtom(Type type,
+						 bool bNegative);
 	virtual ~RegexMultiEscapeAtom();
 
 public:
@@ -265,7 +266,8 @@ private:
 	class RangeCharGroup : public CharGroup
 	{
 	public:
-		RangeCharGroup(WCHAR cStart, WCHAR cEnd);
+		RangeCharGroup(WCHAR cStart,
+					   WCHAR cEnd);
 		virtual ~RangeCharGroup();
 	
 	public:
@@ -283,7 +285,7 @@ private:
 	class AtomCharGroup : public CharGroup
 	{
 	public:
-		AtomCharGroup(RegexAtom* pAtom);
+		AtomCharGroup(std::auto_ptr<RegexAtom> pAtom);
 		virtual ~AtomCharGroup();
 	
 	public:
@@ -294,14 +296,14 @@ private:
 		AtomCharGroup& operator=(const AtomCharGroup&);
 	
 	private:
-		RegexAtom* pAtom_;
+		std::auto_ptr<RegexAtom> pAtom_;
 	};
 
 public:
 	typedef std::vector<CharGroup*> CharGroupList;
 
 public:
-	RegexCharGroupAtom(QSTATUS* pstatus);
+	RegexCharGroupAtom();
 	virtual ~RegexCharGroupAtom();
 
 public:
@@ -309,9 +311,10 @@ public:
 
 public:
 	void setNegative(bool bNegative);
-	QSTATUS addRangeCharGroup(WCHAR cStart, WCHAR cEnd);
-	QSTATUS addAtomCharGroup(RegexAtom* pAtom);
-	void setSubAtom(RegexCharGroupAtom* pSubAtom);
+	void addRangeCharGroup(WCHAR cStart,
+						   WCHAR cEnd);
+	void addAtomCharGroup(std::auto_ptr<RegexAtom> pAtom);
+	void setSubAtom(std::auto_ptr<RegexCharGroupAtom> pSubAtom);
 
 private:
 	RegexCharGroupAtom(const RegexCharGroupAtom&);
@@ -320,7 +323,7 @@ private:
 private:
 	bool bNegative_;
 	CharGroupList listCharGroup_;
-	RegexCharGroupAtom* pSubAtom_;
+	std::auto_ptr<RegexCharGroupAtom> pSubAtom_;
 };
 
 
@@ -333,7 +336,7 @@ private:
 class RegexNodeAtom : public RegexAtom
 {
 public:
-	RegexNodeAtom(RegexRegexNode* pNode, QSTATUS* pstatus);
+	explicit RegexNodeAtom(std::auto_ptr<RegexRegexNode> pNode);
 	virtual ~RegexNodeAtom();
 
 public:
@@ -345,7 +348,7 @@ private:
 	RegexNodeAtom& operator=(const RegexNodeAtom&);
 
 private:
-	RegexRegexNode* pNode_;
+	std::auto_ptr<RegexRegexNode> pNode_;
 };
 
 
@@ -364,8 +367,9 @@ public:
 	};
 
 public:
-	RegexQuantifier(Type type, unsigned int nMin,
-		unsigned int nMax, QSTATUS* pstatus);
+	RegexQuantifier(Type type,
+					unsigned int nMin,
+					unsigned int nMax);
 	~RegexQuantifier();
 
 public:
@@ -393,18 +397,18 @@ private:
 class RegexParser
 {
 public:
-	RegexParser(const WCHAR* pwszPattern, QSTATUS* pstatus);
+	explicit RegexParser(const WCHAR* pwszPattern);
 	~RegexParser();
 
 public:
-	QSTATUS parse(RegexRegexNode** ppNode);
+	std::auto_ptr<RegexRegexNode> parse();
 
 private:
-	QSTATUS parseRegex(std::auto_ptr<RegexRegexNode>* ppNode);
-	QSTATUS parseBranch(std::auto_ptr<RegexNode>* ppNode);
-	QSTATUS parsePiece(std::auto_ptr<RegexPieceNode>* ppPieceNode);
-	QSTATUS parseCharGroup(std::auto_ptr<RegexCharGroupAtom>* ppAtom);
-	QSTATUS parseQuantity(std::auto_ptr<RegexQuantifier>* ppQuantifier);
+	std::auto_ptr<RegexRegexNode> parseRegex();
+	std::auto_ptr<RegexNode> parseBranch();
+	std::auto_ptr<RegexPieceNode> parsePiece();
+	std::auto_ptr<RegexCharGroupAtom> parseCharGroup();
+	std::auto_ptr<RegexQuantifier> parseQuantity();
 
 private:
 	RegexParser(const RegexParser&);

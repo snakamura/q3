@@ -1,23 +1,13 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #ifndef __MACRO_H__
 #define __MACRO_H__
-
-#define CHECK_HRESULT() \
-	if (FAILED(hr)) \
-		return qs::QSTATUS_FAIL \
-
-#define CHECK_QSTATUS_HRESULT() \
-	if (status == qs::QSTATUS_OUTOFMEMORY) \
-		return E_OUTOFMEMORY; \
-	else if (status != qs::QSTATUS_SUCCESS) \
-		return E_FAIL \
 
 #define BEGIN_INTERFACE_MAP() \
 	if (false) \
@@ -34,7 +24,6 @@
 		*ppv = static_cast<i*>(this); \
 
 #define BEGIN_COCLASS_MAP() \
-	DECLARE_QSTATUS(); \
 	if (false) { \
 	} \
 
@@ -46,9 +35,8 @@
 
 #define COCLASS_ENTRY(clsid, classname) \
 	if (rclsid == clsid) { \
-		std::auto_ptr<Object<ClassFactoryImpl<classname> > > pClassFactory; \
-		status = newQsObject(&pClassFactory); \
-		CHECK_QSTATUS_HRESULT(); \
+		std::auto_ptr<Object<ClassFactoryImpl<classname> > > pClassFactory( \
+			new Object<ClassFactoryImpl<classname> >(); \
 		HRESULT hr = pClassFactory->QueryInterface(riid, ppv); \
 		if (FAILED(hr)) \
 			return hr; \

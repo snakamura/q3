@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -25,11 +25,12 @@ namespace qmpop3 {
 class ReceivePage : public qs::DefaultPropertyPage
 {
 public:
-	ReceivePage(qm::SubAccount* pSubAccount, qs::QSTATUS* pstatus);
+	ReceivePage(qm::SubAccount* pSubAccount);
 	virtual ~ReceivePage();
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
@@ -52,11 +53,12 @@ private:
 class SendPage : public qs::DefaultPropertyPage
 {
 public:
-	SendPage(qm::SubAccount* pSubAccount, qs::QSTATUS* pstatus);
+	SendPage(qm::SubAccount* pSubAccount);
 	virtual ~SendPage();
 
 protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();

@@ -1,14 +1,12 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qsassert.h>
-#include <qserror.h>
-#include <qsnew.h>
 #include <qsregex.h>
 
 #include "regexnfa.h"
@@ -36,29 +34,19 @@ qs::RegexRange::RegexRange() :
  *
  */
 
-QSTATUS qs::RegexRangeList::getReplace(const WCHAR* pwszReplace, WSTRING* pwstr) const
+wstring_ptr qs::RegexRangeList::getReplace(const WCHAR* pwszReplace) const
 {
 	assert(pwszReplace);
-	assert(pwstr);
 	
-	DECLARE_QSTATUS();
+	StringBuffer<WSTRING> buf;
+	getReplace(pwszReplace, &buf);
 	
-	*pwstr = 0;
-	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
-	status = getReplace(pwszReplace, &buf);
-	CHECK_QSTATUS();
-	
-	*pwstr = buf.getString();
-	
-	return QSTATUS_SUCCESS;
+	return buf.getString();
 }
 
-QSTATUS qs::RegexRangeList::getReplace(const WCHAR* pwszReplace, StringBuffer<WSTRING>* pBuf) const
+void qs::RegexRangeList::getReplace(const WCHAR* pwszReplace,
+									StringBuffer<WSTRING>* pBuf) const
 {
-	DECLARE_QSTATUS();
-	
 	for (const WCHAR* p = pwszReplace; *p; ++p) {
 		if (*p == L'$') {
 			WCHAR c = *(p + 1);
@@ -66,32 +54,25 @@ QSTATUS qs::RegexRangeList::getReplace(const WCHAR* pwszReplace, StringBuffer<WS
 				unsigned int nIndex = c - L'0';
 				if (nIndex < list_.size() && list_[nIndex].pStart_) {
 					const RegexRange& range = list_[nIndex];
-					status = pBuf->append(range.pStart_, range.pEnd_ - range.pStart_);
-					CHECK_QSTATUS();
+					pBuf->append(range.pStart_, range.pEnd_ - range.pStart_);
 					++p;
 				}
 				else {
-					status = pBuf->append(*p);
-					CHECK_QSTATUS();
+					pBuf->append(*p);
 				}
 			}
 			else if (c == L'$') {
-				status = pBuf->append(c);
-				CHECK_QSTATUS();
+				pBuf->append(c);
 				++p;
 			}
 			else {
-				status = pBuf->append(L'$');
-				CHECK_QSTATUS();
+				pBuf->append(L'$');
 			}
 		}
 		else {
-			status = pBuf->append(*p);
-			CHECK_QSTATUS();
+			pBuf->append(*p);
 		}
 	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -103,7 +84,7 @@ QSTATUS qs::RegexRangeList::getReplace(const WCHAR* pwszReplace, StringBuffer<WS
 
 struct qs::RegexPatternImpl
 {
-	RegexNfa* pNfa_;
+	std::auto_ptr<RegexNfa> pNfa_;
 };
 
 
@@ -113,67 +94,53 @@ struct qs::RegexPatternImpl
  *
  */
 
-qs::RegexPattern::RegexPattern(RegexNfa* pNfa, QSTATUS* pstatus) :
+qs::RegexPattern::RegexPattern(std::auto_ptr<RegexNfa> pNfa) :
 	pImpl_(0)
 {
-	assert(pstatus);
-	
-	DECLARE_QSTATUS();
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new RegexPatternImpl();
 	pImpl_->pNfa_ = pNfa;
 }
 
 qs::RegexPattern::~RegexPattern()
 {
-	if (pImpl_) {
-		delete pImpl_->pNfa_;
-		delete pImpl_;
-	}
+	delete pImpl_;
 }
 
-QSTATUS qs::RegexPattern::match(const WCHAR* pwsz, bool* pbMatch) const
+bool qs::RegexPattern::match(const WCHAR* pwsz) const
 {
-	return match(pwsz, -1, pbMatch, 0);
+	return match(pwsz, -1, 0);
 }
 
-QSTATUS qs::RegexPattern::match(const WCHAR* pwsz,
-	size_t nLen, bool* pbMatch, RegexRangeList* pList) const
+bool qs::RegexPattern::match(const WCHAR* pwsz,
+							 size_t nLen,
+							 RegexRangeList* pList) const
 {
 	assert(pwsz);
-	assert(pbMatch);
-	
-	DECLARE_QSTATUS();
 	
 	if (nLen == -1)
 		nLen = wcslen(pwsz);
 	
-	RegexNfaMatcher matcher(pImpl_->pNfa_);
-	status = matcher.match(pwsz, nLen, pbMatch, pList);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	RegexNfaMatcher matcher(pImpl_->pNfa_.get());
+	return matcher.match(pwsz, nLen, pList);
 }
 
-QSTATUS qs::RegexPattern::search(const WCHAR* pwsz, size_t nLen,
-	const WCHAR* p, bool bReverse, const WCHAR** ppStart,
-	const WCHAR** ppEnd, RegexRangeList* pList) const
+void qs::RegexPattern::search(const WCHAR* pwsz,
+							  size_t nLen,
+							  const WCHAR* p,
+							  bool bReverse,
+							  const WCHAR** ppStart,
+							  const WCHAR** ppEnd,
+							  RegexRangeList* pList) const
 {
 	assert(pwsz);
 	assert(ppStart);
 	assert(ppEnd);
 	
-	DECLARE_QSTATUS();
-	
 	if (nLen == -1)
 		nLen = wcslen(pwsz);
 	
-	RegexNfaMatcher matcher(pImpl_->pNfa_);
-	status = matcher.search(pwsz, nLen, p, bReverse, ppStart, ppEnd, pList);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	RegexNfaMatcher matcher(pImpl_->pNfa_.get());
+	matcher.search(pwsz, nLen, p, bReverse, ppStart, ppEnd, pList);
 }
 
 
@@ -191,37 +158,17 @@ qs::RegexCompiler::~RegexCompiler()
 {
 }
 
-QSTATUS qs::RegexCompiler::compile(
-	const WCHAR* pwszPattern, RegexPattern** ppPattern) const
+std::auto_ptr<RegexPattern> qs::RegexCompiler::compile(const WCHAR* pwszPattern) const
 {
 	assert(pwszPattern);
-	assert(ppPattern);
 	
-	DECLARE_QSTATUS();
+	RegexParser parser(pwszPattern);
+	std::auto_ptr<RegexRegexNode> pNode(parser.parse());
+	if (!pNode.get())
+		return 0;
 	
-	*ppPattern = 0;
+	RegexNfaCompiler compiler;
+	std::auto_ptr<RegexNfa> pNfa(compiler.compile(pNode));
 	
-	RegexParser parser(pwszPattern, &status);
-	CHECK_QSTATUS();
-	RegexRegexNode* pNode = 0;
-	status = parser.parse(&pNode);
-	CHECK_QSTATUS();
-	std::auto_ptr<RegexRegexNode> apNode(pNode);
-	
-	RegexNfaCompiler compiler(&status);
-	CHECK_QSTATUS();
-	RegexNfa* pNfa = 0;
-	status = compiler.compile(apNode.get(), &pNfa);
-	CHECK_QSTATUS();
-	apNode.release();
-	std::auto_ptr<RegexNfa> apNfa(pNfa);
-	
-	std::auto_ptr<RegexPattern> pPattern;
-	status = newQsObject(apNfa.get(), &pPattern);
-	CHECK_QSTATUS();
-	apNfa.release();
-	
-	*ppPattern = pPattern.release();
-	
-	return QSTATUS_SUCCESS;
+	return new RegexPattern(pNfa);
 }

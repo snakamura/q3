@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -53,8 +53,7 @@ struct qm::ProtocolFactoryImpl
 
 qm::ProtocolFactoryImpl::FactoryList qm::ProtocolFactoryImpl::listFactory__;
 
-qm::ProtocolFactoryImpl::FactoryList::iterator
-	qm::ProtocolFactoryImpl::getIterator(const WCHAR* pwszName)
+ProtocolFactoryImpl::FactoryList::iterator qm::ProtocolFactoryImpl::getIterator(const WCHAR* pwszName)
 {
 	return std::find_if(listFactory__.begin(), listFactory__.end(),
 		std::bind2nd(
@@ -80,49 +79,28 @@ qm::ProtocolFactory::~ProtocolFactory()
 {
 }
 
-QSTATUS qm::ProtocolFactory::getDriver(Account* pAccount,
-	const Security* pSecurity, ProtocolDriver** ppProtocolDriver)
+std::auto_ptr<ProtocolDriver> qm::ProtocolFactory::getDriver(Account* pAccount,
+															 const Security* pSecurity)
 {
-	assert(ppProtocolDriver);
-	
-	*ppProtocolDriver = 0;
-	
 	const WCHAR* pwszName = pAccount->getType(Account::HOST_RECEIVE);
 	ProtocolFactoryImpl::FactoryList::iterator it =
 		ProtocolFactoryImpl::getIterator(pwszName);
 	if (it == ProtocolFactoryImpl::listFactory__.end())
-		return QSTATUS_FAIL;
+		return 0;
 	
-	return (*it).second->createDriver(pAccount, pSecurity, ppProtocolDriver);
+	return (*it).second->createDriver(pAccount, pSecurity);
 }
 
-QSTATUS qm::ProtocolFactory::getDriver(Account* pAccount,
-	const Security* pSecurity, std::auto_ptr<ProtocolDriver>* papProtocolDriver)
-{
-	assert(papProtocolDriver);
-	
-	DECLARE_QSTATUS();
-	
-	ProtocolDriver* p = 0;
-	status = getDriver(pAccount, pSecurity, &p);
-	CHECK_QSTATUS();
-	papProtocolDriver->reset(p);
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::ProtocolFactory::regist(const WCHAR* pwszName,
-	ProtocolFactory* pFactory)
+void qm::ProtocolFactory::registerFactory(const WCHAR* pwszName,
+										  ProtocolFactory* pFactory)
 {
 	assert(pwszName);
 	assert(pFactory);
 	
-	return STLWrapper<ProtocolFactoryImpl::FactoryList>(
-		ProtocolFactoryImpl::listFactory__).push_back(
-			std::make_pair(pwszName, pFactory));
+	ProtocolFactoryImpl::listFactory__.push_back(std::make_pair(pwszName, pFactory));
 }
 
-QSTATUS qm::ProtocolFactory::unregist(const WCHAR* pwszName)
+void qm::ProtocolFactory::unregisterFactory(const WCHAR* pwszName)
 {
 	assert(pwszName);
 	
@@ -130,6 +108,4 @@ QSTATUS qm::ProtocolFactory::unregist(const WCHAR* pwszName)
 		ProtocolFactoryImpl::getIterator(pwszName);
 	if (it != ProtocolFactoryImpl::listFactory__.end())
 		ProtocolFactoryImpl::listFactory__.erase(it);
-	
-	return QSTATUS_SUCCESS;
 }

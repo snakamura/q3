@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -28,13 +28,16 @@ class ActionInvoker;
 class QMEXPORTCLASS ActionInvoker
 {
 public:
-	ActionInvoker(const qs::ActionMap* pActionMap, qs::QSTATUS* pstatus);
+	explicit ActionInvoker(const qs::ActionMap* pActionMap);
 	~ActionInvoker();
 
 public:
-	qs::QSTATUS invoke(UINT nId, VARIANT** ppvarArgs, size_t nArgs) const;
-	qs::QSTATUS invoke(const WCHAR* pwszAction,
-		VARIANT** ppvarArgs, size_t nArgs) const;
+	void invoke(UINT nId,
+				VARIANT** ppvarArgs,
+				size_t nArgs) const;
+	void invoke(const WCHAR* pwszAction,
+				VARIANT** ppvarArgs,
+				size_t nArgs) const;
 
 private:
 	ActionInvoker(const ActionInvoker&);

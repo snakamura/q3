@@ -1,13 +1,12 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qslog.h>
-#include <qsnew.h>
 
 #include "crypto.h"
 #include "ssl.h"
@@ -22,8 +21,10 @@ using namespace qscrypto;
  *
  */
 
-qscrypto::SSLSocketImpl::SSLSocketImpl(Socket* pSocket, bool bDeleteSocket,
-	SSLSocketCallback* pCallback, Logger* pLogger, QSTATUS* pstatus) :
+qscrypto::SSLSocketImpl::SSLSocketImpl(Socket* pSocket,
+									   bool bDeleteSocket,
+									   SSLSocketCallback* pCallback,
+									   Logger* pLogger) :
 	pSocket_(0),
 	bDeleteSocket_(bDeleteSocket),
 	pCallback_(pCallback),
@@ -33,10 +34,8 @@ qscrypto::SSLSocketImpl::SSLSocketImpl(Socket* pSocket, bool bDeleteSocket,
 	pCTX_(0),
 	pSSL_(0)
 {
-	DECLARE_QSTATUS();
-	
-	status = connect(pSocket);
-	CHECK_QSTATUS_SET(pstatus);
+	if (!connect(pSocket))
+		return;
 	pSocket_ = pSocket;
 }
 
@@ -56,6 +55,11 @@ qscrypto::SSLSocketImpl::~SSLSocketImpl()
 		delete pSocket_;
 }
 
+bool qscrypto::SSLSocketImpl::operator!() const
+{
+	return pSocket_ == 0;
+}
+
 long qscrypto::SSLSocketImpl::getTimeout() const
 {
 	return pSocket_->getTimeout();
@@ -72,193 +76,143 @@ void qscrypto::SSLSocketImpl::setLastError(unsigned int nError)
 	// TODO
 }
 
-QSTATUS qscrypto::SSLSocketImpl::close()
+bool qscrypto::SSLSocketImpl::close()
 {
-	DECLARE_QSTATUS();
-	
 	Log log(pLogger_, L"qscrypto::SSLSocketImpl");
 	
-	status = log.debug(L"Shuting down SSL connection...");
-	CHECK_QSTATUS();
+	log.debug(L"Shuting down SSL connection...");
 	
 	SSL_shutdown(pSSL_);
 	
-	status = log.debug(L"SSL connection shut down.");
-	CHECK_QSTATUS();
+	log.debug(L"SSL connection shut down.");
 	
 	if (bDeleteSocket_ && pSocket_) {
-		status = pSocket_->close();
-		CHECK_QSTATUS();
+		if (!pSocket_->close())
+			return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
-QSTATUS qscrypto::SSLSocketImpl::recv(char* p, int* pnLen, int nFlags)
+int qscrypto::SSLSocketImpl::recv(char* p,
+								  int nLen,
+								  int nFlags)
 {
 	assert(p);
-	assert(pnLen);
-	
-	DECLARE_QSTATUS();
 	
 	Log log(pLogger_, L"qscrypto::SSLSocketImpl");
 	
-	*pnLen = SSL_read(pSSL_, p, *pnLen);
-	if (*pnLen < 0) {
-		status = log.debug(L"Error occured while receiving.");
-		CHECK_QSTATUS();
-		return QSTATUS_FAIL;
+	int nRead = SSL_read(pSSL_, p, nLen);
+	if (nRead < 0) {
+		log.debug(L"Error occured while receiving.");
+		return -1;
 	}
 	
-	status = log.debug(L"Received data",
-		reinterpret_cast<unsigned char*>(p), *pnLen);
-	CHECK_QSTATUS();
+	log.debug(L"Received data", reinterpret_cast<unsigned char*>(p), nRead);
 	
-	return QSTATUS_SUCCESS;
+	return nRead;
 }
 
-QSTATUS qscrypto::SSLSocketImpl::send(const char* p, int* pnLen, int nFlags)
+int qscrypto::SSLSocketImpl::send(const char* p,
+								  int nLen,
+								  int nFlags)
 {
 	assert(p);
-	assert(pnLen);
-	
-	DECLARE_QSTATUS();
 	
 	Log log(pLogger_, L"qscrypto::SSLSocketImpl");
 	
-	*pnLen = SSL_write(pSSL_, p, *pnLen);
-	if (*pnLen < 0) {
-		status = log.debug(L"Error occured while sending.");
-		CHECK_QSTATUS();
-		return QSTATUS_FAIL;
+	int nWritten = SSL_write(pSSL_, p, nLen);
+	if (nWritten < 0) {
+		log.debug(L"Error occured while sending.");
+		return -1;
 	}
 	
-	status = log.debug(L"Sent data",
-		reinterpret_cast<const unsigned char*>(p), *pnLen);
-	CHECK_QSTATUS();
+	log.debug(L"Sent data", reinterpret_cast<const unsigned char*>(p), nWritten);
 	
-	return QSTATUS_SUCCESS;
+	return nWritten;
 }
 
-QSTATUS qscrypto::SSLSocketImpl::select(int* pnSelect)
+int qscrypto::SSLSocketImpl::select(int nSelect)
 {
-	return select(pnSelect, getTimeout());
+	return select(nSelect, getTimeout());
 }
 
-QSTATUS qscrypto::SSLSocketImpl::select(int* pnSelect, long nTimeout)
+int qscrypto::SSLSocketImpl::select(int nSelect,
+									long nTimeout)
 {
-	assert(pnSelect);
-	
-	DECLARE_QSTATUS();
-	
-	if (*pnSelect & SELECT_READ && SSL_pending(pSSL_) > 0) {
-		*pnSelect = SELECT_READ;
-	}
-	else {
-		status = pSocket_->select(pnSelect, nTimeout);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
+	if (nSelect & SELECT_READ && SSL_pending(pSSL_) > 0)
+		return SELECT_READ;
+	else
+		return pSocket_->select(nSelect, nTimeout);
 }
 
-QSTATUS qscrypto::SSLSocketImpl::getInputStream(InputStream** ppStream)
+InputStream* qscrypto::SSLSocketImpl::getInputStream()
 {
-	DECLARE_QSTATUS();
-	
-	if (!pInputStream_) {
-		status = newQsObject(this, &pInputStream_);
-		CHECK_QSTATUS();
-	}
-	*ppStream = pInputStream_;
-	
-	return QSTATUS_SUCCESS;
+	if (!pInputStream_)
+		pInputStream_ = new SocketInputStream(this);
+	return pInputStream_;
 }
 
-QSTATUS qscrypto::SSLSocketImpl::getOutputStream(OutputStream** ppStream)
+OutputStream* qscrypto::SSLSocketImpl::getOutputStream()
 {
-	DECLARE_QSTATUS();
-	
-	if (!pOutputStream_) {
-		status = newQsObject(this, &pOutputStream_);
-		CHECK_QSTATUS();
-	}
-	*ppStream = pOutputStream_;
-	
-	return QSTATUS_SUCCESS;
+	if (!pOutputStream_)
+		pOutputStream_ = new SocketOutputStream(this);
+	return pOutputStream_;
 }
 
-QSTATUS qscrypto::SSLSocketImpl::connect(Socket* pSocket)
+bool qscrypto::SSLSocketImpl::connect(Socket* pSocket)
 {
-	DECLARE_QSTATUS();
-	
 	Log log(pLogger_, L"qscrypto::SSLSocketImpl");
 	
-	status = log.debug(L"Initializing SSL context...");
-	CHECK_QSTATUS();
+	log.debug(L"Initializing SSL context...");
 	
 	pCTX_ = SSL_CTX_new(SSLv23_method());
 	if (!pCTX_)
-		return QSTATUS_FAIL;
+		return false;
 	
-	status = log.debug(L"Installing trusted CAs...");
-	CHECK_QSTATUS();
+	log.debug(L"Installing trusted CAs...");
 	
-	const Store* pStore = 0;
-	status = pCallback_->getCertStore(&pStore);
-	CHECK_QSTATUS();
+	const Store* pStore = pCallback_->getCertStore();
 	if (pStore)
 		SSL_CTX_set_cert_store(pCTX_,
 			static_cast<const StoreImpl*>(pStore)->getStore());
 	
-	status = log.debug(L"Initializing SSL...");
-	CHECK_QSTATUS();
+	log.debug(L"Initializing SSL...");
 	
 	pSSL_ = SSL_new(pCTX_);
 	if (!pSSL_)
-		return QSTATUS_FAIL;
+		return false;
 	
 	SSL_set_fd(pSSL_, pSocket->getSocket());
 	
-	status = log.debug(L"Starting SSL handshake...");
-	CHECK_QSTATUS();
+	log.debug(L"Starting SSL handshake...");
 	
 	if (SSL_connect(pSSL_) <= 0)
-		return QSTATUS_FAIL;
+		return false;
 	
-	status = log.debug(L"SSL handshake completed.");
-	CHECK_QSTATUS();
+	log.debug(L"SSL handshake completed.");
 	
 	bool bVerified = SSL_get_verify_result(pSSL_) == X509_V_OK;
 	if (log.isDebugEnabled()) {
-		if (bVerified) {
-			status = log.debug(L"Server certificate is verified.");
-			CHECK_QSTATUS();
-		}
-		else {
-			status = log.debug(L"Failed to verify server certificate.");
-			CHECK_QSTATUS();
-		}
+		if (bVerified)
+			log.debug(L"Server certificate is verified.");
+		else
+			log.debug(L"Failed to verify server certificate.");
 	}
 	
 	X509* pX509 = SSL_get_peer_certificate(pSSL_);
 	CertificateImpl cert(pX509);
 	if (log.isDebugEnabled()) {
-		string_ptr<WSTRING> wstrCert;
-		status = cert.getText(&wstrCert);
-		CHECK_QSTATUS();
-		status = log.debug(wstrCert.get());
-		CHECK_QSTATUS();
+		wstring_ptr wstrCert(cert.getText());
+		log.debug(wstrCert.get());
 	}
 	
-	status = pCallback_->checkCertificate(cert, bVerified);
-	if (status != QSTATUS_SUCCESS) {
-		status = log.debug(L"Failed to check server certificate");
-		CHECK_QSTATUS();
-		return QSTATUS_FAIL;
+	if (!pCallback_->checkCertificate(cert, bVerified)) {
+		log.debug(L"Failed to check server certificate");
+		return false;
 	}
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 
@@ -272,31 +226,22 @@ SSLSocketFactoryImpl qscrypto::SSLSocketFactoryImpl::factory__;
 
 qscrypto::SSLSocketFactoryImpl::SSLSocketFactoryImpl()
 {
-	regist(this);
+	registerFactory(this);
 }
 
 qscrypto::SSLSocketFactoryImpl::~SSLSocketFactoryImpl()
 {
-	unregist(this);
+	unregisterFactory(this);
 }
 
-QSTATUS qscrypto::SSLSocketFactoryImpl::createSSLSocket(
-	Socket* pSocket, bool bDeleteSocket, SSLSocketCallback* pCallback,
-	Logger* pLogger, SSLSocket** ppSSLSocket)
+std::auto_ptr<SSLSocket> qscrypto::SSLSocketFactoryImpl::createSSLSocket(Socket* pSocket,
+																		 bool bDeleteSocket,
+																		 SSLSocketCallback* pCallback,
+																		 Logger* pLogger)
 {
-	assert(pSocket);
-	assert(pCallback);
-	assert(ppSSLSocket);
-	
-	DECLARE_QSTATUS();
-	
-	*ppSSLSocket = 0;
-	
-	std::auto_ptr<SSLSocketImpl> pSSLSocket;
-	status = newQsObject(pSocket, bDeleteSocket, pCallback, pLogger, &pSSLSocket);
-	CHECK_QSTATUS();
-	
-	*ppSSLSocket = pSSLSocket.release();
-	
-	return QSTATUS_SUCCESS;
+	std::auto_ptr<SSLSocketImpl> pSSLSocket(new SSLSocketImpl(
+		pSocket, bDeleteSocket, pCallback, pLogger));
+	if (!*pSSLSocket.get())
+		return 0;
+	return pSSLSocket;
 }

@@ -1,15 +1,13 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
 #include <qsassert.h>
 #include <qsdragdrop.h>
-#include <qserror.h>
-#include <qsnew.h>
 
 #include <algorithm>
 
@@ -29,16 +27,18 @@ struct qs::DragSourceImpl
 	class IDropSourceImpl : public IDropSource
 	{
 	public:
-		IDropSourceImpl(DragSourceImpl* pDragSource, QSTATUS* pstatus);
+		explicit IDropSourceImpl(DragSourceImpl* pDragSource);
 		~IDropSourceImpl();
 	
 	public:
 		STDMETHOD_(ULONG, AddRef)();
 		STDMETHOD_(ULONG, Release)();
-		STDMETHOD(QueryInterface)(REFIID riid, void** ppv);
+		STDMETHOD(QueryInterface)(REFIID riid,
+								  void** ppv);
 	
 	public:
-		STDMETHOD(QueryContinueDrag)(BOOL bEscapePressed, DWORD dwKeyState);
+		STDMETHOD(QueryContinueDrag)(BOOL bEscapePressed,
+									 DWORD dwKeyState);
 		STDMETHOD(GiveFeedback)(DWORD dwEffect);
 	
 	private:
@@ -63,13 +63,10 @@ struct qs::DragSourceImpl
  *
  */
 
-qs::DragSourceImpl::IDropSourceImpl::IDropSourceImpl(
-	DragSourceImpl* pDragSource, QSTATUS* pstatus) :
+qs::DragSourceImpl::IDropSourceImpl::IDropSourceImpl(DragSourceImpl* pDragSource) :
 	nRef_(0),
 	pDragSource_(pDragSource)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qs::DragSourceImpl::IDropSourceImpl::~IDropSourceImpl()
@@ -89,8 +86,8 @@ STDMETHODIMP_(ULONG) qs::DragSourceImpl::IDropSourceImpl::Release()
 	return nRef;
 }
 
-STDMETHODIMP qs::DragSourceImpl::IDropSourceImpl::QueryInterface(
-	REFIID riid, void** ppv)
+STDMETHODIMP qs::DragSourceImpl::IDropSourceImpl::QueryInterface(REFIID riid,
+																 void** ppv)
 {
 	*ppv = 0;
 	
@@ -102,8 +99,8 @@ STDMETHODIMP qs::DragSourceImpl::IDropSourceImpl::QueryInterface(
 	return *ppv ? S_OK : E_NOINTERFACE;
 }
 
-STDMETHODIMP qs::DragSourceImpl::IDropSourceImpl::QueryContinueDrag(
-	BOOL bEscapePressed, DWORD dwKeyState)
+STDMETHODIMP qs::DragSourceImpl::IDropSourceImpl::QueryContinueDrag(BOOL bEscapePressed,
+																	DWORD dwKeyState)
 {
 	if (bEscapePressed || (dwKeyState & pDragSource_->dwCancelButton_))
 		return DRAGDROP_S_CANCEL;
@@ -125,25 +122,17 @@ STDMETHODIMP qs::DragSourceImpl::IDropSourceImpl::GiveFeedback(DWORD dwEffect)
  *
  */
 
-qs::DragSource::DragSource(QSTATUS* pstatus) :
+qs::DragSource::DragSource() :
 	pImpl_(0)
 {
-	assert(pstatus);
-	
-	DECLARE_QSTATUS();
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new DragSourceImpl();
 	pImpl_->pHandler_ = 0;
 	pImpl_->dwDropButton_ = 0;
 	pImpl_->dwCancelButton_ = 0;
 	pImpl_->pDropSource_ = 0;
 	
-	DragSourceImpl::IDropSourceImpl* pDropSource = 0;
-	status = newQsObject(pImpl_, &pDropSource);
-	CHECK_QSTATUS_SET(pstatus);
+	DragSourceImpl::IDropSourceImpl* pDropSource =
+		new DragSourceImpl::IDropSourceImpl(pImpl_);
 	pDropSource->AddRef();
 	pImpl_->pDropSource_ = pDropSource;
 }
@@ -156,10 +145,9 @@ qs::DragSource::~DragSource()
 	}
 }
 
-QSTATUS qs::DragSource::startDrag(IDataObject* pDataObject, DWORD dwEffect)
+bool qs::DragSource::startDrag(IDataObject* pDataObject,
+							   DWORD dwEffect)
 {
-	DECLARE_QSTATUS();
-	
 	if (::GetKeyState(VK_LBUTTON) < 0) {
 		pImpl_->dwDropButton_ = MK_LBUTTON;
 		pImpl_->dwCancelButton_ = MK_RBUTTON;
@@ -169,19 +157,16 @@ QSTATUS qs::DragSource::startDrag(IDataObject* pDataObject, DWORD dwEffect)
 		pImpl_->dwCancelButton_ = MK_LBUTTON;
 	}
 	
+	DragDropManager& manager = DragDropManager::getInstance();
 	DWORD dwResultEffect = DROPEFFECT_NONE;
 	bool bCanceled = false;
-	DragDropManager& manager = DragDropManager::getInstance();
-	status = manager.doDragDrop(pDataObject, this,
-		dwEffect, &dwResultEffect, &bCanceled);
-	CHECK_QSTATUS();
-	if (pImpl_->pHandler_) {
-		DragSourceDropEvent event(this, !bCanceled, dwResultEffect);
-		status = pImpl_->pHandler_->dragDropEnd(event);
-		CHECK_QSTATUS();
-	}
+	if (!manager.doDragDrop(pDataObject, this, dwEffect, &dwResultEffect, &bCanceled))
+		return false;
+	if (pImpl_->pHandler_)
+		pImpl_->pHandler_->dragDropEnd(DragSourceDropEvent(
+			this, !bCanceled, dwResultEffect));
 	
-	return QSTATUS_SUCCESS;
+	return true;
 }
 
 DragSourceHandler* qs::DragSource::getDragSourceHandler() const
@@ -238,8 +223,9 @@ DragSource* qs::DragSourceEvent::getDragSource() const
  *
  */
 
-qs::DragSourceDropEvent::DragSourceDropEvent(
-	DragSource* pDragSource, bool bDrop, DWORD dwEffect) :
+qs::DragSourceDropEvent::DragSourceDropEvent(DragSource* pDragSource,
+											 bool bDrop,
+											 DWORD dwEffect) :
 	DragSourceEvent(pDragSource),
 	bDrop_(bDrop),
 	dwEffect_(dwEffect)
@@ -272,21 +258,28 @@ struct qs::DropTargetImpl
 	class IDropTargetImpl : public IDropTarget
 	{
 	public:
-		IDropTargetImpl(DropTargetImpl* pDropTarget, QSTATUS* pstatus);
+		IDropTargetImpl(DropTargetImpl* pDropTarget);
 		~IDropTargetImpl();
 	
 	public:
 		STDMETHOD_(ULONG, AddRef)();
 		STDMETHOD_(ULONG, Release)();
-		STDMETHOD(QueryInterface)(REFIID riid, void** ppv);
+		STDMETHOD(QueryInterface)(REFIID riid,
+								  void** ppv);
 	
 	public:
 		STDMETHOD(DragEnter)(IDataObject* pDataObject,
-			DWORD dwKeyState, POINTL pt, DWORD* pdwEffect);
-		STDMETHOD(DragOver)(DWORD dwKeyState, POINTL pt, DWORD* pdwEffect);
+							 DWORD dwKeyState,
+							 POINTL pt,
+							 DWORD* pdwEffect);
+		STDMETHOD(DragOver)(DWORD dwKeyState,
+							POINTL pt,
+							DWORD* pdwEffect);
 		STDMETHOD(DragLeave)();
 		STDMETHOD(Drop)(IDataObject* pDataObject,
-			DWORD dwKeyState, POINTL pt, DWORD* pdwEffect);
+						DWORD dwKeyState,
+						POINTL pt,
+						DWORD* pdwEffect);
 	
 	private:
 		IDropTargetImpl(const IDropTargetImpl&);
@@ -311,14 +304,11 @@ struct qs::DropTargetImpl
  *
  */
 
-qs::DropTargetImpl::IDropTargetImpl::IDropTargetImpl(
-	DropTargetImpl* pDropTarget, QSTATUS* pstatus) :
+qs::DropTargetImpl::IDropTargetImpl::IDropTargetImpl(DropTargetImpl* pDropTarget) :
 	nRef_(0),
 	pDropTarget_(pDropTarget),
 	pDataObject_(0)
 {
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qs::DropTargetImpl::IDropTargetImpl::~IDropTargetImpl()
@@ -340,8 +330,8 @@ STDMETHODIMP_(ULONG) qs::DropTargetImpl::IDropTargetImpl::Release()
 	return nRef;
 }
 
-STDMETHODIMP qs::DropTargetImpl::IDropTargetImpl::QueryInterface(
-	REFIID riid, void** ppv)
+STDMETHODIMP qs::DropTargetImpl::IDropTargetImpl::QueryInterface(REFIID riid,
+																 void** ppv)
 {
 	*ppv = 0;
 	
@@ -353,41 +343,32 @@ STDMETHODIMP qs::DropTargetImpl::IDropTargetImpl::QueryInterface(
 	return *ppv ? S_OK : E_NOINTERFACE;
 }
 
-STDMETHODIMP qs::DropTargetImpl::IDropTargetImpl::DragEnter(
-	IDataObject* pDataObject, DWORD dwKeyState, POINTL pt, DWORD* pdwEffect)
+STDMETHODIMP qs::DropTargetImpl::IDropTargetImpl::DragEnter(IDataObject* pDataObject,
+															DWORD dwKeyState,
+															POINTL pt,
+															DWORD* pdwEffect)
 {
-	DECLARE_QSTATUS();
-	
 	pDataObject_ = pDataObject;
 	pDataObject_->AddRef();
 	
 	if (pDropTarget_->pHandler_) {
 		DropTargetDragEvent event(pDropTarget_->pThis_,
 			pDataObject, dwKeyState, reinterpret_cast<POINT&>(pt));
-		status = pDropTarget_->pHandler_->dragEnter(event);
-		if (status == QSTATUS_OUTOFMEMORY)
-			return E_OUTOFMEMORY;
-		else if (status != QSTATUS_SUCCESS)
-			return E_UNEXPECTED;
+		pDropTarget_->pHandler_->dragEnter(event);
 		*pdwEffect = event.getEffect();
 	}
 	
 	return S_OK;
 }
 
-STDMETHODIMP qs::DropTargetImpl::IDropTargetImpl::DragOver(
-	DWORD dwKeyState, POINTL pt, DWORD* pdwEffect)
+STDMETHODIMP qs::DropTargetImpl::IDropTargetImpl::DragOver(DWORD dwKeyState,
+														   POINTL pt,
+														   DWORD* pdwEffect)
 {
-	DECLARE_QSTATUS();
-	
 	if (pDropTarget_->pHandler_) {
 		DropTargetDragEvent event(pDropTarget_->pThis_,
 			pDataObject_, dwKeyState, reinterpret_cast<POINT&>(pt));
-		status = pDropTarget_->pHandler_->dragOver(event);
-		if (status == QSTATUS_OUTOFMEMORY)
-			return E_OUTOFMEMORY;
-		else if (status != QSTATUS_SUCCESS)
-			return E_UNEXPECTED;
+		pDropTarget_->pHandler_->dragOver(event);
 		*pdwEffect = event.getEffect();
 	}
 	
@@ -396,16 +377,8 @@ STDMETHODIMP qs::DropTargetImpl::IDropTargetImpl::DragOver(
 
 STDMETHODIMP qs::DropTargetImpl::IDropTargetImpl::DragLeave()
 {
-	DECLARE_QSTATUS();
-	
-	if (pDropTarget_->pHandler_) {
-		DropTargetEvent event(pDropTarget_->pThis_);
-		status = pDropTarget_->pHandler_->dragExit(event);
-		if (status == QSTATUS_OUTOFMEMORY)
-			return E_OUTOFMEMORY;
-		else if (status != QSTATUS_SUCCESS)
-			return E_UNEXPECTED;
-	}
+	if (pDropTarget_->pHandler_)
+		pDropTarget_->pHandler_->dragExit(DropTargetEvent(pDropTarget_->pThis_));
 	
 	if (pDataObject_) {
 		pDataObject_->Release();
@@ -415,19 +388,15 @@ STDMETHODIMP qs::DropTargetImpl::IDropTargetImpl::DragLeave()
 	return S_OK;
 }
 
-STDMETHODIMP qs::DropTargetImpl::IDropTargetImpl::Drop(
-	IDataObject* pDataObject, DWORD dwKeyState, POINTL pt, DWORD* pdwEffect)
+STDMETHODIMP qs::DropTargetImpl::IDropTargetImpl::Drop(IDataObject* pDataObject,
+													   DWORD dwKeyState,
+													   POINTL pt,
+													   DWORD* pdwEffect)
 {
-	DECLARE_QSTATUS();
-	
 	if (pDropTarget_->pHandler_) {
 		DropTargetDropEvent event(pDropTarget_->pThis_,
 			pDataObject, dwKeyState, reinterpret_cast<POINT&>(pt));
-		status = pDropTarget_->pHandler_->drop(event);
-		if (status == QSTATUS_OUTOFMEMORY)
-			return E_OUTOFMEMORY;
-		else if (status != QSTATUS_SUCCESS)
-			return E_UNEXPECTED;
+		pDropTarget_->pHandler_->drop(event);
 		*pdwEffect = event.getEffect();
 	}
 	
@@ -446,31 +415,22 @@ STDMETHODIMP qs::DropTargetImpl::IDropTargetImpl::Drop(
  *
  */
 
-qs::DropTarget::DropTarget(HWND hwnd, QSTATUS* pstatus) :
+qs::DropTarget::DropTarget(HWND hwnd) :
 	pImpl_(0)
 {
-	assert(pstatus);
-	
-	DECLARE_QSTATUS();
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
+	pImpl_ = new DropTargetImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->pHandler_ = 0;
 	pImpl_->pDropTarget_ = 0;
 	pImpl_->hwnd_ = 0;
 	
-	DropTargetImpl::IDropTargetImpl* p = 0;
-	status = newQsObject(pImpl_, &p);
-	CHECK_QSTATUS_SET(pstatus);
+	DropTargetImpl::IDropTargetImpl* p =
+		new DropTargetImpl::IDropTargetImpl(pImpl_);
 	p->AddRef();
 	pImpl_->pDropTarget_ = p;
 	
 	DragDropManager& manager = DragDropManager::getInstance();
-	status = manager.registerDragDrop(hwnd, this);
-	CHECK_QSTATUS_SET(pstatus);
+	manager.registerDragDrop(hwnd, this);
 	pImpl_->hwnd_ = hwnd;
 }
 
@@ -543,7 +503,9 @@ DropTarget* qs::DropTargetEvent::getDropTarget() const
  */
 
 qs::DropTargetDragEvent::DropTargetDragEvent(DropTarget* pDropTarget,
-	IDataObject* pDataObject, DWORD dwKeyState, const POINT& pt) :
+											 IDataObject* pDataObject,
+											 DWORD dwKeyState,
+											 const POINT& pt) :
 	DropTargetEvent(pDropTarget),
 	pDataObject_(pDataObject),
 	dwKeyState_(dwKeyState),
@@ -594,7 +556,7 @@ void qs::DropTargetDragEvent::setEffect(DWORD dwEffect) const
 
 struct qs::DragGestureRecognizerImpl
 {
-	DragGestureRecognizerWindow* pWindow_;
+	std::auto_ptr<DragGestureRecognizerWindow> pWindow_;
 	DragGestureHandler* pHandler_;
 };
 
@@ -605,34 +567,23 @@ struct qs::DragGestureRecognizerImpl
  *
  */
 
-qs::DragGestureRecognizer::DragGestureRecognizer(HWND hwnd, QSTATUS* pstatus) :
+qs::DragGestureRecognizer::DragGestureRecognizer(HWND hwnd) :
 	pImpl_(0)
 {
-	assert(pstatus);
+	std::auto_ptr<DragGestureRecognizerWindow> pWindow(
+		new DragGestureRecognizerWindow(this));
+	pWindow->subclassWindow(hwnd);
 	
-	DECLARE_QSTATUS();
-	
-	*pstatus = QSTATUS_SUCCESS;
-	
-	std::auto_ptr<DragGestureRecognizerWindow> pWindow;
-	status = newQsObject(this, &pWindow);
-	CHECK_QSTATUS_SET(pstatus);
-	status = pWindow->subclassWindow(hwnd);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	status = newObject(&pImpl_);
-	CHECK_QSTATUS_SET(pstatus);
-	pImpl_->pWindow_ = pWindow.release();
+	pImpl_ = new DragGestureRecognizerImpl();
+	pImpl_->pWindow_ = pWindow;
 	pImpl_->pHandler_ = 0;
 }
 
 qs::DragGestureRecognizer::~DragGestureRecognizer()
 {
 	if (pImpl_) {
-		if (pImpl_->pWindow_) {
+		if (pImpl_->pWindow_.get())
 			pImpl_->pWindow_->unsubclassWindow();
-			delete pImpl_->pWindow_;
-		}
 		delete pImpl_;
 	}
 }
@@ -691,8 +642,11 @@ qs::DragDropManager::~DragDropManager()
 {
 }
 
-QSTATUS qs::DragDropManager::doDragDrop(IDataObject* pDataObject,
-	DragSource* pDragSource, DWORD dwEffect, DWORD* pdwEffect, bool* pbCanceled)
+bool qs::DragDropManager::doDragDrop(IDataObject* pDataObject,
+									 DragSource* pDragSource,
+									 DWORD dwEffect,
+									 DWORD* pdwEffect,
+									 bool* pbCanceled)
 {
 	assert(pDataObject);
 	assert(pDragSource);
@@ -702,27 +656,23 @@ QSTATUS qs::DragDropManager::doDragDrop(IDataObject* pDataObject,
 	HRESULT hr = ::DoDragDrop(pDataObject,
 		pDragSource->getDropSource(), dwEffect, pdwEffect);
 	*pbCanceled = hr == DRAGDROP_S_CANCEL;
-	return hr == S_OK ? QSTATUS_SUCCESS :
-		hr == E_OUTOFMEMORY ? QSTATUS_OUTOFMEMORY : QSTATUS_FAIL;
+	return hr == S_OK;
 }
 
-QSTATUS qs::DragDropManager::registerDragDrop(HWND hwnd, DropTarget* pDropTarget)
+bool qs::DragDropManager::registerDragDrop(HWND hwnd,
+										   DropTarget* pDropTarget)
 {
 	assert(hwnd);
 	assert(pDropTarget);
 
-	HRESULT hr = ::RegisterDragDrop(hwnd, pDropTarget->getDropTarget());
-	return hr == S_OK ? QSTATUS_SUCCESS :
-		hr == E_OUTOFMEMORY ? QSTATUS_OUTOFMEMORY : QSTATUS_FAIL;
+	return ::RegisterDragDrop(hwnd, pDropTarget->getDropTarget()) == S_OK;
 }
 
-QSTATUS qs::DragDropManager::revokeDragDrop(HWND hwnd)
+bool qs::DragDropManager::revokeDragDrop(HWND hwnd)
 {
 	assert(hwnd);
 	
-	HRESULT hr = ::RevokeDragDrop(hwnd);
-	return hr == S_OK ? QSTATUS_SUCCESS :
-		hr == E_OUTOFMEMORY ? QSTATUS_OUTOFMEMORY : QSTATUS_FAIL;
+	return ::RevokeDragDrop(hwnd) == S_OK;
 }
 
 DragDropManager& qs::DragDropManager::getInstance()
@@ -737,10 +687,8 @@ DragDropManager& qs::DragDropManager::getInstance()
  *
  */
 
-qs::DragGestureRecognizerWindow::DragGestureRecognizerWindow(
-	DragGestureRecognizer* pRecognizer, QSTATUS* pstatus) :
-	WindowBase(false, pstatus),
-	DefaultWindowHandler(pstatus),
+qs::DragGestureRecognizerWindow::DragGestureRecognizerWindow(DragGestureRecognizer* pRecognizer) :
+	WindowBase(false),
 	pRecognizer_(pRecognizer),
 	nState_(0)
 {
@@ -762,7 +710,9 @@ qs::DragGestureRecognizerWindow::~DragGestureRecognizerWindow()
 {
 }
 
-LRESULT qs::DragGestureRecognizerWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT qs::DragGestureRecognizerWindow::windowProc(UINT uMsg,
+													WPARAM wParam,
+													LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_DESTROY()
@@ -781,8 +731,8 @@ LRESULT qs::DragGestureRecognizerWindow::onDestroy()
 	return DefaultWindowHandler::onDestroy();
 }
 
-LRESULT qs::DragGestureRecognizerWindow::onLButtonDown(
-	UINT nFlags, const POINT& pt)
+LRESULT qs::DragGestureRecognizerWindow::onLButtonDown(UINT nFlags,
+													   const POINT& pt)
 {
 	nState_ |= STATE_LBUTTONDOWN;
 	pt_ = pt;
@@ -790,16 +740,16 @@ LRESULT qs::DragGestureRecognizerWindow::onLButtonDown(
 	return DefaultWindowHandler::onLButtonDown(nFlags, pt);
 }
 
-LRESULT qs::DragGestureRecognizerWindow::onLButtonUp(
-	UINT nFlags, const POINT& pt)
+LRESULT qs::DragGestureRecognizerWindow::onLButtonUp(UINT nFlags,
+													 const POINT& pt)
 {
 	nState_ &= ~STATE_LBUTTONDOWN;
 	releaseCapture();
 	return DefaultWindowHandler::onLButtonUp(nFlags, pt);
 }
 
-LRESULT qs::DragGestureRecognizerWindow::onMouseMove(
-	UINT nFlags, const POINT& pt)
+LRESULT qs::DragGestureRecognizerWindow::onMouseMove(UINT nFlags,
+													 const POINT& pt)
 {
 	if (nState_ == STATE_LBUTTONDOWN ||
 		nState_ == STATE_RBUTTONDOWN) {
@@ -819,8 +769,8 @@ LRESULT qs::DragGestureRecognizerWindow::onMouseMove(
 	return DefaultWindowHandler::onMouseMove(nFlags, pt);
 }
 
-LRESULT qs::DragGestureRecognizerWindow::onRButtonDown(
-	UINT nFlags, const POINT& pt)
+LRESULT qs::DragGestureRecognizerWindow::onRButtonDown(UINT nFlags,
+													   const POINT& pt)
 {
 	nState_ |= STATE_RBUTTONDOWN;
 	pt_ = pt;
@@ -828,8 +778,8 @@ LRESULT qs::DragGestureRecognizerWindow::onRButtonDown(
 	return DefaultWindowHandler::onRButtonDown(nFlags, pt);
 }
 
-LRESULT qs::DragGestureRecognizerWindow::onRButtonUp(
-	UINT nFlags, const POINT& pt)
+LRESULT qs::DragGestureRecognizerWindow::onRButtonUp(UINT nFlags,
+													 const POINT& pt)
 {
 	nState_ &= ~STATE_RBUTTONDOWN;
 	releaseCapture();

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2003 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura
  * All rights reserved.
  *
  */
@@ -11,8 +11,6 @@
 
 #include <qsassert.h>
 #include <qsconv.h>
-#include <qserror.h>
-#include <qsnew.h>
 #include <qsosutil.h>
 #include <qsstl.h>
 #include <qsstream.h>
@@ -33,36 +31,24 @@ using namespace qs;
  *
  */
 
-qm::TemplateManager::TemplateManager(const WCHAR* pwszPath, QSTATUS* pstatus) :
-	wstrPath_(0)
+qm::TemplateManager::TemplateManager(const WCHAR* pwszPath)
 {
-	DECLARE_QSTATUS();
-	
 	wstrPath_ = allocWString(pwszPath);
-	if (!wstrPath_) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
 }
 
 qm::TemplateManager::~TemplateManager()
 {
-	freeWString(wstrPath_);
 	std::for_each(listItem_.begin(), listItem_.end(), deleter<Item>());
 }
 
-QSTATUS qm::TemplateManager::getTemplate(Account* pAccount,
-	Folder* pFolder, const WCHAR* pwszName, const Template** ppTemplate) const
+const Template* qm::TemplateManager::getTemplate(Account* pAccount,
+												 Folder* pFolder,
+												 const WCHAR* pwszName) const
 {
 	assert(pAccount);
 	assert(pwszName);
-	assert(ppTemplate);
 	
-	DECLARE_QSTATUS();
-	
-	*ppTemplate = 0;
-	
-	string_ptr<WSTRING> wstrPath;
+	wstring_ptr wstrPath;
 	if (pFolder) {
 		WCHAR wszFolder[16];
 		swprintf(wszFolder, L"_%d", pFolder->getId());
@@ -73,7 +59,7 @@ QSTATUS qm::TemplateManager::getTemplate(Account* pAccount,
 			{ wszFolder,			-1 },
 			{ L".template",			-1 }
 		};
-		wstrPath.reset(concat(c, countof(c)));
+		wstrPath = concat(c, countof(c));
 		
 		W2T(wstrPath.get(), ptszPath);
 		if (::GetFileAttributes(ptszPath) == 0xffffffff)
@@ -87,22 +73,19 @@ QSTATUS qm::TemplateManager::getTemplate(Account* pAccount,
 			{ pwszName,				-1 },
 			{ L".template",			-1 }
 		};
-		wstrPath.reset(concat(c, countof(c)));
-		if (!wstrPath.get())
-			return QSTATUS_OUTOFMEMORY;
+		wstrPath = concat(c, countof(c));
+		
 		W2T(wstrPath.get(), ptszPath);
 		if (::GetFileAttributes(ptszPath) == 0xffffffff) {
 			ConcatW c[] = {
-				{ wstrPath_,			-1 },
+				{ wstrPath_.get(),		-1 },
 				{ L"\\templates\\",		-1 },
 				{ pAccount->getClass(),	-1 },
 				{ L"\\",				-1 },
 				{ pwszName,				-1 },
 				{ L".template",			-1 }
 			};
-			wstrPath.reset(concat(c, countof(c)));
-			if (!wstrPath.get())
-				return QSTATUS_OUTOFMEMORY;
+			wstrPath = concat(c, countof(c));
 		}
 	}
 	assert(wstrPath.get());
@@ -121,96 +104,70 @@ QSTATUS qm::TemplateManager::getTemplate(Account* pAccount,
 	if (it != listItem_.end()) {
 		Item* pItem = *it;
 		if (::CompareFileTime(&fd.ftLastWriteTime, &pItem->getFileTime()) == 0) {
-			*ppTemplate = pItem->getTemplate();
+			return pItem->getTemplate();
 		}
 		else {
 			delete pItem;
 			listItem_.erase(it);
 		}
 	}
-	if (!*ppTemplate) {
-		FileInputStream stream(wstrPath.get(), &status);
-		CHECK_QSTATUS();
-		BufferedInputStream bufferedStream(&stream, false, &status);
-		CHECK_QSTATUS();
-		InputStreamReader reader(&bufferedStream, false, 0, &status);
-		CHECK_QSTATUS();
-		
-		Template* p = 0;
-		TemplateParser parser(&status);
-		CHECK_QSTATUS();
-		status = parser.parse(&reader, &p);
-		CHECK_QSTATUS();
-		std::auto_ptr<Template> pTemplate(p);
-		
-		std::auto_ptr<Item> pItem;
-		status = newQsObject(wstrPath.get(), fd.ftLastWriteTime,
-			pTemplate.get(), &pItem);
-		CHECK_QSTATUS();
-		
-		status = STLWrapper<ItemList>(listItem_).push_back(pItem.get());
-		CHECK_QSTATUS();
-		pItem.release();
-		
-		*ppTemplate = pTemplate.release();
-	}
 	
-	return QSTATUS_SUCCESS;
+	FileInputStream stream(wstrPath.get());
+	if (!stream)
+		return 0;
+	BufferedInputStream bufferedStream(&stream, false);
+	InputStreamReader reader(&bufferedStream, false, 0);
+	if (!reader)
+		return 0;
+	
+	std::auto_ptr<Template> pTemplate(TemplateParser().parse(&reader));
+	if (!pTemplate.get())
+		return 0;
+	
+	std::auto_ptr<Item> pItem(new Item(
+		wstrPath.get(), fd.ftLastWriteTime, pTemplate));
+	
+	listItem_.push_back(pItem.get());
+	return pItem.release()->getTemplate();
 }
 
-QSTATUS qm::TemplateManager::getTemplateNames(Account* pAccount,
-	const WCHAR* pwszPrefix, NameList* pList) const
+void qm::TemplateManager::getTemplateNames(Account* pAccount,
+										   const WCHAR* pwszPrefix,
+										   NameList* pList) const
 {
 	assert(pAccount);
 	assert(pList);
 	
-	DECLARE_QSTATUS();
-	
 	NameList l;
 	StringListFree<NameList> free(l);
 	
-	StringBuffer<WSTRING> buf(&status);
-	CHECK_QSTATUS();
-	status = buf.append(wstrPath_);
-	CHECK_QSTATUS();
-	status = buf.append(L"\\templates\\");
-	CHECK_QSTATUS();
-	status = buf.append(pAccount->getClass());
-	CHECK_QSTATUS();
-	status = buf.append(L"\\");
-	CHECK_QSTATUS();
+	StringBuffer<WSTRING> buf;
+	buf.append(wstrPath_.get());
+	buf.append(L"\\templates\\");
+	buf.append(pAccount->getClass());
+	buf.append(L"\\");
 	if (pwszPrefix) {
-		status = buf.append(pwszPrefix);
-		CHECK_QSTATUS();
-		status = buf.append(L'_');
-		CHECK_QSTATUS();
+		buf.append(pwszPrefix);
+		buf.append(L'_');
 	}
-	status = buf.append(L"*.template");
-	CHECK_QSTATUS();
+	buf.append(L"*.template");
 	
 	W2T(buf.getCharArray(), ptszFind);
 	WIN32_FIND_DATA fd;
 	AutoFindHandle hFind(::FindFirstFile(ptszFind, &fd));
 	if (hFind.get()) {
 		do {
-			string_ptr<WSTRING> wstrName(tcs2wcs(fd.cFileName));
-			if (!wstrName.get())
-				return QSTATUS_OUTOFMEMORY;
+			wstring_ptr wstrName(tcs2wcs(fd.cFileName));
 			WCHAR* p = wcsrchr(wstrName.get(), L'.');
 			assert(p);
 			*p = L'\0';
-			status = STLWrapper<NameList>(l).push_back(wstrName.get());
-			CHECK_QSTATUS();
+			l.push_back(wstrName.get());
 			wstrName.release();
 		} while (::FindNextFile(hFind.get(), &fd));
 	}
 	
-	status = STLWrapper<NameList>(*pList).resize(l.size());
-	CHECK_QSTATUS();
-	std::copy(l.begin(), l.end(), pList->begin());
+	pList->assign(l.begin(), l.end());
 	free.release();
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -221,30 +178,22 @@ QSTATUS qm::TemplateManager::getTemplateNames(Account* pAccount,
  */
 
 qm::TemplateManager::Item::Item(const WCHAR* pwszPath,
-	const FILETIME& ft, Template* pTemplate, QSTATUS* pstatus) :
+								const FILETIME& ft,
+								std::auto_ptr<Template> pTemplate) :
 	wstrPath_(0),
 	ft_(ft),
-	pTemplate_(0)
+	pTemplate_(pTemplate)
 {
 	wstrPath_ = allocWString(pwszPath);
-	if (!wstrPath_) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
-	pTemplate_ = pTemplate;
-	
-	*pstatus = QSTATUS_SUCCESS;
 }
 
 qm::TemplateManager::Item::~Item()
 {
-	freeWString(wstrPath_);
-	delete pTemplate_;
 }
 
 const WCHAR* qm::TemplateManager::Item::getPath() const
 {
-	return wstrPath_;
+	return wstrPath_.get();
 }
 
 const FILETIME& qm::TemplateManager::Item::getFileTime() const
@@ -252,7 +201,7 @@ const FILETIME& qm::TemplateManager::Item::getFileTime() const
 	return ft_;
 }
 
-Template* qm::TemplateManager::Item::getTemplate() const
+const Template* qm::TemplateManager::Item::getTemplate() const
 {
-	return pTemplate_;
+	return pTemplate_.get();
 }
