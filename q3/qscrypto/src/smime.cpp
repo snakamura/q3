@@ -179,15 +179,20 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::encrypt(Part* pPart,
 		if (f == Part::FIELD_EXIST) {
 			wstring_ptr wstrAddresses(addressList.getAddresses());
 			
+			typedef std::vector<const WCHAR*> AddressList;
+			AddressList l;
 			const WCHAR* p = wcstok(wstrAddresses.get(), L",");
 			while (p) {
-				std::auto_ptr<Certificate> pCertificate(pCallback->getCertificate(p));
+				l.push_back(p);
+				p = wcstok(0, L",");
+			}
+			for (AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
+				const WCHAR* pwszAddress = *it;
+				std::auto_ptr<Certificate> pCertificate(pCallback->getCertificate(pwszAddress));
 				if (!pCertificate.get())
 					return 0;
 				sk_X509_push(pCertificates.get(),
 					static_cast<CertificateImpl*>(pCertificate.get())->releaseX509());
-				
-				p = wcstok(0, L",");
 			}
 		}
 	}
