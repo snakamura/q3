@@ -1012,7 +1012,7 @@ std::pair<unsigned char, unsigned char> qs::TextWindowImpl::getLineQuoteDepth(co
 	const WCHAR* p = line.getText();
 	size_t nLength = line.getLength();
 	if (nLength != 0 && wcschr(wstrQuote_[0].get(), *p)) {
-		size_t nMax = QSMIN(nLength, MAX_QUOTE);
+		size_t nMax = QSMIN(nLength, size_t(MAX_QUOTE));
 		const WCHAR* pLastQuote = p;
 		for (size_t n = 0; n < nMax; ++n, ++p) {
 			if (wcschr(wstrQuote_[0].get(), *p)) {
