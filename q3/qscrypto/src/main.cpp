@@ -8,6 +8,7 @@
 
 #include <qs.h>
 
+#include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/ssl.h>
 #ifdef _WIN32_WCE
@@ -87,6 +88,7 @@ BOOL WINAPI DllMain(HANDLE hInst,
 	case DLL_THREAD_ATTACH:
 		break;
 	case DLL_THREAD_DETACH:
+		ERR_remove_state(0);
 		break;
 	}
 	return TRUE;
