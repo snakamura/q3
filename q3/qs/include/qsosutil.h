@@ -199,19 +199,17 @@ class ComPtr
 public:
 	ComPtr();
 	explicit ComPtr(Interface* p);
+	ComPtr(const ComPtr& ptr);
 	~ComPtr();
 
 public:
 	Interface** operator&();
 	Interface* operator->();
+	ComPtr& operator=(const ComPtr& ptr);
 
 public:
 	Interface* get() const;
 	Interface* release();
-
-private:
-	ComPtr(const ComPtr&);
-	ComPtr& operator=(const ComPtr&);
 
 private:
 	Interface* p_;

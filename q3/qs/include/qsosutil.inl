@@ -243,6 +243,13 @@ qs::ComPtr<Interface>::ComPtr(Interface* p) :
 }
 
 template<class Interface>
+qs::ComPtr<Interface>::ComPtr(const ComPtr<Interface>& ptr) :
+	p_(ptr.p_)
+{
+	p_->AddRef();
+}
+
+template<class Interface>
 qs::ComPtr<Interface>::~ComPtr()
 {
 	if (p_)
@@ -260,6 +267,15 @@ template<class Interface>
 Interface* qs::ComPtr<Interface>::operator->()
 {
 	return p_;
+}
+
+template<class Interface>
+qs::ComPtr<Interface>& qs::ComPtr<Interface>::operator=(const ComPtr<Interface>& ptr)
+{
+	ptr.p_->AddRef();
+	if (p_)
+		p_->Release();
+	p_ = ptr.p_;
 }
 
 template<class Interface>
