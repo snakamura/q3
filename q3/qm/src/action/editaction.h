@@ -13,6 +13,7 @@
 #include <qsprofile.h>
 #include <qstextwindow.h>
 
+#include "../model/editmessage.h"
 #include "../ui/editwindow.h"
 #include "../ui/messagecomposer.h"
 

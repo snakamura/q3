@@ -16,6 +16,8 @@
 #include <qsprofile.h>
 #include <qsstring.h>
 
+#include "../model/editmessage.h"
+
 
 namespace qm {
 
@@ -71,6 +73,11 @@ public:
 											  const WCHAR* pwszPrefix,
 											  const WCHAR* pwszExtension,
 											  TempFileCleaner* pTempFileCleaner);
+	
+	static void getAttachmentInfo(const EditMessage::Attachment& attachment,
+								  qs::wstring_ptr* pwstrName,
+								  int* pnSysIconIndex);
+
 };
 
 

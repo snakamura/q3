@@ -1537,21 +1537,13 @@ void qm::AttachmentDialog::update()
 	ListView_DeleteAllItems(hwndList);
 	
 	for (EditMessage::AttachmentList::size_type n = 0; n < listAttachment_.size(); ++n) {
-		EditMessage::Attachment& attachment = listAttachment_[n];
-		const WCHAR* pwszName = wcsrchr(attachment.wstrName_, L'\\');
-		pwszName = pwszName ? pwszName + 1 : attachment.wstrName_;
-		W2T(pwszName, ptszName);
+		const EditMessage::Attachment& attachment = listAttachment_[n];
 		
-		SHFILEINFO info = { 0 };
-		::SHGetFileInfo(ptszName, FILE_ATTRIBUTE_NORMAL, &info, sizeof(info),
-			SHGFI_USEFILEATTRIBUTES | SHGFI_SYSICONINDEX | SHGFI_SMALLICON);
+		wstring_ptr wstrName;
+		int nIcon = 0;
+		UIUtil::getAttachmentInfo(attachment, &wstrName, &nIcon);
 		
-		tstring_ptr tstrName;
-		if (!attachment.bNew_) {
-			tstrName = concat(_T("<"), ptszName, _T(">"));
-			ptszName = tstrName.get();
-		}
-		
+		W2T(wstrName.get(), ptszName);
 		LVITEM item = {
 			LVIF_TEXT | LVIF_IMAGE,
 			n,
@@ -1560,7 +1552,7 @@ void qm::AttachmentDialog::update()
 			0,
 			const_cast<LPTSTR>(ptszName),
 			0,
-			info.iIcon
+			nIcon
 		};
 		ListView_InsertItem(hwndList, &item);
 	}

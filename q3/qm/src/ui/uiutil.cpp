@@ -22,6 +22,7 @@
 #include "statusbar.h"
 #include "uiutil.h"
 #include "../model/tempfilecleaner.h"
+#include "../model/uri.h"
 
 using namespace qm;
 using namespace qs;
@@ -296,6 +297,45 @@ wstring_ptr qm::UIUtil::writeTemporaryFile(const WCHAR* pwszValue,
 	pTempFileCleaner->add(wstrPath.get());
 	
 	return wstrPath;
+}
+
+void qm::UIUtil::getAttachmentInfo(const EditMessage::Attachment& attachment,
+								   wstring_ptr* pwstrName,
+								   int* pnSysIconIndex)
+{
+	const WCHAR* pwszPath = attachment.wstrName_;
+	const WCHAR* pwszFileName = pwszPath;
+	wstring_ptr wstrName;
+	wstring_ptr wstrFileName;
+	if (attachment.bNew_) {
+		if (wcsncmp(pwszPath, URI::getScheme(), wcslen(URI::getScheme())) == 0) {
+			std::auto_ptr<URI> pURI(URI::parse(pwszPath));
+			if (pURI.get() && pURI->getFragment().getName()) {
+				wstrFileName = allocWString(pURI->getFragment().getName());
+				pwszFileName = wstrFileName.get();
+				wstrName = concat(L"<", pwszFileName, L">");
+			}
+			else
+				wstrName = allocWString(pwszPath);
+		}
+		else {
+			const WCHAR* p  = wcsrchr(pwszPath, L'\\');
+			if (p)
+				pwszFileName = p + 1;
+			wstrName = allocWString(pwszFileName);
+		}
+	}
+	else {
+		wstrName = concat(L"<", pwszPath, L">");
+	}
+	
+	W2T(pwszFileName, ptszName);
+	SHFILEINFO info = { 0 };
+	::SHGetFileInfo(ptszName, FILE_ATTRIBUTE_NORMAL, &info, sizeof(info),
+		SHGFI_USEFILEATTRIBUTES | SHGFI_SYSICONINDEX | SHGFI_SMALLICON);
+	
+	*pwstrName = wstrName;
+	*pnSysIconIndex = info.iIcon;
 }
 
 

@@ -23,6 +23,7 @@
 #include <tchar.h>
 
 #include "headereditwindow.h"
+#include "uiutil.h"
 #include "../model/addressbook.h"
 #include "../model/editmessage.h"
 #include "../model/signature.h"
@@ -273,7 +274,7 @@ LRESULT qm::HeaderEditWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		static_cast<HeaderEditWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pController_ = pContext->pController_;
 	
-	pImpl_->hfont_ = UIUtil::createFontFromProfile(
+	pImpl_->hfont_ = qs::UIUtil::createFontFromProfile(
 		pImpl_->pProfile_, L"HeaderEditWindow", false);
 	LOGFONT lf;
 	::GetObject(pImpl_->hfont_, sizeof(lf), &lf);
@@ -1124,36 +1125,16 @@ void qm::AttachmentHeaderEditItem::update(EditMessage* pEditMessage)
 	EditMessage::AttachmentListFree free(l);
 	pEditMessage->getAttachments(&l);
 	for (EditMessage::AttachmentList::size_type n = 0; n < l.size(); ++n) {
-		wstring_ptr wstrPath(l[n].wstrName_);
-		l[n].wstrName_ = 0;
+		EditMessage::Attachment& attachment = l[n];
 		
-		const WCHAR* pwszName = 0;
 		wstring_ptr wstrName;
-		if (l[n].bNew_) {
-			if (wcsncmp(wstrPath.get(), URI::getScheme(), wcslen(URI::getScheme())) == 0) {
-				std::auto_ptr<URI> pURI(URI::parse(wstrPath.get()));
-				if (pURI.get() && pURI->getFragment().getName()) {
-					wstrName = concat(L"<", pURI->getFragment().getName(), L">");
-					pwszName = wstrName.get();
-				}
-				else {
-					pwszName = wstrPath.get();
-				}
-			}
-			else {
-				pwszName = wcsrchr(wstrPath.get(), L'\\');
-				pwszName = pwszName ? pwszName + 1 : wstrPath.get();
-			}
-		}
-		else {
-			wstrName = concat(L"<", wstrPath.get(), L">");
-			pwszName = wstrName.get();
-		}
+		int nIcon = 0;
+		UIUtil::getAttachmentInfo(attachment, &wstrName, &nIcon);
 		
-		W2T(pwszName, ptszName);
-		SHFILEINFO info = { 0 };
-		::SHGetFileInfo(ptszName, FILE_ATTRIBUTE_NORMAL, &info, sizeof(info),
-			SHGFI_USEFILEATTRIBUTES | SHGFI_SYSICONINDEX | SHGFI_SMALLICON);
+		wstring_ptr wstrPath(attachment.wstrName_);
+		attachment.wstrName_ = 0;
+		
+		W2T(wstrName.get(), ptszName);
 		LVITEM item = {
 			LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM,
 			n,
@@ -1162,7 +1143,7 @@ void qm::AttachmentHeaderEditItem::update(EditMessage* pEditMessage)
 			0,
 			const_cast<LPTSTR>(ptszName),
 			0,
-			info.iIcon,
+			nIcon,
 			reinterpret_cast<LPARAM>(wstrPath.get())
 		};
 		ListView_InsertItem(hwnd, &item);
