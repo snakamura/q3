@@ -440,7 +440,7 @@ bool qm::Application::initialize()
 		pImpl_->pGoRound_.get(),
 		pImpl_->pTempFileCleaner_.get(),
 	};
-	wstring_ptr wstrTitle(getVersion(false));
+	wstring_ptr wstrTitle(getVersion(L' ', false));
 	if (!pMainWindow->create(L"QmMainWindow", wstrTitle.get(), dwStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 		0, dwExStyle, 0, 0, &context))
@@ -597,7 +597,8 @@ wstring_ptr qm::Application::getProfilePath(const WCHAR* pwszName) const
 	return wstrPath;
 }
 
-wstring_ptr qm::Application::getVersion(bool bWithOSVersion) const
+wstring_ptr qm::Application::getVersion(WCHAR cSeparator,
+										bool bWithOSVersion) const
 {
 	wstring_ptr wstrVersion(allocWString(256));
 	
@@ -614,13 +615,14 @@ wstring_ptr qm::Application::getVersion(bool bWithOSVersion) const
 #else
 		const WCHAR* pwszCPU = L"x86";
 #endif
-		swprintf(wstrVersion.get(), L"QMAIL %d.%d.%d.%d / %s / %s",
-			QMAIL_VERSION/100000, (QMAIL_VERSION%100000)/1000,
+		swprintf(wstrVersion.get(), L"QMAIL%c%d.%d.%d.%d / %s / %s",
+			cSeparator, QMAIL_VERSION/100000, (QMAIL_VERSION%100000)/1000,
 			QMAIL_VERSION%1000, QMAIL_REVISION, wstrOSVersion.get(), pwszCPU);
 	}
 	else {
-		swprintf(wstrVersion.get(), L"QMAIL %d.%d.%d.%d", QMAIL_VERSION/100000,
-			(QMAIL_VERSION%100000)/1000, QMAIL_VERSION%1000, QMAIL_REVISION);
+		swprintf(wstrVersion.get(), L"QMAIL%c%d.%d.%d.%d", cSeparator,
+			QMAIL_VERSION/100000, (QMAIL_VERSION%100000)/1000,
+			QMAIL_VERSION%1000, QMAIL_REVISION);
 	}
 	
 	return wstrVersion;

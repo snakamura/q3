@@ -73,7 +73,7 @@ HRESULT qmscript::ApplicationImpl::internalQueryInterface(REFIID riid,
 
 STDMETHODIMP qmscript::ApplicationImpl::get_version(BSTR* pbstrVersion)
 {
-	wstring_ptr wstrVersion(pApplication_->getVersion(false));
+	wstring_ptr wstrVersion(pApplication_->getVersion(L' ', false));
 	
 	*pbstrVersion = ::SysAllocString(wstrVersion.get());
 	return *pbstrVersion ? S_OK : E_OUTOFMEMORY;

@@ -6,6 +6,7 @@
  *
  */
 
+#include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmmessage.h>
 
@@ -151,6 +152,10 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 		wstrIfModifiedSince = concat(wstrIfModifiedSince.get(), L" GMT");
 		method.setRequestHeader(L"If-Modified-Since", wstrIfModifiedSince.get());
 	}
+	
+	wstring_ptr wstrUserAgent(Application::getApplication().getVersion(L'/', false));
+	method.setRequestHeader(L"User-Agent", wstrUserAgent.get());
+	
 	unsigned int nCode = http.invoke(&method);
 	if (nCode == 304)
 		return true;
