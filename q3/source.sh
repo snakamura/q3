@@ -1,8 +1,8 @@
 #!/bin/sh
 #
-# $Id: $
+# $Id$
 
-ARCHIVE=d:/temp/q3.zip
+ARCHIVE=d:/home/src/q3-`pwd | sed -e 's#.*/\([^/]*\)/[^/]*#\1#'`.zip
 
 GLOBALS=" \
 	version \
