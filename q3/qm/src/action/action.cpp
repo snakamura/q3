@@ -821,6 +821,8 @@ void qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 			pViewModel->getIndex(l.front()) : pViewModel->getFocused();
 		if (nIndex < pViewModel->getCount() - 1)
 			MessageActionUtil::select(pViewModel, nIndex + 1, pMessageModel_);
+		else if (nIndex != 0)
+			MessageActionUtil::select(pViewModel, nIndex - 1, pMessageModel_);
 	}
 	
 	ProgressDialogMessageOperationCallback callback(
@@ -4045,6 +4047,8 @@ void qm::MessageMoveAction::invoke(const ActionEvent& event)
 				pViewModel->getIndex(l.front()) : pViewModel->getFocused();
 			if (nIndex < pViewModel->getCount() - 1)
 				MessageActionUtil::select(pViewModel, nIndex + 1, pMessageModel_);
+			else if (nIndex != 0)
+				MessageActionUtil::select(pViewModel, nIndex - 1, pMessageModel_);
 		}
 	}
 	
