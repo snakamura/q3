@@ -6,6 +6,8 @@
  *
  */
 
+#include <qmsecurity.h>
+
 #include "main.h"
 #include "option.h"
 #include "resourceinc.h"
@@ -95,8 +97,7 @@ LRESULT qmimap4::ReceivePage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	status = pSubAccount_->getProperty(L"Imap4", L"UseNamespace", 0, &nUseNamespace);
 	CHECK_QSTATUS_VALUE(TRUE);
 	int nCloseFolder = 0;
-	status = pSubAccount_->getProperty(
-		L"Imap4", L"CloseFolder", 0, &nCloseFolder);
+	status = pSubAccount_->getProperty(L"Imap4", L"CloseFolder", 0, &nCloseFolder);
 	CHECK_QSTATUS_VALUE(TRUE);
 	int nStartTls = 0;
 	status = pSubAccount_->getProperty(L"Imap4", L"STARTTLS", 0, &nStartTls);
@@ -123,6 +124,14 @@ LRESULT qmimap4::ReceivePage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	sendDlgItemMessage(IDC_LOG, BM_SETCHECK,
 		pSubAccount_->isLog(Account::HOST_RECEIVE) ? BST_CHECKED : BST_UNCHECKED);
 	
+	if (!Security::isEnabled()) {
+		UINT nIds[] = {
+			IDC_SSL,
+			IDC_STARTTLS
+		};
+		for (int n = 0; n < countof(nIds); ++n)
+			Window(getDlgItem(nIds[n])).enableWindow(false);
+	}
 	
 	return TRUE;
 }

@@ -6,6 +6,8 @@
  *
  */
 
+#include <qmsecurity.h>
+
 #include "main.h"
 #include "resourceinc.h"
 #include "ui.h"
@@ -90,6 +92,15 @@ LRESULT qmsmtp::SendPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 		nStartTls ? BST_CHECKED : BST_UNCHECKED);
 	sendDlgItemMessage(IDC_LOG, BM_SETCHECK,
 		pSubAccount_->isLog(Account::HOST_SEND) ? BST_CHECKED : BST_UNCHECKED);
+	
+	if (!Security::isEnabled()) {
+		UINT nIds[] = {
+			IDC_SSL,
+			IDC_STARTTLS
+		};
+		for (int n = 0; n < countof(nIds); ++n)
+			Window(getDlgItem(nIds[n])).enableWindow(false);
+	}
 	
 	return TRUE;
 }

@@ -1,10 +1,12 @@
 /*
- * $Id: ui.cpp,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
  *
  */
+
+#include <qmsecurity.h>
 
 #include "main.h"
 #include "resourceinc.h"
@@ -95,6 +97,14 @@ LRESULT qmnntp::ReceivePage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	sendDlgItemMessage(IDC_LOG, BM_SETCHECK,
 		pSubAccount_->isLog(Account::HOST_RECEIVE) ? BST_CHECKED : BST_UNCHECKED);
 	
+	if (!Security::isEnabled()) {
+		UINT nIds[] = {
+			IDC_SSL
+		};
+		for (int n = 0; n < countof(nIds); ++n)
+			Window(getDlgItem(nIds[n])).enableWindow(false);
+	}
+	
 	return TRUE;
 }
 
@@ -180,6 +190,14 @@ LRESULT qmnntp::SendPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 		pSubAccount_->isSsl(Account::HOST_SEND) ? BST_CHECKED : BST_UNCHECKED);
 	sendDlgItemMessage(IDC_LOG, BM_SETCHECK,
 		pSubAccount_->isLog(Account::HOST_SEND) ? BST_CHECKED : BST_UNCHECKED);
+	
+	if (!Security::isEnabled()) {
+		UINT nIds[] = {
+			IDC_SSL
+		};
+		for (int n = 0; n < countof(nIds); ++n)
+			Window(getDlgItem(nIds[n])).enableWindow(false);
+	}
 	
 	return TRUE;
 }
