@@ -1142,16 +1142,24 @@ NormalFolder* qm::Account::createNormalFolder(const WCHAR* pwszName,
 	else if (pParent && pParent->isFlag(Folder::FLAG_NOINFERIORS))
 		return 0;
 	
+	WCHAR cSeparator = pParent ? pParent->getSeparator() : L'/';
+	
 	std::auto_ptr<NormalFolder> pNormalFolder;
 	if (bRemote) {
+		const WCHAR* p = wcschr(pwszName, cSeparator);
+		if (p && *(p + 1) != L'\0')
+			return 0;
+		
 		pNormalFolder = pImpl_->pProtocolDriver_->createFolder(
 			getCurrentSubAccount(), pwszName, pParent);
 	}
 	else {
+		if (wcschr(pwszName, cSeparator))
+			return 0;
+		
 		unsigned int nFlags = Folder::FLAG_LOCAL | (bSyncable ? Folder::FLAG_SYNCABLE : 0);
 		pNormalFolder.reset(new NormalFolder(generateFolderId(),
-			pwszName, pParent ? pParent->getSeparator() : L'/',
-			nFlags, 0, 0, 0, 0, 0, pParent, this));
+			pwszName, cSeparator, nFlags, 0, 0, 0, 0, 0, pParent, this));
 	}
 	if (!pNormalFolder.get())
 		return 0;
@@ -1175,10 +1183,13 @@ QueryFolder* qm::Account::createQueryFolder(const WCHAR* pwszName,
 	if (getFolder(pParent, pwszName))
 		return 0;
 	
+	WCHAR cSeparator = pParent ? pParent->getSeparator() : L'/';
+	if (wcschr(pwszName, cSeparator))
+		return 0;
+	
 	std::auto_ptr<QueryFolder> pQueryFolder(new QueryFolder(
-		generateFolderId(), pwszName, pParent ? pParent->getSeparator() : L'/',
-		Folder::FLAG_LOCAL, 0, 0, pwszDriver, pwszCondition,
-		pwszTargetFolder, bRecursive, pParent, this));
+		generateFolderId(), pwszName, cSeparator, Folder::FLAG_LOCAL, 0, 0,
+		pwszDriver, pwszCondition, pwszTargetFolder, bRecursive, pParent, this));
 	
 	pImpl_->listFolder_.push_back(pQueryFolder.get());
 	QueryFolder* pFolder = pQueryFolder.release();
@@ -1230,6 +1241,9 @@ bool qm::Account::renameFolder(Folder* pFolder,
 {
 	assert(pFolder);
 	assert(pwszName);
+	
+	if (wcschr(pwszName, pFolder->getSeparator()))
+		return false;
 	
 	if (pFolder->getType() == Folder::TYPE_NORMAL &&
 		!pFolder->isFlag(Folder::FLAG_LOCAL)) {
