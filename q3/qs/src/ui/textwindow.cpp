@@ -260,6 +260,7 @@ public:
 	Caret caret_;
 	Selection selection_;
 	unsigned int nTimerDragScroll_;
+	POINT ptLastButtonDown_;
 	HIMC hImc_;
 	HCURSOR hCursorLink_;
 	
@@ -1887,6 +1888,8 @@ qs::TextWindow::TextWindow(TextModel* pTextModel, Profile* pProfile,
 	pImpl_->selection_.nEndLine_ = 0;
 	pImpl_->selection_.nEndChar_ = 0;
 	pImpl_->nTimerDragScroll_ = 0;
+	pImpl_->ptLastButtonDown_.x = -1;
+	pImpl_->ptLastButtonDown_.y = -1;
 	pImpl_->hImc_ = 0;
 	pImpl_->hCursorLink_ = ::LoadCursor(getDllInstanceHandle(),
 		MAKEINTRESOURCE(IDC_LINK));
@@ -2880,10 +2883,6 @@ QSTATUS qs::TextWindow::getWindowClass(WNDCLASS* pwc)
 #if !defined _WIN32_WCE || _WIN32_WCE >= 211
 	pwc->hCursor = ::LoadCursor(0, IDC_IBEAM);
 #endif // _WIN32_WCE
-	// TODO
-#ifndef _WIN32_WCE
-//	pwc->style |= CS_OWNDC;
-#endif
 	
 	return QSTATUS_SUCCESS;
 }
@@ -3222,6 +3221,7 @@ LRESULT qs::TextWindow::onLButtonDown(UINT nFlags, const POINT& pt)
 	setFocus();
 	
 	pImpl_->startSelection(pt, false);
+	pImpl_->ptLastButtonDown_ = pt;
 	setCapture();
 	
 	pImpl_->nTimerDragScroll_ = setTimer(TextWindowImpl::TIMER_DRAGSCROLL,
@@ -3242,10 +3242,15 @@ LRESULT qs::TextWindow::onLButtonUp(UINT nFlags, const POINT& pt)
 		
 		pImpl_->updateSelection(pt, false);
 		
-		// TODO
-		// Only if button was down near here, handle this?
-		if (!pImpl_->pTextModel_->isEditable())
-			pImpl_->openLink(pt);
+		if (!pImpl_->pTextModel_->isEditable()) {
+			int cx = ::GetSystemMetrics(SM_CXDRAG);
+			int cy = ::GetSystemMetrics(SM_CYDRAG);
+			if (pImpl_->ptLastButtonDown_.x - cx/2 <= pt.x &&
+				pt.x <= pImpl_->ptLastButtonDown_.x + cx/2 &&
+				pImpl_->ptLastButtonDown_.y - cy/2 <= pt.y &&
+				pt.y <= pImpl_->ptLastButtonDown_.y + cy/2)
+				pImpl_->openLink(pt);
+		}
 	}
 	
 	return DefaultWindowHandler::onLButtonUp(nFlags, pt);
