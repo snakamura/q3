@@ -218,20 +218,14 @@ std::auto_ptr<Certificate> qm::SMIMECallbackImpl::getCertificate(const WCHAR* pw
 	assert(pwszAddress);
 	
 	const AddressBookEntry* pEntry = pAddressBook_->getEntry(pwszAddress);
-	
-	const WCHAR* pwszCertificate = 0;
+	if (!pEntry)
+		return 0;
 	
 	const AddressBookEntry::AddressList& l = pEntry->getAddresses();
 	for (AddressBookEntry::AddressList::const_iterator itA = l.begin(); itA != l.end(); ++itA) {
 		const AddressBookAddress* pAddress = *itA;
-		if (_wcsicmp(pAddress->getAddress(), pwszAddress) == 0) {
-			pwszCertificate = pAddress->getCertificate();
-			break;
-		}
+		if (_wcsicmp(pAddress->getAddress(), pwszAddress) == 0)
+			return pSecurity_->getCertificate(pAddress->getCertificate());
 	}
-	
-	if (pwszCertificate)
-		return pSecurity_->getCertificate(pwszCertificate);
-	else
-		return 0;
+	return 0;
 }
