@@ -542,7 +542,7 @@ DepotPtr qmjunk::JunkFilterImpl::open(const WCHAR* pwszName) const
 	DepotPtr pDepot(dpopen(strPath.get(), DP_OWRITER | DP_OCREAT, -1));
 	if (!pDepot.get()) {
 		log.errorf(L"Could not open a database: %s.", pwszName);
-		return 0;
+		return DepotPtr(0);
 	}
 	
 	int nBucket = dpbnum(pDepot.get());
