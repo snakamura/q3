@@ -93,16 +93,20 @@ QSTATUS qm::MessageComposer::compose(Account* pAccount,
 	if (!pFolder || pFolder->getType() != Folder::TYPE_NORMAL)
 		return QSTATUS_FAIL;
 	
+	bool bResent = false;
+	status = PartUtil(*pMessage).isResent(&bResent);
+	CHECK_QSTATUS();
+	
 	AddressParser from(pSubAccount->getSenderName(),
 		pSubAccount->getSenderAddress(), &status);
 	CHECK_QSTATUS();
-	status = pMessage->setField(L"From", from);
+	status = pMessage->setField(bResent ? L"Resent-From" : L"From", from);
 	CHECK_QSTATUS();
 	
 	Time time(Time::getCurrentTime());
 	DateParser date(time, &status);
 	CHECK_QSTATUS();
-	status = pMessage->setField(L"Date", date);
+	status = pMessage->setField(bResent ? L"Resent-Date" : L"Date", date);
 	CHECK_QSTATUS();
 	
 	if (pSubAccount->isAddMessageId()) {
@@ -118,7 +122,7 @@ QSTATUS qm::MessageComposer::compose(Account* pAccount,
 		
 		MessageIdParser messageId(wstrMessageId.get(), &status);
 		CHECK_QSTATUS();
-		status = pMessage->setField(L"Message-Id", messageId);
+		status = pMessage->setField(bResent ? L"Resent-Message-Id" : L"Message-Id", messageId);
 		CHECK_QSTATUS();
 	}
 	

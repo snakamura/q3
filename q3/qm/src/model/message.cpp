@@ -981,8 +981,9 @@ QSTATUS qm::PartUtil::isResent(bool* pbResent) const
 		L"Resent-To",
 		L"Resent-Cc",
 		L"Resent-Bcc",
+		L"Resent-From",
 		L"Resent-Date",
-		L"Resent-MessageId"
+		L"Resent-Message-Id"
 	};
 	
 	for (int n = 0; n < countof(pwszFields) && !*pbResent; ++n) {
