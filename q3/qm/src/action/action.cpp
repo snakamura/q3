@@ -815,7 +815,7 @@ QSTATUS qm::FileExportAction::invoke(const ActionEvent& event)
 	CHECK_QSTATUS();
 	
 	if (!l.empty()) {
-		ExportDialog dialog(&status);
+		ExportDialog dialog(l.size() == 1, &status);
 		CHECK_QSTATUS();
 		int nRet = 0;
 		status = dialog.doModal(getMainWindow()->getHandle(), 0, &nRet);
@@ -869,12 +869,19 @@ QSTATUS qm::FileExportAction::invoke(const ActionEvent& event)
 				BufferedOutputStream stream(&fileStream, false, &status);
 				CHECK_QSTATUS();
 				
-				MessagePtrList::iterator it = l.begin();
-				while (it != l.end()) {
-					status = writeMessage(&stream, *it,
-						dialog.isExportFlags(), pTemplate, pwszEncoding, true);
+				if (l.size() == 1) {
+					status = writeMessage(&stream, l.front(),
+						dialog.isExportFlags(), pTemplate, pwszEncoding, false);
 					CHECK_QSTATUS();
-					++it;
+				}
+				else {
+					MessagePtrList::iterator it = l.begin();
+					while (it != l.end()) {
+						status = writeMessage(&stream, *it,
+							dialog.isExportFlags(), pTemplate, pwszEncoding, true);
+						CHECK_QSTATUS();
+						++it;
+					}
 				}
 				
 				status = stream.close();

@@ -1,5 +1,5 @@
 /*
- * $Id: dialogs.h,v 1.6 2003/06/01 08:40:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -470,7 +470,7 @@ private:
 class ExportDialog : public DefaultDialog
 {
 public:
-	ExportDialog(qs::QSTATUS* pstatus);
+	ExportDialog(bool bSingleMessage, qs::QSTATUS* pstatus);
 	virtual ~ExportDialog();
 
 public:
@@ -507,6 +507,7 @@ private:
 	};
 
 private:
+	bool bSingleMessage_;
 	qs::WSTRING wstrPath_;
 	unsigned int nFlags_;
 };

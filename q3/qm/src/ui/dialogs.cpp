@@ -1,5 +1,5 @@
 /*
- * $Id: dialogs.cpp,v 1.13 2003/06/01 16:27:36 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -1926,8 +1926,9 @@ void qm::DetachDialog::updateState()
  *
  */
 
-qm::ExportDialog::ExportDialog(QSTATUS* pstatus) :
+qm::ExportDialog::ExportDialog(bool bSingleMessage, QSTATUS* pstatus) :
 	DefaultDialog(IDD_EXPORT, pstatus),
+	bSingleMessage_(bSingleMessage),
 	wstrPath_(0),
 	nFlags_(0)
 {
@@ -1977,6 +1978,10 @@ LRESULT qm::ExportDialog::onCommand(WORD nCode, WORD nId)
 LRESULT qm::ExportDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 {
 	init(false);
+	
+	if (bSingleMessage_)
+		Window(getDlgItem(IDC_FILEPERMESSAGE)).enableWindow(false);
+	
 	updateState();
 	
 	return TRUE;
