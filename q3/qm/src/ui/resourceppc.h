@@ -285,6 +285,7 @@
 #define IDS_FILTER_ATTACHMENT           1105
 #define IDC_PASSWORD                    1105
 #define IDC_DOMAIN                      1106
+#define IDS_FILTER_SOUND                1106
 #define IDC_DIALFROM                    1107
 #define IDC_TYPE                        1108
 #define IDC_SYNCWHENOPEN                1109
@@ -418,6 +419,9 @@
 #define IDC_SINGLECLICK                 1317
 #define IDC_POCKETOUTLOOK               1319
 #define IDC_ADDRESSONLY                 1321
+#define IDC_SOUNDLABEL                  1325
+#define IDC_SOUND                       1326
+#define IDC_ONLYWHENCONNECTED           1327
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -501,7 +505,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        203
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1325
+#define _APS_NEXT_CONTROL_VALUE         1329
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -110,7 +110,6 @@ private:
 	SyncDialogManager* pSyncDialogManager_;
 	HWND hwnd_;
 	AutoPilotCallback* pCallback_;
-	bool bOnlyWhenConnected_;
 	std::auto_ptr<qs::Timer> pTimer_;
 	unsigned int nId_;
 	bool bEnabled_;

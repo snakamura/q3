@@ -418,7 +418,7 @@ void qm::OptionDialog::setCurrentPanel(Panel panel)
 			PANEL2(PANEL_FIXEDFORMTEXTS, FixedFormTexts, pDocument_->getFixedFormTextManager(), pProfile_);
 			PANEL1(PANEL_FILTERS, Filters, pFilterManager_);
 			PANEL2(PANEL_SYNCFILTERS, SyncFilterSets, pSyncFilterManager_, pProfile_);
-			PANEL2(PANEL_AUTOPILOT, AutoPilot, pAutoPilotManager_, pGoRound_);
+			PANEL3(PANEL_AUTOPILOT, AutoPilot, pAutoPilotManager_, pGoRound_, pProfile_);
 		END_PANEL()
 	}
 	
@@ -2056,10 +2056,12 @@ void qm::ArgumentDialog::updateState()
  */
 
 qm::AutoPilotDialog::AutoPilotDialog(AutoPilotManager* pManager,
-									 GoRound* pGoRound) :
+									 GoRound* pGoRound,
+									 Profile* pProfile) :
 	AbstractListDialog<AutoPilotEntry, AutoPilotManager::EntryList>(IDD_AUTOPILOT, IDC_ENTRIES, false),
 	pManager_(pManager),
-	pGoRound_(pGoRound)
+	pGoRound_(pGoRound),
+	pProfile_(pProfile)
 {
 	const AutoPilotManager::EntryList& l = pManager->getEntries();
 	AutoPilotManager::EntryList& list = getList();
@@ -2079,7 +2081,28 @@ INT_PTR qm::AutoPilotDialog::dialogProc(UINT uMsg,
 	BEGIN_DIALOG_HANDLER()
 		HANDLE_SIZE()
 	END_DIALOG_HANDLER()
-	return DefaultDialog::dialogProc(uMsg, wParam, lParam);
+	return AbstractListDialog<AutoPilotEntry, AutoPilotManager::EntryList>::dialogProc(uMsg, wParam, lParam);
+}
+
+LRESULT qm::AutoPilotDialog::onCommand(WORD nCode,
+									   WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_BROWSE, onBrowse)
+	END_COMMAND_HANDLER()
+	return AbstractListDialog<AutoPilotEntry, AutoPilotManager::EntryList>::onCommand(nCode, nId);
+}
+
+LRESULT qm::AutoPilotDialog::onInitDialog(HWND hwndFocus,
+										  LPARAM lParam)
+{
+	wstring_ptr wstrSound = pProfile_->getString(L"AutoPilot", L"Sound", L"");
+	setDlgItemText(IDC_SOUND, wstrSound.get());
+	
+	if (pProfile_->getInt(L"AutoPilot", L"OnlyWhenConnected", 0))
+		sendDlgItemMessage(IDC_ONLYWHENCONNECTED, BM_SETCHECK, BST_CHECKED);
+	
+	return AbstractListDialog<AutoPilotEntry, AutoPilotManager::EntryList>::onInitDialog(hwndFocus, lParam);
 }
 
 wstring_ptr qm::AutoPilotDialog::getLabel(const AutoPilotEntry* p) const
@@ -2105,7 +2128,17 @@ bool qm::AutoPilotDialog::edit(AutoPilotEntry* p) const
 bool qm::AutoPilotDialog::save(OptionDialogContext* pContext)
 {
 	pManager_->setEntries(getList());
-	return pManager_->save();
+	if (!pManager_->save())
+		return false;
+	
+	wstring_ptr wstrSound(getDlgItemText(IDC_SOUND));
+	if (wstrSound.get())
+		pProfile_->setString(L"AutoPilot", L"Sound", wstrSound.get());
+	
+	bool bConnected = sendDlgItemMessage(IDC_ONLYWHENCONNECTED, BM_GETCHECK) == BST_CHECKED;
+	pProfile_->setInt(L"AutoPilot", L"OnlyWhenConnected", bConnected);
+	
+	return true;
 }
 
 LRESULT qm::AutoPilotDialog::onSize(UINT nFlags,
@@ -2116,10 +2149,70 @@ LRESULT qm::AutoPilotDialog::onSize(UINT nFlags,
 	return DefaultDialog::onSize(nFlags, cx, cy);
 }
 
+LRESULT qm::AutoPilotDialog::onBrowse()
+{
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	wstring_ptr wstrFilter(loadString(hInst, IDS_FILTER_SOUND));
+	
+	FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
+		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES);
+	
+	if (dialog.doModal(getHandle()) == IDOK)
+		setDlgItemText(IDC_SOUND, dialog.getPath());
+	
+	return 0;
+}
+
 void qm::AutoPilotDialog::layout()
 {
 #ifndef _WIN32_WCE_PSPC
-	LayoutUtil::layout(this, IDC_ENTRIES);
+	RECT rect;
+	getClientRect(&rect);
+	
+	RECT rectSoundLabel;
+	Window(getDlgItem(IDC_SOUNDLABEL)).getWindowRect(&rectSoundLabel);
+	screenToClient(&rectSoundLabel);
+	
+	RECT rectSound;
+	Window(getDlgItem(IDC_SOUND)).getWindowRect(&rectSound);
+	screenToClient(&rectSound);
+	int nSoundHeight = rectSound.bottom - rectSound.top;
+	
+	RECT rectBrowse;
+	Window(getDlgItem(IDC_BROWSE)).getWindowRect(&rectBrowse);
+	screenToClient(&rectBrowse);
+	int nBrowseWidth = rectBrowse.right - rectBrowse.left;
+	
+	RECT rectConnected;
+	Window(getDlgItem(IDC_ONLYWHENCONNECTED)).getWindowRect(&rectConnected);
+	screenToClient(&rectConnected);
+	int nConnectedHeight = rectConnected.bottom - rectConnected.top;
+	
+	HDWP hdwp = beginDeferWindowPos(10);
+	
+	hdwp = LayoutUtil::layout(this, IDC_ENTRIES, hdwp, 0,
+		nSoundHeight + nConnectedHeight + 10);
+	
+#ifdef _WIN32_WCE
+	int nLabelOffset = 2;
+#else
+	int nLabelOffset = 3;
+#endif
+	hdwp = Window(getDlgItem(IDC_SOUNDLABEL)).deferWindowPos(hdwp, 0,
+		rectSoundLabel.left, rect.bottom - nSoundHeight - nConnectedHeight - 10 + nLabelOffset,
+		0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+	hdwp = Window(getDlgItem(IDC_SOUND)).deferWindowPos(hdwp, 0,
+		rectSound.left, rect.bottom - nSoundHeight - nConnectedHeight - 10,
+		rect.right - rectSound.left - nBrowseWidth - 10, nSoundHeight,
+		SWP_NOZORDER | SWP_NOACTIVATE);
+	hdwp = Window(getDlgItem(IDC_BROWSE)).deferWindowPos(hdwp, 0,
+		rect.right - nBrowseWidth - 5, rect.bottom - nSoundHeight - nConnectedHeight - 10,
+		0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+	hdwp = Window(getDlgItem(IDC_ONLYWHENCONNECTED)).deferWindowPos(hdwp, 0,
+		rectConnected.left, rect.bottom - nConnectedHeight - 5,
+		0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+	
+	endDeferWindowPos(hdwp);
 #endif
 }
 

@@ -46,7 +46,6 @@ qm::AutoPilot::AutoPilot(AutoPilotManager* pAutoPilotManager,
 	pSyncDialogManager_(pSyncDialogManager),
 	hwnd_(0),
 	pCallback_(pCallback),
-	bOnlyWhenConnected_(false),
 	nId_(0),
 	bEnabled_(false),
 	nCount_(0)
@@ -56,7 +55,6 @@ qm::AutoPilot::AutoPilot(AutoPilotManager* pAutoPilotManager,
 #endif
 {
 	bEnabled_ = pProfile->getInt(L"AutoPilot", L"Enabled", 0) != 0;
-	bOnlyWhenConnected_ = pProfile->getInt(L"AutoPilot", L"OnlyWhenConnected", 0) != 0;
 }
 
 qm::AutoPilot::~AutoPilot()
@@ -98,8 +96,9 @@ bool qm::AutoPilot::save() const
 void qm::AutoPilot::timerTimeout(unsigned int nId)
 {
 	if (nId == nId_) {
+		bool bOnlyWhenConnected = pProfile_->getInt(L"AutoPilot", L"OnlyWhenConnected", 0) != 0;
 		bool bPilot = bEnabled_ &&
-			(!bOnlyWhenConnected_ || RasConnection::isNetworkConnected()) &&
+			(!bOnlyWhenConnected || RasConnection::isNetworkConnected()) &&
 			pCallback_->canAutoPilot();
 		if (bPilot) {
 			const AutoPilotManager::EntryList& l = pAutoPilotManager_->getEntries();

@@ -954,13 +954,22 @@ class AutoPilotDialog :
 {
 public:
 	AutoPilotDialog(AutoPilotManager* pManager,
-					GoRound* pGoRound);
+					GoRound* pGoRound,
+					qs::Profile* pProfile_);
 	virtual ~AutoPilotDialog();
 
 public:
 	virtual INT_PTR dialogProc(UINT uMsg,
 							   WPARAM wParam,
 							   LPARAM lParam);
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
 
 protected:
 	virtual qs::wstring_ptr getLabel(const AutoPilotEntry* p) const;
@@ -976,6 +985,9 @@ protected:
 				   int cy);
 
 private:
+	LRESULT onBrowse();
+
+private:
 	void layout();
 
 private:
@@ -985,6 +997,7 @@ private:
 private:
 	AutoPilotManager* pManager_;
 	GoRound* pGoRound_;
+	qs::Profile* pProfile_;
 };
 
 
