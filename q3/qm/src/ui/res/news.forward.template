@@ -1,12 +1,6 @@
 Newsgroups:
 Subject: Fw: {@Subject(@False(), @False())}
-{
-	@If(
-		@Multipart(),
-		@Concat('Content-Type: ', Content-Type, '\n'),
-		''
-	)
-}X-QMAIL-Account: {@Account()}{@If(X-QMAIL-SubAccount, @Concat('\nX-QMAIL-SubAccount: ', X-QMAIL-SubAccount), '')}
+X-QMAIL-Account: {@Account()}{@If(X-QMAIL-SubAccount, @Concat('\nX-QMAIL-SubAccount: ', X-QMAIL-SubAccount), '')}
 X-QMAIL-Macro: @ForEach(@Messages('{@Concat('//', @Account(), '/', @Folder())}', {@Id()}), @Forwarded(@True()))
 X-QMAIL-Attachment: {@Selected()}
 
