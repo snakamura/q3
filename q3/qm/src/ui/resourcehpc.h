@@ -139,7 +139,7 @@
 #define IDC_USER4                       1045
 #define IDS_IMPORT                      1045
 #define IDC_FROM                        1046
-#define IDS_CONFIRM_IGNORELOCK          1046
+#define IDS_CONFIRMIGNORELOCK           1046
 #define IDC_PATH                        1047
 #define IDS_MOVEMESSAGE                 1047
 #define IDS_COPYMESSAGE                 1048
@@ -175,6 +175,7 @@
 #define IDC_PROPERTY                    1068
 #define IDS_CHECK                       1068
 #define IDC_RECEIVEHOST                 1069
+#define IDS_IGNORECHECKERROR            1069
 #define IDC_SENDHOST                    1070
 #define IDC_SENDAUTHENTICATE            1070
 #define IDC_RECEIVEUSERNAME             1071

@@ -211,6 +211,7 @@ public:
 						   Message* pMessage) = 0;
 	virtual void setKey(unsigned int n,
 						MessageCacheKey key) = 0;
+	virtual bool isIgnoreError(unsigned int n) = 0;
 };
 
 

@@ -742,8 +742,37 @@ void qm::FileCheckAction::invoke(const qs::ActionEvent& event)
 			pAccount = pFolder->getAccount();
 	}
 	if (pAccount) {
-		ProgressDialogMessageOperationCallback callback(
-			hwnd_, IDS_CHECK, IDS_CHECK);
+		class AccountCheckCallbackImpl : public ProgressDialogMessageOperationCallbackBase<AccountCheckCallback>
+		{
+		public:
+			AccountCheckCallbackImpl(HWND hwnd,
+									 UINT nTitle,
+									 UINT nMessage) :
+				ProgressDialogMessageOperationCallbackBase<AccountCheckCallback>(hwnd, nTitle, nMessage)
+			{
+			}
+		
+		public:
+			virtual Ignore isIgnoreError(MessageHolder* pmh)
+			{
+				HINSTANCE hInst = Application::getApplication().getResourceHandle();
+				wstring_ptr wstrTemplate(loadString(hInst, IDS_IGNORECHECKERROR));
+				wstring_ptr wstrFolderName(pmh->getFolder()->getFullName());
+				wstring_ptr wstrMessage(allocWString(
+					wcslen(wstrTemplate.get()) + wcslen(wstrFolderName.get()) + 100));
+				const MessageHolder::MessageBoxKey& boxKey = pmh->getMessageBoxKey();
+				swprintf(wstrMessage.get(), wstrTemplate.get(), wstrFolderName.get(),
+					pmh->getId(), boxKey.nOffset_, boxKey.nLength_);
+				switch (messageBox(wstrMessage.get(), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2, getDialog()->getHandle())) {
+				case IDYES:
+					return ::GetKeyState(VK_SHIFT) < 0 ? IGNORE_ALL : IGNORE_TRUE;
+				default:
+					return IGNORE_FALSE;
+				}
+			}
+		};
+		
+		AccountCheckCallbackImpl callback(hwnd_, IDS_CHECK, IDS_CHECK);
 		if (!pAccount->check(&callback)) {
 			ActionUtil::error(hwnd_, IDS_ERROR_CHECK);
 			return;

@@ -1132,7 +1132,7 @@ BEGIN
     IDS_FOLDERTYPETEMPLATE  "%s (%s)"
     IDS_EXPORT              "Exporting messages..."
     IDS_IMPORT              "Importing messages..."
-    IDS_CONFIRM_IGNORELOCK  "This mail folder is locked by '%s'.\nWould you like to continue?"
+    IDS_CONFIRMIGNORELOCK   "This mail folder is locked by '%s'.\nWould you like to continue?"
     IDS_MOVEMESSAGE         "Moving messages..."
     IDS_COPYMESSAGE         "Copying messages..."
     IDS_EMPTYTRASH          "Emptying trash..."
@@ -1158,6 +1158,7 @@ BEGIN
     IDS_DUMP                "Dumping messages..."
     IDS_LOAD                "Loading messages..."
     IDS_CHECK               "Checking messages..."
+    IDS_IGNORECHECKERROR    "Error occured while checking the cache.\nDo you want to ignore it and remove this message?\nFolder: %s\nID: %u\nOffset: %u\nLength: %u"
 END
 
 STRINGTABLE DISCARDABLE 

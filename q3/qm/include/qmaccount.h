@@ -12,6 +12,7 @@
 #include <qm.h>
 #include <qmfolder.h>
 #include <qmmessagecache.h>
+#include <qmmessageoperation.h>
 
 #include <qs.h>
 #include <qscrypto.h>
@@ -32,6 +33,7 @@ class AccountHandler;
 	class DefaultAccountHandler;
 class AccountEvent;
 class FolderListChangedEvent;
+class AccountCheckCallback;
 
 class Message;
 class MessageHolder;
@@ -148,7 +150,7 @@ public:
 	bool compact(MessageOperationCallback* pCallback);
 	bool salvage(NormalFolder* pFolder,
 				 MessageOperationCallback* pCallback);
-	bool check(MessageOperationCallback* pCallback);
+	bool check(AccountCheckCallback* pCallback);
 	bool save() const;
 	bool flushMessageStore() const;
 	bool importMessage(NormalFolder* pFolder,
@@ -481,6 +483,29 @@ private:
 	Folder* pFolder_;
 	unsigned int nOldFlags_;
 	unsigned int nNewFlags_;
+};
+
+
+/****************************************************************************
+ *
+ * AccountCheckCallback
+ *
+ */
+
+class QMEXPORTCLASS AccountCheckCallback : public MessageOperationCallback
+{
+public:
+	enum Ignore {
+		IGNORE_FALSE,
+		IGNORE_TRUE,
+		IGNORE_ALL
+	};
+
+public:
+	virtual ~AccountCheckCallback();
+
+public:
+	virtual Ignore isIgnoreError(MessageHolder* pmh) = 0;
 };
 
 }

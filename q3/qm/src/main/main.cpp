@@ -358,7 +358,7 @@ void qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
 		if (read(hFile.get(), 0, &wstrName))
 			pwszName = wstrName.get();
 		
-		wstring_ptr wstrTemplate(loadString(g_hInstDll, IDS_CONFIRM_IGNORELOCK));
+		wstring_ptr wstrTemplate(loadString(g_hInstDll, IDS_CONFIRMIGNORELOCK));
 		wstring_ptr wstrMessage(allocWString(
 			wcslen(wstrTemplate.get()) + wcslen(pwszName)));
 		swprintf(wstrMessage.get(), wstrTemplate.get(), pwszName);

@@ -829,32 +829,37 @@ std::auto_ptr<ClusterStorage> qm::MessageStoreUtil::checkCache(ClusterStorage* p
 	unsigned int nCount = pCallback->getCount();
 	for (unsigned int n = 0; n < nCount; ++n) {
 		Message header;
-		if (!pCallback->getHeader(n, &header))
-			return false;
-		
-		malloc_size_ptr<unsigned char> pData(MessageCache::createData(header));
-		if (!pData.get())
-			return false;
-		
-		size_t nDataLen = pData.size();
-		const unsigned char* pCache[] = {
-			reinterpret_cast<const unsigned char*>(&nDataLen),
-			pData.get(),
-		};
-		size_t nCacheLen[] = {
-			sizeof(nDataLen),
-			nDataLen,
-		};
-		
-		MessageCacheKey key = pCacheStorage->save(pCache, nCacheLen, countof(pCache));
-		if (key == -1)
-			return false;
-		
-		pCallback->setKey(n, key);
+		if (pCallback->getHeader(n, &header)) {
+			malloc_size_ptr<unsigned char> pData(MessageCache::createData(header));
+			if (!pData.get())
+				return 0;
+			
+			size_t nDataLen = pData.size();
+			const unsigned char* pCache[] = {
+				reinterpret_cast<const unsigned char*>(&nDataLen),
+				pData.get(),
+			};
+			size_t nCacheLen[] = {
+				sizeof(nDataLen),
+				nDataLen,
+			};
+			
+			MessageCacheKey key = pCacheStorage->save(pCache, nCacheLen, countof(pCache));
+			if (key == -1)
+				return 0;
+			
+			pCallback->setKey(n, key);
+		}
+		else {
+			if (pCallback->isIgnoreError(n))
+				pCallback->setKey(n, -1);
+			else
+				return 0;
+		}
 	}
 	
 	if (!pCacheStorage->rename(pwszPath, L"cache"))
-		return false;
+		return 0;
 	
 	return pCacheStorage;
 }

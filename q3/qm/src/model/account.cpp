@@ -1406,7 +1406,7 @@ bool qm::Account::salvage(NormalFolder* pFolder,
 	return true;
 }
 
-bool qm::Account::check(MessageOperationCallback* pCallback)
+bool qm::Account::check(AccountCheckCallback* pCallback)
 {
 	assert(pCallback);
 	
@@ -1437,11 +1437,12 @@ bool qm::Account::check(MessageOperationCallback* pCallback)
 	public:
 		CallbackImpl(MessageCache* pMessageCache,
 					 const MessageHolderList& listMessageHolder,
-					 MessageOperationCallback* pCallback) :
+					 AccountCheckCallback* pCallback) :
 			pMessageCache_(pMessageCache),
 			listMessageHolder_(listMessageHolder),
 			listKey_(listMessageHolder.size()),
-			pCallback_(pCallback)
+			pCallback_(pCallback),
+			bIgnoreError_(false)
 		{
 		}
 	
@@ -1451,9 +1452,15 @@ bool qm::Account::check(MessageOperationCallback* pCallback)
 			for (KeyList::size_type n = 0; n < listKey_.size(); ++n) {
 				MessageHolder* pmh = listMessageHolder_[n];
 				MessageCacheKey cacheKey = pmh->getMessageCacheKey();
-				if (cacheKey != listKey_[n]) {
+				if (listKey_[n] != -1) {
+					if (cacheKey != listKey_[n]) {
+						pMessageCache_->removeData(cacheKey);
+						pmh->setKeys(listKey_[n], pmh->getMessageBoxKey());
+					}
+				}
+				else {
 					pMessageCache_->removeData(cacheKey);
-					pmh->setKeys(listKey_[n], pmh->getMessageBoxKey());
+					pmh->getFolder()->removeMessage(pmh);
 				}
 			}
 		}
@@ -1480,12 +1487,37 @@ bool qm::Account::check(MessageOperationCallback* pCallback)
 			
 			pCallback_->step(1);
 		}
+		
+		virtual bool isIgnoreError(unsigned int n)
+		{
+			MessageHolder* pmh = listMessageHolder_[n];
+			if (!pmh->getFolder()->isFlag(Folder::FLAG_LOCAL))
+				return false;
+			
+			if (bIgnoreError_)
+				return true;
+			
+			AccountCheckCallback::Ignore ignore = pCallback_->isIgnoreError(pmh);
+			switch (ignore) {
+			case AccountCheckCallback::IGNORE_FALSE:
+				return false;
+			case AccountCheckCallback::IGNORE_TRUE:
+				return true;
+			case AccountCheckCallback::IGNORE_ALL:
+				bIgnoreError_ = true;
+				return true;
+			default:
+				assert(false);
+				return false;
+			}
+		}
 	
 	private:
 		MessageCache* pMessageCache_;
 		const MessageHolderList& listMessageHolder_;
 		KeyList listKey_;
-		MessageOperationCallback* pCallback_;
+		AccountCheckCallback* pCallback_;
+		bool bIgnoreError_;
 	} callback(pImpl_->pMessageCache_.get(), listMessageHolder, pCallback);
 	
 	if (!pImpl_->pMessageStore_->check(&callback))
@@ -2273,6 +2305,17 @@ unsigned int qm::FolderListChangedEvent::getOldFlags() const
 unsigned int qm::FolderListChangedEvent::getNewFlags() const
 {
 	return nNewFlags_;
+}
+
+
+/****************************************************************************
+ *
+ * AccountCheckCallback
+ *
+ */
+
+qm::AccountCheckCallback::~AccountCheckCallback()
+{
 }
 
 

@@ -21,7 +21,7 @@ namespace qm {
 
 class UIUtil;
 class ProgressDialogInit;
-class ProgressDialogMessageOperationCallback;
+template<class Callback> class ProgressDialogMessageOperationCallbackBase;
 
 class Folder;
 class Message;
@@ -100,18 +100,18 @@ private:
 
 /****************************************************************************
  *
- * ProgressDialogMessageOperationCallback
+ * ProgressDialogMessageOperationCallbackBase
  *
  */
 
-class ProgressDialogMessageOperationCallback :
-	public MessageOperationCallback
+template<class Callback>
+class ProgressDialogMessageOperationCallbackBase : public Callback
 {
 public:
-	ProgressDialogMessageOperationCallback(HWND hwnd,
-										   UINT nTitle,
-										   UINT nMessage);
-	virtual ~ProgressDialogMessageOperationCallback();
+	ProgressDialogMessageOperationCallbackBase(HWND hwnd,
+											   UINT nTitle,
+											   UINT nMessage);
+	virtual ~ProgressDialogMessageOperationCallbackBase();
 
 public:
 	virtual bool isCanceled();
@@ -119,9 +119,12 @@ public:
 	virtual void step(unsigned int nStep);
 	virtual void show();
 
+protected:
+	ProgressDialog* getDialog() const;
+
 private:
-	ProgressDialogMessageOperationCallback(ProgressDialogMessageOperationCallback&);
-	ProgressDialogMessageOperationCallback& operator=(ProgressDialogMessageOperationCallback&);
+	ProgressDialogMessageOperationCallbackBase(ProgressDialogMessageOperationCallbackBase&);
+	ProgressDialogMessageOperationCallbackBase& operator=(ProgressDialogMessageOperationCallbackBase&);
 
 private:
 	HWND hwnd_;
@@ -132,6 +135,10 @@ private:
 	unsigned int nPos_;
 };
 
+typedef ProgressDialogMessageOperationCallbackBase<MessageOperationCallback> ProgressDialogMessageOperationCallback;
+
 }
+
+#include "uiutil.inl"
 
 #endif // __UIUTIL_H__
