@@ -43,18 +43,6 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hInstPrev,
 	
 	DECLARE_QSTATUS();
 	
-	AutoHandle hMutex(::CreateMutex(0, TRUE, _T("QMAIL3Mutex")));
-	if (!hMutex.get())
-		return 1;
-	if (::GetLastError() == ERROR_ALREADY_EXISTS) {
-		HWND hwnd = ::FindWindow(_T("QmMainWindow"), 0);
-		if (hwnd) {
-			// TODO
-			::SetForegroundWindow(hwnd);
-		}
-		return 0;
-	}
-	
 	Init init(hInst, L"QMAIL", 0, 0, &status);
 	CHECK_QSTATUS_VALUE(1);
 	

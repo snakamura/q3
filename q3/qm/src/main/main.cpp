@@ -13,6 +13,7 @@
 #include <qserror.h>
 #include <qsnew.h>
 #include <qsosutil.h>
+#include <qsthread.h>
 
 #include <memory>
 
@@ -154,11 +155,11 @@ QSTATUS qm::main(const WCHAR* pwszCommandLine)
 		}
 	}
 	
-//	bool bSuccess = false;
-//	MailFolderLock lock(wstrMailFolder.get(), &bSuccess, &status);
-//	CHECK_QSTATUS();
-//	if (!bSuccess)
-//		return QSTATUS_SUCCESS;
+	bool bContinue = false;
+	MailFolderLock lock(wstrMailFolder.get(), &bContinue, &status);
+	CHECK_QSTATUS();
+	if (!bContinue)
+		return QSTATUS_SUCCESS;
 	
 	std::auto_ptr<Application> pApplication;
 	status = newQsObject(g_hInstDll, wstrMailFolder.get(),
@@ -166,10 +167,17 @@ QSTATUS qm::main(const WCHAR* pwszCommandLine)
 	CHECK_QSTATUS();
 	wstrMailFolder.release();
 	wstrProfile.release();
+	
 	status = pApplication->initialize();
 	CHECK_QSTATUS();
+	
+	assert(getMainWindow());
+	status = lock.setWindow(getMainWindow()->getHandle());
+	CHECK_QSTATUS();
+	
 	status = pApplication->run();
 	CHECK_QSTATUS();
+	
 	status = pApplication->uninitialize();
 	CHECK_QSTATUS();
 	
@@ -277,39 +285,200 @@ QSTATUS qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
  */
 
 qm::MailFolderLock::MailFolderLock(const WCHAR* pwszMailFolder,
-	bool* pbSuccess, QSTATUS* pstatus) :
-	wstrPath_(0)
+	bool* pbContinue, QSTATUS* pstatus) :
+	tstrPath_(0),
+	hFile_(0),
+	pMutex_(0)
 {
-	string_ptr<WSTRING> wstrPath(concat(pwszMailFolder, L"\\lock"));
-	if (!wstrPath.get()) {
-		*pstatus = QSTATUS_OUTOFMEMORY;
-		return;
-	}
+	DECLARE_QSTATUS();
 	
-	W2T_STATUS(wstrPath.get(), ptszPath);
-	
-	HANDLE hFile = ::CreateFile(ptszPath, GENERIC_READ | GENERIC_WRITE,
-		FILE_SHARE_READ, 0, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
-	if (hFile == INVALID_HANDLE_VALUE) {
-		// TODO
-		// File is locked
-		// Open lock file for reading and find window handle then make it foreground
-	}
-	else if (::GetLastError() == ERROR_ALREADY_EXISTS) {
-		// TODO
-		// Shutdown failed or other device locked it.
-		// Confirm user to continue or not with computer name which is stread in lock file
-	}
-	else {
-		// TODO
-		// No problem
-	}
-	
-	// TODO
-	// If success, write computer name and window handle then flush.
+	status = lock(pwszMailFolder, pbContinue);
+	CHECK_QSTATUS_SET(pstatus);
 }
 
 qm::MailFolderLock::~MailFolderLock()
 {
-	freeWString(wstrPath_);
+	if (pMutex_) {
+		pMutex_->release();
+		delete pMutex_;
+	}
+	unlock();
+	freeTString(tstrPath_);
+}
+
+QSTATUS qm::MailFolderLock::setWindow(HWND hwnd)
+{
+	assert(hwnd);
+	assert(hFile_);
+	assert(pMutex_);
+	
+	DECLARE_QSTATUS();
+	
+	string_ptr<WSTRING> wstrName;
+#ifdef _WIN32_WCE
+	Registry reg(HKEY_LOCAL_MACHINE, L"Ident", &status);
+	CHECK_QSTATUS();
+	status = reg.getValue(L"Name", &wstrName);
+	CHECK_QSTATUS();
+#else
+	TCHAR tszComputerName[MAX_COMPUTERNAME_LENGTH + 1];
+	DWORD dwSize = countof(tszComputerName);
+	::GetComputerName(tszComputerName, &dwSize);
+	wstrName.reset(tcs2wcs(tszComputerName));
+	if (!wstrName.get())
+		return QSTATUS_OUTOFMEMORY;
+#endif
+	
+	WCHAR wszHandle[32];
+	swprintf(wszHandle, L"%08x\n", reinterpret_cast<int>(hwnd));
+	
+	const WCHAR* pwsz[] = {
+		wszHandle,
+		wstrName.get()
+	};
+	for (int n = 0; n < countof(pwsz); ++n) {
+		DWORD dw = 0;
+		if (!::WriteFile(hFile_, pwsz[n], wcslen(pwsz[n])*sizeof(WCHAR), &dw, 0))
+			return QSTATUS_FAIL;
+	}
+	if (!::FlushFileBuffers(hFile_))
+		return QSTATUS_FAIL;
+	
+	status = pMutex_->release();
+	CHECK_QSTATUS();
+	delete pMutex_;
+	pMutex_ = 0;
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::MailFolderLock::lock(const WCHAR* pwszMailFolder, bool* pbContinue)
+{
+	assert(pwszMailFolder);
+	assert(pbContinue);
+	
+	DECLARE_QSTATUS();
+	
+	*pbContinue = false;
+	
+	string_ptr<WSTRING> wstrPath(concat(pwszMailFolder, L"\\lock"));
+	if (!wstrPath.get())
+		return QSTATUS_OUTOFMEMORY;
+	string_ptr<TSTRING> tstrPath(wcs2tcs(wstrPath.get()));
+	if (!tstrPath.get())
+		return QSTATUS_OUTOFMEMORY;
+	
+	std::auto_ptr<Mutex> pMutex;
+	status = newQsObject(false, L"QMAIL3Mutex", &pMutex);
+	CHECK_QSTATUS();
+	status = pMutex->acquire();
+	CHECK_QSTATUS();
+	
+	AutoHandle hFile(::CreateFile(tstrPath.get(),
+		GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, 0,
+		OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0));
+	if (!hFile.get()) {
+		AutoHandle hFileRead(::CreateFile(tstrPath.get(),
+			GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
+			0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
+		if (!hFileRead.get())
+			return QSTATUS_FAIL;
+		
+		HWND hwnd = 0;
+		status = read(hFileRead.get(), &hwnd, 0);
+		CHECK_QSTATUS();
+		::SetForegroundWindow(hwnd);
+	}
+	else if (::GetLastError() == ERROR_ALREADY_EXISTS) {
+		string_ptr<WSTRING> wstrName;
+		status = read(hFile.get(), 0, &wstrName);
+		CHECK_QSTATUS();
+		// TODO
+		// Load from resource
+		StringBuffer<WSTRING> buf(&status);
+		CHECK_QSTATUS();
+		status = buf.append(L"This mail folder is locked by '");
+		CHECK_QSTATUS();
+		status = buf.append(wstrName.get());
+		CHECK_QSTATUS();
+		status = buf.append(L"'\nWould you like to continue?");
+		CHECK_QSTATUS();
+		
+		int nRet= 0;
+		status = messageBox(buf.getCharArray(),
+			MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2, &nRet);
+		CHECK_QSTATUS();
+		*pbContinue = nRet == IDYES;
+	}
+	else {
+		*pbContinue = true;
+	}
+	
+	if (*pbContinue) {
+		hFile_ = hFile.release();
+		tstrPath_ = tstrPath.release();
+		pMutex_ = pMutex.release();
+	}
+	else {
+		pMutex->release();
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::MailFolderLock::unlock()
+{
+	DECLARE_QSTATUS();
+	
+	if (hFile_) {
+		assert(tstrPath_);
+		
+		Mutex mutex(false, L"QMAIL3Mutex", &status);
+		CHECK_QSTATUS();
+		status = mutex.acquire();
+		CHECK_QSTATUS();
+		
+		::CloseHandle(hFile_);
+		hFile_ = 0;
+		
+		::DeleteFile(tstrPath_);
+		
+		status = mutex.release();
+		CHECK_QSTATUS();
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::MailFolderLock::read(HANDLE hFile, HWND* phwnd, WSTRING* pwstrName)
+{
+	assert(hFile);
+	
+	DECLARE_QSTATUS();
+	
+	WCHAR wsz[1024];
+	DWORD dw = 0;
+	if (!::ReadFile(hFile, wsz, sizeof(wsz) - sizeof(WCHAR), &dw, 0))
+		return QSTATUS_FAIL;
+	wsz[dw/sizeof(WCHAR)] = L'\0';
+	::SetFilePointer(hFile, 0, 0, FILE_BEGIN);
+	
+	WCHAR* p = wcschr(wsz, L'\n');
+	if (!p)
+		return QSTATUS_FAIL;
+	*p = L'\0';
+	
+	if (phwnd) {
+		int hwnd = 0;
+		swscanf(wsz, L"%08x", &hwnd);
+		*phwnd = reinterpret_cast<HWND>(hwnd);
+	}
+	
+	if (pwstrName) {
+		*pwstrName = allocWString(p + 1);
+		if (!*pwstrName)
+			return QSTATUS_OUTOFMEMORY;
+	}
+	
+	return QSTATUS_SUCCESS;
 }

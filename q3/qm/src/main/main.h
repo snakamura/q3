@@ -69,15 +69,25 @@ class MailFolderLock
 {
 public:
 	MailFolderLock(const WCHAR* pwszMailFolder,
-		bool* pbSuccess, qs::QSTATUS* pstatus);
+		bool* pbContinue, qs::QSTATUS* pstatus);
 	~MailFolderLock();
+
+public:
+	qs::QSTATUS setWindow(HWND hwnd);
+
+private:
+	qs::QSTATUS lock(const WCHAR* pwszMailFolder, bool* pbContinue);
+	qs::QSTATUS unlock();
+	qs::QSTATUS read(HANDLE hFile, HWND* phwnd, qs::WSTRING* pwstrName);
 
 private:
 	MailFolderLock(const MailFolderLock&);
 	MailFolderLock& operator=(const MailFolderLock&);
 
 private:
-	qs::WSTRING wstrPath_;
+	qs::TSTRING tstrPath_;
+	HANDLE hFile_;
+	qs::Mutex* pMutex_;
 };
 
 }
