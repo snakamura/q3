@@ -14,6 +14,7 @@
 #	include <openssl/rand.h>
 #endif
 
+#include "lock.h"
 #include "main.h"
 #include "smime.h"
 
@@ -68,6 +69,7 @@ BOOL WINAPI DllMain(HANDLE hInst,
 		g_hInstResource = g_hInst;
 		OpenSSL_add_all_algorithms();
 		SSL_library_init();
+		CRYPTO_set_locking_callback(&qscrypto::lockCallback);
 #ifdef _WIN32_WCE
 		// TODO
 		// Seed correctly.
@@ -80,6 +82,7 @@ BOOL WINAPI DllMain(HANDLE hInst,
 #endif
 		break;
 	case DLL_PROCESS_DETACH:
+		CRYPTO_set_locking_callback(0);
 		break;
 	case DLL_THREAD_ATTACH:
 		break;
