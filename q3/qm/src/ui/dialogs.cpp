@@ -747,6 +747,8 @@ LRESULT qm::AddressBookDialog::onDestroy()
 	
 	removeNotifyHandler(this);
 	
+	pAddressBook_->setEnableReload(true);
+	
 	return DefaultDialog::onDestroy();
 }
 
@@ -874,12 +876,11 @@ LRESULT qm::AddressBookDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 #endif
 	
 	addNotifyHandler(this);
-	
+	init(false);
+	wndAddressList_.subclassWindow(hwndList);
 	Window(hwndList).setFocus();
 	
-	init(false);
-	
-	wndAddressList_.subclassWindow(hwndList);
+	pAddressBook_->setEnableReload(false);
 	
 	return FALSE;
 }

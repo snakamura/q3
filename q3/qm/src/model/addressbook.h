@@ -70,6 +70,7 @@ public:
 		qs::WSTRING* pwstrAddresses);
 	qs::QSTATUS getEntry(const WCHAR* pwszAddress,
 		const AddressBookEntry** ppEntry);
+	void setEnableReload(bool bEnable);
 
 public:
 	qs::QSTATUS addEntry(AddressBookEntry* pEntry);
@@ -141,6 +142,7 @@ private:
 	FILETIME ft_;
 	EntryList listEntry_;
 	CategoryList listCategory_;
+	bool bEnableReload_;
 	bool bContactChanged_;
 #ifndef _WIN32_WCE
 	HINSTANCE hInstWAB_;

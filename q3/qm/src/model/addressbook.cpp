@@ -37,6 +37,7 @@ using namespace qs;
  */
 
 qm::AddressBook::AddressBook(Profile* pProfile, QSTATUS* pstatus) :
+	bEnableReload_(true),
 	bContactChanged_(false),
 #ifndef _WIN32_WCE
 	hInstWAB_(0),
@@ -236,6 +237,11 @@ QSTATUS qm::AddressBook::getEntry(const WCHAR* pwszAddress,
 	return QSTATUS_SUCCESS;
 }
 
+void qm::AddressBook::setEnableReload(bool bEnable)
+{
+	bEnableReload_ = bEnable;
+}
+
 QSTATUS qm::AddressBook::addEntry(AddressBookEntry* pEntry)
 {
 	return STLWrapper<EntryList>(listEntry_).push_back(pEntry);
@@ -346,6 +352,9 @@ QSTATUS qm::AddressBook::initWAB()
 QSTATUS qm::AddressBook::load()
 {
 	DECLARE_QSTATUS();
+	
+	if (!bEnableReload_)
+		return QSTATUS_SUCCESS;
 	
 	string_ptr<WSTRING> wstrPath;
 	status = Application::getApplication().getProfilePath(
