@@ -2684,7 +2684,9 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 			ProgressDialogInit init(&dialog, hwnd_);
 			for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 				Folder* pFolder = *it;
-				if (pFolder->getType() == Folder::TYPE_NORMAL) {
+				if (pFolder->getType() == Folder::TYPE_NORMAL &&
+					!pFolder->isFlag(Folder::FLAG_TRASHBOX) &&
+					!pFolder->isHidden()) {
 					if (!pRuleManager_->apply(pFolder, 0, pDocument_, hwnd_,
 						pProfile_, pSecurityModel_->isDecryptVerify(), &callback)) {
 						ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
