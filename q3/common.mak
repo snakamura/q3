@@ -96,7 +96,7 @@ else
 		#####################################################################
 	endif
 	ifeq ($(PLATFORM),sig3)
-		# HPC2000 ###########################################################
+		# SIGMARION3 ########################################################
 		SDKDIR			= $(CESDKSIGIIIDIR)
 		BASEPLATFORM	= hpc
 		#####################################################################
@@ -175,6 +175,12 @@ LD						= link
 MIDL					= midl
 DUMPBIN					= dumpbin
 GCC						= gcc
+
+ifeq ($(PLATFORM),sig3)
+	RCPP				= grep -v "^FONT"
+else
+	RCPP				= cat
+endif
 
 ifdef DEBUG
 	BASENAME			= debug
@@ -471,7 +477,10 @@ $(OBJDIR)/%.obj: $(SRCDIR)/%.c
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	$(CCC) $(CCFLAGS) $(DEFINES) $(INCLUDES) -c -Fo$@ $<
 
-$(OBJDIR)/%.res: $(SRCDIR)/%.rc $(TLBS)
+$(SRCDIR)/%.rcx: $(SRCDIR)/%.rc
+	$(RCPP) $< > $@
+
+$(OBJDIR)/%.res: $(SRCDIR)/%.rcx $(TLBS)
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	$(RC) $(RCFLAGS) $(RCDEFINES) -fo $@ $<
 
