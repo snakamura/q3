@@ -674,7 +674,8 @@ int qs::FileDialog::doModal(HWND hwndParent,
 		ofn.lpstrDefExt = ptszDefaultExt;
 	
 	ModalHandlerInvoker invoker(pModalHandler, hwndParent);
-	BOOL b = pImpl_->bOpen_ ? ::GetOpenFileName(&ofn) : ::GetSaveFileName(&ofn);
+	if (!(pImpl_->bOpen_ ? ::GetOpenFileName(&ofn) : ::GetSaveFileName(&ofn)))
+		return IDCANCEL;
 	
 	T2W(ofn.lpstrFile, pwszPath);
 	wstring_ptr wstrPath(allocWString(pwszPath, wcslen(pwszPath) + 2));
@@ -706,7 +707,7 @@ int qs::FileDialog::doModal(HWND hwndParent,
 	}
 	pImpl_->wstrPath_ = wstrPath;
 	
-	return b ? IDOK : IDCANCEL;
+	return IDOK;
 }
 
 
