@@ -13,6 +13,8 @@
 #include <qmsecurity.h>
 
 #include <qsconv.h>
+#include <qsinit.h>
+#include <qslog.h>
 #include <qsmime.h>
 #include <qsosutil.h>
 
@@ -996,20 +998,33 @@ bool qm::MAPIAddressBook::load(AddressBook* pAddressBook)
 {
 	assert(pAddrBook_);
 	
+	Log log(InitThread::getInitThread().getLogger(), L"qm::MAPIAddressBook");
+	
+	HRESULT hr = S_OK;
+	
 	ULONG nEntrySize = 0;
 	ENTRYID* pEntryId = 0;
-	if (pAddrBook_->GetPAB(&nEntrySize, &pEntryId) != S_OK)
+	hr = pAddrBook_->GetPAB(&nEntrySize, &pEntryId);
+	if (hr != S_OK) {
+		log.errorf(L"IAddrBook::GetPAB failed: %08x.", hr);
 		return false;
+	}
 	
 	ULONG nType = 0;
 	ComPtr<IMAPIContainer> pContainer;
-	if (pAddrBook_->OpenEntry(nEntrySize, pEntryId, &IID_IMAPIContainer,
-		MAPI_BEST_ACCESS, &nType, reinterpret_cast<IUnknown**>(&pContainer)) != S_OK)
+	hr = pAddrBook_->OpenEntry(nEntrySize, pEntryId, &IID_IMAPIContainer,
+		MAPI_BEST_ACCESS, &nType, reinterpret_cast<IUnknown**>(&pContainer));
+	if (hr != S_OK) {
+		log.errorf(L"IAddrBook::OpenEntry for PAB failed: %08x.", hr);
 		return false;
+	}
 	
 	ComPtr<IMAPITable> pTable;
-	if (pContainer->GetContentsTable(MAPI_UNICODE, &pTable) != S_OK)
+	hr = pContainer->GetContentsTable(MAPI_UNICODE, &pTable);
+	if (hr != S_OK) {
+		log.errorf(L"IMAPIContainer::GetContentsTable failed: %08x.", hr);
 		return false;
+	}
 	
 	ULONG props[] = {
 		PR_ENTRYID,
@@ -1030,83 +1045,102 @@ bool qm::MAPIAddressBook::load(AddressBook* pAddressBook)
 		COLUMN_CONTACT_EMAIL_ADDRESSES
 	};
 	
-	if (pTable->SetColumns(reinterpret_cast<LPSPropTagArray>(&columns), 0) == S_OK) {
-		LONG nRowsSought = 0;
-		if (pTable->SeekRow(BOOKMARK_BEGINNING, 0, &nRowsSought) == S_OK) {
-			while (true) {
-				SRowSet* pSRowSet = 0;
-				if (pTable->QueryRows(1, 0, &pSRowSet) != S_OK)
-					break;
-				RowSetDeleter deleter(this, pSRowSet);
-				if (pSRowSet->cRows == 0)
-					break;
-				assert(pSRowSet->cRows == 1);
-				
-				SRow* pRow = pSRowSet->aRow;
-				
-				const SPropValue& valueName = pRow->lpProps[COLUMN_DISPLAY_NAME];
-				if (PROP_TYPE(valueName.ulPropTag) != PT_UNICODE)
-					continue;
-				const WCHAR* pwszName = valueName.Value.lpszW;
-				
-				std::auto_ptr<AddressBookEntry> pEntry(new AddressBookEntry(pwszName, 0, true));
-				
-				ULONG nEntrySize = pRow->lpProps[COLUMN_ENTRYID].Value.bin.cb;
-				ENTRYID* pEntryId = reinterpret_cast<ENTRYID*>(
-					pRow->lpProps[COLUMN_ENTRYID].Value.bin.lpb);
-				LONG nObjectType = pRow->lpProps[COLUMN_OBJECT_TYPE].Value.l;
-				if (nObjectType == MAPI_MAILUSER) {
-					if (PROP_TYPE(pRow->lpProps[COLUMN_CONTACT_EMAIL_ADDRESSES].ulPropTag) == PT_MV_UNICODE) {
-						const SPropValue& value = pRow->lpProps[COLUMN_CONTACT_EMAIL_ADDRESSES];
-						const SWStringArray& array = value.Value.MVszW;
-						for (unsigned int n = 0; n < array.cValues; ++n) {
-							const WCHAR* pwszAddress = array.lppszW[n];
-							std::auto_ptr<AddressBookAddress> pAddress(
-								new AddressBookAddress(pEntry.get(),
-									pwszAddress,
-									static_cast<const WCHAR*>(0),
-									AddressBookAddress::CategoryList(),
-									static_cast<const WCHAR*>(0),
-									static_cast<const WCHAR*>(0), false));
-							pEntry->addAddress(pAddress);
-						}
-					}
-					else if (PROP_TYPE(pRow->lpProps[COLUMN_EMAIL_ADDRESS].ulPropTag) == PT_UNICODE) {
-						const SPropValue& value = pRow->lpProps[COLUMN_EMAIL_ADDRESS];
-						const WCHAR* pwszAddress = value.Value.lpszW;
-						std::auto_ptr<AddressBookAddress> pAddress(
-							new AddressBookAddress(pEntry.get(),
-								pwszAddress,
-								static_cast<const WCHAR*>(0),
-								AddressBookAddress::CategoryList(),
-								static_cast<const WCHAR*>(0),
-								static_cast<const WCHAR*>(0), false));
-						pEntry->addAddress(pAddress);
-					}
+	hr = pTable->SetColumns(reinterpret_cast<LPSPropTagArray>(&columns), 0);
+	if (hr != S_OK) {
+		log.errorf(L"IMAPITable::SetColumns failed: %08x.", hr);
+		return false;
+	}
+	
+	LONG nRowsSought = 0;
+	hr = pTable->SeekRow(BOOKMARK_BEGINNING, 0, &nRowsSought);
+	if (hr != S_OK) {
+		log.errorf(L"IMAPITable::SeekRow failed: %08x.", hr);
+		return false;
+	}
+	
+	while (true) {
+		SRowSet* pSRowSet = 0;
+		if (pTable->QueryRows(1, 0, &pSRowSet) != S_OK)
+			break;
+		RowSetDeleter deleter(this, pSRowSet);
+		if (pSRowSet->cRows == 0)
+			break;
+		assert(pSRowSet->cRows == 1);
+		
+		SRow* pRow = pSRowSet->aRow;
+		
+		const SPropValue& valueName = pRow->lpProps[COLUMN_DISPLAY_NAME];
+		if (PROP_TYPE(valueName.ulPropTag) != PT_UNICODE) {
+			log.warn(L"Skipping non-unicode PR_DISPLAY_NAME.");
+			continue;
+		}
+		const WCHAR* pwszName = valueName.Value.lpszW;
+		
+		std::auto_ptr<AddressBookEntry> pEntry(new AddressBookEntry(pwszName, 0, true));
+		
+		ULONG nEntrySize = pRow->lpProps[COLUMN_ENTRYID].Value.bin.cb;
+		ENTRYID* pEntryId = reinterpret_cast<ENTRYID*>(
+			pRow->lpProps[COLUMN_ENTRYID].Value.bin.lpb);
+		LONG nObjectType = pRow->lpProps[COLUMN_OBJECT_TYPE].Value.l;
+		if (nObjectType == MAPI_MAILUSER) {
+			if (PROP_TYPE(pRow->lpProps[COLUMN_CONTACT_EMAIL_ADDRESSES].ulPropTag) == PT_MV_UNICODE) {
+				const SPropValue& value = pRow->lpProps[COLUMN_CONTACT_EMAIL_ADDRESSES];
+				const SWStringArray& array = value.Value.MVszW;
+				for (unsigned int n = 0; n < array.cValues; ++n) {
+					const WCHAR* pwszAddress = array.lppszW[n];
+					std::auto_ptr<AddressBookAddress> pAddress(
+						new AddressBookAddress(pEntry.get(),
+							pwszAddress,
+							static_cast<const WCHAR*>(0),
+							AddressBookAddress::CategoryList(),
+							static_cast<const WCHAR*>(0),
+							static_cast<const WCHAR*>(0), false));
+					pEntry->addAddress(pAddress);
 				}
-				else if (nObjectType == MAPI_DISTLIST) {
-					ULONG nType = 0;
-					ComPtr<IDistList> pDistList;
-					if (pContainer->OpenEntry(nEntrySize, pEntryId, &IID_IDistList, MAPI_BEST_ACCESS,
-						&nType, reinterpret_cast<IUnknown**>(&pDistList)) == S_OK) {
-						wstring_ptr wstrDistList = expandDistList(pDistList.get());
-						if (wstrDistList.get()) {
-							std::auto_ptr<AddressBookAddress> pAddress(
-								new AddressBookAddress(pEntry.get(),
-									wstrDistList.get(),
-									static_cast<const WCHAR*>(0),
-									AddressBookAddress::CategoryList(),
-									static_cast<const WCHAR*>(0),
-									static_cast<const WCHAR*>(0), true));
-							pEntry->addAddress(pAddress);
-						}
-					}
-				}
-				
-				if (!pEntry->getAddresses().empty())
-					pAddressBook->addEntry(pEntry);
+			}
+			else if (PROP_TYPE(pRow->lpProps[COLUMN_EMAIL_ADDRESS].ulPropTag) == PT_UNICODE) {
+				const SPropValue& value = pRow->lpProps[COLUMN_EMAIL_ADDRESS];
+				const WCHAR* pwszAddress = value.Value.lpszW;
+				std::auto_ptr<AddressBookAddress> pAddress(
+					new AddressBookAddress(pEntry.get(),
+						pwszAddress,
+						static_cast<const WCHAR*>(0),
+						AddressBookAddress::CategoryList(),
+						static_cast<const WCHAR*>(0),
+						static_cast<const WCHAR*>(0), false));
+				pEntry->addAddress(pAddress);
+			}
+			else {
+				log.warnf(L"Skipping unknown PR_CONTACT_EMAIL_ADDRESSES or PR_EMAIL_ADDRESS: %08x, %08x.",
+					pRow->lpProps[COLUMN_CONTACT_EMAIL_ADDRESSES].ulPropTag,
+					pRow->lpProps[COLUMN_EMAIL_ADDRESS].ulPropTag);
 			}
 		}
+		else if (nObjectType == MAPI_DISTLIST) {
+			ULONG nType = 0;
+			ComPtr<IDistList> pDistList;
+			hr = pContainer->OpenEntry(nEntrySize, pEntryId, &IID_IDistList,
+				MAPI_BEST_ACCESS, &nType, reinterpret_cast<IUnknown**>(&pDistList));
+			if (hr == S_OK) {
+				wstring_ptr wstrDistList = expandDistList(pDistList.get());
+				if (wstrDistList.get()) {
+					std::auto_ptr<AddressBookAddress> pAddress(
+						new AddressBookAddress(pEntry.get(),
+							wstrDistList.get(),
+							static_cast<const WCHAR*>(0),
+							AddressBookAddress::CategoryList(),
+							static_cast<const WCHAR*>(0),
+							static_cast<const WCHAR*>(0), true));
+					pEntry->addAddress(pAddress);
+				}
+			}
+			else {
+				log.warnf(L"Skipping distribution list which cannot be opened: %08x.", hr);
+			}
+		}
+		
+		if (!pEntry->getAddresses().empty())
+			pAddressBook->addEntry(pEntry);
 	}
 	
 	bModified_ = false;
@@ -1121,10 +1155,17 @@ bool qm::MAPIAddressBook::isModified()
 
 bool qm::MAPIAddressBook::init(IAddrBook* pAddrBook)
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qm::MAPIAddressBook");
+	
+	HRESULT hr = S_OK;
+	
 	ULONG nEntrySize = 0;
 	ENTRYID* pEntryId = 0;
-	if (pAddrBook->GetPAB(&nEntrySize, &pEntryId) != S_OK)
+	hr = pAddrBook->GetPAB(&nEntrySize, &pEntryId);
+	if (hr != S_OK) {
+		log.errorf(L"IAddrBook::GetPAB failed: %08x.", hr);
 		return false;
+	}
 	
 	std::auto_ptr<IMAPIAdviseSinkImpl> pAdviseSink(new IMAPIAdviseSinkImpl(this));
 	if (pAddrBook->Advise(nEntrySize, pEntryId,
@@ -1139,8 +1180,13 @@ bool qm::MAPIAddressBook::init(IAddrBook* pAddrBook)
 
 wstring_ptr qm::MAPIAddressBook::expandDistList(IDistList* pDistList) const
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qm::MAPIAddressBook");
+	
+	HRESULT hr = S_OK;
+	
 	ComPtr<IMAPITable> pTable;
-	if (pDistList->GetContentsTable(MAPI_UNICODE, &pTable) != S_OK)
+	hr = pDistList->GetContentsTable(MAPI_UNICODE, &pTable);
+	if (hr != S_OK)
 		return 0;
 	
 	StringBuffer<WSTRING> buf;
@@ -1158,35 +1204,39 @@ wstring_ptr qm::MAPIAddressBook::expandDistList(IDistList* pDistList) const
 		COLUMN_EMAIL_ADDRESS
 	};
 	
-	if (pTable->SetColumns(reinterpret_cast<LPSPropTagArray>(&columns), 0) == S_OK) {
-		LONG nRowsSought = 0;
-		if (pTable->SeekRow(BOOKMARK_BEGINNING, 0, &nRowsSought) == S_OK) {
-			while (true) {
-				SRowSet* pSRowSet = 0;
-				if (pTable->QueryRows(1, 0, &pSRowSet) != S_OK)
-					break;
-				RowSetDeleter deleter(this, pSRowSet);
-				if (pSRowSet->cRows == 0)
-					break;
-				assert(pSRowSet->cRows == 1);
-				
-				SRow* pRow = pSRowSet->aRow;
-				
-				const SPropValue& valueName = pRow->lpProps[COLUMN_DISPLAY_NAME];
-				if (PROP_TYPE(valueName.ulPropTag) != PT_UNICODE)
-					continue;
-				const WCHAR* pwszName = valueName.Value.lpszW;
-				
-				const SPropValue& valueAddress = pRow->lpProps[COLUMN_EMAIL_ADDRESS];
-				if (PROP_TYPE(valueAddress.ulPropTag) != PT_UNICODE)
-					continue;
-				const WCHAR* pwszAddress = valueAddress.Value.lpszW;
-				
-				if (buf.getLength() != 0)
-					buf.append(L", ");
-				buf.append(AddressParser(pwszName, pwszAddress).getValue().get());
-			}
-		}
+	hr = pTable->SetColumns(reinterpret_cast<LPSPropTagArray>(&columns), 0);
+	if (hr != S_OK)
+		return 0;
+	
+	LONG nRowsSought = 0;
+	hr = pTable->SeekRow(BOOKMARK_BEGINNING, 0, &nRowsSought);
+	if (hr != S_OK)
+		return 0;
+	
+	while (true) {
+		SRowSet* pSRowSet = 0;
+		if (pTable->QueryRows(1, 0, &pSRowSet) != S_OK)
+			break;
+		RowSetDeleter deleter(this, pSRowSet);
+		if (pSRowSet->cRows == 0)
+			break;
+		assert(pSRowSet->cRows == 1);
+		
+		SRow* pRow = pSRowSet->aRow;
+		
+		const SPropValue& valueName = pRow->lpProps[COLUMN_DISPLAY_NAME];
+		if (PROP_TYPE(valueName.ulPropTag) != PT_UNICODE)
+			continue;
+		const WCHAR* pwszName = valueName.Value.lpszW;
+		
+		const SPropValue& valueAddress = pRow->lpProps[COLUMN_EMAIL_ADDRESS];
+		if (PROP_TYPE(valueAddress.ulPropTag) != PT_UNICODE)
+			continue;
+		const WCHAR* pwszAddress = valueAddress.Value.lpszW;
+		
+		if (buf.getLength() != 0)
+			buf.append(L", ");
+		buf.append(AddressParser(pwszName, pwszAddress).getValue().get());
 	}
 	
 	if (buf.getLength() == 0)
@@ -1357,25 +1407,39 @@ qm::OutlookAddressBook::~OutlookAddressBook()
 
 bool qm::OutlookAddressBook::init()
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qm::OutlookAddressBook");
+	
 	Registry reg(HKEY_LOCAL_MACHINE, L"Software\\Clients\\Mail\\Microsoft Outlook");
-	if (!reg)
+	if (!reg) {
+		log.info(L"Registry key for Outlook is not found.");
 		return false;
+	}
 	
 	wstring_ptr wstrPath;
-	if (!reg.getValue(L"DLLPathEx", &wstrPath))
+	if (!reg.getValue(L"DLLPathEx", &wstrPath)) {
+		log.error(L"Failed to get DLL path.");
 		return false;
+	}
+	log.debugf(L"DLL path: %s", wstrPath.get());
 	
 	W2T(wstrPath.get(), ptszPath);
 	hInst_ = ::LoadLibrary(ptszPath);
-	if (!hInst_)
+	if (!hInst_) {
+		log.error(L"Failed to load DLL.");
 		return false;
+	}
+	
+	HRESULT hr = S_OK;
 	
 	LPMAPIINITIALIZE pfnMAPIInitialize = reinterpret_cast<LPMAPIINITIALIZE>(
 		::GetProcAddress(hInst_, "MAPIInitialize"));
 	if (!pfnMAPIInitialize)
 		return false;
-	if ((*pfnMAPIInitialize)(0) != S_OK)
+	hr = (*pfnMAPIInitialize)(0);
+	if (hr != S_OK) {
+		log.errorf(L"MAPIInitialize failed: %08x.", hr);
 		return false;
+	}
 	
 	LPMAPILOGONEX pfnMAPILogonEx = reinterpret_cast<LPMAPILOGONEX>(
 		::GetProcAddress(hInst_, "MAPILogonEx"));
@@ -1383,12 +1447,18 @@ bool qm::OutlookAddressBook::init()
 		return false;
 	
 	ComPtr<IMAPISession> pSession;
-	if ((*pfnMAPILogonEx)(0, 0, 0, MAPI_EXTENDED | MAPI_USE_DEFAULT | MAPI_NO_MAIL | MAPI_UNICODE, &pSession) != S_OK)
+	hr = (*pfnMAPILogonEx)(0, 0, 0, MAPI_EXTENDED | MAPI_USE_DEFAULT | MAPI_NO_MAIL | MAPI_UNICODE, &pSession);
+	if (hr != S_OK) {
+		log.errorf(L"MAPILogonEx failed: %08x.", hr);
 		return false;
+	}
 	
 	ComPtr<IAddrBook> pAddrBook;
-	if (pSession->OpenAddressBook(0, 0, 0, &pAddrBook) != S_OK)
+	hr = pSession->OpenAddressBook(0, 0, 0, &pAddrBook);
+	if (hr != S_OK) {
+		log.errorf(L"IMAPISession::OpenAddressBook failed: %08x.", hr);
 		return false;
+	}
 	
 	pfnMAPIFreeBuffer_ = reinterpret_cast<LPMAPIFREEBUFFER>(
 		::GetProcAddress(hInst_, "MAPIFreeBuffer"));
