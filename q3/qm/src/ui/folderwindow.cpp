@@ -528,11 +528,11 @@ void qm::FolderWindowImpl::dragEnter(const DropTargetDragEvent& event)
 	hItemDragOver_ = 0;
 	dwDragOverLastChangedTime_ = 0;
 	
-	processDragEvent(event);
-	
 	POINT pt = event.getPoint();
 	pThis_->screenToClient(&pt);
 	ImageList_DragEnter(pThis_->getHandle(), pt.x, pt.y);
+	
+	processDragEvent(event);
 }
 
 void qm::FolderWindowImpl::dragOver(const DropTargetDragEvent& event)
