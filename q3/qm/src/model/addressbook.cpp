@@ -28,6 +28,8 @@
 #include "addressbook.h"
 #include "../util/confighelper.h"
 
+#pragma warning(disable:4786)
+
 using namespace qm;
 using namespace qs;
 
@@ -39,18 +41,7 @@ using namespace qs;
  */
 
 qm::AddressBook::AddressBook(const WCHAR* pwszPath,
-							 bool bLoadWAB) :
-	bContactChanged_(false),
-#ifndef _WIN32_WCE
-	hInstWAB_(0),
-	pAddrBook_(0),
-	pWABObject_(0),
-	nConnection_(0)
-#else
-	hCategoryDB_(0),
-	hContactsDB_(0),
-	pNotificationWindow_(0)
-#endif
+							 bool bLoadExternal)
 {
 	wstrPath_ = allocWString(pwszPath);
 	
@@ -58,10 +49,8 @@ qm::AddressBook::AddressBook(const WCHAR* pwszPath,
 	::GetSystemTime(&st);
 	::SystemTimeToFileTime(&st, &ft_);
 	
-	if (bLoadWAB) {
-		if (initWAB())
-			bContactChanged_ = true;
-	}
+	if (bLoadExternal)
+		initExternal();
 	
 	load();
 }
@@ -69,24 +58,6 @@ qm::AddressBook::AddressBook(const WCHAR* pwszPath,
 qm::AddressBook::~AddressBook()
 {
 	clear(TYPE_BOTH);
-	
-#ifndef _WIN32_WCE
-	if (pAddrBook_) {
-		if (nConnection_ != 0)
-			pAddrBook_->Unadvise(nConnection_);
-		pAddrBook_->Release();
-		pWABObject_->Release();
-	}
-	if (hInstWAB_)
-		::FreeLibrary(hInstWAB_);
-#else
-	if (hCategoryDB_)
-		::CloseHandle(hCategoryDB_);
-	if (hContactsDB_)
-		::CloseHandle(hContactsDB_);
-	if (pNotificationWindow_)
-		pNotificationWindow_->destroyWindow();
-#endif
 }
 
 const AddressBook::EntryList& qm::AddressBook::getEntries() const
@@ -210,66 +181,10 @@ const AddressBookCategory* qm::AddressBook::getCategory(const WCHAR* pwszCategor
 	}
 }
 
-bool qm::AddressBook::initWAB()
+void qm::AddressBook::initExternal()
 {
-#ifndef _WIN32_WCE
-	Registry reg(HKEY_LOCAL_MACHINE,
-		L"Software\\Microsoft\\WAB\\DLLPath");
-	if (!reg)
-		return false;
-	
-	wstring_ptr wstrPath;
-	if (!reg.getValue(L"", &wstrPath))
-		return false;
-	
-	W2T(wstrPath.get(), ptszPath);
-	hInstWAB_ = ::LoadLibrary(ptszPath);
-	if (!hInstWAB_)
-		return false;
-	
-	LPWABOPEN pfnWABOpen = reinterpret_cast<LPWABOPEN>(
-		::GetProcAddress(hInstWAB_, "WABOpen"));
-	if (!pfnWABOpen)
-		return false;
-	
-	ComPtr<IAddrBook> pAddrBook;
-	ComPtr<IWABObject> pWABObject;
-	WAB_PARAM param = { sizeof(param) };
-	if ((*pfnWABOpen)(&pAddrBook, &pWABObject, &param, 0) != S_OK)
-		return false;
-	
-	ULONG nSize = 0;
-	ENTRYID* pEntryId = 0;
-	if (pAddrBook->GetPAB(&nSize, &pEntryId) != S_OK)
-		return false;
-	
-	std::auto_ptr<IMAPIAdviseSinkImpl> pAdviseSink(new IMAPIAdviseSinkImpl(this));
-	if (pAddrBook->Advise(sizeof(ENTRYID), pEntryId,
-		0xffffffff, pAdviseSink.get(), &nConnection_) != S_OK)
-		return false;
-	pAdviseSink.release();
-	
-	pAddrBook_ = pAddrBook.release();
-	pWABObject_ = pWABObject.release();
-#else
-	std::auto_ptr<NotificationWindow> pWindow(new NotificationWindow(this));
-	if (!pWindow->create(L"QmAddressBookNotificationWindow",
-		0, WS_POPUP, 0, 0, 0, 0, 0, 0, 0, 0, 0))
-		return false;
-	pNotificationWindow_ = pWindow.release();
-	
-	CEOID oidCategory = 0;
-	hCategoryDB_ = ::CeOpenDatabase(&oidCategory,
-		L"\\Categories Database", 0, CEDB_AUTOINCREMENT,
-		pNotificationWindow_->getHandle());
-	
-	CEOID oidContact = 0;
-	hContactsDB_ = ::CeOpenDatabase(&oidContact,
-		L"Contacts Database", 0, CEDB_AUTOINCREMENT,
-		pNotificationWindow_->getHandle());
-#endif
-	
-	return true;
+	assert(!pExternalManager_.get());
+	pExternalManager_.reset(new ExternalAddressBookManager());
 }
 
 bool qm::AddressBook::load()
@@ -298,7 +213,7 @@ bool qm::AddressBook::load()
 		::SystemTimeToFileTime(&st, &ft_);
 	}
 	
-	if (bReload || bClear || bContactChanged_) {
+	if (bReload || bClear || (pExternalManager_.get() && pExternalManager_->isModified())) {
 		clear(TYPE_BOTH);
 		
 		if (!bClear) {
@@ -309,299 +224,25 @@ bool qm::AddressBook::load()
 				return false;
 		}
 		
-		loadWAB();
+		loadExternal();
 	}
 	
 	return true;
 }
 
-bool qm::AddressBook::loadWAB()
+bool qm::AddressBook::loadExternal()
 {
-#ifndef _WIN32_WCE
-	if (!pAddrBook_)
+	if (!pExternalManager_.get())
 		return true;
-	
-	ULONG nSize = 0;
-	ENTRYID* pEntryId = 0;
-	if (pAddrBook_->GetPAB(&nSize, &pEntryId) != S_OK)
-		return false;
-	
-	ULONG nType = 0;
-	ComPtr<IABContainer> pABC;
-	if (pAddrBook_->OpenEntry(nSize, pEntryId,
-		0, 0, &nType, reinterpret_cast<IUnknown**>(&pABC)) != S_OK)
-		return false;
-	
-	ComPtr<IMAPITable> pTable;
-	if (pABC->GetContentsTable(0, &pTable) != S_OK)
-		return false;
-	
-	ULONG props[] = {
-		PR_ENTRYID,
-		PR_DISPLAY_NAME,
-		PR_EMAIL_ADDRESS
-	};
-	SizedSPropTagArray(countof(props), columns) = {
-		countof(props)
-	};
-	memcpy(columns.aulPropTag, props, sizeof(props));
-	
-	if (pTable->SetColumns(reinterpret_cast<LPSPropTagArray>(&columns), 0) == S_OK) {
-		LONG nRowsSought = 0;
-		if (pTable->SeekRow(BOOKMARK_BEGINNING, 0, &nRowsSought) == S_OK) {
-			while (true) {
-				SRowSet* pSRowSet = 0;
-				if (pTable->QueryRows(1, 0, &pSRowSet) != S_OK)
-					break;
-				struct Deleter
-				{
-					Deleter(IWABObject* pWABObject, SRowSet* pSRowSet) :
-						pWABObject_(pWABObject),
-						pSRowSet_(pSRowSet)
-					{
-					}
-					
-					~Deleter()
-					{
-						for (ULONG n = 0; n < pSRowSet_->cRows; ++n)
-							pWABObject_->FreeBuffer(pSRowSet_->aRow[n].lpProps);
-						pWABObject_->FreeBuffer(pSRowSet_);
-					}
-					
-					IWABObject* pWABObject_;
-					SRowSet* pSRowSet_;
-				} deleter(pWABObject_, pSRowSet);
-				if (pSRowSet->cRows == 0)
-					break;
-				
-				for (ULONG nRow = 0; nRow < pSRowSet->cRows; ++nRow) {
-					SRow* pRow = pSRowSet->aRow + nRow;
-					
-					std::auto_ptr<AddressBookEntry> pEntry(new AddressBookEntry(0, 0, true));
-					
-					for (ULONG nValue = 0; nValue < pRow->cValues; ++nValue) {
-						SPropValue* pValue = pRow->lpProps + nValue;
-						ULONG nTag = pValue->ulPropTag;
-						switch (PROP_ID(nTag)) {
-						case PROP_ID(PR_DISPLAY_NAME):
-							{
-								wstring_ptr wstrName;
-								if (PROP_TYPE(nTag) == PT_STRING8)
-									wstrName = mbs2wcs(pValue->Value.lpszA);
-								else if (PROP_TYPE(nTag) == PT_UNICODE)
-									wstrName = allocWString(pValue->Value.lpszW);
-								if (wstrName.get())
-									pEntry->setName(wstrName.get());
-							}
-							break;
-						case PROP_ID(PR_EMAIL_ADDRESS):
-							{
-								wstring_ptr wstrAddress;
-								if (PROP_TYPE(nTag) == PT_STRING8)
-									wstrAddress = mbs2wcs(pValue->Value.lpszA);
-								else if (PROP_TYPE(nTag) == PT_UNICODE)
-									wstrAddress = allocWString(pValue->Value.lpszW);
-								if (wstrAddress.get()) {
-									std::auto_ptr<AddressBookAddress> pAddress(
-										new AddressBookAddress(pEntry.get(),
-											wstrAddress.get(),
-											static_cast<const WCHAR*>(0),
-											AddressBookAddress::CategoryList(),
-											static_cast<const WCHAR*>(0),
-											static_cast<const WCHAR*>(0), false));
-									pEntry->addAddress(pAddress);
-								}
-							}
-							break;
-						default:
-							break;
-						}
-					}
-					
-					if (pEntry->getName() && !pEntry->getAddresses().empty())
-						addEntry(pEntry);
-				}
-			}
-		}
-	}
-#else
-	if (!hContactsDB_)
-		return true;
-	
-	typedef std::vector<std::pair<unsigned int, WSTRING> > CategoryMap;
-	CategoryMap mapCategory;
-	struct Deleter
-	{
-		typedef CategoryMap Map;
-		Deleter(Map& m) :
-			m_(m)
-		{
-		}
-		~Deleter()
-		{
-			std::for_each(m_.begin(), m_.end(),
-				unary_compose_f_gx(
-					string_free<WSTRING>(),
-					std::select2nd<Map::value_type>()));
-		}
-		Map& m_;
-	} deleter(mapCategory);
-	
-	struct LocalFreeCaller
-	{
-		LocalFreeCaller(LPBYTE p) : p_(p) {}
-		~LocalFreeCaller() { ::LocalFree(p_); }
-		LPBYTE p_;
-	};
-	
-	if (hCategoryDB_) {
-		DWORD dwIndex = 0;
-		::CeSeekDatabase(hCategoryDB_, CEDB_SEEK_BEGINNING, 0, &dwIndex);
-		
-		static CEPROPID cepropid[] = {
-			0x40020002,		// ID
-			0x4001001f,		// Name
-			0x40040002		// Count
-		};
-		while (true) {
-			WORD wProps = sizeof(cepropid)/sizeof(cepropid[0]);
-			LPBYTE pBuffer = 0;
-			DWORD dwSize = 0;
-			CEOID oid = ::CeReadRecordProps(hCategoryDB_,
-				CEDB_ALLOWREALLOC, &wProps, cepropid, &pBuffer, &dwSize);
-			if (!oid)
-				break;
-			if (!pBuffer)
-				continue;
-			
-			LocalFreeCaller free(pBuffer);
-			
-			CEPROPVAL* pVal = reinterpret_cast<CEPROPVAL*>(pBuffer);
-			if (pVal[0].wFlags != CEDB_PROPNOTFOUND &&
-				pVal[1].wFlags != CEDB_PROPNOTFOUND &&
-				pVal[2].wFlags != CEDB_PROPNOTFOUND &&
-				pVal[2].val.iVal != 0) {
-				unsigned int nId = pVal[0].val.iVal;
-				wstring_ptr wstrCategory(allocWString(pVal[1].val.lpwstr));
-				mapCategory.push_back(CategoryMap::value_type(nId, wstrCategory.get()));
-				wstrCategory.release();
-			}
-		}
-	}
-	
-	std::sort(mapCategory.begin(), mapCategory.end(),
-		binary_compose_f_gx_hy(
-			std::less<unsigned int>(),
-			std::select1st<CategoryMap::value_type>(),
-			std::select1st<CategoryMap::value_type>()));
-	
-	DWORD dwIndex = 0;
-	::CeSeekDatabase(hContactsDB_, CEDB_SEEK_BEGINNING, 0, &dwIndex);
-	
-	static CEPROPID cepropid[] = {
-		HHPR_SURNAME,
-		HHPR_GIVEN_NAME,
-		HHPR_EMAIL1_EMAIL_ADDRESS,
-		HHPR_EMAIL2_EMAIL_ADDRESS,
-		HHPR_EMAIL3_EMAIL_ADDRESS,
-//		HHPR_CATEGORY,
-		0x160041,
-#ifdef JAPAN
-		HHPR_YOMI_FIRSTNAME,
-		HHPR_YOMI_LASTNAME
-#endif // JAPAN
-	};
-	while (true) {
-		WORD wProps = sizeof(cepropid)/sizeof(cepropid[0]);
-		LPBYTE pBuffer = 0;
-		DWORD dwSize = 0;
-		CEOID oid = ::CeReadRecordProps(hContactsDB_,
-			CEDB_ALLOWREALLOC, &wProps, cepropid, &pBuffer, &dwSize);
-		if (!oid)
-			break;
-		if (!pBuffer)
-			continue;
-		
-		LocalFreeCaller free(pBuffer);
-		
-		CEPROPVAL* pVal = reinterpret_cast<CEPROPVAL*>(pBuffer);
-		
-		const WCHAR* pwszGivenName = L"";
-		if (pVal[1].wFlags != CEDB_PROPNOTFOUND)
-			pwszGivenName = pVal[1].val.lpwstr;
-		const WCHAR* pwszSurName = L"";
-		if (pVal[0].wFlags != CEDB_PROPNOTFOUND)
-			pwszSurName = pVal[0].val.lpwstr;
-		
-#ifdef JAPAN
-		const WCHAR* pwszYomiLastName = L"";
-		if (pVal[7].wFlags != CEDB_PROPNOTFOUND)
-			pwszYomiLastName = pVal[7].val.lpwstr;
-		const WCHAR* pwszYomiFirstName = L"";
-		if (pVal[6].wFlags != CEDB_PROPNOTFOUND)
-			pwszYomiFirstName = pVal[6].val.lpwstr;
-		wstring_ptr wstrSortKey(concat(pwszYomiLastName, L" ", pwszYomiFirstName));
-#else
-		wstring_ptr wstrSortKey(concat(wstrSurName.get(), L", ", wstrGivenName()));
-#endif
-		
-#ifdef JAPAN
-		wstring_ptr wstrName(concat(pwszSurName, L" ", pwszGivenName));
-#else
-		wstring_ptr wstrName(concat(pwszGivenName, L" ", pwszSurName));
-#endif
-		
-		AddressBookAddress::CategoryList listCategory;
-		if (pVal[5].wFlags != CEDB_PROPNOTFOUND) {
-			BYTE* pCategory = pVal[5].val.blob.lpb;
-			for (DWORD dwCat = 0; dwCat < pVal[5].val.blob.dwCount; ++dwCat) {
-				BYTE b = *(pCategory + dwCat);
-				if (b) {
-					for (int n = 0; n < 8; ++n) {
-						if ((b >> n) & 0x01) {
-							unsigned int nId = dwCat*8 + n;
-							CategoryMap::const_iterator it = std::lower_bound(
-								mapCategory.begin(), mapCategory.end(),
-								CategoryMap::value_type(nId, 0),
-								binary_compose_f_gx_hy(
-									std::less<unsigned int>(),
-									std::select1st<CategoryMap::value_type>(),
-									std::select1st<CategoryMap::value_type>()));
-							if (it != mapCategory.end() && (*it).first == nId)
-								listCategory.push_back(getCategory((*it).second));
-						}
-					}
-				}
-			}
-		}
-		
-		std::auto_ptr<AddressBookEntry> pEntry(new AddressBookEntry(
-			wstrName.get(), wstrSortKey.get(), true));
-		
-		for (int nAddress = 2; nAddress < 5; ++nAddress) {
-			if (pVal[nAddress].wFlags != CEDB_PROPNOTFOUND) {
-				std::auto_ptr<AddressBookAddress> pAddress(
-					new AddressBookAddress(pEntry.get(), pVal[nAddress].val.lpwstr,
-						0, listCategory, 0, 0, false));
-				pEntry->addAddress(pAddress);
-			}
-		}
-		
-		addEntry(pEntry);
-	}
-#endif
-	
-	bContactChanged_ = false;
-	
-	return true;
+	return pExternalManager_->load(this);
 }
 
 void qm::AddressBook::clear(unsigned int nType)
 {
 	for (EntryList::iterator it = listEntry_.begin(); it != listEntry_.end(); ) {
-		bool bWAB = (*it)->isWAB();
-		if ((nType & TYPE_ADDRESSBOOK && !bWAB) ||
-			(nType & TYPE_WAB && bWAB)) {
+		bool bExternal = (*it)->isExternal();
+		if ((nType & TYPE_ADDRESSBOOK && !bExternal) ||
+			(nType & TYPE_EXTERNAL && bExternal)) {
 			delete *it;
 			it = listEntry_.erase(it);
 		}
@@ -645,99 +286,6 @@ void qm::AddressBook::prepareEntryMap() const
 }
 
 
-#ifndef _WIN32_WCE
-
-/****************************************************************************
- *
- * AddressBook::IMAPIAdviseSinkImpl
- *
- */
-
-qm::AddressBook::IMAPIAdviseSinkImpl::IMAPIAdviseSinkImpl(AddressBook* pAddressBook) :
-	nRef_(0),
-	pAddressBook_(pAddressBook)
-{
-}
-
-qm::AddressBook::IMAPIAdviseSinkImpl::~IMAPIAdviseSinkImpl()
-{
-}
-
-STDMETHODIMP qm::AddressBook::IMAPIAdviseSinkImpl::QueryInterface(REFIID riid,
-																  void** ppv)
-{
-	if (riid == IID_IUnknown || riid == IID_IMAPIAdviseSink)
-		*ppv = static_cast<IMAPIAdviseSink*>(this);
-	else
-		return E_NOINTERFACE;
-	
-	AddRef();
-	
-	return S_OK;
-}
-
-STDMETHODIMP_(ULONG) qm::AddressBook::IMAPIAdviseSinkImpl::AddRef()
-{
-	return ++nRef_;
-}
-
-STDMETHODIMP_(ULONG) qm::AddressBook::IMAPIAdviseSinkImpl::Release()
-{
-	if (--nRef_ == 0) {
-		delete this;
-		return 0;
-	}
-	return nRef_;
-}
-
-STDMETHODIMP_(ULONG) qm::AddressBook::IMAPIAdviseSinkImpl::OnNotify(ULONG cNotif,
-																	LPNOTIFICATION lpNotifications)
-{
-	pAddressBook_->bContactChanged_ = true;
-	return S_OK;
-}
-
-#else
-
-/****************************************************************************
- *
- * AddressBook::NotificationWindow
- *
- */
-
-qm:: AddressBook::NotificationWindow::NotificationWindow(AddressBook* pAddressBook) :
-	WindowBase(true),
-	pAddressBook_(pAddressBook)
-{
-	setWindowHandler(this, false);
-}
-
-qm:: AddressBook::NotificationWindow::~NotificationWindow()
-{
-}
-
-LRESULT qm:: AddressBook::NotificationWindow::windowProc(UINT uMsg,
-														 WPARAM wParam,
-														 LPARAM lParam)
-{
-	BEGIN_MESSAGE_HANDLER()
-		HANDLE_MESSAGE(DB_CEOID_CREATED, onDBNotification)
-		HANDLE_MESSAGE(DB_CEOID_RECORD_DELETED, onDBNotification)
-		HANDLE_MESSAGE(DB_CEOID_CHANGED, onDBNotification)
-	END_MESSAGE_HANDLER()
-	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
-}
-
-LRESULT qm:: AddressBook::NotificationWindow::onDBNotification(WPARAM wParam,
-															   LPARAM lParam)
-{
-	pAddressBook_->bContactChanged_ = true;
-	return 0;
-}
-
-#endif
-
-
 /****************************************************************************
  *
  * AddressBookEntry
@@ -746,8 +294,8 @@ LRESULT qm:: AddressBook::NotificationWindow::onDBNotification(WPARAM wParam,
 
 qm::AddressBookEntry::AddressBookEntry(const WCHAR* pwszName,
 									   const WCHAR* pwszSortKey,
-									   bool bWAB) :
-	bWAB_(bWAB)
+									   bool bExternal) :
+	bExternal_(bExternal)
 {
 	if (pwszName)
 		wstrName_ = allocWString(pwszName);
@@ -766,7 +314,7 @@ qm::AddressBookEntry::AddressBookEntry(const AddressBookEntry& entry)
 	for (AddressList::const_iterator it = entry.listAddress_.begin(); it != entry.listAddress_.end(); ++it)
 		listAddress_.push_back(new AddressBookAddress(**it));
 	
-	bWAB_ = entry.bWAB_;
+	bExternal_ = entry.bExternal_;
 }
 
 AddressBookEntry& qm::AddressBookEntry::operator=(const AddressBookEntry& entry)
@@ -828,9 +376,9 @@ void qm::AddressBookEntry::addAddress(std::auto_ptr<AddressBookAddress> pAddress
 	pAddress.release();
 }
 
-bool qm::AddressBookEntry::isWAB() const
+bool qm::AddressBookEntry::isExternal() const
 {
-	return bWAB_;
+	return bExternal_;
 }
 
 void qm::AddressBookEntry::clearAddresses()
@@ -845,7 +393,7 @@ void qm::AddressBookEntry::swap(AddressBookEntry& entry)
 	std::swap(wstrName_, entry.wstrName_);
 	std::swap(wstrSortKey_, entry.wstrSortKey_);
 	listAddress_.swap(entry.listAddress_);
-	std::swap(bWAB_, entry.bWAB_);
+	std::swap(bExternal_, entry.bExternal_);
 }
 
 
@@ -1264,7 +812,7 @@ bool qm::AddressBookWriter::write(const AddressBook* pAddressBook)
 	const AddressBook::EntryList& listEntry = pAddressBook->getEntries();
 	for (AddressBook::EntryList::const_iterator it = listEntry.begin(); it != listEntry.end(); ++it) {
 		const AddressBookEntry* pEntry = *it;
-		if (!pEntry->isWAB()) {
+		if (!pEntry->isExternal()) {
 			if (!write(pEntry))
 				return false;
 		}
@@ -1336,3 +884,580 @@ bool qm::AddressBookWriter::write(const AddressBookAddress* pAddress)
 		handler_.characters(pAddress->getAddress(), 0, wcslen(pAddress->getAddress())) &&
 		handler_.endElement(0, 0, L"address");
 }
+
+
+/****************************************************************************
+ *
+ * ExternalAddressBook
+ *
+ */
+
+qm::ExternalAddressBook::~ExternalAddressBook()
+{
+}
+
+
+/****************************************************************************
+ *
+ * ExternalAddressBookManager
+ *
+ */
+
+qm::ExternalAddressBookManager::ExternalAddressBookManager()
+{
+#ifndef _WIN32_WCE
+	std::auto_ptr<ExternalAddressBook> pAddressBook(new WindowsAddressBook());
+#else
+	std::auto_ptr<ExternalAddressBook> pAddressBook(new PocketOutlookAddressBook());
+#endif
+	if (pAddressBook->init()) {
+		listAddressBook_.push_back(pAddressBook.get());
+		pAddressBook.release();
+	}
+}
+
+qm::ExternalAddressBookManager::~ExternalAddressBookManager()
+{
+	std::for_each(listAddressBook_.begin(), listAddressBook_.end(),
+		qs::deleter<ExternalAddressBook>());
+}
+
+bool qm::ExternalAddressBookManager::load(AddressBook* pAddressBook)
+{
+	return std::find_if(listAddressBook_.begin(), listAddressBook_.end(),
+		std::not1(
+			std::bind2nd(
+				std::mem_fun(&ExternalAddressBook::load),
+				pAddressBook))) == listAddressBook_.end();
+}
+
+bool qm::ExternalAddressBookManager::isModified() const
+{
+	return std::find_if(listAddressBook_.begin(), listAddressBook_.end(),
+		std::mem_fun(&ExternalAddressBook::isModified)) != listAddressBook_.end();
+}
+
+#ifndef _WIN32_WCE
+
+/****************************************************************************
+ *
+ * WindowsAddressBook
+ *
+ */
+
+qm::WindowsAddressBook::WindowsAddressBook() :
+	hInstWAB_(0),
+	pAddrBook_(0),
+	pWABObject_(0),
+	nConnection_(0),
+	bModified_(true)
+{
+}
+
+qm::WindowsAddressBook::~WindowsAddressBook()
+{
+	term();
+}
+
+bool qm::WindowsAddressBook::init()
+{
+	Registry reg(HKEY_LOCAL_MACHINE, L"Software\\Microsoft\\WAB\\DLLPath");
+	if (!reg)
+		return false;
+	
+	wstring_ptr wstrPath;
+	if (!reg.getValue(L"", &wstrPath))
+		return false;
+	
+	W2T(wstrPath.get(), ptszPath);
+	hInstWAB_ = ::LoadLibrary(ptszPath);
+	if (!hInstWAB_)
+		return false;
+	
+	LPWABOPEN pfnWABOpen = reinterpret_cast<LPWABOPEN>(
+		::GetProcAddress(hInstWAB_, "WABOpen"));
+	if (!pfnWABOpen)
+		return false;
+	
+	ComPtr<IAddrBook> pAddrBook;
+	ComPtr<IWABObject> pWABObject;
+	WAB_PARAM param = { sizeof(param) };
+	if ((*pfnWABOpen)(&pAddrBook, &pWABObject, &param, 0) != S_OK)
+		return false;
+	
+	ULONG nSize = 0;
+	ENTRYID* pEntryId = 0;
+	if (pAddrBook->GetPAB(&nSize, &pEntryId) != S_OK)
+		return false;
+	
+	std::auto_ptr<IMAPIAdviseSinkImpl> pAdviseSink(new IMAPIAdviseSinkImpl(this));
+	if (pAddrBook->Advise(sizeof(ENTRYID), pEntryId,
+		0xffffffff, pAdviseSink.get(), &nConnection_) != S_OK)
+		return false;
+	pAdviseSink.release();
+	
+	pAddrBook_ = pAddrBook.release();
+	pWABObject_ = pWABObject.release();
+	
+	return true;
+}
+
+void qm::WindowsAddressBook::term()
+{
+	if (pAddrBook_) {
+		if (nConnection_ != 0)
+			pAddrBook_->Unadvise(nConnection_);
+		pAddrBook_->Release();
+		pAddrBook_ = 0;
+		pWABObject_->Release();
+		pWABObject_ = 0;
+	}
+	if (hInstWAB_) {
+		::FreeLibrary(hInstWAB_);
+		hInstWAB_ = 0;
+	}
+}
+
+bool qm::WindowsAddressBook::load(AddressBook* pAddressBook)
+{
+	assert(pAddrBook_);
+	
+	ULONG nSize = 0;
+	ENTRYID* pEntryId = 0;
+	if (pAddrBook_->GetPAB(&nSize, &pEntryId) != S_OK)
+		return false;
+	
+	ULONG nType = 0;
+	ComPtr<IABContainer> pABC;
+	if (pAddrBook_->OpenEntry(nSize, pEntryId,
+		0, 0, &nType, reinterpret_cast<IUnknown**>(&pABC)) != S_OK)
+		return false;
+	
+	ComPtr<IMAPITable> pTable;
+	if (pABC->GetContentsTable(0, &pTable) != S_OK)
+		return false;
+	
+	ULONG props[] = {
+		PR_ENTRYID,
+		PR_DISPLAY_NAME,
+		PR_EMAIL_ADDRESS
+	};
+	SizedSPropTagArray(countof(props), columns) = {
+		countof(props)
+	};
+	memcpy(columns.aulPropTag, props, sizeof(props));
+	
+	if (pTable->SetColumns(reinterpret_cast<LPSPropTagArray>(&columns), 0) == S_OK) {
+		LONG nRowsSought = 0;
+		if (pTable->SeekRow(BOOKMARK_BEGINNING, 0, &nRowsSought) == S_OK) {
+			while (true) {
+				SRowSet* pSRowSet = 0;
+				if (pTable->QueryRows(1, 0, &pSRowSet) != S_OK)
+					break;
+				struct Deleter
+				{
+					Deleter(IWABObject* pWABObject, SRowSet* pSRowSet) :
+						pWABObject_(pWABObject),
+						pSRowSet_(pSRowSet)
+					{
+					}
+					
+					~Deleter()
+					{
+						for (ULONG n = 0; n < pSRowSet_->cRows; ++n)
+							pWABObject_->FreeBuffer(pSRowSet_->aRow[n].lpProps);
+						pWABObject_->FreeBuffer(pSRowSet_);
+					}
+					
+					IWABObject* pWABObject_;
+					SRowSet* pSRowSet_;
+				} deleter(pWABObject_, pSRowSet);
+				if (pSRowSet->cRows == 0)
+					break;
+				
+				for (ULONG nRow = 0; nRow < pSRowSet->cRows; ++nRow) {
+					SRow* pRow = pSRowSet->aRow + nRow;
+					
+					std::auto_ptr<AddressBookEntry> pEntry(new AddressBookEntry(0, 0, true));
+					
+					for (ULONG nValue = 0; nValue < pRow->cValues; ++nValue) {
+						SPropValue* pValue = pRow->lpProps + nValue;
+						ULONG nTag = pValue->ulPropTag;
+						switch (PROP_ID(nTag)) {
+						case PROP_ID(PR_DISPLAY_NAME):
+							{
+								wstring_ptr wstrName;
+								if (PROP_TYPE(nTag) == PT_STRING8)
+									wstrName = mbs2wcs(pValue->Value.lpszA);
+								else if (PROP_TYPE(nTag) == PT_UNICODE)
+									wstrName = allocWString(pValue->Value.lpszW);
+								if (wstrName.get())
+									pEntry->setName(wstrName.get());
+							}
+							break;
+						case PROP_ID(PR_EMAIL_ADDRESS):
+							{
+								wstring_ptr wstrAddress;
+								if (PROP_TYPE(nTag) == PT_STRING8)
+									wstrAddress = mbs2wcs(pValue->Value.lpszA);
+								else if (PROP_TYPE(nTag) == PT_UNICODE)
+									wstrAddress = allocWString(pValue->Value.lpszW);
+								if (wstrAddress.get()) {
+									std::auto_ptr<AddressBookAddress> pAddress(
+										new AddressBookAddress(pEntry.get(),
+											wstrAddress.get(),
+											static_cast<const WCHAR*>(0),
+											AddressBookAddress::CategoryList(),
+											static_cast<const WCHAR*>(0),
+											static_cast<const WCHAR*>(0), false));
+									pEntry->addAddress(pAddress);
+								}
+							}
+							break;
+						default:
+							break;
+						}
+					}
+					
+					if (pEntry->getName() && !pEntry->getAddresses().empty())
+						pAddressBook->addEntry(pEntry);
+				}
+			}
+		}
+	}
+	
+	bModified_ = false;
+	
+	return true;
+}
+
+bool qm::WindowsAddressBook::isModified()
+{
+	return bModified_;
+}
+
+
+/****************************************************************************
+ *
+ * WindowsAddressBook::IMAPIAdviseSinkImpl
+ *
+ */
+
+qm::WindowsAddressBook::IMAPIAdviseSinkImpl::IMAPIAdviseSinkImpl(WindowsAddressBook* pAddressBook) :
+	nRef_(0),
+	pAddressBook_(pAddressBook)
+{
+}
+
+qm::WindowsAddressBook::IMAPIAdviseSinkImpl::~IMAPIAdviseSinkImpl()
+{
+}
+
+STDMETHODIMP qm::WindowsAddressBook::IMAPIAdviseSinkImpl::QueryInterface(REFIID riid,
+																		 void** ppv)
+{
+	if (riid == IID_IUnknown || riid == IID_IMAPIAdviseSink)
+		*ppv = static_cast<IMAPIAdviseSink*>(this);
+	else
+		return E_NOINTERFACE;
+	
+	AddRef();
+	
+	return S_OK;
+}
+
+STDMETHODIMP_(ULONG) qm::WindowsAddressBook::IMAPIAdviseSinkImpl::AddRef()
+{
+	return ++nRef_;
+}
+
+STDMETHODIMP_(ULONG) qm::WindowsAddressBook::IMAPIAdviseSinkImpl::Release()
+{
+	if (--nRef_ == 0) {
+		delete this;
+		return 0;
+	}
+	return nRef_;
+}
+
+STDMETHODIMP_(ULONG) qm::WindowsAddressBook::IMAPIAdviseSinkImpl::OnNotify(ULONG cNotif,
+																		   LPNOTIFICATION lpNotifications)
+{
+	pAddressBook_->bModified_ = true;
+	return S_OK;
+}
+
+#else // _WIN32_WCE
+
+/****************************************************************************
+ *
+ * PocketOutlookAddressBook
+ *
+ */
+
+qm::PocketOutlookAddressBook::PocketOutlookAddressBook() :
+	hCategoryDB_(0),
+	hContactsDB_(0),
+	pNotificationWindow_(0),
+	bModified_(true)
+{
+}
+
+qm::PocketOutlookAddressBook::~PocketOutlookAddressBook()
+{
+	term();
+}
+
+bool qm::PocketOutlookAddressBook::init()
+{
+	std::auto_ptr<NotificationWindow> pWindow(new NotificationWindow(this));
+	if (!pWindow->create(L"QmAddressBookNotificationWindow",
+		0, WS_POPUP, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+		return false;
+	pNotificationWindow_ = pWindow.release();
+	
+	CEOID oidCategory = 0;
+	hCategoryDB_ = ::CeOpenDatabase(&oidCategory,
+		L"\\Categories Database", 0, CEDB_AUTOINCREMENT,
+		pNotificationWindow_->getHandle());
+	
+	CEOID oidContact = 0;
+	hContactsDB_ = ::CeOpenDatabase(&oidContact,
+		L"Contacts Database", 0, CEDB_AUTOINCREMENT,
+		pNotificationWindow_->getHandle());
+	if (!hContactsDB_)
+		return false;
+	
+	return true;
+}
+
+void qm::PocketOutlookAddressBook::term()
+{
+	if (hCategoryDB_) {
+		::CloseHandle(hCategoryDB_);
+		hCategoryDB_ = 0;
+	}
+	if (hContactsDB_) {
+		::CloseHandle(hContactsDB_);
+		hContactsDB_ = 0;
+	}
+	if (pNotificationWindow_) {
+		pNotificationWindow_->destroyWindow();
+		pNotificationWindow_ = 0;
+	}
+}
+
+bool qm::PocketOutlookAddressBook::load(AddressBook* pAddressBook)
+{
+	assert(hContactsDB_);
+	
+	typedef std::vector<std::pair<unsigned int, WSTRING> > CategoryMap;
+	CategoryMap mapCategory;
+	struct Deleter
+	{
+		typedef CategoryMap Map;
+		Deleter(Map& m) :
+			m_(m)
+		{
+		}
+		~Deleter()
+		{
+			std::for_each(m_.begin(), m_.end(),
+				unary_compose_f_gx(
+					string_free<WSTRING>(),
+					std::select2nd<Map::value_type>()));
+		}
+		Map& m_;
+	} deleter(mapCategory);
+	
+	struct LocalFreeCaller
+	{
+		LocalFreeCaller(LPBYTE p) : p_(p) {}
+		~LocalFreeCaller() { ::LocalFree(p_); }
+		LPBYTE p_;
+	};
+	
+	if (hCategoryDB_) {
+		DWORD dwIndex = 0;
+		::CeSeekDatabase(hCategoryDB_, CEDB_SEEK_BEGINNING, 0, &dwIndex);
+		
+		static CEPROPID cepropid[] = {
+			0x40020002,		// ID
+			0x4001001f,		// Name
+			0x40040002		// Count
+		};
+		while (true) {
+			WORD wProps = sizeof(cepropid)/sizeof(cepropid[0]);
+			LPBYTE pBuffer = 0;
+			DWORD dwSize = 0;
+			CEOID oid = ::CeReadRecordProps(hCategoryDB_,
+				CEDB_ALLOWREALLOC, &wProps, cepropid, &pBuffer, &dwSize);
+			if (!oid)
+				break;
+			if (!pBuffer)
+				continue;
+			
+			LocalFreeCaller free(pBuffer);
+			
+			CEPROPVAL* pVal = reinterpret_cast<CEPROPVAL*>(pBuffer);
+			if (pVal[0].wFlags != CEDB_PROPNOTFOUND &&
+				pVal[1].wFlags != CEDB_PROPNOTFOUND &&
+				pVal[2].wFlags != CEDB_PROPNOTFOUND &&
+				pVal[2].val.iVal != 0) {
+				unsigned int nId = pVal[0].val.iVal;
+				wstring_ptr wstrCategory(allocWString(pVal[1].val.lpwstr));
+				mapCategory.push_back(CategoryMap::value_type(nId, wstrCategory.get()));
+				wstrCategory.release();
+			}
+		}
+	}
+	
+	std::sort(mapCategory.begin(), mapCategory.end(),
+		binary_compose_f_gx_hy(
+			std::less<unsigned int>(),
+			std::select1st<CategoryMap::value_type>(),
+			std::select1st<CategoryMap::value_type>()));
+	
+	DWORD dwIndex = 0;
+	::CeSeekDatabase(hContactsDB_, CEDB_SEEK_BEGINNING, 0, &dwIndex);
+	
+	static CEPROPID cepropid[] = {
+		HHPR_SURNAME,
+		HHPR_GIVEN_NAME,
+		HHPR_EMAIL1_EMAIL_ADDRESS,
+		HHPR_EMAIL2_EMAIL_ADDRESS,
+		HHPR_EMAIL3_EMAIL_ADDRESS,
+//		HHPR_CATEGORY,
+		0x160041,
+#ifdef JAPAN
+		HHPR_YOMI_FIRSTNAME,
+		HHPR_YOMI_LASTNAME
+#endif // JAPAN
+	};
+	while (true) {
+		WORD wProps = sizeof(cepropid)/sizeof(cepropid[0]);
+		LPBYTE pBuffer = 0;
+		DWORD dwSize = 0;
+		CEOID oid = ::CeReadRecordProps(hContactsDB_,
+			CEDB_ALLOWREALLOC, &wProps, cepropid, &pBuffer, &dwSize);
+		if (!oid)
+			break;
+		if (!pBuffer)
+			continue;
+		
+		LocalFreeCaller free(pBuffer);
+		
+		CEPROPVAL* pVal = reinterpret_cast<CEPROPVAL*>(pBuffer);
+		
+		const WCHAR* pwszGivenName = L"";
+		if (pVal[1].wFlags != CEDB_PROPNOTFOUND)
+			pwszGivenName = pVal[1].val.lpwstr;
+		const WCHAR* pwszSurName = L"";
+		if (pVal[0].wFlags != CEDB_PROPNOTFOUND)
+			pwszSurName = pVal[0].val.lpwstr;
+		
+#ifdef JAPAN
+		const WCHAR* pwszYomiLastName = L"";
+		if (pVal[7].wFlags != CEDB_PROPNOTFOUND)
+			pwszYomiLastName = pVal[7].val.lpwstr;
+		const WCHAR* pwszYomiFirstName = L"";
+		if (pVal[6].wFlags != CEDB_PROPNOTFOUND)
+			pwszYomiFirstName = pVal[6].val.lpwstr;
+		wstring_ptr wstrSortKey(concat(pwszYomiLastName, L" ", pwszYomiFirstName));
+#else
+		wstring_ptr wstrSortKey(concat(wstrSurName.get(), L", ", wstrGivenName()));
+#endif
+		
+#ifdef JAPAN
+		wstring_ptr wstrName(concat(pwszSurName, L" ", pwszGivenName));
+#else
+		wstring_ptr wstrName(concat(pwszGivenName, L" ", pwszSurName));
+#endif
+		
+		AddressBookAddress::CategoryList listCategory;
+		if (pVal[5].wFlags != CEDB_PROPNOTFOUND) {
+			BYTE* pCategory = pVal[5].val.blob.lpb;
+			for (DWORD dwCat = 0; dwCat < pVal[5].val.blob.dwCount; ++dwCat) {
+				BYTE b = *(pCategory + dwCat);
+				if (b) {
+					for (int n = 0; n < 8; ++n) {
+						if ((b >> n) & 0x01) {
+							unsigned int nId = dwCat*8 + n;
+							CategoryMap::const_iterator it = std::lower_bound(
+								mapCategory.begin(), mapCategory.end(),
+								CategoryMap::value_type(nId, 0),
+								binary_compose_f_gx_hy(
+									std::less<unsigned int>(),
+									std::select1st<CategoryMap::value_type>(),
+									std::select1st<CategoryMap::value_type>()));
+							if (it != mapCategory.end() && (*it).first == nId)
+								listCategory.push_back(pAddressBook->getCategory((*it).second));
+						}
+					}
+				}
+			}
+		}
+		
+		std::auto_ptr<AddressBookEntry> pEntry(new AddressBookEntry(
+			wstrName.get(), wstrSortKey.get(), true));
+		
+		for (int nAddress = 2; nAddress < 5; ++nAddress) {
+			if (pVal[nAddress].wFlags != CEDB_PROPNOTFOUND) {
+				std::auto_ptr<AddressBookAddress> pAddress(
+					new AddressBookAddress(pEntry.get(), pVal[nAddress].val.lpwstr,
+						0, listCategory, 0, 0, false));
+				pEntry->addAddress(pAddress);
+			}
+		}
+		
+		pAddressBook->addEntry(pEntry);
+	}
+	
+	bModified_ = false;
+	
+	return true;
+}
+
+bool qm::PocketOutlookAddressBook::isModified()
+{
+	return bModified_;
+}
+
+
+/****************************************************************************
+ *
+ * PocketOutlookAddressBook::NotificationWindow
+ *
+ */
+
+qm::PocketOutlookAddressBook::NotificationWindow::NotificationWindow(PocketOutlookAddressBook* pAddressBook) :
+	WindowBase(true),
+	pAddressBook_(pAddressBook)
+{
+	setWindowHandler(this, false);
+}
+
+PocketOutlookAddressBook::NotificationWindow::~NotificationWindow()
+{
+}
+
+LRESULT PocketOutlookAddressBook::NotificationWindow::windowProc(UINT uMsg,
+																 WPARAM wParam,
+																 LPARAM lParam)
+{
+	BEGIN_MESSAGE_HANDLER()
+		HANDLE_MESSAGE(DB_CEOID_CREATED, onDBNotification)
+		HANDLE_MESSAGE(DB_CEOID_RECORD_DELETED, onDBNotification)
+		HANDLE_MESSAGE(DB_CEOID_CHANGED, onDBNotification)
+	END_MESSAGE_HANDLER()
+	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
+}
+
+LRESULT PocketOutlookAddressBook::NotificationWindow::onDBNotification(WPARAM wParam,
+																	   LPARAM lParam)
+{
+	pAddressBook_->bModified_ = true;
+	return 0;
+}
+
+#endif // _WIN32_WCE

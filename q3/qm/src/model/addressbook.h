@@ -35,6 +35,13 @@ class AddressBookCategory;
 struct AddressBookCategoryLess;
 class AddressBookContentHandler;
 class AddressBookWriter;
+class ExternalAddressBook;
+#ifndef _WIN32_WCE
+	class WindowsAddressBook;
+#else
+	class PocketOutlookAddressBook;
+#endif
+class ExternalAddressBookManager;
 
 class Security;
 
@@ -50,7 +57,7 @@ class AddressBook
 public:
 	enum Type {
 		TYPE_ADDRESSBOOK	= 0x01,
-		TYPE_WAB			= 0x02,
+		TYPE_EXTERNAL		= 0x02,
 		TYPE_BOTH			= 0x03
 	};
 
@@ -61,7 +68,7 @@ public:
 
 public:
 	AddressBook(const WCHAR* pwszPath,
-				bool bLoadWAB);
+				bool bLoadExternal);
 	~AddressBook();
 
 public:
@@ -79,9 +86,9 @@ public:
 	const AddressBookCategory* getCategory(const WCHAR* pwszCategory);
 
 private:
-	bool initWAB();
+	void initExternal();
 	bool load();
-	bool loadWAB();
+	bool loadExternal();
 	void clear(unsigned int nType);
 	void prepareEntryMap() const;
 
@@ -90,75 +97,11 @@ private:
 	AddressBook& operator=(const AddressBook&);
 
 private:
-#ifndef _WIN32_WCE
-	class IMAPIAdviseSinkImpl : public IMAPIAdviseSink
-	{
-	public:
-		explicit IMAPIAdviseSinkImpl(AddressBook* pAddressBook);
-		~IMAPIAdviseSinkImpl();
-	
-	public:
-		STDMETHOD(QueryInterface)(REFIID riid, void** ppv);
-		STDMETHOD_(ULONG, AddRef)();
-		STDMETHOD_(ULONG, Release)();
-	
-	public:
-		STDMETHOD_(ULONG, OnNotify)(ULONG cNotif,
-									LPNOTIFICATION lpNotifications);
-	
-	private:
-		IMAPIAdviseSinkImpl(const IMAPIAdviseSinkImpl&);
-		IMAPIAdviseSinkImpl& operator=(const IMAPIAdviseSinkImpl&);
-	
-	private:
-		ULONG nRef_;
-		AddressBook* pAddressBook_;
-	};
-	friend class IMAPIAdviseSinkImpl;
-#else
-	class NotificationWindow :
-		public qs::WindowBase,
-		public qs::DefaultWindowHandler
-	{
-	public:
-		explicit NotificationWindow(AddressBook* pAddressBook);
-		virtual ~NotificationWindow();
-	
-	public:
-		virtual LRESULT windowProc(UINT uMsg,
-								   WPARAM wParam,
-								   LPARAM lParam);
-	
-	protected:
-		LRESULT onDBNotification(WPARAM wParam,
-								 LPARAM lParam);
-	
-	private:
-		NotificationWindow(const NotificationWindow&);
-		NotificationWindow& operator=(const NotificationWindow&);
-	
-	private:
-		AddressBook* pAddressBook_;
-	};
-	friend class NotificationWindow;
-#endif
-
-private:
 	qs::wstring_ptr wstrPath_;
 	FILETIME ft_;
 	EntryList listEntry_;
 	CategoryList listCategory_;
-	bool bContactChanged_;
-#ifndef _WIN32_WCE
-	HINSTANCE hInstWAB_;
-	IAddrBook* pAddrBook_;
-	IWABObject* pWABObject_;
-	ULONG nConnection_;
-#else
-	HANDLE hCategoryDB_;
-	HANDLE hContactsDB_;
-	NotificationWindow* pNotificationWindow_;
-#endif
+	std::auto_ptr<ExternalAddressBookManager> pExternalManager_;
 	mutable EntryMap mapEntry_;
 };
 
@@ -177,7 +120,7 @@ public:
 public:
 	AddressBookEntry(const WCHAR* pwszName,
 					 const WCHAR* pwszSortKey,
-					 bool bWAB);
+					 bool bExternal);
 	AddressBookEntry(const AddressBookEntry& entry);
 	~AddressBookEntry();
 
@@ -193,7 +136,7 @@ public:
 	const AddressList& getAddresses() const;
 	void setAddresses(AddressList& listAddress);
 	void addAddress(std::auto_ptr<AddressBookAddress> pAddress);
-	bool isWAB() const;
+	bool isExternal() const;
 
 private:
 	void clearAddresses();
@@ -203,7 +146,7 @@ private:
 	qs::wstring_ptr wstrName_;
 	qs::wstring_ptr wstrSortKey_;
 	AddressList listAddress_;
-	bool bWAB_;
+	bool bExternal_;
 };
 
 
@@ -370,6 +313,174 @@ private:
 	qs::OutputHandler handler_;
 };
 
+
+/****************************************************************************
+ *
+ * ExternalAddressBook
+ *
+ */
+
+class ExternalAddressBook
+{
+public:
+	virtual ~ExternalAddressBook();
+
+public:
+	virtual bool init() = 0;
+	virtual void term() = 0;
+	virtual bool load(AddressBook* pAddressBook) = 0;
+	virtual bool isModified() = 0;
+};
+
+
+/****************************************************************************
+ *
+ * ExternalAddressBookManager
+ *
+ */
+
+class ExternalAddressBookManager
+{
+public:
+	ExternalAddressBookManager();
+	~ExternalAddressBookManager();
+
+public:
+	bool load(AddressBook* pAddressBook);
+	bool isModified() const;
+
+private:
+	ExternalAddressBookManager(const ExternalAddressBookManager&);
+	ExternalAddressBookManager& operator=(const ExternalAddressBookManager&);
+
+private:
+	typedef std::vector<ExternalAddressBook*> AddressBookList;
+
+private:
+	AddressBookList listAddressBook_;
+};
+
+
+#ifndef _WIN32_WCE
+
+/****************************************************************************
+ *
+ * WindowsAddressBook
+ *
+ */
+
+class WindowsAddressBook : public ExternalAddressBook
+{
+public:
+	WindowsAddressBook();
+	virtual ~WindowsAddressBook();
+
+public:
+	virtual bool init();
+	virtual void term();
+	virtual bool load(AddressBook* pAddressBook);
+	virtual bool isModified();
+
+private:
+	class IMAPIAdviseSinkImpl : public IMAPIAdviseSink
+	{
+	public:
+		explicit IMAPIAdviseSinkImpl(WindowsAddressBook* pAddressBook);
+		~IMAPIAdviseSinkImpl();
+	
+	public:
+		STDMETHOD(QueryInterface)(REFIID riid,
+								  void** ppv);
+		STDMETHOD_(ULONG, AddRef)();
+		STDMETHOD_(ULONG, Release)();
+	
+	public:
+		STDMETHOD_(ULONG, OnNotify)(ULONG cNotif,
+									LPNOTIFICATION lpNotifications);
+	
+	private:
+		IMAPIAdviseSinkImpl(const IMAPIAdviseSinkImpl&);
+		IMAPIAdviseSinkImpl& operator=(const IMAPIAdviseSinkImpl&);
+	
+	private:
+		ULONG nRef_;
+		WindowsAddressBook* pAddressBook_;
+	};
+	friend class IMAPIAdviseSinkImpl;
+
+private:
+	WindowsAddressBook(const WindowsAddressBook&);
+	WindowsAddressBook& operator=(const WindowsAddressBook&);
+
+private:
+	HINSTANCE hInstWAB_;
+	IAddrBook* pAddrBook_;
+	IWABObject* pWABObject_;
+	ULONG nConnection_;
+	bool bModified_;
+};
+
+#else // _WIN32_WCE
+
+/****************************************************************************
+ *
+ * PocketOutlookAddressBook
+ *
+ */
+
+class PocketOutlookAddressBook : public ExternalAddressBook
+{
+public:
+	PocketOutlookAddressBook();
+	virtual ~PocketOutlookAddressBook();
+
+public:
+	virtual bool init();
+	virtual void term();
+	virtual bool load(AddressBook* pAddressBook);
+	virtual bool isModified();
+
+private:
+	class NotificationWindow :
+		public qs::WindowBase,
+		public qs::DefaultWindowHandler
+	{
+	public:
+		explicit NotificationWindow(PocketOutlookAddressBook* pAddressBook);
+		virtual ~NotificationWindow();
+	
+	public:
+		virtual LRESULT windowProc(UINT uMsg,
+								   WPARAM wParam,
+								   LPARAM lParam);
+	
+	protected:
+		LRESULT onDBNotification(WPARAM wParam,
+								 LPARAM lParam);
+	
+	private:
+		NotificationWindow(const NotificationWindow&);
+		NotificationWindow& operator=(const NotificationWindow&);
+	
+	private:
+		PocketOutlookAddressBook* pAddressBook_;
+	};
+	friend class NotificationWindow;
+
+private:
+	PocketOutlookAddressBook(const PocketOutlookAddressBook&);
+	PocketOutlookAddressBook& operator=(const PocketOutlookAddressBook&);
+
+private:
+	HANDLE hCategoryDB_;
+	HANDLE hContactsDB_;
+	NotificationWindow* pNotificationWindow_;
+	bool bModified_;
+};
+
+#endif // _WIN32_WCE
+
 }
+
 
 #endif // __ADDRESSBOOK_H__

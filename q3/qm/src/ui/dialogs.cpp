@@ -649,7 +649,7 @@ LRESULT qm::AddAddressDialog::onInitDialog(HWND hwndFocus,
 	listEntry.reserve(l.size());
 	std::remove_copy_if(l.begin(), l.end(),
 		std::back_inserter(listEntry),
-		std::mem_fun(&AddressBookEntry::isWAB));
+		std::mem_fun(&AddressBookEntry::isExternal));
 	std::sort(listEntry.begin(), listEntry.end(),
 		binary_compose_f_gx_hy(
 			string_less_i<WCHAR>(),

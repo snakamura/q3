@@ -158,8 +158,8 @@ void qm::AddressBookModel::initEntries()
 	listEntry_.reserve(l.size());
 	for (AddressBook::EntryList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		AddressBookEntry* pEntry = *it;
-		if (!pEntry->isWAB())
-			listEntry_.push_back(pEntry);
+		assert(!pEntry->isExternal());
+		listEntry_.push_back(pEntry);
 	}
 }
 
