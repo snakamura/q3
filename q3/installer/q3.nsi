@@ -27,7 +27,7 @@ InstallDirRegKey HKLM "SOFTWARE\sn\q3" "InstallDir"
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_DIRECTORY
-Page custom MailBoxDirectory
+Page custom MailBoxFolder
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKLM" 
 !define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\sn\q3" 
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "StartMenuFolder"
@@ -192,9 +192,10 @@ Function .onInit
 FunctionEnd
 
 
-Function MailBoxDirectory
+Function MailBoxFolder
 
   !insertmacro MUI_HEADER_TEXT "Choose Mailbox Location" "Choose the folder in which to store mail data."
+  ReadRegStr $MAILBOX_FOLDER HKCU "Software\sn\q3\Setting" "MailFolder"
   StrCmp $MAILBOX_FOLDER "" +2
     GoTo +2
     StrCpy $MAILBOX_FOLDER "$APPDATA\mail"
