@@ -1,5 +1,5 @@
 /*
- * $Id: textwindow.cpp,v 1.8 2003/06/01 08:40:32 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -260,6 +260,7 @@ public:
 	mutable unsigned int nLineHeight_;
 	mutable unsigned int nLineInWindow_;
 	mutable unsigned int nAverageCharWidth_;
+	mutable bool bHorizontalScrollable_;
 	mutable Extent extent_;
 	mutable unsigned int nExtentLine_;
 	mutable bool bExtentNewLine_;
@@ -1012,15 +1013,16 @@ void qs::TextWindowImpl::updateScrollBar()
 		};
 		pThis_->setScrollInfo(SB_VERT, si, true);
 	}
+	
+	RECT rect;
+	getClientRectWithoutMargin(&rect);
+	
+	unsigned int nWidth = 0;
+	if (nCharInLine_ != 0)
+		nWidth = nCharInLine_*getAverageCharWidth();
+	else
+		nWidth = rect.right - rect.left;
 	if (bShowHorizontalScrollBar_) {
-		RECT rect;
-		getClientRectWithoutMargin(&rect);
-		
-		unsigned int nWidth = 0;
-		if (nCharInLine_ != 0)
-			nWidth = nCharInLine_*getAverageCharWidth();
-		else
-			nWidth = rect.right - rect.left;
 		
 		SCROLLINFO si = {
 			sizeof(si),
@@ -1033,6 +1035,7 @@ void qs::TextWindowImpl::updateScrollBar()
 		};
 		pThis_->setScrollInfo(SB_HORZ, si, true);
 	}
+	bHorizontalScrollable_ = nWidth > rect.right - rect.left;
 }
 
 void qs::TextWindowImpl::showCaret()
@@ -1774,6 +1777,7 @@ qs::TextWindow::TextWindow(TextModel* pTextModel, Profile* pProfile,
 	pImpl_->nLineHeight_ = 0;
 	pImpl_->nLineInWindow_ = 0;
 	pImpl_->nAverageCharWidth_ = 0;
+	pImpl_->bHorizontalScrollable_ = false;
 	pImpl_->nExtentLine_ = -1;
 	pImpl_->bExtentNewLine_ = false;
 	
@@ -3010,10 +3014,16 @@ LRESULT qs::TextWindow::onKeyDown(UINT nKey, UINT nRepeat, UINT nFlags)
 		Scroll s;
 		switch (nKey) {
 		case VK_LEFT:
-			s = SCROLL_CHARLEFT;
+			if (pImpl_->bHorizontalScrollable_)
+				s = SCROLL_CHARLEFT;
+			else
+				s = SCROLL_PAGEUP;
 			break;
 		case VK_RIGHT:
-			s = SCROLL_CHARRIGHT;
+			if (pImpl_->bHorizontalScrollable_)
+				s = SCROLL_CHARRIGHT;
+			else
+				s = SCROLL_PAGEDOWN;
 			break;
 		case VK_UP:
 			s = SCROLL_LINEUP;

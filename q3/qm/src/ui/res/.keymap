@@ -187,7 +187,6 @@
 		</action>
 		<action name="ViewNextMessagePage">
 			<key code="20"/>
-			<key code="27"/>
 		</action>
 		<action name="ViewNextUnseenMessage">
 			<key key="M"/>
@@ -198,7 +197,6 @@
 		</action>
 		<action name="ViewPrevMessagePage">
 			<key code="20" shift="true"/>
-			<key code="25"/>
 		</action>
 		<action name="ViewRawMode">
 			<key key="H"/>
@@ -281,7 +279,6 @@
 		</action>
 		<action name="ViewNextMessagePage">
 			<key code="20"/>
-			<key code="27"/>
 		</action>
 		<action name="ViewNextUnseenMessage">
 			<key key="M"/>
@@ -292,7 +289,6 @@
 		</action>
 		<action name="ViewPrevMessagePage">
 			<key code="20" shift="true"/>
-			<key code="25"/>
 		</action>
 		<action name="ViewRawMode">
 			<key key="H"/>
