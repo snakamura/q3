@@ -60,6 +60,7 @@ public:
 	wstring_ptr wstrName_;
 	WCHAR cSeparator_;
 	unsigned int nFlags_;
+	Folder::ParamList listParam_;
 	Folder* pParentFolder_;
 	Account* pAccount_;
 	
@@ -188,7 +189,12 @@ qm::Folder::Folder(unsigned int nId,
 
 qm::Folder::~Folder()
 {
-	delete pImpl_;
+	if (pImpl_) {
+		std::for_each(pImpl_->listParam_.begin(), pImpl_->listParam_.end(),
+			unary_compose_fx_gx(string_free<WSTRING>(), string_free<WSTRING>()));
+		
+		delete pImpl_;
+	}
 }
 
 unsigned int qm::Folder::getId() const
@@ -231,6 +237,72 @@ unsigned int qm::Folder::getFlags() const
 bool qm::Folder::isFlag(Flag flag) const
 {
 	return (pImpl_->nFlags_ & flag) != 0;
+}
+
+const Folder::ParamList& qm::Folder::getParams() const
+{
+	return pImpl_->listParam_;
+}
+
+void qm::Folder::setParams(ParamList& listParam)
+{
+	assert(pImpl_->listParam_.empty());
+	pImpl_->listParam_.swap(listParam);
+}
+
+const WCHAR* qm::Folder::getParam(const WCHAR* pwszName) const
+{
+	ParamList::const_iterator it = std::find_if(
+		pImpl_->listParam_.begin(), pImpl_->listParam_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				string_equal<WCHAR>(),
+				std::select1st<ParamList::value_type>(),
+				std::identity<const WCHAR*>()),
+			pwszName));
+	return it != pImpl_->listParam_.end() ? (*it).second : 0;
+}
+
+void qm::Folder::setParam(const WCHAR* pwszName,
+						  const WCHAR* pwszValue)
+{
+	ParamList::iterator it = std::find_if(
+		pImpl_->listParam_.begin(), pImpl_->listParam_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				string_equal<WCHAR>(),
+				std::select1st<ParamList::value_type>(),
+				std::identity<const WCHAR*>()),
+			pwszName));
+	wstring_ptr wstrValue(allocWString(pwszValue));
+	if (it != pImpl_->listParam_.end()) {
+		freeWString((*it).second);
+		(*it).second = wstrValue.release();
+	}
+	else {
+		wstring_ptr wstrName(allocWString(pwszName));
+		pImpl_->listParam_.push_back(ParamList::value_type(
+			wstrName.get(), wstrValue.get()));
+		wstrName.release();
+		wstrValue.release();
+	}
+}
+
+void qm::Folder::removeParam(const WCHAR* pwszName)
+{
+	ParamList::iterator it = std::find_if(
+		pImpl_->listParam_.begin(), pImpl_->listParam_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				string_equal<WCHAR>(),
+				std::select1st<ParamList::value_type>(),
+				std::identity<const WCHAR*>()),
+			pwszName));
+	if (it != pImpl_->listParam_.end()) {
+		freeWString((*it).first);
+		freeWString((*it).second);
+		pImpl_->listParam_.erase(it);
+	}
 }
 
 Folder* qm::Folder::getParentFolder() const

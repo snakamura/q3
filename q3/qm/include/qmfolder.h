@@ -78,6 +78,9 @@ public:
 	};
 
 public:
+	typedef std::vector<std::pair<qs::WSTRING, qs::WSTRING> > ParamList;
+
+public:
 	Folder(unsigned int nId,
 		   const WCHAR* pwszName,
 		   WCHAR cSeparator,
@@ -94,6 +97,12 @@ public:
 	WCHAR getSeparator() const;
 	unsigned int getFlags() const;
 	bool isFlag(Flag flag) const;
+	const ParamList& getParams() const;
+	void setParams(ParamList& listParam);
+	const WCHAR* getParam(const WCHAR* pwszName) const;
+	void setParam(const WCHAR* pwszName,
+				  const WCHAR* pwszValue);
+	void removeParam(const WCHAR* pwszName);
 	Folder* getParentFolder() const;
 	bool isAncestorOf(const Folder* pFolder) const;
 	bool isHidden() const;

@@ -86,7 +86,9 @@ private:
 		STATE_DRIVER,
 		STATE_CONDITION,
 		STATE_TARGETFOLDER,
-		STATE_RECURSIVE
+		STATE_RECURSIVE,
+		STATE_PARAMS,
+		STATE_PARAM
 	};
 
 public:
@@ -137,6 +139,8 @@ private:
 	qs::wstring_ptr wstrCondition_;
 	qs::wstring_ptr wstrTargetFolder_;
 	bool bRecursive_;
+	qs::wstring_ptr wstrParamName_;
+	Folder::ParamList listParam_;
 	qs::StringBuffer<qs::WSTRING> buffer_;
 };
 

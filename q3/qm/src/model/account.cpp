@@ -2352,6 +2352,8 @@ qm::FolderContentHandler::FolderContentHandler(Account* pAccount,
 
 qm::FolderContentHandler::~FolderContentHandler()
 {
+	std::for_each(listParam_.begin(), listParam_.end(),
+		unary_compose_fx_gx(string_free<WSTRING>(), string_free<WSTRING>()));
 }
 
 bool qm::FolderContentHandler::startElement(const WCHAR* pwszNamespaceURI,
@@ -2377,7 +2379,8 @@ bool qm::FolderContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		{ L"driver",		STATE_QUERYFOLDER,						STATE_DRIVER		},
 		{ L"condition",		STATE_QUERYFOLDER,						STATE_CONDITION		},
 		{ L"targetFolder",	STATE_QUERYFOLDER,						STATE_TARGETFOLDER	},
-		{ L"recursive",		STATE_QUERYFOLDER,						STATE_RECURSIVE		}
+		{ L"recursive",		STATE_QUERYFOLDER,						STATE_RECURSIVE		},
+		{ L"params",		STATE_NORMALFOLDER | STATE_QUERYFOLDER,	STATE_PARAMS		}
 	};
 	
 	if (wcscmp(pwszLocalName, L"folders") == 0) {
@@ -2406,6 +2409,26 @@ bool qm::FolderContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		bNormal_ = false;
 		nItem_ = 0;
 		state_ = STATE_QUERYFOLDER;
+	}
+	else if (wcscmp(pwszLocalName, L"param") == 0) {
+		if (state_ != STATE_PARAMS)
+			return false;
+		
+		const WCHAR* pwszName = 0;
+		for (int n = 0; n < attributes.getLength(); ++n) {
+			const WCHAR* pwszAttrName = attributes.getLocalName(n);
+			if (wcscmp(pwszAttrName, L"name") == 0)
+				pwszName = attributes.getValue(n);
+			else
+				return false;
+		}
+		if (!pwszName)
+			return false;
+		
+		assert(!wstrParamName_.get());
+		wstrParamName_ = allocWString(pwszName);
+		
+		state_ = STATE_PARAM;
 	}
 	else {
 		int n = 0;
@@ -2436,13 +2459,14 @@ bool qm::FolderContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 	else if (wcscmp(pwszLocalName, L"normalFolder") == 0) {
 		assert(state_ == STATE_NORMALFOLDER);
 		
-		if (nItem_ != 10)
+		if (nItem_ != 10 && nItem_ != 11)
 			return false;
 		
 		Folder* pParent = nParentId_ != 0 ? getFolder(nParentId_) : 0;
 		std::auto_ptr<NormalFolder> pFolder(new NormalFolder(nId_,
 			wstrName_.get(), cSeparator_, nFlags_, nCount_, nUnseenCount_,
 			nValidity_, nDownloadCount_, nDeletedCount_, pParent, pAccount_));
+		pFolder->setParams(listParam_);
 		pList_->push_back(pFolder.get());
 		pFolder.release();
 		wstrName_.reset(0);
@@ -2452,7 +2476,7 @@ bool qm::FolderContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 	else if (wcscmp(pwszLocalName, L"queryFolder") == 0) {
 		assert(state_ == STATE_QUERYFOLDER);
 		
-		if (nItem_ != 11)
+		if (nItem_ != 11 && nItem_ != 12)
 			return false;
 		
 		Folder* pParent = nParentId_ != 0 ? getFolder(nParentId_) : 0;
@@ -2460,6 +2484,7 @@ bool qm::FolderContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 			wstrName_.get(), cSeparator_, nFlags_, nCount_,
 			nUnseenCount_, wstrDriver_.get(), wstrCondition_.get(),
 			wstrTargetFolder_.get(), bRecursive_, pParent, pAccount_));
+		pFolder->setParams(listParam_);
 		pList_->push_back(pFolder.get());
 		pFolder.release();
 		
@@ -2598,6 +2623,22 @@ bool qm::FolderContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		
 		state_ = STATE_QUERYFOLDER;
 	}
+	else if (wcscmp(pwszLocalName, L"params") == 0) {
+		assert(state_ == STATE_PARAMS);
+		state_ = bNormal_ ? STATE_NORMALFOLDER : STATE_QUERYFOLDER;
+	}
+	else if (wcscmp(pwszLocalName, L"param") == 0) {
+		assert(state_ == STATE_PARAM);
+		
+		assert(wstrParamName_.get());
+		wstring_ptr wstrValue(buffer_.getString());
+		listParam_.push_back(Folder::ParamList::value_type(
+			wstrParamName_.get(), wstrValue.get()));
+		wstrParamName_.release();
+		wstrValue.release();
+		
+		state_ = STATE_PARAMS;
+	}
 	else {
 		return false;
 	}
@@ -2622,7 +2663,8 @@ bool qm::FolderContentHandler::characters(const WCHAR* pwsz,
 		state_ == STATE_DRIVER ||
 		state_ == STATE_CONDITION ||
 		state_ == STATE_TARGETFOLDER ||
-		state_ == STATE_RECURSIVE) {
+		state_ == STATE_RECURSIVE ||
+		state_ == STATE_PARAM) {
 		buffer_.append(pwsz + nStart, nLength);
 	}
 	else {
@@ -2768,6 +2810,21 @@ bool qm::FolderWriter::write(const Account::FolderList& l)
 		default:
 			assert(false);
 			break;
+		}
+		
+		const Folder::ParamList& listParam = pFolder->getParams();
+		if (!listParam.empty()) {
+			if (!handler_.startElement(0, 0, L"params", attrs))
+				return false;
+			for (Folder::ParamList::const_iterator it = listParam.begin(); it != listParam.end(); ++it) {
+				SimpleAttributes attrs(L"name", (*it).first);
+				if (!handler_.startElement(0, 0, L"param", attrs) ||
+					!handler_.characters((*it).second, 0, wcslen((*it).second)) ||
+					!handler_.endElement(0, 0, L"param"))
+					return false;
+			}
+			if (!handler_.endElement(0, 0, L"params"))
+				return false;
 		}
 		
 		if (!handler_.endElement(0, 0, pwszQName))
