@@ -58,12 +58,8 @@ void qm::RecentAddress::add(const Message& msg)
 		AddressListParser addressList(0);
 		if (msg.getField(pwszFields[n], &addressList) == Part::FIELD_EXIST) {
 			const AddressListParser::AddressList& l = addressList.getAddressList();
-			for (AddressListParser::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
-				const AddressParser* pAddress = *it;
-				wstring_ptr wstrAddress(pAddress->getAddress());
-				if (!pAddressBook_->getEntry(wstrAddress.get()))
-					add(*pAddress);
-			}
+			for (AddressListParser::AddressList::const_iterator it = l.begin(); it != l.end(); ++it)
+				add(**it);
 		}
 	}
 }
@@ -92,19 +88,25 @@ void qm::RecentAddress::load()
 		swprintf(wszKey, L"Address%u", n);
 		wstring_ptr wstrAddress(pProfile_->getString(L"RecentAddress", wszKey, L""));
 		if (*wstrAddress.get()) {
-			Part part;
-			if (MessageCreator::setField(&part, L"Address",
-				wstrAddress.get(), MessageCreator::FIELDTYPE_ADDRESSLIST)) {
-				std::auto_ptr<AddressParser> pAddress(new AddressParser(0));
-				if (part.getField(L"Address", pAddress.get()) == Part::FIELD_EXIST)
-					listAddress_.push_back(pAddress.release());
-			}
+			std::auto_ptr<AddressParser> pAddress(new AddressParser(0));
+			if (MessageCreator::getAddress(wstrAddress.get(), pAddress.get()))
+				listAddress_.push_back(pAddress.release());
 		}
 	}
 }
 
 void qm::RecentAddress::add(const AddressParser& address)
 {
+	wstring_ptr wstrAddress(address.getAddress());
+	if (pAddressBook_->getEntry(wstrAddress.get()))
+		return;
+	
+	for (AddressList::const_iterator it = listAddress_.begin(); it != listAddress_.end(); ++it) {
+		if (_wcsicmp(address.getMailbox(), (*it)->getMailbox()) == 0 &&
+			_wcsicmp(address.getHost(), (*it)->getHost()) == 0)
+			return;
+	}
+	
 	std::auto_ptr<AddressParser> pAddress(new AddressParser(
 		address.getPhrase(), address.getMailbox(), address.getHost()));
 	if (listAddress_.size() >= nMax_) {
