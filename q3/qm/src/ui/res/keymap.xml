@@ -27,9 +27,6 @@
 		<action name="FileOffline">
 			<key key="O" ctrl="true"/>
 		</action>
-		<action name="MessageOpenLink">
-			<key key="O" shift="true"/>
-		</action>
 		<action name="MessageSearch">
 			<key key="S" ctrl="true"/>
 		</action>
@@ -106,6 +103,9 @@
 		</action>
 		<action name="MessageNew">
 			<key key="S"/>
+		</action>
+		<action name="MessageOpenLink">
+			<key key="L" ctrl="true"/>
 		</action>
 		<action name="MessageProperty">
 			<key code="d" alt="true"/>
@@ -185,6 +185,9 @@
 		</action>
 		<action name="MessageNew">
 			<key key="S"/>
+		</action>
+		<action name="MessageOpenLink">
+			<key key="L" ctrl="true"/>
 		</action>
 		<action name="MessageProperty">
 			<key code="d" alt="true"/>
@@ -280,6 +283,9 @@
 		</action>
 		<action name="MessageNew">
 			<key key="S"/>
+		</action>
+		<action name="MessageOpenLink">
+			<key key="L" ctrl="true"/>
 		</action>
 		<action name="MessageProperty">
 			<key code="d" alt="true"/>
