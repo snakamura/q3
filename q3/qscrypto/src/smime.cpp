@@ -142,14 +142,17 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::sign(Part* pPart,
 
 xstring_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
 											   const Store* pStoreCA,
-											   unsigned int* pnVerify) const
+											   unsigned int* pnVerify,
+											   wstring_ptr* pwstrSignedBy) const
 {
 	assert(pStoreCA);
 	assert(pnVerify);
+	assert(pwstrSignedBy);
 	assert(getType(part) == TYPE_SIGNED || getType(part) == TYPE_MULTIPARTSIGNED);
 	assert(part.getContentType());
 	
 	*pnVerify = VERIFY_OK;
+	pwstrSignedBy->reset(0);
 	
 	bool bMultipart = _wcsicmp(part.getContentType()->getMediaType(), L"multipart") == 0;
 	
@@ -195,7 +198,6 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
 	}
 	
 	bool bMatch = false;
-	wstring_ptr wstrSignedBy;
 	X509StackPtr certs(PKCS7_get0_signers(pPKCS7.get(), 0, 0), false);
 	if (certs.get()) {
 		AddressListParser from(AddressListParser::FLAG_DISALLOWGROUP);
@@ -211,7 +213,7 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
 				if (wstrAddress.get()) {
 					bMatch = (fieldFrom == Part::FIELD_EXIST && contains(from, wstrAddress.get())) ||
 						(fieldSender == Part::FIELD_EXIST && contains(sender, wstrAddress.get()));
-					wstrSignedBy = pName->getText();
+					*pwstrSignedBy = pName->getText();
 				}
 			}
 		}
@@ -223,7 +225,7 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
 	int nBufLen = BIO_get_mem_data(pOut.get(), &pBuf);
 	if (!pBuf)
 		return 0;
-	return createMessage(pBuf, nBufLen, part, wstrSignedBy.get());
+	return createMessage(pBuf, nBufLen, part);
 }
 
 xstring_ptr qscrypto::SMIMEUtilityImpl::encrypt(Part* pPart,
@@ -308,7 +310,7 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::decrypt(const Part& part,
 	int nBufLen = BIO_get_mem_data(pOut.get(), &pBuf);
 	if (!pBuf)
 		return 0;
-	return createMessage(pBuf, nBufLen, part, 0);
+	return createMessage(pBuf, nBufLen, part);
 }
 
 xstring_ptr qscrypto::SMIMEUtilityImpl::createMessage(const CHAR* pszHeader,
@@ -421,8 +423,7 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::createMultipartMessage(const CHAR* pszHe
 
 xstring_ptr qscrypto::SMIMEUtilityImpl::createMessage(const CHAR* pszContent,
 													  size_t nLen,
-													  const Part& part,
-													  const WCHAR* pwszSignedBy)
+													  const Part& part)
 {
 	BMFindString<STRING> bmfs("\r\n\r\n");
 	const CHAR* pBody = bmfs.find(pszContent, nLen);
@@ -431,21 +432,15 @@ xstring_ptr qscrypto::SMIMEUtilityImpl::createMessage(const CHAR* pszContent,
 	size_t nHeaderLen = pBody ? pBody - pszContent : nLen;
 	size_t nBodyLen = pBody ? pszContent + nLen - pBody : 0;
 	
-	Part headerPart;
-	if (!headerPart.create(0, pszContent, nHeaderLen))
+	Part header;
+	if (!header.create(0, pszContent, nHeaderLen))
 		return 0;
 	
 	PrefixFieldFilter filter("content-", true);
-	if (!headerPart.copyFields(part, &filter))
+	if (!header.copyFields(part, &filter))
 		return 0;
 	
-	if (pwszSignedBy) {
-		UnstructuredParser signedBy(pwszSignedBy, L"utf-8");
-		if (!headerPart.setField(L"X-QMAIL-SignedBy", signedBy))
-			return 0;
-	}
-	
-	const CHAR* pszHeader = headerPart.getHeader();
+	const CHAR* pszHeader = header.getHeader();
 	size_t nNewHeaderLen = strlen(pszHeader);
 	
 	xstring_ptr strMessage(allocXString(nNewHeaderLen + nBodyLen + 5));

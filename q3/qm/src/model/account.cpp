@@ -620,6 +620,7 @@ bool qm::AccountImpl::processSMIME(const SMIMEUtility* pSMIMEUtility,
 								   Message* pMessage)
 {
 	xstring_ptr strMessage;
+	wstring_ptr wstrSignedBy;
 	unsigned int nSecurity = Message::SECURITY_NONE;
 	switch (type) {
 	case SMIMEUtility::TYPE_SIGNED:
@@ -627,7 +628,7 @@ bool qm::AccountImpl::processSMIME(const SMIMEUtility* pSMIMEUtility,
 		{
 			unsigned int nVerify = 0;
 			strMessage = pSMIMEUtility->verify(*pMessage,
-				pSecurity_->getCA(), &nVerify);
+				pSecurity_->getCA(), &nVerify, &wstrSignedBy);
 			if (!strMessage.get())
 				return false;
 			
@@ -664,6 +665,15 @@ bool qm::AccountImpl::processSMIME(const SMIMEUtility* pSMIMEUtility,
 	if (!pMessage->create(strMessage.get(), -1, Message::FLAG_NONE, nSecurity))
 		return false;
 	
+	if (wstrSignedBy.get()) {
+		UnstructuredParser signedBy(wstrSignedBy.get(), L"utf-8");
+		if (!pMessage->replaceField(L"X-QMAIL-SignedBy", signedBy))
+			return 0;
+	}
+	else {
+		pMessage->removeField(L"X-QMAIL-SignedBy");
+	}
+	
 	return true;
 }
 
@@ -683,29 +693,30 @@ bool qm::AccountImpl::processPGP(const PGPUtility* pPGPUtility,
 	
 	xstring_ptr strMessage;
 	unsigned int nVerify = 0;
+	wstring_ptr wstrSignedBy;
 	unsigned int nSecurity = Message::SECURITY_NONE;
 	switch (type) {
 	case PGPUtility::TYPE_MIMEENCRYPTED:
-		strMessage = pPGPUtility->decryptAndVerify(
-			*pMessage, true, wstrPassword.get(), &nVerify);
+		strMessage = pPGPUtility->decryptAndVerify(*pMessage,
+			true, wstrPassword.get(), &nVerify, &wstrSignedBy);
 		if (!strMessage.get())
 			return false;
 		nSecurity |= Message::SECURITY_DECRYPTED;
 		break;
 	case PGPUtility::TYPE_MIMESIGNED:
-		strMessage = pPGPUtility->verify(*pMessage, true, &nVerify);
+		strMessage = pPGPUtility->verify(*pMessage, true, &nVerify, &wstrSignedBy);
 		if (!strMessage.get())
 			return false;
 		break;
 	case PGPUtility::TYPE_INLINEENCRYPTED:
 		strMessage = pPGPUtility->decryptAndVerify(
-			*pMessage, false, wstrPassword.get(), &nVerify);
+			*pMessage, false, wstrPassword.get(), &nVerify, &wstrSignedBy);
 		if (!strMessage.get())
 			return false;
 		nSecurity |= Message::SECURITY_DECRYPTED;
 		break;
 	case PGPUtility::TYPE_INLINESIGNED:
-		strMessage = pPGPUtility->verify(*pMessage, false, &nVerify);
+		strMessage = pPGPUtility->verify(*pMessage, false, &nVerify, &wstrSignedBy);
 		if (!strMessage.get())
 			return false;
 		break;
@@ -726,6 +737,15 @@ bool qm::AccountImpl::processPGP(const PGPUtility* pPGPUtility,
 	
 	if (!pMessage->create(strMessage.get(), -1, Message::FLAG_NONE, nSecurity))
 		return false;
+	
+	if (wstrSignedBy.get()) {
+		UnstructuredParser signedBy(wstrSignedBy.get(), L"utf-8");
+		if (!pMessage->replaceField(L"X-QMAIL-SignedBy", signedBy))
+			return 0;
+	}
+	else {
+		pMessage->removeField(L"X-QMAIL-SignedBy");
+	}
 	
 	return true;
 }

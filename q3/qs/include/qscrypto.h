@@ -405,7 +405,8 @@ public:
 	 */
 	virtual xstring_ptr verify(const Part& part,
 							   const Store* pStoreCA,
-							   unsigned int* pnVerify) const = 0;
+							   unsigned int* pnVerify,
+							   wstring_ptr* pwstrSignedBy) const = 0;
 	
 	/**
 	 * Encrypt the specified part.

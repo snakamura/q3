@@ -146,7 +146,7 @@ xstring_ptr qmpgp::PGPUtilityImpl::sign(Part* pPart,
 		if (!strBody.get())
 			return 0;
 		
-		return createMessage(pPart->getHeader(), strBody.get(), 0);
+		return createMessage(pPart->getHeader(), strBody.get());
 	}
 }
 
@@ -194,7 +194,7 @@ xstring_ptr qmpgp::PGPUtilityImpl::encrypt(Part* pPart,
 		if (!strBody.get())
 			return 0;
 		
-		return createMessage(pPart->getHeader(), strBody.get(), 0);
+		return createMessage(pPart->getHeader(), strBody.get());
 	}
 }
 
@@ -248,87 +248,88 @@ xstring_ptr qmpgp::PGPUtilityImpl::signAndEncrypt(Part* pPart,
 		if (!strBody.get())
 			return 0;
 		
-		return createMessage(pPart->getHeader(), strBody.get(), 0);
+		return createMessage(pPart->getHeader(), strBody.get());
 	}
 }
 
 xstring_ptr qmpgp::PGPUtilityImpl::verify(const Part& part,
 										  bool bMime,
-										  unsigned int* pnVerify) const
+										  unsigned int* pnVerify,
+										  wstring_ptr* pwstrSignedBy) const
 {
 	assert(pnVerify);
+	assert(pwstrSignedBy);
+	
+	*pnVerify = VERIFY_NONE;
+	pwstrSignedBy->reset(0);
 	
 	if (bMime) {
 		assert(getType(part, false) == TYPE_MIMESIGNED);
-		
-		*pnVerify = VERIFY_OK;
 		
 		xstring_ptr strContent(part.getPart(0)->getContent());
 		if (!strContent.get())
 			return 0;
 		
-		wstring_ptr wstrUserId;
 		bool bVerified = pDriver_->verify(strContent.get(),
-			part.getPart(1)->getBody(), &wstrUserId);
+			part.getPart(1)->getBody(), pwstrSignedBy);
 		
-		if (!bVerified)
-			*pnVerify = VERIFY_FAILED;
-		if (!checkUserId(part, wstrUserId.get()))
+		*pnVerify = bVerified ? VERIFY_OK : VERIFY_FAILED;
+		if (!checkUserId(part, pwstrSignedBy->get()))
 			*pnVerify |= VERIFY_ADDRESSNOTMATCH;
 		
-		return createMessage(strContent.get(), part, wstrUserId.get());
+		return createMessage(strContent.get(), part);
 	}
 	else {
 		assert(getType(part, true) == TYPE_INLINESIGNED);
 		
-		wstring_ptr wstrUserId;
 		xstring_ptr strBody(pDriver_->decryptAndVerify(
-			part.getBody(), 0, pnVerify, &wstrUserId));
+			part.getBody(), 0, pnVerify, pwstrSignedBy));
 		if (!strBody.get())
 			return 0;
-		if (!checkUserId(part, wstrUserId.get()))
+		if (!checkUserId(part, pwstrSignedBy->get()))
 			*pnVerify |= VERIFY_ADDRESSNOTMATCH;
 		
-		return createMessage(part.getHeader(), strBody.get(), wstrUserId.get());
+		return createMessage(part.getHeader(), strBody.get());
 	}
 }
 
 xstring_ptr qmpgp::PGPUtilityImpl::decryptAndVerify(const Part& part,
 													bool bMime,
 													const WCHAR* pwszPassphrase,
-													unsigned int* pnVerify) const
+													unsigned int* pnVerify,
+													wstring_ptr* pwstrSignedBy) const
 {
 	assert(pnVerify);
+	assert(pwstrSignedBy);
 	
 	*pnVerify = VERIFY_NONE;
+	pwstrSignedBy->reset(0);
 	
 	if (bMime) {
 		assert(getType(part, false) == TYPE_MIMEENCRYPTED);
 		
-		wstring_ptr wstrUserId;
 		xstring_ptr strContent(pDriver_->decryptAndVerify(part.getPart(1)->getBody(),
-			pwszPassphrase, pnVerify, &wstrUserId));
+			pwszPassphrase, pnVerify, pwstrSignedBy));
 		if (!strContent.get())
 			return 0;
 		if (*pnVerify != VERIFY_NONE) {
-			if (!checkUserId(part, wstrUserId.get()))
+			if (!checkUserId(part, pwstrSignedBy->get()))
 				*pnVerify |= VERIFY_ADDRESSNOTMATCH;
 		}
-		return createMessage(strContent.get(), part, wstrUserId.get());
+		return createMessage(strContent.get(), part);
 	}
 	else {
 		assert(getType(part, true) == TYPE_INLINEENCRYPTED);
 		
-		wstring_ptr wstrUserId;
 		xstring_ptr strBody(pDriver_->decryptAndVerify(part.getBody(),
-			pwszPassphrase, pnVerify, &wstrUserId));
+			pwszPassphrase, pnVerify, pwstrSignedBy));
 		if (!strBody.get())
 			return 0;
 		if (*pnVerify != VERIFY_NONE) {
-			if (!checkUserId(part, wstrUserId.get()))
+			if (!checkUserId(part, pwstrSignedBy->get()))
 				*pnVerify |= VERIFY_ADDRESSNOTMATCH;
 		}
-		return createMessage(part.getHeader(), strBody.get(), wstrUserId.get());
+		return createMessage(part.getHeader(), strBody.get());
 	}
 }
 
@@ -423,21 +424,8 @@ bool qmpgp::PGPUtilityImpl::contains(const AddressParser& address,
 }
 
 xstring_ptr qmpgp::PGPUtilityImpl::createMessage(const CHAR* pszHeader,
-												 const CHAR* pszBody,
-												 const WCHAR* pwszSignedBy)
+												 const CHAR* pszBody)
 {
-	Part header;
-	if (pwszSignedBy) {
-		if (!header.create(0, pszHeader, -1))
-			return 0;
-		
-		UnstructuredParser signedBy(pwszSignedBy, L"utf-8");
-		if (!header.setField(L"X-QMAIL-SignedBy", signedBy))
-			return 0;
-		
-		pszHeader = header.getHeader();
-	}
-	
 	XStringBuffer<XSTRING> buf;
 	if (!buf.append(pszHeader) || !buf.append("\r\n") || !buf.append(pszBody))
 		return 0;
@@ -445,8 +433,7 @@ xstring_ptr qmpgp::PGPUtilityImpl::createMessage(const CHAR* pszHeader,
 }
 
 xstring_ptr qmpgp::PGPUtilityImpl::createMessage(const CHAR* pszContent,
-												 const Part& part,
-												 const WCHAR* pwszSignedBy)
+												 const Part& part)
 {
 	size_t nLen = strlen(pszContent);
 	
@@ -464,12 +451,6 @@ xstring_ptr qmpgp::PGPUtilityImpl::createMessage(const CHAR* pszContent,
 	PrefixFieldFilter filter("content-", true);
 	if (!header.copyFields(part, &filter))
 		return 0;
-	
-	if (pwszSignedBy) {
-		UnstructuredParser signedBy(pwszSignedBy, L"utf-8");
-		if (!header.setField(L"X-QMAIL-SignedBy", signedBy))
-			return 0;
-	}
 	
 	const CHAR* pszHeader = header.getHeader();
 	size_t nNewHeaderLen = strlen(pszHeader);

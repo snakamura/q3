@@ -38,7 +38,8 @@ public:
 								 const qs::Certificate* pCertificate) const;
 	virtual qs::xstring_ptr verify(const qs::Part& part,
 								   const qs::Store* pStoreCA,
-								   unsigned int* pnVerify) const;
+								   unsigned int* pnVerify,
+								   qs::wstring_ptr* pwstrSignedBy) const;
 	virtual qs::xstring_ptr encrypt(qs::Part* pPart,
 									const qs::Cipher* pCipher,
 									qs::SMIMECallback* pCallback) const;
@@ -55,8 +56,7 @@ private:
 												  PKCS7* pPKCS7);
 	static qs::xstring_ptr createMessage(const CHAR* pszContent,
 										 size_t nLen,
-										 const qs::Part& part,
-										 const WCHAR* pwszSignedBy);
+										 const qs::Part& part);
 	static qs::malloc_size_ptr<unsigned char> encodePKCS7(PKCS7* pPKCS7);
 	static bool getCertificates(const qs::AddressListParser& addressList,
 								qs::SMIMECallback* pCallback,

@@ -50,11 +50,13 @@ public:
 										   const WCHAR* pwszPassphrase) const;
 	virtual qs::xstring_ptr verify(const qs::Part& part,
 								   bool bMime,
-								   unsigned int* pnVerify) const;
+								   unsigned int* pnVerify,
+								   qs::wstring_ptr* pwstrSignedBy) const;
 	virtual qs::xstring_ptr decryptAndVerify(const qs::Part& part,
 											 bool bMime,
 											 const WCHAR* pwszPassphrase,
-											 unsigned int* pnVerify) const;
+											 unsigned int* pnVerify,
+											 qs::wstring_ptr* pwstrSignedBy) const;
 
 private:
 	bool checkUserId(const qs::Part& part,
@@ -71,11 +73,9 @@ private:
 	static bool contains(const qs::AddressParser& address,
 						 const WCHAR* pwszAddress);
 	static qs::xstring_ptr createMessage(const CHAR* pszHeader,
-										 const CHAR* pszBody,
-										 const WCHAR* pwszSignedBy);
+										 const CHAR* pszBody);
 	static qs::xstring_ptr createMessage(const CHAR* pszContent,
-										 const qs::Part& part,
-										 const WCHAR* pwszSignedBy);
+										 const qs::Part& part);
 	static qs::xstring_ptr createMultipartSignedMessage(const CHAR* pszHeader,
 														const qs::Part& part,
 														const CHAR* pszSignature);

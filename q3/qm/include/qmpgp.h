@@ -67,11 +67,13 @@ public:
 										   const WCHAR* pwszPassphrase) const = 0;
 	virtual qs::xstring_ptr verify(const qs::Part& part,
 								   bool bMime,
-								   unsigned int* pnVerify) const = 0;
+								   unsigned int* pnVerify,
+								   qs::wstring_ptr* pwstrSignedBy) const = 0;
 	virtual qs::xstring_ptr decryptAndVerify(const qs::Part& part,
 											 bool bMime,
 											 const WCHAR* pwszPassphrase,
-											 unsigned int* pnVerify) const = 0;
+											 unsigned int* pnVerify,
+											 qs::wstring_ptr* pwstrSignedBy) const = 0;
 
 public:
 	static std::auto_ptr<PGPUtility> getInstance(qs::Profile* pProfile);
