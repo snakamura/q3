@@ -43,6 +43,7 @@ public:
 	virtual ~FolderWindow();
 
 public:
+	bool save();
 	void expand(bool bExpand);
 
 public:

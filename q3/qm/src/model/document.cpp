@@ -51,6 +51,7 @@ struct qm::DocumentImpl
 	void fireOfflineStatusChanged();
 	void fireAccountListChanged(AccountListChangedEvent::Type type,
 								Account* pAccount) const;
+	void fireDocumentInitialized();
 	
 	Document* pThis_;
 	Profile* pProfile_;
@@ -89,6 +90,13 @@ void qm::DocumentImpl::fireAccountListChanged(AccountListChangedEvent::Type type
 	AccountListChangedEvent event(pThis_, type, pAccount);
 	for (DocumentHandlerList::const_iterator it = listDocumentHandler_.begin(); it != listDocumentHandler_.end(); ++it)
 		(*it)->accountListChanged(event);
+}
+
+void qm::DocumentImpl::fireDocumentInitialized()
+{
+	DocumentEvent event(pThis_);
+	for (DocumentHandlerList::const_iterator it = listDocumentHandler_.begin(); it != listDocumentHandler_.end(); ++it)
+		(*it)->documentInitialized(event);
 }
 
 
@@ -345,6 +353,7 @@ bool qm::Document::loadAccounts(const WCHAR* pwszPath)
 	std::sort(l.begin(), l.end(), AccountLess());
 	
 	pImpl_->fireAccountListChanged(AccountListChangedEvent::TYPE_ALL, 0);
+	pImpl_->fireDocumentInitialized();
 	
 	return true;
 }
@@ -518,6 +527,10 @@ void qm::DefaultDocumentHandler::offlineStatusChanged(const DocumentEvent& event
 }
 
 void qm::DefaultDocumentHandler::accountListChanged(const AccountListChangedEvent& event)
+{
+}
+
+void qm::DefaultDocumentHandler::documentInitialized(const DocumentEvent& event)
 {
 }
 

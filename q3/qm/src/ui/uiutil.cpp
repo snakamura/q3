@@ -7,6 +7,7 @@
  */
 
 #include <qmapplication.h>
+#include <qmdocument.h>
 #include <qmfolder.h>
 #include <qmmessagewindow.h>
 #include <qmpassword.h>
@@ -360,6 +361,52 @@ wstring_ptr qm::UIUtil::convertCRLFtoLF(const WCHAR* pwsz)
 		++pwsz;
 	}
 	return buf.getString();
+}
+
+wstring_ptr qm::UIUtil::formatAccount(Account* pAccount)
+{
+	return concat(L"//", pAccount->getName());
+}
+
+wstring_ptr qm::UIUtil::formatFolder(Folder* pFolder)
+{
+	wstring_ptr wstrName(pFolder->getFullName());
+	ConcatW c[] = {
+		{ L"//",							2	},
+		{ pFolder->getAccount()->getName(),	-1	},
+		{ L"/",								1	},
+		{ wstrName.get(),					-1	}
+	};
+	return concat(c, countof(c));
+}
+
+std::pair<Account*, Folder*> qm::UIUtil::getAccountOrFolder(Document* pDocument,
+															const WCHAR* pwsz)
+{
+	std::pair<Account*, Folder*> p(0, 0);
+	if (wcsncmp(pwsz, L"//", 2) != 0)
+		return p;
+	
+	wstring_ptr wstrAccount;
+	const WCHAR* pFolder = wcschr(pwsz + 2, L'/');
+	if (pFolder) {
+		wstrAccount = allocWString(pwsz + 2, pFolder - (pwsz + 2));
+		++pFolder;
+	}
+	else {
+		wstrAccount = allocWString(pwsz + 2);
+	}
+	
+	Account* pAccount = pDocument->getAccount(wstrAccount.get());
+	if (!pAccount)
+		return p;
+	
+	if (pFolder)
+		p.second = pAccount->getFolder(pFolder);
+	else
+		p.first = pAccount;
+	
+	return p;
 }
 
 

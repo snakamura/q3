@@ -381,48 +381,32 @@ void qm::ApplicationImpl::restoreCurrentFolder()
 	wstring_ptr wstrFolder(pProfile_->getString(
 		L"Global", L"CurrentFolder", L""));
 	
-	if (wcsncmp(wstrFolder.get(), L"//", 2) == 0) {
-		WCHAR* pwszFolder = wcschr(wstrFolder.get() + 2, L'/');
-		if (pwszFolder) {
-			*pwszFolder = L'\0';
-			++pwszFolder;
-		}
-		
-		Account* pAccount = pDocument_->getAccount(wstrFolder.get() + 2);
-		if (pAccount) {
-			FolderModel* pFolderModel = pMainWindow_->getFolderModel();
-			if (pwszFolder) {
-				Folder* pFolder = pAccount->getFolder(pwszFolder);
-				if (pFolder)
-					pFolderModel->setCurrent(0, pFolder, false);
-			}
-			else {
-				pFolderModel->setCurrent(pAccount, 0, false);
-			}
-		}
-	}
+	FolderModel* pFolderModel = pMainWindow_->getFolderModel();
+	
+	std::pair<Account*, Folder*> p(UIUtil::getAccountOrFolder(
+		pDocument_.get(), wstrFolder.get()));
+	if (p.first)
+		pFolderModel->setCurrent(p.first, 0, false);
+	else if (p.second)
+		pFolderModel->setCurrent(0, p.second, false);
 }
 
 void qm::ApplicationImpl::saveCurrentFolder()
 {
-	StringBuffer<WSTRING> buf;
+	wstring_ptr wstr;
 	
 	FolderModel* pFolderModel = pMainWindow_->getFolderModel();
 	Account* pAccount = pFolderModel->getCurrentAccount();
-	Folder* pFolder = pFolderModel->getCurrentFolder();
-	if (!pAccount && pFolder)
-		pAccount = pFolder->getAccount();
 	if (pAccount) {
-		buf.append(L"//");
-		buf.append(pAccount->getName());
-		if (pFolder) {
-			buf.append(L'/');
-			wstring_ptr wstrFolder(pFolder->getFullName());
-			buf.append(wstrFolder.get());
-		}
+		wstr = UIUtil::formatAccount(pAccount);
+	}
+	else {
+		Folder* pFolder = pFolderModel->getCurrentFolder();
+		if (pFolder)
+			wstr = UIUtil::formatFolder(pFolder);
 	}
 	
-	pProfile_->setString(L"Global", L"CurrentFolder", buf.getCharArray());
+	pProfile_->setString(L"Global", L"CurrentFolder", wstr.get());
 }
 
 bool qm::ApplicationImpl::canCheck()

@@ -68,6 +68,7 @@ public:
 
 public:
 	typedef std::vector<std::pair<Folder*, HTREEITEM> > FolderMap;
+	typedef std::vector<HTREEITEM> ItemList;
 
 public:
 	Account* getAccount(HTREEITEM hItem) const;
@@ -76,6 +77,9 @@ public:
 	Folder* getSelectedFolder() const;
 	HTREEITEM getHandleFromAccount(Account* pAccount) const;
 	HTREEITEM getHandleFromFolder(Folder* pFolder) const;
+	void getItems(ItemList* pList) const;
+	void getDescendantItems(HTREEITEM hItem,
+							ItemList* pList) const;
 	void update(Folder* pFolder);
 	void expand(HTREEITEM hItem,
 				bool bExpand);
@@ -88,6 +92,7 @@ public:
 public:
 	virtual void offlineStatusChanged(const DocumentEvent& event);
 	virtual void accountListChanged(const AccountListChangedEvent& event);
+	virtual void documentInitialized(const DocumentEvent& event);
 
 public:
 	virtual void folderListChanged(const FolderListChangedEvent& event);
@@ -244,6 +249,31 @@ HTREEITEM qm::FolderWindowImpl::getHandleFromFolder(Folder* pFolder) const
 	return it != mapFolder_.end() ? (*it).second : 0;
 }
 
+void qm::FolderWindowImpl::getItems(ItemList* pList) const
+{
+	HWND hwnd = pThis_->getHandle();
+	
+	HTREEITEM hItem = TreeView_GetRoot(hwnd);
+	while (hItem) {
+		pList->push_back(hItem);
+		getDescendantItems(hItem, pList);
+		hItem = TreeView_GetNextSibling(hwnd, hItem);
+	}
+}
+
+void qm::FolderWindowImpl::getDescendantItems(HTREEITEM hItem,
+											  ItemList* pList) const
+{
+	HWND hwnd = pThis_->getHandle();
+	
+	hItem = TreeView_GetChild(hwnd, hItem);
+	while (hItem) {
+		pList->push_back(hItem);
+		getDescendantItems(hItem, pList);
+		hItem = TreeView_GetNextSibling(hwnd, hItem);
+	}
+}
+
 void qm::FolderWindowImpl::update(Folder* pFolder)
 {
 	assert(pFolder);
@@ -373,6 +403,23 @@ void qm::FolderWindowImpl::accountListChanged(const AccountListChangedEvent& eve
 	default:
 		assert(false);
 		break;
+	}
+}
+
+void qm::FolderWindowImpl::documentInitialized(const DocumentEvent& event)
+{
+	Profile::StringList listFolders;
+	StringListFree<Profile::StringList> free(listFolders);
+	pProfile_->getStringList(L"FolderWindow", L"ExpandedFolders", &listFolders);
+	for (Profile::StringList::const_iterator it = listFolders.begin(); it != listFolders.end(); ++it) {
+		std::pair<Account*, Folder*> p(UIUtil::getAccountOrFolder(pDocument_, *it));
+		HTREEITEM hItem = 0;
+		if (p.first)
+			hItem = getHandleFromAccount(p.first);
+		else if (p.second)
+			hItem = getHandleFromFolder(p.second);
+		if (hItem)
+			TreeView_Expand(pThis_->getHandle(), hItem, TVE_EXPAND);
 	}
 }
 
@@ -963,6 +1010,32 @@ qm::FolderWindow::FolderWindow(WindowBase* pParentWindow,
 qm::FolderWindow::~FolderWindow()
 {
 	delete pImpl_;
+}
+
+bool qm::FolderWindow::save()
+{
+	HWND hwnd = getHandle();
+	
+	FolderWindowImpl::ItemList listItem;
+	pImpl_->getItems(&listItem);
+	
+	Profile::StringList listValue;
+	StringListFree<Profile::StringList> free(listValue);
+	for (FolderWindowImpl::ItemList::const_iterator it = listItem.begin(); it != listItem.end(); ++it) {
+		HTREEITEM hItem = *it;
+		if (TreeView_GetItemState(hwnd, hItem, TVIS_EXPANDED) & TVIS_EXPANDED) {
+			wstring_ptr wstr;
+			if (TreeView_GetParent(hwnd, hItem))
+				wstr = UIUtil::formatFolder(pImpl_->getFolder(hItem));
+			else
+				wstr = UIUtil::formatAccount(pImpl_->getAccount(hItem));
+			listValue.push_back(wstr.release());
+		}
+	}
+	
+	pImpl_->pProfile_->setStringList(L"FolderWindow", L"ExpandedFolders", listValue);
+	
+	return true;
 }
 
 void qm::FolderWindow::expand(bool bExpand)

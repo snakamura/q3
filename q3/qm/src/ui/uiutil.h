@@ -27,6 +27,7 @@ class ProgressDialogInit;
 template<class Callback> class ProgressDialogMessageOperationCallbackBase;
 class DefaultPasswordCallback;
 
+class Account;
 class Folder;
 class Message;
 class MessageHolder;
@@ -83,6 +84,11 @@ public:
 	
 	static qs::wstring_ptr convertLFtoCRLF(const WCHAR* pwsz);
 	static qs::wstring_ptr convertCRLFtoLF(const WCHAR* pwsz);
+	
+	static qs::wstring_ptr formatAccount(Account* pAccount);
+	static qs::wstring_ptr formatFolder(Folder* pFolder);
+	static std::pair<Account*, Folder*> getAccountOrFolder(Document* pDocument,
+														   const WCHAR* pwsz);
 };
 
 

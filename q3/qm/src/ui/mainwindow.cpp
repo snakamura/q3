@@ -1591,6 +1591,7 @@ bool qm::MainWindow::save()
 		!pImpl_->pViewModelManager_->save() ||
 		!pImpl_->pListWindow_->save() ||
 		!pImpl_->pMessageWindow_->save() ||
+		!pImpl_->pFolderWindow_->save() ||
 		!pImpl_->pFolderListWindow_->save())
 		return false;
 	
