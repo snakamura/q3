@@ -304,6 +304,41 @@ QSTATUS qm::EditMessage::setField(const WCHAR* pwszName,
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qm::EditMessage::getHeader(WSTRING* pwstrHeader)
+{
+	assert(pwstrHeader);
+	
+	DECLARE_QSTATUS();
+	
+	string_ptr<WSTRING> wstrHeader;
+	status = PartUtil::a2w(pMessage_->getHeader(), &wstrHeader);
+	CHECK_QSTATUS();
+	
+	*pwstrHeader = wstrHeader.release();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::EditMessage::setHeader(const WCHAR* pwszHeader, size_t nLen)
+{
+	assert(pwszHeader);
+	
+	DECLARE_QSTATUS();
+	
+	Message msg(&status);
+	CHECK_QSTATUS();
+	MessageCreator creator;
+	status = creator.createHeader(&msg, pwszHeader, nLen);
+	CHECK_QSTATUS();
+	
+	status = pMessage_->setHeader(msg.getHeader());
+	CHECK_QSTATUS();
+	
+	clearFields();
+	
+	return QSTATUS_SUCCESS;
+}
+
 const WCHAR* qm::EditMessage::getBody() const
 {
 	return wstrBody_;
@@ -678,15 +713,7 @@ void qm::EditMessage::clear()
 	
 	pBodyPart_ = 0;
 	
-	std::for_each(listField_.begin(), listField_.end(),
-		unary_compose_f_gx(
-			string_free<WSTRING>(),
-			mem_data_ref(&Field::wstrName_)));
-	std::for_each(listField_.begin(), listField_.end(),
-		unary_compose_f_gx(
-			string_free<WSTRING>(),
-			mem_data_ref(&Field::wstrValue_)));
-	listField_.clear();
+	clearFields();
 	
 	freeWString(wstrBody_);
 	wstrBody_ = 0;
@@ -699,6 +726,17 @@ void qm::EditMessage::clear()
 	
 	freeWString(wstrSignature_);
 	wstrSignature_ = 0;
+}
+
+void qm::EditMessage::clearFields()
+{
+	FieldList::const_iterator it = listField_.begin();
+	while (it != listField_.end()) {
+		freeWString((*it).wstrName_);
+		freeWString((*it).wstrValue_);
+		++it;
+	}
+	listField_.clear();
 }
 
 QSTATUS qm::EditMessage::getBodyPart(Part* pPart, Part** ppPart) const

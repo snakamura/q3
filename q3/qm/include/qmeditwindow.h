@@ -110,6 +110,8 @@ public:
 	EditWindowItem* getFocusedItem() const;
 	void saveFocusedItem();
 	void restoreFocusedItem();
+	bool isHeaderEdit() const;
+	qs::QSTATUS setHeaderEdit(bool bHeaderEdit);
 
 public:
 	virtual qs::QSTATUS getAccelerator(qs::Accelerator** ppAccelerator);

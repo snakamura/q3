@@ -1,5 +1,5 @@
 /*
- * $Id: keymap.h,v 1.8 2003/05/25 07:24:24 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -133,10 +133,10 @@ const qs::KeyNameToId mapKeyNameToId[] = {
 	{ L"ToolGoround7",					IDM_TOOL_GOROUND + 7,					0 },
 	{ L"ToolGoround8",					IDM_TOOL_GOROUND + 8,					0 },
 	{ L"ToolGoround9",					IDM_TOOL_GOROUND + 9,					0 },
+	{ L"ToolHeaderEdit",				IDM_TOOL_HEADEREDIT,					0 },
 	{ L"ToolInsertSignature",			IDM_TOOL_INSERTSIGNATURE,				0 },
 	{ L"ToolInsertText",				IDM_TOOL_INSERTTEXT,					0 },
 	{ L"ToolOptions",					IDM_TOOL_OPTIONS,						0 },
-	{ L"ToolRawEdit",					IDM_TOOL_RAWEDIT,						0 },
 	{ L"ToolReceive",					IDM_TOOL_RECEIVE,						0 },
 	{ L"ToolReform",					IDM_TOOL_REFORM,						0 },
 	{ L"ToolReformAll",					IDM_TOOL_REFORMALL,						0 },

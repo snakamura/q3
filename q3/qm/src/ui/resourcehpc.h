@@ -273,10 +273,10 @@
 #define IDM_TOOL_CANCEL                 44004
 #define IDM_TOOL_DIALUP                 44005
 #define IDM_TOOL_ENCRYPT                44006
-#define IDM_TOOL_INSERTSIGNATURE        44007
-#define IDM_TOOL_INSERTTEXT             44008
-#define IDM_TOOL_OPTIONS                44009
-#define IDM_TOOL_RAWEDIT                44010
+#define IDM_TOOL_HEADEREDIT             44007
+#define IDM_TOOL_INSERTSIGNATURE        44009
+#define IDM_TOOL_INSERTTEXT             44009
+#define IDM_TOOL_OPTIONS                44010
 #define IDM_TOOL_RECEIVE                44011
 #define IDM_TOOL_REFORM                 44012
 #define IDM_TOOL_REFORMALL              44013

@@ -1,5 +1,5 @@
 /*
- * $Id: qmmessagewindow.h,v 1.2 2003/05/13 17:38:21 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -127,7 +127,7 @@ public:
 	qs::QSTATUS setTemplate(const WCHAR* pwszTemplate);
 	qs::QSTATUS scrollPage(bool bPrev, bool* pbScrolled);
 	bool isSelectMode() const;
-	qs::QSTATUS toggleSelectMode();
+	qs::QSTATUS setSelectMode(bool bSelectMode);
 	qs::QSTATUS find(const WCHAR* pwszFind,
 		bool bMatchCase, bool bPrev, bool* pbFound);
 	MessageWindowItem* getFocusedItem() const;

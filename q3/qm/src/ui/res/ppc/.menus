@@ -200,7 +200,7 @@
 			<menuitem text="Reform All" action="ToolReformAll"/>
 			<menuitem text="Auto Reform" action="ToolReformAuto"/>
 			<separator/>
-			<menuitem text="Raw Edit" action="ToolRawEdit"/>
+			<menuitem text="Header Edit" action="ToolHeaderEdit"/>
 			<separator/>
 			<popupmenu text="Script" action="ToolScript"/>
 		</popupmenu>

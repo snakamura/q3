@@ -1,5 +1,5 @@
 /*
- * $Id: editwindow.cpp,v 1.2 2003/05/21 16:00:14 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -108,6 +108,7 @@ public:
 	DropTarget* pDropTarget_;
 	bool bCreated_;
 	
+	bool bHeaderEdit_;
 	EditWindowItem* pLastFocusedItem_;
 	bool bCanDrop_;
 };
@@ -126,17 +127,11 @@ QSTATUS qm::EditWindowImpl::layoutChildren(int cx, int cy)
 	status = pHeaderEditWindow_->layout();
 	CHECK_QSTATUS();
 	int nHeaderHeight = pHeaderEditWindow_->getHeight();
-//	if (bShowHeaderWindow_) {
-//		status = pHeaderWindow_->layout();
-//		CHECK_QSTATUS();
-//		status = pHeaderWindow_->getHeight(&nHeaderHeight);
-//		CHECK_QSTATUS();
-//	}
 	
 	pHeaderEditWindow_->setWindowPos(0, 0, 0, cx, nHeaderHeight, SWP_NOZORDER);
-//	pHeaderEditWindow_->showWindow(bShowHeaderWindow_ ? SW_SHOW : SW_HIDE);
+	pHeaderEditWindow_->showWindow(bHeaderEdit_ ? SW_HIDE : SW_SHOW);
 	
-	int nY = nHeaderHeight;
+	int nY = bHeaderEdit_ ? 0 : nHeaderHeight;
 	int nHeight = cy > nY ? cy - nY : 0;
 	pTextWindow_->setWindowPos(HWND_TOP, 0, nY, cx, nHeight, 0);
 	
@@ -147,14 +142,30 @@ QSTATUS qm::EditWindowImpl::updateEditMessage() const
 {
 	DECLARE_QSTATUS();
 	
-	status = pHeaderEditWindow_->updateEditMessage(pEditMessage_);
-	CHECK_QSTATUS();
-	
 	string_ptr<WSTRING> wstrText;
 	status = pTextWindow_->getEditableTextModel()->getText(&wstrText);
 	CHECK_QSTATUS();
-	status = pEditMessage_->setBody(wstrText.get());
-	CHECK_QSTATUS();
+	
+	if (bHeaderEdit_) {
+		const WCHAR* p = wcsstr(wstrText.get(), L"\n\n");
+		size_t nHeaderLen = -1;
+		const WCHAR* pBody = L"";
+		if (p) {
+			nHeaderLen = p - wstrText.get() + 1;
+			pBody = p + 2;
+		}
+		status = pEditMessage_->setHeader(wstrText.get(), nHeaderLen);
+		CHECK_QSTATUS();
+		status = pEditMessage_->setBody(pBody);
+		CHECK_QSTATUS();
+	}
+	else {
+		status = pHeaderEditWindow_->updateEditMessage(pEditMessage_);
+		CHECK_QSTATUS();
+		
+		status = pEditMessage_->setBody(wstrText.get());
+		CHECK_QSTATUS();
+	}
 	
 	return QSTATUS_SUCCESS;
 }
@@ -276,16 +287,36 @@ QSTATUS qm::EditWindowImpl::setEditMessage(EditMessage* pEditMessage)
 	
 	DECLARE_QSTATUS();
 	
-	status = pHeaderEditWindow_->setEditMessage(
-		pEditMessage, pEditMessage_ != 0);
-	CHECK_QSTATUS();
-	
-	status = pTextWindow_->getEditableTextModel()->setText(pEditMessage->getBody(), -1);
-	CHECK_QSTATUS();
-	
-	if (!pEditMessage_) {
-		status = pEditMessage->addEditMessageHandler(this);
+	EditableTextModel* pTextModel = pTextWindow_->getEditableTextModel();
+	if (bHeaderEdit_) {
+		string_ptr<WSTRING> wstrHeader;
+		status = pEditMessage->getHeader(&wstrHeader);
 		CHECK_QSTATUS();
+		
+		StringBuffer<WSTRING> buf(&status);
+		CHECK_QSTATUS();
+		status = buf.append(wstrHeader.get());
+		CHECK_QSTATUS();
+		status = buf.append(L"\n");
+		CHECK_QSTATUS();
+		status = buf.append(pEditMessage->getBody());
+		CHECK_QSTATUS();
+		
+		status = pTextModel->setText(buf.getCharArray(), buf.getLength());
+		CHECK_QSTATUS();
+	}
+	else {
+		status = pHeaderEditWindow_->setEditMessage(
+			pEditMessage, pEditMessage_ != 0);
+		CHECK_QSTATUS();
+		
+		status = pTextModel->setText(pEditMessage->getBody(), -1);
+		CHECK_QSTATUS();
+		
+		if (!pEditMessage_) {
+			status = pEditMessage->addEditMessageHandler(this);
+			CHECK_QSTATUS();
+		}
 	}
 	
 	pEditMessage_ = pEditMessage;
@@ -430,6 +461,7 @@ qm::EditWindow::EditWindow(Profile* pProfile, QSTATUS* pstatus) :
 	pImpl_->pItemWindow_ = 0;
 	pImpl_->pDropTarget_ = 0;
 	pImpl_->bCreated_ = false;
+	pImpl_->bHeaderEdit_ = false;
 	pImpl_->pLastFocusedItem_ = 0;
 	pImpl_->bCanDrop_ = false;
 	
@@ -487,6 +519,32 @@ void qm::EditWindow::restoreFocusedItem()
 	assert(pItem);
 	
 	pItem->setFocus();
+}
+
+bool qm::EditWindow::isHeaderEdit() const
+{
+	return pImpl_->bHeaderEdit_;
+}
+
+QSTATUS qm::EditWindow::setHeaderEdit(bool bHeaderEdit)
+{
+	DECLARE_QSTATUS();
+	
+	if (bHeaderEdit != pImpl_->bHeaderEdit_) {
+		Message* pMessage = 0;
+		status = pImpl_->pEditMessage_->getMessage(&pMessage);
+		CHECK_QSTATUS();
+		
+		pImpl_->bHeaderEdit_ = bHeaderEdit;
+		
+		status = pImpl_->setEditMessage(pImpl_->pEditMessage_);
+		CHECK_QSTATUS();
+		
+		pImpl_->layoutChildren();
+		pImpl_->pTextWindow_->setFocus();
+	}
+	
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::EditWindow::getAccelerator(Accelerator** ppAccelerator)

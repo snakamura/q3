@@ -1,5 +1,5 @@
 /*
- * $Id: menu.h,v 1.7 2003/05/25 07:24:24 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -77,10 +77,10 @@ const qs::MenuItem menuItems[] = {
 	{ L"ToolCancel",				IDM_TOOL_CANCEL					},
 	{ L"ToolDialup",				IDM_TOOL_DIALUP					},
 	{ L"ToolEncrypt",				IDM_TOOL_ENCRYPT				},
+	{ L"ToolHeaderEdit",			IDM_TOOL_HEADEREDIT				},
 	{ L"ToolInsertSignature",		IDM_TOOL_INSERTSIGNATURE		},
 	{ L"ToolInsertText",			IDM_TOOL_INSERTTEXT				},
 	{ L"ToolOptions",				IDM_TOOL_OPTIONS				},
-	{ L"ToolRawEdit",				IDM_TOOL_RAWEDIT				},
 	{ L"ToolReceive",				IDM_TOOL_RECEIVE				},
 	{ L"ToolReform",				IDM_TOOL_REFORM					},
 	{ L"ToolReformAll",				IDM_TOOL_REFORMALL				},

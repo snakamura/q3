@@ -1,5 +1,5 @@
 /*
- * $Id: actioninvoker.cpp,v 1.5 2003/05/25 07:24:24 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -140,10 +140,10 @@ struct ActionNameMap
 	{ L"ToolGoround7",					IDM_TOOL_GOROUND + 7					},
 	{ L"ToolGoround8",					IDM_TOOL_GOROUND + 8					},
 	{ L"ToolGoround9",					IDM_TOOL_GOROUND + 9					},
+	{ L"ToolHeaderEdit",				IDM_TOOL_HEADEREDIT						},
 	{ L"ToolInsertSignature",			IDM_TOOL_INSERTSIGNATURE				},
 	{ L"ToolInsertText",				IDM_TOOL_INSERTTEXT						},
 	{ L"ToolOptions",					IDM_TOOL_OPTIONS						},
-	{ L"ToolRawEdit",					IDM_TOOL_RAWEDIT						},
 	{ L"ToolReceive",					IDM_TOOL_RECEIVE						},
 	{ L"ToolReform",					IDM_TOOL_REFORM							},
 	{ L"ToolReformAll",					IDM_TOOL_REFORMALL						},

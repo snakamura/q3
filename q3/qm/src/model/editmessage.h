@@ -1,5 +1,5 @@
 /*
- * $Id: editmessage.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -105,6 +105,8 @@ public:
 		FieldType type, qs::WSTRING* pwstrValue);
 	qs::QSTATUS setField(const WCHAR* pwszName,
 		const WCHAR* pwszValue, FieldType type);
+	qs::QSTATUS getHeader(qs::WSTRING* pwstrHeader);
+	qs::QSTATUS setHeader(const WCHAR* pwszHeader, size_t nLen);
 	const WCHAR* getBody() const;
 	qs::QSTATUS setBody(const WCHAR* pwszBody);
 	qs::QSTATUS getAttachments(AttachmentList* pList) const;
@@ -129,6 +131,7 @@ public:
 private:
 	qs::QSTATUS fixup();
 	void clear();
+	void clearFields();
 	qs::QSTATUS getBodyPart(qs::Part* pPart, qs::Part** ppPart) const;
 	qs::QSTATUS removePart(qs::Part* pPart);
 	qs::QSTATUS normalize(qs::Part* pPart);

@@ -485,10 +485,17 @@ bool qm::MessageWindow::isSelectMode() const
 	return pImpl_->bSelectMode_;
 }
 
-QSTATUS qm::MessageWindow::toggleSelectMode()
+QSTATUS qm::MessageWindow::setSelectMode(bool bSelectMode)
 {
-	pImpl_->bSelectMode_ = !pImpl_->bSelectMode_;
-	return pImpl_->pMessageViewWindow_->setSelectMode(pImpl_->bSelectMode_);
+	DECLARE_QSTATUS();
+	
+	if (pImpl_->bSelectMode_ != bSelectMode) {
+		status = pImpl_->pMessageViewWindow_->setSelectMode(bSelectMode);
+		CHECK_QSTATUS();
+		pImpl_->bSelectMode_ = bSelectMode;
+	}
+	
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::MessageWindow::find(const WCHAR* pwszFind,

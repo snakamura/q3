@@ -235,6 +235,9 @@ QSTATUS qm::EditFrameWindowImpl::initActions()
 	status = InitAction1<EditToolInsertTextAction, TextWindow*>(
 		pActionMap_, IDM_TOOL_INSERTTEXT, pEditWindow_->getTextWindow());
 	CHECK_QSTATUS();
+	status = InitAction1<EditToolHeaderEditAction, EditWindow*>(
+		pActionMap_, IDM_TOOL_HEADEREDIT, pEditWindow_);
+	CHECK_QSTATUS();
 	status = InitAction1<EditToolReformAction, TextWindow*>(
 		pActionMap_, IDM_TOOL_REFORM, pEditWindow_->getTextWindow());
 	CHECK_QSTATUS();

@@ -3522,7 +3522,7 @@ qm::ViewSelectModeAction::~ViewSelectModeAction()
 
 QSTATUS qm::ViewSelectModeAction::invoke(const ActionEvent& event)
 {
-	return pMessageWindow_->toggleSelectMode();
+	return pMessageWindow_->setSelectMode(!pMessageWindow_->isSelectMode());
 }
 
 QSTATUS qm::ViewSelectModeAction::isChecked(

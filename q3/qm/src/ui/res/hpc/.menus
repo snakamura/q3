@@ -211,7 +211,7 @@
 			<menuitem text="Re&amp;form All" action="ToolReformAll"/>
 			<menuitem text="A&amp;uto Reform" action="ToolReformAuto"/>
 			<separator/>
-			<menuitem text="&amp;Raw Edit" action="ToolRawEdit"/>
+			<menuitem text="&amp;Header Edit" action="ToolHeaderEdit"/>
 			<separator/>
 			<menuitem text="&amp;Encrypt" action="ToolEncrypt"/>
 			<menuitem text="&amp;Sign" action="ToolSign"/>

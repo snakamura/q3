@@ -58,4 +58,4 @@ done
 (cd $ZIPDIR; ftp -i -s:$FTPSCRIPT)
 
 echo $VERSION-$DATE > nightly
-ncftpput -f $CGIFTPUSER /var/www/q3 nightly
+ncftpput -f $CGIFTPUSER /public_html/q3 nightly

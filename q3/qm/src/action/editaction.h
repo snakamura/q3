@@ -34,6 +34,7 @@ class EditToolAttachmentAction;
 class EditToolFlagAction;
 class EditToolInsertSignatureAction;
 class EditToolInsertTextAction;
+class EditToolHeaderEditAction;
 class EditToolReformAction;
 class EditToolReformAllAction;
 
@@ -471,6 +472,31 @@ private:
 
 private:
 	qs::TextWindow* pTextWindow_;
+};
+
+
+/****************************************************************************
+ *
+ * EditToolHeaderEditAction
+ *
+ */
+
+class EditToolHeaderEditAction : public qs::AbstractAction
+{
+public:
+	EditToolHeaderEditAction(EditWindow* pEditWindow, qs::QSTATUS* pstatus);
+	virtual ~EditToolHeaderEditAction();
+
+public:
+	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual qs::QSTATUS isChecked(const qs::ActionEvent& event, bool* pbChecked);
+
+private:
+	EditToolHeaderEditAction(const EditToolHeaderEditAction&);
+	EditToolHeaderEditAction& operator=(const EditToolHeaderEditAction&);
+
+private:
+	EditWindow* pEditWindow_;
 };
 
 

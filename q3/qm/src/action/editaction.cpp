@@ -1,5 +1,5 @@
 /*
- * $Id: editaction.cpp,v 1.8 2003/05/23 08:46:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -890,6 +890,36 @@ QSTATUS qm::EditToolInsertTextAction::isEnabled(
 {
 	assert(pbEnabled);
 	*pbEnabled = pTextWindow_->hasFocus();
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * EditToolHeaderEditAction
+ *
+ */
+
+qm::EditToolHeaderEditAction::EditToolHeaderEditAction(
+	EditWindow* pEditWindow, QSTATUS* pstatus) :
+	pEditWindow_(pEditWindow)
+{
+}
+
+qm::EditToolHeaderEditAction::~EditToolHeaderEditAction()
+{
+}
+
+QSTATUS qm::EditToolHeaderEditAction::invoke(const ActionEvent& event)
+{
+	return pEditWindow_->setHeaderEdit(!pEditWindow_->isHeaderEdit());
+}
+
+QSTATUS qm::EditToolHeaderEditAction::isChecked(
+	const ActionEvent& event, bool* pbChecked)
+{
+	assert(pbChecked);
+	*pbChecked = pEditWindow_->isHeaderEdit();
 	return QSTATUS_SUCCESS;
 }
 
