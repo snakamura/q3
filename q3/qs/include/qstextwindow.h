@@ -383,6 +383,8 @@ public:
 					   COLORREF cr);
 	bool isLineQuote() const;
 	void setLineQuote(bool bLineQuote);
+	bool isWordWrap() const;
+	void setWordWrap(bool bWordWrap);
 	unsigned int getReformLineLength() const;
 	void setReformLineLength(unsigned int nReformLineLength);
 	const WCHAR* getReformQuote() const;

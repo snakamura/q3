@@ -313,6 +313,7 @@ public:
 	wstring_ptr wstrQuote_[2];
 	COLORREF crQuote_[2];
 	bool bLineQuote_;
+	bool bWordWrap_;
 	unsigned int nReformLineLength_;
 	wstring_ptr wstrReformQuote_;
 	URLSchemaList listURLSchema_;
@@ -775,6 +776,27 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 						nFormatWidth - nLineWidth, &nFit, 0, &size);
 					if (nFit != p - pBegin || p == pEnd ||
 						static_cast<unsigned int>(size.cx) == nFormatWidth - nLineWidth) {
+						if (bWordWrap_) {
+							bool bBreakBefore = false;
+							int m = nFit;
+							while (m > 0) {
+								WCHAR c = *(pBegin + m);
+								if (m != nFit && (TextUtil::isBreakSelf(c) || TextUtil::isBreakAfter(c))) {
+									break;
+								}
+								else if (TextUtil::isBreakBefore(c)) {
+									bBreakBefore = true;
+									break;
+								}
+								--m;
+							}
+							if (m != 0) {
+								if (!bBreakBefore)
+									nFit = m + 1;
+								getTextExtent(dc, pBegin, nFit, nFormatWidth - nLineWidth, 0, 0, &size);
+							}
+						}
+						
 						size_t nOffset = pLine - line.getText();
 						size_t nLength = pBegin + nFit - pLine;
 						convertLogicalLinksToPhysicalLinks(listLogicalLinkItem,
@@ -868,8 +890,7 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 					pBegin = p;
 				}
 				
-				if (p == pEnd && bFull &&
-					n == pTextModel_->getLineCount() - 1) {
+				if (p == pEnd && bFull && n == pTextModel_->getLineCount() - 1) {
 					PhysicalLinePtr ptr(allocLine(n, p - line.getText(),
 						0, cr, nQuoteDepth, nQuoteLength, 0, 0));
 					pListLine->push_back(ptr.get());
@@ -1822,7 +1843,8 @@ qs::TextWindow::TextWindow(TextModel* pTextModel,
 		{ L"ShowRuler",					0,	0 },
 		{ L"ReformLineLength",			74,	0 },
 		{ L"AdjustExtent",				0,	0 },
-		{ L"LineQuote",					1,	0 }
+		{ L"LineQuote",					1,	0 },
+		{ L"WordWrap",					0,	0 }
 	};
 	for (n = 0; n < countof(initNumbers); ++n)
 		initNumbers[n].nValue_ = pProfile->getInt(pwszSection,
@@ -1891,6 +1913,7 @@ qs::TextWindow::TextWindow(TextModel* pTextModel,
 		pImpl_->crQuote_[n] = initColors[n + 2].cr_;
 	}
 	pImpl_->bLineQuote_ = initNumbers[15].nValue_ != 0;
+	pImpl_->bWordWrap_ = initNumbers[16].nValue_ != 0;
 	pImpl_->nReformLineLength_ = initNumbers[13].nValue_;
 	pImpl_->wstrReformQuote_.reset(initStrings[2].wstrValue_);
 	pImpl_->listURLSchema_.swap(listURLSchema);
@@ -3007,6 +3030,17 @@ bool qs::TextWindow::isLineQuote() const
 void qs::TextWindow::setLineQuote(bool bLineQuote)
 {
 	pImpl_->bLineQuote_ = bLineQuote;
+	pImpl_->recalcLines();
+}
+
+bool qs::TextWindow::isWordWrap() const
+{
+	return pImpl_->bWordWrap_;
+}
+
+void qs::TextWindow::setWordWrap(bool bWordWrap)
+{
+	pImpl_->bWordWrap_ = bWordWrap;
 	pImpl_->recalcLines();
 }
 
