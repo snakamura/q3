@@ -434,6 +434,13 @@ wstring_ptr qs::FieldParser::decode(const CHAR* psz,
 				if (!wstrConverted.get())
 					return 0;
 				
+				{
+					WCHAR* p = wstrConverted.get();
+					for (size_t n = 0; n < wstrConverted.size(); ++n, ++p) {
+						if (*p == L'\n' || *p == L'\r')
+							*p = L' ';
+					}
+				}
 				decoded.append(wstrConverted.get(), wstrConverted.size());
 				
 				pConverter.reset(0);

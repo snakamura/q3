@@ -745,6 +745,9 @@ string_ptr qs::Part::getRawField(const WCHAR* pwszName,
 			while (*(p + 1) == ' ' || *(p + 1) == '\t')
 				++p;
 		}
+		else if (c == '\r' || c == '\n') {
+			buf.append(' ');
+		}
 		else {
 			buf.append(c);
 		}
