@@ -63,32 +63,57 @@ unsigned int qmrss::Http::invoke(HttpMethod* pMethod)
 		if (!bConnect)
 			return -1;
 		
-		// TODO
-		// Support SSL.
-		
-		pSocketBase = pSocket;
+		if (pMethod->isSecure()) {
+			StringBuffer<WSTRING> request;
+			request.append(L"CONNECT ");
+			request.append(pMethod->getHost());
+			request.append(L":");
+			WCHAR wszPort[32];
+			swprintf(wszPort, L"%u", pMethod->getPort());
+			request.append(wszPort);
+			request.append(L" HTTP/1.0\r\n\r\n");
+			if (!HttpUtil::write(pSocket.get(), request.getCharArray(), request.getLength()))
+				return -1;
+			
+			xstring_ptr strResponse(HttpUtil::readLine(pSocket.get()));
+			if (!strResponse.get())
+				return -1;
+			unsigned int nStatus = HttpUtil::parseResponse(strResponse.get());
+			if (nStatus == -1 || nStatus/100 != 2)
+				return -1;
+			
+			while (true) {
+				xstring_ptr str(HttpUtil::readLine(pSocket.get()));
+				if (!str.get())
+					return -1;
+				else if (!*str.get())
+					break;
+			}
+		}
 	}
 	else {
 		bool bConnect = false;
 		for (unsigned int n = 0; n < nRetryCount && !bConnect; ++n)
 			bConnect = pSocket->connect(pMethod->getHost(), pMethod->getPort());
+		if (!bConnect)
+			return -1;
+	}
+	
+	if (pMethod->isSecure()) {
+		SSLSocketFactory* pFactory = SSLSocketFactory::getFactory();
+		if (!pFactory)
+			return -1;
 		
-		if (pMethod->isSsl()) {
-			SSLSocketFactory* pFactory = SSLSocketFactory::getFactory();
-			if (!pFactory)
-				return -1;
-			
-			std::auto_ptr<SSLSocket> pSSLSocket = pFactory->createSSLSocket(
-				pSocket.get(), true, pSSLSocketCallback_, pLogger_);
-			if (!pSSLSocket.get())
-				return -1;
-			
-			pSocket.release();
-			pSocketBase = pSSLSocket;
-		}
-		else {
-			pSocketBase = pSocket;
-		}
+		std::auto_ptr<SSLSocket> pSSLSocket = pFactory->createSSLSocket(
+			pSocket.get(), true, pSSLSocketCallback_, pLogger_);
+		if (!pSSLSocket.get())
+			return -1;
+		
+		pSocket.release();
+		pSocketBase = pSSLSocket;
+	}
+	else {
+		pSocketBase = pSocket;
 	}
 	
 	std::auto_ptr<HttpConnection> pConnection(
@@ -130,29 +155,10 @@ bool qmrss::HttpConnection::isProxied() const
 	return bProxied_;
 }
 
-bool qmrss::HttpConnection::write(const unsigned char* p,
-								  size_t nLen)
-{
-	while (nLen != 0) {
-		int nSelect = pSocket_->select(SocketBase::SELECT_WRITE | SocketBase::SELECT_READ);
-		if (nSelect == -1)
-			return false;
-		else if (nSelect == 0)
-			return false;
-		int n = pSocket_->send(reinterpret_cast<const char*>(p), nLen, 0);
-		if (n == -1)
-			return false;
-		nLen -= n;
-		p += n;
-	}
-	return true;
-}
-
 bool qmrss::HttpConnection::write(const WCHAR* p,
 								  size_t nLen)
 {
-	string_ptr str(wcs2mbs(p, nLen));
-	return write(reinterpret_cast<const unsigned char*>(str.get()), strlen(str.get()));
+	return HttpUtil::write(pSocket_.get(), p, nLen);
 }
 
 size_t qmrss::HttpConnection::read(unsigned char* p,
@@ -284,10 +290,10 @@ const WCHAR* qmrss::AbstractHttpMethod::getHost() const
 unsigned short qmrss::AbstractHttpMethod::getPort() const
 {
 	unsigned short nPort = pURL_->getPort();
-	return nPort != static_cast<unsigned short>(-1) ? nPort : isSsl() ? 443 : 80;
+	return nPort != static_cast<unsigned short>(-1) ? nPort : isSecure() ? 443 : 80;
 }
 
-bool qmrss::AbstractHttpMethod::isSsl() const
+bool qmrss::AbstractHttpMethod::isSecure() const
 {
 	return wcscmp(pURL_->getScheme(), L"https") == 0;
 }
@@ -662,3 +668,70 @@ xstring_ptr qmrss::HttpUtil::readLine(InputStream* pInputStream)
 	}
 	return buf.getXString();
 }
+
+xstring_ptr qmrss::HttpUtil::readLine(qs::SocketBase* pSocket)
+{
+	bool bCr = false;
+	XStringBuffer<XSTRING> buf;
+	while (true) {
+		unsigned char c = 0;
+		if (!readByte(pSocket, &c))
+			return 0;
+		
+		if (!buf.append(c))
+			return 0;
+		
+		if (bCr) {
+			if (c == '\n') {
+				buf.remove(buf.getLength() - 2, buf.getLength());
+				break;
+			}
+			else {
+				bCr = false;
+			}
+		}
+		else {
+			bCr = c == '\r';
+		}
+	}
+	return buf.getXString();
+}
+
+bool qmrss::HttpUtil::readByte(qs::SocketBase* pSocket,
+							   unsigned char* p)
+{
+	int nSelect = pSocket->select(SocketBase::SELECT_READ);
+	if (nSelect == -1)
+		return false;
+	else if (nSelect == 0)
+		return false;
+	return pSocket->recv(reinterpret_cast<char*>(p), 1, 0) == 1;
+}
+
+bool qmrss::HttpUtil::write(SocketBase* pSocket,
+							const unsigned char* p,
+							size_t nLen)
+{
+	while (nLen != 0) {
+		int nSelect = pSocket->select(SocketBase::SELECT_WRITE | SocketBase::SELECT_READ);
+		if (nSelect == -1)
+			return false;
+		else if (nSelect == 0)
+			return false;
+		int n = pSocket->send(reinterpret_cast<const char*>(p), nLen, 0);
+		if (n == -1)
+			return false;
+		nLen -= n;
+		p += n;
+	}
+	return true;
+}
+
+bool qmrss::HttpUtil::write(SocketBase* pSocket,
+							const WCHAR* p,
+							size_t nLen)
+{
+	string_ptr str(wcs2mbs(p, nLen));
+	return write(pSocket, reinterpret_cast<const unsigned char*>(str.get()), strlen(str.get()));
+}
+

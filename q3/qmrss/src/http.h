@@ -89,8 +89,6 @@ public:
 
 public:
 	bool isProxied() const;
-	bool write(const unsigned char* p,
-			   size_t nLen);
 	bool write(const WCHAR* p,
 			   size_t nLen);
 	size_t read(unsigned char* p,
@@ -138,7 +136,7 @@ public:
 public:
 	virtual const WCHAR* getHost() const = 0;
 	virtual unsigned short getPort() const = 0;
-	virtual bool isSsl() const = 0;
+	virtual bool isSecure() const = 0;
 	virtual bool isReady() const = 0;
 	virtual unsigned int getRetryCount() const = 0;
 	virtual unsigned int invoke(std::auto_ptr<HttpConnection> pConnection) = 0;
@@ -172,7 +170,7 @@ public:
 public:
 	virtual const WCHAR* getHost() const;
 	virtual unsigned short getPort() const;
-	virtual bool isSsl() const;
+	virtual bool isSecure() const;
 	virtual bool isReady() const;
 	virtual unsigned int getRetryCount() const;
 	virtual unsigned int invoke(std::auto_ptr<HttpConnection> pConnection);
@@ -284,6 +282,15 @@ public:
 											  const WCHAR* pwszPassword);
 	static unsigned int parseResponse(const char* p);
 	static qs::xstring_ptr readLine(qs::InputStream* pInputStream);
+	static qs::xstring_ptr readLine(qs::SocketBase* pSocket);
+	static bool readByte(qs::SocketBase* pSocket,
+						 unsigned char* p);
+	static bool write(qs::SocketBase* pSocket,
+					  const unsigned char* p,
+					  size_t nLen);
+	static bool write(qs::SocketBase* pSocket,
+					  const WCHAR* p,
+					  size_t nLen);
 };
 
 }
