@@ -17,7 +17,7 @@
 	</line>
 	<line class="mail|news">
 		<static width="4em" style="bold" showAlways="true">From:</static>
-		<edit>{@FormatAddress(From, 3)}</edit>
+		<edit background="{@If(@Not(X-QMAIL-Verification), '', @Equal(X-QMAIL-Verification, 0), 'f5f6be', 'ff0000')}">{@FormatAddress(From, 3)}</edit>
 	</line>
 	<line class="mail|news">
 		<static width="4em" style="bold" showAlways="true">Date:</static>

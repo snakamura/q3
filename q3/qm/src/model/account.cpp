@@ -380,6 +380,13 @@ bool qm::AccountImpl::getMessage(MessageHolder* pmh,
 		}
 	}
 	
+	const WCHAR* pwszRemove[] = {
+		L"X-QMAIL-SignedBy",
+		L"X-QMAIL-Verification"
+	};
+	for (int n = 0; n < countof(pwszRemove); ++n)
+		pMessage->removeField(pwszRemove[n]);
+	
 	if ((nFlags & Account::GETMESSAGEFLAG_MAKESEEN) &&
 		!bMadeSeen &&
 		!pmh->isFlag(MessageHolder::FLAG_SEEN)) {
@@ -2160,6 +2167,19 @@ bool qm::Account::getMessage(MessageHolder* pmh,
 				type = pPGPUtility->getType(*pMessage, false);
 			}
 		}
+	}
+	
+	unsigned int nSecurity = pMessage->getSecurity();
+	if (nSecurity & Message::SECURITY_VERIFY_MASK) {
+		unsigned int n = 0;
+		if (nSecurity & Message::SECURITY_VERIFY_ERROR_MASK)
+			n = nSecurity >> 12;
+		NumberParser verification(n, 0);
+		if (!pMessage->replaceField(L"X-QMAIL-Verification", verification))
+			return false;
+	}
+	else {
+		pMessage->removeField(L"X-QMAIL-Verification");
 	}
 	
 	return true;
