@@ -2396,7 +2396,7 @@ LRESULT qm::DetachDialog::onOk()
 		}
 	}
 	
-	string_ptr<WSTRING> wstrFolder(allocWString(getDlgItemText(IDC_FOLDER)));
+	string_ptr<WSTRING> wstrFolder(getDlgItemText(IDC_FOLDER));
 	if (wstrFolder.get()) {
 		pProfile_->setString(L"Global", L"DetachFolder", wstrFolder.get());
 		freeWString(wstrFolder_);
