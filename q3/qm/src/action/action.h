@@ -1131,6 +1131,13 @@ private:
 class FolderPropertyAction : public qs::AbstractAction
 {
 public:
+	enum Open {
+		OPEN_PROPERTY,
+		OPEN_CONDITION,
+		OPEN_PARAMETER
+	};
+
+public:
 	FolderPropertyAction(FolderSelectionModel* pFolderSelectionModel,
 						 HWND hwnd,
 						 qs::Profile* pProfile);
@@ -1142,7 +1149,7 @@ public:
 
 public:
 	static void openProperty(const Account::FolderList& listFolder,
-							 bool bOpenCondition,
+							 Open open,
 							 HWND hwnd,
 							 qs::Profile* pProfile);
 

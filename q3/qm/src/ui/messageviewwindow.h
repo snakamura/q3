@@ -124,8 +124,14 @@ public:
 public:
 	bool create(HWND hwnd);
 	MessageViewWindow* getMessageViewWindow(const qs::ContentTypeParser* pContentType);
-	TextMessageViewWindow* getTextMessageViewWindow() const;
+	TextMessageViewWindow* getTextMessageViewWindow();
+	MessageViewWindow* getLinkMessageViewWindow();
 	bool isSupported(const qs::ContentTypeParser* pContentType) const;
+
+private:
+#ifdef QMHTMLVIEW
+	bool createHtmlView();
+#endif
 
 private:
 	MessageViewWindowFactory(const MessageViewWindowFactory&);
@@ -765,6 +771,7 @@ private:
 	DWebBrowserEvents2Impl* pWebBrowserEvents_;
 	DWORD dwConnectionPointCookie_;
 	ContentList listContent_;
+	bool bAllowExternal_;
 	bool bActivate_;
 	bool bOnlineMode_;
 };

@@ -65,17 +65,17 @@ void qm::ProgressDialogMessageOperationCallbackBase<Callback>::step(unsigned int
 template<class Callback>
 void qm::ProgressDialogMessageOperationCallbackBase<Callback>::show()
 {
-	assert(!pDialog_.get());
-	
-	std::auto_ptr<ProgressDialog> pDialog(new ProgressDialog(nTitle_));
-	pDialog->init(hwnd_);
-	pDialog_ = pDialog;
-	
-	pDialog_->setMessage(nMessage_);
-	
-	if (nCount_ != static_cast<unsigned int>(-1)) {
-		pDialog_->setRange(0, nCount_);
-		pDialog_->setPos(nPos_);
+	if (!pDialog_.get()) {
+		std::auto_ptr<ProgressDialog> pDialog(new ProgressDialog(nTitle_));
+		pDialog->init(hwnd_);
+		pDialog_ = pDialog;
+		
+		pDialog_->setMessage(nMessage_);
+		
+		if (nCount_ != -1) {
+			pDialog_->setRange(0, nCount_);
+			pDialog_->setPos(nPos_);
+		}
 	}
 }
 

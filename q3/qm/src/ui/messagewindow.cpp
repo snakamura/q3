@@ -167,19 +167,25 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	const ContentTypeParser* pContentType = 0;
 	MessageViewWindow* pMessageViewWindow = 0;
 	if (pmh && !bRawMode && bHtmlMode && !wstrTemplate_.get()) {
-		PartUtil util(msg);
-		PartUtil::ContentTypeList l;
-		util.getAlternativeContentTypes(&l);
-		
-		PartUtil::ContentTypeList::iterator it = std::find_if(
-			l.begin(), l.end(),
-			std::bind1st(
-				std::mem_fun(
-					MessageViewWindowFactory::isSupported),
-				pFactory_.get()));
-		pContentType = it != l.end() ? *it : 0;
-		
-		pMessageViewWindow = pFactory_->getMessageViewWindow(pContentType);
+		if (pAccount->isSupport(Account::SUPPORT_EXTERNALLINK) &&
+			msg.hasField(L"X-QMAIL-Link")) {
+			pMessageViewWindow = pFactory_->getLinkMessageViewWindow();
+		}
+		else {
+			PartUtil util(msg);
+			PartUtil::ContentTypeList l;
+			util.getAlternativeContentTypes(&l);
+			
+			PartUtil::ContentTypeList::iterator it = std::find_if(
+				l.begin(), l.end(),
+				std::bind1st(
+					std::mem_fun(
+						MessageViewWindowFactory::isSupported),
+					pFactory_.get()));
+			pContentType = it != l.end() ? *it : 0;
+			
+			pMessageViewWindow = pFactory_->getMessageViewWindow(pContentType);
+		}
 	}
 	else {
 		pMessageViewWindow = pFactory_->getTextMessageViewWindow();

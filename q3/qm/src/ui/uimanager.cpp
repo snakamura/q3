@@ -58,7 +58,7 @@ qm::UIManager::UIManager()
 	pKeyMap_.reset(new KeyMap(wstrKeyMapPath.get()));
 	
 	wstring_ptr wstrViewsPath = app.getProfilePath(FileNames::VIEWS_XML);
-	pViewData_.reset(new ViewData(this, wstrViewsPath.get()));
+	pViewData_.reset(new DefaultViewData(wstrViewsPath.get()));
 }
 
 qm::UIManager::~UIManager()
@@ -80,9 +80,9 @@ KeyMap* qm::UIManager::getKeyMap() const
 	return pKeyMap_.get();
 }
 
-ViewDataItem* qm::UIManager::getDefaultViewDataItem() const
+DefaultViewData* qm::UIManager::getDefaultViewData() const
 {
-	return pViewData_->getItem(0);
+	return pViewData_.get();
 }
 
 bool qm::UIManager::save() const

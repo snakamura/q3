@@ -1305,7 +1305,7 @@ Part::Field qs::DateParser::parse(const Part& part,
 
 string_ptr qs::DateParser::unparse(const Part& part) const
 {
-	wstring_ptr wstr(date_.format(L"%W, %D %M1 %Y4 %h:%m:%s %z", Time::FORMAT_ORIGINAL));
+	wstring_ptr wstr(unparse(date_));
 	assert(wstr.get());
 	return wcs2mbs(wstr.get());
 }
@@ -1466,6 +1466,11 @@ bool qs::DateParser::parse(const CHAR* psz,
 	pTime->addMinute(-nTimeZone%100);
 	
 	return true;
+}
+
+wstring_ptr qs::DateParser::unparse(const Time& time)
+{
+	return time.format(L"%W, %D %M1 %Y4 %h:%m:%s %z", Time::FORMAT_ORIGINAL);
 }
 
 int qs::DateParser::getWeek(const CHAR* psz)

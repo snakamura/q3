@@ -24,6 +24,7 @@ class DefaultPropertyPage;
 	class AccountGeneralPage;
 	class AccountUserPage;
 	class FolderConditionPage;
+	class FolderParameterPage;
 	class FolderPropertyPage;
 	class MessagePropertyPage;
 
@@ -200,13 +201,6 @@ public:
 						qs::Profile* pProfile);
 	virtual ~FolderConditionPage();
 
-public:
-	const WCHAR* getDriver() const;
-	const WCHAR* getCondition() const;
-	const WCHAR* getTargetFolder() const;
-	bool isRecursive() const;
-	bool isModified() const;
-
 protected:
 	virtual LRESULT onInitDialog(HWND hwndFocus,
 								 LPARAM lParam);
@@ -230,11 +224,46 @@ private:
 	qs::Profile* pProfile_;
 	UIList listUI_;
 	Account::FolderList listFolder_;
-	int nDriver_;
-	qs::wstring_ptr wstrCondition_;
-	qs::wstring_ptr wstrTargetFolder_;
-	bool bRecursive_;
-	bool bModified_;
+};
+
+
+/****************************************************************************
+ *
+ * FolderParameterPage
+ *
+ */
+
+class FolderParameterPage : public DefaultPropertyPage
+{
+public:
+	FolderParameterPage(Folder* pFolder,
+						const WCHAR** ppwszParams,
+						size_t nParamCount);
+	virtual ~FolderParameterPage();
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+public:
+	virtual LRESULT onNotify(NMHDR* pnmhdr,
+							 bool* pbHandled);
+
+private:
+	LRESULT onParameterDblClk(NMHDR* pnmhdr,
+							  bool* pbHandled);
+
+private:
+	FolderParameterPage(const FolderParameterPage&);
+	FolderParameterPage& operator=(const FolderParameterPage&);
+
+private:
+	Folder* pFolder_;
+	const WCHAR** ppwszParams_;
+	size_t nParamCount_;
 };
 
 
@@ -250,10 +279,6 @@ public:
 	FolderPropertyPage(const Account::FolderList& l);
 	virtual ~FolderPropertyPage();
 
-public:
-	unsigned int getFlags() const;
-	unsigned int getMask() const;
-
 protected:
 	virtual LRESULT onInitDialog(HWND hwndFocus,
 								 LPARAM lParam);
@@ -267,8 +292,6 @@ private:
 
 private:
 	const Account::FolderList& listFolder_;
-	unsigned int nFlags_;
-	unsigned int nMask_;
 };
 
 

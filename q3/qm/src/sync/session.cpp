@@ -141,6 +141,24 @@ void qm::ReceiveSessionFactory::getNames(NameList* pList)
 	}
 }
 
+void qm::ReceiveSessionFactory::getClasses(NameList* pList)
+{
+	assert(pList);
+	
+	typedef ReceiveSessionFactoryImpl::FactoryList List;
+	const List& l = ReceiveSessionFactoryImpl::listFactory__;
+	pList->reserve(l.size());
+	for (List::const_iterator it = l.begin(); it != l.end(); ++it) {
+		std::auto_ptr<ReceiveSessionUI> pUI((*it).second->createUI());
+		wstring_ptr wstrClass(allocWString(pUI->getClass()));
+		if (std::find_if(pList->begin(), pList->end(),
+			std::bind2nd(string_equal<WCHAR>(), wstrClass.get())) == pList->end())
+			pList->push_back(wstrClass.release());
+	}
+	
+	std::sort(pList->begin(), pList->end(), string_less<WCHAR>());
+}
+
 void qm::ReceiveSessionFactory::registerFactory(const WCHAR* pwszName,
 												ReceiveSessionFactory* pFactory)
 {

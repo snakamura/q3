@@ -54,6 +54,8 @@
 #define IDD_FOLDERCONDITION             155
 #define IDD_VIEWS                       157
 #define IDD_VIEWSCOLUMN                 158
+#define IDD_FOLDERPARAMETER             159
+#define IDD_PARAMETER                   160
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -270,6 +272,7 @@
 #define IDC_INHERIT                     1159
 #define IDC_APPLYTOALL                  1160
 #define IDC_APPLYTOCHILDREN             1161
+#define IDC_PARAMETER                   1163
 #define IDS_COLUMNTYPE_ID               1200
 #define IDS_COLUMNTYPE_DATE             1201
 #define IDS_COLUMNTYPE_FROM             1202
@@ -286,6 +289,8 @@
 #define IDS_ADDRESSBOOK_NAME            2201
 #define IDS_ADDRESSBOOK_ADDRESS         2202
 #define IDS_ADDRESSBOOK_COMMENT         2203
+#define IDS_PROPERTY_NAME               2301
+#define IDS_PROPERTY_VALUE              2302
 #define IDS_ERROR_CREATEFOLDER          10000
 #define IDS_ERROR_EXECUTEATTACHMENT     10001
 #define IDS_ERROR_DIALUP                10002
@@ -510,9 +515,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        159
+#define _APS_NEXT_RESOURCE_VALUE        161
 #define _APS_NEXT_COMMAND_VALUE         48000
-#define _APS_NEXT_CONTROL_VALUE         1163
+#define _APS_NEXT_CONTROL_VALUE         1165
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

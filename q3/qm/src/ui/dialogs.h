@@ -41,6 +41,7 @@ class DefaultDialog;
 	class InsertTextDialog;
 	class MailFolderDialog;
 	class MoveMessageDialog;
+	class ParameterDialog;
 	class ProgressDialog;
 	class RenameDialog;
 	class ReplaceDialog;
@@ -1002,6 +1003,39 @@ private:
 
 /****************************************************************************
  *
+ * ParameterDialog
+ *
+ */
+
+class ParameterDialog : public DefaultDialog
+{
+public:
+	ParameterDialog(const WCHAR* pwszName,
+					const WCHAR* pwszValue);
+	virtual ~ParameterDialog();
+
+public:
+	const WCHAR* getValue() const;
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	ParameterDialog(const ParameterDialog&);
+	ParameterDialog& operator=(const ParameterDialog&);
+
+private:
+	qs::wstring_ptr wstrName_;
+	qs::wstring_ptr wstrValue_;
+};
+
+
+/****************************************************************************
+ *
  * ProgressDialog
  *
  */
@@ -1313,6 +1347,7 @@ private:
 	void setColumns(const ViewColumnList& listColumn);
 	void cloneColumns(const ViewColumnList& listColumn,
 					  ViewColumnList* pListColumn);
+	ViewDataItem* getDefaultItem();
 
 private:
 	ViewsDialog(const ViewsDialog&);

@@ -75,6 +75,9 @@ public:
 	virtual bool canCheck();
 
 public:
+	static void loadLibrary(const WCHAR* pwszName);
+
+public:
 	HINSTANCE hInst_;
 	HINSTANCE hInstResource_;
 	std::auto_ptr<MailFolderLock> pLock_;
@@ -244,6 +247,26 @@ bool qm::ApplicationImpl::canCheck()
 		!pSyncManager_->isSyncing();
 }
 
+void qm::ApplicationImpl::loadLibrary(const WCHAR* pwszName)
+{
+#ifdef NDEBUG
+#	ifdef UNICODE
+#		define SUFFIX L"u"
+#	else
+#		define SUFFIX L""
+#	endif
+#else
+#	ifdef UNICODE
+#		define SUFFIX L"ud"
+#	else
+#		define SUFFIX L"d"
+#	endif
+#endif
+	wstring_ptr wstrLib(concat(L"qm", pwszName, SUFFIX L".dll"));
+	W2T(wstrLib.get(), ptszLib);
+	::LoadLibrary(ptszLib);
+}
+
 
 /****************************************************************************
  *
@@ -341,7 +364,8 @@ bool qm::Application::initialize()
 		FileNames::MENUS_XML,
 		FileNames::QMAIL_XML,
 		FileNames::TOOLBAR_BMP,
-		FileNames::TOOLBARS_XML
+		FileNames::TOOLBARS_XML,
+		FileNames::VIEWS_XML
 	};
 	for (int n = 0; n < countof(pwszProfiles); ++n) {
 		if (!pImpl_->ensureFile(wstrProfileDir.get(), 0,
@@ -375,26 +399,19 @@ bool qm::Application::initialize()
 	
 	pImpl_->pUIManager_.reset(new UIManager());
 	
-	wstring_ptr wstrLibraries(pImpl_->pProfile_->getString(
-		L"Global", L"Libraries", L"smtp,pop3,imap4,nntp"));
+	const WCHAR* pwszLibraries[] = {
+		L"smtp",
+		L"pop3",
+		L"imap4",
+		L"nntp",
+		L"rss"
+	};
+	for (int n = 0; n < countof(pwszLibraries); ++n)
+		ApplicationImpl::loadLibrary(pwszLibraries[n]);
+	wstring_ptr wstrLibraries(pImpl_->pProfile_->getString(L"Global", L"Libraries", L""));
 	WCHAR* p = wcstok(wstrLibraries.get(), L" ,");
 	while (p) {
-#ifdef NDEBUG
-#	ifdef UNICODE
-#		define SUFFIX L"u"
-#	else
-#		define SUFFIX L""
-#	endif
-#else
-#	ifdef UNICODE
-#		define SUFFIX L"ud"
-#	else
-#		define SUFFIX L"d"
-#	endif
-#endif
-		wstring_ptr wstrLib(concat(L"qm", p, SUFFIX L".dll"));
-		W2T(wstrLib.get(), ptszLib);
-		HINSTANCE hInst = ::LoadLibrary(ptszLib);
+		ApplicationImpl::loadLibrary(p);
 		p = wcstok(0, L" ,");
 	}
 	

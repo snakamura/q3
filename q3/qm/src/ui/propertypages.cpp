@@ -16,6 +16,7 @@
 #include <qsras.h>
 #include <qsstl.h>
 
+#include "dialogs.h"
 #include "propertypages.h"
 #include "resourceinc.h"
 
@@ -400,41 +401,13 @@ qm::FolderConditionPage::FolderConditionPage(QueryFolder* pFolder,
 											 Profile* pProfile) :
 	DefaultPropertyPage(IDD_FOLDERCONDITION),
 	pFolder_(pFolder),
-	pProfile_(pProfile),
-	nDriver_(0),
-	bRecursive_(false),
-	bModified_(false)
+	pProfile_(pProfile)
 {
 }
 
 qm::FolderConditionPage::~FolderConditionPage()
 {
 	std::for_each(listUI_.begin(), listUI_.end(), deleter<SearchUI>());
-}
-
-const WCHAR* qm::FolderConditionPage::getDriver() const
-{
-	return listUI_[nDriver_]->getName();
-}
-
-const WCHAR* qm::FolderConditionPage::getCondition() const
-{
-	return wstrCondition_.get();
-}
-
-const WCHAR* qm::FolderConditionPage::getTargetFolder() const
-{
-	return wstrTargetFolder_.get();
-}
-
-bool qm::FolderConditionPage::isRecursive() const
-{
-	return bRecursive_;
-}
-
-bool qm::FolderConditionPage::isModified() const
-{
-	return bModified_;
 }
 
 LRESULT qm::FolderConditionPage::onInitDialog(HWND hwndFocus,
@@ -452,14 +425,20 @@ LRESULT qm::FolderConditionPage::onInitDialog(HWND hwndFocus,
 
 LRESULT qm::FolderConditionPage::onOk()
 {
-	nDriver_ = sendDlgItemMessage(IDC_DRIVER, CB_GETCURSEL);
-	wstrCondition_ = getDlgItemText(IDC_CONDITION);
+	int nDriver = sendDlgItemMessage(IDC_DRIVER, CB_GETCURSEL);
+	const WCHAR* pwszDriver = listUI_[nDriver]->getName();
+	
+	wstring_ptr wstrCondition = getDlgItemText(IDC_CONDITION);
+	
+	wstring_ptr wstrTargetFolder;
 	int nFolder = sendDlgItemMessage(IDC_FOLDER, CB_GETCURSEL);
 	if (nFolder != 0)
-		wstrTargetFolder_ = listFolder_[nFolder - 1]->getFullName();
-	bRecursive_ = sendDlgItemMessage(IDC_RECURSIVE, BM_GETCHECK) == BST_CHECKED;
+		wstrTargetFolder = listFolder_[nFolder - 1]->getFullName();
 	
-	bModified_ = true;
+	bool bRecursive = sendDlgItemMessage(IDC_RECURSIVE, BM_GETCHECK) == BST_CHECKED;
+	
+	pFolder_->set(pwszDriver, wstrCondition.get(),
+		wstrTargetFolder.get(), bRecursive);
 	
 	return DefaultPropertyPage::onOk();
 }
@@ -537,6 +516,133 @@ void qm::FolderConditionPage::initFolder()
 
 /****************************************************************************
  *
+ * FolderParameterPage
+ *
+ */
+
+qm::FolderParameterPage::FolderParameterPage(Folder* pFolder,
+											 const WCHAR** ppwszParams,
+											 size_t nParamCount) :
+	DefaultPropertyPage(IDD_FOLDERPARAMETER),
+	pFolder_(pFolder),
+	ppwszParams_(ppwszParams),
+	nParamCount_(nParamCount)
+{
+	assert(ppwszParams_);
+	assert(nParamCount_ != 0);
+}
+
+qm::FolderParameterPage::~FolderParameterPage()
+{
+}
+
+LRESULT qm::FolderParameterPage::onInitDialog(HWND hwndFocus,
+											  LPARAM lParam)
+{
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	HWND hwndList = getDlgItem(IDC_PARAMETER);
+	
+	ListView_SetExtendedListViewStyle(hwndList, LVS_EX_FULLROWSELECT);
+	
+	struct {
+		UINT nId_;
+		int nWidth_;
+	} columns[] = {
+		{ IDS_PROPERTY_NAME,	120	},
+		{ IDS_PROPERTY_VALUE,	200	}
+	};
+	for (int n = 0; n < countof(columns); ++n) {
+		wstring_ptr wstrName(loadString(hInst, columns[n].nId_));
+		W2T(wstrName.get(), ptszName);
+		
+		LVCOLUMN column = {
+			LVCF_FMT | LVCF_SUBITEM | LVCF_TEXT | LVCF_WIDTH,
+			LVCFMT_LEFT,
+			columns[n].nWidth_,
+			const_cast<LPTSTR>(ptszName),
+			0,
+			n,
+		};
+		ListView_InsertColumn(hwndList, n, &column);
+	}
+	
+	for (size_t n = 0; n < nParamCount_; ++n) {
+		const WCHAR* pwszName = ppwszParams_[n];
+		W2T(pwszName, ptszName);
+		LVITEM item = {
+			LVIF_TEXT,
+			n,
+			0,
+			0,
+			0,
+			const_cast<LPTSTR>(ptszName),
+		};
+		ListView_InsertItem(hwndList, &item);
+		
+		const WCHAR* pwszValue = pFolder_->getParam(pwszName);
+		if (!pwszValue)
+			pwszValue = L"";
+		W2T(pwszValue, ptszValue);
+		ListView_SetItemText(hwndList, n, 1, const_cast<LPTSTR>(ptszValue));
+	}
+	
+	return TRUE;
+}
+
+LRESULT qm::FolderParameterPage::onOk()
+{
+	HWND hwndList = getDlgItem(IDC_PARAMETER);
+	
+	for (size_t n = 0; n < nParamCount_; ++n) {
+		const WCHAR* pwszName = ppwszParams_[n];
+		
+		TCHAR tszValue[1024];
+		ListView_GetItemText(hwndList, n, 1, tszValue, countof(tszValue) - 1);
+		T2W(tszValue, pwszValue);
+		
+		pFolder_->setParam(pwszName, pwszValue);
+	}
+	
+	return DefaultPropertyPage::onOk();
+}
+
+LRESULT qm::FolderParameterPage::onNotify(NMHDR* pnmhdr,
+										  bool* pbHandled)
+{
+	BEGIN_NOTIFY_HANDLER()
+		HANDLE_NOTIFY(NM_DBLCLK, IDC_PARAMETER, onParameterDblClk)
+	END_NOTIFY_HANDLER()
+	return DefaultPropertyPage::onNotify(pnmhdr, pbHandled);
+}
+
+LRESULT qm::FolderParameterPage::onParameterDblClk(NMHDR* pnmhdr,
+												   bool* pbHandled)
+{
+	HWND hwndList = getDlgItem(IDC_PARAMETER);
+	
+	int nItem = ListView_GetNextItem(hwndList, -1, LVNI_SELECTED);
+	if (nItem != -1) {
+		const WCHAR* pwszName = ppwszParams_[nItem];
+		
+		TCHAR tszValue[1024];
+		ListView_GetItemText(hwndList, nItem, 1, tszValue, countof(tszValue) - 1);
+		T2W(tszValue, pwszValue);
+		
+		ParameterDialog dialog(pwszName, pwszValue);
+		if (dialog.doModal(getHandle()) == IDOK) {
+			W2T(dialog.getValue(), ptszValue);
+			ListView_SetItemText(hwndList, nItem, 1, const_cast<LPTSTR>(ptszValue));
+		}
+	}
+	
+	*pbHandled = true;
+	
+	return 0;
+}
+
+
+/****************************************************************************
+ *
  * FolderPropertyPage
  *
  */
@@ -563,25 +669,13 @@ struct
 
 qm::FolderPropertyPage::FolderPropertyPage(const Account::FolderList& l) :
 	DefaultPropertyPage(IDD_FOLDERPROPERTY),
-	listFolder_(l),
-	nFlags_(0),
-	nMask_(0)
+	listFolder_(l)
 {
 	assert(!l.empty());
 }
 
 qm::FolderPropertyPage::~FolderPropertyPage()
 {
-}
-
-unsigned int qm::FolderPropertyPage::getFlags() const
-{
-	return nFlags_;
-}
-
-unsigned int qm::FolderPropertyPage::getMask() const
-{
-	return nMask_;
 }
 
 LRESULT qm::FolderPropertyPage::onInitDialog(HWND hwndFocus,
@@ -660,15 +754,18 @@ LRESULT qm::FolderPropertyPage::onInitDialog(HWND hwndFocus,
 
 LRESULT qm::FolderPropertyPage::onOk()
 {
+	unsigned int nFlags = 0;
+	unsigned int nMask = 0;
+	
 	for (int n = 0; n < countof(folderFlags); ++n) {
 		int nCheck = sendDlgItemMessage(folderFlags[n].nId_, BM_GETCHECK);
 		switch (nCheck) {
 		case BST_CHECKED:
-			nFlags_ |= folderFlags[n].flag_;
-			nMask_ |= folderFlags[n].flag_;
+			nFlags |= folderFlags[n].flag_;
+			nMask |= folderFlags[n].flag_;
 			break;
 		case BST_UNCHECKED:
-			nMask_ |= folderFlags[n].flag_;
+			nMask |= folderFlags[n].flag_;
 			break;
 		case BST_INDETERMINATE:
 			break;
@@ -676,6 +773,31 @@ LRESULT qm::FolderPropertyPage::onOk()
 			assert(false);
 			break;
 		}
+	}
+	
+	for (Account::FolderList::const_iterator it = listFolder_.begin(); it != listFolder_.end(); ++it) {
+		Folder* pFolder = *it;
+		
+		unsigned int nFolderMask = nMask;
+		
+		switch (pFolder->getType()) {
+		case Folder::TYPE_NORMAL:
+			if (!pFolder->isFlag(Folder::FLAG_SYNCABLE))
+				nFolderMask &= ~(Folder::FLAG_SYNCWHENOPEN | Folder::FLAG_CACHEWHENREAD);
+			if (pFolder->isFlag(Folder::FLAG_NOSELECT))
+				nFolderMask &= ~(Folder::FLAG_INBOX | Folder::FLAG_OUTBOX |
+					Folder::FLAG_SENTBOX | Folder::FLAG_DRAFTBOX | Folder::FLAG_TRASHBOX);
+			break;
+		case Folder::TYPE_QUERY:
+			nFolderMask &= ~(Folder::FLAG_CACHEWHENREAD | Folder::FLAG_INBOX | Folder::FLAG_OUTBOX |
+				Folder::FLAG_SENTBOX | Folder::FLAG_DRAFTBOX | Folder::FLAG_TRASHBOX);
+			break;
+		default:
+			assert(false);
+			break;
+		}
+		
+		pFolder->getAccount()->setFolderFlags(pFolder, nFlags, nFolderMask);
 	}
 	
 	return DefaultPropertyPage::onOk();

@@ -53,6 +53,8 @@ bool qmpop3::Pop3Driver::isSupport(Account::Support support)
 		return true;
 	case Account::SUPPORT_LOCALFOLDERGETMESSAGE:
 		return false;
+	case Account::SUPPORT_EXTERNALLINK:
+		return false;
 	default:
 		assert(false);
 		return false;
@@ -116,6 +118,11 @@ bool qmpop3::Pop3Driver::getRemoteFolders(SubAccount* pSubAccount,
 {
 	assert(false);
 	return false;
+}
+
+std::pair<const WCHAR**, size_t> qmpop3::Pop3Driver::getFolderParamNames()
+{
+	return std::pair<const WCHAR**, size_t>(0, 0);
 }
 
 bool qmpop3::Pop3Driver::getMessage(SubAccount* pSubAccount,

@@ -59,6 +59,7 @@ public:
 	virtual bool createDefaultFolders(Account::FolderList* pList) = 0;
 	virtual bool getRemoteFolders(SubAccount* pSubAccount,
 								  RemoteFolderList* pList) = 0;
+	virtual std::pair<const WCHAR**, size_t> getFolderParamNames() = 0;
 	
 	virtual bool getMessage(SubAccount* pSubAccount,
 							MessageHolder* pmh,

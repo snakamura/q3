@@ -1,30 +1,38 @@
 <headerEdit>
-	<line>
+	<line class="mail">
 		<static width="4.5em" style="bold">To:</static>
 		<edit type="addressList" field="To" number="0" expandAlias="true"/>
 	</line>
-	<line hideIfNoFocus="true">
+	<line class="mail" hideIfNoFocus="true">
 		<static width="4.5em" style="bold">Cc:</static>
 		<edit type="addressList" field="Cc" number="1" initialFocus="false" expandAlias="true"/>
 	</line>
-	<line hideIfNoFocus="true">
+	<line class="mail" hideIfNoFocus="true">
 		<static width="4.5em" style="bold">Bcc:</static>
 		<edit type="addressList" field="Bcc" number="2" initialFocus="false" expandAlias="true"/>
 	</line>
+	<line class="news">
+		<static width="4.5em" style="bold">Newsgroups:</static>
+		<edit type="unstructured" field="Newsgroups" number="3"/>
+	</line>
+	<line class="news" hideIfNoFocus="true">
+		<static width="4.5em" style="bold">Followup-To:</static>
+		<edit type="unstructured" field="Followup-To" number="4" initialFocus="false"/>
+	</line>
 	<line hideIfNoFocus="true">
 		<static width="4.5em" style="bold">Subject:</static>
-		<edit type="unstructured" field="Subject" number="3"/>
+		<edit type="unstructured" field="Subject" number="5"/>
 	</line>
 	<line hideIfNoFocus="true">
 		<static width="4.5em" style="bold">Attach:</static>
-		<attachment number="4"/>
+		<attachment number="6"/>
 	</line>
 	<line hideIfNoFocus="true">
 		<static width="4.5em" style="bold">Account:</static>
-		<account number="5"/>
+		<account number="7"/>
 	</line>
 	<line hideIfNoFocus="true">
 		<static width="4.5em" style="bold">Sig:</static>
-		<signature number="6"/>
+		<signature number="8"/>
 	</line>
 </headerEdit>

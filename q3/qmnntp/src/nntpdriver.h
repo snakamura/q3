@@ -52,6 +52,7 @@ public:
 	virtual bool createDefaultFolders(qm::Account::FolderList* pList);
 	virtual bool getRemoteFolders(qm::SubAccount* pSubAccount,
 								  RemoteFolderList* pList);
+	virtual std::pair<const WCHAR**, size_t> getFolderParamNames();
 	
 	virtual bool getMessage(qm::SubAccount* pSubAccount,
 							qm::MessageHolder* pmh,

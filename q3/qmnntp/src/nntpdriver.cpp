@@ -75,6 +75,8 @@ bool qmnntp::NntpDriver::isSupport(Account::Support support)
 		return false;
 	case Account::SUPPORT_LOCALFOLDERGETMESSAGE:
 		return true;
+	case Account::SUPPORT_EXTERNALLINK:
+		return false;
 	default:
 		assert(false);
 		return false;
@@ -141,6 +143,11 @@ bool qmnntp::NntpDriver::getRemoteFolders(SubAccount* pSubAccount,
 {
 	// TODO
 	return true;
+}
+
+std::pair<const WCHAR**, size_t> qmnntp::NntpDriver::getFolderParamNames()
+{
+	return std::pair<const WCHAR**, size_t>(0, 0);
 }
 
 bool qmnntp::NntpDriver::getMessage(SubAccount* pSubAccount,

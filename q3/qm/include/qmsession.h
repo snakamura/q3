@@ -154,6 +154,7 @@ public:
 	static std::auto_ptr<ReceiveSession> getSession(const WCHAR* pwszName);
 	static std::auto_ptr<ReceiveSessionUI> getUI(const WCHAR* pwszName);
 	static void getNames(NameList* pList);
+	static void getClasses(NameList* pList);
 
 protected:
 	virtual std::auto_ptr<ReceiveSession> createSession() = 0;

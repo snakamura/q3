@@ -6,6 +6,7 @@
  *
  */
 
+#include <qmaccount.h>
 #include <qmapplication.h>
 #include <qmfolder.h>
 #include <qmmessage.h>
@@ -109,20 +110,8 @@ MessageViewWindow* qm::MessageViewWindowFactory::getMessageViewWindow(const Cont
 		_wcsicmp(pContentType->getSubType(), L"html") == 0;
 	
 	if (bHtml && !pHtml_ && Application::getApplication().getAtlHandle()) {
-		std::auto_ptr<HtmlMessageViewWindow> pHtml(new HtmlMessageViewWindow(
-			pProfile_, pwszSection_, pMenuManager_, pCallback_));
-		HWND hwnd = pText_->getParent();
-#ifdef _WIN32_WCE
-		const WCHAR* pwszId = L"{8856F961-340A-11D0-A96B-00C04FD705A2}";
-		DWORD dwExStyle = WS_EX_CLIENTEDGE;
-#else
-		const WCHAR* pwszId = L"Shell.Explorer";
-		DWORD dwExStyle = 0;
-#endif
-		if (!pHtml->create(L"QmHtmlMessageViewWindow", pwszId,
-			WS_CHILD, 0, 0, 500, 500, hwnd, dwExStyle, 0, 1003, 0))
-			return 0;
-		pHtml_ = pHtml.release();
+		if (!createHtmlView())
+			bHtml = false;
 	}
 	else if (bHtml) {
 		bHtml = pHtml_ != 0;
@@ -135,15 +124,50 @@ MessageViewWindow* qm::MessageViewWindowFactory::getMessageViewWindow(const Cont
 #endif
 }
 
-TextMessageViewWindow* qm::MessageViewWindowFactory::getTextMessageViewWindow() const
+TextMessageViewWindow* qm::MessageViewWindowFactory::getTextMessageViewWindow()
 {
 	return pText_;
+}
+
+MessageViewWindow* qm::MessageViewWindowFactory::getLinkMessageViewWindow()
+{
+#ifdef QMHTMLVIEW
+	if (!pHtml_ && Application::getApplication().getAtlHandle()) {
+		if (!createHtmlView())
+			return pText_;
+	}
+	return pHtml_;
+#else
+	return pText_;
+#endif
 }
 
 bool qm::MessageViewWindowFactory::isSupported(const ContentTypeParser* pContentType) const
 {
 	return !pContentType || _wcsicmp(pContentType->getMediaType(), L"text") == 0;
 }
+
+#ifdef QMHTMLVIEW
+bool qm::MessageViewWindowFactory::createHtmlView()
+{
+	std::auto_ptr<HtmlMessageViewWindow> pHtml(new HtmlMessageViewWindow(
+		pProfile_, pwszSection_, pMenuManager_, pCallback_));
+	HWND hwnd = pText_->getParent();
+#ifdef _WIN32_WCE
+	const WCHAR* pwszId = L"{8856F961-340A-11D0-A96B-00C04FD705A2}";
+	DWORD dwExStyle = WS_EX_CLIENTEDGE;
+#else
+	const WCHAR* pwszId = L"Shell.Explorer";
+	DWORD dwExStyle = 0;
+#endif
+	if (!pHtml->create(L"QmHtmlMessageViewWindow", pwszId,
+		WS_CHILD, 0, 0, 500, 500, hwnd, dwExStyle, 0, 1003, 0))
+		return false;
+	pHtml_ = pHtml.release();
+	
+	return true;
+}
+#endif
 
 
 /****************************************************************************
@@ -375,6 +399,7 @@ qm::HtmlMessageViewWindow::HtmlMessageViewWindow(Profile* pProfile,
 	pServiceProvider_(0),
 	pWebBrowserEvents_(0),
 	dwConnectionPointCookie_(0),
+	bAllowExternal_(false),
 	bActivate_(false),
 	bOnlineMode_(false)
 {
@@ -567,7 +592,8 @@ void qm::HtmlMessageViewWindow::setActive()
 	
 	BSTR bstrState;
 	hr = pHTMLDocument->get_readyState(&bstrState);
-	bool bComplete = wcscmp(bstrState, L"complete") == 0;
+	bool bComplete = wcscmp(bstrState, L"complete") == 0 ||
+		wcscmp(bstrState, L"interactive") == 0;
 	::SysFreeString(bstrState);
 	if (bComplete) {
 		ComPtr<IHTMLWindow2> pHTMLWindow;
@@ -594,6 +620,8 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 {
 	assert(pmh && pMessage);
 	
+	Account* pAccount = pmh->getFolder()->getAccount();
+	
 	bOnlineMode_ = (nFlags & FLAG_ONLINEMODE) != 0;
 	
 	HRESULT hr = S_OK;
@@ -605,13 +633,24 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 		return false;
 	pControl->OnAmbientPropertyChange(DISPID_AMBIENT_DLCONTROL);
 	
-	PartUtil util(*pMessage);
-	const Part* pPart = util.getAlternativePart(L"text", L"html");
-	assert(pPart);
+	wstring_ptr wstrURL;
 	
-	wstring_ptr wstrId(prepareRelatedContent(*pMessage, *pPart, pwszEncoding));
-	wstring_ptr wstrUrl(concat(L"cid:", wstrId.get()));
-	BSTRPtr bstrURL(::SysAllocString(wstrUrl.get()));
+	UnstructuredParser link;
+	if (pAccount->isSupport(Account::SUPPORT_EXTERNALLINK) &&
+		pMessage->getField(L"X-QMAIL-Link", &link) == Part::FIELD_EXIST) {
+		wstrURL = allocWString(link.getValue());
+		bAllowExternal_ = true;
+	}
+	else {
+		PartUtil util(*pMessage);
+		const Part* pPart = util.getAlternativePart(L"text", L"html");
+		assert(pPart);
+		
+		wstring_ptr wstrId(prepareRelatedContent(*pMessage, *pPart, pwszEncoding));
+		wstrURL = concat(L"cid:", wstrId.get());
+		bAllowExternal_ = false;
+	}
+	BSTRPtr bstrURL(::SysAllocString(wstrURL.get()));
 	int n = 0;
 	Variant v[4];
 	v[0].vt = VT_I4;
@@ -1584,7 +1623,10 @@ STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::Invoke(DISPID dispId
 			pVarURL->pvarVal->vt != VT_BSTR)
 			return E_INVALIDARG;
 		BSTR bstrURL = pVarURL->pvarVal->bstrVal;
-		bool bAllow = wcsncmp(bstrURL, L"cid:", 4) == 0;
+		bool bAllow = pWebBrowser.get() != pWebBrowser_ ||
+			pHtmlMessageViewWindow_->bAllowExternal_ ||
+			wcsncmp(bstrURL, L"cid:", 4) == 0;
+		pHtmlMessageViewWindow_->bAllowExternal_ = false;
 		
 		VARIANT* pVarCancel = pDispParams->rgvarg;
 		if (pVarCancel->vt != (VT_BOOL | VT_BYREF))
@@ -1593,7 +1635,11 @@ STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::Invoke(DISPID dispId
 		if (!bAllow)
 			pWebBrowser->Stop();
 		
-		if (!bAllow && pWebBrowser.get() == pWebBrowser_) {
+		if (!bAllow &&
+			pWebBrowser.get() == pWebBrowser_ &&
+			(wcsncmp(bstrURL, L"http:", 5) == 0 ||
+			wcsncmp(bstrURL, L"https:", 6) == 0 ||
+			wcsncmp(bstrURL, L"ftp:", 4) == 0)) {
 			tstring_ptr tstrURL(wcs2tcs(bstrURL));
 			SHELLEXECUTEINFO sei = {
 				sizeof(sei),
@@ -1630,6 +1676,7 @@ STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::Invoke(DISPID dispId
 				if (wcscmp(bstrURL, L"about:blank") != 0)
 					pHtmlMessageViewWindow_->setActive();
 			}
+			pHtmlMessageViewWindow_->bActivate_ = false;
 		}
 	}
 	else if (dispId == DISPID_STATUSTEXTCHANGE) {

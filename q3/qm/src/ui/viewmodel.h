@@ -37,6 +37,7 @@ class ViewModelManager;
 class ViewModelManagerHandler;
 class ViewModelManagerEvent;
 class ViewData;
+class DefaultViewData;
 class ViewDataItem;
 class ViewDataContentHandler;
 class ViewDataWriter;
@@ -686,15 +687,12 @@ public:
 
 public:
 	const ItemList& getItems() const;
-	ViewDataItem* getItem(unsigned int nFolderId);
+	ViewDataItem* getItem(const Folder* pFolder);
 	bool save() const;
 
 public:
 	void addItem(std::auto_ptr<ViewDataItem> pItem);
 	void removeItem(unsigned int nFolderId);
-
-public:
-	static std::auto_ptr<ViewDataItem> createDefaultItem(unsigned int nFolderId);
 
 private:
 	ViewData(const ViewData&);
@@ -709,6 +707,41 @@ private:
 
 /****************************************************************************
  *
+ * DefaultViewData
+ *
+ */
+
+class DefaultViewData
+{
+public:
+	typedef std::vector<std::pair<qs::WSTRING, ViewDataItem*> > ItemList;
+
+public:
+	explicit DefaultViewData(const WCHAR* pwszPath);
+	~DefaultViewData();
+
+public:
+	const ItemList& getItems() const;
+	ViewDataItem* getItem(const WCHAR* pwszClass);
+	void setItem(const WCHAR* pwszClass,
+				 std::auto_ptr<ViewDataItem> pItem);
+	bool save() const;
+
+private:
+	static std::auto_ptr<ViewDataItem> createDefaultItem();
+
+private:
+	DefaultViewData(const DefaultViewData&);
+	DefaultViewData& operator=(const DefaultViewData&);
+
+private:
+	qs::wstring_ptr wstrPath_;
+	ItemList listItem_;
+};
+
+
+/****************************************************************************
+ *
  * ViewDataItem
  *
  */
@@ -716,7 +749,7 @@ private:
 class ViewDataItem
 {
 public:
-	ViewDataItem(unsigned int nFolderId);
+	explicit ViewDataItem(unsigned int nFolderId);
 	~ViewDataItem();
 
 public:
@@ -753,7 +786,8 @@ private:
 class ViewDataContentHandler : public qs::DefaultHandler
 {
 public:
-	explicit ViewDataContentHandler(ViewData* pData);
+	ViewDataContentHandler(ViewData* pData);
+	ViewDataContentHandler(DefaultViewData* pDefaultData);
 	virtual ~ViewDataContentHandler();
 
 public:
@@ -788,7 +822,9 @@ private:
 
 private:
 	ViewData* pData_;
+	DefaultViewData* pDefaultData_;
 	State state_;
+	qs::wstring_ptr wstrClass_;
 	std::auto_ptr<ViewDataItem> pItem_;
 	qs::wstring_ptr wstrTitle_;
 	ViewColumn::Type type_;
@@ -815,6 +851,11 @@ public:
 
 public:
 	bool write(const ViewData* pData);
+	bool write(const DefaultViewData* pData);
+
+private:
+	bool write(const ViewDataItem* pItem,
+			   const WCHAR* pwszClass);
 
 private:
 	ViewDataWriter(const ViewDataWriter&);

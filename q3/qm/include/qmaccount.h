@@ -79,7 +79,8 @@ public:
 	enum Support {
 		SUPPORT_REMOTEFOLDER			= 0x01,
 		SUPPORT_LOCALFOLDERDOWNLOAD		= 0x02,
-		SUPPORT_LOCALFOLDERGETMESSAGE	= 0x04
+		SUPPORT_LOCALFOLDERGETMESSAGE	= 0x04,
+		SUPPORT_EXTERNALLINK			= 0x08
 	};
 
 public:
@@ -145,6 +146,7 @@ public:
 						unsigned int nFlags,
 						unsigned int nMask);
 	bool updateFolders();
+	std::pair<const WCHAR**, size_t> getFolderParamNames() const;
 	
 	void setOffline(bool bOffline);
 	bool compact(MessageOperationCallback* pCallback);

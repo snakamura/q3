@@ -598,8 +598,8 @@ size_t qs::SocketInputStream::read(unsigned char* p,
 		int nLen = pSocket_->recv(reinterpret_cast<char*>(p), nRead, 0);
 		if (nLen == -1)
 			return -1;
-		if (nLen == 0)
-			return 0;
+		else if (nLen == 0)
+			break;
 		
 		nSize += nLen;
 		nRead -= nLen;

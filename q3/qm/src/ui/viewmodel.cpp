@@ -1590,7 +1590,7 @@ ViewDataItem* qm::ViewModelManager::getViewDataItem(Folder* pFolder)
 		}
 	}
 	
-	return pViewData->getItem(pFolder->getId());
+	return pViewData->getItem(pFolder);
 }
 
 wstring_ptr qm::ViewModelManager::getViewsPath(Account* pAccount)
@@ -1793,9 +1793,13 @@ const ViewData::ItemList& qm::ViewData::getItems() const
 	return listItem_;
 }
 
-ViewDataItem* qm::ViewData::getItem(unsigned int nFolderId)
+ViewDataItem* qm::ViewData::getItem(const Folder* pFolder)
 {
-	ViewDataItem item(nFolderId);
+	assert(pFolder);
+	
+	unsigned int nId = pFolder->getId();
+	
+	ViewDataItem item(nId);
 	ItemList::iterator it = std::lower_bound(
 		listItem_.begin(), listItem_.end(),
 		&item,
@@ -1803,15 +1807,14 @@ ViewDataItem* qm::ViewData::getItem(unsigned int nFolderId)
 			std::less<unsigned int>(),
 			std::mem_fun(&ViewDataItem::getFolderId),
 			std::mem_fun(&ViewDataItem::getFolderId)));
-	if (it != listItem_.end() && (*it)->getFolderId() == nFolderId) {
+	if (it != listItem_.end() && (*it)->getFolderId() == nId) {
 		return *it;
 	}
 	else {
-		std::auto_ptr<ViewDataItem> pItem;
-		if (nFolderId == 0)
-			pItem = createDefaultItem(0);
-		else
-			pItem = pUIManager_->getDefaultViewDataItem()->clone(nFolderId);
+		const WCHAR* pwszClass = pFolder->getAccount()->getClass();
+		DefaultViewData* pDefaultViewData = pUIManager_->getDefaultViewData();
+		ViewDataItem* pDefaultItem = pDefaultViewData->getItem(pwszClass);
+		std::auto_ptr<ViewDataItem> pItem(pDefaultItem->clone(nId));
 		listItem_.insert(it, pItem.get());
 		return pItem.release();
 	}
@@ -1873,9 +1876,114 @@ void qm::ViewData::removeItem(unsigned int nFolderId)
 	}
 }
 
-std::auto_ptr<ViewDataItem> qm::ViewData::createDefaultItem(unsigned int nFolderId)
+
+/****************************************************************************
+ *
+ * DefaultViewData
+ *
+ */
+
+qm::DefaultViewData::DefaultViewData(const WCHAR* pwszPath)
 {
-	std::auto_ptr<ViewDataItem> pItem(new ViewDataItem(nFolderId));
+	wstrPath_ = allocWString(pwszPath);
+	
+	XMLReader reader;
+	ViewDataContentHandler contentHandler(this);
+	reader.setContentHandler(&contentHandler);
+	if (!reader.parse(wstrPath_.get())) {
+		// TODO
+	}
+}
+
+qm::DefaultViewData::~DefaultViewData()
+{
+	std::for_each(listItem_.begin(), listItem_.end(),
+		unary_compose_fx_gx(
+			string_free<WSTRING>(),
+			qs::deleter<ViewDataItem>()));
+}
+
+const DefaultViewData::ItemList& qm::DefaultViewData::getItems() const
+{
+	return listItem_;
+}
+
+ViewDataItem* qm::DefaultViewData::getItem(const WCHAR* pwszClass)
+{
+	ItemList::const_iterator it = std::find_if(
+		listItem_.begin(), listItem_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				string_equal<WCHAR>(),
+				std::select1st<ItemList::value_type>(),
+				std::identity<const WCHAR*>()),
+			pwszClass));
+	if (it == listItem_.end()) {
+		wstring_ptr wstrClass(allocWString(pwszClass));
+		std::auto_ptr<ViewDataItem> pItem(createDefaultItem());
+		listItem_.push_back(ItemList::value_type(wstrClass.get(), pItem.get()));
+		wstrClass.release();
+		return pItem.release();
+	}
+	else {
+		return (*it).second;
+	}
+}
+
+void qm::DefaultViewData::setItem(const WCHAR* pwszClass,
+								  std::auto_ptr<ViewDataItem> pItem)
+{
+	wstring_ptr wstrClass(allocWString(pwszClass));
+	
+	ItemList::iterator it = std::find_if(
+		listItem_.begin(), listItem_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				string_equal<WCHAR>(),
+				std::select1st<ItemList::value_type>(),
+				std::identity<const WCHAR*>()),
+			pwszClass));
+	if (it != listItem_.end()) {
+		freeWString((*it).first);
+		delete (*it).second;
+		(*it).first = wstrClass.release();
+		(*it).second = pItem.release();
+	}
+	else {
+		listItem_.push_back(ItemList::value_type(wstrClass.get(), pItem.get()));
+		wstrClass.release();
+		pItem.release();
+	}
+}
+
+bool qm::DefaultViewData::save() const
+{
+	TemporaryFileRenamer renamer(wstrPath_.get());
+	
+	FileOutputStream os(renamer.getPath());
+	if (!os)
+		return false;
+	OutputStreamWriter writer(&os, false, L"utf-8");
+	if (!writer)
+		return false;
+	BufferedWriter bufferedWriter(&writer, false);
+	
+	ViewDataWriter viewDataWriter(&bufferedWriter);
+	if (!viewDataWriter.write(this))
+		return false;
+	
+	if (!bufferedWriter.close())
+		return false;
+	
+	if (!renamer.rename())
+		return false;
+	
+	return true;
+}
+
+std::auto_ptr<ViewDataItem> qm::DefaultViewData::createDefaultItem()
+{
+	std::auto_ptr<ViewDataItem> pItem(new ViewDataItem(0));
 	struct {
 		const WCHAR* pwszTitle_;
 		ViewColumn::Type type_;
@@ -2003,6 +2111,19 @@ std::auto_ptr<ViewDataItem> qm::ViewDataItem::clone(unsigned int nFolderId) cons
 
 qm::ViewDataContentHandler::ViewDataContentHandler(ViewData* pData) :
 	pData_(pData),
+	pDefaultData_(0),
+	state_(STATE_ROOT),
+	type_(ViewColumn::TYPE_NONE),
+	nFlags_(-1),
+	nWidth_(-1),
+	nSort_(-1),
+	parser_(MacroParser::TYPE_COLUMN)
+{
+}
+
+qm::ViewDataContentHandler::ViewDataContentHandler(DefaultViewData* pDefaultData) :
+	pData_(0),
+	pDefaultData_(pDefaultData),
 	state_(STATE_ROOT),
 	type_(ViewColumn::TYPE_NONE),
 	nFlags_(-1),
@@ -2033,20 +2154,34 @@ bool qm::ViewDataContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			return false;
 		
 		const WCHAR* pwszFolder = 0;
+		const WCHAR* pwszClass = 0;
 		for (int n = 0; n < attributes.getLength(); ++n) {
 			const WCHAR* pwszAttrLocalName = attributes.getLocalName(n);
 			if (wcscmp(pwszAttrLocalName, L"folder") == 0)
 				pwszFolder = attributes.getValue(n);
+			else if (wcscmp(pwszAttrLocalName, L"class") == 0)
+				pwszClass = attributes.getValue(n);
 			else
 				return false;
 		}
-		if (!pwszFolder)
-			return false;
 		
-		WCHAR* pEnd = 0;
-		unsigned int nFolderId = wcstol(pwszFolder, &pEnd, 10);
-		if (*pEnd)
-			return false;
+		unsigned int nFolderId = 0;
+		if (pDefaultData_) {
+			// TODO
+			// Ignore error for compatibility.
+			// Should be removed in the future.
+			if (pwszClass)
+				wstrClass_ = allocWString(pwszClass);
+		}
+		else {
+			if (!pwszFolder)
+				return false;
+			
+			WCHAR* pEnd = 0;
+			nFolderId = wcstol(pwszFolder, &pEnd, 10);
+			if (*pEnd)
+				return false;
+		}
 		
 		assert(!pItem_.get());
 		pItem_.reset(new ViewDataItem(nFolderId));
@@ -2151,7 +2286,19 @@ bool qm::ViewDataContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 	else if (wcscmp(pwszLocalName, L"view") == 0) {
 		assert(state_ == STATE_VIEW);
 		assert(pItem_.get());
-		pData_->addItem(pItem_);
+		
+		if (pDefaultData_) {
+			// TODO
+			// Ignore error for compatiblity.
+			// Should be removed in the future.
+			if (wstrClass_.get())
+				pDefaultData_->setItem(wstrClass_.get(), pItem_);
+			wstrClass_.reset(0);
+		}
+		else {
+			pData_->addItem(pItem_);
+		}
+		
 		state_ = STATE_VIEWS;
 	}
 	else if (wcscmp(pwszLocalName, L"columns") == 0) {
@@ -2311,128 +2458,163 @@ bool qm::ViewDataWriter::write(const ViewData* pData)
 		return false;
 	
 	const ViewData::ItemList& listItem = pData->getItems();
-	for (ViewData::ItemList::const_iterator itI = listItem.begin(); itI != listItem.end(); ++itI) {
-		ViewDataItem* pItem = *itI;
-		
-		WCHAR wszFolder[32];
-		swprintf(wszFolder, L"%u", pItem->getFolderId());
-		SimpleAttributes viewAttrs(L"folder", wszFolder);
-		if (!handler_.startElement(0, 0, L"view", viewAttrs))
-			return false;
-		
-		if (!handler_.startElement(0, 0, L"columns", attrs))
-			return false;
-		
-		const ViewColumnList& listColumn = pItem->getColumns();
-		for (ViewColumnList::const_iterator itC = listColumn.begin(); itC != listColumn.end(); ++itC) {
-			ViewColumn* pColumn = *itC;
-			
-			unsigned int nFlags = pColumn->getFlags();
-			const WCHAR* pwszSort = 0;
-			switch (nFlags & ViewColumn::FLAG_SORT_MASK) {
-			case ViewColumn::FLAG_SORT_TEXT:
-				pwszSort = L"text";
-				break;
-			case ViewColumn::FLAG_SORT_NUMBER:
-				pwszSort = L"number";
-				break;
-			case ViewColumn::FLAG_SORT_DATE:
-				pwszSort = L"date";
-				break;
-			default:
-				assert(false);
-				break;
-			}
-			const SimpleAttributes::Item items[] = {
-				{ L"indent",	nFlags & ViewColumn::FLAG_INDENT ? L"true" : L"false"		},
-				{ L"line",		nFlags & ViewColumn::FLAG_LINE ? L"true" : L"false"			},
-				{ L"icon",		nFlags & ViewColumn::FLAG_ICON ? L"true" : L"false"			},
-				{ L"align",		nFlags & ViewColumn::FLAG_RIGHTALIGN ? L"right" : L"left"	},
-				{ L"sort",		pwszSort													}
-			};
-			SimpleAttributes columnAttrs(items, countof(items));
-			if (!handler_.startElement(0, 0, L"column", columnAttrs))
-				return false;
-			
-			if (!HandlerHelper::textElement(&handler_, L"title", pColumn->getTitle(), -1))
-				return false;
-			
-			const WCHAR* pwszMacro = 0;
-			wstring_ptr wstrMacro;
-			switch (pColumn->getType()) {
-			case ViewColumn::TYPE_NONE:
-				assert(false);
-				return false;
-			case ViewColumn::TYPE_ID:
-				pwszMacro = L"%Id";
-				break;
-			case ViewColumn::TYPE_DATE:
-				pwszMacro = L"%Date";
-				break;
-			case ViewColumn::TYPE_FROM:
-				pwszMacro = L"%From";
-				break;
-			case ViewColumn::TYPE_TO:
-				pwszMacro = L"%To";
-				break;
-			case ViewColumn::TYPE_FROMTO:
-				pwszMacro = L"%FromTo";
-				break;
-			case ViewColumn::TYPE_SUBJECT:
-				pwszMacro = L"%Subject";
-				break;
-			case ViewColumn::TYPE_SIZE:
-				pwszMacro = L"%Size";
-				break;
-			case ViewColumn::TYPE_FLAGS:
-				pwszMacro = L"%Flags";
-				break;
-			case ViewColumn::TYPE_OTHER:
-				wstrMacro = pColumn->getMacro()->getString();
-				pwszMacro = wstrMacro.get();
-				break;
-			default:
-				assert(false);
-				return false;
-			}
-			if (!HandlerHelper::textElement(&handler_, L"macro", pwszMacro, -1))
-				return false;
-			
-			if (!HandlerHelper::numberElement(&handler_, L"width", pColumn->getWidth()))
-				return false;
-			
-			if (!handler_.endElement(0, 0, L"column"))
-				return false;
-		}
-		
-		if (!handler_.endElement(0, 0, L"columns"))
-			return false;
-		
-		if (!HandlerHelper::numberElement(&handler_, L"focus", pItem->getFocus()))
-			return false;
-		
-		unsigned int nSort = pItem->getSort();
-		const SimpleAttributes::Item items[] = {
-			{ L"direction",	(nSort & ViewModel::SORT_DIRECTION_MASK) == ViewModel::SORT_ASCENDING ? L"ascending" : L"descending"	},
-			{ L"thread",	(nSort & ViewModel::SORT_THREAD_MASK) == ViewModel::SORT_THREAD ? L"true" : L"false"					}
-		};
-		SimpleAttributes sortAttrs(items, countof(items));
-		if (!handler_.startElement(0, 0, L"sort", sortAttrs))
-			return false;
-		WCHAR wsz[32];
-		swprintf(wsz, L"%u", pItem->getSort() & ViewModel::SORT_INDEX_MASK);
-		if (!handler_.characters(wsz, 0, wcslen(wsz)))
-			return false;
-		if (!handler_.endElement(0, 0, L"sort"))
-			return false;
-		
-		if (!handler_.endElement(0, 0, L"view"))
+	for (ViewData::ItemList::const_iterator it = listItem.begin(); it != listItem.end(); ++it) {
+		if (!write(*it, 0))
 			return false;
 	}
 	
 	if (!handler_.endElement(0, 0, L"views"))
 		return false;
 	if (!handler_.endDocument())
+		return false;
+	
+	return true;
+}
+
+bool qm::ViewDataWriter::write(const DefaultViewData* pData)
+{
+	if (!handler_.startDocument())
+		return false;
+	if (!handler_.startElement(0, 0, L"views", DefaultAttributes()))
+		return false;
+	
+	const DefaultViewData::ItemList& listItem = pData->getItems();
+	for (DefaultViewData::ItemList::const_iterator it = listItem.begin(); it != listItem.end(); ++it) {
+		if (!write((*it).second, (*it).first))
+			return false;
+	}
+	
+	if (!handler_.endElement(0, 0, L"views"))
+		return false;
+	if (!handler_.endDocument())
+		return false;
+	
+	return true;
+}
+
+bool qm::ViewDataWriter::write(const ViewDataItem* pItem,
+							   const WCHAR* pwszClass)
+{
+	if (pwszClass) {
+		SimpleAttributes viewAttrs(L"class", pwszClass);
+		if (!handler_.startElement(0, 0, L"view", viewAttrs))
+			return false;
+	}
+	else {
+		WCHAR wszFolder[32];
+		swprintf(wszFolder, L"%u", pItem->getFolderId());
+		SimpleAttributes viewAttrs(L"folder", wszFolder);
+		if (!handler_.startElement(0, 0, L"view", viewAttrs))
+			return false;
+	}
+	
+	if (!handler_.startElement(0, 0, L"columns", DefaultAttributes()))
+		return false;
+	
+	const ViewColumnList& listColumn = pItem->getColumns();
+	for (ViewColumnList::const_iterator itC = listColumn.begin(); itC != listColumn.end(); ++itC) {
+		ViewColumn* pColumn = *itC;
+		
+		unsigned int nFlags = pColumn->getFlags();
+		const WCHAR* pwszSort = 0;
+		switch (nFlags & ViewColumn::FLAG_SORT_MASK) {
+		case ViewColumn::FLAG_SORT_TEXT:
+			pwszSort = L"text";
+			break;
+		case ViewColumn::FLAG_SORT_NUMBER:
+			pwszSort = L"number";
+			break;
+		case ViewColumn::FLAG_SORT_DATE:
+			pwszSort = L"date";
+			break;
+		default:
+			assert(false);
+			break;
+		}
+		const SimpleAttributes::Item items[] = {
+			{ L"indent",	nFlags & ViewColumn::FLAG_INDENT ? L"true" : L"false"		},
+			{ L"line",		nFlags & ViewColumn::FLAG_LINE ? L"true" : L"false"			},
+			{ L"icon",		nFlags & ViewColumn::FLAG_ICON ? L"true" : L"false"			},
+			{ L"align",		nFlags & ViewColumn::FLAG_RIGHTALIGN ? L"right" : L"left"	},
+			{ L"sort",		pwszSort													}
+		};
+		SimpleAttributes columnAttrs(items, countof(items));
+		if (!handler_.startElement(0, 0, L"column", columnAttrs))
+			return false;
+		
+		if (!HandlerHelper::textElement(&handler_, L"title", pColumn->getTitle(), -1))
+			return false;
+		
+		const WCHAR* pwszMacro = 0;
+		wstring_ptr wstrMacro;
+		switch (pColumn->getType()) {
+		case ViewColumn::TYPE_NONE:
+			assert(false);
+			return false;
+		case ViewColumn::TYPE_ID:
+			pwszMacro = L"%Id";
+			break;
+		case ViewColumn::TYPE_DATE:
+			pwszMacro = L"%Date";
+			break;
+		case ViewColumn::TYPE_FROM:
+			pwszMacro = L"%From";
+			break;
+		case ViewColumn::TYPE_TO:
+			pwszMacro = L"%To";
+			break;
+		case ViewColumn::TYPE_FROMTO:
+			pwszMacro = L"%FromTo";
+			break;
+		case ViewColumn::TYPE_SUBJECT:
+			pwszMacro = L"%Subject";
+			break;
+		case ViewColumn::TYPE_SIZE:
+			pwszMacro = L"%Size";
+			break;
+		case ViewColumn::TYPE_FLAGS:
+			pwszMacro = L"%Flags";
+			break;
+		case ViewColumn::TYPE_OTHER:
+			wstrMacro = pColumn->getMacro()->getString();
+			pwszMacro = wstrMacro.get();
+			break;
+		default:
+			assert(false);
+			return false;
+		}
+		if (!HandlerHelper::textElement(&handler_, L"macro", pwszMacro, -1))
+			return false;
+		
+		if (!HandlerHelper::numberElement(&handler_, L"width", pColumn->getWidth()))
+			return false;
+		
+		if (!handler_.endElement(0, 0, L"column"))
+			return false;
+	}
+	
+	if (!handler_.endElement(0, 0, L"columns"))
+		return false;
+	
+	if (!HandlerHelper::numberElement(&handler_, L"focus", pItem->getFocus()))
+		return false;
+	
+	unsigned int nSort = pItem->getSort();
+	const SimpleAttributes::Item items[] = {
+		{ L"direction",	(nSort & ViewModel::SORT_DIRECTION_MASK) == ViewModel::SORT_ASCENDING ? L"ascending" : L"descending"	},
+		{ L"thread",	(nSort & ViewModel::SORT_THREAD_MASK) == ViewModel::SORT_THREAD ? L"true" : L"false"					}
+	};
+	SimpleAttributes sortAttrs(items, countof(items));
+	if (!handler_.startElement(0, 0, L"sort", sortAttrs))
+		return false;
+	WCHAR wsz[32];
+	swprintf(wsz, L"%u", pItem->getSort() & ViewModel::SORT_INDEX_MASK);
+	if (!handler_.characters(wsz, 0, wcslen(wsz)))
+		return false;
+	if (!handler_.endElement(0, 0, L"sort"))
+		return false;
+	
+	if (!handler_.endElement(0, 0, L"view"))
 		return false;
 	
 	return true;

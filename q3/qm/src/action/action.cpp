@@ -2086,7 +2086,16 @@ void qm::FolderCreateAction::invoke(const ActionEvent& event)
 		
 		if (pQueryFolder) {
 			Account::FolderList l(1, pQueryFolder);
-			FolderPropertyAction::openProperty(l, true, hwnd_, pProfile_);
+			FolderPropertyAction::openProperty(l,
+				FolderPropertyAction::OPEN_CONDITION, hwnd_, pProfile_);
+		}
+		else {
+			std::pair<const WCHAR**, size_t> params(pAccount->getFolderParamNames());
+			if (params.second) {
+				Account::FolderList l(1, pNormalFolder);
+				FolderPropertyAction::openProperty(l,
+					FolderPropertyAction::OPEN_PARAMETER, hwnd_, pProfile_);
+			}
 		}
 	}
 }
@@ -2307,7 +2316,7 @@ void qm::FolderPropertyAction::invoke(const ActionEvent& event)
 {
 	Account::FolderList listFolder;
 	pFolderSelectionModel_->getSelectedFolders(&listFolder);
-	openProperty(listFolder, false, hwnd_, pProfile_);
+	openProperty(listFolder, FolderPropertyAction::OPEN_PROPERTY, hwnd_, pProfile_);
 }
 
 bool qm::FolderPropertyAction::isEnabled(const ActionEvent& event)
@@ -2316,7 +2325,7 @@ bool qm::FolderPropertyAction::isEnabled(const ActionEvent& event)
 }
 
 void qm::FolderPropertyAction::openProperty(const Account::FolderList& listFolder,
-											bool bOpenCondition,
+											Open open,
 											HWND hwnd,
 											Profile* pProfile)
 {
@@ -2334,42 +2343,25 @@ void qm::FolderPropertyAction::openProperty(const Account::FolderList& listFolde
 		pQueryFolder = static_cast<QueryFolder*>(listFolder.front());
 		pConditionPage.reset(new FolderConditionPage(pQueryFolder, pProfile));
 		sheet.add(pConditionPage.get());
-		if (bOpenCondition)
+		if (open == OPEN_CONDITION)
 			sheet.setStartPage(1);
 	}
 	
-	if (sheet.doModal(hwnd) == IDOK) {
-		for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
-			Folder* pFolder = *it;
-			
-			unsigned int nFlags = pageProperty.getFlags();
-			unsigned int nMask = pageProperty.getMask();
-			switch (pFolder->getType()) {
-			case Folder::TYPE_NORMAL:
-				if (!pFolder->isFlag(Folder::FLAG_SYNCABLE))
-					nMask &= ~(Folder::FLAG_SYNCWHENOPEN | Folder::FLAG_CACHEWHENREAD);
-				if (pFolder->isFlag(Folder::FLAG_NOSELECT))
-					nMask &= ~(Folder::FLAG_INBOX | Folder::FLAG_OUTBOX |
-						Folder::FLAG_SENTBOX | Folder::FLAG_DRAFTBOX | Folder::FLAG_TRASHBOX);
-				break;
-			case Folder::TYPE_QUERY:
-				nMask &= ~(Folder::FLAG_CACHEWHENREAD | Folder::FLAG_INBOX | Folder::FLAG_OUTBOX |
-					Folder::FLAG_SENTBOX | Folder::FLAG_DRAFTBOX | Folder::FLAG_TRASHBOX);
-				break;
-			default:
-				assert(false);
-				break;
-			}
-			
-			pFolder->getAccount()->setFolderFlags(pFolder, nFlags, nMask);
+	std::auto_ptr<FolderParameterPage> pParameterPage;
+	if (listFolder.size() == 1 &&
+		listFolder.front()->getType() == Folder::TYPE_NORMAL) {
+		Account* pAccount = listFolder.front()->getAccount();
+		std::pair<const WCHAR**, size_t> params(pAccount->getFolderParamNames());
+		if (params.second != 0) {
+			pParameterPage.reset(new FolderParameterPage(
+				listFolder.front(), params.first, params.second));
+			sheet.add(pParameterPage.get());
+			if (open == OPEN_PARAMETER)
+				sheet.setStartPage(1);
 		}
-		
-		if (pQueryFolder && pConditionPage->isModified())
-			pQueryFolder->set(pConditionPage->getDriver(),
-				pConditionPage->getCondition(),
-				pConditionPage->getTargetFolder(),
-				pConditionPage->isRecursive());
 	}
+	
+	sheet.doModal(hwnd);
 }
 
 

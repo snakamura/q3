@@ -20,8 +20,7 @@ namespace qm {
 
 class UIManager;
 
-class ViewData;
-class ViewDataItem;
+class DefaultViewData;
 
 
 /****************************************************************************
@@ -40,7 +39,7 @@ public:
 	qs::MenuManager* getMenuManager() const;
 	qs::ToolbarManager* getToolbarManager() const;
 	qs::KeyMap* getKeyMap() const;
-	ViewDataItem* getDefaultViewDataItem() const;
+	DefaultViewData* getDefaultViewData() const;
 	
 	bool save() const;
 
@@ -52,7 +51,7 @@ private:
 	std::auto_ptr<qs::MenuManager> pMenuManager_;
 	std::auto_ptr<qs::ToolbarManager> pToolbarManager_;
 	std::auto_ptr<qs::KeyMap> pKeyMap_;
-	std::auto_ptr<ViewData> pViewData_;
+	std::auto_ptr<DefaultViewData> pViewData_;
 };
 
 }

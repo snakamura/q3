@@ -694,8 +694,6 @@ LRESULT qm::AddressBookDialog::onDestroy()
 LRESULT qm::AddressBookDialog::onInitDialog(HWND hwndFocus,
 											LPARAM lParam)
 {
-	int n = 0;
-	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	HWND hwndList = getDlgItem(IDC_ADDRESS);
 	
@@ -710,7 +708,7 @@ LRESULT qm::AddressBookDialog::onInitDialog(HWND hwndFocus,
 		{ IDS_ADDRESSBOOK_ADDRESS,	L"AddressWidth",	130	},
 		{ IDS_ADDRESSBOOK_COMMENT,	L"CommentWidth",	60	}
 	};
-	for (n = 0; n < countof(columns); ++n) {
+	for (int n = 0; n < countof(columns); ++n) {
 		wstring_ptr wstrName(loadString(hInst, columns[n].nId_));
 		W2T(wstrName.get(), ptszName);
 		
@@ -749,7 +747,7 @@ LRESULT qm::AddressBookDialog::onInitDialog(HWND hwndFocus,
 		TYPE_CC,
 		TYPE_BCC
 	};
-	for (n = 0; n < countof(listAddress_); ++n) {
+	for (int n = 0; n < countof(listAddress_); ++n) {
 		for (AddressList::iterator it = listAddress_[n].begin(); it != listAddress_[n].end(); ++it) {
 			wstring_ptr wstrValue(*it);
 			W2T(wstrValue.get(), ptszValue);
@@ -1655,13 +1653,13 @@ LRESULT qm::CreateAccountDialog::onInitDialog(HWND hwndFocus,
 {
 	init(false);
 	
-	wstring_ptr wstrClasses(pProfile_->getString(L"Global", L"Classes", L"mail news"));
-	const WCHAR* p = wcstok(wstrClasses.get(), L" ");
-	while (p) {
-		W2T(p, ptsz);
-		sendDlgItemMessage(IDC_CLASS, CB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptsz));
-		p = wcstok(0, L" ");
+	typedef ReceiveSessionFactory::NameList ClassList;
+	ClassList listClasses;
+	StringListFree<ClassList> free(listClasses);
+	ReceiveSessionFactory::getClasses(&listClasses);
+	for (ClassList::iterator it = listClasses.begin(); it != listClasses.end(); ++it) {
+		W2T(*it, ptsz);
+		sendDlgItemMessage(IDC_CLASS, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(ptsz));
 	}
 	sendDlgItemMessage(IDC_CLASS, CB_SETCURSEL, 0);
 	
@@ -3218,6 +3216,44 @@ void qm::MoveMessageDialog::updateState()
 
 /****************************************************************************
  *
+ * ParameterDialog
+ *
+ */
+
+qm::ParameterDialog::ParameterDialog(const WCHAR* pwszName,
+									 const WCHAR* pwszValue) :
+	DefaultDialog(IDD_PARAMETER)
+{
+	wstrName_ = allocWString(pwszName);
+	wstrValue_ = allocWString(pwszValue);
+}
+
+qm::ParameterDialog::~ParameterDialog()
+{
+}
+
+const WCHAR* qm::ParameterDialog::getValue() const
+{
+	return wstrValue_.get();
+}
+
+LRESULT qm::ParameterDialog::onInitDialog(HWND hwndFocus,
+										  LPARAM lParam)
+{
+	setDlgItemText(IDC_NAME, wstrName_.get());
+	setDlgItemText(IDC_VALUE, wstrValue_.get());
+	return TRUE;
+}
+
+LRESULT qm::ParameterDialog::onOk()
+{
+	wstrValue_ = getDlgItemText(IDC_VALUE);
+	return DefaultDialog::onOk();
+}
+
+
+/****************************************************************************
+ *
  * ProgressDialog
  *
  */
@@ -4034,7 +4070,7 @@ LRESULT qm::ViewsDialog::onDown()
 
 LRESULT qm::ViewsDialog::onAsDefault()
 {
-	ViewDataItem* pItem = pUIManager_->getDefaultViewDataItem();
+	ViewDataItem* pItem = getDefaultItem();
 	ViewColumnList listColumn;
 	cloneColumns(listColumn_, &listColumn);
 	pItem->setColumns(listColumn);
@@ -4043,7 +4079,7 @@ LRESULT qm::ViewsDialog::onAsDefault()
 
 LRESULT qm::ViewsDialog::onApplyDefault()
 {
-	ViewDataItem* pItem = pUIManager_->getDefaultViewDataItem();
+	ViewDataItem* pItem = getDefaultItem();
 	setColumns(pItem->getColumns());
 	update();
 	return 0;
@@ -4210,4 +4246,12 @@ void qm::ViewsDialog::cloneColumns(const ViewColumnList& listColumn,
 		std::auto_ptr<ViewColumn> pColumn((*it)->clone());
 		pListColumn->push_back(pColumn.release());
 	}
+}
+
+ViewDataItem* qm::ViewsDialog::getDefaultItem()
+{
+	Folder* pFolder = pViewModel_->getFolder();
+	Account* pAccount = pFolder->getAccount();
+	DefaultViewData* pDefaultViewData = pUIManager_->getDefaultViewData();
+	return pDefaultViewData->getItem(pAccount->getClass());
 }

@@ -588,6 +588,7 @@ public:
 					  size_t nLen,
 					  bool bAllowSingleDigitTime,
 					  Time* pTime);
+	static wstring_ptr unparse(const Time& time);
 
 private:
 	static int getWeek(const CHAR* psz);

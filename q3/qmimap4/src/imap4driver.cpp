@@ -67,6 +67,8 @@ bool qmimap4::Imap4Driver::isSupport(Account::Support support)
 		return false;
 	case Account::SUPPORT_LOCALFOLDERGETMESSAGE:
 		return false;
+	case Account::SUPPORT_EXTERNALLINK:
+		return false;
 	default:
 		assert(false);
 		return false;
@@ -270,6 +272,11 @@ bool qmimap4::Imap4Driver::getRemoteFolders(SubAccount* pSubAccount,
 	getter.getFolders(pList);
 	
 	return true;
+}
+
+std::pair<const WCHAR**, size_t> qmimap4::Imap4Driver::getFolderParamNames()
+{
+	return std::pair<const WCHAR**, size_t>(0, 0);
 }
 
 bool qmimap4::Imap4Driver::getMessage(SubAccount* pSubAccount,

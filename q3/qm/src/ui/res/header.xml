@@ -15,18 +15,38 @@
 		<static width="4em" style="bold" showAlways="true">Followup-To:</static>
 		<edit name="followup-to">{FollowUp-To}</edit>
 	</line>
-	<line>
+	<line class="mail|news">
 		<static width="4em" style="bold" showAlways="true">From:</static>
 		<edit>{@FormatAddress(From)}</edit>
 		<static width="3em" style="bold" showAlways="true">Date:</static>
 		<edit width="10em">{@FormatDate(@Date(Date), '%Y4/%M0/%D %h:%m:%s')}</edit>
 	</line>
-	<line>
+	<line class="mail|news">
 		<static width="4em" style="bold" showAlways="true">Subject:</static>
 		<edit>{@Subject()}</edit>
 	</line>
-	<line hideIfEmpty="attachment">
+	<line hideIfEmpty="attachment" class="mail|news">
 		<static width="4em" style="bold" showAlways="true">Attachment:</static>
 		<attachment name="attachment"/>
+	</line>
+	<line class="rss">
+		<static width="4em" style="bold" showAlways="true">Title:</static>
+		<edit>{@Subject()}</edit>
+	</line>
+	<line class="rss">
+		<static width="4em" style="bold" showAlways="true">Date:</static>
+		<edit width="10em">{@FormatDate(@Date(Date), '%Y4/%M0/%D %h:%m:%s')}</edit>
+	</line>
+	<line class="rss" hideIfEmpty="creator">
+		<static width="4em" style="bold" showAlways="true">Creator:</static>
+		<edit name="creator">{X-RSS-Creator}</edit>
+	</line>
+	<line class="rss" hideIfEmpty="category">
+		<static width="4em" style="bold" showAlways="true">Category:</static>
+		<edit name="category">{X-RSS-Category}</edit>
+	</line>
+	<line class="rss" hideIfEmpty="subject">
+		<static width="4em" style="bold" showAlways="true">Subject:</static>
+		<edit name="subject">{X-RSS-Subject}</edit>
 	</line>
 </header>
