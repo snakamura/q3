@@ -49,6 +49,8 @@
 #include "messagewindow.h"
 #include "resourceinc.h"
 #include "statusbar.h"
+#include "syncdialog.h"
+#include "syncutil.h"
 #include "uiutil.h"
 #include "viewmodel.h"
 #include "../action/action.h"
@@ -73,6 +75,7 @@ using namespace qs;
 
 class qm::MainWindowImpl :
 	public ModalHandler,
+	public FolderModelHandler,
 	public FolderSelectionModel
 {
 public:
@@ -131,6 +134,10 @@ public:
 	virtual qs::QSTATUS postModalDialog(HWND hwndParent);
 
 public:
+	virtual qs::QSTATUS accountSelected(const FolderModelEvent& event);
+	virtual qs::QSTATUS folderSelected(const FolderModelEvent& event);
+
+public:
 	virtual Account* getAccount();
 	virtual qs::QSTATUS getSelectedFolders(Account::FolderList* pList);
 	virtual qs::QSTATUS hasSelectedFolder(bool* pbHas);
@@ -182,6 +189,7 @@ public:
 	CreateTemplateMenu* pCreateTemplateExternalMenu_;
 	EncodingMenu* pEncodingMenu_;
 	ScriptMenu* pScriptMenu_;
+	DelayedFolderModelHandler* pDelayedFolderModelHandler_;
 	bool bCreated_;
 	bool bMaximize_;
 	bool bLayouting_;
@@ -903,6 +911,28 @@ QSTATUS qm::MainWindowImpl::postModalDialog(HWND hwndParent)
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qm::MainWindowImpl::accountSelected(const FolderModelEvent& event)
+{
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::MainWindowImpl::folderSelected(const FolderModelEvent& event)
+{
+	DECLARE_QSTATUS();
+	
+	Folder* pFolder = pFolderModel_->getCurrentFolder();
+	if (pFolder->getType() == Folder::TYPE_NORMAL &&
+		pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
+		pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
+		status = SyncUtil::syncFolder(pSyncManager_, pDocument_,
+			pSyncDialogManager_, pThis_->getHandle(),
+			static_cast<NormalFolder*>(pFolder));
+		CHECK_QSTATUS();
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
 Account* qm::MainWindowImpl::getAccount()
 {
 	DECLARE_QSTATUS();
@@ -1212,6 +1242,7 @@ qm::MainWindow::MainWindow(Profile* pProfile, QSTATUS* pstatus) :
 	pImpl_->pCreateTemplateExternalMenu_ = 0;
 	pImpl_->pEncodingMenu_ = 0;
 	pImpl_->pScriptMenu_ = 0;
+	pImpl_->pDelayedFolderModelHandler_ = 0;
 	pImpl_->bCreated_ = false;
 	pImpl_->bMaximize_ = false;
 	pImpl_->bLayouting_ = false;
@@ -1241,6 +1272,7 @@ qm::MainWindow::~MainWindow()
 		delete pImpl_->pCreateTemplateMenu_;
 		delete pImpl_->pCreateTemplateExternalMenu_;
 		delete pImpl_->pEncodingMenu_;
+		delete pImpl_->pDelayedFolderModelHandler_;
 		delete pImpl_->pScriptMenu_;
 		delete pImpl_;
 		pImpl_ = 0;
@@ -1861,6 +1893,12 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		&pImpl_->pScriptMenu_);
 	CHECK_QSTATUS_VALUE(-1);
 	
+	status = newQsObject(pImpl_, &pImpl_->pDelayedFolderModelHandler_);
+	CHECK_QSTATUS_VALUE(-1);
+	status = pImpl_->pFolderModel_->addFolderModelHandler(
+		pImpl_->pDelayedFolderModelHandler_);
+	CHECK_QSTATUS_VALUE(-1);
+	
 	status = pImpl_->initActions();
 	CHECK_QSTATUS_VALUE(-1);
 	
@@ -1874,6 +1912,9 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 
 LRESULT qm::MainWindow::onDestroy()
 {
+	pImpl_->pFolderModel_->removeFolderModelHandler(
+		pImpl_->pDelayedFolderModelHandler_);
+	
 	::PostQuitMessage(0);
 	
 	return FrameWindow::onDestroy();

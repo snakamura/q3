@@ -48,6 +48,7 @@
 #include "../ui/propertypages.h"
 #include "../ui/resource.h"
 #include "../ui/syncdialog.h"
+#include "../ui/syncutil.h"
 #include "../ui/viewmodel.h"
 
 #pragma warning(disable:4786)
@@ -3508,24 +3509,10 @@ QSTATUS qm::ViewRefreshAction::invoke(const ActionEvent& event)
 	if (pFolder) {
 		if (pFolder->getType() == Folder::TYPE_NORMAL) {
 			if (pFolder->isFlag(Folder::FLAG_SYNCABLE)) {
-				std::auto_ptr<SyncData> pData;
-				status = newQsObject(pSyncManager_, pDocument_, hwnd_, &pData);
+				status = SyncUtil::syncFolder(pSyncManager_,
+					pDocument_, pSyncDialogManager_, hwnd_,
+					static_cast<NormalFolder*>(pFolder));
 				CHECK_QSTATUS();
-				Account* pAccount = pFolder->getAccount();
-				SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
-				status = pData->addFolder(pAccount, pSubAccount,
-					static_cast<NormalFolder*>(pFolder),
-					pSubAccount->getSyncFilterName());
-				CHECK_QSTATUS();
-				
-				SyncDialog* pSyncDialog = 0;
-				status = pSyncDialogManager_->open(&pSyncDialog);
-				CHECK_QSTATUS();
-				pData->setCallback(pSyncDialog->getSyncManagerCallback());
-				
-				status = pSyncManager_->sync(pData.get());
-				CHECK_QSTATUS();
-				pData.release();
 			}
 		}
 		else if (pFolder->getType() == Folder::TYPE_QUERY) {
