@@ -1704,6 +1704,9 @@ void qm::ViewModelManager::accountDestroyed(const AccountEvent& event)
 {
 	Account* pAccount = event.getAccount();
 	
+	if (pAccount == pCurrentAccount_)
+		setCurrentFolder(0, 0);
+	
 	ViewModelList::iterator itV = listViewModel_.begin();
 	while (itV != listViewModel_.end()) {
 		ViewModel* pViewModel = *itV;

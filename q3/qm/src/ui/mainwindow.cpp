@@ -1512,8 +1512,12 @@ void qm::MainWindowImpl::viewModelSelected(const ViewModelManagerEvent& event)
 
 void qm::MainWindowImpl::currentChanged(const TabModelEvent& event)
 {
-	const TabItem* pItem = pTabModel_->getItem(pTabModel_->getCurrent());
-	std::pair<Account*, Folder*> p(pItem->get());
+	std::pair<Account*, Folder*> p;
+	int nItem = pTabModel_->getCurrent();
+	if (nItem != -1) {
+		const TabItem* pItem = pTabModel_->getItem(nItem);
+		p = pItem->get();
+	}
 	pFolderModel_->setCurrent(p.first, p.second, false);
 }
 #endif // QMTABWINDOW
