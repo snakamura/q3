@@ -77,7 +77,7 @@ class SingleMessageStore : public MessageStore
 {
 public:
 	SingleMessageStore(const WCHAR* pwszPath, unsigned int nBlockSize,
-		unsigned int nCacheBlockSize, qs::QSTATUS* pstatus);
+		const WCHAR* pwszCachePath, unsigned int nCacheBlockSize, qs::QSTATUS* pstatus);
 	virtual ~SingleMessageStore();
 
 public:
@@ -116,7 +116,7 @@ private:
 class MultiMessageStore : public MessageStore
 {
 public:
-	MultiMessageStore(const WCHAR* pwszPath,
+	MultiMessageStore(const WCHAR* pwszPath, const WCHAR* pwszCachePath,
 		unsigned int nCacheBlockSize, qs::QSTATUS* pstatus);
 	virtual ~MultiMessageStore();
 

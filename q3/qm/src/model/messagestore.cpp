@@ -69,7 +69,8 @@ const unsigned char qm::SingleMessageStoreImpl::szUnusedSeparator__[] = "\n\nFro
  */
 
 qm::SingleMessageStore::SingleMessageStore(const WCHAR* pwszPath,
-	unsigned int nBlockSize, unsigned int nCacheBlockSize, QSTATUS* pstatus)
+	unsigned int nBlockSize, const WCHAR* pwszCachePath,
+	unsigned int nCacheBlockSize, QSTATUS* pstatus)
 {
 	assert(pstatus);
 	
@@ -95,7 +96,7 @@ qm::SingleMessageStore::SingleMessageStore(const WCHAR* pwszPath,
 	CHECK_QSTATUS_SET(pstatus);
 	
 	ClusterStorage::Init initCache = {
-		pwszPath,
+		pwszCachePath,
 		L"cache",
 		Extensions::BOX,
 		Extensions::MAP,
@@ -526,7 +527,7 @@ QSTATUS qm::MultiMessageStoreImpl::ensureDirectory(unsigned int nOffset) const
  */
 
 qm::MultiMessageStore::MultiMessageStore(const WCHAR* pwszPath,
-	unsigned int nCacheBlockSize, QSTATUS* pstatus)
+	const WCHAR* pwszCachePath, unsigned int nCacheBlockSize, QSTATUS* pstatus)
 {
 	assert(pstatus);
 	
@@ -541,7 +542,7 @@ qm::MultiMessageStore::MultiMessageStore(const WCHAR* pwszPath,
 	}
 	
 	ClusterStorage::Init initCache = {
-		pwszPath,
+		pwszCachePath,
 		L"cache",
 		Extensions::BOX,
 		Extensions::MAP,

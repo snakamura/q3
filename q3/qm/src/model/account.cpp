@@ -440,16 +440,25 @@ qm::Account::Account(const WCHAR* pwszPath,
 	else if (nCacheBlockSize != -1)
 		nCacheBlockSize *= 1024*1024;
 	
+	const WCHAR* pwszMessageStorePath = pwszPath;
+	string_ptr<WSTRING> wstrMessageStorePath;
+	status = pImpl_->pProfile_->getString(L"Global",
+		L"MessageStorePath", L"", &wstrMessageStorePath);
+	CHECK_QSTATUS_SET(pstatus);
+	if (*wstrMessageStorePath.get())
+		pwszMessageStorePath = wstrMessageStorePath.get();
+	
 	if (nBlockSize == 0) {
 		std::auto_ptr<MultiMessageStore> pMessageStore;
-		status = newQsObject(pwszPath, nCacheBlockSize, &pMessageStore);
+		status = newQsObject(pwszMessageStorePath,
+			pwszPath, nCacheBlockSize, &pMessageStore);
 		CHECK_QSTATUS_SET(pstatus);
 		pImpl_->pMessageStore_ = pMessageStore.release();
 	}
 	else {
 		std::auto_ptr<SingleMessageStore> pMessageStore;
-		status = newQsObject(pwszPath, nBlockSize,
-			nCacheBlockSize, &pMessageStore);
+		status = newQsObject(pwszMessageStorePath, nBlockSize,
+			pwszPath, nCacheBlockSize, &pMessageStore);
 		CHECK_QSTATUS_SET(pstatus);
 		pImpl_->pMessageStore_ = pMessageStore.release();
 	}
@@ -1123,6 +1132,15 @@ QSTATUS qm::Account::deletePermanent(bool bDeleteContent)
 		pImpl_->pMessageStore_ = 0;
 		delete pImpl_->pProtocolDriver_;
 		pImpl_->pProtocolDriver_ = 0;
+		
+		string_ptr<WSTRING> wstrMessageStorePath;
+		status = pImpl_->pProfile_->getString(L"Global",
+			L"MessageStorePath", L"", &wstrMessageStorePath);
+		CHECK_QSTATUS();
+		if (*wstrMessageStorePath.get()) {
+			status = File::removeDirectory(wstrMessageStorePath.get());
+			CHECK_QSTATUS();
+		}
 		
 		status = File::removeDirectory(pImpl_->wstrPath_);
 		CHECK_QSTATUS();
