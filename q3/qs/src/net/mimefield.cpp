@@ -425,6 +425,8 @@ QSTATUS qs::FieldParser::decode(const CHAR* psz, size_t nLen,
 				status = buf.remove();
 				CHECK_QSTATUS();
 				
+				pConverter.reset(0);
+				pEncoder.reset(0);
 				bDecode = false;
 				bDecoded = true;
 				
