@@ -36,14 +36,16 @@ using namespace qs;
  *
  */
 
-qmnntp::NntpReceiveSession::NntpReceiveSession() :
+qmnntp::NntpReceiveSession::NntpReceiveSession(LastIdManager* pLastIdManager) :
 	pDocument_(0),
 	pAccount_(0),
 	pSubAccount_(0),
 	pFolder_(0),
 	hwnd_(0),
 	pLogger_(0),
-	pSessionCallback_(0)
+	pSessionCallback_(0),
+	pLastIdManager_(pLastIdManager),
+	pLastIdList_(0)
 {
 }
 
@@ -52,8 +54,12 @@ qmnntp::NntpReceiveSession::~NntpReceiveSession()
 }
 
 bool qmnntp::NntpReceiveSession::init(Document* pDocument,
-	Account* pAccount, SubAccount* pSubAccount, HWND hwnd,
-	Profile* pProfile, Logger* pLogger, ReceiveSessionCallback* pCallback)
+									  Account* pAccount,
+									  SubAccount* pSubAccount,
+									  HWND hwnd,
+									  Profile* pProfile,
+									  Logger* pLogger,
+									  ReceiveSessionCallback* pCallback)
 {
 	assert(pDocument);
 	assert(pAccount);
@@ -79,7 +85,7 @@ bool qmnntp::NntpReceiveSession::init(Document* pDocument,
 void qmnntp::NntpReceiveSession::term()
 {
 	clearLastIds();
-	if (pLastIdList_.get() && pLastIdList_->isModified()) {
+	if (pLastIdList_) {
 		if (!pLastIdList_->save()) {
 			Log log(pLogger_, L"qmnntp::NntpReceiveSession");
 			log.error(L"Failed to save last id list.");
@@ -103,8 +109,7 @@ bool qmnntp::NntpReceiveSession::connect()
 	
 	log.debug(L"Connected to the server.");
 	
-	wstring_ptr wstrPath(concat(pAccount_->getPath(), L"\\lastid.xml"));
-	pLastIdList_.reset(new LastIdList(wstrPath.get()));
+	pLastIdList_ = pLastIdManager_->get(pAccount_);
 	
 	return true;
 }
@@ -411,11 +416,13 @@ bool qmnntp::NntpReceiveSession::downloadReservedMessages(NormalFolder* pFolder,
 
 void qmnntp::NntpReceiveSession::clearLastIds()
 {
-	if (!pLastIdList_.get())
+	if (!pLastIdList_)
 		return;
 	
 	typedef std::vector<const WCHAR*> NameList;
 	NameList listRemove;
+	
+	Lock<LastIdList> lock(*pLastIdList_);
 	
 	const LastIdList::IdList& listId = pLastIdList_->getList();
 	for (LastIdList::IdList::const_iterator it = listId.begin(); it != listId.end(); ++it) {
@@ -544,6 +551,8 @@ NntpReceiveSessionFactory qmnntp::NntpReceiveSessionFactory::factory__;
 
 qmnntp::NntpReceiveSessionFactory::NntpReceiveSessionFactory()
 {
+	pLastIdManager_.reset(new LastIdManager());
+	
 	registerFactory(L"nntp", this);
 }
 
@@ -554,7 +563,7 @@ qmnntp::NntpReceiveSessionFactory::~NntpReceiveSessionFactory()
 
 std::auto_ptr<ReceiveSession> qmnntp::NntpReceiveSessionFactory::createSession()
 {
-	return std::auto_ptr<ReceiveSession>(new NntpReceiveSession());
+	return std::auto_ptr<ReceiveSession>(new NntpReceiveSession(pLastIdManager_.get()));
 }
 
 std::auto_ptr<ReceiveSessionUI> qmnntp::NntpReceiveSessionFactory::createUI()

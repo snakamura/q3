@@ -28,6 +28,7 @@ class NntpSyncFilterCallback;
 class NntpMessageHolder;
 
 class LastIdList;
+class LastIdManager;
 
 
 /****************************************************************************
@@ -46,7 +47,7 @@ public:
 	};
 
 public:
-	NntpReceiveSession();
+	NntpReceiveSession(LastIdManager* pLastIdManager);
 	virtual ~NntpReceiveSession();
 
 public:
@@ -124,7 +125,8 @@ private:
 	qs::Profile* pProfile_;
 	qs::Logger* pLogger_;
 	qm::ReceiveSessionCallback* pSessionCallback_;
-	std::auto_ptr<LastIdList> pLastIdList_;
+	LastIdManager* pLastIdManager_;
+	LastIdList* pLastIdList_;
 };
 
 
@@ -174,6 +176,9 @@ protected:
 private:
 	NntpReceiveSessionFactory(const NntpReceiveSessionFactory&);
 	NntpReceiveSessionFactory& operator=(const NntpReceiveSessionFactory&);
+
+private:
+	std::auto_ptr<LastIdManager> pLastIdManager_;
 
 private:
 	static NntpReceiveSessionFactory factory__;

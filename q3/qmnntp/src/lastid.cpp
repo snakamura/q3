@@ -16,6 +16,7 @@
 #pragma warning(disable:4786)
 
 using namespace qmnntp;
+using namespace qm;
 using namespace qs;
 
 
@@ -28,6 +29,10 @@ using namespace qs;
 qmnntp::LastIdList::LastIdList(const WCHAR* pwszPath) :
 	bModified_(false)
 {
+#ifndef NDEBUG
+	nLock_ = 0;
+#endif
+	
 	wstrPath_ = allocWString(pwszPath);
 	
 	if (!load()) {
@@ -45,11 +50,14 @@ qmnntp::LastIdList::~LastIdList()
 
 const LastIdList::IdList& qmnntp::LastIdList::getList() const
 {
+	assert(isLocked());
 	return listId_;
 }
 
 unsigned int qmnntp::LastIdList::getLastId(const WCHAR* pwszName) const
 {
+	Lock<LastIdList> lock(*this);
+	
 	IdList::const_iterator it = std::find_if(listId_.begin(), listId_.end(),
 		std::bind2nd(
 			binary_compose_f_gx_hy(
@@ -63,6 +71,8 @@ unsigned int qmnntp::LastIdList::getLastId(const WCHAR* pwszName) const
 void qmnntp::LastIdList::setLastId(const WCHAR* pwszName,
 								   unsigned int nId)
 {
+	Lock<LastIdList> lock(*this);
+	
 	IdList::iterator it = std::find_if(listId_.begin(), listId_.end(),
 		std::bind2nd(
 			binary_compose_f_gx_hy(
@@ -84,6 +94,8 @@ void qmnntp::LastIdList::setLastId(const WCHAR* pwszName,
 
 void qmnntp::LastIdList::removeLastId(const WCHAR* pwszName)
 {
+	assert(isLocked());
+	
 	IdList::iterator it = std::find_if(listId_.begin(), listId_.end(),
 		std::bind2nd(
 			binary_compose_f_gx_hy(
@@ -99,13 +111,13 @@ void qmnntp::LastIdList::removeLastId(const WCHAR* pwszName)
 	bModified_ = true;
 }
 
-bool qmnntp::LastIdList::isModified() const
-{
-	return bModified_;
-}
-
 bool qmnntp::LastIdList::save()
 {
+	Lock<LastIdList> lock(*this);
+	
+	if (!bModified_)
+		return true;
+	
 	TemporaryFileRenamer renamer(wstrPath_.get());
 	
 	FileOutputStream stream(renamer.getPath());
@@ -131,6 +143,29 @@ bool qmnntp::LastIdList::save()
 	return true;
 }
 
+void qmnntp::LastIdList::lock() const
+{
+	cs_.lock();
+#ifndef NDEBUG
+	++nLock_;
+#endif
+}
+
+void qmnntp::LastIdList::unlock() const
+{
+#ifndef NDEBUG
+	--nLock_;
+#endif
+	cs_.unlock();
+}
+
+#ifndef NDEBUG
+bool qmnntp::LastIdList::isLocked() const
+{
+	return nLock_ != 0;
+}
+#endif
+
 bool qmnntp::LastIdList::load()
 {
 	W2T(wstrPath_.get(), ptszPath);
@@ -145,6 +180,45 @@ bool qmnntp::LastIdList::load()
 	bModified_ = false;
 	
 	return true;
+}
+
+
+/****************************************************************************
+ *
+ * LastIdManager
+ *
+ */
+
+qmnntp::LastIdManager::LastIdManager()
+{
+}
+
+qmnntp::LastIdManager::~LastIdManager()
+{
+	std::for_each(map_.begin(), map_.end(),
+		unary_compose_f_gx(
+			qs::deleter<LastIdList>(),
+			std::select2nd<Map::value_type>()));
+}
+
+LastIdList* qmnntp::LastIdManager::get(Account* pAccount)
+{
+	Lock<CriticalSection> lock(cs_);
+	
+	Map::iterator it = std::find_if(map_.begin(), map_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				std::equal_to<Account*>(),
+				std::select1st<Map::value_type>(),
+				std::identity<Account*>()),
+			pAccount));
+	if (it != map_.end())
+		return (*it).second;
+	
+	wstring_ptr wstrPath(concat(pAccount->getPath(), L"\\lastid.xml"));
+	std::auto_ptr<LastIdList> pLastIdList(new LastIdList(wstrPath.get()));
+	map_.push_back(std::make_pair(pAccount, pLastIdList.get()));
+	return pLastIdList.release();
 }
 
 

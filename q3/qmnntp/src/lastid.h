@@ -10,15 +10,23 @@
 #define __LASTID_H__
 
 #include <qm.h>
+#include <qmaccount.h>
 
 #include <qs.h>
 #include <qssax.h>
 #include <qsstring.h>
+#include <qsthread.h>
 
 #include <vector>
 
 
 namespace qmnntp {
+
+class LastIdList;
+class LastIdManager;
+class LastIdContentHandler;
+class LastIdWriter;
+
 
 /****************************************************************************
  *
@@ -41,8 +49,12 @@ public:
 	void setLastId(const WCHAR* pwszName,
 				   unsigned int nId);
 	void removeLastId(const WCHAR* pwszName);
-	bool isModified() const;
 	bool save();
+	void lock() const;
+	void unlock() const;
+#ifndef NDEBUG
+	bool isLocked() const;
+#endif
 
 private:
 	bool load();
@@ -55,6 +67,38 @@ private:
 	qs::wstring_ptr wstrPath_;
 	IdList listId_;
 	bool bModified_;
+	qs::CriticalSection cs_;
+#ifndef NDEBUG
+	mutable unsigned int nLock_;
+#endif
+};
+
+
+/****************************************************************************
+ *
+ * LastIdManager
+ *
+ */
+
+class LastIdManager
+{
+public:
+	LastIdManager();
+	~LastIdManager();
+
+public:
+	LastIdList* get(qm::Account* pAccount);
+
+private:
+	LastIdManager(const LastIdManager&);
+	LastIdManager& operator=(const LastIdManager&);
+
+private:
+	typedef std::vector<std::pair<qm::Account*, LastIdList*> > Map;
+
+private:
+	Map map_;
+	qs::CriticalSection cs_;
 };
 
 
