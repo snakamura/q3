@@ -965,9 +965,12 @@ void qm::AddressBookDialog::select(Type type)
 	HWND hwndList = getDlgItem(IDC_ADDRESS);
 	HWND hwndSelected = getDlgItem(IDC_SELECTEDADDRESS);
 	
+	bool bFilter = getFocus() == getDlgItem(IDC_FILTER);
+	
 	int nItem = -1;
 	while (true) {
-		nItem = ListView_GetNextItem(hwndList, nItem, LVNI_SELECTED);
+		nItem = ListView_GetNextItem(hwndList, nItem,
+			bFilter ? LVNI_ALL : LVNI_SELECTED);
 		if (nItem == -1)
 			break;
 		
@@ -980,27 +983,25 @@ void qm::AddressBookDialog::select(Type type)
 		};
 		ListView_GetItem(hwndList, &item);
 		
-		if (item.state & LVIS_SELECTED) {
-			AddressBookAddress* pAddress =
-				reinterpret_cast<AddressBookAddress*>(item.lParam);
-			wstring_ptr wstrValue(pAddress->getValue());
-			W2T(wstrValue.get(), ptszValue);
-			
-			std::auto_ptr<Item> pItem(new Item(wstrValue, type));
-			LVITEM newItem = {
-				LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM,
-				ListView_GetItemCount(hwndSelected),
-				0,
-				0,
-				0,
-				const_cast<LPTSTR>(ptszValue),
-				0,
-				type,
-				reinterpret_cast<LPARAM>(pItem.get())
-			};
-			ListView_InsertItem(hwndSelected, &newItem);
-			pItem.release();
-		}
+		AddressBookAddress* pAddress =
+			reinterpret_cast<AddressBookAddress*>(item.lParam);
+		wstring_ptr wstrValue(pAddress->getValue());
+		W2T(wstrValue.get(), ptszValue);
+		
+		std::auto_ptr<Item> pItem(new Item(wstrValue, type));
+		LVITEM newItem = {
+			LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM,
+			ListView_GetItemCount(hwndSelected),
+			0,
+			0,
+			0,
+			const_cast<LPTSTR>(ptszValue),
+			0,
+			type,
+			reinterpret_cast<LPARAM>(pItem.get())
+		};
+		ListView_InsertItem(hwndSelected, &newItem);
+		pItem.release();
 	}
 	
 	ListView_SortItems(hwndSelected, &selectedItemComp, 0);
