@@ -646,31 +646,21 @@ MessageHolder* qm::NormalFolder::getMessageById(unsigned int nId) const
 {
 	assert(pImpl_->bLoad_);
 	assert(isLocked());
-
-#if 1
-	// TODO
-	// Binary search
-	const MessageHolderList& l = pImpl_->listMessageHolder_;
-	MessageHolderList::const_iterator it = std::find_if(l.begin(), l.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				std::equal_to<unsigned int>(),
-				std::mem_fun(&MessageHolder::getId),
-				std::identity<unsigned int>()),
-			nId));
-	return it != l.end() ? *it : 0;
-#else
-	MessageHolder mh(this, init, &status);
-	CHECK_QSTATUS();
+	
+	DECLARE_QSTATUS();
+	
+	MessageHolder::Init init = { nId };
+	MessageHolder mh(0, init, &status);
+	CHECK_QSTATUS_VALUE(0);
 	MessageHolderList::const_iterator it = std::lower_bound(
 		pImpl_->listMessageHolder_.begin(),
 		pImpl_->listMessageHolder_.end(),
+		&mh,
 		binary_compose_f_gx_hy(
 			std::less<unsigned int>(),
 			std::mem_fun(&MessageHolder::getId),
 			std::mem_fun(&MessageHolder::getId)));
-	return it != pImpl_->listMessageHolder_.end() && (*it).getId() == nId ? *it : 0;
-#endif
+	return it != pImpl_->listMessageHolder_.end() && (*it)->getId() == nId ? *it : 0;
 }
 
 QSTATUS qm::NormalFolder::setMessagesFlags(const MessageHolderList& l,
