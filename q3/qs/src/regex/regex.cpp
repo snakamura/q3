@@ -160,9 +160,15 @@ qs::RegexCompiler::~RegexCompiler()
 
 std::auto_ptr<RegexPattern> qs::RegexCompiler::compile(const WCHAR* pwszPattern) const
 {
+	return compile(pwszPattern, 0);
+}
+
+std::auto_ptr<RegexPattern> qs::RegexCompiler::compile(const WCHAR* pwszPattern,
+													   unsigned int nMode) const
+{
 	assert(pwszPattern);
 	
-	RegexParser parser(pwszPattern);
+	RegexParser parser(pwszPattern, nMode);
 	std::auto_ptr<RegexRegexNode> pNode(parser.parse());
 	if (!pNode.get())
 		return 0;

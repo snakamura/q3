@@ -22,9 +22,11 @@ class RegexNode;
 	class RegexEmptyNode;
 class RegexAtom;
 	class RegexCharAtom;
+	class RegexCharsAtom;
 	class RegexMultiEscapeAtom;
 	class RegexCharGroupAtom;
 	class RegexNodeAtom;
+	class RegexAnchorAtom;
 	class RegexReferenceAtom;
 class RegexQuantifier;
 class RegexMatchCallback;
@@ -64,18 +66,32 @@ public:
 class RegexRegexNode : public RegexNode
 {
 public:
+	enum GroupType {
+		GROUPTYPE_NORMAL,
+		GROUPTYPE_POSITIVELOOKAHEAD,
+		GROUPTYPE_NEGATIVELOOKAHEAD,
+		GROUPTYPE_POSITIVELOOKBEHIND,
+		GROUPTYPE_NEGATIVELOOKBEHIND,
+		GROUPTYPE_INDEPENDENT
+	};
+
+public:
 	typedef std::vector<RegexNode*> NodeList;
 
 public:
-	explicit RegexRegexNode(unsigned int nGroup);
+	RegexRegexNode(unsigned int nGroup,
+				   GroupType groupType);
 	virtual ~RegexRegexNode();
 
 public:
 	const NodeList& getNodeList() const;
 	unsigned int getGroup() const;
+	GroupType getGroupType() const;
+	void resetGroupType();
 
 public:
 	void addNode(std::auto_ptr<RegexNode> pNode);
+	void addNode(const RegexNode* pNode);
 
 public:
 	virtual Type getType() const;
@@ -85,8 +101,13 @@ private:
 	RegexRegexNode& operator=(const RegexRegexNode&);
 
 private:
+	typedef std::vector<int> FreeList;
+
+private:
 	NodeList listNode_;
+	FreeList listFree_;
 	unsigned int nGroup_;
+	GroupType groupType_;
 };
 
 
@@ -138,7 +159,7 @@ public:
 
 public:
 	const RegexAtom* getAtom() const;
-	const RegexQuantifier* getQuantifier() const;
+	RegexQuantifier* getQuantifier() const;
 
 public:
 	virtual Type getType() const;
@@ -186,13 +207,14 @@ public:
 	virtual ~RegexAtom();
 
 public:
-	virtual const RegexRegexNode* getNode() const;
+	virtual RegexRegexNode* getNode() const;
 	virtual const WCHAR* match(const WCHAR* pStart,
 							   const WCHAR* pEnd,
+							   const WCHAR* p,
 							   RegexMatchCallback* pCallback) const;
 
 protected:
-	virtual bool match(WCHAR c) const;
+	virtual bool matchChar(WCHAR c) const;
 };
 
 
@@ -209,7 +231,7 @@ public:
 	virtual ~RegexCharAtom();
 
 protected:
-	virtual bool match(WCHAR c) const;
+	virtual bool matchChar(WCHAR c) const;
 
 private:
 	RegexCharAtom(const RegexCharAtom&);
@@ -217,6 +239,35 @@ private:
 
 private:
 	WCHAR c_;
+};
+
+
+/****************************************************************************
+ *
+ * RegexCharsAtom
+ *
+ */
+
+class RegexCharsAtom : public RegexAtom
+{
+public:
+	RegexCharsAtom(const WCHAR* pStart,
+				   const WCHAR* pEnd);
+	virtual ~RegexCharsAtom();
+
+public:
+	virtual const WCHAR* match(const WCHAR* pStart,
+							   const WCHAR* pEnd,
+							   const WCHAR* p,
+							   RegexMatchCallback* pCallback) const;
+
+private:
+	RegexCharsAtom(const RegexCharsAtom&);
+	RegexCharsAtom& operator=(const RegexCharsAtom&);
+
+private:
+	wstring_ptr wstr_;
+	size_t nLen_;
 };
 
 
@@ -230,7 +281,8 @@ class RegexMultiEscapeAtom : public RegexAtom
 {
 public:
 	enum Type {
-		TYPE_DOT,
+		TYPE_ALL,
+		TYPE_NOLINETERMINATOR,
 		TYPE_WHITESPACE,
 		TYPE_WORD,
 		TYPE_NUMBER
@@ -242,7 +294,7 @@ public:
 	virtual ~RegexMultiEscapeAtom();
 
 protected:
-	virtual bool match(WCHAR c) const;
+	virtual bool matchChar(WCHAR c) const;
 
 private:
 	RegexMultiEscapeAtom(const RegexMultiEscapeAtom&);
@@ -294,7 +346,7 @@ private:
 	class AtomCharGroup : public CharGroup
 	{
 	public:
-		AtomCharGroup(std::auto_ptr<RegexAtom> pAtom);
+		AtomCharGroup(std::auto_ptr<RegexMultiEscapeAtom> pAtom);
 		virtual ~AtomCharGroup();
 	
 	public:
@@ -305,7 +357,7 @@ private:
 		AtomCharGroup& operator=(const AtomCharGroup&);
 	
 	private:
-		std::auto_ptr<RegexAtom> pAtom_;
+		std::auto_ptr<RegexMultiEscapeAtom> pAtom_;
 	};
 
 public:
@@ -316,13 +368,13 @@ public:
 	virtual ~RegexCharGroupAtom();
 
 protected:
-	virtual bool match(WCHAR c) const;
+	virtual bool matchChar(WCHAR c) const;
 
 public:
 	void setNegative(bool bNegative);
 	void addRangeCharGroup(WCHAR cStart,
 						   WCHAR cEnd);
-	void addAtomCharGroup(std::auto_ptr<RegexAtom> pAtom);
+	void addAtomCharGroup(std::auto_ptr<RegexMultiEscapeAtom> pAtom);
 	void setSubAtom(std::auto_ptr<RegexCharGroupAtom> pSubAtom);
 
 private:
@@ -349,7 +401,7 @@ public:
 	virtual ~RegexNodeAtom();
 
 public:
-	virtual const RegexRegexNode* getNode() const;
+	virtual RegexRegexNode* getNode() const;
 
 private:
 	RegexNodeAtom(const RegexNodeAtom&);
@@ -357,6 +409,44 @@ private:
 
 private:
 	std::auto_ptr<RegexRegexNode> pNode_;
+};
+
+
+/****************************************************************************
+ *
+ * RegexAnchorAtom
+ *
+ */
+
+class RegexAnchorAtom : public RegexAtom
+{
+public:
+	enum Type {
+		TYPE_LINESTART,
+		TYPE_LINEEND,
+		TYPE_START,
+		TYPE_END,
+		TYPE_ENDSTRICT,
+		TYPE_WORDBOUNDARY,
+		TYPE_NOWORDBOUNDARY
+	};
+
+public:
+	explicit RegexAnchorAtom(Type type);
+	virtual ~RegexAnchorAtom();
+
+public:
+	virtual const WCHAR* match(const WCHAR* pStart,
+							   const WCHAR* pEnd,
+							   const WCHAR* p,
+							   RegexMatchCallback* pCallback) const;
+
+private:
+	RegexAnchorAtom(const RegexAnchorAtom&);
+	RegexAnchorAtom& operator=(const RegexAnchorAtom&);
+
+private:
+	Type type_;
 };
 
 
@@ -375,6 +465,7 @@ public:
 public:
 	virtual const WCHAR* match(const WCHAR* pStart,
 							   const WCHAR* pEnd,
+							   const WCHAR* p,
 							   RegexMatchCallback* pCallback) const;
 
 private:
@@ -399,17 +490,25 @@ public:
 		TYPE_RANGE,
 		TYPE_MIN
 	};
+	enum Option {
+		OPTION_GREEDY,
+		OPTION_RELUCTANT,
+		OPTION_POSSESSIVE
+	};
 
 public:
 	RegexQuantifier(Type type,
 					unsigned int nMin,
-					unsigned int nMax);
+					unsigned int nMax,
+					Option option);
 	~RegexQuantifier();
 
 public:
 	Type getType() const;
 	unsigned int getMin() const;
 	unsigned int getMax() const;
+	Option getOption() const;
+	void resetOption();
 
 private:
 	RegexQuantifier(const RegexQuantifier&);
@@ -419,6 +518,7 @@ private:
 	Type type_;
 	unsigned int nMin_;
 	unsigned int nMax_;
+	Option option_;
 };
 
 
@@ -447,30 +547,59 @@ public:
 class RegexParser
 {
 public:
-	explicit RegexParser(const WCHAR* pwszPattern);
+	RegexParser(const WCHAR* pwszPattern,
+				unsigned int nMode);
 	~RegexParser();
 
 public:
 	std::auto_ptr<RegexRegexNode> parse();
 
 private:
-	std::auto_ptr<RegexRegexNode> parseRegex();
+	std::auto_ptr<RegexRegexNode> parseRegex(bool bCapture,
+											 RegexRegexNode::GroupType groupType);
 	std::auto_ptr<RegexNode> parseBranch();
 	std::auto_ptr<RegexPieceNode> parsePiece();
 	std::auto_ptr<RegexCharGroupAtom> parseCharGroup();
 	std::auto_ptr<RegexQuantifier> parseQuantity();
+	RegexQuantifier::Option parseQuantifierOption();
+	bool checkReference(unsigned int nGroup) const;
+
+private:
+	static WCHAR getSingleEscapedChar(WCHAR c);
 
 private:
 	RegexParser(const RegexParser&);
 	RegexParser& operator=(const RegexParser&);
 
 private:
+	typedef std::vector<unsigned int> GroupStack;
+
+private:
 	const WCHAR* pwszPattern_;
+	unsigned int nMode_;
 	const WCHAR* p_;
 	unsigned int nGroup_;
+	GroupStack stackGroup_;
 
 private:
 	static const WCHAR wszSingleEscapeChar__[];
+	static const WCHAR wszSpecialChar__[];
+};
+
+
+/****************************************************************************
+ *
+ * RegexUtil
+ *
+ */
+
+class RegexUtil
+{
+public:
+	static bool isLineTerminator(WCHAR c);
+	static bool isWhitespace(WCHAR c);
+	static bool isWord(WCHAR c);
+	static bool isNumber(WCHAR c);
 };
 
 }

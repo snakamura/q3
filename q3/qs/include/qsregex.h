@@ -150,6 +150,12 @@ private:
 class QSEXPORTCLASS RegexCompiler
 {
 public:
+	enum Mode {
+		MODE_MULTILINE	= 0x01,
+		MODE_DOTALL		= 0x02
+	};
+
+public:
 	/**
 	 * Create instance.
 	 */
@@ -166,6 +172,17 @@ public:
 	 * @exception std::bad_alloc Out of memory;
 	 */
 	std::auto_ptr<RegexPattern> compile(const WCHAR* pwszPattern) const;
+	
+	/**
+	 * Compile regular expression.
+	 *
+	 * @param pwszPattern [in] Pattern.
+	 * @param nMode [in] Mode.
+	 * @return Compiled instance. null if error occured.
+	 * @exception std::bad_alloc Out of memory;
+	 */
+	std::auto_ptr<RegexPattern> compile(const WCHAR* pwszPattern,
+										unsigned int nMode) const;
 
 private:
 	RegexCompiler(const RegexCompiler&);

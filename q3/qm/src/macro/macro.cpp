@@ -45,7 +45,8 @@ qm::MacroTokenizer::~MacroTokenizer()
 {
 }
 
-MacroTokenizer::Token qm::MacroTokenizer::getToken(wstring_ptr* pwstrToken)
+MacroTokenizer::Token qm::MacroTokenizer::getToken(wstring_ptr* pwstrToken,
+												   wstring_ptr* pwstrTokenEx)
 {
 	assert(pwstrToken);
 	
@@ -120,6 +121,12 @@ MacroTokenizer::Token qm::MacroTokenizer::getToken(wstring_ptr* pwstrToken)
 			return TOKEN_ERROR;
 		*pwstrToken = buf.getString();
 		++p_;
+		
+		while (L'a' <= *p_ && *p_ <= L'z')
+			buf.append(*p_++);
+		if (pwstrTokenEx)
+			*pwstrTokenEx = buf.getString();
+		
 		return TOKEN_REGEX;
 	}
 	else if (c == L'@') {
@@ -312,13 +319,8 @@ MacroValuePtr qm::MacroGlobalContext::getArgument(unsigned int n) const
 	return pArgument_->getArgument(n);
 }
 
-bool qm::MacroGlobalContext::setRegexResult(const WCHAR* pwszAll,
-											size_t nLen,
-											const RegexRangeList& listRange)
+bool qm::MacroGlobalContext::setRegexResult(const RegexRangeList& listRange)
 {
-	assert(pwszAll);
-	assert(nLen != -1);
-	
 	clearRegexResult();
 	
 	for (RegexRangeList::List::size_type n = 0; n < listRange.list_.size(); ++n) {
@@ -728,10 +730,26 @@ wstring_ptr qm::MacroNumber::getString() const
  *
  */
 
-qm::MacroRegex::MacroRegex(const WCHAR* pwszPattern)
+qm::MacroRegex::MacroRegex(const WCHAR* pwszPattern,
+						   const WCHAR* pwszMode)
 {
 	wstrPattern_ = allocWString(pwszPattern);
-	pPattern_ = RegexCompiler().compile(pwszPattern);
+	wstrMode_ = allocWString(pwszMode);
+	
+	unsigned int nMode = 0;
+	for (const WCHAR* p = pwszMode; *p; ++p) {
+		switch (*p) {
+		case L'm':
+			nMode |= RegexCompiler::MODE_MULTILINE;
+			break;
+		case L's':
+			nMode |= RegexCompiler::MODE_DOTALL;
+			break;
+		default:
+			break;
+		}
+	}
+	pPattern_ = RegexCompiler().compile(pwszPattern, nMode);
 }
 
 qm::MacroRegex::~MacroRegex()
@@ -753,6 +771,7 @@ MacroValuePtr qm::MacroRegex::value(MacroContext* pContext) const
 wstring_ptr qm::MacroRegex::getString() const
 {
 	StringBuffer<WSTRING> buf;
+	
 	buf.append(L'/');
 	for (const WCHAR* p = wstrPattern_.get(); *p; ++p) {
 		if (*p == L'/')
@@ -761,6 +780,8 @@ wstring_ptr qm::MacroRegex::getString() const
 			buf.append(*p);
 	}
 	buf.append(L'/');
+	
+	buf.append(wstrMode_.get());
 	
 	return buf.getString();
 }
@@ -967,7 +988,8 @@ std::auto_ptr<Macro> qm::MacroParser::parse(const WCHAR* pwszMacro,
 	bool bEnd = false;
 	while (!bEnd) {
 		wstring_ptr wstrToken;
-		MacroTokenizer::Token token = tokenizer.getToken(&wstrToken);
+		wstring_ptr wstrTokenEx;
+		MacroTokenizer::Token token = tokenizer.getToken(&wstrToken, &wstrTokenEx);
 		if (pMacroExpr.get() && token != MacroTokenizer::TOKEN_END) {
 			return error(MacroErrorHandler::CODE_MACROCONTAINSMORETHANONEEXPR,
 				tokenizer.getLastPosition());
@@ -990,7 +1012,8 @@ std::auto_ptr<Macro> qm::MacroParser::parse(const WCHAR* pwszMacro,
 				break;
 			case MacroTokenizer::TOKEN_REGEX:
 				{
-					std::auto_ptr<MacroRegex> pRegex(new MacroRegex(wstrToken.get()));
+					std::auto_ptr<MacroRegex> pRegex(new MacroRegex(
+						wstrToken.get(), wstrTokenEx.get()));
 					if (!*pRegex.get())
 						return error(MacroErrorHandler::CODE_INVALIDREGEX,
 							tokenizer.getLastPosition());
@@ -1001,10 +1024,10 @@ std::auto_ptr<Macro> qm::MacroParser::parse(const WCHAR* pwszMacro,
 				{
 					const WCHAR* pLast = tokenizer.getLastPosition();
 					wstring_ptr wstrFunction;
-					token = tokenizer.getToken(&wstrFunction);
+					token = tokenizer.getToken(&wstrFunction, 0);
 					if (token != MacroTokenizer::TOKEN_TEXT)
 						return error(MacroErrorHandler::CODE_INVALIDFUNCTIONNAME, pLast);
-					token = tokenizer.getToken(&wstrToken);
+					token = tokenizer.getToken(&wstrToken, 0);
 					if (token != MacroTokenizer::TOKEN_LEFTPARENTHESIS)
 						return error(MacroErrorHandler::CODE_FUNCTIONWITHOUTPARENTHESIS, pLast);
 					
@@ -1019,7 +1042,7 @@ std::auto_ptr<Macro> qm::MacroParser::parse(const WCHAR* pwszMacro,
 				{
 					const WCHAR* pLast = tokenizer.getLastPosition();
 					wstring_ptr wstrVariable;
-					token = tokenizer.getToken(&wstrVariable);
+					token = tokenizer.getToken(&wstrVariable, 0);
 					if (token != MacroTokenizer::TOKEN_TEXT)
 						return error(MacroErrorHandler::CODE_INVALIDVARIABLENAME, pLast);
 					
@@ -1030,7 +1053,7 @@ std::auto_ptr<Macro> qm::MacroParser::parse(const WCHAR* pwszMacro,
 				{
 					const WCHAR* pLast = tokenizer.getLastPosition();
 					wstring_ptr wstrType;
-					token = tokenizer.getToken(&wstrType);
+					token = tokenizer.getToken(&wstrType, 0);
 					if (token != MacroTokenizer::TOKEN_TEXT)
 						return error(MacroErrorHandler::CODE_INVALIDFIELDNAME, pLast);
 					
@@ -1428,11 +1451,9 @@ MacroValuePtr qm::MacroContext::getArgument(unsigned int n) const
 	return pGlobalContext_->getArgument(n);
 }
 
-bool qm::MacroContext::setRegexResult(const WCHAR* pwszAll,
-									  size_t nLen,
-									  const RegexRangeList& listRange)
+bool qm::MacroContext::setRegexResult(const RegexRangeList& listRange)
 {
-	return pGlobalContext_->setRegexResult(pwszAll, nLen, listRange);
+	return pGlobalContext_->setRegexResult(listRange);
 }
 
 void qm::MacroContext::clearRegexResult()

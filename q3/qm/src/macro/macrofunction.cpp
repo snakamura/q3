@@ -3382,10 +3382,10 @@ MacroValuePtr qm::MacroFunctionRegexFind::value(MacroContext* pContext) const
 	const WCHAR* pStart = 0;
 	const WCHAR* pEnd = 0;
 	RegexRangeList listRange;
-	pPattern->search(wstrValue.get() + nIndex, -1,
+	pPattern->search(wstrValue.get(), -1,
 		wstrValue.get() + nIndex, false, &pStart, &pEnd, &listRange);
 	if (pStart) {
-		if (!pContext->setRegexResult(pStart, pEnd - pStart, listRange))
+		if (!pContext->setRegexResult(listRange))
 			return false;
 	}
 	else {
@@ -3442,17 +3442,20 @@ MacroValuePtr qm::MacroFunctionRegexMatch::value(MacroContext* pContext) const
 		pPattern = p.get();
 	}
 	
-	size_t nLen = wcslen(wstrValue.get());
+	const WCHAR* pStart = 0;
+	const WCHAR* pEnd = 0;
 	RegexRangeList listRange;
-	bool bMatch = pPattern->match(wstrValue.get(), nLen, &listRange);
-	if (bMatch) {
-		if (!pContext->setRegexResult(wstrValue.get(), nLen, listRange))
+	pPattern->search(wstrValue.get(), -1,
+		wstrValue.get(), false, &pStart, &pEnd, &listRange);
+	if (pStart) {
+		if (!pContext->setRegexResult(listRange))
 			return false;
 	}
 	else {
 		pContext->clearRegexResult();
 	}
-	return MacroValueFactory::getFactory().newBoolean(bMatch);
+	
+	return MacroValueFactory::getFactory().newBoolean(pStart != 0);
 }
 
 const WCHAR* qm::MacroFunctionRegexMatch::getName() const
@@ -3535,7 +3538,7 @@ MacroValuePtr qm::MacroFunctionRegexReplace::value(MacroContext* pContext) const
 			else {
 				pStart = pMatchEnd;
 			}
-			pContext->setRegexResult(pMatchStart, pMatchEnd - pMatchStart, listRange);
+			pContext->setRegexResult(listRange);
 		}
 		else {
 			buf.append(pStart);

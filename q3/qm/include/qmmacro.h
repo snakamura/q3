@@ -260,9 +260,7 @@ public:
 	void popArgumentContext();
 	void addArgument(MacroValuePtr pValue);
 	MacroValuePtr getArgument(unsigned int n) const;
-	bool setRegexResult(const WCHAR* pwszAll,
-						size_t nLen,
-						const qs::RegexRangeList& listRange);
+	bool setRegexResult(const qs::RegexRangeList& listRange);
 	void clearRegexResult();
 	qs::wstring_ptr resolvePath(const WCHAR* pwszPath);
 

@@ -137,7 +137,8 @@ public:
 	~MacroTokenizer();
 
 public:
-	Token getToken(qs::wstring_ptr* pwstrToken);
+	Token getToken(qs::wstring_ptr* pwstrToken,
+				   qs::wstring_ptr* pwstrTokenEx);
 	const WCHAR* getLastPosition() const;
 
 private:
@@ -193,9 +194,7 @@ public:
 	void popArgumentContext();
 	void addArgument(MacroValuePtr pValue);
 	MacroValuePtr getArgument(unsigned int n) const;
-	bool setRegexResult(const WCHAR* pwszAll,
-						size_t nLen,
-						const qs::RegexRangeList& listRange);
+	bool setRegexResult(const qs::RegexRangeList& listRange);
 	void clearRegexResult();
 
 private:
@@ -427,7 +426,8 @@ private:
 class MacroRegex : public MacroExpr
 {
 public:
-	explicit MacroRegex(const WCHAR* pwszPattern);
+	MacroRegex(const WCHAR* pwszPattern,
+			   const WCHAR* pwszMode);
 	virtual ~MacroRegex();
 
 public:
@@ -443,6 +443,7 @@ private:
 
 private:
 	qs::wstring_ptr wstrPattern_;
+	qs::wstring_ptr wstrMode_;
 	std::auto_ptr<qs::RegexPattern> pPattern_;
 };
 
