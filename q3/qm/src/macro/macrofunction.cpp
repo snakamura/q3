@@ -2535,6 +2535,78 @@ const WCHAR* qm::MacroFunctionHeader::getName() const
 
 /****************************************************************************
  *
+ * MacroFunctionHtmlEscape
+ *
+ */
+
+qm::MacroFunctionHtmlEscape::MacroFunctionHtmlEscape(QSTATUS* pstatus) :
+	MacroFunction(pstatus)
+{
+}
+
+qm::MacroFunctionHtmlEscape::~MacroFunctionHtmlEscape()
+{
+}
+
+QSTATUS qm::MacroFunctionHtmlEscape::value(
+	MacroContext* pContext, MacroValue** ppValue) const
+{
+	assert(pContext);
+	assert(ppValue);
+	
+	DECLARE_QSTATUS();
+	
+	*ppValue = 0;
+	
+	if (getArgSize() != 1)
+		return error(*pContext, MacroErrorHandler::CODE_INVALIDARGSIZE);
+	
+	MacroValuePtr pValue;
+	status = getArg(0)->value(pContext, &pValue);
+	CHECK_QSTATUS();
+	string_ptr<WSTRING> wstrValue;
+	status = pValue->string(&wstrValue);
+	CHECK_QSTATUS();
+	
+	StringBuffer<WSTRING> buf(&status);
+	CHECK_QSTATUS();
+	for (const WCHAR* p = wstrValue.get(); *p; ++p) {
+		switch (*p) {
+		case L'<':
+			status = buf.append(L"&lt;");
+			CHECK_QSTATUS();
+			break;
+		case L'>':
+			status = buf.append(L"&gt;");
+			CHECK_QSTATUS();
+			break;
+		case L'&':
+			status = buf.append(L"&amp;");
+			CHECK_QSTATUS();
+			break;
+		case L'\"':
+			status = buf.append(L"&quot;");
+			CHECK_QSTATUS();
+			break;
+		default:
+			status = buf.append(*p);
+			CHECK_QSTATUS();
+			break;
+		}
+	}
+	
+	return MacroValueFactory::getFactory().newString(buf.getCharArray(),
+		reinterpret_cast<MacroValueString**>(ppValue));
+}
+
+const WCHAR* qm::MacroFunctionHtmlEscape::getName() const
+{
+	return L"HtmlEscape";
+}
+
+
+/****************************************************************************
+ *
  * MacroFunctionI
  *
  */
@@ -5281,6 +5353,7 @@ QSTATUS qm::MacroFunctionFactory::newFunction(MacroParser::Type type,
 		DECLARE_FUNCTION0(		FormatDate, 		L"formatdate"											)
 		DECLARE_FUNCTION1(		Relative,			L"greater",			false								)
 		DECLARE_FUNCTION0(		Header, 			L"header"												)
+		DECLARE_FUNCTION0(		HtmlEscape, 		L"htmlescape"											)
 		DECLARE_FUNCTION0(		I, 					L"i"													)
 		DECLARE_FUNCTION0(		Id, 				L"id"													)
 		DECLARE_FUNCTION0(		Identity, 			L"identity"												)

@@ -15,6 +15,7 @@
 #include <qsstream.h>
 
 #include "externaleditor.h"
+#include "uiutil.h"
 
 #pragma warning(disable:4786)
 
@@ -29,10 +30,12 @@ using namespace qs;
  */
 
 qm::ExternalEditorManager::ExternalEditorManager(Document* pDocument,
-	Profile* pProfile, HWND hwnd, FolderModel* pFolderModel, QSTATUS* pstatus) :
+	Profile* pProfile, HWND hwnd, TempFileCleaner* pTempFileCleaner,
+	FolderModel* pFolderModel, QSTATUS* pstatus) :
 	composer_(false, pDocument, pProfile, hwnd, pFolderModel),
 	pProfile_(pProfile),
 	hwnd_(hwnd),
+	pTempFileCleaner_(pTempFileCleaner),
 	pThread_(0),
 	pEvent_(0)
 {
@@ -60,7 +63,8 @@ QSTATUS qm::ExternalEditorManager::open(const WCHAR* pwszMessage)
 	DECLARE_QSTATUS();
 	
 	string_ptr<WSTRING> wstrPath;
-	status = prepareTemporaryFile(pwszMessage, &wstrPath);
+	status = UIUtil::writeTemporaryFile(pwszMessage,
+		L"q3edit", L"txt", pTempFileCleaner_, &wstrPath);
 	CHECK_QSTATUS();
 	
 	W2T(wstrPath.get(), ptszPath);
@@ -145,42 +149,6 @@ QSTATUS qm::ExternalEditorManager::open(const WCHAR* pwszMessage)
 	else {
 		pEvent_->set();
 	}
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::ExternalEditorManager::prepareTemporaryFile(
-	const WCHAR* pwszMessage, qs::WSTRING* pwstrPath)
-{
-	assert(pwszMessage);
-	assert(pwstrPath);
-	
-	DECLARE_QSTATUS();
-	
-	Time time(Time::getCurrentTime());
-	WCHAR wszName[128];
-	swprintf(wszName, L"q3edit-%04d%02d%02d%02d%02d%02d%03d.txt",
-		time.wYear, time.wMonth, time.wDay,
-		time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
-	
-	string_ptr<WSTRING> wstrPath(concat(
-		Application::getApplication().getTemporaryFolder(), wszName));
-	if (!wstrPath.get())
-		return QSTATUS_OUTOFMEMORY;
-	
-	FileOutputStream stream(wstrPath.get(), &status);
-	CHECK_QSTATUS();
-	BufferedOutputStream bufferedStream(&stream, false, &status);
-	CHECK_QSTATUS();
-	OutputStreamWriter writer(&bufferedStream,
-		false, getSystemEncoding(), &status);
-	CHECK_QSTATUS();
-	status = writer.write(pwszMessage, wcslen(pwszMessage));
-	CHECK_QSTATUS();
-	status = writer.close();
-	CHECK_QSTATUS();
-	
-	*pwstrPath = wstrPath.release();
 	
 	return QSTATUS_SUCCESS;
 }

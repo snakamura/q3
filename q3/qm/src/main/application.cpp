@@ -387,7 +387,8 @@ QSTATUS qm::Application::initialize()
 		L"reply_all",
 		L"forward",
 		L"edit",
-		L"url"
+		L"url",
+		L"print"
 	};
 	for (n = 0; n < countof(pwszClasses); ++n) {
 		for (int m = 0; m < countof(pwszTemplates); ++m) {

@@ -359,8 +359,10 @@ QSTATUS qm::MainWindowImpl::initActions()
 	status = InitAction2<FileOfflineAction, Document*, SyncManager*>(
 		pActionMap_, IDM_FILE_OFFLINE, pDocument_, pSyncManager_);
 	CHECK_QSTATUS();
-	status = InitAction1<FilePrintAction, MessageSelectionModel*>(
-		pActionMap_, IDM_FILE_PRINT, pMessageSelectionModel_);
+	status = InitAction5<FilePrintAction, Document*, MessageSelectionModel*,
+		HWND, Profile*, TempFileCleaner*>(
+		pActionMap_, IDM_FILE_PRINT, pDocument_, pMessageSelectionModel_,
+		pThis_->getHandle(), pProfile_, pTempFileCleaner_);
 	CHECK_QSTATUS();
 	status = InitAction1<FileSalvageAction, FolderModel*>(
 		pActionMap_, IDM_FILE_SALVAGE, pFolderModel_);
@@ -1841,7 +1843,8 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	CHECK_QSTATUS_VALUE(-1);
 	
 	status = newQsObject(pImpl_->pDocument_, pImpl_->pProfile_,
-		getHandle(), pImpl_->pFolderModel_, &pImpl_->pExternalEditorManager_);
+		getHandle(), pImpl_->pTempFileCleaner_, pImpl_->pFolderModel_,
+		&pImpl_->pExternalEditorManager_);
 	CHECK_QSTATUS_VALUE(-1);
 	
 	status = newQsObject(pImpl_->pDocument_, pImpl_->pTempFileCleaner_,

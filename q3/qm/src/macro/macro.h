@@ -64,6 +64,7 @@ class MacroExpr;
 		class MacroFunctionFormatDate;
 		class MacroFunctionFunction;
 		class MacroFunctionHeader;
+		class MacroFunctionHtmlEscape;
 		class MacroFunctionI;
 		class MacroFunctionId;
 		class MacroFunctionIdentity;
@@ -1357,6 +1358,31 @@ protected:
 private:
 	MacroFunctionHeader(const MacroFunctionHeader&);
 	MacroFunctionHeader& operator=(const MacroFunctionHeader&);
+};
+
+
+/****************************************************************************
+ *
+ * MacroFunctionHtmlEscape
+ *
+ */
+
+class MacroFunctionHtmlEscape : public MacroFunction
+{
+public:
+	explicit MacroFunctionHtmlEscape(qs::QSTATUS* pstatus);
+	virtual ~MacroFunctionHtmlEscape();
+
+public:
+	virtual qs::QSTATUS value(MacroContext* pContext,
+		MacroValue** ppValue) const;
+
+protected:
+	virtual const WCHAR* getName() const;
+
+private:
+	MacroFunctionHtmlEscape(const MacroFunctionHtmlEscape&);
+	MacroFunctionHtmlEscape& operator=(const MacroFunctionHtmlEscape&);
 };
 
 

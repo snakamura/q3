@@ -1,5 +1,5 @@
 /*
- * $Id: $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -24,6 +24,7 @@ class ExternalEditorManager;
 
 class Document;
 class FolderModel;
+class TempFileCleaner;
 
 
 /****************************************************************************
@@ -36,15 +37,14 @@ class ExternalEditorManager
 {
 public:
 	ExternalEditorManager(Document* pDocument, qs::Profile* pProfile,
-		HWND hwnd, FolderModel* pFolderModel, qs::QSTATUS* pstatus);
+		HWND hwnd, TempFileCleaner* pTempFileCleaner,
+		FolderModel* pFolderModel, qs::QSTATUS* pstatus);
 	~ExternalEditorManager();
 
 public:
 	qs::QSTATUS open(const WCHAR* pwszMessage);
 
 private:
-	qs::QSTATUS prepareTemporaryFile(
-		const WCHAR* pwszMessage, qs::WSTRING* pwstrPath);
 	qs::QSTATUS createParam(const WCHAR* pwszTemplate,
 		const WCHAR* pwszPath, qs::WSTRING* pwstrParam);
 	qs::QSTATUS createMessage(const WCHAR* pwszPath);
@@ -90,6 +90,7 @@ private:
 	MessageComposer composer_;
 	qs::Profile* pProfile_;
 	HWND hwnd_;
+	TempFileCleaner* pTempFileCleaner_;
 	ItemList listItem_;
 	WaitThread* pThread_;
 	qs::Event* pEvent_;

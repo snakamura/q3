@@ -12,6 +12,7 @@
 
 #include <qsconv.h>
 #include <qsnew.h>
+#include <qsstream.h>
 #include <qswindow.h>
 
 #include <tchar.h>
@@ -20,6 +21,7 @@
 #include "resourceinc.h"
 #include "statusbar.h"
 #include "uiutil.h"
+#include "../model/tempfilecleaner.h"
 
 using namespace qm;
 using namespace qs;
@@ -270,6 +272,49 @@ QSTATUS qm::UIUtil::updateStatusBar(MessageWindow* pMessageWindow,
 			CHECK_QSTATUS();
 		}
 	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::UIUtil::writeTemporaryFile(const WCHAR* pwszValue,
+	const WCHAR* pwszPrefix, const WCHAR* pwszExtension,
+	TempFileCleaner* pTempFileCleaner, WSTRING* pwstrPath)
+{
+	assert(pwszValue);
+	assert(pwszPrefix);
+	assert(pwszExtension);
+	assert(pTempFileCleaner);
+	assert(pwstrPath);
+	
+	DECLARE_QSTATUS();
+	
+	Time time(Time::getCurrentTime());
+	WCHAR wszName[128];
+	swprintf(wszName, L"%s-%04d%02d%02d%02d%02d%02d%03d.%s", pwszPrefix,
+		time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute,
+		time.wSecond, time.wMilliseconds, pwszExtension);
+	
+	string_ptr<WSTRING> wstrPath(concat(
+		Application::getApplication().getTemporaryFolder(), wszName));
+	if (!wstrPath.get())
+		return QSTATUS_OUTOFMEMORY;
+	
+	FileOutputStream stream(wstrPath.get(), &status);
+	CHECK_QSTATUS();
+	BufferedOutputStream bufferedStream(&stream, false, &status);
+	CHECK_QSTATUS();
+	OutputStreamWriter writer(&bufferedStream,
+		false, getSystemEncoding(), &status);
+	CHECK_QSTATUS();
+	status = writer.write(pwszValue, wcslen(pwszValue));
+	CHECK_QSTATUS();
+	status = writer.close();
+	CHECK_QSTATUS();
+	
+	status = pTempFileCleaner->add(wstrPath.get());
+	CHECK_QSTATUS();
+	
+	*pwstrPath = wstrPath.release();
 	
 	return QSTATUS_SUCCESS;
 }

@@ -18,6 +18,7 @@
 #include <qmmessageholder.h>
 #include <qmmessagewindow.h>
 #include <qmsearch.h>
+#include <qmtemplate.h>
 
 #include <qmscript.h>
 
@@ -38,6 +39,7 @@
 #include "../model/goround.h"
 #include "../model/rule.h"
 #include "../model/tempfilecleaner.h"
+#include "../model/templatemanager.h"
 #include "../script/scriptmanager.h"
 #include "../sync/syncmanager.h"
 #include "../ui/attachmentselectionmodel.h"
@@ -1488,9 +1490,14 @@ QSTATUS qm::FileOfflineAction::isChecked(const ActionEvent& event, bool* pbCheck
  *
  */
 
-qm::FilePrintAction::FilePrintAction(
-	MessageSelectionModel* pModel, QSTATUS* pstatus) :
-	pModel_(pModel)
+qm::FilePrintAction::FilePrintAction(Document* pDocument,
+	MessageSelectionModel* pModel, HWND hwnd, Profile* pProfile,
+	TempFileCleaner* pTempFileCleaner, QSTATUS* pstatus) :
+	pDocument_(pDocument),
+	pModel_(pModel),
+	hwnd_(hwnd),
+	pProfile_(pProfile),
+	pTempFileCleaner_(pTempFileCleaner)
 {
 }
 
@@ -1500,15 +1507,74 @@ qm::FilePrintAction::~FilePrintAction()
 
 QSTATUS qm::FilePrintAction::invoke(const ActionEvent& event)
 {
-	// TODO
+	DECLARE_QSTATUS();
+	
+	AccountLock lock;
+	Folder* pFolder = 0;
+	MessageHolderList l;
+	status = pModel_->getSelectedMessages(&lock, &pFolder, &l);
+	CHECK_QSTATUS();
+	
+	Account* pAccount = lock.get();
+	if (!l.empty()) {
+		MessageHolderList::const_iterator it = l.begin();
+		while (it != l.end()) {
+			MessageHolder* pmh = *it;
+			const Template* pTemplate = 0;
+			status = pDocument_->getTemplateManager()->getTemplate(
+				pAccount, pFolder, L"print", &pTemplate);
+			CHECK_QSTATUS();
+			
+			Message msg(&status);
+			CHECK_QSTATUS();
+			TemplateContext context(pmh, &msg, pAccount, pDocument_,
+				hwnd_, pProfile_, 0, TemplateContext::ArgumentList(), &status);
+			CHECK_QSTATUS();
+			
+			string_ptr<WSTRING> wstrValue;
+			status = pTemplate->getValue(context, &wstrValue);
+			CHECK_QSTATUS();
+			
+			string_ptr<WSTRING> wstrExtension;
+			status = pProfile_->getString(L"Global",
+				L"PrintExtension", L"html", &wstrExtension);
+			CHECK_QSTATUS();
+			
+			string_ptr<WSTRING> wstrPath;
+			status = UIUtil::writeTemporaryFile(wstrValue.get(), L"q3print",
+				wstrExtension.get(), pTempFileCleaner_, &wstrPath);
+			CHECK_QSTATUS();
+			
+			W2T(wstrPath.get(), ptszPath);
+			SHELLEXECUTEINFO sei = {
+				sizeof(sei),
+				0,
+				hwnd_,
+				_T("print"),
+				ptszPath,
+				0,
+				0,
+#ifdef _WIN32_WCE
+				SW_SHOWNORMAL,
+#else
+				SW_SHOWDEFAULT,
+#endif
+			};
+			if (!::ShellExecuteEx(&sei)) {
+				// TODO
+			}
+			
+			++it;
+		}
+	}
+	
 	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::FilePrintAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
 {
 	assert(pbEnabled);
-	// TODO
-	return QSTATUS_SUCCESS;
+	return pModel_->hasSelectedMessage(pbEnabled);
 }
 
 

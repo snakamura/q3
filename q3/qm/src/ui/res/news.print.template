@@ -1,0 +1,51 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+
+<head>
+	<title>{@HtmlEscape(@Subject())}</title>
+	<style type="text/css">
+	body {{ margin-left: 3em; margin-right: 3em; }}
+	.header-title {{ font-weight: bold; font-size: 90%; }}
+	.header-value {{ font-size: 90%; }}
+	.body {{ }}
+	</style>
+</head>
+
+<body>
+	<table border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td colspan="2"><hr size="3" style="color: lightblue"></td>
+		</tr>
+		<tr style="padding-bottom: 5px;">
+			<td width="70" nowrap class="header-title">To: </td>
+			<td width="100%" class="header-value">{@HtmlEscape(@FormatAddress(To))}</td>
+		</tr>
+		{@If(Cc, @Concat('
+		<tr style="padding-bottom: 5px;">
+			<td width="70" nowrap class="header-title">Cc: </td>
+			<td width="100%" class="header-value">',
+			@HtmlEscape(@FormatAddress(Cc)),
+			'</td>
+		</tr>'), '')}
+		<tr style="padding-bottom: 5px;">
+			<td width="70" nowrap class="header-title">From: </td>
+			<td width="100%" class="header-value">{@HtmlEscape(@FormatAddress(From))}</td>
+		</tr>
+		<tr style="padding-bottom: 5px;">
+			<td width="70" nowrap class="header-title">Date: </td>
+			<td width="100%" class="header-value">{@FormatDate(@Date(Date), '%D %M1 %Y4 %h:%m:%s %z')}</td>
+		</tr>
+		<tr>
+			<td width="70" nowrap class="header-title">Subject: </td>
+			<td width="100%" class="header-value">{@HtmlEscape(@Subject())}</td>
+		</tr>
+		<tr>
+			<td colspan="2"><hr size="3" style="color: lightblue"></td>
+		</tr>
+		<tr>
+			<td colspan="2" class="body"><pre>{@HtmlEscape(@Body('', @True()))}</pre></td>
+		</tr>
+	</table>
+</body>
+
+</html>

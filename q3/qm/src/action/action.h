@@ -709,7 +709,9 @@ private:
 class FilePrintAction : public qs::AbstractAction
 {
 public:
-	FilePrintAction(MessageSelectionModel* pModel, qs::QSTATUS* pstatus);
+	FilePrintAction(Document* pDocument, MessageSelectionModel* pModel,
+		HWND hwnd, qs::Profile* pProfile,
+		TempFileCleaner* pTempFileCleaner, qs::QSTATUS* pstatus);
 	virtual ~FilePrintAction();
 
 public:
@@ -721,7 +723,11 @@ private:
 	FilePrintAction& operator=(const FilePrintAction&);
 
 private:
+	Document* pDocument_;
 	MessageSelectionModel* pModel_;
+	HWND hwnd_;
+	qs::Profile* pProfile_;
+	TempFileCleaner* pTempFileCleaner_;
 };
 
 

@@ -28,6 +28,7 @@ class MessageHolder;
 class MessageWindow;
 class ProgressDialog;
 class StatusBar;
+class TempFileCleaner;
 
 
 /****************************************************************************
@@ -52,6 +53,10 @@ public:
 	static qs::QSTATUS updateStatusBar(MessageWindow* pMessageWindow,
 		StatusBar* pStatusBar, int nOffset, MessageHolder* pmh,
 		Message& msg, const qs::ContentTypeParser* pContentType);
+	
+	static qs::QSTATUS writeTemporaryFile(const WCHAR* pwszValue,
+		const WCHAR* pwszPrefix, const WCHAR* pwszExtension,
+		TempFileCleaner* pTempFileCleaner, qs::WSTRING* pwstrPath);
 };
 
 
