@@ -1117,32 +1117,25 @@ QSTATUS qm::Account::removeAccountHandler(AccountHandler* pHandler)
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::Account::deletePermanent()
+QSTATUS qm::Account::deletePermanent(bool bDeleteContent)
 {
 	DECLARE_QSTATUS();
 	
-	delete pImpl_->pMessageCache_;
-	pImpl_->pMessageCache_ = 0;
-	delete pImpl_->pMessageStore_;
-	pImpl_->pMessageStore_ = 0;
-	delete pImpl_->pProtocolDriver_;
-	pImpl_->pProtocolDriver_ = 0;
-	
-	status = File::removeDirectory(pImpl_->wstrPath_);
-	CHECK_QSTATUS();
+	if (bDeleteContent) {
+		delete pImpl_->pMessageCache_;
+		pImpl_->pMessageCache_ = 0;
+		delete pImpl_->pMessageStore_;
+		pImpl_->pMessageStore_ = 0;
+		delete pImpl_->pProtocolDriver_;
+		pImpl_->pProtocolDriver_ = 0;
+		
+		status = File::removeDirectory(pImpl_->wstrPath_);
+		CHECK_QSTATUS();
+	}
 	
 	status = pImpl_->fireAccountDestroyed();
 	CHECK_QSTATUS();
 	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::Account::setName(const WCHAR* pwszName)
-{
-	// TODO
-	// Set name, set path, rename profiles of all subaccounts,
-	// close store and cache, close protocol driver
-	// (because protocol driver may open log)
 	return QSTATUS_SUCCESS;
 }
 

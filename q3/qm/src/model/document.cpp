@@ -206,8 +206,8 @@ QSTATUS qm::Document::addAccount(Account* pAccount)
 	
 	AccountList& l = pImpl_->listAccount_;
 	assert(std::find(l.begin(), l.end(), pAccount) == l.end());
-	AccountList::iterator it = std::lower_bound(l.begin(),
-		l.end(), pAccount, AccountLess());
+	AccountList::iterator it = std::lower_bound(
+		l.begin(), l.end(), pAccount, AccountLess());
 	status = STLWrapper<AccountList>(l).insert(it, pAccount, &it);
 	CHECK_QSTATUS();
 	
@@ -228,7 +228,7 @@ QSTATUS qm::Document::removeAccount(Account* pAccount)
 	AccountList::iterator it = std::find(l.begin(), l.end(), pAccount);
 	assert(it != l.end());
 	
-	status = pAccount->deletePermanent();
+	status = pAccount->deletePermanent(true);
 	CHECK_QSTATUS();
 	l.erase(it);
 	
@@ -248,14 +248,51 @@ QSTATUS qm::Document::renameAccount(Account* pAccount, const WCHAR* pwszName)
 	
 	DECLARE_QSTATUS();
 	
-	status = pAccount->setName(pwszName);
+	status = pAccount->save();
 	CHECK_QSTATUS();
 	
+	string_ptr<WSTRING> wstrOldPath(allocWString(pAccount->getPath()));
+	if (!wstrOldPath.get())
+		return QSTATUS_OUTOFMEMORY;
+	
 	AccountList& l = pImpl_->listAccount_;
-	std::sort(l.begin(), l.end(), AccountLess());
+	AccountList::iterator it = std::find(l.begin(), l.end(), pAccount);
+	assert(it != l.end());
+	
+	status = pAccount->deletePermanent(false);
+	CHECK_QSTATUS();
+	l.erase(it);
+	
+	std::auto_ptr<Account> pOldAccount(pAccount);
+	status = pImpl_->fireAccountListChanged(
+		AccountListChangedEvent::TYPE_REMOVE, pAccount);
+	CHECK_QSTATUS();
+	pOldAccount.reset(0);
+	
+	const WCHAR* p = wcsrchr(wstrOldPath.get(), L'\\');
+	assert(p);
+	
+	string_ptr<WSTRING> wstrNewPath(concat(wstrOldPath.get(),
+		p - wstrOldPath.get() + 1, pwszName, -1));
+	if (!wstrNewPath.get())
+		return QSTATUS_OUTOFMEMORY;
+	
+	W2T(wstrOldPath.get(), ptszOldPath);
+	W2T(wstrNewPath.get(), ptszNewPath);
+	if (!::MoveFile(ptszOldPath, ptszNewPath))
+		return QSTATUS_FAIL;
+	
+	std::auto_ptr<Account> pNewAccount;
+	status = newQsObject(wstrNewPath.get(), getSecurity(), &pNewAccount);
+	CHECK_QSTATUS();
+	
+	it = std::lower_bound(l.begin(), l.end(), pNewAccount.get(), AccountLess());
+	status = STLWrapper<AccountList>(l).insert(it, pNewAccount.get(), &it);
+	CHECK_QSTATUS();
+	pAccount = pNewAccount.release();
 	
 	status = pImpl_->fireAccountListChanged(
-		AccountListChangedEvent::TYPE_RENAME, pAccount);
+		AccountListChangedEvent::TYPE_ADD, pAccount);
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;

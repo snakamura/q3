@@ -136,8 +136,7 @@ public:
 
 // These methods are intended to be called from Document class
 public:
-	qs::QSTATUS deletePermanent();
-	qs::QSTATUS setName(const WCHAR* pwszName);
+	qs::QSTATUS deletePermanent(bool bDeleteContent);
 
 // These methods are intended to be called from NormalFolder class
 public:

@@ -282,9 +282,6 @@ QSTATUS qm::FolderWindowImpl::accountListChanged(
 		status = removeAccount(event.getAccount());
 		CHECK_QSTATUS();
 		break;
-	case AccountListChangedEvent::TYPE_RENAME:
-		// TODO
-		break;
 	default:
 		assert(false);
 		return QSTATUS_FAIL;
@@ -688,6 +685,7 @@ QSTATUS qm::FolderWindowImpl::removeAccount(Account* pAccount)
 	HTREEITEM hItem = getHandleFromAccount(pAccount);
 	assert(hItem);
 	TreeView_DeleteItem(pThis_->getHandle(), hItem);
+	TreeView_SelectItem(pThis_->getHandle(), 0);
 	return QSTATUS_SUCCESS;
 }
 

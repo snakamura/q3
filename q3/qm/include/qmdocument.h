@@ -158,8 +158,7 @@ public:
 	enum Type {
 		TYPE_ALL,
 		TYPE_ADD,
-		TYPE_REMOVE,
-		TYPE_RENAME
+		TYPE_REMOVE
 	};
 
 public:

@@ -226,9 +226,6 @@ QSTATUS qm::FolderComboBoxImpl::accountListChanged(
 		status = removeAccount(event.getAccount());
 		CHECK_QSTATUS();
 		break;
-	case AccountListChangedEvent::TYPE_RENAME:
-		// TODO
-		break;
 	default:
 		break;
 	}
@@ -439,7 +436,7 @@ QSTATUS qm::FolderComboBoxImpl::removeAccount(Account* pAccount)
 	
 	int nIndex = getIndexFromAccount(pAccount);
 	assert(nIndex != -1);
-	++nIndex;
+	ComboBox_DeleteString(pThis_->getHandle(), nIndex);
 	
 	while (nIndex < ComboBox_GetCount(pThis_->getHandle())) {
 		Folder* pFolder = getFolder(nIndex);
@@ -447,6 +444,7 @@ QSTATUS qm::FolderComboBoxImpl::removeAccount(Account* pAccount)
 			break;
 		ComboBox_DeleteString(pThis_->getHandle(), nIndex);
 	}
+	ComboBox_SetCurSel(pThis_->getHandle(), -1);
 	
 	return QSTATUS_SUCCESS;
 }
