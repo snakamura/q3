@@ -142,9 +142,8 @@ private:
 	PasswordManager* pPasswordManager_;
 	SyncStatusWindow* pStatusWindow_;
 	bool bShowError_;
-	qs::CriticalSection csError_;
 	volatile unsigned int nCanceledTime_;
-	qs::CriticalSection csPassword_;
+	bool bEnableCancelOnShow_;
 };
 
 
