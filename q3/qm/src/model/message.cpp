@@ -307,14 +307,14 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 					return 0;
 			}
 			else {
-				if (!pPart->setBody(strBody.get(), strBody.size()))
-					return 0;
+				pPart->setBody(xstring_ptr(strBody.release()));
 			}
 		}
 		else {
 			xstring_ptr strBody(PartUtil::w2a(pBody, nBodyLen));
-			if (!pPart->setBody(strBody.get(), -1))
+			if (!strBody.get())
 				return 0;
+			pPart->setBody(strBody);
 		}
 	}
 	
@@ -762,11 +762,21 @@ std::auto_ptr<Part> qm::MessageCreator::createPartFromFile(const WCHAR* pwszPath
 	if (!pPart->setField(L"Content-Disposition", contentDisposition))
 		return 0;
 	
+	W2T(pwszPath, ptszPath);
+	WIN32_FIND_DATA fd;
+	AutoFindHandle hFind(::FindFirstFile(ptszPath, &fd));
+	if (!hFind.get())
+		return 0;
+	size_t nSize = fd.nFileSizeLow;
+	hFind.close();
+	
 	FileInputStream stream(pwszPath);
 	if (!stream)
 		return 0;
 	BufferedInputStream bufferedStream(&stream, false);
-	StringBuffer<STRING> buf;
+	XStringBuffer<XSTRING> buf;
+	if (!buf.reserve(nSize/3*4 + 20))
+		return 0;
 	unsigned char b[48];
 	unsigned char e[64];
 	while (true) {
@@ -778,12 +788,12 @@ std::auto_ptr<Part> qm::MessageCreator::createPartFromFile(const WCHAR* pwszPath
 		
 		size_t nEncodedLen = 0;
 		Base64Encoder::encode(b, nLen, false, e, &nEncodedLen);
-		buf.append(reinterpret_cast<CHAR*>(e), nEncodedLen);
-		buf.append("\r\n");
+		if (!buf.append(reinterpret_cast<CHAR*>(e), nEncodedLen) ||
+			!buf.append("\r\n"))
+			return 0;
 	}
 	
-	if (!pPart->setBody(buf.getCharArray(), buf.getLength()))
-		return 0;
+	pPart->setBody(buf.getXString());
 	
 	return pPart;
 }
@@ -799,8 +809,7 @@ std::auto_ptr<Part> qm::MessageCreator::createRfc822Part(const Message& msg)
 	xstring_ptr strContent(msg.getContent());
 	if (!strContent.get())
 		return 0;
-	if (!pPart->setBody(strContent.get(), -1))
-		return 0;
+	pPart->setBody(strContent);
 	
 	return pPart;
 }
@@ -1770,26 +1779,15 @@ AttachmentParser::Result qm::AttachmentParser::detach(const WCHAR* pwszDir,
 		wstrPath = wstr;
 	}
 	
-	const CHAR* p = part_.getBody();
-	size_t nLen = strlen(p);
-	const unsigned char* pBody = reinterpret_cast<const unsigned char*>(p);
-	malloc_ptr<unsigned char> pBuf;
-	
+	std::auto_ptr<Encoder> pEncoder;
 	ContentTransferEncodingParser contentTransferEncoding;
-	Part::Field f = part_.getField(L"Content-Transfer-Encoding", &contentTransferEncoding);
-	if (f == Part::FIELD_EXIST) {
+	if (part_.getField(L"Content-Transfer-Encoding", &contentTransferEncoding) == Part::FIELD_EXIST) {
 		const WCHAR* pwszEncoding = contentTransferEncoding.getEncoding();
-		if (wcscmp(pwszEncoding, L"7bit") != 0 &&
-			wcscmp(pwszEncoding, L"8bit") != 0) {
-			std::auto_ptr<Encoder> pEncoder(EncoderFactory::getInstance(pwszEncoding));
+		if (_wcsicmp(pwszEncoding, L"7bit") != 0 &&
+			_wcsicmp(pwszEncoding, L"8bit") != 0) {
+			pEncoder= EncoderFactory::getInstance(pwszEncoding);
 			if (!pEncoder.get())
 				return RESULT_FAIL;
-			malloc_size_ptr<unsigned char> buf(pEncoder->decode(pBody, nLen));
-			if (!buf.get())
-				return RESULT_FAIL;
-			pBuf.reset(buf.release());
-			nLen = buf.size();
-			pBody = pBuf.get();
 		}
 	}
 	
@@ -1797,8 +1795,25 @@ AttachmentParser::Result qm::AttachmentParser::detach(const WCHAR* pwszDir,
 	if (!stream)
 		return RESULT_FAIL;
 	BufferedOutputStream bufferedStream(&stream, false);
-	if (bufferedStream.write(pBody, nLen) != nLen)
-		return RESULT_FAIL;
+	
+	const CHAR* pBody = part_.getBody();
+	size_t nLen = strlen(pBody);
+	const unsigned char* p = reinterpret_cast<const unsigned char*>(pBody);
+	if (pEncoder.get()) {
+		// TODO
+		// Divide into some blocks? But how? Dividing at new lines is OK?
+		// Or change decoder to be able to write to a stream directly.
+		malloc_size_ptr<unsigned char> pDecode(pEncoder->decode(p, nLen));
+		if (!pDecode.get())
+			return RESULT_FAIL;
+		if (bufferedStream.write(pDecode.get(), pDecode.size()) != pDecode.size())
+			return RESULT_FAIL;
+	}
+	else {
+		if (bufferedStream.write(p, nLen) != nLen)
+			return RESULT_FAIL;
+	}
+	
 	if (!bufferedStream.close())
 		return RESULT_FAIL;
 	
