@@ -865,7 +865,7 @@ qs::TemporaryFileRenamer::~TemporaryFileRenamer()
 {
 	if (!bRenamed_) {
 #ifdef UNICODE
-		const TCHAR* ptszPath = wstrTempoaryPath_;
+		const TCHAR* ptszPath = wstrTemporaryPath_;
 #else
 		const TCHAR* ptszPath = tstrTemporaryPath_;
 #endif
@@ -889,7 +889,7 @@ QSTATUS qs::TemporaryFileRenamer::rename()
 {
 #ifdef UNICODE
 	const TCHAR* ptszOriginalPath = wstrOriginalPath_;
-	const TCHAR* ptszTemporaryPath = wstrTempoaryPath_;
+	const TCHAR* ptszTemporaryPath = wstrTemporaryPath_;
 #else
 	const TCHAR* ptszOriginalPath = tstrOriginalPath_;
 	const TCHAR* ptszTemporaryPath = tstrTemporaryPath_;
