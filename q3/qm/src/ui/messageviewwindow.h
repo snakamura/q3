@@ -41,6 +41,7 @@ class MessageViewWindow;
 #ifdef QMHTMLVIEW
 	class HtmlMessageViewWindow;
 #endif
+class MessageViewWindowCallback;
 class MessageViewWindowFactory;
 
 class Document;
@@ -88,6 +89,22 @@ public:
 
 /****************************************************************************
  *
+ * MessageViewWindowCallback
+ *
+ */
+
+class MessageViewWindowCallback
+{
+public:
+	virtual ~MessageViewWindowCallback();
+
+public:
+	virtual void statusTextChanged(const WCHAR* pwszText) = 0;
+};
+
+
+/****************************************************************************
+ *
  * MessageViewWindowFactory
  *
  */
@@ -99,6 +116,7 @@ public:
 							 qs::Profile* pProfile,
 							 const WCHAR* pwszSection,
 							 qs::MenuManager* pMenuManager,
+							 MessageViewWindowCallback* pCallback,
 							 bool bTextOnly);
 	~MessageViewWindowFactory();
 
@@ -117,6 +135,7 @@ private:
 	qs::Profile* pProfile_;
 	const WCHAR* pwszSection_;
 	qs::MenuManager* pMenuManager_;
+	MessageViewWindowCallback* pCallback_;
 	bool bTextOnly_;
 	TextMessageViewWindow* pText_;
 #ifdef QMHTMLVIEW
@@ -205,7 +224,8 @@ class HtmlMessageViewWindow :
 public:
 	HtmlMessageViewWindow(qs::Profile* pProfile,
 						  const WCHAR* pwszSection,
-						  qs::MenuManager* pMenuManager);
+						  qs::MenuManager* pMenuManager,
+						  MessageViewWindowCallback* pCallback);
 	virtual ~HtmlMessageViewWindow();
 
 public:
@@ -736,6 +756,7 @@ private:
 	qs::Profile* pProfile_;
 	const WCHAR* pwszSection_;
 	qs::MenuManager* pMenuManager_;
+	MessageViewWindowCallback* pCallback_;
 	IWebBrowser2* pWebBrowser_;
 	IServiceProviderImpl* pServiceProvider_;
 	DWebBrowserEvents2Impl* pWebBrowserEvents_;

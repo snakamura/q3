@@ -43,7 +43,8 @@ using namespace qs;
 
 class qm::MessageWindowImpl :
 	public MessageModelHandler,
-	public SecurityModelHandler
+	public SecurityModelHandler,
+	public MessageViewWindowCallback
 {
 public:
 	enum {
@@ -69,10 +70,14 @@ public:
 public:
 	virtual void decryptVerifyChanged(const SecurityModelEvent& event);
 
+public:
+	virtual void statusTextChanged(const WCHAR* pwszText);
+
 private:
 	void fireMessageChanged(MessageHolder* pmh,
 							Message& msg,
 							const ContentTypeParser* pContentType) const;
+	void fireStatusTextChanged(const WCHAR* pwszText) const;
 
 public:
 	MessageWindow* pThis_;
@@ -244,6 +249,11 @@ void qm::MessageWindowImpl::decryptVerifyChanged(const SecurityModelEvent& event
 	setMessage(mpl, false);
 }
 
+void qm::MessageWindowImpl::statusTextChanged(const WCHAR* pwszText)
+{
+	fireStatusTextChanged(pwszText);
+}
+
 void qm::MessageWindowImpl::fireMessageChanged(MessageHolder* pmh,
 											   Message& msg,
 											   const ContentTypeParser* pContentType) const
@@ -251,6 +261,13 @@ void qm::MessageWindowImpl::fireMessageChanged(MessageHolder* pmh,
 	MessageWindowEvent event(pmh, msg, pContentType);
 	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
 		(*it)->messageChanged(event);
+}
+
+void qm::MessageWindowImpl::fireStatusTextChanged(const WCHAR* pwszText) const
+{
+	MessageWindowStatusTextEvent event(pwszText);
+	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
+		(*it)->statusTextChanged(event);
 }
 
 
@@ -517,7 +534,7 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	std::auto_ptr<MessageViewWindowFactory> pFactory(
 		new MessageViewWindowFactory(pImpl_->pDocument_, pImpl_->pProfile_,
-		pImpl_->pwszSection_, pContext->pUIManager_->getMenuManager(), false));
+			pImpl_->pwszSection_, pContext->pUIManager_->getMenuManager(), pImpl_, false));
 	pImpl_->pFactory_ = pFactory;
 	
 	if (!pImpl_->pFactory_->create(getHandle()))
@@ -628,6 +645,27 @@ Message& qm::MessageWindowEvent::getMessage() const
 const ContentTypeParser* qm::MessageWindowEvent::getContentType() const
 {
 	return pContentType_;
+}
+
+
+/****************************************************************************
+ *
+ * MessageWindowStatusTextEvent
+ *
+ */
+
+qm::MessageWindowStatusTextEvent::MessageWindowStatusTextEvent(const WCHAR* pwszText) :
+	pwszText_(pwszText)
+{
+}
+
+qm::MessageWindowStatusTextEvent::~MessageWindowStatusTextEvent()
+{
+}
+
+const WCHAR* qm::MessageWindowStatusTextEvent::getText() const
+{
+	return pwszText_;
 }
 
 

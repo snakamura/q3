@@ -142,6 +142,7 @@ public:
 	public:
 		void update(Document* pDocument,
 					ViewModel* pViewModel,
+					const WCHAR* pwszText,
 					StatusBar* pStatusBar);
 	
 	private:
@@ -154,6 +155,7 @@ public:
 		unsigned int nSelectedCount_;
 		bool bOffline_;
 		wstring_ptr wstrFilter_;
+		wstring_ptr wstrText_;
 	};
 
 public:
@@ -182,6 +184,7 @@ public:
 
 public:
 	virtual void messageChanged(const MessageWindowEvent& event);
+	virtual void statusTextChanged(const MessageWindowStatusTextEvent& event);
 
 public:
 	virtual void accountListChanged(const AccountListChangedEvent& event);
@@ -1005,7 +1008,7 @@ void qm::MainWindowImpl::updateStatusBar()
 	
 	if (bShowStatusBar_) {
 		ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
-		statusBarInfo_.update(pDocument_, pViewModel, pStatusBar_);
+		statusBarInfo_.update(pDocument_, pViewModel, 0, pStatusBar_);
 	}
 }
 
@@ -1118,9 +1121,20 @@ Folder* qm::MainWindowImpl::getFocusedFolder()
 
 void qm::MainWindowImpl::messageChanged(const MessageWindowEvent& event)
 {
-	if (bShowStatusBar_)
+	if (bShowStatusBar_) {
+		ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
+		statusBarInfo_.update(pDocument_, pViewModel, L"", pStatusBar_);
 		UIUtil::updateStatusBar(pMessageWindow_, pStatusBar_, 2,
 			event.getMessageHolder(), event.getMessage(), event.getContentType());
+	}
+}
+
+void qm::MainWindowImpl::statusTextChanged(const MessageWindowStatusTextEvent& event)
+{
+	if (bShowStatusBar_) {
+		ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
+		statusBarInfo_.update(pDocument_, pViewModel, event.getText(), pStatusBar_);
+	}
 }
 
 void qm::MainWindowImpl::accountListChanged(const AccountListChangedEvent& event)
@@ -1272,26 +1286,48 @@ qm::MainWindowImpl::StatusBarInfo::~StatusBarInfo()
 
 void qm::MainWindowImpl::StatusBarInfo::update(Document* pDocument,
 											   ViewModel* pViewModel,
+											   const WCHAR* pwszText,
 											   StatusBar* pStatusBar)
 {
+	assert(pDocument);
+	assert(pStatusBar);
+	assert(!pwszText || !*pwszText || pViewModel);
+	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	
+	if (pwszText) {
+		if (*pwszText) {
+			if (!wstrText_.get() || wcscmp(wstrText_.get(), pwszText) != 0) {
+				nCount_ = -1;
+				nUnseenCount_ = -1;
+				nSelectedCount_ = -1;
+				wstrText_ = allocWString(pwszText);
+				pStatusBar->setText(0, wstrText_.get());
+			}
+		}
+		else {
+			wstrText_.reset(0);
+		}
+	}
 	
 	if (pViewModel) {
 		Lock<ViewModel> lock(*pViewModel);
 		
-		unsigned int nCount = nCount_;
-		unsigned int nUnseenCount = nUnseenCount_;
-		unsigned int nSelectedCount = nSelectedCount_;
-		nCount_ = pViewModel->getCount();
-		nUnseenCount_ = pViewModel->getUnseenCount();
-		nSelectedCount_ = pViewModel->getSelectedCount();
-		if (nCount != nCount_ ||
-			nUnseenCount != nUnseenCount_ ||
-			nSelectedCount != nSelectedCount_) {
-			wstring_ptr wstrTemplate(loadString(hInst, IDS_VIEWMODELSTATUSTEMPLATE));
-			WCHAR wsz[256];
-			swprintf(wsz, wstrTemplate.get(), nCount_, nUnseenCount_, nSelectedCount_);
-			pStatusBar->setText(0, wsz);
+		if (!wstrText_.get()) {
+			unsigned int nCount = nCount_;
+			unsigned int nUnseenCount = nUnseenCount_;
+			unsigned int nSelectedCount = nSelectedCount_;
+			nCount_ = pViewModel->getCount();
+			nUnseenCount_ = pViewModel->getUnseenCount();
+			nSelectedCount_ = pViewModel->getSelectedCount();
+			if (nCount != nCount_ ||
+				nUnseenCount != nUnseenCount_ ||
+				nSelectedCount != nSelectedCount_) {
+				wstring_ptr wstrTemplate(loadString(hInst, IDS_VIEWMODELSTATUSTEMPLATE));
+				WCHAR wsz[256];
+				swprintf(wsz, wstrTemplate.get(), nCount_, nUnseenCount_, nSelectedCount_);
+				pStatusBar->setText(0, wsz);
+			}
 		}
 		
 		wstring_ptr wstrFilter(wstrFilter_);

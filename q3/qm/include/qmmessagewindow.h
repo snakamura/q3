@@ -25,6 +25,7 @@ class MessageFrameWindow;
 class MessageWindow;
 class MessageWindowHandler;
 class MessageWindowEvent;
+class MessageWindowStatusTextEvent;
 class HeaderWindow;
 
 class AttachmentSelectionModel;
@@ -210,6 +211,7 @@ public:
 
 public:
 	virtual void messageChanged(const MessageWindowEvent& event) = 0;
+	virtual void statusTextChanged(const MessageWindowStatusTextEvent& event) = 0;
 };
 
 
@@ -240,6 +242,30 @@ private:
 	MessageHolder* pmh_;
 	Message& msg_;
 	const qs::ContentTypeParser* pContentType_;
+};
+
+
+/****************************************************************************
+ *
+ * MessageWindowStatusTextEvent
+ *
+ */
+
+class MessageWindowStatusTextEvent
+{
+public:
+	explicit MessageWindowStatusTextEvent(const WCHAR* pwszText);
+	~MessageWindowStatusTextEvent();
+
+public:
+	const WCHAR* getText() const;
+
+private:
+	MessageWindowStatusTextEvent(const MessageWindowStatusTextEvent&);
+	MessageWindowStatusTextEvent& operator=(const MessageWindowStatusTextEvent&);
+
+private:
+	const WCHAR* pwszText_;
 };
 
 

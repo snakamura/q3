@@ -70,6 +70,7 @@ public:
 
 public:
 	virtual void messageChanged(const MessageWindowEvent& event);
+	virtual void statusTextChanged(const MessageWindowStatusTextEvent& event);
 
 public:
 	virtual Account* getCurrentAccount() const;
@@ -474,6 +475,12 @@ void qm::MessageFrameWindowImpl::messageChanged(const MessageWindowEvent& event)
 	else {
 		pThis_->postMessage(WM_CLOSE);
 	}
+}
+
+void qm::MessageFrameWindowImpl::statusTextChanged(const MessageWindowStatusTextEvent& event)
+{
+	if (bShowStatusBar_)
+		pStatusBar_->setText(0, event.getText());
 }
 
 Account* qm::MessageFrameWindowImpl::getCurrentAccount() const

@@ -45,6 +45,17 @@ qm::MessageViewWindow::~MessageViewWindow()
 
 /****************************************************************************
  *
+ * MessageViewWindowCallback
+ *
+ */
+
+qm::MessageViewWindowCallback::~MessageViewWindowCallback()
+{
+}
+
+
+/****************************************************************************
+ *
  * MessageViewWindowFactory
  *
  */
@@ -53,11 +64,13 @@ qm::MessageViewWindowFactory::MessageViewWindowFactory(Document* pDocument,
 													   Profile* pProfile,
 													   const WCHAR* pwszSection,
 													   MenuManager* pMenuManager,
+													   MessageViewWindowCallback* pCallback,
 													   bool bTextOnly) :
 	pDocument_(pDocument),
 	pProfile_(pProfile),
 	pwszSection_(pwszSection),
 	pMenuManager_(pMenuManager),
+	pCallback_(pCallback),
 	bTextOnly_(bTextOnly),
 #ifdef QMHTMLVIEW
 	pText_(0),
@@ -97,7 +110,7 @@ MessageViewWindow* qm::MessageViewWindowFactory::getMessageViewWindow(const Cont
 	
 	if (bHtml && !pHtml_ && Application::getApplication().getAtlHandle()) {
 		std::auto_ptr<HtmlMessageViewWindow> pHtml(new HtmlMessageViewWindow(
-			pProfile_, pwszSection_, pMenuManager_));
+			pProfile_, pwszSection_, pMenuManager_, pCallback_));
 		HWND hwnd = pText_->getParent();
 #ifdef _WIN32_WCE
 		const WCHAR* pwszId = L"{8856F961-340A-11D0-A96B-00C04FD705A2}";
@@ -341,11 +354,13 @@ bool qm::TextMessageViewWindow::canSelectAll()
 
 qm::HtmlMessageViewWindow::HtmlMessageViewWindow(Profile* pProfile,
 												 const WCHAR* pwszSection,
-												 MenuManager* pMenuManager) :
+												 MenuManager* pMenuManager,
+												 MessageViewWindowCallback* pCallback) :
 	WindowBase(true),
 	pProfile_(pProfile),
 	pwszSection_(pwszSection),
 	pMenuManager_(pMenuManager),
+	pCallback_(pCallback),
 	pWebBrowser_(0),
 	pServiceProvider_(0),
 	pWebBrowserEvents_(0),
@@ -1601,6 +1616,17 @@ STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::Invoke(DISPID dispId
 				if (wcscmp(bstrURL, L"about:blank") != 0)
 					pHtmlMessageViewWindow_->setActive();
 			}
+		}
+	}
+	else if (dispId == DISPID_STATUSTEXTCHANGE) {
+		if (!pDispParams || pDispParams->cArgs != 1)
+			return E_INVALIDARG;
+		
+		if (pHtmlMessageViewWindow_->pCallback_) {
+			VARIANT* pVarText = pDispParams->rgvarg;
+			if (pVarText->vt != VT_BSTR)
+				return E_INVALIDARG;
+			pHtmlMessageViewWindow_->pCallback_->statusTextChanged(pVarText->bstrVal);
 		}
 	}
 	else {
