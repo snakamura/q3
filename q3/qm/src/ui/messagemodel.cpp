@@ -218,6 +218,11 @@ void qm::PreviewMessageModel::disconnectFromViewModel()
 {
 	assert(bConnectedToViewModel_);
 	
+	if (nTimerId_ != 0) {
+		pTimer_->killTimer(nTimerId_);
+		nTimerId_ = 0;
+	}
+	
 	pViewModelManager_->removeViewModelManagerHandler(this);
 	setViewModel(0);
 	bConnectedToViewModel_ = false;
@@ -234,8 +239,10 @@ void qm::PreviewMessageModel::itemStateChanged(const ViewModelEvent& event)
 	assert(pViewModel == event.getViewModel());
 	
 	if (event.getItem() == pViewModel->getFocused()) {
-		if (nTimerId_ != 0)
+		if (nTimerId_ != 0) {
 			pTimer_->killTimer(nTimerId_);
+			nTimerId_ = 0;
+		}
 		nTimerId_ = pTimer_->setTimer(TIMER_ITEMSTATECHANGED, TIMEOUT, this);
 	}
 }
