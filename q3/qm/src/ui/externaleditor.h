@@ -92,8 +92,10 @@ private:
 
 private:
 	MessageComposer composer_;
+	Document* pDocument_;
 	qs::Profile* pProfile_;
 	HWND hwnd_;
+	SecurityModel* pSecurityModel_;
 	TempFileCleaner* pTempFileCleaner_;
 	ItemList listItem_;
 	std::auto_ptr<WaitThread> pThread_;

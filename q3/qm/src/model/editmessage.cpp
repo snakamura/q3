@@ -474,7 +474,7 @@ bool qm::EditMessage::fixup()
 	MessageCreator creator(MessageCreator::FLAG_ADDCONTENTTYPE |
 		MessageCreator::FLAG_EXPANDALIAS);
 	std::auto_ptr<Message> pBodyMessage(creator.createMessage(
-		buf.getCharArray(), buf.getLength()));
+		pDocument_, buf.getCharArray(), buf.getLength()));
 	if (!pBodyMessage.get())
 		return false;
 	

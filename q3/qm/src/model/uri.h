@@ -37,6 +37,7 @@ public:
 								 Document* pDocument,
 								 MessagePtr* pptr);
 	static qs::wstring_ptr getURI(MessageHolder* pmh);
+	static const WCHAR* getScheme();
 };
 
 }

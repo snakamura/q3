@@ -1248,6 +1248,8 @@ private:
 
 private:
 	MessageComposer composer_;
+	Document* pDocument_;
+	SecurityModel* pSecurityModel_;
 	HWND hwnd_;
 };
 

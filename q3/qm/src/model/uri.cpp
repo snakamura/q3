@@ -107,3 +107,8 @@ wstring_ptr qm::URI::getURI(MessageHolder* pmh)
 	};
 	return concat(c, countof(c));
 }
+
+const WCHAR* qm::URI::getScheme()
+{
+	return L"urn:qmail";
+}

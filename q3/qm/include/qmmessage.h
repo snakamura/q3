@@ -19,6 +19,14 @@
 
 namespace qm {
 
+class Message;
+class MessageCreator;
+class PartUtil;
+class AttachmentParser;
+
+class Document;
+
+
 /****************************************************************************
  *
  * Message
@@ -83,9 +91,10 @@ class QMEXPORTCLASS MessageCreator
 {
 public:
 	enum Flag {
-		FLAG_EXTRACTATTACHMENT	= 0x01,
-		FLAG_ADDCONTENTTYPE		= 0x02,
-		FLAG_EXPANDALIAS		= 0x04
+		FLAG_ADDCONTENTTYPE		= 0x01,
+		FLAG_EXPANDALIAS		= 0x02,
+		FLAG_EXTRACTATTACHMENT	= 0x04,
+		FLAG_DECRYPTVERIFY		= 0x08
 	};
 
 public:
@@ -110,9 +119,11 @@ public:
 	unsigned int getFlags() const;
 	void setFlags(unsigned int nFlags,
 				  unsigned int nMask);
-	std::auto_ptr<Message> createMessage(const WCHAR* pwszMessage,
+	std::auto_ptr<Message> createMessage(Document* pDocument,
+										 const WCHAR* pwszMessage,
 									     size_t nLen) const;
-	std::auto_ptr<qs::Part> createPart(const WCHAR* pwszMessage,
+	std::auto_ptr<qs::Part> createPart(Document* pDocument,
+									   const WCHAR* pwszMessage,
 									   size_t nLen,
 									   qs::Part* pParent,
 									   bool bMessage) const;
@@ -133,6 +144,7 @@ public:
 	static bool makeMultipart(qs::Part* pParentPart,
 							  std::auto_ptr<qs::Part> pPart);
 	static std::auto_ptr<qs::Part> createPartFromFile(const WCHAR* pwszPath);
+	static std::auto_ptr<qs::Part> createRfc822Part(const Message& msg);
 	static qs::wstring_ptr getContentTypeFromExtension(const WCHAR* pwszExtension);
 
 private:

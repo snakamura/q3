@@ -14,6 +14,7 @@
 #include <qsstream.h>
 
 #include "externaleditor.h"
+#include "securitymodel.h"
 #include "uiutil.h"
 
 #pragma warning(disable:4786)
@@ -35,8 +36,10 @@ qm::ExternalEditorManager::ExternalEditorManager(Document* pDocument,
 												 FolderModel* pFolderModel,
 												 SecurityModel* pSecurityModel) :
 	composer_(false, pDocument, pProfile, hwnd, pFolderModel, pSecurityModel),
+	pDocument_(pDocument),
 	pProfile_(pProfile),
 	hwnd_(hwnd),
+	pSecurityModel_(pSecurityModel),
 	pTempFileCleaner_(pTempFileCleaner)
 {
 }
@@ -191,8 +194,13 @@ bool qm::ExternalEditorManager::createMessage(const WCHAR* pwszPath)
 	
 	if (nSize != 0) {
 		MessageCreator creator(MessageCreator::FLAG_ADDCONTENTTYPE |
-			MessageCreator::FLAG_EXPANDALIAS);
-		std::auto_ptr<Message> pMessage(creator.createMessage(&buffer[0], nSize));
+			MessageCreator::FLAG_EXPANDALIAS |
+			MessageCreator::FLAG_EXTRACTATTACHMENT |
+			(pSecurityModel_->isDecryptVerify() ? MessageCreator::FLAG_DECRYPTVERIFY : 0));
+		std::auto_ptr<Message> pMessage(creator.createMessage(
+			pDocument_, &buffer[0], nSize));
+		if (!pMessage.get())
+			return false;
 		
 		unsigned int nFlags = 0;
 		// TODO

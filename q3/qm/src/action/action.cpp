@@ -2349,6 +2349,8 @@ qm::MessageCreateFromClipboardAction::MessageCreateFromClipboardAction(bool bDra
 																	   FolderModel* pFolderModel,
 																	   SecurityModel* pSecurityModel) :
 	composer_(bDraft, pDocument, pProfile, hwnd, pFolderModel, pSecurityModel),
+	pDocument_(pDocument),
+	pSecurityModel_(pSecurityModel),
 	hwnd_(hwnd)
 {
 }
@@ -2361,8 +2363,11 @@ void qm::MessageCreateFromClipboardAction::invoke(const ActionEvent& event)
 {
 	wstring_ptr wstrMessage(Clipboard::getText());
 	if (wstrMessage.get()) {
-		MessageCreator creator;
-		std::auto_ptr<Message> pMessage(creator.createMessage(wstrMessage.get(), -1));
+		MessageCreator creator(MessageCreator::FLAG_ADDCONTENTTYPE |
+			MessageCreator::FLAG_EXPANDALIAS |
+			MessageCreator::FLAG_EXTRACTATTACHMENT |
+			(pSecurityModel_->isDecryptVerify() ? MessageCreator::FLAG_DECRYPTVERIFY : 0));
+		std::auto_ptr<Message> pMessage(creator.createMessage(pDocument_, wstrMessage.get(), -1));
 		
 		unsigned int nFlags = 0;
 		// TODO

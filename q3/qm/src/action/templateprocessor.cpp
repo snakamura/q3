@@ -119,7 +119,8 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 	}
 	else {
 		MessageCreator creator;
-		std::auto_ptr<Message> pMessage(creator.createMessage(wstrValue.get(), -1));
+		std::auto_ptr<Message> pMessage(creator.createMessage(
+			pDocument_, wstrValue.get(), -1));
 		if (!pMessage.get())
 			return false;
 		

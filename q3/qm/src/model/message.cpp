@@ -6,7 +6,9 @@
  *
  */
 
+#include <qmaccount.h>
 #include <qmmessage.h>
+#include <qmmessageholder.h>
 
 #include <qsconv.h>
 #include <qsencoder.h>
@@ -18,6 +20,7 @@
 #include <algorithm>
 
 #include "message.h"
+#include "uri.h"
 
 #pragma warning(disable:4786)
 
@@ -137,10 +140,11 @@ void qm::MessageCreator::setFlags(unsigned int nFlags,
 	nFlags_ |= nFlags & nMask;
 }
 
-std::auto_ptr<Message> qm::MessageCreator::createMessage(const WCHAR* pwszMessage,
+std::auto_ptr<Message> qm::MessageCreator::createMessage(Document* pDocument,
+														 const WCHAR* pwszMessage,
 														 size_t nLen) const
 {
-	std::auto_ptr<Part> pPart(createPart(pwszMessage, nLen, 0, true));
+	std::auto_ptr<Part> pPart(createPart(pDocument, pwszMessage, nLen, 0, true));
 	if (!pPart.get())
 		return 0;
 	
@@ -150,7 +154,8 @@ std::auto_ptr<Message> qm::MessageCreator::createMessage(const WCHAR* pwszMessag
 	return pMessage;
 }
 
-std::auto_ptr<Part> qm::MessageCreator::createPart(const WCHAR* pwszMessage,
+std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
+												   const WCHAR* pwszMessage,
 												   size_t nLen,
 												   Part* pParent,
 												   bool bMessage) const
@@ -223,7 +228,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(const WCHAR* pwszMessage,
 					return 0;
 				if (pBegin) {
 					std::auto_ptr<Part> pChild(MessageCreator().createPart(
-						pBegin, pEnd - pBegin, pPart.get(), false));
+						pDocument, pBegin, pEnd - pBegin, pPart.get(), false));
 					pPart->addPart(pChild);
 				}
 				if (bEnd)
@@ -232,7 +237,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(const WCHAR* pwszMessage,
 		}
 		else if (bRFC822) {
 			std::auto_ptr<Part> pEnclosed(MessageCreator().createPart(
-				pBody, nLen - nBodyLen, 0, false));
+				pDocument, pBody, nLen - nBodyLen, 0, false));
 			pPart->setEnclosedPart(pEnclosed);
 		}
 		else if (wcsicmp(pwszMediaType, L"text") == 0 && !bAttachment) {
@@ -320,6 +325,8 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(const WCHAR* pwszMessage,
 	}
 	
 	if (bMessage && nFlags_ & FLAG_EXTRACTATTACHMENT) {
+		assert(pDocument);
+		
 		XQMAILAttachmentParser attachment;
 		if (pPart->getField(L"X-QMAIL-Attachment", &attachment) == Part::FIELD_EXIST) {
 			assert(pContentType);
@@ -331,10 +338,32 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(const WCHAR* pwszMessage,
 				pPart = pParent;
 			}
 			
+			wstring_ptr wstrSchemePrefix(concat(URI::getScheme(), L"://"));
+			size_t nSchemePrefixLen = wcslen(wstrSchemePrefix.get());
 			const XQMAILAttachmentParser::AttachmentList& l =
 				attachment.getAttachments();
 			for (XQMAILAttachmentParser::AttachmentList::const_iterator it = l.begin(); it != l.end(); ++it) {
-				std::auto_ptr<Part> pChildPart(createPartFromFile(*it));
+				const WCHAR* pwszAttachment = *it;
+				
+				std::auto_ptr<Part> pChildPart;
+				if (wcsncmp(pwszAttachment, wstrSchemePrefix.get(), nSchemePrefixLen) == 0) {
+					MessagePtr ptr;
+					if (!URI::getMessageHolder(pwszAttachment, pDocument, &ptr))
+						return 0;
+					MessagePtrLock mpl(ptr);
+					if (!mpl)
+						return 0;
+					Message msg;
+					unsigned int nFlags = Account::GETMESSAGEFLAG_ALL;
+					if ((nFlags_ & FLAG_DECRYPTVERIFY) == 0)
+						nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
+					if (!mpl->getMessage(nFlags, 0, &msg))
+						return 0;
+					pChildPart = createRfc822Part(msg);
+				}
+				else {
+					pChildPart = createPartFromFile(pwszAttachment);
+				}
 				if (!pChildPart.get())
 					return 0;
 				pPart->addPart(pChildPart);
@@ -744,6 +773,23 @@ std::auto_ptr<Part> qm::MessageCreator::createPartFromFile(const WCHAR* pwszPath
 	}
 	
 	if (!pPart->setBody(buf.getCharArray(), buf.getLength()))
+		return 0;
+	
+	return pPart;
+}
+
+std::auto_ptr<Part> qm::MessageCreator::createRfc822Part(const Message& msg)
+{
+	std::auto_ptr<Part> pPart(new Part());
+	
+	ContentTypeParser contentType(L"message", L"rfc822");
+	if (!pPart->setField(L"Content-Type", contentType))
+		return 0;
+	
+	xstring_ptr strContent(msg.getContent());
+	if (!strContent.get())
+		return 0;
+	if (!pPart->setBody(strContent.get(), -1))
 		return 0;
 	
 	return pPart;
@@ -1263,7 +1309,7 @@ bool qm::PartUtil::getDigest(MessageList* pList) const
 				if (!pEnd)
 					break;
 				
-				std::auto_ptr<Message> pMessage(creator.createMessage(p, pEnd - p));
+				std::auto_ptr<Message> pMessage(creator.createMessage(0, p, pEnd - p));
 				
 				if (fieldTo == Part::FIELD_EXIST) {
 					if (!pMessage->setField(L"To", to))
