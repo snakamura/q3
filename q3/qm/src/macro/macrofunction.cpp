@@ -3977,9 +3977,45 @@ QSTATUS qm::MacroFunctionRegexFind::value(
 	
 	*ppValue = 0;
 	
-	// TODO
+	size_t nSize = getArgSize();
+	if (nSize != 2 && nSize != 3)
+		return error(*pContext, MacroErrorHandler::CODE_INVALIDARGSIZE);
 	
-	return QSTATUS_SUCCESS;
+	string_ptr<WSTRING> wstrValue;
+	MacroValuePtr pValue;
+	status = getArg(0)->value(pContext, &pValue);
+	CHECK_QSTATUS();
+	status = pValue->string(&wstrValue);
+	CHECK_QSTATUS();
+	
+	string_ptr<WSTRING> wstrPattern;
+	MacroValuePtr pValuePattern;
+	status = getArg(1)->value(pContext, &pValuePattern);
+	CHECK_QSTATUS();
+	status = pValuePattern->string(&wstrPattern);
+	CHECK_QSTATUS();
+	
+	unsigned int nIndex = 0;
+	if (nSize > 2) {
+		MacroValuePtr pValue;
+		status = getArg(2)->value(pContext, &pValue);
+		CHECK_QSTATUS();
+		nIndex = pValue->number();
+	}
+	
+	RegexPattern* p = 0;
+	status = RegexCompiler().compile(wstrPattern.get(), &p);
+	CHECK_QSTATUS();
+	std::auto_ptr<RegexPattern> pPattern(p);
+	
+	const WCHAR* pStart = 0;
+	const WCHAR* pEnd = 0;
+	status = pPattern->search(wstrValue.get() + nIndex, -1, &pStart, &pEnd, 0);
+	CHECK_QSTATUS();
+	
+	return MacroValueFactory::getFactory().newNumber(
+		pStart ? pStart - wstrValue.get() : -1,
+		reinterpret_cast<MacroValueNumber**>(ppValue));
 }
 
 const WCHAR* qm::MacroFunctionRegexFind::getName() const
@@ -4016,18 +4052,18 @@ QSTATUS qm::MacroFunctionRegexMatch::value(
 	if (getArgSize() != 2)
 		return error(*pContext, MacroErrorHandler::CODE_INVALIDARGSIZE);
 	
-	string_ptr<WSTRING> wstrPattern;
-	MacroValuePtr pValuePattern;
-	status = getArg(0)->value(pContext, &pValuePattern);
-	CHECK_QSTATUS();
-	status = pValuePattern->string(&wstrPattern);
-	CHECK_QSTATUS();
-	
 	string_ptr<WSTRING> wstrValue;
 	MacroValuePtr pValue;
-	status = getArg(1)->value(pContext, &pValue);
+	status = getArg(0)->value(pContext, &pValue);
 	CHECK_QSTATUS();
 	status = pValue->string(&wstrValue);
+	CHECK_QSTATUS();
+	
+	string_ptr<WSTRING> wstrPattern;
+	MacroValuePtr pValuePattern;
+	status = getArg(1)->value(pContext, &pValuePattern);
+	CHECK_QSTATUS();
+	status = pValuePattern->string(&wstrPattern);
 	CHECK_QSTATUS();
 	
 	RegexPattern* p = 0;
@@ -4074,14 +4110,125 @@ QSTATUS qm::MacroFunctionRegexReplace::value(
 	
 	*ppValue = 0;
 	
-	// TODO
+	size_t nSize = getArgSize();
+	if (nSize != 3 && nSize != 4)
+		return error(*pContext, MacroErrorHandler::CODE_INVALIDARGSIZE);
 	
-	return QSTATUS_SUCCESS;
+	string_ptr<WSTRING> wstrValue;
+	MacroValuePtr pValue;
+	status = getArg(0)->value(pContext, &pValue);
+	CHECK_QSTATUS();
+	status = pValue->string(&wstrValue);
+	CHECK_QSTATUS();
+	
+	string_ptr<WSTRING> wstrPattern;
+	MacroValuePtr pValuePattern;
+	status = getArg(1)->value(pContext, &pValuePattern);
+	CHECK_QSTATUS();
+	status = pValuePattern->string(&wstrPattern);
+	CHECK_QSTATUS();
+	
+	string_ptr<WSTRING> wstrReplace;
+	MacroValuePtr pValueReplace;
+	status = getArg(2)->value(pContext, &pValueReplace);
+	CHECK_QSTATUS();
+	status = pValueReplace->string(&wstrReplace);
+	CHECK_QSTATUS();
+	
+	bool bGlobal = false;
+	if (nSize > 3) {
+		MacroValuePtr pValueGlobal;
+		status = getArg(3)->value(pContext, &pValueGlobal);
+		CHECK_QSTATUS();
+		bGlobal = pValueGlobal->boolean();
+	}
+	
+	RegexPattern* p = 0;
+	status = RegexCompiler().compile(wstrPattern.get(), &p);
+	CHECK_QSTATUS();
+	std::auto_ptr<RegexPattern> pPattern(p);
+	
+	StringBuffer<WSTRING> buf(&status);
+	CHECK_QSTATUS();
+	
+	const WCHAR* pStart = wstrValue.get();
+	const WCHAR* pEnd = pStart + wcslen(pStart);
+	while (pStart < pEnd) {
+		const WCHAR* pMatchStart = 0;
+		const WCHAR* pMatchEnd = 0;
+		RegexPattern::RangeList listRange;
+		status = pPattern->search(pStart, pEnd - pStart,
+			&pMatchStart, &pMatchEnd, &listRange);
+		CHECK_QSTATUS();
+		
+		if (pMatchStart) {
+			status = buf.append(pStart, pMatchStart - pStart);
+			CHECK_QSTATUS();
+			status = replace(&buf, wstrReplace.get(), listRange);
+			CHECK_QSTATUS();
+			if (!bGlobal) {
+				status = buf.append(pMatchEnd);
+				CHECK_QSTATUS();
+				pStart = pEnd;
+			}
+			else {
+				pStart = pMatchEnd;
+			}
+		}
+		else {
+			status = buf.append(pStart);
+			CHECK_QSTATUS();
+			pStart = pEnd;
+		}
+	}
+	
+	return MacroValueFactory::getFactory().newString(buf.getCharArray(),
+		reinterpret_cast<MacroValueString**>(ppValue));
 }
 
 const WCHAR* qm::MacroFunctionRegexReplace::getName() const
 {
 	return L"RegexReplace";
+}
+
+QSTATUS qm::MacroFunctionRegexReplace::replace(qs::StringBuffer<WSTRING>* pBuf,
+	const WCHAR* pwszReplace, qs::RegexPattern::RangeList& listRange)
+{
+	DECLARE_QSTATUS();
+	
+	for (const WCHAR* p = pwszReplace; *p; ++p) {
+		if (*p == L'$') {
+			WCHAR c = *(p + 1);
+			if (L'0' <= c && c <= L'9') {
+				unsigned int nIndex = c - L'0';
+				if (nIndex < listRange.size() && listRange[nIndex].pStart_) {
+					const RegexRange& range = listRange[nIndex];
+					status = pBuf->append(range.pStart_, range.pEnd_ - range.pStart_);
+					CHECK_QSTATUS();
+					++p;
+				}
+				else {
+					status = pBuf->append(*p);
+					CHECK_QSTATUS();
+				}
+			}
+			else if (c == L'$') {
+				status = pBuf->append(c);
+				CHECK_QSTATUS();
+				++p;
+			}
+			else {
+				status = pBuf->append(L'$');
+				CHECK_QSTATUS();
+			}
+		}
+		else {
+			status = pBuf->append(*p);
+			CHECK_QSTATUS();
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
 }
 
 
