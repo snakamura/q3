@@ -2738,7 +2738,7 @@ QSTATUS qm::MessageDeleteAttachmentAction::invoke(const ActionEvent& event)
 		MessageHolderList listRemove;
 		status = STLWrapper<MessageHolderList>(listRemove).push_back(pmh);
 		CHECK_QSTATUS();
-		status = pAccount->removeMessages(l, false, 0);
+		status = pAccount->removeMessages(listRemove, false, 0);
 		CHECK_QSTATUS();
 		
 		++it;
