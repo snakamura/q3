@@ -184,9 +184,8 @@ Time& qs::Time::addDay(int nDay)
 		wDay = nDayNew;
 	}
 	
-	wDayOfWeek += nDay;
-	wDayOfWeek %= 7;
-	wDayOfWeek += (wDayOfWeek < 0) ? 7 : 0;
+	int nDayOfWeekNew = (wDayOfWeek + nDay)%7;
+	wDayOfWeek = nDayOfWeekNew + (nDayOfWeekNew < 0 ? 7 : 0);
 	
 	return *this;
 }
