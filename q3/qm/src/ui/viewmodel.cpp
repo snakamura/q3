@@ -653,11 +653,31 @@ QSTATUS qm::ViewModel::setSelection(unsigned int nStart, unsigned int nEnd)
 	
 	DECLARE_QSTATUS();
 	
-	status = clearSelection();
-	CHECK_QSTATUS();
+	if (nStart > nEnd)
+		std::swap(nStart, nEnd);
 	
-	status = addSelection(nStart, nEnd);
-	CHECK_QSTATUS();
+	unsigned int n = 0;
+	while (n < nStart) {
+		if (isSelected(n)) {
+			status = removeSelection(n);
+			CHECK_QSTATUS();
+		}
+		++n;
+	}
+	while (n <= nEnd) {
+		if (!isSelected(n)) {
+			status = addSelection(n);
+			CHECK_QSTATUS();
+		}
+		++n;
+	}
+	while (n < listItem_.size()) {
+		if (isSelected(n)) {
+			status = removeSelection(n);
+			CHECK_QSTATUS();
+		}
+		++n;
+	}
 	
 	return QSTATUS_SUCCESS;
 }
