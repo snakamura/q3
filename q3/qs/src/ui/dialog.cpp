@@ -127,13 +127,13 @@ INT_PTR qs::DialogBaseImpl::dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	
 	nResult = pDialogHandler_->dialogProc(uMsg, wParam, lParam);
 	
-	switch (uMsg) {
 #if !defined _WIN32_WCE || defined _WIN32_WCE_EMULATION
+	switch (uMsg) {
 	case WM_NCDESTROY:
 		destroy();
 		break;
-#endif
 	}
+#endif
 	
 	return nResult;
 }

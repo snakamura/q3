@@ -639,6 +639,9 @@ int CALLBACK selectedItemComp(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 }
 }
 
+#pragma warning(push)
+#pragma warning(disable:4355)
+
 qm::AddressBookDialog::AddressBookDialog(AddressBook* pAddressBook,
 	Profile* pProfile, const WCHAR* pwszAddress[], QSTATUS* pstatus) :
 	DefaultDialog(IDD_ADDRESSBOOK, pstatus),
@@ -684,6 +687,8 @@ qm::AddressBookDialog::AddressBookDialog(AddressBook* pAddressBook,
 		}
 	}
 }
+
+#pragma warning(pop)
 
 qm::AddressBookDialog::~AddressBookDialog()
 {

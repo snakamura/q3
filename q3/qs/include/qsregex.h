@@ -45,6 +45,9 @@ struct QSEXPORTCLASS RegexRange
  *
  */
 
+#pragma warning(push)
+#pragma warning(disable:4251)
+
 struct QSEXPORTCLASS RegexRangeList
 {
 	typedef std::vector<RegexRange> List;
@@ -54,6 +57,8 @@ struct QSEXPORTCLASS RegexRangeList
 	
 	List list_;
 };
+
+#pragma warning(pop)
 
 
 /****************************************************************************
