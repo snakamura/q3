@@ -11,6 +11,7 @@
 #include <qmdocument.h>
 #include <qmfilenames.h>
 #include <qmsession.h>
+#include <qmuiutil.h>
 
 #include <qsconv.h>
 #include <qsmime.h>
@@ -2460,16 +2461,17 @@ LRESULT qm::FindDialog::onInitDialog(HWND hwndFocus,
 {
 	init(false);
 	
-	for (int n = 0; n < HISTORY_SIZE; ++n) {
-		WCHAR wszKey[32];
-		swprintf(wszKey, L"History%d", n);
-		wstring_ptr wstr(pProfile_->getString(L"Find", wszKey, L""));
+	History history(pProfile_, L"Find");
+	for (unsigned int n = 0; n < history.getSize(); ++n) {
+		wstring_ptr wstr(history.getValue(n));
 		if (*wstr.get()) {
 			W2T(wstr.get(), ptsz);
 			sendDlgItemMessage(IDC_FIND, CB_ADDSTRING,
 				0, reinterpret_cast<LPARAM>(ptsz));
 		}
 	}
+	if (sendDlgItemMessage(IDC_FIND, CB_GETCOUNT) != 0)
+		sendDlgItemMessage(IDC_FIND, CB_SETCURSEL, 0);
 	
 	int nMatchCase = pProfile_->getInt(L"Find", L"MatchCase", 0);
 	sendDlgItemMessage(IDC_MATCHCASE, BM_SETCHECK,
@@ -2490,19 +2492,8 @@ LRESULT qm::FindDialog::onFind(UINT nId)
 {
 	Window edit(Window(getDlgItem(IDC_FIND)).getWindow(GW_CHILD));
 	wstrFind_ = edit.getWindowText();
-	if (wstrFind_.get()) {
-		for (int n = HISTORY_SIZE - 1; n > 0; --n) {
-			WCHAR wszFromKey[32];
-			swprintf(wszFromKey, L"History%d", n - 1);
-			wstring_ptr wstr(pProfile_->getString(L"Find", wszFromKey, L""));
-			
-			WCHAR wszToKey[32];
-			swprintf(wszToKey, L"History%d", n);
-			pProfile_->setString(L"Find", wszToKey, wstr.get());
-		}
-		
-		pProfile_->setString(L"Find", L"History0", wstrFind_.get());
-	}
+	if (wstrFind_.get())
+		History(pProfile_, L"Find").addValue(wstrFind_.get());
 	
 	bMatchCase_ = sendDlgItemMessage(IDC_MATCHCASE, BM_GETCHECK) == BST_CHECKED;
 	pProfile_->setInt(L"Find", L"MatchCase", bMatchCase_ ? 1 : 0);

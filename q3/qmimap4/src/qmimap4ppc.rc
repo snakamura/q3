@@ -89,7 +89,8 @@ CAPTION "IMAP4"
 FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
 BEGIN
     LTEXT           "&Search for",IDC_STATIC,5,8,35,8
-    EDITTEXT        IDC_CONDITION,40,5,95,14,ES_AUTOHSCROLL
+    COMBOBOX        IDC_CONDITION,40,5,95,70,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
     CONTROL         "Search &Body",IDC_SEARCHBODY,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,5,25,65,10
     CONTROL         "IMAP4 &Command",IDC_IMAP4COMMAND,"Button",

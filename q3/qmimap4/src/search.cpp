@@ -7,6 +7,7 @@
  */
 
 #include <qmaccount.h>
+#include <qmuiutil.h>
 
 #include "imap4driver.h"
 #include "main.h"
@@ -153,8 +154,17 @@ LRESULT qmimap4::Imap4SearchPage::onCommand(WORD nCode,
 LRESULT qmimap4::Imap4SearchPage::onInitDialog(HWND hwndFocus,
 											   LPARAM lParam)
 {
-	wstring_ptr wstrCondition(pProfile_->getString(L"Search", L"Condition", L""));
-	setDlgItemText(IDC_CONDITION, wstrCondition.get());
+	History history(pProfile_, L"Search");
+	for (unsigned int n = 0; n < history.getSize(); ++n) {
+		wstring_ptr wstr(history.getValue(n));
+		if (*wstr.get()) {
+			W2T(wstr.get(), ptsz);
+			sendDlgItemMessage(IDC_CONDITION, CB_ADDSTRING,
+				0, reinterpret_cast<LPARAM>(ptsz));
+		}
+	}
+	if (sendDlgItemMessage(IDC_CONDITION, CB_GETCOUNT) != 0)
+		sendDlgItemMessage(IDC_CONDITION, CB_SETCURSEL, 0);
 	
 	struct {
 		UINT nId_;
@@ -189,7 +199,10 @@ LRESULT qmimap4::Imap4SearchPage::onInitDialog(HWND hwndFocus,
 LRESULT qmimap4::Imap4SearchPage::onOk()
 {
 	if (PropSheet_GetCurrentPageHwnd(getSheet()->getHandle()) == getHandle()) {
-		wstring_ptr wstrSearch(getDlgItemText(IDC_CONDITION));
+		Window edit(Window(getDlgItem(IDC_CONDITION)).getWindow(GW_CHILD));
+		wstring_ptr wstrSearch = edit.getWindowText();
+		if (wstrSearch.get())
+			History(pProfile_, L"Search").addValue(wstrSearch.get());
 		bool bCommand = sendDlgItemMessage(IDC_IMAP4COMMAND, BM_GETCHECK) == BST_CHECKED;
 		bool bSearchBody = sendDlgItemMessage(IDC_SEARCHBODY, BM_GETCHECK) == BST_CHECKED;
 		if (bCommand) {

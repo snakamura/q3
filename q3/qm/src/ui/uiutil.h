@@ -21,6 +21,7 @@ namespace qm {
 
 class UIUtil;
 class ProgressDialogInit;
+class ProgressDialogMessageOperationCallback;
 
 class Folder;
 class Message;

@@ -10,6 +10,7 @@
 #include <qmfolder.h>
 #include <qmmacro.h>
 #include <qmmessage.h>
+#include <qmuiutil.h>
 
 #include <qsstl.h>
 
@@ -172,8 +173,17 @@ LRESULT qm::MacroSearchPage::onCommand(WORD nCode,
 LRESULT qm::MacroSearchPage::onInitDialog(HWND hwndFocus,
 										  LPARAM lParam)
 {
-	wstring_ptr wstrCondition(pProfile_->getString(L"Search", L"Condition", L""));
-	setDlgItemText(IDC_CONDITION, wstrCondition.get());
+	History history(pProfile_, L"Search");
+	for (unsigned int n = 0; n < history.getSize(); ++n) {
+		wstring_ptr wstr(history.getValue(n));
+		if (*wstr.get()) {
+			W2T(wstr.get(), ptsz);
+			sendDlgItemMessage(IDC_CONDITION, CB_ADDSTRING,
+				0, reinterpret_cast<LPARAM>(ptsz));
+		}
+	}
+	if (sendDlgItemMessage(IDC_CONDITION, CB_GETCOUNT) != 0)
+		sendDlgItemMessage(IDC_CONDITION, CB_SETCURSEL, 0);
 	
 	struct {
 		UINT nId_;
@@ -210,7 +220,10 @@ LRESULT qm::MacroSearchPage::onInitDialog(HWND hwndFocus,
 LRESULT qm::MacroSearchPage::onOk()
 {
 	if (PropSheet_GetCurrentPageHwnd(getSheet()->getHandle()) == getHandle()) {
-		wstring_ptr wstrSearch(getDlgItemText(IDC_CONDITION));
+		Window edit(Window(getDlgItem(IDC_CONDITION)).getWindow(GW_CHILD));
+		wstring_ptr wstrSearch = edit.getWindowText();
+		if (wstrSearch.get())
+			History(pProfile_, L"Search").addValue(wstrSearch.get());
 		bool bMacro = sendDlgItemMessage(IDC_MACRO, BM_GETCHECK) == BST_CHECKED;
 		bool bCase = sendDlgItemMessage(IDC_MATCHCASE, BM_GETCHECK) == BST_CHECKED;
 		bool bSearchBody = sendDlgItemMessage(IDC_SEARCHBODY, BM_GETCHECK) == BST_CHECKED;

@@ -9,6 +9,7 @@
 #include <qmaccount.h>
 #include <qmapplication.h>
 #include <qmfolder.h>
+#include <qmuiutil.h>
 
 #include <qsosutil.h>
 #include <qsstl.h>
@@ -233,8 +234,17 @@ LRESULT qm::FullTextSearchPage::onCommand(WORD nCode,
 LRESULT qm::FullTextSearchPage::onInitDialog(HWND hwndFocus,
 											 LPARAM lParam)
 {
-	wstring_ptr wstrCondition(pProfile_->getString(L"Search", L"Condition", L""));
-	setDlgItemText(IDC_CONDITION, wstrCondition.get());
+	History history(pProfile_, L"Search");
+	for (unsigned int n = 0; n < history.getSize(); ++n) {
+		wstring_ptr wstr(history.getValue(n));
+		if (*wstr.get()) {
+			W2T(wstr.get(), ptsz);
+			sendDlgItemMessage(IDC_CONDITION, CB_ADDSTRING,
+				0, reinterpret_cast<LPARAM>(ptsz));
+		}
+	}
+	if (sendDlgItemMessage(IDC_CONDITION, CB_GETCOUNT) != 0)
+		sendDlgItemMessage(IDC_CONDITION, CB_SETCURSEL, 0);
 	
 	int nFolder = 0;
 	if (bAllFolder_) {
@@ -255,7 +265,10 @@ LRESULT qm::FullTextSearchPage::onInitDialog(HWND hwndFocus,
 LRESULT qm::FullTextSearchPage::onOk()
 {
 	if (PropSheet_GetCurrentPageHwnd(getSheet()->getHandle()) == getHandle()) {
-		wstrCondition_ = getDlgItemText(IDC_CONDITION);
+		Window edit(Window(getDlgItem(IDC_CONDITION)).getWindow(GW_CHILD));
+		wstrCondition_ = edit.getWindowText();
+		if (wstrCondition_.get())
+			History(pProfile_, L"Search").addValue(wstrCondition_.get());
 		bAllFolder_ = sendDlgItemMessage(IDC_ALLFOLDER, BM_GETCHECK) == BST_CHECKED;
 		bRecursive_ = sendDlgItemMessage(IDC_RECURSIVE, BM_GETCHECK) == BST_CHECKED;
 		

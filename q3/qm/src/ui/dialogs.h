@@ -753,11 +753,6 @@ private:
 	FindDialog& operator=(const FindDialog&);
 
 private:
-	enum {
-		HISTORY_SIZE = 10
-	};
-
-private:
 	qs::Profile* pProfile_;
 	bool bSupportRegex_;
 	qs::wstring_ptr wstrFind_;

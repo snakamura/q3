@@ -718,7 +718,8 @@ CAPTION "Simple"
 FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
 BEGIN
     LTEXT           "&Search for",IDC_STATIC,5,8,35,8
-    EDITTEXT        IDC_CONDITION,40,5,140,14,ES_AUTOHSCROLL
+    COMBOBOX        IDC_CONDITION,40,5,140,70,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
     CONTROL         "Match &Case",IDC_MATCHCASE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,5,25,55,10
     CONTROL         "Search &Body",IDC_SEARCHBODY,"Button",BS_AUTOCHECKBOX | 
@@ -1142,7 +1143,8 @@ BEGIN
     IDS_SEARCH              "Search"
     IDS_MACROSEARCH         "Macro"
     IDS_ALLFOLDER           "(All Folders)"
-    IDS_SYNCHRONIZING       "This operation is not allowed while synchronizing."    IDS_COMPACT             "Compacting..."
+    IDS_SYNCHRONIZING       "This operation is not allowed while synchronizing."
+    IDS_COMPACT             "Compacting..."
     IDS_SALVAGE             "Salvaging messages..."
     IDS_DUMP                "Dumping messages..."
     IDS_LOAD                "Loading messages..."

@@ -9,6 +9,7 @@
 #include <qmapplication.h>
 #include <qmfolder.h>
 #include <qmmessagewindow.h>
+#include <qmuiutil.h>
 
 #include <qsconv.h>
 #include <qsstream.h>
@@ -278,6 +279,58 @@ wstring_ptr qm::UIUtil::writeTemporaryFile(const WCHAR* pwszValue,
 	pTempFileCleaner->add(wstrPath.get());
 	
 	return wstrPath;
+}
+
+
+/****************************************************************************
+ *
+ * History
+ *
+ */
+
+qm::History::History(Profile* pProfile,
+					 const WCHAR* pwszSection) :
+	pProfile_(pProfile),
+	pwszSection_(pwszSection),
+	nSize_(10)
+{
+	nSize_ = pProfile_->getInt(pwszSection_, L"HistorySize", 10);
+}
+
+qm::History::~History()
+{
+}
+
+wstring_ptr qm::History::getValue(unsigned int n) const
+{
+	WCHAR wszKey[32];
+	swprintf(wszKey, L"History%u", n);
+	return pProfile_->getString(pwszSection_, wszKey, L"");
+}
+
+unsigned int qm::History::getSize() const
+{
+	return nSize_;
+}
+
+void qm::History::addValue(const WCHAR* pwszValue)
+{
+	assert(pwszValue);
+	
+	if (!*pwszValue)
+		return;
+	
+	wstring_ptr wstrValue(allocWString(pwszValue));
+	
+	for (unsigned int n = 0; n < nSize_; ++n) {
+		WCHAR wszKey[32];
+		swprintf(wszKey, L"History%u", n);
+		wstring_ptr wstr(pProfile_->getString(pwszSection_, wszKey, L""));
+		pProfile_->setString(pwszSection_, wszKey, wstrValue.get());
+		if (wcscmp(wstr.get(), pwszValue) == 0)
+			break;
+		wstrValue = wstr;
+	}
 }
 
 
