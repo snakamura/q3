@@ -50,8 +50,8 @@ QSTATUS qmimap4::Imap4SearchDriver::search(
 	status = pAccount_->getProperty(L"Imap4", L"SearchCharset",
 		Part::getDefaultCharset(), &wstrCharset);
 	CHECK_QSTATUS();
-	int nUseCharset = 0;
-	status = pAccount_->getProperty(L"Imap4", L"SearchUseCharset", 0, &nUseCharset);
+	int nUseCharset = 1;
+	status = pAccount_->getProperty(L"Imap4", L"SearchUseCharset", 1, &nUseCharset);
 	CHECK_QSTATUS();
 	
 	SearchContext::FolderList listFolder;
