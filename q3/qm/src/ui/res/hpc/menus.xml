@@ -69,7 +69,7 @@
 			<popupmenu text="&amp;Encoding" action="ViewEncoding"/>
 			<separator/>
 			<separator/>
-			<menuitem text="&amp;Customize Columns..." action="ConfigViews"/>
+			<menuitem text="C&amp;ustomize Columns..." action="ConfigViews"/>
 			<popupmenu text="Show &amp;Controls">
 				<menuitem text="Show &amp;Toolbar" action="ViewShowToolbar"/>
 				<menuitem text="Show &amp;Status Bar" action="ViewShowStatusBar"/>

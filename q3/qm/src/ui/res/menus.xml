@@ -70,7 +70,7 @@
 			<popupmenu text="&amp;Template" action="ViewTemplate"/>
 			<popupmenu text="&amp;Encoding" action="ViewEncoding"/>
 			<separator/>
-			<menuitem text="&amp;Customize Columns..." action="ConfigViews"/>
+			<menuitem text="C&amp;ustomize Columns..." action="ConfigViews"/>
 			<separator/>
 			<popupmenu text="Show &amp;Controls">
 				<menuitem text="Show &amp;Toolbar" action="ViewShowToolbar"/>
