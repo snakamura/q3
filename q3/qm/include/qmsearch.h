@@ -61,6 +61,8 @@ public:
 
 public:
 	virtual int getIndex() = 0;
+	virtual const WCHAR* getName() = 0;
+	virtual qs::QSTATUS getDisplayName(qs::WSTRING* pwstrName) = 0;
 	virtual qs::QSTATUS createPropertyPage(
 		bool bAllFolder, SearchPropertyPage** ppPage) = 0;
 };

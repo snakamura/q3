@@ -52,6 +52,7 @@
 #define IDD_RENAME                      152
 #define IDD_MACROSEARCH                 153
 #define IDD_FULLTEXTSEARCH              154
+#define IDD_FOLDERCONDITION             155
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -160,8 +161,11 @@
 #define IDC_NORMAL                      1059
 #define IDS_SEARCH                      1059
 #define IDC_QMAIL20COMPATIBLE           1060
+#define IDS_MACROSEARCH                 1060
 #define IDC_IGNORE                      1061
+#define IDS_FULLTEXTSEARCH              1061
 #define IDC_MULTIMESSAGES               1062
+#define IDS_ALLFOLDER                   1062
 #define IDC_ACCOUNT                     1063
 #define IDC_ADDACCOUNT                  1064
 #define IDC_ADDSUBACCOUNT               1065
@@ -234,6 +238,7 @@
 #define IDC_ALLFOLDER                   1130
 #define IDC_SEARCHBODY                  1131
 #define IDC_UPDATEINDEX                 1132
+#define IDC_DRIVER                      1133
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -408,9 +413,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        154
+#define _APS_NEXT_RESOURCE_VALUE        156
 #define _APS_NEXT_COMMAND_VALUE         48000
-#define _APS_NEXT_CONTROL_VALUE         1137
+#define _APS_NEXT_CONTROL_VALUE         1134
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

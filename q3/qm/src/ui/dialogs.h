@@ -396,7 +396,6 @@ public:
 public:
 	Type getType() const;
 	const WCHAR* getName() const;
-	const WCHAR* getMacro() const;
 
 public:
 	virtual LRESULT onCommand(WORD nCode, WORD nId);
@@ -422,7 +421,6 @@ private:
 	Type type_;
 	bool bAllowRemote_;
 	qs::WSTRING wstrName_;
-	qs::WSTRING wstrMacro_;
 };
 
 

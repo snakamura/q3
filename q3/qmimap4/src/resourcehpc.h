@@ -29,6 +29,7 @@
 #define IDS_APPLYOFFLINEJOBS            1011
 #define IDC_STARTTLS                    1011
 #define IDC_NAMESPACE                   1012
+#define IDS_IMAP4SEARCH                 1012
 #define IDC_SEARCHBODY                  1013
 #define IDC_IMAP4COMMAND                1014
 #define IDC_CONDITION                   1127

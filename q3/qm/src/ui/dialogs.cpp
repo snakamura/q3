@@ -2036,15 +2036,13 @@ qm::CreateFolderDialog::CreateFolderDialog(
 	DefaultDialog(IDD_CREATEFOLDER, pstatus),
 	type_(type),
 	bAllowRemote_(bAllowRemote),
-	wstrName_(0),
-	wstrMacro_(0)
+	wstrName_(0)
 {
 }
 
 qm::CreateFolderDialog::~CreateFolderDialog()
 {
 	freeWString(wstrName_);
-	freeWString(wstrMacro_);
 }
 
 CreateFolderDialog::Type qm::CreateFolderDialog::getType() const
@@ -2055,11 +2053,6 @@ CreateFolderDialog::Type qm::CreateFolderDialog::getType() const
 const WCHAR* qm::CreateFolderDialog::getName() const
 {
 	return wstrName_;
-}
-
-const WCHAR* qm::CreateFolderDialog::getMacro() const
-{
-	return wstrMacro_;
 }
 
 LRESULT qm::CreateFolderDialog::onCommand(WORD nCode, WORD nId)
@@ -2105,8 +2098,6 @@ LRESULT qm::CreateFolderDialog::onOk()
 	}
 	
 	wstrName_ = getDlgItemText(IDC_NAME);
-	if (type_ == TYPE_QUERYFOLDER)
-		wstrMacro_ = getDlgItemText(IDC_MACRO);
 	
 	return DefaultDialog::onOk();
 }
@@ -2125,8 +2116,6 @@ LRESULT qm::CreateFolderDialog::onTypeChange(UINT nId)
 
 void qm::CreateFolderDialog::updateState()
 {
-	Window(getDlgItem(IDC_MACRO)).enableWindow(
-		sendDlgItemMessage(IDC_QUERYFOLDER, BM_GETCHECK) == BST_CHECKED);
 	Window(getDlgItem(IDOK)).enableWindow(
 		Window(getDlgItem(IDC_NAME)).getWindowTextLength() != 0);
 }

@@ -1665,9 +1665,10 @@ QSTATUS qm::FileSaveAction::invoke(const ActionEvent& event)
 
 qm::FolderCreateAction::FolderCreateAction(
 	FolderSelectionModel* pFolderSelectionModel,
-	HWND hwndFrame, QSTATUS* pstatus) :
+	HWND hwndFrame, Profile* pProfile, QSTATUS* pstatus) :
 	pFolderSelectionModel_(pFolderSelectionModel),
-	hwndFrame_(hwndFrame)
+	hwndFrame_(hwndFrame),
+	pProfile_(pProfile)
 {
 	assert(pstatus);
 	*pstatus = QSTATUS_SUCCESS;
@@ -1720,26 +1721,37 @@ QSTATUS qm::FolderCreateAction::invoke(const ActionEvent& event)
 	status = dialog.doModal(hwndFrame_, 0, &nRet);
 	CHECK_QSTATUS();
 	if (nRet == IDOK) {
+		NormalFolder* pNormalFolder = 0;
+		QueryFolder* pQueryFolder = 0;
 		switch (dialog.getType()) {
 		case CreateFolderDialog::TYPE_LOCALFOLDER:
-			status = pAccount->createNormalFolder(
-				dialog.getName(), pFolder, false);
+			status = pAccount->createNormalFolder(dialog.getName(),
+				pFolder, false, &pNormalFolder);
 			break;
 		case CreateFolderDialog::TYPE_REMOTEFOLDER:
-			status = pAccount->createNormalFolder(
-				dialog.getName(), pFolder, true);
+			status = pAccount->createNormalFolder(dialog.getName(),
+				pFolder, true, &pNormalFolder);
 			break;
 		case CreateFolderDialog::TYPE_QUERYFOLDER:
-			status = pAccount->createQueryFolder(
-				dialog.getName(), pFolder, dialog.getMacro());
+			status = pAccount->createQueryFolder(dialog.getName(),
+				pFolder, L"macro", L"@False()", 0, false, &pQueryFolder);
 			break;
 		default:
 			assert(false);
 			break;
 		}
-		if (status != QSTATUS_SUCCESS)
+		if (status == QSTATUS_SUCCESS) {
+			Account::FolderList l;
+			status = STLWrapper<Account::FolderList>(l).push_back(pQueryFolder);
+			CHECK_QSTATUS();
+			status = FolderPropertyAction::openProperty(
+				l, true, hwndFrame_, pProfile_);
+			CHECK_QSTATUS();
+		}
+		else {
 			messageBox(Application::getApplication().getResourceHandle(),
 				IDS_ERROR_CREATEFOLDER, MB_OK | MB_ICONERROR);
+		}
 	}
 	
 	return QSTATUS_SUCCESS;
@@ -1904,10 +1916,11 @@ QSTATUS qm::FolderEmptyAction::isEnabled(const ActionEvent& event, bool* pbEnabl
  *
  */
 
-qm::FolderPropertyAction::FolderPropertyAction(
-	FolderSelectionModel* pModel, HWND hwnd, QSTATUS* pstatus) :
+qm::FolderPropertyAction::FolderPropertyAction(FolderSelectionModel* pModel,
+	HWND hwnd, Profile* pProfile, QSTATUS* pstatus) :
 	pModel_(pModel),
-	hwnd_(hwnd)
+	hwnd_(hwnd),
+	pProfile_(pProfile)
 {
 }
 
@@ -1922,29 +1935,59 @@ QSTATUS qm::FolderPropertyAction::invoke(const ActionEvent& event)
 	Account::FolderList listFolder;
 	status = pModel_->getSelectedFolders(&listFolder);
 	CHECK_QSTATUS();
+	status = openProperty(listFolder, false, hwnd_, pProfile_);
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::FolderPropertyAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+{
+	assert(pbEnabled);
+	return pModel_->hasSelectedFolder(pbEnabled);
+}
+
+QSTATUS qm::FolderPropertyAction::openProperty(
+	const Account::FolderList& listFolder,
+	bool bOpenCondition, HWND hwnd, Profile* pProfile)
+{
+	DECLARE_QSTATUS();
 	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	string_ptr<WSTRING> wstrTitle;
 	status = loadString(hInst, IDS_PROPERTY, &wstrTitle);
 	CHECK_QSTATUS();
 	
-	FolderPropertyPage page(listFolder, &status);
-	CHECK_QSTATUS();
 	PropertySheetBase sheet(hInst, wstrTitle.get(), false, &status);
 	CHECK_QSTATUS();
-	status = sheet.add(&page);
+	FolderPropertyPage pageProperty(listFolder, &status);
+	CHECK_QSTATUS();
+	status = sheet.add(&pageProperty);
 	CHECK_QSTATUS();
 	
+	QueryFolder* pQueryFolder = 0;
+	std::auto_ptr<FolderConditionPage> pConditionPage;
+	if (listFolder.size() == 1 &&
+		listFolder.front()->getType() == Folder::TYPE_QUERY) {
+		pQueryFolder = static_cast<QueryFolder*>(listFolder.front());
+		status = newQsObject(pQueryFolder, pProfile, &pConditionPage);
+		CHECK_QSTATUS();
+		status = sheet.add(pConditionPage.get());
+		CHECK_QSTATUS();
+		if (bOpenCondition)
+			sheet.setStartPage(1);
+	}
+	
 	int nRet = 0;
-	status = sheet.doModal(hwnd_, 0, &nRet);
+	status = sheet.doModal(hwnd, 0, &nRet);
 	CHECK_QSTATUS();
 	if (nRet == IDOK) {
 		Account::FolderList::const_iterator it = listFolder.begin();
 		while (it != listFolder.end()) {
 			Folder* pFolder = *it;
 			
-			unsigned int nFlags = page.getFlags();
-			unsigned int nMask = page.getMask();
+			unsigned int nFlags = pageProperty.getFlags();
+			unsigned int nMask = pageProperty.getMask();
 			if (!pFolder->isFlag(Folder::FLAG_SYNCABLE))
 				nMask &= ~(Folder::FLAG_SYNCWHENOPEN | Folder::FLAG_CACHEWHENREAD);
 			if (pFolder->isFlag(Folder::FLAG_NOSELECT))
@@ -1955,15 +1998,17 @@ QSTATUS qm::FolderPropertyAction::invoke(const ActionEvent& event)
 			
 			++it;
 		}
+		
+		if (pQueryFolder) {
+			status = pQueryFolder->set(pConditionPage->getDriver(),
+				pConditionPage->getCondition(),
+				pConditionPage->getTargetFolder(),
+				pConditionPage->isRecursive());
+			CHECK_QSTATUS();
+		}
 	}
 	
 	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::FolderPropertyAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
-{
-	assert(pbEnabled);
-	return pModel_->hasSelectedFolder(pbEnabled);
 }
 
 

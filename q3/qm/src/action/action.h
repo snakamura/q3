@@ -813,7 +813,7 @@ class FolderCreateAction : public qs::AbstractAction
 {
 public:
 	FolderCreateAction(FolderSelectionModel* pFolderSelectionModel,
-		HWND hwndFrame, qs::QSTATUS* pstatus);
+		HWND hwndFrame, qs::Profile* pProfile, qs::QSTATUS* pstatus);
 	virtual ~FolderCreateAction();
 
 public:
@@ -827,6 +827,7 @@ private:
 private:
 	FolderSelectionModel* pFolderSelectionModel_;
 	HWND hwndFrame_;
+	qs::Profile* pProfile_;
 };
 
 
@@ -892,12 +893,16 @@ class FolderPropertyAction : public qs::AbstractAction
 {
 public:
 	FolderPropertyAction(FolderSelectionModel* pModel,
-		HWND hwnd, qs::QSTATUS* pstatus);
+		HWND hwnd, qs::Profile* pProfile, qs::QSTATUS* pstatus);
 	virtual ~FolderPropertyAction();
 
 public:
 	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
 	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+
+public:
+	static qs::QSTATUS openProperty(const Account::FolderList& listFolder,
+		bool bOpenCondition, HWND hwnd, qs::Profile* pProfile);
 
 private:
 	FolderPropertyAction(const FolderPropertyAction&);
@@ -906,6 +911,7 @@ private:
 private:
 	FolderSelectionModel* pModel_;
 	HWND hwnd_;
+	qs::Profile* pProfile_;
 };
 
 

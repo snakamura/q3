@@ -23,6 +23,7 @@ class DefaultPropertyPage;
 	class AccountDialupPage;
 	class AccountGeneralPage;
 	class AccountUserPage;
+	class FolderConditionPage;
 	class FolderPropertyPage;
 	class MessagePropertyPage;
 
@@ -176,6 +177,54 @@ private:
 
 private:
 	SubAccount* pSubAccount_;
+};
+
+
+/****************************************************************************
+ *
+ * FolderConditionPage
+ *
+ */
+
+class FolderConditionPage : public DefaultPropertyPage
+{
+public:
+	FolderConditionPage(QueryFolder* pFolder,
+		qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	virtual ~FolderConditionPage();
+
+public:
+	const WCHAR* getDriver() const;
+	const WCHAR* getCondition() const;
+	Folder* getTargetFolder() const;
+	bool isRecursive() const;
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	qs::QSTATUS initDriver();
+	qs::QSTATUS initFolder();
+
+private:
+	FolderConditionPage(const FolderConditionPage&);
+	FolderConditionPage& operator=(const FolderConditionPage&);
+
+private:
+	typedef std::vector<SearchUI*> UIList;
+
+private:
+	QueryFolder* pFolder_;
+	qs::Profile* pProfile_;
+	UIList listUI_;
+	Account::FolderList listFolder_;
+	int nDriver_;
+	qs::WSTRING wstrCondition_;
+	Folder* pTargetFolder_;
+	bool bRecursive_;
 };
 
 

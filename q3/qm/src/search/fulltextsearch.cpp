@@ -195,6 +195,17 @@ int qm::FullTextSearchUI::getIndex()
 	return 20;
 }
 
+const WCHAR* qm::FullTextSearchUI::getName()
+{
+	return L"fulltext";
+}
+
+QSTATUS qm::FullTextSearchUI::getDisplayName(qs::WSTRING* pwstrName)
+{
+	return loadString(Application::getApplication().getResourceHandle(),
+		IDS_FULLTEXTSEARCH, pwstrName);
+}
+
 QSTATUS qm::FullTextSearchUI::createPropertyPage(
 	bool bAllFolder, SearchPropertyPage** ppPage)
 {

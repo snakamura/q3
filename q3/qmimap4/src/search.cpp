@@ -93,7 +93,17 @@ qmimap4::Imap4SearchUI::~Imap4SearchUI()
 
 int qmimap4::Imap4SearchUI::getIndex()
 {
-	return 20;
+	return 15;
+}
+
+const WCHAR* qmimap4::Imap4SearchUI::getName()
+{
+	return L"imap4";
+}
+
+QSTATUS qmimap4::Imap4SearchUI::getDisplayName(qs::WSTRING* pwstrName)
+{
+	return loadString(getResourceHandle(), IDS_IMAP4SEARCH, pwstrName);
 }
 
 QSTATUS qmimap4::Imap4SearchUI::createPropertyPage(

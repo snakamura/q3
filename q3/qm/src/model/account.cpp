@@ -1119,8 +1119,8 @@ const Account::FolderList& qm::Account::getFolders() const
 	return pImpl_->listFolder_;
 }
 
-QSTATUS qm::Account::createNormalFolder(
-	const WCHAR* pwszName, Folder* pParent, bool bRemote)
+QSTATUS qm::Account::createNormalFolder(const WCHAR* pwszName,
+	Folder* pParent, bool bRemote, NormalFolder** ppFolder)
 {
 	DECLARE_QSTATUS();
 	
@@ -1163,13 +1163,48 @@ QSTATUS qm::Account::createNormalFolder(
 	status = pImpl_->fireFolderListChanged(event);
 	CHECK_QSTATUS();
 	
+	*ppFolder = p;
+	
 	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::Account::createQueryFolder(const WCHAR* pwszName,
-	Folder* pParent, const WCHAR* pwszCondition)
+	Folder* pParent, const WCHAR* pwszDriver, const WCHAR* pwszCondition,
+	NormalFolder* pTargetFolder, bool bRecursive, QueryFolder** ppFolder)
 {
-	// TODO
+	DECLARE_QSTATUS();
+	
+	if (getFolder(pParent, pwszName))
+		return QSTATUS_FAIL;
+	
+	QueryFolder::Init init;
+	init.nId_ = generateFolderId();
+	init.pwszName_ = pwszName;
+	init.cSeparator_ = pParent ? pParent->getSeparator() : L'/';
+	init.nFlags_ = Folder::FLAG_LOCAL;
+	init.nCount_ = 0;
+	init.nUnseenCount_ = 0;
+	init.pParentFolder_ = pParent;
+	init.pAccount_ = this;
+	init.pwszDriver_ = pwszDriver;
+	init.pwszCondition_ = pwszCondition;
+	init.pTargetFolder_ = pTargetFolder;
+	init.bRecursive_ = bRecursive;
+	std::auto_ptr<QueryFolder> pFolder;
+	status = newQsObject(init, &pFolder);
+	CHECK_QSTATUS();
+	
+	status = STLWrapper<FolderList>(
+		pImpl_->listFolder_).push_back(pFolder.get());
+	CHECK_QSTATUS();
+	QueryFolder* p = pFolder.release();
+	
+	FolderListChangedEvent event(this, FolderListChangedEvent::TYPE_ADD, p);
+	status = pImpl_->fireFolderListChanged(event);
+	CHECK_QSTATUS();
+	
+	*ppFolder = p;
+	
 	return QSTATUS_SUCCESS;
 }
 

@@ -9,10 +9,12 @@
 #include <qmaccount.h>
 #include <qmapplication.h>
 #include <qmmessageholder.h>
+#include <qmsearch.h>
 #include <qmsyncfilter.h>
 
 #include <qsconv.h>
 #include <qsras.h>
+#include <qsstl.h>
 
 #include "propertypages.h"
 #include "resourceinc.h"
@@ -394,6 +396,166 @@ void qm::AccountUserPage::updateState()
 	bool bEnable = sendDlgItemMessage(IDC_SENDAUTHENTICATE, BM_GETCHECK) == BST_CHECKED;
 	Window(getDlgItem(IDC_SENDUSERNAME)).enableWindow(bEnable);
 	Window(getDlgItem(IDC_SENDPASSWORD)).enableWindow(bEnable);
+}
+
+
+/****************************************************************************
+ *
+ * FolderConditionPage
+ *
+ */
+
+qm::FolderConditionPage::FolderConditionPage(QueryFolder* pFolder,
+	Profile* pProfile, QSTATUS* pstatus) :
+	DefaultPropertyPage(IDD_FOLDERCONDITION, pstatus),
+	pFolder_(pFolder),
+	pProfile_(pProfile),
+	nDriver_(0),
+	wstrCondition_(0),
+	pTargetFolder_(0),
+	bRecursive_(false)
+{
+}
+
+qm::FolderConditionPage::~FolderConditionPage()
+{
+	std::for_each(listUI_.begin(), listUI_.end(), deleter<SearchUI>());
+	freeWString(wstrCondition_);
+}
+
+const WCHAR* qm::FolderConditionPage::getDriver() const
+{
+	return listUI_[nDriver_]->getName();
+}
+
+const WCHAR* qm::FolderConditionPage::getCondition() const
+{
+	return wstrCondition_;
+}
+
+Folder* qm::FolderConditionPage::getTargetFolder() const
+{
+	return pTargetFolder_;
+}
+
+bool qm::FolderConditionPage::isRecursive() const
+{
+	return bRecursive_;
+}
+
+LRESULT qm::FolderConditionPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
+{
+	DECLARE_QSTATUS();
+	
+	status = initDriver();
+	CHECK_QSTATUS_VALUE(TRUE);
+	status = initFolder();
+	CHECK_QSTATUS_VALUE(TRUE);
+	
+	setDlgItemText(IDC_CONDITION, pFolder_->getCondition());
+	sendDlgItemMessage(IDC_RECURSIVE, BM_SETCHECK,
+		pFolder_->isRecursive() ? BST_CHECKED : BST_UNCHECKED);
+	
+	return TRUE;
+}
+
+LRESULT qm::FolderConditionPage::onOk()
+{
+	nDriver_ = sendDlgItemMessage(IDC_DRIVER, CB_GETCURSEL);
+	wstrCondition_ = getDlgItemText(IDC_CONDITION);
+	int nFolder = sendDlgItemMessage(IDC_FOLDER, CB_GETCURSEL);
+	pTargetFolder_ = nFolder == 0 ? 0 : listFolder_[nFolder];
+	bRecursive_ = sendDlgItemMessage(IDC_RECURSIVE, BM_GETCHECK) == BST_CHECKED;
+	
+	return DefaultPropertyPage::onOk();
+}
+
+QSTATUS qm::FolderConditionPage::initDriver()
+{
+	DECLARE_QSTATUS();
+	
+	SearchDriverFactory::NameList listName;
+	status = SearchDriverFactory::getNames(&listName);
+	CHECK_QSTATUS();
+	SearchDriverFactory::NameList::const_iterator itN = listName.begin();
+	while (itN != listName.end()) {
+		std::auto_ptr<SearchUI> pUI;
+		status = SearchDriverFactory::getUI(*itN,
+			pFolder_->getAccount(), pProfile_, &pUI);
+		CHECK_QSTATUS();
+		if (pUI.get()) {
+			status = STLWrapper<UIList>(listUI_).push_back(pUI.get());
+			CHECK_QSTATUS();
+			pUI.release();
+		}
+		++itN;
+	}
+	std::sort(listUI_.begin(), listUI_.end(),
+		binary_compose_f_gx_hy(
+			std::less<int>(),
+			std::mem_fun(&SearchUI::getIndex),
+			std::mem_fun(&SearchUI::getIndex)));
+	int nIndex = 0;
+	for (UIList::size_type n = 0; n < listUI_.size(); ++n) {
+		SearchUI* pUI = listUI_[n];
+		string_ptr<WSTRING> wstrName;
+		status = pUI->getDisplayName(&wstrName);
+		CHECK_QSTATUS();
+		W2T(wstrName.get(), ptszName);
+		sendDlgItemMessage(IDC_DRIVER, CB_ADDSTRING, 0,
+			reinterpret_cast<LPARAM>(ptszName));
+		if (wcscmp(pUI->getName(), pFolder_->getDriver()) == 0)
+			nIndex = n;
+	}
+	sendDlgItemMessage(IDC_DRIVER, CB_SETCURSEL, nIndex);
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::FolderConditionPage::initFolder()
+{
+	DECLARE_QSTATUS();
+	
+	string_ptr<WSTRING> wstrAllFolder;
+	status = loadString(Application::getApplication().getResourceHandle(),
+		IDS_ALLFOLDER, &wstrAllFolder);
+	CHECK_QSTATUS();
+	W2T(wstrAllFolder.get(), ptszAllFolder);
+	sendDlgItemMessage(IDC_FOLDER, CB_ADDSTRING, 0,
+		reinterpret_cast<LPARAM>(ptszAllFolder));
+	
+	Account* pAccount = pFolder_->getAccount();
+	const Account::FolderList& l = pAccount->getFolders();
+	status = STLWrapper<Account::FolderList>(listFolder_).resize(l.size());
+	CHECK_QSTATUS();
+	std::copy(l.begin(), l.end(), listFolder_.begin());
+	std::sort(listFolder_.begin(), listFolder_.end(), FolderLess());
+	
+	int nIndex = 0;
+	for (Account::FolderList::size_type n = 0; n < listFolder_.size(); ++n) {
+		Folder* pFolder = listFolder_[n];
+		
+		unsigned int nLevel = pFolder->getLevel();
+		StringBuffer<WSTRING> buf(&status);
+		CHECK_QSTATUS();
+		while (nLevel != 0) {
+			status = buf.append(L"  ");
+			CHECK_QSTATUS();
+			--nLevel;
+		}
+		status = buf.append(pFolder->getName());
+		CHECK_QSTATUS();
+		
+		W2T(buf.getCharArray(), ptszName);
+		sendDlgItemMessage(IDC_FOLDER, CB_ADDSTRING, 0,
+			reinterpret_cast<LPARAM>(ptszName));
+		
+		if (pFolder_->getTargetFolder() == pFolder)
+			nIndex = n + 1;
+	}
+	sendDlgItemMessage(IDC_FOLDER, CB_SETCURSEL, nIndex);
+	
+	return QSTATUS_SUCCESS;
 }
 
 

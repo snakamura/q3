@@ -391,8 +391,8 @@ QSTATUS qm::MainWindowImpl::initActions()
 	status = InitAction2<FileSaveAction, Document*, ViewModelManager*>(
 		pActionMap_, IDM_FILE_SAVE, pDocument_, pViewModelManager_);
 	CHECK_QSTATUS();
-	status = InitAction2<FolderCreateAction, FolderSelectionModel*, HWND>(
-		pActionMap_, IDM_FOLDER_CREATE, this, pThis_->getHandle());
+	status = InitAction3<FolderCreateAction, FolderSelectionModel*, HWND, Profile*>(
+		pActionMap_, IDM_FOLDER_CREATE, this, pThis_->getHandle(), pProfile_);
 	CHECK_QSTATUS();
 	status = InitAction2<FolderDeleteAction, FolderModel*, FolderSelectionModel*>(
 		pActionMap_, IDM_FOLDER_DELETE, pFolderModel_, this);
@@ -400,8 +400,8 @@ QSTATUS qm::MainWindowImpl::initActions()
 	status = InitAction1<FolderEmptyAction, FolderSelectionModel*>(
 		pActionMap_, IDM_FOLDER_EMPTY, this);
 	CHECK_QSTATUS();
-	status = InitAction2<FolderPropertyAction, FolderSelectionModel*, HWND>(
-		pActionMap_, IDM_FOLDER_PROPERTY, this, pThis_->getHandle());
+	status = InitAction3<FolderPropertyAction, FolderSelectionModel*, HWND, Profile*>(
+		pActionMap_, IDM_FOLDER_PROPERTY, this, pThis_->getHandle(), pProfile_);
 	CHECK_QSTATUS();
 	status = InitAction2<FolderRenameAction, FolderSelectionModel*, HWND>(
 		pActionMap_, IDM_FOLDER_RENAME, this, pThis_->getHandle());

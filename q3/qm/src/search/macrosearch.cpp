@@ -126,6 +126,17 @@ int qm::MacroSearchUI::getIndex()
 	return 10;
 }
 
+const WCHAR* qm::MacroSearchUI::getName()
+{
+	return L"macro";
+}
+
+QSTATUS qm::MacroSearchUI::getDisplayName(qs::WSTRING* pwstrName)
+{
+	return loadString(Application::getApplication().getResourceHandle(),
+		IDS_MACROSEARCH, pwstrName);
+}
+
 QSTATUS qm::MacroSearchUI::createPropertyPage(
 	bool bAllFolder, SearchPropertyPage** ppPage)
 {
