@@ -96,7 +96,7 @@ X-QMAIL-Macro: @ForEach(@Messages('{@Concat('//', @Account(), '/', @Folder())}',
 				),
 				@Concat(
 					$body,
-					'--',
+					'\\n--',
 					$boundary,
 					'--\\n'
 				)
