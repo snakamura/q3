@@ -306,7 +306,7 @@ else
 	# WINCE #################################################################
 	ifeq ($(shell if [ -z "$(CEVER)" ]; then echo 1; elif [ $(CEVER) -ge 400 ]; then echo 0; else echo 1; fi),0)
 		# WINCE >= 400 ######################################################
-		CCFLAGS			+= -GX
+#		CCFLAGS			+= -GX
 		#####################################################################
 	endif
 	DEFINES				+= -D_WIN32_WCE=$(CEVER) -DUNDER_CE=$(CEVER) -DUNICODE -D_UNICODE
