@@ -1023,7 +1023,14 @@ bool qm::FolderWindow::save()
 	StringListFree<Profile::StringList> free(listValue);
 	for (FolderWindowImpl::ItemList::const_iterator it = listItem.begin(); it != listItem.end(); ++it) {
 		HTREEITEM hItem = *it;
-		if (TreeView_GetItemState(hwnd, hItem, TVIS_EXPANDED) & TVIS_EXPANDED) {
+		TVITEM item = {
+			TVIF_HANDLE | TVIF_STATE,
+			hItem,
+			0,
+			TVIS_EXPANDED
+		};
+		TreeView_GetItem(hwnd, &item);
+		if (item.state & TVIS_EXPANDED) {
 			wstring_ptr wstr;
 			if (TreeView_GetParent(hwnd, hItem))
 				wstr = UIUtil::formatFolder(pImpl_->getFolder(hItem));
