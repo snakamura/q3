@@ -255,9 +255,11 @@ QSTATUS qm::SingleMessageStore::free(unsigned int nOffset,
 	status = pImpl_->pCacheStorage_->free(key, nDataLen);
 	CHECK_QSTATUS();
 	
-	status = pImpl_->pStorage_->free(nOffset,
-		nLength + SingleMessageStoreImpl::SEPARATOR_SIZE*2);
-	CHECK_QSTATUS();
+	if (nOffset != -1) {
+		status = pImpl_->pStorage_->free(nOffset,
+			nLength + SingleMessageStoreImpl::SEPARATOR_SIZE*2);
+		CHECK_QSTATUS();
+	}
 	
 	return QSTATUS_SUCCESS;
 }
@@ -716,11 +718,13 @@ QSTATUS qm::MultiMessageStore::free(unsigned int nOffset,
 	status = pImpl_->pCacheStorage_->free(key, nDataLen);
 	CHECK_QSTATUS();
 	
-	string_ptr<WSTRING> wstrPath;
-	status = pImpl_->getPath(nOffset, &wstrPath);
-	CHECK_QSTATUS();
-	W2T(wstrPath.get(), ptszPath);
-	::DeleteFile(ptszPath);
+	if (nOffset != -1) {
+		string_ptr<WSTRING> wstrPath;
+		status = pImpl_->getPath(nOffset, &wstrPath);
+		CHECK_QSTATUS();
+		W2T(wstrPath.get(), ptszPath);
+		::DeleteFile(ptszPath);
+	}
 	
 	return QSTATUS_SUCCESS;
 }

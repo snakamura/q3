@@ -1478,11 +1478,9 @@ QSTATUS qm::Account::unstoreMessage(MessageHolder* pmh)
 	DECLARE_QSTATUS();
 	
 	const MessageHolder::MessageBoxKey& key = pmh->getMessageBoxKey();
-	if (key.nOffset_ != -1) {
-		status = pImpl_->pMessageStore_->free(key.nOffset_,
-			key.nLength_, pmh->getMessageCacheKey());
-		CHECK_QSTATUS();
-	}
+	status = pImpl_->pMessageStore_->free(key.nOffset_,
+		key.nLength_, pmh->getMessageCacheKey());
+	CHECK_QSTATUS();
 	
 	pImpl_->pMessageCache_->removeData(pmh->getMessageCacheKey());
 	
@@ -1564,10 +1562,8 @@ QSTATUS qm::Account::updateMessage(MessageHolder* pmh, const CHAR* pszMessage)
 		pImpl_->pMessageCache_->removeData(keyOld);
 	pmh->setKeys(key, boxKey);
 	
-	if (nOldOffset != -1) {
-		status = pImpl_->pMessageStore_->free(nOldOffset, nOldLength, keyOld);
-		CHECK_QSTATUS();
-	}
+	status = pImpl_->pMessageStore_->free(nOldOffset, nOldLength, keyOld);
+	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
 }
