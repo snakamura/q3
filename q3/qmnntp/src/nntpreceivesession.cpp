@@ -1,5 +1,5 @@
 /*
- * $Id: nntpreceivesession.cpp,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -270,19 +270,21 @@ QSTATUS qmnntp::NntpReceiveSession::downloadMessages(
 					const SyncFilter* pFilter = 0;
 					NntpSyncFilterCallback callback(pDocument_, pAccount_,
 						pFolder_, &msg, item.nBytes_, hwnd_, pProfile_, &globalVariable,
-						pNntp_, n + m, strMessage.getThis(), &state);
+						pNntp_, item.nId_, strMessage.getThis(), &state);
 					status = pSyncFilterSet->getFilter(&callback, &pFilter);
 					CHECK_QSTATUS();
 					if (pFilter) {
 						const SyncFilterAction* pAction = pFilter->getAction();
 						if (wcscmp(pAction->getName(), L"download") == 0) {
 							if (state != STATE_ALL) {
-								status = pNntp_->getMessage(n + m,
+								status = pNntp_->getMessage(item.nId_,
 									Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage);
 								CHECK_QSTATUS_ERROR();
 							}
-							pszMessage = strMessage.get();
-							nFlags = 0;
+							if (strMessage.get()) {
+								pszMessage = strMessage.get();
+								nFlags = 0;
+							}
 						}
 					}
 				}
