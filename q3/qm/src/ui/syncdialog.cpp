@@ -757,6 +757,10 @@ void qm::SyncStatusWindow::setMessage(unsigned int nId,
 void qm::SyncStatusWindow::addError(unsigned int nId,
 									const SessionErrorInfo& info)
 {
+	SubAccount* pSubAccount = info.getSubAccount();
+	if (pSubAccount && pSubAccount->getProperty(L"Misc", L"IgnoreError", 0))
+		return;
+	
 	StringBuffer<WSTRING> buf;
 	
 	Account* pAccount = info.getAccount();
