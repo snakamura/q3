@@ -297,6 +297,7 @@ ifeq ($(PLATFORM),desktop)
 						  wsock32.lib \
 						  gdi32.lib \
 						  shell32.lib \
+						  shlwapi.lib \
 						  winmm.lib \
 						  imm32.lib \
 						  advapi32.lib \

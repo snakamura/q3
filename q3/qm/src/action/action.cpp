@@ -36,6 +36,7 @@
 
 #include <algorithm>
 
+#include <shlwapi.h>
 #include <tchar.h>
 
 #include "action.h"
@@ -2422,6 +2423,46 @@ void qm::FileSaveAction::invoke(const ActionEvent& event)
 		ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
 		return;
 	}
+}
+
+
+/****************************************************************************
+ *
+ * FileUninstallAction
+ *
+ */
+
+qm::FileUninstallAction::FileUninstallAction()
+{
+}
+
+qm::FileUninstallAction::~FileUninstallAction()
+{
+}
+
+void qm::FileUninstallAction::invoke(const ActionEvent& event)
+{
+#ifndef _WIN32_WCE
+	::SHDeleteKey(HKEY_CURRENT_USER, L"Software\\sn\\q3");
+	::SHDeleteEmptyKey(HKEY_CURRENT_USER, L"Software\\sn");
+#else
+	::RegDeleteKey(HKEY_CURRENT_USER, L"Software\\sn\\q3");
+	
+	HKEY hKey = 0;
+	if (::RegOpenKeyEx(HKEY_CURRENT_USER, L"Software\\sn", 0, 0, &hKey) == ERROR_SUCCESS) {
+		bool bDelete = false;
+		
+		DWORD dwKeys = 0;
+		DWORD dwValues = 0;
+		if (::RegQueryInfoKey(hKey, 0, 0, 0, &dwKeys, 0, 0, &dwValues, 0, 0, 0, 0) == ERROR_SUCCESS)
+			bDelete = dwKeys == 0 && dwValues == 0;
+		
+		::RegCloseKey(hKey);
+		
+		if (bDelete)
+			::RegDeleteKey(HKEY_CURRENT_USER, L"Software\\sn");
+	}
+#endif
 }
 
 

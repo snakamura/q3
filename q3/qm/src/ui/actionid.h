@@ -56,6 +56,7 @@
 #define IDM_FILE_SAVE                   41016
 #define IDM_FILE_SEND                   41017
 #define IDM_FILE_SENDNOW                41018
+#define IDM_FILE_UNINSTALL              41019
 #define IDM_FOLDER_COLLAPSE             42001
 #define IDM_FOLDER_CREATE               42002
 #define IDM_FOLDER_DELETE               42003

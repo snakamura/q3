@@ -571,6 +571,8 @@ void qm::MainWindowImpl::initActions()
 		pDocument_,
 		pViewModelManager_.get(),
 		pThis_->getHandle());
+	ADD_ACTION0(FileUninstallAction,
+		IDM_FILE_UNINSTALL);
 	ADD_ACTION3(FolderCreateAction,
 		IDM_FOLDER_CREATE,
 		this,

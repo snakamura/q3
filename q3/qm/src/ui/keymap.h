@@ -82,6 +82,7 @@ const qs::KeyNameToId mapKeyNameToId[] = {
 	{ L"FileSave",						IDM_FILE_SAVE,							0 },
 	{ L"FileSend",						IDM_FILE_SEND,							0 },
 	{ L"FileSendNow",					IDM_FILE_SENDNOW,						0 },
+	{ L"FileUninstall",					IDM_FILE_UNINSTALL,						0 },
 	{ L"FolderCollapse",				IDM_FOLDER_COLLAPSE,					0 },
 	{ L"FolderCreate",					IDM_FOLDER_CREATE,						0 },
 	{ L"FolderDelete",					IDM_FOLDER_DELETE,						0 },

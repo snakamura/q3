@@ -65,6 +65,7 @@ const qs::ActionItem toolbarItems[] = {
 	{ L"FileSave",						IDM_FILE_SAVE								},
 	{ L"FileSend",						IDM_FILE_SEND								},
 	{ L"FileSendNow",					IDM_FILE_SENDNOW							},
+	{ L"FileUninstall",					IDM_FILE_UNINSTALL							},
 	{ L"FolderCollapse",				IDM_FOLDER_COLLAPSE							},
 	{ L"FolderCreate",					IDM_FOLDER_CREATE							},
 	{ L"FolderDelete",					IDM_FOLDER_DELETE							},

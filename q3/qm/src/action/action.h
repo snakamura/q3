@@ -60,6 +60,7 @@ class FileOfflineAction;
 class FilePrintAction;
 class FileSalvageAction;
 class FileSaveAction;
+class FileUninstallAction;
 class FolderCreateAction;
 class FolderDeleteAction;
 class FolderEmptyAction;
@@ -1329,6 +1330,27 @@ private:
 	Document* pDocument_;
 	ViewModelManager* pViewModelManager_;
 	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * FileUninstallAction
+ *
+ */
+
+class FileUninstallAction : public qs::AbstractAction
+{
+public:
+	FileUninstallAction();
+	virtual ~FileUninstallAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	FileUninstallAction(const FileUninstallAction&);
+	FileUninstallAction& operator=(const FileUninstallAction&);
 };
 
 

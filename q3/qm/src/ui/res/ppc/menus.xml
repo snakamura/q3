@@ -16,6 +16,8 @@
 				<separator/>
 				<menuitem text="Dump..." action="FileDump"/>
 				<menuitem text="Load..." action="FileLoad"/>
+				<separator/>
+				<menuitem text="Uninstall" action="FileUninstall"/>
 			</popupmenu>
 			<separator/>
 			<menuitem text="Exit" action="FileExit"/>
