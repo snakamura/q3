@@ -157,7 +157,7 @@ QSTATUS qmsmtp::Smtp::connect(const WCHAR* pwszHost, short nPort, Ssl ssl)
 				size_t nLen = 0;
 				status = encoder.decode(
 					reinterpret_cast<unsigned char*>(strMessage.get() + 4),
-					strlen(strMessage.get() - 6), &p, &nLen);
+					strlen(strMessage.get()) - 6, &p, &nLen);
 				CHECK_QSTATUS_ERROR(SMTP_ERROR_AUTH);
 				CHAR szDigest[33];
 				MD5::hmacToString(p, nLen,
