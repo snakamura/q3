@@ -1793,11 +1793,14 @@ int qm::ListHeaderColumn::getHeight() const
 
 int qm::ListHeaderColumn::getPreferredHeight() const
 {
-	ClientDeviceContext dc(getHandle());
-	ObjectSelector<HFONT> selector(dc, getFont());
-	TEXTMETRIC tm;
-	dc.getTextMetrics(&tm);
-	return tm.tmHeight + tm.tmExternalLeading + 8;
+	RECT rect;
+	WINDOWPOS wp;
+	HDLAYOUT layout = {
+		&rect,
+		&wp
+	};
+	Header_Layout(getHandle(), &layout);
+	return wp.cy;
 }
 
 void qm::ListHeaderColumn::setViewModel(ViewModel* pViewModel)
