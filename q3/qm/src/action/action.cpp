@@ -1741,12 +1741,14 @@ QSTATUS qm::FolderCreateAction::invoke(const ActionEvent& event)
 			break;
 		}
 		if (status == QSTATUS_SUCCESS) {
-			Account::FolderList l;
-			status = STLWrapper<Account::FolderList>(l).push_back(pQueryFolder);
-			CHECK_QSTATUS();
-			status = FolderPropertyAction::openProperty(
-				l, true, hwndFrame_, pProfile_);
-			CHECK_QSTATUS();
+			if (pQueryFolder) {
+				Account::FolderList l;
+				status = STLWrapper<Account::FolderList>(l).push_back(pQueryFolder);
+				CHECK_QSTATUS();
+				status = FolderPropertyAction::openProperty(
+					l, true, hwndFrame_, pProfile_);
+				CHECK_QSTATUS();
+			}
 		}
 		else {
 			messageBox(Application::getApplication().getResourceHandle(),
