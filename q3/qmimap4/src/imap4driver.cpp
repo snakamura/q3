@@ -1214,7 +1214,7 @@ void qmimap4::FolderUtil::getFolderData(const WCHAR* pwszName,
 	size_t nRootFolderLen = wcslen(wstrRootFolder_.get());
 	if (nRootFolderLen != 0) {
 		bChildOfRootFolder = wcsncmp(pwszName, wstrRootFolder_.get(), nRootFolderLen) == 0 &&
-			*(pwszName + nRootFolderLen) == cSeparator;
+			(*(pwszName + nRootFolderLen) == cSeparator || *(pwszName + nRootFolderLen) == L'\0');
 		if (bChildOfRootFolder)
 			pwszName += nRootFolderLen + 1;
 	}
