@@ -1,4 +1,7 @@
 #!/bin/sh
+#
+# $Id: $
+
 
 MAKE=${MAKE:=make}
 MSDEV=${MSDEV:=d:/dev/msvs/common/msdev98/bin/msdev.exe}

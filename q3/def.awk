@@ -1,3 +1,7 @@
+#!/bin/awk
+#
+# $Id: $
+
 BEGIN {
 	if (LIBNAME == "") {
 		print "LIBNAME must be set." > "/dev/stderr"

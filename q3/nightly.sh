@@ -1,4 +1,7 @@
 #!/bin/sh
+#
+# $Id: $
+
 
 CGIFTPUSER=d:/home/wince/q3/cgiftpuser
 FTPSCRIPT=d:/home/wince/q3/ftpscript

@@ -1,3 +1,7 @@
+#!/bin/sh
+#
+# $Id: $
+
 MAKE=${MAKE:=make}
 
 TARGET=$1
