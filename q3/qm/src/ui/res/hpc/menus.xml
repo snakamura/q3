@@ -236,10 +236,10 @@
 			</popupmenu>
 		</popupmenu>
 		<popupmenu text="&amp;Tool">
-			<menuitem text="&amp;Insert Text..." action="ToolInsertText"/>
 			<menuitem text="Address &amp;Book..." action="ToolAddressBook"/>
 			<menuitem text="&amp;Attachment..." action="ToolAttachment"/>
-			<menuitem text="&amp;Insert Signature" action="ToolInsertSignature"/>
+			<popupmenu text="&amp;Insert Text" action="ToolInsertText"/>
+			<menuitem text="Insert Si&amp;gnature" action="ToolInsertSignature"/>
 			<separator/>
 			<menuitem text="Refor&amp;m" action="ToolReform"/>
 			<menuitem text="Re&amp;form All" action="ToolReformAll"/>

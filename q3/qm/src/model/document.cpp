@@ -26,6 +26,7 @@
 
 #include "account.h"
 #include "addressbook.h"
+#include "fixedformtext.h"
 #include "rule.h"
 #include "signature.h"
 #include "templatemanager.h"
@@ -59,6 +60,7 @@ struct qm::DocumentImpl
 	std::auto_ptr<TemplateManager> pTemplateManager_;
 	std::auto_ptr<ScriptManager> pScriptManager_;
 	std::auto_ptr<SignatureManager> pSignatureManager_;
+	std::auto_ptr<FixedFormTextManager> pFixedFormTextManager_;
 	std::auto_ptr<AddressBook> pAddressBook_;
 	std::auto_ptr<Security> pSecurity_;
 	std::auto_ptr<Recents> pRecents_;
@@ -99,31 +101,21 @@ void qm::DocumentImpl::fireAccountListChanged(AccountListChangedEvent::Type type
 qm::Document::Document(Profile* pProfile) :
 	pImpl_(0)
 {
-	const WCHAR* pwszMailFolder =
-		Application::getApplication().getMailFolder();
-	
-	std::auto_ptr<RuleManager> pRuleManager(new RuleManager());
-	std::auto_ptr<TemplateManager> pTemplateManager(new TemplateManager(pwszMailFolder));
-	std::auto_ptr<ScriptManager> pScriptManager(new ScriptManager(pwszMailFolder));
-	std::auto_ptr<SignatureManager> pSignatureManager(new SignatureManager());
-	std::auto_ptr<AddressBook> pAddressBook(new AddressBook(pProfile));
-	std::auto_ptr<Security> pSecurity(new Security(pwszMailFolder));
-	std::auto_ptr<Recents> pRecents(new Recents(pProfile));
-	
-	int nCheckNewMail = pProfile->getInt(L"NewMailCheck", L"Enable", 0);
+	const WCHAR* pwszMailFolder = Application::getApplication().getMailFolder();
 	
 	pImpl_ = new DocumentImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->pProfile_ = pProfile;
-	pImpl_->pRuleManager_ = pRuleManager;
-	pImpl_->pTemplateManager_ = pTemplateManager;
-	pImpl_->pScriptManager_ = pScriptManager;
-	pImpl_->pSignatureManager_ = pSignatureManager;
-	pImpl_->pAddressBook_ = pAddressBook;
-	pImpl_->pSecurity_ = pSecurity;
-	pImpl_->pRecents_ = pRecents;
+	pImpl_->pRuleManager_.reset(new RuleManager());
+	pImpl_->pTemplateManager_.reset(new TemplateManager(pwszMailFolder));
+	pImpl_->pScriptManager_.reset(new ScriptManager(pwszMailFolder));
+	pImpl_->pSignatureManager_.reset(new SignatureManager());
+	pImpl_->pFixedFormTextManager_.reset(new FixedFormTextManager());
+	pImpl_->pAddressBook_.reset(new AddressBook(pProfile));
+	pImpl_->pSecurity_.reset(new Security(pwszMailFolder));
+	pImpl_->pRecents_.reset(new Recents(pProfile));
 	pImpl_->nOnline_ = 0;
-	pImpl_->bCheckNewMail_ = nCheckNewMail != 0;
+	pImpl_->bCheckNewMail_ = pProfile->getInt(L"NewMailCheck", L"Enable", 0) != 0;
 }
 
 qm::Document::~Document()
@@ -407,6 +399,11 @@ ScriptManager* qm::Document::getScriptManager() const
 SignatureManager* qm::Document::getSignatureManager() const
 {
 	return pImpl_->pSignatureManager_.get();
+}
+
+FixedFormTextManager* qm::Document::getFixedFormTextManager() const
+{
+	return pImpl_->pFixedFormTextManager_.get();
 }
 
 AddressBook* qm::Document::getAddressBook() const

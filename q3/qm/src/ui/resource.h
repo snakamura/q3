@@ -13,7 +13,6 @@
 #define IDD_PROGRESS                    113
 #define IDD_DETACH                      114
 #define IDD_ADDRESSBOOK                 115
-#define IDD_INSERTTEXT                  116
 #define IDD_ATTACHMENT                  117
 #define IDB_ADDRESSBOOK                 118
 #define IDD_MESSAGEPROPERTY             119
@@ -65,6 +64,7 @@
 #define IDD_RESOURCE                    166
 #define IDD_SIGNATURES                  167
 #define IDD_SIGNATURE                   168
+#define IDR_TOOLINSERTTEXT              169
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -490,7 +490,7 @@
 #define IDM_TOOL_ENCRYPT                44007
 #define IDM_TOOL_HEADEREDIT             44008
 #define IDM_TOOL_INSERTSIGNATURE        44009
-#define IDM_TOOL_INSERTTEXT             44010
+#define IDM_TOOL_INSERTTEXTNONE         44010
 #define IDM_TOOL_OPTIONS                44011
 #define IDM_TOOL_RECEIVE                44012
 #define IDM_TOOL_REFORM                 44013
@@ -503,6 +503,7 @@
 #define IDM_TOOL_GOROUND                44100
 #define IDM_TOOL_SCRIPT                 44200
 #define IDM_TOOL_SUBACCOUNT             44300
+#define IDM_TOOL_INSERTTEXT             44400
 #define IDM_VIEW_DECRYPTVERIFYMODE      45001
 #define IDM_VIEW_ENCODINGAUTODETECT     45002
 #define IDM_VIEW_FILTERCUSTOM           45003
@@ -558,13 +559,14 @@
 #define IDM_ATTACHMENTEDIT_DELETE       49002
 #define IDM_CONFIG_GOROUND              50001
 #define IDM_CONFIG_SIGNATURE            50002
-#define IDM_CONFIG_VIEWS                50003
+#define IDM_CONFIG_TEXTS                50003
+#define IDM_CONFIG_VIEWS                50004
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        169
+#define _APS_NEXT_RESOURCE_VALUE        170
 #define _APS_NEXT_COMMAND_VALUE         48000
 #define _APS_NEXT_CONTROL_VALUE         1219
 #define _APS_NEXT_SYMED_VALUE           101

@@ -350,7 +350,7 @@
 		<action name="ToolInsertSignature">
 			<key key="I" shift="true" ctrl="true"/>
 		</action>
-		<action name="ToolInsertText">
+		<action name="ToolInsertText0">
 			<key key="I" ctrl="true"/>
 		</action>
 		<action name="ToolReform">

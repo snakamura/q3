@@ -44,7 +44,6 @@ class DefaultDialog;
 	class GoRoundEntryDialog;
 	class ImportDialog;
 	class InputBoxDialog;
-	class InsertTextDialog;
 	class MailFolderDialog;
 	class MoveMessageDialog;
 	class ParameterDialog;
@@ -1076,38 +1075,6 @@ private:
 	bool bMultiLine_;
 	qs::wstring_ptr wstrMessage_;
 	qs::wstring_ptr wstrValue_;
-};
-
-
-/****************************************************************************
- *
- * InsertTextDialog
- *
- */
-
-class InsertTextDialog : public DefaultDialog
-{
-public:
-	InsertTextDialog();
-	virtual ~InsertTextDialog();
-
-public:
-	const FixedFormText* getText() const;
-
-protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus,
-								 LPARAM lParam);
-
-protected:
-	virtual LRESULT onOk();
-
-private:
-	InsertTextDialog(const InsertTextDialog&);
-	InsertTextDialog& operator=(const InsertTextDialog&);
-
-private:
-	std::auto_ptr<FixedFormTextManager> pManager_;
-	FixedFormText* pText_;
 };
 
 

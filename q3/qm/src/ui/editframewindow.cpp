@@ -82,6 +82,7 @@ public:
 	std::auto_ptr<ActionMap> pActionMap_;
 	std::auto_ptr<ActionInvoker> pActionInvoker_;
 	std::auto_ptr<FindReplaceManager> pFindReplaceManager_;
+	std::auto_ptr<InsertTextMenu> pInsertTextMenu_;
 	std::auto_ptr<ScriptMenu> pScriptMenu_;
 	ToolbarCookie* pToolbarCookie_;
 	bool bIme_;
@@ -272,8 +273,10 @@ void qm::EditFrameWindowImpl::initActions()
 		IDM_TOOL_INSERTSIGNATURE,
 		pEditWindow_->getEditMessageHolder(),
 		pEditWindow_->getTextWindow());
-	ADD_ACTION1(EditToolInsertTextAction,
+	ADD_ACTION_RANGE2(EditToolInsertTextAction,
 		IDM_TOOL_INSERTTEXT,
+		IDM_TOOL_INSERTTEXT + 100,
+		pInsertTextMenu_.get(),
 		pEditWindow_->getTextWindow());
 	ADD_ACTION1(EditToolHeaderEditAction,
 		IDM_TOOL_HEADEREDIT,
@@ -648,7 +651,10 @@ LRESULT qm::EditFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		return -1;
 	pImpl_->pStatusBar_ = pStatusBar.release();
 	
-	pImpl_->pScriptMenu_.reset(new ScriptMenu(pImpl_->pDocument_->getScriptManager()));
+	pImpl_->pInsertTextMenu_.reset(new InsertTextMenu(
+		pImpl_->pDocument_->getFixedFormTextManager()));
+	pImpl_->pScriptMenu_.reset(new ScriptMenu(
+		pImpl_->pDocument_->getScriptManager()));
 	pImpl_->layoutChildren();
 	pImpl_->initActions();
 	pImpl_->bCreated_ = true;
@@ -691,7 +697,9 @@ LRESULT qm::EditFrameWindow::onInitMenuPopup(HMENU hmenu,
 			nIdLast = mii.wID;
 		}
 		
-		if (nIdFirst == IDM_TOOL_SCRIPTNONE ||
+		if (nIdLast == IDM_CONFIG_TEXTS)
+			pImpl_->pInsertTextMenu_->createMenu(hmenu);
+		else if (nIdFirst == IDM_TOOL_SCRIPTNONE ||
 			nIdFirst == IDM_TOOL_SCRIPT)
 			pImpl_->pScriptMenu_->createMenu(hmenu);
 	}

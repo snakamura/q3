@@ -49,6 +49,7 @@ class EditFrameWindow;
 class EditMessageHolder;
 class EditWindow;
 class FindReplaceManager;
+class InsertTextMenu;
 class SecurityModel;
 
 
@@ -568,7 +569,8 @@ private:
 class EditToolInsertTextAction : public qs::AbstractAction
 {
 public:
-	explicit EditToolInsertTextAction(qs::TextWindow* pTextWindow);
+	EditToolInsertTextAction(InsertTextMenu* pInsertTextMenu,
+							 qs::TextWindow* pTextWindow);
 	virtual ~EditToolInsertTextAction();
 
 public:
@@ -580,6 +582,7 @@ private:
 	EditToolInsertTextAction& operator=(const EditToolInsertTextAction&);
 
 private:
+	InsertTextMenu* pInsertTextMenu_;
 	qs::TextWindow* pTextWindow_;
 };
 

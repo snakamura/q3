@@ -28,6 +28,7 @@ class AttachmentMenu;
 class EncodingMenu;
 class FilterMenu;
 class GoRoundMenu;
+class InsertTextMenu;
 class MoveMenu;
 class RecentsMenu;
 class ScriptMenu;
@@ -40,6 +41,8 @@ class TemplateMenu;
 class Document;
 class Filter;
 class FilterManager;
+class FixedFormText;
+class FixedFormTextManager;
 class FolderModel;
 class GoRound;
 class GoRoundCourse;
@@ -183,6 +186,31 @@ private:
 
 private:
 	GoRound* pGoRound_;
+};
+
+
+/****************************************************************************
+ *
+ * InsertTextMenu
+ *
+ */
+
+class InsertTextMenu
+{
+public:
+	explicit InsertTextMenu(FixedFormTextManager* pManager);
+	~InsertTextMenu();
+
+public:
+	const FixedFormText* getText(unsigned int nId) const;
+	bool createMenu(HMENU hmenu);
+
+private:
+	InsertTextMenu(const InsertTextMenu&);
+	InsertTextMenu& operator=(const InsertTextMenu&);
+
+private:
+	FixedFormTextManager* pManager_;
 };
 
 

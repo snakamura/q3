@@ -3677,55 +3677,6 @@ LRESULT qm::InputBoxDialog::onOk()
 
 /****************************************************************************
  *
- * InsertTextDialog
- *
- */
-
-qm::InsertTextDialog::InsertTextDialog() :
-	DefaultDialog(IDD_INSERTTEXT),
-	pText_(0)
-{
-	pManager_.reset(new FixedFormTextManager());
-}
-
-qm::InsertTextDialog::~InsertTextDialog()
-{
-}
-
-const FixedFormText* qm::InsertTextDialog::getText() const
-{
-	return pText_;
-}
-
-LRESULT qm::InsertTextDialog::onInitDialog(HWND hwndFocus,
-										   LPARAM lParam)
-{
-	init(false);
-	
-	const FixedFormTextManager::TextList& l = pManager_->getTextList();
-	for (FixedFormTextManager::TextList::const_iterator it = l.begin(); it != l.end(); ++it) {
-		tstring_ptr tstrName(wcs2tcs((*it)->getName()));
-		sendDlgItemMessage(IDC_LIST, LB_ADDSTRING, 0,
-			reinterpret_cast<LPARAM>(tstrName.get()));
-	}
-	
-	sendDlgItemMessage(IDC_LIST, LB_SETCURSEL);
-	
-	return TRUE;
-}
-
-LRESULT qm::InsertTextDialog::onOk()
-{
-	const FixedFormTextManager::TextList& l = pManager_->getTextList();
-	unsigned int nItem = sendDlgItemMessage(IDC_LIST, LB_GETCURSEL);
-	assert(nItem < l.size());
-	pText_ = l[nItem];
-	return DefaultDialog::onOk();
-}
-
-
-/****************************************************************************
- *
  * MailFolderDialog
  *
  */

@@ -31,6 +31,7 @@
 #include "../ui/attachmentselectionmodel.h"
 #include "../ui/dialogs.h"
 #include "../ui/editwindow.h"
+#include "../ui/menus.h"
 #include "../ui/resourceinc.h"
 #include "../ui/syncutil.h"
 
@@ -881,7 +882,9 @@ bool qm::EditToolInsertSignatureAction::isEnabled(const ActionEvent& event)
  *
  */
 
-qm::EditToolInsertTextAction::EditToolInsertTextAction(TextWindow* pTextWindow) :
+qm::EditToolInsertTextAction::EditToolInsertTextAction(InsertTextMenu* pInsertTextMenu,
+													   TextWindow* pTextWindow) :
+	pInsertTextMenu_(pInsertTextMenu),
 	pTextWindow_(pTextWindow)
 {
 }
@@ -892,10 +895,8 @@ qm::EditToolInsertTextAction::~EditToolInsertTextAction()
 
 void qm::EditToolInsertTextAction::invoke(const ActionEvent& event)
 {
-	InsertTextDialog dialog;
-	if (dialog.doModal(pTextWindow_->getParentFrame()) == IDOK) {
-		const FixedFormText* pText = dialog.getText();
-		assert(pText);
+	const FixedFormText* pText = pInsertTextMenu_->getText(event.getId());
+	if (pText) {
 		if (!pTextWindow_->insertText(pText->getText(), -1)) {
 			// TODO MSG
 		}

@@ -28,6 +28,7 @@
 #include "uiutil.h"
 #include "viewmodel.h"
 #include "../model/filter.h"
+#include "../model/fixedformtext.h"
 #include "../model/goround.h"
 #include "../model/templatemanager.h"
 #include "../model/uri.h"
@@ -296,6 +297,61 @@ bool qm::GoRoundMenu::createMenu(HMENU hmenu)
 		wstring_ptr wstrName(loadString(hInst, IDS_GOROUND));
 		W2T(wstrName.get(), ptszName);
 		::InsertMenu(hmenu, 0, MF_STRING | MF_BYPOSITION, IDM_TOOL_GOROUND, ptszName);
+	}
+	
+	return true;
+}
+
+
+/****************************************************************************
+ *
+ * InsertTextMenu
+ *
+ */
+
+qm::InsertTextMenu::InsertTextMenu(FixedFormTextManager* pManager) :
+	pManager_(pManager)
+{
+}
+
+qm::InsertTextMenu::~InsertTextMenu()
+{
+}
+
+const FixedFormText* qm::InsertTextMenu::getText(unsigned int nId) const
+{
+	const FixedFormTextManager::TextList& l = pManager_->getTextList();
+	if (IDM_TOOL_INSERTTEXT <= nId && nId < IDM_TOOL_INSERTTEXT + l.size())
+		return l[nId - IDM_TOOL_INSERTTEXT];
+	else
+		return 0;
+}
+
+bool qm::InsertTextMenu::createMenu(HMENU hmenu)
+{
+	while (true) {
+		MENUITEMINFO mii = { sizeof(mii), MIIM_TYPE };
+		if (!::GetMenuItemInfo(hmenu, 0, TRUE, &mii) ||
+			(mii.fType & MFT_SEPARATOR) != 0)
+			break;
+		::DeleteMenu(hmenu, 0, MF_BYPOSITION);
+	}
+	
+	const FixedFormTextManager::TextList& l = pManager_->getTextList();
+	if (!l.empty()) {
+		for (FixedFormTextManager::TextList::size_type n = 0; n < l.size(); ++n) {
+			const FixedFormText* pText = l[n];
+			wstring_ptr wstrName(UIUtil::formatMenu(pText->getName()));
+			W2T(wstrName.get(), ptszName);
+			::InsertMenu(hmenu, n, MF_STRING | MF_BYPOSITION, IDM_TOOL_INSERTTEXT + n, ptszName);
+		}
+	}
+	else {
+		HINSTANCE hInst = Application::getApplication().getResourceHandle();
+		wstring_ptr wstrNone(loadString(hInst, IDS_NONE));
+		W2T(wstrNone.get(), ptszNone);
+		::InsertMenu(hmenu, 0, MF_STRING | MF_BYPOSITION, IDM_TOOL_INSERTTEXTNONE, ptszNone);
+		::EnableMenuItem(hmenu, IDM_TOOL_INSERTTEXTNONE, MF_BYCOMMAND | MF_GRAYED);
 	}
 	
 	return true;

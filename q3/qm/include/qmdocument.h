@@ -27,6 +27,7 @@ class AccountListChangedEvent;
 
 class Account;
 class AddressBook;
+class FixedFormTextManager;
 class Folder;
 class MessageHolder;
 class MessagePtr;
@@ -71,6 +72,7 @@ public:
 	const TemplateManager* getTemplateManager() const;
 	ScriptManager* getScriptManager() const;
 	SignatureManager* getSignatureManager() const;
+	FixedFormTextManager* getFixedFormTextManager() const;
 	AddressBook* getAddressBook() const;
 	const Security* getSecurity() const;
 	Recents* getRecents() const;
