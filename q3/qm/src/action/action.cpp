@@ -1847,11 +1847,22 @@ void qm::FolderPropertyAction::openProperty(const Account::FolderList& listFolde
 			
 			unsigned int nFlags = pageProperty.getFlags();
 			unsigned int nMask = pageProperty.getMask();
-			if (!pFolder->isFlag(Folder::FLAG_SYNCABLE))
-				nMask &= ~(Folder::FLAG_SYNCWHENOPEN | Folder::FLAG_CACHEWHENREAD);
-			if (pFolder->isFlag(Folder::FLAG_NOSELECT))
-				nMask &= ~(Folder::FLAG_INBOX | Folder::FLAG_OUTBOX |
+			switch (pFolder->getType()) {
+			case Folder::TYPE_NORMAL:
+				if (!pFolder->isFlag(Folder::FLAG_SYNCABLE))
+					nMask &= ~(Folder::FLAG_SYNCWHENOPEN | Folder::FLAG_CACHEWHENREAD);
+				if (pFolder->isFlag(Folder::FLAG_NOSELECT))
+					nMask &= ~(Folder::FLAG_INBOX | Folder::FLAG_OUTBOX |
+						Folder::FLAG_SENTBOX | Folder::FLAG_DRAFTBOX | Folder::FLAG_TRASHBOX);
+				break;
+			case Folder::TYPE_QUERY:
+				nMask &= ~(Folder::FLAG_CACHEWHENREAD | Folder::FLAG_INBOX | Folder::FLAG_OUTBOX |
 					Folder::FLAG_SENTBOX | Folder::FLAG_DRAFTBOX | Folder::FLAG_TRASHBOX);
+				break;
+			default:
+				assert(false);
+				break;
+			}
 			
 			pFolder->getAccount()->setFolderFlags(pFolder, nFlags, nMask);
 		}

@@ -1046,7 +1046,8 @@ void qm::MainWindowImpl::folderSelected(const FolderModelEvent& event)
 		}
 	}
 	
-	if (pFolder->getType() == Folder::TYPE_QUERY)
+	if (pFolder->getType() == Folder::TYPE_QUERY &&
+		pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN))
 		static_cast<QueryFolder*>(pFolder)->search(pDocument_,
 			pThis_->getHandle(), pProfile_, pSecurityModel_->isDecryptVerify());
 }

@@ -539,16 +539,17 @@ struct
 	Folder::Flag flag_;
 	UINT nId_;
 	Folder::Flag enableFlag_;
+	bool bEnableQuery_;
 	bool bReverse_;
 } folderFlags[] = {
-	{ Folder::FLAG_SYNCWHENOPEN,	IDC_SYNCWHENOPEN,	Folder::FLAG_SYNCABLE,	false	},
-	{ Folder::FLAG_CACHEWHENREAD,	IDC_CACHEWHENREAD,	Folder::FLAG_SYNCABLE,	false	},
-	{ Folder::FLAG_IGNOREUNSEEN,	IDC_IGNOREUNSEEN,	Folder::FLAG_NOSELECT,	true	},
-	{ Folder::FLAG_INBOX,			IDC_INBOX,			Folder::FLAG_NOSELECT,	true	},
-	{ Folder::FLAG_OUTBOX,			IDC_OUTBOX,			Folder::FLAG_NOSELECT,	true	},
-	{ Folder::FLAG_SENTBOX,			IDC_SENTBOX,		Folder::FLAG_NOSELECT,	true	},
-	{ Folder::FLAG_DRAFTBOX,		IDC_DRAFTBOX,		Folder::FLAG_NOSELECT,	true	},
-	{ Folder::FLAG_TRASHBOX,		IDC_TRASHBOX,		Folder::FLAG_NOSELECT,	true	}
+	{ Folder::FLAG_SYNCWHENOPEN,	IDC_SYNCWHENOPEN,	Folder::FLAG_SYNCABLE,	true,	false	},
+	{ Folder::FLAG_CACHEWHENREAD,	IDC_CACHEWHENREAD,	Folder::FLAG_SYNCABLE,	false,	false	},
+	{ Folder::FLAG_IGNOREUNSEEN,	IDC_IGNOREUNSEEN,	Folder::FLAG_NOSELECT,	true,	true	},
+	{ Folder::FLAG_INBOX,			IDC_INBOX,			Folder::FLAG_NOSELECT,	false,	true	},
+	{ Folder::FLAG_OUTBOX,			IDC_OUTBOX,			Folder::FLAG_NOSELECT,	false,	true	},
+	{ Folder::FLAG_SENTBOX,			IDC_SENTBOX,		Folder::FLAG_NOSELECT,	false,	true	},
+	{ Folder::FLAG_DRAFTBOX,		IDC_DRAFTBOX,		Folder::FLAG_NOSELECT,	false,	true	},
+	{ Folder::FLAG_TRASHBOX,		IDC_TRASHBOX,		Folder::FLAG_NOSELECT,	false,	true	}
 };
 };
 
@@ -598,6 +599,7 @@ LRESULT qm::FolderPropertyPage::onInitDialog(HWND hwndFocus,
 		swprintf(wszType, wstrTemplate.get(), wstrType.get(), wstrLocal.get());
 		setDlgItemText(IDC_TYPE, wszType);
 		
+		bool bQuery = pFolder->getType() == Folder::TYPE_QUERY;
 		unsigned int nFlags = pFolder->getFlags();
 		for (int n = 0; n < countof(folderFlags); ++n) {
 			sendDlgItemMessage(folderFlags[n].nId_, BM_SETCHECK,
@@ -605,8 +607,12 @@ LRESULT qm::FolderPropertyPage::onInitDialog(HWND hwndFocus,
 			Window(getDlgItem(folderFlags[n].nId_)).setStyle(
 				BS_AUTOCHECKBOX, BS_AUTOCHECKBOX | BS_AUTO3STATE);
 			
-			bool bEnable = pFolder->isFlag(folderFlags[n].enableFlag_);
-			bEnable = folderFlags[n].bReverse_ ? !bEnable : bEnable;
+			bool bEnable = !bQuery || folderFlags[n].bEnableQuery_;
+			if (bEnable) {
+				bEnable = pFolder->isFlag(folderFlags[n].enableFlag_);
+				if (folderFlags[n].bReverse_)
+					bEnable = !bEnable;
+			}
 			if (!bEnable)
 				Window(getDlgItem(folderFlags[n].nId_)).enableWindow(false);
 		}
@@ -620,8 +626,12 @@ LRESULT qm::FolderPropertyPage::onInitDialog(HWND hwndFocus,
 				if (pFolder->getFlags() & folderFlags[n].flag_)
 					++nCount;
 				
-				bool b = pFolder->isFlag(folderFlags[n].enableFlag_);
-				b = folderFlags[n].bReverse_ ? !b : b;
+				bool b = pFolder->getType() != Folder::TYPE_QUERY || folderFlags[n].bEnableQuery_;
+				if (b) {
+					b = pFolder->isFlag(folderFlags[n].enableFlag_);
+					if (folderFlags[n].bReverse_)
+						b = !b;
+				}
 				if (b)
 					bEnable = true;
 			}
