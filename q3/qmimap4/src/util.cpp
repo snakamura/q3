@@ -264,6 +264,11 @@ QSTATUS qmimap4::Util::getMessageFromEnvelope(
 				++it;
 			}
 			
+			if (bGroup) {
+				status = buf.append(";");
+				CHECK_QSTATUS();
+			}
+			
 			status = buf.append("\r\n");
 			CHECK_QSTATUS();
 		}
