@@ -206,7 +206,8 @@ int qm::UIUtil::getFolderImage(Folder* pFolder, bool bSelected)
 }
 
 QSTATUS qm::UIUtil::updateStatusBar(MessageWindow* pMessageWindow,
-	StatusBar* pStatusBar, int nOffset, MessageHolder* pmh, Message& msg)
+	StatusBar* pStatusBar, int nOffset, MessageHolder* pmh,
+	Message& msg, const ContentTypeParser* pContentType)
 {
 	DECLARE_QSTATUS();
 	
@@ -214,7 +215,16 @@ QSTATUS qm::UIUtil::updateStatusBar(MessageWindow* pMessageWindow,
 		const WCHAR* pwszEncoding = pMessageWindow->getEncoding();
 		string_ptr<WSTRING> wstrCharset;
 		if (!pwszEncoding) {
-			const ContentTypeParser* pContentType = msg.getContentType();
+			if (!pContentType) {
+				if (msg.isMultipart()) {
+					const Part::PartList& listPart = msg.getPartList();
+					if (!listPart.empty())
+						pContentType = listPart.front()->getContentType();
+				}
+				else {
+					pContentType = msg.getContentType();
+				}
+			}
 			if (pContentType) {
 				status = pContentType->getParameter(L"charset", &wstrCharset);
 				CHECK_QSTATUS();

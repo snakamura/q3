@@ -50,7 +50,8 @@ public:
 	static int getFolderImage(Folder* pFolder, bool bSelected);
 	
 	static qs::QSTATUS updateStatusBar(MessageWindow* pMessageWindow,
-		StatusBar* pStatusBar, int nOffset, MessageHolder* pmh, Message& msg);
+		StatusBar* pStatusBar, int nOffset, MessageHolder* pmh,
+		Message& msg, const qs::ContentTypeParser* pContentType);
 };
 
 

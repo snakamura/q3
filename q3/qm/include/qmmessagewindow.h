@@ -14,6 +14,7 @@
 #include <qmview.h>
 
 #include <qskeymap.h>
+#include <qsmime.h>
 #include <qsprofile.h>
 #include <qswindow.h>
 
@@ -199,12 +200,14 @@ public:
 class MessageWindowEvent
 {
 public:
-	MessageWindowEvent(MessageHolder* pmh, Message& msg);
+	MessageWindowEvent(MessageHolder* pmh, Message& msg,
+		const qs::ContentTypeParser* pContentType);
 	~MessageWindowEvent();
 
 public:
 	MessageHolder* getMessageHolder() const;
 	Message& getMessage() const;
+	const qs::ContentTypeParser* getContentType() const;
 
 private:
 	MessageWindowEvent(const MessageWindowEvent&);
@@ -213,6 +216,7 @@ private:
 private:
 	MessageHolder* pmh_;
 	Message& msg_;
+	const qs::ContentTypeParser* pContentType_;
 };
 
 

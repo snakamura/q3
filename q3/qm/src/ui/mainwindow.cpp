@@ -1097,8 +1097,8 @@ QSTATUS qm::MainWindowImpl::messageChanged(const MessageWindowEvent& event)
 	DECLARE_QSTATUS();
 	
 	if (bShowStatusBar_) {
-		status = UIUtil::updateStatusBar(pMessageWindow_, pStatusBar_,
-			2, event.getMessageHolder(), event.getMessage());
+		status = UIUtil::updateStatusBar(pMessageWindow_, pStatusBar_, 2,
+			event.getMessageHolder(), event.getMessage(), event.getContentType());
 		CHECK_QSTATUS();
 	}
 	

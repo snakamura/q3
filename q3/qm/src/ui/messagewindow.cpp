@@ -64,7 +64,8 @@ public:
 	virtual QSTATUS messageChanged(const MessageModelEvent& event);
 
 private:
-	QSTATUS fireMessageChanged(MessageHolder* pmh, Message& msg) const;
+	QSTATUS fireMessageChanged(MessageHolder* pmh,
+		Message& msg, const ContentTypeParser* pContentType) const;
 
 public:
 	MessageWindow* pThis_;
@@ -200,6 +201,7 @@ QSTATUS qm::MessageWindowImpl::setMessage(MessageHolder* pmh, bool bResetEncodin
 		}
 	}
 	
+	const ContentTypeParser* pContentType = 0;
 	MessageViewWindow* pMessageViewWindow = 0;
 	if (pmh && !bRawMode_ && bHtmlMode_ && !wstrTemplate_) {
 		PartUtil util(msg);
@@ -213,7 +215,7 @@ QSTATUS qm::MessageWindowImpl::setMessage(MessageHolder* pmh, bool bResetEncodin
 				std::mem_fun(
 					MessageViewWindowFactory::isSupported),
 				pFactory_));
-		const ContentTypeParser* pContentType = it != l.end() ? *it : 0;
+		pContentType = it != l.end() ? *it : 0;
 		
 		status = pFactory_->getMessageViewWindow(
 			pContentType, &pMessageViewWindow);
@@ -271,7 +273,7 @@ QSTATUS qm::MessageWindowImpl::setMessage(MessageHolder* pmh, bool bResetEncodin
 		CHECK_QSTATUS();
 	}
 	
-	status = fireMessageChanged(pmh, msg);
+	status = fireMessageChanged(pmh, msg, pContentType);
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
@@ -290,12 +292,12 @@ QSTATUS qm::MessageWindowImpl::messageChanged(const MessageModelEvent& event)
 	}
 }
 
-QSTATUS qm::MessageWindowImpl::fireMessageChanged(
-	MessageHolder* pmh, Message& msg) const
+QSTATUS qm::MessageWindowImpl::fireMessageChanged(MessageHolder* pmh,
+	Message& msg, const ContentTypeParser* pContentType) const
 {
 	DECLARE_QSTATUS();
 	
-	MessageWindowEvent event(pmh, msg);
+	MessageWindowEvent event(pmh, msg, pContentType);
 	
 	HandlerList::const_iterator it = listHandler_.begin();
 	while (it != listHandler_.end()) {
@@ -758,9 +760,11 @@ qm::MessageWindowHandler::~MessageWindowHandler()
  *
  */
 
-qm::MessageWindowEvent::MessageWindowEvent(MessageHolder* pmh, Message& msg) :
+qm::MessageWindowEvent::MessageWindowEvent(MessageHolder* pmh,
+	Message& msg, const ContentTypeParser* pContentType) :
 	pmh_(pmh),
-	msg_(msg)
+	msg_(msg),
+	pContentType_(pContentType)
 {
 }
 
@@ -776,6 +780,11 @@ MessageHolder* qm::MessageWindowEvent::getMessageHolder() const
 Message& qm::MessageWindowEvent::getMessage() const
 {
 	return msg_;
+}
+
+const ContentTypeParser* qm::MessageWindowEvent::getContentType() const
+{
+	return pContentType_;
 }
 
 
