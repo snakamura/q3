@@ -815,6 +815,12 @@ private:
 					int* pnPos);
 
 private:
+	static void getInfo(const WCHAR* pwszFileName,
+						qs::wstring_ptr* pwstrName,
+						Folder::Type* pType,
+						unsigned int* pnFlags);
+
+private:
 	FileLoadAction(const FileLoadAction&);
 	FileLoadAction& operator=(const FileLoadAction&);
 

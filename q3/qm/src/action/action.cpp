@@ -930,7 +930,7 @@ wstring_ptr qm::FileDumpAction::getDirectory(const WCHAR* pwszPath,
 		wstrParentPath = allocWString(pwszPath);
 	
 	WCHAR wsz[32];
-	swprintf(wsz, L"$$%c%x", pFolder->getType() == Folder::TYPE_NORMAL ? L'n' : L'q', pFolder->getFlags());
+	swprintf(wsz, L"$%c%x", pFolder->getType() == Folder::TYPE_NORMAL ? L'n' : L'q', pFolder->getFlags());
 	
 	ConcatW c[] = {
 		{ wstrParentPath.get(),	-1	},
@@ -1536,24 +1536,56 @@ bool qm::FileLoadAction::loadFolder(Account* pAccount,
 				_tcscmp(fd.cFileName, _T("..")) == 0)
 				continue;
 			
-			T2W(fd.cFileName, pwszName);
-			wstring_ptr wstrPath(concat(pwszPath, L"\\", pwszName));
+			T2W(fd.cFileName, pwszFileName);
+			wstring_ptr wstrPath(concat(pwszPath, L"\\", pwszFileName));
 			if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-				const WCHAR* pwszFullName = pwszName;
+				wstring_ptr wstrName;
+				Folder::Type type = Folder::TYPE_NORMAL;
+				unsigned int nFlags = Folder::FLAG_LOCAL;
+				getInfo(pwszFileName, &wstrName, &type, &nFlags);
+				
+				const WCHAR* pwszFullName = wstrName.get();
 				wstring_ptr wstrFullName;
 				if (pFolder) {
 					wstring_ptr wstrParentName(pFolder->getFullName());
 					WCHAR wszSeparator[] = { pFolder->getSeparator(), L'\0' };
-					wstrFullName = concat(wstrParentName.get(), wszSeparator, pwszName);
+					wstrFullName = concat(wstrParentName.get(), wszSeparator, wstrName.get());
 					pwszFullName = wstrFullName.get();
 				}
 				Folder* pChildFolder = pAccount->getFolder(pwszFullName);
 				if (!pChildFolder) {
-					// TODO
-					// Create query folder, specify flags...
-					pChildFolder = pAccount->createNormalFolder(pwszName, pFolder, false);
-					if (!pChildFolder)
+					switch (type) {
+					case Folder::TYPE_NORMAL:
+						{
+							bool bRemote = (nFlags & Folder::FLAG_LOCAL) == 0;
+							const WCHAR* pwszName = wstrName.get();
+							wstring_ptr wstrRemoteName;
+							if (nFlags & Folder::FLAG_NOSELECT) {
+								WCHAR wsz[] = {
+									pFolder ? pFolder->getSeparator() : L'/',
+									L'\0'
+								};
+								wstrRemoteName = concat(pwszName, wsz);
+								pwszName = wstrRemoteName.get();
+							}
+							pChildFolder = pAccount->createNormalFolder(
+								pwszName, pFolder, bRemote);
+							if (!pChildFolder)
+								return false;
+							pAccount->setFolderFlags(pChildFolder, nFlags,
+								 Folder::FLAG_USER_MASK | Folder::FLAG_BOX_MASK);
+						}
+						break;
+					case Folder::TYPE_QUERY:
+						pChildFolder = pAccount->createQueryFolder(wstrName.get(),
+							pFolder, L"macro", L"@False()", 0, false);
+						if (!pChildFolder)
+							return false;
+						break;
+					default:
+						assert(false);
 						return false;
+					}
 				}
 				if (!loadFolder(pAccount, pChildFolder, wstrPath.get(), pDialog, pnPos))
 					return false;
@@ -1571,6 +1603,37 @@ bool qm::FileLoadAction::loadFolder(Account* pAccount,
 		} while (::FindNextFile(hFind.get(), &fd));
 	}
 	return true;
+}
+
+void qm::FileLoadAction::getInfo(const WCHAR* pwszFileName,
+								 wstring_ptr* pwstrName,
+								 Folder::Type* pType,
+								 unsigned int* pnFlags)
+{
+	const WCHAR* p = wcsrchr(pwszFileName, L'$');
+	if (p && p != pwszFileName) {
+		*pwstrName = allocWString(pwszFileName, p - pwszFileName);
+		++p;
+		if (*p == L'n')
+			*pType = Folder::TYPE_NORMAL;
+		else if (*p == L'q')
+			*pType = Folder::TYPE_QUERY;
+		else
+			p = 0;
+		
+		if (p) {
+			++p;
+			WCHAR* pEnd = 0;
+			*pnFlags = wcstol(p, &pEnd, 16);
+			if (*pEnd)
+				p = 0;
+		}
+	}
+	if (!p || p == pwszFileName) {
+		*pwstrName = allocWString(pwszFileName);
+		*pType = Folder::TYPE_NORMAL;
+		*pnFlags = Folder::FLAG_LOCAL;
+	}
 }
 
 
