@@ -1675,22 +1675,16 @@ IDD_OPTIONSECURITY DIALOG DISCARDABLE  0, 0, 231, 170
 STYLE WS_CHILD
 FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
 BEGIN
-    GROUPBOX        "SSL && S/MIME",IDC_STATIC,5,5,170,25
+    GROUPBOX        "Certificates",IDC_STATIC,5,5,170,25
     CONTROL         "&Load certificates from a system store",IDC_SYSTEMSTORE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,15,130,10
-    GROUPBOX        "S/MIME",IDC_STATIC,5,35,170,35
-    CONTROL         "Use &multipart/signed when sign a message",
-                    IDC_MULTIPARTSIGNED,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,10,45,145,10
-    CONTROL         "&Encrypt a message for myself",IDC_ENCRYPTFORSELF,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,55,110,10
-    GROUPBOX        "PGP",IDC_STATIC,5,75,170,35
-    CONTROL         "&PGP",IDC_PGP,"Button",BS_AUTORADIOBUTTON,10,85,30,10
-    CONTROL         "&GnuPG",IDC_GNUPG,"Button",BS_AUTORADIOBUTTON,10,95,40,
+    GROUPBOX        "PGP",IDC_STATIC,5,35,170,35
+    CONTROL         "&PGP",IDC_PGP,"Button",BS_AUTORADIOBUTTON,10,45,30,10
+    CONTROL         "&GnuPG",IDC_GNUPG,"Button",BS_AUTORADIOBUTTON,10,55,40,
                     10
     LTEXT           "Warn before opening &attachments with these extensions",
-                    IDC_STATIC,5,115,170,8
-    EDITTEXT        IDC_WARNEXTENSION,5,125,170,14,ES_AUTOHSCROLL
+                    IDC_STATIC,5,75,170,8
+    EDITTEXT        IDC_WARNEXTENSION,5,85,170,14,ES_AUTOHSCROLL
 END
 
 IDD_OPTIONMISC DIALOG DISCARDABLE  0, 0, 231, 170
@@ -1739,6 +1733,55 @@ BEGIN
     EDITTEXT        IDC_MAXSIZE,60,45,40,14,ES_AUTOHSCROLL | ES_NUMBER
 END
 
+IDD_OPTIONEDIT2 DIALOG DISCARDABLE  0, 0, 231, 170
+STYLE WS_CHILD
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    GROUPBOX        "Reform",IDC_STATIC,5,5,170,45
+    LTEXT           "&Column",IDC_STATIC,10,18,25,8
+    EDITTEXT        IDC_COLUMN,40,15,30,14,ES_AUTOHSCROLL
+    CONTROL         "&Reform automatically before sending a message",
+                    IDC_AUTOREFORM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,
+                    35,157,10
+    GROUPBOX        "External Editor",IDC_STATIC,5,55,170,70
+    CONTROL         "&Use an external editor by default",
+                    IDC_USEEXTERNALEDITOR,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,65,115,10
+    LTEXT           "&Editor",IDC_STATIC,10,80,20,8
+    EDITTEXT        IDC_EDITOR,10,90,105,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Browse...",IDC_BROWSE,120,90,50,14
+    CONTROL         "Create a new message after the editor exits",
+                    IDC_AUTOCREATE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,
+                    110,146,10
+    PUSHBUTTON      "&Security...",IDC_SECURITY,125,130,50,14
+END
+
+IDD_SECURITY DIALOG DISCARDABLE  0, 0, 185, 134
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Security"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    GROUPBOX        "S/MIME",IDC_STATIC,5,5,175,55
+    CONTROL         "&Encrypt by default",IDC_SMIMEENCRYPT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,15,70,10
+    CONTROL         "&Sign by default",IDC_SMIMESIGN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,25,60,10
+    CONTROL         "Use &multipart/signed when signinig a message",
+                    IDC_SMIMEMULTIPARTSIGNED,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,35,155,10
+    CONTROL         "&Encrypt a message for myself",IDC_SMIMEENCRYPTFORSELF,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,45,110,10
+    GROUPBOX        "PGP/GnuPG",IDC_STATIC,5,65,175,45
+    CONTROL         "E&ncrypt by default",IDC_PGPENCRYPT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,75,70,10
+    CONTROL         "S&ign by default",IDC_PGPSIGN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,85,60,10
+    CONTROL         "Use PGP/&MIME",IDC_PGPMIME,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,95,60,10
+    DEFPUSHBUTTON   "OK",IDOK,75,115,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,130,115,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1777,6 +1820,25 @@ SYNCFILTERS.XML         PROFILE MOVEABLE PURE   "res\\syncfilters.xml"
 TOOLBAR.BMP             PROFILE MOVEABLE PURE   "res\\toolbar.bmp"
 TOOLBARS.XML            PROFILE MOVEABLE PURE   "res\\toolbars.xml"
 VIEWS.XML               PROFILE MOVEABLE PURE   "res\\views.xml"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_SECURITY, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 178
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 127
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1873,6 +1935,7 @@ BEGIN
     IDS_FILTER_SAVE         "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"
     IDS_FILTER_ATTACHMENT   "All Files (*.*)|*.*||"
     IDS_FILTER_SOUND        "Wave Files (*.wav)|*.wav|All Files (*.*)|*.*||"
+    IDS_FILTER_EXECUTABLE   "Executable Files (*.exe)|*.exe|All Files (*.*)|*.*||"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -2033,17 +2096,18 @@ BEGIN
     IDS_PANEL_AUTOPILOT     "Auto Pilot"
     IDS_PANEL_COLORS        "Colors"
     IDS_PANEL_EDIT          "Edit"
+    IDS_PANEL_EDIT2         "Edit2"
     IDS_PANEL_FILTERS       "Filters"
     IDS_PANEL_FIXEDFORMTEXTS "Texts"
     IDS_PANEL_FOLDER        "Folder"
     IDS_PANEL_GOROUND       "Go Round"
     IDS_PANEL_HEADER        "Header"
     IDS_PANEL_JUNK          "Junk Filter"
-    IDS_PANEL_LIST          "List"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    IDS_PANEL_LIST          "List"
     IDS_PANEL_MESSAGE       "Message"
     IDS_PANEL_MISC          "Misc"
     IDS_PANEL_PREVIEW       "Preview"

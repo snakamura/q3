@@ -14,6 +14,8 @@
 
 #include <qs.h>
 
+#include "message.h"
+
 namespace qm {
 
 class EditMessage;
@@ -65,15 +67,7 @@ public:
 		FIELDTYPE_ADDRESSLIST,
 		FIELDTYPE_REFERENCES
 	};
-	
-	enum Secure {
-		SECURE_SMIMESIGN	= 0x01,
-		SECURE_SMIMEENCRYPT	= 0x02,
-		SECURE_PGPSIGN		= 0x10,
-		SECURE_PGPENCRYPT	= 0x20,
-		SECURE_PGPMIME		= 0x40
-	};
-	
+
 public:
 	struct Attachment
 	{
@@ -141,9 +135,9 @@ public:
 	void setSignature(const WCHAR* pwszSignature);
 	bool isAutoReform() const;
 	void setAutoReform(bool bAutoReform);
-	unsigned int getSecure() const;
-	void setSecure(Secure secure,
-				   bool b);
+	unsigned int getMessageSecurity() const;
+	void setMessageSecurity(MessageSecurity security,
+							bool b);
 
 public:
 	void addEditMessageHandler(EditMessageHandler* pHandler);
@@ -206,7 +200,7 @@ private:
 	qs::wstring_ptr wstrEncoding_;
 	qs::wstring_ptr wstrSignature_;
 	bool bAutoReform_;
-	unsigned int nSecure_;
+	unsigned int nMessageSecurity_;
 	qs::wstring_ptr wstrPreviousURI_;
 	HandlerList listHandler_;
 };

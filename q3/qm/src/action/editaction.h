@@ -39,9 +39,9 @@ class EditToolFlagAction;
 class EditToolInsertSignatureAction;
 class EditToolInsertTextAction;
 class EditToolHeaderEditAction;
+class EditToolMessageSecurityAction;
 class EditToolReformAction;
 class EditToolReformAllAction;
-class EditToolSecureAction;
 class EditToolSelectAddressAction;
 
 class AddressBook;
@@ -632,6 +632,36 @@ private:
 
 /****************************************************************************
  *
+ * EditToolMessageSecurityAction
+ *
+ */
+
+class EditToolMessageSecurityAction : public qs::AbstractAction
+{
+public:
+	EditToolMessageSecurityAction(EditMessageHolder* pEditMessageHolder,
+								  MessageSecurity security,
+								  bool bEnabled);
+	virtual ~EditToolMessageSecurityAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
+
+private:
+	EditToolMessageSecurityAction(const EditToolFlagAction&);
+	EditToolMessageSecurityAction& operator=(const EditToolFlagAction&);
+
+private:
+	EditMessageHolder* pEditMessageHolder_;
+	MessageSecurity security_;
+	bool bEnabled_;
+};
+
+
+/****************************************************************************
+ *
  * EditToolReformAction
  *
  */
@@ -679,36 +709,6 @@ private:
 private:
 	qs::TextWindow* pTextWindow_;
 	qs::Profile* pProfile_;
-};
-
-
-/****************************************************************************
- *
- * EditToolSecureAction
- *
- */
-
-class EditToolSecureAction : public qs::AbstractAction
-{
-public:
-	EditToolSecureAction(EditMessageHolder* pEditMessageHolder,
-						 EditMessage::Secure secure,
-						 bool bEnabled);
-	virtual ~EditToolSecureAction();
-
-public:
-	virtual void invoke(const qs::ActionEvent& event);
-	virtual bool isEnabled(const qs::ActionEvent& event);
-	virtual bool isChecked(const qs::ActionEvent& event);
-
-private:
-	EditToolSecureAction(const EditToolFlagAction&);
-	EditToolSecureAction& operator=(const EditToolFlagAction&);
-
-private:
-	EditMessageHolder* pEditMessageHolder_;
-	EditMessage::Secure secure_;
-	bool bEnabled_;
 };
 
 

@@ -753,10 +753,10 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
 	Account* pAccount = pEditMessage->getAccount();
 	SubAccount* pSubAccount = pEditMessage->getSubAccount();
 	
-	unsigned int nFlags = pEditMessage->getSecure();
+	unsigned int nMessageSecurity = pEditMessage->getMessageSecurity();
 	MessagePtr ptr;
 	if (!composer_.compose(pEditMessage->getAccount(),
-		pEditMessage->getSubAccount(), pMessage.get(), nFlags, &ptr)) {
+		pEditMessage->getSubAccount(), pMessage.get(), nMessageSecurity, &ptr)) {
 		ActionUtil::error(pEditFrameWindow_->getHandle(), IDS_ERROR_SEND);
 		return;
 	}
@@ -1037,6 +1037,44 @@ bool qm::EditToolHeaderEditAction::isChecked(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * EditToolMessageSecurityAction
+ *
+ */
+
+qm::EditToolMessageSecurityAction::EditToolMessageSecurityAction(EditMessageHolder* pEditMessageHolder,
+																 MessageSecurity security,
+																 bool bEnabled) :
+	pEditMessageHolder_(pEditMessageHolder),
+	security_(security),
+	bEnabled_(bEnabled)
+{
+}
+
+qm::EditToolMessageSecurityAction::~EditToolMessageSecurityAction()
+{
+}
+
+void qm::EditToolMessageSecurityAction::invoke(const ActionEvent& event)
+{
+	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
+	pEditMessage->setMessageSecurity(security_,
+		(pEditMessage->getMessageSecurity() & security_) == 0);
+}
+
+bool qm::EditToolMessageSecurityAction::isEnabled(const ActionEvent& event)
+{
+	return bEnabled_;
+}
+
+bool qm::EditToolMessageSecurityAction::isChecked(const ActionEvent& event)
+{
+	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
+	return (pEditMessage->getMessageSecurity() & security_) != 0;
+}
+
+
+/****************************************************************************
+ *
  * EditToolReformAction
  *
  */
@@ -1098,44 +1136,6 @@ void qm::EditToolReformAllAction::invoke(const ActionEvent& event)
 bool qm::EditToolReformAllAction::isEnabled(const ActionEvent& event)
 {
 	return pTextWindow_->hasFocus();
-}
-
-
-/****************************************************************************
- *
- * EditToolSecureAction
- *
- */
-
-qm::EditToolSecureAction::EditToolSecureAction(EditMessageHolder* pEditMessageHolder,
-											   EditMessage::Secure secure,
-											   bool bEnabled) :
-	pEditMessageHolder_(pEditMessageHolder),
-	secure_(secure),
-	bEnabled_(bEnabled)
-{
-}
-
-qm::EditToolSecureAction::~EditToolSecureAction()
-{
-}
-
-void qm::EditToolSecureAction::invoke(const ActionEvent& event)
-{
-	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
-	pEditMessage->setSecure(secure_,
-		(pEditMessage->getSecure() & secure_) == 0);
-}
-
-bool qm::EditToolSecureAction::isEnabled(const ActionEvent& event)
-{
-	return bEnabled_;
-}
-
-bool qm::EditToolSecureAction::isChecked(const ActionEvent& event)
-{
-	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
-	return (pEditMessage->getSecure() & secure_) != 0;
 }
 
 

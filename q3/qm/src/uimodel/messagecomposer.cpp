@@ -22,6 +22,7 @@
 #include "messagecomposer.h"
 #include "securitymodel.h"
 #include "../model/addressbook.h"
+#include "../model/message.h"
 #include "../model/recentaddress.h"
 
 using namespace qm;
@@ -58,7 +59,7 @@ qm::MessageComposer::~MessageComposer()
 bool qm::MessageComposer::compose(Account* pAccount,
 								  SubAccount* pSubAccount,
 								  Message* pMessage,
-								  unsigned int nFlags,
+								  unsigned int nMessageSecurity,
 								  MessagePtr* pptr) const
 {
 	assert(pAccount || pFolderModel_);
@@ -141,9 +142,9 @@ bool qm::MessageComposer::compose(Account* pAccount,
 	if (!pMessage->sortHeader())
 		return false;
 	
-	if (!processSMIME(pMessage, nFlags, pSubAccount))
+	if (!processSMIME(pMessage, nMessageSecurity, pSubAccount))
 		return false;
-	if (!processPGP(pMessage, nFlags, pSubAccount))
+	if (!processPGP(pMessage, nMessageSecurity, pSubAccount))
 		return false;
 	
 	if (!pAccount->appendMessage(static_cast<NormalFolder*>(pFolder), *pMessage,
@@ -174,7 +175,7 @@ bool qm::MessageComposer::compose(Account* pAccount,
 bool qm::MessageComposer::compose(Account* pAccount,
 								  SubAccount* pSubAccount,
 								  const WCHAR* pwszPath,
-								  unsigned int nFlags) const
+								  unsigned int nMessageSecurity) const
 {
 	assert(pwszPath);
 	
@@ -212,7 +213,7 @@ bool qm::MessageComposer::compose(Account* pAccount,
 		if (!pMessage.get())
 			return false;
 		
-		if (!compose(0, 0, pMessage.get(), nFlags, 0))
+		if (!compose(0, 0, pMessage.get(), nMessageSecurity, 0))
 			return false;
 	}
 	
@@ -220,10 +221,11 @@ bool qm::MessageComposer::compose(Account* pAccount,
 }
 
 bool qm::MessageComposer::processSMIME(Message* pMessage,
-									   unsigned int nFlags,
+									   unsigned int nMessageSecurity,
 									   SubAccount* pSubAccount) const
 {
-	if (!(nFlags & FLAG_SMIMESIGN) && !(nFlags & FLAG_SMIMEENCRYPT))
+	if (!(nMessageSecurity & MESSAGESECURITY_SMIMESIGN) &&
+		!(nMessageSecurity & MESSAGESECURITY_SMIMEENCRYPT))
 		return true;
 	
 	const Security* pSecurity = pDocument_->getSecurity();
@@ -231,9 +233,9 @@ bool qm::MessageComposer::processSMIME(Message* pMessage,
 	if (!pSMIMEUtility)
 		return false;
 	
-	if (nFlags & FLAG_SMIMESIGN) {
-		bool bMultipart = (nFlags & FLAG_SMIMEENCRYPT) == 0 &&
-			pProfile_->getInt(L"Security", L"MultipartSigned", 1) != 0;
+	if (nMessageSecurity & MESSAGESECURITY_SMIMESIGN) {
+		bool bMultipart = !(nMessageSecurity & MESSAGESECURITY_SMIMEENCRYPT) &&
+			(nMessageSecurity & MESSAGESECURITY_SMIMEMULTIPARTSIGNED);
 		std::auto_ptr<Certificate> pCertificate(pSubAccount->getCertificate(pPasswordManager_));
 		std::auto_ptr<PrivateKey> pPrivateKey(pSubAccount->getPrivateKey(pPasswordManager_));
 		if (!pCertificate.get() || !pPrivateKey.get())
@@ -245,9 +247,9 @@ bool qm::MessageComposer::processSMIME(Message* pMessage,
 		if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE))
 			return false;
 	}
-	if (nFlags & FLAG_SMIMEENCRYPT) {
+	if (nMessageSecurity & MESSAGESECURITY_SMIMEENCRYPT) {
 		std::auto_ptr<Certificate> pSelfCertificate;
-		if (pProfile_->getInt(L"Security", L"EncryptForSelf", 0))
+		if (nMessageSecurity & MESSAGESECURITY_SMIMEENCRYPTFORSELF)
 			pSelfCertificate = pSubAccount->getCertificate(pPasswordManager_);
 		SMIMECallbackImpl callback(pSecurity, pDocument_->getAddressBook(), pSelfCertificate.get());
 		
@@ -264,10 +266,11 @@ bool qm::MessageComposer::processSMIME(Message* pMessage,
 }
 
 bool qm::MessageComposer::processPGP(Message* pMessage,
-									 unsigned int nFlags,
+									 unsigned int nMessageSecurity,
 									 SubAccount* pSubAccount) const
 {
-	if (!(nFlags & FLAG_PGPSIGN) && !(nFlags & FLAG_PGPENCRYPT))
+	if (!(nMessageSecurity & MESSAGESECURITY_PGPSIGN) &&
+		!(nMessageSecurity & MESSAGESECURITY_PGPENCRYPT))
 		return true;
 	
 	const Security* pSecurity = pDocument_->getSecurity();
@@ -278,15 +281,16 @@ bool qm::MessageComposer::processPGP(Message* pMessage,
 	const WCHAR* pwszUserId = pSubAccount->getSenderAddress();
 	wstring_ptr wstrPassword;
 	PasswordState state = PASSWORDSTATE_ONETIME;
-	if (nFlags & FLAG_PGPSIGN) {
+	if (nMessageSecurity & MESSAGESECURITY_PGPSIGN) {
 		PGPPasswordCondition condition(pwszUserId);
 		wstrPassword = pPasswordManager_->getPassword(condition, false, &state);
 		if (!wstrPassword.get())
 			return false;
 	}
 	
-	bool bMime = (nFlags & FLAG_PGPMIME) != 0;
-	if (nFlags & FLAG_PGPSIGN && nFlags & FLAG_PGPENCRYPT) {
+	bool bMime = (nMessageSecurity & MESSAGESECURITY_PGPMIME) != 0;
+	if (nMessageSecurity & MESSAGESECURITY_PGPSIGN &&
+		nMessageSecurity & MESSAGESECURITY_PGPENCRYPT) {
 		const WCHAR* pwszUserId = pSubAccount->getSenderAddress();
 		xstring_size_ptr strMessage(pPGPUtility->signAndEncrypt(
 			pMessage, bMime, pwszUserId, wstrPassword.get()));
@@ -295,7 +299,7 @@ bool qm::MessageComposer::processPGP(Message* pMessage,
 		if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE))
 			return false;
 	}
-	else if (nFlags & FLAG_PGPSIGN) {
+	else if (nMessageSecurity & MESSAGESECURITY_PGPSIGN) {
 		const WCHAR* pwszUserId = pSubAccount->getSenderAddress();
 		xstring_size_ptr strMessage(pPGPUtility->sign(pMessage,
 			bMime, pwszUserId, wstrPassword.get()));
@@ -304,7 +308,7 @@ bool qm::MessageComposer::processPGP(Message* pMessage,
 		if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE))
 			return false;
 	}
-	else if (nFlags & FLAG_PGPENCRYPT) {
+	else if (nMessageSecurity & MESSAGESECURITY_PGPENCRYPT) {
 		xstring_size_ptr strMessage(pPGPUtility->encrypt(pMessage, bMime));
 		if (!strMessage.get())
 			return false;

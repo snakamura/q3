@@ -48,6 +48,8 @@ class AbstractOptionTextDialog;
 	class OptionEditDialog;
 	class OptionMessageDialog;
 	class OptionPreviewDialog;
+class SecurityDialog;
+class OptionEdit2Dialog;
 #ifdef QMTABWINDOW
 class OptionTabDialog;
 #endif
@@ -116,6 +118,7 @@ public:
 		PANEL_MESSAGE,
 		PANEL_HEADER,
 		PANEL_EDIT,
+		PANEL_EDIT2,
 #ifdef QMTABWINDOW
 		PANEL_TAB,
 #endif
@@ -847,6 +850,93 @@ private:
 
 private:
 	static DialogUtil::BoolProperty boolProperties__[];
+};
+
+
+/****************************************************************************
+ *
+ * SecurityDialog
+ *
+ */
+
+class SecurityDialog : public DefaultDialog
+{
+public:
+	explicit SecurityDialog(unsigned int nMessageSecurity);
+	virtual ~SecurityDialog();
+
+public:
+	unsigned int getMessageSecurity() const;
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	SecurityDialog(const SecurityDialog&);
+	SecurityDialog& operator=(const SecurityDialog&);
+
+private:
+	struct Item
+	{
+		UINT nId_;
+		MessageSecurity security_;
+	};
+
+private:
+	unsigned int nMessageSecurity_;
+
+private:
+	static Item items__[];
+};
+
+
+/****************************************************************************
+ *
+ * OptionEdit2Dialog
+ *
+ */
+
+class OptionEdit2Dialog :
+	public DefaultDialog,
+	public AbstractOptionDialogPanel<OptionEdit2Dialog>
+{
+public:
+	OptionEdit2Dialog(EditFrameWindowManager* pEditFrameWindowManager,
+					  qs::Profile* pProfile);
+	virtual ~OptionEdit2Dialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+public:
+	virtual bool save(OptionDialogContext* pContext);
+
+private:
+	LRESULT onBrowse();
+	LRESULT onSecurity();
+
+private:
+	OptionEdit2Dialog(const OptionEdit2Dialog&);
+	OptionEdit2Dialog& operator=(const OptionEdit2Dialog&);
+
+private:
+	EditFrameWindowManager* pEditFrameWindowManager_;
+	qs::Profile* pProfile_;
+	unsigned int nMessageSecurity_;
+
+private:
+	static DialogUtil::BoolProperty globalBoolProperties__[];
+	static DialogUtil::BoolProperty editBoolProperties__[];
+	static DialogUtil::IntProperty intProperties__[];
 };
 
 

@@ -1630,16 +1630,10 @@ BEGIN
     CONTROL         "&Load certificates from a system store",IDC_SYSTEMSTORE,
                     "Button",BS_AUTOCHECKBOX | BS_TOP | BS_MULTILINE | 
                     WS_TABSTOP,10,10,95,20
-    GROUPBOX        "SSL && S/MIME",IDC_STATIC,5,0,127,35
-    CONTROL         "Use &multipart/signed when sign a message",
-                    IDC_MULTIPARTSIGNED,"Button",BS_AUTOCHECKBOX | BS_TOP | 
-                    BS_MULTILINE | WS_TABSTOP,10,45,95,20
-    CONTROL         "&Encrypt a message for myself",IDC_ENCRYPTFORSELF,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,65,110,8
-    GROUPBOX        "S/MIME",IDC_STATIC,5,35,127,45
+    GROUPBOX        "Certificates",IDC_STATIC,5,0,127,35
     LTEXT           "Warn before opening &attachments with these extensions",
-                    IDC_STATIC,5,85,127,17
-    EDITTEXT        IDC_WARNEXTENSION,5,102,127,12,ES_AUTOHSCROLL
+                    IDC_STATIC,5,40,127,17
+    EDITTEXT        IDC_WARNEXTENSION,5,57,127,12,ES_AUTOHSCROLL
 END
 
 IDD_OPTIONMISC DIALOG DISCARDABLE  0, 0, 137, 119
@@ -1668,6 +1662,47 @@ BEGIN
     LTEXT           "&Log",IDC_STATIC,5,107,25,8
     COMBOBOX        IDC_LOG,50,105,40,60,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
+END
+
+IDD_OPTIONEDIT2 DIALOG DISCARDABLE  0, 0, 137, 119
+STYLE WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Column",IDC_STATIC,10,12,25,8
+    EDITTEXT        IDC_COLUMN,40,10,30,12,ES_AUTOHSCROLL
+    CONTROL         "&Reform automatically",IDC_AUTOREFORM,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,25,80,8
+    GROUPBOX        "Reform",IDC_STATIC,5,0,127,40
+    CONTROL         "&Use an external editor by default",
+                    IDC_USEEXTERNALEDITOR,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,50,115,10
+    LTEXT           "&Editor",IDC_STATIC,10,67,20,8
+    EDITTEXT        IDC_EDITOR,35,65,47,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Browse...",IDC_BROWSE,87,65,40,12
+    CONTROL         "Create a new message after the editor exits",
+                    IDC_AUTOCREATE,"Button",BS_AUTOCHECKBOX | BS_TOP | 
+                    BS_MULTILINE | WS_TABSTOP,10,80,115,17
+    GROUPBOX        "External Editor",IDC_STATIC,5,40,127,60
+    PUSHBUTTON      "&Security...",IDC_SECURITY,92,105,40,12
+END
+
+IDD_SECURITY DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Security"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&Encrypt by default",IDC_SMIMEENCRYPT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,15,70,8
+    CONTROL         "&Sign by default",IDC_SMIMESIGN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,25,60,8
+    CONTROL         "Use &multipart/signed when signinig a message",
+                    IDC_SMIMEMULTIPARTSIGNED,"Button",BS_AUTOCHECKBOX | 
+                    BS_TOP | BS_MULTILINE | WS_TABSTOP,10,35,110,20
+    CONTROL         "&Encrypt a message for myself",IDC_SMIMEENCRYPTFORSELF,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,55,110,8
+    GROUPBOX        "S/MIME",IDC_STATIC,5,5,127,65
+    DEFPUSHBUTTON   "OK",IDOK,27,75,50,12
+    PUSHBUTTON      "Cancel",IDCANCEL,82,75,50,12
 END
 
 
@@ -1953,6 +1988,11 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 146
     END
+
+    IDD_SECURITY, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 134
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -2090,6 +2130,7 @@ BEGIN
     IDS_FILTER_SAVE         "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"
     IDS_FILTER_ATTACHMENT   "All Files (*.*)|*.*||"
     IDS_FILTER_SOUND        "Wave Files (*.wav)|*.wav|All Files (*.*)|*.*||"
+    IDS_FILTER_EXECUTABLE   "Executable Files (*.exe)|*.exe|All Files (*.*)|*.*||"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -2247,16 +2288,17 @@ BEGIN
     IDS_PANEL_AUTOPILOT     "Auto Pilot"
     IDS_PANEL_COLORS        "Colors"
     IDS_PANEL_EDIT          "Edit"
+    IDS_PANEL_EDIT2         "Edit2"
     IDS_PANEL_FILTERS       "Filters"
     IDS_PANEL_FIXEDFORMTEXTS "Texts"
     IDS_PANEL_FOLDER        "Folder"
     IDS_PANEL_GOROUND       "Go Round"
     IDS_PANEL_HEADER        "Header"
-    IDS_PANEL_LIST          "List"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    IDS_PANEL_LIST          "List"
     IDS_PANEL_MESSAGE       "Message"
     IDS_PANEL_MISC          "Misc"
     IDS_PANEL_PREVIEW       "Preview"

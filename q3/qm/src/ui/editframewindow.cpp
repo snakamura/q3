@@ -305,20 +305,20 @@ void qm::EditFrameWindowImpl::initActions()
 	ADD_ACTION1(EditToolHeaderEditAction,
 		IDM_TOOL_HEADEREDIT,
 		pEditWindow_);
-	ADD_ACTION3(EditToolSecureAction,
+	ADD_ACTION3(EditToolMessageSecurityAction,
 		IDM_TOOL_PGPENCRYPT,
 		pEditWindow_->getEditMessageHolder(),
-		EditMessage::SECURE_PGPENCRYPT,
+		MESSAGESECURITY_PGPENCRYPT,
 		Security::isPGPEnabled());
-	ADD_ACTION3(EditToolSecureAction,
+	ADD_ACTION3(EditToolMessageSecurityAction,
 		IDM_TOOL_PGPMIME,
 		pEditWindow_->getEditMessageHolder(),
-		EditMessage::SECURE_PGPMIME,
+		MESSAGESECURITY_PGPMIME,
 		Security::isPGPEnabled());
-	ADD_ACTION3(EditToolSecureAction,
+	ADD_ACTION3(EditToolMessageSecurityAction,
 		IDM_TOOL_PGPSIGN,
 		pEditWindow_->getEditMessageHolder(),
-		EditMessage::SECURE_PGPSIGN,
+		MESSAGESECURITY_PGPSIGN,
 		Security::isPGPEnabled());
 	ADD_ACTION1(EditToolReformAction,
 		IDM_TOOL_REFORM,
@@ -339,15 +339,15 @@ void qm::EditFrameWindowImpl::initActions()
 		pEditWindow_,
 		pDocument_->getAddressBook(),
 		pProfile_);
-	ADD_ACTION3(EditToolSecureAction,
+	ADD_ACTION3(EditToolMessageSecurityAction,
 		IDM_TOOL_SMIMEENCRYPT,
 		pEditWindow_->getEditMessageHolder(),
-		EditMessage::SECURE_SMIMEENCRYPT,
+		MESSAGESECURITY_SMIMEENCRYPT,
 		Security::isSMIMEEnabled());
-	ADD_ACTION3(EditToolSecureAction,
+	ADD_ACTION3(EditToolMessageSecurityAction,
 		IDM_TOOL_SMIMESIGN,
 		pEditWindow_->getEditMessageHolder(),
-		EditMessage::SECURE_SMIMESIGN,
+		MESSAGESECURITY_SMIMESIGN,
 		Security::isSMIMEEnabled());
 	ADD_ACTION_RANGE4(ToolScriptAction,
 		IDM_TOOL_SCRIPT,

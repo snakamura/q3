@@ -19,6 +19,24 @@ namespace qm {
 
 /****************************************************************************
  *
+ * MessageSecurity
+ *
+ */
+
+enum MessageSecurity
+{
+	MESSAGESECURITY_SMIMESIGN				= 0x0001,
+	MESSAGESECURITY_SMIMEENCRYPT			= 0x0002,
+	MESSAGESECURITY_SMIMEMULTIPARTSIGNED	= 0x0010,
+	MESSAGESECURITY_SMIMEENCRYPTFORSELF		= 0x0020,
+	MESSAGESECURITY_PGPSIGN					= 0x0100,
+	MESSAGESECURITY_PGPENCRYPT				= 0x0200,
+	MESSAGESECURITY_PGPMIME					= 0x1000
+};
+
+
+/****************************************************************************
+ *
  * XQMAILAttachmentParser
  *
  */

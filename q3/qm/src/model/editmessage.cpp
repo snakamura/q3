@@ -18,7 +18,6 @@
 #include <algorithm>
 
 #include "editmessage.h"
-#include "message.h"
 #include "signature.h"
 #include "uri.h"
 
@@ -46,10 +45,11 @@ qm::EditMessage::EditMessage(Profile* pProfile,
 	pMessage_(0),
 	pBodyPart_(0),
 	bAutoReform_(true),
-	nSecure_(0)
+	nMessageSecurity_(0)
 {
 	bAutoReform_ = pProfile_->getInt(L"EditWindow", L"AutoReform", 1) != 0;
-	nSecure_ = pProfile_->getInt(L"EditWindow", L"Secure", SECURE_PGPMIME);
+	nMessageSecurity_ = pProfile_->getInt(L"Security",
+		L"DefaultMessageSecurity", MESSAGESECURITY_PGPMIME);
 }
 
 qm::EditMessage::~EditMessage()
@@ -621,18 +621,18 @@ void qm::EditMessage::setAutoReform(bool bAutoReform)
 	bAutoReform_ = bAutoReform;
 }
 
-unsigned int qm::EditMessage::getSecure() const
+unsigned int qm::EditMessage::getMessageSecurity() const
 {
-	return nSecure_;
+	return nMessageSecurity_;
 }
 
-void qm::EditMessage::setSecure(Secure secure,
-								bool b)
+void qm::EditMessage::setMessageSecurity(MessageSecurity security,
+										 bool b)
 {
 	if (b)
-		nSecure_ |= secure;
+		nMessageSecurity_ |= security;
 	else
-		nSecure_ &= ~secure;
+		nMessageSecurity_ &= ~security;
 }
 
 void qm::EditMessage::addEditMessageHandler(EditMessageHandler* pHandler)

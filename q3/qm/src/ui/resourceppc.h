@@ -105,6 +105,8 @@
 #define IDD_TEXTCOLOR                   207
 #define IDD_OPTIONSECURITY              208
 #define IDD_OPTIONMISC                  209
+#define IDD_OPTIONEDIT2                 211
+#define IDD_SECURITY                    212
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -296,6 +298,7 @@
 #define IDC_DOMAIN                      1106
 #define IDS_FILTER_SOUND                1106
 #define IDC_DIALFROM                    1107
+#define IDS_FILTER_EXECUTABLE           1107
 #define IDC_TYPE                        1108
 #define IDC_SYNCWHENOPEN                1109
 #define IDC_CACHEWHENREAD               1110
@@ -460,8 +463,6 @@
 #define IDC_CHOOSELINK                  1354
 #define IDC_WINDOWFONT                  1355
 #define IDC_SYSTEMSTORE                 1356
-#define IDC_MULTIPARTSIGNED             1357
-#define IDC_ENCRYPTFORSELF              1358
 #define IDC_CONFIRMDELETEMESSAGE        1361
 #define IDC_CONFIRMEMPTYFOLDER          1362
 #define IDC_CONFIRMEMPTYTRASH           1363
@@ -473,6 +474,19 @@
 #define IDC_SAVEMESSAGEVIEWMODEPERFOLDER 1372
 #define IDC_VERTICAL                    1373
 #define IDC_HIDEHEADERIFNOFOCUS         1379
+#define IDC_COLUMN                      1380
+#define IDC_AUTOREFORM                  1381
+#define IDC_SMIMEENCRYPT                1383
+#define IDC_SMIMESIGN                   1384
+#define IDC_SMIMEMULTIPARTSIGNED        1385
+#define IDC_SMIMEENCRYPTFORSELF         1386
+#define IDC_PGPENCRYPT                  1387
+#define IDC_PGPSIGN                     1388
+#define IDC_PGPMIME                     1389
+#define IDC_USEEXTERNALEDITOR           1390
+#define IDC_EDITOR                      1391
+#define IDC_AUTOCREATE                  1393
+#define IDC_SECURITY                    1394
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -489,20 +503,21 @@
 #define IDS_PANEL_AUTOPILOT             2502
 #define IDS_PANEL_COLORS                2503
 #define IDS_PANEL_EDIT                  2504
-#define IDS_PANEL_FILTERS               2505
-#define IDS_PANEL_FIXEDFORMTEXTS        2506
-#define IDS_PANEL_FOLDER                2507
-#define IDS_PANEL_GOROUND               2508
-#define IDS_PANEL_HEADER                2509
-#define IDS_PANEL_LIST                  2511
-#define IDS_PANEL_MESSAGE               2512
-#define IDS_PANEL_MISC                  2513
-#define IDS_PANEL_PREVIEW               2514
-#define IDS_PANEL_RULES                 2515
-#define IDS_PANEL_SECURITY              2516
-#define IDS_PANEL_SIGNATURES            2517
-#define IDS_PANEL_SYNCFILTERS           2518
-#define IDS_PANEL_TAB                   2519
+#define IDS_PANEL_EDIT2                 2505
+#define IDS_PANEL_FILTERS               2506
+#define IDS_PANEL_FIXEDFORMTEXTS        2507
+#define IDS_PANEL_FOLDER                2508
+#define IDS_PANEL_GOROUND               2509
+#define IDS_PANEL_HEADER                2510
+#define IDS_PANEL_LIST                  2512
+#define IDS_PANEL_MESSAGE               2513
+#define IDS_PANEL_MISC                  2514
+#define IDS_PANEL_PREVIEW               2515
+#define IDS_PANEL_RULES                 2516
+#define IDS_PANEL_SECURITY              2517
+#define IDS_PANEL_SIGNATURES            2518
+#define IDS_PANEL_SYNCFILTERS           2519
+#define IDS_PANEL_TAB                   2520
 #define IDS_ERROR_CREATEFOLDER          10000
 #define IDS_ERROR_EXECUTEATTACHMENT     10001
 #define IDS_ERROR_DIALUP                10002
@@ -561,9 +576,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        209
+#define _APS_NEXT_RESOURCE_VALUE        213
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1380
+#define _APS_NEXT_CONTROL_VALUE         1395
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -41,15 +41,6 @@ class SubAccount;
 class MessageComposer
 {
 public:
-	enum Flag {
-		FLAG_SMIMESIGN		= 0x01,
-		FLAG_SMIMEENCRYPT	= 0x02,
-		FLAG_PGPSIGN		= 0x10,
-		FLAG_PGPENCRYPT		= 0x20,
-		FLAG_PGPMIME		= 0x40
-	};
-
-public:
 	MessageComposer(bool bDraft,
 					Document* pDocument,
 					PasswordManager* pPasswordManager,
@@ -63,19 +54,19 @@ public:
 	bool compose(Account* pAccount,
 				 SubAccount* pSubAccount,
 				 Message* pMessage,
-				 unsigned int nFlags,
+				 unsigned int nMessageSecurity,
 				 MessagePtr* pptr) const;
 	bool compose(Account* pAccount,
 				 SubAccount* pSubAccount,
 				 const WCHAR* pwszPath,
-				 unsigned int nFlags) const;
+				 unsigned int nMessageSecurity) const;
 
 private:
 	bool processSMIME(Message* pMessage,
-					  unsigned int nFlags,
+					  unsigned int nMessageSecurity,
 					  SubAccount* pSubAccount) const;
 	bool processPGP(Message* pMessage,
-					unsigned int nFlags,
+					unsigned int nMessageSecurity,
 					SubAccount* pSubAccount) const;
 
 private:

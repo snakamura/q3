@@ -182,6 +182,7 @@ LRESULT qm::OptionDialog::onInitDialog(HWND hwndFocus,
 		{ PANEL_MESSAGE,		IDS_PANEL_MESSAGE			},
 		{ PANEL_HEADER,			IDS_PANEL_HEADER			},
 		{ PANEL_EDIT,			IDS_PANEL_EDIT				},
+		{ PANEL_EDIT2,			IDS_PANEL_EDIT2				},
 #ifdef QMTABWINDOW
 		{ PANEL_TAB,			IDS_PANEL_TAB				},
 #endif
@@ -442,6 +443,7 @@ void qm::OptionDialog::setCurrentPanel(Panel panel,
 			PANEL2(PANEL_MESSAGE, OptionMessage, pMessageFrameWindowManager_, pProfile_);
 			PANEL3(PANEL_HEADER, OptionHeader, pMessageFrameWindowManager_, pPreviewWindow_, pProfile_);
 			PANEL2(PANEL_EDIT, OptionEdit, pEditFrameWindowManager_, pProfile_);
+			PANEL2(PANEL_EDIT2, OptionEdit2, pEditFrameWindowManager_, pProfile_);
 #ifdef QMTABWINDOW
 			PANEL2(PANEL_TAB, OptionTab, pTabWindow_, pProfile_);
 #endif
@@ -1343,8 +1345,6 @@ LRESULT qm::OptionMiscDialog::onBrowse()
 
 DialogUtil::BoolProperty qm::OptionSecurityDialog::boolProperties__[] = {
 	{ L"LoadSystemStore",	IDC_SYSTEMSTORE,		true	},
-	{ L"MultipartSigned",	IDC_MULTIPARTSIGNED,	true	},
-	{ L"EncryptForSelf",	IDC_ENCRYPTFORSELF,		true	}
 };
 
 qm::OptionSecurityDialog::OptionSecurityDialog(Security* pSecurity,
@@ -1372,10 +1372,6 @@ LRESULT qm::OptionSecurityDialog::onInitDialog(HWND hwndFocus,
 	
 	if (!Security::isSSLEnabled() && !Security::isSMIMEEnabled())
 		Window(getDlgItem(IDC_SYSTEMSTORE)).enableWindow(false);
-	if (!Security::isSMIMEEnabled()) {
-		Window(getDlgItem(IDC_MULTIPARTSIGNED)).enableWindow(false);
-		Window(getDlgItem(IDC_ENCRYPTFORSELF)).enableWindow(false);
-	}
 #ifndef _WIN32_WCE
 	if (!Security::isPGPEnabled()) {
 		Window(getDlgItem(IDC_PGP)).enableWindow(false);
@@ -1873,6 +1869,176 @@ bool qm::OptionEditDialog::save(OptionDialogContext* pContext)
 LRESULT qm::OptionEditDialog::onHeaderFont()
 {
 	qs::UIUtil::browseFont(getParentPopup(), &lfHeader_);
+	return 0;
+}
+
+
+/****************************************************************************
+ *
+ * SecurityDialog
+ *
+ */
+
+SecurityDialog::Item qm::SecurityDialog::items__[] = {
+	{ IDC_SMIMEENCRYPT,			MESSAGESECURITY_SMIMEENCRYPT			},
+	{ IDC_SMIMESIGN,			MESSAGESECURITY_SMIMESIGN				},
+	{ IDC_SMIMEMULTIPARTSIGNED,	MESSAGESECURITY_SMIMEMULTIPARTSIGNED	},
+	{ IDC_SMIMEENCRYPTFORSELF,	MESSAGESECURITY_SMIMEENCRYPTFORSELF		},
+#ifndef _WIN32_WCE
+	{ IDC_PGPENCRYPT,			MESSAGESECURITY_PGPENCRYPT				},
+	{ IDC_PGPSIGN,				MESSAGESECURITY_PGPSIGN					},
+	{ IDC_PGPMIME,				MESSAGESECURITY_PGPMIME					}
+#endif
+};
+
+qm::SecurityDialog::SecurityDialog(unsigned int nMessageSecurity) :
+	DefaultDialog(IDD_SECURITY),
+	nMessageSecurity_(nMessageSecurity)
+{
+}
+
+qm::SecurityDialog::~SecurityDialog()
+{
+}
+
+unsigned int qm::SecurityDialog::getMessageSecurity() const
+{
+	return nMessageSecurity_;
+}
+
+LRESULT qm::SecurityDialog::onInitDialog(HWND hwndFocus,
+										 LPARAM lParam)
+{
+	for (int n = 0; n < countof(items__); ++n) {
+		if (nMessageSecurity_ & items__[n].security_)
+			sendDlgItemMessage(items__[n].nId_, BM_SETCHECK, BST_CHECKED);
+	}
+	
+	if (!Security::isSMIMEEnabled()) {
+		for (UINT n = IDC_SMIMEENCRYPT; n <= IDC_SMIMEENCRYPTFORSELF; ++n)
+			Window(getDlgItem(n)).enableWindow(false);
+	}
+	
+#ifndef _WIN32_WCE
+	if (!Security::isPGPEnabled()) {
+		for (UINT n = IDC_PGPENCRYPT; n <= IDC_PGPMIME; ++n)
+			Window(getDlgItem(n)).enableWindow(false);
+	}
+#endif
+	
+	init(false);
+	
+	return TRUE;
+}
+
+LRESULT qm::SecurityDialog::onOk()
+{
+	unsigned int nMessageSecurity = 0;
+	for (int n = 0; n < countof(items__); ++n) {
+		if (sendDlgItemMessage(items__[n].nId_, BM_GETCHECK) == BST_CHECKED)
+			nMessageSecurity |= items__[n].security_;
+	}
+	nMessageSecurity_ = nMessageSecurity;
+	
+	return DefaultDialog::onOk();
+}
+
+
+/****************************************************************************
+ *
+ * OptionEdit2Dialog
+ *
+ */
+
+DialogUtil::BoolProperty qm::OptionEdit2Dialog::globalBoolProperties__[] = {
+	{ L"UseExternalEditor",			IDC_USEEXTERNALEDITOR,		false	},
+	{ L"ExternalEditorAutoCreate",	IDC_AUTOCREATE,				true	}
+};
+
+DialogUtil::BoolProperty qm::OptionEdit2Dialog::editBoolProperties__[] = {
+	{ L"AutoReform",	IDC_AUTOREFORM,		true	}
+};
+
+DialogUtil::IntProperty qm::OptionEdit2Dialog::intProperties__[] = {
+	{ L"ReformLineLength",	IDC_COLUMN,	74	}
+};
+
+qm::OptionEdit2Dialog::OptionEdit2Dialog(EditFrameWindowManager* pEditFrameWindowManager,
+										 Profile* pProfile) :
+	DefaultDialog(IDD_OPTIONEDIT2),
+	pEditFrameWindowManager_(pEditFrameWindowManager),
+	pProfile_(pProfile),
+	nMessageSecurity_(0)
+{
+	nMessageSecurity_ = pProfile_->getInt(L"Security",
+		L"DefaultMessageSecurity", MESSAGESECURITY_PGPMIME);
+}
+
+qm::OptionEdit2Dialog::~OptionEdit2Dialog()
+{
+}
+
+LRESULT qm::OptionEdit2Dialog::onCommand(WORD nCode,
+										 WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_BROWSE, onBrowse)
+		HANDLE_COMMAND_ID(IDC_SECURITY, onSecurity)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::OptionEdit2Dialog::onInitDialog(HWND hwndFocus,
+											LPARAM lParam)
+{
+	DialogUtil::loadBoolProperties(this, pProfile_,
+		L"Global", globalBoolProperties__, countof(globalBoolProperties__));
+	DialogUtil::loadBoolProperties(this, pProfile_,
+		L"EditWindow", editBoolProperties__, countof(editBoolProperties__));
+	DialogUtil::loadIntProperties(this, pProfile_,
+		L"EditWindow", intProperties__, countof(intProperties__));
+	
+	wstring_ptr wstrEditor(pProfile_->getString(L"Global", L"Editor", L"notepad.exe"));
+	setDlgItemText(IDC_EDITOR, wstrEditor.get());
+	
+	return FALSE;
+}
+
+bool qm::OptionEdit2Dialog::save(OptionDialogContext* pContext)
+{
+	DialogUtil::saveBoolProperties(this, pProfile_,
+		L"Global", globalBoolProperties__, countof(globalBoolProperties__));
+	DialogUtil::saveBoolProperties(this, pProfile_,
+		L"EditWindow", editBoolProperties__, countof(editBoolProperties__));
+	DialogUtil::saveIntProperties(this, pProfile_,
+		L"EditWindow", intProperties__, countof(intProperties__));
+	
+	wstring_ptr wstrEditor(getDlgItemText(IDC_EDITOR));
+	pProfile_->setString(L"Global", L"Editor", wstrEditor.get());
+	
+	pProfile_->setInt(L"Security", L"DefaultMessageSecurity", nMessageSecurity_);
+	
+	return true;
+}
+
+LRESULT qm::OptionEdit2Dialog::onBrowse()
+{
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	wstring_ptr wstrFilter(loadString(hInst, IDS_FILTER_EXECUTABLE));
+	
+	FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
+		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES);
+	if (dialog.doModal(getHandle()) == IDOK)
+		setDlgItemText(IDC_EDITOR, dialog.getPath());
+	
+	return 0;
+}
+
+LRESULT qm::OptionEdit2Dialog::onSecurity()
+{
+	SecurityDialog dialog(nMessageSecurity_);
+	if (dialog.doModal(getParentPopup()) == IDOK)
+		nMessageSecurity_ = dialog.getMessageSecurity();
 	return 0;
 }
 
@@ -2998,7 +3164,6 @@ LRESULT qm::AutoPilotDialog::onBrowse()
 	
 	FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
 		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES);
-	
 	if (dialog.doModal(getHandle()) == IDOK)
 		setDlgItemText(IDC_SOUND, dialog.getPath());
 	
