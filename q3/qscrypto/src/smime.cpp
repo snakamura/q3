@@ -425,10 +425,7 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::createMessage(const CHAR* pszConten
 														   size_t nLen,
 														   const Part& part)
 {
-	BMFindString<STRING> bmfs("\r\n\r\n");
-	const CHAR* pBody = bmfs.find(pszContent, nLen);
-	if (pBody)
-		pBody += 4;
+	const CHAR* pBody = Part::getBody(pszContent, nLen);
 	size_t nHeaderLen = pBody ? pBody - pszContent : nLen;
 	size_t nBodyLen = pBody ? pszContent + nLen - pBody : 0;
 	
