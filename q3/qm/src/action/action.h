@@ -2104,8 +2104,7 @@ public:
 
 private:
 	std::pair<ViewModel*, unsigned int> getNextUnseen(ViewModel* pViewModel,
-													  unsigned int nIndex,
-													  bool bIncludeSelf) const;
+													  unsigned int nIndex) const;
 
 private:
 	ViewNavigateMessageAction(const ViewNavigateMessageAction&);

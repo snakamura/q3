@@ -3986,7 +3986,7 @@ void qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 		case TYPE_NEXTUNSEEN:
 			{
 				std::pair<ViewModel*, unsigned int> unseen(
-					getNextUnseen(pViewModel, nIndex, false));
+					getNextUnseen(pViewModel, nIndex + 1));
 				pNewViewModel = unseen.first;
 				nIndex = unseen.second;
 			}
@@ -4034,30 +4034,34 @@ bool qm::ViewNavigateMessageAction::isEnabled(const ActionEvent& event)
 }
 
 std::pair<ViewModel*, unsigned int> qm::ViewNavigateMessageAction::getNextUnseen(ViewModel* pViewModel,
-																				unsigned int nIndex,
-																				bool bIncludeSelf) const
+																				unsigned int nIndex) const
 {
 	std::pair<ViewModel*, unsigned int> unseen(pViewModel, -1);
 	
 	Lock<ViewModel> lock(*pViewModel);
 	
 	unsigned int nStart = nIndex;
+	bool bFound = false;
 	if (nIndex != -1) {
 		unsigned int nCount = pViewModel->getCount();
-		for (bIncludeSelf ? 0 : ++nIndex; nIndex < nCount; ++nIndex) {
+		for (; nIndex < nCount; ++nIndex) {
 			MessageHolder* pmh = pViewModel->getMessageHolder(nIndex);
-			if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
+			if (!pmh->isFlag(MessageHolder::FLAG_SEEN)) {
+				bFound = true;
 				break;
+			}
 		}
-		if (nIndex == nCount) {
+		if (!bFound) {
 			for (nIndex = 0; nIndex < nStart; ++nIndex) {
 				MessageHolder* pmh = pViewModel->getMessageHolder(nIndex);
-				if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
+				if (!pmh->isFlag(MessageHolder::FLAG_SEEN)) {
+					bFound = true;
 					break;
+				}
 			}
 		}
 	}
-	if (!bIncludeSelf && nIndex == nStart) {
+	if (!bFound) {
 		Folder* pFolder = pViewModel->getFolder();
 		Account* pAccount = pFolder->getAccount();
 		const Account::FolderList& l = pAccount->getFolders();
@@ -4089,7 +4093,7 @@ std::pair<ViewModel*, unsigned int> qm::ViewNavigateMessageAction::getNextUnseen
 		
 		if (pUnseenFolder) {
 			pViewModel = pViewModelManager_->getViewModel(pUnseenFolder);
-			unseen = getNextUnseen(pViewModel, pViewModel->getFocused(), true);
+			unseen = getNextUnseen(pViewModel, pViewModel->getFocused());
 		}
 	}
 	else {
