@@ -43,6 +43,7 @@ public:
 	void uninitialize();
 	void run();
 	bool save();
+	void startShutdown();
 	
 	HINSTANCE getResourceHandle() const;
 	HINSTANCE getAtlHandle() const;

@@ -1341,10 +1341,12 @@ bool qm::FileExitAction::exit(bool bDestroy)
 	
 	{
 		WaitCursor cursor;
-		if (!Application::getApplication().save()) {
+		Application& app = Application::getApplication();
+		if (!app.save()) {
 			ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
 			return false;
 		}
+		app.startShutdown();
 		pDocument_->setOffline(true);
 		pSyncManager_->dispose();
 	}

@@ -135,6 +135,7 @@ public:
 	std::auto_ptr<UIManager> pUIManager_;
 	MainWindow* pMainWindow_;
 	HINSTANCE hInstAtl_;
+	bool bShutdown_;
 	
 	static Application* pApplication__;
 };
@@ -482,6 +483,7 @@ qm::Application::Application(HINSTANCE hInst,
 	pImpl_->wstrProfileName_ = wstrProfile;
 	pImpl_->pMainWindow_ = 0;
 	pImpl_->hInstAtl_ = 0;
+	pImpl_->bShutdown_ = false;
 	
 	assert(!ApplicationImpl::pApplication__);
 	ApplicationImpl::pApplication__ = this;
@@ -791,6 +793,9 @@ void qm::Application::run()
 
 bool qm::Application::save()
 {
+	if (pImpl_->bShutdown_)
+		return true;
+	
 	if (!pImpl_->pDocument_->save())
 		return false;
 	if (!pImpl_->pPasswordManager_->save())
@@ -807,6 +812,11 @@ bool qm::Application::save()
 	if (!pImpl_->pUIManager_->save())
 		return false;
 	return true;
+}
+
+void qm::Application::startShutdown()
+{
+	pImpl_->bShutdown_ = true;
 }
 
 HINSTANCE qm::Application::getResourceHandle() const

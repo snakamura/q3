@@ -223,6 +223,7 @@ public:
 	bool bVirticalFolderWindow_;
 	bool bShowPreviewWindow_;
 	int nListWindowHeight_;
+	bool bSaveOnDeactivate_;
 	
 	Profile* pProfile_;
 	Document* pDocument_;
@@ -1625,6 +1626,7 @@ qm::MainWindow::MainWindow(Profile* pProfile) :
 	pImpl_->bVirticalFolderWindow_ = pProfile->getInt(L"MainWindow", L"VirticalFolderWindow", 0) != 0;
 	pImpl_->bShowPreviewWindow_ = pProfile->getInt(L"MainWindow", L"ShowPreviewWindow", 1) != 0;
 	pImpl_->nListWindowHeight_ = pProfile->getInt(L"MainWindow", L"ListWindowHeight", 200);
+	pImpl_->bSaveOnDeactivate_ = pProfile->getInt(L"MainWindow", L"SaveOnDeactivate", 0) != 0;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pDocument_ = 0;
 	pImpl_->pUIManager_ = 0;
@@ -1942,6 +1944,17 @@ LRESULT qm::MainWindow::onActivate(UINT nFlags,
 	
 	if (nFlags == WA_INACTIVE) {
 		pImpl_->hwndLastFocused_ = ::GetFocus();
+		
+		if (pImpl_->bSaveOnDeactivate_) {
+			bool bSave = true;
+			if (hwnd) {
+				DWORD dwId = 0;
+				::GetWindowThreadProcessId(hwnd, &dwId);
+				bSave = dwId != ::GetCurrentProcessId();
+			}
+			if (bSave)
+				Application::getApplication().save();
+		}
 	}
 	else {
 		HWND hwndFocus = pImpl_->hwndLastFocused_;
