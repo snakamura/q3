@@ -277,8 +277,8 @@ LRESULT qm::FolderListWindowImpl::onItemChanged(NMHDR* pnmhdr,
 		if (pnmlv->iItem != -1 &&
 			(pnmlv->uOldState & 0x3000) != (pnmlv->uNewState & 0x3000)) {
 			Folder* pFolder = getFolder(pnmlv->iItem);
-			pFolder->getAccount()->showFolder(pFolder,
-				(pnmlv->uNewState & 0x1000) == 0);
+			unsigned int nFlags = (pnmlv->uNewState & 0x1000) == 0 ? 0 : Folder::FLAG_HIDE;
+			pFolder->getAccount()->setFolderFlags(pFolder, nFlags, Folder::FLAG_HIDE);
 		}
 	}
 	

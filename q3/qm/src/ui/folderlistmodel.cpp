@@ -96,8 +96,10 @@ void qm::FolderListModel::folderListChanged(const FolderListChangedEvent& event)
 	case FolderListChangedEvent::TYPE_RENAME:
 		fireFolderListChanged();
 		break;
-	case FolderListChangedEvent::TYPE_SHOW:
-	case FolderListChangedEvent::TYPE_HIDE:
+	case FolderListChangedEvent::TYPE_FLAGS:
+		if ((event.getOldFlags() & Folder::FLAG_BOX_MASK) !=
+			(event.getNewFlags() & Folder::FLAG_BOX_MASK))
+			fireFolderListChanged();
 		break;
 	default:
 		assert(false);

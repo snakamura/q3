@@ -233,13 +233,6 @@ bool qm::Folder::isFlag(Flag flag) const
 	return (pImpl_->nFlags_ & flag) != 0;
 }
 
-void qm::Folder::setFlags(unsigned int nFlags,
-						  unsigned int nMask)
-{
-	pImpl_->nFlags_ &= ~nMask;
-	pImpl_->nFlags_ |= nFlags & nMask;
-}
-
 Folder* qm::Folder::getParentFolder() const
 {
 	return pImpl_->pParentFolder_;
@@ -309,6 +302,13 @@ void qm::Folder::removeFolderHandler(FolderHandler* pHandler)
 void qm::Folder::setName(const WCHAR* pwszName)
 {
 	pImpl_->wstrName_ = allocWString(pwszName);
+}
+
+void qm::Folder::setFlags(unsigned int nFlags,
+						  unsigned int nMask)
+{
+	pImpl_->nFlags_ &= ~nMask;
+	pImpl_->nFlags_ |= nFlags & nMask;
 }
 
 FolderImpl* qm::Folder::getImpl() const

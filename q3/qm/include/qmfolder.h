@@ -94,8 +94,6 @@ public:
 	WCHAR getSeparator() const;
 	unsigned int getFlags() const;
 	bool isFlag(Flag flag) const;
-	void setFlags(unsigned int nFlags,
-				  unsigned int nMask);
 	Folder* getParentFolder() const;
 	bool isAncestorOf(const Folder* pFolder) const;
 	bool isHidden() const;
@@ -108,6 +106,8 @@ public:
 // These methods are intended to be called from Account class.
 public:
 	void setName(const WCHAR* pwszName);
+	void setFlags(unsigned int nFlags,
+				  unsigned int nMask);
 
 // These methods are intended to be called from impl classes.
 public:

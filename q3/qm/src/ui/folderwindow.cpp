@@ -352,10 +352,12 @@ void qm::FolderWindowImpl::folderListChanged(const FolderListChangedEvent& event
 		// TODO
 		refreshFolderList(event.getAccount());
 		break;
-	case FolderListChangedEvent::TYPE_SHOW:
-	case FolderListChangedEvent::TYPE_HIDE:
-		// TODO
-		refreshFolderList(event.getAccount());
+	case FolderListChangedEvent::TYPE_FLAGS:
+		if ((event.getOldFlags() & (Folder::FLAG_HIDE | Folder::FLAG_BOX_MASK)) !=
+			(event.getNewFlags() & (Folder::FLAG_HIDE | Folder::FLAG_BOX_MASK))) {
+			// TODO
+			refreshFolderList(event.getAccount());
+		}
 		break;
 	default:
 		assert(false);

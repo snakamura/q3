@@ -1455,7 +1455,7 @@ Folder* qmimap4::FolderListGetter::getFolder(const WCHAR* pwszName,
 			// TODO
 			// What happen if this folder is local folder or
 			// this folder is query folder
-			pFolder->setFlags(nFlags, ~Folder::FLAG_USER_MASK);
+			pAccount_->setFolderFlags(pFolder, nFlags, ~Folder::FLAG_USER_MASK);
 		}
 		else {
 			std::auto_ptr<NormalFolder> pNormalFolder(new NormalFolder(

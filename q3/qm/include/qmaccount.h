@@ -137,8 +137,9 @@ public:
 	bool removeFolder(Folder* pFolder);
 	bool renameFolder(Folder* pFolder,
 					  const WCHAR* pwszName);
-	void showFolder(Folder* pFolder,
-					bool bShow);
+	void setFolderFlags(Folder* pFolder,
+						unsigned int nFlags,
+						unsigned int nMask);
 	bool updateFolders();
 	
 	void setOffline(bool bOffline);
@@ -440,20 +441,26 @@ public:
 		TYPE_ADD,
 		TYPE_REMOVE,
 		TYPE_RENAME,
-		TYPE_SHOW,
-		TYPE_HIDE
+		TYPE_FLAGS
 	};
 
 public:
 	FolderListChangedEvent(Account* pAccount,
 						   Type type,
 						   Folder* pFolder);
+	FolderListChangedEvent(Account* pAccount,
+						   Type type,
+						   Folder* pFolder,
+						   unsigned int nOldFlags,
+						   unsigned int nNewFlags);
 	~FolderListChangedEvent();
 
 public:
 	Account* getAccount() const;
 	Type getType() const;
 	Folder* getFolder() const;
+	unsigned int getOldFlags() const;
+	unsigned int getNewFlags() const;
 
 private:
 	FolderListChangedEvent(const FolderListChangedEvent&);
@@ -463,6 +470,8 @@ private:
 	Account* pAccount_;
 	Type type_;
 	Folder* pFolder_;
+	unsigned int nOldFlags_;
+	unsigned int nNewFlags_;
 };
 
 }

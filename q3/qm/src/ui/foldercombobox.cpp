@@ -260,10 +260,12 @@ void qm::FolderComboBoxImpl::folderListChanged(const FolderListChangedEvent& eve
 		// TODO
 		refreshFolderList(event.getAccount(), bDropDown);
 		break;
-	case FolderListChangedEvent::TYPE_SHOW:
-	case FolderListChangedEvent::TYPE_HIDE:
-		// TODO
-		refreshFolderList(event.getAccount(), bDropDown);
+	case FolderListChangedEvent::TYPE_FLAGS:
+		if ((event.getOldFlags() & (Folder::FLAG_HIDE | Folder::FLAG_BOX_MASK)) !=
+			(event.getNewFlags() & (Folder::FLAG_HIDE | Folder::FLAG_BOX_MASK))) {
+			// TODO
+			refreshFolderList(event.getAccount(), bDropDown);
+		}
 		break;
 	default:
 		assert(false);

@@ -1826,7 +1826,7 @@ void qm::FolderPropertyAction::openProperty(const Account::FolderList& listFolde
 				nMask &= ~(Folder::FLAG_INBOX | Folder::FLAG_OUTBOX |
 					Folder::FLAG_SENTBOX | Folder::FLAG_DRAFTBOX | Folder::FLAG_TRASHBOX);
 			
-			pFolder->setFlags(nFlags, nMask);
+			pFolder->getAccount()->setFolderFlags(pFolder, nFlags, nMask);
 		}
 		
 		if (pQueryFolder)
