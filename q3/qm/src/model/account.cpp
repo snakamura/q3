@@ -1104,6 +1104,8 @@ NormalFolder* qm::Account::createNormalFolder(const WCHAR* pwszName,
 			pwszName, pParent ? pParent->getSeparator() : L'/',
 			nFlags, 0, 0, 0, 0, 0, pParent, this));
 	}
+	if (!pNormalFolder.get())
+		return 0;
 	
 	pImpl_->listFolder_.push_back(pNormalFolder.get());
 	NormalFolder* pFolder = pNormalFolder.release();

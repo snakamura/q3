@@ -95,7 +95,7 @@ std::auto_ptr<NormalFolder> qmimap4::Imap4Driver::createFolder(SubAccount* pSubA
 	wstring_ptr wstrRootFolder(pAccount_->getProperty(L"Imap4", L"RootFolder", L""));
 	
 	if (!prepareSessionCache(pSubAccount))
-		return false;
+		return 0;
 	
 	SessionCacher cacher(pSessionCache_.get(), 0);
 	Imap4* pImap4 = cacher.get();
@@ -131,7 +131,7 @@ std::auto_ptr<NormalFolder> qmimap4::Imap4Driver::createFolder(SubAccount* pSubA
 	}
 	
 	if (!pImap4->create(wstrFullName.get()))
-		return false;
+		return 0;
 	
 	wstring_ptr wstrName;
 	size_t nFullNameLen = wcslen(wstrFullName.get());
@@ -177,9 +177,9 @@ std::auto_ptr<NormalFolder> qmimap4::Imap4Driver::createFolder(SubAccount* pSubA
 	
 	Hook h(pCallback_.get(), &hook);
 	if (!pImap4->list(false, L"", wstrFullName.get()))
-		return false;
+		return 0;
 	if (!hook.bFound_)
-		return false;
+		return 0;
 	
 	cacher.release();
 	
