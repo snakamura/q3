@@ -26,6 +26,7 @@
 #include "dialogs.h"
 #include "propertypages.h"
 #include "resourceinc.h"
+#include "uimanager.h"
 #include "uiutil.h"
 #include "../model/addressbook.h"
 #include "../model/fixedformtext.h"
@@ -3574,4 +3575,483 @@ LRESULT qm::SelectSyncFilterDialog::onOk()
 	pwszName_ = list_[nItem]->getName();
 	
 	return DefaultDialog::onOk();
+}
+
+
+/****************************************************************************
+ *
+ * ViewsColumnDialog
+ *
+ */
+
+qm::ViewsColumnDialog::ViewsColumnDialog(ViewColumn* pColumn) :
+	DefaultDialog(IDD_VIEWSCOLUMN),
+	pColumn_(pColumn)
+{
+}
+
+qm::ViewsColumnDialog::~ViewsColumnDialog()
+{
+}
+
+LRESULT qm::ViewsColumnDialog::onCommand(WORD nCode,
+										 WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID_CODE(IDC_TYPE, CBN_SELCHANGE, onTypeSelChange)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::ViewsColumnDialog::onInitDialog(HWND hwndFocus,
+											LPARAM lParam)
+{
+	init(false);
+	
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	
+	setDlgItemText(IDC_TITLE, pColumn_->getTitle());
+	
+	UINT nTypes[] = {
+		IDS_COLUMNTYPE_ID,
+		IDS_COLUMNTYPE_DATE,
+		IDS_COLUMNTYPE_FROM,
+		IDS_COLUMNTYPE_TO,
+		IDS_COLUMNTYPE_FROMTO,
+		IDS_COLUMNTYPE_SUBJECT,
+		IDS_COLUMNTYPE_SIZE,
+		IDS_COLUMNTYPE_FLAGS,
+		IDS_COLUMNTYPE_OTHER
+	};
+	for (int n = 0; n < countof(nTypes); ++n) {
+		wstring_ptr wstrType(loadString(hInst, nTypes[n]));
+		W2T(wstrType.get(), ptszType);
+		sendDlgItemMessage(IDC_TYPE, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(ptszType));
+	}
+	sendDlgItemMessage(IDC_TYPE, CB_SETCURSEL, pColumn_->getType() - 1);
+	
+	setDlgItemInt(IDC_WIDTH, pColumn_->getWidth());
+	
+	if (pColumn_->getType() == ViewColumn::TYPE_OTHER) {
+		wstring_ptr wstrMacro(pColumn_->getMacro()->getString());
+		setDlgItemText(IDC_MACRO, wstrMacro.get());
+	}
+	
+	unsigned int nFlags = pColumn_->getFlags();
+	if (nFlags & ViewColumn::FLAG_INDENT)
+		sendDlgItemMessage(IDC_INDENT, BM_SETCHECK, BST_CHECKED);
+	if (nFlags & ViewColumn::FLAG_LINE)
+		sendDlgItemMessage(IDC_LINE, BM_SETCHECK, BST_CHECKED);
+	if (nFlags & ViewColumn::FLAG_ICON)
+		sendDlgItemMessage(IDC_ASICON, BM_SETCHECK, BST_CHECKED);
+	
+	if (nFlags & ViewColumn::FLAG_RIGHTALIGN)
+		sendDlgItemMessage(IDC_RIGHTALIGN, BM_SETCHECK, BST_CHECKED);
+	else
+		sendDlgItemMessage(IDC_LEFTALIGN, BM_SETCHECK, BST_CHECKED);
+	
+	switch (nFlags & ViewColumn::FLAG_SORT_MASK) {
+	case ViewColumn::FLAG_SORT_TEXT:
+		sendDlgItemMessage(IDC_SORTTEXT, BM_SETCHECK, BST_CHECKED);
+		break;
+	case ViewColumn::FLAG_SORT_NUMBER:
+		sendDlgItemMessage(IDC_SORTNUMBER, BM_SETCHECK, BST_CHECKED);
+		break;
+	case ViewColumn::FLAG_SORT_DATE:
+		sendDlgItemMessage(IDC_SORTDATE, BM_SETCHECK, BST_CHECKED);
+		break;
+	default:
+		sendDlgItemMessage(IDC_SORTTEXT, BM_SETCHECK, BST_CHECKED);
+		break;
+	}
+	
+	updateState();
+	
+	return TRUE;
+}
+
+LRESULT qm::ViewsColumnDialog::onOk()
+{
+	wstring_ptr wstrTitle(getDlgItemText(IDC_TITLE));
+	ViewColumn::Type type = static_cast<ViewColumn::Type>(
+		sendDlgItemMessage(IDC_TYPE, CB_GETCURSEL) + 1);
+	std::auto_ptr<Macro> pMacro;
+	if (type == ViewColumn::TYPE_OTHER) {
+		wstring_ptr wstrMacro(getDlgItemText(IDC_MACRO));
+		pMacro = MacroParser(MacroParser::TYPE_COLUMN).parse(wstrMacro.get());
+		if (!pMacro.get()) {
+			HINSTANCE hInst = Application::getApplication().getResourceHandle();
+			messageBox(hInst, IDS_ERROR_INVALIDMACRO, MB_OK | MB_ICONERROR, getHandle());
+			return 0;
+		}
+	}
+	
+	unsigned int nWidth = getDlgItemInt(IDC_WIDTH);
+	
+	unsigned int nFlags = 0;
+	if (sendDlgItemMessage(IDC_INDENT, BM_GETCHECK) == BST_CHECKED)
+		nFlags |= ViewColumn::FLAG_INDENT;
+	if (sendDlgItemMessage(IDC_LINE, BM_GETCHECK) == BST_CHECKED)
+		nFlags |= ViewColumn::FLAG_LINE;
+	if (sendDlgItemMessage(IDC_ASICON, BM_GETCHECK) == BST_CHECKED)
+		nFlags |= ViewColumn::FLAG_ICON;
+	if (sendDlgItemMessage(IDC_RIGHTALIGN, BM_GETCHECK) == BST_CHECKED)
+		nFlags |= ViewColumn::FLAG_RIGHTALIGN;
+	if (sendDlgItemMessage(IDC_SORTNUMBER, BM_GETCHECK) == BST_CHECKED)
+		nFlags |= ViewColumn::FLAG_SORT_NUMBER;
+	else if (sendDlgItemMessage(IDC_SORTDATE, BM_GETCHECK) == BST_CHECKED)
+		nFlags |= ViewColumn::FLAG_SORT_DATE;
+	else
+		nFlags |= ViewColumn::FLAG_SORT_TEXT;
+	
+	pColumn_->set(wstrTitle.get(), type, pMacro, nFlags, nWidth);
+	
+	return DefaultDialog::onOk();
+}
+
+LRESULT qm::ViewsColumnDialog::onTypeSelChange()
+{
+	updateState();
+	return 0;
+}
+
+void qm::ViewsColumnDialog::updateState()
+{
+	bool bEnableMacro = sendDlgItemMessage(IDC_TYPE, CB_GETCURSEL) ==
+		sendDlgItemMessage(IDC_TYPE, CB_GETCOUNT) - 1;
+	Window(getDlgItem(IDC_MACRO)).enableWindow(bEnableMacro);
+}
+
+
+/****************************************************************************
+ *
+ * ViewsDialog
+ *
+ */
+
+qm::ViewsDialog::ViewsDialog(UIManager* pUIManager,
+							 ViewModelManager* pViewModelManager,
+							 ViewModel* pViewModel) :
+	DefaultDialog(IDD_VIEWS),
+	pUIManager_(pUIManager),
+	pViewModelManager_(pViewModelManager),
+	pViewModel_(pViewModel)
+{
+	const ViewColumnList& listColumn = pViewModel->getColumns();
+	listColumn_.reserve(listColumn.size());
+	for (ViewColumnList::const_iterator it = listColumn.begin(); it != listColumn.end(); ++it) {
+		std::auto_ptr<ViewColumn> pColumn((*it)->clone());
+		listColumn_.push_back(pColumn.release());
+	}
+}
+
+qm::ViewsDialog::~ViewsDialog()
+{
+	std::for_each(listColumn_.begin(), listColumn_.end(), deleter<ViewColumn>());
+}
+
+LRESULT qm::ViewsDialog::onCommand(WORD nCode,
+								   WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_ADD, onAdd)
+		HANDLE_COMMAND_ID(IDC_REMOVE, onRemove)
+		HANDLE_COMMAND_ID(IDC_EDIT, onEdit)
+		HANDLE_COMMAND_ID(IDC_UP, onUp)
+		HANDLE_COMMAND_ID(IDC_DOWN, onDown)
+		HANDLE_COMMAND_ID(IDC_ASDEFAULT, onAsDefault)
+		HANDLE_COMMAND_ID(IDC_APPLYDEFAULT, onApplyDefault)
+		HANDLE_COMMAND_ID(IDC_INHERIT, onInherit)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::ViewsDialog::onNotify(NMHDR* pnmhdr,
+								  bool* pbHandled)
+{
+	BEGIN_NOTIFY_HANDLER()
+		HANDLE_NOTIFY(LVN_ITEMCHANGED, IDC_COLUMNS, onColumnsItemChanged)
+	END_NOTIFY_HANDLER()
+	return 1;
+}
+
+LRESULT qm::ViewsDialog::onDestroy()
+{
+	removeNotifyHandler(this);
+	return DefaultDialog::onDestroy();
+}
+
+LRESULT qm::ViewsDialog::onInitDialog(HWND hwndFocus,
+									  LPARAM lParam)
+{
+	init(false);
+	
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	
+	HWND hwndList = getDlgItem(IDC_COLUMNS);
+	ListView_SetExtendedListViewStyle(hwndList, LVS_EX_FULLROWSELECT);
+	
+	struct {
+		UINT nId_;
+		int nWidth_;
+	} columns[] = {
+#ifndef _WIN32_WCE_PSPC
+		{ IDS_TITLE,	150	},
+		{ IDS_TYPE,		150	},
+		{ IDS_WIDTH,	50	}
+#else
+		{ IDS_TITLE,	80	},
+		{ IDS_TYPE,		80	},
+		{ IDS_WIDTH,	30	}
+#endif
+	};
+	for (int n = 0; n < countof(columns); ++n) {
+		wstring_ptr wstrColumn(loadString(hInst, columns[n].nId_));
+		W2T(wstrColumn.get(), ptszColumn);
+		
+		LVCOLUMN column = {
+			LVCF_FMT | LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM,
+			LVCFMT_LEFT,
+			columns[n].nWidth_,
+			const_cast<LPTSTR>(ptszColumn),
+			0,
+			n,
+		};
+		ListView_InsertColumn(hwndList, n, &column);
+	}
+	
+	update();
+	updateState();
+	addNotifyHandler(this);
+	
+	return TRUE;
+}
+
+LRESULT qm::ViewsDialog::onOk()
+{
+	pViewModel_->setColumns(listColumn_);
+	listColumn_.clear();
+	return DefaultDialog::onOk();
+}
+
+LRESULT qm::ViewsDialog::onAdd()
+{
+	HWND hwndList = getDlgItem(IDC_COLUMNS);
+	
+	std::auto_ptr<Macro> pMacro;
+	std::auto_ptr<ViewColumn> pColumn(new ViewColumn(L"New Column",
+		ViewColumn::TYPE_ID, pMacro, ViewColumn::FLAG_SORT_TEXT, 100));
+	ViewsColumnDialog dialog(pColumn.get());
+	if (dialog.doModal(getHandle()) == IDOK) {
+		listColumn_.push_back(pColumn.get());
+		pColumn.release();
+		update();
+		ListView_SetItemState(hwndList, ListView_GetItemCount(hwndList) - 1,
+			LVIS_FOCUSED | LVIS_SELECTED, LVIS_FOCUSED | LVIS_SELECTED);
+	}
+	return 0;
+}
+
+LRESULT qm::ViewsDialog::onRemove()
+{
+	HWND hwndList = getDlgItem(IDC_COLUMNS);
+	if (ListView_GetItemCount(hwndList) > 1) {
+		int nItem = ListView_GetNextItem(hwndList, -1, LVNI_ALL | LVNI_SELECTED);
+		if (nItem != -1) {
+			ViewColumnList::iterator it = listColumn_.begin() + nItem;
+			delete *it;
+			listColumn_.erase(it);
+			update();
+			ListView_SetItemState(hwndList, nItem,
+				LVIS_FOCUSED | LVIS_SELECTED, LVIS_FOCUSED | LVIS_SELECTED);
+		}
+	}
+	return 0;
+}
+
+LRESULT qm::ViewsDialog::onEdit()
+{
+	HWND hwndList = getDlgItem(IDC_COLUMNS);
+	int nItem = ListView_GetNextItem(hwndList, -1, LVNI_ALL | LVNI_SELECTED);
+	if (nItem != -1) {
+		LVITEM item = {
+			LVIF_PARAM,
+			nItem
+		};
+		ListView_GetItem(hwndList, &item);
+		ViewColumn* pColumn = reinterpret_cast<ViewColumn*>(item.lParam);
+		
+		ViewsColumnDialog dialog(pColumn);
+		if (dialog.doModal(getHandle()) == IDOK) {
+			update();
+			ListView_SetItemState(hwndList, nItem,
+				LVIS_FOCUSED | LVIS_SELECTED, LVIS_FOCUSED | LVIS_SELECTED);
+		}
+	}
+	
+	return 0;
+}
+
+LRESULT qm::ViewsDialog::onUp()
+{
+	HWND hwndList = getDlgItem(IDC_COLUMNS);
+	int nItem = ListView_GetNextItem(hwndList, -1, LVNI_ALL | LVNI_SELECTED);
+	if (nItem != -1 && nItem != 0) {
+		std::swap(listColumn_[nItem - 1], listColumn_[nItem]);
+		update();
+		ListView_SetItemState(hwndList, nItem - 1,
+			LVIS_FOCUSED | LVIS_SELECTED, LVIS_FOCUSED | LVIS_SELECTED);
+	}
+	return 0;
+}
+
+LRESULT qm::ViewsDialog::onDown()
+{
+	HWND hwndList = getDlgItem(IDC_COLUMNS);
+	int nItem = ListView_GetNextItem(hwndList, -1, LVNI_ALL | LVNI_SELECTED);
+	if (nItem != -1 && nItem != ListView_GetItemCount(hwndList) - 1) {
+		std::swap(listColumn_[nItem + 1], listColumn_[nItem]);
+		update();
+		ListView_SetItemState(hwndList, nItem + 1,
+			LVIS_FOCUSED | LVIS_SELECTED, LVIS_FOCUSED | LVIS_SELECTED);
+	}
+	return 0;
+}
+
+LRESULT qm::ViewsDialog::onAsDefault()
+{
+	ViewDataItem* pItem = pUIManager_->getDefaultViewDataItem();
+	ViewColumnList listColumn;
+	cloneColumns(listColumn_, &listColumn);
+	pItem->setColumns(listColumn);
+	return 0;
+}
+
+LRESULT qm::ViewsDialog::onApplyDefault()
+{
+	ViewDataItem* pItem = pUIManager_->getDefaultViewDataItem();
+	setColumns(pItem->getColumns());
+	update();
+	return 0;
+}
+
+LRESULT qm::ViewsDialog::onInherit()
+{
+	Folder* pFolder = pViewModel_->getFolder()->getParentFolder();
+	if (pFolder) {
+		ViewModel* pViewModel = pViewModelManager_->getViewModel(pFolder);
+		setColumns(pViewModel->getColumns());
+		update();
+	}
+	return 0;
+}
+
+LRESULT qm::ViewsDialog::onColumnsItemChanged(NMHDR* pnmhdr,
+											  bool* pbHandled)
+{
+	updateState();
+	*pbHandled = true;
+	return 0;
+}
+
+void qm::ViewsDialog::update()
+{
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	HWND hwndList = getDlgItem(IDC_COLUMNS);
+	
+	DisableRedraw disable(hwndList);
+	
+	ListView_DeleteAllItems(hwndList);
+	
+	UINT nTypes[] = {
+		0,
+		IDS_COLUMNTYPE_ID,
+		IDS_COLUMNTYPE_DATE,
+		IDS_COLUMNTYPE_FROM,
+		IDS_COLUMNTYPE_TO,
+		IDS_COLUMNTYPE_FROMTO,
+		IDS_COLUMNTYPE_SUBJECT,
+		IDS_COLUMNTYPE_SIZE,
+		IDS_COLUMNTYPE_FLAGS,
+		IDS_COLUMNTYPE_OTHER
+	};
+	
+	for (ViewColumnList::size_type n = 0; n < listColumn_.size(); ++n) {
+		ViewColumn* pColumn = listColumn_[n];
+		
+		W2T(pColumn->getTitle(), ptszTitle);
+		
+		LVITEM item = {
+			LVIF_TEXT | LVIF_PARAM,
+			n,
+			0,
+			0,
+			0,
+			const_cast<LPTSTR>(ptszTitle),
+			0,
+			0,
+			reinterpret_cast<LPARAM>(pColumn)
+		};
+		ListView_InsertItem(hwndList, &item);
+		
+		wstring_ptr wstrType(loadString(hInst, nTypes[pColumn->getType()]));
+		W2T(wstrType.get(), ptszType);
+		ListView_SetItemText(hwndList, n, 1, const_cast<LPTSTR>(ptszType));
+		
+		WCHAR wszWidth[32];
+		swprintf(wszWidth, L"%u", pColumn->getWidth());
+		W2T(wszWidth, ptszWidth);
+		ListView_SetItemText(hwndList, n, 2, const_cast<LPTSTR>(ptszWidth));
+	}
+}
+
+void qm::ViewsDialog::updateState()
+{
+	struct {
+		UINT nId_;
+		bool bEnable_;
+	} items[] = {
+		{ IDC_REMOVE,	true	},
+		{ IDC_EDIT,		true	},
+		{ IDC_UP,		true	},
+		{ IDC_DOWN,		true	}
+	};
+	
+	HWND hwndList = getDlgItem(IDC_COLUMNS);
+	int nItem = ListView_GetNextItem(hwndList, -1, LVNI_ALL | LVNI_SELECTED);
+	if (nItem == -1) {
+		for (int n = 0; n < countof(items); ++n)
+			items[n].bEnable_ = false;
+	}
+	else if (nItem == 0) {
+		items[2].bEnable_ = false;
+	}
+	else if (nItem == ListView_GetItemCount(hwndList) - 1) {
+		items[3].bEnable_ = false;
+	}
+	
+	for (int n = 0; n < countof(items); ++n)
+		Window(getDlgItem(items[n].nId_)).enableWindow(items[n].bEnable_);
+	
+	Window(getDlgItem(IDC_INHERIT)).enableWindow(pViewModel_->getFolder()->getParentFolder() != 0);
+}
+
+void qm::ViewsDialog::setColumns(const ViewColumnList& listColumn)
+{
+	std::for_each(listColumn_.begin(), listColumn_.end(), deleter<ViewColumn>());
+	listColumn_.clear();
+	cloneColumns(listColumn, &listColumn_);
+}
+
+void qm::ViewsDialog::cloneColumns(const ViewColumnList& listColumn,
+								   ViewColumnList* pListColumn)
+{
+	assert(pListColumn);
+	assert(pListColumn->empty());
+	
+	pListColumn->reserve(listColumn.size());
+	for (ViewColumnList::const_iterator it = listColumn.begin(); it != listColumn.end(); ++it) {
+		std::auto_ptr<ViewColumn> pColumn((*it)->clone());
+		pListColumn->push_back(pColumn.release());
+	}
 }

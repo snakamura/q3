@@ -199,6 +199,41 @@ bool qm::AttachmentSaveAction::isEnabled(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * ConfigViewsAction
+ *
+ */
+
+qm::ConfigViewsAction::ConfigViewsAction(UIManager* pUIManager,
+										 ViewModelManager* pViewModelManager,
+										 HWND hwnd) :
+	pUIManager_(pUIManager),
+	pViewModelManager_(pViewModelManager),
+	hwnd_(hwnd)
+{
+}
+
+qm::ConfigViewsAction::~ConfigViewsAction()
+{
+}
+
+void qm::ConfigViewsAction::invoke(const qs::ActionEvent& event)
+{
+	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
+	if (!pViewModel)
+		return;
+	
+	ViewsDialog dialog(pUIManager_, pViewModelManager_, pViewModel);
+	dialog.doModal(hwnd_);
+}
+
+bool qm::ConfigViewsAction::isEnabled(const qs::ActionEvent& event)
+{
+	return pViewModelManager_->getCurrentViewModel() != 0;
+}
+
+
+/****************************************************************************
+ *
  * DispatchAction
  *
  */

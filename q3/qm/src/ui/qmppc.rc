@@ -761,6 +761,63 @@ BEGIN
                     WS_TABSTOP,5,90,50,10
 END
 
+IDD_VIEWSCOLUMN DIALOG DISCARDABLE  0, 0, 139, 190
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Column"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    LTEXT           "&Title",IDC_STATIC,5,8,20,8
+    EDITTEXT        IDC_TITLE,30,5,95,14,ES_AUTOHSCROLL
+    LTEXT           "T&ype",IDC_STATIC,5,23,25,8
+    COMBOBOX        IDC_TYPE,30,20,95,65,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "&Width",IDC_STATIC,5,39,20,8
+    EDITTEXT        IDC_WIDTH,30,35,45,14,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "&Macro",IDC_STATIC,5,53,25,8
+    EDITTEXT        IDC_MACRO,30,50,95,14,ES_AUTOHSCROLL
+    CONTROL         "&Indent",IDC_INDENT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,80,50,10
+    CONTROL         "Draw &Line",IDC_LINE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,90,50,10
+    CONTROL         "As I&con",IDC_ASICON,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,100,50,10
+    GROUPBOX        "Flag",IDC_STATIC,5,70,65,45
+    CONTROL         "Le&ft",IDC_LEFTALIGN,"Button",BS_AUTORADIOBUTTON,10,125,
+                    27,10
+    CONTROL         "&Right",IDC_RIGHTALIGN,"Button",BS_AUTORADIOBUTTON,10,
+                    135,31,10
+    GROUPBOX        "Alignment",IDC_STATIC,5,115,65,35
+    CONTROL         "Te&xt",IDC_SORTTEXT,"Button",BS_AUTORADIOBUTTON,75,80,
+                    29,10
+    CONTROL         "&Number",IDC_SORTNUMBER,"Button",BS_AUTORADIOBUTTON,75,
+                    90,38,10
+    CONTROL         "&Date",IDC_SORTDATE,"Button",BS_AUTORADIOBUTTON,75,100,
+                    30,10
+    GROUPBOX        "Sort",IDC_STATIC,70,70,65,45
+    DEFPUSHBUTTON   "OK",IDOK,35,155,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,85,155,50,14
+END
+
+IDD_VIEWS DIALOG DISCARDABLE  0, 0, 139, 189
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Customize View"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    CONTROL         "List1",IDC_COLUMNS,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | 
+                    WS_BORDER | WS_TABSTOP,5,5,130,80
+    PUSHBUTTON      "&Add",IDC_ADD,5,90,40,14
+    PUSHBUTTON      "&Remove",IDC_REMOVE,50,90,40,14
+    PUSHBUTTON      "&Edit",IDC_EDIT,95,90,40,14
+    PUSHBUTTON      "&Up",IDC_UP,5,105,40,14
+    PUSHBUTTON      "&Down",IDC_DOWN,50,105,40,14
+    PUSHBUTTON      "&Save as Default",IDC_ASDEFAULT,70,125,65,14
+    PUSHBUTTON      "Appl&y Default",IDC_APPLYDEFAULT,5,141,65,14
+    PUSHBUTTON      "&Inherit from Parent",IDC_INHERIT,70,141,65,14
+    DEFPUSHBUTTON   "OK",IDOK,30,161,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,85,161,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -977,6 +1034,11 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 182
     END
+
+    IDD_VIEWSCOLUMN, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 120
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -1159,6 +1221,8 @@ BEGIN
     IDS_LOAD                "Loading messages..."
     IDS_CHECK               "Checking messages..."
     IDS_IGNORECHECKERROR    "Error occured while checking the cache.\nDo you want to ignore it and remove this message?\nFolder: %s\nID: %u\nOffset: %u\nLength: %u"
+    IDS_TITLE               "Title"
+    IDS_TYPE                "Type"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1198,6 +1262,25 @@ BEGIN
     IDS_ERROR_DUMP          "Error occured while dumping messages."
     IDS_ERROR_LOAD          "Error occured while loading messages."
     IDS_ERROR_CHECK         "Error occured while checking messages."
+    IDS_ERROR_INVALIDMACRO  "Error occured while parsing the macro."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_COLUMNTYPE_ID       "ID"
+    IDS_COLUMNTYPE_DATE     "Date"
+    IDS_COLUMNTYPE_FROM     "From"
+    IDS_COLUMNTYPE_TO       "To"
+    IDS_COLUMNTYPE_FROMTO   "From / To"
+    IDS_COLUMNTYPE_SUBJECT  "Subject"
+    IDS_COLUMNTYPE_SIZE     "Size"
+    IDS_COLUMNTYPE_FLAGS    "Flags"
+    IDS_COLUMNTYPE_OTHER    "Other"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_WIDTH               "Width"
 END
 
 #endif    // Japanese resources

@@ -17,6 +17,7 @@
 #include <qsdialog.h>
 #include <qsprofile.h>
 
+#include "viewmodel.h"
 #include "../model/addressbook.h"
 #include "../model/editmessage.h"
 
@@ -45,9 +46,12 @@ class DefaultDialog;
 	class ReplaceDialog;
 	class SelectDialupEntryDialog;
 	class SelectSyncFilterDialog;
+	class ViewsColumnDialog;
+	class ViewsDialog;
 
 class FixedFormText;
 class FixedFormTextManager;
+class UIManager;
 
 
 /****************************************************************************
@@ -1196,6 +1200,107 @@ private:
 private:
 	SyncFilterManager::FilterSetList list_;
 	const WCHAR* pwszName_;
+};
+
+
+/****************************************************************************
+ *
+ * ViewsColumnDialog
+ *
+ */
+
+class ViewsColumnDialog : public DefaultDialog
+{
+public:
+	explicit ViewsColumnDialog(ViewColumn* pColumn);
+	virtual ~ViewsColumnDialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	LRESULT onTypeSelChange();
+
+private:
+	void updateState();
+
+private:
+	ViewsColumnDialog(const ViewsColumnDialog&);
+	ViewsColumnDialog& operator=(const ViewsColumnDialog&);
+
+private:
+	ViewColumn* pColumn_;
+};
+
+
+/****************************************************************************
+ *
+ * ViewsDialog
+ *
+ */
+
+class ViewsDialog :
+	public DefaultDialog,
+	public qs::NotifyHandler
+{
+public:
+	ViewsDialog(UIManager* pUIManager,
+				ViewModelManager* pViewModelManager,
+				ViewModel* pViewModel);
+	virtual ~ViewsDialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+public:
+	virtual LRESULT onNotify(NMHDR* pnmhdr,
+							 bool* pbHandled);
+
+protected:
+	virtual LRESULT onDestroy();
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	LRESULT onAdd();
+	LRESULT onRemove();
+	LRESULT onEdit();
+	LRESULT onUp();
+	LRESULT onDown();
+	LRESULT onAsDefault();
+	LRESULT onApplyDefault();
+	LRESULT onInherit();
+	LRESULT onColumnsItemChanged(NMHDR* pnmhdr,
+								 bool* pbHandled);
+
+private:
+	void update();
+	void updateState();
+	void setColumns(const ViewColumnList& listColumn);
+	void cloneColumns(const ViewColumnList& listColumn,
+					  ViewColumnList* pListColumn);
+
+private:
+	ViewsDialog(const ViewsDialog&);
+	ViewsDialog& operator=(const ViewsDialog&);
+
+private:
+	UIManager* pUIManager_;
+	ViewModelManager* pViewModelManager_;
+	ViewModel* pViewModel_;
+	ViewColumnList listColumn_;
 };
 
 }

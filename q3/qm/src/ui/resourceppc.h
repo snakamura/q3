@@ -52,6 +52,8 @@
 #define IDD_RENAME                      152
 #define IDD_MACROSEARCH                 153
 #define IDD_FOLDERCONDITION             155
+#define IDD_VIEWS                       157
+#define IDD_VIEWSCOLUMN                 158
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -178,9 +180,12 @@
 #define IDS_IGNORECHECKERROR            1069
 #define IDC_SENDHOST                    1070
 #define IDC_SENDAUTHENTICATE            1070
+#define IDS_TITLE                       1070
 #define IDC_RECEIVEUSERNAME             1071
+#define IDS_TYPE                        1071
 #define IDC_RECEIVEPASSWORD             1072
 #define IDC_IDENTITY                    1072
+#define IDS_WIDTH                       1072
 #define IDC_SENDUSERNAME                1073
 #define IDC_MYADDRESS                   1073
 #define IDC_SENDPASSWORD                1074
@@ -246,6 +251,32 @@
 #define IDC_FILTER                      1134
 #define IDC_FILTERLABEL                 1135
 #define IDC_REGEX                       1136
+#define IDC_COLUMNS                     1138
+#define IDC_EDIT                        1141
+#define IDC_UP                          1142
+#define IDC_DOWN                        1143
+#define IDC_TITLE                       1144
+#define IDC_INDENT                      1147
+#define IDC_LINE                        1148
+#define IDC_ASICON                      1150
+#define IDC_LEFTALIGN                   1151
+#define IDC_RIGHTALIGN                  1152
+#define IDC_SORTTEXT                    1153
+#define IDC_SORTNUMBER                  1154
+#define IDC_SORTDATE                    1155
+#define IDC_WIDTH                       1156
+#define IDC_ASDEFAULT                   1157
+#define IDC_APPLYDEFAULT                1158
+#define IDC_INHERIT                     1159
+#define IDS_COLUMNTYPE_ID               1200
+#define IDS_COLUMNTYPE_DATE             1201
+#define IDS_COLUMNTYPE_FROM             1202
+#define IDS_COLUMNTYPE_TO               1203
+#define IDS_COLUMNTYPE_FROMTO           1204
+#define IDS_COLUMNTYPE_SUBJECT          1205
+#define IDS_COLUMNTYPE_SIZE             1206
+#define IDS_COLUMNTYPE_FLAGS            1207
+#define IDS_COLUMNTYPE_OTHER            1208
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -300,6 +331,7 @@
 #define IDS_ERROR_DUMP                  10044
 #define IDS_ERROR_LOAD                  10045
 #define IDS_ERROR_CHECK                 10046
+#define IDS_ERROR_INVALIDMACRO          10047
 #define IDM_EDIT_CLEARDELETED           40001
 #define IDM_EDIT_COPY                   40002
 #define IDM_EDIT_CUT                    40003
@@ -466,14 +498,15 @@
 #define IDM_ATTACHMENT_SAVEALL          48003
 #define IDM_ATTACHMENTEDIT_ADD          49001
 #define IDM_ATTACHMENTEDIT_DELETE       49002
+#define IDM_CONFIG_VIEWS                50001
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        157
+#define _APS_NEXT_RESOURCE_VALUE        159
 #define _APS_NEXT_COMMAND_VALUE         48000
-#define _APS_NEXT_CONTROL_VALUE         1137
+#define _APS_NEXT_CONTROL_VALUE         1160
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

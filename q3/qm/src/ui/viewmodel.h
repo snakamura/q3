@@ -10,6 +10,7 @@
 #define __VIEWMODEL_H__
 
 #include <qm.h>
+#include <qmaccount.h>
 #include <qmfolder.h>
 #include <qmmacro.h>
 
@@ -49,6 +50,7 @@ class Folder;
 class MessageHolder;
 class Macro;
 class SecurityModel;
+class UIManager;
 
 
 /****************************************************************************
@@ -99,9 +101,16 @@ public:
 	const Macro* getMacro() const;
 	unsigned int getFlags() const;
 	bool isFlag(Flag flag) const;
-	void setFlags(unsigned int nFlags);
 	unsigned int getWidth() const;
 	void setWidth(unsigned int nWidth);
+	void set(const WCHAR* pwszTitle,
+			 Type type,
+			 std::auto_ptr<Macro> pMacro,
+			 unsigned int nFlags,
+			 unsigned int nWidth);
+	std::auto_ptr<ViewColumn> clone() const;
+
+public:
 	qs::wstring_ptr getText(const ViewModel* pViewModel,
 							MessageHolder* pmh) const;
 	unsigned int getNumber(const ViewModel* pViewModel,
@@ -144,6 +153,7 @@ public:
 	virtual void itemAttentionPaid(const ViewModelEvent& event) = 0;
 	virtual void updated(const ViewModelEvent& event) = 0;
 	virtual void sorted(const ViewModelEvent& event) = 0;
+	virtual void columnChanged(const ViewModelEvent& event) = 0;
 	virtual void destroyed(const ViewModelEvent& event) = 0;
 };
 
@@ -240,6 +250,7 @@ public:
 	Folder* getFolder() const;
 	
 	const ViewColumnList& getColumns() const;
+	void setColumns(const ViewColumnList& listColumn);
 	unsigned int getColumnCount() const;
 	const ViewColumn& getColumn(unsigned int n) const;
 	ViewColumn& getColumn(unsigned int n);
@@ -321,6 +332,7 @@ private:
 	void fireItemAttentionPaid(unsigned int nItem) const;
 	void fireUpdated() const;
 	void fireSorted() const;
+	void fireColumnChanged() const;
 	void fireDestroyed() const;
 	void fireEvent(const ViewModelEvent& event,
 				   void (ViewModelHandler::*pfn)(const ViewModelEvent&)) const;
@@ -398,6 +410,7 @@ public:
 	virtual void itemAttentionPaid(const ViewModelEvent& event);
 	virtual void updated(const ViewModelEvent& event);
 	virtual void sorted(const ViewModelEvent& event);
+	virtual void columnChanged(const ViewModelEvent& event);
 	virtual void destroyed(const ViewModelEvent& event);
 };
 
@@ -479,8 +492,9 @@ public:
 	typedef std::vector<ViewModel*> ViewModelList;
 
 public:
-	ViewModelManager(qs::Profile* pProfile,
+	ViewModelManager(UIManager* pUIManager,
 					 Document* pDocument,
+					 qs::Profile* pProfile,
 					 HWND hwnd,
 					 SecurityModel* pSecurityModel);
 	~ViewModelManager();
@@ -526,8 +540,9 @@ private:
 	typedef std::vector<std::pair<Account*, ViewData*> > ViewDataMap;
 
 private:
-	qs::Profile* pProfile_;
+	UIManager* pUIManager_;
 	Document* pDocument_;
+	qs::Profile* pProfile_;
 	HWND hwnd_;
 	SecurityModel* pSecurityModel_;
 	Account* pCurrentAccount_;
@@ -662,7 +677,8 @@ public:
 	typedef std::vector<ViewDataItem*> ItemList;
 
 public:
-	ViewData(const WCHAR* pwszPath);
+	ViewData(UIManager* pUIManager,
+			 const WCHAR* pwszPath);
 	~ViewData();
 
 public:
@@ -674,7 +690,7 @@ public:
 	void addItem(std::auto_ptr<ViewDataItem> pItem);
 	void removeItem(unsigned int nFolderId);
 
-private:
+public:
 	static std::auto_ptr<ViewDataItem> createDefaultItem(unsigned int nFolderId);
 
 private:
@@ -682,6 +698,7 @@ private:
 	ViewData& operator=(const ViewData&);
 
 private:
+	UIManager* pUIManager_;
 	qs::wstring_ptr wstrPath_;
 	ItemList listItem_;
 };
@@ -702,11 +719,15 @@ public:
 public:
 	unsigned int getFolderId() const;
 	const ViewColumnList& getColumns() const;
+	void setColumns(const ViewColumnList& listColumn);
 	void addColumn(std::auto_ptr<ViewColumn> pColumn);
 	unsigned int getFocus() const;
 	void setFocus(unsigned int nFocus);
 	unsigned int getSort() const;
 	void setSort(unsigned int nSort);
+
+public:
+	std::auto_ptr<ViewDataItem> clone(unsigned int nFolderId) const;
 
 private:
 	ViewDataItem(const ViewDataItem&);

@@ -783,6 +783,65 @@ BEGIN
                     WS_TABSTOP,50,50,45,10
 END
 
+IDD_VIEWS DIALOGEX 0, 0, 279, 185
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Customize View"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN", 0, 0, 0x1
+BEGIN
+    CONTROL         "List1",IDC_COLUMNS,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | 
+                    WS_BORDER | WS_TABSTOP,5,5,215,110,WS_EX_CLIENTEDGE
+    PUSHBUTTON      "&Add",IDC_ADD,225,5,50,14
+    PUSHBUTTON      "&Remove",IDC_REMOVE,225,20,50,14
+    PUSHBUTTON      "&Edit",IDC_EDIT,225,35,50,14
+    PUSHBUTTON      "&Up",IDC_UP,225,60,50,14
+    PUSHBUTTON      "&Down",IDC_DOWN,225,75,50,14
+    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME | SS_SUNKEN,5,126,
+                    270,1
+    PUSHBUTTON      "&Save as Default",IDC_ASDEFAULT,70,135,65,14
+    PUSHBUTTON      "Appl&y Default",IDC_APPLYDEFAULT,140,135,65,14
+    PUSHBUTTON      "&Inherit from Parent",IDC_INHERIT,210,135,65,14
+    DEFPUSHBUTTON   "OK",IDOK,170,160,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,225,160,50,14
+END
+
+IDD_VIEWSCOLUMN DIALOG DISCARDABLE  0, 0, 214, 140
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Column"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    LTEXT           "&Title",IDC_STATIC,5,8,20,8
+    EDITTEXT        IDC_TITLE,30,5,175,14,ES_AUTOHSCROLL
+    LTEXT           "T&ype",IDC_STATIC,5,28,25,8
+    COMBOBOX        IDC_TYPE,30,25,95,65,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "&Width",IDC_STATIC,135,28,20,8
+    EDITTEXT        IDC_WIDTH,160,25,45,14,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "&Macro",IDC_STATIC,5,48,25,8
+    EDITTEXT        IDC_MACRO,30,45,175,14,ES_AUTOHSCROLL
+    GROUPBOX        "Flag",IDC_STATIC,5,65,65,45
+    CONTROL         "&Indent",IDC_INDENT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,75,50,10
+    CONTROL         "Draw &Line",IDC_LINE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,85,50,10
+    CONTROL         "As I&con",IDC_ASICON,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,95,50,10
+    GROUPBOX        "Alignment",IDC_STATIC,75,65,65,45
+    CONTROL         "Le&ft",IDC_LEFTALIGN,"Button",BS_AUTORADIOBUTTON,80,75,
+                    27,10
+    CONTROL         "&Right",IDC_RIGHTALIGN,"Button",BS_AUTORADIOBUTTON,80,
+                    85,31,10
+    GROUPBOX        "Sort",IDC_STATIC,145,65,65,45
+    CONTROL         "Te&xt",IDC_SORTTEXT,"Button",BS_AUTORADIOBUTTON,150,75,
+                    29,10
+    CONTROL         "&Number",IDC_SORTNUMBER,"Button",BS_AUTORADIOBUTTON,150,
+                    85,38,10
+    CONTROL         "&Date",IDC_SORTDATE,"Button",BS_AUTORADIOBUTTON,150,95,
+                    30,10
+    DEFPUSHBUTTON   "OK",IDOK,105,120,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,160,120,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1047,6 +1106,22 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 128
     END
+
+    IDD_VIEWS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 272
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 178
+    END
+
+    IDD_VIEWSCOLUMN, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 207
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 133
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -1230,6 +1305,8 @@ BEGIN
     IDS_LOAD                "Loading messages..."
     IDS_CHECK               "Checking messages..."
     IDS_IGNORECHECKERROR    "Error occured while checking the cache.\nDo you want to ignore it and remove this message?\nFolder: %s\nID: %u\nOffset: %u\nLength: %u"
+    IDS_TITLE               "Title"
+    IDS_TYPE                "Type"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1269,6 +1346,25 @@ BEGIN
     IDS_ERROR_DUMP          "Error occured while dumping messages."
     IDS_ERROR_LOAD          "Error occured while loading messages."
     IDS_ERROR_CHECK         "Error occured while checking messages."
+    IDS_ERROR_INVALIDMACRO  "Error occured while parsing the macro."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_COLUMNTYPE_ID       "ID"
+    IDS_COLUMNTYPE_DATE     "Date"
+    IDS_COLUMNTYPE_FROM     "From"
+    IDS_COLUMNTYPE_TO       "To"
+    IDS_COLUMNTYPE_FROMTO   "From / To"
+    IDS_COLUMNTYPE_SUBJECT  "Subject"
+    IDS_COLUMNTYPE_SIZE     "Size"
+    IDS_COLUMNTYPE_FLAGS    "Flags"
+    IDS_COLUMNTYPE_OTHER    "Other"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_WIDTH               "Width"
 END
 
 #endif    // “ú–{Œê resources

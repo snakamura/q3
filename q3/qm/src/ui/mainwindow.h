@@ -139,6 +139,7 @@ private:
 struct MainWindowCreateContext
 {
 	Document* pDocument_;
+	UIManager* pUIManager_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
 	GoRound* pGoRound_;

@@ -194,6 +194,7 @@ public:
 	
 	Profile* pProfile_;
 	Document* pDocument_;
+	UIManager* pUIManager_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
 	GoRound* pGoRound_;
@@ -279,6 +280,11 @@ void qm::MainWindowImpl::initActions()
 		pSecurityModel_.get(),
 		true,
 		pProfile_,
+		pThis_->getHandle());
+	ADD_ACTION3(ConfigViewsAction,
+		IDM_CONFIG_VIEWS,
+		pUIManager_,
+		pViewModelManager_.get(),
 		pThis_->getHandle());
 	ADD_ACTION2(EditClearDeletedAction,
 		IDM_EDIT_CLEARDELETED,
@@ -1340,6 +1346,7 @@ qm::MainWindow::MainWindow(Profile* pProfile) :
 	pImpl_->nListWindowHeight_ = pProfile->getInt(L"MainWindow", L"ListWindowHeight", 200);
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pDocument_ = 0;
+	pImpl_->pUIManager_ = 0;
 	pImpl_->pSyncManager_ = 0;
 	pImpl_->pSyncDialogManager_ = 0;
 	pImpl_->pGoRound_ = 0;
@@ -1675,6 +1682,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	MainWindowCreateContext* pContext =
 		static_cast<MainWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pDocument_ = pContext->pDocument_;
+	pImpl_->pUIManager_ = pContext->pUIManager_;
 	pImpl_->pSyncManager_ = pContext->pSyncManager_;
 	pImpl_->pSyncDialogManager_ = pContext->pSyncDialogManager_;
 	pImpl_->pGoRound_ = pContext->pGoRound_;
@@ -1690,8 +1698,8 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pFolderListModel_.reset(new FolderListModel());
 	pImpl_->pSecurityModel_.reset(new DefaultSecurityModel(
 		pImpl_->pProfile_->getInt(L"MainWindow", L"DecryptVerify", 0) != 0));
-	pImpl_->pViewModelManager_.reset(new ViewModelManager(pImpl_->pProfile_,
-		pImpl_->pDocument_, getHandle(), pImpl_->pSecurityModel_.get()));
+	pImpl_->pViewModelManager_.reset(new ViewModelManager(pImpl_->pUIManager_,
+		pImpl_->pDocument_, pImpl_->pProfile_, getHandle(), pImpl_->pSecurityModel_.get()));
 	pImpl_->pPreviewModel_.reset(new PreviewMessageModel(
 		pImpl_->pViewModelManager_.get(), pImpl_->bShowPreviewWindow_));
 	pImpl_->pEditFrameWindowManager_.reset(new EditFrameWindowManager(

@@ -46,6 +46,7 @@
 #include "../ui/newmailchecker.h"
 #include "../ui/syncdialog.h"
 #include "../ui/toolbar.h"
+#include "../ui/uimanager.h"
 
 using namespace qm;
 using namespace qs;
@@ -94,6 +95,7 @@ public:
 	std::auto_ptr<TempFileCleaner> pTempFileCleaner_;
 	std::auto_ptr<MenuManager> pMenuManager_;
 	std::auto_ptr<ToolbarManager> pToolbarManager_;
+	std::auto_ptr<UIManager> pUIManager_;
 	MainWindow* pMainWindow_;
 	std::auto_ptr<NewMailChecker> pNewMailChecker_;
 	HINSTANCE hInstAtl_;
@@ -378,6 +380,8 @@ bool qm::Application::initialize()
 	}
 	pImpl_->wstrTemporaryFolder_ = wstrTempFolder;
 	
+	pImpl_->pUIManager_.reset(new UIManager());
+	
 	wstring_ptr wstrMenuPath(getProfilePath(FileNames::MENUS_XML));
 	PopupMenuManager popupMenuManager;
 	std::auto_ptr<LoadMenuPopupMenu> pPopupMenus[countof(popupMenuItems)];
@@ -448,6 +452,7 @@ bool qm::Application::initialize()
 #endif
 	MainWindowCreateContext context = {
 		pImpl_->pDocument_.get(),
+		pImpl_->pUIManager_.get(),
 		pImpl_->pSyncManager_.get(),
 		pImpl_->pSyncDialogManager_.get(),
 		pImpl_->pGoRound_.get(),
@@ -507,6 +512,7 @@ void qm::Application::uninitialize()
 	
 	pImpl_->pMenuManager_.reset(0);
 	pImpl_->pToolbarManager_.reset(0);
+	pImpl_->pUIManager_.reset(0);
 	pImpl_->pTempFileCleaner_.reset(0);
 	pImpl_->pGoRound_.reset(0);
 	pImpl_->pSyncDialogManager_.reset(0);
@@ -543,6 +549,8 @@ bool qm::Application::save()
 		return false;
 	pImpl_->saveCurrentFolder();
 	if (!pImpl_->pProfile_->save())
+		return false;
+	if (!pImpl_->pUIManager_->save())
 		return false;
 	return true;
 }

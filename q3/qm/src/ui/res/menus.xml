@@ -115,13 +115,17 @@
 			<separator/>
 			<menuitem text="&amp;Dialup Connect..." action="ToolDialup"/>
 			<separator/>
-			<popupmenu text="&amp;Script" action="ToolScript"/>
+			<popupmenu text="Scri&amp;pt" action="ToolScript"/>
 			<separator/>
 			<menuitem text="Check &amp;New Mail" action="ToolCheckNewMail"/>
 			<separator/>
 			<popupmenu text="Su&amp;b Account" action="ToolSubAccount"/>
 			<menuitem text="&amp;Account..." action="ToolAccount"/>
 			<menuitem text="&amp;Options..." action="ToolOptions"/>
+			<separator/>
+			<popupmenu text="Conf&amp;ig">
+				<menuitem text="&amp;Views..." action="ConfigViews"/>
+			</popupmenu>
 		</popupmenu>
 	</menubar>
 	<menubar name="messageframe">

@@ -22,6 +22,7 @@ const qs::ActionItem menuItems[] = {
 	{ L"AttachmentOpen",			IDM_ATTACHMENT_OPEN				},
 	{ L"AttachmentSave",			IDM_ATTACHMENT_SAVE				},
 	{ L"AttachmentSaveAll",			IDM_ATTACHMENT_SAVEALL			},
+	{ L"ConfigViews",				IDM_CONFIG_VIEWS				},
 	{ L"EditClearDeleted",			IDM_EDIT_CLEARDELETED			},
 	{ L"EditCopy",					IDM_EDIT_COPY					},
 	{ L"EditCut",					IDM_EDIT_CUT					},

@@ -21,6 +21,7 @@
 #include <algorithm>
 
 #include "securitymodel.h"
+#include "uimanager.h"
 #include "viewmodel.h"
 #include "../model/color.h"
 #include "../model/filter.h"
@@ -79,11 +80,6 @@ bool qm::ViewColumn::isFlag(Flag flag) const
 	return (nFlags_ & flag) != 0;
 }
 
-void qm::ViewColumn::setFlags(unsigned int nFlags)
-{
-	nFlags_ = nFlags;
-}
-
 unsigned int qm::ViewColumn::getWidth() const
 {
 	return nWidth_;
@@ -92,6 +88,31 @@ unsigned int qm::ViewColumn::getWidth() const
 void qm::ViewColumn::setWidth(unsigned int nWidth)
 {
 	nWidth_ = nWidth;
+}
+
+void qm::ViewColumn::set(const WCHAR* pwszTitle,
+						 Type type,
+						 std::auto_ptr<Macro> pMacro,
+						 unsigned int nFlags,
+						 unsigned int nWidth)
+{
+	wstrTitle_ = allocWString(pwszTitle);
+	type_ = type;
+	pMacro_ = pMacro;
+	nFlags_ = nFlags;
+	nWidth_ = nWidth;
+}
+
+std::auto_ptr<ViewColumn> qm::ViewColumn::clone() const
+{
+	std::auto_ptr<Macro> pMacro;
+	if (pMacro_.get()) {
+		wstring_ptr wstrMacro(pMacro_->getString());
+		pMacro = MacroParser(MacroParser::TYPE_COLUMN).parse(wstrMacro.get());
+		assert(pMacro.get());
+	}
+	
+	return new ViewColumn(wstrTitle_.get(), type_, pMacro, nFlags_, nWidth_);
 }
 
 wstring_ptr qm::ViewColumn::getText(const ViewModel* pViewModel,
@@ -397,6 +418,12 @@ Folder* qm::ViewModel::getFolder() const
 const ViewColumnList& qm::ViewModel::getColumns() const
 {
 	return pDataItem_->getColumns();
+}
+
+void qm::ViewModel::setColumns(const ViewColumnList& listColumn)
+{
+	pDataItem_->setColumns(listColumn);
+	fireColumnChanged();
 }
 
 unsigned int qm::ViewModel::getColumnCount() const
@@ -1149,6 +1176,11 @@ void qm::ViewModel::fireSorted() const
 	fireEvent(ViewModelEvent(this), &ViewModelHandler::sorted);
 }
 
+void qm::ViewModel::fireColumnChanged() const
+{
+	fireEvent(ViewModelEvent(this), &ViewModelHandler::columnChanged);
+}
+
 void qm::ViewModel::fireDestroyed() const
 {
 	ViewModelHandlerList l(listHandler_);
@@ -1204,6 +1236,10 @@ void qm::DefaultViewModelHandler::updated(const ViewModelEvent& event)
 }
 
 void qm::DefaultViewModelHandler::sorted(const ViewModelEvent& event)
+{
+}
+
+void qm::DefaultViewModelHandler::columnChanged(const ViewModelEvent& event)
 {
 }
 
@@ -1263,12 +1299,14 @@ qm::ViewModelHolder::~ViewModelHolder()
  *
  */
 
-qm::ViewModelManager::ViewModelManager(Profile* pProfile,
+qm::ViewModelManager::ViewModelManager(UIManager* pUIManager,
 									   Document* pDocument,
+									   Profile* pProfile,
 									   HWND hwnd,
 									   SecurityModel* pSecurityModel) :
-	pProfile_(pProfile),
+	pUIManager_(pUIManager),
 	pDocument_(pDocument),
+	pProfile_(pProfile),
 	hwnd_(hwnd),
 	pSecurityModel_(pSecurityModel),
 	pCurrentAccount_(0),
@@ -1451,7 +1489,7 @@ ViewDataItem* qm::ViewModelManager::getViewDataItem(Folder* pFolder)
 	}
 	else {
 		wstring_ptr wstrPath(getViewsPath(pAccount));
-		std::auto_ptr<ViewData> pNewViewData(new ViewData(wstrPath.get()));
+		std::auto_ptr<ViewData> pNewViewData(new ViewData(pUIManager_, wstrPath.get()));
 		mapViewData_.push_back(std::make_pair(pAccount, pNewViewData.get()));
 		pAccount->addAccountHandler(this);
 		pViewData = pNewViewData.release();
@@ -1719,7 +1757,9 @@ bool qm::ViewModelItemComp::operator()(const ViewModelItem* pLhs,
  *
  */
 
-qm::ViewData::ViewData(const WCHAR* pwszPath)
+qm::ViewData::ViewData(UIManager* pUIManager,
+					   const WCHAR* pwszPath) :
+	pUIManager_(pUIManager)
 {
 	wstrPath_ = allocWString(pwszPath);
 	
@@ -1755,7 +1795,11 @@ ViewDataItem* qm::ViewData::getItem(unsigned int nFolderId)
 		return *it;
 	}
 	else {
-		std::auto_ptr<ViewDataItem> pItem(createDefaultItem(nFolderId));
+		std::auto_ptr<ViewDataItem> pItem;
+		if (nFolderId == 0)
+			pItem = createDefaultItem(0);
+		else
+			pItem = pUIManager_->getDefaultViewDataItem()->clone(nFolderId);
 		listItem_.insert(it, pItem.get());
 		return pItem.release();
 	}
@@ -1896,6 +1940,12 @@ const ViewColumnList& qm::ViewDataItem::getColumns() const
 	return listColumn_;
 }
 
+void qm::ViewDataItem::setColumns(const ViewColumnList& listColumn)
+{
+	std::for_each(listColumn_.begin(), listColumn_.end(), deleter<ViewColumn>());
+	listColumn_ = listColumn;
+}
+
 void qm::ViewDataItem::addColumn(std::auto_ptr<ViewColumn> pColumn)
 {
 	listColumn_.push_back(pColumn.get());
@@ -1920,6 +1970,16 @@ unsigned int qm::ViewDataItem::getSort() const
 void qm::ViewDataItem::setSort(unsigned int nSort)
 {
 	nSort_ = nSort;
+}
+
+std::auto_ptr<ViewDataItem> qm::ViewDataItem::clone(unsigned int nFolderId) const
+{
+	std::auto_ptr<ViewDataItem> pItem(new ViewDataItem(nFolderId));
+	
+	for (ViewColumnList::const_iterator it = listColumn_.begin(); it != listColumn_.end(); ++it)
+		pItem->addColumn((*it)->clone());
+	
+	return pItem;
 }
 
 

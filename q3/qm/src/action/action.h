@@ -27,6 +27,7 @@ namespace qm {
 struct ActionParam;
 class AttachmentOpenAction;
 class AttachmentSaveAction;
+class ConfigViewsAction;
 class DispatchAction;
 class EditClearDeletedAction;
 class EditCommandAction;
@@ -146,6 +147,7 @@ class SyncManager;
 class TempFileCleaner;
 class Template;
 class TemplateMenu;
+class UIManager;
 class View;
 class ViewModel;
 class ViewModelHolder;
@@ -229,6 +231,35 @@ private:
 	AttachmentSelectionModel* pAttachmentSelectionModel_;
 	bool bAll_;
 	AttachmentHelper helper_;
+	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * ConfigViewsAction
+ *
+ */
+
+class ConfigViewsAction : public qs::AbstractAction
+{
+public:
+	ConfigViewsAction(UIManager* pUIManager,
+					  ViewModelManager* pViewModelManager,
+					  HWND hwnd);
+	virtual ~ConfigViewsAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	ConfigViewsAction(const ConfigViewsAction&);
+	ConfigViewsAction& operator=(const ConfigViewsAction&);
+
+private:
+	UIManager* pUIManager_;
+	ViewModelManager* pViewModelManager_;
 	HWND hwnd_;
 };
 

@@ -105,6 +105,10 @@
 			<popupmenu text="Sub Account" action="ToolSubAccount"/>
 			<menuitem text="Account..." action="ToolAccount"/>
 			<menuitem text="Options..." action="ToolOptions"/>
+			<separator/>
+			<popupmenu text="Config">
+				<menuitem text="Views..." action="ConfigViews"/>
+			</popupmenu>
 		</popupmenu>
 	</menubar>
 	<menubar name="messageframe">
