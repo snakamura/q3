@@ -224,50 +224,86 @@ QSTATUS qm::SyncDialog::showDialupDialog(RASDIALPARAMS* prdp, bool* pbCancel) co
 	assert(prdp);
 	assert(pbCancel);
 	
-	DECLARE_QSTATUS();
-	
-	T2W(prdp->szEntryName, pwszEntryName);
-	T2W(prdp->szUserName, pwszUserName);
-	T2W(prdp->szPassword, pwszPassword);
-	T2W(prdp->szDomain, pwszDomain);
-	
-	DialupDialog dialog(pwszEntryName, pwszUserName,
-		pwszPassword, pwszDomain, &status);
-	CHECK_QSTATUS();
-	int nRet = 0;
-	status = dialog.doModal(getHandle(), 0, &nRet);
-	CHECK_QSTATUS();
-	if (nRet == IDOK) {
-		// TODO
+	struct RunnableImpl : public Runnable
+	{
+		RunnableImpl(HWND hwnd, RASDIALPARAMS* prdp, bool* pbCancel) :
+			hwnd_(hwnd),
+			prdp_(prdp),
+			pbCancel_(pbCancel)
+		{
+		}
 		
-	}
-	else {
-		*pbCancel = true;
-	}
+		virtual unsigned int run()
+		{
+			DECLARE_QSTATUS();
+			
+			T2W(prdp_->szEntryName, pwszEntryName);
+			T2W(prdp_->szUserName, pwszUserName);
+			T2W(prdp_->szPassword, pwszPassword);
+			T2W(prdp_->szDomain, pwszDomain);
+			
+			DialupDialog dialog(pwszEntryName, pwszUserName,
+				pwszPassword, pwszDomain, &status);
+			CHECK_QSTATUS();
+			int nRet = 0;
+			status = dialog.doModal(hwnd_, 0, &nRet);
+			CHECK_QSTATUS();
+			if (nRet == IDOK) {
+				// TODO
+				
+			}
+			else {
+				*pbCancel_ = true;
+			}
+		}
+		
+		HWND hwnd_;
+		RASDIALPARAMS* prdp_;
+		bool* pbCancel_;
+	} runnable(getHandle(), prdp, pbCancel);
 	
-	return QSTATUS_SUCCESS;
+	return getInitThread()->getSynchronizer()->syncExec(&runnable);
 }
 
 QSTATUS qm::SyncDialog::selectDialupEntry(WSTRING* pwstrEntry) const
 {
 	assert(pwstrEntry);
 	
-	DECLARE_QSTATUS();
+	struct RunnableImpl : public Runnable
+	{
+		RunnableImpl(Profile* pProfile, HWND hwnd, WSTRING* pwstrEntry) :
+			pProfile_(pProfile),
+			hwnd_(hwnd),
+			pwstrEntry_(pwstrEntry)
+		{
+		}
+		
+		virtual unsigned int run()
+		{
+			DECLARE_QSTATUS();
+			
+			SelectDialupEntryDialog dialog(pProfile_, &status);
+			CHECK_QSTATUS_VALUE(1);
+			int nRet = 0;
+			status = dialog.doModal(hwnd_, 0, &nRet);
+			CHECK_QSTATUS_VALUE(1);
+			
+			if (nRet == IDOK) {
+				string_ptr<WSTRING> wstrEntry(allocWString(dialog.getEntry()));
+				if (!wstrEntry.get())
+					return 1;
+				*pwstrEntry_ = wstrEntry.release();
+			}
+			
+			return 0;
+		}
+		
+		Profile* pProfile_;
+		HWND hwnd_;
+		WSTRING* pwstrEntry_;
+	} runnable(pProfile_, getHandle(), pwstrEntry);
 	
-	SelectDialupEntryDialog dialog(pProfile_, &status);
-	CHECK_QSTATUS_VALUE(1);
-	int nRet = 0;
-	status = dialog.doModal(getHandle(), 0, &nRet);
-	CHECK_QSTATUS_VALUE(1);
-	
-	if (nRet == IDOK) {
-		string_ptr<WSTRING> wstrEntry(allocWString(dialog.getEntry()));
-		if (!wstrEntry.get())
-			return 1;
-		*pwstrEntry = wstrEntry.release();
-	}
-	
-	return 0;
+	return getInitThread()->getSynchronizer()->syncExec(&runnable);
 }
 
 QSTATUS qm::SyncDialog::notifyNewMessage() const

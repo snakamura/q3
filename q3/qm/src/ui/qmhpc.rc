@@ -1031,8 +1031,8 @@ BEGIN
     IDS_FOLDERLISTSIZE      "Size"
     IDS_FINDNOTFOUND        "Not found."
     IDS_CONFIRMCLOSEEDITFRAME "Send message?"
-    IDS_DIALUPCONNECT       "Dialup Connect"
-    IDS_DIALUPDISCONNECT    "Dialup Disconnect"
+    IDS_DIALUPCONNECT       "&Dialup Connect"
+    IDS_DIALUPDISCONNECT    "&Dialup Disconnect"
     IDS_NORMALFOLDER        "Normal"
 END
 
