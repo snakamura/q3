@@ -26,6 +26,8 @@ const unsigned int qmrss::RssDriver::nSupport__ =
 
 const WCHAR* qmrss::RssDriver::pwszParams__[] = {
 	L"URL",
+	L"UserName",
+	L"Password",
 	L"UseDescriptionAsContent"
 };
 

@@ -130,6 +130,8 @@ public:
 public:
 	virtual void setRequestHeader(const WCHAR* pwszName,
 								  const WCHAR* pwszValue) = 0;
+	virtual void setCredential(const WCHAR* pwszUserName,
+							   const WCHAR* pwszPassword) = 0;
 
 public:
 	virtual const CHAR* getResponseLine() const = 0;
@@ -161,6 +163,8 @@ public:
 public:
 	virtual void setRequestHeader(const WCHAR* pwszName,
 								  const WCHAR* pwszValue);
+	virtual void setCredential(const WCHAR* pwszUserName,
+							   const WCHAR* pwszPassword);
 
 public:
 	virtual const CHAR* getResponseLine() const;
@@ -182,7 +186,12 @@ protected:
 	virtual bool writeRequestBody(HttpConnection* pConnection) const;
 
 private:
-	unsigned int parseResponse(const char* p) const;
+	std::pair<const WCHAR*, const WCHAR*> getCredential() const;
+
+private:
+	static qs::wstring_ptr getBasicCredential(const WCHAR* pwszUserName,
+											  const WCHAR* pwszPassword);
+	static unsigned int parseResponse(const char* p);
 
 private:
 	AbstractHttpMethod(const AbstractHttpMethod&);
@@ -194,6 +203,8 @@ private:
 private:
 	std::auto_ptr<HttpURL> pURL_;
 	HeaderList listRequestHeader_;
+	qs::wstring_ptr wstrUserName_;
+	qs::wstring_ptr wstrPassword_;
 	qs::xstring_ptr strResponseLine_;
 	qs::xstring_ptr strResponseHeader_;
 	std::auto_ptr<HttpConnection> pConnection_;

@@ -165,6 +165,11 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 		method.setRequestHeader(L"If-Modified-Since", wstrIfModifiedSince.get());
 	}
 	
+	const WCHAR* pwszUserName = pFolder_->getParam(L"UserName");
+	const WCHAR* pwszPassword = pFolder_->getParam(L"Password");
+	if (pwszUserName && *pwszUserName && pwszPassword && *pwszPassword)
+		method.setCredential(pwszUserName, pwszPassword);
+	
 	wstring_ptr wstrUserAgent(Application::getApplication().getVersion(L'/', false));
 	method.setRequestHeader(L"User-Agent", wstrUserAgent.get());
 	

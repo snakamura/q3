@@ -7,6 +7,7 @@
  */
 
 #include <qsconv.h>
+#include <qsencoder.h>
 
 #include "http.h"
 
@@ -267,6 +268,16 @@ void qmrss::AbstractHttpMethod::setRequestHeader(const WCHAR* pwszName,
 	wstrValue.release();
 }
 
+void qmrss::AbstractHttpMethod::setCredential(const WCHAR* pwszUserName,
+											  const WCHAR* pwszPassword)
+{
+	assert(pwszUserName);
+	assert(pwszPassword);
+	
+	wstrUserName_ = allocWString(pwszUserName);
+	wstrPassword_ = allocWString(pwszPassword);
+}
+
 const CHAR* qmrss::AbstractHttpMethod::getResponseLine() const
 {
 	return strResponseLine_.get();
@@ -358,13 +369,20 @@ unsigned int qmrss::AbstractHttpMethod::invoke(std::auto_ptr<HttpConnection> pCo
 	if (!pConnection->writeLine(L"Connection: close"))
 		return -1;
 	
-	// TODO
-	// Send authenticate header.
-	
 	for (HeaderList::const_iterator it = listRequestHeader_.begin(); it != listRequestHeader_.end(); ++it) {
 		if (!pConnection->write((*it).first) ||
 			!pConnection->write(L": ") ||
 			!pConnection->writeLine((*it).second))
+			return -1;
+	}
+	
+	std::pair<const WCHAR*, const WCHAR*> credential(getCredential());
+	if (credential.first && credential.second) {
+		wstring_ptr wstrCredential(getBasicCredential(credential.first, credential.second));
+		if (!wstrCredential.get())
+			return -1;
+		if (!pConnection->write(L"Authorization: Basic ") ||
+			!pConnection->writeLine(wstrCredential.get()))
 			return -1;
 	}
 	
@@ -428,7 +446,31 @@ bool qmrss::AbstractHttpMethod::writeRequestBody(HttpConnection* pConnection) co
 	return true;
 }
 
-unsigned int qmrss::AbstractHttpMethod::parseResponse(const char* p) const
+std::pair<const WCHAR*, const WCHAR*> qmrss::AbstractHttpMethod::getCredential() const
+{
+	const WCHAR* pwszUserName = wstrUserName_.get();
+	const WCHAR* pwszPassword = wstrPassword_.get();
+	if (!pwszUserName && !pwszPassword) {
+		pwszUserName = pURL_->getUser();
+		pwszPassword = pURL_->getPassword();
+	}
+	return std::make_pair(pwszUserName, pwszPassword);
+}
+
+wstring_ptr qmrss::AbstractHttpMethod::getBasicCredential(const WCHAR* pwszUserName,
+														  const WCHAR* pwszPassword)
+{
+	wstring_ptr wstrCredential(concat(pwszUserName, L":", pwszPassword));
+	size_t nLen = wcslen(wstrCredential.get());
+	xstring_size_ptr strCredential(UTF8Converter().encode(wstrCredential.get(), &nLen));
+	if (!strCredential.get())
+		return 0;
+	malloc_size_ptr<unsigned char> pCredential(Base64Encoder(false).encode(
+		reinterpret_cast<const unsigned char*>(strCredential.get()), strCredential.size()));
+	return mbs2wcs(reinterpret_cast<const CHAR*>(pCredential.get()), pCredential.size());
+}
+
+unsigned int qmrss::AbstractHttpMethod::parseResponse(const char* p)
 {
 	if (strncmp(p, "HTTP/1.0 ", 9) != 0 &&
 		strncmp(p, "HTTP/1.1 ", 9) != 0)
