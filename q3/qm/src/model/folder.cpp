@@ -254,6 +254,17 @@ bool qm::Folder::isAncestorOf(const Folder* pFolder) const
 	return false;
 }
 
+bool qm::Folder::isHidden() const
+{
+	const Folder* p = this;
+	while (p) {
+		if (p->isFlag(Folder::FLAG_HIDE))
+			return true;
+		p = p->getParentFolder();
+	}
+	return false;
+}
+
 unsigned int qm::Folder::getLevel() const
 {
 	unsigned int nLevel = 0;

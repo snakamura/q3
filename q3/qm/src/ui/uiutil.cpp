@@ -167,14 +167,3 @@ QSTATUS qm::UIUtil::openURL(HWND hwnd, const WCHAR* pwszURL)
 	
 	return QSTATUS_SUCCESS;
 }
-
-bool qm::UIUtil::isShowFolder(Folder* pFolder)
-{
-	Folder* p = pFolder;
-	while (p) {
-		if (p->isFlag(Folder::FLAG_HIDE))
-			return false;
-		p = p->getParentFolder();
-	}
-	return true;
-}

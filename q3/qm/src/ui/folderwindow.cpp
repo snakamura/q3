@@ -669,7 +669,7 @@ QSTATUS qm::FolderWindowImpl::insertFolders(HTREEITEM hItem, Account* pAccount)
 	while (it != listFolder.end()) {
 		Folder* pFolder = *it;
 		
-		if (UIUtil::isShowFolder(pFolder)) {
+		if (!pFolder->isHidden()) {
 			TVINSERTSTRUCT tvisFolder = {
 				hItem,
 				TVI_LAST,

@@ -103,6 +103,7 @@ public:
 	void setFlags(unsigned int nFlags, unsigned int nMask);
 	Folder* getParentFolder() const;
 	bool isAncestorOf(const Folder* pFolder) const;
+	bool isHidden() const;
 	unsigned int getLevel() const;
 	Account* getAccount() const;
 	

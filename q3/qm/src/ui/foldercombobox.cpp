@@ -431,7 +431,7 @@ QSTATUS qm::FolderComboBoxImpl::insertFolders(
 	while (it != listFolder.end()) {
 		Folder* pFolder = *it;
 		
-		if (UIUtil::isShowFolder(pFolder)) {
+		if (!pFolder->isHidden()) {
 			++nIndex;
 			status = insertFolder(nIndex, pFolder, bDropDown);
 			CHECK_QSTATUS();
