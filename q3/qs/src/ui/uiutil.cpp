@@ -35,7 +35,19 @@ HFONT qs::UIUtil::createFontFromProfile(Profile* pProfile,
 										const WCHAR* pwszSection,
 										bool bDefaultFixedWidth)
 {
+	LOGFONT lf;
+	getLogFontFromProfile(pProfile, pwszSection, bDefaultFixedWidth, &lf);
+	return ::CreateFontIndirect(&lf);
+}
+
+void qs::UIUtil::getLogFontFromProfile(Profile* pProfile,
+									   const WCHAR* pwszSection,
+									   bool bDefaultFixedWidth,
+									   LOGFONT* pLogFont)
+{
 	assert(pProfile);
+	assert(pwszSection);
+	assert(pLogFont);
 	
 	const WCHAR* pwszDefaultFace = 0;
 	if (bDefaultFixedWidth)
@@ -55,10 +67,63 @@ HFONT qs::UIUtil::createFontFromProfile(Profile* pProfile,
 	int nFontCharset = pProfile->getInt(pwszSection, L"FontCharset", 0);
 	
 	ClientDeviceContext dc(0);
-	LOGFONT lf;
 	FontHelper::createLogFont(dc, wstrFontFace.get(),
-		dFontSize, nFontStyle, nFontCharset, &lf);
-	return ::CreateFontIndirect(&lf);
+		dFontSize, nFontStyle, nFontCharset, pLogFont);
+}
+
+void qs::UIUtil::setLogFontToProfile(Profile* pProfile,
+									 const WCHAR* pwszSection,
+									 const LOGFONT& lf)
+{
+	assert(pProfile);
+	assert(pwszSection);
+	
+	T2W(lf.lfFaceName, pwszFaceName);
+	pProfile->setString(pwszSection, L"FontFace", pwszFaceName);
+	
+	ClientDeviceContext dc(0);
+	double dPointSize = -lf.lfHeight*72.0/dc.getDeviceCaps(LOGPIXELSY);
+	WCHAR wszSize[64];
+	swprintf(wszSize, L"%lf", dPointSize);
+	pProfile->setString(pwszSection, L"FontSize", wszSize);
+	
+	int nFontStyle = 0;
+	if (lf.lfWeight >= FW_BOLD)
+		nFontStyle |= FontHelper::STYLE_BOLD;
+	if (lf.lfItalic)
+		nFontStyle |= FontHelper::STYLE_ITALIC;
+	if (lf.lfUnderline)
+		nFontStyle |= FontHelper::STYLE_UNDERLINE;
+	if (lf.lfStrikeOut)
+		nFontStyle |= FontHelper::STYLE_STRIKEOUT;
+	pProfile->setInt(pwszSection, L"FontStyle", nFontStyle);
+	
+	if (lf.lfCharSet != 0)
+		pProfile->setInt(pwszSection, L"FontCharset", lf.lfCharSet);
+}
+
+bool qs::UIUtil::browseFont(HWND hwnd,
+							LOGFONT* pLogFont)
+{
+#ifdef _WIN32_WCE
+	FontDialog dialog(*pLogFont);
+	if (dialog.doModal(hwnd) != IDOK)
+		return false;
+	
+	*pLogFont = dialog.getLogFont();
+	
+	return true;
+#else
+	CHOOSEFONT cf = {
+		sizeof(cf),
+		hwnd,
+		0,
+		pLogFont,
+		0,
+		CF_INITTOLOGFONTSTRUCT | CF_SCREENFONTS,
+	};
+	return ::ChooseFont(&cf) != 0;
+#endif
 }
 
 #ifndef _WIN32_WCE

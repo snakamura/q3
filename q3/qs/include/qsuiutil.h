@@ -33,6 +33,15 @@ public:
 	static HFONT createFontFromProfile(Profile* pProfile,
 									   const WCHAR* pwszSection,
 									   bool bDefaultFixedWidth);
+	static void getLogFontFromProfile(Profile* pProfile,
+									  const WCHAR* pwszSection,
+									  bool bDefaultFixedWidth,
+									  LOGFONT* pLogFont);
+	static void setLogFontToProfile(Profile* pProfile,
+									const WCHAR* pwszSection,
+									const LOGFONT& lf);
+	static bool browseFont(HWND hwnd,
+						   LOGFONT* pLogFont);
 	static wstring_ptr browseFolder(HWND hwnd,
 									const WCHAR* pwszTitle,
 									const WCHAR* pwszInitialPath);
