@@ -124,13 +124,22 @@ LRESULT qm::AccountDialog::onNotify(NMHDR* pnmhdr,
 
 LRESULT qm::AccountDialog::onAddAccount()
 {
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	
 	CreateAccountDialog dialog(pProfile_);
 	if (dialog.doModal(getHandle()) == IDOK) {
+		const WCHAR* pwszName = dialog.getName();
+		if (pDocument_->hasAccount(pwszName)) {
+			messageBox(hInst, IDS_ERROR_CREATEACCOUNT, MB_OK | MB_ICONERROR, getHandle());
+			return 0;
+		}
+		
 		wstring_ptr wstrDir(concat(Application::getApplication().getMailFolder(),
-			L"\\accounts\\", dialog.getName()));
+			L"\\accounts\\", pwszName));
 		W2T(wstrDir.get(), ptszDir);
 		if (!::CreateDirectory(ptszDir, 0)) {
-			// TODO MSG
+			messageBox(hInst, IDS_ERROR_CREATEACCOUNT, MB_OK | MB_ICONERROR, getHandle());
+			return 0;
 		}
 		
 		wstring_ptr wstrPath(concat(wstrDir.get(), L"\\", FileNames::ACCOUNT_XML));
@@ -143,7 +152,8 @@ LRESULT qm::AccountDialog::onAddAccount()
 		profile.setString(L"Send", L"Type", dialog.getSendProtocol());
 		profile.setInt(L"Send", L"Port", dialog.getSendPort());
 		if (!profile.save()) {
-			// TODO MSG
+			messageBox(hInst, IDS_ERROR_CREATEACCOUNT, MB_OK | MB_ICONERROR, getHandle());
+			return 0;
 		}
 		
 		std::auto_ptr<Account> pAccount(new Account(

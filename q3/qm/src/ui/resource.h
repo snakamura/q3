@@ -337,6 +337,7 @@
 #define IDS_ERROR_LOAD                  10045
 #define IDS_ERROR_CHECK                 10046
 #define IDS_ERROR_INVALIDMACRO          10047
+#define IDS_ERROR_CREATEACCOUNT         10048
 #define IDM_EDIT_CLEARDELETED           40001
 #define IDM_EDIT_COPY                   40002
 #define IDM_EDIT_CUT                    40003

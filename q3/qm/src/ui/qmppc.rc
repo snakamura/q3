@@ -1288,6 +1288,11 @@ BEGIN
     IDS_WIDTH               "Width"
 END
 
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_CREATEACCOUNT "Error occured while creating an account."
+END
+
 #endif    // Japanese resources
 /////////////////////////////////////////////////////////////////////////////
 
