@@ -27,7 +27,7 @@ class MessageHolderBase;
 class MessagePtr;
 class MessagePtrLock;
 
-class Folder;
+class Account;
 class NormalFolder;
 class Message;
 
@@ -89,6 +89,7 @@ public:
 	virtual unsigned int getSize() const = 0;
 	virtual unsigned int getTextSize() const = 0;
 	virtual NormalFolder* getFolder() const = 0;
+	virtual Account* getAccount() const = 0;
 	virtual qs::QSTATUS getMessage(unsigned int nFlags,
 		const WCHAR* pwszField, Message* pMessage) = 0;
 	virtual MessageHolder* getMessageHolder() = 0;
@@ -144,6 +145,7 @@ public:
 	virtual unsigned int getSize() const;
 	virtual unsigned int getTextSize() const;
 	virtual NormalFolder* getFolder() const;
+	virtual Account* getAccount() const;
 	virtual qs::QSTATUS getMessage(unsigned int nFlags,
 		const WCHAR* pwszField, Message* pMessage);
 	virtual MessageHolder* getMessageHolder();
@@ -190,6 +192,8 @@ private:
 	NormalFolder* pFolder_;
 };
 
+typedef std::vector<MessageHolder*> MessageHolderList;
+
 
 /****************************************************************************
  *
@@ -218,6 +222,7 @@ public:
 	virtual unsigned int getSize() const;
 	virtual unsigned int getTextSize() const;
 	virtual NormalFolder* getFolder() const;
+	virtual Account* getAccount() const;
 	virtual MessageHolder* getMessageHolder();
 
 protected:
@@ -258,13 +263,13 @@ public:
 	MessagePtr& operator=(const MessagePtr& ptr);
 
 public:
-	Folder* getFolder() const;
+	NormalFolder* getFolder() const;
 	MessageHolder* lock() const;
 	void unlock() const;
 	void reset(MessageHolder* pmh);
 
 private:
-	Folder* pFolder_;
+	NormalFolder* pFolder_;
 	unsigned int nId_;
 	mutable bool bLock_;
 };

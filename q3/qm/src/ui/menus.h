@@ -69,7 +69,7 @@ public:
 public:
 	qs::QSTATUS getPart(unsigned int nId, Message* pMessage,
 		qs::WSTRING* pwstrName, const qs::Part** ppPart) const;
-	qs::QSTATUS createMenu(HMENU hmenu, const MessagePtrList& l);
+	qs::QSTATUS createMenu(HMENU hmenu, const MessageHolderList& l);
 
 private:
 	AttachmentMenu(const AttachmentMenu&);

@@ -118,7 +118,7 @@ public:
 	
 	public:
 		virtual QSTATUS getSelectedMessages(
-			Folder** ppFolder, MessagePtrList* pList);
+			AccountLock* pAccountLock, MessageHolderList* pList);
 		virtual QSTATUS hasSelectedMessage(bool* pbHas);
 		virtual QSTATUS getFocusedMessage(MessagePtr* pptr);
 		virtual QSTATUS hasFocusedMessage(bool* pbHas);
@@ -1200,44 +1200,30 @@ qm::MainWindowImpl::MessageSelectionModelImpl::~MessageSelectionModelImpl()
 }
 
 QSTATUS qm::MainWindowImpl::MessageSelectionModelImpl::getSelectedMessages(
-	Folder** ppFolder, MessagePtrList* pList)
+	AccountLock* pAccountLock, MessageHolderList* pList)
 {
+	assert(pAccountLock);
 	assert(pList);
 	
 	DECLARE_QSTATUS();
-	
-	Folder* pFolder = 0;
 	
 	if (pMainWindowImpl_->pListWindow_->isActive()) {
 		ViewModel* pViewModel = pMainWindowImpl_->pViewModelManager_->getCurrentViewModel();
 		if (pViewModel) {
 			Lock<ViewModel> lock(*pViewModel);
-			
-			pFolder = pViewModel->getFolder();
-			
-			Folder::MessageHolderList l;
-			status = pViewModel->getSelection(&l);
+			pAccountLock->set(pViewModel->getFolder()->getAccount());
+			status = pViewModel->getSelection(pList);
 			CHECK_QSTATUS();
-			status = STLWrapper<MessagePtrList>(*pList).reserve(l.size());
-			CHECK_QSTATUS();
-			Folder::MessageHolderList::const_iterator it = l.begin();
-			while (it != l.end()) {
-				pList->push_back(MessagePtr(*it));
-				++it;
-			}
 		}
 	}
 	else if (pMainWindowImpl_->pMessageWindow_->isActive() && !bListOnly_) {
-		MessagePtr ptr(pMainWindowImpl_->pPreviewModel_->getCurrentMessage());
-		pFolder = ptr.getFolder();
-		if (pFolder) {
-			status = STLWrapper<MessagePtrList>(*pList).push_back(ptr);
+		MessagePtrLock mpl(pMainWindowImpl_->pPreviewModel_->getCurrentMessage());
+		if (mpl) {
+			pAccountLock->set(mpl->getAccount());
+			status = STLWrapper<MessageHolderList>(*pList).push_back(mpl);
 			CHECK_QSTATUS();
 		}
 	}
-	
-	if (ppFolder)
-		*ppFolder = pFolder;
 	
 	return QSTATUS_SUCCESS;
 }
@@ -1275,7 +1261,7 @@ QSTATUS qm::MainWindowImpl::MessageSelectionModelImpl::getFocusedMessage(Message
 			Lock<ViewModel> lock(*pViewModel);
 			if (pViewModel->getCount() != 0) {
 				unsigned int nItem = pViewModel->getFocused();
-				pptr->reset(pViewModel->getMessageHolder(nItem));
+				*pptr = MessagePtr(pViewModel->getMessageHolder(nItem));
 			}
 		}
 	}
@@ -2219,8 +2205,9 @@ LRESULT qm::MainWindow::onInitMenuPopup(HMENU hmenu, UINT nIndex, bool bSysMenu)
 			// TODO
 		}
 		else if (nIdFirst == IDM_MESSAGE_DETACH) {
-			MessagePtrList l;
-			status = pImpl_->pMessageSelectionModel_->getSelectedMessages(0, &l);
+			AccountLock lock;
+			MessageHolderList l;
+			status = pImpl_->pMessageSelectionModel_->getSelectedMessages(&lock, &l);
 			if (status == QSTATUS_SUCCESS) {
 				status = pImpl_->pAttachmentMenu_->createMenu(hmenu, l);
 				// TODO

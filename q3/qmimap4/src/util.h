@@ -87,8 +87,8 @@ public:
 	static size_t getPathLength(const unsigned int* pPath);
 	static qs::QSTATUS formatPath(const unsigned int* pPath, qs::STRING* pstrPath);
 	static qs::QSTATUS createUidList(
-		const qm::Folder::MessageHolderList& l, UidList* pList);
-	static qs::QSTATUS createRange(const qm::Folder::MessageHolderList& l,
+		const qm::MessageHolderList& l, UidList* pList);
+	static qs::QSTATUS createRange(const qm::MessageHolderList& l,
 		std::auto_ptr<MultipleRange>* apRange);
 	static bool isEqualFolderName(const WCHAR* pwszLhs,
 		const WCHAR* pwszRhs, WCHAR cSeparator);

@@ -6,6 +6,7 @@
  *
  */
 
+#include <qmaccount.h>
 #include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmfolder.h>
@@ -94,6 +95,9 @@ QSTATUS qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 	status = pMessageSelectionModel_->getFocusedMessage(&ptr);
 	CHECK_QSTATUS();
 	MessagePtrLock mpl(ptr);
+	
+	Lock<Account> lock(*pAccount);
+	
 	MacroErrorHandlerImpl handler;
 	Message msg(&status);
 	CHECK_QSTATUS();

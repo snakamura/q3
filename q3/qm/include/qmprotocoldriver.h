@@ -61,14 +61,14 @@ public:
 		MessageHolder* pmh, unsigned int nFlags, qs::STRING* pstrMessage,
 		Message::Flag* pFlag, bool* pbGet, bool* pbMadeSeen) = 0;
 	virtual qs::QSTATUS setMessagesFlags(SubAccount* pSubAccount,
-		NormalFolder* pFolder, const Folder::MessageHolderList& l,
+		NormalFolder* pFolder, const MessageHolderList& l,
 		unsigned int nFlags, unsigned int nMask) = 0;
 	virtual qs::QSTATUS appendMessage(SubAccount* pSubAccount,
 		NormalFolder* pFolder, const CHAR* pszMessage, unsigned int nFlags) = 0;
 	virtual qs::QSTATUS removeMessages(SubAccount* pSubAccount,
-		NormalFolder* pFolder, const Folder::MessageHolderList& l) = 0;
+		NormalFolder* pFolder, const MessageHolderList& l) = 0;
 	virtual qs::QSTATUS copyMessages(SubAccount* pSubAccount,
-		const Folder::MessageHolderList& l, NormalFolder* pFolderFrom,
+		const MessageHolderList& l, NormalFolder* pFolderFrom,
 		NormalFolder* pFolderTo, bool bMove) = 0;
 	virtual qs::QSTATUS clearDeletedMessages(
 		SubAccount* pSubAccount, NormalFolder* pFolder) = 0;

@@ -792,7 +792,7 @@ QSTATUS qm::SyncManager::send(Document* pDocument,
 	CHECK_QSTATUS();
 	
 	{
-		Lock<Folder> lock(*pOutbox);
+		Lock<Account> lock(*pOutbox->getAccount());
 		
 		for (unsigned int n = 0; n < pOutbox->getCount(); ++n) {
 			MessageHolder* pmh = pOutbox->getMessage(n);
@@ -858,8 +858,8 @@ QSTATUS qm::SyncManager::send(Document* pDocument,
 	status = pCallback->setRange(0, listMessagePtr.size());
 	CHECK_QSTATUS();
 	
-	Folder::MessageHolderList l;
-	status = STLWrapper<Folder::MessageHolderList>(l).resize(1);
+	MessageHolderList l;
+	status = STLWrapper<MessageHolderList>(l).resize(1);
 	CHECK_QSTATUS();
 	
 	MessagePtrList::size_type m = 0;
@@ -887,10 +887,15 @@ QSTATUS qm::SyncManager::send(Document* pDocument,
 			CHECK_QSTATUS();
 			
 			l[0] = mpl;
-			status = pOutbox->setMessagesFlags(l,
+//			status = pOutbox->setMessagesFlags(l,
+//				MessageHolder::FLAG_SENT, MessageHolder::FLAG_SENT);
+//			CHECK_QSTATUS();
+//			status = pOutbox->copyMessages(l, pSentbox, true, 0);
+//			CHECK_QSTATUS();
+			status = pAccount->setMessagesFlags(l,
 				MessageHolder::FLAG_SENT, MessageHolder::FLAG_SENT);
 			CHECK_QSTATUS();
-			status = pOutbox->copyMessages(l, pSentbox, true, 0);
+			status = pAccount->copyMessages(l, pSentbox, true, 0);
 			CHECK_QSTATUS();
 			
 			status = pCallback->setPos(m + 1);

@@ -1,5 +1,5 @@
 /*
- * $Id: uri.cpp,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -26,15 +26,13 @@ using namespace qs;
  */
 
 QSTATUS qm::URI::getMessageHolder(const WCHAR* pwszURI,
-	Document* pDocument, MessageHolder** ppmh)
+	Document* pDocument, MessagePtr* pptr)
 {
 	assert(pwszURI);
 	assert(pDocument);
-	assert(ppmh);
+	assert(pptr);
 	
 	DECLARE_QSTATUS();
-	
-	*ppmh = 0;
 	
 	string_ptr<WSTRING> wstrURI(allocWString(pwszURI));
 	if (!wstrURI.get())
@@ -71,7 +69,7 @@ QSTATUS qm::URI::getMessageHolder(const WCHAR* pwszURI,
 								if (pFolder->getType() == Folder::TYPE_NORMAL &&
 									static_cast<NormalFolder*>(pFolder)->getValidity() == nValidity) {
 									status = static_cast<NormalFolder*>(
-										pFolder)->getMessageById(nId, ppmh);
+										pFolder)->getMessageById(nId, pptr);
 									CHECK_QSTATUS();
 								}
 							}

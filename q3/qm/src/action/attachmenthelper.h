@@ -40,7 +40,7 @@ public:
 	~AttachmentHelper();
 
 public:
-	qs::QSTATUS detach(const MessagePtrList& listMessagePtr,
+	qs::QSTATUS detach(const MessageHolderList& listMessageHolder,
 		const NameList* pListName);
 	qs::QSTATUS open(const qs::Part* pPart,
 		const WCHAR* pwszName, bool bOpenWithEditor);

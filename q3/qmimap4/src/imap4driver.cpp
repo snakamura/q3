@@ -640,7 +640,7 @@ QSTATUS qmimap4::Imap4Driver::getMessage(SubAccount* pSubAccount,
 }
 
 QSTATUS qmimap4::Imap4Driver::setMessagesFlags(SubAccount* pSubAccount,
-	NormalFolder* pFolder, const Folder::MessageHolderList& l,
+	NormalFolder* pFolder, const MessageHolderList& l,
 	unsigned int nFlags, unsigned int nMask)
 {
 	assert(pSubAccount);
@@ -657,11 +657,10 @@ QSTATUS qmimap4::Imap4Driver::setMessagesFlags(SubAccount* pSubAccount,
 	
 	DECLARE_QSTATUS();
 	
-	Folder::MessageHolderList listUpdate;
-	status = STLWrapper<Folder::MessageHolderList>(
-		listUpdate).reserve(l.size());
+	MessageHolderList listUpdate;
+	status = STLWrapper<MessageHolderList>(listUpdate).reserve(l.size());
 	CHECK_QSTATUS();
-	Folder::MessageHolderList::const_iterator it = l.begin();
+	MessageHolderList::const_iterator it = l.begin();
 	while (it != l.end()) {
 		MessageHolder* pmh = *it;
 		if ((pmh->getFlags() & nMask) != nFlags) {
@@ -692,7 +691,7 @@ QSTATUS qmimap4::Imap4Driver::setMessagesFlags(SubAccount* pSubAccount,
 			pJob.release();
 		}
 		
-		Folder::MessageHolderList::iterator it = listUpdate.begin();
+		MessageHolderList::iterator it = listUpdate.begin();
 		while (it != listUpdate.end())
 			(*it++)->setFlags(nFlags, nMask);
 	}
@@ -728,7 +727,7 @@ QSTATUS qmimap4::Imap4Driver::appendMessage(SubAccount* pSubAccount,
 	
 	DECLARE_QSTATUS();
 	
-	Lock<Folder> lock(*pFolder);
+	Lock<Account> lock(*pAccount_);
 	
 	if (bOffline_) {
 		MessageHolder* pmh = 0;
@@ -772,7 +771,7 @@ QSTATUS qmimap4::Imap4Driver::appendMessage(SubAccount* pSubAccount,
 }
 
 QSTATUS qmimap4::Imap4Driver::removeMessages(SubAccount* pSubAccount,
-	NormalFolder* pFolder, const Folder::MessageHolderList& l)
+	NormalFolder* pFolder, const MessageHolderList& l)
 {
 	assert(pSubAccount);
 	assert(pFolder);
@@ -791,13 +790,14 @@ QSTATUS qmimap4::Imap4Driver::removeMessages(SubAccount* pSubAccount,
 }
 
 QSTATUS qmimap4::Imap4Driver::copyMessages(SubAccount* pSubAccount,
-	const Folder::MessageHolderList& l, NormalFolder* pFolderFrom,
+	const MessageHolderList& l, NormalFolder* pFolderFrom,
 	NormalFolder* pFolderTo, bool bMove)
 {
 	assert(pSubAccount);
 	assert(!l.empty());
 	assert(pFolderFrom);
 	assert(pFolderTo);
+	assert(pAccount_->isLocked());
 	assert(std::find_if(l.begin(), l.end(),
 		std::not1(
 			std::bind2nd(
@@ -809,14 +809,13 @@ QSTATUS qmimap4::Imap4Driver::copyMessages(SubAccount* pSubAccount,
 	
 	DECLARE_QSTATUS();
 	
-	Folder::MessageHolderList listUpdate;
-	status = STLWrapper<Folder::MessageHolderList>(
-		listUpdate).reserve(l.size());
+	MessageHolderList listUpdate;
+	status = STLWrapper<MessageHolderList>(listUpdate).reserve(l.size());
 	CHECK_QSTATUS();
 	Util::UidList listLocalUid;
 	status = STLWrapper<Util::UidList>(listLocalUid).reserve(l.size());
 	CHECK_QSTATUS();
-	Folder::MessageHolderList::const_iterator it = l.begin();
+	MessageHolderList::const_iterator it = l.begin();
 	while (it != l.end()) {
 		MessageHolder* pmh = *it;
 		if (pmh->isFlag(MessageHolder::FLAG_LOCAL))
@@ -839,9 +838,7 @@ QSTATUS qmimap4::Imap4Driver::copyMessages(SubAccount* pSubAccount,
 			listItemTo).reserve(listUpdate.size());
 		CHECK_QSTATUS();
 		
-		Lock<Folder> lock(*pFolderTo);
-		
-		Folder::MessageHolderList::iterator it = listUpdate.begin();
+		MessageHolderList::iterator it = listUpdate.begin();
 		while (it != listUpdate.end()) {
 			MessageHolder* pmh = *it;
 			MessageHolder* pmhClone = 0;
@@ -972,19 +969,24 @@ QSTATUS qmimap4::Imap4Driver::clearDeletedMessages(
 		
 		cacher.release();
 		
-		Lock<Folder> lock2(*pFolder);
+		Lock<Account> lock2(*pAccount_);
 		
-		Folder::MessageHolderList l;
-		status = STLWrapper<Folder::MessageHolderList>(
-			l).resize(hook.listUid_.size());
+		MessageHolderList l;
+		status = STLWrapper<MessageHolderList>(l).resize(hook.listUid_.size());
 		CHECK_QSTATUS();
+		
 		ExpungeProcessHook::UidList::size_type n = 0;
 		while (n < hook.listUid_.size()) {
 			l[n] = pFolder->getMessage(hook.listUid_[n].second);
 			++n;
 		}
-		status = pFolder->deleteMessages(l, 0);
-		CHECK_QSTATUS();
+		
+		MessageHolderList::const_iterator it = l.begin();
+		while (it != l.end()) {
+			status = pAccount_->unstoreMessage(*it);
+			CHECK_QSTATUS();
+			++it;
+		}
 	}
 	
 	return QSTATUS_SUCCESS;
@@ -1022,7 +1024,7 @@ QSTATUS qmimap4::Imap4Driver::prepareSessionCache(SubAccount* pSubAccount)
 }
 
 QSTATUS qmimap4::Imap4Driver::setFlags(Imap4* pImap4, const Range& range,
-	NormalFolder* pFolder, const Folder::MessageHolderList& l,
+	NormalFolder* pFolder, const MessageHolderList& l,
 	unsigned int nFlags, unsigned int nMask)
 {
 	DECLARE_QSTATUS();
@@ -1039,7 +1041,7 @@ QSTATUS qmimap4::Imap4Driver::setFlags(Imap4* pImap4, const Range& range,
 	// Some server doesn't contain UID in a response to this STORE command
 	// If so, FlagProcessHook cannot set new flags to MessageHolder.
 	// So I'll update flags here to ensure flags updated.
-	Folder::MessageHolderList::const_iterator it = l.begin();
+	MessageHolderList::const_iterator it = l.begin();
 	while (it != l.end())
 		(*it++)->setFlags(nFlags, nMask);
 	
@@ -1117,11 +1119,12 @@ QSTATUS qmimap4::Imap4Driver::FlagProcessHook::processFetchResponse(
 	}
 	
 	if (nCount == 2) {
-		MessageHolder* pmh = 0;
-		status = pFolder_->getMessageById(nUid, &pmh);
+		MessagePtr ptr;
+		status = pFolder_->getMessageById(nUid, &ptr);
 		CHECK_QSTATUS();
-		if (pmh)
-			pmh->setFlags(nFlags, nFlags);
+		MessagePtrLock mpl(ptr);
+		if (mpl)
+			mpl->setFlags(nFlags, nFlags);
 	}
 	
 	return QSTATUS_SUCCESS;

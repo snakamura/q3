@@ -198,7 +198,7 @@ QSTATUS qmnntp::NntpReceiveSession::downloadMessages(
 		if (nLastId != 0)
 			nStart = nLastId + 1;
 		
-		Lock<Folder> lock(*pFolder_);
+		Lock<Account> lock(*pAccount_);
 		status = pFolder_->loadMessageHolders();
 		CHECK_QSTATUS();
 		unsigned int nCount = pFolder_->getCount();
@@ -316,7 +316,7 @@ QSTATUS qmnntp::NntpReceiveSession::downloadMessages(
 				}
 				
 				{
-					Lock<Folder> lock(*pFolder_);
+					Lock<Account> lock(*pAccount_);
 					
 					MessageHolder* pmh = 0;
 					status = pAccount_->storeMessage(pFolder_, pszMessage,
@@ -351,7 +351,7 @@ QSTATUS qmnntp::NntpReceiveSession::downloadMessages(
 				// TODO
 				// Process sync filter ?
 				
-				Lock<Folder> lock(*pFolder_);
+				Lock<Account> lock(*pAccount_);
 				
 				MessageHolder* pmh = 0;
 				status = pAccount_->storeMessage(pFolder_, strMessage.get(),
@@ -414,7 +414,7 @@ QSTATUS qmnntp::NntpReceiveSession::downloadReservedMessages(
 	List l;
 	
 	{
-		Lock<Folder> lock(*pFolder);
+		Lock<Account> lock(*pAccount_);
 		
 		status = pFolder->loadMessageHolders();
 		CHECK_QSTATUS();

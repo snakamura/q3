@@ -328,7 +328,7 @@ QSTATUS qmimap4::Imap4ReceiveSession::updateMessages()
 	nUidStart_ = 0;
 	nIdStart_ = 0;
 	if (nUidValidity_ == pFolder_->getValidity()) {
-		Lock<NormalFolder> lock(*pFolder_);
+		Lock<Account> lock(*pAccount_);
 		unsigned int n = pFolder_->getCount();
 		if (n != 0) {
 			MessageHolder* pmh = pFolder_->getMessage(n - 1);
@@ -673,7 +673,7 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 				}
 				nFlags |= MessageHolder::FLAG_INDEXONLY;
 				
-				Lock<Folder> lock(*pFolder_);
+				Lock<Account> lock(*pAccount_);
 				
 				MessageHolder* pmh = 0;
 				status = pAccount_->storeMessage(pFolder_,
@@ -1188,7 +1188,7 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadReservedMessages(
 		status = pSubAccount_->getProperty(L"Imap4", L"Option", 0xff, &nOption);
 		CHECK_QSTATUS();
 		
-		Lock<Folder> lock(*pFolder);
+		Lock<Account> lock(*pAccount_);
 		
 		status = pFolder->loadMessageHolders();
 		CHECK_QSTATUS();

@@ -116,7 +116,7 @@ public:
 	qs::QSTATUS createNormalFolder(const WCHAR* pwszName,
 		Folder* pParent, bool bRemote);
 	qs::QSTATUS createQueryFolder(const WCHAR* pwszName,
-		Folder* pParent, const WCHAR* pwszMacro);
+		Folder* pParent, const WCHAR* pwszCondition);
 	qs::QSTATUS removeFolder(Folder* pFolder);
 	qs::QSTATUS renameFolder(Folder* pFolder, const WCHAR* pwszName);
 	qs::QSTATUS showFolder(Folder* pFolder, bool bShow);
@@ -130,31 +130,36 @@ public:
 	qs::QSTATUS importMessage(NormalFolder* pFolder,
 		const CHAR* pszMessage, unsigned int nFlags);
 	
+	qs::QSTATUS appendMessage(NormalFolder* pFolder,
+		const Message& msg, unsigned int nFlags);
+	qs::QSTATUS removeMessages(const MessageHolderList& l,
+		bool bDirect, MessageOperationCallback* pCallback);
+	qs::QSTATUS copyMessages(const MessageHolderList& l,
+		NormalFolder* pFolderTo, bool bMove,
+		MessageOperationCallback* pCallback);
+	qs::QSTATUS setMessagesFlags(const MessageHolderList& l,
+		unsigned int nFlags, unsigned int nMask);
+	qs::QSTATUS clearDeletedMessages(NormalFolder* pFolder);
+	
 	qs::QSTATUS addAccountHandler(AccountHandler* pHandler);
 	qs::QSTATUS removeAccountHandler(AccountHandler* pHandler);
+	
+	void lock() const;
+	void unlock() const;
+#ifndef NDEBUG
+	bool isLocked() const;
+#endif
 
 // These methods are intended to be called from Document class
 public:
 	qs::QSTATUS deletePermanent(bool bDeleteContent);
 
-// These methods are intended to be called from NormalFolder class
+// These methods are intended to be called from MessageHolder class
 public:
 	qs::QSTATUS getData(MessageCacheKey key,
 		MessageCacheItem item, qs::WSTRING* pwstrData) const;
 	qs::QSTATUS getMessage(MessageHolder* pmh,
 		unsigned int nFlags, Message* pMessage);
-	qs::QSTATUS setMessagesFlags(NormalFolder* pFolder,
-		const Folder::MessageHolderList& l,
-		unsigned int nFlags, unsigned int nMask) const;
-	qs::QSTATUS appendMessage(NormalFolder* pFolder, const CHAR* pszMessage,
-		const Message& msgHeader, unsigned int nFlags, unsigned int nSize);
-	qs::QSTATUS removeMessages(NormalFolder* pFolder,
-		const Folder::MessageHolderList& l, bool bDirect,
-		MessageOperationCallback* pCallback) const;
-	qs::QSTATUS copyMessages(const Folder::MessageHolderList& l,
-		NormalFolder* pFolderFrom, NormalFolder* pFolderTo,
-		bool bMove, MessageOperationCallback* pCallback) const;
-	qs::QSTATUS clearDeletedMessages(NormalFolder* pFolder) const;
 
 // These methods are intended to be called from ReceiveSession class
 public:
@@ -181,6 +186,31 @@ private:
 
 private:
 	class AccountImpl* pImpl_;
+};
+
+
+/****************************************************************************
+ *
+ * AccountLock
+ *
+ */
+
+class AccountLock
+{
+public:
+	AccountLock();
+	AccountLock(Account* pAccount);
+	~AccountLock();
+
+public:
+	Account* get() const;
+	void set(Account* pAccount);
+
+private:
+	AccountLock& operator=(const AccountLock&);
+
+private:
+	Account* pAccount_;
 };
 
 
@@ -384,5 +414,7 @@ private:
 };
 
 }
+
+#include <qmaccount.inl>
 
 #endif // __QMACCOUNT_H__

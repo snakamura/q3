@@ -668,21 +668,15 @@ QSTATUS qm::ListWindowImpl::dragGestureRecognized(const DragGestureEvent& event)
 	
 	Lock<ViewModel> lock(*pViewModel);
 	
-	Folder::MessageHolderList l;
+	MessageHolderList l;
 	status = pViewModel->getSelection(&l);
 	CHECK_QSTATUS();
 	if (l.empty())
 		return QSTATUS_SUCCESS;
 	
-	MessagePtrList listMessagePtr;
-	status = STLWrapper<MessagePtrList>(listMessagePtr).resize(l.size());
-	CHECK_QSTATUS();
-	for (Folder::MessageHolderList::size_type n = 0; n < l.size(); ++n)
-		listMessagePtr[n] = MessagePtr(l[n]);
-	
 	MessageDataObject* p = 0;
 	status = newQsObject(pViewModel->getFolder()->getAccount(),
-		listMessagePtr, MessageDataObject::FLAG_NONE, &p);
+		l, MessageDataObject::FLAG_NONE, &p);
 	CHECK_QSTATUS();
 	p->AddRef();
 	ComPtr<IDataObject> pDataObject(p);

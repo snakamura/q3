@@ -627,8 +627,7 @@ QSTATUS qmimap4::Util::formatPath(const unsigned int* pPath, qs::STRING* pstrPat
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmimap4::Util::createUidList(
-	const Folder::MessageHolderList& l, UidList* pList)
+QSTATUS qmimap4::Util::createUidList(const MessageHolderList& l, UidList* pList)
 {
 	assert(std::find_if(l.begin(), l.end(),
 		std::bind2nd(
@@ -646,7 +645,7 @@ QSTATUS qmimap4::Util::createUidList(
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmimap4::Util::createRange(const Folder::MessageHolderList& l,
+QSTATUS qmimap4::Util::createRange(const MessageHolderList& l,
 	std::auto_ptr<MultipleRange>* apRange)
 {
 	DECLARE_QSTATUS();

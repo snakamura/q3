@@ -221,7 +221,7 @@ private:
 class MessagePropertyPage : public DefaultPropertyPage
 {
 public:
-	MessagePropertyPage(const Folder::MessageHolderList& l, qs::QSTATUS* pstatus);
+	MessagePropertyPage(const MessageHolderList& l, qs::QSTATUS* pstatus);
 	virtual ~MessagePropertyPage();
 
 public:
@@ -239,7 +239,7 @@ private:
 	MessagePropertyPage& operator=(const MessagePropertyPage&);
 
 private:
-	const Folder::MessageHolderList& listMessage_;
+	const MessageHolderList& listMessage_;
 	unsigned int nFlags_;
 	unsigned int nMask_;
 };

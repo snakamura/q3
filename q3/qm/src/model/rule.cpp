@@ -52,7 +52,7 @@ qm::RuleManager::~RuleManager()
 }
 
 QSTATUS qm::RuleManager::apply(NormalFolder* pFolder,
-	const Folder::MessageHolderList* pList, Document* pDocument,
+	const MessageHolderList* pList, Document* pDocument,
 	HWND hwnd, Profile* pProfile, RuleCallback* pCallback)
 {
 	assert(pFolder);
@@ -64,7 +64,9 @@ QSTATUS qm::RuleManager::apply(NormalFolder* pFolder,
 	status = load();
 	CHECK_QSTATUS();
 	
-	Lock<Folder> lock(*pFolder);
+	Account* pAccount = pFolder->getAccount();
+	
+	Lock<Account> lock(*pAccount);
 	
 	const RuleSet* pRuleSet = 0;
 	status = getRuleSet(pFolder, &pRuleSet);
@@ -72,12 +74,10 @@ QSTATUS qm::RuleManager::apply(NormalFolder* pFolder,
 	if (!pRuleSet)
 		return QSTATUS_SUCCESS;
 	
-	typedef std::vector<Folder::MessageHolderList> ListList;
+	typedef std::vector<MessageHolderList> ListList;
 	ListList ll;
 	status = STLWrapper<ListList>(ll).resize(pRuleSet->getCount());
 	CHECK_QSTATUS();
-	
-	Account* pAccount = pFolder->getAccount();
 	
 	struct Accessor
 	{
@@ -104,23 +104,23 @@ QSTATUS qm::RuleManager::apply(NormalFolder* pFolder,
 	
 	struct ListAccessor : public Accessor
 	{
-		ListAccessor(const Folder::MessageHolderList* p) :
-			p_(p)
+		ListAccessor(const MessageHolderList& l) :
+			l_(l)
 		{
 		}
 		virtual unsigned int getCount() const
 		{
-			return p_->size();
+			return l_.size();
 		}
 		virtual MessageHolder* getMessage(unsigned int n) const
 		{
-			return (*p_)[n];
+			return l_[n];
 		}
-		const Folder::MessageHolderList* p_;
+		const MessageHolderList& l_;
 	};
 	
 	FolderAccessor folderAccessor(pFolder);
-	ListAccessor listAccessor(pList);
+	ListAccessor listAccessor(*pList);
 	const Accessor& accessor = pList ?
 		static_cast<const Accessor&>(listAccessor) :
 		static_cast<const Accessor&>(folderAccessor);
@@ -162,8 +162,7 @@ QSTATUS qm::RuleManager::apply(NormalFolder* pFolder,
 			status = pRule->match(&context, &bMatch);
 			CHECK_QSTATUS();
 			if (bMatch) {
-				status = STLWrapper<Folder::MessageHolderList>(
-					ll[m]).push_back(pmh);
+				status = STLWrapper<MessageHolderList>(ll[m]).push_back(pmh);
 				CHECK_QSTATUS();
 				++nMatch;
 				break;
@@ -183,7 +182,7 @@ QSTATUS qm::RuleManager::apply(NormalFolder* pFolder,
 		if (pCallback->isCanceled())
 			return QSTATUS_SUCCESS;
 		
-		const Folder::MessageHolderList& l = ll[m];
+		const MessageHolderList& l = ll[m];
 		if (!l.empty()) {
 			const Rule* pRule = pRuleSet->getRule(m);
 			RuleContext context(pFolder, l, pDocument, pAccount);
@@ -487,7 +486,7 @@ QSTATUS qm::CopyRule::apply(const RuleContext& context) const
 	if (!pFolderTo || pFolderTo->getType() != Folder::TYPE_NORMAL)
 		return QSTATUS_FAIL;
 	
-	status = context.getFolder()->copyMessages(context.getMessageHolderList(),
+	status = context.getAccount()->copyMessages(context.getMessageHolderList(),
 		static_cast<NormalFolder*>(pFolderTo), bMove_, 0);
 	CHECK_QSTATUS();
 	
@@ -502,17 +501,18 @@ QSTATUS qm::CopyRule::apply(const RuleContext& context) const
  */
 
 qm::RuleContext::RuleContext(Folder* pFolder,
-	const Folder::MessageHolderList& l, Document* pDocument, Account* pAccount) :
+	const MessageHolderList& l, Document* pDocument, Account* pAccount) :
 	pFolder_(pFolder),
 	listMessageHolder_(l),
 	pDocument_(pDocument),
 	pAccount_(pAccount)
 {
 	assert(pFolder);
-	assert(pFolder->isLocked());
+	assert(pFolder->getAccount() == pAccount);
 	assert(!l.empty());
 	assert(pDocument);
 	assert(pAccount);
+	assert(pAccount->isLocked());
 }
 
 qm::RuleContext::~RuleContext()
@@ -524,7 +524,7 @@ Folder* qm::RuleContext::getFolder() const
 	return pFolder_;
 }
 
-const Folder::MessageHolderList& qm::RuleContext::getMessageHolderList() const
+const MessageHolderList& qm::RuleContext::getMessageHolderList() const
 {
 	return listMessageHolder_;
 }

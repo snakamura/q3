@@ -90,7 +90,7 @@ QSTATUS qm::AttachmentMenu::getPart(unsigned int nId, Message* pMessage,
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::AttachmentMenu::createMenu(HMENU hmenu, const MessagePtrList& l)
+QSTATUS qm::AttachmentMenu::createMenu(HMENU hmenu, const MessageHolderList& l)
 {
 	assert(hmenu);
 	
@@ -109,36 +109,36 @@ QSTATUS qm::AttachmentMenu::createMenu(HMENU hmenu, const MessagePtrList& l)
 	}
 	
 	UINT nId = IDM_MESSAGE_ATTACHMENT;
-	MessagePtrList::const_iterator itM = l.begin();
+	MessageHolderList::const_iterator itM = l.begin();
 	while (itM != l.end() && nId < IDM_MESSAGE_ATTACHMENT + MAX_ATTACHMENT) {
-		MessagePtrLock mpl(*itM);
-		if (mpl) {
-			status = STLWrapper<List>(list_).push_back(
-				List::value_type(nId, mpl));
+		MessageHolder* pmh = *itM;
+		
+		status = STLWrapper<List>(list_).push_back(
+			List::value_type(nId, pmh));
+		CHECK_QSTATUS();
+		
+		Message msg(&status);
+		CHECK_QSTATUS();
+		status = pmh->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, &msg);
+		CHECK_QSTATUS();
+		
+		AttachmentParser parser(msg);
+		AttachmentParser::AttachmentList list;
+		AttachmentParser::AttachmentListFree free(list);
+		status = parser.getAttachments(false, &list);
+		CHECK_QSTATUS();
+		AttachmentParser::AttachmentList::iterator itA = list.begin();
+		while (itA != list.end() &&
+			nId < IDM_MESSAGE_ATTACHMENT + MAX_ATTACHMENT) {
+			string_ptr<WSTRING> wstrName;
+			status = UIUtil::formatMenu((*itA).first, &wstrName);
 			CHECK_QSTATUS();
-			
-			Message msg(&status);
-			CHECK_QSTATUS();
-			status = mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, &msg);
-			CHECK_QSTATUS();
-			
-			AttachmentParser parser(msg);
-			AttachmentParser::AttachmentList list;
-			AttachmentParser::AttachmentListFree free(list);
-			status = parser.getAttachments(false, &list);
-			CHECK_QSTATUS();
-			AttachmentParser::AttachmentList::iterator itA = list.begin();
-			while (itA != list.end() &&
-				nId < IDM_MESSAGE_ATTACHMENT + MAX_ATTACHMENT) {
-				string_ptr<WSTRING> wstrName;
-				status = UIUtil::formatMenu((*itA).first, &wstrName);
-				CHECK_QSTATUS();
-				W2T(wstrName.get(), ptszName);
-				::InsertMenu(hmenu, nIdNext,
-					MF_BYCOMMAND | MF_STRING, nId++, ptszName);
-				++itA;
-			}
+			W2T(wstrName.get(), ptszName);
+			::InsertMenu(hmenu, nIdNext,
+				MF_BYCOMMAND | MF_STRING, nId++, ptszName);
+			++itA;
 		}
+		
 		++itM;
 	}
 	if (nId != IDM_MESSAGE_ATTACHMENT)

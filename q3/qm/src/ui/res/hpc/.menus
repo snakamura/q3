@@ -19,7 +19,7 @@
 		<popupmenu text="F&amp;older">
 			<menuitem text="&amp;Create..." action="FolderCreate"/>
 			<menuitem text="&amp;Delete" action="FolderDelete"/>
-			<menuitem text="&amp;Rename" action="FolderRename"/>
+			<menuitem text="&amp;Rename..." action="FolderRename"/>
 			<menuitem text="&amp;Update" action="FolderUpdate"/>
 			<separator/>
 			<menuitem text="&amp;Emptry" action="FolderEmpty"/>
@@ -258,7 +258,7 @@
 	<menu name="folder">
 		<menuitem text="&amp;Create..." action="FolderCreate"/>
 		<menuitem text="&amp;Delete" action="FolderDelete"/>
-		<menuitem text="&amp;Rename" action="FolderRename"/>
+		<menuitem text="&amp;Rename..." action="FolderRename"/>
 		<menuitem text="&amp;Update" action="FolderUpdate"/>
 		<separator/>
 		<menuitem text="&amp;Emptry" action="FolderEmpty"/>
@@ -270,7 +270,7 @@
 	<menu name="folderlist">
 		<menuitem text="&amp;Create..." action="FolderCreate"/>
 		<menuitem text="&amp;Delete" action="FolderDelete"/>
-		<menuitem text="&amp;Rename" action="FolderRename"/>
+		<menuitem text="&amp;Rename..." action="FolderRename"/>
 		<menuitem text="&amp;Update" action="FolderUpdate"/>
 		<separator/>
 		<menuitem text="&amp;Emptry" action="FolderEmpty"/>

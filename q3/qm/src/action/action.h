@@ -1014,7 +1014,7 @@ public:
 	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
 
 private:
-	static qs::QSTATUS combine(const MessagePtrList& l, Message* pMessage);
+	static qs::QSTATUS combine(const MessageHolderList& l, Message* pMessage);
 	static bool isSpecialField(const CHAR* pszField);
 
 private:

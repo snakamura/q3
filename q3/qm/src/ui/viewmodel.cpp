@@ -706,7 +706,7 @@ QSTATUS qm::ViewModel::clearSelection()
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ViewModel::getSelection(Folder::MessageHolderList* pList) const
+QSTATUS qm::ViewModel::getSelection(MessageHolderList* pList) const
 {
 	assert(pList);
 	assert(isLocked());
@@ -716,7 +716,7 @@ QSTATUS qm::ViewModel::getSelection(Folder::MessageHolderList* pList) const
 	ItemList::const_iterator it = listItem_.begin();
 	while (it != listItem_.end()) {
 		if ((*it)->getFlags() & FLAG_SELECTED) {
-			status = STLWrapper<Folder::MessageHolderList>(
+			status = STLWrapper<MessageHolderList>(
 				*pList).push_back((*it)->getMessageHolder());
 			CHECK_QSTATUS();
 		}
@@ -852,7 +852,7 @@ QSTATUS qm::ViewModel::removeViewModelHandler(ViewModelHandler* pHandler)
 
 void qm::ViewModel::lock() const
 {
-	pFolder_->lock();
+	pFolder_->getAccount()->lock();
 #ifndef NDEBUG
 	++nLock_;
 #endif
@@ -863,7 +863,7 @@ void qm::ViewModel::unlock() const
 #ifndef NDEBUG
 	--nLock_;
 #endif
-	pFolder_->unlock();
+	pFolder_->getAccount()->unlock();
 }
 
 #ifndef NDEBUG

@@ -82,7 +82,7 @@ private:
 		STATE_VALIDITY,
 		STATE_DOWNLOADCOUNT,
 		STATE_DELETEDCOUNT,
-		STATE_MACRO
+		STATE_CONDITION
 	};
 
 public:
@@ -125,7 +125,7 @@ private:
 	unsigned int nValidity_;
 	unsigned int nDownloadCount_;
 	unsigned int nDeletedCount_;
-	qs::WSTRING wstrMacro_;
+	qs::WSTRING wstrCondition_;
 	qs::StringBuffer<qs::WSTRING>* pBuffer_;
 };
 

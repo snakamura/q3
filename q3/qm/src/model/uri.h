@@ -1,5 +1,5 @@
 /*
- * $Id: uri.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -21,6 +21,7 @@ class URI;
 
 class Document;
 class MessageHolder;
+class MessagePtr;
 
 
 /****************************************************************************
@@ -33,7 +34,7 @@ class URI
 {
 public:
 	static qs::QSTATUS getMessageHolder(const WCHAR* pwszURI,
-		Document* pDocument, MessageHolder** ppmh);
+		Document* pDocument, MessagePtr* pptr);
 	static qs::QSTATUS getURI(MessageHolder* pmh, qs::WSTRING* pwstrURI);
 };
 

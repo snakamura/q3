@@ -237,7 +237,7 @@
 	<menu name="folder">
 		<menuitem text="Create..." action="FolderCreate"/>
 		<menuitem text="Delete" action="FolderDelete"/>
-		<menuitem text="Rename" action="FolderRename"/>
+		<menuitem text="Rename..." action="FolderRename"/>
 		<menuitem text="Update" action="FolderUpdate"/>
 		<separator/>
 		<menuitem text="Emptry" action="FolderEmpty"/>
@@ -249,7 +249,7 @@
 	<menu name="folderlist">
 		<menuitem text="Create..." action="FolderCreate"/>
 		<menuitem text="Delete" action="FolderDelete"/>
-		<menuitem text="Rename" action="FolderRename"/>
+		<menuitem text="Rename..." action="FolderRename"/>
 		<menuitem text="Update" action="FolderUpdate"/>
 		<separator/>
 		<menuitem text="Emptry" action="FolderEmpty"/>

@@ -153,7 +153,7 @@ QSTATUS qmpop3::Pop3Driver::getMessage(SubAccount* pSubAccount,
 }
 
 QSTATUS qmpop3::Pop3Driver::setMessagesFlags(SubAccount* pSubAccount,
-	NormalFolder* pFolder, const Folder::MessageHolderList& l,
+	NormalFolder* pFolder, const MessageHolderList& l,
 	unsigned int nFlags, unsigned int nMask)
 {
 	assert(pSubAccount);
@@ -182,7 +182,7 @@ QSTATUS qmpop3::Pop3Driver::appendMessage(SubAccount* pSubAccount,
 }
 
 QSTATUS qmpop3::Pop3Driver::removeMessages(SubAccount* pSubAccount,
-	NormalFolder* pFolder, const Folder::MessageHolderList& l)
+	NormalFolder* pFolder, const MessageHolderList& l)
 {
 	assert(pSubAccount);
 	assert(pFolder);
@@ -202,7 +202,7 @@ QSTATUS qmpop3::Pop3Driver::removeMessages(SubAccount* pSubAccount,
 }
 
 QSTATUS qmpop3::Pop3Driver::copyMessages(SubAccount* pSubAccount,
-	const Folder::MessageHolderList& l, NormalFolder* pFolderFrom,
+	const MessageHolderList& l, NormalFolder* pFolderFrom,
 	NormalFolder* pFolderTo, bool bMove)
 {
 	assert(!l.empty());

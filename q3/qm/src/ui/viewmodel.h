@@ -248,7 +248,7 @@ public:
 	qs::QSTATUS setSelection(unsigned int n);
 	qs::QSTATUS setSelection(unsigned int nStart, unsigned int nEnd);
 	qs::QSTATUS clearSelection();
-	qs::QSTATUS getSelection(Folder::MessageHolderList* pList) const;
+	qs::QSTATUS getSelection(MessageHolderList* pList) const;
 	bool hasSelection() const;
 	unsigned int getSelectedCount() const;
 	bool isSelected(unsigned int n) const;

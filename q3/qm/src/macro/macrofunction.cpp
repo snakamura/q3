@@ -1054,14 +1054,13 @@ QSTATUS qm::MacroFunctionCopy::value(
 	if (!pFolderTo || pFolderTo->getType() != Folder::TYPE_NORMAL)
 		return QSTATUS_FAIL;
 	
-	Folder* pFolderFrom = pmh->getFolder();
-	assert(pFolderFrom->isLocked());
+	Account* pAccount = pmh->getAccount();
+	assert(pAccount->isLocked());
 	
-	Folder::MessageHolderList l;
-	status = STLWrapper<Folder::MessageHolderList>(
-		l).push_back(pmh->getMessageHolder());
+	MessageHolderList l;
+	status = STLWrapper<MessageHolderList>(l).push_back(pmh->getMessageHolder());
 	CHECK_QSTATUS();
-	status = pFolderFrom->copyMessages(l,
+	status = pAccount->copyMessages(l,
 		static_cast<NormalFolder*>(pFolderTo), bMove_, 0);
 	CHECK_QSTATUS();
 	
@@ -1278,14 +1277,13 @@ QSTATUS qm::MacroFunctionDelete::value(
 		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
 	assert(pmh->getMessageHolder());
 	
-	Folder* pFolder = pmh->getFolder();
-	assert(pFolder->isLocked());
+	Account* pAccount = pmh->getAccount();
+	assert(pAccount->isLocked());
 	
-	Folder::MessageHolderList l;
-	status = STLWrapper<Folder::MessageHolderList>(
-		l).push_back(pmh->getMessageHolder());
+	MessageHolderList l;
+	status = STLWrapper<MessageHolderList>(l).push_back(pmh->getMessageHolder());
 	CHECK_QSTATUS();
-	status = pFolder->removeMessages(l, false, 0);
+	status = pAccount->removeMessages(l, false, 0);
 	CHECK_QSTATUS();
 	
 	return MacroValueFactory::getFactory().newBoolean(true,
@@ -2018,12 +2016,16 @@ QSTATUS qm::MacroFunctionFlag::value(
 		status = getArg(nBase)->value(pContext, &pValue);
 		CHECK_QSTATUS();
 		
-		Folder* pFolder = pmh->getFolder();
-		MessagePtrList l;
-		status = STLWrapper<MessagePtrList>(l).push_back(
-			MessagePtr(pmh->getMessageHolder()));
+//		Folder* pFolder = pmh->getFolder();
+		Account* pAccount = pmh->getFolder()->getAccount();
+		MessageHolderList l;
+		status = STLWrapper<MessageHolderList>(l).push_back(
+			pmh->getMessageHolder());
 		CHECK_QSTATUS();
-		status = pFolder->setMessagesFlags(l,
+//		status = pFolder->setMessagesFlags(l,
+//			pValue->boolean() ? nFlags : 0, nFlags);
+//		CHECK_QSTATUS();
+		status = pAccount->setMessagesFlags(l,
 			pValue->boolean() ? nFlags : 0, nFlags);
 		CHECK_QSTATUS();
 	}
@@ -3251,11 +3253,11 @@ QSTATUS qm::MacroFunctionMessages::value(
 		CHECK_QSTATUS();
 		if (pFolder->getType() != Folder::TYPE_NORMAL)
 			return QSTATUS_FAIL;
-		Lock<Folder> lock(*pFolder);
+		
+		Lock<Account> lock(*pFolder->getAccount());
+		
 		if (nSize > 1) {
-			MessageHolder* pmh = 0;
-			status = static_cast<NormalFolder*>(pFolder)->getMessageById(nId, &pmh);
-			CHECK_QSTATUS();
+			MessageHolder* pmh = static_cast<NormalFolder*>(pFolder)->getMessageById(nId);
 			if (pmh) {
 				status = STLWrapper<List>(l).push_back(MessagePtr(pmh));
 				CHECK_QSTATUS();

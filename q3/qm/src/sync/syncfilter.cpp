@@ -384,7 +384,7 @@ QSTATUS qm::SyncFilter::match(SyncFilterCallback* pCallback, bool* pbMatch) cons
 	}
 	
 	if (pImpl_->pMacro_) {
-		Lock<Folder> lock(*pFolder);
+		Lock<Account> lock(*pFolder->getAccount());
 		MacroContext* pContext = 0;
 		status = pCallback->getMacroContext(&pContext);
 		CHECK_QSTATUS();

@@ -88,9 +88,6 @@ public:
 	};
 
 public:
-	typedef std::vector<MessageHolder*> MessageHolderList;
-
-public:
 	Folder(const Init& init, qs::QSTATUS* pstatus);
 	virtual ~Folder();
 
@@ -109,22 +106,8 @@ public:
 	unsigned int getLevel() const;
 	Account* getAccount() const;
 	
-	qs::QSTATUS setMessagesFlags(const MessagePtrList& l,
-		unsigned int nFlags, unsigned int nMask);
-	qs::QSTATUS copyMessages(const MessagePtrList& l, NormalFolder* pFolder,
-		bool bMove, MessageOperationCallback* pCallback);
-	qs::QSTATUS removeMessages(const MessagePtrList& l, bool bDirect,
-		MessageOperationCallback* pCallback);
-	
 	qs::QSTATUS addFolderHandler(FolderHandler* pHandler);
 	qs::QSTATUS removeFolderHandler(FolderHandler* pHandler);
-
-public:
-	void lock() const;
-	void unlock() const;
-#ifndef NDEBUG
-	bool isLocked() const;
-#endif
 
 // These methods are intended to be called from Account class.
 public:
@@ -140,14 +123,6 @@ public:
 	virtual qs::QSTATUS getSize(unsigned int* pnSize) = 0;
 	virtual qs::QSTATUS getBoxSize(unsigned int* pnSize) = 0;
 	virtual MessageHolder* getMessage(unsigned int n) const = 0;
-	virtual MessageHolder* getMessageById(unsigned int nId) const = 0;
-	virtual qs::QSTATUS setMessagesFlags(const MessageHolderList& l,
-		unsigned int nFlags, unsigned int nMask) = 0;
-	virtual qs::QSTATUS copyMessages(const MessageHolderList& l,
-		NormalFolder* pFolder, bool bMove,
-		MessageOperationCallback* pCallback) = 0;
-	virtual qs::QSTATUS removeMessages(const MessageHolderList& l,
-		bool bDirect, MessageOperationCallback* pCallback) = 0;
 	virtual qs::QSTATUS loadMessageHolders() = 0;
 	virtual qs::QSTATUS saveMessageHolders() = 0;
 	virtual qs::QSTATUS deletePermanent() = 0;
@@ -191,11 +166,10 @@ public:
 	unsigned int getDeletedCount() const;
 	unsigned int getLastSyncTime() const;
 	void setLastSyncTime(unsigned int nTime);
-	qs::QSTATUS getMessageById(unsigned int nId, MessageHolder** ppmh);
+	qs::QSTATUS getMessageById(unsigned int nId, MessagePtr* pptr);
+	MessageHolder* getMessageById(unsigned int nId) const;
 	qs::QSTATUS updateMessageFlags(const FlagList& listFlag, bool* pbClear);
-	qs::QSTATUS appendMessage(const Message& msg, unsigned int nFlags);
 	qs::QSTATUS removeAllMessages(MessageOperationCallback* pCallback);
-	qs::QSTATUS clearDeletedMessages();
 
 public:
 	virtual Type getType() const;
@@ -204,13 +178,6 @@ public:
 	virtual qs::QSTATUS getSize(unsigned int* pnSize);
 	virtual qs::QSTATUS getBoxSize(unsigned int* pnSize);
 	virtual MessageHolder* getMessage(unsigned int n) const;
-	virtual MessageHolder* getMessageById(unsigned int nId) const;
-	virtual qs::QSTATUS setMessagesFlags(const MessageHolderList& l,
-		unsigned int nFlags, unsigned int nMask);
-	virtual qs::QSTATUS copyMessages(const MessageHolderList& l,
-		NormalFolder* pFolder, bool bMove, MessageOperationCallback* pCallback);
-	virtual qs::QSTATUS removeMessages(const MessageHolderList& l,
-		bool bDirect, MessageOperationCallback* pCallback);
 	virtual qs::QSTATUS loadMessageHolders();
 	virtual qs::QSTATUS saveMessageHolders();
 	virtual qs::QSTATUS deletePermanent();
@@ -220,17 +187,10 @@ public:
 	qs::QSTATUS generateId(unsigned int* pnId);
 	qs::QSTATUS appendMessage(MessageHolder* pmh);
 	qs::QSTATUS removeMessage(MessageHolder* pmh);
-	qs::QSTATUS deleteMessages(const MessageHolderList& l,
-		MessageOperationCallback* pCallback);
-	qs::QSTATUS deleteAllMessages();
 	qs::QSTATUS moveMessages(const MessageHolderList& l, NormalFolder* pFolder);
 
 // These methods are intended to be called from MessageHolder class
 public:
-	qs::QSTATUS getData(MessageCacheKey key,
-		MessageCacheItem item, qs::WSTRING* pwstrData) const;
-	qs::QSTATUS getMessage(MessageHolder* pmh,
-		unsigned int nFlags, Message* pMessage) const;
 	qs::QSTATUS fireMessageFlagChanged(MessageHolder* pmh,
 		unsigned int nOldFlags, unsigned int nNewFlags);
 
@@ -254,7 +214,7 @@ class QMEXPORTCLASS QueryFolder : public Folder
 public:
 	struct Init : public Folder::Init
 	{
-		const WCHAR* pwszMacro_;
+		const WCHAR* pwszCondition_;
 	};
 
 public:
@@ -262,7 +222,7 @@ public:
 	virtual ~QueryFolder();
 
 public:
-	const WCHAR* getMacro() const;
+	const WCHAR* getCondition() const;
 
 public:
 	virtual Type getType() const;
@@ -271,13 +231,6 @@ public:
 	virtual qs::QSTATUS getSize(unsigned int* pnSize);
 	virtual qs::QSTATUS getBoxSize(unsigned int* pnSize);
 	virtual MessageHolder* getMessage(unsigned int n) const;
-	virtual MessageHolder* getMessageById(unsigned int nId) const;
-	virtual qs::QSTATUS setMessagesFlags(const MessageHolderList& l,
-		unsigned int nFlags, unsigned int nMask);
-	virtual qs::QSTATUS copyMessages(const MessageHolderList& l,
-		NormalFolder* pFolder, bool bMove, MessageOperationCallback* pCallback);
-	virtual qs::QSTATUS removeMessages(const MessageHolderList& l,
-		bool bDirect, MessageOperationCallback* pCallback);
 	virtual qs::QSTATUS loadMessageHolders();
 	virtual qs::QSTATUS saveMessageHolders();
 	virtual qs::QSTATUS deletePermanent();
@@ -287,7 +240,7 @@ private:
 	QueryFolder& operator=(const QueryFolder&);
 
 private:
-	qs::WSTRING wstrMacro_;
+	struct QueryFolderImpl* pImpl_;
 };
 
 

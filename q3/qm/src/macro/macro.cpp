@@ -1,5 +1,5 @@
 /*
- * $Id: macro.cpp,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -1305,7 +1305,8 @@ qm::MacroContext::MacroContext(const Init& init, QSTATUS* pstatus) :
 	bOwnGlobalContext_(true)
 {
 	assert((!init.pmh_ && !init.pMessage_) || (init.pmh_ && init.pMessage_));
-	assert(!init.pmh_ || init.pmh_->getFolder()->isLocked());
+	assert(!init.pmh_ || init.pmh_->getAccount() == init.pAccount_);
+	assert(!init.pmh_ || init.pmh_->getAccount()->isLocked());
 	assert(init.pAccount_);
 	assert(init.pDocument_);
 	assert(init.hwnd_);

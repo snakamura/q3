@@ -156,13 +156,16 @@ QSTATUS qm::AttachmentSaveAction::invoke(const ActionEvent& event)
 {
 	DECLARE_QSTATUS();
 	
-	MessagePtrList listMessagePtr;
-	status = STLWrapper<MessagePtrList>(listMessagePtr).push_back(
-		pMessageModel_->getCurrentMessage());
+	MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
+	if (!mpl)
+		return QSTATUS_SUCCESS;
+	
+	MessageHolderList listMessageHolder;
+	status = STLWrapper<MessageHolderList>(listMessageHolder).push_back(mpl);
 	CHECK_QSTATUS();
 	
 	if (bAll_) {
-		status = helper_.detach(listMessagePtr, 0);
+		status = helper_.detach(listMessageHolder, 0);
 		CHECK_QSTATUS();
 	}
 	else {
@@ -176,7 +179,7 @@ QSTATUS qm::AttachmentSaveAction::invoke(const ActionEvent& event)
 		CHECK_QSTATUS();
 		std::copy(listName.begin(), listName.end(), l.begin());
 		
-		status = helper_.detach(listMessagePtr, &l);
+		status = helper_.detach(listMessageHolder, &l);
 		CHECK_QSTATUS();
 	}
 	
@@ -310,7 +313,9 @@ QSTATUS qm::EditClearDeletedAction::invoke(const ActionEvent& event)
 		pFolder->isFlag(Folder::FLAG_LOCAL))
 		return QSTATUS_FAIL;
 	
-	status = static_cast<NormalFolder*>(pFolder)->clearDeletedMessages();
+	Account* pAccount = pFolder->getAccount();
+	status = pAccount->clearDeletedMessages(
+		static_cast<NormalFolder*>(pFolder));
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
@@ -402,14 +407,12 @@ QSTATUS qm::EditCopyMessageAction::invoke(const ActionEvent& event)
 {
 	DECLARE_QSTATUS();
 	
-	Account* pAccount = pFolderModel_->getCurrentAccount();
-	if (!pAccount)
-		pAccount = pFolderModel_->getCurrentFolder()->getAccount();
-	
-	MessagePtrList l;
-	status = pMessageSelectionModel_->getSelectedMessages(0, &l);
+	AccountLock lock;
+	MessageHolderList l;
+	status = pMessageSelectionModel_->getSelectedMessages(&lock, &l);
 	CHECK_QSTATUS();
 	
+	Account* pAccount = lock.get();
 	if (!l.empty()) {
 		MessageDataObject* p = 0;
 		status = newQsObject(pAccount, l, MessageDataObject::FLAG_COPY, &p);
@@ -457,14 +460,12 @@ QSTATUS qm::EditCutMessageAction::invoke(const ActionEvent& event)
 {
 	DECLARE_QSTATUS();
 	
-	Account* pAccount = pFolderModel_->getCurrentAccount();
-	if (!pAccount)
-		pAccount = pFolderModel_->getCurrentFolder()->getAccount();
-	
-	MessagePtrList l;
-	status = pMessageSelectionModel_->getSelectedMessages(0, &l);
+	AccountLock lock;
+	MessageHolderList l;
+	status = pMessageSelectionModel_->getSelectedMessages(&lock, &l);
 	CHECK_QSTATUS();
 	
+	Account* pAccount = lock.get();
 	if (!l.empty()) {
 		MessageDataObject* p = 0;
 		status = newQsObject(pAccount, l, MessageDataObject::FLAG_MOVE, &p);
@@ -531,14 +532,16 @@ QSTATUS qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 	DECLARE_QSTATUS();
 	
 	if (pMessageSelectionModel_) {
-		Folder* pFolder = 0;
-		MessagePtrList l;
-		status = pMessageSelectionModel_->getSelectedMessages(&pFolder, &l);
+		AccountLock lock;
+		MessageHolderList l;
+		status = pMessageSelectionModel_->getSelectedMessages(&lock, &l);
 		CHECK_QSTATUS();
+		
+		Account* pAccount = lock.get();
 		if (!l.empty()) {
 			ProgressDialogMessageOperationCallback callback(
 				hwndFrame_, IDS_DELETE, IDS_DELETE);
-			status = pFolder->removeMessages(l, bDirect_, &callback);
+			status = pAccount->removeMessages(l, bDirect_, &callback);
 			CHECK_QSTATUS();
 		}
 	}
@@ -556,11 +559,11 @@ QSTATUS qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 				CHECK_QSTATUS();
 			}
 			
-			Folder::MessageHolderList l;
-			status = STLWrapper<Folder::MessageHolderList>(l).push_back(mpl);
+			Account* pAccount = mpl->getFolder()->getAccount();
+			MessageHolderList l;
+			status = STLWrapper<MessageHolderList>(l).push_back(mpl);
 			CHECK_QSTATUS();
-			status = mpl->getFolder()->removeMessages(l, bDirect_, 0);
-			CHECK_QSTATUS();
+			status = pAccount->removeMessages(l, bDirect_, 0);
 		}
 	}
 	
@@ -853,6 +856,8 @@ QSTATUS qm::FileEmptyTrashAction::invoke(const ActionEvent& event)
 	
 	NormalFolder* pTrash = getTrash();
 	if (pTrash) {
+		Account* pAccount = pTrash->getAccount();
+		
 		// TODO
 		// Sync folder if online and trash is syncable
 		
@@ -862,11 +867,11 @@ QSTATUS qm::FileEmptyTrashAction::invoke(const ActionEvent& event)
 		CHECK_QSTATUS();
 		
 		if (!pTrash->isFlag(Folder::FLAG_LOCAL)) {
-			status = pTrash->clearDeletedMessages();
+			status = pAccount->clearDeletedMessages(pTrash);
 			CHECK_QSTATUS();
 		}
 		
-		status = pTrash->getAccount()->save();
+		status = pAccount->save();
 		CHECK_QSTATUS();
 	}
 	
@@ -1008,10 +1013,12 @@ QSTATUS qm::FileExportAction::invoke(const ActionEvent& event)
 {
 	DECLARE_QSTATUS();
 	
-	MessagePtrList l;
-	status = pModel_->getSelectedMessages(0, &l);
+	AccountLock lock;
+	MessageHolderList l;
+	status = pModel_->getSelectedMessages(&lock, &l);
 	CHECK_QSTATUS();
 	
+	Account* pAccount = lock.get();
 	if (!l.empty()) {
 		ExportDialog dialog(l.size() == 1, &status);
 		CHECK_QSTATUS();
@@ -1041,7 +1048,7 @@ QSTATUS qm::FileExportAction::invoke(const ActionEvent& event)
 				if (!pExt)
 					pExt = pFileName + wcslen(pFileName);
 				
-				MessagePtrList::size_type n = 0;
+				MessageHolderList::size_type n = 0;
 				while (n < l.size()) {
 					if (progressDialog.isCanceled())
 						break;
@@ -1088,7 +1095,7 @@ QSTATUS qm::FileExportAction::invoke(const ActionEvent& event)
 					++nPos;
 				}
 				else {
-					MessagePtrList::iterator it = l.begin();
+					MessageHolderList::iterator it = l.begin();
 					while (it != l.end()) {
 						if (progressDialog.isCanceled())
 							break;
@@ -2024,8 +2031,8 @@ QSTATUS qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 	
 	Folder* pFolder = pFolderModel_->getCurrentFolder();
 	if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL) {
-		const Folder::MessageHolderList* pList = 0;
-		Folder::MessageHolderList listMessageHolder;
+		const MessageHolderList* pList = 0;
+		MessageHolderList listMessageHolder;
 		if (pViewModelManager_) {
 			ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 			if (pViewModel) {
@@ -2141,23 +2148,24 @@ QSTATUS qm::MessageCombineAction::invoke(const ActionEvent& event)
 {
 	DECLARE_QSTATUS();
 	
-	// TODO
-	Folder* pFolder = 0;
-	MessagePtrList l;
-	status = pMessageSelectionModel_->getSelectedMessages(&pFolder, &l);
-	CHECK_QSTATUS();
-	if (pFolder->getType() != Folder::TYPE_NORMAL)
-		return QSTATUS_SUCCESS;
-	
-	Message msg(&status);
-	CHECK_QSTATUS();
-	status = combine(l, &msg);
+	AccountLock lock;
+	MessageHolderList l;
+	status = pMessageSelectionModel_->getSelectedMessages(&lock, &l);
 	CHECK_QSTATUS();
 	
-	// TODO
-	unsigned int nFlags = 0;
-	status = static_cast<NormalFolder*>(pFolder)->appendMessage(msg, nFlags);
-	CHECK_QSTATUS();
+	Account* pAccount = lock.get();
+	if (!l.empty()) {
+		Message msg(&status);
+		CHECK_QSTATUS();
+		status = combine(l, &msg);
+		CHECK_QSTATUS();
+		
+		// TODO
+		NormalFolder* pFolder = l.front()->getFolder();
+		unsigned int nFlags = 0;
+		status = pAccount->appendMessage(pFolder, msg, nFlags);
+		CHECK_QSTATUS();
+	}
 	
 	return QSTATUS_SUCCESS;
 }
@@ -2169,27 +2177,25 @@ QSTATUS qm::MessageCombineAction::isEnabled(const ActionEvent& event, bool* pbEn
 }
 
 QSTATUS qm::MessageCombineAction::combine(
-	const MessagePtrList& l, Message* pMessage)
+	const MessageHolderList& l, Message* pMessage)
 {
 	assert(pMessage);
 	
 	DECLARE_QSTATUS();
 	
-	MessagePtrList listMessagePtr;
-	status = STLWrapper<MessagePtrList>(listMessagePtr).resize(l.size());
+	MessageHolderList listMessageHolder;
+	status = STLWrapper<MessageHolderList>(listMessageHolder).resize(l.size());
 	CHECK_QSTATUS();
 	
 	string_ptr<WSTRING> wstrIdAll;
 	unsigned int nTotal = 0;
-	MessagePtrList::const_iterator it = l.begin();
+	MessageHolderList::const_iterator it = l.begin();
 	while (it != l.end()) {
-		MessagePtrLock mpl(*it);
-		if (!mpl)
-			return QSTATUS_FAIL;
+		MessageHolder* pmh = *it;
 		
 		Message msg(&status);
 		CHECK_QSTATUS();
-		status = mpl->getMessage(Account::GETMESSAGEFLAG_HEADER, L"Content-Type", &msg);
+		status = pmh->getMessage(Account::GETMESSAGEFLAG_HEADER, L"Content-Type", &msg);
 		CHECK_QSTATUS();
 		
 		const ContentTypeParser* pContentType = msg.getContentType();
@@ -2225,7 +2231,7 @@ QSTATUS qm::MessageCombineAction::combine(
 		unsigned int nNumber = wcstol(wstrNumber.get(), &pEnd, 10);
 		if (*pEnd || nNumber == 0 || nNumber > l.size())
 			return QSTATUS_FAIL;
-		listMessagePtr[nNumber - 1] = *it;
+		listMessageHolder[nNumber - 1] = *it;
 		// TODO
 		// Check duplicated number
 		
@@ -2264,18 +2270,19 @@ QSTATUS qm::MessageCombineAction::combine(
 		Part::FieldList& l_;
 	} deleter(listField);
 	
-	it = listMessagePtr.begin();
-	while (it != listMessagePtr.end()) {
-		MessagePtrLock mpl(*it);
-		if (!mpl)
-			return QSTATUS_FAIL;
+	it = listMessageHolder.begin();
+	while (it != listMessageHolder.end()) {
+//		MessagePtrLock mpl(*it);
+//		if (!mpl)
+//			return QSTATUS_FAIL;
+		MessageHolder* pmh = *it;
 		
 		Message msg(&status);
 		CHECK_QSTATUS();
-		status = mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg);
+		status = pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg);
 		CHECK_QSTATUS();
 		
-		if (it == listMessagePtr.begin()) {
+		if (it == listMessageHolder.begin()) {
 			status = msg.getFields(&listField);
 			CHECK_QSTATUS();
 		}
@@ -2449,34 +2456,36 @@ QSTATUS qm::MessageDeleteAttachmentAction::invoke(const ActionEvent& event)
 {
 	DECLARE_QSTATUS();
 	
-	MessagePtrList listMessagePtr;
-	status = pMessageSelectionModel_->getSelectedMessages(0, &listMessagePtr);
+	AccountLock lock;
+	MessageHolderList l;
+	status = pMessageSelectionModel_->getSelectedMessages(&lock, &l);
 	CHECK_QSTATUS();
 	
-	MessagePtrList::const_iterator it = listMessagePtr.begin();
-	while (it != listMessagePtr.end()) {
-		MessagePtrLock mpl(*it);
-		if (mpl) {
-			Message msg(&status);
-			CHECK_QSTATUS();
-			status = mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg);
-			CHECK_QSTATUS();
-			status = AttachmentParser::removeAttachments(&msg);
-			CHECK_QSTATUS();
-			status = AttachmentParser::setAttachmentDeleted(&msg);
-			CHECK_QSTATUS();
-			
-			NormalFolder* pFolder = mpl->getFolder();
-			status = pFolder->appendMessage(msg,
-				mpl->getFlags() & MessageHolder::FLAG_USER_MASK);
-			CHECK_QSTATUS();
-			
-			Folder::MessageHolderList l;
-			status = STLWrapper<Folder::MessageHolderList>(l).push_back(mpl);
-			CHECK_QSTATUS();
-			status = pFolder->removeMessages(l, false, 0);
-			CHECK_QSTATUS();
-		}
+	Account* pAccount = lock.get();
+	MessageHolderList::const_iterator it = l.begin();
+	while (it != l.end()) {
+		MessageHolder* pmh = *it;
+		
+		Message msg(&status);
+		CHECK_QSTATUS();
+		status = pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg);
+		CHECK_QSTATUS();
+		status = AttachmentParser::removeAttachments(&msg);
+		CHECK_QSTATUS();
+		status = AttachmentParser::setAttachmentDeleted(&msg);
+		CHECK_QSTATUS();
+		
+		NormalFolder* pFolder = pmh->getFolder();
+		status = pAccount->appendMessage(pFolder, msg,
+			pmh->getFlags() & MessageHolder::FLAG_USER_MASK);
+		CHECK_QSTATUS();
+		
+		MessageHolderList listRemove;
+		status = STLWrapper<MessageHolderList>(listRemove).push_back(pmh);
+		CHECK_QSTATUS();
+		status = pAccount->removeMessages(l, false, 0);
+		CHECK_QSTATUS();
+		
 		++it;
 	}
 	
@@ -2512,11 +2521,12 @@ QSTATUS qm::MessageDetachAction::invoke(const ActionEvent& event)
 {
 	DECLARE_QSTATUS();
 	
-	MessagePtrList listMessagePtr;
-	status = pMessageSelectionModel_->getSelectedMessages(0, &listMessagePtr);
+	AccountLock lock;
+	MessageHolderList l;
+	status = pMessageSelectionModel_->getSelectedMessages(&lock, &l);
 	CHECK_QSTATUS();
 	
-	status = helper_.detach(listMessagePtr, 0);
+	status = helper_.detach(l, 0);
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
@@ -2549,45 +2559,49 @@ QSTATUS qm::MessageExpandDigestAction::invoke(const ActionEvent& event)
 {
 	DECLARE_QSTATUS();
 	
-	MessagePtrList listMessagePtr;
-	status = pMessageSelectionModel_->getSelectedMessages(0, &listMessagePtr);
+	AccountLock lock;
+	MessageHolderList l;
+	status = pMessageSelectionModel_->getSelectedMessages(&lock, &l);
 	CHECK_QSTATUS();
 	
-	MessagePtrList::const_iterator itP = listMessagePtr.begin();
-	while (itP != listMessagePtr.end()) {
-		MessagePtrLock mpl(*itP);
-		if (mpl) {
-			Message msg(&status);
-			CHECK_QSTATUS();
-			status = mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg);
-			CHECK_QSTATUS();
-			
-			PartUtil::MessageList l;
-			struct Deleter
+	Account* pAccount = lock.get();
+	MessageHolderList::const_iterator itM = l.begin();
+	while (itM != l.end()) {
+		MessageHolder* pmh = *itM;
+		
+		Message msg(&status);
+		CHECK_QSTATUS();
+		status = pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg);
+		CHECK_QSTATUS();
+		
+		PartUtil::MessageList listMessage;
+		struct Deleter
+		{
+			Deleter(PartUtil::MessageList& l) :
+				l_(l)
 			{
-				Deleter(PartUtil::MessageList& l) :
-					l_(l)
-				{
-				}
-				
-				~Deleter()
-				{
-					std::for_each(l_.begin(), l_.end(), deleter<Message>());
-				}
-				
-				PartUtil::MessageList& l_;
-			} deleter(l);
-			status = PartUtil(msg).getDigest(&l);
-			CHECK_QSTATUS();
-			PartUtil::MessageList::const_iterator itM = l.begin();
-			while (itM != l.end()) {
-				unsigned int nFlags = 0;
-				status = mpl->getFolder()->appendMessage(**itM, nFlags);
-				CHECK_QSTATUS();
-				++itM;
 			}
+			
+			~Deleter()
+			{
+				std::for_each(l_.begin(), l_.end(), deleter<Message>());
+			}
+			
+			PartUtil::MessageList& l_;
+		} deleter(listMessage);
+		status = PartUtil(msg).getDigest(&listMessage);
+		CHECK_QSTATUS();
+		PartUtil::MessageList::const_iterator itE = listMessage.begin();
+		while (itE != listMessage.end()) {
+			// TODO
+			// Set flags?
+			unsigned int nFlags = 0;
+			status = pAccount->appendMessage(pmh->getFolder(), **itE, nFlags);
+			CHECK_QSTATUS();
+			++itE;
 		}
-		++itP;
+		
+		++itM;
 	}
 	
 	return QSTATUS_SUCCESS;
@@ -2622,12 +2636,14 @@ QSTATUS qm::MessageMarkAction::invoke(const ActionEvent& event)
 {
 	DECLARE_QSTATUS();
 	
-	Folder* pFolder = 0;
-	MessagePtrList l;
-	status = pModel_->getSelectedMessages(&pFolder, &l);
+	AccountLock lock;
+	MessageHolderList l;
+	status = pModel_->getSelectedMessages(&lock, &l);
 	CHECK_QSTATUS();
+	
+	Account* pAccount = lock.get();
 	if (!l.empty()) {
-		status = pFolder->setMessagesFlags(l, nFlags_, nMask_);
+		status = pAccount->setMessagesFlags(l, nFlags_, nMask_);
 		CHECK_QSTATUS();
 	}
 	
@@ -2665,15 +2681,17 @@ QSTATUS qm::MessageMoveAction::invoke(const ActionEvent& event)
 	
 	NormalFolder* pFolderTo = pMoveMenu_->getFolder(event.getId());
 	if (pFolderTo) {
-		Folder* pFolderFrom = 0;
-		MessagePtrList l;
-		status = pModel_->getSelectedMessages(&pFolderFrom, &l);
+		AccountLock lock;
+		MessageHolderList l;
+		status = pModel_->getSelectedMessages(&lock, &l);
 		CHECK_QSTATUS();
+		
+		Account* pAccount = lock.get();
 		if (!l.empty()) {
 			bool bMove = (event.getModifier() & ActionEvent::MODIFIER_CTRL) == 0;
 			UINT nId = bMove ? IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
 			ProgressDialogMessageOperationCallback callback(hwndFrame_, nId, nId);
-			status = pFolderFrom->copyMessages(l, pFolderTo, bMove, &callback);
+			status = pAccount->copyMessages(l, pFolderTo, bMove, &callback);
 			CHECK_QSTATUS();
 		}
 	}
@@ -2720,17 +2738,19 @@ QSTATUS qm::MessageMoveOtherAction::invoke(const ActionEvent& event)
 	if (nRet == IDOK) {
 		NormalFolder* pFolderTo = dialog.getFolder();
 		if (pFolderTo) {
-			Folder* pFolderFrom = 0;
-			MessagePtrList l;
-			status = pModel_->getSelectedMessages(&pFolderFrom, &l);
+			AccountLock lock;
+			MessageHolderList l;
+			status = pModel_->getSelectedMessages(&lock, &l);
 			CHECK_QSTATUS();
+			
+			Account* pAccount = lock.get();
 			if (!l.empty()) {
 				bool bMove = !dialog.isCopy();
 				
 				UINT nId = bMove ? IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
 				ProgressDialogMessageOperationCallback callback(
 					hwndFrame_, nId, nId);
-				status = pFolderFrom->copyMessages(l, pFolderTo, bMove, &callback);
+				status = pAccount->copyMessages(l, pFolderTo, bMove, &callback);
 				CHECK_QSTATUS();
 			}
 		}
@@ -2862,31 +2882,19 @@ QSTATUS qm::MessagePropertyAction::invoke(const ActionEvent& event)
 {
 	DECLARE_QSTATUS();
 	
-	Folder* pFolder = 0;
-	MessagePtrList l;
-	status = pModel_->getSelectedMessages(&pFolder, &l);
+	AccountLock lock;
+	MessageHolderList l;
+	status = pModel_->getSelectedMessages(&lock, &l);
 	CHECK_QSTATUS();
+	
+	Account* pAccount = lock.get();
 	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	string_ptr<WSTRING> wstrTitle;
 	status = loadString(hInst, IDS_PROPERTY, &wstrTitle);
 	CHECK_QSTATUS();
 	
-	Lock<Folder> lock(*pFolder);
-	
-	Folder::MessageHolderList listMessageHolder;
-	status = STLWrapper<Folder::MessageHolderList>(
-		listMessageHolder).reserve(l.size());
-	CHECK_QSTATUS();
-	MessagePtrList::const_iterator it = l.begin();
-	while (it != l.end()) {
-		MessagePtrLock mpl(*it);
-		if (mpl)
-			listMessageHolder.push_back(mpl);
-		++it;
-	}
-	
-	MessagePropertyPage page(listMessageHolder, &status);
+	MessagePropertyPage page(l, &status);
 	CHECK_QSTATUS();
 	PropertySheetBase sheet(hInst, wstrTitle.get(), false, &status);
 	CHECK_QSTATUS();
@@ -2897,8 +2905,7 @@ QSTATUS qm::MessagePropertyAction::invoke(const ActionEvent& event)
 	status = sheet.doModal(hwnd_, 0, &nRet);
 	CHECK_QSTATUS();
 	if (nRet == IDOK) {
-		status = pFolder->setMessagesFlags(listMessageHolder,
-			page.getFlags(), page.getMask());
+		status = pAccount->setMessagesFlags(l, page.getFlags(), page.getMask());
 		CHECK_QSTATUS();
 	}
 	

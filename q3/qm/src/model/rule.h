@@ -55,7 +55,7 @@ public:
 
 public:
 	qs::QSTATUS apply(NormalFolder* pFolder,
-		const Folder::MessageHolderList* pList, Document* pDocument,
+		const MessageHolderList* pList, Document* pDocument,
 		HWND hwnd, qs::Profile* pProfile, RuleCallback* pCallback);
 
 public:
@@ -219,13 +219,13 @@ private:
 class RuleContext
 {
 public:
-	RuleContext(Folder* pFolder, const Folder::MessageHolderList& l,
+	RuleContext(Folder* pFolder, const MessageHolderList& l,
 		Document* pDocument, Account* pAccount);
 	~RuleContext();
 
 public:
 	Folder* getFolder() const;
-	const Folder::MessageHolderList& getMessageHolderList() const;
+	const MessageHolderList& getMessageHolderList() const;
 	Document* getDocument() const;
 	Account* getAccount() const;
 
@@ -235,7 +235,7 @@ private:
 
 private:
 	Folder* pFolder_;
-	const Folder::MessageHolderList& listMessageHolder_;
+	const MessageHolderList& listMessageHolder_;
 	Document* pDocument_;
 	Account* pAccount_;
 };

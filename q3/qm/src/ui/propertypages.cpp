@@ -575,7 +575,7 @@ struct
 }
 
 qm::MessagePropertyPage::MessagePropertyPage(
-	const Folder::MessageHolderList& l, QSTATUS* pstatus) :
+	const MessageHolderList& l, QSTATUS* pstatus) :
 	DefaultPropertyPage(IDD_MESSAGEPROPERTY, pstatus),
 	listMessage_(l),
 	nFlags_(0),
@@ -657,7 +657,7 @@ LRESULT qm::MessagePropertyPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	else {
 		for (int n = 0; n < countof(flags); ++n) {
 			unsigned int nCount = 0;
-			Folder::MessageHolderList::const_iterator it = listMessage_.begin();
+			MessageHolderList::const_iterator it = listMessage_.begin();
 			while (it != listMessage_.end()) {
 				if ((*it)->getFlags() & flags[n].flag_)
 					++nCount;

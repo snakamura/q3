@@ -123,7 +123,7 @@ qm::AttachmentHelper::~AttachmentHelper()
 }
 
 QSTATUS qm::AttachmentHelper::detach(
-	const MessagePtrList& listMessagePtr, const NameList* pListName)
+	const MessageHolderList& listMessageHolder, const NameList* pListName)
 {
 	DECLARE_QSTATUS();
 	
@@ -141,13 +141,41 @@ QSTATUS qm::AttachmentHelper::detach(
 		DetachDialog::List& l_;
 	} deleter(list);
 	
-	MessagePtrList::const_iterator itM = listMessagePtr.begin();
-	while (itM != listMessagePtr.end()) {
-		MessagePtrLock mpl(*itM);
-		if (mpl) {
-			Message msg(&status);
+	MessageHolderList::const_iterator itM = listMessageHolder.begin();
+	while (itM != listMessageHolder.end()) {
+		MessageHolder* pmh = *itM;
+		
+		Message msg(&status);
+		CHECK_QSTATUS();
+		status = pmh->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, &msg);
+		CHECK_QSTATUS();
+		AttachmentParser parser(msg);
+		AttachmentParser::AttachmentList l;
+		AttachmentParser::AttachmentListFree free(l);
+		status = parser.getAttachments(false, &l);
+		CHECK_QSTATUS();
+		AttachmentParser::AttachmentList::iterator itA = l.begin();
+		while (itA != l.end()) {
+			string_ptr<WSTRING> wstrName(allocWString((*itA).first));
+			if (!wstrName.get())
+				return QSTATUS_OUTOFMEMORY;
+			
+			bool bSelected = true;
+			if (pListName) {
+				NameList::const_iterator itN = std::find_if(
+					pListName->begin(), pListName->end(),
+					std::bind2nd(string_equal<WCHAR>(), wstrName.get()));
+				bSelected = itN != pListName->end();
+			}
+			
+			DetachDialog::Item item = {
+				pmh,
+				wstrName.get(),
+				bSelected
+			};
+			status = STLWrapper<DetachDialog::List>(list).push_back(item);
 			CHECK_QSTATUS();
-			status = mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, &msg);
+			status = pmh->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, &msg);
 			CHECK_QSTATUS();
 			AttachmentParser parser(msg);
 			AttachmentParser::AttachmentList l;
@@ -169,7 +197,7 @@ QSTATUS qm::AttachmentHelper::detach(
 				}
 				
 				DetachDialog::Item item = {
-					mpl,
+					pmh,
 					wstrName.get(),
 					bSelected
 				};
@@ -179,6 +207,7 @@ QSTATUS qm::AttachmentHelper::detach(
 				++itA;
 			}
 		}
+		
 		++itM;
 	}
 	

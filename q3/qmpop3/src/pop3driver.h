@@ -50,14 +50,14 @@ public:
 		qm::MessageHolder* pmh, unsigned int nFlags, qs::STRING* pstrMessage,
 		qm::Message::Flag* pFlag, bool* pbGet, bool* pbMadeSeen);
 	virtual qs::QSTATUS setMessagesFlags(qm::SubAccount* pSubAccount,
-		qm::NormalFolder* pFolder, const qm::Folder::MessageHolderList& l,
+		qm::NormalFolder* pFolder, const qm::MessageHolderList& l,
 		unsigned int nFlags, unsigned int nMask);
 	virtual qs::QSTATUS appendMessage(qm::SubAccount* pSubAccount,
 		qm::NormalFolder* pFolder, const CHAR* pszMessage, unsigned int nFlags);
 	virtual qs::QSTATUS removeMessages(qm::SubAccount* pSubAccount,
-		qm::NormalFolder* pFolder, const qm::Folder::MessageHolderList& l);
+		qm::NormalFolder* pFolder, const qm::MessageHolderList& l);
 	virtual qs::QSTATUS copyMessages(qm::SubAccount* pSubAccount,
-		const qm::Folder::MessageHolderList& l, qm::NormalFolder* pFolderFrom,
+		const qm::MessageHolderList& l, qm::NormalFolder* pFolderFrom,
 		qm::NormalFolder* pFolderTo, bool bMove);
 	virtual qs::QSTATUS clearDeletedMessages(
 		qm::SubAccount* pSubAccount, qm::NormalFolder* pFolder);

@@ -196,7 +196,7 @@ QSTATUS qmnntp::NntpDriver::getMessage(SubAccount* pSubAccount,
 }
 
 QSTATUS qmnntp::NntpDriver::setMessagesFlags(SubAccount* pSubAccount,
-	NormalFolder* pFolder, const Folder::MessageHolderList& l,
+	NormalFolder* pFolder, const MessageHolderList& l,
 	unsigned int nFlags, unsigned int nMask)
 {
 	assert(pSubAccount);
@@ -211,7 +211,7 @@ QSTATUS qmnntp::NntpDriver::setMessagesFlags(SubAccount* pSubAccount,
 					std::identity<Folder*>()),
 				pFolder))) == l.end());
 	
-	Folder::MessageHolderList::const_iterator it = l.begin();
+	MessageHolderList::const_iterator it = l.begin();
 	while (it != l.end()) {
 		(*it)->setFlags(nFlags, nMask);
 		++it;
@@ -231,11 +231,12 @@ QSTATUS qmnntp::NntpDriver::appendMessage(SubAccount* pSubAccount,
 }
 
 QSTATUS qmnntp::NntpDriver::removeMessages(SubAccount* pSubAccount,
-	NormalFolder* pFolder, const Folder::MessageHolderList& l)
+	NormalFolder* pFolder, const MessageHolderList& l)
 {
 	assert(pSubAccount);
 	assert(pFolder);
 	assert(!l.empty());
+	assert(pAccount_->isLocked());
 	assert(std::find_if(l.begin(), l.end(),
 		std::not1(
 			std::bind2nd(
@@ -245,11 +246,20 @@ QSTATUS qmnntp::NntpDriver::removeMessages(SubAccount* pSubAccount,
 					std::identity<Folder*>()),
 				pFolder))) == l.end());
 	
-	return pFolder->deleteMessages(l, 0);
+	DECLARE_QSTATUS();
+	
+	MessageHolderList::const_iterator it = l.begin();
+	while (it != l.end()) {
+		status = pAccount_->unstoreMessage(*it);
+		CHECK_QSTATUS();
+		++it;
+	}
+	
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qmnntp::NntpDriver::copyMessages(SubAccount* pSubAccount,
-	const Folder::MessageHolderList& l, NormalFolder* pFolderFrom,
+	const MessageHolderList& l, NormalFolder* pFolderFrom,
 	NormalFolder* pFolderTo, bool bMove)
 {
 	assert(!l.empty());

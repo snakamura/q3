@@ -74,7 +74,7 @@ public:
 
 public:
 	virtual QSTATUS getSelectedMessages(
-		Folder** ppFolder, MessagePtrList* pList);
+		AccountLock* pAccountLock, MessageHolderList* pList);
 	virtual QSTATUS hasSelectedMessage(bool* pbHas);
 	virtual QSTATUS getFocusedMessage(MessagePtr* pptr);
 	virtual QSTATUS hasFocusedMessage(bool* pbHas);
@@ -485,21 +485,19 @@ Folder* qm::MessageFrameWindowImpl::getCurrentFolder() const
 }
 
 QSTATUS qm::MessageFrameWindowImpl::getSelectedMessages(
-	Folder** ppFolder, MessagePtrList* pList)
+	AccountLock* pAccountLock, MessageHolderList* pList)
 {
+	assert(pAccountLock);
 	assert(pList);
 	
 	DECLARE_QSTATUS();
 	
-	MessagePtr ptr(pMessageModel_->getCurrentMessage());
-	Folder* pFolder = ptr.getFolder();
-	if (pFolder) {
-		status = STLWrapper<MessagePtrList>(*pList).push_back(ptr);
+	MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
+	if (mpl) {
+		pAccountLock->set(mpl->getAccount());
+		status = STLWrapper<MessageHolderList>(*pList).push_back(mpl);
 		CHECK_QSTATUS();
 	}
-	
-	if (ppFolder)
-		*ppFolder = pFolder;
 	
 	return QSTATUS_SUCCESS;
 }
@@ -983,8 +981,9 @@ LRESULT qm::MessageFrameWindow::onInitMenuPopup(HMENU hmenu, UINT nIndex, bool b
 			// TODO
 		}
 		else if (nIdFirst == IDM_MESSAGE_DETACH) {
-			MessagePtrList l;
-			status = pImpl_->getSelectedMessages(0, &l);
+			AccountLock lock;
+			MessageHolderList l;
+			status = pImpl_->getSelectedMessages(&lock, &l);
 			if (status == QSTATUS_SUCCESS) {
 				status = pImpl_->pAttachmentMenu_->createMenu(hmenu, l);
 				// TODO

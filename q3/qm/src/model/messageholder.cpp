@@ -115,20 +115,20 @@ unsigned int qm::MessageHolder::getId() const
 
 unsigned int qm::MessageHolder::getFlags() const
 {
-	Lock<Folder> lock(*pFolder_);
+	Lock<Account> lock(*getAccount());
 	return nFlags_;
 }
 
 QSTATUS qm::MessageHolder::getFrom(WSTRING* pwstrFrom) const
 {
-	Lock<Folder> lock(*pFolder_);
-	return pFolder_->getData(messageCacheKey_, ITEM_FROM, pwstrFrom);
+	Lock<Account> lock(*getAccount());
+	return getAccount()->getData(messageCacheKey_, ITEM_FROM, pwstrFrom);
 }
 
 QSTATUS qm::MessageHolder::getTo(WSTRING* pwstrTo) const
 {
-	Lock<Folder> lock(*pFolder_);
-	return pFolder_->getData(messageCacheKey_, ITEM_TO, pwstrTo);
+	Lock<Account> lock(*getAccount());
+	return getAccount()->getData(messageCacheKey_, ITEM_TO, pwstrTo);
 }
 
 QSTATUS qm::MessageHolder::getFromTo(WSTRING* pwstrFromTo) const
@@ -158,8 +158,8 @@ QSTATUS qm::MessageHolder::getDate(Time* pTime) const
 
 QSTATUS qm::MessageHolder::getSubject(WSTRING* pwstrSubject) const
 {
-	Lock<Folder> lock(*pFolder_);
-	return pFolder_->getData(messageCacheKey_, ITEM_SUBJECT, pwstrSubject);
+	Lock<Account> lock(*getAccount());
+	return getAccount()->getData(messageCacheKey_, ITEM_SUBJECT, pwstrSubject);
 }
 
 unsigned int qm::MessageHolder::getSize() const
@@ -176,6 +176,11 @@ unsigned int qm::MessageHolder::getTextSize() const
 NormalFolder* qm::MessageHolder::getFolder() const
 {
 	return pFolder_;
+}
+
+Account* qm::MessageHolder::getAccount() const
+{
+	return pFolder_->getAccount();
 }
 
 QSTATUS qm::MessageHolder::getMessage(unsigned int nFlags,
@@ -209,7 +214,7 @@ QSTATUS qm::MessageHolder::getMessage(unsigned int nFlags,
 		return QSTATUS_FAIL;
 	}
 	
-	return pFolder_->getMessage(this, nFlags, pMessage);
+	return getAccount()->getMessage(this, nFlags, pMessage);
 }
 
 MessageHolder* qm::MessageHolder::getMessageHolder()
@@ -219,20 +224,20 @@ MessageHolder* qm::MessageHolder::getMessageHolder()
 
 bool qm::MessageHolder::isFlag(Flag flag) const
 {
-	Lock<Folder> lock(*pFolder_);
+	Lock<Account> lock(*getAccount());
 	return (nFlags_ & flag) != 0;
 }
 
 QSTATUS qm::MessageHolder::getMessageId(WSTRING* pwstrMessageId) const
 {
-	Lock<Folder> lock(*pFolder_);
-	return pFolder_->getData(messageCacheKey_, ITEM_MESSAGEID, pwstrMessageId);
+	Lock<Account> lock(*getAccount());
+	return getAccount()->getData(messageCacheKey_, ITEM_MESSAGEID, pwstrMessageId);
 }
 
 unsigned int qm::MessageHolder::getMessageIdHash() const
 {
 	if (nMessageIdHash_ == static_cast<unsigned int>(-1)) {
-		Lock<Folder> lock(*pFolder_);
+		Lock<Account> lock(*getAccount());
 		if (nMessageIdHash_ == static_cast<unsigned int>(-1)) {
 			DECLARE_QSTATUS();
 			string_ptr<WSTRING> wstrMessageId;
@@ -249,14 +254,14 @@ unsigned int qm::MessageHolder::getMessageIdHash() const
 
 QSTATUS qm::MessageHolder::getReference(WSTRING* pwstrReference) const
 {
-	Lock<Folder> lock(*pFolder_);
-	return pFolder_->getData(messageCacheKey_, ITEM_REFERENCE, pwstrReference);
+	Lock<Account> lock(*getAccount());
+	return getAccount()->getData(messageCacheKey_, ITEM_REFERENCE, pwstrReference);
 }
 
 unsigned int qm::MessageHolder::getReferenceHash() const
 {
 	if (nReferenceHash_ == static_cast<unsigned int>(-1)) {
-		Lock<Folder> lock(*pFolder_);
+		Lock<Account> lock(*getAccount());
 		if (nReferenceHash_ == static_cast<unsigned int>(-1)) {
 			DECLARE_QSTATUS();
 			string_ptr<WSTRING> wstrReference;
@@ -296,7 +301,7 @@ unsigned int qm::MessageHolder::getTime(const qs::Time& time)
 
 void qm::MessageHolder::getInit(Init* pInit) const
 {
-	Lock<Folder> lock(*pFolder_);
+	Lock<Account> lock(*getAccount());
 	
 	pInit->nId_ = nId_;
 	pInit->nFlags_ = nFlags_;
@@ -311,13 +316,13 @@ void qm::MessageHolder::getInit(Init* pInit) const
 
 void qm::MessageHolder::setId(unsigned int nId)
 {
-	assert(pFolder_->isLocked());
+	assert(getAccount()->isLocked());
 	nId_ = nId;
 }
 
 void qm::MessageHolder::setFlags(unsigned int nFlags, unsigned int nMask)
 {
-	Lock<Folder> lock(*pFolder_);
+	Lock<Account> lock(*getAccount());
 	
 	unsigned int nOldFlags = nFlags_;
 	
@@ -330,15 +335,14 @@ void qm::MessageHolder::setFlags(unsigned int nFlags, unsigned int nMask)
 
 void qm::MessageHolder::setFolder(NormalFolder* pFolder)
 {
-	assert(pFolder_->isLocked());
-	assert(pFolder->isLocked());
+	assert(getAccount()->isLocked());
 	pFolder_ = pFolder;
 }
 
 void qm::MessageHolder::setKeys(MessageCacheKey messageCacheKey,
 	const MessageBoxKey& messageBoxKey)
 {
-	Lock<Folder> lock(*pFolder_);
+	Lock<Account> lock(*getAccount());
 	
 	messageCacheKey_ = messageCacheKey;
 	messageBoxKey_ = messageBoxKey;
@@ -452,6 +456,11 @@ NormalFolder* qm::AbstractMessageHolder::getFolder() const
 	return pFolder_;
 }
 
+Account* qm::AbstractMessageHolder::getAccount() const
+{
+	return pFolder_->getAccount();
+}
+
 MessageHolder* qm::AbstractMessageHolder::getMessageHolder()
 {
 	return 0;
@@ -536,7 +545,7 @@ qm::MessagePtr& qm::MessagePtr::operator=(const MessagePtr& ptr)
 	return *this;
 }
 
-Folder* qm::MessagePtr::getFolder() const
+NormalFolder* qm::MessagePtr::getFolder() const
 {
 	return pFolder_;
 }
@@ -548,7 +557,7 @@ MessageHolder* qm::MessagePtr::lock() const
 	bLock_ = true;
 	
 	if (pFolder_) {
-		pFolder_->lock();
+		pFolder_->getAccount()->lock();
 		return pFolder_->getMessageById(nId_);
 	}
 	else {
@@ -563,7 +572,7 @@ void qm::MessagePtr::unlock() const
 	bLock_ = false;
 	
 	if (pFolder_)
-		pFolder_->unlock();
+		pFolder_->getAccount()->unlock();
 }
 
 void qm::MessagePtr::reset(MessageHolder* pmh)

@@ -88,7 +88,7 @@ FORMATETC qm::MessageDataObject::formats__[] = {
 };
 
 qm::MessageDataObject::MessageDataObject(Account* pAccount,
-	const MessagePtrList& l, Flag flag, QSTATUS* pstatus) :
+	const MessageHolderList& l, Flag flag, QSTATUS* pstatus) :
 	nRef_(0),
 	pAccount_(pAccount),
 	flag_(flag)
@@ -387,56 +387,56 @@ QSTATUS qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
 		
 		const WCHAR* p = reinterpret_cast<const WCHAR*>(
 			GlobalLock(stm.hGlobal));
-		Folder::MessageHolderList listMessageHolder;
+		MessagePtrList listMessagePtr;
 		while (*p) {
-			MessageHolder* pmh = 0;
-			status = URI::getMessageHolder(p, pDocument, &pmh);
+			MessagePtr ptr;
+			status = URI::getMessageHolder(p, pDocument, &ptr);
 			CHECK_QSTATUS();
-			if (pmh) {
-				status = STLWrapper<Folder::MessageHolderList>(
-					listMessageHolder).push_back(pmh);
-				CHECK_QSTATUS();
-			}
+			status = STLWrapper<MessagePtrList>(listMessagePtr).push_back(ptr);
+			CHECK_QSTATUS();
+			
 			p += wcslen(p) + 1;
 		}
 		
-		if (pCallback) {
-			status = pCallback->setCount(listMessageHolder.size());
-			CHECK_QSTATUS();
-		}
-		
-		while (true) {
-			Folder* pFolderFrom = 0;
-			MessagePtrList l;
-			Folder::MessageHolderList::iterator it = listMessageHolder.begin();
-			while (it != listMessageHolder.end()) {
-				MessageHolder* pmh = *it;
-				if (pmh) {
-					if (!pFolderFrom)
-						pFolderFrom = pmh->getFolder();
-					if (pmh->getFolder() == pFolderFrom) {
-						status = STLWrapper<MessagePtrList>(
-							l).push_back(MessagePtr(pmh));
-						CHECK_QSTATUS();
-						*it = 0;
-					}
-				}
-				++it;
+		if (!listMessagePtr.empty()) {
+			if (pCallback) {
+				status = pCallback->setCount(listMessagePtr.size());
+				CHECK_QSTATUS();
 			}
-			if (!pFolderFrom)
-				break;
 			
-			assert(!l.empty());
-			
-			Lock<Folder> lock(*pFolderFrom);
-			status = pFolderFrom->copyMessages(l,
-				pFolderTo, flag == FLAG_MOVE, pCallback);
-			CHECK_QSTATUS();
-			
-			l.clear();
-			
-			if (pCallback && pCallback->isCanceled())
-				break;
+			while (true) {
+				Account* pAccount = 0;
+				AccountLock lock;
+				MessageHolderList l;
+				
+				MessagePtrList::iterator it = listMessagePtr.begin();
+				while (it != listMessagePtr.end()) {
+					MessagePtrLock mpl(*it);
+					if (mpl) {
+						if (!pAccount) {
+							pAccount = mpl->getAccount();
+							lock.set(pAccount);
+						}
+						if (mpl->getAccount() == pAccount) {
+							status = STLWrapper<MessageHolderList>(l).push_back(mpl);
+							CHECK_QSTATUS();
+							*it = MessagePtr();
+						}
+					}
+					++it;
+				}
+				if (!pAccount)
+					break;
+				
+				assert(!l.empty());
+				
+				status = pAccount->copyMessages(l, pFolderTo,
+					flag == FLAG_MOVE, pCallback);
+				CHECK_QSTATUS();
+				
+				if (pCallback && pCallback->isCanceled())
+					break;
+			}
 		}
 	}
 	

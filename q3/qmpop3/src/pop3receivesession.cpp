@@ -340,7 +340,7 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadMessages(
 		if (bSelf)
 			nFlags |= MessageHolder::FLAG_SEEN | MessageHolder::FLAG_SENT;
 		
-		Lock<Folder> lock(*pFolder_);
+		Lock<Account> lock(*pAccount_);
 		
 		MessageHolder* pmh = 0;
 		status = pAccount_->storeMessage(pFolder_, strMessage.get(),
@@ -366,7 +366,7 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadMessages(
 	while (it != listFolder.end()) {
 		if ((*it)->getType() == Folder::TYPE_NORMAL) {
 			NormalFolder* pFolder = static_cast<NormalFolder*>(*it);
-			Lock<Folder> lock(*pFolder);
+			Lock<Account> lock(*pAccount_);
 			if (pFolder->getDeletedCount() != 0) {
 				status = pFolder->loadMessageHolders();
 				CHECK_QSTATUS();
@@ -622,6 +622,7 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadReservedMessages(
 	NormalFolder* pFolder)
 {
 	assert(pFolder);
+	assert(pFolder->getAccount() == pAccount_);
 	assert(bCacheAll_);
 	
 	DECLARE_QSTATUS();
@@ -632,7 +633,7 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadReservedMessages(
 	List l;
 	
 	{
-		Lock<Folder> lock(*pFolder);
+		Lock<Account> lock(*pAccount_);
 		
 		status = pFolder->loadMessageHolders();
 		CHECK_QSTATUS();

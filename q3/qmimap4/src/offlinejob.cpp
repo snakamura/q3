@@ -402,11 +402,9 @@ QSTATUS qmimap4::AppendOfflineJob::apply(Account* pAccount,
 	CHECK_QSTATUS();
 	if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL) {
 		NormalFolder* pNormalFolder = static_cast<NormalFolder*>(pFolder);
-		Lock<Folder>lock(*pFolder);
-		MessageHolder* pmh = 0;
-		status = pNormalFolder->getMessageById(nId_, &pmh);
-		CHECK_QSTATUS();
-		if (pmh->isFlag(MessageHolder::FLAG_LOCAL)) {
+		Lock<Account>lock(*pAccount);
+		MessageHolder* pmh = pNormalFolder->getMessageById(nId_);
+		if (pmh && pmh->isFlag(MessageHolder::FLAG_LOCAL)) {
 			string_ptr<WSTRING> wstrName;
 			status = Util::getFolderName(pNormalFolder, &wstrName);
 			CHECK_QSTATUS();
@@ -569,12 +567,11 @@ QSTATUS qmimap4::CopyOfflineJob::apply(Account* pAccount,
 			CHECK_QSTATUS();
 		}
 		
-		Lock<Folder> lock(*pNormalFolder);
+		Lock<Account> lock(*pAccount);
 		
 		ItemList::const_iterator it = listItemTo_.begin();
 		while (it != listItemTo_.end()) {
-			MessageHolder* pmh = 0;
-			status = pNormalFolder->getMessageById((*it).nId_, &pmh);
+			MessageHolder* pmh = pNormalFolder->getMessageById((*it).nId_);
 			CHECK_QSTATUS();
 			if (pmh && pmh->isFlag(MessageHolder::FLAG_LOCAL)) {
 				status = pAccount->unstoreMessage(pmh);

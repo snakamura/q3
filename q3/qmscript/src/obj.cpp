@@ -1,5 +1,5 @@
 /*
- * $Id: obj.cpp,v 1.5 2003/05/15 05:54:20 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -797,7 +797,7 @@ STDMETHODIMP qmscript::MessageHolderListImpl::get_item(
 {
 	DECLARE_QSTATUS();
 	
-	Lock<Folder> lock(*pFolder_);
+	Lock<Account> lock(*pFolder_->getAccount());
 	
 	status = pFolder_->loadMessageHolders();
 	CHECK_QSTATUS_HRESULT();

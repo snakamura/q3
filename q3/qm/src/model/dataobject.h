@@ -55,7 +55,7 @@ public:
 	};
 
 public:
-	MessageDataObject(Account* pAccount, const MessagePtrList& l,
+	MessageDataObject(Account* pAccount, const MessageHolderList& l,
 		Flag flag, qs::QSTATUS* pstatus);
 	~MessageDataObject();
 

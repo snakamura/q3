@@ -52,6 +52,15 @@ public:
 	QSTATUS loadSubAccounts();
 	QSTATUS saveSubAccounts() const;
 	
+	QSTATUS appendMessage(NormalFolder* pFolder, const CHAR* pszMessage,
+		const Message& msgHeader, unsigned int nFlags, unsigned int nSize);
+	QSTATUS removeMessages(NormalFolder* pFolder, const MessageHolderList& l,
+		bool bDirect, MessageOperationCallback* pCallback);
+	QSTATUS copyMessages(NormalFolder* pFolderFrom, NormalFolder* pFolderTo,
+		const MessageHolderList& l, bool bMove, MessageOperationCallback* pCallback);
+	QSTATUS setMessagesFlags(NormalFolder* pFolder, const MessageHolderList& l,
+		unsigned int nFlags, unsigned int nMask);
+	
 	QSTATUS fireSubAccountListChanged();
 	QSTATUS fireFolderListChanged(const FolderListChangedEvent& event);
 	QSTATUS fireAccountDestroyed();
@@ -77,6 +86,10 @@ public:
 	MessageCache* pMessageCache_;
 	ProtocolDriver* pProtocolDriver_;
 	AccountHandlerList listAccountHandler_;
+	CriticalSection csLock_;
+#ifndef NDEBUG
+	unsigned int nLock_;
+#endif
 };
 
 QSTATUS qm::AccountImpl::loadFolders()
@@ -271,6 +284,229 @@ QSTATUS qm::AccountImpl::saveSubAccounts() const
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qm::AccountImpl::appendMessage(NormalFolder* pFolder,
+	const CHAR* pszMessage, const Message& msgHeader,
+	unsigned int nFlags, unsigned int nSize)
+{
+	assert(pFolder);
+	assert(pszMessage);
+	assert((nFlags & ~MessageHolder::FLAG_USER_MASK) == 0);
+	assert(pThis_->isLocked());
+	
+	DECLARE_QSTATUS();
+	
+	if (pFolder->isFlag(Folder::FLAG_LOCAL)) {
+		MessageHolder* pmh = 0;
+		status = pThis_->storeMessage(pFolder, pszMessage,
+			&msgHeader, static_cast<unsigned int>(-1),
+			nFlags, nSize, false, &pmh);
+		CHECK_QSTATUS();
+	}
+	else {
+		status = pProtocolDriver_->appendMessage(
+			pThis_->getCurrentSubAccount(), pFolder, pszMessage, nFlags);
+		CHECK_QSTATUS();
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::AccountImpl::removeMessages(NormalFolder* pFolder,
+	const MessageHolderList& l, bool bDirect,
+	MessageOperationCallback* pCallback)
+{
+	assert(pFolder);
+	assert(pThis_->isLocked());
+	assert(std::find_if(l.begin(), l.end(),
+		std::not1(
+			std::bind2nd(
+				binary_compose_f_gx_hy(
+					std::equal_to<Folder*>(),
+					std::mem_fun(&MessageHolder::getFolder),
+					std::identity<Folder*>()),
+				pFolder))) == l.end());
+	
+	DECLARE_QSTATUS();
+	
+	if (l.empty())
+		return QSTATUS_SUCCESS;
+	
+	NormalFolder* pTrash = 0;
+	if (!bDirect)
+		pTrash = static_cast<NormalFolder*>(
+			pThis_->getFolderByFlag(Folder::FLAG_TRASHBOX));
+	
+	if (pTrash && pFolder != pTrash) {
+		status = copyMessages(pFolder, pTrash, l, true, pCallback);
+		CHECK_QSTATUS();
+	}
+	else {
+		if (pCallback) {
+			status = pCallback->setCount(l.size());
+			CHECK_QSTATUS();
+		}
+		
+		if (pFolder->isFlag(Folder::FLAG_LOCAL)) {
+			if (pCallback && l.size() > 1) {
+				status = pCallback->show();
+				CHECK_QSTATUS();
+			}
+			
+			for (MessageHolderList::size_type n = 0; n < l.size(); ++n) {
+				status = pThis_->unstoreMessage(l[n]);
+				CHECK_QSTATUS();
+				
+				if (pCallback) {
+					if (n % 10 == 0 && pCallback->isCanceled())
+						break;
+					status = pCallback->step(1);
+					CHECK_QSTATUS();
+				}
+			}
+		}
+		else {
+			status = pProtocolDriver_->removeMessages(
+				pThis_->getCurrentSubAccount(), pFolder, l);
+			CHECK_QSTATUS();
+			
+			if (pCallback) {
+				status = pCallback->step(l.size());
+				CHECK_QSTATUS();
+			}
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
+	NormalFolder* pFolderTo, const MessageHolderList& l,
+	bool bMove, MessageOperationCallback* pCallback)
+{
+	assert(pFolderFrom);
+	assert(pFolderTo);
+	assert(pThis_->isLocked());
+	assert(std::find_if(l.begin(), l.end(),
+		std::not1(
+			std::bind2nd(
+				binary_compose_f_gx_hy(
+					std::equal_to<NormalFolder*>(),
+					std::mem_fun(&MessageHolder::getFolder),
+					std::identity<NormalFolder*>()),
+				pFolderFrom))) == l.end());
+	assert(pFolderFrom->getAccount() == pThis_);
+	
+	DECLARE_QSTATUS();
+	
+	if (l.empty() || pFolderFrom == pFolderTo)
+		return QSTATUS_SUCCESS;
+	
+	// TODO
+	// Take care of local messages in remote folder
+	
+	if (pCallback) {
+		status = pCallback->setCount(l.size());
+		CHECK_QSTATUS();
+	}
+	
+	Account* pAccountTo = pFolderTo->getAccount();
+	
+	bool bLocalCopy = true;
+	if (pAccountTo == pThis_) {
+		bool bFromLocal = pFolderFrom->isFlag(Folder::FLAG_LOCAL);
+		bool bToLocal = pFolderTo->isFlag(Folder::FLAG_LOCAL);
+		if (bFromLocal)
+			bLocalCopy = bToLocal ? !bMove : true;
+		else
+			bLocalCopy = bToLocal;
+	}
+	
+	if (bLocalCopy) {
+		if (pCallback && l.size() > 1) {
+			status = pCallback->show();
+			CHECK_QSTATUS();
+		}
+		
+		Lock<Account> lock(*pAccountTo);
+		
+		for (MessageHolderList::size_type n = 0; n < l.size(); ++n) {
+			MessageHolder* pmh = l[n];
+			Message msg(&status);
+			CHECK_QSTATUS();
+			status = pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg);
+			CHECK_QSTATUS();
+			status = pAccountTo->appendMessage(pFolderTo, msg,
+				pmh->getFlags() & MessageHolder::FLAG_USER_MASK);
+			CHECK_QSTATUS();
+			
+			if (pCallback) {
+				if (n % 10 == 0 && pCallback->isCanceled())
+					break;
+				status = pCallback->step(1);
+				CHECK_QSTATUS();
+			}
+		}
+		if (bMove) {
+			status = removeMessages(pFolderFrom, l, true, 0);
+			CHECK_QSTATUS();
+		}
+	}
+	else {
+		if (pFolderFrom->isFlag(Folder::FLAG_LOCAL)) {
+			assert(bMove);
+			status = pFolderFrom->moveMessages(l, pFolderTo);
+			CHECK_QSTATUS();
+		}
+		else {
+			status = pProtocolDriver_->copyMessages(
+				pThis_->getCurrentSubAccount(), l, pFolderFrom, pFolderTo, bMove);
+			CHECK_QSTATUS();
+		}
+		
+		if (pCallback) {
+			status = pCallback->step(l.size());
+			CHECK_QSTATUS();
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::AccountImpl::setMessagesFlags(NormalFolder* pFolder,
+	const MessageHolderList& l, unsigned int nFlags, unsigned int nMask)
+{
+	assert(pFolder);
+	assert(pThis_->isLocked());
+	assert(std::find_if(l.begin(), l.end(),
+		std::not1(
+			std::bind2nd(
+				binary_compose_f_gx_hy(
+					std::equal_to<Folder*>(),
+					std::mem_fun(&MessageHolder::getFolder),
+					std::identity<Folder*>()),
+				pFolder))) == l.end());
+	
+	DECLARE_QSTATUS();
+	
+	if (l.empty())
+		return QSTATUS_SUCCESS;
+	
+	if (pFolder->isFlag(Folder::FLAG_LOCAL)) {
+		MessageHolderList::const_iterator it = l.begin();
+		while (it != l.end()) {
+			(*it)->setFlags(nFlags, nMask);
+			++it;
+		}
+	}
+	else {
+		status = pProtocolDriver_->setMessagesFlags(
+			pThis_->getCurrentSubAccount(), pFolder, l, nFlags, nMask);
+		CHECK_QSTATUS();
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::AccountImpl::fireSubAccountListChanged()
 {
 	DECLARE_QSTATUS();
@@ -419,6 +655,9 @@ qm::Account::Account(const WCHAR* pwszPath,
 	pImpl_->pMessageStore_ = 0;
 	pImpl_->pMessageCache_ = 0;
 	pImpl_->pProtocolDriver_ = 0;
+#ifndef NDEBUG
+	pImpl_->nLock_ = 0;
+#endif
 	
 	status = pImpl_->loadSubAccounts();
 	CHECK_QSTATUS_SET(pstatus);
@@ -794,7 +1033,7 @@ QSTATUS qm::Account::createNormalFolder(
 }
 
 QSTATUS qm::Account::createQueryFolder(const WCHAR* pwszName,
-	Folder* pParent, const WCHAR* pwszMacro)
+	Folder* pParent, const WCHAR* pwszCondition)
 {
 	// TODO
 	return QSTATUS_SUCCESS;
@@ -982,13 +1221,14 @@ QSTATUS qm::Account::compact()
 {
 	DECLARE_QSTATUS();
 	
+	Lock<Account> lock(*this);
+	
 	MessageStore::ReferList listRefer;
 	
 	Account::FolderList::iterator it = pImpl_->listFolder_.begin();
 	while (it != pImpl_->listFolder_.end()) {
 		Folder* pFolder = *it;
 		if (pFolder->getType() == Folder::TYPE_NORMAL) {
-			Lock<Folder> lock(*pFolder);
 			status = pFolder->loadMessageHolders();
 			CHECK_QSTATUS();
 			unsigned int nCount = pFolder->getCount();
@@ -1028,13 +1268,14 @@ QSTATUS qm::Account::salvage(NormalFolder* pFolder)
 {
 	DECLARE_QSTATUS();
 	
+	Lock<Account> lock(*this);
+	
 	MessageStore::ReferList listRefer;
 	
 	Account::FolderList::iterator it = pImpl_->listFolder_.begin();
 	while (it != pImpl_->listFolder_.end()) {
 		Folder* pFolder = *it;
 		if (pFolder->getType() == Folder::TYPE_NORMAL) {
-			Lock<Folder> lock(*pFolder);
 			status = pFolder->loadMessageHolders();
 			CHECK_QSTATUS();
 			unsigned int nCount = pFolder->getCount();
@@ -1070,7 +1311,8 @@ QSTATUS qm::Account::salvage(NormalFolder* pFolder)
 	public:
 		virtual QSTATUS salvage(const Message& msg)
 		{
-			return pFolder_->appendMessage(msg, 0);
+			Account* pAccount = pFolder_->getAccount();
+			return pAccount->appendMessage(pFolder_, msg, 0);
 		}
 	
 	private:
@@ -1188,8 +1430,82 @@ QSTATUS qm::Account::importMessage(NormalFolder* pFolder,
 		CHECK_QSTATUS();
 	}
 	
-	return appendMessage(pFolder, pszMessage, msgHeader,
+	return pImpl_->appendMessage(pFolder, pszMessage, msgHeader,
 		nMessageFlags, static_cast<size_t>(-1));
+}
+
+QSTATUS qm::Account::appendMessage(NormalFolder* pFolder,
+	const Message& msg, unsigned int nFlags)
+{
+	assert(pFolder);
+	assert(msg.getFlag() != Message::FLAG_EMPTY);
+	
+	DECLARE_QSTATUS();
+	
+	string_ptr<STRING> strMessage;
+	status = msg.getContent(&strMessage);
+	CHECK_QSTATUS();
+	
+	Lock<Account> lock(*this);
+	
+	return pImpl_->appendMessage(pFolder, strMessage.get(),
+		msg, nFlags, static_cast<unsigned int>(-1));
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::Account::removeMessages(const MessageHolderList& l,
+	bool bDirect, MessageOperationCallback* pCallback)
+{
+	assert(!l.empty());
+	
+	DECLARE_QSTATUS();
+	
+	// TODO
+	// Handle l contains messages from multiple folders
+	status = pImpl_->removeMessages(l.front()->getFolder(), l, bDirect, pCallback);
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::Account::copyMessages(const MessageHolderList& l,
+	NormalFolder* pFolderTo, bool bMove, MessageOperationCallback* pCallback)
+{
+	assert(!l.empty());
+	assert(pFolderTo);
+	
+	DECLARE_QSTATUS();
+	
+	// TODO
+	// Handle l contains messages from multiple folders
+	status = pImpl_->copyMessages(l.front()->getFolder(),
+		pFolderTo, l, bMove, pCallback);
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::Account::setMessagesFlags(const MessageHolderList& l,
+	unsigned int nFlags, unsigned int nMask)
+{
+	assert(!l.empty());
+	
+	DECLARE_QSTATUS();
+	
+	// TODO
+	// Handle l contains messages from multiple folders
+	status = pImpl_->setMessagesFlags(l.front()->getFolder(), l, nFlags, nMask);
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::Account::clearDeletedMessages(NormalFolder* pFolder)
+{
+	assert(pFolder);
+	return pImpl_->pProtocolDriver_->clearDeletedMessages(
+		getCurrentSubAccount(), pFolder);
 }
 
 QSTATUS qm::Account::addAccountHandler(AccountHandler* pHandler)
@@ -1209,6 +1525,29 @@ QSTATUS qm::Account::removeAccountHandler(AccountHandler* pHandler)
 	l.erase(it, l.end());
 	return QSTATUS_SUCCESS;
 }
+
+void qm::Account::lock() const
+{
+	pImpl_->csLock_.lock();
+#ifndef NDEBUG
+	++pImpl_->nLock_;
+#endif
+}
+
+void qm::Account::unlock() const
+{
+#ifndef NDEBUG
+	--pImpl_->nLock_;
+#endif
+	pImpl_->csLock_.unlock();
+}
+
+#ifndef NDEBUG
+bool qm::Account::isLocked() const
+{
+	return pImpl_->nLock_ != 0;
+}
+#endif
 
 QSTATUS qm::Account::deletePermanent(bool bDeleteContent)
 {
@@ -1380,233 +1719,15 @@ QSTATUS qm::Account::getMessage(MessageHolder* pmh,
 	if ((nFlags & GETMESSAGEFLAG_MAKESEEN) &&
 		!bMadeSeen &&
 		!pmh->isFlag(MessageHolder::FLAG_SEEN)) {
-		Folder::MessageHolderList l;
-		status = STLWrapper<Folder::MessageHolderList>(l).push_back(pmh);
+		MessageHolderList l;
+		status = STLWrapper<MessageHolderList>(l).push_back(pmh);
 		CHECK_QSTATUS();
-		status = setMessagesFlags(pmh->getFolder(), l,
+		status = pImpl_->setMessagesFlags(pmh->getFolder(), l,
 			MessageHolder::FLAG_SEEN, MessageHolder::FLAG_SEEN);
 		CHECK_QSTATUS();
 	}
 	
 	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::Account::setMessagesFlags(NormalFolder* pFolder,
-	const Folder::MessageHolderList& l,
-	unsigned int nFlags, unsigned int nMask) const
-{
-	assert(pFolder);
-	assert(pFolder->isLocked());
-	assert(std::find_if(l.begin(), l.end(),
-		std::not1(
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<Folder*>(),
-					std::mem_fun(&MessageHolder::getFolder),
-					std::identity<Folder*>()),
-				pFolder))) == l.end());
-	
-	DECLARE_QSTATUS();
-	
-	if (l.empty())
-		return QSTATUS_SUCCESS;
-	
-	if (pFolder->isFlag(Folder::FLAG_LOCAL)) {
-		Folder::MessageHolderList::const_iterator it = l.begin();
-		while (it != l.end()) {
-			(*it)->setFlags(nFlags, nMask);
-			++it;
-		}
-	}
-	else {
-		status = pImpl_->pProtocolDriver_->setMessagesFlags(
-			getCurrentSubAccount(), l.front()->getFolder(), l, nFlags, nMask);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::Account::appendMessage(NormalFolder* pFolder,
-	const CHAR* pszMessage, const Message& msgHeader,
-	unsigned int nFlags, unsigned int nSize)
-{
-	assert(pFolder);
-	assert(pszMessage);
-	assert((nFlags & ~MessageHolder::FLAG_USER_MASK) == 0);
-	
-	DECLARE_QSTATUS();
-	
-	if (pFolder->isFlag(Folder::FLAG_LOCAL)) {
-		Lock<Folder> lock(*pFolder);
-		MessageHolder* pmh = 0;
-		status = storeMessage(pFolder, pszMessage,
-			&msgHeader, static_cast<unsigned int>(-1),
-			nFlags, nSize, false, &pmh);
-		CHECK_QSTATUS();
-	}
-	else {
-		status = pImpl_->pProtocolDriver_->appendMessage(
-			getCurrentSubAccount(), pFolder, pszMessage, nFlags);
-		CHECK_QSTATUS();
-	}
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::Account::removeMessages(NormalFolder* pFolder,
-	const Folder::MessageHolderList& l, bool bDirect,
-	MessageOperationCallback* pCallback) const
-{
-	assert(pFolder);
-	assert(pFolder->isLocked());
-	assert(std::find_if(l.begin(), l.end(),
-		std::not1(
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<Folder*>(),
-					std::mem_fun(&MessageHolder::getFolder),
-					std::identity<Folder*>()),
-				pFolder))) == l.end());
-	
-	DECLARE_QSTATUS();
-	
-	if (l.empty())
-		return QSTATUS_SUCCESS;
-	
-	NormalFolder* pTrash = 0;
-	if (!bDirect)
-		pTrash = static_cast<NormalFolder*>(
-			getFolderByFlag(Folder::FLAG_TRASHBOX));
-	
-	if (pTrash && pFolder != pTrash) {
-		status = copyMessages(l, pFolder, pTrash, true, pCallback);
-		CHECK_QSTATUS();
-	}
-	else {
-		if (pCallback) {
-			status = pCallback->setCount(l.size());
-			CHECK_QSTATUS();
-		}
-		
-		if (pFolder->isFlag(Folder::FLAG_LOCAL)) {
-			if (pCallback && l.size() > 1) {
-				status = pCallback->show();
-				CHECK_QSTATUS();
-			}
-			
-			status = pFolder->deleteMessages(l, pCallback);
-			CHECK_QSTATUS();
-		}
-		else {
-			status = pImpl_->pProtocolDriver_->removeMessages(
-				getCurrentSubAccount(), pFolder, l);
-			CHECK_QSTATUS();
-			
-			if (pCallback) {
-				status = pCallback->step(l.size());
-				CHECK_QSTATUS();
-			}
-		}
-	}
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::Account::copyMessages(const Folder::MessageHolderList& l,
-	NormalFolder* pFolderFrom, NormalFolder* pFolderTo,
-	bool bMove, MessageOperationCallback* pCallback) const
-{
-	assert(pFolderFrom);
-	assert(pFolderFrom->isLocked());
-	assert(pFolderTo);
-	assert(std::find_if(l.begin(), l.end(),
-		std::not1(
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<NormalFolder*>(),
-					std::mem_fun(&MessageHolder::getFolder),
-					std::identity<NormalFolder*>()),
-				pFolderFrom))) == l.end());
-	assert(pFolderFrom->getAccount() == this);
-	
-	DECLARE_QSTATUS();
-	
-	if (l.empty() || pFolderFrom == pFolderTo)
-		return QSTATUS_SUCCESS;
-	
-	// TODO
-	// Take care of local messages in remote folder
-	
-	if (pCallback) {
-		status = pCallback->setCount(l.size());
-		CHECK_QSTATUS();
-	}
-	
-	bool bLocalCopy = true;
-	if (pFolderTo->getAccount() == this) {
-		bool bFromLocal = pFolderFrom->isFlag(Folder::FLAG_LOCAL);
-		bool bToLocal = pFolderTo->isFlag(Folder::FLAG_LOCAL);
-		if (bFromLocal)
-			bLocalCopy = bToLocal ? !bMove : true;
-		else
-			bLocalCopy = bToLocal;
-	}
-	
-	if (bLocalCopy) {
-		if (pCallback && l.size() > 1) {
-			status = pCallback->show();
-			CHECK_QSTATUS();
-		}
-		
-		for (Folder::MessageHolderList::size_type n = 0; n < l.size(); ++n) {
-			MessageHolder* pmh = l[n];
-			Message msg(&status);
-			CHECK_QSTATUS();
-			status = pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg);
-			CHECK_QSTATUS();
-			status = pFolderTo->appendMessage(msg,
-				pmh->getFlags() & MessageHolder::FLAG_USER_MASK);
-			CHECK_QSTATUS();
-			
-			if (pCallback) {
-				if (n % 10 == 0 && pCallback->isCanceled())
-					break;
-				status = pCallback->step(1);
-				CHECK_QSTATUS();
-			}
-		}
-		if (bMove) {
-			status = pFolderFrom->removeMessages(l, true, 0);
-			CHECK_QSTATUS();
-		}
-	}
-	else {
-		if (pFolderFrom->isFlag(Folder::FLAG_LOCAL)) {
-			assert(bMove);
-			status = pFolderFrom->moveMessages(l, pFolderTo);
-			CHECK_QSTATUS();
-		}
-		else {
-			status = pImpl_->pProtocolDriver_->copyMessages(
-				getCurrentSubAccount(), l, pFolderFrom, pFolderTo, bMove);
-			CHECK_QSTATUS();
-		}
-		
-		if (pCallback) {
-			status = pCallback->step(l.size());
-			CHECK_QSTATUS();
-		}
-	}
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::Account::clearDeletedMessages(NormalFolder* pFolder) const
-{
-	assert(pFolder);
-	return pImpl_->pProtocolDriver_->clearDeletedMessages(
-		getCurrentSubAccount(), pFolder);
 }
 
 ProtocolDriver* qm::Account::getProtocolDriver() const
@@ -1619,7 +1740,7 @@ QSTATUS qm::Account::storeMessage(NormalFolder* pFolder,
 	unsigned int nFlags, unsigned int nSize, bool bIndexOnly, MessageHolder** ppmh)
 {
 	assert(pFolder);
-	assert(pFolder->isLocked());
+	assert(isLocked());
 	assert(pszMessage);
 	assert((nFlags & ~(MessageHolder::FLAG_USER_MASK |
 		MessageHolder::FLAG_PARTIAL_MASK | MessageHolder::FLAG_LOCAL)) == 0);
@@ -1726,7 +1847,7 @@ QSTATUS qm::Account::unstoreMessage(MessageHolder* pmh)
 	
 	NormalFolder* pFolder = pmh->getFolder();
 	
-	Lock<Folder> lock(*pFolder);
+	Lock<Account> lock(*this);
 	
 	MessageHolder::MessageBoxKey key = pmh->getMessageBoxKey();
 	MessageCacheKey cacheKey = pmh->getMessageCacheKey();
@@ -1746,7 +1867,7 @@ QSTATUS qm::Account::cloneMessage(MessageHolder* pmh,
 {
 	assert(pmh);
 	assert(pFolderTo);
-	assert(pFolderTo->isLocked());
+	assert(isLocked());
 	assert(ppmh);
 	
 	DECLARE_QSTATUS();
@@ -1793,7 +1914,7 @@ QSTATUS qm::Account::updateMessage(MessageHolder* pmh, const CHAR* pszMessage)
 	
 	DECLARE_QSTATUS();
 	
-	Lock<Folder> lock(*pmh->getFolder());
+	Lock<Account> lock(*this);
 	
 	Message header(pszMessage, static_cast<size_t>(-1),
 		Message::FLAG_NONE, &status);
@@ -1998,7 +2119,7 @@ qm::FolderContentHandler::FolderContentHandler(Account* pAccount,
 	nValidity_(0),
 	nDownloadCount_(0),
 	nDeletedCount_(0),
-	wstrMacro_(0),
+	wstrCondition_(0),
 	pBuffer_(0)
 {
 	DECLARE_QSTATUS();
@@ -2009,7 +2130,7 @@ qm::FolderContentHandler::FolderContentHandler(Account* pAccount,
 
 qm::FolderContentHandler::~FolderContentHandler()
 {
-	freeWString(wstrMacro_);
+	freeWString(wstrCondition_);
 	freeWString(wstrName_);
 	delete pBuffer_;
 }
@@ -2035,7 +2156,7 @@ QSTATUS qm::FolderContentHandler::startElement(
 		{ L"validity",		STATE_NORMALFOLDER,						STATE_VALIDITY		},
 		{ L"downloadCount",	STATE_NORMALFOLDER,						STATE_DOWNLOADCOUNT	},
 		{ L"deletedCount",	STATE_NORMALFOLDER,						STATE_DELETEDCOUNT	},
-		{ L"macro",			STATE_QUERYFOLDER,						STATE_MACRO			}
+		{ L"condition",		STATE_QUERYFOLDER,						STATE_CONDITION		}
 	};
 	
 	if (wcscmp(pwszLocalName, L"folders") == 0) {
@@ -2144,7 +2265,7 @@ QSTATUS qm::FolderContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		init.pAccount_ = pAccount_;
 		if (nParentId_ != 0)
 			init.pParentFolder_ = getFolder(nParentId_);
-		init.pwszMacro_ = wstrMacro_;
+		init.pwszCondition_ = wstrCondition_;
 		
 		std::auto_ptr<QueryFolder> pFolder;
 		status = newQsObject(init, &pFolder);
@@ -2155,8 +2276,8 @@ QSTATUS qm::FolderContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		
 		freeWString(wstrName_);
 		wstrName_ = 0;
-		freeWString(wstrMacro_);
-		wstrMacro_ = 0;
+		freeWString(wstrCondition_);
+		wstrCondition_ = 0;
 		
 		state_ = STATE_FOLDERS;
 	}
@@ -2249,12 +2370,12 @@ QSTATUS qm::FolderContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		
 		state_ = STATE_NORMALFOLDER;
 	}
-	else if (wcscmp(pwszLocalName, L"macro") == 0) {
-		assert(state_ == STATE_MACRO);
+	else if (wcscmp(pwszLocalName, L"condition") == 0) {
+		assert(state_ == STATE_CONDITION);
 		assert(!bNormal_);
 		
-		assert(!wstrMacro_);
-		wstrMacro_ = pBuffer_->getString();
+		assert(!wstrCondition_);
+		wstrCondition_ = pBuffer_->getString();
 		
 		state_ = STATE_QUERYFOLDER;
 	}
@@ -2280,7 +2401,7 @@ QSTATUS qm::FolderContentHandler::characters(
 		state_ == STATE_VALIDITY ||
 		state_ == STATE_DOWNLOADCOUNT ||
 		state_ == STATE_DELETEDCOUNT ||
-		state_ == STATE_MACRO) {
+		state_ == STATE_CONDITION) {
 		status = pBuffer_->append(pwsz + nStart, nLength);
 		CHECK_QSTATUS();
 	}
@@ -2412,8 +2533,8 @@ QSTATUS qm::FolderWriter::write(const Account::FolderList& l)
 				static_cast<NormalFolder*>(pFolder)->getDeletedCount());
 			break;
 		case Folder::TYPE_QUERY:
-			status = writeString(L"macro",
-				static_cast<QueryFolder*>(pFolder)->getMacro(), -1);
+			status = writeString(L"condition",
+				static_cast<QueryFolder*>(pFolder)->getCondition(), -1);
 			CHECK_QSTATUS();
 			break;
 		default:
