@@ -694,6 +694,8 @@ bool qm::SyncManager::send(Document* pDocument,
 	const WCHAR* pwszIdentity = pSubAccount->getIdentity();
 	assert(pwszIdentity);
 	
+	FolderWait wait(this, pOutbox);
+	
 	MessagePtrList listMessagePtr;
 	listMessagePtr.reserve(pOutbox->getCount());
 	
@@ -730,8 +732,6 @@ bool qm::SyncManager::send(Document* pDocument,
 	}
 	if (listMessagePtr.empty())
 		return true;
-	
-	FolderWait wait(this, item.getFolder());
 	
 	std::auto_ptr<Logger> pLogger;
 	if (pSubAccount->isLog(Account::HOST_SEND))
@@ -1085,6 +1085,8 @@ qm::SyncManager::FolderWait::FolderWait(SyncManager* pSyncManager,
 	pFolder_(pFolder),
 	pEvent_(0)
 {
+	assert(pFolder);
+	
 	bool bWait = false;
 	{
 		typedef SyncManager::SyncingFolderList List;
@@ -1109,10 +1111,25 @@ qm::SyncManager::FolderWait::FolderWait(SyncManager* pSyncManager,
 	}
 	if (bWait)
 		pEvent_->wait();
+	
+#ifndef NDEBUG
+	{
+		Account* pAccount = pFolder_->getAccount();
+		Lock<Account> lock(*pAccount);
+		assert(pAccount->getLockCount() == 1);
+	}
+#endif
 }
 
 qm::SyncManager::FolderWait::~FolderWait()
 {
+#ifndef NDEBUG
+	{
+		Account* pAccount = pFolder_->getAccount();
+		Lock<Account> lock(*pAccount);
+		assert(pAccount->getLockCount() == 1);
+	}
+#endif
 	pEvent_->set();
 }
 

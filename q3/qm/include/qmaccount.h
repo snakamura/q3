@@ -183,6 +183,7 @@ public:
 	void unlock() const;
 #ifndef NDEBUG
 	bool isLocked() const;
+	unsigned int getLockCount() const;
 #endif
 
 // These methods are intended to be called from Document class

@@ -1827,6 +1827,11 @@ bool qm::Account::isLocked() const
 {
 	return pImpl_->nLock_ != 0;
 }
+
+unsigned int qm::Account::getLockCount() const
+{
+	return pImpl_->nLock_;
+}
 #endif
 
 void qm::Account::deletePermanent(bool bDeleteContent)
