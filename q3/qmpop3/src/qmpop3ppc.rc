@@ -71,12 +71,14 @@ BEGIN
     EDITTEXT        IDC_DELETEBEFORE,65,75,20,14,ES_RIGHT | ES_AUTOHSCROLL | 
                     ES_NUMBER
     LTEXT           "days",IDC_STATIC,87,78,25,8
+    CONTROL         "&Make seen if Status: is RO",IDC_HANDLESTATUS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,90,105,10
     CONTROL         "Use AP&OP",IDC_APOP,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,90,55,10
+                    WS_TABSTOP,5,100,55,10
     CONTROL         "Use START&TLS",IDC_STARTTLS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,100,70,10
+                    WS_TABSTOP,5,110,70,10
     CONTROL         "&Log",IDC_LOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
-                    110,35,10
+                    120,35,10
 END
 
 IDD_SEND DIALOG DISCARDABLE  0, 0, 223, 145

@@ -83,6 +83,10 @@ LRESULT qmpop3::ReceivePage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	status = pSubAccount_->getProperty(
 		L"Pop3", L"DeleteOnServer", 0, &nDeleteOnServer);
 	CHECK_QSTATUS_VALUE(TRUE);
+	int nHandleStatus = 0;
+	status = pSubAccount_->getProperty(
+		L"Pop3", L"HandleStatus", 0, &nHandleStatus);
+	CHECK_QSTATUS_VALUE(TRUE);
 	int nApop = 0;
 	status = pSubAccount_->getProperty(L"Pop3", L"Apop", 0, &nApop);
 	CHECK_QSTATUS_VALUE(TRUE);
@@ -105,8 +109,11 @@ LRESULT qmpop3::ReceivePage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	sendDlgItemMessage(IDC_DELETEONSERVER, BM_SETCHECK,
 		nDeleteOnServer ? BST_CHECKED : BST_UNCHECKED);
 	setDlgItemInt(IDC_DELETEBEFORE, nDeleteBefore);
+	sendDlgItemMessage(IDC_HANDLESTATUS, BM_SETCHECK,
+		nHandleStatus ? BST_CHECKED : BST_UNCHECKED);
 	sendDlgItemMessage(IDC_APOP, BM_SETCHECK, nApop ? BST_CHECKED : BST_UNCHECKED);
-	sendDlgItemMessage(IDC_STARTTLS, BM_SETCHECK, nStartTls ? BST_CHECKED : BST_UNCHECKED);
+	sendDlgItemMessage(IDC_STARTTLS, BM_SETCHECK,
+		nStartTls ? BST_CHECKED : BST_UNCHECKED);
 	sendDlgItemMessage(IDC_LOG, BM_SETCHECK,
 		pSubAccount_->isLog(Account::HOST_RECEIVE) ? BST_CHECKED : BST_UNCHECKED);
 	
@@ -133,6 +140,8 @@ LRESULT qmpop3::ReceivePage::onApply(NMHDR* pnmhdr, bool* pbHandled)
 	pSubAccount_->setProperty(L"Pop3", L"DeleteOnServer",
 		sendDlgItemMessage(IDC_DELETEONSERVER, BM_GETCHECK) == BST_CHECKED ? 1 : 0);
 	pSubAccount_->setProperty(L"Pop3", L"DeleteBefore", getDlgItemInt(IDC_DELETEBEFORE));
+	pSubAccount_->setProperty(L"Pop3", L"HandleStatus",
+		sendDlgItemMessage(IDC_HANDLESTATUS, BM_GETCHECK) == BST_CHECKED ? 1 : 0);
 	pSubAccount_->setProperty(L"Pop3", L"Apop",
 		sendDlgItemMessage(IDC_APOP, BM_GETCHECK) == BST_CHECKED ? 1 : 0);
 	pSubAccount_->setProperty(L"Pop3", L"STARTTLS",

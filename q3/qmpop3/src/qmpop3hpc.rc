@@ -63,20 +63,22 @@ BEGIN
                     7,35,10
     LTEXT           "&Get All",IDC_STATIC,5,23,22,8
     EDITTEXT        IDC_GETALL,50,20,40,14,ES_AUTOHSCROLL
-    LTEXT           "&Noop Interval",IDC_STATIC,5,38,40,8
-    EDITTEXT        IDC_NOOPINTERVAL,50,35,40,14,ES_AUTOHSCROLL
+    LTEXT           "&Noop Interval",IDC_STATIC,105,23,40,8
+    EDITTEXT        IDC_NOOPINTERVAL,150,20,40,14,ES_AUTOHSCROLL
     CONTROL         "&Delete messages on server",IDC_DELETEONSERVER,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,55,105,10
-    LTEXT           "D&elete messages on server after",IDC_STATIC,5,68,100,8
-    EDITTEXT        IDC_DELETEBEFORE,105,65,20,14,ES_RIGHT | ES_AUTOHSCROLL | 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,35,105,10
+    LTEXT           "D&elete messages on server after",IDC_STATIC,5,48,100,8
+    EDITTEXT        IDC_DELETEBEFORE,105,45,20,14,ES_RIGHT | ES_AUTOHSCROLL | 
                     ES_NUMBER
-    LTEXT           "days",IDC_STATIC,127,68,25,8
+    LTEXT           "days",IDC_STATIC,127,48,25,8
+    CONTROL         "&Make seen if Status: is RO",IDC_HANDLESTATUS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,60,105,10
     CONTROL         "Use AP&OP",IDC_APOP,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,80,55,10
+                    WS_TABSTOP,5,70,55,10
     CONTROL         "Use START&TLS",IDC_STARTTLS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,90,70,10
+                    WS_TABSTOP,5,80,70,10
     CONTROL         "&Log",IDC_LOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
-                    100,35,10
+                    90,35,10
 END
 
 IDD_SEND DIALOG DISCARDABLE  0, 0, 223, 119

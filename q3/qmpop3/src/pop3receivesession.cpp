@@ -209,6 +209,11 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadMessages(
 	status = pSessionCallback_->setPos(nStart_);
 	CHECK_QSTATUS();
 	
+	int nHandleStatus = 0;
+	status = pSubAccount_->getProperty(
+		L"Pop3", L"HandleStatus", 0, &nHandleStatus);
+	CHECK_QSTATUS();
+	
 	const WCHAR* pwszIdentity = pSubAccount_->getIdentity();
 	UnstructuredParser subaccount(pSubAccount_->getName(), L"utf-8", &status);
 	CHECK_QSTATUS();
@@ -317,12 +322,23 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadMessages(
 			CHECK_QSTATUS();
 		}
 		
+		unsigned int nFlags = (bPartial ? MessageHolder::FLAG_HEADERONLY : 0);
+		
+		if (nHandleStatus) {
+			UnstructuredParser s(&status);
+			CHECK_QSTATUS();
+			Part::Field f;
+			status = msg.getField(L"Status", &s, &f);
+			CHECK_QSTATUS();
+			if (f == Part::FIELD_EXIST && wcscmp(s.getValue(), L"RO") == 0)
+				nFlags |= MessageHolder::FLAG_SEEN;
+		}
+		
 		bool bSelf = false;
 		status = pSubAccount_->isSelf(msg, &bSelf);
 		CHECK_QSTATUS();
-		unsigned int nFlags = (bSelf ?
-			MessageHolder::FLAG_SEEN | MessageHolder::FLAG_SENT : 0) |
-			(bPartial ? MessageHolder::FLAG_HEADERONLY : 0);
+		if (bSelf)
+			nFlags |= MessageHolder::FLAG_SEEN | MessageHolder::FLAG_SENT;
 		
 		Lock<Folder> lock(*pFolder_);
 		
