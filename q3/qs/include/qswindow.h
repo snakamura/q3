@@ -1028,6 +1028,11 @@ public:
 		lResult = onSettingChange(wParam, lParam); \
 		break; \
 
+#define HANDLE_SHOWWINDOW() \
+	case WM_SHOWWINDOW: \
+		lResult = onShowWindow(wParam != 0, lParam); \
+		break; \
+
 #define HANDLE_SIZE() \
 	case WM_SIZE: \
 		lResult = onSize(wParam, LOWORD(lParam), HIWORD(lParam)); \
@@ -1224,6 +1229,8 @@ protected:
 	LRESULT onSetFocus(HWND hwnd);
 	LRESULT onSettingChange(WPARAM wParam,
 							LPARAM lParam);
+	LRESULT onShowWindow(bool bShow,
+						 UINT nStatus);
 	LRESULT onSize(UINT nFlags,
 				   int cx,
 				   int cy);
