@@ -228,10 +228,16 @@ void qm::UIUtil::updateStatusBar(MessageWindow* pMessageWindow,
 			// Use icon
 			pStatusBar->setText(nOffset + 3, L"D");
 		}
+		else {
+			pStatusBar->setText(nOffset + 3, L"");
+		}
 		if (nSecurity & Message::SECURITY_VERIFIED) {
 			// TODO
 			// Use icon
 			pStatusBar->setText(nOffset + 4, L"V");
+		}
+		else {
+			pStatusBar->setText(nOffset + 4, L"");
 		}
 	}
 	else {
