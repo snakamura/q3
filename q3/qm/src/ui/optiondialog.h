@@ -17,6 +17,7 @@
 #include <qsprofile.h>
 
 #include "dialogs.h"
+#include "uiutil.h"
 #include "../model/color.h"
 #include "../model/filter.h"
 #include "../model/fixedformtext.h"
@@ -402,10 +403,19 @@ private:
 	OptionAddressBookDialog& operator=(const OptionAddressBookDialog&);
 
 private:
+	struct External {
+		UINT nId_;
+		const WCHAR* pwszName_;
+	};
+
+private:
 	AddressBook* pAddressBook_;
 	AddressBookFrameWindowManager* pAddressBookFrameWindowManager_;
 	qs::Profile* pProfile_;
 	LOGFONT lf_;
+
+private:
+	static External externals__[];
 };
 
 
@@ -488,6 +498,9 @@ private:
 	FolderComboBox* pFolderComboBox_;
 	qs::Profile* pProfile_;
 	LOGFONT lf_;
+
+private:
+	static DialogUtil::BoolProperty boolProperties__[];
 };
 
 
@@ -528,6 +541,9 @@ private:
 	FolderWindow* pFolderWindow_;
 	qs::Profile* pProfile_;
 	LOGFONT lf_;
+
+private:
+	static DialogUtil::BoolProperty boolProperties__[];
 };
 
 
@@ -612,6 +628,9 @@ private:
 	FolderListWindow* pFolderListWindow_;
 	qs::Profile* pProfile_;
 	LOGFONT lf_;
+
+private:
+	static DialogUtil::BoolProperty boolProperties__[];
 };
 
 
@@ -697,6 +716,10 @@ private:
 	MessageWindow* pPreviewWindow_;
 	qs::Profile* pProfile_;
 	LOGFONT lf_;
+
+private:
+	static DialogUtil::BoolProperty boolProperties__[];
+	static DialogUtil::IntProperty intProperties__[];
 };
 
 
@@ -738,6 +761,9 @@ private:
 	TabWindow* pTabWindow_;
 	qs::Profile* pProfile_;
 	LOGFONT lf_;
+
+private:
+	static DialogUtil::BoolProperty boolProperties__[];
 };
 #endif // QMTABWINDOW
 

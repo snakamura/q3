@@ -86,6 +86,53 @@ public:
 
 /****************************************************************************
  *
+ * DialogUtil
+ *
+ */
+
+class DialogUtil
+{
+public:
+	struct BoolProperty
+	{
+		const WCHAR* pwszKey_;
+		UINT nId_;
+		bool bDefault_;
+	};
+	
+	struct IntProperty
+	{
+		const WCHAR* pwszKey_;
+		UINT nId_;
+		int nDefault_;
+	};
+
+public:
+	static void loadBoolProperties(qs::Dialog* pDialog,
+								   qs::Profile* pProfile,
+								   const WCHAR* pwszSection,
+								   const BoolProperty* pProperties,
+								   size_t nCount);
+	static void saveBoolProperties(qs::Dialog* pDialog,
+								   qs::Profile* pProfile,
+								   const WCHAR* pwszSection,
+								   const BoolProperty* pProperties,
+								   size_t nCount);
+	static void loadIntProperties(qs::Dialog* pDialog,
+								  qs::Profile* pProfile,
+								  const WCHAR* pwszSection,
+								  const IntProperty* pProperties,
+								  size_t nCount);
+	static void saveIntProperties(qs::Dialog* pDialog,
+								  qs::Profile* pProfile,
+								  const WCHAR* pwszSection,
+								  const IntProperty* pProperties,
+								  size_t nCount);
+};
+
+
+/****************************************************************************
+ *
  * ProgressDialogInit
  *
  */

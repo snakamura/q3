@@ -333,6 +333,64 @@ MessagePtr qm::UIUtil::getMessageFromClipboard(HWND hwnd,
 
 /****************************************************************************
  *
+ * DialogUtil
+ *
+ */
+
+void qm::DialogUtil::loadBoolProperties(Dialog* pDialog,
+										Profile* pProfile,
+										const WCHAR* pwszSection,
+										const BoolProperty* pProperties,
+										size_t nCount)
+{
+	for (size_t n = 0; n < nCount; ++n) {
+		bool bValue = pProfile->getInt(pwszSection,
+			pProperties[n].pwszKey_, pProperties[n].bDefault_) != 0;
+		pDialog->sendDlgItemMessage(pProperties[n].nId_,
+			BM_SETCHECK, bValue ? BST_CHECKED : BST_UNCHECKED);
+	}
+}
+
+void qm::DialogUtil::saveBoolProperties(Dialog* pDialog,
+										Profile* pProfile,
+										const WCHAR* pwszSection,
+										const BoolProperty* pProperties,
+										size_t nCount)
+{
+	for (size_t n = 0; n < nCount; ++n) {
+		bool bValue = pDialog->sendDlgItemMessage(pProperties[n].nId_, BM_GETCHECK) == BST_CHECKED;
+		pProfile->setInt(pwszSection, pProperties[n].pwszKey_, bValue);
+	}
+}
+
+void qm::DialogUtil::loadIntProperties(Dialog* pDialog,
+									   Profile* pProfile,
+									   const WCHAR* pwszSection,
+									   const IntProperty* pProperties,
+									   size_t nCount)
+{
+	for (size_t n = 0; n < nCount; ++n) {
+		int nValue = pProfile->getInt(pwszSection,
+			pProperties[n].pwszKey_, pProperties[n].nDefault_);
+		pDialog->setDlgItemInt(pProperties[n].nId_, nValue);
+	}
+}
+
+void qm::DialogUtil::saveIntProperties(Dialog* pDialog,
+									   Profile* pProfile,
+									   const WCHAR* pwszSection,
+									   const IntProperty* pProperties,
+									   size_t nCount)
+{
+	for (size_t n = 0; n < nCount; ++n) {
+		int nValue = pDialog->getDlgItemInt(pProperties[n].nId_);
+		pProfile->setInt(pwszSection, pProperties[n].pwszKey_, nValue);
+	}
+}
+
+
+/****************************************************************************
+ *
  * History
  *
  */

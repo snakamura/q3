@@ -836,11 +836,7 @@ bool qm::OptionDialogManager::canShowDialog() const
  *
  */
 
-namespace {
-struct {
-	UINT nId_;
-	const WCHAR* pwszName_;
-} externalAddressBooks[] = {
+OptionAddressBookDialog::External qm::OptionAddressBookDialog::externals__[] = {
 #ifndef _WIN32_WCE
 	{ IDC_WAB,				L"WAB"				},
 	{ IDC_OUTLOOK,			L"Outlook"			}
@@ -848,7 +844,6 @@ struct {
 	{ IDC_POCKETOUTLOOK,	L"PocketOutlook"	}
 #endif
 };
-}
 
 qm::OptionAddressBookDialog::OptionAddressBookDialog(AddressBook* pAddressBook,
 													 AddressBookFrameWindowManager* pAddressBookFrameWindowManager,
@@ -858,7 +853,7 @@ qm::OptionAddressBookDialog::OptionAddressBookDialog(AddressBook* pAddressBook,
 	pAddressBookFrameWindowManager_(pAddressBookFrameWindowManager),
 	pProfile_(pProfile)
 {
-	UIUtil::getLogFontFromProfile(pProfile_, L"AddressBookListWindow", false, &lf_);
+	qs::UIUtil::getLogFontFromProfile(pProfile_, L"AddressBookListWindow", false, &lf_);
 }
 
 qm::OptionAddressBookDialog::~OptionAddressBookDialog()
@@ -881,9 +876,9 @@ LRESULT qm::OptionAddressBookDialog::onInitDialog(HWND hwndFocus,
 		L"Externals", L"WAB Outlook PocketOutlook"));
 	const WCHAR* p = wcstok(wstrExternals.get(), L" ");
 	while (p) {
-		for (int n = 0; n < countof(externalAddressBooks); ++n) {
-			if (wcscmp(p, externalAddressBooks[n].pwszName_) == 0) {
-				sendDlgItemMessage(externalAddressBooks[n].nId_, BM_SETCHECK, BST_CHECKED);
+		for (int n = 0; n < countof(externals__); ++n) {
+			if (wcscmp(p, externals__[n].pwszName_) == 0) {
+				sendDlgItemMessage(externals__[n].nId_, BM_SETCHECK, BST_CHECKED);
 				break;
 			}
 		}
@@ -899,11 +894,11 @@ LRESULT qm::OptionAddressBookDialog::onInitDialog(HWND hwndFocus,
 bool qm::OptionAddressBookDialog::save(OptionDialogContext* pContext)
 {
 	StringBuffer<WSTRING> buf;
-	for (int n = 0; n < countof(externalAddressBooks); ++n) {
-		if (sendDlgItemMessage(externalAddressBooks[n].nId_, BM_GETCHECK) == BST_CHECKED) {
+	for (int n = 0; n < countof(externals__); ++n) {
+		if (sendDlgItemMessage(externals__[n].nId_, BM_GETCHECK) == BST_CHECKED) {
 			if (buf.getLength() != 0)
 				buf.append(L" ");
-			buf.append(externalAddressBooks[n].pwszName_);
+			buf.append(externals__[n].pwszName_);
 		}
 	}
 	pProfile_->setString(L"AddressBook", L"Externals", buf.getCharArray());
@@ -911,7 +906,7 @@ bool qm::OptionAddressBookDialog::save(OptionDialogContext* pContext)
 	bool bAddressOnly = sendDlgItemMessage(IDC_ADDRESSONLY, BM_GETCHECK) == BST_CHECKED;
 	pProfile_->setInt(L"AddressBook", L"AddressOnly", bAddressOnly);
 	
-	UIUtil::setLogFontToProfile(pProfile_, L"AddressBookListWindow", lf_);
+	qs::UIUtil::setLogFontToProfile(pProfile_, L"AddressBookListWindow", lf_);
 	
 	pAddressBook_->reloadProfiles();
 	pAddressBookFrameWindowManager_->reloadProfiles();
@@ -921,7 +916,7 @@ bool qm::OptionAddressBookDialog::save(OptionDialogContext* pContext)
 
 LRESULT qm::OptionAddressBookDialog::onFont()
 {
-	UIUtil::browseFont(getParentPopup(), &lf_);
+	qs::UIUtil::browseFont(getParentPopup(), &lf_);
 	return 0;
 }
 
@@ -938,8 +933,8 @@ qm::OptionEditWindowDialog::OptionEditWindowDialog(EditFrameWindowManager* pEdit
 	pEditFrameWindowManager_(pEditFrameWindowManager),
 	pProfile_(pProfile)
 {
-	UIUtil::getLogFontFromProfile(pProfile_, L"EditWindow", false, &lf_);
-	UIUtil::getLogFontFromProfile(pProfile_, L"HeaderEditWindow", false, &lfHeader_);
+	qs::UIUtil::getLogFontFromProfile(pProfile_, L"EditWindow", false, &lf_);
+	qs::UIUtil::getLogFontFromProfile(pProfile_, L"HeaderEditWindow", false, &lfHeader_);
 }
 
 qm::OptionEditWindowDialog::~OptionEditWindowDialog()
@@ -964,8 +959,8 @@ LRESULT qm::OptionEditWindowDialog::onInitDialog(HWND hwndFocus,
 
 bool qm::OptionEditWindowDialog::save(OptionDialogContext* pContext)
 {
-	UIUtil::setLogFontToProfile(pProfile_, L"EditWindow", lf_);
-	UIUtil::setLogFontToProfile(pProfile_, L"HeaderEditWindow", lfHeader_);
+	qs::UIUtil::setLogFontToProfile(pProfile_, L"EditWindow", lf_);
+	qs::UIUtil::setLogFontToProfile(pProfile_, L"HeaderEditWindow", lfHeader_);
 	
 	pEditFrameWindowManager_->reloadProfiles();
 	
@@ -976,13 +971,13 @@ bool qm::OptionEditWindowDialog::save(OptionDialogContext* pContext)
 
 LRESULT qm::OptionEditWindowDialog::onFont()
 {
-	UIUtil::browseFont(getParentPopup(), &lf_);
+	qs::UIUtil::browseFont(getParentPopup(), &lf_);
 	return 0;
 }
 
 LRESULT qm::OptionEditWindowDialog::onHeaderFont()
 {
-	UIUtil::browseFont(getParentPopup(), &lfHeader_);
+	qs::UIUtil::browseFont(getParentPopup(), &lfHeader_);
 	return 0;
 }
 
@@ -993,15 +988,10 @@ LRESULT qm::OptionEditWindowDialog::onHeaderFont()
  *
  */
 
-namespace {
-struct {
-	const WCHAR* pwszKey_;
-	UINT nId_;
-} folderComboBoxFlags[] = {
-	{ L"ShowAllCount",		IDC_SHOWALL		},
-	{ L"ShowUnseenCount",	IDC_SHOWUNSEEN	}
+DialogUtil::BoolProperty qm::OptionFolderComboBoxDialog::boolProperties__[] = {
+	{ L"ShowAllCount",		IDC_SHOWALL,	true	},
+	{ L"ShowUnseenCount",	IDC_SHOWUNSEEN,	true	}
 };
-}
 
 qm::OptionFolderComboBoxDialog::OptionFolderComboBoxDialog(FolderComboBox* pFolderComboBox,
 														   Profile* pProfile) :
@@ -1009,7 +999,7 @@ qm::OptionFolderComboBoxDialog::OptionFolderComboBoxDialog(FolderComboBox* pFold
 	pFolderComboBox_(pFolderComboBox),
 	pProfile_(pProfile)
 {
-	UIUtil::getLogFontFromProfile(pProfile_, L"FolderComboBox", false, &lf_);
+	qs::UIUtil::getLogFontFromProfile(pProfile_, L"FolderComboBox", false, &lf_);
 }
 
 qm::OptionFolderComboBoxDialog::~OptionFolderComboBoxDialog()
@@ -1028,21 +1018,17 @@ LRESULT qm::OptionFolderComboBoxDialog::onCommand(WORD nCode,
 LRESULT qm::OptionFolderComboBoxDialog::onInitDialog(HWND hwndFocus,
 													 LPARAM lParam)
 {
-	for (int n = 0; n < countof(folderComboBoxFlags); ++n) {
-		bool bShow = pProfile_->getInt(L"FolderComboBox", folderComboBoxFlags[n].pwszKey_, 1) != 0;
-		sendDlgItemMessage(folderComboBoxFlags[n].nId_, BM_SETCHECK, bShow ? BST_CHECKED : BST_UNCHECKED);
-	}
+	DialogUtil::loadBoolProperties(this, pProfile_,
+		L"FolderComboBox", boolProperties__, countof(boolProperties__));
 	
 	return FALSE;
 }
 
 bool qm::OptionFolderComboBoxDialog::save(OptionDialogContext* pContext)
 {
-	for (int n = 0; n < countof(folderComboBoxFlags); ++n) {
-		bool bShow = sendDlgItemMessage(folderComboBoxFlags[n].nId_, BM_GETCHECK) == BST_CHECKED;
-		pProfile_->setInt(L"FolderComboBox", folderComboBoxFlags[n].pwszKey_, bShow);
-	}
-	UIUtil::setLogFontToProfile(pProfile_, L"FolderComboBox", lf_);
+	DialogUtil::saveBoolProperties(this, pProfile_,
+		L"FolderComboBox", boolProperties__, countof(boolProperties__));
+	qs::UIUtil::setLogFontToProfile(pProfile_, L"FolderComboBox", lf_);
 	
 	pFolderComboBox_->reloadProfiles();
 	
@@ -1053,7 +1039,7 @@ bool qm::OptionFolderComboBoxDialog::save(OptionDialogContext* pContext)
 
 LRESULT qm::OptionFolderComboBoxDialog::onFont()
 {
-	UIUtil::browseFont(getParentPopup(), &lf_);
+	qs::UIUtil::browseFont(getParentPopup(), &lf_);
 	return 0;
 }
 
@@ -1064,17 +1050,12 @@ LRESULT qm::OptionFolderComboBoxDialog::onFont()
  *
  */
 
-namespace {
-struct {
-	const WCHAR* pwszKey_;
-	UINT nId_;
-} folderWindowFlags[] = {
-	{ L"FolderShowAllCount",		IDC_FOLDERSHOWALL		},
-	{ L"FolderShowUnseenCount",		IDC_FOLDERSHOWUNSEEN	},
-	{ L"AccountShowAllCount",		IDC_ACCOUNTSHOWALL		},
-	{ L"AccountShowUnseenCount",	IDC_ACCOUNTSHOWUNSEEN	}
+DialogUtil::BoolProperty qm::OptionFolderWindowDialog::boolProperties__[] = {
+	{ L"FolderShowAllCount",		IDC_FOLDERSHOWALL,		true	},
+	{ L"FolderShowUnseenCount",		IDC_FOLDERSHOWUNSEEN,	true	},
+	{ L"AccountShowAllCount",		IDC_ACCOUNTSHOWALL,		true	},
+	{ L"AccountShowUnseenCount",	IDC_ACCOUNTSHOWUNSEEN,	true	}
 };
-}
 
 qm::OptionFolderWindowDialog::OptionFolderWindowDialog(FolderWindow* pFolderWindow,
 													   Profile* pProfile) :
@@ -1082,7 +1063,7 @@ qm::OptionFolderWindowDialog::OptionFolderWindowDialog(FolderWindow* pFolderWind
 	pFolderWindow_(pFolderWindow),
 	pProfile_(pProfile)
 {
-	UIUtil::getLogFontFromProfile(pProfile_, L"FolderWindow", false, &lf_);
+	qs::UIUtil::getLogFontFromProfile(pProfile_, L"FolderWindow", false, &lf_);
 }
 
 qm::OptionFolderWindowDialog::~OptionFolderWindowDialog()
@@ -1101,21 +1082,17 @@ LRESULT qm::OptionFolderWindowDialog::onCommand(WORD nCode,
 LRESULT qm::OptionFolderWindowDialog::onInitDialog(HWND hwndFocus,
 												   LPARAM lParam)
 {
-	for (int n = 0; n < countof(folderWindowFlags); ++n) {
-		bool bShow = pProfile_->getInt(L"FolderWindow", folderWindowFlags[n].pwszKey_, 1) != 0;
-		sendDlgItemMessage(folderWindowFlags[n].nId_, BM_SETCHECK, bShow ? BST_CHECKED : BST_UNCHECKED);
-	}
+	DialogUtil::loadBoolProperties(this, pProfile_,
+		L"FolderWindow", boolProperties__, countof(boolProperties__));
 	
 	return FALSE;
 }
 
 bool qm::OptionFolderWindowDialog::save(OptionDialogContext* pContext)
 {
-	for (int n = 0; n < countof(folderWindowFlags); ++n) {
-		bool bShow = sendDlgItemMessage(folderWindowFlags[n].nId_, BM_GETCHECK) == BST_CHECKED;
-		pProfile_->setInt(L"FolderWindow", folderWindowFlags[n].pwszKey_, bShow);
-	}
-	UIUtil::setLogFontToProfile(pProfile_, L"FolderWindow", lf_);
+	DialogUtil::saveBoolProperties(this, pProfile_,
+		L"FolderWindow", boolProperties__, countof(boolProperties__));
+	qs::UIUtil::setLogFontToProfile(pProfile_, L"FolderWindow", lf_);
 	
 	pFolderWindow_->reloadProfiles();
 	
@@ -1124,7 +1101,7 @@ bool qm::OptionFolderWindowDialog::save(OptionDialogContext* pContext)
 
 LRESULT qm::OptionFolderWindowDialog::onFont()
 {
-	UIUtil::browseFont(getParentPopup(), &lf_);
+	qs::UIUtil::browseFont(getParentPopup(), &lf_);
 	return 0;
 }
 
@@ -1143,7 +1120,7 @@ qm::OptionHeaderWindowDialog::OptionHeaderWindowDialog(MessageFrameWindowManager
 	pPreviewWindow_(pPreviewWindow),
 	pProfile_(pProfile)
 {
-	UIUtil::getLogFontFromProfile(pProfile_, L"HeaderWindow", false, &lf_);
+	qs::UIUtil::getLogFontFromProfile(pProfile_, L"HeaderWindow", false, &lf_);
 }
 
 qm::OptionHeaderWindowDialog::~OptionHeaderWindowDialog()
@@ -1167,7 +1144,7 @@ LRESULT qm::OptionHeaderWindowDialog::onInitDialog(HWND hwndFocus,
 
 bool qm::OptionHeaderWindowDialog::save(OptionDialogContext* pContext)
 {
-	UIUtil::setLogFontToProfile(pProfile_, L"HeaderWindow", lf_);
+	qs::UIUtil::setLogFontToProfile(pProfile_, L"HeaderWindow", lf_);
 	
 	pMessageFrameWindowManager_->reloadProfiles();
 	pPreviewWindow_->reloadProfiles();
@@ -1180,7 +1157,7 @@ bool qm::OptionHeaderWindowDialog::save(OptionDialogContext* pContext)
 
 LRESULT qm::OptionHeaderWindowDialog::onFont()
 {
-	UIUtil::browseFont(getParentPopup(), &lf_);
+	qs::UIUtil::browseFont(getParentPopup(), &lf_);
 	return 0;
 }
 
@@ -1191,14 +1168,13 @@ LRESULT qm::OptionHeaderWindowDialog::onFont()
  *
  */
 
-namespace {
-struct {
-	const WCHAR* pwszKey_;
-	UINT nId_;
-} listWindowFlags[] = {
-	{ L"SingleClickOpen",	IDC_SINGLECLICK	}
+DialogUtil::BoolProperty qm::OptionListWindowDialog::boolProperties__[] = {
+#ifdef _WIN32_WCE_PSPC
+	{ L"SingleClickOpen",	IDC_SINGLECLICK,	true	}
+#else
+	{ L"SingleClickOpen",	IDC_SINGLECLICK,	false	}
+#endif
 };
-}
 
 qm::OptionListWindowDialog::OptionListWindowDialog(ListWindow* pListWindow,
 												   FolderListWindow* pFolderListWindow,
@@ -1208,7 +1184,7 @@ qm::OptionListWindowDialog::OptionListWindowDialog(ListWindow* pListWindow,
 	pFolderListWindow_(pFolderListWindow),
 	pProfile_(pProfile)
 {
-	UIUtil::getLogFontFromProfile(pProfile_, L"ListWindow", false, &lf_);
+	qs::UIUtil::getLogFontFromProfile(pProfile_, L"ListWindow", false, &lf_);
 }
 
 qm::OptionListWindowDialog::~OptionListWindowDialog()
@@ -1227,22 +1203,18 @@ LRESULT qm::OptionListWindowDialog::onCommand(WORD nCode,
 LRESULT qm::OptionListWindowDialog::onInitDialog(HWND hwndFocus,
 												 LPARAM lParam)
 {
-	for (int n = 0; n < countof(listWindowFlags); ++n) {
-		bool bShow = pProfile_->getInt(L"ListWindow", listWindowFlags[n].pwszKey_, 1) != 0;
-		sendDlgItemMessage(listWindowFlags[n].nId_, BM_SETCHECK, bShow ? BST_CHECKED : BST_UNCHECKED);
-	}
+	DialogUtil::loadBoolProperties(this, pProfile_,
+		L"ListWindow", boolProperties__, countof(boolProperties__));
 	
 	return FALSE;
 }
 
 bool qm::OptionListWindowDialog::save(OptionDialogContext* pContext)
 {
-	for (int n = 0; n < countof(listWindowFlags); ++n) {
-		bool bShow = sendDlgItemMessage(listWindowFlags[n].nId_, BM_GETCHECK) == BST_CHECKED;
-		pProfile_->setInt(L"ListWindow", listWindowFlags[n].pwszKey_, bShow);
-	}
-	UIUtil::setLogFontToProfile(pProfile_, L"ListWindow", lf_);
-	UIUtil::setLogFontToProfile(pProfile_, L"FolderListWindow", lf_);
+	DialogUtil::saveBoolProperties(this, pProfile_,
+		L"ListWindow", boolProperties__, countof(boolProperties__));
+	qs::UIUtil::setLogFontToProfile(pProfile_, L"ListWindow", lf_);
+	qs::UIUtil::setLogFontToProfile(pProfile_, L"FolderListWindow", lf_);
 	
 	pListWindow_->reloadProfiles();
 	pFolderListWindow_->reloadProfiles();
@@ -1252,7 +1224,7 @@ bool qm::OptionListWindowDialog::save(OptionDialogContext* pContext)
 
 LRESULT qm::OptionListWindowDialog::onFont()
 {
-	UIUtil::browseFont(getParentPopup(), &lf_);
+	qs::UIUtil::browseFont(getParentPopup(), &lf_);
 	return 0;
 }
 
@@ -1269,7 +1241,7 @@ qm::OptionMessageWindowDialog::OptionMessageWindowDialog(MessageFrameWindowManag
 	pMessageFrameWindowManager_(pMessageFrameWindowManager),
 	pProfile_(pProfile)
 {
-	UIUtil::getLogFontFromProfile(pProfile_, L"MessageWindow", false, &lf_);
+	qs::UIUtil::getLogFontFromProfile(pProfile_, L"MessageWindow", false, &lf_);
 }
 
 qm::OptionMessageWindowDialog::~OptionMessageWindowDialog()
@@ -1293,7 +1265,7 @@ LRESULT qm::OptionMessageWindowDialog::onInitDialog(HWND hwndFocus,
 
 bool qm::OptionMessageWindowDialog::save(OptionDialogContext* pContext)
 {
-	UIUtil::setLogFontToProfile(pProfile_, L"MessageWindow", lf_);
+	qs::UIUtil::setLogFontToProfile(pProfile_, L"MessageWindow", lf_);
 	
 	pMessageFrameWindowManager_->reloadProfiles();
 	
@@ -1302,7 +1274,7 @@ bool qm::OptionMessageWindowDialog::save(OptionDialogContext* pContext)
 
 LRESULT qm::OptionMessageWindowDialog::onFont()
 {
-	UIUtil::browseFont(getParentPopup(), &lf_);
+	qs::UIUtil::browseFont(getParentPopup(), &lf_);
 	return 0;
 }
 
@@ -1313,18 +1285,17 @@ LRESULT qm::OptionMessageWindowDialog::onFont()
  *
  */
 
-namespace {
-struct {
-	const WCHAR* pwszKey_;
-	UINT nId_;
-	bool bDefault_;
-} previewWindowFlags[] = {
+DialogUtil::BoolProperty qm::OptionPreviewWindowDialog::boolProperties__[] = {
 	{ L"WordWrap",					IDC_WORDWRAP,					false	},
 	{ L"ShowRuler",					IDC_SHOWRULER,					false	},
 	{ L"ShowVerticalScrollBar",		IDC_SHOWVERTICALSCROLLBAR,		true	},
 	{ L"ShowHorizontalScrollBar",	IDC_SHOWHORIZONTALSCROLLBAR,	false	}
 };
-}
+
+DialogUtil::IntProperty qm::OptionPreviewWindowDialog::intProperties__[] = {
+	{ L"TabWidth",	IDC_TABWIDTH,	4	},
+	{ L"SeenWait",	IDC_SEENWAIT,	0	}
+};
 
 qm::OptionPreviewWindowDialog::OptionPreviewWindowDialog(MessageWindow* pPreviewWindow,
 														 Profile* pProfile) :
@@ -1332,7 +1303,7 @@ qm::OptionPreviewWindowDialog::OptionPreviewWindowDialog(MessageWindow* pPreview
 	pPreviewWindow_(pPreviewWindow),
 	pProfile_(pProfile)
 {
-	UIUtil::getLogFontFromProfile(pProfile_, L"PreviewWindow", false, &lf_);
+	qs::UIUtil::getLogFontFromProfile(pProfile_, L"PreviewWindow", false, &lf_);
 }
 
 qm::OptionPreviewWindowDialog::~OptionPreviewWindowDialog()
@@ -1364,18 +1335,10 @@ LRESULT qm::OptionPreviewWindowDialog::onInitDialog(HWND hwndFocus,
 		setDlgItemInt(IDC_CHARINLINE, nCharInLine, false);
 	}
 	
-	unsigned int nTabWidth = pProfile_->getInt(L"PreviewWindow", L"TabWidth", 4);
-	setDlgItemInt(IDC_TABWIDTH, nTabWidth, false);
-	
-	for (int n = 0; n < countof(previewWindowFlags); ++n) {
-		bool b = pProfile_->getInt(L"PreviewWindow",
-			previewWindowFlags[n].pwszKey_, previewWindowFlags[n].bDefault_) != 0;
-		sendDlgItemMessage(previewWindowFlags[n].nId_,
-			BM_SETCHECK, b ? BST_CHECKED : BST_UNCHECKED);
-	}
-	
-	unsigned int nSeenWait = pProfile_->getInt(L"PreviewWindow", L"SeenWait", 0);
-	setDlgItemInt(IDC_SEENWAIT, nSeenWait, false);
+	DialogUtil::loadBoolProperties(this, pProfile_,
+		L"PreviewWindow", boolProperties__, countof(boolProperties__));
+	DialogUtil::loadIntProperties(this, pProfile_,
+		L"PreviewWindow", intProperties__, countof(intProperties__));
 	
 	updateState();
 	
@@ -1389,18 +1352,12 @@ bool qm::OptionPreviewWindowDialog::save(OptionDialogContext* pContext)
 		nCharInLine = getDlgItemInt(IDC_CHARINLINE);
 	pProfile_->setInt(L"PreviewWindow", L"CharInLine", nCharInLine);
 	
-	unsigned int nTabWidth = getDlgItemInt(IDC_TABWIDTH);
-	pProfile_->setInt(L"PreviewWindow", L"TabWidth", nTabWidth);
+	DialogUtil::saveBoolProperties(this, pProfile_,
+		L"PreviewWindow", boolProperties__, countof(boolProperties__));
+	DialogUtil::saveIntProperties(this, pProfile_,
+		L"PreviewWindow", intProperties__, countof(intProperties__));
 	
-	for (int n = 0; n < countof(previewWindowFlags); ++n) {
-		bool b = sendDlgItemMessage(previewWindowFlags[n].nId_, BM_GETCHECK) == BST_CHECKED;
-		pProfile_->setInt(L"PreviewWindow", previewWindowFlags[n].pwszKey_, b);
-	}
-	
-	unsigned int nSeenWait = getDlgItemInt(IDC_SEENWAIT);
-	pProfile_->setInt(L"PreviewWindow", L"SeenWait", nSeenWait);
-	
-	UIUtil::setLogFontToProfile(pProfile_, L"PreviewWindow", lf_);
+	qs::UIUtil::setLogFontToProfile(pProfile_, L"PreviewWindow", lf_);
 	
 	pPreviewWindow_->reloadProfiles();
 	
@@ -1415,7 +1372,7 @@ LRESULT qm::OptionPreviewWindowDialog::onColors()
 
 LRESULT qm::OptionPreviewWindowDialog::onFont()
 {
-	UIUtil::browseFont(getParentPopup(), &lf_);
+	qs::UIUtil::browseFont(getParentPopup(), &lf_);
 	return 0;
 }
 
@@ -1439,17 +1396,11 @@ void qm::OptionPreviewWindowDialog::updateState()
  *
  */
 
-namespace {
-struct {
-	const WCHAR* pwszKey_;
-	UINT nId_;
-	bool bDefault_;
-} tabWindowFlags[] = {
+DialogUtil::BoolProperty qm::OptionTabWindowDialog::boolProperties__[] = {
 	{ L"Multiline",			IDC_MULTILINE,	false	},
 	{ L"ShowAllCount",		IDC_SHOWALL,	true	},
 	{ L"ShowUnseenCount",	IDC_SHOWUNSEEN,	true	}
 };
-}
 
 qm::OptionTabWindowDialog::OptionTabWindowDialog(TabWindow* pTabWindow,
 												 Profile* pProfile) :
@@ -1457,7 +1408,7 @@ qm::OptionTabWindowDialog::OptionTabWindowDialog(TabWindow* pTabWindow,
 	pTabWindow_(pTabWindow),
 	pProfile_(pProfile)
 {
-	UIUtil::getLogFontFromProfile(pProfile_, L"TabWindow", false, &lf_);
+	qs::UIUtil::getLogFontFromProfile(pProfile_, L"TabWindow", false, &lf_);
 }
 
 qm::OptionTabWindowDialog::~OptionTabWindowDialog()
@@ -1476,10 +1427,8 @@ LRESULT qm::OptionTabWindowDialog::onCommand(WORD nCode,
 LRESULT qm::OptionTabWindowDialog::onInitDialog(HWND hwndFocus,
 												 LPARAM lParam)
 {
-	for (int n = 0; n < countof(tabWindowFlags); ++n) {
-		bool b = pProfile_->getInt(L"TabWindow", tabWindowFlags[n].pwszKey_, tabWindowFlags[n].bDefault_) != 0;
-		sendDlgItemMessage(tabWindowFlags[n].nId_, BM_SETCHECK, b ? BST_CHECKED : BST_UNCHECKED);
-	}
+	DialogUtil::loadBoolProperties(this, pProfile_,
+		L"TabWindow", boolProperties__, countof(boolProperties__));
 	
 	DefaultTabModel* pTabModel = static_cast<DefaultTabModel*>(pTabWindow_->getTabModel());
 	unsigned int nReuse = pTabModel->getReuse();
@@ -1493,10 +1442,8 @@ LRESULT qm::OptionTabWindowDialog::onInitDialog(HWND hwndFocus,
 
 bool qm::OptionTabWindowDialog::save(OptionDialogContext* pContext)
 {
-	for (int n = 0; n < countof(tabWindowFlags); ++n) {
-		bool b = sendDlgItemMessage(tabWindowFlags[n].nId_, BM_GETCHECK) == BST_CHECKED;
-		pProfile_->setInt(L"TabWindow", tabWindowFlags[n].pwszKey_, b);
-	}
+	DialogUtil::saveBoolProperties(this, pProfile_,
+		L"TabWindow", boolProperties__, countof(boolProperties__));
 	
 	DefaultTabModel* pTabModel = static_cast<DefaultTabModel*>(pTabWindow_->getTabModel());
 	unsigned int nReuse = DefaultTabModel::REUSE_NONE;
@@ -1506,7 +1453,7 @@ bool qm::OptionTabWindowDialog::save(OptionDialogContext* pContext)
 		nReuse |= DefaultTabModel::REUSE_CHANGE;
 	pTabModel->setReuse(nReuse);
 	
-	UIUtil::setLogFontToProfile(pProfile_, L"TabWindow", lf_);
+	qs::UIUtil::setLogFontToProfile(pProfile_, L"TabWindow", lf_);
 	
 	pTabWindow_->reloadProfiles();
 	
@@ -1515,7 +1462,7 @@ bool qm::OptionTabWindowDialog::save(OptionDialogContext* pContext)
 
 LRESULT qm::OptionTabWindowDialog::onFont()
 {
-	UIUtil::browseFont(getParentPopup(), &lf_);
+	qs::UIUtil::browseFont(getParentPopup(), &lf_);
 	return 0;
 }
 #endif // QMTABWINDOW
