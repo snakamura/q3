@@ -580,7 +580,7 @@ bool qm::SyncManager::syncData(const SyncData* pData)
 	if (nSlot > 0) {
 		typedef std::vector<Thread*> ThreadList;
 		ThreadList listThread;
-		listThread.resize(nSlot);
+		listThread.reserve(nSlot);
 		
 		struct Wait
 		{
@@ -605,21 +605,19 @@ bool qm::SyncManager::syncData(const SyncData* pData)
 		for (unsigned int n = 0; n < nSlot; ++n) {
 			std::auto_ptr<ParallelSyncThread> pThread(new ParallelSyncThread(this, pData, n));
 			if (!pThread->start())
-				return false;
-			listThread[n] = pThread.release();
+				break;
+			listThread.push_back(pThread.release());
 		}
-		if (!syncSlotData(pData, nSlot))
-			return false;
+		syncSlotData(pData, nSlot);
 	}
 	else {
-		if (!syncSlotData(pData, 0))
-			return false;
+		syncSlotData(pData, 0);
 	}
 	
 	return true;
 }
 
-bool qm::SyncManager::syncSlotData(const SyncData* pData,
+void qm::SyncManager::syncSlotData(const SyncData* pData,
 								   unsigned int nSlot)
 {
 	SyncManagerCallback* pCallback = pData->getCallback();
@@ -728,8 +726,6 @@ bool qm::SyncManager::syncSlotData(const SyncData* pData,
 	}
 	if (session.get())
 		session.get()->disconnect();
-	
-	return true;
 }
 
 bool qm::SyncManager::syncFolder(SyncManagerCallback* pSyncManagerCallback,

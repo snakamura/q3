@@ -293,7 +293,7 @@ private:
 
 private:
 	bool syncData(const SyncData* pData);
-	bool syncSlotData(const SyncData* pData,
+	void syncSlotData(const SyncData* pData,
 					  unsigned int nSlot);
 	bool syncFolder(SyncManagerCallback* pSyncManagerCallback,
 					const SyncItem* pItem,
