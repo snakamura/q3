@@ -491,6 +491,11 @@ TextWindow* qm::EditWindow::getTextWindow() const
 	return pImpl_->pTextWindow_;
 }
 
+AttachmentSelectionModel* qm::EditWindow::getAttachmentSelectionModel() const
+{
+	return pImpl_->pHeaderEditWindow_->getAttachmentSelectionModel();
+}
+
 EditWindowItem* qm::EditWindow::getItemByNumber(unsigned int nNumber) const
 {
 	return pImpl_->pHeaderEditWindow_->getItemByNumber(nNumber);
@@ -587,6 +592,7 @@ LRESULT qm::EditWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	CHECK_QSTATUS_VALUE(-1);
 	HeaderEditWindowCreateContext headerEditContext = {
 		pImpl_,
+		pContext->pMenuManager_,
 		pImpl_
 	};
 	status = pHeaderEditWindow->create(L"QmHeaderEditWindow", 0,

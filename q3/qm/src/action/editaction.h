@@ -19,6 +19,8 @@
 
 namespace qm {
 
+class EditAttachmentEditAddAction;
+class EditAttachmentEditDeleteAction;
 class EditEditCommandAction;
 class EditEditFindAction;
 class EditEditMoveCaretAction;
@@ -39,11 +41,65 @@ class EditToolReformAction;
 class EditToolReformAllAction;
 
 class AddressBook;
+class AttachmentSelectionModel;
 class Document;
 class EditFrameWindow;
 class EditMessageHolder;
 class EditWindow;
 class FindReplaceManager;
+
+
+/****************************************************************************
+ *
+ * EditAttachmentEditAddAction
+ *
+ */
+
+class EditAttachmentEditAddAction : public qs::AbstractAction
+{
+public:
+	EditAttachmentEditAddAction(EditMessageHolder* pEditMessageHolder,
+		HWND hwndFrame, qs::QSTATUS* pstatus);
+	virtual ~EditAttachmentEditAddAction();
+
+public:
+	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+
+private:
+	EditAttachmentEditAddAction(const EditAttachmentEditAddAction&);
+	EditAttachmentEditAddAction& operator=(const EditAttachmentEditAddAction&);
+
+private:
+	EditMessageHolder* pEditMessageHolder_;
+	HWND hwndFrame_;
+};
+
+
+/****************************************************************************
+ *
+ * EditAttachmentEditDeleteAction
+ *
+ */
+
+class EditAttachmentEditDeleteAction : public qs::AbstractAction
+{
+public:
+	EditAttachmentEditDeleteAction(EditMessageHolder* pEditMessageHolder,
+		AttachmentSelectionModel* pAttachmentSelectionModel, qs::QSTATUS* pstatus);
+	virtual ~EditAttachmentEditDeleteAction();
+
+public:
+	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+
+private:
+	EditAttachmentEditDeleteAction(const EditAttachmentEditDeleteAction&);
+	EditAttachmentEditDeleteAction& operator=(const EditAttachmentEditDeleteAction&);
+
+private:
+	EditMessageHolder* pEditMessageHolder_;
+	AttachmentSelectionModel* pAttachmentSelectionModel_;
+};
 
 
 /****************************************************************************

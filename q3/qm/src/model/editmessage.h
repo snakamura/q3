@@ -114,6 +114,7 @@ public:
 	qs::QSTATUS getAttachments(AttachmentList* pList) const;
 	qs::QSTATUS setAttachments(const AttachmentList& listAttachment);
 	qs::QSTATUS addAttachment(const WCHAR* pwszPath);
+	qs::QSTATUS removeAttachment(const WCHAR* pwszPath);
 	const WCHAR* getSignature() const;
 	qs::QSTATUS setSignature(const WCHAR* pwszSignature);
 	bool isAutoReform() const;

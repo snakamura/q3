@@ -743,8 +743,8 @@ QSTATUS qm::EditHeaderItem::canSelectAll(bool* pbCan)
 qm::AttachmentHeaderItem::AttachmentHeaderItem(
 	MenuManager* pMenuManager, QSTATUS* pstatus) :
 	HeaderItem(pstatus),
-	pMenuManager_(pMenuManager),
-	wnd_(this, pstatus)
+	wnd_(this, pstatus),
+	pMenuManager_(pMenuManager)
 {
 }
 
@@ -896,7 +896,7 @@ QSTATUS qm::AttachmentHeaderItem::getSelectedAttachment(NameList* pList)
 
 /****************************************************************************
  *
- * AttachmentHeaderItem
+ * AttachmentHeaderItem::AttachmentWindow
  *
  */
 

@@ -22,6 +22,7 @@ namespace qm {
 class EditFrameWindow;
 class EditWindow;
 
+class AttachmentSelectionModel;
 class EditFrameWindowManager;
 class EditMessage;
 class EditMessageHolder;
@@ -105,6 +106,7 @@ public:
 
 public:
 	EditMessageHolder* getEditMessageHolder() const;
+	AttachmentSelectionModel* getAttachmentSelectionModel() const;
 	qs::TextWindow* getTextWindow() const;
 	EditWindowItem* getItemByNumber(unsigned int nNumber) const;
 	EditWindowItem* getFocusedItem() const;
@@ -156,6 +158,7 @@ public:
 	EditWindowItem* getNextFocusItem(EditWindowItem* pItem) const;
 	EditWindowItem* getPrevFocusItem(EditWindowItem* pItem) const;
 	EditWindowItem* getItemByNumber(unsigned int nNumber) const;
+	AttachmentSelectionModel* getAttachmentSelectionModel() const;
 
 public:
 	virtual qs::QSTATUS getWindowClass(WNDCLASS* pwc);

@@ -322,4 +322,8 @@
 		<menuitem text="&amp;Save..." action="AttachmentSave"/>
 		<menuitem text="Save &amp;All..." action="AttachmentSaveAll"/>
 	</menu>
+	<menu name="attachmentedit">
+		<menuitem text="&amp;Add..." action="AttachmentEditAdd"/>
+		<menuitem text="&amp;Delete" action="AttachmentEditDelete"/>
+	</menu>
 </menus>

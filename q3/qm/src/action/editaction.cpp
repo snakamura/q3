@@ -29,6 +29,7 @@
 #include "../model/editmessage.h"
 #include "../model/fixedformtext.h"
 #include "../model/security.h"
+#include "../ui/attachmentselectionmodel.h"
 #include "../ui/dialogs.h"
 #include "../ui/editwindow.h"
 #include "../ui/resourceinc.h"
@@ -36,6 +37,103 @@
 
 using namespace qm;
 using namespace qs;
+
+
+/****************************************************************************
+ *
+ * EditAttachmentEditAddAction
+ *
+ */
+
+qm::EditAttachmentEditAddAction::EditAttachmentEditAddAction(
+	EditMessageHolder* pEditMessageHolder, HWND hwndFrame, QSTATUS* pstatus) :
+	pEditMessageHolder_(pEditMessageHolder),
+	hwndFrame_(hwndFrame)
+{
+}
+
+qm::EditAttachmentEditAddAction::~EditAttachmentEditAddAction()
+{
+}
+
+QSTATUS qm::EditAttachmentEditAddAction::invoke(const ActionEvent& event)
+{
+	DECLARE_QSTATUS();
+	
+	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
+	
+	string_ptr<WSTRING> wstrFilter;
+	status = loadString(Application::getApplication().getResourceHandle(),
+		IDS_FILTER_ATTACHMENT, &wstrFilter);
+	CHECK_QSTATUS();
+	
+	FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
+		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_ALLOWMULTISELECT,
+		&status);
+	CHECK_QSTATUS_VALUE(0);
+	
+	int nRet = IDCANCEL;
+	status = dialog.doModal(hwndFrame_, 0, &nRet);
+	CHECK_QSTATUS_VALUE(0);
+	if (nRet == IDOK) {
+		const WCHAR* pwszPath = dialog.getPath();
+		const WCHAR* p = pwszPath;
+		while (*p) {
+			status = pEditMessage->addAttachment(p);
+			CHECK_QSTATUS();
+			p += wcslen(p) + 1;
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * EditAttachmentEditDeleteAction
+ *
+ */
+
+qm::EditAttachmentEditDeleteAction::EditAttachmentEditDeleteAction(
+	EditMessageHolder* pEditMessageHolder,
+	AttachmentSelectionModel* pAttachmentSelectionModel, QSTATUS* pstatus) :
+	pEditMessageHolder_(pEditMessageHolder),
+	pAttachmentSelectionModel_(pAttachmentSelectionModel)
+{
+}
+
+qm::EditAttachmentEditDeleteAction::~EditAttachmentEditDeleteAction()
+{
+}
+
+QSTATUS qm::EditAttachmentEditDeleteAction::invoke(const ActionEvent& event)
+{
+	DECLARE_QSTATUS();
+	
+	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
+	
+	AttachmentSelectionModel::NameList l;
+	StringListFree<AttachmentSelectionModel::NameList> free(l);
+	status = pAttachmentSelectionModel_->getSelectedAttachment(&l);
+	CHECK_QSTATUS();
+	
+	AttachmentSelectionModel::NameList::const_iterator it = l.begin();
+	while (it != l.end()) {
+		status = pEditMessage->removeAttachment(*it);
+		CHECK_QSTATUS();
+		++it;
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::EditAttachmentEditDeleteAction::isEnabled(
+	const ActionEvent& event, bool* pbEnabled)
+{
+	assert(pbEnabled);
+	return pAttachmentSelectionModel_->hasSelectedAttachment(pbEnabled);
+}
 
 
 /****************************************************************************

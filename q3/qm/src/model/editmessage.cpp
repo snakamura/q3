@@ -471,6 +471,40 @@ QSTATUS qm::EditMessage::addAttachment(const WCHAR* pwszPath)
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qm::EditMessage::removeAttachment(const WCHAR* pwszPath)
+{
+	DECLARE_QSTATUS();
+	
+	AttachmentPathList::iterator itP = std::find_if(
+		listAttachmentPath_.begin(), listAttachmentPath_.end(),
+		std::bind2nd(string_equal<WCHAR>(), pwszPath));
+	if (itP != listAttachmentPath_.end()) {
+		freeWString(*itP);
+		listAttachmentPath_.erase(itP);
+	}
+	else {
+		AttachmentParser::AttachmentList::iterator itO = std::find_if(
+			listAttachment_.begin(), listAttachment_.end(),
+			std::bind2nd(
+				binary_compose_f_gx_hy(
+					string_equal<WCHAR>(),
+					std::select1st<AttachmentParser::AttachmentList::value_type>(),
+					std::identity<const WCHAR*>()),
+				pwszPath));
+		if (itO != listAttachment_.end()) {
+			status = removePart((*itO).second);
+			CHECK_QSTATUS();
+			freeWString((*itO).first);
+			listAttachment_.erase(itO);
+		}
+	}
+	
+	status = fireAttachmentsChanged();
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
 const WCHAR* qm::EditMessage::getSignature() const
 {
 	return wstrSignature_;

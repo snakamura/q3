@@ -291,9 +291,8 @@ private:
 	friend class AttachmentWindow;
 
 private:
-//	HWND hwnd_;
-	qs::MenuManager* pMenuManager_;
 	AttachmentWindow wnd_;
+	qs::MenuManager* pMenuManager_;
 };
 
 

@@ -19,6 +19,8 @@
 namespace qm {
 
 const qs::KeyNameToId mapKeyNameToId[] = {
+	{ L"AttachmentEditAdd",				IDM_ATTACHMENTEDIT_ADD,					0 },
+	{ L"AttachmentEditDelete",			IDM_ATTACHMENTEDIT_DELETE,				0 },
 	{ L"AttachmentOpen",				IDM_ATTACHMENT_OPEN,					0 },
 	{ L"AttachmentSave",				IDM_ATTACHMENT_SAVE,					0 },
 	{ L"AttachmentSaveAll",				IDM_ATTACHMENT_SAVEALL,					0 },

@@ -14,6 +14,7 @@
 
 #include <vector>
 
+#include "attachmentselectionmodel.h"
 #include "editwindow.h"
 #include "layout.h"
 #include "../model/editmessage.h"
@@ -346,11 +347,12 @@ private:
 
 class AttachmentHeaderEditItem :
 	public HeaderEditItem,
-	public DefaultEditMessageHandler
+	public DefaultEditMessageHandler,
+	public AttachmentSelectionModel
 {
 public:
 	AttachmentHeaderEditItem(EditWindowFocusController* pController,
-		qs::QSTATUS* pstatus);
+		qs::MenuManager* pMenuManager, qs::QSTATUS* pstatus);
 	virtual ~AttachmentHeaderEditItem();
 
 public:
@@ -376,15 +378,46 @@ public:
 public:
 	virtual qs::QSTATUS attachmentsChanged(const EditMessageEvent& event);
 
+public:
+	virtual qs::QSTATUS hasAttachment(bool* pbHas);
+	virtual qs::QSTATUS hasSelectedAttachment(bool* pbHas);
+	virtual qs::QSTATUS getSelectedAttachment(NameList* pList);
+
 private:
 	qs::QSTATUS update(EditMessage* pEditMessage);
+	void clear();
 
 private:
 	AttachmentHeaderEditItem(const AttachmentHeaderEditItem&);
 	AttachmentHeaderEditItem& operator=(const AttachmentHeaderEditItem&);
 
 private:
-	HWND hwnd_;
+	class AttachmentEditWindow :
+		public qs::WindowBase,
+		public qs::DefaultWindowHandler
+	{
+	public:
+		AttachmentEditWindow(AttachmentHeaderEditItem* pItem, qs::QSTATUS* pstatus);
+		virtual ~AttachmentEditWindow();
+	
+	public:
+		virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	
+	protected:
+		LRESULT onContextMenu(HWND hwnd, const POINT& pt);
+	
+	private:
+		AttachmentEditWindow(const AttachmentEditWindow&);
+		AttachmentEditWindow& operator=(const AttachmentEditWindow&);
+	
+	private:
+		AttachmentHeaderEditItem* pItem_;
+	};
+	friend class AttachmentEditWindow;
+
+private:
+	AttachmentEditWindow wnd_;
+	qs::MenuManager* pMenuManager_;
 	EditWindowItemWindow* pItemWindow_;
 	EditMessage* pEditMessage_;
 };
@@ -529,9 +562,12 @@ class HeaderEditWindowContentHandler : public qs::DefaultHandler
 {
 public:
 	HeaderEditWindowContentHandler(LineLayout* pLayout,
-		EditWindowFocusController* pController,
+		EditWindowFocusController* pController, qs::MenuManager* pMenuManager,
 		HeaderEditLineCallback* pCallback, qs::QSTATUS* pstatus);
 	virtual ~HeaderEditWindowContentHandler();
+
+public:
+	AttachmentSelectionModel* getAttachmentSelectionModel() const;
 
 public:
 	virtual qs::QSTATUS startElement(const WCHAR* pwszNamespaceURI,
@@ -557,10 +593,12 @@ private:
 private:
 	LineLayout* pLayout_;
 	EditWindowFocusController* pController_;
+	qs::MenuManager* pMenuManager_;
 	HeaderEditLineCallback* pCallback_;
 	HeaderEditLine* pCurrentLine_;
 	HeaderEditItem* pCurrentItem_;
 	State state_;
+	AttachmentSelectionModel* pAttachmentSelectionModel_;
 };
 
 
@@ -573,6 +611,7 @@ private:
 struct HeaderEditWindowCreateContext
 {
 	EditWindowFocusController* pController_;
+	qs::MenuManager* pMenuManager_;
 	HeaderEditLineCallback* pHeaderEditLineCallback_;
 };
 

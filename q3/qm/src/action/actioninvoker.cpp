@@ -26,6 +26,8 @@ struct ActionNameMap
 	const WCHAR* pwszName_;
 	unsigned int nId_;
 } actionNameMap[] = {
+	{ L"AttachmentEditAdd",				IDM_ATTACHMENTEDIT_ADD,					},
+	{ L"AttachmentEditDelete",			IDM_ATTACHMENTEDIT_DELETE,				},
 	{ L"AttachmentOpen",				IDM_ATTACHMENT_OPEN						},
 	{ L"AttachmentSave",				IDM_ATTACHMENT_SAVE						},
 	{ L"AttachmentSaveAll",				IDM_ATTACHMENT_SAVEALL					},

@@ -367,6 +367,8 @@
 #define IDM_ATTACHMENT_OPEN             48001
 #define IDM_ATTACHMENT_SAVE             48002
 #define IDM_ATTACHMENT_SAVEALL          48003
+#define IDM_ATTACHMENTEDIT_ADD          49001
+#define IDM_ATTACHMENTEDIT_DELETE       49002
 
 // Next default values for new objects
 // 

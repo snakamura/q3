@@ -96,6 +96,15 @@ QSTATUS qm::EditFrameWindowImpl::initActions()
 	status = newQsObject(&pFindReplaceManager_);
 	CHECK_QSTATUS();
 	
+	status = InitAction2<EditAttachmentEditAddAction, EditMessageHolder*, HWND>(
+		pActionMap_, IDM_ATTACHMENTEDIT_ADD,
+		pEditWindow_->getEditMessageHolder(), pThis_->getHandle());
+	CHECK_QSTATUS();
+	status = InitAction2<EditAttachmentEditDeleteAction,
+		EditMessageHolder*, AttachmentSelectionModel*>(
+		pActionMap_, IDM_ATTACHMENTEDIT_DELETE, pEditWindow_->getEditMessageHolder(),
+		pEditWindow_->getAttachmentSelectionModel());
+	CHECK_QSTATUS();
 	status = InitAction3<EditEditCommandAction, EditWindow*,
 		EditEditCommandAction::PFN_DO, EditEditCommandAction::PFN_CANDO>(
 		pActionMap_, IDM_EDIT_COPY, pEditWindow_,
