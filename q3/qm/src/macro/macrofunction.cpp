@@ -2114,34 +2114,38 @@ QSTATUS qm::MacroFunctionFormatAddress::value(
 	
 	string_ptr<WSTRING> wstrValue;
 	
-	Part part(0, pValueField->getField(), static_cast<size_t>(-1), &status);
-	CHECK_QSTATUS();
-	AddressListParser address(0, &status);
-	CHECK_QSTATUS();
-	Part::Field field;
-	status = part.getField(pValueField->getName(), &address, &field);
-	CHECK_QSTATUS();
-	if (field == Part::FIELD_EXIST) {
-		if (bLookup) {
-			status = replacePhrase(pContext->getDocument()->getAddressBook(), &address);
-			CHECK_QSTATUS();
-		}
-		switch (type) {
-		case TYPE_ALL:
-			status = address.getValue(&wstrValue);
-			CHECK_QSTATUS();
-			break;
-		case TYPE_ADDRESS:
-			status = address.getAddresses(&wstrValue);
-			CHECK_QSTATUS();
-			break;
-		case TYPE_NAME:
-			status = address.getNames(&wstrValue);
-			CHECK_QSTATUS();
-			break;
-		default:
-			assert(false);
-			break;
+	const CHAR* pszField = pValueField->getField();
+	if (pszField) {
+		Part part(0, pszField, static_cast<size_t>(-1), &status);
+		CHECK_QSTATUS();
+		AddressListParser address(0, &status);
+		CHECK_QSTATUS();
+		Part::Field field;
+		status = part.getField(pValueField->getName(), &address, &field);
+		CHECK_QSTATUS();
+		if (field == Part::FIELD_EXIST) {
+			if (bLookup) {
+				AddressBook* pAddressBook = pContext->getDocument()->getAddressBook();
+				status = replacePhrase(pAddressBook, &address);
+				CHECK_QSTATUS();
+			}
+			switch (type) {
+			case TYPE_ALL:
+				status = address.getValue(&wstrValue);
+				CHECK_QSTATUS();
+				break;
+			case TYPE_ADDRESS:
+				status = address.getAddresses(&wstrValue);
+				CHECK_QSTATUS();
+				break;
+			case TYPE_NAME:
+				status = address.getNames(&wstrValue);
+				CHECK_QSTATUS();
+				break;
+			default:
+				assert(false);
+				break;
+			}
 		}
 	}
 	

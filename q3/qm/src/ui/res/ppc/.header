@@ -1,15 +1,15 @@
 <header>
 	<line>
 		<static width="4em" style="bold" showAlways="true">To:</static>
-		<edit>{@Name(To)}</edit>
+		<edit>{@FormatAddress(To)}</edit>
 	</line>
 	<line hideIfEmpty="cc">
 		<static width="4em" style="bold" showAlways="true">Cc:</static>
-		<edit name="cc">{@Name(Cc)}</edit>
+		<edit name="cc">{@FormatAddress(Cc)}</edit>
 	</line>
 	<line>
 		<static width="4em" style="bold" showAlways="true">From:</static>
-		<edit>{@Name(From)}</edit>
+		<edit>{@FormatAddress(From)}</edit>
 	</line>
 	<line>
 		<static width="4em" style="bold" showAlways="true">Date:</static>
