@@ -437,6 +437,29 @@ struct qs::QuotedPrintableEncoderImpl
 {
 	static bool isEncodedChar(unsigned char c);
 	static unsigned char decode(unsigned char* p);
+	
+	class Buffer
+	{
+	public:
+		Buffer(InputStream* pInputStream);
+		~Buffer();
+	
+	public:
+		size_t read(unsigned char* p,
+					size_t nLen);
+		bool unread(const unsigned char* p,
+					size_t nLen);
+	
+	private:
+		Buffer(const Buffer&);
+		Buffer& operator=(const Buffer&);
+	
+	private:
+		InputStream* pInputStream_;
+		malloc_ptr<unsigned char> pPeek_;
+		size_t nPeekBufSize_;
+		size_t nPeekLen_;
+	};
 };
 
 
@@ -461,6 +484,67 @@ inline unsigned char qs::QuotedPrintableEncoderImpl::decode(unsigned char* p)
 		b += c << (4*(1 - m));
 	}
 	return b;
+}
+
+
+/****************************************************************************
+ *
+ * QuotedPrintableEncoderImpl
+ *
+ */
+
+qs::QuotedPrintableEncoderImpl::Buffer::Buffer(InputStream* pInputStream) :
+	pInputStream_(pInputStream),
+	nPeekBufSize_(0),
+	nPeekLen_(0)
+{
+}
+
+qs::QuotedPrintableEncoderImpl::Buffer::~Buffer()
+{
+}
+
+size_t qs::QuotedPrintableEncoderImpl::Buffer::read(unsigned char* p,
+													size_t nLen)
+{
+	size_t nRead = 0;
+	
+	size_t nPeekCopy = QSMIN(nPeekLen_, nLen);
+	if (nPeekCopy != 0) {
+		memcpy(p, pPeek_.get(), nPeekCopy);
+		nPeekLen_ -= nPeekCopy;
+		if (nPeekLen_ != 0)
+			memmove(pPeek_.get(), pPeek_.get() + nPeekCopy, nPeekLen_);
+		nLen -= nPeekCopy;
+		p += nPeekCopy;
+		nRead += nPeekCopy;
+	}
+	if (nLen != 0) {
+		size_t n = pInputStream_->read(p, nLen);
+		if (n == -1)
+			return -1;
+		nRead += n;
+	}
+	
+	return nRead;
+}
+
+bool qs::QuotedPrintableEncoderImpl::Buffer::unread(const unsigned char* p,
+													size_t nLen)
+{
+	if (nPeekLen_ + nLen > nPeekBufSize_) {
+		nPeekBufSize_ = nPeekBufSize_ == 0 ? 10 : nPeekBufSize_*2;
+		malloc_ptr<unsigned char> pNew(static_cast<unsigned char*>(
+			realloc(pPeek_.get(), nPeekBufSize_)));
+		if (!pNew.get())
+			return false;
+		pPeek_.release();
+		pPeek_ = pNew;
+	}
+	memcpy(pPeek_.get() + nPeekLen_, p, nLen);
+	nPeekLen_ += nLen;
+	
+	return true;
 }
 
 
@@ -591,34 +675,22 @@ bool qs::QuotedPrintableEncoder::encodeImpl(InputStream* pInputStream,
 bool qs::QuotedPrintableEncoder::decodeImpl(InputStream* pInputStream,
 											OutputStream* pOutputStream)
 {
-	malloc_ptr<unsigned char> pPeek;
-	size_t nPeekBufSize = 0;
-	size_t nPeekLen = 0;
+	QuotedPrintableEncoderImpl::Buffer buffer(pInputStream);
 	
 	while (true) {
 		unsigned char c = 0;
-		if (nPeekLen == 0) {
-			size_t nRead = pInputStream->read(&c, 1);
-			if (nRead == -1)
-				return false;
-			else if (nRead == 0)
-				break;
-		}
-		else {
-			c = *pPeek.get();
-			--nPeekLen;
-			memmove(pPeek.get() + 1, pPeek.get(), nPeekLen);
-		}
+		size_t nRead = buffer.read(&c, 1);
+		if (nRead == -1)
+			return false;
+		else if (nRead == 0)
+			break;
 		
 		if (c == '=') {
 			unsigned char buf[2];
-			size_t nRead = pInputStream->read(buf, 2);
-			if (nRead == -1)
-				return false;
+			size_t nRead = buffer.read(buf, 2);
 			
-			size_t nCopy = 2;
+			bool bUnread = false;
 			if (nRead > 1 && buf[0] == '\r' && buf[1] == '\n') {
-				nCopy = 0;
 			}
 			else if (nRead > 1 &&
 				QuotedPrintableEncoderImpl::isEncodedChar(buf[0]) &&
@@ -626,25 +698,16 @@ bool qs::QuotedPrintableEncoder::decodeImpl(InputStream* pInputStream,
 				unsigned char cDecode = QuotedPrintableEncoderImpl::decode(buf);
 				if (pOutputStream->write(&cDecode, 1) != 1)
 					return false;
-				nCopy = 0;
 			}
 			else {
 				if (pOutputStream->write(&c, 1) != 1)
 					return false;
+				bUnread = true;
 			}
 			
-			if (nCopy > 0) {
-				if (nPeekLen + nCopy > nPeekBufSize) {
-					nPeekBufSize = nPeekBufSize == 0 ? 10 : nPeekBufSize*2;
-					malloc_ptr<unsigned char> pNew(static_cast<unsigned char*>(
-						realloc(pPeek.get(), nPeekBufSize)));
-					if (!pNew.get())
-						return false;
-					pPeek.release();
-					pPeek = pNew;
-				}
-				memcpy(pPeek.get() + nPeekLen, buf, nCopy);
-				nPeekLen += nCopy;
+			if (bUnread) {
+				if (!buffer.unread(buf, 2))
+					return false;
 			}
 		}
 		else if (bQ_ && c == '_') {
