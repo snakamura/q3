@@ -215,7 +215,13 @@ void qm::ViewColumn::getTime(const ViewModel* pViewModel,
 		bCurrent = true;
 		break;
 	case ViewColumn::TYPE_OTHER:
-		// TODO
+		{
+			MacroValuePtr pValue(pViewModel->getValue(pMacro_.get(), pmh));
+			if (pValue.get() && pValue->getType() == MacroValue::TYPE_TIME)
+				*pTime = static_cast<MacroValueTime*>(pValue.get())->getTime();
+			else
+				bCurrent = true;
+		}
 		break;
 	default:
 		assert(false);
