@@ -955,20 +955,41 @@ void qm::ViewModel::messageAdded(const FolderMessageEvent& event)
 								++itThreadEnd;
 							
 							ViewModelItemComp comp(getComparator(nSort_));
-							ItemList::iterator itInsert = itThreadEnd;
-							while (itInsert != listItem_.end()) {
-								if (!(*itInsert)->getParentItem() &&
-									comp(*itThreadBegin, *itInsert))
-									break;
-								++itInsert;
+							if ((nSort_ & SORT_DIRECTION_MASK) == SORT_ASCENDING) {
+								ItemList::iterator itInsert = itThreadEnd;
+								while (itInsert != listItem_.end()) {
+									if (!(*itInsert)->getParentItem() &&
+										comp(*itThreadBegin, *itInsert))
+										break;
+									++itInsert;
+								}
+								
+								if (itInsert != itThreadEnd) {
+									SelectionRestorer restorer(this, false, false);
+									ItemList l(itThreadBegin, itThreadEnd);
+									std::copy(l.begin(), l.end(),
+										std::copy(itThreadEnd, itInsert, itThreadBegin));
+									restorer.restore();
+								}
 							}
-							
-							if (itInsert != itThreadEnd) {
-								SelectionRestorer restorer(this, false, false);
-								ItemList l(itThreadBegin, itThreadEnd);
-								std::copy(l.begin(), l.end(),
-									std::copy(itThreadEnd, itInsert, itThreadBegin));
-								restorer.restore();
+							else {
+								ItemList::iterator itInsert = itThreadBegin;
+								for (ItemList::iterator it = itThreadBegin; it != listItem_.begin(); ) {
+									--it;
+									if (!(*it)->getParentItem()) {
+										if (comp(*it, *itThreadBegin))
+											break;
+										itInsert = it;
+									}
+								}
+								
+								if (itInsert != itThreadBegin) {
+									SelectionRestorer restorer(this, false, false);
+									ItemList l(itThreadBegin, itThreadEnd);
+									std::copy_backward(l.begin(), l.end(),
+										std::copy_backward(itInsert, itThreadBegin, itThreadEnd));
+									restorer.restore();
+								}
 							}
 						}
 					}
