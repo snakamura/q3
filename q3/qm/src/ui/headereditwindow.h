@@ -390,6 +390,12 @@ public:
 	virtual void setFocus();
 
 public:
+	virtual void paste();
+	virtual bool canPaste();
+	virtual void selectAll();
+	virtual bool canSelectAll();
+
+public:
 	virtual void attachmentsChanged(const EditMessageEvent& event);
 
 public:

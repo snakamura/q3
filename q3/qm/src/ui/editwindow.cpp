@@ -343,35 +343,7 @@ void qm::EditWindowImpl::messageUpdate(const EditMessageEvent& event)
 void qm::EditWindowImpl::dragEnter(const DropTargetDragEvent& event)
 {
 	IDataObject* pDataObject = event.getDataObject();
-	
-#ifndef _WIN32_WCE
-	FORMATETC fe = {
-		CF_HDROP,
-		0,
-		DVASPECT_CONTENT,
-		-1,
-		TYMED_HGLOBAL
-	};
-	StgMedium stm;
-	if (pDataObject->GetData(&fe, &stm) == S_OK) {
-		if (stm.tymed == TYMED_HGLOBAL) {
-			HDROP hDrop = reinterpret_cast<HDROP>(stm.hGlobal);
-			UINT nCount = ::DragQueryFile(hDrop, 0xffffffff, 0, 0);
-			for (UINT n = 0; n < nCount && !bCanDrop_; ++n) {
-				TCHAR tszPath[MAX_PATH];
-				::DragQueryFile(hDrop, n, tszPath, countof(tszPath));
-				DWORD dwAttributes = ::GetFileAttributes(tszPath);
-				if (dwAttributes != 0xffffffff &&
-					!(dwAttributes & FILE_ATTRIBUTE_DIRECTORY))
-					bCanDrop_ = true;
-			}
-		}
-	}
-	
-	if (!bCanDrop_)
-		bCanDrop_ = MessageDataObject::canPasteMessage(pDataObject);
-#endif
-	
+	bCanDrop_ = UIUtil::hasFilesOrURIs(pDataObject);
 	if (bCanDrop_)
 		event.setEffect(DROPEFFECT_COPY);
 }
@@ -391,44 +363,11 @@ void qm::EditWindowImpl::drop(const DropTargetDropEvent& event)
 {
 	IDataObject* pDataObject = event.getDataObject();
 	
-#ifndef _WIN32_WCE
-	FORMATETC feHDrop = {
-		CF_HDROP,
-		0,
-		DVASPECT_CONTENT,
-		-1,
-		TYMED_HGLOBAL
-	};
-	StgMedium stm;
-	if (pDataObject->GetData(&feHDrop, &stm) == S_OK && stm.tymed == TYMED_HGLOBAL) {
-		HDROP hDrop = reinterpret_cast<HDROP>(stm.hGlobal);
-		UINT nCount = ::DragQueryFile(hDrop, 0xffffffff, 0, 0);
-		for (UINT n = 0; n < nCount; ++n) {
-			TCHAR tszPath[MAX_PATH];
-			::DragQueryFile(hDrop, n, tszPath, countof(tszPath));
-			DWORD dwAttributes = ::GetFileAttributes(tszPath);
-			if (dwAttributes != 0xffffffff &&
-				!(dwAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-				T2W(tszPath, pwszPath);
-				pEditMessage_->addAttachment(pwszPath);
-			}
-		}
-	}
-	
-	MessageDataObject::URIList listURI;
-	struct Deleter
-	{
-		Deleter(MessageDataObject::URIList& l) : l_(l) {}
-		~Deleter() { std::for_each(l_.begin(), l_.end(), qs::deleter<URI>()); }
-		MessageDataObject::URIList& l_;
-	} deleter(listURI);
-	if (MessageDataObject::getURIs(pDataObject, &listURI)) {
-		for (MessageDataObject::URIList::const_iterator it = listURI.begin(); it != listURI.end(); ++it) {
-			wstring_ptr wstrURI((*it)->toString());
-			pEditMessage_->addAttachment(wstrURI.get());
-		}
-	}
-#endif
+	UIUtil::PathList listPath;
+	StringListFree<UIUtil::PathList> free(listPath);
+	UIUtil::getFilesOrURIs(pDataObject, &listPath);
+	for (UIUtil::PathList::const_iterator it = listPath.begin(); it != listPath.end(); ++it)
+		pEditMessage_->addAttachment(*it);
 }
 
 

@@ -50,6 +50,7 @@ class UIUtil
 {
 public:
 	typedef std::vector<qs::WSTRING> EncodingList;
+	typedef std::vector<qs::WSTRING> PathList;
 
 public:
 	static int loadWindowPlacement(qs::Profile* pProfile,
@@ -96,6 +97,10 @@ public:
 									  MessageHolder* pmh);
 	static MessagePtr getMessageFromClipboard(HWND hwnd,
 											  Document* pDocument);
+	
+	static bool hasFilesOrURIs(IDataObject* pDataObject);
+	static void getFilesOrURIs(IDataObject* pDataObject,
+							   PathList* pList);
 };
 
 

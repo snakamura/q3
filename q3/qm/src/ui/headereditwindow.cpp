@@ -25,6 +25,7 @@
 #include "headereditwindow.h"
 #include "uiutil.h"
 #include "../model/addressbook.h"
+#include "../model/dataobject.h"
 #include "../model/editmessage.h"
 #include "../model/signature.h"
 #include "../model/uri.h"
@@ -1079,6 +1080,46 @@ void qm::AttachmentHeaderEditItem::show(bool bShow)
 void qm::AttachmentHeaderEditItem::setFocus()
 {
 	wnd_.setFocus();
+}
+
+void qm::AttachmentHeaderEditItem::paste()
+{
+#ifndef _WIN32_WCE
+	ComPtr<IDataObject> pDataObject;
+	HRESULT hr = ::OleGetClipboard(&pDataObject);
+	if (hr == S_OK) {
+		UIUtil::PathList listPath;
+		StringListFree<UIUtil::PathList> free(listPath);
+		UIUtil::getFilesOrURIs(pDataObject.get(), &listPath);
+		for (UIUtil::PathList::const_iterator it = listPath.begin(); it != listPath.end(); ++it)
+			pEditMessage_->addAttachment(*it);
+	}
+#endif
+}
+
+bool qm::AttachmentHeaderEditItem::canPaste()
+{
+#ifndef _WIN32_WCE
+	ComPtr<IDataObject> pDataObject;
+	HRESULT hr = ::OleGetClipboard(&pDataObject);
+	if (hr != S_OK)
+		return false;
+	return UIUtil::hasFilesOrURIs(pDataObject.get());
+#else
+	return false;
+#endif
+}
+
+void qm::AttachmentHeaderEditItem::selectAll()
+{
+	HWND hwnd = wnd_.getHandle();
+	for (int n = 0; n < ListView_GetItemCount(hwnd); ++n)
+		ListView_SetItemState(hwnd, n, LVIS_SELECTED, LVIS_SELECTED);
+}
+
+bool qm::AttachmentHeaderEditItem::canSelectAll()
+{
+	return true;
 }
 
 void qm::AttachmentHeaderEditItem::attachmentsChanged(const EditMessageEvent& event)
