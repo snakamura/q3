@@ -1572,10 +1572,13 @@ qm::ViewModelManager::ViewModelManager(Document* pDocument,
 	pDefaultViewData_.reset(new DefaultViewData(app.getProfilePath(FileNames::VIEWS_XML).get()));
 	pFilterManager_.reset(new FilterManager(app.getProfilePath(FileNames::FILTERS_XML).get()));
 	pColorManager_.reset(new ColorManager(app.getProfilePath(FileNames::COLORS_XML).get()));
+	pColorManager_->addColorManagerHandler(this);
 }
 
 qm::ViewModelManager::~ViewModelManager()
 {
+	pColorManager_->removeColorManagerHandler(this);
+	
 	std::for_each(listViewModel_.begin(),
 		listViewModel_.end(), deleter<ViewModel>());
 	std::for_each(mapViewData_.begin(), mapViewData_.end(),
@@ -1640,16 +1643,6 @@ ViewModel* qm::ViewModelManager::getViewModel(Folder* pFolder)
 	listViewModel_.push_back(pViewModel.get());
 	
 	return pViewModel.release();
-}
-
-void qm::ViewModelManager::invalidateColors()
-{
-//	std::for_each(listViewModel_.begin(), listViewModel_.end(),
-//		std::bind2nd(
-//			std::mem_fun(&ViewModel::invalidateColors),
-//			pColorManager_.get()));
-	for (ViewModelList::const_iterator it = listViewModel_.begin(); it != listViewModel_.end(); ++it)
-		(*it)->invalidateColors(pColorManager_.get());
 }
 
 bool qm::ViewModelManager::save() const
@@ -1737,6 +1730,11 @@ void qm::ViewModelManager::accountDestroyed(const AccountEvent& event)
 	}
 }
 
+void qm::ViewModelManager::colorSetsChanged(const ColorManagerEvent& event)
+{
+	invalidateColors();
+}
+
 void qm::ViewModelManager::setCurrentFolder(Account* pAccount,
 											Folder* pFolder)
 {
@@ -1808,6 +1806,16 @@ wstring_ptr qm::ViewModelManager::getViewsPath(Account* pAccount)
 	else {
 		return concat(pAccount->getPath(), L"\\", FileNames::VIEWS_XML);
 	}
+}
+
+void qm::ViewModelManager::invalidateColors()
+{
+//	std::for_each(listViewModel_.begin(), listViewModel_.end(),
+//		std::bind2nd(
+//			std::mem_fun(&ViewModel::invalidateColors),
+//			pColorManager_.get()));
+	for (ViewModelList::const_iterator it = listViewModel_.begin(); it != listViewModel_.end(); ++it)
+		(*it)->invalidateColors(pColorManager_.get());
 }
 
 void qm::ViewModelManager::fireViewModelSelected(ViewModel* pNewViewModel,

@@ -24,6 +24,8 @@
 namespace qm {
 
 class ColorManager;
+class ColorManagerHandler;
+class ColorManagerEvent;
 class ColorSet;
 class ColorEntry;
 class ColorList;
@@ -55,6 +57,8 @@ public:
 	void setColorSets(ColorSetList& listColorSet);
 	std::auto_ptr<ColorList> getColorList(Folder* pFolder) const;
 	bool save() const;
+	void addColorManagerHandler(ColorManagerHandler* pHandler);
+	void removeColorManagerHandler(ColorManagerHandler* pHandler);
 
 public:
 	void addColorSet(std::auto_ptr<ColorSet> pSet);
@@ -62,14 +66,59 @@ public:
 
 private:
 	bool load();
+	void fireColorSetsChanged();
 
 private:
 	ColorManager(const ColorManager&);
 	ColorManager& operator=(const ColorManager&);
 
 private:
+	typedef std::vector<ColorManagerHandler*> HandlerList;
+
+private:
 	ColorSetList listColorSet_;
 	ConfigHelper<ColorManager, ColorContentHandler, ColorWriter> helper_;
+	HandlerList listHandler_;
+};
+
+
+/****************************************************************************
+ *
+ * ColorManagerHandler
+ *
+ */
+
+class ColorManagerHandler
+{
+public:
+	virtual ~ColorManagerHandler();
+
+public:
+	virtual void colorSetsChanged(const ColorManagerEvent& event) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * ColorManagerEvent
+ *
+ */
+
+class ColorManagerEvent
+{
+public:
+	explicit ColorManagerEvent(ColorManager* pColorManager);
+	~ColorManagerEvent();
+
+public:
+	ColorManager* getColorManager() const;
+
+private:
+	ColorManagerEvent(const ColorManagerEvent&);
+	ColorManagerEvent& operator=(const ColorManagerEvent&);
+
+private:
+	ColorManager* pColorManager_;
 };
 
 

@@ -22,6 +22,7 @@
 using namespace qm;
 using namespace qs;
 
+
 /****************************************************************************
  *
  * ColorManager
@@ -48,6 +49,7 @@ void qm::ColorManager::setColorSets(ColorSetList& listColorSet)
 {
 	clear();
 	listColorSet_.swap(listColorSet);
+	fireColorSetsChanged();
 }
 
 std::auto_ptr<ColorList> qm::ColorManager::getColorList(Folder* pFolder) const
@@ -72,6 +74,17 @@ bool qm::ColorManager::save() const
 	return helper_.save(this);
 }
 
+void qm::ColorManager::addColorManagerHandler(ColorManagerHandler* pHandler)
+{
+	listHandler_.push_back(pHandler);
+}
+
+void qm::ColorManager::removeColorManagerHandler(ColorManagerHandler* pHandler)
+{
+	HandlerList::iterator it = std::remove(listHandler_.begin(), listHandler_.end(), pHandler);
+	listHandler_.erase(it, listHandler_.end());
+}
+
 void qm::ColorManager::addColorSet(std::auto_ptr<ColorSet> pSet)
 {
 	listColorSet_.push_back(pSet.get());
@@ -88,6 +101,45 @@ bool qm::ColorManager::load()
 {
 	ColorContentHandler handler(this);
 	return helper_.load(this, &handler);
+}
+
+void qm::ColorManager::fireColorSetsChanged()
+{
+	ColorManagerEvent event(this);
+	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
+		(*it)->colorSetsChanged(event);
+}
+
+
+/****************************************************************************
+ *
+ * ColorManagerHandler
+ *
+ */
+
+qm::ColorManagerHandler::~ColorManagerHandler()
+{
+}
+
+
+/****************************************************************************
+ *
+ * ColorManagerEvent
+ *
+ */
+
+qm::ColorManagerEvent::ColorManagerEvent(ColorManager* pColorManager) :
+	pColorManager_(pColorManager)
+{
+}
+
+qm::ColorManagerEvent::~ColorManagerEvent()
+{
+}
+
+ColorManager* qm::ColorManagerEvent::getColorManager() const
+{
+	return pColorManager_;
 }
 
 

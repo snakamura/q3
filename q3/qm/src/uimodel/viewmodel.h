@@ -24,6 +24,7 @@
 
 #include "foldermodel.h"
 #include "messageviewmode.h"
+#include "../model/color.h"
 
 
 namespace qm {
@@ -47,9 +48,6 @@ class ViewDataItem;
 class ViewDataContentHandler;
 class ViewDataWriter;
 
-class ColorList;
-class ColorManager;
-class ColorSet;
 class Document;
 class Filter;
 class FilterManager;
@@ -560,7 +558,9 @@ public:
  *
  */
 
-class ViewModelManager : public DefaultAccountHandler
+class ViewModelManager :
+	public DefaultAccountHandler,
+	public ColorManagerHandler
 {
 public:
 	typedef std::vector<ViewModel*> ViewModelList;
@@ -582,7 +582,6 @@ public:
 	void setCurrentFolder(Folder* pFolder);
 	ViewModel* getCurrentViewModel() const;
 	ViewModel* getViewModel(Folder* pFolder);
-	void invalidateColors();
 	
 	bool save() const;
 	
@@ -596,12 +595,16 @@ public:
 public:
 	virtual void accountDestroyed(const AccountEvent& event);
 
+public:
+	virtual void colorSetsChanged(const ColorManagerEvent& event);
+
 private:
 	void setCurrentFolder(Account* pAccount,
 						  Folder* pFolder);
 	void setCurrentViewModel(ViewModel* pViewModel);
 	ViewDataItem* getViewDataItem(Folder* pFolder);
 	qs::wstring_ptr getViewsPath(Account* pAccount);
+	void invalidateColors();
 
 private:
 	void fireViewModelSelected(ViewModel* pNewViewModel,
