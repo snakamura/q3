@@ -136,10 +136,10 @@ public:
 		AUTH_CRAMMD5	= 0x02
 	};
 	
-	enum Ssl {
-		SSL_NONE		= 0x00,
-		SSL_SSL			= 0x01,
-		SSL_STARTTLS	= 0x02
+	enum Secure {
+		SECURE_NONE,
+		SECURE_SSL,
+		SECURE_STARTTLS
 	};
 	
 	enum {
@@ -158,7 +158,7 @@ public:
 public:
 	bool connect(const WCHAR* pwszHost,
 				 short nPort,
-				 Ssl ssl);
+				 Secure secure);
 	void disconnect();
 	bool checkConnection();
 	

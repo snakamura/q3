@@ -88,14 +88,18 @@ bool qmsmtp::SmtpSendSession::connect()
 	pSmtp_.reset(new Smtp(pSubAccount_->getTimeout(), pCallback_.get(),
 		pCallback_.get(), pCallback_.get(), pLogger_));
 	
-	Smtp::Ssl ssl = Smtp::SSL_NONE;
-	if (pSubAccount_->isSsl(Account::HOST_SEND))
-		ssl = Smtp::SSL_SSL;
-	else if (pSubAccount_->getProperty(L"Smtp", L"STARTTLS", 0) != 0)
-		ssl = Smtp::SSL_STARTTLS;
+	Smtp::Secure secure = Smtp::SECURE_NONE;
+	switch (pSubAccount_->getSecure(Account::HOST_SEND)) {
+	case SubAccount::SECURE_SSL:
+		secure = Smtp::SECURE_SSL;
+		break;
+	case SubAccount::SECURE_STARTTLS:
+		secure = Smtp::SECURE_STARTTLS;
+		break;
+	}
 	
 	if (!pSmtp_->connect(pSubAccount_->getHost(Account::HOST_SEND),
-		pSubAccount_->getPort(Account::HOST_SEND), ssl))
+		pSubAccount_->getPort(Account::HOST_SEND), secure))
 		HANDLE_ERROR();
 	
 	log.debug(L"Connected to the server.");
@@ -436,9 +440,14 @@ wstring_ptr qmsmtp::SmtpSendSessionUI::getDisplayName()
 	return loadString(getResourceHandle(), IDS_SMTP);
 }
 
-short qmsmtp::SmtpSendSessionUI::getDefaultPort()
+short qmsmtp::SmtpSendSessionUI::getDefaultPort(bool bSecure)
 {
-	return 25;
+	return bSecure ? 495 : 25;
+}
+
+bool qmsmtp::SmtpSendSessionUI::isSupported(Support support)
+{
+	return true;
 }
 
 std::auto_ptr<PropertyPage> qmsmtp::SmtpSendSessionUI::createPropertyPage(SubAccount* pSubAccount)

@@ -131,12 +131,21 @@ public:
 class QMEXPORTCLASS ReceiveSessionUI
 {
 public:
+	enum Support {
+		SUPPORT_HOST		= 0x01,
+		SUPPORT_USER		= 0x02,
+		SUPPORT_SSL			= 0x10,
+		SUPPORT_STARTTLS	= 0x20
+	};
+
+public:
 	virtual ~ReceiveSessionUI();
 
 public:
 	virtual const WCHAR* getClass() = 0;
 	virtual qs::wstring_ptr getDisplayName() = 0;
-	virtual short getDefaultPort() = 0;
+	virtual short getDefaultPort(bool bSecure) = 0;
+	virtual bool isSupported(Support support) = 0;
 	virtual std::auto_ptr<qs::PropertyPage> createPropertyPage(SubAccount* pSubAccount) = 0;
 };
 
@@ -226,12 +235,21 @@ public:
 class QMEXPORTCLASS SendSessionUI
 {
 public:
+	enum Support {
+		SUPPORT_HOST		= 0x01,
+		SUPPORT_USER		= 0x02,
+		SUPPORT_SSL			= 0x10,
+		SUPPORT_STARTTLS	= 0x20
+	};
+
+public:
 	virtual ~SendSessionUI();
 
 public:
 	virtual const WCHAR* getClass() = 0;
 	virtual qs::wstring_ptr getDisplayName() = 0;
-	virtual short getDefaultPort() = 0;
+	virtual short getDefaultPort(bool bSecure) = 0;
+	virtual bool isSupported(Support support) = 0;
 	virtual std::auto_ptr<qs::PropertyPage> createPropertyPage(SubAccount* pSubAccount) = 0;
 };
 

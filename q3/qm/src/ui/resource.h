@@ -61,6 +61,7 @@
 #define IDD_GOROUNDCOURSE               162
 #define IDD_GOROUNDENTRY                163
 #define IDD_GOROUNDDIALUP               164
+#define IDD_ACCOUNTDETAIL               165
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -297,13 +298,23 @@
 #define IDC_CONNECTRECEIVEBEFORESEND    1193
 #define IDS_COLUMNTYPE_ID               1200
 #define IDS_COLUMNTYPE_DATE             1201
+#define IDC_RECEIVEPORT                 1201
 #define IDS_COLUMNTYPE_FROM             1202
+#define IDC_SENDPORT                    1202
 #define IDS_COLUMNTYPE_TO               1203
 #define IDS_COLUMNTYPE_FROMTO           1204
+#define IDC_RECEIVENOSECURE             1204
 #define IDS_COLUMNTYPE_SUBJECT          1205
+#define IDC_RECEIVESSL                  1205
 #define IDS_COLUMNTYPE_SIZE             1206
+#define IDC_RECEIVESTARTTLS             1206
 #define IDS_COLUMNTYPE_FLAGS            1207
+#define IDC_SENDNOSECURE                1207
 #define IDS_COLUMNTYPE_OTHER            1208
+#define IDC_SENDSSL                     1208
+#define IDC_SENDSTARTTLS                1209
+#define IDC_RECEIVELOG                  1210
+#define IDC_SENDLOG                     1211
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -542,9 +553,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        165
+#define _APS_NEXT_RESOURCE_VALUE        166
 #define _APS_NEXT_COMMAND_VALUE         48000
-#define _APS_NEXT_CONTROL_VALUE         1201
+#define _APS_NEXT_CONTROL_VALUE         1211
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

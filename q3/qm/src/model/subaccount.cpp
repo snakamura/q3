@@ -50,7 +50,7 @@ struct qm::SubAccountImpl
 	short nPort_[Account::HOST_SIZE];
 	wstring_ptr wstrUserName_[Account::HOST_SIZE];
 	wstring_ptr wstrPassword_[Account::HOST_SIZE];
-	bool bSsl_[Account::HOST_SIZE];
+	SubAccount::Secure secure_[Account::HOST_SIZE];
 	bool bLog_[Account::HOST_SIZE];
 	long nTimeout_;
 	bool bConnectReceiveBeforeSend_;
@@ -92,8 +92,8 @@ void qm::SubAccountImpl::load()
 	
 	LOAD_INT(L"Send",		L"Port",						25,		nPort_[Account::HOST_SEND],		short,					nSendPort					);
 	LOAD_INT(L"Receive",	L"Port",						110,	nPort_[Account::HOST_RECEIVE],	short,					nReceivePort				);
-	LOAD_INT(L"Send",		L"Ssl",							0,		bSsl_[Account::HOST_SEND],		bool,					nSendSsl					);
-	LOAD_INT(L"Receive",	L"Ssl",							0,		bSsl_[Account::HOST_RECEIVE],	bool,					nReceiveSsl					);
+	LOAD_INT(L"Send",		L"Secure",						0,		secure_[Account::HOST_SEND],	SubAccount::Secure,		nSendSecure					);
+	LOAD_INT(L"Receive",	L"Secure",						0,		secure_[Account::HOST_RECEIVE],	SubAccount::Secure,		nReceiveSecure				);
 	LOAD_INT(L"Send",		L"Log",							0,		bLog_[Account::HOST_SEND],		bool,					nSendLog					);
 	LOAD_INT(L"Receive",	L"Log",							0,		bLog_[Account::HOST_RECEIVE],	bool,					nReceiveLog					);
 	LOAD_INT(L"Global",		L"Timeout",						60,		nTimeout_,						long,					nTimeout					);
@@ -184,8 +184,8 @@ qm::SubAccount::SubAccount(Account* pAccount,
 	pImpl_->wstrName_ = wstrName;
 	pImpl_->nPort_[Account::HOST_SEND] = 0;
 	pImpl_->nPort_[Account::HOST_RECEIVE] = 0;
-	pImpl_->bSsl_[Account::HOST_SEND] = false;
-	pImpl_->bSsl_[Account::HOST_RECEIVE] = false;
+	pImpl_->secure_[Account::HOST_SEND] = SECURE_NONE;
+	pImpl_->secure_[Account::HOST_RECEIVE] = SECURE_NONE;
 	pImpl_->bLog_[Account::HOST_SEND] = false;
 	pImpl_->bLog_[Account::HOST_RECEIVE] = false;
 	pImpl_->nTimeout_ = 60;
@@ -345,7 +345,8 @@ short qm::SubAccount::getPort(Account::Host host) const
 	return pImpl_->nPort_[host];
 }
 
-void qm::SubAccount::setPort(Account::Host host, short nPort)
+void qm::SubAccount::setPort(Account::Host host,
+							 short nPort)
 {
 	pImpl_->nPort_[host] = nPort;
 }
@@ -372,14 +373,15 @@ void qm::SubAccount::setPassword(Account::Host host,
 	pImpl_->wstrPassword_[host] = allocWString(pwszPassword);
 }
 
-bool qm::SubAccount::isSsl(Account::Host host) const
+SubAccount::Secure qm::SubAccount::getSecure(Account::Host host) const
 {
-	return pImpl_->bSsl_[host];
+	return pImpl_->secure_[host];
 }
 
-void qm::SubAccount::setSsl(Account::Host host, bool bSsl)
+void qm::SubAccount::setSecure(Account::Host host,
+							   Secure secure)
 {
-	pImpl_->bSsl_[host] = bSsl;
+	pImpl_->secure_[host] = secure;
 }
 
 bool qm::SubAccount::isLog(Account::Host host) const
@@ -387,7 +389,8 @@ bool qm::SubAccount::isLog(Account::Host host) const
 	return pImpl_->bLog_[host];
 }
 
-void qm::SubAccount::setLog(Account::Host host, bool bLog)
+void qm::SubAccount::setLog(Account::Host host,
+							bool bLog)
 {
 	pImpl_->bLog_[host] = bLog;
 }
@@ -611,8 +614,8 @@ bool qm::SubAccount::save() const
 	SAVE_INT(L"Send",		L"Port",						nPort_[Account::HOST_SEND]		);
 	SAVE_INT(L"Receive",	L"Port",						nPort_[Account::HOST_RECEIVE]	);
 	SAVE_INT(L"Global",		L"Timeout",						nTimeout_						);
-	SAVE_INT(L"Send",		L"Ssl",							bSsl_[Account::HOST_SEND]		);
-	SAVE_INT(L"Receive",	L"Ssl",							bSsl_[Account::HOST_RECEIVE]	);
+	SAVE_INT(L"Send",		L"Secure",						secure_[Account::HOST_SEND]		);
+	SAVE_INT(L"Receive",	L"Secure",						secure_[Account::HOST_RECEIVE]	);
 	SAVE_INT(L"Send",		L"Log",							bLog_[Account::HOST_SEND]		);
 	SAVE_INT(L"Receive",	L"Log",							bLog_[Account::HOST_RECEIVE]	);
 	SAVE_INT(L"Global",		L"ConnectReceiveBeforeSend",	bConnectReceiveBeforeSend_		);

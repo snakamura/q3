@@ -5,15 +5,11 @@
 #define IDS_SMTP                        100
 #define IDD_SEND                        101
 #define IDS_INITIALIZE                  1000
-#define IDC_PORT                        1000
 #define IDS_LOOKUP                      1001
 #define IDC_LOCALHOST                   1001
 #define IDS_CONNECTING                  1002
-#define IDC_SSL                         1002
 #define IDS_CONNECTED                   1003
-#define IDC_LOG                         1003
 #define IDS_AUTHENTICATING              1004
-#define IDC_STARTTLS                    1004
 #define IDS_SENDMESSAGE                 1005
 #define IDS_ERROR_MESSAGE               10000
 #define IDS_ERROR_GREETING              11000

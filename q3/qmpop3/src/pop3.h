@@ -66,10 +66,10 @@ public:
 		POP3_ERROR_MASK_HIGHLEVEL	= 0x0000ff00
 	};
 	
-	enum Ssl {
-		SSL_NONE		= 0x00,
-		SSL_SSL			= 0x01,
-		SSL_STARTTLS	= 0x02
+	enum Secure {
+		SECURE_NONE,
+		SECURE_SSL,
+		SECURE_STARTTLS
 	};
 	
 private:
@@ -110,7 +110,7 @@ public:
 	bool connect(const WCHAR* pwszHost,
 				 short nPort,
 				 bool bApop,
-				 Ssl ssl);
+				 Secure secure);
 	void disconnect();
 	unsigned int getMessageCount() const;
 	bool getMessage(unsigned int nMsg,

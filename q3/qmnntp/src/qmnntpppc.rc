@@ -57,18 +57,12 @@ STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "NNTP"
 FONT 9, "Tahoma"
 BEGIN
-    LTEXT           "&Port",IDC_STATIC,5,7,20,8
-    EDITTEXT        IDC_PORT,50,5,40,12,ES_AUTOHSCROLL
-    CONTROL         "&SSL",IDC_SSL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,105,
-                    7,27,10
-    LTEXT           "&Initial fetch count",IDC_STATIC,5,27,60,8
-    EDITTEXT        IDC_INITIALFETCHCOUNT,65,25,40,12,ES_AUTOHSCROLL
+    LTEXT           "&Initial fetch count",IDC_STATIC,5,7,60,8
+    EDITTEXT        IDC_INITIALFETCHCOUNT,65,5,40,12,ES_AUTOHSCROLL
     CONTROL         "Use &XOVER",IDC_XOVER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,40,55,10
-    LTEXT           "Fetch count",IDC_STATIC,15,52,35,8
-    EDITTEXT        IDC_FETCHCOUNT,65,50,40,12,ES_AUTOHSCROLL
-    CONTROL         "&Log",IDC_LOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
-                    65,35,10
+                    WS_TABSTOP,5,20,55,10
+    LTEXT           "Fetch count",IDC_STATIC,15,32,35,8
+    EDITTEXT        IDC_FETCHCOUNT,65,30,40,12,ES_AUTOHSCROLL
 END
 
 IDD_SEND DIALOG DISCARDABLE  0, 0, 137, 153
@@ -76,12 +70,6 @@ STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "NNTP (POST)"
 FONT 9, "Tahoma"
 BEGIN
-    LTEXT           "&Port",-1,5,7,20,8
-    EDITTEXT        IDC_PORT,50,5,40,12,ES_AUTOHSCROLL
-    CONTROL         "&SSL",IDC_SSL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,105,
-                    7,27,10
-    CONTROL         "&Log",IDC_LOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
-                    25,35,10
 END
 
 

@@ -244,7 +244,7 @@ bool qmnntp::NntpDriver::prepareSession(SubAccount* pSubAccount,
 		if (!pNntp->connect(
 			pSubAccount->getHost(Account::HOST_RECEIVE),
 			pSubAccount->getPort(Account::HOST_RECEIVE),
-			pSubAccount->isSsl(Account::HOST_RECEIVE)))
+			pSubAccount->getSecure(Account::HOST_RECEIVE) == SubAccount::SECURE_SSL))
 			return false;
 		
 		pNntp_ = pNntp;

@@ -544,17 +544,19 @@ bool qmimap4::Util::isEqualFolderName(const WCHAR* pwszLhs,
 	}
 }
 
-Imap4::Ssl qmimap4::Util::getSsl(SubAccount* pSubAccount)
+Imap4::Secure qmimap4::Util::getSecure(SubAccount* pSubAccount)
 {
 	assert(pSubAccount);
 	
-	Imap4::Ssl ssl = Imap4::SSL_NONE;
-	if (pSubAccount->isSsl(Account::HOST_RECEIVE))
-		return Imap4::SSL_SSL;
-	else if (pSubAccount->getProperty(L"Imap4", L"STARTTLS", 0))
-		return Imap4::SSL_STARTTLS;
-	else
-		return Imap4::SSL_NONE;
+	SubAccount::Secure secure = pSubAccount->getSecure(Account::HOST_RECEIVE);
+	switch (secure) {
+	case SubAccount::SECURE_SSL:
+		return Imap4::SECURE_SSL;
+	case SubAccount::SECURE_STARTTLS:
+		return Imap4::SECURE_STARTTLS;
+	default:
+		return Imap4::SECURE_NONE;
+	}
 }
 
 std::pair<FetchDataBody*, FetchDataBody*> qmimap4::Util::getBodyFromBodyList(const BodyList& listBody,

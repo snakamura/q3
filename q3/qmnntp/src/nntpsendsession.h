@@ -112,7 +112,8 @@ public:
 public:
 	virtual const WCHAR* getClass();
 	virtual qs::wstring_ptr getDisplayName();
-	virtual short getDefaultPort();
+	virtual short getDefaultPort(bool bSecure);
+	virtual bool isSupported(Support support);
 	virtual std::auto_ptr<qs::PropertyPage> createPropertyPage(qm::SubAccount* pSubAccount);
 
 private:

@@ -10,6 +10,8 @@
 #include <qmapplication.h>
 #include <qmmessageholder.h>
 #include <qmsearch.h>
+#include <qmsecurity.h>
+#include <qmsession.h>
 #include <qmsyncfilter.h>
 
 #include <qsconv.h>
@@ -112,6 +114,143 @@ LRESULT qm::AccountAdvancedPage::onOk()
 		sendDlgItemMessage(IDC_ADDMESSAGEID, BM_GETCHECK) == BST_CHECKED);
 	
 	return DefaultPropertyPage::onOk();
+}
+
+
+/****************************************************************************
+ *
+ * AccountDetailPage
+ *
+ */
+
+qm::AccountDetailPage::AccountDetailPage(SubAccount* pSubAccount,
+										 ReceiveSessionUI* pReceiveUI,
+										 SendSessionUI* pSendUI) :
+	DefaultPropertyPage(IDD_ACCOUNTDETAIL),
+	pSubAccount_(pSubAccount),
+	pReceiveUI_(pReceiveUI),
+	pSendUI_(pSendUI)
+{
+}
+
+qm::AccountDetailPage::~AccountDetailPage()
+{
+}
+
+LRESULT qm::AccountDetailPage::onCommand(WORD nCode,
+										 WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID_RANGE(IDC_RECEIVENOSECURE, IDC_SENDSTARTTLS, onSecure)
+	END_COMMAND_HANDLER()
+	return DefaultPropertyPage::onCommand(nCode, nId);
+}
+
+LRESULT qm::AccountDetailPage::onInitDialog(HWND hwndFocus,
+											LPARAM lParam)
+{
+	setDlgItemInt(IDC_RECEIVEPORT, pSubAccount_->getPort(Account::HOST_RECEIVE));
+	switch (pSubAccount_->getSecure(Account::HOST_RECEIVE)) {
+	case SubAccount::SECURE_SSL:
+		sendDlgItemMessage(IDC_RECEIVESSL, BM_SETCHECK, BST_CHECKED);
+		break;
+	case SubAccount::SECURE_STARTTLS:
+		sendDlgItemMessage(IDC_RECEIVESTARTTLS, BM_SETCHECK, BST_CHECKED);
+		break;
+	default:
+		sendDlgItemMessage(IDC_RECEIVENOSECURE, BM_SETCHECK, BST_CHECKED);
+		break;
+	}
+	sendDlgItemMessage(IDC_RECEIVELOG,
+		pSubAccount_->isLog(Account::HOST_RECEIVE) ? BST_CHECKED : BST_UNCHECKED);
+	
+	setDlgItemInt(IDC_SENDPORT, pSubAccount_->getPort(Account::HOST_SEND));
+	switch (pSubAccount_->getSecure(Account::HOST_SEND)) {
+	case SubAccount::SECURE_SSL:
+		sendDlgItemMessage(IDC_SENDSSL, BM_SETCHECK, BST_CHECKED);
+		break;
+	case SubAccount::SECURE_STARTTLS:
+		sendDlgItemMessage(IDC_SENDSTARTTLS, BM_SETCHECK, BST_CHECKED);
+		break;
+	default:
+		sendDlgItemMessage(IDC_SENDNOSECURE, BM_SETCHECK, BST_CHECKED);
+		break;
+	}
+	sendDlgItemMessage(IDC_SENDLOG,
+		pSubAccount_->isLog(Account::HOST_SEND) ? BST_CHECKED : BST_UNCHECKED);
+	
+	if (!pReceiveUI_->isSupported(ReceiveSessionUI::SUPPORT_HOST)) {
+		Window(getDlgItem(IDC_RECEIVEPORT)).enableWindow(false);
+		Window(getDlgItem(IDC_RECEIVESSL)).enableWindow(false);
+		Window(getDlgItem(IDC_RECEIVESTARTTLS)).enableWindow(false);
+		Window(getDlgItem(IDC_RECEIVENOSECURE)).enableWindow(false);
+	}
+	if (!pReceiveUI_->isSupported(ReceiveSessionUI::SUPPORT_SSL))
+		Window(getDlgItem(IDC_RECEIVESSL)).enableWindow(false);
+	if (!pReceiveUI_->isSupported(ReceiveSessionUI::SUPPORT_STARTTLS))
+		Window(getDlgItem(IDC_RECEIVESTARTTLS)).enableWindow(false);
+	if (!pSendUI_->isSupported(SendSessionUI::SUPPORT_HOST)) {
+		Window(getDlgItem(IDC_SENDPORT)).enableWindow(false);
+		Window(getDlgItem(IDC_SENDSSL)).enableWindow(false);
+		Window(getDlgItem(IDC_SENDSTARTTLS)).enableWindow(false);
+		Window(getDlgItem(IDC_SENDNOSECURE)).enableWindow(false);
+	}
+	if (!pSendUI_->isSupported(SendSessionUI::SUPPORT_SSL))
+		Window(getDlgItem(IDC_SENDSSL)).enableWindow(false);
+	if (!pSendUI_->isSupported(SendSessionUI::SUPPORT_STARTTLS))
+		Window(getDlgItem(IDC_SENDSTARTTLS)).enableWindow(false);
+	
+	if (!Security::isEnabled()) {
+		UINT nIds[] = {
+			IDC_RECEIVENOSECURE,
+			IDC_RECEIVESSL,
+			IDC_RECEIVESTARTTLS,
+			IDC_SENDNOSECURE,
+			IDC_SENDSSL,
+			IDC_SENDSTARTTLS
+		};
+		for (int n = 0; n < countof(nIds); ++n)
+			Window(getDlgItem(nIds[n])).enableWindow(false);
+	}
+	
+	return TRUE;
+}
+
+LRESULT qm::AccountDetailPage::onOk()
+{
+	pSubAccount_->setPort(Account::HOST_RECEIVE, getDlgItemInt(IDC_RECEIVEPORT));
+	if (sendDlgItemMessage(IDC_RECEIVESSL, BM_GETCHECK) == BST_CHECKED)
+		pSubAccount_->setSecure(Account::HOST_RECEIVE, SubAccount::SECURE_SSL);
+	else if (sendDlgItemMessage(IDC_RECEIVESTARTTLS, BM_GETCHECK) == BST_CHECKED)
+		pSubAccount_->setSecure(Account::HOST_RECEIVE, SubAccount::SECURE_STARTTLS);
+	else
+		pSubAccount_->setSecure(Account::HOST_RECEIVE, SubAccount::SECURE_NONE);
+	pSubAccount_->setLog(Account::HOST_RECEIVE,
+		sendDlgItemMessage(IDC_RECEIVELOG, BM_GETCHECK) == BST_CHECKED);
+	
+	pSubAccount_->setPort(Account::HOST_SEND, getDlgItemInt(IDC_SENDPORT));
+	if (sendDlgItemMessage(IDC_SENDSSL, BM_GETCHECK) == BST_CHECKED)
+		pSubAccount_->setSecure(Account::HOST_SEND, SubAccount::SECURE_SSL);
+	else if (sendDlgItemMessage(IDC_SENDSTARTTLS, BM_GETCHECK) == BST_CHECKED)
+		pSubAccount_->setSecure(Account::HOST_SEND, SubAccount::SECURE_STARTTLS);
+	else
+		pSubAccount_->setSecure(Account::HOST_SEND, SubAccount::SECURE_NONE);
+	pSubAccount_->setLog(Account::HOST_SEND,
+		sendDlgItemMessage(IDC_SENDLOG, BM_GETCHECK) == BST_CHECKED);
+	
+	return 0;
+}
+
+LRESULT qm::AccountDetailPage::onSecure(UINT nId)
+{
+	bool bReceive = IDC_RECEIVENOSECURE <= nId && nId <= IDC_RECEIVESTARTTLS;
+	bool bSecure = nId == IDC_RECEIVESSL || nId == IDC_SENDSSL;
+	if (bReceive)
+		setDlgItemInt(IDC_RECEIVEPORT, pReceiveUI_->getDefaultPort(bSecure));
+	else
+		setDlgItemInt(IDC_SENDPORT, pSendUI_->getDefaultPort(bSecure));
+	
+	return true;
 }
 
 
@@ -267,9 +406,13 @@ void qm::AccountDialupPage::updateState()
  *
  */
 
-qm::AccountGeneralPage::AccountGeneralPage(SubAccount* pSubAccount) :
+qm::AccountGeneralPage::AccountGeneralPage(SubAccount* pSubAccount,
+										   ReceiveSessionUI* pReceiveUI,
+										   SendSessionUI* pSendUI) :
 	DefaultPropertyPage(IDD_ACCOUNTGENERAL),
-	pSubAccount_(pSubAccount)
+	pSubAccount_(pSubAccount),
+	pReceiveUI_(pReceiveUI),
+	pSendUI_(pSendUI)
 {
 }
 
@@ -284,6 +427,15 @@ LRESULT qm::AccountGeneralPage::onInitDialog(HWND hwndFocus,
 	setDlgItemText(IDC_SENDHOST, pSubAccount_->getHost(Account::HOST_SEND));
 	setDlgItemText(IDC_NAME, pSubAccount_->getSenderName());
 	setDlgItemText(IDC_ADDRESS, pSubAccount_->getSenderAddress());
+	
+	if (!pReceiveUI_->isSupported(ReceiveSessionUI::SUPPORT_HOST))
+		Window(getDlgItem(IDC_RECEIVEHOST)).enableWindow(false);
+	if (!pSendUI_->isSupported(SendSessionUI::SUPPORT_HOST))
+		Window(getDlgItem(IDC_SENDHOST)).enableWindow(false);
+	if (!pSendUI_->isSupported(SendSessionUI::SUPPORT_USER)) {
+		Window(getDlgItem(IDC_NAME)).enableWindow(false);
+		Window(getDlgItem(IDC_ADDRESS)).enableWindow(false);
+	}
 	
 	return TRUE;
 }
@@ -316,9 +468,13 @@ LRESULT qm::AccountGeneralPage::onOk()
  *
  */
 
-qm::AccountUserPage::AccountUserPage(SubAccount* pSubAccount) :
+qm::AccountUserPage::AccountUserPage(SubAccount* pSubAccount,
+									 ReceiveSessionUI* pReceiveUI,
+									 SendSessionUI* pSendUI) :
 	DefaultPropertyPage(IDD_ACCOUNTUSER),
-	pSubAccount_(pSubAccount)
+	pSubAccount_(pSubAccount),
+	pReceiveUI_(pReceiveUI),
+	pSendUI_(pSendUI)
 {
 }
 
@@ -344,6 +500,16 @@ LRESULT qm::AccountUserPage::onInitDialog(HWND hwndFocus,
 		*pSubAccount_->getUserName(Account::HOST_SEND) ? BST_CHECKED : BST_UNCHECKED);
 	setDlgItemText(IDC_SENDUSERNAME, pSubAccount_->getUserName(Account::HOST_SEND));
 	setDlgItemText(IDC_SENDPASSWORD, pSubAccount_->getPassword(Account::HOST_SEND));
+	
+	if (!pReceiveUI_->isSupported(ReceiveSessionUI::SUPPORT_USER)) {
+		Window(getDlgItem(IDC_RECEIVEUSERNAME)).enableWindow(false);
+		Window(getDlgItem(IDC_RECEIVEPASSWORD)).enableWindow(false);
+	}
+	if (!pSendUI_->isSupported(SendSessionUI::SUPPORT_USER)) {
+		Window(getDlgItem(IDC_SENDAUTHENTICATE)).enableWindow(false);
+		Window(getDlgItem(IDC_SENDUSERNAME)).enableWindow(false);
+		Window(getDlgItem(IDC_SENDPASSWORD)).enableWindow(false);
+	}
 	
 	updateState();
 	

@@ -61,7 +61,7 @@ qmsmtp::Smtp::~Smtp()
 
 bool qmsmtp::Smtp::connect(const WCHAR* pwszHost,
 						   short nPort,
-						   Ssl ssl)
+						   Secure secure)
 {
 	assert(pwszHost);
 	
@@ -70,7 +70,7 @@ bool qmsmtp::Smtp::connect(const WCHAR* pwszHost,
 	if (!pSocket->connect(pwszHost, nPort))
 		SMTP_ERROR(SMTP_ERROR_CONNECT | pSocket->getLastError());
 	
-	if (ssl == SSL_SSL) {
+	if (secure == SECURE_SSL) {
 		SSLSocketFactory* pFactory = SSLSocketFactory::getFactory();
 		if (!pFactory)
 			SMTP_ERROR(SMTP_ERROR_SSL);
@@ -98,7 +98,7 @@ bool qmsmtp::Smtp::connect(const WCHAR* pwszHost,
 	if (!helo(&nAuth, &bStartTls))
 		return false;
 	
-	if (ssl == SSL_STARTTLS) {
+	if (secure == SECURE_STARTTLS) {
 		if (!bStartTls)
 			SMTP_ERROR(SMTP_ERROR_STARTTLS);
 		

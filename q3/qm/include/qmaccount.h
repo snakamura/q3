@@ -286,6 +286,12 @@ public:
 		DIALUPTYPE_CONNECT
 	};
 	
+	enum Secure {
+		SECURE_NONE,
+		SECURE_SSL,
+		SECURE_STARTTLS
+	};
+	
 	enum SSLOption {
 		SSLOPTION_ALLOWUNVERIFIEDCERTIFICATE	= 0x01,
 		SSLOPTION_ALLOWDIFFERENTHOST			= 0x02
@@ -325,9 +331,9 @@ public:
 	const WCHAR* getPassword(Account::Host host) const;
 	void setPassword(Account::Host host,
 					 const WCHAR* pwszPassword);
-	bool isSsl(Account::Host host) const;
-	void setSsl(Account::Host host,
-				bool bSsl);
+	Secure getSecure(Account::Host host) const;
+	void setSecure(Account::Host host,
+				   Secure secure);
 	bool isLog(Account::Host host) const;
 	void setLog(Account::Host host,
 				bool bLog);

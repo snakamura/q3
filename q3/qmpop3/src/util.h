@@ -35,7 +35,7 @@ public:
 							qm::SessionCallback* pSessionCallback,
 							qm::Account* pAccount,
 							qm::SubAccount* pSubAccount);
-	static Pop3::Ssl getSsl(qm::SubAccount* pSubAccount);
+	static Pop3::Secure getSecure(qm::SubAccount* pSubAccount);
 };
 
 }

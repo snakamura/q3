@@ -1306,9 +1306,9 @@ bool qmimap4::FolderListGetter::connect()
 	pImap4_.reset(new Imap4(pSubAccount_->getTimeout(), pCallback_.get(),
 		pCallback_.get(), pCallback_.get(), pLogger_.get()));
 	
-	Imap4::Ssl ssl = Util::getSsl(pSubAccount_);
+	Imap4::Secure secure = Util::getSecure(pSubAccount_);
 	return pImap4_->connect(pSubAccount_->getHost(Account::HOST_RECEIVE),
-		pSubAccount_->getPort(Account::HOST_RECEIVE), ssl);
+		pSubAccount_->getPort(Account::HOST_RECEIVE), secure);
 }
 
 bool qmimap4::FolderListGetter::listNamespaces()
@@ -1676,9 +1676,9 @@ bool qmimap4::SessionCache::getSession(NormalFolder* pFolder,
 		
 		pImap4.reset(new Imap4(pSubAccount_->getTimeout(),
 			pCallback_, pCallback_, pCallback_, pLogger.get()));
-		Imap4::Ssl ssl = Util::getSsl(pSubAccount_);
+		Imap4::Secure secure = Util::getSecure(pSubAccount_);
 		if (!pImap4->connect(pSubAccount_->getHost(Account::HOST_RECEIVE),
-			pSubAccount_->getPort(Account::HOST_RECEIVE), ssl))
+			pSubAccount_->getPort(Account::HOST_RECEIVE), secure))
 			return false;
 		
 		nLastSelectedTime = 0;

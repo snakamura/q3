@@ -99,7 +99,7 @@ bool qmnntp::NntpReceiveSession::connect()
 		pCallback_.get(), pCallback_.get(), pLogger_));
 	if (!pNntp_->connect(pSubAccount_->getHost(Account::HOST_RECEIVE),
 		pSubAccount_->getPort(Account::HOST_RECEIVE),
-		pSubAccount_->isSsl(Account::HOST_RECEIVE)))
+		pSubAccount_->getSecure(Account::HOST_RECEIVE) == SubAccount::SECURE_SSL))
 		HANDLE_ERROR();
 	
 	log.debug(L"Connected to the server.");
@@ -516,9 +516,14 @@ wstring_ptr qmnntp::NntpReceiveSessionUI::getDisplayName()
 	return loadString(getResourceHandle(), IDS_NNTP);
 }
 
-short qmnntp::NntpReceiveSessionUI::getDefaultPort()
+short qmnntp::NntpReceiveSessionUI::getDefaultPort(bool bSecure)
 {
-	return 119;
+	return bSecure ? 563 : 119;
+}
+
+bool qmnntp::NntpReceiveSessionUI::isSupported(Support support)
+{
+	return support != SUPPORT_STARTTLS;
 }
 
 std::auto_ptr<PropertyPage> qmnntp::NntpReceiveSessionUI::createPropertyPage(SubAccount* pSubAccount)

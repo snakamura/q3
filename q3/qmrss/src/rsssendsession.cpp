@@ -83,9 +83,14 @@ wstring_ptr qmrss::RssSendSessionUI::getDisplayName()
 	return loadString(getResourceHandle(), IDS_RSSSEND);
 }
 
-short qmrss::RssSendSessionUI::getDefaultPort()
+short qmrss::RssSendSessionUI::getDefaultPort(bool bSecure)
 {
 	return 0;
+}
+
+bool qmrss::RssSendSessionUI::isSupported(Support support)
+{
+	return false;
 }
 
 std::auto_ptr<PropertyPage> qmrss::RssSendSessionUI::createPropertyPage(SubAccount* pSubAccount)

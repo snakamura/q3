@@ -364,13 +364,15 @@ LRESULT qm::AccountDialog::onProperty()
 			SendSessionFactory::getUI(pAccount->getType(Account::HOST_SEND)));
 		std::auto_ptr<PropertyPage> pSendPage(pSendUI->createPropertyPage(pSubAccount));
 		
-		AccountGeneralPage generalPage(pSubAccount);
-		AccountUserPage userPage(pSubAccount);
+		AccountGeneralPage generalPage(pSubAccount, pReceiveUI.get(), pSendUI.get());
+		AccountUserPage userPage(pSubAccount, pReceiveUI.get(), pSendUI.get());
+		AccountDetailPage detailPage(pSubAccount, pReceiveUI.get(), pSendUI.get());
 		AccountDialupPage dialupPage(pSubAccount);
 		AccountAdvancedPage advancedPage(pSubAccount, pSyncFilterManager_);
 		PropertySheetBase sheet(hInst, wstrTitle.get(), false);
 		sheet.add(&generalPage);
 		sheet.add(&userPage);
+		sheet.add(&detailPage);
 		sheet.add(pReceivePage.get());
 		sheet.add(pSendPage.get());
 		sheet.add(&dialupPage);
@@ -1741,7 +1743,7 @@ void qm::CreateAccountDialog::updateProtocols()
 		if (wcscmp(pUI->getClass(), wstrClass_.get()) == 0) {
 			Protocol p = {
 				wstrName.get(),
-				pUI->getDefaultPort()
+				pUI->getDefaultPort(false)
 			};
 			listReceiveProtocol_.push_back(p);
 			wstrName.release();
@@ -1765,7 +1767,7 @@ void qm::CreateAccountDialog::updateProtocols()
 		if (wcscmp(pUI->getClass(), wstrClass_.get()) == 0) {
 			Protocol p = {
 				wstrName.get(),
-				pUI->getDefaultPort()
+				pUI->getDefaultPort(false)
 			};
 			listSendProtocol_.push_back(p);
 			wstrName.release();

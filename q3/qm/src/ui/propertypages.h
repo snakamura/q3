@@ -28,7 +28,9 @@ class DefaultPropertyPage;
 	class FolderPropertyPage;
 	class MessagePropertyPage;
 
+class ReceiveSessionUI;
 class SearchUI;
+class SendSessionUI;
 class SubAccount;
 class SyncFilterManager;
 
@@ -85,6 +87,45 @@ private:
 
 /****************************************************************************
  *
+ * AccountDetailPage
+ *
+ */
+
+class AccountDetailPage : public DefaultPropertyPage
+{
+public:
+	AccountDetailPage(SubAccount* pSubAccount,
+					  ReceiveSessionUI* pReceiveUI,
+					  SendSessionUI* pSendUI);
+	virtual ~AccountDetailPage();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	LRESULT onSecure(UINT nId);
+
+private:
+	AccountDetailPage(const AccountDetailPage&);
+	AccountDetailPage& operator=(const AccountDetailPage&);
+
+private:
+	SubAccount* pSubAccount_;
+	ReceiveSessionUI* pReceiveUI_;
+	SendSessionUI* pSendUI_;
+};
+
+
+/****************************************************************************
+ *
  * AccountDialupPage
  *
  */
@@ -131,7 +172,9 @@ private:
 class AccountGeneralPage : public DefaultPropertyPage
 {
 public:
-	explicit AccountGeneralPage(SubAccount* pSubAccount);
+	AccountGeneralPage(SubAccount* pSubAccount,
+					   ReceiveSessionUI* pReceiveUI,
+					   SendSessionUI* pSendUI);
 	virtual ~AccountGeneralPage();
 
 protected:
@@ -147,6 +190,8 @@ private:
 
 private:
 	SubAccount* pSubAccount_;
+	ReceiveSessionUI* pReceiveUI_;
+	SendSessionUI* pSendUI_;
 };
 
 
@@ -159,7 +204,9 @@ private:
 class AccountUserPage : public DefaultPropertyPage
 {
 public:
-	explicit AccountUserPage(SubAccount* pSubAccount);
+	AccountUserPage(SubAccount* pSubAccount,
+					ReceiveSessionUI* pReceiveUI,
+					SendSessionUI* pSendUI);
 	virtual ~AccountUserPage();
 
 public:
@@ -185,6 +232,8 @@ private:
 
 private:
 	SubAccount* pSubAccount_;
+	ReceiveSessionUI* pReceiveUI_;
+	SendSessionUI* pSendUI_;
 };
 
 

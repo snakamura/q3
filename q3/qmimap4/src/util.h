@@ -92,7 +92,7 @@ public:
 	static bool isEqualFolderName(const WCHAR* pwszLhs,
 								  const WCHAR* pwszRhs,
 								  WCHAR cSeparator);
-	static Imap4::Ssl getSsl(qm::SubAccount* pSubAccount);
+	static Imap4::Secure getSecure(qm::SubAccount* pSubAccount);
 
 private:
 	static std::pair<FetchDataBody*, FetchDataBody*> getBodyFromBodyList(const BodyList& listBody,

@@ -57,28 +57,20 @@ STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "POP3"
 FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
 BEGIN
-    LTEXT           "&Port",IDC_STATIC,5,8,20,8
-    EDITTEXT        IDC_PORT,50,5,40,14,ES_AUTOHSCROLL
-    CONTROL         "&SSL",IDC_SSL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,105,
-                    7,35,10
-    LTEXT           "&Get All",IDC_STATIC,5,23,22,8
-    EDITTEXT        IDC_GETALL,50,20,40,14,ES_AUTOHSCROLL
-    LTEXT           "&Noop Interval",IDC_STATIC,5,38,40,8
-    EDITTEXT        IDC_NOOPINTERVAL,50,35,40,14,ES_AUTOHSCROLL
+    LTEXT           "&Get All",IDC_STATIC,5,9,22,8
+    EDITTEXT        IDC_GETALL,50,5,40,14,ES_AUTOHSCROLL
+    LTEXT           "&Noop Interval",IDC_STATIC,5,23,40,8
+    EDITTEXT        IDC_NOOPINTERVAL,50,21,40,14,ES_AUTOHSCROLL
     CONTROL         "&Delete messages on server",IDC_DELETEONSERVER,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,55,105,10
-    LTEXT           "D&elete messages on server after",IDC_STATIC,5,68,100,8
-    EDITTEXT        IDC_DELETEBEFORE,105,65,20,14,ES_RIGHT | ES_AUTOHSCROLL | 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,40,105,10
+    LTEXT           "D&elete messages on server after",IDC_STATIC,5,53,100,8
+    EDITTEXT        IDC_DELETEBEFORE,105,50,20,14,ES_RIGHT | ES_AUTOHSCROLL | 
                     ES_NUMBER
-    LTEXT           "days",IDC_STATIC,127,68,25,8
+    LTEXT           "days",IDC_STATIC,127,53,25,8
     CONTROL         "&Make seen if Status: is RO",IDC_HANDLESTATUS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,80,105,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,105,10
     CONTROL         "Use AP&OP",IDC_APOP,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,90,55,10
-    CONTROL         "Use STAR&TTLS",IDC_STARTTLS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,100,65,10
-    CONTROL         "&Log",IDC_LOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
-                    110,35,10
+                    WS_TABSTOP,5,75,55,10
 END
 
 IDD_SEND DIALOG DISCARDABLE  0, 0, 223, 145
@@ -86,16 +78,8 @@ STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "POP3 (XTND XMIT)"
 FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
 BEGIN
-    LTEXT           "&Port",-1,5,8,20,8
-    EDITTEXT        IDC_PORT,50,5,40,14,ES_AUTOHSCROLL
-    CONTROL         "&SSL",IDC_SSL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,105,
-                    7,35,10
     CONTROL         "Use AP&OP",IDC_APOP,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,25,55,10
-    CONTROL         "Use STAR&TTLS",IDC_STARTTLS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,35,65,10
-    CONTROL         "&Log",IDC_LOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
-                    45,35,10
+                    WS_TABSTOP,5,5,55,10
 END
 
 

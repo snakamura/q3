@@ -5,13 +5,10 @@
 #define IDS_NNTP                        100
 #define IDD_RECEIVE                     101
 #define IDD_SEND                        102
-#define IDC_PORT                        1000
 #define IDS_INITIALIZE                  1000
 #define IDS_LOOKUP                      1001
 #define IDC_INITIALFETCHCOUNT           1001
-#define IDC_SSL                         1002
 #define IDS_CONNECTING                  1002
-#define IDC_LOG                         1003
 #define IDS_CONNECTED                   1003
 #define IDS_AUTHENTICATING              1004
 #define IDC_XOVER                       1004

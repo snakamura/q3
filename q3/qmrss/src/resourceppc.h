@@ -11,7 +11,6 @@
 #define IDS_LOOKUP                      1001
 #define IDC_PORT                        1001
 #define IDS_CONNECTING                  1002
-#define IDC_LOG                         1002
 #define IDS_CONNECTED                   1003
 #define IDS_REQUESTRSS                  1004
 #define IDS_PARSERSS                    1005

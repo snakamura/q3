@@ -110,14 +110,17 @@ void qmpop3::Util::reportError(Pop3* pPop3,
 	pSessionCallback->addError(info);
 }
 
-Pop3::Ssl qmpop3::Util::getSsl(SubAccount* pSubAccount)
+Pop3::Secure qmpop3::Util::getSecure(SubAccount* pSubAccount)
 {
 	assert(pSubAccount);
 	
-	if (pSubAccount->isSsl(Account::HOST_RECEIVE))
-		return Pop3::SSL_SSL;
-	else if (pSubAccount->getProperty(L"Pop3", L"STARTTLS", 0) != 0)
-		return Pop3::SSL_STARTTLS;
-	else
-		return Pop3::SSL_NONE;
+	SubAccount::Secure secure = pSubAccount->getSecure(Account::HOST_RECEIVE);
+	switch (secure) {
+	case SubAccount::SECURE_SSL:
+		return Pop3::SECURE_SSL;
+	case SubAccount::SECURE_STARTTLS:
+		return Pop3::SECURE_STARTTLS;
+	default:
+		return Pop3::SECURE_NONE;
+	}
 }

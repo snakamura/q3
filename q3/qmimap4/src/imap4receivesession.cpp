@@ -217,9 +217,9 @@ bool qmimap4::Imap4ReceiveSession::connect()
 	pImap4_.reset(new Imap4(pSubAccount_->getTimeout(), pCallback_.get(),
 		pCallback_.get(), pCallback_.get(), pLogger_));
 	
-	Imap4::Ssl ssl = Util::getSsl(pSubAccount_);
+	Imap4::Secure secure = Util::getSecure(pSubAccount_);
 	if (!pImap4_->connect(pSubAccount_->getHost(Account::HOST_RECEIVE),
-		pSubAccount_->getPort(Account::HOST_RECEIVE), ssl))
+		pSubAccount_->getPort(Account::HOST_RECEIVE), secure))
 		HANDLE_ERROR();
 	
 	log.debug(L"Connected to the server.");
@@ -1685,9 +1685,14 @@ wstring_ptr qmimap4::Imap4ReceiveSessionUI::getDisplayName()
 	return loadString(getResourceHandle(), IDS_IMAP4);
 }
 
-short qmimap4::Imap4ReceiveSessionUI::getDefaultPort()
+short qmimap4::Imap4ReceiveSessionUI::getDefaultPort(bool bSecure)
 {
-	return 143;
+	return bSecure ? 993 : 143;
+}
+
+bool qmimap4::Imap4ReceiveSessionUI::isSupported(Support support)
+{
+	return true;
 }
 
 std::auto_ptr<PropertyPage> qmimap4::Imap4ReceiveSessionUI::createPropertyPage(SubAccount* pSubAccount)

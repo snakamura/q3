@@ -6,13 +6,10 @@
 #define IDD_RECEIVE                     101
 #define IDD_SEARCH                      102
 #define IDS_INITIALIZE                  1000
-#define IDC_PORT                        1000
 #define IDS_LOOKUP                      1001
 #define IDC_ROOTFOLDER                  1001
 #define IDS_CONNECTING                  1002
-#define IDC_SSL                         1002
 #define IDS_CONNECTED                   1003
-#define IDC_LOG                         1003
 #define IDS_AUTHENTICATING              1004
 #define IDC_FETCHCOUNT                  1004
 #define IDS_SELECTFOLDER                1005
@@ -27,7 +24,6 @@
 #define IDS_DOWNLOADMESSAGES            1010
 #define IDC_MAXSESSION                  1010
 #define IDS_APPLYOFFLINEJOBS            1011
-#define IDC_STARTTLS                    1011
 #define IDC_NAMESPACE                   1012
 #define IDS_DOWNLOADRESERVEDMESSAGES    1012
 #define IDC_SEARCHBODY                  1013

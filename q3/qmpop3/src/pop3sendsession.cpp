@@ -82,9 +82,9 @@ bool qmpop3::Pop3SendSession::connect()
 		pCallback_.get(), pCallback_.get(), pLogger_));
 	
 	bool bApop = pSubAccount_->getProperty(L"Pop3Send", L"Apop", 0) != 0;
-	Pop3::Ssl ssl = Util::getSsl(pSubAccount_);
+	Pop3::Secure secure = Util::getSecure(pSubAccount_);
 	if (!pPop3_->connect(pSubAccount_->getHost(Account::HOST_SEND),
-		pSubAccount_->getPort(Account::HOST_SEND), bApop, ssl))
+		pSubAccount_->getPort(Account::HOST_SEND), bApop, secure))
 		HANDLE_ERROR();
 	
 	log.debug(L"Connected to the server.");
@@ -226,9 +226,14 @@ wstring_ptr qmpop3::Pop3SendSessionUI::getDisplayName()
 	return loadString(getResourceHandle(), IDS_POP3SEND);
 }
 
-short qmpop3::Pop3SendSessionUI::getDefaultPort()
+short qmpop3::Pop3SendSessionUI::getDefaultPort(bool bSecure)
 {
-	return 110;
+	return bSecure ? 995 : 110;
+}
+
+bool qmpop3::Pop3SendSessionUI::isSupported(Support support)
+{
+	return true;
 }
 
 std::auto_ptr<PropertyPage> qmpop3::Pop3SendSessionUI::createPropertyPage(SubAccount* pSubAccount)

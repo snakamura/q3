@@ -7,13 +7,10 @@
 #define IDS_POP3SEND                    101
 #define IDD_SEND                        102
 #define IDS_INITIALIZE                  1000
-#define IDC_PORT                        1000
 #define IDS_LOOKUP                      1001
 #define IDC_DELETEONSERVER              1001
 #define IDS_CONNECTING                  1002
-#define IDC_SSL                         1002
 #define IDS_CONNECTED                   1003
-#define IDC_LOG                         1003
 #define IDS_AUTHENTICATING              1004
 #define IDC_GETALL                      1004
 #define IDS_LOADUID                     1005
@@ -23,7 +20,6 @@
 #define IDS_DOWNLOADMESSAGES            1007
 #define IDC_DELETEBEFORE                1007
 #define IDS_SAVEUID                     1008
-#define IDC_STARTTLS                    1008
 #define IDS_DELETEMESSAGE               1009
 #define IDC_HANDLESTATUS                1009
 #define IDS_DOWNLOADRESERVEDMESSAGES    1010

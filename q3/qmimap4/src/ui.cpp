@@ -6,8 +6,6 @@
  *
  */
 
-#include <qmsecurity.h>
-
 #include "main.h"
 #include "option.h"
 #include "resourceinc.h"
@@ -44,11 +42,7 @@ LRESULT qmimap4::ReceivePage::onInitDialog(HWND hwndFocus,
 	int nOption = pSubAccount_->getProperty(L"Imap4", L"Option", 0xff);
 	int nUseNamespace = pSubAccount_->getProperty(L"Imap4", L"UseNamespace", 0);
 	int nCloseFolder = pSubAccount_->getProperty(L"Imap4", L"CloseFolder", 0);
-	int nStartTls = pSubAccount_->getProperty(L"Imap4", L"STARTTLS", 0);
 	
-	setDlgItemInt(IDC_PORT, pSubAccount_->getPort(Account::HOST_RECEIVE));
-	sendDlgItemMessage(IDC_SSL, BM_SETCHECK,
-		pSubAccount_->isSsl(Account::HOST_RECEIVE) ? BST_CHECKED : BST_UNCHECKED);
 	setDlgItemText(IDC_ROOTFOLDER, wstrRootFolder.get());
 	setDlgItemInt(IDC_FETCHCOUNT, nFetchCount);
 	setDlgItemInt(IDC_MAXSESSION, nMaxSession);
@@ -62,28 +56,12 @@ LRESULT qmimap4::ReceivePage::onInitDialog(HWND hwndFocus,
 		nUseNamespace ? BST_CHECKED : BST_UNCHECKED);
 	sendDlgItemMessage(IDC_CLOSEFOLDER, BM_SETCHECK,
 		nCloseFolder ? BST_CHECKED : BST_UNCHECKED);
-	sendDlgItemMessage(IDC_STARTTLS, BM_SETCHECK,
-		nStartTls ? BST_CHECKED : BST_UNCHECKED);
-	sendDlgItemMessage(IDC_LOG, BM_SETCHECK,
-		pSubAccount_->isLog(Account::HOST_RECEIVE) ? BST_CHECKED : BST_UNCHECKED);
-	
-	if (!Security::isEnabled()) {
-		UINT nIds[] = {
-			IDC_SSL,
-			IDC_STARTTLS
-		};
-		for (int n = 0; n < countof(nIds); ++n)
-			Window(getDlgItem(nIds[n])).enableWindow(false);
-	}
 	
 	return TRUE;
 }
 
 LRESULT qmimap4::ReceivePage::onOk()
 {
-	pSubAccount_->setPort(Account::HOST_RECEIVE, getDlgItemInt(IDC_PORT));
-	pSubAccount_->setSsl(Account::HOST_RECEIVE,
-		sendDlgItemMessage(IDC_SSL, BM_GETCHECK) == BST_CHECKED);
 	wstring_ptr wstrRootFolder(getDlgItemText(IDC_ROOTFOLDER));
 	if (wstrRootFolder.get())
 		pSubAccount_->setProperty(L"Imap4", L"RootFolder", wstrRootFolder.get());
@@ -103,10 +81,6 @@ LRESULT qmimap4::ReceivePage::onOk()
 		sendDlgItemMessage(IDC_NAMESPACE, BM_GETCHECK) == BST_CHECKED ? 1 : 0);
 	pSubAccount_->setProperty(L"Imap4", L"CloseFolder",
 		sendDlgItemMessage(IDC_CLOSEFOLDER, BM_GETCHECK) == BST_CHECKED ? 1 : 0);
-	pSubAccount_->setProperty(L"Imap4", L"STARTTLS",
-		sendDlgItemMessage(IDC_STARTTLS, BM_GETCHECK) == BST_CHECKED);
-	pSubAccount_->setLog(Account::HOST_RECEIVE,
-		sendDlgItemMessage(IDC_LOG, BM_GETCHECK) == BST_CHECKED);
 	
 	return DefaultPropertyPage::onOk();
 }

@@ -198,7 +198,7 @@ qmimap4::Imap4::~Imap4()
 
 bool qmimap4::Imap4::connect(const WCHAR* pwszHost,
 							 short nPort,
-							 Ssl ssl)
+							 Secure secure)
 {
 	assert(pwszHost);
 	
@@ -208,7 +208,7 @@ bool qmimap4::Imap4::connect(const WCHAR* pwszHost,
 	if (!pSocket->connect(pwszHost, nPort))
 		IMAP4_ERROR(IMAP4_ERROR_CONNECT | pSocket->getLastError());
 	
-	if (ssl == SSL_SSL) {
+	if (secure == SECURE_SSL) {
 		SSLSocketFactory* pFactory = SSLSocketFactory::getFactory();
 		if (!pFactory)
 			IMAP4_ERROR(IMAP4_ERROR_SSL);
@@ -231,7 +231,7 @@ bool qmimap4::Imap4::connect(const WCHAR* pwszHost,
 	if (!processCapability())
 		return false;
 	
-	if (ssl == SSL_STARTTLS) {
+	if (secure == SECURE_STARTTLS) {
 		if ((nCapability_ & CAPABILITY_STARTTLS) == 0)
 			IMAP4_ERROR(IMAP4_ERROR_STARTTLS);
 		

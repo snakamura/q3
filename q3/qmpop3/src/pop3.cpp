@@ -68,7 +68,7 @@ qmpop3::Pop3::~Pop3()
 bool qmpop3::Pop3::connect(const WCHAR* pwszHost,
 						   short nPort,
 						   bool bApop,
-						   Ssl ssl)
+						   Secure secure)
 {
 	assert(pwszHost);
 	
@@ -78,7 +78,7 @@ bool qmpop3::Pop3::connect(const WCHAR* pwszHost,
 	if (!pSocket->connect(pwszHost, nPort))
 		POP3_ERROR(POP3_ERROR_CONNECT | pSocket->getLastError());
 	
-	if (ssl == SSL_SSL) {
+	if (secure == SECURE_SSL) {
 		SSLSocketFactory* pFactory = SSLSocketFactory::getFactory();
 		if (!pFactory)
 			POP3_ERROR(POP3_ERROR_SSL);
@@ -99,7 +99,7 @@ bool qmpop3::Pop3::connect(const WCHAR* pwszHost,
 	if (!receive(&strGreeting))
 		POP3_ERROR_OR(POP3_ERROR_GREETING);
 	
-	if (ssl == SSL_STARTTLS) {
+	if (secure == SECURE_STARTTLS) {
 		if (!sendCommand("STLS\r\n"))
 			POP3_ERROR_OR(POP3_ERROR_STLS);
 		
