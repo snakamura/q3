@@ -782,13 +782,13 @@ BEGIN
     CONTROL         "As I&con",IDC_ASICON,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,10,100,50,10
     GROUPBOX        "Flag",IDC_STATIC,5,70,65,45
-    CONTROL         "Le&ft",IDC_LEFTALIGN,"Button",BS_AUTORADIOBUTTON,10,125,
-                    27,10
+    CONTROL         "Le&ft",IDC_LEFTALIGN,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,10,125,27,10
     CONTROL         "&Right",IDC_RIGHTALIGN,"Button",BS_AUTORADIOBUTTON,10,
                     135,31,10
     GROUPBOX        "Alignment",IDC_STATIC,5,115,65,35
-    CONTROL         "Te&xt",IDC_SORTTEXT,"Button",BS_AUTORADIOBUTTON,75,80,
-                    29,10
+    CONTROL         "Te&xt",IDC_SORTTEXT,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,75,80,29,10
     CONTROL         "&Number",IDC_SORTNUMBER,"Button",BS_AUTORADIOBUTTON,75,
                     90,38,10
     CONTROL         "&Date",IDC_SORTDATE,"Button",BS_AUTORADIOBUTTON,75,100,

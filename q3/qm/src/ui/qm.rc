@@ -829,13 +829,13 @@ BEGIN
     CONTROL         "As I&con",IDC_ASICON,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,10,95,50,10
     GROUPBOX        "Alignment",IDC_STATIC,75,65,65,45
-    CONTROL         "Le&ft",IDC_LEFTALIGN,"Button",BS_AUTORADIOBUTTON,80,75,
-                    27,10
+    CONTROL         "Le&ft",IDC_LEFTALIGN,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,80,75,27,10
     CONTROL         "&Right",IDC_RIGHTALIGN,"Button",BS_AUTORADIOBUTTON,80,
                     85,31,10
     GROUPBOX        "Sort",IDC_STATIC,145,65,65,45
-    CONTROL         "Te&xt",IDC_SORTTEXT,"Button",BS_AUTORADIOBUTTON,150,75,
-                    29,10
+    CONTROL         "Te&xt",IDC_SORTTEXT,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,150,75,29,10
     CONTROL         "&Number",IDC_SORTNUMBER,"Button",BS_AUTORADIOBUTTON,150,
                     85,38,10
     CONTROL         "&Date",IDC_SORTDATE,"Button",BS_AUTORADIOBUTTON,150,95,
