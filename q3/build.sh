@@ -35,7 +35,7 @@ copy)
 		for dir in bin lib; do
 			if [ -d $p/$dir ]; then
 				cd $p/$dir
-				tar cf - `/bin/find . \( -name *.exe -o -name *.dll \)` | (cd $bindir; tar xf -)
+				tar cf - `/bin/find . ! -regex "\./lib/.*" -a \( -name *.exe -o -name *.dll \)` | (cd $bindir; tar xf -)
 				cd ../..
 			fi
 		done
@@ -103,18 +103,18 @@ run|run.unicode|run.debug|run.debug.unicode|debug|debug.unicode|purify|purify.un
 	;;
 
 countline)
-	wc `/bin/find . -regex ".*/\(include\|src\)/.*\.\(h\|cpp\|inl\|idl\|rc\)$"` | sort
+	wc `/bin/find . ! -regex "\./lib/.*" -a -regex ".*/\(include\|src\)/.*\.\(h\|cpp\|inl\|idl\|rc\)$"` | sort
 	;;
 
 countclass)
-	(for f in `/bin/find . -regex ".*\.\(h\|cpp\|inl\)$"`; do
+	(for f in `/bin/find . ! -regex "\./lib/.*" -a -regex ".*\.\(h\|cpp\|inl\)$"`; do
 		cat $f | tr -d '\r' | grep '^\(class\|struct\) .*[^;>]$'
 	done) | wc
 	;;
 
 checksize)
 	size=0
-	for f in `/bin/find . -regex ".*[^d]\.\(exe\|dll\)" -printf "%s "`; do
+	for f in `/bin/find . ! -regex "\./lib/.*" -a -regex ".*[^d]\.\(exe\|dll\)" -printf "%s "`; do
 		size=`expr $size + $f`
 	done
 	echo `expr $size / 1024`K
