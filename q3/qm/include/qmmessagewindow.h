@@ -121,6 +121,8 @@ public:
 	qs::QSTATUS setRawMode(bool bRawMode);
 	bool isHtmlMode() const;
 	qs::QSTATUS setHtmlMode(bool bHtmlMode);
+	bool isHtmlOnlineMode() const;
+	qs::QSTATUS setHtmlOnlineMode(bool bHtmlOnlineMode);
 	bool isDecryptVerifyMode() const;
 	qs::QSTATUS setDecryptVerifyMode(bool bDecryptVerifyMode);
 	const WCHAR* getEncoding() const;

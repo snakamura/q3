@@ -243,7 +243,7 @@ QSTATUS qm::TextMessageViewWindow::setActive()
 
 QSTATUS qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 	Message* pMessage, const Template* pTemplate,
-	const WCHAR* pwszEncoding, bool bRawMode, bool bIncludeHeader)
+	const WCHAR* pwszEncoding, unsigned int nFlags)
 {
 	assert((pmh && pMessage) || (!pmh && !pMessage));
 	
@@ -252,7 +252,7 @@ QSTATUS qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 	if (pmh) {
 		PartUtil util(*pMessage);
 		string_ptr<WSTRING> wstrText;
-		if (bRawMode) {
+		if (nFlags & FLAG_RAWMODE) {
 			status = util.getAllText(0, pwszEncoding, false, &wstrText);
 			CHECK_QSTATUS();
 		}
@@ -264,7 +264,7 @@ QSTATUS qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 			status = pTemplate->getValue(context, &wstrText);
 			CHECK_QSTATUS();
 		}
-		else if (bIncludeHeader) {
+		else if (nFlags & FLAG_INCLUDEHEADER) {
 			status = util.getFormattedText(false, pwszEncoding, &wstrText);
 			CHECK_QSTATUS();
 		}
@@ -373,7 +373,8 @@ qm::HtmlMessageViewWindow::HtmlMessageViewWindow(Profile* pProfile,
 	pServiceProvider_(0),
 	pWebBrowserEvents_(0),
 	dwConnectionPointCookie_(0),
-	bActivate_(false)
+	bActivate_(false),
+	bOnlineMode_(false)
 {
 	setWindowHandler(this, false);
 }
@@ -595,11 +596,22 @@ QSTATUS qm::HtmlMessageViewWindow::setActive()
 
 QSTATUS qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 	Message* pMessage, const Template* pTemplate,
-	const WCHAR* pwszEncoding, bool bRawMode, bool bIncludeHeader)
+	const WCHAR* pwszEncoding, unsigned int nFlags)
 {
 	assert(pmh && pMessage);
 	
 	DECLARE_QSTATUS();
+	
+	bOnlineMode_ = (nFlags & FLAG_ONLINEMODE) != 0;
+	
+	HRESULT hr = S_OK;
+	
+	ComPtr<IOleControl> pControl;
+	hr = pWebBrowser_->QueryInterface(IID_IOleControl,
+		reinterpret_cast<void**>(&pControl));
+	if (FAILED(hr))
+		return QSTATUS_FAIL;
+	pControl->OnAmbientPropertyChange(DISPID_AMBIENT_DLCONTROL);
 	
 	PartUtil util(*pMessage);
 	const Part* pPart = 0;
@@ -610,8 +622,6 @@ QSTATUS qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 	string_ptr<WSTRING> wstrId;
 	status = prepareRelatedContent(*pMessage, *pPart, pwszEncoding, &wstrId);
 	CHECK_QSTATUS();
-	
-	HRESULT hr = S_OK;
 	
 	string_ptr<WSTRING> wstrUrl(concat(L"cid:", wstrId.get()));
 	if (!wstrUrl.get())
@@ -1666,7 +1676,7 @@ HtmlMessageViewWindow::AmbientDispatchHook::Map qm::HtmlMessageViewWindow::Ambie
 qm::HtmlMessageViewWindow::AmbientDispatchHook::AmbientDispatchHook(
 	HtmlMessageViewWindow* pHtmlMessageViewWindow, IDispatch* pDispatch, QSTATUS* pstatus) :
 	nRef_(1),
-	dwDLControl_(DLCTL_DLIMAGES | DLCTL_VIDEOS | DLCTL_BGSOUNDS | DLCTL_NO_CLIENTPULL),
+	pHtmlMessageViewWindow_(pHtmlMessageViewWindow),
 	pDispatch_(pDispatch),
 	pDispatchVtbl_(0)
 {
@@ -1675,13 +1685,6 @@ qm::HtmlMessageViewWindow::AmbientDispatchHook::AmbientDispatchHook(
 	DECLARE_QSTATUS();
 	
 	*pstatus = QSTATUS_SUCCESS;
-	
-	int nForceOffline = 1;
-	status = pHtmlMessageViewWindow->pProfile_->getInt(
-		pHtmlMessageViewWindow->pwszSection_, L"ForceOffline", 1, &nForceOffline);
-	CHECK_QSTATUS_SET(pstatus);
-	if (nForceOffline)
-		dwDLControl_ |= DLCTL_FORCEOFFLINE;
 	
 	IDispatchType* pDispatchType = reinterpret_cast<IDispatchType*>(pDispatch);
 	pDispatchVtbl_ = pDispatchType->pVtbl;
@@ -1750,7 +1753,9 @@ STDMETHODIMP qm::HtmlMessageViewWindow::AmbientDispatchHook::Invoke(
 	if (dispId == DISPID_AMBIENT_DLCONTROL) {
 		::VariantInit(pVarResult);
 		pVarResult->vt = VT_I4;
-		pVarResult->lVal = getThis()->dwDLControl_;
+		pVarResult->lVal = DLCTL_DLIMAGES | DLCTL_VIDEOS | DLCTL_BGSOUNDS | DLCTL_NO_CLIENTPULL;
+		if (!getThis()->pHtmlMessageViewWindow_->bOnlineMode_)
+			pVarResult->lVal |= DLCTL_FORCEOFFLINE;
 		return S_OK;
 	}
 	

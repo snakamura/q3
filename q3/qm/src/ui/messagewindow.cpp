@@ -66,6 +66,7 @@ public:
 	bool bShowHeaderWindow_;
 	bool bRawMode_;
 	bool bHtmlMode_;
+	bool bHtmlOnlineMode_;
 	bool bDecryptVerifyMode_;
 	
 	Profile* pProfile_;
@@ -241,8 +242,11 @@ QSTATUS qm::MessageWindowImpl::setMessage(MessageHolder* pmh, bool bResetEncodin
 		CHECK_QSTATUS();
 	}
 	
-	status = pMessageViewWindow->setMessage(pmh, pmh ? &msg : 0,
-		pTemplate, wstrEncoding_, bRawMode_, !bShowHeaderWindow_);
+	unsigned int nFlags = (bRawMode_ ? MessageViewWindow::FLAG_RAWMODE : 0) |
+		(!bShowHeaderWindow_ ? MessageViewWindow::FLAG_INCLUDEHEADER : 0) |
+		(bHtmlOnlineMode_ ? MessageViewWindow::FLAG_ONLINEMODE : 0);
+	status = pMessageViewWindow->setMessage(pmh,
+		pmh ? &msg : 0, pTemplate, wstrEncoding_, nFlags);
 	CHECK_QSTATUS();
 	if (bActive) {
 		status = pThis_->setActive();
@@ -293,7 +297,9 @@ qm::MessageWindow::MessageWindow(bool bPreview, bool bShowPreview,
 	int nHtmlMode = 0;
 	status = pProfile->getInt(pwszSection, L"HtmlMode", 0, &nHtmlMode);
 	CHECK_QSTATUS_SET(pstatus);
-	
+	int nHtmlOnlineMode = 0;
+	status = pProfile->getInt(pwszSection, L"HtmlOnlineMode", 0, &nHtmlOnlineMode);
+	CHECK_QSTATUS_SET(pstatus);
 	int nDecryptVerifyMode = 0;
 	status = pProfile->getInt(pwszSection,
 		L"DecryptVerifyMode", 0, &nDecryptVerifyMode);
@@ -312,6 +318,7 @@ qm::MessageWindow::MessageWindow(bool bPreview, bool bShowPreview,
 	pImpl_->bShowHeaderWindow_ = nShowHeaderWindow != 0;
 	pImpl_->bRawMode_ = false;
 	pImpl_->bHtmlMode_ = nHtmlMode != 0;
+	pImpl_->bHtmlOnlineMode_ = nHtmlOnlineMode != 0;
 	pImpl_->bDecryptVerifyMode_ = nDecryptVerifyMode != 0;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pwszSection_ = pwszSection;
@@ -389,6 +396,25 @@ QSTATUS qm::MessageWindow::setHtmlMode(bool bHtmlMode)
 	
 	if (bHtmlMode != pImpl_->bHtmlMode_) {
 		pImpl_->bHtmlMode_ = bHtmlMode;
+		MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
+		status = pImpl_->setMessage(mpl, false);
+		CHECK_QSTATUS();
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+bool qm::MessageWindow::isHtmlOnlineMode() const
+{
+	return pImpl_->bHtmlOnlineMode_;
+}
+
+QSTATUS qm::MessageWindow::setHtmlOnlineMode(bool bHtmlOnlineMode)
+{
+	DECLARE_QSTATUS();
+	
+	if (bHtmlOnlineMode != pImpl_->bHtmlOnlineMode_) {
+		pImpl_->bHtmlOnlineMode_ = bHtmlOnlineMode;
 		MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
 		status = pImpl_->setMessage(mpl, false);
 		CHECK_QSTATUS();
@@ -541,6 +567,9 @@ QSTATUS qm::MessageWindow::save() const
 	CHECK_QSTATUS();
 	status = pProfile->setInt(pImpl_->pwszSection_,
 		L"HtmlMode", pImpl_->bHtmlMode_);
+	CHECK_QSTATUS();
+	status = pProfile->setInt(pImpl_->pwszSection_,
+		L"HtmlOnlineMode", pImpl_->bHtmlOnlineMode_);
 	CHECK_QSTATUS();
 	status = pProfile->setInt(pImpl_->pwszSection_,
 		L"DecryptVerifyMode", pImpl_->bDecryptVerifyMode_);

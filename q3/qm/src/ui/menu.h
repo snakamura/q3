@@ -100,6 +100,7 @@ const qs::MenuItem menuItems[] = {
 	{ L"ViewDecryptVerifyMode",		IDM_VIEW_DECRYPTVERIFYMODE		},
 #ifdef QMHTMLVIEW
 	{ L"ViewHtmlMode",				IDM_VIEW_HTMLMODE				},
+	{ L"ViewHtmlOnlineMode",		IDM_VIEW_HTMLONLINEMODE			},
 #endif
 	{ L"ViewLockPreview",			IDM_VIEW_LOCKPREVIEW			},
 	{ L"ViewNextMessage",			IDM_VIEW_NEXTMESSAGE			},

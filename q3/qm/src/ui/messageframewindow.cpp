@@ -289,6 +289,11 @@ QSTATUS qm::MessageFrameWindowImpl::initActions()
 		pActionMap_, IDM_VIEW_HTMLMODE, pMessageWindow_,
 		&MessageWindow::isHtmlMode, &MessageWindow::setHtmlMode, true);
 	CHECK_QSTATUS();
+	status = InitAction4<ViewMessageModeAction, MessageWindow*,
+		ViewMessageModeAction::PFN_IS, ViewMessageModeAction::PFN_SET, bool>(
+		pActionMap_, IDM_VIEW_HTMLONLINEMODE, pMessageWindow_,
+		&MessageWindow::isHtmlOnlineMode, &MessageWindow::setHtmlOnlineMode, true);
+	CHECK_QSTATUS();
 	status = InitAction4<ViewNavigateMessageAction, ViewModelManager*,
 		FolderModel*, MessageWindow*, ViewNavigateMessageAction::Type>(
 		pActionMap_, IDM_VIEW_NEXTMESSAGE, pViewModelManager_,

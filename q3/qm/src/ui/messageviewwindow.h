@@ -58,6 +58,13 @@ class Template;
 class MessageViewWindow : public MessageWindowItem
 {
 public:
+	enum Flag {
+		FLAG_RAWMODE		= 0x01,
+		FLAG_INCLUDEHEADER	= 0x02,
+		FLAG_ONLINEMODE		= 0x04
+	};
+
+public:
 	virtual ~MessageViewWindow();
 
 public:
@@ -65,8 +72,7 @@ public:
 	virtual bool isActive() = 0;
 	virtual qs::QSTATUS setActive() = 0;
 	virtual qs::QSTATUS setMessage(MessageHolder* pmh, Message* pMessage,
-		const Template* pTemplate, const WCHAR* pwszEncoding,
-		bool bRawMode, bool bIncludeHeader) = 0;
+		const Template* pTemplate, const WCHAR* pwszEncoding, unsigned int nFlags) = 0;
 	virtual qs::QSTATUS scrollPage(bool bPrev, bool* pbScrolled) = 0;
 	virtual qs::QSTATUS setSelectMode(bool bSelectMode) = 0;
 	virtual qs::QSTATUS find(const WCHAR* pwszFind,
@@ -145,8 +151,7 @@ public:
 	virtual bool isActive();
 	virtual qs::QSTATUS setActive();
 	virtual qs::QSTATUS setMessage(MessageHolder* pmh, Message* pMessage,
-		const Template* pTemplate, const WCHAR* pwszEncoding,
-		bool bRawMode, bool bIncludeHeader);
+		const Template* pTemplate, const WCHAR* pwszEncoding, unsigned int nFlags);
 	virtual qs::QSTATUS scrollPage(bool bPrev, bool* pbScrolled);
 	virtual qs::QSTATUS setSelectMode(bool bSelectMode);
 	virtual qs::QSTATUS find(const WCHAR* pwszFind,
@@ -202,8 +207,7 @@ public:
 	virtual bool isActive();
 	virtual qs::QSTATUS setActive();
 	virtual qs::QSTATUS setMessage(MessageHolder* pmh, Message* pMessage,
-		const Template* pTemplate, const WCHAR* pwszEncoding,
-		bool bRawMode, bool bIncludeHeader);
+		const Template* pTemplate, const WCHAR* pwszEncoding, unsigned int nFlags);
 	virtual qs::QSTATUS scrollPage(bool bPrev, bool* pbScrolled);
 	virtual qs::QSTATUS setSelectMode(bool bSelectMode);
 	virtual qs::QSTATUS find(const WCHAR* pwszFind,
@@ -559,7 +563,7 @@ private:
 	
 	private:
 		ULONG nRef_;
-		DWORD dwDLControl_;
+		HtmlMessageViewWindow* pHtmlMessageViewWindow_;
 		IDispatch* pDispatch_;
 		IDispatchVtbl* pDispatchVtbl_;
 	
@@ -581,6 +585,7 @@ private:
 	DWORD dwConnectionPointCookie_;
 	ContentList listContent_;
 	bool bActivate_;
+	bool bOnlineMode_;
 };
 
 #endif // QMHTMLVIEW

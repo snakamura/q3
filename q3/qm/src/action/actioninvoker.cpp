@@ -208,6 +208,7 @@ struct ActionNameMap
 	{ L"ViewFocusNext",					IDM_VIEW_FOCUSNEXT						},
 	{ L"ViewFocusPrev",					IDM_VIEW_FOCUSPREV						},
 	{ L"ViewHtmlMode",					IDM_VIEW_HTMLMODE						},
+	{ L"ViewHtmlOnlineMode",			IDM_VIEW_HTMLONLINEMODE					},
 	{ L"ViewLockPreview",				IDM_VIEW_LOCKPREVIEW					},
 	{ L"ViewNextAccount",				IDM_VIEW_NEXTACCOUNT					},
 	{ L"ViewNextFolder",				IDM_VIEW_NEXTFOLDER						},
