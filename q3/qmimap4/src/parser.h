@@ -134,6 +134,8 @@ public:
 	const CHAR* str() const;
 	
 	unsigned int getError() const;
+	
+	size_t free(size_t n);
 
 private:
 	bool receive(size_t n,

@@ -91,6 +91,8 @@ bool qmimap4::Parser::parse(const CHAR* pszTag,
 			if (bEnd)
 				break;
 		}
+		
+		nIndex_ = pBuffer_->free(nIndex_);
 	}
 	
 	return true;
@@ -775,6 +777,16 @@ const CHAR* qmimap4::Buffer::str() const
 unsigned int qmimap4::Buffer::getError() const
 {
 	return nError_;
+}
+
+size_t qmimap4::Buffer::free(size_t n)
+{
+	if (n < 1024*128 || n < (buf_.getLength() - n)*9)
+		return n;
+	
+	buf_.remove(0, n);
+	
+	return 0;
 }
 
 bool qmimap4::Buffer::receive(size_t n,
