@@ -143,6 +143,7 @@ class ViewSortThreadAction;
 class ViewTemplateAction;
 class ActionUtil;
 class FolderActionUtil;
+class MessageActionUtil;
 #ifdef QMTABWINDOW
 class TabActionUtil;
 #endif
@@ -753,11 +754,6 @@ public:
 							bool bDirect,
 							HWND hwnd,
 							qs::Profile* pProfile);
-	EditDeleteMessageAction(MessageModel* pMessageModel,
-							ViewModelHolder* pViewModelHolder,
-							bool bDirect,
-							HWND hwnd,
-							qs::Profile* pProfile);
 	virtual ~EditDeleteMessageAction();
 
 public:
@@ -766,8 +762,6 @@ public:
 
 private:
 	bool confirm() const;
-	void select(ViewModel* pViewModel,
-				unsigned int nIndex) const;
 
 private:
 	EditDeleteMessageAction(const EditDeleteMessageAction&);
@@ -2078,6 +2072,8 @@ class MessageMoveAction : public qs::AbstractAction
 {
 public:
 	MessageMoveAction(MessageSelectionModel* pMessageSelectionModel,
+					  MessageModel* pMessageModel,
+					  ViewModelHolder* pViewModelHolder,
 					  MoveMenu* pMoveMenu,
 					  HWND hwnd);
 	virtual ~MessageMoveAction();
@@ -2092,6 +2088,8 @@ private:
 
 private:
 	MessageSelectionModel* pMessageSelectionModel_;
+	MessageModel* pMessageModel_;
+	ViewModelHolder* pViewModelHolder_;
 	MoveMenu* pMoveMenu_;
 	HWND hwnd_;
 };
@@ -2108,6 +2106,8 @@ class MessageMoveOtherAction : public qs::AbstractAction
 public:
 	MessageMoveOtherAction(Document* pDocument,
 						   MessageSelectionModel* pMessageSelectionModel,
+						   MessageModel* pMessageModel,
+						   ViewModelHolder* pViewModelHolder,
 						   qs::Profile* pProfile,
 						   HWND hwnd);
 	virtual ~MessageMoveOtherAction();
@@ -2123,6 +2123,8 @@ private:
 private:
 	Document* pDocument_;
 	MessageSelectionModel* pMessageSelectionModel_;
+	MessageModel* pMessageModel_;
+	ViewModelHolder* pViewModelHolder_;
 	qs::Profile* pProfile_;
 	HWND hwnd_;
 };
@@ -3662,6 +3664,21 @@ public:
 	static std::pair<Account*, Folder*> getCurrent(FolderModel* pModel);
 	static Account* getAccount(FolderModel* pModel);
 	static Folder* getFolder(FolderModel* pModel);
+};
+
+
+/****************************************************************************
+ *
+ * MessageActionUtil
+ *
+ */
+
+class MessageActionUtil
+{
+public:
+	static void select(ViewModel* pViewModel,
+					   unsigned int nIndex,
+					   MessageModel* pMessageModel);
 };
 
 

@@ -783,21 +783,6 @@ qm::EditDeleteMessageAction::EditDeleteMessageAction(MessageSelectionModel* pMes
 	bConfirm_ = pProfile->getInt(L"Global", L"ConfirmDeleteMessage", 0) != 0;
 }
 
-qm::EditDeleteMessageAction::EditDeleteMessageAction(MessageModel* pMessageModel,
-													 ViewModelHolder* pViewModelHolder,
-													 bool bDirect,
-													 HWND hwnd,
-													 Profile* pProfile) :
-	pMessageSelectionModel_(0),
-	pMessageModel_(pMessageModel),
-	pViewModelHolder_(pViewModelHolder),
-	bDirect_(bDirect),
-	hwnd_(hwnd),
-	bConfirm_(false)
-{
-	bConfirm_ = pProfile->getInt(L"Global", L"ConfirmDeleteMessage", 0) != 0;
-}
-
 qm::EditDeleteMessageAction::~EditDeleteMessageAction()
 {
 }
@@ -805,63 +790,37 @@ qm::EditDeleteMessageAction::~EditDeleteMessageAction()
 void qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 {
 	ViewModel* pViewModel = pViewModelHolder_->getViewModel();
+	assert(pViewModel);
+	Lock<ViewModel> lockViewModel(*pViewModel);
 	
-	Lock<ViewModel> lock(*pViewModel);
-		
-	if (pMessageSelectionModel_) {
-		AccountLock lock;
-		Folder* pFolder = 0;
-		MessageHolderList l;
-		pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
-		
-		Account* pAccount = lock.get();
-		if (l.empty())
-			return;
-		
-		if (!confirm())
-			return;
-		
-		unsigned int nIndex = pViewModel->getFocused();
-		if (nIndex < pViewModel->getCount() - 1)
-			select(pViewModel, nIndex + 1);
-		
-		ProgressDialogMessageOperationCallback callback(
-			hwnd_, IDS_DELETE, IDS_DELETE);
-		if (!pAccount->removeMessages(l, pFolder, bDirect_, &callback)) {
-			ActionUtil::error(hwnd_, IDS_ERROR_DELETEMESSAGES);
-			return;
-		}
-	}
-	else {
-		MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
-		if (!mpl)
-			return;
-		
-		if (!confirm())
-			return;
-		
-		unsigned int nIndex = pViewModel->getIndex(mpl);
-		if (nIndex < pViewModel->getCount() - 1)
-			select(pViewModel, nIndex + 1);
-		
-		Account* pAccount = mpl->getFolder()->getAccount();
-		MessageHolderList l(1, mpl);
-		if (!pAccount->removeMessages(l, pViewModel->getFolder(), bDirect_, 0)) {
-			ActionUtil::error(hwnd_, IDS_ERROR_DELETEMESSAGES);
-			return;
-		}
+	AccountLock lock;
+	Folder* pFolder = 0;
+	MessageHolderList l;
+	pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
+	
+	if (l.empty())
+		return;
+	
+	if (!confirm())
+		return;
+	
+	unsigned int nIndex = l.size() == 1 ?
+		pViewModel->getIndex(l.front()) : pViewModel->getFocused();
+	if (nIndex < pViewModel->getCount() - 1)
+		MessageActionUtil::select(pViewModel, nIndex + 1, pMessageModel_);
+	
+	Account* pAccount = lock.get();
+	ProgressDialogMessageOperationCallback callback(
+		hwnd_, IDS_DELETE, IDS_DELETE);
+	if (!pAccount->removeMessages(l, pFolder, bDirect_, &callback)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_DELETEMESSAGES);
+		return;
 	}
 }
 
 bool qm::EditDeleteMessageAction::isEnabled(const ActionEvent& event)
 {
-	if (pMessageSelectionModel_) {
-		return pMessageSelectionModel_->hasSelectedMessage();
-	}
-	else {
-		MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
-		return mpl != 0;
-	}
+	return pMessageSelectionModel_->hasSelectedMessage();
 }
 
 bool qm::EditDeleteMessageAction::confirm() const
@@ -871,22 +830,6 @@ bool qm::EditDeleteMessageAction::confirm() const
 			IDS_CONFIRMDELETEMESSAGE, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd_) == IDYES;
 	else
 		return true;
-}
-
-void qm::EditDeleteMessageAction::select(ViewModel* pViewModel,
-										 unsigned int nIndex) const
-{
-	assert(pViewModel);
-	assert(pViewModel->isLocked());
-	assert(nIndex < pViewModel->getCount());
-	
-	MessageHolder* pmh = pViewModel->getMessageHolder(nIndex);
-	pMessageModel_->setMessage(pmh);
-	
-	pViewModel->setFocused(nIndex);
-	pViewModel->setSelection(nIndex);
-	pViewModel->setLastSelection(nIndex);
-	pViewModel->payAttention(nIndex);
 }
 
 
@@ -3994,9 +3937,13 @@ bool qm::MessageMarkAction::isEnabled(const ActionEvent& event)
  */
 
 qm::MessageMoveAction::MessageMoveAction(MessageSelectionModel* pMessageSelectionModel,
+										 MessageModel* pMessageModel,
+										 ViewModelHolder* pViewModelHolder,
 										 MoveMenu* pMoveMenu,
 										 HWND hwnd) :
 	pMessageSelectionModel_(pMessageSelectionModel),
+	pMessageModel_(pMessageModel),
+	pViewModelHolder_(pViewModelHolder),
 	pMoveMenu_(pMoveMenu),
 	hwnd_(hwnd)
 {
@@ -4008,23 +3955,37 @@ qm::MessageMoveAction::~MessageMoveAction()
 
 void qm::MessageMoveAction::invoke(const ActionEvent& event)
 {
+	ViewModel* pViewModel = pViewModelHolder_->getViewModel();
+	assert(pViewModel);
+	Lock<ViewModel> lockViewModel(*pViewModel);
+	
 	NormalFolder* pFolderTo = pMoveMenu_->getFolder(event.getId());
-	if (pFolderTo) {
-		AccountLock lock;
-		Folder* pFolderFrom = 0;
-		MessageHolderList l;
-		pMessageSelectionModel_->getSelectedMessages(&lock, &pFolderFrom, &l);
-		
-		if (!l.empty()) {
-			Account* pAccount = lock.get();
-			bool bMove = (event.getModifier() & ActionEvent::MODIFIER_CTRL) == 0;
-			UINT nId = bMove ? IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
-			ProgressDialogMessageOperationCallback callback(hwnd_, nId, nId);
-			if (!pAccount->copyMessages(l, pFolderFrom, pFolderTo, bMove, &callback)) {
-				ActionUtil::error(hwnd_, bMove ? IDS_ERROR_MOVEMESSAGE : IDS_ERROR_COPYMESSAGE);
-				return;
-			}
-		}
+	if (!pFolderTo)
+		return;
+	
+	AccountLock lock;
+	Folder* pFolderFrom = 0;
+	MessageHolderList l;
+	pMessageSelectionModel_->getSelectedMessages(&lock, &pFolderFrom, &l);
+	
+	if (l.empty())
+		return;
+	
+	bool bMove = (event.getModifier() & ActionEvent::MODIFIER_CTRL) == 0;
+	
+	if (bMove) {
+		unsigned int nIndex = l.size() == 1 ?
+			pViewModel->getIndex(l.front()) : pViewModel->getFocused();
+		if (nIndex < pViewModel->getCount() - 1)
+			MessageActionUtil::select(pViewModel, nIndex + 1, pMessageModel_);
+	}
+	
+	Account* pAccount = lock.get();
+	UINT nId = bMove ? IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
+	ProgressDialogMessageOperationCallback callback(hwnd_, nId, nId);
+	if (!pAccount->copyMessages(l, pFolderFrom, pFolderTo, bMove, &callback)) {
+		ActionUtil::error(hwnd_, bMove ? IDS_ERROR_MOVEMESSAGE : IDS_ERROR_COPYMESSAGE);
+		return;
 	}
 }
 
@@ -4042,10 +4003,14 @@ bool qm::MessageMoveAction::isEnabled(const ActionEvent& event)
 
 qm::MessageMoveOtherAction::MessageMoveOtherAction(Document* pDocument,
 												   MessageSelectionModel* pMessageSelectionModel,
+												   MessageModel* pMessageModel,
+												   ViewModelHolder* pViewModelHolder,
 												   Profile* pProfile,
 												   HWND hwnd) :
 	pDocument_(pDocument),
 	pMessageSelectionModel_(pMessageSelectionModel),
+	pMessageModel_(pMessageModel),
+	pViewModelHolder_(pViewModelHolder),
 	pProfile_(pProfile),
 	hwnd_(hwnd)
 {
@@ -4057,6 +4022,10 @@ qm::MessageMoveOtherAction::~MessageMoveOtherAction()
 
 void qm::MessageMoveOtherAction::invoke(const ActionEvent& event)
 {
+	ViewModel* pViewModel = pViewModelHolder_->getViewModel();
+	assert(pViewModel);
+	Lock<ViewModel> lockViewModel(*pViewModel);
+	
 	AccountLock lock;
 	Folder* pFolderFrom = 0;
 	MessageHolderList l;
@@ -4075,6 +4044,13 @@ void qm::MessageMoveOtherAction::invoke(const ActionEvent& event)
 		return;
 	
 	bool bMove = !dialog.isCopy();
+	
+	if (bMove) {
+		unsigned int nIndex = l.size() == 1 ?
+			pViewModel->getIndex(l.front()) : pViewModel->getFocused();
+		if (nIndex < pViewModel->getCount() - 1)
+			MessageActionUtil::select(pViewModel, nIndex + 1, pMessageModel_);
+	}
 	
 	UINT nId = bMove ? IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
 	ProgressDialogMessageOperationCallback callback(hwnd_, nId, nId);
@@ -6601,6 +6577,31 @@ Account* qm::FolderActionUtil::getAccount(FolderModel* pModel)
 Folder* qm::FolderActionUtil::getFolder(FolderModel* pModel)
 {
 	return getCurrent(pModel).second;
+}
+
+
+/****************************************************************************
+ *
+ * MessageActionUtil
+ *
+ */
+
+void qm::MessageActionUtil::select(ViewModel* pViewModel,
+								   unsigned int nIndex,
+								   MessageModel* pMessageModel)
+{
+	assert(pViewModel);
+	assert(pViewModel->isLocked());
+	assert(nIndex < pViewModel->getCount());
+	assert(pMessageModel);
+	
+	MessageHolder* pmh = pViewModel->getMessageHolder(nIndex);
+	pMessageModel->setMessage(pmh);
+	
+	pViewModel->setFocused(nIndex);
+	pViewModel->setSelection(nIndex);
+	pViewModel->setLastSelection(nIndex);
+	pViewModel->payAttention(nIndex);
 }
 
 

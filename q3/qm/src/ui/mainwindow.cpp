@@ -837,16 +837,20 @@ void qm::MainWindowImpl::initActions()
 			operations[n].operation_,
 			pThis_->getHandle());
 	}
-	ADD_ACTION_RANGE3(MessageMoveAction,
+	ADD_ACTION_RANGE5(MessageMoveAction,
 		IDM_MESSAGE_MOVE,
 		IDM_MESSAGE_MOVE + MoveMenu::MAX_FOLDER,
 		pMessageSelectionModel_.get(),
+		pPreviewModel_.get(),
+		this,
 		pMoveMenu_.get(),
 		pThis_->getHandle());
-	ADD_ACTION4(MessageMoveOtherAction,
+	ADD_ACTION6(MessageMoveOtherAction,
 		IDM_MESSAGE_MOVEOTHER,
 		pDocument_,
 		pMessageSelectionModel_.get(),
+		pPreviewModel_.get(),
+		this,
 		pProfile_,
 		pThis_->getHandle());
 	ADD_ACTION_RANGE4(MessageOpenRecentAction,
