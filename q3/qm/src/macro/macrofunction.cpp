@@ -1229,21 +1229,6 @@ const WCHAR* qm::MacroFunctionEval::getName() const
  *
  */
 
-namespace {
-DWORD WINAPI writeProc(void* pParam)
-{
-	std::pair<const CHAR*, HANDLE> p =
-		*static_cast<std::pair<const CHAR*, HANDLE>*>(pParam);
-	const CHAR* psz = p.first;
-	HANDLE hInput = p.second;
-	size_t nLen = strlen(psz);
-	DWORD dwWrite = 0;
-	BOOL b = ::WriteFile(hInput, psz, nLen, &dwWrite, 0);
-	::CloseHandle(hInput);
-	return (b && dwWrite == nLen) ? 0 : 1;
-}
-}
-
 qm::MacroFunctionExecute::MacroFunctionExecute()
 {
 }
