@@ -8,7 +8,17 @@ start = element headerEdit {
 			} |
 			element edit {
 				textitem,
+			} |
+			element address {
+				textitem,
+				## エイリアスを展開するかどうか
+				## 指定されない場合、true
 				attribute expandAlias {
+					xsd:boolean
+				}?,
+				## オートコンプリートを使用するかどうか
+				## 指定されない場合、true
+				attribute autoComplete {
 					xsd:boolean
 				}?
 			} |
@@ -17,6 +27,8 @@ start = element headerEdit {
 			} |
 			element account {
 				item,
+				## Fromのアドレスを表示するかどうか
+				## 指定されない場合、true
 				attribute showFrom {
 					xsd:boolean
 				}?
@@ -25,9 +37,13 @@ start = element headerEdit {
 				item
 			}
 		)*,
+		## フォーカスがない場合に隠すかどうか
+		## 指定されない場合、false
 		attribute hideIfNoFocus {
 			xsd:boolean
 		}?,
+		## どのアカウントクラスで表示するか
+		## 指定されない場合にはすべてのクラスで表示
 		attribute class {
 			xsd:string
 		}?
@@ -47,17 +63,22 @@ attribute initialFocus {
 }?
 
 textitem = item,
+## スタイル
+## boldとitalicが指定可能
+## 複数指定する場合には,で区切る
 attribute style {
 	xsd:string
 }?,
 (
 	xsd:string |
 	(
+		## ヘッダ名
 		attribute field {
 			xsd:string
 		},
+		## ヘッダのタイプ
 		attribute type {
-			"addressList" | "unstructured"
+			"addressList" | "references" | "unstructured"
 		}
 	)
 )
