@@ -58,11 +58,11 @@ xstring_ptr qmpgp::PGPDriver::sign(const CHAR* pszText,
 		assert(false);
 		return 0;
 	}
-	command.append(L" -u ");
+	command.append(L" -u \"");
 	command.append(pwszUserId);
-	command.append(L" -z ");
+	command.append(L"\" -z \"");
 	command.append(pwszPassphrase);
-	command.append(L" -a -f");
+	command.append(L"\" -a -f");
 	
 	ByteInputStream stdin(reinterpret_cast<const unsigned char*>(pszText), strlen(pszText), false);
 	ByteOutputStream stdout;
@@ -83,8 +83,9 @@ xstring_ptr qmpgp::PGPDriver::encrypt(const CHAR* pszText,
 	command.append(wstrPGP.get());
 	command.append(L" -e");
 	for (UserIdList::const_iterator it = listRecipient.begin(); it != listRecipient.end(); ++it) {
-		command.append(L" ");
+		command.append(L" \"");
 		command.append(*it);
+		command.append(L"\"");
 	}
 	command.append(L" -a -f");
 	
@@ -108,13 +109,15 @@ xstring_ptr qmpgp::PGPDriver::signAndEncrypt(const CHAR* pszText,
 	StringBuffer<WSTRING> command;
 	command.append(wstrPGP.get());
 	command.append(L" -es");
-	command.append(L" -u ");
+	command.append(L" -u \"");
 	command.append(pwszUserId);
-	command.append(L" -z ");
+	command.append(L"\" -z \"");
 	command.append(pwszPassphrase);
+	command.append(L"\"");
 	for (UserIdList::const_iterator it = listRecipient.begin(); it != listRecipient.end(); ++it) {
-		command.append(L" ");
+		command.append(L" \"");
 		command.append(*it);
+		command.append(L"\"");
 	}
 	command.append(L" -a -f");
 	
@@ -168,8 +171,9 @@ xstring_ptr qmpgp::PGPDriver::decryptAndVerify(const CHAR* pszContent,
 	StringBuffer<WSTRING> command;
 	command.append(wstrPGP.get());
 	if (pwszPassphrase) {
-		command.append(L" -z ");
+		command.append(L" -z \"");
 		command.append(pwszPassphrase);
+		command.append(L"\"");
 	}
 	command.append(L" -f");
 	

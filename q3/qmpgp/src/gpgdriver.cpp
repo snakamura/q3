@@ -59,9 +59,9 @@ xstring_ptr qmpgp::GPGDriver::sign(const CHAR* pszText,
 		assert(false);
 		return 0;
 	}
-	command.append(L" --local-user ");
+	command.append(L" --local-user \"");
 	command.append(pwszUserId);
-	command.append(L" --armor --batch --passphrase-fd 0");
+	command.append(L"\" --armor --batch --passphrase-fd 0");
 	
 	XStringBuffer<STRING> buf;
 	string_ptr strPassphrase(wcs2mbs(pwszPassphrase));
@@ -87,8 +87,9 @@ xstring_ptr qmpgp::GPGDriver::encrypt(const CHAR* pszText,
 	command.append(wstrGPG.get());
 	command.append(L" --encrypt");
 	for (UserIdList::const_iterator it = listRecipient.begin(); it != listRecipient.end(); ++it) {
-		command.append(L" --recipient ");
+		command.append(L" --recipient \"");
 		command.append(*it);
+		command.append(L"\"");
 	}
 	command.append(L" --armor --batch");
 	
@@ -112,12 +113,13 @@ xstring_ptr qmpgp::GPGDriver::signAndEncrypt(const CHAR* pszText,
 	StringBuffer<WSTRING> command;
 	command.append(wstrGPG.get());
 	command.append(L" --sign");
-	command.append(L" --local-user ");
+	command.append(L" --local-user \"");
 	command.append(pwszUserId);
-	command.append(L" --encrypt");
+	command.append(L"\" --encrypt");
 	for (UserIdList::const_iterator it = listRecipient.begin(); it != listRecipient.end(); ++it) {
-		command.append(L" --recipient ");
+		command.append(L" --recipient \"");
 		command.append(*it);
+		command.append(L"\"");
 	}
 	command.append(L" --armor --batch --passphrase-fd 0");
 	
