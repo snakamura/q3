@@ -53,8 +53,8 @@ public:
 	QSTATUS fireFolderDestroyed();
 
 public:
-	static QSTATUS getSize(const MessageHolderList& l, unsigned int* pnSize);
-	static QSTATUS getBoxSize(const MessageHolderList& l, unsigned int* pnSize);
+	static QSTATUS getSize(Folder* pFolder, unsigned int* pnSize);
+	static QSTATUS getBoxSize(Folder* pFolder, unsigned int* pnSize);
 
 public:
 	Folder* pThis_;
@@ -186,7 +186,7 @@ QSTATUS qm::FolderImpl::fireFolderDestroyed()
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderImpl::getSize(const MessageHolderList& l, unsigned int* pnSize)
+QSTATUS qm::FolderImpl::getSize(Folder* pFolder, unsigned int* pnSize)
 {
 	assert(pnSize);
 	
@@ -194,8 +194,14 @@ QSTATUS qm::FolderImpl::getSize(const MessageHolderList& l, unsigned int* pnSize
 	
 	*pnSize = 0;
 	
-	MessageHolderList::const_iterator it = l.begin();
-	while (it != l.end()) {
+	Lock<Account> lock(*pFolder->getAccount());
+	
+	const MessageHolderList* p = 0;
+	status = pFolder->getMessages(&p);
+	CHECK_QSTATUS();
+	
+	MessageHolderList::const_iterator it = p->begin();
+	while (it != p->end()) {
 		*pnSize += (*it)->getSize();
 		++it;
 	}
@@ -203,7 +209,7 @@ QSTATUS qm::FolderImpl::getSize(const MessageHolderList& l, unsigned int* pnSize
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::FolderImpl::getBoxSize(const MessageHolderList& l, unsigned int* pnSize)
+QSTATUS qm::FolderImpl::getBoxSize(Folder* pFolder, unsigned int* pnSize)
 {
 	assert(pnSize);
 	
@@ -211,8 +217,14 @@ QSTATUS qm::FolderImpl::getBoxSize(const MessageHolderList& l, unsigned int* pnS
 	
 	*pnSize = 0;
 	
-	MessageHolderList::const_iterator it = l.begin();
-	while (it != l.end()) {
+	Lock<Account> lock(*pFolder->getAccount());
+	
+	const MessageHolderList* p = 0;
+	status = pFolder->getMessages(&p);
+	CHECK_QSTATUS();
+	
+	MessageHolderList::const_iterator it = p->begin();
+	while (it != p->end()) {
 		*pnSize += (*it)->getMessageBoxKey().nLength_;
 		++it;
 	}
@@ -728,34 +740,12 @@ unsigned int qm::NormalFolder::getUnseenCount() const
 
 QSTATUS qm::NormalFolder::getSize(unsigned int* pnSize)
 {
-	assert(pnSize);
-	
-	DECLARE_QSTATUS();
-	
-	*pnSize = 0;
-	
-	Lock<Account> lock(*getAccount());
-	
-	status = FolderImpl::getSize(pImpl_->listMessageHolder_, pnSize);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return FolderImpl::getSize(this, pnSize);
 }
 
 QSTATUS qm::NormalFolder::getBoxSize(unsigned int* pnSize)
 {
-	assert(pnSize);
-	
-	DECLARE_QSTATUS();
-	
-	*pnSize = 0;
-	
-	Lock<Account> lock(*getAccount());
-	
-	status = FolderImpl::getBoxSize(pImpl_->listMessageHolder_, pnSize);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return FolderImpl::getBoxSize(this, pnSize);
 }
 
 MessageHolder* qm::NormalFolder::getMessage(unsigned int n) const
@@ -1270,34 +1260,12 @@ unsigned int qm::QueryFolder::getUnseenCount() const
 
 QSTATUS qm::QueryFolder::getSize(unsigned int* pnSize)
 {
-	assert(pnSize);
-	
-	DECLARE_QSTATUS();
-	
-	*pnSize = 0;
-	
-	Lock<Account> lock(*getAccount());
-	
-	status = FolderImpl::getSize(pImpl_->listMessageHolder_, pnSize);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return FolderImpl::getSize(this, pnSize);
 }
 
 QSTATUS qm::QueryFolder::getBoxSize(unsigned int* pnSize)
 {
-	assert(pnSize);
-	
-	DECLARE_QSTATUS();
-	
-	*pnSize = 0;
-	
-	Lock<Account> lock(*getAccount());
-	
-	status = FolderImpl::getBoxSize(pImpl_->listMessageHolder_, pnSize);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
+	return FolderImpl::getBoxSize(this, pnSize);
 }
 
 MessageHolder* qm::QueryFolder::getMessage(unsigned int n) const
