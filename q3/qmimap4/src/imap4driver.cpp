@@ -1204,6 +1204,7 @@ void qmimap4::FolderUtil::getFolderData(const WCHAR* pwszName,
 										unsigned int* pnFlags) const
 {
 	assert(pwszName);
+	assert(*pwszName);
 	assert(pwstrName);
 	assert(pnFlags);
 	
@@ -1213,13 +1214,17 @@ void qmimap4::FolderUtil::getFolderData(const WCHAR* pwszName,
 	bool bChildOfRootFolder = false;
 	size_t nRootFolderLen = wcslen(wstrRootFolder_.get());
 	if (nRootFolderLen != 0) {
-		bChildOfRootFolder = wcsncmp(pwszName, wstrRootFolder_.get(), nRootFolderLen) == 0 &&
-			(*(pwszName + nRootFolderLen) == cSeparator || *(pwszName + nRootFolderLen) == L'\0');
-		if (bChildOfRootFolder)
-			pwszName += nRootFolderLen + 1;
+		if (wcsncmp(pwszName, wstrRootFolder_.get(), nRootFolderLen) == 0) {
+			const WCHAR* p = pwszName + nRootFolderLen;
+			if (*p == L'\0' || (*p == cSeparator && *(p + 1) == L'\0')) {
+				return;
+			}
+			else if (*p == cSeparator) {
+				bChildOfRootFolder = true;
+				pwszName += nRootFolderLen + 1;
+			}
+		}
 	}
-	if (!*pwszName)
-		return;
 	
 	wstring_ptr wstr(allocWString(pwszName));
 	size_t nLen = wcslen(wstr.get());
