@@ -63,31 +63,35 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmjunk::JunkFilterImpl");
 	
-	Lock<CriticalSection> lock(cs_);
-	
-	if (!init())
-		return 0.0F;
-	else if (nCleanCount_ < 100 || nJunkCount_ == 0)
-		return 0.0F;
-	
-	string_ptr strId(getId(msg));
-	int nId = 0;
-	if (dpgetwb(pDepotId_, strId.get(), strlen(strId.get()),
-		0, sizeof(nId), reinterpret_cast<char*>(&nId)) != -1) {
-		if (nId > 0)
+	{
+		Lock<CriticalSection> lock(cs_);
+		
+		if (!init())
 			return 0.0F;
-		else if (nId < 0)
-			return 1.0F;
+		else if (nCleanCount_ < 100 || nJunkCount_ == 0)
+			return 0.0F;
+		
+		string_ptr strId(getId(msg));
+		int nId = 0;
+		if (dpgetwb(pDepotId_, strId.get(), strlen(strId.get()),
+			0, sizeof(nId), reinterpret_cast<char*>(&nId)) != -1) {
+			if (nId > 0)
+				return 0.0F;
+			else if (nId < 0)
+				return 1.0F;
+		}
 	}
 	
 	struct TokenizerCallbackImpl : public TokenizerCallback
 	{
 		TokenizerCallbackImpl(DEPOT* pDepotToken,
-							  unsigned int nCleanCount,
-							  unsigned int nJunkCount) :
+							  const volatile unsigned int& nCleanCount,
+							  const volatile unsigned int& nJunkCount,
+							  CriticalSection& cs) :
 			pDepotToken_(pDepotToken),
 			nCleanCount_(nCleanCount),
 			nJunkCount_(nJunkCount),
+			cs_(cs),
 			nMax_(15)
 		{
 			listTokenRate_.reserve(nMax_);
@@ -119,7 +123,10 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 			char* pValue = reinterpret_cast<char*>(nCount);
 			size_t nValueLen = sizeof(nCount);
 			
-			dpgetwb(pDepotToken_, pKey, nKeyLen, 0, nValueLen, pValue);
+			{
+				Lock<CriticalSection> lock(cs_);
+				dpgetwb(pDepotToken_, pKey, nKeyLen, 0, nValueLen, pValue);
+			}
 			
 			float fRate = 0.4F;
 			if (nCount[0]*2 + nCount[1] > 5) {
@@ -167,11 +174,12 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 		typedef std::vector<std::pair<WSTRING, float> > TokenRateList;
 		
 		DEPOT* pDepotToken_;
-		unsigned int nCleanCount_;
-		unsigned int nJunkCount_;
+		const volatile unsigned int& nCleanCount_;
+		const volatile unsigned int& nJunkCount_;
+		CriticalSection& cs_;
 		TokenRateList listTokenRate_;
 		const unsigned int nMax_;
-	} callback(pDepotToken_, nCleanCount_, nJunkCount_);
+	} callback(pDepotToken_, nCleanCount_, nJunkCount_, cs_);
 	if (!Tokenizer().getTokens(msg, &callback))
 		return 0.0F;
 	
@@ -219,44 +227,46 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 	assert((nOperation & OPERATION_ADDCLEAN) == 0 || (nOperation & OPERATION_REMOVECLEAN) == 0);
 	assert((nOperation & OPERATION_ADDJUNK) == 0 || (nOperation & OPERATION_REMOVEJUNK) == 0);
 	
-	Lock<CriticalSection> lock(cs_);
-	
-	if (!init())
-		return false;
-	
-	string_ptr strId(getId(msg));
-	int nId = 0;
-	if (dpgetwb(pDepotId_, strId.get(), strlen(strId.get()),
-		0, sizeof(nId), reinterpret_cast<char*>(&nId)) == -1)
-		nId = 0;
-	if (nId > 0) {
-		nOperation &= ~(JunkFilter::OPERATION_ADDCLEAN | JunkFilter::OPERATION_REMOVEJUNK);
-		if (nOperation & JunkFilter::OPERATION_ADDJUNK) {
-			nOperation |= JunkFilter::OPERATION_REMOVECLEAN;
-			nId = -1;
-		}
-		else if (nOperation & JunkFilter::OPERATION_REMOVECLEAN) {
+	{
+		Lock<CriticalSection> lock(cs_);
+		
+		if (!init())
+			return false;
+		
+		string_ptr strId(getId(msg));
+		int nId = 0;
+		if (dpgetwb(pDepotId_, strId.get(), strlen(strId.get()),
+			0, sizeof(nId), reinterpret_cast<char*>(&nId)) == -1)
 			nId = 0;
+		if (nId > 0) {
+			nOperation &= ~(JunkFilter::OPERATION_ADDCLEAN | JunkFilter::OPERATION_REMOVEJUNK);
+			if (nOperation & JunkFilter::OPERATION_ADDJUNK) {
+				nOperation |= JunkFilter::OPERATION_REMOVECLEAN;
+				nId = -1;
+			}
+			else if (nOperation & JunkFilter::OPERATION_REMOVECLEAN) {
+				nId = 0;
+			}
 		}
-	}
-	else if (nId < 0) {
-		nOperation &= ~(JunkFilter::OPERATION_ADDJUNK | JunkFilter::OPERATION_REMOVECLEAN);
-		if (nOperation & JunkFilter::OPERATION_ADDCLEAN) {
-			nOperation |= JunkFilter::OPERATION_REMOVEJUNK;
-			nId = 1;
+		else if (nId < 0) {
+			nOperation &= ~(JunkFilter::OPERATION_ADDJUNK | JunkFilter::OPERATION_REMOVECLEAN);
+			if (nOperation & JunkFilter::OPERATION_ADDCLEAN) {
+				nOperation |= JunkFilter::OPERATION_REMOVEJUNK;
+				nId = 1;
+			}
+			else if (nOperation & JunkFilter::OPERATION_REMOVEJUNK) {
+				nId = 0;
+			}
 		}
-		else if (nOperation & JunkFilter::OPERATION_REMOVEJUNK) {
-			nId = 0;
+		else {
+			nOperation &= ~(JunkFilter::OPERATION_REMOVECLEAN | JunkFilter::OPERATION_REMOVEJUNK);
+			if (nOperation & JunkFilter::OPERATION_ADDCLEAN)
+				nId = 1;
+			else if (nOperation & JunkFilter::OPERATION_ADDJUNK)
+				nId = -1;
 		}
+		dpput(pDepotId_, strId.get(), strlen(strId.get()), reinterpret_cast<char*>(&nId), sizeof(nId), DP_DOVER);
 	}
-	else {
-		nOperation &= ~(JunkFilter::OPERATION_REMOVECLEAN | JunkFilter::OPERATION_REMOVEJUNK);
-		if (nOperation & JunkFilter::OPERATION_ADDCLEAN)
-			nId = 1;
-		else if (nOperation & JunkFilter::OPERATION_ADDJUNK)
-			nId = -1;
-	}
-	dpput(pDepotId_, strId.get(), strlen(strId.get()), reinterpret_cast<char*>(&nId), sizeof(nId), DP_DOVER);
 	
 	if (nOperation == 0)
 		return true;
@@ -265,9 +275,11 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 	{
 		TokenizerCallbackImpl(unsigned int nOperation,
 							  DEPOT* pDepotToken,
+							  CriticalSection& cs,
 							  Log& log) :
 			nOperation_(nOperation),
 			pDepotToken_(pDepotToken),
+			cs_(cs),
 			log_(log)
 		{
 		}
@@ -281,18 +293,22 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 			char* pValue = reinterpret_cast<char*>(nCount);
 			size_t nValueLen = sizeof(nCount);
 			
-			dpgetwb(pDepotToken_, pKey, nKeyLen, 0, nValueLen, pValue);
-			
-			if (nOperation_ & JunkFilter::OPERATION_ADDCLEAN)
-				++nCount[0];
-			if (nOperation_ & JunkFilter::OPERATION_REMOVECLEAN && nCount[0] > 0)
-				--nCount[0];
-			if (nOperation_ & JunkFilter::OPERATION_ADDJUNK)
-				++nCount[1];
-			if (nOperation_ & JunkFilter::OPERATION_REMOVEJUNK && nCount[1] > 0)
-				--nCount[1];
-			
-			dpput(pDepotToken_, pKey, nKeyLen, pValue, nValueLen, DP_DOVER);
+			{
+				Lock<CriticalSection> lock(cs_);
+				
+				dpgetwb(pDepotToken_, pKey, nKeyLen, 0, nValueLen, pValue);
+				
+				if (nOperation_ & JunkFilter::OPERATION_ADDCLEAN)
+					++nCount[0];
+				if (nOperation_ & JunkFilter::OPERATION_REMOVECLEAN && nCount[0] > 0)
+					--nCount[0];
+				if (nOperation_ & JunkFilter::OPERATION_ADDJUNK)
+					++nCount[1];
+				if (nOperation_ & JunkFilter::OPERATION_REMOVEJUNK && nCount[1] > 0)
+					--nCount[1];
+				
+				dpput(pDepotToken_, pKey, nKeyLen, pValue, nValueLen, DP_DOVER);
+			}
 			
 			if (log_.isDebugEnabled()) {
 				WCHAR wszCount[64];
@@ -306,19 +322,24 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 		
 		unsigned int nOperation_;
 		DEPOT* pDepotToken_;
+		CriticalSection& cs_;
 		Log& log_;
-	} callback(nOperation, pDepotToken_, log);
+	} callback(nOperation, pDepotToken_, cs_, log);
 	if (!Tokenizer().getTokens(msg, &callback))
 		return false;
 	
-	if (nOperation & OPERATION_ADDCLEAN)
-		++nCleanCount_;
-	if (nOperation & OPERATION_REMOVECLEAN && nCleanCount_ != 0)
-		--nCleanCount_;
-	if (nOperation & OPERATION_ADDJUNK)
-		++nJunkCount_;
-	if (nOperation & OPERATION_REMOVEJUNK && nJunkCount_ != 0)
-		--nJunkCount_;
+	{
+		Lock<CriticalSection> lock(cs_);
+		
+		if (nOperation & OPERATION_ADDCLEAN)
+			++nCleanCount_;
+		if (nOperation & OPERATION_REMOVECLEAN && nCleanCount_ != 0)
+			--nCleanCount_;
+		if (nOperation & OPERATION_ADDJUNK)
+			++nJunkCount_;
+		if (nOperation & OPERATION_REMOVEJUNK && nJunkCount_ != 0)
+			--nJunkCount_;
+	}
 	
 	return true;
 }

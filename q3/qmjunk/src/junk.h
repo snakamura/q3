@@ -63,8 +63,8 @@ private:
 	qs::Profile* pProfile_;
 	DEPOT* pDepotToken_;
 	DEPOT* pDepotId_;
-	unsigned int nCleanCount_;
-	unsigned int nJunkCount_;
+	volatile unsigned int nCleanCount_;
+	volatile unsigned int nJunkCount_;
 	float fThresholdScore_;
 	unsigned int nFlags_;
 	qs::CriticalSection cs_;
