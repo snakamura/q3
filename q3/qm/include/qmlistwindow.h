@@ -64,7 +64,6 @@ public:
 					   bool bCtrl);
 
 public:
-	HFONT getFont() const;
 	bool isShowHeaderColumn() const;
 	void setShowHeaderColumn(bool bShow);
 	void reloadProfiles();

@@ -159,8 +159,8 @@ bool qm::ListWindowImpl::createHeaderColumn()
 		WS_CHILD, 0, 0, rect.right - rect.left, 0,
 		pThis_->getHandle(), 0, 0, ID_HEADERCOLUMN, 0))
 		return false;
-	
 	pHeaderColumn_ = pHeaderColumn.release();
+	pHeaderColumn_->setFont(hfont_);
 	
 	return true;
 }
@@ -1042,11 +1042,6 @@ void qm::ListWindow::moveSelection(MoveSelection m,
 	}
 }
 
-HFONT qm::ListWindow::getFont() const
-{
-	return pImpl_->hfont_;
-}
-
 bool qm::ListWindow::isShowHeaderColumn() const
 {
 	return pImpl_->pHeaderColumn_->isShow();
@@ -1799,7 +1794,7 @@ int qm::ListHeaderColumn::getHeight() const
 int qm::ListHeaderColumn::getPreferredHeight() const
 {
 	ClientDeviceContext dc(getHandle());
-	ObjectSelector<HFONT> selector(dc, pImpl_->pListWindow_->getFont());
+	ObjectSelector<HFONT> selector(dc, getFont());
 	TEXTMETRIC tm;
 	dc.getTextMetrics(&tm);
 	return tm.tmHeight + tm.tmExternalLeading + 8;
@@ -1893,8 +1888,6 @@ LRESULT qm::ListHeaderColumn::onCreate(CREATESTRUCT* pCreateStruct)
 	if (DefaultWindowHandler::onCreate(pCreateStruct) == -1)
 		return -1;
 	
-	ListWindow* pListWindow = pImpl_->pListWindow_;
-	setFont(pListWindow->getFont());
 	pImpl_->nId_ = getWindowLong(GWL_ID);
 	
 	HIMAGELIST hImageList = ImageList_LoadImage(
