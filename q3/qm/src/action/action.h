@@ -1142,7 +1142,8 @@ class ToolAccountAction : public qs::AbstractAction
 {
 public:
 	ToolAccountAction(Document* pDocument, FolderModel* pFolderModel,
-		SyncFilterManager* pSyncFilterManager, qs::QSTATUS* pstatus);
+		SyncFilterManager* pSyncFilterManager,
+		qs::Profile* pProfile, qs::QSTATUS* pstatus);
 	virtual ~ToolAccountAction();
 
 public:
@@ -1157,6 +1158,7 @@ private:
 	Document* pDocument_;
 	FolderModel* pFolderModel_;
 	SyncFilterManager* pSyncFilterManager_;
+	qs::Profile* pProfile_;
 };
 
 

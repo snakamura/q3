@@ -1,0 +1,63 @@
+{
+	@Progn(
+		@Set('val', @Progn(
+			@Set('from', @If(@Exist('Reply-To'), Reply-To, From)),
+			@Set('to', @Remove(To, @Address(@I(@Account(), X-QMAIL-SubAccount)), @Address($from))),
+			@Set('cc', @Remove(Cc, @Address(@I(@Account(), X-QMAIL-SubAccount)), @Address($from))),
+			@Concat($to, @If(@And($to, $cc), ', ', ''), $cc))),
+		@Concat(
+			'To: ',
+			@Decode($from),
+			'\\n',
+			@If(
+				$val,
+				@Concat('Cc: ', @Decode($val), '\\n'),
+				''
+			)
+		)
+	)
+}Subject: Re: {@Subject(@True(), @True())}
+{
+	@If(
+		@Or(
+			@Exist('X-ML-Name'),
+			@BeginWith(Subject, '[')
+		),
+		'',
+		@Equal(
+			@Profile('', 'Global', 'Bcc', '1'),
+			'0'
+		),
+		'',
+		@Concat(
+			'Bcc: ',
+			@I(@Account(), X-QMAIL-SubAccount),
+			'\\n'
+		)
+	)
+}Message-Id: {
+	@Concat(
+		'<',
+		@ProcessId(),
+		@FormatDate(@Date(), '%Y4%M0%D%h%m%s'),
+		@Address(@I()),
+		'>'
+	)
+}
+In-Reply-To: {Message-Id}
+References: {
+	@Progn(
+		@Set('ref', @References(4)),
+		@Concat(
+			@If($ref, @Concat($ref, ' '), ''),
+			Message-Id
+		)
+	)
+}
+X-QMAIL-Account: {@Account()}{@If(X-QMAIL-SubAccount, @Concat('\\nX-QMAIL-SubAccount: ', X-QMAIL-SubAccount), '')}
+X-QMAIL-Macro: @ForEach(@Messages('{@Concat('//', @Account(), '/', @Folder())}', {@Id()}), @Replied(@True()))
+
+At {@FormatDate(@Date(Date), '%D %M1 %Y4 %h:%m:%s %z', 2)} {@Name(From)} wrote:
+{
+	@Body('> ', @True())
+}

@@ -129,10 +129,11 @@ public:
 	virtual ~NntpReceiveSessionUI();
 
 public:
-	virtual qs::QSTATUS createPropertyPage(
-		qm::SubAccount* pSubAccount, qs::PropertyPage** ppPage);
+	virtual const WCHAR* getClass();
 	virtual qs::QSTATUS getDisplayName(qs::WSTRING* pwstrName);
 	virtual short getDefaultPort();
+	virtual qs::QSTATUS createPropertyPage(
+		qm::SubAccount* pSubAccount, qs::PropertyPage** ppPage);
 
 private:
 	NntpReceiveSessionUI(const NntpReceiveSessionUI&);

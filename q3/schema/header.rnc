@@ -15,6 +15,9 @@ start = element header {
 		)*,
 		attribute hideIfEmpty {
 			xsd:string
+		}?,
+		attribute class {
+			xsd:string
 		}?
 	}*
 }

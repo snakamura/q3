@@ -9,6 +9,7 @@
 #ifndef __HEADEREDITWINDOW_H__
 #define __HEADEREDITWINDOW_H__
 
+#include <qsregex.h>
 #include <qssax.h>
 
 #include <vector>
@@ -49,15 +50,16 @@ public:
 	};
 
 public:
-	HeaderEditLine(HeaderEditLineCallback* pCallback, qs::QSTATUS* pstatus);
+	HeaderEditLine(HeaderEditLineCallback* pCallback, unsigned int nFlags,
+		qs::RegexPattern* pClass, qs::QSTATUS* pstatus);
 	~HeaderEditLine();
 
 public:
+	qs::QSTATUS setEditMessage(EditMessage* pEditMessage, bool bReset);
 	EditWindowItem* getNextFocusItem(EditWindowItem** ppItem) const;
 	EditWindowItem* getPrevFocusItem(EditWindowItem** ppItem) const;
-
-public:
-	void setFlags(unsigned int nFlags, unsigned int nMask);
+	HeaderEditItem* getFocusedItem() const;
+	HeaderEditItem* getInitialFocusItem() const;
 
 protected:
 	virtual bool isHidden() const;
@@ -69,6 +71,8 @@ private:
 private:
 	HeaderEditLineCallback* pCallback_;
 	unsigned int nFlags_;
+	qs::RegexPattern* pClass_;
+	bool bHide_;
 };
 
 

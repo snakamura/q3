@@ -24,6 +24,9 @@ start = element headerEdit {
 		)*,
 		attribute hideIfNoFocus {
 			xsd:boolean
+		}?,
+		attribute class {
+			xsd:string
 		}?
 	}*
 }

@@ -1,5 +1,5 @@
 /*
- * $Id: pop3sendsession.cpp,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -254,6 +254,22 @@ qmpop3::Pop3SendSessionUI::~Pop3SendSessionUI()
 {
 }
 
+const WCHAR* qmpop3::Pop3SendSessionUI::getClass()
+{
+	return L"mail";
+}
+
+QSTATUS qmpop3::Pop3SendSessionUI::getDisplayName(WSTRING* pwstrName)
+{
+	assert(pwstrName);
+	return loadString(getResourceHandle(), IDS_POP3SEND, pwstrName);
+}
+
+short qmpop3::Pop3SendSessionUI::getDefaultPort()
+{
+	return 110;
+}
+
 QSTATUS qmpop3::Pop3SendSessionUI::createPropertyPage(
 	SubAccount* pSubAccount, PropertyPage** ppPage)
 {
@@ -270,17 +286,6 @@ QSTATUS qmpop3::Pop3SendSessionUI::createPropertyPage(
 	*ppPage = pPage.release();
 	
 	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qmpop3::Pop3SendSessionUI::getDisplayName(WSTRING* pwstrName)
-{
-	assert(pwstrName);
-	return loadString(getResourceHandle(), IDS_POP3SEND, pwstrName);
-}
-
-short qmpop3::Pop3SendSessionUI::getDefaultPort()
-{
-	return 110;
 }
 
 

@@ -63,6 +63,7 @@ public:
 	Account* pThis_;
 	WSTRING wstrName_;
 	WSTRING wstrPath_;
+	WSTRING wstrClass_;
 	WSTRING wstrType_[Account::HOST_SIZE];
 	Profile* pProfile_;
 	Account::SubAccountList listSubAccount_;
@@ -374,6 +375,7 @@ qm::Account::Account(const WCHAR* pwszPath, QSTATUS* pstatus) :
 	pImpl_->pThis_ = this;
 	pImpl_->wstrName_ = wstrName.release();
 	pImpl_->wstrPath_ = wstrPath.release();
+	pImpl_->wstrClass_ = 0;
 	pImpl_->wstrType_[HOST_SEND] = 0;
 	pImpl_->wstrType_[HOST_RECEIVE] = 0;
 	pImpl_->pProfile_ = 0;
@@ -419,11 +421,14 @@ qm::Account::Account(const WCHAR* pwszPath, QSTATUS* pstatus) :
 	status = newQsObject(pImpl_->pMessageStore_, &pImpl_->pMessageCache_);
 	CHECK_QSTATUS_SET(pstatus);
 	
-	status = pImpl_->pProfile_->getString(L"Send", L"Type", L"smtp",
-		&pImpl_->wstrType_[HOST_SEND]);
+	status = pImpl_->pProfile_->getString(L"Global",
+		L"Class", L"mail", &pImpl_->wstrClass_);
 	CHECK_QSTATUS_SET(pstatus);
-	status = pImpl_->pProfile_->getString(L"Receive", L"Type", L"pop3",
-		&pImpl_->wstrType_[HOST_RECEIVE]);
+	status = pImpl_->pProfile_->getString(L"Send",
+		L"Type", L"smtp", &pImpl_->wstrType_[HOST_SEND]);
+	CHECK_QSTATUS_SET(pstatus);
+	status = pImpl_->pProfile_->getString(L"Receive",
+		L"Type", L"pop3", &pImpl_->wstrType_[HOST_RECEIVE]);
 	CHECK_QSTATUS_SET(pstatus);
 	
 	std::auto_ptr<ProtocolDriver> pProtocolDriver;
@@ -450,6 +455,7 @@ qm::Account::~Account()
 		WSTRING* pwstrs[] = {
 			&pImpl_->wstrName_,
 			&pImpl_->wstrPath_,
+			&pImpl_->wstrClass_,
 			&pImpl_->wstrType_[HOST_SEND],
 			&pImpl_->wstrType_[HOST_RECEIVE],
 		};
@@ -475,6 +481,11 @@ const WCHAR* qm::Account::getName() const
 const WCHAR* qm::Account::getPath() const
 {
 	return pImpl_->wstrPath_;
+}
+
+const WCHAR* qm::Account::getClass() const
+{
+	return pImpl_->wstrClass_;
 }
 
 const WCHAR* qm::Account::getType(Host host) const

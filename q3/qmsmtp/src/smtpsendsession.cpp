@@ -502,6 +502,22 @@ qmsmtp::SmtpSendSessionUI::~SmtpSendSessionUI()
 {
 }
 
+const WCHAR* qmsmtp::SmtpSendSessionUI::getClass()
+{
+	return L"mail";
+}
+
+QSTATUS qmsmtp::SmtpSendSessionUI::getDisplayName(WSTRING* pwstrName)
+{
+	assert(pwstrName);
+	return loadString(getResourceHandle(), IDS_SMTP, pwstrName);
+}
+
+short qmsmtp::SmtpSendSessionUI::getDefaultPort()
+{
+	return 25;
+}
+
 QSTATUS qmsmtp::SmtpSendSessionUI::createPropertyPage(
 	SubAccount* pSubAccount, PropertyPage** ppPage)
 {
@@ -518,17 +534,6 @@ QSTATUS qmsmtp::SmtpSendSessionUI::createPropertyPage(
 	*ppPage = pPage.release();
 	
 	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qmsmtp::SmtpSendSessionUI::getDisplayName(WSTRING* pwstrName)
-{
-	assert(pwstrName);
-	return loadString(getResourceHandle(), IDS_SMTP, pwstrName);
-}
-
-short qmsmtp::SmtpSendSessionUI::getDefaultPort()
-{
-	return 25;
 }
 
 

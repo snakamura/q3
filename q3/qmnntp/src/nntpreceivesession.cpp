@@ -530,6 +530,22 @@ qmnntp::NntpReceiveSessionUI::~NntpReceiveSessionUI()
 {
 }
 
+const WCHAR* qmnntp::NntpReceiveSessionUI::getClass()
+{
+	return L"news";
+}
+
+QSTATUS qmnntp::NntpReceiveSessionUI::getDisplayName(WSTRING* pwstrName)
+{
+	assert(pwstrName);
+	return loadString(getResourceHandle(), IDS_NNTP, pwstrName);
+}
+
+short qmnntp::NntpReceiveSessionUI::getDefaultPort()
+{
+	return 119;
+}
+
 QSTATUS qmnntp::NntpReceiveSessionUI::createPropertyPage(
 	SubAccount* pSubAccount, PropertyPage** ppPage)
 {
@@ -546,17 +562,6 @@ QSTATUS qmnntp::NntpReceiveSessionUI::createPropertyPage(
 	*ppPage = pPage.release();
 	
 	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qmnntp::NntpReceiveSessionUI::getDisplayName(WSTRING* pwstrName)
-{
-	assert(pwstrName);
-	return loadString(getResourceHandle(), IDS_NNTP, pwstrName);
-}
-
-short qmnntp::NntpReceiveSessionUI::getDefaultPort()
-{
-	return 119;
 }
 
 

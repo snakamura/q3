@@ -117,10 +117,11 @@ public:
 	virtual ~ReceiveSessionUI();
 
 public:
-	virtual qs::QSTATUS createPropertyPage(
-		SubAccount* pSubAccount, qs::PropertyPage** ppPage) = 0;
+	virtual const WCHAR* getClass() = 0;
 	virtual qs::QSTATUS getDisplayName(qs::WSTRING* pwstrName) = 0;
 	virtual short getDefaultPort() = 0;
+	virtual qs::QSTATUS createPropertyPage(
+		SubAccount* pSubAccount, qs::PropertyPage** ppPage) = 0;
 };
 
 
@@ -213,10 +214,11 @@ public:
 	virtual ~SendSessionUI();
 
 public:
-	virtual qs::QSTATUS createPropertyPage(
-		SubAccount* pSubAccount, qs::PropertyPage** ppPage) = 0;
+	virtual const WCHAR* getClass() = 0;
 	virtual qs::QSTATUS getDisplayName(qs::WSTRING* pwstrName) = 0;
 	virtual short getDefaultPort() = 0;
+	virtual qs::QSTATUS createPropertyPage(
+		SubAccount* pSubAccount, qs::PropertyPage** ppPage) = 0;
 };
 
 

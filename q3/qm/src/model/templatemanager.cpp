@@ -93,10 +93,12 @@ QSTATUS qm::TemplateManager::getTemplate(Account* pAccount,
 		W2T(wstrPath.get(), ptszPath);
 		if (::GetFileAttributes(ptszPath) == 0xffffffff) {
 			ConcatW c[] = {
-				{ wstrPath_,		-1 },
-				{ L"\\templates\\",	-1 },
-				{ pwszName,			-1 },
-				{ L".template",		-1 }
+				{ wstrPath_,			-1 },
+				{ L"\\templates\\",		-1 },
+				{ pAccount->getClass(),	-1 },
+				{ L"\\",				-1 },
+				{ pwszName,				-1 },
+				{ L".template",			-1 }
 			};
 			wstrPath.reset(concat(c, countof(c)));
 			if (!wstrPath.get())
@@ -156,9 +158,10 @@ QSTATUS qm::TemplateManager::getTemplate(Account* pAccount,
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::TemplateManager::getTemplateNames(
+QSTATUS qm::TemplateManager::getTemplateNames(Account* pAccount,
 	const WCHAR* pwszPrefix, NameList* pList) const
 {
+	assert(pAccount);
 	assert(pList);
 	
 	DECLARE_QSTATUS();
@@ -171,6 +174,10 @@ QSTATUS qm::TemplateManager::getTemplateNames(
 	status = buf.append(wstrPath_);
 	CHECK_QSTATUS();
 	status = buf.append(L"\\templates\\");
+	CHECK_QSTATUS();
+	status = buf.append(pAccount->getClass());
+	CHECK_QSTATUS();
+	status = buf.append(L"\\");
 	CHECK_QSTATUS();
 	if (pwszPrefix) {
 		status = buf.append(pwszPrefix);

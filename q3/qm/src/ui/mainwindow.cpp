@@ -482,10 +482,10 @@ QSTATUS qm::MainWindowImpl::initActions()
 	status = InitAction2<MessagePropertyAction, MessageSelectionModel*, HWND>(
 		pActionMap_, IDM_MESSAGE_PROPERTY, pMessageSelectionModel_, pThis_->getHandle());
 	CHECK_QSTATUS();
-	status = InitAction3<ToolAccountAction,
-		Document*, FolderModel*, SyncFilterManager*>(
-		pActionMap_, IDM_TOOL_ACCOUNT, pDocument_,
-		pFolderModel_, pSyncManager_->getSyncFilterManager());
+	status = InitAction4<ToolAccountAction, Document*,
+		FolderModel*, SyncFilterManager*, Profile*>(
+		pActionMap_, IDM_TOOL_ACCOUNT, pDocument_, pFolderModel_,
+		pSyncManager_->getSyncFilterManager(), pProfile_);
 	CHECK_QSTATUS();
 	status = InitAction1<ToolCheckNewMailAction, Document*>(
 		pActionMap_, IDM_TOOL_CHECKNEWMAIL, pDocument_);
@@ -1986,13 +1986,13 @@ LRESULT qm::MainWindow::onInitMenuPopup(HMENU hmenu, UINT nIndex, bool bSysMenu)
 			nIdLast = mii.wID;
 		}
 		
+		Account* pAccount = pImpl_->pFolderModel_->getCurrentAccount();
+		if (!pAccount) {
+			Folder* pFolder = pImpl_->pFolderModel_->getCurrentFolder();
+			if (pFolder)
+				pAccount = pFolder->getAccount();
+		}
 		if (nIdLast == IDM_MESSAGE_MOVEOTHER) {
-			Account* pAccount = pImpl_->pFolderModel_->getCurrentAccount();
-			if (!pAccount) {
-				Folder* pFolder = pImpl_->pFolderModel_->getCurrentFolder();
-				if (pFolder)
-					pAccount = pFolder->getAccount();
-			}
 			if (pAccount) {
 				status = pImpl_->pMoveMenu_->createMenu(
 					hmenu, pAccount, *pImpl_->pActionMap_);
@@ -2027,15 +2027,30 @@ LRESULT qm::MainWindow::onInitMenuPopup(HMENU hmenu, UINT nIndex, bool bSysMenu)
 			}
 		}
 		else if (nIdFirst == IDM_VIEW_TEMPLATENONE) {
-			status = pImpl_->pViewTemplateMenu_->createMenu(hmenu);
+			if (pAccount) {
+				status = pImpl_->pViewTemplateMenu_->createMenu(hmenu, pAccount);
+			}
+			else {
+				::EnableMenuItem(hmenu, nIndex, MF_GRAYED | MF_BYPOSITION);
+			}
 		}
 		else if (nIdFirst == IDM_MESSAGE_APPLYTEMPLATE ||
 			nIdFirst == IDM_MESSAGE_APPLYTEMPLATENONE) {
-			status = pImpl_->pCreateTemplateMenu_->createMenu(hmenu);
+			if (pAccount) {
+				status = pImpl_->pCreateTemplateMenu_->createMenu(hmenu, pAccount);
+			}
+			else {
+				::EnableMenuItem(hmenu, nIndex, MF_GRAYED | MF_BYPOSITION);
+			}
 		}
 		else if (nIdFirst == IDM_MESSAGE_APPLYTEMPLATEEXTERNAL ||
 			nIdFirst == IDM_MESSAGE_APPLYTEMPLATENONEEXTERNAL) {
-			status = pImpl_->pCreateTemplateExternalMenu_->createMenu(hmenu);
+			if (pAccount) {
+				status = pImpl_->pCreateTemplateExternalMenu_->createMenu(hmenu, pAccount);
+			}
+			else {
+				::EnableMenuItem(hmenu, nIndex, MF_GRAYED | MF_BYPOSITION);
+			}
 		}
 		else if (nIdFirst == IDM_VIEW_ENCODINGAUTODETECT) {
 			status = pImpl_->pEncodingMenu_->createMenu(hmenu);

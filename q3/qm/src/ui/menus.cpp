@@ -1,5 +1,5 @@
 /*
- * $Id: menus.cpp,v 1.4 2003/05/19 07:13:32 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -511,7 +511,7 @@ const WCHAR* qm::TemplateMenu::getTemplate(unsigned int nId) const
 		return list_[nId - getId()];
 }
 
-QSTATUS qm::TemplateMenu::createMenu(HMENU hmenu)
+QSTATUS qm::TemplateMenu::createMenu(HMENU hmenu, Account* pAccount)
 {
 	assert(hmenu);
 	
@@ -526,7 +526,7 @@ QSTATUS qm::TemplateMenu::createMenu(HMENU hmenu)
 	
 	TemplateManager::NameList l;
 	StringListFree<TemplateManager::NameList> free(l);
-	status = pTemplateManager_->getTemplateNames(pwszPrefix, &l);
+	status = pTemplateManager_->getTemplateNames(pAccount, pwszPrefix, &l);
 	CHECK_QSTATUS();
 	
 	UINT nId = getId();

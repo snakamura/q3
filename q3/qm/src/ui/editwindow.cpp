@@ -321,6 +321,9 @@ QSTATUS qm::EditWindowImpl::setEditMessage(EditMessage* pEditMessage)
 	
 	pEditMessage_ = pEditMessage;
 	
+	status = layoutChildren();
+	CHECK_QSTATUS();
+	
 	return QSTATUS_SUCCESS;
 }
 

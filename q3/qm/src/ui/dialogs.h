@@ -77,7 +77,8 @@ class AccountDialog : public DefaultDialog, public qs::NotifyHandler
 {
 public:
 	AccountDialog(Document* pDocument, Account* pAccount,
-		SyncFilterManager* pSyncFilterManager, qs::QSTATUS* pstatus);
+		SyncFilterManager* pSyncFilterManager,
+		qs::Profile* pProfile, qs::QSTATUS* pstatus);
 	virtual ~AccountDialog();
 
 public:
@@ -110,6 +111,7 @@ private:
 	Document* pDocument_;
 	SubAccount* pSubAccount_;
 	SyncFilterManager* pSyncFilterManager_;
+	qs::Profile* pProfile_;
 };
 
 
@@ -268,11 +270,12 @@ private:
 class CreateAccountDialog : public DefaultDialog
 {
 public:
-	explicit CreateAccountDialog(qs::QSTATUS* pstatus);
+	CreateAccountDialog(qs::Profile* pProfile, qs::QSTATUS* pstatus);
 	virtual ~CreateAccountDialog();
 
 public:
 	const WCHAR* getName() const;
+	const WCHAR* getClass() const;
 	const WCHAR* getReceiveProtocol() const;
 	short getReceivePort() const;
 	const WCHAR* getSendProtocol() const;
@@ -291,10 +294,13 @@ protected:
 
 private:
 	LRESULT onNameChange();
+	LRESULT onClassChange();
 	LRESULT onProtocolChange();
 	LRESULT onTypeChange();
 
 private:
+	qs::QSTATUS updateProtocols();
+	void clearProtocols();
 	void updateState();
 
 private:
@@ -312,9 +318,11 @@ private:
 	typedef std::vector<Protocol> ProtocolList;
 
 private:
+	qs::Profile* pProfile_;
 	ProtocolList listReceiveProtocol_;
 	ProtocolList listSendProtocol_;
 	qs::WSTRING wstrName_;
+	qs::WSTRING wstrClass_;
 	int nReceiveProtocol_;
 	int nSendProtocol_;
 	unsigned int nBlockSize_;

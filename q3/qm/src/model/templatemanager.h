@@ -1,5 +1,5 @@
 /*
- * $Id: templatemanager.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -39,7 +39,7 @@ public:
 public:
 	qs::QSTATUS getTemplate(Account* pAccount, Folder* pFolder,
 		const WCHAR* pwszName, const Template** ppTemplate) const;
-	qs::QSTATUS getTemplateNames(
+	qs::QSTATUS getTemplateNames(Account* pAccount,
 		const WCHAR* pwszPrefix, NameList* pList) const;
 
 private:

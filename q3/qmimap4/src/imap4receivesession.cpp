@@ -1773,6 +1773,22 @@ qmimap4::Imap4ReceiveSessionUI::~Imap4ReceiveSessionUI()
 {
 }
 
+const WCHAR* qmimap4::Imap4ReceiveSessionUI::getClass()
+{
+	return L"mail";
+}
+
+QSTATUS qmimap4::Imap4ReceiveSessionUI::getDisplayName(WSTRING* pwstrName)
+{
+	assert(pwstrName);
+	return loadString(getResourceHandle(), IDS_IMAP4, pwstrName);
+}
+
+short qmimap4::Imap4ReceiveSessionUI::getDefaultPort()
+{
+	return 143;
+}
+
 QSTATUS qmimap4::Imap4ReceiveSessionUI::createPropertyPage(
 	SubAccount* pSubAccount, PropertyPage** ppPage)
 {
@@ -1789,17 +1805,6 @@ QSTATUS qmimap4::Imap4ReceiveSessionUI::createPropertyPage(
 	*ppPage = pPage.release();
 	
 	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qmimap4::Imap4ReceiveSessionUI::getDisplayName(WSTRING* pwstrName)
-{
-	assert(pwstrName);
-	return loadString(getResourceHandle(), IDS_IMAP4, pwstrName);
-}
-
-short qmimap4::Imap4ReceiveSessionUI::getDefaultPort()
-{
-	return 143;
 }
 
 

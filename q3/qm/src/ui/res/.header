@@ -1,11 +1,19 @@
 <header>
-	<line>
+	<line class="mail">
 		<static width="4em" style="bold" showAlways="true">To:</static>
 		<edit>{@Name(To)}</edit>
 	</line>
-	<line hideIfEmpty="cc">
+	<line class="mail" hideIfEmpty="cc">
 		<static width="4em" style="bold" showAlways="true">Cc:</static>
 		<edit name="cc">{@Name(Cc)}</edit>
+	</line>
+	<line class="news">
+		<static width="4em" style="bold" showAlways="true">Newsgroups:</static>
+		<edit>{Newsgroups}</edit>
+	</line>
+	<line class="news" hideIfEmpty="followup-to">
+		<static width="4em" style="bold" showAlways="true">Followup-To:</static>
+		<edit name="followup-to">{FollowUp-To}</edit>
 	</line>
 	<line>
 		<static width="4em" style="bold" showAlways="true">From:</static>

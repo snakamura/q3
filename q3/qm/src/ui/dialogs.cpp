@@ -57,11 +57,12 @@ qm::DefaultDialog::~DefaultDialog()
  */
 
 qm::AccountDialog::AccountDialog(Document* pDocument, Account* pAccount,
-	SyncFilterManager* pSyncFilterManager, QSTATUS* pstatus) :
+	SyncFilterManager* pSyncFilterManager, Profile* pProfile, QSTATUS* pstatus) :
 	DefaultDialog(IDD_ACCOUNT, pstatus),
 	pDocument_(pDocument),
 	pSubAccount_(pAccount ? pAccount->getCurrentSubAccount() : 0),
-	pSyncFilterManager_(pSyncFilterManager)
+	pSyncFilterManager_(pSyncFilterManager),
+	pProfile_(pProfile)
 {
 }
 
@@ -109,7 +110,7 @@ LRESULT qm::AccountDialog::onAddAccount()
 {
 	DECLARE_QSTATUS();
 	
-	CreateAccountDialog dialog(&status);
+	CreateAccountDialog dialog(pProfile_, &status);
 	CHECK_QSTATUS_VALUE(0);
 	int nRet = 0;
 	status = dialog.doModal(getHandle(), 0, &nRet);
@@ -129,6 +130,8 @@ LRESULT qm::AccountDialog::onAddAccount()
 		if (!wstrPath.get())
 			return 0;
 		XMLProfile profile(wstrPath.get(), &status);
+		CHECK_QSTATUS_VALUE(0);
+		status = profile.setString(L"Global", L"Class", dialog.getClass());
 		CHECK_QSTATUS_VALUE(0);
 		status = profile.setInt(L"Global", L"BlockSize", dialog.getBlockSize());
 		CHECK_QSTATUS_VALUE(0);
@@ -1371,32 +1374,39 @@ void qm::AttachmentDialog::updateState()
  *
  */
 
-qm::CreateAccountDialog::CreateAccountDialog(QSTATUS* pstatus) :
+qm::CreateAccountDialog::CreateAccountDialog(
+	Profile* pProfile, QSTATUS* pstatus) :
 	DefaultDialog(IDD_CREATEACCOUNT, pstatus),
+	pProfile_(pProfile),
 	wstrName_(0),
+	wstrClass_(0),
 	nReceiveProtocol_(0),
 	nSendProtocol_(0),
 	nBlockSize_(-1),
 	nCacheBlockSize_(-1)
 {
+	wstrClass_ = allocWString(L"mail");
+	if (!wstrClass_) {
+		*pstatus = QSTATUS_OUTOFMEMORY;
+		return;
+	}
 }
 
 qm::CreateAccountDialog::~CreateAccountDialog()
 {
-	std::for_each(listReceiveProtocol_.begin(), listReceiveProtocol_.end(),
-		unary_compose_f_gx(
-			string_free<WSTRING>(),
-			mem_data_ref(&Protocol::wstrName_)));
-	std::for_each(listSendProtocol_.begin(), listSendProtocol_.end(),
-		unary_compose_f_gx(
-			string_free<WSTRING>(),
-			mem_data_ref(&Protocol::wstrName_)));
 	freeWString(wstrName_);
+	freeWString(wstrClass_);
+	clearProtocols();
 }
 
 const WCHAR* qm::CreateAccountDialog::getName() const
 {
 	return wstrName_;
+}
+
+const WCHAR* qm::CreateAccountDialog::getClass() const
+{
+	return wstrClass_;
 }
 
 const WCHAR* qm::CreateAccountDialog::getReceiveProtocol() const
@@ -1433,6 +1443,7 @@ LRESULT qm::CreateAccountDialog::onCommand(WORD nCode, WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID_CODE(IDC_NAME, EN_CHANGE, onNameChange)
+		HANDLE_COMMAND_ID_CODE(IDC_CLASS, CBN_SELENDOK, onClassChange)
 		HANDLE_COMMAND_ID_CODE(IDC_INCOMINGPROTOCOL, CBN_SELENDOK, onProtocolChange)
 		HANDLE_COMMAND_ID_CODE(IDC_OUTGOINGPROTOCOL, CBN_SELENDOK, onProtocolChange)
 		HANDLE_COMMAND_ID(IDC_SINGLEFILE, onTypeChange)
@@ -1447,64 +1458,19 @@ LRESULT qm::CreateAccountDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	
 	init(false);
 	
-	ReceiveSessionFactory::NameList listReceiveName;
-	StringListFree<ReceiveSessionFactory::NameList> freeReceive(listReceiveName);
-	status = ReceiveSessionFactory::getNames(&listReceiveName);
+	string_ptr<WSTRING> wstrClasses;
+	status = pProfile_->getString(L"Global", L"Classes", L"mail news", &wstrClasses);
 	CHECK_QSTATUS_VALUE(TRUE);
-	status = STLWrapper<ProtocolList>(listReceiveProtocol_).reserve(listReceiveName.size());
-	CHECK_QSTATUS_VALUE(TRUE);
-	ReceiveSessionFactory::NameList::iterator itR = listReceiveName.begin();
-	while (itR != listReceiveName.end()) {
-		std::auto_ptr<ReceiveSessionUI> pUI;
-		status = ReceiveSessionFactory::getUI(*itR, &pUI);
-		CHECK_QSTATUS_VALUE(TRUE);
-		
-		Protocol p = {
-			*itR,
-			pUI->getDefaultPort()
-		};
-		listReceiveProtocol_.push_back(p);
-		*itR = 0;
-		
-		string_ptr<WSTRING> wstrName;
-		status = pUI->getDisplayName(&wstrName);
-		CHECK_QSTATUS_VALUE(TRUE);
-		W2T(wstrName.get(), ptszName);
-		sendDlgItemMessage(IDC_INCOMINGPROTOCOL, CB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszName));
-		
-		++itR;
+	const WCHAR* p = wcstok(wstrClasses.get(), L" ");
+	while (p) {
+		W2T(p, ptsz);
+		sendDlgItemMessage(IDC_CLASS, CB_ADDSTRING,
+			0, reinterpret_cast<LPARAM>(ptsz));
+		p = wcstok(0, L" ");
 	}
-	sendDlgItemMessage(IDC_INCOMINGPROTOCOL, CB_SETCURSEL, 0);
+	sendDlgItemMessage(IDC_CLASS, CB_SETCURSEL, 0);
 	
-	SendSessionFactory::NameList listSendName;
-	StringListFree<SendSessionFactory::NameList> freeSend(listSendName);
-	status = SendSessionFactory::getNames(&listSendName);
-	CHECK_QSTATUS_VALUE(TRUE);
-	status = STLWrapper<ProtocolList>(listSendProtocol_).reserve(listSendName.size());
-	CHECK_QSTATUS_VALUE(TRUE);
-	SendSessionFactory::NameList::iterator itS = listSendName.begin();
-	while (itS != listSendName.end()) {
-		std::auto_ptr<SendSessionUI> pUI;
-		status = SendSessionFactory::getUI(*itS, &pUI);
-		CHECK_QSTATUS_VALUE(TRUE);
-		
-		Protocol p = {
-			*itS,
-			pUI->getDefaultPort()
-		};
-		listSendProtocol_.push_back(p);
-		*itS = 0;
-		
-		string_ptr<WSTRING> wstrName;
-		status = pUI->getDisplayName(&wstrName);
-		CHECK_QSTATUS_VALUE(TRUE);
-		W2T(wstrName.get(), ptszName);
-		sendDlgItemMessage(IDC_OUTGOINGPROTOCOL, CB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszName));
-		++itS;
-	}
-	sendDlgItemMessage(IDC_OUTGOINGPROTOCOL, CB_SETCURSEL, 0);
+	updateProtocols();
 	
 	Window(getDlgItem(IDC_SINGLEFILE)).sendMessage(BM_SETCHECK, BST_CHECKED);
 	setDlgItemInt(IDC_BLOCKSIZE, 0);
@@ -1545,6 +1511,28 @@ LRESULT qm::CreateAccountDialog::onNameChange()
 	return 0;
 }
 
+LRESULT qm::CreateAccountDialog::onClassChange()
+{
+	int nItem = sendDlgItemMessage(IDC_CLASS, CB_GETCURSEL);
+	int nLen = sendDlgItemMessage(IDC_CLASS, CB_GETLBTEXTLEN, nItem);
+	string_ptr<TSTRING> tstrClass(allocTString(nLen + 1));
+	if (!tstrClass.get())
+		return 0;
+	sendDlgItemMessage(IDC_CLASS, CB_GETLBTEXT,
+		nItem, reinterpret_cast<LPARAM>(tstrClass.get()));
+	
+	string_ptr<WSTRING> wstrClass(tcs2wcs(tstrClass.get()));
+	if (!wstrClass.get())
+		return 0;
+	if (wcscmp(wstrClass_, wstrClass.get()) != 0) {
+		freeWString(wstrClass_);
+		wstrClass_ = wstrClass.release();
+		updateProtocols();
+	}
+	
+	return 0;
+}
+
 LRESULT qm::CreateAccountDialog::onProtocolChange()
 {
 	updateState();
@@ -1555,6 +1543,97 @@ LRESULT qm::CreateAccountDialog::onTypeChange()
 {
 	updateState();
 	return 0;
+}
+
+QSTATUS qm::CreateAccountDialog::updateProtocols()
+{
+	DECLARE_QSTATUS();
+	
+	clearProtocols();
+	sendDlgItemMessage(IDC_INCOMINGPROTOCOL, CB_RESETCONTENT);
+	sendDlgItemMessage(IDC_OUTGOINGPROTOCOL, CB_RESETCONTENT);
+	
+	ReceiveSessionFactory::NameList listReceiveName;
+	StringListFree<ReceiveSessionFactory::NameList> freeReceive(listReceiveName);
+	status = ReceiveSessionFactory::getNames(&listReceiveName);
+	CHECK_QSTATUS();
+	status = STLWrapper<ProtocolList>(listReceiveProtocol_).reserve(listReceiveName.size());
+	CHECK_QSTATUS();
+	ReceiveSessionFactory::NameList::iterator itR = listReceiveName.begin();
+	while (itR != listReceiveName.end()) {
+		string_ptr<WSTRING> wstrName(*itR);
+		*itR = 0;
+		std::auto_ptr<ReceiveSessionUI> pUI;
+		status = ReceiveSessionFactory::getUI(wstrName.get(), &pUI);
+		CHECK_QSTATUS();
+		if (wcscmp(pUI->getClass(), wstrClass_) == 0) {
+			Protocol p = {
+				wstrName.get(),
+				pUI->getDefaultPort()
+			};
+			listReceiveProtocol_.push_back(p);
+			wstrName.release();
+			
+			string_ptr<WSTRING> wstrDisplayName;
+			status = pUI->getDisplayName(&wstrDisplayName);
+			CHECK_QSTATUS();
+			W2T(wstrDisplayName.get(), ptszDisplayName);
+			sendDlgItemMessage(IDC_INCOMINGPROTOCOL, CB_ADDSTRING,
+				0, reinterpret_cast<LPARAM>(ptszDisplayName));
+		}
+		++itR;
+	}
+	sendDlgItemMessage(IDC_INCOMINGPROTOCOL, CB_SETCURSEL, 0);
+	
+	SendSessionFactory::NameList listSendName;
+	StringListFree<SendSessionFactory::NameList> freeSend(listSendName);
+	status = SendSessionFactory::getNames(&listSendName);
+	CHECK_QSTATUS();
+	status = STLWrapper<ProtocolList>(listSendProtocol_).reserve(listSendName.size());
+	CHECK_QSTATUS();
+	SendSessionFactory::NameList::iterator itS = listSendName.begin();
+	while (itS != listSendName.end()) {
+		string_ptr<WSTRING> wstrName(*itS);
+		*itS = 0;
+		std::auto_ptr<SendSessionUI> pUI;
+		status = SendSessionFactory::getUI(wstrName.get(), &pUI);
+		CHECK_QSTATUS();
+		if (wcscmp(pUI->getClass(), wstrClass_) == 0) {
+			Protocol p = {
+				wstrName.get(),
+				pUI->getDefaultPort()
+			};
+			listSendProtocol_.push_back(p);
+			wstrName.release();
+			
+			string_ptr<WSTRING> wstrDisplayName;
+			status = pUI->getDisplayName(&wstrDisplayName);
+			CHECK_QSTATUS();
+			W2T(wstrDisplayName.get(), ptszDisplayName);
+			sendDlgItemMessage(IDC_OUTGOINGPROTOCOL, CB_ADDSTRING,
+				0, reinterpret_cast<LPARAM>(ptszDisplayName));
+		}
+		++itS;
+	}
+	sendDlgItemMessage(IDC_OUTGOINGPROTOCOL, CB_SETCURSEL, 0);
+	
+	updateState();
+	
+	return QSTATUS_SUCCESS;
+}
+
+void qm::CreateAccountDialog::clearProtocols()
+{
+	std::for_each(listReceiveProtocol_.begin(), listReceiveProtocol_.end(),
+		unary_compose_f_gx(
+			string_free<WSTRING>(),
+			mem_data_ref(&Protocol::wstrName_)));
+	listReceiveProtocol_.clear();
+	std::for_each(listSendProtocol_.begin(), listSendProtocol_.end(),
+		unary_compose_f_gx(
+			string_free<WSTRING>(),
+			mem_data_ref(&Protocol::wstrName_)));
+	listSendProtocol_.clear();
 }
 
 void qm::CreateAccountDialog::updateState()

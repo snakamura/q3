@@ -153,11 +153,8 @@ QSTATUS qm::HeaderEditWindow::setEditMessage(
 	for (unsigned int n = 0; n < pImpl_->pLayout_->getLineCount(); ++n) {
 		HeaderEditLine* pLine = static_cast<HeaderEditLine*>(
 			pImpl_->pLayout_->getLine(n));
-		for (unsigned int m = 0; m < pLine->getItemCount(); ++m) {
-			HeaderEditItem* pItem = static_cast<HeaderEditItem*>(pLine->getItem(m));
-			status = pItem->setEditMessage(pEditMessage, bReset);
-			CHECK_QSTATUS();
-		}
+		status = pLine->setEditMessage(pEditMessage, bReset);
+		CHECK_QSTATUS();
 	}
 	
 	return QSTATUS_SUCCESS;
@@ -221,11 +218,9 @@ EditWindowItem* qm::HeaderEditWindow::getFocusedItem() const
 	for (unsigned int n = 0; n < pImpl_->pLayout_->getLineCount(); ++n) {
 		HeaderEditLine* pLine = static_cast<HeaderEditLine*>(
 			pImpl_->pLayout_->getLine(n));
-		for (unsigned int m = 0; m < pLine->getItemCount(); ++m) {
-			HeaderEditItem* pItem = static_cast<HeaderEditItem*>(pLine->getItem(m));
-			if (pItem->hasFocus())
-				return pItem;
-		}
+		HeaderEditItem* pItem = pLine->getFocusedItem();
+		if (pItem)
+			return pItem;
 	}
 	return 0;
 }
@@ -235,11 +230,9 @@ EditWindowItem* qm::HeaderEditWindow::getInitialFocusedItem() const
 	for (unsigned int n = 0; n < pImpl_->pLayout_->getLineCount(); ++n) {
 		HeaderEditLine* pLine = static_cast<HeaderEditLine*>(
 			pImpl_->pLayout_->getLine(n));
-		for (unsigned int m = 0; m < pLine->getItemCount(); ++m) {
-			HeaderEditItem* pItem = static_cast<HeaderEditItem*>(pLine->getItem(m));
-			if (pItem->hasInitialFocus())
-				return pItem;
-		}
+		HeaderEditItem* pItem = pLine->getInitialFocusItem();
+		if (pItem)
+			return pItem;
 	}
 	return 0;
 }
@@ -376,16 +369,42 @@ LRESULT qm::HeaderEditWindow::onSize(UINT nFlags, int cx, int cy)
  *
  */
 
-qm::HeaderEditLine::HeaderEditLine(
-	HeaderEditLineCallback* pCallback, QSTATUS* pstatus) :
+qm::HeaderEditLine::HeaderEditLine(HeaderEditLineCallback* pCallback,
+	unsigned int nFlags, RegexPattern* pClass, QSTATUS* pstatus) :
 	LineLayoutLine(pstatus),
 	pCallback_(pCallback),
-	nFlags_(0)
+	nFlags_(nFlags),
+	pClass_(pClass),
+	bHide_(false)
 {
 }
 
 qm::HeaderEditLine::~HeaderEditLine()
 {
+	delete pClass_;
+}
+
+QSTATUS qm::HeaderEditLine::setEditMessage(EditMessage* pEditMessage, bool bReset)
+{
+	DECLARE_QSTATUS();
+	
+	if (pClass_) {
+		const WCHAR* pwszClass = pEditMessage->getAccount()->getClass();
+		bool bMatch = false;
+		status = pClass_->match(pwszClass, &bMatch);
+		CHECK_QSTATUS();
+		bHide_ = !bMatch;
+	}
+	
+	if (!bHide_) {
+		for (unsigned int n = 0; n < getItemCount(); ++n) {
+			HeaderEditItem* pItem = static_cast<HeaderEditItem*>(getItem(n));
+			status = pItem->setEditMessage(pEditMessage, bReset);
+			CHECK_QSTATUS();
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
 }
 
 EditWindowItem* qm::HeaderEditLine::getNextFocusItem(
@@ -393,15 +412,17 @@ EditWindowItem* qm::HeaderEditLine::getNextFocusItem(
 {
 	assert(ppItem);
 	
-	for (unsigned int n = 0; n < getItemCount(); ++n) {
-		HeaderEditItem* pItem = static_cast<HeaderEditItem*>(getItem(n));
-		if (*ppItem) {
-			if (*ppItem == pItem)
-				*ppItem = 0;
-		}
-		else {
-			if (pItem->isFocusItem())
-				return pItem;
+	if (!bHide_) {
+		for (unsigned int n = 0; n < getItemCount(); ++n) {
+			HeaderEditItem* pItem = static_cast<HeaderEditItem*>(getItem(n));
+			if (*ppItem) {
+				if (*ppItem == pItem)
+					*ppItem = 0;
+			}
+			else {
+				if (pItem->isFocusItem())
+					return pItem;
+			}
 		}
 	}
 	
@@ -413,30 +434,50 @@ EditWindowItem* qm::HeaderEditLine::getPrevFocusItem(
 {
 	assert(ppItem);
 	
-	for (unsigned int n = getItemCount(); n > 0; --n) {
-		HeaderEditItem* pItem = static_cast<HeaderEditItem*>(getItem(n - 1));
-		if (*ppItem) {
-			if (*ppItem == pItem)
-				*ppItem = 0;
-		}
-		else {
-			if (pItem->isFocusItem())
-				return pItem;
+	if (!bHide_) {
+		for (unsigned int n = getItemCount(); n > 0; --n) {
+			HeaderEditItem* pItem = static_cast<HeaderEditItem*>(getItem(n - 1));
+			if (*ppItem) {
+				if (*ppItem == pItem)
+					*ppItem = 0;
+			}
+			else {
+				if (pItem->isFocusItem())
+					return pItem;
+			}
 		}
 	}
 	
 	return 0;
 }
 
-void qm::HeaderEditLine::setFlags(unsigned int nFlags, unsigned int nMask)
+HeaderEditItem* qm::HeaderEditLine::getFocusedItem() const
 {
-	nFlags_ &= ~nMask;
-	nFlags_ |= nFlags & nMask;
+	if (!bHide_) {
+		for (unsigned int n = 0; n < getItemCount(); ++n) {
+			HeaderEditItem* pItem = static_cast<HeaderEditItem*>(getItem(n));
+			if (pItem->hasFocus())
+				return pItem;
+		}
+	}
+	return 0;
+}
+
+HeaderEditItem* qm::HeaderEditLine::getInitialFocusItem() const
+{
+	if (!bHide_) {
+		for (unsigned int n = 0; n < getItemCount(); ++n) {
+			HeaderEditItem* pItem = static_cast<HeaderEditItem*>(getItem(n));
+			if (pItem->hasInitialFocus())
+				return pItem;
+		}
+	}
+	return 0;
 }
 
 bool qm::HeaderEditLine::isHidden() const
 {
-	return nFlags_ & FLAG_HIDEIFNOFOCUS && pCallback_->isHidden();
+	return bHide_ || (nFlags_ & FLAG_HIDEIFNOFOCUS && pCallback_->isHidden());
 }
 
 
@@ -1310,7 +1351,7 @@ QSTATUS qm::ComboBoxHeaderEditItem::create(WindowBase* pParent,
 	
 	DECLARE_QSTATUS();
 	
-	DWORD dwStyle = WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST;
+	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_VSCROLL | CBS_DROPDOWNLIST;
 #ifndef _WIN32_WCE
 	dwStyle |= WS_BORDER;
 #endif
@@ -1535,6 +1576,7 @@ QSTATUS qm::AccountHeaderEditItem::setEditMessage(
 	
 	Window combo(getHandle());
 	
+	const WCHAR* pwszClass = pEditMessage->getAccount()->getClass();
 	SubAccount* pCurrentSubAccount = pEditMessage->getSubAccount();
 	
 	combo.sendMessage(CB_RESETCONTENT);
@@ -1545,33 +1587,35 @@ QSTATUS qm::AccountHeaderEditItem::setEditMessage(
 	Document::AccountList::const_iterator itA = listAccount.begin();
 	while (itA != listAccount.end()) {
 		Account* pAccount = *itA;
-		const Account::SubAccountList& listSubAccount =
-			pAccount->getSubAccounts();
-		Account::SubAccountList::const_iterator itS = listSubAccount.begin();
-		while (itS != listSubAccount.end()) {
-			SubAccount* pSubAccount = *itS;
-			const WCHAR* pwszName = 0;
-			string_ptr<WSTRING> wstrName;
-			if (pSubAccount->getName() && *pSubAccount->getName()) {
-				wstrName.reset(concat(
-					pAccount->getName(), L"/", pSubAccount->getName()));
-				if (!wstrName.get())
-					return QSTATUS_OUTOFMEMORY;
-				pwszName = wstrName.get();
+		if (wcscmp(pAccount->getClass(), pwszClass) == 0) {
+			const Account::SubAccountList& listSubAccount =
+				pAccount->getSubAccounts();
+			Account::SubAccountList::const_iterator itS = listSubAccount.begin();
+			while (itS != listSubAccount.end()) {
+				SubAccount* pSubAccount = *itS;
+				const WCHAR* pwszName = 0;
+				string_ptr<WSTRING> wstrName;
+				if (pSubAccount->getName() && *pSubAccount->getName()) {
+					wstrName.reset(concat(
+						pAccount->getName(), L"/", pSubAccount->getName()));
+					if (!wstrName.get())
+						return QSTATUS_OUTOFMEMORY;
+					pwszName = wstrName.get();
+				}
+				else {
+					pwszName = pAccount->getName();
+				}
+				W2T(pwszName, ptszName);
+				int nItem = combo.sendMessage(CB_ADDSTRING, 0,
+					reinterpret_cast<LPARAM>(ptszName));
+				combo.sendMessage(CB_SETITEMDATA, nItem,
+					reinterpret_cast<LPARAM>(pSubAccount));
+				
+				if (pSubAccount == pCurrentSubAccount)
+					nCurrentItem = nItem;
+				
+				++itS;
 			}
-			else {
-				pwszName = pAccount->getName();
-			}
-			W2T(pwszName, ptszName);
-			int nItem = combo.sendMessage(CB_ADDSTRING, 0,
-				reinterpret_cast<LPARAM>(ptszName));
-			combo.sendMessage(CB_SETITEMDATA, nItem,
-				reinterpret_cast<LPARAM>(pSubAccount));
-			
-			if (pSubAccount == pCurrentSubAccount)
-				nCurrentItem = nItem;
-			
-			++itS;
 		}
 		++itA;
 	}
@@ -1668,22 +1712,35 @@ QSTATUS qm::HeaderEditWindowContentHandler::startElement(
 		if (state_ != STATE_HEADEREDIT)
 			return QSTATUS_FAIL;
 		
-		std::auto_ptr<HeaderEditLine> pHeaderEditLine;
-		status = newQsObject(pCallback_, &pHeaderEditLine);
-		CHECK_QSTATUS();
-		
+		unsigned int nFlags = 0;
+		const WCHAR* pwszClass = 0;
 		for (int n = 0; n < attributes.getLength(); ++n) {
 			const WCHAR* pwszAttrLocalName = attributes.getLocalName(n);
 			if (wcscmp(pwszAttrLocalName, L"hideIfNoFocus") == 0) {
 				if (wcscmp(attributes.getValue(n), L"true") == 0)
-					pHeaderEditLine->setFlags(HeaderEditLine::FLAG_HIDEIFNOFOCUS,
-						HeaderEditLine::FLAG_HIDEIFNOFOCUS);
+					nFlags = HeaderEditLine::FLAG_HIDEIFNOFOCUS;
+			}
+			else if (wcscmp(pwszAttrLocalName, L"class") == 0) {
+				pwszClass = attributes.getValue(n);
 			}
 			else {
 				return QSTATUS_FAIL;
 			}
 		}
 		
+		std::auto_ptr<RegexPattern> pClass;
+		if (pwszClass) {
+			RegexCompiler compiler;
+			RegexPattern* p = 0;
+			status = compiler.compile(pwszClass, &p);
+			CHECK_QSTATUS();
+			pClass.reset(p);
+		}
+		std::auto_ptr<HeaderEditLine> pHeaderEditLine;
+		status = newQsObject(pCallback_, nFlags,
+			pClass.get(), &pHeaderEditLine);
+		CHECK_QSTATUS();
+		pClass.release();
 		status = pLayout_->addLine(pHeaderEditLine.get());
 		CHECK_QSTATUS();
 		pCurrentLine_ = pHeaderEditLine.release();

@@ -1,5 +1,5 @@
 /*
- * $Id: nntpsendsession.cpp,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -250,6 +250,22 @@ qmnntp::NntpSendSessionUI::~NntpSendSessionUI()
 {
 }
 
+const WCHAR* qmnntp::NntpSendSessionUI::getClass()
+{
+	return L"news";
+}
+
+QSTATUS qmnntp::NntpSendSessionUI::getDisplayName(WSTRING* pwstrName)
+{
+	assert(pwstrName);
+	return loadString(getResourceHandle(), IDS_NNTP, pwstrName);
+}
+
+short qmnntp::NntpSendSessionUI::getDefaultPort()
+{
+	return 119;
+}
+
 QSTATUS qmnntp::NntpSendSessionUI::createPropertyPage(
 	SubAccount* pSubAccount, PropertyPage** ppPage)
 {
@@ -266,17 +282,6 @@ QSTATUS qmnntp::NntpSendSessionUI::createPropertyPage(
 	*ppPage = pPage.release();
 	
 	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qmnntp::NntpSendSessionUI::getDisplayName(WSTRING* pwstrName)
-{
-	assert(pwstrName);
-	return loadString(getResourceHandle(), IDS_NNTP, pwstrName);
-}
-
-short qmnntp::NntpSendSessionUI::getDefaultPort()
-{
-	return 119;
 }
 
 

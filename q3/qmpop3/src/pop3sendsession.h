@@ -1,5 +1,5 @@
 /*
- * $Id: pop3sendsession.h,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -103,10 +103,11 @@ public:
 	virtual ~Pop3SendSessionUI();
 
 public:
-	virtual qs::QSTATUS createPropertyPage(
-		qm::SubAccount* pSubAccount, qs::PropertyPage** ppPage);
+	virtual const WCHAR* getClass();
 	virtual qs::QSTATUS getDisplayName(qs::WSTRING* pwstrName);
 	virtual short getDefaultPort();
+	virtual qs::QSTATUS createPropertyPage(
+		qm::SubAccount* pSubAccount, qs::PropertyPage** ppPage);
 
 private:
 	Pop3SendSessionUI(const Pop3SendSessionUI&);

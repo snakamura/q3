@@ -11,6 +11,7 @@
 
 #include <qm.h>
 
+#include <qsregex.h>
 #include <qssax.h>
 
 #include "attachmentselectionmodel.h"
@@ -45,14 +46,14 @@ public:
 	typedef std::vector<std::pair<qs::WSTRING, HeaderItem*> > HideList;
 
 public:
-	explicit HeaderLine(qs::QSTATUS* pstatus);
+	HeaderLine(const WCHAR* pwszHideIfEmpty,
+		qs::RegexPattern* pClass, qs::QSTATUS* pstatus);
 	~HeaderLine();
 
 public:
 	qs::QSTATUS setMessage(const TemplateContext& context);
 
 public:
-	qs::QSTATUS setHideIfEmpty(const WCHAR* pwszName);
 	qs::QSTATUS fixup();
 
 protected:
@@ -64,6 +65,8 @@ private:
 
 private:
 	HideList listHide_;
+	qs::RegexPattern* pClass_;
+	bool bHide_;
 };
 
 

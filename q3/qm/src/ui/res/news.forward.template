@@ -1,0 +1,100 @@
+Newsgroups:
+Subject: Fw: {@Subject(@False(), @False())}
+Message-Id: {
+	@Concat(
+		'<',
+		@ProcessId(),
+		@FormatDate(@Date(), '%Y4%M0%D%h%m%s'),
+		@Address(@I(@Account(), X-QMAIL-SubAccount)),
+		'>'
+	)
+}
+{
+	@If(
+		@Multipart(),
+		@Concat('Content-Type: ', Content-Type, '\\n'),
+		''
+	)
+}X-QMAIL-Account: {@Account()}{@If(X-QMAIL-SubAccount, @Concat('\\nX-QMAIL-SubAccount: ', X-QMAIL-SubAccount), '')}
+X-QMAIL-Macro: @ForEach(@Messages('{@Concat('//', @Account(), '/', @Folder())}', {@Id()}), @Forwarded(@True()))
+
+{
+	@Progn(
+		@Set(
+			'forward',
+			@Concat(
+				'----- Original Message -----\\n',
+				'From: ',
+				From,
+				'\\nTo: ',
+				To,
+				'\\nDate: ',
+				Date,
+				'\\nSubject: ',
+				Subject,
+				'\\n\\n'
+			)
+		),
+		@Set('content-type', @FieldParameter('Content-Type')),
+		@If(
+			@And(@Multipart(), @Equal($content-type, 'multipart/mixed')),
+			@Progn(
+				@Set(
+					'boundary',
+					@FieldParameter(
+						'Content-Type',
+						'boundary'
+					)
+				),
+				@Set('n', 0),
+				@Set('body', ''),
+				@While(
+					@Set('part', @Part($n)),
+					@Progn(
+						@Set(
+							'body',
+							@Concat(
+								$body,
+								'\\n--',
+								$boundary,
+								'\\n',
+								@If(
+									@Equal($n, 0),
+									@Concat(
+										@Header(
+											@If(@Equal(@FieldParameter('Content-Type', 'charset', $part), 'us-ascii'), 'Content-Type', ''),
+											$part
+										),
+										'\\n\\n'
+										$forward,
+										@Body('', @False(), $part)
+									),
+									@BeginWith(@FieldParameter('Content-Type', '', $part), 'text/'),
+									@Concat(
+										@Header('Content-Type', $part),
+										'Content-Type: application/octet-stream\\n\\n',
+										@Body('', @False(), $part)
+									),
+									$part
+								)
+							)
+						),
+						@Set('n', @Add($n, 1))
+					)
+				),
+				@Concat(
+					$body,
+					'--',
+					$boundary,
+					'--\\n'
+				)
+			),
+			@Multipart(),
+			@Body('', @False()),
+			@Concat(
+				$forward,
+				@Body('', @True())
+			)
+		)
+	)
+}

@@ -751,6 +751,22 @@ qmpop3::Pop3ReceiveSessionUI::~Pop3ReceiveSessionUI()
 {
 }
 
+const WCHAR* qmpop3::Pop3ReceiveSessionUI::getClass()
+{
+	return L"mail";
+}
+
+QSTATUS qmpop3::Pop3ReceiveSessionUI::getDisplayName(WSTRING* pwstrName)
+{
+	assert(pwstrName);
+	return loadString(getResourceHandle(), IDS_POP3, pwstrName);
+}
+
+short qmpop3::Pop3ReceiveSessionUI::getDefaultPort()
+{
+	return 110;
+}
+
 QSTATUS qmpop3::Pop3ReceiveSessionUI::createPropertyPage(
 	SubAccount* pSubAccount, PropertyPage** ppPage)
 {
@@ -767,17 +783,6 @@ QSTATUS qmpop3::Pop3ReceiveSessionUI::createPropertyPage(
 	*ppPage = pPage.release();
 	
 	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qmpop3::Pop3ReceiveSessionUI::getDisplayName(WSTRING* pwstrName)
-{
-	assert(pwstrName);
-	return loadString(getResourceHandle(), IDS_POP3, pwstrName);
-}
-
-short qmpop3::Pop3ReceiveSessionUI::getDefaultPort()
-{
-	return 110;
 }
 
 

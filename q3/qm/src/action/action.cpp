@@ -2324,10 +2324,11 @@ QSTATUS qm::MessagePropertyAction::isEnabled(
 
 qm::ToolAccountAction::ToolAccountAction(Document* pDocument,
 	FolderModel* pFolderModel, SyncFilterManager* pSyncFilterManager,
-	QSTATUS* pstatus) :
+	Profile* pProfile, QSTATUS* pstatus) :
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
-	pSyncFilterManager_(pSyncFilterManager)
+	pSyncFilterManager_(pSyncFilterManager),
+	pProfile_(pProfile)
 {
 }
 
@@ -2349,7 +2350,8 @@ QSTATUS qm::ToolAccountAction::invoke(const ActionEvent& event)
 			pAccount = pFolder->getAccount();
 	}
 	
-	AccountDialog dialog(pDocument_, pAccount, pSyncFilterManager_, &status);
+	AccountDialog dialog(pDocument_, pAccount,
+		pSyncFilterManager_, pProfile_, &status);
 	CHECK_QSTATUS();
 	int nRet = 0;
 	status = dialog.doModal(getMainWindow()->getHandle(), 0, &nRet);

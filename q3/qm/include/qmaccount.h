@@ -87,6 +87,7 @@ public:
 public:
 	const WCHAR* getName() const;
 	const WCHAR* getPath() const;
+	const WCHAR* getClass() const;
 	const WCHAR* getType(Host host) const;
 	bool isSupport(Support support) const;
 	

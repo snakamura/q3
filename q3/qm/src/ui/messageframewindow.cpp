@@ -885,10 +885,10 @@ LRESULT qm::MessageFrameWindow::onInitMenuPopup(HMENU hmenu, UINT nIndex, bool b
 			nIdLast = mii.wID;
 		}
 		
+		MessageModel* pModel = getMessageModel();
+		Account* pAccount = pModel->getCurrentAccount();
+		assert(pAccount);
 		if (nIdLast == IDM_MESSAGE_MOVEOTHER) {
-			MessageModel* pModel = getMessageModel();
-			Account* pAccount = pModel->getCurrentAccount();
-			assert(pAccount);
 			status = pImpl_->pMoveMenu_->createMenu(
 				hmenu, pAccount, *pImpl_->pActionMap_);
 			// TODO
@@ -902,15 +902,15 @@ LRESULT qm::MessageFrameWindow::onInitMenuPopup(HMENU hmenu, UINT nIndex, bool b
 			}
 		}
 		else if (nIdFirst == IDM_VIEW_TEMPLATENONE) {
-			status = pImpl_->pViewTemplateMenu_->createMenu(hmenu);
+			status = pImpl_->pViewTemplateMenu_->createMenu(hmenu, pAccount);
 		}
 		else if (nIdFirst == IDM_MESSAGE_APPLYTEMPLATE ||
 			nIdFirst == IDM_MESSAGE_APPLYTEMPLATENONE) {
-			status = pImpl_->pCreateTemplateMenu_->createMenu(hmenu);
+			status = pImpl_->pCreateTemplateMenu_->createMenu(hmenu, pAccount);
 		}
 		else if (nIdFirst == IDM_MESSAGE_APPLYTEMPLATEEXTERNAL ||
 			nIdFirst == IDM_MESSAGE_APPLYTEMPLATENONEEXTERNAL) {
-			status = pImpl_->pCreateTemplateExternalMenu_->createMenu(hmenu);
+			status = pImpl_->pCreateTemplateExternalMenu_->createMenu(hmenu, pAccount);
 		}
 		else if (nIdFirst == IDM_VIEW_ENCODINGAUTODETECT) {
 			status = pImpl_->pEncodingMenu_->createMenu(hmenu);

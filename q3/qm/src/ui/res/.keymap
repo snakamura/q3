@@ -369,15 +369,21 @@
 			<key key="B" alt="true"/>
 		</action>
 		<action name="HeaderEditItem3">
-			<key key="S" alt="true"/>
+			<key key="N" alt="true"/>
 		</action>
 		<action name="HeaderEditItem4">
-			<key key="H" alt="true"/>
+			<key key="L" alt="true"/>
 		</action>
 		<action name="HeaderEditItem5">
-			<key key="U" alt="true"/>
+			<key key="S" alt="true"/>
 		</action>
 		<action name="HeaderEditItem6">
+			<key key="H" alt="true"/>
+		</action>
+		<action name="HeaderEditItem7">
+			<key key="U" alt="true"/>
+		</action>
+		<action name="HeaderEditItem8">
 			<key key="I" alt="true"/>
 		</action>
 		<action name="ToolAddressBook">

@@ -1,5 +1,5 @@
 /*
- * $Id: menus.h,v 1.2 2003/05/07 07:25:21 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -198,7 +198,7 @@ public:
 
 public:
 	const WCHAR* getTemplate(unsigned int nId) const;
-	qs::QSTATUS createMenu(HMENU hmenu);
+	qs::QSTATUS createMenu(HMENU hmenu, Account* pAccount);
 
 protected:
 	virtual const WCHAR* getPrefix() const = 0;

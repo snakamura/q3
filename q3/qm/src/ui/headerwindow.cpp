@@ -312,9 +312,33 @@ LRESULT qm::HeaderWindow::onSize(UINT nFlags, int cx, int cy)
  *
  */
 
-qm::HeaderLine::HeaderLine(QSTATUS* pstatus) :
-	LineLayoutLine(pstatus)
+qm::HeaderLine::HeaderLine(const WCHAR* pwszHideIfEmpty,
+	qs::RegexPattern* pClass, QSTATUS* pstatus) :
+	LineLayoutLine(pstatus),
+	pClass_(pClass),
+	bHide_(false)
 {
+	DECLARE_QSTATUS();
+	
+	const WCHAR* p = pwszHideIfEmpty;
+	while (p) {
+		const WCHAR* pEnd = wcschr(p, L',');
+		string_ptr<WSTRING> wstr;
+		if (pEnd)
+			wstr.reset(allocWString(p, pEnd - p));
+		else
+			wstr.reset(allocWString(p));
+		if (!wstr.get()) {
+			*pstatus = QSTATUS_OUTOFMEMORY;
+			return;
+		}
+		status = STLWrapper<HideList>(listHide_).push_back(
+			HideList::value_type(wstr.get(), 0));
+		CHECK_QSTATUS_SET(pstatus);
+		wstr.release();
+		
+		p = pEnd ? pEnd + 1 : 0;
+	}
 }
 
 qm::HeaderLine::~HeaderLine()
@@ -323,40 +347,27 @@ qm::HeaderLine::~HeaderLine()
 		unary_compose_f_gx(
 			string_free<WSTRING>(),
 			std::select1st<HideList::value_type>()));
+	delete pClass_;
 }
 
 QSTATUS qm::HeaderLine::setMessage(const TemplateContext& context)
 {
 	DECLARE_QSTATUS();
 	
-	for (unsigned int n = 0; n < getItemCount(); ++n) {
-		status = static_cast<HeaderItem*>(getItem(n))->setMessage(context);
+	if (pClass_) {
+		const WCHAR* pwszClass = context.getAccount()->getClass();
+		bool bMatch = false;
+		status = pClass_->match(pwszClass, &bMatch);
 		CHECK_QSTATUS();
+		bHide_ = !bMatch;
 	}
 	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::HeaderLine::setHideIfEmpty(const WCHAR* pwszName)
-{
-	DECLARE_QSTATUS();
-	
-	const WCHAR* p = pwszName;
-	while (p) {
-		const WCHAR* pEnd = wcschr(p, L',');
-		string_ptr<WSTRING> wstr;
-		if (pEnd)
-			wstr.reset(allocWString(p, pEnd - p));
-		else
-			wstr.reset(allocWString(p));
-		if (!wstr.get())
-			return QSTATUS_OUTOFMEMORY;
-		status = STLWrapper<HideList>(listHide_).push_back(
-			HideList::value_type(wstr.get(), 0));
-		CHECK_QSTATUS();
-		wstr.release();
-		
-		p = pEnd ? pEnd + 1 : 0;
+	if (!bHide_) {
+		for (unsigned int n = 0; n < getItemCount(); ++n) {
+			HeaderItem* pItem = static_cast<HeaderItem*>(getItem(n));
+			status = pItem->setMessage(context);
+			CHECK_QSTATUS();
+		}
 	}
 	
 	return QSTATUS_SUCCESS;
@@ -385,6 +396,9 @@ QSTATUS qm::HeaderLine::fixup()
 
 bool qm::HeaderLine::isHidden() const
 {
+	if (bHide_)
+		return true;
+	
 	HideList::const_iterator itH = listHide_.begin();
 	while (itH != listHide_.end()) {
 		if ((*itH).second && !(*itH).second->isEmptyValue())
@@ -977,21 +991,30 @@ QSTATUS qm::HeaderWindowContentHandler::startElement(
 		if (state_ != STATE_HEADER)
 			return QSTATUS_FAIL;
 		
-		std::auto_ptr<HeaderLine> pHeaderLine;
-		status = newQsObject(&pHeaderLine);
-		CHECK_QSTATUS();
-		
+		const WCHAR* pwszHideIfEmpty = 0;
+		const WCHAR* pwszClass = 0;
 		for (int n = 0; n < attributes.getLength(); ++n) {
 			const WCHAR* pwszAttrLocalName = attributes.getLocalName(n);
-			if (wcscmp(pwszAttrLocalName, L"hideIfEmpty") == 0) {
-				status = pHeaderLine->setHideIfEmpty(attributes.getValue(n));
-				CHECK_QSTATUS();
-			}
-			else {
+			if (wcscmp(pwszAttrLocalName, L"hideIfEmpty") == 0)
+				pwszHideIfEmpty = attributes.getValue(n);
+			else if (wcscmp(pwszAttrLocalName, L"class") == 0)
+				pwszClass = attributes.getValue(n);
+			else
 				return QSTATUS_FAIL;
-			}
 		}
 		
+		std::auto_ptr<RegexPattern> pClass;
+		if (pwszClass) {
+			RegexCompiler compiler;
+			RegexPattern* p = 0;
+			status = compiler.compile(pwszClass, &p);
+			CHECK_QSTATUS();
+			pClass.reset(p);
+		}
+		std::auto_ptr<HeaderLine> pHeaderLine;
+		status = newQsObject(pwszHideIfEmpty, pClass.get(), &pHeaderLine);
+		CHECK_QSTATUS();
+		pClass.release();
 		status = pLayout_->addLine(pHeaderLine.get());
 		CHECK_QSTATUS();
 		pCurrentLine_ = pHeaderLine.release();

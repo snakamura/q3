@@ -60,7 +60,10 @@ struct qm::ApplicationImpl : public NewMailCheckerCallback
 public:
 	QSTATUS ensureDirectory(const WCHAR* pwszPath, const WCHAR* pwszName);
 	QSTATUS ensureFile(const WCHAR* pwszPath, const WCHAR* pwszDir,
-		const WCHAR* pwszType, const WCHAR* pwszName, const WCHAR* pwszExtension);
+		const WCHAR* pwszFileName, const WCHAR* pwszExtension,
+		const WCHAR* pwszType, const WCHAR* pwszName);
+	QSTATUS ensureTemplate(const WCHAR* pwszPath,
+		const WCHAR* pwszClass, const WCHAR* pwszName);
 	QSTATUS restoreCurrentFolder();
 	QSTATUS saveCurrentFolder();
 
@@ -117,10 +120,12 @@ QSTATUS qm::ApplicationImpl::ensureDirectory(
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS ApplicationImpl::ensureFile(const WCHAR* pwszPath, const WCHAR* pwszDir,
-	const WCHAR* pwszType, const WCHAR* pwszName, const WCHAR* pwszExtension)
+QSTATUS qm::ApplicationImpl::ensureFile(const WCHAR* pwszPath,
+	const WCHAR* pwszDir, const WCHAR* pwszFileName,
+	const WCHAR* pwszExtension, const WCHAR* pwszType, const WCHAR* pwszName)
 {
 	assert(pwszPath);
+	assert(pwszFileName);
 	assert(pwszType);
 	assert(pwszName);
 	
@@ -138,7 +143,7 @@ QSTATUS ApplicationImpl::ensureFile(const WCHAR* pwszPath, const WCHAR* pwszDir,
 	}
 	status = buf.append(L'\\');
 	CHECK_QSTATUS();
-	status = buf.append(pwszName);
+	status = buf.append(pwszFileName);
 	CHECK_QSTATUS();
 	if (pwszExtension) {
 		status = buf.append(L'.');
@@ -169,6 +174,29 @@ QSTATUS ApplicationImpl::ensureFile(const WCHAR* pwszPath, const WCHAR* pwszDir,
 		status = stream.close();
 		CHECK_QSTATUS();
 	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::ApplicationImpl::ensureTemplate(const WCHAR* pwszPath,
+	const WCHAR* pwszClass, const WCHAR* pwszName)
+{
+	DECLARE_QSTATUS();
+	
+	string_ptr<WSTRING> wstrDir(concat(L"templates\\", pwszClass));
+	if (!wstrDir.get())
+		return QSTATUS_OUTOFMEMORY;
+	
+	status = ensureDirectory(pwszPath, wstrDir.get());
+	CHECK_QSTATUS();
+	
+	string_ptr<WSTRING> wstrName(concat(pwszClass, L".", pwszName));
+	if (!wstrName.get())
+		return QSTATUS_OUTOFMEMORY;
+	
+	status = ensureFile(pwszPath, wstrDir.get(), pwszName,
+		L"template", L"TEMPLATE", wstrName.get());
+	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
 }
@@ -338,6 +366,10 @@ QSTATUS qm::Application::initialize()
 		CHECK_QSTATUS();
 	}
 	
+	const WCHAR* pwszClasses[] = {
+		L"mail",
+		L"news"
+	};
 	const WCHAR* pwszTemplates[] = {
 		L"new",
 		L"reply",
@@ -346,10 +378,12 @@ QSTATUS qm::Application::initialize()
 		L"edit",
 		L"url"
 	};
-	for (n = 0; n < countof(pwszTemplates); ++n) {
-		status = pImpl_->ensureFile(pImpl_->wstrMailFolder_,
-			L"templates", L"TEMPLATE", pwszTemplates[n], L"template");
-		CHECK_QSTATUS();
+	for (n = 0; n < countof(pwszClasses); ++n) {
+		for (int m = 0; m < countof(pwszTemplates); ++m) {
+			status = pImpl_->ensureTemplate(pImpl_->wstrMailFolder_,
+				pwszClasses[n], pwszTemplates[m]);
+			CHECK_QSTATUS();
+		}
 	}
 	
 	string_ptr<WSTRING> wstrProfileDir(
@@ -365,8 +399,8 @@ QSTATUS qm::Application::initialize()
 		L".menus"
 	};
 	for (n = 0; n < countof(pwszProfiles); ++n) {
-		status = pImpl_->ensureFile(wstrProfileDir.get(),
-			0, L"PROFILE", pwszProfiles[n], 0);
+		status = pImpl_->ensureFile(wstrProfileDir.get(), 0,
+			pwszProfiles[n], 0, L"PROFILE", pwszProfiles[n]);
 		CHECK_QSTATUS();
 	}
 	
