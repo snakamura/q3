@@ -119,7 +119,7 @@ struct Header
 
 qm::MessageCreator::MessageCreator() :
 	nFlags_(0),
-	nSecurityMode_(0)
+	nSecurityMode_(SECURITYMODE_NONE)
 {
 }
 
@@ -222,8 +222,8 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 			if (!wstrBoundary.get())
 				return std::auto_ptr<Part>(0);
 			
-			BoundaryFinder<WCHAR, WSTRING> finder(pBody - 1,
-				nBodyLen + 1, wstrBoundary.get(), L"\n", false);
+			BoundaryFinder<WCHAR, WSTRING> finder(pBody - 1, nBodyLen + 1,
+				wstrBoundary.get(), L"\n", (nFlags_ & FLAG_RECOVER) != 0);
 			
 			while (true) {
 				const WCHAR* pBegin = 0;
@@ -480,6 +480,7 @@ bool qm::MessageCreator::createHeader(Part* pPart,
 		const WCHAR* pwszNameLower = pBuf + (*it).nLowerName_;
 		const WCHAR* pwszValue = pBuf + (*it).nValue_;
 		
+		bool bSet = false;
 		if (std::find_if(ppwszAddresses, ppwszAddresses + countof(ppwszAddresses),
 			std::bind2nd(string_equal<WCHAR>(), pwszNameLower)) != ppwszAddresses + countof(ppwszAddresses)) {
 			if (nFlags_ & FLAG_EXPANDALIAS) {
@@ -487,39 +488,36 @@ bool qm::MessageCreator::createHeader(Part* pPart,
 				// Replace alias
 			}
 			
-			if (!setField(pPart, pwszName, pwszValue, FIELDTYPE_ADDRESSLIST))
-				return false;
+			bSet = setField(pPart, pwszName, pwszValue, FIELDTYPE_ADDRESSLIST);
 		}
 		else if (wcscmp(pwszNameLower, L"content-type") == 0) {
-			if (!setField(pPart, pwszName, pwszValue, FIELDTYPE_CONTENTTYPE))
-				return false;
+			bSet = setField(pPart, pwszName, pwszValue, FIELDTYPE_CONTENTTYPE);
 		}
 		else if (wcscmp(pwszNameLower, L"content-transfer-encoding") == 0) {
-			if (!setField(pPart, pwszName, pwszValue, FIELDTYPE_CONTENTTRANSFERENCODING))
-				return false;
+			bSet = setField(pPart, pwszName, pwszValue, FIELDTYPE_CONTENTTRANSFERENCODING);
 		}
 		else if (wcscmp(pwszNameLower, L"content-disposition") == 0) {
-			if (!setField(pPart, pwszName, pwszValue, FIELDTYPE_CONTENTDISPOSITION))
-				return false;
+			bSet = setField(pPart, pwszName, pwszValue, FIELDTYPE_CONTENTDISPOSITION);
 		}
 		else if (wcscmp(pwszNameLower, L"message-id") == 0) {
-			if (!setField(pPart, pwszName, pwszValue, FIELDTYPE_MESSAGEID))
-				return false;
+			bSet = setField(pPart, pwszName, pwszValue, FIELDTYPE_MESSAGEID);
 		}
 		else if (wcscmp(pwszNameLower, L"references") == 0 ||
 			wcscmp(pwszNameLower, L"in-reply-to") == 0) {
-			if (!setField(pPart, pwszName, pwszValue, FIELDTYPE_REFERENCES))
-				return false;
+			bSet = setField(pPart, pwszName, pwszValue, FIELDTYPE_REFERENCES);
 		}
 		else if (wcscmp(pwszNameLower, L"x-qmail-attachment") == 0) {
-			if (!setField(pPart, pwszName, pwszValue, FIELDTYPE_XQMAILATTACHMENT))
-				return false;
+			bSet = setField(pPart, pwszName, pwszValue, FIELDTYPE_XQMAILATTACHMENT);
 		}
 		else {
 			bool bMulti = wcslen(pwszNameLower) < 9 ||
 				wcsncmp(pwszNameLower, L"x-qmail-", 8) != 0;
-			if (!setField(pPart, pwszName, pwszValue,
-				bMulti ? FIELDTYPE_MULTIUNSTRUCTURED : FIELDTYPE_SINGLEUNSTRUCTURED))
+			bSet = setField(pPart, pwszName, pwszValue,
+				bMulti ? FIELDTYPE_MULTIUNSTRUCTURED : FIELDTYPE_SINGLEUNSTRUCTURED);
+		}
+		if (!bSet) {
+			if ((nFlags_ & FLAG_RECOVER) == 0 ||
+				!setField(pPart, pwszName, pwszValue, FIELDTYPE_MULTIUNSTRUCTURED))
 				return false;
 		}
 	}
