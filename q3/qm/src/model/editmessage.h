@@ -96,6 +96,7 @@ public:
 public:
 	qs::QSTATUS getMessage(Message** ppMessage);
 	qs::QSTATUS setMessage(Message* pMessage);
+	qs::QSTATUS update();
 
 public:
 	Document* getDocument() const;

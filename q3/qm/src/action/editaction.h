@@ -344,12 +344,13 @@ class EditToolAddressBookAction : public qs::AbstractAction
 {
 public:
 	EditToolAddressBookAction(EditMessageHolder* pEditMessageHolder,
-		HWND hwndFrame, AddressBook* pAddressBook,
+		EditWindow* pEditWindow, AddressBook* pAddressBook,
 		qs::Profile* pProfile, qs::QSTATUS* pstatus);
 	virtual ~EditToolAddressBookAction();
 
 public:
 	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
 
 private:
 	EditToolAddressBookAction(const EditToolAddressBookAction&);
@@ -357,7 +358,7 @@ private:
 
 private:
 	EditMessageHolder* pEditMessageHolder_;
-	HWND hwndFrame_;
+	EditWindow* pEditWindow_;
 	AddressBook* pAddressBook_;
 	qs::Profile* pProfile_;
 };

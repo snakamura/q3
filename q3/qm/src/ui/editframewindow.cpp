@@ -218,9 +218,9 @@ QSTATUS qm::EditFrameWindowImpl::initActions()
 		IDM_FOCUS_HEADEREDITITEM + 10, pEditWindow_);
 	CHECK_QSTATUS();
 	status = InitAction4<EditToolAddressBookAction,
-		EditMessageHolder*, HWND, AddressBook*, Profile*>(
+		EditMessageHolder*, EditWindow*, AddressBook*, Profile*>(
 		pActionMap_, IDM_TOOL_ADDRESSBOOK, pEditWindow_->getEditMessageHolder(),
-		pThis_->getHandle(), pDocument_->getAddressBook(), pProfile_);
+		pEditWindow_, pDocument_->getAddressBook(), pProfile_);
 	CHECK_QSTATUS();
 	status = InitAction2<EditToolAttachmentAction, EditMessageHolder*, HWND>(
 		pActionMap_, IDM_TOOL_ATTACHMENT, pEditWindow_->getEditMessageHolder(),

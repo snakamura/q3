@@ -666,10 +666,10 @@ QSTATUS qm::EditFocusItemAction::invoke(const ActionEvent& event)
  */
 
 qm::EditToolAddressBookAction::EditToolAddressBookAction(
-	EditMessageHolder* pEditMessageHolder, HWND hwndFrame,
+	EditMessageHolder* pEditMessageHolder, EditWindow* pEditWindow,
 	AddressBook* pAddressBook, Profile* pProfile, QSTATUS* pstatus) :
 	pEditMessageHolder_(pEditMessageHolder),
-	hwndFrame_(hwndFrame),
+	pEditWindow_(pEditWindow),
 	pAddressBook_(pAddressBook),
 	pProfile_(pProfile)
 {
@@ -684,6 +684,8 @@ QSTATUS qm::EditToolAddressBookAction::invoke(const ActionEvent& event)
 	DECLARE_QSTATUS();
 	
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
+	status = pEditMessage->update();
+	CHECK_QSTATUS();
 	
 	const WCHAR* pwszFields[] = {
 		L"To",
@@ -704,7 +706,7 @@ QSTATUS qm::EditToolAddressBookAction::invoke(const ActionEvent& event)
 	AddressBookDialog dialog(pAddressBook_, pProfile_, pwszAddresses, &status);
 	CHECK_QSTATUS();
 	int nRet = 0;
-	status = dialog.doModal(hwndFrame_, 0, &nRet);
+	status = dialog.doModal(pEditWindow_->getParentFrame(), 0, &nRet);
 	if (nRet == IDOK) {
 		struct Type
 		{
@@ -736,6 +738,14 @@ QSTATUS qm::EditToolAddressBookAction::invoke(const ActionEvent& event)
 		}
 	}
 	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::EditToolAddressBookAction::isEnabled(
+	const ActionEvent& event, bool* pbEnabled)
+{
+	assert(pbEnabled);
+	*pbEnabled = !pEditWindow_->isHeaderEdit();
 	return QSTATUS_SUCCESS;
 }
 

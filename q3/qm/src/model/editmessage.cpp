@@ -160,6 +160,11 @@ QSTATUS qm::EditMessage::setMessage(Message* pMessage)
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qm::EditMessage::update()
+{
+	return fireMessageUpdate();
+}
+
 Document* qm::EditMessage::getDocument() const
 {
 	return pDocument_;
