@@ -59,6 +59,7 @@
 #include "../ui/editframewindow.h"
 #include "../ui/menus.h"
 #include "../ui/messageframewindow.h"
+#include "../ui/optiondialog.h"
 #include "../ui/propertypages.h"
 #include "../ui/resourceinc.h"
 #include "../ui/syncdialog.h"
@@ -208,213 +209,6 @@ bool qm::AttachmentSaveAction::isEnabled(const ActionEvent& event)
 {
 	return bAll_ ? pAttachmentSelectionModel_->hasAttachment() :
 		pAttachmentSelectionModel_->hasSelectedAttachment();
-}
-
-
-/****************************************************************************
- *
- * ConfigAutoPilotAction
- *
- */
-
-qm::ConfigAutoPilotAction::ConfigAutoPilotAction(AutoPilotManager* pAutoPilotManager,
-												 GoRound* pGoRound,
-												 HWND hwnd) :
-	pAutoPilotManager_(pAutoPilotManager),
-	pGoRound_(pGoRound),
-	hwnd_(hwnd)
-{
-}
-
-qm::ConfigAutoPilotAction::~ConfigAutoPilotAction()
-{
-}
-
-void qm::ConfigAutoPilotAction::invoke(const ActionEvent& event)
-{
-	AutoPilotDialog dialog(pAutoPilotManager_, pGoRound_);
-	dialog.doModal(hwnd_);
-}
-
-
-/****************************************************************************
- *
- * ConfigColorsAction
- *
- */
-
-qm::ConfigColorsAction::ConfigColorsAction(ColorManager* pColorManager,
-										   ViewModelManager* pViewModelManager,
-										   AccountManager* pAccountManager,
-										   HWND hwnd) :
-	pColorManager_(pColorManager),
-	pViewModelManager_(pViewModelManager),
-	pAccountManager_(pAccountManager),
-	hwnd_(hwnd)
-{
-}
-
-qm::ConfigColorsAction::~ConfigColorsAction()
-{
-}
-
-void qm::ConfigColorsAction::invoke(const ActionEvent& event)
-{
-	ColorSetsDialog dialog(pColorManager_, pAccountManager_);
-	if (dialog.doModal(hwnd_) == IDOK)
-		pViewModelManager_->invalidateColors();
-}
-
-
-/****************************************************************************
- *
- * ConfigFiltersAction
- *
- */
-
-qm::ConfigFiltersAction::ConfigFiltersAction(FilterManager* pFilterManager,
-											 HWND hwnd) :
-	pFilterManager_(pFilterManager),
-	hwnd_(hwnd)
-{
-}
-
-qm::ConfigFiltersAction::~ConfigFiltersAction()
-{
-}
-
-void qm::ConfigFiltersAction::invoke(const ActionEvent& event)
-{
-	FiltersDialog dialog(pFilterManager_);
-	dialog.doModal(hwnd_);
-}
-
-
-/****************************************************************************
- *
- * ConfigGoRoundAction
- *
- */
-
-qm::ConfigGoRoundAction::ConfigGoRoundAction(GoRound* pGoRound,
-											 AccountManager* pAccountManager,
-											 SyncFilterManager* pSyncFilterManager,
-											 HWND hwnd) :
-	pGoRound_(pGoRound),
-	pAccountManager_(pAccountManager),
-	pSyncFilterManager_(pSyncFilterManager),
-	hwnd_(hwnd)
-{
-}
-
-qm::ConfigGoRoundAction::~ConfigGoRoundAction()
-{
-}
-
-void qm::ConfigGoRoundAction::invoke(const ActionEvent& event)
-{
-	GoRoundDialog dialog(pGoRound_, pAccountManager_, pSyncFilterManager_);
-	dialog.doModal(hwnd_);
-}
-
-
-/****************************************************************************
- *
- * ConfigRulesAction
- *
- */
-
-qm::ConfigRulesAction::ConfigRulesAction(RuleManager* pRuleManager,
-										 AccountManager* pAccountManager,
-										 HWND hwnd) :
-	pRuleManager_(pRuleManager),
-	pAccountManager_(pAccountManager),
-	hwnd_(hwnd)
-{
-}
-
-qm::ConfigRulesAction::~ConfigRulesAction()
-{
-}
-
-void qm::ConfigRulesAction::invoke(const ActionEvent& event)
-{
-	RuleSetsDialog dialog(pRuleManager_, pAccountManager_);
-	dialog.doModal(hwnd_);
-}
-
-
-/****************************************************************************
- *
- * ConfigSignaturesAction
- *
- */
-
-qm::ConfigSignaturesAction::ConfigSignaturesAction(SignatureManager* pSignatureManager,
-												   AccountManager* pAccountManager,
-												   HWND hwnd) :
-	pSignatureManager_(pSignatureManager),
-	pAccountManager_(pAccountManager),
-	hwnd_(hwnd)
-{
-}
-
-qm::ConfigSignaturesAction::~ConfigSignaturesAction()
-{
-}
-
-void qm::ConfigSignaturesAction::invoke(const ActionEvent& event)
-{
-	SignaturesDialog dialog(pSignatureManager_, pAccountManager_);
-	dialog.doModal(hwnd_);
-}
-
-
-/****************************************************************************
- *
- * ConfigSyncFiltersAction
- *
- */
-
-qm::ConfigSyncFiltersAction::ConfigSyncFiltersAction(SyncFilterManager* pManager,
-													 HWND hwnd) :
-	pManager_(pManager),
-	hwnd_(hwnd)
-{
-}
-
-qm::ConfigSyncFiltersAction::~ConfigSyncFiltersAction()
-{
-}
-
-void qm::ConfigSyncFiltersAction::invoke(const ActionEvent& event)
-{
-	SyncFilterSetsDialog dialog(pManager_);
-	dialog.doModal(hwnd_);
-}
-
-
-/****************************************************************************
- *
- * ConfigTextsAction
- *
- */
-
-qm::ConfigTextsAction::ConfigTextsAction(FixedFormTextManager* pManager,
-										 HWND hwnd) :
-	pManager_(pManager),
-	hwnd_(hwnd)
-{
-}
-
-qm::ConfigTextsAction::~ConfigTextsAction()
-{
-}
-
-void qm::ConfigTextsAction::invoke(const ActionEvent& event)
-{
-	FixedFormTextsDialog dialog(pManager_);
-	dialog.doModal(hwnd_);
 }
 
 
@@ -4850,12 +4644,14 @@ qm::ToolAccountAction::ToolAccountAction(Document* pDocument,
 										 FolderModel* pFolderModel,
 										 PasswordManager* pPasswordManager,
 										 SyncManager* pSyncManager,
+										 OptionDialogManager* pOptionDialogManager,
 										 Profile* pProfile,
 										 HWND hwnd) :
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
 	pPasswordManager_(pPasswordManager),
 	pSyncManager_(pSyncManager),
+	pOptionDialogManager_(pOptionDialogManager),
 	pProfile_(pProfile),
 	hwnd_(hwnd)
 {
@@ -4879,7 +4675,7 @@ void qm::ToolAccountAction::invoke(const ActionEvent& event)
 	Account* pAccount = FolderActionUtil::getAccount(pFolderModel_);
 	AccountDialog dialog(pDocument_, pAccount, pPasswordManager_,
 		pSyncManager_->getSyncFilterManager(), pDocument_->getSecurity(),
-		pDocument_->getJunkFilter(), pProfile_);
+		pDocument_->getJunkFilter(), pOptionDialogManager_, pProfile_);
 	dialog.doModal(hwnd_, 0);
 	
 	if (!bOffline)
@@ -5153,10 +4949,12 @@ void qm::ToolGoRoundAction::invoke(const ActionEvent& event)
  *
  */
 
-qm::ToolOptionsAction::ToolOptionsAction(Profile* pProfile,
-										 HWND hwnd) :
-	pProfile_(pProfile),
-	hwnd_(hwnd)
+qm::ToolOptionsAction::ToolOptionsAction(OptionDialogManager* pOptionDialogManager,
+										 HWND hwnd,
+										 OptionDialog::Panel panel) :
+	pOptionDialogManager_(pOptionDialogManager),
+	hwnd_(hwnd),
+	panel_(panel)
 {
 }
 
@@ -5166,14 +4964,12 @@ qm::ToolOptionsAction::~ToolOptionsAction()
 
 void qm::ToolOptionsAction::invoke(const ActionEvent& event)
 {
-	// TODO
+	pOptionDialogManager_->showDialog(hwnd_, panel_);
 }
 
 bool qm::ToolOptionsAction::isEnabled(const ActionEvent& event)
 {
-	// TODO
-	// Check wether syncing or not
-	return false;
+	return pOptionDialogManager_->canShowDialog();
 }
 
 

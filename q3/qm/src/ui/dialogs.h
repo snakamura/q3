@@ -11,9 +11,7 @@
 
 #include <qm.h>
 #include <qmfolder.h>
-#include <qmgoround.h>
 #include <qmpassword.h>
-#include <qmsyncfilter.h>
 
 #include <qs.h>
 #include <qsdialog.h>
@@ -21,31 +19,21 @@
 
 #include "resourceinc.h"
 #include "../model/addressbook.h"
-#include "../model/color.h"
 #include "../model/editmessage.h"
-#include "../model/filter.h"
-#include "../model/fixedformtext.h"
-#include "../model/goround.h"
-#include "../model/rule.h"
-#include "../model/signature.h"
-#include "../sync/autopilot.h"
 #include "../uimodel/viewmodel.h"
 
 
 namespace qm {
 
 class DefaultDialog;
+	template<class T, class List> class AbstractListDialog;
 	class AccountDialog;
 	class AddAddressDialog;
 	class AddressBookAddressDialog;
 	class AddressBookEntryDialog;
-	class ArgumentDialog;
 	class AttachmentDialog;
-	class AutoPilotEntryDialog;
-	class ColorDialog;
 	class ConditionDialog;
 	class ConfirmSendDialog;
-	class CopyRuleTemplateDialog;
 	class CreateAccountDialog;
 	class CreateFolderDialog;
 	class CreateSubAccountDialog;
@@ -53,11 +41,7 @@ class DefaultDialog;
 	class DetachDialog;
 	class DialupDialog;
 	class ExportDialog;
-	class FilterDialog;
 	class FindDialog;
-	class FixedFormTextDialog;
-	class GoRoundDialupDialog;
-	class GoRoundEntryDialog;
 	class ImportDialog;
 	class InputBoxDialog;
 	class MailFolderDialog;
@@ -68,37 +52,21 @@ class DefaultDialog;
 	class RenameDialog;
 	class ReplaceDialog;
 	class ResourceDialog;
-	class RuleDialog;
 	class SelectAddressDialog;
 	class SelectDialupEntryDialog;
 	class SelectSyncFilterDialog;
-	class SignatureDialog;
-	class SyncFilterDialog;
 #ifdef TABWINDOW
 	class TabTitleDialog;
 #endif
 	class ViewsColumnDialog;
 	class ViewsDialog;
-	template<class T, class List> class AbstractListDialog;
-		class AutoPilotDialog;
-		class FiltersDialog;
-		class FixedFormTextsDialog;
-		class GoRoundDialog;
-		class GoRoundCourseDialog;
-		template<class T, class List, class Manager, class EditDialog> class RuleColorSetsDialog;
-			class ColorSetsDialog;
-			class RuleSetsDialog;
-		template<class T, class List, class Container, class EditDialog> class RulesColorsDialog;
-			class ColorsDialog;
-			class RulesDialog;
-		class SignaturesDialog;
-		class SyncFiltersDialog;
-		class SyncFilterSetsDialog;
 
 class Account;
 class JunkFilter;
+class OptionDialogManager;
 class PasswordManager;
 class Security;
+class SyncFilterManager;
 class TemplateManager;
 
 
@@ -133,7 +101,8 @@ class AbstractListDialog : public DefaultDialog
 {
 protected:
 	AbstractListDialog(UINT nId,
-					   UINT nListId);
+					   UINT nListId,
+					   bool bFocus);
 	virtual ~AbstractListDialog();
 
 public:
@@ -167,6 +136,7 @@ private:
 
 private:
 	UINT nListId_;
+	bool bFocus_;
 	List list_;
 };
 
@@ -188,6 +158,7 @@ public:
 				  SyncFilterManager* pSyncFilterManager,
 				  const Security* pSecurity,
 				  JunkFilter* pJunkFilter,
+				  OptionDialogManager* pOptionDialogManager,
 				  qs::Profile* pProfile);
 	virtual ~AccountDialog();
 
@@ -232,6 +203,7 @@ private:
 	SyncFilterManager* pSyncFilterManager_;
 	const Security* pSecurity_;
 	JunkFilter* pJunkFilter_;
+	OptionDialogManager* pOptionDialogManager_;
 	qs::Profile* pProfile_;
 };
 
@@ -373,50 +345,6 @@ private:
 
 /****************************************************************************
  *
- * ArgumentDialog
- *
- */
-
-class ArgumentDialog : public DefaultDialog
-{
-public:
-	ArgumentDialog(const WCHAR* pwszName,
-				   const WCHAR* pwszValue);
-	virtual ~ArgumentDialog();
-
-public:
-	const WCHAR* getName() const;
-	const WCHAR* getValue() const;
-
-public:
-	virtual LRESULT onCommand(WORD nCode,
-							  WORD nId);
-
-protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus,
-								 LPARAM lParam);
-
-protected:
-	virtual LRESULT onOk();
-
-private:
-	LRESULT onNameChange();
-
-private:
-	void updateState();
-
-private:
-	ArgumentDialog(const ArgumentDialog&);
-	ArgumentDialog& operator=(const ArgumentDialog&);
-
-private:
-	qs::wstring_ptr wstrName_;
-	qs::wstring_ptr wstrValue_;
-};
-
-
-/****************************************************************************
- *
  * AttachmentDialog
  *
  */
@@ -458,121 +386,6 @@ private:
 
 private:
 	EditMessage::AttachmentList& listAttachment_;
-};
-
-
-/****************************************************************************
- *
- * AutoPilotDialog
- *
- */
-
-class AutoPilotDialog : public AbstractListDialog<AutoPilotEntry, AutoPilotManager::EntryList>
-{
-public:
-	AutoPilotDialog(AutoPilotManager* pManager,
-					GoRound* pGoRound);
-	virtual ~AutoPilotDialog();
-
-protected:
-	virtual LRESULT onOk();
-
-protected:
-	virtual qs::wstring_ptr getLabel(const AutoPilotEntry* p) const;
-	virtual std::auto_ptr<AutoPilotEntry> create() const;
-	virtual bool edit(AutoPilotEntry* p) const;
-
-private:
-	AutoPilotDialog(const AutoPilotDialog&);
-	AutoPilotDialog& operator=(const AutoPilotDialog&);
-
-private:
-	AutoPilotManager* pManager_;
-	GoRound* pGoRound_;
-};
-
-
-/****************************************************************************
- *
- * AutoPilotEntryDialog
- *
- */
-
-class AutoPilotEntryDialog : public DefaultDialog
-{
-public:
-	AutoPilotEntryDialog(AutoPilotEntry* pEntry,
-						 GoRound* pGoRound);
-	virtual ~AutoPilotEntryDialog();
-
-public:
-	virtual LRESULT onCommand(WORD nCode,
-							  WORD nId);
-
-protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus,
-								 LPARAM lParam);
-
-protected:
-	virtual LRESULT onOk();
-
-private:
-	LRESULT onCourseEditChange();
-	LRESULT onCourseSelChange();
-	LRESULT onIntervalChange();
-
-private:
-	void updateState();
-
-private:
-	AutoPilotEntryDialog(const AutoPilotEntryDialog&);
-	AutoPilotEntryDialog& operator=(const AutoPilotEntryDialog&);
-
-private:
-	AutoPilotEntry* pEntry_;
-	GoRound* pGoRound_;
-};
-
-
-/****************************************************************************
- *
- * ColorDialog
- *
- */
-
-class ColorDialog : public DefaultDialog
-{
-public:
-	ColorDialog(ColorEntry* pColor,
-				AccountManager* pAccountManager);
-	virtual ~ColorDialog();
-
-public:
-	virtual LRESULT onCommand(WORD nCode,
-							  WORD nId);
-
-protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus,
-								 LPARAM lParam);
-
-protected:
-	virtual LRESULT onOk();
-
-private:
-	LRESULT onEdit();
-	LRESULT onChoose();
-	LRESULT onConditionChange();
-	LRESULT onColorChange();
-
-private:
-	void updateState();
-
-private:
-	ColorDialog(const ColorDialog&);
-	ColorDialog& operator=(const ColorDialog&);
-
-private:
-	ColorEntry* pColor_;
 };
 
 
@@ -646,60 +459,6 @@ private:
 private:
 	ConfirmSendDialog(const ConfirmSendDialog&);
 	ConfirmSendDialog& operator=(const ConfirmSendDialog&);
-};
-
-
-/****************************************************************************
- *
- * CopyRuleTemplateDialog
- *
- */
-
-class CopyRuleTemplateDialog :
-	public DefaultDialog,
-	public qs::NotifyHandler
-{
-public:
-	CopyRuleTemplateDialog(const WCHAR* pwszName,
-						   CopyRuleAction::ArgumentList* pListArgument);
-	virtual ~CopyRuleTemplateDialog();
-
-public:
-	const WCHAR* getName() const;
-
-public:
-	virtual LRESULT onCommand(WORD nCode,
-							  WORD nId);
-
-protected:
-	virtual LRESULT onDestroy();
-	virtual LRESULT onInitDialog(HWND hwndFocus,
-								 LPARAM lParam);
-
-protected:
-	virtual LRESULT onOk();
-
-public:
-	virtual LRESULT onNotify(NMHDR* pnmhdr,
-							 bool* pbHandled);
-
-private:
-	LRESULT onAdd();
-	LRESULT onRemove();
-	LRESULT onEdit();
-	LRESULT onArgumentItemChanged(NMHDR* pnmhdr,
-								  bool* pbHandled);
-
-private:
-	void updateState();
-
-private:
-	CopyRuleTemplateDialog(const CopyRuleTemplateDialog&);
-	CopyRuleTemplateDialog& operator=(const CopyRuleTemplateDialog&);
-
-private:
-	qs::wstring_ptr wstrName_;
-	CopyRuleAction::ArgumentList* pListArgument_;
 };
 
 
@@ -1097,75 +856,6 @@ private:
 
 /****************************************************************************
  *
- * FilterDialog
- *
- */
-
-class FilterDialog : public DefaultDialog
-{
-public:
-	explicit FilterDialog(Filter* pFilter);
-	virtual ~FilterDialog();
-
-public:
-	virtual LRESULT onCommand(WORD nCode,
-							  WORD nId);
-
-protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus,
-								 LPARAM lParam);
-
-protected:
-	virtual LRESULT onOk();
-
-private:
-	LRESULT onEdit();
-	LRESULT onConditionChange();
-	LRESULT onNameChange();
-
-private:
-	void updateState();
-
-private:
-	FilterDialog(const FilterDialog&);
-	FilterDialog& operator=(const FilterDialog&);
-
-private:
-	Filter* pFilter_;
-};
-
-
-/****************************************************************************
- *
- * FiltersDialog
- *
- */
-
-class FiltersDialog : public AbstractListDialog<Filter, FilterManager::FilterList>
-{
-public:
-	explicit FiltersDialog(FilterManager* pManager);
-	virtual ~FiltersDialog();
-
-protected:
-	virtual LRESULT onOk();
-
-protected:
-	virtual qs::wstring_ptr getLabel(const Filter* p) const;
-	virtual std::auto_ptr<Filter> create() const;
-	virtual bool edit(Filter* p) const;
-
-private:
-	FiltersDialog(const FiltersDialog&);
-	FiltersDialog& operator=(const FiltersDialog&);
-
-private:
-	FilterManager* pManager_;
-};
-
-
-/****************************************************************************
- *
  * FindDialog
  *
  */
@@ -1215,243 +905,6 @@ private:
 	bool bMatchCase_;
 	bool bRegex_;
 	bool bPrev_;
-};
-
-
-/****************************************************************************
- *
- * FixedFormTextDialog
- *
- */
-
-class FixedFormTextDialog : public DefaultDialog
-{
-public:
-	explicit FixedFormTextDialog(FixedFormText* pText);
-	virtual ~FixedFormTextDialog();
-
-public:
-	virtual LRESULT onCommand(WORD nCode,
-							  WORD nId);
-
-protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus,
-								 LPARAM lParam);
-
-protected:
-	virtual LRESULT onOk();
-
-private:
-	LRESULT onNameChange();
-
-private:
-	void updateState();
-
-private:
-	FixedFormTextDialog(const FixedFormTextDialog&);
-	FixedFormTextDialog& operator=(const FixedFormTextDialog&);
-
-private:
-	FixedFormText* pText_;
-};
-
-
-/****************************************************************************
- *
- * FixedFormTextsDialog
- *
- */
-
-class FixedFormTextsDialog : public AbstractListDialog<FixedFormText, FixedFormTextManager::TextList>
-{
-public:
-	explicit FixedFormTextsDialog(FixedFormTextManager* pManager);
-	virtual ~FixedFormTextsDialog();
-
-protected:
-	virtual LRESULT onOk();
-
-protected:
-	virtual qs::wstring_ptr getLabel(const FixedFormText* p) const;
-	virtual std::auto_ptr<FixedFormText> create() const;
-	virtual bool edit(FixedFormText* p) const;
-
-private:
-	FixedFormTextsDialog(const FixedFormTextsDialog&);
-	FixedFormTextsDialog& operator=(const FixedFormTextsDialog&);
-
-private:
-	FixedFormTextManager* pManager_;
-};
-
-
-/****************************************************************************
- *
- * GoRoundDialog
- *
- */
-
-class GoRoundDialog : public AbstractListDialog<GoRoundCourse, GoRound::CourseList>
-{
-public:
-	GoRoundDialog(GoRound* pGoRound,
-				  AccountManager* pAccountManager,
-				  SyncFilterManager* pSyncFilterManager);
-	virtual ~GoRoundDialog();
-
-protected:
-	virtual LRESULT onOk();
-
-protected:
-	virtual qs::wstring_ptr getLabel(const GoRoundCourse* p) const;
-	virtual std::auto_ptr<GoRoundCourse> create() const;
-	virtual bool edit(GoRoundCourse* p) const;
-
-private:
-	GoRoundDialog(const GoRoundDialog&);
-	GoRoundDialog& operator=(const GoRoundDialog&);
-
-private:
-	GoRound* pGoRound_;
-	AccountManager* pAccountManager_;
-	SyncFilterManager* pSyncFilterManager_;
-};
-
-
-/****************************************************************************
- *
- * GoRoundCourseDialog
- *
- */
-
-class GoRoundCourseDialog : public AbstractListDialog<GoRoundEntry, GoRoundCourse::EntryList>
-{
-public:
-	GoRoundCourseDialog(GoRoundCourse* pCourse,
-						AccountManager* pAccountManager,
-						SyncFilterManager* pSyncFilterManager);
-	virtual ~GoRoundCourseDialog();
-
-public:
-	virtual LRESULT onCommand(WORD nCode,
-							  WORD nId);
-
-protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus,
-								 LPARAM lParam);
-
-protected:
-	virtual LRESULT onOk();
-
-protected:
-	virtual qs::wstring_ptr getLabel(const GoRoundEntry* p) const;
-	virtual std::auto_ptr<GoRoundEntry> create() const;
-	virtual bool edit(GoRoundEntry* p) const;
-	virtual void updateState();
-
-private:
-	LRESULT onDialup();
-	LRESULT onNameChange();
-
-private:
-	GoRoundCourseDialog(const GoRoundCourseDialog&);
-	GoRoundCourseDialog& operator=(const GoRoundCourseDialog&);
-
-private:
-	GoRoundCourse* pCourse_;
-	AccountManager* pAccountManager_;
-	SyncFilterManager* pSyncFilterManager_;
-};
-
-
-/****************************************************************************
- *
- * GoRoundDialupDialog
- *
- */
-
-class GoRoundDialupDialog : public DefaultDialog
-{
-public:
-	GoRoundDialupDialog(GoRoundDialup* pDialup,
-						bool bNoDialup);
-	virtual ~GoRoundDialupDialog();
-
-public:
-	bool isNoDialup() const;
-
-public:
-	virtual LRESULT onCommand(WORD nCode,
-							  WORD nId);
-
-protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus,
-								 LPARAM lParam);
-
-protected:
-	virtual LRESULT onOk();
-
-private:
-	LRESULT onTypeSelect(UINT nId);
-
-private:
-	void updateState();
-
-private:
-	GoRoundDialupDialog(const GoRoundDialupDialog&);
-	GoRoundDialupDialog& operator=(const GoRoundDialupDialog&);
-
-private:
-	GoRoundDialup* pDialup_;
-	bool bNoDialup_;
-};
-
-
-/****************************************************************************
- *
- * GoRoundEntryDialog
- *
- */
-
-class GoRoundEntryDialog : public DefaultDialog
-{
-public:
-	GoRoundEntryDialog(GoRoundEntry* pEntry,
-					   AccountManager* pAccountManager,
-					   SyncFilterManager* pSyncFilterManager);
-	virtual ~GoRoundEntryDialog();
-
-public:
-	virtual LRESULT onCommand(WORD nCode,
-							  WORD nId);
-
-protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus,
-								 LPARAM lParam);
-
-protected:
-	virtual LRESULT onOk();
-
-private:
-	LRESULT onEdit();
-	LRESULT onAccountEditChange();
-	LRESULT onAccountSelChange();
-	LRESULT onSelectFolderClicked();
-
-private:
-	void updateState();
-	void updateSubAccount(Account* pAccount);
-	void updateFolder(Account* pAccount);
-	void updateFilter();
-
-private:
-	GoRoundEntryDialog(const GoRoundEntryDialog&);
-	GoRoundEntryDialog& operator=(const GoRoundEntryDialog&);
-
-private:
-	GoRoundEntry* pEntry_;
-	AccountManager* pAccountManager_;
-	SyncFilterManager* pSyncFilterManager_;
 };
 
 
@@ -1918,216 +1371,6 @@ private:
 
 /****************************************************************************
  *
- * RuleDialog
- *
- */
-
-class RuleDialog : public DefaultDialog
-{
-public:
-	RuleDialog(Rule* pRule,
-			   AccountManager* pAccountManager);
-	virtual ~RuleDialog();
-
-public:
-	virtual LRESULT onCommand(WORD nCode,
-							  WORD nId);
-
-protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus,
-								 LPARAM lParam);
-
-protected:
-	virtual LRESULT onOk();
-
-private:
-	LRESULT onEdit();
-	LRESULT onTemplate();
-	LRESULT onActionSelChange();
-	LRESULT onAccountEditChange();
-	LRESULT onAccountSelChange();
-	LRESULT onConditionChange();
-	LRESULT onFolderEditChange();
-	LRESULT onFolderSelChange();
-	LRESULT onMacroChange();
-
-private:
-	void updateState(bool bUpdateFolder);
-	void updateFolder(Account* pAccount);
-
-private:
-	RuleDialog(const RuleDialog&);
-	RuleDialog& operator=(const RuleDialog&);
-
-private:
-	Rule* pRule_;
-	AccountManager* pAccountManager_;
-	qs::wstring_ptr wstrTemplate_;
-	CopyRuleAction::ArgumentList listArgument_;
-	bool bInit_;
-};
-
-
-/****************************************************************************
- *
- * RuleColorSetsDialog
- *
- */
-
-template<class T, class List, class Manager, class EditDialog>
-class RuleColorSetsDialog : public AbstractListDialog<T, List>
-{
-public:
-	typedef const List& (Manager::*PFN_GET)();
-	typedef void (Manager::*PFN_SET)(List&);
-
-public:
-	RuleColorSetsDialog(Manager* pManager,
-						AccountManager* pAccountManager,
-						UINT nTitleId,
-						PFN_GET pfnGet,
-						PFN_SET pfnSet);
-	virtual ~RuleColorSetsDialog();
-
-protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus,
-								 LPARAM lParam);
-
-protected:
-	virtual LRESULT onOk();
-
-protected:
-	virtual qs::wstring_ptr getLabel(const T* p) const;
-	virtual std::auto_ptr<T> create() const;
-	virtual bool edit(T* p) const;
-
-private:
-	RuleColorSetsDialog(const RuleColorSetsDialog&);
-	RuleColorSetsDialog& operator=(const RuleColorSetsDialog&);
-
-private:
-	Manager* pManager_;
-	AccountManager* pAccountManager_;
-	UINT nTitleId_;
-	PFN_SET pfnSet_;
-};
-
-
-/****************************************************************************
- *
- * ColorSetsDialog
- *
- */
-
-class ColorSetsDialog : public RuleColorSetsDialog<ColorSet, ColorManager::ColorSetList, ColorManager, ColorsDialog>
-{
-public:
-	ColorSetsDialog(ColorManager* pColorManager,
-					AccountManager* pAccountManager);
-};
-
-
-/****************************************************************************
- *
- * RuleSetsDialog
- *
- */
-
-class RuleSetsDialog : public RuleColorSetsDialog<RuleSet, RuleManager::RuleSetList, RuleManager, RulesDialog>
-{
-public:
-	RuleSetsDialog(RuleManager* pRuleManager,
-				   AccountManager* pAccountManager);
-};
-
-
-/****************************************************************************
- *
- * RulesColorsDialog
- *
- */
-
-template<class T, class List, class Container, class EditDialog>
-class RulesColorsDialog : public AbstractListDialog<T, List>
-{
-public:
-	typedef const List& (Container::*PFN_GET)() const;
-	typedef void (Container::*PFN_SET)(List&);
-
-public:
-	RulesColorsDialog(Container* pContainer,
-					  AccountManager* pAccountManager,
-					  UINT nTitleId,
-					  PFN_GET pfnGet,
-					  PFN_SET pfnSet);
-	virtual ~RulesColorsDialog();
-
-public:
-	virtual LRESULT onCommand(WORD nCode,
-							  WORD nId);
-
-protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus,
-								 LPARAM lParam);
-
-protected:
-	virtual LRESULT onOk();
-
-protected:
-	virtual qs::wstring_ptr getLabel(const T* p) const;
-	virtual std::auto_ptr<T> create() const;
-	virtual bool edit(T* p) const;
-	virtual void updateState();
-
-private:
-	LRESULT onAccountEditChange();
-	LRESULT onAccountSelChange();
-
-private:
-	void updateFolder(Account* pAccount);
-
-private:
-	RulesColorsDialog(const RulesColorsDialog&);
-	RulesColorsDialog& operator=(const RulesColorsDialog&);
-
-private:
-	Container* pContainer_;
-	AccountManager* pAccountManager_;
-	UINT nTitleId_;
-	PFN_SET pfnSet_;
-};
-
-
-/****************************************************************************
- *
- * ColorsDialog
- *
- */
-
-class ColorsDialog : public RulesColorsDialog<ColorEntry, ColorSet::ColorList, ColorSet, ColorDialog>
-{
-public:
-	ColorsDialog(ColorSet* pColorSet,
-				 AccountManager* pAccountManager);
-};
-
-
-/****************************************************************************
- *
- * RulesDialog
- *
- */
-
-class RulesDialog : public RulesColorsDialog<Rule, RuleSet::RuleList, RuleSet, RuleDialog>
-{
-public:
-	RulesDialog(RuleSet* pRuleSet,
-				AccountManager* pAccountManager);
-};
-
-
-/****************************************************************************
- *
  * SelectAddressDialog
  *
  */
@@ -2403,186 +1646,6 @@ private:
 private:
 	SyncFilterManager* pManager_;
 	qs::wstring_ptr wstrName_;
-};
-
-
-/****************************************************************************
- *
- * SignatureDialog
- *
- */
-
-class SignatureDialog : public DefaultDialog
-{
-public:
-	SignatureDialog(Signature* pSignature,
-					AccountManager* pAccountManager);
-	virtual ~SignatureDialog();
-
-public:
-	virtual LRESULT onCommand(WORD nCode,
-							  WORD nId);
-
-protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus,
-								 LPARAM lParam);
-
-protected:
-	virtual LRESULT onOk();
-
-private:
-	LRESULT onNameChange();
-
-private:
-	void updateState();
-
-private:
-	SignatureDialog(const SignatureDialog&);
-	SignatureDialog& operator=(const SignatureDialog&);
-
-private:
-	Signature* pSignature_;
-	AccountManager* pAccountManager_;
-};
-
-
-/****************************************************************************
- *
- * SignaturesDialog
- *
- */
-
-class SignaturesDialog : public AbstractListDialog<Signature, SignatureManager::SignatureList>
-{
-public:
-	SignaturesDialog(SignatureManager* pSignatureManager,
-					 AccountManager* pAccountManager);
-	virtual ~SignaturesDialog();
-
-protected:
-	virtual LRESULT onOk();
-
-protected:
-	virtual qs::wstring_ptr getLabel(const Signature* p) const;
-	virtual std::auto_ptr<Signature> create() const;
-	virtual bool edit(Signature* p) const;
-
-private:
-	SignaturesDialog(const SignaturesDialog&);
-	SignaturesDialog& operator=(const SignaturesDialog&);
-
-private:
-	SignatureManager* pSignatureManager_;
-	AccountManager* pAccountManager_;
-};
-
-
-/****************************************************************************
- *
- * SyncFilterDialog
- *
- */
-
-class SyncFilterDialog : public DefaultDialog
-{
-public:
-	explicit SyncFilterDialog(SyncFilter* pSyncFilter);
-	virtual ~SyncFilterDialog();
-
-public:
-	virtual LRESULT onCommand(WORD nCode,
-							  WORD nId);
-
-protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus,
-								 LPARAM lParam);
-
-protected:
-	virtual LRESULT onOk();
-
-private:
-	LRESULT onEdit();
-	LRESULT onActionSelChange();
-
-private:
-	void updateState();
-
-private:
-	SyncFilterDialog(const SyncFilterDialog&);
-	SyncFilterDialog& operator=(const SyncFilterDialog&);
-
-private:
-	SyncFilter* pSyncFilter_;
-};
-
-
-/****************************************************************************
- *
- * SyncFiltersDialog
- *
- */
-
-class SyncFiltersDialog : public AbstractListDialog<SyncFilter, SyncFilterSet::FilterList>
-{
-public:
-	explicit SyncFiltersDialog(SyncFilterSet* pSyncFilterSet);
-	virtual ~SyncFiltersDialog();
-
-public:
-	virtual LRESULT onCommand(WORD nCode,
-							  WORD nId);
-
-protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus,
-								 LPARAM lParam);
-
-protected:
-	virtual LRESULT onOk();
-
-protected:
-	virtual qs::wstring_ptr getLabel(const SyncFilter* p) const;
-	virtual std::auto_ptr<SyncFilter> create() const;
-	virtual bool edit(SyncFilter* p) const;
-	virtual void updateState();
-
-private:
-	LRESULT onNameChange();
-
-private:
-	SyncFiltersDialog(const SyncFiltersDialog&);
-	SyncFiltersDialog& operator=(const SyncFiltersDialog&);
-
-private:
-	SyncFilterSet* pSyncFilterSet_;
-};
-
-
-/****************************************************************************
- *
- * SyncFilterSetsDialog
- *
- */
-
-class SyncFilterSetsDialog : public AbstractListDialog<SyncFilterSet, SyncFilterManager::FilterSetList>
-{
-public:
-	explicit SyncFilterSetsDialog(SyncFilterManager* pSyncFilterManager);
-	virtual ~SyncFilterSetsDialog();
-
-protected:
-	virtual LRESULT onOk();
-
-protected:
-	virtual qs::wstring_ptr getLabel(const SyncFilterSet* p) const;
-	virtual std::auto_ptr<SyncFilterSet> create() const;
-	virtual bool edit(SyncFilterSet* p) const;
-
-private:
-	SyncFilterSetsDialog(const SyncFilterSetsDialog&);
-	SyncFilterSetsDialog& operator=(const SyncFilterSetsDialog&);
-
-private:
-	SyncFilterManager* pSyncFilterManager_;
 };
 
 

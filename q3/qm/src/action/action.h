@@ -21,6 +21,7 @@
 #include "attachmenthelper.h"
 #include "templateprocessor.h"
 #include "../ui/messagewindow.h"
+#include "../ui/optiondialog.h"
 #include "../uimodel/messagecomposer.h"
 #include "../uimodel/messageviewmode.h"
 
@@ -30,14 +31,6 @@ namespace qm {
 struct ActionParam;
 class AttachmentOpenAction;
 class AttachmentSaveAction;
-class ConfigAutoPilotAction;
-class ConfigColorsAction;
-class ConfigFiltersAction;
-class ConfigGoRoundAction;
-class ConfigRulesAction;
-class ConfigSignaturesAction;
-class ConfigSyncFiltersAction;
-class ConfigTextsAction;
 class ConfigViewsAction;
 class DispatchAction;
 class EditClearDeletedAction;
@@ -289,228 +282,6 @@ private:
 	AttachmentSelectionModel* pAttachmentSelectionModel_;
 	bool bAll_;
 	AttachmentHelper helper_;
-	HWND hwnd_;
-};
-
-
-/****************************************************************************
- *
- * ConfigAutoPilotAction
- *
- */
-
-class ConfigAutoPilotAction : public qs::AbstractAction
-{
-public:
-	ConfigAutoPilotAction(AutoPilotManager* pAutoPilotManager,
-						  GoRound* pGoRound,
-						  HWND hwnd);
-	virtual ~ConfigAutoPilotAction();
-
-public:
-	virtual void invoke(const qs::ActionEvent& event);
-
-private:
-	ConfigAutoPilotAction(const ConfigAutoPilotAction&);
-	ConfigAutoPilotAction& operator=(const ConfigAutoPilotAction&);
-
-private:
-	AutoPilotManager* pAutoPilotManager_;
-	GoRound* pGoRound_;
-	HWND hwnd_;
-};
-
-
-/****************************************************************************
- *
- * ConfigColorsAction
- *
- */
-
-class ConfigColorsAction : public qs::AbstractAction
-{
-public:
-	ConfigColorsAction(ColorManager* pColorManager,
-					   ViewModelManager* pViewModelManager,
-					   AccountManager* pAccountManager,
-					   HWND hwnd);
-	virtual ~ConfigColorsAction();
-
-public:
-	virtual void invoke(const qs::ActionEvent& event);
-
-private:
-	ConfigColorsAction(const ConfigColorsAction&);
-	ConfigColorsAction& operator=(const ConfigColorsAction&);
-
-private:
-	ColorManager* pColorManager_;
-	ViewModelManager* pViewModelManager_;
-	AccountManager* pAccountManager_;
-	HWND hwnd_;
-};
-
-
-/****************************************************************************
- *
- * ConfigFiltersAction
- *
- */
-
-class ConfigFiltersAction : public qs::AbstractAction
-{
-public:
-	ConfigFiltersAction(FilterManager* pFilterManager,
-						HWND hwnd);
-	virtual ~ConfigFiltersAction();
-
-public:
-	virtual void invoke(const qs::ActionEvent& event);
-
-private:
-	ConfigFiltersAction(const ConfigFiltersAction&);
-	ConfigFiltersAction& operator=(const ConfigFiltersAction&);
-
-private:
-	FilterManager* pFilterManager_;
-	HWND hwnd_;
-};
-
-
-/****************************************************************************
- *
- * ConfigGoRoundAction
- *
- */
-
-class ConfigGoRoundAction : public qs::AbstractAction
-{
-public:
-	ConfigGoRoundAction(GoRound* pGoRound,
-						AccountManager* pAccountManager,
-						SyncFilterManager* pSyncFilterManager,
-						HWND hwnd);
-	virtual ~ConfigGoRoundAction();
-
-public:
-	virtual void invoke(const qs::ActionEvent& event);
-
-private:
-	ConfigGoRoundAction(const ConfigGoRoundAction&);
-	ConfigGoRoundAction& operator=(const ConfigGoRoundAction&);
-
-private:
-	GoRound* pGoRound_;
-	AccountManager* pAccountManager_;
-	SyncFilterManager* pSyncFilterManager_;
-	HWND hwnd_;
-};
-
-
-/****************************************************************************
- *
- * ConfigRulesAction
- *
- */
-
-class ConfigRulesAction : public qs::AbstractAction
-{
-public:
-	ConfigRulesAction(RuleManager* pRuleManager,
-					  AccountManager* pAccountManager,
-					  HWND hwnd);
-	virtual ~ConfigRulesAction();
-
-public:
-	virtual void invoke(const qs::ActionEvent& event);
-
-private:
-	ConfigRulesAction(const ConfigRulesAction&);
-	ConfigRulesAction& operator=(const ConfigRulesAction&);
-
-private:
-	RuleManager* pRuleManager_;
-	AccountManager* pAccountManager_;
-	HWND hwnd_;
-};
-
-
-/****************************************************************************
- *
- * ConfigSignaturesAction
- *
- */
-
-class ConfigSignaturesAction : public qs::AbstractAction
-{
-public:
-	ConfigSignaturesAction(SignatureManager* pSignatureManager,
-						   AccountManager* pAccountManager,
-						   HWND hwnd);
-	virtual ~ConfigSignaturesAction();
-
-public:
-	virtual void invoke(const qs::ActionEvent& event);
-
-private:
-	ConfigSignaturesAction(const ConfigSignaturesAction&);
-	ConfigSignaturesAction& operator=(const ConfigSignaturesAction&);
-
-private:
-	SignatureManager* pSignatureManager_;
-	AccountManager* pAccountManager_;
-	HWND hwnd_;
-};
-
-
-/****************************************************************************
- *
- * ConfigSyncFiltersAction
- *
- */
-
-class ConfigSyncFiltersAction : public qs::AbstractAction
-{
-public:
-	ConfigSyncFiltersAction(SyncFilterManager* pManager,
-							HWND hwnd);
-	virtual ~ConfigSyncFiltersAction();
-
-public:
-	virtual void invoke(const qs::ActionEvent& event);
-
-private:
-	ConfigSyncFiltersAction(const ConfigSyncFiltersAction&);
-	ConfigSyncFiltersAction& operator=(const ConfigSyncFiltersAction&);
-
-private:
-	SyncFilterManager* pManager_;
-	HWND hwnd_;
-};
-
-
-/****************************************************************************
- *
- * ConfigTextsAction
- *
- */
-
-class ConfigTextsAction : public qs::AbstractAction
-{
-public:
-	ConfigTextsAction(FixedFormTextManager* pManager,
-					  HWND hwnd);
-	virtual ~ConfigTextsAction();
-
-public:
-	virtual void invoke(const qs::ActionEvent& event);
-
-private:
-	ConfigTextsAction(const ConfigTextsAction&);
-	ConfigTextsAction& operator=(const ConfigTextsAction&);
-
-private:
-	FixedFormTextManager* pManager_;
 	HWND hwnd_;
 };
 
@@ -2586,6 +2357,7 @@ public:
 					  FolderModel* pFolderModel,
 					  PasswordManager* pPasswordManager,
 					  SyncManager* pSyncManager,
+					  OptionDialogManager* pOptionDialogManager,
 					  qs::Profile* pProfile,
 					  HWND hwnd);
 	virtual ~ToolAccountAction();
@@ -2603,6 +2375,7 @@ private:
 	FolderModel* pFolderModel_;
 	PasswordManager* pPasswordManager_;
 	SyncManager* pSyncManager_;
+	OptionDialogManager* pOptionDialogManager_;
 	qs::Profile* pProfile_;
 	HWND hwnd_;
 };
@@ -2763,8 +2536,9 @@ private:
 class ToolOptionsAction : public qs::AbstractAction
 {
 public:
-	ToolOptionsAction(qs::Profile* pProfile,
-					  HWND hwnd);
+	ToolOptionsAction(OptionDialogManager* pOptionDialogManager,
+					  HWND hwnd,
+					  OptionDialog::Panel panel);
 	virtual ~ToolOptionsAction();
 
 public:
@@ -2776,8 +2550,9 @@ private:
 	ToolOptionsAction& operator=(const ToolOptionsAction&);
 
 private:
-	qs::Profile* pProfile_;
+	OptionDialogManager* pOptionDialogManager_;
 	HWND hwnd_;
+	OptionDialog::Panel panel_;
 };
 
 

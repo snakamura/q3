@@ -116,22 +116,11 @@
 			<separator/>
 			<popupmenu text="Script" action="ToolScript"/>
 			<separator/>
-			<popupmenu text="Auto Pilot">
-				<menuitem text="On" action="ToolAutoPilot"/>
-				<separator/>
-				<menuitem text="Edit..." action="ConfigAutoPilot"/>
-			</popupmenu>
+			<menuitem text="Auto Pilot" action="ToolAutoPilot"/>
 			<separator/>
 			<popupmenu text="Sub Account" action="ToolSubAccount"/>
 			<menuitem text="Account..." action="ToolAccount"/>
 			<menuitem text="Options..." action="ToolOptions"/>
-			<separator/>
-			<popupmenu text="Config">
-				<menuitem text="Rules..." action="ConfigRules"/>
-				<menuitem text="Colors..." action="ConfigColors"/>
-				<menuitem text="Signatures..." action="ConfigSignatures"/>
-				<menuitem text="SyncFilters..." action="ConfigSyncFilters"/>
-			</popupmenu>
 		</popupmenu>
 	</menubar>
 	<menubar name="messageframe">

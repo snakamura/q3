@@ -19,6 +19,7 @@ class EditFrameWindowManager;
 
 class Document;
 class EditMessage;
+class OptionDialogManager;
 class PasswordManager;
 class SecurityModel;
 class SyncDialogManager;
@@ -40,6 +41,7 @@ public:
 						   PasswordManager* pPasswordManager,
 						   SyncManager* pSyncManager,
 						   SyncDialogManager* pSyncDialogManager,
+						   OptionDialogManager* pOptionDialogManager,
 						   qs::Profile* pProfile,
 						   SecurityModel* pSecurityModel);
 	~EditFrameWindowManager();
@@ -64,6 +66,7 @@ private:
 	PasswordManager* pPasswordManager_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
+	OptionDialogManager* pOptionDialogManager_;
 	qs::Profile* pProfile_;
 	SecurityModel* pSecurityModel_;
 	FrameList listFrame_;
@@ -83,6 +86,7 @@ struct EditFrameWindowCreateContext
 	PasswordManager* pPasswordManager_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
+	OptionDialogManager* pOptionDialogManager_;
 	SecurityModel* pSecurityModel_;
 	const WCHAR* pwszClass_;
 };

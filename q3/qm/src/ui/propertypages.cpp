@@ -22,6 +22,7 @@
 #include <tchar.h>
 
 #include "dialogs.h"
+#include "optiondialog.h"
 #include "propertypages.h"
 #include "resourceinc.h"
 
@@ -53,11 +54,13 @@ qm::DefaultPropertyPage::~DefaultPropertyPage()
 
 qm::AccountAdvancedPage::AccountAdvancedPage(SubAccount* pSubAccount,
 											 JunkFilter* pJunkFilter,
-											 SyncFilterManager* pSyncFilterManager) :
+											 SyncFilterManager* pSyncFilterManager,
+											 OptionDialogManager* pOptionDialogManager) :
 	DefaultPropertyPage(IDD_ACCOUNTADVANCED),
 	pSubAccount_(pSubAccount),
 	pJunkFilter_(pJunkFilter),
-	pSyncFilterManager_(pSyncFilterManager)
+	pSyncFilterManager_(pSyncFilterManager),
+	pOptionDialogManager_(pOptionDialogManager)
 {
 }
 
@@ -133,9 +136,16 @@ LRESULT qm::AccountAdvancedPage::onOk()
 
 LRESULT qm::AccountAdvancedPage::onEdit()
 {
-	SyncFilterSetsDialog dialog(pSyncFilterManager_);
-	if (dialog.doModal(getHandle()) == IDOK)
+	HWND hwnd = getHandle();
+	while (hwnd) {
+		if (Window(hwnd).getStyle() & WS_POPUP)
+			break;
+		hwnd = Window(hwnd).getParent();
+	}
+	
+	if (pOptionDialogManager_->showDialog(hwnd, OptionDialog::PANEL_SYNCFILTERS) == IDOK)
 		updateFilter();
+	
 	return 0;
 }
 

@@ -29,6 +29,7 @@ class DefaultPropertyPage;
 	class MessagePropertyPage;
 
 class JunkFilter;
+class OptionDialogManager;
 class PasswordManager;
 class ReceiveSessionUI;
 class SearchUI;
@@ -68,7 +69,8 @@ class AccountAdvancedPage : public DefaultPropertyPage
 public:
 	AccountAdvancedPage(SubAccount* pSubAccount,
 						JunkFilter* pJunkFilter,
-						SyncFilterManager* pSyncFilterManager);
+						SyncFilterManager* pSyncFilterManager,
+						OptionDialogManager* pOptionDialogManager);
 	virtual ~AccountAdvancedPage();
 
 public:
@@ -96,6 +98,7 @@ private:
 	SubAccount* pSubAccount_;
 	JunkFilter* pJunkFilter_;
 	SyncFilterManager* pSyncFilterManager_;
+	OptionDialogManager* pOptionDialogManager_;
 };
 
 

@@ -130,27 +130,16 @@
 			<separator/>
 			<menuitem text="&amp;Dialup Connect..." action="ToolDialup"/>
 			<separator/>
-			<menuitem text="Address B&amp;ook..." action="ToolAddressBook"/>
+			<menuitem text="Address Boo&amp;k..." action="ToolAddressBook"/>
 			<menuitem text="Add &amp;From to Address Book..." action="ToolAddAddress"/>
 			<separator/>
 			<popupmenu text="Scri&amp;pt" action="ToolScript"/>
 			<separator/>
-			<popupmenu text="A&amp;uto Pilot">
-				<menuitem text="&amp;On" action="ToolAutoPilot"/>
-				<separator/>
-				<menuitem text="&amp;Edit..." action="ConfigAutoPilot"/>
-			</popupmenu>
+			<menuitem text="A&amp;uto Pilot" action="ToolAutoPilot"/>
 			<separator/>
 			<popupmenu text="Su&amp;b Account" action="ToolSubAccount"/>
 			<menuitem text="&amp;Account..." action="ToolAccount"/>
 			<menuitem text="&amp;Options..." action="ToolOptions"/>
-			<separator/>
-			<popupmenu text="Conf&amp;ig">
-				<menuitem text="&amp;Rules..." action="ConfigRules"/>
-				<menuitem text="&amp;Colors..." action="ConfigColors"/>
-				<menuitem text="&amp;Signatures..." action="ConfigSignatures"/>
-				<menuitem text="Sync&amp;Filters..." action="ConfigSyncFilters"/>
-			</popupmenu>
 		</popupmenu>
 	</menubar>
 	<menubar name="messageframe">

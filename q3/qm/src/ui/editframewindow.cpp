@@ -28,6 +28,7 @@
 #include "editwindow.h"
 #include "keymap.h"
 #include "menus.h"
+#include "optiondialog.h"
 #include "statusbar.h"
 #include "uimanager.h"
 #include "uiutil.h"
@@ -79,6 +80,7 @@ public:
 	PasswordManager* pPasswordManager_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
+	OptionDialogManager* pOptionDialogManager_;
 	EditWindow* pEditWindow_;
 	StatusBar* pStatusBar_;
 	SecurityModel* pSecurityModel_;
@@ -101,10 +103,11 @@ void qm::EditFrameWindowImpl::initActions()
 	pActionInvoker_.reset(new ActionInvoker(pActionMap_.get()));
 	pFindReplaceManager_.reset(new FindReplaceManager());
 	
-	ADD_ACTION2(ConfigTextsAction,
+	ADD_ACTION3(ToolOptionsAction,
 		IDM_CONFIG_TEXTS,
-		pDocument_->getFixedFormTextManager(),
-		pThis_->getHandle());
+		pOptionDialogManager_,
+		pThis_->getHandle(),
+		OptionDialog::PANEL_FIXEDFORMTEXTS);
 	ADD_ACTION2(EditAttachmentEditAddAction,
 		IDM_ATTACHMENTEDIT_ADD,
 		pEditWindow_->getEditMessageHolder(),
@@ -678,6 +681,7 @@ LRESULT qm::EditFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pPasswordManager_ = pContext->pPasswordManager_;
 	pImpl_->pSyncManager_ = pContext->pSyncManager_;
 	pImpl_->pSyncDialogManager_ = pContext->pSyncDialogManager_;
+	pImpl_->pOptionDialogManager_ = pContext->pOptionDialogManager_;
 	pImpl_->pSecurityModel_ = pContext->pSecurityModel_;
 	
 	CustomAcceleratorFactory acceleratorFactory;
@@ -786,6 +790,7 @@ qm::EditFrameWindowManager::EditFrameWindowManager(Document* pDocument,
 												   PasswordManager* pPasswordManager,
 												   SyncManager* pSyncManager,
 												   SyncDialogManager* pSyncDialogManager,
+												   OptionDialogManager* pOptionDialogManager,
 												   Profile* pProfile,
 												   SecurityModel* pSecurityModel) :
 	pDocument_(pDocument),
@@ -793,6 +798,7 @@ qm::EditFrameWindowManager::EditFrameWindowManager(Document* pDocument,
 	pPasswordManager_(pPasswordManager),
 	pSyncManager_(pSyncManager),
 	pSyncDialogManager_(pSyncDialogManager),
+	pOptionDialogManager_(pOptionDialogManager),
 	pProfile_(pProfile),
 	pSecurityModel_(pSecurityModel)
 {
@@ -826,6 +832,7 @@ bool qm::EditFrameWindowManager::open(std::auto_ptr<EditMessage> pEditMessage)
 		pPasswordManager_,
 		pSyncManager_,
 		pSyncDialogManager_,
+		pOptionDialogManager_,
 		pSecurityModel_,
 		pEditMessage->getAccount()->getClass()
 	};

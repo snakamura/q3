@@ -53,6 +53,7 @@
 #include "menus.h"
 #include "messageframewindow.h"
 #include "messagewindow.h"
+#include "optiondialog.h"
 #include "resourceinc.h"
 #include "statusbar.h"
 #include "syncdialog.h"
@@ -262,6 +263,7 @@ public:
 	std::auto_ptr<EncodingModel> pEncodingModel_;
 	std::auto_ptr<DefaultSecurityModel> pSecurityModel_;
 	MessageViewModeHolder* pMessageViewModeHolder_;
+	std::auto_ptr<OptionDialogManager> pOptionDialogManager_;
 	std::auto_ptr<MessageFrameWindowManager> pMessageFrameWindowManager_;
 	std::auto_ptr<EditFrameWindowManager> pEditFrameWindowManager_;
 	std::auto_ptr<AddressBookFrameWindowManager> pAddressBookFrameWindowManager_;
@@ -332,45 +334,46 @@ void qm::MainWindowImpl::initActions()
 		true,
 		pProfile_,
 		pThis_->getHandle());
-	ADD_ACTION3(ConfigAutoPilotAction,
+	ADD_ACTION3(ToolOptionsAction,
 		IDM_CONFIG_AUTOPILOT,
-		pAutoPilot_->getAutoPilotManager(),
-		pGoRound_,
-		pThis_->getHandle());
-	ADD_ACTION4(ConfigColorsAction,
+		pOptionDialogManager_.get(),
+		pThis_->getHandle(),
+		OptionDialog::PANEL_AUTOPILOT);
+	ADD_ACTION3(ToolOptionsAction,
 		IDM_CONFIG_COLORS,
-		pViewModelManager_->getColorManager(),
-		pViewModelManager_.get(),
-		pDocument_,
-		pThis_->getHandle());
-	ADD_ACTION2(ConfigFiltersAction,
+		pOptionDialogManager_.get(),
+		pThis_->getHandle(),
+		OptionDialog::PANEL_COLORS);
+	ADD_ACTION3(ToolOptionsAction,
 		IDM_CONFIG_FILTERS,
-		pViewModelManager_->getFilterManager(),
-		pThis_->getHandle());
-	ADD_ACTION4(ConfigGoRoundAction,
+		pOptionDialogManager_.get(),
+		pThis_->getHandle(),
+		OptionDialog::PANEL_FILTERS);
+	ADD_ACTION3(ToolOptionsAction,
 		IDM_CONFIG_GOROUND,
-		pGoRound_,
-		pDocument_,
-		pSyncManager_->getSyncFilterManager(),
-		pThis_->getHandle());
-	ADD_ACTION3(ConfigRulesAction,
+		pOptionDialogManager_.get(),
+		pThis_->getHandle(),
+		OptionDialog::PANEL_GOROUND);
+	ADD_ACTION3(ToolOptionsAction,
 		IDM_CONFIG_RULES,
-		pDocument_->getRuleManager(),
-		pDocument_,
-		pThis_->getHandle());
-	ADD_ACTION3(ConfigSignaturesAction,
+		pOptionDialogManager_.get(),
+		pThis_->getHandle(),
+		OptionDialog::PANEL_RULES);
+	ADD_ACTION3(ToolOptionsAction,
 		IDM_CONFIG_SIGNATURES,
-		pDocument_->getSignatureManager(),
-		pDocument_,
-		pThis_->getHandle());
-	ADD_ACTION2(ConfigSyncFiltersAction,
+		pOptionDialogManager_.get(),
+		pThis_->getHandle(),
+		OptionDialog::PANEL_SIGNATURES);
+	ADD_ACTION3(ToolOptionsAction,
 		IDM_CONFIG_SYNCFILTERS,
-		pSyncManager_->getSyncFilterManager(),
-		pThis_->getHandle());
-	ADD_ACTION2(ConfigTextsAction,
+		pOptionDialogManager_.get(),
+		pThis_->getHandle(),
+		OptionDialog::PANEL_SYNCFILTERS);
+	ADD_ACTION3(ToolOptionsAction,
 		IDM_CONFIG_TEXTS,
-		pDocument_->getFixedFormTextManager(),
-		pThis_->getHandle());
+		pOptionDialogManager_.get(),
+		pThis_->getHandle(),
+		OptionDialog::PANEL_FIXEDFORMTEXTS);
 	ADD_ACTION2(ConfigViewsAction,
 		IDM_CONFIG_VIEWS,
 		pViewModelManager_.get(),
@@ -964,12 +967,13 @@ void qm::MainWindowImpl::initActions()
 		pTabModel_.get(),
 		IDM_TAB_SELECT);
 #endif
-	ADD_ACTION6(ToolAccountAction,
+	ADD_ACTION7(ToolAccountAction,
 		IDM_TOOL_ACCOUNT,
 		pDocument_,
 		pFolderModel_.get(),
 		pPasswordManager_,
 		pSyncManager_,
+		pOptionDialogManager_.get(),
 		pProfile_,
 		pThis_->getHandle());
 	ADD_ACTION3(ToolAddAddressAction,
@@ -998,10 +1002,11 @@ void qm::MainWindowImpl::initActions()
 		pSyncDialogManager_,
 		pThis_->getHandle(),
 		pGoRoundMenu_.get());
-	ADD_ACTION2(ToolOptionsAction,
+	ADD_ACTION3(ToolOptionsAction,
 		IDM_TOOL_OPTIONS,
-		pProfile_,
-		pThis_->getHandle());
+		pOptionDialogManager_.get(),
+		pThis_->getHandle(),
+		OptionDialog::PANEL_NONE);
 	ADD_ACTION_RANGE4(ToolScriptAction,
 		IDM_TOOL_SCRIPT,
 		IDM_TOOL_SCRIPT + ScriptMenu::MAX_SCRIPT,
@@ -2155,10 +2160,15 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pProfile_, getHandle(), pImpl_->pSecurityModel_.get()));
 	pImpl_->pPreviewModel_.reset(new PreviewMessageModel(
 		pImpl_->pViewModelManager_.get(), pImpl_->bShowPreviewWindow_));
+	pImpl_->pOptionDialogManager_.reset(new OptionDialogManager(pImpl_->pDocument_,
+		pImpl_->pGoRound_, pImpl_->pViewModelManager_->getFilterManager(),
+		pImpl_->pViewModelManager_->getColorManager(), pImpl_->pSyncManager_,
+		pImpl_->pAutoPilot_->getAutoPilotManager(), pImpl_->pProfile_));
 	pImpl_->pEditFrameWindowManager_.reset(new EditFrameWindowManager(
 		pImpl_->pDocument_, pImpl_->pUIManager_, pImpl_->pPasswordManager_,
 		pImpl_->pSyncManager_, pImpl_->pSyncDialogManager_,
-		pImpl_->pProfile_, pImpl_->pSecurityModel_.get()));
+		pImpl_->pOptionDialogManager_.get(), pImpl_->pProfile_,
+		pImpl_->pSecurityModel_.get()));
 	pImpl_->pAddressBookFrameWindowManager_.reset(new AddressBookFrameWindowManager(
 		pImpl_->pDocument_->getAddressBook(), pImpl_->pUIManager_, pImpl_->pProfile_));
 	pImpl_->pExternalEditorManager_.reset(new ExternalEditorManager(
