@@ -1070,23 +1070,26 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			
 			UidList listJunk;
 			for (MessageDataList::size_type n = 0; n < listMessageData.size(); ++n) {
-				MessagePtrLock mpl(listMessageData[n].getMessagePtr());
 				Message msg;
-				if (mpl && !mpl->isFlag(MessageHolder::FLAG_DELETED) &&
-					mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg)) {
-					if (pJunkFilter->getScore(msg) > pJunkFilter->getThresholdScore()) {
-						listJunk.push_back(mpl->getId());
-						mpl->setFlags(MessageHolder::FLAG_DELETED, MessageHolder::FLAG_DELETED);
-						if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN)
-							pJunkFilter->manage(msg, JunkFilter::OPERATION_ADDJUNK);
-					}
-					else {
-						if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN)
-							pJunkFilter->manage(msg, JunkFilter::OPERATION_ADDCLEAN);
-						if (!pAccount_->isSeen(mpl))
-							pSessionCallback_->notifyNewMessage(mpl);
+				unsigned int nOperation = 0;
+				{
+					MessagePtrLock mpl(listMessageData[n].getMessagePtr());
+					if (mpl && !mpl->isFlag(MessageHolder::FLAG_DELETED) &&
+						mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg)) {
+						if (pJunkFilter->getScore(msg) > pJunkFilter->getThresholdScore()) {
+							listJunk.push_back(mpl->getId());
+							mpl->setFlags(MessageHolder::FLAG_DELETED, MessageHolder::FLAG_DELETED);
+							nOperation = JunkFilter::OPERATION_ADDJUNK;
+						}
+						else {
+							if (!pAccount_->isSeen(mpl))
+								pSessionCallback_->notifyNewMessage(mpl);
+							nOperation = JunkFilter::OPERATION_ADDCLEAN;
+						}
 					}
 				}
+				if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN && nOperation != 0)
+					pJunkFilter->manage(msg, nOperation);
 				
 				pSessionCallback_->setPos(n);
 			}
@@ -1109,15 +1112,20 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 				pSessionCallback_->setPos(0);
 				
 				for (MessageDataList::size_type n = 0; n < listMessageData.size(); ++n) {
-					MessagePtrLock mpl(listMessageData[n].getMessagePtr());
 					Message msg;
-					if (mpl && !mpl->isFlag(MessageHolder::FLAG_DELETED)) {
-						wstring_ptr wstrId(mpl->getMessageId());
-						if (pJunkFilter->getStatus(wstrId.get()) != JunkFilter::STATUS_JUNK) {
-							if (mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg))
-								pJunkFilter->manage(msg, JunkFilter::OPERATION_ADDJUNK);
+					unsigned int nOperation = 0;
+					{
+						MessagePtrLock mpl(listMessageData[n].getMessagePtr());
+						if (mpl && !mpl->isFlag(MessageHolder::FLAG_DELETED)) {
+							wstring_ptr wstrId(mpl->getMessageId());
+							if (pJunkFilter->getStatus(wstrId.get()) != JunkFilter::STATUS_JUNK) {
+								if (mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg))
+									nOperation = JunkFilter::OPERATION_ADDJUNK;
+							}
 						}
 					}
+					if (nOperation != 0)
+						pJunkFilter->manage(msg, nOperation);
 					
 					pSessionCallback_->setPos(n);
 				}

@@ -446,8 +446,6 @@ bool qmnntp::NntpReceiveSession::storeMessage(const CHAR* pszMessage,
 											  unsigned int nJunkFilterFlags,
 											  NormalFolder* pJunkbox)
 {
-	Lock<Account> lock(*pAccount_);
-	
 	bool bJunk = false;
 	Message msgJunk;
 	if (pJunkFilter) {
@@ -455,21 +453,25 @@ bool qmnntp::NntpReceiveSession::storeMessage(const CHAR* pszMessage,
 			bJunk = pJunkFilter->getScore(msgJunk) > pJunkFilter->getThresholdScore();
 	}
 	
-	NormalFolder* pFolder = bJunk ? pJunkbox : pFolder_;
-	MessageHolder* pmh = pAccount_->storeMessage(
-		pFolder, pszMessage, nLen, 0, nId, nFlags, nSize,
-		nFlags == MessageHolder::FLAG_INDEXONLY);
-	if (!pmh)
-		return false;
+	{
+		Lock<Account> lock(*pAccount_);
+		
+		NormalFolder* pFolder = bJunk ? pJunkbox : pFolder_;
+		MessageHolder* pmh = pAccount_->storeMessage(
+			pFolder, pszMessage, nLen, 0, nId, nFlags, nSize,
+			nFlags == MessageHolder::FLAG_INDEXONLY);
+		if (!pmh)
+			return false;
+		
+		if (!bJunk)
+			pSessionCallback_->notifyNewMessage(pmh);
+	}
 	
 	if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN) {
 		unsigned int nJunkOperation = bJunk ?
 			JunkFilter::OPERATION_ADDJUNK : JunkFilter::OPERATION_ADDCLEAN;
 		pJunkFilter->manage(msgJunk, nJunkOperation);
 	}
-	
-	if (!bJunk)
-		pSessionCallback_->notifyNewMessage(pmh);
 	
 	return true;
 }

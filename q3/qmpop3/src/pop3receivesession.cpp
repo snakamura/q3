@@ -296,8 +296,6 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 			if (pSubAccount_->isSelf(msg))
 				nFlags |= MessageHolder::FLAG_SEEN | MessageHolder::FLAG_SENT;
 			
-			Lock<Account> lock(*pAccount_);
-			
 			bool bJunk = false;
 			Message msgJunk;
 			if (pJunkFilter) {
@@ -305,20 +303,24 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 					bJunk = pJunkFilter->getScore(msgJunk) > pJunkFilter->getThresholdScore();
 			}
 			
-			NormalFolder* pFolder = bJunk ? pJunkbox : pFolder_;
-			MessageHolder* pmh = pAccount_->storeMessage(pFolder,
-				strMessage.get(), strMessage.size(), &msg, -1, nFlags, nSize, false);
-			if (!pmh)
-				return false;
+			{
+				Lock<Account> lock(*pAccount_);
+				
+				NormalFolder* pFolder = bJunk ? pJunkbox : pFolder_;
+				MessageHolder* pmh = pAccount_->storeMessage(pFolder,
+					strMessage.get(), strMessage.size(), &msg, -1, nFlags, nSize, false);
+				if (!pmh)
+					return false;
+				
+				if (!bJunk && !pAccount_->isSeen(nFlags))
+					pSessionCallback_->notifyNewMessage(pmh);
+			}
 			
 			if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN) {
 				unsigned int nJunkOperation = bJunk ?
 					JunkFilter::OPERATION_ADDJUNK : JunkFilter::OPERATION_ADDCLEAN;
 				pJunkFilter->manage(msgJunk, nJunkOperation);
 			}
-			
-			if (!bJunk && !pAccount_->isSeen(nFlags))
-				pSessionCallback_->notifyNewMessage(pmh);
 		}
 		
 		unsigned int nUIDFlags = bPartial ? UID::FLAG_PARTIAL : UID::FLAG_NONE;
