@@ -41,7 +41,7 @@ public:
 	const ActionInvoker* getActionInvoker() const;
 	bool isShowingModalDialog() const;
 	void initialShow();
-	qs::QSTATUS save() const;
+	qs::QSTATUS save();
 	
 	bool isShowToolbar() const;
 	qs::QSTATUS setShowToolbar(bool bShow);

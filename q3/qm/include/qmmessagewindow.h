@@ -57,7 +57,7 @@ public:
 	MessageMessageModel* getMessageModel() const;
 	const ActionInvoker* getActionInvoker() const;
 	void initialShow();
-	qs::QSTATUS save() const;
+	qs::QSTATUS save();
 	
 	bool isShowToolbar() const;
 	qs::QSTATUS setShowToolbar(bool bShow);
@@ -143,7 +143,7 @@ public:
 	MessageModel* getMessageModel() const;
 	AttachmentSelectionModel* getAttachmentSelectionModel() const;
 	
-	qs::QSTATUS save() const;
+	qs::QSTATUS save();
 	
 	qs::QSTATUS addMessageWindowHandler(MessageWindowHandler* pHandler);
 	qs::QSTATUS removeMessageWindowHandler(MessageWindowHandler* pHandler);

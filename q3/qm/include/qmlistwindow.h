@@ -64,7 +64,7 @@ public:
 	HFONT getFont() const;
 	bool isShowHeaderColumn() const;
 	qs::QSTATUS setShowHeaderColumn(bool bShow);
-	qs::QSTATUS save() const;
+	qs::QSTATUS save();
 
 public:
 	virtual qs::QSTATUS preCreateWindow(CREATESTRUCT* pCreateStruct);
@@ -131,7 +131,7 @@ public:
 	qs::QSTATUS setViewModel(ViewModel* pViewModel);
 	bool isShow() const;
 	qs::QSTATUS setShow(bool bShow);
-	qs::QSTATUS save() const;
+	qs::QSTATUS save();
 
 public:
 	virtual qs::QSTATUS getSuperClass(qs::WSTRING* pwstrSuperClass);

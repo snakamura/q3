@@ -722,6 +722,9 @@ LRESULT qm::EditFrameWindow::onDestroy()
 	status = UIUtil::saveWindowPlacement(
 		getHandle(), pProfile, L"EditFrameWindow");
 	
+	status = FrameWindow::save();
+	CHECK_QSTATUS();
+	
 	return FrameWindow::onDestroy();
 }
 

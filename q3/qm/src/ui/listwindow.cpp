@@ -1001,7 +1001,7 @@ QSTATUS qm::ListWindow::setShowHeaderColumn(bool bShow)
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ListWindow::save() const
+QSTATUS qm::ListWindow::save()
 {
 	return pImpl_->pHeaderColumn_->save();
 }
@@ -1779,7 +1779,7 @@ QSTATUS qm::ListHeaderColumn::setShow(bool bShow)
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::ListHeaderColumn::save() const
+QSTATUS qm::ListHeaderColumn::save()
 {
 	DECLARE_QSTATUS();
 	

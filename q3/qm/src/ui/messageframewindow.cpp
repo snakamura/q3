@@ -634,7 +634,7 @@ void qm::MessageFrameWindow::initialShow()
 	showWindow(pImpl_->nInitialShow_);
 }
 
-QSTATUS qm::MessageFrameWindow::save() const
+QSTATUS qm::MessageFrameWindow::save()
 {
 	DECLARE_QSTATUS();
 	
@@ -652,6 +652,9 @@ QSTATUS qm::MessageFrameWindow::save() const
 	
 	status = UIUtil::saveWindowPlacement(
 		getHandle(), pProfile, L"MessageFrameWindow");
+	CHECK_QSTATUS();
+	
+	status = FrameWindow::save();
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;

@@ -1045,6 +1045,9 @@ public:
 	void adjustWindowSize(LPARAM lParam);
 
 protected:
+	QSTATUS save();
+
+protected:
 	virtual QSTATUS getToolbarButtons(Toolbar* pToolbar, bool* pbToolbar);
 	virtual QSTATUS createToolbarButtons(void* pCreateParam, HWND hwndToolbar);
 #if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)

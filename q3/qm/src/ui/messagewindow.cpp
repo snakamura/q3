@@ -587,7 +587,7 @@ AttachmentSelectionModel* qm::MessageWindow::getAttachmentSelectionModel() const
 	return pImpl_->pHeaderWindow_->getAttachmentSelectionModel();
 }
 
-QSTATUS qm::MessageWindow::save() const
+QSTATUS qm::MessageWindow::save()
 {
 	DECLARE_QSTATUS();
 	

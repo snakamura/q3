@@ -116,6 +116,28 @@ void qs::FrameWindow::adjustWindowSize(LPARAM lParam)
 #endif
 }
 
+QSTATUS qs::FrameWindow::save()
+{
+	DECLARE_QSTATUS();
+	
+#if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
+	HWND hwndToolbar = getToolbar();
+	if (hwndToolbar) {
+		int nStored = 0;
+		for (int n = 0; nStored < 2; ++n) {
+			COMMANDBANDSRESTOREINFO cbri = { sizeof(cbri) };
+			if (CommandBands_GetRestoreInformation(hwndToolbar, n, &cbri) && cbri.wID != -1) {
+				status = setCommandBandsRestoreInfo(nStored, cbri);
+				CHECK_QSTATUS();
+				++nStored;
+			}
+		}
+	}
+#endif
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qs::FrameWindow::getToolbarButtons(Toolbar* pToolbar, bool* pbToolbar)
 {
 	assert(pToolbar);
@@ -380,20 +402,6 @@ LRESULT qs::FrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 
 LRESULT qs::FrameWindow::onDestroy()
 {
-#if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
-	HWND hwndToolbar = getToolbar();
-	if (hwndToolbar) {
-		int nStored = 0;
-		for (int n = 0; nStored < 2; ++n) {
-			COMMANDBANDSRESTOREINFO cbri = { sizeof(cbri) };
-			if (CommandBands_GetRestoreInformation(hwndToolbar, n, &cbri) && cbri.wID != -1) {
-				setCommandBandsRestoreInfo(nStored, cbri);
-				++nStored;
-			}
-		}
-	}
-#endif
-	
 	return DefaultWindowHandler::onDestroy();
 }
 

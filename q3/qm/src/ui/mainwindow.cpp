@@ -1513,7 +1513,7 @@ void qm::MainWindow::initialShow()
 	showWindow(pImpl_->nInitialShow_);
 }
 
-QSTATUS qm::MainWindow::save() const
+QSTATUS qm::MainWindow::save()
 {
 	DECLARE_QSTATUS();
 	
@@ -1572,6 +1572,9 @@ QSTATUS qm::MainWindow::save() const
 	CHECK_QSTATUS();
 	
 	status = UIUtil::saveWindowPlacement(getHandle(), pProfile, L"MainWindow");
+	CHECK_QSTATUS();
+	
+	status = FrameWindow::save();
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
