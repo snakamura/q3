@@ -408,6 +408,7 @@ public:
 	virtual ~AccountHandler();
 
 public:
+	virtual void currentSubAccountChanged(const AccountEvent& event) = 0;
 	virtual void subAccountListChanged(const AccountEvent& event) = 0;
 	virtual void folderListChanged(const FolderListChangedEvent& event) = 0;
 	virtual void accountDestroyed(const AccountEvent& event) = 0;
@@ -427,6 +428,7 @@ public:
 	virtual ~DefaultAccountHandler();
 
 public:
+	virtual void currentSubAccountChanged(const AccountEvent& event);
 	virtual void subAccountListChanged(const AccountEvent& event);
 	virtual void folderListChanged(const FolderListChangedEvent& event);
 	virtual void accountDestroyed(const AccountEvent& event);

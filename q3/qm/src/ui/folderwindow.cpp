@@ -95,6 +95,7 @@ public:
 	virtual void documentInitialized(const DocumentEvent& event);
 
 public:
+	virtual void currentSubAccountChanged(const AccountEvent& event);
 	virtual void folderListChanged(const FolderListChangedEvent& event);
 
 public:
@@ -425,6 +426,16 @@ void qm::FolderWindowImpl::documentInitialized(const DocumentEvent& event)
 	}
 }
 
+void qm::FolderWindowImpl::currentSubAccountChanged(const AccountEvent& event)
+{
+	HTREEITEM hItem = getHandleFromAccount(event.getAccount());
+	assert(hItem);
+	
+	RECT rect;
+	if (TreeView_GetItemRect(pThis_->getHandle(), hItem, &rect, FALSE))
+		pThis_->invalidateRect(rect);
+}
+
 void qm::FolderWindowImpl::folderListChanged(const FolderListChangedEvent& event)
 {
 	switch (event.getType()) {
@@ -748,14 +759,26 @@ LRESULT qm::FolderWindowImpl::onGetDispInfo(NMHDR* pnmhdr,
 		}
 	}
 	else {
-		Account* pAccount = reinterpret_cast<Account*>(
-			item.lParam);
+		Account* pAccount = reinterpret_cast<Account*>(item.lParam);
 		if (item.mask & TVIF_IMAGE)
 			item.iImage = getAccountImage(pAccount,
 				false, (item.state & TVIS_EXPANDED) != 0);
 		if (item.mask & TVIF_SELECTEDIMAGE)
 			item.iSelectedImage = getAccountImage(pAccount,
 				true, (item.state & TVIS_EXPANDED) != 0);
+		if (item.mask & TVIF_TEXT) {
+			StringBuffer<WSTRING> buf;
+			buf.append(pAccount->getName());
+			
+			SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
+			if (*pSubAccount->getName()) {
+				buf.append(L" [");
+				buf.append(pSubAccount->getName());
+				buf.append(L"]");
+			}
+			W2T(buf.getCharArray(), ptszText);
+			_tcsncpy(item.pszText, ptszText, item.cchTextMax);
+		}
 	}
 	
 	return 0;
@@ -850,8 +873,6 @@ void qm::FolderWindowImpl::refreshFolderList(Account* pAccount)
 
 void qm::FolderWindowImpl::addAccount(Account* pAccount)
 {
-	W2T(pAccount->getName(), ptszName);
-	
 	TVINSERTSTRUCT tvisAccount = {
 		TVI_ROOT,
 		TVI_SORT,
@@ -860,7 +881,7 @@ void qm::FolderWindowImpl::addAccount(Account* pAccount)
 			0,
 			pDocument_->isOffline() ? 0 : TVIS_BOLD,
 			TVIS_BOLD,
-			const_cast<LPTSTR>(ptszName),
+			LPSTR_TEXTCALLBACK,
 			0,
 			I_IMAGECALLBACK,
 			I_IMAGECALLBACK,

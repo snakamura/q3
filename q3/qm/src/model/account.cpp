@@ -85,6 +85,7 @@ public:
 	
 	bool getDataList(MessageStore::DataList* pList) const;
 	
+	void fireCurrentSubAccountChanged();
 	void fireSubAccountListChanged();
 	void fireFolderListChanged(const FolderListChangedEvent& event);
 	void fireAccountDestroyed();
@@ -622,6 +623,13 @@ bool qm::AccountImpl::getDataList(MessageStore::DataList* pList) const
 	return true;
 }
 
+void qm::AccountImpl::fireCurrentSubAccountChanged()
+{
+	AccountEvent event(pThis_);
+	for (AccountHandlerList::const_iterator it = listAccountHandler_.begin(); it != listAccountHandler_.end(); ++it)
+		(*it)->currentSubAccountChanged(event);
+}
+
 void qm::AccountImpl::fireSubAccountListChanged()
 {
 	AccountEvent event(pThis_);
@@ -1009,6 +1017,8 @@ void qm::Account::setCurrentSubAccount(SubAccount* pSubAccount)
 {
 	pImpl_->pCurrentSubAccount_ = pSubAccount;
 	pImpl_->pProtocolDriver_->setSubAccount(pSubAccount);
+	
+	pImpl_->fireCurrentSubAccountChanged();
 }
 
 Folder* qm::Account::getFolder(const WCHAR* pwszName) const
@@ -2360,6 +2370,10 @@ qm::DefaultAccountHandler::DefaultAccountHandler()
 }
 
 qm::DefaultAccountHandler::~DefaultAccountHandler()
+{
+}
+
+void qm::DefaultAccountHandler::currentSubAccountChanged(const AccountEvent& event)
 {
 }
 
