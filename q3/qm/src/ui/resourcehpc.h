@@ -396,7 +396,6 @@
 #define IDC_NEWADDRESS                  1296
 #define IDC_COMMENT                     1298
 #define IDC_JUNKBOX                     1306
-#define IDC_JUNKFILTER                  1307
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101

@@ -523,8 +523,6 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,80,60,10
     CONTROL         "A&dd Message-Id",IDC_ADDMESSAGEID,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,90,125,10
-    CONTROL         "Enable &junk filter",IDC_JUNKFILTER,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,100,125,10
 END
 
 IDD_CREATEACCOUNT DIALOG DISCARDABLE  0, 0, 137, 153
