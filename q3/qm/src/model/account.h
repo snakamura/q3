@@ -157,13 +157,6 @@ public:
 	bool write(const Account::FolderList& l);
 
 private:
-	bool writeString(const WCHAR* pwszQName,
-					 const WCHAR* pwsz,
-					 size_t nLen);
-	bool writeNumber(const WCHAR* pwszQName,
-					 unsigned int n);
-
-private:
 	FolderWriter(const FolderWriter&);
 	FolderWriter& operator=(const FolderWriter&);
 

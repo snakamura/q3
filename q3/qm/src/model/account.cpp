@@ -155,43 +155,10 @@ bool qm::AccountImpl::loadFolders()
 
 bool qm::AccountImpl::saveFolders() const
 {
-	wstring_ptr wstrTempPath(concat(wstrPath_.get(), L"\\_", FileNames::FOLDERS_XML));
 	wstring_ptr wstrPath(concat(wstrPath_.get(), L"\\", FileNames::FOLDERS_XML));
+	TemporaryFileRenamer renamer(wstrPath.get());
 	
-	struct Move
-	{
-		Move(const WCHAR* pwszPath,
-			 const WCHAR* pwszTempPath) :
-			tstrPath_(0),
-			tstrTempPath_(0),
-			bSuccess_(false)
-		{
-			tstrPath_ = wcs2tcs(pwszPath);
-			tstrTempPath_ = wcs2tcs(pwszTempPath);
-		}
-		
-		~Move()
-		{
-			if (bSuccess_) {
-				::DeleteFile(tstrPath_.get());
-				::MoveFile(tstrTempPath_.get(), tstrPath_.get());
-			}
-			else {
-				::DeleteFile(tstrTempPath_.get());
-			}
-		}
-		
-		void success()
-		{
-			bSuccess_ = true;
-		}
-		
-		tstring_ptr tstrPath_;
-		tstring_ptr tstrTempPath_;
-		bool bSuccess_;
-	} move(wstrPath.get(), wstrTempPath.get());
-	
-	FileOutputStream os(wstrTempPath.get());
+	FileOutputStream os(renamer.getPath());
 	if (!os)
 		return false;
 	OutputStreamWriter writer(&os, false, L"utf-8");
@@ -206,7 +173,8 @@ bool qm::AccountImpl::saveFolders() const
 	if (!bufferedWriter.close())
 		return false;
 	
-	move.success();
+	if (!renamer.rename())
+		return false;
 	
 	return true;
 }
@@ -2619,48 +2587,48 @@ bool qm::FolderWriter::write(const Account::FolderList& l)
 		if (!handler_.startElement(0, 0, pwszQName, attrs))
 			return false;
 		
-		if (!writeNumber(L"id", pFolder->getId()))
+		if (!HandlerHelper::numberElement(&handler_, L"id", pFolder->getId()))
 			return false;
 		Folder* pParent = pFolder->getParentFolder();
-		if (!writeNumber(L"parent", pParent ? pParent->getId() : 0))
+		if (!HandlerHelper::numberElement(&handler_, L"parent", pParent ? pParent->getId() : 0))
 			return false;
-		if (!writeNumber(L"flags", pFolder->getFlags()))
+		if (!HandlerHelper::numberElement(&handler_, L"flags", pFolder->getFlags()))
 			return false;
-		if (!writeNumber(L"count", pFolder->getCount()))
+		if (!HandlerHelper::numberElement(&handler_, L"count", pFolder->getCount()))
 			return false;
-		if (!writeNumber(L"unseenCount", pFolder->getUnseenCount()))
+		if (!HandlerHelper::numberElement(&handler_, L"unseenCount", pFolder->getUnseenCount()))
 			return false;
 		WCHAR cSeparator = pFolder->getSeparator();
-		if (!writeString(L"separator", &cSeparator,
+		if (!HandlerHelper::textElement(&handler_, L"separator", &cSeparator,
 			cSeparator == L'\0' ? 0 : 1))
 			return false;
-		if (!writeString(L"name", pFolder->getName(), -1))
+		if (!HandlerHelper::textElement(&handler_, L"name", pFolder->getName(), -1))
 			return false;
 		switch (pFolder->getType()) {
 		case Folder::TYPE_NORMAL:
 			{
 				NormalFolder* pNormalFolder = static_cast<NormalFolder*>(pFolder);
-				if (!writeNumber(L"validity", pNormalFolder->getValidity()))
+				if (!HandlerHelper::numberElement(&handler_, L"validity", pNormalFolder->getValidity()))
 					return false;
-				if (!writeNumber(L"downloadCount", pNormalFolder->getDownloadCount()))
+				if (!HandlerHelper::numberElement(&handler_, L"downloadCount", pNormalFolder->getDownloadCount()))
 					return false;
-				if (!writeNumber(L"deletedCount", pNormalFolder->getDeletedCount()))
+				if (!HandlerHelper::numberElement(&handler_, L"deletedCount", pNormalFolder->getDeletedCount()))
 					return false;
 			}
 			break;
 		case Folder::TYPE_QUERY:
 			{
 				QueryFolder* pQueryFolder = static_cast<QueryFolder*>(pFolder);
-				if (!writeString(L"driver", pQueryFolder->getDriver(), -1))
+				if (!HandlerHelper::textElement(&handler_, L"driver", pQueryFolder->getDriver(), -1))
 					return false;
-				if (!writeString(L"condition", pQueryFolder->getCondition(), -1))
+				if (!HandlerHelper::textElement(&handler_, L"condition", pQueryFolder->getCondition(), -1))
 					return false;
 				const WCHAR* pwszTargetFolder = pQueryFolder->getTargetFolder();
 				if (!pwszTargetFolder)
 					pwszTargetFolder = L"";
-				if (!writeString(L"targetFolder", pwszTargetFolder, -1))
+				if (!HandlerHelper::textElement(&handler_, L"targetFolder", pwszTargetFolder, -1))
 					return false;
-				if (!writeNumber(L"recursive", pQueryFolder->isRecursive()))
+				if (!HandlerHelper::numberElement(&handler_, L"recursive", pQueryFolder->isRecursive()))
 					return false;
 			}
 			break;
@@ -2679,29 +2647,4 @@ bool qm::FolderWriter::write(const Account::FolderList& l)
 		return false;
 	
 	return true;
-}
-
-bool qm::FolderWriter::writeString(const WCHAR* pwszQName,
-								   const WCHAR* pwsz,
-								   size_t nLen)
-{
-	if (nLen == -1)
-		nLen = wcslen(pwsz);
-	
-	if (!handler_.startElement(0, 0, pwszQName, DefaultAttributes()))
-		return false;
-	if (!handler_.characters(pwsz, 0, nLen))
-		return false;
-	if (!handler_.endElement(0, 0, pwszQName))
-		return false;
-	
-	return true;
-}
-
-bool qm::FolderWriter::writeNumber(const WCHAR* pwszQName,
-								   unsigned int n)
-{
-	WCHAR wsz[32];
-	swprintf(wsz, L"%u", n);
-	return writeString(pwszQName, wsz, -1);
 }
