@@ -1,5 +1,5 @@
 /*
- * $Id: goround.h,v 1.2 2003/05/29 08:15:50 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -123,11 +123,17 @@ public:
 		FLAG_RECEIVE		= 0x02,
 		FLAG_SELECTFOLDER	= 0x04
 	};
+	
+	enum ConnectReceiveBeforeSend {
+		CRBS_NONE,
+		CRBS_TRUE,
+		CRBS_FALSE
+	};
 
 public:
 	GoRoundEntry(const WCHAR* pwszAccount, const WCHAR* pwszSubAccount,
-		const WCHAR* pwszFolder, unsigned int nFlags,
-		const WCHAR* pwszFilterName, qs::QSTATUS* pstatus);
+		const WCHAR* pwszFolder, unsigned int nFlags, const WCHAR* pwszFilterName,
+		ConnectReceiveBeforeSend crbs, qs::QSTATUS* pstatus);
 	~GoRoundEntry();
 
 public:
@@ -136,6 +142,7 @@ public:
 	const qs::RegexPattern* getFolderNamePattern() const;
 	bool isFlag(Flag flag) const;
 	const WCHAR* getFilterName() const;
+	ConnectReceiveBeforeSend getConnectReceiveBeforeSend() const;
 
 private:
 	GoRoundEntry(const GoRoundEntry&);
@@ -147,6 +154,7 @@ private:
 	qs::RegexPattern* pFolderName_;
 	unsigned int nFlags_;
 	qs::WSTRING wstrFilterName_;
+	ConnectReceiveBeforeSend crbs_;
 };
 
 

@@ -269,12 +269,14 @@ QSTATUS qm::GoRoundCourse::addEntry(GoRoundEntry* pEntry)
 
 qm::GoRoundEntry::GoRoundEntry(const WCHAR* pwszAccount,
 	const WCHAR* pwszSubAccount, const WCHAR* pwszFolder,
-	unsigned int nFlags, const WCHAR* pwszFilterName, QSTATUS* pstatus) :
+	unsigned int nFlags, const WCHAR* pwszFilterName,
+	ConnectReceiveBeforeSend crbs, QSTATUS* pstatus) :
 	wstrAccount_(0),
 	wstrSubAccount_(0),
 	pFolderName_(0),
 	nFlags_(nFlags),
-	wstrFilterName_(0)
+	wstrFilterName_(0),
+	crbs_(crbs)
 {
 	assert(pwszAccount);
 	assert(pstatus);
@@ -340,6 +342,11 @@ bool qm::GoRoundEntry::isFlag(Flag flag) const
 const WCHAR* qm::GoRoundEntry::getFilterName() const
 {
 	return wstrFilterName_;
+}
+
+GoRoundEntry::ConnectReceiveBeforeSend qm::GoRoundEntry::getConnectReceiveBeforeSend() const
+{
+	return crbs_;
 }
 
 
@@ -546,6 +553,7 @@ QSTATUS qm::GoRoundContentHandler::startElement(
 		const WCHAR* pwszFolder = 0;
 		const WCHAR* pwszFilter = 0;
 		unsigned int nFlags = 0;
+		GoRoundEntry::ConnectReceiveBeforeSend crbs = GoRoundEntry::CRBS_NONE;
 		for (int n = 0; n < attributes.getLength(); ++n) {
 			const WCHAR* pwszAttrName = attributes.getLocalName(n);
 			if (wcscmp(pwszAttrName, L"account") == 0) {
@@ -572,6 +580,10 @@ QSTATUS qm::GoRoundContentHandler::startElement(
 			else if (wcscmp(pwszAttrName, L"filter") == 0) {
 				pwszFilter = attributes.getValue(n);
 			}
+			else if (wcscmp(pwszAttrName, L"connectReceiveBeforeSend") == 0) {
+				crbs = wcscmp(attributes.getValue(n), L"true") == 0 ?
+					GoRoundEntry::CRBS_TRUE : GoRoundEntry::CRBS_FALSE;
+			}
 			else {
 				return QSTATUS_FAIL;
 			}
@@ -585,7 +597,7 @@ QSTATUS qm::GoRoundContentHandler::startElement(
 		
 		std::auto_ptr<GoRoundEntry> pEntry;
 		status = newQsObject(pwszAccount, pwszSubAccount,
-			pwszFolder, nFlags, pwszFilter, &pEntry);
+			pwszFolder, nFlags, pwszFilter, crbs, &pEntry);
 		CHECK_QSTATUS();
 		
 		status = pCurrentCourse_->addEntry(pEntry.get());

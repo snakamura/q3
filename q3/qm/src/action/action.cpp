@@ -2883,7 +2883,7 @@ QSTATUS qm::ToolSyncAction::invoke(const ActionEvent& event)
 	}
 	
 	if (nSync_ & SYNC_SEND) {
-		status = pData->addSend(pAccount, pSubAccount);
+		status = pData->addSend(pAccount, pSubAccount, SyncItem::CRBS_NONE);
 		CHECK_QSTATUS();
 	}
 	if (nSync_ & SYNC_RECEIVE) {

@@ -44,19 +44,35 @@ qm::SyncItem::SyncItem(Account* pAccount, SubAccount* pSubAccount,
 	pFolder_(pFolder),
 	pFilterSet_(pFilterSet),
 	bSend_(false),
+	bConnectReceiveBeforeSend_(false),
 	nSlot_(nSlot)
 {
 }
 
-qm::SyncItem::SyncItem(Account* pAccount,
-	SubAccount* pSubAccount, unsigned int nSlot) :
+qm::SyncItem::SyncItem(Account* pAccount, SubAccount* pSubAccount,
+	ConnectReceiveBeforeSend crbs, unsigned int nSlot) :
 	pAccount_(pAccount),
 	pSubAccount_(pSubAccount),
 	pFolder_(0),
 	pFilterSet_(0),
 	bSend_(true),
+	bConnectReceiveBeforeSend_(false),
 	nSlot_(nSlot)
 {
+	switch (crbs) {
+	case CRBS_NONE:
+		bConnectReceiveBeforeSend_ = pSubAccount->isConnectReceiveBeforeSend();
+		break;
+	case CRBS_TRUE:
+		bConnectReceiveBeforeSend_ = true;
+		break;
+	case CRBS_FALSE:
+		bConnectReceiveBeforeSend_ = false;
+		break;
+	default:
+		assert(false);
+		break;
+	}
 }
 
 qm::SyncItem::~SyncItem()
@@ -86,6 +102,11 @@ const SyncFilterSet* qm::SyncItem::getFilterSet() const
 bool qm::SyncItem::isSend() const
 {
 	return bSend_;
+}
+
+bool qm::SyncItem::isConnectReceiveBeforeSend() const
+{
+	return bConnectReceiveBeforeSend_;
 }
 
 unsigned int qm::SyncItem::getSlot() const
@@ -290,10 +311,11 @@ QSTATUS qm::SyncData::addFolders(Account* pAccount, SubAccount* pSubAccount,
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::SyncData::addSend(Account* pAccount, SubAccount* pSubAccount)
+QSTATUS qm::SyncData::addSend(Account* pAccount,
+	SubAccount* pSubAccount, SyncItem::ConnectReceiveBeforeSend crbs)
 {
 	return STLWrapper<ItemList>(listItem_).push_back(
-		SyncItem(pAccount, pSubAccount, nSlot_));
+		SyncItem(pAccount, pSubAccount, crbs, nSlot_));
 }
 
 
@@ -591,7 +613,7 @@ QSTATUS qm::SyncManager::syncSlotData(const SyncData* pData, unsigned int nSlot)
 					pFolder->isFlag(Folder::FLAG_SYNCABLE);
 			}
 			
-			if (bSync) {
+			if (bSync || item.isConnectReceiveBeforeSend()) {
 				if (pSubAccount != item.getSubAccount()) {
 					if (pReceiveSession.get()) {
 						status = pReceiveSession->disconnect();
@@ -608,8 +630,10 @@ QSTATUS qm::SyncManager::syncSlotData(const SyncData* pData, unsigned int nSlot)
 					pLogger.reset(pl);
 					pSubAccount = item.getSubAccount();
 				}
-				status = syncFolder(pCallback, item, pReceiveSession.get());
-				CHECK_QSTATUS();
+				if (bSync) {
+					status = syncFolder(pCallback, item, pReceiveSession.get());
+					CHECK_QSTATUS();
+				}
 			}
 			
 			if (item.isSend()) {

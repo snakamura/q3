@@ -73,7 +73,7 @@ QSTATUS qm::SyncUtil::send(SyncManager* pSyncManager, Document* pDocument,
 	std::auto_ptr<SyncData> pData;
 	status = newQsObject(pSyncManager, pDocument, hwnd, nCallbackParam, &pData);
 	CHECK_QSTATUS();
-	status = pData->addSend(pAccount, pSubAccount);
+	status = pData->addSend(pAccount, pSubAccount, SyncItem::CRBS_NONE);
 	CHECK_QSTATUS();
 	
 	SyncDialog* pSyncDialog = 0;
@@ -124,7 +124,9 @@ QSTATUS qm::SyncUtil::createGoRoundData(const GoRoundCourse* pCourse,
 					pwszFilterName = pSubAccount->getSyncFilterName();
 				
 				if (pEntry->isFlag(GoRoundEntry::FLAG_SEND)) {
-					status = pData->addSend(pAccount, pSubAccount);
+					status = pData->addSend(pAccount, pSubAccount,
+						static_cast<SyncItem::ConnectReceiveBeforeSend>(
+							pEntry->getConnectReceiveBeforeSend()));
 					CHECK_QSTATUS();
 				}
 				if (pEntry->isFlag(GoRoundEntry::FLAG_RECEIVE)) {
@@ -149,7 +151,7 @@ QSTATUS qm::SyncUtil::createGoRoundData(const GoRoundCourse* pCourse,
 		while (it != listAccount.end()) {
 			Account* pAccount = *it;
 			SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
-			status = pData->addSend(pAccount, pSubAccount);
+			status = pData->addSend(pAccount, pSubAccount, SyncItem::CRBS_NONE);
 			CHECK_QSTATUS();
 			status = pData->addFolders(pAccount, pSubAccount, 0,
 				pSubAccount->getSyncFilterName());

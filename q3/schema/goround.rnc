@@ -60,5 +60,8 @@ entry = element entry {
 	)?,
 	attribute filter {
 		xsd:string
+	}?,
+	attribute connectReceiveBeforeSend {
+		xsd:boolean
 	}?
 }

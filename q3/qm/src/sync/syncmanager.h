@@ -47,10 +47,18 @@ class SyncFilterSet;
 class SyncItem
 {
 public:
+	enum ConnectReceiveBeforeSend {
+		CRBS_NONE,
+		CRBS_TRUE,
+		CRBS_FALSE
+	};
+
+public:
 	SyncItem(Account* pAccount, SubAccount* pSubAccount,
 		NormalFolder* pFolder, const SyncFilterSet* pFilterSet,
 		unsigned int nSlot);
-	SyncItem(Account* pAccount, SubAccount* pSubAccount, unsigned int nSlot);
+	SyncItem(Account* pAccount, SubAccount* pSubAccount,
+		ConnectReceiveBeforeSend crbs, unsigned int nSlot);
 	~SyncItem();
 
 public:
@@ -59,6 +67,7 @@ public:
 	NormalFolder* getFolder() const;
 	const SyncFilterSet* getFilterSet() const;
 	bool isSend() const;
+	bool isConnectReceiveBeforeSend() const;
 	unsigned int getSlot() const;
 
 private:
@@ -67,6 +76,7 @@ private:
 	NormalFolder* pFolder_;
 	const SyncFilterSet* pFilterSet_;
 	bool bSend_;
+	bool bConnectReceiveBeforeSend_;
 	unsigned int nSlot_;
 };
 
@@ -141,7 +151,8 @@ public:
 		NormalFolder* pFolder, const WCHAR* pwszFilterName);
 	qs::QSTATUS addFolders(Account* pAccount, SubAccount* pSubAccount,
 		const qs::RegexPattern* pFolderNamePattern, const WCHAR* pwszFilterName);
-	qs::QSTATUS addSend(Account* pAccount, SubAccount* pSubAccount);
+	qs::QSTATUS addSend(Account* pAccount, SubAccount* pSubAccount,
+		SyncItem::ConnectReceiveBeforeSend crbs);
 
 private:
 	SyncData(const SyncData&);
