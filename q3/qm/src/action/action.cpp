@@ -1646,9 +1646,10 @@ QSTATUS qm::FolderCreateAction::isEnabled(const ActionEvent& event, bool* pbEnab
  *
  */
 
-qm::FolderDeleteAction::FolderDeleteAction(
-	FolderModel* pFolderModel, QSTATUS* pstatus) :
-	pFolderModel_(pFolderModel)
+qm::FolderDeleteAction::FolderDeleteAction(FolderModel* pFolderModel,
+	FolderSelectionModel* pFolderSelectionModel, QSTATUS* pstatus) :
+	pFolderModel_(pFolderModel),
+	pFolderSelectionModel_(pFolderSelectionModel)
 {
 	assert(pstatus);
 	*pstatus = QSTATUS_SUCCESS;
@@ -1662,21 +1663,46 @@ QSTATUS qm::FolderDeleteAction::invoke(const ActionEvent& event)
 {
 	DECLARE_QSTATUS();
 	
-	Folder* pFolder = pFolderModel_->getCurrentFolder();
-	if (pFolder) {
+	Account::FolderList l;
+	status = pFolderSelectionModel_->getSelectedFolders(&l);
+	CHECK_QSTATUS();
+	
+	int nRet = 0;
+	status = messageBox(Application::getApplication().getResourceHandle(),
+		IDS_CONFIRMREMOVEFOLDER, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, &nRet);
+	CHECK_QSTATUS();
+	if (nRet != IDYES)
+		return QSTATUS_SUCCESS;
+	
+	if (l.size() == 1) {
+		Folder* pFolder = l[0];
 		Account* pAccount = pFolder->getAccount();
-		Folder* pParent = pFolder->getParentFolder();
-		if (pParent) {
-			status = pFolderModel_->setCurrent(0, pParent, false);
-			CHECK_QSTATUS();
+		if (pFolderModel_->getCurrentFolder() == pFolder) {
+			Folder* pParent = pFolder->getParentFolder();
+			if (pParent) {
+				status = pFolderModel_->setCurrent(0, pParent, false);
+				CHECK_QSTATUS();
+			}
+			else {
+				status = pFolderModel_->setCurrent(pAccount, 0, false);
+				CHECK_QSTATUS();
+			}
 		}
-		else {
-			status = pFolderModel_->setCurrent(pAccount, 0, false);
-			CHECK_QSTATUS();
-		}
-		
 		status = pAccount->removeFolder(pFolder);
 		CHECK_QSTATUS();
+	}
+	else {
+		std::sort(l.begin(), l.end(), std::not2(FolderLess()));
+		
+		Account::FolderList::const_iterator it = l.begin();
+		while (it != l.end()) {
+			Folder* pFolder = *it;
+			Account* pAccount = pFolder->getAccount();
+			assert(pFolderModel_->getCurrentAccount() == pAccount);
+			status = pAccount->removeFolder(pFolder);
+			CHECK_QSTATUS();
+			++it;
+		}
 	}
 	
 	return QSTATUS_SUCCESS;
@@ -1685,8 +1711,7 @@ QSTATUS qm::FolderDeleteAction::invoke(const ActionEvent& event)
 QSTATUS qm::FolderDeleteAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
 {
 	assert(pbEnabled);
-	*pbEnabled = pFolderModel_->getCurrentFolder() != 0;
-	return QSTATUS_SUCCESS;
+	return pFolderSelectionModel_->hasSelectedFolder(pbEnabled);
 }
 
 
