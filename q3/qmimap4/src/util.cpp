@@ -78,7 +78,8 @@ unsigned int qmimap4::Util::getMessageFlagsFromImap4Flags(unsigned int nSystemFl
 		{ Imap4::FLAG_ANSWERED,	MessageHolder::FLAG_REPLIED	},
 		{ Imap4::FLAG_DELETED,	MessageHolder::FLAG_DELETED	},
 		{ Imap4::FLAG_SEEN,		MessageHolder::FLAG_SEEN	},
-		{ Imap4::FLAG_FLAGGED,	MessageHolder::FLAG_MARKED	}
+		{ Imap4::FLAG_FLAGGED,	MessageHolder::FLAG_MARKED	},
+		{ Imap4::FLAG_DRAFT,	MessageHolder::FLAG_DRAFT	}
 	};
 	
 	unsigned int nMessageFlags = 0;
@@ -99,7 +100,8 @@ unsigned int qmimap4::Util::getImap4FlagsFromMessageFlags(unsigned int nFlags)
 		{ MessageHolder::FLAG_REPLIED,	Imap4::FLAG_ANSWERED	},
 		{ MessageHolder::FLAG_DELETED,	Imap4::FLAG_DELETED		},
 		{ MessageHolder::FLAG_SEEN,		Imap4::FLAG_SEEN		},
-		{ MessageHolder::FLAG_MARKED,	Imap4::FLAG_FLAGGED		}
+		{ MessageHolder::FLAG_MARKED,	Imap4::FLAG_FLAGGED		},
+		{ MessageHolder::FLAG_DRAFT,	Imap4::FLAG_DRAFT		}
 	};
 	
 	unsigned int nImap4Flags = 0;
