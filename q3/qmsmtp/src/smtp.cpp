@@ -63,7 +63,7 @@ qmsmtp::Smtp::~Smtp()
 	freeWString(wstrErrorResponse_);
 }
 
-QSTATUS qmsmtp::Smtp::connect(const WCHAR* pwszHost, short nPort, bool bSsl)
+QSTATUS qmsmtp::Smtp::connect(const WCHAR* pwszHost, short nPort, Ssl ssl)
 {
 	assert(pwszHost);
 	
@@ -81,7 +81,7 @@ QSTATUS qmsmtp::Smtp::connect(const WCHAR* pwszHost, short nPort, bool bSsl)
 	status = pSocket->connect(pwszHost, nPort);
 	CHECK_QSTATUS_ERROR(SMTP_ERROR_CONNECT | pSocket->getLastError());
 	
-	if (bSsl) {
+	if (ssl == SSL_SSL) {
 		SSLSocketFactory* pFactory = SSLSocketFactory::getFactory();
 		CHECK_ERROR(!pFactory, QSTATUS_FAIL, SMTP_ERROR_SSL);
 		SSLSocket* pSSLSocket = 0;
@@ -101,38 +101,29 @@ QSTATUS qmsmtp::Smtp::connect(const WCHAR* pwszHost, short nPort, bool bSsl)
 	CHECK_ERROR(nCode != 2, QSTATUS_FAIL,
 		SMTP_ERROR_RESPONSE | SMTP_ERROR_GREETING);
 	
-	string_ptr<WSTRING> wstrLocalHost;
-	status = pSmtpCallback_->getLocalHost(&wstrLocalHost);
-	CHECK_QSTATUS_ERROR(SMTP_ERROR_OTHER);
-	string_ptr<STRING> strLocalHost;
-	if (wstrLocalHost.get() && *wstrLocalHost.get()) {
-		strLocalHost.reset(wcs2mbs(wstrLocalHost.get()));
-		CHECK_ERROR(!strLocalHost.get(),
-			QSTATUS_OUTOFMEMORY, SMTP_ERROR_OTHER | SMTP_ERROR_HELO);
-	}
-	else {
-		strLocalHost.reset(allocString(256));
-		CHECK_ERROR(!strLocalHost.get(),
-			QSTATUS_OUTOFMEMORY, SMTP_ERROR_OTHER | SMTP_ERROR_HELO);
-		::gethostname(strLocalHost.get(), 256);
-	}
+	unsigned int nAuth = 0;
+	bool bStartTls = false;
+	status = helo(&nAuth, &bStartTls);
+	CHECK_QSTATUS();
 	
-	bool bEHLO = true;
-	string_ptr<STRING> strHelo(allocString(strlen(strLocalHost.get()) + 10));
-	CHECK_ERROR(!strHelo.get(), QSTATUS_OUTOFMEMORY,
-		SMTP_ERROR_OTHER | SMTP_ERROR_HELO);
-	sprintf(strHelo.get(), "EHLO %s\r\n", strLocalHost.get());
-	string_ptr<STRING> strResult;
-	status = sendCommand(strHelo.get(), &nCode, &strResult);
-	CHECK_QSTATUS_ERROR_OR(SMTP_ERROR_HELO);
-	if (nCode != 2) {
-		strResult.reset(0);
-		sprintf(strHelo.get(), "HELO %s\r\n", strLocalHost.get());
-		status = sendCommand(strHelo.get(), &nCode, &strResult);
-		CHECK_QSTATUS_ERROR_OR(SMTP_ERROR_HELO);
-		bEHLO = false;
+	if (ssl == SSL_STARTTLS) {
+		CHECK_ERROR(!bStartTls, QSTATUS_FAIL, SMTP_ERROR_STARTTLS);
+		status = sendCommand("STARTTLS\r\n", &nCode);
+		CHECK_QSTATUS_ERROR_OR(SMTP_ERROR_STARTTLS);
+		CHECK_ERROR(nCode != 2, QSTATUS_FAIL,
+			SMTP_ERROR_STARTTLS | SMTP_ERROR_RESPONSE);
+		
+		SSLSocketFactory* pFactory = SSLSocketFactory::getFactory();
+		CHECK_ERROR(!pFactory, QSTATUS_FAIL, SMTP_ERROR_SSL);
+		SSLSocket* pSSLSocket = 0;
+		status = pFactory->createSSLSocket(static_cast<Socket*>(pSocket_),
+			true, pSSLSocketCallback_, pLogger_, &pSSLSocket);
+		CHECK_QSTATUS_ERROR(SMTP_ERROR_SSL);
+		pSocket_ = pSSLSocket;
+		
+		status = helo(&nAuth, &bStartTls);
+		CHECK_QSTATUS();
 	}
-	CHECK_ERROR(nCode != 2, QSTATUS_FAIL, SMTP_ERROR_HELO | SMTP_ERROR_RESPONSE);
 	
 	string_ptr<WSTRING> wstrUserName;
 	string_ptr<WSTRING> wstrPassword;
@@ -148,46 +139,6 @@ QSTATUS qmsmtp::Smtp::connect(const WCHAR* pwszHost, short nPort, bool bSsl)
 		string_ptr<STRING> strPassword(wcs2mbs(wstrPassword.get()));
 		CHECK_ERROR(!strPassword.get(), QSTATUS_OUTOFMEMORY,
 			SMTP_ERROR_AUTH | SMTP_ERROR_OTHER);
-		
-		struct
-		{
-			const CHAR* pszKey_;
-			Auth auth_;
-		} keys[] = {
-			{ "LOGIN",		AUTH_LOGIN		},
-			{ "PLAIN",		AUTH_PLAIN		},
-			{ "CRAM-MD5",	AUTH_CRAMMD5	}
-		};
-		unsigned int nAuth = 0;
-		const CHAR* p = strstr(strResult.get(), "\r\n");
-		assert(p);
-		p += 2;
-		while (nAuth == 0) {
-			const CHAR* pEnd = strstr(p, "\r\n");
-			if (!pEnd)
-				break;
-			if (strncmp(p + 4, "AUTH", 4) == 0 &&
-				(*(p + 8) == ' ' || *(p + 8) == '=')) {
-				p += 9;
-				pEnd = p;
-				while (true) {
-					while (*pEnd != ' ' && *pEnd != '\r')
-						++pEnd;
-					for (int n = 0; n < countof(keys); ++n) {
-						if (strlen(keys[n].pszKey_) == static_cast<size_t>(pEnd - p) &&
-							strncmp(keys[n].pszKey_, p, pEnd - p) == 0) {
-							nAuth |= keys[n].auth_;
-							break;
-						}
-					}
-					if (*pEnd == '\r')
-						break;
-					p = pEnd + 1;
-					pEnd = p;
-				}
-			}
-			p = pEnd + 2;
-		}
 		
 		unsigned int nAllowedMethods = 0;
 		status = getAuthMethods(&nAllowedMethods);
@@ -387,6 +338,98 @@ unsigned int qmsmtp::Smtp::getLastError() const
 const WCHAR* qmsmtp::Smtp::getLastErrorResponse() const
 {
 	return wstrErrorResponse_;
+}
+
+QSTATUS qmsmtp::Smtp::helo(unsigned int* pnAuth, bool* pbStartTls)
+{
+	assert(pnAuth);
+	assert(pbStartTls);
+	
+	DECLARE_QSTATUS();
+	
+	*pnAuth = 0;
+	*pbStartTls = false;
+	
+	string_ptr<WSTRING> wstrLocalHost;
+	status = pSmtpCallback_->getLocalHost(&wstrLocalHost);
+	CHECK_QSTATUS_ERROR(SMTP_ERROR_OTHER);
+	string_ptr<STRING> strLocalHost;
+	if (wstrLocalHost.get() && *wstrLocalHost.get()) {
+		strLocalHost.reset(wcs2mbs(wstrLocalHost.get()));
+		CHECK_ERROR(!strLocalHost.get(),
+			QSTATUS_OUTOFMEMORY, SMTP_ERROR_OTHER | SMTP_ERROR_HELO);
+	}
+	else {
+		strLocalHost.reset(allocString(256));
+		CHECK_ERROR(!strLocalHost.get(),
+			QSTATUS_OUTOFMEMORY, SMTP_ERROR_OTHER | SMTP_ERROR_HELO);
+		::gethostname(strLocalHost.get(), 256);
+	}
+	
+	bool bEHLO = true;
+	string_ptr<STRING> strHelo(allocString(strlen(strLocalHost.get()) + 10));
+	CHECK_ERROR(!strHelo.get(), QSTATUS_OUTOFMEMORY,
+		SMTP_ERROR_OTHER | SMTP_ERROR_HELO);
+	sprintf(strHelo.get(), "EHLO %s\r\n", strLocalHost.get());
+	unsigned int nCode = 0;
+	string_ptr<STRING> strResult;
+	status = sendCommand(strHelo.get(), &nCode, &strResult);
+	CHECK_QSTATUS_ERROR_OR(SMTP_ERROR_HELO);
+	if (nCode != 2) {
+		strResult.reset(0);
+		sprintf(strHelo.get(), "HELO %s\r\n", strLocalHost.get());
+		status = sendCommand(strHelo.get(), &nCode, &strResult);
+		CHECK_QSTATUS_ERROR_OR(SMTP_ERROR_HELO);
+		bEHLO = false;
+	}
+	CHECK_ERROR(nCode != 2, QSTATUS_FAIL, SMTP_ERROR_HELO | SMTP_ERROR_RESPONSE);
+	
+	if (bEHLO) {
+		struct
+		{
+			const CHAR* pszKey_;
+			Auth auth_;
+		} keys[] = {
+			{ "LOGIN",		AUTH_LOGIN		},
+			{ "PLAIN",		AUTH_PLAIN		},
+			{ "CRAM-MD5",	AUTH_CRAMMD5	}
+		};
+		const CHAR* p = strstr(strResult.get(), "\r\n");
+		assert(p);
+		p += 2;
+		while (true) {
+			const CHAR* pEnd = strstr(p, "\r\n");
+			if (!pEnd)
+				break;
+			if (*pnAuth == 0 &&
+				strncmp(p + 4, "AUTH", 4) == 0 &&
+				(*(p + 8) == ' ' || *(p + 8) == '=')) {
+				p += 9;
+				pEnd = p;
+				while (true) {
+					while (*pEnd != ' ' && *pEnd != '\r')
+						++pEnd;
+					for (int n = 0; n < countof(keys); ++n) {
+						if (strlen(keys[n].pszKey_) == static_cast<size_t>(pEnd - p) &&
+							strncmp(keys[n].pszKey_, p, pEnd - p) == 0) {
+							*pnAuth |= keys[n].auth_;
+							break;
+						}
+					}
+					if (*pEnd == '\r')
+						break;
+					p = pEnd + 1;
+					pEnd = p;
+				}
+			}
+			else if (strncmp(p + 4, "STARTTLS", 8) == 0 && *(p + 12) == '\r') {
+				*pbStartTls = true;
+			}
+			p = pEnd + 2;
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qmsmtp::Smtp::receive(unsigned int* pnCode)

@@ -1,5 +1,5 @@
 /*
- * $Id: ui.cpp,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -78,11 +78,16 @@ LRESULT qmsmtp::SendPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	status = pSubAccount_->getProperty(L"Smtp",
 		L"LocalHost", L"", &wstrLocalHost);
 	CHECK_QSTATUS_VALUE(TRUE);
+	int nStartTls = 0;
+	status = pSubAccount_->getProperty(L"Smtp", L"STARTTLS", 0, &nStartTls);
+	CHECK_QSTATUS();
 	
 	setDlgItemInt(IDC_PORT, pSubAccount_->getPort(Account::HOST_SEND));
 	sendDlgItemMessage(IDC_SSL, BM_SETCHECK,
 		pSubAccount_->isSsl(Account::HOST_SEND) ? BST_CHECKED : BST_UNCHECKED);
 	setDlgItemText(IDC_LOCALHOST, wstrLocalHost.get());
+	sendDlgItemMessage(IDC_STARTTLS, BM_SETCHECK,
+		nStartTls ? BST_CHECKED : BST_UNCHECKED);
 	sendDlgItemMessage(IDC_LOG, BM_SETCHECK,
 		pSubAccount_->isLog(Account::HOST_SEND) ? BST_CHECKED : BST_UNCHECKED);
 	
@@ -97,6 +102,8 @@ LRESULT qmsmtp::SendPage::onApply(NMHDR* pnmhdr, bool* pbHandled)
 	string_ptr<WSTRING> wstrLocalHost(getDlgItemText(IDC_LOCALHOST));
 	if (wstrLocalHost.get())
 		pSubAccount_->setProperty(L"Smtp", L"LocalHost", wstrLocalHost.get());
+	pSubAccount_->setProperty(L"Smtp", L"STARTTLS",
+		sendDlgItemMessage(IDC_STARTTLS, BM_GETCHECK) == BST_CHECKED);
 	pSubAccount_->setLog(Account::HOST_SEND,
 		sendDlgItemMessage(IDC_LOG, BM_GETCHECK) == BST_CHECKED);
 	

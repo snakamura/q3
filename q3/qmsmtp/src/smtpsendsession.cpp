@@ -102,9 +102,20 @@ QSTATUS qmsmtp::SmtpSendSession::connect()
 	status = newQsObject(option, &pSmtp_);
 	CHECK_QSTATUS();
 	
+	Smtp::Ssl ssl = Smtp::SSL_NONE;
+	if (pSubAccount_->isSsl(Account::HOST_SEND)) {
+		ssl = Smtp::SSL_SSL;
+	}
+	else {
+		int nStartTls = 0;
+		status = pSubAccount_->getProperty(L"Smtp", L"STARTTLS", 0, &nStartTls);
+		CHECK_QSTATUS();
+		if (nStartTls)
+			ssl = Smtp::SSL_STARTTLS;
+	}
+	
 	status = pSmtp_->connect(pSubAccount_->getHost(Account::HOST_SEND),
-		pSubAccount_->getPort(Account::HOST_SEND),
-		pSubAccount_->isSsl(Account::HOST_SEND));
+		pSubAccount_->getPort(Account::HOST_SEND), ssl);
 	CHECK_QSTATUS_ERROR();
 	
 	status = log.debug(L"Connected to the server.");
@@ -307,7 +318,8 @@ QSTATUS qmsmtp::SmtpSendSession::reportError()
 			{ Smtp::SMTP_ERROR_AUTH,		IDS_ERROR_AUTH		},
 			{ Smtp::SMTP_ERROR_MAIL,		IDS_ERROR_MAIL		},
 			{ Smtp::SMTP_ERROR_RCPT,		IDS_ERROR_RCPT		},
-			{ Smtp::SMTP_ERROR_DATA,		IDS_ERROR_DATA		}
+			{ Smtp::SMTP_ERROR_DATA,		IDS_ERROR_DATA		},
+			{ Smtp::SMTP_ERROR_STARTTLS,	IDS_ERROR_STARTTLS	}
 		},
 		{
 			{ Smtp::SMTP_ERROR_INITIALIZE,		IDS_ERROR_INITIALIZE	},

@@ -53,6 +53,7 @@ public:
 		SMTP_ERROR_MAIL				= 0x00000500,
 		SMTP_ERROR_RCPT				= 0x00000600,
 		SMTP_ERROR_DATA				= 0x00000700,
+		SMTP_ERROR_STARTTLS			= 0x00000800,
 		SMTP_ERROR_MASK_HIGHLEVEL	= 0x0000ff00,
 	};
 	
@@ -60,6 +61,12 @@ public:
 		AUTH_LOGIN		= 0x01,
 		AUTH_PLAIN		= 0x02,
 		AUTH_CRAMMD5	= 0x04
+	};
+	
+	enum Ssl {
+		SSL_NONE		= 0x00,
+		SSL_SSL			= 0x01,
+		SSL_STARTTLS	= 0x02
 	};
 
 public:
@@ -93,7 +100,7 @@ public:
 	~Smtp();
 
 public:
-	qs::QSTATUS connect(const WCHAR* pwszHost, short nPort, bool bSsl);
+	qs::QSTATUS connect(const WCHAR* pwszHost, short nPort, Ssl ssl);
 	qs::QSTATUS disconnect();
 	qs::QSTATUS sendMessage(const SendMessageData& data);
 	
@@ -101,6 +108,7 @@ public:
 	const WCHAR* getLastErrorResponse() const;
 
 private:
+	qs::QSTATUS helo(unsigned int* pnAuth, bool* pbStartTls);
 	qs::QSTATUS receive(unsigned int* pnCode);
 	qs::QSTATUS receive(unsigned int* pnCode, qs::STRING* pstrResponse);
 	qs::QSTATUS send(const SendData* pSendData, size_t nDataLen,
