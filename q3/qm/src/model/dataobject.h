@@ -49,7 +49,7 @@ public:
 	};
 	
 	enum Format {
-		FORMAT_ACCOUNT,
+		FORMAT_FOLDER,
 		FORMAT_MESSAGEHOLDERLIST,
 		FORMAT_FLAG,
 #ifndef _WIN32_WCE
@@ -61,7 +61,7 @@ public:
 public:
 	MessageDataObject(Document* pDocument);
 	MessageDataObject(Document* pDocument,
-					  Account* pAccount,
+					  Folder* pFolder,
 					  const MessageHolderList& l,
 					  Flag flag);
 	~MessageDataObject();
@@ -105,6 +105,8 @@ public:
 	static Flag getPasteFlag(IDataObject* pDataObject,
 							 Document* pDocument,
 							 NormalFolder* pFolder);
+	static Folder* getFolder(IDataObject* pDataObject,
+							 Document* pDocument);
 
 private:
 	static qs::wstring_ptr getFileName(const WCHAR* pwszName);
@@ -116,7 +118,7 @@ private:
 private:
 	ULONG nRef_;
 	Document* pDocument_;
-	Account* pAccount_;
+	Folder* pFolder_;
 	MessagePtrList listMessagePtr_;
 	Flag flag_;
 

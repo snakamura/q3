@@ -443,13 +443,13 @@ qm::EditCopyMessageAction::~EditCopyMessageAction()
 void qm::EditCopyMessageAction::invoke(const ActionEvent& event)
 {
 	AccountLock lock;
+	Folder* pFolder = 0;
 	MessageHolderList l;
-	pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
+	pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
 	
-	Account* pAccount = lock.get();
 	if (!l.empty()) {
 		MessageDataObject* p = new MessageDataObject(pDocument_,
-			pAccount, l, MessageDataObject::FLAG_COPY);
+			pFolder, l, MessageDataObject::FLAG_COPY);
 		p->AddRef();
 		ComPtr<IDataObject> pDataObject(p);
 		if (!MessageDataObject::setClipboard(pDataObject.get())) {
@@ -489,13 +489,13 @@ qm::EditCutMessageAction::~EditCutMessageAction()
 void qm::EditCutMessageAction::invoke(const ActionEvent& event)
 {
 	AccountLock lock;
+	Folder* pFolder = 0;
 	MessageHolderList l;
-	pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
+	pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
 	
-	Account* pAccount = lock.get();
 	if (!l.empty()) {
 		MessageDataObject* p = new MessageDataObject(pDocument_,
-			pAccount, l, MessageDataObject::FLAG_MOVE);
+			pFolder, l, MessageDataObject::FLAG_MOVE);
 		p->AddRef();
 		ComPtr<IDataObject> pDataObject(p);
 		if (!MessageDataObject::setClipboard(pDataObject.get())) {
@@ -585,14 +585,15 @@ void qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 {
 	if (pMessageSelectionModel_) {
 		AccountLock lock;
+		Folder* pFolder = 0;
 		MessageHolderList l;
-		pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
+		pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
 		
 		Account* pAccount = lock.get();
 		if (!l.empty()) {
 			ProgressDialogMessageOperationCallback callback(
 				hwnd_, IDS_DELETE, IDS_DELETE);
-			if (!pAccount->removeMessages(l, bDirect_, &callback)) {
+			if (!pAccount->removeMessages(l, pFolder, bDirect_, &callback)) {
 				ActionUtil::error(hwnd_, IDS_ERROR_DELETEMESSAGES);
 				return;
 			}
@@ -613,7 +614,7 @@ void qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 			
 			Account* pAccount = mpl->getFolder()->getAccount();
 			MessageHolderList l(1, mpl);
-			if (!pAccount->removeMessages(l, bDirect_, 0)) {
+			if (!pAccount->removeMessages(l, pViewModel->getFolder(), bDirect_, 0)) {
 				ActionUtil::error(hwnd_, IDS_ERROR_DELETEMESSAGES);
 				return;
 			}
@@ -2249,7 +2250,7 @@ void qm::FolderEmptyAction::invoke(const ActionEvent& event)
 			
 			MessageHolderList l(pFolder->getMessages());
 			if (!l.empty()) {
-				if (!pAccount->removeMessages(l, false, 0)) {
+				if (!pAccount->removeMessages(l, pFolder, false, 0)) {
 					ActionUtil::error(hwnd_, IDS_ERROR_EMPTYFOLDER);
 					return;
 				}
@@ -2309,7 +2310,7 @@ void qm::FolderEmptyTrashAction::invoke(const ActionEvent& event)
 	if (!l.empty()) {
 		ProgressDialogMessageOperationCallback callback(
 			hwnd_, IDS_EMPTYTRASH, IDS_EMPTYTRASH);
-		if (!pAccount->removeMessages(l, false, &callback)) {
+		if (!pAccount->removeMessages(l, pTrash, false, &callback)) {
 			ActionUtil::error(hwnd_, IDS_ERROR_EMPTYTRASH);
 			return;
 		}
@@ -3043,12 +3044,13 @@ qm::MessageDeleteAttachmentAction::~MessageDeleteAttachmentAction()
 void qm::MessageDeleteAttachmentAction::invoke(const ActionEvent& event)
 {
 	AccountLock lock;
+	Folder* pFolder = 0;
 	MessageHolderList l;
-	pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
+	pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
 	
 	if (!l.empty()) {
 		Account* pAccount = lock.get();
-		if (!deleteAttachment(pAccount, l)) {
+		if (!deleteAttachment(pAccount, pFolder, l)) {
 			ActionUtil::error(hwnd_, IDS_ERROR_DELETEATTACHMENT);
 			return;
 		}
@@ -3061,16 +3063,18 @@ bool qm::MessageDeleteAttachmentAction::isEnabled(const ActionEvent& event)
 }
 
 bool qm::MessageDeleteAttachmentAction::deleteAttachment(Account* pAccount,
+														 Folder* pFolder,
 														 const MessageHolderList& l) const
 {
 	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-		if (!deleteAttachment(pAccount, *it))
+		if (!deleteAttachment(pAccount, pFolder, *it))
 			return false;
 	}
 	return true;
 }
 
 bool qm::MessageDeleteAttachmentAction::deleteAttachment(Account* pAccount,
+														 Folder* pFolder,
 														 MessageHolder* pmh) const
 {
 	Message msg;
@@ -3083,12 +3087,12 @@ bool qm::MessageDeleteAttachmentAction::deleteAttachment(Account* pAccount,
 	AttachmentParser::removeAttachments(&msg);
 	AttachmentParser::setAttachmentDeleted(&msg);
 	
-	NormalFolder* pFolder = pmh->getFolder();
-	if (!pAccount->appendMessage(pFolder, msg,
+	NormalFolder* pNormalFolder = pmh->getFolder();
+	if (!pAccount->appendMessage(pNormalFolder, msg,
 		pmh->getFlags() & MessageHolder::FLAG_USER_MASK))
 		return false;
 	
-	if (!pAccount->removeMessages(MessageHolderList(1, pmh), false, 0))
+	if (!pAccount->removeMessages(MessageHolderList(1, pmh), pFolder, false, 0))
 		return false;
 	
 	return true;
@@ -3285,15 +3289,16 @@ void qm::MessageMoveAction::invoke(const ActionEvent& event)
 	NormalFolder* pFolderTo = pMoveMenu_->getFolder(event.getId());
 	if (pFolderTo) {
 		AccountLock lock;
+		Folder* pFolderFrom = 0;
 		MessageHolderList l;
-		pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
+		pMessageSelectionModel_->getSelectedMessages(&lock, &pFolderFrom, &l);
 		
 		if (!l.empty()) {
 			Account* pAccount = lock.get();
 			bool bMove = (event.getModifier() & ActionEvent::MODIFIER_CTRL) == 0;
 			UINT nId = bMove ? IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
 			ProgressDialogMessageOperationCallback callback(hwnd_, nId, nId);
-			if (!pAccount->copyMessages(l, pFolderTo, bMove, &callback)) {
+			if (!pAccount->copyMessages(l, pFolderFrom, pFolderTo, bMove, &callback)) {
 				ActionUtil::error(hwnd_, bMove ? IDS_ERROR_MOVEMESSAGE : IDS_ERROR_COPYMESSAGE);
 				return;
 			}
@@ -3335,8 +3340,9 @@ void qm::MessageMoveOtherAction::invoke(const ActionEvent& event)
 		NormalFolder* pFolderTo = dialog.getFolder();
 		if (pFolderTo) {
 			AccountLock lock;
+			Folder* pFolderFrom = 0;
 			MessageHolderList l;
-			pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
+			pMessageSelectionModel_->getSelectedMessages(&lock, &pFolderFrom, &l);
 			
 			if (!l.empty()) {
 				Account* pAccount = lock.get();
@@ -3344,7 +3350,7 @@ void qm::MessageMoveOtherAction::invoke(const ActionEvent& event)
 				
 				UINT nId = bMove ? IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
 				ProgressDialogMessageOperationCallback callback(hwnd_, nId, nId);
-				if (!pAccount->copyMessages(l, pFolderTo, bMove, &callback)) {
+				if (!pAccount->copyMessages(l, pFolderFrom, pFolderTo, bMove, &callback)) {
 					ActionUtil::error(hwnd_, bMove ? IDS_ERROR_MOVEMESSAGE : IDS_ERROR_COPYMESSAGE);
 					return;
 				}

@@ -258,6 +258,10 @@ public:
 	virtual bool saveMessageHolders();
 	virtual bool deletePermanent();
 
+// These methods are intended to be called from Account class
+public:
+	void removeMessages(const MessageHolderList& l);
+
 private:
 	QueryFolder(const QueryFolder&);
 	QueryFolder& operator=(const QueryFolder&);

@@ -1691,6 +1691,7 @@ bool qm::Account::appendMessage(NormalFolder* pFolder,
 }
 
 bool qm::Account::removeMessages(const MessageHolderList& l,
+								 Folder* pFolder,
 								 bool bDirect,
 								 MessageOperationCallback* pCallback)
 {
@@ -1718,10 +1719,17 @@ bool qm::Account::removeMessages(const MessageHolderList& l,
 		MessageOperationCallback* pCallback_;
 	} callback(pImpl_, bDirect, pCallback);
 	
-	return AccountImpl::callByFolder(l, &callback);
+	if (!AccountImpl::callByFolder(l, &callback))
+		return false;
+	
+	if (pFolder && pFolder->getType() == Folder::TYPE_QUERY)
+		static_cast<QueryFolder*>(pFolder)->removeMessages(l);
+	
+	return true;
 }
 
 bool qm::Account::copyMessages(const MessageHolderList& l,
+							   Folder* pFolderFrom,
 							   NormalFolder* pFolderTo,
 							   bool bMove,
 							   MessageOperationCallback* pCallback)
@@ -1754,7 +1762,13 @@ bool qm::Account::copyMessages(const MessageHolderList& l,
 		MessageOperationCallback* pCallback_;
 	} callback(pImpl_, pFolderTo, bMove, pCallback);
 	
-	return AccountImpl::callByFolder(l, &callback);
+	if (!AccountImpl::callByFolder(l, &callback))
+		return false;
+	
+	if (bMove && pFolderFrom && pFolderFrom->getType() == Folder::TYPE_QUERY)
+		static_cast<QueryFolder*>(pFolderFrom)->removeMessages(l);
+	
+	return true;
 }
 
 bool qm::Account::setMessagesFlags(const MessageHolderList& l,

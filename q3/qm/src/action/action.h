@@ -1524,8 +1524,10 @@ public:
 
 private:
 	bool deleteAttachment(Account* pAccount,
+						  Folder* pFolder,
 						  const MessageHolderList& l) const;
 	bool deleteAttachment(Account* pAccount,
+						  Folder* pFolder,
 						  MessageHolder* pmh) const;
 
 private:

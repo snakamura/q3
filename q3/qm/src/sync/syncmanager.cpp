@@ -902,7 +902,7 @@ bool qm::SyncManager::send(Document* pDocument,
 			l[0] = mpl;
 			if (!pAccount->setMessagesFlags(l,
 				MessageHolder::FLAG_SENT, MessageHolder::FLAG_SENT) ||
-				!pAccount->copyMessages(l, pSentbox, true, 0))
+				!pAccount->copyMessages(l, pOutbox, pSentbox, true, 0))
 				return false;
 			
 			pCallback->setPos(m + 1);

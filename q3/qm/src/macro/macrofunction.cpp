@@ -938,7 +938,7 @@ MacroValuePtr qm::MacroFunctionCopy::value(MacroContext* pContext) const
 	assert(pAccount->isLocked());
 	
 	MessageHolderList l(1, pmh->getMessageHolder());
-	if (!pAccount->copyMessages(l, static_cast<NormalFolder*>(pFolderTo), bMove_, 0))
+	if (!pAccount->copyMessages(l, 0, static_cast<NormalFolder*>(pFolderTo), bMove_, 0))
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
 	
 	return MacroValueFactory::getFactory().newBoolean(true);
@@ -1108,7 +1108,7 @@ MacroValuePtr qm::MacroFunctionDelete::value(MacroContext* pContext) const
 	assert(pAccount->isLocked());
 	
 	MessageHolderList l(1, pmh->getMessageHolder());
-	if (!pAccount->removeMessages(l, false, 0))
+	if (!pAccount->removeMessages(l, 0, false, 0))
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
 	
 	return MacroValueFactory::getFactory().newBoolean(true);

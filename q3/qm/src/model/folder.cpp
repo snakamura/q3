@@ -1175,6 +1175,28 @@ bool qm::QueryFolder::deletePermanent()
 	return true;
 }
 
+void qm::QueryFolder::removeMessages(const MessageHolderList& l)
+{
+	assert(getAccount()->isLocked());
+	
+	MessageHolderList listRemove(l);
+	std::sort(listRemove.begin(), listRemove.end());
+	
+	MessageHolderList::iterator itS = pImpl_->listMessageHolder_.begin();
+	for (MessageHolderList::iterator itR = listRemove.begin(); itR != listRemove.end(); ) {
+		itS = std::lower_bound(itS, pImpl_->listMessageHolder_.end(), *itR);
+		if (itS != pImpl_->listMessageHolder_.end() && *itS == *itR) {
+			itS = pImpl_->listMessageHolder_.erase(itS);
+			++itR;
+		}
+		else {
+			itR = listRemove.erase(itR);
+		}
+	}
+	
+	getImpl()->fireMessageRemoved(listRemove);
+}
+
 
 /****************************************************************************
  *

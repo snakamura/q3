@@ -447,7 +447,8 @@ bool qm::CopyRule::apply(const RuleContext& context) const
 				return false;
 			
 			if (bMove_) {
-				if (!context.getAccount()->removeMessages(MessageHolderList(1, pmh), false, 0))
+				if (!context.getAccount()->removeMessages(
+					MessageHolderList(1, pmh), context.getFolder(), false, 0))
 					return false;
 			}
 		}
@@ -456,7 +457,7 @@ bool qm::CopyRule::apply(const RuleContext& context) const
 	}
 	else {
 		return context.getAccount()->copyMessages(context.getMessageHolderList(),
-			static_cast<NormalFolder*>(pFolderTo), bMove_, 0);
+			context.getFolder(), static_cast<NormalFolder*>(pFolderTo), bMove_, 0);
 	}
 }
 

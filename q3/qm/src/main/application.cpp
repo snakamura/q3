@@ -483,7 +483,7 @@ void qm::Application::uninitialize()
 	HRESULT hr = ::OleGetClipboard(&pDataObject);
 	if (hr == S_OK) {
 		hr = pDataObject->QueryGetData(
-			&MessageDataObject::formats__[MessageDataObject::FORMAT_ACCOUNT]);
+			&MessageDataObject::formats__[MessageDataObject::FORMAT_FOLDER]);
 		if (hr == S_OK)
 			::OleFlushClipboard();
 	}

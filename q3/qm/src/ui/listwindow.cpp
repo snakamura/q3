@@ -617,7 +617,7 @@ void qm::ListWindowImpl::dragGestureRecognized(const DragGestureEvent& event)
 		return;
 	
 	std::auto_ptr<MessageDataObject> p(new MessageDataObject(pDocument_,
-		pViewModel->getFolder()->getAccount(), l, MessageDataObject::FLAG_NONE));
+		pViewModel->getFolder(), l, MessageDataObject::FLAG_NONE));
 	p->AddRef();
 	ComPtr<IDataObject> pDataObject(p.release());
 	

@@ -171,9 +171,11 @@ public:
 					   const Message& msg,
 					   unsigned int nFlags);
 	bool removeMessages(const MessageHolderList& l,
+						Folder* pFolder,
 						bool bDirect,
 						MessageOperationCallback* pCallback);
 	bool copyMessages(const MessageHolderList& l,
+					  Folder* pFolderFrom,
 					  NormalFolder* pFolderTo,
 					  bool bMove,
 					  MessageOperationCallback* pCallback);

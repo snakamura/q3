@@ -359,7 +359,6 @@ bool qm::Document::loadAccounts(const WCHAR* pwszPath)
 qm::Folder* qm::Document::getFolder(Account* pAccount,
 									const WCHAR* pwszName) const
 {
-	assert(pAccount);
 	assert(pwszName);
 	
 	if (*pwszName == L'/' && *(pwszName + 1) == L'/') {
@@ -367,11 +366,11 @@ qm::Folder* qm::Document::getFolder(Account* pAccount,
 		if (p) {
 			wstring_ptr wstrAccount(allocWString(pwszName + 2, p - pwszName - 2));
 			pAccount = getAccount(wstrAccount.get());
-			if (!pAccount)
-				return 0;
 			pwszName = p + 1;
 		}
 	}
+	if (!pAccount)
+		return 0;
 	
 	return pAccount->getFolder(pwszName);
 }

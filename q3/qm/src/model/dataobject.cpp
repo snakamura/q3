@@ -37,7 +37,7 @@ using namespace qs;
  */
 
 UINT qm::MessageDataObject::nFormats__[] = {
-	::RegisterClipboardFormat(_T("QmMessageDataAccount")),
+	::RegisterClipboardFormat(_T("QmMessageDataFolder")),
 	::RegisterClipboardFormat(_T("QmMessageDataMessageHolderList")),
 	::RegisterClipboardFormat(_T("QmMessageDataFlag")),
 #ifndef _WIN32_WCE
@@ -48,7 +48,7 @@ UINT qm::MessageDataObject::nFormats__[] = {
 
 FORMATETC qm::MessageDataObject::formats__[] = {
 	{
-		MessageDataObject::nFormats__[FORMAT_ACCOUNT],
+		MessageDataObject::nFormats__[FORMAT_FOLDER],
 		0,
 		DVASPECT_CONTENT,
 		-1,
@@ -89,24 +89,24 @@ FORMATETC qm::MessageDataObject::formats__[] = {
 qm::MessageDataObject::MessageDataObject(Document* pDocument) :
 	nRef_(0),
 	pDocument_(pDocument),
-	pAccount_(0),
+	pFolder_(0),
 	flag_(FLAG_NONE)
 {
 	assert(pDocument);
 }
 
 qm::MessageDataObject::MessageDataObject(Document* pDocument,
-										 Account* pAccount,
+										 Folder* pFolder,
 										 const MessageHolderList& l,
 										 Flag flag) :
 	nRef_(0),
 	pDocument_(pDocument),
-	pAccount_(pAccount),
+	pFolder_(pFolder),
 	flag_(flag)
 {
 	assert(pDocument);
-	assert(pAccount);
-	assert(pAccount->isLocked());
+	assert(pFolder);
+	assert(pFolder->getAccount()->isLocked());
 	assert(!l.empty());
 	
 	listMessagePtr_.assign(l.begin(), l.end());
@@ -150,15 +150,22 @@ STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
 		return hr;
 	
 	HGLOBAL hGlobal = 0;
-	if (pFormat->cfFormat == nFormats__[FORMAT_ACCOUNT]) {
-		const WCHAR* pwszName = pAccount_->getName();
+	if (pFormat->cfFormat == nFormats__[FORMAT_FOLDER]) {
+		wstring_ptr wstrFolderName(pFolder_->getFullName());
+		ConcatW c[] = {
+			{ L"//",								2	},
+			{ pFolder_->getAccount()->getName(),	-1	},
+			{ L"/",									1	},
+			{ wstrFolderName.get(),					-1	}
+		};
+		wstring_ptr wstrName(concat(c, countof(c)));
 		hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT,
-			(wcslen(pwszName) + 1)*sizeof(WCHAR));
+			(wcslen(wstrName.get()) + 1)*sizeof(WCHAR));
 		if (!hGlobal)
 			return E_OUTOFMEMORY;
 		
 		WCHAR* p = reinterpret_cast<WCHAR*>(GlobalLock(hGlobal));
-		wcscpy(p, pwszName);
+		wcscpy(p, wstrName.get());
 		GlobalUnlock(hGlobal);
 	}
 	else if (pFormat->cfFormat == nFormats__[FORMAT_MESSAGEHOLDERLIST]) {
@@ -322,8 +329,8 @@ STDMETHODIMP qm::MessageDataObject::SetData(FORMATETC* pFormat,
 		HGLOBAL hGlobal_;
 	} deleter(pMedium->hGlobal);
 	
-	if (pFormat->cfFormat == nFormats__[FORMAT_ACCOUNT]) {
-		pAccount_ = pDocument_->getAccount(static_cast<WCHAR*>(pData));
+	if (pFormat->cfFormat == nFormats__[FORMAT_FOLDER]) {
+		pFolder_ = pDocument_->getFolder(0, static_cast<WCHAR*>(pData));
 	}
 	else if (pFormat->cfFormat == nFormats__[FORMAT_MESSAGEHOLDERLIST]) {
 		const WCHAR* p = static_cast<const WCHAR*>(pData);
@@ -467,6 +474,8 @@ bool qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
 	if (flag == FLAG_NONE)
 		flag = getPasteFlag(pDataObject, pDocument, pFolderTo);
 	
+	Folder* pFolderFrom = getFolder(pDataObject, pDocument);
+	
 	FORMATETC fe = formats__[FORMAT_MESSAGEHOLDERLIST];
 	STGMEDIUM stm;
 	hr = pDataObject->GetData(&fe, &stm);
@@ -519,7 +528,7 @@ bool qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
 				
 				assert(!l.empty());
 				
-				if (!pAccount->copyMessages(l, pFolderTo, flag == FLAG_MOVE, pCallback))
+				if (!pAccount->copyMessages(l, pFolderFrom, pFolderTo, flag == FLAG_MOVE, pCallback))
 					return false;
 				
 				if (pCallback && pCallback->isCanceled())
@@ -558,13 +567,15 @@ MessageDataObject::Flag qm::MessageDataObject::getPasteFlag(IDataObject* pDataOb
 	
 	if (flag == FLAG_NONE) {
 		Account* pAccount = 0;
-		FORMATETC fe = formats__[FORMAT_ACCOUNT];
+		FORMATETC fe = formats__[FORMAT_FOLDER];
 		STGMEDIUM stm;
 		hr = pDataObject->GetData(&fe, &stm);
 		if (hr == S_OK) {
 			const WCHAR* pwszName = reinterpret_cast<const WCHAR*>(
 				GlobalLock(stm.hGlobal));
-			pAccount = pDocument->getAccount(pwszName);
+			Folder* pFolderFrom = pDocument->getFolder(0, pwszName);
+			if (pFolderFrom)
+				pAccount = pFolderFrom->getAccount();
 			GlobalUnlock(stm.hGlobal);
 			::ReleaseStgMedium(&stm);
 		}
@@ -572,6 +583,25 @@ MessageDataObject::Flag qm::MessageDataObject::getPasteFlag(IDataObject* pDataOb
 	}
 	
 	return flag;
+}
+
+qm::Folder* qm::MessageDataObject::getFolder(IDataObject* pDataObject,
+											 Document* pDocument)
+{
+	assert(pDataObject);
+	
+	FORMATETC fe = formats__[FORMAT_FOLDER];
+	STGMEDIUM stm;
+	HRESULT hr = pDataObject->GetData(&fe, &stm);
+	if (hr != S_OK)
+		return 0;
+	
+	void* pData = GlobalLock(stm.hGlobal);
+	Folder* pFolder = pDocument->getFolder(0, static_cast<WCHAR*>(pData));
+	GlobalUnlock(stm.hGlobal);
+	::ReleaseStgMedium(&stm);
+	
+	return pFolder;
 }
 
 wstring_ptr qm::MessageDataObject::getFileName(const WCHAR* pwszName)
