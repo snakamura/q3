@@ -2487,6 +2487,77 @@ QSTATUS qm::MessageDetachAction::isEnabled(const ActionEvent& event, bool* pbEna
 
 /****************************************************************************
  *
+ * MessageExpandDigestAction
+ *
+ */
+
+qm::MessageExpandDigestAction::MessageExpandDigestAction(
+	MessageSelectionModel* pMessageSelectionModel, QSTATUS* pstatus) :
+	pMessageSelectionModel_(pMessageSelectionModel)
+{
+}
+
+qm::MessageExpandDigestAction::~MessageExpandDigestAction()
+{
+}
+
+QSTATUS qm::MessageExpandDigestAction::invoke(const ActionEvent& event)
+{
+	DECLARE_QSTATUS();
+	
+	MessagePtrList listMessagePtr;
+	status = pMessageSelectionModel_->getSelectedMessages(0, &listMessagePtr);
+	CHECK_QSTATUS();
+	
+	MessagePtrList::const_iterator itP = listMessagePtr.begin();
+	while (itP != listMessagePtr.end()) {
+		MessagePtrLock mpl(*itP);
+		if (mpl) {
+			Message msg(&status);
+			CHECK_QSTATUS();
+			status = mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg);
+			CHECK_QSTATUS();
+			
+			PartUtil::MessageList l;
+			struct Deleter
+			{
+				Deleter(PartUtil::MessageList& l) :
+					l_(l)
+				{
+				}
+				
+				~Deleter()
+				{
+					std::for_each(l_.begin(), l_.end(), deleter<Message>());
+				}
+				
+				PartUtil::MessageList& l_;
+			} deleter(l);
+			status = PartUtil(msg).getDigest(&l);
+			CHECK_QSTATUS();
+			PartUtil::MessageList::const_iterator itM = l.begin();
+			while (itM != l.end()) {
+				unsigned int nFlags = 0;
+				status = mpl->getFolder()->appendMessage(**itM, nFlags);
+				CHECK_QSTATUS();
+				++itM;
+			}
+		}
+		++itP;
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::MessageExpandDigestAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+{
+	assert(pbEnabled);
+	return pMessageSelectionModel_->hasSelectedMessage(pbEnabled);
+}
+
+
+/****************************************************************************
+ *
  * MessageMarkAction
  *
  */

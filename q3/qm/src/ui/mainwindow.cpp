@@ -434,6 +434,9 @@ QSTATUS qm::MainWindowImpl::initActions()
 	status = InitAction2<MessageCombineAction, MessageSelectionModel*, HWND>(
 		pActionMap_, IDM_MESSAGE_COMBINE, pMessageSelectionModel_, pThis_->getHandle());
 	CHECK_QSTATUS();
+	status = InitAction1<MessageExpandDigestAction, MessageSelectionModel*>(
+		pActionMap_, IDM_MESSAGE_EXPANDDIGEST, pMessageSelectionModel_);
+	CHECK_QSTATUS();
 	
 	struct {
 		UINT nId_;

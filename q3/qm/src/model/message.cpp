@@ -1581,6 +1581,9 @@ QSTATUS qm::PartUtil::getDigest(MessageList* pList) const
 			while (p) {
 				p = wcschr(p + 1, L'\n');
 				assert(p);
+				++p;
+				if (*p == L'\n')
+					++p;
 				
 				const WCHAR* pEnd = bmfsSeparator.find(p);
 				if (!pEnd)

@@ -56,6 +56,7 @@ class MessageCreateAction;
 class MessageCreateFromClipboardAction;
 class MessageDeleteAttachmentAction;
 class MessageDetachAction;
+class MessageExpandDigestAction;
 class MessageMarkAction;
 class MessageMoveAction;
 class MessageMoveOtherAction;
@@ -1110,6 +1111,32 @@ private:
 private:
 	MessageSelectionModel* pMessageSelectionModel_;
 	AttachmentHelper helper_;
+};
+
+
+/****************************************************************************
+ *
+ * MessageExpandDigestAction
+ *
+ */
+
+class MessageExpandDigestAction : public qs::AbstractAction
+{
+public:
+	MessageExpandDigestAction(MessageSelectionModel* pMessageSelectionModel,
+		qs::QSTATUS* pstatus);
+	virtual ~MessageExpandDigestAction();
+
+public:
+	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+
+private:
+	MessageExpandDigestAction(const MessageExpandDigestAction&);
+	MessageExpandDigestAction& operator=(const MessageExpandDigestAction&);
+
+private:
+	MessageSelectionModel* pMessageSelectionModel_;
 };
 
 
