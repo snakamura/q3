@@ -1716,7 +1716,7 @@ BEGIN
     PUSHBUTTON      "&Browse...",IDC_BROWSE,125,90,50,14
     LTEXT           "En&codings(*)",IDC_STATIC,5,110,40,8
     EDITTEXT        IDC_ENCODING,5,120,170,14,ES_AUTOHSCROLL
-    LTEXT           "&Log(*)",IDC_STATIC,5,143,20,8
+    LTEXT           "&Log",IDC_STATIC,5,143,20,8
     COMBOBOX        IDC_LOG,30,140,40,60,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
 END

@@ -69,6 +69,7 @@ struct qs::InitImpl
 	bool bLogEnabled_;
 	wstring_ptr wstrLogDir_;
 	Logger::Level logLevel_;
+	CriticalSection csLog_;
 	ConverterFactoryList listConverterFactory_;
 	EncoderFactoryList listEncoderFactory_;
 	
@@ -252,27 +253,37 @@ InitThread* qs::Init::getInitThread()
 
 bool qs::Init::isLogEnabled() const
 {
+	Lock<CriticalSection> lock(pImpl_->csLog_);
 	return pImpl_->bLogEnabled_;
 }
 
-const WCHAR* qs::Init::getLogDirectory() const
+void qs::Init::setLogEnabled(bool bEnabled)
 {
-	return pImpl_->wstrLogDir_.get();
+	Lock<CriticalSection> lock(pImpl_->csLog_);
+	pImpl_->bLogEnabled_ = bEnabled;
+}
+
+wstring_ptr qs::Init::getLogDirectory() const
+{
+	Lock<CriticalSection> lock(pImpl_->csLog_);
+	return allocWString(pImpl_->wstrLogDir_.get());
+}
+
+void qs::Init::setLogDirectory(const WCHAR* pwszDir)
+{
+	Lock<CriticalSection> lock(pImpl_->csLog_);
+	pImpl_->wstrLogDir_ = allocWString(pwszDir);
 }
 
 Logger::Level qs::Init::getLogLevel() const
 {
+	Lock<CriticalSection> lock(pImpl_->csLog_);
 	return pImpl_->logLevel_;
 }
 
-void qs::Init::setLogInfo(bool bEnabled,
-						  const WCHAR* pwszDir,
-						  Logger::Level level)
+void qs::Init::setLogLevel(Logger::Level level)
 {
-	assert(!pImpl_->wstrLogDir_.get());
-	
-	pImpl_->wstrLogDir_ = allocWString(pwszDir);
-	pImpl_->bLogEnabled_ = bEnabled;
+	Lock<CriticalSection> lock(pImpl_->csLog_);
 	pImpl_->logLevel_ = level;
 }
 
@@ -308,8 +319,8 @@ bool qs::InitThreadImpl::createLogger()
 	
 	const Init& init = Init::getInit();
 	if (init.isLogEnabled()) {
-		const WCHAR* pwszLogDir = init.getLogDirectory();
-		if (!pwszLogDir)
+		wstring_ptr wstrLogDir(init.getLogDirectory());
+		if (!wstrLogDir.get())
 			return false;
 		
 		Time time(Time::getCurrentTime());
@@ -319,8 +330,7 @@ bool qs::InitThreadImpl::createLogger()
 			time.wHour, time.wMinute, time.wSecond, time.wMilliseconds,
 			::GetCurrentThreadId());
 		
-		wstring_ptr wstrPath(concat(pwszLogDir, wszName));
-		
+		wstring_ptr wstrPath(concat(wstrLogDir.get(), wszName));
 		std::auto_ptr<FileLogHandler> pLogHandler(new FileLogHandler(wstrPath.get()));
 		std::auto_ptr<Logger> pLogger(new Logger(
 			pLogHandler.get(), true, init.getLogLevel()));
@@ -383,6 +393,11 @@ Logger* qs::InitThread::getLogger() const
 	if (!pImpl_->pLogger_.get())
 		pImpl_->createLogger();
 	return pImpl_->pLogger_.get();
+}
+
+void qs::InitThread::resetLogger()
+{
+	pImpl_->pLogger_.reset(0);
 }
 
 InitThread& qs::InitThread::getInitThread()

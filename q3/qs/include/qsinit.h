@@ -11,6 +11,7 @@
 
 #include <qs.h>
 #include <qslog.h>
+#include <qsstring.h>
 
 namespace qs {
 
@@ -42,12 +43,13 @@ public:
 	const WCHAR* getMailEncoding() const;
 	const WCHAR* getDefaultFixedWidthFont() const;
 	const WCHAR* getDefaultProportionalFont() const;
+	
 	bool isLogEnabled() const;
-	const WCHAR* getLogDirectory() const;
+	void setLogEnabled(bool bEnabled);
+	wstring_ptr getLogDirectory() const;
+	void setLogDirectory(const WCHAR* pwszDir);
 	Logger::Level getLogLevel() const;
-	void setLogInfo(bool bEnabled,
-					const WCHAR* pwszDir,
-					Logger::Level level);
+	void setLogLevel(Logger::Level level);
 
 public:
 	InitThread* getInitThread();
@@ -85,6 +87,7 @@ public:
 public:
 	Synchronizer* getSynchronizer() const;
 	Logger* getLogger() const;
+	void resetLogger();
 
 public:
 	static InitThread& getInitThread();

@@ -19,6 +19,7 @@
 #include <qmtabwindow.h>
 
 #include <qsdevicecontext.h>
+#include <qsinit.h>
 #include <qsras.h>
 #include <qsuiutil.h>
 
@@ -1285,12 +1286,11 @@ LRESULT qm::OptionMiscDialog::onInitDialog(HWND hwndFocus,
 		W2T(pwszLog[n], ptszLog);
 		sendDlgItemMessage(IDC_LOG, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(ptszLog));
 	}
-	int nLog = pProfile_->getInt(L"Global", L"Log", -1);
-	if (nLog < -1)
-		nLog = -1;
-	else if (nLog > 4)
-		nLog = 4;
-	sendDlgItemMessage(IDC_LOG, CB_SETCURSEL, nLog + 1);
+	int nLog = 0;
+	Init& init = Init::getInit();
+	if (init.isLogEnabled())
+		nLog = init.getLogLevel() + 1;
+	sendDlgItemMessage(IDC_LOG, CB_SETCURSEL, nLog);
 	
 	return FALSE;
 }
@@ -1308,6 +1308,16 @@ bool qm::OptionMiscDialog::save(OptionDialogContext* pContext)
 	
 	int nLog = sendDlgItemMessage(IDC_LOG, CB_GETCURSEL);
 	pProfile_->setInt(L"Global", L"Log", nLog - 1);
+	
+	Init& init = Init::getInit();
+	bool bLogEnabled = init.isLogEnabled();
+	Logger::Level logLevel = init.getLogLevel();
+	if (nLog != 0)
+		init.setLogLevel(static_cast<Logger::Level>(nLog - 1));
+	init.setLogEnabled(nLog != 0);
+	if (bLogEnabled != init.isLogEnabled() ||
+		logLevel != init.getLogLevel())
+		InitThread::getInitThread().resetLogger();
 	
 	return true;
 }

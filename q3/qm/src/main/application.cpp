@@ -602,12 +602,14 @@ bool qm::Application::initialize()
 	
 	int nLog = pImpl_->pProfile_->getInt(L"Global", L"Log", -1);
 	if (nLog >= 0) {
-		wstring_ptr wstrLogDir(concat(
-			pImpl_->wstrMailFolder_.get(), L"\\logs"));
+		Init& init = Init::getInit();
 		if (nLog > Logger::LEVEL_DEBUG)
 			nLog = Logger::LEVEL_DEBUG;
-		Init::getInit().setLogInfo(true, wstrLogDir.get(),
-			static_cast<Logger::Level>(nLog));
+		init.setLogLevel(static_cast<Logger::Level>(nLog));
+		wstring_ptr wstrLogDir(concat(
+			pImpl_->wstrMailFolder_.get(), L"\\logs"));
+		init.setLogDirectory(wstrLogDir.get());
+		init.setLogEnabled(true);
 	}
 	
 	wstring_ptr wstrTempFolder(
