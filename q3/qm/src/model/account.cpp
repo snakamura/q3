@@ -1918,7 +1918,7 @@ bool qm::Account::getMessage(MessageHolder* pmh,
 				}
 				break;
 			case SMIMEUtility::TYPE_ENVELOPEDORSIGNED:
-				// TODO
+				assert(false);
 				break;
 			default:
 				break;

@@ -36,7 +36,36 @@ qscrypto::SMIMEUtilityImpl::~SMIMEUtilityImpl()
 
 SMIMEUtility::Type qscrypto::SMIMEUtilityImpl::getType(const Part& part) const
 {
-	return getType(part.getContentType());
+	Type type = getType(part.getContentType());
+	if (type == TYPE_MULTIPARTSIGNED) {
+		type = TYPE_NONE;
+		
+		if (part.getPartCount() == 2) {
+			Part* pChild = part.getPart(1);
+			const ContentTypeParser* pChildType = pChild->getContentType();
+			if (pChildType &&
+				_wcsicmp(pChildType->getMediaType(), L"application") == 0 &&
+				(_wcsicmp(pChildType->getSubType(), L"pkcs7-signature") == 0 ||
+				_wcsicmp(pChildType->getSubType(), L"x-pkcs7-signature") == 0))
+				type = TYPE_MULTIPARTSIGNED;
+		}
+	}
+	else if (type == TYPE_ENVELOPEDORSIGNED) {
+		type = TYPE_NONE;
+		
+		malloc_size_ptr<unsigned char> buf(part.getBodyData());
+		if (buf.get()) {
+			BIOPtr pIn(BIO_new_mem_buf(buf.get(), buf.size()));
+			PKCS7Ptr pPKCS7(d2i_PKCS7_bio(pIn.get(), 0));
+			if (pPKCS7.get()) {
+				if (PKCS7_type_is_signed(pPKCS7.get()))
+					type = TYPE_SIGNED;
+				else if (PKCS7_type_is_enveloped(pPKCS7.get()))
+					type = TYPE_ENVELOPED;
+			}
+		}
+	}
+	return type;
 }
 
 SMIMEUtility::Type qscrypto::SMIMEUtilityImpl::getType(const ContentTypeParser* pContentType) const
@@ -52,16 +81,8 @@ SMIMEUtility::Type qscrypto::SMIMEUtilityImpl::getType(const ContentTypeParser* 
 		if (!wstrProtocol.get())
 			return TYPE_NONE;
 		if (_wcsicmp(wstrProtocol.get(), L"pkcs7-signature") == 0 ||
-			_wcsicmp(wstrProtocol.get(), L"x-pkcs7-signature") == 0) {
-//			if (part.getPartCount() == 2) {
-//				Part* pChild = part.getPart(1);
-//				const ContentTypeParser* pChildType = pChild->getContentType();
-//				if (_wcsicmp(pChildType->getMediaType(), L"application") == 0 &&
-//					(_wcsicmp(pChildType->getSubType(), L"pkcs7-signature") == 0 ||
-//					_wcsicmp(pChildType->getSubType(), L"x-pkcs7-signature") == 0))
-					return TYPE_MULTIPARTSIGNED;
-//			}
-		}
+			_wcsicmp(wstrProtocol.get(), L"x-pkcs7-signature") == 0)
+			return TYPE_MULTIPARTSIGNED;
 	}
 	else if (_wcsicmp(pwszMediaType, L"application") == 0 &&
 		(_wcsicmp(pwszSubType, L"pkcs7-mime") == 0 ||
@@ -77,10 +98,8 @@ SMIMEUtility::Type qscrypto::SMIMEUtilityImpl::getType(const ContentTypeParser* 
 		wstring_ptr wstrName(pContentType->getParameter(L"name"));
 		if (!wstrName.get())
 			return TYPE_NONE;
-//		else if (_wcsicmp(wstrName.get(), L"smime.p7s") == 0)
-//			return TYPE_SIGNED;
 		else if (_wcsicmp(wstrName.get(), L"smime.p7m") == 0)
-			return TYPE_ENVELOPED;
+			return TYPE_ENVELOPEDORSIGNED;
 	}
 	
 	return TYPE_NONE;
