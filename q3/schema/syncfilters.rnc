@@ -16,7 +16,7 @@ element filters {
 				attribute name {
 					xsd:string
 				}
-			},
+			}+,
 			## フィルタが適用されるフォルダ（正規表現）
 			## 指定されない場合、全てのフォルダ
 			attribute folder {

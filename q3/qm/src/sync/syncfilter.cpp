@@ -319,7 +319,7 @@ struct qm::SyncFilterImpl
 {
 	RegexPattern* pFolderName_;
 	Macro* pMacro_;
-	SyncFilterAction* pAction_;
+	SyncFilter::ActionList listAction_;
 };
 
 
@@ -350,7 +350,6 @@ qm::SyncFilter::SyncFilter(const WCHAR* pwszFolder,
 	CHECK_QSTATUS_SET(pstatus);
 	pImpl_->pFolderName_ = pFolderName.release();
 	pImpl_->pMacro_ = pMacro;
-	pImpl_->pAction_ = 0;
 }
 
 qm::SyncFilter::~SyncFilter()
@@ -358,7 +357,8 @@ qm::SyncFilter::~SyncFilter()
 	if (pImpl_) {
 		delete pImpl_->pFolderName_;
 		delete pImpl_->pMacro_;
-		delete pImpl_->pAction_;
+		std::for_each(pImpl_->listAction_.begin(),
+			pImpl_->listAction_.end(), deleter<SyncFilterAction>());
 		delete pImpl_;
 	}
 }
@@ -399,14 +399,14 @@ QSTATUS qm::SyncFilter::match(SyncFilterCallback* pCallback, bool* pbMatch) cons
 	return QSTATUS_SUCCESS;
 }
 
-const SyncFilterAction* qm::SyncFilter::getAction() const
+const SyncFilter::ActionList& qm::SyncFilter::getActions() const
 {
-	return pImpl_->pAction_;
+	return pImpl_->listAction_;
 }
 
-void qm::SyncFilter::setAction(SyncFilterAction* pAction)
+QSTATUS qm::SyncFilter::addAction(SyncFilterAction* pAction)
 {
-	pImpl_->pAction_ = pAction;
+	return STLWrapper<ActionList>(pImpl_->listAction_).push_back(pAction);
 }
 
 
@@ -641,7 +641,8 @@ QSTATUS qm::SyncFilterContentHandler::startElement(
 		std::auto_ptr<SyncFilterAction> pAction;
 		status = newQsObject(pwszName, &pAction);
 		CHECK_QSTATUS();
-		pCurrentFilter_->setAction(pAction.get());
+		status = pCurrentFilter_->addAction(pAction.get());
+		CHECK_QSTATUS();
 		pCurrentAction_ = pAction.release();
 		
 		state_ = STATE_ACTION;
@@ -694,7 +695,11 @@ QSTATUS qm::SyncFilterContentHandler::endElement(
 	else if (wcscmp(pwszLocalName, L"filter") == 0) {
 		assert(state_ == STATE_FILTER);
 		assert(pCurrentFilter_);
+		
+		if (pCurrentFilter_->getActions().empty())
+			return QSTATUS_FAIL;
 		pCurrentFilter_ = 0;
+		
 		state_ = STATE_FILTERSET;
 	}
 	else if (wcscmp(pwszLocalName, L"action") == 0) {

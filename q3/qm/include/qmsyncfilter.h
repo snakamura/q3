@@ -104,15 +104,18 @@ private:
 class QMEXPORTCLASS SyncFilter
 {
 public:
+	typedef std::vector<SyncFilterAction*> ActionList;
+
+public:
 	SyncFilter(const WCHAR* pwszFolder, Macro* pMacro, qs::QSTATUS* pstatus);
 	~SyncFilter();
 
 public:
 	qs::QSTATUS match(SyncFilterCallback* pCallback, bool* pbMatch) const;
-	const SyncFilterAction* getAction() const;
+	const ActionList& getActions() const;
 
 public:
-	void setAction(SyncFilterAction* pAction);
+	qs::QSTATUS addAction(SyncFilterAction* pAction);
 
 private:
 	SyncFilter(const SyncFilter&);

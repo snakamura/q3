@@ -453,6 +453,7 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 	
 	typedef std::vector<unsigned long> UidList;
 	UidList listMakeSeen;
+	UidList listMakeDeleted;
 	
 	typedef std::vector<FetchDataBodyStructure*> BodyStructureList;
 	BodyStructureList listBodyStructure;
@@ -473,9 +474,9 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 			Profile* pProfile, ReceiveSessionCallback* pSessionCallback,
 			const SyncFilterSet* pFilterSet, unsigned int nOption,
 			unsigned long nUidStart, MessageDataList& listMessageData,
-			UidList& listMakeSeen, BodyStructureList& listBodyStructure,
-			Imap4* pImap4, MacroVariableHolder* pGlobalVariable,
-			Imap4ReceiveSession* pSession) :
+			UidList& listMakeSeen, UidList& listMakeDeleted,
+			BodyStructureList& listBodyStructure, Imap4* pImap4,
+			MacroVariableHolder* pGlobalVariable, Imap4ReceiveSession* pSession) :
 			pDocument_(pDocument),
 			pAccount_(pAccount),
 			pSubAccount_(pSubAccount),
@@ -488,6 +489,7 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 			nUidStart_(nUidStart),
 			listMessageData_(listMessageData),
 			listMakeSeen_(listMakeSeen),
+			listMakeDeleted_(listMakeDeleted),
 			listBodyStructure_(listBodyStructure),
 			pImap4_(pImap4),
 			pGlobalVariable_(pGlobalVariable),
@@ -609,17 +611,28 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 					status = pFilterSet_->getFilter(&callback, &pFilter);
 					CHECK_QSTATUS();
 					if (pFilter) {
-						const SyncFilterAction* pAction = pFilter->getAction();
-						if (wcscmp(pAction->getName(), L"download") == 0) {
-							const WCHAR* pwszType = pAction->getParam(L"type");
-							if (wcscmp(pwszType, L"all") == 0)
-								download = DOWNLOAD_ALL;
-							else if (wcscmp(pwszType, L"text") == 0)
-								download = DOWNLOAD_TEXT;
-							else if (wcscmp(pwszType, L"html") == 0)
-								download = DOWNLOAD_HTML;
-							else if (wcscmp(pwszType, L"header") == 0)
-								download = DOWNLOAD_HEADER;
+						const SyncFilter::ActionList& listAction = pFilter->getActions();
+						SyncFilter::ActionList::const_iterator it = listAction.begin();
+						while (it != listAction.end()) {
+							const SyncFilterAction* pAction = *it;
+							if (wcscmp(pAction->getName(), L"download") == 0) {
+								const WCHAR* pwszType = pAction->getParam(L"type");
+								if (wcscmp(pwszType, L"all") == 0)
+									download = DOWNLOAD_ALL;
+								else if (wcscmp(pwszType, L"text") == 0)
+									download = DOWNLOAD_TEXT;
+								else if (wcscmp(pwszType, L"html") == 0)
+									download = DOWNLOAD_HTML;
+								else if (wcscmp(pwszType, L"header") == 0)
+									download = DOWNLOAD_HEADER;
+							}
+							else if (wcscmp(pAction->getName(), L"delete") == 0) {
+								nFlags |= MessageHolder::FLAG_DELETED;
+								status = STLWrapper<UidList>(
+									listMakeDeleted_).push_back(nUid);
+								CHECK_QSTATUS();
+							}
+							++it;
 						}
 					}
 				}
@@ -722,6 +735,7 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 		unsigned long nUidStart_;
 		MessageDataList& listMessageData_;
 		UidList& listMakeSeen_;
+		UidList& listMakeDeleted_;
 		BodyStructureList& listBodyStructure_;
 		Imap4* pImap4_;
 		MacroVariableHolder* pGlobalVariable_;
@@ -736,7 +750,7 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 		CHECK_QSTATUS();
 		GetMessageDataProcessHook hook(pDocument_, pAccount_, pSubAccount_,
 			pFolder_, hwnd_, pProfile_, pSessionCallback_, pSyncFilterSet,
-			nOption, nUidStart_, listMessageData, listMakeSeen,
+			nOption, nUidStart_, listMessageData, listMakeSeen, listMakeDeleted,
 			listBodyStructure, pImap4_, &globalVariable, this);
 		Hook h(this, &hook);
 		for (unsigned int nId = nIdStart_ + 1; nId <= nExists_; nId += nFetchCount) {
@@ -749,19 +763,31 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 		}
 	}
 	
-	if (!listMakeSeen.empty()) {
+	if (!listMakeSeen.empty() || !listMakeDeleted.empty()) {
 		status = pCallback_->setMessage(IDS_SETFLAGS);
 		CHECK_QSTATUS();
 		
-		MultipleRange range(&listMakeSeen[0],
-			listMakeSeen.size(), true, &status);
-		CHECK_QSTATUS();
-		Flags flags(Imap4::FLAG_SEEN, &status);
-		CHECK_QSTATUS();
-		Flags mask(Imap4::FLAG_SEEN, &status);
-		CHECK_QSTATUS();
-		status = pImap4_->setFlags(range, flags, mask);
-		CHECK_QSTATUS_ERROR();
+		struct
+		{
+			const UidList* p_;
+			Imap4::Flag flag_;
+		} items[] = {
+			{ &listMakeSeen,	Imap4::FLAG_SEEN	},
+			{ &listMakeDeleted,	Imap4::FLAG_DELETED	}
+		};
+		for (int n = 0; n < countof(items); ++n) {
+			if (!items[n].p_->empty()) {
+				MultipleRange range(&(*items[n].p_)[0],
+					items[n].p_->size(), true, &status);
+				CHECK_QSTATUS();
+				Flags flags(items[n].flag_, &status);
+				CHECK_QSTATUS();
+				Flags mask(items[n].flag_, &status);
+				CHECK_QSTATUS();
+				status = pImap4_->setFlags(range, flags, mask);
+				CHECK_QSTATUS_ERROR();
+			}
+		}
 	}
 	
 	if (!listMessageData.empty()) {

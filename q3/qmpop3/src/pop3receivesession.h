@@ -270,6 +270,38 @@ private:
 	Pop3SyncFilterCallback* pCallback_;
 };
 
+
+/****************************************************************************
+ *
+ * DeleteList
+ *
+ */
+
+class DeleteList
+{
+public:
+	typedef std::vector<std::pair<bool, qm::MessagePtr> > List;
+
+public:
+	DeleteList();
+	~DeleteList();
+
+public:
+	const List getList() const;
+	qs::QSTATUS add(size_t n);
+	qs::QSTATUS add(size_t n, const qm::MessagePtr& ptr);
+
+private:
+	qs::QSTATUS resize(size_t n);
+
+private:
+	DeleteList(const DeleteList&);
+	DeleteList& operator=(const DeleteList&);
+
+private:
+	List list_;
+};
+
 }
 
 #endif // __POP3RECEIVESESSION_H__

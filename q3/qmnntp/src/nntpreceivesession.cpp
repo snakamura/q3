@@ -295,17 +295,22 @@ QSTATUS qmnntp::NntpReceiveSession::downloadMessages(
 					status = pSyncFilterSet->getFilter(&callback, &pFilter);
 					CHECK_QSTATUS();
 					if (pFilter) {
-						const SyncFilterAction* pAction = pFilter->getAction();
-						if (wcscmp(pAction->getName(), L"download") == 0) {
-							if (state != STATE_ALL) {
-								status = pNntp_->getMessage(item.nId_,
-									Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage);
-								CHECK_QSTATUS_ERROR();
+						const SyncFilter::ActionList& listAction = pFilter->getActions();
+						SyncFilter::ActionList::const_iterator it = listAction.begin();
+						while (it != listAction.end()) {
+							const SyncFilterAction* pAction = *it;
+							if (wcscmp(pAction->getName(), L"download") == 0) {
+								if (state != STATE_ALL) {
+									status = pNntp_->getMessage(item.nId_,
+										Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage);
+									CHECK_QSTATUS_ERROR();
+								}
+								if (strMessage.get()) {
+									pszMessage = strMessage.get();
+									nFlags = 0;
+								}
 							}
-							if (strMessage.get()) {
-								pszMessage = strMessage.get();
-								nFlags = 0;
-							}
+							++it;
 						}
 					}
 				}

@@ -9,6 +9,9 @@ start = element folders {
 			},
 			element downloadCount {
 				xsd:unsignedInt
+			},
+			element deletedCount {
+				xsd:unsignedInt
 			}
 		} |
 		element queryFolder {
