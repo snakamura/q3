@@ -743,7 +743,7 @@ qm::AddressBookEntry::AddressBookEntry(const WCHAR* pwszName,
 	if (pwszName)
 		wstrName_ = allocWString(pwszName);
 	if (pwszSortKey)
-		wstrName_ = allocWString(pwszSortKey);
+		wstrSortKey_ = allocWString(pwszSortKey);
 }
 
 qm::AddressBookEntry::~AddressBookEntry()
