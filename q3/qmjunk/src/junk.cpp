@@ -573,7 +573,7 @@ bool qmjunk::Tokenizer::getTokens(const qs::Part& part,
 		}
 	}
 	else if (part.isText()) {
-		wxstring_ptr wstrBody(part.getBodyText());
+		wxstring_size_ptr wstrBody(part.getBodyText());
 		if (!wstrBody.get())
 			return false;
 		if (!getTokens(wstrBody.get(), pCallback))

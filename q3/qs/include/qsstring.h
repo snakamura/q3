@@ -752,11 +752,14 @@ public:
 	basic_xstring_size_ptr& operator=(basic_xstring_size_ptr& s);
 	Char operator[](size_t n) const;
 	Char& operator[](size_t n);
+	operator basic_xstring_ptr<XString>();
 
 public:
 	XString get() const;
 	XString release();
 	void reset(XString str,
+			   size_t nSize);
+	void reset(basic_xstring_ptr<XString> str,
 			   size_t nSize);
 	size_t size() const;
 

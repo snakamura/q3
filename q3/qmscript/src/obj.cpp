@@ -800,12 +800,12 @@ STDMETHODIMP qmscript::MessageImpl::get_bodyText(BSTR bstrQuote,
 	if (bstrCharset && *bstrCharset)
 		pwszCharset = bstrCharset;
 	
-	wxstring_ptr wstrBody(PartUtil(msg_).getBodyText(pwszQuote,
+	wxstring_size_ptr wstrBody(PartUtil(msg_).getBodyText(pwszQuote,
 		pwszCharset, bForceRfc822Inline == VARIANT_TRUE));
 	if (!wstrBody.get())
 		return E_FAIL;
 	
-	*pbstrBody = ::SysAllocString(wstrBody.get());
+	*pbstrBody = ::SysAllocStringLen(wstrBody.get(), wstrBody.size());
 	
 	return *pbstrBody ? S_OK : E_OUTOFMEMORY;
 }

@@ -798,17 +798,17 @@ void qs::Part::setBody(xstring_ptr strBody)
 	strBody_ = strBody;
 }
 
-wxstring_ptr qs::Part::getBodyText() const
+wxstring_size_ptr qs::Part::getBodyText() const
 {
 	return getBodyText(0);
 }
 
-wxstring_ptr qs::Part::getBodyText(const WCHAR* pwszCharset) const
+wxstring_size_ptr qs::Part::getBodyText(const WCHAR* pwszCharset) const
 {
 	XStringBuffer<WXSTRING> buf;
 	if (!getBodyText(pwszCharset, &buf))
-		return 0;
-	return buf.getXString();
+		return wxstring_size_ptr();
+	return buf.getXStringSize();
 }
 
 bool qs::Part::getBodyText(const WCHAR* pwszCharset,

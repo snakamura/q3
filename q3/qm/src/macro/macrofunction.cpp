@@ -638,14 +638,15 @@ MacroValuePtr qm::MacroFunctionBody::value(MacroContext* pContext) const
 	}
 	
 	Message* pMessage = getMessage(pContext,
-		nView != VIEW_NONE ? MacroContext::MESSAGETYPE_TEXT : MacroContext::MESSAGETYPE_ALL, 0);
+		nView != VIEW_NONE ? MacroContext::MESSAGETYPE_TEXT :
+		MacroContext::MESSAGETYPE_ALL, 0);
 	if (!pMessage)
 		return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
 	
 	if (!pPart)
 		pPart = pMessage;
 	
-	wxstring_ptr wstrBody;
+	wxstring_size_ptr wstrBody;
 	PartUtil util(*pPart);
 	if (nView == VIEW_NONE)
 		wstrBody = util.getAllText(wstrQuote.get(), pContext->getBodyCharset(), true);
@@ -655,7 +656,7 @@ MacroValuePtr qm::MacroFunctionBody::value(MacroContext* pContext) const
 	if (!wstrBody.get())
 		return MacroValuePtr();
 	
-	return MacroValueFactory::getFactory().newString(wstrBody.get());
+	return MacroValueFactory::getFactory().newString(wstrBody.get(), wstrBody.size());
 }
 
 const WCHAR* qm::MacroFunctionBody::getName() const

@@ -402,7 +402,7 @@ qs::basic_xstring_size_ptr<XString>::basic_xstring_size_ptr() :
 
 template<class XString>
 qs::basic_xstring_size_ptr<XString>::basic_xstring_size_ptr(XString str,
-													   size_t nSize) :
+															size_t nSize) :
 	str_(str),
 	nSize_(nSize)
 {
@@ -450,6 +450,14 @@ typename qs::basic_xstring_size_ptr<XString>::Char& qs::basic_xstring_size_ptr<X
 }
 
 template<class XString>
+qs::basic_xstring_size_ptr<XString>::operator qs::basic_xstring_ptr<XString>()
+{
+	basic_xstring_ptr<XString> str(str_);
+	str_ = 0;
+	return str;
+}
+
+template<class XString>
 XString qs::basic_xstring_size_ptr<XString>::get() const
 {
 	return str_;
@@ -461,6 +469,15 @@ XString qs::basic_xstring_size_ptr<XString>::release()
 	XString str = str_;
 	str_ = 0;
 	return str;
+}
+
+template<class XString>
+void qs::basic_xstring_size_ptr<XString>::reset(basic_xstring_ptr<XString> str,
+												size_t nSize)
+{
+	XStringTraits<XString>::freeXString(str_);
+	str_ = str.release();
+	nSize_ = nSize;
 }
 
 template<class XString>

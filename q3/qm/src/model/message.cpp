@@ -1082,14 +1082,14 @@ void qm::PartUtil::getReferences(ReferenceList* pList) const
 	}
 }
 
-wxstring_ptr qm::PartUtil::getAllText(const WCHAR* pwszQuote,
-									 const WCHAR* pwszCharset,
-									 bool bBodyOnly) const
+wxstring_size_ptr qm::PartUtil::getAllText(const WCHAR* pwszQuote,
+										   const WCHAR* pwszCharset,
+										   bool bBodyOnly) const
 {
 	XStringBuffer<WXSTRING> buf;
 	if (!getAllText(pwszQuote, pwszCharset, bBodyOnly, &buf))
-		return 0;
-	return buf.getXString();
+		return wxstring_size_ptr();
+	return buf.getXStringSize();
 }
 
 bool qm::PartUtil::getAllText(const WCHAR* pwszQuote,
@@ -1136,7 +1136,7 @@ bool qm::PartUtil::getAllText(const WCHAR* pwszQuote,
 	else {
 		if (part_.isText()) {
 			if (pwszQuote) {
-				wxstring_ptr wstrBody(part_.getBodyText(pwszCharset));
+				wxstring_size_ptr wstrBody(part_.getBodyText(pwszCharset));
 				if (!wstrBody.get())
 					return false;
 				if (!quote(wstrBody.get(), pwszQuote, pBuf))
@@ -1156,14 +1156,14 @@ bool qm::PartUtil::getAllText(const WCHAR* pwszQuote,
 	return true;
 }
 
-wxstring_ptr qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
-									   const WCHAR* pwszCharset,
-									   bool bForceRfc822Inline) const
+wxstring_size_ptr qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
+											const WCHAR* pwszCharset,
+											bool bForceRfc822Inline) const
 {
 	XStringBuffer<WXSTRING> buf;
 	if (!getBodyText(pwszQuote, pwszCharset, bForceRfc822Inline, &buf))
-		return 0;
-	return buf.getXString();
+		return wxstring_size_ptr();
+	return buf.getXStringSize();
 }
 
 bool qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
@@ -1212,7 +1212,7 @@ bool qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
 	else {
 		bool bAttachment = part_.isAttachment();
 		if (pwszQuote) {
-			wxstring_ptr wstrBody;
+			wxstring_size_ptr wstrBody;
 			if (part_.getEnclosedPart() && (!bAttachment || bForceRfc822Inline)) {
 				PartUtil util(*part_.getEnclosedPart());
 				wstrBody = util.getFormattedText(false, pwszCharset, bForceRfc822Inline);
@@ -1246,14 +1246,14 @@ bool qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
 	return true;
 }
 
-wxstring_ptr qm::PartUtil::getFormattedText(bool bUseSendersTimeZone,
-											const WCHAR* pwszCharset,
-											bool bForceRfc822Inline) const
+wxstring_size_ptr qm::PartUtil::getFormattedText(bool bUseSendersTimeZone,
+												 const WCHAR* pwszCharset,
+												 bool bForceRfc822Inline) const
 {
 	XStringBuffer<WXSTRING> buf;
 	if (!getFormattedText(bUseSendersTimeZone, pwszCharset, bForceRfc822Inline, &buf))
-		return 0;
-	return buf.getXString();
+		return wxstring_size_ptr();
+	return buf.getXStringSize();
 }
 
 bool qm::PartUtil::getFormattedText(bool bUseSendersTimeZone,
@@ -1407,7 +1407,7 @@ bool qm::PartUtil::getDigest(MessageList* pList) const
 			
 			MessageCreator creator;
 			
-			wxstring_ptr wstrBody(part_.getBodyText());
+			wxstring_size_ptr wstrBody(part_.getBodyText());
 			if (!wstrBody.get())
 				return false;
 			
@@ -1460,7 +1460,7 @@ PartUtil::DigestMode qm::PartUtil::getDigestMode() const
 		if (part_.getField(L"Subject", &subject) == Part::FIELD_EXIST) {
 			wstring_ptr wstrSubject(tolower(subject.getValue()));
 			if (wcsstr(wstrSubject.get(), L"digest")) {
-				wxstring_ptr wstrBody = part_.getBodyText();
+				wxstring_size_ptr wstrBody = part_.getBodyText();
 				if (wstrBody.get()) {
 					BMFindString<WSTRING> bmfs(
 						L"\n----------------------------------"

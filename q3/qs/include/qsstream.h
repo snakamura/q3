@@ -530,6 +530,14 @@ public:
 	 * Create instance.
 	 *
 	 * @param wstr [in] String.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	explicit StringReader(wxstring_size_ptr wstr);
+	
+	/**
+	 * Create instance.
+	 *
+	 * @param wstr [in] String.
 	 * @param nLen [in] String length.
 	 * @exception std::bad_alloc Out of memory.
 	 */

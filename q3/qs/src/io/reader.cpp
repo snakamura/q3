@@ -296,6 +296,15 @@ qs::StringReader::StringReader(wxstring_ptr wstr) :
 	pImpl_ = pImpl.release();
 }
 
+qs::StringReader::StringReader(wxstring_size_ptr wstr) :
+	pImpl_(0)
+{
+	std::auto_ptr<StringReaderImpl> pImpl(new StringReaderImpl());
+	if (!pImpl->init(wstr, wstr.size()))
+		return;
+	pImpl_ = pImpl.release();
+}
+
 qs::StringReader::StringReader(wxstring_ptr wstr,
 							   size_t nLen) :
 	pImpl_(0)

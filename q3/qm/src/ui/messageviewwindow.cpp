@@ -275,7 +275,7 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 	
 	if (pmh) {
 		PartUtil util(*pMessage);
-		wxstring_ptr wstrText;
+		wxstring_size_ptr wstrText;
 		if (nFlags & FLAG_RAWMODE) {
 			wstrText = util.getAllText(0, pwszEncoding, false);
 		}
@@ -290,7 +290,8 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 			wstring_ptr wstr;
 			if (pTemplate->getValue(context, &wstr) != Template::RESULT_SUCCESS)
 				return false;
-			wstrText = allocWXString(wstr.get());
+			size_t nLen = wcslen(wstr.get());
+			wstrText.reset(allocWXString(wstr.get(), nLen), nLen);
 		}
 		else if (nFlags & FLAG_INCLUDEHEADER) {
 			wstrText = util.getFormattedText(false, pwszEncoding, true);

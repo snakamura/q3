@@ -179,8 +179,8 @@ public:
 	bool setBody(const CHAR* pszBody,
 				 size_t nLen);
 	void setBody(xstring_ptr strBody);
-	wxstring_ptr getBodyText() const;
-	wxstring_ptr getBodyText(const WCHAR* pwszCharset) const;
+	wxstring_size_ptr getBodyText() const;
+	wxstring_size_ptr getBodyText(const WCHAR* pwszCharset) const;
 	bool getBodyText(const WCHAR* pwszCharset,
 					 XStringBuffer<WXSTRING>* pBuf) const;
 	malloc_size_ptr<unsigned char> getBodyData() const;

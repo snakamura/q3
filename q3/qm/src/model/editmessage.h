@@ -201,7 +201,7 @@ private:
 	std::auto_ptr<Message> pMessage_;
 	qs::Part* pBodyPart_;
 	FieldList listField_;
-	qs::wxstring_ptr wstrBody_;
+	qs::wxstring_size_ptr wstrBody_;
 	AttachmentParser::AttachmentList listAttachment_;
 	AttachmentPathList listAttachmentPath_;
 	qs::wstring_ptr wstrSignature_;

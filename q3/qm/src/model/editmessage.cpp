@@ -45,8 +45,6 @@ qm::EditMessage::EditMessage(Profile* pProfile,
 	nSecurityMode_(nSecurityMode),
 	pMessage_(0),
 	pBodyPart_(0),
-	wstrBody_(0),
-	wstrSignature_(0),
 	bAutoReform_(true),
 	nSecure_(0)
 {
@@ -84,7 +82,7 @@ std::auto_ptr<Message> qm::EditMessage::getMessage(bool bFixup)
 		int nTabWidth = pProfile_->getInt(L"EditWindow", L"TabWidth", 4);
 		
 		wstrBody = TextUtil::fold(wstrBody_.get(),
-			wcslen(wstrBody_.get()), nLineLen, 0, 0, nTabWidth);
+			wstrBody_.size(), nLineLen, 0, 0, nTabWidth);
 		if (!wstrBody.get())
 			return std::auto_ptr<Message>();
 		
@@ -487,8 +485,13 @@ const WCHAR* qm::EditMessage::getBodyPartBody() const
 bool qm::EditMessage::setBodyPartBody(const WCHAR* pwszBody,
 									  size_t nLen)
 {
-	wstrBody_ = allocWXString(pwszBody);
-	return wstrBody_.get() != 0;
+	wxstring_ptr wstrBody(allocWXString(pwszBody, nLen));
+	if (!wstrBody.get())
+		return false;
+	
+	wstrBody_.reset(wstrBody, nLen);
+	
+	return true;
 }
 
 void qm::EditMessage::getAttachments(AttachmentList* pList) const
@@ -661,7 +664,7 @@ void qm::EditMessage::clear()
 	pMessage_.reset(0);
 	pBodyPart_ = 0;
 	clearFields();
-	wstrBody_.reset(0);
+	wstrBody_.reset(0, -1);
 	
 	AttachmentParser::AttachmentListFree free(listAttachment_);
 	

@@ -223,23 +223,23 @@ public:
 	qs::wstring_ptr getNames(const WCHAR* pwszField) const;
 	qs::wstring_ptr getReference() const;
 	void getReferences(ReferenceList* pList) const;
-	qs::wxstring_ptr getAllText(const WCHAR* pwszQuote,
-								const WCHAR* pwszCharset,
-								bool bBodyOnly) const;
+	qs::wxstring_size_ptr getAllText(const WCHAR* pwszQuote,
+									 const WCHAR* pwszCharset,
+									 bool bBodyOnly) const;
 	bool getAllText(const WCHAR* pwszQuote,
 					const WCHAR* pwszCharset,
 					bool bBodyOnly,
 					qs::XStringBuffer<qs::WXSTRING>* pBuf) const;
-	qs::wxstring_ptr getBodyText(const WCHAR* pwszQuote,
-								 const WCHAR* pwszCharset,
-								 bool bForceRfc822Inline) const;
+	qs::wxstring_size_ptr getBodyText(const WCHAR* pwszQuote,
+									  const WCHAR* pwszCharset,
+									  bool bForceRfc822Inline) const;
 	bool getBodyText(const WCHAR* pwszQuote,
 					 const WCHAR* pwszCharset,
 					 bool bForceRfc288Inline,
 					 qs::XStringBuffer<qs::WXSTRING>* pBuf) const;
-	qs::wxstring_ptr getFormattedText(bool bUseSendersTimeZone,
-									  const WCHAR* pwszCharset,
-									  bool bForceRfc822Inline) const;
+	qs::wxstring_size_ptr getFormattedText(bool bUseSendersTimeZone,
+										   const WCHAR* pwszCharset,
+										   bool bForceRfc822Inline) const;
 	bool getFormattedText(bool bUseSendersTimeZone,
 						  const WCHAR* pwszCharset,
 						  bool bForceRfc822Inline,
