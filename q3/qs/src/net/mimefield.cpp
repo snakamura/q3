@@ -1199,6 +1199,8 @@ QSTATUS qs::DummyParser::unparse(const Part& part, STRING* pstrValue) const
 					CHECK_QSTATUS();
 					status = buf.append(str.get());
 					CHECK_QSTATUS();
+					status = buf.append(' ');
+					CHECK_QSTATUS();
 				}
 			}
 			status = buf.append(static_cast<CHAR>(c));
@@ -1223,37 +1225,10 @@ QSTATUS qs::DummyParser::unparse(const Part& part, STRING* pstrValue) const
 
 bool qs::DummyParser::isSpecial(WCHAR c) const
 {
-	if (c == L'(' ||
-		c == L')' ||
-		c == L'<' ||
-		c == L'>' ||
-		c == L'@' ||
-		c == L',' ||
-		c == L';' ||
-		c == L':' ||
-		c == L'\"' ||
-		c == L'[' ||
-		c == L']')
-		return true;
-	if (nFlags_ & FLAG_TSPECIAL) {
-		if (c == L'/' ||
-			c == L'?' ||
-			c == L'=' ||
-			c == L'\\')
-			return true;
-	}
-	else if (nFlags_ & FLAG_ESPECIAL) {
-		if (c == L'/' ||
-			c == L'?' ||
-			c == L'.' ||
-			c == L'=')
-			return true;
-	}
-	else {
-		if (c == L'.' || c == L'\\')
-			return true;
-	}
-	return false;
+	if (c > 0x7f || c == L'@')
+		return false;
+	else
+		return Tokenizer::isSpecial(static_cast<unsigned char>(c), nFlags_);
 }
 
 
