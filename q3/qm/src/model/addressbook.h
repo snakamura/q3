@@ -437,6 +437,7 @@ private:
 		const MAPIAddressBook* pAddressBook_;
 		SRowSet* pSRowSet_;
 	};
+	friend class RowSetDeleter;
 
 private:
 	MAPIAddressBook(const MAPIAddressBook&);
@@ -503,6 +504,7 @@ private:
 
 private:
 	HINSTANCE hInst_;
+	LPMAPIFREEBUFFER pfnMAPIFreeBuffer_;
 };
 
 #else // _WIN32_WCE

@@ -1345,7 +1345,8 @@ void qm::WindowsAddressBook::freeBuffer(void* pBuffer) const
  */
 
 qm::OutlookAddressBook::OutlookAddressBook() :
-	hInst_(0)
+	hInst_(0),
+	pfnMAPIFreeBuffer_(0)
 {
 }
 
@@ -1389,6 +1390,11 @@ bool qm::OutlookAddressBook::init()
 	if (pSession->OpenAddressBook(0, 0, 0, &pAddrBook) != S_OK)
 		return false;
 	
+	pfnMAPIFreeBuffer_ = reinterpret_cast<LPMAPIFREEBUFFER>(
+		::GetProcAddress(hInst_, "MAPIFreeBuffer"));
+	if (!pfnMAPIFreeBuffer_)
+		return false;
+	
 	if (!MAPIAddressBook::init(pAddrBook.get()))
 		return false;
 	
@@ -1410,10 +1416,7 @@ void qm::OutlookAddressBook::term()
 
 void qm::OutlookAddressBook::freeBuffer(void* pBuffer) const
 {
-	LPMAPIFREEBUFFER pfnMAPIFreeBuffer = reinterpret_cast<LPMAPIFREEBUFFER>(
-		::GetProcAddress(hInst_, "MAPIFreeBuffer"));
-	if (pfnMAPIFreeBuffer)
-		(*pfnMAPIFreeBuffer)(pBuffer);
+	(*pfnMAPIFreeBuffer_)(pBuffer);
 }
 
 #else // _WIN32_WCE
