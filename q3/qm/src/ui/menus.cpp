@@ -264,9 +264,11 @@ QSTATUS qm::MoveMenu::createMenu(HMENU hmenu,
 	
 	const Account::FolderList& l = pAccount->getFolders();
 	Account::FolderList listFolder;
-	status = STLWrapper<Account::FolderList>(listFolder).resize(l.size());
+	status = STLWrapper<Account::FolderList>(listFolder).reserve(l.size());
 	CHECK_QSTATUS();
-	std::copy(l.begin(), l.end(), listFolder.begin());
+	std::remove_copy_if(l.begin(), l.end(),
+		std::back_inserter(listFolder),
+		std::mem_fun(&Folder::isHidden));
 	std::sort(listFolder.begin(), listFolder.end(), FolderLess());
 	
 	typedef std::vector<MenuInserter> FolderStack;
