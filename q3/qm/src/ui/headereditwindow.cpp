@@ -1084,30 +1084,36 @@ void qm::AttachmentHeaderEditItem::setFocus()
 
 void qm::AttachmentHeaderEditItem::paste()
 {
-#ifndef _WIN32_WCE
+#ifdef _WIN32_WCE
+	ComPtr<IDataObject> pDataObject(MessageDataObject::getClipboard(pEditMessage_->getDocument()));
+	if (!pDataObject.get())
+		return;
+#else
 	ComPtr<IDataObject> pDataObject;
 	HRESULT hr = ::OleGetClipboard(&pDataObject);
-	if (hr == S_OK) {
-		UIUtil::PathList listPath;
-		StringListFree<UIUtil::PathList> free(listPath);
-		UIUtil::getFilesOrURIs(pDataObject.get(), &listPath);
-		for (UIUtil::PathList::const_iterator it = listPath.begin(); it != listPath.end(); ++it)
-			pEditMessage_->addAttachment(*it);
-	}
+	if (hr != S_OK)
+		return;
 #endif
+	UIUtil::PathList listPath;
+	StringListFree<UIUtil::PathList> free(listPath);
+	UIUtil::getFilesOrURIs(pDataObject.get(), &listPath);
+	for (UIUtil::PathList::const_iterator it = listPath.begin(); it != listPath.end(); ++it)
+		pEditMessage_->addAttachment(*it);
 }
 
 bool qm::AttachmentHeaderEditItem::canPaste()
 {
-#ifndef _WIN32_WCE
+#ifdef _WIN32_WCE
+	ComPtr<IDataObject> pDataObject(MessageDataObject::getClipboard(pEditMessage_->getDocument()));
+	if (!pDataObject.get())
+		return false;
+#else
 	ComPtr<IDataObject> pDataObject;
 	HRESULT hr = ::OleGetClipboard(&pDataObject);
 	if (hr != S_OK)
 		return false;
-	return UIUtil::hasFilesOrURIs(pDataObject.get());
-#else
-	return false;
 #endif
+	return UIUtil::hasFilesOrURIs(pDataObject.get());
 }
 
 void qm::AttachmentHeaderEditItem::selectAll()
