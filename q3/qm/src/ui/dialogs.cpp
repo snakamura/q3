@@ -634,7 +634,8 @@ qm::AddressBookDialog::AddressBookDialog(AddressBook* pAddressBook,
 	pAddressBook_(pAddressBook),
 	pProfile_(pProfile),
 	nSort_(SORT_NAME | SORT_ASCENDING),
-	wstrCategory_(0)
+	wstrCategory_(0),
+	wndAddressList_(this, pstatus)
 {
 	DECLARE_QSTATUS();
 	
@@ -878,6 +879,8 @@ LRESULT qm::AddressBookDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	
 	init(false);
 	
+	wndAddressList_.subclassWindow(hwndList);
+	
 	return FALSE;
 }
 
@@ -911,7 +914,8 @@ LRESULT qm::AddressBookDialog::onOk()
 LRESULT qm::AddressBookDialog::onNotify(NMHDR* pnmhdr, bool* pbHandled)
 {
 	BEGIN_NOTIFY_HANDLER()
-		HANDLE_NOTIFY(LVN_COLUMNCLICK, IDC_ADDRESS, onAddressColumnClick);
+		HANDLE_NOTIFY(LVN_COLUMNCLICK, IDC_ADDRESS, onAddressColumnClick)
+		HANDLE_NOTIFY(NM_DBLCLK, IDC_ADDRESS, onAddressDblClk)
 	END_NOTIFY_HANDLER()
 	return 1;
 }
@@ -989,6 +993,12 @@ LRESULT qm::AddressBookDialog::onAddressColumnClick(NMHDR* pnmhdr, bool* pbHandl
 	nSort_ = nSort;
 	ListView_SortItems(getDlgItem(IDC_ADDRESS), &itemComp, nSort);
 	
+	return 0;
+}
+
+LRESULT qm::AddressBookDialog::onAddressDblClk(NMHDR* pnmhdr, bool* pbHandled)
+{
+	select(TYPE_TO);
 	return 0;
 }
 
@@ -1458,6 +1468,45 @@ WSTRING qm::AddressBookDialog::Item::releaseValue()
 AddressBookDialog::Type qm::AddressBookDialog::Item::getType() const
 {
 	return type_;
+}
+
+
+/****************************************************************************
+ *
+ * AddressBookDialog::AddressListWindow
+ *
+ */
+
+qm::AddressBookDialog::AddressListWindow::AddressListWindow(
+	AddressBookDialog* pDialog, QSTATUS* pstatus) :
+	WindowBase(false, pstatus),
+	DefaultWindowHandler(pstatus),
+	pDialog_(pDialog)
+{
+	setWindowHandler(this, false);
+}
+
+qm::AddressBookDialog::AddressListWindow::~AddressListWindow()
+{
+}
+
+LRESULT qm::AddressBookDialog::AddressListWindow::windowProc(
+	UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	BEGIN_MESSAGE_HANDLER()
+		HANDLE_CHAR()
+	END_MESSAGE_HANDLER()
+	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
+}
+
+LRESULT qm::AddressBookDialog::AddressListWindow::onChar(
+	UINT nChar, UINT nRepeat, UINT nFlags)
+{
+	if (nChar == L' ') {
+		pDialog_->select(AddressBookDialog::TYPE_TO);
+		return 0;
+	}
+	return DefaultWindowHandler::onChar(nChar, nRepeat, nFlags);
 }
 
 

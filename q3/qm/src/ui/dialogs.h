@@ -201,6 +201,7 @@ private:
 	LRESULT onSelect(UINT nId);
 	LRESULT onRemove();
 	LRESULT onAddressColumnClick(NMHDR* pnmhdr, bool* pbHandled);
+	LRESULT onAddressDblClk(NMHDR* pnmhdr, bool* pbHandled);
 
 private:
 	qs::QSTATUS update();
@@ -222,6 +223,30 @@ private:
 	AddressBookDialog& operator=(const AddressBookDialog&);
 
 private:
+	class AddressListWindow :
+		public qs::WindowBase,
+		public qs::DefaultWindowHandler
+	{
+	public:
+		AddressListWindow(AddressBookDialog* pDialog, qs::QSTATUS* pstatus);
+		virtual ~AddressListWindow();
+	
+	public:
+		virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	
+	protected:
+		LRESULT onChar(UINT nChar, UINT nRepeat, UINT nFlags);
+	
+	private:
+		AddressListWindow(const AddressListWindow&);
+		AddressListWindow& operator=(const AddressListWindow&);
+	
+	private:
+		AddressBookDialog* pDialog_;
+	};
+	friend class AddressListWindow;
+
+private:
 	struct CategoryLess :
 		public std::binary_function<AddressBookCategory*, AddressBookCategory*, bool>
 	{
@@ -235,6 +260,7 @@ private:
 	unsigned int nSort_;
 	qs::WSTRING wstrCategory_;
 	AddressList listAddress_[3];
+	AddressListWindow wndAddressList_;
 };
 
 
