@@ -96,8 +96,9 @@ class DefaultDialog;
 		class SyncFilterSetsDialog;
 
 class Account;
-class Document;
+class JunkFilter;
 class PasswordManager;
+class Security;
 class TemplateManager;
 
 
@@ -181,10 +182,12 @@ class AccountDialog :
 	public qs::NotifyHandler
 {
 public:
-	AccountDialog(Document* pDocument,
+	AccountDialog(AccountManager* pAccountManager,
 				  Account* pAccount,
 				  PasswordManager* pPasswordManager,
 				  SyncFilterManager* pSyncFilterManager,
+				  const Security* pSecurity,
+				  JunkFilter* pJunkFilter,
 				  qs::Profile* pProfile);
 	virtual ~AccountDialog();
 
@@ -223,10 +226,12 @@ private:
 	AccountDialog& operator=(const AccountDialog&);
 
 private:
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	SubAccount* pSubAccount_;
 	PasswordManager* pPasswordManager_;
 	SyncFilterManager* pSyncFilterManager_;
+	const Security* pSecurity_;
+	JunkFilter* pJunkFilter_;
 	qs::Profile* pProfile_;
 };
 
@@ -539,7 +544,7 @@ class ColorDialog : public DefaultDialog
 {
 public:
 	ColorDialog(ColorEntry* pColor,
-				Document* pDocument);
+				AccountManager* pAccountManager);
 	virtual ~ColorDialog();
 
 public:
@@ -838,7 +843,7 @@ private:
 class CreateSubAccountDialog : public DefaultDialog
 {
 public:
-	explicit CreateSubAccountDialog(Document* pDocument);
+	explicit CreateSubAccountDialog(AccountManager* pAccountManager);
 	virtual ~CreateSubAccountDialog();
 
 public:
@@ -866,7 +871,7 @@ private:
 	CreateSubAccountDialog& operator=(const CreateSubAccountDialog&);
 
 private:
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	qs::wstring_ptr wstrName_;
 };
 
@@ -1290,7 +1295,7 @@ class GoRoundDialog : public AbstractListDialog<GoRoundCourse, GoRound::CourseLi
 {
 public:
 	GoRoundDialog(GoRound* pGoRound,
-				  Document* pDocument,
+				  AccountManager* pAccountManager,
 				  SyncFilterManager* pSyncFilterManager);
 	virtual ~GoRoundDialog();
 
@@ -1308,7 +1313,7 @@ private:
 
 private:
 	GoRound* pGoRound_;
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	SyncFilterManager* pSyncFilterManager_;
 };
 
@@ -1323,7 +1328,7 @@ class GoRoundCourseDialog : public AbstractListDialog<GoRoundEntry, GoRoundCours
 {
 public:
 	GoRoundCourseDialog(GoRoundCourse* pCourse,
-						Document* pDocument,
+						AccountManager* pAccountManager,
 						SyncFilterManager* pSyncFilterManager);
 	virtual ~GoRoundCourseDialog();
 
@@ -1354,7 +1359,7 @@ private:
 
 private:
 	GoRoundCourse* pCourse_;
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	SyncFilterManager* pSyncFilterManager_;
 };
 
@@ -1412,7 +1417,7 @@ class GoRoundEntryDialog : public DefaultDialog
 {
 public:
 	GoRoundEntryDialog(GoRoundEntry* pEntry,
-					   Document* pDocument,
+					   AccountManager* pAccountManager,
 					   SyncFilterManager* pSyncFilterManager);
 	virtual ~GoRoundEntryDialog();
 
@@ -1445,7 +1450,7 @@ private:
 
 private:
 	GoRoundEntry* pEntry_;
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	SyncFilterManager* pSyncFilterManager_;
 };
 
@@ -1590,7 +1595,7 @@ class MoveMessageDialog :
 	public qs::NotifyHandler
 {
 public:
-	MoveMessageDialog(Document* pDocument,
+	MoveMessageDialog(AccountManager* pAccountManager,
 					  Account* pAccount,
 					  qs::Profile* pProfile);
 	virtual ~MoveMessageDialog();
@@ -1636,7 +1641,7 @@ private:
 	MoveMessageDialog& operator=(const MoveMessageDialog&);
 
 private:
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	Account* pAccount_;
 	qs::Profile* pProfile_;
 	NormalFolder* pFolder_;
@@ -1921,7 +1926,7 @@ class RuleDialog : public DefaultDialog
 {
 public:
 	RuleDialog(Rule* pRule,
-			   Document* pDocument);
+			   AccountManager* pAccountManager);
 	virtual ~RuleDialog();
 
 public:
@@ -1956,7 +1961,7 @@ private:
 
 private:
 	Rule* pRule_;
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	qs::wstring_ptr wstrTemplate_;
 	CopyRuleAction::ArgumentList listArgument_;
 	bool bInit_;
@@ -1978,7 +1983,7 @@ public:
 
 public:
 	RuleColorSetsDialog(Manager* pManager,
-						Document* pDocument,
+						AccountManager* pAccountManager,
 						UINT nTitleId,
 						PFN_GET pfnGet,
 						PFN_SET pfnSet);
@@ -2002,7 +2007,7 @@ private:
 
 private:
 	Manager* pManager_;
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	UINT nTitleId_;
 	PFN_SET pfnSet_;
 };
@@ -2018,7 +2023,7 @@ class ColorSetsDialog : public RuleColorSetsDialog<ColorSet, ColorManager::Color
 {
 public:
 	ColorSetsDialog(ColorManager* pColorManager,
-					Document* pDocument);
+					AccountManager* pAccountManager);
 };
 
 
@@ -2032,7 +2037,7 @@ class RuleSetsDialog : public RuleColorSetsDialog<RuleSet, RuleManager::RuleSetL
 {
 public:
 	RuleSetsDialog(RuleManager* pRuleManager,
-				   Document* pDocument);
+				   AccountManager* pAccountManager);
 };
 
 
@@ -2051,7 +2056,7 @@ public:
 
 public:
 	RulesColorsDialog(Container* pContainer,
-					  Document* pDocument,
+					  AccountManager* pAccountManager,
 					  UINT nTitleId,
 					  PFN_GET pfnGet,
 					  PFN_SET pfnSet);
@@ -2087,7 +2092,7 @@ private:
 
 private:
 	Container* pContainer_;
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	UINT nTitleId_;
 	PFN_SET pfnSet_;
 };
@@ -2103,7 +2108,7 @@ class ColorsDialog : public RulesColorsDialog<ColorEntry, ColorSet::ColorList, C
 {
 public:
 	ColorsDialog(ColorSet* pColorSet,
-				 Document* pDocument);
+				 AccountManager* pAccountManager);
 };
 
 
@@ -2117,7 +2122,7 @@ class RulesDialog : public RulesColorsDialog<Rule, RuleSet::RuleList, RuleSet, R
 {
 public:
 	RulesDialog(RuleSet* pRuleSet,
-				Document* pDocument);
+				AccountManager* pAccountManager);
 };
 
 
@@ -2411,7 +2416,7 @@ class SignatureDialog : public DefaultDialog
 {
 public:
 	SignatureDialog(Signature* pSignature,
-					Document* pDocument);
+					AccountManager* pAccountManager);
 	virtual ~SignatureDialog();
 
 public:
@@ -2437,7 +2442,7 @@ private:
 
 private:
 	Signature* pSignature_;
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 };
 
 
@@ -2451,7 +2456,7 @@ class SignaturesDialog : public AbstractListDialog<Signature, SignatureManager::
 {
 public:
 	SignaturesDialog(SignatureManager* pSignatureManager,
-					 Document* pDocument);
+					 AccountManager* pAccountManager);
 	virtual ~SignaturesDialog();
 
 protected:
@@ -2468,7 +2473,7 @@ private:
 
 private:
 	SignatureManager* pSignatureManager_;
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 };
 
 

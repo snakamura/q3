@@ -4826,7 +4826,8 @@ void qm::ToolAccountAction::invoke(const ActionEvent& event)
 	
 	Account* pAccount = FolderActionUtil::getAccount(pFolderModel_);
 	AccountDialog dialog(pDocument_, pAccount, pPasswordManager_,
-		pSyncManager_->getSyncFilterManager(), pProfile_);
+		pSyncManager_->getSyncFilterManager(), pDocument_->getSecurity(),
+		pDocument_->getJunkFilter(), pProfile_);
 	dialog.doModal(hwnd_, 0);
 	
 	if (!bOffline)

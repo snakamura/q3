@@ -52,11 +52,11 @@ qm::DefaultPropertyPage::~DefaultPropertyPage()
  */
 
 qm::AccountAdvancedPage::AccountAdvancedPage(SubAccount* pSubAccount,
-											 Document* pDocument,
+											 JunkFilter* pJunkFilter,
 											 SyncFilterManager* pSyncFilterManager) :
 	DefaultPropertyPage(IDD_ACCOUNTADVANCED),
 	pSubAccount_(pSubAccount),
-	pDocument_(pDocument),
+	pJunkFilter_(pJunkFilter),
 	pSyncFilterManager_(pSyncFilterManager)
 {
 }
@@ -95,7 +95,7 @@ LRESULT qm::AccountAdvancedPage::onInitDialog(HWND hwndFocus,
 #ifndef _WIN32_WCE
 	sendDlgItemMessage(IDC_JUNKFILTER, BM_SETCHECK,
 		pSubAccount_->isJunkFilterEnabled() ? BST_CHECKED : BST_UNCHECKED);
-	if (!pDocument_->getJunkFilter())
+	if (!pJunkFilter_)
 		Window(getDlgItem(IDC_JUNKFILTER)).enableWindow(false);
 #endif
 	

@@ -9,8 +9,8 @@
 #ifndef __DIALOGS_INL__
 #define __DIALOGS_INL__
 
+#include <qmaccount.h>
 #include <qmapplication.h>
-#include <qmdocument.h>
 
 
 /****************************************************************************
@@ -211,13 +211,13 @@ LRESULT qm::AbstractListDialog<T, List>::onSelChange()
 
 template<class T, class List, class Container, class EditDialog>
 qm::RulesColorsDialog<T, List, Container, EditDialog>::RulesColorsDialog(Container* pContainer,
-																		 Document* pDocument,
+																		 AccountManager* pAccountManager,
 																		 UINT nTitleId,
 																		 PFN_GET pfnGet,
 																		 PFN_SET pfnSet) :
 	AbstractListDialog<T, List>(IDD_RULESCOLORS, IDC_RULESCOLORS),
 	pContainer_(pContainer),
-	pDocument_(pDocument),
+	pAccountManager_(pAccountManager),
 	nTitleId_(nTitleId),
 	pfnSet_(pfnSet)
 {
@@ -252,8 +252,8 @@ LRESULT qm::RulesColorsDialog<T, List, Container, EditDialog>::onInitDialog(HWND
 	wstring_ptr wstrTitle(loadString(hInst, nTitleId_));
 	setWindowText(wstrTitle.get());
 	
-	const Document::AccountList& listAccount = pDocument_->getAccounts();
-	for (Document::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
+	const AccountManager::AccountList& listAccount = pAccountManager_->getAccounts();
+	for (AccountManager::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
 		Account* pAccount = *it;
 		W2T(pAccount->getName(), ptszName);
 		sendDlgItemMessage(IDC_ACCOUNT, CB_ADDSTRING,
@@ -318,7 +318,7 @@ template<class T, class List, class Container, class EditDialog>
 std::auto_ptr<T> qm::RulesColorsDialog<T, List, Container, EditDialog>::create() const
 {
 	std::auto_ptr<T> p(new T());
-	EditDialog dialog(p.get(), pDocument_);
+	EditDialog dialog(p.get(), pAccountManager_);
 	if (dialog.doModal(getHandle()) != IDOK)
 		return std::auto_ptr<T>();
 	return p;
@@ -327,7 +327,7 @@ std::auto_ptr<T> qm::RulesColorsDialog<T, List, Container, EditDialog>::create()
 template<class T, class List, class Container, class EditDialog>
 bool qm::RulesColorsDialog<T, List, Container, EditDialog>::edit(T* p) const
 {
-	EditDialog dialog(p, pDocument_);
+	EditDialog dialog(p, pAccountManager_);
 	return dialog.doModal(getHandle()) == IDOK;
 }
 
@@ -339,7 +339,7 @@ void qm::RulesColorsDialog<T, List, Container, EditDialog>::updateState()
 	Account* pAccount = 0;
 	wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
 	if (wstrAccount.get())
-		pAccount = pDocument_->getAccount(wstrAccount.get());
+		pAccount = pAccountManager_->getAccount(wstrAccount.get());
 	updateFolder(pAccount);
 }
 
@@ -389,13 +389,13 @@ void qm::RulesColorsDialog<T, List, Container, EditDialog>::updateFolder(Account
 
 template<class T, class List, class Manager, class EditDialog>
 qm::RuleColorSetsDialog<T, List, Manager, EditDialog>::RuleColorSetsDialog(Manager* pManager,
-																		   Document* pDocument,
+																		   AccountManager* pAccountManager,
 																		   UINT nTitleId,
 																		   PFN_GET pfnGet,
 																		   PFN_SET pfnSet) :
 	AbstractListDialog<T, List>(IDD_RULECOLORSETS, IDC_RULECOLORSETS),
 	pManager_(pManager),
-	pDocument_(pDocument),
+	pAccountManager_(pAccountManager),
 	nTitleId_(nTitleId),
 	pfnSet_(pfnSet)
 {
@@ -453,7 +453,7 @@ template<class T, class List, class Manager, class EditDialog>
 std::auto_ptr<T> qm::RuleColorSetsDialog<T, List, Manager, EditDialog>::create() const
 {
 	std::auto_ptr<T> p(new T());
-	EditDialog dialog(p.get(), pDocument_);
+	EditDialog dialog(p.get(), pAccountManager_);
 	if (dialog.doModal(getHandle()) != IDOK)
 		return std::auto_ptr<T>();
 	return p;
@@ -462,7 +462,7 @@ std::auto_ptr<T> qm::RuleColorSetsDialog<T, List, Manager, EditDialog>::create()
 template<class T, class List, class Manager, class EditDialog>
 bool qm::RuleColorSetsDialog<T, List, Manager, EditDialog>::edit(T* p) const
 {
-	EditDialog dialog(p, pDocument_);
+	EditDialog dialog(p, pAccountManager_);
 	return dialog.doModal(getHandle()) == IDOK;
 }
 

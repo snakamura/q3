@@ -28,6 +28,7 @@ class DefaultPropertyPage;
 	class FolderPropertyPage;
 	class MessagePropertyPage;
 
+class JunkFilter;
 class PasswordManager;
 class ReceiveSessionUI;
 class SearchUI;
@@ -66,7 +67,7 @@ class AccountAdvancedPage : public DefaultPropertyPage
 {
 public:
 	AccountAdvancedPage(SubAccount* pSubAccount,
-						Document* pDocument,
+						JunkFilter* pJunkFilter,
 						SyncFilterManager* pSyncFilterManager);
 	virtual ~AccountAdvancedPage();
 
@@ -93,7 +94,7 @@ private:
 
 private:
 	SubAccount* pSubAccount_;
-	Document* pDocument_;
+	JunkFilter* pJunkFilter_;
 	SyncFilterManager* pSyncFilterManager_;
 };
 

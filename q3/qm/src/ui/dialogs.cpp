@@ -8,7 +8,6 @@
 
 #include <qmaccount.h>
 #include <qmapplication.h>
-#include <qmdocument.h>
 #include <qmfilenames.h>
 #include <qmgoround.h>
 #include <qmsession.h>
@@ -61,16 +60,20 @@ qm::DefaultDialog::~DefaultDialog()
  *
  */
 
-qm::AccountDialog::AccountDialog(Document* pDocument,
+qm::AccountDialog::AccountDialog(AccountManager* pAccountManager,
 								 Account* pAccount,
 								 PasswordManager* pPasswordManager,
 								 SyncFilterManager* pSyncFilterManager,
+								 const Security* pSecurity,
+								 JunkFilter* pJunkFilter,
 								 Profile* pProfile) :
 	DefaultDialog(IDD_ACCOUNT),
-	pDocument_(pDocument),
+	pAccountManager_(pAccountManager),
 	pPasswordManager_(pPasswordManager),
 	pSubAccount_(pAccount ? pAccount->getCurrentSubAccount() : 0),
 	pSyncFilterManager_(pSyncFilterManager),
+	pSecurity_(pSecurity),
+	pJunkFilter_(pJunkFilter),
 	pProfile_(pProfile)
 {
 }
@@ -134,7 +137,7 @@ LRESULT qm::AccountDialog::onAddAccount()
 	CreateAccountDialog dialog(pProfile_);
 	if (dialog.doModal(getHandle()) == IDOK) {
 		const WCHAR* pwszName = dialog.getName();
-		if (pDocument_->hasAccount(pwszName)) {
+		if (pAccountManager_->hasAccount(pwszName)) {
 			messageBox(hInst, IDS_ERROR_CREATEACCOUNT, MB_OK | MB_ICONERROR, getHandle());
 			return 0;
 		}
@@ -163,9 +166,9 @@ LRESULT qm::AccountDialog::onAddAccount()
 		}
 		
 		std::auto_ptr<Account> pAccount(new Account(wstrDir.get(),
-			pDocument_->getSecurity(), pPasswordManager_, pDocument_->getJunkFilter()));
+			pSecurity_, pPasswordManager_, pJunkFilter_));
 		Account* p = pAccount.get();
-		pDocument_->addAccount(pAccount);
+		pAccountManager_->addAccount(pAccount);
 		pSubAccount_ = p->getCurrentSubAccount();
 		
 		update();
@@ -193,7 +196,7 @@ LRESULT qm::AccountDialog::onAddSubAccount()
 		Account* pAccount = reinterpret_cast<Account*>(item.lParam);
 		assert(pAccount);
 		
-		CreateSubAccountDialog dialog(pDocument_);
+		CreateSubAccountDialog dialog(pAccountManager_);
 		if (dialog.doModal(getHandle()) == IDOK) {
 			const WCHAR* pwszName = dialog.getName();
 			
@@ -304,7 +307,7 @@ LRESULT qm::AccountDialog::onRemove()
 			swprintf(wstrMessage.get(), wstrConfirm.get(), pAccount->getName());
 			int nRet = messageBox(wstrMessage.get(), MB_YESNO | MB_DEFBUTTON2, getHandle());
 			if (nRet == IDYES) {
-				pDocument_->removeAccount(pAccount);
+				pAccountManager_->removeAccount(pAccount);
 				update();
 			}
 		}
@@ -345,7 +348,7 @@ LRESULT qm::AccountDialog::onRename()
 			
 			RenameDialog dialog(pAccount->getName());
 			if (dialog.doModal(getHandle()) == IDOK) {
-				if (!pDocument_->renameAccount(pAccount, dialog.getName())) {
+				if (!pAccountManager_->renameAccount(pAccount, dialog.getName())) {
 					// TODO MSG
 					return 0;
 				}
@@ -397,7 +400,7 @@ LRESULT qm::AccountDialog::onProperty()
 		AccountUserPage userPage(pSubAccount, pPasswordManager_, pReceiveUI.get(), pSendUI.get());
 		AccountDetailPage detailPage(pSubAccount, pReceiveUI.get(), pSendUI.get());
 		AccountDialupPage dialupPage(pSubAccount);
-		AccountAdvancedPage advancedPage(pSubAccount, pDocument_, pSyncFilterManager_);
+		AccountAdvancedPage advancedPage(pSubAccount, pJunkFilter_, pSyncFilterManager_);
 		PropertySheetBase sheet(hInst, wstrTitle.get(), false);
 		sheet.add(&generalPage);
 		sheet.add(&userPage);
@@ -436,8 +439,8 @@ void qm::AccountDialog::update()
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		wstring_ptr wstrDefault(loadString(hInst, IDS_DEFAULTSUBACCOUNT));
 		
-		const Document::AccountList& listAccount = pDocument_->getAccounts();
-		for (Document::AccountList::const_iterator itA = listAccount.begin(); itA != listAccount.end(); ++itA) {
+		const AccountManager::AccountList& listAccount = pAccountManager_->getAccounts();
+		for (AccountManager::AccountList::const_iterator itA = listAccount.begin(); itA != listAccount.end(); ++itA) {
 			Account* pAccount = *itA;
 			
 			W2T(pAccount->getName(), ptszName);
@@ -1302,7 +1305,7 @@ void qm::AutoPilotEntryDialog::updateState()
  */
 
 qm::ColorDialog::ColorDialog(ColorEntry* pColor,
-							 Document* pDocument) :
+							 AccountManager* pAccountManager) :
 	DefaultDialog(IDD_COLOR),
 	pColor_(pColor)
 {
@@ -2114,9 +2117,9 @@ void qm::CreateFolderDialog::updateState()
  *
  */
 
-qm::CreateSubAccountDialog::CreateSubAccountDialog(Document* pDocument) :
+qm::CreateSubAccountDialog::CreateSubAccountDialog(AccountManager* pAccountManager) :
 	DefaultDialog(IDD_CREATESUBACCOUNT),
-	pDocument_(pDocument)
+	pAccountManager_(pAccountManager)
 {
 }
 
@@ -2143,8 +2146,8 @@ LRESULT qm::CreateSubAccountDialog::onInitDialog(HWND hwndFocus,
 {
 	init(false);
 	
-	const Document::AccountList& listAccount = pDocument_->getAccounts();
-	for (Document::AccountList::const_iterator itA = listAccount.begin(); itA != listAccount.end(); ++itA) {
+	const AccountManager::AccountList& listAccount = pAccountManager_->getAccounts();
+	for (AccountManager::AccountList::const_iterator itA = listAccount.begin(); itA != listAccount.end(); ++itA) {
 		Account* pAccount = *itA;
 		
 		const Account::SubAccountList& listSubAccount = pAccount->getSubAccounts();
@@ -3088,11 +3091,11 @@ bool qm::FixedFormTextsDialog::edit(FixedFormText* p) const
  */
 
 qm::GoRoundDialog::GoRoundDialog(GoRound* pGoRound,
-								 Document* pDocument,
+								 AccountManager* pAccountManager,
 								 SyncFilterManager* pSyncFilterManager) :
 	AbstractListDialog<GoRoundCourse, GoRound::CourseList>(IDD_GOROUND, IDC_COURSE),
 	pGoRound_(pGoRound),
-	pDocument_(pDocument),
+	pAccountManager_(pAccountManager),
 	pSyncFilterManager_(pSyncFilterManager)
 {
 	const GoRound::CourseList& listCourse = pGoRound_->getCourses();
@@ -3123,7 +3126,7 @@ wstring_ptr qm::GoRoundDialog::getLabel(const GoRoundCourse* p) const
 std::auto_ptr<GoRoundCourse> qm::GoRoundDialog::create() const
 {
 	std::auto_ptr<GoRoundCourse> pCourse(new GoRoundCourse());
-	GoRoundCourseDialog dialog(pCourse.get(), pDocument_, pSyncFilterManager_);
+	GoRoundCourseDialog dialog(pCourse.get(), pAccountManager_, pSyncFilterManager_);
 	if (dialog.doModal(getHandle()) != IDOK)
 		return std::auto_ptr<GoRoundCourse>();
 	return pCourse;
@@ -3131,7 +3134,7 @@ std::auto_ptr<GoRoundCourse> qm::GoRoundDialog::create() const
 
 bool qm::GoRoundDialog::edit(GoRoundCourse* p) const
 {
-	GoRoundCourseDialog dialog(p, pDocument_, pSyncFilterManager_);
+	GoRoundCourseDialog dialog(p, pAccountManager_, pSyncFilterManager_);
 	return dialog.doModal(getHandle()) == IDOK;
 }
 
@@ -3143,11 +3146,11 @@ bool qm::GoRoundDialog::edit(GoRoundCourse* p) const
  */
 
 qm::GoRoundCourseDialog::GoRoundCourseDialog(GoRoundCourse* pCourse,
-											 Document* pDocument,
+											 AccountManager* pAccountManager,
 											 SyncFilterManager* pSyncFilterManager) :
 	AbstractListDialog<GoRoundEntry, GoRoundCourse::EntryList>(IDD_GOROUNDCOURSE, IDC_ENTRY),
 	pCourse_(pCourse),
-	pDocument_(pDocument),
+	pAccountManager_(pAccountManager),
 	pSyncFilterManager_(pSyncFilterManager)
 {
 	const GoRoundCourse::EntryList& listEntry = pCourse_->getEntries();
@@ -3229,7 +3232,7 @@ wstring_ptr qm::GoRoundCourseDialog::getLabel(const GoRoundEntry* p) const
 std::auto_ptr<GoRoundEntry> qm::GoRoundCourseDialog::create() const
 {
 	std::auto_ptr<GoRoundEntry> pEntry(new GoRoundEntry());
-	GoRoundEntryDialog dialog(pEntry.get(), pDocument_, pSyncFilterManager_);
+	GoRoundEntryDialog dialog(pEntry.get(), pAccountManager_, pSyncFilterManager_);
 	if (dialog.doModal(getHandle()) != IDOK)
 		return std::auto_ptr<GoRoundEntry>();
 	return pEntry;
@@ -3237,7 +3240,7 @@ std::auto_ptr<GoRoundEntry> qm::GoRoundCourseDialog::create() const
 
 bool qm::GoRoundCourseDialog::edit(GoRoundEntry* p) const
 {
-	GoRoundEntryDialog dialog(p, pDocument_, pSyncFilterManager_);
+	GoRoundEntryDialog dialog(p, pAccountManager_, pSyncFilterManager_);
 	return dialog.doModal(getHandle()) == IDOK;
 }
 
@@ -3395,11 +3398,11 @@ void qm::GoRoundDialupDialog::updateState()
  */
 
 qm::GoRoundEntryDialog::GoRoundEntryDialog(GoRoundEntry* pEntry,
-										   Document* pDocument,
+										   AccountManager* pAccountManager,
 										   SyncFilterManager* pSyncFilterManager) :
 	DefaultDialog(IDD_GOROUNDENTRY),
 	pEntry_(pEntry),
-	pDocument_(pDocument),
+	pAccountManager_(pAccountManager),
 	pSyncFilterManager_(pSyncFilterManager)
 {
 }
@@ -3427,8 +3430,8 @@ LRESULT qm::GoRoundEntryDialog::onInitDialog(HWND hwndFocus,
 	
 	init(false);
 	
-	const Document::AccountList& listAccount = pDocument_->getAccounts();
-	for (Document::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
+	const AccountManager::AccountList& listAccount = pAccountManager_->getAccounts();
+	for (AccountManager::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
 		Account* pAccount = *it;
 		W2T(pAccount->getName(), ptszName);
 		sendDlgItemMessage(IDC_ACCOUNT, CB_ADDSTRING,
@@ -3568,7 +3571,7 @@ void qm::GoRoundEntryDialog::updateState()
 	
 	wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
 	if (wstrAccount.get())
-		pAccount = pDocument_->getAccount(wstrAccount.get());
+		pAccount = pAccountManager_->getAccount(wstrAccount.get());
 	
 	updateSubAccount(pAccount);
 	updateFolder(pAccount);
@@ -3975,11 +3978,11 @@ void qm::MailFolderDialog::updateState()
  *
  */
 
-qm::MoveMessageDialog::MoveMessageDialog(Document* pDocument,
+qm::MoveMessageDialog::MoveMessageDialog(AccountManager* pAccountManager,
 										 Account* pAccount,
 										 Profile* pProfile) :
 	DefaultDialog(IDD_MOVEMESSAGE),
-	pDocument_(pDocument),
+	pAccountManager_(pAccountManager),
 	pAccount_(pAccount),
 	pProfile_(pProfile),
 	pFolder_(0),
@@ -4037,7 +4040,7 @@ LRESULT qm::MoveMessageDialog::onInitDialog(HWND hwndFocus,
 	Folder* pFolderSelected = 0;
 	wstring_ptr wstrFolder(pAccount_->getProperty(L"UI", L"FolderTo", L""));
 	if (*wstrFolder.get())
-		pFolderSelected = pDocument_->getFolder(0, wstrFolder.get());
+		pFolderSelected = pAccountManager_->getFolder(0, wstrFolder.get());
 	
 	update(pFolderSelected);
 	updateState();
@@ -4130,8 +4133,8 @@ bool qm::MoveMessageDialog::update(Folder* pFolderSelected)
 		
 		TreeView_DeleteAllItems(hwndFolder);
 		
-		const Document::AccountList& listAccount = pDocument_->getAccounts();
-		for (Document::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
+		const AccountManager::AccountList& listAccount = pAccountManager_->getAccounts();
+		for (AccountManager::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
 			if (!insertAccount(hwndFolder, *it, pFolderSelected))
 				return false;
 		}
@@ -4826,10 +4829,10 @@ LRESULT qm::ResourceDialog::onClearAll()
  */
 
 qm::RuleDialog::RuleDialog(Rule* pRule,
-						   Document* pDocument) :
+						   AccountManager* pAccountManager) :
 	DefaultDialog(IDD_RULE),
 	pRule_(pRule),
-	pDocument_(pDocument),
+	pAccountManager_(pAccountManager),
 	bInit_(false)
 {
 	RuleAction* pAction = pRule_->getAction();
@@ -4899,8 +4902,8 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 			0, reinterpret_cast<LPARAM>(ptszType));
 	}
 	
-	const Document::AccountList& listAccount = pDocument_->getAccounts();
-	for (Document::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
+	const AccountManager::AccountList& listAccount = pAccountManager_->getAccounts();
+	for (AccountManager::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
 		Account* pAccount = *it;
 		W2T(pAccount->getName(), ptszName);
 		sendDlgItemMessage(IDC_ACCOUNT, CB_ADDSTRING,
@@ -5145,7 +5148,7 @@ void qm::RuleDialog::updateState(bool bUpdateFolder)
 		Account* pAccount = 0;
 		wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
 		if (wstrAccount.get())
-			pAccount = pDocument_->getAccount(wstrAccount.get());
+			pAccount = pAccountManager_->getAccount(wstrAccount.get());
 		updateFolder(pAccount);
 	}
 }
@@ -5180,9 +5183,10 @@ void qm::RuleDialog::updateFolder(Account* pAccount)
  */
 
 qm::ColorSetsDialog::ColorSetsDialog(ColorManager* pColorManager,
-									 Document* pDocument) :
+									 AccountManager* pAccountManager) :
 	RuleColorSetsDialog<ColorSet, ColorManager::ColorSetList, ColorManager, ColorsDialog>(
-		pColorManager, pDocument, IDS_COLORSETS, &ColorManager::getColorSets, &ColorManager::setColorSets)
+		pColorManager, pAccountManager, IDS_COLORSETS,
+		&ColorManager::getColorSets, &ColorManager::setColorSets)
 {
 }
 
@@ -5194,9 +5198,10 @@ qm::ColorSetsDialog::ColorSetsDialog(ColorManager* pColorManager,
  */
 
 qm::RuleSetsDialog::RuleSetsDialog(RuleManager* pRuleManager,
-								   Document* pDocument) :
+								   AccountManager* pAccountManager) :
 	RuleColorSetsDialog<RuleSet, RuleManager::RuleSetList, RuleManager, RulesDialog>(
-		pRuleManager, pDocument, IDS_RULESETS, &RuleManager::getRuleSets, &RuleManager::setRuleSets)
+		pRuleManager, pAccountManager, IDS_RULESETS,
+		&RuleManager::getRuleSets, &RuleManager::setRuleSets)
 {
 }
 
@@ -5208,9 +5213,9 @@ qm::RuleSetsDialog::RuleSetsDialog(RuleManager* pRuleManager,
  */
 
 qm::ColorsDialog::ColorsDialog(ColorSet* pColorSet,
-							   Document* pDocument) :
+							   AccountManager* pAccountManager) :
 	RulesColorsDialog<ColorEntry, ColorSet::ColorList, ColorSet, ColorDialog>(
-		pColorSet, pDocument, IDS_COLORS, &ColorSet::getColors, &ColorSet::setColors)
+		pColorSet, pAccountManager, IDS_COLORS, &ColorSet::getColors, &ColorSet::setColors)
 {
 }
 
@@ -5222,9 +5227,9 @@ qm::ColorsDialog::ColorsDialog(ColorSet* pColorSet,
  */
 
 qm::RulesDialog::RulesDialog(RuleSet* pRuleSet,
-							 Document* pDocument) :
+							 AccountManager* pAccountManager) :
 	RulesColorsDialog<Rule, RuleSet::RuleList, RuleSet, RuleDialog>(
-		pRuleSet, pDocument, IDS_RULES, &RuleSet::getRules, &RuleSet::setRules)
+		pRuleSet, pAccountManager, IDS_RULES, &RuleSet::getRules, &RuleSet::setRules)
 {
 }
 
@@ -6387,10 +6392,10 @@ LRESULT qm::SelectSyncFilterDialog::onOk()
  */
 
 qm::SignatureDialog::SignatureDialog(Signature* pSignature,
-									 Document* pDocument) :
+									 AccountManager* pAccountManager) :
 	DefaultDialog(IDD_SIGNATURE),
 	pSignature_(pSignature),
-	pDocument_(pDocument)
+	pAccountManager_(pAccountManager)
 {
 }
 
@@ -6414,8 +6419,8 @@ LRESULT qm::SignatureDialog::onInitDialog(HWND hwndFocus,
 	
 	setDlgItemText(IDC_NAME, pSignature_->getName());
 	
-	const Document::AccountList& l = pDocument_->getAccounts();
-	for (Document::AccountList::const_iterator it = l.begin(); it != l.end(); ++it) {
+	const AccountManager::AccountList& l = pAccountManager_->getAccounts();
+	for (AccountManager::AccountList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		W2T((*it)->getName(), ptszName);
 		sendDlgItemMessage(IDC_ACCOUNT, CB_ADDSTRING,
 			0, reinterpret_cast<LPARAM>(ptszName));
@@ -6481,10 +6486,10 @@ void qm::SignatureDialog::updateState()
 */
 
 qm::SignaturesDialog::SignaturesDialog(SignatureManager* pSignatureManager,
-									   Document* pDocument) :
+									   AccountManager* pAccountManager) :
 	AbstractListDialog<Signature, SignatureManager::SignatureList>(IDD_SIGNATURES, IDC_SIGNATURES),
 	pSignatureManager_(pSignatureManager),
-	pDocument_(pDocument)
+	pAccountManager_(pAccountManager)
 {
 	const SignatureManager::SignatureList& l = pSignatureManager_->getSignatures();
 	SignatureManager::SignatureList& list = getList();
@@ -6523,7 +6528,7 @@ wstring_ptr qm::SignaturesDialog::getLabel(const Signature* p) const
 std::auto_ptr<Signature> qm::SignaturesDialog::create() const
 {
 	std::auto_ptr<Signature> pSignature(new Signature());
-	SignatureDialog dialog(pSignature.get(), pDocument_);
+	SignatureDialog dialog(pSignature.get(), pAccountManager_);
 	if (dialog.doModal(getHandle()) != IDOK)
 		return std::auto_ptr<Signature>();
 	return pSignature;
@@ -6531,7 +6536,7 @@ std::auto_ptr<Signature> qm::SignaturesDialog::create() const
 
 bool qm::SignaturesDialog::edit(Signature* p) const
 {
-	SignatureDialog dialog(p, pDocument_);
+	SignatureDialog dialog(p, pAccountManager_);
 	return dialog.doModal(getHandle()) == IDOK;
 }
 
