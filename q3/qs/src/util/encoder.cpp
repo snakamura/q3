@@ -653,6 +653,9 @@ bool qs::QuotedPrintableEncoder::encodeImpl(InputStream* pInputStream,
 					bNext = true;
 			}
 		}
+		else {
+			bProcessed = false;
+		}
 		if (!bProcessed) {
 			if (nSpaceLen != 0) {
 				if (pOutputStream->write(pSpace.get(), nSpaceLen) != nSpaceLen)
@@ -661,7 +664,7 @@ bool qs::QuotedPrintableEncoder::encodeImpl(InputStream* pInputStream,
 				nSpaceLen = 0;
 			}
 			
-			unsigned char buf[3];
+			unsigned char buf[4];
 			sprintf(reinterpret_cast<char*>(buf), "=%02X", c);
 			if (pOutputStream->write(buf, 3) != 3)
 				return false;
