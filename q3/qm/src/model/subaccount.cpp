@@ -57,6 +57,7 @@ struct qm::SubAccountImpl
 	bool bLog_[Account::HOST_SIZE];
 	long nTimeout_;
 	bool bConnectReceiveBeforeSend_;
+	bool bTreatAsSent_;
 	SubAccount::DialupType dialupType_;
 	WSTRING wstrDialupEntry_;
 	bool bDialupShowDialog_;
@@ -103,6 +104,7 @@ QSTATUS qm::SubAccountImpl::load()
 	LOAD_INT(L"Receive",	L"Log",							0,		bLog_[Account::HOST_RECEIVE],	bool,					nReceiveLog					);
 	LOAD_INT(L"Global",		L"Timeout",						60,		nTimeout_,						long,					nTimeout					);
 	LOAD_INT(L"Global",		L"ConnectReceiveBeforeSend",	0,		bConnectReceiveBeforeSend_,		bool,					nConnectReceiveBeforeSend	);
+	LOAD_INT(L"Global",		L"TreatAsSent",					1,		bTreatAsSent_,					bool,					nTreatAsSent				);
 	LOAD_INT(L"Dialup",		L"Type",						0,		dialupType_,					SubAccount::DialupType,	dialupType					);
 	LOAD_INT(L"Dialup",		L"ShowDialog",					0,		bDialupShowDialog_,				bool,					bDialupShowDialog			);
 	LOAD_INT(L"Dialup",		L"DisconnectWait",				0,		nDialupDisconnectWait_,			unsigned int,			nDialupDisconnectWait		);
@@ -227,6 +229,7 @@ qm::SubAccount::SubAccount(Account* pAccount, Profile* pProfile,
 	pImpl_->bLog_[Account::HOST_RECEIVE] = false;
 	pImpl_->nTimeout_ = 60;
 	pImpl_->bConnectReceiveBeforeSend_ = false;
+	pImpl_->bTreatAsSent_ = true;
 	pImpl_->dialupType_ = SubAccount::DIALUPTYPE_NEVER;
 	pImpl_->wstrDialupEntry_ = 0;
 	pImpl_->bDialupShowDialog_ = false;
@@ -545,6 +548,16 @@ void qm::SubAccount::setConnectReceiveBeforeSend(bool bConnectReceiveBeforeSend)
 	pImpl_->bConnectReceiveBeforeSend_ = bConnectReceiveBeforeSend;
 }
 
+bool qm::SubAccount::isTreatAsSent() const
+{
+	return pImpl_->bTreatAsSent_;
+}
+
+void qm::SubAccount::setTreatAsSent(bool bTreatAsSent)
+{
+	pImpl_->bTreatAsSent_ = bTreatAsSent;
+}
+
 SubAccount::DialupType qm::SubAccount::getDialupType() const
 {
 	return pImpl_->dialupType_;
@@ -701,11 +714,7 @@ QSTATUS qm::SubAccount::isSelf(const Message& msg, bool* pbSelf) const
 	
 	*pbSelf = false;
 	
-	int nTreatAsSent = 0;
-	status = getProperty(L"Global", L"TreatAsSent", 1, &nTreatAsSent);
-	CHECK_QSTATUS();
-	
-	if (nTreatAsSent) {
+	if (pImpl_->bTreatAsSent_) {
 		AddressListParser from(0, &status);
 		CHECK_QSTATUS();
 		Part::Field field;
@@ -769,8 +778,6 @@ QSTATUS qm::SubAccount::save() const
 	SAVE_STRING(L"Receive",	L"Host",			wstrHost_[Account::HOST_RECEIVE]	);
 	SAVE_STRING(L"Send",	L"UserName",		wstrUserName_[Account::HOST_SEND]	);
 	SAVE_STRING(L"Receive",	L"UserName",		wstrUserName_[Account::HOST_RECEIVE]);
-//	SAVE_STRING(L"Send",	L"Password",		wstrPassword_[Account::HOST_SEND]	);
-//	SAVE_STRING(L"Receive",	L"Password",		wstrPassword_[Account::HOST_RECEIVE]);
 	SAVE_STRING(L"Receive",	L"SyncFilterName",	wstrSyncFilterName_					);
 	SAVE_STRING(L"Dialup",	L"Entry",			wstrDialupEntry_					);
 	
@@ -786,6 +793,7 @@ QSTATUS qm::SubAccount::save() const
 	SAVE_INT(L"Send",		L"Log",							bLog_[Account::HOST_SEND]		);
 	SAVE_INT(L"Receive",	L"Log",							bLog_[Account::HOST_RECEIVE]	);
 	SAVE_INT(L"Global",		L"ConnectReceiveBeforeSend",	bConnectReceiveBeforeSend_		);
+	SAVE_INT(L"Global",		L"TreatAsSent",					bTreatAsSent_					);
 	SAVE_INT(L"Dialup",		L"Type",						dialupType_						);
 	SAVE_INT(L"Dialup",		L"ShowDialog",					bDialupShowDialog_				);
 	SAVE_INT(L"Dialup",		L"DisconnectWait",				nDialupDisconnectWait_			);

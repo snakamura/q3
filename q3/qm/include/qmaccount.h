@@ -233,6 +233,8 @@ public:
 	void setTimeout(long nTimeout);
 	bool isConnectReceiveBeforeSend() const;
 	void setConnectReceiveBeforeSend(bool bConnectReceiveBeforeSend);
+	bool isTreatAsSent() const;
+	void setTreatAsSent(bool bTreatAsSent);
 	
 	DialupType getDialupType() const;
 	void setDialupType(DialupType type);

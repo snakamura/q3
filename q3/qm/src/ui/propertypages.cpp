@@ -88,6 +88,8 @@ LRESULT qm::AccountAdvancedPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	setDlgItemInt(IDC_TIMEOUT, pSubAccount_->getTimeout());
 	sendDlgItemMessage(IDC_CONNECTRECEIVEHOSTBEFORESEND, BM_SETCHECK,
 		pSubAccount_->isConnectReceiveBeforeSend() ? BST_CHECKED : BST_UNCHECKED);
+	sendDlgItemMessage(IDC_TREATASSENT, BM_SETCHECK,
+		pSubAccount_->isTreatAsSent() ? BST_CHECKED : BST_UNCHECKED);
 	
 	return TRUE;
 }
@@ -107,6 +109,8 @@ LRESULT qm::AccountAdvancedPage::onOk()
 	pSubAccount_->setTimeout(getDlgItemInt(IDC_TIMEOUT));
 	pSubAccount_->setConnectReceiveBeforeSend(
 		sendDlgItemMessage(IDC_CONNECTRECEIVEHOSTBEFORESEND, BM_GETCHECK) == BST_CHECKED);
+	pSubAccount_->setTreatAsSent(
+		sendDlgItemMessage(IDC_TREATASSENT, BM_GETCHECK) == BST_CHECKED);
 	
 	return DefaultPropertyPage::onOk();
 }
