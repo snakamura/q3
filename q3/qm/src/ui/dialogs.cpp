@@ -1029,9 +1029,6 @@ QSTATUS qm::AddressBookDialog::update()
 			AddressBookAddress* pAddress = *itA;
 			
 			if (isCategory(pAddress->getCategories())) {
-//			const WCHAR* pwszCategory = pAddress->getCategory();
-//			if (!wstrCategory_ ||
-//				(pwszCategory && wcsncmp(pwszCategory, wstrCategory_, nCategoryLen) == 0)) {
 				LVITEM item = {
 					LVIF_TEXT | LVIF_PARAM,
 					n,
@@ -1070,11 +1067,15 @@ QSTATUS qm::AddressBookDialog::select(Type type)
 	HWND hwndList = getDlgItem(IDC_ADDRESS);
 	HWND hwndSelected = getDlgItem(IDC_SELECTEDADDRESS);
 	
-	int nCount = ListView_GetItemCount(hwndList);
-	for (int n = 0; n < nCount; ++n) {
+	int nItem = -1;
+	while (true) {
+		nItem = ListView_GetNextItem(hwndList, nItem, LVNI_SELECTED);
+		if (nItem == -1)
+			break;
+		
 		LVITEM item = {
 			LVIF_STATE | LVIF_PARAM,
-			n,
+			nItem,
 			0,
 			0,
 			LVIS_SELECTED
