@@ -1195,18 +1195,13 @@ LRESULT qm::FolderWindow::onContextMenu(HWND hwnd,
 				pImpl_->pFolderModel_->setTemporary(pImpl_->getAccount(hItem), 0);
 		}
 		
-		struct TemporaryDeselector
-		{
-			TemporaryDeselector(HWND hwnd) : hwnd_(hwnd) {}
-			~TemporaryDeselector() { Window(hwnd_).postMessage(FolderWindowImpl::WM_FOLDERWINDOW_DESELECTTEMPORARY); }
-			HWND hwnd_;
-		} deselector(getHandle());
-		
 		UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
 #ifndef _WIN32_WCE
 		nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
 #endif
 		::TrackPopupMenu(hmenu, nFlags, pt.x, pt.y, 0, getParentFrame(), 0);
+		
+		postMessage(FolderWindowImpl::WM_FOLDERWINDOW_DESELECTTEMPORARY);
 	}
 	
 	return DefaultWindowHandler::onContextMenu(hwnd, pt);
@@ -1268,7 +1263,19 @@ LRESULT qm::FolderWindow::onLButtonDown(UINT nFlags,
 										const POINT& pt)
 {
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
-	if (tapAndHold(pt))
+	TVHITTESTINFO info = {
+		{ pt.x, pt.y },
+	};
+	HTREEITEM hItem = TreeView_HitTest(getHandle(), &info);
+	if (hItem)
+		TreeView_SelectDropTarget(getHandle(), hItem);
+	
+	bool b = tapAndHold(pt);
+	
+	if (hItem)
+		TreeView_SelectDropTarget(getHandle(), 0);
+	
+	if (b)
 		return 0;
 #endif
 	return DefaultWindowHandler::onLButtonDown(nFlags, pt);
