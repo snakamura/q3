@@ -54,7 +54,8 @@ public:
 	~RuleManager();
 
 public:
-	qs::QSTATUS apply(NormalFolder* pFolder, Document* pDocument,
+	qs::QSTATUS apply(NormalFolder* pFolder,
+		const Folder::MessageHolderList* pList, Document* pDocument,
 		HWND hwnd, qs::Profile* pProfile, RuleCallback* pCallback);
 
 public:

@@ -51,7 +51,8 @@ qm::RuleManager::~RuleManager()
 	clear();
 }
 
-QSTATUS qm::RuleManager::apply(NormalFolder* pFolder, Document* pDocument,
+QSTATUS qm::RuleManager::apply(NormalFolder* pFolder,
+	const Folder::MessageHolderList* pList, Document* pDocument,
 	HWND hwnd, Profile* pProfile, RuleCallback* pCallback)
 {
 	assert(pFolder);
@@ -78,22 +79,68 @@ QSTATUS qm::RuleManager::apply(NormalFolder* pFolder, Document* pDocument,
 	
 	Account* pAccount = pFolder->getAccount();
 	
+	struct Accessor
+	{
+		virtual unsigned int getCount() const = 0;
+		virtual MessageHolder* getMessage(unsigned int n) const = 0;
+	};
+	
+	struct FolderAccessor : public Accessor
+	{
+		FolderAccessor(NormalFolder* pFolder) :
+			pFolder_(pFolder)
+		{
+		}
+		virtual unsigned int getCount() const
+		{
+			return pFolder_->getCount();
+		}
+		virtual MessageHolder* getMessage(unsigned int n) const
+		{
+			return pFolder_->getMessage(n);
+		}
+		NormalFolder* pFolder_;
+	};
+	
+	struct ListAccessor : public Accessor
+	{
+		ListAccessor(const Folder::MessageHolderList* p) :
+			p_(p)
+		{
+		}
+		virtual unsigned int getCount() const
+		{
+			return p_->size();
+		}
+		virtual MessageHolder* getMessage(unsigned int n) const
+		{
+			return (*p_)[n];
+		}
+		const Folder::MessageHolderList* p_;
+	};
+	
+	FolderAccessor folderAccessor(pFolder);
+	ListAccessor listAccessor(pList);
+	const Accessor& accessor = pList ?
+		static_cast<const Accessor&>(listAccessor) :
+		static_cast<const Accessor&>(folderAccessor);
+	
 	status = pCallback->checkingMessages();
 	CHECK_QSTATUS();
-	status = pCallback->setRange(0, pFolder->getCount());
+	status = pCallback->setRange(0, accessor.getCount());
 	CHECK_QSTATUS();
 	
 	int nMatch = 0;
 	MacroVariableHolder globalVariable(&status);
 	CHECK_QSTATUS();
-	for (unsigned int n = 0; n < pFolder->getCount(); ++n) {
+	for (unsigned int n = 0; n < accessor.getCount(); ++n) {
 		if (pCallback->isCanceled())
 			return QSTATUS_SUCCESS;
 		
 		status = pCallback->setPos(n);
 		CHECK_QSTATUS();
 		
-		MessageHolder* pmh = pFolder->getMessage(n);
+		MessageHolder* pmh = accessor.getMessage(n);
 		Message msg(&status);
 		CHECK_QSTATUS();
 		for (size_t m = 0; m < pRuleSet->getCount(); ++m) {

@@ -1703,11 +1703,12 @@ QSTATUS qm::FolderUpdateAction::isEnabled(const ActionEvent& event, bool* pbEnab
  *
  */
 
-qm::MessageApplyRuleAction::MessageApplyRuleAction(
-	RuleManager* pRuleManager, FolderModel* pFolderModel,
+qm::MessageApplyRuleAction::MessageApplyRuleAction(RuleManager* pRuleManager,
+	FolderModel* pFolderModel, ViewModelManager* pViewModelManager,
 	Document* pDocument, HWND hwnd, Profile* pProfile, QSTATUS* pstatus) :
 	pRuleManager_(pRuleManager),
 	pFolderModel_(pFolderModel),
+	pViewModelManager_(pViewModelManager),
 	pDocument_(pDocument),
 	hwnd_(hwnd),
 	pProfile_(pProfile)
@@ -1744,6 +1745,19 @@ QSTATUS qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 	
 	Folder* pFolder = pFolderModel_->getCurrentFolder();
 	if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL) {
+		const Folder::MessageHolderList* pList = 0;
+		Folder::MessageHolderList listMessageHolder;
+		if (pViewModelManager_) {
+			ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
+			if (pViewModel) {
+				Lock<ViewModel> lock(*pViewModel);
+				
+				status = pViewModel->getSelection(&listMessageHolder);
+				CHECK_QSTATUS();
+			}
+			pList = &listMessageHolder;
+		}
+		
 		ProgressDialog dialog(IDS_APPLYMESSAGERULES, &status);
 		CHECK_QSTATUS();
 		RuleCallbackImpl callback(&dialog);
@@ -1759,7 +1773,7 @@ QSTATUS qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 		CHECK_QSTATUS();
 		
 		status = pRuleManager_->apply(static_cast<NormalFolder*>(pFolder),
-			pDocument_, hwnd_, pProfile_, &callback);
+			pList, pDocument_, hwnd_, pProfile_, &callback);
 		CHECK_QSTATUS();
 	}
 	
@@ -1770,8 +1784,21 @@ QSTATUS qm::MessageApplyRuleAction::isEnabled(
 	const ActionEvent& event, bool* pbEnabled)
 {
 	assert(pbEnabled);
+	
 	Folder* pFolder = pFolderModel_->getCurrentFolder();
 	*pbEnabled = pFolder && pFolder->getType() == Folder::TYPE_NORMAL;
+	
+	if (*pbEnabled && pViewModelManager_) {
+		ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
+		if (pViewModel) {
+			Lock<ViewModel> lock(*pViewModel);
+			*pbEnabled = pViewModel->hasSelection();
+		}
+		else {
+			*pbEnabled = false;
+		}
+	}
+	
 	return QSTATUS_SUCCESS;
 }
 

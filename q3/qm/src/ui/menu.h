@@ -55,6 +55,7 @@ const qs::MenuItem menuItems[] = {
 	{ L"FolderProperty",			IDM_FOLDER_PROPERTY				},
 	{ L"FolderUpdate",				IDM_FOLDER_UPDATE				},
 	{ L"MessageApplyRule",			IDM_MESSAGE_APPLYRULE			},
+	{ L"MessageApplyRuleSelected",	IDM_MESSAGE_APPLYRULESELECTED	},
 	{ L"MessageCombine",			IDM_MESSAGE_COMBINE				},
 	{ L"MessageCreateFromClipboard",IDM_MESSAGE_CREATEFROMCLIPBOARD	},
 	{ L"MessageDraftFromClipboard",	IDM_MESSAGE_DRAFTFROMCLIPBOARD	},

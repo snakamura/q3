@@ -84,6 +84,7 @@ struct ActionNameMap
 	{ L"HeaderEditItem8",				IDM_FOCUS_HEADEREDITITEM + 8			},
 	{ L"HeaderEditItem9",				IDM_FOCUS_HEADEREDITITEM + 9			},
 	{ L"MessageApplyRule",				IDM_MESSAGE_APPLYRULE					},
+	{ L"MessageApplyRuleSelected",		IDM_MESSAGE_APPLYRULESELECTED			},
 	{ L"MessageApplyTemplate0",			IDM_MESSAGE_APPLYTEMPLATE				},
 	{ L"MessageApplyTemplate1",			IDM_MESSAGE_APPLYTEMPLATE + 1			},
 	{ L"MessageApplyTemplate2",			IDM_MESSAGE_APPLYTEMPLATE + 2			},

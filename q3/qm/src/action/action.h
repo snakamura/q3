@@ -828,9 +828,9 @@ private:
 class MessageApplyRuleAction : public qs::AbstractAction
 {
 public:
-	MessageApplyRuleAction(RuleManager* pRuleManager,
-		FolderModel* pFolderModel, Document* pDocument, HWND hwnd,
-		qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	MessageApplyRuleAction(RuleManager* pRuleManager, FolderModel* pFolderModel,
+		ViewModelManager* pViewModelManager, Document* pDocument,
+		HWND hwnd, qs::Profile* pProfile, qs::QSTATUS* pstatus);
 	virtual ~MessageApplyRuleAction();
 
 public:
@@ -844,6 +844,7 @@ private:
 private:
 	RuleManager* pRuleManager_;
 	FolderModel* pFolderModel_;
+	ViewModelManager* pViewModelManager_;
 	Document* pDocument_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;

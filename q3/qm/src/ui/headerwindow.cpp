@@ -30,6 +30,7 @@
 #include "headerwindow.h"
 #include "resourceinc.h"
 
+#pragma warning(disable:4355)
 #pragma warning(disable:4786)
 
 using namespace qm;

@@ -50,11 +50,19 @@
 		</action>
 	</keymap>
 	<keymap name="FolderWindow">
+		<action name="FolderProperty">
+			<key code="d" alt="true"/>
+		</action>
 		<action name="ViewNextAccount">
 			<key code="28" shift="true"/>
 		</action>
 		<action name="ViewPrevAccount">
 			<key code="26" shift="true"/>
+		</action>
+	</keymap>
+	<keymap name="FolderListWindow">
+		<action name="FolderProperty">
+			<key code="d" alt="true"/>
 		</action>
 	</keymap>
 	<keymap name="ListWindow">
