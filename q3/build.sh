@@ -9,8 +9,8 @@ PURIFY=${PURIFY:=d:/dev/rational/purify/purify.exe}
 
 PROJECTS="qs qscrypto qm qmpop3 qmimap4 qmsmtp qmnntp qmrss qmscript qmpgp q3"
 DESKTOPTARGETS="desktop.ansi.release desktop.unicode.release"
-CETARGETS="ppc2003.armv4.ja ppc2002.arm.ja hpc2000.arm.ja hpc2000.mips.ja ppc.arm.ja ppc.sh3.ja ppc.mips.ja hpcpro.arm.ja hpcpro.mips.ja hpcpro.sh3.ja hpcpro.sh4.ja sig3.armv4i.ja"
-TARGETS="$DESKTOPTARGETS $CETARGETS"
+WCETARGETS="ppc2003.armv4.ja ppc2002.arm.ja hpc2000.arm.ja hpc2000.mips.ja ppc.arm.ja ppc.sh3.ja ppc.mips.ja hpcpro.arm.ja hpcpro.mips.ja hpcpro.sh3.ja hpcpro.sh4.ja sig3.armv4i.ja"
+TARGETS="$DESKTOPTARGETS $WCETARGETS"
 
 if [ $# -eq 0 ]; then
 	COMMAND=all
@@ -125,6 +125,18 @@ all)
 	done
 	;;
 
+desktop)
+	for t in $DESKTOPTARGETS; do
+		./build.sh $t
+	done
+	;;
+
+wce)
+	for t in $WCETARGETS; do
+		./build.sh $t
+	done
+	;;
+
 zip)
 	VERSION=`cat version`
 	DATE=`date +%Y%m%d`
@@ -139,7 +151,7 @@ zip)
 		*/bin/desktop/unicode/release/*.exe \
 		*/lib/desktop/unicode/release/*.dll
 	
-	for t in $CETARGETS; do
+	for t in $WCETARGETS; do
 		zip -j $ZIPDIR/q3u-`printf $t | tr . -`-`printf $VERSION | tr . _`-$DATE.zip \
 			*/bin/`printf $t | tr . /`/release/*.exe \
 			*/lib/`printf $t | tr . /`/release/*.dll
