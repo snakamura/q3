@@ -1,5 +1,5 @@
 /*
- * $Id: qsras.h,v 1.5 2003/05/30 18:10:24 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -159,25 +159,12 @@ private:
 class QSEXPORTCLASS RasConnectionCallback
 {
 public:
-	enum State {
-		STATE_OPENPORT,
-		STATE_PORTOPENED,
-		STATE_CONNECTDEVICE,
-		STATE_DEVICECONNECTED,
-		STATE_AUTHENTICATE,
-		STATE_AUTHENTICATED,
-		STATE_CONNECTED,
-		STATE_WAITINGBEFOREDISCONNECTING,
-		STATE_DISCONNECTING
-	};
-
-public:
 	virtual ~RasConnectionCallback();
 
 public:
 	virtual bool isCanceled() = 0;
 	virtual QSTATUS preConnect(RASDIALPARAMS* prdp, bool* pbCancel) = 0;
-	virtual QSTATUS stateChanged(State state) = 0;
+	virtual QSTATUS setMessage(const WCHAR* pwszMessage) = 0;
 	virtual QSTATUS error(const WCHAR* pwszMessage) = 0;
 };
 

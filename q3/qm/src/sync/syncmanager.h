@@ -305,13 +305,14 @@ private:
 	class RasConnectionCallbackImpl : public qs::RasConnectionCallback
 	{
 	public:
-		RasConnectionCallbackImpl(SyncManagerCallback* pCallback);
+		RasConnectionCallbackImpl(const SyncDialup* pDialup,
+			SyncManagerCallback* pCallback);
 		virtual ~RasConnectionCallbackImpl();
 	
 	public:
 		virtual bool isCanceled();
 		virtual qs::QSTATUS preConnect(RASDIALPARAMS* prdp, bool* pbCancel);
-		virtual qs::QSTATUS stateChanged(State state);
+		virtual qs::QSTATUS setMessage(const WCHAR* pwszMessage);
 		virtual qs::QSTATUS error(const WCHAR* pwszMessage);
 	
 	private:
@@ -319,6 +320,7 @@ private:
 		RasConnectionCallbackImpl& operator=(const RasConnectionCallbackImpl&);
 	
 	private:
+		const SyncDialup* pDialup_;
 		SyncManagerCallback* pCallback_;
 	};
 	

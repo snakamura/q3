@@ -87,6 +87,28 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_RAS_OPENPORT     "Opening port..."
+    IDS_RAS_PORTOPENED   "Port opened."
+    IDS_RAS_CONNECTDEVICE "Connecting device..."
+    IDS_RAS_DEVICECONNECTED "Device connected."
+    IDS_RAS_AUTHENTICATE "Authenticating..."
+    IDS_RAS_AUTHENTICATED "Authenticated."
+    IDS_RAS_CONNECTED    "Connected."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_RAS_WAITINGBEFOREDISCONNECTING "Disconnecting..."
+    IDS_RAS_DISCONNECTING "Disconnecting..."
+END
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // DESIGNINFO
 //
 

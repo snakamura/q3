@@ -1,5 +1,5 @@
 /*
- * $Id: ras.cpp,v 1.5 2003/05/30 18:10:24 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -16,6 +16,7 @@
 #include <tchar.h>
 
 #include "ras.h"
+#include "../ui/resourceinc.h"
 
 using namespace qs;
 
@@ -313,10 +314,28 @@ DWORD RasAPI::rasGetErrorString(UINT uErrorValue, LPTSTR pszErrorString, DWORD d
 
 struct qs::RasConnectionImpl
 {
+	static QSTATUS setMessage(RasConnectionCallback* pCallback, UINT nId);
+	
 	HRASCONN hrasconn_;
 	unsigned int nDisconnectWait_;
 	RasConnectionCallback* pCallback_;
 };
+
+QSTATUS qs::RasConnectionImpl::setMessage(
+	RasConnectionCallback* pCallback, UINT nId)
+{
+	assert(pCallback);
+	
+	DECLARE_QSTATUS();
+	
+	string_ptr<WSTRING> wstrMessage;
+	status = loadString(getDllInstanceHandle(), nId, &wstrMessage);
+	CHECK_QSTATUS();
+	status = pCallback->setMessage(wstrMessage.get());
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
 
 
 /****************************************************************************
@@ -442,8 +461,8 @@ QSTATUS qs::RasConnection::disconnect(bool bWait, Result* pResult)
 		return QSTATUS_FAIL;
 	
 	if (pImpl_->pCallback_ && bWait && pImpl_->nDisconnectWait_ != 0) {
-		status = pImpl_->pCallback_->stateChanged(
-			RasConnectionCallback::STATE_WAITINGBEFOREDISCONNECTING);
+		status = RasConnectionImpl::setMessage(
+			pImpl_->pCallback_, IDS_RAS_WAITINGBEFOREDISCONNECTING);
 		CHECK_QSTATUS();
 		for (unsigned int n = 0; n < pImpl_->nDisconnectWait_*10; ++n) {
 			if (pImpl_->pCallback_->isCanceled())
@@ -458,8 +477,8 @@ QSTATUS qs::RasConnection::disconnect(bool bWait, Result* pResult)
 			return QSTATUS_SUCCESS;
 		}
 		
-		status = pImpl_->pCallback_->stateChanged(
-			RasConnectionCallback::STATE_DISCONNECTING);
+		status = RasConnectionImpl::setMessage(
+			pImpl_->pCallback_, IDS_RAS_DISCONNECTING);
 		CHECK_QSTATUS();
 	}
 	
@@ -856,19 +875,19 @@ LRESULT qs::RasWindow::onRasDialEvent(WPARAM wParam, LPARAM lParam)
 	else {
 		struct {
 			RASCONNSTATE rcs_;
-			RasConnectionCallback::State state_;
+			UINT nId_;
 		} states[] = {
-			{ RASCS_OpenPort,			RasConnectionCallback::STATE_OPENPORT			},
-			{ RASCS_PortOpened,			RasConnectionCallback::STATE_PORTOPENED			},
-			{ RASCS_ConnectDevice,		RasConnectionCallback::STATE_CONNECTDEVICE		},
-			{ RASCS_DeviceConnected,	RasConnectionCallback::STATE_DEVICECONNECTED	},
-			{ RASCS_Authenticate,		RasConnectionCallback::STATE_AUTHENTICATE		},
-			{ RASCS_Authenticated,		RasConnectionCallback::STATE_AUTHENTICATED		},
-			{ RASCS_Connected,			RasConnectionCallback::STATE_CONNECTED			}
+			{ RASCS_OpenPort,			IDS_RAS_OPENPORT		},
+			{ RASCS_PortOpened,			IDS_RAS_PORTOPENED		},
+			{ RASCS_ConnectDevice,		IDS_RAS_CONNECTDEVICE	},
+			{ RASCS_DeviceConnected,	IDS_RAS_DEVICECONNECTED	},
+			{ RASCS_Authenticate,		IDS_RAS_AUTHENTICATE	},
+			{ RASCS_Authenticated,		IDS_RAS_AUTHENTICATED	},
+			{ RASCS_Connected,			IDS_RAS_CONNECTED		}
 		};
 		for (int n = 0; n < countof(states); ++n) {
 			if (rcs == states[n].rcs_) {
-				pCallback_->stateChanged(states[n].state_);
+				RasConnectionImpl::setMessage(pCallback_, states[n].nId_);
 				break;
 			}
 		}

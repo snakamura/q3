@@ -399,9 +399,9 @@ QSTATUS qm::SyncManager::syncData(const SyncData* pData)
 	} caller(pCallback, &status);
 	CHECK_QSTATUS();
 	
-	RasConnectionCallbackImpl rasCallback(pCallback);
-	std::auto_ptr<RasConnection> pRasConnection;
 	const SyncDialup* pDialup = pData->getDialup();
+	RasConnectionCallbackImpl rasCallback(pDialup, pCallback);
+	std::auto_ptr<RasConnection> pRasConnection;
 	if (pDialup) {
 		// TODO
 		// Check flags and dial from
@@ -1059,12 +1059,13 @@ QSTATUS qm::SyncManager::SendSessionCallbackImpl::addError(
 
 /****************************************************************************
  *
- * RasConnectionCallbackImpl
+ * SyncManager::RasConnectionCallbackImpl
  *
  */
 
 qm::SyncManager::RasConnectionCallbackImpl::RasConnectionCallbackImpl(
-	SyncManagerCallback* pCallback) :
+	const SyncDialup* pDialup, SyncManagerCallback* pCallback) :
+	pDialup_(pDialup),
 	pCallback_(pCallback)
 {
 }
@@ -1082,13 +1083,23 @@ bool qm::SyncManager::RasConnectionCallbackImpl::isCanceled()
 QSTATUS qm::SyncManager::RasConnectionCallbackImpl::preConnect(
 	RASDIALPARAMS* prdp, bool* pbCancel)
 {
-	// TODO
+	DECLARE_QSTATUS();
+	
+	if (pDialup_->getFlags() & SyncDialup::FLAG_SHOWDIALOG) {
+		// TODO
+		// Show Dialog
+	}
+	
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::SyncManager::RasConnectionCallbackImpl::stateChanged(State state)
+QSTATUS qm::SyncManager::RasConnectionCallbackImpl::setMessage(
+	const WCHAR* pwszMessage)
 {
+	DECLARE_QSTATUS();
+	
 	// TODO
+	
 	return QSTATUS_SUCCESS;
 }
 
