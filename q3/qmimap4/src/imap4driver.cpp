@@ -250,11 +250,15 @@ bool qmimap4::Imap4Driver::renameFolder(NormalFolder* pFolder,
 }
 
 bool qmimap4::Imap4Driver::moveFolder(NormalFolder* pFolder,
-									  NormalFolder* pParent)
+									  NormalFolder* pParent,
+									  const WCHAR* pwszName)
 {
 	assert(pFolder);
 	
 	Lock<CriticalSection> lock(cs_);
+	
+	if (!pwszName)
+		pwszName = pFolder->getName();
 	
 	if (!prepareSessionCache(true))
 		return false;
@@ -270,16 +274,16 @@ bool qmimap4::Imap4Driver::moveFolder(NormalFolder* pFolder,
 	if (pParent) {
 		wstring_ptr wstrParentName(Util::getFolderName(pParent));
 		WCHAR wsz[] = { pParent->getSeparator(), L'\0' };
-		wstrNewName = concat(wstrParentName.get(), wsz, pFolder->getName());
+		wstrNewName = concat(wstrParentName.get(), wsz, pwszName);
 	}
 	else {
 		wstring_ptr wstrRootFolder(pAccount_->getProperty(L"Imap4", L"RootFolder", L""));
 		if (*wstrRootFolder.get()) {
 			WCHAR wsz[] = { pFolder->getSeparator(), L'\0' };
-			wstrNewName = concat(wstrRootFolder.get(), wsz, pFolder->getName());
+			wstrNewName = concat(wstrRootFolder.get(), wsz, pwszName);
 		}
 		else {
-			wstrNewName = allocWString(pFolder->getName());
+			wstrNewName = allocWString(pwszName);
 		}
 	}
 	

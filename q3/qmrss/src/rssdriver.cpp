@@ -86,7 +86,8 @@ bool qmrss::RssDriver::renameFolder(NormalFolder* pFolder,
 }
 
 bool qmrss::RssDriver::moveFolder(NormalFolder* pFolder,
-								  NormalFolder* pParent)
+								  NormalFolder* pParent,
+								  const WCHAR* pwszName)
 {
 	assert(false);
 	return false;

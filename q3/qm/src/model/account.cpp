@@ -1483,7 +1483,8 @@ bool qm::Account::renameFolder(Folder* pFolder,
 }
 
 bool qm::Account::moveFolder(Folder* pFolder,
-							 Folder* pParent)
+							 Folder* pParent,
+							 const WCHAR* pwszName)
 {
 	assert(pFolder);
 	
@@ -1493,7 +1494,8 @@ bool qm::Account::moveFolder(Folder* pFolder,
 		return false;
 	else if (pParent == pFolder || (pParent && pFolder->isAncestorOf(pParent)))
 		return false;
-	else if (getFolder(pParent, pFolder->getName()))
+	else if ((!pwszName && getFolder(pParent, pFolder->getName())) ||
+		(pwszName && getFolder(pParent, pwszName)))
 		return false;
 	
 	if (pFolder->isFlag(Folder::FLAG_LOCAL)) {
@@ -1511,10 +1513,13 @@ bool qm::Account::moveFolder(Folder* pFolder,
 		
 		if (!pImpl_->pProtocolDriver_->moveFolder(
 			static_cast<NormalFolder*>(pFolder),
-			static_cast<NormalFolder*>(pParent)))
+			static_cast<NormalFolder*>(pParent),
+			pwszName))
 			return false;
 	}
 	
+	if (pwszName)
+		pFolder->setName(pwszName);
 	pFolder->setParentFolder(pParent);
 	
 	FolderListChangedEvent event(this, FolderListChangedEvent::TYPE_ALL, 0);

@@ -2507,7 +2507,13 @@ bool qm::FolderDeleteAction::deleteFolder(Folder* pFolder) const
 		!pTrash->isAncestorOf(pFolder) &&
 		!pFolder->isAncestorOf(pTrash) &&
 		!pTrash->isFlag(Folder::FLAG_NOINFERIORS)) {
-		return pAccount->moveFolder(pFolder, pTrash);
+		wstring_ptr wstrName;
+		if (pAccount->getFolder(pTrash, pFolder->getName())) {
+			wstrName = allocWString(pFolder->getName(), wcslen(pFolder->getName()) + 32);
+			for (int n = 1; pAccount->getFolder(pTrash, wstrName.get()); ++n)
+				wsprintf(wstrName.get(), L"%s(%d)", pFolder->getName(), n);
+		}
+		return pAccount->moveFolder(pFolder, pTrash, wstrName.get());
 	}
 	else {
 		if (pFolderModel_->getCurrent().second == pFolder) {
@@ -2881,7 +2887,7 @@ void qm::FolderRenameAction::invoke(const ActionEvent& event)
 					return;
 				}
 			}
-			if (!pAccount->moveFolder(pFolder, pParent)) {
+			if (!pAccount->moveFolder(pFolder, pParent, 0)) {
 				ActionUtil::error(hwnd_, IDS_ERROR_MOVEFOLDER);
 				return;
 			}

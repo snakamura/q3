@@ -91,7 +91,8 @@ bool qmpop3::Pop3Driver::renameFolder(NormalFolder* pFolder,
 }
 
 bool qmpop3::Pop3Driver::moveFolder(NormalFolder* pFolder,
-									NormalFolder* pParent)
+									NormalFolder* pParent,
+									const WCHAR* pwszName)
 {
 	assert(false);
 	return false;

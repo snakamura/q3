@@ -43,7 +43,8 @@ public:
 	virtual bool renameFolder(qm::NormalFolder* pFolder,
 							  const WCHAR* pwszName);
 	virtual bool moveFolder(qm::NormalFolder* pFolder,
-							qm::NormalFolder* pParent);
+							qm::NormalFolder* pParent,
+							const WCHAR* pwszName);
 	virtual bool createDefaultFolders(qm::Account::FolderList* pList);
 	virtual bool getRemoteFolders(RemoteFolderList* pList);
 	virtual std::pair<const WCHAR**, size_t> getFolderParamNames();

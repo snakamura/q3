@@ -162,7 +162,8 @@ public:
 	bool renameFolder(Folder* pFolder,
 					  const WCHAR* pwszName);
 	bool moveFolder(Folder* pFolder,
-					Folder* pParent);
+					Folder* pParent,
+					const WCHAR* pwszName);
 	void setFolderFlags(Folder* pFolder,
 						unsigned int nFlags,
 						unsigned int nMask);

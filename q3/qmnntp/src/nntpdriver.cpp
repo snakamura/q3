@@ -115,7 +115,8 @@ bool qmnntp::NntpDriver::renameFolder(NormalFolder* pFolder,
 }
 
 bool qmnntp::NntpDriver::moveFolder(NormalFolder* pFolder,
-									NormalFolder* pParent)
+									NormalFolder* pParent,
+									const WCHAR* pwszName)
 {
 	assert(false);
 	return false;

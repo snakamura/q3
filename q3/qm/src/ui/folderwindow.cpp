@@ -670,7 +670,7 @@ void qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
 			Folder* pFolder = FolderDataObject::get(pDataObject, pDocument_).second;
 			if (pFolder && pFolder->getAccount() == pAccount &&
 				(!pTarget || !pFolder->isAncestorOf(pTarget))) {
-				if (!pAccount->moveFolder(pFolder, pTarget))
+				if (!pAccount->moveFolder(pFolder, pTarget, 0))
 					messageBox(Application::getApplication().getResourceHandle(),
 						IDS_ERROR_MOVEFOLDER, MB_OK | MB_ICONERROR, pThis_->getParentFrame());
 				
