@@ -143,9 +143,9 @@ QSTATUS qm::SingleMessageStore::flush()
 	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
-	status = pImpl_->pStorage_->flush();
+	status = pImpl_->pStorage_->close();
 	CHECK_QSTATUS();
-	status = pImpl_->pCacheStorage_->flush();
+	status = pImpl_->pCacheStorage_->close();
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
@@ -572,7 +572,7 @@ QSTATUS qm::MultiMessageStore::flush()
 	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
-	status = pImpl_->pCacheStorage_->flush();
+	status = pImpl_->pCacheStorage_->close();
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
