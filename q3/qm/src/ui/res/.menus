@@ -19,7 +19,7 @@
 			<menuitem text="&amp;Update" action="FolderUpdate"/>
 			<separator/>
 			<menuitem text="&amp;Emptry" action="FolderEmpty"/>
-			<menuitem text="&amp;Compact" action="FolderCompact"/>
+			<menuitem text="C&amp;ompact" action="FolderCompact"/>
 			<separator/>
 			<menuitem text="&amp;Property..." action="FolderProperty"/>
 		</popupmenu>
@@ -244,7 +244,7 @@
 		<menuitem text="&amp;Update" action="FolderUpdate"/>
 		<separator/>
 		<menuitem text="&amp;Emptry" action="FolderEmpty"/>
-		<menuitem text="&amp;Compact" action="FolderCompact"/>
+		<menuitem text="C&amp;ompact" action="FolderCompact"/>
 		<separator/>
 		<menuitem text="&amp;Property..." action="FolderProperty"/>
 	</menu>
@@ -254,7 +254,7 @@
 		<menuitem text="&amp;Update" action="FolderUpdate"/>
 		<separator/>
 		<menuitem text="&amp;Emptry" action="FolderEmpty"/>
-		<menuitem text="&amp;Compact" action="FolderCompact"/>
+		<menuitem text="C&amp;ompact" action="FolderCompact"/>
 		<separator/>
 		<menuitem text="&amp;Property..." action="FolderProperty"/>
 	</menu>
