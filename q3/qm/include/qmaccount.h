@@ -97,8 +97,12 @@ public:
 	
 	qs::QSTATUS getProperty(const WCHAR* pwszSection,
 		const WCHAR* pwszKey, int nDefault, int* pnValue) const;
+	qs::QSTATUS setProperty(const WCHAR* pwszSection,
+		const WCHAR* pwszKey, int nValue);
 	qs::QSTATUS getProperty(const WCHAR* pwszSection, const WCHAR* pwszName,
 		const WCHAR* pwszDefault, qs::WSTRING* pwstrValue) const;
+	qs::QSTATUS setProperty(const WCHAR* pwszSection,
+		const WCHAR* pwszName, const WCHAR* pwszValue);
 	
 	SubAccount* getSubAccount(const WCHAR* pwszName) const;
 	SubAccount* getSubAccountByIdentity(const WCHAR* pwszIdentity) const;

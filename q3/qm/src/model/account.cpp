@@ -924,6 +924,17 @@ QSTATUS qm::Account::getProperty(const WCHAR* pwszSection,
 		pwszSection, pwszKey, nDefault, pnValue);
 }
 
+QSTATUS qm::Account::setProperty(const WCHAR* pwszSection,
+	const WCHAR* pwszKey, int nValue)
+{
+	assert(pwszSection);
+	assert(pwszKey);
+	assert(!pImpl_->listSubAccount_.empty());
+	
+	return pImpl_->listSubAccount_.front()->setProperty(
+		pwszSection, pwszKey, nValue);
+}
+
 QSTATUS qm::Account::getProperty(const WCHAR* pwszSection,
 	const WCHAR* pwszName, const WCHAR* pwszDefault, WSTRING* pwstrValue) const
 {
@@ -934,6 +945,18 @@ QSTATUS qm::Account::getProperty(const WCHAR* pwszSection,
 	
 	return pImpl_->listSubAccount_.front()->getProperty(
 		pwszSection, pwszName, pwszDefault, pwstrValue);
+}
+
+QSTATUS qm::Account::setProperty(const WCHAR* pwszSection,
+	const WCHAR* pwszName, const WCHAR* pwszValue)
+{
+	assert(pwszSection);
+	assert(pwszName);
+	assert(pwszValue);
+	assert(!pImpl_->listSubAccount_.empty());
+	
+	return pImpl_->listSubAccount_.front()->setProperty(
+		pwszSection, pwszName, pwszValue);
 }
 
 SubAccount* qm::Account::getSubAccount(const WCHAR* pwszName) const

@@ -216,6 +216,9 @@ public:
 		WCHAR cSeparator, unsigned int nAttributes,
 		qs::WSTRING* pwstrName, unsigned int* pnFlags) const;
 
+public:
+	static qs::QSTATUS saveSpecialFolders(qm::Account* pAccount);
+
 private:
 	FolderUtil(const FolderUtil&);
 	FolderUtil& operator=(const FolderUtil&);

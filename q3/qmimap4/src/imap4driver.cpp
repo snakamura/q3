@@ -307,6 +307,9 @@ QSTATUS qmimap4::Imap4Driver::getRemoteFolders(
 	
 	Lock<CriticalSection> lock(cs_);
 	
+	status = FolderUtil::saveSpecialFolders(pAccount_);
+	CHECK_QSTATUS();
+	
 	FolderListGetter getter(pAccount_, pSubAccount, pSecurity_, &status);
 	CHECK_QSTATUS();
 	status = getter.getFolders(pList);
@@ -1459,6 +1462,41 @@ QSTATUS qmimap4::FolderUtil::getFolderData(const WCHAR* pwszName,
 	
 	*pwstrName = wstr.release();
 	*pnFlags = nFlags;
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qmimap4::FolderUtil::saveSpecialFolders(Account* pAccount)
+{
+	DECLARE_QSTATUS();
+	
+	struct {
+		Folder::Flag flag_;
+		const WCHAR* pwszKey_;
+	} flags[] = {
+		{ Folder::FLAG_OUTBOX,		L"OutboxFolder"		},
+		{ Folder::FLAG_DRAFTBOX,	L"DraftboxFolder"	},
+		{ Folder::FLAG_SENTBOX,		L"SentboxFolder"	},
+		{ Folder::FLAG_TRASHBOX,	L"TrashFolder"		}
+	};
+	
+	const Account::FolderList& l = pAccount->getFolders();
+	Account::FolderList::const_iterator it = l.begin();
+	while (it != l.end()) {
+		Folder* pFolder = *it;
+		unsigned int nBoxFlags = pFolder->getFlags() & Folder::FLAG_BOX_MASK;
+		for (int n = 0; n < countof(flags); ++n) {
+			if (nBoxFlags & flags[n].flag_) {
+				string_ptr<WSTRING> wstrName;
+				status = pFolder->getFullName(&wstrName);
+				CHECK_QSTATUS();
+				status = pAccount->setProperty(L"Imap4",
+					flags[n].pwszKey_, wstrName.get());
+				CHECK_QSTATUS();
+			}
+		}
+		++it;
+	}
 	
 	return QSTATUS_SUCCESS;
 }
