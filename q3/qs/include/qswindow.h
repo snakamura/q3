@@ -1312,7 +1312,7 @@ protected:
 	virtual bool getToolbarButtons(Toolbar* pToolbar);
 	virtual bool createToolbarButtons(void* pCreateParam,
 									  HWND hwndToolbar);
-#if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
+#ifdef _WIN32_WCE
 	virtual UINT getBarId(int n) const = 0;
 	virtual bool getCommandBandsRestoreInfo(int n,
 											COMMANDBANDSRESTOREINFO* pcbri) const = 0;
@@ -1496,7 +1496,7 @@ private:
 #endif // QS_KANJIIN
 
 
-#if _WIN32_WCE >= 200 && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
+#if _WIN32_WCE >= 200
 
 /****************************************************************************
  *
@@ -1527,7 +1527,7 @@ private:
 	CommandBand& operator=(const CommandBand&);
 };
 
-#endif // _WIN32_WCE >= 200 && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
+#endif // _WIN32_WCE >= 200
 
 
 /****************************************************************************

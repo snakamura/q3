@@ -355,15 +355,17 @@ void qm::EditFrameWindowImpl::layoutChildren(int cx,
 {
 	bLayouting_ = true;
 	
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
-	int nToolbarHeight = 0;
-#else
 	HWND hwndToolbar = pThis_->getToolbar();
 	RECT rectToolbar;
 	Window wndToolbar(hwndToolbar);
 	wndToolbar.getWindowRect(&rectToolbar);
-	int nToolbarHeight = bShowToolbar_ ?
-		rectToolbar.bottom - rectToolbar.top : 0;
+	int nToolbarHeight = rectToolbar.bottom - rectToolbar.top;
+#if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+	int nTopBarHeight = 0;
+	int nBottomBarHeight = bShowToolbar_ ? nToolbarHeight : 0;
+#else
+	int nTopBarHeight = bShowToolbar_ ? nToolbarHeight : 0;
+	int nBottomBarHeight = 0;
 #endif
 	
 	RECT rectStatusBar;
@@ -371,18 +373,19 @@ void qm::EditFrameWindowImpl::layoutChildren(int cx,
 	int nStatusBarHeight = bShowStatusBar_ ?
 		rectStatusBar.bottom - rectStatusBar.top : 0;
 	
-#if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
-	wndToolbar.setWindowPos(0, 0, 0, cx,
-		rectToolbar.bottom - rectToolbar.top, SWP_NOMOVE | SWP_NOZORDER);
-	wndToolbar.showWindow(bShowToolbar_ ? SW_SHOW : SW_HIDE);
+#if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+	wndToolbar.setWindowPos(0, 0, cy - nToolbarHeight, cx, nToolbarHeight, SWP_NOZORDER);
+#else
+	wndToolbar.setWindowPos(0, 0, 0, cx, nToolbarHeight, SWP_NOMOVE | SWP_NOZORDER);
 #endif
+	wndToolbar.showWindow(bShowToolbar_ ? SW_SHOW : SW_HIDE);
 	
-	pStatusBar_->setWindowPos(0, 0, cy - nStatusBarHeight,
+	pStatusBar_->setWindowPos(0, 0, cy - nStatusBarHeight - nBottomBarHeight,
 		cx, rectStatusBar.bottom - rectStatusBar.top, SWP_NOZORDER);
 	pStatusBar_->showWindow(bShowStatusBar_ ? SW_SHOW : SW_HIDE);
 	
-	pEditWindow_->setWindowPos(0, 0, nToolbarHeight, cx,
-		cy - nStatusBarHeight - nToolbarHeight, SWP_NOZORDER);
+	pEditWindow_->setWindowPos(0, 0, nTopBarHeight, cx,
+		cy - nStatusBarHeight - nTopBarHeight - nBottomBarHeight, SWP_NOZORDER);
 	
 	int nWidth[] = {
 		cx - 110,
@@ -520,7 +523,7 @@ bool qm::EditFrameWindow::createToolbarButtons(void* pCreateParam,
 	return pImpl_->pToolbarCookie_ != 0;
 }
 
-#if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
+#ifdef _WIN32_WCE
 UINT qm::EditFrameWindow::getBarId(int n) const
 {
 	assert(n == 0 || n == 1);
@@ -678,11 +681,14 @@ LRESULT qm::EditFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		return -1;
 	pImpl_->pEditWindow_ = pEditWindow.release();
 	
+	DWORD dwStatusBarStyle = dwStyle;
+#if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+	dwStatusBarStyle |= CCS_NOPARENTALIGN;
+#endif
 	std::auto_ptr<StatusBar> pStatusBar(new StatusBar());
-	if (!pStatusBar->create(L"QmStatusBarWindow",
-		0, dwStyle, CW_USEDEFAULT, CW_USEDEFAULT,
-		CW_USEDEFAULT, CW_USEDEFAULT, getHandle(), 0,
-		STATUSCLASSNAMEW, EditFrameWindowImpl::ID_STATUSBAR, 0))
+	if (!pStatusBar->create(L"QmStatusBarWindow", 0, dwStatusBarStyle,
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, getHandle(),
+		0, STATUSCLASSNAMEW, EditFrameWindowImpl::ID_STATUSBAR, 0))
 		return -1;
 	pImpl_->pStatusBar_ = pStatusBar.release();
 	

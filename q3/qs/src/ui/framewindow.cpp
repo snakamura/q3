@@ -145,7 +145,6 @@ void qs::FrameWindow::adjustWindowSize(LPARAM lParam)
 
 void qs::FrameWindow::processIdle()
 {
-#ifndef _WIN32_WCE_PSPC
 	HWND hwnd = getToolbar();
 #ifdef _WIN32_WCE
 	if (Window(hwnd).isVisible()) {
@@ -168,12 +167,20 @@ void qs::FrameWindow::processIdle()
 			}
 		}
 	}
-#endif
 }
 
 bool qs::FrameWindow::save()
 {
-#if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
+#if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+	HWND hwndToolbar = getToolbar();
+	if (hwndToolbar) {
+		COMMANDBANDSRESTOREINFO cbri = { sizeof(cbri) };
+		if (CommandBands_GetRestoreInformation(hwndToolbar, 0, &cbri) && cbri.wID != -1) {
+			if (!setCommandBandsRestoreInfo(1, cbri))
+				return false;
+		}
+	}
+#elif defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
 	HWND hwndToolbar = getToolbar();
 	if (hwndToolbar) {
 		int nStored = 0;
@@ -287,7 +294,6 @@ LRESULT qs::FrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 			};
 			if (!::SHCreateMenuBar(&mbi))
 				return -1;
-			pImpl_->hwndBands_ = mbi.hwndMB;
 			if (hmenu) {
 				int nId = 1000;
 				TCHAR tszText[256];
@@ -318,7 +324,7 @@ LRESULT qs::FrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 						reinterpret_cast<DWORD_PTR>(mii.hSubMenu),
 						reinterpret_cast<INT_PTR>(tszText)
 					};
-					::SendMessage(pImpl_->hwndBands_, TB_INSERTBUTTON, n,
+					::SendMessage(mbi.hwndMB, TB_INSERTBUTTON, n,
 						reinterpret_cast<LPARAM>(&button));
 				}
 				while (::RemoveMenu(hmenu, 0, MF_BYPOSITION))
@@ -327,9 +333,50 @@ LRESULT qs::FrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 			}
 			std::auto_ptr<MenuBarWindow> pMenuBarWindow(
 				new MenuBarWindow(getHandle()));
-			if (!pMenuBarWindow->subclassWindow(pImpl_->hwndBands_))
+			if (!pMenuBarWindow->subclassWindow(mbi.hwndMB))
 				return -1;
 			pMenuBarWindow.release();
+			
+			pImpl_->hwndBands_ = CommandBands_Create(getInstanceHandle(), getHandle(),
+				toolbar.nId_, RBS_VARHEIGHT | RBS_BANDBORDERS | CCS_NOPARENTALIGN, 0);
+			if (!pImpl_->hwndBands_)
+				return -1;
+			
+			COMMANDBANDSRESTOREINFO cbri;
+			if (!getCommandBandsRestoreInfo(1, &cbri))
+				return -1;
+			if (cbri.cbSize != sizeof(cbri)) {
+				cbri.cbSize = sizeof(cbri);
+				cbri.wID = getBarId(1);
+				cbri.fStyle = RBBS_NOGRIPPER;
+				cbri.cxRestored = 320;
+				cbri.fMaximized = true;
+			}
+			REBARBANDINFO rbbi;
+			rbbi.cbSize = sizeof(REBARBANDINFO);
+			rbbi.fMask = RBBIM_ID | RBBIM_STYLE| RBBIM_SIZE;
+			rbbi.fStyle = cbri.fStyle;
+			rbbi.wID = cbri.wID;
+			rbbi.cx = cbri.cxRestored;
+			CommandBands_AddBands(pImpl_->hwndBands_, getInstanceHandle(), 1, &rbbi);
+			
+			HWND hwndBarButton = CommandBands_GetCommandBar(pImpl_->hwndBands_, 0);
+			if (toolbar.nBitmapCount_ != 0)
+				CommandBar_AddBitmap(hwndBarButton, pImpl_->hInstResource_,
+					toolbar.nBitmapId_, toolbar.nBitmapCount_, 0, 0);
+			if (toolbar.nSize_ != 0)
+				CommandBar_AddButtons(hwndBarButton, toolbar.nSize_, toolbar.ptbButton_);
+			
+			if (!createToolbarButtons(pCreateStruct->lpCreateParams, hwndBarButton))
+				return -1;
+			
+			if (cbri.fMaximized)
+				::SendMessage(pImpl_->hwndBands_, RB_MAXIMIZEBAND, 0, 0);
+			
+			std::auto_ptr<CommandBand> pCommandBand(new CommandBand(true));
+			if (!pCommandBand->subclassWindow(pImpl_->hwndBands_))
+				return -1;
+			pCommandBand.release();
 #elif _WIN32_WCE >= 200
 			pImpl_->hwndBands_ = CommandBands_Create(getInstanceHandle(),
 				getHandle(), toolbar.nId_, RBS_VARHEIGHT | RBS_BANDBORDERS, 0);

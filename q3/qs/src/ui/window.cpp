@@ -1664,7 +1664,7 @@ DefWindowProcHolder* qs::DefaultWindowHandler::getDefWindowProcHolder()
 }
 
 
-#if _WIN32_WCE >= 200 && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
+#if _WIN32_WCE >= 200
 
 /****************************************************************************
  *
@@ -1707,7 +1707,7 @@ LRESULT qs::CommandBand::onSize(UINT nFlags,
 	return DefaultWindowHandler::onSize(nFlags, cx, cy);
 }
 
-#endif // _WIN32_WCE >= 200 && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
+#endif // _WIN32_WCE >= 200
 
 
 /****************************************************************************
