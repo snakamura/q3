@@ -610,7 +610,7 @@ int CALLBACK itemComp(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 		break;
 	}
 	
-	int nComp = p1 == p2 ? 0 : !p1 ? -1 : !p2 ? 1 : wcscmp(p1, p2);
+	int nComp = p1 == p2 ? 0 : !p1 ? -1 : !p2 ? 1 : _wcsicmp(p1, p2);
 	return (lParamSort & AddressBookDialog::SORT_DIRECTION_MASK)
 		== AddressBookDialog::SORT_ASCENDING ? nComp : -nComp;
 }
