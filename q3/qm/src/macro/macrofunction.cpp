@@ -1958,9 +1958,7 @@ void qm::MacroFunctionFormatAddress::replacePhrase(AddressBook* pAddressBook,
 	}
 	else {
 		if (!pAddress->getPhrase() || bForce) {
-			wstring_ptr wstrAddress(concat(
-				pAddress->getMailbox(), L"@", pAddress->getHost()));
-			
+			wstring_ptr wstrAddress(pAddress->getAddress());
 			const AddressBookEntry* pEntry = pAddressBook->getEntry(wstrAddress.get());
 			if (pEntry)
 				pAddress->setPhrase(pEntry->getName());
