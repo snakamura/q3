@@ -202,8 +202,10 @@ unsigned int qm::LineLayoutLine::layout(const RECT& rect,
 	}
 	
 	unsigned int nHeight = 0;
-	for (ItemList::size_type n = 0; n < listItem_.size(); ++n)
-		nHeight = QSMAX(nHeight, listItem_[n]->getHeight(listWidth[n], nFontHeight));
+	for (ItemList::size_type n = 0; n < listItem_.size(); ++n) {
+		unsigned int nItemHeight = listItem_[n]->getHeight(listWidth[n], nFontHeight);
+		nHeight = QSMAX(nHeight, nItemHeight);
+	}
 	if (nHeight == 0)
 		return 0;
 	
