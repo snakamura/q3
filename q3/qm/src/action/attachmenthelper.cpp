@@ -15,6 +15,7 @@
 #include <qswindow.h>
 
 #include <commdlg.h>
+#include <tchar.h>
 
 #include "attachmenthelper.h"
 #include "../model/tempfilecleaner.h"
@@ -275,7 +276,7 @@ AttachmentParser::Result qm::AttachmentHelper::open(const Part* pPart,
 		sizeof(sei),
 		0,
 		hwnd_,
-		0,
+		_T("open"),
 		0,
 		0,
 		0,

@@ -27,6 +27,8 @@
 
 #include <algorithm>
 
+#include <tchar.h>
+
 #include "macro.h"
 #include "../model/addressbook.h"
 #include "../model/uri.h"
@@ -1291,7 +1293,7 @@ MacroValuePtr qm::MacroFunctionExecute::value(MacroContext* pContext) const
 			sizeof(sei),
 			0,
 			pContext->getWindow(),
-			0,
+			_T("open"),
 			ptszCommand,
 			ptszParam,
 			0,

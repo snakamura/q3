@@ -14,6 +14,8 @@
 #include <qsosutil.h>
 #include <qsstream.h>
 
+#include <tchar.h>
+
 #include "externaleditor.h"
 #include "securitymodel.h"
 #include "uiutil.h"
@@ -98,7 +100,7 @@ bool qm::ExternalEditorManager::open(const WCHAR* pwszMessage)
 		sizeof(sei),
 		SEE_MASK_NOCLOSEPROCESS,
 		hwnd_,
-		0,
+		_T("open"),
 		ptszFile,
 		ptszParam,
 		0,
