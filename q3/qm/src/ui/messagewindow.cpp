@@ -179,8 +179,10 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	Account* pAccount = pMessageModel_->getCurrentAccount();
 	assert(!pmh || pmh->getFolder()->getAccount() == pAccount);
 	
-	if (nSeenTimerId_ != 0)
+	if (nSeenTimerId_ != 0) {
 		pThis_->killTimer(nSeenTimerId_);
+		nSeenTimerId_ = 0;
+	}
 	
 	MessageViewMode* pMode = pMessageViewModeHolder_->getMessageViewMode();
 	bool bRawMode = pMode && pMode->isMode(MessageViewMode::MODE_RAW);
@@ -668,6 +670,9 @@ LRESULT qm::MessageWindow::onTimer(UINT nId)
 			pAccount->setMessagesFlags(MessageHolderList(1, mpl),
 				MessageHolder::FLAG_SEEN, MessageHolder::FLAG_SEEN, 0);
 		}
+		
+		killTimer(pImpl_->nSeenTimerId_);
+		pImpl_->nSeenTimerId_ = 0;
 	}
 	return 0;
 }
