@@ -1,8 +1,20 @@
 {
-	@Header('Message-Id,Subject,To,Cc,Bcc,From,Date,MIME-Version,Content-Type,Content-Transfer-Encoding,Content-Disposition,X-Mailer,X-QMAIL-Account,X-QMAIL-Macro')
+  @Header('Message-Id,Subject,From,Date,MIME-Version,Content-Type,Content-Transfer-Encoding,Content-Disposition,X-Mailer,X-QMAIL-Account,X-QMAIL-Macro')
 }Subject: {@Subject()}
-X-QMAIL-Account: {@Account()}{@If(X-QMAIL-SubAccount, @Concat('\nX-QMAIL-SubAccount: ', X-QMAIL-SubAccount), '')}
-X-QMAIL-Macro: @ForEach(@Messages('{@Concat('//', @Account(), '/', @Folder())}', {@Id()}), @Delete())
+X-QMAIL-Account: {@Account()}{
+  @If(X-QMAIL-SubAccount,
+      @Concat('\nX-QMAIL-SubAccount: ', X-QMAIL-SubAccount),
+      '')}{
+  @If(@Or(@Equal(@Folder(), @SpecialFolder('Outbox')),
+          @Equal(@Folder(), @SpecialFolder('Draftbox'))),
+      @Concat('\nX-QMAIL-Macro: @ForEach(@Messages(\'//',
+              @Account(),
+              '/',
+              @Folder(),
+              '\', ',
+              @Id(),
+              '), @Delete())'),
+      '')}
 X-QMAIL-Attachment: {@Attachment(',', @True())}
 
 {@Body('', 2)}
