@@ -61,6 +61,7 @@ private:
 	HWND hwnd_;
 	NewMailCheckerCallback* pCallback_;
 	qs::WSTRING wstrCourse_;
+	bool bOnlyWhenConnected_;
 	qs::Timer* pTimer_;
 	unsigned int nId_;
 };
