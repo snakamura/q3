@@ -42,8 +42,7 @@ public:
 	virtual ~FolderModelBase();
 
 public:
-	virtual Account* getCurrentAccount() const = 0;
-	virtual Folder* getCurrentFolder() const = 0;
+	virtual std::pair<Account*, Folder*> getCurrent() const = 0;
 	virtual std::pair<Account*, Folder*> getTemporary() const = 0;
 };
 
@@ -83,8 +82,7 @@ public:
 	~DefaultFolderModel();
 
 public:
-	virtual Account* getCurrentAccount() const;
-	virtual Folder* getCurrentFolder() const;
+	virtual std::pair<Account*, Folder*> getCurrent() const;
 	virtual std::pair<Account*, Folder*> getTemporary() const;
 
 public:

@@ -721,12 +721,8 @@ const WCHAR* qm::SubAccountMenu::getName(unsigned int nId) const
 {
 	const WCHAR* pwszName = 0;
 	
-	Account* pAccount = pFolderModel_->getCurrentAccount();
-	if (!pAccount) {
-		Folder* pFolder = pFolderModel_->getCurrentFolder();
-		if (pFolder)
-			pAccount = pFolder->getAccount();
-	}
+	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
+	Account* pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
 	if (pAccount) {
 		const Account::SubAccountList& listSubAccount = pAccount->getSubAccounts();
 		if (nId - IDM_TOOL_SUBACCOUNT < listSubAccount.size()) {
@@ -743,13 +739,8 @@ bool qm::SubAccountMenu::createMenu(HMENU hmenu)
 	UINT nId = IDM_TOOL_SUBACCOUNT + 1;
 	while (::DeleteMenu(hmenu, nId++, MF_BYCOMMAND));
 	
-	Account* pAccount = pFolderModel_->getCurrentAccount();
-	if (!pAccount) {
-		Folder* pFolder = pFolderModel_->getCurrentFolder();
-		if (pFolder)
-			pAccount = pFolder->getAccount();
-	}
-	
+	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
+	Account* pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
 	if (pAccount) {
 		const Account::SubAccountList& l = pAccount->getSubAccounts();
 		assert(!l.empty());

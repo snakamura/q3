@@ -800,17 +800,11 @@ void qm::FolderWindowImpl::refreshFolderList(Account* pAccount)
 	
 	TreeView_Expand(pThis_->getHandle(), hItem, TVE_EXPAND);
 	
-	Account* pCurrentAccount = pFolderModel_->getCurrentAccount();
-	if (pCurrentAccount) {
-		TreeView_SelectItem(pThis_->getHandle(),
-			getHandleFromAccount(pCurrentAccount));
-	}
-	else {
-		Folder* pCurrentFolder = pFolderModel_->getCurrentFolder();
-		if (pCurrentFolder)
-			TreeView_SelectItem(pThis_->getHandle(),
-				getHandleFromFolder(pCurrentFolder));
-	}
+	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
+	if (p.first)
+		TreeView_SelectItem(pThis_->getHandle(), getHandleFromAccount(p.first));
+	else if (p.second)
+		TreeView_SelectItem(pThis_->getHandle(), getHandleFromFolder(p.second));
 }
 
 void qm::FolderWindowImpl::addAccount(Account* pAccount)

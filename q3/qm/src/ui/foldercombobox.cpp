@@ -363,17 +363,11 @@ void qm::FolderComboBoxImpl::refreshFolderList(Account* pAccount,
 	
 	insertFolders(nIndex - 1, pAccount, bDropDown);
 	
-	Account* pCurrentAccount = pFolderModel_->getCurrentAccount();
-	if (pCurrentAccount) {
-		ComboBox_SetCurSel(pThis_->getHandle(),
-			getIndexFromAccount(pCurrentAccount));
-	}
-	else {
-		Folder* pCurrentFolder = pFolderModel_->getCurrentFolder();
-		if (pCurrentFolder)
-			ComboBox_SetCurSel(pThis_->getHandle(),
-				getIndexFromFolder(pCurrentFolder));
-	}
+	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
+	if (p.first)
+		ComboBox_SetCurSel(pThis_->getHandle(), getIndexFromAccount(p.first));
+	else if (p.second)
+		ComboBox_SetCurSel(pThis_->getHandle(), getIndexFromFolder(p.second));
 }
 
 void qm::FolderComboBoxImpl::addAccount(Account* pAccount,

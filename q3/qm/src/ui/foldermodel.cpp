@@ -56,14 +56,9 @@ qm::DefaultFolderModel::~DefaultFolderModel()
 {
 }
 
-Account* qm::DefaultFolderModel::getCurrentAccount() const
+std::pair<Account*, Folder*> qm::DefaultFolderModel::getCurrent() const
 {
-	return pCurrentAccount_;
-}
-
-Folder* qm::DefaultFolderModel::getCurrentFolder() const
-{
-	return pCurrentFolder_;
+	return std::make_pair(pCurrentAccount_, pCurrentFolder_);
 }
 
 std::pair<Account*, Folder*> qm::DefaultFolderModel::getTemporary() const

@@ -3307,7 +3307,9 @@ public:
 	static void getSelected(FolderSelectionModel* pModel,
 							Account::FolderList* pListFolder);
 	static bool hasSelected(FolderSelectionModel* pModel);
+	static std::pair<Account*, Folder*> getCurrent(FolderModel* pModel);
 	static Account* getAccount(FolderModel* pModel);
+	static Folder* getFolder(FolderModel* pModel);
 };
 
 

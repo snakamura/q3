@@ -75,12 +75,8 @@ bool qm::MessageComposer::compose(Account* pAccount,
 			pAccount = pDocument_->getAccount(account.getValue());
 		}
 		else {
-			pAccount = pFolderModel_->getCurrentAccount();
-			if (!pAccount) {
-				Folder* pFolder = pFolderModel_->getCurrentFolder();
-				if (pFolder)
-					pAccount = pFolder->getAccount();
-			}
+			std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
+			pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
 		}
 	}
 	if (!pAccount)

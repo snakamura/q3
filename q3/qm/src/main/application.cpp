@@ -399,15 +399,11 @@ void qm::ApplicationImpl::saveCurrentFolder()
 	wstring_ptr wstr;
 	
 	FolderModel* pFolderModel = pMainWindow_->getFolderModel();
-	Account* pAccount = pFolderModel->getCurrentAccount();
-	if (pAccount) {
-		wstr = UIUtil::formatAccount(pAccount);
-	}
-	else {
-		Folder* pFolder = pFolderModel->getCurrentFolder();
-		if (pFolder)
-			wstr = UIUtil::formatFolder(pFolder);
-	}
+	std::pair<Account*, Folder*> p(pFolderModel->getCurrent());
+	if (p.first)
+		wstr = UIUtil::formatAccount(p.first);
+	else if (p.second)
+		wstr = UIUtil::formatFolder(p.second);
 	
 	pProfile_->setString(L"Global", L"CurrentFolder", wstr.get() ? wstr.get() : L"");
 }

@@ -87,12 +87,8 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 	Account* pAccount = pAccountForced;
 	Folder* pFolder = 0;
 	if (!pAccount) {
-		pAccount = pFolderModel_->getCurrentAccount();
-		if (!pAccount) {
-			pFolder = pFolderModel_->getCurrentFolder();
-			if (pFolder)
-				pAccount = pFolder->getAccount();
-		}
+		std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
+		pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
 		if (!pAccount)
 			return false;
 	}

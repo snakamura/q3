@@ -1289,10 +1289,13 @@ void qm::MainWindowImpl::accountSelected(const FolderModelEvent& event)
 
 void qm::MainWindowImpl::folderSelected(const FolderModelEvent& event)
 {
-	pFolderListModel_->setAccount(0);
-	pViewModelManager_->setCurrentFolder(event.getFolder());
+	assert(event.getFolder() == pFolderModel_->getCurrent().second);
 	
-	Folder* pFolder = pFolderModel_->getCurrentFolder();
+	Folder* pFolder = event.getFolder();
+	
+	pFolderListModel_->setAccount(0);
+	pViewModelManager_->setCurrentFolder(pFolder);
+	
 	if (!pDocument_->isOffline()) {
 		if (pFolder->getType() == Folder::TYPE_NORMAL &&
 			pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
@@ -1315,7 +1318,7 @@ Account* qm::MainWindowImpl::getAccount()
 		return pFolderListModel_->getFocusedFolder() ?
 			0 : pFolderListModel_->getAccount();
 	else
-		return pFolderModel_->getCurrentAccount();
+		return pFolderModel_->getCurrent().first;
 }
 
 void qm::MainWindowImpl::getSelectedFolders(Account::FolderList* pList)
@@ -1326,7 +1329,7 @@ void qm::MainWindowImpl::getSelectedFolders(Account::FolderList* pList)
 		pFolderListModel_->getSelectedFolders(pList);
 	}
 	else {
-		Folder* pFolder = pFolderModel_->getCurrentFolder();
+		Folder* pFolder = pFolderModel_->getCurrent().second;
 		if (pFolder)
 			pList->push_back(pFolder);
 	}
@@ -1337,7 +1340,7 @@ bool qm::MainWindowImpl::hasSelectedFolder()
 	if (pFolderListWindow_->isActive())
 		return pFolderListModel_->hasSelectedFolder();
 	else
-		return pFolderModel_->getCurrentFolder() != 0;
+		return pFolderModel_->getCurrent().second != 0;
 }
 
 Folder* qm::MainWindowImpl::getFocusedFolder()
@@ -1345,7 +1348,7 @@ Folder* qm::MainWindowImpl::getFocusedFolder()
 	if (pFolderListWindow_->isActive())
 		return pFolderListModel_->getFocusedFolder();
 	else
-		return pFolderModel_->getCurrentFolder();
+		return pFolderModel_->getCurrent().second;
 }
 
 std::pair<Account*, Folder*> qm::MainWindowImpl::getTemporaryFocused()
@@ -2311,12 +2314,8 @@ LRESULT qm::MainWindow::onInitMenuPopup(HMENU hmenu,
 			nIdLast = mii.wID;
 		}
 		
-		Account* pAccount = pImpl_->pFolderModel_->getCurrentAccount();
-		if (!pAccount) {
-			Folder* pFolder = pImpl_->pFolderModel_->getCurrentFolder();
-			if (pFolder)
-				pAccount = pFolder->getAccount();
-		}
+		std::pair<Account*, Folder*> p(pImpl_->pFolderModel_->getCurrent());
+		Account* pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
 		if (nIdLast == IDM_MESSAGE_MOVEOTHER) {
 			if (pAccount)
 				pImpl_->pMoveMenu_->createMenu(hmenu, pAccount,

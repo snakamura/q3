@@ -545,7 +545,7 @@ qm::EditClearDeletedAction::~EditClearDeletedAction()
 
 void qm::EditClearDeletedAction::invoke(const ActionEvent& event)
 {
-	Folder* pFolder = pFolderModel_->getCurrentFolder();
+	Folder* pFolder = FolderActionUtil::getFolder(pFolderModel_);
 	if (!pFolder)
 		return;
 	
@@ -580,7 +580,7 @@ void qm::EditClearDeletedAction::invoke(const ActionEvent& event)
 
 bool qm::EditClearDeletedAction::isEnabled(const ActionEvent& event)
 {
-	Folder* pFolder = pFolderModel_->getCurrentFolder();
+	Folder* pFolder = FolderActionUtil::getFolder(pFolderModel_);
 	if (!pFolder)
 		return false;
 	switch (pFolder->getType()) {
@@ -970,7 +970,7 @@ qm::EditPasteMessageAction::~EditPasteMessageAction()
 
 void qm::EditPasteMessageAction::invoke(const ActionEvent& event)
 {
-	Folder* pFolder = pFolderModel_->getCurrentFolder();
+	Folder* pFolder = FolderActionUtil::getFolder(pFolderModel_);
 	if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL &&
 		!pFolder->isFlag(Folder::FLAG_NOSELECT)) {
 		ComPtr<IDataObject> pDataObject(MessageDataObject::getClipboard(pDocument_));
@@ -1005,7 +1005,7 @@ void qm::EditPasteMessageAction::invoke(const ActionEvent& event)
 
 bool qm::EditPasteMessageAction::isEnabled(const ActionEvent& event)
 {
-	Folder* pFolder = pFolderModel_->getCurrentFolder();
+	Folder* pFolder = FolderActionUtil::getFolder(pFolderModel_);
 	if (!pFolder || pFolder->getType() != Folder::TYPE_NORMAL ||
 		pFolder->isFlag(Folder::FLAG_NOSELECT))
 		return false;
@@ -1058,54 +1058,50 @@ qm::FileCheckAction::~FileCheckAction()
 
 void qm::FileCheckAction::invoke(const ActionEvent& event)
 {
-	Account* pAccount = pFolderModel_->getCurrentAccount();
-	if (!pAccount) {
-		Folder* pFolder = pFolderModel_->getCurrentFolder();
-		if (pFolder)
-			pAccount = pFolder->getAccount();
-	}
-	if (pAccount) {
-		class AccountCheckCallbackImpl : public ProgressDialogMessageOperationCallbackBase<AccountCheckCallback>
+	Account* pAccount = FolderActionUtil::getAccount(pFolderModel_);
+	if (!pAccount)
+		return;
+	
+	class AccountCheckCallbackImpl : public ProgressDialogMessageOperationCallbackBase<AccountCheckCallback>
+	{
+	public:
+		AccountCheckCallbackImpl(HWND hwnd,
+								 UINT nTitle,
+								 UINT nMessage) :
+			ProgressDialogMessageOperationCallbackBase<AccountCheckCallback>(hwnd, nTitle, nMessage)
 		{
-		public:
-			AccountCheckCallbackImpl(HWND hwnd,
-									 UINT nTitle,
-									 UINT nMessage) :
-				ProgressDialogMessageOperationCallbackBase<AccountCheckCallback>(hwnd, nTitle, nMessage)
-			{
-			}
-		
-		public:
-			virtual Ignore isIgnoreError(MessageHolder* pmh)
-			{
-				HINSTANCE hInst = Application::getApplication().getResourceHandle();
-				wstring_ptr wstrTemplate(loadString(hInst, IDS_IGNORECHECKERROR));
-				wstring_ptr wstrFolderName(pmh->getFolder()->getFullName());
-				wstring_ptr wstrMessage(allocWString(
-					wcslen(wstrTemplate.get()) + wcslen(wstrFolderName.get()) + 100));
-				const MessageHolder::MessageBoxKey& boxKey = pmh->getMessageBoxKey();
-				swprintf(wstrMessage.get(), wstrTemplate.get(), wstrFolderName.get(),
-					pmh->getId(), boxKey.nOffset_, boxKey.nLength_);
-				switch (messageBox(wstrMessage.get(), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2, getDialog()->getHandle())) {
-				case IDYES:
-					return ::GetKeyState(VK_SHIFT) < 0 ? IGNORE_ALL : IGNORE_TRUE;
-				default:
-					return IGNORE_FALSE;
-				}
-			}
-		};
-		
-		AccountCheckCallbackImpl callback(hwnd_, IDS_CHECK, IDS_CHECK);
-		if (!pAccount->check(&callback)) {
-			ActionUtil::error(hwnd_, IDS_ERROR_CHECK);
-			return;
 		}
+	
+	public:
+		virtual Ignore isIgnoreError(MessageHolder* pmh)
+		{
+			HINSTANCE hInst = Application::getApplication().getResourceHandle();
+			wstring_ptr wstrTemplate(loadString(hInst, IDS_IGNORECHECKERROR));
+			wstring_ptr wstrFolderName(pmh->getFolder()->getFullName());
+			wstring_ptr wstrMessage(allocWString(
+				wcslen(wstrTemplate.get()) + wcslen(wstrFolderName.get()) + 100));
+			const MessageHolder::MessageBoxKey& boxKey = pmh->getMessageBoxKey();
+			swprintf(wstrMessage.get(), wstrTemplate.get(), wstrFolderName.get(),
+				pmh->getId(), boxKey.nOffset_, boxKey.nLength_);
+			switch (messageBox(wstrMessage.get(), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2, getDialog()->getHandle())) {
+			case IDYES:
+				return ::GetKeyState(VK_SHIFT) < 0 ? IGNORE_ALL : IGNORE_TRUE;
+			default:
+				return IGNORE_FALSE;
+			}
+		}
+	};
+	
+	AccountCheckCallbackImpl callback(hwnd_, IDS_CHECK, IDS_CHECK);
+	if (!pAccount->check(&callback)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_CHECK);
+		return;
 	}
 }
 
 bool qm::FileCheckAction::isEnabled(const ActionEvent& event)
 {
-	return pFolderModel_->getCurrentAccount() || pFolderModel_->getCurrentFolder();
+	return FolderActionUtil::getAccount(pFolderModel_) != 0;
 }
 
 
@@ -1149,25 +1145,21 @@ qm::FileCompactAction::~FileCompactAction()
 
 void qm::FileCompactAction::invoke(const ActionEvent& event)
 {
-	Account* pAccount = pFolderModel_->getCurrentAccount();
-	if (!pAccount) {
-		Folder* pFolder = pFolderModel_->getCurrentFolder();
-		if (pFolder)
-			pAccount = pFolder->getAccount();
-	}
-	if (pAccount) {
-		ProgressDialogMessageOperationCallback callback(
-			hwnd_, IDS_COMPACT, IDS_COMPACT);
-		if (!pAccount->compact(&callback)) {
-			ActionUtil::error(hwnd_, IDS_ERROR_COMPACT);
-			return;
-		}
+	Account* pAccount = FolderActionUtil::getAccount(pFolderModel_);
+	if (pAccount)
+		return;
+	
+	ProgressDialogMessageOperationCallback callback(
+		hwnd_, IDS_COMPACT, IDS_COMPACT);
+	if (!pAccount->compact(&callback)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_COMPACT);
+		return;
 	}
 }
 
 bool qm::FileCompactAction::isEnabled(const ActionEvent& event)
 {
-	return pFolderModel_->getCurrentAccount() || pFolderModel_->getCurrentFolder();
+	return FolderActionUtil::getAccount(pFolderModel_) != 0;
 }
 
 
@@ -1190,14 +1182,9 @@ qm::FileDumpAction::~FileDumpAction()
 
 void qm::FileDumpAction::invoke(const ActionEvent& event)
 {
-	Account* pAccount = pFolderModel_->getCurrentAccount();
-	if (!pAccount) {
-		Folder* pFolder = pFolderModel_->getCurrentFolder();
-		if (!pFolder)
-			return;
-		pAccount = pFolder->getAccount();
-	}
-	
+	Account* pAccount = FolderActionUtil::getAccount(pFolderModel_);
+	if (pAccount)
+		return;
 	
 	wstring_ptr wstrPath(qs::UIUtil::browseFolder(hwnd_, 0, 0));
 	if (!wstrPath.get())
@@ -1231,7 +1218,7 @@ void qm::FileDumpAction::invoke(const ActionEvent& event)
 
 bool qm::FileDumpAction::isEnabled(const ActionEvent& event)
 {
-	return pFolderModel_->getCurrentAccount() || pFolderModel_->getCurrentFolder();
+	return FolderActionUtil::getAccount(pFolderModel_) != 0;
 }
 
 bool qm::FileDumpAction::dumpFolder(const WCHAR* pwszPath,
@@ -1646,7 +1633,7 @@ qm::FileImportAction::~FileImportAction()
 
 void qm::FileImportAction::invoke(const ActionEvent& event)
 {
-	Folder* pFolder = pFolderModel_->getCurrentFolder();
+	Folder* pFolder = FolderActionUtil::getFolder(pFolderModel_);
 	if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL) {
 		if (!import(static_cast<NormalFolder*>(pFolder))) {
 			ActionUtil::error(hwnd_, IDS_ERROR_IMPORT);
@@ -1670,7 +1657,7 @@ void qm::FileImportAction::invoke(const ActionEvent& event)
 
 bool qm::FileImportAction::isEnabled(const ActionEvent& event)
 {
-	Folder* pFolder = pFolderModel_->getCurrentFolder();
+	Folder* pFolder = FolderActionUtil::getFolder(pFolderModel_);
 	return pFolder && pFolder->getType() == Folder::TYPE_NORMAL;
 }
 
@@ -2039,14 +2026,9 @@ qm::FileLoadAction::~FileLoadAction()
 
 void qm::FileLoadAction::invoke(const ActionEvent& event)
 {
-	Account* pAccount = pFolderModel_->getCurrentAccount();
-	if (!pAccount) {
-		Folder* pFolder = pFolderModel_->getCurrentFolder();
-		if (!pFolder)
-			return;
-		pAccount = pFolder->getAccount();
-	}
-	
+	Account* pAccount = FolderActionUtil::getAccount(pFolderModel_);
+	if (!pAccount)
+		return;
 	
 	wstring_ptr wstrPath(qs::UIUtil::browseFolder(hwnd_, 0, 0));
 	if (!wstrPath.get())
@@ -2064,7 +2046,7 @@ void qm::FileLoadAction::invoke(const ActionEvent& event)
 
 bool qm::FileLoadAction::isEnabled(const ActionEvent& event)
 {
-	return pFolderModel_->getCurrentAccount() || pFolderModel_->getCurrentFolder();
+	return FolderActionUtil::getAccount(pFolderModel_) != 0;
 }
 
 bool qm::FileLoadAction::loadFolder(Account* pAccount,
@@ -2340,7 +2322,7 @@ qm::FileSalvageAction::~FileSalvageAction()
 
 void qm::FileSalvageAction::invoke(const ActionEvent& event)
 {
-	Folder* pFolder = pFolderModel_->getCurrentFolder();
+	Folder* pFolder = FolderActionUtil::getFolder(pFolderModel_);
 	if (!pFolder || pFolder->getType() != Folder::TYPE_NORMAL)
 		return;
 	
@@ -2355,7 +2337,7 @@ void qm::FileSalvageAction::invoke(const ActionEvent& event)
 
 bool qm::FileSalvageAction::isEnabled(const ActionEvent& event)
 {
-	Folder* pFolder = pFolderModel_->getCurrentFolder();
+	Folder* pFolder = FolderActionUtil::getFolder(pFolderModel_);
 	return pFolder && pFolder->getType() == Folder::TYPE_NORMAL;
 }
 
@@ -2553,8 +2535,6 @@ void qm::FolderDeleteAction::invoke(const ActionEvent& event)
 			}
 		}
 		
-		Account* pAccount = pFolderModel_->getCurrentAccount();
-		
 		for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 			Folder* pFolder = *it;
 			if (!deleteFolder(pFolder)) {
@@ -2583,7 +2563,7 @@ bool qm::FolderDeleteAction::deleteFolder(Folder* pFolder) const
 		return pAccount->moveFolder(pFolder, pTrash);
 	}
 	else {
-		if (pFolderModel_->getCurrentFolder() == pFolder) {
+		if (pFolderModel_->getCurrent().second == pFolder) {
 			Folder* pParent = pFolder->getParentFolder();
 			if (pParent)
 				pFolderModel_->setCurrent(0, pParent, false);
@@ -2743,7 +2723,7 @@ void qm::FolderEmptyTrashAction::emptyTrash(Account* pAccount,
 		Folder* pFolder = *it;
 		if (pFolder->getParentFolder() == pTrash) {
 			listChildren.push_back(pFolder);
-			if (pFolderModel->getCurrentFolder() == pFolder)
+			if (pFolderModel->getCurrent().second == pFolder)
 				bSelected = true;
 		}
 	}
@@ -3139,13 +3119,9 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 	
 	if (pFolderModel_) {
 		if (bAll_) {
-			Account* pAccount = pFolderModel_->getCurrentAccount();
-			if (!pAccount) {
-				Folder* pFolder = pFolderModel_->getCurrentFolder();
-				if (!pFolder)
-					return;
-				pAccount = pFolder->getAccount();
-			}
+			Account* pAccount = FolderActionUtil::getAccount(pFolderModel_);
+			if (!pAccount)
+				return;
 			Account::FolderList l(pAccount->getFolders());
 			std::sort(l.begin(), l.end(), FolderLess());
 			
@@ -3164,7 +3140,7 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 			}
 		}
 		else {
-			Folder* pFolder = pFolderModel_->getCurrentFolder();
+			Folder* pFolder = FolderActionUtil::getFolder(pFolderModel_);
 			if (pFolder) {
 				ProgressDialogInit init(&dialog, hwnd_);
 				if (!pRuleManager_->apply(pFolder, 0, pDocument_, hwnd_, pProfile_,
@@ -3194,8 +3170,7 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 bool qm::MessageApplyRuleAction::isEnabled(const ActionEvent& event)
 {
 	if (pFolderModel_)
-		return pFolderModel_->getCurrentFolder() != 0 ||
-			(bAll_ && pFolderModel_->getCurrentAccount() != 0);
+		return FolderActionUtil::getAccount(pFolderModel_) != 0;
 	else
 		return pMessageSelectionModel_->hasSelectedMessage();
 }
@@ -3233,12 +3208,8 @@ qm::MessageApplyTemplateAction::~MessageApplyTemplateAction()
 
 void qm::MessageApplyTemplateAction::invoke(const ActionEvent& event)
 {
-	Account* pAccount = pFolderModel_->getCurrentAccount();
-	if (!pAccount) {
-		Folder* pFolder = pFolderModel_->getCurrentFolder();
-		if (pFolder)
-			pAccount = pFolder->getAccount();
-	}
+	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
+	Account* pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
 	if (!pAccount)
 		return;
 	
@@ -3255,8 +3226,8 @@ void qm::MessageApplyTemplateAction::invoke(const ActionEvent& event)
 
 bool qm::MessageApplyTemplateAction::isEnabled(const ActionEvent& event)
 {
-	// TODO
-	return true;
+	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
+	return p.first || p.second;
 }
 
 
@@ -3478,8 +3449,8 @@ void qm::MessageCreateAction::invoke(const ActionEvent& event)
 
 bool qm::MessageCreateAction::isEnabled(const ActionEvent& event)
 {
-	return pFolderModel_->getCurrentAccount() ||
-		pFolderModel_->getCurrentFolder();
+	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
+	return p.first || p.second;
 }
 
 
@@ -4089,12 +4060,8 @@ void qm::MessageOpenURLAction::invoke(const ActionEvent& event)
 	if (::VariantChangeType(&v, pParam->ppvarArgs_[0], 0, VT_BSTR) != S_OK)
 		return;
 	
-	Account* pAccount = pFolderModel_->getCurrentAccount();
-	if (!pAccount) {
-		Folder* pFolder = pFolderModel_->getCurrentFolder();
-		if (pFolder)
-			pAccount = pFolder->getAccount();
-	}
+	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
+	Account* pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
 	if (!pAccount || wcscmp(pAccount->getClass(), L"mail") != 0) {
 		wstring_ptr wstrAccount(pProfile_->getString(L"Global", L"DefaultMailAccount", L""));
 		if (*wstrAccount.get()) {
@@ -4199,9 +4166,11 @@ qm::MessageSearchAction::~MessageSearchAction()
 
 void qm::MessageSearchAction::invoke(const ActionEvent& event)
 {
-	Folder* pFolder = pFolderModel_->getCurrentFolder();
-	Account* pAccount = pFolder ? pFolder->getAccount() :
-		pFolderModel_->getCurrentAccount();
+	std::pair<Account*, Folder*> p(FolderActionUtil::getCurrent(pFolderModel_));
+	Folder* pFolder = p.second;
+	Account* pAccount = p.first;
+	if (!pAccount)
+		return;
 	
 	Folder* pSearchFolder = pAccount->getFolderByFlag(Folder::FLAG_SEARCHBOX);
 	if (!pSearchFolder || pSearchFolder->getType() != Folder::TYPE_QUERY)
@@ -4303,8 +4272,8 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 
 bool qm::MessageSearchAction::isEnabled(const ActionEvent& event)
 {
-	return pFolderModel_->getCurrentFolder() ||
-		pFolderModel_->getCurrentAccount();
+	std::pair<Account*, Folder*> p(FolderActionUtil::getCurrent(pFolderModel_));
+	return p.first || p.second;
 }
 
 
@@ -4344,13 +4313,7 @@ void qm::ToolAccountAction::invoke(const ActionEvent& event)
 	if (!bOffline)
 		pDocument_->setOffline(true);
 	
-	Account* pAccount = pFolderModel_->getCurrentAccount();
-	if (!pAccount) {
-		Folder* pFolder = pFolderModel_->getCurrentFolder();
-		if (pFolder)
-			pAccount = pFolder->getAccount();
-	}
-	
+	Account* pAccount = FolderActionUtil::getAccount(pFolderModel_);
 	AccountDialog dialog(pDocument_, pAccount, pPasswordManager_,
 		pSyncManager_->getSyncFilterManager(), pProfile_);
 	dialog.doModal(hwnd_, 0);
@@ -4674,26 +4637,26 @@ void qm::ToolSubAccountAction::invoke(const ActionEvent& event)
 
 bool qm::ToolSubAccountAction::isEnabled(const ActionEvent& event)
 {
-	return !pSyncManager_->isSyncing() &&
-		(pFolderModel_->getCurrentAccount() || pFolderModel_->getCurrentFolder());
+	if (pSyncManager_->isSyncing())
+		return false;
+	
+	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
+	return p.first && p.second;
 }
 
 bool qm::ToolSubAccountAction::isChecked(const ActionEvent& event)
 {
-	Account* pAccount = pFolderModel_->getCurrentAccount();
-	if (!pAccount) {
-		Folder* pFolder = pFolderModel_->getCurrentFolder();
-		if (pFolder)
-			pAccount = pFolder->getAccount();
-	}
-	if (pAccount) {
-		const WCHAR* pwszName = pSubAccountMenu_->getName(event.getId());
-		if (pwszName) {
-			SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
-			return wcscmp(pSubAccount->getName(), pwszName) == 0;
-		}
-	}
-	return false;
+	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
+	Account* pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
+	if (!pAccount)
+		return false;
+	
+	const WCHAR* pwszName = pSubAccountMenu_->getName(event.getId());
+	if (!pwszName)
+		return false;
+	
+	SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
+	return wcscmp(pSubAccount->getName(), pwszName) == 0;
 }
 
 
@@ -4724,12 +4687,7 @@ qm::ToolSyncAction::~ToolSyncAction()
 
 void qm::ToolSyncAction::invoke(const ActionEvent& event)
 {
-	Account* pAccount = pFolderModel_->getCurrentAccount();
-	if (!pAccount) {
-		Folder* pFolder = pFolderModel_->getCurrentFolder();
-		assert(pFolder);
-		pAccount = pFolder->getAccount();
-	}
+	Account* pAccount = FolderActionUtil::getAccount(pFolderModel_);
 	if (!pAccount)
 		return;
 	
@@ -4744,8 +4702,7 @@ void qm::ToolSyncAction::invoke(const ActionEvent& event)
 
 bool qm::ToolSyncAction::isEnabled(const ActionEvent& event)
 {
-	return pFolderModel_->getCurrentAccount() ||
-		pFolderModel_->getCurrentFolder();
+	return FolderActionUtil::getAccount(pFolderModel_) != 0;
 }
 
 
@@ -5103,8 +5060,9 @@ qm::ViewNavigateFolderAction::~ViewNavigateFolderAction()
 
 void qm::ViewNavigateFolderAction::invoke(const ActionEvent& event)
 {
-	Account* pAccount = pFolderModel_->getCurrentAccount();
-	Folder* pFolder = pFolderModel_->getCurrentFolder();
+	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
+	Account* pAccount = p.first;
+	Folder* pFolder = p.second;
 	if (!pAccount) {
 		if (!pFolder)
 			return;
@@ -5197,8 +5155,8 @@ void qm::ViewNavigateFolderAction::invoke(const ActionEvent& event)
 
 bool qm::ViewNavigateFolderAction::isEnabled(const ActionEvent& event)
 {
-	return pFolderModel_->getCurrentAccount() ||
-		pFolderModel_->getCurrentFolder();
+	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
+	return p.first || p.second;
 }
 
 
@@ -5492,7 +5450,7 @@ qm::ViewRefreshAction::~ViewRefreshAction()
 
 void qm::ViewRefreshAction::invoke(const ActionEvent& event)
 {
-	Folder* pFolder = pFolderModel_->getCurrentFolder();
+	Folder* pFolder = pFolderModel_->getCurrent().second;
 	if (!pFolder)
 		return;
 	
@@ -5521,7 +5479,7 @@ void qm::ViewRefreshAction::invoke(const ActionEvent& event)
 
 bool qm::ViewRefreshAction::isEnabled(const ActionEvent& event)
 {
-	Folder* pFolder = pFolderModel_->getCurrentFolder();
+	Folder* pFolder = pFolderModel_->getCurrent().second;
 	return pFolder &&
 		(pFolder->getType() == Folder::TYPE_QUERY ||
 		pFolder->isFlag(Folder::FLAG_SYNCABLE));
@@ -6046,21 +6004,21 @@ bool qm::FolderActionUtil::hasSelected(FolderSelectionModel* pModel)
 		return pModel->hasSelectedFolder();
 }
 
-Account* qm::FolderActionUtil::getAccount(FolderModel* pModel)
+std::pair<Account*, Folder*> qm::FolderActionUtil::getCurrent(FolderModel* pModel)
 {
 	std::pair<Account*, Folder*> p(pModel->getTemporary());
-	if (p.first)
-		return p.first;
-	else if (p.second)
-		return p.second->getAccount();
-	
-	Account* pAccount = pModel->getCurrentAccount();
-	if (pAccount)
-		return pAccount;
-	
-	Folder* pFolder = pModel->getCurrentFolder();
-	if (pFolder)
-		return pFolder->getAccount();
-	
-	return 0;
+	if (!p.first && !p.second)
+		p = pModel->getCurrent();
+	return p;
+}
+
+Account* qm::FolderActionUtil::getAccount(FolderModel* pModel)
+{
+	std::pair<Account*, Folder*> p(getCurrent(pModel));
+	return p.first ? p.first : p.second ? p.second->getAccount() : 0;
+}
+
+Folder* qm::FolderActionUtil::getFolder(FolderModel* pModel)
+{
+	return getCurrent(pModel).second;
 }

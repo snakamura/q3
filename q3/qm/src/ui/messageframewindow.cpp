@@ -74,8 +74,7 @@ public:
 	virtual void statusTextChanged(const MessageWindowStatusTextEvent& event);
 
 public:
-	virtual Account* getCurrentAccount() const;
-	virtual Folder* getCurrentFolder() const;
+	virtual std::pair<Account*, Folder*> getCurrent() const;
 	virtual std::pair<Account*, Folder*> getTemporary() const;
 
 public:
@@ -528,16 +527,13 @@ void qm::MessageFrameWindowImpl::statusTextChanged(const MessageWindowStatusText
 		pStatusBar_->setText(0, event.getText());
 }
 
-Account* qm::MessageFrameWindowImpl::getCurrentAccount() const
+std::pair<Account*, Folder*> qm::MessageFrameWindowImpl::getCurrent() const
 {
 	ViewModel* pViewModel = pMessageModel_->getViewModel();
-	return pViewModel ? 0 : pMessageModel_->getCurrentAccount();
-}
-
-Folder* qm::MessageFrameWindowImpl::getCurrentFolder() const
-{
-	ViewModel* pViewModel = pMessageModel_->getViewModel();
-	return pViewModel ? pViewModel->getFolder() : 0;
+	if (pViewModel)
+		return std::make_pair(pMessageModel_->getCurrentAccount(), pViewModel->getFolder());
+	else
+		return std::pair<Account*, Folder*>(0, 0);
 }
 
 std::pair<Account*, Folder*> qm::MessageFrameWindowImpl::getTemporary() const
