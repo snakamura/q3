@@ -920,14 +920,16 @@ QSTATUS qm::MainWindowImpl::folderSelected(const FolderModelEvent& event)
 {
 	DECLARE_QSTATUS();
 	
-	Folder* pFolder = pFolderModel_->getCurrentFolder();
-	if (pFolder->getType() == Folder::TYPE_NORMAL &&
-		pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
-		pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
-		status = SyncUtil::syncFolder(pSyncManager_, pDocument_,
-			pSyncDialogManager_, pThis_->getHandle(),
-			static_cast<NormalFolder*>(pFolder));
-		CHECK_QSTATUS();
+	if (!pDocument_->isOffline()) {
+		Folder* pFolder = pFolderModel_->getCurrentFolder();
+		if (pFolder->getType() == Folder::TYPE_NORMAL &&
+			pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
+			pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
+			status = SyncUtil::syncFolder(pSyncManager_, pDocument_,
+				pSyncDialogManager_, pThis_->getHandle(),
+				static_cast<NormalFolder*>(pFolder));
+			CHECK_QSTATUS();
+		}
 	}
 	
 	return QSTATUS_SUCCESS;
