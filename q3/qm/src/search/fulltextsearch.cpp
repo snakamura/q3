@@ -309,7 +309,7 @@ bool qm::FullTextSearchPage::updateIndex()
 		0, 0, TRUE, 0, 0, 0, &si, &pi))
 		return false;
 	::CloseHandle(pi.hThread);
-	::WaitForSingleObject(pi.hProcess, INFINITE);
+//	::WaitForSingleObject(pi.hProcess, INFINITE);
 	::CloseHandle(pi.hProcess);
 	
 	return true;
