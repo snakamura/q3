@@ -2177,7 +2177,7 @@ bool qm::Account::getMessage(MessageHolder* pmh,
 			n = nSecurity >> 12;
 		
 		WCHAR wsz[32];
-		wsprintf(wsz, L"%d", n);
+		swprintf(wsz, L"%d", n);
 		pMessage->setParam(L"Verification", wsz);
 	}
 	
