@@ -969,12 +969,20 @@ QSTATUS qm::MainWindowImpl::sizeChanged(const SplitterWindowEvent& event)
 
 QSTATUS qm::MainWindowImpl::accountSelected(const FolderModelEvent& event)
 {
+	DECLARE_QSTATUS();
+	
+	status = pViewModelManager_->setCurrentAccount(event.getAccount());
+	CHECK_QSTATUS();
+	
 	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::MainWindowImpl::folderSelected(const FolderModelEvent& event)
 {
 	DECLARE_QSTATUS();
+	
+	status = pViewModelManager_->setCurrentFolder(event.getFolder());
+	CHECK_QSTATUS();
 	
 	if (!pDocument_->isOffline()) {
 		Folder* pFolder = pFolderModel_->getCurrentFolder();

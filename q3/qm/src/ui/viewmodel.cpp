@@ -1681,8 +1681,7 @@ qm::ViewModelManager::ViewModelManager(Profile* pProfile, Document* pDocument,
 	pCurrentAccount_(0),
 	pCurrentViewModel_(0),
 	pFilterManager_(0),
-	pColorManager_(0),
-	pDelayedFolderModelHandler_(0)
+	pColorManager_(0)
 {
 	assert(pstatus);
 	
@@ -1693,11 +1692,6 @@ qm::ViewModelManager::ViewModelManager(Profile* pProfile, Document* pDocument,
 	CHECK_QSTATUS_SET(pstatus);
 	std::auto_ptr<ColorManager> pColorManager;
 	status = newQsObject(&pColorManager);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	status = newQsObject(this, &pDelayedFolderModelHandler_);
-	CHECK_QSTATUS_SET(pstatus);
-	status = pFolderModel->addFolderModelHandler(pDelayedFolderModelHandler_);
 	CHECK_QSTATUS_SET(pstatus);
 	
 	pFilterManager_ = pFilterManager.release();
@@ -1713,7 +1707,6 @@ qm::ViewModelManager::~ViewModelManager()
 			deleter<Profile>(), std::select2nd<ProfileMap::value_type>()));
 	delete pFilterManager_;
 	delete pColorManager_;
-	delete pDelayedFolderModelHandler_;
 }
 
 FilterManager* qm::ViewModelManager::getFilterManager() const
@@ -1724,6 +1717,16 @@ FilterManager* qm::ViewModelManager::getFilterManager() const
 Account* qm::ViewModelManager::getCurrentAccount() const
 {
 	return pCurrentAccount_;
+}
+
+QSTATUS qm::ViewModelManager::setCurrentAccount(Account* pAccount)
+{
+	return setCurrentFolder(pAccount, 0);
+}
+
+QSTATUS qm::ViewModelManager::setCurrentFolder(Folder* pFolder)
+{
+	return setCurrentFolder(0, pFolder);
 }
 
 ViewModel* qm::ViewModelManager::getCurrentViewModel() const
@@ -1804,16 +1807,6 @@ void qm::ViewModelManager::removeViewModel(ViewModel* pViewModel)
 		listViewModel_.end(), pViewModel);
 	listViewModel_.erase(it, listViewModel_.end());
 	delete pViewModel;
-}
-
-QSTATUS qm::ViewModelManager::accountSelected(const FolderModelEvent& event)
-{
-	return setCurrentFolder(event.getAccount(), 0);
-}
-
-QSTATUS qm::ViewModelManager::folderSelected(const FolderModelEvent& event)
-{
-	return setCurrentFolder(0, event.getFolder());
 }
 
 QSTATUS qm::ViewModelManager::accountDestroyed(const AccountEvent& event)

@@ -426,9 +426,7 @@ private:
  *
  */
 
-class ViewModelManager :
-	public FolderModelHandler,
-	public DefaultAccountHandler
+class ViewModelManager : public DefaultAccountHandler
 {
 public:
 	typedef std::vector<ViewModel*> ViewModelList;
@@ -443,6 +441,8 @@ public:
 	FilterManager* getFilterManager() const;
 	
 	Account* getCurrentAccount() const;
+	qs::QSTATUS setCurrentAccount(Account* pAccount);
+	qs::QSTATUS setCurrentFolder(Folder* pFolder);
 	ViewModel* getCurrentViewModel() const;
 	qs::QSTATUS getViewModel(Folder* pFolder, ViewModel** ppViewModel);
 	
@@ -454,10 +454,6 @@ public:
 // These methods are intended to be called from ViewModel class.
 public:
 	void removeViewModel(ViewModel* pViewModel);
-
-public:
-	virtual qs::QSTATUS accountSelected(const FolderModelEvent& event);
-	virtual qs::QSTATUS folderSelected(const FolderModelEvent& event);
 
 public:
 	virtual qs::QSTATUS accountDestroyed(const AccountEvent& event);
@@ -489,7 +485,6 @@ private:
 	FilterManager* pFilterManager_;
 	ColorManager* pColorManager_;
 	HandlerList listHandler_;
-	DelayedFolderModelHandler* pDelayedFolderModelHandler_;
 };
 
 
