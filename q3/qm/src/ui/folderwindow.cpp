@@ -60,6 +60,15 @@ class qm::FolderWindowImpl :
 	public DropTargetHandler
 {
 public:
+	enum Flag {
+		FLAG_FOLDERSHOWALLCOUNT		= 0x01,
+		FLAG_FOLDERSHOWUNSEENCOUNT	= 0x02,
+		FLAG_FOLDER_MASK			= 0x0f,
+		FLAG_ACCOUNTSHOWALLCOUNT	= 0x10,
+		FLAG_ACCOUNTSHOWUNSEENCOUNT	= 0x20,
+		FLAG_ACCOUNT_MASK			= 0xf0
+	};
+	
 	enum {
 		WM_FOLDERWINDOW_MESSAGEADDED		= WM_APP + 1301,
 		WM_FOLDERWINDOW_MESSAGEREMOVED		= WM_APP + 1302,
@@ -166,8 +175,7 @@ public:
 	
 	UINT nId_;
 	HFONT hfont_;
-	bool bShowAllCount_;
-	bool bShowUnseenCount_;
+	unsigned int nFlags_;
 	unsigned int nDragOpenWait_;
 	std::auto_ptr<DropTarget> pDropTarget_;
 	
@@ -696,13 +704,19 @@ LRESULT qm::FolderWindowImpl::onGetDispInfo(NMHDR* pnmhdr,
 				true, (item.state & TVIS_EXPANDED) != 0);
 		if (item.mask & TVIF_TEXT) {
 			WCHAR wsz[64] = L"";
-			if (bShowAllCount_ && bShowUnseenCount_)
-				swprintf(wsz, L" (%d/%d)",
-					pFolder->getUnseenCount(), pFolder->getCount());
-			else if (bShowAllCount_)
+			switch (nFlags_ & FLAG_FOLDER_MASK) {
+			case FLAG_FOLDERSHOWALLCOUNT | FLAG_FOLDERSHOWUNSEENCOUNT:
+				swprintf(wsz, L" (%d/%d)", pFolder->getUnseenCount(), pFolder->getCount());
+				break;
+			case FLAG_FOLDERSHOWALLCOUNT:
 				swprintf(wsz, L" (%d)", pFolder->getCount());
-			else if (bShowUnseenCount_)
+				break;
+			case FLAG_FOLDERSHOWUNSEENCOUNT:
 				swprintf(wsz, L" (%d)", pFolder->getUnseenCount());
+				break;
+			default:
+				break;
+			}
 			
 			wstring_ptr wstrText(concat(pFolder->getName(), wsz));
 			W2T(wstrText.get(), ptszText);
@@ -729,13 +743,20 @@ LRESULT qm::FolderWindowImpl::onGetDispInfo(NMHDR* pnmhdr,
 			}
 			
 			WCHAR wsz[64] = L"";
-			if (bShowAllCount_ && bShowUnseenCount_)
+			switch (nFlags_ & FLAG_ACCOUNT_MASK) {
+			case FLAG_ACCOUNTSHOWALLCOUNT | FLAG_ACCOUNTSHOWUNSEENCOUNT:
 				swprintf(wsz, L" (%d/%d)", Util::getUnseenMessageCount(pAccount),
 					Util::getMessageCount(pAccount));
-			else if (bShowAllCount_)
+				break;
+			case FLAG_ACCOUNTSHOWALLCOUNT:
 				swprintf(wsz, L" (%d)", Util::getMessageCount(pAccount));
-			else if (bShowUnseenCount_)
+				break;
+			case FLAG_ACCOUNTSHOWUNSEENCOUNT:
 				swprintf(wsz, L" (%d)", Util::getUnseenMessageCount(pAccount));
+				break;
+			default:
+				break;
+			}
 			buf.append(wsz);
 			
 			W2T(buf.getCharArray(), ptszText);
@@ -1103,6 +1124,21 @@ qm::FolderWindow::FolderWindow(WindowBase* pParentWindow,
 	WindowBase(true),
 	pImpl_(0)
 {
+	unsigned int nFlags = 0;
+	struct {
+		const WCHAR* pwszKey_;
+		FolderWindowImpl::Flag flag_;
+	} flags[] = {
+		{ L"FolderShowAllCount",		FolderWindowImpl::FLAG_FOLDERSHOWALLCOUNT		},
+		{ L"FolderShowUnseenCount",		FolderWindowImpl::FLAG_FOLDERSHOWUNSEENCOUNT	},
+		{ L"AccountShowAllCount",		FolderWindowImpl::FLAG_ACCOUNTSHOWALLCOUNT		},
+		{ L"AccountShowUnseenCount",	FolderWindowImpl::FLAG_ACCOUNTSHOWUNSEENCOUNT	}
+	};
+	for (int n = 0; n < countof(flags); ++n) {
+		if (pProfile->getInt(L"FolderWindow", flags[n].pwszKey_, 1))
+			nFlags |= flags[n].flag_;
+	}
+	
 	pImpl_ = new FolderWindowImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->pParentWindow_ = pParentWindow;
@@ -1112,8 +1148,7 @@ qm::FolderWindow::FolderWindow(WindowBase* pParentWindow,
 	pImpl_->pDocument_ = 0;
 	pImpl_->nId_ = 0;
 	pImpl_->hfont_ = 0;
-	pImpl_->bShowAllCount_ = pProfile->getInt(L"FolderWindow", L"ShowAllCount", 1) != 0;
-	pImpl_->bShowUnseenCount_ = pProfile->getInt(L"FolderWindow", L"ShowUnseenCount", 1) != 0;
+	pImpl_->nFlags_ = nFlags;
 	pImpl_->nDragOpenWait_ = pProfile->getInt(L"FolderWindow", L"DragOpenWait", 500);
 	pImpl_->hItemDragTarget_ = 0;
 	pImpl_->hItemDragOver_ = 0;
