@@ -128,6 +128,7 @@ public:
 struct EditWindowCreateContext
 {
 	UIManager* pUIManager_;
+	const WCHAR* pwszClass_;
 };
 
 

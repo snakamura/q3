@@ -80,6 +80,7 @@ struct EditFrameWindowCreateContext
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
 	SecurityModel* pSecurityModel_;
+	const WCHAR* pwszClass_;
 };
 
 }

@@ -631,7 +631,8 @@ LRESULT qm::EditFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 	std::auto_ptr<EditWindow> pEditWindow(new EditWindow(pImpl_->pProfile_));
 	EditWindowCreateContext context = {
-		pContext->pUIManager_
+		pContext->pUIManager_,
+		pContext->pwszClass_
 	};
 	if (!pEditWindow->create(L"QmEditWindow", 0, dwStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
@@ -758,7 +759,8 @@ bool qm::EditFrameWindowManager::open(std::auto_ptr<EditMessage> pEditMessage)
 		pUIManager_,
 		pSyncManager_,
 		pSyncDialogManager_,
-		pSecurityModel_
+		pSecurityModel_,
+		pEditMessage->getAccount()->getClass()
 	};
 	if (!pFrame->create(L"QmEditFrameWindow", L"QMAIL", dwStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,

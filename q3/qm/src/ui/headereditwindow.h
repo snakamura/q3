@@ -53,8 +53,7 @@ public:
 
 public:
 	HeaderEditLine(HeaderEditLineCallback* pCallback,
-				   unsigned int nFlags,
-				   std::auto_ptr<qs::RegexPattern> pClass);
+				   unsigned int nFlags);
 	~HeaderEditLine();
 
 public:
@@ -75,7 +74,6 @@ private:
 private:
 	HeaderEditLineCallback* pCallback_;
 	unsigned int nFlags_;
-	std::auto_ptr<qs::RegexPattern> pClass_;
 	bool bHide_;
 };
 
@@ -604,6 +602,7 @@ class HeaderEditWindowContentHandler : public qs::DefaultHandler
 {
 public:
 	HeaderEditWindowContentHandler(LineLayout* pLayout,
+								   const WCHAR* pwszClass,
 								   EditWindowFocusController* pController,
 								   qs::MenuManager* pMenuManager,
 								   HeaderEditLineCallback* pLineCallback,
@@ -645,6 +644,7 @@ private:
 
 private:
 	LineLayout* pLayout_;
+	const WCHAR* pwszClass_;
 	EditWindowFocusController* pController_;
 	qs::MenuManager* pMenuManager_;
 	HeaderEditLineCallback* pLineCallback_;
@@ -652,6 +652,7 @@ private:
 	HeaderEditLine* pCurrentLine_;
 	HeaderEditItem* pCurrentItem_;
 	State state_;
+	bool bIgnore_;
 	AttachmentSelectionModel* pAttachmentSelectionModel_;
 	qs::StringBuffer<qs::WSTRING> buffer_;
 };
@@ -666,6 +667,7 @@ private:
 struct HeaderEditWindowCreateContext
 {
 	EditWindowFocusController* pController_;
+	const WCHAR* pwszClass_;
 	qs::MenuManager* pMenuManager_;
 	HeaderEditLineCallback* pHeaderEditLineCallback_;
 	HeaderEditItemCallback* pHeaderEditItemCallback_;

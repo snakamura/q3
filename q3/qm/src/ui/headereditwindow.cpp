@@ -47,10 +47,12 @@ public:
 	};
 
 public:
-	bool load(MenuManager* pMenuManager,
+	bool load(const WCHAR* pwszClass,
+			  MenuManager* pMenuManager,
 			  HeaderEditLineCallback* pLineCallback,
 			  HeaderEditItemCallback* pItemCallback);
-	bool create(MenuManager* pMenuManager,
+	bool create(const WCHAR* pwszClass,
+				MenuManager* pMenuManager,
 				HeaderEditLineCallback* pLineCallback,
 				HeaderEditItemCallback* pItemCallback);
 
@@ -66,7 +68,8 @@ public:
 	AttachmentSelectionModel* pAttachmentSelectionModel_;
 };
 
-bool qm::HeaderEditWindowImpl::load(MenuManager* pMenuManager,
+bool qm::HeaderEditWindowImpl::load(const WCHAR* pwszClass,
+									MenuManager* pMenuManager,
 									HeaderEditLineCallback* pLineCallback,
 									HeaderEditItemCallback* pItemCallback)
 {
@@ -77,7 +80,7 @@ bool qm::HeaderEditWindowImpl::load(MenuManager* pMenuManager,
 	
 	XMLReader reader;
 	HeaderEditWindowContentHandler contentHandler(pLayout_.get(),
-		pController_, pMenuManager, pLineCallback, pItemCallback);
+		pwszClass, pController_, pMenuManager, pLineCallback, pItemCallback);
 	reader.setContentHandler(&contentHandler);
 	if (!reader.parse(wstrPath.get()))
 		return false;
@@ -86,11 +89,12 @@ bool qm::HeaderEditWindowImpl::load(MenuManager* pMenuManager,
 	return true;
 }
 
-bool qm::HeaderEditWindowImpl::create(MenuManager* pMenuManager,
+bool qm::HeaderEditWindowImpl::create(const WCHAR* pwszClass,
+									  MenuManager* pMenuManager,
 									  HeaderEditLineCallback* pLineCallback,
 									  HeaderEditItemCallback* pItemCallback)
 {
-	if (!load(pMenuManager, pLineCallback, pItemCallback))
+	if (!load(pwszClass, pMenuManager, pLineCallback, pItemCallback))
 		return false;
 	
 	std::pair<HFONT, HFONT> fonts(hfont_, hfontBold_);
@@ -281,9 +285,8 @@ LRESULT qm::HeaderEditWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	::GetClassInfo(getInstanceHandle(), ptszClassName, &wc);
 	pImpl_->hbrBackground_ = wc.hbrBackground;
 	
-	if (!pImpl_->create(pContext->pMenuManager_,
-		pContext->pHeaderEditLineCallback_,
-		pContext->pHeaderEditItemCallback_))
+	if (!pImpl_->create(pContext->pwszClass_, pContext->pMenuManager_,
+		pContext->pHeaderEditLineCallback_, pContext->pHeaderEditItemCallback_))
 		return -1;
 	
 	return 0;
@@ -321,11 +324,9 @@ LRESULT qm::HeaderEditWindow::onDestroy()
  */
 
 qm::HeaderEditLine::HeaderEditLine(HeaderEditLineCallback* pCallback,
-								   unsigned int nFlags,
-								   std::auto_ptr<RegexPattern> pClass) :
+								   unsigned int nFlags) :
 	pCallback_(pCallback),
 	nFlags_(nFlags),
-	pClass_(pClass),
 	bHide_(false)
 {
 }
@@ -337,9 +338,6 @@ qm::HeaderEditLine::~HeaderEditLine()
 void qm::HeaderEditLine::setEditMessage(EditMessage* pEditMessage,
 										bool bReset)
 {
-	if (pClass_.get())
-		bHide_ = !pClass_->match(pEditMessage->getAccount()->getClass());
-	
 	if (!bHide_) {
 		for (unsigned int n = 0; n < getItemCount(); ++n) {
 			HeaderEditItem* pItem = static_cast<HeaderEditItem*>(getItem(n));
@@ -1582,18 +1580,21 @@ qm::HeaderEditItemCallback::~HeaderEditItemCallback()
  */
 
 qm::HeaderEditWindowContentHandler::HeaderEditWindowContentHandler(LineLayout* pLayout,
+																   const WCHAR* pwszClass,
 																   EditWindowFocusController* pController,
 																   MenuManager* pMenuManager,
 																   HeaderEditLineCallback* pLineCallback,
 																   HeaderEditItemCallback* pItemCallback) :
 	pLayout_(pLayout),
+	pwszClass_(pwszClass),
 	pController_(pController),
 	pMenuManager_(pMenuManager),
 	pLineCallback_(pLineCallback),
 	pItemCallback_(pItemCallback),
 	pCurrentLine_(0),
 	pCurrentItem_(0),
-	state_(STATE_ROOT)
+	state_(STATE_ROOT),
+	bIgnore_(false)
 {
 }
 
@@ -1636,16 +1637,19 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 			}
 		}
 		
-		std::auto_ptr<RegexPattern> pClass;
 		if (pwszClass) {
-			pClass = RegexCompiler().compile(pwszClass);
+			std::auto_ptr<RegexPattern> pClass(RegexCompiler().compile(pwszClass));
 			if (!pClass.get())
 				return false;
+			bIgnore_ = !pClass->match(pwszClass_);
 		}
-		std::auto_ptr<HeaderEditLine> pHeaderEditLine(
-			new HeaderEditLine(pLineCallback_, nFlags, pClass));
-		pCurrentLine_ = pHeaderEditLine.get();
-		pLayout_->addLine(pHeaderEditLine);
+		
+		if (!bIgnore_) {
+			std::auto_ptr<HeaderEditLine> pHeaderEditLine(
+				new HeaderEditLine(pLineCallback_, nFlags));
+			pCurrentLine_ = pHeaderEditLine.get();
+			pLayout_->addLine(pHeaderEditLine);
+		}
 		
 		state_ = STATE_LINE;
 	}
@@ -1654,46 +1658,48 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 		if (state_ != STATE_LINE)
 			return false;
 		
-		assert(pCurrentLine_);
-		
-		bool bEdit = wcscmp(pwszLocalName, L"edit") == 0;
-		std::auto_ptr<TextHeaderEditItem> pItem;
-		if (!bEdit)
-			pItem.reset(new StaticHeaderEditItem(pController_));
-		else
-			pItem.reset(new EditHeaderEditItem(pController_));
-		
-		for (int n = 0; n < attributes.getLength(); ++n) {
-			const WCHAR* pwszAttrLocalName = attributes.getLocalName(n);
-			if (wcscmp(pwszAttrLocalName, L"width") == 0) {
-				setWidth(pItem.get(), attributes.getValue(n));
+		if (!bIgnore_) {
+			assert(pCurrentLine_);
+			
+			bool bEdit = wcscmp(pwszLocalName, L"edit") == 0;
+			std::auto_ptr<TextHeaderEditItem> pItem;
+			if (!bEdit)
+				pItem.reset(new StaticHeaderEditItem(pController_));
+			else
+				pItem.reset(new EditHeaderEditItem(pController_));
+			
+			for (int n = 0; n < attributes.getLength(); ++n) {
+				const WCHAR* pwszAttrLocalName = attributes.getLocalName(n);
+				if (wcscmp(pwszAttrLocalName, L"width") == 0) {
+					setWidth(pItem.get(), attributes.getValue(n));
+				}
+				else if (wcscmp(pwszAttrLocalName, L"style") == 0) {
+					pItem->setStyle(TextHeaderEditItem::parseStyle(attributes.getValue(n)));
+				}
+				else if (wcscmp(pwszAttrLocalName, L"field") == 0) {
+					pItem->setField(attributes.getValue(n));
+				}
+				else if (wcscmp(pwszAttrLocalName, L"type") == 0) {
+					pItem->setType(TextHeaderEditItem::parseType(attributes.getValue(n)));
+				}
+				else if (wcscmp(pwszAttrLocalName, L"number") == 0) {
+					setNumber(pItem.get(), attributes.getValue(n));
+				}
+				else if (wcscmp(pwszAttrLocalName, L"initialFocus") == 0) {
+					pItem->setInitialFocus(wcscmp(attributes.getValue(n), L"true") == 0);
+				}
+				else if (wcscmp(pwszAttrLocalName, L"expandAlias") == 0 && bEdit) {
+					static_cast<EditHeaderEditItem*>(pItem.get())->setExpandAlias(
+						wcscmp(attributes.getValue(n), L"true") == 0);
+				}
+				else {
+					return false;
+				}
 			}
-			else if (wcscmp(pwszAttrLocalName, L"style") == 0) {
-				pItem->setStyle(TextHeaderEditItem::parseStyle(attributes.getValue(n)));
-			}
-			else if (wcscmp(pwszAttrLocalName, L"field") == 0) {
-				pItem->setField(attributes.getValue(n));
-			}
-			else if (wcscmp(pwszAttrLocalName, L"type") == 0) {
-				pItem->setType(TextHeaderEditItem::parseType(attributes.getValue(n)));
-			}
-			else if (wcscmp(pwszAttrLocalName, L"number") == 0) {
-				setNumber(pItem.get(), attributes.getValue(n));
-			}
-			else if (wcscmp(pwszAttrLocalName, L"initialFocus") == 0) {
-				pItem->setInitialFocus(wcscmp(attributes.getValue(n), L"true") == 0);
-			}
-			else if (wcscmp(pwszAttrLocalName, L"expandAlias") == 0 && bEdit) {
-				static_cast<EditHeaderEditItem*>(pItem.get())->setExpandAlias(
-					wcscmp(attributes.getValue(n), L"true") == 0);
-			}
-			else {
-				return false;
-			}
+			
+			pCurrentItem_ = pItem.get();
+			pCurrentLine_->addItem(pItem);
 		}
-		
-		pCurrentItem_ = pItem.get();
-		pCurrentLine_->addItem(pItem);
 		
 		state_ = STATE_ITEM;
 	}
@@ -1702,37 +1708,40 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 		if (state_ != STATE_LINE)
 			return false;
 		
-		assert(pCurrentLine_);
-		
-		std::auto_ptr<HeaderEditItem> pItem;
-		if (wcscmp(pwszLocalName, L"attachment") == 0) {
-			std::auto_ptr<AttachmentHeaderEditItem> p(new AttachmentHeaderEditItem(
-				pController_, pMenuManager_, pItemCallback_));
-			pAttachmentSelectionModel_ = p.get();
-			pItem.reset(p.release());
+		if (!bIgnore_) {
+			assert(pCurrentLine_);
+			
+			std::auto_ptr<HeaderEditItem> pItem;
+			if (wcscmp(pwszLocalName, L"attachment") == 0) {
+				std::auto_ptr<AttachmentHeaderEditItem> p(
+					new AttachmentHeaderEditItem(pController_,
+						pMenuManager_, pItemCallback_));
+				pAttachmentSelectionModel_ = p.get();
+				pItem.reset(p.release());
+			}
+			else if (wcscmp(pwszLocalName, L"signature") == 0) {
+				pItem.reset(new SignatureHeaderEditItem(pController_));
+			}
+			
+			for (int n = 0; n < attributes.getLength(); ++n) {
+				const WCHAR* pwszAttrLocalName = attributes.getLocalName(n);
+				if (wcscmp(pwszAttrLocalName, L"width") == 0) {
+					setWidth(pItem.get(), attributes.getValue(n));
+				}
+				else if (wcscmp(pwszAttrLocalName, L"number") == 0) {
+					setNumber(pItem.get(), attributes.getValue(n));
+				}
+				else if (wcscmp(pwszAttrLocalName, L"initialFocus") == 0) {
+					pItem->setInitialFocus(wcscmp(attributes.getValue(n), L"true") == 0);
+				}
+				else {
+					return false;
+				}
+			}
+			
+			pCurrentItem_ = pItem.get();
+			pCurrentLine_->addItem(pItem);
 		}
-		else if (wcscmp(pwszLocalName, L"signature") == 0) {
-			pItem.reset(new SignatureHeaderEditItem(pController_));
-		}
-		
-		for (int n = 0; n < attributes.getLength(); ++n) {
-			const WCHAR* pwszAttrLocalName = attributes.getLocalName(n);
-			if (wcscmp(pwszAttrLocalName, L"width") == 0) {
-				setWidth(pItem.get(), attributes.getValue(n));
-			}
-			else if (wcscmp(pwszAttrLocalName, L"number") == 0) {
-				setNumber(pItem.get(), attributes.getValue(n));
-			}
-			else if (wcscmp(pwszAttrLocalName, L"initialFocus") == 0) {
-				pItem->setInitialFocus(wcscmp(attributes.getValue(n), L"true") == 0);
-			}
-			else {
-				return false;
-			}
-		}
-		
-		pCurrentItem_ = pItem.get();
-		pCurrentLine_->addItem(pItem);
 		
 		state_ = STATE_ITEM;
 	}
@@ -1740,31 +1749,34 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 		if (state_ != STATE_LINE)
 			return false;
 		
-		assert(pCurrentLine_);
-		
-		std::auto_ptr<AccountHeaderEditItem> pItem(new AccountHeaderEditItem(pController_));
-		
-		for (int n = 0; n < attributes.getLength(); ++n) {
-			const WCHAR* pwszAttrLocalName = attributes.getLocalName(n);
-			if (wcscmp(pwszAttrLocalName, L"width") == 0) {
-				setWidth(pItem.get(), attributes.getValue(n));
+		if (!bIgnore_) {
+			assert(pCurrentLine_);
+			
+			std::auto_ptr<AccountHeaderEditItem> pItem(
+				new AccountHeaderEditItem(pController_));
+			
+			for (int n = 0; n < attributes.getLength(); ++n) {
+				const WCHAR* pwszAttrLocalName = attributes.getLocalName(n);
+				if (wcscmp(pwszAttrLocalName, L"width") == 0) {
+					setWidth(pItem.get(), attributes.getValue(n));
+				}
+				else if (wcscmp(pwszAttrLocalName, L"number") == 0) {
+					setNumber(pItem.get(), attributes.getValue(n));
+				}
+				else if (wcscmp(pwszAttrLocalName, L"initialFocus") == 0) {
+					pItem->setInitialFocus(wcscmp(attributes.getValue(n), L"true") == 0);
+				}
+				else if (wcscmp(pwszAttrLocalName, L"showFrom") == 0) {
+					pItem->setShowFrom(wcscmp(attributes.getValue(n), L"true") == 0);
+				}
+				else {
+					return false;
+				}
 			}
-			else if (wcscmp(pwszAttrLocalName, L"number") == 0) {
-				setNumber(pItem.get(), attributes.getValue(n));
-			}
-			else if (wcscmp(pwszAttrLocalName, L"initialFocus") == 0) {
-				pItem->setInitialFocus(wcscmp(attributes.getValue(n), L"true") == 0);
-			}
-			else if (wcscmp(pwszAttrLocalName, L"showFrom") == 0) {
-				pItem->setShowFrom(wcscmp(attributes.getValue(n), L"true") == 0);
-			}
-			else {
-				return false;
-			}
+			
+			pCurrentItem_ = pItem.get();
+			pCurrentLine_->addItem(pItem);
 		}
-		
-		pCurrentItem_ = pItem.get();
-		pCurrentLine_->addItem(pItem);
 		
 		state_ = STATE_ITEM;
 	}
@@ -1785,9 +1797,12 @@ bool qm::HeaderEditWindowContentHandler::endElement(const WCHAR* pwszNamespaceUR
 	}
 	else if (wcscmp(pwszLocalName, L"line") == 0) {
 		assert(state_ == STATE_LINE);
-		assert(pCurrentLine_);
-		pCurrentLine_ = 0;
+		if (!bIgnore_) {
+			assert(pCurrentLine_);
+			pCurrentLine_ = 0;
+		}
 		state_ = STATE_HEADEREDIT;
+		bIgnore_ = false;
 	}
 	else if (wcscmp(pwszLocalName, L"static") == 0 ||
 		wcscmp(pwszLocalName, L"edit") == 0 ||
@@ -1795,12 +1810,16 @@ bool qm::HeaderEditWindowContentHandler::endElement(const WCHAR* pwszNamespaceUR
 		wcscmp(pwszLocalName, L"signature") == 0 ||
 		wcscmp(pwszLocalName, L"account") == 0) {
 		assert(state_ == STATE_ITEM);
-		assert(pCurrentItem_);
-		if (buffer_.getLength() != 0) {
-			pCurrentItem_->setValue(buffer_.getCharArray());
-			buffer_.remove();
+		
+		if (!bIgnore_) {
+			assert(pCurrentItem_);
+			if (buffer_.getLength() != 0) {
+				pCurrentItem_->setValue(buffer_.getCharArray());
+				buffer_.remove();
+			}
+			pCurrentItem_ = 0;
 		}
-		pCurrentItem_ = 0;
+		
 		state_ = STATE_LINE;
 	}
 	else {
@@ -1815,7 +1834,8 @@ bool qm::HeaderEditWindowContentHandler::characters(const WCHAR* pwsz,
 													size_t nLength)
 {
 	if (state_ == STATE_ITEM) {
-		buffer_.append(pwsz + nStart, nLength);
+		if (!bIgnore_)
+			buffer_.append(pwsz + nStart, nLength);
 	}
 	else {
 		const WCHAR* p = pwsz + nStart;

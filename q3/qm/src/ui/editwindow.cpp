@@ -545,6 +545,7 @@ LRESULT qm::EditWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		new HeaderEditWindow(pImpl_->pProfile_));
 	HeaderEditWindowCreateContext headerEditContext = {
 		pImpl_,
+		pContext->pwszClass_,
 		pContext->pUIManager_->getMenuManager(),
 		pImpl_,
 		pImpl_
