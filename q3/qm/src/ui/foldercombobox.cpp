@@ -69,7 +69,6 @@ public:
 
 public:
 	virtual LRESULT onCommand(WORD nCode, WORD nId);
-	virtual void updateCommand(CommandUpdate* pcu);
 
 public:
 	virtual QSTATUS accountListChanged(
@@ -221,10 +220,6 @@ LRESULT qm::FolderComboBoxImpl::onCommand(WORD nCode, WORD nId)
 		HANDLE_COMMAND_ID_CODE(nId_, CBN_SELENDOK, onSelEndOk)
 	END_COMMAND_HANDLER()
 	return 1;
-}
-
-void qm::FolderComboBoxImpl::updateCommand(CommandUpdate* pcu)
-{
 }
 
 QSTATUS qm::FolderComboBoxImpl::accountListChanged(

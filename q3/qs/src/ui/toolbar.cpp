@@ -149,12 +149,6 @@ QSTATUS qs::Toolbar::create(HWND hwnd, HIMAGELIST hImageList) const
 {
 	DECLARE_QSTATUS();
 	
-//	TBADDBITMAP tbab = {
-//		0,
-//		reinterpret_cast<UINT_PTR>(hBitmap)
-//	};
-//	int nImageBase = ::SendMessage(hwnd, TB_ADDBITMAP,
-//		nButtons, reinterpret_cast<LPARAM>(&tbab));
 	HIMAGELIST hImageListCopy = ImageList_Duplicate(hImageList);
 	if (!hImageListCopy)
 		return QSTATUS_FAIL;

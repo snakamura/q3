@@ -667,50 +667,7 @@ QSTATUS qm::Application::uninitialize()
 
 QSTATUS qm::Application::run()
 {
-	DECLARE_QSTATUS();
-	
-	DWORD dwThreadId = ::GetCurrentThreadId();
-	MSG msg;
-	while (::GetMessage(&msg, 0, 0, 0)) {
-		switch (msg.message) {
-		case WM_KEYDOWN:
-		case WM_SYSKEYDOWN:
-		case WM_LBUTTONDOWN:
-		case WM_RBUTTONDOWN:
-		case WM_MBUTTONDOWN:
-		case WM_VSCROLL:
-		case WM_HSCROLL:
-		case WM_COMMAND:
-			break;
-#if !defined _WIN32_WCE || _WIN32_WCE >= 211
-		case WM_MOUSEWHEEL:
-			msg.hwnd = ::WindowFromPoint(msg.pt);
-			assert(msg.hwnd);
-			if (::GetWindowThreadProcessId(msg.hwnd, 0) != dwThreadId)
-				continue;
-			break;
-#endif
-		}
-		
-		bool bProcessed = false;
-		status = DialogBase::processDialogMessage(&msg, &bProcessed);
-		CHECK_QSTATUS();
-		if (bProcessed)
-			continue;
-		status = PropertySheetBase::processDialogMessage(&msg, &bProcessed);
-		CHECK_QSTATUS();
-		if (bProcessed)
-			continue;
-		status = WindowBase::translateAccelerator(msg, &bProcessed);
-		CHECK_QSTATUS();
-		if (bProcessed)
-			continue;
-		
-		::TranslateMessage(&msg);
-		::DispatchMessage(&msg);
-	}
-	
-	return QSTATUS_SUCCESS;
+	return MessageLoop::getMessageLoop().run();
 }
 
 QSTATUS qm::Application::save()

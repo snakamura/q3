@@ -401,6 +401,36 @@ private:
 
 /****************************************************************************
  *
+ * CommandUpdateToolbar
+ *
+ */
+
+class QSEXPORTCLASS CommandUpdateToolbar : public CommandUpdate
+{
+public:
+	CommandUpdateToolbar(HWND hwnd, UINT nId, QSTATUS* pstatus);
+	virtual ~CommandUpdateToolbar();
+
+public:
+	virtual UINT getId() const;
+	virtual QSTATUS setEnable(bool bEnable);
+	virtual QSTATUS setCheck(bool bCheck);
+	virtual QSTATUS setText(const WCHAR* pwszText, bool bWithoutAccel);
+	virtual QSTATUS getText(WSTRING* pwstrText) const;
+	virtual QSTATUS updateText();
+
+private:
+	CommandUpdateToolbar(const CommandUpdateToolbar&);
+	CommandUpdateToolbar& operator=(const CommandUpdateToolbar&);
+
+private:
+	HWND hwnd_;
+	UINT nId_;
+};
+
+
+/****************************************************************************
+ *
  * CommandHandler
  *
  */
@@ -412,7 +442,6 @@ public:
 
 public:
 	virtual LRESULT onCommand(WORD nCode, WORD nId) = 0;
-	virtual void updateCommand(CommandUpdate* pcu) = 0;
 };
 
 #define BEGIN_COMMAND_HANDLER() \
@@ -467,7 +496,6 @@ public:
 
 public:
 	virtual LRESULT onCommand(WORD nCode, WORD nId);
-	virtual void updateCommand(CommandUpdate* pcu);
 };
 
 
@@ -1017,6 +1045,37 @@ private:
 
 /****************************************************************************
  *
+ * MessageLoop
+ *
+ */
+
+class QSEXPORTCLASS MessageLoop
+{
+public:
+	MessageLoop(QSTATUS* pstatus);
+	~MessageLoop();
+
+public:
+	QSTATUS run();
+
+public:
+	QSTATUS addFrame(FrameWindow* pFrameWindow);
+	QSTATUS removeFrame(FrameWindow* pFrameWindow);
+
+public:
+	static MessageLoop& getMessageLoop();
+
+private:
+	MessageLoop(const MessageLoop&);
+	MessageLoop& operator=(const MessageLoop&);
+
+private:
+	class MessageLoopImpl* pImpl_;
+};
+
+
+/****************************************************************************
+ *
  * FrameWindow
  *
  */
@@ -1044,6 +1103,9 @@ public:
 	int getToolbarHeight() const;
 	void adjustWindowSize(LPARAM lParam);
 
+public:
+	virtual QSTATUS processIdle();
+
 protected:
 	QSTATUS save();
 
@@ -1069,6 +1131,7 @@ protected:
 	LRESULT onActivate(UINT nFlags, HWND hwnd, bool bMinimized);
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
 	LRESULT onDestroy();
+	LRESULT onInitMenuPopup(HMENU hmenu, UINT nIndex, bool bSysMenu);
 	LRESULT onSettingChange(WPARAM wParam, LPARAM lParam);
 
 private:

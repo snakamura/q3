@@ -57,15 +57,6 @@ LRESULT qs::DialogBaseImpl::notifyCommandHandlers(WORD wCode, WORD wId) const
 	return 1;
 }
 
-void qs::DialogBaseImpl::updateCommandHandlers(CommandUpdate* pcu) const
-{
-	CommandHandlerList::const_iterator it = listCommandHandler_.begin();
-	while (it != listCommandHandler_.end()) {
-		(*it)->updateCommand(pcu);
-		++it;
-	}
-}
-
 LRESULT qs::DialogBaseImpl::notifyNotifyHandlers(
 	NMHDR* pnmhdr, bool* pbHandled) const
 {

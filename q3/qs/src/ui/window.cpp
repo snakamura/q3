@@ -372,7 +372,6 @@ public:
 
 public:
 	LRESULT notifyCommandHandlers(WORD wCode, WORD wId) const;
-	void updateCommandHandlers(CommandUpdate* pcu) const;
 	LRESULT notifyNotifyHandlers(NMHDR* pnmhdr, bool* pbHandled) const;
 	void notifyOwnerDrawHandlers(DRAWITEMSTRUCT* pDrawItem) const;
 	void measureOwnerDrawHandlers(MEASUREITEMSTRUCT* pMeasureItem) const;
@@ -433,17 +432,6 @@ LRESULT qs::WindowBaseImpl::notifyCommandHandlers(
 			return lResult;
 	}
 	return 1;
-}
-
-void qs::WindowBaseImpl::updateCommandHandlers(CommandUpdate* pcu) const
-{
-	CommandHandlerList::const_iterator it = listCommandHandler_.begin();
-	while (it != listCommandHandler_.end()) {
-		(*it)->updateCommand(pcu);
-		++it;
-	}
-	if (pOrgWindowBase_)
-		pOrgWindowBase_->pImpl_->updateCommandHandlers(pcu);
 }
 
 LRESULT qs::WindowBaseImpl::notifyNotifyHandlers(
@@ -571,53 +559,6 @@ LRESULT qs::WindowBaseImpl::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	lResult = pWindowHandler_->windowProc(uMsg, wParam, lParam);
 	
 	switch (uMsg) {
-	case WM_INITMENUPOPUP:
-		if (pWindowHandler_->isFrame()) {
-			HMENU hmenu = reinterpret_cast<HMENU>(wParam);
-			MENUITEMINFO mii = {
-				sizeof(mii),
-				MIIM_ID | MIIM_SUBMENU,
-			};
-			for (int nItem = 0; ::GetMenuItemInfo(hmenu, nItem, true, &mii); ++nItem) {
-				// If this menu is neither popup menu nor system menu,
-				// update state using CommandUpdate.
-				if (!mii.hSubMenu && mii.wID < 0xf000 && mii.wID != 0) {
-					CommandUpdateMenu cum(hmenu, mii.wID, &status);
-					if (status == QSTATUS_SUCCESS) {
-						Action* pAction = 0;
-						status = pWindowHandler_->getAction(mii.wID, &pAction);
-						CHECK_QSTATUS_VALUE(0);
-						if (pAction) {
-							ActionEvent event(mii.wID, 0);
-							bool bEnabled = false;
-							status = pAction->isEnabled(event, &bEnabled);
-							CHECK_QSTATUS_VALUE(0);
-							cum.setEnable(bEnabled);
-							bool bChecked = false;
-							status = pAction->isChecked(event, &bChecked);
-							CHECK_QSTATUS_VALUE(0);
-							cum.setCheck(bChecked);
-							string_ptr<WSTRING> wstrText;
-							status = pAction->getText(event, &wstrText);
-							CHECK_QSTATUS_VALUE(0);
-							if (wstrText.get())
-								cum.setText(wstrText.get(), true);
-							Accelerator* pAccelerator = 0;
-							status = pWindowHandler_->getAccelerator(&pAccelerator);
-							if (status == QSTATUS_SUCCESS && pAccelerator)
-								cum.updateText();
-						}
-						else {
-							cum.setEnable(false);
-							cum.setCheck(false);
-							updateCommandHandlers(&cum);
-						}
-					}
-				}
-			}
-		}
-		break;
-	
 #if !defined _WIN32_WCE || defined _WIN32_WCE_EMULATION
 	case WM_NCDESTROY:
 		destroy();
@@ -1102,7 +1043,8 @@ LRESULT CALLBACK qs::windowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
  */
 
 qs::ControllerMapBase::ControllerMapBase(QSTATUS* pstatus) :
-	pThis_(0), pMap_(0)
+	pThis_(0),
+	pMap_(0)
 {
 	assert(pstatus);
 	
@@ -1666,6 +1608,68 @@ QSTATUS qs::CommandUpdateMenu::updateText()
 
 /****************************************************************************
  *
+ * CommandUpdateToolbar
+ *
+ */
+
+qs::CommandUpdateToolbar::CommandUpdateToolbar(
+	HWND hwnd, UINT nId, QSTATUS* pstatus) :
+	hwnd_(hwnd),
+	nId_(nId)
+{
+}
+
+qs::CommandUpdateToolbar::~CommandUpdateToolbar()
+{
+}
+
+UINT qs::CommandUpdateToolbar::getId() const
+{
+	return nId_;
+}
+
+QSTATUS qs::CommandUpdateToolbar::setEnable(bool bEnable)
+{
+	Window wnd(hwnd_);
+	int nState = wnd.sendMessage(TB_GETSTATE, nId_);
+	if (bEnable)
+		nState |= TBSTATE_ENABLED;
+	else
+		nState &= ~TBSTATE_ENABLED;
+	wnd.sendMessage(TB_SETSTATE, nId_, nState);
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qs::CommandUpdateToolbar::setCheck(bool bCheck)
+{
+	Window wnd(hwnd_);
+	int nState = wnd.sendMessage(TB_GETSTATE, nId_);
+	if (bCheck)
+		nState |= TBSTATE_CHECKED;
+	else
+		nState &= ~TBSTATE_CHECKED;
+	wnd.sendMessage(TB_SETSTATE, nId_, nState);
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qs::CommandUpdateToolbar::setText(const WCHAR* pwszText, bool bWithoutAccel)
+{
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qs::CommandUpdateToolbar::getText(WSTRING* pwstrText) const
+{
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qs::CommandUpdateToolbar::updateText()
+{
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
  * CommandHandler
  *
  */
@@ -1692,10 +1696,6 @@ qs::DefaultCommandHandler::~DefaultCommandHandler()
 LRESULT qs::DefaultCommandHandler::onCommand(WORD nCode, WORD nId)
 {
 	return 1;
-}
-
-void qs::DefaultCommandHandler::updateCommand(CommandUpdate* pcu)
-{
 }
 
 

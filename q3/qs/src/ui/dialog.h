@@ -32,7 +32,6 @@ public:
 
 public:
 	LRESULT notifyCommandHandlers(WORD wCode, WORD wId) const;
-	void updateCommandHandlers(CommandUpdate* pcu) const;
 	LRESULT notifyNotifyHandlers(NMHDR* pnmhdr, bool* pbHandled) const;
 	void notifyOwnerDrawHandlers(DRAWITEMSTRUCT* pDrawItem) const;
 	void measureOwnerDrawHandlers(MEASUREITEMSTRUCT* pMeasureItem) const;

@@ -6,6 +6,7 @@
  *
  */
 
+#include <qsaction.h>
 #include <qserror.h>
 #include <qsnew.h>
 #include <qswindow.h>
@@ -28,12 +29,59 @@ using namespace qs;
 
 struct qs::FrameWindowImpl
 {
+	QSTATUS updateCommand(CommandUpdate* pcu, bool bText);
+	
+	FrameWindow* pThis_;
 	HINSTANCE hInstResource_;
 	HWND hwndBands_;
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	SHACTIVATEINFO shActivateInfo_;
 #endif
 };
+
+QSTATUS qs::FrameWindowImpl::updateCommand(CommandUpdate* pcu, bool bText)
+{
+	DECLARE_QSTATUS();
+	
+	UINT nId = pcu->getId();
+	
+	Action* pAction = 0;
+	status = pThis_->getAction(nId, &pAction);
+	CHECK_QSTATUS();
+	if (pAction) {
+		ActionEvent event(nId, 0);
+		
+		bool bEnabled = false;
+		status = pAction->isEnabled(event, &bEnabled);
+		CHECK_QSTATUS();
+		pcu->setEnable(bEnabled);
+		
+		bool bChecked = false;
+		status = pAction->isChecked(event, &bChecked);
+		CHECK_QSTATUS();
+		pcu->setCheck(bChecked);
+		
+		if (bText) {
+			string_ptr<WSTRING> wstrText;
+			status = pAction->getText(event, &wstrText);
+			CHECK_QSTATUS();
+			if (wstrText.get())
+				pcu->setText(wstrText.get(), true);
+			
+			Accelerator* pAccelerator = 0;
+			status = pThis_->WindowBase::getAccelerator(&pAccelerator);
+			CHECK_QSTATUS();
+			if (pAccelerator)
+				pcu->updateText();
+		}
+	}
+	else {
+		pcu->setEnable(false);
+		pcu->setCheck(false);
+	}
+	
+	return QSTATUS_SUCCESS;
+}
 
 
 /****************************************************************************
@@ -55,6 +103,7 @@ qs::FrameWindow::FrameWindow(HINSTANCE hInstResource,
 	
 	status = newObject(&pImpl_);
 	CHECK_QSTATUS_SET(pstatus);
+	pImpl_->pThis_ = this;
 	pImpl_->hInstResource_ = hInstResource;
 	pImpl_->hwndBands_ = 0;
 	
@@ -114,6 +163,38 @@ void qs::FrameWindow::adjustWindowSize(LPARAM lParam)
 	setWindowPos(0, 0, rect.top, rect.right - rect.left,
 		rect.bottom - rect.top, SWP_NOZORDER);
 #endif
+}
+
+QSTATUS qs::FrameWindow::processIdle()
+{
+	DECLARE_QSTATUS();
+	
+#ifndef _WIN32_WCE_PSPC
+	HWND hwnd = getToolbar();
+#ifdef _WIN32_WCE
+	UINT nId = 0;
+	status = getBarId(1, &nId);
+	CHECK_QSTATUS();
+	hwnd = CommandBands_GetCommandBar(hwnd,
+		::SendMessage(hwnd, RB_IDTOINDEX, nId, 0));
+#endif
+	Window wnd(hwnd);
+	if (wnd.getHandle() && wnd.isVisible()) {
+		int nCount = wnd.sendMessage(TB_BUTTONCOUNT);
+		for (int n = 0; n < nCount; ++n) {
+			TBBUTTON button;
+			wnd.sendMessage(TB_GETBUTTON, n, reinterpret_cast<LPARAM>(&button));
+			if ((button.fsStyle & TBSTYLE_SEP) == 0) {
+				CommandUpdateToolbar cut(wnd.getHandle(), button.idCommand, &status);
+				CHECK_QSTATUS();
+				status = pImpl_->updateCommand(&cut, false);
+				CHECK_QSTATUS();
+			}
+		}
+	}
+#endif
+	
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qs::FrameWindow::save()
@@ -183,6 +264,7 @@ LRESULT qs::FrameWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		HANDLE_ACTIVATE()
 		HANDLE_CREATE()
 		HANDLE_DESTROY()
+		HANDLE_INITMENUPOPUP()
 		HANDLE_SETTINGCHANGE()
 	END_MESSAGE_HANDLER()
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
@@ -397,12 +479,36 @@ LRESULT qs::FrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->shActivateInfo_.cbSize = sizeof(pImpl_->shActivateInfo_);
 #endif
 	
+	status = MessageLoop::getMessageLoop().addFrame(this);
+	CHECK_QSTATUS_VALUE(-1);
+	
 	return 0;
 }
 
 LRESULT qs::FrameWindow::onDestroy()
 {
+	MessageLoop::getMessageLoop().removeFrame(this);
 	return DefaultWindowHandler::onDestroy();
+}
+
+LRESULT qs::FrameWindow::onInitMenuPopup(HMENU hmenu, UINT nIndex, bool bSysMenu)
+{
+	DECLARE_QSTATUS();
+	
+	MENUITEMINFO mii = {
+		sizeof(mii),
+		MIIM_ID | MIIM_SUBMENU,
+	};
+	for (int nItem = 0; ::GetMenuItemInfo(hmenu, nItem, true, &mii); ++nItem) {
+		if (!mii.hSubMenu && mii.wID < 0xf000 && mii.wID != 0) {
+			CommandUpdateMenu cum(hmenu, mii.wID, &status);
+			CHECK_QSTATUS_VALUE(0);
+			status = pImpl_->updateCommand(&cum, true);
+			CHECK_QSTATUS_VALUE(0);
+		}
+	}
+	
+	return DefaultWindowHandler::onInitMenuPopup(hmenu, nIndex, bSysMenu);
 }
 
 LRESULT qs::FrameWindow::onSettingChange(WPARAM wParam, LPARAM lParam)
