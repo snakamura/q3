@@ -55,8 +55,9 @@ public:
 	};
 
 public:
-	MessageDataObject(Account* pAccount, const MessageHolderList& l,
-		Flag flag, qs::QSTATUS* pstatus);
+	MessageDataObject(Document* pDocument, qs::QSTATUS* pstatus);
+	MessageDataObject(Document* pDocument, Account* pAccount,
+		const MessageHolderList& l, Flag flag, qs::QSTATUS* pstatus);
 	~MessageDataObject();
 
 public:
@@ -77,6 +78,8 @@ public:
 	STDMETHOD(EnumDAdvise)(IEnumSTATDATA** ppEnum);
 
 public:
+	static qs::QSTATUS setClipboard(IDataObject* pDataObject);
+	static qs::QSTATUS getClipboard(Document* pDocument, IDataObject** ppDataObject);
 	static qs::QSTATUS pasteMessages(IDataObject* pDataObject,
 		Document* pDocument, NormalFolder* pFolderTo,
 		Flag flag, MessageOperationCallback* pCallback);
@@ -121,6 +124,7 @@ private:
 
 private:
 	ULONG nRef_;
+	Document* pDocument_;
 	Account* pAccount_;
 	MessagePtrList listMessagePtr_;
 	Flag flag_;

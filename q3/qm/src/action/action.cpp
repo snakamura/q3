@@ -393,8 +393,10 @@ QSTATUS qm::EditCommandAction::isEnabled(const ActionEvent& event, bool* pbEnabl
  *
  */
 
-qm::EditCopyMessageAction::EditCopyMessageAction(FolderModel* pFolderModel,
+qm::EditCopyMessageAction::EditCopyMessageAction(
+	Document* pDocument, FolderModel* pFolderModel,
 	MessageSelectionModel* pMessageSelectionModel, QSTATUS* pstatus) :
+	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
 	pMessageSelectionModel_(pMessageSelectionModel)
 {
@@ -416,17 +418,13 @@ QSTATUS qm::EditCopyMessageAction::invoke(const ActionEvent& event)
 	Account* pAccount = lock.get();
 	if (!l.empty()) {
 		MessageDataObject* p = 0;
-		status = newQsObject(pAccount, l, MessageDataObject::FLAG_COPY, &p);
+		status = newQsObject(pDocument_, pAccount,
+			l, MessageDataObject::FLAG_COPY, &p);
 		CHECK_QSTATUS();
 		p->AddRef();
 		ComPtr<IDataObject> pDataObject(p);
-		
-#ifndef _WIN32_WCE
-		HRESULT hr = ::OleSetClipboard(pDataObject.get());
-		if (hr != S_OK) {
-			// TODO
-		}
-#endif
+		status = MessageDataObject::setClipboard(pDataObject.get());
+		CHECK_QSTATUS();
 	}
 	
 	return QSTATUS_SUCCESS;
@@ -446,8 +444,10 @@ QSTATUS qm::EditCopyMessageAction::isEnabled(
  *
  */
 
-qm::EditCutMessageAction::EditCutMessageAction(FolderModel* pFolderModel,
+qm::EditCutMessageAction::EditCutMessageAction(
+	Document* pDocument, FolderModel* pFolderModel,
 	MessageSelectionModel* pMessageSelectionModel, QSTATUS* pstatus) :
+	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
 	pMessageSelectionModel_(pMessageSelectionModel)
 {
@@ -469,17 +469,12 @@ QSTATUS qm::EditCutMessageAction::invoke(const ActionEvent& event)
 	Account* pAccount = lock.get();
 	if (!l.empty()) {
 		MessageDataObject* p = 0;
-		status = newQsObject(pAccount, l, MessageDataObject::FLAG_MOVE, &p);
+		status = newQsObject(pDocument_, pAccount, l, MessageDataObject::FLAG_MOVE, &p);
 		CHECK_QSTATUS();
 		p->AddRef();
 		ComPtr<IDataObject> pDataObject(p);
-		
-#ifndef _WIN32_WCE
-		HRESULT hr = ::OleSetClipboard(pDataObject.get());
-		if (hr != S_OK) {
-			// TODO
-		}
-#endif
+		status = MessageDataObject::setClipboard(pDataObject.get());
+		CHECK_QSTATUS();
 	}
 	
 	return QSTATUS_SUCCESS;
@@ -736,26 +731,28 @@ QSTATUS qm::EditPasteMessageAction::invoke(const ActionEvent& event)
 {
 	DECLARE_QSTATUS();
 	
-#ifndef _WIN32_WCE
 	Folder* pFolder = pModel_->getCurrentFolder();
 	if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL &&
 		!pFolder->isFlag(Folder::FLAG_NOSELECT)) {
 		ComPtr<IDataObject> pDataObject;
-		HRESULT hr = ::OleGetClipboard(&pDataObject);
-		if (hr == S_OK) {
-			NormalFolder* pNormalFolder = static_cast<NormalFolder*>(pFolder);
-			MessageDataObject::Flag flag = MessageDataObject::getPasteFlag(
-				pDataObject.get(), pDocument_, pNormalFolder);
-			UINT nId = flag == MessageDataObject::FLAG_MOVE ?
-				IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
-			ProgressDialogMessageOperationCallback callback(hwndFrame_, nId, nId);
-			status = MessageDataObject::pasteMessages(pDataObject.get(),
-				pDocument_, pNormalFolder, flag, &callback);
-			CHECK_QSTATUS();
-			::OleSetClipboard(0);
-		}
-	}
+		status = MessageDataObject::getClipboard(pDocument_, &pDataObject);
+		CHECK_QSTATUS();
+		
+		NormalFolder* pNormalFolder = static_cast<NormalFolder*>(pFolder);
+		MessageDataObject::Flag flag = MessageDataObject::getPasteFlag(
+			pDataObject.get(), pDocument_, pNormalFolder);
+		UINT nId = flag == MessageDataObject::FLAG_MOVE ?
+			IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
+		ProgressDialogMessageOperationCallback callback(hwndFrame_, nId, nId);
+		status = MessageDataObject::pasteMessages(pDataObject.get(),
+			pDocument_, pNormalFolder, flag, &callback);
+		CHECK_QSTATUS();
+#ifdef _WIN32_WCE
+		// TODO
+#else
+		::OleSetClipboard(0);
 #endif
+	}
 	
 	return QSTATUS_SUCCESS;
 }
@@ -765,18 +762,18 @@ QSTATUS qm::EditPasteMessageAction::isEnabled(
 {
 	assert(pbEnabled);
 	
+	DECLARE_QSTATUS();
+	
 	*pbEnabled = false;
 	
-#ifndef _WIN32_WCE
 	Folder* pFolder = pModel_->getCurrentFolder();
 	if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL &&
 		!pFolder->isFlag(Folder::FLAG_NOSELECT)) {
 		ComPtr<IDataObject> pDataObject;
-		HRESULT hr = ::OleGetClipboard(&pDataObject);
-		if (hr == S_OK)
-			*pbEnabled = MessageDataObject::canPasteMessage(pDataObject.get());
+		status = MessageDataObject::getClipboard(pDocument_, &pDataObject);
+		CHECK_QSTATUS();
+		*pbEnabled = MessageDataObject::canPasteMessage(pDataObject.get());
 	}
-#endif
 	
 	return QSTATUS_SUCCESS;
 }

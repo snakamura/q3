@@ -325,7 +325,7 @@ private:
 class EditCopyMessageAction : public qs::AbstractAction
 {
 public:
-	EditCopyMessageAction(FolderModel* pFolderModel,
+	EditCopyMessageAction(Document* pDocument, FolderModel* pFolderModel,
 		MessageSelectionModel* pMessageSelectionModel, qs::QSTATUS* pstatus);
 	virtual ~EditCopyMessageAction();
 
@@ -338,6 +338,7 @@ private:
 	EditCopyMessageAction& operator=(const EditCopyMessageAction&);
 
 private:
+	Document* pDocument_;
 	FolderModel* pFolderModel_;
 	MessageSelectionModel* pMessageSelectionModel_;
 };
@@ -352,7 +353,7 @@ private:
 class EditCutMessageAction : public qs::AbstractAction
 {
 public:
-	EditCutMessageAction(FolderModel* pFolderModel,
+	EditCutMessageAction(Document* pDocument, FolderModel* pFolderModel,
 		MessageSelectionModel* pMessageSelectionModel, qs::QSTATUS* pstatus);
 	virtual ~EditCutMessageAction();
 
@@ -365,6 +366,7 @@ private:
 	EditCutMessageAction& operator=(const EditCutMessageAction&);
 
 private:
+	Document* pDocument_;
 	FolderModel* pFolderModel_;
 	MessageSelectionModel* pMessageSelectionModel_;
 };

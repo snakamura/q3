@@ -257,7 +257,7 @@ QSTATUS qm::MainWindowImpl::initActions()
 		pActionMap_, IDM_EDIT_CLEARDELETED, pFolderModel_);
 	CHECK_QSTATUS();
 	std::auto_ptr<EditCopyMessageAction> pCopyMessageAction;
-	status = newQsObject(pFolderModel_,
+	status = newQsObject(pDocument_, pFolderModel_,
 		pMessageSelectionModel_, &pCopyMessageAction);
 	CHECK_QSTATUS();
 	std::auto_ptr<EditCommandAction> pCopyAction;
@@ -277,7 +277,7 @@ QSTATUS qm::MainWindowImpl::initActions()
 	pCopyMessageAction.release();
 	pCopyAction.release();
 	std::auto_ptr<EditCutMessageAction> pCutMessageAction;
-	status = newQsObject(pFolderModel_,
+	status = newQsObject(pDocument_, pFolderModel_,
 		pMessageSelectionModel_, &pCutMessageAction);
 	CHECK_QSTATUS();
 	Action* pEditCutActions[] = {

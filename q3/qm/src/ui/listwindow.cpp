@@ -675,7 +675,7 @@ QSTATUS qm::ListWindowImpl::dragGestureRecognized(const DragGestureEvent& event)
 		return QSTATUS_SUCCESS;
 	
 	MessageDataObject* p = 0;
-	status = newQsObject(pViewModel->getFolder()->getAccount(),
+	status = newQsObject(pDocument_, pViewModel->getFolder()->getAccount(),
 		l, MessageDataObject::FLAG_NONE, &p);
 	CHECK_QSTATUS();
 	p->AddRef();
