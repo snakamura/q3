@@ -159,7 +159,7 @@ QSTATUS qmnntp::AbstractCallback::checkCertificate(
 	CHECK_QSTATUS();
 	
 	const WCHAR* pwszHost = pSubAccount_->getHost(Account::HOST_RECEIVE);
-	if (wcscmp(wstrCommonName.get(), pwszHost) != 0)
+	if (_wcsicmp(wstrCommonName.get(), pwszHost) != 0)
 		return QSTATUS_FAIL;
 	
 	return QSTATUS_SUCCESS;
