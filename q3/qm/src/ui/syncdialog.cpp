@@ -136,9 +136,8 @@ void qm::SyncDialog::hide()
 	sendDlgItemMessage(IDC_ERROR, EM_REPLACESEL, FALSE,
 		reinterpret_cast<LPARAM>(_T("")));
 	
-	bool bForeground = Window::getForegroundWindow() == getHandle();
 	showWindow(SW_HIDE);
-	if (bForeground)
+	if (Window::getForegroundWindow() == getHandle())
 		getMainWindow()->setForegroundWindow();
 }
 
@@ -185,6 +184,8 @@ bool qm::SyncDialog::hasError() const
 
 void qm::SyncDialog::enableCancel(bool bEnable)
 {
+	// TODO
+	// Enabling cancel button changes the foreground window.
 	Window(getDlgItem(IDC_CANCEL)).enableWindow(bEnable);
 	
 	UINT nOldId = bEnable ? IDC_HIDE : IDC_CANCEL;
@@ -564,8 +565,6 @@ LRESULT qm::SyncStatusWindow::windowProc(UINT uMsg,
 
 void qm::SyncStatusWindow::start(unsigned int nParam)
 {
-	pSyncDialog_->resetCanceledTime();
-	pSyncDialog_->setMessage(L"");
 	class RunnableImpl : public Runnable
 	{
 	public:
@@ -576,6 +575,8 @@ void qm::SyncStatusWindow::start(unsigned int nParam)
 		
 		virtual void run()
 		{
+			pSyncDialog_->resetCanceledTime();
+			pSyncDialog_->setMessage(L"");
 			pSyncDialog_->enableCancel(true);
 		}
 	
@@ -601,7 +602,6 @@ void qm::SyncStatusWindow::end()
 		}
 	}
 	
-	pSyncDialog_->setMessage(L"");
 	class RunnableImpl : public Runnable
 	{
 	public:
@@ -612,6 +612,7 @@ void qm::SyncStatusWindow::end()
 		
 		virtual void run()
 		{
+			pSyncDialog_->setMessage(L"");
 			pSyncDialog_->enableCancel(false);
 		}
 	
@@ -653,8 +654,6 @@ void qm::SyncStatusWindow::endThread(unsigned int nId)
 	
 	invalidate(false);
 	updateScrollBar();
-	
-	invalidate(false);
 }
 
 void qm::SyncStatusWindow::setPos(unsigned int nId,
