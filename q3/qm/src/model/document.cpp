@@ -125,7 +125,7 @@ qm::Document::Document(Profile* pProfile,
 	pImpl_->pAddressBook_.reset(new AddressBook(app.getProfilePath(FileNames::ADDRESSBOOK_XML).get(),
 		pProfile->getInt(L"AddressBook", L"WAB", 1) != 0));
 	pImpl_->pSecurity_.reset(new Security(pwszMailFolder, pProfile));
-	pImpl_->pRecents_.reset(new Recents(pProfile));
+	pImpl_->pRecents_.reset(new Recents(this, pProfile));
 	pImpl_->nOnline_ = 0;
 }
 

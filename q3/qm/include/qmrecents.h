@@ -24,6 +24,8 @@ class Recents;
 class RecentsHandler;
 class RecentsEvent;
 
+class Document;
+
 
 /****************************************************************************
  *
@@ -34,7 +36,8 @@ class RecentsEvent;
 class Recents
 {
 public:
-	explicit Recents(qs::Profile* pProfile);
+	Recents(Document* pDocument,
+			qs::Profile* pProfile);
 	~Recents();
 
 public:
@@ -44,6 +47,7 @@ public:
 			 bool bAuto);
 	void remove(const WCHAR* pwszURI);
 	void clear();
+	void removeSeens();
 	
 	void lock() const;
 	void unlock() const;

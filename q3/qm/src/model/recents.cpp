@@ -6,9 +6,13 @@
  *
  */
 
+#include <qmdocument.h>
+#include <qmmessageholder.h>
 #include <qmrecents.h>
 
 #include <qsthread.h>
+
+#include "uri.h"
 
 using namespace qm;
 using namespace qs;
@@ -28,6 +32,7 @@ struct qm::RecentsImpl
 	void fireRecentsChanged();
 	
 	Recents* pThis_;
+	Document* pDocument_;
 	unsigned int nMax_;
 	bool bAddAutoOnly_;
 	std::auto_ptr<qs::RegexPattern> pFilter_;
@@ -53,7 +58,8 @@ void qm::RecentsImpl::fireRecentsChanged()
  *
  */
 
-qm::Recents::Recents(Profile* pProfile) :
+qm::Recents::Recents(Document* pDocument,
+					 Profile* pProfile) :
 	pImpl_(0)
 {
 	std::auto_ptr<RegexPattern> pFilter;
@@ -63,6 +69,7 @@ qm::Recents::Recents(Profile* pProfile) :
 	
 	pImpl_ = new RecentsImpl();
 	pImpl_->pThis_ = this;
+	pImpl_->pDocument_ = pDocument;
 	pImpl_->nMax_ = pProfile->getInt(L"Recents", L"Max", 20);
 	pImpl_->bAddAutoOnly_ = pProfile->getInt(L"Recents", L"AddAutoOnly", 1) != 0;
 	pImpl_->pFilter_ = pFilter;
@@ -141,10 +148,43 @@ void qm::Recents::clear()
 {
 	Lock<Recents> lock(*this);
 	
+	if (pImpl_->list_.empty())
+		return;
+	
 	std::for_each(pImpl_->list_.begin(), pImpl_->list_.end(), string_free<WSTRING>());
 	pImpl_->list_.clear();
 	
 	pImpl_->fireRecentsChanged();
+}
+
+void qm::Recents::removeSeens()
+{
+	Lock<Recents> lock(*this);
+	
+	bool bChanged = false;
+	
+	for (RecentsImpl::URIList::iterator it = pImpl_->list_.begin(); it != pImpl_->list_.end(); ) {
+		bool bRemove = true;
+		
+		std::auto_ptr<URI> pURI(URI::parse(*it));
+		if (pURI.get()) {
+			MessagePtrLock mpl(pImpl_->pDocument_->getMessage(*pURI.get()));
+			if (mpl)
+				bRemove = mpl->isFlag(MessageHolder::FLAG_SEEN);
+		}
+		
+		if (bRemove) {
+			freeWString(*it);
+			it = pImpl_->list_.erase(it);
+			bChanged = true;
+		}
+		else {
+			++it;
+		}
+	}
+	
+	if (bChanged)
+		pImpl_->fireRecentsChanged();
 }
 
 void qm::Recents::lock() const

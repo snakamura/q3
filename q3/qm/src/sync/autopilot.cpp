@@ -8,6 +8,7 @@
 
 #include <qmdocument.h>
 #include <qmgoround.h>
+#include <qmrecents.h>
 
 #include <qsras.h>
 
@@ -105,6 +106,9 @@ void qm::AutoPilot::timerTimeout(unsigned int nId)
 				}
 			}
 		}
+		
+		Recents* pRecents = pDocument_->getRecents();
+		pRecents->removeSeens();
 		
 		++nCount_;
 		if (nCount_ == 100000)
