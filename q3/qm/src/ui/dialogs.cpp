@@ -1492,43 +1492,47 @@ LRESULT qm::AddressBookDialog::SelectedAddressListWindow::onContextMenu(HWND hwn
 	nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
 #endif
 	UINT nId = ::TrackPopupMenu(hmenuSub, nFlags, pt.x, pt.y, 0, getHandle(), 0);
-	
-	struct {
-		UINT nId_;
-		Type type_;
-	} types[] = {
-		{ IDM_ADDRESSBOOK_CHANGETO,		TYPE_TO		},
-		{ IDM_ADDRESSBOOK_CHANGECC,		TYPE_CC		},
-		{ IDM_ADDRESSBOOK_CHANGEBCC,	TYPE_BCC	}
-	};
-	Type type = static_cast<Type>(-1);
-	for (int n = 0; n < countof(types) && type == -1; ++n) {
-		if (types[n].nId_ == nId)
-			type = types[n].type_;
+	if (nId == IDM_ADDRESSBOOK_REMOVE) {
+		pDialog_->remove();
 	}
-	if (type == -1)
-		return 0;
-	
-	int nItem = -1;
-	while (true) {
-		nItem = ListView_GetNextItem(getHandle(), nItem, LVNI_ALL | LVNI_SELECTED);
-		if (nItem == -1)
-			break;
-		
-		LVITEM item = {
-			LVIF_PARAM,
-			nItem
+	else {
+		struct {
+			UINT nId_;
+			Type type_;
+		} types[] = {
+			{ IDM_ADDRESSBOOK_CHANGETO,		TYPE_TO		},
+			{ IDM_ADDRESSBOOK_CHANGECC,		TYPE_CC		},
+			{ IDM_ADDRESSBOOK_CHANGEBCC,	TYPE_BCC	}
 		};
-		ListView_GetItem(getHandle(), &item);
+		Type type = static_cast<Type>(-1);
+		for (int n = 0; n < countof(types) && type == -1; ++n) {
+			if (types[n].nId_ == nId)
+				type = types[n].type_;
+		}
+		if (type == -1)
+			return 0;
 		
-		Item* pItem = reinterpret_cast<Item*>(item.lParam);
-		pItem->setType(type);
-		
-		item.mask = LVIF_IMAGE;
-		item.iImage = type;
-		ListView_SetItem(getHandle(), &item);
+		int nItem = -1;
+		while (true) {
+			nItem = ListView_GetNextItem(getHandle(), nItem, LVNI_ALL | LVNI_SELECTED);
+			if (nItem == -1)
+				break;
+			
+			LVITEM item = {
+				LVIF_PARAM,
+				nItem
+			};
+			ListView_GetItem(getHandle(), &item);
+			
+			Item* pItem = reinterpret_cast<Item*>(item.lParam);
+			pItem->setType(type);
+			
+			item.mask = LVIF_IMAGE;
+			item.iImage = type;
+			ListView_SetItem(getHandle(), &item);
+		}
+		ListView_SortItems(getHandle(), &selectedItemComp, 0);
 	}
-	ListView_SortItems(getHandle(), &selectedItemComp, 0);
 	
 	return 0;
 }
