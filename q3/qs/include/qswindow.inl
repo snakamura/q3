@@ -84,7 +84,8 @@ inline bool qs::Window::showWindow(int nShow)
 
 inline bool qs::Window::isVisible() const
 {
-	return (getStyle() & WS_VISIBLE) != 0;
+	assert(hwnd_);
+	return ::IsWindowVisible(hwnd_) != 0;
 }
 
 inline bool qs::Window::isIconic() const
