@@ -1765,12 +1765,14 @@ AttachmentParser::Result qm::AttachmentParser::detach(const WCHAR* pwszDir,
 	if (pwstrPath)
 		pwstrPath->reset(0);
 	
-	if (!File::createDirectory(pwszDir))
+	StringBuffer<WSTRING> buf(pwszDir);
+	if (buf.getLength() != 0 && buf.get(buf.getLength() - 1) == L'\\')
+		buf.remove(buf.getLength() - 1, buf.getLength());
+	
+	if (!File::createDirectory(buf.getCharArray()))
 		return RESULT_FAIL;
 	
-	StringBuffer<WSTRING> buf(pwszDir);
-	if (*(pwszDir + (wcslen(pwszDir) - 1)) != L'\\')
-		buf.append(L'\\');
+	buf.append(L'\\');
 	buf.append(pwszName);
 	
 	wstring_ptr wstrPath(buf.getString());
