@@ -10,8 +10,6 @@ PROJECTNAME		= qscrypto
 PROJECTTYPE		= dll
 LIBRARIES		= qs
 
-CPROJS			= -DQSCRYPTOEXPORT
-
 EXTERNALINCS	= -I$(OPENSSLDIR)/include -I$(WCECOMPATDIR)/include
 ifeq ($(PLATFORM),desktop)
 	EXTERNALLIBS= $(OPENSSLDIR)/lib/desktop/libeay32.lib $(OPENSSLDIR)/lib/desktop/ssleay32.lib
