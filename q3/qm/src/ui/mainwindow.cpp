@@ -1200,7 +1200,7 @@ void qm::MainWindowImpl::layoutChildren(int cx,
 	pStatusBar_->showWindow(bShowStatusBar_ ? SW_SHOW : SW_HIDE);
 	
 	pSyncNotificationWindow_->setWindowPos(HWND_TOP,
-		cx - SyncNotificationWindow::WIDTH, nTopBarHeight, 0, 0, SWP_NOSIZE);
+		cx - SyncNotificationWindow::WIDTH, 0/*nTopBarHeight*/, 0, 0, SWP_NOSIZE);
 	
 	pFolderSplitterWindow_->setWindowPos(0,
 		0, nTopBarHeight + nFolderComboBoxHeight, cx,
