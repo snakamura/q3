@@ -1,5 +1,5 @@
 /*
- * $Id: ras.h,v 1.2 2003/05/27 06:29:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.

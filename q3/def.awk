@@ -1,6 +1,6 @@
 #!/bin/awk
 #
-# $Id: $
+# $Id$
 
 BEGIN {
 	if (LIBNAME == "") {

@@ -1,5 +1,5 @@
 /*
- * $Id: qsstl.h,v 1.3 2003/05/31 08:04:52 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.

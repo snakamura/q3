@@ -1,5 +1,5 @@
 /*
- * $Id: qsuiutil.h,v 1.2 2003/06/01 08:40:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.

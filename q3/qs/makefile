@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2003/05/30 06:22:57 snakamura Exp $
+# $Id$
 #
 # Makefile for qs
 

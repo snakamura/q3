@@ -1,5 +1,5 @@
 /*
- * $Id: layout.h,v 1.1.1.1 2003/04/29 08:07:32 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998 Satoshi Nakamura
  * All rights reserved.

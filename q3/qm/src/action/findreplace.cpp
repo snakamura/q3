@@ -1,5 +1,5 @@
 /*
- * $Id: findreplace.cpp,v 1.1 2003/05/22 08:05:17 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.

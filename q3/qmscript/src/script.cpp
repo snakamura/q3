@@ -1,5 +1,5 @@
 /*
- * $Id: script.cpp,v 1.4 2003/05/13 17:38:22 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.

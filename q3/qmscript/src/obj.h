@@ -1,5 +1,5 @@
 /*
- * $Id: obj.h,v 1.5 2003/05/15 05:54:20 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.

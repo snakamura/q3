@@ -1,5 +1,5 @@
 /*
- * $Id: accelerator.cpp,v 1.2 2003/05/09 06:05:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
