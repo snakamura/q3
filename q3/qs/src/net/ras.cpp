@@ -716,6 +716,8 @@ QSTATUS qs::RasConnection::setLocation(const WCHAR* pwszLocation)
 	::RegSetValueEx(hKey, _T("CurrentLoc"), 0, REG_DWORD,
 		reinterpret_cast<LPBYTE>(&nLocation), sizeof(nLocation));
 	::RegCloseKey(hKey);
+	
+	return QSTATUS_SUCCESS;
 #else
 	return QSTATUS_FAIL;
 #endif
