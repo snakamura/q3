@@ -37,6 +37,7 @@ class qm::EditWindowImpl :
 	public EditWindowItem,
 	public EditWindowFocusController,
 	public HeaderEditLineCallback,
+	public HeaderEditItemCallback,
 	public EditTextWindowCallback,
 	public EditMessageHolder,
 	public DefaultEditMessageHandler,
@@ -77,7 +78,10 @@ public:
 	virtual bool isHidden() const;
 
 public:
-	virtual void layout();
+	virtual void focusChanged();
+
+public:
+	virtual void itemSizeChanged();
 
 public:
 	virtual EditMessage* getEditMessage();
@@ -251,10 +255,15 @@ bool qm::EditWindowImpl::isHidden() const
 	return bHideHeaderIfNoFocus_ && pTextWindow_ && pTextWindow_->hasFocus();
 }
 
-void qm::EditWindowImpl::layout()
+void qm::EditWindowImpl::focusChanged()
 {
 	if (bHideHeaderIfNoFocus_)
 		layoutChildren();
+}
+
+void qm::EditWindowImpl::itemSizeChanged()
+{
+	layoutChildren();
 }
 
 EditMessage* qm::EditWindowImpl::getEditMessage()
@@ -527,6 +536,7 @@ LRESULT qm::EditWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	HeaderEditWindowCreateContext headerEditContext = {
 		pImpl_,
 		pContext->pMenuManager_,
+		pImpl_,
 		pImpl_
 	};
 	if (!pHeaderEditWindow->create(L"QmHeaderEditWindow", 0,
@@ -738,7 +748,7 @@ LRESULT qm::EditTextWindow::onCreate(CREATESTRUCT* pCreateStruct)
 LRESULT qm::EditTextWindow::onKillFocus(HWND hwnd)
 {
 	if (hwnd && Window(hwnd).getParentPopup() == getParentFrame())
-		pCallback_->layout();
+		pCallback_->focusChanged();
 	return TextWindow::onKillFocus(hwnd);
 }
 
@@ -755,7 +765,7 @@ LRESULT qm::EditTextWindow::onLButtonDown(UINT nFlags,
 LRESULT qm::EditTextWindow::onSetFocus(HWND hwnd)
 {
 	if (hwnd && Window(hwnd).getParentPopup() == getParentFrame())
-		pCallback_->layout();
+		pCallback_->focusChanged();
 	return TextWindow::onSetFocus(hwnd);
 }
 

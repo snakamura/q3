@@ -48,9 +48,11 @@ public:
 
 public:
 	bool load(MenuManager* pMenuManager,
-			  HeaderEditLineCallback* pCallback);
+			  HeaderEditLineCallback* pLineCallback,
+			  HeaderEditItemCallback* pItemCallback);
 	bool create(MenuManager* pMenuManager,
-				HeaderEditLineCallback* pCallback);
+				HeaderEditLineCallback* pLineCallback,
+				HeaderEditItemCallback* pItemCallback);
 
 public:
 	HeaderEditWindow* pThis_;
@@ -65,7 +67,8 @@ public:
 };
 
 bool qm::HeaderEditWindowImpl::load(MenuManager* pMenuManager,
-									HeaderEditLineCallback* pCallback)
+									HeaderEditLineCallback* pLineCallback,
+									HeaderEditItemCallback* pItemCallback)
 {
 	pLayout_.reset(new LineLayout());
 	pLayout_->setLineSpacing(1);
@@ -73,8 +76,8 @@ bool qm::HeaderEditWindowImpl::load(MenuManager* pMenuManager,
 	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::HEADEREDIT_XML));
 	
 	XMLReader reader;
-	HeaderEditWindowContentHandler contentHandler(
-		pLayout_.get(), pController_, pMenuManager, pCallback);
+	HeaderEditWindowContentHandler contentHandler(pLayout_.get(),
+		pController_, pMenuManager, pLineCallback, pItemCallback);
 	reader.setContentHandler(&contentHandler);
 	if (!reader.parse(wstrPath.get()))
 		return false;
@@ -84,9 +87,10 @@ bool qm::HeaderEditWindowImpl::load(MenuManager* pMenuManager,
 }
 
 bool qm::HeaderEditWindowImpl::create(MenuManager* pMenuManager,
-									  HeaderEditLineCallback* pCallback)
+									  HeaderEditLineCallback* pLineCallback,
+									  HeaderEditItemCallback* pItemCallback)
 {
-	if (!load(pMenuManager, pCallback))
+	if (!load(pMenuManager, pLineCallback, pItemCallback))
 		return false;
 	
 	std::pair<HFONT, HFONT> fonts(hfont_, hfontBold_);
@@ -282,7 +286,9 @@ LRESULT qm::HeaderEditWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	::GetClassInfo(getInstanceHandle(), ptszClassName, &wc);
 	pImpl_->hbrBackground_ = wc.hbrBackground;
 	
-	if (!pImpl_->create(pContext->pMenuManager_, pContext->pHeaderEditLineCallback_))
+	if (!pImpl_->create(pContext->pMenuManager_,
+		pContext->pHeaderEditLineCallback_,
+		pContext->pHeaderEditItemCallback_))
 		return -1;
 	
 	return 0;
@@ -971,10 +977,12 @@ LRESULT qm::EditHeaderEditItem::onKillFocus()
  */
 
 qm::AttachmentHeaderEditItem::AttachmentHeaderEditItem(EditWindowFocusController* pController,
-													   MenuManager* pMenuManager) :
+													   MenuManager* pMenuManager,
+													   HeaderEditItemCallback* pCallback) :
 	HeaderEditItem(pController),
 	wnd_(this),
 	pMenuManager_(pMenuManager),
+	pCallback_(pCallback),
 	pEditMessage_(0)
 {
 }
@@ -1021,7 +1029,7 @@ bool qm::AttachmentHeaderEditItem::isFocusItem() const
 
 unsigned int qm::AttachmentHeaderEditItem::getHeight(unsigned int nFontHeight) const
 {
-	return nFontHeight + 7;
+	return (ListView_GetItemCount(wnd_.getHandle()) != 0 ? nFontHeight*3 : nFontHeight) + 7;
 }
 
 bool qm::AttachmentHeaderEditItem::create(WindowBase* pParent,
@@ -1155,6 +1163,8 @@ void qm::AttachmentHeaderEditItem::update(EditMessage* pEditMessage)
 		ListView_InsertItem(hwnd, &item);
 		wstrPath.release();
 	}
+	
+	pCallback_->itemSizeChanged();
 }
 
 void qm::AttachmentHeaderEditItem::clear()
@@ -1562,6 +1572,17 @@ LRESULT qm::AccountHeaderEditItem::onChange()
 
 /****************************************************************************
  *
+ * HeaderEditItemCallback
+ *
+ */
+
+qm::HeaderEditItemCallback::~HeaderEditItemCallback()
+{
+}
+
+
+/****************************************************************************
+ *
  * HeaderEditWindowContentHandler
  *
  */
@@ -1569,11 +1590,13 @@ LRESULT qm::AccountHeaderEditItem::onChange()
 qm::HeaderEditWindowContentHandler::HeaderEditWindowContentHandler(LineLayout* pLayout,
 																   EditWindowFocusController* pController,
 																   MenuManager* pMenuManager,
-																   HeaderEditLineCallback* pCallback) :
+																   HeaderEditLineCallback* pLineCallback,
+																   HeaderEditItemCallback* pItemCallback) :
 	pLayout_(pLayout),
 	pController_(pController),
 	pMenuManager_(pMenuManager),
-	pCallback_(pCallback),
+	pLineCallback_(pLineCallback),
+	pItemCallback_(pItemCallback),
 	pCurrentLine_(0),
 	pCurrentItem_(0),
 	state_(STATE_ROOT)
@@ -1626,7 +1649,7 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 				return false;
 		}
 		std::auto_ptr<HeaderEditLine> pHeaderEditLine(
-			new HeaderEditLine(pCallback_, nFlags, pClass));
+			new HeaderEditLine(pLineCallback_, nFlags, pClass));
 		pCurrentLine_ = pHeaderEditLine.get();
 		pLayout_->addLine(pHeaderEditLine);
 		
@@ -1689,8 +1712,8 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 		
 		std::auto_ptr<HeaderEditItem> pItem;
 		if (wcscmp(pwszLocalName, L"attachment") == 0) {
-			std::auto_ptr<AttachmentHeaderEditItem> p(
-				new AttachmentHeaderEditItem(pController_, pMenuManager_));
+			std::auto_ptr<AttachmentHeaderEditItem> p(new AttachmentHeaderEditItem(
+				pController_, pMenuManager_, pItemCallback_));
 			pAttachmentSelectionModel_ = p.get();
 			pItem.reset(p.release());
 		}

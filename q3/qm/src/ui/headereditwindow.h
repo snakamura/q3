@@ -32,6 +32,7 @@ class HeaderEditItem;
 	class ComboBoxHeaderEditItem;
 		class SignatureHeaderEditItem;
 		class AccountHeaderEditItem;
+class HeaderEditItemCallback;
 class HeaderEditWindowContentHandler;
 
 class AddressBook;
@@ -360,7 +361,8 @@ class AttachmentHeaderEditItem :
 {
 public:
 	AttachmentHeaderEditItem(EditWindowFocusController* pController,
-							 qs::MenuManager* pMenuManager);
+							 qs::MenuManager* pMenuManager,
+							 HeaderEditItemCallback* pCallback);
 	virtual ~AttachmentHeaderEditItem();
 
 public:
@@ -433,6 +435,7 @@ private:
 private:
 	AttachmentEditWindow wnd_;
 	qs::MenuManager* pMenuManager_;
+	HeaderEditItemCallback* pCallback_;
 	std::auto_ptr<EditWindowItemWindow> pItemWindow_;
 	EditMessage* pEditMessage_;
 };
@@ -573,6 +576,22 @@ private:
 
 /****************************************************************************
  *
+ * HeaderEditItemCallback
+ *
+ */
+
+class HeaderEditItemCallback
+{
+public:
+	virtual ~HeaderEditItemCallback();
+
+public:
+	virtual void itemSizeChanged() = 0;
+};
+
+
+/****************************************************************************
+ *
  * HeaderEditWindowContentHandler
  *
  */
@@ -583,7 +602,8 @@ public:
 	HeaderEditWindowContentHandler(LineLayout* pLayout,
 								   EditWindowFocusController* pController,
 								   qs::MenuManager* pMenuManager,
-								   HeaderEditLineCallback* pCallback);
+								   HeaderEditLineCallback* pLineCallback,
+								   HeaderEditItemCallback* pItemCallback);
 	virtual ~HeaderEditWindowContentHandler();
 
 public:
@@ -623,7 +643,8 @@ private:
 	LineLayout* pLayout_;
 	EditWindowFocusController* pController_;
 	qs::MenuManager* pMenuManager_;
-	HeaderEditLineCallback* pCallback_;
+	HeaderEditLineCallback* pLineCallback_;
+	HeaderEditItemCallback* pItemCallback_;
 	HeaderEditLine* pCurrentLine_;
 	HeaderEditItem* pCurrentItem_;
 	State state_;
@@ -643,6 +664,7 @@ struct HeaderEditWindowCreateContext
 	EditWindowFocusController* pController_;
 	qs::MenuManager* pMenuManager_;
 	HeaderEditLineCallback* pHeaderEditLineCallback_;
+	HeaderEditItemCallback* pHeaderEditItemCallback_;
 };
 
 }

@@ -202,7 +202,7 @@ public:
 	virtual ~EditTextWindowCallback();
 
 public:
-	virtual void layout() = 0;
+	virtual void focusChanged() = 0;
 };
 
 }
