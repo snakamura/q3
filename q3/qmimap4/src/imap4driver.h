@@ -179,8 +179,8 @@ private:
 	qm::Account* pAccount_;
 	qm::PasswordCallback* pPasswordCallback_;
 	const qm::Security* pSecurity_;
-	std::auto_ptr<SessionCache> pSessionCache_;
 	std::auto_ptr<CallbackImpl> pCallback_;
+	std::auto_ptr<SessionCache> pSessionCache_;
 	std::auto_ptr<OfflineJobManager> pOfflineJobManager_;
 	qm::SubAccount* pSubAccount_;
 	bool bOffline_;

@@ -1099,7 +1099,7 @@ bool qmimap4::Imap4Driver::CallbackImpl::response(Response* pResponse)
  */
 
 qmimap4::Imap4Driver::Hook::Hook(CallbackImpl* pCallback,
-	ProcessHook* pProcessHook) :
+								 ProcessHook* pProcessHook) :
 	pCallback_(pCallback)
 {
 	pCallback_->setProcessHook(pProcessHook);
