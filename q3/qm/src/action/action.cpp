@@ -1759,6 +1759,9 @@ QSTATUS qm::FolderUpdateAction::invoke(const ActionEvent& event)
 	if (!pAccount)
 		return QSTATUS_FAIL;
 	
+	status = pFolderModel_->setCurrentAccount(pAccount, false);
+	CHECK_QSTATUS();
+	
 	// TODO
 	// Show progress dialog box?
 	status = pAccount->updateFolders();

@@ -1023,7 +1023,8 @@ QSTATUS qm::MessageFrameWindowManager::open(
 #endif
 	
 	MessageModel* pMessageModel = pFrame->getMessageModel();
-	pMessageModel->setViewModel(pViewModel);
+	status = pMessageModel->setViewModel(pViewModel);
+	CHECK_QSTATUS();
 	status = pMessageModel->setMessage(pmh);
 	CHECK_QSTATUS();
 	pFrame->showWindow(SW_SHOW);

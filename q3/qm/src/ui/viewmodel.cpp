@@ -357,9 +357,10 @@ qm::ViewModelHandler::~ViewModelHandler()
  *
  */
 
-qm::ViewModel::ViewModel(Folder* pFolder, Profile* pProfile,
-	Document* pDocument, HWND hwnd,
-	const ColorManager* pColorManager, QSTATUS* pstatus) :
+qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
+	Folder* pFolder, Profile* pProfile, Document* pDocument,
+	HWND hwnd, const ColorManager* pColorManager, QSTATUS* pstatus) :
+	pViewModelManager_(pViewModelManager),
 	pFolder_(pFolder),
 	pProfile_(pProfile),
 	pDocument_(pDocument),
@@ -1060,6 +1061,13 @@ QSTATUS qm::ViewModel::messageChanged(const MessageEvent& event)
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qm::ViewModel::folderDestroyed(const FolderEvent& event)
+{
+	fireDestroyed();
+	pViewModelManager_->removeViewModel(this);
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::ViewModel::loadColumns()
 {
 	DECLARE_QSTATUS();
@@ -1488,6 +1496,27 @@ QSTATUS qm::ViewModel::fireSorted() const
 	return fireEvent(event, &ViewModelHandler::sorted);
 }
 
+QSTATUS qm::ViewModel::fireDestroyed() const
+{
+	DECLARE_QSTATUS();
+	
+	ViewModelHandlerList l;
+	status = STLWrapper<ViewModelHandlerList>(l).resize(listHandler_.size());
+	CHECK_QSTATUS();
+	std::copy(listHandler_.begin(), listHandler_.end(), l.begin());
+	
+	ViewModelEvent event(this);
+	
+	ViewModelHandlerList::const_iterator it = l.begin();
+	while (it != l.end()) {
+		status = (*it)->destroyed(event);
+		CHECK_QSTATUS();
+		++it;
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::ViewModel::fireEvent(const ViewModelEvent& event,
 	QSTATUS (ViewModelHandler::*pfn)(const ViewModelEvent&)) const
 {
@@ -1549,6 +1578,11 @@ QSTATUS qm::DefaultViewModelHandler::updated(const ViewModelEvent& event)
 }
 
 QSTATUS qm::DefaultViewModelHandler::sorted(const ViewModelEvent& event)
+{
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::DefaultViewModelHandler::destroyed(const ViewModelEvent& event)
 {
 	return QSTATUS_SUCCESS;
 }
@@ -1669,8 +1703,8 @@ QSTATUS qm::ViewModelManager::getViewModel(
 		status = getProfile(pFolder, &pProfile);
 		CHECK_QSTATUS();
 		std::auto_ptr<ViewModel> pViewModel;
-		status = newQsObject(pFolder, pProfile, pDocument_,
-			hwnd_, pColorManager_, &pViewModel);
+		status = newQsObject(this, pFolder, pProfile,
+			pDocument_, hwnd_, pColorManager_, &pViewModel);
 		CHECK_QSTATUS();
 		STLWrapper<ViewModelList>(listViewModel_).push_back(pViewModel.get());
 		CHECK_QSTATUS();
@@ -1717,6 +1751,14 @@ QSTATUS qm::ViewModelManager::removeViewModelManagerHandler(
 	HandlerList::iterator it = std::remove(l.begin(), l.end(), pHandler);
 	l.erase(it, l.end());
 	return QSTATUS_SUCCESS;
+}
+
+void qm::ViewModelManager::removeViewModel(ViewModel* pViewModel)
+{
+	ViewModelList::iterator it = std::remove(listViewModel_.begin(),
+		listViewModel_.end(), pViewModel);
+	listViewModel_.erase(it, listViewModel_.end());
+	delete pViewModel;
 }
 
 QSTATUS qm::ViewModelManager::accountSelected(const FolderModelEvent& event)

@@ -44,6 +44,7 @@ struct qm::FolderImpl
 	
 	QSTATUS fireMessageAdded(MessageHolder* pmh);
 	QSTATUS fireMessageRemoved(MessageHolder* pmh);
+	QSTATUS fireFolderDestroyed();
 	
 	Folder* pThis_;
 	unsigned int nId_;
@@ -117,6 +118,29 @@ QSTATUS qm::FolderImpl::fireMessageRemoved(MessageHolder* pmh)
 	FolderHandlerList::const_iterator it = listFolderHandler_.begin();
 	while (it != listFolderHandler_.end()) {
 		status = (*it)->messageRemoved(event);
+		CHECK_QSTATUS();
+		++it;
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::FolderImpl::fireFolderDestroyed()
+{
+	DECLARE_QSTATUS();
+	
+	FolderEvent event(pThis_, 0);
+	
+	Lock<Folder> lock(*pThis_);
+	
+	FolderHandlerList l;
+	status = STLWrapper<FolderHandlerList>(l).resize(listFolderHandler_.size());
+	CHECK_QSTATUS();
+	std::copy(listFolderHandler_.begin(), listFolderHandler_.end(), l.begin());
+	
+	FolderHandlerList::const_iterator it = l.begin();
+	while (it != l.end()) {
+		status = (*it)->folderDestroyed(event);
 		CHECK_QSTATUS();
 		++it;
 	}
@@ -802,7 +826,13 @@ QSTATUS qm::NormalFolder::saveMessageHolders()
 
 QSTATUS qm::NormalFolder::deletePermanent()
 {
+	DECLARE_QSTATUS();
+	
 	// TODO
+	
+	status = getImpl()->fireFolderDestroyed();
+	CHECK_QSTATUS();
+	
 	return QSTATUS_SUCCESS;
 }
 

@@ -52,7 +52,7 @@ public:
 	MessagePtr getCurrentMessage() const;
 	qs::QSTATUS setMessage(MessageHolder* pmh);
 	ViewModel* getViewModel() const;
-	void setViewModel(ViewModel* pViewModel);
+	qs::QSTATUS setViewModel(ViewModel* pViewModel);
 	qs::QSTATUS updateToViewModel();
 	qs::QSTATUS connectToViewModel();
 	qs::QSTATUS disconnectFromViewModel();
@@ -67,6 +67,7 @@ public:
 public:
 	virtual qs::QSTATUS itemRemoved(const ViewModelEvent& event);
 	virtual qs::QSTATUS itemStateChanged(const ViewModelEvent& event);
+	virtual qs::QSTATUS destroyed(const ViewModelEvent& event);
 
 public:
 	virtual qs::QSTATUS timerTimeout(unsigned int nId);

@@ -69,6 +69,9 @@ qm::MessageModel::MessageModel(QSTATUS* pstatus) :
 
 qm::MessageModel::~MessageModel()
 {
+	if (!pViewModelManager_ && pViewModel_)
+		pViewModel_->removeViewModelHandler(this);
+	
 	delete pTimer_;
 }
 
@@ -105,10 +108,25 @@ ViewModel* qm::MessageModel::getViewModel() const
 	return pViewModel_;
 }
 
-void qm::MessageModel::setViewModel(ViewModel* pViewModel)
+QSTATUS qm::MessageModel::setViewModel(ViewModel* pViewModel)
 {
-	assert(pViewModel);
+	assert(!pViewModelManager_);
+	
+	DECLARE_QSTATUS();
+	
+	if (pViewModel_) {
+		status = pViewModel_->removeViewModelHandler(this);
+		CHECK_QSTATUS();
+	}
+	
 	pViewModel_ = pViewModel;
+	
+	if (pViewModel_) {
+		status = pViewModel_->addViewModelHandler(this);
+		CHECK_QSTATUS();
+	}
+	
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::MessageModel::updateToViewModel()
@@ -214,24 +232,47 @@ QSTATUS qm::MessageModel::viewModelSelected(const ViewModelManagerEvent& event)
 
 QSTATUS qm::MessageModel::itemRemoved(const ViewModelEvent& event)
 {
-//	return updateToViewModel();
-	return setMessage(0);
+	DECLARE_QSTATUS();
+	
+	if (pViewModelManager_) {
+		status = setMessage(0);
+		CHECK_QSTATUS();
+	}
+	
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::MessageModel::itemStateChanged(const ViewModelEvent& event)
 {
-	assert(pViewModel_ == event.getViewModel());
+	DECLARE_QSTATUS();
+	
+	if (pViewModelManager_) {
+		assert(pViewModel_ == event.getViewModel());
+		
+		if (event.getItem() == pViewModel_->getFocused()) {
+			assert(pTimer_);
+			if (nTimerId_ != 0)
+				pTimer_->killTimer(nTimerId_);
+			nTimerId_ = TIMER_ITEMSTATECHANGED;
+			status = pTimer_->setTimer(&nTimerId_, TIMEOUT, this);
+			CHECK_QSTATUS();
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::MessageModel::destroyed(const ViewModelEvent& event)
+{
+	assert(!pViewModelManager_);
+	assert(pViewModel_);
 	
 	DECLARE_QSTATUS();
 	
-	if (event.getItem() == pViewModel_->getFocused()) {
-		assert(pTimer_);
-		if (nTimerId_ != 0)
-			pTimer_->killTimer(nTimerId_);
-		nTimerId_ = TIMER_ITEMSTATECHANGED;
-		status = pTimer_->setTimer(&nTimerId_, TIMEOUT, this);
-		CHECK_QSTATUS();
-	}
+	status = setViewModel(0);
+	CHECK_QSTATUS();
+	status = setMessage(0);
+	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
 }

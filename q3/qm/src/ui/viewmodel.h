@@ -137,6 +137,7 @@ public:
 	virtual qs::QSTATUS itemAttentionPaid(const ViewModelEvent& event) = 0;
 	virtual qs::QSTATUS updated(const ViewModelEvent& event) = 0;
 	virtual qs::QSTATUS sorted(const ViewModelEvent& event) = 0;
+	virtual qs::QSTATUS destroyed(const ViewModelEvent& event) = 0;
 };
 
 
@@ -215,8 +216,9 @@ public:
 	typedef std::vector<ViewModelItem*> ItemList;
 
 public:
-	ViewModel(Folder* pFolder, qs::Profile* pProfile, Document* pDocument,
-		HWND hwnd, const ColorManager* pColorManager, qs::QSTATUS* pstatus);
+	ViewModel(ViewModelManager* pViewModelManager, Folder* pFolder,
+		qs::Profile* pProfile, Document* pDocument, HWND hwnd,
+		const ColorManager* pColorManager, qs::QSTATUS* pstatus);
 	~ViewModel();
 
 public:
@@ -270,6 +272,7 @@ public:
 	virtual qs::QSTATUS messageAdded(const FolderEvent& event);
 	virtual qs::QSTATUS messageRemoved(const FolderEvent& event);
 	virtual qs::QSTATUS messageChanged(const MessageEvent& event);
+	virtual qs::QSTATUS folderDestroyed(const FolderEvent& event);
 
 private:
 	qs::QSTATUS loadColumns();
@@ -289,6 +292,7 @@ private:
 	qs::QSTATUS fireItemAttentionPaid(unsigned int nItem) const;
 	qs::QSTATUS fireUpdated() const;
 	qs::QSTATUS fireSorted() const;
+	qs::QSTATUS fireDestroyed() const;
 	qs::QSTATUS fireEvent(const ViewModelEvent& event,
 		qs::QSTATUS (ViewModelHandler::*pfn)(const ViewModelEvent&)) const;
 
@@ -323,6 +327,7 @@ private:
 	typedef std::vector<ViewModelHandler*> ViewModelHandlerList;
 
 private:
+	ViewModelManager* pViewModelManager_;
 	Folder* pFolder_;
 	qs::Profile* pProfile_;
 	Document* pDocument_;
@@ -361,6 +366,7 @@ public:
 	virtual qs::QSTATUS itemAttentionPaid(const ViewModelEvent& event);
 	virtual qs::QSTATUS updated(const ViewModelEvent& event);
 	virtual qs::QSTATUS sorted(const ViewModelEvent& event);
+	virtual qs::QSTATUS destroyed(const ViewModelEvent& event);
 };
 
 
@@ -440,6 +446,10 @@ public:
 	
 	qs::QSTATUS addViewModelManagerHandler(ViewModelManagerHandler* pHandler);
 	qs::QSTATUS removeViewModelManagerHandler(ViewModelManagerHandler* pHandler);
+
+// These methods are intended to be called from ViewModel class.
+public:
+	void removeViewModel(ViewModel* pViewModel);
 
 public:
 	virtual qs::QSTATUS accountSelected(const FolderModelEvent& event);

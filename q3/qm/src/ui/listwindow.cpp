@@ -141,6 +141,7 @@ public:
 	virtual QSTATUS itemAttentionPaid(const ViewModelEvent& event);
 	virtual QSTATUS updated(const ViewModelEvent& event);
 	virtual QSTATUS sorted(const ViewModelEvent& event);
+	virtual QSTATUS destroyed(const ViewModelEvent& event);
 
 public:
 	virtual QSTATUS dragGestureRecognized(const DragGestureEvent& event);
@@ -648,6 +649,12 @@ QSTATUS qm::ListWindowImpl::sorted(const ViewModelEvent& event)
 	assert(event.getViewModel() == pViewModelManager_->getCurrentViewModel());
 	ensureVisible(event.getViewModel()->getFocused());
 	pThis_->invalidate();
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::ListWindowImpl::destroyed(const ViewModelEvent& event)
+{
+	assert(false);
 	return QSTATUS_SUCCESS;
 }
 

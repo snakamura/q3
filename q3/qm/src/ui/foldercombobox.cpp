@@ -80,6 +80,7 @@ public:
 	virtual QSTATUS messageAdded(const FolderEvent& event);
 	virtual QSTATUS messageRemoved(const FolderEvent& event);
 	virtual QSTATUS messageChanged(const MessageEvent& event);
+	virtual QSTATUS folderDestroyed(const FolderEvent& event);
 
 public:
 	virtual QSTATUS accountSelected(const FolderModelEvent& event);
@@ -293,6 +294,11 @@ QSTATUS qm::FolderComboBoxImpl::messageChanged(const MessageEvent& event)
 		(event.getNewFlags() & MessageHolder::FLAG_SEEN))
 		pThis_->postMessage(WM_FOLDERCOMBOBOX_MESSAGECHANGED,
 			0, reinterpret_cast<LPARAM>(event.getFolder()));
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::FolderComboBoxImpl::folderDestroyed(const FolderEvent& event)
+{
 	return QSTATUS_SUCCESS;
 }
 

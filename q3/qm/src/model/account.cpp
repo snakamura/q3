@@ -767,6 +767,7 @@ QSTATUS qm::Account::updateFolders()
 			bReleased_(false)
 		{
 		}
+		
 		~Deleter()
 		{
 			if (!bReleased_) {
@@ -777,7 +778,12 @@ QSTATUS qm::Account::updateFolders()
 			}
 			free(pFolder_);
 		}
-		void release() { bReleased_ = true; }
+		
+		void release()
+		{
+			bReleased_ = true;
+		}
+		
 		std::pair<Folder*, bool>* pFolder_;
 		size_t nCount_;
 		bool bReleased_;
@@ -800,8 +806,16 @@ QSTATUS qm::Account::updateFolders()
 	FolderList listDelete;
 	struct Deleter2
 	{
-		Deleter2(const FolderList& l) : l_(l) {}
-		~Deleter2() { std::for_each(l_.begin(), l_.end(), deleter<Folder>()); }
+		Deleter2(const FolderList& l) :
+			l_(l)
+		{
+		}
+		
+		~Deleter2()
+		{
+			std::for_each(l_.begin(), l_.end(), deleter<Folder>());
+		}
+		
 		const FolderList& l_;
 	} deleter2(listDelete);
 	

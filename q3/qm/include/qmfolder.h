@@ -320,6 +320,7 @@ public:
 	virtual qs::QSTATUS messageAdded(const FolderEvent& event) = 0;
 	virtual qs::QSTATUS messageRemoved(const FolderEvent& event) = 0;
 	virtual qs::QSTATUS messageChanged(const MessageEvent& event) = 0;
+	virtual qs::QSTATUS folderDestroyed(const FolderEvent& event) = 0;
 };
 
 
