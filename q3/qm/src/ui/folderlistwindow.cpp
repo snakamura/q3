@@ -246,15 +246,11 @@ void qm::FolderListWindowImpl::reloadProfiles(bool bInitialize)
 	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_, L"FolderListWindow", false);
 	if (!bInitialize) {
 		assert(hfont_);
+		Window(ListView_GetHeader(pThis_->getHandle())).setFont(hfont);
 		pThis_->setFont(hfont);
 		::DeleteObject(hfont_);
 	}
 	hfont_ = hfont;
-	
-	if (!bInitialize) {
-		pThis_->invalidate();
-		Window(ListView_GetHeader(pThis_->getHandle())).invalidate();
-	}
 }
 
 LRESULT qm::FolderListWindowImpl::onNotify(NMHDR* pnmhdr,
@@ -472,7 +468,7 @@ LRESULT qm::FolderListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	pImpl_->nId_ = getWindowLong(GWL_ID);
 	
-	setFont(pImpl_->hfont_);
+	setFont(pImpl_->hfont_, false);
 	
 	HIMAGELIST hImageList = ImageList_LoadImage(
 		Application::getApplication().getResourceHandle(),

@@ -415,9 +415,6 @@ void qm::FolderWindowImpl::reloadProfiles(bool bInitialize)
 		::DeleteObject(hfont_);
 	}
 	hfont_ = hfont;
-	
-	if (!bInitialize)
-		pThis_->invalidate();
 }
 
 LRESULT qm::FolderWindowImpl::onNotify(NMHDR* pnmhdr,
@@ -1341,7 +1338,7 @@ LRESULT qm::FolderWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	pImpl_->nId_ = getWindowLong(GWL_ID);
 	
-	setFont(pImpl_->hfont_);
+	setFont(pImpl_->hfont_, false);
 	
 	HIMAGELIST hImageList = ImageList_LoadImage(
 		Application::getApplication().getResourceHandle(),

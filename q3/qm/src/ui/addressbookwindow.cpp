@@ -833,14 +833,23 @@ void qm::AddressBookListWindowImpl::reloadProfiles(bool bInitialize)
 	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_, L"AddressBookListWindow", false);
 	if (!bInitialize) {
 		assert(hfont_);
+		Window(ListView_GetHeader(pThis_->getHandle())).setFont(hfont);
 		pThis_->setFont(hfont);
 		::DeleteObject(hfont_);
 	}
 	hfont_ = hfont;
 	
 	if (!bInitialize) {
-		pThis_->invalidate();
-		Window(ListView_GetHeader(pThis_->getHandle())).invalidate();
+		RECT rect;
+		pThis_->getClientRect(&rect);
+		WINDOWPOS wp;
+		HDLAYOUT layout = {
+			&rect,
+			&wp
+		};
+		Window header(ListView_GetHeader(pThis_->getHandle()));
+		Header_Layout(header.getHandle(), &layout);
+		header.setWindowPos(0, wp.x, wp.y, wp.cx, wp.cy, SWP_NOZORDER | SWP_NOACTIVATE);
 	}
 }
 
@@ -1176,7 +1185,7 @@ LRESULT qm::AddressBookListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	ListView_SetExtendedListViewStyle(getHandle(), LVS_EX_FULLROWSELECT);
 	
-	setFont(pImpl_->hfont_);
+	setFont(pImpl_->hfont_, false);
 	
 	pImpl_->loadColumns();
 	pImpl_->refresh();

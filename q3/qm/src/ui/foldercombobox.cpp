@@ -661,7 +661,7 @@ LRESULT qm::FolderComboBox::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	pImpl_->nId_ = getWindowLong(GWL_ID);
 	
-	setFont(pImpl_->hfont_);
+	setFont(pImpl_->hfont_, false);
 #ifdef _WIN32_WCE
 	pImpl_->updateItemHeight();
 #endif

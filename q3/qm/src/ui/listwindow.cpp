@@ -160,7 +160,7 @@ bool qm::ListWindowImpl::createHeaderColumn()
 		pThis_->getHandle(), 0, 0, ID_HEADERCOLUMN, 0))
 		return false;
 	pHeaderColumn_ = pHeaderColumn.release();
-	pHeaderColumn_->setFont(hfont_);
+	pHeaderColumn_->setFont(hfont_, false);
 	
 	return true;
 }
@@ -550,7 +550,6 @@ void qm::ListWindowImpl::reloadProfiles(bool bInitialize)
 	if (!bInitialize) {
 		updateLineHeight();
 		layoutChildren();
-		pHeaderColumn_->invalidate();
 	}
 }
 
