@@ -254,18 +254,15 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 					}
 				}
 				
-				{
-					Lock<Account> lock(*pAccount_);
-					
-					MessageHolder* pmh = pAccount_->storeMessage(pFolder_,
-						pszMessage, 0, item.nId_, nFlags, item.nBytes_,
-						nFlags == MessageHolder::FLAG_INDEXONLY);
-					if (!pmh)
-						return false;
-				}
+				Lock<Account> lock(*pAccount_);
 				
-				if ((nFlags & MessageHolder::FLAG_SEEN) == 0)
-					pSessionCallback_->notifyNewMessage();
+				MessageHolder* pmh = pAccount_->storeMessage(pFolder_,
+					pszMessage, 0, item.nId_, nFlags, item.nBytes_,
+					nFlags == MessageHolder::FLAG_INDEXONLY);
+				if (!pmh)
+					return false;
+				
+				pSessionCallback_->notifyNewMessage(pmh);
 				
 				pLastIdList_->setLastId(pNntp_->getGroup(), item.nId_);
 			}
@@ -292,7 +289,7 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 				if (!pmh)
 					return false;
 				
-				pSessionCallback_->notifyNewMessage();
+				pSessionCallback_->notifyNewMessage(pmh);
 				
 				pLastIdList_->setLastId(pNntp_->getGroup(), n);
 			}

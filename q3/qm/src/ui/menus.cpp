@@ -11,6 +11,7 @@
 #include <qmgoround.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
+#include <qmrecents.h>
 
 #include <qsassert.h>
 #include <qsconv.h>
@@ -29,6 +30,7 @@
 #include "../model/filter.h"
 #include "../model/goround.h"
 #include "../model/templatemanager.h"
+#include "../model/uri.h"
 #include "../script/scriptmanager.h"
 
 #pragma warning(disable:4786)
@@ -346,7 +348,7 @@ bool qm::MoveMenu::createMenu(HMENU hmenu,
 	else
 		std::remove_copy_if(l.begin(), l.end(),
 			std::back_inserter(listFolder), std::mem_fun(&Folder::isHidden));
-	std::sort(listFolder.begin(), listFolder.end(), FolderLess());
+	std::stable_sort(listFolder.begin(), listFolder.end(), FolderLess());
 	
 	typedef std::vector<MenuInserter> FolderStack;
 	FolderStack stackFolder;
@@ -457,6 +459,115 @@ qm::MoveMenu::MenuInserter::MenuInserter(HMENU hmenu,
 	pFolder_(pFolder),
 	nCount_(0)
 {
+}
+
+
+/****************************************************************************
+ *
+ * RecentsMenu
+ *
+ */
+
+qm::RecentsMenu::RecentsMenu(Document* pDocument) :
+	pDocument_(pDocument)
+{
+}
+
+qm::RecentsMenu::~RecentsMenu()
+{
+	clear();
+}
+
+const WCHAR* qm::RecentsMenu::getURI(unsigned int nId) const
+{
+	assert(IDM_MESSAGE_OPENRECENT <= nId && nId < IDM_MESSAGE_OPENRECENT + MAX_RECENTS);
+	return listURI_[nId - IDM_MESSAGE_OPENRECENT];
+}
+
+bool qm::RecentsMenu::createMenu(HMENU hmenu)
+{
+	UINT nId = IDM_MESSAGE_OPENRECENT;
+	while (::DeleteMenu(hmenu, nId++, MF_BYCOMMAND));
+	
+	clear();
+	
+	Recents* pRecents = pDocument_->getRecents();
+	
+	Lock<Recents> lock(*pRecents);
+	
+	unsigned int nCount = pRecents->getCount();
+	
+	typedef std::vector<const WCHAR*> List;
+	List l;
+	l.resize(nCount);
+	for (unsigned int n = 0; n < nCount; ++n)
+		l[n] = pRecents->get(n);
+	std::sort(l.begin(), l.end(), URIComp());
+	
+	listURI_.reserve(l.size());
+	nId = IDM_MESSAGE_OPENRECENT;
+	Account* pAccount = 0;
+	for (List::iterator it = l.begin(); it != l.end(); ++it) {
+		const WCHAR* pwszURI = *it;
+		MessagePtr ptr;
+		if (URI::getMessageHolder(pwszURI, pDocument_, &ptr)) {
+			MessagePtrLock mpl(ptr);
+			if (mpl) {
+				if (pAccount != mpl->getFolder()->getAccount()) {
+					if (pAccount != 0)
+						::AppendMenu(hmenu, MF_SEPARATOR, -1, 0);
+					pAccount = mpl->getFolder()->getAccount();
+				}
+				
+				wstring_ptr wstrSubject(mpl->getSubject());
+				wstring_ptr wstrTitle(UIUtil::formatMenu(wstrSubject.get()));
+				W2T(wstrTitle.get(), ptszTitle);
+				::AppendMenu(hmenu, MF_STRING, nId++, ptszTitle);
+				
+				wstring_ptr wstrURI(allocWString(pwszURI));
+				listURI_.push_back(wstrURI.release());
+			}
+		}
+	}
+	
+	::AppendMenu(hmenu, MF_SEPARATOR, -1, 0);
+	
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	wstring_ptr wstrClear(loadString(hInst, IDS_CLEARRECENTS));
+	W2T(wstrClear.get(), ptszClear);
+	::AppendMenu(hmenu, MF_STRING, IDM_MESSAGE_CLEARRECENTS, ptszClear);
+	
+	return true;
+}
+
+void qm::RecentsMenu::clear()
+{
+	std::for_each(listURI_.begin(), listURI_.end(), string_free<WSTRING>());
+	listURI_.clear();
+}
+
+bool RecentsMenu::URIComp::operator()(const WCHAR* pwszLhs,
+									  const WCHAR* pwszRhs)
+{
+#ifndef NDEBUG
+	wstring_ptr wstrPrefix(concat(URI::getScheme(), L"://"));
+	size_t nPrefixLen = wcslen(wstrPrefix.get());
+	assert(nPrefixLen == 12);
+	assert(wcslen(pwszLhs) > nPrefixLen && wcsncmp(pwszLhs, wstrPrefix.get(), nPrefixLen) == 0);
+	assert(wcslen(pwszRhs) > nPrefixLen && wcsncmp(pwszRhs, wstrPrefix.get(), nPrefixLen) == 0);
+#endif
+	const WCHAR* pLhs = pwszLhs + 12;
+	const WCHAR* pLhsEnd = wcschr(pLhs, L'/');
+	assert(pLhsEnd);
+	size_t nLhsLen = pLhsEnd - pLhs;
+	
+	const WCHAR* pRhs = pwszRhs + 12;
+	const WCHAR* pRhsEnd = wcschr(pRhs, L'/');
+	assert(pRhsEnd);
+	size_t nRhsLen = pRhsEnd - pRhs;
+	
+	int nComp = wcsncmp(pLhs, pRhs, QSMIN(nLhsLen, nRhsLen));
+	return nComp < 0 ? true : nComp > 0 ? false : nLhsLen < nRhsLen;
 }
 
 

@@ -218,6 +218,8 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 					strContent.get(), &msg, -1, nFlags, -1, false);
 				if (!pmh)
 					return false;
+				
+				pSessionCallback_->notifyNewMessage(pmh);
 			}
 			
 			std::auto_ptr<FeedItem> pItem(new FeedItem(pwszLink));

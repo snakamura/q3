@@ -16,6 +16,7 @@
 #include <qmmainwindow.h>
 #include <qmmessage.h>
 #include <qmmessagewindow.h>
+#include <qmrecents.h>
 #include <qmsecurity.h>
 
 #include <qsaccelerator.h>
@@ -29,6 +30,7 @@
 #include <algorithm>
 #include <memory>
 
+#include <tchar.h>
 #ifndef _WIN32_WCE
 #	include <tmschema.h>
 #endif
@@ -87,7 +89,8 @@ class qm::MainWindowImpl :
 	public FolderModelHandler,
 	public FolderSelectionModel,
 	public MessageWindowHandler,
-	public DefaultDocumentHandler
+	public DefaultDocumentHandler,
+	public RecentsHandler
 {
 public:
 	enum {
@@ -103,7 +106,13 @@ public:
 		ID_STATUSBAR			= 1010,
 		ID_COMMANDBARMENU		= 1011,
 		ID_COMMANDBARBUTTON		= 1012,
-		ID_SYNCNOTIFICATION		= 1013
+		ID_SYNCNOTIFICATION		= 1013,
+		ID_NOTIFYICON			= 1014
+	};
+	
+	enum {
+		WM_MAINWINDOW_NOTIFYICON		= WM_APP + 1001,
+		WM_MAINWINDOW_RECENTSCHANGED	= WM_APP + 1002
 	};
 
 public:
@@ -190,6 +199,9 @@ public:
 	virtual void accountListChanged(const AccountListChangedEvent& event);
 
 public:
+	virtual void recentsChanged(const RecentsEvent& event);
+
+public:
 	MainWindow* pThis_;
 	
 	bool bShowToolbar_;
@@ -243,6 +255,7 @@ public:
 	std::auto_ptr<SubAccountMenu> pSubAccountMenu_;
 	std::auto_ptr<GoRoundMenu> pGoRoundMenu_;
 	std::auto_ptr<ScriptMenu> pScriptMenu_;
+	std::auto_ptr<RecentsMenu> pRecentsMenu_;
 	std::auto_ptr<DelayedFolderModelHandler> pDelayedFolderModelHandler_;
 	ToolbarCookie* pToolbarCookie_;
 	bool bCreated_;
@@ -251,6 +264,10 @@ public:
 	int nShowingModalDialog_;
 	StatusBarInfo statusBarInfo_;
 	HWND hwndLastFocused_;
+#ifndef _WIN32_WCE_PSPC
+	NOTIFYICONDATA notifyIcon_;
+	bool bNotifyIcon_;
+#endif
 };
 
 void qm::MainWindowImpl::initActions()
@@ -534,6 +551,9 @@ void qm::MainWindowImpl::initActions()
 		pThis_->getHandle(),
 		pProfile_,
 		true);
+	ADD_ACTION1(MessageClearRecentsAction,
+		IDM_MESSAGE_CLEARRECENTS,
+		pDocument_->getRecents());
 	ADD_ACTION2(MessageCombineAction,
 		IDM_MESSAGE_COMBINE,
 		pMessageSelectionModel_.get(),
@@ -670,6 +690,13 @@ void qm::MainWindowImpl::initActions()
 		pMessageSelectionModel_.get(),
 		pProfile_,
 		pThis_->getHandle());
+	ADD_ACTION_RANGE4(MessageOpenRecentAction,
+		IDM_MESSAGE_OPENRECENT,
+		IDM_MESSAGE_OPENRECENT + RecentsMenu::MAX_RECENTS,
+		pRecentsMenu_.get(),
+		pDocument_,
+		pViewModelManager_.get(),
+		pMessageFrameWindowManager_.get());
 	ADD_ACTION9(MessageOpenURLAction,
 		IDM_MESSAGE_OPENURL,
 		pDocument_,
@@ -1168,6 +1195,13 @@ void qm::MainWindowImpl::accountListChanged(const AccountListChangedEvent& event
 	pViewModelManager_->setCurrentAccount(0);
 }
 
+void qm::MainWindowImpl::recentsChanged(const RecentsEvent& event)
+{
+#ifndef _WIN32_WCE_PSPC
+	pThis_->postMessage(WM_MAINWINDOW_RECENTSCHANGED);
+#endif
+}
+
 
 /****************************************************************************
  *
@@ -1434,6 +1468,9 @@ qm::MainWindow::MainWindow(Profile* pProfile) :
 	pImpl_->bLayouting_ = false;
 	pImpl_->nShowingModalDialog_ = 0;
 	pImpl_->hwndLastFocused_ = 0;
+#ifndef _WIN32_WCE_PSPC
+	pImpl_->bNotifyIcon_ = false;
+#endif
 	
 	setModalHandler(pImpl_);
 }
@@ -1643,9 +1680,9 @@ UINT qm::MainWindow::getIconId()
 
 void qm::MainWindow::getWindowClass(WNDCLASS* pwc)
 {
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	FrameWindow::getWindowClass(pwc);
-	pwc->hIcon = ::LoadIcon(Application::getApplication().getResourceHandle(),
-		MAKEINTRESOURCE(IDI_MAINFRAME));
+	pwc->hIcon = ::LoadIcon(hInst, MAKEINTRESOURCE(IDI_MAINFRAME));
 	pwc->hbrBackground = reinterpret_cast<HBRUSH>(COLOR_BTNFACE + 1);
 }
 
@@ -1697,6 +1734,10 @@ LRESULT qm::MainWindow::windowProc(UINT uMsg,
 		HANDLE_QUERYENDSESSION()
 #endif
 		HANDLE_SIZE()
+#ifndef _WIN32_WCE_PSPC
+		HANDLE_MESSAGE(MainWindowImpl::WM_MAINWINDOW_NOTIFYICON, onNotifyIcon)
+		HANDLE_MESSAGE(MainWindowImpl::WM_MAINWINDOW_RECENTSCHANGED, onRecentsChanged)
+#endif
 	END_MESSAGE_HANDLER()
 	return FrameWindow::windowProc(uMsg, wParam, lParam);
 }
@@ -1953,14 +1994,28 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pSubAccountMenu_.reset(new SubAccountMenu(pImpl_->pFolderModel_.get()));
 	pImpl_->pGoRoundMenu_.reset(new GoRoundMenu(pImpl_->pGoRound_));
 	pImpl_->pScriptMenu_.reset(new ScriptMenu(pImpl_->pDocument_->getScriptManager()));
+	pImpl_->pRecentsMenu_.reset(new RecentsMenu(pImpl_->pDocument_));
 	
 	pImpl_->pDelayedFolderModelHandler_.reset(new DelayedFolderModelHandler(pImpl_));
 	pImpl_->pFolderModel_->addFolderModelHandler(pImpl_->pDelayedFolderModelHandler_.get());
 	
 	pImpl_->pDocument_->addDocumentHandler(pImpl_);
+	pImpl_->pDocument_->getRecents()->addRecentsHandler(pImpl_);
 	pImpl_->pMessageWindow_->addMessageWindowHandler(pImpl_);
 	
 	pImpl_->initActions();
+	
+#ifndef _WIN32_WCE_PSPC
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	pImpl_->notifyIcon_.cbSize = sizeof(pImpl_->notifyIcon_);
+	pImpl_->notifyIcon_.hWnd = getHandle();
+	pImpl_->notifyIcon_.uID = MainWindowImpl::ID_NOTIFYICON;
+	pImpl_->notifyIcon_.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+	pImpl_->notifyIcon_.uCallbackMessage = MainWindowImpl::WM_MAINWINDOW_NOTIFYICON;
+	pImpl_->notifyIcon_.hIcon = reinterpret_cast<HICON>(::LoadImage(hInst,
+		MAKEINTRESOURCE(IDI_MAINFRAME), IMAGE_ICON, 16, 16, 0));
+	_tcscpy(pImpl_->notifyIcon_.szTip, _T("QMAIL"));
+#endif
 	
 	pImpl_->bCreated_ = true;
 	
@@ -1973,6 +2028,12 @@ LRESULT qm::MainWindow::onDestroy()
 	pImpl_->pFolderModel_->removeFolderModelHandler(
 		pImpl_->pDelayedFolderModelHandler_.get());
 	pImpl_->pDocument_->removeDocumentHandler(pImpl_);
+	pImpl_->pDocument_->getRecents()->removeRecentsHandler(pImpl_);
+	
+#ifndef _WIN32_WCE_PSPC
+	if (pImpl_->bNotifyIcon_)
+		Shell_NotifyIcon(NIM_DELETE, &pImpl_->notifyIcon_);
+#endif
 	
 	if (pImpl_->pToolbarCookie_)
 		pImpl_->pUIManager_->getToolbarManager()->destroy(pImpl_->pToolbarCookie_);
@@ -2091,6 +2152,57 @@ LRESULT qm::MainWindow::onSize(UINT nFlags,
 		pImpl_->layoutChildren(cx, cy);
 	return FrameWindow::onSize(nFlags, cx, cy);
 }
+
+#ifndef _WIN32_WCE_PSPC
+LRESULT qm::MainWindow::onNotifyIcon(WPARAM wParam,
+									 LPARAM lParam)
+{
+	if (wParam == MainWindowImpl::ID_NOTIFYICON) {
+		if (lParam == WM_LBUTTONDOWN || lParam == WM_RBUTTONDOWN) {
+			AutoMenuHandle hmenu(::CreatePopupMenu());
+			if (pImpl_->pRecentsMenu_->createMenu(hmenu.get())) {
+				UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
+#ifndef _WIN32_WCE
+				nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
+#endif
+				POINT pt;
+#ifdef _WIN32_WCE
+				DWORD dwPos = ::GetMessagePos();
+				pt.x = static_cast<int>(dwPos & 0x0000ffff);
+				pt.y = static_cast<int>(dwPos & 0xffff0000) >> 16;
+#else
+				::GetCursorPos(&pt);
+#endif
+				::GetCursorPos(&pt);
+				setForegroundWindow();
+				::TrackPopupMenu(hmenu.get(), nFlags, pt.x, pt.y, 0, getHandle(), 0);
+				postMessage(WM_NULL);
+			}
+		}
+	}
+	return 0;
+}
+
+LRESULT qm::MainWindow::onRecentsChanged(WPARAM wParam,
+										 LPARAM lParam)
+{
+	Recents* pRecents = pImpl_->pDocument_->getRecents();
+	
+	Lock<Recents> lock(*pRecents);
+	
+	unsigned int nCount = pRecents->getCount();
+	if (nCount != 0 && !pImpl_->bNotifyIcon_) {
+		Shell_NotifyIcon(NIM_ADD, &pImpl_->notifyIcon_);
+		pImpl_->bNotifyIcon_ = true;
+	}
+	else if (nCount == 0 && pImpl_->bNotifyIcon_) {
+		Shell_NotifyIcon(NIM_DELETE, &pImpl_->notifyIcon_);
+		pImpl_->bNotifyIcon_ = false;
+	}
+	
+	return 0;
+}
+#endif
 
 
 /****************************************************************************

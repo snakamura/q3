@@ -10,6 +10,7 @@
 #include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmfilenames.h>
+#include <qmrecents.h>
 #include <qmsecurity.h>
 
 #include <qsconv.h>
@@ -59,6 +60,7 @@ struct qm::DocumentImpl
 	std::auto_ptr<SignatureManager> pSignatureManager_;
 	std::auto_ptr<AddressBook> pAddressBook_;
 	std::auto_ptr<Security> pSecurity_;
+	std::auto_ptr<Recents> pRecents_;
 	unsigned int nOnline_;
 	bool bCheckNewMail_;
 };
@@ -103,8 +105,9 @@ qm::Document::Document(Profile* pProfile) :
 	std::auto_ptr<TemplateManager> pTemplateManager(new TemplateManager(pwszMailFolder));
 	std::auto_ptr<ScriptManager> pScriptManager(new ScriptManager(pwszMailFolder));
 	std::auto_ptr<SignatureManager> pSignatureManager(new SignatureManager());
-	std::auto_ptr<Security> pSecurity(new Security(pwszMailFolder));
 	std::auto_ptr<AddressBook> pAddressBook(new AddressBook(pProfile));
+	std::auto_ptr<Security> pSecurity(new Security(pwszMailFolder));
+	std::auto_ptr<Recents> pRecents(new Recents(pProfile));
 	
 	int nCheckNewMail = pProfile->getInt(L"NewMailCheck", L"Enable", 0);
 	
@@ -117,6 +120,7 @@ qm::Document::Document(Profile* pProfile) :
 	pImpl_->pSignatureManager_ = pSignatureManager;
 	pImpl_->pAddressBook_ = pAddressBook;
 	pImpl_->pSecurity_ = pSecurity;
+	pImpl_->pRecents_ = pRecents;
 	pImpl_->nOnline_ = 0;
 	pImpl_->bCheckNewMail_ = nCheckNewMail != 0;
 }
@@ -399,6 +403,11 @@ AddressBook* qm::Document::getAddressBook() const
 const Security* qm::Document::getSecurity() const
 {
 	return pImpl_->pSecurity_.get();
+}
+
+Recents* qm::Document::getRecents() const
+{
+	return pImpl_->pRecents_.get();
 }
 
 bool qm::Document::isOffline() const

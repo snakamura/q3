@@ -29,6 +29,7 @@ class EncodingMenu;
 class FilterMenu;
 class GoRoundMenu;
 class MoveMenu;
+class RecentsMenu;
 class ScriptMenu;
 class SortMenu;
 class SubAccountMenu;
@@ -204,7 +205,8 @@ public:
 
 public:
 	NormalFolder* getFolder(unsigned int nId) const;
-	bool createMenu(HMENU hmenu, Account* pAccount,
+	bool createMenu(HMENU hmenu,
+					Account* pAccount,
 					bool bShowHidden,
 					const qs::ActionMap& actionMap);
 
@@ -235,6 +237,50 @@ private:
 
 private:
 	MenuMap mapMenu_;
+};
+
+
+/****************************************************************************
+ *
+ * RecentsMenu
+ *
+ */
+
+class RecentsMenu
+{
+public:
+	enum {
+		MAX_RECENTS = 100
+	};
+
+public:
+	explicit RecentsMenu(Document* pDocument);
+	~RecentsMenu();
+
+public:
+	const WCHAR* getURI(unsigned int nId) const;
+	bool createMenu(HMENU hmenu);
+
+private:
+	void clear();
+
+private:
+	struct URIComp : public std::binary_function<const WCHAR*, const WCHAR*, bool>
+	{
+		bool operator()(const WCHAR* pwszLhs,
+						const WCHAR* pwszRhs);
+	};
+
+private:
+	RecentsMenu(const RecentsMenu&);
+	RecentsMenu& operator=(const RecentsMenu&);
+
+private:
+	typedef std::vector<qs::WSTRING> URIList;
+
+private:
+	Document* pDocument_;
+	URIList listURI_;
 };
 
 

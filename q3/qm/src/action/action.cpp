@@ -17,6 +17,7 @@
 #include <qmmessage.h>
 #include <qmmessageholder.h>
 #include <qmmessagewindow.h>
+#include <qmrecents.h>
 #include <qmsearch.h>
 #include <qmtemplate.h>
 
@@ -41,6 +42,7 @@
 #include "../model/rule.h"
 #include "../model/tempfilecleaner.h"
 #include "../model/templatemanager.h"
+#include "../model/uri.h"
 #include "../script/scriptmanager.h"
 #include "../sync/syncmanager.h"
 #include "../ui/attachmentselectionmodel.h"
@@ -49,6 +51,7 @@
 #include "../ui/foldermodel.h"
 #include "../ui/folderselectionmodel.h"
 #include "../ui/menus.h"
+#include "../ui/messageframewindow.h"
 #include "../ui/messagemodel.h"
 #include "../ui/messageselectionmodel.h"
 #include "../ui/propertypages.h"
@@ -216,7 +219,7 @@ qm::ConfigViewsAction::~ConfigViewsAction()
 {
 }
 
-void qm::ConfigViewsAction::invoke(const qs::ActionEvent& event)
+void qm::ConfigViewsAction::invoke(const ActionEvent& event)
 {
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (!pViewModel)
@@ -226,7 +229,7 @@ void qm::ConfigViewsAction::invoke(const qs::ActionEvent& event)
 	dialog.doModal(hwnd_);
 }
 
-bool qm::ConfigViewsAction::isEnabled(const qs::ActionEvent& event)
+bool qm::ConfigViewsAction::isEnabled(const ActionEvent& event)
 {
 	return pViewModelManager_->getCurrentViewModel() != 0;
 }
@@ -264,7 +267,7 @@ qm::DispatchAction::~DispatchAction()
 			mem_data_ref(&Item::pAction_)));
 	std::for_each(listItem_.begin(), it,
 		unary_compose_f_gx(
-			deleter<Action>(),
+			qs::deleter<Action>(),
 			mem_data_ref(&Item::pAction_)));
 }
 
@@ -768,7 +771,7 @@ qm::FileCheckAction::~FileCheckAction()
 {
 }
 
-void qm::FileCheckAction::invoke(const qs::ActionEvent& event)
+void qm::FileCheckAction::invoke(const ActionEvent& event)
 {
 	Account* pAccount = pFolderModel_->getCurrentAccount();
 	if (!pAccount) {
@@ -815,7 +818,7 @@ void qm::FileCheckAction::invoke(const qs::ActionEvent& event)
 	}
 }
 
-bool qm::FileCheckAction::isEnabled(const qs::ActionEvent& event)
+bool qm::FileCheckAction::isEnabled(const ActionEvent& event)
 {
 	return pFolderModel_->getCurrentAccount() || pFolderModel_->getCurrentFolder();
 }
@@ -900,7 +903,7 @@ qm::FileDumpAction::~FileDumpAction()
 {
 }
 
-void qm::FileDumpAction::invoke(const qs::ActionEvent& event)
+void qm::FileDumpAction::invoke(const ActionEvent& event)
 {
 	Account* pAccount = pFolderModel_->getCurrentAccount();
 	if (!pAccount) {
@@ -941,7 +944,7 @@ void qm::FileDumpAction::invoke(const qs::ActionEvent& event)
 	}
 }
 
-bool qm::FileDumpAction::isEnabled(const qs::ActionEvent& event)
+bool qm::FileDumpAction::isEnabled(const ActionEvent& event)
 {
 	return pFolderModel_->getCurrentAccount() || pFolderModel_->getCurrentFolder();
 }
@@ -1227,7 +1230,7 @@ bool qm::FileExportAction::export(Account* pAccount,
 	return true;
 }
 
-bool qm::FileExportAction::writeMessage(qs::OutputStream* pStream,
+bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 										const Template* pTemplate,
 										MessageHolder* pmh,
 										const WCHAR* pwszEncoding)
@@ -1654,7 +1657,7 @@ qm::FileLoadAction::~FileLoadAction()
 {
 }
 
-void qm::FileLoadAction::invoke(const qs::ActionEvent& event)
+void qm::FileLoadAction::invoke(const ActionEvent& event)
 {
 	Account* pAccount = pFolderModel_->getCurrentAccount();
 	if (!pAccount) {
@@ -1679,7 +1682,7 @@ void qm::FileLoadAction::invoke(const qs::ActionEvent& event)
 	}
 }
 
-bool qm::FileLoadAction::isEnabled(const qs::ActionEvent& event)
+bool qm::FileLoadAction::isEnabled(const ActionEvent& event)
 {
 	return pFolderModel_->getCurrentAccount() || pFolderModel_->getCurrentFolder();
 }
@@ -2653,6 +2656,27 @@ bool qm::MessageApplyTemplateAction::isEnabled(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * MessageClearRecentsAction
+ *
+ */
+
+qm::MessageClearRecentsAction::MessageClearRecentsAction(Recents* pRecents) :
+	pRecents_(pRecents)
+{
+}
+
+qm::MessageClearRecentsAction::~MessageClearRecentsAction()
+{
+}
+
+void qm::MessageClearRecentsAction::invoke(const ActionEvent& event)
+{
+	pRecents_->clear();
+}
+
+
+/****************************************************************************
+ *
  * MessageCombineAction
  *
  */
@@ -3321,6 +3345,46 @@ void qm::MessageOpenAttachmentAction::invoke(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * MessageOpenRecent
+ *
+ */
+
+qm::MessageOpenRecentAction::MessageOpenRecentAction(RecentsMenu* pRecentsMenu,
+													 Document* pDocument,
+													 ViewModelManager* pViewModelManager,
+													 MessageFrameWindowManager* pMessageFrameWindowManager) :
+	pRecentsMenu_(pRecentsMenu),
+	pDocument_(pDocument),
+	pViewModelManager_(pViewModelManager),
+	pMessageFrameWindowManager_(pMessageFrameWindowManager)
+{
+}
+
+qm::MessageOpenRecentAction::~MessageOpenRecentAction()
+{
+}
+
+void qm::MessageOpenRecentAction::invoke(const ActionEvent& event)
+{
+	const WCHAR* pwszURI = pRecentsMenu_->getURI(event.getId());
+	if (pwszURI) {
+		MessagePtr ptr;
+		if (URI::getMessageHolder(pwszURI, pDocument_, &ptr)) {
+			MessagePtrLock mpl(ptr);
+			if (mpl) {
+				ViewModel* pViewModel = pViewModelManager_->getViewModel(mpl->getFolder());
+				if (!pMessageFrameWindowManager_->open(pViewModel, mpl)) {
+					// TODO MSG
+				}
+			}
+		}
+		pDocument_->getRecents()->remove(pwszURI);
+	}
+}
+
+
+/****************************************************************************
+ *
  * MessageOpenURLAction
  *
  */
@@ -3469,10 +3533,10 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 		
 		~Deleter()
 		{
-			for (UIList::iterator it = l_.begin(); it != l_.end(); ++it) {
-				delete (*it).first;
-				delete (*it).second;
-			}
+			std::for_each(l_.begin(), l_.end(),
+				unary_compose_fx_gx(
+					qs::deleter<SearchUI>(),
+					qs::deleter<SearchPropertyPage>()));
 		}
 		
 		UIList& l_;
@@ -3655,7 +3719,7 @@ void qm::ToolDialupAction::invoke(const ActionEvent& event)
 {
 	if (!isConnected()) {
 		std::auto_ptr<SyncData> pData(new SyncData(pSyncManager_,
-			pDocument_, hwnd_, SyncDialog::FLAG_SHOWDIALOG));
+			pDocument_, hwnd_, false, SyncDialog::FLAG_SHOWDIALOG));
 		
 		std::auto_ptr<SyncDialup> pDialup(new SyncDialup(
 			static_cast<const WCHAR*>(0),
@@ -4828,7 +4892,7 @@ qm::ViewSelectMessageAction::~ViewSelectMessageAction()
 {
 }
 
-void qm::ViewSelectMessageAction::invoke(const qs::ActionEvent& event)
+void qm::ViewSelectMessageAction::invoke(const ActionEvent& event)
 {
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (!pViewModel)

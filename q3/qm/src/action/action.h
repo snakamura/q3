@@ -61,6 +61,7 @@ class FolderShowSizeAction;
 class FolderUpdateAction;
 class MessageApplyRuleAction;
 class MessageApplyTemplateAction;
+class MessageClearRecentsAction;
 class MessageCombineAction;
 class MessageCreateAction;
 class MessageCreateFromClipboardAction;
@@ -72,6 +73,7 @@ class MessageMarkAction;
 class MessageMoveAction;
 class MessageMoveOtherAction;
 class MessageOpenAttachmentAction;
+class MessageOpenRecentAction;
 class MessageOpenURLAction;
 class MessagePropertyAction;
 class MessageSearchAction;
@@ -138,6 +140,8 @@ class MoveMenu;
 class NormalFolder;
 class PreviewMessageModel;
 class ProgressDialog;
+class Recents;
+class RecentsMenu;
 class RuleManager;
 class ScriptMenu;
 class SortMenu;
@@ -1323,6 +1327,30 @@ private:
 
 /****************************************************************************
  *
+ * MessageClearRecentsAction
+ *
+ */
+
+class MessageClearRecentsAction : public qs::AbstractAction
+{
+public:
+	MessageClearRecentsAction(Recents* pRecents);
+	virtual ~MessageClearRecentsAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	MessageClearRecentsAction(const MessageClearRecentsAction&);
+	MessageClearRecentsAction& operator=(const MessageClearRecentsAction&);
+
+private:
+	Recents* pRecents_;
+};
+
+
+/****************************************************************************
+ *
  * MessageCombineAction
  *
  */
@@ -1664,9 +1692,43 @@ public:
 	virtual void invoke(const qs::ActionEvent& event);
 
 private:
+	MessageOpenAttachmentAction(const MessageOpenAttachmentAction&);
+	MessageOpenAttachmentAction& operator=(const MessageOpenAttachmentAction&);
+
+private:
 	AttachmentMenu* pAttachmentMenu_;
 	AttachmentHelper helper_;
 	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * MessageOpenRecentAction
+ *
+ */
+
+class MessageOpenRecentAction : public qs::AbstractAction
+{
+public:
+	MessageOpenRecentAction(RecentsMenu* pRecentsMenu,
+							Document* pDocument,
+							ViewModelManager* pViewModelManager,
+							MessageFrameWindowManager* pMessageFrameWindowManager);
+	virtual ~MessageOpenRecentAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	MessageOpenRecentAction(const MessageOpenRecentAction&);
+	MessageOpenRecentAction& operator=(const MessageOpenRecentAction&);
+
+private:
+	RecentsMenu* pRecentsMenu_;
+	Document* pDocument_;
+	ViewModelManager* pViewModelManager_;
+	MessageFrameWindowManager* pMessageFrameWindowManager_;
 };
 
 

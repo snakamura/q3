@@ -29,6 +29,7 @@ class Account;
 class AddressBook;
 class Folder;
 class MessageHolder;
+class Recents;
 class RuleManager;
 class ScriptManager;
 class Security;
@@ -69,6 +70,7 @@ public:
 	SignatureManager* getSignatureManager() const;
 	AddressBook* getAddressBook() const;
 	const Security* getSecurity() const;
+	Recents* getRecents() const;
 	
 	bool isOffline() const;
 	void setOffline(bool bOffline);

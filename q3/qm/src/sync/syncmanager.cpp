@@ -12,6 +12,7 @@
 #include <qmfolder.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
+#include <qmrecents.h>
 #include <qmsession.h>
 #include <qmsyncfilter.h>
 
@@ -22,6 +23,7 @@
 #include <functional>
 
 #include "syncmanager.h"
+#include "../model/uri.h"
 #include "../ui/resourceinc.h"
 
 #pragma warning(disable:4786)
@@ -227,10 +229,12 @@ unsigned int qm::SyncDialup::getDisconnectWait() const
 qm::SyncData::SyncData(SyncManager* pManager,
 					   Document* pDocument,
 					   HWND hwnd,
+					   bool bAddToRecents,
 					   unsigned int nCallbackParam) :
 	pManager_(pManager),
 	pDocument_(pDocument),
 	hwnd_(hwnd),
+	bAddToRecents_(bAddToRecents),
 	nCallbackParam_(nCallbackParam),
 	pCallback_(0),
 	nSlot_(0)
@@ -252,9 +256,9 @@ HWND qm::SyncData::getWindow() const
 	return hwnd_;
 }
 
-bool qm::SyncData::isEmpty() const
+bool qm::SyncData::isAddToRecents() const
 {
-	return listItem_.empty();
+	return bAddToRecents_;
 }
 
 unsigned int qm::SyncData::getCallbackParam() const
@@ -265,6 +269,11 @@ unsigned int qm::SyncData::getCallbackParam() const
 const SyncDialup* qm::SyncData::getDialup() const
 {
 	return pDialup_.get();
+}
+
+bool qm::SyncData::isEmpty() const
+{
+	return listItem_.empty();
 }
 
 const SyncData::ItemList& qm::SyncData::getItems() const
@@ -652,7 +661,8 @@ bool qm::SyncManager::syncSlotData(const SyncData* pData,
 					pLogger.reset(0);
 					
 					if (!openReceiveSession(pData->getDocument(), pData->getWindow(),
-						pCallback, pItem, &pReceiveSession, &pReceiveCallback, &pLogger))
+						pCallback, pItem, pData->isAddToRecents(),
+						&pReceiveSession, &pReceiveCallback, &pLogger))
 						continue;
 					pSubAccount = pItem->getSubAccount();
 				}
@@ -841,6 +851,7 @@ bool qm::SyncManager::openReceiveSession(Document* pDocument,
 										 HWND hwnd,
 										 SyncManagerCallback* pSyncManagerCallback,
 										 const SyncItem* pItem,
+										 bool bAuto,
 										 std::auto_ptr<ReceiveSession>* ppSession,
 										 std::auto_ptr<ReceiveSessionCallback>* ppCallback,
 										 std::auto_ptr<Logger>* ppLogger)
@@ -865,8 +876,8 @@ bool qm::SyncManager::openReceiveSession(Document* pDocument,
 	if (!pSession.get())
 		return false;
 	
-	std::auto_ptr<ReceiveSessionCallbackImpl> pCallback(
-		new ReceiveSessionCallbackImpl(pSyncManagerCallback));
+	std::auto_ptr<ReceiveSessionCallbackImpl> pCallback(new ReceiveSessionCallbackImpl(
+		pSyncManagerCallback, pDocument->getRecents(), bAuto));
 	if (!pSession->init(pDocument, pAccount, pSubAccount,
 		hwnd, pProfile_, pLogger.get(), pCallback.get()) ||
 		!pSession->connect() ||
@@ -971,9 +982,16 @@ void qm::SyncManager::ParallelSyncThread::run()
  *
  */
 
-qm::SyncManager::ReceiveSessionCallbackImpl::ReceiveSessionCallbackImpl(SyncManagerCallback* pCallback) :
-	pCallback_(pCallback)
+qm::SyncManager::ReceiveSessionCallbackImpl::ReceiveSessionCallbackImpl(SyncManagerCallback* pCallback,
+																		Recents* pRecents,
+																		bool bAuto) :
+	pCallback_(pCallback),
+	pRecents_(pRecents),
+	bAuto_(bAuto)
 {
+	assert(pCallback);
+	assert(pRecents);
+	
 	nId_ = ::GetCurrentThreadId();
 }
 
@@ -1018,9 +1036,12 @@ void qm::SyncManager::ReceiveSessionCallbackImpl::addError(const SessionErrorInf
 	pCallback_->addError(nId_, info);
 }
 
-void qm::SyncManager::ReceiveSessionCallbackImpl::notifyNewMessage()
+void qm::SyncManager::ReceiveSessionCallbackImpl::notifyNewMessage(MessageHolder* pmh)
 {
 	pCallback_->notifyNewMessage(nId_);
+	
+	wstring_ptr wstrURI(URI::getURI(pmh));
+	pRecents_->add(wstrURI.get(), bAuto_);
 }
 
 

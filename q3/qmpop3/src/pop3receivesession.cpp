@@ -284,12 +284,12 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 		if (!pmh)
 			return false;
 		
+		if ((nFlags & MessageHolder::FLAG_SEEN) == 0)
+			pSessionCallback_->notifyNewMessage(pmh);
+		
 		unsigned int nUIDFlags = bPartial ? UID::FLAG_PARTIAL : UID::FLAG_NONE;
 		std::auto_ptr<UID> pUID(new UID(pwszUID, nUIDFlags, date));
 		pUIDList_->add(pUID);
-		
-		if ((nFlags & MessageHolder::FLAG_SEEN) == 0)
-			pSessionCallback_->notifyNewMessage();
 	}
 	
 	const Account::FolderList& listFolder = pAccount_->getFolders();

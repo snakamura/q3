@@ -100,6 +100,12 @@ protected:
 	LRESULT onSize(UINT nFlags,
 				   int cx,
 				   int cy);
+#ifndef _WIN32_WCE_PSPC
+	LRESULT onNotifyIcon(WPARAM wParam,
+						 LPARAM lParam);
+	LRESULT onRecentsChanged(WPARAM wParam,
+							 LPARAM lParam);
+#endif
 
 private:
 	MainWindow(const MainWindow&);

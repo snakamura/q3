@@ -623,7 +623,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			}
 			
 			if ((nFlags & MessageHolder::FLAG_SEEN) == 0)
-				pSessionCallback_->notifyNewMessage();
+				pSessionCallback_->notifyNewMessage(pmh);
 			
 			return RESULT_PROCESSED;
 		}

@@ -42,8 +42,8 @@ bool qm::SyncUtil::syncFolder(SyncManager* pSyncManager,
 	assert(pFolder);
 	assert(pFolder->isFlag(Folder::FLAG_SYNCABLE));
 	
-	std::auto_ptr<SyncData> pData(new SyncData(
-		pSyncManager, pDocument, hwnd, nCallbackParam));
+	std::auto_ptr<SyncData> pData(new SyncData(pSyncManager, pDocument, hwnd,
+		(nCallbackParam & SyncDialog::FLAG_NOTIFYNEWMESSAGE) != 0, nCallbackParam));
 	Account* pAccount = pFolder->getAccount();
 	SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
 	pData->addFolder(pAccount, pSubAccount,
@@ -73,8 +73,8 @@ bool qm::SyncUtil::send(SyncManager* pSyncManager,
 	assert(pAccount);
 	assert(pSubAccount);
 	
-	std::auto_ptr<SyncData> pData(new SyncData(
-		pSyncManager, pDocument, hwnd, nCallbackParam));
+	std::auto_ptr<SyncData> pData(new SyncData(pSyncManager, pDocument, hwnd,
+		(nCallbackParam & SyncDialog::FLAG_NOTIFYNEWMESSAGE) != 0, nCallbackParam));
 	pData->addSend(pAccount, pSubAccount, SendSyncItem::CRBS_NONE, pwszMessageId);
 	
 	SyncDialog* pSyncDialog = pSyncDialogManager->open();
@@ -97,8 +97,8 @@ bool qm::SyncUtil::sync(SyncManager* pSyncManager,
 {
 	SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
 	
-	std::auto_ptr<SyncData> pData(new SyncData(
-		pSyncManager, pDocument, hwnd, nCallbackParam));
+	std::auto_ptr<SyncData> pData(new SyncData(pSyncManager, pDocument, hwnd,
+		(nCallbackParam & SyncDialog::FLAG_NOTIFYNEWMESSAGE) != 0, nCallbackParam));
 	
 	if (pSubAccount->getDialupType() != SubAccount::DIALUPTYPE_NEVER) {
 		unsigned int nFlags = 0;
@@ -154,8 +154,8 @@ bool qm::SyncUtil::goRound(SyncManager* pSyncManager,
 	assert(pSyncDialogManager);
 	assert(hwnd);
 	
-	std::auto_ptr<SyncData> pData(new SyncData(
-		pSyncManager, pDocument, hwnd, nCallbackParam));
+	std::auto_ptr<SyncData> pData(new SyncData(pSyncManager, pDocument, hwnd,
+		(nCallbackParam & SyncDialog::FLAG_NOTIFYNEWMESSAGE) != 0, nCallbackParam));
 	if (pCourse) {
 		const GoRoundDialup* pDialup = pCourse->getDialup();
 		if (pDialup) {

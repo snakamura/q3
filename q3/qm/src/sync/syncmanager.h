@@ -36,6 +36,7 @@ class Account;
 class Folder;
 class SubAccount;
 class NormalFolder;
+class Recents;
 class SyncFilterManager;
 class SyncFilterSet;
 
@@ -206,15 +207,17 @@ public:
 	SyncData(SyncManager* pManager,
 			 Document* pDocument,
 			 HWND hwnd,
+			 bool bAddToRecents,
 			 unsigned int nCallbackParam);
 	~SyncData();
 
 public:
 	Document* getDocument() const;
 	HWND getWindow() const;
-	bool isEmpty() const;
+	bool isAddToRecents() const;
 	unsigned int getCallbackParam() const;
 	const SyncDialup* getDialup() const;
+	bool isEmpty() const;
 	const ItemList& getItems() const;
 	unsigned int getSlotCount() const;
 	SyncManagerCallback* getCallback() const;
@@ -242,6 +245,7 @@ private:
 	SyncManager* pManager_;
 	Document* pDocument_;
 	HWND hwnd_;
+	bool bAddToRecents_;
 	unsigned int nCallbackParam_;
 	SyncManagerCallback* pCallback_;
 	std::auto_ptr<SyncDialup> pDialup_;
@@ -291,6 +295,7 @@ private:
 							HWND hwnd,
 							SyncManagerCallback* pSyncManagerCallback,
 							const SyncItem* pItem,
+							bool bAuto,
 							std::auto_ptr<ReceiveSession>* ppSession,
 							std::auto_ptr<ReceiveSessionCallback>* ppCallback,
 							std::auto_ptr<qs::Logger>* ppLogger);
@@ -345,7 +350,9 @@ private:
 	class ReceiveSessionCallbackImpl : public ReceiveSessionCallback
 	{
 	public:
-		explicit ReceiveSessionCallbackImpl(SyncManagerCallback* pCallback);
+		explicit ReceiveSessionCallbackImpl(SyncManagerCallback* pCallback,
+											Recents* pRecents,
+											bool bAuto);
 		virtual ~ReceiveSessionCallbackImpl();
 	
 	public:
@@ -360,7 +367,7 @@ private:
 		virtual void addError(const SessionErrorInfo& info);
 	
 	public:
-		virtual void notifyNewMessage();
+		virtual void notifyNewMessage(MessageHolder* pmh);
 	
 	private:
 		ReceiveSessionCallbackImpl(const ReceiveSessionCallbackImpl&);
@@ -369,6 +376,8 @@ private:
 	private:
 		SyncManagerCallback* pCallback_;
 		unsigned int nId_;
+		Recents* pRecents_;
+		bool bAuto_;
 	};
 	
 	class SendSessionCallbackImpl : public SendSessionCallback
