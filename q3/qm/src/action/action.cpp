@@ -2347,7 +2347,7 @@ void qm::FolderEmptyTrashAction::invoke(const ActionEvent& event)
 			}
 		}
 	}
-	else {
+	else if (pTrash->isFlag(Folder::FLAG_SYNCABLE)) {
 		if (!SyncUtil::syncFolder(pSyncManager_, pDocument_,
 			pSyncDialogManager_, hwnd_, SyncDialog::FLAG_NONE, pTrash,
 			ReceiveSyncItem::FLAG_EMPTY | ReceiveSyncItem::FLAG_EXPUNGE)) {
