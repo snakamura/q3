@@ -34,9 +34,12 @@ class OptionDialogPanel;
 class OptionDialogContext;
 class OptionDialogManager;
 class OptionAddressBookDialog;
+class OptionEditWindowDialog;
 class OptionFolderComboBoxDialog;
 class OptionFolderWindowDialog;
 class OptionListWindowDialog;
+class OptionMessageWindowDialog;
+class OptionPreviewWindowDialog;
 #ifdef QMTABWINDOW
 class OptionTabWindowDialog;
 #endif
@@ -70,11 +73,14 @@ class LayoutUtil;
 class AddressBook;
 class AddressBookFrameWindowManager;
 class Document;
+class EditFrameWindowManager;
 class FolderComboBox;
 class FolderListWindow;
 class FolderWindow;
 class ListWindow;
 class MainWindow;
+class MessageFrameWindowManager;
+class MessageWindow;
 #ifdef QMTABWINDOW
 class TabWindow;
 #endif
@@ -97,6 +103,9 @@ public:
 		PANEL_FOLDERWINDOW,
 		PANEL_FOLDERCOMBOBOX,
 		PANEL_LISTWINDOW,
+		PANEL_PREVIEWWINDOW,
+		PANEL_MESSAGEWINDOW,
+		PANEL_EDITWINDOW,
 #ifdef QMTABWINDOW
 		PANEL_TABWINDOW,
 #endif
@@ -125,6 +134,9 @@ public:
 				 FolderComboBox* pFolderComboBox,
 				 ListWindow* pListWindow,
 				 FolderListWindow* pFolderListWindow,
+				 MessageWindow* pPreviewWindow,
+				 MessageFrameWindowManager* pMessageFrameWindowManager,
+				 EditFrameWindowManager* pEditFrameWindowManager,
 #ifdef QMTABWINDOW
 				 TabWindow* pTabWindow,
 #endif
@@ -206,6 +218,9 @@ private:
 	FolderComboBox* pFolderComboBox_;
 	ListWindow* pListWindow_;
 	FolderListWindow* pFolderListWindow_;
+	MessageWindow* pPreviewWindow_;
+	MessageFrameWindowManager* pMessageFrameWindowManager_;
+	EditFrameWindowManager* pEditFrameWindowManager_;
 #ifdef QMTABWINDOW
 	TabWindow* pTabWindow_;
 #endif
@@ -309,6 +324,9 @@ public:
 				 FolderComboBox* pFolderComboBox,
 				 ListWindow* pListWindow,
 				 FolderListWindow* pFolderListWindow,
+				 MessageWindow* pPreviewWindow,
+				 MessageFrameWindowManager* pMessageFrameWindowManager,
+				 EditFrameWindowManager* pEditFrameWindowManager,
 #ifdef QMTABWINDOW
 				 TabWindow* pTabWindow,
 #endif
@@ -334,6 +352,9 @@ private:
 	FolderComboBox* pFolderComboBox_;
 	ListWindow* pListWindow_;
 	FolderListWindow* pFolderListWindow_;
+	MessageWindow* pPreviewWindow_;
+	MessageFrameWindowManager* pMessageFrameWindowManager_;
+	EditFrameWindowManager* pEditFrameWindowManager_;
 #ifdef QMTABWINDOW
 	TabWindow* pTabWindow_;
 #endif
@@ -379,6 +400,46 @@ private:
 private:
 	AddressBook* pAddressBook_;
 	AddressBookFrameWindowManager* pAddressBookFrameWindowManager_;
+	qs::Profile* pProfile_;
+	LOGFONT lf_;
+};
+
+
+/****************************************************************************
+ *
+ * OptionEditWindowDialog
+ *
+ */
+
+class OptionEditWindowDialog :
+	public DefaultDialog,
+	public AbstractOptionDialogPanel<OptionEditWindowDialog>
+{
+public:
+	OptionEditWindowDialog(EditFrameWindowManager* pEditFrameWindowManager,
+						   qs::Profile* pProfile);
+	virtual ~OptionEditWindowDialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+public:
+	virtual bool save(OptionDialogContext* pContext);
+
+private:
+	LRESULT onFont();
+
+private:
+	OptionEditWindowDialog(const OptionEditWindowDialog&);
+	OptionEditWindowDialog& operator=(const OptionEditWindowDialog&);
+
+private:
+	EditFrameWindowManager* pEditFrameWindowManager_;
 	qs::Profile* pProfile_;
 	LOGFONT lf_;
 };
@@ -501,6 +562,86 @@ private:
 private:
 	ListWindow* pListWindow_;
 	FolderListWindow* pFolderListWindow_;
+	qs::Profile* pProfile_;
+	LOGFONT lf_;
+};
+
+
+/****************************************************************************
+ *
+ * OptionMessageWindowDialog
+ *
+ */
+
+class OptionMessageWindowDialog :
+	public DefaultDialog,
+	public AbstractOptionDialogPanel<OptionMessageWindowDialog>
+{
+public:
+	OptionMessageWindowDialog(MessageFrameWindowManager* pMessageFrameWindowManager,
+							  qs::Profile* pProfile);
+	virtual ~OptionMessageWindowDialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+public:
+	virtual bool save(OptionDialogContext* pContext);
+
+private:
+	LRESULT onFont();
+
+private:
+	OptionMessageWindowDialog(const OptionMessageWindowDialog&);
+	OptionMessageWindowDialog& operator=(const OptionMessageWindowDialog&);
+
+private:
+	MessageFrameWindowManager* pMessageFrameWindowManager_;
+	qs::Profile* pProfile_;
+	LOGFONT lf_;
+};
+
+
+/****************************************************************************
+ *
+ * OptionPreviewWindowDialog
+ *
+ */
+
+class OptionPreviewWindowDialog :
+	public DefaultDialog,
+	public AbstractOptionDialogPanel<OptionPreviewWindowDialog>
+{
+public:
+	OptionPreviewWindowDialog(MessageWindow* pPreviewWindow,
+							  qs::Profile* pProfile);
+	virtual ~OptionPreviewWindowDialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+public:
+	virtual bool save(OptionDialogContext* pContext);
+
+private:
+	LRESULT onFont();
+
+private:
+	OptionPreviewWindowDialog(const OptionPreviewWindowDialog&);
+	OptionPreviewWindowDialog& operator=(const OptionPreviewWindowDialog&);
+
+private:
+	MessageWindow* pPreviewWindow_;
 	qs::Profile* pProfile_;
 	LOGFONT lf_;
 };

@@ -50,6 +50,9 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 							   FolderComboBox* pFolderComboBox,
 							   ListWindow* pListWindow,
 							   FolderListWindow* pFolderListWindow,
+							   MessageWindow* pPreviewWindow,
+							   MessageFrameWindowManager* pMessageFrameWindowManager,
+							   EditFrameWindowManager* pEditFrameWindowManager,
 #ifdef QMTABWINDOW
 							   TabWindow* pTabWindow,
 #endif
@@ -68,6 +71,9 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 	pFolderComboBox_(pFolderComboBox),
 	pListWindow_(pListWindow),
 	pFolderListWindow_(pFolderListWindow),
+	pPreviewWindow_(pPreviewWindow),
+	pMessageFrameWindowManager_(pMessageFrameWindowManager),
+	pEditFrameWindowManager_(pEditFrameWindowManager),
 #ifdef QMTABWINDOW
 	pTabWindow_(pTabWindow),
 #endif
@@ -165,6 +171,9 @@ LRESULT qm::OptionDialog::onInitDialog(HWND hwndFocus,
 		{ PANEL_FOLDERWINDOW,	IDS_PANEL_FOLDERWINDOW		},
 		{ PANEL_FOLDERCOMBOBOX,	IDS_PANEL_FOLDERCOMBOBOX	},
 		{ PANEL_LISTWINDOW,		IDS_PANEL_LISTWINDOW		},
+		{ PANEL_PREVIEWWINDOW,	IDS_PANEL_PREVIEWWINDOW		},
+		{ PANEL_MESSAGEWINDOW,	IDS_PANEL_MESSAGEWINDOW		},
+		{ PANEL_EDITWINDOW,		IDS_PANEL_EDITWINDOW		},
 #ifdef QMTABWINDOW
 		{ PANEL_TABWINDOW,		IDS_PANEL_TABWINDOW			},
 #endif
@@ -407,6 +416,9 @@ void qm::OptionDialog::setCurrentPanel(Panel panel)
 			PANEL2(PANEL_FOLDERWINDOW, OptionFolderWindow, pFolderWindow_, pProfile_);
 			PANEL2(PANEL_FOLDERCOMBOBOX, OptionFolderComboBox, pFolderComboBox_, pProfile_);
 			PANEL3(PANEL_LISTWINDOW, OptionListWindow, pListWindow_, pFolderListWindow_, pProfile_);
+			PANEL2(PANEL_PREVIEWWINDOW, OptionPreviewWindow, pPreviewWindow_, pProfile_);
+			PANEL2(PANEL_MESSAGEWINDOW, OptionMessageWindow, pMessageFrameWindowManager_, pProfile_);
+			PANEL2(PANEL_EDITWINDOW, OptionEditWindow, pEditFrameWindowManager_, pProfile_);
 #ifdef QMTABWINDOW
 			PANEL2(PANEL_TABWINDOW, OptionTabWindow, pTabWindow_, pProfile_);
 #endif
@@ -726,6 +738,9 @@ qm::OptionDialogManager::OptionDialogManager(Document* pDocument,
 	pFolderComboBox_(0),
 	pListWindow_(0),
 	pFolderListWindow_(0),
+	pPreviewWindow_(0),
+	pMessageFrameWindowManager_(0),
+	pEditFrameWindowManager_(0),
 #ifdef QMTABWINDOW
 	pTabWindow_(0),
 #endif
@@ -742,6 +757,9 @@ void qm::OptionDialogManager::initUIs(MainWindow* pMainWindow,
 									  FolderComboBox* pFolderComboBox,
 									  ListWindow* pListWindow,
 									  FolderListWindow* pFolderListWindow,
+									  MessageWindow* pPreviewWindow,
+									  MessageFrameWindowManager* pMessageFrameWindowManager,
+									  EditFrameWindowManager* pEditFrameWindowManager,
 #ifdef QMTABWINDOW
 									  TabWindow* pTabWindow,
 #endif
@@ -752,6 +770,9 @@ void qm::OptionDialogManager::initUIs(MainWindow* pMainWindow,
 	pFolderComboBox_ = pFolderComboBox;
 	pListWindow_ = pListWindow;
 	pFolderListWindow_ = pFolderListWindow;
+	pPreviewWindow_ = pPreviewWindow;
+	pMessageFrameWindowManager_ = pMessageFrameWindowManager;
+	pEditFrameWindowManager_ = pEditFrameWindowManager;
 #ifdef QMTABWINDOW
 	pTabWindow_ = pTabWindow;
 #endif
@@ -773,6 +794,9 @@ int qm::OptionDialogManager::showDialog(HWND hwndParent,
 	assert(pFolderComboBox_);
 	assert(pListWindow_);
 	assert(pFolderListWindow_);
+	assert(pPreviewWindow_);
+	assert(pMessageFrameWindowManager_);
+	assert(pEditFrameWindowManager_);
 #ifdef QMTABWINDOW
 	assert(pTabWindow_);
 #endif
@@ -781,7 +805,8 @@ int qm::OptionDialogManager::showDialog(HWND hwndParent,
 	OptionDialog dialog(pDocument_, pGoRound_, pFilterManager_,
 		pColorManager_, pSyncManager_->getSyncFilterManager(),
 		pAutoPilotManager_, pMainWindow_, pFolderWindow_, pFolderComboBox_,
-		pListWindow_, pFolderListWindow_,
+		pListWindow_, pFolderListWindow_, pPreviewWindow_,
+		pMessageFrameWindowManager_, pEditFrameWindowManager_,
 #ifdef QMTABWINDOW
 		pTabWindow_,
 #endif
@@ -885,6 +910,54 @@ bool qm::OptionAddressBookDialog::save(OptionDialogContext* pContext)
 }
 
 LRESULT qm::OptionAddressBookDialog::onFont()
+{
+	UIUtil::browseFont(getParentPopup(), &lf_);
+	return 0;
+}
+
+
+/****************************************************************************
+ *
+ * OptionEditWindowDialog
+ *
+ */
+
+qm::OptionEditWindowDialog::OptionEditWindowDialog(EditFrameWindowManager* pEditFrameWindowManager,
+												   Profile* pProfile) :
+	DefaultDialog(IDD_OPTIONEDITWINDOW),
+	pEditFrameWindowManager_(pEditFrameWindowManager),
+	pProfile_(pProfile)
+{
+	UIUtil::getLogFontFromProfile(pProfile_, L"EditWindow", false, &lf_);
+}
+
+qm::OptionEditWindowDialog::~OptionEditWindowDialog()
+{
+}
+
+LRESULT qm::OptionEditWindowDialog::onCommand(WORD nCode,
+											  WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_FONT, onFont)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::OptionEditWindowDialog::onInitDialog(HWND hwndFocus,
+												 LPARAM lParam)
+{
+	return FALSE;
+}
+
+bool qm::OptionEditWindowDialog::save(OptionDialogContext* pContext)
+{
+	UIUtil::setLogFontToProfile(pProfile_, L"EditWindow", lf_);
+	
+	return true;
+}
+
+LRESULT qm::OptionEditWindowDialog::onFont()
 {
 	UIUtil::browseFont(getParentPopup(), &lf_);
 	return 0;
@@ -1099,6 +1172,102 @@ bool qm::OptionListWindowDialog::save(OptionDialogContext* pContext)
 }
 
 LRESULT qm::OptionListWindowDialog::onFont()
+{
+	UIUtil::browseFont(getParentPopup(), &lf_);
+	return 0;
+}
+
+
+/****************************************************************************
+ *
+ * OptionMessageWindowDialog
+ *
+ */
+
+qm::OptionMessageWindowDialog::OptionMessageWindowDialog(MessageFrameWindowManager* pMessageFrameWindowManager,
+														 Profile* pProfile) :
+	DefaultDialog(IDD_OPTIONMESSAGEWINDOW),
+	pMessageFrameWindowManager_(pMessageFrameWindowManager),
+	pProfile_(pProfile)
+{
+	UIUtil::getLogFontFromProfile(pProfile_, L"MessageWindow", false, &lf_);
+}
+
+qm::OptionMessageWindowDialog::~OptionMessageWindowDialog()
+{
+}
+
+LRESULT qm::OptionMessageWindowDialog::onCommand(WORD nCode,
+											  WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_FONT, onFont)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::OptionMessageWindowDialog::onInitDialog(HWND hwndFocus,
+												 LPARAM lParam)
+{
+	return FALSE;
+}
+
+bool qm::OptionMessageWindowDialog::save(OptionDialogContext* pContext)
+{
+	UIUtil::setLogFontToProfile(pProfile_, L"MessageWindow", lf_);
+	
+	return true;
+}
+
+LRESULT qm::OptionMessageWindowDialog::onFont()
+{
+	UIUtil::browseFont(getParentPopup(), &lf_);
+	return 0;
+}
+
+
+/****************************************************************************
+ *
+ * OptionPreviewWindowDialog
+ *
+ */
+
+qm::OptionPreviewWindowDialog::OptionPreviewWindowDialog(MessageWindow* pPreviewWindow,
+														 Profile* pProfile) :
+	DefaultDialog(IDD_OPTIONPREVIEWWINDOW),
+	pPreviewWindow_(pPreviewWindow),
+	pProfile_(pProfile)
+{
+	UIUtil::getLogFontFromProfile(pProfile_, L"PreviewWindow", false, &lf_);
+}
+
+qm::OptionPreviewWindowDialog::~OptionPreviewWindowDialog()
+{
+}
+
+LRESULT qm::OptionPreviewWindowDialog::onCommand(WORD nCode,
+												WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_FONT, onFont)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::OptionPreviewWindowDialog::onInitDialog(HWND hwndFocus,
+												   LPARAM lParam)
+{
+	return FALSE;
+}
+
+bool qm::OptionPreviewWindowDialog::save(OptionDialogContext* pContext)
+{
+	UIUtil::setLogFontToProfile(pProfile_, L"PreviewWindow", lf_);
+	
+	return true;
+}
+
+LRESULT qm::OptionPreviewWindowDialog::onFont()
 {
 	UIUtil::browseFont(getParentPopup(), &lf_);
 	return 0;
