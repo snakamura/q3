@@ -1855,7 +1855,14 @@ LRESULT qm::AddressBookEntryDialog::onInitDialog(HWND hwndFocus,
 
 LRESULT qm::AddressBookEntryDialog::onOk()
 {
+	wstring_ptr wstrName(getDlgItemText(IDC_NAME));
+	pEntry_->setName(wstrName.get());
+	
+	wstring_ptr wstrSortKey(getDlgItemText(IDC_SORTKEY));
+	pEntry_->setSortKey(*wstrSortKey.get() ? wstrSortKey.get() : 0);
+	
 	pEntry_->setAddresses(getList());
+	
 	return AbstractListDialog<AddressBookAddress, AddressBookEntry::AddressList>::onOk();
 }
 
