@@ -77,6 +77,7 @@ public:
 		size_t nLogicalLine_;
 		size_t nPosition_;
 		size_t nLength_;
+		COLORREF cr_;
 		LinkItems items_;
 	};
 	
@@ -204,7 +205,7 @@ public:
 
 public:
 	static PhysicalLine* allocLine(size_t nLogicalLine, size_t nPosition,
-		size_t nLength, LinkItem* pLinkItems, size_t nLinkCount);
+		size_t nLength, COLORREF cr, LinkItem* pLinkItems, size_t nLinkCount);
 	static void freeLine(PhysicalLine* pLine);
 
 private:
@@ -707,8 +708,11 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 	
 	for (size_t n = nStart; n < nEnd; ++n) {
 		TextModel::Line line = pTextModel_->getLine(n);
+		
+		COLORREF cr = getLineColor(line);
+		
 		if (line.getLength() == 0) {
-			PhysicalLinePtr ptr(allocLine(n, 0, 0, 0, 0));
+			PhysicalLinePtr ptr(allocLine(n, 0, 0, cr, 0, 0));
 			if (!ptr.get())
 				return QSTATUS_OUTOFMEMORY;
 			status = STLWrapper<LineList>(*pListLine).push_back(ptr.get());
@@ -746,7 +750,7 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 						fillPhysicalLinks(&listPhysicalLinkItem,
 							&dc, line.getText() + nOffset);
 						PhysicalLinePtr ptr(allocLine(n, nOffset,
-							nLength, &listPhysicalLinkItem[0],
+							nLength, cr, &listPhysicalLinkItem[0],
 							listPhysicalLinkItem.size()));
 						if (!ptr.get())
 							return QSTATUS_OUTOFMEMORY;
@@ -774,7 +778,7 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 					CHECK_QSTATUS();
 					fillPhysicalLinks(&listPhysicalLinkItem,
 						&dc, line.getText() + nOffset);
-					PhysicalLinePtr ptr(allocLine(n, nOffset, nLength,
+					PhysicalLinePtr ptr(allocLine(n, nOffset, nLength, cr,
 						&listPhysicalLinkItem[0], listPhysicalLinkItem.size()));
 					if (!ptr.get())
 						return QSTATUS_OUTOFMEMORY;
@@ -792,7 +796,7 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 						CHECK_QSTATUS();
 						fillPhysicalLinks(&listPhysicalLinkItem,
 							&dc, line.getText() + nOffset);
-						PhysicalLinePtr ptr(allocLine(n, nOffset, nLength,
+						PhysicalLinePtr ptr(allocLine(n, nOffset, nLength, cr,
 							&listPhysicalLinkItem[0], listPhysicalLinkItem.size()));
 						if (!ptr.get())
 							return QSTATUS_OUTOFMEMORY;
@@ -818,7 +822,7 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 						CHECK_QSTATUS();
 						fillPhysicalLinks(&listPhysicalLinkItem,
 							&dc, line.getText() + nOffset);
-						PhysicalLinePtr ptr(allocLine(n, nOffset, nLength,
+						PhysicalLinePtr ptr(allocLine(n, nOffset, nLength, cr,
 							&listPhysicalLinkItem[0], listPhysicalLinkItem.size()));
 						if (!ptr.get())
 							return QSTATUS_OUTOFMEMORY;
@@ -842,7 +846,7 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 							CHECK_QSTATUS();
 							fillPhysicalLinks(&listPhysicalLinkItem,
 								&dc, line.getText() + nOffset);
-							PhysicalLinePtr ptr(allocLine(n, nOffset, nLength,
+							PhysicalLinePtr ptr(allocLine(n, nOffset, nLength, cr,
 								&listPhysicalLinkItem[0], listPhysicalLinkItem.size()));
 							if (!ptr.get())
 								return QSTATUS_OUTOFMEMORY;
@@ -857,7 +861,7 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 				if (p == pEnd && bFull &&
 					n == pTextModel_->getLineCount() - 1) {
 					PhysicalLinePtr ptr(allocLine(n,
-						p - line.getText(), 0, 0, 0));
+						p - line.getText(), 0, cr, 0, 0));
 					if (!ptr.get())
 						return QSTATUS_OUTOFMEMORY;
 					status = STLWrapper<LineList>(*pListLine).push_back(ptr.get());
@@ -1411,7 +1415,7 @@ QSTATUS qs::TextWindowImpl::textSet(const TextModelEvent& event)
 
 TextWindowImpl::PhysicalLine* qs::TextWindowImpl::allocLine(
 	size_t nLogicalLine, size_t nPosition, size_t nLength,
-	LinkItem* pLinkItems, size_t nLinkCount)
+	COLORREF cr, LinkItem* pLinkItems, size_t nLinkCount)
 {
 	size_t nSize = sizeof(PhysicalLine) -
 		sizeof(LinkItem) + sizeof(LinkItem)*nLinkCount;
@@ -1422,6 +1426,7 @@ TextWindowImpl::PhysicalLine* qs::TextWindowImpl::allocLine(
 		pLine->nLogicalLine_ = nLogicalLine;
 		pLine->nPosition_ = nPosition;
 		pLine->nLength_ = nLength;
+		pLine->cr_ = cr;
 		pLine->items_.nCount_ = nLinkCount;
 		for (size_t n = 0; n < nLinkCount; ++n)
 			pLine->items_.items_[n] = *(pLinkItems + n);
@@ -3329,7 +3334,7 @@ LRESULT qs::TextWindow::onPaint()
 			const TextModel::Line& logicalLine =
 				pImpl_->pTextModel_->getLine(pPhysicalLine->nLogicalLine_);
 			
-			COLORREF cr = pImpl_->getLineColor(logicalLine);
+			COLORREF cr = pPhysicalLine->cr_;
 			
 			const WCHAR* pBegin = logicalLine.getText() + pPhysicalLine->nPosition_;
 			const WCHAR* pEnd = pBegin + pPhysicalLine->nLength_;
