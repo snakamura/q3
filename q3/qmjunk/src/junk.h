@@ -123,7 +123,8 @@ private:
 	enum Token {
 		TOKEN_LATEN,
 		TOKEN_IDEOGRAPHIC,
-		TOKEN_SEPARATOR
+		TOKEN_SEPARATOR,
+		TOKEN_KATAKANA
 	};
 
 private:

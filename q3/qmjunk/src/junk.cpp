@@ -605,11 +605,12 @@ bool qmjunk::Tokenizer::getTokens(const WCHAR* pwszText,
 		Token token = getToken(*p);
 		switch (token) {
 		case TOKEN_LATEN:
+		case TOKEN_KATAKANA:
 			{
 				const WCHAR* pBegin = p;
 				do {
 					++p;
-				} while (p < pEnd && getToken(*p) == TOKEN_LATEN);
+				} while (p < pEnd && getToken(*p) == token);
 				
 				wstring_ptr wstrToken(allocWString(pBegin, p - pBegin));
 				if (!pCallback->token(wstrToken.get()))
@@ -653,6 +654,8 @@ qmjunk::Tokenizer::Token qmjunk::Tokenizer::getToken(WCHAR c)
 		return TOKEN_SEPARATOR;
 	else if (c < 0x200)
 		return TOKEN_LATEN;
+	else if (0x30a1 <= c && c <= 0x30fe)
+		return TOKEN_KATAKANA;
 	else
 		return TOKEN_IDEOGRAPHIC;
 }
