@@ -723,13 +723,11 @@ NormalFolder* qm::FileEmptyTrashAction::getTrash() const
  *
  */
 
-qm::FileExitAction::FileExitAction(Window* pWindow,
-	Document* pDocument, ViewModelManager* pViewModelManager,
+qm::FileExitAction::FileExitAction(Window* pWindow, Document* pDocument,
 	SyncManager* pSyncManager, TempFileCleaner* pTempFileCleaner,
 	EditFrameWindowManager* pEditFrameWindowManager, QSTATUS* pstatus) :
 	pWindow_(pWindow),
 	pDocument_(pDocument),
-	pViewModelManager_(pViewModelManager),
 	pSyncManager_(pSyncManager),
 	pTempFileCleaner_(pTempFileCleaner),
 	pEditFrameWindowManager_(pEditFrameWindowManager)

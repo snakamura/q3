@@ -297,9 +297,9 @@ QSTATUS qm::MainWindowImpl::initActions()
 	status = InitAction1<FileEmptyTrashAction, FolderModel*>(
 		pActionMap_, IDM_FILE_EMPTYTRASH, pFolderModel_);
 	CHECK_QSTATUS();
-	status = InitAction6<FileExitAction, Window*, Document*, ViewModelManager*,
+	status = InitAction5<FileExitAction, Window*, Document*,
 		SyncManager*, TempFileCleaner*, EditFrameWindowManager*>(
-		pActionMap_, IDM_FILE_EXIT, pThis_, pDocument_, pViewModelManager_,
+		pActionMap_, IDM_FILE_EXIT, pThis_, pDocument_,
 		pSyncManager_, pTempFileCleaner_, pEditFrameWindowManager_);
 	CHECK_QSTATUS();
 	status = InitAction1<FileExportAction, MessageSelectionModel*>(
