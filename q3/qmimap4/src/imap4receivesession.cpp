@@ -756,7 +756,8 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 			listBodyStructure, pImap4_, &globalVariable, this);
 		Hook h(this, &hook);
 		for (unsigned int nId = nIdStart_ + 1; nId <= nExists_; nId += nFetchCount) {
-			ContinuousRange range(nId, min(nId + nFetchCount - 1, nExists_),
+			ContinuousRange range(nId,
+				QSMIN(static_cast<unsigned long>(nId + nFetchCount - 1), nExists_),
 				false, &status);
 			CHECK_QSTATUS();
 			status = pImap4_->getMessageData(range, (nOption & OPTION_USEENVELOPE) == 0,
