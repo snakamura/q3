@@ -162,12 +162,10 @@ qm::EncodingMenu::~EncodingMenu()
 
 const WCHAR* qm::EncodingMenu::getEncoding(unsigned int nId) const
 {
-	if (nId >= IDM_VIEW_ENCODING) {
-		size_t n = nId - IDM_VIEW_ENCODING;
-		if (n < listEncoding_.size())
-			return listEncoding_[n];
-	}
-	return 0;
+	if (IDM_VIEW_ENCODING <= nId && nId < IDM_VIEW_ENCODING + listEncoding_.size())
+		return listEncoding_[nId - IDM_VIEW_ENCODING];
+	else
+		return 0;
 }
 
 bool qm::EncodingMenu::createMenu(HMENU hmenu)
@@ -373,10 +371,10 @@ qm::MoveMenu::~MoveMenu()
 
 NormalFolder* qm::MoveMenu::getFolder(unsigned int nId) const
 {
-	if (nId >= IDM_MESSAGE_MOVE + mapMenu_.size())
-		return 0;
-	else
+	if (IDM_MESSAGE_MOVE <= nId && nId < IDM_MESSAGE_MOVE + mapMenu_.size())
 		return mapMenu_[nId - IDM_MESSAGE_MOVE];
+	else
+		return 0;
 }
 
 bool qm::MoveMenu::createMenu(HMENU hmenu,
@@ -539,8 +537,10 @@ qm::RecentsMenu::~RecentsMenu()
 
 const WCHAR* qm::RecentsMenu::getURI(unsigned int nId) const
 {
-	assert(IDM_MESSAGE_OPENRECENT <= nId && nId < IDM_MESSAGE_OPENRECENT + MAX_RECENTS);
-	return listURI_[nId - IDM_MESSAGE_OPENRECENT];
+	if (IDM_MESSAGE_OPENRECENT <= nId && nId < IDM_MESSAGE_OPENRECENT + listURI_.size())
+		return listURI_[nId - IDM_MESSAGE_OPENRECENT];
+	else
+		return 0;
 }
 
 bool qm::RecentsMenu::createMenu(HMENU hmenu)
@@ -651,10 +651,10 @@ qm::ScriptMenu::~ScriptMenu()
 
 const WCHAR* qm::ScriptMenu::getScript(unsigned int nId) const
 {
-	if (nId >= IDM_TOOL_SCRIPT + list_.size())
-		return 0;
-	else
+	if (IDM_TOOL_SCRIPT <= nId && nId < IDM_TOOL_SCRIPT + list_.size())
 		return list_[nId - IDM_TOOL_SCRIPT];
+	else
+		return 0;
 }
 
 ScriptManager* qm::ScriptMenu::getScriptManager() const
@@ -854,10 +854,11 @@ qm::TemplateMenu::~TemplateMenu()
 
 const WCHAR* qm::TemplateMenu::getTemplate(unsigned int nId) const
 {
-	if (nId >= getId() + list_.size())
-		return 0;
+	unsigned int nBaseId = getId();
+	if (nBaseId <= nId && nId < nBaseId + list_.size())
+		return list_[nId - nBaseId];
 	else
-		return list_[nId - getId()];
+		return 0;
 }
 
 bool qm::TemplateMenu::createMenu(HMENU hmenu,
