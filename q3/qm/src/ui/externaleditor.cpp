@@ -10,6 +10,7 @@
 #include <qmmessage.h>
 
 #include <qsconv.h>
+#include <qsinit.h>
 #include <qsosutil.h>
 #include <qsstream.h>
 
@@ -238,6 +239,8 @@ void qm::ExternalEditorManager::WaitThread::stop()
 
 void qm::ExternalEditorManager::WaitThread::run()
 {
+	InitThread init(0);
+	
 	while (true) {
 		typedef std::vector<HANDLE> HandleList;
 		HandleList listHandle;
