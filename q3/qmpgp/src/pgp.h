@@ -59,6 +59,7 @@ public:
 												  qs::wstring_ptr* pwstrSignedBy) const;
 
 private:
+	std::auto_ptr<Driver> getDriver() const;
 	bool checkUserId(const qs::Part& part,
 					 const WCHAR* pwszUserId) const;
 	bool checkUserId(const qs::Part& part,
@@ -92,7 +93,6 @@ private:
 
 private:
 	qs::Profile* pProfile_;
-	std::auto_ptr<Driver> pDriver_;
 };
 
 

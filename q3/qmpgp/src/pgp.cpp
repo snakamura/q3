@@ -27,10 +27,6 @@ using namespace qs;
 qmpgp::PGPUtilityImpl::PGPUtilityImpl(Profile* pProfile) :
 	pProfile_(pProfile)
 {
-	if (pProfile->getInt(L"PGP", L"UseGPG", 1))
-		pDriver_.reset(new GPGDriver(pProfile));
-	else
-		pDriver_.reset(new PGPDriver(pProfile));
 }
 
 qmpgp::PGPUtilityImpl::~PGPUtilityImpl()
@@ -109,6 +105,8 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::sign(Part* pPart,
 	assert(pwszUserId);
 	assert(pwszPassphrase);
 	
+	std::auto_ptr<Driver> pDriver(getDriver());
+	
 	if (!bMime && (pPart->isMultipart() || !pPart->isText()))
 		bMime = true;
 	
@@ -125,7 +123,7 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::sign(Part* pPart,
 		if (!strContent.get())
 			return xstring_size_ptr();
 		
-		xstring_size_ptr strSignature(pDriver_->sign(strContent.get(),
+		xstring_size_ptr strSignature(pDriver->sign(strContent.get(),
 			Driver::SIGNFLAG_DETACH, pwszUserId, pwszPassphrase));
 		if (!strSignature.get())
 			return xstring_size_ptr();
@@ -139,7 +137,7 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::sign(Part* pPart,
 			return xstring_size_ptr();
 		
 		const CHAR* pBody = Part::getBody(strContent.get(), strContent.size());
-		xstring_size_ptr strBody(pDriver_->sign(pBody,
+		xstring_size_ptr strBody(pDriver->sign(pBody,
 			Driver::SIGNFLAG_CLEARTEXT, pwszUserId, pwszPassphrase));
 		if (!strBody.get())
 			return xstring_size_ptr();
@@ -152,6 +150,8 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::encrypt(Part* pPart,
 												bool bMime) const
 {
 	assert(pPart);
+	
+	std::auto_ptr<Driver> pDriver(getDriver());
 	
 	if (!bMime && (pPart->isMultipart() || !pPart->isText()))
 		bMime = true;
@@ -173,7 +173,7 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::encrypt(Part* pPart,
 		if (!strContent.get())
 			return xstring_size_ptr();
 		
-		xstring_size_ptr strBody(pDriver_->encrypt(strContent.get(), listRecipient));
+		xstring_size_ptr strBody(pDriver->encrypt(strContent.get(), listRecipient));
 		if (!strBody.get())
 			return xstring_size_ptr();
 		
@@ -185,7 +185,7 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::encrypt(Part* pPart,
 			return xstring_size_ptr();
 		
 		const CHAR* pBody = Part::getBody(strContent.get(), strContent.size());
-		xstring_size_ptr strBody(pDriver_->encrypt(pBody, listRecipient));
+		xstring_size_ptr strBody(pDriver->encrypt(pBody, listRecipient));
 		if (!strBody.get())
 			return xstring_size_ptr();
 		
@@ -202,6 +202,8 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::signAndEncrypt(Part* pPart,
 	assert(pwszUserId);
 	assert(pwszPassphrase);
 	
+	std::auto_ptr<Driver> pDriver(getDriver());
+	
 	if (!bMime && (pPart->isMultipart() || !pPart->isText()))
 		bMime = true;
 	
@@ -222,7 +224,7 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::signAndEncrypt(Part* pPart,
 		if (!strContent.get())
 			return xstring_size_ptr();
 		
-		xstring_size_ptr strBody(pDriver_->signAndEncrypt(strContent.get(),
+		xstring_size_ptr strBody(pDriver->signAndEncrypt(strContent.get(),
 			pwszUserId, pwszPassphrase, listRecipient));
 		if (!strBody.get())
 			return xstring_size_ptr();
@@ -235,7 +237,7 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::signAndEncrypt(Part* pPart,
 			return xstring_size_ptr();
 		
 		const CHAR* pBody = Part::getBody(strContent.get(), strContent.size());
-		xstring_size_ptr strBody(pDriver_->signAndEncrypt(pBody,
+		xstring_size_ptr strBody(pDriver->signAndEncrypt(pBody,
 			pwszUserId, pwszPassphrase, listRecipient));
 		if (!strBody.get())
 			return xstring_size_ptr();
@@ -255,6 +257,8 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::verify(const Part& part,
 	*pnVerify = VERIFY_NONE;
 	pwstrSignedBy->reset(0);
 	
+	std::auto_ptr<Driver> pDriver(getDriver());
+	
 	if (bMime) {
 		assert(getType(part, false) == TYPE_MIMESIGNED);
 		
@@ -262,7 +266,7 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::verify(const Part& part,
 		if (!strContent.get())
 			return xstring_size_ptr();
 		
-		bool bVerified = pDriver_->verify(strContent.get(),
+		bool bVerified = pDriver->verify(strContent.get(),
 			part.getPart(1)->getBody(), pwstrSignedBy);
 		
 		*pnVerify = bVerified ? VERIFY_OK : VERIFY_FAILED;
@@ -274,7 +278,7 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::verify(const Part& part,
 	else {
 		assert(getType(part, true) == TYPE_INLINESIGNED);
 		
-		xstring_size_ptr strBody(pDriver_->decryptAndVerify(
+		xstring_size_ptr strBody(pDriver->decryptAndVerify(
 			part.getBody(), 0, pnVerify, pwstrSignedBy));
 		if (!strBody.get())
 			return xstring_size_ptr();
@@ -297,10 +301,12 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::decryptAndVerify(const Part& part,
 	*pnVerify = VERIFY_NONE;
 	pwstrSignedBy->reset(0);
 	
+	std::auto_ptr<Driver> pDriver(getDriver());
+	
 	if (bMime) {
 		assert(getType(part, false) == TYPE_MIMEENCRYPTED);
 		
-		xstring_size_ptr strContent(pDriver_->decryptAndVerify(part.getPart(1)->getBody(),
+		xstring_size_ptr strContent(pDriver->decryptAndVerify(part.getPart(1)->getBody(),
 			pwszPassphrase, pnVerify, pwstrSignedBy));
 		if (!strContent.get())
 			return xstring_size_ptr();
@@ -313,7 +319,7 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::decryptAndVerify(const Part& part,
 	else {
 		assert(getType(part, true) == TYPE_INLINEENCRYPTED);
 		
-		xstring_size_ptr strBody(pDriver_->decryptAndVerify(part.getBody(),
+		xstring_size_ptr strBody(pDriver->decryptAndVerify(part.getBody(),
 			pwszPassphrase, pnVerify, pwstrSignedBy));
 		if (!strBody.get())
 			return xstring_size_ptr();
@@ -323,6 +329,14 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::decryptAndVerify(const Part& part,
 		}
 		return createMessage(part.getHeader(), strBody.get(), strBody.size());
 	}
+}
+
+std::auto_ptr<Driver> qmpgp::PGPUtilityImpl::getDriver() const
+{
+	if (pProfile_->getInt(L"PGP", L"UseGPG", 1))
+		return std::auto_ptr<Driver>(new GPGDriver(pProfile_));
+	else
+		return std::auto_ptr<Driver>(new PGPDriver(pProfile_));
 }
 
 bool qmpgp::PGPUtilityImpl::checkUserId(const qs::Part& part,
@@ -358,9 +372,11 @@ bool qmpgp::PGPUtilityImpl::checkUserId(const qs::Part& part,
 		return true;
 	
 	if (bCheckAlternative) {
+		std::auto_ptr<Driver> pDriver(getDriver());
+		
 		Driver::UserIdList listUserId;
 		StringListFree<Driver::UserIdList> free(listUserId);
-		if (!pDriver_->getAlternatives(pwszUserId, &listUserId))
+		if (!pDriver->getAlternatives(pwszUserId, &listUserId))
 			return false;
 		
 		for (Driver::UserIdList::const_iterator it = listUserId.begin(); it != listUserId.end(); ++it) {
