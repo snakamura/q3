@@ -395,7 +395,7 @@ bool qm::EditFrameWindow::tryClose()
 				Action* pAction = pImpl_->pActionMap_->getAction(IDM_FILE_SEND);
 				assert(pAction);
 				status = pAction->invoke(ActionEvent(IDM_FILE_SEND, 0));
-				bCancel = status != QSTATUS_SUCCESS;
+				return true;
 			}
 			break;
 		case IDNO:
