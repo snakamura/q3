@@ -222,7 +222,7 @@ bool qm::MessageComposer::compose(Account* pAccount,
 	if (!pAccount->appendMessage(static_cast<NormalFolder*>(pFolder), *pMessage,
 		MessageHolder::FLAG_SEEN | (bDraft_ ? MessageHolder::FLAG_DRAFT : 0), pptr))
 		return false;
-	if (!pFolder->saveMessageHolders())
+	if (!pAccount->flushMessageStore() || !pFolder->saveMessageHolders())
 		return false;
 	
 	for (int n = 0; n < countof(pwszMacro); ++n) {
