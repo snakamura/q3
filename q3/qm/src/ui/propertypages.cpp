@@ -402,7 +402,8 @@ qm::FolderConditionPage::FolderConditionPage(QueryFolder* pFolder,
 	pFolder_(pFolder),
 	pProfile_(pProfile),
 	nDriver_(0),
-	bRecursive_(false)
+	bRecursive_(false),
+	bModified_(false)
 {
 }
 
@@ -431,6 +432,11 @@ bool qm::FolderConditionPage::isRecursive() const
 	return bRecursive_;
 }
 
+bool qm::FolderConditionPage::isModified() const
+{
+	return bModified_;
+}
+
 LRESULT qm::FolderConditionPage::onInitDialog(HWND hwndFocus,
 											  LPARAM lParam)
 {
@@ -452,6 +458,8 @@ LRESULT qm::FolderConditionPage::onOk()
 	if (nFolder != 0)
 		wstrTargetFolder_ = listFolder_[nFolder - 1]->getFullName();
 	bRecursive_ = sendDlgItemMessage(IDC_RECURSIVE, BM_GETCHECK) == BST_CHECKED;
+	
+	bModified_ = true;
 	
 	return DefaultPropertyPage::onOk();
 }
@@ -607,8 +615,11 @@ LRESULT qm::FolderPropertyPage::onInitDialog(HWND hwndFocus,
 			Window(getDlgItem(folderFlags[n].nId_)).setStyle(
 				BS_AUTOCHECKBOX, BS_AUTOCHECKBOX | BS_AUTO3STATE);
 			
-			bool bEnable = !bQuery || folderFlags[n].bEnableQuery_;
-			if (bEnable) {
+			bool bEnable = false;
+			if (bQuery) {
+				bEnable = folderFlags[n].bEnableQuery_;
+			}
+			else {
 				bEnable = pFolder->isFlag(folderFlags[n].enableFlag_);
 				if (folderFlags[n].bReverse_)
 					bEnable = !bEnable;

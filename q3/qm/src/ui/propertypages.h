@@ -205,6 +205,7 @@ public:
 	const WCHAR* getCondition() const;
 	const WCHAR* getTargetFolder() const;
 	bool isRecursive() const;
+	bool isModified() const;
 
 protected:
 	virtual LRESULT onInitDialog(HWND hwndFocus,
@@ -233,6 +234,7 @@ private:
 	qs::wstring_ptr wstrCondition_;
 	qs::wstring_ptr wstrTargetFolder_;
 	bool bRecursive_;
+	bool bModified_;
 };
 
 

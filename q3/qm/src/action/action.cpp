@@ -1867,7 +1867,7 @@ void qm::FolderPropertyAction::openProperty(const Account::FolderList& listFolde
 			pFolder->getAccount()->setFolderFlags(pFolder, nFlags, nMask);
 		}
 		
-		if (pQueryFolder)
+		if (pQueryFolder && pConditionPage->isModified())
 			pQueryFolder->set(pConditionPage->getDriver(),
 				pConditionPage->getCondition(),
 				pConditionPage->getTargetFolder(),
