@@ -24,7 +24,7 @@ start = element rules {
 }
 
 action = element move {
-	empty,
+	template?,
 	## 移動先アカウント
 	attribute account {
 		xsd:string
@@ -35,8 +35,8 @@ action = element move {
 	}
 } |
 element copy {
-	empty,
-	## 移動先アカウント
+	template?,
+	## コピー先アカウント
 	attribute account {
 		xsd:string
 	}?,
@@ -46,3 +46,14 @@ element copy {
 	}
 }
 
+template = element template {
+	element argument {
+		text,
+		attribute name {
+			xsd:string
+		}
+	}*,
+	attribute name {
+		xsd:string
+	}
+}

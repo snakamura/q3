@@ -14,6 +14,7 @@
 #include <qmmacro.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
+#include <qmtemplate.h>
 
 #include <qsconv.h>
 #include <qsinit.h>
@@ -22,6 +23,7 @@
 #include <algorithm>
 
 #include "rule.h"
+#include "templatemanager.h"
 
 #pragma warning(disable:4786)
 
@@ -47,7 +49,7 @@ qm::RuleManager::~RuleManager()
 	clear();
 }
 
-bool qm::RuleManager::apply(const Folder* pFolder,
+bool qm::RuleManager::apply(Folder* pFolder,
 							const MessageHolderList* pList,
 							Document* pDocument,
 							HWND hwnd,
@@ -178,7 +180,8 @@ bool qm::RuleManager::apply(const Folder* pFolder,
 		const MessageHolderList& l = ll[m];
 		if (!l.empty()) {
 			const Rule* pRule = pRuleSet->getRule(m);
-			RuleContext context(l, pDocument, pAccount);
+			RuleContext context(l, pDocument, pAccount,
+				pFolder, hwnd, pProfile, bDecryptVerify);
 			if (!pRule->apply(context))
 				return false;
 			
@@ -379,22 +382,26 @@ qm::CopyRule::CopyRule(std::auto_ptr<Macro> pMacro,
 
 qm::CopyRule::~CopyRule()
 {
+	for (ArgumentList::iterator it = listArgument_.begin(); it != listArgument_.end(); ++it) {
+		freeWString((*it).first);
+		freeWString((*it).second);
+	}
 }
 
 bool qm::CopyRule::apply(const RuleContext& context) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qm::CopyRule");
 	
-	Account* pAccount = context.getAccount();
+	Account* pAccountTo = context.getAccount();
 	if (wstrAccount_.get()) {
-		pAccount = context.getDocument()->getAccount(wstrAccount_.get());
-		if (!pAccount) {
+		pAccountTo = context.getDocument()->getAccount(wstrAccount_.get());
+		if (!pAccountTo) {
 			log.errorf(L"The specified account is not found: %s.", wstrAccount_.get());
 			return false;
 		}
 	}
 	
-	Folder* pFolderTo = pAccount->getFolder(wstrFolder_.get());
+	Folder* pFolderTo = pAccountTo->getFolder(wstrFolder_.get());
 	if (!pFolderTo || pFolderTo->getType() != Folder::TYPE_NORMAL) {
 		log.errorf(L"The specified folder is not found or it's a query folder: %s.", wstrFolder_.get());
 		return false;
@@ -403,8 +410,68 @@ bool qm::CopyRule::apply(const RuleContext& context) const
 	log.debugf(L"%u messages are %s to %s.", context.getMessageHolderList().size(),
 		bMove_ ? L"moved" : L"copied", wstrFolder_.get());
 	
-	return context.getAccount()->copyMessages(context.getMessageHolderList(),
-		static_cast<NormalFolder*>(pFolderTo), bMove_, 0);
+	if (wstrTemplate_.get()) {
+		const TemplateManager* pTemplateManager = context.getDocument()->getTemplateManager();
+		const Template* pTemplate = pTemplateManager->getTemplate(
+			context.getAccount(), context.getFolder(), wstrTemplate_.get());
+		if (!pTemplate) {
+			log.errorf(L"The specified template is not found: %s.", wstrTemplate_.get());
+			return false;
+		}
+		
+		TemplateContext::ArgumentList listArgument;
+		listArgument.resize(listArgument_.size());
+		for (ArgumentList::size_type n = 0; n < listArgument_.size(); ++n) {
+			listArgument[n].pwszName_ = listArgument_[n].first;
+			listArgument[n].pwszValue_ = listArgument_[n].second;
+		}
+		
+		const MessageHolderList& l = context.getMessageHolderList();
+		for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			MessageHolder* pmh = *it;
+			
+			Message msg;
+			TemplateContext templateContext(pmh, &msg, MessageHolderList(),
+				context.getAccount(), context.getDocument(), context.getWindow(),
+				context.isDecryptVerify(), context.getProfile(), 0, listArgument);
+			wstring_ptr wstrValue(pTemplate->getValue(templateContext));
+			if (!wstrValue.get()) {
+				log.errorf(L"Error occured while processing template.");
+				return false;
+			}
+			
+			std::auto_ptr<Message> pMessage(MessageCreator().createMessage(
+				context.getDocument(), wstrValue.get(), wcslen(wstrValue.get())));
+			if (!pAccountTo->appendMessage(static_cast<NormalFolder*>(pFolderTo),
+				*pMessage, pmh->getFlags() & MessageHolder::FLAG_USER_MASK))
+				return false;
+			
+			if (bMove_) {
+				if (!context.getAccount()->removeMessages(MessageHolderList(1, pmh), false, 0))
+					return false;
+			}
+		}
+		
+		return true;
+	}
+	else {
+		return context.getAccount()->copyMessages(context.getMessageHolderList(),
+			static_cast<NormalFolder*>(pFolderTo), bMove_, 0);
+	}
+}
+
+void qm::CopyRule::setTemplate(const WCHAR* pwszName)
+{
+	assert(!wstrTemplate_.get());
+	wstrTemplate_ = allocWString(pwszName);
+}
+
+void qm::CopyRule::addTemplateArgument(wstring_ptr wstrName,
+									   wstring_ptr wstrValue)
+{
+	listArgument_.push_back(std::make_pair(wstrName.get(), wstrValue.get()));
+	wstrName.release();
+	wstrValue.release();
 }
 
 
@@ -416,15 +483,26 @@ bool qm::CopyRule::apply(const RuleContext& context) const
 
 qm::RuleContext::RuleContext(const MessageHolderList& l,
 							 Document* pDocument,
-							 Account* pAccount) :
+							 Account* pAccount,
+							 Folder* pFolder,
+							 HWND hwnd,
+							 qs::Profile* pProfile,
+							 bool bDecryptVerify) :
 	listMessageHolder_(l),
 	pDocument_(pDocument),
-	pAccount_(pAccount)
+	pAccount_(pAccount),
+	pFolder_(pFolder),
+	hwnd_(hwnd),
+	pProfile_(pProfile),
+	bDecryptVerify_(bDecryptVerify)
 {
 	assert(!l.empty());
 	assert(pDocument);
 	assert(pAccount);
 	assert(pAccount->isLocked());
+	assert(pFolder);
+	assert(hwnd);
+	assert(pProfile);
 }
 
 qm::RuleContext::~RuleContext()
@@ -446,6 +524,26 @@ Account* qm::RuleContext::getAccount() const
 	return pAccount_;
 }
 
+Folder* qm::RuleContext::getFolder() const
+{
+	return pFolder_;
+}
+
+HWND qm::RuleContext::getWindow() const
+{
+	return hwnd_;
+}
+
+Profile* qm::RuleContext::getProfile() const
+{
+	return pProfile_;
+}
+
+bool qm::RuleContext::isDecryptVerify() const
+{
+	return bDecryptVerify_;
+}
+
 
 /****************************************************************************
  *
@@ -457,6 +555,7 @@ qm::RuleContentHandler::RuleContentHandler(RuleManager* pManager) :
 	pManager_(pManager),
 	state_(STATE_ROOT),
 	pCurrentRuleSet_(0),
+	pCurrentCopyRule_(0),
 	parser_(MacroParser::TYPE_RULE)
 {
 }
@@ -560,9 +659,51 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		std::auto_ptr<Rule> pRule(new CopyRule(
 			pMacro_, pwszAccount, pwszFolder, bMove));
+		assert(!pCurrentCopyRule_);
+		pCurrentCopyRule_ = static_cast<CopyRule*>(pRule.get());
 		pCurrentRuleSet_->addRule(pRule);
 		
 		state_ = STATE_MOVE;
+	}
+	else if (wcscmp(pwszLocalName, L"template") == 0) {
+		if (state_ != STATE_MOVE)
+			return false;
+		
+		const WCHAR* pwszName = 0;
+		for (int n = 0; n < attributes.getLength(); ++n) {
+			const WCHAR* pwszAttrName = attributes.getLocalName(n);
+			if (wcscmp(pwszAttrName, L"name") == 0)
+				pwszName = attributes.getValue(n);
+			else
+				return false;
+		}
+		if (!pwszName)
+			return false;
+		
+		assert(pCurrentCopyRule_);
+		pCurrentCopyRule_->setTemplate(pwszName);
+		
+		state_ = STATE_TEMPLATE;
+	}
+	else if (wcscmp(pwszLocalName, L"argument") == 0) {
+		if (state_ != STATE_TEMPLATE)
+			return false;
+		
+		const WCHAR* pwszName = 0;
+		for (int n = 0; n < attributes.getLength(); ++n) {
+			const WCHAR* pwszAttrName = attributes.getLocalName(n);
+			if (wcscmp(pwszAttrName, L"name") == 0)
+				pwszName = attributes.getValue(n);
+			else
+				return false;
+		}
+		if (!pwszName)
+			return false;
+		
+		assert(!wstrTemplateArgumentName_.get());
+		wstrTemplateArgumentName_ = allocWString(pwszName);
+		
+		state_ = STATE_ARGUMENT;
 	}
 	else {
 		return false;
@@ -598,7 +739,23 @@ bool qm::RuleContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 	else if (wcscmp(pwszLocalName, L"copy") == 0 ||
 		wcscmp(pwszLocalName, L"move") == 0) {
 		assert(state_ == STATE_MOVE);
+		assert(pCurrentCopyRule_);
+		pCurrentCopyRule_ = 0;
 		state_ = STATE_RULE;
+	}
+	else if (wcscmp(pwszLocalName, L"template") == 0) {
+		assert(state_ == STATE_TEMPLATE);
+		state_ = STATE_MOVE;
+	}
+	else if (wcscmp(pwszLocalName, L"argument") == 0) {
+		assert(state_ == STATE_ARGUMENT);
+		assert(pCurrentCopyRule_);
+		assert(wstrTemplateArgumentName_.get());
+		
+		pCurrentCopyRule_->addTemplateArgument(
+			wstrTemplateArgumentName_, buffer_.getString());
+		
+		state_ = STATE_TEMPLATE;
 	}
 	else {
 		return false;
@@ -611,10 +768,15 @@ bool qm::RuleContentHandler::characters(const WCHAR* pwsz,
 										size_t nStart,
 										size_t nLength)
 {
-	const WCHAR* p = pwsz + nStart;
-	for (size_t n = 0; n < nLength; ++n, ++p) {
-		if (*p != L' ' && *p != L'\t' && *p != '\n')
-			return false;
+	if (state_ == STATE_ARGUMENT) {
+		buffer_.append(pwsz + nStart, nLength);
+	}
+	else {
+		const WCHAR* p = pwsz + nStart;
+		for (size_t n = 0; n < nLength; ++n, ++p) {
+			if (*p != L' ' && *p != L'\t' && *p != '\n')
+				return false;
+		}
 	}
 	
 	return true;

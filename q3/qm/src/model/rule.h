@@ -54,7 +54,7 @@ public:
 	~RuleManager();
 
 public:
-	bool apply(const Folder* pFolder,
+	bool apply(Folder* pFolder,
 			   const MessageHolderList* pList,
 			   Document* pDocument,
 			   HWND hwnd,
@@ -205,14 +205,24 @@ public:
 public:
 	virtual bool apply(const RuleContext& context) const;
 
+public:
+	void setTemplate(const WCHAR* pwszName);
+	void addTemplateArgument(qs::wstring_ptr wstrName,
+							 qs::wstring_ptr wstrValue);
+
 private:
 	CopyRule(const CopyRule&);
 	CopyRule& operator=(const CopyRule&);
 
 private:
+	typedef std::vector<std::pair<qs::WSTRING, qs::WSTRING> > ArgumentList;
+
+private:
 	qs::wstring_ptr wstrAccount_;
 	qs::wstring_ptr wstrFolder_;
 	bool bMove_;
+	qs::wstring_ptr wstrTemplate_;
+	ArgumentList listArgument_;
 };
 
 
@@ -227,13 +237,21 @@ class RuleContext
 public:
 	RuleContext(const MessageHolderList& l,
 				Document* pDocument,
-				Account* pAccount);
+				Account* pAccount,
+				Folder* pFolder,
+				HWND hwnd,
+				qs::Profile* pProfile,
+				bool bDecryptVerify);
 	~RuleContext();
 
 public:
 	const MessageHolderList& getMessageHolderList() const;
 	Document* getDocument() const;
 	Account* getAccount() const;
+	Folder* getFolder() const;
+	HWND getWindow() const;
+	qs::Profile* getProfile() const;
+	bool isDecryptVerify() const;
 
 private:
 	RuleContext(const RuleContext&);
@@ -243,6 +261,10 @@ private:
 	const MessageHolderList& listMessageHolder_;
 	Document* pDocument_;
 	Account* pAccount_;
+	Folder* pFolder_;
+	HWND hwnd_;
+	qs::Profile* pProfile_;
+	bool bDecryptVerify_;
 };
 
 
@@ -280,15 +302,20 @@ private:
 		STATE_RULES,
 		STATE_RULESET,
 		STATE_RULE,
-		STATE_MOVE
+		STATE_MOVE,
+		STATE_TEMPLATE,
+		STATE_ARGUMENT
 	};
 
 private:
 	RuleManager* pManager_;
 	State state_;
 	RuleSet* pCurrentRuleSet_;
+	CopyRule* pCurrentCopyRule_;
+	qs::wstring_ptr wstrTemplateArgumentName_;
 	std::auto_ptr<Macro> pMacro_;
 	MacroParser parser_;
+	qs::StringBuffer<qs::WSTRING> buffer_;
 };
 
 }
