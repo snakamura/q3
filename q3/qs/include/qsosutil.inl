@@ -79,6 +79,11 @@ inline qs::Rect::Rect(LONG left, LONG top, LONG right, LONG bottom)
  *
  */
 
+inline qs::AutoHandle::AutoHandle() :
+	handle_(0)
+{
+}
+
 inline qs::AutoHandle::AutoHandle(HANDLE handle) :
 	handle_(handle == INVALID_HANDLE_VALUE ? 0 : handle)
 {
@@ -107,6 +112,12 @@ inline void qs::AutoHandle::close()
 		::CloseHandle(handle_);
 		handle_ = 0;
 	}
+}
+
+inline HANDLE* qs::AutoHandle::operator&()
+{
+	assert(!handle_);
+	return &handle_;
 }
 
 

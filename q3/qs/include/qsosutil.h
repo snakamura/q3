@@ -80,6 +80,7 @@ struct Rect : public RECT
 class QSEXPORTCLASS AutoHandle
 {
 public:
+	AutoHandle();
 	explicit AutoHandle(HANDLE handle);
 	~AutoHandle();
 
@@ -87,6 +88,7 @@ public:
 	HANDLE get() const;
 	HANDLE release();
 	void close();
+	HANDLE* operator&();
 
 private:
 	AutoHandle(const AutoHandle&);

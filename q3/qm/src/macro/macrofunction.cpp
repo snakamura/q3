@@ -1435,6 +1435,21 @@ const WCHAR* qm::MacroFunctionEval::getName() const
  *
  */
 
+namespace {
+DWORD WINAPI writeProc(void* pParam)
+{
+	std::pair<const CHAR*, HANDLE> p =
+		*static_cast<std::pair<const CHAR*, HANDLE>*>(pParam);
+	const CHAR* psz = p.first;
+	HANDLE hInput = p.second;
+	size_t nLen = strlen(psz);
+	DWORD dwWrite = 0;
+	BOOL b = ::WriteFile(hInput, psz, nLen, &dwWrite, 0);
+	::CloseHandle(hInput);
+	return (b && dwWrite == nLen) ? 0 : 1;
+}
+}
+
 qm::MacroFunctionExecute::MacroFunctionExecute(QSTATUS* pstatus) :
 	MacroFunction(pstatus)
 {
@@ -1454,10 +1469,135 @@ QSTATUS qm::MacroFunctionExecute::value(
 	
 	*ppValue = 0;
 	
-	if (getArgSize() != 1)
+	size_t nSize = getArgSize();
+#ifdef _WIN32_WCE
+	if (nSize != 1)
+#else
+	if (nSize != 1 && nSize != 2)
+#endif
 		return error(*pContext, MacroErrorHandler::CODE_INVALIDARGSIZE);
 	
-	// TODO
+	MacroValuePtr pValueCommand;
+	status = getArg(0)->value(pContext, &pValueCommand);
+	CHECK_QSTATUS();
+	string_ptr<WSTRING> wstrCommand;
+	status = pValueCommand->string(&wstrCommand);
+	CHECK_QSTATUS();
+	
+	const WCHAR* pwszResult = L"";
+	string_ptr<WSTRING> wstrOutput;
+	if (nSize > 1) {
+#ifndef _WIN32_WCE
+		MacroValuePtr pValueInput;
+		status = getArg(1)->value(pContext, &pValueInput);
+		CHECK_QSTATUS();
+		string_ptr<WSTRING> wstrInput;
+		status = pValueInput->string(&wstrInput);
+		CHECK_QSTATUS();
+		
+		SECURITY_ATTRIBUTES sa = { sizeof(sa), 0, TRUE };
+		AutoHandle hInputRead;
+		AutoHandle hInputWrite;
+		if (!::CreatePipe(&hInputRead, &hInputWrite, &sa, 0))
+			return error(*pContext, MacroErrorHandler::CODE_FAIL);
+		AutoHandle hInput;
+		if (!::DuplicateHandle(::GetCurrentProcess(), hInputWrite.get(),
+			::GetCurrentProcess(), &hInput, 0, FALSE, DUPLICATE_SAME_ACCESS))
+			return error(*pContext, MacroErrorHandler::CODE_FAIL);
+		hInputWrite.close();
+		
+		AutoHandle hOutputRead;
+		AutoHandle hOutputWrite;
+		if (!::CreatePipe(&hOutputRead, &hOutputWrite, &sa, 0))
+			return error(*pContext, MacroErrorHandler::CODE_FAIL);
+		AutoHandle hOutput;
+		if (!::DuplicateHandle(::GetCurrentProcess(), hOutputRead.get(),
+			::GetCurrentProcess(), &hOutput, 0, FALSE, DUPLICATE_SAME_ACCESS))
+			return error(*pContext, MacroErrorHandler::CODE_FAIL);
+		hOutputRead.close();
+		
+		STARTUPINFO si = { sizeof(si) };
+		si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+		si.hStdInput = hInputRead.get();
+		si.hStdOutput = hOutputWrite.get();
+		si.wShowWindow = SW_HIDE;
+		PROCESS_INFORMATION pi;
+		W2T(wstrCommand.get(), ptszCommand);
+		if (!::CreateProcess(0, const_cast<LPTSTR>(ptszCommand),
+			0, 0, TRUE, 0, 0, 0, &si, &pi))
+			return error(*pContext, MacroErrorHandler::CODE_FAIL);
+		AutoHandle hProcess(pi.hProcess);
+		::CloseHandle(pi.hThread);
+		hInputRead.close();
+		hOutputWrite.close();
+		
+		string_ptr<STRING> strInput(wcs2mbs(wstrInput.get()));
+		if (!strInput.get())
+			return QSTATUS_OUTOFMEMORY;
+		std::pair<const CHAR*, HANDLE> p(strInput.get(), hInput.get());
+		DWORD dwThreadId = 0;
+		AutoHandle hThread(::CreateThread(0, 0, writeProc, &p, 0, &dwThreadId));
+		if (!hThread.get())
+			return error(*pContext, MacroErrorHandler::CODE_FAIL);
+		hInput.release();
+		
+		StringBuffer<STRING> bufRead(&status);
+		CHECK_QSTATUS();
+		char buf[1024];
+		DWORD dwRead = 0;
+		while (::ReadFile(hOutput.get(), buf, sizeof(buf), &dwRead, 0) && dwRead != 0) {
+			status = bufRead.append(buf, dwRead);
+			CHECK_QSTATUS();
+		}
+		wstrOutput.reset(mbs2wcs(bufRead.getCharArray()));
+		if (!wstrOutput.get())
+			return QSTATUS_OUTOFMEMORY;
+		
+		HANDLE hWaits[] = { hProcess.get(), hThread.get() };
+		::WaitForMultipleObjects(sizeof(hWaits)/sizeof(hWaits[0]),
+			hWaits, TRUE, INFINITE);
+		
+		DWORD dwExitCode = 0;
+		if (!::GetExitCodeThread(hThread.get(), &dwExitCode) || dwExitCode != 0)
+			return error(*pContext, MacroErrorHandler::CODE_FAIL);
+		
+		pwszResult = wstrOutput.get();
+#endif
+	}
+	else {
+		WCHAR* pParam = wstrCommand.get();
+		bool bQuote = false;
+		while (*pParam) {
+			if (*pParam == L'\"')
+				bQuote = !bQuote;
+			else if (*pParam == L' ' && !bQuote)
+				break;
+			++pParam;
+		}
+		if (*pParam) {
+			assert(*pParam == L' ');
+			*pParam = L'\0';
+			++pParam;
+		}
+		W2T(wstrCommand.get(), ptszCommand);
+		W2T(pParam, ptszParam);
+		
+		SHELLEXECUTEINFO sei = {
+			sizeof(sei),
+			0,
+			pContext->getWindow(),
+			0,
+			ptszCommand,
+			ptszParam,
+			0,
+			SW_SHOW
+		};
+		if (!::ShellExecuteEx(&sei))
+			return error(*pContext, MacroErrorHandler::CODE_FAIL);
+	}
+	
+	return MacroValueFactory::getFactory().newString(pwszResult,
+		reinterpret_cast<MacroValueString**>(ppValue));
 }
 
 const WCHAR* qm::MacroFunctionExecute::getName() const
@@ -4943,7 +5083,7 @@ QSTATUS qm::MacroFunctionFactory::newFunction(MacroParser::Type type,
 		DECLARE_FUNCTION1(		Flag,				L"draft",			MessageHolder::FLAG_DRAFT			)
 		DECLARE_FUNCTION0(		Equal, 				L"equal"												)
 		DECLARE_FUNCTION1(		Eval, 				L"eval",			type								)
-		DECLARE_FUNCTION0(		Execute, 			L"execute	"											)
+		DECLARE_FUNCTION0(		Execute, 			L"execute"												)
 		DECLARE_FUNCTION0(		Exist, 				L"exist"												)
 		DECLARE_FUNCTION0(		Exit, 				L"exit"													)
 		DECLARE_FUNCTION1(		Boolean,			L"false",			false								)
