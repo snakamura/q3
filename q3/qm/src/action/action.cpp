@@ -1028,9 +1028,11 @@ bool qm::EditSelectAllMessageAction::isEnabled(const ActionEvent& event)
  *
  */
 
-qm::EditUndoMessageAction::EditUndoMessageAction(Document* pDocument,
+qm::EditUndoMessageAction::EditUndoMessageAction(UndoManager* pUndoManager,
+												 AccountManager* pAccountManager,
 												 HWND hwnd) :
-	pDocument_(pDocument),
+	pUndoManager_(pUndoManager),
+	pAccountManager_(pAccountManager),
 	hwnd_(hwnd)
 {
 }
@@ -1041,12 +1043,12 @@ qm::EditUndoMessageAction::~EditUndoMessageAction()
 
 void qm::EditUndoMessageAction::invoke(const ActionEvent& event)
 {
-	UndoManager* pUndoManager = pDocument_->getUndoManager();
-	std::auto_ptr<UndoItem> pUndoItem(pUndoManager->popUndoItem());
+	std::auto_ptr<UndoItem> pUndoItem(pUndoManager_->popUndoItem());
 	if (!pUndoItem.get())
 		return;
 	
-	std::auto_ptr<UndoExecutor> pExecutor(pUndoItem->getExecutor(pDocument_));
+	std::auto_ptr<UndoExecutor> pExecutor(
+		pUndoItem->getExecutor(UndoContext(pAccountManager_)));
 	if (!pExecutor.get() || !pExecutor->execute()) {
 		ActionUtil::error(hwnd_, IDS_ERROR_UNDO);
 		return;
@@ -1055,8 +1057,7 @@ void qm::EditUndoMessageAction::invoke(const ActionEvent& event)
 
 bool qm::EditUndoMessageAction::isEnabled(const ActionEvent& event)
 {
-	UndoManager* pUndoManager = pDocument_->getUndoManager();
-	return pUndoManager->hasUndoItem();
+	return pUndoManager_->hasUndoItem();
 }
 
 

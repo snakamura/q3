@@ -6,7 +6,7 @@
  *
  */
 
-#include <qmdocument.h>
+#include <qmaccount.h>
 
 #include <qsstl.h>
 
@@ -135,7 +135,7 @@ qm::EmptyUndoItem::~EmptyUndoItem()
 {
 }
 
-std::auto_ptr<UndoExecutor> qm::EmptyUndoItem::getExecutor(Document* pDocument)
+std::auto_ptr<UndoExecutor> qm::EmptyUndoItem::getExecutor(const UndoContext& context)
 {
 	return std::auto_ptr<UndoExecutor>(new EmptyUndoExecutor());
 }
@@ -228,12 +228,13 @@ void qm::SetFlagsUndoItem::add(MessageHolder* pmh,
 		wstrAccount_ = Util::formatAccount(pmh->getAccount());
 }
 
-std::auto_ptr<UndoExecutor> qm::SetFlagsUndoItem::getExecutor(Document* pDocument)
+std::auto_ptr<UndoExecutor> qm::SetFlagsUndoItem::getExecutor(const UndoContext& context)
 {
 	if (listItem_.empty())
 		return std::auto_ptr<UndoExecutor>(new EmptyUndoExecutor());
 	
-	Account* pAccount = Util::getAccountOrFolder(pDocument, wstrAccount_.get()).first;
+	AccountManager* pAccountManager = context.getAccountManager();
+	Account* pAccount = Util::getAccountOrFolder(pAccountManager, wstrAccount_.get()).first;
 	if (!pAccount)
 		return std::auto_ptr<UndoExecutor>();
 	Lock<Account> lock(*pAccount);
@@ -241,7 +242,7 @@ std::auto_ptr<UndoExecutor> qm::SetFlagsUndoItem::getExecutor(Document* pDocumen
 	std::auto_ptr<SetFlagsUndoExecutor> pExecutor(new SetFlagsUndoExecutor(pAccount));
 	for (ItemList::const_iterator it = listItem_.begin(); it != listItem_.end(); ++it) {
 		const Item& item = *it;
-		MessagePtrLock mpl(pDocument->getMessage(*item.pURI_));
+		MessagePtrLock mpl(pAccountManager->getMessage(*item.pURI_));
 		if (!mpl)
 			return std::auto_ptr<UndoExecutor>();
 		pExecutor->add(mpl, item.nFlags_, item.nMask_);
@@ -320,12 +321,14 @@ qm::MessageListUndoItem::~MessageListUndoItem()
 	std::for_each(listURI_.begin(), listURI_.end(), qs::deleter<URI>());
 }
 
-std::auto_ptr<UndoExecutor> qm::MessageListUndoItem::getExecutor(Document* pDocument)
+std::auto_ptr<UndoExecutor> qm::MessageListUndoItem::getExecutor(const UndoContext& context)
 {
 	if (listURI_.empty())
 		return std::auto_ptr<UndoExecutor>(new EmptyUndoExecutor());
 	
-	NormalFolder* pFolder = getFolder(pDocument, wstrFolder_.get());
+	AccountManager* pAccountManager = context.getAccountManager();
+	
+	NormalFolder* pFolder = getFolder(pAccountManager, wstrFolder_.get());
 	if (!pFolder)
 		return std::auto_ptr<UndoExecutor>();
 	
@@ -335,21 +338,21 @@ std::auto_ptr<UndoExecutor> qm::MessageListUndoItem::getExecutor(Document* pDocu
 	l.reserve(listURI_.size());
 	for (URIList::const_iterator it = listURI_.begin(); it != listURI_.end(); ++it) {
 		URI* pURI = *it;
-		MessagePtrLock mpl(pDocument->getMessage(*pURI));
+		MessagePtrLock mpl(pAccountManager->getMessage(*pURI));
 		if (!mpl)
 			return std::auto_ptr<UndoExecutor>();
 		l.push_back(mpl);
 	}
-	return getExecutor(pDocument, pAccount, pFolder, l);
+	return getExecutor(context, pAccount, pFolder, l);
 }
 
-NormalFolder* qm::MessageListUndoItem::getFolder(Document* pDocument,
+NormalFolder* qm::MessageListUndoItem::getFolder(AccountManager* pAccountManager,
 												 const WCHAR* pwszFolder)
 {
-	assert(pDocument);
+	assert(pAccountManager);
 	assert(pwszFolder);
 	
-	std::pair<Account*, Folder*> p(Util::getAccountOrFolder(pDocument, pwszFolder));
+	std::pair<Account*, Folder*> p(Util::getAccountOrFolder(pAccountManager, pwszFolder));
 	if (!p.second || p.second->getType() != Folder::TYPE_NORMAL)
 		return 0;
 	return static_cast<NormalFolder*>(p.second);
@@ -362,12 +365,10 @@ NormalFolder* qm::MessageListUndoItem::getFolder(Document* pDocument,
  *
  */
 
-qm::MessageListUndoExecutor::MessageListUndoExecutor(Document* pDocument,
-													 Account* pAccount,
+qm::MessageListUndoExecutor::MessageListUndoExecutor(Account* pAccount,
 													 NormalFolder* pFolder,
 													 MessageHolderList& l) :
 	AbstractUndoExecutor(pAccount),
-	pDocument_(pDocument),
 	pFolder_(pFolder)
 {
 	listMessageHolder_.swap(l);
@@ -379,7 +380,7 @@ qm::MessageListUndoExecutor::~MessageListUndoExecutor()
 
 bool qm::MessageListUndoExecutor::execute(Account* pAccount)
 {
-	return execute(pDocument_, pAccount, pFolder_, listMessageHolder_);
+	return execute(pAccount, pFolder_, listMessageHolder_);
 }
 
 
@@ -400,16 +401,15 @@ qm::MoveUndoItem::~MoveUndoItem()
 {
 }
 
-std::auto_ptr<UndoExecutor> qm::MoveUndoItem::getExecutor(Document* pDocument,
+std::auto_ptr<UndoExecutor> qm::MoveUndoItem::getExecutor(const UndoContext& context,
 														  Account* pAccount,
 														  NormalFolder* pFolder,
 														  MessageHolderList& l)
 {
-	NormalFolder* pFolderTo = getFolder(pDocument, wstrFolderTo_.get());
+	NormalFolder* pFolderTo = getFolder(context.getAccountManager(), wstrFolderTo_.get());
 	if (!pFolderTo)
 		return std::auto_ptr<UndoExecutor>();
-	return std::auto_ptr<UndoExecutor>(new MoveUndoExecutor(
-		pDocument, pAccount, pFolder, pFolderTo, l));
+	return std::auto_ptr<UndoExecutor>(new MoveUndoExecutor(pAccount, pFolder, pFolderTo, l));
 }
 
 
@@ -419,12 +419,11 @@ std::auto_ptr<UndoExecutor> qm::MoveUndoItem::getExecutor(Document* pDocument,
  *
  */
 
-qm::MoveUndoExecutor::MoveUndoExecutor(Document* pDocument,
-									   Account* pAccount,
+qm::MoveUndoExecutor::MoveUndoExecutor(Account* pAccount,
 									   NormalFolder* pFolderFrom,
 									   NormalFolder* pFolderTo,
 									   MessageHolderList& l) :
-	MessageListUndoExecutor(pDocument, pAccount, pFolderFrom, l),
+	MessageListUndoExecutor(pAccount, pFolderFrom, l),
 	pFolderTo_(pFolderTo)
 {
 }
@@ -433,8 +432,7 @@ qm::MoveUndoExecutor::~MoveUndoExecutor()
 {
 }
 
-bool qm::MoveUndoExecutor::execute(Document* pDocument,
-								   Account* pAccount,
+bool qm::MoveUndoExecutor::execute(Account* pAccount,
 								   NormalFolder* pFolder,
 								   const MessageHolderList& l)
 {
@@ -457,13 +455,12 @@ qm::DeleteUndoItem::~DeleteUndoItem()
 {
 }
 
-std::auto_ptr<UndoExecutor> qm::DeleteUndoItem::getExecutor(Document* pDocument,
+std::auto_ptr<UndoExecutor> qm::DeleteUndoItem::getExecutor(const UndoContext& context,
 															Account* pAccount,
 															NormalFolder* pFolder,
 															MessageHolderList& l)
 {
-	return std::auto_ptr<UndoExecutor>(
-		new DeleteUndoExecutor(pDocument, pAccount, pFolder, l));
+	return std::auto_ptr<UndoExecutor>(new DeleteUndoExecutor(pAccount, pFolder, l));
 }
 
 
@@ -473,11 +470,10 @@ std::auto_ptr<UndoExecutor> qm::DeleteUndoItem::getExecutor(Document* pDocument,
  *
  */
 
-qm::DeleteUndoExecutor::DeleteUndoExecutor(Document* pDocument,
-										   Account* pAccount,
+qm::DeleteUndoExecutor::DeleteUndoExecutor(Account* pAccount,
 										   NormalFolder* pFolder,
 										   MessageHolderList& l) :
-	MessageListUndoExecutor(pDocument, pAccount, pFolder, l)
+	MessageListUndoExecutor(pAccount, pFolder, l)
 {
 }
 
@@ -485,8 +481,7 @@ qm::DeleteUndoExecutor::~DeleteUndoExecutor()
 {
 }
 
-bool qm::DeleteUndoExecutor::execute(Document* pDocument,
-									 Account* pAccount,
+bool qm::DeleteUndoExecutor::execute(Account* pAccount,
 									 NormalFolder* pFolder,
 									 const MessageHolderList& l)
 {
@@ -511,11 +506,11 @@ qm::GroupUndoItem::~GroupUndoItem()
 	std::for_each(listItem_.begin(), listItem_.end(), qs::deleter<UndoItem>());
 }
 
-std::auto_ptr<UndoExecutor> qm::GroupUndoItem::getExecutor(Document* pDocument)
+std::auto_ptr<UndoExecutor> qm::GroupUndoItem::getExecutor(const UndoContext& context)
 {
 	std::auto_ptr<GroupUndoExecutor> pExecutor(new GroupUndoExecutor());
 	for (ItemList::const_iterator it = listItem_.begin(); it != listItem_.end(); ++it) {
-		std::auto_ptr<UndoExecutor> p((*it)->getExecutor(pDocument));
+		std::auto_ptr<UndoExecutor> p((*it)->getExecutor(context));
 		if (!p.get())
 			return std::auto_ptr<UndoExecutor>();
 		pExecutor->add(p);
@@ -549,4 +544,25 @@ bool qm::GroupUndoExecutor::execute()
 {
 	return std::find_if(listExecutor_.begin(), listExecutor_.end(),
 		std::not1(std::mem_fun(&UndoExecutor::execute))) == listExecutor_.end();
+}
+
+
+/****************************************************************************
+ *
+ * UndoContext
+ *
+ */
+
+qm::UndoContext::UndoContext(AccountManager* pAccountManager) :
+	pAccountManager_(pAccountManager)
+{
+}
+
+qm::UndoContext::~UndoContext()
+{
+}
+
+AccountManager* qm::UndoContext::getAccountManager() const
+{
+	return pAccountManager_;
 }

@@ -202,8 +202,9 @@ void qm::MessageFrameWindowImpl::initActions()
 		pMessageWindow_,
 		&MessageWindowItem::selectAll,
 		&MessageWindowItem::canSelectAll);
-	ADD_ACTION2(EditUndoMessageAction,
+	ADD_ACTION3(EditUndoMessageAction,
 		IDM_EDIT_UNDO,
+		pDocument_->getUndoManager(),
 		pDocument_,
 		pThis_->getHandle());
 	ADD_ACTION1(FileCloseAction,

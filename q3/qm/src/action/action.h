@@ -892,7 +892,8 @@ private:
 class EditUndoMessageAction : public qs::AbstractAction
 {
 public:
-	EditUndoMessageAction(Document* pDocument,
+	EditUndoMessageAction(UndoManager* pUndoManager,
+						  AccountManager* pAccountManager,
 						  HWND hwnd);
 	virtual ~EditUndoMessageAction();
 
@@ -905,7 +906,8 @@ private:
 	EditUndoMessageAction& operator=(const EditUndoMessageAction&);
 
 private:
-	Document* pDocument_;
+	UndoManager* pUndoManager_;
+	AccountManager* pAccountManager_;
 	HWND hwnd_;
 };
 

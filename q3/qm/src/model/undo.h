@@ -34,9 +34,10 @@ class UndoExecutor;
 			class MoveUndoExecutor;
 			class DeleteUndoExecutor;
 	class EmptyUndoExecutor;
+class UndoContext;
 
 class Account;
-class Document;
+class AccountManager;
 class NormalFolder;
 class URI;
 
@@ -110,7 +111,7 @@ public:
 	virtual ~UndoItem();
 
 public:
-	virtual std::auto_ptr<UndoExecutor> getExecutor(Document* pDocument) = 0;
+	virtual std::auto_ptr<UndoExecutor> getExecutor(const UndoContext& context) = 0;
 };
 
 
@@ -143,7 +144,7 @@ public:
 	virtual ~EmptyUndoItem();
 
 public:
-	virtual std::auto_ptr<UndoExecutor> getExecutor(Document* pDocument);
+	virtual std::auto_ptr<UndoExecutor> getExecutor(const UndoContext& context);
 
 private:
 	EmptyUndoItem(const EmptyUndoItem&);
@@ -217,7 +218,7 @@ public:
 			 unsigned int nMask);
 
 public:
-	virtual std::auto_ptr<UndoExecutor> getExecutor(Document* pDocument);
+	virtual std::auto_ptr<UndoExecutor> getExecutor(const UndoContext& context);
 
 private:
 	SetFlagsUndoItem(const SetFlagsUndoItem&);
@@ -296,16 +297,16 @@ public:
 	virtual ~MessageListUndoItem();
 
 public:
-	virtual std::auto_ptr<UndoExecutor> getExecutor(Document* pDocument);
+	virtual std::auto_ptr<UndoExecutor> getExecutor(const UndoContext& context);
 
 private:
-	virtual std::auto_ptr<UndoExecutor> getExecutor(Document* pDocument,
+	virtual std::auto_ptr<UndoExecutor> getExecutor(const UndoContext& context,
 													Account* pAccount,
 													NormalFolder* pFolder,
 													MessageHolderList& l) = 0;
 
 protected:
-	static NormalFolder* getFolder(Document* pDocument,
+	static NormalFolder* getFolder(AccountManager* pAccountManager,
 								   const WCHAR* pwszFolder);
 
 private:
@@ -330,8 +331,7 @@ private:
 class MessageListUndoExecutor : public AbstractUndoExecutor
 {
 public:
-	MessageListUndoExecutor(Document* pDocument,
-							Account* pAccount,
+	MessageListUndoExecutor(Account* pAccount,
 							NormalFolder* pFolder,
 							MessageHolderList& l);
 	virtual ~MessageListUndoExecutor();
@@ -340,8 +340,7 @@ private:
 	virtual bool execute(Account* pAccount);
 
 private:
-	virtual bool execute(Document* pDocument,
-						 Account* pAccount,
+	virtual bool execute(Account* pAccount,
 						 NormalFolder* pFolder,
 						 const MessageHolderList& l) = 0;
 
@@ -350,7 +349,6 @@ private:
 	MessageListUndoExecutor& operator=(const MessageListUndoExecutor&);
 
 private:
-	Document* pDocument_;
 	NormalFolder* pFolder_;
 	MessageHolderList listMessageHolder_;
 };
@@ -370,7 +368,7 @@ public:
 	virtual ~MoveUndoItem();
 
 private:
-	virtual std::auto_ptr<UndoExecutor> getExecutor(Document* pDocument,
+	virtual std::auto_ptr<UndoExecutor> getExecutor(const UndoContext& context,
 													Account* pAccount,
 													NormalFolder* pFolder,
 													MessageHolderList& l);
@@ -393,16 +391,14 @@ private:
 class MoveUndoExecutor : public MessageListUndoExecutor
 {
 public:
-	MoveUndoExecutor(Document* pDocument,
-					 Account* pAccount,
+	MoveUndoExecutor(Account* pAccount,
 					 NormalFolder* pFolderFrom,
 					 NormalFolder* pFolderTo,
 					 MessageHolderList& l);
 	virtual ~MoveUndoExecutor();
 
 private:
-	virtual bool execute(Document* pDocument,
-						 Account* pAccount,
+	virtual bool execute(Account* pAccount,
 						 NormalFolder* pFolder,
 						 const MessageHolderList& l);
 
@@ -428,7 +424,7 @@ public:
 	virtual ~DeleteUndoItem();
 
 private:
-	virtual std::auto_ptr<UndoExecutor> getExecutor(Document* pDocument,
+	virtual std::auto_ptr<UndoExecutor> getExecutor(const UndoContext& context,
 													Account* pAccount,
 													NormalFolder* pFolder,
 													MessageHolderList& l);
@@ -448,15 +444,13 @@ private:
 class DeleteUndoExecutor : public MessageListUndoExecutor
 {
 public:
-	DeleteUndoExecutor(Document* pDocument,
-					   Account* pAccount,
+	DeleteUndoExecutor(Account* pAccount,
 					   NormalFolder* pFolder,
 					   MessageHolderList& l);
 	virtual ~DeleteUndoExecutor();
 
 private:
-	virtual bool execute(Document* pDocument,
-						 Account* pAccount,
+	virtual bool execute(Account* pAccount,
 						 NormalFolder* pFolder,
 						 const MessageHolderList& l);
 
@@ -482,7 +476,7 @@ public:
 	virtual ~GroupUndoItem();
 
 public:
-	virtual std::auto_ptr<UndoExecutor> getExecutor(Document* pDocument);
+	virtual std::auto_ptr<UndoExecutor> getExecutor(const UndoContext& context);
 
 private:
 	GroupUndoItem(const GroupUndoItem&);
@@ -520,6 +514,30 @@ private:
 
 private:
 	ExecutorList listExecutor_;
+};
+
+
+/****************************************************************************
+ *
+ * UndoContext
+ *
+ */
+
+class UndoContext
+{
+public:
+	explicit UndoContext(AccountManager* pAccountManager);
+	~UndoContext();
+
+public:
+	AccountManager* getAccountManager() const;
+
+private:
+	UndoContext(const UndoContext&);
+	UndoContext& operator=(const UndoContext&);
+
+private:
+	AccountManager* pAccountManager_;
 };
 
 }

@@ -534,8 +534,9 @@ void qm::MainWindowImpl::initActions()
 	pSelectAllMessageAction.release();
 	pSelectAllAction.release();
 	
-	ADD_ACTION2(EditUndoMessageAction,
+	ADD_ACTION3(EditUndoMessageAction,
 		IDM_EDIT_UNDO,
+		pDocument_->getUndoManager(),
 		pDocument_,
 		pThis_->getHandle());
 	ADD_ACTION2(FileCheckAction,
