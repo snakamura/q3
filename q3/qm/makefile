@@ -26,7 +26,7 @@ BASEADDRESS		= 0x30000000
 
 include ../common.mak
 
-$(SRCDIR)/main/version.h: version
+$(SRCDIR)/main/version.h: version revision
 	printf "const int QMAIL_VERSION = %d%02d%03d;\n" `cat version | tr '.' ' '` > $@
 	printf "const int QMAIL_REVISION = %d;\n" $(REVISION) >> $@
 

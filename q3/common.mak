@@ -445,7 +445,7 @@ endif
 
 DEFINES					+= $(CPROJS)
 
-REVISION				= $(shell svn info | grep Revision | cut -d ' ' -f 2)
+REVISION				= $(shell cat revision)
 NVERSION				= $(shell cat version | tr '.' ','),$(REVISION)
 SVERSION				= $(shell cat version | sed -e 's/\./, /g'), $(REVISION)
 RCDEFINES				= -DNVERSION="$(NVERSION)" -DSVERSION="\"$(SVERSION)\"" -DSUFFIX="\"$(SUFFIX)\""
@@ -485,13 +485,13 @@ clean:
 	-for d in $(OBJDIRBASE) $(TLBDIRBASE) $(TARGETDIRBASE); do \
 		if [ -d $$d ]; then rm -rf $$d; fi \
 	done
-	-rm -f version
+	-rm -f version revision
 
 clean.desktop:
 	-for d in $(OBJDIRBASE) $(TLBDIRBASE) $(TARGETDIRBASE); do \
 		if [ -d $$d/desktop ]; then rm -rf $$d/desktop; fi \
 	done
-	-rm -f version
+	-rm -f version revision
 
 clean.wce:
 	-for d in $(OBJDIRBASE) $(TLBDIRBASE) $(TARGETDIRBASE); do \
@@ -499,7 +499,7 @@ clean.wce:
 			if [ -d $$d/$$p ]; then rm -rf $$d/$$p; fi \
 		done \
 	done
-	-rm -f version
+	-rm -f version revision
 
 $(OBJDIR)/%.obj: $(SRCDIR)/%.cpp
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
@@ -512,7 +512,7 @@ $(OBJDIR)/%.obj: $(SRCDIR)/%.c
 $(SRCDIR)/%.rcx: $(SRCDIR)/%.rc
 	$(RCPP) $< > $@
 
-$(OBJDIR)/%.res: $(SRCDIR)/%.rcx $(TLBS)
+$(OBJDIR)/%.res: $(SRCDIR)/%.rcx $(TLBS) version revision
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	$(RC) $(RCFLAGS) $(RCDEFINES) -fo $@ $<
 

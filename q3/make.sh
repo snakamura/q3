@@ -79,5 +79,5 @@ if [ "$DEBUG" = "debug" ]; then
 	OPTIONS="$OPTIONS DEBUG=1"
 fi
 
-(cd ..; tar cf - version) | tar xf -
+(cd ..; tar cf - version revision) | tar xf -
 $MAKE target $OPTIONS

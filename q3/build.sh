@@ -157,6 +157,13 @@ ziptool)
 	;;
 
 *)
+	REVISION=`svn info | grep Revision | cut -d ' ' -f 2`
+	if [ -f revision ]; then
+		OLDREVISION=`cat revision`
+	fi
+	if [ "$REVISION" != "$OLDREVISION" ]; then
+		echo $REVISION > revision
+	fi
 	for p in $PROJECTS; do
 		cd $p
 		$MAKE $COMMAND
