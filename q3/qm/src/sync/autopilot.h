@@ -116,7 +116,7 @@ public:
 	typedef std::vector<AutoPilotEntry*> EntryList;
 
 public:
-	AutoPilotManager();
+	explicit AutoPilotManager(const WCHAR* pwszPath);
 	~AutoPilotManager();
 
 public:

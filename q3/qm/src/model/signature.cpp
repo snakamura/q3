@@ -7,8 +7,6 @@
  */
 
 #include <qmaccount.h>
-#include <qmapplication.h>
-#include <qmfilenames.h>
 
 #include <qsassert.h>
 #include <qsconv.h>
@@ -30,8 +28,8 @@ using namespace qs;
  *
  */
 
-qm::SignatureManager::SignatureManager() :
-	helper_(Application::getApplication().getProfilePath(FileNames::SIGNATURES_XML).get())
+qm::SignatureManager::SignatureManager(const WCHAR* pwszPath) :
+	helper_(pwszPath)
 {
 }
 

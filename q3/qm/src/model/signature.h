@@ -43,7 +43,7 @@ public:
 	typedef std::vector<Signature*> SignatureList;
 
 public:
-	SignatureManager();
+	explicit SignatureManager(const WCHAR* pwszPath);
 	~SignatureManager();
 
 public:

@@ -7,8 +7,6 @@
  */
 
 #include <qmaccount.h>
-#include <qmapplication.h>
-#include <qmfilenames.h>
 #include <qmfolder.h>
 #include <qmsyncfilter.h>
 
@@ -37,7 +35,7 @@ using namespace qs;
 
 struct qm::SyncFilterManagerImpl
 {
-	SyncFilterManagerImpl();
+	SyncFilterManagerImpl(const WCHAR* pwszPath);
 	
 	bool load();
 	
@@ -46,8 +44,8 @@ struct qm::SyncFilterManagerImpl
 	ConfigHelper<SyncFilterManager, SyncFilterContentHandler, SyncFilterWriter> helper_;
 };
 
-qm::SyncFilterManagerImpl::SyncFilterManagerImpl() :
-	helper_(Application::getApplication().getProfilePath(FileNames::SYNCFILTERS_XML).get())
+qm::SyncFilterManagerImpl::SyncFilterManagerImpl(const WCHAR* pwszPath) :
+	helper_(pwszPath)
 {
 }
 
@@ -64,10 +62,10 @@ bool qm::SyncFilterManagerImpl::load()
  *
  */
 
-qm::SyncFilterManager::SyncFilterManager() :
+qm::SyncFilterManager::SyncFilterManager(const WCHAR* pwszPath) :
 	pImpl_(0)
 {
-	pImpl_ = new SyncFilterManagerImpl();
+	pImpl_ = new SyncFilterManagerImpl(pwszPath);
 	pImpl_->pThis_ = this;
 }
 

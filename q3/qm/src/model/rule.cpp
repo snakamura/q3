@@ -7,9 +7,7 @@
  */
 
 #include <qmaccount.h>
-#include <qmapplication.h>
 #include <qmdocument.h>
-#include <qmfilenames.h>
 #include <qmfolder.h>
 #include <qmmacro.h>
 #include <qmmessage.h>
@@ -39,8 +37,8 @@ using namespace qs;
  *
  */
 
-qm::RuleManager::RuleManager() :
-	helper_(Application::getApplication().getProfilePath(FileNames::RULES_XML).get())
+qm::RuleManager::RuleManager(const WCHAR* pwszPath) :
+	helper_(pwszPath)
 {
 }
 

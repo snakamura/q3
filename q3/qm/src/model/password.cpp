@@ -6,9 +6,6 @@
  *
  */
 
-#include <qmapplication.h>
-#include <qmfilenames.h>
-
 #include <qsfile.h>
 #include <qstextutil.h>
 #include <qsthread.h>
@@ -28,7 +25,7 @@ using namespace qs;
 
 struct qm::PasswordManagerImpl
 {
-	PasswordManagerImpl();
+	PasswordManagerImpl(const WCHAR* pwszPath);
 	bool load();
 	
 	PasswordManager* pThis_;
@@ -38,8 +35,8 @@ struct qm::PasswordManagerImpl
 	ConfigHelper<PasswordManager, PasswordContentHandler, PasswordWriter> helper_;
 };
 
-qm::PasswordManagerImpl::PasswordManagerImpl() :
-	helper_(Application::getApplication().getProfilePath(FileNames::PASSWORDS_XML).get())
+qm::PasswordManagerImpl::PasswordManagerImpl(const WCHAR* pwszPath) :
+	helper_(pwszPath)
 {
 }
 
@@ -56,10 +53,11 @@ bool qm::PasswordManagerImpl::load()
  *
  */
 
-qm::PasswordManager::PasswordManager(PasswordManagerCallback* pCallback) :
+qm::PasswordManager::PasswordManager(const WCHAR* pwszPath,
+									 PasswordManagerCallback* pCallback) :
 	pImpl_(0)
 {
-	pImpl_ = new PasswordManagerImpl();
+	pImpl_ = new PasswordManagerImpl(pwszPath);
 	pImpl_->pThis_ = this;
 	pImpl_->pCallback_ = pCallback;
 	pImpl_->load();

@@ -43,7 +43,7 @@ public:
 	typedef std::vector<Filter*> FilterList;
 
 public:
-	FilterManager();
+	explicit FilterManager(const WCHAR* pwszPath);
 	~FilterManager();
 
 public:

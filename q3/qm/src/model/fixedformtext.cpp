@@ -6,9 +6,6 @@
  *
  */
 
-#include <qmapplication.h>
-#include <qmfilenames.h>
-
 #include <qsconv.h>
 #include <qsfile.h>
 #include <qsosutil.h>
@@ -29,8 +26,8 @@ using namespace qs;
  *
  */
 
-qm::FixedFormTextManager::FixedFormTextManager() :
-	helper_(Application::getApplication().getProfilePath(FileNames::TEXTS_XML).get())
+qm::FixedFormTextManager::FixedFormTextManager(const WCHAR* pwszPath) :
+	helper_(pwszPath)
 {
 }
 

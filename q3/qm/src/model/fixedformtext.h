@@ -40,7 +40,7 @@ public:
 	typedef std::vector<FixedFormText*> TextList;
 
 public:
-	FixedFormTextManager();
+	explicit FixedFormTextManager(const WCHAR* pwszPath);
 	~FixedFormTextManager();
 
 public:

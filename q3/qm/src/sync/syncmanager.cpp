@@ -9,6 +9,7 @@
 #include <qmaccount.h>
 #include <qmapplication.h>
 #include <qmdocument.h>
+#include <qmfilenames.h>
 #include <qmfolder.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
@@ -380,7 +381,8 @@ qm::SyncManager::SyncManager(Profile* pProfile) :
 	pProfile_(pProfile),
 	pSynchronizer_(InitThread::getInitThread().getSynchronizer())
 {
-	pSyncFilterManager_.reset(new SyncFilterManager());
+	pSyncFilterManager_.reset(new SyncFilterManager(
+		Application::getApplication().getProfilePath(FileNames::SYNCFILTERS_XML).get()));
 }
 
 qm::SyncManager::~SyncManager()

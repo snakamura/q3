@@ -110,18 +110,19 @@ qm::Document::Document(Profile* pProfile,
 					   PasswordManager* pPasswordManager) :
 	pImpl_(0)
 {
-	const WCHAR* pwszMailFolder = Application::getApplication().getMailFolder();
+	const Application& app = Application::getApplication();
+	const WCHAR* pwszMailFolder = app.getMailFolder();
 	
 	pImpl_ = new DocumentImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pPasswordManager_ = pPasswordManager;
-	pImpl_->pRuleManager_.reset(new RuleManager());
+	pImpl_->pRuleManager_.reset(new RuleManager(app.getProfilePath(FileNames::RULES_XML).get()));
 	pImpl_->pTemplateManager_.reset(new TemplateManager(pwszMailFolder));
 	pImpl_->pScriptManager_.reset(new ScriptManager(pwszMailFolder));
-	pImpl_->pSignatureManager_.reset(new SignatureManager());
-	pImpl_->pFixedFormTextManager_.reset(new FixedFormTextManager());
-	pImpl_->pAddressBook_.reset(new AddressBook(pProfile));
+	pImpl_->pSignatureManager_.reset(new SignatureManager(app.getProfilePath(FileNames::SIGNATURES_XML).get()));
+	pImpl_->pFixedFormTextManager_.reset(new FixedFormTextManager(app.getProfilePath(FileNames::TEXTS_XML).get()));
+	pImpl_->pAddressBook_.reset(new AddressBook(app.getProfilePath(FileNames::ADDRESSBOOK_XML).get(), pProfile));
 	pImpl_->pSecurity_.reset(new Security(pwszMailFolder, pProfile));
 	pImpl_->pRecents_.reset(new Recents(pProfile));
 	pImpl_->nOnline_ = 0;

@@ -10,8 +10,6 @@
 #	define INITGUID
 #endif
 
-#include <qmapplication.h>
-#include <qmfilenames.h>
 #include <qmsecurity.h>
 
 #include <qsconv.h>
@@ -39,7 +37,8 @@ using namespace qs;
  *
  */
 
-qm::AddressBook::AddressBook(Profile* pProfile) :
+qm::AddressBook::AddressBook(const WCHAR* pwszPath,
+							 Profile* pProfile) :
 	bEnableReload_(true),
 	bContactChanged_(false),
 #ifndef _WIN32_WCE
@@ -53,6 +52,8 @@ qm::AddressBook::AddressBook(Profile* pProfile) :
 	pNotificationWindow_(0)
 #endif
 {
+	wstrPath_ = allocWString(pwszPath);
+	
 	SYSTEMTIME st;
 	::GetSystemTime(&st);
 	::SystemTimeToFileTime(&st, &ft_);
@@ -273,12 +274,10 @@ bool qm::AddressBook::load()
 	if (!bEnableReload_)
 		return true;
 	
-	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::ADDRESSBOOK_XML));
-	
 	bool bReload = false;
 	bool bClear = false;
 	
-	W2T(wstrPath.get(), ptszPath);
+	W2T(wstrPath_.get(), ptszPath);
 	AutoHandle hFile(::CreateFile(ptszPath, GENERIC_READ, 0, 0,
 		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
 	if (hFile.get()) {
@@ -306,7 +305,7 @@ bool qm::AddressBook::load()
 			XMLReader reader;
 			AddressBookContentHandler handler(this);
 			reader.setContentHandler(&handler);
-			if (!reader.parse(wstrPath.get()))
+			if (!reader.parse(wstrPath_.get()))
 				return false;
 		}
 		

@@ -6,9 +6,7 @@
  *
  */
 
-#include <qmapplication.h>
 #include <qmdocument.h>
-#include <qmfilenames.h>
 #include <qmgoround.h>
 
 #include <qsras.h>
@@ -132,8 +130,8 @@ qm::AutoPilotCallback::~AutoPilotCallback()
  *
  */
 
-qm::AutoPilotManager::AutoPilotManager() :
-	helper_(Application::getApplication().getProfilePath(FileNames::AUTOPILOT_XML).get())
+qm::AutoPilotManager::AutoPilotManager(const WCHAR* pwszPath) :
+	helper_(pwszPath)
 {
 }
 

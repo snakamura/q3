@@ -43,7 +43,7 @@ public:
 	typedef std::vector<SyncFilterSet*> FilterSetList;
 
 public:
-	SyncFilterManager();
+	explicit SyncFilterManager(const WCHAR* pwszPath);
 	~SyncFilterManager();
 
 public:

@@ -6,8 +6,6 @@
  *
  */
 
-#include <qmapplication.h>
-#include <qmfilenames.h>
 #include <qmgoround.h>
 
 #include <qsconv.h>
@@ -31,7 +29,7 @@ using namespace qs;
 
 struct qm::GoRoundImpl
 {
-	GoRoundImpl();
+	GoRoundImpl(const WCHAR* pwszPath);
 	
 	bool load();
 	
@@ -40,8 +38,8 @@ struct qm::GoRoundImpl
 	ConfigHelper<GoRound, GoRoundContentHandler, GoRoundWriter> helper_;
 };
 
-qm::GoRoundImpl::GoRoundImpl() :
-	helper_(Application::getApplication().getProfilePath(FileNames::GOROUND_XML).get())
+qm::GoRoundImpl::GoRoundImpl(const WCHAR* pwszPath) :
+	helper_(pwszPath)
 {
 }
 
@@ -58,10 +56,10 @@ bool qm::GoRoundImpl::load()
  *
  */
 
-qm::GoRound::GoRound() :
+qm::GoRound::GoRound(const WCHAR* pwszPath) :
 	pImpl_(0)
 {
-	pImpl_ = new GoRoundImpl();
+	pImpl_ = new GoRoundImpl(pwszPath);
 	pImpl_->pThis_ = this;
 }
 

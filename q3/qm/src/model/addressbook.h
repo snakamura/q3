@@ -58,7 +58,8 @@ public:
 	typedef std::vector<std::pair<const WCHAR*, AddressBookEntry*> > EntryMap;
 
 public:
-	AddressBook(qs::Profile* pProfile);
+	AddressBook(const WCHAR* pwszPath,
+				qs::Profile* pProfile);
 	~AddressBook();
 
 public:
@@ -139,6 +140,7 @@ private:
 #endif
 
 private:
+	qs::wstring_ptr wstrPath_;
 	FILETIME ft_;
 	EntryList listEntry_;
 	CategoryList listCategory_;

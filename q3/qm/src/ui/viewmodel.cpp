@@ -1569,8 +1569,9 @@ qm::ViewModelManager::ViewModelManager(UIManager* pUIManager,
 	pCurrentAccount_(0),
 	pCurrentViewModel_(0)
 {
-	pFilterManager_.reset(new FilterManager());
-	pColorManager_.reset(new ColorManager());
+	const Application& app = Application::getApplication();
+	pFilterManager_.reset(new FilterManager(app.getProfilePath(FileNames::FILTERS_XML).get()));
+	pColorManager_.reset(new ColorManager(app.getProfilePath(FileNames::COLORS_XML).get()));
 }
 
 qm::ViewModelManager::~ViewModelManager()

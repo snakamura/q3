@@ -35,7 +35,7 @@ public:
 	typedef std::vector<GoRoundCourse*> CourseList;
 
 public:
-	GoRound();
+	explicit GoRound(const WCHAR* pwszPath);
 	~GoRound();
 
 public:

@@ -7,8 +7,6 @@
  */
 
 #include <qmaccount.h>
-#include <qmapplication.h>
-#include <qmfilenames.h>
 #include <qmfolder.h>
 #include <qmmacro.h>
 
@@ -30,8 +28,8 @@ using namespace qs;
  *
  */
 
-qm::ColorManager::ColorManager() :
-	helper_(Application::getApplication().getProfilePath(FileNames::COLORS_XML).get())
+qm::ColorManager::ColorManager(const WCHAR* pwszPath) :
+	helper_(pwszPath)
 {
 	load();
 }

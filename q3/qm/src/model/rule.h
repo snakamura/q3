@@ -61,7 +61,7 @@ public:
 	typedef std::vector<Rule*> RuleList;
 
 public:
-	RuleManager();
+	explicit RuleManager(const WCHAR* pwszPath);
 	~RuleManager();
 
 public:

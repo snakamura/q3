@@ -639,7 +639,9 @@ bool qm::Application::initialize()
 	Security::init();
 	
 	pImpl_->pPasswordManagerCallback_.reset(new DefaultPasswordManagerCallback());
-	pImpl_->pPasswordManager_.reset(new PasswordManager(pImpl_->pPasswordManagerCallback_.get()));
+	pImpl_->pPasswordManager_.reset(new PasswordManager(
+		getProfilePath(FileNames::PASSWORDS_XML).get(),
+		pImpl_->pPasswordManagerCallback_.get()));
 	
 	std::auto_ptr<PasswordCallback> pPasswordCallback(
 		new DefaultPasswordCallback(pImpl_->pPasswordManager_.get()));
@@ -650,9 +652,10 @@ bool qm::Application::initialize()
 	pImpl_->pSyncManager_.reset(new SyncManager(pImpl_->pProfile_.get()));
 	pImpl_->pSyncDialogManager_.reset(new SyncDialogManager(
 		pImpl_->pProfile_.get(), pImpl_->pPasswordManager_.get()));
-	pImpl_->pGoRound_.reset(new GoRound());
+	pImpl_->pGoRound_.reset(new GoRound(getProfilePath(FileNames::GOROUND_XML).get()));
 	pImpl_->pTempFileCleaner_.reset(new TempFileCleaner());
-	pImpl_->pAutoPilotManager_.reset(new AutoPilotManager());
+	pImpl_->pAutoPilotManager_.reset(new AutoPilotManager(
+		getProfilePath(FileNames::AUTOPILOT_XML).get()));
 	pImpl_->pAutoPilot_.reset(new AutoPilot(pImpl_->pAutoPilotManager_.get(),
 		pImpl_->pProfile_.get(), pImpl_->pDocument_.get(),
 		pImpl_->pGoRound_.get(), pImpl_->pSyncManager_.get(),

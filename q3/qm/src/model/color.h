@@ -47,7 +47,7 @@ public:
 	typedef std::vector<ColorSet*> ColorSetList;
 
 public:
-	ColorManager();
+	explicit ColorManager(const WCHAR* pwszPath);
 	~ColorManager();
 
 public:

@@ -6,8 +6,6 @@
  *
  */
 
-#include <qmapplication.h>
-#include <qmfilenames.h>
 #include <qmmacro.h>
 
 #include <qsconv.h>
@@ -29,8 +27,8 @@ using namespace qs;
  *
  */
 
-qm::FilterManager::FilterManager() :
-	helper_(Application::getApplication().getProfilePath(FileNames::FILTERS_XML).get())
+qm::FilterManager::FilterManager(const WCHAR* pwszPath) :
+	helper_(pwszPath)
 {
 }
 

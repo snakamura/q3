@@ -59,7 +59,8 @@ public:
 	typedef std::vector<Password*> PasswordList;
 
 public:
-	explicit PasswordManager(PasswordManagerCallback* pCallback);
+	PasswordManager(const WCHAR* pwszPath,
+					PasswordManagerCallback* pCallback);
 	~PasswordManager();
 
 public:
