@@ -90,7 +90,7 @@ public:
 public:
 	qs::QSTATUS create(HWND hwnd);
 	qs::QSTATUS getMessageViewWindow(const qs::ContentTypeParser* pContentType,
-		MessageViewWindow** ppMessageViewWindow) const;
+		MessageViewWindow** ppMessageViewWindow);
 	TextMessageViewWindow* getTextMessageViewWindow() const;
 	bool isSupported(const qs::ContentTypeParser* pContentType) const;
 
@@ -103,6 +103,7 @@ private:
 	qs::Profile* pProfile_;
 	const WCHAR* pwszSection_;
 	qs::MenuManager* pMenuManager_;
+	bool bTextOnly_;
 	TextMessageViewWindow* pText_;
 #ifdef QMHTMLVIEW
 	HtmlMessageViewWindow* pHtml_;

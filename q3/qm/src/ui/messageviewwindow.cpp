@@ -55,6 +55,7 @@ qm::MessageViewWindowFactory::MessageViewWindowFactory(Document* pDocument,
 	pProfile_(pProfile),
 	pwszSection_(pwszSection),
 	pMenuManager_(pMenuManager),
+	bTextOnly_(bTextOnly),
 #ifdef QMHTMLVIEW
 	pText_(0),
 	pHtml_(0)
@@ -71,13 +72,6 @@ qm::MessageViewWindowFactory::MessageViewWindowFactory(Document* pDocument,
 	status = newQsObject(pDocument_, pProfile_,
 		pwszSection_, pMenuManager_, &pText_);
 	CHECK_QSTATUS_SET(pstatus);
-	
-#ifdef QMHTMLVIEW
-	if (!bTextOnly && Application::getApplication().getAtlHandle()) {
-		status = newQsObject(pMenuManager_, &pHtml_);
-		CHECK_QSTATUS_SET(pstatus);
-	}
-#endif
 }
 
 qm::MessageViewWindowFactory::~MessageViewWindowFactory()
@@ -99,33 +93,37 @@ QSTATUS qm::MessageViewWindowFactory::create(HWND hwnd)
 		WS_CHILD, 0, 0, 500, 500, hwnd, dwExStyle, 0, 1002, 0);
 	CHECK_QSTATUS();
 	
-#ifdef QMHTMLVIEW
-	if (pHtml_) {
-		status = pHtml_->create(L"QmHtmlMessageViewWindow", L"Shell.Explorer",
-			WS_CHILD, 0, 0, 500, 500, hwnd, 0, 0, 1003, 0);
-		CHECK_QSTATUS();
-	}
-#endif
-	
 	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::MessageViewWindowFactory::getMessageViewWindow(
 	const ContentTypeParser* pContentType,
-	MessageViewWindow** ppMessageViewWindow) const
+	MessageViewWindow** ppMessageViewWindow)
 {
 	assert(ppMessageViewWindow);
 	
 	DECLARE_QSTATUS();
 	
 #ifdef QMHTMLVIEW
-	if (pHtml_ &&
+	bool bHtml = !bTextOnly_ &&
 		pContentType &&
 		_wcsicmp(pContentType->getMediaType(), L"text") == 0 &&
-		_wcsicmp(pContentType->getSubType(), L"html") == 0)
-		*ppMessageViewWindow = pHtml_;
-	else
-		*ppMessageViewWindow = pText_;
+		_wcsicmp(pContentType->getSubType(), L"html") == 0;
+	
+	if (bHtml && !pHtml_ && Application::getApplication().getAtlHandle()) {
+		status = newQsObject(pMenuManager_, &pHtml_);
+		CHECK_QSTATUS();
+		HWND hwnd = pText_->getParent();
+		status = pHtml_->create(L"QmHtmlMessageViewWindow", L"Shell.Explorer",
+			WS_CHILD, 0, 0, 500, 500, hwnd, 0, 0, 1003, 0);
+		CHECK_QSTATUS();
+	}
+	else {
+		bHtml = pHtml_ != 0;
+	}
+	
+	*ppMessageViewWindow = bHtml ? static_cast<MessageViewWindow*>(pHtml_) :
+		static_cast<MessageViewWindow*>(pText_);
 #else
 	*ppMessageViewWindow = pText_;
 #endif

@@ -1,5 +1,5 @@
 /*
- * $Id: messagewindow.cpp,v 1.2 2003/05/21 16:00:15 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -567,11 +567,12 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	status = pImpl_->pFactory_->create(getHandle());
 	CHECK_QSTATUS_VALUE(-1);
-	ContentTypeParser contentType(L"text", L"plain", &status);
-	CHECK_QSTATUS_VALUE(-1);
-	status = pImpl_->pFactory_->getMessageViewWindow(
-		&contentType, &pImpl_->pMessageViewWindow_);
-	CHECK_QSTATUS_VALUE(-1);
+//	ContentTypeParser contentType(L"text", L"plain", &status);
+//	CHECK_QSTATUS_VALUE(-1);
+//	status = pImpl_->pFactory_->getMessageViewWindow(
+//		&contentType, &pImpl_->pMessageViewWindow_);
+//	CHECK_QSTATUS_VALUE(-1);
+	pImpl_->pMessageViewWindow_ = pImpl_->pFactory_->getTextMessageViewWindow();
 	status = pImpl_->layoutChildren();
 	CHECK_QSTATUS_VALUE(-1);
 	pImpl_->pMessageViewWindow_->getWindow().showWindow(SW_SHOW);
