@@ -1395,30 +1395,28 @@ bool qs::TextWindowImpl::getTextExtent(const DeviceContext& dc,
 	if (!pnDx && bAdjustExtent_)
 		pnDx = nDx_;
 	
-	if (!dc.getTextExtentEx(pwszString, nCount, nMaxExtent, pnFit, pnDx, pSize))
+	int nExtent = nMaxExtent == 0 ? 0 : bAdjustExtent_ ? nMaxExtent*2 : nMaxExtent;
+	if (!dc.getTextExtentEx(pwszString, nCount, nExtent, pnFit, pnDx, pSize))
 		return false;
 	
 	if (bAdjustExtent_) {
 		int nLen = pnFit ? *pnFit : nCount;
 		if (nLen != 0) {
 			int nCharWidth = getAverageCharWidth();
-			int nPrev = pnDx[0];
-			for (int n = 1; n < nLen; ++n) {
+			int nPrev = 0;
+			for (int n = 0; n < nLen; ++n) {
 				int nNext = pnDx[n];
 				int nWidth = pnDx[n] - nPrev <= nCharWidth*3/2 ?
 					nCharWidth : nCharWidth*2;
-				pnDx[n] = pnDx[n - 1] + nWidth;
+				pnDx[n] = (n == 0 ? 0 : pnDx[n - 1]) + nWidth;
+				if (nMaxExtent != 0 && pnDx[n] > nMaxExtent)
+					break;
 				nPrev = nNext;
 			}
-			pSize->cx = pnDx[nLen - 1];
-			
+			pSize->cx = pnDx[n - 1];
 			if (nMaxExtent != 0) {
-				while (pSize->cx > nMaxExtent && nLen > 1) {
-					--nLen;
-					pSize->cx -= pnDx[nLen] - pnDx[nLen - 1];
-				}
 				assert(pnFit);
-				*pnFit = nLen;
+				*pnFit = n;
 			}
 		}
 	}
