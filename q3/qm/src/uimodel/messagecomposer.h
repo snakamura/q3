@@ -71,6 +71,14 @@ public:
 				 unsigned int nFlags) const;
 
 private:
+	bool processSMIME(Message* pMessage,
+					  unsigned int nFlags,
+					  SubAccount* pSubAccount) const;
+	bool processPGP(Message* pMessage,
+					unsigned int nFlags,
+					SubAccount* pSubAccount) const;
+
+private:
 	MessageComposer(const MessageComposer&);
 	MessageComposer& operator=(const MessageComposer&);
 

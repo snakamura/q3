@@ -140,83 +140,10 @@ bool qm::MessageComposer::compose(Account* pAccount,
 	if (!pMessage->sortHeader())
 		return false;
 	
-	const Security* pSecurity = pDocument_->getSecurity();
-	const SMIMEUtility* pSMIMEUtility = pSecurity->getSMIMEUtility();
-	if (pSMIMEUtility && (nFlags & FLAG_SMIMESIGN || nFlags & FLAG_SMIMEENCRYPT)) {
-		std::auto_ptr<Certificate> pSelfCertificate;
-		if (pProfile_->getInt(L"Security", L"EncryptForSelf", 0))
-			pSelfCertificate = pSubAccount->getCertificate(pPasswordManager_);
-		SMIMECallbackImpl callback(pSecurity, pDocument_->getAddressBook(), pSelfCertificate.get());
-		
-		if (nFlags & FLAG_SMIMESIGN) {
-			bool bMultipart = (nFlags & FLAG_SMIMEENCRYPT) == 0 &&
-				pProfile_->getInt(L"Security", L"MultipartSigned", 1) != 0;
-			std::auto_ptr<Certificate> pCertificate(pSubAccount->getCertificate(pPasswordManager_));
-			std::auto_ptr<PrivateKey> pPrivateKey(pSubAccount->getPrivateKey(pPasswordManager_));
-			if (!pCertificate.get() || !pPrivateKey.get())
-				return false;
-			xstring_size_ptr strMessage(pSMIMEUtility->sign(pMessage,
-				bMultipart, pPrivateKey.get(), pCertificate.get()));
-			if (!strMessage.get())
-				return false;
-			if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE))
-				return false;
-		}
-		if (nFlags & FLAG_SMIMEENCRYPT) {
-			std::auto_ptr<Cipher> pCipher(Cipher::getInstance(L"des3"));
-			xstring_size_ptr strMessage(pSMIMEUtility->encrypt(
-				pMessage, pCipher.get(), &callback));
-			if (!strMessage.get())
-				return false;
-			if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE))
-				return false;
-		}
-	}
-	const PGPUtility* pPGPUtility = pSecurity->getPGPUtility();
-	if (pPGPUtility && (nFlags & FLAG_PGPSIGN || nFlags & FLAG_PGPENCRYPT)) {
-		const WCHAR* pwszUserId = pSubAccount->getSenderAddress();
-		wstring_ptr wstrPassword;
-		PasswordState state = PASSWORDSTATE_ONETIME;
-		if (nFlags & FLAG_PGPSIGN) {
-			PGPPasswordCondition condition(pwszUserId);
-			wstrPassword = pPasswordManager_->getPassword(condition, false, &state);
-			if (!wstrPassword.get())
-				return false;
-		}
-		
-		bool bMime = (nFlags & FLAG_PGPMIME) != 0;
-		if (nFlags & FLAG_PGPSIGN && nFlags & FLAG_PGPENCRYPT) {
-			const WCHAR* pwszUserId = pSubAccount->getSenderAddress();
-			xstring_size_ptr strMessage(pPGPUtility->signAndEncrypt(
-				pMessage, bMime, pwszUserId, wstrPassword.get()));
-			if (!strMessage.get())
-				return false;
-			if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE))
-				return false;
-		}
-		else if (nFlags & FLAG_PGPSIGN) {
-			const WCHAR* pwszUserId = pSubAccount->getSenderAddress();
-			xstring_size_ptr strMessage(pPGPUtility->sign(pMessage,
-				bMime, pwszUserId, wstrPassword.get()));
-			if (!strMessage.get())
-				return false;
-			if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE))
-				return false;
-		}
-		else if (nFlags & FLAG_PGPENCRYPT) {
-			xstring_size_ptr strMessage(pPGPUtility->encrypt(pMessage, bMime));
-			if (!strMessage.get())
-				return false;
-			if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE))
-				return false;
-		}
-		
-		if (state == PASSWORDSTATE_SESSION || state == PASSWORDSTATE_SAVE) {
-			PGPPasswordCondition condition(pwszUserId);
-			pPasswordManager_->setPassword(condition,
-				wstrPassword.get(), state == PASSWORDSTATE_SAVE);
-		}
-	}
+	if (!processSMIME(pMessage, nFlags, pSubAccount))
+		return false;
+	if (!processPGP(pMessage, nFlags, pSubAccount))
+		return false;
 	
 	if (!pAccount->appendMessage(static_cast<NormalFolder*>(pFolder), *pMessage,
 		MessageHolder::FLAG_SEEN | (bDraft_ ? MessageHolder::FLAG_DRAFT : 0), 0, pptr))
@@ -283,6 +210,108 @@ bool qm::MessageComposer::compose(Account* pAccount,
 		
 		if (!compose(0, 0, pMessage.get(), nFlags, 0))
 			return false;
+	}
+	
+	return true;
+}
+
+bool qm::MessageComposer::processSMIME(Message* pMessage,
+									   unsigned int nFlags,
+									   SubAccount* pSubAccount) const
+{
+	if (!(nFlags & FLAG_SMIMESIGN) && !(nFlags & FLAG_SMIMEENCRYPT))
+		return true;
+	
+	const Security* pSecurity = pDocument_->getSecurity();
+	const SMIMEUtility* pSMIMEUtility = pSecurity->getSMIMEUtility();
+	if (!pSMIMEUtility)
+		return false;
+	
+	if (nFlags & FLAG_SMIMESIGN) {
+		bool bMultipart = (nFlags & FLAG_SMIMEENCRYPT) == 0 &&
+			pProfile_->getInt(L"Security", L"MultipartSigned", 1) != 0;
+		std::auto_ptr<Certificate> pCertificate(pSubAccount->getCertificate(pPasswordManager_));
+		std::auto_ptr<PrivateKey> pPrivateKey(pSubAccount->getPrivateKey(pPasswordManager_));
+		if (!pCertificate.get() || !pPrivateKey.get())
+			return false;
+		xstring_size_ptr strMessage(pSMIMEUtility->sign(pMessage,
+			bMultipart, pPrivateKey.get(), pCertificate.get()));
+		if (!strMessage.get())
+			return false;
+		if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE))
+			return false;
+	}
+	if (nFlags & FLAG_SMIMEENCRYPT) {
+		std::auto_ptr<Certificate> pSelfCertificate;
+		if (pProfile_->getInt(L"Security", L"EncryptForSelf", 0))
+			pSelfCertificate = pSubAccount->getCertificate(pPasswordManager_);
+		SMIMECallbackImpl callback(pSecurity, pDocument_->getAddressBook(), pSelfCertificate.get());
+		
+		std::auto_ptr<Cipher> pCipher(Cipher::getInstance(L"des3"));
+		xstring_size_ptr strMessage(pSMIMEUtility->encrypt(
+			pMessage, pCipher.get(), &callback));
+		if (!strMessage.get())
+			return false;
+		if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE))
+			return false;
+	}
+	
+	return true;
+}
+
+bool qm::MessageComposer::processPGP(Message* pMessage,
+									 unsigned int nFlags,
+									 SubAccount* pSubAccount) const
+{
+	if (!(nFlags & FLAG_PGPSIGN) && !(nFlags & FLAG_PGPENCRYPT))
+		return true;
+	
+	const Security* pSecurity = pDocument_->getSecurity();
+	const PGPUtility* pPGPUtility = pSecurity->getPGPUtility();
+	if (!pPGPUtility)
+		return false;
+	
+	const WCHAR* pwszUserId = pSubAccount->getSenderAddress();
+	wstring_ptr wstrPassword;
+	PasswordState state = PASSWORDSTATE_ONETIME;
+	if (nFlags & FLAG_PGPSIGN) {
+		PGPPasswordCondition condition(pwszUserId);
+		wstrPassword = pPasswordManager_->getPassword(condition, false, &state);
+		if (!wstrPassword.get())
+			return false;
+	}
+	
+	bool bMime = (nFlags & FLAG_PGPMIME) != 0;
+	if (nFlags & FLAG_PGPSIGN && nFlags & FLAG_PGPENCRYPT) {
+		const WCHAR* pwszUserId = pSubAccount->getSenderAddress();
+		xstring_size_ptr strMessage(pPGPUtility->signAndEncrypt(
+			pMessage, bMime, pwszUserId, wstrPassword.get()));
+		if (!strMessage.get())
+			return false;
+		if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE))
+			return false;
+	}
+	else if (nFlags & FLAG_PGPSIGN) {
+		const WCHAR* pwszUserId = pSubAccount->getSenderAddress();
+		xstring_size_ptr strMessage(pPGPUtility->sign(pMessage,
+			bMime, pwszUserId, wstrPassword.get()));
+		if (!strMessage.get())
+			return false;
+		if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE))
+			return false;
+	}
+	else if (nFlags & FLAG_PGPENCRYPT) {
+		xstring_size_ptr strMessage(pPGPUtility->encrypt(pMessage, bMime));
+		if (!strMessage.get())
+			return false;
+		if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE))
+			return false;
+	}
+	
+	if (state == PASSWORDSTATE_SESSION || state == PASSWORDSTATE_SAVE) {
+		PGPPasswordCondition condition(pwszUserId);
+		pPasswordManager_->setPassword(condition,
+			wstrPassword.get(), state == PASSWORDSTATE_SAVE);
 	}
 	
 	return true;
