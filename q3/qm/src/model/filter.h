@@ -70,6 +70,7 @@ class Filter
 public:
 	Filter(const WCHAR* pwszName,
 		   std::auto_ptr<Macro> pMacro);
+	Filter(const Filter& filter);
 	~Filter();
 
 public:
@@ -78,7 +79,6 @@ public:
 	bool match(MacroContext* pContext) const;
 
 private:
-	Filter(const Filter&);
 	Filter& operator=(const Filter&);
 
 private:

@@ -383,7 +383,7 @@ private:
 	ItemList listItem_;
 	unsigned int nUnseenCount_;
 	unsigned int nSort_;
-	const Filter* pFilter_;
+	std::auto_ptr<Filter> pFilter_;
 	unsigned int nLastSelection_;
 	unsigned int nFocused_;
 	unsigned int nScroll_;

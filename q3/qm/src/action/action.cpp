@@ -4342,8 +4342,10 @@ bool qm::ViewFilterAction::isChecked(const ActionEvent& event)
 {
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (pViewModel) {
-		const Filter* pFilter = pFilterMenu_->getFilter(event.getId());
-		return pViewModel->getFilter() == pFilter;
+		const Filter* pFilter = pViewModel->getFilter();
+		return pFilter &&
+			wcscmp(pFilter->getName(),
+				pFilterMenu_->getFilter(event.getId())->getName()) == 0;
 	}
 	else {
 		return false;
@@ -4372,10 +4374,14 @@ void qm::ViewFilterCustomAction::invoke(const ActionEvent& event)
 {
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (pViewModel) {
+		const WCHAR* pwszMacro = L"";
 		wstring_ptr wstrMacro;
-		if (pFilter_.get())
-			wstrMacro = pFilter_->getMacro()->getString();
-		CustomFilterDialog dialog(wstrMacro.get());
+		const Filter* pFilter = pViewModel->getFilter();
+		if (pFilter && wcslen(pFilter->getName()) == 0) {
+			wstrMacro = pFilter->getMacro()->getString();
+			pwszMacro = wstrMacro.get();
+		}
+		CustomFilterDialog dialog(pwszMacro);
 		if (dialog.doModal(hwnd_) == IDOK) {
 			MacroParser parser(MacroParser::TYPE_FILTER);
 			std::auto_ptr<Macro> pMacro(parser.parse(dialog.getMacro()));
@@ -4383,8 +4389,8 @@ void qm::ViewFilterCustomAction::invoke(const ActionEvent& event)
 				// TODO
 				return;
 			}
-			pFilter_.reset(new Filter(L"", pMacro));
-			pViewModel->setFilter(pFilter_.get());
+			std::auto_ptr<Filter> pFilter(new Filter(L"", pMacro));
+			pViewModel->setFilter(pFilter.get());
 		}
 	}
 }
@@ -4397,10 +4403,13 @@ bool qm::ViewFilterCustomAction::isEnabled(const ActionEvent& event)
 bool qm::ViewFilterCustomAction::isChecked(const ActionEvent& event)
 {
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
-	if (pViewModel && pFilter_.get())
-		return pViewModel->getFilter() == pFilter_.get();
-	else
+	if (pViewModel) {
+		const Filter* pFilter = pViewModel->getFilter();
+		return pFilter && wcslen(pFilter->getName()) == 0;
+	}
+	else {
 		return false;
+	}
 }
 
 

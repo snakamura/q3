@@ -2313,7 +2313,6 @@ private:
 private:
 	ViewModelManager* pViewModelManager_;
 	HWND hwnd_;
-	std::auto_ptr<Filter> pFilter_;
 };
 
 

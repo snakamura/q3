@@ -103,6 +103,16 @@ qm::Filter::Filter(const WCHAR* pwszName,
 	wstrName_ = allocWString(pwszName);
 }
 
+qm::Filter::Filter(const Filter& filter)
+{
+	wstrName_ = allocWString(filter.wstrName_.get());
+	
+	wstring_ptr wstrMacro(filter.pMacro_->getString());
+	MacroParser parser(MacroParser::TYPE_FILTER);
+	pMacro_ = parser.parse(wstrMacro.get());
+	assert(pMacro_.get());
+}
+
 qm::Filter::~Filter()
 {
 }

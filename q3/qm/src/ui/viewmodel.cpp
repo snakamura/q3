@@ -368,7 +368,6 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 	pColorSet_(0),
 	nUnseenCount_(0),
 	nSort_(SORT_ASCENDING | SORT_NOTHREAD),
-	pFilter_(0),
 	nLastSelection_(0),
 	nFocused_(0),
 	nScroll_(-1)
@@ -545,15 +544,16 @@ unsigned int qm::ViewModel::getSort() const
 
 void qm::ViewModel::setFilter(const Filter* pFilter)
 {
-	if (pFilter != pFilter_) {
-		pFilter_ = pFilter;
-		update(true);
-	}
+	if (pFilter)
+		pFilter_.reset(new Filter(*pFilter));
+	else
+		pFilter_.reset(0);
+	update(true);
 }
 
 const Filter* qm::ViewModel::getFilter() const
 {
-	return pFilter_;
+	return pFilter_.get();
 }
 
 void qm::ViewModel::addSelection(unsigned int n)
@@ -812,7 +812,7 @@ void qm::ViewModel::messageAdded(const FolderMessageEvent& event)
 		MessageHolder* pmh = *it;
 		
 		bool bAdd = true;
-		if (pFilter_) {
+		if (pFilter_.get()) {
 			Message msg;
 			MacroContext context(pmh, &msg, MessageHolderList(),
 				pFolder_->getAccount(), pDocument_, hwnd_, pProfile_, false,
@@ -1049,7 +1049,7 @@ void qm::ViewModel::update(bool bRestoreSelection)
 	for (unsigned int n = 0; n < nCount; ++n) {
 		MessageHolder* pmh = pFolder_->getMessage(n);
 		bool bAdd = true;
-		if (pFilter_) {
+		if (pFilter_.get()) {
 			Message msg;
 			MacroContext context(pmh, &msg, MessageHolderList(),
 				pFolder_->getAccount(), pDocument_, hwnd_, pProfile_, false,
