@@ -198,6 +198,9 @@ LRESULT qm::AccountDialog::onAddSubAccount()
 				return 0;
 			}
 			
+			status = pAccount->save();
+			CHECK_QSTATUS();
+			
 			string_ptr<WSTRING> wstrAccountPath(
 				concat(pAccount->getPath(), L"\\", Extensions::ACCOUNT));
 			if (!wstrAccountPath.get())
