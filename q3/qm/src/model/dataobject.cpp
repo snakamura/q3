@@ -603,6 +603,37 @@ qm::Folder* qm::MessageDataObject::getFolder(IDataObject* pDataObject,
 	return pFolder;
 }
 
+bool qm::MessageDataObject::getURIs(IDataObject* pDataObject,
+									URIList* pList)
+{
+	FORMATETC fe = formats__[FORMAT_MESSAGEHOLDERLIST];
+	STGMEDIUM stm;
+	HRESULT hr = pDataObject->GetData(&fe, &stm);
+	if (hr != S_OK)
+		return false;
+	
+	struct Deleter
+	{
+		Deleter(STGMEDIUM& stm) : stm_(stm) {}
+		~Deleter()
+		{
+			GlobalUnlock(stm_.hGlobal);
+			::ReleaseStgMedium(&stm_);
+		}
+		STGMEDIUM& stm_;
+	} deleter(stm);
+	
+	const WCHAR* p = reinterpret_cast<const WCHAR*>(GlobalLock(stm.hGlobal));
+	while (*p) {
+		std::auto_ptr<URI> pURI(URI::parse(p));
+		pList->push_back(pURI.get());
+		pURI.release();
+		p += wcslen(p) + 1;
+	}
+	
+	return true;
+}
+
 wstring_ptr qm::MessageDataObject::getFileName(const WCHAR* pwszName)
 {
 	assert(pwszName);

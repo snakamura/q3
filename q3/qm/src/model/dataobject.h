@@ -60,6 +60,9 @@ public:
 	};
 
 public:
+	typedef std::vector<URI*> URIList;
+
+public:
 	MessageDataObject(Document* pDocument);
 	MessageDataObject(Document* pDocument,
 					  Folder* pFolder,
@@ -108,6 +111,8 @@ public:
 							 NormalFolder* pFolder);
 	static Folder* getFolder(IDataObject* pDataObject,
 							 Document* pDocument);
+	static bool getURIs(IDataObject* pDataObject,
+						URIList* pList);
 
 private:
 	static qs::wstring_ptr getFileName(const WCHAR* pwszName);
