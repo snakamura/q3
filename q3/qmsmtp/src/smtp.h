@@ -80,6 +80,12 @@ public:
 	};
 
 private:
+	enum {
+		SEND_BLOCK_SIZE		= 8192,
+		RECEIVE_BLOCK_SIZE	= 8192
+	};
+
+private:
 	struct SendData
 	{
 		const CHAR* psz_;

@@ -407,7 +407,7 @@ bool qmsmtp::Smtp::receive(unsigned int* pnCode,
 	
 	StringBuffer<STRING> bufResponse;
 	
-	char buf[1024];
+	char buf[RECEIVE_BLOCK_SIZE];
 	bool bEnd = false;
 	do {
 		int nSelect = pSocket_->select(Socket::SELECT_READ);
@@ -482,7 +482,7 @@ bool qmsmtp::Smtp::send(const SendData* pSendData,
 				SMTP_ERROR(SMTP_ERROR_TIMEOUT);
 			
 			size_t nSend = pSocket_->send(data.psz_ + nTotal,
-				QSMIN(size_t(2048), data.nLength_ - nTotal), 0);
+				QSMIN(size_t(SEND_BLOCK_SIZE), data.nLength_ - nTotal), 0);
 			if (nSend == -1)
 				SMTP_ERROR_SOCKET(SMTP_ERROR_SEND);
 			nTotal += nSend;

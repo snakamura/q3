@@ -415,7 +415,7 @@ bool qmnntp::Nntp::receive(const CHAR* pszMultilineCodes[],
 	
 	bool bContent = false;
 	bool bMultiLine = pstrContent != 0;
-	char buf[1024];
+	char buf[RECEIVE_BLOCK_SIZE];
 	State state = STATE_LF1;
 	bool bEnd = false;
 	do {
@@ -575,7 +575,7 @@ bool qmnntp::Nntp::send(const SendData* pSendData,
 				NNTP_ERROR(NNTP_ERROR_TIMEOUT);
 			
 			size_t nSend = pSocket_->send(data.psz_ + nTotal,
-				QSMIN(size_t(2048), data.nLength_ - nTotal), 0);
+				QSMIN(size_t(SEND_BLOCK_SIZE), data.nLength_ - nTotal), 0);
 			if (nSend == -1)
 				NNTP_ERROR_SOCKET(NNTP_ERROR_SEND);
 			nTotal += nSend;

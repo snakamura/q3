@@ -771,7 +771,13 @@ bool qmimap4::Buffer::receive(size_t n,
 	if (pCallback)
 		pCallback->setPos(0);
 	
-	char buf[1024];
+	size_t nAllocSize = n - buf_.getLength() + Imap4::RECEIVE_BLOCK_SIZE;
+	XStringBufferLock<XSTRING> lock(&buf_, nAllocSize);
+	CHAR* pLock = lock.get();
+	if (!pLock)
+		return false;
+	
+	CHAR* p = pLock;
 	do {
 		int nSelect = pSocket_->select(Socket::SELECT_READ);
 		if (nSelect == -1)
@@ -779,18 +785,19 @@ bool qmimap4::Buffer::receive(size_t n,
 		else if (nSelect == 0)
 			IMAP4_ERROR(Imap4::IMAP4_ERROR_TIMEOUT);
 		
-		size_t nLen = pSocket_->recv(buf, sizeof(buf), 0);
+		size_t nLen = pSocket_->recv(p, Imap4::RECEIVE_BLOCK_SIZE, 0);
 		if (nLen == -1)
 			IMAP4_ERROR_SOCKET(Imap4::IMAP4_ERROR_RECEIVE);
 		else if (nLen == 0)
 			IMAP4_ERROR(Imap4::IMAP4_ERROR_DISCONNECT);
 		
-		if (!buf_.append(buf, nLen))
-			IMAP4_ERROR(Imap4::IMAP4_ERROR_OTHER);
+		p += nLen;
 		
 		if (pCallback)
 			pCallback->setPos(buf_.getLength() - nStart);
-	} while (buf_.getLength() <= n);
+	} while (buf_.getLength() + (p - pLock) <= n);
+	
+	lock.unlock(p - pLock);
 	
 	return true;
 }

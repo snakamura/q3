@@ -78,6 +78,11 @@ private:
 		STATE_CR2,
 		STATE_LF2
 	};
+	
+	enum {
+		SEND_BLOCK_SIZE		= 8192,
+		RECEIVE_BLOCK_SIZE	= 8192
+	};
 
 private:
 	struct SendData

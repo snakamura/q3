@@ -491,7 +491,7 @@ bool qmpop3::Pop3::receive(string_ptr* pstrResponse,
 	
 	bool bContent = false;
 	bool bMultiLine = pstrContent != 0;
-	char buf[1024];
+	char buf[RECEIVE_BLOCK_SIZE];
 	State state = STATE_LF1;
 	bool bEnd = false;
 	do {
@@ -645,7 +645,7 @@ bool qmpop3::Pop3::send(const SendData* pSendData,
 				POP3_ERROR(POP3_ERROR_TIMEOUT);
 			
 			size_t nSend = pSocket_->send(data.psz_ + nTotal,
-				QSMIN(size_t(2048), data.nLength_ - nTotal), 0);
+				QSMIN(size_t(SEND_BLOCK_SIZE), data.nLength_ - nTotal), 0);
 			if (nSend == -1)
 				POP3_ERROR_SOCKET(POP3_ERROR_SEND);
 			nTotal += nSend;

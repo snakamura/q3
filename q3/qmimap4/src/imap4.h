@@ -141,6 +141,11 @@ public:
 		SSL_SSL			= 0x01,
 		SSL_STARTTLS	= 0x02
 	};
+	
+	enum {
+		SEND_BLOCK_SIZE		= 8192,
+		RECEIVE_BLOCK_SIZE	= 8192
+	};
 
 public:
 	Imap4(long nTimeout,
