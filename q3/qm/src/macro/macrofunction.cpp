@@ -1272,21 +1272,37 @@ MacroValuePtr qm::MacroFunctionExecute::value(MacroContext* pContext) const
 #endif
 	}
 	else {
-		WCHAR* pParam = wstrCommand.get();
-		bool bQuote = false;
-		while (*pParam) {
-			if (*pParam == L'\"')
-				bQuote = !bQuote;
-			else if (*pParam == L' ' && !bQuote)
-				break;
-			++pParam;
+		const WCHAR* pCommand = wstrCommand.get();
+		WCHAR* pParam = 0;
+		if (*pCommand == L'\"') {
+			++pCommand;
+			
+			pParam = wstrCommand.get() + 1;
+			while (*pParam) {
+				if (*pParam == L'\"') {
+					if (*(pParam + 1) == L' ' || *(pParam + 1) == L'\0')
+						break;
+				}
+				++pParam;
+			}
+			if (pParam) {
+				*pParam = L'\0';
+				++pParam;
+			}
 		}
-		if (*pParam) {
-			assert(*pParam == L' ');
-			*pParam = L'\0';
-			++pParam;
+		else {
+			pParam = wstrCommand.get();
+			while (*pParam && *pParam != L' ')
+				++pParam;
+			if (*pParam) {
+				*pParam = L'\0';
+				++pParam;
+			}
 		}
-		W2T(wstrCommand.get(), ptszCommand);
+		while (*pParam == L' ')
+			++pParam;
+		
+		W2T(pCommand, ptszCommand);
 		W2T(pParam, ptszParam);
 		
 		SHELLEXECUTEINFO sei = {
