@@ -21,6 +21,7 @@ namespace qm {
 
 class AddressBookModel;
 class AddressBookModelHandler;
+	class DefaultAddressBookModelHandler;
 class AddressBookModelEvent;
 
 class AddressBook;
@@ -74,9 +75,10 @@ private:
 	void fireItemAdded(unsigned int nItem) const;
 	void fireItemRemoved(unsigned int nItem) const;
 	void fireItemEdited(unsigned int nItem) const;
-	void fireItemRefreshed() const;
-	void fireItemSorting() const;
-	void fireItemSorted() const;
+	void fireRefreshed() const;
+	void fireSorting() const;
+	void fireSorted() const;
+	void fireSaved() const;
 	void fireEvent(const AddressBookModelEvent& event,
 				   void (AddressBookModelHandler::*pfn)(const AddressBookModelEvent& event)) const;
 
@@ -127,9 +129,32 @@ public:
 	virtual void itemAdded(const AddressBookModelEvent& event) = 0;
 	virtual void itemRemoved(const AddressBookModelEvent& event) = 0;
 	virtual void itemEdited(const AddressBookModelEvent& event) = 0;
-	virtual void itemRefreshed(const AddressBookModelEvent& event) = 0;
-	virtual void itemSorting(const AddressBookModelEvent& event) = 0;
-	virtual void itemSorted(const AddressBookModelEvent& event) = 0;
+	virtual void refreshed(const AddressBookModelEvent& event) = 0;
+	virtual void sorting(const AddressBookModelEvent& event) = 0;
+	virtual void sorted(const AddressBookModelEvent& event) = 0;
+	virtual void saved(const AddressBookModelEvent& event) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * DefaultAddressBookModelHandler
+ *
+ */
+
+class DefaultAddressBookModelHandler : public AddressBookModelHandler
+{
+public:
+	virtual ~DefaultAddressBookModelHandler();
+
+public:
+	virtual void itemAdded(const AddressBookModelEvent& event);
+	virtual void itemRemoved(const AddressBookModelEvent& event);
+	virtual void itemEdited(const AddressBookModelEvent& event);
+	virtual void refreshed(const AddressBookModelEvent& event);
+	virtual void sorting(const AddressBookModelEvent& event);
+	virtual void sorted(const AddressBookModelEvent& event);
+	virtual void saved(const AddressBookModelEvent& event);
 };
 
 

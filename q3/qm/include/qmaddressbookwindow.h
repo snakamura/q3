@@ -42,6 +42,7 @@ public:
 	virtual ~AddressBookFrameWindow();
 
 public:
+	AddressBookModel* getModel() const;
 	void initialShow();
 	
 	bool isShowToolbar() const;
@@ -147,9 +148,10 @@ private:
 class AddressBookThread : public qs::Thread
 {
 public:
-	explicit AddressBookThread(AddressBookFrameWindowManager* pManager,
-							   UIManager* pUIManager,
-							   qs::Profile* pProfile);
+	AddressBookThread(AddressBookFrameWindowManager* pManager,
+					  std::auto_ptr<AddressBookModel> pAddressBookModel,
+					  UIManager* pUIManager,
+					  qs::Profile* pProfile);
 	virtual ~AddressBookThread();
 
 public:

@@ -664,7 +664,7 @@ bool qm::Application::initialize()
 		pImpl_->pGoRound_.get(), pImpl_->pSyncManager_.get(),
 		pImpl_->pSyncDialogManager_.get(), pImpl_));
 	pImpl_->pAddressBookFrameWindowManager_.reset(new AddressBookFrameWindowManager(
-		pImpl_->pUIManager_.get(), pImpl_->pProfile_.get()));
+		pImpl_->pDocument_->getAddressBook(), pImpl_->pUIManager_.get(), pImpl_->pProfile_.get()));
 	
 	std::auto_ptr<MainWindow> pMainWindow(new MainWindow(pImpl_->pProfile_.get()));
 #ifdef _WIN32_WCE

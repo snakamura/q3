@@ -106,10 +106,10 @@ void qm::AddressBookModel::setSort(unsigned int nSort,
 		(nSort & SORT_DIRECTION_MASK) == SORT_DESCENDING);
 	
 	if (nSort != nSort_) {
-		fireItemSorting();
+		fireSorting();
 		nSort_ = nSort;
 		std::stable_sort(listEntry_.begin(), listEntry_.end(), EntryLess(nSort_));
-		fireItemSorted();
+		fireSorted();
 	}
 }
 
@@ -120,7 +120,7 @@ void qm::AddressBookModel::refresh()
 	std::stable_sort(listEntry_.begin(), listEntry_.end(), EntryLess(nSort_));
 	bModified_ = false;
 	
-	fireItemRefreshed();
+	fireRefreshed();
 }
 
 bool qm::AddressBookModel::save() const
@@ -129,6 +129,8 @@ bool qm::AddressBookModel::save() const
 		return false;
 	
 	bModified_ = false;
+	
+	fireSaved();
 	
 	return true;
 }
@@ -181,22 +183,28 @@ void qm::AddressBookModel::fireItemEdited(unsigned int nItem) const
 	fireEvent(event, &AddressBookModelHandler::itemEdited);
 }
 
-void qm::AddressBookModel::fireItemRefreshed() const
+void qm::AddressBookModel::fireRefreshed() const
 {
 	AddressBookModelEvent event(this);
-	fireEvent(event, &AddressBookModelHandler::itemRefreshed);
+	fireEvent(event, &AddressBookModelHandler::refreshed);
 }
 
-void qm::AddressBookModel::fireItemSorting() const
+void qm::AddressBookModel::fireSorting() const
 {
 	AddressBookModelEvent event(this);
-	fireEvent(event, &AddressBookModelHandler::itemSorting);
+	fireEvent(event, &AddressBookModelHandler::sorting);
 }
 
-void qm::AddressBookModel::fireItemSorted() const
+void qm::AddressBookModel::fireSorted() const
 {
 	AddressBookModelEvent event(this);
-	fireEvent(event, &AddressBookModelHandler::itemSorted);
+	fireEvent(event, &AddressBookModelHandler::sorted);
+}
+
+void qm::AddressBookModel::fireSaved() const
+{
+	AddressBookModelEvent event(this);
+	fireEvent(event, &AddressBookModelHandler::saved);
 }
 
 void qm::AddressBookModel::fireEvent(const AddressBookModelEvent& event,
@@ -263,6 +271,45 @@ const WCHAR* qm::AddressBookModel::EntryLess::getSortKey(const AddressBookEntry*
  */
 
 qm::AddressBookModelHandler::~AddressBookModelHandler()
+{
+}
+
+
+/****************************************************************************
+ *
+ * DefaultAddressBookModelHandler
+ *
+ */
+
+qm::DefaultAddressBookModelHandler::~DefaultAddressBookModelHandler()
+{
+}
+
+void qm::DefaultAddressBookModelHandler::itemAdded(const AddressBookModelEvent& event)
+{
+}
+
+void qm::DefaultAddressBookModelHandler::itemRemoved(const AddressBookModelEvent& event)
+{
+}
+
+void qm::DefaultAddressBookModelHandler::itemEdited(const AddressBookModelEvent& event)
+{
+}
+
+void qm::DefaultAddressBookModelHandler::refreshed(const AddressBookModelEvent& event)
+{
+}
+
+void qm::DefaultAddressBookModelHandler::sorting(const AddressBookModelEvent& event)
+{
+}
+
+void qm::DefaultAddressBookModelHandler::sorted(const AddressBookModelEvent& event)
+{
+}
+
+void qm::DefaultAddressBookModelHandler::saved(const AddressBookModelEvent& event)
 {
 }
 

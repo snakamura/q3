@@ -233,6 +233,11 @@ qm::AddressBookFrameWindow::~AddressBookFrameWindow()
 	delete pImpl_;
 }
 
+AddressBookModel* qm::AddressBookFrameWindow::getModel() const
+{
+	return pImpl_->pAddressBookModel_.get();
+}
+
 void qm::AddressBookFrameWindow::initialShow()
 {
 	showWindow(pImpl_->nInitialShow_);
@@ -430,7 +435,7 @@ LRESULT qm::AddressBookFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
 	
-	pImpl_->pAddressBookModel_.reset(new AddressBookModel());
+	pImpl_->pAddressBookModel_.reset(pContext->pAddressBookModel_);
 	
 	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
@@ -505,10 +510,13 @@ LRESULT qm::AddressBookFrameWindow::onSize(UINT nFlags,
  *
  */
 
-qm::AddressBookFrameWindowManager::AddressBookFrameWindowManager(UIManager* pUIManager,
+qm::AddressBookFrameWindowManager::AddressBookFrameWindowManager(AddressBook* pAddressBook,
+																 UIManager* pUIManager,
 																 Profile* pProfile) :
+	pAddressBook_(pAddressBook),
 	pUIManager_(pUIManager),
 	pProfile_(pProfile),
+	pSynchronizer_(InitThread::getInitThread().getSynchronizer()),
 	pFrameWindow_(0)
 {
 }
@@ -525,8 +533,10 @@ void qm::AddressBookFrameWindowManager::open()
 		pFrameWindow_->setForegroundWindow();
 	}
 	else {
-		std::auto_ptr<AddressBookThread> pThread(
-			new AddressBookThread(this, pUIManager_, pProfile_));
+		std::auto_ptr<AddressBookModel> pAddressBookModel(new AddressBookModel());
+		pAddressBookModel->addAddressBookModelHandler(this);
+		std::auto_ptr<AddressBookThread> pThread(new AddressBookThread(
+			this, pAddressBookModel, pUIManager_, pProfile_));
 		pFrameWindow_ = pThread->create();
 		if (!pFrameWindow_)
 			return;
@@ -542,6 +552,25 @@ void qm::AddressBookFrameWindowManager::close()
 	
 	pFrameWindow_->destroyWindow();
 	pFrameWindow_ = 0;
+}
+
+void qm::AddressBookFrameWindowManager::saved(const AddressBookModelEvent& event)
+{
+	struct RunnableImpl : public Runnable
+	{
+		RunnableImpl(AddressBook* pAddressBook) :
+			pAddressBook_(pAddressBook)
+		{
+		}
+		
+		virtual void run()
+		{
+			pAddressBook_->reload();
+		}
+		
+		AddressBook* pAddressBook_;
+	} runnable(pAddressBook_);
+	pSynchronizer_->syncExec(&runnable);
 }
 
 
@@ -575,9 +604,10 @@ public:
 	virtual void itemAdded(const AddressBookModelEvent& event);
 	virtual void itemRemoved(const AddressBookModelEvent& event);
 	virtual void itemEdited(const AddressBookModelEvent& event);
-	virtual void itemRefreshed(const AddressBookModelEvent& event);
-	virtual void itemSorting(const AddressBookModelEvent& event);
-	virtual void itemSorted(const AddressBookModelEvent& event);
+	virtual void refreshed(const AddressBookModelEvent& event);
+	virtual void sorting(const AddressBookModelEvent& event);
+	virtual void sorted(const AddressBookModelEvent& event);
+	virtual void saved(const AddressBookModelEvent& event);
 
 private:
 	LRESULT onColumnClick(NMHDR* pnmhdr,
@@ -767,17 +797,17 @@ void qm::AddressBookListWindowImpl::itemEdited(const AddressBookModelEvent& even
 	pThis_->invalidateRect(rect);
 }
 
-void qm::AddressBookListWindowImpl::itemRefreshed(const AddressBookModelEvent& event)
+void qm::AddressBookListWindowImpl::refreshed(const AddressBookModelEvent& event)
 {
 	refresh();
 }
 
-void qm::AddressBookListWindowImpl::itemSorting(const AddressBookModelEvent& event)
+void qm::AddressBookListWindowImpl::sorting(const AddressBookModelEvent& event)
 {
 	pSelectionRestorer_.reset(new SelectionRestorer(pAddressBookModel_, pThis_->getHandle()));
 }
 
-void qm::AddressBookListWindowImpl::itemSorted(const AddressBookModelEvent& event)
+void qm::AddressBookListWindowImpl::sorted(const AddressBookModelEvent& event)
 {
 	HWND hwnd = pThis_->getHandle();
 	
@@ -785,6 +815,10 @@ void qm::AddressBookListWindowImpl::itemSorted(const AddressBookModelEvent& even
 	pSelectionRestorer_.reset(0);
 	
 	pThis_->invalidate();
+}
+
+void qm::AddressBookListWindowImpl::saved(const AddressBookModelEvent& event)
+{
 }
 
 LRESULT qm::AddressBookListWindowImpl::onColumnClick(NMHDR* pnmhdr,
@@ -1081,6 +1115,7 @@ LRESULT qm::AddressBookListWindow::onLButtonDown(UINT nFlags,
 struct qm::AddressBookThreadImpl
 {
 	AddressBookFrameWindowManager* pManager_;
+	std::auto_ptr<AddressBookModel> pAddressBookModel_;
 	UIManager* pUIManager_;
 	qs::Profile* pProfile_;
 	AddressBookFrameWindow* pFrameWindow_;
@@ -1095,12 +1130,14 @@ struct qm::AddressBookThreadImpl
  */
 
 qm::AddressBookThread::AddressBookThread(AddressBookFrameWindowManager* pManager,
+										 std::auto_ptr<AddressBookModel> pAddressBookModel,
 										 UIManager* pUIManager,
 										 Profile* pProfile) :
 	pImpl_(0)
 {
 	pImpl_ = new AddressBookThreadImpl();
 	pImpl_->pManager_ = pManager;
+	pImpl_->pAddressBookModel_ = pAddressBookModel;
 	pImpl_->pUIManager_ = pUIManager;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pFrameWindow_ = 0;
@@ -1149,12 +1186,14 @@ void qm::AddressBookThread::run()
 		DWORD dwExStyle = WS_EX_WINDOWEDGE;
 #endif
 		AddressBookFrameWindowCreateContext context = {
+			pImpl_->pAddressBookModel_.get(),
 			pImpl_->pUIManager_
 		};
 		if (!pWindow->create(L"QmAddressBookFrameWindow", wstrTitle.get(), dwStyle,
 			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 			0, dwExStyle, 0, 0, &context))
 			return;
+		pImpl_->pAddressBookModel_.release();
 		pImpl_->pFrameWindow_ = pWindow.release();
 		pImpl_->pFrameWindow_->initialShow();
 	}

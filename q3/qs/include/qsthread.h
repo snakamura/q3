@@ -37,6 +37,8 @@ class QSEXPORTCLASS Runnable
 {
 public:
 	virtual ~Runnable();
+
+public:
 	virtual void run() = 0;
 };
 

@@ -14,6 +14,8 @@
 #include <qsprofile.h>
 #include <qsthread.h>
 
+#include "../uimodel/addressbookmodel.h"
+
 
 namespace qm {
 
@@ -23,7 +25,6 @@ struct AddressBookListWindowCreateContext;
 
 class AddressBook;
 class AddressBookFrameWindow;
-class AddressBookModel;
 class UIManager;
 
 
@@ -33,12 +34,13 @@ class UIManager;
  *
  */
 
-class AddressBookFrameWindowManager
+class AddressBookFrameWindowManager : public DefaultAddressBookModelHandler
 {
 public:
-	AddressBookFrameWindowManager(UIManager* pUIManager,
+	AddressBookFrameWindowManager(AddressBook* pAddressBook,
+								  UIManager* pUIManager,
 								  qs::Profile* pProfile);
-	~AddressBookFrameWindowManager();
+	virtual ~AddressBookFrameWindowManager();
 
 public:
 	void open();
@@ -46,13 +48,18 @@ public:
 public:
 	void close();
 
+public:
+	virtual void saved(const AddressBookModelEvent& event);
+
 private:
 	AddressBookFrameWindowManager(const AddressBookFrameWindowManager&);
 	AddressBookFrameWindowManager& operator=(const AddressBookFrameWindowManager&);
 
 private:
+	AddressBook* pAddressBook_;
 	UIManager* pUIManager_;
 	qs::Profile* pProfile_;
+	qs::Synchronizer* pSynchronizer_;
 	AddressBookFrameWindow* pFrameWindow_;
 	qs::CriticalSection cs_;
 };
@@ -66,6 +73,7 @@ private:
 
 struct AddressBookFrameWindowCreateContext
 {
+	AddressBookModel* pAddressBookModel_;
 	UIManager* pUIManager_;
 };
 
