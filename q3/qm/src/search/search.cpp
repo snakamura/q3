@@ -261,6 +261,7 @@ QSTATUS qm::SearchContext::getTargetFolders(
 				Folder* pFolder = *it;
 				
 				if (pFolder->getType() == Folder::TYPE_NORMAL &&
+					!pFolder->isHidden() &&
 					(pFolder == pTargetFolder_ ||
 					pTargetFolder_->isAncestorOf(pFolder))) {
 					status = STLWrapper<FolderList>(*pList).push_back(
