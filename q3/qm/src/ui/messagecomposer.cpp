@@ -148,31 +148,12 @@ QSTATUS qm::MessageComposer::compose(Account* pAccount,
 	status = pMessage->sortHeader();
 	CHECK_QSTATUS();
 	
-	const SMIMEUtility* pSMIMEUtility =
-		pDocument_->getSecurity()->getSMIMEUtility();
-	if (pSMIMEUtility) {
-		UnstructuredParser signature(&status);
+	const Security* pSecurity = pDocument_->getSecurity();
+	const SMIMEUtility* pSMIMEUtility = pSecurity->getSMIMEUtility();
+	if (pSMIMEUtility && nFlags != 0) {
+		SMIMECallbackImpl callback(pSecurity,
+			pDocument_->getAddressBook(), &status);
 		CHECK_QSTATUS();
-		UnstructuredParser subaccount(&status);
-		CHECK_QSTATUS();
-		struct
-		{
-			const WCHAR* pwszName_;
-			FieldParser* pField_;
-			Part::Field field_;
-		} fields[] = {
-			{ L"X-QMAIL-Signature",		&signature	},
-			{ L"X-QMAIL-SubAccount",	&subaccount	}
-		};
-		if (nFlags) {
-			for (int n = 0; n < countof(fields); ++n) {
-				status = pMessage->getField(fields[n].pwszName_,
-					fields[n].pField_, &fields[n].field_);
-				CHECK_QSTATUS();
-				status = pMessage->removeField(fields[n].pwszName_);
-				CHECK_QSTATUS();
-			}
-		}
 		
 		if (nFlags & FLAG_SIGN) {
 			// TODO
@@ -182,8 +163,8 @@ QSTATUS qm::MessageComposer::compose(Account* pAccount,
 			PrivateKey* pPrivateKey = pSubAccount->getPrivateKey();
 			if (pCertificate && pPrivateKey) {
 				string_ptr<STRING> strMessage;
-				status = pSMIMEUtility->sign(*pMessage, bMultipart,
-					pPrivateKey, pCertificate, &strMessage);
+				status = pSMIMEUtility->sign(pMessage, bMultipart,
+					pPrivateKey, pCertificate, &callback, &strMessage);
 				CHECK_QSTATUS();
 				status = pMessage->create(strMessage.get(),
 					-1, Message::FLAG_NONE);
@@ -194,25 +175,13 @@ QSTATUS qm::MessageComposer::compose(Account* pAccount,
 			std::auto_ptr<Cipher> pCipher;
 			status = CryptoUtil<Cipher>::getInstance(L"des3", &pCipher);
 			CHECK_QSTATUS();
-			AddressBook* pAddressBook = pDocument_->getAddressBook();
-			SMIMECallback* pCallback = pAddressBook->getSMIMECallback();
 			string_ptr<STRING> strMessage;
-			status = pSMIMEUtility->encrypt(*pMessage,
-				pCipher.get(), pCallback, &strMessage);
+			status = pSMIMEUtility->encrypt(pMessage,
+				pCipher.get(), &callback, &strMessage);
 			CHECK_QSTATUS();
 			status = pMessage->create(strMessage.get(),
 				-1, Message::FLAG_NONE);
 			CHECK_QSTATUS();
-		}
-		
-		if (nFlags) {
-			for (int n = 0; n < countof(fields); ++n) {
-				if (fields[n].field_ == Part::FIELD_EXIST) {
-					status = pMessage->setField(
-						fields[n].pwszName_, *fields[n].pField_);
-					CHECK_QSTATUS();
-				}
-			}
 		}
 	}
 	
@@ -246,6 +215,83 @@ QSTATUS qm::MessageComposer::compose(Account* pAccount,
 		
 		MacroValuePtr pValue;
 		status = pMacro->value(&context, &pValue);
+		CHECK_QSTATUS();
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * AddressBook::SMIMECallbackImpl
+ *
+ */
+
+qm::SMIMECallbackImpl::SMIMECallbackImpl(const Security* pSecurity,
+	AddressBook* pAddressBook, QSTATUS* pstatus) :
+	pSecurity_(pSecurity),
+	pAddressBook_(pAddressBook)
+{
+}
+
+qm::SMIMECallbackImpl::~SMIMECallbackImpl()
+{
+}
+
+QSTATUS qm::SMIMECallbackImpl::getContent(Part* pPart, STRING* pstrContent)
+{
+	assert(pPart);
+	assert(pstrContent);
+	
+	DECLARE_QSTATUS();
+	
+	const WCHAR* pwszFields[] = {
+		L"X-QMAIL-Signature",
+		L"X-QMAIL-SubAccount",
+		L"X-QMAIL-EnvelopeFrom"
+	};
+	for (int n = 0; n < countof(pwszFields); ++n) {
+		status = pPart->removeField(pwszFields[n]);
+		CHECK_QSTATUS();
+	}
+	
+	status = pPart->getContent(pstrContent);
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::SMIMECallbackImpl::getCertificate(
+	const WCHAR* pwszAddress, Certificate** ppCertificate)
+{
+	assert(pwszAddress);
+	assert(ppCertificate);
+	
+	DECLARE_QSTATUS();
+	
+	*ppCertificate = 0;
+	
+	const AddressBookEntry* pEntry = 0;
+	status = pAddressBook_->getEntry(pwszAddress, &pEntry);
+	CHECK_QSTATUS();
+	
+	const WCHAR* pwszCertificate = 0;
+	
+	bool bEnd = false;
+	const AddressBookEntry::AddressList& l = pEntry->getAddresses();
+	AddressBookEntry::AddressList::const_iterator itA = l.begin();
+	while (itA != l.end() && !bEnd) {
+		const AddressBookAddress* pAddress = *itA;
+		if (_wcsicmp(pAddress->getAddress(), pwszAddress) == 0) {
+			pwszCertificate = pAddress->getCertificate();
+			bEnd = true;
+		}
+		++itA;
+	}
+	
+	if (pwszCertificate) {
+		status = pSecurity_->getCertificate(pwszCertificate, ppCertificate);
 		CHECK_QSTATUS();
 	}
 	

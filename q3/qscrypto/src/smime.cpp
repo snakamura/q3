@@ -1,5 +1,5 @@
 /*
- * $Id: smime.cpp,v 1.1.1.1 2003/04/29 08:07:38 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -36,7 +36,7 @@ qscrypto::SMIMEUtilityImpl::~SMIMEUtilityImpl()
 }
 
 SMIMEUtilityImpl::Type qscrypto::SMIMEUtilityImpl::getType(
-	const qs::Part& part) const
+	const Part& part) const
 {
 	DECLARE_QSTATUS();
 	
@@ -79,10 +79,11 @@ SMIMEUtilityImpl::Type qscrypto::SMIMEUtilityImpl::getType(
 	return TYPE_NONE;
 }
 
-QSTATUS qscrypto::SMIMEUtilityImpl::sign(const qs::Part& part,
-	bool bMultipart, const PrivateKey* pPrivateKey,
-	const Certificate* pCertificate, STRING* pstrMessage) const
+QSTATUS qscrypto::SMIMEUtilityImpl::sign(Part* pPart, bool bMultipart,
+	const PrivateKey* pPrivateKey, const Certificate* pCertificate,
+	SMIMECallback* pCallback, STRING* pstrMessage) const
 {
+	assert(pPart);
 	assert(pPrivateKey);
 	assert(pCertificate);
 	assert(pstrMessage);
@@ -96,8 +97,21 @@ QSTATUS qscrypto::SMIMEUtilityImpl::sign(const qs::Part& part,
 		// TODO
 	}
 	else {
+		string_ptr<STRING> strHeader(allocString(pPart->getHeader()));
+		if (!strHeader.get())
+			return QSTATUS_OUTOFMEMORY;
+		
+		const WCHAR* pwszFields[] = {
+			L"Bcc",
+			L"Resent-Bcc",
+		};
+		for (int n = 0; n < countof(pwszFields); ++n) {
+			status = pPart->removeField(pwszFields[n]);
+			CHECK_QSTATUS();
+		}
+		
 		string_ptr<STRING> strContent;
-		status = part.getContent(&strContent);
+		status = pCallback->getContent(pPart, &strContent);
 		CHECK_QSTATUS();
 		
 		BIOPtr pIn(BIO_new_mem_buf(strContent.get(), strlen(strContent.get())));
@@ -105,14 +119,14 @@ QSTATUS qscrypto::SMIMEUtilityImpl::sign(const qs::Part& part,
 		if (!pPKCS7.get())
 			return QSTATUS_FAIL;
 		
-		status = createMessage(part, pPKCS7.get(), false, pstrMessage);
+		status = createMessage(strHeader.get(), pPKCS7.get(), false, pstrMessage);
 		CHECK_QSTATUS();
 	}
 	
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qscrypto::SMIMEUtilityImpl::verify(const qs::Part& part,
+QSTATUS qscrypto::SMIMEUtilityImpl::verify(const Part& part,
 	const Store* pStoreCA, STRING* pstrMessage) const
 {
 	assert(pStoreCA);
@@ -156,9 +170,11 @@ QSTATUS qscrypto::SMIMEUtilityImpl::verify(const qs::Part& part,
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qscrypto::SMIMEUtilityImpl::encrypt(const qs::Part& part,
+QSTATUS qscrypto::SMIMEUtilityImpl::encrypt(Part* pPart,
 	const Cipher* pCipher, SMIMECallback* pCallback, STRING* pstrMessage) const
 {
+	assert(pPart);
+	assert(pCipher);
 	assert(pCallback);
 	assert(pstrMessage);
 	
@@ -175,7 +191,7 @@ QSTATUS qscrypto::SMIMEUtilityImpl::encrypt(const qs::Part& part,
 		AddressListParser addressList(0, &status);
 		CHECK_QSTATUS();
 		Part::Field f;
-		status = part.getField(pwszAddresses[n], &addressList, &f);
+		status = pPart->getField(pwszAddresses[n], &addressList, &f);
 		CHECK_QSTATUS();
 		if (f == Part::FIELD_EXIST) {
 			string_ptr<WSTRING> wstrAddresses;
@@ -198,8 +214,21 @@ QSTATUS qscrypto::SMIMEUtilityImpl::encrypt(const qs::Part& part,
 		}
 	}
 	
+	string_ptr<STRING> strHeader(allocString(pPart->getHeader()));
+	if (!strHeader.get())
+		return QSTATUS_OUTOFMEMORY;
+	
+	const WCHAR* pwszFields[] = {
+		L"Bcc",
+		L"Resent-Bcc",
+	};
+	for (int m = 0; m < countof(pwszFields); ++m) {
+		status = pPart->removeField(pwszFields[m]);
+		CHECK_QSTATUS();
+	}
+	
 	string_ptr<STRING> strContent;
-	status = part.getContent(&strContent);
+	status = pCallback->getContent(pPart, &strContent);
 	CHECK_QSTATUS();
 	
 	BIOPtr pIn(BIO_new_mem_buf(strContent.get(), strlen(strContent.get())));
@@ -208,10 +237,13 @@ QSTATUS qscrypto::SMIMEUtilityImpl::encrypt(const qs::Part& part,
 	if (!pPKCS7.get())
 		return QSTATUS_FAIL;
 	
-	return createMessage(part, pPKCS7.get(), true, pstrMessage);
+	status = createMessage(strHeader.get(), pPKCS7.get(), true, pstrMessage);
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qscrypto::SMIMEUtilityImpl::decrypt(const qs::Part& part,
+QSTATUS qscrypto::SMIMEUtilityImpl::decrypt(const Part& part,
 	const PrivateKey* pPrivateKey, const Certificate* pCertificate,
 	STRING* pstrMessage) const
 {
@@ -253,8 +285,8 @@ QSTATUS qscrypto::SMIMEUtilityImpl::decrypt(const qs::Part& part,
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qscrypto::SMIMEUtilityImpl::createMessage(const Part& part,
-	PKCS7* pPKCS7, bool bEnveloped, qs::STRING* pstrMessage)
+QSTATUS qscrypto::SMIMEUtilityImpl::createMessage(const CHAR* pszHeader,
+	PKCS7* pPKCS7, bool bEnveloped, STRING* pstrMessage)
 {
 	assert(pPKCS7);
 	assert(pstrMessage);
@@ -277,7 +309,7 @@ QSTATUS qscrypto::SMIMEUtilityImpl::createMessage(const Part& part,
 	CHECK_QSTATUS();
 	malloc_ptr<CHAR> pEncoded(reinterpret_cast<CHAR*>(p));
 	
-	Part encodedPart(0, part.getHeader(), -1, &status);
+	Part part(0, pszHeader, -1, &status);
 	CHECK_QSTATUS();
 	const WCHAR* pwszFields[] = {
 		L"Content-Type",
@@ -287,7 +319,7 @@ QSTATUS qscrypto::SMIMEUtilityImpl::createMessage(const Part& part,
 		L"Content-Description"
 	};
 	for (int n = 0; n < countof(pwszFields); ++n) {
-		status = encodedPart.removeField(pwszFields[n]);
+		status = part.removeField(pwszFields[n]);
 		CHECK_QSTATUS();
 	}
 	
@@ -298,30 +330,30 @@ QSTATUS qscrypto::SMIMEUtilityImpl::createMessage(const Part& part,
 	const WCHAR* pwszType = bEnveloped ? L"enveloped-data" : L"signed-data";
 	status = contentType.setParameter(L"smime-type", pwszType);
 	CHECK_QSTATUS();
-	status = encodedPart.setField(L"Content-Type", contentType);
+	status = part.setField(L"Content-Type", contentType);
 	CHECK_QSTATUS();
 	
 	ContentDispositionParser contentDisposition(L"attachment", &status);
 	CHECK_QSTATUS();
 	status = contentDisposition.setParameter(L"filename", L"smime.p7m");
 	CHECK_QSTATUS();
-	status = encodedPart.setField(L"Content-Disposition", contentDisposition);
+	status = part.setField(L"Content-Disposition", contentDisposition);
 	CHECK_QSTATUS();
 	
 	SimpleParser contentTransferEncoding(L"base64",
 		SimpleParser::FLAG_RECOGNIZECOMMENT | SimpleParser::FLAG_TSPECIAL, &status);
 	CHECK_QSTATUS();
-	status = encodedPart.setField(L"Content-Transfer-Encoding",
+	status = part.setField(L"Content-Transfer-Encoding",
 		contentTransferEncoding);
 	CHECK_QSTATUS();
 	
-	status = encodedPart.sortHeader();
+	status = part.sortHeader();
 	CHECK_QSTATUS();
 	
-	status = encodedPart.setBody(pEncoded.get(), nEncodedLen);
+	status = part.setBody(pEncoded.get(), nEncodedLen);
 	CHECK_QSTATUS();
 	
-	status = encodedPart.getContent(pstrMessage);
+	status = part.getContent(pstrMessage);
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;

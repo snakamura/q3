@@ -209,12 +209,12 @@ public:
 
 public:
 	virtual Type getType(const Part& part) const = 0;
-	virtual QSTATUS sign(const Part& part, bool bMultipart,
+	virtual QSTATUS sign(Part* pPart, bool bMultipart,
 		const PrivateKey* pPrivateKey, const Certificate* pCertificate,
-		STRING* pstrMessage) const = 0;
+		SMIMECallback* pCallback, STRING* pstrMessage) const = 0;
 	virtual QSTATUS verify(const Part& part,
 		const Store* pStoreCA, STRING* pstrMessage) const = 0;
-	virtual QSTATUS encrypt(const Part& part, const Cipher* pCipher,
+	virtual QSTATUS encrypt(Part* pPart, const Cipher* pCipher,
 		SMIMECallback* pCallback, STRING* pstrMessage) const = 0;
 	virtual QSTATUS decrypt(const Part& part,
 		const PrivateKey* pPrivateKey, const Certificate* pCertificate,
@@ -237,6 +237,7 @@ public:
 	virtual ~SMIMECallback();
 
 public:
+	virtual QSTATUS getContent(Part* pPart, STRING* pstrContent) = 0;
 	virtual QSTATUS getCertificate(const WCHAR* pwszAddress,
 		Certificate** ppCertificate) = 0;
 };

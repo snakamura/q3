@@ -69,7 +69,6 @@ public:
 		qs::WSTRING* pwstrAddresses);
 	qs::QSTATUS getEntry(const WCHAR* pwszAddress,
 		const AddressBookEntry** ppEntry);
-	qs::SMIMECallback* getSMIMECallback() const;
 
 public:
 	qs::QSTATUS addEntry(AddressBookEntry* pEntry);
@@ -86,26 +85,6 @@ private:
 private:
 	AddressBook(const AddressBook&);
 	AddressBook& operator=(const AddressBook&);
-
-private:
-	class SMIMECallbackImpl : public qs::SMIMECallback
-	{
-	public:
-		SMIMECallbackImpl(AddressBook* pAddressBook, qs::QSTATUS* pstatus);
-		~SMIMECallbackImpl();
-	
-	public:
-		virtual qs::QSTATUS getCertificate(const WCHAR* pwszAddress,
-			qs::Certificate** ppCertificate);
-	
-	private:
-		SMIMECallbackImpl(const SMIMECallbackImpl&);
-		SMIMECallbackImpl& operator=(const SMIMECallbackImpl&);
-	
-	private:
-		AddressBook* pAddressBook_;
-	};
-	friend class SMIMECallbackImpl;
 
 private:
 #ifndef _WIN32_WCE
@@ -162,7 +141,6 @@ private:
 	FILETIME ft_;
 	EntryList listEntry_;
 	CategoryList listCategory_;
-	SMIMECallbackImpl* pSMIMECallback_;
 	bool bContactChanged_;
 #ifndef _WIN32_WCE
 	HINSTANCE hInstWAB_;

@@ -1,5 +1,5 @@
 /*
- * $Id: smime.h,v 1.1.1.1 2003/04/29 08:07:38 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -30,19 +30,19 @@ public:
 
 public:
 	virtual Type getType(const qs::Part& part) const;
-	virtual qs::QSTATUS sign(const qs::Part& part,
-		bool bMultipart, const qs::PrivateKey* pPrivateKey,
-		const qs::Certificate* pCertificate, qs::STRING* pstrMessage) const;
+	virtual qs::QSTATUS sign(qs::Part* pPart, bool bMultipart,
+		const qs::PrivateKey* pPrivateKey, const qs::Certificate* pCertificate,
+		qs::SMIMECallback* pCallback, qs::STRING* pstrMessage) const;
 	virtual qs::QSTATUS verify(const qs::Part& part,
 		const qs::Store* pStoreCA, qs::STRING* pstrMessage) const;
-	virtual qs::QSTATUS encrypt(const qs::Part& part, const qs::Cipher* pCipher,
+	virtual qs::QSTATUS encrypt(qs::Part* pPart, const qs::Cipher* pCipher,
 		qs::SMIMECallback* pCallback, qs::STRING* pstrMessage) const;
 	virtual qs::QSTATUS decrypt(const qs::Part& part,
 		const qs::PrivateKey* pPrivateKey, const qs::Certificate* pCertificate,
 		qs::STRING* pstrMessage) const;
 
 private:
-	static qs::QSTATUS createMessage(const qs::Part& part,
+	static qs::QSTATUS createMessage(const CHAR* pszHeader,
 		PKCS7* pPKCS7, bool bEnveloped, qs::STRING* pstrMessage);
 
 private:

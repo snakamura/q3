@@ -12,6 +12,7 @@
 #include <qm.h>
 
 #include <qs.h>
+#include <qscrypto.h>
 #include <qsprofile.h>
 
 
@@ -20,9 +21,11 @@ namespace qm {
 class MessageComposer;
 
 class Account;
+class AddressBook;
 class Document;
 class FolderModel;
 class Message;
+class Security;
 class SubAccount;
 
 
@@ -59,6 +62,34 @@ private:
 	qs::Profile* pProfile_;
 	HWND hwnd_;
 	FolderModel* pFolderModel_;
+};
+
+
+/****************************************************************************
+ *
+ * SMIMECallbackImpl
+ *
+ */
+
+class SMIMECallbackImpl : public qs::SMIMECallback
+{
+public:
+	SMIMECallbackImpl(const Security* pSecurity,
+		AddressBook* pAddressBook, qs::QSTATUS* pstatus);
+	~SMIMECallbackImpl();
+
+public:
+	virtual qs::QSTATUS getContent(qs::Part* pPart, qs::STRING* pstrContent);
+	virtual qs::QSTATUS getCertificate(const WCHAR* pwszAddress,
+		qs::Certificate** ppCertificate);
+
+private:
+	SMIMECallbackImpl(const SMIMECallbackImpl&);
+	SMIMECallbackImpl& operator=(const SMIMECallbackImpl&);
+
+private:
+	const Security* pSecurity_;
+	AddressBook* pAddressBook_;
 };
 
 }

@@ -13,8 +13,8 @@
 #include <qsconv.h>
 #include <qserror.h>
 #include <qsmime.h>
-#include <qsosutil.h>
 #include <qsnew.h>
+#include <qsosutil.h>
 
 #include <algorithm>
 
@@ -38,7 +38,6 @@ using namespace qs;
 
 qm::AddressBook::AddressBook(const Security* pSecurity, QSTATUS* pstatus) :
 	pSecurity_(pSecurity),
-	pSMIMECallback_(0),
 	bContactChanged_(true),
 #ifndef _WIN32_WCE
 	hInstWAB_(0),
@@ -57,9 +56,6 @@ qm::AddressBook::AddressBook(const Security* pSecurity, QSTATUS* pstatus) :
 	::GetSystemTime(&st);
 	::SystemTimeToFileTime(&st, &ft_);
 	
-	status = newQsObject(this, &pSMIMECallback_);
-	CHECK_QSTATUS_SET(pstatus);
-	
 	status = initWAB();
 //	CHECK_QSTATUS_SET(pstatus);
 }
@@ -67,7 +63,6 @@ qm::AddressBook::AddressBook(const Security* pSecurity, QSTATUS* pstatus) :
 qm::AddressBook::~AddressBook()
 {
 	clear(TYPE_BOTH);
-	delete pSMIMECallback_;
 	
 #ifndef _WIN32_WCE
 	if (pAddrBook_) {
@@ -234,11 +229,6 @@ QSTATUS qm::AddressBook::getEntry(const WCHAR* pwszAddress,
 		*ppEntry = (*it).second;
 	
 	return QSTATUS_SUCCESS;
-}
-
-SMIMECallback* qm::AddressBook::getSMIMECallback() const
-{
-	return pSMIMECallback_;
 }
 
 QSTATUS qm::AddressBook::addEntry(AddressBookEntry* pEntry)
@@ -778,65 +768,6 @@ QSTATUS qm::AddressBook::prepareEntryMap()
 			
 			++itE;
 		}
-	}
-	
-	return QSTATUS_SUCCESS;
-}
-
-
-/****************************************************************************
- *
- * AddressBook::SMIMECallbackImpl
- *
- */
-
-qm::AddressBook::SMIMECallbackImpl::SMIMECallbackImpl(
-	AddressBook* pAddressBook, QSTATUS* pstatus) :
-	pAddressBook_(pAddressBook)
-{
-}
-
-qm::AddressBook::SMIMECallbackImpl::~SMIMECallbackImpl()
-{
-}
-
-QSTATUS qm::AddressBook::SMIMECallbackImpl::getCertificate(
-	const WCHAR* pwszAddress, Certificate** ppCertificate)
-{
-	assert(pwszAddress);
-	assert(ppCertificate);
-	
-	DECLARE_QSTATUS();
-	
-	*ppCertificate = 0;
-	
-	const AddressBook::EntryList* pList = 0;
-	status = pAddressBook_->getEntries(&pList);
-	CHECK_QSTATUS();
-	
-	const WCHAR* pwszCertificate = 0;
-	
-	bool bEnd = false;
-	AddressBook::EntryList::const_iterator itE = pList->begin();
-	while (itE != pList->end() && !bEnd) {
-		const AddressBookEntry* pEntry = *itE;
-		const AddressBookEntry::AddressList& l = pEntry->getAddresses();
-		AddressBookEntry::AddressList::const_iterator itA = l.begin();
-		while (itA != l.end() && !bEnd) {
-			const AddressBookAddress* pAddress = *itA;
-			if (wcscmp(pAddress->getAddress(), pwszAddress) == 0) {
-				pwszCertificate = pAddress->getCertificate();
-				bEnd = true;
-			}
-			++itA;
-		}
-		++itE;
-	}
-	
-	if (pwszCertificate) {
-		status = pAddressBook_->pSecurity_->getCertificate(
-			pwszCertificate, ppCertificate);
-		CHECK_QSTATUS();
 	}
 	
 	return QSTATUS_SUCCESS;
