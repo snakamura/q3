@@ -258,6 +258,8 @@ std::auto_ptr<List> qmimap4::Parser::parseList(Buffer* pBuffer,
 		}
 		else if (c == '(') {
 			std::auto_ptr<List> pChildList(parseList(pBuffer, pnIndex, pCallback));
+			if (!pChildList.get())
+				return std::auto_ptr<List>(0);
 			pList->add(pChildList);
 		}
 		else {
@@ -389,6 +391,8 @@ std::auto_ptr<Response> qmimap4::Parser::parseResponse()
 	if (flag != ResponseState::FLAG_UNKNOWN) {
 		std::auto_ptr<ResponseState> pResponseState(new ResponseState(flag));
 		std::auto_ptr<State> pState(parseStatus());
+		if (!pState.get())
+			return std::auto_ptr<Response>(0);
 		pResponseState->setState(pState);
 		pResponse = pResponseState;
 	}
@@ -433,6 +437,8 @@ std::auto_ptr<ResponseContinue> qmimap4::Parser::parseContinueResponse()
 	}
 	else if (pBuffer_->get(nIndex_ - 1) == ' ') {
 		pState = parseStatus();
+		if (!pState.get())
+			return std::auto_ptr<ResponseContinue>(0);
 	}
 	else {
 		nIndex_ = pBuffer_->find("\r\n", nIndex_);
@@ -447,6 +453,8 @@ std::auto_ptr<ResponseContinue> qmimap4::Parser::parseContinueResponse()
 std::auto_ptr<ResponseFetch> qmimap4::Parser::parseFetchResponse(unsigned long nNumber)
 {
 	std::auto_ptr<List> pList(parseList());
+	if (!pList.get())
+		return std::auto_ptr<ResponseFetch>(0);
 	
 	nIndex_ = pBuffer_->find("\r\n", nIndex_);
 	if (nIndex_ == -1)
@@ -459,6 +467,8 @@ std::auto_ptr<ResponseFetch> qmimap4::Parser::parseFetchResponse(unsigned long n
 std::auto_ptr<ResponseFlags> qmimap4::Parser::parseFlagsResponse()
 {
 	std::auto_ptr<List> pList(parseList());
+	if (!pList.get())
+		return std::auto_ptr<ResponseFlags>(0);
 	
 	nIndex_ = pBuffer_->find("\r\n", nIndex_);
 	if (nIndex_ == -1)
@@ -471,6 +481,8 @@ std::auto_ptr<ResponseFlags> qmimap4::Parser::parseFlagsResponse()
 std::auto_ptr<ResponseList> qmimap4::Parser::parseListResponse(bool bList)
 {
 	std::auto_ptr<List> pList(parseList());
+	if (!pList.get())
+		return std::auto_ptr<ResponseList>(0);
 	
 	std::pair<const CHAR*, size_t> separator;
 	Token token = getNextToken(&separator);
@@ -502,6 +514,8 @@ std::auto_ptr<ResponseNamespace> qmimap4::Parser::parseNamespaceResponse()
 	for (int n = 0; n < countof(pLists); ++n) {
 		if (pBuffer_->get(nIndex_) == '(') {
 			pLists[n] = parseList();
+			if (!pLists[n].get())
+				return std::auto_ptr<ResponseNamespace>(0);
 		}
 		else {
 			const CHAR* pszSep = n != countof(pLists) - 1 ? " " : " \r";
@@ -551,6 +565,8 @@ std::auto_ptr<ResponseStatus> qmimap4::Parser::parseStatusResponse()
 		return std::auto_ptr<ResponseStatus>(0);
 	
 	std::auto_ptr<List> pList(parseList());
+	if (!pList.get())
+		return std::auto_ptr<ResponseStatus>(0);
 	
 	nIndex_ = pBuffer_->find("\r\n", nIndex_);
 	if (nIndex_ == -1)
@@ -612,6 +628,8 @@ std::auto_ptr<State> qmimap4::Parser::parseStatus()
 		
 		if (arg == S::ARG_LIST) {
 			std::auto_ptr<List> pList(parseList());
+			if (!pList.get())
+				return std::auto_ptr<State>(0);
 			pState->setArg(pList);
 			
 			if (pBuffer_->get(nIndex_) != ']')
