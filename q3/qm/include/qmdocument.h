@@ -70,6 +70,8 @@ public:
 	
 	bool isOffline() const;
 	qs::QSTATUS setOffline(bool bOffline);
+	bool isCheckNewMail() const;
+	void setCheckNewMail(bool bCheckNewMail);
 	qs::QSTATUS save();
 	
 	qs::QSTATUS addDocumentHandler(DocumentHandler* pHandler);

@@ -60,6 +60,7 @@ struct qm::DocumentImpl
 	AddressBook* pAddressBook_;
 	Security* pSecurity_;
 	bool bOffline_;
+	bool bCheckNewMail_;
 };
 
 QSTATUS qm::DocumentImpl::fireAccountListChanged(
@@ -119,6 +120,10 @@ qm::Document::Document(Profile* pProfile, QSTATUS* pstatus) :
 	status = newQsObject(pSecurity.get(), &pAddressBook);
 	CHECK_QSTATUS_SET(pstatus);
 	
+	int nCheckNewMail = 0;
+	status = pProfile->getInt(L"NewMailCheck", L"Enable", 0, &nCheckNewMail);
+	CHECK_QSTATUS_SET(pstatus);
+	
 	status = newObject(&pImpl_);
 	CHECK_QSTATUS_SET(pstatus);
 	pImpl_->pThis_ = this;
@@ -130,6 +135,7 @@ qm::Document::Document(Profile* pProfile, QSTATUS* pstatus) :
 	pImpl_->pAddressBook_ = pAddressBook.release();
 	pImpl_->pSecurity_ = pSecurity.release();
 	pImpl_->bOffline_ = true;
+	pImpl_->bCheckNewMail_ = nCheckNewMail != 0;
 }
 
 qm::Document::~Document()
@@ -440,6 +446,16 @@ QSTATUS qm::Document::setOffline(bool bOffline)
 	return QSTATUS_SUCCESS;
 }
 
+bool qm::Document::isCheckNewMail() const
+{
+	return pImpl_->bCheckNewMail_;
+}
+
+void qm::Document::setCheckNewMail(bool bCheckNewMail)
+{
+	pImpl_->bCheckNewMail_ = bCheckNewMail;
+}
+
 QSTATUS qm::Document::save()
 {
 	DECLARE_QSTATUS();
@@ -451,8 +467,10 @@ QSTATUS qm::Document::save()
 		++it;
 	}
 	
-	status = pImpl_->pProfile_->setInt(L"Global",
-		L"Offline", isOffline());
+	status = pImpl_->pProfile_->setInt(L"Global", L"Offline", isOffline());
+	CHECK_QSTATUS();
+	status = pImpl_->pProfile_->setInt(
+		L"NewMailCheck", L"Enable", isCheckNewMail());
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;

@@ -71,7 +71,9 @@ QSTATUS qm::NewMailChecker::timerTimeout(unsigned int nId)
 {
 	DECLARE_QSTATUS();
 	
-	if (nId == nId_ && !pDocument_->isOffline() && pCallback_->canCheck()) {
+	if (nId == nId_ &&
+		pDocument_->isCheckNewMail() &&
+		pCallback_->canCheck()) {
 		std::auto_ptr<SyncData> pData;
 		status = newQsObject(pSyncManager_, pDocument_,
 			hwnd_, SyncDialog::FLAG_NOTIFYNEWMESSAGE, &pData);

@@ -58,6 +58,7 @@ class MessageMoveOtherAction;
 class MessageOpenAttachmentAction;
 class MessagePropertyAction;
 class ToolAccountAction;
+class ToolCheckNewMailAction;
 class ToolDialupAction;
 class ToolGoRoundAction;
 class ToolOptionsAction;
@@ -1126,6 +1127,31 @@ private:
 	Document* pDocument_;
 	FolderModel* pFolderModel_;
 	SyncFilterManager* pSyncFilterManager_;
+};
+
+
+/****************************************************************************
+ *
+ * ToolCheckNewMailAction
+ *
+ */
+
+class ToolCheckNewMailAction : public qs::AbstractAction
+{
+public:
+	ToolCheckNewMailAction(Document* pDocument, qs::QSTATUS* pstatus);
+	virtual ~ToolCheckNewMailAction();
+
+public:
+	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual qs::QSTATUS isChecked(const qs::ActionEvent& event, bool* pbChecked);
+
+private:
+	ToolCheckNewMailAction(const ToolCheckNewMailAction&);
+	ToolCheckNewMailAction& operator=(const ToolCheckNewMailAction&);
+
+private:
+	Document* pDocument_;
 };
 
 

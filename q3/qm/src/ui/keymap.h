@@ -126,6 +126,7 @@ const qs::KeyNameToId mapKeyNameToId[] = {
 	{ L"ToolAddressBook",				IDM_TOOL_ADDRESSBOOK,					0 },
 	{ L"ToolAttachment",				IDM_TOOL_ATTACHMENT,					0 },
 	{ L"ToolCancel",					IDM_TOOL_CANCEL,						0 },
+	{ L"ToolCheckNewMail",				IDM_TOOL_CHECKNEWMAIL,					0 },
 	{ L"ToolDialup",					IDM_TOOL_DIALUP,						0 },
 	{ L"ToolEncrypt",					IDM_TOOL_ENCRYPT,						0 },
 	{ L"ToolGoround0",					IDM_TOOL_GOROUND,						0 },

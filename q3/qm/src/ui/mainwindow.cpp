@@ -480,6 +480,9 @@ QSTATUS qm::MainWindowImpl::initActions()
 		pActionMap_, IDM_TOOL_ACCOUNT, pDocument_,
 		pFolderModel_, pSyncManager_->getSyncFilterManager());
 	CHECK_QSTATUS();
+	status = InitAction1<ToolCheckNewMailAction, Document*>(
+		pActionMap_, IDM_TOOL_CHECKNEWMAIL, pDocument_);
+	CHECK_QSTATUS();
 	status = InitAction4<ToolDialupAction, SyncManager*,
 		Document*, SyncDialogManager*, HWND>(
 		pActionMap_, IDM_TOOL_DIALUP, pSyncManager_,

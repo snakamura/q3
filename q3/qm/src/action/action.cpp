@@ -2314,6 +2314,37 @@ QSTATUS qm::ToolAccountAction::isEnabled(
 
 /****************************************************************************
  *
+ * ToolCheckNewMailAction
+ *
+ */
+
+qm::ToolCheckNewMailAction::ToolCheckNewMailAction(
+	Document* pDocument, QSTATUS* pstatus) :
+	pDocument_(pDocument)
+{
+}
+
+qm::ToolCheckNewMailAction::~ToolCheckNewMailAction()
+{
+}
+
+QSTATUS qm::ToolCheckNewMailAction::invoke(const ActionEvent& event)
+{
+	pDocument_->setCheckNewMail(!pDocument_->isCheckNewMail());
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::ToolCheckNewMailAction::isChecked(
+	const ActionEvent& event, bool* pbChecked)
+{
+	assert(pbChecked);
+	*pbChecked = pDocument_->isCheckNewMail();
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
  * ToolDialupAction
  *
  */
