@@ -1029,7 +1029,7 @@ MacroValuePtr qm::MacroFunctionDecode::value(MacroContext* pContext) const
 	ARG(pValue, 0);
 	wstring_ptr wstr(pValue->string());
 	
-	if (FieldParser::isAscii(wstr.get())) {
+	if (FieldParserUtil<WSTRING>::isAscii(wstr.get())) {
 		string_ptr str(wcs2mbs(wstr.get()));
 		wstr = FieldParser::decode(str.get(), -1, false, 0);
 	}

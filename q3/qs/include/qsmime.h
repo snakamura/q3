@@ -315,9 +315,6 @@ public:
 							 const WCHAR* pwszEncoding,
 							 bool bOneBlock);
 	static string_ptr convertToUTF8(const CHAR* psz);
-	static bool isAscii(const WCHAR* pwsz);
-	static bool isAscii(const WCHAR* pwsz,
-						size_t nLen);
 	static bool isSpecial(CHAR c);
 	static Part::Field parseError();
 
@@ -689,6 +686,7 @@ private:
 	Part::Field parseAddress(const Part& part,
 							 Tokenizer& t,
 							 bool* pbEnd);
+	wstring_ptr convertMailbox(const CHAR* pszMailbox);
 
 private:
 	static wstring_ptr decodePhrase(const CHAR* psz,
@@ -1072,6 +1070,9 @@ public:
 	typedef typename StringTraits<String>::char_type Char;
 
 public:
+	static bool isAscii(const Char* psz);
+	static bool isAscii(const Char* psz,
+						size_t nLen);
 	static basic_string_ptr<String> getQString(const Char* psz,
 											   size_t nLen);
 	static basic_string_ptr<String> getAtomOrQString(const Char* psz,

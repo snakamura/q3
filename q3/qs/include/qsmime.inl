@@ -17,6 +17,27 @@
  */
 
 template<class String>
+bool qs::FieldParserUtil<String>::isAscii(const Char* psz)
+{
+	return isAscii(psz, -1);
+}
+
+template<class String>
+bool qs::FieldParserUtil<String>::isAscii(const Char* psz,
+										  size_t nLen)
+{
+	assert(psz);
+	
+	if (nLen == -1)
+		nLen = CharTraits<Char>::getLength(psz);
+	
+	const Char* pEnd = psz + nLen;
+	const Char* p = std::find_if(psz, pEnd,
+		std::bind2nd(std::greater<Char>(), 0x7f));
+	return p == pEnd;
+}
+
+template<class String>
 qs::basic_string_ptr<String> qs::FieldParserUtil<String>::getQString(const Char* psz,
 																	 size_t nLen)
 {

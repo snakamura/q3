@@ -456,8 +456,11 @@ wstring_ptr qs::FieldParser::decode(const CHAR* psz,
 		else {
 			if (*p == '=' && p + 1 < psz + nLen && *(p + 1) == '?') {
 				if (buf.getLength() != 0) {
+					assert(bAllowUTF8);
 					size_t nLen = buf.getLength();
 					wxstring_size_ptr wstr(UTF8Converter().decode(buf.getCharArray(), &nLen));
+					if (!wstr.get())
+						return 0;
 					decoded.append(wstr.get(), wstr.size());
 					buf.remove();
 				}
@@ -613,24 +616,6 @@ string_ptr qs::FieldParser::convertToUTF8(const CHAR* psz)
 	return allocString(str.get(), str.size());
 }
 
-bool qs::FieldParser::isAscii(const WCHAR* pwsz)
-{
-	return isAscii(pwsz, -1);
-}
-
-bool qs::FieldParser::isAscii(const WCHAR* pwsz, size_t nLen)
-{
-	assert(pwsz);
-	
-	if (nLen == -1)
-		nLen = wcslen(pwsz);
-	
-	const WCHAR* pEnd = pwsz + nLen;
-	const WCHAR* p = std::find_if(pwsz, pEnd,
-		std::bind2nd(std::greater<WCHAR>(), 0x7f));
-	return p == pEnd;
-}
-
 bool qs::FieldParser::isSpecial(CHAR c)
 {
 	return Tokenizer::isSpecial(c, Tokenizer::F_SPECIAL | Tokenizer::F_TSPECIAL | Tokenizer::F_ESPECIAL);
@@ -692,10 +677,10 @@ string_ptr qs::FieldParser::encodeLine(const WCHAR* pwsz,
 		Block& b = *it;
 		Item& i = b.first;
 		Item& s = b.second;
-		if (!isAscii(i.first, i.second - i.first)) {
+		if (!FieldParserUtil<WSTRING>::isAscii(i.first, i.second - i.first)) {
 			Item itemAfter = (it + 1) != blocks.end() ? (*(it + 1)).first : Item(0, 0);
 			if ((itemAfter.first == itemAfter.second ||
-				!isAscii(itemAfter.first, itemAfter.second - itemAfter.first)) &&
+				!FieldParserUtil<WSTRING>::isAscii(itemAfter.first, itemAfter.second - itemAfter.first)) &&
 				s.first) {
 				i.second = s.second;
 				s.first = 0;
@@ -1198,8 +1183,8 @@ string_ptr qs::SimpleParser::unparse(const Part& part) const
 		return encode(wstrValue_.get(), -1, wstrCharset.get(), 0, true);
 	}
 	else {
-		/// TODO
-		if (!isAscii(wstrValue_.get()))
+		// TODO
+		if (!FieldParserUtil<WSTRING>::isAscii(wstrValue_.get()))
 			return 0;
 		return wcs2mbs(wstrValue_.get());
 	}
@@ -1789,7 +1774,7 @@ wstring_ptr qs::AddressParser::getValue(bool bAutoQuote) const
 			bQuote = false;
 		}
 #if 0
-		else if (isAscii(pwszPhrase)) {
+		else if (FieldParserUtil<WSTRING>::isAscii(pwszPhrase)) {
 			bQuote = true;
 		}
 		else if (wcschr(pwszPhrase, L'\\')) {
@@ -1863,7 +1848,7 @@ string_ptr qs::AddressParser::unparse(const Part& part) const
 	StringBuffer<STRING> buf;
 	
 	if (wstrPhrase_.get()) {
-		if (isAscii(wstrPhrase_.get())) {
+		if (FieldParserUtil<WSTRING>::isAscii(wstrPhrase_.get())) {
 			string_ptr str(wcs2mbs(wstrPhrase_.get()));
 			string_ptr strAtoms(FieldParserUtil<STRING>::getAtomsOrQString(str.get(), -1));
 			buf.append(strAtoms.get());
@@ -2071,7 +2056,9 @@ Part::Field qs::AddressParser::parseAddress(const Part& part,
 						return parseError();
 					deleter.clear();
 					
-					wstrMailbox_ = mbs2wcs(strMailbox.get());
+					wstrMailbox_ = convertMailbox(strMailbox.get());
+					if (!wstrMailbox_.get())
+						return parseError();
 					if (pbEnd)
 						*pbEnd = *token.str_.get() == ';';
 					state = S_END;
@@ -2095,8 +2082,14 @@ Part::Field qs::AddressParser::parseAddress(const Part& part,
 					if (strAddrSpecComment.get())
 						strComment = strAddrSpecComment;
 					
-					wstrMailbox_ = mbs2wcs(strMailbox.get());
+					wstrMailbox_ = convertMailbox(strMailbox.get());
+					if (!wstrMailbox_.get())
+						return parseError();
+					
+					if (!FieldParserUtil<STRING>::isAscii(strHost.get()))
+						return parseError();
 					wstrHost_ = mbs2wcs(strHost.get());
+					
 					state = S_END;
 				}
 				else {
@@ -2117,7 +2110,9 @@ Part::Field qs::AddressParser::parseAddress(const Part& part,
 						return parseError();
 					deleter.clear();
 					
-					wstrMailbox_ = mbs2wcs(strMailbox.get());
+					wstrMailbox_ = convertMailbox(strMailbox.get());
+					if (!wstrMailbox_.get())
+						return parseError();
 					state = S_END;
 					break;
 				}
@@ -2145,9 +2140,14 @@ Part::Field qs::AddressParser::parseAddress(const Part& part,
 					if (field != Part::FIELD_EXIST)
 						return parseError();
 					string_ptr strCompleteMailbox(concat(token.str_.get(), strMailbox.get()));
-					wstrMailbox_ = mbs2wcs(strCompleteMailbox.get());
-					if (*strHost.get())
+					wstrMailbox_ = convertMailbox(strCompleteMailbox.get());
+					if (!wstrMailbox_.get())
+						return parseError();
+					if (*strHost.get()) {
+						if (!FieldParserUtil<STRING>::isAscii(strHost.get()))
+							return parseError();
 						wstrHost_ = mbs2wcs(strHost.get());
+					}
 					if (strAddrSpecComment.get())
 						strComment = strAddrSpecComment;
 				}
@@ -2220,9 +2220,14 @@ Part::Field qs::AddressParser::parseAddress(const Part& part,
 					&strHost, &strAddrSpecComment, 0);
 				if (field != Part::FIELD_EXIST)
 					return parseError();
-				wstrMailbox_ = mbs2wcs(strMailbox.get());
-				if (strHost.get())
+				wstrMailbox_ = convertMailbox(strMailbox.get());
+				if (!wstrMailbox_.get())
+					return parseError();
+				if (strHost.get()) {
+					if (!FieldParserUtil<STRING>::isAscii(strHost.get()))
+						return parseError();
 					wstrHost_ = mbs2wcs(strHost.get());
+				}
 				if (strAddrSpecComment.get())
 					strComment = strAddrSpecComment;
 			}
@@ -2307,6 +2312,22 @@ Part::Field qs::AddressParser::parseAddress(const Part& part,
 			(nFlags_ & FLAG_ALLOWUTF8) != 0, 0);
 	
 	return Part::FIELD_EXIST;
+}
+
+wstring_ptr qs::AddressParser::convertMailbox(const CHAR* pszMailbox)
+{
+	if (nFlags_ & FLAG_ALLOWUTF8) {
+		size_t nLen = strlen(pszMailbox);
+		wxstring_size_ptr wstrMailbox(UTF8Converter().decode(pszMailbox, &nLen));
+		if (!wstrMailbox.get())
+			return 0;
+		return allocWString(wstrMailbox.get());
+	}
+	else {
+		if (!FieldParserUtil<STRING>::isAscii(pszMailbox))
+			return 0;
+		return mbs2wcs(pszMailbox);
+	}
 }
 
 wstring_ptr qs::AddressParser::decodePhrase(const CHAR* psz,
@@ -2672,7 +2693,7 @@ string_ptr qs::MessageIdParser::unparse(const Part& part) const
 {
 	assert(wstrMessageId_.get());
 	
-	if (!isAscii(wstrMessageId_.get()))
+	if (!FieldParserUtil<WSTRING>::isAscii(wstrMessageId_.get()))
 		return 0;
 	
 	string_ptr str(wcs2mbs(wstrMessageId_.get()));
@@ -2818,7 +2839,7 @@ string_ptr qs::ReferencesParser::unparse(const Part& part) const
 	for (ReferenceList::const_iterator it = listReference_.begin(); it != listReference_.end(); ++it) {
 		if (it != listReference_.begin())
 			buf.append("\r\n ");
-		assert(isAscii((*it).first));
+		assert(FieldParserUtil<WSTRING>::isAscii((*it).first));
 		
 		string_ptr str(wcs2mbs((*it).first));
 		
@@ -3001,7 +3022,9 @@ Part::Field qs::ParameterFieldParser::parseParameter(const Part& part,
 				if (part.isOption(Part::O_ALLOW_RAW_PARAMETER)) {
 					size_t nLen = strlen(token.str_.get());
 					wxstring_size_ptr wstr(UTF8Converter().decode(token.str_.get(), &nLen));
-					if (!isAscii(wstr.get(), wstr.size()))
+					if (!wstr.get())
+						return parseError();
+					else if (!FieldParserUtil<WSTRING>::isAscii(wstr.get(), wstr.size()))
 						wstrValue = allocWString(wstr.get(), wstr.size());
 				}
 				if (!wstrValue.get()) {
@@ -3031,7 +3054,7 @@ string_ptr qs::ParameterFieldParser::unparseParameter(const Part& part) const
 	StringBuffer<STRING> buf;
 	
 	for (ParameterList::const_iterator it = listParameter_.begin(); it != listParameter_.end(); ++it) {
-		if (!isAscii((*it).first))
+		if (!FieldParserUtil<WSTRING>::isAscii((*it).first))
 			return 0;
 		
 		const size_t nAsciiMax = 40;
@@ -3041,7 +3064,7 @@ string_ptr qs::ParameterFieldParser::unparseParameter(const Part& part) const
 		const WCHAR* pwsz = (*it).second;
 		string_ptr strValue(wcs2mbs(pwsz));
 		size_t nLen = wcslen(pwsz);
-		bool bAscii = isAscii(pwsz);
+		bool bAscii = FieldParserUtil<WSTRING>::isAscii(pwsz);
 		bool bRFC2231Processed = false;
 		if (part.isOption(Part::O_RFC2231) && (!bAscii || nLen > nAsciiMax)) {
 			if (bAscii) {
