@@ -2295,12 +2295,12 @@ QSTATUS qm::MacroFunctionI::value(
 	if (nSize > 2)
 		return error(*pContext, MacroErrorHandler::CODE_INVALIDARGSIZE);
 	
-	string_ptr<WSTRING> wstrIdentity;
+	string_ptr<WSTRING> wstrSubAccount;
 	if (nSize > 1) {
 		MacroValuePtr pValue;
 		status = getArg(1)->value(pContext, &pValue);
 		CHECK_QSTATUS();
-		status = pValue->string(&wstrIdentity);
+		status = pValue->string(&wstrSubAccount);
 		CHECK_QSTATUS();
 	}
 	
@@ -2318,8 +2318,12 @@ QSTATUS qm::MacroFunctionI::value(
 	}
 	assert(pAccount);
 	
-	SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
-	assert(pSubAccount);
+	SubAccount* pSubAccount = 0;
+	if (wstrSubAccount.get())
+		pSubAccount = pAccount->getSubAccount(wstrSubAccount.get());
+	if (!pSubAccount)
+		pSubAccount = pAccount->getCurrentSubAccount();
+	
 	AddressParser address(pSubAccount->getSenderName(),
 		pSubAccount->getSenderAddress(), &status);
 	CHECK_QSTATUS();
@@ -4005,6 +4009,50 @@ const WCHAR* qm::MacroFunctionSize::getName() const
 
 /****************************************************************************
  *
+ * MacroFunctionSubAccount
+ *
+ */
+
+qm::MacroFunctionSubAccount::MacroFunctionSubAccount(QSTATUS* pstatus) :
+	MacroFunction(pstatus)
+{
+}
+
+qm::MacroFunctionSubAccount::~MacroFunctionSubAccount()
+{
+}
+
+QSTATUS qm::MacroFunctionSubAccount::value(
+	MacroContext* pContext, MacroValue** ppValue) const
+{
+	assert(pContext);
+	assert(ppValue);
+	
+	DECLARE_QSTATUS();
+	
+	*ppValue = 0;
+	
+	if (getArgSize() != 0)
+		return error(*pContext, MacroErrorHandler::CODE_INVALIDARGSIZE);
+	
+	Account* pAccount = pContext->getAccount();
+	MessageHolderBase* pmh = pContext->getMessageHolder();
+	if (pmh)
+		pAccount = pmh->getFolder()->getAccount();
+	
+	return MacroValueFactory::getFactory().newString(
+		pAccount->getCurrentSubAccount()->getName(),
+		reinterpret_cast<MacroValueString**>(ppValue));
+}
+
+const WCHAR* qm::MacroFunctionSubAccount::getName() const
+{
+	return L"SubAccount";
+}
+
+
+/****************************************************************************
+ *
  * MacroFunctionSubject
  *
  */
@@ -4572,6 +4620,7 @@ QSTATUS qm::MacroFunctionFactory::newFunction(MacroParser::Type type,
 		DECLARE_FUNCTION0(		Script,				L"script"												)
 		DECLARE_FUNCTION0(		Set,				L"set"													)
 		DECLARE_FUNCTION0(		Size,				L"size"													)
+		DECLARE_FUNCTION0(		SubAccount,			L"subaccount"											)
 		DECLARE_FUNCTION0(		Subject,			L"subject"												)
 		DECLARE_FUNCTION0(		Substring,			L"substring"											)
 		DECLARE_FUNCTION1(		SubstringSep,		L"substringafter",	true								)

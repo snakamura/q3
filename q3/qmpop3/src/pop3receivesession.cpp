@@ -1,5 +1,5 @@
 /*
- * $Id: pop3receivesession.cpp,v 1.2 2003/05/14 05:45:49 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -192,7 +192,7 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadMessages(
 	CHECK_QSTATUS();
 	
 	const WCHAR* pwszIdentity = pSubAccount_->getIdentity();
-	UnstructuredParser identity(pwszIdentity, L"utf-8", &status);
+	UnstructuredParser subaccount(pSubAccount_->getName(), L"utf-8", &status);
 	CHECK_QSTATUS();
 	
 	Time time(Time::getCurrentTime());
@@ -281,12 +281,12 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadMessages(
 		status = msg.replaceField(L"X-UIDL", uid);
 		CHECK_QSTATUS();
 		
-		if (pwszIdentity && *pwszIdentity) {
-			status = msg.replaceField(L"X-QMAIL-Identity", identity);
+		if (*pwszIdentity) {
+			status = msg.replaceField(L"X-QMAIL-SubAccount", subaccount);
 			CHECK_QSTATUS();
 		}
 		else {
-			status = msg.removeField(L"X-QMAIL-Identity");
+			status = msg.removeField(L"X-QMAIL-SubAccount");
 			CHECK_QSTATUS();
 		}
 		

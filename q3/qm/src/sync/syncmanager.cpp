@@ -669,18 +669,24 @@ QSTATUS qm::SyncManager::send(SyncManagerCallback* pSyncManagerCallback,
 				Message msg(&status);
 				CHECK_QSTATUS();
 				status = pmh->getMessage(Account::GETMESSAGEFLAG_HEADER,
-					L"X-QMAIL-Identity", &msg);
+					L"X-QMAIL-SubAccount", &msg);
 				CHECK_QSTATUS();
 				
-				bool bSend = true;
+				bool bSend = false;
 				if (*pwszIdentity) {
-					SimpleParser identity(0, &status);
+					UnstructuredParser subaccount(&status);
 					CHECK_QSTATUS();
 					Part::Field field = Part::FIELD_ERROR;
-					status = msg.getField(L"X-QMAIL-Identity", &identity, &field);
+					status = msg.getField(L"X-QMAIL-SubAccount", &subaccount, &field);
 					CHECK_QSTATUS();
-					bSend = field == Part::FIELD_EXIST &&
-						wcscmp(identity.getValue(), pwszIdentity) == 0;
+					if (field == Part::FIELD_EXIST) {
+						SubAccount* p = pAccount->getSubAccount(subaccount.getValue());
+						if (p && wcscmp(p->getIdentity(), pwszIdentity) == 0)
+							bSend = true;
+					}
+				}
+				else {
+					bSend = true;
 				}
 				
 				if (bSend)
@@ -736,7 +742,6 @@ QSTATUS qm::SyncManager::send(SyncManagerCallback* pSyncManagerCallback,
 			CHECK_QSTATUS();
 			const WCHAR* pwszRemoveFields[] = {
 				L"X-QMAIL-Account",
-				L"X-QMAIL-Identity",
 				L"X-QMAIL-Signature"
 			};
 			for (int n = 0; n < countof(pwszRemoveFields); ++n) {

@@ -130,7 +130,7 @@ QSTATUS qm::MessageComposer::compose(Account* pAccount,
 	if (pSMIMEUtility) {
 		UnstructuredParser signature(&status);
 		CHECK_QSTATUS();
-		UnstructuredParser identity(&status);
+		UnstructuredParser subaccount(&status);
 		CHECK_QSTATUS();
 		struct
 		{
@@ -138,8 +138,8 @@ QSTATUS qm::MessageComposer::compose(Account* pAccount,
 			FieldParser* pField_;
 			Part::Field field_;
 		} fields[] = {
-			{ L"X-QMAIL-Signature",	&signature	},
-			{ L"X-QMAIL-Identity",	&identity	}
+			{ L"X-QMAIL-Signature",		&signature	},
+			{ L"X-QMAIL-SubAccount",	&subaccount	}
 		};
 		if (nFlags) {
 			for (int n = 0; n < countof(fields); ++n) {

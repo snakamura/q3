@@ -2,8 +2,8 @@
 	@Progn(
 		@Set('val', @Progn(
 			@Set('from', @If(@Exist('Reply-To'), Reply-To, From)),
-			@Set('to', @Remove(To, @Address(@I(@Account(), X-QMAIL-Identity)), @Address($from))),
-			@Set('cc', @Remove(Cc, @Address(@I(@Account(), X-QMAIL-Identity)), @Address($from))),
+			@Set('to', @Remove(To, @Address(@I(@Account(), X-QMAIL-SubAccount)), @Address($from))),
+			@Set('cc', @Remove(Cc, @Address(@I(@Account(), X-QMAIL-SubAccount)), @Address($from))),
 			@Concat($to, @If(@And($to, $cc), ', ', ''), $cc))),
 		@Concat(
 			'To: ',
@@ -31,7 +31,7 @@
 		'',
 		@Concat(
 			'Bcc: ',
-			@I(@Account(), X-QMAIL-Identity),
+			@I(@Account(), X-QMAIL-SubAccount),
 			'\\n'
 		)
 	)
@@ -54,7 +54,7 @@ References: {
 		)
 	)
 }
-X-QMAIL-Account: {@Account()}{@If(X-QMAIL-Identity, @Concat('\\nX-QMAIL-Identity: ', X-QMAIL-Identity), '')}
+X-QMAIL-Account: {@Account()}{@If(X-QMAIL-SubAccount, @Concat('\\nX-QMAIL-SubAccount: ', X-QMAIL-SubAccount), '')}
 X-QMAIL-Macro: @ForEach(@Messages('{@Concat('//', @Account(), '/', @Folder())}', {@Id()}), @Replied(@True()))
 
 At {@FormatDate(@Date(Date), '%D %M1 %Y4 %h:%m:%s %z', 2)} {@Name(From)} wrote:

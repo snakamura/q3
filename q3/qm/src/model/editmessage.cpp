@@ -110,8 +110,7 @@ QSTATUS qm::EditMessage::setMessage(Message* pMessage)
 	}
 	const WCHAR* pwszFields[] = {
 		L"X-QMAIL-Account",
-		L"X-QMAIL-SubAccount",
-		L"X-QMAIL-Identity"
+		L"X-QMAIL-SubAccount"
 	};
 	for (int n = 0; n < countof(pwszFields); ++n) {
 		status = pMessage->removeField(pwszFields[n]);
@@ -685,11 +684,10 @@ QSTATUS qm::EditMessage::fixup()
 	status = normalize(pBodyPart_);
 	CHECK_QSTATUS();
 	
-	const WCHAR* pwszIdentity = pSubAccount_->getIdentity();
-	if (pwszIdentity && *pwszIdentity) {
-		UnstructuredParser identity(pwszIdentity, L"utf-8", &status);
+	if (*pSubAccount_->getIdentity()) {
+		UnstructuredParser subaccount(pSubAccount_->getName(), L"utf-8", &status);
 		CHECK_QSTATUS();
-		status = pMessage_->setField(L"X-QMAIL-Identity", identity);
+		status = pMessage_->setField(L"X-QMAIL-SubAccount", subaccount);
 		CHECK_QSTATUS();
 	}
 	

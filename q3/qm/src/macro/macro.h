@@ -1,5 +1,5 @@
 /*
- * $Id: macro.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -86,6 +86,7 @@ class MacroExpr;
 		class MacroFunctionScript;
 		class MacroFunctionSet;
 		class MacroFunctionSize;
+		class MacroFunctionSubAccount;
 		class MacroFunctionSubject;
 		class MacroFunctionSubstring;
 		class MacroFunctionSubstringSep;
@@ -1973,6 +1974,31 @@ protected:
 private:
 	MacroFunctionSize(const MacroFunctionSize&);
 	MacroFunctionSize& operator=(const MacroFunctionSize&);
+};
+
+
+/****************************************************************************
+ *
+ * MacroFunctionSubAccount
+ *
+ */
+
+class MacroFunctionSubAccount : public MacroFunction
+{
+public:
+	explicit MacroFunctionSubAccount(qs::QSTATUS* pstatus);
+	virtual ~MacroFunctionSubAccount();
+
+public:
+	virtual qs::QSTATUS value(MacroContext* pContext,
+		MacroValue** ppValue) const;
+
+protected:
+	virtual const WCHAR* getName() const;
+
+private:
+	MacroFunctionSubAccount(const MacroFunctionSubAccount&);
+	MacroFunctionSubAccount& operator=(const MacroFunctionSubAccount&);
 };
 
 

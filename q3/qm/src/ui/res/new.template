@@ -30,5 +30,5 @@ Message-Id: {
 		'>'
 	)
 }
-X-QMAIL-Account: {@Account()}{@If(@Identity(), @Concat('\\nX-QMAIL-Identity: ', @Identity()), '')}
+X-QMAIL-Account: {@Account()}{@If(@Identity(), @Concat('\\nX-QMAIL-SubAccount: ', @SubAccount()), '')}
 
