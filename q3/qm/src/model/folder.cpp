@@ -856,14 +856,14 @@ void qm::NormalFolder::removeMessages(const MessageHolderList& l)
 		assert(pmh);
 		assert(pmh->getFolder() == this);
 		
-		MessageHolderList::iterator it = std::lower_bound(
+		MessageHolderList::iterator itD = std::lower_bound(
 			pImpl_->listMessageHolder_.begin(), pImpl_->listMessageHolder_.end(), pmh,
 			binary_compose_f_gx_hy(
 				std::less<unsigned int>(),
 				std::mem_fun(&MessageHolder::getId),
 				std::mem_fun(&MessageHolder::getId)));
-		assert(it != pImpl_->listMessageHolder_.end() && *it == pmh);
-		pImpl_->listMessageHolder_.erase(it);
+		assert(itD != pImpl_->listMessageHolder_.end() && *itD == pmh);
+		pImpl_->listMessageHolder_.erase(itD);
 		
 		if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
 			--pImpl_->nUnseenCount_;
