@@ -1257,13 +1257,14 @@ QSTATUS qm::Account::copyMessages(const Folder::MessageHolderList& l,
 	// Take care of local messages in remote folder
 	
 	bool bLocalCopy = true;
-	if (pFolderTo->getAccount() == this &&
-		(bMove &&
-		pFolderFrom->isFlag(Folder::FLAG_LOCAL) &&
-		pFolderTo->isFlag(Folder::FLAG_LOCAL)) ||
-		(!pFolderFrom->isFlag(Folder::FLAG_LOCAL) &&
-		!pFolderTo->isFlag(Folder::FLAG_LOCAL)))
-		bLocalCopy = false;
+	if (pFolderTo->getAccount() == this) {
+		bool bFromLocal = pFolderFrom->isFlag(Folder::FLAG_LOCAL);
+		bool bToLocal = pFolderTo->isFlag(Folder::FLAG_LOCAL);
+		if (bFromLocal)
+			bLocalCopy = bToLocal ? !bMove : true;
+		else
+			bLocalCopy = bToLocal;
+	}
 	
 	if (bLocalCopy) {
 		Folder::MessageHolderList::const_iterator it = l.begin();
