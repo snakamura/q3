@@ -256,7 +256,8 @@ QSTATUS qm::ExternalEditorManager::createMessage(const WCHAR* pwszPath)
 	
 	if (nSize != 0) {
 		Message* p = 0;
-		MessageCreator creator;
+		MessageCreator creator(MessageCreator::FLAG_ADDCONTENTTYPE |
+			MessageCreator::FLAG_EXPANDALIAS);
 		status = creator.createMessage(&buffer[0], nSize, &p);
 		CHECK_QSTATUS();
 		std::auto_ptr<Message> pMessage(p);
