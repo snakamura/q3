@@ -41,6 +41,7 @@ public:
 	const ActionInvoker* getActionInvoker() const;
 	bool isShowingModalDialog() const;
 	void initialShow();
+	void layout();
 	bool save();
 	
 	bool isShowToolbar() const;

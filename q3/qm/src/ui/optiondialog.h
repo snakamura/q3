@@ -30,6 +30,8 @@ namespace qm {
 
 class OptionDialog;
 class OptionDialogPanel;
+	template<class Dialog> class AbstractOptionDialogPanel;
+class OptionDialogContext;
 class OptionDialogManager;
 class OptionFolderWindowDialog;
 class OptionFolderComboBoxDialog;
@@ -63,6 +65,7 @@ class LayoutUtil;
 class Document;
 class FolderComboBox;
 class FolderWindow;
+class MainWindow;
 
 
 /****************************************************************************
@@ -100,6 +103,7 @@ public:
 				 ColorManager* pColorManager,
 				 SyncFilterManager* pSyncFilterManager,
 				 AutoPilotManager* pAutoPilotManager,
+				 MainWindow* pMainWindow,
 				 FolderWindow* pFolderWindow,
 				 FolderComboBox* pFolderComboBox,
 				 qs::Profile* pProfile,
@@ -174,6 +178,7 @@ private:
 	ColorManager* pColorManager_;
 	SyncFilterManager* pSyncFilterManager_;
 	AutoPilotManager* pAutoPilotManager_;
+	MainWindow* pMainWindow_;
 	FolderWindow* pFolderWindow_;
 	FolderComboBox* pFolderComboBox_;
 	qs::Profile* pProfile_;
@@ -197,7 +202,7 @@ public:
 
 public:
 	virtual HWND getWindow() = 0;
-	virtual bool save() = 0;
+	virtual bool save(OptionDialogContext* pContext) = 0;
 };
 
 
@@ -221,6 +226,38 @@ public:
 
 /****************************************************************************
  *
+ * OptionDialogContext
+ *
+ */
+
+class OptionDialogContext
+{
+public:
+	enum Flag {
+		FLAG_LAYOUTMAINWINDOW	= 0x01
+	};
+
+public:
+	OptionDialogContext();
+	~OptionDialogContext();
+
+public:
+	unsigned int getFlags() const;
+	void setFlags(unsigned int nFlags);
+	void setFlags(unsigned int nFlags,
+				  unsigned int nMask);
+
+private:
+	OptionDialogContext(const OptionDialogContext&);
+	OptionDialogContext& operator=(const OptionDialogContext&);
+
+private:
+	unsigned int nFlags_;
+};
+
+
+/****************************************************************************
+ *
  * OptionDialogManager
  *
  */
@@ -238,7 +275,8 @@ public:
 	~OptionDialogManager();
 
 public:
-	void initUIs(FolderWindow* pFolderWindow,
+	void initUIs(MainWindow* pMainWindow,
+				 FolderWindow* pFolderWindow,
 				 FolderComboBox* pFolderComboBox);
 	int showDialog(HWND hwndParent,
 				   OptionDialog::Panel panel) const;
@@ -256,6 +294,7 @@ private:
 	SyncManager* pSyncManager_;
 	AutoPilotManager* pAutoPilotManager_;
 	qs::Profile* pProfile_;
+	MainWindow* pMainWindow_;
 	FolderWindow* pFolderWindow_;
 	FolderComboBox* pFolderComboBox_;
 };
@@ -285,7 +324,7 @@ protected:
 								 LPARAM lParam);
 
 public:
-	virtual bool save();
+	virtual bool save(OptionDialogContext* pContext);
 
 private:
 	LRESULT onFont();
@@ -325,7 +364,7 @@ protected:
 								 LPARAM lParam);
 
 public:
-	virtual bool save();
+	virtual bool save(OptionDialogContext* pContext);
 
 private:
 	LRESULT onFont();
@@ -380,7 +419,7 @@ protected:
 	virtual bool edit(T* p) const;
 
 public:
-	virtual bool save();
+	virtual bool save(OptionDialogContext* pContext);
 
 protected:
 	LRESULT onSize(UINT nFlags,
@@ -761,7 +800,7 @@ protected:
 	virtual bool edit(AutoPilotEntry* p) const;
 
 public:
-	virtual bool save();
+	virtual bool save(OptionDialogContext* pContext);
 
 protected:
 	LRESULT onSize(UINT nFlags,
@@ -848,7 +887,7 @@ protected:
 	virtual bool edit(Filter* p) const;
 
 public:
-	virtual bool save();
+	virtual bool save(OptionDialogContext* pContext);
 
 protected:
 	LRESULT onSize(UINT nFlags,
@@ -933,7 +972,7 @@ protected:
 	virtual bool edit(FixedFormText* p) const;
 
 public:
-	virtual bool save();
+	virtual bool save(OptionDialogContext* pContext);
 
 protected:
 	LRESULT onSize(UINT nFlags,
@@ -1033,7 +1072,7 @@ protected:
 	virtual bool edit(GoRoundCourse* p) const;
 
 public:
-	virtual bool save();
+	virtual bool save(OptionDialogContext* pContext);
 
 protected:
 	LRESULT onSize(UINT nFlags,
@@ -1235,7 +1274,7 @@ protected:
 	virtual bool edit(Signature* p) const;
 
 public:
-	virtual bool save();
+	virtual bool save(OptionDialogContext* pContext);
 
 protected:
 	LRESULT onSize(UINT nFlags,
@@ -1336,7 +1375,7 @@ protected:
 	virtual bool edit(SyncFilterSet* p) const;
 
 public:
-	virtual bool save();
+	virtual bool save(OptionDialogContext* pContext);
 
 protected:
 	LRESULT onSize(UINT nFlags,

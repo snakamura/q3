@@ -9,6 +9,7 @@
 #include <qmdocument.h>
 #include <qmfoldercombobox.h>
 #include <qmfolderwindow.h>
+#include <qmmainwindow.h>
 
 #include <qsras.h>
 #include <qsuiutil.h>
@@ -39,6 +40,7 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 							   ColorManager* pColorManager,
 							   SyncFilterManager* pSyncFilterManager,
 							   AutoPilotManager* pAutoPilotManager,
+							   MainWindow* pMainWindow,
 							   FolderWindow* pFolderWindow,
 							   FolderComboBox* pFolderComboBox,
 							   Profile* pProfile,
@@ -50,6 +52,7 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 	pColorManager_(pColorManager),
 	pSyncFilterManager_(pSyncFilterManager),
 	pAutoPilotManager_(pAutoPilotManager),
+	pMainWindow_(pMainWindow),
 	pFolderWindow_(pFolderWindow),
 	pFolderComboBox_(pFolderComboBox),
 	pProfile_(pProfile),
@@ -205,14 +208,19 @@ LRESULT qm::OptionDialog::onInitDialog(HWND hwndFocus,
 
 LRESULT qm::OptionDialog::onOk()
 {
+	OptionDialogContext context;
 	for (PanelList::const_iterator it = listPanel_.begin(); it != listPanel_.end(); ++it) {
 		OptionDialogPanel* pPanel = *it;
 		if (pPanel) {
-			if (!pPanel->save()) {
+			if (!pPanel->save(&context)) {
 				// TODO
 			}
 		}
 	}
+	
+	unsigned int nFlags = context.getFlags();
+	if (nFlags & OptionDialogContext::FLAG_LAYOUTMAINWINDOW)
+		pMainWindow_->layout();
 	
 	nEnd_ = IDOK;
 	return 0;
@@ -636,6 +644,38 @@ qm::OptionDialogPanel::~OptionDialogPanel()
 
 /****************************************************************************
  *
+ * OptionDialogContext
+ *
+ */
+
+qm::OptionDialogContext::OptionDialogContext() :
+	nFlags_(0)
+{
+}
+
+qm::OptionDialogContext::~OptionDialogContext()
+{
+}
+
+unsigned int qm::OptionDialogContext::getFlags() const
+{
+	return nFlags_;
+}
+
+void qm::OptionDialogContext::setFlags(unsigned int nFlags)
+{
+	setFlags(nFlags, nFlags);
+}
+
+void qm::OptionDialogContext::setFlags(unsigned int nFlags,
+									   unsigned int nMask)
+{
+	nFlags_ = (nFlags_ & ~nMask) | (nFlags & nMask);
+}
+
+
+/****************************************************************************
+ *
  * OptionDialogManager
  *
  */
@@ -654,6 +694,7 @@ qm::OptionDialogManager::OptionDialogManager(Document* pDocument,
 	pSyncManager_(pSyncManager),
 	pAutoPilotManager_(pAutoPilotManager),
 	pProfile_(pProfile),
+	pMainWindow_(0),
 	pFolderWindow_(0),
 	pFolderComboBox_(0)
 {
@@ -663,9 +704,11 @@ qm::OptionDialogManager::~OptionDialogManager()
 {
 }
 
-void qm::OptionDialogManager::initUIs(FolderWindow* pFolderWindow,
+void qm::OptionDialogManager::initUIs(MainWindow* pMainWindow,
+									  FolderWindow* pFolderWindow,
 									  FolderComboBox* pFolderComboBox)
 {
+	pMainWindow_ = pMainWindow;
 	pFolderWindow_ = pFolderWindow;
 	pFolderComboBox_ = pFolderComboBox;
 }
@@ -680,12 +723,14 @@ int qm::OptionDialogManager::showDialog(HWND hwndParent,
 	assert(pSyncManager_);
 	assert(pAutoPilotManager_);
 	assert(pProfile_);
+	assert(pMainWindow_);
 	assert(pFolderWindow_);
 	assert(pFolderComboBox_);
 	
 	OptionDialog dialog(pDocument_, pGoRound_, pFilterManager_,
 		pColorManager_, pSyncManager_->getSyncFilterManager(),
-		pAutoPilotManager_, pFolderWindow_, pFolderComboBox_, pProfile_, panel);
+		pAutoPilotManager_, pMainWindow_, pFolderWindow_,
+		pFolderComboBox_, pProfile_, panel);
 	return dialog.doModal(hwndParent);
 }
 
@@ -746,7 +791,7 @@ LRESULT qm::OptionFolderWindowDialog::onInitDialog(HWND hwndFocus,
 	return FALSE;
 }
 
-bool qm::OptionFolderWindowDialog::save()
+bool qm::OptionFolderWindowDialog::save(OptionDialogContext* pContext)
 {
 	for (int n = 0; n < countof(folderWindowFlags); ++n) {
 		bool bShow = sendDlgItemMessage(folderWindowFlags[n].nId_, BM_GETCHECK) == BST_CHECKED;
@@ -815,7 +860,7 @@ LRESULT qm::OptionFolderComboBoxDialog::onInitDialog(HWND hwndFocus,
 	return FALSE;
 }
 
-bool qm::OptionFolderComboBoxDialog::save()
+bool qm::OptionFolderComboBoxDialog::save(OptionDialogContext* pContext)
 {
 	for (int n = 0; n < countof(folderComboBoxFlags); ++n) {
 		bool bShow = sendDlgItemMessage(folderComboBoxFlags[n].nId_, BM_GETCHECK) == BST_CHECKED;
@@ -824,6 +869,8 @@ bool qm::OptionFolderComboBoxDialog::save()
 	UIUtil::setLogFontToProfile(pProfile_, L"FolderComboBox", lf_);
 	
 	pFolderComboBox_->reloadProfiles();
+	
+	pContext->setFlags(OptionDialogContext::FLAG_LAYOUTMAINWINDOW);
 	
 	return true;
 }
@@ -1743,7 +1790,7 @@ bool qm::AutoPilotDialog::edit(AutoPilotEntry* p) const
 	return dialog.doModal(getParentPopup()) == IDOK;
 }
 
-bool qm::AutoPilotDialog::save()
+bool qm::AutoPilotDialog::save(OptionDialogContext* pContext)
 {
 	pManager_->setEntries(getList());
 	return pManager_->save();
@@ -1905,7 +1952,7 @@ bool qm::FiltersDialog::edit(Filter* p) const
 	return dialog.doModal(getParentPopup()) == IDOK;
 }
 
-bool qm::FiltersDialog::save()
+bool qm::FiltersDialog::save(OptionDialogContext* pContext)
 {
 	pManager_->setFilters(getList());
 	return pManager_->save();
@@ -2066,7 +2113,7 @@ bool qm::FixedFormTextsDialog::edit(FixedFormText* p) const
 	return dialog.doModal(getParentPopup()) == IDOK;
 }
 
-bool qm::FixedFormTextsDialog::save()
+bool qm::FixedFormTextsDialog::save(OptionDialogContext* pContext)
 {
 	pManager_->setTexts(getList());
 	return pManager_->save();
@@ -2300,7 +2347,7 @@ bool qm::GoRoundDialog::edit(GoRoundCourse* p) const
 	return dialog.doModal(getParentPopup()) == IDOK;
 }
 
-bool qm::GoRoundDialog::save()
+bool qm::GoRoundDialog::save(OptionDialogContext* pContext)
 {
 	pGoRound_->setCourses(getList());
 	return pGoRound_->save();
@@ -3033,7 +3080,7 @@ bool qm::SignaturesDialog::edit(Signature* p) const
 	return dialog.doModal(getParentPopup()) == IDOK;
 }
 
-bool qm::SignaturesDialog::save()
+bool qm::SignaturesDialog::save(OptionDialogContext* pContext)
 {
 	pSignatureManager_->setSignatures(getList());
 	return pSignatureManager_->save();
@@ -3296,7 +3343,7 @@ bool qm::SyncFilterSetsDialog::edit(SyncFilterSet* p) const
 	return dialog.doModal(getParentPopup()) == IDOK;
 }
 
-bool qm::SyncFilterSetsDialog::save()
+bool qm::SyncFilterSetsDialog::save(OptionDialogContext* pContext)
 {
 	pSyncFilterManager_->setFilterSets(getList());
 	return pSyncFilterManager_->save();

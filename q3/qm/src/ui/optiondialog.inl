@@ -124,7 +124,7 @@ bool qm::RuleColorSetsDialog<T, List, Manager, EditDialog>::edit(T* p) const
 }
 
 template<class T, class List, class Manager, class EditDialog>
-bool qm::RuleColorSetsDialog<T, List, Manager, EditDialog>::save()
+bool qm::RuleColorSetsDialog<T, List, Manager, EditDialog>::save(OptionDialogContext* pContext)
 {
 	(pManager_->*pfnSet_)(getList());
 	return pManager_->save();
