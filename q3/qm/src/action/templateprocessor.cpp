@@ -109,8 +109,14 @@ QSTATUS qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 	status = pTemplate->getValue(context, &wstrValue);
 	CHECK_QSTATUS();
 	
-	bool bExternalEditor = (bExternalEditor_ && !bReverseExternalEditor) ||
-		(!bExternalEditor_ && bReverseExternalEditor);
+	bool bExternalEditor = bExternalEditor_;
+	int nExternalEditor = 0;
+	status = pProfile_->getInt(L"Global", L"UseExternalEditor", 0, &nExternalEditor);
+	CHECK_QSTATUS();
+	if (nExternalEditor != 0)
+		bExternalEditor = !bExternalEditor;
+	if (bReverseExternalEditor)
+		bExternalEditor = !bExternalEditor;
 	
 	if (bExternalEditor) {
 		status = pExternalEditorManager_->open(wstrValue.get());
