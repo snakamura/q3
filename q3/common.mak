@@ -392,6 +392,9 @@ else
 	ifeq ($(PLATFORM),ppc2003)
 		LIBS			+= ccrtrtti.lib
 	endif
+	ifeq ($(PLATFORM),sig3)
+		LIBS			+= urlmon.lib
+	endif
 	ifdef KCTRL
 		LIBS			+= $(KCTRLDIR)/lib/$(LIBCPU)/kctrl.lib
 	endif
