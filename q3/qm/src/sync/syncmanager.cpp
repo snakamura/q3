@@ -265,6 +265,7 @@ QSTATUS qm::SyncData::addFolders(Account* pAccount, SubAccount* pSubAccount,
 		Folder* pFolder = *it;
 		if (pFolder->getType() == Folder::TYPE_NORMAL &&
 			!pFolder->isFlag(Folder::FLAG_NOSELECT) &&
+			!pFolder->isFlag(Folder::FLAG_HIDE) &&
 			pFolder->isFlag(Folder::FLAG_SYNCABLE)) {
 			// TODO
 			// Check if this is sync folder or not.
