@@ -12,6 +12,7 @@
 #include <qm.h>
 #include <qmsecurity.h>
 
+#include <qsdevicecontext.h>
 #include <qsdragdrop.h>
 #include <qsmenu.h>
 #include <qsregex.h>
@@ -30,6 +31,8 @@ class HeaderItem;
 		class StaticHeaderItem;
 		class EditHeaderItem;
 	class AttachmentHeaderItem;
+class TextHeaderItemCallback;
+class TextHeaderItemSite;
 class HeaderWindowContentHandler;
 struct HeaderWindowCreateContext;
 
@@ -101,7 +104,7 @@ public:
 	void setName(const WCHAR* pwszName);
 	void setFlags(unsigned int nFlags,
 				  unsigned int nMask);
-	void setTemplate(std::auto_ptr<Template> pTemplate);
+	void setValue(std::auto_ptr<Template> pValue);
 
 public:
 	virtual void setMessage(const TemplateContext* pContext) = 0;
@@ -124,7 +127,40 @@ private:
 private:
 	qs::wstring_ptr wstrName_;
 	unsigned int nFlags_;
-	std::auto_ptr<Template> pTemplate_;
+	std::auto_ptr<Template> pValue_;
+};
+
+
+/****************************************************************************
+ *
+ * TextHeaderItemCallback
+ *
+ */
+
+class TextHeaderItemCallback
+{
+public:
+	virtual ~TextHeaderItemCallback();
+
+public:
+	virtual HBRUSH getColor(qs::DeviceContext* pdc) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * TextHeaderItemSite
+ *
+ */
+
+class TextHeaderItemSite
+{
+public:
+	virtual ~TextHeaderItemSite();
+
+public:
+	virtual void registerCallback(TextHeaderItem* pItem,
+								  TextHeaderItemCallback* pCallback) = 0;
 };
 
 
@@ -134,7 +170,9 @@ private:
  *
  */
 
-class TextHeaderItem : public HeaderItem
+class TextHeaderItem :
+	public HeaderItem,
+	public TextHeaderItemCallback
 {
 public:
 	enum Style {
@@ -150,14 +188,19 @@ public:
 	virtual ~TextHeaderItem();
 
 public:
+	HWND getHandle() const;
+
+public:
 	void setStyle(unsigned int nStyle);
+	void setBackground(std::auto_ptr<Template> pBackground);
 
 public:
 	virtual unsigned int getHeight(unsigned int nWidth,
 								   unsigned int nFontHeight) const;
 	virtual bool create(qs::WindowBase* pParent,
 						const std::pair<HFONT, HFONT>& fonts,
-						UINT nId);
+						UINT nId,
+						void* pParam);
 	virtual void destroy();
 	virtual HDWP layout(HDWP hdwp,
 						const RECT& rect,
@@ -173,11 +216,14 @@ protected:
 	virtual const TCHAR* getWindowClassName() const = 0;
 	virtual UINT getWindowStyle() const = 0;
 
-protected:
-	HWND getHandle() const;
+public:
+	virtual HBRUSH getColor(qs::DeviceContext* pdc);
 
 public:
 	static unsigned int parseStyle(const WCHAR* pwszStyle);
+
+private:
+	void updateColor(const TemplateContext& context);
 
 private:
 	TextHeaderItem(const TextHeaderItem&);
@@ -185,7 +231,10 @@ private:
 
 private:
 	unsigned int nStyle_;
+	std::auto_ptr<Template> pBackground_;
 	HWND hwnd_;
+	COLORREF crBackground_;
+	HBRUSH hbrBackground_;
 };
 
 
@@ -263,7 +312,8 @@ public:
 								   unsigned int nFontHeight) const;
 	virtual bool create(qs::WindowBase* pParent,
 						const std::pair<HFONT, HFONT>& fonts,
-						UINT nId);
+						UINT nId,
+						void* pParam);
 	virtual void destroy();
 	virtual HDWP layout(HDWP hdwp,
 						const RECT& rect,

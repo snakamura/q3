@@ -40,7 +40,8 @@ public:
 	int getHeight() const;
 	bool create(qs::WindowBase* pParent,
 				const std::pair<HFONT, HFONT>& fonts,
-				UINT* pnId) const;
+				UINT* pnId,
+				void* pParam) const;
 	void destroy() const;
 	void layout(const RECT& rect,
 				unsigned int nFontHeight);
@@ -80,7 +81,8 @@ public:
 	LineLayoutItem* getItem(unsigned int n) const;
 	bool create(qs::WindowBase* pParent,
 				const std::pair<HFONT, HFONT>& fonts,
-				UINT* pnId) const;
+				UINT* pnId,
+				void* pParam) const;
 	void destroy() const;
 	HDWP layout(HDWP hdwp,
 				const RECT& rect,
@@ -141,7 +143,8 @@ public:
 								   unsigned int nFontHeight) const = 0;
 	virtual bool create(qs::WindowBase* pParent,
 						const std::pair<HFONT, HFONT>& fonts,
-						UINT nId) = 0;
+						UINT nId,
+						void* pParam) = 0;
 	virtual void destroy() = 0;
 	virtual HDWP layout(HDWP hdwp,
 						const RECT& rect,

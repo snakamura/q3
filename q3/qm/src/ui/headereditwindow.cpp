@@ -103,7 +103,7 @@ bool qm::HeaderEditWindowImpl::create(const WCHAR* pwszClass,
 	
 	std::pair<HFONT, HFONT> fonts(hfont_, hfontBold_);
 	UINT nId = ID_HEADEREDIT_ITEM;
-	return pLayout_->create(pThis_, fonts, &nId);
+	return pLayout_->create(pThis_, fonts, &nId, 0);
 }
 
 
@@ -605,7 +605,8 @@ void qm::TextHeaderEditItem::setType(Type type)
 
 bool qm::TextHeaderEditItem::create(WindowBase* pParent,
 									const std::pair<HFONT, HFONT>& fonts,
-									UINT nId)
+									UINT nId,
+									void* pParam)
 {
 	assert(!hwnd_);
 	
@@ -826,9 +827,10 @@ unsigned int qm::EditHeaderEditItem::getHeight(unsigned int nWidth,
 
 bool qm::EditHeaderEditItem::create(qs::WindowBase* pParent,
 									const std::pair<HFONT, HFONT>& fonts,
-									UINT nId)
+									UINT nId,
+									void* pParam)
 {
-	if (!TextHeaderEditItem::create(pParent, fonts, nId))
+	if (!TextHeaderEditItem::create(pParent, fonts, nId, pParam))
 		return false;
 	pParent->addCommandHandler(this);
 	
@@ -988,9 +990,10 @@ void qm::AddressHeaderEditItem::setEditMessage(EditMessage* pEditMessage,
 
 bool qm::AddressHeaderEditItem::create(qs::WindowBase* pParent,
 									   const std::pair<HFONT, HFONT>& fonts,
-									   UINT nId)
+									   UINT nId,
+									   void* pParam)
 {
-	if (!EditHeaderEditItem::create(pParent, fonts, nId))
+	if (!EditHeaderEditItem::create(pParent, fonts, nId, pParam))
 		return false;
 	
 	if (nFlags_ & FLAG_AUTOCOMPLETE)
@@ -1157,7 +1160,8 @@ unsigned int qm::AttachmentHeaderEditItem::getHeight(unsigned int nWidth,
 
 bool qm::AttachmentHeaderEditItem::create(WindowBase* pParent,
 										  const std::pair<HFONT, HFONT>& fonts,
-										  UINT nId)
+										  UINT nId,
+										  void* pParam)
 {
 	assert(!wnd_.getHandle());
 	
@@ -1447,7 +1451,8 @@ unsigned int qm::ComboBoxHeaderEditItem::getHeight(unsigned int nWidth,
 
 bool qm::ComboBoxHeaderEditItem::create(WindowBase* pParent,
 										const std::pair<HFONT, HFONT>& fonts,
-										UINT nId)
+										UINT nId,
+										void* pParam)
 {
 	assert(!hwnd_);
 	

@@ -210,7 +210,8 @@ public:
 public:
 	virtual bool create(qs::WindowBase* pParent,
 						const std::pair<HFONT, HFONT>& fonts,
-						UINT nId);
+						UINT nId,
+						void* pParam);
 	virtual void destroy();
 	virtual HDWP layout(HDWP hdwp,
 						const RECT& rect,
@@ -309,7 +310,8 @@ public:
 								   unsigned int nFontHeight) const;
 	virtual bool create(qs::WindowBase* pParent,
 						const std::pair<HFONT, HFONT>& fonts,
-						UINT nId);
+						UINT nId,
+						void* pParam);
 	virtual void destroy();
 
 protected:
@@ -378,7 +380,8 @@ public:
 public:
 	virtual bool create(qs::WindowBase* pParent,
 						const std::pair<HFONT, HFONT>& fonts,
-						UINT nId);
+						UINT nId,
+						void* pParam);
 	virtual void destroy();
 
 protected:
@@ -440,7 +443,8 @@ public:
 								   unsigned int nFontHeight) const;
 	virtual bool create(qs::WindowBase* pParent,
 						const std::pair<HFONT, HFONT>& fonts,
-						UINT nId);
+						UINT nId,
+						void* pParam);
 	virtual void destroy();
 	virtual HDWP layout(HDWP hdwp,
 						const RECT& rect,
@@ -535,7 +539,8 @@ public:
 								   unsigned int nFontHeight) const;
 	virtual bool create(qs::WindowBase* pParent,
 						const std::pair<HFONT, HFONT>& fonts,
-						UINT nId);
+						UINT nId,
+						void* pParam);
 	virtual void destroy();
 	virtual HDWP layout(HDWP hdwp,
 						const RECT& rect,

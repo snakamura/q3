@@ -43,7 +43,7 @@ using namespace qs;
  *
  */
 
-class qm::HeaderWindowImpl
+class qm::HeaderWindowImpl : public TextHeaderItemSite
 {
 public:
 	enum {
@@ -55,6 +55,13 @@ public:
 	bool create(MenuManager* pMenuManager);
 
 public:
+	virtual void registerCallback(TextHeaderItem* pItem,
+								  TextHeaderItemCallback* pCallback);
+
+public:
+	typedef std::vector<std::pair<TextHeaderItem*, TextHeaderItemCallback*> > TextHeaderItemCallbackList;
+
+public:
 	HeaderWindow* pThis_;
 	Document* pDocument_;
 	Profile* pProfile_;
@@ -64,6 +71,7 @@ public:
 	HBRUSH hbrBackground_;
 	std::auto_ptr<LineLayout> pLayout_;
 	AttachmentSelectionModel* pAttachmentSelectionModel_;
+	TextHeaderItemCallbackList listTextHeaderItemCallback_;
 };
 
 bool qm::HeaderWindowImpl::load(MenuManager* pMenuManager)
@@ -89,10 +97,16 @@ bool qm::HeaderWindowImpl::create(MenuManager* pMenuManager)
 	
 	std::pair<HFONT, HFONT> fonts(hfont_, hfontBold_);
 	UINT nId = ID_HEADER_ITEM;
-	if (!pLayout_->create(pThis_, fonts, &nId))
+	if (!pLayout_->create(pThis_, fonts, &nId, this))
 		return false;
 	
 	return true;
+}
+
+void qm::HeaderWindowImpl::registerCallback(TextHeaderItem* pItem,
+											TextHeaderItemCallback* pCallback)
+{
+	listTextHeaderItemCallback_.push_back(std::make_pair(pItem, pCallback));
 }
 
 
@@ -230,10 +244,30 @@ LRESULT qm::HeaderWindow::onCtlColorStatic(HDC hdc,
 										   HWND hwnd)
 {
 	DefaultWindowHandler::onCtlColorStatic(hdc, hwnd);
+	
 	DeviceContext dc(hdc);
-	dc.setTextColor(::GetSysColor(COLOR_WINDOWTEXT));
-	dc.setBkColor(::GetSysColor(COLOR_3DFACE));
-	return reinterpret_cast<LRESULT>(pImpl_->hbrBackground_);
+	HBRUSH hbr = 0;
+	
+	typedef HeaderWindowImpl::TextHeaderItemCallbackList List;
+	const List& l = pImpl_->listTextHeaderItemCallback_;
+	List::const_iterator it = std::find_if(l.begin(), l.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				std::equal_to<HWND>(),
+				unary_compose_f_gx(
+					std::mem_fun(&TextHeaderItem::getHandle),
+					std::select1st<List::value_type>()),
+				std::identity<HWND>()),
+			hwnd));
+	if (it != l.end())
+		hbr = (*it).second->getColor(&dc);
+	
+	if (!hbr) {
+		dc.setTextColor(::GetSysColor(COLOR_WINDOWTEXT));
+		dc.setBkColor(::GetSysColor(COLOR_3DFACE));
+		hbr = pImpl_->hbrBackground_;
+	}
+	return reinterpret_cast<LRESULT>(hbr);
 }
 
 LRESULT qm::HeaderWindow::onDestroy()
@@ -363,9 +397,9 @@ void qm::HeaderItem::setFlags(unsigned int nFlags,
 	nFlags_ |= nFlags & nMask;
 }
 
-void qm::HeaderItem::setTemplate(std::auto_ptr<Template> pTemplate)
+void qm::HeaderItem::setValue(std::auto_ptr<Template> pValue)
 {
-	pTemplate_ = pTemplate;
+	pValue_ = pValue;
 }
 
 void qm::HeaderItem::copy()
@@ -390,7 +424,7 @@ wstring_ptr qm::HeaderItem::getValue(const TemplateContext& context) const
 {
 	wstring_ptr wstrValue;
 	if (context.getMessageHolder() || (nFlags_ & FLAG_SHOWALWAYS)) {
-		if (pTemplate_->getValue(context, &wstrValue) != Template::RESULT_SUCCESS)
+		if (pValue_->getValue(context, &wstrValue) != Template::RESULT_SUCCESS)
 			return 0;
 	}
 	else {
@@ -402,13 +436,37 @@ wstring_ptr qm::HeaderItem::getValue(const TemplateContext& context) const
 
 /****************************************************************************
  *
+ * TextHeaderItemCallback
+ *
+ */
+
+qm::TextHeaderItemCallback::~TextHeaderItemCallback()
+{
+}
+
+
+/****************************************************************************
+ *
+ * TextHeaderItemSite
+ *
+ */
+
+qm::TextHeaderItemSite::~TextHeaderItemSite()
+{
+}
+
+
+/****************************************************************************
+ *
  * TextHeaderItem
  *
  */
 
 qm::TextHeaderItem::TextHeaderItem() :
 	nStyle_(STYLE_NORMAL),
-	hwnd_(0)
+	hwnd_(0),
+	crBackground_(0xffffffff),
+	hbrBackground_(0)
 {
 }
 
@@ -416,9 +474,19 @@ qm::TextHeaderItem::~TextHeaderItem()
 {
 }
 
+HWND qm::TextHeaderItem::getHandle() const
+{
+	return hwnd_;
+}
+
 void qm::TextHeaderItem::setStyle(unsigned int nStyle)
 {
 	nStyle_ = nStyle;
+}
+
+void qm::TextHeaderItem::setBackground(std::auto_ptr<Template> pBackground)
+{
+	pBackground_ = pBackground;
 }
 
 unsigned int qm::TextHeaderItem::getHeight(unsigned int nWidth,
@@ -429,7 +497,8 @@ unsigned int qm::TextHeaderItem::getHeight(unsigned int nWidth,
 
 bool qm::TextHeaderItem::create(WindowBase* pParent,
 								const std::pair<HFONT, HFONT>& fonts,
-								UINT nId)
+								UINT nId,
+								void* pParam)
 {
 	assert(!hwnd_);
 	
@@ -442,11 +511,18 @@ bool qm::TextHeaderItem::create(WindowBase* pParent,
 	
 	Window(hwnd_).setFont((nStyle_ & STYLE_BOLD) ? fonts.second : fonts.first);
 	
+	if (pBackground_.get()) {
+		TextHeaderItemSite* pSite = static_cast<TextHeaderItemSite*>(pParam);
+		pSite->registerCallback(this, this);
+	}
+	
 	return true;
 }
 
 void qm::TextHeaderItem::destroy()
 {
+	if (hbrBackground_)
+		::DeleteObject(hbrBackground_);
 }
 
 HDWP qm::TextHeaderItem::layout(HDWP hdwp,
@@ -468,8 +544,8 @@ void qm::TextHeaderItem::setMessage(const TemplateContext* pContext)
 {
 	if (pContext) {
 		wstring_ptr wstrValue(getValue(*pContext));
-		if (wstrValue.get())
-			Window(hwnd_).setWindowText(wstrValue.get());
+		updateColor(*pContext);
+		Window(hwnd_).setWindowText(wstrValue.get() ? wstrValue.get() : L"");
 	}
 	else {
 		Window(hwnd_).setWindowText(L"");
@@ -486,9 +562,11 @@ bool qm::TextHeaderItem::isActive() const
 	return Window(hwnd_).hasFocus();
 }
 
-HWND qm::TextHeaderItem::getHandle() const
+HBRUSH qm::TextHeaderItem::getColor(qs::DeviceContext* pdc)
 {
-	return hwnd_;
+	if (hbrBackground_)
+		pdc->setBkColor(crBackground_);
+	return hbrBackground_;
 }
 
 unsigned int qm::TextHeaderItem::parseStyle(const WCHAR* pwszStyle)
@@ -516,6 +594,26 @@ unsigned int qm::TextHeaderItem::parseStyle(const WCHAR* pwszStyle)
 	}
 	
 	return nStyle;
+}
+
+void qm::TextHeaderItem::updateColor(const TemplateContext& context)
+{
+	COLORREF crBackground = 0xffffffff;
+	if (pBackground_.get()) {
+		wstring_ptr wstrBackground;
+		if (pBackground_->getValue(context, &wstrBackground) == Template::RESULT_SUCCESS)
+			crBackground = Color(wstrBackground.get()).getColor();
+	}
+	
+	if (crBackground != crBackground_) {
+		crBackground_ = crBackground;
+		if (hbrBackground_)
+			::DeleteObject(hbrBackground_);
+		if (crBackground_ != 0xffffffff)
+			hbrBackground_ = ::CreateSolidBrush(crBackground_);
+		else
+			hbrBackground_ = 0;
+	}
 }
 
 
@@ -622,7 +720,8 @@ unsigned int qm::AttachmentHeaderItem::getHeight(unsigned int nWidth,
 
 bool qm::AttachmentHeaderItem::create(WindowBase* pParent,
 									  const std::pair<HFONT, HFONT>& fonts,
-									  UINT nId)
+									  UINT nId,
+									  void* pParam)
 {
 	assert(!wnd_.getHandle());
 	
@@ -991,6 +1090,16 @@ bool qm::HeaderWindowContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 					pItem->setFlags(HeaderItem::FLAG_SHOWALWAYS,
 						HeaderItem::FLAG_SHOWALWAYS);
 			}
+			else if (wcscmp(pwszAttrLocalName, L"background") == 0) {
+				StringReader reader(attributes.getValue(n), false);
+				std::auto_ptr<Template> pBackground(TemplateParser().parse(&reader));
+				if (!pBackground.get())
+					return false;
+				if (!reader.close())
+					return false;
+				
+				pItem->setBackground(pBackground);
+			}
 			else {
 				return false;
 			}
@@ -1063,13 +1172,13 @@ bool qm::HeaderWindowContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		assert(pCurrentItem_);
 		
 		StringReader reader(buffer_.getCharArray(), false);
-		std::auto_ptr<Template> pTemplate(TemplateParser().parse(&reader));
-		if (!pTemplate.get())
+		std::auto_ptr<Template> pValue(TemplateParser().parse(&reader));
+		if (!pValue.get())
 			return false;
 		if (!reader.close())
 			return false;
 		
-		pCurrentItem_->setTemplate(pTemplate);
+		pCurrentItem_->setValue(pValue);
 		buffer_.remove();
 		
 		pCurrentItem_ = 0;

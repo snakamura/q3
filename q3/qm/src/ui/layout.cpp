@@ -51,10 +51,11 @@ int qm::LineLayout::getHeight() const
 
 bool qm::LineLayout::create(WindowBase* pParent,
 							const std::pair<HFONT, HFONT>& fonts,
-							UINT* pnId) const
+							UINT* pnId,
+							void* pParam) const
 {
 	for (LineList::const_iterator it = listLine_.begin(); it != listLine_.end(); ++it) {
-		if (!(*it)->create(pParent, fonts, pnId))
+		if (!(*it)->create(pParent, fonts, pnId, pParam))
 			return false;
 	}
 	return true;
@@ -139,10 +140,11 @@ LineLayoutItem* qm::LineLayoutLine::getItem(unsigned int n) const
 
 bool qm::LineLayoutLine::create(WindowBase* pParent,
 								const std::pair<HFONT, HFONT>& fonts,
-								UINT* pnId) const
+								UINT* pnId,
+								void* pParam) const
 {
 	for (ItemList::const_iterator it = listItem_.begin(); it != listItem_.end(); ++it) {
-		if (!(*it)->create(pParent, fonts, (*pnId)++))
+		if (!(*it)->create(pParent, fonts, (*pnId)++, pParam))
 			return false;
 	}
 	return true;

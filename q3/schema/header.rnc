@@ -38,4 +38,7 @@ textitem = xsd:string,
 item,
 attribute style {
 	xsd:string
+}?,
+attribute background {
+	xsd:string
 }?
