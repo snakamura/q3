@@ -58,6 +58,13 @@ public:
 		INSERTTEXTFLAG_REDO
 	};
 	
+	enum DeleteTextFlag {
+		DELETETEXTFLAG_DELETECHAR,
+		DELETETEXTFLAG_DELETEBACKWARDCHAR,
+		DELETETEXTFLAG_DELETEWORD,
+		DELETETEXTFLAG_DELETEBACKWARDWORD
+	};
+	
 	enum CharType {
 		CHARTYPE_NONE,
 		CHARTYPE_SPACE,
@@ -201,7 +208,7 @@ public:
 		unsigned int nEndLine, unsigned int nEndChar);
 	
 	QSTATUS insertText(const WCHAR* pwsz, size_t nLen, InsertTextFlag flag);
-	QSTATUS deleteText(bool bDeleteBackward);
+	QSTATUS deleteText(DeleteTextFlag flag);
 	
 	size_t getReformQuoteLength(const WCHAR* pwszLine, size_t nLen) const;
 	
@@ -273,6 +280,7 @@ public:
 	unsigned int nTimerDragScroll_;
 	POINT ptLastButtonDown_;
 	HIMC hImc_;
+	bool bAtok_;
 	HCURSOR hCursorLink_;
 	
 	mutable unsigned int nLineHeight_;
@@ -1278,15 +1286,33 @@ QSTATUS qs::TextWindowImpl::insertText(const WCHAR* pwsz,
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qs::TextWindowImpl::deleteText(bool bDeleteBackward)
+QSTATUS qs::TextWindowImpl::deleteText(DeleteTextFlag flag)
 {
 	DECLARE_QSTATUS();
 	
 	if (pTextModel_->isEditable()) {
 		if (!pThis_->isSelected()) {
-			status = pThis_->moveCaret(bDeleteBackward ?
-				TextWindow::MOVECARET_CHARLEFT : TextWindow::MOVECARET_CHARRIGHT,
-				0, 0, false, TextWindow::SELECT_SELECT, true);
+			TextWindow::MoveCaret mc;
+			switch (flag) {
+			case DELETETEXTFLAG_DELETECHAR:
+				mc = TextWindow::MOVECARET_CHARRIGHT;
+				break;
+			case DELETETEXTFLAG_DELETEBACKWARDCHAR:
+				mc = TextWindow::MOVECARET_CHARLEFT;
+				break;
+			case DELETETEXTFLAG_DELETEWORD:
+				mc = TextWindow::MOVECARET_WORDRIGHT;
+				break;
+			case DELETETEXTFLAG_DELETEBACKWARDWORD:
+				mc = TextWindow::MOVECARET_WORDLEFT;
+				break;
+			default:
+				assert(false);
+				break;
+			}
+			
+			status = pThis_->moveCaret(mc, 0, 0, false,
+				TextWindow::SELECT_SELECT, true);
 			CHECK_QSTATUS();
 			if (pThis_->isSelected()) {
 				std::swap(selection_.nStartLine_, selection_.nEndLine_);
@@ -1928,6 +1954,7 @@ qs::TextWindow::TextWindow(TextModel* pTextModel, Profile* pProfile,
 	pImpl_->ptLastButtonDown_.x = -1;
 	pImpl_->ptLastButtonDown_.y = -1;
 	pImpl_->hImc_ = 0;
+	pImpl_->bAtok_ = false;
 	pImpl_->hCursorLink_ = ::LoadCursor(getDllInstanceHandle(),
 		MAKEINTRESOURCE(IDC_LINK));
 	pImpl_->nLineHeight_ = 0;
@@ -3165,6 +3192,18 @@ LRESULT qs::TextWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	pImpl_->hImc_ = ::ImmGetContext(getHandle());
 	
+#ifdef _WIN32_WCE
+	Registry reg(HKEY_LOCAL_MACHINE,
+		L"System\\CurrentControlSet\\Control\\Layouts\\e0010411",
+		&status);
+	if (status == QSTATUS_SUCCESS) {
+		string_ptr<WSTRING> wstrIme;
+		status = reg.getValue(L"Ime File", &wstrIme);
+		pImpl_->bAtok_ = status == QSTATUS_SUCCESS &&
+			wstrIme.get() && wcsstr(wstrIme.get(), L"atok");
+	}
+#endif
+	
 	status = pImpl_->updateBitmaps();
 	CHECK_QSTATUS_VALUE(-1);
 	
@@ -3285,11 +3324,18 @@ LRESULT qs::TextWindow::onImeStartComposition()
 LRESULT qs::TextWindow::onKeyDown(UINT nKey, UINT nRepeat, UINT nFlags)
 {
 	if (nKey == VK_BACK) {
-		pImpl_->deleteText(true);
+		TextWindowImpl::DeleteTextFlag flag =
+			TextWindowImpl::DELETETEXTFLAG_DELETEBACKWARDCHAR;
+		if (::GetKeyState(VK_CONTROL) < 0 &&
+			(!pImpl_->bAtok_ || !::ImmGetOpenStatus(pImpl_->hImc_)))
+			flag = TextWindowImpl::DELETETEXTFLAG_DELETEBACKWARDWORD;
+		pImpl_->deleteText(flag);
 		return 0;
 	}
 	else if (nKey == VK_DELETE) {
-		pImpl_->deleteText(false);
+		pImpl_->deleteText(::GetKeyState(VK_CONTROL) < 0 ?
+			TextWindowImpl::DELETETEXTFLAG_DELETEWORD :
+			TextWindowImpl::DELETETEXTFLAG_DELETECHAR);
 		return 0;
 	}
 	
