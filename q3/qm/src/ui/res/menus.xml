@@ -12,9 +12,10 @@
 			<popupmenu text="&amp;Maintanance">
 				<menuitem text="&amp;Compact" action="FileCompact"/>
 				<menuitem text="Sa&amp;lvage" action="FileSalvage"/>
+				<menuitem text="Chec&amp;k" action="FileCheck"/>
+				<separator/>
 				<menuitem text="&amp;Dump..." action="FileDump"/>
 				<menuitem text="Lo&amp;ad..." action="FileLoad"/>
-				<menuitem text="Chec&amp;k" action="FileCheck"/>
 			</popupmenu>
 			<separator/>
 			<menuitem text="E&amp;xit" action="FileExit"/>
