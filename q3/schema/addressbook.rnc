@@ -34,7 +34,11 @@ element addressBook {
 				## 指定されない場合、false
 				attribute rfc2822 {
 					xsd:boolean
-				}?
+				}?,
+                ## 証明書の名前
+                attribute certificate {
+                    xsd:string
+                }
 			}+
 		}
 	}*
