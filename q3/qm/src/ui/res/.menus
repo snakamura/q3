@@ -94,7 +94,7 @@
 			<menuitem text="Apply Ru&amp;les to Selected" action="MessageApplyRuleSelected"/>
 			<menuitem text="&amp;Search..." action="MessageSearch"/>
 			<separator/>
-			<popupmenu text="&amp;Attachment" action="MessageAttachment"/>
+			<popupmenu text="Attac&amp;hment" action="MessageAttachment"/>
 			<separator/>
 			<menuitem text="&amp;Property..." action="MessageProperty"/>
 		</popupmenu>
@@ -177,7 +177,7 @@
 			<separator/>
 			<popupmenu text="&amp;Move" action="MessageMove"/>
 			<separator/>
-			<popupmenu text="&amp;Attachment" action="MessageAttachment"/>
+			<popupmenu text="Attac&amp;hment" action="MessageAttachment"/>
 			<separator/>
 			<menuitem text="&amp;Property..." action="MessageProperty"/>
 		</popupmenu>
@@ -292,7 +292,7 @@
 		<separator/>
 		<popupmenu text="&amp;Move" action="MessageMove"/>
 		<separator/>
-		<popupmenu text="&amp;Attachment" action="MessageAttachment"/>
+		<popupmenu text="Attac&amp;hment" action="MessageAttachment"/>
 		<separator/>
 		<popupmenu text="Mar&amp;k">
 			<menuitem text="Mark &amp;Seen" action="MessageMarkSeen"/>
@@ -323,7 +323,7 @@
 		<separator/>
 		<popupmenu text="&amp;Move" action="MessageMove"/>
 		<separator/>
-		<popupmenu text="&amp;Attachment" action="MessageAttachment"/>
+		<popupmenu text="Attac&amp;hment" action="MessageAttachment"/>
 		<separator/>
 		<popupmenu text="Mar&amp;k">
 			<menuitem text="Mark &amp;Seen" action="MessageMarkSeen"/>
