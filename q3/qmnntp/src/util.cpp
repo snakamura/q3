@@ -115,7 +115,11 @@ PasswordCallback::Result qmnntp::Util::getUserInfo(SubAccount* pSubAccount,
 	assert(pwstrUserName);
 	assert(pwstrPassword);
 	
-	*pwstrUserName = allocWString(pSubAccount->getUserName(host));
+	const WCHAR* pwszUserName = pSubAccount->getUserName(host);
+	if (!pwszUserName || !*pwszUserName)
+		return PasswordCallback::RESULT_ONETIME;
+	*pwstrUserName = allocWString(pwszUserName);
+	
 	return pPasswordCallback->getPassword(pSubAccount, host, pwstrPassword);
 }
 

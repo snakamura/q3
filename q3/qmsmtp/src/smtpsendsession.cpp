@@ -379,9 +379,14 @@ bool qmsmtp::SmtpSendSession::CallbackImpl::getUserInfo(wstring_ptr* pwstrUserNa
 	assert(pwstrUserName);
 	assert(pwstrPassword);
 	
-	*pwstrUserName = allocWString(pSubAccount_->getUserName(Account::HOST_SEND));
+	const WCHAR* pwszUserName = pSubAccount_->getUserName(Account::HOST_SEND);
+	if (!pwszUserName || !*pwszUserName)
+		return true;
+	*pwstrUserName = allocWString(pwszUserName);
+	
 	result_ = pSessionCallback_->getPassword(
 		pSubAccount_, Account::HOST_SEND, pwstrPassword);
+	
 	return result_ != PasswordCallback::RESULT_ERROR;
 }
 
