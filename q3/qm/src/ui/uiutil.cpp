@@ -381,7 +381,7 @@ bool qm::UIUtil::addMessageToClipboard(HWND hwnd,
 }
 
 MessagePtr qm::UIUtil::getMessageFromClipboard(HWND hwnd,
-											   Document* pDocument)
+											   AccountManager* pAccountManager)
 {
 	Clipboard clipboard(hwnd);
 	if (!clipboard)
@@ -397,7 +397,7 @@ MessagePtr qm::UIUtil::getMessageFromClipboard(HWND hwnd,
 	if (!pURI.get())
 		return MessagePtr();
 	
-	return pDocument->getMessage(*pURI.get());
+	return pAccountManager->getMessage(*pURI.get());
 }
 
 

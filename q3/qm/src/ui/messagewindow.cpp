@@ -577,7 +577,6 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	std::auto_ptr<HeaderWindow> pHeaderWindow(new HeaderWindow(pImpl_->pProfile_));
 	HeaderWindowCreateContext context = {
-		pContext->pDocument_,
 		pContext->pUIManager_->getMenuManager()
 	};
 	if (!pHeaderWindow->create(L"QmHeaderWindow", 0, WS_VISIBLE | WS_CHILD,

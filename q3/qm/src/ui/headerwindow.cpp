@@ -8,6 +8,7 @@
 
 #include <qmaccount.h>
 #include <qmapplication.h>
+#include <qmdocument.h>
 #include <qmfilenames.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
@@ -63,7 +64,6 @@ public:
 
 public:
 	HeaderWindow* pThis_;
-	Document* pDocument_;
 	Profile* pProfile_;
 	
 	HFONT hfont_;
@@ -122,7 +122,6 @@ qm::HeaderWindow::HeaderWindow(Profile* pProfile) :
 {
 	pImpl_ = new HeaderWindowImpl();
 	pImpl_->pThis_ = this;
-	pImpl_->pDocument_ = 0;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->hfont_ = 0;
 	pImpl_->hfontBold_ = 0;
@@ -219,7 +218,6 @@ LRESULT qm::HeaderWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	HeaderWindowCreateContext* pContext =
 		static_cast<HeaderWindowCreateContext*>(pCreateStruct->lpCreateParams);
-	pImpl_->pDocument_ = pContext->pDocument_;
 	
 	pImpl_->hfont_ = UIUtil::createFontFromProfile(
 		pImpl_->pProfile_, L"HeaderWindow", false);
@@ -710,7 +708,7 @@ qm::AttachmentHeaderItem::AttachmentHeaderItem(MenuManager* pMenuManager) :
 	wnd_(this),
 	pMenuManager_(pMenuManager),
 	pParent_(0),
-	pDocument_(0),
+	pAccountManager_(0),
 	nSecurityMode_(SECURITYMODE_NONE)
 {
 }
@@ -786,7 +784,7 @@ void qm::AttachmentHeaderItem::setMessage(const TemplateContext* pContext)
 	clear();
 	
 	if (pContext) {
-		pDocument_ = pContext->getDocument();
+		pAccountManager_ = pContext->getDocument();
 		nSecurityMode_ = pContext->getSecurityMode();
 		
 		MessageHolderBase* pmh = pContext->getMessageHolder();
@@ -877,7 +875,7 @@ LRESULT qm::AttachmentHeaderItem::onNotify(NMHDR* pnmhdr,
 LRESULT qm::AttachmentHeaderItem::onBeginDrag(NMHDR* pnmhdr,
 											  bool* pbHandled)
 {
-	assert(pDocument_);
+	assert(pAccountManager_);
 	
 	NMLISTVIEW* pnmlv = reinterpret_cast<NMLISTVIEW*>(pnmhdr);
 	
@@ -898,7 +896,7 @@ LRESULT qm::AttachmentHeaderItem::onBeginDrag(NMHDR* pnmhdr,
 	}
 	
 	std::auto_ptr<URIDataObject> p(new URIDataObject(
-		pDocument_, nSecurityMode_, listURI));
+		pAccountManager_, nSecurityMode_, listURI));
 	p->AddRef();
 	ComPtr<IDataObject> pDataObject(p.release());
 	
@@ -935,7 +933,7 @@ void qm::AttachmentHeaderItem::clear()
 	}
 	ListView_DeleteAllItems(hwnd);
 	
-	pDocument_ = 0;
+	pAccountManager_ = 0;
 	nSecurityMode_ = SECURITYMODE_NONE;
 }
 

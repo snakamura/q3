@@ -7,7 +7,6 @@
  */
 
 #include <qmaccount.h>
-#include <qmdocument.h>
 #include <qmfolder.h>
 
 #include <qsosutil.h>
@@ -79,8 +78,8 @@ wstring_ptr qm::Util::formatFolders(const Account::FolderList& l,
 	return buf.getString();
 }
 
-std::pair<Account*, Folder*> qm::Util::getAccountOrFolder(Document* pDocument,
-															const WCHAR* pwsz)
+std::pair<Account*, Folder*> qm::Util::getAccountOrFolder(AccountManager* pAccountManager,
+														  const WCHAR* pwsz)
 {
 	std::pair<Account*, Folder*> p(0, 0);
 	if (wcsncmp(pwsz, L"//", 2) != 0)
@@ -96,7 +95,7 @@ std::pair<Account*, Folder*> qm::Util::getAccountOrFolder(Document* pDocument,
 		wstrAccount = allocWString(pwsz + 2);
 	}
 	
-	Account* pAccount = pDocument->getAccount(wstrAccount.get());
+	Account* pAccount = pAccountManager->getAccount(wstrAccount.get());
 	if (!pAccount)
 		return p;
 	

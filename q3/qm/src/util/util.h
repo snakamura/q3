@@ -19,7 +19,7 @@ namespace qm {
 
 class Util;
 
-class Document;
+class AccountManager;
 
 
 /****************************************************************************
@@ -41,7 +41,7 @@ public:
 	static qs::wstring_ptr formatFolder(Folder* pFolder);
 	static qs::wstring_ptr formatFolders(const Account::FolderList& l,
 										 const WCHAR* pwszSeparator);
-	static std::pair<Account*, Folder*> getAccountOrFolder(Document* pDocument,
+	static std::pair<Account*, Folder*> getAccountOrFolder(AccountManager* pAccountManager,
 														   const WCHAR* pwsz);
 	
 	static unsigned int getMessageCount(Account* pAccount);

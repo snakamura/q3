@@ -7,7 +7,6 @@
  */
 
 #include <qmaccount.h>
-#include <qmdocument.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
 #include <qmmessageoperation.h>
@@ -89,25 +88,25 @@ FORMATETC qm::MessageDataObject::formats__[] = {
 #endif
 };
 
-qm::MessageDataObject::MessageDataObject(Document* pDocument) :
+qm::MessageDataObject::MessageDataObject(AccountManager* pAccountManager) :
 	nRef_(0),
-	pDocument_(pDocument),
+	pAccountManager_(pAccountManager),
 	pFolder_(0),
 	flag_(FLAG_NONE)
 {
-	assert(pDocument);
+	assert(pAccountManager);
 }
 
-qm::MessageDataObject::MessageDataObject(Document* pDocument,
+qm::MessageDataObject::MessageDataObject(AccountManager* pAccountManager,
 										 Folder* pFolder,
 										 const MessageHolderList& l,
 										 Flag flag) :
 	nRef_(0),
-	pDocument_(pDocument),
+	pAccountManager_(pAccountManager),
 	pFolder_(pFolder),
 	flag_(flag)
 {
-	assert(pDocument);
+	assert(pAccountManager);
 	assert(pFolder);
 	assert(pFolder->getAccount()->isLocked());
 	assert(!l.empty());
@@ -319,7 +318,7 @@ STDMETHODIMP qm::MessageDataObject::SetData(FORMATETC* pFormat,
 	LockGlobal lock(pMedium->hGlobal);
 	void* pData = lock.get();
 	if (pFormat->cfFormat == nFormats__[FORMAT_FOLDER]) {
-		pFolder_ = pDocument_->getFolder(0, static_cast<WCHAR*>(pData));
+		pFolder_ = pAccountManager_->getFolder(0, static_cast<WCHAR*>(pData));
 	}
 	else if (pFormat->cfFormat == nFormats__[FORMAT_MESSAGEHOLDERLIST]) {
 		const WCHAR* p = static_cast<const WCHAR*>(pData);
@@ -327,7 +326,7 @@ STDMETHODIMP qm::MessageDataObject::SetData(FORMATETC* pFormat,
 			std::auto_ptr<URI> pURI(URI::parse(p));
 			if (!pURI.get())
 				return E_FAIL;
-			listMessagePtr_.push_back(pDocument_->getMessage(*pURI.get()));
+			listMessagePtr_.push_back(pAccountManager_->getMessage(*pURI.get()));
 			p += wcslen(p) + 1;
 		}
 	}
@@ -402,12 +401,12 @@ bool qm::MessageDataObject::setClipboard(IDataObject* pDataObject)
 	return true;
 }
 
-ComPtr<IDataObject> qm::MessageDataObject::getClipboard(Document* pDocument)
+ComPtr<IDataObject> qm::MessageDataObject::getClipboard(AccountManager* pAccountManager)
 {
-	assert(pDocument);
+	assert(pAccountManager);
 	
 #ifdef _WIN32_WCE
-	std::auto_ptr<MessageDataObject> pDataObject(new MessageDataObject(pDocument));
+	std::auto_ptr<MessageDataObject> pDataObject(new MessageDataObject(pAccountManager));
 	
 	Clipboard clipboard(0);
 	if (!clipboard)
@@ -450,21 +449,22 @@ bool qm::MessageDataObject::queryClipboard()
 }
 
 bool qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
-										  Document* pDocument,
+										  AccountManager* pAccountManager,
 										  NormalFolder* pFolderTo,
 										  Flag flag,
-										  MessageOperationCallback* pCallback)
+										  MessageOperationCallback* pCallback,
+										  UndoManager* pUndoManager)
 {
 	assert(pDataObject);
-	assert(pDocument);
+	assert(pAccountManager);
 	assert(pFolderTo);
 	
 	HRESULT hr = S_OK;
 	
 	if (flag == FLAG_NONE)
-		flag = getPasteFlag(pDataObject, pDocument, pFolderTo);
+		flag = getPasteFlag(pDataObject, pAccountManager, pFolderTo);
 	
-	Folder* pFolderFrom = getFolder(pDataObject, pDocument);
+	Folder* pFolderFrom = getFolder(pDataObject, pAccountManager);
 	
 	FORMATETC fe = formats__[FORMAT_MESSAGEHOLDERLIST];
 	StgMedium stm;
@@ -477,7 +477,7 @@ bool qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
 			std::auto_ptr<URI> pURI(URI::parse(p));
 			if (!pURI.get())
 				return false;
-			listMessagePtr.push_back(pDocument->getMessage(*pURI.get()));
+			listMessagePtr.push_back(pAccountManager->getMessage(*pURI.get()));
 			p += wcslen(p) + 1;
 		}
 		
@@ -515,7 +515,7 @@ bool qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
 				if (pCallback && pCallback->isCanceled())
 					break;
 			}
-			pDocument->getUndoManager()->pushUndoItem(undo.getUndoItem());
+			pUndoManager->pushUndoItem(undo.getUndoItem());
 		}
 	}
 	
@@ -531,7 +531,7 @@ bool qm::MessageDataObject::canPasteMessage(IDataObject* pDataObject)
 }
 
 MessageDataObject::Flag qm::MessageDataObject::getPasteFlag(IDataObject* pDataObject,
-															Document* pDocument,
+															AccountManager* pAccountManager,
 															NormalFolder* pFolder)
 {
 	assert(pDataObject);
@@ -557,7 +557,7 @@ MessageDataObject::Flag qm::MessageDataObject::getPasteFlag(IDataObject* pDataOb
 		if (hr == S_OK) {
 			LockGlobal lock(stm.hGlobal);
 			const WCHAR* pwszName = static_cast<const WCHAR*>(lock.get());
-			Folder* pFolderFrom = pDocument->getFolder(0, pwszName);
+			Folder* pFolderFrom = pAccountManager->getFolder(0, pwszName);
 			if (pFolderFrom)
 				pAccount = pFolderFrom->getAccount();
 		}
@@ -569,7 +569,7 @@ MessageDataObject::Flag qm::MessageDataObject::getPasteFlag(IDataObject* pDataOb
 }
 
 qm::Folder* qm::MessageDataObject::getFolder(IDataObject* pDataObject,
-											 Document* pDocument)
+											 AccountManager* pAccountManager)
 {
 	assert(pDataObject);
 	
@@ -580,7 +580,7 @@ qm::Folder* qm::MessageDataObject::getFolder(IDataObject* pDataObject,
 		return 0;
 	
 	LockGlobal lock(stm.hGlobal);
-	Folder* pFolder = pDocument->getFolder(0, static_cast<WCHAR*>(lock.get()));
+	Folder* pFolder = pAccountManager->getFolder(0, static_cast<WCHAR*>(lock.get()));
 	
 	return pFolder;
 }
@@ -800,11 +800,10 @@ bool qm::FolderDataObject::canPasteFolder(IDataObject* pDataObject)
 }
 
 std::pair<Account*, qm::Folder*> qm::FolderDataObject::get(IDataObject* pDataObject,
-														   Document* pDocument)
+														   AccountManager* pAccountManager)
 {
 	assert(pDataObject);
-	
-	;
+	assert(pAccountManager);
 	
 	FORMATETC fe = formats__[FORMAT_FOLDER];
 	StgMedium stm;
@@ -814,7 +813,7 @@ std::pair<Account*, qm::Folder*> qm::FolderDataObject::get(IDataObject* pDataObj
 	
 	LockGlobal lock(stm.hGlobal);
 	
-	return Util::getAccountOrFolder(pDocument, static_cast<const WCHAR*>(lock.get()));
+	return Util::getAccountOrFolder(pAccountManager, static_cast<const WCHAR*>(lock.get()));
 }
 
 
@@ -848,11 +847,11 @@ FORMATETC qm::URIDataObject::formats__[] = {
 	}
 };
 
-qm::URIDataObject::URIDataObject(Document* pDocument,
+qm::URIDataObject::URIDataObject(AccountManager* pAccountManager,
 								 unsigned int nSecurityMode,
 								 URIList& listURI) :
 	nRef_(0),
-	pDocument_(pDocument),
+	pAccountManager_(pAccountManager),
 	nSecurityMode_(nSecurityMode)
 {
 	listURI_.swap(listURI);
@@ -1038,7 +1037,7 @@ const Part* qm::URIDataObject::getPart(URIList::size_type n,
 									   Message* pMessage)
 {
 	URI* pURI = listURI_[n];
-	MessagePtrLock mpl(pDocument_->getMessage(*pURI));
+	MessagePtrLock mpl(pAccountManager_->getMessage(*pURI));
 	if (!mpl)
 		return 0;
 	

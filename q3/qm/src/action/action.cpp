@@ -964,8 +964,8 @@ void qm::EditPasteMessageAction::invoke(const ActionEvent& event)
 		UINT nId = flag == MessageDataObject::FLAG_MOVE ?
 			IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
 		ProgressDialogMessageOperationCallback callback(hwnd_, nId, nId);
-		if (!MessageDataObject::pasteMessages(pDataObject.get(),
-			pDocument_, pNormalFolder, flag, &callback)) {
+		if (!MessageDataObject::pasteMessages(pDataObject.get(), pDocument_,
+			pNormalFolder, flag, &callback, pDocument_->getUndoManager())) {
 			ActionUtil::error(hwnd_, IDS_ERROR_PASTEMESSAGES);
 			return;
 		}

@@ -89,7 +89,7 @@ public:
 	static bool addMessageToClipboard(HWND hwnd,
 									  MessageHolder* pmh);
 	static MessagePtr getMessageFromClipboard(HWND hwnd,
-											  Document* pDocument);
+											  AccountManager* pAccountManager);
 };
 
 

@@ -616,8 +616,8 @@ void qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
 				UINT nId = bMove ? IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
 				ProgressDialogMessageOperationCallback callback(
 					pThis_->getParentFrame(), nId, nId);
-				if (!MessageDataObject::pasteMessages(pDataObject,
-					pDocument_, pNormalFolder, flag, &callback))
+				if (!MessageDataObject::pasteMessages(pDataObject, pDocument_,
+					pNormalFolder, flag, &callback, pDocument_->getUndoManager()))
 					messageBox(Application::getApplication().getResourceHandle(),
 						IDS_ERROR_COPYMESSAGES, MB_OK | MB_ICONERROR, pThis_->getParentFrame());
 				

@@ -36,6 +36,7 @@ class TextHeaderItemSite;
 class HeaderWindowContentHandler;
 struct HeaderWindowCreateContext;
 
+class AccountManager;
 class Template;
 class TemplateContext;
 
@@ -386,7 +387,7 @@ private:
 	AttachmentWindow wnd_;
 	qs::MenuManager* pMenuManager_;
 	qs::WindowBase* pParent_;
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	unsigned int nSecurityMode_;
 };
 
@@ -454,7 +455,6 @@ private:
 
 struct HeaderWindowCreateContext
 {
-	Document* pDocument_;
 	qs::MenuManager* pMenuManager_;
 };
 

@@ -29,9 +29,10 @@ class URIDataObject;
 #endif
 
 class Account;
-class Document;
+class AccountManager;
 class MessageHolder;
 class MessageOperationCallback;
+class UndoManager;
 class URI;
 
 
@@ -64,8 +65,8 @@ public:
 	typedef std::vector<URI*> URIList;
 
 public:
-	MessageDataObject(Document* pDocument);
-	MessageDataObject(Document* pDocument,
+	MessageDataObject(AccountManager* pAccountManager);
+	MessageDataObject(AccountManager* pAccountManager,
 					  Folder* pFolder,
 					  const MessageHolderList& l,
 					  Flag flag);
@@ -99,19 +100,20 @@ public:
 
 public:
 	static bool setClipboard(IDataObject* pDataObject);
-	static qs::ComPtr<IDataObject> getClipboard(Document* pDocument);
+	static qs::ComPtr<IDataObject> getClipboard(AccountManager* pAccountManager);
 	static bool queryClipboard();
 	static bool pasteMessages(IDataObject* pDataObject,
-							  Document* pDocument,
+							  AccountManager* pAccountManager,
 							  NormalFolder* pFolderTo,
 							  Flag flag,
-							  MessageOperationCallback* pCallback);
+							  MessageOperationCallback* pCallback,
+							  UndoManager* pUndoManager);
 	static bool canPasteMessage(IDataObject* pDataObject);
 	static Flag getPasteFlag(IDataObject* pDataObject,
-							 Document* pDocument,
+							 AccountManager* pAccountManager,
 							 NormalFolder* pFolder);
 	static Folder* getFolder(IDataObject* pDataObject,
-							 Document* pDocument);
+							 AccountManager* pAccountManager);
 	static bool getURIs(IDataObject* pDataObject,
 						URIList* pList);
 
@@ -124,7 +126,7 @@ private:
 
 private:
 	ULONG nRef_;
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	Folder* pFolder_;
 	MessagePtrList listMessagePtr_;
 	Flag flag_;
@@ -182,7 +184,7 @@ public:
 public:
 	static bool canPasteFolder(IDataObject* pDataObject);
 	static std::pair<Account*, Folder*> get(IDataObject* pDataObject,
-											Document* pDocument);
+											AccountManager* pAccountManager);
 
 private:
 	FolderDataObject(const FolderDataObject&);
@@ -219,7 +221,7 @@ public:
 	typedef std::vector<URI*> URIList;
 
 public:
-	URIDataObject(Document* pDocument,
+	URIDataObject(AccountManager* pAccountManager,
 				  unsigned int nSecurityMode,
 				  URIList& listURI);
 	~URIDataObject();
@@ -261,7 +263,7 @@ private:
 
 private:
 	ULONG nRef_;
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	unsigned int nSecurityMode_;
 	URIList listURI_;
 
