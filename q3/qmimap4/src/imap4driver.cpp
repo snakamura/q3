@@ -1772,8 +1772,11 @@ QSTATUS qmimap4::FolderListGetter::CallbackImpl::processList(
 	if (pListNamespace_) {
 		const WCHAR* pwszRootFolder = pGetter_->pFolderUtil_->getRootFolder();
 		WCHAR wszSeparator[] = { pList->getSeparator(), L'\0' };
-		string_ptr<WSTRING> wstr(concat(
-			pwszRootFolder, wszSeparator, pList->getMailbox()));
+		string_ptr<WSTRING> wstr;
+		if (pwszRootFolder && *pwszRootFolder)
+			wstr.reset(concat(pwszRootFolder, wszSeparator, pList->getMailbox()));
+		else
+			wstr.reset(allocWString(pList->getMailbox()));
 		if (!wstr.get())
 			return QSTATUS_OUTOFMEMORY;
 		status = STLWrapper<NamespaceList>(*pListNamespace_).push_back(
