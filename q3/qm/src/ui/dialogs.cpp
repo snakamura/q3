@@ -231,6 +231,7 @@ LRESULT qm::AccountDialog::onAddSubAccount()
 			
 			std::auto_ptr<SubAccount> pSubAccount(
 				new SubAccount(pAccount, pProfile, pwszName));
+			pSubAccount_ = pSubAccount.get();
 			pAccount->addSubAccount(pSubAccount);
 			
 			update();
@@ -418,48 +419,22 @@ void qm::AccountDialog::update()
 	
 	HWND hwnd = getDlgItem(IDC_ACCOUNT);
 	
-	DisableRedraw disable(hwnd);
-	
-	TreeView_DeleteAllItems(hwnd);
-	
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrDefault(loadString(hInst, IDS_DEFAULTSUBACCOUNT));
-	
 	HTREEITEM hItemSelect = 0;
-	
-	const Document::AccountList& listAccount = pDocument_->getAccounts();
-	for (Document::AccountList::const_iterator itA = listAccount.begin(); itA != listAccount.end(); ++itA) {
-		Account* pAccount = *itA;
+	{
+		DisableRedraw disable(hwnd);
 		
-		W2T(pAccount->getName(), ptszName);
-		TVINSERTSTRUCT tis = {
-			TVI_ROOT,
-			TVI_SORT,
-			{
-				TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM,
-				0,
-				0,
-				0,
-				const_cast<LPTSTR>(ptszName),
-				0,
-				0,
-				0,
-				0,
-				reinterpret_cast<LPARAM>(pAccount)
-			}
-		};
-		HTREEITEM hItem = TreeView_InsertItem(hwnd, &tis);
+		TreeView_DeleteAllItems(hwnd);
 		
-		const Account::SubAccountList& listSubAccount = pAccount->getSubAccounts();
-		for (Account::SubAccountList::const_iterator itS = listSubAccount.begin(); itS != listSubAccount.end(); ++itS) {
-			SubAccount* pSubAccount = *itS;
+		HINSTANCE hInst = Application::getApplication().getResourceHandle();
+		wstring_ptr wstrDefault(loadString(hInst, IDS_DEFAULTSUBACCOUNT));
+		
+		const Document::AccountList& listAccount = pDocument_->getAccounts();
+		for (Document::AccountList::const_iterator itA = listAccount.begin(); itA != listAccount.end(); ++itA) {
+			Account* pAccount = *itA;
 			
-			const WCHAR* pwszName = pSubAccount->getName();
-			if (!*pwszName)
-				pwszName = wstrDefault.get();
-			W2T(pwszName, ptszName);
+			W2T(pAccount->getName(), ptszName);
 			TVINSERTSTRUCT tis = {
-				hItem,
+				TVI_ROOT,
 				TVI_SORT,
 				{
 					TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM,
@@ -468,18 +443,45 @@ void qm::AccountDialog::update()
 					0,
 					const_cast<LPTSTR>(ptszName),
 					0,
-					1,
-					1,
 					0,
-					reinterpret_cast<LPARAM>(pSubAccount)
+					0,
+					0,
+					reinterpret_cast<LPARAM>(pAccount)
 				}
 			};
-			HTREEITEM hSubItem = TreeView_InsertItem(hwnd, &tis);
-			if (pSubAccount == pCurrentSubAccount) {
-				if (*pSubAccount->getName())
-					hItemSelect = hSubItem;
-				else
-					hItemSelect = hItem;
+			HTREEITEM hItem = TreeView_InsertItem(hwnd, &tis);
+			
+			const Account::SubAccountList& listSubAccount = pAccount->getSubAccounts();
+			for (Account::SubAccountList::const_iterator itS = listSubAccount.begin(); itS != listSubAccount.end(); ++itS) {
+				SubAccount* pSubAccount = *itS;
+				
+				const WCHAR* pwszName = pSubAccount->getName();
+				if (!*pwszName)
+					pwszName = wstrDefault.get();
+				W2T(pwszName, ptszName);
+				TVINSERTSTRUCT tis = {
+					hItem,
+					TVI_SORT,
+					{
+						TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM,
+						0,
+						0,
+						0,
+						const_cast<LPTSTR>(ptszName),
+						0,
+						1,
+						1,
+						0,
+						reinterpret_cast<LPARAM>(pSubAccount)
+					}
+				};
+				HTREEITEM hSubItem = TreeView_InsertItem(hwnd, &tis);
+				if (pSubAccount == pCurrentSubAccount) {
+					if (*pSubAccount->getName())
+						hItemSelect = hSubItem;
+					else
+						hItemSelect = hItem;
+				}
 			}
 		}
 	}
