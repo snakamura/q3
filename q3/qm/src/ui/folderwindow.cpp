@@ -478,16 +478,20 @@ void qm::FolderWindowImpl::dragOver(const DropTargetDragEvent& event)
 	else if (pt.x > rect.right - 30)
 		pThis_->sendMessage(WM_HSCROLL, MAKEWPARAM(SB_RIGHT, 0), 0);
 	
-	if (hItem) {
+	if (hItem && (info.flags & TVHT_ONITEMBUTTON || info.flags & TVHT_ONITEMICON)) {
 		if (hItemDragOver_ != hItem) {
 			hItemDragOver_ = hItem;
 			dwDragOverLastChangedTime_ = ::GetTickCount();
 		}
 		else if (dwDragOverLastChangedTime_ != -1 &&
 			::GetTickCount() - dwDragOverLastChangedTime_ > nDragOpenWait_) {
-			TreeView_Expand(pThis_->getHandle(), hItem, TVE_EXPAND);
+			TreeView_Expand(pThis_->getHandle(), hItem, TVE_TOGGLE);
 			dwDragOverLastChangedTime_ = -1;
 		}
+	}
+	else {
+		hItemDragOver_ = 0;
+		dwDragOverLastChangedTime_ = 0;
 	}
 }
 
