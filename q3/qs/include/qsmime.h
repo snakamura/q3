@@ -60,12 +60,12 @@ public:
 		
 		O_ALLOW_ENCODED_QSTRING					= 0x00000100,
 		O_ALLOW_ENCODED_PARAMETER				= 0x00000200,
-		O_ALLOW_ROUTEADDR_WITHOUT_PHRASE		= 0x00000800,
-		O_ALLOW_PARAMETER_INVALID_SEMICOLON		= 0x00001000,
-		O_ALLOW_ADDRESS_WITHOUT_DOMAIN			= 0x00002000,
-		O_ALLOW_INCOMPLETE_MULTIPART			= 0x00004000,
-		O_ALLOW_RAW_FIELD						= 0x00008000,
-		O_ALLOW_SPECIALS_IN_REFERENCES			= 0x00010000
+		O_ALLOW_PARAMETER_INVALID_SEMICOLON		= 0x00000400,
+		O_ALLOW_ADDRESS_WITHOUT_DOMAIN			= 0x00000800,
+		O_ALLOW_INCOMPLETE_MULTIPART			= 0x00001000,
+		O_ALLOW_RAW_FIELD						= 0x00002000,
+		O_ALLOW_SPECIALS_IN_REFERENCES			= 0x00004000,
+		O_ALLOW_INVALID_PERIOD_IN_LOCALPART		= 0x00008000
 	};
 	
 	enum Field {
@@ -526,6 +526,9 @@ public:
 		FLAG_INGROUP	= 0x01
 	};
 
+private:
+	typedef std::vector<std::pair<STRING, bool> > Phrases;
+
 public:
 	AddressParser(unsigned int nFlags, QSTATUS* pstatus);
 	AddressParser(const WCHAR* pwszPhrase,
@@ -561,6 +564,8 @@ private:
 private:
 	static QSTATUS decodePhrase(const CHAR* psz, bool bAtom,
 		bool bAllowEncodedQString, WSTRING* pwstrDecoded, bool* pbDecode);
+	static QSTATUS getMailboxFromPhrases(const Phrases& phrases,
+		bool bAllowInvalidPeriod, STRING* pstrMailbox);
 
 private:
 	AddressParser(const AddressParser&);
@@ -569,7 +574,6 @@ private:
 private:
 	enum State {
 		S_BEGIN,
-		S_FIRST,
 		S_PHRASE,
 		S_LEFTANGLE,
 		S_RIGHTANGLE,

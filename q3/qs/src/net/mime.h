@@ -1,5 +1,5 @@
 /*
- * $Id: mime.h,v 1.3 2003/05/20 16:06:07 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -81,6 +81,7 @@ public:
 	};
 	
 	enum State {
+		S_BEGIN,
 		S_LOCALPARTPERIOD,
 		S_LOCALPARTWORD,
 		S_ADDRSPECAT,

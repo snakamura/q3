@@ -273,32 +273,58 @@ QSTATUS qs::AddrSpecParser::parseAddrSpec(const Part& part, Tokenizer& t,
 			strComment.reset(strToken.release());
 			continue;
 		}
+		
+		if (part.isOption(Part::O_ALLOW_INVALID_PERIOD_IN_LOCALPART)) {
+			if (state == S_BEGIN || state == S_LOCALPARTPERIOD)
+				state = S_LOCALPARTWORD;
+		}
+		
 		switch (state) {
+		case S_BEGIN:
 		case S_LOCALPARTPERIOD:
-			if (token != Tokenizer::T_ATOM && token != Tokenizer::T_QSTRING)
-				return FieldParser::parseError();
-			status = bufMailbox.append(strToken.get());
-			CHECK_QSTATUS();
-			state = S_LOCALPARTWORD;
-			break;
-		case S_LOCALPARTWORD:
-			if (token != Tokenizer::T_SPECIAL)
-				return FieldParser::parseError();
-			if (*strToken.get() == '@') {
-				state = S_ADDRSPECAT;
-			}
-			else if (*strToken.get() == '.') {
+			switch (token) {
+			case Tokenizer::T_ATOM:
+			case Tokenizer::T_QSTRING:
 				status = bufMailbox.append(strToken.get());
 				CHECK_QSTATUS();
-				state = S_LOCALPARTPERIOD;
+				state = S_LOCALPARTWORD;
+				break;
+			default:
+				return FieldParser::parseError();
 			}
-			else if (strchr(szEnd, *strToken.get()) &&
-				part.isOption(Part::O_ALLOW_ADDRESS_WITHOUT_DOMAIN)) {
-				if (pbEnd)
-					*pbEnd = *strToken.get() == ';';
-				state = S_END;
-			}
-			else {
+			break;
+		case S_LOCALPARTWORD:
+			switch (token) {
+			case Tokenizer::T_ATOM:
+			case Tokenizer::T_QSTRING:
+				if (part.isOption(Part::O_ALLOW_INVALID_PERIOD_IN_LOCALPART)) {
+					status = bufMailbox.append(strToken.get());
+					CHECK_QSTATUS();
+				}
+				else {
+					return FieldParser::parseError();
+				}
+				break;
+			case Tokenizer::T_SPECIAL:
+				if (*strToken.get() == '@') {
+					state = S_ADDRSPECAT;
+				}
+				else if (*strToken.get() == '.') {
+					status = bufMailbox.append(strToken.get());
+					CHECK_QSTATUS();
+					state = S_LOCALPARTPERIOD;
+				}
+				else if (strchr(szEnd, *strToken.get()) &&
+					part.isOption(Part::O_ALLOW_ADDRESS_WITHOUT_DOMAIN)) {
+					if (pbEnd)
+						*pbEnd = *strToken.get() == ';';
+					state = S_END;
+				}
+				else {
+					return FieldParser::parseError();
+				}
+				break;
+			default:
 				return FieldParser::parseError();
 			}
 			break;
@@ -2345,6 +2371,8 @@ QSTATUS qs::AddressParser::isNeedQuoteMailbox(const CHAR* pszMailbox, bool* pbNe
 		}
 		bDot = !bDot;
 	}
+	if (bDot)
+		return QSTATUS_SUCCESS;
 	
 	*pbNeed = false;
 	
@@ -2426,10 +2454,7 @@ QSTATUS qs::AddressParser::parseAddress(const Part& part,
 	
 	bool bInGroup = (nFlags_ & FLAG_INGROUP) != 0;
 	State state = S_BEGIN;
-	string_ptr<STRING> strFirst;
-	bool bFirstAtom = false;
 	string_ptr<STRING> strComment;
-	typedef std::vector<std::pair<STRING, bool> > Phrases;
 	Phrases phrases;
 	STLWrapper<Phrases> wrapper(phrases);
 	AddrSpecParser addrSpec(&status);
@@ -2439,12 +2464,14 @@ QSTATUS qs::AddressParser::parseAddress(const Part& part,
 	{
 		typedef std::vector<std::pair<STRING, bool> > Phrases;
 		Deleter(Phrases& phrases) : phrases_(phrases) {}
-		~Deleter()
+		~Deleter() { clear(); }
+		void clear()
 		{
 			std::for_each(phrases_.begin(), phrases_.end(),
 				unary_compose_f_gx(
 					string_free<STRING>(),
 					std::select1st<Phrases::value_type>()));
+			phrases_.clear();
 		}
 		Phrases& phrases_;
 	} deleter(phrases);
@@ -2470,8 +2497,7 @@ QSTATUS qs::AddressParser::parseAddress(const Part& part,
 						*pbEnd = true;
 					state = S_END;
 				}
-				else if (*strToken.get() == '<' &&
-					part.isOption(Part::O_ALLOW_ROUTEADDR_WITHOUT_PHRASE)) {
+				else if (*strToken.get() == '<') {
 					state = S_LEFTANGLE;
 				}
 				else if (*strToken.get() != ',') {
@@ -2479,120 +2505,13 @@ QSTATUS qs::AddressParser::parseAddress(const Part& part,
 				}
 				break;
 			case Tokenizer::T_ATOM:
-				bFirstAtom = true;
 			case Tokenizer::T_QSTRING:
-				strFirst.reset(strToken.release());
-				state = S_FIRST;
-				break;
-			default:
-				return parseError();
-			}
-			break;
-		case S_FIRST:
-			switch (token) {
-			case Tokenizer::T_SPECIAL:
-				{
-					StringBuffer<STRING> bufMailbox(&status);
-					CHECK_QSTATUS();
-					StringBuffer<STRING> bufHost(&status);
-					CHECK_QSTATUS();
-					if (*strToken.get() == '@' || *strToken.get() == '.') {
-						status = bufMailbox.append(strFirst.get());
-						CHECK_QSTATUS();
-						if (*strToken.get() == '.') {
-							status = bufMailbox.append(strToken.get());
-							CHECK_QSTATUS();
-						}
-						
-						AddrSpecParser::State s = *strToken.get() == '@' ?
-							AddrSpecParser::S_ADDRSPECAT :
-							AddrSpecParser::S_LOCALPARTPERIOD;
-						string_ptr<STRING> strMailbox;
-						string_ptr<STRING> strHost;
-						string_ptr<STRING> strAddrSpecComment;
-						status = addrSpec.parseAddrSpec(part, t, s,
-							bInGroup ? AddrSpecParser::TYPE_INGROUP : AddrSpecParser::TYPE_NORMAL,
-							&strMailbox, &strHost, &strAddrSpecComment, pField, pbEnd);
-						CHECK_QSTATUS();
-						if (*pField != Part::FIELD_EXIST)
-							return parseError();
-						if (*strMailbox.get()) {
-							status = bufMailbox.append(strMailbox.get());
-							CHECK_QSTATUS();
-						}
-						if (*strHost.get()) {
-							status = bufHost.append(strHost.get());
-							CHECK_QSTATUS();
-						}
-						if (strAddrSpecComment.get())
-							strComment.reset(strAddrSpecComment.release());
-					}
-					else if (*strToken.get() == '<') {
-						status = wrapper.push_back(
-							std::make_pair(strFirst.release(), bFirstAtom));
-						CHECK_QSTATUS();
-						state = S_LEFTANGLE;
-					}
-					else if (*strToken.get() == ':' && !bInGroup) {
-						status = wrapper.push_back(
-							std::make_pair(strFirst.release(), bFirstAtom));
-						CHECK_QSTATUS();
-						status = newQsObject(AddressListParser::FLAG_GROUP, &pGroup_);
-						CHECK_QSTATUS();
-						status = pGroup_->parseAddressList(part, t, pField);
-						CHECK_QSTATUS();
-						if (*pField != Part::FIELD_EXIST)
-							return parseError();
-						state = S_SEMICOLON;
-					}
-					else if (*strToken.get() == ';') {
-						status = wrapper.push_back(
-							std::make_pair(strFirst.release(), bFirstAtom));
-						CHECK_QSTATUS();
-						state = S_SEMICOLON;
-					}
-					else if ((*strToken.get() == ',' ||
-						(*strToken.get() == ';' && bInGroup)) &&
-						part.isOption(Part::O_ALLOW_ADDRESS_WITHOUT_DOMAIN)) {
-						wstrMailbox_ = mbs2wcs(strFirst.get());
-						if (!wstrMailbox_)
-							return QSTATUS_OUTOFMEMORY;
-						if (pbEnd)
-							*pbEnd = *strToken.get() == ';';
-						state = S_END;
-					}
-					else {
-						return parseError();
-					}
-					if (state == S_FIRST) {
-						wstrMailbox_ = mbs2wcs(bufMailbox.getCharArray());
-						if (!wstrMailbox_)
-							return QSTATUS_OUTOFMEMORY;
-						wstrHost_ = mbs2wcs(bufHost.getCharArray());
-						if (!wstrHost_)
-							return QSTATUS_OUTOFMEMORY;
-						state = S_END;
-					}
-				}
-				break;
-			case Tokenizer::T_ATOM:
-			case Tokenizer::T_QSTRING:
-				status = wrapper.push_back(
-					std::make_pair(strFirst.release(), bFirstAtom));
-				CHECK_QSTATUS();
 				status = wrapper.push_back(std::make_pair(
-					strToken.release(), token == Tokenizer::T_ATOM));
+					strToken.get(), token == Tokenizer::T_ATOM));
 				CHECK_QSTATUS();
+				strToken.release();
 				state = S_PHRASE;
 				break;
-			case Tokenizer::T_END:
-				if (part.isOption(Part::O_ALLOW_ADDRESS_WITHOUT_DOMAIN)) {
-					wstrMailbox_ = mbs2wcs(strFirst.get());
-					if (!wstrMailbox_)
-						return QSTATUS_OUTOFMEMORY;
-					state = S_END;
-					break;
-				}
 			default:
 				return parseError();
 			}
@@ -2600,7 +2519,15 @@ QSTATUS qs::AddressParser::parseAddress(const Part& part,
 		case S_PHRASE:
 			switch (token) {
 			case Tokenizer::T_SPECIAL:
-				if (*strToken.get() == '<') {
+				if (*strToken.get() == '.') {
+					string_ptr<STRING> str(allocString("."));
+					if (!str.get())
+						return QSTATUS_OUTOFMEMORY;
+					status = wrapper.push_back(std::make_pair(str.get(), true));
+					CHECK_QSTATUS();
+					str.release();
+				}
+				else if (*strToken.get() == '<') {
 					state = S_LEFTANGLE;
 				}
 				else if (*strToken.get() == ':' && !bInGroup) {
@@ -2615,16 +2542,75 @@ QSTATUS qs::AddressParser::parseAddress(const Part& part,
 				else if (*strToken.get() == ';') {
 					state = S_SEMICOLON;
 				}
-				else {
-					return parseError();
+				else if ((*strToken.get() == ',' ||
+					(*strToken.get() == ';' && bInGroup)) &&
+					part.isOption(Part::O_ALLOW_ADDRESS_WITHOUT_DOMAIN)) {
+					string_ptr<STRING> strMailbox;
+					status = getMailboxFromPhrases(phrases,
+						part.isOption(Part::O_ALLOW_INVALID_PERIOD_IN_LOCALPART),
+						&strMailbox);
+					CHECK_QSTATUS_VALUE(parseError());
+					deleter.clear();
+					
+					wstrMailbox_ = mbs2wcs(strMailbox.get());
+					if (!wstrMailbox_)
+						return QSTATUS_OUTOFMEMORY;
+					if (pbEnd)
+						*pbEnd = *strToken.get() == ';';
+					state = S_END;
+				}
+				else if (*strToken.get() == '@') {
+					string_ptr<STRING> strMailbox;
+					status = getMailboxFromPhrases(phrases,
+						part.isOption(Part::O_ALLOW_INVALID_PERIOD_IN_LOCALPART),
+						&strMailbox);
+					CHECK_QSTATUS_VALUE(parseError());
+					deleter.clear();
+					
+					string_ptr<STRING> strTemp;
+					string_ptr<STRING> strHost;
+					string_ptr<STRING> strAddrSpecComment;
+					status = addrSpec.parseAddrSpec(part, t, AddrSpecParser::S_ADDRSPECAT,
+						bInGroup ? AddrSpecParser::TYPE_INGROUP : AddrSpecParser::TYPE_NORMAL,
+						&strTemp, &strHost, &strAddrSpecComment, pField, pbEnd);
+					CHECK_QSTATUS();
+					if (*pField != Part::FIELD_EXIST)
+						return parseError();
+					assert(!*strTemp.get());
+					if (strAddrSpecComment.get())
+						strComment.reset(strAddrSpecComment.release());
+					
+					wstrMailbox_ = mbs2wcs(strMailbox.get());
+					if (!wstrMailbox_)
+						return QSTATUS_OUTOFMEMORY;
+					wstrHost_ = mbs2wcs(strHost.get());
+					if (!wstrHost_)
+						return QSTATUS_OUTOFMEMORY;
+					state = S_END;
 				}
 				break;
 			case Tokenizer::T_ATOM:
 			case Tokenizer::T_QSTRING:
 				status = wrapper.push_back(std::make_pair(
-					strToken.release(), token == Tokenizer::T_ATOM));
+					strToken.get(), token == Tokenizer::T_ATOM));
 				CHECK_QSTATUS();
+				strToken.release();
 				break;
+			case Tokenizer::T_END:
+				if (part.isOption(Part::O_ALLOW_ADDRESS_WITHOUT_DOMAIN)) {
+					string_ptr<STRING> strMailbox;
+					status = getMailboxFromPhrases(phrases,
+						part.isOption(Part::O_ALLOW_INVALID_PERIOD_IN_LOCALPART),
+						&strMailbox);
+					CHECK_QSTATUS_VALUE(parseError());
+					deleter.clear();
+					
+					wstrMailbox_ = mbs2wcs(strMailbox.get());
+					if (!wstrMailbox_)
+						return QSTATUS_OUTOFMEMORY;
+					state = S_END;
+					break;
+				}
 			default:
 				return parseError();
 			}
@@ -2769,25 +2755,28 @@ QSTATUS qs::AddressParser::parseAddress(const Part& part,
 		}
 	}
 	
-	bool bDecodeBefore = false;
+	bool bPrevDecode = false;
+	bool bPrevPeriod = false;
 	StringBuffer<WSTRING> bufPhrase(&status);
 	CHECK_QSTATUS();
 	Phrases::iterator it = phrases.begin();
 	while (it != phrases.end()) {
 		bool bDecode = false;
+		bool bPeriod = (*it).second && *(*it).first == '.';
 		string_ptr<WSTRING> wstrWord;
 		status = decodePhrase((*it).first, (*it).second,
 			part.isOption(Part::O_ALLOW_ENCODED_QSTRING), &wstrWord, &bDecode);
 		CHECK_QSTATUS();
 		if (it != phrases.begin()) {
-			if (!bDecodeBefore || !bDecode) {
+			if ((!bPrevDecode || !bDecode) && !bPeriod && !bPrevPeriod) {
 				status = bufPhrase.append(L" ");
 				CHECK_QSTATUS();
 			}
 		}
 		status = bufPhrase.append(wstrWord.get());
 		CHECK_QSTATUS();
-		bDecodeBefore = bDecode;
+		bPrevDecode = bDecode;
+		bPrevPeriod = bPeriod;
 		++it;
 	}
 	if (bufPhrase.getLength() != 0)
@@ -2825,6 +2814,45 @@ QSTATUS qs::AddressParser::decodePhrase(const CHAR* psz, bool bAtom,
 		if (!*pwstrDecoded)
 			return QSTATUS_OUTOFMEMORY;
 	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qs::AddressParser::getMailboxFromPhrases(const Phrases& phrases,
+	bool bAllowInvalidPeriod, STRING* pstrMailbox)
+{
+	assert(!phrases.empty());
+	assert(pstrMailbox);
+	
+	DECLARE_QSTATUS();
+	
+	StringBuffer<STRING> buf(&status);
+	CHECK_QSTATUS();
+	
+	bool bPeriod = true;
+	Phrases::const_iterator it = phrases.begin();
+	while (it != phrases.end()) {
+		if (!bAllowInvalidPeriod) {
+			if (bPeriod) {
+				if ((*it).second && *(*it).first == '.')
+					return QSTATUS_FAIL;
+				bPeriod = false;
+			}
+			else {
+				if (!(*it).second || *(*it).first != '.')
+					return QSTATUS_FAIL;
+				bPeriod = true;
+			}
+		}
+		
+		status = buf.append((*it).first);
+		CHECK_QSTATUS();
+		++it;
+	}
+	if (!bAllowInvalidPeriod && bPeriod)
+		return QSTATUS_FAIL;
+	
+	*pstrMailbox = buf.getString();
 	
 	return QSTATUS_SUCCESS;
 }
@@ -3231,8 +3259,8 @@ QSTATUS qs::MessageIdParser::parse(const Part& part,
 				string_ptr<STRING> strMailbox;
 				string_ptr<STRING> strHost;
 				string_ptr<STRING> strComment;
-				status = addrSpec.parseAddrSpec(part, t,
-					AddrSpecParser::S_LOCALPARTPERIOD,
+				status = addrSpec.parseAddrSpec(part,
+					t, AddrSpecParser::S_BEGIN,
 					AddrSpecParser::TYPE_INBRACKET, &strMailbox,
 					&strHost, &strComment, pField, 0);
 				CHECK_QSTATUS();
@@ -3372,8 +3400,8 @@ QSTATUS qs::ReferencesParser::parse(const Part& part,
 				string_ptr<STRING> strMailbox;
 				string_ptr<STRING> strHost;
 				string_ptr<STRING> strComment;
-				status = addrSpec.parseAddrSpec(part, t,
-					AddrSpecParser::S_LOCALPARTPERIOD,
+				status = addrSpec.parseAddrSpec(part,
+					t, AddrSpecParser::S_BEGIN,
 					AddrSpecParser::TYPE_INBRACKET, &strMailbox,
 					&strHost, &strComment, pField, 0);
 				CHECK_QSTATUS();
