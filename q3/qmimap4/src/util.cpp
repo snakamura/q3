@@ -175,7 +175,7 @@ string_ptr qmimap4::Util::getMessageFromEnvelope(const FetchDataEnvelope* pEnvel
 					
 					const CHAR* pszName = pAddress->getName();
 					if (pszName) {
-						string_ptr strName(FieldParser::getAtomsOrQString(pszName, -1));
+						string_ptr strName(FieldParserUtil<STRING>::getAtomsOrQString(pszName, -1));
 						buf.append(strName.get());
 						buf.append(" <");
 					}
@@ -652,7 +652,7 @@ void qmimap4::Util::appendParamsToBuffer(const FetchDataBodyStructure::ParamList
 		pBuf->append(";\r\n\t");
 		pBuf->append((*it).first);
 		pBuf->append("=");
-		string_ptr strValue(FieldParser::getAtomOrQString((*it).second, -1));
+		string_ptr strValue(FieldParserUtil<STRING>::getAtomOrQString((*it).second, -1));
 		pBuf->append(strValue.get());
 	}
 }

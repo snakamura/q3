@@ -126,13 +126,12 @@ wstring_ptr qm::AddressBook::expandAlias(const WCHAR* pwszAddresses)
 	if (!load())
 		return 0;
 	
-	DummyParser field(pwszAddresses, 0);
+	UTF8Parser field(pwszAddresses);
 	Part dummy;
 	if (!dummy.setField(L"Dummy", field))
 		return 0;
-	AddressListParser addressList(0);
-	Part::Field f = dummy.getField(L"Dummy", &addressList);
-	if (f != Part::FIELD_EXIST)
+	AddressListParser addressList(AddressListParser::FLAG_ALLOWUTF8);
+	if (dummy.getField(L"Dummy", &addressList) != Part::FIELD_EXIST)
 		return 0;
 	
 	StringBuffer<WSTRING> buf;

@@ -547,11 +547,11 @@ bool qm::MessageCreator::setField(Part* pPart,
 	switch (type) {
 	case FIELDTYPE_ADDRESSLIST:
 		{
-			DummyParser field(pwszValue, 0);
+			UTF8Parser field(pwszValue);
 			Part dummy;
 			if (!dummy.setField(pwszName, field))
 				return false;
-			AddressListParser addressList(0);
+			AddressListParser addressList(AddressListParser::FLAG_ALLOWUTF8);
 			if (dummy.getField(pwszName, &addressList) != Part::FIELD_EXIST)
 				return false;
 			if (!pPart->replaceField(pwszName, addressList))
@@ -1921,7 +1921,7 @@ Part::Field qm::XQMAILAttachmentParser::parse(const Part& part,
 	if (!strValue.get())
 		return Part::FIELD_NOTEXIST;
 	
-	wstring_ptr wstrValue(decode(strValue.get(), -1, 0));
+	wstring_ptr wstrValue(decode(strValue.get(), -1, false, 0));
 	
 	StringBuffer<WSTRING> buf;
 	const WCHAR* p = wstrValue.get();

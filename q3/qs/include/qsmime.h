@@ -40,6 +40,7 @@ class FieldParser;
 		class ContentTypeParser;
 		class ContentDispositionParser;
 	class ContentTransferEncodingParser;
+template<class String> class FieldParserUtil;
 template<class Char, class String> class BoundaryFinder;
 
 class Tokenizer;
@@ -301,24 +302,17 @@ public:
 public:
 	static wstring_ptr decode(const CHAR* psz,
 							  size_t nLen,
+							  bool bAllowUTF8,
 							  bool* pbDecoded);
 	static string_ptr encode(const WCHAR* pwsz,
 							 size_t nLen,
 							 const WCHAR* pwszCharset,
 							 const WCHAR* pwszEncoding,
 							 bool bOneBlock);
-	static string_ptr getQString(const CHAR* psz,
-								 size_t nLen);
-	static string_ptr getAtomOrQString(const CHAR* psz,
-									   size_t nLen);
-	static string_ptr getAtomsOrQString(const CHAR* psz,
-										size_t nLen);
 	static bool isAscii(const WCHAR* pwsz);
 	static bool isAscii(const WCHAR* pwsz,
 						size_t nLen);
-	static bool isNeedQuote(const CHAR* psz,
-							size_t nLen,
-							bool bQuoteWhitespace);
+	static bool isSpecial(CHAR c);
 	static Part::Field parseError();
 
 private:
@@ -393,9 +387,6 @@ public:
 	virtual ~DummyParser();
 
 public:
-	const WCHAR* getValue() const;
-
-public:
 	virtual Part::Field parse(const Part& part,
 							  const WCHAR* pwszName);
 	virtual string_ptr unparse(const Part& part) const;
@@ -409,6 +400,32 @@ private:
 
 private:
 	unsigned int nFlags_;
+	wstring_ptr wstrValue_;
+};
+
+
+/****************************************************************************
+ *
+ * UTF8Parser
+ *
+ */
+
+class QSEXPORTCLASS UTF8Parser : public FieldParser
+{
+public:
+	explicit UTF8Parser(const WCHAR* pwszValue);
+	virtual ~UTF8Parser();
+
+public:
+	virtual Part::Field parse(const Part& part,
+							  const WCHAR* pwszName);
+	virtual string_ptr unparse(const Part& part) const;
+
+private:
+	UTF8Parser(const UTF8Parser&);
+	UTF8Parser& operator=(const UTF8Parser&);
+
+private:
 	wstring_ptr wstrValue_;
 };
 
@@ -622,6 +639,7 @@ public:
 	enum Flag {
 		FLAG_DISALLOWGROUP	= 0x01,
 		FLAG_INGROUP		= 0x03,
+		FLAG_ALLOWUTF8		= 0x04
 	};
 
 private:
@@ -666,6 +684,7 @@ private:
 	static wstring_ptr decodePhrase(const CHAR* psz,
 									bool bAtom,
 									bool bAllowEncodedQString,
+									bool bAllowUTF8,
 									bool* pbDecoded);
 	static string_ptr getMailboxFromPhrases(const Phrases& phrases,
 											bool bAllowInvalidPeriod);
@@ -711,7 +730,8 @@ public:
 	enum Flag{
 		FLAG_SINGLEFIELD	= 0x01,
 		FLAG_DISALLOWGROUP	= 0x02,
-		FLAG_GROUP			= 0x06
+		FLAG_GROUP			= 0x06,
+		FLAG_ALLOWUTF8		= 0x08
 	};
 
 public:
@@ -1024,6 +1044,31 @@ private:
 
 private:
 	SimpleParser parser_;
+};
+
+
+/****************************************************************************
+ *
+ * FieldParserUtil
+ *
+ */
+
+template<class String>
+class FieldParserUtil
+{
+public:
+	typedef StringTraits<String>::char_type Char;
+
+public:
+	static basic_string_ptr<String> getQString(const Char* psz,
+											   size_t nLen);
+	static basic_string_ptr<String> getAtomOrQString(const Char* psz,
+													 size_t nLen);
+	static basic_string_ptr<String> getAtomsOrQString(const Char* psz,
+													  size_t nLen);
+	static bool isNeedQuote(const Char* psz,
+							size_t nLen,
+							bool bQuoteWhitespace);
 };
 
 

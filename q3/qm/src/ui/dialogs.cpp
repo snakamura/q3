@@ -576,10 +576,10 @@ qm::AddressBookDialog::AddressBookDialog(AddressBook* pAddressBook,
 		TYPE_BCC
 	};
 	for (int n = 0; n < countof(listAddress_); ++n) {
-		DummyParser field(pwszAddress[n], 0);
+		UTF8Parser field(pwszAddress[n]);
 		Part part;
 		if (part.setField(L"Dummy", field)) {
-			AddressListParser addressList(0);
+			AddressListParser addressList(AddressListParser::FLAG_ALLOWUTF8);
 			if (part.getField(L"Dummy", &addressList) == Part::FIELD_EXIST) {
 				const AddressListParser::AddressList& l = addressList.getAddressList();
 				for (AddressListParser::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {

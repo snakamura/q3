@@ -12,6 +12,88 @@
 
 /****************************************************************************
  *
+ * FieldParserUtil
+ *
+ */
+
+template<class String>
+qs::basic_string_ptr<String> qs::FieldParserUtil<String>::getQString(const Char* psz,
+																	 size_t nLen)
+{
+	assert(psz);
+	
+	if (nLen == -1)
+		nLen = CharTraits<Char>::getLength(psz);
+	
+	StringBuffer<String> buf(nLen + 2);
+	buf.append(Char('\"'));
+	for (const Char* p = psz; p < psz + nLen; ++p) {
+		if (*p == Char('\\') || *p == Char('\"'))
+			buf.append(Char('\\'));
+		buf.append(*p);
+	}
+	buf.append(Char('\"'));
+	
+	return buf.getString();
+}
+
+template<class String>
+qs::basic_string_ptr<String> qs::FieldParserUtil<String>::getAtomOrQString(const Char* psz,
+																		   size_t nLen)
+{
+	assert(psz);
+	
+	if (nLen == -1)
+		nLen = CharTraits<Char>::getLength(psz);
+	
+	if (isNeedQuote(psz, nLen, true))
+		return getQString(psz, nLen);
+	else
+		return StringTraits<String>::allocString(psz, nLen);
+}
+
+template<class String>
+qs::basic_string_ptr<String> qs::FieldParserUtil<String>::getAtomsOrQString(const Char* psz,
+																			size_t nLen)
+{
+	assert(psz);
+	
+	if (nLen == -1)
+		nLen = CharTraits<Char>::getLength(psz);
+	
+	if (isNeedQuote(psz, nLen, false))
+		return getQString(psz, nLen);
+	else
+		return StringTraits<String>::allocString(psz, nLen);
+}
+
+template<class String>
+bool qs::FieldParserUtil<String>::isNeedQuote(const Char* psz,
+											  size_t nLen,
+											  bool bQuoteWhitespace)
+{
+	assert(psz);
+	
+	if (nLen == -1)
+		nLen = CharTraits<Char>::getLength(psz);
+	if (nLen == 0)
+		return true;
+	
+	const Char* p = psz;
+	while (p < psz + nLen) {
+		if (unsigned char(*p) < 0x80) {
+			if (FieldParser::isSpecial(Char(*p)) ||
+				(bQuoteWhitespace && (*p == Char(' ') || *p == Char('\t'))))
+				break;
+		}
+		++p;
+	}
+	return p != psz + nLen;
+}
+
+
+/****************************************************************************
+ *
  * BoundaryFinder
  *
  */
