@@ -125,6 +125,29 @@ public:
 		MainWindowImpl* pMainWindowImpl_;
 		bool bListOnly_;
 	};
+	
+	class StatusBarInfo
+	{
+	public:
+		StatusBarInfo();
+		~StatusBarInfo();
+	
+	public:
+		void update(Document* pDocument,
+					ViewModel* pViewModel,
+					StatusBar* pStatusBar);
+	
+	private:
+		StatusBarInfo(const StatusBarInfo&);
+		StatusBarInfo& operator=(const StatusBarInfo&);
+	
+	private:
+		unsigned int nCount_;
+		unsigned int nUnseenCount_;
+		unsigned int nSelectedCount_;
+		bool bOffline_;
+		wstring_ptr wstrFilter_;
+	};
 
 public:
 	void initActions();
@@ -213,7 +236,7 @@ public:
 	int nInitialShow_;
 	bool bLayouting_;
 	int nShowingModalDialog_;
-	
+	StatusBarInfo statusBarInfo_;
 	HWND hwndLastFocused_;
 };
 
@@ -931,43 +954,7 @@ void qm::MainWindowImpl::updateStatusBar()
 	
 	if (bShowStatusBar_) {
 		ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
-		
-		if (pViewModel) {
-			Lock<ViewModel> lock(*pViewModel);
-			
-			HINSTANCE hInst = Application::getApplication().getResourceHandle();
-			wstring_ptr wstrTemplate(loadString(hInst, IDS_VIEWMODELSTATUSTEMPLATE));
-			WCHAR wsz[256];
-			swprintf(wsz, wstrTemplate.get(), pViewModel->getCount(),
-				pViewModel->getUnseenCount(), pViewModel->getSelectedCount());
-			pStatusBar_->setText(0, wsz);
-			
-			UINT nOnlineId = pDocument_->isOffline() ? IDS_OFFLINE : IDS_ONLINE;
-			wstring_ptr wstrOnline(loadString(hInst, nOnlineId));
-			pStatusBar_->setText(1, wstrOnline.get());
-			
-			const WCHAR* pwszFilterName = 0;
-			UINT nFilterId = 0;
-			const Filter* pFilter = pViewModel->getFilter();
-			if (pFilter) {
-				pwszFilterName = pFilter->getName();
-				if (!*pwszFilterName)
-					nFilterId = IDS_CUSTOM;
-			}
-			else {
-				nFilterId = IDS_NONE;
-			}
-			wstring_ptr wstrFilterName;
-			if (nFilterId != 0) {
-				wstrFilterName = loadString(hInst, nFilterId);
-				pwszFilterName = wstrFilterName.get();
-			}
-			pStatusBar_->setText(2, pwszFilterName);
-		}
-		else {
-			for (int n = 0; n < 2; ++n)
-				pStatusBar_->setText(n, L"");
-		}
+		statusBarInfo_.update(pDocument_, pViewModel, pStatusBar_);
 	}
 }
 
@@ -1210,6 +1197,87 @@ bool qm::MainWindowImpl::MessageSelectionModelImpl::canSelect()
 {
 	return pMainWindowImpl_->pListWindow_->isActive() &&
 		pMainWindowImpl_->pViewModelManager_->getCurrentViewModel();
+}
+
+
+/****************************************************************************
+ *
+ * MainWindowImpl::StatusBarInfo
+ *
+ */
+
+qm::MainWindowImpl::StatusBarInfo::StatusBarInfo() :
+	nCount_(-1),
+	nUnseenCount_(-1),
+	nSelectedCount_(-1),
+	bOffline_(true)
+{
+}
+
+qm::MainWindowImpl::StatusBarInfo::~StatusBarInfo()
+{
+}
+
+void qm::MainWindowImpl::StatusBarInfo::update(Document* pDocument,
+											   ViewModel* pViewModel,
+											   StatusBar* pStatusBar)
+{
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	
+	if (pViewModel) {
+		Lock<ViewModel> lock(*pViewModel);
+		
+		unsigned int nCount = pViewModel->getCount();
+		unsigned int nUnseenCount = pViewModel->getUnseenCount();
+		unsigned int nSelectedCount = pViewModel->getSelectedCount();
+		if (nCount != nCount_ ||
+			nUnseenCount != nUnseenCount_ ||
+			nSelectedCount != nSelectedCount_) {
+			nCount_ = nCount;
+			nUnseenCount_ = nUnseenCount;
+			nSelectedCount_ = nSelectedCount;
+			
+			wstring_ptr wstrTemplate(loadString(hInst, IDS_VIEWMODELSTATUSTEMPLATE));
+			WCHAR wsz[256];
+			swprintf(wsz, wstrTemplate.get(), nCount_, nUnseenCount_, nSelectedCount_);
+			pStatusBar->setText(0, wsz);
+		}
+		
+		wstring_ptr wstrFilter;
+		const Filter* pFilter = pViewModel->getFilter();
+		if (pFilter) {
+			const WCHAR* pwszName = pFilter->getName();
+			if (*pwszName)
+				wstrFilter = allocWString(pwszName);
+			else
+				wstrFilter = loadString(hInst, IDS_CUSTOM);
+		}
+		else {
+			wstrFilter = loadString(hInst, IDS_NONE);
+		}
+		if (!wstrFilter_.get() || wcscmp(wstrFilter.get(), wstrFilter_.get()) != 0) {
+			wstrFilter_ = wstrFilter;
+			pStatusBar->setText(2, wstrFilter_.get());
+		}
+	}
+	else {
+		nCount_ = -1;
+		nUnseenCount_ = -1;
+		nSelectedCount_ = -1;
+		wstrFilter_.reset(0);
+		
+		pStatusBar->setText(0, L"");
+		pStatusBar->setText(2, L"");
+	}
+	
+	bool bOffline = pDocument->isOffline();
+	if (bOffline != bOffline_) {
+		bOffline_ = bOffline;
+		
+		UINT nOnlineId = bOffline_ ? IDS_OFFLINE : IDS_ONLINE;
+		wstring_ptr wstrOnline(loadString(hInst, nOnlineId));
+		pStatusBar->setText(1, wstrOnline.get());
+	}
 }
 
 
