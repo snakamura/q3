@@ -156,6 +156,7 @@ public:
 													bool bHeaderOnly);
 	static std::auto_ptr<qs::Part> createClonedPart(const qs::Part& part);
 	static qs::wstring_ptr getContentTypeFromExtension(const WCHAR* pwszExtension);
+	static const WCHAR* getEncodingForCharset(const WCHAR* pwszCharset);
 
 private:
 	MessageCreator(const MessageCreator&);

@@ -266,11 +266,13 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 					++n;
 				const WCHAR* pwszCharset = n == nBodyLen ?
 					L"us-ascii" : Part::getDefaultCharset();
-				pConverter = ConverterFactory::getInstance(pwszCharset);
+				wstrCharset = allocWString(pwszCharset);
+				
+				pConverter = ConverterFactory::getInstance(wstrCharset.get());
 				
 				if (nFlags_ & FLAG_ADDCONTENTTYPE) {
 					ContentTypeParser contentType(L"text", L"plain");
-					contentType.setParameter(L"charset", pwszCharset);
+					contentType.setParameter(L"charset", wstrCharset.get());
 					if (!pPart->replaceField(L"Content-Type", contentType))
 						return std::auto_ptr<Part>(0);
 					pContentType = pPart->getContentType();
@@ -290,15 +292,23 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 					pEncoder = EncoderFactory::getInstance(pwszEncoding);
 				}
 				if (!pEncoder.get()) {
-					size_t n = 0;
-					while (n < strBody.size() && *(strBody.get() + n) < 0x80)
-						++n;
+					bool b7bit = true;
+					for (size_t n = 0; n < strBody.size(); ++n) {
+						unsigned char c = *(strBody.get() + n);
+						if (c >= 0x80) {
+							b7bit = false;
+							break;
+						}
+					}
+					
 					const WCHAR* pwszEncoding = 0;
-					if (n == strBody.size()) {
+					if (b7bit) {
 						pwszEncoding = L"7bit";
 					}
 					else {
-						pwszEncoding = L"base64";
+						pwszEncoding = getEncodingForCharset(wstrCharset.get());
+						assert(wcscmp(pwszEncoding, L"quoted-printable") == 0 ||
+							wcscmp(pwszEncoding, L"base64") == 0);
 						pEncoder = EncoderFactory::getInstance(pwszEncoding);
 					}
 					
@@ -888,6 +898,17 @@ wstring_ptr qm::MessageCreator::getContentTypeFromExtension(const WCHAR* pwszExt
 	}
 	
 	return wstrContentType;
+}
+
+const WCHAR* qm::MessageCreator::getEncodingForCharset(const WCHAR* pwszCharset)
+{
+	size_t nLen = wcslen(pwszCharset);
+	if (_wcsicmp(pwszCharset, L"us-ascii") == 0 ||
+		((nLen == 10 || nLen == 11) && _wcsnicmp(pwszCharset, L"iso-8859-", 9) == 0) ||
+		_wcsicmp(pwszCharset, L"utf-7") == 0)
+		return L"quoted-printable";
+	else
+		return L"base64";
 }
 
 
