@@ -1,5 +1,5 @@
 /*
- * $Id: uiutil.cpp,v 1.2 2003/06/01 08:40:32 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -48,11 +48,15 @@ QSTATUS qs::UIUtil::createFontFromProfile(Profile* pProfile,
 	int nFontSize = 0;
 	status = pProfile->getInt(pwszSection, L"FontSize", 9, &nFontSize);
 	CHECK_QSTATUS();
+	int nFontStyle = 0;
+	status = pProfile->getInt(pwszSection, L"FontStyle", 0, &nFontStyle);
+	CHECK_QSTATUS();
 	
 	ClientDeviceContext dc(0, &status);
 	CHECK_QSTATUS();
 	LOGFONT lf;
-	status = FontHelper::createLogFont(dc, wstrFontFace.get(), nFontSize, &lf);
+	status = FontHelper::createLogFont(dc,
+		wstrFontFace.get(), nFontSize, nFontStyle, &lf);
 	CHECK_QSTATUS();
 	*phfont = ::CreateFontIndirect(&lf);
 	

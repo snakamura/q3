@@ -1,5 +1,5 @@
 /*
- * $Id: qsdevicecontext.h,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -207,8 +207,16 @@ private:
 class QSEXPORTCLASS FontHelper
 {
 public:
+	enum Style {
+		STYLE_BOLD		= 0x01,
+		STYLE_ITALIC	= 0x02,
+		STYLE_UNDERLINE	= 0x04,
+		STYLE_STRIKEOUT	= 0x08
+	};
+
+public:
 	static QSTATUS createLogFont(HDC hdc, const WCHAR* pwszFaceName,
-		int nPointSize, LOGFONT* plf);
+		int nPointSize, unsigned int nStyle, LOGFONT* plf);
 };
 
 }

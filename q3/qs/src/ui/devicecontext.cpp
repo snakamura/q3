@@ -1,5 +1,5 @@
 /*
- * $Id: devicecontext.cpp,v 1.2 2003/05/18 02:52:36 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -120,8 +120,8 @@ CompatibleDeviceContext::~CompatibleDeviceContext()
 
 int CALLBACK enumFontFamProc(ENUMLOGFONT*, NEWTEXTMETRIC*, int, LPARAM);
 
-QSTATUS qs::FontHelper::createLogFont(HDC hdc,
-	const WCHAR* pwszFaceName, int nPointSize, LOGFONT* plf)
+QSTATUS qs::FontHelper::createLogFont(HDC hdc, const WCHAR* pwszFaceName,
+	int nPointSize, unsigned int nStyle, LOGFONT* plf)
 {
 	DECLARE_QSTATUS();
 	
@@ -136,10 +136,10 @@ QSTATUS qs::FontHelper::createLogFont(HDC hdc,
 		reinterpret_cast<LPARAM>(plf));
 	plf->lfHeight = -(nPointSize*dc.getDeviceCaps(LOGPIXELSY)/72);
 	plf->lfWidth = 0;
-	plf->lfWeight = FW_NORMAL;
-	plf->lfItalic = 0;
-	plf->lfUnderline = 0;
-	plf->lfStrikeOut = 0;
+	plf->lfWeight = nStyle & STYLE_BOLD ? FW_BOLD : FW_NORMAL;
+	plf->lfItalic = (nStyle & STYLE_ITALIC) != 0;
+	plf->lfUnderline = (nStyle & STYLE_UNDERLINE) != 0;
+	plf->lfStrikeOut = (nStyle & STYLE_STRIKEOUT) != 0;
 	plf->lfCharSet = DEFAULT_CHARSET;
 	
 	return QSTATUS_SUCCESS;
