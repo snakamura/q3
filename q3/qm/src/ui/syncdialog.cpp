@@ -640,10 +640,13 @@ QSTATUS qm::SyncStatusWindow::setPos(
 	ItemList::iterator it = getItem(nId);
 	(*it)->setPos(bSub, nPos);
 	
-	if (!bSub)
+	if (!bSub) {
+		(*it)->setRange(true, 0, 0);
 		(*it)->setPos(true, 0);
+	}
 	
 	invalidate(false);
+	
 	return QSTATUS_SUCCESS;
 }
 
@@ -698,6 +701,7 @@ QSTATUS qm::SyncStatusWindow::setMessage(
 		ItemList::iterator it = getItem(nId);
 		status = (*it)->setMessage(pwszMessage);
 		CHECK_QSTATUS();
+		(*it)->setRange(true, 0, 0);
 		(*it)->setPos(true, 0);
 		invalidate(false);
 	}
