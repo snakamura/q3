@@ -857,6 +857,52 @@ void qm::EditToolAttachmentAction::invoke(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * EditToolEncodingAction
+ *
+ */
+
+qm::EditToolEncodingAction::EditToolEncodingAction(EditMessageHolder* pEditMessageHolder) :
+	pEditMessageHolder_(pEditMessageHolder),
+	pEncodingMenu_(0)
+{
+}
+
+qm::EditToolEncodingAction::EditToolEncodingAction(EditMessageHolder* pEditMessageHolder,
+												   EncodingMenu* pEncodingMenu) :
+	pEditMessageHolder_(pEditMessageHolder),
+	pEncodingMenu_(pEncodingMenu)
+{
+}
+
+qm::EditToolEncodingAction::~EditToolEncodingAction()
+{
+}
+
+void qm::EditToolEncodingAction::invoke(const ActionEvent& event)
+{
+	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
+	const WCHAR* pwszEncoding = 0;
+	if (pEncodingMenu_)
+		pwszEncoding = pEncodingMenu_->getEncoding(event.getId());
+	pEditMessage->setEncoding(pwszEncoding);
+}
+
+bool qm::EditToolEncodingAction::isChecked(const ActionEvent& event)
+{
+	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
+	if (pEncodingMenu_) {
+		const WCHAR* pwszEncoding = pEditMessage->getEncoding();
+		return pwszEncoding &&
+			wcscmp(pwszEncoding, pEncodingMenu_->getEncoding(event.getId())) == 0;
+	}
+	else {
+		return !pEditMessage->getEncoding();
+	}
+}
+
+
+/****************************************************************************
+ *
  * EditToolFlagAction
  *
  */

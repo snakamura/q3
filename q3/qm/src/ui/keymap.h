@@ -196,6 +196,7 @@ const qs::KeyNameToId mapKeyNameToId[] = {
 	{ L"ToolAutoPilot",					IDM_TOOL_AUTOPILOT,						0 },
 	{ L"ToolCancel",					IDM_TOOL_CANCEL,						0 },
 	{ L"ToolDialup",					IDM_TOOL_DIALUP,						0 },
+	{ L"ToolEncodingDefault",			IDM_TOOL_ENCODINGDEFAULT,				0 },
 	{ L"ToolGoround0",					IDM_TOOL_GOROUND,						0 },
 	{ L"ToolGoround1",					IDM_TOOL_GOROUND + 1,					0 },
 	{ L"ToolGoround2",					IDM_TOOL_GOROUND + 2,					0 },

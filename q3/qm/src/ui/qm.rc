@@ -184,6 +184,15 @@ BEGIN
     END
 END
 
+IDR_TOOLENCODING MENU DISCARDABLE 
+BEGIN
+    POPUP ""
+    BEGIN
+        MENUITEM "&Default",                    IDM_TOOL_ENCODINGDEFAULT
+        MENUITEM SEPARATOR
+    END
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

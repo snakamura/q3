@@ -89,6 +89,7 @@ public:
 	std::auto_ptr<ActionInvoker> pActionInvoker_;
 	std::auto_ptr<FindReplaceManager> pFindReplaceManager_;
 	std::auto_ptr<InsertTextMenu> pInsertTextMenu_;
+	std::auto_ptr<EncodingMenu> pEncodingMenu_;
 	std::auto_ptr<ScriptMenu> pScriptMenu_;
 	ToolbarCookie* pToolbarCookie_;
 	bool bIme_;
@@ -284,6 +285,14 @@ void qm::EditFrameWindowImpl::initActions()
 		IDM_TOOL_ATTACHMENT,
 		pEditWindow_->getEditMessageHolder(),
 		pThis_->getHandle());
+	ADD_ACTION1(EditToolEncodingAction,
+		IDM_TOOL_ENCODINGDEFAULT,
+		pEditWindow_->getEditMessageHolder());
+	ADD_ACTION_RANGE2(EditToolEncodingAction,
+		IDM_TOOL_ENCODING,
+		IDM_TOOL_ENCODING + EncodingMenu::MAX_ENCODING,
+		pEditWindow_->getEditMessageHolder(),
+		pEncodingMenu_.get());
 	ADD_ACTION2(EditToolInsertSignatureAction,
 		IDM_TOOL_INSERTSIGNATURE,
 		pEditWindow_->getEditMessageHolder(),
@@ -715,6 +724,7 @@ LRESULT qm::EditFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	pImpl_->pInsertTextMenu_.reset(new InsertTextMenu(
 		pImpl_->pDocument_->getFixedFormTextManager()));
+	pImpl_->pEncodingMenu_.reset(new EncodingMenu(pImpl_->pProfile_, IDM_TOOL_ENCODING));
 	pImpl_->pScriptMenu_.reset(new ScriptMenu(
 		pImpl_->pDocument_->getScriptManager()));
 	pImpl_->layoutChildren();
@@ -759,6 +769,8 @@ LRESULT qm::EditFrameWindow::onInitMenuPopup(HMENU hmenu,
 		
 		if (nIdLast == IDM_CONFIG_TEXTS)
 			pImpl_->pInsertTextMenu_->createMenu(hmenu);
+		else if (nIdFirst == IDM_TOOL_ENCODINGDEFAULT)
+			pImpl_->pEncodingMenu_->createMenu(hmenu);
 		else if (nIdFirst == IDM_TOOL_SCRIPTNONE ||
 			nIdFirst == IDM_TOOL_SCRIPT)
 			pImpl_->pScriptMenu_->createMenu(hmenu);

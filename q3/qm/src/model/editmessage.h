@@ -46,6 +46,7 @@ public:
 	virtual void accountChanged(const EditMessageEvent& event) = 0;
 	virtual void fieldChanged(const EditMessageFieldEvent& event) = 0;
 	virtual void attachmentsChanged(const EditMessageEvent& event) = 0;
+	virtual void encodingChanged(const EditMessageEvent& event) = 0;
 	virtual void signatureChanged(const EditMessageEvent& event) = 0;
 };
 
@@ -124,11 +125,6 @@ public:
 				  const WCHAR* pwszValue,
 				  FieldType type);
 	void removeField(const WCHAR* pwszName);
-#if 0
-	qs::wxstring_ptr getMessageText();
-	bool setMessageText(const WCHAR* pwszMessage,
-						size_t nLen);
-#endif
 	qs::wxstring_ptr getBodyPartHeader();
 	bool setBodyPartHeader(const WCHAR* pwszHeader,
 						   size_t nLen);
@@ -139,6 +135,8 @@ public:
 	void setAttachments(const AttachmentList& listAttachment);
 	void addAttachment(const WCHAR* pwszPath);
 	void removeAttachment(const WCHAR* pwszPath);
+	const WCHAR* getEncoding() const;
+	void setEncoding(const WCHAR* pwszEncoding);
 	const WCHAR* getSignature() const;
 	void setSignature(const WCHAR* pwszSignature);
 	bool isAutoReform() const;
@@ -165,6 +163,7 @@ private:
 	void fireFieldChanged(const WCHAR* pwszName,
 						  const WCHAR* pwszValue);
 	void fireAttachmentsChanged();
+	void fireEncodingChanged();
 	void fireSignatureChanged();
 	void fireEvent(const EditMessageEvent& event,
 				   void (EditMessageHandler::*pfn)(const EditMessageEvent&));
@@ -204,6 +203,7 @@ private:
 	qs::wxstring_size_ptr wstrBody_;
 	AttachmentParser::AttachmentList listAttachment_;
 	AttachmentPathList listAttachmentPath_;
+	qs::wstring_ptr wstrEncoding_;
 	qs::wstring_ptr wstrSignature_;
 	bool bAutoReform_;
 	unsigned int nSecure_;
@@ -230,6 +230,7 @@ public:
 	virtual void accountChanged(const EditMessageEvent& event);
 	virtual void fieldChanged(const EditMessageFieldEvent& event);
 	virtual void attachmentsChanged(const EditMessageEvent& event);
+	virtual void encodingChanged(const EditMessageEvent& event);
 	virtual void signatureChanged(const EditMessageEvent& event);
 
 private:

@@ -206,6 +206,7 @@ struct ActionNameMap
 	{ L"ToolCancel",					IDM_TOOL_CANCEL							},
 	{ L"ToolAutoPilot",					IDM_TOOL_AUTOPILOT,						},
 	{ L"ToolDialup",					IDM_TOOL_DIALUP							},
+	{ L"ToolEncodingDefault",			IDM_TOOL_ENCODINGDEFAULT				},
 	{ L"ToolGoround0",					IDM_TOOL_GOROUND						},
 	{ L"ToolGoround1",					IDM_TOOL_GOROUND + 1					},
 	{ L"ToolGoround2",					IDM_TOOL_GOROUND + 2					},

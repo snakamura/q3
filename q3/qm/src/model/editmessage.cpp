@@ -409,21 +409,6 @@ void qm::EditMessage::removeField(const WCHAR* pwszName)
 	fireFieldChanged(pwszName, 0);
 }
 
-#if 0
-wxstring_ptr qm::EditMessage::getMessageText()
-{
-	// TODO
-	return 0;
-}
-
-bool qm::EditMessage::setMessageText(const WCHAR* pwszMessage,
-									 size_t nLen)
-{
-	// TODO
-	return true;
-}
-#endif
-
 wxstring_ptr qm::EditMessage::getBodyPartHeader()
 {
 	if (!applyFields())
@@ -592,6 +577,21 @@ void qm::EditMessage::removeAttachment(const WCHAR* pwszPath)
 	fireAttachmentsChanged();
 }
 
+const WCHAR* qm::EditMessage::getEncoding() const
+{
+	return wstrEncoding_.get();
+}
+
+void qm::EditMessage::setEncoding(const WCHAR* pwszEncoding)
+{
+	if (pwszEncoding)
+		wstrEncoding_ = allocWString(pwszEncoding);
+	else
+		wstrEncoding_.reset(0);
+	
+	fireEncodingChanged();
+}
+
 const WCHAR* qm::EditMessage::getSignature() const
 {
 	return wstrSignature_.get();
@@ -679,6 +679,12 @@ bool qm::EditMessage::applyFields()
 {
 	assert(pMessage_.get());
 	assert(pBodyPart_);
+	
+	if (wstrEncoding_.get()) {
+		ContentTypeParser contentType(L"text", L"plain");
+		contentType.setParameter(L"charset", wstrEncoding_.get());
+		pBodyPart_->replaceField(L"Content-Type", contentType);
+	}
 	
 	for (FieldList::iterator it = listField_.begin(); it != listField_.end(); ) {
 		Field& field = *it;
@@ -798,6 +804,11 @@ void qm::EditMessage::fireFieldChanged(const WCHAR* pwszName,
 void qm::EditMessage::fireAttachmentsChanged()
 {
 	fireEvent(EditMessageEvent(this), &EditMessageHandler::attachmentsChanged);
+}
+
+void qm::EditMessage::fireEncodingChanged()
+{
+	fireEvent(EditMessageEvent(this), &EditMessageHandler::encodingChanged);
 }
 
 void qm::EditMessage::fireSignatureChanged()
@@ -958,6 +969,10 @@ void qm::DefaultEditMessageHandler::fieldChanged(const EditMessageFieldEvent& ev
 }
 
 void qm::DefaultEditMessageHandler::attachmentsChanged(const EditMessageEvent& event)
+{
+}
+
+void qm::DefaultEditMessageHandler::encodingChanged(const EditMessageEvent& event)
 {
 }
 

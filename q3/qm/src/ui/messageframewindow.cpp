@@ -903,7 +903,7 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pDocument_->getTemplateManager(), false));
 	pImpl_->pCreateTemplateExternalMenu_.reset(new CreateTemplateMenu(
 		pImpl_->pDocument_->getTemplateManager(), true));
-	pImpl_->pEncodingMenu_.reset(new EncodingMenu(pImpl_->pProfile_));
+	pImpl_->pEncodingMenu_.reset(new EncodingMenu(pImpl_->pProfile_, IDM_VIEW_ENCODING));
 	pImpl_->pScriptMenu_.reset(new ScriptMenu(pImpl_->pDocument_->getScriptManager()));
 	
 	CustomAcceleratorFactory acceleratorFactory;

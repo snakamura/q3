@@ -34,6 +34,7 @@ class EditFileSaveAction;
 class EditFileSendAction;
 class EditFocusItemAction;
 class EditToolAttachmentAction;
+class EditToolEncodingAction;
 class EditToolFlagAction;
 class EditToolInsertSignatureAction;
 class EditToolInsertTextAction;
@@ -49,6 +50,7 @@ class Document;
 class EditFrameWindow;
 class EditMessageHolder;
 class EditWindow;
+class EncodingMenu;
 class FindReplaceManager;
 class InsertTextMenu;
 class SecurityModel;
@@ -482,6 +484,34 @@ private:
 private:
 	EditMessageHolder* pEditMessageHolder_;
 	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * EditToolEncodingAction
+ *
+ */
+
+class EditToolEncodingAction : public qs::AbstractAction
+{
+public:
+	explicit EditToolEncodingAction(EditMessageHolder* pEditMessageHolder);
+	EditToolEncodingAction(EditMessageHolder* pEditMessageHolder,
+						   EncodingMenu* pEncodingMenu);
+	virtual ~EditToolEncodingAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
+
+private:
+	EditToolEncodingAction(const EditToolEncodingAction&);
+	EditToolEncodingAction& operator=(const EditToolEncodingAction&);
+
+private:
+	EditMessageHolder* pEditMessageHolder_;
+	EncodingMenu* pEncodingMenu_;
 };
 
 

@@ -148,7 +148,9 @@ bool qm::AttachmentMenu::createMenu(HMENU hmenu,
  *
  */
 
-qm::EncodingMenu::EncodingMenu(Profile* pProfile)
+qm::EncodingMenu::EncodingMenu(Profile* pProfile,
+							   unsigned int nBaseId) :
+	nBaseId_(nBaseId)
 {
 	load(pProfile);
 }
@@ -161,8 +163,8 @@ qm::EncodingMenu::~EncodingMenu()
 
 const WCHAR* qm::EncodingMenu::getEncoding(unsigned int nId) const
 {
-	if (IDM_VIEW_ENCODING <= nId && nId < IDM_VIEW_ENCODING + listEncoding_.size())
-		return listEncoding_[nId - IDM_VIEW_ENCODING];
+	if (nBaseId_ <= nId && nId < nBaseId_ + listEncoding_.size())
+		return listEncoding_[nId - nBaseId_];
 	else
 		return 0;
 }
@@ -173,7 +175,7 @@ bool qm::EncodingMenu::createMenu(HMENU hmenu)
 	
 	for (EncodingList::size_type n = 0; n < listEncoding_.size(); ++n) {
 		W2T(listEncoding_[n], ptszEncoding);
-		::AppendMenu(hmenu, MF_STRING, IDM_VIEW_ENCODING + n, ptszEncoding);
+		::AppendMenu(hmenu, MF_STRING, nBaseId_ + n, ptszEncoding);
 	}
 	
 	return true;

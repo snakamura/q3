@@ -195,6 +195,7 @@ const struct PopupMenuItem
 	{ L"MessageApplyTemplateExternal",	IDR_MESSAGEAPPLYTEMPLATEEXTERNAL	},
 	{ L"MessageAttachment",				IDR_MESSAGEATTACHMENT				},
 	{ L"MessageMove",					IDR_MESSAGEMOVE						},
+	{ L"ToolEncoding",					IDR_TOOLENCODING					},
 	{ L"ToolGoRound",					IDR_TOOLGOROUND						},
 	{ L"ToolInsertText",				IDR_TOOLINSERTTEXT					},
 	{ L"ToolScript",					IDR_TOOLSCRIPT						},

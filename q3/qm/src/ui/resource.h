@@ -78,6 +78,7 @@
 #define IDR_ADDRESSBOOK                 180
 #define IDD_FILTERS                     180
 #define IDD_FILTER                      181
+#define IDR_TOOLENCODING                181
 #define IDD_SYNCFILTERSETS              182
 #define IDD_SYNCFILTERS                 183
 #define IDD_SYNCFILTER                  184

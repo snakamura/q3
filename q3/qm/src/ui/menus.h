@@ -108,7 +108,8 @@ public:
 	};
 
 public:
-	explicit EncodingMenu(qs::Profile* pProfile);
+	EncodingMenu(qs::Profile* pProfile,
+				 unsigned int nBaseId);
 	~EncodingMenu();
 
 public:
@@ -127,6 +128,7 @@ private:
 
 private:
 	EncodingList listEncoding_;
+	unsigned int nBaseId_;
 };
 
 

@@ -258,6 +258,7 @@
 			<menuitem text="&amp;Attachment..." action="ToolAttachment"/>
 			<popupmenu text="&amp;Insert Text" action="ToolInsertText"/>
 			<menuitem text="Insert Si&amp;gnature" action="ToolInsertSignature"/>
+			<popupmenu text="&amp;Encoding" action="ToolEncoding"/>
 			<separator/>
 			<menuitem text="Refor&amp;m" action="ToolReform"/>
 			<menuitem text="Re&amp;form All" action="ToolReformAll"/>
