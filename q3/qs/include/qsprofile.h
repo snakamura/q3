@@ -13,6 +13,7 @@
 #include <qsstring.h>
 
 #include <map>
+#include <vector>
 
 
 namespace qs {
@@ -32,6 +33,9 @@ class Profile;
 
 class QSEXPORTCLASS Profile
 {
+public:
+	typedef std::vector<WSTRING> StringList;
+
 public:
 	virtual ~Profile();
 
@@ -61,6 +65,14 @@ public:
 	virtual void setString(const WCHAR* pwszSection,
 						   const WCHAR* pwszKey,
 						   const WCHAR* pwszValue) = 0;
+	
+	virtual void getStringList(const WCHAR* pwszSection,
+							   const WCHAR* pwszKey,
+							   StringList* pListValue) = 0;
+	
+	virtual void setStringList(const WCHAR* pwszSection,
+							   const WCHAR* pwszKey,
+							   const StringList& listValue) = 0;
 	
 	/**
 	 * Get int value.
@@ -180,6 +192,13 @@ public:
 						   const WCHAR* pwszKey,
 						   const WCHAR* pwszValue);
 	
+	virtual void getStringList(const WCHAR* pwszSection,
+							   const WCHAR* pwszKey,
+							   StringList* pListValue);
+	virtual void setStringList(const WCHAR* pwszSection,
+							   const WCHAR* pwszKey,
+							   const StringList& listValue);
+	
 	virtual int getInt(const WCHAR* pwszSection,
 					   const WCHAR* pwszKey,
 					   int nDefault);
@@ -240,6 +259,13 @@ public:
 	virtual void setString(const WCHAR* pwszSection,
 						   const WCHAR* pwszKey,
 						   const WCHAR* pwszValue);
+	
+	virtual void getStringList(const WCHAR* pwszSection,
+							   const WCHAR* pwszKey,
+							   StringList* pListValue);
+	virtual void setStringList(const WCHAR* pwszSection,
+							   const WCHAR* pwszKey,
+							   const StringList& listValue);
 	
 	virtual int getInt(const WCHAR* pwszSection,
 					   const WCHAR* pwszKey,

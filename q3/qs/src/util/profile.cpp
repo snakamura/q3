@@ -131,6 +131,20 @@ void qs::RegistryProfile::setString(const WCHAR* pwszSection,
 		reg.setValue(pwszKey, pwszValue);
 }
 
+void qs::RegistryProfile::getStringList(const WCHAR* pwszSection,
+										const WCHAR* pwszKey,
+										StringList* pListValue)
+{
+	assert(false);
+}
+
+void qs::RegistryProfile::setStringList(const WCHAR* pwszSection,
+										const WCHAR* pwszKey,
+										const StringList& listValue)
+{
+	assert(false);
+}
+
 int qs::RegistryProfile::getInt(const WCHAR* pwszSection,
 								const WCHAR* pwszKey,
 								int nDefault)
@@ -327,6 +341,69 @@ void qs::AbstractProfile::setString(const WCHAR* pwszSection,
 		freeWString((*it).second);
 		(*it).second = wstrValue.release();
 	}
+}
+
+void qs::AbstractProfile::getStringList(const WCHAR* pwszSection,
+										const WCHAR* pwszKey,
+										StringList* pListValue)
+{
+	assert(pwszSection);
+	assert(pwszKey);
+	assert(pListValue);
+	
+	wstring_ptr wstrValue(getString(pwszSection, pwszKey, L""));
+	
+	WCHAR* p = wcstok(wstrValue.get(), L" ");
+	while (p) {
+		StringBuffer<WSTRING> buf;
+		while (*p) {
+			if (*p == L'_') {
+				if (*(p + 1) == L'_') {
+					buf.append(L'_');
+					++p;
+				}
+				else {
+					buf.append(L' ');
+				}
+			}
+			else {
+				buf.append(*p);
+			}
+			++p;
+		}
+		if (buf.getLength() != 0)
+			pListValue->push_back(buf.getString().release());
+		
+		p = wcstok(0, L" ");
+	}
+}
+
+void qs::AbstractProfile::setStringList(const WCHAR* pwszSection,
+										const WCHAR* pwszKey,
+										const StringList& listValue)
+{
+	assert(pwszSection);
+	assert(pwszKey);
+	
+	StringBuffer<WSTRING> buf;
+	
+	for (StringList::const_iterator it = listValue.begin(); it != listValue.end(); ++it) {
+		if (buf.getLength() != 0)
+			buf.append(L' ');
+		
+		const WCHAR* p = *it;
+		while (*p) {
+			if (*p == L' ')
+				buf.append(L'_');
+			else if (*p == L'_')
+				buf.append(L"__");
+			else
+				buf.append(*p);
+			++p;
+		}
+	}
+	
+	setString(pwszSection, pwszKey, buf.getCharArray());
 }
 
 int qs::AbstractProfile::getInt(const WCHAR* pwszSection,
