@@ -586,6 +586,30 @@ const ActionInvoker* qm::MessageFrameWindow::getActionInvoker() const
 	return pImpl_->pActionInvoker_;
 }
 
+QSTATUS qm::MessageFrameWindow::save() const
+{
+	DECLARE_QSTATUS();
+	
+	Profile* pProfile = pImpl_->pProfile_;
+	
+	status = pProfile->setInt(L"MessageFrameWindow",
+		L"ShowToolbar", pImpl_->bShowToolbar_);
+	CHECK_QSTATUS();
+	status = pProfile->setInt(L"MessageFrameWindow",
+		L"ShowStatusBar", pImpl_->bShowStatusBar_);
+	CHECK_QSTATUS();
+	
+#ifndef _WIN32_WCE
+	WINDOWPLACEMENT wp;
+	getWindowPlacement(&wp);
+	status = pProfile->setBinary(L"MessageFrameWindow", L"WindowPlacement",
+		reinterpret_cast<const unsigned char*>(&wp), sizeof(wp));
+	CHECK_QSTATUS();
+#endif
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::MessageFrameWindow::getToolbarButtons(Toolbar* pToolbar, bool* pbToolbar)
 {
 	assert(pToolbar);
@@ -868,19 +892,7 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 
 LRESULT qm::MessageFrameWindow::onDestroy()
 {
-	Profile* pProfile = pImpl_->pProfile_;
-	
 	getMessageModel()->removeMessageModelHandler(pImpl_);
-	
-	pProfile->setInt(L"MessageFrameWindow", L"ShowToolbar", pImpl_->bShowToolbar_);
-	pProfile->setInt(L"MessageFrameWindow", L"ShowStatusBar", pImpl_->bShowStatusBar_);
-	
-#ifndef _WIN32_WCE
-	WINDOWPLACEMENT wp;
-	getWindowPlacement(&wp);
-	pProfile->setBinary(L"MessageFrameWindow", L"WindowPlacement",
-		reinterpret_cast<const unsigned char*>(&wp), sizeof(wp));
-#endif
 	
 	return FrameWindow::onDestroy();
 }
@@ -1073,6 +1085,22 @@ QSTATUS qm::MessageFrameWindowManager::postModalDialog(HWND hwndParent)
 		if ((*it)->getHandle() != hwndParent)
 			(*it)->enableWindow(true);
 		++it;
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::MessageFrameWindowManager::save() const
+{
+	DECLARE_QSTATUS();
+	
+	if (pCachedFrame_) {
+		status = pCachedFrame_->save();
+		CHECK_QSTATUS();
+	}
+	else if (!listFrame_.empty()) {
+		status = listFrame_.back()->save();
+		CHECK_QSTATUS();
 	}
 	
 	return QSTATUS_SUCCESS;

@@ -58,6 +58,8 @@ public:
 	qs::QSTATUS setShowStatusBar(bool bShow);
 	
 	const ActionInvoker* getActionInvoker() const;
+	
+	qs::QSTATUS save() const;
 
 protected:
 	virtual qs::QSTATUS getToolbarButtons(Toolbar* pToolbar, bool* pbToolbar);

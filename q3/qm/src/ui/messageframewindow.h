@@ -50,6 +50,7 @@ public:
 	void close(MessageFrameWindow* pMessageFrameWindow);
 	qs::QSTATUS preModalDialog(HWND hwndParent);
 	qs::QSTATUS postModalDialog(HWND hwndParent);
+	qs::QSTATUS save() const;
 
 private:
 	qs::QSTATUS create(MessageFrameWindow** ppFrame);

@@ -75,6 +75,33 @@ QSTATUS qm::SyncDialogManager::open(SyncDialog** ppSyncDialog)
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qm::SyncDialogManager::save() const
+{
+	if (pThread_) {
+		SyncDialog* pSyncDialog = pThread_->getDialog();
+		class RunnableImpl : public Runnable
+		{
+		public:
+			RunnableImpl(SyncDialog* pSyncDialog) :
+				pSyncDialog_(pSyncDialog)
+			{
+			}
+			
+			virtual unsigned int run()
+			{
+				pSyncDialog_->save();
+				return 0;
+			}
+		
+		private:
+			SyncDialog* pSyncDialog_;
+		} runnable(pSyncDialog);
+		pSyncDialog->getInitThread()->getSynchronizer()->syncExec(&runnable);
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
 
 /****************************************************************************
  *
@@ -241,6 +268,26 @@ QSTATUS qm::SyncDialog::selectDialupEntry(WSTRING* pwstrEntry) const
 	return 0;
 }
 
+QSTATUS qm::SyncDialog::save() const
+{
+	DECLARE_QSTATUS();
+	
+#ifndef _WIN32_WCE
+	RECT rect;
+	getWindowRect(&rect);
+	status = pProfile_->setInt(L"SyncDialog", L"X", rect.left);
+	CHECK_QSTATUS();
+	status = pProfile_->setInt(L"SyncDialog", L"Y", rect.top);
+	CHECK_QSTATUS();
+	status = pProfile_->setInt(L"SyncDialog", L"Width", rect.right - rect.left);
+	CHECK_QSTATUS();
+	status = pProfile_->setInt(L"SyncDialog", L"Height", rect.bottom - rect.top);
+	CHECK_QSTATUS();
+#endif
+	
+	return QSTATUS_SUCCESS;
+}
+
 INT_PTR qm::SyncDialog::dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	BEGIN_DIALOG_HANDLER()
@@ -269,15 +316,6 @@ LRESULT qm::SyncDialog::onClose()
 
 LRESULT qm::SyncDialog::onDestroy()
 {
-#ifndef _WIN32_WCE
-	RECT rect;
-	getWindowRect(&rect);
-	pProfile_->setInt(L"SyncDialog", L"X", rect.left);
-	pProfile_->setInt(L"SyncDialog", L"Y", rect.top);
-	pProfile_->setInt(L"SyncDialog", L"Width", rect.right - rect.left);
-	pProfile_->setInt(L"SyncDialog", L"Height", rect.bottom - rect.top);
-#endif
-	
 	pStatusWindow_->unsubclassWindow();
 	removeCommandHandler(this);
 	

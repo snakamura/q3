@@ -1,5 +1,5 @@
 /*
- * $Id: qmmainwindow.h,v 1.2 2003/05/09 08:22:00 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -42,6 +42,8 @@ public:
 	qs::QSTATUS setShowPreviewWindow(bool bShow);
 	
 	const ActionInvoker* getActionInvoker() const;
+	
+	qs::QSTATUS save() const;
 
 protected:
 	virtual qs::QSTATUS getToolbarButtons(Toolbar* pToolbar, bool* pbToolbar);

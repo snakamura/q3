@@ -1337,6 +1337,69 @@ const ActionInvoker* qm::MainWindow::getActionInvoker() const
 	return pImpl_->pActionInvoker_;
 }
 
+QSTATUS qm::MainWindow::save() const
+{
+	DECLARE_QSTATUS();
+	
+	status = pImpl_->pMessageFrameWindowManager_->save();
+	CHECK_QSTATUS();
+	status = pImpl_->pViewModelManager_->save();
+	CHECK_QSTATUS();
+	
+	Profile* pProfile = pImpl_->pProfile_;
+	
+	status = pProfile->setInt(L"MainWindow",
+		L"ShowToolbar", pImpl_->bShowToolbar_);
+	CHECK_QSTATUS();
+	status = pProfile->setInt(L"MainWindow",
+		L"ShowStatusBar", pImpl_->bShowStatusBar_);
+	CHECK_QSTATUS();
+	
+	if (pImpl_->bShowFolderWindow_) {
+		if (pImpl_->bVirticalFolderWindow_) {
+			status = pImpl_->pFolderSplitterWindow_->getRowHeight(
+				0, &pImpl_->nFolderWindowSize_);
+			CHECK_QSTATUS();
+		}
+		else {
+			status = pImpl_->pFolderSplitterWindow_->getColumnWidth(
+				0, &pImpl_->nFolderWindowSize_);
+			CHECK_QSTATUS();
+		}
+	}
+	status = pProfile->setInt(L"MainWindow",
+		L"FolderWindowSize", pImpl_->nFolderWindowSize_);
+	CHECK_QSTATUS();
+	status = pProfile->setInt(L"MainWindow",
+		L"ShowFolderWindow", pImpl_->bShowFolderWindow_);
+	CHECK_QSTATUS();
+	status = pProfile->setInt(L"MainWindow",
+		L"ShowFolderComboBox", pImpl_->bShowFolderComboBox_);
+	CHECK_QSTATUS();
+	
+	if (pImpl_->bShowPreviewWindow_) {
+		status = pImpl_->pListSplitterWindow_->getRowHeight(
+			0, &pImpl_->nListWindowHeight_);
+		CHECK_QSTATUS();
+	}
+	status = pProfile->setInt(L"MainWindow",
+		L"ListWindowHeight", pImpl_->nListWindowHeight_);
+	CHECK_QSTATUS();
+	status = pProfile->setInt(L"MainWindow",
+		L"ShowPreviewWindow", pImpl_->bShowPreviewWindow_);
+	CHECK_QSTATUS();
+	
+#ifndef _WIN32_WCE
+	WINDOWPLACEMENT wp;
+	getWindowPlacement(&wp);
+	status = pProfile->setBinary(L"MainWindow", L"WindowPlacement",
+		reinterpret_cast<const unsigned char*>(&wp), sizeof(wp));
+	CHECK_QSTATUS();
+#endif
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::MainWindow::getToolbarButtons(Toolbar* pToolbar, bool* pbToolbar)
 {
 	assert(pToolbar);
@@ -1799,46 +1862,6 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 
 LRESULT qm::MainWindow::onDestroy()
 {
-	DECLARE_QSTATUS();
-	
-	if (pImpl_->bCreated_) {
-		Profile* pProfile = pImpl_->pProfile_;
-		
-		pProfile->setInt(L"MainWindow", L"ShowToolbar", pImpl_->bShowToolbar_);
-		pProfile->setInt(L"MainWindow", L"ShowStatusBar", pImpl_->bShowStatusBar_);
-		
-		if (pImpl_->bShowFolderWindow_) {
-			if (pImpl_->bVirticalFolderWindow_)
-				status = pImpl_->pFolderSplitterWindow_->getRowHeight(
-					0, &pImpl_->nFolderWindowSize_);
-			else
-				status = pImpl_->pFolderSplitterWindow_->getColumnWidth(
-					0, &pImpl_->nFolderWindowSize_);
-		}
-		pProfile->setInt(L"MainWindow",
-			L"FolderWindowSize", pImpl_->nFolderWindowSize_);
-		pProfile->setInt(L"MainWindow", L"ShowFolderWindow",
-			pImpl_->bShowFolderWindow_);
-		pProfile->setInt(L"MainWindow", L"ShowFolderComboBox",
-			pImpl_->bShowFolderComboBox_);
-		
-		if (pImpl_->bShowPreviewWindow_) {
-			status = pImpl_->pListSplitterWindow_->getRowHeight(
-				0, &pImpl_->nListWindowHeight_);
-		}
-		pProfile->setInt(L"MainWindow", L"ListWindowHeight",
-			pImpl_->nListWindowHeight_);
-		pProfile->setInt(L"MainWindow", L"ShowPreviewWindow",
-			pImpl_->bShowPreviewWindow_);
-		
-#ifndef _WIN32_WCE
-		WINDOWPLACEMENT wp;
-		getWindowPlacement(&wp);
-		pProfile->setBinary(L"MainWindow", L"WindowPlacement",
-			reinterpret_cast<const unsigned char*>(&wp), sizeof(wp));
-#endif
-	}
-	
 	::PostQuitMessage(0);
 	
 	return FrameWindow::onDestroy();

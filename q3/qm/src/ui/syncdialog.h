@@ -42,6 +42,7 @@ public:
 
 public:
 	qs::QSTATUS open(SyncDialog** ppSyncDialog);
+	qs::QSTATUS save() const;
 
 private:
 	SyncDialogManager(const SyncDialogManager&);
@@ -82,6 +83,7 @@ public:
 	qs::QSTATUS enableCancel(bool bEnable);
 	qs::QSTATUS showDialupDialog(RASDIALPARAMS* prdp, bool* pbCancel) const;
 	qs::QSTATUS selectDialupEntry(qs::WSTRING* pwstrEntry) const;
+	qs::QSTATUS save() const;
 
 public:
 	virtual INT_PTR dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam);

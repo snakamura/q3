@@ -567,6 +567,12 @@ QSTATUS qm::Application::save()
 {
 	DECLARE_QSTATUS();
 	
+	status = pImpl_->pDocument_->save();
+	CHECK_QSTATUS();
+	status = pImpl_->pMainWindow_->save();
+	CHECK_QSTATUS();
+	status = pImpl_->pSyncDialogManager_->save();
+	CHECK_QSTATUS();
 	status = pImpl_->pProfile_->save();
 	CHECK_QSTATUS();
 	

@@ -757,14 +757,8 @@ QSTATUS qm::FileExitAction::invoke(const ActionEvent& event)
 	
 	{
 		WaitCursor cursor;
-		
-		status = pDocument_->save();
-		CHECK_QSTATUS();
-		status = pViewModelManager_->save();
-		CHECK_QSTATUS();
 		status = Application::getApplication().save();
 		CHECK_QSTATUS();
-		
 		pDocument_->setOffline(true);
 		pSyncManager_->dispose();
 	}
