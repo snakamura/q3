@@ -8,6 +8,7 @@
 
 #include <qsaction.h>
 #include <qsconv.h>
+#include <qsmenu.h>
 
 #include <commctrl.h>
 #include <tchar.h>
@@ -33,6 +34,7 @@ struct qs::ToolbarManagerImpl
 	const Toolbar* getToolbar(const WCHAR* pwszName) const;
 	
 	ToolbarManager* pThis_;
+	const MenuManager* pMenuManager_;
 	HIMAGELIST hImageList_;
 	ToolbarList listToolbar_;
 };
@@ -72,7 +74,8 @@ const Toolbar* qs::ToolbarManagerImpl::getToolbar(const WCHAR* pwszName) const
 qs::ToolbarManager::ToolbarManager(const WCHAR* pwszPath,
 								   HBITMAP hBitmap,
 								   const ActionItem* pItem,
-								   size_t nItemCount) :
+								   size_t nItemCount,
+								   const MenuManager* pMenuManager) :
 	pImpl_(0)
 {
 	assert(pwszPath);
@@ -88,6 +91,7 @@ qs::ToolbarManager::ToolbarManager(const WCHAR* pwszPath,
 	
 	std::auto_ptr<ToolbarManagerImpl> pImpl(new ToolbarManagerImpl());
 	pImpl->pThis_ = this;
+	pImpl->pMenuManager_ = pMenuManager;
 	pImpl->hImageList_ = hImageList;
 	
 	if (!pImpl->load(pwszPath, pItem, nItemCount))
@@ -117,7 +121,7 @@ ToolbarCookie* qs::ToolbarManager::createButtons(const WCHAR* pwszName,
 	const Toolbar* pToolbar = pImpl_->getToolbar(pwszName);
 	if (!pToolbar)
 		return 0;
-	return pToolbar->create(hwnd, pParent, pImpl_->hImageList_);
+	return pToolbar->create(hwnd, pParent, pImpl_->pMenuManager_, pImpl_->hImageList_);
 }
 
 void qs::ToolbarManager::destroy(ToolbarCookie* pCookie) const
@@ -147,7 +151,11 @@ qs::ToolbarCookie::ToolbarCookie(const WCHAR* pwszName,
 }
 #else
 qs::ToolbarCookie::ToolbarCookie(const WCHAR* pwszName,
-								 ToolTipList& listToolTip)
+								 WindowBase* pParent,
+								 std::auto_ptr<NotifyHandler> pNotifyHandler,
+								 ToolTipList& listToolTip) :
+	pParent_(pParent),
+	pNotifyHandler_(pNotifyHandler)
 {
 	wstrName_ = allocWString(pwszName);
 	listToolTip_.swap(listToolTip);
@@ -163,7 +171,6 @@ const WCHAR* qs::ToolbarCookie::getName() const
 	return wstrName_.get();
 }
 
-#ifndef _WIN32_WCE
 WindowBase* qs::ToolbarCookie::getParent() const
 {
 	return pParent_;
@@ -173,7 +180,6 @@ NotifyHandler* qs::ToolbarCookie::getNotifyHandler() const
 {
 	return pNotifyHandler_.get();
 }
-#endif
 
 
 /****************************************************************************
@@ -201,12 +207,17 @@ const WCHAR* qs::Toolbar::getName() const
 
 ToolbarCookie* qs::Toolbar::create(HWND hwnd,
 								   WindowBase* pParent,
+								   const MenuManager* pMenuManager,
 								   HIMAGELIST hImageList) const
 {
 	HIMAGELIST hImageListCopy = ImageList_Duplicate(hImageList);
 	if (!hImageListCopy)
 		return 0;
 	::SendMessage(hwnd, TB_SETIMAGELIST, 0, reinterpret_cast<LPARAM>(hImageListCopy));
+	
+#ifndef _WIN32_WCE
+	::SendMessage(hwnd, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS);
+#endif
 	
 #ifdef _WIN32_WCE
 	ToolbarCookie::ToolTipList listToolTip;
@@ -226,21 +237,20 @@ ToolbarCookie* qs::Toolbar::create(HWND hwnd,
 	
 	::SendMessage(hwnd, TB_AUTOSIZE, 0, 0);
 
-#ifndef _WIN32_WCE
 	UINT nId = Window(hwnd).getWindowLong(GWL_ID);
-	std::auto_ptr<NotifyHandler> pNotifyHandler(new ToolbarNotifyHandler(this, nId));
+	std::auto_ptr<NotifyHandler> pNotifyHandler(new ToolbarNotifyHandler(
+		this, pMenuManager, pParent->getParentFrame()));
 	pParent->addNotifyHandler(pNotifyHandler.get());
+#ifndef _WIN32_WCE
 	return new ToolbarCookie(wstrName_.get(), pParent, pNotifyHandler);
 #else
-	return new ToolbarCookie(wstrName_.get(), listToolTip);
+	return new ToolbarCookie(wstrName_.get(), pParent, pNotifyHandler, listToolTip);
 #endif
 }
 
 void qs::Toolbar::destroy(ToolbarCookie* pCookie) const
 {
-#ifndef _WIN32_WCE
 	pCookie->getParent()->removeNotifyHandler(pCookie->getNotifyHandler());
-#endif
 	delete pCookie;
 }
 
@@ -314,9 +324,6 @@ qs::ToolbarButton::~ToolbarButton()
 bool qs::ToolbarButton::create(HWND hwnd,
 							   bool bShowText)
 {
-	// TODO
-	// Handle dropdown.
-	
 	int nTextIndex = -1;
 	if (bShowText && wstrText_.get()) {
 		W2T(wstrText_.get(), ptszText);
@@ -333,6 +340,13 @@ bool qs::ToolbarButton::create(HWND hwnd,
 	button.idCommand = nAction_;
 	button.fsState = TBSTATE_ENABLED;
 	button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE;
+	if (wstrDropDown_.get()) {
+		button.fsStyle |= TBSTYLE_DROPDOWN;
+#ifndef _WIN32_WCE
+		if (nAction_ == -1)
+			button.fsStyle |= BTNS_WHOLEDROPDOWN;
+#endif
+	}
 	button.iString = nTextIndex;
 	::SendMessage(hwnd, TB_ADDBUTTONS, 1, reinterpret_cast<LPARAM>(&button));
 	
@@ -342,6 +356,11 @@ bool qs::ToolbarButton::create(HWND hwnd,
 UINT qs::ToolbarButton::getAction() const
 {
 	return nAction_;
+}
+
+const WCHAR* qs::ToolbarButton::getDropDown() const
+{
+	return wstrDropDown_.get();
 }
 
 const WCHAR* qs::ToolbarButton::getToolTip() const
@@ -387,6 +406,11 @@ UINT qs::ToolbarSeparator::getAction() const
 	return -1;
 }
 
+const WCHAR* qs::ToolbarSeparator::getDropDown() const
+{
+	return 0;
+}
+
 const WCHAR* qs::ToolbarSeparator::getToolTip() const
 {
 	return 0;
@@ -411,7 +435,8 @@ qs::ToolbarContentHandler::ToolbarContentHandler(ToolbarList* pListToolbar,
 	pActionItem_(pItem),
 	nActionItemCount_(nItemCount),
 	state_(STATE_ROOT),
-	pToolbar_(0)
+	pToolbar_(0),
+	nDummyId_(60000)
 {
 }
 
@@ -494,7 +519,7 @@ bool qs::ToolbarContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (nImage == -1 || (!pwszAction && !pwszDropDown))
 			return false;
 		
-		UINT nAction = getActionId(pwszAction);
+		UINT nAction = pwszAction ? getActionId(pwszAction) : nDummyId_++;
 		if (nAction != -1) {
 			std::auto_ptr<ToolbarButton> pButton(new ToolbarButton(
 				nImage, pwszText, pwszToolTip, nAction, pwszDropDown));
@@ -583,8 +608,6 @@ UINT qs::ToolbarContentHandler::getActionId(const WCHAR* pwszAction)
 }
 
 
-#ifndef _WIN32_WCE
-
 /****************************************************************************
  *
  * ToolbarNotifyHandler
@@ -592,9 +615,11 @@ UINT qs::ToolbarContentHandler::getActionId(const WCHAR* pwszAction)
  */
 
 qs::ToolbarNotifyHandler::ToolbarNotifyHandler(const Toolbar* pToolbar,
-											   UINT nId) :
+											   const MenuManager* pMenuManager,
+											   HWND hwndFrame) :
 	pToolbar_(pToolbar),
-	nId_(nId)
+	pMenuManager_(pMenuManager),
+	hwndFrame_(hwndFrame)
 {
 }
 
@@ -606,9 +631,42 @@ LRESULT qs::ToolbarNotifyHandler::onNotify(NMHDR* pnmhdr,
 										   bool* pbHandled)
 {
 	BEGIN_NOTIFY_HANDLER()
+		HANDLE_NOTIFY_CODE(TBN_DROPDOWN, onDropDown)
 		HANDLE_NOTIFY_CODE(TTN_GETDISPINFO, onGetDispInfo)
 	END_NOTIFY_HANDLER()
 	return 1;
+}
+
+LRESULT qs::ToolbarNotifyHandler::onDropDown(NMHDR* pnmhdr,
+											 bool* pbHandled)
+{
+	NMTOOLBAR* pToolbar = reinterpret_cast<NMTOOLBAR*>(pnmhdr);
+	
+	const ToolbarItem* pItem = pToolbar_->getItem(pToolbar->iItem);
+	if (pItem) {
+		const WCHAR* pwszDropDown = pItem->getDropDown();
+		if (pwszDropDown) {
+			HMENU hmenu = pMenuManager_->getMenu(pwszDropDown, false, false);
+			if (hmenu) {
+				UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
+#ifndef _WIN32_WCE
+				nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
+#endif
+#ifdef _WIN32_WCE
+				RECT rect;
+				::SendMessage(pToolbar->hdr.hwndFrom, TB_GETRECT,
+					pToolbar->iItem, reinterpret_cast<LPARAM>(&rect));
+				POINT pt = { rect.left, rect.bottom };
+#else
+				POINT pt = { pToolbar->rcButton.left, pToolbar->rcButton.bottom };
+#endif
+				::ClientToScreen(pToolbar->hdr.hwndFrom, &pt);
+				::TrackPopupMenu(hmenu, nFlags, pt.x, pt.y, 0, hwndFrame_, 0);
+			}
+		}
+	}
+	
+	return 0;
 }
 
 LRESULT qs::ToolbarNotifyHandler::onGetDispInfo(NMHDR* pnmhdr,
@@ -625,7 +683,7 @@ LRESULT qs::ToolbarNotifyHandler::onGetDispInfo(NMHDR* pnmhdr,
 		}
 	}
 	
+	*pbHandled = true;
+	
 	return 0;
 }
-
-#endif // _WIN32_WCE

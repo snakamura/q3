@@ -24,9 +24,9 @@ class ToolbarItem;
 	class ToolbarButton;
 	class ToolbarSeparator;
 class ToolbarContentHandler;
-#ifndef _WIN32_WCE
 class ToolbarNotifyHandler;
-#endif
+
+class MenuManager;
 
 
 /****************************************************************************
@@ -46,6 +46,7 @@ public:
 	const WCHAR* getName() const;
 	ToolbarCookie* create(HWND hwnd,
 						  WindowBase* pParent,
+						  const MenuManager* pMenuManager,
 						  HIMAGELIST hImageList) const;
 	void destroy(ToolbarCookie* pCookie) const;
 
@@ -85,6 +86,7 @@ public:
 	virtual bool create(HWND hwnd,
 						bool bShowText) = 0;
 	virtual UINT getAction() const = 0;
+	virtual const WCHAR* getDropDown() const = 0;
 	virtual const WCHAR* getToolTip() const = 0;
 	virtual bool isSeparator() const = 0;
 
@@ -114,6 +116,7 @@ public:
 	virtual bool create(HWND hwnd,
 						bool bShowText);
 	virtual UINT getAction() const;
+	virtual const WCHAR* getDropDown() const;
 	virtual const WCHAR* getToolTip() const;
 	virtual bool isSeparator() const;
 
@@ -146,6 +149,7 @@ public:
 	virtual bool create(HWND hwnd,
 						bool bShowText);
 	virtual UINT getAction() const;
+	virtual const WCHAR* getDropDown() const;
 	virtual const WCHAR* getToolTip() const;
 	virtual bool isSeparator() const;
 
@@ -206,10 +210,9 @@ private:
 	size_t nActionItemCount_;
 	State state_;
 	Toolbar* pToolbar_;
+	UINT nDummyId_;
 };
 
-
-#ifndef _WIN32_WCE
 
 /****************************************************************************
  *
@@ -221,7 +224,8 @@ class ToolbarNotifyHandler : public NotifyHandler
 {
 public:
 	ToolbarNotifyHandler(const Toolbar* pToolbar,
-						 UINT nId);
+						 const MenuManager* pMenuManager,
+						 HWND hwndFrame);
 	virtual ~ToolbarNotifyHandler();
 
 public:
@@ -229,6 +233,8 @@ public:
 							 bool* pbHandled);
 
 private:
+	LRESULT onDropDown(NMHDR* pnmhdr,
+					   bool* pbHandled);
 	LRESULT onGetDispInfo(NMHDR* pnmhdr,
 						  bool* pbHandled);
 
@@ -238,10 +244,9 @@ private:
 
 private:
 	const Toolbar* pToolbar_;
-	UINT nId_;
+	const MenuManager* pMenuManager_;
+	HWND hwndFrame_;
 };
-
-#endif // _WIN32_WCE
 
 }
 

@@ -52,7 +52,7 @@ qm::UIManager::UIManager()
 #endif
 	wstring_ptr wstrToolbarPath(app.getProfilePath(FileNames::TOOLBARS_XML));
 	pToolbarManager_.reset(new ToolbarManager(wstrToolbarPath.get(),
-		hBitmap, toolbarItems, countof(toolbarItems)));
+		hBitmap, toolbarItems, countof(toolbarItems), pMenuManager_.get()));
 	
 	wstring_ptr wstrKeyMapPath(app.getProfilePath(FileNames::KEYMAP_XML));
 	pKeyMap_.reset(new KeyMap(wstrKeyMapPath.get()));

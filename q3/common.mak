@@ -258,7 +258,7 @@ MIDLFLAGS				= -Oicf
 ifeq ($(PLATFORM),desktop)
 	# DESKTOP ###############################################################
 	CCFLAGS				+= -GX -GB -MD$(DSUFFIX)
-	DEFINES				+= -DMT -D_DLL -DWINVER=0x400 -D_WIN32_WINNT=0x400 -D_WIN32_IE=0x400 -DTAPI_CURRENT_VERSION=0x00010004
+	DEFINES				+= -DMT -D_DLL -DWINVER=0x400 -D_WIN32_WINNT=0x400 -D_WIN32_IE=0x600 -DTAPI_CURRENT_VERSION=0x00010004
 	ifeq ($(CODE),unicode)
 		DEFINES			+= -DUNICODE -D_UNICODE
 	endif

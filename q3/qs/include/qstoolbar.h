@@ -38,12 +38,14 @@ public:
 	 * @param hBitmap [in] Toolbar image.
 	 * @param pItem [in] Action items.
 	 * @param nItemCount [in] Count of action items.
+	 * @param pMenuManager [in] Menu manager to get drop down menus.
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	ToolbarManager(const WCHAR* pwszPath,
 				   HBITMAP hBitmap,
 				   const ActionItem* pItem,
-				   size_t nItemCount);
+				   size_t nItemCount,
+				   const MenuManager* pMenuManager);
 	
 	~ToolbarManager();
 
@@ -90,16 +92,16 @@ public:
 				  std::auto_ptr<NotifyHandler> pNotifyHandler);
 #else
 	ToolbarCookie(const WCHAR* pwszName,
+				  WindowBase* pParent,
+				  std::auto_ptr<NotifyHandler> pNotifyHandler,
 				  ToolTipList& listToolTip);
 #endif
 	~ToolbarCookie();
 
 public:
 	const WCHAR* getName() const;
-#ifndef _WIN32_WCE
 	WindowBase* getParent() const;
 	NotifyHandler* getNotifyHandler() const;
-#endif
 
 private:
 	ToolbarCookie(const ToolbarCookie&);
@@ -107,10 +109,9 @@ private:
 
 private:
 	wstring_ptr wstrName_;
-#ifndef _WIN32_WCE
 	WindowBase* pParent_;
 	std::auto_ptr<NotifyHandler> pNotifyHandler_;
-#else
+#ifdef _WIN32_WCE
 	ToolTipList listToolTip_;
 #endif
 };
