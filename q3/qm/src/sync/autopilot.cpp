@@ -12,6 +12,8 @@
 
 #include <qsras.h>
 
+#include <tchar.h>
+
 #include "autopilot.h"
 #include "syncmanager.h"
 #include "../model/goround.h"
@@ -138,7 +140,7 @@ qm::AutoPilot::UnseenCountUpdater::UnseenCountUpdater(Document* pDocument,
 	pfnSHSetUnreadMailCount_(0)
 {
 	if (pProfile->getInt(L"Global", L"ShowUnseenCountOnWelcome", 0)) {
-		HINSTANCE hInst = ::LoadLibrary(L"shell32.dll");
+		HINSTANCE hInst = ::LoadLibrary(_T("shell32.dll"));
 		pfnSHSetUnreadMailCount_ = reinterpret_cast<PFN_SHSETUNREADMAILCOUNT>(
 			::GetProcAddress(hInst, "SHSetUnreadMailCountW"));
 		
