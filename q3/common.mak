@@ -185,9 +185,12 @@ endif
 ifdef DEBUG
 	BASENAME			= debug
 	DSUFFIX				= d
-	CCFLAGS				= -Z7 -Od -GZ
+	CCFLAGS				= -Zi -Od -Fd$(OBJDIR)/
+ifeq ($(PLATFORM),desktop)
+		CCFLAGS			+= -GZ
+endif
 	DEFINES				= -D_DEBUG
-	LDFLAGS				= -DEBUG -DEBUGTYPE:CV -PDB:NONE -FIXED:NO
+	LDFLAGS				= -DEBUG -DEBUGTYPE:CV -PDB:$(TARGETDIR)/$(PROJECTNAME).pdb -FIXED:NO
 	RCFLAGS				= -d _DEBUG
 else
 	BASENAME			= release
