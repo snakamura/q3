@@ -41,6 +41,7 @@ class DefaultDialog;
 	class AutoPilotEntryDialog;
 	class ColorDialog;
 	class ConditionDialog;
+	class ConfirmSendDialog;
 	class CopyRuleTemplateDialog;
 	class CreateAccountDialog;
 	class CreateFolderDialog;
@@ -678,6 +679,44 @@ private:
 
 private:
 	qs::wstring_ptr wstrCondition_;
+};
+
+
+/****************************************************************************
+ *
+ * ConfirmSendDialog
+ *
+ */
+
+class ConfirmSendDialog : public DefaultDialog
+{
+public:
+	enum ID {
+		ID_SEND		= 1000,
+		ID_SAVE		= 1001,
+		ID_DISCARD	= 1002
+	};
+
+public:
+	ConfirmSendDialog();
+	virtual ~ConfirmSendDialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+private:
+	LRESULT onSend();
+	LRESULT onSave();
+	LRESULT onDiscard();
+
+private:
+	ConfirmSendDialog(const ConfirmSendDialog&);
+	ConfirmSendDialog& operator=(const ConfirmSendDialog&);
 };
 
 

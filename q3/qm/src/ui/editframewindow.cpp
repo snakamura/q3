@@ -20,6 +20,7 @@
 #	include <aygshell.h>
 #endif
 
+#include "dialogs.h"
 #include "editframewindow.h"
 #include "editwindow.h"
 #include "keymap.h"
@@ -456,11 +457,10 @@ bool qm::EditFrameWindow::tryClose()
 {
 	bool bCancel = true;
 	
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	int nMsg = messageBox(hInst, IDS_CONFIRMCLOSEEDITFRAME,
-		MB_YESNOCANCEL | MB_DEFBUTTON1 | MB_ICONQUESTION, getHandle(), 0, 0);
-	switch (nMsg) {
-	case IDYES:
+	ConfirmSendDialog dialog;
+	int nId = dialog.doModal(getHandle());
+	switch (nId) {
+	case ConfirmSendDialog::ID_SEND:
 		{
 			Action* pAction = pImpl_->pActionMap_->getAction(IDM_FILE_SEND);
 			assert(pAction);
@@ -468,7 +468,15 @@ bool qm::EditFrameWindow::tryClose()
 			return true;
 		}
 		break;
-	case IDNO:
+	case ConfirmSendDialog::ID_SAVE:
+		{
+			Action* pAction = pImpl_->pActionMap_->getAction(IDM_FILE_DRAFTCLOSE);
+			assert(pAction);
+			pAction->invoke(ActionEvent(IDM_FILE_DRAFTCLOSE, 0));
+			return true;
+		}
+		break;
+	case ConfirmSendDialog::ID_DISCARD:
 		bCancel = false;
 		break;
 	default:

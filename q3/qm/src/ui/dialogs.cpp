@@ -2163,6 +2163,64 @@ LRESULT qm::ConditionDialog::onOk()
 
 /****************************************************************************
  *
+ * ConfirmSendDialog
+ *
+ */
+
+qm::ConfirmSendDialog::ConfirmSendDialog() :
+	DefaultDialog(IDD_CONFIRMSEND)
+{
+}
+
+qm::ConfirmSendDialog::~ConfirmSendDialog()
+{
+}
+
+LRESULT qm::ConfirmSendDialog::onCommand(WORD nCode,
+										 WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_SEND, onSend)
+		HANDLE_COMMAND_ID(IDC_SAVE, onSave)
+		HANDLE_COMMAND_ID(IDC_DISCARD, onDiscard)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::ConfirmSendDialog::onInitDialog(HWND hwndFocus,
+											LPARAM lParam)
+{
+	centerWindow(0);
+	
+#ifndef _WIN32_WCE
+	HICON hIcon = ::LoadIcon(0, IDI_QUESTION);
+	sendDlgItemMessage(IDC_QUESTION, STM_SETICON, reinterpret_cast<LPARAM>(hIcon));
+#endif
+	
+	return TRUE;
+}
+
+LRESULT qm::ConfirmSendDialog::onSend()
+{
+	endDialog(ID_SEND);
+	return 0;
+}
+
+LRESULT qm::ConfirmSendDialog::onSave()
+{
+	endDialog(ID_SAVE);
+	return 0;
+}
+
+LRESULT qm::ConfirmSendDialog::onDiscard()
+{
+	endDialog(ID_DISCARD);
+	return 0;
+}
+
+
+/****************************************************************************
+ *
  * CopyRuleTemplateDialog
  *
  */

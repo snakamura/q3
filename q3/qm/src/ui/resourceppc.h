@@ -82,6 +82,7 @@
 #define IDD_SYNCFILTER                  184
 #define IDD_AUTOPILOT                   185
 #define IDD_AUTOPILOTENTRY              186
+#define IDD_CONFIRMSEND                 187
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -149,7 +150,6 @@
 #define IDC_SENT                        1035
 #define IDS_FINDNOTFOUND                1035
 #define IDC_DRAFT                       1036
-#define IDS_CONFIRMCLOSEEDITFRAME       1036
 #define IDC_MARKED                      1037
 #define IDS_DIALUPCONNECT               1037
 #define IDC_DOWNLOAD                    1038
@@ -376,6 +376,8 @@
 #define IDC_TYPELABEL                   1275
 #define IDC_ENTRIES                     1276
 #define IDC_INTERVAL                    1278
+#define IDC_DISCARD                     1281
+#define IDC_QUESTION                    1283
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -636,9 +638,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        187
+#define _APS_NEXT_RESOURCE_VALUE        188
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1279
+#define _APS_NEXT_CONTROL_VALUE         1284
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

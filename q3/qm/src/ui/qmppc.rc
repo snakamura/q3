@@ -1338,6 +1338,19 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,82,40,50,12
 END
 
+IDD_CONFIRMSEND DIALOG DISCARDABLE  0, 0, 131, 64
+STYLE WS_POPUP | WS_CAPTION
+CAPTION "QMAIL"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "This message has not been saved nor sent.\nWould you like to discard it?",
+                    IDC_STATIC,5,10,121,25
+    DEFPUSHBUTTON   "&Send",IDC_SEND,5,45,25,12
+    PUSHBUTTON      "S&ave",IDC_SAVE,32,45,25,12
+    PUSHBUTTON      "&Discard",IDC_DISCARD,59,45,35,12
+    PUSHBUTTON      "&Cancel",IDCANCEL,96,45,30,12
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1727,7 +1740,6 @@ BEGIN
     IDS_FOLDERLISTUNSEENCOUNT "Unseen"
     IDS_FOLDERLISTSIZE      "Size"
     IDS_FINDNOTFOUND        "Not found."
-    IDS_CONFIRMCLOSEEDITFRAME "Send message?"
     IDS_DIALUPCONNECT       "&Dialup Connect"
     IDS_DIALUPDISCONNECT    "&Dialup Disconnect"
     IDS_NORMALFOLDER        "Normal"
