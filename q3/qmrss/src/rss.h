@@ -292,6 +292,60 @@ private:
 
 /****************************************************************************
  *
+ * AtomHandler
+ *
+ */
+
+class AtomHandler : public RssHandler
+{
+public:
+	explicit AtomHandler(Channel* pChannel);
+	virtual ~AtomHandler();
+
+public:
+	virtual bool startElement(const WCHAR* pwszNamespaceURI,
+							  const WCHAR* pwszLocalName,
+							  const WCHAR* pwszQName,
+							  const qs::Attributes& attributes);
+	virtual bool endElement(const WCHAR* pwszNamespaceURI,
+							const WCHAR* pwszLocalName,
+							const WCHAR* pwszQName);
+	virtual bool characters(const WCHAR* pwsz,
+							size_t nStart,
+							size_t nLength);
+
+private:
+	AtomHandler(const AtomHandler&);
+	AtomHandler& operator=(const AtomHandler&);
+
+private:
+	enum State {
+		STATE_ROOT,
+		STATE_FEED,
+		STATE_MODIFIED,
+		STATE_ENTRY,
+		STATE_PROPERTY,
+		STATE_AUTHOR,
+		STATE_NAME,
+		STATE_EMAIL,
+		STATE_UNKNOWN
+	};
+
+private:
+	typedef std::vector<State> StateStack;
+
+private:
+	Channel* pChannel_;
+	StateStack stackState_;
+	qs::StringBuffer<qs::WSTRING> buffer_;
+	Item* pCurrentItem_;
+	qs::wstring_ptr wstrName_;
+	qs::wstring_ptr wstrEmail_;
+};
+
+
+/****************************************************************************
+ *
  * ParserUtil
  *
  */

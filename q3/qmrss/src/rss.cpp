@@ -245,11 +245,14 @@ bool qmrss::RssContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 {
 	if (!pHandler_.get()) {
 		if (pwszNamespaceURI) {
-			if (wcscmp(pwszNamespaceURI, L"http://www.w3.org/1999/02/22-rdf-syntax-ns#") != 0 ||
-				wcscmp(pwszLocalName, L"RDF") != 0)
+			if (wcscmp(pwszNamespaceURI, L"http://www.w3.org/1999/02/22-rdf-syntax-ns#") == 0 &&
+				wcscmp(pwszLocalName, L"RDF") == 0)
+				pHandler_.reset(new Rss10Handler(pChannel_));
+			else if (wcscmp(pwszNamespaceURI, L"http://purl.org/atom/ns#") == 0 &&
+				wcscmp(pwszLocalName, L"feed") == 0)
+				pHandler_.reset(new AtomHandler(pChannel_));
+			else
 				return false;
-			
-			pHandler_.reset(new Rss10Handler(pChannel_));
 		}
 		else {
 			if (wcscmp(pwszLocalName, L"rss") != 0)
@@ -322,13 +325,14 @@ bool qmrss::Rss10Handler::startElement(const WCHAR* pwszNamespaceURI,
 	State state = stackState_.back();
 	switch (state) {
 	case STATE_ROOT:
-		if (wcscmp(pwszNamespaceURI, L"http://www.w3.org/1999/02/22-rdf-syntax-ns#") != 0 ||
+		if (!pwszNamespaceURI ||
+			wcscmp(pwszNamespaceURI, L"http://www.w3.org/1999/02/22-rdf-syntax-ns#") != 0 ||
 			wcscmp(pwszLocalName, L"RDF") != 0)
 			return false;
 		stackState_.push_back(STATE_RDF);
 		break;
 	case STATE_RDF:
-		if (wcscmp(pwszNamespaceURI, L"http://purl.org/rss/1.0/") == 0) {
+		if (pwszNamespaceURI && wcscmp(pwszNamespaceURI, L"http://purl.org/rss/1.0/") == 0) {
 			if (wcscmp(pwszLocalName, L"channel") == 0) {
 				stackState_.push_back(STATE_CHANNEL);
 			}
@@ -347,7 +351,7 @@ bool qmrss::Rss10Handler::startElement(const WCHAR* pwszNamespaceURI,
 		}
 		break;
 	case STATE_CHANNEL:
-		if (wcscmp(pwszNamespaceURI, L"http://purl.org/dc/elements/1.1/") == 0) {
+		if (pwszNamespaceURI && wcscmp(pwszNamespaceURI, L"http://purl.org/dc/elements/1.1/") == 0) {
 			if (wcscmp(pwszLocalName, L"date") == 0)
 				stackState_.push_back(STATE_DATE);
 			else
@@ -361,7 +365,7 @@ bool qmrss::Rss10Handler::startElement(const WCHAR* pwszNamespaceURI,
 		stackState_.push_back(STATE_UNKNOWN);
 		break;
 	case STATE_ITEM:
-		if (wcscmp(pwszNamespaceURI, L"http://purl.org/rss/1.0/") == 0) {
+		if (pwszNamespaceURI && wcscmp(pwszNamespaceURI, L"http://purl.org/rss/1.0/") == 0) {
 			if (wcscmp(pwszLocalName, L"title") == 0 ||
 				wcscmp(pwszLocalName, L"link") == 0 ||
 				wcscmp(pwszLocalName, L"description") == 0 ||
@@ -370,7 +374,7 @@ bool qmrss::Rss10Handler::startElement(const WCHAR* pwszNamespaceURI,
 			else
 				stackState_.push_back(STATE_UNKNOWN);
 		}
-		else if (wcscmp(pwszNamespaceURI, L"http://purl.org/dc/elements/1.1/") == 0) {
+		else if (pwszNamespaceURI && wcscmp(pwszNamespaceURI, L"http://purl.org/dc/elements/1.1/") == 0) {
 			if (wcscmp(pwszLocalName, L"subject") == 0 ||
 				wcscmp(pwszLocalName, L"creator") == 0 ||
 				wcscmp(pwszLocalName, L"date") == 0)
@@ -378,7 +382,7 @@ bool qmrss::Rss10Handler::startElement(const WCHAR* pwszNamespaceURI,
 			else
 				stackState_.push_back(STATE_UNKNOWN);
 		}
-		else if (wcscmp(pwszNamespaceURI, L"http://purl.org/rss/1.0/modules/content/") == 0) {
+		else if (pwszNamespaceURI && wcscmp(pwszNamespaceURI, L"http://purl.org/rss/1.0/modules/content/") == 0) {
 			if (wcscmp(pwszLocalName, L"encoded") == 0)
 				stackState_.push_back(STATE_PROPERTY);
 			else
@@ -436,6 +440,7 @@ bool qmrss::Rss10Handler::endElement(const WCHAR* pwszNamespaceURI,
 		break;
 	case STATE_PROPERTY:
 		assert(pCurrentItem_);
+		assert(pwszNamespaceURI);
 		if (wcscmp(pwszNamespaceURI, L"http://purl.org/rss/1.0/") == 0) {
 			if (wcscmp(pwszLocalName, L"title") == 0) {
 				pCurrentItem_->setTitle(buffer_.getString());
@@ -534,7 +539,7 @@ bool qmrss::Rss20Handler::startElement(const WCHAR* pwszNamespaceURI,
 	State state = stackState_.back();
 	switch (state) {
 	case STATE_ROOT:
-		if (!pwszNamespaceURI && wcscmp(pwszLocalName, L"rss") != 0)
+		if (pwszNamespaceURI || wcscmp(pwszLocalName, L"rss") != 0)
 			return false;
 		stackState_.push_back(STATE_RSS);
 		break;
@@ -714,6 +719,226 @@ bool qmrss::Rss20Handler::characters(const WCHAR* pwsz,
 	if (state == STATE_PUBDATE ||
 		state == STATE_PROPERTY)
 		buffer_.append(pwsz + nStart, nLength);
+	return true;
+}
+
+
+/****************************************************************************
+ *
+ * AtomHandler
+ *
+ */
+
+qmrss::AtomHandler::AtomHandler(Channel* pChannel) :
+	pChannel_(pChannel),
+	pCurrentItem_(0)
+{
+	stackState_.push_back(STATE_ROOT);
+}
+
+qmrss::AtomHandler::~AtomHandler()
+{
+}
+
+bool qmrss::AtomHandler::startElement(const WCHAR* pwszNamespaceURI,
+									  const WCHAR* pwszLocalName,
+									  const WCHAR* pwszQName,
+									  const Attributes& attributes)
+{
+	assert(!stackState_.empty());
+	
+	State state = stackState_.back();
+	switch (state) {
+	case STATE_ROOT:
+		if (!pwszNamespaceURI ||
+			wcscmp(pwszNamespaceURI, L"http://purl.org/atom/ns#") != 0 ||
+			wcscmp(pwszLocalName, L"feed") != 0)
+			return false;
+		stackState_.push_back(STATE_FEED);
+		break;
+	case STATE_FEED:
+		if (pwszNamespaceURI && wcscmp(pwszNamespaceURI, L"http://purl.org/atom/ns#") == 0) {
+			if (wcscmp(pwszLocalName, L"entry") == 0) {
+				std::auto_ptr<Item> pItem(new Item());
+				pCurrentItem_ = pItem.get();
+				pChannel_->addItem(pItem);
+				stackState_.push_back(STATE_ENTRY);
+			}
+			else if (wcscmp(pwszLocalName, L"modified") == 0) {
+				stackState_.push_back(STATE_MODIFIED);
+			}
+			else {
+				stackState_.push_back(STATE_UNKNOWN);
+			}
+		}
+		else {
+			stackState_.push_back(STATE_UNKNOWN);
+		}
+		break;
+	case STATE_MODIFIED:
+		stackState_.push_back(STATE_UNKNOWN);
+		break;
+	case STATE_ENTRY:
+		if (pwszNamespaceURI && wcscmp(pwszNamespaceURI, L"http://purl.org/atom/ns#") == 0) {
+			if (wcscmp(pwszLocalName, L"title") == 0 ||
+				wcscmp(pwszLocalName, L"modified") == 0 ||
+				wcscmp(pwszLocalName, L"summary") == 0 ||
+				wcscmp(pwszLocalName, L"content") == 0) {
+				stackState_.push_back(STATE_PROPERTY);
+			}
+			else if (wcscmp(pwszLocalName, L"link") == 0) {
+				const WCHAR* pwszHref = attributes.getValue(L"href");
+				if (pwszHref)
+					pCurrentItem_->setLink(allocWString(pwszHref));
+				stackState_.push_back(STATE_UNKNOWN);
+			}
+			else if (wcscmp(pwszLocalName, L"author") == 0) {
+				stackState_.push_back(STATE_AUTHOR);
+			}
+			else {
+				stackState_.push_back(STATE_UNKNOWN);
+			}
+		}
+		else {
+			stackState_.push_back(STATE_UNKNOWN);
+		}
+		break;
+	case STATE_PROPERTY:
+		stackState_.push_back(STATE_UNKNOWN);
+		break;
+	case STATE_AUTHOR:
+		if (pwszNamespaceURI && wcscmp(pwszNamespaceURI, L"http://purl.org/atom/ns#") == 0) {
+			if (wcscmp(pwszLocalName, L"name") == 0)
+				stackState_.push_back(STATE_NAME);
+			else if (wcscmp(pwszLocalName, L"email") == 0)
+				stackState_.push_back(STATE_EMAIL);
+			else
+				stackState_.push_back(STATE_UNKNOWN);
+		}
+		else {
+			stackState_.push_back(STATE_UNKNOWN);
+		}
+		break;
+	case STATE_NAME:
+		stackState_.push_back(STATE_UNKNOWN);
+		break;
+	case STATE_EMAIL:
+		stackState_.push_back(STATE_UNKNOWN);
+		break;
+	case STATE_UNKNOWN:
+		stackState_.push_back(STATE_UNKNOWN);
+		break;
+	default:
+		assert(false);
+		break;
+	}
+	return true;
+}
+
+bool qmrss::AtomHandler::endElement(const WCHAR* pwszNamespaceURI,
+									const WCHAR* pwszLocalName,
+									const WCHAR* pwszQName)
+{
+	assert(!stackState_.empty());
+	
+	State state = stackState_.back();
+	switch (state) {
+	case STATE_ROOT:
+		assert(false);
+		return false;
+	case STATE_FEED:
+		assert(wcscmp(pwszNamespaceURI, L"http://purl.org/atom/ns#") == 0 &&
+			wcscmp(pwszLocalName, L"feed") == 0);
+		break;
+	case STATE_MODIFIED:
+		{
+			assert(wcscmp(pwszNamespaceURI, L"http://purl.org/atom/ns#") == 0 &&
+				wcscmp(pwszLocalName, L"modified") == 0);
+			Time date;
+			if (ParserUtil::parseDate(buffer_.getCharArray(), &date))
+				pChannel_->setPubDate(date);
+			buffer_.remove();
+		}
+		break;
+	case STATE_ENTRY:
+		assert(wcscmp(pwszNamespaceURI, L"http://purl.org/atom/ns#") == 0 &&
+			wcscmp(pwszLocalName, L"entry") == 0);
+		assert(pCurrentItem_);
+		pCurrentItem_ = 0;
+		break;
+	case STATE_PROPERTY:
+		if (wcscmp(pwszNamespaceURI, L"http://purl.org/atom/ns#") == 0) {
+			if (wcscmp(pwszLocalName, L"title") == 0) {
+				pCurrentItem_->setTitle(buffer_.getString());
+			}
+			else if (wcscmp(pwszLocalName, L"modified") == 0) {
+				Time date;
+				if (ParserUtil::parseDate(buffer_.getCharArray(), &date))
+					pCurrentItem_->setPubDate(date);
+				buffer_.remove();
+			}
+			else if (wcscmp(pwszLocalName, L"summary") == 0) {
+				pCurrentItem_->setDescription(buffer_.getString());
+			}
+			else if (wcscmp(pwszLocalName, L"content") == 0) {
+				pCurrentItem_->setContentEncoded(buffer_.getString());
+			}
+			else {
+				assert(false);
+			}
+		}
+		else {
+			assert(false);
+		}
+		break;
+	case STATE_AUTHOR:
+		{
+			StringBuffer<WSTRING> buf;
+			if (wstrName_.get())
+				buf.append(wstrName_.get());
+			if (wstrEmail_.get()) {
+				if (wstrName_.get())
+					buf.append(L" <");
+				buf.append(wstrEmail_.get());
+				if (wstrName_.get())
+					buf.append(L">");
+			}
+			pCurrentItem_->addCreator(buf.getString());
+			wstrName_.reset(0);
+			wstrEmail_.reset(0);
+		}
+		break;
+	case STATE_NAME:
+		wstrName_ = buffer_.getString();
+		break;
+	case STATE_EMAIL:
+		wstrEmail_ = buffer_.getString();
+		break;
+	case STATE_UNKNOWN:
+		break;
+	default:
+		assert(false);
+		break;
+	}
+	
+	stackState_.pop_back();
+	
+	return true;
+}
+
+bool qmrss::AtomHandler::characters(const WCHAR* pwsz,
+									size_t nStart,
+									size_t nLength)
+{
+	assert(!stackState_.empty());
+	
+	State state = stackState_.back();
+	if (state == STATE_MODIFIED ||
+		state == STATE_PROPERTY ||
+		state == STATE_NAME ||
+		state == STATE_EMAIL)
+		buffer_.append(pwsz + nStart, nLength);
+	
 	return true;
 }
 
