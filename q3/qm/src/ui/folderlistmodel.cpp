@@ -20,12 +20,24 @@ using namespace qs;
  *
  */
 
-qm::FolderListModel::FolderListModel(QSTATUS* pstatus)
+qm::FolderListModel::FolderListModel(QSTATUS* pstatus) :
+	pAccount_(0),
+	pFocusedFolder_(0)
 {
 }
 
 qm::FolderListModel::~FolderListModel()
 {
+}
+
+Account* qm::FolderListModel::getAccount() const
+{
+	return pAccount_;
+}
+
+void qm::FolderListModel::setAccount(Account* pAccount)
+{
+	pAccount_ = pAccount;
 }
 
 QSTATUS qm::FolderListModel::getSelectedFolders(Account::FolderList* pList) const
@@ -34,25 +46,38 @@ QSTATUS qm::FolderListModel::getSelectedFolders(Account::FolderList* pList) cons
 	
 	DECLARE_QSTATUS();
 	
-	status = STLWrapper<Account::FolderList>(*pList).resize(listFolder_.size());
+	status = STLWrapper<Account::FolderList>(
+		*pList).resize(listSelectedFolder_.size());
 	CHECK_QSTATUS();
-	std::copy(listFolder_.begin(), listFolder_.end(), pList->begin());
+	std::copy(listSelectedFolder_.begin(),
+		listSelectedFolder_.end(), pList->begin());
 	
 	return QSTATUS_SUCCESS;
 }
 
 bool qm::FolderListModel::hasSelectedFolder() const
 {
-	return !listFolder_.empty();
+	return !listSelectedFolder_.empty();
 }
 
-QSTATUS qm::FolderListModel::setSelectedFolder(const Account::FolderList& l)
+QSTATUS qm::FolderListModel::setSelectedFolders(const Account::FolderList& l)
 {
 	DECLARE_QSTATUS();
 	
-	status = STLWrapper<Account::FolderList>(listFolder_).resize(l.size());
+	status = STLWrapper<Account::FolderList>(
+		listSelectedFolder_).resize(l.size());
 	CHECK_QSTATUS();
-	std::copy(l.begin(), l.end(), listFolder_.begin());
+	std::copy(l.begin(), l.end(), listSelectedFolder_.begin());
 	
 	return QSTATUS_SUCCESS;
+}
+
+Folder* qm::FolderListModel::getFocusedFolder() const
+{
+	return pFocusedFolder_;
+}
+
+void qm::FolderListModel::setFocusedFolder(Folder* pFolder)
+{
+	pFocusedFolder_ = pFolder;
 }

@@ -71,6 +71,7 @@ public:
 	Profile* pProfile_;
 	Accelerator* pAccelerator_;
 	Document* pDocument_;
+	Account* pAccount_;
 	
 	DelayedFolderModelHandler* pDelayedFolderModelHandler_;
 	UINT nId_;
@@ -211,6 +212,8 @@ QSTATUS qm::FolderListWindowImpl::setCurrentAccount(Account* pAccount)
 {
 	DECLARE_QSTATUS();
 	
+	pAccount_ = pAccount;
+	
 	ListView_DeleteAllItems(pThis_->getHandle());
 	
 	if (pAccount) {
@@ -271,8 +274,16 @@ QSTATUS qm::FolderListWindowImpl::updateFolderListModel()
 {
 	DECLARE_QSTATUS();
 	
-	int nCount = ListView_GetItemCount(pThis_->getHandle());
+	pFolderListModel_->setAccount(pAccount_);
 	
+	Folder* pFocusedFolder = 0;
+	int nItem = ListView_GetNextItem(pThis_->getHandle(),
+		-1, LVNI_ALL | LVNI_FOCUSED);
+	if (nItem != -1)
+		pFocusedFolder = getFolder(nItem);
+	pFolderListModel_->setFocusedFolder(pFocusedFolder);
+	
+	int nCount = ListView_GetItemCount(pThis_->getHandle());
 	Account::FolderList l;
 	if (nCount != 0) {
 		status = STLWrapper<Account::FolderList>(l).reserve(nCount);
@@ -288,8 +299,7 @@ QSTATUS qm::FolderListWindowImpl::updateFolderListModel()
 			l.push_back(pFolder);
 		}
 	}
-	
-	status = pFolderListModel_->setSelectedFolder(l);
+	status = pFolderListModel_->setSelectedFolders(l);
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
@@ -334,6 +344,7 @@ qm::FolderListWindow::FolderListWindow(WindowBase* pParentWindow,
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pAccelerator_ = 0;
 	pImpl_->pDocument_ = 0;
+	pImpl_->pAccount_ = 0;
 	pImpl_->pDelayedFolderModelHandler_ = 0;
 	pImpl_->nId_ = 0;
 	pImpl_->hfont_ = 0;

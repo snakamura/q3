@@ -30,16 +30,22 @@ public:
 	~FolderListModel();
 
 public:
+	Account* getAccount() const;
+	void setAccount(Account* pAccount);
 	qs::QSTATUS getSelectedFolders(Account::FolderList* pList) const;
 	bool hasSelectedFolder() const;
-	qs::QSTATUS setSelectedFolder(const Account::FolderList& l);
+	qs::QSTATUS setSelectedFolders(const Account::FolderList& l);
+	Folder* getFocusedFolder() const;
+	void setFocusedFolder(Folder* pFolder);
 
 private:
 	FolderListModel(const FolderListModel&);
 	FolderListModel& operator=(const FolderListModel&);
 
 private:
-	Account::FolderList listFolder_;
+	Account* pAccount_;
+	Account::FolderList listSelectedFolder_;
+	Folder* pFocusedFolder_;
 };
 
 }

@@ -131,8 +131,10 @@ public:
 	virtual qs::QSTATUS postModalDialog(HWND hwndParent);
 
 public:
+	virtual Account* getAccount();
 	virtual qs::QSTATUS getSelectedFolders(Account::FolderList* pList);
 	virtual qs::QSTATUS hasSelectedFolder(bool* pbHas);
+	virtual Folder* getFocusedFolder();
 
 public:
 	MainWindow* pThis_;
@@ -319,11 +321,11 @@ QSTATUS qm::MainWindowImpl::initActions()
 	status = InitAction1<FolderCompactAction, FolderModel*>(
 		pActionMap_, IDM_FOLDER_COMPACT, pFolderModel_);
 	CHECK_QSTATUS();
-	status = InitAction1<FolderCreateAction, FolderModel*>(
-		pActionMap_, IDM_FOLDER_CREATE, pFolderModel_);
+	status = InitAction1<FolderCreateAction, FolderSelectionModel*>(
+		pActionMap_, IDM_FOLDER_CREATE, this);
 	CHECK_QSTATUS();
-	status = InitAction1<FolderDeleteAction, FolderModel*>(
-		pActionMap_, IDM_FOLDER_DELETE, pFolderModel_);
+	status = InitAction1<FolderDeleteAction, FolderSelectionModel*>(
+		pActionMap_, IDM_FOLDER_DELETE, this);
 	CHECK_QSTATUS();
 	status = InitAction2<FolderPropertyAction, FolderSelectionModel*, HWND>(
 		pActionMap_, IDM_FOLDER_PROPERTY, this, pThis_->getHandle());
@@ -896,8 +898,21 @@ QSTATUS qm::MainWindowImpl::postModalDialog(HWND hwndParent)
 	return QSTATUS_SUCCESS;
 }
 
+Account* qm::MainWindowImpl::getAccount()
+{
+	DECLARE_QSTATUS();
+	
+	if (pFolderListWindow_->isActive())
+		return pFolderListModel_->getFocusedFolder() ?
+			0 : pFolderListModel_->getAccount();
+	else
+		return pFolderModel_->getCurrentAccount();
+}
+
 QSTATUS qm::MainWindowImpl::getSelectedFolders(Account::FolderList* pList)
 {
+	assert(pList);
+	
 	DECLARE_QSTATUS();
 	
 	if (pFolderListWindow_->isActive()) {
@@ -926,6 +941,14 @@ QSTATUS qm::MainWindowImpl::hasSelectedFolder(bool* pbHas)
 		*pbHas = pFolderModel_->getCurrentFolder() != 0;
 	
 	return QSTATUS_SUCCESS;
+}
+
+Folder* qm::MainWindowImpl::getFocusedFolder()
+{
+	if (pFolderListWindow_->isActive())
+		return pFolderListModel_->getFocusedFolder();
+	else
+		return pFolderModel_->getCurrentFolder();
 }
 
 

@@ -29,8 +29,10 @@ public:
 	virtual ~FolderSelectionModel();
 
 public:
+	virtual Account* getAccount() = 0;
 	virtual qs::QSTATUS getSelectedFolders(Account::FolderList* pList) = 0;
 	virtual qs::QSTATUS hasSelectedFolder(bool* pbHas) = 0;
+	virtual Folder* getFocusedFolder() = 0;
 };
 
 }

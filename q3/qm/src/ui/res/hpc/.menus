@@ -21,7 +21,7 @@
 			<menuitem text="&amp;Emptry" action="FolderEmpty"/>
 			<menuitem text="&amp;Compact" action="FolderCompact"/>
 			<separator/>
-			<menuitem text="&amp;Property" action="FolderProperty"/>
+			<menuitem text="&amp;Property..." action="FolderProperty"/>
 		</popupmenu>
 		<popupmenu text="&amp;Edit">
 			<menuitem text="Cu&amp;t" action="EditCut"/>
@@ -86,7 +86,7 @@
 			<separator/>
 			<popupmenu text="&amp;Attachment" action="MessageAttachment"/>
 			<separator/>
-			<menuitem text="&amp;Property" action="MessageProperty"/>
+			<menuitem text="&amp;Property..." action="MessageProperty"/>
 		</popupmenu>
 		<popupmenu text="&amp;Tool">
 			<menuitem text="S&amp;end &amp;&amp; Receive" action="ToolSync"/>
@@ -162,7 +162,7 @@
 			<separator/>
 			<popupmenu text="&amp;Attachment" action="MessageAttachment"/>
 			<separator/>
-			<menuitem text="&amp;Property" action="MessageProperty"/>
+			<menuitem text="&amp;Property..." action="MessageProperty"/>
 		</popupmenu>
 		<popupmenu text="&amp;Tool">
 			<popupmenu text="&amp;Script" action="ToolScript"/>
@@ -191,10 +191,10 @@
 			<separator/>
 			<menuitem text="Select &amp;All" action="EditSelectAll"/>
 			<separator/>
-			<menuitem text="&amp;Find" action="EditFind"/>
+			<menuitem text="&amp;Find..." action="EditFind"/>
 			<menuitem text="Find &amp;Next" action="EditFindNext"/>
 			<menuitem text="Find Pre&amp;v" action="EditFindPrev"/>
-			<menuitem text="Rep&amp;lace" action="EditReplace"/>
+			<menuitem text="Rep&amp;lace..." action="EditReplace"/>
 		</popupmenu>
 		<popupmenu text="&amp;View">
 			<popupmenu text="Show &amp;Controls">
@@ -231,20 +231,30 @@
 		<separator/>
 		<menuitem text="Select &amp;All" action="EditSelectAll"/>
 		<separator/>
-		<menuitem text="&amp;Find" action="EditFind"/>
+		<menuitem text="&amp;Find..." action="EditFind"/>
 		<menuitem text="Find &amp;Next" action="EditFindNext"/>
 		<menuitem text="Find Pre&amp;v" action="EditFindPrev"/>
-		<menuitem text="Rep&amp;lace" action="EditReplace"/>
+		<menuitem text="Rep&amp;lace..." action="EditReplace"/>
 	</menu>
 	<menu name="folder">
-		<menuitem text="&amp;Create" action="FolderCreate"/>
+		<menuitem text="&amp;Create..." action="FolderCreate"/>
 		<menuitem text="&amp;Delete" action="FolderDelete"/>
 		<menuitem text="&amp;Update" action="FolderUpdate"/>
 		<separator/>
 		<menuitem text="&amp;Emptry" action="FolderEmpty"/>
 		<menuitem text="&amp;Compact" action="FolderCompact"/>
 		<separator/>
-		<menuitem text="&amp;Property" action="FolderProperty"/>
+		<menuitem text="&amp;Property..." action="FolderProperty"/>
+	</menu>
+	<menu name="folderlist">
+		<menuitem text="&amp;Create..." action="FolderCreate"/>
+		<menuitem text="&amp;Delete" action="FolderDelete"/>
+		<menuitem text="&amp;Update" action="FolderUpdate"/>
+		<separator/>
+		<menuitem text="&amp;Emptry" action="FolderEmpty"/>
+		<menuitem text="&amp;Compact" action="FolderCompact"/>
+		<separator/>
+		<menuitem text="&amp;Property..." action="FolderProperty"/>
 	</menu>
 	<menu name="list">
 		<menuitem text="&amp;New" action="MessageNew"/>
@@ -271,7 +281,7 @@
 			<menuitem text="Mark &amp;Download" action="MessageMarkDownload"/>
 		</popupmenu>
 		<separator/>
-		<menuitem text="&amp;Property" action="MessageProperty"/>
+		<menuitem text="&amp;Property..." action="MessageProperty"/>
 	</menu>
 	<menu name="message">
 		<menuitem text="&amp;Next Message" action="ViewNextMessage"/>
@@ -283,7 +293,7 @@
 		<menuitem text="&amp;Copy" action="EditCopy"/>
 		<menuitem text="Select &amp;All" action="EditSelectAll"/>
 		<separator/>
-		<menuitem text="&amp;Find" action="EditFind"/>
+		<menuitem text="&amp;Find..." action="EditFind"/>
 		<separator/>
 		<popupmenu text="&amp;Move" action="MessageMove"/>
 		<separator/>
@@ -299,6 +309,6 @@
 			<menuitem text="Mark &amp;Download" action="MessageMarkDownload"/>
 		</popupmenu>
 		<separator/>
-		<menuitem text="&amp;Property" action="MessageProperty"/>
+		<menuitem text="&amp;Property..." action="MessageProperty"/>
 	</menu>
 </menus>

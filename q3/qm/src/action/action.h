@@ -655,7 +655,7 @@ private:
 class FolderCreateAction : public qs::AbstractAction
 {
 public:
-	FolderCreateAction(FolderModel* pFolderModel, qs::QSTATUS* pstatus);
+	FolderCreateAction(FolderSelectionModel* pFolderSelectionModel, qs::QSTATUS* pstatus);
 	virtual ~FolderCreateAction();
 
 public:
@@ -667,7 +667,7 @@ private:
 	FolderCreateAction& operator=(const FolderCreateAction&);
 
 private:
-	FolderModel* pFolderModel_;
+	FolderSelectionModel* pFolderSelectionModel_;
 };
 
 
@@ -680,7 +680,7 @@ private:
 class FolderDeleteAction : public qs::AbstractAction
 {
 public:
-	FolderDeleteAction(FolderModel* pFolderModel, qs::QSTATUS* pstatus);
+	FolderDeleteAction(FolderSelectionModel* pFolderSelectionModel, qs::QSTATUS* pstatus);
 	virtual ~FolderDeleteAction();
 
 public:
@@ -692,7 +692,7 @@ private:
 	FolderDeleteAction& operator=(const FolderDeleteAction&);
 
 private:
-	FolderModel* pFolderModel_;
+	FolderSelectionModel* pFolderSelectionModel_;
 };
 
 

@@ -1331,8 +1331,8 @@ QSTATUS qm::FolderCompactAction::isEnabled(const ActionEvent& event, bool* pbEna
  */
 
 qm::FolderCreateAction::FolderCreateAction(
-	FolderModel* pFolderModel, QSTATUS* pstatus) :
-	pFolderModel_(pFolderModel)
+	FolderSelectionModel* pFolderSelectionModel, QSTATUS* pstatus) :
+	pFolderSelectionModel_(pFolderSelectionModel)
 {
 	assert(pstatus);
 	*pstatus = QSTATUS_SUCCESS;
@@ -1346,10 +1346,9 @@ QSTATUS qm::FolderCreateAction::invoke(const ActionEvent& event)
 {
 	DECLARE_QSTATUS();
 	
-	
-	Folder* pFolder = pFolderModel_->getCurrentFolder();
+	Folder* pFolder = pFolderSelectionModel_->getFocusedFolder();
 	Account* pAccount = pFolder ? pFolder->getAccount() :
-		pFolderModel_->getCurrentAccount();
+		pFolderSelectionModel_->getAccount();
 	
 	CreateFolderDialog::Type type = CreateFolderDialog::TYPE_LOCALFOLDER;
 	bool bAllowRemote = pAccount->isSupport(Account::SUPPORT_REMOTEFOLDER);
@@ -1413,8 +1412,8 @@ QSTATUS qm::FolderCreateAction::invoke(const ActionEvent& event)
 QSTATUS qm::FolderCreateAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
 {
 	assert(pbEnabled);
-	*pbEnabled = pFolderModel_->getCurrentAccount() ||
-		pFolderModel_->getCurrentFolder();
+	*pbEnabled = pFolderSelectionModel_->getAccount() ||
+		pFolderSelectionModel_->getFocusedFolder();
 	return QSTATUS_SUCCESS;
 }
 
@@ -1426,8 +1425,8 @@ QSTATUS qm::FolderCreateAction::isEnabled(const ActionEvent& event, bool* pbEnab
  */
 
 qm::FolderDeleteAction::FolderDeleteAction(
-	FolderModel* pFolderModel, QSTATUS* pstatus) :
-	pFolderModel_(pFolderModel)
+	FolderSelectionModel* pFolderSelectionModel, QSTATUS* pstatus) :
+	pFolderSelectionModel_(pFolderSelectionModel)
 {
 	assert(pstatus);
 	*pstatus = QSTATUS_SUCCESS;
@@ -1446,8 +1445,7 @@ QSTATUS qm::FolderDeleteAction::invoke(const ActionEvent& event)
 QSTATUS qm::FolderDeleteAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
 {
 	assert(pbEnabled);
-	*pbEnabled = pFolderModel_->getCurrentFolder() != 0;
-	return QSTATUS_SUCCESS;
+	return pFolderSelectionModel_->hasSelectedFolder(pbEnabled);
 }
 
 
