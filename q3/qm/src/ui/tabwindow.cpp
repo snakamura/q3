@@ -179,7 +179,7 @@ void qm::TabWindowImpl::itemAdded(const TabModelEvent& event)
 	
 	resetHandlers(0, p.second);
 	
-	if (pTabModel_->getCount() == 1)
+	if (pTabModel_->getCount() == 1 || pTabCtrl_->isMultiline())
 		layoutChildren();
 }
 
@@ -193,7 +193,7 @@ void qm::TabWindowImpl::itemRemoved(const TabModelEvent& event)
 	
 	resetHandlers(p.second, 0);
 	
-	if (pTabModel_->getCount() == 0)
+	if (pTabModel_->getCount() == 0 || pTabCtrl_->isMultiline())
 		layoutChildren();
 }
 
@@ -208,6 +208,9 @@ void qm::TabWindowImpl::itemChanged(const TabModelEvent& event)
 	update(nItem);
 	
 	resetHandlers(pOld.second, pNew.second);
+	
+	if (pTabCtrl_->isMultiline())
+		layoutChildren();
 }
 
 void qm::TabWindowImpl::itemMoved(const TabModelEvent& event)
@@ -233,6 +236,9 @@ void qm::TabWindowImpl::itemMoved(const TabModelEvent& event)
 	};
 	TabCtrl_InsertItem(pTabCtrl_->getHandle(), nItem + nAmount, &item);
 	TabCtrl_SetCurSel(pTabCtrl_->getHandle(), pTabModel_->getCurrent());
+	
+	if (pTabCtrl_->isMultiline())
+		layoutChildren();
 }
 
 void qm::TabWindowImpl::currentChanged(const TabModelEvent& event)
@@ -559,13 +565,21 @@ qm::TabCtrlWindow::TabCtrlWindow(TabModel* pTabModel,
 	pTabModel_(pTabModel),
 	pProfile_(pProfile),
 	pMenuManager_(pMenuManager),
+	bMultiline_(false),
 	hfont_(0)
 {
+	bMultiline_ = pProfile->getInt(L"TabWindow", L"Multiline", 0) != 0;
+	
 	setWindowHandler(this, false);
 }
 
 qm::TabCtrlWindow::~TabCtrlWindow()
 {
+}
+
+bool qm::TabCtrlWindow::isMultiline() const
+{
+	return bMultiline_;
 }
 
 wstring_ptr qm::TabCtrlWindow::getSuperClass()
@@ -577,7 +591,8 @@ bool qm::TabCtrlWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
 {
 	if (!DefaultWindowHandler::preCreateWindow(pCreateStruct))
 		return false;
-	pCreateStruct->style |= TCS_TABS | TCS_SINGLELINE | TCS_FOCUSNEVER;
+	pCreateStruct->style |= TCS_TABS | TCS_FOCUSNEVER |
+		(bMultiline_ ? TCS_MULTILINE : TCS_SINGLELINE);
 	return true;
 }
 

@@ -43,6 +43,9 @@ public:
 	virtual ~TabCtrlWindow();
 
 public:
+	bool isMultiline() const;
+
+public:
 	virtual qs::wstring_ptr getSuperClass();
 	virtual bool preCreateWindow(CREATESTRUCT* pCreateStruct);
 	virtual LRESULT windowProc(UINT uMsg,
@@ -70,6 +73,8 @@ private:
 	TabModel* pTabModel_;
 	qs::Profile* pProfile_;
 	qs::MenuManager* pMenuManager_;
+	
+	bool bMultiline_;
 	
 	HFONT hfont_;
 };
