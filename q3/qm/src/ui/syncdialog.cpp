@@ -106,7 +106,7 @@ qm::SyncDialog::SyncDialog(Profile* pProfile,
 	pStatusWindow_(0),
 	bShowError_(false),
 	nCanceledTime_(0),
-	enableCancel_(ENABLECANCEL_NONE)
+	bEnableCancelOnShow_(false)
 {
 	addCommandHandler(this);
 	setDialogHandler(this, false);
@@ -130,8 +130,8 @@ void qm::SyncDialog::show()
 		layout();
 		showWindow();
 		
-		if (enableCancel_ != ENABLECANCEL_NONE)
-			enableCancel(enableCancel_ == ENABLECANCEL_ENABLE);
+		if (bEnableCancelOnShow_)
+			enableCancel(true);
 	}
 	setForegroundWindow();
 }
@@ -140,10 +140,9 @@ void qm::SyncDialog::hide()
 {
 	assert(::GetCurrentThreadId() == ::GetWindowThreadProcessId(getHandle(), 0));
 	
-	if (!isVisible())
-		return;
-	
-	setDlgItemText(IDC_ERROR, L"");
+	sendDlgItemMessage(IDC_ERROR, EM_SETSEL, 0, -1);
+	sendDlgItemMessage(IDC_ERROR, EM_REPLACESEL, FALSE,
+		reinterpret_cast<LPARAM>(_T("")));
 	
 	showWindow(SW_HIDE);
 	if (Window::getForegroundWindow() == getHandle())
@@ -197,8 +196,8 @@ void qm::SyncDialog::enableCancel(bool bEnable)
 {
 	assert(::GetCurrentThreadId() == ::GetWindowThreadProcessId(getHandle(), 0));
 	
-	if (!isVisible()) {
-		enableCancel_ = bEnable ? ENABLECANCEL_ENABLE : ENABLECANCEL_DISABLE;
+	if (bEnable && !isVisible()) {
+		bEnableCancelOnShow_ = true;
 		return;
 	}
 	
@@ -211,7 +210,7 @@ void qm::SyncDialog::enableCancel(bool bEnable)
 	sendMessage(DM_SETDEFID, nNewId);
 	sendDlgItemMessage(nNewId, BM_SETSTYLE, BS_DEFPUSHBUTTON, TRUE);
 	
-	enableCancel_ = ENABLECANCEL_NONE;
+	bEnableCancelOnShow_ = false;
 }
 
 PasswordState qm::SyncDialog::getPassword(SubAccount* pSubAccount,

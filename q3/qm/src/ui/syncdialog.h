@@ -138,19 +138,12 @@ private:
 	SyncDialog& operator=(const SyncDialog&);
 
 private:
-	enum EnableCancel {
-		ENABLECANCEL_NONE,
-		ENABLECANCEL_ENABLE,
-		ENABLECANCEL_DISABLE
-	};
-
-private:
 	qs::Profile* pProfile_;
 	PasswordManager* pPasswordManager_;
 	SyncStatusWindow* pStatusWindow_;
 	bool bShowError_;
 	volatile unsigned int nCanceledTime_;
-	EnableCancel enableCancel_;
+	bool bEnableCancelOnShow_;
 };
 
 
