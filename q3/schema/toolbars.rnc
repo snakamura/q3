@@ -1,0 +1,35 @@
+datatypes xsd="http://www.w3.org/2001/XMLSchema-datatypes"
+
+start = element toolbars {
+	element toolbar {
+		(
+			element button {
+				empty,
+				attribute image {
+					xsd:nonNegativeInteger
+				},
+				attribute text {
+					xsd:string
+				}?,
+				attribute tooltip {
+					xsd:string
+				}?,
+				(action | (action, dropdown) | dropdown)
+			} |
+			element separator {
+				empty
+			}
+		)*,
+		attribute name {
+			xsd:string
+		}
+	}*
+}
+
+action = attribute action {
+	xsd:string
+}
+
+dropdown = attribute dropdown {
+	xsd:string
+}
