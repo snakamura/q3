@@ -38,6 +38,8 @@ LRESULT qmrss::ReceivePage::onInitDialog(HWND hwndFocus,
 	wstring_ptr wstrHost(pSubAccount_->getProperty(L"Http", L"ProxyHost", L""));
 	setDlgItemText(IDC_HOST, wstrHost.get());
 	setDlgItemInt(IDC_PORT, pSubAccount_->getProperty(L"Http", L"ProxyPort", 8080));
+	sendDlgItemMessage(IDC_USECONTENTENCODED, BM_SETCHECK,
+		pSubAccount_->getProperty(L"Rss", L"UseContentEncoded", 1) ? BST_CHECKED : BST_UNCHECKED);
 	
 	return TRUE;
 }
@@ -48,6 +50,8 @@ LRESULT qmrss::ReceivePage::onOk()
 	if (wstrHost.get())
 		pSubAccount_->setProperty(L"Http", L"ProxyHost", wstrHost.get());
 	pSubAccount_->setProperty(L"Http", L"ProxyPort", getDlgItemInt(IDC_PORT));
+	pSubAccount_->setProperty(L"Rss", L"UseContentEncoded",
+		sendDlgItemMessage(IDC_USECONTENTENCODED, BM_GETCHECK) == BST_CHECKED ? 1 : 0);
 	
 	return DefaultPropertyPage::onOk();
 }
