@@ -699,12 +699,14 @@ LRESULT qm::TabCtrlWindow::onMButtonDown(UINT nFlags,
 LRESULT qm::TabCtrlWindow::onMButtonUp(UINT nFlags,
 									   const POINT& pt)
 {
-	TCHITTESTINFO info = {
-		{ pt.x, pt.y }
-	};
-	int nItem = TabCtrl_HitTest(getHandle(), &info);
-	if (nItem != -1)
-		pTabModel_->close(nItem);
+	if (pTabModel_->getCount() > 1) {
+		TCHITTESTINFO info = {
+			{ pt.x, pt.y }
+		};
+		int nItem = TabCtrl_HitTest(getHandle(), &info);
+		if (nItem != -1)
+			pTabModel_->close(nItem);
+	}
 	
 	return 0;
 }
