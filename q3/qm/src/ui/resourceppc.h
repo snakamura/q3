@@ -316,6 +316,8 @@
 #define IDC_SENDLOG                     1211
 #define IDC_RESOURCE                    1212
 #define IDC_BACKUP                      1213
+#define IDC_CHECKALL                    1214
+#define IDC_CLEARALL                    1215
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -556,7 +558,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        167
 #define _APS_NEXT_COMMAND_VALUE         48000
-#define _APS_NEXT_CONTROL_VALUE         1214
+#define _APS_NEXT_CONTROL_VALUE         1216
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

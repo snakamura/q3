@@ -1406,12 +1406,20 @@ public:
 public:
 	bool isBackup() const;
 
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
 protected:
 	virtual LRESULT onInitDialog(HWND hwndFocus,
 								 LPARAM lParam);
 
 protected:
 	virtual LRESULT onOk();
+
+private:
+	LRESULT onCheckAll();
+	LRESULT onClearAll();
 
 private:
 	ResourceDialog(const ResourceDialog&);

@@ -4411,6 +4411,16 @@ bool qm::ResourceDialog::isBackup() const
 	return bBackup_;
 }
 
+LRESULT qm::ResourceDialog::onCommand(WORD nCode,
+									  WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_CHECKALL, onCheckAll)
+		HANDLE_COMMAND_ID(IDC_CLEARALL, onClearAll)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
 LRESULT qm::ResourceDialog::onInitDialog(HWND hwndFocus,
 										 LPARAM lParam)
 {
@@ -4465,6 +4475,26 @@ LRESULT qm::ResourceDialog::onOk()
 	bBackup_ = sendDlgItemMessage(IDC_BACKUP, BM_GETCHECK) == BST_CHECKED;
 	
 	return DefaultDialog::onOk();
+}
+
+LRESULT qm::ResourceDialog::onCheckAll()
+{
+	HWND hwnd = getDlgItem(IDC_RESOURCE);
+	
+	for (int n = 0; n < ListView_GetItemCount(hwnd); ++n)
+		ListView_SetCheckState(hwnd, n, TRUE);
+	
+	return 0;
+}
+
+LRESULT qm::ResourceDialog::onClearAll()
+{
+	HWND hwnd = getDlgItem(IDC_RESOURCE);
+	
+	for (int n = 0; n < ListView_GetItemCount(hwnd); ++n)
+		ListView_SetCheckState(hwnd, n, FALSE);
+	
+	return 0;
 }
 
 
