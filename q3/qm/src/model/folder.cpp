@@ -995,6 +995,8 @@ void qm::QueryFolder::set(const WCHAR* pwszDriver,
 	pImpl_->wstrCondition_ = allocWString(pwszCondition);
 	if (pwszTargetFolder)
 		pImpl_->wstrTargetFolder_ = allocWString(pwszTargetFolder);
+	else
+		pImpl_->wstrTargetFolder_.reset(0);
 	pImpl_->bRecursive_ = bRecursive;
 }
 
