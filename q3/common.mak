@@ -9,11 +9,10 @@
 #     clean.wce
 
 BINDIR					= d:/util/cygwin/bin
-VSDIR					= d:/dev/msvs
-VCDIR					= d:/dev/msvs/vc98
-#VSDIR					= c:/Program Files/Microsoft Visual Studio .NET 2003
-#VCDIR					= d:/dev/msvs2003/vc7
-VC7						= 0
+VS6DIR					= d:/dev/msvs
+VC6DIR					= d:/dev/msvs/vc98
+VS7DIR					= c:/Program Files/Microsoft Visual Studio .NET 2003
+VC7DIR					= d:/dev/msvs2003/vc7
 EVCDIR					= d:/dev/msevc4/evc
 EVC4					= 1
 PLATFORMSDKDIR			= d:/dev/mssdk
@@ -47,13 +46,14 @@ SHELL					= /bin/bash
 ifeq ($(PLATFORM),desktop)
 	# DESKTOP ###############################################################
 	SDKDIR				= $(PLATFORMSDKDIR)
-	COMPILERDIR			= $(VCDIR)
-	COMPILERBINDIR		= $(COMPILERDIR)/bin
 	ifeq ($(VC7),1)
-		COMMONBINDIR	= $(VSDIR)/common7/ide
+		COMPILERDIR		= $(VC7DIR)
+		COMMONBINDIR	= $(VS7DIR)/common7/ide
 	else
-		COMMONBINDIR	= $(VSDIR)/common/msdev98/bin
+		COMPILERDIR		= $(VC6DIR)
+		COMMONBINDIR	= $(VS6DIR)/common/msdev98/bin
 	endif
+	COMPILERBINDIR		= $(COMPILERDIR)/bin
 	
 	SDKINCLUDEDIR		= $(SDKDIR)/include
 	SDKLIBDIR			= $(SDKDIR)/lib
@@ -143,7 +143,11 @@ else
 		ifeq ($(shell if [ -z "$(CEVER)" ]; then echo 1; elif [ $(CEVER) -lt 400 ]; then echo 0; else echo 1; fi),0)
 			SDKINCLUDEDIR		= $(SDKDIR)/include
 		else
-			SDKINCLUDEDIR		= $(SDKDIR)/include/$(CPU)
+			ifndef EMULATION
+				SDKINCLUDEDIR	= $(SDKDIR)/include/$(CPU)
+			else
+				SDKINCLUDEDIR	= $(SDKDIR)/include/Emulator
+			endif
 		endif
 	endif
 	ifeq ($(SDKLIBDIR),)
