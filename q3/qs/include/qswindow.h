@@ -929,6 +929,30 @@ public:
 				static_cast<short>(HIWORD(lParam)))); \
 		break; \
 
+#if !defined _WIN32_WCE || _WIN32_WCE >= 400
+#define HANDLE_MBUTTONDBLCLK() \
+	case WM_MBUTTONDBLCLK: \
+		lResult = onMButtonDblClk(wParam, \
+			Point(static_cast<short>(LOWORD(lParam)), \
+				static_cast<short>(HIWORD(lParam)))); \
+		break; \
+
+#define HANDLE_MBUTTONDOWN() \
+	case WM_MBUTTONDOWN: \
+		lResult = onMButtonDown(wParam, \
+			Point(static_cast<short>(LOWORD(lParam)), \
+				static_cast<short>(HIWORD(lParam)))); \
+		break; \
+
+#define HANDLE_MBUTTONUP() \
+	case WM_MBUTTONUP: \
+		lResult = onMButtonUp(wParam, \
+			Point(static_cast<short>(LOWORD(lParam)), \
+				static_cast<short>(HIWORD(lParam)))); \
+		break; \
+
+#endif
+
 #define HANDLE_MOUSEACTIVATE() \
 	case WM_MOUSEACTIVATE: \
 		lResult = onMouseActivate(reinterpret_cast<HWND>(wParam), \
@@ -1157,6 +1181,14 @@ protected:
 						  const POINT& pt);
 	LRESULT onLButtonUp(UINT nFlags,
 						const POINT& pt);
+#if !defined _WIN32_WCE || _WIN32_WCE >= 400
+	LRESULT onMButtonDblClk(UINT nFlags,
+							const POINT& pt);
+	LRESULT onMButtonDown(UINT nFlags,
+						  const POINT& pt);
+	LRESULT onMButtonUp(UINT nFlags,
+						const POINT& pt);
+#endif
 #ifndef _WIN32_WCE
 	LRESULT onMouseActivate(HWND hwnd,
 							UINT nHitTest,
