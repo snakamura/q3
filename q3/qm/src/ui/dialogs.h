@@ -788,12 +788,13 @@ private:
 class ImportDialog : public DefaultDialog
 {
 public:
-	ImportDialog();
+	explicit ImportDialog(qs::Profile* pProfile);
 	virtual ~ImportDialog();
 
 public:
 	const WCHAR* getPath() const;
 	bool isMultiple() const;
+	const WCHAR* getEncoding() const;
 	unsigned int getFlags() const;
 
 public:
@@ -810,6 +811,8 @@ protected:
 private:
 	LRESULT onBrowse();
 	LRESULT onPathChange();
+	LRESULT onEncodingEditChange();
+	LRESULT onEncodingSelChange();
 
 private:
 	void updateState();
@@ -819,8 +822,10 @@ private:
 	ImportDialog& operator=(const ImportDialog&);
 
 private:
+	qs::Profile* pProfile_;
 	qs::wstring_ptr wstrPath_;
 	bool bMultiple_;
+	qs::wstring_ptr wstrEncoding_;
 	unsigned int nFlags_;
 };
 

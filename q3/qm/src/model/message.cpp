@@ -227,7 +227,8 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 				if (!finder.getNext(&pBegin, &pEnd, &bEnd))
 					return std::auto_ptr<Part>(0);
 				if (pBegin) {
-					std::auto_ptr<Part> pChild(MessageCreator().createPart(
+					MessageCreator creator(nFlags_ & FLAG_ENCODETEXT);
+					std::auto_ptr<Part> pChild(creator.createPart(
 						pDocument, pBegin, pEnd - pBegin, pPart.get(), false));
 					if (!pChild.get())
 						return std::auto_ptr<Part>(0);
@@ -238,7 +239,8 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 			}
 		}
 		else if (bRFC822) {
-			std::auto_ptr<Part> pEnclosed(MessageCreator().createPart(
+			MessageCreator creator(nFlags_ & FLAG_ENCODETEXT);
+			std::auto_ptr<Part> pEnclosed(creator.createPart(
 				pDocument, pBody, nBodyLen, 0, false));
 			if (!pEnclosed.get())
 				return std::auto_ptr<Part>(0);
@@ -276,28 +278,30 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 				return std::auto_ptr<Part>(0);
 			
 			std::auto_ptr<Encoder> pEncoder;
-			ContentTransferEncodingParser contentTransferEncoding;
-			if (pPart->getField(L"Content-Transfer-Encoding", &contentTransferEncoding) == Part::FIELD_EXIST) {
-				const WCHAR* pwszEncoding = contentTransferEncoding.getEncoding();
-				pEncoder = EncoderFactory::getInstance(pwszEncoding);
-			}
-			if (!pEncoder.get()) {
-				size_t n = 0;
-				while (n < strBody.size() && *(strBody.get() + n) < 0x80)
-					++n;
-				const WCHAR* pwszEncoding = 0;
-				if (n == strBody.size()) {
-					pwszEncoding = L"7bit";
-				}
-				else {
-					pwszEncoding = L"base64";
+			if (nFlags_ & FLAG_ENCODETEXT) {
+				ContentTransferEncodingParser contentTransferEncoding;
+				if (pPart->getField(L"Content-Transfer-Encoding", &contentTransferEncoding) == Part::FIELD_EXIST) {
+					const WCHAR* pwszEncoding = contentTransferEncoding.getEncoding();
 					pEncoder = EncoderFactory::getInstance(pwszEncoding);
 				}
-				
-				if (nFlags_ & FLAG_ADDCONTENTTYPE) {
-					ContentTransferEncodingParser contentTransferEncoding(pwszEncoding);
-					if (!pPart->replaceField(L"Content-Transfer-Encoding", contentTransferEncoding))
-						return std::auto_ptr<Part>(0);
+				if (!pEncoder.get()) {
+					size_t n = 0;
+					while (n < strBody.size() && *(strBody.get() + n) < 0x80)
+						++n;
+					const WCHAR* pwszEncoding = 0;
+					if (n == strBody.size()) {
+						pwszEncoding = L"7bit";
+					}
+					else {
+						pwszEncoding = L"base64";
+						pEncoder = EncoderFactory::getInstance(pwszEncoding);
+					}
+					
+					if (nFlags_ & FLAG_ADDCONTENTTYPE) {
+						ContentTransferEncodingParser contentTransferEncoding(pwszEncoding);
+						if (!pPart->replaceField(L"Content-Transfer-Encoding", contentTransferEncoding))
+							return std::auto_ptr<Part>(0);
+					}
 				}
 			}
 			

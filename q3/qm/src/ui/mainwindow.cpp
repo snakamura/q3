@@ -427,9 +427,11 @@ void qm::MainWindowImpl::initActions()
 		pDocument_,
 		pProfile_,
 		pThis_->getHandle());
-	ADD_ACTION2(FileImportAction,
+	ADD_ACTION4(FileImportAction,
 		IDM_FILE_IMPORT,
 		pFolderModel_.get(),
+		pDocument_,
+		pProfile_,
 		pThis_->getHandle());
 	ADD_ACTION2(FileLoadAction,
 		IDM_FILE_LOAD,

@@ -223,7 +223,8 @@ bool qm::MessageComposer::compose(Account* pAccount,
 		MessageCreator creator(MessageCreator::FLAG_ADDCONTENTTYPE |
 			MessageCreator::FLAG_EXPANDALIAS |
 			MessageCreator::FLAG_EXTRACTATTACHMENT |
-			(pSecurityModel_->isDecryptVerify() ? MessageCreator::FLAG_DECRYPTVERIFY : 0));
+			(pSecurityModel_->isDecryptVerify() ? MessageCreator::FLAG_DECRYPTVERIFY : 0) |
+			MessageCreator::FLAG_ENCODETEXT);
 		std::auto_ptr<Message> pMessage(creator.createMessage(
 			pDocument_, buf.getCharArray(), buf.getLength()));
 		if (!pMessage.get())

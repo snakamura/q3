@@ -695,16 +695,8 @@ void qm::ListWindowImpl::drop(const DropTargetDropEvent& event)
 						if (dwFileAttributes != 0xffffffff &&
 							!(dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
 							T2W(tszPath, pwszPath);
-							
-							FileInputStream stream(pwszPath);
-							if (!stream) {
-								// TODO MSG
-								return;
-							}
-							BufferedInputStream bufferedStream(&stream, false);
-							
 							if (!FileImportAction::readMessage(
-								static_cast<NormalFolder*>(pFolder), &bufferedStream,
+								static_cast<NormalFolder*>(pFolder), pwszPath,
 								false, Account::IMPORTFLAG_NORMALFLAGS, 0, 0, 0)) {
 								// TODO MSG
 							}

@@ -2612,8 +2612,9 @@ void qm::FindDialog::updateState()
  *
  */
 
-qm::ImportDialog::ImportDialog() :
+qm::ImportDialog::ImportDialog(Profile* pProfile) :
 	DefaultDialog(IDD_IMPORT),
+	pProfile_(pProfile),
 	bMultiple_(false),
 	nFlags_(0)
 {
@@ -2633,6 +2634,11 @@ bool qm::ImportDialog::isMultiple() const
 	return bMultiple_;
 }
 
+const WCHAR* qm::ImportDialog::getEncoding() const
+{
+	return *wstrEncoding_.get() ? wstrEncoding_.get() : 0;
+}
+
 unsigned int qm::ImportDialog::getFlags() const
 {
 	return nFlags_;
@@ -2644,6 +2650,8 @@ LRESULT qm::ImportDialog::onCommand(WORD nCode,
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_BROWSE, onBrowse)
 		HANDLE_COMMAND_ID_CODE(IDC_PATH, EN_CHANGE, onPathChange)
+		HANDLE_COMMAND_ID_CODE(IDC_ENCODING, CBN_EDITCHANGE, onEncodingEditChange)
+		HANDLE_COMMAND_ID_CODE(IDC_ENCODING, CBN_SELCHANGE, onEncodingSelChange)
 	END_COMMAND_HANDLER()
 	return DefaultDialog::onCommand(nCode, nId);
 }
@@ -2652,7 +2660,19 @@ LRESULT qm::ImportDialog::onInitDialog(HWND hwndFocus,
 									   LPARAM lParam)
 {
 	init(false);
+	
+	sendDlgItemMessage(IDC_ENCODING, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(_T("")));
+	UIUtil::EncodingList listEncoding;
+	StringListFree<UIUtil::EncodingList> freeEncoding(listEncoding);
+	UIUtil::loadEncodings(pProfile_, &listEncoding);
+	for (UIUtil::EncodingList::const_iterator it = listEncoding.begin(); it != listEncoding.end(); ++it) {
+		W2T(*it, ptszEncoding);
+		sendDlgItemMessage(IDC_ENCODING, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(ptszEncoding));
+	}
+	sendDlgItemMessage(IDC_ENCODING, CB_SETCURSEL, 0);
+	
 	sendDlgItemMessage(IDC_NORMAL, BM_SETCHECK, BST_CHECKED);
+	
 	updateState();
 	
 	return TRUE;
@@ -2663,6 +2683,8 @@ LRESULT qm::ImportDialog::onOk()
 	wstrPath_ = getDlgItemText(IDC_PATH);
 	
 	bMultiple_ = sendDlgItemMessage(IDC_MULTIMESSAGES, BM_GETCHECK) == BST_CHECKED;
+	
+	wstrEncoding_ = getDlgItemText(IDC_ENCODING);
 	
 	nFlags_ = 0;
 	struct {
@@ -2718,10 +2740,24 @@ LRESULT qm::ImportDialog::onPathChange()
 	return 0;
 }
 
+LRESULT qm::ImportDialog::onEncodingEditChange()
+{
+	updateState();
+	return 0;
+}
+
+LRESULT qm::ImportDialog::onEncodingSelChange()
+{
+	postMessage(WM_COMMAND, MAKEWPARAM(IDC_ENCODING, CBN_EDITCHANGE));
+	return 0;
+}
+
 void qm::ImportDialog::updateState()
 {
-	bool bEnable = sendDlgItemMessage(IDC_PATH, WM_GETTEXTLENGTH) != 0;
-	Window(getDlgItem(IDOK)).enableWindow(bEnable);
+	Window(getDlgItem(IDC_MULTIMESSAGES)).enableWindow(
+		sendDlgItemMessage(IDC_ENCODING, WM_GETTEXTLENGTH) == 0);
+	Window(getDlgItem(IDOK)).enableWindow(
+		sendDlgItemMessage(IDC_PATH, WM_GETTEXTLENGTH) != 0);
 }
 
 

@@ -799,6 +799,8 @@ class FileImportAction : public qs::AbstractAction
 {
 public:
 	FileImportAction(FolderModel* pFolderModel,
+					 Document* pDocument,
+					 qs::Profile* pProfile,
 					 HWND hwnd);
 	virtual ~FileImportAction();
 
@@ -808,12 +810,16 @@ public:
 
 public:
 	static bool readMessage(NormalFolder* pFolder,
-							qs::InputStream* pStream,
+							const WCHAR* pwszPath,
 							bool bMultiple,
 							unsigned int nFlags,
 							ProgressDialog* pDialog,
 							int* pnPos,
 							bool* pbCanceled);
+	static bool readMessage(NormalFolder* pFolder,
+							const WCHAR* pwszPath,
+							const WCHAR* pwszEncoding,
+							unsigned int nFlags);
 
 private:
 	bool import(NormalFolder* pFolder);
@@ -831,6 +837,8 @@ private:
 
 private:
 	FolderModel* pFolderModel_;
+	Document* pDocument_;
+	qs::Profile* pProfile_;
 	HWND hwnd_;
 };
 
