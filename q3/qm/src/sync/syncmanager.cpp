@@ -593,31 +593,32 @@ bool qm::SyncManager::syncSlotData(const SyncData* pData,
 			
 			if (bSync || item.isConnectReceiveBeforeSend()) {
 				if (pSubAccount != item.getSubAccount()) {
-					if (pReceiveSession.get()) {
-						if (!pReceiveSession->disconnect())
-							return false;
-					}
+					pSubAccount = 0;
+					if (pReceiveSession.get())
+						pReceiveSession->disconnect();
+					pReceiveSession.reset(0);
+					pReceiveCallback.reset(0);
+					pLogger.reset(0);
+					
 					if (!openReceiveSession(pData->getDocument(), pData->getWindow(),
 						pCallback, item, &pReceiveSession, &pReceiveCallback, &pLogger))
-						return false;
+						continue;
 					pSubAccount = item.getSubAccount();
 				}
 				if (bSync) {
 					if (!syncFolder(pCallback, item, pReceiveSession.get()))
-						return false;
+						continue;
 				}
 			}
 			
 			if (item.isSend()) {
 				if (!send(pData->getDocument(), pCallback, item))
-					return false;
+					continue;
 			}
 		}
 	}
-	if (pReceiveSession.get()) {
-		if (!pReceiveSession->disconnect())
-			return false;
-	}
+	if (pReceiveSession.get())
+		pReceiveSession->disconnect();
 	
 	return true;
 }
@@ -777,8 +778,7 @@ bool qm::SyncManager::send(Document* pDocument,
 		}
 	}
 	
-	if (!pSession->disconnect())
-		return false;
+	pSession->disconnect();
 	
 	return true;
 }

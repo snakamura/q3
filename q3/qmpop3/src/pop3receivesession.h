@@ -65,7 +65,7 @@ public:
 					  qs::Logger* pLogger,
 					  qm::ReceiveSessionCallback* pCallback);
 	virtual bool connect();
-	virtual bool disconnect();
+	virtual void disconnect();
 	virtual bool selectFolder(qm::NormalFolder* pFolder);
 	virtual bool closeFolder();
 	virtual bool updateMessages();
@@ -128,11 +128,13 @@ private:
 	{
 	public:
 		UIDSaver(Pop3ReceiveSession* pSession,
+				 qs::Logger* pLogger,
 				 UIDList* pList);
 		~UIDSaver();
 	
 	private:
 		Pop3ReceiveSession* pSession_;
+		qs::Logger* pLogger_;
 		UIDList* pUIDList_;
 	};
 	friend class UIDSaver;

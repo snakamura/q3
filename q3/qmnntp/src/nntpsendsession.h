@@ -38,7 +38,7 @@ public:
 					  qs::Logger* pLogger,
 					  qm::SendSessionCallback* pCallback);
 	virtual bool connect();
-	virtual bool disconnect();
+	virtual void disconnect();
 	virtual bool sendMessage(qm::Message* pMessage);
 
 private:

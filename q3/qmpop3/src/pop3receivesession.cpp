@@ -113,7 +113,7 @@ bool qmpop3::Pop3ReceiveSession::connect()
 	return true;
 }
 
-bool qmpop3::Pop3ReceiveSession::disconnect()
+void qmpop3::Pop3ReceiveSession::disconnect()
 {
 	assert(pPop3_.get());
 	
@@ -123,8 +123,6 @@ bool qmpop3::Pop3ReceiveSession::disconnect()
 	pPop3_->disconnect();
 	
 	log.debug(L"Disconnected from the server.");
-	
-	return true;
 }
 
 bool qmpop3::Pop3ReceiveSession::selectFolder(NormalFolder* pFolder)
@@ -156,7 +154,7 @@ bool qmpop3::Pop3ReceiveSession::updateMessages()
 
 bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilterSet)
 {
-	UIDSaver saver(this, pUIDList_.get());
+	UIDSaver saver(this, pLogger_, pUIDList_.get());
 	
 	unsigned int nCount = pPop3_->getMessageCount();
 	
@@ -690,8 +688,10 @@ void qmpop3::Pop3ReceiveSession::CallbackImpl::setPos(unsigned int nPos)
  */
 
 qmpop3::Pop3ReceiveSession::UIDSaver::UIDSaver(Pop3ReceiveSession* pSession,
+											   Logger* pLogger,
 											   UIDList* pUIDList) :
 	pSession_(pSession),
+	pLogger_(pLogger),
 	pUIDList_(pUIDList)
 {
 }
@@ -700,8 +700,8 @@ qmpop3::Pop3ReceiveSession::UIDSaver::~UIDSaver()
 {
 	if (pUIDList_) {
 		if (!pSession_->saveUIDList(pUIDList_)) {
-			// TODO
-			// LOG
+			Log log(pLogger_, L"qmpop3::Pop3ReceiveSession");
+			log.error(L"Failed to save uid list.");
 		}
 	}
 }

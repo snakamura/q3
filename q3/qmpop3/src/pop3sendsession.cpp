@@ -88,7 +88,7 @@ bool qmpop3::Pop3SendSession::connect()
 	return true;
 }
 
-bool qmpop3::Pop3SendSession::disconnect()
+void qmpop3::Pop3SendSession::disconnect()
 {
 	assert(pPop3_.get());
 	
@@ -98,8 +98,6 @@ bool qmpop3::Pop3SendSession::disconnect()
 	pPop3_->disconnect();
 	
 	log.debug(L"Disconnected from the server.");
-	
-	return true;
 }
 
 bool qmpop3::Pop3SendSession::sendMessage(Message* pMessage)

@@ -88,7 +88,7 @@ public:
 					  qs::Logger* pLogger,
 					  ReceiveSessionCallback* pCallback) = 0;
 	virtual bool connect() = 0;
-	virtual bool disconnect() = 0;
+	virtual void disconnect() = 0;
 	virtual bool selectFolder(NormalFolder* pFolder) = 0;
 	virtual bool closeFolder() = 0;
 	virtual bool updateMessages() = 0;
@@ -188,7 +188,7 @@ public:
 					  qs::Logger* pLogger,
 					  SendSessionCallback* pCallback) = 0;
 	virtual bool connect() = 0;
-	virtual bool disconnect() = 0;
+	virtual void disconnect() = 0;
 	virtual bool sendMessage(Message* pMessage) = 0;
 };
 

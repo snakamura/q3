@@ -99,7 +99,7 @@ bool qmsmtp::SmtpSendSession::connect()
 	return true;
 }
 
-bool qmsmtp::SmtpSendSession::disconnect()
+void qmsmtp::SmtpSendSession::disconnect()
 {
 	assert(pSmtp_.get());
 	
@@ -109,8 +109,6 @@ bool qmsmtp::SmtpSendSession::disconnect()
 	pSmtp_->disconnect();
 	
 	log.debug(L"Disconnected from the server.");
-	
-	return true;
 }
 
 bool qmsmtp::SmtpSendSession::sendMessage(Message* pMessage)

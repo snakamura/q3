@@ -98,23 +98,22 @@ bool qmnntp::NntpReceiveSession::connect()
 	return true;
 }
 
-bool qmnntp::NntpReceiveSession::disconnect()
+void qmnntp::NntpReceiveSession::disconnect()
 {
 	assert(pNntp_.get());
 	
+	Log log(pLogger_, L"qmnntp::NntpReceiveSession");
+	
 	if (pLastIdList_->isModified()) {
 		if (!pLastIdList_->save())
-			return false;
+			log.error(L"Failed to save last id list.");
 	}
 	
-	Log log(pLogger_, L"qmnntp::NntpReceiveSession");
 	log.debug(L"Disconnecting from the server...");
 	
 	pNntp_->disconnect();
 	
 	log.debug(L"Disconnected from the server.");
-	
-	return true;
 }
 
 bool qmnntp::NntpReceiveSession::selectFolder(NormalFolder* pFolder)

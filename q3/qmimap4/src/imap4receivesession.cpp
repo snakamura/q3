@@ -223,7 +223,7 @@ bool qmimap4::Imap4ReceiveSession::connect()
 	return true;
 }
 
-bool qmimap4::Imap4ReceiveSession::disconnect()
+void qmimap4::Imap4ReceiveSession::disconnect()
 {
 	assert(pImap4_.get());
 	
@@ -233,8 +233,6 @@ bool qmimap4::Imap4ReceiveSession::disconnect()
 	pImap4_->disconnect();
 	
 	log.debug(L"Disconnected from the server.");
-	
-	return true;
 }
 
 bool qmimap4::Imap4ReceiveSession::selectFolder(NormalFolder* pFolder)

@@ -88,7 +88,7 @@ bool qmnntp::NntpSendSession::connect()
 	return true;
 }
 
-bool qmnntp::NntpSendSession::disconnect()
+void qmnntp::NntpSendSession::disconnect()
 {
 	assert(pNntp_.get());
 	
@@ -98,8 +98,6 @@ bool qmnntp::NntpSendSession::disconnect()
 	pNntp_->disconnect();
 	
 	log.debug(L"Disconnected from the server.");
-	
-	return true;
 }
 
 bool qmnntp::NntpSendSession::sendMessage(Message* pMessage)
