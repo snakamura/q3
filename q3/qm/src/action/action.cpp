@@ -4641,7 +4641,7 @@ bool qm::ToolSubAccountAction::isEnabled(const ActionEvent& event)
 		return false;
 	
 	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
-	return p.first && p.second;
+	return p.first || p.second;
 }
 
 bool qm::ToolSubAccountAction::isChecked(const ActionEvent& event)
