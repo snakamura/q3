@@ -42,6 +42,7 @@ public:
 	const List& getFeeds() const;
 	const Feed* getFeed(const WCHAR* pwszURL) const;
 	void setFeed(std::auto_ptr<Feed> pFeed);
+	void removeFeed(const Feed* pFeed);
 	bool isModified() const;
 	bool save() const;
 

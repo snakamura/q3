@@ -80,8 +80,7 @@ bool qmrss::RssReceiveSession::connect()
 
 void qmrss::RssReceiveSession::disconnect()
 {
-	// TODO
-	// Remove unreferenced feeds from feed list.
+	clearFeeds();
 	if (pFeedList_->isModified())
 		pFeedList_->save();
 }
@@ -243,6 +242,19 @@ bool qmrss::RssReceiveSession::applyOfflineJobs()
 	// TODO
 	// Download reserved messages.
 	return true;
+}
+
+void qmrss::RssReceiveSession::clearFeeds()
+{
+	FeedList::List listRemove;
+	const FeedList::List& listFeed = pFeedList_->getFeeds();
+	for (FeedList::List::const_iterator it = listFeed.begin(); it != listFeed.end(); ++it) {
+		Feed* pFeed = *it;
+		if (!pAccount_->getFolderByParam(L"URL", pFeed->getURL()))
+			listRemove.push_back(pFeed);
+	}
+	for (FeedList::List::const_iterator it = listRemove.begin(); it != listRemove.end(); ++it)
+		pFeedList_->removeFeed(*it);
 }
 
 bool qmrss::RssReceiveSession::createItemMessage(const Item* pItem,

@@ -55,6 +55,9 @@ public:
 	virtual bool applyOfflineJobs();
 
 private:
+	void clearFeeds();
+
+private:
 	static bool createItemMessage(const Item* pItem,
 								  const qs::Time& timePubDate,
 								  const qs::Part* pHeader,

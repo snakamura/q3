@@ -130,6 +130,8 @@ public:
 					  const WCHAR* pwszName) const;
 	Folder* getFolderById(unsigned int nId) const;
 	Folder* getFolderByFlag(unsigned int nFlag) const;
+	Folder* getFolderByParam(const WCHAR* pwszName,
+							 const WCHAR* pwszValue) const;
 	const FolderList& getFolders() const;
 	NormalFolder* createNormalFolder(const WCHAR* pwszName,
 									 Folder* pParent,

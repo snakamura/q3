@@ -77,6 +77,16 @@ void qmrss::FeedList::setFeed(std::auto_ptr<Feed> pFeed)
 	bModified_ = true;
 }
 
+void qmrss::FeedList::removeFeed(const Feed* pFeed)
+{
+	List::iterator it = std::find(list_.begin(), list_.end(), pFeed);
+	if (it != list_.end()) {
+		delete *it;
+		list_.erase(it);
+		bModified_ = true;
+	}
+}
+
 bool qmrss::FeedList::isModified() const
 {
 	return bModified_;

@@ -1077,6 +1077,22 @@ Folder* qm::Account::getFolderByFlag(unsigned int nFlag) const
 	return it != l.end() ? *it : 0;
 }
 
+Folder* qm::Account::getFolderByParam(const WCHAR* pwszName,
+									  const WCHAR* pwszValue) const
+{
+	FolderList::const_iterator it = std::find_if(
+		pImpl_->listFolder_.begin(), pImpl_->listFolder_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				string_equal<WCHAR>(),
+				std::bind2nd(
+					std::mem_fun(&Folder::getParam),
+					pwszName),
+				std::identity<const WCHAR*>()),
+			pwszValue));
+	return it != pImpl_->listFolder_.end() ? *it : 0;
+}
+
 const Account::FolderList& qm::Account::getFolders() const
 {
 	return pImpl_->listFolder_;
