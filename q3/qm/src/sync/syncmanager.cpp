@@ -400,28 +400,56 @@ QSTATUS qm::SyncManager::syncData(const SyncData* pData)
 	CHECK_QSTATUS();
 	
 	const SyncDialup* pDialup = pData->getDialup();
-	RasConnectionCallbackImpl rasCallback(pDialup, pCallback);
-	std::auto_ptr<RasConnection> pRasConnection;
-	if (pDialup) {
-		// TODO
-		// Check flags and dial from
-		
-		status = newQsObject(pDialup->getDisconnectWait(),
-			&rasCallback, &pRasConnection);
-		CHECK_QSTATUS();
-		const WCHAR* pwszEntry = pDialup->getEntry();
-		if (!pwszEntry) {
-			// TODO
-			// Get entry
+	struct DialupCaller
+	{
+		DialupCaller(const SyncDialup* pDialup,
+			SyncManagerCallback* pCallback, QSTATUS* pstatus) :
+			rasCallback_(pDialup, pCallback),
+			pRasConnection_(0),
+			bCanceled_(false)
+		{
+			DECLARE_QSTATUS();
+			
+			if (pDialup) {
+				// TODO
+				// Check flags and dial from
+				
+				std::auto_ptr<RasConnection> pRasConnection;
+				status = newQsObject(pDialup->getDisconnectWait(),
+					&rasCallback_, &pRasConnection);
+				CHECK_QSTATUS_SET(pstatus);
+				const WCHAR* pwszEntry = pDialup->getEntry();
+				if (!pwszEntry) {
+					// TODO
+					// Get entry
+				}
+				RasConnection::Result result;
+				status = pRasConnection->connect(pwszEntry, &result);
+				CHECK_QSTATUS_SET(pstatus);
+				status = pCallback->setMessage(-1, L"");
+				CHECK_QSTATUS_SET(pstatus);
+				if (result == RasConnection::RAS_CANCEL)
+					bCanceled_ = true;
+				
+				pRasConnection_ = pRasConnection.release();
+			}
 		}
-		RasConnection::Result result;
-		status = pRasConnection->connect(pwszEntry, &result);
-		CHECK_QSTATUS();
-		status = pCallback->setMessage(-1, L"");
-		CHECK_QSTATUS();
-		if (result == RasConnection::RAS_CANCEL)
-			return QSTATUS_SUCCESS;
-	}
+		
+		~DialupCaller()
+		{
+			if (pRasConnection_) {
+				RasConnection::Result result;
+				pRasConnection_->disconnect(true, &result);
+			}
+		}
+		
+		RasConnectionCallbackImpl rasCallback_;
+		RasConnection* pRasConnection_;
+		bool bCanceled_;
+	} dialupCaller(pDialup, pCallback, &status);
+	CHECK_QSTATUS();
+	if (dialupCaller.bCanceled_)
+		return QSTATUS_SUCCESS;
 	
 	unsigned int nSlot = pData->getSlotCount();
 	if (nSlot > 0) {
@@ -460,12 +488,6 @@ QSTATUS qm::SyncManager::syncData(const SyncData* pData)
 	}
 	else {
 		status = syncSlotData(pData, 0);
-		CHECK_QSTATUS();
-	}
-	
-	if (pRasConnection.get()) {
-		RasConnection::Result result;
-		status = pRasConnection->disconnect(true, &result);
 		CHECK_QSTATUS();
 	}
 	
