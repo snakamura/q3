@@ -2397,7 +2397,7 @@ void qm::FolderCreateAction::invoke(const ActionEvent& event)
 		return;
 	
 	Folder* pFolder = p.second;
-	Account* pAccount = p.first;
+	Account* pAccount = p.first ? p.first : pFolder->getAccount();
 	
 	CreateFolderDialog::Type type = CreateFolderDialog::TYPE_LOCALFOLDER;
 	bool bAllowRemote = pAccount->isSupport(Account::SUPPORT_REMOTEFOLDER) &&
