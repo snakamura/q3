@@ -408,7 +408,7 @@ QSTATUS qs::Part::getContent(STRING* pstrContent) const
 
 const CHAR* qs::Part::getHeader() const
 {
-	return strHeader_;
+	return strHeader_ ? strHeader_ : "";
 }
 
 QSTATUS qs::Part::setHeader(const CHAR* pszHeader)
@@ -416,7 +416,7 @@ QSTATUS qs::Part::setHeader(const CHAR* pszHeader)
 	DECLARE_QSTATUS();
 	
 	string_ptr<STRING> strHeader;
-	if (pszHeader) {
+	if (pszHeader && *pszHeader) {
 		strHeader.reset(allocString(pszHeader));
 		if (!strHeader.get())
 			return QSTATUS_OUTOFMEMORY;
