@@ -68,6 +68,9 @@ public:
 									   qs::ModalHandler* pModalHandler) const;
 
 private:
+	static qs::wstring_ptr getLanguageFromExtension(const WCHAR* pwszExtension);
+
+private:
 	ScriptManager(const ScriptManager&);
 	ScriptManager& operator=(const ScriptManager&);
 

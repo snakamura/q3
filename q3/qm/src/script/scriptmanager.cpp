@@ -7,7 +7,7 @@
  */
 
 #include <qsconv.h>
-#include <qsstl.h>
+#include <qsosutil.h>
 #include <qsstream.h>
 
 #include <algorithm>
@@ -65,24 +65,12 @@ std::auto_ptr<Script> qm::ScriptManager::getScript(const WCHAR* pwszName,
 		return std::auto_ptr<Script>(0);
 	T2W(fd.cFileName, pwszFileName);
 	
-	struct {
-		const WCHAR* pwszExt_;
-		const WCHAR* pwszLang_;
-	} langs[] = {
-		{ L"js",	L"JScript"	},
-		{ L"vbs",	L"VBScript"	}
-	};
-	
-	const WCHAR* pwszLang = 0;
 	const WCHAR* pExt = wcsrchr(pwszFileName, L'.');
-	if (pExt) {
-		for (int n = 0; n < countof(langs) && !pwszLang; ++n) {
-			if (wcsicmp(langs[n].pwszExt_, pExt + 1) == 0)
-				pwszLang = langs[n].pwszLang_;
-		}
-	}
-	if (!pwszLang)
-		pwszLang = L"JScript";
+	if (!pExt)
+		return std::auto_ptr<Script>(0);
+	wstring_ptr wstrLang(getLanguageFromExtension(pExt + 1));
+	if (!wstrLang.get())
+		return std::auto_ptr<Script>(0);
 	
 	wstring_ptr wstrPath(concat(wstrPath_.get(), L"\\scripts\\", pwszFileName));
 	
@@ -95,7 +83,7 @@ std::auto_ptr<Script> qm::ScriptManager::getScript(const WCHAR* pwszName,
 		return std::auto_ptr<Script>(0);
 	
 	ScriptFactory::Init init = {
-		pwszLang,
+		wstrLang.get(),
 		&reader,
 		pDocument,
 		pProfile,
@@ -147,11 +135,12 @@ void qm::ScriptManager::getScriptNames(NameList* pList) const
 		do {
 			if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
 				wstring_ptr wstrName(tcs2wcs(fd.cFileName));
-				WCHAR* p = wcsrchr(wstrName.get(), L'.');
-				if (p)
-					*p = L'\0';
-				l.push_back(wstrName.get());
-				wstrName.release();
+				WCHAR* pExt = wcsrchr(wstrName.get(), L'.');
+				if (pExt && getLanguageFromExtension(pExt + 1).get()) {
+					*pExt = L'\0';
+					l.push_back(wstrName.get());
+					wstrName.release();
+				}
 			}
 		} while (::FindNextFile(hFind.get(), &fd));
 	}
@@ -184,4 +173,48 @@ std::auto_ptr<Script> qm::ScriptManager::createScript(const WCHAR* pwszScript,
 		ScriptFactory::TYPE_NONE
 	};
 	return pFactory->createScript(init);
+}
+
+wstring_ptr qm::ScriptManager::getLanguageFromExtension(const WCHAR* pwszExtension)
+{
+	assert(pwszExtension);
+	assert(*pwszExtension);
+	
+#ifndef _WIN32_WCE
+	wstring_ptr wstrExtKey(concat(L".", pwszExtension));
+	Registry regExt(HKEY_CLASSES_ROOT, wstrExtKey.get());
+	if (!regExt)
+		return 0;
+	wstring_ptr wstrName;
+	if (!regExt.getValue(0, &wstrName))
+		return 0;
+	
+	wstring_ptr wstrEngineKey(concat(wstrName.get(), L"\\ScriptEngine"));
+	Registry regEngine(HKEY_CLASSES_ROOT, wstrEngineKey.get());
+	if (!regEngine)
+		return 0;
+	wstring_ptr wstrLang;
+	if (!regEngine.getValue(0, &wstrLang))
+		return 0;
+	
+	return wstrLang;
+#else
+	struct {
+		const WCHAR* pwszExt_;
+		const WCHAR* pwszLang_;
+	} langs[] = {
+		{ L"js",	L"JScript"	},
+		{ L"vbs",	L"VBScript"	}
+	};
+	
+	const WCHAR* pwszLang = 0;
+	for (int n = 0; n < countof(langs) && !pwszLang; ++n) {
+		if (wcsicmp(langs[n].pwszExt_, pwszExtension) == 0)
+			pwszLang = langs[n].pwszLang_;
+	}
+	if (!pwszLang)
+		return 0;
+	
+	return allocWString(pwszLang);
+#endif
 }
