@@ -43,6 +43,7 @@ public:
 	HINSTANCE getAtlHandle() const;
 	const WCHAR* getMailFolder() const;
 	const WCHAR* getTemporaryFolder() const;
+	const WCHAR* getProfileName() const;
 	qs::QSTATUS getProfilePath(const WCHAR* pwszName,
 		qs::WSTRING* pwstrPath) const;
 	qs::QSTATUS getVersion(bool bWithOSVersion,

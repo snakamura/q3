@@ -1,5 +1,5 @@
 /*
- * $Id: macrofunction.cpp,v 1.4 2003/05/19 07:13:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -3344,11 +3344,12 @@ QSTATUS qm::MacroFunctionProfileName::value(
 	
 	*ppValue = 0;
 	
-	if (getArgSize() != 2)
+	if (getArgSize() != 0)
 		return error(*pContext, MacroErrorHandler::CODE_INVALIDARGSIZE);
 	
-	// TODO
-	
+	return MacroValueFactory::getFactory().newString(
+		Application::getApplication().getProfileName(),
+		reinterpret_cast<MacroValueString**>(ppValue));
 }
 
 const WCHAR* qm::MacroFunctionProfileName::getName() const

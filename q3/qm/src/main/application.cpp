@@ -598,6 +598,11 @@ const WCHAR* qm::Application::getTemporaryFolder() const
 	return pImpl_->wstrTemporaryFolder_;
 }
 
+const WCHAR* qm::Application::getProfileName() const
+{
+	return pImpl_->wstrProfileName_;
+}
+
 QSTATUS qm::Application::getProfilePath(
 	const WCHAR* pwszName, WSTRING* pwstrPath) const
 {
