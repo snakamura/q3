@@ -524,7 +524,8 @@ QSTATUS qm::SyncManager::syncData(const SyncData* pData)
 		}
 		
 		RasConnection* pRasConnection_;
-	} disconnector(pRasConnection.get());
+	} disconnector(!pDialup || pDialup->getFlags() & SyncDialup::FLAG_NOTDISCONNECT ?
+		0 : pRasConnection.get());
 	
 	struct InternalOnline
 	{

@@ -92,7 +92,8 @@ class SyncDialup
 public:
 	enum {
 		FLAG_SHOWDIALOG				= 0x01,
-		FLAG_WHENEVERNOTCONNECTED	= 0x02
+		FLAG_WHENEVERNOTCONNECTED	= 0x02,
+		FLAG_NOTDISCONNECT			= 0x04
 	};
 
 public:

@@ -2696,7 +2696,8 @@ QSTATUS qm::ToolDialupAction::invoke(const ActionEvent& event)
 		CHECK_QSTATUS();
 		
 		std::auto_ptr<SyncDialup> pDialup;
-		status = newQsObject(static_cast<const WCHAR*>(0), 0,
+		status = newQsObject(static_cast<const WCHAR*>(0),
+			SyncDialup::FLAG_SHOWDIALOG | SyncDialup::FLAG_NOTDISCONNECT,
 			static_cast<const WCHAR*>(0), 0, &pDialup);
 		CHECK_QSTATUS();
 		pData->setDialup(pDialup.release());
