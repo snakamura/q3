@@ -128,6 +128,11 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 		reportError(IDS_ERROR_URL, 0);
 		return false;
 	}
+	std::auto_ptr<HttpURL> pURL(HttpURL::create(pwszURL));
+	if (!pURL.get()) {
+		reportError(IDS_ERROR_URL, 0);
+		return false;
+	}
 	
 	// TODO
 	// Check if minimum duration has been exceeded since last update.
@@ -148,7 +153,8 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	if (bUseProxy && log.isDebugEnabled())
 		log.debugf(L"Using proxy: %s:%u", wstrProxyHost.get(), nProxyPort);
 	
-	CallbackImpl callback(pSubAccount_, pDocument_->getSecurity(), pSessionCallback_);
+	CallbackImpl callback(pSubAccount_, pURL->getHost(),
+		pDocument_->getSecurity(), pSessionCallback_);
 	callback.setMessage(IDS_REQUESTRSS);
 	pSessionCallback_->setRange(0, 0);
 	
@@ -537,12 +543,14 @@ bool qmrss::RssReceiveSession::getInternetProxySetting(wstring_ptr* pwstrProxyHo
  */
 
 qmrss::RssReceiveSession::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
+													 const WCHAR* pwszHost,
 													 const Security* pSecurity,
 													 ReceiveSessionCallback* pSessionCallback) :
-	DefaultSSLSocketCallback(pSubAccount, Account::HOST_RECEIVE, pSecurity),
+	AbstractSSLSocketCallback(pSecurity),
 	pSubAccount_(pSubAccount),
 	pSessionCallback_(pSessionCallback)
 {
+	wstrHost_ = allocWString(pwszHost);
 }
 
 qmrss::RssReceiveSession::CallbackImpl::~CallbackImpl()
@@ -578,6 +586,16 @@ void qmrss::RssReceiveSession::CallbackImpl::connecting()
 void qmrss::RssReceiveSession::CallbackImpl::connected()
 {
 	setMessage(IDS_CONNECTED);
+}
+
+unsigned int qmrss::RssReceiveSession::CallbackImpl::getOption()
+{
+	return pSubAccount_->getSslOption();
+}
+
+const WCHAR* qmrss::RssReceiveSession::CallbackImpl::getHost()
+{
+	return wstrHost_.get();
 }
 
 

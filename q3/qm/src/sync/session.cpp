@@ -383,32 +383,28 @@ size_t qm::SessionErrorInfo::getDescriptionCount() const
 
 /****************************************************************************
  *
- * DefaultSSLSocketCallback
+ * AbstractSSLSocketCallback
  *
  */
 
-qm::DefaultSSLSocketCallback::DefaultSSLSocketCallback(SubAccount* pSubAccount,
-													   Account::Host host,
-													   const Security* pSecurity) :
-	pSubAccount_(pSubAccount),
-	host_(host),
+qm::AbstractSSLSocketCallback::AbstractSSLSocketCallback(const Security* pSecurity) :
 	pSecurity_(pSecurity)
 {
 }
 
-qm::DefaultSSLSocketCallback::~DefaultSSLSocketCallback()
+qm::AbstractSSLSocketCallback::~AbstractSSLSocketCallback()
 {
 }
 
-const Store* qm::DefaultSSLSocketCallback::getCertStore()
+const Store* qm::AbstractSSLSocketCallback::getCertStore()
 {
 	return pSecurity_->getCA();
 }
 
-bool qm::DefaultSSLSocketCallback::checkCertificate(const Certificate& cert,
-													bool bVerified)
+bool qm::AbstractSSLSocketCallback::checkCertificate(const Certificate& cert,
+													 bool bVerified)
 {
-	unsigned int nSslOption = pSubAccount_->getSslOption();
+	unsigned int nSslOption = getOption();
 	
 	if (!bVerified && (nSslOption & SubAccount::SSLOPTION_ALLOWUNVERIFIEDCERTIFICATE) == 0)
 		return false;
@@ -418,7 +414,7 @@ bool qm::DefaultSSLSocketCallback::checkCertificate(const Certificate& cert,
 		wstring_ptr wstrCommonName(pName->getCommonName());
 		
 		const WCHAR* pwszCommonName = wstrCommonName.get();
-		const WCHAR* pwszHost = pSubAccount_->getHost(host_);
+		const WCHAR* pwszHost = getHost();
 		while (pwszCommonName && pwszHost) {
 			const WCHAR* pCN = wcschr(pwszCommonName, L'.');
 			const WCHAR* pHost = wcschr(pwszHost, L'.');
@@ -453,4 +449,34 @@ bool qm::DefaultSSLSocketCallback::checkCertificate(const Certificate& cert,
 	}
 	
 	return true;
+}
+
+
+/****************************************************************************
+ *
+ * DefaultSSLSocketCallback
+ *
+ */
+
+qm::DefaultSSLSocketCallback::DefaultSSLSocketCallback(SubAccount* pSubAccount,
+													   Account::Host host,
+													   const Security* pSecurity) :
+	AbstractSSLSocketCallback(pSecurity),
+	pSubAccount_(pSubAccount),
+	host_(host)
+{
+}
+
+qm::DefaultSSLSocketCallback::~DefaultSSLSocketCallback()
+{
+}
+
+unsigned int qm::DefaultSSLSocketCallback::getOption()
+{
+	return pSubAccount_->getSslOption();
+}
+
+const WCHAR* qm::DefaultSSLSocketCallback::getHost()
+{
+	return pSubAccount_->getHost(host_);
 }

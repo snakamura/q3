@@ -37,7 +37,8 @@ class ReceiveSessionFactory;
 class SendSession;
 class SendSessionFactory;
 class SessionErrorInfo;
-class DefaultSSLSocketCallback;
+class AbstractSSLSocketCallback;
+	class DefaultSSLSocketCallback;
 
 class Account;
 class Document;
@@ -359,11 +360,41 @@ private:
 
 /****************************************************************************
  *
+ * AbstractSSLSocketCallback
+ *
+ */
+
+class QMEXPORTCLASS AbstractSSLSocketCallback : public qs::SSLSocketCallback
+{
+public:
+	explicit AbstractSSLSocketCallback(const Security* pSecurity);
+	virtual ~AbstractSSLSocketCallback();
+
+public:
+	virtual const qs::Store* getCertStore();
+	virtual bool checkCertificate(const qs::Certificate& cert,
+								  bool bVerified);
+
+protected:
+	virtual unsigned int getOption() = 0;
+	virtual const WCHAR* getHost() = 0;
+
+private:
+	AbstractSSLSocketCallback(const AbstractSSLSocketCallback&);
+	AbstractSSLSocketCallback& operator=(const AbstractSSLSocketCallback&);
+
+private:
+	const Security* pSecurity_;
+};
+
+
+/****************************************************************************
+ *
  * DefaultSSLSocketCallback
  *
  */
 
-class QMEXPORTCLASS DefaultSSLSocketCallback : public qs::SSLSocketCallback
+class QMEXPORTCLASS DefaultSSLSocketCallback : public AbstractSSLSocketCallback
 {
 public:
 	DefaultSSLSocketCallback(SubAccount* pSubAccount,
@@ -371,10 +402,9 @@ public:
 							 const Security* pSecurity);
 	virtual ~DefaultSSLSocketCallback();
 
-public:
-	virtual const qs::Store* getCertStore();
-	virtual bool checkCertificate(const qs::Certificate& cert,
-								  bool bVerified);
+protected:
+	virtual unsigned int getOption();
+	virtual const WCHAR* getHost();
 
 private:
 	DefaultSSLSocketCallback(const DefaultSSLSocketCallback&);
@@ -383,7 +413,6 @@ private:
 private:
 	SubAccount* pSubAccount_;
 	Account::Host host_;
-	const Security* pSecurity_;
 };
 
 }

@@ -88,11 +88,12 @@ private:
 private:
 	class CallbackImpl :
 		public qs::SocketCallback,
-		public qm::DefaultSSLSocketCallback,
+		public qm::AbstractSSLSocketCallback,
 		public HttpCallback
 	{
 	public:
 		CallbackImpl(qm::SubAccount* pSubAccount,
+					 const WCHAR* pwszHost,
 					 const qm::Security* pSecurity,
 					 qm::ReceiveSessionCallback* pSessionCallback);
 		virtual ~CallbackImpl();
@@ -107,12 +108,17 @@ private:
 		virtual void connecting();
 		virtual void connected();
 	
+	protected:
+		virtual unsigned int getOption();
+		virtual const WCHAR* getHost();
+	
 	private:
 		CallbackImpl(const CallbackImpl&);
 		CallbackImpl& operator=(const CallbackImpl&);
 	
 	private:
 		qm::SubAccount* pSubAccount_;
+		qs::wstring_ptr wstrHost_;
 		qm::ReceiveSessionCallback* pSessionCallback_;
 	};
 
