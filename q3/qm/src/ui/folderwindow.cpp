@@ -408,6 +408,8 @@ void qm::FolderWindowImpl::accountListChanged(const AccountListChangedEvent& eve
 
 void qm::FolderWindowImpl::documentInitialized(const DocumentEvent& event)
 {
+	DisableRedraw disable(pThis_->getHandle());
+	
 	Profile::StringList listFolders;
 	StringListFree<Profile::StringList> free(listFolders);
 	pProfile_->getStringList(L"FolderWindow", L"ExpandedFolders", &listFolders);
