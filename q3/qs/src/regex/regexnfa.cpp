@@ -264,6 +264,11 @@ QSTATUS qs::RegexNfaCompiler::compilePieceNode(
 		case RegexQuantifier::TYPE_RANGE:
 			{
 				unsigned int n = pQuantifier->getMin();
+				if (n == 0) {
+					status = pNfa->setTransition(nFrom, nTo, 0);
+					CHECK_QSTATUS();
+					n = 1;
+				}
 				while (n <= pQuantifier->getMax()) {
 					status = compileAtom(pAtom, n, pNfa, nFrom, nTo);
 					CHECK_QSTATUS();
@@ -314,6 +319,7 @@ QSTATUS qs::RegexNfaCompiler::compileAtom(const RegexAtom* pAtom,
 	unsigned int nFrom, unsigned int nTo) const
 {
 	assert(pAtom);
+	assert(nCount != 0);
 	assert(pNfa);
 	
 	DECLARE_QSTATUS();
