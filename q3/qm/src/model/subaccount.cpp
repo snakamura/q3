@@ -729,6 +729,9 @@ QSTATUS qm::SubAccount::isSelf(const Message& msg, bool* pbSelf) const
 								wcsicmp(pFrom->getHost(), pSender->getHost()) == 0;
 						}
 					}
+					else {
+						*pbSelf = true;
+					}
 				}
 			}
 			if (*pbSelf) {
