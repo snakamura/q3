@@ -435,16 +435,28 @@ QSTATUS qm::EditEditReplaceAction::invoke(const ActionEvent& event)
 	CHECK_QSTATUS();
 	
 	ReplaceDialog::Type type = dialog.getType();
+	unsigned int nFlags = 0;
+	if (dialog.isMatchCase())
+		nFlags |= TextWindow::FIND_MATCHCASE;
+	if (type == ReplaceDialog::TYPE_PREV)
+		nFlags |= TextWindow::FIND_PREVIOUS;
+	
 	if (type == ReplaceDialog::TYPE_ALL) {
-		// TODO
+		status = pTextWindow_->moveCaret(TextWindow::MOVECARET_DOCSTART,
+			0, 0, false, TextWindow::SELECT_CLEAR, false);
+		CHECK_QSTATUS();
+		
+		while (true) {
+			bool bFound = false;
+			status = pTextWindow_->find(dialog.getFind(), nFlags, &bFound);
+			CHECK_QSTATUS();
+			if (!bFound)
+				break;
+			status = pTextWindow_->insertText(dialog.getReplace(), -1);
+			CHECK_QSTATUS();
+		}
 	}
 	else {
-		unsigned int nFlags = 0;
-		if (dialog.isMatchCase())
-			nFlags |= TextWindow::FIND_MATCHCASE;
-		if (type == ReplaceDialog::TYPE_PREV)
-			nFlags |= TextWindow::FIND_PREVIOUS;
-		
 		bool bFound = false;
 		status = pTextWindow_->find(dialog.getFind(), nFlags, &bFound);
 		CHECK_QSTATUS();
