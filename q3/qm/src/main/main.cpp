@@ -193,7 +193,8 @@ int qm::main(const WCHAR* pwszCommandLine)
  */
 
 qm::MainCommandLineHandler::MainCommandLineHandler() :
-	state_(STATE_NONE)
+	state_(STATE_NONE),
+	nAction_(0)
 {
 }
 
@@ -214,11 +215,14 @@ const WCHAR* qm::MainCommandLineHandler::getProfile() const
 void qm::MainCommandLineHandler::invoke(HWND hwnd)
 {
 	struct {
+		unsigned int nAction_;
+		unsigned int nActionNoParam_;
 		WCHAR* pwsz_;
-		DWORD dwData_;
 	} commands[] = {
-		{ wstrGoRound_.get(),	IDM_TOOL_GOROUND	},
-		{ wstrURL_.get(),		IDM_MESSAGE_OPENURL	}
+		{ IDM_TOOL_GOROUND,				0,									wstrGoRound_.get()	},
+		{ IDM_MESSAGE_OPENURL,			0,									wstrURL_.get()		},
+		{ IDM_MESSAGE_CREATEFROMFILE,	IDM_MESSAGE_CREATEFROMCLIPBOARD,	wstrPath_.get()		},
+		{ IDM_MESSAGE_DRAFTFROMFILE,	IDM_MESSAGE_DRAFTFROMCLIPBOARD,		wstrPath_.get()		}
 	};
 	
 	COPYDATASTRUCT data = {
@@ -227,10 +231,15 @@ void qm::MainCommandLineHandler::invoke(HWND hwnd)
 		0
 	};
 	for (int n = 0; n < countof(commands) && data.dwData == 0; ++n) {
-		if (commands[n].pwsz_) {
-			data.dwData = commands[n].dwData_;
-			data.cbData = (wcslen(commands[n].pwsz_) + 1)*sizeof(WCHAR);
-			data.lpData = commands[n].pwsz_;
+		if (commands[n].nAction_ == nAction_) {
+			if (commands[n].pwsz_) {
+				data.dwData = commands[n].nAction_;
+				data.cbData = (wcslen(commands[n].pwsz_) + 1)*sizeof(WCHAR);
+				data.lpData = commands[n].pwsz_;
+			}
+			else {
+				data.dwData = commands[n].nActionNoParam_;
+			}
 		}
 	}
 	if (data.dwData != 0)
@@ -246,7 +255,9 @@ bool qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
 		{ L"d",	STATE_MAILFOLDER	},
 		{ L"p",	STATE_PROFILE		},
 		{ L"g",	STATE_GOROUND		},
-		{ L"s",	STATE_URL			}
+		{ L"s",	STATE_URL			},
+		{ L"c",	STATE_CREATE		},
+		{ L"r",	STATE_DRAFT			}
 	};
 	
 	wstring_ptr* pwstr[] = {
@@ -256,6 +267,18 @@ bool qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
 		&wstrURL_
 	};
 	
+	unsigned int nActions[] = {
+		IDM_TOOL_GOROUND,
+		IDM_MESSAGE_OPENURL,
+		IDM_MESSAGE_CREATEFROMFILE,
+		IDM_MESSAGE_DRAFTFROMFILE
+	};
+	
+	if (state_ == STATE_CREATE || state_ == STATE_DRAFT) {
+		if (*pwszOption == L'-' || *pwszOption == L'/')
+			state_ = STATE_NONE;
+	}
+	
 	switch (state_) {
 	case STATE_NONE:
 		if (*pwszOption == L'-' || *pwszOption == L'/') {
@@ -263,6 +286,8 @@ bool qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
 				if (wcscmp(pwszOption + 1, options[n].pwsz_) == 0)
 					state_ = options[n].state_;
 			}
+			if (STATE_GOROUND <= state_ && state_ <= STATE_DRAFT)
+				nAction_ = nActions[state_ - STATE_GOROUND];
 		}
 		break;
 	case STATE_MAILFOLDER:
@@ -271,6 +296,10 @@ bool qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
 	case STATE_URL:
 		*pwstr[state_ - STATE_MAILFOLDER] = allocWString(pwszOption);
 		state_ = STATE_NONE;
+		break;
+	case STATE_CREATE:
+	case STATE_DRAFT:
+		wstrPath_ = allocWString(pwszOption);
 		break;
 	default:
 		break;

@@ -58,6 +58,10 @@ public:
 				 SubAccount* pSubAccount,
 				 Message* pMessage,
 				 unsigned int nFlags) const;
+	bool compose(Account* pAccount,
+				 SubAccount* pSubAccount,
+				 const WCHAR* pwszPath,
+				 unsigned int nFlags) const;
 
 private:
 	MessageComposer(const MessageComposer&);

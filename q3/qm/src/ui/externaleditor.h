@@ -51,7 +51,6 @@ public:
 private:
 	qs::wstring_ptr createParam(const WCHAR* pwszTemplate,
 								const WCHAR* pwszPath);
-	bool createMessage(const WCHAR* pwszPath);
 
 private:
 	ExternalEditorManager(const ExternalEditorManager&);

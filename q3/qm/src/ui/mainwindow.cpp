@@ -587,6 +587,14 @@ void qm::MainWindowImpl::initActions()
 		pThis_->getHandle(),
 		pFolderModel_.get(),
 		pSecurityModel_.get());
+	ADD_ACTION6(MessageCreateFromFileAction,
+		IDM_MESSAGE_CREATEFROMFILE,
+		false,
+		pDocument_,
+		pProfile_,
+		pThis_->getHandle(),
+		pFolderModel_.get(),
+		pSecurityModel_.get());
 	ADD_ACTION3(MessageDeleteAttachmentAction,
 		IDM_MESSAGE_DELETEATTACHMENT,
 		pMessageSelectionModel_.get(),
@@ -600,6 +608,14 @@ void qm::MainWindowImpl::initActions()
 		pThis_->getHandle());
 	ADD_ACTION6(MessageCreateFromClipboardAction,
 		IDM_MESSAGE_DRAFTFROMCLIPBOARD,
+		true,
+		pDocument_,
+		pProfile_,
+		pThis_->getHandle(),
+		pFolderModel_.get(),
+		pSecurityModel_.get());
+	ADD_ACTION6(MessageCreateFromFileAction,
+		IDM_MESSAGE_DRAFTFROMFILE,
 		true,
 		pDocument_,
 		pProfile_,

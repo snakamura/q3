@@ -63,6 +63,7 @@ class MessageApplyTemplateAction;
 class MessageCombineAction;
 class MessageCreateAction;
 class MessageCreateFromClipboardAction;
+class MessageCreateFromFileAction;
 class MessageDeleteAttachmentAction;
 class MessageDetachAction;
 class MessageExpandDigestAction;
@@ -1398,6 +1399,38 @@ public:
 private:
 	MessageCreateFromClipboardAction(const MessageCreateFromClipboardAction&);
 	MessageCreateFromClipboardAction& operator=(const MessageCreateFromClipboardAction&);
+
+private:
+	MessageComposer composer_;
+	Document* pDocument_;
+	SecurityModel* pSecurityModel_;
+	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * MessageCreateFromFileAction
+ *
+ */
+
+class MessageCreateFromFileAction : public qs::AbstractAction
+{
+public:
+	MessageCreateFromFileAction(bool bDraft,
+								Document* pDocument,
+								qs::Profile* pProfile,
+								HWND hwnd,
+								FolderModel* pFolderModel,
+								SecurityModel* pSecurityModel);
+	virtual ~MessageCreateFromFileAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	MessageCreateFromFileAction(const MessageCreateFromFileAction&);
+	MessageCreateFromFileAction& operator=(const MessageCreateFromFileAction&);
 
 private:
 	MessageComposer composer_;

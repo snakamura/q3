@@ -2852,6 +2852,50 @@ bool qm::MessageCreateFromClipboardAction::isEnabled(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * MessageCreateFromFileAction
+ *
+ */
+
+qm::MessageCreateFromFileAction::MessageCreateFromFileAction(bool bDraft,
+															 Document* pDocument,
+															 Profile* pProfile,
+															 HWND hwnd,
+															 FolderModel* pFolderModel,
+															 SecurityModel* pSecurityModel) :
+	composer_(bDraft, pDocument, pProfile, hwnd, pFolderModel, pSecurityModel),
+	pDocument_(pDocument),
+	pSecurityModel_(pSecurityModel),
+	hwnd_(hwnd)
+{
+}
+
+qm::MessageCreateFromFileAction::~MessageCreateFromFileAction()
+{
+}
+
+void qm::MessageCreateFromFileAction::invoke(const ActionEvent& event)
+{
+	if (!event.getParam())
+		return;
+	ActionParam* pParam = static_cast<ActionParam*>(event.getParam());
+	if (pParam->nArgs_ == 0)
+		return;
+	Variant v;
+	if (::VariantChangeType(&v, pParam->ppvarArgs_[0], 0, VT_BSTR) != S_OK)
+		return;
+	
+	const WCHAR* pwszPath = v.bstrVal;
+	unsigned int nFlags = 0;
+	// TODO
+	if (!composer_.compose(0, 0, pwszPath, nFlags)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_CREATEMESSAGE);
+		return;
+	}
+}
+
+
+/****************************************************************************
+ *
  * MessageDeleteAttachmentAction
  *
  */

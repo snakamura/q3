@@ -189,6 +189,53 @@ bool qm::MessageComposer::compose(Account* pAccount,
 	return true;
 }
 
+bool qm::MessageComposer::compose(Account* pAccount,
+								  SubAccount* pSubAccount,
+								  const WCHAR* pwszPath,
+								  unsigned int nFlags) const
+{
+	assert(pwszPath);
+	
+	FileInputStream stream(pwszPath);
+	if (!stream)
+		return false;
+	BufferedInputStream bufferedStream(&stream, false);
+	InputStreamReader reader(&bufferedStream, false, getSystemEncoding());
+	if (!reader)
+		return false;
+	
+	XStringBuffer<WXSTRING> buf;
+	while (true) {
+		XStringBufferLock<WXSTRING> lock(&buf, 1024);
+		
+		size_t nRead = reader.read(lock.get(), 1024);
+		if (nRead == -1)
+			return false;
+		else if (nRead == 0)
+			break;
+		
+		lock.unlock(nRead);
+	}
+	if (!reader.close())
+		return false;
+	
+	if (buf.getLength() != 0) {
+		MessageCreator creator(MessageCreator::FLAG_ADDCONTENTTYPE |
+			MessageCreator::FLAG_EXPANDALIAS |
+			MessageCreator::FLAG_EXTRACTATTACHMENT |
+			(pSecurityModel_->isDecryptVerify() ? MessageCreator::FLAG_DECRYPTVERIFY : 0));
+		std::auto_ptr<Message> pMessage(creator.createMessage(
+			pDocument_, buf.getCharArray(), buf.getLength()));
+		if (!pMessage.get())
+			return false;
+		
+		if (!compose(0, 0, pMessage.get(), nFlags))
+			return false;
+	}
+	
+	return true;
+}
+
 
 /****************************************************************************
  *

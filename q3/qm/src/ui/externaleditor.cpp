@@ -112,29 +112,31 @@ bool qm::ExternalEditorManager::open(const WCHAR* pwszMessage)
 	
 	AutoHandle hProcess(sei.hProcess);
 	
-	Item item = {
-		wstrPath.get(),
+	if (pProfile_->getInt(L"Global", L"ExternalEditorAutoCreate", 1)) {
+		Item item = {
+			wstrPath.get(),
+			{
+				fd.ftLastWriteTime.dwLowDateTime,
+				fd.ftLastWriteTime.dwHighDateTime
+			},
+			hProcess.get()
+		};
 		{
-			fd.ftLastWriteTime.dwLowDateTime,
-			fd.ftLastWriteTime.dwHighDateTime
-		},
-		hProcess.get()
-	};
-	{
-		Lock<CriticalSection> lock(cs_);
-		listItem_.push_back(item);
-	}
-	wstrPath.release();
-	hProcess.release();
-	
-	if (!pThread_.get()) {
-		pEvent_.reset(new Event());
-		pThread_.reset(new WaitThread(this));
-		if (!pThread_->start())
-			return false;
-	}
-	else {
-		pEvent_->set();
+			Lock<CriticalSection> lock(cs_);
+			listItem_.push_back(item);
+		}
+		wstrPath.release();
+		hProcess.release();
+		
+		if (!pThread_.get()) {
+			pEvent_.reset(new Event());
+			pThread_.reset(new WaitThread(this));
+			if (!pThread_->start())
+				return false;
+		}
+		else {
+			pEvent_->set();
+		}
 	}
 	
 	return true;
@@ -164,53 +166,6 @@ wstring_ptr qm::ExternalEditorManager::createParam(const WCHAR* pwszTemplate,
 	}
 	
 	return bufParam.getString();
-}
-
-bool qm::ExternalEditorManager::createMessage(const WCHAR* pwszPath)
-{
-	assert(pwszPath);
-	
-	FileInputStream stream(pwszPath);
-	if (!stream)
-		return false;
-	BufferedInputStream bufferedStream(&stream, false);
-	InputStreamReader reader(&bufferedStream, false, getSystemEncoding());
-	if (!reader)
-		return false;
-	
-	typedef std::vector<WCHAR> Buffer;
-	Buffer buffer;
-	size_t nSize = 0;
-	while (true) {
-		buffer.resize(nSize + 1024);
-		size_t nRead = reader.read(&buffer[nSize], 1024);
-		if (nRead == -1)
-			return false;
-		else if (nRead == 0)
-			break;
-		nSize += nRead;
-	}
-	if (!reader.close())
-		return false;
-	
-	if (nSize != 0) {
-		MessageCreator creator(MessageCreator::FLAG_ADDCONTENTTYPE |
-			MessageCreator::FLAG_EXPANDALIAS |
-			MessageCreator::FLAG_EXTRACTATTACHMENT |
-			(pSecurityModel_->isDecryptVerify() ? MessageCreator::FLAG_DECRYPTVERIFY : 0));
-		std::auto_ptr<Message> pMessage(creator.createMessage(
-			pDocument_, &buffer[0], nSize));
-		if (!pMessage.get())
-			return false;
-		
-		unsigned int nFlags = 0;
-		// TODO
-		// Set flags
-		if (!composer_.compose(0, 0, pMessage.get(), nFlags))
-			return false;
-	}
-	
-	return true;
 }
 
 
@@ -297,7 +252,9 @@ void qm::ExternalEditorManager::WaitThread::run()
 			WIN32_FIND_DATA fd;
 			AutoFindHandle hFind(::FindFirstFile(ptszPath, &fd));
 			if (hFind.get() && ::CompareFileTime(&ft, &fd.ftLastWriteTime) != 0) {
-				if (!pManager_->createMessage(wstrPath.get())) {
+				unsigned int nFlags = 0;
+				// TODO
+				if (!pManager_->composer_.compose(0, 0, wstrPath.get(), nFlags)) {
 					// TODO MSG
 				}
 				::DeleteFile(ptszPath);
