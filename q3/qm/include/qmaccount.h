@@ -239,6 +239,8 @@ public:
 	void setConnectReceiveBeforeSend(bool bConnectReceiveBeforeSend);
 	bool isTreatAsSent() const;
 	void setTreatAsSent(bool bTreatAsSent);
+	bool isAddMessageId() const;
+	void setAddMessageId(bool bAddMessageId);
 	bool isAllowUnverifiedCertificate() const;
 	void setAllowUnverifiedCertificate(bool bAllow) const;
 	

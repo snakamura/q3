@@ -502,8 +502,10 @@ BEGIN
     CONTROL         "&Connect receive host before send",
                     IDC_CONNECTRECEIVEHOSTBEFORESEND,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,65,140,10
-    CONTROL         "Treat &as sent",IDC_TREATASSENT,"Button",
+    CONTROL         "T&reat as sent",IDC_TREATASSENT,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,75,70,10
+    CONTROL         "A&dd Message-Id",IDC_ADDMESSAGEID,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,85,140,10
 END
 
 IDD_CREATEACCOUNT DIALOG DISCARDABLE  0, 0, 179, 169

@@ -99,10 +99,28 @@ QSTATUS qm::MessageComposer::compose(Account* pAccount,
 	status = pMessage->setField(L"From", from);
 	CHECK_QSTATUS();
 	
-	DateParser date(Time::getCurrentTime(), &status);
+	Time time(Time::getCurrentTime());
+	DateParser date(time, &status);
 	CHECK_QSTATUS();
 	status = pMessage->setField(L"Date", date);
 	CHECK_QSTATUS();
+	
+	if (pSubAccount->isAddMessageId()) {
+		WCHAR wsz[256];
+		swprintf(wsz, L"%u%04d%02d%02d%02d%02d%02d",
+			::GetCurrentProcessId(), time.wYear, time.wMonth,
+			time.wDay, time.wHour, time.wMinute, time.wSecond);
+		
+		string_ptr<WSTRING> wstrMessageId(concat(
+			wsz, pSubAccount->getSenderAddress()));
+		if (!wstrMessageId.get())
+			return QSTATUS_OUTOFMEMORY;
+		
+		MessageIdParser messageId(wstrMessageId.get(), &status);
+		CHECK_QSTATUS();
+		status = pMessage->setField(L"Message-Id", messageId);
+		CHECK_QSTATUS();
+	}
 	
 	const WCHAR* pwszMacro = 0;
 	UnstructuredParser macro(&status);

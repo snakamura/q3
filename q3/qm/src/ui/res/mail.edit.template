@@ -12,15 +12,7 @@
 			)
 		)
 	)
-}Message-Id: {
-	@Concat(
-		'<',
-		@ProcessId(),
-		@FormatDate(@Date(), '%Y4%M0%D%h%m%s'),
-		@Address(@I(@Account(), X-QMAIL-SubAccount)),
-		'>')
-}
-To: {@Decode(@Field('To'))}
+}To: {@Decode(@Field('To'))}
 Cc: {@Decode(@Field('Cc'))}
 Bcc: {@Decode(@Field('Bcc'))}
 From: {@Decode(@Field('From'))}

@@ -1,4 +1,3 @@
-Message-Id: {@Concat('<', @ProcessId(), @FormatDate(@Date(), '%Y4%M0%D%h%m%s'), @Address(@I()), '>')}
 X-QMAIL-Account: {@Account()}{@If(@Identity(), @Concat('\\nX-QMAIL-SubAccount: ', @SubAccount()), '')}
 Bcc: {@I()}
 {@ParseUrl($url)}
