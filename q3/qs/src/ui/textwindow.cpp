@@ -255,6 +255,11 @@ private:
 	void getLineExtent(unsigned int nLine,
 					   Extent* pExtent,
 					   bool* pbNewLine) const;
+	void getLineExtent(const DeviceContext& dc,
+					   const WCHAR* pwsz,
+					   size_t nLength,
+					   Extent* pExtent,
+					   bool* pbNewLine) const;
 	void getLinks(const WCHAR* pwsz,
 				  size_t nLen,
 				  LogicalLinkItemList* pList) const;
@@ -263,8 +268,9 @@ private:
 											size_t nLength,
 											LinkItemList* pListPhysicalLink) const;
 	void fillPhysicalLinks(LinkItemList* pList,
-						   DeviceContext* pdc,
-						   const WCHAR* pwsz) const;
+						   const DeviceContext& dc,
+						   const WCHAR* pwsz,
+						   size_t nLength) const;
 
 public:
 	TextWindow* pThis_;
@@ -745,7 +751,7 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 						convertLogicalLinksToPhysicalLinks(listLogicalLinkItem,
 							nOffset, nLength, &listPhysicalLinkItem);
 						fillPhysicalLinks(&listPhysicalLinkItem,
-							&dc, line.getText() + nOffset);
+							dc, line.getText() + nOffset, nLength);
 						PhysicalLinePtr ptr(allocLine(n, nOffset,
 							nLength, cr, &listPhysicalLinkItem[0],
 							listPhysicalLinkItem.size()));
@@ -770,7 +776,7 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 					convertLogicalLinksToPhysicalLinks(listLogicalLinkItem,
 						nOffset, nLength, &listPhysicalLinkItem);
 					fillPhysicalLinks(&listPhysicalLinkItem,
-						&dc, line.getText() + nOffset);
+						dc, line.getText() + nOffset, nLength);
 					PhysicalLinePtr ptr(allocLine(n, nOffset, nLength, cr,
 						&listPhysicalLinkItem[0], listPhysicalLinkItem.size()));
 					if (!bWrap)
@@ -783,7 +789,7 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 						convertLogicalLinksToPhysicalLinks(listLogicalLinkItem,
 							nOffset, nLength, &listPhysicalLinkItem);
 						fillPhysicalLinks(&listPhysicalLinkItem,
-							&dc, line.getText() + nOffset);
+							dc, line.getText() + nOffset, nLength);
 						PhysicalLinePtr ptr(allocLine(n, nOffset, nLength, cr,
 							&listPhysicalLinkItem[0], listPhysicalLinkItem.size()));
 						pListLine->push_back(ptr.get());
@@ -804,7 +810,7 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 						convertLogicalLinksToPhysicalLinks(listLogicalLinkItem,
 							nOffset, nLength, &listPhysicalLinkItem);
 						fillPhysicalLinks(&listPhysicalLinkItem,
-							&dc, line.getText() + nOffset);
+							dc, line.getText() + nOffset, nLength);
 						PhysicalLinePtr ptr(allocLine(n, nOffset, nLength, cr,
 							&listPhysicalLinkItem[0], listPhysicalLinkItem.size()));
 						pListLine->push_back(ptr.get());
@@ -823,7 +829,7 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 							convertLogicalLinksToPhysicalLinks(listLogicalLinkItem,
 								nOffset, nLength, &listPhysicalLinkItem);
 							fillPhysicalLinks(&listPhysicalLinkItem,
-								&dc, line.getText() + nOffset);
+								dc, line.getText() + nOffset, nLength);
 							PhysicalLinePtr ptr(allocLine(n, nOffset, nLength, cr,
 								&listPhysicalLinkItem[0], listPhysicalLinkItem.size()));
 							pListLine->push_back(ptr.get());
@@ -872,11 +878,8 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 		}
 		
 		if (nOldEndLine != nNewEndLine) {
-			LineList::iterator it = listLine_.begin() + start.first + listLine.size();
-			while (it != listLine_.end()) {
+			for (LineList::iterator it = listLine_.begin() + start.first + listLine.size(); it != listLine_.end(); ++it)
 				(*it)->nLogicalLine_ += nNewEndLine - nOldEndLine;
-				++it;
-			}
 		}
 		
 		if (end.first - start.first == listLine.size())
@@ -1481,51 +1484,55 @@ void qs::TextWindowImpl::getLineExtent(unsigned int nLine,
 									   Extent* pExtent,
 									   bool* pbNewLine) const
 {
-	assert(pExtent);
-	assert(pbNewLine);
-	
 	ClientDeviceContext dc(pThis_->getHandle());
 	ObjectSelector<HFONT> fontSelector(dc, hfont_);
 	
 	const PhysicalLine* pPhysicalLine = listLine_[nLine];
 	const TextModel::Line& logicalLine = pTextModel_->getLine(
 		pPhysicalLine->nLogicalLine_);
+	getLineExtent(dc, logicalLine.getText() + pPhysicalLine->nPosition_,
+		pPhysicalLine->nLength_, pExtent, pbNewLine);
+}
+
+void qs::TextWindowImpl::getLineExtent(const DeviceContext& dc,
+									   const WCHAR* pwsz,
+									   size_t nLength,
+									   Extent* pExtent,
+									   bool* pbNewLine) const
+{
+	assert(pwsz);
+	assert(pExtent);
+	assert(pbNewLine);
 	
-	unsigned int nLen = pPhysicalLine->nLength_;
-	pExtent->resize(nLen);
+	pExtent->resize(nLength);
 	
-	const WCHAR* pLine = logicalLine.getText() + pPhysicalLine->nPosition_;
-	bool bNewLine = nLen != 0 && *(pLine + nLen - 1) == L'\n';
-	const WCHAR* pBegin = pLine;
-	const WCHAR* pEnd = pBegin + nLen - (bNewLine ? 1 : 0);
+	bool bNewLine = nLength != 0 && *(pwsz + nLength - 1) == L'\n';
+	const WCHAR* pBegin = pwsz;
+	const WCHAR* pEnd = pBegin + nLength - (bNewLine ? 1 : 0);
 	const WCHAR* p = pBegin;
 	while (p <= pEnd) {
 		if (p == pEnd || *p == L'\t') {
 			if (p != pBegin) {
 				SIZE size;
 				getTextExtent(dc, pBegin, p - pBegin, 0, 0,
-					&(*pExtent)[pBegin - pLine], &size);
-				if (pBegin != pLine) {
-					int nOffset = (*pExtent)[pBegin - pLine - 1];
-					Extent::size_type n = pBegin - pLine;
-					while (n < static_cast<Extent::size_type>(p - pLine)) {
+					&(*pExtent)[pBegin - pwsz], &size);
+				if (pBegin != pwsz) {
+					int nOffset = (*pExtent)[pBegin - pwsz - 1];
+					for (Extent::size_type n = pBegin - pwsz; n < static_cast<Extent::size_type>(p - pwsz); ++n)
 						(*pExtent)[n] += nOffset;
-						++n;
-					}
 				}
 			}
 			if (p != pEnd) {
 				assert(*p == L'\t');
-				(*pExtent)[p - pLine] = getNextTabStop(
-					p != pLine ? (*pExtent)[p - pLine - 1] : 0);
+				(*pExtent)[p - pwsz] = getNextTabStop(
+					p != pwsz ? (*pExtent)[p - pwsz - 1] : 0);
 				pBegin = p + 1;
 			}
 		}
 		++p;
 	}
 	if (bNewLine)
-		(*pExtent)[nLen - 1] = (nLen == 1 ? 0 : (*pExtent)[nLen - 2]) +
-			getAverageCharWidth();
+		(*pExtent)[nLength - 1] = (nLength == 1 ? 0 : (*pExtent)[nLength - 2]) + getAverageCharWidth();
 	*pbNewLine = bNewLine;
 }
 
@@ -1565,8 +1572,7 @@ void qs::TextWindowImpl::convertLogicalLinksToPhysicalLinks(const LogicalLinkIte
 	
 	pListPhysicalLink->clear();
 	
-	LogicalLinkItemList::const_iterator it = listLogicalLinkItem.begin();
-	while (it != listLogicalLinkItem.end()) {
+	for (LogicalLinkItemList::const_iterator it = listLogicalLinkItem.begin(); it != listLogicalLinkItem.end(); ++it) {
 		LinkItem item = { -1, 0 };
 		
 		if ((*it).nOffset_ < nOffset) {
@@ -1609,27 +1615,27 @@ void qs::TextWindowImpl::convertLogicalLinksToPhysicalLinks(const LogicalLinkIte
 		
 		if (item.nOffset_ != -1 && item.nLength_ != 0)
 			pListPhysicalLink->push_back(item);
-		
-		++it;
 	}
 }
 
 void qs::TextWindowImpl::fillPhysicalLinks(LinkItemList* pList,
-										   DeviceContext* pdc,
-										   const WCHAR* pwsz) const
+										   const DeviceContext& dc,
+										   const WCHAR* pwsz,
+										   size_t nLength) const
 {
 	assert(pList);
-	assert(pdc);
 	assert(pwsz);
 	
-	LinkItemList::iterator it = pList->begin();
-	while (it != pList->end()) {
-		SIZE size;
-		getTextExtent(*pdc, pwsz, (*it).nOffset_, 0, 0, 0, &size);
-		(*it).nLeft_ = size.cx;
-		getTextExtent(*pdc, pwsz, (*it).nOffset_ + (*it).nLength_, 0, 0, 0, &size);
-		(*it).nRight_ = size.cx;
-		++it;
+	if (pList->empty() || nLength == 0)
+		return;
+	
+	getLineExtent(dc, pwsz, nLength, &extent_, &bExtentNewLine_);
+	nExtentLine_ = -1;
+	
+	for (LinkItemList::iterator it = pList->begin(); it != pList->end(); ++it) {
+		assert((*it).nOffset_ + (*it).nLength_ <= extent_.size());
+		(*it).nLeft_ = (*it).nOffset_ != 0 ? extent_[(*it).nOffset_ - 1] : 0;
+		(*it).nRight_ = extent_[(*it).nOffset_ + (*it).nLength_ - 1];
 	}
 }
 
