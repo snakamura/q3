@@ -3959,7 +3959,7 @@ void qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 			{
 				std::pair<ViewModel*, unsigned int> unseen(
 					getNextUnseen(pViewModel, nIndex, false));
-				pViewModel = unseen.first;
+				pNewViewModel = unseen.first;
 				nIndex = unseen.second;
 			}
 			break;
