@@ -360,9 +360,10 @@ private:
 	class ReceiveSessionCallbackImpl : public ReceiveSessionCallback
 	{
 	public:
-		explicit ReceiveSessionCallbackImpl(SyncManagerCallback* pCallback,
-											Recents* pRecents,
-											bool bAuto);
+		ReceiveSessionCallbackImpl(SyncManagerCallback* pCallback,
+								   unsigned int nSlot,
+								   Recents* pRecents,
+								   bool bAuto);
 		virtual ~ReceiveSessionCallbackImpl();
 	
 	public:
@@ -394,7 +395,7 @@ private:
 	
 	private:
 		SyncManagerCallback* pCallback_;
-		unsigned int nId_;
+		unsigned int nSlot_;
 		Recents* pRecents_;
 		bool bAuto_;
 	};
@@ -402,7 +403,8 @@ private:
 	class SendSessionCallbackImpl : public SendSessionCallback
 	{
 	public:
-		explicit SendSessionCallbackImpl(SyncManagerCallback* pCallback);
+		SendSessionCallbackImpl(SyncManagerCallback* pCallback,
+								unsigned int nSlot);
 		virtual ~SendSessionCallbackImpl();
 	
 	public:
@@ -431,7 +433,7 @@ private:
 	
 	private:
 		SyncManagerCallback* pCallback_;
-		unsigned int nId_;
+		unsigned int nSlot_;
 	};
 	
 	class RasConnectionCallbackImpl : public qs::RasConnectionCallback

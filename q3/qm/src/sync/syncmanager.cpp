@@ -636,24 +636,24 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 	struct CallbackCaller
 	{
 		CallbackCaller(SyncManagerCallback* pCallback,
-					   unsigned int nId,
+					   unsigned int nSlot,
 					   unsigned int nParam) :
 			pCallback_(pCallback),
-			nId_(nId),
+			nSlot_(nSlot),
 			nParam_(nParam)
 		{
-			pCallback_->startThread(nId_, nParam_);
+			pCallback_->startThread(nSlot_, nParam_);
 		}
 		
 		~CallbackCaller()
 		{
-			pCallback_->endThread(nId_);
+			pCallback_->endThread(nSlot_);
 		}
 		
 		SyncManagerCallback* pCallback_;
-		unsigned int nId_;
+		unsigned int nSlot_;
 		unsigned int nParam_;
-	} caller(pCallback, ::GetCurrentThreadId(), pData->getCallbackParam());
+	} caller(pCallback, nSlot, pData->getCallbackParam());
 	
 	struct ReceiveSessionTerm
 	{
@@ -751,7 +751,7 @@ bool qm::SyncManager::syncFolder(SyncManagerCallback* pSyncManagerCallback,
 	if (!pFolder || !pFolder->isFlag(Folder::FLAG_SYNCABLE))
 		return true;
 	
-	pSyncManagerCallback->setFolder(::GetCurrentThreadId(), pFolder);
+	pSyncManagerCallback->setFolder(pItem->getSlot(), pFolder);
 	
 	FolderWait wait(this, pFolder);
 	
@@ -788,8 +788,7 @@ bool qm::SyncManager::send(Document* pDocument,
 						   SyncManagerCallback* pSyncManagerCallback,
 						   const SendSyncItem* pItem)
 {
-	unsigned int nId = ::GetCurrentThreadId();
-	pSyncManagerCallback->setAccount(nId, pItem->getAccount(), pItem->getSubAccount());
+	pSyncManagerCallback->setAccount(pItem->getSlot(), pItem->getAccount(), pItem->getSubAccount());
 	
 	Account* pAccount = pItem->getAccount();
 	SubAccount* pSubAccount = pItem->getSubAccount();
@@ -862,7 +861,7 @@ bool qm::SyncManager::send(Document* pDocument,
 		pItem->getAccount()->getType(Account::HOST_SEND)));
 	
 	std::auto_ptr<SendSessionCallbackImpl> pCallback(
-		new SendSessionCallbackImpl(pSyncManagerCallback));
+		new SendSessionCallbackImpl(pSyncManagerCallback, pItem->getSlot()));
 	if (!pSession->init(pDocument, pAccount, pSubAccount,
 		pProfile_, pLogger.get(), pCallback.get()))
 		return false;
@@ -951,7 +950,7 @@ bool qm::SyncManager::openReceiveSession(Document* pDocument,
 	Account* pAccount = pItem->getAccount();
 	SubAccount* pSubAccount = pItem->getSubAccount();
 	
-	pSyncManagerCallback->setAccount(::GetCurrentThreadId(), pAccount, pSubAccount);
+	pSyncManagerCallback->setAccount(pItem->getSlot(), pAccount, pSubAccount);
 	
 	std::auto_ptr<Logger> pLogger;
 	if (pSubAccount->isLog(Account::HOST_RECEIVE))
@@ -963,7 +962,7 @@ bool qm::SyncManager::openReceiveSession(Document* pDocument,
 		return false;
 	
 	std::auto_ptr<ReceiveSessionCallbackImpl> pCallback(new ReceiveSessionCallbackImpl(
-		pSyncManagerCallback, pDocument->getRecents(), bAuto));
+		pSyncManagerCallback, pItem->getSlot(), pDocument->getRecents(), bAuto));
 	if (!pSession->init(pDocument, pAccount, pSubAccount,
 		hwnd, pProfile_, pLogger.get(), pCallback.get()))
 		return false;
@@ -1067,16 +1066,16 @@ void qm::SyncManager::ParallelSyncThread::run()
  */
 
 qm::SyncManager::ReceiveSessionCallbackImpl::ReceiveSessionCallbackImpl(SyncManagerCallback* pCallback,
+																		unsigned int nSlot,
 																		Recents* pRecents,
 																		bool bAuto) :
 	pCallback_(pCallback),
+	nSlot_(nSlot),
 	pRecents_(pRecents),
 	bAuto_(bAuto)
 {
 	assert(pCallback);
 	assert(pRecents);
-	
-	nId_ = ::GetCurrentThreadId();
 }
 
 qm::SyncManager::ReceiveSessionCallbackImpl::~ReceiveSessionCallbackImpl()
@@ -1100,44 +1099,44 @@ void qm::SyncManager::ReceiveSessionCallbackImpl::setPassword(SubAccount* pSubAc
 
 bool qm::SyncManager::ReceiveSessionCallbackImpl::isCanceled(bool bForce)
 {
-	return pCallback_->isCanceled(nId_, bForce);
+	return pCallback_->isCanceled(nSlot_, bForce);
 }
 
 void qm::SyncManager::ReceiveSessionCallbackImpl::setPos(unsigned int n)
 {
-	pCallback_->setPos(nId_, false, n);
+	pCallback_->setPos(nSlot_, false, n);
 }
 
 void qm::SyncManager::ReceiveSessionCallbackImpl::setRange(unsigned int nMin,
 														   unsigned int nMax)
 {
-	pCallback_->setRange(nId_, false, nMin, nMax);
+	pCallback_->setRange(nSlot_, false, nMin, nMax);
 }
 
 void qm::SyncManager::ReceiveSessionCallbackImpl::setSubPos(unsigned int n)
 {
-	pCallback_->setPos(nId_, true, n);
+	pCallback_->setPos(nSlot_, true, n);
 }
 
 void qm::SyncManager::ReceiveSessionCallbackImpl::setSubRange(unsigned int nMin,
 															  unsigned int nMax)
 {
-	pCallback_->setRange(nId_, true, nMin, nMax);
+	pCallback_->setRange(nSlot_, true, nMin, nMax);
 }
 
 void qm::SyncManager::ReceiveSessionCallbackImpl::setMessage(const WCHAR* pwszMessage)
 {
-	pCallback_->setMessage(nId_, pwszMessage);
+	pCallback_->setMessage(nSlot_, pwszMessage);
 }
 
 void qm::SyncManager::ReceiveSessionCallbackImpl::addError(const SessionErrorInfo& info)
 {
-	pCallback_->addError(nId_, info);
+	pCallback_->addError(nSlot_, info);
 }
 
 void qm::SyncManager::ReceiveSessionCallbackImpl::notifyNewMessage(MessageHolder* pmh)
 {
-	pCallback_->notifyNewMessage(nId_);
+	pCallback_->notifyNewMessage(nSlot_);
 	
 	wstring_ptr wstrURI(URI(pmh).toString());
 	pRecents_->add(wstrURI.get(), bAuto_);
@@ -1150,10 +1149,11 @@ void qm::SyncManager::ReceiveSessionCallbackImpl::notifyNewMessage(MessageHolder
  *
  */
 
-qm::SyncManager::SendSessionCallbackImpl::SendSessionCallbackImpl(SyncManagerCallback* pCallback) :
-	pCallback_(pCallback)
+qm::SyncManager::SendSessionCallbackImpl::SendSessionCallbackImpl(SyncManagerCallback* pCallback,
+																  unsigned int nSlot) :
+	pCallback_(pCallback),
+	nSlot_(nSlot)
 {
-	nId_ = ::GetCurrentThreadId();
 }
 
 qm::SyncManager::SendSessionCallbackImpl::~SendSessionCallbackImpl()
@@ -1177,39 +1177,39 @@ void qm::SyncManager::SendSessionCallbackImpl::setPassword(SubAccount* pSubAccou
 
 bool qm::SyncManager::SendSessionCallbackImpl::isCanceled(bool bForce)
 {
-	return pCallback_->isCanceled(nId_, bForce);
+	return pCallback_->isCanceled(nSlot_, bForce);
 }
 
 void qm::SyncManager::SendSessionCallbackImpl::setPos(unsigned int n)
 {
-	pCallback_->setPos(nId_, false, n);
+	pCallback_->setPos(nSlot_, false, n);
 }
 
 void qm::SyncManager::SendSessionCallbackImpl::setRange(unsigned int nMin,
 														unsigned int nMax)
 {
-	pCallback_->setRange(nId_, false, nMin, nMax);
+	pCallback_->setRange(nSlot_, false, nMin, nMax);
 }
 
 void qm::SyncManager::SendSessionCallbackImpl::setSubPos(unsigned int n)
 {
-	pCallback_->setPos(nId_, true, n);
+	pCallback_->setPos(nSlot_, true, n);
 }
 
 void qm::SyncManager::SendSessionCallbackImpl::setSubRange(unsigned int nMin,
 														   unsigned int nMax)
 {
-	pCallback_->setRange(nId_, true, nMin, nMax);
+	pCallback_->setRange(nSlot_, true, nMin, nMax);
 }
 
 void qm::SyncManager::SendSessionCallbackImpl::setMessage(const WCHAR* pwszMessage)
 {
-	pCallback_->setMessage(nId_, pwszMessage);
+	pCallback_->setMessage(nSlot_, pwszMessage);
 }
 
 void qm::SyncManager::SendSessionCallbackImpl::addError(const SessionErrorInfo& info)
 {
-	pCallback_->addError(nId_, info);
+	pCallback_->addError(nSlot_, info);
 }
 
 
