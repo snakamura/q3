@@ -1006,7 +1006,7 @@ void qm::ViewModel::messageAdded(const FolderMessageEvent& event)
 			assert(listItem_.empty() ||
 				(listItem_[nFocused_]->getFlags() & ViewModelItem::FLAG_FOCUSED));
 			
-			if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
+			if (!pmh->isSeen())
 				++nUnseenCount_;
 			
 			bAdded = true;
@@ -1142,7 +1142,7 @@ void qm::ViewModel::messageRemoved(const FolderMessageEvent& event)
 			assert(!listItem_.empty());
 		}
 		
-		if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
+		if (!pmh->isSeen())
 			--nUnseenCount_;
 	}
 	
@@ -1192,11 +1192,9 @@ void qm::ViewModel::messageHolderChanged(const MessageHolderEvent& event)
 	if (n != -1) {
 		unsigned int nOldFlags = event.getOldFlags();
 		unsigned int nNewFlags = event.getNewFlags();
-		if (nOldFlags & MessageHolder::FLAG_SEEN &&
-			!(nNewFlags & MessageHolder::FLAG_SEEN))
+		if (MessageHolder::isSeen(nOldFlags) && !MessageHolder::isSeen(nNewFlags))
 			++nUnseenCount_;
-		else if (!(nOldFlags & MessageHolder::FLAG_SEEN) &&
-			nNewFlags & MessageHolder::FLAG_SEEN)
+		else if (!MessageHolder::isSeen(nOldFlags) && MessageHolder::isSeen(nNewFlags))
 			--nUnseenCount_;
 		
 		fireItemChanged(n);
@@ -1246,7 +1244,7 @@ void qm::ViewModel::update(bool bRestoreSelection,
 			ViewModelItemPtr pItem(pmh, nCacheCount_);
 			listItem_.push_back(pItem.release());
 			
-			if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
+			if (!pmh->isSeen())
 				++nUnseenCount_;
 		}
 	}

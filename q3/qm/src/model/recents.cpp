@@ -170,7 +170,7 @@ void qm::Recents::removeSeens()
 		if (pURI.get()) {
 			MessagePtrLock mpl(pImpl_->pDocument_->getMessage(*pURI.get()));
 			if (mpl)
-				bRemove = mpl->isFlag(MessageHolder::FLAG_SEEN);
+				bRemove = mpl->isSeen();
 		}
 		
 		if (bRemove) {

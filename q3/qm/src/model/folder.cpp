@@ -449,11 +449,9 @@ void qm::NormalFolderImpl::messageHolderChanged(const MessageHolderEvent& event)
 		
 		if (nOldFlags != nNewFlags) {
 			unsigned int nUnseenCount = nUnseenCount_;
-			if (!(nOldFlags & MessageHolder::FLAG_SEEN) &&
-				(nNewFlags & MessageHolder::FLAG_SEEN))
+			if (!MessageHolder::isSeen(nOldFlags) && MessageHolder::isSeen(nNewFlags))
 				--nUnseenCount_;
-			else if ((nOldFlags & MessageHolder::FLAG_SEEN) &&
-				!(nNewFlags & MessageHolder::FLAG_SEEN))
+			else if (MessageHolder::isSeen(nOldFlags) && !MessageHolder::isSeen(nNewFlags))
 				++nUnseenCount_;
 			if ((!(nOldFlags & MessageHolder::FLAG_DOWNLOAD) &&
 				!(nOldFlags & MessageHolder::FLAG_DOWNLOADTEXT)) &&
@@ -735,7 +733,7 @@ bool qm::NormalFolder::loadMessageHolders()
 			pImpl_->listMessageHolder_.push_back(pmh.get());
 			MessageHolder* p = pmh.release();
 			
-			if (!p->isFlag(MessageHolder::FLAG_SEEN))
+			if (!p->isSeen())
 				++pImpl_->nUnseenCount_;
 			if (p->isFlag(MessageHolder::FLAG_DOWNLOAD) ||
 				p->isFlag(MessageHolder::FLAG_DOWNLOADTEXT))
@@ -836,7 +834,7 @@ bool qm::NormalFolder::appendMessage(std::auto_ptr<MessageHolder> pmh)
 	pImpl_->listMessageHolder_.push_back(pmh.get());
 	MessageHolder* p = pmh.release();
 	
-	if (!p->isFlag(MessageHolder::FLAG_SEEN))
+	if (!p->isSeen())
 		++pImpl_->nUnseenCount_;
 	if (p->isFlag(MessageHolder::FLAG_DOWNLOAD) ||
 		p->isFlag(MessageHolder::FLAG_DOWNLOADTEXT))
@@ -870,7 +868,7 @@ void qm::NormalFolder::removeMessages(const MessageHolderList& l)
 		assert(itD != pImpl_->listMessageHolder_.end() && *itD == pmh);
 		pImpl_->listMessageHolder_.erase(itD);
 		
-		if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
+		if (!pmh->isSeen())
 			--pImpl_->nUnseenCount_;
 		if (pmh->isFlag(MessageHolder::FLAG_DOWNLOAD) ||
 			pmh->isFlag(MessageHolder::FLAG_DOWNLOADTEXT))
@@ -933,7 +931,7 @@ bool qm::NormalFolder::moveMessages(const MessageHolderList& l,
 		pmh->setId(nId);
 		listTo.push_back(pmh);
 		
-		if (!pmh->isFlag(MessageHolder::FLAG_SEEN)) {
+		if (!pmh->isSeen()) {
 			--pImpl_->nUnseenCount_;
 			++pFolder->pImpl_->nUnseenCount_;
 		}
@@ -987,11 +985,9 @@ void qm::QueryFolderImpl::messageHolderChanged(const MessageHolderEvent& event)
 		unsigned int nNewFlags = event.getNewFlags();
 		
 		unsigned int nUnseenCount = nUnseenCount_;
-		if (!(nOldFlags & MessageHolder::FLAG_SEEN) &&
-			(nNewFlags & MessageHolder::FLAG_SEEN))
+		if (!MessageHolder::isSeen(nOldFlags) && MessageHolder::isSeen(nNewFlags))
 			--nUnseenCount_;
-		else if ((nOldFlags & MessageHolder::FLAG_SEEN) &&
-			!(nNewFlags & MessageHolder::FLAG_SEEN))
+		else if (MessageHolder::isSeen(nOldFlags) && !MessageHolder::isSeen(nNewFlags))
 			++nUnseenCount_;
 		
 		if (nUnseenCount != nUnseenCount_)
@@ -1005,7 +1001,7 @@ void qm::QueryFolderImpl::messageHolderDestroyed(const MessageHolderEvent& event
 	MessageHolderList::iterator it = std::lower_bound(
 		listMessageHolder_.begin(), listMessageHolder_.end(), pmh);
 	if (it != listMessageHolder_.end() && *it == pmh) {
-		if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
+		if (!pmh->isSeen())
 			--nUnseenCount_;
 		listMessageHolder_.erase(it);
 		pThis_->getImpl()->fireMessageRemoved(MessageHolderList(1, pmh));
@@ -1113,9 +1109,7 @@ bool qm::QueryFolder::search(Document* pDocument,
 		pImpl_->listMessageHolder_.begin(),
 		pImpl_->listMessageHolder_.end(),
 		std::not1(
-			std::bind2nd(
-				std::mem_fun(&MessageHolder::isFlag),
-				MessageHolder::FLAG_SEEN)));
+			std::mem_fun(&MessageHolder::isSeen)));
 	
 	getImpl()->fireMessageRefreshed();
 	
@@ -1195,7 +1189,7 @@ void qm::QueryFolder::removeMessages(const MessageHolderList& l)
 		itS = std::lower_bound(itS, pImpl_->listMessageHolder_.end(), pmh);
 		if (itS != pImpl_->listMessageHolder_.end() && *itS == pmh) {
 			itS = pImpl_->listMessageHolder_.erase(itS);
-			if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
+			if (!pmh->isSeen())
 				--pImpl_->nUnseenCount_;
 			++itR;
 		}

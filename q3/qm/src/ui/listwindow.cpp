@@ -861,8 +861,7 @@ int qm::ListWindowImpl::getMessageImage(MessageHolder* pmh,
 		nImage = nFlags & MessageHolder::FLAG_DRAFT ? 4 : 1;
 	else if (nFlags & MessageHolder::FLAG_SENT)
 		nImage = 2;
-	else if (nFlags & MessageHolder::FLAG_SEEN ||
-		nFlags & MessageHolder::FLAG_DELETED)
+	else if (MessageHolder::isSeen(nFlags))
 		nImage = 3;
 	
 	if (nFlags & MessageHolder::FLAG_PARTIAL_MASK)

@@ -166,6 +166,12 @@ inline bool qm::MessageHolder::isFlag(Flag flag) const
 	return (nFlags_ & flag) != 0;
 }
 
+inline bool qm::MessageHolder::isSeen() const
+{
+	qs::Lock<Account> lock(*getAccount());
+	return isSeen(nFlags_);
+}
+
 inline qs::wstring_ptr qm::MessageHolder::getMessageId() const
 {
 	qs::Lock<Account> lock(*getAccount());
@@ -193,6 +199,11 @@ inline const qm::MessageHolder::MessageBoxKey& qm::MessageHolder::getMessageBoxK
 inline qm::MessageDate qm::MessageHolder::getDate() const
 {
 	return date_;
+}
+
+inline bool qm::MessageHolder::isSeen(unsigned int nFlags)
+{
+	return nFlags & FLAG_SEEN || nFlags & FLAG_DELETED;
 }
 
 

@@ -5807,7 +5807,7 @@ std::pair<ViewModel*, unsigned int> qm::ViewNavigateMessageAction::getNextUnseen
 		unsigned int nCount = pViewModel->getCount();
 		for (; nIndex < nCount; ++nIndex) {
 			MessageHolder* pmh = pViewModel->getMessageHolder(nIndex);
-			if (!pmh->isFlag(MessageHolder::FLAG_SEEN)) {
+			if (!pmh->isSeen()) {
 				bFound = true;
 				break;
 			}
@@ -5815,7 +5815,7 @@ std::pair<ViewModel*, unsigned int> qm::ViewNavigateMessageAction::getNextUnseen
 		if (!bFound) {
 			for (nIndex = 0; nIndex < nStart; ++nIndex) {
 				MessageHolder* pmh = pViewModel->getMessageHolder(nIndex);
-				if (!pmh->isFlag(MessageHolder::FLAG_SEEN)) {
+				if (!pmh->isSeen()) {
 					bFound = true;
 					break;
 				}

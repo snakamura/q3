@@ -200,6 +200,7 @@ public:
 	
 public:
 	bool isFlag(Flag flag) const;
+	bool isSeen() const;
 	qs::wstring_ptr getMessageId() const;
 	unsigned int getMessageIdHash() const;
 	qs::wstring_ptr getReference() const;
@@ -221,6 +222,9 @@ public:
 public:
 	void setKeys(const MessageIndexKey& messageIndexKey,
 				 const MessageBoxKey& messageBoxKey);
+
+public:
+	static bool isSeen(unsigned int nFlags);
 
 private:
 	MessageHolder(const MessageHolder&);
