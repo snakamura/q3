@@ -47,7 +47,7 @@
 #include "../ui/messagemodel.h"
 #include "../ui/messageselectionmodel.h"
 #include "../ui/propertypages.h"
-#include "../ui/resource.h"
+#include "../ui/resourceinc.h"
 #include "../ui/syncdialog.h"
 #include "../ui/syncutil.h"
 #include "../ui/viewmodel.h"

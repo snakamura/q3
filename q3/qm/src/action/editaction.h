@@ -284,15 +284,13 @@ private:
 class EditFileSendAction : public qs::AbstractAction
 {
 public:
-	enum Flag {
-		FLAG_DRAFT	= 0x01,
-		FLAG_NOW	= 0x02
-	};
-
-public:
-	EditFileSendAction(unsigned int nFlags, Document* pDocument,
+	EditFileSendAction(bool bDraft, Document* pDocument,
 		EditMessageHolder* pEditMessageHolder, EditFrameWindow* pEditFrameWindow,
 		qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	EditFileSendAction(Document* pDocument,
+		EditMessageHolder* pEditMessageHolder, EditFrameWindow* pEditFrameWindow,
+		qs::Profile* pProfile, SyncManager* pSyncManager,
+		SyncDialogManager* pSyncDialogManager, qs::QSTATUS* pstatus);
 	virtual ~EditFileSendAction();
 
 public:
@@ -306,7 +304,9 @@ private:
 	MessageComposer composer_;
 	EditMessageHolder* pEditMessageHolder_;
 	EditFrameWindow* pEditFrameWindow_;
-	bool bNow_;
+	Document* pDocument_;
+	SyncManager* pSyncManager_;
+	SyncDialogManager* pSyncDialogManager_;
 };
 
 

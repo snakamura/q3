@@ -23,7 +23,7 @@
 #include <functional>
 
 #include "syncmanager.h"
-#include "../ui/resource.h"
+#include "../ui/resourceinc.h"
 
 #pragma warning(disable:4786)
 

@@ -64,6 +64,30 @@ QSTATUS qm::SyncUtil::syncFolder(SyncManager* pSyncManager,
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qm::SyncUtil::send(SyncManager* pSyncManager, Document* pDocument,
+	SyncDialogManager* pSyncDialogManager, HWND hwnd,
+	unsigned int nCallbackParam, Account* pAccount, SubAccount* pSubAccount)
+{
+	DECLARE_QSTATUS();
+	
+	std::auto_ptr<SyncData> pData;
+	status = newQsObject(pSyncManager, pDocument, hwnd, nCallbackParam, &pData);
+	CHECK_QSTATUS();
+	status = pData->addSend(pAccount, pSubAccount);
+	CHECK_QSTATUS();
+	
+	SyncDialog* pSyncDialog = 0;
+	status = pSyncDialogManager->open(&pSyncDialog);
+	CHECK_QSTATUS();
+	pData->setCallback(pSyncDialog->getSyncManagerCallback());
+	
+	status = pSyncManager->sync(pData.get());
+	CHECK_QSTATUS();
+	pData.release();
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::SyncUtil::createGoRoundData(const GoRoundCourse* pCourse,
 	Document* pDocument, SyncData* pData)
 {

@@ -31,7 +31,8 @@
 #include "../model/security.h"
 #include "../ui/dialogs.h"
 #include "../ui/editwindow.h"
-#include "../ui/resource.h"
+#include "../ui/resourceinc.h"
+#include "../ui/syncutil.h"
 
 using namespace qm;
 using namespace qs;
@@ -574,14 +575,28 @@ QSTATUS qm::EditFileSaveAction::invoke(const ActionEvent& event)
  *
  */
 
-qm::EditFileSendAction::EditFileSendAction(unsigned int nFlags,
+qm::EditFileSendAction::EditFileSendAction(bool bDraft,
 	Document* pDocument, EditMessageHolder* pEditMessageHolder,
 	EditFrameWindow* pEditFrameWindow, Profile* pProfile, QSTATUS* pstatus) :
-	composer_((nFlags & FLAG_DRAFT) != 0, pDocument,
-		pProfile, pEditFrameWindow->getHandle(), 0),
+	composer_(bDraft, pDocument, pProfile, pEditFrameWindow->getHandle(), 0),
 	pEditMessageHolder_(pEditMessageHolder),
 	pEditFrameWindow_(pEditFrameWindow),
-	bNow_((nFlags & FLAG_NOW) != 0)
+	pDocument_(0),
+	pSyncManager_(0),
+	pSyncDialogManager_(0)
+{
+}
+
+qm::EditFileSendAction::EditFileSendAction(Document* pDocument,
+	EditMessageHolder* pEditMessageHolder, EditFrameWindow* pEditFrameWindow,
+	qs::Profile* pProfile, SyncManager* pSyncManager,
+	SyncDialogManager* pSyncDialogManager, qs::QSTATUS* pstatus) :
+	composer_(false, pDocument, pProfile, pEditFrameWindow->getHandle(), 0),
+	pEditMessageHolder_(pEditMessageHolder),
+	pEditFrameWindow_(pEditFrameWindow),
+	pDocument_(pDocument),
+	pSyncManager_(pSyncManager),
+	pSyncDialogManager_(pSyncDialogManager)
 {
 }
 
@@ -606,6 +621,12 @@ QSTATUS qm::EditFileSendAction::invoke(const ActionEvent& event)
 	status = composer_.compose(pEditMessage->getAccount(),
 		pEditMessage->getSubAccount(), pMessage, nFlags);
 	CHECK_QSTATUS();
+	
+	if (pSyncManager_) {
+		status = SyncUtil::send(pSyncManager_, pDocument_, pSyncDialogManager_,
+			getMainWindow()->getHandle(), 0, pAccount, pSubAccount);
+		CHECK_QSTATUS();
+	}
 	
 	pEditFrameWindow_->close();
 	

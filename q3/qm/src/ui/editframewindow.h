@@ -21,6 +21,8 @@ class EditFrameWindowManager;
 
 class Document;
 class EditMessage;
+class SyncDialogManager;
+class SyncManager;
 
 
 /****************************************************************************
@@ -32,7 +34,8 @@ class EditMessage;
 class EditFrameWindowManager
 {
 public:
-	EditFrameWindowManager(Document* pDocument, qs::KeyMap* pKeyMap,
+	EditFrameWindowManager(Document* pDocument, SyncManager* pSyncManager,
+		SyncDialogManager* pSyncDialogManager, qs::KeyMap* pKeyMap,
 		qs::Profile* pProfile, qs::MenuManager* pContextMenuManager,
 		qs::QSTATUS* pstatus);
 	~EditFrameWindowManager();
@@ -53,6 +56,8 @@ private:
 
 private:
 	Document* pDocument_;
+	SyncManager* pSyncManager_;
+	SyncDialogManager* pSyncDialogManager_;
 	qs::KeyMap* pKeyMap_;
 	qs::Profile* pProfile_;
 	qs::MenuManager* pMenuManager_;
@@ -69,6 +74,8 @@ private:
 struct EditFrameWindowCreateContext
 {
 	Document* pDocument_;
+	SyncManager* pSyncManager_;
+	SyncDialogManager* pSyncDialogManager_;
 	qs::MenuManager* pMenuManager_;
 	qs::KeyMap* pKeyMap_;
 };

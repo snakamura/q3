@@ -69,6 +69,8 @@ public:
 	EditFrameWindowManager* pManager_;
 	Profile* pProfile_;
 	Document* pDocument_;
+	SyncManager* pSyncManager_;
+	SyncDialogManager* pSyncDialogManager_;
 	EditWindow* pEditWindow_;
 	StatusBar* pStatusBar_;
 	Accelerator* pAccelerator_;
@@ -183,10 +185,10 @@ QSTATUS qm::EditFrameWindowImpl::initActions()
 		pActionMap_, IDOK, pThis_->getHandle());
 	CHECK_QSTATUS();
 #endif
-	status = InitAction5<EditFileSendAction, unsigned int,
+	status = InitAction5<EditFileSendAction, bool,
 		Document*, EditMessageHolder*, EditFrameWindow*, Profile*>(
-		pActionMap_, IDM_FILE_DRAFT, EditFileSendAction::FLAG_DRAFT,
-		pDocument_, pEditWindow_->getEditMessageHolder(), pThis_, pProfile_);
+		pActionMap_, IDM_FILE_DRAFT, true, pDocument_,
+		pEditWindow_->getEditMessageHolder(), pThis_, pProfile_);
 	CHECK_QSTATUS();
 	status = InitAction1<EditFileInsertAction, TextWindow*>(
 		pActionMap_, IDM_FILE_INSERT, pEditWindow_->getTextWindow());
@@ -199,15 +201,16 @@ QSTATUS qm::EditFrameWindowImpl::initActions()
 		pActionMap_, IDM_FILE_SAVE, pEditWindow_->getEditMessageHolder(),
 		pThis_->getHandle());
 	CHECK_QSTATUS();
-	status = InitAction5<EditFileSendAction, unsigned int,
+	status = InitAction5<EditFileSendAction, bool,
 		Document*, EditMessageHolder*, EditFrameWindow*, Profile*>(
-		pActionMap_, IDM_FILE_SEND, 0, pDocument_,
+		pActionMap_, IDM_FILE_SEND, false, pDocument_,
 		pEditWindow_->getEditMessageHolder(), pThis_, pProfile_);
 	CHECK_QSTATUS();
-	status = InitAction5<EditFileSendAction, unsigned int,
-		Document*, EditMessageHolder*, EditFrameWindow*, Profile*>(
-		pActionMap_, IDM_FILE_SENDNOW, EditFileSendAction::FLAG_NOW,
-		pDocument_, pEditWindow_->getEditMessageHolder(), pThis_, pProfile_);
+	status = InitAction6<EditFileSendAction, Document*, EditMessageHolder*,
+		EditFrameWindow*, Profile*, SyncManager*, SyncDialogManager*>(
+		pActionMap_, IDM_FILE_SENDNOW, pDocument_,
+		pEditWindow_->getEditMessageHolder(), pThis_, pProfile_,
+		pSyncManager_, pSyncDialogManager_);
 	CHECK_QSTATUS();
 	status = InitActionRange1<EditFocusItemAction, EditWindow*>(
 		pActionMap_, IDM_FOCUS_HEADEREDITITEM,
@@ -662,6 +665,8 @@ LRESULT qm::EditFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	EditFrameWindowCreateContext* pContext =
 		static_cast<EditFrameWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pDocument_ = pContext->pDocument_;
+	pImpl_->pSyncManager_ = pContext->pSyncManager_;
+	pImpl_->pSyncDialogManager_ = pContext->pSyncDialogManager_;
 	
 	status = pContext->pKeyMap_->createAccelerator(
 		CustomAcceleratorFactory(), L"EditFrameWindow",
@@ -769,9 +774,11 @@ LRESULT qm::EditFrameWindow::onSize(UINT nFlags, int cx, int cy)
  */
 
 qm::EditFrameWindowManager::EditFrameWindowManager(Document* pDocument,
-	KeyMap* pKeyMap, Profile* pProfile,
-	qs::MenuManager* pMenuManager, QSTATUS* pstatus) :
+	SyncManager* pSyncManager, SyncDialogManager* pSyncDialogManager,
+	KeyMap* pKeyMap, Profile* pProfile, qs::MenuManager* pMenuManager, QSTATUS* pstatus) :
 	pDocument_(pDocument),
+	pSyncManager_(pSyncManager),
+	pSyncDialogManager_(pSyncDialogManager),
 	pKeyMap_(pKeyMap),
 	pProfile_(pProfile),
 	pMenuManager_(pMenuManager)
@@ -808,6 +815,8 @@ QSTATUS qm::EditFrameWindowManager::open(EditMessage* pEditMessage)
 #endif
 	EditFrameWindowCreateContext context = {
 		pDocument_,
+		pSyncManager_,
+		pSyncDialogManager_,
 		pMenuManager_,
 		pKeyMap_
 	};

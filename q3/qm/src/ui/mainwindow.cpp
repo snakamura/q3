@@ -1729,7 +1729,8 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		getHandle(), pImpl_->pFolderModel_, &pImpl_->pViewModelManager_);
 	CHECK_QSTATUS_VALUE(-1);
 	
-	status = newQsObject(pImpl_->pDocument_, pContext->pKeyMap_,
+	status = newQsObject(pImpl_->pDocument_, pImpl_->pSyncManager_,
+		pImpl_->pSyncDialogManager_, pContext->pKeyMap_,
 		pImpl_->pProfile_, pContext->pMenuManager_,
 		&pImpl_->pEditFrameWindowManager_);
 	CHECK_QSTATUS_VALUE(-1);

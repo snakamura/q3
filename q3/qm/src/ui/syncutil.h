@@ -38,6 +38,9 @@ public:
 	static qs::QSTATUS syncFolder(SyncManager* pSyncManager,
 		Document* pDocument, SyncDialogManager* pSyncDialogManager,
 		HWND hwnd, unsigned int nCallbackParam, NormalFolder* pFolder);
+	static qs::QSTATUS send(SyncManager* pSyncManager, Document* pDocument,
+		SyncDialogManager* pSyncDialogManager, HWND hwnd,
+		unsigned int nCallbackParam, Account* pAccount, SubAccount* pSubAccount);
 	static qs::QSTATUS createGoRoundData(const GoRoundCourse* pCourse,
 		Document* pDocument, SyncData* pData);
 };
