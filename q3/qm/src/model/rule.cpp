@@ -132,11 +132,7 @@ bool qm::RuleManager::apply(const Folder* pFolder,
 		static_cast<const Accessor&>(folderAccessor);
 	
 	unsigned int nCount = accessor.getCount();
-	if (log.isDebugEnabled()) {
-		WCHAR wsz[128];
-		swprintf(wsz, L"%u messages are to be processed.", nCount);
-		log.debug(wsz);
-	}
+	log.debugf(L"%u messages are to be processed.", nCount);
 	if (nCount == 0)
 		return true;
 	
@@ -161,22 +157,12 @@ bool qm::RuleManager::apply(const Folder* pFolder,
 			if (bMatch) {
 				ll[m].push_back(pmh);
 				++nMatch;
-				
-				if (log.isDebugEnabled()) {
-					WCHAR wsz[128];
-					swprintf(wsz, L"Id=%u matches rule=%u.", pmh->getId(), m);
-					log.debug(wsz);
-				}
-				
+				log.debugf(L"Id=%u matches rule=%u.", pmh->getId(), m);
 				break;
 			}
 		}
 	}
-	if (log.isDebugEnabled()) {
-		WCHAR wsz[128];
-		swprintf(wsz, L"%u messages match.", nMatch);
-		log.debug(wsz);
-	}
+	log.debugf(L"%u messages match.", nMatch);
 	if (nMatch == 0)
 		return true;
 	
@@ -397,16 +383,25 @@ qm::CopyRule::~CopyRule()
 
 bool qm::CopyRule::apply(const RuleContext& context) const
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qm::CopyRule");
+	
 	Account* pAccount = context.getAccount();
 	if (wstrAccount_.get()) {
 		pAccount = context.getDocument()->getAccount(wstrAccount_.get());
-		if (!pAccount)
+		if (!pAccount) {
+			log.errorf(L"The specified account is not found: %s.", wstrAccount_.get());
 			return false;
+		}
 	}
 	
 	Folder* pFolderTo = pAccount->getFolder(wstrFolder_.get());
-	if (!pFolderTo || pFolderTo->getType() != Folder::TYPE_NORMAL)
+	if (!pFolderTo || pFolderTo->getType() != Folder::TYPE_NORMAL) {
+		log.errorf(L"The specified folder is not found or it's a query folder: %s.", wstrFolder_.get());
 		return false;
+	}
+	
+	log.debugf(L"%u messages are %s to %s.", context.getMessageHolderList().size(),
+		bMove_ ? L"moved" : L"copied", wstrFolder_.get());
 	
 	return context.getAccount()->copyMessages(context.getMessageHolderList(),
 		static_cast<NormalFolder*>(pFolderTo), bMove_, 0);
