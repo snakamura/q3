@@ -270,6 +270,9 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 				wstrText = util.getBodyText(0, pwszEncoding);
 		}
 		
+		if (!wstrText.get())
+			return false;
+		
 		std::auto_ptr<StringReader> pReader(new StringReader(wstrText));
 		return pTextModel_->loadText(pReader, true);
 	}
