@@ -1109,6 +1109,7 @@ NEWS.PRINT              TEMPLATE DISCARDABLE    "res\\news.print.template"
 // PROFILE
 //
 
+COLORS.XML              PROFILE DISCARDABLE     "res\\colors.xml"
 HEADER.XML              PROFILE DISCARDABLE     "res\\ppc\\header.xml"
 HEADEREDIT.XML          PROFILE DISCARDABLE     "res\\ppc\\headeredit.xml"
 KEYMAP.XML              PROFILE DISCARDABLE     "res\\ppc\\keymap.xml"

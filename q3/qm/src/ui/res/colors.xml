@@ -1,0 +1,5 @@
+<colors>
+	<colorSet>
+		<color match="@Not(@Seen())">ff0000</color>
+	</colorSet>
+</colors>

@@ -358,6 +358,7 @@ bool qm::Application::initialize()
 	wstring_ptr wstrProfileDir(concat(
 		pImpl_->wstrMailFolder_.get(), L"\\profiles"));
 	const WCHAR* pwszProfiles[] = {
+		FileNames::COLORS_XML,
 		FileNames::HEADER_XML,
 		FileNames::HEADEREDIT_XML,
 		FileNames::KEYMAP_XML,
