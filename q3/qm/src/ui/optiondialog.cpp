@@ -1166,6 +1166,17 @@ LRESULT qm::OptionSecurityDialog::onInitDialog(HWND hwndFocus,
 	bool bGPG = pProfile_->getInt(L"PGP", L"UseGPG", 1) != 0;
 	sendDlgItemMessage(bGPG ? IDC_GNUPG : IDC_PGP, BM_SETCHECK, BST_CHECKED);
 	
+	if (!Security::isSSLEnabled() && !Security::isSMIMEEnabled())
+		Window(getDlgItem(IDC_SYSTEMSTORE)).enableWindow(false);
+	if (!Security::isSMIMEEnabled()) {
+		Window(getDlgItem(IDC_MULTIPARTSIGNED)).enableWindow(false);
+		Window(getDlgItem(IDC_ENCRYPTFORSELF)).enableWindow(false);
+	}
+	if (!Security::isPGPEnabled()) {
+		Window(getDlgItem(IDC_PGP)).enableWindow(false);
+		Window(getDlgItem(IDC_GNUPG)).enableWindow(false);
+	}
+	
 	return FALSE;
 }
 
