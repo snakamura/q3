@@ -183,7 +183,8 @@ qm::MacroGlobalContext::MacroGlobalContext(const MessageHolderList& listSelected
 	bGetMessageAsPossible_(bGetMessageAsPossible),
 	bDecryptVerify_(bDecryptVerify),
 	pErrorHandler_(pErrorHandler),
-	pGlobalVariable_(pGlobalVariable)
+	pGlobalVariable_(pGlobalVariable),
+	nRegexResultCount_(0)
 {
 	assert(pDocument_);
 	assert(hwnd_);
@@ -249,10 +250,25 @@ bool qm::MacroGlobalContext::setVariable(const WCHAR* pwszName,
 	assert(pwszName);
 	assert(pValue);
 	
+	MacroValuePtr pValueClone(pValue->clone());
+	if (!pValueClone.get())
+		return false;
+	
 	if (bGlobal && pGlobalVariable_)
-		return pGlobalVariable_->setVariable(pwszName, pValue);
+		pGlobalVariable_->setVariable(pwszName, pValueClone);
 	else
-		return pVariable_->setVariable(pwszName, pValue);
+		pVariable_->setVariable(pwszName, pValueClone);
+	
+	return true;
+}
+
+void qm::MacroGlobalContext::removeVariable(const WCHAR* pwszName,
+											bool bGlobal)
+{
+	if (bGlobal && pGlobalVariable_)
+		pGlobalVariable_->removeVariable(pwszName);
+	else
+		pVariable_->removeVariable(pwszName);
 }
 
 const MacroExpr* qm::MacroGlobalContext::getFunction(const WCHAR* pwszName) const
@@ -284,6 +300,49 @@ void qm::MacroGlobalContext::addArgument(MacroValuePtr pValue)
 MacroValuePtr qm::MacroGlobalContext::getArgument(unsigned int n) const
 {
 	return pArgument_->getArgument(n);
+}
+
+bool qm::MacroGlobalContext::setRegexResult(const WCHAR* pwszAll,
+											size_t nLen,
+											const RegexRangeList& listRange)
+{
+	assert(pwszAll);
+	assert(nLen != -1);
+	
+	clearRegexResult();
+	
+	MacroValuePtr pValueAll(MacroValueFactory::getFactory().newString(pwszAll, nLen));
+	if (!pValueAll.get())
+		return false;
+	if (!setVariable(L"_0", pValueAll.get(), false))
+		return false;
+	
+	for (RegexRangeList::List::size_type n = 0; n < listRange.list_.size(); ++n) {
+		const RegexRange& range = listRange.list_[n];
+		
+		WCHAR wszName[32];
+		swprintf(wszName, L"_%u", n);
+		MacroValuePtr pValue(MacroValueFactory::getFactory().newString(
+			range.pStart_, range.pEnd_ - range.pStart_));
+		if (!pValue.get())
+			return false;
+		if (!setVariable(wszName, pValue.get(), false))
+			return false;
+	}
+	
+	nRegexResultCount_ = listRange.list_.size() + 1;
+	
+	return true;
+}
+
+void qm::MacroGlobalContext::clearRegexResult()
+{
+	for (size_t n = 0; n < nRegexResultCount_; ++n) {
+		WCHAR wszName[32];
+		swprintf(wszName, L"_%u", n);
+		removeVariable(wszName, false);
+	}
+	nRegexResultCount_ = 0;
 }
 
 
@@ -385,7 +444,8 @@ void qm::MacroArgumentHolder::addArgument(MacroValuePtr pValue)
 
 MacroValuePtr qm::MacroArgumentHolder::getArgument(unsigned int n) const
 {
-	assert(!listArgument_.empty());
+	if (listArgument_.empty())
+		return 0;
 	
 	const std::vector<MacroValue*>& v = listArgument_.back();
 	if (n >= v.size())
@@ -709,7 +769,7 @@ wstring_ptr qm::MacroRegex::getString() const
  */
 
 qm::MacroVariable::MacroVariable(const WCHAR* pwszName) :
-	n_(static_cast<unsigned int>(-1))
+	n_(-1)
 {
 	if (L'0' <= *pwszName && *pwszName <= L'9') {
 		const WCHAR* p = pwszName;
@@ -747,7 +807,14 @@ MacroValuePtr qm::MacroVariable::value(MacroContext* pContext) const
 
 wstring_ptr qm::MacroVariable::getString() const
 {
-	return concat(L"$", wstrName_.get());
+	if (n_ != -1) {
+		wstring_ptr wstrName(allocWString(32));
+		swprintf(wstrName.get(), L"$%u", n_);
+		return wstrName;
+	}
+	else {
+		return concat(L"$", wstrName_.get());
+	}
 }
 
 
@@ -1110,15 +1177,11 @@ MacroValuePtr qm::MacroVariableHolder::getVariable(const WCHAR* pwszName) const
 		return 0;
 }
 
-bool qm::MacroVariableHolder::setVariable(const WCHAR* pwszName,
-										  MacroValue* pValue)
+void qm::MacroVariableHolder::setVariable(const WCHAR* pwszName,
+										  MacroValuePtr pValue)
 {
 	assert(pwszName);
-	assert(pValue);
-	
-	MacroValuePtr pCloneValue(pValue->clone());
-	if (!pCloneValue.get())
-		return false;
+	assert(pValue.get());
 	
 	typedef MacroVariableHolderImpl::VariableMap Map;
 	Map::iterator it = std::find_if(
@@ -1131,16 +1194,34 @@ bool qm::MacroVariableHolder::setVariable(const WCHAR* pwszName,
 			pwszName));
 	if (it != pImpl_->mapVariable_.end()) {
 		MacroValuePtr pValue((*it).second);
-		(*it).second = pCloneValue.release();
+		(*it).second = pValue.release();
 	}
 	else {
 		wstring_ptr wstrName(allocWString(pwszName));
-		pImpl_->mapVariable_.push_back(std::make_pair(wstrName.get(), pCloneValue.get()));
+		pImpl_->mapVariable_.push_back(std::make_pair(wstrName.get(), pValue.get()));
 		wstrName.release();
-		pCloneValue.release();
+		pValue.release();
 	}
+}
+
+void qm::MacroVariableHolder::removeVariable(const WCHAR* pwszName)
+{
+	assert(pwszName);
 	
-	return true;
+	typedef MacroVariableHolderImpl::VariableMap Map;
+	Map::iterator it = std::find_if(
+		pImpl_->mapVariable_.begin(), pImpl_->mapVariable_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				string_equal<WCHAR>(),
+				std::select1st<Map::value_type>(),
+				std::identity<const WCHAR*>()),
+			pwszName));
+	if (it != pImpl_->mapVariable_.end()) {
+		freeWString((*it).first);
+		MacroValuePtr pValue((*it).second);
+		pImpl_->mapVariable_.erase(it);
+	}
 }
 
 
@@ -1331,6 +1412,18 @@ void qm::MacroContext::addArgument(MacroValuePtr pValue)
 MacroValuePtr qm::MacroContext::getArgument(unsigned int n) const
 {
 	return pGlobalContext_->getArgument(n);
+}
+
+bool qm::MacroContext::setRegexResult(const WCHAR* pwszAll,
+									  size_t nLen,
+									  const RegexRangeList& listRange)
+{
+	return pGlobalContext_->setRegexResult(pwszAll, nLen, listRange);
+}
+
+void qm::MacroContext::clearRegexResult()
+{
+	pGlobalContext_->clearRegexResult();
 }
 
 wstring_ptr qm::MacroContext::resolvePath(const WCHAR* pwszPath)

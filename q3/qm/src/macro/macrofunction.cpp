@@ -1986,8 +1986,7 @@ const WCHAR* qm::MacroFunctionFormatDate::getName() const
  *
  */
 
-qm::MacroFunctionFunction::MacroFunctionFunction(const WCHAR* pwszName) :
-	wstrName_(0)
+qm::MacroFunctionFunction::MacroFunctionFunction(const WCHAR* pwszName)
 {
 	wstrName_ = allocWString(pwszName);
 }
@@ -2028,7 +2027,7 @@ MacroValuePtr qm::MacroFunctionFunction::value(MacroContext* pContext) const
 
 const WCHAR* qm::MacroFunctionFunction::getName() const
 {
-	return L"Function";
+	return wstrName_.get();
 }
 
 
@@ -3372,8 +3371,16 @@ MacroValuePtr qm::MacroFunctionRegexFind::value(MacroContext* pContext) const
 	
 	const WCHAR* pStart = 0;
 	const WCHAR* pEnd = 0;
+	RegexRangeList listRange;
 	pPattern->search(wstrValue.get() + nIndex, -1,
-		wstrValue.get() + nIndex, false, &pStart, &pEnd, 0);
+		wstrValue.get() + nIndex, false, &pStart, &pEnd, &listRange);
+	if (pStart) {
+		if (!pContext->setRegexResult(pStart, pEnd - pStart, listRange))
+			return false;
+	}
+	else {
+		pContext->clearRegexResult();
+	}
 	
 	return MacroValueFactory::getFactory().newNumber(
 		pStart ? pStart - wstrValue.get() : -1);
@@ -3425,7 +3432,16 @@ MacroValuePtr qm::MacroFunctionRegexMatch::value(MacroContext* pContext) const
 		pPattern = p.get();
 	}
 	
-	bool bMatch = pPattern->match(wstrValue.get());
+	size_t nLen = wcslen(wstrValue.get());
+	RegexRangeList listRange;
+	bool bMatch = pPattern->match(wstrValue.get(), nLen, &listRange);
+	if (bMatch) {
+		if (!pContext->setRegexResult(wstrValue.get(), nLen, listRange))
+			return false;
+	}
+	else {
+		pContext->clearRegexResult();
+	}
 	return MacroValueFactory::getFactory().newBoolean(bMatch);
 }
 
@@ -3488,6 +3504,8 @@ MacroValuePtr qm::MacroFunctionRegexReplace::value(MacroContext* pContext) const
 	
 	StringBuffer<WSTRING> buf;
 	
+	pContext->clearRegexResult();
+	
 	const WCHAR* pStart = wstrValue.get();
 	const WCHAR* pEnd = pStart + wcslen(pStart);
 	while (pStart < pEnd) {
@@ -3507,6 +3525,7 @@ MacroValuePtr qm::MacroFunctionRegexReplace::value(MacroContext* pContext) const
 			else {
 				pStart = pMatchEnd;
 			}
+			pContext->setRegexResult(pMatchStart, pMatchEnd - pMatchStart, listRange);
 		}
 		else {
 			buf.append(pStart);

@@ -183,8 +183,9 @@ public:
 
 public:
 	MacroValuePtr getVariable(const WCHAR* pwszName) const;
-	bool setVariable(const WCHAR* pwszName,
-					 MacroValue* pValue);
+	void setVariable(const WCHAR* pwszName,
+					 MacroValuePtr pValue);
+	void removeVariable(const WCHAR* pwszName);
 
 private:
 	MacroVariableHolder(const MacroVariableHolder&);
@@ -251,6 +252,10 @@ public:
 	void popArgumentContext();
 	void addArgument(MacroValuePtr pValue);
 	MacroValuePtr getArgument(unsigned int n) const;
+	bool setRegexResult(const WCHAR* pwszAll,
+						size_t nLen,
+						const qs::RegexRangeList& listRange);
+	void clearRegexResult();
 	qs::wstring_ptr resolvePath(const WCHAR* pwszPath);
 
 private:

@@ -182,6 +182,8 @@ public:
 	bool setVariable(const WCHAR* pwszName,
 					 MacroValue* pValue,
 					 bool bGlobal);
+	void removeVariable(const WCHAR* pwszName,
+						bool bGlobal);
 	const MacroExpr* getFunction(const WCHAR* pwszName) const;
 	bool setFunction(const WCHAR* pwszName,
 					 const MacroExpr* pExpr);
@@ -189,6 +191,10 @@ public:
 	void popArgumentContext();
 	void addArgument(MacroValuePtr pValue);
 	MacroValuePtr getArgument(unsigned int n) const;
+	bool setRegexResult(const WCHAR* pwszAll,
+						size_t nLen,
+						const qs::RegexRangeList& listRange);
+	void clearRegexResult();
 
 private:
 	MacroGlobalContext(const MacroGlobalContext&);
@@ -206,6 +212,7 @@ private:
 	std::auto_ptr<MacroVariableHolder> pVariable_;
 	std::auto_ptr<MacroFunctionHolder> pFunction_;
 	std::auto_ptr<MacroArgumentHolder> pArgument_;
+	size_t nRegexResultCount_;
 };
 
 

@@ -46,7 +46,7 @@ wstring_ptr qm::Template::getValue(const TemplateContext& context) const
 	const TemplateContext::ArgumentList& l = context.getArgumentList();
 	for (TemplateContext::ArgumentList::const_iterator itA = l.begin(); itA != l.end(); ++itA) {
 		MacroValuePtr pValue(MacroValueFactory::getFactory().newString((*itA).pwszValue_));
-		globalVariable.setVariable((*itA).pwszName_, pValue.get());
+		globalVariable.setVariable((*itA).pwszName_, pValue);
 	}
 	
 	for (ValueList::const_iterator itV = listValue_.begin(); itV != listValue_.end(); ++itV) {

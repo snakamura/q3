@@ -973,7 +973,7 @@ STDMETHODIMP qmscript::MacroImpl::evaluate(IMessageHolder* pMessageHolder,
 			return hr;
 		
 		MacroValuePtr pValue(MacroValueFactory::getFactory().newString(v.bstrVal));
-		variable.setVariable((*it).first, pValue.get());
+		variable.setVariable((*it).first, pValue);
 	}
 	
 	// TODO
