@@ -26,7 +26,7 @@ BEGIN
             VALUE "FileDescription", "QMAIL3 POP3 Driver\0"
             VALUE "FileVersion", SVERSION "\0"
             VALUE "InternalName", "qmpop3\0"
-            VALUE "LegalCopyright", "Copyright (C) 1998-2003 Satoshi Nakamura\0"
+            VALUE "LegalCopyright", "Copyright (C) 1998-2004 Satoshi Nakamura\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "qmpop3" SUFFIX ".dll\0"
             VALUE "PrivateBuild", "\0"
