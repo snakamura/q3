@@ -1131,8 +1131,8 @@ public:
 	FetchDataEnvelope(AddressList* pListAddress,
 					  qs::string_ptr strDate,
 					  qs::string_ptr strSubject,
-					  qs::string_ptr strMessageId,
-					  qs::string_ptr strInReplyTo);
+					  qs::string_ptr strInReplyTo,
+					  qs::string_ptr strMessageId);
 	virtual ~FetchDataEnvelope();
 
 public:
@@ -1153,8 +1153,8 @@ private:
 	AddressList listAddress_[6];
 	qs::string_ptr strDate_;
 	qs::string_ptr strSubject_;
-	qs::string_ptr strMessageId_;
 	qs::string_ptr strInReplyTo_;
+	qs::string_ptr strMessageId_;
 };
 
 

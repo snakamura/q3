@@ -70,7 +70,7 @@ bool qmnntp::Nntp::connect(const WCHAR* pwszHost,
 	std::auto_ptr<Socket> pSocket(new Socket(
 		nTimeout_, pSocketCallback_, pLogger_));
 	if (!pSocket->connect(pwszHost, nPort))
-		NNTP_ERROR_SOCKET(NNTP_ERROR_CONNECT);
+		NNTP_ERROR(NNTP_ERROR_CONNECT | pSocket->getLastError());
 	
 	if (bSsl) {
 		SSLSocketFactory* pFactory = SSLSocketFactory::getFactory();

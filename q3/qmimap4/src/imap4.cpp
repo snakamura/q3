@@ -206,7 +206,7 @@ bool qmimap4::Imap4::connect(const WCHAR* pwszHost,
 		nTimeout_, pSocketCallback_, pLogger_));
 	
 	if (!pSocket->connect(pwszHost, nPort))
-		IMAP4_ERROR_SOCKET(IMAP4_ERROR_CONNECT);
+		IMAP4_ERROR(IMAP4_ERROR_CONNECT | pSocket->getLastError());
 	
 	if (ssl == SSL_SSL) {
 		SSLSocketFactory* pFactory = SSLSocketFactory::getFactory();
@@ -2967,8 +2967,8 @@ bool qmimap4::FetchDataBodyStructure::parseLanguage(ListItem* pListItem,
 qmimap4::FetchDataEnvelope::FetchDataEnvelope(AddressList* pListAddress,
 											  string_ptr strDate,
 											  string_ptr strSubject,
-											  string_ptr strMessageId,
-											  string_ptr strInReplyTo) :
+											  string_ptr strInReplyTo,
+											  string_ptr strMessageId) :
 	FetchData(TYPE_ENVELOPE),
 	strDate_(strDate),
 	strSubject_(strSubject),

@@ -76,7 +76,7 @@ bool qmpop3::Pop3::connect(const WCHAR* pwszHost,
 		nTimeout_, pSocketCallback_, pLogger_));
 	
 	if (!pSocket->connect(pwszHost, nPort))
-		POP3_ERROR_SOCKET(POP3_ERROR_CONNECT);
+		POP3_ERROR(POP3_ERROR_CONNECT | pSocket->getLastError());
 	
 	if (ssl == SSL_SSL) {
 		SSLSocketFactory* pFactory = SSLSocketFactory::getFactory();

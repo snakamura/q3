@@ -68,7 +68,7 @@ bool qmsmtp::Smtp::connect(const WCHAR* pwszHost,
 	std::auto_ptr<Socket> pSocket(new Socket(nTimeout_, pSocketCallback_, pLogger_));
 	
 	if (!pSocket->connect(pwszHost, nPort))
-		SMTP_ERROR_SOCKET(SMTP_ERROR_CONNECT);
+		SMTP_ERROR(SMTP_ERROR_CONNECT | pSocket->getLastError());
 	
 	if (ssl == SSL_SSL) {
 		SSLSocketFactory* pFactory = SSLSocketFactory::getFactory();
