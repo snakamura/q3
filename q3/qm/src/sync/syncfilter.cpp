@@ -433,9 +433,12 @@ bool qm::SyncFilterContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (!pwszName)
 			return false;
 		
-		std::auto_ptr<RegexPattern> pAccountName(RegexCompiler().compile(pwszAccount));
-		if (!pAccountName.get())
-			return false;
+		std::auto_ptr<RegexPattern> pAccountName;
+		if (pwszAccount) {
+			pAccountName = RegexCompiler().compile(pwszAccount);
+			if (!pAccountName.get())
+				return false;
+		}
 		
 		std::auto_ptr<SyncFilterSet> pSet(new SyncFilterSet(pAccountName, pwszName));
 		pCurrentFilterSet_ = pSet.get();
