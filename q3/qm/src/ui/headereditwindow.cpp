@@ -951,7 +951,8 @@ LRESULT qm::EditHeaderEditItem::onKillFocus()
 		wstring_ptr wstrText(wnd.getWindowText());
 		if (*wstrText.get()) {
 			wstring_ptr wstr(pAddressBook_->expandAlias(wstrText.get()));
-			wnd.setWindowText(wstr.get());
+			if (wstr.get())
+				wnd.setWindowText(wstr.get());
 		}
 	}
 	
