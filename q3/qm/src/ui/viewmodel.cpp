@@ -1854,12 +1854,16 @@ QSTATUS qm::ViewModelManager::accountDestroyed(const AccountEvent& event)
 
 QSTATUS qm::ViewModelManager::setCurrentFolder(Account* pAccount, Folder* pFolder)
 {
-	assert(pAccount || pFolder);
 	assert(!pAccount || !pFolder);
 	
 	DECLARE_QSTATUS();
 	
-	pCurrentAccount_ = pAccount ? pAccount : pFolder->getAccount();
+	if (pAccount)
+		pCurrentAccount_ = pAccount;
+	else if (pFolder)
+		pCurrentAccount_ = pFolder->getAccount();
+	else
+		pCurrentAccount_ = 0;
 	
 	ViewModel* pViewModel = 0;
 	if (pFolder) {

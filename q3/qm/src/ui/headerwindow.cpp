@@ -154,14 +154,14 @@ int qm::HeaderWindow::getHeight() const
 	return pImpl_->pLayout_->getHeight();
 }
 
-QSTATUS qm::HeaderWindow::setMessage(const TemplateContext& context)
+QSTATUS qm::HeaderWindow::setMessage(const TemplateContext* pContext)
 {
 	DECLARE_QSTATUS();
 	
 	for (unsigned int n = 0; n < pImpl_->pLayout_->getLineCount(); ++n) {
 		HeaderLine* pLine = static_cast<HeaderLine*>(
 			pImpl_->pLayout_->getLine(n));
-		status = pLine->setMessage(context);
+		status = pLine->setMessage(pContext);
 		CHECK_QSTATUS();
 	}
 	
@@ -350,22 +350,25 @@ qm::HeaderLine::~HeaderLine()
 	delete pClass_;
 }
 
-QSTATUS qm::HeaderLine::setMessage(const TemplateContext& context)
+QSTATUS qm::HeaderLine::setMessage(const TemplateContext* pContext)
 {
 	DECLARE_QSTATUS();
 	
-	if (pClass_) {
-		const WCHAR* pwszClass = context.getAccount()->getClass();
+	if (pContext && pClass_) {
+		const WCHAR* pwszClass = pContext->getAccount()->getClass();
 		bool bMatch = false;
 		status = pClass_->match(pwszClass, &bMatch);
 		CHECK_QSTATUS();
 		bHide_ = !bMatch;
 	}
+	else {
+		bHide_ = false;
+	}
 	
 	if (!bHide_) {
 		for (unsigned int n = 0; n < getItemCount(); ++n) {
 			HeaderItem* pItem = static_cast<HeaderItem*>(getItem(n));
-			status = pItem->setMessage(context);
+			status = pItem->setMessage(pContext);
 			CHECK_QSTATUS();
 		}
 	}
@@ -621,15 +624,19 @@ QSTATUS qm::TextHeaderItem::show(bool bShow)
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::TextHeaderItem::setMessage(const TemplateContext& context)
+QSTATUS qm::TextHeaderItem::setMessage(const TemplateContext* pContext)
 {
 	DECLARE_QSTATUS();
 	
-	string_ptr<WSTRING> wstrValue;
-	status = getValue(context, &wstrValue);
-	CHECK_QSTATUS();
-	
-	Window(hwnd_).setWindowText(wstrValue.get());
+	if (pContext) {
+		string_ptr<WSTRING> wstrValue;
+		status = getValue(*pContext, &wstrValue);
+		CHECK_QSTATUS();
+		Window(hwnd_).setWindowText(wstrValue.get());
+	}
+	else {
+		Window(hwnd_).setWindowText(L"");
+	}
 	
 	return QSTATUS_SUCCESS;
 }
@@ -802,7 +809,7 @@ QSTATUS qm::AttachmentHeaderItem::show(bool bShow)
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::AttachmentHeaderItem::setMessage(const TemplateContext& context)
+QSTATUS qm::AttachmentHeaderItem::setMessage(const TemplateContext* pContext)
 {
 	DECLARE_QSTATUS();
 	
@@ -810,35 +817,37 @@ QSTATUS qm::AttachmentHeaderItem::setMessage(const TemplateContext& context)
 	
 	ListView_DeleteAllItems(hwnd);
 	
-	MessageHolderBase* pmh = context.getMessageHolder();
-	if (pmh) {
-		Message* pMessage = context.getMessage();
-		status = pmh->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, pMessage);
-		CHECK_QSTATUS();
-		
-		AttachmentParser parser(*pMessage);
-		AttachmentParser::AttachmentList list;
-		AttachmentParser::AttachmentListFree free(list);
-		status = parser.getAttachments(&list);
-		CHECK_QSTATUS();
-		AttachmentParser::AttachmentList::size_type n = 0;
-		while (n < list.size()) {
-			W2T(list[n].first, ptszName);
-			SHFILEINFO info = { 0 };
-			::SHGetFileInfo(ptszName, FILE_ATTRIBUTE_NORMAL, &info, sizeof(info),
-				SHGFI_USEFILEATTRIBUTES | SHGFI_SYSICONINDEX | SHGFI_SMALLICON);
-			LVITEM item = {
-				LVIF_TEXT | LVIF_IMAGE,
-				n,
-				0,
-				0,
-				0,
-				const_cast<LPTSTR>(ptszName),
-				0,
-				info.iIcon
-			};
-			ListView_InsertItem(hwnd, &item);
-			++n;
+	if (pContext) {
+		MessageHolderBase* pmh = pContext->getMessageHolder();
+		if (pmh) {
+			Message* pMessage = pContext->getMessage();
+			status = pmh->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, pMessage);
+			CHECK_QSTATUS();
+			
+			AttachmentParser parser(*pMessage);
+			AttachmentParser::AttachmentList list;
+			AttachmentParser::AttachmentListFree free(list);
+			status = parser.getAttachments(&list);
+			CHECK_QSTATUS();
+			AttachmentParser::AttachmentList::size_type n = 0;
+			while (n < list.size()) {
+				W2T(list[n].first, ptszName);
+				SHFILEINFO info = { 0 };
+				::SHGetFileInfo(ptszName, FILE_ATTRIBUTE_NORMAL, &info, sizeof(info),
+					SHGFI_USEFILEATTRIBUTES | SHGFI_SYSICONINDEX | SHGFI_SMALLICON);
+				LVITEM item = {
+					LVIF_TEXT | LVIF_IMAGE,
+					n,
+					0,
+					0,
+					0,
+					const_cast<LPTSTR>(ptszName),
+					0,
+					info.iIcon
+				};
+				ListView_InsertItem(hwnd, &item);
+				++n;
+			}
 		}
 	}
 	

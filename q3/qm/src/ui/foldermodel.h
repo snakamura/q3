@@ -59,8 +59,7 @@ public:
 	virtual ~FolderModel();
 
 public:
-	virtual qs::QSTATUS setCurrentAccount(Account* pAccount, bool bDelay) = 0;
-	virtual qs::QSTATUS setCurrentFolder(Folder* pFolder, bool bDelay) = 0;
+	virtual qs::QSTATUS setCurrent(Account* pAccount, Folder* pFolder, bool bDelay) = 0;
 	virtual qs::QSTATUS addFolderModelHandler(FolderModelHandler* pHandler) = 0;
 	virtual qs::QSTATUS removeFolderModelHandler(FolderModelHandler* pHandler) = 0;
 };
@@ -80,9 +79,10 @@ public:
 
 public:
 	virtual Account* getCurrentAccount() const;
-	virtual qs::QSTATUS setCurrentAccount(Account* pAccount, bool bDelay);
 	virtual Folder* getCurrentFolder() const;
-	virtual qs::QSTATUS setCurrentFolder(Folder* pFolder, bool bDelay);
+
+public:
+	virtual qs::QSTATUS setCurrent(Account* pAccount, Folder* pFolder, bool bDelay);
 	virtual qs::QSTATUS addFolderModelHandler(FolderModelHandler* pHandler);
 	virtual qs::QSTATUS removeFolderModelHandler(FolderModelHandler* pHandler);
 

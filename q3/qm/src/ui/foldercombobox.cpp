@@ -306,9 +306,12 @@ QSTATUS qm::FolderComboBoxImpl::folderDestroyed(const FolderEvent& event)
 
 QSTATUS qm::FolderComboBoxImpl::accountSelected(const FolderModelEvent& event)
 {
-	int nIndex = getIndexFromAccount(event.getAccount());
-	if (nIndex != -1 && nIndex != ComboBox_GetCurSel(pThis_->getHandle()))
-		ComboBox_SetCurSel(pThis_->getHandle(), nIndex);
+	Account* pAccount = event.getAccount();
+	if (pAccount) {
+		int nIndex = getIndexFromAccount(pAccount);
+		if (nIndex != -1 && nIndex != ComboBox_GetCurSel(pThis_->getHandle()))
+			ComboBox_SetCurSel(pThis_->getHandle(), nIndex);
+	}
 	return QSTATUS_SUCCESS;
 }
 
@@ -550,9 +553,9 @@ LRESULT qm::FolderComboBoxImpl::onSelEndOk()
 	
 	Folder* pFolder = getSelectedFolder();
 	if (pFolder)
-		status = pFolderModel_->setCurrentFolder(pFolder, false);
+		status = pFolderModel_->setCurrent(0, pFolder, false);
 	else
-		status = pFolderModel_->setCurrentAccount(getSelectedAccount(), false);
+		status = pFolderModel_->setCurrent(getSelectedAccount(), 0, false);
 	
 	return 0;
 }

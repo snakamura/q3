@@ -42,32 +42,15 @@ class Message;
 class MessageModel
 {
 public:
-	MessageModel(qs::QSTATUS* pstatus);
 	virtual ~MessageModel();
 
 public:
-	Account* getCurrentAccount() const;
-	void setCurrentAccount(Account* pAccount);
-	MessagePtr getCurrentMessage() const;
-	qs::QSTATUS setMessage(MessageHolder* pmh);
-	
-	qs::QSTATUS addMessageModelHandler(MessageModelHandler* pHandler);
-	qs::QSTATUS removeMessageModelHandler(MessageModelHandler* pHandler);
-
-private:
-	qs::QSTATUS fireMessageChanged(MessageHolder* pmh) const;
-
-private:
-	MessageModel(const MessageModel&);
-	MessageModel& operator=(const MessageModel&);
-
-private:
-	typedef std::vector<MessageModelHandler*> HandlerList;
-
-private:
-	Account* pAccount_;
-	MessagePtr ptr_;
-	HandlerList listHandler_;
+	virtual Account* getCurrentAccount() const = 0;
+	virtual qs::QSTATUS setCurrentAccount(Account* pAccount) = 0;
+	virtual MessagePtr getCurrentMessage() const = 0;
+	virtual qs::QSTATUS setMessage(MessageHolder* pmh) = 0;
+	virtual qs::QSTATUS addMessageModelHandler(MessageModelHandler* pHandler) = 0;
+	virtual qs::QSTATUS removeMessageModelHandler(MessageModelHandler* pHandler) = 0;
 };
 
 
@@ -80,13 +63,22 @@ private:
 class AbstractMessageModel :
 	public MessageModel,
 	public ViewModelHolder,
-	public DefaultViewModelHandler
+	public DefaultViewModelHandler,
+	public DefaultAccountHandler
 {
 protected:
 	AbstractMessageModel(qs::QSTATUS* pstatus);
 
 public:
 	virtual ~AbstractMessageModel();
+
+public:
+	virtual Account* getCurrentAccount() const;
+	virtual qs::QSTATUS setCurrentAccount(Account* pAccount);
+	virtual MessagePtr getCurrentMessage() const;
+	virtual qs::QSTATUS setMessage(MessageHolder* pmh);
+	virtual qs::QSTATUS addMessageModelHandler(MessageModelHandler* pHandler);
+	virtual qs::QSTATUS removeMessageModelHandler(MessageModelHandler* pHandler);
 
 public:
 	virtual ViewModel* getViewModel() const;
@@ -96,11 +88,24 @@ public:
 	virtual qs::QSTATUS itemRemoved(const ViewModelEvent& event);
 	virtual qs::QSTATUS destroyed(const ViewModelEvent& event);
 
+public:
+	virtual qs::QSTATUS accountDestroyed(const AccountEvent& event);
+
+private:
+	qs::QSTATUS fireMessageChanged(MessageHolder* pmh) const;
+
 private:
 	AbstractMessageModel(const AbstractMessageModel&);
 	AbstractMessageModel& operator=(const AbstractMessageModel&);
 
+
 private:
+	typedef std::vector<MessageModelHandler*> HandlerList;
+
+private:
+	Account* pAccount_;
+	MessagePtr ptr_;
+	HandlerList listHandler_;
 	ViewModel* pViewModel_;
 };
 

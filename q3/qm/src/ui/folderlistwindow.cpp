@@ -243,7 +243,7 @@ QSTATUS qm::FolderListWindowImpl::open(int nItem)
 	
 	Folder* pFolder = getFolder(nItem);
 	if (!pFolder->isHidden()) {
-		status = pFolderModel_->setCurrentFolder(pFolder, false);
+		status = pFolderModel_->setCurrent(0, pFolder, false);
 		CHECK_QSTATUS();
 	}
 	

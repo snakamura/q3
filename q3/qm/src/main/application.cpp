@@ -228,12 +228,12 @@ QSTATUS qm::ApplicationImpl::restoreCurrentFolder()
 				status = pAccount->getFolder(pwszFolder, &pFolder);
 				CHECK_QSTATUS();
 				if (pFolder) {
-					status = pFolderModel->setCurrentFolder(pFolder, false);
+					status = pFolderModel->setCurrent(0, pFolder, false);
 					CHECK_QSTATUS();
 				}
 			}
 			else {
-				status = pFolderModel->setCurrentAccount(pAccount, false);
+				status = pFolderModel->setCurrent(pAccount, 0, false);
 				CHECK_QSTATUS();
 			}
 		}

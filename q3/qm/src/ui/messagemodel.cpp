@@ -30,77 +30,8 @@ using namespace qs;
  *
  */
 
-qm::MessageModel::MessageModel(QSTATUS* pstatus) :
-	pAccount_(0)
-{
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
-}
-
 qm::MessageModel::~MessageModel()
 {
-}
-
-Account* qm::MessageModel::getCurrentAccount() const
-{
-	return pAccount_;
-}
-
-void qm::MessageModel::setCurrentAccount(Account* pAccount)
-{
-	pAccount_ = pAccount;
-}
-
-MessagePtr qm::MessageModel::getCurrentMessage() const
-{
-	return ptr_;
-}
-
-QSTATUS qm::MessageModel::setMessage(MessageHolder* pmh)
-{
-	DECLARE_QSTATUS();
-	
-	Message msg(&status);
-	CHECK_QSTATUS();
-	if (pmh)
-		pAccount_ = pmh->getFolder()->getAccount();
-	else
-		assert(pAccount_);
-	ptr_.reset(pmh);
-	
-	status = fireMessageChanged(pmh);
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::MessageModel::addMessageModelHandler(MessageModelHandler* pHandler)
-{
-	return STLWrapper<HandlerList>(listHandler_).push_back(pHandler);
-}
-
-QSTATUS qm::MessageModel::removeMessageModelHandler(MessageModelHandler* pHandler)
-{
-	HandlerList::iterator it = std::remove(
-		listHandler_.begin(), listHandler_.end(), pHandler);
-	listHandler_.erase(it, listHandler_.end());
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::MessageModel::fireMessageChanged(MessageHolder* pmh) const
-{
-	DECLARE_QSTATUS();
-	
-	MessageModelEvent event(this, pmh);
-	
-	HandlerList::const_iterator it = listHandler_.begin();
-	while (it != listHandler_.end()) {
-		status = (*it)->messageChanged(event);
-		CHECK_QSTATUS();
-		++it;
-	}
-	
-	return QSTATUS_SUCCESS;
 }
 
 
@@ -111,7 +42,7 @@ QSTATUS qm::MessageModel::fireMessageChanged(MessageHolder* pmh) const
  */
 
 qm::AbstractMessageModel::AbstractMessageModel(qs::QSTATUS* pstatus) :
-	MessageModel(pstatus),
+	pAccount_(0),
 	pViewModel_(0)
 {
 }
@@ -120,7 +51,72 @@ qm::AbstractMessageModel::~AbstractMessageModel()
 {
 	if (pViewModel_)
 		pViewModel_->removeViewModelHandler(this);
+	setCurrentAccount(0);
+}
+
+Account* qm::AbstractMessageModel::getCurrentAccount() const
+{
+	return pAccount_;
+}
+
+QSTATUS qm::AbstractMessageModel::setCurrentAccount(Account* pAccount)
+{
+	DECLARE_QSTATUS();
 	
+	if (pAccount != pAccount_) {
+		if (pAccount_) {
+			status = pAccount_->removeAccountHandler(this);
+			CHECK_QSTATUS();
+		}
+		
+		pAccount_ = pAccount;
+		
+		if (pAccount_) {
+			status = pAccount_->addAccountHandler(this);
+			CHECK_QSTATUS();
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+MessagePtr qm::AbstractMessageModel::getCurrentMessage() const
+{
+	return ptr_;
+}
+
+QSTATUS qm::AbstractMessageModel::setMessage(MessageHolder* pmh)
+{
+	DECLARE_QSTATUS();
+	
+	Message msg(&status);
+	CHECK_QSTATUS();
+	if (pmh) {
+		status = setCurrentAccount(pmh->getFolder()->getAccount());
+		CHECK_QSTATUS();
+	}
+	
+	ptr_.reset(pmh);
+	
+	status = fireMessageChanged(pmh);
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::AbstractMessageModel::addMessageModelHandler(
+	MessageModelHandler* pHandler)
+{
+	return STLWrapper<HandlerList>(listHandler_).push_back(pHandler);
+}
+
+QSTATUS qm::AbstractMessageModel::removeMessageModelHandler(
+	MessageModelHandler* pHandler)
+{
+	HandlerList::iterator it = std::remove(
+		listHandler_.begin(), listHandler_.end(), pHandler);
+	listHandler_.erase(it, listHandler_.end());
+	return QSTATUS_SUCCESS;
 }
 
 ViewModel* qm::AbstractMessageModel::getViewModel() const
@@ -167,6 +163,34 @@ QSTATUS qm::AbstractMessageModel::destroyed(const ViewModelEvent& event)
 	CHECK_QSTATUS();
 	status = setMessage(0);
 	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::AbstractMessageModel::accountDestroyed(const AccountEvent& event)
+{
+	DECLARE_QSTATUS();
+	
+	status = setMessage(0);
+	CHECK_QSTATUS();
+	status = setCurrentAccount(0);
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::AbstractMessageModel::fireMessageChanged(MessageHolder* pmh) const
+{
+	DECLARE_QSTATUS();
+	
+	MessageModelEvent event(this, pmh);
+	
+	HandlerList::const_iterator it = listHandler_.begin();
+	while (it != listHandler_.end()) {
+		status = (*it)->messageChanged(event);
+		CHECK_QSTATUS();
+		++it;
+	}
 	
 	return QSTATUS_SUCCESS;
 }

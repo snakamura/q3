@@ -51,7 +51,7 @@ public:
 	~HeaderLine();
 
 public:
-	qs::QSTATUS setMessage(const TemplateContext& context);
+	qs::QSTATUS setMessage(const TemplateContext* pContext);
 
 public:
 	qs::QSTATUS fixup();
@@ -99,7 +99,7 @@ public:
 	qs::QSTATUS fixupValue();
 
 public:
-	virtual qs::QSTATUS setMessage(const TemplateContext& context) = 0;
+	virtual qs::QSTATUS setMessage(const TemplateContext* pContext) = 0;
 	virtual bool isEmptyValue() const = 0;
 	virtual bool isActive() const = 0;
 
@@ -158,7 +158,7 @@ public:
 	virtual qs::QSTATUS show(bool bShow);
 
 public:
-	virtual qs::QSTATUS setMessage(const TemplateContext& context);
+	virtual qs::QSTATUS setMessage(const TemplateContext* pContext);
 	virtual bool isEmptyValue() const;
 	virtual bool isActive() const;
 
@@ -252,7 +252,7 @@ public:
 	virtual qs::QSTATUS show(bool bShow);
 
 public:
-	virtual qs::QSTATUS setMessage(const TemplateContext& context);
+	virtual qs::QSTATUS setMessage(const TemplateContext* pContext);
 	virtual bool isEmptyValue() const;
 	virtual bool isActive() const;
 

@@ -231,7 +231,7 @@ public:
 
 public:
 	int getHeight() const;
-	qs::QSTATUS setMessage(const TemplateContext& context);
+	qs::QSTATUS setMessage(const TemplateContext* pContext);
 	qs::QSTATUS layout();
 	bool isActive() const;
 	MessageWindowItem* getFocusedItem() const;

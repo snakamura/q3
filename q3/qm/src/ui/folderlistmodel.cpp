@@ -21,27 +21,16 @@ using namespace qs;
  *
  */
 
-qm::FolderListModel::FolderListModel(FolderModel* pFolderModel, QSTATUS* pstatus) :
-	pFolderModel_(pFolderModel),
-	pDelayedFolderModelHandler_(0),
+qm::FolderListModel::FolderListModel(QSTATUS* pstatus) :
 	pAccount_(0),
 	pFocusedFolder_(0)
 {
-	DECLARE_QSTATUS();
-	
-	status = newQsObject(this, &pDelayedFolderModelHandler_);
-	CHECK_QSTATUS_SET(pstatus);
-	status = pFolderModel_->addFolderModelHandler(pDelayedFolderModelHandler_);
-	CHECK_QSTATUS_SET(pstatus);
 }
 
 qm::FolderListModel::~FolderListModel()
 {
 	if (pAccount_)
 		pAccount_->removeAccountHandler(this);
-	
-	pFolderModel_->removeFolderModelHandler(pDelayedFolderModelHandler_);
-	delete pDelayedFolderModelHandler_;
 }
 
 Account* qm::FolderListModel::getAccount() const
@@ -128,16 +117,6 @@ QSTATUS qm::FolderListModel::removeFolderListModelHandler(
 		listHandler_.end(), pHandler);
 	listHandler_.erase(it, listHandler_.end());
 	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::FolderListModel::accountSelected(const FolderModelEvent& event)
-{
-	return setAccount(event.getAccount());
-}
-
-QSTATUS qm::FolderListModel::folderSelected(const FolderModelEvent& event)
-{
-	return setAccount(0);
 }
 
 QSTATUS qm::FolderListModel::folderListChanged(const FolderListChangedEvent& event)

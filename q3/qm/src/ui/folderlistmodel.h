@@ -30,12 +30,10 @@ class FolderListModelEvent;
  *
  */
 
-class FolderListModel :
-	public FolderModelHandler,
-	public DefaultAccountHandler
+class FolderListModel : public DefaultAccountHandler
 {
 public:
-	FolderListModel(FolderModel* pFolderModel, qs::QSTATUS* pstatus);
+	explicit FolderListModel(qs::QSTATUS* pstatus);
 	~FolderListModel();
 
 public:
@@ -49,10 +47,6 @@ public:
 	
 	qs::QSTATUS addFolderListModelHandler(FolderListModelHandler* pHandler);
 	qs::QSTATUS removeFolderListModelHandler(FolderListModelHandler* pHandler);
-
-public:
-	virtual qs::QSTATUS accountSelected(const FolderModelEvent& event);
-	virtual qs::QSTATUS folderSelected(const FolderModelEvent& event);
 
 public:
 	virtual qs::QSTATUS folderListChanged(const FolderListChangedEvent& event);
@@ -69,8 +63,6 @@ private:
 	typedef std::vector<FolderListModelHandler*> HandlerList;
 
 private:
-	FolderModel* pFolderModel_;
-	DelayedFolderModelHandler* pDelayedFolderModelHandler_;
 	Account* pAccount_;
 	Account::FolderList listSelectedFolder_;
 	Folder* pFocusedFolder_;

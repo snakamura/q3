@@ -173,6 +173,7 @@ public:
 
 public:
 	virtual qs::QSTATUS offlineStatusChanged(const DocumentEvent& event);
+	virtual qs::QSTATUS accountListChanged(const AccountListChangedEvent& event);
 
 public:
 	MainWindow* pThis_;
@@ -972,6 +973,8 @@ QSTATUS qm::MainWindowImpl::accountSelected(const FolderModelEvent& event)
 {
 	DECLARE_QSTATUS();
 	
+	status = pFolderListModel_->setAccount(event.getAccount());
+	CHECK_QSTATUS();
 	status = pViewModelManager_->setCurrentAccount(event.getAccount());
 	CHECK_QSTATUS();
 	
@@ -982,6 +985,8 @@ QSTATUS qm::MainWindowImpl::folderSelected(const FolderModelEvent& event)
 {
 	DECLARE_QSTATUS();
 	
+	status = pFolderListModel_->setAccount(0);
+	CHECK_QSTATUS();
 	status = pViewModelManager_->setCurrentFolder(event.getFolder());
 	CHECK_QSTATUS();
 	
@@ -1120,6 +1125,21 @@ QSTATUS qm::MainWindowImpl::updated(const ViewModelEvent& event)
 QSTATUS qm::MainWindowImpl::offlineStatusChanged(const DocumentEvent& event)
 {
 	return updateStatusBar();
+}
+
+QSTATUS qm::MainWindowImpl::accountListChanged(
+	const AccountListChangedEvent& event)
+{
+	DECLARE_QSTATUS();
+	
+	status = pFolderModel_->setCurrent(0, 0, false);
+	CHECK_QSTATUS();
+	status = pFolderListModel_->setAccount(0);
+	CHECK_QSTATUS();
+	status = pViewModelManager_->setCurrentAccount(0);
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
 }
 
 
@@ -1828,7 +1848,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	CHECK_QSTATUS_VALUE(-1);
 	pImpl_->pFolderModel_ = pFolderModel.release();
 	
-	status = newQsObject(pImpl_->pFolderModel_, &pImpl_->pFolderListModel_);
+	status = newQsObject(&pImpl_->pFolderListModel_);
 	CHECK_QSTATUS_VALUE(-1);
 	
 	status = newQsObject(pImpl_->pProfile_, pImpl_->pDocument_,

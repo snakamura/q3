@@ -1762,7 +1762,7 @@ QSTATUS qm::FolderUpdateAction::invoke(const ActionEvent& event)
 	if (!pAccount)
 		return QSTATUS_FAIL;
 	
-	status = pFolderModel_->setCurrentAccount(pAccount, false);
+	status = pFolderModel_->setCurrent(pAccount, 0, false);
 	CHECK_QSTATUS();
 	
 	// TODO
@@ -3506,7 +3506,7 @@ QSTATUS qm::ViewNavigateFolderAction::invoke(const ActionEvent& event)
 			}
 		}
 		if (pFolder) {
-			status = pFolderModel_->setCurrentFolder(pFolder, true);
+			status = pFolderModel_->setCurrent(0, pFolder, true);
 			CHECK_QSTATUS();
 		}
 		break;
@@ -3530,7 +3530,7 @@ QSTATUS qm::ViewNavigateFolderAction::invoke(const ActionEvent& event)
 				break;
 			}
 			if (it != l.end()) {
-				status = pFolderModel_->setCurrentAccount(*it, true);
+				status = pFolderModel_->setCurrent(*it, 0, true);
 				CHECK_QSTATUS();
 			}
 		}
@@ -3683,7 +3683,7 @@ QSTATUS qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 		
 		if (pNewViewModel != pViewModel) {
 			if (bPreview) {
-				status = pFolderModel_->setCurrentFolder(
+				status = pFolderModel_->setCurrent(0, 
 					pNewViewModel->getFolder(), false);
 				CHECK_QSTATUS();
 			}

@@ -362,10 +362,13 @@ QSTATUS qm::FolderWindowImpl::folderDestroyed(const FolderEvent& event)
 
 QSTATUS qm::FolderWindowImpl::accountSelected(const FolderModelEvent& event)
 {
-	HTREEITEM hItem = getHandleFromAccount(event.getAccount());
-	if (hItem != TreeView_GetSelection(pThis_->getHandle())) {
-		TreeView_SelectItem(pThis_->getHandle(), hItem);
-		TreeView_EnsureVisible(pThis_->getHandle(), hItem);
+	Account* pAccount = event.getAccount();
+	if (pAccount) {
+		HTREEITEM hItem = getHandleFromAccount(pAccount);
+		if (hItem != TreeView_GetSelection(pThis_->getHandle())) {
+			TreeView_SelectItem(pThis_->getHandle(), hItem);
+			TreeView_EnsureVisible(pThis_->getHandle(), hItem);
+		}
 	}
 	return QSTATUS_SUCCESS;
 }
@@ -553,9 +556,9 @@ LRESULT qm::FolderWindowImpl::onSelChanged(NMHDR* pnmhdr, bool* pbHandled)
 	
 	Folder* pFolder = getSelectedFolder();
 	if (pFolder)
-		status = pFolderModel_->setCurrentFolder(pFolder, bDelay);
+		status = pFolderModel_->setCurrent(0, pFolder, bDelay);
 	else
-		status = pFolderModel_->setCurrentAccount(getSelectedAccount(), bDelay);
+		status = pFolderModel_->setCurrent(getSelectedAccount(), 0, bDelay);
 	
 	return 0;
 }
