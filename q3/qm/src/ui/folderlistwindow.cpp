@@ -175,7 +175,7 @@ Folder* qm::FolderListWindowImpl::getFolder(int nItem) const
 LRESULT qm::FolderListWindowImpl::onNotify(NMHDR* pnmhdr, bool* pbHandled)
 {
 	BEGIN_NOTIFY_HANDLER()
-		HANDLE_NOTIFY(LVN_ITEMCHANGED, nId_, onItemChanged);
+		HANDLE_NOTIFY(LVN_ITEMCHANGED, nId_, onItemChanged)
 	END_NOTIFY_HANDLER()
 	return 1;
 }

@@ -101,6 +101,11 @@ public:
 	virtual QSTATUS drop(const DropTargetDropEvent& event);
 
 private:
+	LRESULT onRClick(NMHDR* pnmhdr, bool* pbHandled);
+	LRESULT onSelChanged(NMHDR* pnmhdr, bool* pbHandled);
+	LRESULT onGetDispInfo(NMHDR* pnmhdr, bool* pbHandled);
+
+private:
 	QSTATUS clearAccountList();
 	QSTATUS updateAccountList();
 	QSTATUS refreshFolderList(Account* pAccount);
@@ -238,71 +243,12 @@ QSTATUS qm::FolderWindowImpl::update(Folder* pFolder)
 
 LRESULT qm::FolderWindowImpl::onNotify(NMHDR* pnmhdr, bool* pbHandled)
 {
-	DECLARE_QSTATUS();
-	
-	if (pnmhdr->idFrom != nId_)
-		return 0;
-	
-	switch (pnmhdr->code) {
-	case NM_RCLICK:
-		return pThis_->sendMessage(WM_CONTEXTMENU,
-			reinterpret_cast<WPARAM>(pnmhdr->hwndFrom), ::GetMessagePos());
-	case TVN_SELCHANGED:
-		{
-			Folder* pFolder = getSelectedFolder();
-			if (pFolder)
-				status = pFolderModel_->setCurrentFolder(pFolder);
-			else
-				status = pFolderModel_->setCurrentAccount(getSelectedAccount());
-		}
-		break;
-	case TVN_GETDISPINFO:
-		{
-			NMTVDISPINFO* pnmtvDispInfo = reinterpret_cast<NMTVDISPINFO*>(pnmhdr);
-			TVITEM& item = pnmtvDispInfo->item;
-			if (TreeView_GetParent(pThis_->getHandle(), item.hItem)) {
-				Folder* pFolder = reinterpret_cast<Folder*>(item.lParam);
-				if (item.mask & TVIF_IMAGE)
-					item.iImage = getFolderImage(pFolder,
-						false, (item.state & TVIS_EXPANDED) != 0);
-				if (item.mask & TVIF_SELECTEDIMAGE)
-					item.iSelectedImage = getFolderImage(pFolder,
-						true, (item.state & TVIS_EXPANDED) != 0);
-				if (item.mask & TVIF_TEXT) {
-					WCHAR wsz[64] = L"";
-					if (bShowAllCount_ && bShowUnseenCount_)
-						swprintf(wsz, L" (%d/%d)",
-							pFolder->getUnseenCount(), pFolder->getCount());
-					else if (bShowAllCount_)
-						swprintf(wsz, L" (%d)", pFolder->getCount());
-					else if (bShowUnseenCount_)
-						swprintf(wsz, L" (%d)", pFolder->getUnseenCount());
-					
-					string_ptr<WSTRING> wstrText(concat(pFolder->getName(), wsz));
-					if (!wstrText.get())
-						return 1;
-					
-					W2T_STATUS(wstrText.get(), ptszText);
-					CHECK_QSTATUS_VALUE(1);
-					_tcsncpy(item.pszText,
-						ptszText, item.cchTextMax);
-				}
-			}
-			else {
-				Account* pAccount = reinterpret_cast<Account*>(
-					item.lParam);
-				if (item.mask & TVIF_IMAGE)
-					item.iImage = getAccountImage(pAccount,
-						false, (item.state & TVIS_EXPANDED) != 0);
-				if (item.mask & TVIF_SELECTEDIMAGE)
-					item.iSelectedImage = getAccountImage(pAccount,
-						true, (item.state & TVIS_EXPANDED) != 0);
-			}
-		}
-		break;
-	}
-	
-	return 0;
+	BEGIN_NOTIFY_HANDLER()
+		HANDLE_NOTIFY(NM_RCLICK, nId_, onRClick)
+		HANDLE_NOTIFY(TVN_SELCHANGED, nId_, onSelChanged)
+		HANDLE_NOTIFY(TVN_GETDISPINFO, nId_, onGetDispInfo)
+	END_NOTIFY_HANDLER()
+	return 1;
 }
 
 QSTATUS qm::FolderWindowImpl::accountListChanged(
@@ -503,6 +449,73 @@ QSTATUS qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
 		}
 	}
 	return QSTATUS_SUCCESS;
+}
+
+LRESULT qm::FolderWindowImpl::onRClick(NMHDR* pnmhdr, bool* pbHandled)
+{
+	return pThis_->sendMessage(WM_CONTEXTMENU,
+		reinterpret_cast<WPARAM>(pnmhdr->hwndFrom), ::GetMessagePos());
+}
+
+LRESULT qm::FolderWindowImpl::onSelChanged(NMHDR* pnmhdr, bool* pbHandled)
+{
+	DECLARE_QSTATUS();
+	
+	Folder* pFolder = getSelectedFolder();
+	if (pFolder)
+		status = pFolderModel_->setCurrentFolder(pFolder);
+	else
+		status = pFolderModel_->setCurrentAccount(getSelectedAccount());
+	
+	return 0;
+}
+
+LRESULT qm::FolderWindowImpl::onGetDispInfo(NMHDR* pnmhdr, bool* pbHandled)
+{
+	DECLARE_QSTATUS();
+	
+	NMTVDISPINFO* pnmtvDispInfo = reinterpret_cast<NMTVDISPINFO*>(pnmhdr);
+	TVITEM& item = pnmtvDispInfo->item;
+	if (TreeView_GetParent(pThis_->getHandle(), item.hItem)) {
+		Folder* pFolder = reinterpret_cast<Folder*>(item.lParam);
+		if (item.mask & TVIF_IMAGE)
+			item.iImage = getFolderImage(pFolder,
+				false, (item.state & TVIS_EXPANDED) != 0);
+		if (item.mask & TVIF_SELECTEDIMAGE)
+			item.iSelectedImage = getFolderImage(pFolder,
+				true, (item.state & TVIS_EXPANDED) != 0);
+		if (item.mask & TVIF_TEXT) {
+			WCHAR wsz[64] = L"";
+			if (bShowAllCount_ && bShowUnseenCount_)
+				swprintf(wsz, L" (%d/%d)",
+					pFolder->getUnseenCount(), pFolder->getCount());
+			else if (bShowAllCount_)
+				swprintf(wsz, L" (%d)", pFolder->getCount());
+			else if (bShowUnseenCount_)
+				swprintf(wsz, L" (%d)", pFolder->getUnseenCount());
+			
+			string_ptr<WSTRING> wstrText(concat(pFolder->getName(), wsz));
+			if (!wstrText.get())
+				return 1;
+			
+			W2T_STATUS(wstrText.get(), ptszText);
+			CHECK_QSTATUS_VALUE(1);
+			_tcsncpy(item.pszText,
+				ptszText, item.cchTextMax);
+		}
+	}
+	else {
+		Account* pAccount = reinterpret_cast<Account*>(
+			item.lParam);
+		if (item.mask & TVIF_IMAGE)
+			item.iImage = getAccountImage(pAccount,
+				false, (item.state & TVIS_EXPANDED) != 0);
+		if (item.mask & TVIF_SELECTEDIMAGE)
+			item.iSelectedImage = getAccountImage(pAccount,
+				true, (item.state & TVIS_EXPANDED) != 0);
+	}
+	
+	return 0;
 }
 
 QSTATUS qm::FolderWindowImpl::clearAccountList()
@@ -711,10 +724,14 @@ int qm::FolderWindowImpl::getAccountImage(Account* pAccount,
 {
 	bool bUnseen = false;
 	
+	const unsigned int nIgnore = Folder::FLAG_BOX_MASK & ~Folder::FLAG_INBOX;
+	
 	const Account::FolderList& l = pAccount->getFolders();
 	Account::FolderList::const_iterator it = l.begin();
 	while (it != l.end() && !bUnseen) {
-		bUnseen = (*it)->getUnseenCount() != 0;
+		Folder* pFolder = *it;
+		if (!(pFolder->getFlags() & nIgnore))
+			bUnseen = pFolder->getUnseenCount() != 0;
 		++it;
 	}
 	
