@@ -691,6 +691,8 @@ bool qmpop3::Pop3::checkContent(CHAR* psz,
 		case STATE_CR1:
 			if (c == '\n')
 				*pState = STATE_LF1;
+			else if (c == '\r')
+				*pState = STATE_CR1;
 			else
 				*pState = STATE_NONE;
 			break;
@@ -715,6 +717,8 @@ bool qmpop3::Pop3::checkContent(CHAR* psz,
 		case STATE_CR2:
 			if (c == '\n')
 				*pState = STATE_LF2;
+			else if (c == '\r')
+				*pState = STATE_CR1;
 			else
 				*pState = STATE_NONE;
 			break;
