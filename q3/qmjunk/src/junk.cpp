@@ -38,7 +38,8 @@ qmjunk::JunkFilterImpl::JunkFilterImpl(const WCHAR* pwszPath,
 	nCleanCount_(-1),
 	nJunkCount_(-1),
 	fThresholdScore_(0.95f),
-	nFlags_(FLAG_AUTOLEARN | FLAG_MANUALLEARN)
+	nFlags_(FLAG_AUTOLEARN | FLAG_MANUALLEARN),
+	bModified_(false)
 {
 	wstrPath_ = allocWString(pwszPath);
 	
@@ -233,6 +234,8 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 		if (!init())
 			return false;
 		
+		bModified_ = true;
+		
 		string_ptr strId(getId(msg));
 		int nStatus = 0;
 		if (dpgetwb(pDepotId_, strId.get(), strlen(strId.get()),
@@ -380,6 +383,9 @@ unsigned int qmjunk::JunkFilterImpl::getFlags()
 
 bool qmjunk::JunkFilterImpl::save()
 {
+	if (!bModified_)
+		return true;
+	
 	if (!flush())
 		return false;
 	
@@ -388,6 +394,8 @@ bool qmjunk::JunkFilterImpl::save()
 	pProfile_->setString(L"JunkFilter", L"ThresholdScore", wszThresholdScore);
 	
 	pProfile_->setInt(L"JunkFilter", L"Flags", nFlags_);
+	
+	bModified_ = false;
 	
 	return true;
 }
@@ -430,22 +438,30 @@ bool qmjunk::JunkFilterImpl::init()
 
 bool qmjunk::JunkFilterImpl::flush() const
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qmjunk::JunkFilterImpl");
+	
 	if (nCleanCount_ != -1 && nJunkCount_ != -1) {
 		wstring_ptr wstrProfilePath(concat(wstrPath_.get(), L"\\junk.xml"));
 		XMLProfile profile(wstrProfilePath.get());
 		profile.setInt(L"Junk", L"CleanCount", nCleanCount_);
 		profile.setInt(L"Junk", L"JunkCount", nJunkCount_);
-		if (!profile.save())
+		if (!profile.save()) {
+			log.error(L"Counld not save junk.xml.");
 			return false;
+		}
 	}
 	
 	if (pDepotToken_) {
-		if (!dpsync(pDepotToken_))
+		if (!dpsync(pDepotToken_)) {
+			log.error(L"Could not sync token database.");
 			return false;
+		}
 	}
 	if (pDepotId_) {
-		if (!dpsync(pDepotId_))
+		if (!dpsync(pDepotId_)) {
+			log.error(L"Could not sync id database.");
 			return false;
+		}
 	}
 	
 	return true;
@@ -467,7 +483,10 @@ DEPOT* qmjunk::JunkFilterImpl::open(const WCHAR* pwszName) const
 	int nCount = dprnum(pDepot);
 	if (nBucket != -1 && nCount != -1 && nBucket < dpprimenum(nCount*4 + 1)) {
 		log.debugf(L"Optimizing a database: %s.", pwszName);
-		dpoptimize(pDepot, -1);
+		if (!dpoptimize(pDepot, -1))
+			log.errorf(L"Could not optimize the database: %s.", pwszName);
+		if (!dpsync(pDepot))
+			log.errorf(L"Could not sync the database: %s.", pwszName);
 	}
 	
 	return pDepot;

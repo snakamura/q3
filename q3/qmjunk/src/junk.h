@@ -69,6 +69,7 @@ private:
 	volatile unsigned int nJunkCount_;
 	float fThresholdScore_;
 	unsigned int nFlags_;
+	bool bModified_;
 	qs::CriticalSection cs_;
 };
 

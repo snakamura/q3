@@ -85,12 +85,18 @@ bool qmnntp::NntpReceiveSession::init(Document* pDocument,
 
 void qmnntp::NntpReceiveSession::term()
 {
+	Log log(pLogger_, L"qmnntp::NntpReceiveSession");
+	
 	clearLastIds();
 	if (pLastIdList_) {
-		if (!pLastIdList_->save()) {
-			Log log(pLogger_, L"qmnntp::NntpReceiveSession");
+		if (!pLastIdList_->save())
 			log.error(L"Failed to save last id list.");
-		}
+	}
+	
+	JunkFilter* pJunkFilter = pDocument_->getJunkFilter();
+	if (pJunkFilter) {
+		if (!pJunkFilter->save())
+			log.error(L"Failed to save junk filter.");
 	}
 }
 

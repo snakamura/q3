@@ -95,6 +95,13 @@ bool qmpop3::Pop3ReceiveSession::init(Document* pDocument,
 
 void qmpop3::Pop3ReceiveSession::term()
 {
+	Log log(pLogger_, L"qmpop3::Pop3ReceiveSession");
+	
+	JunkFilter* pJunkFilter = pDocument_->getJunkFilter();
+	if (pJunkFilter) {
+		if (!pJunkFilter->save())
+			log.error(L"Failed to save junk filter.");
+	}
 }
 
 bool qmpop3::Pop3ReceiveSession::connect()

@@ -598,6 +598,7 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 		if (nJunkOperation != 0) {
 			for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it)
 				JunkFilterUtil::manage(pJunkFilter_, *it, nJunkOperation);
+			pJunkFilter_->save();
 		}
 	}
 	

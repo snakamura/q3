@@ -207,6 +207,13 @@ bool qmimap4::Imap4ReceiveSession::init(Document* pDocument,
 
 void qmimap4::Imap4ReceiveSession::term()
 {
+	Log log(pLogger_, L"qmimap4::Imap4ReceiveSession");
+	
+	JunkFilter* pJunkFilter = pDocument_->getJunkFilter();
+	if (pJunkFilter) {
+		if (!pJunkFilter->save())
+			log.error(L"Failed to save junk filter.");
+	}
 }
 
 bool qmimap4::Imap4ReceiveSession::connect()
