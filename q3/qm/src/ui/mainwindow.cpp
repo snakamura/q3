@@ -869,7 +869,7 @@ void qm::MainWindowImpl::initActions()
 		true, pDocument_->getUndoManager(), pThis_->getHandle()));
 	std::auto_ptr<MessageMoveAction> pMessageMoveAction2(new MessageMoveAction(
 		pMessageSelectionModel_.get(), pPreviewModel_.get(), this, pMoveMenu_.get(),
-		pDocument_->getUndoManager(), false, pThis_->getHandle()));
+		false, pDocument_->getUndoManager(), pThis_->getHandle()));
 	Action* pMessageMoveActions[] = {
 		0,
 		0,
