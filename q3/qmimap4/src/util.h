@@ -73,11 +73,11 @@ public:
 										  const unsigned int* pBasePath,
 										  PartList* pListPart);
 	static qs::xstring_ptr getContentFromBodyStructureAndBodies(const PartList& listPart,
-																const BodyList& listBody);
+																const BodyList& listBody,
+																bool bTrustBodyStructure);
 	static void getFetchArgFromPartList(const PartList& listPart,
 										FetchArg arg,
 										bool bPeek,
-										bool bFetchAllMime,
 										qs::string_ptr* pstrArg,
 										unsigned int* pnCount,
 										bool* pbAll);
@@ -97,8 +97,10 @@ public:
 private:
 	static std::pair<FetchDataBody*, FetchDataBody*> getBodyFromBodyList(const BodyList& listBody,
 																		 const unsigned int* pPath);
-	static const CHAR* getBoundaryFromBodyStructure(const FetchDataBodyStructure* pBodyStructure);
+	static qs::string_ptr getBoundaryFromBodyStructureOrMime(const FetchDataBodyStructure* pBodyStructure,
+															 const FetchDataBody* pMime);
 	static bool appendBoundaryToBuffer(const FetchDataBodyStructure* pBodyStructure,
+									   const FetchDataBody* pMime,
 									   qs::XStringBuffer<qs::XSTRING>* pBuf,
 									   bool bEnd);
 	static void qmimap4::Util::appendDataToBuffer(const CHAR* pszName,

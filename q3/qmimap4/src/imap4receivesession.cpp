@@ -910,14 +910,16 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 										  FetchDataBodyStructure* pBodyStructure,
 										  const PartList& listPart,
 										  unsigned int nPartCount,
-										  bool bAll) :
+										  bool bAll,
+										  unsigned int nOption) :
 					pAccount_(pAccount),
 					listMessageData_(listMessageData),
 					it_(listMessageData_.begin()),
 					pBodyStructure_(pBodyStructure),
 					listPart_(listPart),
 					nPartCount_(nPartCount),
-					bAll_(bAll)
+					bAll_(bAll),
+					nOption_(nOption)
 				{
 				}
 				
@@ -974,6 +976,11 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 					return (*it_).getMessagePtr();
 				}
 				
+				virtual unsigned int getOption()
+				{
+					return nOption_;
+				}
+				
 				virtual void processed()
 				{
 				}
@@ -986,6 +993,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 				const PartList& listPart_;
 				unsigned int nPartCount_;
 				bool bAll_;
+				unsigned int nOption_;
 			};
 			
 			for (MessageDataList::iterator it = listPartial.begin(); it != listPartial.end(); ++it) {
@@ -1001,11 +1009,10 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 					Util::getFetchArgFromPartList(listPart,
 						(*it).getType() == MessageData::TYPE_HTML ?
 							Util::FETCHARG_HTML : Util::FETCHARG_TEXT,
-						true, (nOption & OPTION_TRUSTBODYSTRUCTURE) == 0,
-						&strArg, &nPartCount, &bAll);
+						true, &strArg, &nPartCount, &bAll);
 					
 					PartialMessageProcessHook hook(pAccount_, listMessageData,
-						(*it).getBodyStructure(), listPart, nPartCount, bAll);
+						(*it).getBodyStructure(), listPart, nPartCount, bAll, nOption);
 					Hook h(this, &hook);
 					
 					SingleRange range((*it).getId(), true);
@@ -1051,7 +1058,7 @@ bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolde
 	if (pFolder->getDownloadCount() == 0)
 		return true;
 	
-	int nOption = pSubAccount_->getProperty(L"Imap4", L"Option", 0xff);
+	unsigned int nOption = pSubAccount_->getProperty(L"Imap4", L"Option", 0xff);
 	
 	typedef std::vector<unsigned long> UidList;
 	UidList listAll;
@@ -1202,13 +1209,15 @@ bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolde
 									  FetchDataBodyStructure* pBodyStructure,
 									  const PartList& listPart,
 									  unsigned int nPartCount,
-									  bool bAll) :
+									  bool bAll,
+									  unsigned int nOption) :
 				pFolder_(pFolder),
 				listUid_(listUid),
 				pBodyStructure_(pBodyStructure),
 				listPart_(listPart),
 				nPartCount_(nPartCount),
-				bAll_(bAll)
+				bAll_(bAll),
+				nOption_(nOption)
 			{
 			}
 			
@@ -1247,6 +1256,11 @@ bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolde
 				return pFolder_->getMessageById(nUid);
 			}
 			
+			virtual unsigned int getOption()
+			{
+				return nOption_;
+			}
+			
 			virtual void processed()
 			{
 			}
@@ -1258,6 +1272,7 @@ bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolde
 			const PartList& listPart_;
 			unsigned int nPartCount_;
 			bool bAll_;
+			unsigned int nOption_;
 		};
 		for (UidList::size_type n = 0; n < listText.size(); ++n) {
 			if (listBodyStructure[n]) {
@@ -1275,11 +1290,10 @@ bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolde
 					unsigned int nPartCount = 0;
 					bool bAll = false;
 					Util::getFetchArgFromPartList(listPart, Util::FETCHARG_TEXT,
-						true, (nOption & OPTION_TRUSTBODYSTRUCTURE) == 0,
-						&strArg, &nPartCount, &bAll);
+						true, &strArg, &nPartCount, &bAll);
 					
 					PartialMessageProcessHook hook(pFolder, listText,
-						listBodyStructure[n], listPart, nPartCount, bAll);
+						listBodyStructure[n], listPart, nPartCount, bAll, nOption);
 					Hook h(this, &hook);
 					
 					SingleRange range(listText[n], true);

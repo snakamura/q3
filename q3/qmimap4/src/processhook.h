@@ -123,6 +123,7 @@ protected:
 	virtual unsigned int getPartCount() = 0;
 	virtual bool isMakeUnseen() = 0;
 	virtual qm::MessagePtr getMessagePtr(unsigned long nUid) = 0;
+	virtual unsigned int getOption() = 0;
 	virtual void processed() = 0;
 
 private:

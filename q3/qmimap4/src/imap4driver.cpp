@@ -336,7 +336,7 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 	
 	Lock<CriticalSection> lock(cs_);
 	
-	int nOption = pSubAccount_->getProperty(L"Imap4", L"Option", 0xff);
+	unsigned int nOption = pSubAccount_->getProperty(L"Imap4", L"Option", 0xff);
 	
 	if (!prepareSessionCache(false))
 		return false;
@@ -456,6 +456,7 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 							const PartList& listPart,
 							unsigned int nPartCount,
 							MessageHolder* pmh,
+							unsigned int nOption,
 							xstring_ptr* pstrMessage,
 							Message::Flag* pFlag) :
 			nUid_(nUid),
@@ -463,6 +464,7 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 			listPart_(listPart),
 			nPartCount_(nPartCount),
 			pmh_(pmh),
+			nOption_(nOption),
 			pstrMessage_(pstrMessage),
 			pFlag_(pFlag)
 		{
@@ -510,7 +512,8 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 			}
 			
 			if (listBody.size() == nPartCount_ && nUid == nUid_) {
-				xstring_ptr strContent(Util::getContentFromBodyStructureAndBodies(listPart_, listBody));
+				xstring_ptr strContent(Util::getContentFromBodyStructureAndBodies(
+					listPart_, listBody, (nOption_ & OPTION_TRUSTBODYSTRUCTURE) != 0));
 				if (!strContent.get())
 					return false;
 				*pstrMessage_ = strContent;
@@ -525,6 +528,7 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 		const PartList& listPart_;
 		unsigned int nPartCount_;
 		MessageHolder* pmh_;
+		unsigned int nOption_;
 		xstring_ptr* pstrMessage_;
 		Message::Flag* pFlag_;
 	};
@@ -571,11 +575,10 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 				bool bAll = false;
 				Util::getFetchArgFromPartList(listPart,
 					bHtml ? Util::FETCHARG_HTML : Util::FETCHARG_TEXT,
-					false, (nOption & OPTION_TRUSTBODYSTRUCTURE) == 0,
-					&strArg, &nPartCount, &bAll);
+					false, &strArg, &nPartCount, &bAll);
 				
 				BodyListProcessHook hook(pmh->getId(), pBodyStructure,
-					listPart, nPartCount, pmh, pstrMessage, pFlag);
+					listPart, nPartCount, pmh, nOption, pstrMessage, pFlag);
 				Hook h(pCallback_.get(), &hook);
 				
 				if (!pImap4->fetch(range, strArg.get()))

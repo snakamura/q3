@@ -10,6 +10,7 @@
 #include <qsstl.h>
 
 #include "imap4.h"
+#include "option.h"
 #include "processhook.h"
 
 #pragma warning(disable:4786)
@@ -169,7 +170,8 @@ ProcessHook::Result qmimap4::AbstractPartialMessageProcessHook::processFetchResp
 	MessagePtr ptr(getMessagePtr(nUid));
 	MessagePtrLock mpl(ptr);
 	if (mpl) {
-		xstring_ptr strContent(Util::getContentFromBodyStructureAndBodies(listPart, listBody));
+		xstring_ptr strContent(Util::getContentFromBodyStructureAndBodies(
+			listPart, listBody, (getOption() & OPTION_TRUSTBODYSTRUCTURE) != 0));
 		if (!getAccount()->updateMessage(mpl, strContent.get()))
 			return RESULT_ERROR;
 		unsigned int nMask = MessageHolder::FLAG_DOWNLOAD |

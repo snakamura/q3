@@ -668,9 +668,7 @@ bool qmimap4::Imap4::getMessageData(const Range& range,
 	buf.append("BODY.PEEK[HEADER.FIELDS (");
 	if (bClientParse)
 		buf.append("From To Cc Bcc Sender Message-Id In-Reply-To Subject Date ");
-	if (!bBody)
-		buf.append("Content-Type Content-Disposition ");
-	buf.append("References X-ML-Name");
+	buf.append("Content-Type Content-Disposition References X-ML-Name");
 	if (pszFields && *pszFields) {
 		buf.append(" ");
 		buf.append(pszFields);
