@@ -41,14 +41,19 @@ HFONT qs::UIUtil::createFontFromProfile(Profile* pProfile,
 	
 	wstring_ptr wstrFontFace(pProfile->getString(
 		pwszSection, L"FontFace", pwszDefaultFace));
-	int nFontSize = pProfile->getInt(pwszSection, L"FontSize", 9);
+	wstring_ptr wstrFontSize(pProfile->getString(
+		pwszSection, L"FontSize", L"9"));
+	WCHAR* pEnd = 0;
+	double dFontSize = wcstod(wstrFontSize.get(), &pEnd);
+	if (*pEnd)
+		dFontSize = 9;
 	int nFontStyle = pProfile->getInt(pwszSection, L"FontStyle", 0);
 	int nFontCharset = pProfile->getInt(pwszSection, L"FontCharset", 0);
 	
 	ClientDeviceContext dc(0);
 	LOGFONT lf;
 	FontHelper::createLogFont(dc, wstrFontFace.get(),
-		nFontSize, nFontStyle, nFontCharset, &lf);
+		dFontSize, nFontStyle, nFontCharset, &lf);
 	return ::CreateFontIndirect(&lf);
 }
 

@@ -245,7 +245,7 @@ public:
 public:
 	static void createLogFont(HDC hdc,
 							  const WCHAR* pwszFaceName,
-							  int nPointSize,
+							  double dPointSize,
 							  unsigned int nStyle,
 							  unsigned int nCharset,
 							  LOGFONT* plf);

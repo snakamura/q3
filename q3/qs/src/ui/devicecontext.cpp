@@ -164,7 +164,7 @@ int CALLBACK enumFontFamProc(ENUMLOGFONT*,
 
 void qs::FontHelper::createLogFont(HDC hdc,
 								   const WCHAR* pwszFaceName,
-								   int nPointSize,
+								   double dPointSize,
 								   unsigned int nStyle,
 								   unsigned int nCharset,
 								   LOGFONT* plf)
@@ -180,7 +180,11 @@ void qs::FontHelper::createLogFont(HDC hdc,
 	dc.enumFontFamilies(pwszFaceName,
 		reinterpret_cast<FONTENUMPROC>(enumFontFamProc),
 		reinterpret_cast<LPARAM>(plf));
-	plf->lfHeight = -(nPointSize*dc.getDeviceCaps(LOGPIXELSY)/72);
+	double dHeight = dPointSize*dc.getDeviceCaps(LOGPIXELSY)/72;
+	long nHeight = static_cast<long>(dHeight);
+	if (dHeight - nHeight > 0.5)
+		++nHeight;
+	plf->lfHeight = -nHeight;
 	plf->lfWidth = 0;
 	plf->lfWeight = nStyle & STYLE_BOLD ? FW_BOLD : FW_NORMAL;
 	plf->lfItalic = (nStyle & STYLE_ITALIC) != 0;
