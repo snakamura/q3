@@ -337,13 +337,19 @@ void qm::SyncData::addFolders(Account* pAccount,
 {
 	Account::FolderList listFolder;
 	
+	NormalFolder* pTrash = static_cast<NormalFolder*>(
+		pAccount->getFolderByBoxFlag(Folder::FLAG_TRASHBOX));
+	if (pTrash->isFlag(Folder::FLAG_SYNCABLE))
+		pTrash = 0;
+	
 	const Account::FolderList& l = pAccount->getFolders();
 	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		Folder* pFolder = *it;
 		if (pFolder->getType() == Folder::TYPE_NORMAL &&
 			!pFolder->isFlag(Folder::FLAG_NOSELECT) &&
 			!pFolder->isHidden() &&
-			pFolder->isFlag(Folder::FLAG_SYNCABLE)) {
+			pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
+			(!pTrash || !pTrash->isAncestorOf(pFolder))) {
 			bool bAdd = true;
 			if (pFolderNamePattern) {
 				wstring_ptr wstrFolderName(pFolder->getFullName());
