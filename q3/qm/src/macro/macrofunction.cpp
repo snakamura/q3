@@ -425,7 +425,7 @@ MacroValuePtr qm::MacroFunctionAddressBook::value(MacroContext* pContext) const
 		wstrAddress[1].get(),
 		wstrAddress[2].get()
 	};
-	AddressBookDialog dialog(pContext->getDocument()->getAddressBook(),
+	SelectAddressDialog dialog(pContext->getDocument()->getAddressBook(),
 		pContext->getProfile(), pwszAddress);
 	if (dialog.doModal(pContext->getWindow()) != IDOK) {
 		pContext->setReturnType(MacroContext::RETURNTYPE_CANCEL);
@@ -437,18 +437,18 @@ MacroValuePtr qm::MacroFunctionAddressBook::value(MacroContext* pContext) const
 	struct Type
 	{
 		const WCHAR* pwszName_;
-		AddressBookDialog::Type type_;
+		SelectAddressDialog::Type type_;
 	} types[] = {
-		{ L"To: ",	AddressBookDialog::TYPE_TO	},
-		{ L"Cc: ",	AddressBookDialog::TYPE_CC,	},
-		{ L"Bcc: ",	AddressBookDialog::TYPE_BCC	}
+		{ L"To: ",	SelectAddressDialog::TYPE_TO	},
+		{ L"Cc: ",	SelectAddressDialog::TYPE_CC,	},
+		{ L"Bcc: ",	SelectAddressDialog::TYPE_BCC	}
 	};
 	for (int n = 0; n < countof(types); ++n) {
-		const AddressBookDialog::AddressList& l =
+		const SelectAddressDialog::AddressList& l =
 			dialog.getAddresses(types[n].type_);
 		if (!l.empty()) {
 			buf.append(types[n].pwszName_);
-			for (AddressBookDialog::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			for (SelectAddressDialog::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
 				if (it != l.begin())
 					buf.append(L", ");
 				buf.append(*it);

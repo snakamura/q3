@@ -12,7 +12,7 @@
 #define IDD_CREATEFOLDER                112
 #define IDD_PROGRESS                    113
 #define IDD_DETACH                      114
-#define IDD_ADDRESSBOOK                 115
+#define IDD_SELECTADDRESS               115
 #define IDD_ATTACHMENT                  117
 #define IDB_ADDRESSBOOK                 118
 #define IDD_MESSAGEPROPERTY             119

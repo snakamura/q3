@@ -1134,22 +1134,22 @@ void qm::EditToolSelectAddressAction::invoke(const ActionEvent& event)
 		wstrAddresses[1].get() ? wstrAddresses[1].get() : L"",
 		wstrAddresses[2].get() ? wstrAddresses[2].get() : L"",
 	};
-	AddressBookDialog dialog(pAddressBook_, pProfile_, pwszAddresses);
+	SelectAddressDialog dialog(pAddressBook_, pProfile_, pwszAddresses);
 	if (dialog.doModal(pEditWindow_->getParentFrame()) == IDOK) {
 		struct Type
 		{
-			AddressBookDialog::Type dialogType_;
+			SelectAddressDialog::Type dialogType_;
 			const WCHAR* pwszField_;
 		} types[] = {
-			{ AddressBookDialog::TYPE_TO,	L"To"	},
-			{ AddressBookDialog::TYPE_CC,	L"Cc"	},
-			{ AddressBookDialog::TYPE_BCC,	L"Bcc"	}
+			{ SelectAddressDialog::TYPE_TO,		L"To"	},
+			{ SelectAddressDialog::TYPE_CC,		L"Cc"	},
+			{ SelectAddressDialog::TYPE_BCC,	L"Bcc"	}
 		};
 		for (int n = 0; n < countof(types); ++n) {
 			StringBuffer<WSTRING> buf;
-			const AddressBookDialog::AddressList& l =
+			const SelectAddressDialog::AddressList& l =
 				dialog.getAddresses(types[n].dialogType_);
-			for (AddressBookDialog::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			for (SelectAddressDialog::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
 				if (buf.getLength() != 0)
 					buf.append(L", ");
 				buf.append(*it);
