@@ -74,6 +74,7 @@ public:
 
 public:
 	qs::QSTATUS setWindow(HWND hwnd);
+	qs::QSTATUS unsetWindow();
 
 private:
 	qs::QSTATUS lock(const WCHAR* pwszMailFolder, bool* pbContinue);

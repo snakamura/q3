@@ -179,6 +179,9 @@ QSTATUS qm::main(const WCHAR* pwszCommandLine)
 	status = pApplication->run();
 	CHECK_QSTATUS();
 	
+	status = lock.unsetWindow();
+	CHECK_QSTATUS();
+	
 	status = pApplication->uninitialize();
 	CHECK_QSTATUS();
 	
@@ -299,12 +302,7 @@ qm::MailFolderLock::MailFolderLock(const WCHAR* pwszMailFolder,
 
 qm::MailFolderLock::~MailFolderLock()
 {
-	if (pMutex_) {
-		pMutex_->release();
-		delete pMutex_;
-	}
 	unlock();
-	freeTString(tstrPath_);
 }
 
 QSTATUS qm::MailFolderLock::setWindow(HWND hwnd)
@@ -347,8 +345,18 @@ QSTATUS qm::MailFolderLock::setWindow(HWND hwnd)
 	
 	status = pMutex_->release();
 	CHECK_QSTATUS();
-	delete pMutex_;
-	pMutex_ = 0;
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::MailFolderLock::unsetWindow()
+{
+	assert(pMutex_);
+	
+	DECLARE_QSTATUS();
+	
+	status = pMutex_->acquire();
+	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
 }
@@ -430,20 +438,23 @@ QSTATUS qm::MailFolderLock::unlock()
 	
 	if (hFile_) {
 		assert(tstrPath_);
-		
-		Mutex mutex(false, L"QMAIL3Mutex", &status);
-		CHECK_QSTATUS();
-		status = mutex.acquire();
-		CHECK_QSTATUS();
+		assert(pMutex_);
 		
 		::CloseHandle(hFile_);
-		hFile_ = 0;
-		
 		::DeleteFile(tstrPath_);
 		
-		status = mutex.release();
-		CHECK_QSTATUS();
+		pMutex_->release();
+		delete pMutex_;
+		
+		freeTString(tstrPath_);
+		
+		hFile_ = 0;
+		pMutex_ = 0;
+		tstrPath_ = 0;
 	}
+	assert(!hFile_);
+	assert(!pMutex_);
+	assert(!tstrPath_);
 	
 	return QSTATUS_SUCCESS;
 }
