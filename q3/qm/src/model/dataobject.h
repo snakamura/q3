@@ -98,7 +98,7 @@ public:
 
 public:
 	static bool setClipboard(IDataObject* pDataObject);
-	static IDataObject* getClipboard(Document* pDocument);
+	static qs::ComPtr<IDataObject> getClipboard(Document* pDocument);
 	static bool queryClipboard();
 	static bool pasteMessages(IDataObject* pDataObject,
 							  Document* pDocument,

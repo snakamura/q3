@@ -401,7 +401,7 @@ bool qm::MessageDataObject::setClipboard(IDataObject* pDataObject)
 	return true;
 }
 
-IDataObject* qm::MessageDataObject::getClipboard(Document* pDocument)
+ComPtr<IDataObject> qm::MessageDataObject::getClipboard(Document* pDocument)
 {
 	assert(pDocument);
 	
@@ -424,9 +424,10 @@ IDataObject* qm::MessageDataObject::getClipboard(Document* pDocument)
 			return 0;
 	}
 	
-	return pDataObject.release();
+	pDataObject->AddRef();
+	return ComPtr<IDataObject>(pDataObject.release());
 #else
-	IDataObject* pDataObject = 0;
+	ComPtr<IDataObject> pDataObject;
 	HRESULT hr = ::OleGetClipboard(&pDataObject);
 	if (hr != S_OK)
 		return 0;
