@@ -1431,7 +1431,7 @@ void qm::PartUtil::getAlternativeContentTypes(ContentTypeList* pList) const
 		const Part::PartList& l = part_.getPartList();
 		if (_wcsicmp(pContentType->getSubType(), L"alternative") == 0) {
 			for (Part::PartList::const_reverse_iterator it = l.rbegin(); it != l.rend(); ++it)
-				pList->push_back((*it)->getContentType());
+				PartUtil(**it).getAlternativeContentTypes(pList);
 		}
 		else {
 			if (!l.empty())
@@ -1454,8 +1454,9 @@ const Part* qm::PartUtil::getAlternativePart(const WCHAR* pwszMediaType,
 		const Part::PartList& l = part_.getPartList();
 		if (_wcsicmp(pContentType->getSubType(), L"alternative") == 0) {
 			for (Part::PartList::const_reverse_iterator it = l.rbegin(); it != l.rend(); ++it) {
-				if (isContentType((*it)->getContentType(), pwszMediaType, pwszSubType))
-					return *it;
+				const Part* pPart = PartUtil(**it).getAlternativePart(pwszMediaType, pwszSubType);
+				if (pPart)
+					return pPart;
 			}
 		}
 		else {
