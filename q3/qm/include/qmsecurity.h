@@ -45,6 +45,9 @@ public:
 	const PGPUtility* getPGPUtility() const;
 
 public:
+	void reload();
+
+public:
 	static void init();
 	static void term();
 	static bool isSSLEnabled();

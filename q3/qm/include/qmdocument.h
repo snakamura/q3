@@ -82,7 +82,7 @@ public:
 	FixedFormTextManager* getFixedFormTextManager() const;
 	AddressBook* getAddressBook() const;
 	RecentAddress* getRecentAddress() const;
-	const Security* getSecurity() const;
+	Security* getSecurity() const;
 	Recents* getRecents() const;
 	UndoManager* getUndoManager() const;
 	JunkFilter* getJunkFilter() const;

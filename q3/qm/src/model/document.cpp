@@ -461,7 +461,7 @@ RecentAddress* qm::Document::getRecentAddress() const
 	return pImpl_->pRecentAddress_.get();
 }
 
-const Security* qm::Document::getSecurity() const
+Security* qm::Document::getSecurity() const
 {
 	return pImpl_->pSecurity_.get();
 }

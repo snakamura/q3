@@ -14,6 +14,7 @@
 #include <qmlistwindow.h>
 #include <qmmainwindow.h>
 #include <qmmessagewindow.h>
+#include <qmsecurity.h>
 #include <qmtabwindow.h>
 
 #include <qsdevicecontext.h>
@@ -190,7 +191,8 @@ LRESULT qm::OptionDialog::onInitDialog(HWND hwndFocus,
 		{ PANEL_FIXEDFORMTEXTS,	IDS_PANEL_FIXEDFORMTEXTS	},
 		{ PANEL_FILTERS,		IDS_PANEL_FILTERS			},
 		{ PANEL_SYNCFILTERS,	IDS_PANEL_SYNCFILTERS		},
-		{ PANEL_AUTOPILOT,		IDS_PANEL_AUTOPILOT			}
+		{ PANEL_AUTOPILOT,		IDS_PANEL_AUTOPILOT			},
+		{ PANEL_SECURITY,		IDS_PANEL_SECURITY			}
 	};
 	for (int n = 0; n < countof(items); ++n) {
 		wstring_ptr wstrName(loadString(hInst, items[n].nId_));
@@ -440,6 +442,7 @@ void qm::OptionDialog::setCurrentPanel(Panel panel)
 			PANEL1(PANEL_FILTERS, Filters, pFilterManager_);
 			PANEL2(PANEL_SYNCFILTERS, SyncFilterSets, pSyncFilterManager_, pProfile_);
 			PANEL3(PANEL_AUTOPILOT, AutoPilot, pAutoPilotManager_, pGoRound_, pProfile_);
+			PANEL2(PANEL_SECURITY, OptionSecurity, pDocument_->getSecurity(), pProfile_);
 		END_PANEL()
 	}
 	
@@ -1127,6 +1130,56 @@ LRESULT qm::OptionListDialog::onFont()
 {
 	qs::UIUtil::browseFont(getParentPopup(), &lf_);
 	return 0;
+}
+
+
+/****************************************************************************
+ *
+ * OptionSecurityDialog
+ *
+ */
+
+DialogUtil::BoolProperty qm::OptionSecurityDialog::boolProperties__[] = {
+	{ L"LoadSystemStore",	IDC_SYSTEMSTORE,		true	},
+	{ L"MultipartSigned",	IDC_MULTIPARTSIGNED,	true	},
+	{ L"EncryptForSelf",	IDC_ENCRYPTFORSELF,		true	}
+};
+
+qm::OptionSecurityDialog::OptionSecurityDialog(Security* pSecurity,
+											   Profile* pProfile) :
+	DefaultDialog(IDD_OPTIONSECURITY),
+	pSecurity_(pSecurity),
+	pProfile_(pProfile)
+{
+}
+
+qm::OptionSecurityDialog::~OptionSecurityDialog()
+{
+}
+
+LRESULT qm::OptionSecurityDialog::onInitDialog(HWND hwndFocus,
+											   LPARAM lParam)
+{
+	DialogUtil::loadBoolProperties(this, pProfile_,
+		L"Security", boolProperties__, countof(boolProperties__));
+	
+	bool bGPG = pProfile_->getInt(L"PGP", L"UseGPG", 1) != 0;
+	sendDlgItemMessage(bGPG ? IDC_GNUPG : IDC_PGP, BM_SETCHECK, BST_CHECKED);
+	
+	return FALSE;
+}
+
+bool qm::OptionSecurityDialog::save(OptionDialogContext* pContext)
+{
+	DialogUtil::saveBoolProperties(this, pProfile_,
+		L"Security", boolProperties__, countof(boolProperties__));
+	
+	bool bGPG = sendDlgItemMessage(IDC_GNUPG, BM_GETCHECK) == BST_CHECKED;
+	pProfile_->setInt(L"PGP", L"UseGPG", bGPG);
+	
+	pSecurity_->reload();
+	
+	return true;
 }
 
 

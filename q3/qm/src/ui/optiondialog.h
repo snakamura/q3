@@ -38,6 +38,7 @@ class OptionAddressBookDialog;
 class OptionFolderDialog;
 class OptionHeaderDialog;
 class OptionListDialog;
+class OptionSecurityDialog;
 class TextColorDialog;
 class AbstractOptionTextDialog;
 	class OptionEditDialog;
@@ -84,6 +85,7 @@ class ListWindow;
 class MainWindow;
 class MessageFrameWindowManager;
 class MessageWindow;
+class Security;
 #ifdef QMTABWINDOW
 class TabWindow;
 #endif
@@ -121,6 +123,8 @@ public:
 		PANEL_FILTERS,
 		PANEL_SYNCFILTERS,
 		PANEL_AUTOPILOT,
+		
+		PANEL_SECURITY,
 		
 		MAX_PANEL
 	};
@@ -548,6 +552,41 @@ private:
 	FolderListWindow* pFolderListWindow_;
 	qs::Profile* pProfile_;
 	LOGFONT lf_;
+
+private:
+	static DialogUtil::BoolProperty boolProperties__[];
+};
+
+
+/****************************************************************************
+ *
+ * OptionSecurityDialog
+ *
+ */
+
+class OptionSecurityDialog :
+	public DefaultDialog,
+	public AbstractOptionDialogPanel<OptionSecurityDialog>
+{
+public:
+	OptionSecurityDialog(Security* pSecurity,
+						 qs::Profile* pProfile);
+	virtual ~OptionSecurityDialog();
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+public:
+	virtual bool save(OptionDialogContext* pContext);
+
+private:
+	OptionSecurityDialog(const OptionSecurityDialog&);
+	OptionSecurityDialog& operator=(const OptionSecurityDialog&);
+
+private:
+	Security* pSecurity_;
+	qs::Profile* pProfile_;
 
 private:
 	static DialogUtil::BoolProperty boolProperties__[];

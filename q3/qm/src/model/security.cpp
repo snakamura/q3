@@ -142,6 +142,13 @@ const PGPUtility* qm::Security::getPGPUtility() const
 	return pImpl_->pPGPUtility_.get();
 }
 
+void qm::Security::reload()
+{
+	Lock<CriticalSection> lock(pImpl_->cs_);
+	
+	pImpl_->pStoreCA_.reset(0);
+}
+
 void qm::Security::init()
 {
 #ifdef NDEBUG
