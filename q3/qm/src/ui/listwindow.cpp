@@ -176,9 +176,8 @@ void qm::ListWindowImpl::layoutChildren(int cx,
 										int cy)
 {
 	if (pHeaderColumn_)
-		pHeaderColumn_->setWindowPos(0, 0, 0,
-			cx + pThis_->getScrollPos(SB_HORZ),
-			pHeaderColumn_->getPreferredHeight(), SWP_NOMOVE | SWP_NOZORDER);
+		pHeaderColumn_->setWindowPos(0, 0, 0, cx + pThis_->getScrollPos(SB_HORZ),
+			pHeaderColumn_->getPreferredHeight(cx, cy), SWP_NOMOVE | SWP_NOZORDER);
 	updateScrollBar(true);
 	updateScrollBar(false);
 	pThis_->invalidate();
@@ -1791,9 +1790,10 @@ int qm::ListHeaderColumn::getHeight() const
 	}
 }
 
-int qm::ListHeaderColumn::getPreferredHeight() const
+int qm::ListHeaderColumn::getPreferredHeight(int nWidth,
+											 int nHeight) const
 {
-	RECT rect;
+	RECT rect = { 0, 0, nWidth, nHeight };
 	WINDOWPOS wp;
 	HDLAYOUT layout = {
 		&rect,

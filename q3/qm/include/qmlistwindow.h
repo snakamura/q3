@@ -149,7 +149,8 @@ public:
 public:
 	int getWidth() const;
 	int getHeight() const;
-	int getPreferredHeight() const;
+	int getPreferredHeight(int nWidth,
+						   int nHeight) const;
 
 // These methods are intended to be called from ListWindow class
 public:
