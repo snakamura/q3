@@ -126,6 +126,7 @@ QSTATUS qmimap4::OfflineJobManager::apply(Account* pAccount,
 	status = pCallback->setRange(0, listJob_.size());
 	CHECK_QSTATUS();
 	
+	Folder* pPrevFolder = 0;
 	for (JobList::size_type n = 0; n < listJob_.size(); ++n) {
 		status = pCallback->setPos(n + 1);
 		CHECK_QSTATUS();
@@ -135,12 +136,14 @@ QSTATUS qmimap4::OfflineJobManager::apply(Account* pAccount,
 			Folder* pFolder = 0;
 			status = pAccount->getFolder(pJob->getFolder(), &pFolder);
 			CHECK_QSTATUS();
-			if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL) {
+			if (pFolder && pFolder != pPrevFolder &&
+				pFolder->getType() == Folder::TYPE_NORMAL) {
 				string_ptr<WSTRING> wstrName;
 				status = Util::getFolderName(pFolder, &wstrName);
 				CHECK_QSTATUS();
 				status = pImap4->select(wstrName.get());
 				CHECK_QSTATUS();
+				pPrevFolder = pFolder;
 			}
 		}
 		status = pJob->apply(pAccount, pImap4);
