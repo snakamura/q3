@@ -574,8 +574,8 @@ qs::RegexMatchCallback::~RegexMatchCallback()
  *
  */
 
-const WCHAR qs::RegexParser::wszSingleEscapeChar__[] = L"nrt\\|.-^?*+{}()[]";
-const WCHAR qs::RegexParser::wszSpecialChar__[] = L"\\|.-^?*+{}()[]";
+const WCHAR qs::RegexParser::wszSingleEscapeChar__[] = L"nrt\\|.-^?*+{}()[]$";
+const WCHAR qs::RegexParser::wszSpecialChar__[] = L"\\|.-^?*+{}()[]$";
 
 qs::RegexParser::RegexParser(const WCHAR* pwszPattern,
 							 unsigned int nMode) :
