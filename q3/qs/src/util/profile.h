@@ -61,35 +61,6 @@ private:
 	StringBuffer<WSTRING> buffer_;
 };
 
-
-/****************************************************************************
- *
- * XMLProfileAttributes
- *
- */
-
-class XMLProfileAttributes : public DefaultAttributes
-{
-public:
-	XMLProfileAttributes(const WCHAR* pwszName);
-	virtual ~XMLProfileAttributes();
-
-public:
-	virtual int getLength() const;
-	virtual const WCHAR* getQName(int nIndex) const;
-	virtual const WCHAR* getValue(int nIndex) const;
-
-private:
-	XMLProfileAttributes(const XMLProfileAttributes&);
-	XMLProfileAttributes& operator=(const XMLProfileAttributes&);
-
-private:
-	const WCHAR* pwszName_;
-};
-
-
-
-
 }
 
 #endif // __PROFILE_H__

@@ -1119,6 +1119,50 @@ bool qs::DefaultAttributes::isSpecified(const WCHAR* pwszURI,
 
 /****************************************************************************
  *
+ * SimpleAttribute
+ *
+ */
+
+qs::SimpleAttributes::SimpleAttributes(const WCHAR* pwszQName,
+									   const WCHAR* pwszValue) :
+	pItems_(&item_),
+	nSize_(1)
+{
+	item_.pwszQName_ = pwszQName;
+	item_.pwszValue_ = pwszValue;
+}
+
+qs::SimpleAttributes::SimpleAttributes(const Item* pItems,
+									   size_t nSize) :
+	pItems_(pItems),
+	nSize_(nSize)
+{
+}
+
+qs::SimpleAttributes::~SimpleAttributes()
+{
+}
+
+int qs::SimpleAttributes::getLength() const
+{
+	return nSize_;
+}
+
+const WCHAR* qs::SimpleAttributes::getQName(int nIndex) const
+{
+	assert(0 <= nIndex && size_t(nIndex) < nSize_);
+	return (pItems_ + nIndex)->pwszQName_;
+}
+
+const WCHAR* qs::SimpleAttributes::getValue(int nIndex) const
+{
+	assert(0 <= nIndex && size_t(nIndex) < nSize_);
+	return (pItems_ + nIndex)->pwszValue_;
+}
+
+
+/****************************************************************************
+ *
  * HandlerHelper
  *
  */

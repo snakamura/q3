@@ -259,40 +259,7 @@ bool qmnntp::LastIdWriter::write(const LastIdList& l)
 	
 	const LastIdList::IdList& listId = l.getList();
 	for (LastIdList::IdList::const_iterator it = listId.begin(); it != listId.end(); ++it) {
-		class Attrs : public DefaultAttributes
-		{
-		public:
-			Attrs(const WCHAR* pwszName) :
-				pwszName_(pwszName)
-			{
-			}
-			
-			~Attrs()
-			{
-			}
-		
-		public:
-			virtual int getLength() const
-			{
-				return 1;
-			}
-			
-			virtual const WCHAR* getQName(int nIndex) const
-			{
-				assert(nIndex == 0);
-				return L"name";
-			}
-			
-			virtual const WCHAR* getValue(int nIndex) const
-			{
-				assert(nIndex == 0);
-				return pwszName_;
-			}
-		
-		private:
-			const WCHAR* pwszName_;
-		} attrs((*it).first);
-		
+		SimpleAttributes attrs(L"name", (*it).first);
 		WCHAR wszId[32];
 		swprintf(wszId, L"%u", (*it).second);
 		if (!handler_.startElement(0, 0, L"lastId", attrs) ||

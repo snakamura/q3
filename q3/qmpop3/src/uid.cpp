@@ -374,43 +374,11 @@ bool qmpop3::UIDListWriter::write(const UIDList& l)
 		swprintf(wszDate, L"%04d-%02d-%02d",
 			date.nYear_, date.nMonth_, date.nDay_);
 		
-		class Attrs : public DefaultAttributes
-		{
-		public:
-			Attrs(const WCHAR* pwszFlags,
-				  const WCHAR* pwszDate) :
-				pwszFlags_(pwszFlags),
-				pwszDate_(pwszDate)
-			{
-			}
-			
-			virtual ~Attrs()
-			{
-			}
-		
-		public:
-			virtual int getLength() const
-			{
-				return 2;
-			}
-			
-			virtual const WCHAR* getQName(int nIndex) const
-			{
-				assert(nIndex == 0 || nIndex == 1);
-				return nIndex == 0 ? L"flags" : L"date";
-			}
-			
-			virtual const WCHAR* getValue(int nIndex) const
-			{
-				assert(nIndex == 0 || nIndex == 1);
-				return nIndex == 0 ? pwszFlags_ : pwszDate_;
-			}
-		
-		private:
-			const WCHAR* pwszFlags_;
-			const WCHAR* pwszDate_;
-		} attrs(wszFlags, wszDate);
-		
+		SimpleAttributes::Item items[] = {
+			{ L"flags",	wszFlags	},
+			{ L"date",	wszDate		}
+		};
+		SimpleAttributes attrs(items, countof(items));
 		const WCHAR* pwszUID = pUID->getUID();
 		if (!handler_.startElement(0, 0, L"uid", attrs) ||
 			!handler_.characters(pwszUID, 0, wcslen(pwszUID)) ||

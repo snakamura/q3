@@ -754,13 +754,13 @@ bool qs::XMLProfile::saveImpl(const WCHAR* pwszPath) const
 			nSectionLen = wcslen(wstrSection.get());
 			
 			if (!handler.startElement(0, 0, L"section",
-				XMLProfileAttributes(wstrSection.get())))
+				SimpleAttributes(L"name", wstrSection.get())))
 				return false;
 		}
 		
 		const WCHAR* p = wcschr(pwszEntry, L'_');
 		assert(p);
-		if (!handler.startElement(0, 0, L"key", XMLProfileAttributes(p + 1)))
+		if (!handler.startElement(0, 0, L"key", SimpleAttributes(L"name", p + 1)))
 			return false;
 		if (!handler.characters((*it).second, 0, wcslen((*it).second)))
 			return false;
@@ -910,37 +910,4 @@ bool qs::XMLProfileContentHandler::characters(const WCHAR* pwsz,
 	}
 	
 	return true;
-}
-
-
-/****************************************************************************
- *
- * XMLProfileAttributes
- *
- */
-
-qs::XMLProfileAttributes::XMLProfileAttributes(const WCHAR* pwszName) :
-	pwszName_(pwszName)
-{
-}
-
-qs::XMLProfileAttributes::~XMLProfileAttributes()
-{
-}
-
-int qs::XMLProfileAttributes::getLength() const
-{
-	return 1;
-}
-
-const WCHAR* qs::XMLProfileAttributes::getQName(int nIndex) const
-{
-	assert(nIndex == 0);
-	return L"name";
-}
-
-const WCHAR* qs::XMLProfileAttributes::getValue(int nIndex) const
-{
-	assert(nIndex == 0);
-	return pwszName_;
 }

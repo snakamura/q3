@@ -552,6 +552,44 @@ private:
 
 /****************************************************************************
  *
+ * SimpleAttributes
+ *
+ */
+
+class QSEXPORTCLASS SimpleAttributes : public DefaultAttributes
+{
+public:
+	struct Item
+	{
+		const WCHAR* pwszQName_;
+		const WCHAR* pwszValue_;
+	};
+
+public:
+	SimpleAttributes(const WCHAR* pwszQName,
+					 const WCHAR* pwszValue);
+	SimpleAttributes(const Item* pItems,
+					 size_t nSize);
+	virtual ~SimpleAttributes();
+
+public:
+	virtual int getLength() const;
+	virtual const WCHAR* getQName(int nIndex) const;
+	virtual const WCHAR* getValue(int nIndex) const;
+
+private:
+	SimpleAttributes(const SimpleAttributes&);
+	SimpleAttributes& operator=(const SimpleAttributes&);
+
+private:
+	const Item* pItems_;
+	size_t nSize_;
+	Item item_;
+};
+
+
+/****************************************************************************
+ *
  * HandlerHelper
  *
  */

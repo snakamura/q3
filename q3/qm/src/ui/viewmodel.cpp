@@ -2303,36 +2303,9 @@ bool qm::ViewDataWriter::write(const ViewData* pData)
 	for (ViewData::ItemList::const_iterator itI = listItem.begin(); itI != listItem.end(); ++itI) {
 		ViewDataItem* pItem = *itI;
 		
-		class ViewAttrs : public DefaultAttributes
-		{
-		public:
-			ViewAttrs(unsigned int nFolder)
-			{
-				swprintf(wszFolder_, L"%u", nFolder);
-			}
-		
-		public:
-			virtual int getLength() const
-			{
-				return 1;
-			}
-			
-			virtual const WCHAR* getQName(int nIndex) const
-			{
-				assert(nIndex == 0);
-				return L"folder";
-			}
-			
-			virtual const WCHAR* getValue(int nIndex) const
-			{
-				assert(nIndex == 0);
-				return wszFolder_;
-			}
-		
-		private:
-			WCHAR wszFolder_[32];
-		} viewAttrs(pItem->getFolderId());
-		
+		WCHAR wszFolder[32];
+		swprintf(wszFolder, L"%u", pItem->getFolderId());
+		SimpleAttributes viewAttrs(L"folder", wszFolder);
 		if (!handler_.startElement(0, 0, L"view", viewAttrs))
 			return false;
 		
@@ -2343,72 +2316,30 @@ bool qm::ViewDataWriter::write(const ViewData* pData)
 		for (ViewColumnList::const_iterator itC = listColumn.begin(); itC != listColumn.end(); ++itC) {
 			ViewColumn* pColumn = *itC;
 			
-			class ColumnAttrs : public DefaultAttributes
-			{
-			public:
-				ColumnAttrs(unsigned int nFlags) :
-					nFlags_(nFlags)
-				{
-				}
-				
-			public:
-				virtual int getLength() const
-				{
-					return 5;
-				}
-				
-				virtual const WCHAR* getQName(int nIndex) const
-				{
-					switch (nIndex) {
-					case 0:
-						return L"indent";
-					case 1:
-						return L"line";
-					case 2:
-						return L"icon";
-					case 3:
-						return L"align";
-					case 4:
-						return L"sort";
-					default:
-						assert(false);
-						return 0;
-					}
-				}
-				
-				virtual const WCHAR* getValue(int nIndex) const
-				{
-					switch (nIndex) {
-					case 0:
-						return nFlags_ & ViewColumn::FLAG_INDENT ? L"true" : L"false";
-					case 1:
-						return nFlags_ & ViewColumn::FLAG_LINE ? L"true" : L"false";
-					case 2:
-						return nFlags_ & ViewColumn::FLAG_ICON ? L"true" : L"false";
-					case 3:
-						return nFlags_ & ViewColumn::FLAG_RIGHTALIGN ? L"right" : L"left";
-					case 4:
-						switch (nFlags_ & ViewColumn::FLAG_SORT_MASK) {
-						case ViewColumn::FLAG_SORT_TEXT:
-							return L"text";
-						case ViewColumn::FLAG_SORT_NUMBER:
-							return L"number";
-						case ViewColumn::FLAG_SORT_DATE:
-							return L"date";
-						default:
-							assert(false);
-							return 0;
-						}
-					default:
-						assert(false);
-						return 0;
-					}
-				}
-			
-			private:
-				unsigned int nFlags_;
-			} columnAttrs(pColumn->getFlags());
-			
+			unsigned int nFlags = pColumn->getFlags();
+			const WCHAR* pwszSort = 0;
+			switch (nFlags & ViewColumn::FLAG_SORT_MASK) {
+			case ViewColumn::FLAG_SORT_TEXT:
+				pwszSort = L"text";
+				break;
+			case ViewColumn::FLAG_SORT_NUMBER:
+				pwszSort = L"number";
+				break;
+			case ViewColumn::FLAG_SORT_DATE:
+				pwszSort = L"date";
+				break;
+			default:
+				assert(false);
+				break;
+			}
+			const SimpleAttributes::Item items[] = {
+				{ L"indent",	nFlags & ViewColumn::FLAG_INDENT ? L"true" : L"false"		},
+				{ L"line",		nFlags & ViewColumn::FLAG_LINE ? L"true" : L"false"			},
+				{ L"icon",		nFlags & ViewColumn::FLAG_ICON ? L"true" : L"false"			},
+				{ L"align",		nFlags & ViewColumn::FLAG_RIGHTALIGN ? L"right" : L"left"	},
+				{ L"sort",		pwszSort													}
+			};
+			SimpleAttributes columnAttrs(items, countof(items));
 			if (!handler_.startElement(0, 0, L"column", columnAttrs))
 				return false;
 			
@@ -2469,52 +2400,12 @@ bool qm::ViewDataWriter::write(const ViewData* pData)
 		if (!HandlerHelper::numberElement(&handler_, L"focus", pItem->getFocus()))
 			return false;
 		
-		class SortAttrs : public DefaultAttributes
-		{
-		public:
-			SortAttrs(unsigned int nSort) :
-				nSort_(nSort)
-			{
-			}
-			
-		public:
-			virtual int getLength() const
-			{
-				return 2;
-			}
-			
-			virtual const WCHAR* getQName(int nIndex) const
-			{
-				switch (nIndex) {
-				case 0:
-					return L"direction";
-				case 1:
-					return L"thread";
-				default:
-					assert(false);
-					return 0;
-				}
-			}
-			
-			virtual const WCHAR* getValue(int nIndex) const
-			{
-				switch (nIndex) {
-				case 0:
-					return (nSort_ & ViewModel::SORT_DIRECTION_MASK) == ViewModel::SORT_ASCENDING ?
-						L"ascending" : L"descending";
-				case 1:
-					return (nSort_ & ViewModel::SORT_THREAD_MASK) == ViewModel::SORT_THREAD ?
-						L"true" : L"false";
-				default:
-					assert(false);
-					return 0;
-				}
-			}
-		
-		private:
-			unsigned int nSort_;
-		} sortAttrs(pItem->getSort());
-		
+		unsigned int nSort = pItem->getSort();
+		const SimpleAttributes::Item items[] = {
+			{ L"direction",	(nSort & ViewModel::SORT_DIRECTION_MASK) == ViewModel::SORT_ASCENDING ? L"ascending" : L"descending"	},
+			{ L"thread",	(nSort & ViewModel::SORT_THREAD_MASK) == ViewModel::SORT_THREAD ? L"true" : L"false"					}
+		};
+		SimpleAttributes sortAttrs(items, countof(items));
 		if (!handler_.startElement(0, 0, L"sort", sortAttrs))
 			return false;
 		WCHAR wsz[32];
