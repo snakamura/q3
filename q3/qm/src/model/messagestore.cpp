@@ -1,5 +1,5 @@
 /*
- * $Id: messagestore.cpp,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -364,14 +364,21 @@ QSTATUS qm::SingleMessageStore::readCache(
 
 struct qm::MultiMessageStoreImpl
 {
+public:
 	QSTATUS init();
 	QSTATUS getOffset(unsigned int* pnOffset);
 	QSTATUS getPath(unsigned int nOffset, WSTRING* pwstrPath) const;
-	
+	QSTATUS ensureDirectory(unsigned int nOffset) const;
+
+public:
+	typedef std::vector<bool> DirList;
+
+public:
 	WSTRING wstrPath_;
 	ClusterStorage* pCacheStorage_;
 	unsigned int nOffset_;
 	CriticalSection cs_;
+	mutable DirList listDir_;
 };
 
 QSTATUS qm::MultiMessageStoreImpl::init()
@@ -403,9 +410,33 @@ QSTATUS qm::MultiMessageStoreImpl::getOffset(unsigned int *pnOffset)
 	DECLARE_QSTATUS();
 	
 	if (nOffset_ == -1) {
-		nOffset_ = 0;
+		unsigned int nDir = 0;
 		
-		string_ptr<WSTRING> wstrFind(concat(wstrPath_, L"\\msg\\*.msg"));
+		string_ptr<WSTRING> wstrDirFind(concat(wstrPath_, L"\\msg\\*"));
+		if (!wstrDirFind.get())
+			return QSTATUS_OUTOFMEMORY;
+		W2T(wstrDirFind.get(), ptszDirFind);
+		
+		WIN32_FIND_DATA fdDir;
+		AutoFindHandle hFindDir(::FindFirstFile(ptszDirFind, &fdDir));
+		if (hFindDir.get()) {
+			do {
+				if (fdDir.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY &&
+					_tcscmp(fdDir.cFileName, _T(".")) != 0 &&
+					_tcscmp(fdDir.cFileName, _T("..")) != 0) {
+					unsigned int n = 0;
+					_stscanf(fdDir.cFileName, _T("%08d"), &n);
+					if (n > nDir)
+						nDir = n;
+				}
+			} while (::FindNextFile(hFindDir.get(), &fdDir));
+		}
+		
+		unsigned int nOffset = nDir*1000;
+		
+		WCHAR wszFind[32];
+		swprintf(wszFind, L"\\msg\\%08d\\*.msg", nDir);
+		string_ptr<WSTRING> wstrFind(concat(wstrPath_, wszFind));
 		if (!wstrFind.get())
 			return QSTATUS_OUTOFMEMORY;
 		W2T(wstrFind.get(), ptszFind);
@@ -414,12 +445,14 @@ QSTATUS qm::MultiMessageStoreImpl::getOffset(unsigned int *pnOffset)
 		AutoFindHandle hFind(::FindFirstFile(ptszFind, &fd));
 		if (hFind.get()) {
 			do {
-				unsigned int nOffset = 0;
-				_stscanf(fd.cFileName, _T("%08d.msg"), &nOffset);
-				if (nOffset > nOffset_)
-					nOffset_ = nOffset;
+				unsigned int n = 0;
+				_stscanf(fd.cFileName, _T("%08d.msg"), &n);
+				if (n > nOffset)
+					nOffset = n;
 			} while (::FindNextFile(hFind.get(), &fd));
 		}
+		
+		nOffset_ = nOffset;
 	}
 	
 	*pnOffset = ++nOffset_;
@@ -433,10 +466,31 @@ QSTATUS qm::MultiMessageStoreImpl::getPath(
 	assert(pwstrPath);
 	
 	WCHAR wsz[64];
-	swprintf(wsz, L"\\msg\\%08d.msg", nOffset);
+	swprintf(wsz, L"\\msg\\%08d\\%08d.msg", nOffset/1000, nOffset);
 	*pwstrPath = concat(wstrPath_, wsz);
 	
 	return *pwstrPath ? QSTATUS_SUCCESS : QSTATUS_OUTOFMEMORY;
+}
+
+QSTATUS qm::MultiMessageStoreImpl::ensureDirectory(unsigned int nOffset) const
+{
+	DECLARE_QSTATUS();
+	
+	unsigned int nIndex = nOffset/1000;
+	
+	if (nIndex >= listDir_.size() || !listDir_[nIndex]) {
+		TCHAR tsz[64];
+		_stprintf(tsz, _T("\\msg\\%08d"), nIndex);
+		::CreateDirectory(tsz, 0);
+		
+		if (listDir_.size() <= nIndex) {
+			status = STLWrapper<DirList>(listDir_).resize(nIndex + 1);
+			CHECK_QSTATUS();
+		}
+		listDir_[nIndex] = true;
+	}
+	
+	return QSTATUS_SUCCESS;
 }
 
 
@@ -594,6 +648,8 @@ QSTATUS qm::MultiMessageStore::save(const CHAR* pszMessage,
 	
 	if (!bIndexOnly) {
 		status = pImpl_->getOffset(pnOffset);
+		CHECK_QSTATUS();
+		status = pImpl_->ensureDirectory(*pnOffset);
 		CHECK_QSTATUS();
 		string_ptr<WSTRING> wstrPath;
 		status = pImpl_->getPath(*pnOffset, &wstrPath);
