@@ -7,6 +7,7 @@
  */
 
 #include <qmaccount.h>
+#include <qmapplication.h>
 #include <qmfilenames.h>
 #include <qmfolder.h>
 #include <qmmacro.h>
@@ -1449,7 +1450,7 @@ ViewDataItem* qm::ViewModelManager::getViewDataItem(Folder* pFolder)
 		pViewData = (*it).second;
 	}
 	else {
-		wstring_ptr wstrPath(concat(pAccount->getPath(), L"\\", FileNames::VIEWS_XML));
+		wstring_ptr wstrPath(getViewsPath(pAccount));
 		std::auto_ptr<ViewData> pNewViewData(new ViewData(wstrPath.get()));
 		mapViewData_.push_back(std::make_pair(pAccount, pNewViewData.get()));
 		pAccount->addAccountHandler(this);
@@ -1540,6 +1541,25 @@ ViewDataItem* qm::ViewModelManager::getViewDataItem(Folder* pFolder)
 	}
 	
 	return pViewData->getItem(pFolder->getId());
+}
+
+wstring_ptr qm::ViewModelManager::getViewsPath(Account* pAccount)
+{
+	const WCHAR* pwszProfileName = Application::getApplication().getProfileName();
+	if (*pwszProfileName) {
+		ConcatW c[] = {
+			{ pAccount->getPath(),		-1	},
+			{ L"\\",					1	},
+			{ FileNames::VIEWS,			-1	},
+			{ L"_",						1	},
+			{ pwszProfileName,			-1	},
+			{ FileNames::XML_EXT,		-1	}
+		};
+		return concat(c, countof(c));
+	}
+	else {
+		return concat(pAccount->getPath(), L"\\", FileNames::VIEWS_XML);
+	}
 }
 
 void qm::ViewModelManager::fireViewModelSelected(ViewModel* pNewViewModel,

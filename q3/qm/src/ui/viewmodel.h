@@ -511,6 +511,7 @@ private:
 						  Folder* pFolder);
 	void setCurrentViewModel(ViewModel* pViewModel);
 	ViewDataItem* getViewDataItem(Folder* pFolder);
+	qs::wstring_ptr getViewsPath(Account* pAccount);
 
 private:
 	void fireViewModelSelected(ViewModel* pNewViewModel,
