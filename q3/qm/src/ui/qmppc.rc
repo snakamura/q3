@@ -640,18 +640,20 @@ BEGIN
                     BS_AUTO3STATE | WS_TABSTOP,10,50,70,10
     CONTROL         "&Cache when read",IDC_CACHEWHENREAD,"Button",
                     BS_AUTO3STATE | WS_TABSTOP,10,60,70,10
-    GROUPBOX        "Flag",IDC_STATIC,5,40,80,35
+    CONTROL         "Ignore &Unseen",IDC_IGNOREUNSEEN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,70,70,10
+    GROUPBOX        "Flag",IDC_STATIC,5,40,80,45
     CONTROL         "&Inbox",IDC_INBOX,"Button",BS_AUTO3STATE | WS_TABSTOP,
-                    10,85,40,10
+                    10,100,40,10
     CONTROL         "&Outbox",IDC_OUTBOX,"Button",BS_AUTO3STATE | WS_TABSTOP,
-                    10,95,40,10
+                    10,110,40,10
     CONTROL         "&Sentbox",IDC_SENTBOX,"Button",BS_AUTO3STATE | 
-                    WS_TABSTOP,10,105,40,10
+                    WS_TABSTOP,10,120,40,10
     CONTROL         "&Draftbox",IDC_DRAFTBOX,"Button",BS_AUTO3STATE | 
-                    WS_TABSTOP,10,115,40,10
+                    WS_TABSTOP,10,130,40,10
     CONTROL         "&Trashbox",IDC_TRASHBOX,"Button",BS_AUTO3STATE | 
-                    WS_TABSTOP,10,125,43,10
-    GROUPBOX        "Box Type",IDC_STATIC,5,75,80,65
+                    WS_TABSTOP,10,140,43,10
+    GROUPBOX        "Box Type",IDC_STATIC,5,90,80,65
 END
 
 IDD_SINGLEINPUTBOX DIALOG DISCARDABLE  0, 0, 139, 189

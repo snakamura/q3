@@ -413,6 +413,7 @@ struct
 } folderFlags[] = {
 	{ Folder::FLAG_SYNCWHENOPEN,	IDC_SYNCWHENOPEN,	Folder::FLAG_SYNCABLE,	false	},
 	{ Folder::FLAG_CACHEWHENREAD,	IDC_CACHEWHENREAD,	Folder::FLAG_SYNCABLE,	false	},
+	{ Folder::FLAG_IGNOREUNSEEN,	IDC_IGNOREUNSEEN,	Folder::FLAG_NOSELECT,	true	},
 	{ Folder::FLAG_INBOX,			IDC_INBOX,			Folder::FLAG_NOSELECT,	true	},
 	{ Folder::FLAG_OUTBOX,			IDC_OUTBOX,			Folder::FLAG_NOSELECT,	true	},
 	{ Folder::FLAG_SENTBOX,			IDC_SENTBOX,		Folder::FLAG_NOSELECT,	true	},
