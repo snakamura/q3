@@ -479,9 +479,15 @@ QSTATUS qm::MultiMessageStoreImpl::ensureDirectory(unsigned int nOffset) const
 	unsigned int nIndex = nOffset/1000;
 	
 	if (nIndex >= listDir_.size() || !listDir_[nIndex]) {
-		TCHAR tsz[64];
-		_stprintf(tsz, _T("\\msg\\%08d"), nIndex);
-		::CreateDirectory(tsz, 0);
+		WCHAR wsz[64];
+		swprintf(wsz, L"\\msg\\%08d", nIndex);
+		
+		string_ptr<WSTRING> wstrPath(concat(wstrPath_, wsz));
+		if (!wstrPath.get())
+			return QSTATUS_OUTOFMEMORY;
+		
+		W2T(wstrPath.get(), ptszPath);
+		::CreateDirectory(ptszPath, 0);
 		
 		if (listDir_.size() <= nIndex) {
 			status = STLWrapper<DirList>(listDir_).resize(nIndex + 1);
