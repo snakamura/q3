@@ -1152,6 +1152,9 @@ QSTATUS qm::FileImportAction::invoke(const ActionEvent& event)
 					break;
 			}
 		}
+		
+		status = pFolder->getAccount()->save();
+		CHECK_QSTATUS();
 	}
 	
 	return QSTATUS_SUCCESS;
