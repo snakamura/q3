@@ -262,6 +262,15 @@ else
 	LDFLAGS				= -RELEASE -OPT:REF
 endif
 
+ifndef DEBUG
+	ifeq ($(PLATFORM),win)
+		ifeq ($(VC7),1)
+			CCFLAGS		+= -GL
+			LDFLAGS		+= -LTCG
+		endif
+	endif
+endif
+
 ifneq ($(PLATFORM),win)
 	CODE				= unicode
 endif
