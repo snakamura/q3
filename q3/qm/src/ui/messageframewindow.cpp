@@ -106,6 +106,7 @@ public:
 	CreateTemplateMenu* pCreateTemplateExternalMenu_;
 	EncodingMenu* pEncodingMenu_;
 	ScriptMenu* pScriptMenu_;
+	WSTRING wstrTitle_;
 	bool bCreated_;
 	int nInitialShow_;
 	bool bLayouting_;
@@ -397,8 +398,22 @@ QSTATUS qm::MessageFrameWindowImpl::layoutChildren(int cx, int cy)
 
 QSTATUS qm::MessageFrameWindowImpl::messageChanged(const MessageModelEvent& event)
 {
-	if (!event.getMessageHolder())
+	DECLARE_QSTATUS();
+	
+	MessageHolder* pmh = event.getMessageHolder();
+	if (pmh) {
+		string_ptr<WSTRING> wstrSubject;
+		status = pmh->getSubject(&wstrSubject);
+		if (status == QSTATUS_SUCCESS) {
+			string_ptr<WSTRING> wstrTitle(concat(
+				wstrSubject.get(), L" - ", wstrTitle_));
+			if (wstrTitle.get())
+				pThis_->setWindowText(wstrTitle.get());
+		}
+	}
+	else {
 		pThis_->postMessage(WM_CLOSE);
+	}
 	
 	return QSTATUS_SUCCESS;
 }
@@ -521,6 +536,7 @@ qm::MessageFrameWindow::MessageFrameWindow(
 	pImpl_->pCreateTemplateExternalMenu_ = 0;
 	pImpl_->pEncodingMenu_ = 0;
 	pImpl_->pScriptMenu_ = 0;
+	pImpl_->wstrTitle_ = 0;
 	pImpl_->bCreated_ = false;
 	pImpl_->nInitialShow_ = SW_SHOWNORMAL;
 	pImpl_->bLayouting_ = false;
@@ -540,6 +556,7 @@ qm::MessageFrameWindow::~MessageFrameWindow()
 		delete pImpl_->pCreateTemplateExternalMenu_;
 		delete pImpl_->pEncodingMenu_;
 		delete pImpl_->pScriptMenu_;
+		freeWString(pImpl_->wstrTitle_);
 		delete pImpl_;
 		pImpl_ = 0;
 	}
@@ -867,6 +884,10 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	status = getMessageModel()->addMessageModelHandler(pImpl_);
 	CHECK_QSTATUS();
+	
+	pImpl_->wstrTitle_ = getWindowText();
+	if (!pImpl_->wstrTitle_)
+		return -1;
 	
 	pImpl_->bCreated_ = true;
 	
