@@ -26,7 +26,7 @@
 #endif
 
 #include "addressbook.h"
-#include "confighelper.h"
+#include "../util/confighelper.h"
 
 using namespace qm;
 using namespace qs;

@@ -16,7 +16,7 @@
 #include <qsstream.h>
 #include <qstimer.h>
 
-#include "../model/confighelper.h"
+#include "../util/confighelper.h"
 
 
 namespace qm {

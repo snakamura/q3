@@ -19,7 +19,7 @@
 #include <vector>
 
 #include "syncfilter.h"
-#include "../model/confighelper.h"
+#include "../util/confighelper.h"
 
 #pragma warning(disable:4786)
 

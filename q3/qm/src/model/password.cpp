@@ -10,8 +10,8 @@
 #include <qstextutil.h>
 #include <qsthread.h>
 
-#include "confighelper.h"
 #include "password.h"
+#include "../util/confighelper.h"
 
 using namespace qm;
 using namespace qs;

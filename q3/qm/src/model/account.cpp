@@ -26,9 +26,9 @@
 #include <algorithm>
 
 #include "account.h"
-#include "confighelper.h"
 #include "messageindex.h"
 #include "messagestore.h"
+#include "../util/confighelper.h"
 
 #pragma warning(disable:4786)
 

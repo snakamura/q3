@@ -17,7 +17,7 @@
 
 #include "tabmodel.h"
 #include "uiutil.h"
-#include "../model/confighelper.h"
+#include "../util/confighelper.h"
 
 #pragma warning(disable:4786)
 

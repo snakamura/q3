@@ -18,7 +18,7 @@
 
 #include <vector>
 
-#include "confighelper.h"
+#include "../util/confighelper.h"
 
 
 namespace qm {

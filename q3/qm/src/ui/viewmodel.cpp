@@ -25,8 +25,8 @@
 #include "uimanager.h"
 #include "viewmodel.h"
 #include "../model/color.h"
-#include "../model/confighelper.h"
 #include "../model/filter.h"
+#include "../util/confighelper.h"
 
 #pragma warning(disable:4786)
 

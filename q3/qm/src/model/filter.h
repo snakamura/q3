@@ -16,7 +16,7 @@
 #include <qssax.h>
 #include <qsstring.h>
 
-#include "confighelper.h"
+#include "../util/confighelper.h"
 
 
 namespace qm {

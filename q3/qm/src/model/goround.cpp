@@ -14,8 +14,8 @@
 
 #include <algorithm>
 
-#include "confighelper.h"
 #include "goround.h"
+#include "../util/confighelper.h"
 
 using namespace qm;
 using namespace qs;
