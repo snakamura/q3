@@ -956,7 +956,7 @@ bool qm::MessageFrameWindowManager::open(ViewModel* pViewModel,
 	}
 	else {
 		pFrame = create();
-		if (!!pFrame)
+		if (!pFrame)
 			return false;
 	}
 	if (listFrame_.empty())
