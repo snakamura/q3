@@ -207,6 +207,8 @@ public:
 	static void freeLine(PhysicalLine* pLine);
 
 private:
+	bool getTextExtent(const DeviceContext& dc, const WCHAR* pwszString,
+		int nCount, int nMaxExtent, int* pnFit, int* pnDx, SIZE* pSize) const;
 	QSTATUS getLineExtent(unsigned int nLine,
 		Extent* pExtent, bool* pbNewLine) const;
 	QSTATUS getLinks(const WCHAR* pwsz,
@@ -247,8 +249,8 @@ public:
 	URLSchemaList listURLSchema_;
 	COLORREF crLink_;
 	
-//	ClientDeviceContext* pdc_;
 	HFONT hfont_;
+	bool bAdjustExtent_;
 	HBITMAP hbmNewLine_;
 	HBITMAP hbmTab_;
 	ScrollPos scrollPos_;
@@ -265,6 +267,7 @@ public:
 	mutable Extent extent_;
 	mutable unsigned int nExtentLine_;
 	mutable bool bExtentNewLine_;
+	mutable int nDx_[1024];
 };
 
 unsigned int qs::TextWindowImpl::getLineHeight() const
@@ -274,7 +277,6 @@ unsigned int qs::TextWindowImpl::getLineHeight() const
 		ClientDeviceContext dc(pThis_->getHandle(), &status);
 		ObjectSelector<HFONT> fontSelector(dc, hfont_);
 		TEXTMETRIC tm;
-//		pdc_->getTextMetrics(&tm);
 		dc.getTextMetrics(&tm);
 		nLineHeight_ = tm.tmHeight + tm.tmExternalLeading + nLineSpacing_;
 	}
@@ -312,7 +314,6 @@ unsigned int qs::TextWindowImpl::getAverageCharWidth() const
 		ClientDeviceContext dc(pThis_->getHandle(), &status);
 		ObjectSelector<HFONT> fontSelector(dc, hfont_);
 		TEXTMETRIC tm;
-//		pdc_->getTextMetrics(&tm);
 		dc.getTextMetrics(&tm);
 		nAverageCharWidth_ = tm.tmAveCharWidth;
 	}
@@ -336,7 +337,6 @@ QSTATUS qs::TextWindowImpl::updateBitmaps()
 	CHECK_QSTATUS();
 	ObjectSelector<HFONT> fontSelector(dc, hfont_);
 	
-//	CompatibleDeviceContext dcMem(*pdc_, &status);
 	CompatibleDeviceContext dcMem(dc, &status);
 	CHECK_QSTATUS();
 	
@@ -350,8 +350,6 @@ QSTATUS qs::TextWindowImpl::updateBitmaps()
 		return QSTATUS_FAIL;
 	ObjectSelector<HPEN> penSelector(dcMem, hpen.get());
 	
-//	GdiObject<HBITMAP> hbmNewLine(
-//		::CreateCompatibleBitmap(*pdc_, nWidth, nHeight));
 	GdiObject<HBITMAP> hbmNewLine(
 		::CreateCompatibleBitmap(dc, nWidth, nHeight));
 	if (!hbmNewLine.get())
@@ -372,8 +370,6 @@ QSTATUS qs::TextWindowImpl::updateBitmaps()
 	pt[2].y = pt[1].y - nArcWidth - 1;
 	dcMem.polyline(pt, 3);
 	
-//	GdiObject<HBITMAP> hbmTab(
-//		::CreateCompatibleBitmap(*pdc_, nWidth, nHeight));
 	GdiObject<HBITMAP> hbmTab(
 		::CreateCompatibleBitmap(dc, nWidth, nHeight));
 	if (!hbmTab.get())
@@ -735,9 +731,7 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 				int nFit = 0;
 				do {
 					SIZE size;
-//					pdc_->getTextExtentEx(pBegin, p - pBegin,
-//						nWidth - nLineWidth, &nFit, 0, &size);
-					dc.getTextExtentEx(pBegin, p - pBegin,
+					getTextExtent(dc, pBegin, p - pBegin,
 						nWidth - nLineWidth, &nFit, 0, &size);
 					if (nFit != p - pBegin || p == pEnd) {
 						size_t nOffset = pLine - line.getText();
@@ -746,8 +740,6 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 							listLogicalLinkItem, nOffset,
 							nLength, &listPhysicalLinkItem);
 						CHECK_QSTATUS();
-//						fillPhysicalLinks(&listPhysicalLinkItem,
-//							pdc_, line.getText() + nOffset);
 						fillPhysicalLinks(&listPhysicalLinkItem,
 							&dc, line.getText() + nOffset);
 						PhysicalLinePtr ptr(allocLine(n, nOffset,
@@ -776,8 +768,6 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 					status = convertLogicalLinksToPhysicalLinks(
 						listLogicalLinkItem, nOffset, nLength, &listPhysicalLinkItem);
 					CHECK_QSTATUS();
-//					fillPhysicalLinks(&listPhysicalLinkItem,
-//						pdc_, line.getText() + nOffset);
 					fillPhysicalLinks(&listPhysicalLinkItem,
 						&dc, line.getText() + nOffset);
 					PhysicalLinePtr ptr(allocLine(n, nOffset, nLength,
@@ -796,8 +786,6 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 							listLogicalLinkItem, nOffset,
 							nLength, &listPhysicalLinkItem);
 						CHECK_QSTATUS();
-//						fillPhysicalLinks(&listPhysicalLinkItem,
-//							pdc_, line.getText() + nOffset);
 						fillPhysicalLinks(&listPhysicalLinkItem,
 							&dc, line.getText() + nOffset);
 						PhysicalLinePtr ptr(allocLine(n, nOffset, nLength,
@@ -823,8 +811,6 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 							listLogicalLinkItem, nOffset,
 							nLength, &listPhysicalLinkItem);
 						CHECK_QSTATUS();
-//						fillPhysicalLinks(&listPhysicalLinkItem,
-//							pdc_, line.getText() + nOffset);
 						fillPhysicalLinks(&listPhysicalLinkItem,
 							&dc, line.getText() + nOffset);
 						PhysicalLinePtr ptr(allocLine(n, nOffset, nLength,
@@ -850,8 +836,6 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 								listLogicalLinkItem, nOffset,
 								nLength, &listPhysicalLinkItem);
 							CHECK_QSTATUS();
-//							fillPhysicalLinks(&listPhysicalLinkItem,
-//								pdc_, line.getText() + nOffset);
 							fillPhysicalLinks(&listPhysicalLinkItem,
 								&dc, line.getText() + nOffset);
 							PhysicalLinePtr ptr(allocLine(n, nOffset, nLength,
@@ -935,13 +919,24 @@ int qs::TextWindowImpl::paintBlock(DeviceContext* pdc, const POINT& pt,
 		while (p != pEnd && *p != L'\t')
 			++p;
 		if (p != pBegin) {
+			size_t nLen = p - pBegin;
 			SIZE size;
-			pdc->getTextExtent(pBegin, p - pBegin, &size);
+			int* pnDx = 0;
+			if (bAdjustExtent_) {
+				getTextExtent(*pdc, pBegin, nLen, 0, 0, nDx_, &size);
+				for (size_t n = nLen; n > 0; --n)
+					nDx_[n] -= nDx_[n - 1];
+				pnDx = nDx_;
+			}
+			else {
+				getTextExtent(*pdc, pBegin, nLen, 0, 0, 0, &size);
+			}
 			
 			r.left = pt.x + x;
 			r.right = r.left + size.cx;
+			
 			pdc->extTextOut(pt.x + x, pt.y + nLineSpacing_,
-				ETO_CLIPPED | ETO_OPAQUE, r, pBegin, p - pBegin, 0);
+				ETO_CLIPPED | ETO_OPAQUE, r, pBegin, nLen, pnDx);
 			
 			x += size.cx;
 		}
@@ -1393,6 +1388,44 @@ void qs::TextWindowImpl::freeLine(PhysicalLine* pLine)
 	std::__sgi_alloc::deallocate(pLine, sizeof(nSize));
 }
 
+bool qs::TextWindowImpl::getTextExtent(const DeviceContext& dc,
+	const WCHAR* pwszString, int nCount, int nMaxExtent,
+	int* pnFit, int* pnDx, SIZE* pSize) const
+{
+	if (!pnDx && bAdjustExtent_)
+		pnDx = nDx_;
+	
+	if (!dc.getTextExtentEx(pwszString, nCount, nMaxExtent, pnFit, pnDx, pSize))
+		return false;
+	
+	if (bAdjustExtent_) {
+		int nLen = pnFit ? *pnFit : nCount;
+		if (nLen != 0) {
+			int nCharWidth = getAverageCharWidth();
+			int nPrev = pnDx[0];
+			for (int n = 1; n < nLen; ++n) {
+				int nNext = pnDx[n];
+				int nWidth = pnDx[n] - nPrev == nCharWidth ?
+					nCharWidth : nCharWidth*2;
+				pnDx[n] = pnDx[n - 1] + nWidth;
+				nPrev = nNext;
+			}
+			pSize->cx = pnDx[nLen - 1];
+			
+			if (nMaxExtent != 0) {
+				while (pSize->cx > nMaxExtent && nLen > 1) {
+					--nLen;
+					pSize->cx -= pnDx[nLen] - pnDx[nLen - 1];
+				}
+				assert(pnFit);
+				*pnFit = nLen;
+			}
+		}
+	}
+	
+	return true;
+}
+
 QSTATUS qs::TextWindowImpl::getLineExtent(unsigned int nLine,
 	Extent* pExtent, bool* pbNewLine) const
 {
@@ -1422,9 +1455,7 @@ QSTATUS qs::TextWindowImpl::getLineExtent(unsigned int nLine,
 		if (p == pEnd || *p == L'\t') {
 			if (p != pBegin) {
 				SIZE size;
-//				pdc_->getTextExtentEx(pBegin, p - pBegin, 0, 0,
-//					&(*pExtent)[pBegin - pLine], &size);
-				dc.getTextExtentEx(pBegin, p - pBegin, 0, 0,
+				getTextExtent(dc, pBegin, p - pBegin, 0, 0,
 					&(*pExtent)[pBegin - pLine], &size);
 				if (pBegin != pLine) {
 					int nOffset = (*pExtent)[pBegin - pLine - 1];
@@ -1557,9 +1588,9 @@ void qs::TextWindowImpl::fillPhysicalLinks(LinkItemList* pList,
 	LinkItemList::iterator it = pList->begin();
 	while (it != pList->end()) {
 		SIZE size;
-		pdc->getTextExtent(pwsz, (*it).nOffset_, &size);
+		getTextExtent(*pdc, pwsz, (*it).nOffset_, 0, 0, 0, &size);
 		(*it).nLeft_ = size.cx;
-		pdc->getTextExtent(pwsz, (*it).nOffset_ + (*it).nLength_, &size);
+		getTextExtent(*pdc, pwsz, (*it).nOffset_ + (*it).nLength_, 0, 0, 0, &size);
 		(*it).nRight_ = size.cx;
 		++it;
 	}
@@ -1718,6 +1749,11 @@ qs::TextWindow::TextWindow(TextModel* pTextModel, Profile* pProfile,
 	CHECK_QSTATUS_SET(pstatus);
 	GdiObject<HFONT> font(hfont);
 	
+	LOGFONT lf;
+	::GetObject(font.get(), sizeof(lf), &lf);
+	bool bAdjustExtent = lf.lfPitchAndFamily & FIXED_PITCH &&
+		lf.lfWeight != FW_NORMAL;
+	
 	TextWindowImpl::URLSchemaList listURLSchema;
 	int nClickableURL = 0;
 	status = pProfile->getInt(pwszSection, L"ClickableURL", 1, &nClickableURL);
@@ -1776,8 +1812,8 @@ qs::TextWindow::TextWindow(TextModel* pTextModel, Profile* pProfile,
 	initStrings[2].wstrValue_ = 0;
 	pImpl_->listURLSchema_.swap(listURLSchema);
 	pImpl_->crLink_ = initColors[4].cr_;
-//	pImpl_->pdc_ = 0;
 	pImpl_->hfont_ = font.release();
+	pImpl_->bAdjustExtent_ = bAdjustExtent;
 	pImpl_->hbmNewLine_ = 0;
 	pImpl_->hbmTab_ = 0;
 	pImpl_->scrollPos_.nPos_ = 0;
@@ -2889,14 +2925,7 @@ LRESULT qs::TextWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	status = pImpl_->pTextModel_->addTextModelHandler(pImpl_);
 	CHECK_QSTATUS();
 	
-//	std::auto_ptr<ClientDeviceContext> pdc;
-//	status = newQsObject(getHandle(), &pdc);
-//	CHECK_QSTATUS_VALUE(-1);
-//	
-//	pImpl_->pdc_ = pdc.release();
 	pImpl_->hImc_ = ::ImmGetContext(getHandle());
-	
-//	pImpl_->pdc_->selectObject(pImpl_->hfont_);
 	
 	status = pImpl_->updateBitmaps();
 	CHECK_QSTATUS_VALUE(-1);
@@ -2915,8 +2944,6 @@ LRESULT qs::TextWindow::onCut()
 
 LRESULT qs::TextWindow::onDestroy()
 {
-//	pImpl_->pdc_->selectObject(static_cast<HFONT>(::GetStockObject(SYSTEM_FONT)));
-	
 	::ImmReleaseContext(getHandle(), pImpl_->hImc_);
 	
 	::DeleteObject(pImpl_->hfont_);
@@ -2927,9 +2954,6 @@ LRESULT qs::TextWindow::onDestroy()
 	
 	::DeleteObject(pImpl_->hbmTab_);
 	pImpl_->hbmTab_ = 0;
-	
-//	delete pImpl_->pdc_;
-//	pImpl_->pdc_ = 0;
 	
 	pImpl_->pTextModel_->removeTextModelHandler(pImpl_);
 	
