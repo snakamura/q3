@@ -212,8 +212,25 @@ QSTATUS qm::FolderWindowImpl::update(Folder* pFolder)
 	
 	HTREEITEM hItem = getHandleFromFolder(pFolder);
 	assert(hItem);
+	
+	HWND hwnd = pThis_->getHandle();
+	
+	HTREEITEM hParent = TreeView_GetParent(hwnd, hItem);
+	while (hParent) {
+		TVITEM item = {
+			TVIF_HANDLE | TVIF_STATE,
+			hParent,
+			0,
+			TVIS_EXPANDED
+		};
+		TreeView_GetItem(hwnd, &item);
+		if (!(item.state & TVIS_EXPANDED))
+			hItem = hParent;
+		hParent = TreeView_GetParent(hwnd, hParent);
+	}
+	
 	RECT rect;
-	if (TreeView_GetItemRect(pThis_->getHandle(), hItem, &rect, FALSE))
+	if (TreeView_GetItemRect(hwnd, hItem, &rect, FALSE))
 		pThis_->invalidateRect(rect);
 	
 	return QSTATUS_SUCCESS;
