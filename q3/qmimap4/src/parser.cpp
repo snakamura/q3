@@ -289,43 +289,49 @@ std::auto_ptr<Response> qmimap4::Parser::parseResponse()
 		return std::auto_ptr<Response>(0);
 	
 	ResponseState::Flag flag = ResponseState::FLAG_UNKNOWN;
-	if (strcmp(strToken.get(), "OK") == 0) {
-		flag = ResponseState::FLAG_OK;
+	switch (*strToken.get()) {
+	case 'B':
+		if (strcmp(strToken.get(), "BAD") == 0)
+			flag = ResponseState::FLAG_BAD;
+		else if (strcmp(strToken.get(), "BYE") == 0)
+			flag = ResponseState::FLAG_BYE;
+		break;
+	case 'C':
+		if (strcmp(strToken.get(), "CAPABILITY") == 0)
+			pResponse = parseCapabilityResponse();
+		break;
+	case 'F':
+		if (strcmp(strToken.get(), "FLAGS") == 0)
+			pResponse = parseFlagsResponse();
+		break;
+	case 'L':
+		if (strcmp(strToken.get(), "LIST") == 0)
+			pResponse = parseListResponse(true);
+		else if (strcmp(strToken.get(), "LSUB") == 0)
+			pResponse = parseListResponse(false);
+		break;
+	case 'N':
+		if (strcmp(strToken.get(), "NO") == 0)
+			flag = ResponseState::FLAG_NO;
+		else if (strcmp(strToken.get(), "NAMESPACE") == 0)
+			pResponse = parseNamespaceResponse();
+		break;
+	case 'O':
+		if (strcmp(strToken.get(), "OK") == 0)
+			flag = ResponseState::FLAG_OK;
+		break;
+	case 'P':
+		if (strcmp(strToken.get(), "PREAUTH") == 0)
+			flag = ResponseState::FLAG_PREAUTH;
+		break;
+	case 'S':
+		if (strcmp(strToken.get(), "STATUS") == 0)
+			pResponse = parseStatusResponse();
+		else if (strcmp(strToken.get(), "SEARCH") == 0)
+			pResponse = parseSearchResponse();
+		break;
 	}
-	else if (strcmp(strToken.get(), "NO") == 0) {
-		flag = ResponseState::FLAG_NO;
-	}
-	else if (strcmp(strToken.get(), "BAD") == 0) {
-		flag = ResponseState::FLAG_BAD;
-	}
-	else if (strcmp(strToken.get(), "PREAUTH") == 0) {
-		flag = ResponseState::FLAG_PREAUTH;
-	}
-	else if (strcmp(strToken.get(), "BYE") == 0) {
-		flag = ResponseState::FLAG_BYE;
-	}
-	else if (strcmp(strToken.get(), "CAPABILITY") == 0) {
-		pResponse = parseCapabilityResponse();
-	}
-	else if (strcmp(strToken.get(), "LIST") == 0) {
-		pResponse = parseListResponse(true);
-	}
-	else if (strcmp(strToken.get(), "LSUB") == 0) {
-		pResponse = parseListResponse(false);
-	}
-	else if (strcmp(strToken.get(), "STATUS") == 0) {
-		pResponse = parseStatusResponse();
-	}
-	else if (strcmp(strToken.get(), "SEARCH") == 0) {
-		pResponse = parseSearchResponse();
-	}
-	else if (strcmp(strToken.get(), "FLAGS") == 0) {
-		pResponse = parseFlagsResponse();
-	}
-	else if (strcmp(strToken.get(), "NAMESPACE") == 0) {
-		pResponse = parseNamespaceResponse();
-	}
-	else {
+	if (flag == ResponseState::FLAG_UNKNOWN && !pResponse.get()) {
 		CHAR* pEnd = 0;
 		long nNumber = strtol(strToken.get(), &pEnd, 10);
 		if (*pEnd)
@@ -347,15 +353,23 @@ std::auto_ptr<Response> qmimap4::Parser::parseResponse()
 				nIndex_ += 2;
 		}
 		
-		if (strcmp(strToken.get(), "EXISTS") == 0)
-			pResponse.reset(new ResponseExists(nNumber));
-		else if (strcmp(strToken.get(), "RECENT") == 0)
-			pResponse.reset(new ResponseRecent(nNumber));
-		else if (strcmp(strToken.get(), "EXPUNGE") == 0)
-			pResponse.reset(new ResponseExpunge(nNumber));
-		else if (strcmp(strToken.get(), "FETCH") == 0)
-			pResponse = parseFetchResponse(nNumber);
-		else
+		switch (*strToken.get()) {
+		case 'E':
+			if (strcmp(strToken.get(), "EXISTS") == 0)
+				pResponse.reset(new ResponseExists(nNumber));
+			else if (strcmp(strToken.get(), "EXPUNGE") == 0)
+				pResponse.reset(new ResponseExpunge(nNumber));
+			break;
+		case L'F':
+			if (strcmp(strToken.get(), "FETCH") == 0)
+				pResponse = parseFetchResponse(nNumber);
+			break;
+		case L'R':
+			if (strcmp(strToken.get(), "RECENT") == 0)
+				pResponse.reset(new ResponseRecent(nNumber));
+			break;
+		}
+		if (!pResponse.get())
 			return std::auto_ptr<Response>(0);
 	}
 	

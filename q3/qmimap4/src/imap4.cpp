@@ -1760,109 +1760,146 @@ std::auto_ptr<ResponseFetch> qmimap4::ResponseFetch::create(unsigned long nNumbe
 			return std::auto_ptr<ResponseFetch>(0);
 		
 		string_ptr strName(static_cast<ListItemText*>(l[n])->releaseText());
-		if (_stricmp(strName.get(), "UID") == 0) {
-			// UID
-			if (l[n + 1]->getType() != ListItem::TYPE_TEXT)
+		switch (*strName.get()) {
+		case L'B':
+		case L'b':
+			if (_stricmp(strName.get(), "BODY") == 0 ||
+				_stricmp(strName.get(), "BODYSTRUCTURE") == 0) {
+				// BODY, BODYSTRUCTURE
+				if (l[n + 1]->getType() != ListItem::TYPE_LIST)
+					return std::auto_ptr<ResponseFetch>(0);
+				
+				bool bExtended = strName.get()[4] != '\0';
+				std::auto_ptr<FetchDataBodyStructure> pStructure(
+					FetchDataBodyStructure::create(static_cast<List*>(l[n + 1]), bExtended));
+				if (!pStructure.get())
+					return std::auto_ptr<ResponseFetch>(0);
+				listData.push_back(pStructure.release());
+			}
+			else if (_strnicmp(strName.get(), "BODY[", 5) == 0) {
+				// BODY[SECTION]
+				if (l[n + 1]->getType() != ListItem::TYPE_TEXT)
+					return std::auto_ptr<ResponseFetch>(0);
+				
+				const CHAR* p = strName.get() + 5;
+				CHAR* pEnd = strchr(p, ']');
+				if (!pEnd)
+					return std::auto_ptr<ResponseFetch>(0);
+				*pEnd = '\0';
+				
+				std::auto_ptr<FetchDataBody> pBody(FetchDataBody::create(
+					p, static_cast<ListItemText*>(l[n + 1])->releaseText()));
+				if (!pBody.get())
+					return std::auto_ptr<ResponseFetch>(0);
+				listData.push_back(pBody.release());
+			}
+			else {
 				return std::auto_ptr<ResponseFetch>(0);
-			
-			const CHAR* pszUid = static_cast<ListItemText*>(l[n + 1])->getText();
-			CHAR* pEnd = 0;
-			nUid = strtol(pszUid, &pEnd, 10);
-			if (*pEnd)
+			}
+			break;
+		case L'E':
+		case L'e':
+			if (_stricmp(strName.get(), "ENVELOPE") == 0) {
+				// ENVELOPE
+				if (l[n + 1]->getType() != ListItem::TYPE_LIST)
+					return std::auto_ptr<ResponseFetch>(0);
+				
+				std::auto_ptr<FetchDataEnvelope> pEnvelope(
+					FetchDataEnvelope::create(static_cast<List*>(l[n + 1])));
+				if (!pEnvelope.get())
+					return std::auto_ptr<ResponseFetch>(0);
+				listData.push_back(pEnvelope.release());
+			}
+			else {
 				return std::auto_ptr<ResponseFetch>(0);
-		}
-		else if (_stricmp(strName.get(), "FLAGS") == 0) {
-			// FLAGS
-			if (l[n + 1]->getType() != ListItem::TYPE_LIST)
+			}
+			break;
+		case L'F':
+		case L'f':
+			if (_stricmp(strName.get(), "FLAGS") == 0) {
+				// FLAGS
+				if (l[n + 1]->getType() != ListItem::TYPE_LIST)
+					return std::auto_ptr<ResponseFetch>(0);
+				
+				std::auto_ptr<FetchDataFlags> pFlags(
+					FetchDataFlags::create(static_cast<List*>(l[n + 1])));
+				if (!pFlags.get())
+					return std::auto_ptr<ResponseFetch>(0);
+				listData.push_back(pFlags.release());
+			}
+			else {
 				return std::auto_ptr<ResponseFetch>(0);
-			
-			std::auto_ptr<FetchDataFlags> pFlags(
-				FetchDataFlags::create(static_cast<List*>(l[n + 1])));
-			if (!pFlags.get())
+			}
+			break;
+		case L'I':
+		case L'i':
+			if (_stricmp(strName.get(), "INTERNALDATE") == 0) {
+				// INTERNALDATE
+				if (l[n + 1]->getType() != ListItem::TYPE_TEXT)
+					return std::auto_ptr<ResponseFetch>(0);
+				
+				std::auto_ptr<FetchDataInternalDate> pDate(
+					FetchDataInternalDate::create(static_cast<ListItemText*>(l[n + 1])->getText()));
+				if (!pDate.get())
+					return std::auto_ptr<ResponseFetch>(0);
+				listData.push_back(pDate.release());
+			}
+			else {
 				return std::auto_ptr<ResponseFetch>(0);
-			listData.push_back(pFlags.release());
-		}
-		else if (_stricmp(strName.get(), "ENVELOPE") == 0) {
-			// ENVELOPE
-			if (l[n + 1]->getType() != ListItem::TYPE_LIST)
+			}
+			break;
+		case L'R':
+		case L'r':
+			if (_stricmp(strName.get(), "RFC822") == 0 ||
+				_stricmp(strName.get(), "RFC822.HEADER") == 0 ||
+				_stricmp(strName.get(), "RFC822.TEXT") == 0) {
+				// RFC822
+				if (l[n + 1]->getType() != ListItem::TYPE_TEXT)
+					return std::auto_ptr<ResponseFetch>(0);
+				
+				const CHAR* pszSection = strName.get()[6] == '\0' ? 0 : strName.get() + 7;
+				std::auto_ptr<FetchDataBody> pBody(FetchDataBody::create(
+					pszSection, static_cast<ListItemText*>(l[n + 1])->releaseText()));
+				if (!pBody.get())
+					return std::auto_ptr<ResponseFetch>(0);
+				listData.push_back(pBody.release());
+			}
+			else if (_stricmp(strName.get(), "RFC822.SIZE") == 0) {
+				// SIZE
+				if (l[n + 1]->getType() != ListItem::TYPE_TEXT)
+					return std::auto_ptr<ResponseFetch>(0);
+				
+				const CHAR* pszSize = static_cast<ListItemText*>(l[n + 1])->getText();
+				CHAR* pEnd = 0;
+				long nSize = strtol(pszSize, &pEnd, 10);
+				if (*pEnd)
+					return std::auto_ptr<ResponseFetch>(0);
+				
+				std::auto_ptr<FetchDataSize> pSize(new FetchDataSize(nSize));
+				listData.push_back(pSize.release());
+			}
+			else {
 				return std::auto_ptr<ResponseFetch>(0);
-			
-			std::auto_ptr<FetchDataEnvelope> pEnvelope(
-				FetchDataEnvelope::create(static_cast<List*>(l[n + 1])));
-			if (!pEnvelope.get())
+			}
+			break;
+		case L'U':
+		case L'u':
+			if (_stricmp(strName.get(), "UID") == 0) {
+				// UID
+				if (l[n + 1]->getType() != ListItem::TYPE_TEXT)
+					return std::auto_ptr<ResponseFetch>(0);
+				
+				const CHAR* pszUid = static_cast<ListItemText*>(l[n + 1])->getText();
+				CHAR* pEnd = 0;
+				nUid = strtol(pszUid, &pEnd, 10);
+				if (*pEnd)
+					return std::auto_ptr<ResponseFetch>(0);
+			}
+			else {
 				return std::auto_ptr<ResponseFetch>(0);
-			listData.push_back(pEnvelope.release());
-		}
-		else if (_stricmp(strName.get(), "INTERNALDATE") == 0) {
-			// INTERNALDATE
-			if (l[n + 1]->getType() != ListItem::TYPE_TEXT)
-				return std::auto_ptr<ResponseFetch>(0);
-			
-			std::auto_ptr<FetchDataInternalDate> pDate(
-				FetchDataInternalDate::create(static_cast<ListItemText*>(l[n + 1])->getText()));
-			if (!pDate.get())
-				return std::auto_ptr<ResponseFetch>(0);
-			listData.push_back(pDate.release());
-		}
-		else if (_stricmp(strName.get(), "RFC822") == 0 ||
-			_stricmp(strName.get(), "RFC822.HEADER") == 0 ||
-			_stricmp(strName.get(), "RFC822.TEXT") == 0) {
-			// RFC822
-			if (l[n + 1]->getType() != ListItem::TYPE_TEXT)
-				return std::auto_ptr<ResponseFetch>(0);
-			
-			const CHAR* pszSection = strName.get()[6] == '\0' ? 0 : strName.get() + 7;
-			std::auto_ptr<FetchDataBody> pBody(FetchDataBody::create(
-				pszSection, static_cast<ListItemText*>(l[n + 1])->releaseText()));
-			if (!pBody.get())
-				return std::auto_ptr<ResponseFetch>(0);
-			listData.push_back(pBody.release());
-		}
-		else if (_stricmp(strName.get(), "RFC822.SIZE") == 0) {
-			// SIZE
-			if (l[n + 1]->getType() != ListItem::TYPE_TEXT)
-				return std::auto_ptr<ResponseFetch>(0);
-			
-			const CHAR* pszSize = static_cast<ListItemText*>(l[n + 1])->getText();
-			CHAR* pEnd = 0;
-			long nSize = strtol(pszSize, &pEnd, 10);
-			if (*pEnd)
-				return std::auto_ptr<ResponseFetch>(0);
-			
-			std::auto_ptr<FetchDataSize> pSize(new FetchDataSize(nSize));
-			listData.push_back(pSize.release());
-		}
-		else if (_stricmp(strName.get(), "BODY") == 0 ||
-			_stricmp(strName.get(), "BODYSTRUCTURE") == 0) {
-			// BODY, BODYSTRUCTURE
-			if (l[n + 1]->getType() != ListItem::TYPE_LIST)
-				return std::auto_ptr<ResponseFetch>(0);
-			
-			bool bExtended = strName.get()[4] != '\0';
-			std::auto_ptr<FetchDataBodyStructure> pStructure(
-				FetchDataBodyStructure::create(static_cast<List*>(l[n + 1]), bExtended));
-			if (!pStructure.get())
-				return std::auto_ptr<ResponseFetch>(0);
-			listData.push_back(pStructure.release());
-		}
-		else if (_strnicmp(strName.get(), "BODY[", 5) == 0) {
-			// BODY[SECTION]
-			if (l[n + 1]->getType() != ListItem::TYPE_TEXT)
-				return std::auto_ptr<ResponseFetch>(0);
-			
-			const CHAR* p = strName.get() + 5;
-			CHAR* pEnd = strchr(p, ']');
-			if (!pEnd)
-				return std::auto_ptr<ResponseFetch>(0);
-			*pEnd = '\0';
-			
-			std::auto_ptr<FetchDataBody> pBody(FetchDataBody::create(
-				p, static_cast<ListItemText*>(l[n + 1])->releaseText()));
-			if (!pBody.get())
-				return std::auto_ptr<ResponseFetch>(0);
-			listData.push_back(pBody.release());
-		}
-		else {
+			}
+			break;
+		default:
 			return std::auto_ptr<ResponseFetch>(0);
 		}
 	}
