@@ -684,6 +684,9 @@ QSTATUS qm::FileEmptyTrashAction::invoke(const ActionEvent& event)
 			status = pTrash->clearDeletedMessages();
 			CHECK_QSTATUS();
 		}
+		
+		status = pTrash->getAccount()->save();
+		CHECK_QSTATUS();
 	}
 	
 	return QSTATUS_SUCCESS;
