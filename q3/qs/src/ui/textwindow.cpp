@@ -1822,6 +1822,14 @@ qs::TextWindow::TextWindow(TextModel* pTextModel, Profile* pProfile,
 		initColors[n].cr_ = color.getColor();
 	}
 	
+	int nUseSystemColor = 1;
+	status = pProfile->getInt(pwszSection, L"UseSystemColor", 1, &nUseSystemColor);
+	CHECK_QSTATUS_SET(pstatus);
+	if (nUseSystemColor) {
+		initColors[0].cr_ = ::GetSysColor(COLOR_WINDOWTEXT);
+		initColors[1].cr_ = ::GetSysColor(COLOR_WINDOW);
+	}
+	
 	struct InitNumber
 	{
 		const WCHAR* pwszKey_;
