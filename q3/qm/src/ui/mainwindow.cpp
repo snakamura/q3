@@ -1836,7 +1836,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	CHECK_QSTATUS_VALUE(-1);
 	
 	status = newQsObject(pImpl_->pViewModelManager_,
-		true, &pImpl_->pPreviewModel_);
+		pImpl_->bShowPreviewWindow_, &pImpl_->pPreviewModel_);
 	CHECK_QSTATUS();
 	
 	status = newQsObject(pImpl_->pDocument_, pImpl_->pSyncManager_,
@@ -2289,7 +2289,6 @@ void qm::ListContainerWindow::setFolderListWindow(
 void qm::ListContainerWindow::setListWindow(ListWindow* pListWindow)
 {
 	pListWindow_ = pListWindow;
-//	pListWindow_->showWindow(SW_HIDE);
 }
 
 LRESULT qm::ListContainerWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
