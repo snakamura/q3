@@ -366,16 +366,23 @@ void qm::TabWindowImpl::resetHandlers(Folder* pOldFolder,
 
 wstring_ptr qm::TabWindowImpl::getTitle(const TabItem* pItem) const
 {
+	const WCHAR* pwszLock = pItem->isLocked() ? L"*" : L"";
 	const WCHAR* pwszTitle = pItem->getTitle();
 	
 	std::pair<Account*, Folder*> p(pItem->get());
 	if (p.first) {
 		if (pwszTitle) {
-			return allocWString(pwszTitle);
+			return concat(pwszTitle, pwszLock);
 		}
 		else {
 			Account* pAccount = p.first;
-			return concat(L"[", pAccount->getName(), L"]");
+			ConcatW c[] = {
+				{ L"[",					1	},
+				{ pAccount->getName(),	-1	},
+				{ L"]",					1	},
+				{ pwszLock,				-1	}
+			};
+			return concat(c, countof(c));
 		}
 	}
 	else {
@@ -390,7 +397,7 @@ wstring_ptr qm::TabWindowImpl::getTitle(const TabItem* pItem) const
 			swprintf(wsz, L" (%d)", pFolder->getUnseenCount());
 		
 		if (pwszTitle) {
-			return concat(pwszTitle, wsz);
+			return concat(pwszTitle, wsz, pwszLock);
 		}
 		else {
 			ConcatW c[] = {
@@ -398,7 +405,8 @@ wstring_ptr qm::TabWindowImpl::getTitle(const TabItem* pItem) const
 				{ pFolder->getAccount()->getName(),	-1	},
 				{ L"] ",							2	},
 				{ pFolder->getName(),				-1	},
-				{ wsz,								-1	}
+				{ wsz,								-1	},
+				{ pwszLock,							-1	}
 			};
 			return concat(c, countof(c));
 		}
