@@ -639,7 +639,7 @@ wstring_ptr qs::Part::getCharset() const
 	wstring_ptr wstrCharset;
 	const ContentTypeParser* pContentType = getContentType();
 	if (!pContentType) {
-		if (hasField(L"MIME-Version"))
+		if (!isOption(O_ALLOW_USE_DEFAULT_ENCODING) && hasField(L"MIME-Version"))
 			wstrCharset = allocWString(L"us-ascii");
 		else
 			wstrCharset = allocWString(getDefaultCharset());
@@ -648,8 +648,12 @@ wstring_ptr qs::Part::getCharset() const
 		assert(pContentType->getMediaType());
 		if (_wcsicmp(pContentType->getMediaType(), L"text") == 0) {
 			wstrCharset = pContentType->getParameter(L"charset");
-			if (!wstrCharset.get())
-				wstrCharset = allocWString(L"us-ascii");
+			if (!wstrCharset.get()) {
+				if (isOption(O_ALLOW_USE_DEFAULT_ENCODING))
+					wstrCharset = allocWString(getDefaultCharset());
+				else
+					wstrCharset = allocWString(L"us-ascii");
+			}
 		}
 	}
 	
