@@ -1078,6 +1078,8 @@ public:
 	static bool isNeedQuote(const Char* psz,
 							size_t nLen,
 							bool bQuoteWhitespace);
+	static basic_string_ptr<String> resolveQuotedPairs(const Char* psz,
+													   size_t nLen);
 };
 
 

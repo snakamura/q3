@@ -91,6 +91,31 @@ bool qs::FieldParserUtil<String>::isNeedQuote(const Char* psz,
 	return p != psz + nLen;
 }
 
+template<class String>
+qs::basic_string_ptr<String> qs::FieldParserUtil<String>::resolveQuotedPairs(const Char* psz,
+																			 size_t nLen)
+{
+	assert(psz);
+	
+	if (nLen == -1)
+		nLen = CharTraits<Char>::getLength(psz);
+	
+	StringBuffer<String> buf;
+	
+	bool bQuoted = false;
+	for (size_t n = 0; n < nLen; ++n, ++psz) {
+		if (!bQuoted && *psz == Char('\\')) {
+			bQuoted = true;
+		}
+		else {
+			buf.append(*psz);
+			bQuoted = false;
+		}
+	}
+	
+	return buf.getString();
+}
+
 
 /****************************************************************************
  *

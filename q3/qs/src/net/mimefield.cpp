@@ -1155,9 +1155,9 @@ Part::Field qs::SimpleParser::parse(const Part& part,
 				state = S_ATOM;
 			}
 			else if (token.type_ == Tokenizer::T_QSTRING && nFlags_ & FLAG_ACCEPTQSTRING) {
-				if (part.isOption(Part::O_ALLOW_ENCODED_QSTRING) &&
-					nFlags_ & FLAG_DECODE)
-					wstrValue_ = decode(token.str_.get(), -1, false, 0);
+				if (part.isOption(Part::O_ALLOW_ENCODED_QSTRING) && nFlags_ & FLAG_DECODE)
+					wstrValue_ = FieldParserUtil<WSTRING>::resolveQuotedPairs(
+						decode(token.str_.get(), -1, false, 0).get(), -1);
 				else
 					wstrValue_ = mbs2wcs(token.str_.get());
 				state = S_ATOM;
@@ -1768,20 +1768,35 @@ wstring_ptr qs::AddressParser::getValue() const
 	const WCHAR* pwszPhrase = wstrPhrase_.get();
 	wstring_ptr wstrPhrase;
 	if (pwszPhrase) {
-#if 1
+		bool bQuote = false;
 		size_t nLen = wcslen(pwszPhrase);
-		if (nLen != 0 && *pwszPhrase != L'\"' && *(pwszPhrase + nLen - 1) != L'\"') {
+		if (nLen != 0 && *pwszPhrase == L'\"' && *(pwszPhrase + nLen - 1) == L'\"') {
+			// This may be the case where the phrase was encoded and
+			// the encoded phrase is quoted by "".
+			bQuote = false;
+		}
+#if 0
+		else if (isAscii(pwszPhrase)) {
+			bQuote = true;
+		}
+		else if (wcschr(pwszPhrase, L'\\')) {
+			// This may be the case where
+			// 1. the phrase contains backslash correctly, or
+			// 2. the phrase was encoded and the encoded phrase contains backslash.
+			bQuote = true;
+		}
+		else {
+			bQuote = false;
+		}
+#else
+		else {
+			bQuote = true;
+		}
+#endif
+		if (bQuote) {
 			wstrPhrase = FieldParserUtil<WSTRING>::getAtomsOrQString(pwszPhrase, -1);
 			pwszPhrase = wstrPhrase.get();
 		}
-#else
-		if (isAscii(pwszPhrase, -1)) {
-			string_ptr str(wcs2mbs(pwszPhrase));
-			string_ptr strAtoms(FieldParserUtil<STRING>::getAtomsOrQString(str.get(), -1));
-			wstrPhrase = mbs2wcs(strAtoms.get());
-			pwszPhrase = wstrPhrase.get();
-		}
-#endif
 	}
 	
 	StringBuffer<WSTRING> buf;
@@ -2252,11 +2267,18 @@ Part::Field qs::AddressParser::parseAddress(const Part& part,
 			bQuote = *p != L'\0';
 		}
 		
-		if (bQuote)
+		if (bQuote) {
 			bufPhrase.append(L'\"');
-		bufPhrase.append(wstrWord.get());
-		if (bQuote)
+			for (const WCHAR* p = wstrWord.get(); *p; ++p) {
+				if (*p == L'\\' || *p == L'\"')
+					bufPhrase.append(L'\\');
+				bufPhrase.append(*p);
+			}
 			bufPhrase.append(L'\"');
+		}
+		else {
+			bufPhrase.append(wstrWord.get());
+		}
 		
 		bPrevDecode = bDecoded;
 		bPrevPeriod = bPeriod;
@@ -2285,8 +2307,11 @@ wstring_ptr qs::AddressParser::decodePhrase(const CHAR* psz,
 	
 	*pbDecoded = false;
 	
-	if (bAtom || bAllowEncodedQString)
+	if (bAtom)
 		return decode(psz, -1, bAllowUTF8, pbDecoded);
+	else if (bAllowEncodedQString)
+		return FieldParserUtil<WSTRING>::resolveQuotedPairs(
+			decode(psz, -1, bAllowUTF8, pbDecoded).get(), -1);
 	else
 		return mbs2wcs(psz);
 }
