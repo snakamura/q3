@@ -344,6 +344,7 @@ public:
 	unsigned int nLastSyncTime_;
 	MessageHolderList listMessageHolder_;
 	bool bLoad_;
+	mutable bool bModified_;
 };
 
 wstring_ptr qm::NormalFolderImpl::getPath() const
@@ -401,6 +402,8 @@ void qm::NormalFolderImpl::messageHolderChanged(const MessageHolderEvent& event)
 		
 		if (nUnseenCount != nUnseenCount_)
 			pThis_->getImpl()->fireUnseenCountChanged();
+		
+		bModified_ = true;
 	}
 }
 
@@ -438,6 +441,7 @@ qm::NormalFolder::NormalFolder(unsigned int nId,
 	pImpl_->nDeletedCount_ = nDeletedCount;
 	pImpl_->nLastSyncTime_ = 0;
 	pImpl_->bLoad_ = false;
+	pImpl_->bModified_ = false;
 	
 	getAccount()->addMessageHolderHandler(pImpl_);
 }
@@ -634,6 +638,7 @@ bool qm::NormalFolder::loadMessageHolders()
 	pImpl_->nUnseenCount_ = 0;
 	pImpl_->nDownloadCount_ = 0;
 	pImpl_->nDeletedCount_ = 0;
+	pImpl_->bModified_ = false;
 	
 	wstring_ptr wstrPath(pImpl_->getPath());
 	
@@ -676,7 +681,7 @@ bool qm::NormalFolder::saveMessageHolders()
 {
 	Lock<Account> lock(*getAccount());
 	
-	if (!pImpl_->bLoad_)
+	if (!pImpl_->bLoad_ || !pImpl_->bModified_)
 		return true;
 	
 	wstring_ptr wstrPath(pImpl_->getPath());
@@ -700,6 +705,8 @@ bool qm::NormalFolder::saveMessageHolders()
 	
 	if (!renamer.rename())
 		return false;
+	
+	pImpl_->bModified_ = false;
 	
 	return true;
 }
@@ -748,6 +755,8 @@ bool qm::NormalFolder::appendMessage(std::auto_ptr<MessageHolder> pmh)
 	if (!loadMessageHolders())
 		return false;
 	
+	pImpl_->bModified_ = true;
+	
 	assert(pImpl_->listMessageHolder_.empty() ||
 		pImpl_->listMessageHolder_.back()->getId() < pmh->getId());
 	
@@ -773,6 +782,8 @@ void qm::NormalFolder::removeMessage(MessageHolder* pmh)
 	assert(pmh->getFolder() == this);
 	assert(pImpl_->bLoad_);
 	assert(getAccount()->isLocked());
+	
+	pImpl_->bModified_ = true;
 	
 	MessageHolderList::iterator it = std::lower_bound(
 		pImpl_->listMessageHolder_.begin(), pImpl_->listMessageHolder_.end(), pmh,
@@ -807,6 +818,9 @@ bool qm::NormalFolder::moveMessages(const MessageHolderList& l,
 	
 	if (!pFolder->loadMessageHolders())
 		return false;
+	
+	pImpl_->bModified_ = true;
+	pFolder->pImpl_->bModified_ = true;
 	
 	MessageHolderList& listFrom = pImpl_->listMessageHolder_;
 	MessageHolderList& listTo = pFolder->pImpl_->listMessageHolder_;
@@ -847,7 +861,7 @@ bool qm::NormalFolder::moveMessages(const MessageHolderList& l,
 		}
 		
 		getImpl()->fireMessageRemoved(pmh);
-		 pFolder->getImpl()->fireMessageAdded(pmh);
+		pFolder->getImpl()->fireMessageAdded(pmh);
 	}
 	
 	return true;

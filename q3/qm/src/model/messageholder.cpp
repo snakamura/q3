@@ -308,7 +308,8 @@ void qm::MessageHolder::setId(unsigned int nId)
 	nId_ = nId;
 }
 
-void qm::MessageHolder::setFlags(unsigned int nFlags, unsigned int nMask)
+void qm::MessageHolder::setFlags(unsigned int nFlags,
+								 unsigned int nMask)
 {
 	Lock<Account> lock(*getAccount());
 	
