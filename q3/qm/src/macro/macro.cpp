@@ -12,8 +12,9 @@
 #include <qmmessage.h>
 #include <qmmessageholder.h>
 
-#include <qsstl.h>
 #include <qsconv.h>
+#include <qsinit.h>
+#include <qsstl.h>
 
 #include <algorithm>
 #include <memory>
@@ -416,6 +417,16 @@ MacroValuePtr qm::MacroExpr::error(const MacroContext& context,
 		wstring_ptr wstr(getString());
 		context.getErrorHandler()->processError(code, wstr.get());
 	}
+	
+	Log log(InitThread::getInitThread().getLogger(), L"qm::MacroExpr");
+	if (log.isErrorEnabled()) {
+		WCHAR wsz[128];
+		swprintf(wsz, L"Error occured while processing macro: code=%u at ", code);
+		wstring_ptr wstr(getString());
+		wstring_ptr wstrLog(concat(wsz, wstr.get()));
+		log.error(wstrLog.get());
+	}
+	
 	return 0;
 }
 
@@ -446,7 +457,7 @@ MacroValuePtr qm::MacroField::value(MacroContext* pContext) const
 	Message* pMessage = pContext->getMessage(
 		MacroContext::MESSAGETYPE_HEADER, wstrName_.get());
 	if (!pMessage)
-		return 0;
+		return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
 	
 	string_ptr strHeader(PartUtil(*pMessage).getHeader(wstrName_.get()));
 	return MacroValueFactory::getFactory().newField(wstrName_.get(), strHeader.get());
@@ -1011,6 +1022,16 @@ std::auto_ptr<Macro> qm::MacroParser::error(MacroErrorHandler::Code code,
 {
 	if (pErrorHandler_)
 		pErrorHandler_->parseError(code, p);
+	
+	
+	Log log(InitThread::getInitThread().getLogger(), L"qm::MacroParser");
+	if (log.isErrorEnabled()) {
+		WCHAR wsz[128];
+		swprintf(wsz, L"Error occured while parsing macro: code=%u at ", code);
+		wstring_ptr wstrLog(concat(wsz, p));
+		log.error(wstrLog.get());
+	}
+	
 	return 0;
 }
 

@@ -18,6 +18,7 @@
 #include <qmscript.h>
 
 #include <qsconv.h>
+#include <qsinit.h>
 #include <qsosutil.h>
 #include <qsregex.h>
 #include <qsstl.h>
@@ -47,6 +48,16 @@ using namespace qs;
 	MacroValuePtr name(getArg(index)->value(pContext)); \
 	if (!name.get()) \
 		return 0; \
+
+#define LOG(name) \
+	do { \
+		Log log(InitThread::getInitThread().getLogger(), L"qm::MacroFunction" L#name); \
+		if (log.isDebugEnabled()) { \
+			wstring_ptr wstr(getString()); \
+			wstring_ptr wstrLog(concat(L"Processing: ", wstr.get())); \
+			log.debug(wstrLog.get()); \
+		} \
+	} while (false)
 
 
 /****************************************************************************
@@ -194,6 +205,8 @@ MacroValuePtr qm::MacroFunctionAccount::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Account);
+	
 	if (!checkArgSizeRange(pContext, 0, 1))
 		return 0;
 	
@@ -247,6 +260,8 @@ MacroValuePtr qm::MacroFunctionAccountDirectory::value(MacroContext* pContext) c
 {
 	assert(pContext);
 	
+	LOG(AccountDirectory);
+	
 	if (!checkArgSizeRange(pContext, 0, 1))
 		return 0;
 	size_t nSize = getArgSize();
@@ -299,6 +314,8 @@ MacroValuePtr qm::MacroFunctionAdditive::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Additive);
+	
 	if (!checkArgSize(pContext, 2))
 		return 0;
 	
@@ -342,6 +359,8 @@ MacroValuePtr qm::MacroFunctionAddress::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Address);
+	
 	if (!checkArgSize(pContext, 1))
 		return 0;
 	
@@ -383,6 +402,8 @@ qm::MacroFunctionAddressBook::~MacroFunctionAddressBook()
 MacroValuePtr qm::MacroFunctionAddressBook::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(AddressBook);
 	
 	if (!checkArgSizeRange(pContext, 0, 3))
 		return 0;
@@ -459,6 +480,8 @@ MacroValuePtr qm::MacroFunctionAnd::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(And);
+	
 	if (!checkArgSizeMin(pContext, 1))
 		return 0;
 	
@@ -497,6 +520,8 @@ MacroValuePtr qm::MacroFunctionAttachment::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Attachment);
+	
 	if (!checkArgSizeRange(pContext, 0, 1))
 		return 0;
 	
@@ -508,7 +533,7 @@ MacroValuePtr qm::MacroFunctionAttachment::value(MacroContext* pContext) const
 	
 	Message* pMessage = getMessage(pContext, MacroContext::MESSAGETYPE_TEXT, 0);
 	if (!pMessage)
-		return 0;
+		return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
 	
 	const WCHAR* pwszSep = L", ";
 	wstring_ptr wstrSep;
@@ -556,6 +581,8 @@ MacroValuePtr qm::MacroFunctionBody::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Body);
+	
 	if (!checkArgSizeRange(pContext, 0, 3))
 		return 0;
 	
@@ -587,7 +614,7 @@ MacroValuePtr qm::MacroFunctionBody::value(MacroContext* pContext) const
 	Message* pMessage = getMessage(pContext,
 		bView ? MacroContext::MESSAGETYPE_TEXT : MacroContext::MESSAGETYPE_ALL, 0);
 	if (!pMessage)
-		return 0;
+		return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
 	
 	if (!pPart)
 		pPart = pMessage;
@@ -629,6 +656,8 @@ MacroValuePtr qm::MacroFunctionBoolean::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Boolean);
+	
 	if (!checkArgSize(pContext, 0))
 		return 0;
 	
@@ -658,6 +687,8 @@ qm::MacroFunctionClipboard::~MacroFunctionClipboard()
 MacroValuePtr qm::MacroFunctionClipboard::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(Clipboard);
 	
 	if (!checkArgSizeRange(pContext, 0, 1))
 		return 0;
@@ -708,6 +739,8 @@ MacroValuePtr qm::MacroFunctionComputerName::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(ComputerName);
+	
 	if (!checkArgSize(pContext, 0))
 		return 0;
 	
@@ -752,6 +785,8 @@ MacroValuePtr qm::MacroFunctionConcat::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Concat);
+	
 	StringBuffer<WSTRING> buf;
 	for (size_t n = 0; n < getArgSize(); ++n) {
 		ARG(pValue, n);
@@ -786,6 +821,8 @@ qm::MacroFunctionContain::~MacroFunctionContain()
 MacroValuePtr qm::MacroFunctionContain::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(Contain);
 	
 	if (!checkArgSizeRange(pContext, 2, 3))
 		return 0;
@@ -853,6 +890,8 @@ MacroValuePtr qm::MacroFunctionCopy::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Copy);
+	
 	if (!checkArgSize(pContext, 1))
 		return 0;
 	
@@ -906,6 +945,8 @@ MacroValuePtr qm::MacroFunctionDate::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Date);
+	
 	if (!checkArgSizeRange(pContext, 0, 1))
 		return 0;
 	
@@ -951,6 +992,8 @@ MacroValuePtr qm::MacroFunctionDecode::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Decode);
+	
 	if (!checkArgSize(pContext, 1))
 		return 0;
 	
@@ -989,6 +1032,8 @@ MacroValuePtr qm::MacroFunctionDefun::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Defun);
+	
 	if (!checkArgSize(pContext, 2))
 		return 0;
 	
@@ -1022,6 +1067,8 @@ qm::MacroFunctionDelete::~MacroFunctionDelete()
 MacroValuePtr qm::MacroFunctionDelete::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(Delete);
 	
 	if (!checkArgSize(pContext, 0))
 		return 0;
@@ -1064,6 +1111,8 @@ qm::MacroFunctionEqual::~MacroFunctionEqual()
 MacroValuePtr qm::MacroFunctionEqual::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(Equal);
 	
 	if (!checkArgSizeRange(pContext, 2, 3))
 		return 0;
@@ -1125,6 +1174,8 @@ MacroValuePtr qm::MacroFunctionEval::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Eval);
+	
 	if (!checkArgSize(pContext, 1))
 		return 0;
 	
@@ -1178,6 +1229,8 @@ qm::MacroFunctionExecute::~MacroFunctionExecute()
 MacroValuePtr qm::MacroFunctionExecute::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(Execute);
 	
 	size_t nSize = getArgSize();
 #ifdef _WIN32_WCE
@@ -1263,6 +1316,8 @@ MacroValuePtr qm::MacroFunctionExist::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Exist);
+	
 	if (!checkArgSize(pContext, 1))
 		return 0;
 	
@@ -1277,7 +1332,7 @@ MacroValuePtr qm::MacroFunctionExist::value(MacroContext* pContext) const
 	Message* pMessage = getMessage(pContext,
 		MacroContext::MESSAGETYPE_HEADER, wstrName.get());
 	if (!pMessage)
-		return 0;
+		return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
 	
 	bool bHas = pMessage->hasField(wstrName.get());
 	return MacroValueFactory::getFactory().newBoolean(bHas);
@@ -1306,6 +1361,8 @@ qm::MacroFunctionExit::~MacroFunctionExit()
 MacroValuePtr qm::MacroFunctionExit::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(Exit);
 	
 	if (!checkArgSizeRange(pContext, 2, 4))
 		return 0;
@@ -1339,6 +1396,8 @@ MacroValuePtr qm::MacroFunctionField::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Field);
+	
 	if (!checkArgSizeRange(pContext, 1, 2))
 		return 0;
 
@@ -1361,7 +1420,7 @@ MacroValuePtr qm::MacroFunctionField::value(MacroContext* pContext) const
 		Message* pMessage = getMessage(pContext,
 			MacroContext::MESSAGETYPE_HEADER, wstrName.get());
 		if (!pMessage)
-			return 0;
+			return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
 		pPart = pMessage;
 	}
 	
@@ -1394,6 +1453,8 @@ MacroValuePtr qm::MacroFunctionFieldParameter::value(MacroContext* pContext) con
 {
 	assert(pContext);
 	
+	LOG(FieldParameter);
+	
 	if (!checkArgSizeRange(pContext, 1, 3))
 		return 0;
 
@@ -1416,7 +1477,7 @@ MacroValuePtr qm::MacroFunctionFieldParameter::value(MacroContext* pContext) con
 		Message* pMessage = getMessage(pContext,
 			MacroContext::MESSAGETYPE_HEADER, wstrName.get());
 		if (!pMessage)
-			return 0;
+			return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
 		pPart = pMessage;
 	}
 	
@@ -1468,6 +1529,8 @@ qm::MacroFunctionFind::~MacroFunctionFind()
 MacroValuePtr qm::MacroFunctionFind::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(Find);
 	
 	if (!checkArgSizeRange(pContext, 2, 4))
 		return 0;
@@ -1554,6 +1617,8 @@ qm::MacroFunctionFlag::~MacroFunctionFlag()
 MacroValuePtr qm::MacroFunctionFlag::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(Flag);
 	
 	MessageHolderBase* pmh = pContext->getMessageHolder();
 	if (!pmh)
@@ -1644,6 +1709,8 @@ MacroValuePtr qm::MacroFunctionFolder::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Folder);
+	
 	if (!checkArgSizeRange(pContext, 0, 1))
 		return 0;
 	
@@ -1697,6 +1764,8 @@ MacroValuePtr qm::MacroFunctionForEach::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(ForEach);
+	
 	if (!checkArgSize(pContext, 2))
 		return 0;
 	
@@ -1743,6 +1812,8 @@ qm::MacroFunctionFormatAddress::~MacroFunctionFormatAddress()
 MacroValuePtr qm::MacroFunctionFormatAddress::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(FormatAddress);
 	
 	if (!checkArgSizeRange(pContext, 1, 3))
 		return 0;
@@ -1875,6 +1946,8 @@ MacroValuePtr qm::MacroFunctionFormatDate::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(FormatDate);
+	
 	if (!checkArgSizeRange(pContext, 2, 3))
 		return 0;
 
@@ -1927,6 +2000,8 @@ MacroValuePtr qm::MacroFunctionFunction::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Function);
+	
 	const MacroExpr* pExpr = pContext->getFunction(wstrName_.get());
 	if (!pExpr)
 		return error(*pContext, MacroErrorHandler::CODE_UNKNOWNFUNCTION);
@@ -1975,6 +2050,8 @@ MacroValuePtr qm::MacroFunctionHeader::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Header);
+	
 	if (!checkArgSizeRange(pContext, 0, 2))
 		return 0;
 	
@@ -1987,7 +2064,7 @@ MacroValuePtr qm::MacroFunctionHeader::value(MacroContext* pContext) const
 	Message* pMessage = getMessage(pContext,
 		MacroContext::MESSAGETYPE_HEADER, 0);
 	if (!pMessage)
-		return 0;
+		return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
 	
 	const Part* pPart = pMessage;
 	if (nSize > 1) {
@@ -2053,6 +2130,8 @@ MacroValuePtr qm::MacroFunctionHtmlEscape::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(HtmlEscape);
+	
 	if (!checkArgSize(pContext, 1))
 		return 0;
 	
@@ -2106,6 +2185,8 @@ qm::MacroFunctionI::~MacroFunctionI()
 MacroValuePtr qm::MacroFunctionI::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(I);
 	
 	if (!checkArgSizeRange(pContext, 0, 2))
 		return 0;
@@ -2168,6 +2249,8 @@ MacroValuePtr qm::MacroFunctionId::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Id);
+	
 	if (!checkArgSize(pContext, 0))
 		return 0;
 	
@@ -2201,6 +2284,8 @@ qm::MacroFunctionIdentity::~MacroFunctionIdentity()
 MacroValuePtr qm::MacroFunctionIdentity::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(Identity);
 	
 	if (!checkArgSize(pContext, 0))
 		return 0;
@@ -2240,6 +2325,8 @@ MacroValuePtr qm::MacroFunctionIf::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(If);
+	
 	size_t nSize = getArgSize();
 	if (nSize < 3 || nSize % 2 == 0)
 		return error(*pContext, MacroErrorHandler::CODE_INVALIDARGSIZE);
@@ -2278,6 +2365,8 @@ qm::MacroFunctionInclude::~MacroFunctionInclude()
 MacroValuePtr qm::MacroFunctionInclude::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(Include);
 	
 	if (!checkArgSize(pContext, 1))
 		return 0;
@@ -2336,6 +2425,8 @@ MacroValuePtr qm::MacroFunctionInputBox::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(InputBox);
+	
 	if (!checkArgSizeRange(pContext, 1, 3))
 		return 0;
 	
@@ -2390,6 +2481,8 @@ MacroValuePtr qm::MacroFunctionLength::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Length);
+	
 	if (!checkArgSizeRange(pContext, 1, 2))
 		return 0;
 	
@@ -2439,6 +2532,8 @@ qm::MacroFunctionLoad::~MacroFunctionLoad()
 MacroValuePtr qm::MacroFunctionLoad::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(Load);
 	
 	if (!checkArgSizeRange(pContext, 1, 3))
 		return 0;
@@ -2526,6 +2621,8 @@ MacroValuePtr qm::MacroFunctionMessageBox::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(MessageBox);
+	
 	if (!checkArgSizeRange(pContext, 1, 2))
 		return 0;
 	
@@ -2571,6 +2668,8 @@ qm::MacroFunctionMessages::~MacroFunctionMessages()
 MacroValuePtr qm::MacroFunctionMessages::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(Messages);
 	
 	if (!checkArgSizeRange(pContext, 0, 2))
 		return 0;
@@ -2638,6 +2737,8 @@ MacroValuePtr qm::MacroFunctionNot::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Not);
+	
 	if (!checkArgSize(pContext, 1))
 		return 0;
 	
@@ -2668,6 +2769,8 @@ qm::MacroFunctionOr::~MacroFunctionOr()
 MacroValuePtr qm::MacroFunctionOr::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(Or);
 	
 	if (!checkArgSizeMin(pContext, 1))
 		return 0;
@@ -2707,6 +2810,8 @@ MacroValuePtr qm::MacroFunctionOSVersion::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(OSVersion);
+	
 	if (!checkArgSize(pContext, 0))
 		return 0;
 	
@@ -2737,6 +2842,8 @@ qm::MacroFunctionParseURL::~MacroFunctionParseURL()
 MacroValuePtr qm::MacroFunctionParseURL::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(ParseURL);
 	
 	if (!checkArgSize(pContext, 1))
 		return 0;
@@ -2893,6 +3000,8 @@ MacroValuePtr qm::MacroFunctionPart::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Part);
+	
 	if (!checkArgSizeRange(pContext, 1, 2))
 		return 0;
 	
@@ -2904,7 +3013,7 @@ MacroValuePtr qm::MacroFunctionPart::value(MacroContext* pContext) const
 	
 	Message* pMessage = getMessage(pContext, MacroContext::MESSAGETYPE_ALL, 0);
 	if (!pMessage)
-		return 0;
+		return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
 	
 	const Part* pPart = pMessage;
 	if (nSize > 1) {
@@ -2947,6 +3056,8 @@ qm::MacroFunctionPassed::~MacroFunctionPassed()
 MacroValuePtr qm::MacroFunctionPassed::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(Passed);
 	
 	if (!checkArgSize(pContext, 1))
 		return 0;
@@ -2991,6 +3102,8 @@ MacroValuePtr qm::MacroFunctionProcessId::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(ProcessId);
+	
 	if (!checkArgSize(pContext, 0))
 		return 0;
 	
@@ -3020,6 +3133,8 @@ qm::MacroFunctionProfile::~MacroFunctionProfile()
 MacroValuePtr qm::MacroFunctionProfile::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(Profile);
 	
 	if (!checkArgSizeRange(pContext, 3, 4))
 		return 0;
@@ -3082,6 +3197,8 @@ MacroValuePtr qm::MacroFunctionProfileName::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(ProfileName);
+	
 	if (!checkArgSize(pContext, 0))
 		return 0;
 	
@@ -3112,6 +3229,8 @@ qm::MacroFunctionProgn::~MacroFunctionProgn()
 MacroValuePtr qm::MacroFunctionProgn::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(Progn);
 	
 	if (!checkArgSizeMin(pContext, 1))
 		return 0;
@@ -3151,6 +3270,8 @@ MacroValuePtr qm::MacroFunctionReferences::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(References);
+	
 	if (!checkArgSizeRange(pContext, 0, 1))
 		return 0;
 	
@@ -3163,7 +3284,7 @@ MacroValuePtr qm::MacroFunctionReferences::value(MacroContext* pContext) const
 	Message* pMessage = getMessage(pContext,
 		MacroContext::MESSAGETYPE_HEADER, L"References");
 	if (!pMessage)
-		return 0;
+		return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
 	
 	unsigned int nReferences = -1;
 	if (nSize > 0) {
@@ -3218,6 +3339,8 @@ qm::MacroFunctionRegexFind::~MacroFunctionRegexFind()
 MacroValuePtr qm::MacroFunctionRegexFind::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(RegexFind);
 	
 	if (!checkArgSizeRange(pContext, 2, 3))
 		return 0;
@@ -3280,6 +3403,8 @@ MacroValuePtr qm::MacroFunctionRegexMatch::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(RegexMatch);
+	
 	if (!checkArgSize(pContext, 2))
 		return 0;
 	
@@ -3327,6 +3452,8 @@ qm::MacroFunctionRegexReplace::~MacroFunctionRegexReplace()
 MacroValuePtr qm::MacroFunctionRegexReplace::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(RegexReplace);
 	
 	if (!checkArgSizeRange(pContext, 3, 4))
 		return 0;
@@ -3415,6 +3542,8 @@ MacroValuePtr qm::MacroFunctionRelative::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Relative);
+	
 	if (!checkArgSizeRange(pContext, 2, 3))
 		return 0;
 	
@@ -3477,6 +3606,8 @@ qm::MacroFunctionRemove::~MacroFunctionRemove()
 MacroValuePtr qm::MacroFunctionRemove::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(Remove);
 	
 	if (!checkArgSizeMin(pContext, 2))
 		return 0;
@@ -3555,7 +3686,9 @@ qm::MacroFunctionSave::~MacroFunctionSave()
 MacroValuePtr qm::MacroFunctionSave::value(MacroContext* pContext) const
 {
 	assert(pContext);
-
+	
+	LOG(Save);
+	
 	if (!checkArgSizeRange(pContext, 2, 3))
 		return 0;
 	
@@ -3612,6 +3745,8 @@ qm::MacroFunctionScript::~MacroFunctionScript()
 MacroValuePtr MacroFunctionScript::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(Script);
 	
 	if (!checkArgSizeMin(pContext, 3))
 		return 0;
@@ -3706,6 +3841,8 @@ MacroValuePtr qm::MacroFunctionSelected::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Selected);
+	
 	if (!checkArgSize(pContext, 0))
 		return 0;
 	
@@ -3741,6 +3878,8 @@ qm::MacroFunctionSet::~MacroFunctionSet()
 MacroValuePtr qm::MacroFunctionSet::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(Set);
 	
 	if (!checkArgSizeRange(pContext, 2, 3))
 		return 0;
@@ -3787,6 +3926,8 @@ MacroValuePtr qm::MacroFunctionSize::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Size);
+	
 	if (!checkArgSizeRange(pContext, 0, 1))
 		return false;
 	
@@ -3830,6 +3971,8 @@ MacroValuePtr qm::MacroFunctionSubAccount::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(SubAccount);
+	
 	if (!checkArgSize(pContext, 0))
 		return 0;
 	
@@ -3866,6 +4009,8 @@ MacroValuePtr qm::MacroFunctionSubject::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Subject);
+	
 	if (!checkArgSizeRange(pContext, 0, 2))
 		return 0;
 	
@@ -3878,7 +4023,7 @@ MacroValuePtr qm::MacroFunctionSubject::value(MacroContext* pContext) const
 	Message* pMessage = getMessage(pContext,
 		MacroContext::MESSAGETYPE_HEADER, L"Subject");
 	if (!pMessage)
-		return 0;
+		return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
 	
 	bool bRemoveRe = false;
 	bool bRemoveMl = false;
@@ -3970,6 +4115,8 @@ MacroValuePtr qm::MacroFunctionSubstring::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(Substring);
+	
 	if (!checkArgSizeRange(pContext, 2, 3))
 		return 0;
 	
@@ -4025,6 +4172,8 @@ qm::MacroFunctionSubstringSep::~MacroFunctionSubstringSep()
 MacroValuePtr qm::MacroFunctionSubstringSep::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(SubstringSep);
 	
 	if (!checkArgSizeRange(pContext, 2, 3))
 		return 0;
@@ -4085,6 +4234,8 @@ MacroValuePtr qm::MacroFunctionURI::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
+	LOG(URI);
+	
 	if (!checkArgSize(pContext, 0))
 		return 0;
 	
@@ -4119,6 +4270,8 @@ qm::MacroFunctionVariable::~MacroFunctionVariable()
 MacroValuePtr qm::MacroFunctionVariable::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(Variable);
 	
 	if (!checkArgSizeRange(pContext, 1, 3))
 		return 0;
@@ -4175,6 +4328,8 @@ qm::MacroFunctionWhile::~MacroFunctionWhile()
 MacroValuePtr qm::MacroFunctionWhile::value(MacroContext* pContext) const
 {
 	assert(pContext);
+	
+	LOG(While);
 	
 	if (!checkArgSize(pContext, 2))
 		return error(*pContext, MacroErrorHandler::CODE_INVALIDARGSIZE);
