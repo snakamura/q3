@@ -318,12 +318,6 @@ qm::SyncManager::SyncManager(Profile* pProfile, QSTATUS* pstatus) :
 	
 	status = newQsObject(&pEvent_);
 	CHECK_QSTATUS_SET(pstatus);
-	
-	status = newQsObject(this, &pWaitThread_);
-	CHECK_QSTATUS_SET(pstatus);
-	
-	status = pWaitThread_->start();
-	CHECK_QSTATUS_SET(pstatus);
 }
 
 qm::SyncManager::~SyncManager()
@@ -347,6 +341,13 @@ QSTATUS qm::SyncManager::sync(SyncData* pData)
 	DECLARE_QSTATUS();
 	
 	Lock<CriticalSection> lock(cs_);
+	
+	if (!pWaitThread_) {
+		status = newQsObject(this, &pWaitThread_);
+		CHECK_QSTATUS();
+		status = pWaitThread_->start();
+		CHECK_QSTATUS();
+	}
 	
 	if (listThread_.size() >= THREAD_MAX)
 		return QSTATUS_FAIL;
