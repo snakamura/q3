@@ -1893,7 +1893,38 @@ QSTATUS qm::MacroFunctionFlag::value(
 
 const WCHAR* qm::MacroFunctionFlag::getName() const
 {
-	return L"Flag";
+	if (bCustom_) {
+		return L"Flag";
+	}
+	else {
+		switch (flag_) {
+		case MessageHolder::FLAG_SEEN:
+			return L"Seen";
+		case MessageHolder::FLAG_REPLIED:
+			return L"Replied";
+		case MessageHolder::FLAG_FORWARDED:
+			return L"Forwarded";
+		case MessageHolder::FLAG_SENT:
+			return L"Sent";
+		case MessageHolder::FLAG_DRAFT:
+			return L"Draft";
+		case MessageHolder::FLAG_MARKED:
+			return L"Marked";
+		case MessageHolder::FLAG_DELETED:
+			return L"Deleted";
+		case MessageHolder::FLAG_DOWNLOAD:
+			return L"Download";
+		case MessageHolder::FLAG_DOWNLOADTEXT:
+			return L"DownloadText";
+		case MessageHolder::FLAG_MULTIPART:
+			return L"Multipart";
+		case MessageHolder::FLAG_PARTIAL_MASK:
+			return L"Partial";
+		default:
+			assert(false);
+			return 0;
+		}
+	}
 }
 
 
