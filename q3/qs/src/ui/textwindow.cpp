@@ -3243,8 +3243,8 @@ LRESULT qs::TextWindow::onLButtonUp(UINT nFlags, const POINT& pt)
 		pImpl_->updateSelection(pt, false);
 		
 		if (!pImpl_->pTextModel_->isEditable()) {
-			int cx = ::GetSystemMetrics(SM_CXDRAG);
-			int cy = ::GetSystemMetrics(SM_CYDRAG);
+			int cx = ::GetSystemMetrics(SM_CXDOUBLECLK);
+			int cy = ::GetSystemMetrics(SM_CYDOUBLECLK);
 			if (pImpl_->ptLastButtonDown_.x - cx/2 <= pt.x &&
 				pt.x <= pImpl_->ptLastButtonDown_.x + cx/2 &&
 				pImpl_->ptLastButtonDown_.y - cy/2 <= pt.y &&
