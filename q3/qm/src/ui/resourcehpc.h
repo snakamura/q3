@@ -171,6 +171,7 @@
 #define IDC_WAITBEFOREDISCONNECT        1101
 #define IDS_FILTER_INSERT               1102
 #define IDC_SYNCFILTER                  1102
+#define IDC_CANCEL                      1102
 #define IDS_FILTER_OPEN                 1103
 #define IDS_FILTER_SAVE                 1104
 #define IDS_FILTER_ATTACHMENT           1105

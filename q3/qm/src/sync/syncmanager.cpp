@@ -416,6 +416,7 @@ QSTATUS qm::SyncManager::syncData(const SyncData* pData)
 		RasConnection::Result result;
 		status = pRasConnection->connect(pwszEntry, &result);
 		CHECK_QSTATUS();
+		pCallback->setMessage(-1, L"");
 	}
 	
 	unsigned int nSlot = pData->getSlotCount();

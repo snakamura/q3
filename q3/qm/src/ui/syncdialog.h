@@ -1,5 +1,5 @@
 /*
- * $Id: syncdialog.h,v 1.1.1.1 2003/04/29 08:07:32 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -74,6 +74,9 @@ public:
 public:
 	void show();
 	void hide();
+	void setMessage(const WCHAR* pwszMessage);
+	unsigned int getCanceledTime() const;
+	void resetCanceledTime();
 	qs::QSTATUS addError(const WCHAR* pwszError);
 	bool hasError() const;
 
@@ -91,6 +94,7 @@ protected:
 
 private:
 	LRESULT onCancel();
+	LRESULT onHide();
 
 private:
 	void layout();
@@ -106,6 +110,7 @@ private:
 	SyncStatusWindow* pStatusWindow_;
 	bool bShowError_;
 	qs::CriticalSection csError_;
+	volatile unsigned int nCanceledTime_;
 };
 
 
@@ -139,8 +144,6 @@ private:
 		unsigned int getId() const;
 		const Progress& getProgress(bool bSub) const;
 		const WCHAR* getMessage() const;
-		bool isCanceled() const;
-		unsigned int getCanceledTime() const;
 	
 	public:
 		void setPos(bool bSub, unsigned int nPos);
@@ -148,7 +151,6 @@ private:
 		qs::QSTATUS setAccount(Account* pAccount, SubAccount* pSubAccount);
 		qs::QSTATUS setFolder(Folder* pFolder);
 		qs::QSTATUS setMessage(const WCHAR* pwszMessage);
-		void cancel();
 	
 	private:
 		qs::QSTATUS updateMessage();
@@ -162,7 +164,6 @@ private:
 		Folder* pFolder_;
 		qs::WSTRING wstrOriginalMessage_;
 		qs::WSTRING wstrMessage_;
-		unsigned int nCanceledTime_;
 	};
 
 private:
@@ -194,7 +195,6 @@ public:
 
 protected:
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
-	LRESULT onLButtonDown(UINT nFlags, const POINT& pt);
 	LRESULT onPaint();
 	LRESULT onSize(UINT nFlags, int cx, int cy);
 	LRESULT onVScroll(UINT nCode, UINT nPos, HWND hwnd);
@@ -206,9 +206,6 @@ private:
 		const RECT& rect, const Item* pItem);
 	void paintProgress(qs::DeviceContext* pdc,
 		const RECT& rect, const Item::Progress& progress);
-	void paintCancelButton(qs::DeviceContext* pdc,
-		const RECT& rect, bool bCanceled);
-	void getCancelButtonRect(const RECT& rect, RECT* pRectButton);
 	ItemList::iterator getItem(unsigned int nId);
 
 private:

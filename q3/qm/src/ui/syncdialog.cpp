@@ -131,6 +131,23 @@ void qm::SyncDialog::hide()
 		getMainWindow()->setForegroundWindow();
 }
 
+void qm::SyncDialog::setMessage(const WCHAR* pwszMessage)
+{
+	assert(pwszMessage);
+	setDlgItemText(IDC_MESSAGE, pwszMessage);
+}
+
+unsigned int qm::SyncDialog::getCanceledTime() const
+{
+	return nCanceledTime_;
+}
+
+void qm::SyncDialog::resetCanceledTime()
+{
+	nCanceledTime_ = 0;
+	Window(getDlgItem(IDC_CANCEL)).enableWindow(true);
+}
+
 QSTATUS qm::SyncDialog::addError(const WCHAR* pwszError)
 {
 	assert(pwszError);
@@ -172,7 +189,8 @@ INT_PTR qm::SyncDialog::dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 LRESULT qm::SyncDialog::onCommand(WORD nCode, WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
-		HANDLE_COMMAND_ID(IDCANCEL, onCancel)
+		HANDLE_COMMAND_ID(IDC_CANCEL, onCancel)
+		HANDLE_COMMAND_ID(IDCANCEL, onHide)
 	END_COMMAND_HANDLER()
 	return 1;
 }
@@ -247,6 +265,14 @@ LRESULT qm::SyncDialog::onSize(UINT nFlags, int cx, int cy)
 
 LRESULT qm::SyncDialog::onCancel()
 {
+	if (nCanceledTime_ == 0)
+		nCanceledTime_ = ::GetTickCount();
+	Window(getDlgItem(IDC_CANCEL)).enableWindow(false);
+	return 0;
+}
+
+LRESULT qm::SyncDialog::onHide()
+{
 	hide();
 	return 0;
 }
@@ -260,41 +286,53 @@ void qm::SyncDialog::layout()
 
 void qm::SyncDialog::layout(int cx, int cy)
 {
+	Window message(getDlgItem(IDC_MESSAGE));
+	Window cancel(getDlgItem(IDC_CANCEL));
 	Window hide(getDlgItem(IDCANCEL));
-	RECT rectHide;
-	hide.getWindowRect(&rectHide);
-	int nHideWidth = rectHide.right - rectHide.left;
+	Window error(getDlgItem(IDC_ERROR));
+	RECT rectMessage;
+	message.getWindowRect(&rectMessage);
+	int nMessageHeight = rectMessage.bottom - rectMessage.top;
+	RECT rectButton;
+	hide.getWindowRect(&rectButton);
+	int nButtonWidth = rectButton.right - rectButton.left;
+	int nButtonHeight = rectButton.bottom - rectButton.top;
+	
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
-	int nHideHeight = rectHide.bottom - rectHide.top;
-	
-	int nErrorHeight = bShowError_ ? (cy - nHideHeight - 25)/2 : 0;
-	Window error(getDlgItem(IDC_ERROR));
+	int nErrorHeight = bShowError_ ? (cy - nButtonHeight - 30)/2 : 0;
 	error.setWindowPos(0, 5,
-		cy - nErrorHeight - nHideHeight - 10, cx - 10, nErrorHeight,
+		cy - nErrorHeight - nButtonHeight - 10, cx - 10, nErrorHeight,
 		SWP_NOZORDER | SWP_NOACTIVATE);
 	error.showWindow(bShowError_);
 	
-	pStatusWindow_->setWindowPos(0, 5, 5, cx - 10,
-		cy - nErrorHeight - nHideHeight - (bShowError_ ? 20 : 15),
+	message.setWindowPos(0, 5, 5, cx - 10, nMessageHeight,
+		SWP_NOZORDER | SWP_NOACTIVATE);
+	pStatusWindow_->setWindowPos(0, 5, nMessageHeight + 10, cx - 10,
+		cy - nErrorHeight - nButtonHeight - nMessageHeight - (bShowError_ ? 25 : 20),
 		SWP_NOZORDER | SWP_NOACTIVATE);
 	
-	hide.setWindowPos(0, cx - nHideWidth - 5, cy - nHideHeight - 5, 0, 0,
-		SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+	cancel.setWindowPos(0, cx - nButtonWidth*2 - 10, cy - nButtonHeight - 5,
+		0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+	hide.setWindowPos(0, cx - nButtonWidth - 5, cy - nButtonHeight - 5,
+		0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
 #else
-	int nErrorHeight = bShowError_ ? (cy - 20)/2 : 0;
-	Window error(getDlgItem(IDC_ERROR));
+	int nErrorHeight = bShowError_ ? (cy - 25)/2 : 0;
 	error.setWindowPos(0, 5,
-		cy - nErrorHeight - 5, cx - nHideWidth - 15, nErrorHeight,
+		cy - nErrorHeight - 5, cx - nButtonWidth - 15, nErrorHeight,
 		SWP_NOZORDER | SWP_NOACTIVATE);
 	error.showWindow(bShowError_);
 	
-	pStatusWindow_->setWindowPos(0, 5, 5, cx - nHideWidth - 15,
-		cy - nErrorHeight - (bShowError_ ? 15 : 10),
+	message.setWindowPos(0, 5, 5, cx - nButtonWidth - 15,
+		nMessageHeight, SWP_NOZORDER | SWP_NOACTIVATE);
+	pStatusWindow_->setWindowPos(0, 5,
+		nMessageHeight + 10, cx - nButtonWidth - 15,
+		cy - nErrorHeight - nMessageHeight - (bShowError_ ? 20 : 15),
 		SWP_NOZORDER | SWP_NOACTIVATE);
-	
-	hide.setWindowPos(0, cx - nHideWidth - 5, 5, 0, 0,
+	cancel.setWindowPos(0, cx - nButtonWidth - 5, 5, 0, 0,
 		SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
-
+	hide.setWindowPos(0, cx - nButtonWidth - 5, nButtonHeight + 8,
+		0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+	
 #ifndef _WIN32_WCE
 	Window sizeGrip(getDlgItem(IDC_SIZEGRIP));
 	RECT rectSizeGrip;
@@ -354,7 +392,6 @@ LRESULT qm::SyncStatusWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_CREATE()
-		HANDLE_LBUTTONDOWN()
 		HANDLE_PAINT()
 		HANDLE_SIZE()
 		HANDLE_VSCROLL()
@@ -364,6 +401,7 @@ LRESULT qm::SyncStatusWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam
 
 QSTATUS qm::SyncStatusWindow::start()
 {
+	pSyncDialog_->resetCanceledTime();
 	return QSTATUS_SUCCESS;
 }
 
@@ -468,7 +506,7 @@ QSTATUS qm::SyncStatusWindow::setMessage(
 	DECLARE_QSTATUS();
 	
 	if (nId == -1) {
-		// TODO
+		pSyncDialog_->setMessage(pwszMessage);
 	}
 	else {
 		Lock<CriticalSection> lock(cs_);
@@ -485,9 +523,6 @@ QSTATUS qm::SyncStatusWindow::addError(
 	unsigned int nId, const SessionErrorInfo& info)
 {
 	DECLARE_QSTATUS();
-	
-	// TODO
-	// Account, SubAccount, Code and Descriptions may be null
 	
 	StringBuffer<WSTRING> buf(&status);
 	CHECK_QSTATUS();
@@ -556,20 +591,13 @@ QSTATUS qm::SyncStatusWindow::addError(
 
 bool qm::SyncStatusWindow::isCanceled(unsigned int nId, bool bForce)
 {
-	if (nId == -1) {
-		// TODO
-	}
-	else {
-		Lock<CriticalSection> lock(cs_);
-		ItemList::iterator it = getItem(nId);
-		unsigned int nCanceledTime = (*it)->getCanceledTime();
-		if (nCanceledTime == 0)
-			return false;
-		else if (!bForce)
-			return true;
-		else
-			return ::GetTickCount() - nCanceledTime > 10*1000;
-	}
+	unsigned int nCanceledTime = pSyncDialog_->getCanceledTime();
+	if (nCanceledTime == 0)
+		return false;
+	else if (!bForce)
+		return true;
+	else
+		return ::GetTickCount() - nCanceledTime > 10*1000;
 }
 
 LRESULT qm::SyncStatusWindow::onCreate(CREATESTRUCT* pCreateStruct)
@@ -590,35 +618,6 @@ LRESULT qm::SyncStatusWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	SIZE size;
 	dc.getTextExtent(wstrCancel_, wcslen(wstrCancel_), &size);
 	nCancelWidth_ = size.cx;
-	
-	return 0;
-}
-
-LRESULT qm::SyncStatusWindow::onLButtonDown(UINT nFlags, const POINT& pt)
-{
-	RECT rect;
-	getClientRect(&rect);
-	
-	int nHeight = rect.bottom - rect.top;
-	int nPos = getScrollPos(SB_VERT);
-	int nItemHeight = getItemHeight();
-	int nCount = nHeight/nItemHeight + (nHeight%nItemHeight == 0 ? 0 : 1);
-	
-	ItemList::size_type n = nPos;
-	while (n < static_cast<ItemList::size_type>(nPos + nCount) &&
-		n < listItem_.size()) {
-		rect.bottom = rect.top + nItemHeight;
-		if (::PtInRect(&rect, pt)) {
-			RECT rectButton;
-			getCancelButtonRect(rect, &rectButton);
-			if (::PtInRect(&rectButton, pt)) {
-				listItem_[n]->cancel();
-				validate();
-			}
-		}
-		rect.top = rect.bottom;
-		++n;
-	}
 	
 	return 0;
 }
@@ -774,12 +773,6 @@ void qm::SyncStatusWindow::paintItem(DeviceContext* pdc,
 		};
 		paintProgress(pdc, rectSub, pItem->getProgress(true));
 		
-		RECT rectButton;
-		getCancelButtonRect(rect, &rectButton);
-		paintCancelButton(pdc, rectButton, pItem->isCanceled());
-		
-		rectClip.right = rectButton.left - 5;
-		
 		// TODO
 		// Fill area not painted
 		
@@ -873,45 +866,6 @@ void qm::SyncStatusWindow::paintProgress(qs::DeviceContext* pdc,
 		rectUnHighlight, wsz, wcslen(wsz), 0);
 }
 
-void qm::SyncStatusWindow::paintCancelButton(
-	qs::DeviceContext* pdc, const RECT& rect, bool bCanceled)
-{
-	pdc->setTextColor(::GetSysColor(
-		bCanceled ? COLOR_GRAYTEXT : COLOR_BTNTEXT));
-	pdc->setBkColor(::GetSysColor(COLOR_BTNFACE));
-	pdc->extTextOut(rect.left + 5, rect.top,
-		ETO_CLIPPED | ETO_OPAQUE, rect, L"Cancel", 6, 0);
-	
-	GdiObject<HPEN> penShadow(::CreatePen(PS_SOLID, 1,
-		::GetSysColor(COLOR_BTNSHADOW)));
-	ObjectSelector<HPEN> shadowPenSelector(*pdc, penShadow.get());
-	POINT ptShadow[] = {
-		{ rect.left,	rect.bottom	},
-		{ rect.right,	rect.bottom	},
-		{ rect.right,	rect.top	}
-	};
-	pdc->polyline(ptShadow, countof(ptShadow));
-	
-	GdiObject<HPEN> penHighlight(::CreatePen(PS_SOLID, 1,
-		::GetSysColor(COLOR_BTNHIGHLIGHT)));
-	ObjectSelector<HPEN> highlightPenSelector(*pdc, penHighlight.get());
-	POINT ptHighlight[] = {
-		{ rect.left,		rect.bottom	},
-		{ rect.left,		rect.top	},
-		{ rect.right + 1,	rect.top	}
-	};
-	pdc->polyline(ptHighlight, countof(ptHighlight));
-}
-
-void qm::SyncStatusWindow::getCancelButtonRect(
-	const RECT& rect, RECT* pRectButton)
-{
-	pRectButton->right = rect.right - 5;
-	pRectButton->bottom = rect.bottom - 3;
-	pRectButton->left = pRectButton->right - nCancelWidth_ - 10;
-	pRectButton->top = pRectButton->bottom - nFontHeight_;
-}
-
 SyncStatusWindow::ItemList::iterator qm::SyncStatusWindow::getItem(
 	unsigned int nId)
 {
@@ -935,8 +889,7 @@ qm::SyncStatusWindow::Item::Item(unsigned int nId, qs::QSTATUS* pstatus) :
 	pSubAccount_(0),
 	pFolder_(0),
 	wstrOriginalMessage_(0),
-	wstrMessage_(0),
-	nCanceledTime_(0)
+	wstrMessage_(0)
 {
 	main_.nMin_ = 0;
 	main_.nMax_ = 0;
@@ -965,16 +918,6 @@ const SyncStatusWindow::Item::Progress& qm::SyncStatusWindow::Item::getProgress(
 const WCHAR* qm::SyncStatusWindow::Item::getMessage() const
 {
 	return wstrMessage_ ? wstrMessage_ : L"";
-}
-
-bool qm::SyncStatusWindow::Item::isCanceled() const
-{
-	return nCanceledTime_ != 0;
-}
-
-unsigned int qm::SyncStatusWindow::Item::getCanceledTime() const
-{
-	return nCanceledTime_;
 }
 
 void qm::SyncStatusWindow::Item::setPos(bool bSub, unsigned int nPos)
@@ -1015,11 +958,6 @@ QSTATUS qm::SyncStatusWindow::Item::setMessage(const WCHAR* pwszMessage)
 	wstrOriginalMessage_ = wstrMessage.release();
 	
 	return updateMessage();
-}
-
-void qm::SyncStatusWindow::Item::cancel()
-{
-	nCanceledTime_ = ::GetTickCount();
 }
 
 QSTATUS qm::SyncStatusWindow::Item::updateMessage()

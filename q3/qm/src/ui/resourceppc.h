@@ -171,6 +171,7 @@
 #define IDC_WAITBEFOREDISCONNECT        1101
 #define IDS_FILTER_INSERT               1102
 #define IDC_SYNCFILTER                  1102
+#define IDC_CANCEL                      1102
 #define IDS_FILTER_OPEN                 1103
 #define IDS_FILTER_SAVE                 1104
 #define IDS_FILTER_ATTACHMENT           1105
@@ -330,7 +331,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        144
 #define _APS_NEXT_COMMAND_VALUE         48003
-#define _APS_NEXT_CONTROL_VALUE         1102
+#define _APS_NEXT_CONTROL_VALUE         1103
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
