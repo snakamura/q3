@@ -41,6 +41,7 @@ class FileExportAction;
 class FileImportAction;
 class FileOfflineAction;
 class FilePrintAction;
+class FileSalvageAction;
 class FileSaveAction;
 class FolderCompactAction;
 class FolderCreateAction;
@@ -695,6 +696,31 @@ private:
 
 private:
 	MessageSelectionModel* pModel_;
+};
+
+
+/****************************************************************************
+ *
+ * FileSalvageAction
+ *
+ */
+
+class FileSalvageAction : public qs::AbstractAction
+{
+public:
+	FileSalvageAction(FolderModel* pFolderModel, qs::QSTATUS* pstatus);
+	virtual ~FileSalvageAction();
+
+public:
+	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+
+private:
+	FileSalvageAction(const FileSalvageAction&);
+	FileSalvageAction& operator=(const FileSalvageAction&);
+
+private:
+	FolderModel* pFolderModel_;
 };
 
 

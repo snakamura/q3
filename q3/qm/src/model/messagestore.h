@@ -22,6 +22,8 @@ namespace qm {
 class MessageStore;
 	class SingleMessageStore;
 	class MultiMessageStore;
+class MessageStoreSalvageCallback;
+class MessageStoreUtil;
 
 class MessageCache;
 
@@ -61,8 +63,10 @@ public:
 	virtual qs::QSTATUS compact(unsigned int nOffset, unsigned int nLength,
 		MessageCacheKey key, MessageStore* pmsOld,
 		unsigned int* pnOffset, MessageCacheKey* pKey) = 0;
-	virtual qs::QSTATUS freeUnrefered(const ReferList& listRefer) = 0;
 	virtual qs::QSTATUS freeUnused() = 0;
+	virtual qs::QSTATUS freeUnrefered(const ReferList& listRefer) = 0;
+	virtual qs::QSTATUS salvage(const ReferList& listRefer,
+		MessageStoreSalvageCallback* pCallback) = 0;
 	virtual qs::QSTATUS readCache(MessageCacheKey key, unsigned char** ppBuf) = 0;
 };
 
@@ -94,8 +98,10 @@ public:
 	virtual qs::QSTATUS compact(unsigned int nOffset, unsigned int nLength,
 		MessageCacheKey key, MessageStore* pmsOld,
 		unsigned int* pnOffset, MessageCacheKey* pKey);
-	virtual qs::QSTATUS freeUnrefered(const ReferList& listRefer);
 	virtual qs::QSTATUS freeUnused();
+	virtual qs::QSTATUS freeUnrefered(const ReferList& listRefer);
+	virtual qs::QSTATUS salvage(const ReferList& listRefer,
+		MessageStoreSalvageCallback* pCallback);
 	virtual qs::QSTATUS readCache(MessageCacheKey key, unsigned char** ppBuf);
 
 private:
@@ -134,8 +140,10 @@ public:
 	virtual qs::QSTATUS compact(unsigned int nOffset, unsigned int nLength,
 		MessageCacheKey key, MessageStore* pmsOld,
 		unsigned int* pnOffset, MessageCacheKey* pKey);
-	virtual qs::QSTATUS freeUnrefered(const ReferList& listRefer);
 	virtual qs::QSTATUS freeUnused();
+	virtual qs::QSTATUS freeUnrefered(const ReferList& listRefer);
+	virtual qs::QSTATUS salvage(const ReferList& listRefer,
+		MessageStoreSalvageCallback* pCallback);
 	virtual qs::QSTATUS readCache(MessageCacheKey key, unsigned char** ppBuf);
 
 private:
@@ -144,6 +152,22 @@ private:
 
 private:
 	struct MultiMessageStoreImpl* pImpl_;
+};
+
+
+/****************************************************************************
+ *
+ * MessageStoreSalvageCallback
+ *
+ */
+
+class MessageStoreSalvageCallback
+{
+public:
+	virtual ~MessageStoreSalvageCallback();
+
+public:
+	virtual qs::QSTATUS salvage(const Message& msg) = 0;
 };
 
 

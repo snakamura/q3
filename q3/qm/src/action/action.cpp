@@ -1483,6 +1483,46 @@ QSTATUS qm::FilePrintAction::isEnabled(const ActionEvent& event, bool* pbEnabled
 
 /****************************************************************************
  *
+ * FileSalvageAction
+ *
+ */
+
+qm::FileSalvageAction::FileSalvageAction(
+	FolderModel* pFolderModel, QSTATUS* pstatus) :
+	pFolderModel_(pFolderModel)
+{
+}
+
+qm::FileSalvageAction::~FileSalvageAction()
+{
+}
+
+QSTATUS qm::FileSalvageAction::invoke(const qs::ActionEvent& event)
+{
+	DECLARE_QSTATUS();
+	
+	Folder* pFolder = pFolderModel_->getCurrentFolder();
+	if (!pFolder || pFolder->getType() != Folder::TYPE_NORMAL)
+		return QSTATUS_SUCCESS;
+	
+	Account* pAccount = pFolder->getAccount();
+	status = pAccount->salvage(static_cast<NormalFolder*>(pFolder));
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::FileSalvageAction::isEnabled(const qs::ActionEvent& event, bool* pbEnabled)
+{
+	assert(pbEnabled);
+	Folder* pFolder = pFolderModel_->getCurrentFolder();
+	*pbEnabled = pFolder && pFolder->getType() == Folder::TYPE_NORMAL;
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
  * FileSaveAction
  *
  */

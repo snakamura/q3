@@ -332,6 +332,13 @@ QSTATUS qm::SingleMessageStore::freeUnrefered(const ReferList& listRefer)
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qm::SingleMessageStore::salvage(const ReferList& listRefer,
+	MessageStoreSalvageCallback* pCallback)
+{
+	// TODO
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::SingleMessageStore::readCache(
 	MessageCacheKey key, unsigned char** ppBuf)
 {
@@ -808,6 +815,53 @@ QSTATUS qm::MultiMessageStore::freeUnrefered(const ReferList& listRefer)
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qm::MultiMessageStore::salvage(const ReferList& listRefer,
+	MessageStoreSalvageCallback* pCallback)
+{
+	DECLARE_QSTATUS();
+	
+	typedef std::vector<unsigned int> List;
+	List l;
+	status = STLWrapper<List>(l).resize(listRefer.size());
+	CHECK_QSTATUS();
+	std::transform(listRefer.begin(), listRefer.end(),
+		l.begin(), mem_data_ref(&Refer::nOffset_));
+	std::sort(l.begin(), l.end());
+	
+	List::const_iterator it = l.begin();
+	
+	unsigned int nOffset = 0;
+	status = pImpl_->getOffset(false, &nOffset);
+	CHECK_QSTATUS();
+	for (unsigned int n = 0; n <= nOffset; ++n) {
+		if (it != l.end() && *it == n) {
+			++it;
+		}
+		else {
+			string_ptr<WSTRING> wstrPath;
+			status = pImpl_->getPath(n, &wstrPath);
+			CHECK_QSTATUS();
+			W2T(wstrPath.get(), ptszPath);
+			
+			WIN32_FIND_DATA fd;
+			HANDLE hFind = ::FindFirstFile(ptszPath, &fd);
+			bool bFind = hFind != INVALID_HANDLE_VALUE;
+			::FindClose(hFind);
+			if (bFind) {
+				Message msg(&status);
+				CHECK_QSTATUS();
+				status = load(n, fd.nFileSizeLow, &msg);
+				CHECK_QSTATUS();
+				status = pCallback->salvage(msg);
+				CHECK_QSTATUS();
+				::DeleteFile(ptszPath);
+			}
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::MultiMessageStore::readCache(
 	MessageCacheKey key, unsigned char** ppBuf)
 {
@@ -847,6 +901,17 @@ QSTATUS qm::MultiMessageStore::readCache(
 	*ppBuf = p.release();
 	
 	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * MessageStoreSalvageCallback
+ *
+ */
+
+qm::MessageStoreSalvageCallback::~MessageStoreSalvageCallback()
+{
 }
 
 

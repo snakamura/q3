@@ -9,6 +9,8 @@
 			<menuitem text="&amp;Import..." action="FileImport"/>
 			<menuitem text="Expor&amp;t..." action="FileExport"/>
 			<separator/>
+			<menuitem text="Sa&amp;lvage" action="FileSalvage"/>
+			<separator/>
 			<menuitem text="&amp;Offline" action="FileOffline"/>
 			<separator/>
 			<menuitem text="E&amp;xit" action="FileExit"/>

@@ -47,6 +47,7 @@ const qs::MenuItem menuItems[] = {
 	{ L"FileOffline",				IDM_FILE_OFFLINE				},
 	{ L"FileOpen",					IDM_FILE_OPEN					},
 	{ L"FilePrint",					IDM_FILE_PRINT					},
+	{ L"FileSalvage",				IDM_FILE_SALVAGE,				},
 	{ L"FileSave",					IDM_FILE_SAVE					},
 	{ L"FileSend",					IDM_FILE_SEND					},
 	{ L"FileSendNow",				IDM_FILE_SENDNOW				},

@@ -59,6 +59,7 @@ const qs::KeyNameToId mapKeyNameToId[] = {
 	{ L"FileOffline",					IDM_FILE_OFFLINE,						0 },
 	{ L"FileOpen",						IDM_FILE_OPEN,							0 },
 	{ L"FilePrint",						IDM_FILE_PRINT,							0 },
+	{ L"FileSalvage",					IDM_FILE_SALVAGE,						0 },
 	{ L"FileSave",						IDM_FILE_SAVE,							0 },
 	{ L"FileSend",						IDM_FILE_SEND,							0 },
 	{ L"FileSendNow",					IDM_FILE_SENDNOW,						0 },

@@ -1024,6 +1024,67 @@ QSTATUS qm::Account::compact()
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qm::Account::salvage(NormalFolder* pFolder)
+{
+	DECLARE_QSTATUS();
+	
+	MessageStore::ReferList listRefer;
+	
+	Account::FolderList::iterator it = pImpl_->listFolder_.begin();
+	while (it != pImpl_->listFolder_.end()) {
+		Folder* pFolder = *it;
+		if (pFolder->getType() == Folder::TYPE_NORMAL) {
+			Lock<Folder> lock(*pFolder);
+			status = pFolder->loadMessageHolders();
+			CHECK_QSTATUS();
+			unsigned int nCount = pFolder->getCount();
+			for (unsigned n = 0; n < nCount; ++n) {
+				MessageHolder* pmh = pFolder->getMessage(n);
+				MessageHolder::MessageBoxKey boxKey = pmh->getMessageBoxKey();
+				
+				MessageStore::Refer refer = {
+					boxKey.nOffset_,
+					boxKey.nLength_,
+					pmh->getMessageCacheKey()
+				};
+				status = STLWrapper<MessageStore::ReferList>(
+					listRefer).push_back(refer);
+				CHECK_QSTATUS();
+			}
+		}
+		++it;
+	}
+	
+	class CallbackImpl : public MessageStoreSalvageCallback
+	{
+	public:
+		CallbackImpl(NormalFolder* pFolder) :
+			pFolder_(pFolder)
+		{
+		}
+		
+		~CallbackImpl()
+		{
+		}
+	
+	public:
+		virtual QSTATUS salvage(const Message& msg)
+		{
+			return pFolder_->appendMessage(msg, 0);
+		}
+	
+	private:
+		NormalFolder* pFolder_;
+	} callback(pFolder);
+	
+	status = pImpl_->pMessageStore_->salvage(listRefer, &callback);
+	CHECK_QSTATUS();
+	status = save();
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::Account::save() const
 {
 	DECLARE_QSTATUS();

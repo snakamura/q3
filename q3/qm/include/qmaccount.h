@@ -124,6 +124,7 @@ public:
 	
 	qs::QSTATUS setOffline(bool bOffline);
 	qs::QSTATUS compact();
+	qs::QSTATUS salvage(NormalFolder* pFolder);
 	qs::QSTATUS save() const;
 	qs::QSTATUS flushMessageStore() const;
 	qs::QSTATUS importMessage(NormalFolder* pFolder,

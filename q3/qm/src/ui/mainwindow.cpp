@@ -379,6 +379,9 @@ QSTATUS qm::MainWindowImpl::initActions()
 	status = InitAction1<FilePrintAction, MessageSelectionModel*>(
 		pActionMap_, IDM_FILE_PRINT, pMessageSelectionModel_);
 	CHECK_QSTATUS();
+	status = InitAction1<FileSalvageAction, FolderModel*>(
+		pActionMap_, IDM_FILE_SALVAGE, pFolderModel_);
+	CHECK_QSTATUS();
 	status = InitAction2<FileSaveAction, Document*, ViewModelManager*>(
 		pActionMap_, IDM_FILE_SAVE, pDocument_, pViewModelManager_);
 	CHECK_QSTATUS();

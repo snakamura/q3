@@ -270,9 +270,10 @@
 #define IDM_FILE_OFFLINE                41008
 #define IDM_FILE_OPEN                   41009
 #define IDM_FILE_PRINT                  41010
-#define IDM_FILE_SAVE                   41011
-#define IDM_FILE_SEND                   41012
-#define IDM_FILE_SENDNOW                41013
+#define IDM_FILE_SALVAGE                41011
+#define IDM_FILE_SAVE                   41012
+#define IDM_FILE_SEND                   41013
+#define IDM_FILE_SENDNOW                41014
 #define IDM_FOLDER_COMPACT              42001
 #define IDM_FOLDER_CREATE               42002
 #define IDM_FOLDER_DELETE               42003
