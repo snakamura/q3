@@ -329,6 +329,12 @@ bool qmrss::Rss10Handler::startElement(const WCHAR* pwszNamespaceURI,
 			else
 				stackState_.push_back(STATE_UNKNOWN);
 		}
+		else if (wcscmp(pwszNamespaceURI, L"http://purl.org/rss/1.0/modules/content/") == 0) {
+			if (wcscmp(pwszLocalName, L"encoded") == 0)
+				stackState_.push_back(STATE_PROPERTY);
+			else
+				stackState_.push_back(STATE_UNKNOWN);
+		}
 		else {
 			stackState_.push_back(STATE_UNKNOWN);
 		}
@@ -410,6 +416,15 @@ bool qmrss::Rss10Handler::endElement(const WCHAR* pwszNamespaceURI,
 				if (ParserUtil::parseDate(buffer_.getCharArray(), &date))
 					pCurrentItem_->setPubDate(date);
 				buffer_.remove();
+			}
+			else {
+				assert(false);
+			}
+		}
+		else if (wcscmp(pwszNamespaceURI, L"http://purl.org/rss/1.0/modules/content/") == 0) {
+			if (wcscmp(pwszLocalName, L"encoded") == 0) {
+				if (!pCurrentItem_->getDescription())
+					pCurrentItem_->setDescription(buffer_.getString());
 			}
 			else {
 				assert(false);
