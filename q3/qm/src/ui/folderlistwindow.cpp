@@ -214,6 +214,8 @@ QSTATUS qm::FolderListWindowImpl::setCurrentAccount(Account* pAccount)
 	
 	pAccount_ = pAccount;
 	
+	pThis_->sendMessage(WM_SETREDRAW, FALSE);
+	
 	ListView_DeleteAllItems(pThis_->getHandle());
 	
 	if (pAccount) {
@@ -264,6 +266,8 @@ QSTATUS qm::FolderListWindowImpl::setCurrentAccount(Account* pAccount)
 		
 		bInserting_ = false;
 	}
+	
+	pThis_->sendMessage(WM_SETREDRAW, TRUE);
 	
 	updateFolderListModel();
 	
