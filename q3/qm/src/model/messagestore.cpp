@@ -283,7 +283,8 @@ QSTATUS qm::SingleMessageStore::compact(unsigned int nOffset,
 	CHECK_QSTATUS();
 	if (nLoad != sizeof(nDataLen))
 		return QSTATUS_FAIL;
-	status = pImpl_->pCacheStorage_->compact(key, nDataLen, pCacheStorage, pKey);
+	status = pImpl_->pCacheStorage_->compact(key,
+		nDataLen + sizeof(nDataLen), pCacheStorage, pKey);
 	CHECK_QSTATUS();
 	
 	if (nOffset != -1) {
