@@ -192,6 +192,7 @@ LRESULT qm::OptionDialog::onInitDialog(HWND hwndFocus,
 		{ PANEL_FILTERS,		IDS_PANEL_FILTERS			},
 		{ PANEL_SYNCFILTERS,	IDS_PANEL_SYNCFILTERS		},
 		{ PANEL_AUTOPILOT,		IDS_PANEL_AUTOPILOT			},
+		{ PANEL_MISC,			IDS_PANEL_MISC				},
 		{ PANEL_SECURITY,		IDS_PANEL_SECURITY			}
 	};
 	for (int n = 0; n < countof(items); ++n) {
@@ -442,6 +443,7 @@ void qm::OptionDialog::setCurrentPanel(Panel panel)
 			PANEL1(PANEL_FILTERS, Filters, pFilterManager_);
 			PANEL2(PANEL_SYNCFILTERS, SyncFilterSets, pSyncFilterManager_, pProfile_);
 			PANEL3(PANEL_AUTOPILOT, AutoPilot, pAutoPilotManager_, pGoRound_, pProfile_);
+			PANEL1(PANEL_MISC, OptionMisc, pProfile_);
 			PANEL2(PANEL_SECURITY, OptionSecurity, pDocument_->getSecurity(), pProfile_);
 		END_PANEL()
 	}
@@ -1135,6 +1137,108 @@ LRESULT qm::OptionListDialog::onFont()
 
 /****************************************************************************
  *
+ * OptionMiscDialog
+ *
+ */
+
+DialogUtil::BoolProperty qm::OptionMiscDialog::boolProperties__[] = {
+	{ L"ConfirmDeleteMessage",			IDC_CONFIRMDELETEMESSAGE,			false	},
+	{ L"ConfirmEmptyFolder",			IDC_CONFIRMEMPTYFOLDER,				true	},
+	{ L"ConfirmEmptyTrash",				IDC_CONFIRMEMPTYTRASH,				true	},
+	{ L"EmptyTrashOnExit",				IDC_EMPTYTRASHONEXIT,				false	},
+	{ L"SaveMessageViewModePerFolder",	IDC_SAVEMESSAGEVIEWMODEPERFOLDER,	true	},
+	{ L"SaveOnDeactivate",				IDC_SAVEONDEACTIVATE,				false	},
+#ifndef _WIN32_WCE
+	{ L"ShowUnseenCountOnWelcome",		IDC_SHOWUNSEENCOUNTONWELCOME,		false	},
+#endif
+};
+
+qm::OptionMiscDialog::OptionMiscDialog(Profile* pProfile) :
+	DefaultDialog(IDD_OPTIONMISC),
+	pProfile_(pProfile)
+{
+}
+
+qm::OptionMiscDialog::~OptionMiscDialog()
+{
+}
+
+LRESULT qm::OptionMiscDialog::onCommand(WORD nCode,
+										WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_BROWSE, onBrowse)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::OptionMiscDialog::onInitDialog(HWND hwndFocus,
+											   LPARAM lParam)
+{
+	DialogUtil::loadBoolProperties(this, pProfile_,
+		L"Global", boolProperties__, countof(boolProperties__));
+	
+	wstring_ptr wstrTempFolder(pProfile_->getString(L"Global", L"TemporaryFolder", L""));
+	setDlgItemText(IDC_TEMPORARYFOLDER, wstrTempFolder.get());
+	
+	wstring_ptr wstrEncodings(pProfile_->getString(L"Global",
+		L"Encodings", L"iso-8859-1 iso-2022-jp shift_jis euc-jp utf-8"));
+	setDlgItemText(IDC_ENCODING, wstrEncodings.get());
+	
+	const WCHAR* pwszLog[] = {
+		L"NONE",
+		L"FATAL",
+		L"ERROR",
+		L"WARN",
+		L"INFO",
+		L"DEBUG"
+	};
+	for (int n = 0; n < countof(pwszLog); ++n) {
+		W2T(pwszLog[n], ptszLog);
+		sendDlgItemMessage(IDC_LOG, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(ptszLog));
+	}
+	int nLog = pProfile_->getInt(L"Global", L"Log", -1);
+	if (nLog < -1)
+		nLog = -1;
+	else if (nLog > 4)
+		nLog = 4;
+	sendDlgItemMessage(IDC_LOG, CB_SETCURSEL, nLog + 1);
+	
+	return FALSE;
+}
+
+bool qm::OptionMiscDialog::save(OptionDialogContext* pContext)
+{
+	DialogUtil::saveBoolProperties(this, pProfile_,
+		L"Global", boolProperties__, countof(boolProperties__));
+	
+	wstring_ptr wstrTempFolder(getDlgItemText(IDC_TEMPORARYFOLDER));
+	pProfile_->setString(L"Global", L"TemporaryFolder", wstrTempFolder.get());
+	
+	wstring_ptr wstrEncodings(getDlgItemText(IDC_ENCODING));
+	pProfile_->setString(L"Global", L"Encodings", wstrEncodings.get());
+	
+	int nLog = sendDlgItemMessage(IDC_LOG, CB_GETCURSEL);
+	pProfile_->setInt(L"Global", L"Log", nLog - 1);
+	
+	return true;
+}
+
+LRESULT qm::OptionMiscDialog::onBrowse()
+{
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	wstring_ptr wstrTitle(loadString(hInst, IDS_TEMPORARYFOLDER));
+	wstring_ptr wstrPath(getDlgItemText(IDC_TEMPORARYFOLDER));
+	wstrPath = qs::UIUtil::browseFolder(getParentPopup(), wstrTitle.get(), wstrPath.get());
+	if (wstrPath.get())
+		setDlgItemText(IDC_TEMPORARYFOLDER, wstrPath.get());
+	
+	return 0;
+}
+
+
+/****************************************************************************
+ *
  * OptionSecurityDialog
  *
  */
@@ -1163,8 +1267,10 @@ LRESULT qm::OptionSecurityDialog::onInitDialog(HWND hwndFocus,
 	DialogUtil::loadBoolProperties(this, pProfile_,
 		L"Security", boolProperties__, countof(boolProperties__));
 	
+#ifndef _WIN32_WCE
 	bool bGPG = pProfile_->getInt(L"PGP", L"UseGPG", 1) != 0;
 	sendDlgItemMessage(bGPG ? IDC_GNUPG : IDC_PGP, BM_SETCHECK, BST_CHECKED);
+#endif
 	
 	if (!Security::isSSLEnabled() && !Security::isSMIMEEnabled())
 		Window(getDlgItem(IDC_SYSTEMSTORE)).enableWindow(false);
@@ -1172,10 +1278,16 @@ LRESULT qm::OptionSecurityDialog::onInitDialog(HWND hwndFocus,
 		Window(getDlgItem(IDC_MULTIPARTSIGNED)).enableWindow(false);
 		Window(getDlgItem(IDC_ENCRYPTFORSELF)).enableWindow(false);
 	}
+#ifndef _WIN32_WCE
 	if (!Security::isPGPEnabled()) {
 		Window(getDlgItem(IDC_PGP)).enableWindow(false);
 		Window(getDlgItem(IDC_GNUPG)).enableWindow(false);
 	}
+#endif
+	
+	wstring_ptr wstrExtensions(pProfile_->getString(L"Global",
+		L"WarnExtensions", L"exe com pif bat scr htm html hta vbs js"));
+	setDlgItemText(IDC_WARNEXTENSION, wstrExtensions.get());
 	
 	return FALSE;
 }
@@ -1185,8 +1297,13 @@ bool qm::OptionSecurityDialog::save(OptionDialogContext* pContext)
 	DialogUtil::saveBoolProperties(this, pProfile_,
 		L"Security", boolProperties__, countof(boolProperties__));
 	
+#ifndef _WIN32_WCE
 	bool bGPG = sendDlgItemMessage(IDC_GNUPG, BM_GETCHECK) == BST_CHECKED;
 	pProfile_->setInt(L"PGP", L"UseGPG", bGPG);
+#endif
+	
+	wstring_ptr wstrExtensions(getDlgItemText(IDC_WARNEXTENSION));
+	pProfile_->setString(L"Global", L"WarnExtensions", wstrExtensions.get());
 	
 	pSecurity_->reload();
 	

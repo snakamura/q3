@@ -1762,7 +1762,7 @@ qm::MainWindow::MainWindow(Profile* pProfile) :
 	pImpl_->bVirticalFolderWindow_ = pProfile->getInt(L"MainWindow", L"VirticalFolderWindow", 0) != 0;
 	pImpl_->bShowPreviewWindow_ = pProfile->getInt(L"MainWindow", L"ShowPreviewWindow", 1) != 0;
 	pImpl_->nListWindowHeight_ = pProfile->getInt(L"MainWindow", L"ListWindowHeight", 200);
-	pImpl_->bSaveOnDeactivate_ = pProfile->getInt(L"MainWindow", L"SaveOnDeactivate", 0) != 0;
+	pImpl_->bSaveOnDeactivate_ = pProfile->getInt(L"Global", L"SaveOnDeactivate", 0) != 0;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pDocument_ = 0;
 	pImpl_->pUIManager_ = 0;

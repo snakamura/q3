@@ -38,6 +38,7 @@ class OptionAddressBookDialog;
 class OptionFolderDialog;
 class OptionHeaderDialog;
 class OptionListDialog;
+class OptionMiscDialog;
 class OptionSecurityDialog;
 class TextColorDialog;
 class AbstractOptionTextDialog;
@@ -124,6 +125,7 @@ public:
 		PANEL_SYNCFILTERS,
 		PANEL_AUTOPILOT,
 		
+		PANEL_MISC,
 		PANEL_SECURITY,
 		
 		MAX_PANEL
@@ -552,6 +554,46 @@ private:
 	FolderListWindow* pFolderListWindow_;
 	qs::Profile* pProfile_;
 	LOGFONT lf_;
+
+private:
+	static DialogUtil::BoolProperty boolProperties__[];
+};
+
+
+/****************************************************************************
+ *
+ * OptionMiscDialog
+ *
+ */
+
+class OptionMiscDialog :
+	public DefaultDialog,
+	public AbstractOptionDialogPanel<OptionMiscDialog>
+{
+public:
+	explicit OptionMiscDialog(qs::Profile* pProfile);
+	virtual ~OptionMiscDialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+public:
+	virtual bool save(OptionDialogContext* pContext);
+
+private:
+	LRESULT onBrowse();
+
+private:
+	OptionMiscDialog(const OptionMiscDialog&);
+	OptionMiscDialog& operator=(const OptionMiscDialog&);
+
+private:
+	qs::Profile* pProfile_;
 
 private:
 	static DialogUtil::BoolProperty boolProperties__[];
