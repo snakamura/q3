@@ -128,9 +128,7 @@ std::pair<const WCHAR**, size_t> qmrss::RssDriver::getFolderParamNames()
 
 bool qmrss::RssDriver::getMessage(MessageHolder* pmh,
 								  unsigned int nFlags,
-								  xstring_ptr* pstrMessage,
-								  Message::Flag* pFlag,
-								  bool* pbMadeSeen)
+								  GetMessageCallback* pCallback)
 {
 	assert(false);
 	return false;

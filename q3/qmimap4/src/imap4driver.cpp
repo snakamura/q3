@@ -316,20 +316,12 @@ std::pair<const WCHAR**, size_t> qmimap4::Imap4Driver::getFolderParamNames()
 
 bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 									  unsigned int nFlags,
-									  xstring_ptr* pstrMessage,
-									  Message::Flag* pFlag,
-									  bool* pbMadeSeen)
+									  GetMessageCallback* pCallback)
 {
 	assert(pmh);
-	assert(pstrMessage);
-	assert(pFlag);
-	assert(pbMadeSeen);
+	assert(pCallback);
 	assert(!pmh->getFolder()->isFlag(Folder::FLAG_LOCAL));
 	assert(!pmh->isFlag(MessageHolder::FLAG_LOCAL));
-	
-	pstrMessage->reset(0);
-	*pFlag = Message::FLAG_EMPTY;
-	*pbMadeSeen = false;
 	
 	if (bOffline_)
 		return true;
@@ -351,13 +343,11 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 		BodyProcessHook(unsigned int nUid,
 						bool bHeaderOnly,
 						MessageHolder* pmh,
-						xstring_ptr* pstrMessage,
-						Message::Flag* pFlag) :
+						GetMessageCallback* pCallback) :
 			nUid_(nUid),
 			bHeaderOnly_(bHeaderOnly),
 			pmh_(pmh),
-			pstrMessage_(pstrMessage),
-			pFlag_(pFlag)
+			pCallback_(pCallback)
 		{
 		}
 		
@@ -388,12 +378,10 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 				if (((s == FetchDataBody::SECTION_NONE && !bHeaderOnly_) ||
 					(s == FetchDataBody::SECTION_HEADER && bHeaderOnly_)) &&
 					pBody->getPartPath().empty()) {
-					// TODO
-					xstring_ptr strContent(allocXString(pBody->getContent()));
-					if (!strContent.get())
+					std::pair<const CHAR*, size_t> content(pBody->getContent().get());
+					if (!pCallback_->message(content.first, content.second,
+						bHeaderOnly_ ? Message::FLAG_HEADERONLY : Message::FLAG_NONE, true))
 						return false;
-					*pstrMessage_ = strContent;
-					*pFlag_ = bHeaderOnly_ ? Message::FLAG_HEADERONLY : Message::FLAG_NONE;
 				}
 			}
 			
@@ -403,8 +391,7 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 		unsigned int nUid_;
 		bool bHeaderOnly_;
 		MessageHolder* pmh_;
-		xstring_ptr* pstrMessage_;
-		Message::Flag* pFlag_;
+		GetMessageCallback* pCallback_;
 	};
 	
 	struct BodyStructureProcessHook : public ProcessHook
@@ -455,18 +442,18 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 							FetchDataBodyStructure* pBodyStructure,
 							const PartList& listPart,
 							unsigned int nPartCount,
+							bool bHtml,
 							MessageHolder* pmh,
 							unsigned int nOption,
-							xstring_ptr* pstrMessage,
-							Message::Flag* pFlag) :
+							GetMessageCallback* pCallback) :
 			nUid_(nUid),
 			pBodyStructure_(pBodyStructure),
 			listPart_(listPart),
 			nPartCount_(nPartCount),
+			bHtml_(bHtml),
 			pmh_(pmh),
 			nOption_(nOption),
-			pstrMessage_(pstrMessage),
-			pFlag_(pFlag)
+			pCallback_(pCallback)
 		{
 		}
 		
@@ -512,12 +499,13 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 			}
 			
 			if (listBody.size() == nPartCount_ && nUid == nUid_) {
-				xstring_ptr strContent(Util::getContentFromBodyStructureAndBodies(
+				xstring_size_ptr strContent(Util::getContentFromBodyStructureAndBodies(
 					listPart_, listBody, (nOption_ & OPTION_TRUSTBODYSTRUCTURE) != 0));
 				if (!strContent.get())
 					return false;
-				*pstrMessage_ = strContent;
-				*pFlag_ = Message::FLAG_TEXTONLY;
+				if (!pCallback_->message(strContent.get(), strContent.size(),
+					bHtml_ ? Message::FLAG_HTMLONLY : Message::FLAG_TEXTONLY, true))
+					return false;
 			}
 			
 			return true;
@@ -527,10 +515,10 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 		FetchDataBodyStructure* pBodyStructure_;
 		const PartList& listPart_;
 		unsigned int nPartCount_;
+		bool bHtml_;
 		MessageHolder* pmh_;
 		unsigned int nOption_;
-		xstring_ptr* pstrMessage_;
-		Message::Flag* pFlag_;
+		GetMessageCallback* pCallback_;
 	};
 	
 	SingleRange range(pmh->getId(), true);
@@ -579,7 +567,7 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 					&strArg, &nPartCount, &bAll);
 				
 				BodyListProcessHook hook(pmh->getId(), pBodyStructure,
-					listPart, nPartCount, pmh, nOption, pstrMessage, pFlag);
+					listPart, nPartCount, bHtml, pmh, nOption, pCallback);
 				Hook h(pCallback_.get(), &hook);
 				
 				if (!pImap4->fetch(range, strArg.get()))
@@ -589,14 +577,14 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 	}
 	else {
 		if (bHeaderOnly) {
-			BodyProcessHook hook(pmh->getId(), true, pmh, pstrMessage, pFlag);
+			BodyProcessHook hook(pmh->getId(), true, pmh, pCallback);
 			Hook h(pCallback_.get(), &hook);
 			if (!pImap4->getHeader(range,
 				(nFlags & Account::GETMESSAGEFLAG_MAKESEEN) == 0))
 				return false;
 		}
 		else {
-			BodyProcessHook hook(pmh->getId(), false, pmh, pstrMessage, pFlag);
+			BodyProcessHook hook(pmh->getId(), false, pmh, pCallback);
 			Hook h(pCallback_.get(), &hook);
 			if (!pImap4->getMessage(range,
 				(nFlags & Account::GETMESSAGEFLAG_MAKESEEN) == 0))
@@ -605,8 +593,6 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 	}
 	
 	cacher.release();
-	
-	*pbMadeSeen = *pFlag != Message::FLAG_EMPTY;
 	
 	return true;
 }

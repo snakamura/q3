@@ -304,9 +304,9 @@ void qmimap4::Util::getPartsFromBodyStructure(const FetchDataBodyStructure* pBod
 	}
 }
 
-xstring_ptr qmimap4::Util::getContentFromBodyStructureAndBodies(const PartList& listPart,
-																const BodyList& listBody,
-																bool bTrustBodyStructure)
+xstring_size_ptr qmimap4::Util::getContentFromBodyStructureAndBodies(const PartList& listPart,
+																	 const BodyList& listBody,
+																	 bool bTrustBodyStructure)
 {
 	BodyList::const_iterator itH = std::find_if(
 		listBody.begin(), listBody.end(),
@@ -314,11 +314,13 @@ xstring_ptr qmimap4::Util::getContentFromBodyStructureAndBodies(const PartList& 
 			std::mem_fun_ref(FetchDataBody::PartPath::empty),
 			std::mem_fun(FetchDataBody::getPartPath)));
 	if (itH == listBody.end())
-		return 0;
+		return xstring_size_ptr();
 	
 	XStringBuffer<XSTRING> buf;
-	if (!buf.append((*itH)->getContent()))
-		return 0;
+	
+	std::pair<const CHAR*, size_t> header((*itH)->getContent().get());
+	if (!buf.append(header.first, header.second))
+		return xstring_size_ptr();
 	
 	typedef std::vector<std::pair<const FetchDataBodyStructure*, const FetchDataBody*> > Stack;
 	Stack stack;
@@ -332,43 +334,45 @@ xstring_ptr qmimap4::Util::getContentFromBodyStructureAndBodies(const PartList& 
 		if (nPathLen >= stack.size()) {
 			assert(nPathLen == stack.size());
 			if (!appendBoundaryToBuffer(stack.back().first, stack.back().second, &buf, false))
-				return 0;
+				return xstring_size_ptr();
 		}
 		else {
 			stack.pop_back();
 			while (nPathLen < stack.size() - 1) {
 				if (!appendBoundaryToBuffer(stack.back().first, stack.back().second, &buf, true))
-					return 0;
+					return xstring_size_ptr();
 				stack.pop_back();
 			}
 			if (!appendBoundaryToBuffer(stack.back().first, stack.back().second, &buf, false))
-				return 0;
+				return xstring_size_ptr();
 		}
 		stack.push_back(std::make_pair(bTrustBodyStructure ? (*itP).first : 0, body.first));
 		
 		if (body.first) {
-			if (!buf.append(body.first->getContent()))
-				return 0;
+			std::pair<const CHAR*, size_t> header(body.first->getContent().get());
+			if (!buf.append(header.first, header.second))
+				return xstring_size_ptr();
 		}
 		else {
 			string_ptr strHeader(getHeaderFromBodyStructure((*itP).first, true));
 			if (!buf.append(strHeader.get()))
-				return 0;
+				return xstring_size_ptr();
 		}
 		
 		if (body.second) {
-			if (!buf.append(body.second->getContent()))
-				return 0;
+			std::pair<const CHAR*, size_t> content(body.second->getContent().get());
+			if (!buf.append(content.first, content.second))
+				return xstring_size_ptr();
 		}
 	}
 	stack.pop_back();
 	while (stack.size() > 0) {
 		if (!appendBoundaryToBuffer(stack.back().first, stack.back().second, &buf, true))
-			return 0;
+			return xstring_size_ptr();
 		stack.pop_back();
 	}
 	
-	return buf.getXString();
+	return buf.getXStringSize();
 }
 
 void qmimap4::Util::getFetchArgFromPartList(const PartList& listPart,
@@ -602,8 +606,9 @@ string_ptr qmimap4::Util::getBoundaryFromBodyStructureOrMime(const FetchDataBody
 			return allocString(pszBoundary);
 	}
 	if (pMime) {
+		std::pair<const CHAR*, size_t> mime(pMime->getContent().get());
 		Part header;
-		if (header.create(0, pMime->getContent(), -1)) {
+		if (header.create(0, mime.first, mime.second)) {
 			const ContentTypeParser* pContentType = header.getContentType();
 			if (pContentType) {
 				wstring_ptr wstrBoundary(pContentType->getParameter(L"boundary"));

@@ -73,6 +73,8 @@ public:
 				size_t nLen,
 				Flag flag,
 				unsigned int nSecurity);
+	bool createHeader(const CHAR* pszHeader,
+					  size_t nLen);
 	void clear();
 	Flag getFlag() const;
 	void setFlag(Flag flag);

@@ -640,6 +640,14 @@ typename qs::StringBuffer<String>::Char qs::StringBuffer<String>::get(size_t n) 
 }
 
 template<class String>
+void qs::StringBuffer<String>::set(size_t n,
+								   Char c) QNOTHROW()
+{
+	assert(n < getLength());
+	str_.get()[n] = c;
+}
+
+template<class String>
 void qs::StringBuffer<String>::append(const Char c)
 {
 	append(&c, 1);
@@ -848,6 +856,14 @@ typename qs::XStringBuffer<XString>::Char qs::XStringBuffer<XString>::get(size_t
 {
 	assert(n < getLength());
 	return str_.get()[n];
+}
+
+template<class XString>
+void qs::XStringBuffer<XString>::set(size_t n,
+									 Char c)
+{
+	assert(n < getLength());
+	str_.get()[n] = c;
 }
 
 template<class XString>

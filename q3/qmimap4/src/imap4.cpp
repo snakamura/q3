@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <cstdio>
 
+#include "error.h"
 #include "imap4.h"
 #include "parser.h"
 
@@ -154,24 +155,6 @@ bool qmimap4::Imap4ParserCallback::response(std::auto_ptr<Response> pResponse)
  * Imap4
  *
  */
-
-#define IMAP4_ERROR(e) \
-	do { \
-		nError_ = e; \
-		return false; \
-	} while (false) \
-
-#define IMAP4_ERROR_SOCKET(e) \
-	do { \
-		nError_ = e | pSocket_->getLastError(); \
-		return false; \
-	} while (false)
-
-#define IMAP4_ERROR_OR(e) \
-	do { \
-		nError_ |= e; \
-		return false; \
-	} while (false) \
 
 qmimap4::Imap4::Imap4(long nTimeout,
 					  qs::SocketCallback* pSocketCallback,
@@ -1598,17 +1581,18 @@ bool qmimap4::ResponseCapability::isSupportAuth(const CHAR* pszAuth) const
 		std::bind2nd(string_equal_i<CHAR>(), pszAuth)) != listAuth_.end();
 }
 
-void qmimap4::ResponseCapability::add(const CHAR* psz)
+void qmimap4::ResponseCapability::add(const CHAR* psz,
+									  size_t nLen)
 {
 	assert(psz);
 	
-	if (_strnicmp(psz, "AUTH=", 5) == 0) {
-		string_ptr strAuth(allocString(psz + 5));
+	if (nLen > 5 && _strnicmp(psz, "AUTH=", 5) == 0) {
+		string_ptr strAuth(allocString(psz + 5, nLen - 5));
 		listAuth_.push_back(strAuth.get());
 		strAuth.release();
 	}
 	else {
-		string_ptr str(allocString(psz));
+		string_ptr str(allocString(psz, nLen));
 		listCapability_.push_back(str.get());
 		str.release();
 	}
@@ -1758,36 +1742,37 @@ std::auto_ptr<ResponseFetch> qmimap4::ResponseFetch::create(unsigned long nNumbe
 		if (l[n]->getType() != ListItem::TYPE_TEXT)
 			return std::auto_ptr<ResponseFetch>(0);
 		
-		string_ptr strName(static_cast<ListItemText*>(l[n])->releaseText());
-		switch (*strName.get()) {
+		std::pair<const CHAR*, size_t> name(static_cast<ListItemText*>(l[n])->getText().get());
+		if (name.second == 0)
+			return std::auto_ptr<ResponseFetch>(0);
+		switch (*name.first) {
 		case L'B':
 		case L'b':
-			if (_stricmp(strName.get(), "BODY") == 0 ||
-				_stricmp(strName.get(), "BODYSTRUCTURE") == 0) {
+			if (TokenUtil::isEqualIgnoreCase(name, "BODY") ||
+				TokenUtil::isEqualIgnoreCase(name, "BODYSTRUCTURE")) {
 				// BODY, BODYSTRUCTURE
 				if (l[n + 1]->getType() != ListItem::TYPE_LIST)
 					return std::auto_ptr<ResponseFetch>(0);
 				
-				bool bExtended = strName.get()[4] != '\0';
+				bool bExtended = name.first[4] != '\0';
 				std::auto_ptr<FetchDataBodyStructure> pStructure(
 					FetchDataBodyStructure::create(static_cast<List*>(l[n + 1]), bExtended));
 				if (!pStructure.get())
 					return std::auto_ptr<ResponseFetch>(0);
 				listData.push_back(pStructure.release());
 			}
-			else if (_strnicmp(strName.get(), "BODY[", 5) == 0) {
+			else if (name.second > 5 && _strnicmp(name.first, "BODY[", 5) == 0) {
 				// BODY[SECTION]
 				if (l[n + 1]->getType() != ListItem::TYPE_TEXT)
 					return std::auto_ptr<ResponseFetch>(0);
 				
-				const CHAR* p = strName.get() + 5;
+				const CHAR* p = name.first + 5;
 				CHAR* pEnd = strchr(p, ']');
 				if (!pEnd)
 					return std::auto_ptr<ResponseFetch>(0);
-				*pEnd = '\0';
 				
 				std::auto_ptr<FetchDataBody> pBody(FetchDataBody::create(
-					p, static_cast<ListItemText*>(l[n + 1])->releaseText()));
+					p, pEnd - p, static_cast<ListItemText*>(l[n + 1])->getText()));
 				if (!pBody.get())
 					return std::auto_ptr<ResponseFetch>(0);
 				listData.push_back(pBody.release());
@@ -1798,7 +1783,7 @@ std::auto_ptr<ResponseFetch> qmimap4::ResponseFetch::create(unsigned long nNumbe
 			break;
 		case L'E':
 		case L'e':
-			if (_stricmp(strName.get(), "ENVELOPE") == 0) {
+			if (TokenUtil::isEqualIgnoreCase(name, "ENVELOPE")) {
 				// ENVELOPE
 				if (l[n + 1]->getType() != ListItem::TYPE_LIST)
 					return std::auto_ptr<ResponseFetch>(0);
@@ -1815,7 +1800,7 @@ std::auto_ptr<ResponseFetch> qmimap4::ResponseFetch::create(unsigned long nNumbe
 			break;
 		case L'F':
 		case L'f':
-			if (_stricmp(strName.get(), "FLAGS") == 0) {
+			if (TokenUtil::isEqualIgnoreCase(name, "FLAGS")) {
 				// FLAGS
 				if (l[n + 1]->getType() != ListItem::TYPE_LIST)
 					return std::auto_ptr<ResponseFetch>(0);
@@ -1832,13 +1817,15 @@ std::auto_ptr<ResponseFetch> qmimap4::ResponseFetch::create(unsigned long nNumbe
 			break;
 		case L'I':
 		case L'i':
-			if (_stricmp(strName.get(), "INTERNALDATE") == 0) {
+			if (TokenUtil::isEqualIgnoreCase(name, "INTERNALDATE")) {
 				// INTERNALDATE
 				if (l[n + 1]->getType() != ListItem::TYPE_TEXT)
 					return std::auto_ptr<ResponseFetch>(0);
 				
+				std::pair<const CHAR*, size_t> date(
+					static_cast<ListItemText*>(l[n + 1])->getText().get());
 				std::auto_ptr<FetchDataInternalDate> pDate(
-					FetchDataInternalDate::create(static_cast<ListItemText*>(l[n + 1])->getText()));
+					FetchDataInternalDate::create(date.first, date.second));
 				if (!pDate.get())
 					return std::auto_ptr<ResponseFetch>(0);
 				listData.push_back(pDate.release());
@@ -1849,29 +1836,29 @@ std::auto_ptr<ResponseFetch> qmimap4::ResponseFetch::create(unsigned long nNumbe
 			break;
 		case L'R':
 		case L'r':
-			if (_stricmp(strName.get(), "RFC822") == 0 ||
-				_stricmp(strName.get(), "RFC822.HEADER") == 0 ||
-				_stricmp(strName.get(), "RFC822.TEXT") == 0) {
+			if (TokenUtil::isEqualIgnoreCase(name, "RFC822") ||
+				TokenUtil::isEqualIgnoreCase(name, "RFC822.HEADER") ||
+				TokenUtil::isEqualIgnoreCase(name, "RFC822.TEXT")) {
 				// RFC822
 				if (l[n + 1]->getType() != ListItem::TYPE_TEXT)
 					return std::auto_ptr<ResponseFetch>(0);
 				
-				const CHAR* pszSection = strName.get()[6] == '\0' ? 0 : strName.get() + 7;
-				std::auto_ptr<FetchDataBody> pBody(FetchDataBody::create(
-					pszSection, static_cast<ListItemText*>(l[n + 1])->releaseText()));
+				const CHAR* pszSection = name.second == 6 ? 0 : name.first + 7;
+				std::auto_ptr<FetchDataBody> pBody(FetchDataBody::create(pszSection,
+					name.second - 7, static_cast<ListItemText*>(l[n + 1])->getText()));
 				if (!pBody.get())
 					return std::auto_ptr<ResponseFetch>(0);
 				listData.push_back(pBody.release());
 			}
-			else if (_stricmp(strName.get(), "RFC822.SIZE") == 0) {
+			else if (TokenUtil::isEqualIgnoreCase(name, "RFC822.SIZE")) {
 				// SIZE
 				if (l[n + 1]->getType() != ListItem::TYPE_TEXT)
 					return std::auto_ptr<ResponseFetch>(0);
 				
-				const CHAR* pszSize = static_cast<ListItemText*>(l[n + 1])->getText();
-				CHAR* pEnd = 0;
-				long nSize = strtol(pszSize, &pEnd, 10);
-				if (*pEnd)
+				std::pair<const CHAR*, size_t> size(
+					static_cast<ListItemText*>(l[n + 1])->getText().get());
+				unsigned long nSize = 0;
+				if (!TokenUtil::string2number(size, &nSize))
 					return std::auto_ptr<ResponseFetch>(0);
 				
 				std::auto_ptr<FetchDataSize> pSize(new FetchDataSize(nSize));
@@ -1883,15 +1870,14 @@ std::auto_ptr<ResponseFetch> qmimap4::ResponseFetch::create(unsigned long nNumbe
 			break;
 		case L'U':
 		case L'u':
-			if (_stricmp(strName.get(), "UID") == 0) {
+			if (TokenUtil::isEqualIgnoreCase(name, "UID")) {
 				// UID
 				if (l[n + 1]->getType() != ListItem::TYPE_TEXT)
 					return std::auto_ptr<ResponseFetch>(0);
 				
-				const CHAR* pszUid = static_cast<ListItemText*>(l[n + 1])->getText();
-				CHAR* pEnd = 0;
-				nUid = strtol(pszUid, &pEnd, 10);
-				if (*pEnd)
+				std::pair<const CHAR*, size_t> uid(
+					static_cast<ListItemText*>(l[n + 1])->getText().get());
+				if (!TokenUtil::string2number(uid, &nUid))
 					return std::auto_ptr<ResponseFetch>(0);
 			}
 			else {
@@ -1973,17 +1959,17 @@ std::auto_ptr<ResponseFlags> qmimap4::ResponseFlags::create(List* pList)
 			{ "\\SEEN",		Imap4::FLAG_SEEN		},
 			{ "\\DRAFT",	Imap4::FLAG_DRAFT		},
 		};
-		const CHAR* pszFlag = static_cast<ListItemText*>(*it)->getText();
+		std::pair<const CHAR*, size_t> flag(static_cast<ListItemText*>(*it)->getText().get());
 		int n = 0;
 		while (n < countof(flags)) {
-			if (_stricmp(pszFlag, flags[n].pszName_) == 0) {
+			if (TokenUtil::isEqualIgnoreCase(flag, flags[n].pszName_)) {
 				nSystemFlags |= flags[n].flag_;
 				break;
 			}
 			++n;
 		}
 		if (n == countof(flags)) {
-			string_ptr str(static_cast<ListItemText*>(*it)->releaseText());
+			string_ptr str(allocString(flag.first, flag.second));
 			listCustomFlag.push_back(str.get());
 			str.release();
 		}
@@ -2038,11 +2024,11 @@ const WCHAR* qmimap4::ResponseList::getMailbox() const
 std::auto_ptr<ResponseList> qmimap4::ResponseList::create(bool bList,
 														  List* pListAttribute,
 														  CHAR cSeparator,
-														  const CHAR* pszMailbox)
+														  const CHAR* pszMailbox,
+														  size_t nMailboxLen)
 {
 	UTF7Converter converter(true);
-	size_t nLen = strlen(pszMailbox);
-	wxstring_size_ptr wstrMailbox(converter.decode(pszMailbox, &nLen));
+	wxstring_size_ptr wstrMailbox(converter.decode(pszMailbox, &nMailboxLen));
 	if (!wstrMailbox.get())
 		return std::auto_ptr<ResponseList>(0);
 	
@@ -2061,9 +2047,10 @@ std::auto_ptr<ResponseList> qmimap4::ResponseList::create(bool bList,
 			{ "\\MARKED",		ATTRIBUTE_MARKED		},
 			{ "\\UNMARKED",		ATTRIBUTE_UNMARKED		}
 		};
-		const CHAR* pszAttribute = static_cast<ListItemText*>(*it)->getText();
+		std::pair<const CHAR*, size_t> attribute(
+			static_cast<ListItemText*>(*it)->getText().get());
 		for (int n = 0; n < countof(attributes); ++n) {
-			if (_stricmp(pszAttribute, attributes[n].pszName_) == 0) {
+			if (TokenUtil::isEqualIgnoreCase(attribute, attributes[n].pszName_)) {
 				nAttributes |= attributes[n].attribute_;
 				break;
 			}
@@ -2178,16 +2165,21 @@ std::auto_ptr<ResponseNamespace> qmimap4::ResponseNamespace::create(List* pListP
 					nss.back()->getType() != ListItem::TYPE_NIL))
 				return std::auto_ptr<ResponseNamespace>(0);
 			
-			const CHAR* pszName = static_cast<ListItemText*>(nss.front())->getText();
-			size_t nLen = strlen(pszName);
-			wxstring_size_ptr wstrName(converter.decode(pszName, &nLen));
+			std::pair<const CHAR*, size_t> name(
+				static_cast<ListItemText*>(nss.front())->getText().get());
+			size_t nLen = name.second;
+			wxstring_size_ptr wstrName(converter.decode(name.first, &nLen));
 			if (!wstrName.get())
 				return std::auto_ptr<ResponseNamespace>(0);
 			
-			const CHAR* pszSeparator = "";
-			if (nss.back()->getType() == ListItem::TYPE_TEXT)
-				pszSeparator = static_cast<ListItemText*>(nss.back())->getText();
-			WCHAR cSep = *pszSeparator;
+			WCHAR cSep = L'\0';
+			if (nss.back()->getType() == ListItem::TYPE_TEXT) {
+				std::pair<const CHAR*, size_t> separator(
+					static_cast<ListItemText*>(nss.back())->getText().get());
+				if (separator.second != 1)
+					return std::auto_ptr<ResponseNamespace>(0);
+				cSep = static_cast<WCHAR>(*separator.first);
+			}
 			
 			wstring_ptr wstr(allocWString(wstrName.get()));
 			listNamespace.push_back(std::make_pair(wstr.get(), cSep));
@@ -2309,10 +2301,10 @@ const ResponseStatus::StatusList& qmimap4::ResponseStatus::getStatusList() const
 }
 
 std::auto_ptr<ResponseStatus> qmimap4::ResponseStatus::create(const CHAR* pszMailbox,
+															  size_t nMailboxLen,
 															  List* pList)
 {
-	size_t nLen = strlen(pszMailbox);
-	wxstring_size_ptr wstrMailbox(UTF7Converter(true).decode(pszMailbox, &nLen));
+	wxstring_size_ptr wstrMailbox(UTF7Converter(true).decode(pszMailbox, &nMailboxLen));
 	if (!wstrMailbox.get())
 		return std::auto_ptr<ResponseStatus>(0);
 	
@@ -2336,18 +2328,19 @@ std::auto_ptr<ResponseStatus> qmimap4::ResponseStatus::create(const CHAR* pszMai
 			{ "UNSEEN",			STATUS_UNSEEN		}
 		};
 		Status s = STATUS_UNKNOWN;
-		const CHAR* pszStatus = static_cast<ListItemText*>(l[n])->getText();
+		std::pair<const CHAR*, size_t> status(
+			static_cast<ListItemText*>(l[n])->getText().get());
 		for (int m = 0; m < countof(statuses); ++m) {
-			if (_stricmp(pszStatus, statuses[m].pszName_) == 0) {
+			if (TokenUtil::isEqualIgnoreCase(status, statuses[m].pszName_)) {
 				s = statuses[m].status_;
 				break;
 			}
 		}
 		if (s != STATUS_UNKNOWN) {
-			const CHAR* psz = static_cast<ListItemText*>(l[n + 1])->getText();
-			CHAR* pEnd = 0;
-			unsigned long n = strtol(psz, &pEnd, 10);
-			if (*pEnd)
+			std::pair<const CHAR*, size_t> number(
+				static_cast<ListItemText*>(l[n + 1])->getText().get());
+			unsigned long n = 0;
+			if (!TokenUtil::string2number(number, &n))
 				return std::auto_ptr<ResponseStatus>(0);
 			listStatus.push_back(std::make_pair(s, n));
 		}
@@ -2388,10 +2381,10 @@ FetchData::Type qmimap4::FetchData::getType() const
 qmimap4::FetchDataBody::FetchDataBody(Section section,
 									  PartPath& partPath,
 									  FieldList& listField,
-									  qs::string_ptr strContent) :
+									  const TokenValue& content) :
 	FetchData(TYPE_BODY),
 	section_(section),
-	strContent_(strContent)
+	content_(content)
 {
 	partPath_.swap(partPath);
 	listField_.swap(listField);
@@ -2417,23 +2410,17 @@ const FetchDataBody::FieldList& qmimap4::FetchDataBody::getFieldList() const
 	return listField_;
 }
 
-const CHAR* qmimap4::FetchDataBody::getContent() const
+const TokenValue& qmimap4::FetchDataBody::getContent() const
 {
-	return strContent_.get();
-}
-
-string_ptr qmimap4::FetchDataBody::releaseContent()
-{
-	string_ptr strContent = strContent_;
-	strContent_.reset(0);
-	return strContent;
+	return content_;
 }
 
 std::auto_ptr<FetchDataBody> qmimap4::FetchDataBody::create(const CHAR* pszSection,
-															qs::string_ptr strContent)
+															size_t nSectionLen,
+															const TokenValue& content)
 {
 	assert(pszSection);
-	assert(strContent.get());
+	assert(content.get().first);
 	
 	Section section = SECTION_NONE;
 	PartPath partPath;
@@ -2454,7 +2441,8 @@ std::auto_ptr<FetchDataBody> qmimap4::FetchDataBody::create(const CHAR* pszSecti
 		FieldList& listField_;
 	} deleter(listField);
 	
-	const CHAR* p = pszSection;
+	string_ptr strSection(allocString(pszSection, nSectionLen));
+	const CHAR* p = strSection.get();
 	while (*p && isdigit(*p)) {
 		CHAR* pEnd = 0;
 		long n = strtol(p, &pEnd, 10);
@@ -2509,7 +2497,7 @@ std::auto_ptr<FetchDataBody> qmimap4::FetchDataBody::create(const CHAR* pszSecti
 			for (List::ItemList::const_iterator it = l.begin(); it != l.end(); ++it) {
 				if ((*it)->getType() != ListItem::TYPE_TEXT)
 					return std::auto_ptr<FetchDataBody>(0);
-				string_ptr str(static_cast<ListItemText*>(*it)->releaseText());
+				string_ptr str(static_cast<ListItemText*>(*it)->getTextString());
 				listField.push_back(str.get());
 				str.release();
 			}
@@ -2522,7 +2510,7 @@ std::auto_ptr<FetchDataBody> qmimap4::FetchDataBody::create(const CHAR* pszSecti
 		return std::auto_ptr<FetchDataBody>(0);
 	
 	return std::auto_ptr<FetchDataBody>(new FetchDataBody(
-		section, partPath, listField, strContent));
+		section, partPath, listField, content));
 }
 
 
@@ -2738,7 +2726,7 @@ std::auto_ptr<FetchDataBodyStructure> qmimap4::FetchDataBodyStructure::create(Li
 					}
 					break;
 				case ListItem::TYPE_TEXT:
-					strContentSubType = static_cast<ListItemText*>(*it)->releaseText();
+					strContentSubType = static_cast<ListItemText*>(*it)->getTextString();
 					nCount = 1;
 					bComplete = true;
 					break;
@@ -2785,7 +2773,7 @@ std::auto_ptr<FetchDataBodyStructure> qmimap4::FetchDataBodyStructure::create(Li
 				// Encoding
 				switch ((*it)->getType()) {
 				case ListItem::TYPE_TEXT:
-					*pstr[nCount] = static_cast<ListItemText*>(*it)->releaseText();
+					*pstr[nCount] = static_cast<ListItemText*>(*it)->getTextString();
 					if (pstr[nCount]->get()) {
 						for (CHAR* p = pstr[nCount]->get(); *p; ++p)
 							*p = toupper(*p);
@@ -2813,9 +2801,9 @@ std::auto_ptr<FetchDataBodyStructure> qmimap4::FetchDataBodyStructure::create(Li
 					return std::auto_ptr<FetchDataBodyStructure>(0);
 				}
 				else {
-					CHAR* pEnd = 0;
-					*pn[nCount - 6] = strtol(static_cast<ListItemText*>(*it)->getText(), &pEnd, 10);
-					if (*pEnd)
+					std::pair<const CHAR*, size_t> value(
+						static_cast<ListItemText*>(*it)->getText().get());
+					if (!TokenUtil::string2number(value, pn[nCount - 6]))
 						return std::auto_ptr<FetchDataBodyStructure>(0);
 				}
 				if (nCount == 6) {
@@ -2856,7 +2844,7 @@ std::auto_ptr<FetchDataBodyStructure> qmimap4::FetchDataBodyStructure::create(Li
 				// MD5
 				switch ((*it)->getType()) {
 				case ListItem::TYPE_TEXT:
-					strMd5 = static_cast<ListItemText*>(*it)->releaseText();
+					strMd5 = static_cast<ListItemText*>(*it)->getTextString();
 					break;
 				case ListItem::TYPE_LIST:
 					return std::auto_ptr<FetchDataBodyStructure>(0);
@@ -2921,20 +2909,15 @@ bool qmimap4::FetchDataBodyStructure::parseParam(ListItem* pListItem,
 			const List::ItemList& l = static_cast<List*>(pListItem)->getList();
 			if (l.size() % 2 != 0)
 				return false;
+			pListParam->reserve(pListParam->size() + l.size()/2);
 			for (List::ItemList::size_type n = 0; n < l.size(); n += 2) {
 				if (l[n]->getType() != ListItem::TYPE_TEXT ||
 					l[n + 1]->getType() != ListItem::TYPE_TEXT)
 					return false;
 				
-				string_ptr strName(static_cast<ListItemText*>(l[n])->releaseText());
-				if (!strName.get())
-					return false;
-				string_ptr strValue(static_cast<ListItemText*>(l[n + 1])->releaseText());
-				if (!strValue.get())
-					return false;
-				pListParam->push_back(std::make_pair(strName.get(), strValue.get()));
-				strName.release();
-				strValue.release();
+				string_ptr strName(static_cast<ListItemText*>(l[n])->getTextString());
+				string_ptr strValue(static_cast<ListItemText*>(l[n + 1])->getTextString());
+				pListParam->push_back(std::make_pair(strName.release(), strValue.release()));
 			}
 		}
 		break;
@@ -2967,7 +2950,7 @@ bool qmimap4::FetchDataBodyStructure::parseDisposition(ListItem* pListItem,
 			
 			if (l.front()->getType() != ListItem::TYPE_TEXT)
 				return false;
-			*pstrDisposition = static_cast<ListItemText*>(l.front())->releaseText();
+			*pstrDisposition = static_cast<ListItemText*>(l.front())->getTextString();
 			
 			if (!parseParam(l.back(), pListParam))
 				return false;
@@ -2992,7 +2975,7 @@ bool qmimap4::FetchDataBodyStructure::parseLanguage(ListItem* pListItem,
 		break;
 	case ListItem::TYPE_TEXT:
 		{
-			string_ptr str(static_cast<ListItemText*>(pListItem)->releaseText());
+			string_ptr str(static_cast<ListItemText*>(pListItem)->getTextString());
 			if (str.get()) {
 				pListLanguage->push_back(str.get());
 				str.release();
@@ -3005,7 +2988,7 @@ bool qmimap4::FetchDataBodyStructure::parseLanguage(ListItem* pListItem,
 			for (List::ItemList::const_iterator it = l.begin(); it != l.end(); ++it) {
 				if ((*it)->getType() != ListItem::TYPE_TEXT)
 					return false;
-				string_ptr str(static_cast<ListItemText*>(*it)->releaseText());
+				string_ptr str(static_cast<ListItemText*>(*it)->getTextString());
 				pListLanguage->push_back(str.get());
 				str.release();
 			}
@@ -3097,7 +3080,7 @@ std::auto_ptr<FetchDataEnvelope> qmimap4::FetchDataEnvelope::create(List* pList)
 			case ListItem::TYPE_NIL:
 				break;
 			case ListItem::TYPE_TEXT:
-				str[nText] = static_cast<ListItemText*>(*it)->releaseText();
+				str[nText] = static_cast<ListItemText*>(*it)->getTextString();
 				break;
 			case ListItem::TYPE_LIST:
 				return std::auto_ptr<FetchDataEnvelope>(0);
@@ -3220,17 +3203,18 @@ std::auto_ptr<FetchDataFlags> qmimap4::FetchDataFlags::create(List* pList)
 			{ "\\DRAFT",	Imap4::FLAG_DRAFT		},
 			{ "\\RECENT",	Imap4::FLAG_RECENT		}
 		};
-		const CHAR* pszFlag = static_cast<ListItemText*>(*it)->getText();
+		std::pair<const CHAR*, size_t> flag(
+			static_cast<ListItemText*>(*it)->getText().get());
 		int n = 0;
 		while (n < countof(systemFlags)) {
-			if (_stricmp(pszFlag, systemFlags[n].pszName_) == 0) {
+			if (TokenUtil::isEqualIgnoreCase(flag, systemFlags[n].pszName_)) {
 				nSystemFlags |= systemFlags[n].flag_;
 				break;
 			}
 			++n;
 		}
 		if (n == countof(systemFlags)) {
-			string_ptr str(static_cast<ListItemText*>(*it)->releaseText());
+			string_ptr str(allocString(flag.first, flag.second));
 			listCustomFlag.push_back(str.get());
 			str.release();
 		}
@@ -3261,9 +3245,10 @@ const Time& qmimap4::FetchDataInternalDate::getTime() const
 	return time_;
 }
 
-std::auto_ptr<FetchDataInternalDate> qmimap4::FetchDataInternalDate::create(const CHAR* pszDate)
+std::auto_ptr<FetchDataInternalDate> qmimap4::FetchDataInternalDate::create(const CHAR* pszDate,
+																			size_t nDateLen)
 {
-	if (strlen(pszDate) != 26 ||
+	if (nDateLen != 26 ||
 		pszDate[2] != '-' ||
 		pszDate[6] != '-' ||
 		pszDate[11] != ' ' ||
@@ -3406,7 +3391,7 @@ std::auto_ptr<EnvelopeAddress> qmimap4::EnvelopeAddress::create(List* pList)
 			continue;
 		else if (l[n]->getType() != ListItem::TYPE_TEXT)
 			return std::auto_ptr<EnvelopeAddress>(0);
-		str[n] = static_cast<ListItemText*>(l[n])->releaseText();
+		str[n] = static_cast<ListItemText*>(l[n])->getTextString();
 	}
 	
 	return std::auto_ptr<EnvelopeAddress>(
@@ -3457,30 +3442,26 @@ qmimap4::ListItemNil::~ListItemNil()
  *
  */
 
-qmimap4::ListItemText::ListItemText(qs::string_ptr str) :
+qmimap4::ListItemText::ListItemText(const TokenValue& text) :
 	ListItem(TYPE_TEXT),
-	str_(str)
+	text_(text)
 {
-	assert(str_.get());
+	assert(text_.get().first);
 }
 
 qmimap4::ListItemText::~ListItemText()
 {
 }
 
-const CHAR* qmimap4::ListItemText::getText() const
+const TokenValue& qmimap4::ListItemText::getText() const
 {
-	assert(str_.get());
-	return str_.get();
+	return text_;
 }
 
-string_ptr qmimap4::ListItemText::releaseText()
+string_ptr qmimap4::ListItemText::getTextString()
 {
-	assert(str_.get());
-	
-	string_ptr str = str_;
-	str_.reset(0);
-	return str;
+	std::pair<const CHAR*, size_t> text(text_.get());
+	return allocString(text.first, text.second);
 }
 
 

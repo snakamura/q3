@@ -39,6 +39,17 @@ qm::ProtocolDriver::~ProtocolDriver()
 
 /****************************************************************************
  *
+ * ProtocolDriver::GetMessageCallback
+ *
+ */
+
+qm::ProtocolDriver::GetMessageCallback::~GetMessageCallback()
+{
+}
+
+
+/****************************************************************************
+ *
  * ProtocolFactoryImpl
  *
  */

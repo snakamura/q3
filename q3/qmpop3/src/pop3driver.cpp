@@ -124,9 +124,7 @@ std::pair<const WCHAR**, size_t> qmpop3::Pop3Driver::getFolderParamNames()
 
 bool qmpop3::Pop3Driver::getMessage(MessageHolder* pmh,
 									unsigned int nFlags,
-									xstring_ptr* pstrMessage,
-									Message::Flag* pFlag,
-									bool* pbMadeSeen)
+									GetMessageCallback* pCallback)
 {
 	assert(false);
 	return false;

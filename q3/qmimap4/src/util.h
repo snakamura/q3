@@ -73,9 +73,9 @@ public:
 	static void getPartsFromBodyStructure(const FetchDataBodyStructure* pBodyStructure,
 										  const unsigned int* pBasePath,
 										  PartList* pListPart);
-	static qs::xstring_ptr getContentFromBodyStructureAndBodies(const PartList& listPart,
-																const BodyList& listBody,
-																bool bTrustBodyStructure);
+	static qs::xstring_size_ptr getContentFromBodyStructureAndBodies(const PartList& listPart,
+																	 const BodyList& listBody,
+																	 bool bTrustBodyStructure);
 	static void getFetchArgFromPartList(const PartList& listPart,
 										FetchArg arg,
 										bool bPeek,

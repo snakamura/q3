@@ -590,7 +590,7 @@ bool qmpop3::Pop3ReceiveSession::downloadReservedMessages(NormalFolder* pFolder,
 					unsigned int nSize = listSize_[nIndex];
 					if (!pPop3_->getMessage(nIndex, 0xffffffff, &strMessage, &nSize))
 						HANDLE_ERROR();
-					if (!pAccount_->updateMessage(mpl, strMessage.get()))
+					if (!pAccount_->updateMessage(mpl, strMessage.get(), nSize))
 						return false;
 					
 					UID* pUID = pUIDList_->getUID(nIndex);

@@ -18,6 +18,8 @@
 
 #include <vector>
 
+#include "buffer.h"
+
 
 namespace qmimap4 {
 
@@ -562,7 +564,8 @@ public:
 	bool isSupportAuth(const CHAR* pszAuth) const;
 
 public:
-	void add(const CHAR* psz);
+	void add(const CHAR* psz,
+			 size_t nLen);
 
 private:
 	ResponseCapability(const ResponseCapability&);
@@ -753,7 +756,8 @@ public:
 	static std::auto_ptr<ResponseList> create(bool bList,
 											  List* pListAttribute,
 											  CHAR cSeparator,
-											  const CHAR* pszMailbox);
+											  const CHAR* pszMailbox,
+											  size_t nMailboxLen);
 
 private:
 	ResponseList(const ResponseList&);
@@ -930,6 +934,7 @@ public:
 
 public:
 	static std::auto_ptr<ResponseStatus> create(const CHAR* pszMailbox,
+												size_t nMailboxLen,
 												List* pList);
 
 private:
@@ -1002,19 +1007,19 @@ public:
 	FetchDataBody(Section section,
 				  PartPath& partPath,
 				  FieldList& listField,
-				  qs::string_ptr strContent);
+				  const TokenValue& content);
 	virtual ~FetchDataBody();
 
 public:
 	Section getSection() const;
 	const PartPath& getPartPath() const;
 	const FieldList& getFieldList() const;
-	const CHAR* getContent() const;
-	qs::string_ptr releaseContent();
+	const TokenValue& getContent() const;
 
 public:
 	static std::auto_ptr<FetchDataBody> create(const CHAR* pszSection,
-											   qs::string_ptr strContent);
+											   size_t nSectionLen,
+											   const TokenValue& content);
 
 private:
 	FetchDataBody(const FetchDataBody&);
@@ -1024,7 +1029,7 @@ private:
 	Section section_;
 	PartPath partPath_;
 	FieldList listField_;
-	qs::string_ptr strContent_;
+	TokenValue content_;
 };
 
 
@@ -1212,7 +1217,8 @@ public:
 	const qs::Time& getTime() const;
 
 public:
-	static std::auto_ptr<FetchDataInternalDate> create(const CHAR* pszDate);
+	static std::auto_ptr<FetchDataInternalDate> create(const CHAR* pszDate,
+													   size_t nDateLen);
 
 private:
 	FetchDataInternalDate(const FetchDataInternalDate&);
@@ -1341,19 +1347,19 @@ private:
 class ListItemText : public ListItem
 {
 public:
-	ListItemText(qs::string_ptr str);
+	ListItemText(const TokenValue& text);
 	virtual ~ListItemText();
 
 public:
-	const CHAR* getText() const;
-	qs::string_ptr releaseText();
+	const TokenValue& getText() const;
+	qs::string_ptr getTextString();
 
 private:
 	ListItemText(const ListItemText&);
 	ListItemText& operator=(const ListItemText&);
 
 private:
-	qs::string_ptr str_;
+	TokenValue text_;
 };
 
 

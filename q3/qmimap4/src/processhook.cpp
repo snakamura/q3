@@ -96,7 +96,8 @@ ProcessHook::Result qmimap4::AbstractMessageProcessHook::processFetchResponse(Re
 	MessagePtr ptr(getMessagePtr(nUid));
 	MessagePtrLock mpl(ptr);
 	if (mpl) {
-		if (!getAccount()->updateMessage(mpl, pBody->getContent()))
+		std::pair<const CHAR*, size_t> content(pBody->getContent().get());
+		if (!getAccount()->updateMessage(mpl, content.first, content.second))
 			return RESULT_ERROR;
 		unsigned int nMask = MessageHolder::FLAG_DOWNLOAD |
 			MessageHolder::FLAG_DOWNLOADTEXT |
@@ -170,9 +171,9 @@ ProcessHook::Result qmimap4::AbstractPartialMessageProcessHook::processFetchResp
 	MessagePtr ptr(getMessagePtr(nUid));
 	MessagePtrLock mpl(ptr);
 	if (mpl) {
-		xstring_ptr strContent(Util::getContentFromBodyStructureAndBodies(
+		xstring_size_ptr strContent(Util::getContentFromBodyStructureAndBodies(
 			listPart, listBody, (getOption() & OPTION_TRUSTBODYSTRUCTURE) != 0));
-		if (!getAccount()->updateMessage(mpl, strContent.get()))
+		if (!getAccount()->updateMessage(mpl, strContent.get(), strContent.size()))
 			return RESULT_ERROR;
 		unsigned int nMask = MessageHolder::FLAG_DOWNLOAD |
 			MessageHolder::FLAG_DOWNLOADTEXT |

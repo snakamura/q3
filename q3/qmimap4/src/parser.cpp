@@ -6,6 +6,7 @@
  *
  */
 
+#include "error.h"
 #include "imap4.h"
 #include "parser.h"
 
@@ -20,24 +21,6 @@ using namespace qs;
  * Parser
  *
  */
-
-#define IMAP4_ERROR(e) \
-	do { \
-		nError_ = e; \
-		return false; \
-	} while (false) \
-
-#define IMAP4_ERROR_SOCKET(e) \
-	do { \
-		nError_ = e | pSocket_->getLastError(); \
-		return false; \
-	} while (false)
-
-#define IMAP4_ERROR_OR(e) \
-	do { \
-		nError_ |= e; \
-		return false; \
-	} while (false) \
 
 qmimap4::Parser::Parser(Buffer* pBuffer,
 						Imap4Callback* pCallback) :
@@ -58,12 +41,31 @@ bool qmimap4::Parser::parse(const CHAR* pszTag,
 	assert(pszTag);
 	
 	while (true) {
-		string_ptr strToken;
-		Token token = getNextToken(&strToken);
+		struct X
+		{
+			X(Buffer* pBuffer,
+			  size_t& nIndex) :
+				pBuffer_(pBuffer),
+				nIndex_(nIndex)
+			{
+			}
+			
+			~X()
+			{
+				pBuffer_->clearTokens();
+				nIndex_ = pBuffer_->free(nIndex_);
+			}
+			
+			Buffer* pBuffer_;
+			size_t& nIndex_;
+		} x(pBuffer_, nIndex_);
+		
+		std::pair<const CHAR*, size_t> tag;
+		Token token = getNextToken(&tag);
 		if (token != TOKEN_ATOM)
 			return false;
 		
-		if (strcmp(strToken.get(), "*") == 0) {
+		if (TokenUtil::isEqual(tag, "*")) {
 			std::auto_ptr<Response> pResponse(parseResponse());
 			if (!pResponse.get())
 				return false;
@@ -72,7 +74,7 @@ bool qmimap4::Parser::parse(const CHAR* pszTag,
 			if (!*pszTag)
 				break;
 		}
-		else if (strcmp(strToken.get(), "+") == 0) {
+		else if (TokenUtil::isEqual(tag, "+")) {
 			std::auto_ptr<ResponseContinue> pContinue(parseContinueResponse());
 			if (!pContinue.get())
 				return false;
@@ -82,7 +84,7 @@ bool qmimap4::Parser::parse(const CHAR* pszTag,
 				break;
 		}
 		else {
-			bool bEnd = strcmp(strToken.get(), pszTag) == 0;
+			bool bEnd = TokenUtil::isEqual(tag, pszTag);
 			std::auto_ptr<Response> pResponse(parseResponse());
 			if (!pResponse.get())
 				return false;
@@ -91,8 +93,6 @@ bool qmimap4::Parser::parse(const CHAR* pszTag,
 			if (bEnd)
 				break;
 		}
-		
-		nIndex_ = pBuffer_->free(nIndex_);
 	}
 	
 	return true;
@@ -112,25 +112,27 @@ Parser::Token qmimap4::Parser::getNextToken(Buffer* pBuffer,
 											size_t* pnIndex,
 											const CHAR* pszSep,
 											Imap4Callback* pCallback,
-											string_ptr* pstrToken)
+											TokenValue* pTokenValue,
+											std::pair<const CHAR*, size_t>* pToken)
 {
 	assert(pBuffer);
 	assert(pnIndex);
 	assert(pszSep);
-	assert(pstrToken);
+	assert((pTokenValue || pToken) && (!pTokenValue || !pToken));
 	
-	pstrToken->reset(0);
 	size_t& nIndex = *pnIndex;
-	Token token = TOKEN_ERROR;
+	const CHAR* pszToken = 0;
+	size_t nTokenLen = 0;
 	
-	string_ptr strToken;
+	Token token = TOKEN_ERROR;
 	
 	CHAR c = pBuffer->get(nIndex);
 	if (c == '\0') {
 		return TOKEN_ERROR;
 	}
 	else if (c == '\"') {
-		StringBuffer<STRING> buf;
+		size_t nIndexBegin = nIndex + 1;
+		size_t nIndexEnd = nIndexBegin;
 		for (++nIndex; ; ++nIndex) {
 			c = pBuffer->get(nIndex);
 			if (c == '\0') {
@@ -142,11 +144,11 @@ Parser::Token qmimap4::Parser::getNextToken(Buffer* pBuffer,
 					return TOKEN_ERROR;
 				}
 				else if (cNext == '\\' || cNext == '\"') {
-					buf.append(cNext);
+					pBuffer->set(nIndexEnd++, cNext);
 					++nIndex;
 				}
 				else {
-					buf.append(c);
+					pBuffer->set(nIndexEnd++, c);
 				}
 			}
 			else if (c == '\"') {
@@ -159,12 +161,13 @@ Parser::Token qmimap4::Parser::getNextToken(Buffer* pBuffer,
 					break;
 			}
 			else {
-				buf.append(c);
+				pBuffer->set(nIndexEnd++, c);
 			}
 		}
 		++nIndex;
 		token = TOKEN_QUOTED;
-		strToken = buf.getString();
+		pszToken = pBuffer->str() + nIndexBegin;
+		nTokenLen = nIndexEnd - nIndexBegin;
 	}
 	else if (c == '{') {
 		size_t nIndexEnd = pBuffer->find("}\r\n", nIndex + 1);
@@ -188,7 +191,8 @@ Parser::Token qmimap4::Parser::getNextToken(Buffer* pBuffer,
 			pCallback->setPos(0);
 		}
 		
-		strToken = allocString(pBuffer->str() + nIndex, nLen);
+		pszToken = pBuffer->str() + nIndex;
+		nTokenLen = nLen;
 		nIndex += nLen;
 		token = TOKEN_LITERAL;
 	}
@@ -213,7 +217,8 @@ Parser::Token qmimap4::Parser::getNextToken(Buffer* pBuffer,
 			token = TOKEN_NIL;
 		}
 		else {
-			strToken = allocString(pBuffer->str() + nIndexBegin, nIndex - nIndexBegin);
+			pszToken = pBuffer->str() + nIndexBegin;
+			nTokenLen = nIndex - nIndexBegin;
 			token = TOKEN_ATOM;
 		}
 	}
@@ -223,8 +228,13 @@ Parser::Token qmimap4::Parser::getNextToken(Buffer* pBuffer,
 	if (pBuffer->getError() != Imap4::IMAP4_ERROR_SUCCESS)
 		return TOKEN_ERROR;
 	
-	if (token != TOKEN_NIL)
-		*pstrToken = strToken;
+	if (pTokenValue) {
+		pTokenValue->set(pBuffer, pszToken ? pBuffer->addToken(pszToken, nTokenLen) : -1);
+	}
+	else {
+		pToken->first = pszToken;
+		pToken->second = nTokenLen;
+	}
 	
 	return token;
 }
@@ -253,8 +263,8 @@ std::auto_ptr<List> qmimap4::Parser::parseList(Buffer* pBuffer,
 		else {
 			// Because of BUG of iMAIL,
 			// I add '(' to the separator.
-			string_ptr strToken;
-			Token token = getNextToken(pBuffer, pnIndex, " ()", pCallback, &strToken);
+			TokenValue tokenValue;
+			Token token = getNextToken(pBuffer, pnIndex, " ()", pCallback, &tokenValue, 0);
 			if (token == TOKEN_ERROR)
 				return std::auto_ptr<List>(0);
 			
@@ -262,7 +272,7 @@ std::auto_ptr<List> qmimap4::Parser::parseList(Buffer* pBuffer,
 			if (token == TOKEN_NIL)
 				pItem.reset(new ListItemNil());
 			else
-				pItem.reset(new ListItemText(strToken));
+				pItem.reset(new ListItemText(tokenValue));
 			pList->add(pItem);
 			
 			// Because of BUG of iMAIL
@@ -285,62 +295,62 @@ std::auto_ptr<Response> qmimap4::Parser::parseResponse()
 {
 	std::auto_ptr<Response> pResponse;
 	
-	string_ptr strToken;
-	Token token = getNextToken(" \r", &strToken);
+	
+	std::pair<const CHAR*, size_t> value;
+	Token token = getNextToken(" \r", &value);
 	if (token != TOKEN_ATOM)
 		return std::auto_ptr<Response>(0);
 	
 	ResponseState::Flag flag = ResponseState::FLAG_UNKNOWN;
-	switch (*strToken.get()) {
+	switch (*value.first) {
 	case 'B':
-		if (strcmp(strToken.get(), "BAD") == 0)
+		if (TokenUtil::isEqual(value, "BAD"))
 			flag = ResponseState::FLAG_BAD;
-		else if (strcmp(strToken.get(), "BYE") == 0)
+		else if (TokenUtil::isEqual(value, "BYE"))
 			flag = ResponseState::FLAG_BYE;
 		break;
 	case 'C':
-		if (strcmp(strToken.get(), "CAPABILITY") == 0)
+		if (TokenUtil::isEqual(value, "CAPABILITY"))
 			pResponse = parseCapabilityResponse();
 		break;
 	case 'F':
-		if (strcmp(strToken.get(), "FLAGS") == 0)
+		if (TokenUtil::isEqual(value, "FLAGS"))
 			pResponse = parseFlagsResponse();
 		break;
 	case 'L':
-		if (strcmp(strToken.get(), "LIST") == 0)
+		if (TokenUtil::isEqual(value, "LIST"))
 			pResponse = parseListResponse(true);
-		else if (strcmp(strToken.get(), "LSUB") == 0)
+		else if (TokenUtil::isEqual(value, "LSUB"))
 			pResponse = parseListResponse(false);
 		break;
 	case 'N':
-		if (strcmp(strToken.get(), "NO") == 0)
+		if (TokenUtil::isEqual(value, "NO"))
 			flag = ResponseState::FLAG_NO;
-		else if (strcmp(strToken.get(), "NAMESPACE") == 0)
+		else if (TokenUtil::isEqual(value, "NAMESPACE"))
 			pResponse = parseNamespaceResponse();
 		break;
 	case 'O':
-		if (strcmp(strToken.get(), "OK") == 0)
+		if (TokenUtil::isEqual(value, "OK"))
 			flag = ResponseState::FLAG_OK;
 		break;
 	case 'P':
-		if (strcmp(strToken.get(), "PREAUTH") == 0)
+		if (TokenUtil::isEqual(value, "PREAUTH"))
 			flag = ResponseState::FLAG_PREAUTH;
 		break;
 	case 'S':
-		if (strcmp(strToken.get(), "STATUS") == 0)
+		if (TokenUtil::isEqual(value, "STATUS"))
 			pResponse = parseStatusResponse();
-		else if (strcmp(strToken.get(), "SEARCH") == 0)
+		else if (TokenUtil::isEqual(value, "SEARCH"))
 			pResponse = parseSearchResponse();
 		break;
 	}
 	if (flag == ResponseState::FLAG_UNKNOWN && !pResponse.get()) {
-		CHAR* pEnd = 0;
-		long nNumber = strtol(strToken.get(), &pEnd, 10);
-		if (*pEnd)
+		unsigned long nNumber = 0;
+		if (!TokenUtil::string2number(value, &nNumber))
 			return std::auto_ptr<Response>(0);
 		
-		strToken.reset(0);
-		token = getNextToken(" \r", &strToken);
+		TokenValue tokenValue;
+		token = getNextToken(" \r", &tokenValue);
 		if (token != TOKEN_ATOM)
 			return std::auto_ptr<Response>(0);
 		
@@ -355,19 +365,20 @@ std::auto_ptr<Response> qmimap4::Parser::parseResponse()
 				nIndex_ += 2;
 		}
 		
-		switch (*strToken.get()) {
+		value = tokenValue.get();
+		switch (*value.first) {
 		case 'E':
-			if (strcmp(strToken.get(), "EXISTS") == 0)
+			if (TokenUtil::isEqual(value, "EXISTS"))
 				pResponse.reset(new ResponseExists(nNumber));
-			else if (strcmp(strToken.get(), "EXPUNGE") == 0)
+			else if (TokenUtil::isEqual(value, "EXPUNGE"))
 				pResponse.reset(new ResponseExpunge(nNumber));
 			break;
 		case L'F':
-			if (strcmp(strToken.get(), "FETCH") == 0)
+			if (TokenUtil::isEqual(value, "FETCH"))
 				pResponse = parseFetchResponse(nNumber);
 			break;
 		case L'R':
-			if (strcmp(strToken.get(), "RECENT") == 0)
+			if (TokenUtil::isEqual(value, "RECENT"))
 				pResponse.reset(new ResponseRecent(nNumber));
 			break;
 		}
@@ -390,12 +401,12 @@ std::auto_ptr<ResponseCapability> qmimap4::Parser::parseCapabilityResponse()
 	std::auto_ptr<ResponseCapability> pCapability(new ResponseCapability());
 	
 	while (true) {
-		string_ptr strToken;
-		Token token = getNextToken(" \r", &strToken);
+		std::pair<const CHAR*, size_t> value;
+		Token token = getNextToken(" \r", &value);
 		if (token != TOKEN_ATOM)
 			return std::auto_ptr<ResponseCapability>(0);
 		
-		pCapability->add(strToken.get());
+		pCapability->add(value.first, value.second);
 		
 		CHAR c1 = pBuffer_->get(nIndex_);
 		if (c1 == '\0')
@@ -461,27 +472,28 @@ std::auto_ptr<ResponseList> qmimap4::Parser::parseListResponse(bool bList)
 {
 	std::auto_ptr<List> pList(parseList());
 	
-	string_ptr strToken;
-	Token token = getNextToken(&strToken);
+	std::pair<const CHAR*, size_t> separator;
+	Token token = getNextToken(&separator);
 	if (token == TOKEN_ERROR)
 		return std::auto_ptr<ResponseList>(0);
 	
 	CHAR cSeparator = '\0';
 	if (token != TOKEN_NIL) {
-		if (strlen(strToken.get()) != 1)
+		if (separator.second != 1)
 			return std::auto_ptr<ResponseList>(0);
-		cSeparator = *strToken.get();
+		cSeparator = *separator.first;
 	}
 	
-	string_ptr strMailbox;
-	token = getNextToken("\r", &strMailbox);
+	TokenValue tokenValue;
+	token = getNextToken("\r", &tokenValue);
 	if (token == TOKEN_ERROR || token == TOKEN_NIL)
 		return std::auto_ptr<ResponseList>(0);
 	if (pBuffer_->get(nIndex_) != '\r' || pBuffer_->get(nIndex_ + 1) != '\n')
 		return std::auto_ptr<ResponseList>(0);
 	nIndex_ += 2;
 	
-	return ResponseList::create(bList, pList.get(), cSeparator, strMailbox.get());
+	std::pair<const CHAR*, size_t> mailbox(tokenValue.get());
+	return ResponseList::create(bList, pList.get(), cSeparator, mailbox.first, mailbox.second);
 }
 
 std::auto_ptr<ResponseNamespace> qmimap4::Parser::parseNamespaceResponse()
@@ -493,8 +505,8 @@ std::auto_ptr<ResponseNamespace> qmimap4::Parser::parseNamespaceResponse()
 		}
 		else {
 			const CHAR* pszSep = n != countof(pLists) - 1 ? " " : " \r";
-			string_ptr strToken;
-			Token token = getNextToken(pszSep, &strToken);
+			std::pair<const CHAR*, size_t> nil;
+			Token token = getNextToken(pszSep, &nil);
 			if (token != TOKEN_NIL)
 				return std::auto_ptr<ResponseNamespace>(0);
 		}
@@ -513,18 +525,17 @@ std::auto_ptr<ResponseSearch> qmimap4::Parser::parseSearchResponse()
 	std::auto_ptr<ResponseSearch> pSearch(new ResponseSearch());
 	
 	while (true) {
-		string_ptr strToken;
-		Token token = getNextToken(" \r", &strToken);
+		std::pair<const CHAR*, size_t> id;
+		Token token = getNextToken(" \r", &id);
 		if (token != TOKEN_ATOM)
 			return std::auto_ptr<ResponseSearch>(0);
-		if (!*strToken.get())
+		if (id.second == 0)
 			break;
 		
-		CHAR* pEnd = 0;
-		long n = strtol(strToken.get(), &pEnd, 10);
-		if (*pEnd)
+		unsigned long nId = 0;
+		if (!TokenUtil::string2number(id, &nId))
 			return std::auto_ptr<ResponseSearch>(0);
-		pSearch->add(n);
+		pSearch->add(nId);
 	}
 	
 	nIndex_ += 2;
@@ -534,8 +545,8 @@ std::auto_ptr<ResponseSearch> qmimap4::Parser::parseSearchResponse()
 
 std::auto_ptr<ResponseStatus> qmimap4::Parser::parseStatusResponse()
 {
-	string_ptr strMailbox;
-	Token token = getNextToken(&strMailbox);
+	TokenValue tokenValue;
+	Token token = getNextToken(&tokenValue);
 	if (token == TOKEN_ERROR || token == TOKEN_NIL)
 		return std::auto_ptr<ResponseStatus>(0);
 	
@@ -546,7 +557,8 @@ std::auto_ptr<ResponseStatus> qmimap4::Parser::parseStatusResponse()
 		return std::auto_ptr<ResponseStatus>(0);
 	nIndex_ += 2;
 	
-	return ResponseStatus::create(strMailbox.get(), pList.get());
+	std::pair<const CHAR*, size_t> mailbox(tokenValue.get());
+	return ResponseStatus::create(mailbox.first, mailbox.second, pList.get());
 }
 
 std::auto_ptr<State> qmimap4::Parser::parseStatus()
@@ -559,8 +571,8 @@ std::auto_ptr<State> qmimap4::Parser::parseStatus()
 	if (c == '[') {
 		++nIndex_;
 		
-		string_ptr strToken;
-		Token token = getNextToken(" ]", &strToken);
+		std::pair<const CHAR*, size_t> codeName;
+		Token token = getNextToken(" ]", &codeName);
 		if (token != TOKEN_ATOM)
 			return std::auto_ptr<State>(0);
 		
@@ -589,7 +601,7 @@ std::auto_ptr<State> qmimap4::Parser::parseStatus()
 		State::Code code = State::CODE_OTHER;
 		S::Arg arg = S::ARG_NONE;
 		for (int n = 0; n < countof(states); ++n) {
-			if (strcmp(strToken.get(), states[n].pszCode_) == 0) {
+			if (TokenUtil::isEqual(codeName, states[n].pszCode_)) {
 				code = states[n].code_;
 				arg = states[n].arg_;
 				break;
@@ -606,14 +618,13 @@ std::auto_ptr<State> qmimap4::Parser::parseStatus()
 				return std::auto_ptr<State>(0);
 		}
 		else if (arg == S::ARG_NUMBER) {
-			string_ptr strArg;
-			token = getNextToken("]", &strArg);
+			std::pair<const CHAR*, size_t> arg;
+			token = getNextToken("]", &arg);
 			if (token != TOKEN_ATOM)
 				return std::auto_ptr<State>(0);
 			
-			CHAR* pEnd = 0;
-			long nArg = strtol(strArg.get(), &pEnd, 10);
-			if (*pEnd)
+			unsigned long nArg = 0;
+			if (!TokenUtil::string2number(arg, &nArg))
 				return std::auto_ptr<State>(0);
 			pState->setArg(nArg);
 		}
@@ -653,15 +664,26 @@ std::auto_ptr<List> qmimap4::Parser::parseList()
 	return Parser::parseList(pBuffer_, &nIndex_, pCallback_);
 }
 
-Parser::Token qmimap4::Parser::getNextToken(string_ptr* pstrToken)
+Parser::Token qmimap4::Parser::getNextToken(std::pair<const CHAR*, size_t>* pToken)
 {
-	return getNextToken(" ", pstrToken);
+	return getNextToken(" ", pToken);
 }
 
 Parser::Token qmimap4::Parser::getNextToken(const CHAR* pszSep,
-											string_ptr* pstrToken)
+											std::pair<const CHAR*, size_t>* pToken)
 {
-	return getNextToken(pBuffer_, &nIndex_, pszSep, pCallback_, pstrToken);
+	return getNextToken(pBuffer_, &nIndex_, pszSep, pCallback_, 0, pToken);
+}
+
+Parser::Token qmimap4::Parser::getNextToken(TokenValue* pTokenValue)
+{
+	return getNextToken(" ", pTokenValue);
+}
+
+Parser::Token qmimap4::Parser::getNextToken(const CHAR* pszSep,
+											TokenValue* pTokenValue)
+{
+	return getNextToken(pBuffer_, &nIndex_, pszSep, pCallback_, pTokenValue, 0);
 }
 
 
@@ -673,159 +695,4 @@ Parser::Token qmimap4::Parser::getNextToken(const CHAR* pszSep,
 
 qmimap4::ParserCallback::~ParserCallback()
 {
-}
-
-
-/****************************************************************************
- *
- * Buffer
- *
- */
-
-qmimap4::Buffer::Buffer(const CHAR* psz) :
-	pSocket_(0),
-	nError_(Imap4::IMAP4_ERROR_SUCCESS)
-{
-	if (psz) {
-		if (!buf_.append(psz)) {
-			// TODO
-		}
-	}
-}
-
-qmimap4::Buffer::Buffer(const CHAR* psz,
-						SocketBase* pSocket) :
-	pSocket_(pSocket),
-	nError_(Imap4::IMAP4_ERROR_SUCCESS)
-{
-	if (psz) {
-		if (!buf_.append(psz)) {
-			// TODO
-		}
-	}
-}
-
-qmimap4::Buffer::~Buffer()
-{
-}
-
-CHAR qmimap4::Buffer::get(size_t n)
-{
-	return get(n, 0, 0);
-}
-
-CHAR qmimap4::Buffer::get(size_t n,
-						  Imap4Callback* pCallback,
-						  size_t nStart)
-{
-	if (n >= buf_.getLength()) {
-		if (!pSocket_)
-			return '\0';
-		if (!receive(n, pCallback, nStart))
-			return '\0';
-	}
-	assert(buf_.getLength() >= n);
-	
-	return buf_.get(n);
-}
-
-size_t qmimap4::Buffer::find(CHAR c,
-							 size_t n)
-{
-	const CHAR* p = 0;
-	while (!p) {
-		p = strchr(buf_.getCharArray() + n, c);
-		if (!p) {
-			if (!receive(buf_.getLength(), 0, 0))
-				return -1;
-		}
-	}
-	return p - buf_.getCharArray();
-}
-
-size_t qmimap4::Buffer::find(const CHAR* psz,
-							 size_t n)
-{
-	const CHAR* p = 0;
-	while (!p) {
-		p = strstr(buf_.getCharArray() + n, psz);
-		if (!p) {
-			if (!receive(buf_.getLength(), 0, 0))
-				return -1;
-		}
-	}
-	return p - buf_.getCharArray();
-}
-
-string_ptr qmimap4::Buffer::substr(size_t nPos,
-								   size_t nLen) const
-{
-	assert((nLen == -1 && buf_.getLength() >= nPos) ||
-		buf_.getLength() >= nPos + nLen);
-	
-	const CHAR* p = buf_.getCharArray() + nPos;
-	if (nLen == -1)
-		nLen = strlen(p);
-	return allocString(p, nLen);
-}
-
-const CHAR* qmimap4::Buffer::str() const
-{
-	return buf_.getCharArray();
-}
-
-unsigned int qmimap4::Buffer::getError() const
-{
-	return nError_;
-}
-
-size_t qmimap4::Buffer::free(size_t n)
-{
-	if (n < 1024*128 || n < (buf_.getLength() - n)*9)
-		return n;
-	
-	buf_.remove(0, n);
-	
-	return 0;
-}
-
-bool qmimap4::Buffer::receive(size_t n,
-							  Imap4Callback* pCallback,
-							  size_t nStart)
-{
-	if (!pSocket_)
-		IMAP4_ERROR(Imap4::IMAP4_ERROR_PARSE);
-	
-	if (pCallback)
-		pCallback->setPos(0);
-	
-	size_t nAllocSize = n - buf_.getLength() + Imap4::RECEIVE_BLOCK_SIZE;
-	XStringBufferLock<XSTRING> lock(&buf_, nAllocSize);
-	CHAR* pLock = lock.get();
-	if (!pLock)
-		return false;
-	
-	CHAR* p = pLock;
-	do {
-		int nSelect = pSocket_->select(Socket::SELECT_READ);
-		if (nSelect == -1)
-			IMAP4_ERROR_SOCKET(Imap4::IMAP4_ERROR_SELECTSOCKET);
-		else if (nSelect == 0)
-			IMAP4_ERROR(Imap4::IMAP4_ERROR_TIMEOUT);
-		
-		size_t nLen = pSocket_->recv(p, Imap4::RECEIVE_BLOCK_SIZE, 0);
-		if (nLen == -1)
-			IMAP4_ERROR_SOCKET(Imap4::IMAP4_ERROR_RECEIVE);
-		else if (nLen == 0)
-			IMAP4_ERROR(Imap4::IMAP4_ERROR_DISCONNECT);
-		
-		p += nLen;
-		
-		if (pCallback)
-			pCallback->setPos((buf_.getLength() - nStart) + (p - pLock));
-	} while (buf_.getLength() + (p - pLock) <= n);
-	
-	lock.unlock(p - pLock);
-	
-	return true;
 }

@@ -108,28 +108,16 @@ bool qs::Part::create(const Part* pParent,
 	if (nLen == static_cast<size_t>(-1))
 		nLen = strlen(pszContent);
 	
-	const CHAR* pBody = pszContent;
-	if (strncmp(pBody, "\r\n", 2) != 0) {
-		BMFindString<STRING> bmfs("\r\n\r\n");
-		pBody = bmfs.find(pszContent, nLen);
-		if (pBody)
-			pBody += 2;
-	}
-	if (pBody)
-		pBody += 2;
-	if (!pBody || pBody > pszContent + nLen) {
+	const CHAR* pBody = getBody(pszContent, nLen);
+	if (!pBody) {
 		strHeader_ = allocXString(nLen + 2);
 		if (!strHeader_.get())
 			return false;
 		strncpy(strHeader_.get(), pszContent, nLen);
-		if (strncmp(pszContent + nLen - 2, "\r\n", 2) != 0) {
-			*(strHeader_.get() + nLen) = '\r';
-			*(strHeader_.get() + nLen + 1) = '\n';
-			*(strHeader_.get() + nLen + 2) = '\0';
-		}
-		else {
+		if (strncmp(pszContent + nLen - 2, "\r\n", 2) != 0)
+			strcpy(strHeader_.get() + nLen, "\r\n");
+		else
 			*(strHeader_.get() + nLen) = '\0';
-		}
 		pBody = 0;
 	}
 	else if (pBody != pszContent + 2) {
@@ -1018,6 +1006,28 @@ bool qs::Part::isGlobalOption(Option option)
 void qs::Part::setGlobalOptions(unsigned int nOptions)
 {
 	nGlobalOptions__ = nOptions;
+}
+
+const CHAR* qs::Part::getBody(const CHAR* pszContent,
+							  size_t nLen)
+{
+	assert(pszContent);
+	
+	const CHAR* pBody = pszContent;
+	if (nLen < 2 || strncmp(pBody, "\r\n", 2) != 0) {
+		BMFindString<STRING> bmfs("\r\n\r\n");
+		pBody = bmfs.find(pszContent, nLen);
+		if (pBody)
+			pBody += 2;
+	}
+	if (pBody)
+		pBody += 2;
+	if (pBody == pszContent + nLen)
+		pBody = 0;
+	
+	assert(!pBody || (pszContent <= pBody && pBody < pszContent + nLen));
+	
+	return pBody;
 }
 
 const CHAR* qs::Part::getHeaderLower() const

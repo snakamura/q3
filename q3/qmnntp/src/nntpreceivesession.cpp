@@ -207,7 +207,8 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 			for (size_t m = 0; m < pData->getCount(); ++m) {
 				if (pSessionCallback_->isCanceled(false))
 					return true;
-				pSessionCallback_->setPos(n + m);
+				if ((n + m) % 10 == 0)
+					pSessionCallback_->setPos(n + m);
 				
 				const MessagesData::Item& item = pData->getItem(m);
 				
@@ -403,7 +404,7 @@ bool qmnntp::NntpReceiveSession::downloadReservedMessages(NormalFolder* pFolder,
 			unsigned int nMask = MessageHolder::FLAG_DOWNLOAD |
 				MessageHolder::FLAG_DOWNLOADTEXT;
 			if (strMessage.get()) {
-				if (!pAccount_->updateMessage(mpl, strMessage.get()))
+				if (!pAccount_->updateMessage(mpl, strMessage.get(), nSize))
 					return false;
 				nMask |=  MessageHolder::FLAG_SEEN |
 					MessageHolder::FLAG_PARTIAL_MASK;

@@ -34,6 +34,45 @@ qm::MessageStore::~MessageStore()
 {
 }
 
+bool qm::MessageStore::save(const CHAR* pszMessage,
+							size_t nLen,
+							const Message* pHeader,
+							bool bIndexOnly,
+							unsigned int* pnOffset,
+							unsigned int* pnLength,
+							unsigned int* pnHeaderLength,
+							unsigned int* pnIndexKey,
+							unsigned int* pnIndexLength)
+{
+	assert(pszMessage);
+	assert(pnOffset);
+	assert(pnLength);
+	assert(pnHeaderLength);
+	assert(pnIndexKey);
+	assert(pnIndexLength);
+	
+	if (nLen == -1)
+		nLen = strlen(pszMessage);
+	
+	Message header;
+	
+	const CHAR* pBody = Part::getBody(pszMessage, nLen);
+	size_t nBodyLen = 0;
+	if (pBody)
+		nBodyLen = nLen - (pBody - pszMessage);
+	else
+		pBody = "";
+	
+	if (!pHeader) {
+		if (!header.createHeader(pszMessage, nLen))
+			return false;
+		pHeader = &header;
+	}
+	
+	return save(*pHeader, pBody, nBodyLen, bIndexOnly, pnOffset,
+		pnLength, pnHeaderLength, pnIndexKey, pnIndexLength);
+}
+
 
 /****************************************************************************
  *
@@ -130,8 +169,9 @@ bool qm::SingleMessageStore::load(unsigned int nOffset,
 	return pMessage->create(reinterpret_cast<CHAR*>(p), nLength, Message::FLAG_NONE);
 }
 
-bool qm::SingleMessageStore::save(const CHAR* pszMessage,
-								  const Message& header,
+bool qm::SingleMessageStore::save(const Message& header,
+								  const CHAR* pszBody,
+								  size_t nBodyLen,
 								  bool bIndexOnly,
 								  unsigned int* pnOffset,
 								  unsigned int* pnLength,
@@ -147,9 +187,6 @@ bool qm::SingleMessageStore::save(const CHAR* pszMessage,
 	
 	const CHAR* pszHeader = header.getHeader();
 	size_t nHeaderLen = strlen(pszHeader);
-	const CHAR* pszBody = strstr(pszMessage, "\r\n\r\n");
-	pszBody = pszBody ? pszBody + 4 : "";
-	size_t nBodyLen = strlen(pszBody);
 	
 	if (!bIndexOnly) {
 		*pnHeaderLength = nHeaderLen;
@@ -512,8 +549,9 @@ bool qm::MultiMessageStore::load(unsigned int nOffset,
 	return pMessage->create(reinterpret_cast<CHAR*>(pBuf.get()), nRead, Message::FLAG_NONE);
 }
 
-bool qm::MultiMessageStore::save(const CHAR* pszMessage,
-								 const Message& header,
+bool qm::MultiMessageStore::save(const Message& header,
+								 const CHAR* pszBody,
+								 size_t nBodyLen,
 								 bool bIndexOnly,
 								 unsigned int* pnOffset,
 								 unsigned int* pnLength,
@@ -529,9 +567,6 @@ bool qm::MultiMessageStore::save(const CHAR* pszMessage,
 	
 	const CHAR* pszHeader = header.getHeader();
 	size_t nHeaderLen = strlen(pszHeader);
-	const CHAR* pszBody = strstr(pszMessage, "\r\n\r\n");
-	pszBody = pszBody ? pszBody + 4 : "";
-	size_t nBodyLen = strlen(pszBody);
 	
 	if (!bIndexOnly) {
 		*pnHeaderLength = nHeaderLen;

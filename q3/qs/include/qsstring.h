@@ -936,6 +936,15 @@ public:
 	Char get(size_t n) const QNOTHROW();
 	
 	/**
+	 * Set character at the specified position.
+	 *
+	 * @param n [in] Position.
+	 * @param c [in] Character.
+	 */
+	void set(size_t n,
+			 Char c) QNOTHROW();
+	
+	/**
 	 * Append the specified character.
 	 *
 	 * @param c [in] Character.
@@ -1103,6 +1112,15 @@ public:
 	 * @return Character.
 	 */
 	Char get(size_t n) const;
+	
+	/**
+	 * Set character at the specified position.
+	 *
+	 * @param n [in] Position.
+	 * @param c [in] Character.
+	 */
+	void set(size_t n,
+			 Char c);
 	
 	/**
 	 * Append the specified character.

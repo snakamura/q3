@@ -328,35 +328,63 @@ bool qm::AccountImpl::getMessage(MessageHolder* pmh,
 	bool bGet = false;
 	bool bMadeSeen = false;
 	if (!bLoadFromStore) {
-		xstring_ptr strMessage;
-		Message::Flag remoteFlag = Message::FLAG_EMPTY;
-		if (!pProtocolDriver_->getMessage(pmh, nFlags, &strMessage, &remoteFlag, &bMadeSeen))
-			return false;
-		bGet = remoteFlag != Message::FLAG_EMPTY;
-		if (bGet) {
-			if (!pMessage->create(strMessage.get(), -1, remoteFlag))
-				return false;
-			
-			if (pmh->getFolder()->isFlag(Folder::FLAG_CACHEWHENREAD)) {
-				if (!pThis_->updateMessage(pmh, strMessage.get()))
-					return false;
-				
-				unsigned int nMessageFlag = 0;
-				switch (remoteFlag) {
-				case Message::FLAG_HEADERONLY:
-					nMessageFlag = MessageHolder::FLAG_HEADERONLY;
-					break;
-				case Message::FLAG_TEXTONLY:
-					nMessageFlag = MessageHolder::FLAG_TEXTONLY;
-					break;
-				case Message::FLAG_HTMLONLY:
-					nMessageFlag = MessageHolder::FLAG_HTMLONLY;
-					break;
-				}
-				pmh->setFlags(nMessageFlag, MessageHolder::FLAG_PARTIAL_MASK);
+		struct GetMessageCallbackImpl : public ProtocolDriver::GetMessageCallback
+		{
+			GetMessageCallbackImpl(MessageHolder* pmh,
+								   Message* pMessage) :
+				pmh_(pmh),
+				pMessage_(pMessage),
+				bGet_(false),
+				bMadeSeen_(false)
+			{
 			}
-		}
-		else {
+			
+			virtual bool message(const CHAR* pszMessage,
+								 size_t nLen,
+								 Message::Flag flag,
+								 bool bMadeSeen)
+			{
+				bGet_ = flag != Message::FLAG_EMPTY;
+				if (bGet_) {
+					if (!pMessage_->create(pszMessage, nLen, flag))
+						return false;
+					
+					NormalFolder* pFolder = pmh_->getFolder();
+					if (pFolder->isFlag(Folder::FLAG_CACHEWHENREAD)) {
+						Account* pAccount = pFolder->getAccount();
+						if (!pAccount->updateMessage(pmh_, pszMessage, nLen))
+							return false;
+						
+						unsigned int nFlag = 0;
+						switch (flag) {
+						case Message::FLAG_HEADERONLY:
+							nFlag = MessageHolder::FLAG_HEADERONLY;
+							break;
+						case Message::FLAG_TEXTONLY:
+							nFlag = MessageHolder::FLAG_TEXTONLY;
+							break;
+						case Message::FLAG_HTMLONLY:
+							nFlag = MessageHolder::FLAG_HTMLONLY;
+							break;
+						}
+						pmh_->setFlags(nFlag, MessageHolder::FLAG_PARTIAL_MASK);
+					}
+				}
+				bMadeSeen_ = bMadeSeen;
+				return true;
+			}
+			
+			MessageHolder* pmh_;
+			Message* pMessage_;
+			bool bGet_;
+			bool bMadeSeen_;
+		} callback(pmh, pMessage);
+		
+		if (!pProtocolDriver_->getMessage(pmh, nFlags, &callback))
+			return false;
+		bGet = callback.bGet_;
+		bMadeSeen = callback.bMadeSeen_;
+		if (!bGet) {
 			if (nFlags & Account::GETMESSAGEFLAG_NOFALLBACK)
 				return false;
 		}
@@ -2229,16 +2257,11 @@ MessageHolder* qm::Account::storeMessage(NormalFolder* pFolder,
 		nSize = strlen(pszMessage);
 	
 	Message header;
-	
 	if (!pHeader) {
-		const CHAR* p = strstr(pszMessage, "\r\n\r\n");
-		if (!header.create(pszMessage,
-			p ? p - pszMessage + 4 : static_cast<size_t>(-1),
-			Message::FLAG_HEADERONLY))
+		if (!header.createHeader(pszMessage, nSize))
 			return 0;
 		pHeader = &header;
 	}
-	assert(pHeader);
 	
 	if (pHeader->isMultipart())
 		nFlags |= MessageHolder::FLAG_MULTIPART;
@@ -2261,7 +2284,7 @@ MessageHolder* qm::Account::storeMessage(NormalFolder* pFolder,
 	unsigned int nHeaderLength = 0;
 	unsigned int nIndexKey = -1;
 	unsigned int nIndexLength = 0;
-	if (!pImpl_->pMessageStore_->save(pszMessage, *pHeader, bIndexOnly,
+	if (!pImpl_->pMessageStore_->save(pszMessage, nSize, pHeader, bIndexOnly,
 		&nOffset, &nLength, &nHeaderLength, &nIndexKey, &nIndexLength))
 		return 0;
 	
@@ -2397,20 +2420,17 @@ MessageHolder* qm::Account::cloneMessage(MessageHolder* pmh,
 }
 
 bool qm::Account::updateMessage(MessageHolder* pmh,
-								const CHAR* pszMessage)
+								const CHAR* pszMessage,
+								size_t nLen)
 {
 	assert(pmh);
 	assert(pszMessage);
 	
 	Lock<Account> lock(*this);
 	
-	Message header;
-	if (!header.create(pszMessage, -1, Message::FLAG_NONE))
-		return false;
-	
 	MessageHolder::MessageBoxKey boxKey;
 	MessageHolder::MessageIndexKey indexKey;
-	if (!pImpl_->pMessageStore_->save(pszMessage, header, false,
+	if (!pImpl_->pMessageStore_->save(pszMessage, nLen, 0, false,
 		&boxKey.nOffset_, &boxKey.nLength_, &boxKey.nHeaderLength_,
 		&indexKey.nKey_, &indexKey.nLength_))
 		return false;

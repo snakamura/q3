@@ -209,6 +209,10 @@ public:
 	static bool isGlobalOption(Option option);
 	static void setGlobalOptions(unsigned int nOptions);
 
+public:
+	static const CHAR* getBody(const CHAR* pszContent,
+							   size_t nLen);
+
 private:
 	const CHAR* getHeaderLower() const;
 	void clearHeaderLower() const;

@@ -148,18 +148,10 @@ std::pair<const WCHAR**, size_t> qmnntp::NntpDriver::getFolderParamNames()
 
 bool qmnntp::NntpDriver::getMessage(MessageHolder* pmh,
 									unsigned int nFlags,
-									xstring_ptr* pstrMessage,
-									Message::Flag* pFlag,
-									bool* pbMadeSeen)
+									GetMessageCallback* pCallback)
 {
 	assert(pmh);
-	assert(pstrMessage);
-	assert(pFlag);
-	assert(pbMadeSeen);
-	
-	pstrMessage->reset(0);
-	*pFlag = Message::FLAG_EMPTY;
-	*pbMadeSeen = false;
+	assert(pCallback);
 	
 	if (bOffline_)
 		return true;
@@ -177,8 +169,8 @@ bool qmnntp::NntpDriver::getMessage(MessageHolder* pmh,
 	if (!strMessage.get())
 		return false;
 	
-	*pstrMessage = strMessage;
-	*pFlag = Message::FLAG_NONE;
+	if (!pCallback->message(strMessage.get(), nSize, Message::FLAG_NONE, false))
+		return false;
 	
 	return true;
 }

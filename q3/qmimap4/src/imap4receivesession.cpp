@@ -469,7 +469,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			unsigned long nSize = static_cast<unsigned long>(-1);
 			FetchDataBodyStructure* pBodyStructure = 0;
 			string_ptr strEnvelope;
-			const CHAR* pszHeader = 0;
+			std::pair<const CHAR*, size_t> header;
 			
 			int nCount = 0;
 			
@@ -492,7 +492,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 					++nCount;
 					break;
 				case FetchData::TYPE_BODY:
-					pszHeader = static_cast<FetchDataBody*>(*it)->getContent();
+					header = static_cast<FetchDataBody*>(*it)->getContent().get();
 					++nCount;
 					break;
 				case FetchData::TYPE_SIZE:
@@ -515,7 +515,9 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			if (nCount != nNeedCount || nUid == -1 || nUid < nUidStart_)
 				return RESULT_UNPROCESSED;
 			
-			pSessionCallback_->setPos(pFetch->getNumber());
+			unsigned int nPos = pFetch->getNumber();
+			if (nPos % 10 == 0)
+				pSessionCallback_->setPos(nPos);
 			
 			XStringBuffer<XSTRING> buf;
 			if (strEnvelope.get()) {
@@ -531,7 +533,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 				if (!buf.append(strBodyStructure.get()))
 					return RESULT_ERROR;
 			}
-			if (!buf.append(pszHeader))
+			if (!buf.append(header.first, header.second))
 				return RESULT_ERROR;
 			
 			Message msg;

@@ -73,6 +73,13 @@ bool qm::Message::create(const CHAR* pszMessage,
 	return true;
 }
 
+bool qm::Message::createHeader(const CHAR* pszHeader,
+							   size_t nLen)
+{
+	const CHAR* pBody = Part::getBody(pszHeader, nLen);
+	return create(pszHeader, pBody ? pBody - pszHeader + 4 : nLen, FLAG_HEADERONLY);
+}
+
 void qm::Message::clear()
 {
 	flag_ = FLAG_EMPTY;

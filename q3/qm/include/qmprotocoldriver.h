@@ -38,6 +38,19 @@ class Security;
 class QMEXPORTCLASS ProtocolDriver
 {
 public:
+	class GetMessageCallback
+	{
+	public:
+		virtual ~GetMessageCallback();
+	
+	public:
+		virtual bool message(const CHAR* pszMessage,
+							 size_t nLen,
+							 Message::Flag flag,
+							 bool bMadeSeen) = 0;
+	};
+
+public:
 	typedef std::vector<std::pair<Folder*, bool> > RemoteFolderList;
 
 public:
@@ -63,9 +76,7 @@ public:
 	
 	virtual bool getMessage(MessageHolder* pmh,
 							unsigned int nFlags,
-							qs::xstring_ptr* pstrMessage,
-							Message::Flag* pFlag,
-							bool* pbMadeSeen) = 0;
+							GetMessageCallback* pCallback) = 0;
 	virtual bool setMessagesFlags(NormalFolder* pFolder,
 								  const MessageHolderList& l,
 								  unsigned int nFlags,

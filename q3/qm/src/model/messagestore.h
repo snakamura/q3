@@ -57,8 +57,9 @@ public:
 	virtual bool load(unsigned int nOffset,
 					  unsigned int nLength,
 					  Message* pMessage) = 0;
-	virtual bool save(const CHAR* pszMessage,
-					  const Message& header,
+	virtual bool save(const Message& header,
+					  const CHAR* pszBody,
+					  size_t nBodyLen,
 					  bool bIndexOnly,
 					  unsigned int* pnOffset,
 					  unsigned int* pnLength,
@@ -77,6 +78,17 @@ public:
 	virtual bool freeUnused() = 0;
 	virtual qs::malloc_ptr<unsigned char> readIndex(unsigned int nKey,
 													unsigned int nLength) = 0;
+
+public:
+	bool save(const CHAR* pszMessage,
+			  size_t nLen,
+			  const Message* pHeader,
+			  bool bIndexOnly,
+			  unsigned int* pnOffset,
+			  unsigned int* pnLength,
+			  unsigned int* pnHeaderLength,
+			  unsigned int* pnIndexKey,
+			  unsigned int* pnIndexLength);
 };
 
 
@@ -101,8 +113,9 @@ public:
 	virtual bool load(unsigned int nOffset,
 					  unsigned int nLength,
 					  Message* pMessage);
-	virtual bool save(const CHAR* pszMessage,
-					  const Message& header,
+	virtual bool save(const Message& header,
+					  const CHAR* pszBody,
+					  size_t nBodyLen,
 					  bool bIndexOnly,
 					  unsigned int* pnOffset,
 					  unsigned int* pnLength,
@@ -151,8 +164,9 @@ public:
 	virtual bool load(unsigned int nOffset,
 					  unsigned int nLength,
 					  Message* pMessage);
-	virtual bool save(const CHAR* pszMessage,
-					  const Message& header,
+	virtual bool save(const Message& header,
+					  const CHAR* pszBody,
+					  size_t nBodyLen,
 					  bool bIndexOnly,
 					  unsigned int* pnOffset,
 					  unsigned int* pnLength,

@@ -50,9 +50,7 @@ public:
 	
 	virtual bool getMessage(qm::MessageHolder* pmh,
 							unsigned int nFlags,
-							qs::xstring_ptr* pstrMessage,
-							qm::Message::Flag* pFlag,
-							bool* pbMadeSeen);
+							GetMessageCallback* pCallback);
 	virtual bool setMessagesFlags(qm::NormalFolder* pFolder,
 								  const qm::MessageHolderList& l,
 								  unsigned int nFlags,

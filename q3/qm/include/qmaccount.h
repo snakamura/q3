@@ -235,7 +235,8 @@ public:
 	MessageHolder* cloneMessage(MessageHolder* pmh,
 								NormalFolder* pFolderTo);
 	bool updateMessage(MessageHolder* pmh,
-					   const CHAR* pszMessage);
+					   const CHAR* pszMessage,
+					   size_t nLen);
 
 // These methods are intended to be called from ProtocolDriver class
 public:

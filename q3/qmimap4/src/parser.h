@@ -10,7 +10,6 @@
 #define __PARSER_H__
 
 #include <qs.h>
-#include <qssocket.h>
 #include <qsstring.h>
 
 
@@ -18,9 +17,10 @@ namespace qmimap4 {
 
 class Parser;
 class ParserCallback;
-class Buffer;
 
+class Buffer;
 class Imap4Callback;
+class TokenValue;
 
 
 /****************************************************************************
@@ -57,7 +57,8 @@ public:
 							  size_t* pnIndex,
 							  const CHAR* pszSep,
 							  Imap4Callback* pCallback,
-							  qs::string_ptr* pstrToken);
+							  TokenValue* pTokenValue,
+							  std::pair<const CHAR*, size_t>* pToken);
 	static std::auto_ptr<List> parseList(Buffer* pBuffer,
 										 size_t* pnIndex,
 										 Imap4Callback* pCallback);
@@ -75,9 +76,12 @@ private:
 	std::auto_ptr<State> parseStatus();
 	std::auto_ptr<List> parseList();
 	
-	Token getNextToken(qs::string_ptr* pstrToken);
+	Token getNextToken(std::pair<const CHAR*, size_t>* pToken);
 	Token getNextToken(const CHAR* pszSep,
-					   qs::string_ptr* pstrToken);
+					   std::pair<const CHAR*, size_t>* pToken);
+	Token getNextToken(TokenValue* pTokenValue);
+	Token getNextToken(const CHAR* pszSep,
+					   TokenValue* pTokenValue);
 
 private:
 	Parser(const Parser&);
@@ -103,53 +107,6 @@ public:
 
 public:
 	virtual bool response(std::auto_ptr<Response> pResponse) = 0;
-};
-
-
-/****************************************************************************
- *
- * Buffer
- *
- */
-
-class Buffer
-{
-public:
-	Buffer(const CHAR* psz);
-	Buffer(const CHAR* psz,
-		   qs::SocketBase* pSocket);
-	~Buffer();
-
-public:
-	CHAR get(size_t n);
-	CHAR get(size_t n,
-			 Imap4Callback* pCallback,
-			 size_t nStart);
-	size_t find(CHAR c,
-				size_t n);
-	size_t find(const CHAR* psz,
-				size_t n);
-	qs::string_ptr substr(size_t nPos,
-						  size_t nLen) const;
-	const CHAR* str() const;
-	
-	unsigned int getError() const;
-	
-	size_t free(size_t n);
-
-private:
-	bool receive(size_t n,
-				 Imap4Callback* pCallback,
-				 size_t nStart);
-
-private:
-	Buffer(const Buffer&);
-	Buffer& operator=(const Buffer&);
-
-private:
-	qs::XStringBuffer<qs::XSTRING> buf_;
-	qs::SocketBase* pSocket_;
-	unsigned int nError_;
 };
 
 }
