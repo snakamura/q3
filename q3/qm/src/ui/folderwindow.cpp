@@ -1086,11 +1086,12 @@ int qm::FolderWindowImpl::getFolderImage(Folder* pFolder,
 		const unsigned int nIgnore = Folder::FLAG_BOX_MASK & ~Folder::FLAG_INBOX;
 		
 		const Account::FolderList& l = pFolder->getAccount()->getFolders();
-		for (Account::FolderList::const_iterator it = l.begin(); it != l.end() && !bUnseen; ++it) {
+		for (Account::FolderList::const_iterator it = l.begin(); it != l.end() && (!bMessage || !bUnseen); ++it) {
 			Folder* p = *it;
 			if (p == pFolder || ((p->getFlags() & nIgnore) == 0 && pFolder->isAncestorOf(p))) {
-				bMessage = p->getCount() != 0;
-				if (!p->isFlag(Folder::FLAG_IGNOREUNSEEN))
+				if (!bMessage)
+					bMessage = p->getCount() != 0;
+				if (!bUnseen && !p->isFlag(Folder::FLAG_IGNOREUNSEEN))
 					bUnseen = p->getUnseenCount() != 0;
 			}
 		}
