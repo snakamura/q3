@@ -547,6 +547,23 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 	if (l.empty() || (bMove && pFolderFrom == pFolderTo))
 		return true;
 	
+	if (pJunkFilter_ && pJunkFilter_->getFlags() & JunkFilter::FLAG_MANUALLEARN) {
+		unsigned int nJunkOperation = 0;
+		if (pFolderTo->isFlag(Folder::FLAG_JUNKBOX) &&
+			!pFolderFrom->isFlag(Folder::FLAG_JUNKBOX))
+			nJunkOperation = JunkFilter::OPERATION_ADDJUNK |
+				(bMove ? JunkFilter::OPERATION_REMOVECLEAN : 0);
+		else if (pFolderFrom->isFlag(Folder::FLAG_JUNKBOX) &&
+			!pFolderTo->isFlag(Folder::FLAG_JUNKBOX))
+			nJunkOperation = JunkFilter::OPERATION_ADDCLEAN |
+				(bMove ? JunkFilter::OPERATION_REMOVEJUNK : 0);
+		if (nJunkOperation != 0) {
+			for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it)
+				JunkFilterUtil::manage(pJunkFilter_, *it, nJunkOperation);
+			pJunkFilter_->save();
+		}
+	}
+	
 	// TODO
 	// Take care of local messages in remote folder
 	
@@ -603,23 +620,6 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 		
 		if (pCallback)
 			pCallback->step(l.size());
-	}
-	
-	if (pJunkFilter_ && pJunkFilter_->getFlags() & JunkFilter::FLAG_MANUALLEARN) {
-		unsigned int nJunkOperation = 0;
-		if (pFolderTo->isFlag(Folder::FLAG_JUNKBOX) &&
-			!pFolderFrom->isFlag(Folder::FLAG_JUNKBOX))
-			nJunkOperation = JunkFilter::OPERATION_ADDJUNK |
-				(bMove ? JunkFilter::OPERATION_REMOVECLEAN : 0);
-		else if (pFolderFrom->isFlag(Folder::FLAG_JUNKBOX) &&
-			!pFolderTo->isFlag(Folder::FLAG_JUNKBOX))
-			nJunkOperation = JunkFilter::OPERATION_ADDCLEAN |
-				(bMove ? JunkFilter::OPERATION_REMOVEJUNK : 0);
-		if (nJunkOperation != 0) {
-			for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it)
-				JunkFilterUtil::manage(pJunkFilter_, *it, nJunkOperation);
-			pJunkFilter_->save();
-		}
 	}
 	
 	return true;
