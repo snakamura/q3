@@ -1866,12 +1866,13 @@ MacroValuePtr qm::MacroFunctionFormatAddress::value(MacroContext* pContext) cons
 	enum Type {
 		TYPE_ALL,
 		TYPE_ADDRESS,
-		TYPE_NAME
+		TYPE_NAME,
+		TYPE_VIEW
 	} type = TYPE_ALL;
 	if (nSize > 1) {
 		ARG(pValue, 1);
 		unsigned int n = pValue->number();
-		if (n > 2)
+		if (n > 3)
 			n = 0;
 		type = static_cast<Type>(n);
 	}
@@ -1905,6 +1906,9 @@ MacroValuePtr qm::MacroFunctionFormatAddress::value(MacroContext* pContext) cons
 				break;
 			case TYPE_NAME:
 				wstrValue = address.getNames();
+				break;
+			case TYPE_VIEW:
+				wstrValue = address.getValue(false);
 				break;
 			default:
 				assert(false);

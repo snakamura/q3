@@ -669,6 +669,7 @@ public:
 	AddressListParser* getGroup() const;
 	wstring_ptr getAddress() const;
 	wstring_ptr getValue() const;
+	wstring_ptr getValue(bool bAutoQuote) const;
 	void setPhrase(const WCHAR* pwszPhrase);
 
 public:
@@ -751,6 +752,7 @@ public:
 
 public:
 	wstring_ptr getValue() const;
+	wstring_ptr getValue(bool bAutoQuote) const;
 	wstring_ptr getNames() const;
 	wstring_ptr getAddresses() const;
 	const AddressList& getAddressList() const;

@@ -1,11 +1,11 @@
 <header>
 	<line class="mail">
 		<static width="4em" style="bold" showAlways="true">To:</static>
-		<edit>{@FormatAddress(To)}</edit>
+		<edit>{@FormatAddress(To, 3)}</edit>
 	</line>
 	<line class="mail" hideIfEmpty="cc">
 		<static width="4em" style="bold" showAlways="true">Cc:</static>
-		<edit name="cc">{@FormatAddress(Cc)}</edit>
+		<edit name="cc">{@FormatAddress(Cc, 3)}</edit>
 	</line>
 	<line class="news">
 		<static width="4em" style="bold" showAlways="true">Newsgroups:</static>
@@ -17,7 +17,7 @@
 	</line>
 	<line class="mail|news">
 		<static width="4em" style="bold" showAlways="true">From:</static>
-		<edit>{@FormatAddress(From)}</edit>
+		<edit>{@FormatAddress(From, 3)}</edit>
 	</line>
 	<line class="mail|news">
 		<static width="4em" style="bold" showAlways="true">Date:</static>

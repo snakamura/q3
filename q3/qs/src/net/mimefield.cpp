@@ -1765,9 +1765,14 @@ wstring_ptr qs::AddressParser::getAddress() const
 
 wstring_ptr qs::AddressParser::getValue() const
 {
+	return getValue(true);
+}
+
+wstring_ptr qs::AddressParser::getValue(bool bAutoQuote) const
+{
 	const WCHAR* pwszPhrase = wstrPhrase_.get();
 	wstring_ptr wstrPhrase;
-	if (pwszPhrase) {
+	if (pwszPhrase && bAutoQuote) {
 		bool bQuote = false;
 		size_t nLen = wcslen(pwszPhrase);
 		if (nLen != 0 && *pwszPhrase == L'\"' && *(pwszPhrase + nLen - 1) == L'\"') {
@@ -1804,7 +1809,7 @@ wstring_ptr qs::AddressParser::getValue() const
 		assert(pwszPhrase);
 		buf.append(pwszPhrase);
 		buf.append(L": ");
-		wstring_ptr wstrValue(pGroup_->getValue());
+		wstring_ptr wstrValue(pGroup_->getValue(bAutoQuote));
 		buf.append(wstrValue.get());
 		buf.append(L";");
 	}
@@ -2367,12 +2372,17 @@ qs::AddressListParser::~AddressListParser()
 
 wstring_ptr qs::AddressListParser::getValue() const
 {
+	return getValue(true);
+}
+
+wstring_ptr qs::AddressListParser::getValue(bool bAutoQuote) const
+{
 	StringBuffer<WSTRING> buf;
 	
 	for (AddressList::const_iterator it = listAddress_.begin(); it != listAddress_.end(); ++it) {
 		if (it != listAddress_.begin())
 			buf.append(L", ");
-		wstring_ptr strValue((*it)->getValue());
+		wstring_ptr strValue((*it)->getValue(bAutoQuote));
 		buf.append(strValue.get());
 	}
 	
