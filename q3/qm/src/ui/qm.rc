@@ -525,14 +525,14 @@ BEGIN
     COMBOBOX        IDC_OUTGOINGPROTOCOL,65,51,110,50,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
     GROUPBOX        "Message Box",IDC_STATIC,5,71,170,55
-    CONTROL         "&Single file",IDC_SINGLEFILE,"Button",
-                    BS_AUTORADIOBUTTON | WS_GROUP,10,81,55,10
     CONTROL         "&File per message",IDC_MULTIPLEFILE,"Button",
-                    BS_AUTORADIOBUTTON,10,111,80,10
-    LTEXT           "&Block Size",IDC_STATIC,20,93,40,8
-    EDITTEXT        IDC_BLOCKSIZE,65,91,25,14,ES_RIGHT | ES_AUTOHSCROLL | 
+                    BS_AUTORADIOBUTTON,10,85,80,10
+    CONTROL         "&Single file",IDC_SINGLEFILE,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,10,100,55,10
+    LTEXT           "&Block Size",IDC_STATIC,20,112,40,8
+    EDITTEXT        IDC_BLOCKSIZE,65,110,25,14,ES_RIGHT | ES_AUTOHSCROLL | 
                     ES_NUMBER
-    LTEXT           "MB",IDC_STATIC,90,93,11,8
+    LTEXT           "MB",IDC_STATIC,90,112,11,8
     LTEXT           "&Cache Block Size",IDC_STATIC,5,133,60,8
     EDITTEXT        IDC_CACHEBLOCKSIZE,65,131,25,14,ES_RIGHT | 
                     ES_AUTOHSCROLL | ES_NUMBER

@@ -1846,7 +1846,7 @@ LRESULT qm::CreateAccountDialog::onInitDialog(HWND hwndFocus, LPARAM lParam)
 	
 	updateProtocols();
 	
-	Window(getDlgItem(IDC_SINGLEFILE)).sendMessage(BM_SETCHECK, BST_CHECKED);
+	Window(getDlgItem(IDC_MULTIPLEFILE)).sendMessage(BM_SETCHECK, BST_CHECKED);
 	setDlgItemInt(IDC_BLOCKSIZE, 0);
 	setDlgItemInt(IDC_CACHEBLOCKSIZE, 0);
 	
