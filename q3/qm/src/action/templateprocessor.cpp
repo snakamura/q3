@@ -209,6 +209,11 @@ QSTATUS qm::TemplateProcessor::process(
 		CHECK_QSTATUS();
 		pMessage.release();
 		
+		int nAutoReform = 1;
+		status = pProfile_->getInt(L"EditWindow", L"AutoReform", 1, &nAutoReform);
+		CHECK_QSTATUS();
+		pEditMessage->setAutoReform(nAutoReform != 0);
+		
 		status = pEditFrameWindowManager_->open(pEditMessage.get());
 		CHECK_QSTATUS();
 		pEditMessage.release();
