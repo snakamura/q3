@@ -8,6 +8,7 @@
 
 #include <qsconv.h>
 #include <qsdialog.h>
+#include <qsfile.h>
 #include <qsinit.h>
 #include <qsstl.h>
 #include <qsthread.h>
@@ -727,6 +728,8 @@ public:
 	void selectFolder(HWND hwnd,
 					  HTREEITEM hItem,
 					  const WCHAR* pwszPath);
+	void refreshFolder(HWND hwnd,
+					   HTREEITEM hItem);
 
 public:
 	virtual LRESULT onNotify(NMHDR* pnmhdr,
@@ -792,7 +795,7 @@ void qs::BrowseFolderDialogImpl::selectFolder(HWND hwnd,
 	assert(pwszPath);
 	
 	wstring_ptr wstrName;
-	const WCHAR* p = wcsrchr(pwszPath, L'\\');
+	const WCHAR* p = wcschr(pwszPath, L'\\');
 	if (p)
 		wstrName = allocWString(pwszPath, p - pwszPath);
 	else
@@ -800,17 +803,17 @@ void qs::BrowseFolderDialogImpl::selectFolder(HWND hwnd,
 	
 	hItem = TreeView_GetChild(hwnd, hItem);
 	while (hItem) {
-		TCHAR tszName[MAX_PATH + 1];
+		WCHAR wszName[MAX_PATH + 1];
 		TVITEM item = {
 			TVIF_HANDLE | TVIF_TEXT,
 			hItem,
 			0,
 			0,
-			tszName,
-			countof(tszName) - 1,
+			wszName,
+			countof(wszName) - 1,
 		};
 		TreeView_GetItem(hwnd, &item);
-		if (wcsicmp(wstrName.get(), tszName) == 0)
+		if (wcsicmp(wstrName.get(), wszName) == 0)
 			break;
 		hItem = TreeView_GetNextSibling(hwnd, hItem);
 	}
@@ -821,6 +824,42 @@ void qs::BrowseFolderDialogImpl::selectFolder(HWND hwnd,
 	if (p) {
 		TreeView_Expand(hwnd, hItem, TVE_EXPAND);
 		selectFolder(hwnd, hItem, p + 1);
+	}
+}
+
+void qs::BrowseFolderDialogImpl::refreshFolder(HWND hwnd,
+											   HTREEITEM hItem)
+{
+	TreeView_Expand(hwnd, hItem, TVE_COLLAPSE | TVE_COLLAPSERESET);
+	
+	wstring_ptr wstrPath(getPath(hwnd, hItem));
+	wstrPath = concat(wstrPath.get(), L"\\*.*");
+	
+	WIN32_FIND_DATA fd;
+	AutoFindHandle hFind(::FindFirstFile(wstrPath.get(), &fd));
+	if (hFind.get()) {
+		TV_INSERTSTRUCT tis = {
+			hItem,
+			TVI_SORT,
+			{
+				TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE,
+				0,
+				0,
+				0,
+				0,
+				0,
+				1,
+				2
+			}
+		};
+		do {
+			if ((fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) &&
+				_tcscmp(fd.cFileName, _T(".")) != 0 &&
+				_tcscmp(fd.cFileName, _T("..")) != 0) {
+				tis.item.pszText = fd.cFileName;
+				TreeView_InsertItem(hwnd, &tis);
+			}
+		} while (::FindNextFile(hFind.get(), &fd));
 	}
 }
 
@@ -849,35 +888,7 @@ LRESULT qs::BrowseFolderDialogImpl::onItemExpanding(NMHDR* pnmhdr,
 	if ((item.state & TVIS_EXPANDEDONCE) == 0) {
 		hItem = TreeView_GetChild(hwnd, hItem);
 		while (hItem) {
-			wstring_ptr wstrPath(getPath(hwnd, hItem));
-			wstrPath = concat(wstrPath.get(), L"\\*.*");
-			
-			WIN32_FIND_DATA fd;
-			AutoFindHandle hFind(::FindFirstFile(wstrPath.get(), &fd));
-			if (hFind.get()) {
-				TV_INSERTSTRUCT tis = {
-					hItem,
-					TVI_SORT,
-					{
-						TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE,
-						0,
-						0,
-						0,
-						0,
-						0,
-						1,
-						2
-					}
-				};
-				do {
-					if ((fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) &&
-						_tcscmp(fd.cFileName, _T(".")) != 0 &&
-						_tcscmp(fd.cFileName, _T("..")) != 0) {
-						tis.item.pszText = fd.cFileName;
-						TreeView_InsertItem(hwnd, &tis);
-					}
-				} while (::FindNextFile(hFind.get(), &fd));
-			}
+			refreshFolder(hwnd, hItem);
 			hItem = TreeView_GetNextSibling(hwnd, hItem);
 		}
 	}
@@ -917,6 +928,15 @@ qs::BrowseFolderDialog::~BrowseFolderDialog()
 const WCHAR* qs::BrowseFolderDialog::getPath() const
 {
 	return pImpl_->wstrPath_.get();
+}
+
+LRESULT qs::BrowseFolderDialog::onCommand(WORD nCode,
+										  WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_NEWFOLDER, onNewFolder)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
 }
 
 LRESULT qs::BrowseFolderDialog::onDestroy()
@@ -989,6 +1009,57 @@ LRESULT qs::BrowseFolderDialog::onOk()
 	if (hItem)
 		pImpl_->wstrPath_ = pImpl_->getPath(hwnd, hItem);
 	
+	return DefaultDialog::onOk();
+}
+
+LRESULT qs::BrowseFolderDialog::onNewFolder()
+{
+	HWND hwnd = getDlgItem(IDC_FOLDER);
+	HTREEITEM hItem = TreeView_GetSelection(hwnd);
+	if (hItem) {
+		wstring_ptr wstrPath = pImpl_->getPath(hwnd, hItem);
+		FolderNameDialog dialog;
+		if (dialog.doModal(getHandle())) {
+			const WCHAR* pwszName = dialog.getName();
+			wstring_ptr wstrNewPath(concat(wstrPath.get(), L"\\", pwszName));
+			if (File::createDirectory(wstrNewPath.get())) {
+				pImpl_->refreshFolder(hwnd, hItem);
+				TreeView_Expand(hwnd, hItem, TVE_EXPAND);
+			}
+			else {
+				messageBox(getDllInstanceHandle(), IDS_ERROR_CREATEFOLDER,
+					MB_OK | MB_ICONERROR, getHandle());
+			}
+		}
+	}
+	
+	return 0;
+}
+
+
+/****************************************************************************
+ *
+ * FolderNameDialog
+ *
+ */
+
+qs::FolderNameDialog::FolderNameDialog() :
+	DefaultDialog(getDllInstanceHandle(), IDD_FOLDERNAME)
+{
+}
+
+qs::FolderNameDialog::~FolderNameDialog()
+{
+}
+
+const WCHAR* qs::FolderNameDialog::getName() const
+{
+	return wstrName_.get();
+}
+
+LRESULT qs::FolderNameDialog::onOk()
+{
+	wstrName_ = getDlgItemText(IDC_FOLDERNAME);
 	return DefaultDialog::onOk();
 }
 

@@ -76,7 +76,7 @@ private:
 private:
 	class DialogBaseImpl* pImpl_;
 
-#if 1//defined _WIN32_WCE && !defined _WIN32_WCE_EMULATION
+#if defined _WIN32_WCE && !defined _WIN32_WCE_EMULATION
 friend class WindowDestroy;
 #endif
 friend INT_PTR CALLBACK dialogProc(HWND,
@@ -413,6 +413,7 @@ private:
 
 
 #ifdef _WIN32_WCE
+
 /****************************************************************************
  *
  * BrowseFolderDialog
@@ -429,6 +430,10 @@ public:
 public:
 	const WCHAR* getPath() const;
 
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
 protected:
 	virtual LRESULT onDestroy();
 	virtual LRESULT onInitDialog(HWND hwndFocus,
@@ -438,12 +443,16 @@ protected:
 	virtual LRESULT onOk();
 
 private:
+	LRESULT onNewFolder();
+
+private:
 	BrowseFolderDialog(const BrowseFolderDialog&);
 	BrowseFolderDialog& operator=(const BrowseFolderDialog&);
 
 private:
 	struct BrowseFolderDialogImpl* pImpl_;
 };
+
 #endif
 
 }

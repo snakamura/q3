@@ -79,4 +79,39 @@ friend class InitializerImpl;
 friend class DialogBase;
 };
 
+
+#ifdef _WIN32_WCE
+
+namespace qs {
+
+/****************************************************************************
+ *
+ * FolderNameDialog
+ *
+ */
+
+class FolderNameDialog : public DefaultDialog
+{
+public:
+	FolderNameDialog();
+	virtual ~FolderNameDialog();
+
+public:
+	const WCHAR* getName() const;
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	FolderNameDialog(const FolderNameDialog&);
+	FolderNameDialog& operator=(const FolderNameDialog&);
+
+private:
+	wstring_ptr wstrName_;
+};
+
+}
+
+#endif
+
 #endif // __DIALOG_H__
