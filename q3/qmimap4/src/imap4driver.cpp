@@ -33,7 +33,8 @@ using namespace qs;
  *
  */
 
-const unsigned int qmimap4::Imap4Driver::nSupport__ = Account::SUPPORT_REMOTEFOLDER;
+const unsigned int qmimap4::Imap4Driver::nSupport__ =
+	Account::SUPPORT_REMOTEFOLDER | Account::SUPPORT_DELETEDMESSAGE;
 
 qmimap4::Imap4Driver::Imap4Driver(Account* pAccount,
 								  PasswordCallback* pPasswordCallback,

@@ -82,7 +82,8 @@ public:
 		SUPPORT_LOCALFOLDERSYNC			= 0x02,
 		SUPPORT_LOCALFOLDERGETMESSAGE	= 0x04,
 		SUPPORT_LOCALFOLDERDOWNLOAD		= 0x08,
-		SUPPORT_EXTERNALLINK			= 0x10
+		SUPPORT_EXTERNALLINK			= 0x10,
+		SUPPORT_DELETEDMESSAGE			= 0x20
 	};
 
 public:
@@ -189,6 +190,9 @@ public:
 						  unsigned int nFlags,
 						  unsigned int nMask);
 	bool deleteMessagesCache(const MessageHolderList& l);
+	
+	bool isSeen(const MessageHolder* pmh) const;
+	bool isSeen(unsigned int nFlags) const;
 	
 	void addAccountHandler(AccountHandler* pHandler);
 	void removeAccountHandler(AccountHandler* pHandler);

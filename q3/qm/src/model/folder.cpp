@@ -446,14 +446,16 @@ void qm::NormalFolderImpl::messageHolderChanged(const MessageHolderEvent& event)
 {
 	MessageHolder* pmh = event.getMessageHolder();
 	if (pmh->getFolder() == pThis_) {
+		Account* pAccount = pmh->getAccount();
+		assert(pAccount == pThis_->getAccount());
 		unsigned int nOldFlags = event.getOldFlags();
 		unsigned int nNewFlags = event.getNewFlags();
 		
 		if (nOldFlags != nNewFlags) {
 			unsigned int nUnseenCount = nUnseenCount_;
-			if (!MessageHolder::isSeen(nOldFlags) && MessageHolder::isSeen(nNewFlags))
+			if (!pAccount->isSeen(nOldFlags) && pAccount->isSeen(nNewFlags))
 				--nUnseenCount_;
-			else if (MessageHolder::isSeen(nOldFlags) && !MessageHolder::isSeen(nNewFlags))
+			else if (pAccount->isSeen(nOldFlags) && !pAccount->isSeen(nNewFlags))
 				++nUnseenCount_;
 			if ((!(nOldFlags & MessageHolder::FLAG_DOWNLOAD) &&
 				!(nOldFlags & MessageHolder::FLAG_DOWNLOADTEXT)) &&
@@ -983,13 +985,15 @@ void qm::QueryFolderImpl::messageHolderChanged(const MessageHolderEvent& event)
 	MessageHolderList::const_iterator it = std::lower_bound(
 		listMessageHolder_.begin(), listMessageHolder_.end(), pmh);
 	if (it != listMessageHolder_.end() && *it == pmh) {
+		Account* pAccount = pmh->getAccount();
+		assert(pAccount == pThis_->getAccount());
 		unsigned int nOldFlags = event.getOldFlags();
 		unsigned int nNewFlags = event.getNewFlags();
 		
 		unsigned int nUnseenCount = nUnseenCount_;
-		if (!MessageHolder::isSeen(nOldFlags) && MessageHolder::isSeen(nNewFlags))
+		if (!pAccount->isSeen(nOldFlags) && pAccount->isSeen(nNewFlags))
 			--nUnseenCount_;
-		else if (MessageHolder::isSeen(nOldFlags) && !MessageHolder::isSeen(nNewFlags))
+		else if (pAccount->isSeen(nOldFlags) && !pAccount->isSeen(nNewFlags))
 			++nUnseenCount_;
 		
 		if (nUnseenCount != nUnseenCount_)

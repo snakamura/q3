@@ -1188,13 +1188,16 @@ void qm::ViewModel::messageHolderChanged(const MessageHolderEvent& event)
 {
 	Lock<ViewModel> lock(*this);
 	
-	unsigned int n = getIndex(event.getMessageHolder());
+	MessageHolder* pmh = event.getMessageHolder();
+	unsigned int n = getIndex(pmh);
 	if (n != -1) {
+		Account* pAccount = pmh->getAccount();
+		assert(pAccount == pFolder_->getAccount());
 		unsigned int nOldFlags = event.getOldFlags();
 		unsigned int nNewFlags = event.getNewFlags();
-		if (MessageHolder::isSeen(nOldFlags) && !MessageHolder::isSeen(nNewFlags))
+		if (pAccount->isSeen(nOldFlags) && !pAccount->isSeen(nNewFlags))
 			++nUnseenCount_;
-		else if (!MessageHolder::isSeen(nOldFlags) && MessageHolder::isSeen(nNewFlags))
+		else if (!pAccount->isSeen(nOldFlags) && pAccount->isSeen(nNewFlags))
 			--nUnseenCount_;
 		
 		fireItemChanged(n);

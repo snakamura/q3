@@ -223,9 +223,6 @@ public:
 	void setKeys(const MessageIndexKey& messageIndexKey,
 				 const MessageBoxKey& messageBoxKey);
 
-public:
-	static bool isSeen(unsigned int nFlags);
-
 private:
 	MessageHolder(const MessageHolder&);
 	MessageHolder& operator=(const MessageHolder&);

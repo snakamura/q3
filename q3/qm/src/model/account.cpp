@@ -130,6 +130,7 @@ public:
 	AccountHandlerList listAccountHandler_;
 	MessageHolderHandlerList listMessageHolderHandler_;
 	CriticalSection csLock_;
+	bool bDeletedAsSeen_;
 #ifndef NDEBUG
 	unsigned int nLock_;
 #endif
@@ -917,6 +918,7 @@ qm::Account::Account(const WCHAR* pwszPath,
 	pImpl_->pSecurity_ = pSecurity;
 	pImpl_->pPasswordManager_ = pPasswordManager;
 	pImpl_->pCurrentSubAccount_ = 0;
+	pImpl_->bDeletedAsSeen_ = false;
 #ifndef NDEBUG
 	pImpl_->nLock_ = 0;
 #endif
@@ -962,6 +964,7 @@ qm::Account::Account(const WCHAR* pwszPath,
 	pImpl_->wstrType_[HOST_RECEIVE] = pProfile->getString(L"Receive", L"Type", L"pop3");
 	
 	pImpl_->pProtocolDriver_ = ProtocolFactory::getDriver(this, pSecurity);
+	pImpl_->bDeletedAsSeen_ = pImpl_->pProtocolDriver_->isSupport(SUPPORT_DELETEDMESSAGE);
 	
 	if (!pImpl_->loadFolders()) {
 		// TODO
@@ -2035,6 +2038,17 @@ bool qm::Account::deleteMessagesCache(const MessageHolderList& l)
 	}
 	
 	return true;
+}
+
+bool qm::Account::isSeen(const MessageHolder* pmh) const
+{
+	return isSeen(pmh->getFlags());
+}
+
+bool qm::Account::isSeen(unsigned int nFlags) const
+{
+	return nFlags & MessageHolder::FLAG_SEEN ||
+		(pImpl_->bDeletedAsSeen_ && nFlags & MessageHolder::FLAG_DELETED);
 }
 
 void qm::Account::addAccountHandler(AccountHandler* pHandler)
