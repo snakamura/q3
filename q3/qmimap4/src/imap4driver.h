@@ -370,6 +370,7 @@ struct Session
 	qm::NormalFolder* pFolder_;
 	Imap4* pImap4_;
 	qs::Logger* pLogger_;
+	unsigned int nLastUsedTime_;
 	unsigned int nLastSelectedTime_;
 };
 
@@ -393,7 +394,7 @@ public:
 	qm::SubAccount* getSubAccount() const;
 	bool getSession(qm::NormalFolder* pFolder,
 					Session* pSession);
-	void releaseSession(const Session& session);
+	void releaseSession(Session session);
 
 private:
 	bool isNeedSelect(qm::NormalFolder* pFolder,
@@ -412,6 +413,7 @@ private:
 	AbstractCallback* pCallback_;
 	size_t nMaxSession_;
 	bool bReselect_;
+	unsigned int nForceDisconnect_;
 	SessionList listSession_;
 };
 

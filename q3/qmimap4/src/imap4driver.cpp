@@ -1671,9 +1671,11 @@ qmimap4::SessionCache::SessionCache(Account* pAccount,
 	pSubAccount_(pSubAccount),
 	pCallback_(pCallback),
 	nMaxSession_(nMaxSession),
-	bReselect_(true)
+	bReselect_(true),
+	nForceDisconnect_(0)
 {
 	bReselect_ = pSubAccount->getProperty(L"Imap4", L"Reselect", 1) != 0;
+	nForceDisconnect_ = pSubAccount->getProperty(L"Imap4", L"ForceDisconnect", 0);
 	listSession_.reserve(nMaxSession);
 }
 
@@ -1699,6 +1701,7 @@ bool qmimap4::SessionCache::getSession(NormalFolder* pFolder,
 	
 	std::auto_ptr<Logger> pLogger;
 	std::auto_ptr<Imap4> pImap4;
+	unsigned int nLastUsedTime = 0;
 	unsigned int nLastSelectedTime = 0;
 	SessionList::iterator it = std::find_if(
 		listSession_.begin(), listSession_.end(),
@@ -1711,14 +1714,16 @@ bool qmimap4::SessionCache::getSession(NormalFolder* pFolder,
 	if (it != listSession_.end()) {
 		pImap4.reset((*it).pImap4_);
 		pLogger.reset((*it).pLogger_);
-		listSession_.erase(it);
+		nLastUsedTime = (*it).nLastUsedTime_;
 		nLastSelectedTime = (*it).nLastSelectedTime_;
+		listSession_.erase(it);
 	}
 	else {
 		if (listSession_.size() >= nMaxSession_) {
 			it = listSession_.begin();
 			pImap4.reset((*it).pImap4_);
 			pLogger.reset((*it).pLogger_);
+			nLastUsedTime = (*it).nLastUsedTime_;
 			listSession_.erase(it);
 			
 			if (!pFolder)
@@ -1727,7 +1732,8 @@ bool qmimap4::SessionCache::getSession(NormalFolder* pFolder,
 	}
 	
 	if (pImap4.get()) {
-		if (!pImap4->checkConnection())
+		if ((nForceDisconnect_ != 0 && (*it).nLastUsedTime_ + nForceDisconnect_*1000 < ::GetTickCount()) ||
+			!pImap4->checkConnection())
 			pImap4.reset(0);
 	}
 	
@@ -1755,14 +1761,16 @@ bool qmimap4::SessionCache::getSession(NormalFolder* pFolder,
 	pSession->pFolder_ = pFolder;
 	pSession->pImap4_ = pImap4.release();
 	pSession->pLogger_ = pLogger.release();
+	pSession->nLastUsedTime_ = 0;
 	pSession->nLastSelectedTime_ = nLastSelectedTime;
 	
 	return true;
 }
 
-void qmimap4::SessionCache::releaseSession(const Session& session)
+void qmimap4::SessionCache::releaseSession(Session session)
 {
 	assert(listSession_.size() < nMaxSession_);
+	session.nLastUsedTime_ = ::GetTickCount();
 	listSession_.push_back(session);
 }
 

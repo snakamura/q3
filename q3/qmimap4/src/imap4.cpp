@@ -268,16 +268,17 @@ bool qmimap4::Imap4::connect(const WCHAR* pwszHost,
 
 void qmimap4::Imap4::disconnect()
 {
-	if (pSocket_.get()) {
+	if (pSocket_.get() && !bDisconnected_) {
 		const CommandToken tokens[] = {
 			{ "LOGOUT\r\n",	0,	0,	false,	true	}
 		};
 		
+		pSocket_->setTimeout(1);
+		
 		if (!sendCommandTokens(tokens, countof(tokens)))
 			nError_ |= IMAP4_ERROR_LOGOUT;
-		
-		pSocket_.reset(0);
 	}
+	pSocket_.reset(0);
 }
 
 bool qmimap4::Imap4::checkConnection()
