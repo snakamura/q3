@@ -268,7 +268,7 @@ private:
 
 class ViewModel :
 	public AbstractMessageViewMode,
-	public FolderHandler,
+	public DefaultFolderHandler,
 	public MessageHolderHandler
 {
 public:
@@ -373,7 +373,6 @@ public:
 	virtual void messageAdded(const FolderMessageEvent& event);
 	virtual void messageRemoved(const FolderMessageEvent& event);
 	virtual void messageRefreshed(const FolderEvent& event);
-	virtual void unseenCountChanged(const FolderEvent& event);
 	virtual void folderDestroyed(const FolderEvent& event);
 
 public:

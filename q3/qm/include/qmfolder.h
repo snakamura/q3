@@ -315,7 +315,30 @@ public:
 	virtual void messageRemoved(const FolderMessageEvent& event) = 0;
 	virtual void messageRefreshed(const FolderEvent& event) = 0;
 	virtual void unseenCountChanged(const FolderEvent& event) = 0;
+	virtual void folderRenamed(const FolderEvent& event) = 0;
 	virtual void folderDestroyed(const FolderEvent& event) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * DefaultFolderHandler
+ *
+ */
+
+class DefaultFolderHandler : public FolderHandler
+{
+public:
+	DefaultFolderHandler();
+	virtual ~DefaultFolderHandler();
+
+public:
+	virtual void messageAdded(const FolderMessageEvent& event);
+	virtual void messageRemoved(const FolderMessageEvent& event);
+	virtual void messageRefreshed(const FolderEvent& event);
+	virtual void unseenCountChanged(const FolderEvent& event);
+	virtual void folderRenamed(const FolderEvent& event);
+	virtual void folderDestroyed(const FolderEvent& event);
 };
 
 

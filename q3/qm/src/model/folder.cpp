@@ -50,6 +50,7 @@ public:
 	void fireMessageRemoved(const MessageHolderList& l);
 	void fireMessageRefreshed();
 	void fireUnseenCountChanged();
+	void fireFolderRenamed();
 	void fireFolderDestroyed();
 
 public:
@@ -123,6 +124,14 @@ void qm::FolderImpl::fireUnseenCountChanged()
 	FolderEvent event(pThis_);
 	for (FolderHandlerList::const_iterator it = listFolderHandler_.begin(); it != listFolderHandler_.end(); ++it)
 		(*it)->unseenCountChanged(event);
+}
+
+void qm::FolderImpl::fireFolderRenamed()
+{
+	FolderEvent event(pThis_);
+	
+	for (FolderHandlerList::const_iterator it = listFolderHandler_.begin(); it != listFolderHandler_.end(); ++it)
+		(*it)->folderRenamed(event);
 }
 
 void qm::FolderImpl::fireFolderDestroyed()
@@ -374,6 +383,7 @@ void qm::Folder::removeFolderHandler(FolderHandler* pHandler)
 void qm::Folder::setName(const WCHAR* pwszName)
 {
 	pImpl_->wstrName_ = allocWString(pwszName);
+	pImpl_->fireFolderRenamed();
 }
 
 void qm::Folder::setFlags(unsigned int nFlags,
@@ -1319,6 +1329,45 @@ void qm::FolderLess::getFolderPath(const Folder* pFolder,
  */
 
 qm::FolderHandler::~FolderHandler()
+{
+}
+
+
+/****************************************************************************
+ *
+ * DefaultFolderHandler
+ *
+ */
+
+qm::DefaultFolderHandler::DefaultFolderHandler()
+{
+}
+
+qm::DefaultFolderHandler::~DefaultFolderHandler()
+{
+}
+
+void qm::DefaultFolderHandler::messageAdded(const FolderMessageEvent& event)
+{
+}
+
+void qm::DefaultFolderHandler::messageRemoved(const FolderMessageEvent& event)
+{
+}
+
+void qm::DefaultFolderHandler::messageRefreshed(const FolderEvent& event)
+{
+}
+
+void qm::DefaultFolderHandler::unseenCountChanged(const FolderEvent& event)
+{
+}
+
+void qm::DefaultFolderHandler::folderRenamed(const FolderEvent& event)
+{
+}
+
+void qm::DefaultFolderHandler::folderDestroyed(const FolderEvent& event)
 {
 }
 

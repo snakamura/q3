@@ -45,7 +45,7 @@ class qm::FolderComboBoxImpl :
 	public CommandHandler,
 	public DefaultDocumentHandler,
 	public DefaultAccountHandler,
-	public FolderHandler,
+	public DefaultFolderHandler,
 	public FolderModelHandler
 {
 public:
@@ -81,7 +81,6 @@ public:
 	virtual void messageRemoved(const FolderMessageEvent& event);
 	virtual void messageRefreshed(const FolderEvent& event);
 	virtual void unseenCountChanged(const FolderEvent& event);
-	virtual void folderDestroyed(const FolderEvent& event);
 
 public:
 	virtual void accountSelected(const FolderModelEvent& event);
@@ -299,10 +298,6 @@ void qm::FolderComboBoxImpl::unseenCountChanged(const FolderEvent& event)
 {
 	pThis_->postMessage(WM_FOLDERCOMBOBOX_MESSAGECHANGED,
 		0, reinterpret_cast<LPARAM>(event.getFolder()));
-}
-
-void qm::FolderComboBoxImpl::folderDestroyed(const FolderEvent& event)
-{
 }
 
 void qm::FolderComboBoxImpl::accountSelected(const FolderModelEvent& event)

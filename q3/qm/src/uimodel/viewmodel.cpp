@@ -1179,10 +1179,6 @@ void qm::ViewModel::messageRefreshed(const FolderEvent& event)
 	update(true, -1);
 }
 
-void qm::ViewModel::unseenCountChanged(const FolderEvent& event)
-{
-}
-
 void qm::ViewModel::folderDestroyed(const FolderEvent& event)
 {
 	pViewModelManager_->removeViewModel(this);

@@ -54,7 +54,7 @@ class qm::FolderWindowImpl :
 	public NotifyHandler,
 	public DefaultDocumentHandler,
 	public DefaultAccountHandler,
-	public FolderHandler,
+	public DefaultFolderHandler,
 	public FolderModelHandler,
 	public DragSourceHandler,
 	public DropTargetHandler
@@ -115,7 +115,6 @@ public:
 	virtual void messageRemoved(const FolderMessageEvent& event);
 	virtual void messageRefreshed(const FolderEvent& event);
 	virtual void unseenCountChanged(const FolderEvent& event);
-	virtual void folderDestroyed(const FolderEvent& event);
 
 public:
 	virtual void accountSelected(const FolderModelEvent& event);
@@ -504,10 +503,6 @@ void qm::FolderWindowImpl::unseenCountChanged(const FolderEvent& event)
 {
 	pThis_->postMessage(WM_FOLDERWINDOW_MESSAGECHANGED,
 		0, reinterpret_cast<LPARAM>(event.getFolder()));
-}
-
-void qm::FolderWindowImpl::folderDestroyed(const FolderEvent& event)
-{
 }
 
 void qm::FolderWindowImpl::accountSelected(const FolderModelEvent& event)

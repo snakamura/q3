@@ -38,7 +38,7 @@ using namespace qs;
 class qm::TabWindowImpl :
 	public NotifyHandler,
 	public TabModelHandler,
-	public FolderHandler
+	public DefaultFolderHandler
 {
 public:
 	enum {
@@ -77,7 +77,7 @@ public:
 	virtual void messageRemoved(const FolderMessageEvent& event);
 	virtual void messageRefreshed(const FolderEvent& event);
 	virtual void unseenCountChanged(const FolderEvent& event);
-	virtual void folderDestroyed(const FolderEvent& event);
+	virtual void folderRenamed(const FolderEvent& event);
 
 private:
 	LRESULT onSelChange(NMHDR* pnmhdr,
@@ -274,8 +274,9 @@ void qm::TabWindowImpl::unseenCountChanged(const FolderEvent& event)
 		0, reinterpret_cast<LPARAM>(event.getFolder()));
 }
 
-void qm::TabWindowImpl::folderDestroyed(const FolderEvent& event)
+void qm::TabWindowImpl::folderRenamed(const FolderEvent& event)
 {
+	update(event.getFolder());
 }
 
 LRESULT qm::TabWindowImpl::onSelChange(NMHDR* pnmhdr,
