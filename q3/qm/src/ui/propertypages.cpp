@@ -19,6 +19,8 @@
 #include <qsras.h>
 #include <qsstl.h>
 
+#include <tchar.h>
+
 #include "dialogs.h"
 #include "propertypages.h"
 #include "resourceinc.h"
@@ -78,6 +80,7 @@ LRESULT qm::AccountAdvancedPage::onInitDialog(HWND hwndFocus,
 	setDlgItemText(IDC_MYADDRESS, wstrMyAddress.get());
 	
 	setDlgItemText(IDC_SYNCFILTER, pSubAccount_->getSyncFilterName());
+	sendDlgItemMessage(IDC_SYNCFILTER, CB_SETDROPPEDWIDTH, 200);
 	updateFilter();
 	
 	setDlgItemInt(IDC_TIMEOUT, pSubAccount_->getTimeout());
@@ -130,6 +133,8 @@ void qm::AccountAdvancedPage::updateFilter()
 	
 	sendDlgItemMessage(IDC_SYNCFILTER, CB_RESETCONTENT);
 	
+	sendDlgItemMessage(IDC_SYNCFILTER, CB_ADDSTRING,
+		0, reinterpret_cast<LPARAM>(_T("")));
 	const SyncFilterManager::FilterSetList& l = pSyncFilterManager_->getFilterSets();
 	for (SyncFilterManager::FilterSetList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		SyncFilterSet* pSet = *it;

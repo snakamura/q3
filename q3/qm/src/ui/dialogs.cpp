@@ -4437,6 +4437,7 @@ LRESULT qm::GoRoundEntryDialog::onInitDialog(HWND hwndFocus,
 	const WCHAR* pwszFilter = pEntry_->getFilter();
 	if (pwszFilter)
 		setDlgItemText(IDC_SYNCFILTER, pwszFilter);
+	sendDlgItemMessage(IDC_SYNCFILTER, CB_SETDROPPEDWIDTH, 200);
 	
 	if (pEntry_->isFlag(GoRoundEntry::FLAG_SEND) &&
 		pEntry_->isFlag(GoRoundEntry::FLAG_RECEIVE))
@@ -4631,6 +4632,8 @@ void qm::GoRoundEntryDialog::updateFilter()
 	
 	sendDlgItemMessage(IDC_SYNCFILTER, CB_RESETCONTENT);
 	
+	sendDlgItemMessage(IDC_SYNCFILTER, CB_ADDSTRING,
+		0, reinterpret_cast<LPARAM>(_T("")));
 	const SyncFilterManager::FilterSetList& l = pSyncFilterManager_->getFilterSets();
 	for (SyncFilterManager::FilterSetList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		SyncFilterSet* pSet = *it;

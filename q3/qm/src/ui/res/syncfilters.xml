@@ -1,0 +1,42 @@
+<filters>
+	<filterSet name="POP3 Header Only">
+		<filter match="@True()">
+			<action name="download">
+				<param name="line">0</param>
+			</action>
+		</filter>
+	</filterSet>
+	<filterSet name="POP3 Max 100 Line">
+		<filter match="@True()">
+			<action name="download">
+				<param name="line">100</param>
+			</action>
+		</filter>
+	</filterSet>
+	<filterSet name="IMAP4 Header Only">
+		<filter match="@True()">
+			<action name="download">
+				<param name="type">header</param>
+			</action>
+		</filter>
+	</filterSet>
+	<filterSet name="IMAP4 Text Only">
+		<filter match="@True()">
+			<action name="download">
+				<param name="type">text</param>
+			</action>
+		</filter>
+	</filterSet>
+	<filterSet name="IMAP4 All">
+		<filter match="@True()">
+			<action name="download">
+				<param name="type">all</param>
+			</action>
+		</filter>
+	</filterSet>
+	<filterSet name="NNTP All">
+		<filter match="@True()">
+			<action name="download"/>
+		</filter>
+	</filterSet>
+</filters>
