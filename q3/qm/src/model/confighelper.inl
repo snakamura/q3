@@ -11,6 +11,7 @@
 
 #include <qsfile.h>
 #include <qsosutil.h>
+#include <qsstream.h>
 
 
 /****************************************************************************

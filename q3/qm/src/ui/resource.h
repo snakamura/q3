@@ -84,6 +84,9 @@
 #define IDD_AUTOPILOT                   185
 #define IDD_AUTOPILOTENTRY              186
 #define IDD_CONFIRMSEND                 187
+#define IDD_ADDRESSBOOKENTRY            188
+#define IDD_ADDRESSBOOKADDRESS          189
+#define IDD_ADDADDRESS                  190
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -383,6 +386,14 @@
 #define IDC_INTERVAL                    1278
 #define IDC_DISCARD                     1281
 #define IDC_QUESTION                    1283
+#define IDC_SORTKEY                     1285
+#define IDC_ADDRESSES                   1286
+#define IDC_RFC2822                     1291
+#define IDC_ALIAS                       1292
+#define IDC_CERTIFICATE                 1294
+#define IDC_NEWENTRY                    1295
+#define IDC_NEWADDRESS                  1296
+#define IDC_COMMENT                     1298
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -544,27 +555,28 @@
 #define IDM_MESSAGE_MOVE                43400
 #define IDM_MESSAGE_OPENRECENT          44400
 #define IDM_TOOL_ACCOUNT                45001
-#define IDM_TOOL_ADDRESSBOOK            45002
-#define IDM_TOOL_ATTACHMENT             45003
-#define IDM_TOOL_AUTOPILOT              45004
-#define IDM_TOOL_CANCEL                 45005
-#define IDM_TOOL_DIALUP                 45006
-#define IDM_TOOL_HEADEREDIT             45007
-#define IDM_TOOL_INSERTSIGNATURE        45008
-#define IDM_TOOL_INSERTTEXTNONE         45009
-#define IDM_TOOL_OPTIONS                45010
-#define IDM_TOOL_PGPENCRYPT             45011
-#define IDM_TOOL_PGPMIME                45012
-#define IDM_TOOL_PGPSIGN                45013
-#define IDM_TOOL_RECEIVE                45014
-#define IDM_TOOL_REFORM                 45015
-#define IDM_TOOL_REFORMALL              45016
-#define IDM_TOOL_REFORMAUTO             45017
-#define IDM_TOOL_SCRIPTNONE             45018
-#define IDM_TOOL_SEND                   45019
-#define IDM_TOOL_SMIMEENCRYPT           45020
-#define IDM_TOOL_SMIMESIGN              45021
-#define IDM_TOOL_SYNC                   45022
+#define IDM_TOOL_ADDADDRESS             45002
+#define IDM_TOOL_ADDRESSBOOK            45003
+#define IDM_TOOL_ATTACHMENT             45004
+#define IDM_TOOL_AUTOPILOT              45005
+#define IDM_TOOL_CANCEL                 45006
+#define IDM_TOOL_DIALUP                 45007
+#define IDM_TOOL_HEADEREDIT             45008
+#define IDM_TOOL_INSERTSIGNATURE        45009
+#define IDM_TOOL_INSERTTEXTNONE         45010
+#define IDM_TOOL_OPTIONS                45011
+#define IDM_TOOL_PGPENCRYPT             45012
+#define IDM_TOOL_PGPMIME                45013
+#define IDM_TOOL_PGPSIGN                45014
+#define IDM_TOOL_RECEIVE                45015
+#define IDM_TOOL_REFORM                 45016
+#define IDM_TOOL_REFORMALL              45017
+#define IDM_TOOL_REFORMAUTO             45018
+#define IDM_TOOL_SCRIPTNONE             45019
+#define IDM_TOOL_SEND                   45020
+#define IDM_TOOL_SMIMEENCRYPT           45021
+#define IDM_TOOL_SMIMESIGN              45022
+#define IDM_TOOL_SYNC                   45023
 #define IDM_TOOL_GOROUND                45100
 #define IDM_TOOL_SCRIPT                 45200
 #define IDM_TOOL_SUBACCOUNT             45300
@@ -652,9 +664,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        188
+#define _APS_NEXT_RESOURCE_VALUE        191
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1284
+#define _APS_NEXT_CONTROL_VALUE         1302
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

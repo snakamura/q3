@@ -32,7 +32,9 @@ class AddressBook;
 class AddressBookEntry;
 class AddressBookAddress;
 class AddressBookCategory;
+struct AddressBookCategoryLess;
 class AddressBookContentHandler;
+class AddressBookWriter;
 
 class Security;
 
@@ -63,12 +65,13 @@ public:
 	~AddressBook();
 
 public:
-	const EntryList& getEntries();
-	void getCategories(CategoryList* pList);
-	const AddressBookAddress* getAddress(const WCHAR* pwszAlias);
-	qs::wstring_ptr expandAlias(const WCHAR* pwszAddresses);
-	const AddressBookEntry* getEntry(const WCHAR* pwszAddress);
-	void setEnableReload(bool bEnable);
+	const EntryList& getEntries() const;
+	const CategoryList& getCategories() const;
+	const AddressBookAddress* getAddress(const WCHAR* pwszAlias) const;
+	qs::wstring_ptr expandAlias(const WCHAR* pwszAddresses) const;
+	const AddressBookEntry* getEntry(const WCHAR* pwszAddress) const;
+	bool reload();
+	bool save() const;
 
 public:
 	void addEntry(std::auto_ptr<AddressBookEntry> pEntry);
@@ -79,7 +82,7 @@ private:
 	bool load();
 	bool loadWAB();
 	void clear(unsigned int nType);
-	void prepareEntryMap();
+	void prepareEntryMap() const;
 
 private:
 	AddressBook(const AddressBook&);
@@ -144,7 +147,6 @@ private:
 	FILETIME ft_;
 	EntryList listEntry_;
 	CategoryList listCategory_;
-	bool bEnableReload_;
 	bool bContactChanged_;
 #ifndef _WIN32_WCE
 	HINSTANCE hInstWAB_;
@@ -156,7 +158,7 @@ private:
 	HANDLE hContactsDB_;
 	NotificationWindow* pNotificationWindow_;
 #endif
-	EntryMap mapEntry_;
+	mutable EntryMap mapEntry_;
 };
 
 
@@ -172,29 +174,34 @@ public:
 	typedef std::vector<AddressBookAddress*> AddressList;
 
 public:
-	explicit AddressBookEntry(bool bWAB);
+	AddressBookEntry(const WCHAR* pwszName,
+					 const WCHAR* pwszSortKey,
+					 bool bWAB);
 	~AddressBookEntry();
 
 public:
-	bool isWAB() const;
 	const WCHAR* getName() const;
+	void setName(const WCHAR* pwszName);
 	const WCHAR* getSortKey() const;
+	void setSortKey(const WCHAR* pwszSortKey);
+	const WCHAR* getActualSortKey() const;
 	const AddressList& getAddresses() const;
-
-public:
-	void setName(qs::wstring_ptr wstrName);
-	void setSortKey(qs::wstring_ptr wstrSortKey);
+	void setAddresses(AddressList& listAddress);
 	void addAddress(std::auto_ptr<AddressBookAddress> pAddress);
+	bool isWAB() const;
+
+private:
+	void clearAddresses();
 
 private:
 	AddressBookEntry(const AddressBookEntry&);
 	AddressBookEntry& operator=(const AddressBookEntry&);
 
 private:
-	bool bWAB_;
 	qs::wstring_ptr wstrName_;
 	qs::wstring_ptr wstrSortKey_;
 	AddressList listAddress_;
+	bool bWAB_;
 };
 
 
@@ -210,29 +217,34 @@ public:
 	typedef std::vector<const AddressBookCategory*> CategoryList;
 
 public:
+	AddressBookAddress(const AddressBookEntry* pEntry);
 	AddressBookAddress(const AddressBookEntry* pEntry,
+					   const WCHAR* pwszAddress,
 					   const WCHAR* pwszAlias,
 					   const CategoryList& listCategory,
 					   const WCHAR* pwszComment,
 					   const WCHAR* pwszCertificate,
 					   bool bRFC2822);
+	AddressBookAddress(const AddressBookAddress& address);
 	~AddressBookAddress();
 
 public:
 	const AddressBookEntry* getEntry() const;
 	const WCHAR* getAddress() const;
+	void setAddress(const WCHAR* pwszAddress);
 	const WCHAR* getAlias() const;
+	void setAlias(const WCHAR* pwszAlias);
 	const CategoryList& getCategories() const;
+	void setCategories(const CategoryList& listCategory);
 	const WCHAR* getComment() const;
+	void setComment(const WCHAR* pwszComment);
 	const WCHAR* getCertificate() const;
+	void setCertificate(const WCHAR* pwszCertificate);
 	bool isRFC2822() const;
+	void setRFC2822(bool bRFC2822);
 	qs::wstring_ptr getValue() const;
 
-public:
-	void setAddress(qs::wstring_ptr wstrAddress);
-
 private:
-	AddressBookAddress(const AddressBookAddress&);
 	AddressBookAddress& operator=(const AddressBookAddress&);
 
 private:
@@ -267,6 +279,19 @@ private:
 
 private:
 	qs::wstring_ptr wstrName_;
+};
+
+
+/****************************************************************************
+ *
+ * AddressBookCategory
+ *
+ */
+
+struct AddressBookCategoryLess : public std::binary_function<AddressBookCategory*, AddressBookCategory*, bool>
+{
+	bool operator()(const AddressBookCategory* pLhs,
+					const AddressBookCategory* pRhs);
 };
 
 
@@ -315,6 +340,32 @@ private:
 	qs::StringBuffer<qs::WSTRING> buffer_;
 	std::auto_ptr<AddressBookEntry> pEntry_;
 	std::auto_ptr<AddressBookAddress> pAddress_;
+};
+
+
+/****************************************************************************
+ *
+ * AddressBookWriter
+ *
+ */
+
+class AddressBookWriter
+{
+public:
+	explicit AddressBookWriter(qs::Writer* pWriter);
+	~AddressBookWriter();
+
+public:
+	bool write(const AddressBook* pAddressBook);
+	bool write(const AddressBookEntry* pEntry);
+	bool write(const AddressBookAddress* pAddress);
+
+private:
+	AddressBookWriter(const AddressBookWriter&);
+	AddressBookWriter& operator=(const AddressBookWriter&);
+
+private:
+	qs::OutputHandler handler_;
 };
 
 }

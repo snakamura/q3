@@ -182,6 +182,7 @@ struct ActionNameMap
 	{ L"TabSelect9",					IDM_TAB_SELECT + 9						},
 #endif
 	{ L"ToolAccount",					IDM_TOOL_ACCOUNT						},
+	{ L"ToolAddAddress",				IDM_TOOL_ADDADDRESS						},
 	{ L"ToolAddressBook",				IDM_TOOL_ADDRESSBOOK					},
 	{ L"ToolAttachment",				IDM_TOOL_ATTACHMENT						},
 	{ L"ToolCancel",					IDM_TOOL_CANCEL							},

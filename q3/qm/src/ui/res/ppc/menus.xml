@@ -107,6 +107,8 @@
 			<separator/>
 			<menuitem text="Dialup Connect..." action="ToolDialup"/>
 			<separator/>
+			<menuitem text="Add From to Address Book..." action="ToolAddAddress"/>
+			<separator/>
 			<popupmenu text="Script" action="ToolScript"/>
 			<separator/>
 			<popupmenu text="Auto Pilot">

@@ -590,6 +590,237 @@ void qm::AccountDialog::initProfileForClass(const WCHAR* pwszClass,
 
 /****************************************************************************
  *
+ * AddAddressDialog
+ *
+ */
+
+qm::AddAddressDialog::AddAddressDialog(AddressBook* pAddressBook) :
+	DefaultDialog(IDD_ADDADDRESS),
+	pAddressBook_(pAddressBook),
+	type_(TYPE_NEWENTRY),
+	pEntry_(0)
+{
+	pAddressBook_->reload();
+}
+
+qm::AddAddressDialog::~AddAddressDialog()
+{
+}
+
+AddAddressDialog::Type qm::AddAddressDialog::getType() const
+{
+	return type_;
+}
+
+AddressBookEntry* qm::AddAddressDialog::getEntry() const
+{
+	return pEntry_;
+}
+
+LRESULT qm::AddAddressDialog::onCommand(WORD nCode,
+										WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_NEWADDRESS, onNewAddress)
+		HANDLE_COMMAND_ID(IDC_NEWENTRY, onNewEntry)
+		HANDLE_COMMAND_ID_CODE(IDC_ENTRIES, LBN_SELCHANGE, onEntriesSelChange)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::AddAddressDialog::onInitDialog(HWND hwndFocus,
+										   LPARAM lParam)
+{
+	init(false);
+	
+	switch (type_) {
+	case TYPE_NEWENTRY:
+		sendDlgItemMessage(IDC_NEWENTRY, BM_SETCHECK, BST_CHECKED);
+		break;
+	case TYPE_NEWADDRESS:
+		sendDlgItemMessage(IDC_NEWADDRESS, BM_SETCHECK, BST_CHECKED);
+		break;
+	}
+	
+	const AddressBook::EntryList& l = pAddressBook_->getEntries();
+	AddressBook::EntryList listEntry;
+	listEntry.reserve(l.size());
+	std::remove_copy_if(l.begin(), l.end(),
+		std::back_inserter(listEntry),
+		std::mem_fun(&AddressBookEntry::isWAB));
+	std::sort(listEntry.begin(), listEntry.end(),
+		binary_compose_f_gx_hy(
+			string_less_i<WCHAR>(),
+			std::mem_fun(&AddressBookEntry::getActualSortKey),
+			std::mem_fun(&AddressBookEntry::getActualSortKey)));
+	for (AddressBook::EntryList::const_iterator it = listEntry.begin(); it != listEntry.end(); ++it) {
+		const AddressBookEntry* pEntry = *it;
+		W2T(pEntry->getName(), ptszName);
+		int nItem = sendDlgItemMessage(IDC_ENTRIES, LB_ADDSTRING,
+			0, reinterpret_cast<LPARAM>(ptszName));
+		sendDlgItemMessage(IDC_ENTRIES, LB_SETITEMDATA,
+			nItem, reinterpret_cast<LPARAM>(pEntry));
+	}
+	sendDlgItemMessage(IDC_ENTRIES, LB_SETCURSEL, 0);
+	
+	updateState();
+	
+	return TRUE;
+}
+
+LRESULT qm::AddAddressDialog::onOk()
+{
+	if (sendDlgItemMessage(IDC_NEWADDRESS, BM_GETCHECK) == BST_CHECKED) {
+		type_ = TYPE_NEWADDRESS;
+		
+		int nItem = sendDlgItemMessage(IDC_ENTRIES, LB_GETCURSEL);
+		if (nItem == LB_ERR)
+			return 0;
+		pEntry_ = reinterpret_cast<AddressBookEntry*>(
+			sendDlgItemMessage(IDC_ENTRIES, LB_GETITEMDATA, nItem));
+	}
+	else {
+		type_ = TYPE_NEWENTRY;
+	}
+	
+	return DefaultDialog::onOk();
+}
+
+LRESULT qm::AddAddressDialog::onNewEntry()
+{
+	updateState();
+	return 0;
+}
+
+LRESULT qm::AddAddressDialog::onNewAddress()
+{
+	updateState();
+	return 0;
+}
+
+LRESULT qm::AddAddressDialog::onEntriesSelChange()
+{
+	updateState();
+	return 0;
+}
+
+void qm::AddAddressDialog::updateState()
+{
+	bool bNewAddress = sendDlgItemMessage(IDC_NEWADDRESS, BM_GETCHECK) == BST_CHECKED;
+	Window(getDlgItem(IDC_ENTRIES)).enableWindow(bNewAddress);
+	Window(getDlgItem(IDOK)).enableWindow(!bNewAddress ||
+		sendDlgItemMessage(IDC_ENTRIES, LB_GETCURSEL) != LB_ERR);
+}
+
+
+/****************************************************************************
+ *
+ * AddressBookAddressDialog
+ *
+ */
+
+qm::AddressBookAddressDialog::AddressBookAddressDialog(AddressBook* pAddressBook,
+													   AddressBookAddress* pAddress) :
+	DefaultDialog(IDD_ADDRESSBOOKADDRESS),
+	pAddressBook_(pAddressBook),
+	pAddress_(pAddress)
+{
+}
+
+qm::AddressBookAddressDialog::~AddressBookAddressDialog()
+{
+}
+
+LRESULT qm::AddressBookAddressDialog::onCommand(WORD nCode,
+												WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID_CODE(IDC_ADDRESS, EN_CHANGE, onAddressChange)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::AddressBookAddressDialog::onInitDialog(HWND hwndFocus,
+												   LPARAM lParam)
+{
+	init(false);
+	
+	setDlgItemText(IDC_ADDRESS, pAddress_->getAddress());
+	sendDlgItemMessage(IDC_RFC2822, pAddress_->isRFC2822());
+	if (pAddress_->getAlias())
+		setDlgItemText(IDC_ALIAS, pAddress_->getAlias());
+	
+	AddressBook::CategoryList listAllCategory(pAddressBook_->getCategories());
+	std::sort(listAllCategory.begin(), listAllCategory.end(), AddressBookCategoryLess());
+	for (AddressBook::CategoryList::const_iterator it = listAllCategory.begin(); it != listAllCategory.end(); ++it) {
+		W2T((*it)->getName(), ptszName);
+		sendDlgItemMessage(IDC_CATEGORY, CB_ADDSTRING,
+			0, reinterpret_cast<LPARAM>(ptszName));
+	}
+	
+	StringBuffer<WSTRING> bufCategory;
+	const AddressBookAddress::CategoryList& listCategory = pAddress_->getCategories();
+	for (AddressBookAddress::CategoryList::const_iterator it = listCategory.begin(); it != listCategory.end(); ++it) {
+		if (bufCategory.getLength() != 0)
+			bufCategory.append(L',');
+		bufCategory.append((*it)->getName());
+	}
+	setDlgItemText(IDC_CATEGORY, bufCategory.getCharArray());
+	
+	if (pAddress_->getComment())
+		setDlgItemText(IDC_COMMENT, pAddress_->getComment());
+	if (pAddress_->getCertificate())
+		setDlgItemText(IDC_CERTIFICATE, pAddress_->getCertificate());
+	
+	updateState();
+	
+	return TRUE;
+}
+
+LRESULT qm::AddressBookAddressDialog::onOk()
+{
+	wstring_ptr wstrAddress(getDlgItemText(IDC_ADDRESS));
+	if (!*wstrAddress.get())
+		return 0;
+	bool bRFC2822 = sendDlgItemMessage(IDC_RFC2822, BM_GETCHECK) == BST_CHECKED;
+	wstring_ptr wstrAlias(getDlgItemText(IDC_ALIAS));
+	
+	wstring_ptr wstrCategory(getDlgItemText(IDC_CATEGORY));
+	AddressBookAddress::CategoryList listCategory;
+	const WCHAR* p = wcstok(wstrCategory.get(), L", ");
+	while (p) {
+		listCategory.push_back(pAddressBook_->getCategory(p));
+		p = wcstok(0, L", ");
+	}
+	
+	wstring_ptr wstrComment(getDlgItemText(IDC_COMMENT));
+	wstring_ptr wstrCertificate(getDlgItemText(IDC_CERTIFICATE));
+	
+	pAddress_->setAddress(wstrAddress.get());
+	pAddress_->setAlias(*wstrAlias.get() ? wstrAlias.get() : 0);
+	pAddress_->setCategories(listCategory);
+	pAddress_->setComment(*wstrComment.get() ? wstrComment.get() : 0);
+	pAddress_->setCertificate(*wstrCertificate.get() ? wstrCertificate.get() : 0);
+	pAddress_->setRFC2822(bRFC2822);
+	
+	return DefaultDialog::onOk();
+}
+
+LRESULT qm::AddressBookAddressDialog::onAddressChange()
+{
+	updateState();
+	return 0;
+}
+
+void qm::AddressBookAddressDialog::updateState()
+{
+	Window(getDlgItem(IDOK)).enableWindow(
+		Window(getDlgItem(IDC_ADDRESS)).getWindowTextLength() != 0);
+}
+
+
+/****************************************************************************
+ *
  * AddressBookDialog
  *
  */
@@ -606,8 +837,8 @@ int CALLBACK itemComp(LPARAM lParam1,
 	const WCHAR* p2 = 0;
 	switch (lParamSort & AddressBookDialog::SORT_TYPE_MASK) {
 	case AddressBookDialog::SORT_NAME:
-		p1 = pAddress1->getEntry()->getSortKey();
-		p2 = pAddress2->getEntry()->getSortKey();
+		p1 = pAddress1->getEntry()->getActualSortKey();
+		p2 = pAddress2->getEntry()->getActualSortKey();
 		break;
 	case AddressBookDialog::SORT_ADDRESS:
 		p1 = pAddress1->getAddress();
@@ -655,6 +886,8 @@ qm::AddressBookDialog::AddressBookDialog(AddressBook* pAddressBook,
 	wndAddressList_(this),
 	wndSelectedAddressList_(this)
 {
+	pAddressBook_->reload();
+	
 	Type types[] = {
 		TYPE_TO,
 		TYPE_CC,
@@ -757,8 +990,6 @@ LRESULT qm::AddressBookDialog::onDestroy()
 	pProfile_->setString(L"AddressBook", L"Category", pwszCategory);
 	
 	removeNotifyHandler(this);
-	
-	pAddressBook_->setEnableReload(true);
 	
 	return DefaultDialog::onDestroy();
 }
@@ -866,8 +1097,6 @@ LRESULT qm::AddressBookDialog::onInitDialog(HWND hwndFocus,
 	wndSelectedAddressList_.subclassWindow(hwndSelected);
 	Window(hwndList).setFocus();
 	
-	pAddressBook_->setEnableReload(false);
-	
 	return FALSE;
 }
 
@@ -916,9 +1145,8 @@ LRESULT qm::AddressBookDialog::onCategory()
 	RECT rect;
 	Window(getDlgItem(IDC_CATEGORY)).getWindowRect(&rect);
 	
-	AddressBook::CategoryList listCategory;
-	pAddressBook_->getCategories(&listCategory);
-	std::sort(listCategory.begin(), listCategory.end(), CategoryLess());
+	AddressBook::CategoryList listCategory(pAddressBook_->getCategories());
+	std::sort(listCategory.begin(), listCategory.end(), AddressBookCategoryLess());
 	
 	CategoryNameList listName;
 	StringListFree<CategoryNameList> free(listName);
@@ -1582,33 +1810,85 @@ LRESULT qm::AddressBookDialog::SelectedAddressListWindow::onRecognizeGesture(NMH
 
 /****************************************************************************
  *
- * AddressBookDialog::CategoryLess
+ * AddressBookEntryDialog
  *
  */
 
-bool qm::AddressBookDialog::CategoryLess::operator()(const AddressBookCategory* pLhs,
-													 const AddressBookCategory* pRhs)
+qm::AddressBookEntryDialog::AddressBookEntryDialog(AddressBook* pAddressBook,
+												   AddressBookEntry* pEntry) :
+	AbstractListDialog<AddressBookAddress, AddressBookEntry::AddressList>(IDD_ADDRESSBOOKENTRY, IDC_ADDRESSES),
+	pAddressBook_(pAddressBook),
+	pEntry_(pEntry)
 {
-	const WCHAR* pwszLhs = pLhs->getName();
-	const WCHAR* pwszRhs = pRhs->getName();
+	const AddressBookEntry::AddressList& l = pEntry->getAddresses();
+	AddressBookEntry::AddressList& list = getList();
+	list.reserve(l.size());
+	for (AddressBookEntry::AddressList::const_iterator it = l.begin(); it != l.end(); ++it)
+		list.push_back(new AddressBookAddress(**it));
+}
+
+qm::AddressBookEntryDialog::~AddressBookEntryDialog()
+{
+}
+
+LRESULT qm::AddressBookEntryDialog::onCommand(WORD nCode,
+											  WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID_CODE(IDC_NAME, EN_CHANGE, onNameChange)
+	END_COMMAND_HANDLER()
+	return AbstractListDialog<AddressBookAddress, AddressBookEntry::AddressList>::onCommand(nCode, nId);
+}
+
+LRESULT qm::AddressBookEntryDialog::onInitDialog(HWND hwndFocus,
+												 LPARAM lParam)
+{
+	init(false);
 	
-	while (*pwszLhs && *pwszRhs) {
-		if (*pwszLhs == *pwszRhs)
-			;
-		else if (*pwszLhs == L'/')
-			return true;
-		else if (*pwszRhs == L'/')
-			return false;
-		else if (*pwszLhs < *pwszRhs)
-			return true;
-		else if (*pwszLhs > *pwszRhs)
-			return false;
-		
-		++pwszLhs;
-		++pwszRhs;
-	}
+	setDlgItemText(IDC_NAME, pEntry_->getName());
+	if (pEntry_->getSortKey())
+		setDlgItemText(IDC_SORTKEY, pEntry_->getSortKey());
 	
-	return *pwszRhs != L'\0';
+	return AbstractListDialog<AddressBookAddress, AddressBookEntry::AddressList>::onInitDialog(hwndFocus, lParam);
+}
+
+LRESULT qm::AddressBookEntryDialog::onOk()
+{
+	pEntry_->setAddresses(getList());
+	return AbstractListDialog<AddressBookAddress, AddressBookEntry::AddressList>::onOk();
+}
+
+wstring_ptr qm::AddressBookEntryDialog::getLabel(const AddressBookAddress* p) const
+{
+	return allocWString(p->getAddress());
+}
+
+std::auto_ptr<AddressBookAddress> qm::AddressBookEntryDialog::create() const
+{
+	std::auto_ptr<AddressBookAddress> pAddress(new AddressBookAddress(pEntry_));
+	AddressBookAddressDialog dialog(pAddressBook_, pAddress.get());
+	if (dialog.doModal(getHandle()) != IDOK)
+		return std::auto_ptr<AddressBookAddress>();
+	return pAddress;
+}
+
+bool qm::AddressBookEntryDialog::edit(AddressBookAddress* p) const
+{
+	AddressBookAddressDialog dialog(pAddressBook_, p);
+	return dialog.doModal(getHandle()) == IDOK;
+}
+
+void qm::AddressBookEntryDialog::updateState()
+{
+	AbstractListDialog<AddressBookAddress, AddressBookEntry::AddressList>::updateState();
+	
+	// TODO
+}
+
+LRESULT qm::AddressBookEntryDialog::onNameChange()
+{
+	updateState();
+	return 0;
 }
 
 

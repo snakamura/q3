@@ -892,6 +892,11 @@ void qm::MainWindowImpl::initActions()
 		pSyncManager_,
 		pProfile_,
 		pThis_->getHandle());
+	ADD_ACTION3(ToolAddAddressAction,
+		IDM_TOOL_ADDADDRESS,
+		pDocument_->getAddressBook(),
+		pMessageSelectionModel_.get(),
+		pThis_->getHandle());
 	ADD_ACTION1(ToolAutoPilotAction,
 		IDM_TOOL_AUTOPILOT,
 		pAutoPilot_);

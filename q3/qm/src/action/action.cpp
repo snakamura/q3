@@ -4547,6 +4547,114 @@ bool qm::ToolAccountAction::isEnabled(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * ToolAddAddressAction
+ *
+ */
+
+qm::ToolAddAddressAction::ToolAddAddressAction(AddressBook* pAddressBook,
+											   MessageSelectionModel* pMessageSelectionModel,
+											   HWND hwnd) :
+	pAddressBook_(pAddressBook),
+	pMessageSelectionModel_(pMessageSelectionModel),
+	hwnd_(hwnd)
+{
+}
+
+qm::ToolAddAddressAction::~ToolAddAddressAction()
+{
+}
+
+void qm::ToolAddAddressAction::invoke(const ActionEvent& event)
+{
+	MessagePtrLock mpl(pMessageSelectionModel_->getFocusedMessage());
+	if (!mpl)
+		return;
+	
+	Message msg;
+	if (!mpl->getMessage(Account::GETMESSAGEFLAG_HEADER, L"From", SECURITYMODE_NONE, &msg))
+		return;
+	AddressListParser from(0);
+	if (msg.getField(L"From", &from) != Part::FIELD_EXIST || from.getAddressList().empty())
+		return;
+	AddressParser* pFrom = from.getAddressList().front();
+	
+	AddAddressDialog dialog(pAddressBook_);
+	if (dialog.doModal(hwnd_) != IDOK)
+		return;
+	
+	wstring_ptr wstrAddress(pFrom->getAddress());
+	const WCHAR* pwszPhrase = pFrom->getPhrase();
+	if (!pwszPhrase)
+		pwszPhrase = wstrAddress.get();
+	
+	switch (dialog.getType()) {
+	case AddAddressDialog::TYPE_NEWENTRY:
+		{
+			std::auto_ptr<AddressBookEntry> pEntry(
+				new AddressBookEntry(pwszPhrase, 0, false));
+			std::auto_ptr<AddressBookAddress> pAddress(new AddressBookAddress(pEntry.get(),
+				wstrAddress.get(), 0, AddressBookAddress::CategoryList(), 0, 0, false));
+			pEntry->addAddress(pAddress);
+			
+			AddressBookEntryDialog dialog(pAddressBook_, pEntry.get());
+			if (dialog.doModal(hwnd_) != IDOK)
+				return;
+			
+			pAddressBook_->addEntry(pEntry);
+		}
+		break;
+	case AddAddressDialog::TYPE_NEWADDRESS:
+		{
+			AddressBookEntry* pEntry = dialog.getEntry();
+			std::auto_ptr<AddressBookAddress> pAddress(new AddressBookAddress(pEntry,
+				wstrAddress.get(), 0, AddressBookAddress::CategoryList(), 0, 0, false));
+			
+			AddressBookAddressDialog dialog(pAddressBook_, pAddress.get());
+			if (dialog.doModal(hwnd_) != IDOK)
+				return;
+			
+			pEntry->addAddress(pAddress);
+		}
+		break;
+	default:
+		assert(false);
+		break;
+	}
+	
+	if (!pAddressBook_->save()) {
+		// TODO
+	}
+}
+
+bool qm::ToolAddAddressAction::isEnabled(const ActionEvent& event)
+{
+	return pMessageSelectionModel_->hasFocusedMessage();
+}
+
+
+/****************************************************************************
+ *
+ * ToolAddressBookAction
+ *
+ */
+
+qm::ToolAddressBookAction::ToolAddressBookAction(AddressBook* pAddressBook) :
+	pAddressBook_(pAddressBook)
+{
+}
+
+qm::ToolAddressBookAction::~ToolAddressBookAction()
+{
+}
+
+void qm::ToolAddressBookAction::invoke(const ActionEvent& event)
+{
+	// TODO
+}
+
+
+/****************************************************************************
+ *
  * ToolAutoPilotAction
  *
  */

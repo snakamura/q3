@@ -10,6 +10,7 @@
 #define __COLORS_H__
 
 #include <qm.h>
+#include <qmmacro.h>
 
 #include <qs.h>
 #include <qsregex.h>
@@ -32,7 +33,6 @@ class ColorWriter;
 class Folder;
 class Macro;
 class MacroContext;
-class MacroParser;
 
 
 /****************************************************************************

@@ -26,6 +26,7 @@
 #endif
 
 #include "addressbook.h"
+#include "confighelper.h"
 
 using namespace qm;
 using namespace qs;
@@ -39,7 +40,6 @@ using namespace qs;
 
 qm::AddressBook::AddressBook(const WCHAR* pwszPath,
 							 Profile* pProfile) :
-	bEnableReload_(true),
 	bContactChanged_(false),
 #ifndef _WIN32_WCE
 	hInstWAB_(0),
@@ -87,28 +87,21 @@ qm::AddressBook::~AddressBook()
 #endif
 }
 
-const AddressBook::EntryList& qm::AddressBook::getEntries()
+const AddressBook::EntryList& qm::AddressBook::getEntries() const
 {
-	load();
 	return listEntry_;
 }
 
-void qm::AddressBook::getCategories(CategoryList* pList)
+const AddressBook::CategoryList& qm::AddressBook::getCategories() const
 {
-	assert(pList);
-	
-	load();
-	pList->assign(listCategory_.begin(), listCategory_.end());
+	return listCategory_;
 }
 
-const AddressBookAddress* qm::AddressBook::getAddress(const WCHAR* pwszAlias)
+const AddressBookAddress* qm::AddressBook::getAddress(const WCHAR* pwszAlias) const
 {
 	assert(pwszAlias);
 	
-	if (!load())
-		return 0;
-	
-	for (EntryList::iterator itE = listEntry_.begin(); itE != listEntry_.end(); ++itE) {
+	for (EntryList::const_iterator itE = listEntry_.begin(); itE != listEntry_.end(); ++itE) {
 		const AddressBookEntry::AddressList& l = (*itE)->getAddresses();
 		for (AddressBookEntry::AddressList::const_iterator itA = l.begin(); itA != l.end(); ++itA) {
 			const AddressBookAddress* pAddress = *itA;
@@ -120,12 +113,9 @@ const AddressBookAddress* qm::AddressBook::getAddress(const WCHAR* pwszAlias)
 	return 0;
 }
 
-wstring_ptr qm::AddressBook::expandAlias(const WCHAR* pwszAddresses)
+wstring_ptr qm::AddressBook::expandAlias(const WCHAR* pwszAddresses) const
 {
 	assert(pwszAddresses);
-	
-	if (!load())
-		return 0;
 	
 	UTF8Parser field(pwszAddresses);
 	Part dummy;
@@ -152,12 +142,10 @@ wstring_ptr qm::AddressBook::expandAlias(const WCHAR* pwszAddresses)
 	return buf.getString();
 }
 
-const AddressBookEntry* qm::AddressBook::getEntry(const WCHAR* pwszAddress)
+const AddressBookEntry* qm::AddressBook::getEntry(const WCHAR* pwszAddress) const
 {
 	assert(pwszAddress);
 	
-	if (!load())
-		return 0;
 	prepareEntryMap();
 	
 	EntryMap::value_type v(pwszAddress, 0);
@@ -167,15 +155,19 @@ const AddressBookEntry* qm::AddressBook::getEntry(const WCHAR* pwszAddress)
 			string_less_i<WCHAR>(),
 			std::select1st<EntryMap::value_type>(),
 			std::select1st<EntryMap::value_type>()));
-	if (it != mapEntry_.end() && _wcsicmp((*it).first, pwszAddress) == 0)
-		return (*it).second;
-	else
+	if (it == mapEntry_.end() || _wcsicmp((*it).first, pwszAddress) != 0)
 		return 0;
+	return (*it).second;
 }
 
-void qm::AddressBook::setEnableReload(bool bEnable)
+bool qm::AddressBook::reload()
 {
-	bEnableReload_ = bEnable;
+	return load();
+}
+
+bool qm::AddressBook::save() const
+{
+	return ConfigSaver<const AddressBook*, AddressBookWriter>::save(this, wstrPath_.get());
 }
 
 void qm::AddressBook::addEntry(std::auto_ptr<AddressBookEntry> pEntry)
@@ -271,9 +263,6 @@ bool qm::AddressBook::initWAB()
 
 bool qm::AddressBook::load()
 {
-	if (!bEnableReload_)
-		return true;
-	
 	bool bReload = false;
 	bool bClear = false;
 	
@@ -377,7 +366,7 @@ bool qm::AddressBook::loadWAB()
 				for (ULONG nRow = 0; nRow < pSRowSet->cRows; ++nRow) {
 					SRow* pRow = pSRowSet->aRow + nRow;
 					
-					std::auto_ptr<AddressBookEntry> pEntry(new AddressBookEntry(true));
+					std::auto_ptr<AddressBookEntry> pEntry(new AddressBookEntry(0, 0, true));
 					
 					for (ULONG nValue = 0; nValue < pRow->cValues; ++nValue) {
 						SPropValue* pValue = pRow->lpProps + nValue;
@@ -391,7 +380,7 @@ bool qm::AddressBook::loadWAB()
 								else if (PROP_TYPE(nTag) == PT_UNICODE)
 									wstrName = allocWString(pValue->Value.lpszW);
 								if (wstrName.get())
-									pEntry->setName(wstrName);
+									pEntry->setName(wstrName.get());
 							}
 							break;
 						case PROP_ID(PR_EMAIL_ADDRESS):
@@ -404,11 +393,11 @@ bool qm::AddressBook::loadWAB()
 								if (wstrAddress.get()) {
 									std::auto_ptr<AddressBookAddress> pAddress(
 										new AddressBookAddress(pEntry.get(),
+											wstrAddress.get(),
 											static_cast<const WCHAR*>(0),
 											AddressBookAddress::CategoryList(),
 											static_cast<const WCHAR*>(0),
 											static_cast<const WCHAR*>(0), false));
-									pAddress->setAddress(wstrAddress);
 									pEntry->addAddress(pAddress);
 								}
 							}
@@ -575,19 +564,14 @@ bool qm::AddressBook::loadWAB()
 			}
 		}
 		
-		std::auto_ptr<AddressBookEntry> pEntry(new AddressBookEntry(true));
-		pEntry->setName(wstrName);
-		pEntry->setSortKey(wstrSortKey);
+		std::auto_ptr<AddressBookEntry> pEntry(new AddressBookEntry(
+			wstrName.get(), wstrSortKey.get(), true));
 		
 		for (int nAddress = 2; nAddress < 5; ++nAddress) {
 			if (pVal[nAddress].wFlags != CEDB_PROPNOTFOUND) {
 				std::auto_ptr<AddressBookAddress> pAddress(
-					new AddressBookAddress(pEntry.get(),
-						static_cast<const WCHAR*>(0), listCategory,
-						static_cast<const WCHAR*>(0),
-						static_cast<const WCHAR*>(0), false));
-				wstring_ptr wstrAddress(allocWString(pVal[nAddress].val.lpwstr));
-				pAddress->setAddress(wstrAddress);
+					new AddressBookAddress(pEntry.get(), pVal[nAddress].val.lpwstr,
+						0, listCategory, 0, 0, false));
 				pEntry->addAddress(pAddress);
 			}
 		}
@@ -622,27 +606,28 @@ void qm::AddressBook::clear(unsigned int nType)
 	mapEntry_.clear();
 }
 
-void qm::AddressBook::prepareEntryMap()
+void qm::AddressBook::prepareEntryMap() const
 {
-	if (mapEntry_.empty()) {
-		for (EntryList::const_iterator itE = listEntry_.begin(); itE != listEntry_.end(); ++itE) {
-			AddressBookEntry* pEntry = *itE;
-			
-			const AddressBookEntry::AddressList& l = pEntry->getAddresses();
-			for (AddressBookEntry::AddressList::const_iterator itA = l.begin(); itA != l.end(); ++itA) {
-				AddressBookAddress* pAddress = *itA;
-				if (!pAddress->isRFC2822()) {
-					EntryMap::value_type v(pAddress->getAddress(), pEntry);
-					
-					EntryMap::iterator itM = std::lower_bound(
-						mapEntry_.begin(), mapEntry_.end(), v,
-						binary_compose_f_gx_hy(
-							string_less_i<WCHAR>(),
-							std::select1st<EntryMap::value_type>(),
-							std::select1st<EntryMap::value_type>()));
-					if (itM == mapEntry_.end() || _wcsicmp((*itM).first, v.first) != 0)
-						mapEntry_.insert(itM, v);
-				}
+	if (!mapEntry_.empty())
+		return;
+	
+	for (EntryList::const_iterator itE = listEntry_.begin(); itE != listEntry_.end(); ++itE) {
+		AddressBookEntry* pEntry = *itE;
+		
+		const AddressBookEntry::AddressList& l = pEntry->getAddresses();
+		for (AddressBookEntry::AddressList::const_iterator itA = l.begin(); itA != l.end(); ++itA) {
+			AddressBookAddress* pAddress = *itA;
+			if (!pAddress->isRFC2822()) {
+				EntryMap::value_type v(pAddress->getAddress(), pEntry);
+				
+				EntryMap::iterator itM = std::lower_bound(
+					mapEntry_.begin(), mapEntry_.end(), v,
+					binary_compose_f_gx_hy(
+						string_less_i<WCHAR>(),
+						std::select1st<EntryMap::value_type>(),
+						std::select1st<EntryMap::value_type>()));
+				if (itM == mapEntry_.end() || _wcsicmp((*itM).first, v.first) != 0)
+					mapEntry_.insert(itM, v);
 			}
 		}
 	}
@@ -748,28 +733,48 @@ LRESULT qm:: AddressBook::NotificationWindow::onDBNotification(WPARAM wParam,
  *
  */
 
-qm::AddressBookEntry::AddressBookEntry(bool bWAB) :
+qm::AddressBookEntry::AddressBookEntry(const WCHAR* pwszName,
+									   const WCHAR* pwszSortKey,
+									   bool bWAB) :
 	bWAB_(bWAB)
 {
+	if (pwszName)
+		wstrName_ = allocWString(pwszName);
+	if (pwszSortKey)
+		wstrName_ = allocWString(pwszSortKey);
 }
 
 qm::AddressBookEntry::~AddressBookEntry()
 {
-	std::for_each(listAddress_.begin(), listAddress_.end(),
-		deleter<AddressBookAddress>());
-}
-
-bool qm::AddressBookEntry::isWAB() const
-{
-	return bWAB_;
+	clearAddresses();
 }
 
 const WCHAR* qm::AddressBookEntry::getName() const
 {
+	assert(wstrName_.get());
 	return wstrName_.get();
 }
 
+void qm::AddressBookEntry::setName(const WCHAR* pwszName)
+{
+	assert(pwszName);
+	wstrName_ = allocWString(pwszName);
+}
+
 const WCHAR* qm::AddressBookEntry::getSortKey() const
+{
+	return wstrSortKey_.get();
+}
+
+void qm::AddressBookEntry::setSortKey(const WCHAR* pwszSortKey)
+{
+	if (pwszSortKey)
+		wstrSortKey_ = allocWString(pwszSortKey);
+	else
+		wstrSortKey_.reset(0);
+}
+
+const WCHAR* qm::AddressBookEntry::getActualSortKey() const
 {
 	return wstrSortKey_.get() ? wstrSortKey_.get() : wstrName_.get();
 }
@@ -779,20 +784,28 @@ const AddressBookEntry::AddressList& qm::AddressBookEntry::getAddresses() const
 	return listAddress_;
 }
 
-void qm::AddressBookEntry::setName(wstring_ptr wstrName)
+void qm::AddressBookEntry::setAddresses(AddressList& listAddress)
 {
-	wstrName_ = wstrName;
-}
-
-void qm::AddressBookEntry::setSortKey(wstring_ptr wstrSortKey)
-{
-	wstrSortKey_ = wstrSortKey;
+	clearAddresses();
+	listAddress_.swap(listAddress);
 }
 
 void qm::AddressBookEntry::addAddress(std::auto_ptr<AddressBookAddress> pAddress)
 {
 	listAddress_.push_back(pAddress.get());
 	pAddress.release();
+}
+
+bool qm::AddressBookEntry::isWAB() const
+{
+	return bWAB_;
+}
+
+void qm::AddressBookEntry::clearAddresses()
+{
+	std::for_each(listAddress_.begin(), listAddress_.end(),
+		deleter<AddressBookAddress>());
+	listAddress_.clear();
 }
 
 
@@ -802,7 +815,15 @@ void qm::AddressBookEntry::addAddress(std::auto_ptr<AddressBookAddress> pAddress
  *
  */
 
+qm::AddressBookAddress::AddressBookAddress(const AddressBookEntry* pEntry) :
+	pEntry_(pEntry),
+	bRFC2822_(false)
+{
+	wstrAddress_ = allocWString(L"");
+}
+
 qm::AddressBookAddress::AddressBookAddress(const AddressBookEntry* pEntry,
+										   const WCHAR* pwszAddress,
 										   const WCHAR* pwszAlias,
 										   const CategoryList& listCategory,
 										   const WCHAR* pwszComment,
@@ -812,12 +833,28 @@ qm::AddressBookAddress::AddressBookAddress(const AddressBookEntry* pEntry,
 	listCategory_(listCategory),
 	bRFC2822_(bRFC2822)
 {
+	if (pwszAddress)
+		wstrAddress_ = allocWString(pwszAddress);
 	if (pwszAlias)
 		wstrAlias_ = allocWString(pwszAlias);
 	if (pwszComment)
 		wstrComment_ = allocWString(pwszComment);
 	if (pwszCertificate)
 		wstrCertificate_ = allocWString(pwszCertificate);
+}
+
+qm::AddressBookAddress::AddressBookAddress(const AddressBookAddress& address) :
+	pEntry_(address.pEntry_),
+	listCategory_(address.listCategory_),
+	bRFC2822_(address.bRFC2822_)
+{
+	wstrAddress_ = allocWString(address.wstrAddress_.get());
+	if (address.wstrAlias_.get())
+		wstrAlias_ = allocWString(address.wstrAlias_.get());
+	if (address.wstrComment_.get())
+		wstrComment_ = allocWString(address.wstrComment_.get());
+	if (address.wstrCertificate_.get())
+		wstrCertificate_ = allocWString(address.wstrCertificate_.get());
 }
 
 qm::AddressBookAddress::~AddressBookAddress()
@@ -831,7 +868,14 @@ const AddressBookEntry* qm::AddressBookAddress::getEntry() const
 
 const WCHAR* qm::AddressBookAddress::getAddress() const
 {
+	assert(wstrAddress_.get());
 	return wstrAddress_.get();
+}
+
+void qm::AddressBookAddress::setAddress(const WCHAR* pwszAddress)
+{
+	assert(pwszAddress);
+	wstrAddress_ = allocWString(pwszAddress);
 }
 
 const WCHAR* qm::AddressBookAddress::getAlias() const
@@ -839,9 +883,22 @@ const WCHAR* qm::AddressBookAddress::getAlias() const
 	return wstrAlias_.get();
 }
 
+void qm::AddressBookAddress::setAlias(const WCHAR* pwszAlias)
+{
+	if (pwszAlias)
+		wstrAlias_ = allocWString(pwszAlias);
+	else
+		wstrAlias_.reset(0);
+}
+
 const AddressBookAddress::CategoryList& qm::AddressBookAddress::getCategories() const
 {
 	return listCategory_;
+}
+
+void qm::AddressBookAddress::setCategories(const CategoryList& listCategory)
+{
+	listCategory_ = listCategory;
 }
 
 const WCHAR* qm::AddressBookAddress::getComment() const
@@ -849,9 +906,25 @@ const WCHAR* qm::AddressBookAddress::getComment() const
 	return wstrComment_.get();
 }
 
+void qm::AddressBookAddress::setComment(const WCHAR* pwszComment)
+{
+	if (pwszComment)
+		wstrComment_ = allocWString(pwszComment);
+	else
+		wstrComment_.reset(0);
+}
+
 const WCHAR* qm::AddressBookAddress::getCertificate() const
 {
 	return wstrCertificate_.get();
+}
+
+void qm::AddressBookAddress::setCertificate(const WCHAR* pwszCertificate)
+{
+	if (pwszCertificate)
+		wstrCertificate_ = allocWString(pwszCertificate);
+	else
+		wstrCertificate_.reset(0);
 }
 
 bool qm::AddressBookAddress::isRFC2822() const
@@ -859,8 +932,15 @@ bool qm::AddressBookAddress::isRFC2822() const
 	return bRFC2822_;
 }
 
+void qm::AddressBookAddress::setRFC2822(bool bRFC2822)
+{
+	bRFC2822_ = bRFC2822;
+}
+
 wstring_ptr qm::AddressBookAddress::getValue() const
 {
+	assert(wstrAddress_.get());
+	
 	StringBuffer<WSTRING> buf;
 	
 	if (bRFC2822_) {
@@ -873,11 +953,6 @@ wstring_ptr qm::AddressBookAddress::getValue() const
 	}
 	
 	return buf.getString();
-}
-
-void qm::AddressBookAddress::setAddress(wstring_ptr wstrAddress)
-{
-	wstrAddress_ = wstrAddress;
 }
 
 
@@ -899,6 +974,38 @@ qm::AddressBookCategory::~AddressBookCategory()
 const WCHAR* qm::AddressBookCategory::getName() const
 {
 	return wstrName_.get();
+}
+
+
+/****************************************************************************
+ *
+ * AddressBookCategory
+ *
+ */
+
+bool qm::AddressBookCategoryLess::operator()(const AddressBookCategory* pLhs,
+											 const AddressBookCategory* pRhs)
+{
+	const WCHAR* pwszLhs = pLhs->getName();
+	const WCHAR* pwszRhs = pRhs->getName();
+	
+	while (*pwszLhs && *pwszRhs) {
+		if (*pwszLhs == *pwszRhs)
+			;
+		else if (*pwszLhs == L'/')
+			return true;
+		else if (*pwszRhs == L'/')
+			return false;
+		else if (*pwszLhs < *pwszRhs)
+			return true;
+		else if (*pwszLhs > *pwszRhs)
+			return false;
+		
+		++pwszLhs;
+		++pwszRhs;
+	}
+	
+	return *pwszRhs != L'\0';
 }
 
 
@@ -939,7 +1046,7 @@ bool qm::AddressBookContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			return false;
 		
 		assert(!pEntry_.get());
-		pEntry_.reset(new AddressBookEntry(false));
+		pEntry_.reset(new AddressBookEntry(0, 0, false));
 		
 		state_ = STATE_ENTRY;
 	}
@@ -1001,7 +1108,7 @@ bool qm::AddressBookContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		assert(pEntry_.get());
 		assert(!pAddress_.get());
-		pAddress_.reset(new AddressBookAddress(pEntry_.get(), pwszAlias,
+		pAddress_.reset(new AddressBookAddress(pEntry_.get(), 0, pwszAlias,
 			listCategory, pwszComment, pwszCertificate, bRFC2822));
 		
 		state_ = STATE_ADDRESS;
@@ -1036,7 +1143,8 @@ bool qm::AddressBookContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		assert(state_ == STATE_NAME);
 		
 		assert(pEntry_.get());
-		pEntry_->setName(buffer_.getString());
+		pEntry_->setName(buffer_.getCharArray());
+		buffer_.remove();
 		
 		state_ = STATE_ENTRY;
 	}
@@ -1044,7 +1152,8 @@ bool qm::AddressBookContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		assert(state_ == STATE_SORTKEY);
 		
 		assert(pEntry_.get());
-		pEntry_->setSortKey(buffer_.getString());
+		pEntry_->setSortKey(buffer_.getCharArray());
+		buffer_.remove();
 		
 		state_ = STATE_ENTRY;
 	}
@@ -1056,7 +1165,8 @@ bool qm::AddressBookContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		assert(state_ == STATE_ADDRESS);
 		
 		assert(pAddress_.get());
-		pAddress_->setAddress(buffer_.getString());
+		pAddress_->setAddress(buffer_.getCharArray());
+		buffer_.remove();
 		pEntry_->addAddress(pAddress_);
 		
 		state_ = STATE_ADDRESSES;
@@ -1086,4 +1196,101 @@ bool qm::AddressBookContentHandler::characters(const WCHAR* pwsz,
 	}
 	
 	return true;
+}
+
+
+/****************************************************************************
+ *
+ * AddressBookWriter
+ *
+ */
+
+qm::AddressBookWriter::AddressBookWriter(Writer* pWriter) :
+	handler_(pWriter)
+{
+}
+
+qm::AddressBookWriter::~AddressBookWriter()
+{
+}
+
+bool qm::AddressBookWriter::write(const AddressBook* pAddressBook)
+{
+	if (!handler_.startDocument())
+		return false;
+	if (!handler_.startElement(0, 0, L"addressBook", DefaultAttributes()))
+		return false;
+	
+	const AddressBook::EntryList& listEntry = pAddressBook->getEntries();
+	for (AddressBook::EntryList::const_iterator it = listEntry.begin(); it != listEntry.end(); ++it) {
+		const AddressBookEntry* pEntry = *it;
+		if (!write(pEntry))
+			return false;
+	}
+	
+	if (!handler_.endElement(0, 0, L"addressBook"))
+		return false;
+	if (!handler_.endDocument())
+		return false;
+	
+	return true;
+}
+
+bool qm::AddressBookWriter::write(const AddressBookEntry* pEntry)
+{
+	if (!handler_.startElement(0, 0, L"entry", DefaultAttributes()))
+		return false;
+	
+	if (!handler_.startElement(0, 0, L"name", DefaultAttributes()) ||
+		!handler_.characters(pEntry->getName(), 0, wcslen(pEntry->getName())) ||
+		!handler_.endElement(0, 0, L"name"))
+		return false;
+	
+	if (pEntry->getSortKey()) {
+		if (!handler_.startElement(0, 0, L"sortKey", DefaultAttributes()) ||
+			!handler_.characters(pEntry->getSortKey(), 0, wcslen(pEntry->getSortKey())) ||
+			!handler_.endElement(0, 0, L"sortKey"))
+			return false;
+	}
+	
+	if (!handler_.startElement(0, 0, L"addresses", DefaultAttributes()))
+		return false;
+	
+	const AddressBookEntry::AddressList& listAddress = pEntry->getAddresses();
+	for (AddressBookEntry::AddressList::const_iterator it = listAddress.begin(); it != listAddress.end(); ++it) {
+		const AddressBookAddress* pAddress = *it;
+		if (!write(pAddress))
+			return false;
+	}
+	
+	if (!handler_.endElement(0, 0, L"addresses"))
+		return false;
+	
+	if (!handler_.endElement(0, 0, L"entry"))
+		return false;
+	
+	return true;
+}
+
+bool qm::AddressBookWriter::write(const AddressBookAddress* pAddress)
+{
+	StringBuffer<WSTRING> bufCategory;
+	const AddressBookAddress::CategoryList& listCategory = pAddress->getCategories();
+	for (AddressBookAddress::CategoryList::const_iterator it = listCategory.begin(); it != listCategory.end(); ++it) {
+		if (bufCategory.getLength() != 0)
+			bufCategory.append(L',');
+		bufCategory.append((*it)->getName());
+	}
+	
+	const SimpleAttributes::Item items[] = {
+		{ L"alias",					pAddress->getAlias(),						!pAddress->getAlias()				},
+		{ L"category",				bufCategory.getCharArray(),					bufCategory.getLength() == 0		},
+		{ L"comment",				pAddress->getComment(),						!pAddress->getComment()				},
+		{ L"rfc2822",				pAddress->isRFC2822() ? L"true" : L"false",	!pAddress->isRFC2822()				},
+		{ L"certificate",			pAddress->getCertificate(),					!pAddress->getCertificate()			}
+	};
+	SimpleAttributes attrs(items, countof(items));
+	return handler_.startElement(0, 0, L"address", attrs) &&
+		handler_.characters(pAddress->getAddress(), 0, wcslen(pAddress->getAddress())) &&
+		handler_.endElement(0, 0, L"address");
 }

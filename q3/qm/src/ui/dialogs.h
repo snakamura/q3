@@ -11,6 +11,7 @@
 
 #include <qm.h>
 #include <qmfolder.h>
+#include <qmgoround.h>
 #include <qmpassword.h>
 #include <qmsyncfilter.h>
 
@@ -35,7 +36,10 @@ namespace qm {
 
 class DefaultDialog;
 	class AccountDialog;
+	class AddAddressDialog;
+	class AddressBookAddressDialog;
 	class AddressBookDialog;
+	class AddressBookEntryDialog;
 	class ArgumentDialog;
 	class AttachmentDialog;
 	class AutoPilotEntryDialog;
@@ -90,10 +94,6 @@ class DefaultDialog;
 
 class Account;
 class Document;
-class GoRound;
-class GoRoundCourse;
-class GoRoundDialup;
-class GoRoundEntry;
 class PasswordManager;
 class TemplateManager;
 class UIManager;
@@ -226,6 +226,98 @@ private:
 	PasswordManager* pPasswordManager_;
 	SyncFilterManager* pSyncFilterManager_;
 	qs::Profile* pProfile_;
+};
+
+
+/****************************************************************************
+ *
+ * AddAddressDialog
+ *
+ */
+
+class AddAddressDialog : public DefaultDialog
+{
+public:
+	enum Type {
+		TYPE_NEWENTRY,
+		TYPE_NEWADDRESS
+	};
+
+public:
+	explicit AddAddressDialog(AddressBook* pAddressBook);
+	virtual ~AddAddressDialog();
+
+public:
+	Type getType() const;
+	AddressBookEntry* getEntry() const;
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	LRESULT onNewEntry();
+	LRESULT onNewAddress();
+	LRESULT onEntriesSelChange();
+
+private:
+	void updateState();
+
+private:
+	AddAddressDialog(const AddAddressDialog&);
+	AddAddressDialog& operator=(const AddAddressDialog&);
+
+private:
+	AddressBook* pAddressBook_;
+	Type type_;
+	AddressBookEntry* pEntry_;
+};
+
+
+/****************************************************************************
+ *
+ * AddressBookAddressDialog
+ *
+ */
+
+class AddressBookAddressDialog : public DefaultDialog
+{
+public:
+	AddressBookAddressDialog(AddressBook* pAddressBook,
+							 AddressBookAddress* pAddress);
+	virtual ~AddressBookAddressDialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	LRESULT onAddressChange();
+
+private:
+	void updateState();
+
+private:
+	AddressBookAddressDialog(const AddressBookAddressDialog&);
+	AddressBookAddressDialog& operator=(const AddressBookAddressDialog&);
+
+private:
+	AddressBook* pAddressBook_;
+	AddressBookAddress* pAddress_;
 };
 
 
@@ -423,14 +515,6 @@ private:
 	friend class SelectedAddressListWindow;
 
 private:
-	struct CategoryLess :
-		public std::binary_function<AddressBookCategory*, AddressBookCategory*, bool>
-	{
-		bool operator()(const AddressBookCategory* pLhs,
-						const AddressBookCategory* pRhs);
-	};
-
-private:
 	AddressBook* pAddressBook_;
 	qs::Profile* pProfile_;
 	unsigned int nSort_;
@@ -439,6 +523,49 @@ private:
 	AddressList listAddress_[3];
 	AddressListWindow wndAddressList_;
 	SelectedAddressListWindow wndSelectedAddressList_;
+};
+
+
+/****************************************************************************
+ *
+ * AddressBookEntryDialog
+ *
+ */
+
+class AddressBookEntryDialog : public AbstractListDialog<AddressBookAddress, AddressBookEntry::AddressList>
+{
+public:
+	AddressBookEntryDialog(AddressBook* pAddressBook,
+						   AddressBookEntry* pEntry);
+	virtual ~AddressBookEntryDialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+protected:
+	virtual qs::wstring_ptr getLabel(const AddressBookAddress* p) const;
+	virtual std::auto_ptr<AddressBookAddress> create() const;
+	virtual bool edit(AddressBookAddress* p) const;
+	virtual void updateState();
+
+private:
+	LRESULT onNameChange();
+
+private:
+	AddressBookEntryDialog(const AddressBookEntryDialog&);
+	AddressBookEntryDialog& operator=(const AddressBookEntryDialog&);
+
+private:
+	AddressBook* pAddressBook_;
+	AddressBookEntry* pEntry_;
 };
 
 

@@ -97,6 +97,8 @@ class TabNavigateAction;
 class TabSelectAction;
 #endif
 class ToolAccountAction;
+class ToolAddAddressAction;
+class ToolAddressBookAction;
 class ToolAutoPilotAction;
 class ToolDialupAction;
 class ToolGoRoundAction;
@@ -2438,6 +2440,59 @@ private:
 	SyncManager* pSyncManager_;
 	qs::Profile* pProfile_;
 	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * ToolAddAddressAction
+ *
+ */
+
+class ToolAddAddressAction : public qs::AbstractAction
+{
+public:
+	ToolAddAddressAction(AddressBook* pAddressBook,
+						 MessageSelectionModel* pMessageSelectionModel,
+						 HWND hwnd);
+	virtual ~ToolAddAddressAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	ToolAddAddressAction(const ToolAddAddressAction&);
+	ToolAddAddressAction& operator=(const ToolAddAddressAction&);
+
+private:
+	AddressBook* pAddressBook_;
+	MessageSelectionModel* pMessageSelectionModel_;
+	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * ToolAddressBookAction
+ *
+ */
+
+class ToolAddressBookAction : public qs::AbstractAction
+{
+public:
+	explicit ToolAddressBookAction(AddressBook* pAddressBook);
+	virtual ~ToolAddressBookAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	ToolAddressBookAction(const ToolAddressBookAction&);
+	ToolAddressBookAction& operator=(const ToolAddressBookAction&);
+
+private:
+	AddressBook* pAddressBook_;
 };
 
 

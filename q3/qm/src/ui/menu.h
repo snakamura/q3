@@ -112,6 +112,7 @@ const qs::ActionItem menuItems[] = {
 	{ L"TabNavigatePrev",			IDM_TAB_NAVIGATEPREV			},
 #endif
 	{ L"ToolAccount",				IDM_TOOL_ACCOUNT				},
+	{ L"ToolAddAddress",			IDM_TOOL_ADDADDRESS				},
 	{ L"ToolAddressBook",			IDM_TOOL_ADDRESSBOOK			},
 	{ L"ToolAttachment",			IDM_TOOL_ATTACHMENT				},
 	{ L"ToolAutoPilot",				IDM_TOOL_AUTOPILOT,				},
