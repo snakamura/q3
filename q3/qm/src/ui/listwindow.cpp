@@ -635,13 +635,16 @@ void qm::ListWindowImpl::dragGestureRecognized(const DragGestureEvent& event)
 	if (l.empty())
 		return;
 	
+	POINT ptHotspot;
+	HIMAGELIST hImageList = createDragImage(event.getPoint(), &ptHotspot);
+	if (!hImageList)
+		return;
+	
 	std::auto_ptr<MessageDataObject> p(new MessageDataObject(pDocument_,
 		pViewModel->getFolder(), l, MessageDataObject::FLAG_NONE));
 	p->AddRef();
 	ComPtr<IDataObject> pDataObject(p.release());
 	
-	POINT ptHotspot;
-	HIMAGELIST hImageList = createDragImage(event.getPoint(), &ptHotspot);
 	ImageList_BeginDrag(hImageList, 0, ptHotspot.x, ptHotspot.y);
 	
 	DragSource source;
