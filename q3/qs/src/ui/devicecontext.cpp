@@ -129,6 +129,8 @@ QSTATUS qs::FontHelper::createLogFont(HDC hdc, const WCHAR* pwszFaceName,
 	
 	W2T(pwszFaceName, ptszFaceName);
 	_tcsncpy(plf->lfFaceName, ptszFaceName, countof(plf->lfFaceName));
+	plf->lfCharSet = DEFAULT_CHARSET;
+	plf->lfPitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
 	
 	DeviceContext dc(hdc);
 	dc.enumFontFamilies(pwszFaceName,
@@ -140,7 +142,6 @@ QSTATUS qs::FontHelper::createLogFont(HDC hdc, const WCHAR* pwszFaceName,
 	plf->lfItalic = (nStyle & STYLE_ITALIC) != 0;
 	plf->lfUnderline = (nStyle & STYLE_UNDERLINE) != 0;
 	plf->lfStrikeOut = (nStyle & STYLE_STRIKEOUT) != 0;
-	plf->lfCharSet = DEFAULT_CHARSET;
 	
 	return QSTATUS_SUCCESS;
 }
