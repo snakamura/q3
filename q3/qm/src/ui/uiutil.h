@@ -1,5 +1,5 @@
 /*
- * $Id: uiutil.h,v 1.2 2003/05/18 04:43:46 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -12,6 +12,7 @@
 #include <qm.h>
 
 #include <qs.h>
+#include <qsprofile.h>
 #include <qsstring.h>
 
 
@@ -29,6 +30,11 @@ class Folder;
 class UIUtil
 {
 public:
+	static qs::QSTATUS loadWindowPlacement(qs::Profile* pProfile,
+		const WCHAR* pwszSection, CREATESTRUCT* pCreateStruct, int* pnShow);
+	static qs::QSTATUS saveWindowPlacement(HWND hwnd,
+		qs::Profile* pProfile, const WCHAR* pwszSection);
+	
 	static qs::QSTATUS formatMenu(const WCHAR* pwszText, qs::WSTRING* pwstrText);
 	static qs::QSTATUS openURL(HWND hwnd, const WCHAR* pwszURL);
 	

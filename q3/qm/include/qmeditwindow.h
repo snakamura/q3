@@ -43,6 +43,8 @@ public:
 
 public:
 	EditWindow* getEditWindow() const;
+	const ActionInvoker* getActionInvoker() const;
+	void initialShow();
 	void close();
 	bool tryClose();
 	
@@ -50,8 +52,6 @@ public:
 	qs::QSTATUS setShowToolbar(bool bShow);
 	bool isShowStatusBar() const;
 	qs::QSTATUS setShowStatusBar(bool bShow);
-	
-	const ActionInvoker* getActionInvoker() const;
 
 protected:
 	virtual qs::QSTATUS getToolbarButtons(Toolbar* pToolbar, bool* pbToolbar);

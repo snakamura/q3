@@ -501,10 +501,10 @@ QSTATUS qm::Application::initialize()
 	status = newQsObject(pImpl_->pProfile_, &pMainWindow);
 	CHECK_QSTATUS();
 #ifdef _WIN32_WCE
-	DWORD dwStyle = WS_VISIBLE | WS_CLIPCHILDREN;
+	DWORD dwStyle = WS_CLIPCHILDREN;
 	DWORD dwExStyle = 0;
 #else
-	DWORD dwStyle = WS_VISIBLE | WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN;
+	DWORD dwStyle = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN;
 	DWORD dwExStyle = WS_EX_WINDOWEDGE;
 #endif
 	MainWindowCreateContext context = {
@@ -522,6 +522,7 @@ QSTATUS qm::Application::initialize()
 	CHECK_QSTATUS();
 	pImpl_->pMainWindow_ = pMainWindow.release();
 	setMainWindow(pImpl_->pMainWindow_);
+	pImpl_->pMainWindow_->initialShow();
 	
 	string_ptr<WSTRING> wstrAccountFolder(
 		concat(pImpl_->wstrMailFolder_, L"\\accounts"));

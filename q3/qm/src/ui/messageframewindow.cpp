@@ -28,6 +28,7 @@
 #include "messagewindow.h"
 #include "resourceinc.h"
 #include "statusbar.h"
+#include "uiutil.h"
 #include "../action/action.h"
 #include "../action/findreplace.h"
 #include "../model/security.h"
@@ -106,7 +107,7 @@ public:
 	EncodingMenu* pEncodingMenu_;
 	ScriptMenu* pScriptMenu_;
 	bool bCreated_;
-	bool bMaximize_;
+	int nInitialShow_;
 	bool bLayouting_;
 };
 
@@ -510,7 +511,7 @@ qm::MessageFrameWindow::MessageFrameWindow(
 	pImpl_->pEncodingMenu_ = 0;
 	pImpl_->pScriptMenu_ = 0;
 	pImpl_->bCreated_ = false;
-	pImpl_->bMaximize_ = false;
+	pImpl_->nInitialShow_ = SW_SHOWNORMAL;
 	pImpl_->bLayouting_ = false;
 }
 
@@ -536,6 +537,39 @@ qm::MessageFrameWindow::~MessageFrameWindow()
 MessageModel* qm::MessageFrameWindow::getMessageModel() const
 {
 	return pImpl_->pMessageWindow_->getMessageModel();
+}
+
+const ActionInvoker* qm::MessageFrameWindow::getActionInvoker() const
+{
+	return pImpl_->pActionInvoker_;
+}
+
+void qm::MessageFrameWindow::initialShow()
+{
+	showWindow(pImpl_->nInitialShow_);
+}
+
+QSTATUS qm::MessageFrameWindow::save() const
+{
+	DECLARE_QSTATUS();
+	
+	status = pImpl_->pMessageWindow_->save();
+	CHECK_QSTATUS();
+	
+	Profile* pProfile = pImpl_->pProfile_;
+	
+	status = pProfile->setInt(L"MessageFrameWindow",
+		L"ShowToolbar", pImpl_->bShowToolbar_);
+	CHECK_QSTATUS();
+	status = pProfile->setInt(L"MessageFrameWindow",
+		L"ShowStatusBar", pImpl_->bShowStatusBar_);
+	CHECK_QSTATUS();
+	
+	status = UIUtil::saveWindowPlacement(
+		getHandle(), pProfile, L"MessageFrameWindow");
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
 }
 
 bool qm::MessageFrameWindow::isShowToolbar() const
@@ -570,38 +604,6 @@ QSTATUS qm::MessageFrameWindow::setShowStatusBar(bool bShow)
 	}
 	
 	return status;
-}
-
-const ActionInvoker* qm::MessageFrameWindow::getActionInvoker() const
-{
-	return pImpl_->pActionInvoker_;
-}
-
-QSTATUS qm::MessageFrameWindow::save() const
-{
-	DECLARE_QSTATUS();
-	
-	status = pImpl_->pMessageWindow_->save();
-	CHECK_QSTATUS();
-	
-	Profile* pProfile = pImpl_->pProfile_;
-	
-	status = pProfile->setInt(L"MessageFrameWindow",
-		L"ShowToolbar", pImpl_->bShowToolbar_);
-	CHECK_QSTATUS();
-	status = pProfile->setInt(L"MessageFrameWindow",
-		L"ShowStatusBar", pImpl_->bShowStatusBar_);
-	CHECK_QSTATUS();
-	
-#ifndef _WIN32_WCE
-	WINDOWPLACEMENT wp;
-	getWindowPlacement(&wp);
-	status = pProfile->setBinary(L"MessageFrameWindow", L"WindowPlacement",
-		reinterpret_cast<const unsigned char*>(&wp), sizeof(wp));
-	CHECK_QSTATUS();
-#endif
-	
-	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::MessageFrameWindow::getToolbarButtons(Toolbar* pToolbar, bool* pbToolbar)
@@ -719,30 +721,9 @@ QSTATUS qm::MessageFrameWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
 	pCreateStruct->cy = si.rcVisibleDesktop.bottom -
 		si.rcVisibleDesktop.top - (si.fdwFlags & SIPF_ON ? 0 : MENU_HEIGHT);
 #elif !defined _WIN32_WCE
-	WINDOWPLACEMENT wp;
-	int nSize = sizeof(wp);
-	status = pImpl_->pProfile_->getBinary(L"MessageFrameWindow", L"WindowPlacement",
-		reinterpret_cast<unsigned char*>(&wp), &nSize);
+	status = UIUtil::loadWindowPlacement(pImpl_->pProfile_,
+		L"MessageFrameWindow", pCreateStruct, &pImpl_->nInitialShow_);
 	CHECK_QSTATUS();
-	if (nSize == sizeof(wp)) {
-		RECT rect;
-		::SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, 0);
-		pCreateStruct->x = wp.rcNormalPosition.left + rect.left;
-		pCreateStruct->y = wp.rcNormalPosition.top + rect.top;
-		pCreateStruct->cx = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
-		pCreateStruct->cy = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
-		switch (wp.showCmd) {
-		case SW_MAXIMIZE:
-//		case SW_SHOWMAXIMIZED:
-			pCreateStruct->style |= WS_MAXIMIZE;
-			pImpl_->bMaximize_ = true;
-			break;
-		case SW_MINIMIZE:
-		case SW_SHOWMINIMIZED:
-			pCreateStruct->style |= WS_MINIMIZE;
-			break;
-		}
-	}
 #endif
 	
 	return QSTATUS_SUCCESS;
@@ -877,9 +858,6 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	CHECK_QSTATUS();
 	
 	pImpl_->bCreated_ = true;
-	
-	if (pImpl_->bMaximize_)
-		showWindow(SW_MAXIMIZE);
 	
 	return 0;
 }
@@ -1131,8 +1109,10 @@ QSTATUS qm::MessageFrameWindowManager::create(MessageFrameWindow** ppFrame)
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 		0, dwExStyle, 0, 0, &context);
 	CHECK_QSTATUS();
+	MessageFrameWindow* p = pFrame.release();
+	p->initialShow();
 	
-	*ppFrame = pFrame.release();
+	*ppFrame = p;
 	
 	return QSTATUS_SUCCESS;
 }

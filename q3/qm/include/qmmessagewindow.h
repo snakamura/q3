@@ -52,15 +52,14 @@ public:
 
 public:
 	MessageModel* getMessageModel() const;
+	const ActionInvoker* getActionInvoker() const;
+	void initialShow();
+	qs::QSTATUS save() const;
 	
 	bool isShowToolbar() const;
 	qs::QSTATUS setShowToolbar(bool bShow);
 	bool isShowStatusBar() const;
 	qs::QSTATUS setShowStatusBar(bool bShow);
-	
-	const ActionInvoker* getActionInvoker() const;
-	
-	qs::QSTATUS save() const;
 
 protected:
 	virtual qs::QSTATUS getToolbarButtons(Toolbar* pToolbar, bool* pbToolbar);

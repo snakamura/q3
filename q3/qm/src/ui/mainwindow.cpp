@@ -194,7 +194,7 @@ public:
 	ScriptMenu* pScriptMenu_;
 	DelayedFolderModelHandler* pDelayedFolderModelHandler_;
 	bool bCreated_;
-	bool bMaximize_;
+	int nInitialShow_;
 	bool bLayouting_;
 	bool bShowingModalDialog_;
 	
@@ -1284,7 +1284,7 @@ qm::MainWindow::MainWindow(Profile* pProfile, QSTATUS* pstatus) :
 	pImpl_->pScriptMenu_ = 0;
 	pImpl_->pDelayedFolderModelHandler_ = 0;
 	pImpl_->bCreated_ = false;
-	pImpl_->bMaximize_ = false;
+	pImpl_->nInitialShow_ = SW_SHOWNORMAL;
 	pImpl_->bLayouting_ = false;
 	pImpl_->bShowingModalDialog_ = false;
 	pImpl_->hwndLastFocused_ = 0;
@@ -1318,6 +1318,88 @@ qm::MainWindow::~MainWindow()
 		delete pImpl_;
 		pImpl_ = 0;
 	}
+}
+
+FolderModel* qm::MainWindow::getFolderModel() const
+{
+	return pImpl_->pFolderModel_;
+}
+
+const ActionInvoker* qm::MainWindow::getActionInvoker() const
+{
+	return pImpl_->pActionInvoker_;
+}
+
+bool qm::MainWindow::isShowingModalDialog() const
+{
+	return pImpl_->bShowingModalDialog_;
+}
+
+void qm::MainWindow::initialShow()
+{
+	showWindow(pImpl_->nInitialShow_);
+}
+
+QSTATUS qm::MainWindow::save() const
+{
+	DECLARE_QSTATUS();
+	
+	status = pImpl_->pMessageFrameWindowManager_->save();
+	CHECK_QSTATUS();
+	status = pImpl_->pViewModelManager_->save();
+	CHECK_QSTATUS();
+	status = pImpl_->pListWindow_->save();
+	CHECK_QSTATUS();
+	status = pImpl_->pMessageWindow_->save();
+	CHECK_QSTATUS();
+	
+	Profile* pProfile = pImpl_->pProfile_;
+	
+	status = pProfile->setInt(L"MainWindow",
+		L"ShowToolbar", pImpl_->bShowToolbar_);
+	CHECK_QSTATUS();
+	status = pProfile->setInt(L"MainWindow",
+		L"ShowStatusBar", pImpl_->bShowStatusBar_);
+	CHECK_QSTATUS();
+	
+	if (pImpl_->bShowFolderWindow_) {
+		if (pImpl_->bVirticalFolderWindow_) {
+			status = pImpl_->pFolderSplitterWindow_->getRowHeight(
+				0, &pImpl_->nFolderWindowSize_);
+			CHECK_QSTATUS();
+		}
+		else {
+			status = pImpl_->pFolderSplitterWindow_->getColumnWidth(
+				0, &pImpl_->nFolderWindowSize_);
+			CHECK_QSTATUS();
+		}
+	}
+	status = pProfile->setInt(L"MainWindow",
+		L"FolderWindowSize", pImpl_->nFolderWindowSize_);
+	CHECK_QSTATUS();
+	status = pProfile->setInt(L"MainWindow",
+		L"ShowFolderWindow", pImpl_->bShowFolderWindow_);
+	CHECK_QSTATUS();
+	status = pProfile->setInt(L"MainWindow",
+		L"ShowFolderComboBox", pImpl_->bShowFolderComboBox_);
+	CHECK_QSTATUS();
+	
+	if (pImpl_->bShowPreviewWindow_) {
+		status = pImpl_->pListSplitterWindow_->getRowHeight(
+			0, &pImpl_->nListWindowHeight_);
+		CHECK_QSTATUS();
+	}
+	status = pProfile->setInt(L"MainWindow",
+		L"ListWindowHeight", pImpl_->nListWindowHeight_);
+	CHECK_QSTATUS();
+	status = pProfile->setInt(L"MainWindow",
+		L"ShowPreviewWindow", pImpl_->bShowPreviewWindow_);
+	CHECK_QSTATUS();
+	
+	status = UIUtil::saveWindowPlacement(getHandle(), pProfile, L"MainWindow");
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
 }
 
 bool qm::MainWindow::isShowToolbar() const
@@ -1406,88 +1488,6 @@ QSTATUS qm::MainWindow::setShowPreviewWindow(bool bShow)
 	}
 	
 	return status;
-}
-
-FolderModel* qm::MainWindow::getFolderModel() const
-{
-	return pImpl_->pFolderModel_;
-}
-
-const ActionInvoker* qm::MainWindow::getActionInvoker() const
-{
-	return pImpl_->pActionInvoker_;
-}
-
-bool qm::MainWindow::isShowingModalDialog() const
-{
-	return pImpl_->bShowingModalDialog_;
-}
-
-QSTATUS qm::MainWindow::save() const
-{
-	DECLARE_QSTATUS();
-	
-	status = pImpl_->pMessageFrameWindowManager_->save();
-	CHECK_QSTATUS();
-	status = pImpl_->pViewModelManager_->save();
-	CHECK_QSTATUS();
-	status = pImpl_->pListWindow_->save();
-	CHECK_QSTATUS();
-	status = pImpl_->pMessageWindow_->save();
-	CHECK_QSTATUS();
-	
-	Profile* pProfile = pImpl_->pProfile_;
-	
-	status = pProfile->setInt(L"MainWindow",
-		L"ShowToolbar", pImpl_->bShowToolbar_);
-	CHECK_QSTATUS();
-	status = pProfile->setInt(L"MainWindow",
-		L"ShowStatusBar", pImpl_->bShowStatusBar_);
-	CHECK_QSTATUS();
-	
-	if (pImpl_->bShowFolderWindow_) {
-		if (pImpl_->bVirticalFolderWindow_) {
-			status = pImpl_->pFolderSplitterWindow_->getRowHeight(
-				0, &pImpl_->nFolderWindowSize_);
-			CHECK_QSTATUS();
-		}
-		else {
-			status = pImpl_->pFolderSplitterWindow_->getColumnWidth(
-				0, &pImpl_->nFolderWindowSize_);
-			CHECK_QSTATUS();
-		}
-	}
-	status = pProfile->setInt(L"MainWindow",
-		L"FolderWindowSize", pImpl_->nFolderWindowSize_);
-	CHECK_QSTATUS();
-	status = pProfile->setInt(L"MainWindow",
-		L"ShowFolderWindow", pImpl_->bShowFolderWindow_);
-	CHECK_QSTATUS();
-	status = pProfile->setInt(L"MainWindow",
-		L"ShowFolderComboBox", pImpl_->bShowFolderComboBox_);
-	CHECK_QSTATUS();
-	
-	if (pImpl_->bShowPreviewWindow_) {
-		status = pImpl_->pListSplitterWindow_->getRowHeight(
-			0, &pImpl_->nListWindowHeight_);
-		CHECK_QSTATUS();
-	}
-	status = pProfile->setInt(L"MainWindow",
-		L"ListWindowHeight", pImpl_->nListWindowHeight_);
-	CHECK_QSTATUS();
-	status = pProfile->setInt(L"MainWindow",
-		L"ShowPreviewWindow", pImpl_->bShowPreviewWindow_);
-	CHECK_QSTATUS();
-	
-#ifndef _WIN32_WCE
-	WINDOWPLACEMENT wp;
-	getWindowPlacement(&wp);
-	status = pProfile->setBinary(L"MainWindow", L"WindowPlacement",
-		reinterpret_cast<const unsigned char*>(&wp), sizeof(wp));
-	CHECK_QSTATUS();
-#endif
-	
-	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::MainWindow::getToolbarButtons(Toolbar* pToolbar, bool* pbToolbar)
@@ -1608,30 +1608,9 @@ QSTATUS qm::MainWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
 	pCreateStruct->cy = si.rcVisibleDesktop.bottom -
 		si.rcVisibleDesktop.top - (si.fdwFlags & SIPF_ON ? 0 : MENU_HEIGHT);
 #elif !defined _WIN32_WCE
-	WINDOWPLACEMENT wp;
-	int nSize = sizeof(wp);
-	status = pImpl_->pProfile_->getBinary(L"MainWindow", L"WindowPlacement",
-		reinterpret_cast<unsigned char*>(&wp), &nSize);
+	status = UIUtil::loadWindowPlacement(pImpl_->pProfile_,
+		L"MainWindow", pCreateStruct, &pImpl_->nInitialShow_);
 	CHECK_QSTATUS();
-	if (nSize == sizeof(wp)) {
-		RECT rect;
-		::SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, 0);
-		pCreateStruct->x = wp.rcNormalPosition.left + rect.left;
-		pCreateStruct->y = wp.rcNormalPosition.top + rect.top;
-		pCreateStruct->cx = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
-		pCreateStruct->cy = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
-		switch (wp.showCmd) {
-		case SW_MAXIMIZE:
-//		case SW_SHOWMAXIMIZED:
-			pCreateStruct->style |= WS_MAXIMIZE;
-			pImpl_->bMaximize_ = true;
-			break;
-		case SW_MINIMIZE:
-		case SW_SHOWMINIMIZED:
-			pCreateStruct->style |= WS_MINIMIZE;
-			break;
-		}
-	}
 #endif
 	
 	return QSTATUS_SUCCESS;
@@ -1961,9 +1940,6 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	CHECK_QSTATUS_VALUE(-1);
 	
 	pImpl_->bCreated_ = true;
-	
-	if (pImpl_->bMaximize_)
-		showWindow(SW_MAXIMIZE);
 	
 	return 0;
 }

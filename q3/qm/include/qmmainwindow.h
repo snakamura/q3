@@ -37,6 +37,12 @@ public:
 	virtual ~MainWindow();
 
 public:
+	FolderModel* getFolderModel() const;
+	const ActionInvoker* getActionInvoker() const;
+	bool isShowingModalDialog() const;
+	void initialShow();
+	qs::QSTATUS save() const;
+	
 	bool isShowToolbar() const;
 	qs::QSTATUS setShowToolbar(bool bShow);
 	bool isShowStatusBar() const;
@@ -45,12 +51,6 @@ public:
 	qs::QSTATUS setShowFolderWindow(bool bShow);
 	bool isShowPreviewWindow() const;
 	qs::QSTATUS setShowPreviewWindow(bool bShow);
-	
-	FolderModel* getFolderModel() const;
-	const ActionInvoker* getActionInvoker() const;
-	bool isShowingModalDialog() const;
-	
-	qs::QSTATUS save() const;
 
 protected:
 	virtual qs::QSTATUS getToolbarButtons(Toolbar* pToolbar, bool* pbToolbar);

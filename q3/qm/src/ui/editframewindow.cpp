@@ -26,6 +26,7 @@
 #include "menus.h"
 #include "resourceinc.h"
 #include "statusbar.h"
+#include "uiutil.h"
 #include "../action/action.h"
 #include "../action/editaction.h"
 #include "../action/findreplace.h"
@@ -80,7 +81,7 @@ public:
 	ScriptMenu* pScriptMenu_;
 	bool bIme_;
 	bool bCreated_;
-	bool bMaximize_;
+	int nInitialShow_;
 	bool bLayouting_;
 };
 
@@ -356,7 +357,7 @@ qm::EditFrameWindow::EditFrameWindow(EditFrameWindowManager* pManager,
 	pImpl_->pScriptMenu_ = 0;
 	pImpl_->bIme_ = false;
 	pImpl_->bCreated_ = false;
-	pImpl_->bMaximize_ = false;
+	pImpl_->nInitialShow_ = SW_SHOWNORMAL;
 	pImpl_->bLayouting_ = false;
 }
 
@@ -376,6 +377,16 @@ qm::EditFrameWindow::~EditFrameWindow()
 EditWindow* qm::EditFrameWindow::getEditWindow() const
 {
 	return pImpl_->pEditWindow_;
+}
+
+const ActionInvoker* qm::EditFrameWindow::getActionInvoker() const
+{
+	return pImpl_->pActionInvoker_;
+}
+
+void qm::EditFrameWindow::initialShow()
+{
+	showWindow(pImpl_->nInitialShow_);
 }
 
 void qm::EditFrameWindow::close()
@@ -449,11 +460,6 @@ QSTATUS qm::EditFrameWindow::setShowStatusBar(bool bShow)
 	}
 	
 	return status;
-}
-
-const ActionInvoker* qm::EditFrameWindow::getActionInvoker() const
-{
-	return pImpl_->pActionInvoker_;
 }
 
 QSTATUS qm::EditFrameWindow::getToolbarButtons(
@@ -572,30 +578,9 @@ QSTATUS qm::EditFrameWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
 	pCreateStruct->cy = si.rcVisibleDesktop.bottom -
 		si.rcVisibleDesktop.top - (si.fdwFlags & SIPF_ON ? 0 : MENU_HEIGHT);
 #elif !defined _WIN32_WCE
-	WINDOWPLACEMENT wp;
-	int nSize = sizeof(wp);
-	status = pImpl_->pProfile_->getBinary(L"EditFrameWindow", L"WindowPlacement",
-		reinterpret_cast<unsigned char*>(&wp), &nSize);
+	status = UIUtil::loadWindowPlacement(pImpl_->pProfile_,
+		L"EditFrameWindow", pCreateStruct, &pImpl_->nInitialShow_);
 	CHECK_QSTATUS();
-	if (nSize == sizeof(wp)) {
-		RECT rect;
-		::SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, 0);
-		pCreateStruct->x = wp.rcNormalPosition.left + rect.left;
-		pCreateStruct->y = wp.rcNormalPosition.top + rect.top;
-		pCreateStruct->cx = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
-		pCreateStruct->cy = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
-		switch (wp.showCmd) {
-		case SW_MAXIMIZE:
-//		case SW_SHOWMAXIMIZED:
-			pCreateStruct->style |= WS_MAXIMIZE;
-			pImpl_->bMaximize_ = true;
-			break;
-		case SW_MINIMIZE:
-		case SW_SHOWMINIMIZED:
-			pCreateStruct->style |= WS_MINIMIZE;
-			break;
-		}
-	}
 #endif
 	
 	return QSTATUS_SUCCESS;
@@ -709,25 +694,22 @@ LRESULT qm::EditFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	pImpl_->bCreated_ = true;
 	
-	if (pImpl_->bMaximize_)
-		showWindow(SW_MAXIMIZE);
-	
 	return 0;
 }
 
 LRESULT qm::EditFrameWindow::onDestroy()
 {
+	DECLARE_QSTATUS();
+	
 	Profile* pProfile = pImpl_->pProfile_;
 	
-	pProfile->setInt(L"MessageFrameWindow", L"ShowToolbar", pImpl_->bShowToolbar_);
-	pProfile->setInt(L"MessageFrameWindow", L"ShowStatusBar", pImpl_->bShowStatusBar_);
+	pProfile->setInt(L"MessageFrameWindow",
+		L"ShowToolbar", pImpl_->bShowToolbar_);
+	pProfile->setInt(L"MessageFrameWindow",
+		L"ShowStatusBar", pImpl_->bShowStatusBar_);
 	
-#ifndef _WIN32_WCE
-	WINDOWPLACEMENT wp;
-	getWindowPlacement(&wp);
-	pProfile->setBinary(L"EditFrameWindow", L"WindowPlacement",
-		reinterpret_cast<const unsigned char*>(&wp), sizeof(wp));
-#endif
+	status = UIUtil::saveWindowPlacement(
+		getHandle(), pProfile, L"EditFrameWindow");
 	
 	return FrameWindow::onDestroy();
 }
@@ -833,7 +815,7 @@ QSTATUS qm::EditFrameWindowManager::open(EditMessage* pEditMessage)
 	status = STLWrapper<FrameList>(listFrame_).push_back(p);
 	CHECK_QSTATUS();
 	
-	p->showWindow(SW_SHOW);
+	p->initialShow();
 	
 	return QSTATUS_SUCCESS;
 }
