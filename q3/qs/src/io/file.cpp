@@ -65,6 +65,15 @@ bool qs::File::createDirectory(const WCHAR* pwszDir)
 	assert(*(pwszDir + wcslen(pwszDir) - 1) != L'\\');
 	
 	W2T(pwszDir, ptszDir);
+	
+	DWORD dwAttributes = ::GetFileAttributes(ptszDir);
+	if (dwAttributes == 0xffffffff)
+		;
+	else if (dwAttributes & FILE_ATTRIBUTE_DIRECTORY)
+		return true;
+	else
+		return false;
+	
 	if (::CreateDirectory(ptszDir, 0))
 		return true;
 	
