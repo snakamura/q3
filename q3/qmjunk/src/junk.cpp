@@ -440,6 +440,8 @@ bool qmjunk::JunkFilterImpl::flush() const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmjunk::JunkFilterImpl");
 	
+	Lock<CriticalSection> lock(cs_);
+	
 	if (nCleanCount_ != -1 && nJunkCount_ != -1) {
 		wstring_ptr wstrProfilePath(concat(wstrPath_.get(), L"\\junk.xml"));
 		XMLProfile profile(wstrProfilePath.get());
