@@ -198,7 +198,6 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 	const WCHAR* pwszMediaType = pContentType ?
 		pContentType->getMediaType() : L"text";
 	bool bMultipart = wcsicmp(pwszMediaType, L"multipart") == 0;
-	bool bAttachment = PartUtil(*pPart).isAttachment();
 	
 	if (pBody) {
 		bool bRFC822 = false;
@@ -230,6 +229,8 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 				if (pBegin) {
 					std::auto_ptr<Part> pChild(MessageCreator().createPart(
 						pDocument, pBegin, pEnd - pBegin, pPart.get(), false));
+					if (!pChild.get())
+						return std::auto_ptr<Part>(0);
 					pPart->addPart(pChild);
 				}
 				if (bEnd)
@@ -239,9 +240,11 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(Document* pDocument,
 		else if (bRFC822) {
 			std::auto_ptr<Part> pEnclosed(MessageCreator().createPart(
 				pDocument, pBody, nBodyLen, 0, false));
+			if (!pEnclosed.get())
+				return std::auto_ptr<Part>(0);
 			pPart->setEnclosedPart(pEnclosed);
 		}
-		else if (wcsicmp(pwszMediaType, L"text") == 0 && !bAttachment) {
+		else if (_wcsicmp(pwszMediaType, L"text") == 0) {
 			wstring_ptr wstrCharset;
 			if (pContentType)
 				wstrCharset = pContentType->getParameter(L"charset");
@@ -857,67 +860,6 @@ bool qm::PartUtil::isResent() const
 	return false;
 }
 
-bool qm::PartUtil::isMultipart() const
-{
-	return part_.isMultipart();
-}
-
-bool qm::PartUtil::isText() const
-{
-	const ContentTypeParser* pContentType = part_.getContentType();
-	return !pContentType || _wcsicmp(pContentType->getMediaType(), L"text") == 0;
-}
-
-bool qm::PartUtil::isAttachment() const
-{
-	if (isMultipart())
-		return false;
-	
-	const WCHAR* pwszContentDisposition = 0;
-	ContentDispositionParser contentDisposition;
-	Part::Field field = part_.getField(L"Content-Disposition", &contentDisposition);
-	if (field == Part::FIELD_EXIST) {
-		pwszContentDisposition = contentDisposition.getDispositionType();
-		if (_wcsicmp(pwszContentDisposition, L"attachment") == 0)
-			return true;
-		
-		wstring_ptr wstrFileName(contentDisposition.getParameter(L"filename"));
-		if (wstrFileName.get())
-			return true;
-	}
-	else if (field == Part::FIELD_ERROR) {
-		return true;
-	}
-	
-	const ContentTypeParser* pContentType = part_.getContentType();
-	if (pContentType) {
-		const WCHAR* pwszMediaType = pContentType->getMediaType();
-		assert(pwszMediaType);
-		const WCHAR* pwszSubType = pContentType->getSubType();
-		assert(pwszSubType);
-		bool bCanInline = _wcsicmp(pwszMediaType, L"text") == 0 ||
-			(_wcsicmp(pwszMediaType, L"message") == 0 &&
-				_wcsicmp(pwszSubType, L"rfc822") == 0);
-		if (!bCanInline) {
-			return true;
-		}
-		else if (pwszContentDisposition &&
-			_wcsicmp(pwszContentDisposition, L"inline") == 0 &&
-			_wcsicmp(pwszMediaType, L"text") == 0 &&
-			_wcsicmp(pwszSubType, L"plain") == 0) {
-			return false;
-		}
-		else {
-			wstring_ptr wstrName(pContentType->getParameter(L"name"));
-			if (wstrName.get())
-				return true;
-		}
-	
-	}
-	
-	return false;
-}
-
 wstring_ptr qm::PartUtil::getNames(const WCHAR* pwszField) const
 {
 	assert(pwszField);
@@ -1007,7 +949,7 @@ bool qm::PartUtil::getAllText(const WCHAR* pwszQuote,
 			return false;
 	}
 	
-	if (isMultipart()) {
+	if (part_.isMultipart()) {
 		const ContentTypeParser* pContentType = part_.getContentType();
 		wstring_ptr wstrBoundary(pContentType->getParameter(L"boundary"));
 		
@@ -1032,7 +974,7 @@ bool qm::PartUtil::getAllText(const WCHAR* pwszQuote,
 			return false;
 	}
 	else {
-		if (!isAttachment()) {
+		if (part_.isText()) {
 			if (pwszQuote) {
 				wxstring_ptr wstrBody(part_.getBodyText(pwszCharset));
 				if (!wstrBody.get())
@@ -1067,7 +1009,7 @@ bool qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
 							   const WCHAR* pwszCharset,
 							   XStringBuffer<WXSTRING>* pBuf) const
 {
-	if (isMultipart()) {
+	if (part_.isMultipart()) {
 		const ContentTypeParser* pContentType = part_.getContentType();
 		assert(pContentType);
 		bool bAlternative = _wcsicmp(pContentType->getSubType(), L"alternative") == 0;
@@ -1106,7 +1048,7 @@ bool qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
 		}
 	}
 	else {
-		bool bAttachment = isAttachment();
+		bool bAttachment = part_.isAttachment();
 		if (pwszQuote) {
 			wxstring_ptr wstrBody;
 			if (!bAttachment && part_.getEnclosedPart()) {
@@ -1265,7 +1207,7 @@ bool qm::PartUtil::getDigest(MessageList* pList) const
 			const Part::PartList& l = part_.getPartList();
 			for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it) {
 				const Part* pEnclosedPart = (*it)->getEnclosedPart();
-				if (pEnclosedPart || PartUtil(**it).isText()) {
+				if (pEnclosedPart || (*it)->isText()) {
 					xstring_ptr strContent;
 					if (pEnclosedPart)
 						strContent = pEnclosedPart->getContent();
@@ -1371,7 +1313,7 @@ PartUtil::DigestMode qm::PartUtil::getDigestMode() const
 			const Part::PartList& l = part_.getPartList();
 			Part::PartList::const_iterator it = l.begin();
 			while (it != l.end()) {
-				if (PartUtil(**it).isAttachment())
+				if ((*it)->isAttachment())
 					break;
 				++it;
 			}
@@ -1466,7 +1408,7 @@ const Part* qm::PartUtil::getPartByContentId(const WCHAR* pwszContentId) const
 {
 	assert(pwszContentId);
 	
-	if (isMultipart()) {
+	if (part_.isMultipart()) {
 		const Part::PartList& l = part_.getPartList();
 		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it) {
 			const Part* pPart = PartUtil(**it).getPartByContentId(pwszContentId);
@@ -1658,8 +1600,7 @@ qm::AttachmentParser::~AttachmentParser()
 
 bool qm::AttachmentParser::hasAttachment() const
 {
-	PartUtil util(part_);
-	if (util.isMultipart()) {
+	if (part_.isMultipart()) {
 		const Part::PartList& l = part_.getPartList();
 		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it) {
 			if (AttachmentParser(**it).hasAttachment())
@@ -1671,7 +1612,7 @@ bool qm::AttachmentParser::hasAttachment() const
 		return AttachmentParser(*part_.getEnclosedPart()).hasAttachment();
 	}
 	else {
-		return util.isAttachment();
+		return part_.isAttachment();
 	}
 }
 
@@ -1702,13 +1643,12 @@ void qm::AttachmentParser::getAttachments(bool bIncludeDeleted,
 			return;
 	}
 	
-	PartUtil util(part_);
-	if (util.isMultipart()) {
+	if (part_.isMultipart()) {
 		const Part::PartList& l = part_.getPartList();
 		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it)
 			AttachmentParser(**it).getAttachments(bIncludeDeleted, pList);
 	}
-	else if (util.isAttachment()) {
+	else if (part_.isAttachment()) {
 		wstring_ptr wstrName(getName());
 		if (!wstrName.get() || !*wstrName.get())
 			wstrName = allocWString(L"Untitled");
@@ -1832,15 +1772,14 @@ void qm::AttachmentParser::removeAttachments(Part* pPart)
 {
 	assert(pPart);
 	
-	PartUtil util(*pPart);
-	if (util.isMultipart()) {
+	if (pPart->isMultipart()) {
 		const Part::PartList& l = pPart->getPartList();
 		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it)
 			removeAttachments(*it);
 	}
 	else {
 		Part* pEnclosedPart = pPart->getEnclosedPart();
-		if (util.isAttachment()) {
+		if (pPart->isAttachment()) {
 			if (pEnclosedPart) {
 				pEnclosedPart->setBody("", 0);
 				pEnclosedPart->setHeader("");

@@ -164,6 +164,8 @@ public:
 	const ContentTypeParser* getContentType() const;
 	wstring_ptr getCharset() const;
 	bool isMultipart() const;
+	bool isText() const;
+	bool isAttachment() const;
 	
 	string_ptr getRawField(const WCHAR* pwszName,
 						   unsigned int nIndex) const;

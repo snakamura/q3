@@ -615,12 +615,8 @@ Part* qm::EditMessage::getBodyPart(Part* pPart) const
 				return pBodyPart;
 		}
 	}
-	else {
-		PartUtil util(*pPart);
-		if (util.isText()) {
-			if (!util.isAttachment())
-				return pPart;
-		}
+	else if (pPart->isText() && !pPart->isAttachment()) {
+		return pPart;
 	}
 	
 	return 0;

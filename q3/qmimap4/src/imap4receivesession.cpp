@@ -564,16 +564,10 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			
 			if (download == DOWNLOAD_TEXT || download == DOWNLOAD_HTML) {
 				bool bAll = false;
-				if (pBodyStructure) {
+				if (pBodyStructure)
 					bAll = !Util::hasAttachmentPart(pBodyStructure);
-				}
-				else {
-					PartUtil util(msg);
-					if (!util.isMultipart()) {
-						if (!util.isAttachment())
-							bAll = true;
-					}
-				}
+				else
+					bAll = !msg.isMultipart() && !msg.isAttachment();
 				if (bAll)
 					download = DOWNLOAD_ALL;
 			}

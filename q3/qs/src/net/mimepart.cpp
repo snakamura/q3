@@ -661,6 +661,58 @@ bool qs::Part::isMultipart() const
 		_wcsicmp(pContentType->getMediaType(), L"multipart") == 0;
 }
 
+bool qs::Part::isText() const
+{
+	return !pContentType_.get() || _wcsicmp(pContentType_->getMediaType(), L"text") == 0;
+}
+
+bool qs::Part::isAttachment() const
+{
+	if (isMultipart())
+		return false;
+	
+	const WCHAR* pwszContentDisposition = 0;
+	ContentDispositionParser contentDisposition;
+	Part::Field field = getField(L"Content-Disposition", &contentDisposition);
+	if (field == Part::FIELD_EXIST) {
+		pwszContentDisposition = contentDisposition.getDispositionType();
+		if (_wcsicmp(pwszContentDisposition, L"attachment") == 0)
+			return true;
+		
+		wstring_ptr wstrFileName(contentDisposition.getParameter(L"filename"));
+		if (wstrFileName.get())
+			return true;
+	}
+	else if (field == Part::FIELD_ERROR) {
+		return true;
+	}
+	
+	if (pContentType_.get()) {
+		const WCHAR* pwszMediaType = pContentType_->getMediaType();
+		const WCHAR* pwszSubType = pContentType_->getSubType();
+		bool bCanInline = _wcsicmp(pwszMediaType, L"text") == 0 ||
+			(_wcsicmp(pwszMediaType, L"message") == 0 &&
+				_wcsicmp(pwszSubType, L"rfc822") == 0);
+		if (!bCanInline) {
+			return true;
+		}
+		else if (pwszContentDisposition &&
+			_wcsicmp(pwszContentDisposition, L"inline") == 0 &&
+			_wcsicmp(pwszMediaType, L"text") == 0 &&
+			_wcsicmp(pwszSubType, L"plain") == 0) {
+			return false;
+		}
+		else {
+			wstring_ptr wstrName(pContentType_->getParameter(L"name"));
+			if (wstrName.get())
+				return true;
+		}
+	
+	}
+	
+	return false;
+}
+
 string_ptr qs::Part::getRawField(const WCHAR* pwszName,
 								 unsigned int nIndex) const
 {
@@ -772,16 +824,12 @@ bool qs::Part::getBodyText(const WCHAR* pwszCharset,
 		if (pContentType && _wcsicmp(pContentType->getMediaType(), L"text") != 0)
 			return true;
 		
-		ContentDispositionParser contentDisposition;
-		Field field = getField(L"Content-Disposition", &contentDisposition);
-		if (field == FIELD_EXIST &&
-			_wcsicmp(contentDisposition.getDispositionType(), L"attachment") == 0)
+		if (!isText())
 			return true;
 		
 		std::auto_ptr<Encoder> pEncoder;
 		ContentTransferEncodingParser contentTransferEncoding;
-		field = getField(L"Content-Transfer-Encoding", &contentTransferEncoding);
-		if (field == FIELD_EXIST)
+		if (getField(L"Content-Transfer-Encoding", &contentTransferEncoding) == FIELD_EXIST)
 			pEncoder = EncoderFactory::getInstance(contentTransferEncoding.getEncoding());
 		
 		const CHAR* pszDecodedBody = strBody_.get();
@@ -838,9 +886,7 @@ malloc_size_ptr<unsigned char> qs::Part::getBodyData() const
 {
 	std::auto_ptr<Encoder> pEncoder;
 	ContentTransferEncodingParser contentTransferEncoding;
-	Field field = getField(L"Content-Transfer-Encoding",
-		&contentTransferEncoding);
-	if (field == FIELD_EXIST)
+	if (getField(L"Content-Transfer-Encoding", &contentTransferEncoding) == FIELD_EXIST)
 		pEncoder = EncoderFactory::getInstance(
 			contentTransferEncoding.getEncoding());
 	
@@ -1006,9 +1052,7 @@ void qs::Part::updateContentType()
 	
 	if (strHeader_.get()) {
 		std::auto_ptr<ContentTypeParser> pContentType(new ContentTypeParser());
-		
-		Field field = getField(L"Content-Type", pContentType.get());
-		if (field == FIELD_EXIST)
+		if (getField(L"Content-Type", pContentType.get()) == FIELD_EXIST)
 			pContentType_ = pContentType;
 	}
 }

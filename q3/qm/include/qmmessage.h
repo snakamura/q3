@@ -189,9 +189,6 @@ public:
 
 public:
 	bool isResent() const;
-	bool isMultipart() const;
-	bool isText() const;
-	bool isAttachment() const;
 	qs::wstring_ptr getNames(const WCHAR* pwszField) const;
 	qs::wstring_ptr getReference() const;
 	void getReferences(ReferenceList* pList) const;

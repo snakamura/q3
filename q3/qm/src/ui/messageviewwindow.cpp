@@ -816,7 +816,7 @@ void qm::HtmlMessageViewWindow::prepareRelatedContent(const Part& part,
 													  const WCHAR* pwszId,
 													  const WCHAR* pwszEncoding)
 {
-	if (PartUtil(part).isMultipart()) {
+	if (part.isMultipart()) {
 		const Part::PartList& l = part.getPartList();
 		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it)
 			prepareRelatedContent(**it, 0, 0);
