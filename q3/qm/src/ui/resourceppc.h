@@ -94,15 +94,14 @@
 #define IDI_OFFLINE                     195
 #define IDI_ONLINE                      196
 #define IDD_OPTION                      197
-#define IDD_OPTIONFOLDERWINDOW          198
-#define IDD_OPTIONFOLDERCOMBOBOX        199
-#define IDD_OPTIONLISTWINDOW            200
+#define IDD_OPTIONFOLDER                198
+#define IDD_OPTIONLIST                  200
 #define IDD_OPTIONADDRESSBOOK           201
-#define IDD_OPTIONTABWINDOW             202
-#define IDD_OPTIONEDITWINDOW            203
-#define IDD_OPTIONPREVIEWWINDOW         204
-#define IDD_OPTIONMESSAGEWINDOW         205
-#define IDD_OPTIONHEADERWINDOW          206
+#define IDD_OPTIONTAB                   202
+#define IDD_OPTIONEDIT                  203
+#define IDD_OPTIONPREVIEW               204
+#define IDD_OPTIONMESSAGE               205
+#define IDD_OPTIONHEADER                206
 #define IDD_TEXTCOLOR                   207
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
@@ -424,6 +423,7 @@
 #define IDC_HEADERFONT                  1315
 #define IDC_SHOWUNSEEN                  1316
 #define IDC_SINGLECLICK                 1317
+#define IDC_COMBOBOXFONT                1317
 #define IDC_POCKETOUTLOOK               1319
 #define IDC_ADDRESSONLY                 1321
 #define IDC_MULTILINE                   1322
@@ -454,6 +454,7 @@
 #define IDC_CHOOSEQUOTE1                1352
 #define IDC_CHOOSEQUOTE2                1353
 #define IDC_CHOOSELINK                  1354
+#define IDC_WINDOWFONT                  1355
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -469,19 +470,18 @@
 #define IDS_PANEL_ADDRESSBOOK           2501
 #define IDS_PANEL_AUTOPILOT             2502
 #define IDS_PANEL_COLORS                2503
-#define IDS_PANEL_EDITWINDOW            2504
+#define IDS_PANEL_EDIT                  2504
 #define IDS_PANEL_FILTERS               2505
 #define IDS_PANEL_FIXEDFORMTEXTS        2506
-#define IDS_PANEL_FOLDERCOMBOBOX        2507
-#define IDS_PANEL_FOLDERWINDOW          2508
-#define IDS_PANEL_GOROUND               2509
-#define IDS_PANEL_HEADERWINDOW          2510
-#define IDS_PANEL_LISTWINDOW            2511
-#define IDS_PANEL_MESSAGEWINDOW         2512
-#define IDS_PANEL_PREVIEWWINDOW         2513
-#define IDS_PANEL_RULES                 2514
-#define IDS_PANEL_SIGNATURES            2515
-#define IDS_PANEL_SYNCFILTERS           2516
+#define IDS_PANEL_FOLDER                2507
+#define IDS_PANEL_GOROUND               2508
+#define IDS_PANEL_HEADER                2509
+#define IDS_PANEL_LIST                  2510
+#define IDS_PANEL_MESSAGE               2511
+#define IDS_PANEL_PREVIEW               2512
+#define IDS_PANEL_RULES                 2513
+#define IDS_PANEL_SIGNATURES            2514
+#define IDS_PANEL_SYNCFILTERS           2515
 #define IDS_ERROR_CREATEFOLDER          10000
 #define IDS_ERROR_EXECUTEATTACHMENT     10001
 #define IDS_ERROR_DIALUP                10002
@@ -542,7 +542,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        208
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1355
+#define _APS_NEXT_CONTROL_VALUE         1356
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
