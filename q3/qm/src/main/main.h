@@ -6,8 +6,8 @@
  *
  */
 
-#ifndef __COMMANDLINE_H__
-#define __COMMANDLINE_H__
+#ifndef __MAIN_H__
+#define __MAIN_H__
 
 #include <qm.h>
 
@@ -58,6 +58,28 @@ private:
 	qs::WSTRING wstrURL_;
 };
 
+
+/****************************************************************************
+ *
+ * MailFolderLock
+ *
+ */
+
+class MailFolderLock
+{
+public:
+	MailFolderLock(const WCHAR* pwszMailFolder,
+		bool* pbSuccess, qs::QSTATUS* pstatus);
+	~MailFolderLock();
+
+private:
+	MailFolderLock(const MailFolderLock&);
+	MailFolderLock& operator=(const MailFolderLock&);
+
+private:
+	qs::WSTRING wstrPath_;
+};
+
 }
 
-#endif // __COMMANDLINE_H__
+#endif // __MAIN_H__

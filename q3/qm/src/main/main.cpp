@@ -18,7 +18,7 @@
 
 #include <windows.h>
 
-#include "commandline.h"
+#include "main.h"
 #include "../ui/dialogs.h"
 
 using namespace qm;
@@ -73,7 +73,7 @@ BOOL WINAPI DllMain(HANDLE hInst, DWORD dwReason, LPVOID lpReserved)
 
 /****************************************************************************
  *
- * qmMain
+ * Global functions
  *
  */
 
@@ -99,7 +99,7 @@ QSTATUS qm::main(const WCHAR* pwszCommandLine)
 	
 	string_ptr<WSTRING> wstrMailFolder;
 	const WCHAR* pwszMailFolder = handler.getMailFolder();
-	if (pwszMailFolder) {
+	if (pwszMailFolder && *pwszMailFolder) {
 		wstrMailFolder.reset(allocWString(pwszMailFolder));
 		if (!wstrMailFolder.get())
 			return QSTATUS_OUTOFMEMORY;
@@ -154,6 +154,12 @@ QSTATUS qm::main(const WCHAR* pwszCommandLine)
 		}
 	}
 	
+//	bool bSuccess = false;
+//	MailFolderLock lock(wstrMailFolder.get(), &bSuccess, &status);
+//	CHECK_QSTATUS();
+//	if (!bSuccess)
+//		return QSTATUS_SUCCESS;
+	
 	std::auto_ptr<Application> pApplication;
 	status = newQsObject(g_hInstDll, wstrMailFolder.get(),
 		wstrProfile.get(), &pApplication);
@@ -168,4 +174,142 @@ QSTATUS qm::main(const WCHAR* pwszCommandLine)
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * MainCommandLineHandler
+ *
+ */
+
+qm::MainCommandLineHandler::MainCommandLineHandler() :
+	state_(STATE_NONE),
+	wstrGoRound_(0),
+	wstrMailFolder_(0),
+	wstrProfile_(0),
+	wstrURL_(0)
+{
+}
+
+qm::MainCommandLineHandler::~MainCommandLineHandler()
+{
+	freeWString(wstrGoRound_);
+	freeWString(wstrMailFolder_);
+	freeWString(wstrProfile_);
+	freeWString(wstrURL_);
+}
+
+const WCHAR* qm::MainCommandLineHandler::getGoRound() const
+{
+	return wstrGoRound_;
+}
+
+const WCHAR* qm::MainCommandLineHandler::getMailFolder() const
+{
+	return wstrMailFolder_;
+}
+
+const WCHAR* qm::MainCommandLineHandler::getProfile() const
+{
+	return wstrProfile_;
+}
+
+const WCHAR* qm::MainCommandLineHandler::getURL() const
+{
+	return wstrURL_;
+}
+
+QSTATUS qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
+{
+	DECLARE_QSTATUS();
+	
+	struct {
+		const WCHAR* pwsz_;
+		State state_;
+	} options[] = {
+		{ L"g",	STATE_GOROUND		},
+		{ L"d",	STATE_MAILFOLDER	},
+		{ L"p",	STATE_PROFILE		},
+		{ L"s",	STATE_URL			}
+	};
+	
+	WSTRING* pwstr[] = {
+		&wstrGoRound_,
+		&wstrMailFolder_,
+		&wstrProfile_,
+		&wstrURL_
+	};
+	
+	switch (state_) {
+	case STATE_NONE:
+		if (*pwszOption == L'-' || *pwszOption == L'/') {
+			for (int n = 0; n < countof(options) && state_ == STATE_NONE; ++n) {
+				if (wcscmp(pwszOption + 1, options[n].pwsz_) == 0)
+					state_ = options[n].state_;
+			}
+		}
+		break;
+	case STATE_GOROUND:
+	case STATE_MAILFOLDER:
+	case STATE_PROFILE:
+	case STATE_URL:
+		{
+			WSTRING& wstr = *pwstr[state_ - STATE_GOROUND];
+			wstr = allocWString(pwszOption);
+			if (!wstr)
+				return QSTATUS_OUTOFMEMORY;
+			state_ = STATE_NONE;
+		}
+		break;
+	default:
+		break;
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * MailFolderLock
+ *
+ */
+
+qm::MailFolderLock::MailFolderLock(const WCHAR* pwszMailFolder,
+	bool* pbSuccess, QSTATUS* pstatus) :
+	wstrPath_(0)
+{
+	string_ptr<WSTRING> wstrPath(concat(pwszMailFolder, L"\\lock"));
+	if (!wstrPath.get()) {
+		*pstatus = QSTATUS_OUTOFMEMORY;
+		return;
+	}
+	
+	W2T_STATUS(wstrPath.get(), ptszPath);
+	
+	HANDLE hFile = ::CreateFile(ptszPath, GENERIC_READ | GENERIC_WRITE,
+		FILE_SHARE_READ, 0, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+	if (hFile == INVALID_HANDLE_VALUE) {
+		// TODO
+		// File is locked
+		// Open lock file for reading and find window handle then make it foreground
+	}
+	else if (::GetLastError() == ERROR_ALREADY_EXISTS) {
+		// TODO
+		// Shutdown failed or other device locked it.
+		// Confirm user to continue or not with computer name which is stread in lock file
+	}
+	else {
+		// TODO
+		// No problem
+	}
+	
+	// TODO
+	// If success, write computer name and window handle then flush.
+}
+
+qm::MailFolderLock::~MailFolderLock()
+{
+	freeWString(wstrPath_);
 }
