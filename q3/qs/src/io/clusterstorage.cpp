@@ -183,7 +183,7 @@ QSTATUS qs::ClusterStorageImpl::getFreeOffset(unsigned int nSize,
 	else if (nSearchBegin < map_.size())
 		it += nSearchBegin;
 	for (; it != map_.end() && nFindSize < nSize; ++it) {
-		if (static_cast<unsigned int>(it - map_.begin()) > nCurrentOffset)
+		if (static_cast<unsigned int>(it - map_.begin()) >= nCurrentOffset)
 			return QSTATUS_SUCCESS;
 		
 		if (*it == 0xff) {
@@ -586,6 +586,60 @@ QSTATUS qs::ClusterStorage::compact(unsigned int nOffset,
 		nOffsetNew = nOffset;
 	}
 	*pnOffset = nOffsetNew;
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qs::ClusterStorage::freeUnrefered(const ReferList& listRefer)
+{
+	DECLARE_QSTATUS();
+	
+	status = pImpl_->reopen();
+	CHECK_QSTATUS();
+	
+	ClusterStorageImpl::Map m;
+	status = STLWrapper<ClusterStorageImpl::Map>(m).resize(pImpl_->map_.size());
+	CHECK_QSTATUS();
+	
+	ReferList::const_iterator it = listRefer.begin();
+	while (it != listRefer.end()) {
+		unsigned int nOffset = (*it).nOffset_;
+		unsigned int nLength = (*it).nLength_ +
+			(ClusterStorageImpl::CLUSTER_SIZE -
+				(*it).nLength_%ClusterStorageImpl::CLUSTER_SIZE);
+		assert(nLength%ClusterStorageImpl::CLUSTER_SIZE == 0);
+		nLength /= ClusterStorageImpl::CLUSTER_SIZE;
+		
+		unsigned int nBegin = nOffset/ClusterStorageImpl::BYTE_SIZE;
+		unsigned int nBeginBit = nOffset%ClusterStorageImpl::BYTE_SIZE;
+		unsigned int nEnd = (nOffset + nLength)/ClusterStorageImpl::BYTE_SIZE;
+		unsigned int nEndBit = (nOffset + nLength)%ClusterStorageImpl::BYTE_SIZE;
+		if (nEndBit == 0) {
+			--nEnd;
+			nEndBit = ClusterStorageImpl::BYTE_SIZE;
+		}
+		assert(m.size() > nEnd);
+		for (unsigned int n = nBegin; n <= nEnd; ++n) {
+			BYTE bMask = ~0;
+			unsigned int nFirstBit = n == nBegin ? nBeginBit : 0;
+			unsigned int nLastBit = n == nEnd ? nEndBit : ClusterStorageImpl::BYTE_SIZE;
+			if (nFirstBit != 0) {
+				BYTE b = 1;
+				for (unsigned int m = 0; m < nFirstBit; ++m, b <<= 1)
+					bMask &= ~b;
+			}
+			if (nLastBit != ClusterStorageImpl::BYTE_SIZE) {
+				BYTE b = 1 << nLastBit;
+				for (unsigned int m = nLastBit; m < ClusterStorageImpl::BYTE_SIZE; ++m, b <<= 1)
+					bMask &= ~b;
+			}
+			m[n] |= bMask;
+		}
+		
+		++it;
+	}
+	std::copy(m.begin(), m.end(), pImpl_->map_.begin());
+	std::fill(pImpl_->searchBegin_.begin(), pImpl_->searchBegin_.end(), 0);
 	
 	return QSTATUS_SUCCESS;
 }

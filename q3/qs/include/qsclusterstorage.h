@@ -1,15 +1,17 @@
 /*
- * $Id: qsclusterstorage.h,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
-#ifndef __ClusterStorage_H__
-#define __ClusterStorage_H__
+#ifndef __CLUSTERSTORAGE_H__
+#define __CLUSTERSTORAGE_H__
 
 #include <qs.h>
+
+#include <vector>
 
 
 namespace qs {
@@ -31,6 +33,15 @@ public:
 		const WCHAR* pwszMapExt_;
 		size_t nBlockSize_;
 	};
+	
+	struct Refer
+	{
+		unsigned int nOffset_;
+		unsigned int nLength_;
+	};
+
+public:
+	typedef std::vector<Refer> ReferList;
 
 public:
 	ClusterStorage(const Init& init, QSTATUS* pstatus);
@@ -46,6 +57,7 @@ public:
 	QSTATUS free(unsigned int nOffset, unsigned int nLength);
 	QSTATUS compact(unsigned int nOffset, unsigned int nLength,
 		ClusterStorage* pmsOld, unsigned int* pnOffset);
+	QSTATUS freeUnrefered(const ReferList& listRefer);
 	QSTATUS freeUnused();
 
 private:
@@ -58,4 +70,4 @@ private:
 
 }
 
-#endif // __ClusterStorage_H__
+#endif // __CLUSTERSTORAGE_H__

@@ -8,7 +8,6 @@
 
 #include <qmextensions.h>
 
-#include <qsclusterstorage.h>
 #include <qsconv.h>
 #include <qserror.h>
 #include <qsnew.h>
@@ -316,6 +315,20 @@ QSTATUS qm::SingleMessageStore::freeUnused()
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qm::SingleMessageStore::freeUnrefered(const ReferList& listRefer)
+{
+	DECLARE_QSTATUS();
+	
+	status = MessageStoreUtil::freeUnrefered(pImpl_->pStorage_,
+		listRefer, SingleMessageStoreImpl::SEPARATOR_SIZE*2);
+	CHECK_QSTATUS();
+	status = MessageStoreUtil::freeUnreferedCache(
+		pImpl_->pCacheStorage_, listRefer);
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::SingleMessageStore::readCache(
 	MessageCacheKey key, unsigned char** ppBuf)
 {
@@ -368,7 +381,7 @@ struct qm::MultiMessageStoreImpl
 {
 public:
 	QSTATUS init();
-	QSTATUS getOffset(unsigned int* pnOffset);
+	QSTATUS getOffset(bool bIncrement, unsigned int* pnOffset);
 	QSTATUS getPath(unsigned int nOffset, WSTRING* pwstrPath) const;
 	QSTATUS ensureDirectory(unsigned int nOffset) const;
 
@@ -405,7 +418,7 @@ QSTATUS qm::MultiMessageStoreImpl::init()
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::MultiMessageStoreImpl::getOffset(unsigned int *pnOffset)
+QSTATUS qm::MultiMessageStoreImpl::getOffset(bool bIncrement, unsigned int *pnOffset)
 {
 	assert(pnOffset);
 	
@@ -457,7 +470,9 @@ QSTATUS qm::MultiMessageStoreImpl::getOffset(unsigned int *pnOffset)
 		nOffset_ = nOffset;
 	}
 	
-	*pnOffset = ++nOffset_;
+	*pnOffset = nOffset_;
+	if (bIncrement)
+		++nOffset_;
 	
 	return QSTATUS_SUCCESS;
 }
@@ -655,7 +670,7 @@ QSTATUS qm::MultiMessageStore::save(const CHAR* pszMessage,
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
 	if (!bIndexOnly) {
-		status = pImpl_->getOffset(pnOffset);
+		status = pImpl_->getOffset(true, pnOffset);
 		CHECK_QSTATUS();
 		status = pImpl_->ensureDirectory(*pnOffset);
 		CHECK_QSTATUS();
@@ -750,6 +765,44 @@ QSTATUS qm::MultiMessageStore::freeUnused()
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qm::MultiMessageStore::freeUnrefered(const ReferList& listRefer)
+{
+	DECLARE_QSTATUS();
+	
+	typedef std::vector<unsigned int> List;
+	List l;
+	status = STLWrapper<List>(l).resize(listRefer.size());
+	CHECK_QSTATUS();
+	std::transform(listRefer.begin(), listRefer.end(),
+		l.begin(), mem_data_ref(&Refer::nOffset_));
+	std::sort(l.begin(), l.end());
+	
+	List::const_iterator it = l.begin();
+	
+	unsigned int nOffset = 0;
+	status = pImpl_->getOffset(false, &nOffset);
+	CHECK_QSTATUS();
+	for (unsigned int n = 0; n <= nOffset; ++n) {
+		if (it != l.end() && *it == n) {
+			++it;
+		}
+		else {
+			string_ptr<WSTRING> wstrPath;
+			status = pImpl_->getPath(n, &wstrPath);
+			CHECK_QSTATUS();
+			W2T(wstrPath.get(), ptszPath);
+			if (::GetFileAttributes(ptszPath) != 0xffffffff)
+				::DeleteFile(ptszPath);
+		}
+	}
+	
+	status = MessageStoreUtil::freeUnreferedCache(
+		pImpl_->pCacheStorage_, listRefer);
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::MultiMessageStore::readCache(
 	MessageCacheKey key, unsigned char** ppBuf)
 {
@@ -787,6 +840,71 @@ QSTATUS qm::MultiMessageStore::readCache(
 	}
 	
 	*ppBuf = p.release();
+	
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * MessageStoreUtil
+ *
+ */
+
+QSTATUS qm::MessageStoreUtil::freeUnrefered(qs::ClusterStorage* pStorage,
+	const MessageStore::ReferList& listRefer, unsigned int nSeparatorSize)
+{
+	DECLARE_QSTATUS();
+	
+	ClusterStorage::ReferList l;
+	status = STLWrapper<ClusterStorage::ReferList>(l).reserve(listRefer.size());
+	CHECK_QSTATUS();
+	MessageStore::ReferList::const_iterator it = listRefer.begin();
+	while (it != listRefer.end()) {
+		ClusterStorage::Refer refer = {
+			(*it).nOffset_,
+			(*it).nLength_ + nSeparatorSize
+		};
+		l.push_back(refer);
+		++it;
+	}
+	
+	status = pStorage->freeUnrefered(l);
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::MessageStoreUtil::freeUnreferedCache(
+	qs::ClusterStorage* pCacheStorage, const MessageStore::ReferList& listRefer)
+{
+	DECLARE_QSTATUS();
+	
+	ClusterStorage::ReferList l;
+	status = STLWrapper<ClusterStorage::ReferList>(l).reserve(listRefer.size());
+	CHECK_QSTATUS();
+	MessageStore::ReferList::const_iterator it = listRefer.begin();
+	while (it != listRefer.end()) {
+		unsigned int nOffset = (*it).key_;
+		
+		size_t nSize = 0;
+		unsigned int nLoad = sizeof(size_t);
+		status = pCacheStorage->load(
+			reinterpret_cast<unsigned char*>(&nSize), nOffset, &nLoad);
+		CHECK_QSTATUS();
+		if (nLoad != sizeof(size_t))
+			return QSTATUS_FAIL;
+		
+		ClusterStorage::Refer refer = {
+			nOffset,
+			nSize
+		};
+		l.push_back(refer);
+		++it;
+	}
+	
+	status = pCacheStorage->freeUnrefered(l);
+	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
 }

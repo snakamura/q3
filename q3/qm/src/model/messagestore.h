@@ -1,5 +1,5 @@
 /*
- * $Id: messagestore.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -13,6 +13,7 @@
 #include <qmmessagecache.h>
 
 #include <qs.h>
+#include <qsclusterstorage.h>
 #include <qsstring.h>
 
 
@@ -34,6 +35,16 @@ class MessageCache;
 class MessageStore
 {
 public:
+	struct Refer {
+		unsigned int nOffset_;
+		unsigned int nLength_;
+		MessageCacheKey key_;
+	};
+
+public:
+	typedef std::vector<Refer> ReferList;
+
+public:
 	virtual ~MessageStore();
 
 public:
@@ -50,6 +61,7 @@ public:
 	virtual qs::QSTATUS compact(unsigned int nOffset, unsigned int nLength,
 		MessageCacheKey key, MessageStore* pmsOld,
 		unsigned int* pnOffset, MessageCacheKey* pKey) = 0;
+	virtual qs::QSTATUS freeUnrefered(const ReferList& listRefer) = 0;
 	virtual qs::QSTATUS freeUnused() = 0;
 	virtual qs::QSTATUS readCache(MessageCacheKey key, unsigned char** ppBuf) = 0;
 };
@@ -82,6 +94,7 @@ public:
 	virtual qs::QSTATUS compact(unsigned int nOffset, unsigned int nLength,
 		MessageCacheKey key, MessageStore* pmsOld,
 		unsigned int* pnOffset, MessageCacheKey* pKey);
+	virtual qs::QSTATUS freeUnrefered(const ReferList& listRefer);
 	virtual qs::QSTATUS freeUnused();
 	virtual qs::QSTATUS readCache(MessageCacheKey key, unsigned char** ppBuf);
 
@@ -121,6 +134,7 @@ public:
 	virtual qs::QSTATUS compact(unsigned int nOffset, unsigned int nLength,
 		MessageCacheKey key, MessageStore* pmsOld,
 		unsigned int* pnOffset, MessageCacheKey* pKey);
+	virtual qs::QSTATUS freeUnrefered(const ReferList& listRefer);
 	virtual qs::QSTATUS freeUnused();
 	virtual qs::QSTATUS readCache(MessageCacheKey key, unsigned char** ppBuf);
 
@@ -130,6 +144,22 @@ private:
 
 private:
 	struct MultiMessageStoreImpl* pImpl_;
+};
+
+
+/****************************************************************************
+ *
+ * MessageStoreUtil
+ *
+ */
+
+class MessageStoreUtil
+{
+public:
+	static qs::QSTATUS freeUnrefered(qs::ClusterStorage* pStorage,
+		const MessageStore::ReferList& listRefer, unsigned int nSeparatorSize);
+	static qs::QSTATUS freeUnreferedCache(qs::ClusterStorage* pCacheStorage,
+		const MessageStore::ReferList& listRefer);
 };
 
 }

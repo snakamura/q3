@@ -836,8 +836,7 @@ QSTATUS qm::Account::compact()
 {
 	DECLARE_QSTATUS();
 	
-	// TODO
-	// Complete compaction
+	MessageStore::ReferList listRefer;
 	
 	Account::FolderList::iterator it = pImpl_->listFolder_.begin();
 	while (it != pImpl_->listFolder_.end()) {
@@ -856,10 +855,21 @@ QSTATUS qm::Account::compact()
 					&boxKey.nOffset_, &cacheKey);
 				CHECK_QSTATUS();
 				pmh->setKeys(cacheKey, boxKey);
+				
+				MessageStore::Refer refer = {
+					boxKey.nOffset_,
+					boxKey.nLength_,
+					cacheKey
+				};
+				status = STLWrapper<MessageStore::ReferList>(
+					listRefer).push_back(refer);
+				CHECK_QSTATUS();
 			}
 		}
 		++it;
 	}
+	status = pImpl_->pMessageStore_->freeUnrefered(listRefer);
+	CHECK_QSTATUS();
 	status = pImpl_->pMessageStore_->freeUnused();
 	CHECK_QSTATUS();
 	status = save();
