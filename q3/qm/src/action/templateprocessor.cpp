@@ -36,7 +36,7 @@ using namespace qs;
  */
 
 qm::TemplateProcessor::TemplateProcessor(Document* pDocument,
-	FolderModel* pFolderModel, MessageSelectionModel* pMessageSelectionModel,
+	FolderModelBase* pFolderModel, MessageSelectionModel* pMessageSelectionModel,
 	EditFrameWindowManager* pEditFrameWindowManager,
 	ExternalEditorManager* pExternalEditorManager, HWND hwnd,
 	Profile* pProfile, bool bExternalEditor) :

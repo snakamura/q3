@@ -1783,7 +1783,7 @@ QSTATUS qm::MessageApplyRuleAction::isEnabled(
 
 qm::MessageApplyTemplateAction::MessageApplyTemplateAction(
 	TemplateMenu* pTemplateMenu, Document* pDocument,
-	FolderModel* pFolderModel, MessageSelectionModel* pMessageSelectionModel,
+	FolderModelBase* pFolderModel, MessageSelectionModel* pMessageSelectionModel,
 	EditFrameWindowManager* pEditFrameWindowManager,
 	ExternalEditorManager* pExternalEditorManager,
 	HWND hwnd, Profile* pProfile, bool bExternalEditor, QSTATUS* pstatus) :
@@ -1828,7 +1828,7 @@ QSTATUS qm::MessageApplyTemplateAction::isEnabled(
  */
 
 qm::MessageCreateAction::MessageCreateAction(Document* pDocument,
-	FolderModel* pFolderModel, MessageSelectionModel* pMessageSelectionModel,
+	FolderModelBase* pFolderModel, MessageSelectionModel* pMessageSelectionModel,
 	const WCHAR* pwszTemplateName, EditFrameWindowManager* pEditFrameWindowManager,
 	ExternalEditorManager* pExternalEditorManager, HWND hwnd,
 	Profile* pProfile, bool bExternalEditor, QSTATUS* pstatus) :
@@ -3150,7 +3150,7 @@ QSTATUS qm::ViewNavigateFolderAction::invoke(const ActionEvent& event)
 			}
 		}
 		if (pFolder) {
-			status = pFolderModel_->setCurrentFolder(pFolder);
+			status = pFolderModel_->setCurrentFolder(pFolder, true);
 			CHECK_QSTATUS();
 		}
 		break;
@@ -3174,7 +3174,7 @@ QSTATUS qm::ViewNavigateFolderAction::invoke(const ActionEvent& event)
 				break;
 			}
 			if (it != l.end()) {
-				status = pFolderModel_->setCurrentAccount(*it);
+				status = pFolderModel_->setCurrentAccount(*it, true);
 				CHECK_QSTATUS();
 			}
 		}
@@ -3203,24 +3203,14 @@ QSTATUS qm::ViewNavigateFolderAction::isEnabled(
  */
 
 qm::ViewNavigateMessageAction::ViewNavigateMessageAction(
-	ViewModelManager* pViewModelManager, MessageWindow* pMessageWindow,
-	Type type, QSTATUS* pstatus) :
+	ViewModelManager* pViewModelManager, FolderModel* pFolderModel,
+	MessageWindow* pMessageWindow, Type type, QSTATUS* pstatus) :
 	pViewModelManager_(pViewModelManager),
+	pFolderModel_(pFolderModel),
 	pMessageWindow_(pMessageWindow),
 	type_(type)
 {
 	assert(pViewModelManager);
-	assert(pMessageWindow);
-	assert(pstatus);
-	*pstatus = QSTATUS_SUCCESS;
-}
-
-qm::ViewNavigateMessageAction::ViewNavigateMessageAction(
-	MessageWindow* pMessageWindow, Type type, QSTATUS* pstatus) :
-	pViewModelManager_(0),
-	pMessageWindow_(pMessageWindow),
-	type_(type)
-{
 	assert(pMessageWindow);
 	assert(pstatus);
 	*pstatus = QSTATUS_SUCCESS;
@@ -3235,8 +3225,7 @@ QSTATUS qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 	DECLARE_QSTATUS();
 	
 	Type type = type_;
-	
-	bool bPreview = pViewModelManager_ != 0;
+	bool bPreview = pFolderModel_ != 0;
 	
 	MessageModel* pMessageModel = pMessageWindow_->getMessageModel();
 	
@@ -3291,6 +3280,8 @@ QSTATUS qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 	}
 	
 	if (nIndex != static_cast<unsigned int>(-1)) {
+		ViewModel* pNewViewModel = pViewModel;
+		
 		switch (type) {
 		case TYPE_NEXT:
 			if (nIndex == nCount - 1)
@@ -3305,32 +3296,29 @@ QSTATUS qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 				--nIndex;
 			break;
 		case TYPE_NEXTUNSEEN:
-			{
-				unsigned int nStart = nIndex;
-				for (++nIndex; nIndex < nCount; ++nIndex) {
-					MessageHolder* pmh = pViewModel->getMessageHolder(nIndex);
-					if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
-						break;
-				}
-				if (nIndex == nCount) {
-					for (nIndex = 0; nIndex < nStart; ++nIndex) {
-						MessageHolder* pmh = pViewModel->getMessageHolder(nIndex);
-						if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
-							break;
-					}
-				}
-				if (nIndex == nStart) {
-					// TODO
-					// Search unseen message in other folders
-					nIndex = static_cast<unsigned int>(-1);
-				}
-			}
+			status = getNextUnseen(pViewModel, nIndex,
+				false, &pNewViewModel, &nIndex);
+			CHECK_QSTATUS();
 			break;
 		case TYPE_SELF:
 			break;
 		default:
 			assert(false);
 			break;
+		}
+		
+		Lock<ViewModel> lockNew(*pNewViewModel);
+		
+		if (pNewViewModel != pViewModel) {
+			if (bPreview) {
+				status = pFolderModel_->setCurrentFolder(
+					pNewViewModel->getFolder(), false);
+				CHECK_QSTATUS();
+			}
+			else {
+				pMessageModel->setViewModel(pNewViewModel);
+			}
+			pViewModel = pNewViewModel;
 		}
 		
 		if (!bPreview || type == TYPE_SELF) {
@@ -3361,6 +3349,77 @@ QSTATUS qm::ViewNavigateMessageAction::isEnabled(
 	assert(pbEnabled);
 	// TODO
 	*pbEnabled = true;
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::ViewNavigateMessageAction::getNextUnseen(
+	ViewModel* pViewModel, unsigned int nIndex, bool bIncludeSelf,
+	ViewModel** ppViewModel, unsigned int* pnIndex) const
+{
+	assert(ppViewModel);
+	assert(pnIndex);
+	
+	DECLARE_QSTATUS();
+	
+	*ppViewModel = pViewModel;
+	*pnIndex = -1;
+	
+	Lock<ViewModel> lock(*pViewModel);
+	
+	unsigned int nCount = pViewModel->getCount();
+	unsigned int nStart = nIndex;
+	for (bIncludeSelf ? 0 : ++nIndex; nIndex < nCount; ++nIndex) {
+		MessageHolder* pmh = pViewModel->getMessageHolder(nIndex);
+		if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
+			break;
+	}
+	if (nIndex == nCount) {
+		for (nIndex = 0; nIndex < nStart; ++nIndex) {
+			MessageHolder* pmh = pViewModel->getMessageHolder(nIndex);
+			if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
+				break;
+		}
+	}
+	if (!bIncludeSelf && nIndex == nStart) {
+		Folder* pFolder = pViewModel->getFolder();
+		Account* pAccount = pFolder->getAccount();
+		const Account::FolderList& l = pAccount->getFolders();
+		Account::FolderList listFolder;
+		status = STLWrapper<Account::FolderList>(listFolder).resize(l.size());
+		CHECK_QSTATUS();
+		std::copy(l.begin(), l.end(), listFolder.begin());
+		std::sort(listFolder.begin(), listFolder.end(), FolderLess());
+		
+		Account::FolderList::const_iterator itThis = std::find(
+			listFolder.begin(), listFolder.end(), pFolder);
+		assert(itThis != listFolder.end());
+		
+		Folder* pUnseenFolder = 0;
+		Account::FolderList::const_iterator it = itThis;
+		for (++it; it != listFolder.end() && !pUnseenFolder; ++it) {
+			if ((*it)->getUnseenCount() != 0)
+				pUnseenFolder = *it;
+		}
+		if (!pUnseenFolder) {
+			for (it = listFolder.begin(); it != itThis && !pUnseenFolder; ++it) {
+				if ((*it)->getUnseenCount() != 0)
+					pUnseenFolder = *it;
+			}
+		}
+		
+		if (pUnseenFolder) {
+			status = pViewModelManager_->getViewModel(
+				pUnseenFolder, &pViewModel);
+			CHECK_QSTATUS();
+			status = getNextUnseen(pViewModel, pViewModel->getFocused(),
+				true, ppViewModel, pnIndex);
+			CHECK_QSTATUS();
+		}
+	}
+	else {
+		*pnIndex = nIndex;
+	}
+	
 	return QSTATUS_SUCCESS;
 }
 

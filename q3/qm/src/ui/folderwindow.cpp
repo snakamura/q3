@@ -529,11 +529,14 @@ LRESULT qm::FolderWindowImpl::onSelChanged(NMHDR* pnmhdr, bool* pbHandled)
 {
 	DECLARE_QSTATUS();
 	
+	NMTREEVIEW* pnmtv = reinterpret_cast<NMTREEVIEW*>(pnmhdr);
+	bool bDelay = (pnmtv->action & TVC_BYKEYBOARD) != 0;
+	
 	Folder* pFolder = getSelectedFolder();
 	if (pFolder)
-		status = pFolderModel_->setCurrentFolder(pFolder);
+		status = pFolderModel_->setCurrentFolder(pFolder, bDelay);
 	else
-		status = pFolderModel_->setCurrentAccount(getSelectedAccount());
+		status = pFolderModel_->setCurrentAccount(getSelectedAccount(), bDelay);
 	
 	return 0;
 }

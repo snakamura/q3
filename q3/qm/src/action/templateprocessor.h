@@ -23,7 +23,7 @@ class TemplateProcessor;
 class Document;
 class EditFrameWindowManager;
 class ExternalEditorManager;
-class FolderModel;
+class FolderModelBase;
 class MessageSelectionModel;
 class TemplateManager;
 
@@ -37,7 +37,7 @@ class TemplateManager;
 class TemplateProcessor
 {
 public:
-	TemplateProcessor(Document* pDocument, FolderModel* pFolderModel,
+	TemplateProcessor(Document* pDocument, FolderModelBase* pFolderModel,
 		MessageSelectionModel* pMessageSelectionModel,
 		EditFrameWindowManager* pEditFrameWindowManager,
 		ExternalEditorManager* pExternalEditorManager,
@@ -70,7 +70,7 @@ private:
 
 private:
 	Document* pDocument_;
-	FolderModel* pFolderModel_;
+	FolderModelBase* pFolderModel_;
 	MessageSelectionModel* pMessageSelectionModel_;
 	EditFrameWindowManager* pEditFrameWindowManager_;
 	ExternalEditorManager* pExternalEditorManager_;

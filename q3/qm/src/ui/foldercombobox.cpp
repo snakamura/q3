@@ -524,9 +524,9 @@ LRESULT qm::FolderComboBoxImpl::onSelEndOk()
 	
 	Folder* pFolder = getSelectedFolder();
 	if (pFolder)
-		status = pFolderModel_->setCurrentFolder(pFolder);
+		status = pFolderModel_->setCurrentFolder(pFolder, false);
 	else
-		status = pFolderModel_->setCurrentAccount(getSelectedAccount());
+		status = pFolderModel_->setCurrentAccount(getSelectedAccount(), false);
 	
 	return 0;
 }

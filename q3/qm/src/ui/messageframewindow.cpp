@@ -46,7 +46,7 @@ using namespace qs;
 
 class qm::MessageFrameWindowImpl :
 	public MessageModelHandler,
-	public FolderModel,
+	public FolderModelBase,
 	public MessageSelectionModel
 {
 public:
@@ -68,11 +68,7 @@ public:
 
 public:
 	virtual Account* getCurrentAccount() const;
-	virtual QSTATUS setCurrentAccount(Account* pAccount);
 	virtual Folder* getCurrentFolder() const;
-	virtual QSTATUS setCurrentFolder(Folder* pFolder);
-	virtual QSTATUS addFolderModelHandler(FolderModelHandler* pHandler);
-	virtual QSTATUS removeFolderModelHandler(FolderModelHandler* pHandler);
 
 public:
 	virtual QSTATUS getSelectedMessages(
@@ -176,14 +172,14 @@ QSTATUS qm::MessageFrameWindowImpl::initActions()
 	CHECK_QSTATUS();
 #endif
 	status = InitActionRange9<MessageApplyTemplateAction, TemplateMenu*,
-		Document*, FolderModel*, MessageSelectionModel*,
+		Document*, FolderModelBase*, MessageSelectionModel*,
 		EditFrameWindowManager*, ExternalEditorManager*, HWND, Profile*, bool>(
 		pActionMap_, IDM_MESSAGE_APPLYTEMPLATE, IDM_MESSAGE_APPLYTEMPLATE + 100,
 		pCreateTemplateMenu_, pDocument_, this, this, pEditFrameWindowManager_,
 		pExternalEditorManager_, pThis_->getHandle(), pProfile_, false);
 	CHECK_QSTATUS();
 	status = InitActionRange9<MessageApplyTemplateAction, TemplateMenu*,
-		Document*, FolderModel*, MessageSelectionModel*,
+		Document*, FolderModelBase*, MessageSelectionModel*,
 		EditFrameWindowManager*, ExternalEditorManager*, HWND, Profile*, bool>(
 		pActionMap_, IDM_MESSAGE_APPLYTEMPLATEEXTERNAL, IDM_MESSAGE_APPLYTEMPLATEEXTERNAL + 100,
 		pCreateTemplateExternalMenu_, pDocument_, this, this, pEditFrameWindowManager_,
@@ -203,14 +199,14 @@ QSTATUS qm::MessageFrameWindowImpl::initActions()
 	};
 	for (int n = 0; n < countof(creates); ++n) {
 		status = InitAction9<MessageCreateAction, Document*,
-			FolderModel*, MessageSelectionModel*, const WCHAR*,
+			FolderModelBase*, MessageSelectionModel*, const WCHAR*,
 			EditFrameWindowManager*, ExternalEditorManager*, HWND, Profile*, bool>(
 			pActionMap_, creates[n].nId_, pDocument_, this,
 			this, creates[n].pwszName_, pEditFrameWindowManager_,
 			pExternalEditorManager_, pThis_->getHandle(), pProfile_, false);
 		CHECK_QSTATUS();
 		status = InitAction9<MessageCreateAction, Document*,
-			FolderModel*, MessageSelectionModel*, const WCHAR*,
+			FolderModelBase*, MessageSelectionModel*, const WCHAR*,
 			EditFrameWindowManager*, ExternalEditorManager*, HWND, Profile*, bool>(
 			pActionMap_, creates[n].nIdExternal_, pDocument_, this,
 			this, creates[n].pwszName_, pEditFrameWindowManager_,
@@ -284,38 +280,38 @@ QSTATUS qm::MessageFrameWindowImpl::initActions()
 		pActionMap_, IDM_VIEW_HTMLMODE, pMessageWindow_,
 		&MessageWindow::isHtmlMode, &MessageWindow::setHtmlMode, true);
 	CHECK_QSTATUS();
-	status = InitAction2<ViewNavigateMessageAction,
-		MessageWindow*, ViewNavigateMessageAction::Type>(
-		pActionMap_, IDM_VIEW_NEXTMESSAGE, pMessageWindow_,
-		ViewNavigateMessageAction::TYPE_NEXT);
+	status = InitAction4<ViewNavigateMessageAction, ViewModelManager*,
+		FolderModel*, MessageWindow*, ViewNavigateMessageAction::Type>(
+		pActionMap_, IDM_VIEW_NEXTMESSAGE, pViewModelManager_,
+		0, pMessageWindow_, ViewNavigateMessageAction::TYPE_NEXT);
 	CHECK_QSTATUS();
-	status = InitAction1<ViewOpenLinkAction, MessageWindow*>(
-		pActionMap_, IDM_VIEW_OPENLINK, pMessageWindow_);
+	status = InitAction4<ViewNavigateMessageAction, ViewModelManager*,
+		FolderModel*, MessageWindow*, ViewNavigateMessageAction::Type>(
+		pActionMap_, IDM_VIEW_PREVMESSAGE, pViewModelManager_,
+		0, pMessageWindow_, ViewNavigateMessageAction::TYPE_PREV);
 	CHECK_QSTATUS();
-	status = InitAction2<ViewNavigateMessageAction,
-		MessageWindow*, ViewNavigateMessageAction::Type>(
-		pActionMap_, IDM_VIEW_PREVMESSAGE, pMessageWindow_,
-		ViewNavigateMessageAction::TYPE_PREV);
+	status = InitAction4<ViewNavigateMessageAction, ViewModelManager*,
+		FolderModel*, MessageWindow*, ViewNavigateMessageAction::Type>(
+		pActionMap_, IDM_VIEW_NEXTUNSEENMESSAGE, pViewModelManager_,
+		0, pMessageWindow_, ViewNavigateMessageAction::TYPE_NEXTUNSEEN);
 	CHECK_QSTATUS();
-	status = InitAction2<ViewNavigateMessageAction,
-		MessageWindow*, ViewNavigateMessageAction::Type>(
-		pActionMap_, IDM_VIEW_NEXTUNSEENMESSAGE, pMessageWindow_,
-		ViewNavigateMessageAction::TYPE_NEXTUNSEEN);
+	status = InitAction4<ViewNavigateMessageAction, ViewModelManager*,
+		FolderModel*, MessageWindow*, ViewNavigateMessageAction::Type>(
+		pActionMap_, IDM_VIEW_NEXTMESSAGEPAGE, pViewModelManager_,
+		0, pMessageWindow_, ViewNavigateMessageAction::TYPE_NEXTPAGE);
 	CHECK_QSTATUS();
-	status = InitAction2<ViewNavigateMessageAction,
-		MessageWindow*, ViewNavigateMessageAction::Type>(
-		pActionMap_, IDM_VIEW_NEXTMESSAGEPAGE, pMessageWindow_,
-		ViewNavigateMessageAction::TYPE_NEXTPAGE);
-	CHECK_QSTATUS();
-	status = InitAction2<ViewNavigateMessageAction,
-		MessageWindow*, ViewNavigateMessageAction::Type>(
-		pActionMap_, IDM_VIEW_PREVMESSAGEPAGE, pMessageWindow_,
-		ViewNavigateMessageAction::TYPE_PREVPAGE);
+	status = InitAction4<ViewNavigateMessageAction, ViewModelManager*,
+		FolderModel*, MessageWindow*, ViewNavigateMessageAction::Type>(
+		pActionMap_, IDM_VIEW_PREVMESSAGEPAGE, pViewModelManager_,
+		0, pMessageWindow_, ViewNavigateMessageAction::TYPE_PREVPAGE);
 	CHECK_QSTATUS();
 	status = InitAction4<ViewMessageModeAction, MessageWindow*,
 		ViewMessageModeAction::PFN_IS, ViewMessageModeAction::PFN_SET, bool>(
 		pActionMap_, IDM_VIEW_RAWMODE, pMessageWindow_,
 		&MessageWindow::isRawMode, &MessageWindow::setRawMode, true);
+	CHECK_QSTATUS();
+	status = InitAction1<ViewOpenLinkAction, MessageWindow*>(
+		pActionMap_, IDM_VIEW_OPENLINK, pMessageWindow_);
 	CHECK_QSTATUS();
 	status = InitAction1<ViewSelectModeAction, MessageWindow*>(
 		pActionMap_, IDM_VIEW_SELECTMODE, pMessageWindow_);
@@ -402,35 +398,11 @@ Account* qm::MessageFrameWindowImpl::getCurrentAccount() const
 	return pViewModel ? 0 : pMessageModel->getCurrentAccount();
 }
 
-QSTATUS qm::MessageFrameWindowImpl::setCurrentAccount(Account* pAccount)
-{
-	assert(false);
-	return QSTATUS_FAIL;
-}
-
 Folder* qm::MessageFrameWindowImpl::getCurrentFolder() const
 {
 	MessageModel* pMessageModel = pThis_->getMessageModel();
 	ViewModel* pViewModel = pMessageModel->getViewModel();
 	return pViewModel ? pViewModel->getFolder() : 0;
-}
-
-QSTATUS qm::MessageFrameWindowImpl::setCurrentFolder(Folder* pFolder)
-{
-	assert(false);
-	return QSTATUS_FAIL;
-}
-
-QSTATUS qm::MessageFrameWindowImpl::addFolderModelHandler(FolderModelHandler* pHandler)
-{
-	assert(false);
-	return QSTATUS_FAIL;
-}
-
-QSTATUS qm::MessageFrameWindowImpl::removeFolderModelHandler(FolderModelHandler* pHandler)
-{
-	assert(false);
-	return QSTATUS_FAIL;
 }
 
 QSTATUS qm::MessageFrameWindowImpl::getSelectedMessages(

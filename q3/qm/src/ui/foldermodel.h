@@ -1,5 +1,5 @@
 /*
- * $Id: foldermodel.h,v 1.1.1.1 2003/04/29 08:07:32 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -19,8 +19,9 @@
 
 namespace qm {
 
-class FolderModel;
-	class DefaultFolderModel;
+class FolderModelBase;
+	class FolderModel;
+		class DefaultFolderModel;
 class FolderModelHandler;
 	class DelayedFolderModelHandler;
 class FolderModelEvent;
@@ -31,20 +32,37 @@ class Folder;
 
 /****************************************************************************
  *
+ * FolderModelBase
+ *
+ */
+
+class FolderModelBase
+{
+public:
+	virtual ~FolderModelBase();
+
+public:
+	virtual Account* getCurrentAccount() const = 0;
+	virtual Folder* getCurrentFolder() const = 0;
+};
+
+
+/****************************************************************************
+ *
  * FolderModel
  *
  */
 
-class FolderModel
+class FolderModel : public FolderModelBase
 {
 public:
 	virtual ~FolderModel();
 
 public:
-	virtual Account* getCurrentAccount() const = 0;
-	virtual qs::QSTATUS setCurrentAccount(Account* pAccount) = 0;
-	virtual Folder* getCurrentFolder() const = 0;
-	virtual qs::QSTATUS setCurrentFolder(Folder* pFolder) = 0;
+//	virtual Account* getCurrentAccount() const = 0;
+	virtual qs::QSTATUS setCurrentAccount(Account* pAccount, bool bDelay) = 0;
+//	virtual Folder* getCurrentFolder() const = 0;
+	virtual qs::QSTATUS setCurrentFolder(Folder* pFolder, bool bDelay) = 0;
 	virtual qs::QSTATUS addFolderModelHandler(FolderModelHandler* pHandler) = 0;
 	virtual qs::QSTATUS removeFolderModelHandler(FolderModelHandler* pHandler) = 0;
 };
@@ -64,15 +82,15 @@ public:
 
 public:
 	virtual Account* getCurrentAccount() const;
-	virtual qs::QSTATUS setCurrentAccount(Account* pAccount);
+	virtual qs::QSTATUS setCurrentAccount(Account* pAccount, bool bDelay);
 	virtual Folder* getCurrentFolder() const;
-	virtual qs::QSTATUS setCurrentFolder(Folder* pFolder);
+	virtual qs::QSTATUS setCurrentFolder(Folder* pFolder, bool bDelay);
 	virtual qs::QSTATUS addFolderModelHandler(FolderModelHandler* pHandler);
 	virtual qs::QSTATUS removeFolderModelHandler(FolderModelHandler* pHandler);
 
 private:
-	qs::QSTATUS fireAccountSelected(Account* pAccount) const;
-	qs::QSTATUS fireFolderSelected(Folder* pFolder) const;
+	qs::QSTATUS fireAccountSelected(Account* pAccount, bool bDelay) const;
+	qs::QSTATUS fireFolderSelected(Folder* pFolder, bool bDelay) const;
 
 private:
 	DefaultFolderModel(const DefaultFolderModel&);
@@ -158,13 +176,14 @@ private:
 class FolderModelEvent
 {
 public:
-	FolderModelEvent(Account* pAccount);
-	FolderModelEvent(Folder* pFolder);
+	FolderModelEvent(Account* pAccount, bool bDelay);
+	FolderModelEvent(Folder* pFolder, bool bDelay);
 	~FolderModelEvent();
 
 public:
 	Account* getAccount() const;
 	Folder* getFolder() const;
+	bool isDelay() const;
 
 private:
 	FolderModelEvent(const FolderModelEvent&);
@@ -173,6 +192,7 @@ private:
 private:
 	Account* pAccount_;
 	Folder* pFolder_;
+	bool bDelay_;
 };
 
 }

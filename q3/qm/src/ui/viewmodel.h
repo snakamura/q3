@@ -433,6 +433,7 @@ public:
 	FilterManager* getFilterManager() const;
 	
 	ViewModel* getCurrentViewModel() const;
+	qs::QSTATUS getViewModel(Folder* pFolder, ViewModel** ppViewModel);
 	
 	qs::QSTATUS save() const;
 	
@@ -445,7 +446,6 @@ public:
 
 private:
 	qs::QSTATUS setCurrentFolder(Folder* pFolder);
-	qs::QSTATUS getViewModel(Folder* pFolder, ViewModel** ppViewModel);
 	qs::QSTATUS setCurrentViewModel(ViewModel* pViewModel);
 	qs::QSTATUS getProfile(Folder* pFolder, qs::Profile** ppProfile);
 

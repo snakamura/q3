@@ -120,6 +120,7 @@ class TempFileCleaner;
 class Template;
 class TemplateMenu;
 class View;
+class ViewModel;
 class ViewModelManager;
 
 
@@ -856,7 +857,7 @@ class MessageApplyTemplateAction : public qs::AbstractAction
 {
 public:
 	MessageApplyTemplateAction(TemplateMenu* pTemplateMenu,
-		Document* pDocument, FolderModel* pFolderModel,
+		Document* pDocument, FolderModelBase* pFolderModel,
 		MessageSelectionModel* pMessageSelectionModel,
 		EditFrameWindowManager* pEditFrameWindowManager,
 		ExternalEditorManager* pExternalEditorManager, HWND hwnd,
@@ -886,7 +887,7 @@ private:
 class MessageCreateAction : public qs::AbstractAction
 {
 public:
-	MessageCreateAction(Document* pDocument, FolderModel* pFolderModel,
+	MessageCreateAction(Document* pDocument, FolderModelBase* pFolderModel,
 		MessageSelectionModel* pMessageSelectionModel,
 		const WCHAR* pwszTemplateName,
 		EditFrameWindowManager* pEditFrameWindowManager,
@@ -904,7 +905,7 @@ private:
 
 private:
 	TemplateProcessor processor_;
-	FolderModel* pFolderModel_;
+	FolderModelBase* pFolderModel_;
 	qs::WSTRING wstrTemplateName_;
 };
 
@@ -1567,8 +1568,7 @@ public:
 
 public:
 	ViewNavigateMessageAction(ViewModelManager* pViewModelManager,
-		MessageWindow* pMessageWindow, Type type, qs::QSTATUS* pstatus);
-	ViewNavigateMessageAction(MessageWindow* pMessageWindow,
+		FolderModel* pFolderModel, MessageWindow* pMessageWindow,
 		Type type, qs::QSTATUS* pstatus);
 	virtual ~ViewNavigateMessageAction();
 
@@ -1577,11 +1577,16 @@ public:
 	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
 
 private:
+	qs::QSTATUS getNextUnseen(ViewModel* pViewModel, unsigned int nIndex,
+		bool bIncludeSelf, ViewModel** ppViewModel, unsigned int* pnIndex) const;
+
+private:
 	ViewNavigateMessageAction(const ViewNavigateMessageAction&);
 	ViewNavigateMessageAction& operator=(const ViewNavigateMessageAction&);
 
 private:
 	ViewModelManager* pViewModelManager_;
+	FolderModel* pFolderModel_;
 	MessageWindow* pMessageWindow_;
 	Type type_;
 };

@@ -1,5 +1,5 @@
 /*
- * $Id: foldermodel.cpp,v 1.1.1.1 2003/04/29 08:07:32 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -16,6 +16,17 @@
 
 using namespace qm;
 using namespace qs;
+
+
+/****************************************************************************
+ *
+ * FolderModelBase
+ *
+ */
+
+qm::FolderModelBase::~FolderModelBase()
+{
+}
 
 
 /****************************************************************************
@@ -52,7 +63,7 @@ Account* qm::DefaultFolderModel::getCurrentAccount() const
 	return pCurrentAccount_;
 }
 
-QSTATUS qm::DefaultFolderModel::setCurrentAccount(Account* pAccount)
+QSTATUS qm::DefaultFolderModel::setCurrentAccount(Account* pAccount, bool bDelay)
 {
 	assert(pAccount);
 	
@@ -62,7 +73,7 @@ QSTATUS qm::DefaultFolderModel::setCurrentAccount(Account* pAccount)
 		pCurrentAccount_ = pAccount;
 		pCurrentFolder_ = 0;
 		
-		status = fireAccountSelected(pAccount);
+		status = fireAccountSelected(pAccount, bDelay);
 		CHECK_QSTATUS();
 	}
 	
@@ -74,7 +85,7 @@ Folder* qm::DefaultFolderModel::getCurrentFolder() const
 	return pCurrentFolder_;
 }
 
-QSTATUS qm::DefaultFolderModel::setCurrentFolder(Folder* pFolder)
+QSTATUS qm::DefaultFolderModel::setCurrentFolder(Folder* pFolder, bool bDelay)
 {
 	assert(pFolder);
 	
@@ -84,7 +95,7 @@ QSTATUS qm::DefaultFolderModel::setCurrentFolder(Folder* pFolder)
 		pCurrentAccount_ = 0;
 		pCurrentFolder_ = pFolder;
 		
-		status = fireFolderSelected(pFolder);
+		status = fireFolderSelected(pFolder, bDelay);
 		CHECK_QSTATUS();
 	}
 	
@@ -104,13 +115,14 @@ QSTATUS qm::DefaultFolderModel::removeFolderModelHandler(FolderModelHandler* pHa
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::DefaultFolderModel::fireAccountSelected(Account* pAccount) const
+QSTATUS qm::DefaultFolderModel::fireAccountSelected(
+	Account* pAccount, bool bDelay) const
 {
 	assert(pAccount);
 	
 	DECLARE_QSTATUS();
 	
-	FolderModelEvent event(pAccount);
+	FolderModelEvent event(pAccount, bDelay);
 	
 	HandlerList::const_iterator it = listHandler_.begin();
 	while (it != listHandler_.end()) {
@@ -122,13 +134,14 @@ QSTATUS qm::DefaultFolderModel::fireAccountSelected(Account* pAccount) const
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::DefaultFolderModel::fireFolderSelected(Folder* pFolder) const
+QSTATUS qm::DefaultFolderModel::fireFolderSelected(
+	Folder* pFolder, bool bDelay) const
 {
 	assert(pFolder);
 	
 	DECLARE_QSTATUS();
 	
-	FolderModelEvent event(pFolder);
+	FolderModelEvent event(pFolder, bDelay);
 	
 	HandlerList::const_iterator it = listHandler_.begin();
 	while (it != listHandler_.end()) {
@@ -180,13 +193,19 @@ qm::DelayedFolderModelHandler::~DelayedFolderModelHandler()
 QSTATUS qm::DelayedFolderModelHandler::accountSelected(
 	const FolderModelEvent& event)
 {
-	return set(event.getAccount(), 0);
+	if (event.isDelay())
+		return set(event.getAccount(), 0);
+	else
+		return pHandler_->accountSelected(event);
 }
 
 QSTATUS qm::DelayedFolderModelHandler::folderSelected(
 	const FolderModelEvent& event)
 {
-	return set(0, event.getFolder());
+	if (event.isDelay())
+		return set(0, event.getFolder());
+	else
+		return pHandler_->folderSelected(event);
 }
 
 QSTATUS qm::DelayedFolderModelHandler::timerTimeout(unsigned int nId)
@@ -199,11 +218,13 @@ QSTATUS qm::DelayedFolderModelHandler::timerTimeout(unsigned int nId)
 	pTimer_->killTimer(nTimerId_);
 	
 	if (pAccount_) {
-		status = pHandler_->accountSelected(FolderModelEvent(pAccount_));
+		status = pHandler_->accountSelected(
+			FolderModelEvent(pAccount_, false));
 		CHECK_QSTATUS();
 	}
 	else {
-		status = pHandler_->folderSelected(FolderModelEvent(pFolder_));
+		status = pHandler_->folderSelected(
+			FolderModelEvent(pFolder_, false));
 		CHECK_QSTATUS();
 	}
 	
@@ -231,15 +252,17 @@ QSTATUS qm::DelayedFolderModelHandler::set(Account* pAccount, Folder* pFolder)
  *
  */
 
-qm::FolderModelEvent::FolderModelEvent(Account* pAccount) :
+qm::FolderModelEvent::FolderModelEvent(Account* pAccount, bool bDelay) :
 	pAccount_(pAccount),
-	pFolder_(0)
+	pFolder_(0),
+	bDelay_(bDelay)
 {
 }
 
-qm::FolderModelEvent::FolderModelEvent(Folder* pFolder) :
+qm::FolderModelEvent::FolderModelEvent(Folder* pFolder, bool bDelay) :
 	pAccount_(0),
-	pFolder_(pFolder)
+	pFolder_(pFolder),
+	bDelay_(bDelay)
 {
 }
 
@@ -255,4 +278,9 @@ Account* qm::FolderModelEvent::getAccount() const
 Folder* qm::FolderModelEvent::getFolder() const
 {
 	return pFolder_;
+}
+
+bool qm::FolderModelEvent::isDelay() const
+{
+	return bDelay_;
 }

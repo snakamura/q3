@@ -1644,6 +1644,37 @@ ViewModel* qm::ViewModelManager::getCurrentViewModel() const
 	return pCurrentViewModel_;
 }
 
+QSTATUS qm::ViewModelManager::getViewModel(
+	Folder* pFolder, ViewModel** ppViewModel)
+{
+	assert(pFolder);
+	assert(ppViewModel);
+	
+	DECLARE_QSTATUS();
+	
+	*ppViewModel = 0;
+	
+	ViewModelList::iterator it = std::find_if(listViewModel_.begin(),
+		listViewModel_.end(), ViewModelFolderComp(pFolder));
+	if (it == listViewModel_.end()) {
+		Profile* pProfile = 0;
+		status = getProfile(pFolder, &pProfile);
+		CHECK_QSTATUS();
+		std::auto_ptr<ViewModel> pViewModel;
+		status = newQsObject(pFolder, pProfile, pDocument_,
+			hwnd_, pColorManager_, &pViewModel);
+		CHECK_QSTATUS();
+		STLWrapper<ViewModelList>(listViewModel_).push_back(pViewModel.get());
+		CHECK_QSTATUS();
+		*ppViewModel = pViewModel.release();
+	}
+	else {
+		*ppViewModel = *it;
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::ViewModelManager::save() const
 {
 	DECLARE_QSTATUS();
@@ -1703,37 +1734,6 @@ QSTATUS qm::ViewModelManager::setCurrentFolder(Folder* pFolder)
 	}
 	status = setCurrentViewModel(pViewModel);
 	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::ViewModelManager::getViewModel(
-	Folder* pFolder, ViewModel** ppViewModel)
-{
-	assert(pFolder);
-	assert(ppViewModel);
-	
-	DECLARE_QSTATUS();
-	
-	*ppViewModel = 0;
-	
-	ViewModelList::iterator it = std::find_if(listViewModel_.begin(),
-		listViewModel_.end(), ViewModelFolderComp(pFolder));
-	if (it == listViewModel_.end()) {
-		Profile* pProfile = 0;
-		status = getProfile(pFolder, &pProfile);
-		CHECK_QSTATUS();
-		std::auto_ptr<ViewModel> pViewModel;
-		status = newQsObject(pFolder, pProfile, pDocument_,
-			hwnd_, pColorManager_, &pViewModel);
-		CHECK_QSTATUS();
-		STLWrapper<ViewModelList>(listViewModel_).push_back(pViewModel.get());
-		CHECK_QSTATUS();
-		*ppViewModel = pViewModel.release();
-	}
-	else {
-		*ppViewModel = *it;
-	}
 	
 	return QSTATUS_SUCCESS;
 }

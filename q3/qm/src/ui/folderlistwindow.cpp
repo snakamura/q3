@@ -150,7 +150,7 @@ QSTATUS qm::FolderListWindowImpl::open(int nItem)
 	
 	Folder* pFolder = getFolder(nItem);
 	if (UIUtil::isShowFolder(pFolder)) {
-		status = pFolderModel_->setCurrentFolder(pFolder);
+		status = pFolderModel_->setCurrentFolder(pFolder, false);
 		CHECK_QSTATUS();
 	}
 	
