@@ -294,7 +294,7 @@
 		<menuitem text="&amp;Rename..." action="FolderRename"/>
 		<menuitem text="&amp;Update" action="FolderUpdate"/>
 		<separator/>
-		<menuitem text="&amp;Emptry" action="FolderEmpty"/>
+		<menuitem text="&amp;Empty" action="FolderEmpty"/>
 		<menuitem text="Empty &amp;Trash" action="FolderEmptyTrash"/>
 		<separator/>
 		<menuitem text="&amp;Show Size" action="FolderShowSize"/>
@@ -307,7 +307,7 @@
 		<menuitem text="&amp;Rename..." action="FolderRename"/>
 		<menuitem text="&amp;Update" action="FolderUpdate"/>
 		<separator/>
-		<menuitem text="&amp;Emptry" action="FolderEmpty"/>
+		<menuitem text="&amp;Empty" action="FolderEmpty"/>
 		<separator/>
 		<menuitem text="&amp;Show Size" action="FolderShowSize"/>
 		<separator/>

@@ -281,7 +281,7 @@
 		<menuitem text="Rename..." action="FolderRename"/>
 		<menuitem text="Update" action="FolderUpdate"/>
 		<separator/>
-		<menuitem text="Emptry" action="FolderEmpty"/>
+		<menuitem text="Empty" action="FolderEmpty"/>
 		<separator/>
 		<menuitem text="Show Size" action="FolderShowSize"/>
 		<separator/>
