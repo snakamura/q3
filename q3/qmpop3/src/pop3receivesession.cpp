@@ -162,6 +162,9 @@ QSTATUS qmpop3::Pop3ReceiveSession::selectFolder(NormalFolder* pFolder)
 	status = prepare();
 	CHECK_QSTATUS();
 	
+	status = downloadReservedMessages();
+	CHECK_QSTATUS();
+	
 	pFolder_ = pFolder;
 	
 	return QSTATUS_SUCCESS;
@@ -385,7 +388,7 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadMessages(
 
 QSTATUS qmpop3::Pop3ReceiveSession::applyOfflineJobs()
 {
-	return downloadReservedMessages();
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qmpop3::Pop3ReceiveSession::prepare()
