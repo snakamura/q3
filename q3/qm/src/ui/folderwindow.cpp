@@ -82,8 +82,8 @@ public:
 	virtual LRESULT onNotify(NMHDR* pnmhdr, bool* pbHandled);
 
 public:
-	virtual QSTATUS accountListChanged(
-		const AccountListChangedEvent& event);
+	virtual qs::QSTATUS offlineStatusChanged(const DocumentEvent& event);
+	virtual QSTATUS accountListChanged(const AccountListChangedEvent& event);
 
 public:
 	virtual QSTATUS folderListChanged(const FolderListChangedEvent& event);
@@ -287,6 +287,28 @@ LRESULT qm::FolderWindowImpl::onNotify(NMHDR* pnmhdr, bool* pbHandled)
 		HANDLE_NOTIFY(TVN_SELCHANGED, nId_, onSelChanged)
 	END_NOTIFY_HANDLER()
 	return 1;
+}
+
+QSTATUS qm::FolderWindowImpl::offlineStatusChanged(const DocumentEvent& event)
+{
+	DECLARE_QSTATUS();
+	
+	UINT nState = pDocument_->isOffline() ? 0 : TVIS_BOLD;
+	
+	HWND hwnd = pThis_->getHandle();
+	HTREEITEM hItem = TreeView_GetRoot(hwnd);
+	while (hItem) {
+		TVITEM item = {
+			TVIF_STATE,
+			hItem,
+			nState,
+			TVIS_BOLD
+		};
+		TreeView_SetItem(hwnd, &item);
+		hItem = TreeView_GetNextSibling(hwnd, hItem);
+	}
+	
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::FolderWindowImpl::accountListChanged(
