@@ -397,7 +397,7 @@ QSTATUS qm::MainWindowImpl::initActions()
 		pActionMap_, IDM_MESSAGE_DRAFTFROMCLIPBOARD, true,
 		pDocument_, pProfile_, pThis_->getHandle(), pFolderModel_);
 	CHECK_QSTATUS();
-	status = InitActionRange3<MessageExecuteAttachmentAction,
+	status = InitActionRange3<MessageOpenAttachmentAction,
 		Profile*, AttachmentMenu*, TempFileCleaner*>(
 		pActionMap_, IDM_MESSAGE_ATTACHMENT, IDM_MESSAGE_ATTACHMENT + 100,
 		pProfile_, pAttachmentMenu_, pTempFileCleaner_);

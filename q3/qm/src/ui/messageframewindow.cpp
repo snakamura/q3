@@ -203,7 +203,7 @@ QSTATUS qm::MessageFrameWindowImpl::initActions()
 	status = InitAction2<MessageDetachAction, Profile*, MessageSelectionModel*>(
 		pActionMap_, IDM_MESSAGE_DETACH, pProfile_, this);
 	CHECK_QSTATUS();
-	status = InitActionRange3<MessageExecuteAttachmentAction,
+	status = InitActionRange3<MessageOpenAttachmentAction,
 		Profile*, AttachmentMenu*, TempFileCleaner*>(
 		pActionMap_, IDM_MESSAGE_ATTACHMENT, IDM_MESSAGE_ATTACHMENT + 100,
 		pProfile_, pAttachmentMenu_, pTempFileCleaner_);

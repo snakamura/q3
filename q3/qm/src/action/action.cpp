@@ -1914,111 +1914,6 @@ QSTATUS qm::MessageDetachAction::isEnabled(const ActionEvent& event, bool* pbEna
 
 /****************************************************************************
  *
- * MessageExecuteAttachmentAction
- *
- */
-
-qm::MessageExecuteAttachmentAction::MessageExecuteAttachmentAction(
-	Profile* pProfile, AttachmentMenu* pAttachmentMenu,
-	TempFileCleaner* pTempFileCleaner, QSTATUS* pstatus) :
-	pProfile_(pProfile),
-	pAttachmentMenu_(pAttachmentMenu),
-	pTempFileCleaner_(pTempFileCleaner)
-{
-}
-
-qm::MessageExecuteAttachmentAction::~MessageExecuteAttachmentAction()
-{
-}
-
-QSTATUS qm::MessageExecuteAttachmentAction::invoke(const ActionEvent& event)
-{
-	DECLARE_QSTATUS();
-	
-	Message msg(&status);
-	CHECK_QSTATUS();
-	string_ptr<WSTRING> wstrName;
-	const Part* pPart = 0;
-	status = pAttachmentMenu_->getPart(event.getId(), &msg, &wstrName, &pPart);
-	CHECK_QSTATUS();
-	
-	AttachmentParser parser(*pPart);
-	DetachCallbackImpl callback;
-	const WCHAR* pwszTempDir =
-		Application::getApplication().getTemporaryFolder();
-	string_ptr<WSTRING> wstrPath;
-	status = parser.detach(pwszTempDir, wstrName.get(), &callback, &wstrPath);
-	CHECK_QSTATUS();
-	
-	if (wstrPath.get()) {
-		status = pTempFileCleaner_->add(wstrPath.get());
-		CHECK_QSTATUS();
-		
-		bool bOpenWithEditor = (event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0;
-		if (!bOpenWithEditor) {
-			const WCHAR* p = wcsrchr(wstrPath.get(), L'.');
-			if (p) {
-				++p;
-				
-				string_ptr<WSTRING> wstrExtensions;
-				status = pProfile_->getString(L"Global", L"WarnExtensions",
-					L"exe com pif bat scr htm html hta vbs js", &wstrExtensions);
-				CHECK_QSTATUS();
-				if (wcsstr(wstrExtensions.get(), p)) {
-					int nMsg = 0;
-					status = messageBox(
-						Application::getApplication().getResourceHandle(),
-						IDS_CONFIRMEXECUTEATTACHMENT,
-						MB_YESNO | MB_DEFBUTTON2 | MB_ICONWARNING, &nMsg);
-					CHECK_QSTATUS();
-					if (nMsg != IDYES)
-						return QSTATUS_SUCCESS;
-				}
-			}
-		}
-		
-		W2T(wstrPath.get(), ptszPath);
-		
-		string_ptr<TSTRING> tstrEditor;
-		if (bOpenWithEditor) {
-			string_ptr<WSTRING> wstrEditor;
-			status = pProfile_->getString(L"Global", L"Editor", L"", &wstrEditor);
-			CHECK_QSTATUS();
-			tstrEditor.reset(wcs2tcs(wstrEditor.get()));
-			if (!tstrEditor.get())
-				return QSTATUS_OUTOFMEMORY;
-		}
-		
-		SHELLEXECUTEINFO sei = {
-			sizeof(sei),
-			0,
-			getMainWindow()->getHandle(),
-			0,
-			0,
-			0,
-			0,
-			SW_SHOW
-		};
-		if (bOpenWithEditor) {
-			sei.lpFile = tstrEditor.get();
-			sei.lpParameters = ptszPath;
-		}
-		else {
-			sei.lpFile = ptszPath;
-		}
-		if (!::ShellExecuteEx(&sei)) {
-			status = messageBox(Application::getApplication().getResourceHandle(),
-				IDS_ERROR_EXECUTEATTACHMENT);
-			CHECK_QSTATUS();
-		}
-	}
-	
-	return QSTATUS_SUCCESS;
-}
-
-
-/****************************************************************************
- *
  * MessageMarkAction
  *
  */
@@ -2129,6 +2024,111 @@ QSTATUS qm::MessageMoveOtherAction::isEnabled(
 {
 	assert(pbEnabled);
 	return pModel_->hasSelectedMessage(pbEnabled);
+}
+
+
+/****************************************************************************
+ *
+ * MessageOpenAttachmentAction
+ *
+ */
+
+qm::MessageOpenAttachmentAction::MessageOpenAttachmentAction(
+	Profile* pProfile, AttachmentMenu* pAttachmentMenu,
+	TempFileCleaner* pTempFileCleaner, QSTATUS* pstatus) :
+	pProfile_(pProfile),
+	pAttachmentMenu_(pAttachmentMenu),
+	pTempFileCleaner_(pTempFileCleaner)
+{
+}
+
+qm::MessageOpenAttachmentAction::~MessageOpenAttachmentAction()
+{
+}
+
+QSTATUS qm::MessageOpenAttachmentAction::invoke(const ActionEvent& event)
+{
+	DECLARE_QSTATUS();
+	
+	Message msg(&status);
+	CHECK_QSTATUS();
+	string_ptr<WSTRING> wstrName;
+	const Part* pPart = 0;
+	status = pAttachmentMenu_->getPart(event.getId(), &msg, &wstrName, &pPart);
+	CHECK_QSTATUS();
+	
+	AttachmentParser parser(*pPart);
+	DetachCallbackImpl callback;
+	const WCHAR* pwszTempDir =
+		Application::getApplication().getTemporaryFolder();
+	string_ptr<WSTRING> wstrPath;
+	status = parser.detach(pwszTempDir, wstrName.get(), &callback, &wstrPath);
+	CHECK_QSTATUS();
+	
+	if (wstrPath.get()) {
+		status = pTempFileCleaner_->add(wstrPath.get());
+		CHECK_QSTATUS();
+		
+		bool bOpenWithEditor = (event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0;
+		if (!bOpenWithEditor) {
+			const WCHAR* p = wcsrchr(wstrPath.get(), L'.');
+			if (p) {
+				++p;
+				
+				string_ptr<WSTRING> wstrExtensions;
+				status = pProfile_->getString(L"Global", L"WarnExtensions",
+					L"exe com pif bat scr htm html hta vbs js", &wstrExtensions);
+				CHECK_QSTATUS();
+				if (wcsstr(wstrExtensions.get(), p)) {
+					int nMsg = 0;
+					status = messageBox(
+						Application::getApplication().getResourceHandle(),
+						IDS_CONFIRMEXECUTEATTACHMENT,
+						MB_YESNO | MB_DEFBUTTON2 | MB_ICONWARNING, &nMsg);
+					CHECK_QSTATUS();
+					if (nMsg != IDYES)
+						return QSTATUS_SUCCESS;
+				}
+			}
+		}
+		
+		W2T(wstrPath.get(), ptszPath);
+		
+		string_ptr<TSTRING> tstrEditor;
+		if (bOpenWithEditor) {
+			string_ptr<WSTRING> wstrEditor;
+			status = pProfile_->getString(L"Global", L"Editor", L"", &wstrEditor);
+			CHECK_QSTATUS();
+			tstrEditor.reset(wcs2tcs(wstrEditor.get()));
+			if (!tstrEditor.get())
+				return QSTATUS_OUTOFMEMORY;
+		}
+		
+		SHELLEXECUTEINFO sei = {
+			sizeof(sei),
+			0,
+			getMainWindow()->getHandle(),
+			0,
+			0,
+			0,
+			0,
+			SW_SHOW
+		};
+		if (bOpenWithEditor) {
+			sei.lpFile = tstrEditor.get();
+			sei.lpParameters = ptszPath;
+		}
+		else {
+			sei.lpFile = ptszPath;
+		}
+		if (!::ShellExecuteEx(&sei)) {
+			status = messageBox(Application::getApplication().getResourceHandle(),
+				IDS_ERROR_EXECUTEATTACHMENT);
+			CHECK_QSTATUS();
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
 }
 
 

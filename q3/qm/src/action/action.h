@@ -49,10 +49,10 @@ class MessageApplyTemplateAction;
 class MessageCreateAction;
 class MessageCreateFromClipboardAction;
 class MessageDetachAction;
-class MessageExecuteAttachmentAction;
 class MessageMarkAction;
 class MessageMoveAction;
 class MessageMoveOtherAction;
+class MessageOpenAttachmentAction;
 class MessagePropertyAction;
 class ToolAccountAction;
 class ToolDialupAction;
@@ -896,30 +896,6 @@ private:
 
 /****************************************************************************
  *
- * MessageExecuteAttachmentAction
- *
- */
-
-class MessageExecuteAttachmentAction : public qs::AbstractAction
-{
-public:
-	MessageExecuteAttachmentAction(
-		qs::Profile* pProfile, AttachmentMenu* pAttachmentMenu,
-		TempFileCleaner* pTempFileCleaner, qs::QSTATUS* pstatus);
-	virtual ~MessageExecuteAttachmentAction();
-
-public:
-	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
-
-private:
-	qs::Profile* pProfile_;
-	AttachmentMenu* pAttachmentMenu_;
-	TempFileCleaner* pTempFileCleaner_;
-};
-
-
-/****************************************************************************
- *
  * MessageMarkAction
  *
  */
@@ -995,6 +971,30 @@ private:
 
 private:
 	MessageSelectionModel* pModel_;
+};
+
+
+/****************************************************************************
+ *
+ * MessageOpenAttachmentAction
+ *
+ */
+
+class MessageOpenAttachmentAction : public qs::AbstractAction
+{
+public:
+	MessageOpenAttachmentAction(qs::Profile* pProfile,
+		AttachmentMenu* pAttachmentMenu, TempFileCleaner* pTempFileCleaner,
+		qs::QSTATUS* pstatus);
+	virtual ~MessageOpenAttachmentAction();
+
+public:
+	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+
+private:
+	qs::Profile* pProfile_;
+	AttachmentMenu* pAttachmentMenu_;
+	TempFileCleaner* pTempFileCleaner_;
 };
 
 
