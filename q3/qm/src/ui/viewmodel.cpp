@@ -960,6 +960,9 @@ QSTATUS qm::ViewModel::messageAdded(const FolderEvent& event)
 		}
 		assert(listItem_.empty() || (listItem_[nFocused_]->getFlags() & FLAG_FOCUSED));
 		
+		if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
+			++nUnseenCount_;
+		
 		status = fireItemAdded(nPos);
 		CHECK_QSTATUS();
 	}
@@ -975,7 +978,9 @@ QSTATUS qm::ViewModel::messageRemoved(const FolderEvent& event)
 	
 	Lock<ViewModel> lock(*this);
 	
-	unsigned int nIndex = getIndex(event.getMessageHolder());
+	MessageHolder* pmh = event.getMessageHolder();
+	
+	unsigned int nIndex = getIndex(pmh);
 	if (nIndex != static_cast<unsigned int>(-1)) {
 		ItemList::iterator it = listItem_.begin() + nIndex;
 		
@@ -1058,6 +1063,9 @@ QSTATUS qm::ViewModel::messageRemoved(const FolderEvent& event)
 			status = sort(nSort_, true, false);
 			CHECK_QSTATUS();
 		}
+		
+		if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
+			--nUnseenCount_;
 		
 		status = fireItemRemoved(nIndex);
 		CHECK_QSTATUS();
