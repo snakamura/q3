@@ -131,6 +131,7 @@ public:
 	
 	HFONT hfont_;
 	int nLineHeight_;
+	bool bSingleClickOpen_;
 	ListHeaderColumn* pHeaderColumn_;
 	HIMAGELIST hImageList_;
 	HIMAGELIST hImageListData_;
@@ -774,6 +775,12 @@ qm::ListWindow::ListWindow(ViewModelManager* pViewModelManager,
 	WindowBase(true),
 	pImpl_(0)
 {
+#ifdef _WIN32_WCE_PSPC
+	bool bSingleClickOpen = true;
+#else
+	bool bSingleClickOpen = false;
+#endif
+	
 	pImpl_ = new ListWindowImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->pProfile_ = pProfile;
@@ -783,6 +790,7 @@ qm::ListWindow::ListWindow(ViewModelManager* pViewModelManager,
 	pImpl_->pViewModelManager_ = pViewModelManager;
 	pImpl_->hfont_ = 0;
 	pImpl_->nLineHeight_ = 0;
+	pImpl_->bSingleClickOpen_ = pProfile->getInt(L"ListWindow", L"SingleClickOpen", bSingleClickOpen) != 0;
 	pImpl_->pHeaderColumn_ = 0;
 	pImpl_->hImageList_ = 0;
 	pImpl_->hImageListData_ = 0;
@@ -1186,15 +1194,17 @@ LRESULT qm::ListWindow::onKillFocus(HWND hwnd)
 LRESULT qm::ListWindow::onLButtonDblClk(UINT nFlags,
 										const POINT& pt)
 {
-	ViewModel* pViewModel = pImpl_->pViewModelManager_->getCurrentViewModel();
-	if (pViewModel) {
-		Lock<ViewModel> lock(*pViewModel);
-		
-		unsigned int nLine = pImpl_->getLineFromPoint(pt);
-		if (nLine != static_cast<unsigned int>(-1)) {
-			if (!pImpl_->pMessageFrameWindowManager_->open(
-				pViewModel, pViewModel->getMessageHolder(nLine))) {
-				// TODO MSG
+	if (!pImpl_->bSingleClickOpen_) {
+		ViewModel* pViewModel = pImpl_->pViewModelManager_->getCurrentViewModel();
+		if (pViewModel) {
+			Lock<ViewModel> lock(*pViewModel);
+			
+			unsigned int nLine = pImpl_->getLineFromPoint(pt);
+			if (nLine != static_cast<unsigned int>(-1)) {
+				if (!pImpl_->pMessageFrameWindowManager_->open(
+					pViewModel, pViewModel->getMessageHolder(nLine))) {
+					// TODO MSG
+				}
 			}
 		}
 	}
@@ -1255,12 +1265,14 @@ LRESULT qm::ListWindow::onLButtonDown(UINT nFlags,
 			if (tapAndHold(pt))
 				return 0;
 			bTapAndHold = true;
-			
-			if (!pImpl_->pMessageFrameWindowManager_->open(
-				pViewModel, pViewModel->getMessageHolder(nLine))) {
-				// TODO MSG
-			}
 #endif
+			
+			if (pImpl_->bSingleClickOpen_) {
+				if (!pImpl_->pMessageFrameWindowManager_->open(
+					pViewModel, pViewModel->getMessageHolder(nLine))) {
+					// TODO MSG
+				}
+			}
 		}
 	}
 	
