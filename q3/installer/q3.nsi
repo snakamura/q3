@@ -215,7 +215,7 @@ Function MailBoxFolder
   !insertmacro MUI_HEADER_TEXT "Choose Mailbox Location" "Choose the folder in which to store mail data."
   ReadRegStr $MAILBOX_FOLDER HKCU "Software\sn\q3\Setting" "MailFolder"
   StrCmp $MAILBOX_FOLDER "" +1 +2
-    StrCpy $MAILBOX_FOLDER "$APPDATA\mail"
+    StrCpy $MAILBOX_FOLDER "$APPDATA\QMAIL3"
   !insertmacro MUI_INSTALLOPTIONS_WRITE "mailbox.ini" "Field 2" "State" "$MAILBOX_FOLDER"
   !insertmacro MUI_INSTALLOPTIONS_DISPLAY "mailbox.ini"
   !insertmacro MUI_INSTALLOPTIONS_READ $MAILBOX_FOLDER "mailbox.ini" "Field 2" "State"

@@ -152,7 +152,7 @@ int qm::main(const WCHAR* pwszCommandLine)
 					if (pfn) {
 						WCHAR wszAppDir[MAX_PATH];
 						if ((*pfn)(0, wszAppDir, CSIDL_APPDATA, TRUE))
-							wstrMailFolder = concat(wszAppDir, L"\\mail");
+							wstrMailFolder = concat(wszAppDir, L"\\QMAIL3");
 					}
 				}
 #endif
