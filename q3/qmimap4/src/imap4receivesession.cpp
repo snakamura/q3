@@ -334,7 +334,7 @@ bool qmimap4::Imap4ReceiveSession::updateMessages()
 			
 			virtual Result processFetchResponse(ResponseFetch* pFetch)
 			{
-				unsigned int nUid = 0;
+				unsigned int nUid = pFetch->getUid();
 				unsigned int nFlags = 0;
 				
 				int nCount = 0;
@@ -348,18 +348,18 @@ bool qmimap4::Imap4ReceiveSession::updateMessages()
 							static_cast<FetchDataFlags*>(*it)->getCustomFlags());
 						++nCount;
 						break;
-					case FetchData::TYPE_UID:
-						nUid = static_cast<FetchDataUid*>(*it)->getUid();
-						++nCount;
-						break;
 					default:
 						break;
 					}
 				}
 				
-				if (nCount == 2 && nUid <= nUidStart_) {
+				if (nCount == 1 && nUid != -1 && nUid <= nUidStart_) {
 					listFlag_.push_back(FlagList::value_type(nUid, nFlags));
-					pSessionCallback_->setPos(pFetch->getNumber());
+					
+					unsigned int nPos = pFetch->getNumber();
+					if (nPos % 10 == 0)
+						pSessionCallback_->setPos(nPos);
+					
 					nLastId_ = pFetch->getNumber();
 				}
 				
@@ -377,6 +377,7 @@ bool qmimap4::Imap4ReceiveSession::updateMessages()
 			ContinuousRange range(1, nUidStart_, true);
 			if (!pImap4_->getFlags(range))
 				HANDLE_ERROR();
+			pSessionCallback_->setPos(hook.nLastId_);
 		}
 		
 		bool bClear = false;
@@ -458,7 +459,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 		
 		virtual Result processFetchResponse(ResponseFetch* pFetch)
 		{
-			unsigned long nUid = 0;
+			unsigned long nUid = pFetch->getUid();
 			unsigned int nFlags = 0;
 			unsigned long nSize = static_cast<unsigned long>(-1);
 			FetchDataBodyStructure* pBodyStructure = 0;
@@ -470,10 +471,6 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			const ResponseFetch::FetchDataList& l = pFetch->getFetchDataList();
 			for (ResponseFetch::FetchDataList::const_iterator it = l.begin(); it != l.end(); ++it) {
 				switch ((*it)->getType()) {
-				case FetchData::TYPE_UID:
-					nUid = static_cast<FetchDataUid*>(*it)->getUid();
-					++nCount;
-					break;
 				case FetchData::TYPE_ENVELOPE:
 					if (nOption_ & OPTION_USEENVELOPE) {
 						strEnvelope = Util::getMessageFromEnvelope(
@@ -508,9 +505,9 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 				}
 			}
 			
-			const int nNeedCount = 4 + (nOption_ & OPTION_USEENVELOPE ? 1 : 0) +
+			const int nNeedCount = 3 + (nOption_ & OPTION_USEENVELOPE ? 1 : 0) +
 				(nOption_ & OPTION_USEBODYSTRUCTUREALWAYS ? 1 : 0);
-			if (nCount != nNeedCount || nUid < nUidStart_)
+			if (nCount != nNeedCount || nUid == -1 || nUid < nUidStart_)
 				return RESULT_UNPROCESSED;
 			
 			pSessionCallback_->setPos(pFetch->getNumber());

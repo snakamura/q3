@@ -1689,9 +1689,11 @@ unsigned long qmimap4::ResponseExpunge::getExpunge() const
  */
 
 qmimap4::ResponseFetch::ResponseFetch(unsigned long nNumber,
+									  unsigned long nUid,
 									  FetchDataList& listData) :
 	Response(TYPE_FETCH),
-	nNumber_(nNumber)
+	nNumber_(nNumber),
+	nUid_(nUid)
 {
 	listData_.swap(listData);
 }
@@ -1706,16 +1708,9 @@ unsigned long qmimap4::ResponseFetch::getNumber() const
 	return nNumber_;
 }
 
-bool qmimap4::ResponseFetch::isUid(unsigned long nUid) const
+unsigned long qmimap4::ResponseFetch::getUid() const
 {
-	FetchDataList::const_iterator it = listData_.begin();
-	while (it != listData_.end()) {
-		assert(*it);
-		if ((*it)->getType() == FetchData::TYPE_UID &&
-			static_cast<FetchDataUid*>(*it)->getUid() == nUid)
-			return true;
-	}
-	return false;
+	return nUid_;
 }
 
 const ResponseFetch::FetchDataList& qmimap4::ResponseFetch::getFetchDataList() const
@@ -1738,6 +1733,7 @@ FetchData* qmimap4::ResponseFetch::detach(FetchData* pFetchData)
 std::auto_ptr<ResponseFetch> qmimap4::ResponseFetch::create(unsigned long nNumber,
 															List* pList)
 {
+	unsigned long nUid = -1;
 	FetchDataList listData;
 	struct Deleter
 	{
@@ -1771,12 +1767,9 @@ std::auto_ptr<ResponseFetch> qmimap4::ResponseFetch::create(unsigned long nNumbe
 			
 			const CHAR* pszUid = static_cast<ListItemText*>(l[n + 1])->getText();
 			CHAR* pEnd = 0;
-			long nUid = strtol(pszUid, &pEnd, 10);
+			nUid = strtol(pszUid, &pEnd, 10);
 			if (*pEnd)
 				return std::auto_ptr<ResponseFetch>(0);
-			
-			std::auto_ptr<FetchDataUid> pUid(new FetchDataUid(nUid));
-			listData.push_back(pUid.release());
 		}
 		else if (_stricmp(strName.get(), "FLAGS") == 0) {
 			// FLAGS
@@ -1874,7 +1867,7 @@ std::auto_ptr<ResponseFetch> qmimap4::ResponseFetch::create(unsigned long nNumbe
 		}
 	}
 	
-	return std::auto_ptr<ResponseFetch>(new ResponseFetch(nNumber, listData));
+	return std::auto_ptr<ResponseFetch>(new ResponseFetch(nNumber, nUid, listData));
 }
 
 
@@ -3320,28 +3313,6 @@ qmimap4::FetchDataSize::~FetchDataSize()
 unsigned long qmimap4::FetchDataSize::getSize() const
 {
 	return nSize_;
-}
-
-
-/****************************************************************************
- *
- * FetchDataUid
- *
- */
-
-qmimap4::FetchDataUid::FetchDataUid(unsigned long nUid) :
-	FetchData(TYPE_UID),
-	nUid_(nUid)
-{
-}
-
-qmimap4::FetchDataUid::~FetchDataUid()
-{
-}
-
-unsigned long qmimap4::FetchDataUid::getUid() const
-{
-	return nUid_;
 }
 
 

@@ -363,7 +363,7 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 		
 		virtual bool processFetchResponse(ResponseFetch* pFetch)
 		{
-			unsigned int nUid = 0;
+			unsigned int nUid = pFetch->getUid();
 			FetchDataBody* pBody = 0;
 			unsigned int nMask = MessageHolder::FLAG_SEEN |
 				MessageHolder::FLAG_REPLIED | MessageHolder::FLAG_DRAFT |
@@ -374,9 +374,6 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 				switch ((*it)->getType()) {
 				case FetchData::TYPE_BODY:
 					pBody = static_cast<FetchDataBody*>(*it);
-					break;
-				case FetchData::TYPE_UID:
-					nUid = static_cast<FetchDataUid*>(*it)->getUid();
 					break;
 				case FetchData::TYPE_FLAGS:
 					pmh_->setFlags(Util::getMessageFlagsFromImap4Flags(
@@ -425,7 +422,7 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 		
 		virtual bool processFetchResponse(ResponseFetch* pFetch)
 		{
-			unsigned int nUid = 0;
+			unsigned int nUid = pFetch->getUid();
 			FetchDataBodyStructure* pBodyStructure = 0;
 			
 			const ResponseFetch::FetchDataList& l = pFetch->getFetchDataList();
@@ -433,9 +430,6 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 				switch ((*it)->getType()) {
 				case FetchData::TYPE_BODYSTRUCTURE:
 					pBodyStructure = static_cast<FetchDataBodyStructure*>(*it);
-					break;
-				case FetchData::TYPE_UID:
-					nUid = static_cast<FetchDataUid*>(*it)->getUid();
 					break;
 				}
 			}
@@ -476,7 +470,7 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 		
 		virtual bool processFetchResponse(ResponseFetch* pFetch)
 		{
-			unsigned int nUid = 0;
+			unsigned int nUid = pFetch->getUid();
 			BodyList listBody;
 			
 			unsigned int nMask = MessageHolder::FLAG_SEEN |
@@ -506,9 +500,6 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 						if (bAdd)
 							listBody.push_back(pBody);
 					}
-					break;
-				case FetchData::TYPE_UID:
-					nUid = static_cast<FetchDataUid*>(*it)->getUid();
 					break;
 				case FetchData::TYPE_FLAGS:
 					pmh_->setFlags(Util::getMessageFlagsFromImap4Flags(
@@ -990,7 +981,7 @@ qmimap4::Imap4Driver::FlagProcessHook::~FlagProcessHook()
 
 bool qmimap4::Imap4Driver::FlagProcessHook::processFetchResponse(ResponseFetch* pFetch)
 {
-	unsigned int nUid = 0;
+	unsigned int nUid = pFetch->getUid();
 	unsigned int nFlags = 0;
 	
 	int nCount = 0;
@@ -1004,14 +995,10 @@ bool qmimap4::Imap4Driver::FlagProcessHook::processFetchResponse(ResponseFetch* 
 				static_cast<FetchDataFlags*>(*it)->getCustomFlags());
 			++nCount;
 			break;
-		case FetchData::TYPE_UID:
-			nUid = static_cast<FetchDataUid*>(*it)->getUid();
-			++nCount;
-			break;
 		}
 	}
 	
-	if (nCount == 2) {
+	if (nUid != -1 && nCount == 1) {
 		MessagePtr ptr(pFolder_->getMessageById(nUid));
 		MessagePtrLock mpl(ptr);
 		if (mpl)

@@ -69,10 +69,8 @@ ProcessHook::Result qmimap4::AbstractMessageProcessHook::processFetchResponse(Re
 {
 	bool bHeader = isHeader();
 	
-	unsigned long nUid = 0;
+	unsigned long nUid = pFetch->getUid();
 	FetchDataBody* pBody = 0;
-	
-	int nCount = 0;
 	
 	const ResponseFetch::FetchDataList& l = pFetch->getFetchDataList();
 	for (ResponseFetch::FetchDataList::const_iterator it = l.begin(); it != l.end(); ++it) {
@@ -82,22 +80,16 @@ ProcessHook::Result qmimap4::AbstractMessageProcessHook::processFetchResponse(Re
 				FetchDataBody* p = static_cast<FetchDataBody*>(*it);
 				if (((bHeader && p->getSection() == FetchDataBody::SECTION_HEADER) ||
 					(!bHeader && p->getSection() == FetchDataBody::SECTION_NONE)) &&
-					p->getPartPath().empty()) {
+					p->getPartPath().empty())
 					pBody = p;
-					++nCount;
-				}
 			}
-			break;
-		case FetchData::TYPE_UID:
-			nUid = static_cast<FetchDataUid*>(*it)->getUid();
-			++nCount;
 			break;
 		default:
 			break;
 		}
 	}
 	
-	if (nCount != 2)
+	if (nUid == -1 || !pBody)
 		return RESULT_UNPROCESSED;
 	
 	MessagePtr ptr(getMessagePtr(nUid));
@@ -139,7 +131,7 @@ ProcessHook::Result qmimap4::AbstractPartialMessageProcessHook::processFetchResp
 {
 	const PartList& listPart = getPartList();
 	
-	unsigned long nUid = 0;
+	unsigned long nUid = pFetch->getUid();
 	BodyList listBody;
 	
 	const ResponseFetch::FetchDataList& l = pFetch->getFetchDataList();
@@ -166,15 +158,12 @@ ProcessHook::Result qmimap4::AbstractPartialMessageProcessHook::processFetchResp
 					listBody.push_back(pBody);
 			}
 			break;
-		case FetchData::TYPE_UID:
-			nUid = static_cast<FetchDataUid*>(*it)->getUid();
-			break;
 		default:
 			break;
 		}
 	}
 	
-	if (listBody.size() != getPartCount() || nUid == 0)
+	if (nUid == -1 || listBody.size() != getPartCount())
 		return RESULT_UNPROCESSED;
 	
 	MessagePtr ptr(getMessagePtr(nUid));
@@ -213,26 +202,19 @@ qmimap4::AbstractBodyStructureProcessHook::~AbstractBodyStructureProcessHook()
 
 ProcessHook::Result qmimap4::AbstractBodyStructureProcessHook::processFetchResponse(ResponseFetch* pFetch)
 {
-	unsigned long nUid = 0;
+	unsigned long nUid = pFetch->getUid();
 	FetchDataBodyStructure* pBodyStructure = 0;
-	
-	int nCount = 0;
 	
 	const ResponseFetch::FetchDataList& l = pFetch->getFetchDataList();
 	for (ResponseFetch::FetchDataList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		switch ((*it)->getType()) {
-		case FetchData::TYPE_UID:
-			nUid = static_cast<FetchDataUid*>(*it)->getUid();
-			++nCount;
-			break;
 		case FetchData::TYPE_BODYSTRUCTURE:
 			pBodyStructure = static_cast<FetchDataBodyStructure*>(*it);
-			++nCount;
 			break;
 		}
 	}
 	
-	if (nCount != 2)
+	if (nUid == -1 || !pBodyStructure)
 		return RESULT_UNPROCESSED;
 	
 	bool bSet = false;

@@ -51,7 +51,6 @@ class FetchData;
 	class FetchDataFlags;
 	class FetchDataInternalDate;
 	class FetchDataSize;
-	class FetchDataUid;
 class EnvelopeAddress;
 class ListItem;
 	class ListItemNil;
@@ -663,12 +662,13 @@ public:
 
 public:
 	ResponseFetch(unsigned long nNumber,
+				  unsigned long nUid,
 				  FetchDataList& listData);
 	virtual ~ResponseFetch();
 
 public:
 	unsigned long getNumber() const;
-	bool isUid(unsigned long nUid) const;
+	unsigned long getUid() const;
 	const FetchDataList& getFetchDataList() const;
 	FetchData* detach(FetchData* pFetchData);
 
@@ -682,6 +682,7 @@ private:
 
 private:
 	unsigned long nNumber_;
+	unsigned long nUid_;
 	FetchDataList listData_;
 };
 
@@ -956,8 +957,7 @@ public:
 		TYPE_ENVELOPE,
 		TYPE_FLAGS,
 		TYPE_INTERNALDATE,
-		TYPE_SIZE,
-		TYPE_UID
+		TYPE_SIZE
 	};
 
 public:
@@ -1244,30 +1244,6 @@ private:
 
 private:
 	unsigned long nSize_;
-};
-
-
-/****************************************************************************
- *
- * FetchDataUid
- *
- */
-
-class FetchDataUid : public FetchData
-{
-public:
-	FetchDataUid(unsigned long nUid);
-	virtual ~FetchDataUid();
-
-public:
-	unsigned long getUid() const;
-
-private:
-	FetchDataUid(const FetchDataUid&);
-	FetchDataUid& operator=(const FetchDataUid&);
-
-private:
-	unsigned long nUid_;
 };
 
 
