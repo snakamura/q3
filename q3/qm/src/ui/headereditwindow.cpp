@@ -564,10 +564,12 @@ void qm::TextHeaderEditItem::setEditMessage(EditMessage* pEditMessage,
 		Window(hwnd_).setWindowText(pwszValue);
 	}
 	else {
-		wstring_ptr wstrValue = pEditMessage->getField(wstrField_.get(),
-			static_cast<EditMessage::FieldType>(type_));
+		wstring_ptr wstrValue(pEditMessage->getField(wstrField_.get(),
+			static_cast<EditMessage::FieldType>(type_)));
 		if (wstrValue.get())
 			Window(hwnd_).setWindowText(wstrValue.get());
+		else
+			Window(hwnd_).setWindowText(L"");
 	}
 	
 	if (!bReset)

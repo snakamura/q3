@@ -158,14 +158,14 @@ bool qm::EditWindowImpl::updateEditMessage() const
 			nHeaderLen = p - wstrText.get() + 1;
 			pBody = p + 2;
 		}
-		if (!pEditMessage_->setHeader(wstrText.get(), nHeaderLen))
+		if (!pEditMessage_->setBodyPartHeader(wstrText.get(), nHeaderLen))
 			return false;
-		if (!pEditMessage_->setBody(pBody))
+		if (!pEditMessage_->setBodyPartBody(pBody, -1))
 			return false;
 	}
 	else {
 		pHeaderEditWindow_->updateEditMessage(pEditMessage_);
-		if (!pEditMessage_->setBody(wstrText.get()))
+		if (!pEditMessage_->setBodyPartBody(wstrText.get(), -1))
 			return false;
 	}
 	
@@ -282,16 +282,18 @@ bool qm::EditWindowImpl::setEditMessage(EditMessage* pEditMessage)
 	assert(pEditMessage);
 	assert(!pEditMessage_ || pEditMessage_ == pEditMessage);
 	
+	const WCHAR* pwszBody = pEditMessage->getBodyPartBody();
+	
 	EditableTextModel* pTextModel = pTextWindow_->getEditableTextModel();
 	if (bHeaderEdit_) {
-		wxstring_ptr wstrHeader(pEditMessage->getHeader());
+		wxstring_ptr wstrHeader(pEditMessage->getBodyPartHeader());
 		if (!wstrHeader.get())
 			return false;
 		
 		XStringBuffer<WXSTRING> buf;
 		if (!buf.append(wstrHeader.get()) ||
 			!buf.append(L"\n") ||
-			!buf.append(pEditMessage->getBody()))
+			!buf.append(pwszBody))
 			return false;
 		
 		if (!pTextModel->setText(buf.getCharArray(), buf.getLength()))
@@ -299,7 +301,8 @@ bool qm::EditWindowImpl::setEditMessage(EditMessage* pEditMessage)
 	}
 	else {
 		pHeaderEditWindow_->setEditMessage(pEditMessage, pEditMessage_ != 0);
-		if (!pTextModel->setText(pEditMessage->getBody(), -1))
+		
+		if (!pTextModel->setText(pwszBody, -1))
 			return false;
 		
 		if (!pEditMessage_)
@@ -499,7 +502,7 @@ bool qm::EditWindow::isHeaderEdit() const
 void qm::EditWindow::setHeaderEdit(bool bHeaderEdit)
 {
 	if (bHeaderEdit != pImpl_->bHeaderEdit_) {
-		Message* pMessage = pImpl_->pEditMessage_->getMessage();
+		pImpl_->pEditMessage_->update();
 		pImpl_->bHeaderEdit_ = bHeaderEdit;
 		pImpl_->setEditMessage(pImpl_->pEditMessage_);
 		pImpl_->layoutChildren();

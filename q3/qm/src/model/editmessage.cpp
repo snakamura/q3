@@ -50,6 +50,10 @@ qm::EditMessage::EditMessage(Profile* pProfile,
 	bEncrypt_(false),
 	bSign_(false)
 {
+#ifndef NDEBUG
+	bFixedUp_ = false;
+#endif
+	
 	bAutoReform_ = pProfile_->getInt(L"EditWindow", L"AutoReform", 1) != 0;
 }
 
@@ -72,10 +76,16 @@ bool qm::EditMessage::setMessage(std::auto_ptr<Message> pMessage)
 	clear();
 	
 	pBodyPart_ = getBodyPart(pMessage.get());
-	if (pBodyPart_)
-		wstrBody_ = pBodyPart_->getBodyText();
-	else
-		wstrBody_ = allocWXString(L"");
+	if (!pBodyPart_) {
+		if (!makeMultipartMixed())
+			return false;
+		
+		std::auto_ptr<Part> pBodyPart(new Part());
+		pBodyPart_ = pBodyPart.get();
+		pMessage_->insertPart(0, pBodyPart);
+	}
+	
+	wstrBody_ = pBodyPart_->getBodyText();
 	if (!wstrBody_.get())
 		return false;
 	
@@ -260,34 +270,79 @@ void qm::EditMessage::setField(const WCHAR* pwszName,
 		fireFieldChanged(pwszName, pwszValue);
 }
 
-wxstring_ptr qm::EditMessage::getHeader()
+wxstring_ptr qm::EditMessage::getMessageText()
 {
-	return PartUtil::a2w(pMessage_->getHeader());
+	// TODO
+	return 0;
 }
 
-bool qm::EditMessage::setHeader(const WCHAR* pwszHeader,
-								size_t nLen)
+bool qm::EditMessage::setMessageText(const WCHAR* pwszMessage,
+									 size_t nLen)
 {
-	assert(pwszHeader);
+	// TODO
+	return true;
+}
+
+wxstring_ptr qm::EditMessage::getBodyPartHeader()
+{
+	if (!applyFields())
+		return 0;
 	
-	Message msg;
-	if (!MessageCreator().createHeader(&msg, pwszHeader, nLen))
-		return false;
-	
-	if (!pMessage_->setHeader(msg.getHeader()))
-		return false;
+	if (pBodyPart_ == pMessage_.get()) {
+		return PartUtil::a2w(pMessage_->getHeader());
+	}
+	else {
+		std::auto_ptr<Part> pPart(new Part());
+		
+		PrefixFieldFilter contentFilter("content-");
+		if (!pPart->copyFields(*pBodyPart_, &contentFilter))
+			return 0;
+		
+		PrefixFieldFilter notContentFilter("content-", true);
+		if (!pPart->copyFields(*pMessage_.get(), &notContentFilter))
+			return 0;
+		
+		return PartUtil::a2w(pPart->getHeader());
+	}
+}
+
+bool qm::EditMessage::setBodyPartHeader(const WCHAR* pwszHeader,
+										size_t nLen)
+{
+	assert(pMessage_.get());
+	assert(pBodyPart_);
 	
 	clearFields();
+	
+	MessageCreator creator;
+	std::auto_ptr<Message> pMessage(creator.createMessage(pDocument_, pwszHeader, nLen));
+	if (!pMessage.get())
+		return false;
+	
+	if (pBodyPart_ == pMessage_.get()) {
+		if (!pMessage_->setHeader(pMessage->getHeader()))
+			return false;
+	}
+	else {
+		PrefixFieldFilter contentFilter("content-");
+		if (!pBodyPart_->copyFields(*pMessage.get(), &contentFilter))
+			return false;
+		
+		PrefixFieldFilter notContentFilter("content-", true);
+		if (!pMessage_->copyFields(*pMessage.get(), &notContentFilter))
+			return false;
+	}
 	
 	return true;
 }
 
-const WCHAR* qm::EditMessage::getBody() const
+const WCHAR* qm::EditMessage::getBodyPartBody() const
 {
 	return wstrBody_.get();
 }
 
-bool qm::EditMessage::setBody(const WCHAR* pwszBody)
+bool qm::EditMessage::setBodyPartBody(const WCHAR* pwszBody,
+									  size_t nLen)
 {
 	wstrBody_ = allocWXString(pwszBody);
 	return wstrBody_.get() != 0;
@@ -466,7 +521,12 @@ wstring_ptr qm::EditMessage::getSignatureText() const
 
 bool qm::EditMessage::fixup()
 {
+	assert(!bFixedUp_);
+	
 	fireMessageUpdate();
+	
+	// TODO
+	// Handle error cases so that a client can call this method again to fixup.
 	
 	if (bAutoReform_) {
 		int nLineLen = pProfile_->getInt(L"EditWindow", L"ReformLineLength", 74);
@@ -479,12 +539,22 @@ bool qm::EditMessage::fixup()
 		wstrBody_ = wstrBody;
 	}
 	
-	StringBuffer<WSTRING> buf(L"\n");
-	buf.append(wstrBody_.get());
+	if (!applyFields())
+		return false;
+	
+	wxstring_ptr wstrHeader(PartUtil::a2w(pBodyPart_->getHeader()));
+	
+	XStringBuffer<WSTRING> buf;
+	if (!buf.append(wstrHeader.get()) ||
+		!buf.append(L"\n") ||
+		!buf.append(wstrBody_.get()))
+		return false;
 	
 	wstring_ptr wstrSignature(getSignatureText());
-	if (wstrSignature.get())
-		buf.append(wstrSignature.get());
+	if (wstrSignature.get()) {
+		if (!buf.append(wstrSignature.get()))
+			return false;
+	}
 	
 	MessageCreator creator(MessageCreator::FLAG_ADDCONTENTTYPE |
 		MessageCreator::FLAG_EXPANDALIAS | MessageCreator::FLAG_ENCODETEXT);
@@ -493,61 +563,26 @@ bool qm::EditMessage::fixup()
 	if (!pBodyMessage.get())
 		return false;
 	
-	for (FieldList::iterator itF = listField_.begin(); itF != listField_.end(); ++itF) {
-		const Field& field = *itF;
-		if (field.wstrValue_ && *field.wstrValue_) {
-			struct Type
-			{
-				FieldType fieldType_;
-				MessageCreator::FieldType type_;
-			} types[] = {
-				{ FIELDTYPE_UNSTRUCTURED,	MessageCreator::FIELDTYPE_SINGLEUNSTRUCTURED	},
-				{ FIELDTYPE_ADDRESSLIST,	MessageCreator::FIELDTYPE_ADDRESSLIST			}
-			};
-			
-			MessageCreator::FieldType type;
-			int n = 0;
-			while (n < countof(types)) {
-				if (types[n].fieldType_ == field.type_) {
-					type = types[n].type_;
-					break;
-				}
-				++n;
-			}
-			assert(n != countof(types));
-			if (!MessageCreator::setField(pMessage_.get(),
-				field.wstrName_, field.wstrValue_, type))
+	assert(pBodyPart_);
+	
+	PrefixFieldFilter filter("content-");
+	if (!pBodyPart_->copyFields(*pBodyMessage.get(), &filter))
+		return false;
+	
+	if (pBodyMessage->isMultipart()) {
+		pBodyPart_->setBody(0);
+		
+		const Part::PartList& l = pBodyMessage->getPartList();
+		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			std::auto_ptr<Part> pPartClone((*it)->clone());
+			if (!pPartClone.get())
 				return false;
+			pBodyPart_->addPart(pPartClone);
 		}
 	}
-	
-	Part* pBodyPart = pBodyPart_;
-	std::auto_ptr<Part> pTempPart;
-	if (!pBodyPart) {
-		pTempPart.reset(new Part());
-		pBodyPart = pTempPart.get();
-	}
-	
-	ContentTypeParser contentType;
-	if (pBodyMessage->getField(L"Content-Type", &contentType) != Part::FIELD_EXIST)
-		return false;
-	if (!pBodyPart->replaceField(L"Content-Type", contentType))
-		return false;
-	ContentTransferEncodingParser contentTransferEncoding;
-	if (pBodyMessage->getField(L"Content-Transfer-Encoding", &contentTransferEncoding) != Part::FIELD_EXIST)
-		return false;
-	if (!pBodyPart->replaceField(L"Content-Transfer-Encoding", contentTransferEncoding))
-		return false;
-	if (!pBodyPart->setBody(pBodyMessage->getBody(), -1))
-		return false;
-	
-	if (!pBodyPart_) {
-		assert(pBodyPart == pTempPart.get());
-		
-		if (!makeMultipartMixed())
+	else {
+		if (!pBodyPart_->setBody(pBodyMessage->getBody(), -1))
 			return false;
-		pMessage_->insertPart(0, pTempPart);
-		pBodyPart_ = pBodyPart;
 	}
 	
 	if (!listAttachmentPath_.empty()) {
@@ -575,6 +610,10 @@ bool qm::EditMessage::fixup()
 	if (!pMessage_->replaceField(L"MIME-Version", mimeVersion))
 		return false;
 	
+#ifndef NDEBUG
+	bFixedUp_ = true;
+#endif
+	
 	return true;
 }
 
@@ -592,6 +631,55 @@ void qm::EditMessage::clear()
 	listAttachmentPath_.clear();
 	
 	wstrSignature_.reset(0);
+}
+
+bool qm::EditMessage::applyFields()
+{
+	assert(pMessage_.get());
+	assert(pBodyPart_);
+	
+	for (FieldList::iterator it = listField_.begin(); it != listField_.end(); ) {
+		Field& field = *it;
+		
+		Part* pPart = pMessage_.get();
+		if (wcslen(field.wstrName_) > 8 && wcsnicmp(field.wstrName_, L"content-", 8) == 0)
+			pPart = pBodyPart_;
+		
+		if (field.wstrValue_ && *field.wstrValue_) {
+			struct Type
+			{
+				FieldType fieldType_;
+				MessageCreator::FieldType type_;
+			} types[] = {
+				{ FIELDTYPE_UNSTRUCTURED,	MessageCreator::FIELDTYPE_SINGLEUNSTRUCTURED	},
+				{ FIELDTYPE_ADDRESSLIST,	MessageCreator::FIELDTYPE_ADDRESSLIST			}
+			};
+			
+			MessageCreator::FieldType type;
+			int n = 0;
+			while (n < countof(types)) {
+				if (types[n].fieldType_ == field.type_) {
+					type = types[n].type_;
+					break;
+				}
+				++n;
+			}
+			assert(n != countof(types));
+			
+			if (!MessageCreator::setField(pPart, field.wstrName_, field.wstrValue_, type))
+				return false;
+			
+			freeWString(field.wstrName_);
+			freeWString(field.wstrValue_);
+		}
+		else {
+			pPart->removeField(field.wstrName_);
+		}
+		
+		it = listField_.erase(it);
+	}
+	
+	return true;
 }
 
 void qm::EditMessage::clearFields()
@@ -646,15 +734,8 @@ void qm::EditMessage::removePart(qs::Part* pPart)
 	}
 	else {
 		assert(!pBodyPart_);
-		const WCHAR* pwszFields[] = {
-			L"Content-Type",
-			L"Content-Transfer-Encoding",
-			L"Content-ID",
-			L"Content-Disposition",
-			L"Content-Description"
-		};
-		for (int n = 0; n < countof(pwszFields); ++n)
-			pMessage_->removeField(pwszFields[n]);
+		PrefixFieldFilter filter("content-");
+		pMessage_->removeFields(&filter);
 		pMessage_->setBody("", 0);
 		pBodyPart_ = pMessage_.get();
 	}
@@ -687,7 +768,8 @@ bool qm::EditMessage::normalize(Part* pPart)
 bool qm::EditMessage::makeMultipartMixed()
 {
 	const ContentTypeParser* pContentType = pMessage_->getContentType();
-	if (wcsicmp(pContentType->getMediaType(), L"multipart") != 0 ||
+	if (!pContentType ||
+		wcsicmp(pContentType->getMediaType(), L"multipart") != 0 ||
 		wcsicmp(pContentType->getSubType(), L"mixed") != 0) {
 		std::auto_ptr<Message> pMessage(new Message());
 		if (!MessageCreator::makeMultipart(pMessage.get(), pMessage_))

@@ -112,11 +112,15 @@ public:
 	void setField(const WCHAR* pwszName,
 				  const WCHAR* pwszValue,
 				  FieldType type);
-	qs::wxstring_ptr getHeader();
-	bool setHeader(const WCHAR* pwszHeader,
-				   size_t nLen);
-	const WCHAR* getBody() const;
-	bool setBody(const WCHAR* pwszBody);
+	qs::wxstring_ptr getMessageText();
+	bool setMessageText(const WCHAR* pwszMessage,
+						size_t nLen);
+	qs::wxstring_ptr getBodyPartHeader();
+	bool setBodyPartHeader(const WCHAR* pwszHeader,
+						   size_t nLen);
+	const WCHAR* getBodyPartBody() const;
+	bool setBodyPartBody(const WCHAR* pwszBody,
+						 size_t nLen);
 	void getAttachments(AttachmentList* pList) const;
 	void setAttachments(const AttachmentList& listAttachment);
 	void addAttachment(const WCHAR* pwszPath);
@@ -140,6 +144,7 @@ public:
 private:
 	bool fixup();
 	void clear();
+	bool applyFields();
 	void clearFields();
 	qs::Part* getBodyPart(qs::Part* pPart) const;
 	void removePart(qs::Part* pPart);
@@ -189,6 +194,9 @@ private:
 	bool bEncrypt_;
 	bool bSign_;
 	HandlerList listHandler_;
+#ifndef NDEBUG
+	bool bFixedUp_;
+#endif
 };
 
 
