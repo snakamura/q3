@@ -876,6 +876,22 @@ std::auto_ptr<Macro> qm::MacroParser::parse(const WCHAR* pwszMacro,
 	
 	typedef std::vector<MacroFunction*> FunctionStack;
 	FunctionStack stackFunction;
+	struct Deleter
+	{
+		typedef std::vector<MacroFunction*> FunctionStack;
+		
+		Deleter(FunctionStack& stack) :
+			stack_(stack)
+		{
+		}
+		
+		~Deleter()
+		{
+			std::for_each(stack_.begin(), stack_.end(), deleter<MacroFunction>());
+		}
+		
+		FunctionStack& stack_;
+	} deleter(stackFunction);
 	
 	bool bEnd = false;
 	while (!bEnd) {
