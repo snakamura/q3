@@ -633,9 +633,15 @@ void qm::ListWindowImpl::dragGestureRecognized(const DragGestureEvent& event)
 	p->AddRef();
 	ComPtr<IDataObject> pDataObject(p.release());
 	
+	HIMAGELIST hImageList = ImageList_Duplicate(hImageList_);
+	ImageList_BeginDrag(hImageList, 0, 0, 0);
+	
 	DragSource source;
 	source.setDragSourceHandler(this);
 	source.startDrag(event, pDataObject.get(), DROPEFFECT_COPY | DROPEFFECT_MOVE);
+	
+	ImageList_EndDrag();
+	ImageList_Destroy(hImageList);
 }
 
 void qm::ListWindowImpl::dragDropEnd(const DragSourceDropEvent& event)
@@ -672,16 +678,26 @@ void qm::ListWindowImpl::dragEnter(const DropTargetDragEvent& event)
 #endif
 	
 	event.setEffect(bCanDrop_ ? DROPEFFECT_COPY : DROPEFFECT_NONE);
+	
+	POINT pt = event.getPoint();
+	pThis_->screenToClient(&pt);
+	ImageList_DragEnter(pThis_->getHandle(), pt.x, pt.y);
 }
 
 void qm::ListWindowImpl::dragOver(const DropTargetDragEvent& event)
 {
 	event.setEffect(bCanDrop_ ? DROPEFFECT_COPY : DROPEFFECT_NONE);
+	
+	POINT pt = event.getPoint();
+	pThis_->screenToClient(&pt);
+	ImageList_DragMove(pt.x, pt.y);
 }
 
 void qm::ListWindowImpl::dragExit(const DropTargetEvent& event)
 {
 	bCanDrop_ = false;
+	
+	ImageList_DragLeave(pThis_->getHandle());
 }
 
 void qm::ListWindowImpl::drop(const DropTargetDropEvent& event)
@@ -738,6 +754,8 @@ void qm::ListWindowImpl::drop(const DropTargetDropEvent& event)
 #endif
 		}
 	}
+	
+	ImageList_DragLeave(pThis_->getHandle());
 }
 
 int qm::ListWindowImpl::getMessageImage(MessageHolder* pmh,

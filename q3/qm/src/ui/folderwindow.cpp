@@ -142,12 +142,15 @@ private:
 	void removeAccount(Account* pAccount);
 	void insertFolders(HTREEITEM hItem,
 					   Account* pAccount);
-	int getFolderImage(Folder* pFolder,
-					   bool bSelected,
-					   bool bExpanded) const;
-	int getAccountImage(Account* pAccount,
-						bool bSelected,
-						bool bExpanded) const;
+	void processDragEvent(const DropTargetDragEvent& event);
+
+private:
+	static int getFolderImage(Folder* pFolder,
+							  bool bSelected,
+							  bool bExpanded);
+	static int getAccountImage(Account* pAccount,
+							   bool bSelected,
+							   bool bExpanded);
 	
 public:
 	FolderWindow* pThis_;
@@ -525,109 +528,42 @@ void qm::FolderWindowImpl::dragEnter(const DropTargetDragEvent& event)
 	hItemDragOver_ = 0;
 	dwDragOverLastChangedTime_ = 0;
 	
-	dragOver(event);
+	processDragEvent(event);
+	
+	POINT pt = event.getPoint();
+	pThis_->screenToClient(&pt);
+	ImageList_DragEnter(pThis_->getHandle(), pt.x, pt.y);
 }
 
 void qm::FolderWindowImpl::dragOver(const DropTargetDragEvent& event)
 {
+	processDragEvent(event);
+	
 	POINT pt = event.getPoint();
 	pThis_->screenToClient(&pt);
-	TVHITTESTINFO info = {
-		{ pt.x, pt.y },
-	};
-	HTREEITEM hItem = TreeView_HitTest(pThis_->getHandle(), &info);
-	HTREEITEM hSelectItem = 0;
-	
-	DWORD dwEffect = DROPEFFECT_NONE;
-	
-	IDataObject* pDataObject = event.getDataObject();
-	if (MessageDataObject::canPasteMessage(pDataObject)) {
-		if (hItem && TreeView_GetParent(pThis_->getHandle(), hItem)) {
-			Folder* pFolder = getFolder(hItem);
-			if (pFolder->getType() == Folder::TYPE_NORMAL &&
-				!pFolder->isFlag(Folder::FLAG_NOSELECT)) {
-				DWORD dwKeyState = event.getKeyState();
-				if (dwKeyState & MK_CONTROL) {
-					dwEffect = DROPEFFECT_COPY;
-				}
-				else if (dwKeyState & MK_SHIFT) {
-					dwEffect = DROPEFFECT_MOVE;
-				}
-				else {
-					MessageDataObject::Flag flag =
-						MessageDataObject::getPasteFlag(pDataObject,
-							pDocument_, static_cast<NormalFolder*>(pFolder));
-					dwEffect = flag == MessageDataObject::FLAG_COPY ?
-						DROPEFFECT_COPY : DROPEFFECT_MOVE;
-				}
-				
-				hSelectItem = hItem;
-			}
-		}
-	}
-	else if (FolderDataObject::canPasteFolder(pDataObject)) {
-		if (hItem) {
-			Account* pAccount = 0;
-			Folder* pTarget = 0;
-			if (TreeView_GetParent(pThis_->getHandle(), hItem)) {
-				pTarget = getFolder(hItem);
-				pAccount = pTarget->getAccount();
-			}
-			else {
-				pAccount = getAccount(hItem);
-			}
-			
-			Folder* pFolder = FolderDataObject::getFolder(pDataObject, pDocument_);
-			if (pFolder && pFolder->getAccount() == pAccount &&
-				(!pTarget || !pFolder->isAncestorOf(pTarget)))
-				dwEffect = DROPEFFECT_MOVE;
-		}
-		
-		hSelectItem = hItem;
-	}
-	event.setEffect(dwEffect);
-	
-	TreeView_SelectDropTarget(pThis_->getHandle(), hSelectItem);
-	
-	RECT rect;
-	pThis_->getClientRect(&rect);
-	if (pt.y < rect.top + 30)
-		pThis_->sendMessage(WM_VSCROLL, MAKEWPARAM(SB_LINEUP, 0), 0);
-	else if (pt.y > rect.bottom - 30)
-		pThis_->sendMessage(WM_VSCROLL, MAKEWPARAM(SB_LINEDOWN, 0), 0);
-	if (pt.x < rect.left + 30)
-		pThis_->sendMessage(WM_HSCROLL, MAKEWPARAM(SB_LEFT, 0), 0);
-	else if (pt.x > rect.right - 30)
-		pThis_->sendMessage(WM_HSCROLL, MAKEWPARAM(SB_RIGHT, 0), 0);
-	
-	if (hItem && (info.flags & TVHT_ONITEMBUTTON || info.flags & TVHT_ONITEMICON)) {
-		if (hItemDragOver_ != hItem) {
-			hItemDragOver_ = hItem;
-			dwDragOverLastChangedTime_ = ::GetTickCount();
-		}
-		else if (dwDragOverLastChangedTime_ != -1 &&
-			::GetTickCount() - dwDragOverLastChangedTime_ > nDragOpenWait_) {
-			TreeView_Expand(pThis_->getHandle(), hItem, TVE_TOGGLE);
-			dwDragOverLastChangedTime_ = -1;
-		}
-	}
-	else {
-		hItemDragOver_ = 0;
-		dwDragOverLastChangedTime_ = 0;
-	}
+	ImageList_DragMove(pt.x, pt.y);
 }
 
 void qm::FolderWindowImpl::dragExit(const DropTargetEvent& event)
 {
+	ImageList_DragShowNolock(FALSE);
 	TreeView_SelectDropTarget(pThis_->getHandle(), 0);
+	ImageList_DragShowNolock(TRUE);
 	
 	hItemDragOver_ = 0;
 	dwDragOverLastChangedTime_ = 0;
+	
+	ImageList_DragLeave(pThis_->getHandle());
 }
 
 void qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
 {
-	dragExit(event);
+	ImageList_DragShowNolock(FALSE);
+	TreeView_SelectDropTarget(pThis_->getHandle(), 0);
+	ImageList_DragShowNolock(TRUE);
+	
+	hItemDragOver_ = 0;
+	dwDragOverLastChangedTime_ = 0;
 	
 	POINT pt = event.getPoint();
 	pThis_->screenToClient(&pt);
@@ -690,6 +626,8 @@ void qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
 			}
 		}
 	}
+	
+	ImageList_DragLeave(pThis_->getHandle());
 }
 
 LRESULT qm::FolderWindowImpl::onRClick(NMHDR* pnmhdr,
@@ -722,10 +660,16 @@ LRESULT qm::FolderWindowImpl::onBeginDrag(NMHDR* pnmhdr,
 	p->AddRef();
 	ComPtr<IDataObject> pDataObject(p.release());
 	
+	HIMAGELIST hImageList = TreeView_CreateDragImage(pThis_->getHandle(), hItem);
+	ImageList_BeginDrag(hImageList, 0, 0, 0);
+	
 	DragSource source;
 	source.setDragSourceHandler(this);
 	DragGestureEvent event(pThis_->getHandle(), pnmtv->ptDrag);
 	source.startDrag(event, pDataObject.get(), DROPEFFECT_MOVE);
+	
+	ImageList_EndDrag();
+	ImageList_Destroy(hImageList);
 	
 	return 0;
 }
@@ -956,9 +900,101 @@ void qm::FolderWindowImpl::insertFolders(HTREEITEM hItem,
 	}
 }
 
+void qm::FolderWindowImpl::processDragEvent(const DropTargetDragEvent& event)
+{
+	POINT pt = event.getPoint();
+	pThis_->screenToClient(&pt);
+	TVHITTESTINFO info = {
+		{ pt.x, pt.y },
+	};
+	HTREEITEM hItem = TreeView_HitTest(pThis_->getHandle(), &info);
+	HTREEITEM hSelectItem = 0;
+	
+	DWORD dwEffect = DROPEFFECT_NONE;
+	
+	IDataObject* pDataObject = event.getDataObject();
+	if (MessageDataObject::canPasteMessage(pDataObject)) {
+		if (hItem && TreeView_GetParent(pThis_->getHandle(), hItem)) {
+			Folder* pFolder = getFolder(hItem);
+			if (pFolder->getType() == Folder::TYPE_NORMAL &&
+				!pFolder->isFlag(Folder::FLAG_NOSELECT)) {
+				DWORD dwKeyState = event.getKeyState();
+				if (dwKeyState & MK_CONTROL) {
+					dwEffect = DROPEFFECT_COPY;
+				}
+				else if (dwKeyState & MK_SHIFT) {
+					dwEffect = DROPEFFECT_MOVE;
+				}
+				else {
+					MessageDataObject::Flag flag =
+						MessageDataObject::getPasteFlag(pDataObject,
+							pDocument_, static_cast<NormalFolder*>(pFolder));
+					dwEffect = flag == MessageDataObject::FLAG_COPY ?
+						DROPEFFECT_COPY : DROPEFFECT_MOVE;
+				}
+				
+				hSelectItem = hItem;
+			}
+		}
+	}
+	else if (FolderDataObject::canPasteFolder(pDataObject)) {
+		if (hItem) {
+			Account* pAccount = 0;
+			Folder* pTarget = 0;
+			if (TreeView_GetParent(pThis_->getHandle(), hItem)) {
+				pTarget = getFolder(hItem);
+				pAccount = pTarget->getAccount();
+			}
+			else {
+				pAccount = getAccount(hItem);
+			}
+			
+			Folder* pFolder = FolderDataObject::getFolder(pDataObject, pDocument_);
+			if (pFolder && pFolder->getAccount() == pAccount &&
+				(!pTarget || !pFolder->isAncestorOf(pTarget)))
+				dwEffect = DROPEFFECT_MOVE;
+		}
+		
+		hSelectItem = hItem;
+	}
+	event.setEffect(dwEffect);
+	
+	ImageList_DragShowNolock(FALSE);
+	TreeView_SelectDropTarget(pThis_->getHandle(), hSelectItem);
+	
+	RECT rect;
+	pThis_->getClientRect(&rect);
+	if (pt.y < rect.top + 30)
+		pThis_->sendMessage(WM_VSCROLL, MAKEWPARAM(SB_LINEUP, 0), 0);
+	else if (pt.y > rect.bottom - 30)
+		pThis_->sendMessage(WM_VSCROLL, MAKEWPARAM(SB_LINEDOWN, 0), 0);
+	if (pt.x < rect.left + 30)
+		pThis_->sendMessage(WM_HSCROLL, MAKEWPARAM(SB_LEFT, 0), 0);
+	else if (pt.x > rect.right - 30)
+		pThis_->sendMessage(WM_HSCROLL, MAKEWPARAM(SB_RIGHT, 0), 0);
+	
+	if (hItem && (info.flags & TVHT_ONITEMBUTTON || info.flags & TVHT_ONITEMICON)) {
+		if (hItemDragOver_ != hItem) {
+			hItemDragOver_ = hItem;
+			dwDragOverLastChangedTime_ = ::GetTickCount();
+		}
+		else if (dwDragOverLastChangedTime_ != -1 &&
+			::GetTickCount() - dwDragOverLastChangedTime_ > nDragOpenWait_) {
+			TreeView_Expand(pThis_->getHandle(), hItem, TVE_TOGGLE);
+			dwDragOverLastChangedTime_ = -1;
+		}
+	}
+	else {
+		hItemDragOver_ = 0;
+		dwDragOverLastChangedTime_ = 0;
+	}
+	
+	ImageList_DragShowNolock(TRUE);
+}
+
 int qm::FolderWindowImpl::getFolderImage(Folder* pFolder,
 										 bool bSelected,
-										 bool bExpanded) const
+										 bool bExpanded)
 {
 	int nImage = UIUtil::getFolderImage(pFolder, bSelected);
 	bool bUnseen = false;
@@ -978,7 +1014,7 @@ int qm::FolderWindowImpl::getFolderImage(Folder* pFolder,
 
 int qm::FolderWindowImpl::getAccountImage(Account* pAccount,
 										  bool bSelected,
-										  bool bExpanded) const
+										  bool bExpanded)
 {
 	bool bUnseen = false;
 	

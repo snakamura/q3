@@ -344,19 +344,27 @@ void qm::EditWindowImpl::dragEnter(const DropTargetDragEvent& event)
 {
 	IDataObject* pDataObject = event.getDataObject();
 	bCanDrop_ = UIUtil::hasFilesOrURIs(pDataObject);
-	if (bCanDrop_)
-		event.setEffect(DROPEFFECT_COPY);
+	event.setEffect(bCanDrop_ ? DROPEFFECT_COPY : DROPEFFECT_NONE);
+	
+	POINT pt = event.getPoint();
+	pThis_->screenToClient(&pt);
+	ImageList_DragEnter(pThis_->getHandle(), pt.x, pt.y);
 }
 
 void qm::EditWindowImpl::dragOver(const DropTargetDragEvent& event)
 {
-	if (bCanDrop_) 
-		event.setEffect(DROPEFFECT_COPY);
+	event.setEffect(bCanDrop_ ? DROPEFFECT_COPY : DROPEFFECT_NONE);
+	
+	POINT pt = event.getPoint();
+	pThis_->screenToClient(&pt);
+	ImageList_DragMove(pt.x, pt.y);
 }
 
 void qm::EditWindowImpl::dragExit(const DropTargetEvent& event)
 {
 	bCanDrop_ = false;
+	
+	ImageList_DragLeave(pThis_->getHandle());
 }
 
 void qm::EditWindowImpl::drop(const DropTargetDropEvent& event)
@@ -368,6 +376,8 @@ void qm::EditWindowImpl::drop(const DropTargetDropEvent& event)
 	UIUtil::getFilesOrURIs(pDataObject, &listPath);
 	for (UIUtil::PathList::const_iterator it = listPath.begin(); it != listPath.end(); ++it)
 		pEditMessage_->addAttachment(*it);
+	
+	ImageList_DragLeave(pThis_->getHandle());
 }
 
 

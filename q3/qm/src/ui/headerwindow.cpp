@@ -779,9 +779,14 @@ LRESULT qm::AttachmentHeaderItem::onBeginDrag(NMHDR* pnmhdr,
 	URIDataObject::URIList listURI;
 	
 	HWND hwnd = wnd_.getHandle();
-	int nItem = ListView_GetNextItem(hwnd, -1, LVNI_ALL | LVNI_SELECTED);
+	int nFirstItem = ListView_GetNextItem(hwnd, -1, LVNI_ALL | LVNI_SELECTED);
+	int nItem = nFirstItem;
 	while (nItem != -1) {
-		LVITEM item = { LVIF_PARAM, nItem, 0 };
+		LVITEM item = {
+			LVIF_PARAM,
+			nItem,
+			0
+		};
 		ListView_GetItem(hwnd, &item);
 		listURI.push_back(new URI(*reinterpret_cast<URI*>(item.lParam)));
 		nItem = ListView_GetNextItem(hwnd, nItem, LVNI_ALL | LVNI_SELECTED);
@@ -792,10 +797,17 @@ LRESULT qm::AttachmentHeaderItem::onBeginDrag(NMHDR* pnmhdr,
 	p->AddRef();
 	ComPtr<IDataObject> pDataObject(p.release());
 	
+	POINT pt;
+	HIMAGELIST hImageList = ListView_CreateDragImage(hwnd, nFirstItem, &pt);
+	ImageList_BeginDrag(hImageList, 0, pnmlv->ptAction.x - pt.x, pnmlv->ptAction.y - pt.y);
+	
 	DragSource source;
 	source.setDragSourceHandler(this);
 	DragGestureEvent event(wnd_.getHandle(), pnmlv->ptAction);
 	source.startDrag(event, pDataObject.get(), DROPEFFECT_COPY);
+	
+	ImageList_EndDrag();
+	ImageList_Destroy(hImageList);
 	
 	return 0;
 }
