@@ -7,6 +7,7 @@
  */
 
 #include <qmprotocoldriver.h>
+#include <qmsession.h>
 
 #include <qsassert.h>
 #include <qsstl.h>
