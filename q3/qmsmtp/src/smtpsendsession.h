@@ -53,7 +53,7 @@ private:
 private:
 	class CallbackImpl :
 		public qs::SocketCallback,
-		public qs::SSLSocketCallback,
+		public qm::DefaultSSLSocketCallback,
 		public SmtpCallback
 	{
 	public:
@@ -72,11 +72,6 @@ private:
 		virtual qs::QSTATUS connected();
 	
 	public:
-		virtual qs::QSTATUS getCertStore(const qs::Store** ppStore);
-		virtual qs::QSTATUS checkCertificate(
-			const qs::Certificate& cert, bool bVerified);
-	
-	public:
 		virtual qs::QSTATUS getUserInfo(qs::WSTRING* pwstrUserName,
 			qs::WSTRING* pwstrPassword);
 		virtual qs::QSTATUS setPassword(const WCHAR* pwszPassword);
@@ -93,7 +88,6 @@ private:
 	
 	private:
 		qm::SubAccount* pSubAccount_;
-		const qm::Security* pSecurity_;
 		qm::SendSessionCallback* pSessionCallback_;
 	};
 

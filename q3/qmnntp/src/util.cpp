@@ -124,45 +124,14 @@ QSTATUS qmnntp::Util::reportError(Nntp* pNntp,
 
 qmnntp::AbstractCallback::AbstractCallback(SubAccount* pSubAccount,
 	const Security* pSecurity, QSTATUS* pstatus) :
-	pSubAccount_(pSubAccount),
-	pSecurity_(pSecurity)
+	DefaultSSLSocketCallback(pSubAccount, Account::HOST_RECEIVE, pSecurity),
+	pSubAccount_(pSubAccount)
 {
 	*pstatus = QSTATUS_SUCCESS;
 }
 
 qmnntp::AbstractCallback::~AbstractCallback()
 {
-}
-
-QSTATUS qmnntp::AbstractCallback::getCertStore(const Store** ppStore)
-{
-	assert(ppStore);
-	*ppStore = pSecurity_->getCA();
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qmnntp::AbstractCallback::checkCertificate(
-	const Certificate& cert, bool bVerified)
-{
-	DECLARE_QSTATUS();
-	
-	if (!bVerified && !pSubAccount_->isAllowUnverifiedCertificate())
-		return QSTATUS_FAIL;
-	
-	Name* p = 0;
-	status = cert.getSubject(&p);
-	CHECK_QSTATUS();
-	std::auto_ptr<Name> pName(p);
-	
-	string_ptr<WSTRING> wstrCommonName;
-	status = pName->getCommonName(&wstrCommonName);
-	CHECK_QSTATUS();
-	
-	const WCHAR* pwszHost = pSubAccount_->getHost(Account::HOST_RECEIVE);
-	if (_wcsicmp(wstrCommonName.get(), pwszHost) != 0)
-		return QSTATUS_FAIL;
-	
-	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qmnntp::AbstractCallback::getUserInfo(

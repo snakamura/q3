@@ -10,12 +10,14 @@
 #define __QMSESSION_H__
 
 #include <qm.h>
+#include <qmaccount.h>
 #include <qmfolder.h>
 
 #include <qs.h>
 #include <qsdialog.h>
 #include <qslog.h>
 #include <qsprofile.h>
+#include <qsssl.h>
 #include <qsstring.h>
 
 #include <memory>
@@ -33,6 +35,7 @@ class SendSession;
 class SendSessionCallback;
 class SendSessionFactory;
 class SessionErrorInfo;
+class DefaultSSLSocketCallback;
 
 class Account;
 class Document;
@@ -302,6 +305,34 @@ private:
 	size_t nDescriptionCount_;
 };
 
+
+/****************************************************************************
+ *
+ * DefaultSSLSocketCallback
+ *
+ */
+
+class QMEXPORTCLASS DefaultSSLSocketCallback : public qs::SSLSocketCallback
+{
+public:
+	DefaultSSLSocketCallback(SubAccount* pSubAccount,
+		Account::Host host, const Security* pSecurity);
+	virtual ~DefaultSSLSocketCallback();
+
+public:
+	virtual qs::QSTATUS getCertStore(const qs::Store** ppStore);
+	virtual qs::QSTATUS checkCertificate(
+		const qs::Certificate& cert, bool bVerified);
+
+private:
+	DefaultSSLSocketCallback(const DefaultSSLSocketCallback&);
+	DefaultSSLSocketCallback& operator=(const DefaultSSLSocketCallback&);
+
+private:
+	SubAccount* pSubAccount_;
+	Account::Host host_;
+	const Security* pSecurity_;
+};
 
 }
 

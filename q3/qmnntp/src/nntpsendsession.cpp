@@ -148,8 +148,8 @@ QSTATUS qmnntp::NntpSendSession::sendMessage(Message* pMessage)
 qmnntp::NntpSendSession::CallbackImpl::CallbackImpl(
 	SubAccount* pSubAccount, const Security* pSecurity,
 	SendSessionCallback* pSessionCallback, QSTATUS* pstatus) :
+	DefaultSSLSocketCallback(pSubAccount, Account::HOST_SEND, pSecurity),
 	pSubAccount_(pSubAccount),
-	pSecurity_(pSecurity),
 	pSessionCallback_(pSessionCallback)
 {
 }
@@ -192,37 +192,6 @@ QSTATUS qmnntp::NntpSendSession::CallbackImpl::connecting()
 QSTATUS qmnntp::NntpSendSession::CallbackImpl::connected()
 {
 	return setMessage(IDS_CONNECTED);
-}
-
-QSTATUS qmnntp::NntpSendSession::CallbackImpl::getCertStore(const Store** ppStore)
-{
-	assert(ppStore);
-	*ppStore = pSecurity_->getCA();
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qmnntp::NntpSendSession::CallbackImpl::checkCertificate(
-	const Certificate& cert, bool bVerified)
-{
-	DECLARE_QSTATUS();
-	
-	if (!bVerified && !pSubAccount_->isAllowUnverifiedCertificate())
-		return QSTATUS_FAIL;
-	
-	Name* p = 0;
-	status = cert.getSubject(&p);
-	CHECK_QSTATUS();
-	std::auto_ptr<Name> pName(p);
-	
-	string_ptr<WSTRING> wstrCommonName;
-	status = pName->getCommonName(&wstrCommonName);
-	CHECK_QSTATUS();
-	
-	const WCHAR* pwszHost = pSubAccount_->getHost(Account::HOST_SEND);
-	if (_wcsicmp(wstrCommonName.get(), pwszHost) != 0)
-		return QSTATUS_FAIL;
-	
-	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qmnntp::NntpSendSession::CallbackImpl::getUserInfo(

@@ -1,11 +1,12 @@
 /*
- * $Id: session.cpp,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
+#include <qmsecurity.h>
 #include <qmsession.h>
 
 #include <qserror.h>
@@ -460,4 +461,53 @@ const WCHAR* qm::SessionErrorInfo::getDescription(size_t n) const
 size_t qm::SessionErrorInfo::getDescriptionCount() const
 {
 	return nDescriptionCount_;
+}
+
+
+/****************************************************************************
+ *
+ * DefaultSSLSocketCallback
+ *
+ */
+
+qm::DefaultSSLSocketCallback::DefaultSSLSocketCallback(
+	SubAccount* pSubAccount, Account::Host host, const Security* pSecurity) :
+	pSubAccount_(pSubAccount),
+	host_(host),
+	pSecurity_(pSecurity)
+{
+}
+
+qm::DefaultSSLSocketCallback::~DefaultSSLSocketCallback()
+{
+}
+
+QSTATUS qm::DefaultSSLSocketCallback::getCertStore(const Store** ppStore)
+{
+	assert(ppStore);
+	*ppStore = pSecurity_->getCA();
+	return QSTATUS_SUCCESS;
+}
+QSTATUS qm::DefaultSSLSocketCallback::checkCertificate(
+	const Certificate& cert, bool bVerified)
+{
+	DECLARE_QSTATUS();
+	
+	if (!bVerified && !pSubAccount_->isAllowUnverifiedCertificate())
+		return QSTATUS_FAIL;
+	
+	Name* p = 0;
+	status = cert.getSubject(&p);
+	CHECK_QSTATUS();
+	std::auto_ptr<Name> pName(p);
+	
+	string_ptr<WSTRING> wstrCommonName;
+	status = pName->getCommonName(&wstrCommonName);
+	CHECK_QSTATUS();
+	
+	const WCHAR* pwszHost = pSubAccount_->getHost(host_);
+	if (_wcsicmp(wstrCommonName.get(), pwszHost) != 0)
+		return QSTATUS_FAIL;
+	
+	return QSTATUS_SUCCESS;
 }

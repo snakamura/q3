@@ -11,6 +11,7 @@
 
 #include <qmaccount.h>
 #include <qmsecurity.h>
+#include <qmsession.h>
 
 #include <qs.h>
 #include <qssocket.h>
@@ -147,18 +148,13 @@ struct PathFree :
 
 class AbstractCallback :
 	public qs::SocketCallback,
-	public qs::SSLSocketCallback,
+	public qm::DefaultSSLSocketCallback,
 	public Imap4Callback
 {
 public:
 	AbstractCallback(qm::SubAccount* pSubAccount,
 		const qm::Security* pSecurity, qs::QSTATUS* pstatus);
 	virtual ~AbstractCallback();
-
-public:
-	virtual qs::QSTATUS getCertStore(const qs::Store** ppStore);
-	virtual qs::QSTATUS checkCertificate(
-		const qs::Certificate& cert, bool bVerified);
 
 public:
 	virtual qs::QSTATUS getUserInfo(qs::WSTRING* pwstrUserName,
@@ -172,7 +168,6 @@ private:
 
 private:
 	qm::SubAccount* pSubAccount_;
-	const qm::Security* pSecurity_;
 };
 
 }

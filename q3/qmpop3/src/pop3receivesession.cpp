@@ -648,8 +648,8 @@ QSTATUS qmpop3::Pop3ReceiveSession::saveUIDList(const UIDList* pUIDList) const
 qmpop3::Pop3ReceiveSession::CallbackImpl::CallbackImpl(
 	SubAccount* pSubAccount, const Security* pSecurity,
 	ReceiveSessionCallback* pSessionCallback, qs::QSTATUS* pstatus) :
+	DefaultSSLSocketCallback(pSubAccount, Account::HOST_RECEIVE, pSecurity),
 	pSubAccount_(pSubAccount),
-	pSecurity_(pSecurity),
 	pSessionCallback_(pSessionCallback)
 {
 	assert(pstatus);
@@ -694,37 +694,6 @@ QSTATUS qmpop3::Pop3ReceiveSession::CallbackImpl::connecting()
 QSTATUS qmpop3::Pop3ReceiveSession::CallbackImpl::connected()
 {
 	return setMessage(IDS_CONNECTED);
-}
-
-QSTATUS qmpop3::Pop3ReceiveSession::CallbackImpl::getCertStore(const Store** ppStore)
-{
-	assert(ppStore);
-	*ppStore = pSecurity_->getCA();
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qmpop3::Pop3ReceiveSession::CallbackImpl::checkCertificate(
-	const Certificate& cert, bool bVerified)
-{
-	DECLARE_QSTATUS();
-	
-	if (!bVerified && !pSubAccount_->isAllowUnverifiedCertificate())
-		return QSTATUS_FAIL;
-	
-	Name* p = 0;
-	status = cert.getSubject(&p);
-	CHECK_QSTATUS();
-	std::auto_ptr<Name> pName(p);
-	
-	string_ptr<WSTRING> wstrCommonName;
-	status = pName->getCommonName(&wstrCommonName);
-	CHECK_QSTATUS();
-	
-	const WCHAR* pwszHost = pSubAccount_->getHost(Account::HOST_RECEIVE);
-	if (_wcsicmp(wstrCommonName.get(), pwszHost) != 0)
-		return QSTATUS_FAIL;
-	
-	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qmpop3::Pop3ReceiveSession::CallbackImpl::getUserInfo(
