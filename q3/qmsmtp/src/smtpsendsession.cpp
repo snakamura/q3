@@ -274,6 +274,7 @@ QSTATUS qmsmtp::SmtpSendSession::sendMessage(Message* pMessage)
 	const WCHAR* pwszRemoveFields[] = {
 		L"Bcc",
 		L"Resent-Bcc",
+		L"X-QMAIL-EnvelopeFrom"
 	};
 	for (int m = 0; m < countof(pwszRemoveFields); ++m) {
 		status = pMessage->removeField(*(pwszRemoveFields + m));
