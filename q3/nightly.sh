@@ -6,8 +6,8 @@
 SVNHOST=home.snak.org
 SVNDIR=/home/snakamura/svn
 SVNURI=svn+ssh://$SVNHOST$SVNDIR/q3/trunk/q3
-CGIFTPSCRIPT=d:/home/wince/q3/cgiftpscript
-WEBFTPSCRIPT=d:/home/wince/q3/webftpscript
+CGIFTPSCRIPT=d:/home/wince/q3/trunk/q3/cgiftpscript
+WEBFTPSCRIPT=d:/home/wince/q3/trunk/q3/webftpscript
 
 DATE=`date +%Y%m%d`
 ssh $SVNHOST "svnadmin dump $SVNDIR/q3 | gzip -c > $SVNDIR/q3-$DATE.gz"
@@ -23,7 +23,7 @@ fi
 VERSION=`cat version`
 DATE=`date +%Y%m%d`
 
-BUILDDIR=`pwd`/build
+BUILDDIR=`pwd`/../../build
 ZIPDIR=$BUILDDIR/q3/zip
 
 if [ $REBUILD -ne 0 ]; then
