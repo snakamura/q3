@@ -1,0 +1,14 @@
+datatypes xsd="http://www.w3.org/2001/XMLSchema-datatypes"
+
+element autoPilot {
+	element entry {
+		## コース
+		element course {
+			xsd:string
+		},
+		## 間隔（分単位）
+		element interval {
+			xsd:int
+		}
+	}*
+}
