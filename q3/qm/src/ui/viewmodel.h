@@ -240,6 +240,7 @@ public:
 	ViewModel(ViewModelManager* pViewModelManager,
 			  Folder* pFolder,
 			  ViewDataItem* pDataItem,
+			  const Filter* pFilter,
 			  qs::Profile* pProfile,
 			  Document* pDocument,
 			  HWND hwnd,
@@ -761,6 +762,8 @@ public:
 	void setFocus(unsigned int nFocus);
 	unsigned int getSort() const;
 	void setSort(unsigned int nSort);
+	const WCHAR* getFilter() const;
+	void setFilter(const WCHAR* pwszFilter);
 
 public:
 	std::auto_ptr<ViewDataItem> clone(unsigned int nFolderId) const;
@@ -774,6 +777,7 @@ private:
 	ViewColumnList listColumn_;
 	unsigned int nFocus_;
 	unsigned int nSort_;
+	qs::wstring_ptr wstrFilter_;
 };
 
 
@@ -817,7 +821,8 @@ private:
 		STATE_MACRO,
 		STATE_WIDTH,
 		STATE_FOCUS,
-		STATE_SORT
+		STATE_SORT,
+		STATE_FILTER
 	};
 
 private:

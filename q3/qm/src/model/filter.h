@@ -44,6 +44,7 @@ public:
 
 public:
 	const FilterList& getFilters();
+	const Filter* getFilter(const WCHAR* pwszName);
 
 private:
 	bool load();

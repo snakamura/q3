@@ -353,6 +353,7 @@ void qm::ViewModel::SelectionRestorer::restore()
 qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 						 Folder* pFolder,
 						 ViewDataItem* pDataItem,
+						 const Filter* pFilter,
 						 Profile* pProfile,
 						 Document* pDocument,
 						 HWND hwnd,
@@ -386,6 +387,9 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 	nFocused_ = pDataItem_->getFocus();
 	if ((nSort_ & SORT_INDEX_MASK) >= getColumnCount())
 		nSort_ = SORT_ASCENDING | SORT_NOTHREAD | 1;
+	
+	if (pFilter)
+		pFilter_.reset(new Filter(*pFilter));
 	
 	Lock<ViewModel> lock(*this);
 	
@@ -748,6 +752,7 @@ bool qm::ViewModel::save() const
 {
 	pDataItem_->setSort(nSort_);
 	pDataItem_->setFocus(nFocused_);
+	pDataItem_->setFilter(pFilter_.get() ? pFilter_->getName() : 0);
 	return true;
 }
 
@@ -1388,9 +1393,16 @@ ViewModel* qm::ViewModelManager::getViewModel(Folder* pFolder)
 		return *it;
 	
 	ViewDataItem* pViewDataItem = getViewDataItem(pFolder);
-	std::auto_ptr<ViewModel> pViewModel(new ViewModel(this, pFolder, pViewDataItem,
-		pProfile_, pDocument_, hwnd_, pSecurityModel_, pColorManager_.get()));
+	
+	const Filter* pFilter = 0;
+	if (pViewDataItem->getFilter())
+		pFilter = pFilterManager_->getFilter(pViewDataItem->getFilter());
+	
+	std::auto_ptr<ViewModel> pViewModel(new ViewModel(this,
+		pFolder, pViewDataItem, pFilter, pProfile_, pDocument_,
+		hwnd_, pSecurityModel_, pColorManager_.get()));
 	listViewModel_.push_back(pViewModel.get());
+	
 	return pViewModel.release();
 }
 
@@ -2107,6 +2119,19 @@ void qm::ViewDataItem::setSort(unsigned int nSort)
 	nSort_ = nSort;
 }
 
+const WCHAR* qm::ViewDataItem::getFilter() const
+{
+	return wstrFilter_.get();
+}
+
+void qm::ViewDataItem::setFilter(const WCHAR* pwszFilter)
+{
+	if (pwszFilter)
+		wstrFilter_ = allocWString(pwszFilter);
+	else
+		wstrFilter_.reset(0);
+}
+
 std::auto_ptr<ViewDataItem> qm::ViewDataItem::clone(unsigned int nFolderId) const
 {
 	std::auto_ptr<ViewDataItem> pItem(new ViewDataItem(nFolderId));
@@ -2274,6 +2299,7 @@ bool qm::ViewDataContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			{ L"macro",		STATE_COLUMN,	STATE_MACRO		},
 			{ L"width",		STATE_COLUMN,	STATE_WIDTH		},
 			{ L"focus",		STATE_VIEW,		STATE_FOCUS		},
+			{ L"filter",	STATE_VIEW,		STATE_FILTER	},
 		};
 		int n = 0;
 		while (n < countof(items) && wcscmp(pwszLocalName, items[n].pwszLocalName_) != 0)
@@ -2420,6 +2446,16 @@ bool qm::ViewDataContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		buffer_.remove();
 		state_ = STATE_VIEW;
 	}
+	else if (wcscmp(pwszLocalName, L"filter") == 0) {
+		assert(state_ == STATE_FILTER);
+		
+		if (buffer_.getLength() != 0) {
+			pItem_->setFilter(buffer_.getCharArray());
+			buffer_.remove();
+		}
+		
+		state_ = STATE_VIEW;
+	}
 	else {
 		return false;
 	}
@@ -2434,7 +2470,8 @@ bool qm::ViewDataContentHandler::characters(const WCHAR* pwsz,
 		state_ == STATE_MACRO ||
 		state_ == STATE_WIDTH ||
 		state_ == STATE_FOCUS ||
-		state_ == STATE_SORT) {
+		state_ == STATE_SORT ||
+		state_ == STATE_FILTER) {
 		buffer_.append(pwsz + nStart, nLength);
 	}
 	else {
@@ -2628,6 +2665,11 @@ bool qm::ViewDataWriter::write(const ViewDataItem* pItem,
 		return false;
 	if (!handler_.endElement(0, 0, L"sort"))
 		return false;
+	
+	if (pItem->getFilter()) {
+		if (!HandlerHelper::textElement(&handler_, L"filter", pItem->getFilter(), -1))
+			return false;
+	}
 	
 	if (!handler_.endElement(0, 0, L"view"))
 		return false;

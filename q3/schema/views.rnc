@@ -42,6 +42,9 @@ element views {
 				xsd:boolean
 			}
 		},
+		element filter {
+			xsd:string
+		}?,
 		attribute folder {
 			xsd:unsignedInt
 		}
