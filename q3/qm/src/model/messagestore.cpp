@@ -253,7 +253,7 @@ QSTATUS qm::SingleMessageStore::free(unsigned int nOffset,
 	CHECK_QSTATUS();
 	if (nLoad != sizeof(nDataLen))
 		return QSTATUS_FAIL;
-	status = pImpl_->pCacheStorage_->free(key, nDataLen);
+	status = pImpl_->pCacheStorage_->free(key, nDataLen + sizeof(nDataLen));
 	CHECK_QSTATUS();
 	
 	if (nOffset != -1) {
@@ -355,15 +355,15 @@ QSTATUS qm::SingleMessageStore::readCache(
 		return QSTATUS_FAIL;
 	
 	size_t nSize = *reinterpret_cast<size_t*>(p.get());
-	if (nSize + sizeof(size_t) > nDefaultSize) {
+	if (nSize + sizeof(nSize) > nDefaultSize) {
 		unsigned char* p2 = static_cast<unsigned char*>(
-			realloc(p.get(), nSize + sizeof(size_t)));
+			realloc(p.get(), nSize + sizeof(nSize)));
 		if (!p2)
 			return QSTATUS_OUTOFMEMORY;
 		p.release();
 		p.reset(p2);
 		
-		nLoad = nSize + sizeof(size_t);
+		nLoad = nSize + sizeof(nSize);
 		status = pImpl_->pCacheStorage_->load(p.get(), key, &nLoad);
 		CHECK_QSTATUS();
 	}
@@ -716,7 +716,7 @@ QSTATUS qm::MultiMessageStore::free(unsigned int nOffset,
 	CHECK_QSTATUS();
 	if (nLoad != sizeof(nDataLen))
 		return QSTATUS_FAIL;
-	status = pImpl_->pCacheStorage_->free(key, nDataLen);
+	status = pImpl_->pCacheStorage_->free(key, nDataLen + sizeof(nDataLen));
 	CHECK_QSTATUS();
 	
 	if (nOffset != -1) {
@@ -831,15 +831,15 @@ QSTATUS qm::MultiMessageStore::readCache(
 		return QSTATUS_FAIL;
 	
 	size_t nSize = *reinterpret_cast<size_t*>(p.get());
-	if (nSize + sizeof(size_t) > nDefaultSize) {
+	if (nSize + sizeof(nSize) > nDefaultSize) {
 		unsigned char* p2 = static_cast<unsigned char*>(
-			realloc(p.get(), nSize + sizeof(size_t)));
+			realloc(p.get(), nSize + sizeof(nSize)));
 		if (!p2)
 			return QSTATUS_OUTOFMEMORY;
 		p.release();
 		p.reset(p2);
 		
-		nLoad = nSize + sizeof(size_t);
+		nLoad = nSize + sizeof(nSize);
 		status = pImpl_->pCacheStorage_->load(p.get(), key, &nLoad);
 		CHECK_QSTATUS();
 	}
@@ -902,7 +902,7 @@ QSTATUS qm::MessageStoreUtil::freeUnreferedCache(
 		
 		ClusterStorage::Refer refer = {
 			nOffset,
-			nSize
+			nSize + sizeof(nSize)
 		};
 		l.push_back(refer);
 		++it;

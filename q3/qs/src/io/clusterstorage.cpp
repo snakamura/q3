@@ -633,6 +633,7 @@ QSTATUS qs::ClusterStorage::freeUnrefered(const ReferList& listRefer)
 				for (unsigned int m = nLastBit; m < ClusterStorageImpl::BYTE_SIZE; ++m, b <<= 1)
 					bMask &= ~b;
 			}
+			assert((m[n] & bMask) == 0);
 			m[n] |= bMask;
 		}
 		
