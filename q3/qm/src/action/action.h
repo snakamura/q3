@@ -748,6 +748,8 @@ class EditDeleteMessageAction : public qs::AbstractAction
 {
 public:
 	EditDeleteMessageAction(MessageSelectionModel* pMessageSelectionModel,
+							MessageModel* pMessageModel,
+							ViewModelHolder* pViewModelHolder,
 							bool bDirect,
 							HWND hwnd,
 							qs::Profile* pProfile);
@@ -764,6 +766,8 @@ public:
 
 private:
 	bool confirm() const;
+	void select(ViewModel* pViewModel,
+				unsigned int nIndex) const;
 
 private:
 	EditDeleteMessageAction(const EditDeleteMessageAction&);

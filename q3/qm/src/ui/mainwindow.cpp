@@ -96,6 +96,7 @@ class qm::MainWindowImpl :
 	public SplitterWindowHandler,
 	public FolderModelHandler,
 	public FolderSelectionModel,
+	public ViewModelHolder,
 	public MessageWindowHandler,
 	public DefaultDocumentHandler,
 #ifdef QMTABWINDOW
@@ -215,6 +216,10 @@ public:
 	virtual bool hasSelectedFolder();
 	virtual Folder* getFocusedFolder();
 	virtual std::pair<Account*, Folder*> getTemporaryFocused();
+
+public:
+	virtual ViewModel* getViewModel() const;
+	virtual void setViewModel(ViewModel* pViewModel);
 
 public:
 	virtual void messageChanged(const MessageWindowEvent& event);
@@ -444,15 +449,19 @@ void qm::MainWindowImpl::initActions()
 		IDM_EDIT_DELETECACHE,
 		pMessageSelectionModel_.get(),
 		pThis_->getHandle());
-	ADD_ACTION4(EditDeleteMessageAction,
+	ADD_ACTION6(EditDeleteMessageAction,
 		IDM_EDIT_DELETE,
 		pMessageSelectionModel_.get(),
+		pPreviewModel_.get(),
+		this,
 		false,
 		pThis_->getHandle(),
 		pProfile_);
-	ADD_ACTION4(EditDeleteMessageAction,
+	ADD_ACTION6(EditDeleteMessageAction,
 		IDM_EDIT_DELETEDIRECT,
 		pMessageSelectionModel_.get(),
+		pPreviewModel_.get(),
+		this,
 		true,
 		pThis_->getHandle(),
 		pProfile_);
@@ -1460,6 +1469,16 @@ std::pair<Account*, Folder*> qm::MainWindowImpl::getTemporaryFocused()
 		return std::pair<Account*, Folder*>(0, 0);
 	else
 		return pFolderModel_->getTemporary();
+}
+
+ViewModel* qm::MainWindowImpl::getViewModel() const
+{
+	return pViewModelManager_->getCurrentViewModel();
+}
+
+void qm::MainWindowImpl::setViewModel(ViewModel* pViewModel)
+{
+	assert(false);
 }
 
 void qm::MainWindowImpl::messageChanged(const MessageWindowEvent& event)

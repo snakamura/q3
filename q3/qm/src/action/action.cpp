@@ -768,11 +768,14 @@ bool qm::EditDeleteCacheAction::isEnabled(const ActionEvent& event)
  */
 
 qm::EditDeleteMessageAction::EditDeleteMessageAction(MessageSelectionModel* pMessageSelectionModel,
+													 MessageModel* pMessageModel,
+													 ViewModelHolder* pViewModelHolder,
 													 bool bDirect,
 													 HWND hwnd,
 													 Profile* pProfile) :
 	pMessageSelectionModel_(pMessageSelectionModel),
-	pMessageModel_(0),
+	pMessageModel_(pMessageModel),
+	pViewModelHolder_(pViewModelHolder),
 	bDirect_(bDirect),
 	hwnd_(hwnd),
 	bConfirm_(false)
@@ -801,6 +804,10 @@ qm::EditDeleteMessageAction::~EditDeleteMessageAction()
 
 void qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 {
+	ViewModel* pViewModel = pViewModelHolder_->getViewModel();
+	
+	Lock<ViewModel> lock(*pViewModel);
+		
 	if (pMessageSelectionModel_) {
 		AccountLock lock;
 		Folder* pFolder = 0;
@@ -814,6 +821,10 @@ void qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 		if (!confirm())
 			return;
 		
+		unsigned int nIndex = pViewModel->getFocused();
+		if (nIndex < pViewModel->getCount() - 1)
+			select(pViewModel, nIndex + 1);
+		
 		ProgressDialogMessageOperationCallback callback(
 			hwnd_, IDS_DELETE, IDS_DELETE);
 		if (!pAccount->removeMessages(l, pFolder, bDirect_, &callback)) {
@@ -822,10 +833,6 @@ void qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 		}
 	}
 	else {
-		ViewModel* pViewModel = pViewModelHolder_->getViewModel();
-		
-		Lock<ViewModel> lock(*pViewModel);
-		
 		MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
 		if (!mpl)
 			return;
@@ -834,10 +841,8 @@ void qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 			return;
 		
 		unsigned int nIndex = pViewModel->getIndex(mpl);
-		if (nIndex < pViewModel->getCount() - 1) {
-			MessageHolder* pmh = pViewModel->getMessageHolder(nIndex + 1);
-			pMessageModel_->setMessage(pmh);
-		}
+		if (nIndex < pViewModel->getCount() - 1)
+			select(pViewModel, nIndex + 1);
 		
 		Account* pAccount = mpl->getFolder()->getAccount();
 		MessageHolderList l(1, mpl);
@@ -866,6 +871,22 @@ bool qm::EditDeleteMessageAction::confirm() const
 			IDS_CONFIRMDELETEMESSAGE, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd_) == IDYES;
 	else
 		return true;
+}
+
+void qm::EditDeleteMessageAction::select(ViewModel* pViewModel,
+										 unsigned int nIndex) const
+{
+	assert(pViewModel);
+	assert(pViewModel->isLocked());
+	assert(nIndex < pViewModel->getCount());
+	
+	MessageHolder* pmh = pViewModel->getMessageHolder(nIndex);
+	pMessageModel_->setMessage(pmh);
+	
+	pViewModel->setFocused(nIndex);
+	pViewModel->setSelection(nIndex);
+	pViewModel->setLastSelection(nIndex);
+	pViewModel->payAttention(nIndex);
 }
 
 
