@@ -1505,8 +1505,11 @@ Part* qm::PartUtil::getEnclosingPart(Part* pCandidatePart) const
 			pPart = getEnclosingPart(*it);
 	}
 	else {
-		if (pCandidatePart->getEnclosedPart() == &part_)
+		Part* pEnclosedPart = pCandidatePart->getEnclosedPart();
+		if (pEnclosedPart == &part_)
 			pPart = pCandidatePart;
+		else if (pEnclosedPart)
+			pPart = getEnclosingPart(pEnclosedPart);
 	}
 	
 	return pPart;
