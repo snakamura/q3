@@ -72,7 +72,7 @@ public:
 					  unsigned int nCaretLine,
 					  unsigned int nCaretChar,
 					  wstring_ptr wstrText,
-					  bool bClearUndo);
+					  bool bClearRedo);
 	Item* popUndoItem();
 	bool hasUndoItem() const;
 	void pushRedoItem(unsigned int nStartLine,

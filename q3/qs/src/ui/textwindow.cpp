@@ -1173,8 +1173,7 @@ bool qs::TextWindowImpl::insertText(const WCHAR* pwsz,
 		if (bSelected) {
 			getSelection(&nStartLine, &nStartChar,
 				&nEndLine, &nEndChar, &bReverse);
-			if (flag != INSERTTEXTFLAG_REDO)
-				wstrSelected = pThis_->getSelectedText();
+			wstrSelected = pThis_->getSelectedText();
 			clearSelection();
 		}
 		else {
@@ -3705,14 +3704,14 @@ void qs::TextWindowUndoManager::pushUndoItem(unsigned int nStartLine,
 											 unsigned int nCaretLine,
 											 unsigned int nCaretChar,
 											 wstring_ptr wstrText,
-											 bool bClearUndo)
+											 bool bClearRedo)
 {
 	std::auto_ptr<Item> pItem(new Item(nStartLine, nStartChar,
 		nEndLine, nEndChar, nCaretLine, nCaretChar, wstrText));
 	listUndo_.push_back(pItem.get());
 	pItem.release();
 	
-	if (bClearUndo)
+	if (bClearRedo)
 		clearRedoItems();
 }
 
