@@ -24,6 +24,7 @@ class ExternalEditorManager;
 
 class Document;
 class FolderModel;
+class SecurityModel;
 class TempFileCleaner;
 
 
@@ -40,7 +41,8 @@ public:
 						  qs::Profile* pProfile,
 						  HWND hwnd,
 						  TempFileCleaner* pTempFileCleaner,
-						  FolderModel* pFolderModel);
+						  FolderModel* pFolderModel,
+						  SecurityModel* pSecurityModel);
 	~ExternalEditorManager();
 
 public:

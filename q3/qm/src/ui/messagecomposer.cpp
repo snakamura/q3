@@ -19,6 +19,7 @@
 #include "messagecomposer.h"
 #include "../model/addressbook.h"
 #include "../ui/foldermodel.h"
+#include "../ui/securitymodel.h"
 
 using namespace qm;
 using namespace qs;
@@ -34,12 +35,14 @@ qm::MessageComposer::MessageComposer(bool bDraft,
 									 Document* pDocument,
 									 Profile* pProfile,
 									 HWND hwnd,
-									 FolderModel* pFolderModel) :
+									 FolderModel* pFolderModel,
+									 SecurityModel* pSecurityModel) :
 	bDraft_(bDraft),
 	pDocument_(pDocument),
 	pProfile_(pProfile),
 	hwnd_(hwnd),
-	pFolderModel_(pFolderModel)
+	pFolderModel_(pFolderModel),
+	pSecurityModel_(pSecurityModel)
 {
 }
 
@@ -173,7 +176,8 @@ bool qm::MessageComposer::compose(Account* pAccount,
 		if (!pMacro.get())
 			return false;
 		
-		MacroContext context(0, 0, pAccount, pDocument_, hwnd_, pProfile_, false, 0, 0);
+		MacroContext context(0, 0, pAccount, pDocument_, hwnd_, pProfile_,
+			false, pSecurityModel_->isDecryptVerify(), 0, 0);
 		MacroValuePtr pValue(pMacro->value(&context));
 	}
 	

@@ -26,6 +26,7 @@ class Document;
 class FolderModel;
 class Message;
 class Security;
+class SecurityModel;
 class SubAccount;
 
 
@@ -48,7 +49,8 @@ public:
 					Document* pDocument,
 					qs::Profile* pProfile,
 					HWND hwnd,
-					FolderModel* pFolderModel);
+					FolderModel* pFolderModel,
+					SecurityModel* pSecurityModel);
 	~MessageComposer();
 
 public:
@@ -67,6 +69,7 @@ private:
 	qs::Profile* pProfile_;
 	HWND hwnd_;
 	FolderModel* pFolderModel_;
+	SecurityModel* pSecurityModel_;
 };
 
 

@@ -2475,8 +2475,8 @@ MacroValuePtr qm::MacroFunctionLoad::value(MacroContext* pContext) const
 		TemplateContext context(pContext->getMessageHolder(),
 			pContext->getMessage(), pContext->getAccount(),
 			pContext->getDocument(), pContext->getWindow(),
-			pContext->getProfile(), pContext->getErrorHandler(),
-			TemplateContext::ArgumentList());
+			pContext->isDecryptVerify(), pContext->getProfile(),
+			pContext->getErrorHandler(), TemplateContext::ArgumentList());
 		wstr = pTemplate->getValue(context);
 		if (!wstr.get())
 			return error(*pContext, MacroErrorHandler::CODE_FAIL);

@@ -59,6 +59,7 @@ public:
 			   Document* pDocument,
 			   HWND hwnd,
 			   qs::Profile* pProfile,
+			   bool bDecryptVerify,
 			   RuleCallback* pCallback);
 
 public:

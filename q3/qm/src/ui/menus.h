@@ -45,6 +45,7 @@ class GoRoundCourse;
 class Message;
 class MessageHolder;
 class ScriptManager;
+class SecurityModel;
 class TemplateManager;
 class ViewModelManager;
 
@@ -63,7 +64,7 @@ public:
 	};
 
 public:
-	AttachmentMenu();
+	explicit AttachmentMenu(SecurityModel* pSecurityModel);
 	~AttachmentMenu();
 
 public:
@@ -82,6 +83,7 @@ private:
 	typedef std::vector<std::pair<unsigned int, MessageHolder*> > List;
 
 private:
+	SecurityModel* pSecurityModel_;
 	List list_;
 };
 

@@ -20,6 +20,7 @@
 #include "../model/tempfilecleaner.h"
 #include "../ui/dialogs.h"
 #include "../ui/resourceinc.h"
+#include "../ui/securitymodel.h"
 
 using namespace qm;
 using namespace qs;
@@ -114,9 +115,11 @@ wstring_ptr DetachCallbackImpl::confirmOverwrite(const WCHAR* pwszPath)
  *
  */
 
-qm::AttachmentHelper::AttachmentHelper(Profile* pProfile,
+qm::AttachmentHelper::AttachmentHelper(SecurityModel* pSecurityModel,
+									   Profile* pProfile,
 									   TempFileCleaner* pTempFileCleaner,
 									   HWND hwnd) :
+	pSecurityModel_(pSecurityModel),
 	pProfile_(pProfile),
 	pTempFileCleaner_(pTempFileCleaner),
 	hwnd_(hwnd)
@@ -150,7 +153,10 @@ AttachmentParser::Result qm::AttachmentHelper::detach(const MessageHolderList& l
 		MessageHolder* pmh = *itM;
 		
 		Message msg;
-		if (!pmh->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, &msg))
+		unsigned int nFlags = Account::GETMESSAGEFLAG_TEXT;
+		if (!pSecurityModel_->isDecryptVerify())
+			nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
+		if (!pmh->getMessage(nFlags, 0, &msg))
 			return AttachmentParser::RESULT_FAIL;
 		
 		AttachmentParser parser(msg);
@@ -201,8 +207,10 @@ AttachmentParser::Result qm::AttachmentHelper::detach(const MessageHolderList& l
 				}
 				if ((*it).wstrName_) {
 					if (msg.getFlag() == Message::FLAG_EMPTY) {
-						if (!(*it).pmh_->getMessage(
-							Account::GETMESSAGEFLAG_ALL, 0, &msg))
+						unsigned int nFlags = Account::GETMESSAGEFLAG_ALL;
+						if (!pSecurityModel_->isDecryptVerify())
+							nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
+						if (!(*it).pmh_->getMessage(nFlags, 0, &msg))
 							return AttachmentParser::RESULT_FAIL;
 					}
 					if (l.empty())

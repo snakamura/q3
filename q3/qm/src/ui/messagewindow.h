@@ -16,6 +16,7 @@
 namespace qm {
 
 class Document;
+class SecurityModel;
 
 
 /****************************************************************************
@@ -48,6 +49,7 @@ struct MessageWindowCreateContext
 	Document* pDocument_;
 	qs::MenuManager* pMenuManager_;
 	qs::KeyMap* pKeyMap_;
+	SecurityModel* pSecurityModel_;
 };
 
 }

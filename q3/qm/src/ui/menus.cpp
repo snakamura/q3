@@ -23,6 +23,7 @@
 #include "foldermodel.h"
 #include "menus.h"
 #include "resourceinc.h"
+#include "securitymodel.h"
 #include "uiutil.h"
 #include "viewmodel.h"
 #include "../model/filter.h"
@@ -42,7 +43,8 @@ using namespace qs;
  *
  */
 
-qm::AttachmentMenu::AttachmentMenu()
+qm::AttachmentMenu::AttachmentMenu(SecurityModel* pSecurityModel) :
+	pSecurityModel_(pSecurityModel)
 {
 }
 
@@ -68,7 +70,10 @@ bool qm::AttachmentMenu::getPart(unsigned int nId,
 		return false;
 	--it;
 	
-	if (!(*it).second->getMessage(Account::GETMESSAGEFLAG_ALL, 0, pMessage))
+	unsigned int nFlags = Account::GETMESSAGEFLAG_ALL;
+	if (!pSecurityModel_->isDecryptVerify())
+		nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
+	if (!(*it).second->getMessage(nFlags, 0, pMessage))
 		return false;
 	
 	AttachmentParser parser(*pMessage);
@@ -110,7 +115,10 @@ bool qm::AttachmentMenu::createMenu(HMENU hmenu,
 		list_.push_back(List::value_type(nId, pmh));
 		
 		Message msg;
-		if (!pmh->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, &msg))
+		unsigned int nFlags = Account::GETMESSAGEFLAG_TEXT;
+		if (!pSecurityModel_->isDecryptVerify())
+			nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
+		if (!pmh->getMessage(nFlags, 0, &msg))
 			return false;
 		
 		AttachmentParser parser(msg);

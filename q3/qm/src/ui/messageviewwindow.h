@@ -61,7 +61,8 @@ public:
 	enum Flag {
 		FLAG_RAWMODE		= 0x01,
 		FLAG_INCLUDEHEADER	= 0x02,
-		FLAG_ONLINEMODE		= 0x04
+		FLAG_ONLINEMODE		= 0x04,
+		FLAG_DECRYPTVERIFY	= 0x08
 	};
 
 public:

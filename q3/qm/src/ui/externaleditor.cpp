@@ -32,8 +32,9 @@ qm::ExternalEditorManager::ExternalEditorManager(Document* pDocument,
 												 Profile* pProfile,
 												 HWND hwnd,
 												 TempFileCleaner* pTempFileCleaner,
-												 FolderModel* pFolderModel) :
-	composer_(false, pDocument, pProfile, hwnd, pFolderModel),
+												 FolderModel* pFolderModel,
+												 SecurityModel* pSecurityModel) :
+	composer_(false, pDocument, pProfile, hwnd, pFolderModel, pSecurityModel),
 	pProfile_(pProfile),
 	hwnd_(hwnd),
 	pTempFileCleaner_(pTempFileCleaner)

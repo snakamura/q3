@@ -21,6 +21,7 @@ namespace qm {
 
 class AttachmentHelper;
 
+class SecurityModel;
 class TempFileCleaner;
 
 
@@ -36,7 +37,8 @@ public:
 	typedef std::vector<const WCHAR*> NameList;
 
 public:
-	AttachmentHelper(qs::Profile* pProfile,
+	AttachmentHelper(SecurityModel* pSecurityModel,
+					 qs::Profile* pProfile,
 					 TempFileCleaner* pTempFileCleaner,
 					 HWND hwnd);
 	~AttachmentHelper();
@@ -53,6 +55,7 @@ private:
 	AttachmentHelper& operator=(const AttachmentHelper&);
 
 private:
+	SecurityModel* pSecurityModel_;
 	qs::Profile* pProfile_;
 	TempFileCleaner* pTempFileCleaner_;
 	HWND hwnd_;

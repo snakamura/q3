@@ -24,6 +24,7 @@
 #include "../ui/externaleditor.h"
 #include "../ui/foldermodel.h"
 #include "../ui/messageselectionmodel.h"
+#include "../ui/securitymodel.h"
 
 using namespace qm;
 using namespace qs;
@@ -38,6 +39,7 @@ using namespace qs;
 qm::TemplateProcessor::TemplateProcessor(Document* pDocument,
 										 FolderModelBase* pFolderModel,
 										 MessageSelectionModel* pMessageSelectionModel,
+										 SecurityModel* pSecurityModel,
 										 EditFrameWindowManager* pEditFrameWindowManager,
 										 ExternalEditorManager* pExternalEditorManager,
 										 HWND hwnd,
@@ -46,6 +48,7 @@ qm::TemplateProcessor::TemplateProcessor(Document* pDocument,
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
 	pMessageSelectionModel_(pMessageSelectionModel),
+	pSecurityModel_(pSecurityModel),
 	pEditFrameWindowManager_(pEditFrameWindowManager),
 	pExternalEditorManager_(pExternalEditorManager),
 	hwnd_(hwnd),
@@ -98,8 +101,8 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 	
 	MacroErrorHandlerImpl handler;
 	Message msg;
-	TemplateContext context(mpl, mpl ? &msg : 0, pAccount,
-		pDocument_, hwnd_, pProfile_, &handler, listArgument);
+	TemplateContext context(mpl, mpl ? &msg : 0, pAccount, pDocument_, hwnd_,
+		pSecurityModel_->isDecryptVerify(), pProfile_, &handler, listArgument);
 	
 	wstring_ptr wstrValue(pTemplate->getValue(context));
 	if (!wstrValue.get())

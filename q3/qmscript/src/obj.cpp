@@ -978,7 +978,7 @@ STDMETHODIMP qmscript::MacroImpl::evaluate(IMessageHolder* pMessageHolder,
 	
 	MacroContext context(pmh, pmh ? &msg : 0,
 		static_cast<AccountObj*>(pAccount)->getAccount(),
-		pDocument_, hwnd_, pProfile_, false, 0, &variable);
+		pDocument_, hwnd_, pProfile_, false, true, 0, &variable);
 	MacroValuePtr pValue(pMacro_->value(&context));
 	if (!pValue.get())
 		return E_FAIL;

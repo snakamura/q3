@@ -171,12 +171,14 @@ qm::MacroGlobalContext::MacroGlobalContext(Document* pDocument,
 										   HWND hwnd,
 										   Profile* pProfile,
 										   bool bGetMessageAsPossible,
+										   bool bDecryptVerify,
 										   MacroErrorHandler* pErrorHandler,
 										   MacroVariableHolder* pGlobalVariable) :
 	pDocument_(pDocument),
 	hwnd_(hwnd),
 	pProfile_(pProfile),
 	bGetMessageAsPossible_(bGetMessageAsPossible),
+	bDecryptVerify_(bDecryptVerify),
 	pErrorHandler_(pErrorHandler),
 	pGlobalVariable_(pGlobalVariable)
 {
@@ -210,6 +212,11 @@ Profile* qm::MacroGlobalContext::getProfile() const
 bool qm::MacroGlobalContext::isGetMessageAsPossible() const
 {
 	return bGetMessageAsPossible_;
+}
+
+bool qm::MacroGlobalContext::isDecryptVerify() const
+{
+	return bDecryptVerify_;
 }
 
 MacroErrorHandler* qm::MacroGlobalContext::getErrorHandler() const
@@ -1106,6 +1113,7 @@ qm::MacroContext::MacroContext(MessageHolderBase* pmh,
 							   HWND hwnd,
 							   Profile* pProfile,
 							   bool bGetMessageAsPossible,
+							   bool bDecryptVerify,
 							   MacroErrorHandler* pErrorHandler,
 							   MacroVariableHolder* pGlobalVariable) :
 	pmh_(pmh),
@@ -1122,8 +1130,8 @@ qm::MacroContext::MacroContext(MessageHolderBase* pmh,
 	assert(hwnd);
 	assert(pProfile);
 	
-	pGlobalContext_ = new MacroGlobalContext(pDocument, hwnd,
-		pProfile, bGetMessageAsPossible, pErrorHandler, pGlobalVariable);
+	pGlobalContext_ = new MacroGlobalContext(pDocument, hwnd, pProfile,
+		bGetMessageAsPossible, bDecryptVerify, pErrorHandler, pGlobalVariable);
 }
 
 qm::MacroContext::MacroContext(MessageHolderBase* pmh,
@@ -1188,6 +1196,8 @@ Message* qm::MacroContext::getMessage(MessageType type,
 	if (nFlags) {
 		if (isGetMessageAsPossible())
 			nFlags = Account::GETMESSAGEFLAG_POSSIBLE;
+		if (!isDecryptVerify())
+			nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
 		if (!pmh_->getMessage(nFlags, pwszField, pMessage_))
 			return 0;
 	}
@@ -1218,6 +1228,11 @@ Profile* qm::MacroContext::getProfile() const
 bool qm::MacroContext::isGetMessageAsPossible() const
 {
 	return pGlobalContext_->isGetMessageAsPossible();
+}
+
+bool qm::MacroContext::isDecryptVerify() const
+{
+	return pGlobalContext_->isDecryptVerify();
 }
 
 MacroErrorHandler* qm::MacroContext::getErrorHandler() const

@@ -54,8 +54,8 @@ wstring_ptr qm::Template::getValue(const TemplateContext& context) const
 		
 		if ((*itV).second) {
 			MacroContext c(context.getMessageHolder(), context.getMessage(),
-				context.getAccount(), context.getDocument(),
-				context.getWindow(), context.getProfile(), false,
+				context.getAccount(), context.getDocument(), context.getWindow(),
+				context.getProfile(), false, context.isDecryptVerify(),
 				context.getErrorHandler(), &globalVariable);
 			MacroValuePtr pValue((*itV).second->value(&c));
 			if (!pValue.get())
@@ -80,6 +80,7 @@ qm::TemplateContext::TemplateContext(MessageHolderBase* pmh,
 									 Account* pAccount,
 									 Document* pDocument,
 									 HWND hwnd,
+									 bool bDecryptVerify,
 									 Profile* pProfile,
 									 MacroErrorHandler* pErrorHandler,
 									 const ArgumentList& listArgument) :
@@ -88,6 +89,7 @@ qm::TemplateContext::TemplateContext(MessageHolderBase* pmh,
 	pAccount_(pAccount),
 	pDocument_(pDocument),
 	hwnd_(hwnd),
+	bDecryptVerify_(bDecryptVerify),
 	pProfile_(pProfile),
 	pErrorHandler_(pErrorHandler),
 	listArgument_(listArgument)
@@ -121,6 +123,11 @@ Document* qm::TemplateContext::getDocument() const
 HWND qm::TemplateContext::getWindow() const
 {
 	return hwnd_;
+}
+
+bool qm::TemplateContext::isDecryptVerify() const
+{
+	return bDecryptVerify_;
 }
 
 Profile* qm::TemplateContext::getProfile() const

@@ -162,6 +162,7 @@ public:
 					   HWND hwnd,
 					   qs::Profile* pProfile,
 					   bool bGetMessageAsPossible,
+					   bool bDecryptVerify,
 					   MacroErrorHandler* pErrorHandler,
 					   MacroVariableHolder* pGlobalVariable);
 	~MacroGlobalContext();
@@ -171,6 +172,7 @@ public:
 	HWND getWindow() const;
 	qs::Profile* getProfile() const;
 	bool isGetMessageAsPossible() const;
+	bool isDecryptVerify() const;
 	MacroErrorHandler* getErrorHandler() const;
 	MacroValuePtr getVariable(const WCHAR* pwszName) const;
 	bool setVariable(const WCHAR* pwszName,
@@ -193,6 +195,7 @@ private:
 	HWND hwnd_;
 	qs::Profile* pProfile_;
 	bool bGetMessageAsPossible_;
+	bool bDecryptVerify_;
 	MacroErrorHandler* pErrorHandler_;
 	MacroVariableHolder* pGlobalVariable_;
 	std::auto_ptr<MacroVariableHolder> pVariable_;

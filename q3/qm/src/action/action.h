@@ -19,6 +19,7 @@
 #include "templateprocessor.h"
 #include "../ui/messagecomposer.h"
 #include "../ui/messagewindow.h"
+#include "../ui/securitymodel.h"
 
 
 namespace qm {
@@ -87,6 +88,7 @@ class ViewNavigateFolderAction;
 class ViewNavigateMessageAction;
 class ViewOpenLinkAction;
 class ViewRefreshAction;
+class ViewSecurityAction;
 class ViewScrollAction;
 class ViewSelectModeAction;
 template<class WindowX> class ViewShowControlAction;
@@ -170,6 +172,7 @@ class AttachmentOpenAction : public qs::AbstractAction
 public:
 	AttachmentOpenAction(MessageModel* pMessageModel,
 						 AttachmentSelectionModel* pAttachmentSelectionModel,
+						 SecurityModel* pSecurityModel,
 						 qs::Profile* pProfile,
 						 TempFileCleaner* pTempFileCleaner,
 						 HWND hwnd);
@@ -186,6 +189,7 @@ private:
 private:
 	MessageModel* pMessageModel_;
 	AttachmentSelectionModel* pAttachmentSelectionModel_;
+	SecurityModel* pSecurityModel_;
 	HWND hwnd_;
 	AttachmentHelper helper_;
 };
@@ -202,6 +206,7 @@ class AttachmentSaveAction : public qs::AbstractAction
 public:
 	AttachmentSaveAction(MessageModel* pMessageModel,
 						 AttachmentSelectionModel* pAttachmentSelectionModel,
+						 SecurityModel* pSecurityModel,
 						 bool bAll,
 						 qs::Profile* pProfile,
 						 HWND hwnd);
@@ -640,6 +645,7 @@ class FileExportAction : public qs::AbstractAction
 {
 public:
 	FileExportAction(MessageSelectionModel* pMessageSelectionModel,
+					 SecurityModel* pSecurityModel,
 					 HWND hwnd);
 	virtual ~FileExportAction();
 
@@ -656,7 +662,8 @@ private:
 							 bool bAddFlags,
 							 const Template* pTemplate,
 							 const WCHAR* pwszEncoding,
-							 bool bWriteSeparator);
+							 bool bWriteSeparator,
+							 bool bDecryptVerify);
 
 private:
 	FileExportAction(const FileExportAction&);
@@ -664,6 +671,7 @@ private:
 
 private:
 	MessageSelectionModel* pMessageSelectionModel_;
+	SecurityModel* pSecurityModel_;
 	HWND hwnd_;
 };
 
@@ -752,7 +760,8 @@ class FilePrintAction : public qs::AbstractAction
 {
 public:
 	FilePrintAction(Document* pDocument,
-					MessageSelectionModel* pModel,
+					MessageSelectionModel* pMessageSelectionModel,
+					SecurityModel* pSecurityModel,
 					HWND hwnd,
 					qs::Profile* pProfile,
 					TempFileCleaner* pTempFileCleaner);
@@ -773,7 +782,8 @@ private:
 
 private:
 	Document* pDocument_;
-	MessageSelectionModel* pModel_;
+	MessageSelectionModel* pMessageSelectionModel_;
+	SecurityModel* pSecurityModel_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
 	TempFileCleaner* pTempFileCleaner_;
@@ -1075,11 +1085,13 @@ class MessageApplyRuleAction : public qs::AbstractAction
 public:
 	MessageApplyRuleAction(RuleManager* pRuleManager,
 						   FolderModel* pFolderModel,
+						   SecurityModel* pSecurityModel,
 						   Document* pDocument,
 						   HWND hwnd,
 						   qs::Profile* pProfile);
 	MessageApplyRuleAction(RuleManager* pRuleManager,
 						   MessageSelectionModel* pMessageSelectionModel,
+						   SecurityModel* pSecurityModel,
 						   Document* pDocument,
 						   HWND hwnd,
 						   qs::Profile* pProfile);
@@ -1097,6 +1109,7 @@ private:
 	RuleManager* pRuleManager_;
 	FolderModel* pFolderModel_;
 	MessageSelectionModel* pMessageSelectionModel_;
+	SecurityModel* pSecurityModel_;
 	Document* pDocument_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
@@ -1116,6 +1129,7 @@ public:
 							   Document* pDocument,
 							   FolderModelBase* pFolderModel,
 							   MessageSelectionModel* pMessageSelectionModel,
+							   SecurityModel* pSecurityModel,
 							   EditFrameWindowManager* pEditFrameWindowManager,
 							   ExternalEditorManager* pExternalEditorManager,
 							   HWND hwnd,
@@ -1182,6 +1196,7 @@ public:
 	MessageCreateAction(Document* pDocument,
 						FolderModelBase* pFolderModel,
 						MessageSelectionModel* pMessageSelectionModel,
+						SecurityModel* pSecurityModel,
 						const WCHAR* pwszTemplateName,
 						EditFrameWindowManager* pEditFrameWindowManager,
 						ExternalEditorManager* pExternalEditorManager,
@@ -1219,7 +1234,8 @@ public:
 									 Document* pDocument,
 									 qs::Profile* pProfile,
 									 HWND hwnd,
-									 FolderModel* pFolderModel);
+									 FolderModel* pFolderModel,
+									 SecurityModel* pSecurityModel);
 	virtual ~MessageCreateFromClipboardAction();
 
 public:
@@ -1246,6 +1262,7 @@ class MessageDeleteAttachmentAction : public qs::AbstractAction
 {
 public:
 	MessageDeleteAttachmentAction(MessageSelectionModel* pMessageSelectionModel,
+								  SecurityModel* pSecurityModel,
 								  HWND hwnd);
 	virtual ~MessageDeleteAttachmentAction();
 
@@ -1265,6 +1282,7 @@ private:
 
 private:
 	MessageSelectionModel* pMessageSelectionModel_;
+	SecurityModel* pSecurityModel_;
 	HWND hwnd_;
 };
 
@@ -1280,6 +1298,7 @@ class MessageDetachAction : public qs::AbstractAction
 public:
 	MessageDetachAction(qs::Profile* pProfile,
 						MessageSelectionModel* pMessageSelectionModel,
+						SecurityModel* pSecurityModel,
 						HWND hwnd);
 	virtual ~MessageDetachAction();
 
@@ -1431,7 +1450,8 @@ private:
 class MessageOpenAttachmentAction : public qs::AbstractAction
 {
 public:
-	MessageOpenAttachmentAction(qs::Profile* pProfile,
+	MessageOpenAttachmentAction(SecurityModel* pSecurityModel,
+								qs::Profile* pProfile,
 								AttachmentMenu* pAttachmentMenu,
 								TempFileCleaner* pTempFileCleaner,
 								HWND hwnd);
@@ -1459,6 +1479,7 @@ public:
 	MessageOpenURLAction(Document* pDocument,
 						 FolderModelBase* pFolderModel,
 						 MessageSelectionModel* pMessageSelectionModel,
+						 SecurityModel* pSecurityModel,
 						 EditFrameWindowManager* pEditFrameWindowManager,
 						 ExternalEditorManager* pExternalEditorManager,
 						 HWND hwnd,
@@ -1517,6 +1538,7 @@ class MessageSearchAction : public qs::AbstractAction
 {
 public:
 	MessageSearchAction(FolderModel* pFolderModel,
+						SecurityModel* pSecurityModel,
 						Document* pDocument,
 						HWND hwnd,
 						qs::Profile* pProfile);
@@ -1532,6 +1554,7 @@ private:
 
 private:
 	FolderModel* pFolderModel_;
+	SecurityModel* pSecurityModel_;
 	Document* pDocument_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
@@ -2130,6 +2153,7 @@ public:
 	ViewRefreshAction(SyncManager* pSyncManager,
 					  Document* pDocument,
 					  FolderModel* pFolderModel,
+					  SecurityModel* pSecurityModel,
 					  SyncDialogManager* pSyncDialogManager,
 					  HWND hwnd,
 					  qs::Profile* pProfile);
@@ -2147,11 +2171,47 @@ private:
 	SyncManager* pSyncManager_;
 	Document* pDocument_;
 	FolderModel* pFolderModel_;
+	SecurityModel* pSecurityModel_;
 	SyncDialogManager* pSyncDialogManager_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
 };
 
+
+/****************************************************************************
+ *
+ * ViewSecurityAction
+ *
+ */
+
+class ViewSecurityAction : public qs::AbstractAction
+{
+public:
+	typedef bool (SecurityModel::*PFN_IS)();
+	typedef void (SecurityModel::*PFN_SET)(bool);
+
+public:
+	ViewSecurityAction(SecurityModel* pSecurityModel,
+					   PFN_IS pfnIs,
+					   PFN_SET pfnSet,
+					   bool bEnabled);
+	virtual ~ViewSecurityAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
+
+private:
+	ViewSecurityAction(const ViewSecurityAction&);
+	ViewSecurityAction& operator=(const ViewSecurityAction&);
+
+private:
+	SecurityModel* pSecurityModel_;
+	PFN_IS pfnIs_;
+	PFN_SET pfnSet_;
+	bool bEnabled_;
+};
 
 /****************************************************************************
  *

@@ -71,13 +71,15 @@ using namespace qs;
 
 qm::AttachmentOpenAction::AttachmentOpenAction(MessageModel* pMessageModel,
 											   AttachmentSelectionModel* pAttachmentSelectionModel,
+											   SecurityModel* pSecurityModel,
 											   Profile* pProfile,
 											   TempFileCleaner* pTempFileCleaner,
 											   HWND hwnd) :
 	pMessageModel_(pMessageModel),
 	pAttachmentSelectionModel_(pAttachmentSelectionModel),
+	pSecurityModel_(pSecurityModel),
 	hwnd_(hwnd),
-	helper_(pProfile, pTempFileCleaner, hwnd)
+	helper_(pSecurityModel, pProfile, pTempFileCleaner, hwnd)
 {
 }
 
@@ -92,7 +94,10 @@ void qm::AttachmentOpenAction::invoke(const ActionEvent& event)
 		return;
 	
 	Message msg;
-	if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg)) {
+	unsigned int nFlags = Account::GETMESSAGEFLAG_ALL;
+	if (!pSecurityModel_->isDecryptVerify())
+		nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
+	if (!mpl->getMessage(nFlags, 0, &msg)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_EXECUTEATTACHMENT);
 		return;
 	}
@@ -140,13 +145,14 @@ bool qm::AttachmentOpenAction::isEnabled(const ActionEvent& event)
 
 qm::AttachmentSaveAction::AttachmentSaveAction(MessageModel* pMessageModel,
 											   AttachmentSelectionModel* pAttachmentSelectionModel,
+											   SecurityModel* pSecurityModel,
 											   bool bAll,
 											   Profile* pProfile,
 											   HWND hwnd) :
 	pMessageModel_(pMessageModel),
 	pAttachmentSelectionModel_(pAttachmentSelectionModel),
 	bAll_(bAll),
-	helper_(pProfile, 0, hwnd),
+	helper_(pSecurityModel, pProfile, 0, hwnd),
 	hwnd_(hwnd)
 {
 }
@@ -846,8 +852,10 @@ void qm::FileExitAction::invoke(const ActionEvent& event)
  */
 
 qm::FileExportAction::FileExportAction(MessageSelectionModel* pMessageSelectionModel,
+									   SecurityModel* pSecurityModel,
 									   HWND hwnd) :
 	pMessageSelectionModel_(pMessageSelectionModel),
+	pSecurityModel_(pSecurityModel),
 	hwnd_(hwnd)
 {
 }
@@ -918,8 +926,8 @@ bool qm::FileExportAction::export(const MessageHolderList& l)
 				if (!fileStream)
 					return false;
 				BufferedOutputStream stream(&fileStream, false);
-				if (!writeMessage(&stream, l[n], dialog.isExportFlags(),
-					pTemplate, pwszEncoding, false))
+				if (!writeMessage(&stream, l[n], dialog.isExportFlags(), pTemplate,
+					pwszEncoding, false, pSecurityModel_->isDecryptVerify()))
 					return false;
 				if (!stream.close())
 					return false;
@@ -937,7 +945,7 @@ bool qm::FileExportAction::export(const MessageHolderList& l)
 			int nPos = 0;
 			if (l.size() == 1) {
 				if (!writeMessage(&stream, l.front(), dialog.isExportFlags(),
-					pTemplate, pwszEncoding, false))
+					pTemplate, pwszEncoding, false, pSecurityModel_->isDecryptVerify()))
 					return false;
 				++nPos;
 			}
@@ -948,7 +956,7 @@ bool qm::FileExportAction::export(const MessageHolderList& l)
 					progressDialog.setPos(nPos++);
 					
 					if (!writeMessage(&stream, *it, dialog.isExportFlags(),
-						pTemplate, pwszEncoding, true))
+						pTemplate, pwszEncoding, true, pSecurityModel_->isDecryptVerify()))
 						return false;
 				}
 			}
@@ -966,7 +974,8 @@ bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 										bool bAddFlags,
 										const Template* pTemplate,
 										const WCHAR* pwszEncoding,
-										bool bWriteSeparator)
+										bool bWriteSeparator,
+										bool bDecryptVerify)
 {
 	assert(pStream);
 	assert((pTemplate && pwszEncoding) || (!pTemplate && !pwszEncoding));
@@ -974,8 +983,9 @@ bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 	MessagePtrLock mpl(ptr);
 	if (mpl) {
 		Message msg;
-		unsigned int nFlags = Account::GETMESSAGEFLAG_ALL |
-			Account::GETMESSAGEFLAG_NOSECURITY;
+		unsigned int nFlags = Account::GETMESSAGEFLAG_ALL;
+		if (!bDecryptVerify)
+			nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
 		if (!mpl->getMessage(nFlags, 0, &msg))
 			return false;
 		
@@ -1330,12 +1340,14 @@ bool qm::FileOfflineAction::isChecked(const ActionEvent& event)
  */
 
 qm::FilePrintAction::FilePrintAction(Document* pDocument,
-									 MessageSelectionModel* pModel,
+									 MessageSelectionModel* pMessageSelectionModel,
+									 SecurityModel* pSecurityModel,
 									 HWND hwnd,
 									 Profile* pProfile,
 									 TempFileCleaner* pTempFileCleaner) :
 	pDocument_(pDocument),
-	pModel_(pModel),
+	pMessageSelectionModel_(pMessageSelectionModel),
+	pSecurityModel_(pSecurityModel),
 	hwnd_(hwnd),
 	pProfile_(pProfile),
 	pTempFileCleaner_(pTempFileCleaner)
@@ -1351,7 +1363,7 @@ void qm::FilePrintAction::invoke(const ActionEvent& event)
 	AccountLock lock;
 	Folder* pFolder = 0;
 	MessageHolderList l;
-	pModel_->getSelectedMessages(&lock, &pFolder, &l);
+	pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
 	
 	Account* pAccount = lock.get();
 	if (!l.empty()) {
@@ -1366,7 +1378,7 @@ void qm::FilePrintAction::invoke(const ActionEvent& event)
 
 bool qm::FilePrintAction::isEnabled(const ActionEvent& event)
 {
-	return pModel_->hasSelectedMessage();
+	return pMessageSelectionModel_->hasSelectedMessage();
 }
 
 bool qm::FilePrintAction::print(Account* pAccount,
@@ -1380,7 +1392,8 @@ bool qm::FilePrintAction::print(Account* pAccount,
 	
 	Message msg;
 	TemplateContext context(pmh, &msg, pAccount, pDocument_,
-		hwnd_, pProfile_, 0, TemplateContext::ArgumentList());
+		hwnd_, pSecurityModel_->isDecryptVerify(),
+		pProfile_, 0, TemplateContext::ArgumentList());
 	
 	wstring_ptr wstrValue(pTemplate->getValue(context));
 	if (!wstrValue.get())
@@ -1966,12 +1979,14 @@ bool qm::FolderUpdateAction::isEnabled(const ActionEvent& event)
 
 qm::MessageApplyRuleAction::MessageApplyRuleAction(RuleManager* pRuleManager,
 												   FolderModel* pFolderModel,
+												   SecurityModel* pSecurityModel,
 												   Document* pDocument,
 												   HWND hwnd,
 												   Profile* pProfile) :
 	pRuleManager_(pRuleManager),
 	pFolderModel_(pFolderModel),
 	pMessageSelectionModel_(0),
+	pSecurityModel_(pSecurityModel),
 	pDocument_(pDocument),
 	hwnd_(hwnd),
 	pProfile_(pProfile)
@@ -1980,12 +1995,14 @@ qm::MessageApplyRuleAction::MessageApplyRuleAction(RuleManager* pRuleManager,
 
 qm::MessageApplyRuleAction::MessageApplyRuleAction(RuleManager* pRuleManager,
 												   MessageSelectionModel* pMessageSelectionModel,
+												   SecurityModel* pSecurityModel,
 												   Document* pDocument,
 												   HWND hwnd,
 												   Profile* pProfile) :
 	pRuleManager_(pRuleManager),
 	pFolderModel_(0),
 	pMessageSelectionModel_(pMessageSelectionModel),
+	pSecurityModel_(pSecurityModel),
 	pDocument_(pDocument),
 	hwnd_(hwnd),
 	pProfile_(pProfile)
@@ -2045,8 +2062,8 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 		Folder* pFolder = pFolderModel_->getCurrentFolder();
 		if (pFolder) {
 			ProgressDialogInit init(&dialog, hwnd_);
-			if (!pRuleManager_->apply(pFolder,
-				0, pDocument_, hwnd_, pProfile_, &callback)) {
+			if (!pRuleManager_->apply(pFolder, 0, pDocument_, hwnd_,
+				pProfile_, pSecurityModel_->isDecryptVerify(), &callback)) {
 				ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
 				return;
 			}
@@ -2059,8 +2076,8 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 		pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
 		if (!l.empty()) {
 			ProgressDialogInit init(&dialog, hwnd_);
-			if (!pRuleManager_->apply(pFolder, &l,
-				pDocument_, hwnd_, pProfile_, &callback)) {
+			if (!pRuleManager_->apply(pFolder, &l, pDocument_, hwnd_,
+				pProfile_, pSecurityModel_->isDecryptVerify(), &callback)) {
 				ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
 				return;
 			}
@@ -2087,13 +2104,14 @@ qm::MessageApplyTemplateAction::MessageApplyTemplateAction(TemplateMenu* pTempla
 														   Document* pDocument,
 														   FolderModelBase* pFolderModel,
 														   MessageSelectionModel* pMessageSelectionModel,
+														   SecurityModel* pSecurityModel,
 														   EditFrameWindowManager* pEditFrameWindowManager,
 														   ExternalEditorManager* pExternalEditorManager,
 														   HWND hwnd,
 														   Profile* pProfile,
 														   bool bExternalEditor) :
-	processor_(pDocument, pFolderModel, pMessageSelectionModel, pEditFrameWindowManager,
-		pExternalEditorManager, hwnd, pProfile, bExternalEditor),
+	processor_(pDocument, pFolderModel, pMessageSelectionModel, pSecurityModel,
+		pEditFrameWindowManager, pExternalEditorManager, hwnd, pProfile, bExternalEditor),
 	pTemplateMenu_(pTemplateMenu),
 	hwnd_(hwnd)
 {
@@ -2305,14 +2323,15 @@ bool qm::MessageCombineAction::isSpecialField(const CHAR* pszField)
 qm::MessageCreateAction::MessageCreateAction(Document* pDocument,
 											 FolderModelBase* pFolderModel,
 											 MessageSelectionModel* pMessageSelectionModel,
+											 SecurityModel* pSecurityModel,
 											 const WCHAR* pwszTemplateName,
 											 EditFrameWindowManager* pEditFrameWindowManager,
 											 ExternalEditorManager* pExternalEditorManager,
 											 HWND hwnd,
 											 Profile* pProfile,
 											 bool bExternalEditor) :
-	processor_(pDocument, pFolderModel, pMessageSelectionModel, pEditFrameWindowManager,
-		pExternalEditorManager, hwnd, pProfile, bExternalEditor),
+	processor_(pDocument, pFolderModel, pMessageSelectionModel, pSecurityModel,
+		pEditFrameWindowManager, pExternalEditorManager, hwnd, pProfile, bExternalEditor),
 	pFolderModel_(pFolderModel),
 	hwnd_(hwnd)
 {
@@ -2349,8 +2368,9 @@ qm::MessageCreateFromClipboardAction::MessageCreateFromClipboardAction(bool bDra
 																	   Document* pDocument,
 																	   Profile* pProfile,
 																	   HWND hwnd,
-																	   FolderModel* pFolderModel) :
-	composer_(bDraft, pDocument, pProfile, hwnd, pFolderModel),
+																	   FolderModel* pFolderModel,
+																	   SecurityModel* pSecurityModel) :
+	composer_(bDraft, pDocument, pProfile, hwnd, pFolderModel, pSecurityModel),
 	hwnd_(hwnd)
 {
 }
@@ -2389,8 +2409,10 @@ bool qm::MessageCreateFromClipboardAction::isEnabled(const ActionEvent& event)
  */
 
 qm::MessageDeleteAttachmentAction::MessageDeleteAttachmentAction(MessageSelectionModel* pMessageSelectionModel,
+																 SecurityModel* pSecurityModel,
 																 HWND hwnd) :
 	pMessageSelectionModel_(pMessageSelectionModel),
+	pSecurityModel_(pSecurityModel),
 	hwnd_(hwnd)
 {
 }
@@ -2433,7 +2455,10 @@ bool qm::MessageDeleteAttachmentAction::deleteAttachment(Account* pAccount,
 														 MessageHolder* pmh) const
 {
 	Message msg;
-	if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg))
+	unsigned int nFlags = Account::GETMESSAGEFLAG_ALL;
+	if (!pSecurityModel_->isDecryptVerify())
+		nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
+	if (!pmh->getMessage(nFlags, 0, &msg))
 		return false;
 	
 	AttachmentParser::removeAttachments(&msg);
@@ -2459,9 +2484,10 @@ bool qm::MessageDeleteAttachmentAction::deleteAttachment(Account* pAccount,
 
 qm::MessageDetachAction::MessageDetachAction(Profile* pProfile,
 											 MessageSelectionModel* pMessageSelectionModel,
+											 SecurityModel* pSecurityModel,
 											 HWND hwnd) :
 	pMessageSelectionModel_(pMessageSelectionModel),
-	helper_(pProfile, 0, hwnd),
+	helper_(pSecurityModel, pProfile, 0, hwnd),
 	hwnd_(hwnd)
 {
 }
@@ -2720,12 +2746,13 @@ bool qm::MessageMoveOtherAction::isEnabled(const ActionEvent& event)
  *
  */
 
-qm::MessageOpenAttachmentAction::MessageOpenAttachmentAction(Profile* pProfile,
+qm::MessageOpenAttachmentAction::MessageOpenAttachmentAction(SecurityModel* pSecurityModel,
+															 Profile* pProfile,
 															 AttachmentMenu* pAttachmentMenu,
 															 TempFileCleaner* pTempFileCleaner,
 															 HWND hwnd) :
 	pAttachmentMenu_(pAttachmentMenu),
-	helper_(pProfile, pTempFileCleaner, hwnd),
+	helper_(pSecurityModel, pProfile, pTempFileCleaner, hwnd),
 	hwnd_(hwnd)
 {
 }
@@ -2761,13 +2788,14 @@ void qm::MessageOpenAttachmentAction::invoke(const ActionEvent& event)
 qm::MessageOpenURLAction::MessageOpenURLAction(Document* pDocument,
 											   FolderModelBase* pFolderModel,
 											   MessageSelectionModel* pMessageSelectionModel,
+											   SecurityModel* pSecurityModel,
 											   EditFrameWindowManager* pEditFrameWindowManager,
 											   ExternalEditorManager* pExternalEditorManager,
 											   HWND hwnd,
 											   Profile* pProfile,
 											   bool bExternalEditor) :
-	processor_(pDocument, pFolderModel, pMessageSelectionModel, pEditFrameWindowManager,
-		pExternalEditorManager, hwnd, pProfile, bExternalEditor),
+	processor_(pDocument, pFolderModel, pMessageSelectionModel, pSecurityModel,
+		pEditFrameWindowManager, pExternalEditorManager, hwnd, pProfile, bExternalEditor),
 	hwnd_(hwnd)
 {
 }
@@ -2858,10 +2886,12 @@ bool qm::MessagePropertyAction::isEnabled(const ActionEvent& event)
  */
 
 qm::MessageSearchAction::MessageSearchAction(FolderModel* pFolderModel,
+											 SecurityModel* pSecurityModel,
 											 Document* pDocument,
 											 HWND hwnd,
 											 Profile* pProfile) :
 	pFolderModel_(pFolderModel),
+	pSecurityModel_(pSecurityModel),
 	pDocument_(pDocument),
 	hwnd_(hwnd),
 	pProfile_(pProfile)
@@ -2960,7 +2990,8 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 				pSearch->set(pPage->getDriver(), pwszCondition,
 					wstrFolder.get(), pPage->isRecursive());
 				if (pFolder == pSearch) {
-					if (!pSearch->search(pDocument_, hwnd_, pProfile_)) {
+					if (!pSearch->search(pDocument_, hwnd_,
+						pProfile_, pSecurityModel_->isDecryptVerify())) {
 						ActionUtil::error(hwnd_, IDS_ERROR_SEARCH);
 						return;
 					}
@@ -4095,12 +4126,14 @@ void qm::ViewOpenLinkAction::invoke(const ActionEvent& event)
 qm::ViewRefreshAction::ViewRefreshAction(SyncManager* pSyncManager,
 										 Document* pDocument,
 										 FolderModel* pFolderModel,
+										 SecurityModel* pSecurityModel,
 										 SyncDialogManager* pSyncDialogManager,
 										 HWND hwnd,
 										 Profile* pProfile) :
 	pSyncManager_(pSyncManager),
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
+	pSecurityModel_(pSecurityModel),
 	pSyncDialogManager_(pSyncDialogManager),
 	hwnd_(hwnd),
 	pProfile_(pProfile)
@@ -4127,8 +4160,8 @@ void qm::ViewRefreshAction::invoke(const ActionEvent& event)
 			}
 			break;
 		case Folder::TYPE_QUERY:
-			if (!static_cast<QueryFolder*>(pFolder)->search(
-				pDocument_, hwnd_, pProfile_)) {
+			if (!static_cast<QueryFolder*>(pFolder)->search(pDocument_,
+				hwnd_, pProfile_, pSecurityModel_->isDecryptVerify())) {
 				ActionUtil::error(hwnd_, IDS_ERROR_REFRESH);
 				return;
 			}
@@ -4146,6 +4179,43 @@ bool qm::ViewRefreshAction::isEnabled(const ActionEvent& event)
 	return pFolder &&
 		(pFolder->getType() == Folder::TYPE_QUERY ||
 		pFolder->isFlag(Folder::FLAG_SYNCABLE));
+}
+
+
+/****************************************************************************
+ *
+ * ViewSecurityAction
+ *
+ */
+
+qm::ViewSecurityAction::ViewSecurityAction(SecurityModel* pSecurityModel,
+										   PFN_IS pfnIs,
+										   PFN_SET pfnSet,
+										   bool bEnabled) :
+	pSecurityModel_(pSecurityModel),
+	pfnIs_(pfnIs),
+	pfnSet_(pfnSet),
+	bEnabled_(bEnabled)
+{
+}
+
+qm::ViewSecurityAction::~ViewSecurityAction()
+{
+}
+
+void qm::ViewSecurityAction::invoke(const ActionEvent& event)
+{
+	(pSecurityModel_->*pfnSet_)(!(pSecurityModel_->*pfnIs_)());
+}
+
+bool qm::ViewSecurityAction::isEnabled(const ActionEvent& event)
+{
+	return bEnabled_;
+}
+
+bool qm::ViewSecurityAction::isChecked(const ActionEvent& event)
+{
+	return (pSecurityModel_->*pfnIs_)();
 }
 
 

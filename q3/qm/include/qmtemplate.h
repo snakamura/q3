@@ -83,6 +83,7 @@ public:
 					Account* pAccount,
 					Document* pDocument,
 					HWND hwnd,
+					bool bDecryptVerify,
 					qs::Profile* pProfile,
 					MacroErrorHandler* pErrorHandler,
 					const ArgumentList& listArgument);
@@ -94,6 +95,7 @@ public:
 	Account* getAccount() const;
 	Document* getDocument() const;
 	HWND getWindow() const;
+	bool isDecryptVerify() const;
 	qs::Profile* getProfile() const;
 	MacroErrorHandler* getErrorHandler() const;
 	const ArgumentList& getArgumentList() const;
@@ -108,6 +110,7 @@ private:
 	Account* pAccount_;
 	Document* pDocument_;
 	HWND hwnd_;
+	bool bDecryptVerify_;
 	qs::Profile* pProfile_;
 	MacroErrorHandler* pErrorHandler_;
 	const ArgumentList& listArgument_;

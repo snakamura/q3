@@ -75,6 +75,7 @@ public:
 	SyncDialogManager* pSyncDialogManager_;
 	EditWindow* pEditWindow_;
 	StatusBar* pStatusBar_;
+	SecurityModel* pSecurityModel_;
 	std::auto_ptr<Accelerator> pAccelerator_;
 	std::auto_ptr<ActionMap> pActionMap_;
 	std::auto_ptr<ActionInvoker> pActionInvoker_;
@@ -208,13 +209,14 @@ void qm::EditFrameWindowImpl::initActions()
 		IDOK,
 		pThis_->getHandle());
 #endif
-	ADD_ACTION5(EditFileSendAction,
+	ADD_ACTION6(EditFileSendAction,
 		IDM_FILE_DRAFT,
 		true,
 		pDocument_,
 		pEditWindow_->getEditMessageHolder(),
 		pThis_,
-		pProfile_);
+		pProfile_,
+		pSecurityModel_);
 	ADD_ACTION1(EditFileInsertAction,
 		IDM_FILE_INSERT,
 		pEditWindow_->getTextWindow());
@@ -226,21 +228,23 @@ void qm::EditFrameWindowImpl::initActions()
 		IDM_FILE_SAVE,
 		pEditWindow_->getEditMessageHolder(),
 		pThis_->getHandle());
-	ADD_ACTION5(EditFileSendAction,
+	ADD_ACTION6(EditFileSendAction,
 		IDM_FILE_SEND,
 		false,
 		pDocument_,
 		pEditWindow_->getEditMessageHolder(),
 		pThis_,
-		pProfile_);
-	ADD_ACTION6(EditFileSendAction,
+		pProfile_,
+		pSecurityModel_);
+	ADD_ACTION7(EditFileSendAction,
 		IDM_FILE_SENDNOW,
 		pDocument_,
 		pEditWindow_->getEditMessageHolder(),
 		pThis_,
 		pProfile_,
 		pSyncManager_,
-		pSyncDialogManager_);
+		pSyncDialogManager_,
+		pSecurityModel_);
 	ADD_ACTION_RANGE1(EditFocusItemAction,
 		IDM_FOCUS_HEADEREDITITEM,
 		IDM_FOCUS_HEADEREDITITEM + 10,
@@ -372,6 +376,7 @@ qm::EditFrameWindow::EditFrameWindow(EditFrameWindowManager* pManager,
 	pImpl_->pDocument_ = 0;
 	pImpl_->pEditWindow_ = 0;
 	pImpl_->pStatusBar_ = 0;
+	pImpl_->pSecurityModel_ = 0;
 	pImpl_->bIme_ = false;
 	pImpl_->bCreated_ = false;
 	pImpl_->nInitialShow_ = SW_SHOWNORMAL;
@@ -605,6 +610,7 @@ LRESULT qm::EditFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pDocument_ = pContext->pDocument_;
 	pImpl_->pSyncManager_ = pContext->pSyncManager_;
 	pImpl_->pSyncDialogManager_ = pContext->pSyncDialogManager_;
+	pImpl_->pSecurityModel_ = pContext->pSecurityModel_;
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pKeyMap_->createAccelerator(
@@ -705,14 +711,16 @@ qm::EditFrameWindowManager::EditFrameWindowManager(Document* pDocument,
 												   KeyMap* pKeyMap,
 												   Profile* pProfile,
 												   MenuManager* pMenuManager,
-												   ToolbarManager* pToolbarManager) :
+												   ToolbarManager* pToolbarManager,
+												   SecurityModel* pSecurityModel) :
 	pDocument_(pDocument),
 	pSyncManager_(pSyncManager),
 	pSyncDialogManager_(pSyncDialogManager),
 	pKeyMap_(pKeyMap),
 	pProfile_(pProfile),
 	pMenuManager_(pMenuManager),
-	pToolbarManager_(pToolbarManager)
+	pToolbarManager_(pToolbarManager),
+	pSecurityModel_(pSecurityModel)
 {
 }
 
@@ -744,7 +752,8 @@ bool qm::EditFrameWindowManager::open(std::auto_ptr<EditMessage> pEditMessage)
 		pSyncDialogManager_,
 		pMenuManager_,
 		pToolbarManager_,
-		pKeyMap_
+		pKeyMap_,
+		pSecurityModel_
 	};
 	if (!pFrame->create(L"QmEditFrameWindow", L"QMAIL", dwStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,

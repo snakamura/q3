@@ -26,6 +26,7 @@ class EditFrameWindowManager;
 class ExternalEditorManager;
 class FolderModelBase;
 class MessageSelectionModel;
+class SecurityModel;
 class TemplateManager;
 
 
@@ -41,6 +42,7 @@ public:
 	TemplateProcessor(Document* pDocument,
 					  FolderModelBase* pFolderModel,
 					  MessageSelectionModel* pMessageSelectionModel,
+					  SecurityModel* pSecurityModel,
 					  EditFrameWindowManager* pEditFrameWindowManager,
 					  ExternalEditorManager* pExternalEditorManager,
 					  HWND hwnd,
@@ -81,6 +83,7 @@ private:
 	Document* pDocument_;
 	FolderModelBase* pFolderModel_;
 	MessageSelectionModel* pMessageSelectionModel_;
+	SecurityModel* pSecurityModel_;
 	EditFrameWindowManager* pEditFrameWindowManager_;
 	ExternalEditorManager* pExternalEditorManager_;
 	HWND hwnd_;

@@ -28,6 +28,7 @@
 #include "messageselectionmodel.h"
 #include "messagewindow.h"
 #include "resourceinc.h"
+#include "securitymodel.h"
 #include "statusbar.h"
 #include "uiutil.h"
 #include "../action/action.h"
@@ -103,6 +104,7 @@ public:
 	std::auto_ptr<FindReplaceManager> pFindReplaceManager_;
 	ExternalEditorManager* pExternalEditorManager_;
 	EditFrameWindowManager* pEditFrameWindowManager_;
+	std::auto_ptr<DefaultSecurityModel> pSecurityModel_;
 	std::auto_ptr<MoveMenu> pMoveMenu_;
 	std::auto_ptr<AttachmentMenu> pAttachmentMenu_;
 	std::auto_ptr<ViewTemplateMenu> pViewTemplateMenu_;
@@ -122,24 +124,27 @@ void qm::MessageFrameWindowImpl::initActions()
 	pActionInvoker_.reset(new ActionInvoker(pActionMap_.get()));
 	pFindReplaceManager_.reset(new FindReplaceManager());
 	
-	ADD_ACTION5(AttachmentOpenAction,
+	ADD_ACTION6(AttachmentOpenAction,
 		IDM_ATTACHMENT_OPEN,
 		pMessageModel_.get(),
 		pMessageWindow_->getAttachmentSelectionModel(),
+		pSecurityModel_.get(),
 		pProfile_,
 		pTempFileCleaner_,
 		pThis_->getHandle());
-	ADD_ACTION5(AttachmentSaveAction,
+	ADD_ACTION6(AttachmentSaveAction,
 		IDM_ATTACHMENT_SAVE,
 		pMessageModel_.get(),
 		pMessageWindow_->getAttachmentSelectionModel(),
+		pSecurityModel_.get(),
 		false,
 		pProfile_,
 		pThis_->getHandle());
-	ADD_ACTION5(AttachmentSaveAction,
+	ADD_ACTION6(AttachmentSaveAction,
 		IDM_ATTACHMENT_SAVEALL,
 		pMessageModel_.get(),
 		pMessageWindow_->getAttachmentSelectionModel(),
+		pSecurityModel_.get(),
 		true,
 		pProfile_,
 		pThis_->getHandle());
@@ -188,25 +193,27 @@ void qm::MessageFrameWindowImpl::initActions()
 		IDOK,
 		pThis_->getHandle());
 #endif
-	ADD_ACTION_RANGE9(MessageApplyTemplateAction,
+	ADD_ACTION_RANGE10(MessageApplyTemplateAction,
 		IDM_MESSAGE_APPLYTEMPLATE,
 		IDM_MESSAGE_APPLYTEMPLATE + TemplateMenu::MAX_TEMPLATE,
 		pCreateTemplateMenu_.get(),
 		pDocument_,
 		this,
 		this,
+		pSecurityModel_.get(),
 		pEditFrameWindowManager_,
 		pExternalEditorManager_,
 		pThis_->getHandle(),
 		pProfile_,
 		false);
-	ADD_ACTION_RANGE9(MessageApplyTemplateAction,
+	ADD_ACTION_RANGE10(MessageApplyTemplateAction,
 		IDM_MESSAGE_APPLYTEMPLATEEXTERNAL,
 		IDM_MESSAGE_APPLYTEMPLATEEXTERNAL + TemplateMenu::MAX_TEMPLATE,
 		pCreateTemplateExternalMenu_.get(),
 		pDocument_,
 		this,
 		this,
+		pSecurityModel_.get(),
 		pEditFrameWindowManager_,
 		pExternalEditorManager_,
 		pThis_->getHandle(),
@@ -225,22 +232,24 @@ void qm::MessageFrameWindowImpl::initActions()
 		{ IDM_MESSAGE_REPLYALL,	IDM_MESSAGE_REPLYALLEXTERNAL,	L"reply_all"	},
 	};
 	for (int n = 0; n < countof(creates); ++n) {
-		ADD_ACTION9(MessageCreateAction,
+		ADD_ACTION10(MessageCreateAction,
 			creates[n].nId_,
 			pDocument_,
 			this,
 			this,
+			pSecurityModel_.get(),
 			creates[n].pwszName_,
 			pEditFrameWindowManager_,
 			pExternalEditorManager_,
 			pThis_->getHandle(),
 			pProfile_,
 			false);
-		ADD_ACTION9(MessageCreateAction,
+		ADD_ACTION10(MessageCreateAction,
 			creates[n].nIdExternal_,
 			pDocument_,
 			this,
 			this,
+			pSecurityModel_.get(),
 			creates[n].pwszName_,
 			pEditFrameWindowManager_,
 			pExternalEditorManager_,
@@ -248,18 +257,21 @@ void qm::MessageFrameWindowImpl::initActions()
 			pProfile_,
 			true);
 	}
-	ADD_ACTION2(MessageDeleteAttachmentAction,
+	ADD_ACTION3(MessageDeleteAttachmentAction,
 		IDM_MESSAGE_DELETEATTACHMENT,
 		this,
+		pSecurityModel_.get(),
 		pThis_->getHandle());
-	ADD_ACTION3(MessageDetachAction,
+	ADD_ACTION4(MessageDetachAction,
 		IDM_MESSAGE_DETACH,
 		pProfile_,
 		this,
+		pSecurityModel_.get(),
 		pThis_->getHandle());
-	ADD_ACTION_RANGE4(MessageOpenAttachmentAction,
+	ADD_ACTION_RANGE5(MessageOpenAttachmentAction,
 		IDM_MESSAGE_ATTACHMENT,
 		IDM_MESSAGE_ATTACHMENT + AttachmentMenu::MAX_ATTACHMENT,
+		pSecurityModel_.get(),
 		pProfile_,
 		pAttachmentMenu_.get(),
 		pTempFileCleaner_,
@@ -321,11 +333,11 @@ void qm::MessageFrameWindowImpl::initActions()
 		IDM_VIEW_ENCODING + EncodingMenu::MAX_ENCODING,
 		pMessageWindow_,
 		pEncodingMenu_.get());
-	ADD_ACTION4(ViewMessageModeAction,
+	ADD_ACTION4(ViewSecurityAction,
 		IDM_VIEW_DECRYPTVERIFYMODE,
-		pMessageWindow_,
-		&MessageWindow::isDecryptVerifyMode,
-		&MessageWindow::setDecryptVerifyMode,
+		pSecurityModel_.get(),
+		&SecurityModel::isDecryptVerify,
+		&SecurityModel::setDecryptVerify,
 		Security::isEnabled());
 	ADD_ACTION4(ViewMessageModeAction,
 		IDM_VIEW_HTMLMODE,
@@ -577,6 +589,8 @@ bool qm::MessageFrameWindow::save()
 	
 	UIUtil::saveWindowPlacement(getHandle(), pProfile, L"MessageFrameWindow");
 	
+	pProfile->setInt(L"MainWindow", L"DecryptVerify", pImpl_->pSecurityModel_->isDecryptVerify());
+	
 	if (!FrameWindow::save())
 		return false;
 	
@@ -756,6 +770,8 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pTempFileCleaner_ = pContext->pTempFileCleaner_;
 	
 	pImpl_->pMessageModel_.reset(new MessageMessageModel());
+	pImpl_->pSecurityModel_.reset(new DefaultSecurityModel(
+		pImpl_->pProfile_->getInt(L"MessageWindow", L"DecryptVerify", 0) != 0));
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pKeyMap_->createAccelerator(
@@ -769,7 +785,8 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	MessageWindowCreateContext context = {
 		pContext->pDocument_,
 		pContext->pMenuManager_,
-		pContext->pKeyMap_
+		pContext->pKeyMap_,
+		pImpl_->pSecurityModel_.get()
 	};
 	if (!pMessageWindow->create(L"QmMessageWindow", 0, dwStyle, CW_USEDEFAULT,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, getHandle(), 0, 0,
@@ -787,7 +804,7 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->layoutChildren();
 	
 	pImpl_->pMoveMenu_.reset(new MoveMenu());
-	pImpl_->pAttachmentMenu_.reset(new AttachmentMenu());
+	pImpl_->pAttachmentMenu_.reset(new AttachmentMenu(pImpl_->pSecurityModel_.get()));
 	pImpl_->pViewTemplateMenu_.reset(new ViewTemplateMenu(
 		pImpl_->pDocument_->getTemplateManager()));
 	pImpl_->pCreateTemplateMenu_.reset(new CreateTemplateMenu(

@@ -63,6 +63,12 @@
 		pActionMap_->addAction(id, p); \
 	} while (0)
 
+#define ADD_ACTION10(name, id, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10) \
+	do { \
+		std::auto_ptr<##name > p(new (##name)(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10)); \
+		pActionMap_->addAction(id, p); \
+	} while (0)
+
 #define ADD_ACTION_RANGE1(name, from, to, arg1) \
 	do { \
 		std::auto_ptr<##name > p(new (##name)(arg1)); \
@@ -114,6 +120,12 @@
 #define ADD_ACTION_RANGE9(name, from, to, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) \
 	do { \
 		std::auto_ptr<##name > p(new (##name)(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)); \
+		pActionMap_->addAction(from, to, p); \
+	} while (0)
+
+#define ADD_ACTION_RANGE10(name, from, to, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10) \
+	do { \
+		std::auto_ptr<##name > p(new (##name)(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10)); \
 		pActionMap_->addAction(from, to, p); \
 	} while (0)
 

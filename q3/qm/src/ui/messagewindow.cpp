@@ -24,6 +24,7 @@
 #include "messageviewwindow.h"
 #include "messagewindow.h"
 #include "resourceinc.h"
+#include "securitymodel.h"
 #include "viewmodel.h"
 #include "../model/templatemanager.h"
 
@@ -40,7 +41,8 @@ using namespace qs;
  */
 
 class qm::MessageWindowImpl :
-	public MessageModelHandler
+	public MessageModelHandler,
+	public SecurityModelHandler
 {
 public:
 	enum {
@@ -63,6 +65,9 @@ public:
 public:
 	virtual void messageChanged(const MessageModelEvent& event);
 
+public:
+	virtual void decryptVerifyChanged(const SecurityModelEvent& event);
+
 private:
 	void fireMessageChanged(MessageHolder* pmh,
 							Message& msg,
@@ -75,12 +80,12 @@ public:
 	bool bRawMode_;
 	bool bHtmlMode_;
 	bool bHtmlOnlineMode_;
-	bool bDecryptVerifyMode_;
 	
 	Profile* pProfile_;
 	const WCHAR* pwszSection_;
 	std::auto_ptr<Accelerator> pAccelerator_;
 	Document* pDocument_;
+	SecurityModel* pSecurityModel_;
 	HeaderWindow* pHeaderWindow_;
 	MessageViewWindow* pMessageViewWindow_;
 	bool bCreated_;
@@ -142,7 +147,7 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 			nFlags |= Account::GETMESSAGEFLAG_HTML;
 		else
 			nFlags |= Account::GETMESSAGEFLAG_TEXT;
-		if (!bDecryptVerifyMode_)
+		if (!pSecurityModel_->isDecryptVerify())
 			nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
 		if (!pmh->getMessage(nFlags, 0, &msg))
 			return false;
@@ -180,9 +185,9 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	
 	if (bShowHeaderWindow_) {
 		if (pAccount) {
-			TemplateContext context(pmh, &msg, pAccount,
-				pDocument_, pThis_->getHandle(), pProfile_, 0,
-				TemplateContext::ArgumentList());
+			TemplateContext context(pmh, &msg, pAccount, pDocument_,
+				pThis_->getHandle(), pSecurityModel_->isDecryptVerify(),
+				pProfile_, 0, TemplateContext::ArgumentList());
 			pHeaderWindow_->setMessage(&context);
 		}
 		else {
@@ -201,7 +206,8 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	
 	unsigned int nFlags = (bRawMode_ ? MessageViewWindow::FLAG_RAWMODE : 0) |
 		(!bShowHeaderWindow_ ? MessageViewWindow::FLAG_INCLUDEHEADER : 0) |
-		(bHtmlOnlineMode_ ? MessageViewWindow::FLAG_ONLINEMODE : 0);
+		(bHtmlOnlineMode_ ? MessageViewWindow::FLAG_ONLINEMODE : 0) |
+		(pSecurityModel_->isDecryptVerify() ? MessageViewWindow::FLAG_DECRYPTVERIFY : 0);
 	if (!pMessageViewWindow->setMessage(pmh, pmh ? &msg : 0,
 		pTemplate, wstrEncoding_.get(), nFlags))
 		return false;
@@ -221,6 +227,12 @@ void qm::MessageWindowImpl::messageChanged(const MessageModelEvent& event)
 	else
 		pThis_->postMessage(WM_MESSAGEMODEL_MESSAGECHANGED, 0,
 			reinterpret_cast<LPARAM>(event.getMessageHolder()));
+}
+
+void qm::MessageWindowImpl::decryptVerifyChanged(const SecurityModelEvent& event)
+{
+	MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
+	setMessage(mpl, false);
 }
 
 void qm::MessageWindowImpl::fireMessageChanged(MessageHolder* pmh,
@@ -253,7 +265,6 @@ qm::MessageWindow::MessageWindow(MessageModel* pMessageModel,
 	pImpl_->bRawMode_ = false;
 	pImpl_->bHtmlMode_ = pProfile->getInt(pwszSection, L"HtmlMode", 0) != 0;
 	pImpl_->bHtmlOnlineMode_ = pProfile->getInt(pwszSection, L"HtmlOnlineMode", 0) != 0;
-	pImpl_->bDecryptVerifyMode_ = pProfile->getInt(pwszSection, L"DecryptVerifyMode", 0) != 0;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pwszSection_ = pwszSection;
 	pImpl_->pDocument_ = 0;
@@ -324,20 +335,6 @@ void qm::MessageWindow::setHtmlOnlineMode(bool bHtmlOnlineMode)
 {
 	if (bHtmlOnlineMode != pImpl_->bHtmlOnlineMode_) {
 		pImpl_->bHtmlOnlineMode_ = bHtmlOnlineMode;
-		MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
-		pImpl_->setMessage(mpl, false);
-	}
-}
-
-bool qm::MessageWindow::isDecryptVerifyMode() const
-{
-	return pImpl_->bDecryptVerifyMode_;
-}
-
-void qm::MessageWindow::setDecryptVerifyMode(bool bDecryptVerifyMode)
-{
-	if (bDecryptVerifyMode != pImpl_->bDecryptVerifyMode_) {
-		pImpl_->bDecryptVerifyMode_ = bDecryptVerifyMode;
 		MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
 		pImpl_->setMessage(mpl, false);
 	}
@@ -443,7 +440,6 @@ bool qm::MessageWindow::save()
 	pProfile->setInt(pImpl_->pwszSection_, L"ShowHeaderWindow", pImpl_->bShowHeaderWindow_);
 	pProfile->setInt(pImpl_->pwszSection_, L"HtmlMode", pImpl_->bHtmlMode_);
 	pProfile->setInt(pImpl_->pwszSection_, L"HtmlOnlineMode", pImpl_->bHtmlOnlineMode_);
-	pProfile->setInt(pImpl_->pwszSection_, L"DecryptVerifyMode", pImpl_->bDecryptVerifyMode_);
 	pProfile->setString(pImpl_->pwszSection_, L"Template",
 		pImpl_->wstrTemplate_.get() ? pImpl_->wstrTemplate_.get() : L"");
 	
@@ -489,6 +485,8 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	MessageWindowCreateContext* pContext =
 		static_cast<MessageWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pDocument_ = pContext->pDocument_;
+	pImpl_->pSecurityModel_ = pContext->pSecurityModel_;
+	pImpl_->pSecurityModel_->addSecurityModelHandler(pImpl_);
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pKeyMap_->createAccelerator(
@@ -525,6 +523,7 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 
 LRESULT qm::MessageWindow::onDestroy()
 {
+	pImpl_->pSecurityModel_->removeSecurityModelHandler(pImpl_);
 	pImpl_->pMessageModel_->removeMessageModelHandler(pImpl_);
 	return DefaultWindowHandler::onDestroy();
 }

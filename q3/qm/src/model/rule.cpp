@@ -51,6 +51,7 @@ bool qm::RuleManager::apply(const Folder* pFolder,
 							Document* pDocument,
 							HWND hwnd,
 							Profile* pProfile,
+							bool bDecryptVerify,
 							RuleCallback* pCallback)
 {
 	assert(pFolder);
@@ -138,8 +139,8 @@ bool qm::RuleManager::apply(const Folder* pFolder,
 		Message msg;
 		for (size_t m = 0; m < pRuleSet->getCount(); ++m) {
 			const Rule* pRule = pRuleSet->getRule(m);
-			MacroContext context(pmh, &msg, pAccount, pDocument,
-				hwnd, pProfile, false, 0, &globalVariable);
+			MacroContext context(pmh, &msg, pAccount, pDocument, hwnd,
+				pProfile, false, bDecryptVerify, 0, &globalVariable);
 			bool bMatch = pRule->match(&context);
 			if (bMatch) {
 				ll[m].push_back(pmh);

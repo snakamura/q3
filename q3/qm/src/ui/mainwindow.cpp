@@ -49,6 +49,7 @@
 #include "messageselectionmodel.h"
 #include "messagewindow.h"
 #include "resourceinc.h"
+#include "securitymodel.h"
 #include "statusbar.h"
 #include "syncdialog.h"
 #include "syncutil.h"
@@ -214,6 +215,7 @@ public:
 	std::auto_ptr<PreviewMessageModel> pPreviewModel_;
 	std::auto_ptr<MessageSelectionModelImpl> pMessageSelectionModel_;
 	std::auto_ptr<MessageSelectionModelImpl> pListOnlyMessageSelectionModel_;
+	std::auto_ptr<DefaultSecurityModel> pSecurityModel_;
 	std::auto_ptr<MessageFrameWindowManager> pMessageFrameWindowManager_;
 	std::auto_ptr<EditFrameWindowManager> pEditFrameWindowManager_;
 	std::auto_ptr<ActionMap> pActionMap_;
@@ -254,24 +256,27 @@ void qm::MainWindowImpl::initActions()
 		pMessageWindow_
 	};
 	
-	ADD_ACTION5(AttachmentOpenAction,
+	ADD_ACTION6(AttachmentOpenAction,
 		IDM_ATTACHMENT_OPEN,
 		pPreviewModel_.get(),
 		pMessageWindow_->getAttachmentSelectionModel(),
+		pSecurityModel_.get(),
 		pProfile_,
 		pTempFileCleaner_,
 		pThis_->getHandle());
-	ADD_ACTION5(AttachmentSaveAction,
+	ADD_ACTION6(AttachmentSaveAction,
 		IDM_ATTACHMENT_SAVE,
 		pPreviewModel_.get(),
 		pMessageWindow_->getAttachmentSelectionModel(),
+		pSecurityModel_.get(),
 		false,
 		pProfile_,
 		pThis_->getHandle());
-	ADD_ACTION5(AttachmentSaveAction,
+	ADD_ACTION6(AttachmentSaveAction,
 		IDM_ATTACHMENT_SAVEALL,
 		pPreviewModel_.get(),
 		pMessageWindow_->getAttachmentSelectionModel(),
+		pSecurityModel_.get(),
 		true,
 		pProfile_,
 		pThis_->getHandle());
@@ -391,9 +396,10 @@ void qm::MainWindowImpl::initActions()
 		pSyncManager_,
 		pTempFileCleaner_,
 		pEditFrameWindowManager_.get());
-	ADD_ACTION2(FileExportAction,
+	ADD_ACTION3(FileExportAction,
 		IDM_FILE_EXPORT,
 		pMessageSelectionModel_.get(),
+		pSecurityModel_.get(),
 		pThis_->getHandle());
 	ADD_ACTION2(FileImportAction,
 		IDM_FILE_IMPORT,
@@ -403,10 +409,11 @@ void qm::MainWindowImpl::initActions()
 		IDM_FILE_OFFLINE,
 		pDocument_,
 		pSyncManager_);
-	ADD_ACTION5(FilePrintAction,
+	ADD_ACTION6(FilePrintAction,
 		IDM_FILE_PRINT,
 		pDocument_,
 		pMessageSelectionModel_.get(),
+		pSecurityModel_.get(),
 		pThis_->getHandle(),
 		pProfile_,
 		pTempFileCleaner_);
@@ -453,39 +460,43 @@ void qm::MainWindowImpl::initActions()
 	ADD_ACTION1(FolderShowSizeAction,
 		IDM_FOLDER_SHOWSIZE,
 		pFolderListWindow_);
-	ADD_ACTION5(MessageApplyRuleAction,
+	ADD_ACTION6(MessageApplyRuleAction,
 		IDM_MESSAGE_APPLYRULE,
 		pDocument_->getRuleManager(),
 		pFolderModel_.get(),
+		pSecurityModel_.get(),
 		pDocument_,
 		pThis_->getHandle(),
 		pProfile_);
-	ADD_ACTION5(MessageApplyRuleAction,
+	ADD_ACTION6(MessageApplyRuleAction,
 		IDM_MESSAGE_APPLYRULESELECTED,
 		pDocument_->getRuleManager(),
 		pMessageSelectionModel_.get(),
+		pSecurityModel_.get(),
 		pDocument_,
 		pThis_->getHandle(),
 		pProfile_);
-	ADD_ACTION_RANGE9(MessageApplyTemplateAction,
+	ADD_ACTION_RANGE10(MessageApplyTemplateAction,
 		IDM_MESSAGE_APPLYTEMPLATE,
 		IDM_MESSAGE_APPLYTEMPLATE + TemplateMenu::MAX_TEMPLATE,
 		pCreateTemplateMenu_.get(),
 		pDocument_,
 		pFolderModel_.get(),
 		pMessageSelectionModel_.get(),
+		pSecurityModel_.get(),
 		pEditFrameWindowManager_.get(),
 		pExternalEditorManager_.get(),
 		pThis_->getHandle(),
 		pProfile_,
 		false);
-	ADD_ACTION_RANGE9(MessageApplyTemplateAction,
+	ADD_ACTION_RANGE10(MessageApplyTemplateAction,
 		IDM_MESSAGE_APPLYTEMPLATEEXTERNAL,
 		IDM_MESSAGE_APPLYTEMPLATEEXTERNAL + TemplateMenu::MAX_TEMPLATE,
 		pCreateTemplateExternalMenu_.get(),
 		pDocument_,
 		pFolderModel_.get(),
 		pMessageSelectionModel_.get(),
+		pSecurityModel_.get(),
 		pEditFrameWindowManager_.get(),
 		pExternalEditorManager_.get(),
 		pThis_->getHandle(),
@@ -512,22 +523,24 @@ void qm::MainWindowImpl::initActions()
 		{ IDM_MESSAGE_REPLYALL,	IDM_MESSAGE_REPLYALLEXTERNAL,	L"reply_all"	},
 	};
 	for (int n = 0; n < countof(creates); ++n) {
-		ADD_ACTION9(MessageCreateAction,
+		ADD_ACTION10(MessageCreateAction,
 			creates[n].nId_,
 			pDocument_,
 			pFolderModel_.get(),
 			pMessageSelectionModel_.get(),
+			pSecurityModel_.get(),
 			creates[n].pwszName_,
 			pEditFrameWindowManager_.get(),
 			pExternalEditorManager_.get(),
 			pThis_->getHandle(),
 			pProfile_,
 			false);
-		ADD_ACTION9(MessageCreateAction,
+		ADD_ACTION10(MessageCreateAction,
 			creates[n].nIdExternal_,
 			pDocument_,
 			pFolderModel_.get(),
 			pMessageSelectionModel_.get(),
+			pSecurityModel_.get(),
 			creates[n].pwszName_,
 			pEditFrameWindowManager_.get(),
 			pExternalEditorManager_.get(),
@@ -536,32 +549,37 @@ void qm::MainWindowImpl::initActions()
 			true);
 	}
 	
-	ADD_ACTION5(MessageCreateFromClipboardAction,
+	ADD_ACTION6(MessageCreateFromClipboardAction,
 		IDM_MESSAGE_CREATEFROMCLIPBOARD,
 		false,
 		pDocument_,
 		pProfile_,
 		pThis_->getHandle(),
-		pFolderModel_.get());
-	ADD_ACTION2(MessageDeleteAttachmentAction,
+		pFolderModel_.get(),
+		pSecurityModel_.get());
+	ADD_ACTION3(MessageDeleteAttachmentAction,
 		IDM_MESSAGE_DELETEATTACHMENT,
 		pMessageSelectionModel_.get(),
+		pSecurityModel_.get(),
 		pThis_->getHandle());
-	ADD_ACTION3(MessageDetachAction,
+	ADD_ACTION4(MessageDetachAction,
 		IDM_MESSAGE_DETACH,
 		pProfile_,
 		pMessageSelectionModel_.get(),
+		pSecurityModel_.get(),
 		pThis_->getHandle());
-	ADD_ACTION5(MessageCreateFromClipboardAction,
+	ADD_ACTION6(MessageCreateFromClipboardAction,
 		IDM_MESSAGE_DRAFTFROMCLIPBOARD,
 		true,
 		pDocument_,
 		pProfile_,
 		pThis_->getHandle(),
-		pFolderModel_.get());
-	ADD_ACTION_RANGE4(MessageOpenAttachmentAction,
+		pFolderModel_.get(),
+		pSecurityModel_.get());
+	ADD_ACTION_RANGE5(MessageOpenAttachmentAction,
 		IDM_MESSAGE_ATTACHMENT,
 		IDM_MESSAGE_ATTACHMENT + AttachmentMenu::MAX_ATTACHMENT,
+		pSecurityModel_.get(),
 		pProfile_,
 		pAttachmentMenu_.get(),
 		pTempFileCleaner_,
@@ -604,11 +622,12 @@ void qm::MainWindowImpl::initActions()
 		pMessageSelectionModel_.get(),
 		pProfile_,
 		pThis_->getHandle());
-	ADD_ACTION8(MessageOpenURLAction,
+	ADD_ACTION9(MessageOpenURLAction,
 		IDM_MESSAGE_OPENURL,
 		pDocument_,
 		pFolderModel_.get(),
 		pMessageSelectionModel_.get(),
+		pSecurityModel_.get(),
 		pEditFrameWindowManager_.get(),
 		pExternalEditorManager_.get(),
 		pThis_->getHandle(),
@@ -618,9 +637,10 @@ void qm::MainWindowImpl::initActions()
 		IDM_MESSAGE_PROPERTY,
 		pMessageSelectionModel_.get(),
 		pThis_->getHandle());
-	ADD_ACTION4(MessageSearchAction,
+	ADD_ACTION5(MessageSearchAction,
 		IDM_MESSAGE_SEARCH,
 		pFolderModel_.get(),
+		pSecurityModel_.get(),
 		pDocument_,
 		pThis_->getHandle(),
 		pProfile_);
@@ -689,11 +709,11 @@ void qm::MainWindowImpl::initActions()
 	ADD_ACTION1(ViewLockPreviewAction,
 		IDM_VIEW_LOCKPREVIEW,
 		pPreviewModel_.get());
-	ADD_ACTION4(ViewMessageModeAction,
+	ADD_ACTION4(ViewSecurityAction,
 		IDM_VIEW_DECRYPTVERIFYMODE,
-		pMessageWindow_,
-		&MessageWindow::isDecryptVerifyMode,
-		&MessageWindow::setDecryptVerifyMode,
+		pSecurityModel_.get(),
+		&SecurityModel::isDecryptVerify,
+		&SecurityModel::setDecryptVerify,
 		Security::isEnabled());
 	ADD_ACTION1(ViewEncodingAction,
 		IDM_VIEW_ENCODINGAUTODETECT,
@@ -785,11 +805,12 @@ void qm::MainWindowImpl::initActions()
 		&MessageWindow::isRawMode,
 		&MessageWindow::setRawMode,
 		true);
-	ADD_ACTION6(ViewRefreshAction,
+	ADD_ACTION7(ViewRefreshAction,
 		IDM_VIEW_REFRESH,
 		pSyncManager_,
 		pDocument_,
 		pFolderModel_.get(),
+		pSecurityModel_.get(),
 		pSyncDialogManager_,
 		pThis_->getHandle(),
 		pProfile_);
@@ -1021,8 +1042,8 @@ void qm::MainWindowImpl::folderSelected(const FolderModelEvent& event)
 	}
 	
 	if (pFolder->getType() == Folder::TYPE_QUERY)
-		static_cast<QueryFolder*>(pFolder)->search(
-			pDocument_, pThis_->getHandle(), pProfile_);
+		static_cast<QueryFolder*>(pFolder)->search(pDocument_,
+			pThis_->getHandle(), pProfile_, pSecurityModel_->isDecryptVerify());
 }
 
 Account* qm::MainWindowImpl::getAccount()
@@ -1379,6 +1400,8 @@ bool qm::MainWindow::save()
 	
 	UIUtil::saveWindowPlacement(getHandle(), pProfile, L"MainWindow");
 	
+	pProfile->setInt(L"MainWindow", L"DecryptVerify", pImpl_->pSecurityModel_->isDecryptVerify());
+	
 	if (!FrameWindow::save())
 		return false;
 	
@@ -1647,17 +1670,20 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	pImpl_->pFolderModel_.reset(new DefaultFolderModel());
 	pImpl_->pFolderListModel_.reset(new FolderListModel());
+	pImpl_->pSecurityModel_.reset(new DefaultSecurityModel(
+		pImpl_->pProfile_->getInt(L"MainWindow", L"DecryptVerify", 0) != 0));
 	pImpl_->pViewModelManager_.reset(new ViewModelManager(pImpl_->pProfile_,
-		pImpl_->pDocument_, getHandle(), pImpl_->pFolderModel_.get()));
+		pImpl_->pDocument_, getHandle(), pImpl_->pSecurityModel_.get()));
 	pImpl_->pPreviewModel_.reset(new PreviewMessageModel(
 		pImpl_->pViewModelManager_.get(), pImpl_->bShowPreviewWindow_));
 	pImpl_->pEditFrameWindowManager_.reset(new EditFrameWindowManager(
 		pImpl_->pDocument_, pImpl_->pSyncManager_, pImpl_->pSyncDialogManager_,
-		pContext->pKeyMap_, pImpl_->pProfile_,
-		pContext->pMenuManager_, pContext->pToolbarManager_));
+		pContext->pKeyMap_, pImpl_->pProfile_, pContext->pMenuManager_,
+		pContext->pToolbarManager_, pImpl_->pSecurityModel_.get()));
 	pImpl_->pExternalEditorManager_.reset(new ExternalEditorManager(
 		pImpl_->pDocument_, pImpl_->pProfile_, getHandle(),
-		pImpl_->pTempFileCleaner_, pImpl_->pFolderModel_.get()));
+		pImpl_->pTempFileCleaner_, pImpl_->pFolderModel_.get(),
+		pImpl_->pSecurityModel_.get()));
 	pImpl_->pMessageFrameWindowManager_.reset(new MessageFrameWindowManager(
 		pImpl_->pDocument_, pImpl_->pTempFileCleaner_, pContext->pMenuManager_,
 		pContext->pToolbarManager_, pContext->pKeyMap_, pImpl_->pProfile_,
@@ -1764,7 +1790,8 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	MessageWindowCreateContext messageContext = {
 		pContext->pDocument_,
 		pContext->pMenuManager_,
-		pContext->pKeyMap_
+		pContext->pKeyMap_,
+		pImpl_->pSecurityModel_.get(),
 	};
 	if (!pMessageWindow->create(L"QmMessageWindow",
 		0, dwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
@@ -1818,7 +1845,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pFilterMenu_.reset(new FilterMenu(
 		pImpl_->pViewModelManager_->getFilterManager()));
 	pImpl_->pSortMenu_.reset(new SortMenu(pImpl_->pViewModelManager_.get()));
-	pImpl_->pAttachmentMenu_.reset(new AttachmentMenu());
+	pImpl_->pAttachmentMenu_.reset(new AttachmentMenu(pImpl_->pSecurityModel_.get()));
 	pImpl_->pViewTemplateMenu_.reset(new ViewTemplateMenu(
 		pImpl_->pDocument_->getTemplateManager()));
 	pImpl_->pCreateTemplateMenu_.reset(new CreateTemplateMenu(

@@ -234,7 +234,8 @@ public:
 			 bool bRecursive);
 	bool search(Document* pDocument,
 				HWND hwnd,
-				qs::Profile* pProfile);
+				qs::Profile* pProfile,
+				bool bDecryptVerify);
 
 public:
 	virtual Type getType() const;

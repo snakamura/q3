@@ -48,6 +48,7 @@ class EditFrameWindow;
 class EditMessageHolder;
 class EditWindow;
 class FindReplaceManager;
+class SecurityModel;
 
 
 /****************************************************************************
@@ -384,13 +385,15 @@ public:
 					   Document* pDocument,
 					   EditMessageHolder* pEditMessageHolder,
 					   EditFrameWindow* pEditFrameWindow,
-					   qs::Profile* pProfile);
+					   qs::Profile* pProfile,
+					   SecurityModel* pSecurityModel);
 	EditFileSendAction(Document* pDocument,
 					   EditMessageHolder* pEditMessageHolder,
 					   EditFrameWindow* pEditFrameWindow,
 					   qs::Profile* pProfile,
 					   SyncManager* pSyncManager,
-					   SyncDialogManager* pSyncDialogManager);
+					   SyncDialogManager* pSyncDialogManager,
+					   SecurityModel* pSecurityModel);
 	virtual ~EditFileSendAction();
 
 public:
@@ -407,6 +410,7 @@ private:
 	Document* pDocument_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
+	SecurityModel* pSecurityModel_;
 };
 
 

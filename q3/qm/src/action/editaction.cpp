@@ -602,8 +602,9 @@ qm::EditFileSendAction::EditFileSendAction(bool bDraft,
 										   Document* pDocument,
 										   EditMessageHolder* pEditMessageHolder,
 										   EditFrameWindow* pEditFrameWindow,
-										   Profile* pProfile) :
-	composer_(bDraft, pDocument, pProfile, pEditFrameWindow->getHandle(), 0),
+										   Profile* pProfile,
+										   SecurityModel* pSecurityModel) :
+	composer_(bDraft, pDocument, pProfile, pEditFrameWindow->getHandle(), 0, pSecurityModel),
 	pEditMessageHolder_(pEditMessageHolder),
 	pEditFrameWindow_(pEditFrameWindow),
 	pDocument_(0),
@@ -617,8 +618,9 @@ qm::EditFileSendAction::EditFileSendAction(Document* pDocument,
 										   EditFrameWindow* pEditFrameWindow,
 										   Profile* pProfile,
 										   SyncManager* pSyncManager,
-										   SyncDialogManager* pSyncDialogManager) :
-	composer_(false, pDocument, pProfile, pEditFrameWindow->getHandle(), 0),
+										   SyncDialogManager* pSyncDialogManager,
+										   SecurityModel* pSecurityModel) :
+	composer_(false, pDocument, pProfile, pEditFrameWindow->getHandle(), 0, pSecurityModel),
 	pEditMessageHolder_(pEditMessageHolder),
 	pEditFrameWindow_(pEditFrameWindow),
 	pDocument_(pDocument),

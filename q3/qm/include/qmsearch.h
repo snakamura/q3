@@ -157,14 +157,16 @@ public:
 
 public:
 	SearchContext(const WCHAR* pwszCondition,
-				 const WCHAR* pwszTargetFolder,
-				 bool bRecursive);
+				  const WCHAR* pwszTargetFolder,
+				  bool bRecursive,
+				  bool bDecryptVerify);
 	~SearchContext();
 
 public:
 	const WCHAR* getCondition() const;
 	const WCHAR* getTargetFolder() const;
 	bool isRecursive() const;
+	bool isDecryptVerify() const;
 	void getTargetFolders(Account* pAccount,
 						  FolderList* pList) const;
 
@@ -176,6 +178,7 @@ private:
 	qs::wstring_ptr wstrCondition_;
 	qs::wstring_ptr wstrTargetFolder_;
 	bool bRecursive_;
+	bool bDecryptVerify_;
 };
 
 #pragma warning(pop)

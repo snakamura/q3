@@ -43,6 +43,7 @@ class Folder;
 class MacroVariableHolder;
 class MessageHolder;
 class Macro;
+class SecurityModel;
 
 
 /****************************************************************************
@@ -221,6 +222,7 @@ public:
 			  qs::Profile* pProfile,
 			  Document* pDocument,
 			  HWND hwnd,
+			  SecurityModel* pSecurityModel,
 			  const ColorManager* pColorManager);
 	~ViewModel();
 
@@ -347,6 +349,7 @@ private:
 	qs::Profile* pProfile_;
 	Document* pDocument_;
 	HWND hwnd_;
+	SecurityModel* pSecurityModel_;
 	const ColorSet* pColorSet_;
 	ColumnList listColumn_;
 	ItemList listItem_;
@@ -467,7 +470,7 @@ public:
 	ViewModelManager(qs::Profile* pProfile,
 					 Document* pDocument,
 					 HWND hwnd,
-					 FolderModel* pFolderModel);
+					 SecurityModel* pSecurityModel);
 	~ViewModelManager();
 
 public:
@@ -512,6 +515,7 @@ private:
 	qs::Profile* pProfile_;
 	Document* pDocument_;
 	HWND hwnd_;
+	SecurityModel* pSecurityModel_;
 	Account* pCurrentAccount_;
 	ViewModelList listViewModel_;
 	ViewModel* pCurrentViewModel_;

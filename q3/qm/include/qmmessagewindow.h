@@ -144,8 +144,6 @@ public:
 	void setHtmlMode(bool bHtmlMode);
 	bool isHtmlOnlineMode() const;
 	void setHtmlOnlineMode(bool bHtmlOnlineMode);
-	bool isDecryptVerifyMode() const;
-	void setDecryptVerifyMode(bool bDecryptVerifyMode);
 	const WCHAR* getEncoding() const;
 	void setEncoding(const WCHAR* pwszEncoding);
 	const WCHAR* getTemplate() const;

@@ -22,6 +22,7 @@ class EditFrameWindowManager;
 
 class Document;
 class EditMessage;
+class SecurityModel;
 class SyncDialogManager;
 class SyncManager;
 
@@ -41,7 +42,8 @@ public:
 						   qs::KeyMap* pKeyMap,
 						   qs::Profile* pProfile,
 						   qs::MenuManager* pMenuManager,
-						   qs::ToolbarManager* pToolbarManager);
+						   qs::ToolbarManager* pToolbarManager,
+						   SecurityModel* pSecurityModel);
 	~EditFrameWindowManager();
 
 public:
@@ -66,6 +68,7 @@ private:
 	qs::Profile* pProfile_;
 	qs::MenuManager* pMenuManager_;
 	qs::ToolbarManager* pToolbarManager_;
+	SecurityModel* pSecurityModel_;
 	FrameList listFrame_;
 };
 
@@ -84,6 +87,7 @@ struct EditFrameWindowCreateContext
 	qs::MenuManager* pMenuManager_;
 	qs::ToolbarManager* pToolbarManager_;
 	qs::KeyMap* pKeyMap_;
+	SecurityModel* pSecurityModel_;
 };
 
 }

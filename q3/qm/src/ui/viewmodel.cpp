@@ -17,6 +17,7 @@
 
 #include <algorithm>
 
+#include "securitymodel.h"
 #include "viewmodel.h"
 #include "../model/color.h"
 #include "../model/filter.h"
@@ -332,12 +333,14 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 						 Profile* pProfile,
 						 Document* pDocument,
 						 HWND hwnd,
+						 SecurityModel* pSecurityModel,
 						 const ColorManager* pColorManager) :
 	pViewModelManager_(pViewModelManager),
 	pFolder_(pFolder),
 	pProfile_(pProfile),
 	pDocument_(pDocument),
 	hwnd_(hwnd),
+	pSecurityModel_(pSecurityModel),
 	pColorSet_(0),
 	nUnseenCount_(0),
 	nSort_(SORT_ASCENDING | SORT_NOTHREAD),
@@ -441,7 +444,8 @@ const ViewModelItem* qm::ViewModel::getItem(unsigned int n)
 		if (pColorSet_) {
 			Message msg;
 			MacroContext context(pmh, &msg, pFolder_->getAccount(),
-				pDocument_, hwnd_, pProfile_, true, 0, 0);
+				pDocument_, hwnd_, pProfile_, true,
+				/*pSecurityModel_->isDecryptVerify()*/false, 0, 0);
 			cr = pColorSet_->getColor(&context);
 		}
 		pItem->setColor(cr);
@@ -767,7 +771,8 @@ void qm::ViewModel::messageAdded(const FolderEvent& event)
 	if (pFilter_) {
 		Message msg;
 		MacroContext context(pmh, &msg, pFolder_->getAccount(),
-			pDocument_, hwnd_, pProfile_, false, 0, 0);
+			pDocument_, hwnd_, pProfile_, false,
+			/*pSecurityModel_->isDecryptVerify()*/false, 0, 0);
 		bAdd = pFilter_->match(&context);
 	}
 	
@@ -1150,7 +1155,8 @@ void qm::ViewModel::update(bool bRestoreSelection)
 		if (pFilter_) {
 			Message msg;
 			MacroContext context(pmh, &msg, pFolder_->getAccount(),
-				pDocument_, hwnd_, pProfile_, false, 0, &globalVariable);
+				pDocument_, hwnd_, pProfile_, false,
+				/*pSecurityModel_->isDecryptVerify()*/false, 0, &globalVariable);
 			bAdd = pFilter_->match(&context);
 		}
 		if (bAdd) {
@@ -1417,10 +1423,11 @@ qm::ViewModelHolder::~ViewModelHolder()
 qm::ViewModelManager::ViewModelManager(Profile* pProfile,
 									   Document* pDocument,
 									   HWND hwnd,
-									   FolderModel* pFolderModel) :
+									   SecurityModel* pSecurityModel) :
 	pProfile_(pProfile),
 	pDocument_(pDocument),
 	hwnd_(hwnd),
+	pSecurityModel_(pSecurityModel),
 	pCurrentAccount_(0),
 	pCurrentViewModel_(0)
 {
@@ -1472,8 +1479,8 @@ ViewModel* qm::ViewModelManager::getViewModel(Folder* pFolder)
 		return *it;
 	
 	Profile* pProfile = getProfile(pFolder);
-	std::auto_ptr<ViewModel> pViewModel(new ViewModel(this,
-		pFolder, pProfile, pDocument_, hwnd_, pColorManager_.get()));
+	std::auto_ptr<ViewModel> pViewModel(new ViewModel(this, pFolder, pProfile,
+		pDocument_, hwnd_, pSecurityModel_, pColorManager_.get()));
 	listViewModel_.push_back(pViewModel.get());
 	return pViewModel.release();
 }
