@@ -1034,10 +1034,16 @@ int qm::FolderWindowImpl::getFolderImage(Folder* pFolder,
 		bUnseen = pFolder->getUnseenCount() != 0;
 	}
 	else {
+		const unsigned int nIgnore =
+			(Folder::FLAG_BOX_MASK & ~Folder::FLAG_INBOX) |
+			Folder::FLAG_IGNOREUNSEEN;
+		
 		const Account::FolderList& l = pFolder->getAccount()->getFolders();
 		for (Account::FolderList::const_iterator it = l.begin(); it != l.end() && !bUnseen; ++it) {
-			if (pFolder == *it || pFolder->isAncestorOf(*it))
-				bUnseen = (*it)->getUnseenCount() != 0;
+			Folder* p = *it;
+			if (p == pFolder ||
+				((p->getFlags() & nIgnore) == 0 && pFolder->isAncestorOf(p)))
+				bUnseen = p->getUnseenCount() != 0;
 		}
 	}
 	
@@ -1057,7 +1063,7 @@ int qm::FolderWindowImpl::getAccountImage(Account* pAccount,
 	const Account::FolderList& l = pAccount->getFolders();
 	for (Account::FolderList::const_iterator it = l.begin(); it != l.end() && !bUnseen; ++it) {
 		Folder* pFolder = *it;
-		if (!(pFolder->getFlags() & nIgnore))
+		if ((pFolder->getFlags() & nIgnore) == 0)
 			bUnseen = pFolder->getUnseenCount() != 0;
 	}
 	
